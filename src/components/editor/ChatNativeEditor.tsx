@@ -43,6 +43,7 @@ import {
   type LocalPrivateInternalQaSummary,
   type LocalPrivateInternalReviewVideoExpectation,
   type LocalPrivateInternalReviewVideoMetadata,
+  type LocalSourcePreparationRecovery,
   type LocalSourceSetFingerprint,
   updateLocalInternalEditHandoff as updateScopedLocalInternalEditHandoff,
 } from '../../lib/local-project-handoff'
@@ -105,7 +106,10 @@ import {
   readEditBriefLocalPreviewFile,
   saveEditBriefLocalPreviewFile,
 } from '../../lib/edit-brief-local-preview-session'
-import type { MockFootagePrepInput } from '../../lib/footage-prep'
+import {
+  createSourceBoundFootagePrepInputFingerprint,
+  type MockFootagePrepInput,
+} from '../../lib/footage-prep'
 import {
   createExecutionSourceMediaAssetsFromClips,
   createExecutionSourceMediaAssetsFromPlannedUploads,
@@ -430,6 +434,38 @@ function buildFootagePrepInputFromEditorSources(input: {
         sourceMetadataAuthority: sourceMetadata ? 'verified_private_upload_probe' : undefined,
       }
     }),
+  }
+}
+
+function resolveRecoveredFootagePrepInput(input: {
+  clips: ClipSource[]
+  projectId: string
+  recovery: LocalSourcePreparationRecovery | undefined
+  sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
+  userId: string
+  workspaceId: string
+}): MockFootagePrepInput | undefined {
+  if (!input.recovery) return undefined
+  const durableSources = durableUploadedPrivateSourceAssets(input.sourceMediaAssets)
+  if (
+    createLocalSourceSetFingerprint(durableSources) !== input.recovery.sourceSetFingerprint
+  ) {
+    return undefined
+  }
+
+  try {
+    const prepInput = buildFootagePrepInputFromEditorSources({
+      clips: input.clips,
+      projectId: input.projectId,
+      sourceMediaAssets: durableSources,
+      userId: input.userId,
+      workspaceId: input.workspaceId,
+    })
+    return createSourceBoundFootagePrepInputFingerprint(prepInput) === input.recovery.inputFingerprint
+      ? prepInput
+      : undefined
+  } catch {
+    return undefined
   }
 }
 
@@ -1316,6 +1352,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         ? []
       : createExecutionSourceMediaAssetsFromClips(initialScenario.clips, editorProjectId),
   )
+  const [sourcePreparationRecovery, setSourcePreparationRecovery] =
+    useState<LocalSourcePreparationRecovery | undefined>(
+      () => restoredSetup?.sourcePreparationRecovery,
+    )
   const [activeEditBriefState, setActiveEditBriefState] = useState<EditBriefState | undefined>(
     () => localProjectHandoff?.editBriefState,
   )
@@ -1603,12 +1643,27 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     projectPersistenceScope.workspaceId,
   ])
 
+  const recoveredFootagePrepInput = useMemo(() => resolveRecoveredFootagePrepInput({
+    clips,
+    projectId: editorProjectId,
+    recovery: sourcePreparationRecovery,
+    sourceMediaAssets,
+    userId: editorOperationUserId,
+    workspaceId: projectPersistenceScope.workspaceId,
+  }), [
+    clips,
+    editorOperationUserId,
+    editorProjectId,
+    projectPersistenceScope.workspaceId,
+    sourceMediaAssets,
+    sourcePreparationRecovery,
+  ])
   const {
     isRunning: footagePrepRunning,
     resetPrep: resetFootagePrep,
     result: footagePrepResult,
     runSourceBoundPrep: runSourceBoundFootagePrep,
-  } = useMockFootagePrep()
+  } = useMockFootagePrep({ initialSourceBoundInput: recoveredFootagePrepInput })
   const effectivePreviewReady = previewReady || Boolean(contextMockPreview) || Boolean(privateInternalTestRun?.privateInternalDownloadPath)
   const currentEditPreferencesLocked = Boolean(
     approvalChecking ||
@@ -2333,6 +2388,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       referenceUrl,
       referenceSkipped,
       referenceFocusSelections,
+      sourcePreparationRecovery,
       ...overrides,
     }
   }
@@ -2495,6 +2551,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     setSourceOrderConfirmed(false)
     setCleanupPreferenceConfirmed(false)
     setEditBriefGate({ ready: false, status: null })
+    setSourcePreparationRecovery(undefined)
     resetFootagePrep()
     resetPlanProgress()
   }
@@ -2523,6 +2580,29 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       workspaceId: projectPersistenceScope.workspaceId,
     })
     const prepResult = runSourceBoundFootagePrep(sourceBoundPrepInput)
+    const durableSources = durableUploadedPrivateSourceAssets(sourceMediaAssets)
+    const sourceSetFingerprint = createLocalSourceSetFingerprint(durableSources)
+    if (!sourceSetFingerprint) {
+      resetFootagePrep()
+      showRevisionMessage('Source prep could not be recovered because the exact private source identity was incomplete.')
+      return
+    }
+    const recovery: LocalSourcePreparationRecovery = {
+      version: 'browser-local-source-preparation-recovery-v1',
+      sourceSetFingerprint,
+      inputFingerprint: createSourceBoundFootagePrepInputFingerprint(sourceBoundPrepInput),
+      sourceSequenceMode,
+      cleanupPreference,
+      preparedAt: new Date().toISOString(),
+      canonicalPlanningAuthority: false,
+    }
+    setSourcePreparationRecovery(recovery)
+    updateLocalInternalEditHandoff(editorProjectId, editorEditSessionId, {
+      stage: 'source_uploaded',
+      sourceFileCount: durableSources.length,
+      setup: createCurrentEditSetupSnapshot({ sourcePreparationRecovery: recovery }),
+      sourceMediaAssets: durableSources,
+    })
     clearRuntimeMessages()
     resetPlanProgress()
     showRevisionMessage(
@@ -2616,6 +2696,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       preferenceOverrideKeys: getCurrentEditPreferenceOverrideKeys(next, currentEditPreferenceBaseline),
       preferenceRevision: receipt.committedPreferenceRevision,
       preferenceUpdatedAt: receipt.committedAt,
+      sourcePreparationRecovery: requiresSourcePreparation ? undefined : sourcePreparationRecovery,
     }, { syncBackend: false })
 
     setEditLevel(next.editLevel)
@@ -2635,7 +2716,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     setCurrentEditPreferenceDraftDirty(false)
     setCurrentEditPreferenceApplyEpoch((value) => value + 1)
 
-    if (requiresSourcePreparation) resetFootagePrep()
+    if (requiresSourcePreparation) {
+      setSourcePreparationRecovery(undefined)
+      resetFootagePrep()
+    }
     if (requiresFrameConfirmation) {
       setAspectRatioConfirmed(false)
       setAspectRatioSource('unknown')
@@ -3432,11 +3516,19 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   }
 
   function handleCleanupPreferenceSelect(preference: CleanupPreference) {
+    const invalidatesSourcePreparation =
+      preference !== cleanupPreference &&
+      Boolean(footagePrepResult || sourcePreparationRecovery)
     setCleanupPreference(preference)
     setCleanupPreferenceConfirmed(false)
+    if (invalidatesSourcePreparation) {
+      setSourcePreparationRecovery(undefined)
+      resetFootagePrep()
+    }
     persistCurrentEditSetupAfterPlanInvalidation({
       cleanupPreference: preference,
       cleanupPreferenceConfirmed: false,
+      sourcePreparationRecovery: invalidatesSourcePreparation ? undefined : sourcePreparationRecovery,
     })
   }
 
@@ -4598,6 +4690,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     if (invalidatesCleanupPreference && materialResolution.next.cleanupPreference) {
       setCleanupPreference(materialResolution.next.cleanupPreference)
       setCleanupPreferenceConfirmed(true)
+      setSourcePreparationRecovery(undefined)
       resetFootagePrep()
     }
     if (materialResolution.changedFields.includes('moodStyle')) {
@@ -4643,6 +4736,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       creditPreference: materialResolution.next.creditPreference,
       preferenceRevision: nextPreferenceRevision,
       preferenceUpdatedAt: nextPreferenceUpdatedAt,
+      sourcePreparationRecovery: invalidatesCleanupPreference ? undefined : sourcePreparationRecovery,
     }, {
       revisionPlanContext: typedRevisionPlanContext,
     })

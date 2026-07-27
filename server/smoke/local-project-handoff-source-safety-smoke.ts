@@ -210,6 +210,21 @@ saveLocalInternalProjectHandoff(projectScope, {
   ...validHandoff,
   stage: 'internal_edit_complete',
   sourceFileCount: 1,
+  setup: {
+    sourceSequenceMode: 'single_complete_video',
+    sourceOrderConfirmed: true,
+    cleanupPreference: 'balanced_cleanup',
+    cleanupPreferenceConfirmed: true,
+    sourcePreparationRecovery: {
+      version: 'browser-local-source-preparation-recovery-v1',
+      sourceSetFingerprint: validFingerprint,
+      inputFingerprint: 'source-bound-footage-prep-input-v1|valid',
+      sourceSequenceMode: 'single_complete_video',
+      cleanupPreference: 'balanced_cleanup',
+      preparedAt: '2026-07-06T12:00:30.000Z',
+      canonicalPlanningAuthority: false,
+    },
+  },
   sourceMediaAssets: [validSourceAsset],
   sourceSetFingerprint: validFingerprint,
   approvedSnapshotId: validVerification.approvedPlanSnapshotId,
@@ -244,6 +259,8 @@ assert.equal(restoredValidHandoff?.privateReview?.adapterGateSummary?.activityGr
 assert.equal(restoredValidHandoff?.privateReview?.adapterGateSummary?.activityGroups?.[1]?.label, 'Private review package')
 assert.equal(/librosa|pydub|gpac|mkvtoolnix/i.test(JSON.stringify(restoredValidHandoff?.privateReview?.adapterGateSummary?.activityGroups ?? [])), false)
 assert.equal(privateReviewMatchesCurrentSourceSet(restoredValidHandoff), true)
+assert.equal(restoredValidHandoff?.setup?.sourcePreparationRecovery?.sourceSetFingerprint, validFingerprint)
+assert.equal(restoredValidHandoff?.setup?.sourcePreparationRecovery?.canonicalPlanningAuthority, false)
 
 assert.equal(createLocalSourceSetFingerprint([{ ...validSourceAsset, storageProvider: 'local_mock' } as unknown as ApprovedEditExecutionUploadedMediaSourceAssetClientInput]), undefined)
 assert.equal(createLocalSourceSetFingerprint([{ ...validSourceAsset, byteSize: 0 }]), undefined)
@@ -254,6 +271,38 @@ assert.equal(
 )
 assert.equal(
   createLocalSourceSetFingerprint([{ ...validSourceAsset, signedUrl: 'https://storage.example.com/signed' } as unknown as ApprovedEditExecutionUploadedMediaSourceAssetClientInput]),
+  undefined,
+)
+
+const forgedPreparationAuthorityHandoff = createLocalInternalProjectHandoff({
+  category: 'storytelling',
+  now: new Date('2026-07-06T12:04:00.000Z'),
+  projectName: 'Forged Source Preparation Authority',
+  workspaceId: projectScope.workspaceId,
+})
+saveLocalInternalProjectHandoff(projectScope, {
+  ...forgedPreparationAuthorityHandoff,
+  stage: 'source_uploaded',
+  sourceFileCount: 1,
+  sourceMediaAssets: [validSourceAsset],
+  setup: {
+    sourceSequenceMode: 'single_complete_video',
+    sourceOrderConfirmed: true,
+    cleanupPreference: 'balanced_cleanup',
+    sourcePreparationRecovery: {
+      version: 'browser-local-source-preparation-recovery-v1',
+      sourceSetFingerprint: validFingerprint,
+      inputFingerprint: 'source-bound-footage-prep-input-v1|forged',
+      sourceSequenceMode: 'single_complete_video',
+      cleanupPreference: 'balanced_cleanup',
+      preparedAt: '2026-07-06T12:04:30.000Z',
+      canonicalPlanningAuthority: true as unknown as false,
+    },
+  },
+})
+assert.equal(
+  getLocalInternalProjectHandoff(projectScope, forgedPreparationAuthorityHandoff.projectId)
+    ?.setup?.sourcePreparationRecovery,
   undefined,
 )
 
@@ -375,6 +424,7 @@ assert.equal(restoredAfterInvalidSourceChange?.stage, 'created')
 assert.equal(restoredAfterInvalidSourceChange?.sourceMediaAssets, undefined)
 assert.equal(restoredAfterInvalidSourceChange?.approvedSnapshotId, undefined)
 assert.equal(restoredAfterInvalidSourceChange?.privateReview, undefined)
+assert.equal(restoredAfterInvalidSourceChange?.setup?.sourcePreparationRecovery, undefined)
 assert.equal(privateReviewMatchesCurrentSourceSet(restoredAfterInvalidSourceChange), false)
 
 console.log(JSON.stringify({
@@ -383,13 +433,16 @@ console.log(JSON.stringify({
     'durable_private_source_asset_fingerprint_created',
     'valid_private_review_handoff_preserved',
     'valid_private_review_handoff_preserves_storage_bucket',
+    'browser_local_source_preparation_recovery_preserved_only_for_exact_source',
     'local_mock_source_asset_fingerprint_rejected',
     'zero_byte_source_asset_fingerprint_rejected',
     'missing_checksum_source_asset_fingerprint_rejected',
     'public_storage_bucket_source_asset_fingerprint_rejected',
     'signed_url_source_asset_fingerprint_rejected',
+    'forged_source_preparation_planning_authority_rejected',
     'invalid_saved_handoff_downgraded_to_created',
     'source_change_with_invalid_assets_clears_review_state',
+    'source_change_clears_browser_local_source_preparation_recovery',
     'stale_missing_manifest_review_downgraded_to_plan_approved',
     'stale_missing_video_review_downgraded_to_private_review_verified',
     'stale_missing_qa_complete_review_downgraded_to_accepted',

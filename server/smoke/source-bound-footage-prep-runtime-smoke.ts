@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import {
+  createSourceBoundFootagePrepInputFingerprint,
   runSourceBoundFootagePrep,
   type MockFootagePrepInput,
 } from '../../src/lib/footage-prep'
@@ -42,8 +43,20 @@ const input: MockFootagePrepInput = {
 }
 
 const result = runSourceBoundFootagePrep(input)
+const inputFingerprint = createSourceBoundFootagePrepInputFingerprint(input)
 
 assert.equal(result.cleanAssembly.durationMs, 8_000)
+assert.equal(createSourceBoundFootagePrepInputFingerprint(structuredClone(input)), inputFingerprint)
+assert.notEqual(createSourceBoundFootagePrepInputFingerprint({
+  ...input,
+  sourceMedia: input.sourceMedia.map((source, index) => index === 0
+    ? { ...source, durationMs: source.durationMs + 1 }
+    : source),
+}), inputFingerprint)
+assert.notEqual(createSourceBoundFootagePrepInputFingerprint({
+  ...input,
+  sourceMedia: [input.sourceMedia[1]!, input.sourceMedia[0]!, input.sourceMedia[2]!],
+}), inputFingerprint)
 assert.equal(result.cleanupPlan.estimatedOriginalDurationMs, 8_000)
 assert.equal(result.cleanupPlan.estimatedCleanDurationMs, 8_000)
 assert.equal(result.cleanAssemblySegments.length, 2)
@@ -110,6 +123,7 @@ console.log(JSON.stringify({
   sourceCount: input.sourceMedia.length,
   timelineSourceCount: result.cleanAssemblySegments.length,
   exactDurationMs: result.cleanAssembly.durationMs,
+  recoveryInputFingerprintBound: true,
   fabricatedTranscriptCount: result.transcriptSegments.length,
   fabricatedCleanupDecisionCount: result.cleanupPlanItems.length,
 }))

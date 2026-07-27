@@ -665,7 +665,7 @@
     },
     {
       "path": "src/components/editor/ChatNativeEditor.tsx",
-      "sha256": "9533ca45e6538fa7a639749dbdc35fe5183136a137de8c538e9c9a8232f6bcd1"
+      "sha256": "a71bccd1b5dd5c38d86dde92941a9c87658e5e4c97092cff7a83e5954c855f1b"
     },
     {
       "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",

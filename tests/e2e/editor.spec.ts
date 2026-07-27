@@ -404,6 +404,7 @@ test.describe('editor mocked browser flow', () => {
     const projectName = `E2E brief-ready ${Date.now()}`
     const editName = 'Brief guided edit'
     const briefGoal = 'Make this feel like a polished launch update with a calm hook and a confident closing CTA.'
+    const markerDirection = 'Keep the full product explanation and add a quiet lower-third when the speaker names the feature.'
 
     await page.getByLabel(/Project name/i).fill(projectName)
     await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }).first())
@@ -484,7 +485,7 @@ test.describe('editor mocked browser flow', () => {
     )
     await expect(markerPopover.getByText('More options')).toBeVisible()
     await expect(markerPopover.getByLabel('Type')).toBeHidden()
-    await markerPrompt.fill('Keep the full product explanation and add a quiet lower-third when the speaker names the feature.')
+    await markerPrompt.fill(markerDirection)
     await markerPopover.getByRole('button', { name: 'Add text' }).click()
     await expect(markerPopover.getByRole('button', { name: 'Add text' })).toHaveAttribute('aria-pressed', 'true')
     await page.keyboard.press('Escape')
@@ -492,6 +493,8 @@ test.describe('editor mocked browser flow', () => {
     await expect(addMarker).toBeFocused()
     await clickWhenReady(addMarker)
     await expect(markerPopover).toBeVisible()
+    await markerPopover.getByLabel(/What should happen here/i).fill(markerDirection)
+    await markerPopover.getByRole('button', { name: 'Add text' }).click()
     await directionDetails.locator('summary').click()
     await expect(directionDetails).toHaveAttribute('open', '')
     await expect(editBriefPanel).toBeVisible()
@@ -548,6 +551,8 @@ test.describe('editor mocked browser flow', () => {
       )),
     ).toBe(1)
     await setViewport(page, 1440)
+    await clickWhenReady(markerPopover.getByRole('button', { name: /Close marker popover/i }))
+    await expect(markerPopover).toHaveCount(0)
 
     await briefGoalInput.fill(briefGoal)
     const referenceUrls = page.getByTestId('edit-brief-reference-urls')
@@ -568,9 +573,10 @@ test.describe('editor mocked browser flow', () => {
     })
 
     await page.reload()
-    await clickWhenReady(page.getByTestId('edit-workspace-view-chat'))
-    await clickWhenReady(page.getByRole('button', { name: /Prepare source/i }).first())
-    await clickWhenReady(page.getByTestId('editor-header-edit-brief'))
+    await expect(page).toHaveURL(/[?&]view=brief(?:&|$)/)
+    await expect(page.getByTestId('professional-edit-brief-workspace')).toBeVisible()
+    await expect(page.getByText(/Prepare the source in Chat first/i)).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Prepare source$/i })).toHaveCount(0)
     await page.getByTestId('edit-brief-direction-details').locator('summary').click()
     await expect(page.getByTestId('edit-brief-goal-input')).toHaveValue(briefGoal)
     await expect(page.getByTestId('edit-brief-reference-urls')).toHaveValue('https://example.com/approved-launch-reference')

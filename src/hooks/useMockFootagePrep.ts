@@ -14,8 +14,18 @@ export interface UseMockFootagePrepResult {
   resetPrep: () => void
 }
 
-export function useMockFootagePrep(): UseMockFootagePrepResult {
-  const [result, setResult] = useState<MockFootagePrepResult | null>(null)
+export interface UseMockFootagePrepOptions {
+  initialSourceBoundInput?: MockFootagePrepInput
+}
+
+export function useMockFootagePrep(
+  options: UseMockFootagePrepOptions = {},
+): UseMockFootagePrepResult {
+  const [result, setResult] = useState<MockFootagePrepResult | null>(() =>
+    options.initialSourceBoundInput
+      ? runSourceBoundFootagePrep(options.initialSourceBoundInput)
+      : null,
+  )
 
   const runPrep = useCallback((input?: MockFootagePrepInput) => {
     const nextResult = runMockFootagePrep(input)

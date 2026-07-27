@@ -79,6 +79,7 @@ export type LocalInternalEditSetupSnapshot = {
   referenceUrl?: string
   referenceSkipped?: boolean
   referenceFocusSelections?: string[]
+  sourcePreparationRecovery?: LocalSourcePreparationRecovery
 }
 
 export type LocalPrivateInternalQaSummary = {
@@ -125,6 +126,16 @@ export type LocalPrivateInternalReviewVideoExpectation = {
 }
 
 export type LocalSourceSetFingerprint = string
+
+export type LocalSourcePreparationRecovery = {
+  version: 'browser-local-source-preparation-recovery-v1'
+  sourceSetFingerprint: LocalSourceSetFingerprint
+  inputFingerprint: string
+  sourceSequenceMode: SourceSequenceMode
+  cleanupPreference?: CleanupPreference
+  preparedAt: string
+  canonicalPlanningAuthority: false
+}
 
 export type LocalProductWorkflow = 'video_edit' | 'motion_studio.storytelling'
 
@@ -707,7 +718,7 @@ function parseHandoff(value: unknown, expectedWorkspaceId: string): LocalInterna
     sourceFileCount: sourceMediaAssets?.length ?? (typeof record.sourceFileCount === 'number' && Number.isFinite(record.sourceFileCount)
       ? Math.max(0, Math.floor(record.sourceFileCount))
       : 0),
-    setup: parseEditSetup(record.setup),
+    setup: parseEditSetup(record.setup, sourceSetFingerprint),
     editBriefState: parseEditBriefStateForHandoff(record.editBriefState, record.projectId, expectedWorkspaceId),
     sourceMediaAssets,
     sourceSetFingerprint,
@@ -778,6 +789,7 @@ function normalizeHandoffForPersistence(
     }),
     stage,
     sourceFileCount: sourceMediaAssets?.length ?? 0,
+    setup: parseEditSetup(handoff.setup, sourceSetFingerprint),
     editBriefState: parseEditBriefStateForHandoff(
       handoff.editBriefState,
       handoff.projectId,
@@ -958,7 +970,10 @@ function hasPrivateInternalCompletionEvidence(
     privateReview.professionalEditQaSummary.editDecisionManifestArtifactReady === true
 }
 
-function parseEditSetup(value: unknown): LocalInternalEditSetupSnapshot | undefined {
+function parseEditSetup(
+  value: unknown,
+  expectedSourceSetFingerprint?: LocalSourceSetFingerprint,
+): LocalInternalEditSetupSnapshot | undefined {
   if (!value || typeof value !== 'object') return undefined
   const record = value as Partial<LocalInternalEditSetupSnapshot>
   const setup: LocalInternalEditSetupSnapshot = {}
@@ -1021,8 +1036,56 @@ function parseEditSetup(value: unknown): LocalInternalEditSetupSnapshot | undefi
     ))
     setup.referenceFocusSelections = referenceFocusSelections
   }
+  const sourcePreparationRecovery = parseSourcePreparationRecovery(
+    record.sourcePreparationRecovery,
+    expectedSourceSetFingerprint,
+    setup,
+  )
+  if (sourcePreparationRecovery) {
+    setup.sourcePreparationRecovery = sourcePreparationRecovery
+  }
 
   return Object.keys(setup).length > 0 ? setup : undefined
+}
+
+function parseSourcePreparationRecovery(
+  value: unknown,
+  expectedSourceSetFingerprint: LocalSourceSetFingerprint | undefined,
+  setup: LocalInternalEditSetupSnapshot,
+): LocalSourcePreparationRecovery | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  const record = value as Partial<LocalSourcePreparationRecovery>
+  if (
+    record.version !== 'browser-local-source-preparation-recovery-v1' ||
+    record.canonicalPlanningAuthority !== false ||
+    !expectedSourceSetFingerprint ||
+    record.sourceSetFingerprint !== expectedSourceSetFingerprint ||
+    typeof record.inputFingerprint !== 'string' ||
+    !record.inputFingerprint.trim() ||
+    record.inputFingerprint.length > 8_000 ||
+    !isSourceSequenceMode(record.sourceSequenceMode) ||
+    record.sourceSequenceMode !== setup.sourceSequenceMode ||
+    setup.sourceOrderConfirmed !== true ||
+    typeof record.preparedAt !== 'string' ||
+    !Number.isFinite(Date.parse(record.preparedAt)) ||
+    (
+      record.cleanupPreference !== undefined &&
+      !isCleanupPreference(record.cleanupPreference)
+    ) ||
+    record.cleanupPreference !== setup.cleanupPreference
+  ) {
+    return undefined
+  }
+
+  return {
+    version: 'browser-local-source-preparation-recovery-v1',
+    sourceSetFingerprint: expectedSourceSetFingerprint,
+    inputFingerprint: record.inputFingerprint,
+    sourceSequenceMode: record.sourceSequenceMode,
+    cleanupPreference: record.cleanupPreference,
+    preparedAt: record.preparedAt,
+    canonicalPlanningAuthority: false,
+  }
 }
 
 function parseEditPreferenceBaseline(value: unknown): LocalInternalEditPreferenceBaseline | undefined {

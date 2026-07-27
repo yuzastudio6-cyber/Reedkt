@@ -21,6 +21,7 @@ import type { MockFootagePrepResult } from './mock-footage-prep-runtime'
 import { createSourceTimeMapping } from './source-time-mapping'
 
 const SOURCE_BOUND_PREP_AUTHORITY = 'verified-private-upload-media-facts-v1'
+const SOURCE_BOUND_PREP_INPUT_FINGERPRINT_VERSION = 'source-bound-footage-prep-input-v1'
 
 function isTimelineSource(source: MockFootagePrepSourceMedia): boolean {
   return source.mediaKind === 'video' ||
@@ -55,6 +56,37 @@ function assertSourceBoundInput(input: MockFootagePrepInput): MockFootagePrepSou
   }
 
   return timelineSources
+}
+
+/**
+ * Creates a browser-local recovery identity for the exact verified inputs used
+ * by the source-bound preparation bridge. This is not canonical planning
+ * evidence and cannot replace server-side source or planning revalidation.
+ */
+export function createSourceBoundFootagePrepInputFingerprint(
+  input: MockFootagePrepInput,
+): string {
+  assertSourceBoundInput(input)
+  const encode = (value: string | number | boolean | undefined) =>
+    encodeURIComponent(value === undefined ? '' : String(value))
+
+  return [
+    SOURCE_BOUND_PREP_INPUT_FINGERPRINT_VERSION,
+    input.workspaceId ?? '',
+    input.userId ?? '',
+    input.projectId,
+    ...input.sourceMedia.map((source, index) => [
+      index + 1,
+      source.mediaAssetId,
+      source.mediaKind,
+      source.durationMs,
+      source.width,
+      source.height,
+      source.frameRate,
+      source.hasAudio,
+      source.sourceMetadataAuthority,
+    ].map(encode).join(':')),
+  ].map(encode).join('|')
 }
 
 function buildSourceBoundActivity(input: {

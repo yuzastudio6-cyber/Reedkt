@@ -47,6 +47,12 @@ import {
   verifyCanonicalLivingFramePreapprovalReasoningAttemptReservation,
 } from '../living-frame/canonical-living-frame-preapproval-reasoning-attempt-reservation'
 import {
+  CANONICAL_LIVING_FRAME_PREAPPROVAL_KIMI_REQUEST_MATERIAL_BOUNDARY,
+  CANONICAL_LIVING_FRAME_PREAPPROVAL_KIMI_SYSTEM_INSTRUCTION,
+  compileCanonicalLivingFramePreapprovalKimiRequestMaterial,
+  verifyCanonicalLivingFramePreapprovalKimiRequestMaterial,
+} from '../living-frame/canonical-living-frame-preapproval-kimi-request-material'
+import {
   verifyCanonicalLivingFramePreapprovalReasoningRun,
 } from '../living-frame/canonical-living-frame-preapproval-reasoning-lifecycle'
 import {
@@ -133,6 +139,7 @@ import {
 } from '../services/planning-preference-application-authority-port'
 import {
   sha256AuthorityValue,
+  stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
 import {
   resolvedPlanningInputAuthorityBindingSchema,
@@ -620,6 +627,14 @@ console.log(JSON.stringify({
       .providerSubmissionAuthorityStillWithheld,
   attemptReservationTamperingRejected:
     semanticAdmissionEvidence.attemptReservationTamperingRejected,
+  providerSpecificRequestMaterialCompiled:
+    semanticAdmissionEvidence
+      .providerSpecificRequestMaterialCompiled,
+  providerApiContractAndModelRevisionStillUnqualified:
+    semanticAdmissionEvidence
+      .providerApiContractAndModelRevisionStillUnqualified,
+  kimiRequestMaterialTamperingRejected:
+    semanticAdmissionEvidence.kimiRequestMaterialTamperingRejected,
   providerTransportStillUnauthorized:
     semanticAdmissionEvidence.providerTransportStillUnauthorized,
   preparedRunTamperingRejected:
@@ -643,6 +658,9 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
   readonly idempotentAttemptReservationReplay: true
   readonly providerSubmissionAuthorityStillWithheld: true
   readonly attemptReservationTamperingRejected: true
+  readonly providerSpecificRequestMaterialCompiled: true
+  readonly providerApiContractAndModelRevisionStillUnqualified: true
+  readonly kimiRequestMaterialTamperingRejected: true
   readonly providerTransportStillUnauthorized: true
   readonly preparedRunTamperingRejected: true
 }> {
@@ -1394,6 +1412,186 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
     assert.equal(reserved.reasoningResultCreated, false)
     assert.equal(reserved.productionReady, false)
 
+    const kimiRequestMaterial =
+      compileCanonicalLivingFramePreapprovalKimiRequestMaterial({
+        preparedRun: prepared.run,
+        attemptReservation: reserved.reservation,
+      })
+    assert.equal(
+      kimiRequestMaterial.state,
+      'compiled_provider_api_and_model_revision_unqualified',
+    )
+    assert.equal(
+      kimiRequestMaterial.internalRequestMaterial.route.routeId,
+      'kimi_k3_primary',
+    )
+    assert.equal(
+      kimiRequestMaterial.internalRequestMaterial.route
+        .exactProviderModelId,
+      'kimi-k3',
+    )
+    assert.equal(
+      kimiRequestMaterial.internalRequestMaterial
+        .providerApiContractVersion,
+      null,
+    )
+    assert.equal(
+      kimiRequestMaterial.internalRequestMaterial
+        .providerModelRevision,
+      null,
+    )
+    assert.equal(
+      kimiRequestMaterial.internalRequestMaterial.messages[0].content,
+      CANONICAL_LIVING_FRAME_PREAPPROVAL_KIMI_SYSTEM_INSTRUCTION,
+    )
+    assert.equal(
+      kimiRequestMaterial.internalRequestMaterial.messages[1]
+        .content.payloadDigestSha256,
+      admission.providerNeutralPayload.payloadDigestSha256,
+    )
+    assert.equal(
+      kimiRequestMaterial.internalRequestMaterial.responseContract
+        .jsonSchemaDigestSha256,
+      prepared.run.preparedProviderEnvelope.canonicalBindings
+        .outputJsonSchemaDigestSha256,
+    )
+    assert.deepEqual(
+      kimiRequestMaterial.internalRequestMaterial.tools,
+      [],
+    )
+    assert.equal(
+      kimiRequestMaterial.providerSpecificMaterialCompiled,
+      true,
+    )
+    assert.equal(
+      kimiRequestMaterial
+        .currentSourceAuthorityRereadAtTransportRequired,
+      true,
+    )
+    assert.equal(
+      kimiRequestMaterial.providerApiRequestBodyCreated,
+      false,
+    )
+    assert.equal(
+      kimiRequestMaterial.providerApiContractQualified,
+      false,
+    )
+    assert.equal(
+      kimiRequestMaterial.providerModelRevisionQualified,
+      false,
+    )
+    assert.equal(
+      kimiRequestMaterial.providerSubmissionAuthorityIssued,
+      false,
+    )
+    assert.equal(kimiRequestMaterial.providerCallMade, false)
+    assert.equal(kimiRequestMaterial.credentialReadMade, false)
+    assert.equal(kimiRequestMaterial.requestMaterialPersisted, false)
+    assert.equal(
+      kimiRequestMaterial.requestMaterialBrowserShareable,
+      false,
+    )
+    assert.deepEqual(
+      kimiRequestMaterial.authorityBoundary,
+      CANONICAL_LIVING_FRAME_PREAPPROVAL_KIMI_REQUEST_MATERIAL_BOUNDARY,
+    )
+    assert.equal(
+      kimiRequestMaterial.authorityBoundary
+        .currentSourceAuthorityAtTransport,
+      false,
+    )
+    const kimiMaterialReplay =
+      compileCanonicalLivingFramePreapprovalKimiRequestMaterial({
+        preparedRun: prepared.run,
+        attemptReservation: reserved.reservation,
+      })
+    assert.equal(
+      kimiMaterialReplay.recordDigestSha256,
+      kimiRequestMaterial.recordDigestSha256,
+    )
+    const {
+      recordDigestSha256: _kimiMaterialDigest,
+      ...kimiMaterialDraft
+    } = kimiRequestMaterial
+    void _kimiMaterialDigest
+    const detachedInternalMaterial = {
+      ...kimiMaterialDraft.internalRequestMaterial,
+      messages: [
+        kimiMaterialDraft.internalRequestMaterial.messages[0],
+        {
+          ...kimiMaterialDraft.internalRequestMaterial.messages[1],
+          content: {
+            ...kimiMaterialDraft.internalRequestMaterial.messages[1]
+              .content,
+            payloadDigestSha256:
+              digest('detached-kimi-request-material-payload'),
+          },
+        },
+      ],
+    }
+    const detachedKimiMaterialDraft = {
+      ...kimiMaterialDraft,
+      internalRequestMaterial: detachedInternalMaterial,
+      internalRequestMaterialByteLength: Buffer.byteLength(
+        stableAuthorityStringify(detachedInternalMaterial),
+        'utf8',
+      ),
+      internalRequestMaterialDigestSha256:
+        sha256AuthorityValue(detachedInternalMaterial),
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalKimiRequestMaterial({
+          material: {
+            ...detachedKimiMaterialDraft,
+            recordDigestSha256:
+              sha256AuthorityValue(detachedKimiMaterialDraft),
+          },
+          preparedRun: prepared.run,
+          attemptReservation: reserved.reservation,
+        }),
+      /kimi_request_material_invalid/,
+      'A correctly re-digested Kimi request material cannot detach from the current provider-neutral payload.',
+    )
+    const qualifiedKimiMaterialDraft = {
+      ...kimiMaterialDraft,
+      internalRequestMaterial: {
+        ...kimiMaterialDraft.internalRequestMaterial,
+        providerApiContractVersion:
+          'unreviewed-live-api-contract-v1',
+        providerModelRevision: 'unreviewed-live-model-revision',
+        providerModelAggregateSha256:
+          digest('unreviewed-live-model-aggregate'),
+        providerCredential: 'forged-credential',
+      },
+      providerApiRequestBodyCreated: true,
+      providerApiContractQualified: true,
+      providerModelRevisionQualified: true,
+      providerRequestRecordCreated: true,
+      providerSubmissionAuthorityIssued: true,
+      providerCallMade: true,
+      credentialReadMade: true,
+      promotionAllowed: true,
+      productionReady: true,
+      authorityBoundary: Object.fromEntries(
+        Object.keys(kimiMaterialDraft.authorityBoundary)
+          .map((key) => [key, true]),
+      ),
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalKimiRequestMaterial({
+          material: {
+            ...qualifiedKimiMaterialDraft,
+            recordDigestSha256:
+              sha256AuthorityValue(qualifiedKimiMaterialDraft),
+          },
+          preparedRun: prepared.run,
+          attemptReservation: reserved.reservation,
+        }),
+      'Request material cannot fabricate API qualification, a model revision, credentials, submission, provider-call, or production authority.',
+    )
+
     const reservationReplay =
       await reserveCanonicalLivingFramePreapprovalReasoningAttempt({
         context,
@@ -1777,6 +1975,9 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
       idempotentAttemptReservationReplay: true,
       providerSubmissionAuthorityStillWithheld: true,
       attemptReservationTamperingRejected: true,
+      providerSpecificRequestMaterialCompiled: true,
+      providerApiContractAndModelRevisionStillUnqualified: true,
+      kimiRequestMaterialTamperingRejected: true,
       providerTransportStillUnauthorized: true,
       preparedRunTamperingRejected: true,
     }

@@ -98,6 +98,13 @@ consumption, checkback, retry/fallback, and unknown-attempt reconciliation
 before any transport can be enabled. See
 `docs/canonical-living-frame-preapproval-reasoning-attempt-reservation.md`.
 
+The reserved attempt can also be deterministically compiled into private Kimi
+request material. That compiler reuses the exact prepared payload and strict
+schema, retains no tools, and persists nothing. It deliberately leaves the
+live provider API contract and immutable provider model revision unqualified,
+so it creates neither an API request body nor transport authority. See
+`docs/canonical-living-frame-preapproval-kimi-request-material.md`.
+
 ## Closed authorities
 
 The prepared record contains no attempt receipt, actual attempt cost,

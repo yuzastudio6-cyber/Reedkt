@@ -1756,3 +1756,27 @@ consumption, append-only observations, checkback leases, terminal
 attempt-and-cost atomicity, exact durable-response replay, and unknown-outcome
 reconciliation. See
 `docs/canonical-living-frame-preapproval-reasoning-attempt-reservation.md`.
+
+## Canonical Kimi request material
+
+The server can now compile the verified prepared run plus its exact first
+attempt reservation into deterministic private Kimi request material. The
+material uses one fixed server-owned instruction, the complete validated
+provider-neutral semantic payload, the exact strict output JSON schema, and an
+empty tool set. Stable JSON byte length and SHA-256 bind the whole internal
+material to the run, envelope, reservation, route, assurance, idempotency, and
+budget records.
+
+This is not a Kimi API request. The live provider API contract version,
+immutable provider model revision, and provider model aggregate remain
+`null`. No request body is created or persisted, and the material is neither
+browser-shareable nor loggable. Credential, one-use submission, distributed
+CAS, provider request, observation, checkback, fallback, attempt cost, result,
+commercial, selected-scene, timing, work, render, runtime, and production
+authorities remain false.
+
+A later reviewed adapter must qualify the exact current provider API and model
+identity, reread all current source and assurance authority, then consume this
+material only inside a durable distributed one-use/unknown-outcome lifecycle.
+See
+`docs/canonical-living-frame-preapproval-kimi-request-material.md`.

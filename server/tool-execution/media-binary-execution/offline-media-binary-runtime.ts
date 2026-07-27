@@ -4370,7 +4370,7 @@ async function executeFfmpegRequest(
           ? 'FFmpeg professional color output is not the fixed Matroska intermediate container.'
           : 'FFmpeg output is not the fixed NUT intermediate container.')
     }
-    const outputProbe = voiceDelivery || storytellingSpeechNormalization
+    const audioOutputProbe = voiceDelivery || storytellingSpeechNormalization
       ? await probeFfmpegVoiceDeliveryOutput(
           image,
           outputInput,
@@ -4379,6 +4379,24 @@ async function executeFfmpegRequest(
           resourceObservations,
           storytellingSpeechNormalization ? 1 : 2,
         )
+      : undefined
+    const voiceDeliveryLoudnessQa = voiceDelivery
+      ? await measureFfmpegVoiceDeliveryOutput(
+          image,
+          outputInput,
+          {
+            targetIntegratedLufs: voiceDeliveryPayload!.targetLufs,
+            maximumTruePeakDbtp: voiceDeliveryPayload!.truePeakDbtp,
+            maximumLoudnessRangeLufs: voiceDeliveryPayload!.loudnessRangeLufs,
+          },
+          resourceObservations,
+        )
+      : undefined
+    const outputProbe = audioOutputProbe
+      ? {
+          ...audioOutputProbe,
+          ...(voiceDeliveryLoudnessQa ? { loudnessQa: voiceDeliveryLoudnessQa } : {}),
+        }
       : await probeFfmpegOutput(
           image,
           outputInput,
@@ -4522,6 +4540,22 @@ async function executeFfmpegRequest(
                 loudnessNormalizationApplied: true, truePeakLimiterApplied: true,
                 targetLufs: voiceDeliveryPayload!.targetLufs,
                 truePeakDbtp: voiceDeliveryPayload!.truePeakDbtp,
+                outputLoudnessMeasured: true,
+                outputLoudnessQaPassed: true,
+                outputLoudnessMeasurementProfileId:
+                  voiceDeliveryLoudnessQa!.measurementProfileId,
+                integratedLufsWithinPolicy:
+                  voiceDeliveryLoudnessQa!.integratedLufsWithinPolicy,
+                truePeakWithinPolicy:
+                  voiceDeliveryLoudnessQa!.truePeakWithinPolicy,
+                loudnessRangeWithinPolicy:
+                  voiceDeliveryLoudnessQa!.loudnessRangeWithinPolicy,
+                measuredIntegratedLufs:
+                  voiceDeliveryLoudnessQa!.measuredIntegratedLufs,
+                measuredTruePeakDbfs:
+                  voiceDeliveryLoudnessQa!.measuredTruePeakDbfs,
+                measuredLoudnessRangeLufs:
+                  voiceDeliveryLoudnessQa!.measuredLoudnessRangeLufs,
                 sourceVideoRemoved: true,
                 outputDeliveryMode: outputSink
                   ? 'server_committed_private_stream_v1'
@@ -6090,6 +6124,108 @@ async function probeFfmpegVoiceDeliveryOutput(
   }
 }
 
+async function measureFfmpegVoiceDeliveryOutput(
+  image: OfflineMediaBinaryImageEvidence,
+  source: OfflineMediaBinaryServerInjectedInput,
+  policy: {
+    targetIntegratedLufs: -14
+    maximumTruePeakDbtp: -1
+    maximumLoudnessRangeLufs: 7
+  },
+  resourceObservations: PrivateEmbeddedProcessResourceObservation[],
+) {
+  const command = [
+    '-hide_banner', '-nostats', '-nostdin',
+    '-i', 'pipe:0',
+    '-map', '0:a:0', '-vn', '-sn', '-dn',
+    '-af', 'ebur128=peak=true',
+    '-f', 'null', '-',
+  ]
+  const container = await createContainer(
+    image,
+    FFMPEG_ENTRYPOINT,
+    command,
+    { observeCgroupResources: true },
+  )
+  try {
+    const confinement = validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      FFMPEG_ENTRYPOINT,
+      command,
+      container,
+    )
+    const result = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      64 * 1024,
+      mediaExecutionTimeoutMs(source.byteLength),
+    )
+    const observedExecution = normalizeObservedMediaContainerExecution({
+      container,
+      image,
+      stderr: result.stderr,
+    })
+    resourceObservations.push(observedExecution.observation)
+    const state = record((await inspectContainer(container.id)).State)
+    if (
+      result.exitCode !== 0 || result.stdout.length !== 0 ||
+      observedExecution.sanitizedStderr.length < 64 ||
+      state.Status !== 'exited' || state.Running !== false ||
+      state.ExitCode !== result.exitCode || state.OOMKilled !== false
+    ) throw unavailable(
+      'Approved voice-delivery loudness measurement failed closed ' +
+      `(exit=${result.exitCode};stdoutBytes=${result.stdout.byteLength};` +
+      `diagnosticBytes=${observedExecution.sanitizedStderr.byteLength};` +
+      `state=${String(state.Status)};stateExit=${String(state.ExitCode)};` +
+      `oomKilled=${String(state.OOMKilled)};` +
+      `diagnostic=${safeFfmpegDiagnostic(observedExecution.sanitizedStderr)}).`,
+    )
+    const measured = parseEbur128Metrics(observedExecution.sanitizedStderr)
+    const integratedLufsTolerance = 1.5
+    const truePeakQuantizationToleranceDb = 0.1
+    const integratedLufsWithinPolicy =
+      Math.abs(measured.integratedLufs - policy.targetIntegratedLufs) <=
+        integratedLufsTolerance
+    const truePeakWithinPolicy =
+      measured.truePeakDbfs <=
+        policy.maximumTruePeakDbtp + truePeakQuantizationToleranceDb
+    const loudnessRangeWithinPolicy =
+      measured.loudnessRangeLu <= policy.maximumLoudnessRangeLufs
+    if (
+      !integratedLufsWithinPolicy || !truePeakWithinPolicy ||
+      !loudnessRangeWithinPolicy
+    ) throw unavailable(
+      'Approved voice-delivery output failed measured loudness policy ' +
+      `(integrated=${measured.integratedLufs};target=${policy.targetIntegratedLufs};` +
+      `tolerance=${integratedLufsTolerance};truePeak=${measured.truePeakDbfs};` +
+      `maximumTruePeak=${policy.maximumTruePeakDbtp};` +
+      `loudnessRange=${measured.loudnessRangeLu};` +
+      `maximumLoudnessRange=${policy.maximumLoudnessRangeLufs}).`,
+    )
+    return Object.freeze({
+      measurementProfileId: 'approved_voice_delivery_ebur128_v1' as const,
+      measuredIntegratedLufs: measured.integratedLufs,
+      targetIntegratedLufs: policy.targetIntegratedLufs,
+      integratedLufsTolerance,
+      integratedLufsWithinPolicy: true as const,
+      measuredTruePeakDbfs: measured.truePeakDbfs,
+      maximumTruePeakDbtp: policy.maximumTruePeakDbtp,
+      truePeakQuantizationToleranceDb,
+      truePeakWithinPolicy: true as const,
+      measuredLoudnessRangeLufs: measured.loudnessRangeLu,
+      maximumLoudnessRangeLufs: policy.maximumLoudnessRangeLufs,
+      loudnessRangeWithinPolicy: true as const,
+      diagnosticSha256: sha256(observedExecution.sanitizedStderr),
+      diagnosticByteLength: observedExecution.sanitizedStderr.byteLength,
+      confinement,
+    })
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
 async function probeGeneratedMusicCandidateSource(
   image: OfflineMediaBinaryImageEvidence,
   bytes: Buffer,
@@ -6610,8 +6746,7 @@ async function probeStorytellingAudioOutput(
   }
 }
 
-function parseEbur128Summary(bytes: Buffer): {
-  measurementProfileId: 'motion_studio_storytelling_ebur128_v1'
+function parseEbur128Metrics(bytes: Buffer): {
   integratedLufs: number
   loudnessRangeLu: number
   truePeakDbfs: number
@@ -6632,10 +6767,21 @@ function parseEbur128Summary(bytes: Buffer): {
     !Number.isFinite(truePeakDbfs) || truePeakDbfs < -100 || truePeakDbfs > 0
   ) throw unavailable('EBU R128 measurement summary is outside the bounded numeric contract.')
   return {
-    measurementProfileId: 'motion_studio_storytelling_ebur128_v1',
     integratedLufs: rounded(integratedLufs),
     loudnessRangeLu: rounded(loudnessRangeLu),
     truePeakDbfs: rounded(truePeakDbfs),
+  }
+}
+
+function parseEbur128Summary(bytes: Buffer): {
+  measurementProfileId: 'motion_studio_storytelling_ebur128_v1'
+  integratedLufs: number
+  loudnessRangeLu: number
+  truePeakDbfs: number
+} {
+  return {
+    measurementProfileId: 'motion_studio_storytelling_ebur128_v1',
+    ...parseEbur128Metrics(bytes),
   }
 }
 

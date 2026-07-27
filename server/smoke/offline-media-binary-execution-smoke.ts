@@ -233,9 +233,102 @@ assert.equal(voiceDeliveryResult.evidence.semanticEvidence.highpassApplied, true
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.gentleCompressionApplied, true)
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.loudnessNormalizationApplied, true)
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.truePeakLimiterApplied, true)
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.outputLoudnessMeasured, true)
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.outputLoudnessQaPassed, true)
+assert.equal(
+  voiceDeliveryResult.evidence.semanticEvidence.outputLoudnessMeasurementProfileId,
+  'approved_voice_delivery_ebur128_v1',
+)
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.integratedLufsWithinPolicy, true)
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.truePeakWithinPolicy, true)
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.loudnessRangeWithinPolicy, true)
+assert.ok(
+  Math.abs(
+    Number(voiceDeliveryResult.evidence.semanticEvidence.measuredIntegratedLufs) -
+      voiceDeliveryRequest.payload.targetLufs,
+  ) <= 1.5,
+)
+assert.ok(
+  Number(voiceDeliveryResult.evidence.semanticEvidence.measuredTruePeakDbfs) <=
+    voiceDeliveryRequest.payload.truePeakDbtp + 0.1,
+)
+assert.ok(
+  Number(voiceDeliveryResult.evidence.semanticEvidence.measuredLoudnessRangeLufs) <=
+    voiceDeliveryRequest.payload.loudnessRangeLufs,
+)
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.outputProbeVerified, true)
 const voiceDeliveryReplay = await runtime.execute(voiceDeliveryRequest)
 assert.equal(voiceDeliveryReplay.resultArtifact.sha256, voiceDeliveryResult.resultArtifact.sha256)
+const {
+  sourceBytesBase64: _voiceSourceBytesBase64,
+  ...voiceDeliveryStreamingPayload
+} = voiceDeliveryRequest.payload
+assert.equal(_voiceSourceBytesBase64, sourceBytes.toString('base64'))
+let streamedVoiceDeliveryBytes = Buffer.alloc(0)
+const streamedVoiceDelivery = await runtime.executeServerInjectedStreamingOutput({
+  schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+  toolId: 'ffmpeg' as const,
+  operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+  payload: {
+    ...voiceDeliveryStreamingPayload,
+    sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+  },
+}, privateStreamInput(sourceBytes), {
+  maximumBytes: OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES,
+  async persist(output) {
+    const chunks: Buffer[] = []
+    for await (const chunk of output.stream) chunks.push(Buffer.from(chunk))
+    streamedVoiceDeliveryBytes = Buffer.concat(chunks)
+    assert.equal(streamedVoiceDeliveryBytes.byteLength, output.expectedByteLength)
+    assert.equal(hashBytes(streamedVoiceDeliveryBytes), output.expectedSha256)
+    assert.equal(output.mimeType, 'audio/wav')
+    return {
+      byteLength: streamedVoiceDeliveryBytes.byteLength,
+      sha256: hashBytes(streamedVoiceDeliveryBytes),
+    }
+  },
+})
+assert.equal(streamedVoiceDelivery.resultArtifact.mimeType, 'audio/wav')
+assert.equal(
+  streamedVoiceDelivery.resultArtifact.sha256,
+  hashBytes(streamedVoiceDeliveryBytes),
+)
+assert.equal(
+  streamedVoiceDelivery.evidence.semanticEvidence.outputDeliveryMode,
+  'server_committed_private_stream_v1',
+)
+assert.equal(
+  streamedVoiceDelivery.evidence.semanticEvidence.outputLoudnessQaPassed,
+  true,
+)
+assert.equal(
+  streamedVoiceDelivery.evidence.semanticEvidence.outputWholeBufferAvoided,
+  true,
+)
+const silentVoiceFixturePath = join(
+  '/tmp',
+  `reeditpro-offline-voice-silence-${process.pid}.mp4`,
+)
+const generatedSilentVoice = spawnSync('ffmpeg', [
+  '-hide_banner', '-loglevel', 'error',
+  '-f', 'lavfi', '-i', 'color=c=black:s=320x180:r=24:d=2',
+  '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo:d=2',
+  '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+  '-c:a', 'aac', '-b:a', '96k', '-movflags', '+faststart', '-shortest',
+  '-threads', '1', '-y', silentVoiceFixturePath,
+], { encoding: 'utf8' })
+assert.equal(generatedSilentVoice.status, 0, generatedSilentVoice.stderr)
+const silentVoiceSourceBytes = await readFile(silentVoiceFixturePath)
+await rm(silentVoiceFixturePath, { force: true })
+await assertRejects(() => runtime.execute({
+  ...voiceDeliveryRequest,
+  payload: {
+    ...voiceDeliveryRequest.payload,
+    sourceByteLength: silentVoiceSourceBytes.byteLength,
+    sourceSha256: hashBytes(silentVoiceSourceBytes),
+    sourceBytesBase64: silentVoiceSourceBytes.toString('base64'),
+  },
+}))
 
 const speechMp3Path = join('/tmp', `reeditpro-storytelling-speech-${process.pid}.mp3`)
 const generatedSpeechMp3 = spawnSync('ffmpeg', [
@@ -907,6 +1000,7 @@ console.log(JSON.stringify({
     'shot_match_target_and_reference_hash_tamper_rejected',
     'shot_match_delivery_deterministic_reexecution_result',
     'voice_highpass_compression_loudness_and_true_peak_chain',
+    'voice_output_measured_ebu_r128_policy_and_silence_rejection',
     'voice_delivery_output_reprobed_for_pcm_rate_channels_and_duration',
     'ffmpeg_output_reprobed_for_codec_container_frame_count_and_rate',
     'ffmpeg_deterministic_reexecution_result',

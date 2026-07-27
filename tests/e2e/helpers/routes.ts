@@ -1,4 +1,5 @@
 import { Buffer } from 'node:buffer'
+import { randomUUID } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { expect, type Locator, type Page } from '@playwright/test'
@@ -20,6 +21,7 @@ const CONTROLLED_UI_SCOPE = {
 }
 const CONTROLLED_UI_HANDOFF_STORAGE_KEY = buildLocalProjectHandoffStorageKey(CONTROLLED_UI_SCOPE)
 const CONTROLLED_UI_SCOPE_FINGERPRINT = createProjectPersistenceScopeFingerprint(CONTROLLED_UI_SCOPE)
+const CONTROLLED_SOURCE_FIXTURE_RUN_ID = `${process.pid}-${randomUUID()}`
 let controlledSourceVideoFixture: Promise<{
   bytes: Buffer
   checksumSha256: string
@@ -234,7 +236,7 @@ async function getControlledSourceVideoFixture() {
           process.cwd(),
           'test-results',
           'ordinary-editor-controlled-source-fixtures',
-          String(process.pid),
+          CONTROLLED_SOURCE_FIXTURE_RUN_ID,
         ),
         timeoutMs: 60_000,
       })

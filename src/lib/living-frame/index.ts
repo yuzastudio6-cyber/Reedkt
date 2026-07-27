@@ -325,6 +325,20 @@ export type {
 } from '../../types/living-frame-component-asset-intent'
 
 export type {
+  LivingFrameIntegrationQaCode,
+  LivingFrameProjectedQaCode,
+  LivingFrameQaEvidenceRequirement,
+  LivingFrameQaExpectation,
+  LivingFrameQaExpectationAuthorityBoundary,
+  LivingFrameQaExpectationBundle,
+  LivingFrameQaExpectationBundleDraft,
+  LivingFrameQaExpectationMetrics,
+  LivingFrameQaExpectationState,
+  LivingFrameQaGateExpectation,
+  LivingFrameQaScopeKind,
+} from '../../types/living-frame-qa-expectation'
+
+export type {
   LivingFrameControlledIllustrationCandidateSourceObservation,
   LivingFrameControlledIllustrationDeclaredLabelObservation,
   LivingFrameControlledIllustrationDependencyScopeRule,

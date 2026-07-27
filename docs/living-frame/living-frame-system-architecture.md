@@ -1514,3 +1514,43 @@ closed:
   reconciliation; and
 - Remotion execution, private review, export, runtime, and production
   readiness.
+
+## Existing-QA-plan expectation projection
+
+Living Frame does not own another QA plan or another pass/fail authority.
+`living-frame-qa-expectation-v1` compiles the verified semantic plan and
+component asset-intent bundle into closed expectations for the existing
+`EditQAPlan` categories and the existing editing-agent QA gate sequence.
+
+The projection covers:
+
+- narrative relevance, focal hierarchy, visual-density restraint, and
+  generated-video restraint;
+- caption, face, and gesture safe regions;
+- component separability, continuity, alpha, temporal-mask, pivot, and
+  reconstructed-plate measurements;
+- semantic timing, attention restoration, narration protection, and final
+  destination-composite review;
+- semantic-scale, documentary, exact-geography, and exact-data truth;
+- canonical selected-scene and asset-intent lineage revalidation; and
+- the prohibition on required final-render placeholders.
+
+Each expectation maps to an existing `QACategory`, one existing agent gate
+stage (`preflight_gate`, `asset_quality_gate`, `merge_gate`,
+`render_preflight_gate`, or `final_qa_gate`), a severity expectation, and a
+closed evidence requirement. Every expectation remains
+`future_canonical_check_required`; this compiler can neither create a
+`SegmentQAPlanItem` nor mark one passed.
+
+The bundle is content-addressed and binds the exact semantic-plan projection,
+projected Living Frame component, and component asset-intent bundle. A
+deliberate non-use decision produces no QA expectations and is valid. Named
+fixtures continue to test only broad capability families; there is no
+subject-specific QA routing.
+
+The canonical `createEditQAPlan` owner must later reread this projection and
+instantiate the checks inside the one QA plan during selected-scene planning.
+Artifact measurements and destination-composite review must come from the
+existing private artifact and review authorities. A caller-signed or all-green
+packet cannot grant QA, approval, work, render, runtime, or production
+authority.

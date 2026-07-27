@@ -1048,6 +1048,25 @@ immutable snapshot, timing/SoundSync, tool/provider/model-weight
 qualification, artifact QA, and private review remain required before the
 canonical execution planner may create work.
 
+#### Deterministic component-rig compilation
+
+`living-frame-component-rig-v1` turns one validated component-geometry bundle
+and its exact deterministic-motion bundle into a subject-neutral rig
+specification. It preserves component hierarchy, parent and anchor
+dependencies, pivots, depth order, transparency and mask expectations,
+motion-track bindings, camera nodes, and occlusion relations. It rejects
+missing dependencies, cycles, duplicate IDs/orders, mismatched geometry and
+motion lineage, altered topological order, artifact-contract substitution, and
+authority promotion.
+
+The compiled rig is an animation specification, not executable model-written
+code. It expects the admitted `build_component_rig` work-item name and a
+`living_frame_component_rig_spec_json` processed artifact, but it does not
+create either record. Canonical selected-scene admission, immutable snapshot
+lineage, work-item creation, asset-manifest insertion, artifact QA, renderer
+projection, private review, and runtime execution remain owned by the existing
+pipeline.
+
 ### Slice 5: renderer and private review
 
 - compile approved scene components into deterministic Remotion layer groups;

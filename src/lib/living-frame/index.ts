@@ -270,6 +270,19 @@ export type {
 } from './living-frame-controlled-illustration-source-observation-fixtures'
 
 export type {
+  LivingFrameComponentRigAuthorityBoundary,
+  LivingFrameComponentRigMetrics,
+  LivingFrameComponentRigSpec,
+  LivingFrameComponentRigSpecDraft,
+  LivingFrameRigArtifactExpectation,
+  LivingFrameRigMotionTrackBinding,
+  LivingFrameRigNode,
+  LivingFrameRigNodeKind,
+  LivingFrameRigOcclusionRelation,
+  LivingFrameRigSourceBindings,
+} from '../../types/living-frame-component-rig'
+
+export type {
   LivingFrameControlledIllustrationCandidateSourceObservation,
   LivingFrameControlledIllustrationDeclaredLabelObservation,
   LivingFrameControlledIllustrationDependencyScopeRule,

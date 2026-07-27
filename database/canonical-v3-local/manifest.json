@@ -373,7 +373,7 @@
     },
     {
       "path": "server/edit-references/edit-reference-production-exact-edit-apply-boundary.ts",
-      "sha256": "3def6d5e6f58c7349d910098954b997c1f0f84776d6d5dac088a287157847321"
+      "sha256": "c5f5b07e70eb3616a34979c707be2ba98d55185908983f33046d72f83e19e6db"
     },
     {
       "path": "server/edit-references/edit-reference-production-readiness.ts",
@@ -473,7 +473,7 @@
     },
     {
       "path": "server/services/edit-reference-exact-edit-apply-runtime-port.ts",
-      "sha256": "55ff3af88d6eec5585912f73b83ba5a4ad89d08cbbea02b5b024e24e6f98a609"
+      "sha256": "5c89a67be896dbba93643673cac427c4fdf53bd0ea210d904ad1a37ff60d5473"
     },
     {
       "path": "server/services/edit-reference-exact-edit-brief-runtime-port.ts",
@@ -713,7 +713,7 @@
     },
     {
       "path": "src/types/edit-reference-production-exact-edit-apply-api.ts",
-      "sha256": "adbeea8ec86d9f8a8a1c582eae04706756bcebcbcaad403131fe7d87cc44e45f"
+      "sha256": "e44e18815cc735c26fd167966a529b796964c9c7abcf1bc95c7097143fe993b8"
     },
     {
       "path": "src/types/edit-reference-target-video-understanding.ts",
@@ -729,7 +729,7 @@
     },
     {
       "path": "tests/e2e/edit-preferences-atomic-api-server.ts",
-      "sha256": "a8c4847e0e5c958652f9e247927a8eb5bf856fd70ef665606bf11ffc949197dc"
+      "sha256": "abe83c029fb57472fd703975ca9e9e23f3762f44a25cc441d7ac22db2fb6263a"
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",

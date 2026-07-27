@@ -14,6 +14,7 @@ import type {
 import {
   EDIT_REFERENCE_EXACT_EDIT_APPLY_RUNTIME_PORT_VERSION,
   assertEditReferenceExactEditApplyRuntimePortIsNotProduction,
+  createEditReferencePrivateWorkspaceExactEditApplyRuntimePort,
   resolveEditReferenceExactEditApplyRuntimePort,
   type EditReferenceExactEditApplyRuntimePort,
 } from '../services/edit-reference-exact-edit-apply-runtime-port'
@@ -150,6 +151,184 @@ try {
     await runtime.close()
   }
 
+  const privateStorageRoot = join(root, 'private-workspace')
+  const privatePort =
+    createEditReferencePrivateWorkspaceExactEditApplyRuntimePort({
+      localStorageRoot: privateStorageRoot,
+    })
+  assert.doesNotThrow(() => (
+    assertEditReferenceExactEditApplyRuntimePortIsNotProduction(privatePort)
+  ))
+  const privateRuntime = await startRuntime(privateStorageRoot, privatePort)
+  const priorPrivateRuntimeEnv = snapshotFrontendRuntimeEnv()
+  process.env.VITE_REEDITPRO_API_MODE = 'frontend_safe'
+  process.env.VITE_REEDITPRO_API_BASE_URL = privateRuntime.baseUrl
+  process.env.VITE_REEDITPRO_API_TRANSPORT = 'direct'
+  delete process.env.VITE_REEDITPRO_E2E
+  delete process.env.VITE_REEDITPRO_E2E_AUTH_TOKEN
+
+  let privateOperation: ReturnType<typeof createExactEditPreferenceApplyOperation>
+  let privateIdempotencyKey = ''
+  let privateReceipt: EditReferenceProductionExactEditApplyApiReceipt
+  try {
+    const privateRead = await readExactEditPreferenceApplyAuthority({
+      scope,
+      projectId,
+      editSessionId,
+      selectedApplicationId: null,
+    })
+    assert.equal(privateRead.ok, true, JSON.stringify(privateRead))
+    if (!privateRead.ok) throw new Error('private_exact_edit_authority_read_failed')
+    assert.equal(
+      privateRead.authority.sourceAuthority,
+      'private_exact_edit_preference_store',
+    )
+    assert.equal(privateRead.authority.runtimeSource, 'verified_local')
+    assert.equal(privateRead.authority.selectedApplicationAuthority, null)
+    privateOperation = createExactEditPreferenceApplyOperation({
+      authority: privateRead.authority,
+      values: {
+        ...privateRead.authority.values,
+        visualPreference: 'more_graphic_design',
+      },
+      referenceMutation: null,
+    })
+    privateIdempotencyKey = createExactEditPreferenceApplyIdempotencyKey()
+    const privateCommit = await applyExactEditPreferencesAndReference({
+      scope,
+      projectId,
+      editSessionId,
+      operation: privateOperation,
+      idempotencyKey: privateIdempotencyKey,
+    })
+    assert.equal(privateCommit.ok, true, JSON.stringify(privateCommit))
+    if (!privateCommit.ok) throw new Error('private_exact_edit_apply_failed')
+    assert.equal(
+      privateCommit.receipt.sourceAuthority,
+      'private_exact_edit_apply_transaction',
+    )
+    assert.deepEqual(
+      privateCommit.receipt.changedPreferenceFields,
+      ['visualPreference'],
+    )
+    privateReceipt = privateCommit.receipt
+
+    const selectedApplicationRead =
+      await readExactEditPreferenceApplyAuthority({
+        scope,
+        projectId,
+        editSessionId,
+        selectedApplicationId: applicationId,
+      })
+    assert.equal(selectedApplicationRead.ok, false)
+    if (selectedApplicationRead.ok) {
+      throw new Error('private_reference_application_authority_was_accepted')
+    }
+    assert.equal(selectedApplicationRead.status, 'unavailable')
+
+    await assert.rejects(
+      () => privatePort.readAuthority({
+        actor: {
+          actorUserId: 'other-private-user',
+          authenticatedAccessToken: null,
+          mockActor: true,
+        },
+        scope: {
+          actorUserId,
+          workspaceId,
+          projectId,
+          editSessionId,
+          selectedApplicationId: null,
+        },
+      }),
+      (error: unknown) => error instanceof ApiError
+        && error.code === 'WORKSPACE_ACCESS_DENIED',
+    )
+  } finally {
+    restoreFrontendRuntimeEnv(priorPrivateRuntimeEnv)
+    await privateRuntime.close()
+  }
+
+  const restartedPrivatePort =
+    createEditReferencePrivateWorkspaceExactEditApplyRuntimePort({
+      localStorageRoot: privateStorageRoot,
+    })
+  const restartedPrivateRuntime = await startRuntime(
+    privateStorageRoot,
+    restartedPrivatePort,
+  )
+  const priorRestartedRuntimeEnv = snapshotFrontendRuntimeEnv()
+  process.env.VITE_REEDITPRO_API_MODE = 'frontend_safe'
+  process.env.VITE_REEDITPRO_API_BASE_URL = restartedPrivateRuntime.baseUrl
+  process.env.VITE_REEDITPRO_API_TRANSPORT = 'direct'
+  delete process.env.VITE_REEDITPRO_E2E
+  delete process.env.VITE_REEDITPRO_E2E_AUTH_TOKEN
+  try {
+    const recovered = await readExactEditPreferenceApplyAuthority({
+      scope,
+      projectId,
+      editSessionId,
+      selectedApplicationId: null,
+    })
+    assert.equal(recovered.ok, true, JSON.stringify(recovered))
+    if (!recovered.ok) throw new Error('private_exact_edit_restart_read_failed')
+    assert.equal(recovered.authority.values.visualPreference, 'more_graphic_design')
+    assert.equal(recovered.authority.preferenceRevision, 1)
+
+    const replay = await applyExactEditPreferencesAndReference({
+      scope,
+      projectId,
+      editSessionId,
+      operation: privateOperation!,
+      idempotencyKey: privateIdempotencyKey,
+    })
+    assert.equal(replay.ok, true, JSON.stringify(replay))
+    if (!replay.ok) throw new Error('private_exact_edit_restart_replay_failed')
+    assert.deepEqual(replay.receipt, privateReceipt!)
+
+    const changedReplay = await applyExactEditPreferencesAndReference({
+      scope,
+      projectId,
+      editSessionId,
+      operation: createExactEditPreferenceApplyOperation({
+        authority: privateOperation!.authority,
+        values: {
+          ...privateOperation!.authority.values,
+          moodStyle: 'cinematic',
+        },
+        referenceMutation: null,
+      }),
+      idempotencyKey: privateIdempotencyKey,
+    })
+    assert.equal(changedReplay.ok, false)
+    if (changedReplay.ok) {
+      throw new Error('private_exact_edit_changed_restart_replay_was_accepted')
+    }
+    assert.equal(changedReplay.errorCode, 'IDEMPOTENCY_CONFLICT')
+  } finally {
+    restoreFrontendRuntimeEnv(priorRestartedRuntimeEnv)
+    await restartedPrivateRuntime.close()
+  }
+
+  const forgedPrivatePort = {
+    ...privatePort,
+  } as EditReferenceExactEditApplyRuntimePort
+  assert.throws(
+    () => resolveEditReferenceExactEditApplyRuntimePort({
+      env: loadRuntimeEnv({
+        NODE_ENV: 'test',
+        E2E_RUNTIME_MODE: 'local',
+        API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
+        STORAGE_MODE: 'local',
+        LOCAL_STORAGE_ROOT: privateStorageRoot,
+      }),
+      port: forgedPrivatePort,
+    }),
+    (error: unknown) => error instanceof ApiError
+      && (error.details as { reason?: string } | undefined)?.reason
+        === 'local_exact_edit_apply_runtime_claimed_production',
+  )
+
   let forgedReadCalled = false
   let forgedApplyCalled = false
   const forgedProductionPort: EditReferenceExactEditApplyRuntimePort = {
@@ -160,6 +339,8 @@ try {
     canonicalAuthorityReadRpcVerified: true,
     canonicalAtomicApplyRpcVerified: true,
     twoUserTwoWorkspaceRlsVerified: true,
+    privateSingleHostAtomicPreferenceApplyVerified: false,
+    referenceMutationSupported: true,
     sameReleaseReadinessEvidenceVerified: true,
     productionAuthority: true,
     async readAuthority() {
@@ -202,6 +383,11 @@ try {
     genericPreferencesAndReferenceCommittedAtomically: true,
     lostResponseReplayReturnedSameReceipt: true,
     changedReplayRejected: true,
+    privateWorkspacePreferenceApplyCommitted: true,
+    privateWorkspaceRestartReplayReturnedSameReceipt: true,
+    privateWorkspaceReferenceMutationRemainsFailClosed: true,
+    callerShapedPrivateWorkspacePortRejected: true,
+    privateWorkspaceAuthoritySource: 'private_exact_edit_preference_store',
     routeScopeReboundServerSide: true,
     callerAssertedProductionPortRejectedBeforeMutation: true,
     providerOrWorkerExecutionStarted: false,
@@ -239,6 +425,8 @@ function createControlledPort(
     canonicalAuthorityReadRpcVerified: true,
     canonicalAtomicApplyRpcVerified: true,
     twoUserTwoWorkspaceRlsVerified: true,
+    privateSingleHostAtomicPreferenceApplyVerified: false,
+    referenceMutationSupported: true,
     authenticatedActorForwardedServerSide: true,
     noLegacyPreferenceOrApplicationFallback: true,
     browserMutationAuthorityAccepted: false,

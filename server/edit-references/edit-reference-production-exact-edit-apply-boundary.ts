@@ -59,9 +59,10 @@ export type EditReferenceProductionCurrentApplicationState =
   | 'cleared'
 
 /**
- * One server-side snapshot read from the future canonical exact-edit
- * preference repository. This interface is a contract only; it does not make
- * the current private/local store production-authoritative.
+ * One server-side snapshot read from either the canonical exact-edit
+ * preference repository or the explicitly local, single-host private store.
+ * The source/runtime pair is validated together so the private store can
+ * never self-promote to hosted or production authority.
  */
 export interface EditReferenceProductionExactEditPreferenceAuthority {
   readonly sourceAuthority:
@@ -234,8 +235,10 @@ export function validateEditReferenceProductionExactEditApplyAuthorityRead(
   if (
     authority.schemaVersion
       !== EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_VERSION
-    || authority.sourceAuthority !== 'canonical_exact_edit_preference_repository'
-    || authority.runtimeSource !== 'verified_live'
+    || !isValidExactEditPreferenceAuthoritySource(
+      authority.sourceAuthority,
+      authority.runtimeSource,
+    )
     || !isSafeId(authority.authorityReadReceiptId)
     || !isSafeId(authority.workspaceId)
     || !isSafeId(authority.projectId)
@@ -633,7 +636,10 @@ export function validateEditReferenceProductionExactEditApplyReceipt(input: {
   const expectedReferenceMutation = input.request.referenceLifecycleRequest?.mutation ?? null
   if (
     input.receipt.schemaVersion !== 'edit-reference-production-exact-edit-apply-receipt-v1'
-    || input.receipt.sourceAuthority !== 'canonical_exact_edit_apply_rpc'
+    || ![
+      'canonical_exact_edit_apply_rpc',
+      'private_exact_edit_apply_transaction',
+    ].includes(input.receipt.sourceAuthority)
     || input.receipt.canonicalReceiptValidatedServerSide !== true
     || !isSafeId(input.receipt.transactionId)
     || !SHA256_PATTERN.test(expectedDigest)
@@ -682,8 +688,10 @@ function validateExactEditPreferenceAuthority(
     || command.expectedPlanningInputRevision < 0
   ) invalid('exact_edit_apply_command_identity_or_revision_invalid', 400)
   if (
-    authority.sourceAuthority !== 'canonical_exact_edit_preference_repository'
-    || authority.runtimeSource !== 'verified_live'
+    !isValidExactEditPreferenceAuthoritySource(
+      authority.sourceAuthority,
+      authority.runtimeSource,
+    )
     || !isSafeId(authority.authorityReadReceiptId)
   ) invalid('exact_edit_apply_preference_authority_not_production_verified', 503)
   if (
@@ -894,6 +902,19 @@ function assertExactKeys(
 
 function isSafeId(value: string): boolean {
   return ID_PATTERN.test(value) && !value.includes('..')
+}
+
+function isValidExactEditPreferenceAuthoritySource(
+  sourceAuthority: EditReferenceProductionExactEditPreferenceAuthority['sourceAuthority'],
+  runtimeSource: EditReferenceProductionExactEditPreferenceAuthority['runtimeSource'],
+): boolean {
+  return (
+    sourceAuthority === 'canonical_exact_edit_preference_repository'
+    && runtimeSource === 'verified_live'
+  ) || (
+    sourceAuthority === 'private_exact_edit_preference_store'
+    && runtimeSource === 'verified_local'
+  )
 }
 
 function sha256(value: unknown): string {

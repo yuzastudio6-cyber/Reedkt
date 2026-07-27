@@ -91,8 +91,10 @@ export interface EditReferenceProductionPreparedApplicationAuthority {
  */
 export interface EditReferenceProductionExactEditApplyAuthorityRead {
   readonly schemaVersion: typeof EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_VERSION
-  readonly sourceAuthority: 'canonical_exact_edit_preference_repository'
-  readonly runtimeSource: 'verified_live'
+  readonly sourceAuthority:
+    | 'canonical_exact_edit_preference_repository'
+    | 'private_exact_edit_preference_store'
+  readonly runtimeSource: 'verified_live' | 'verified_local'
   readonly authorityReadReceiptId: string
   readonly workspaceId: string
   readonly projectId: string
@@ -155,7 +157,9 @@ export interface EditReferenceProductionExactEditApplyCommand {
 
 export interface EditReferenceProductionExactEditApplyApiReceipt {
   readonly schemaVersion: typeof EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RECEIPT_VERSION
-  readonly sourceAuthority: 'canonical_exact_edit_apply_rpc'
+  readonly sourceAuthority:
+    | 'canonical_exact_edit_apply_rpc'
+    | 'private_exact_edit_apply_transaction'
   readonly canonicalReceiptValidatedServerSide: true
   readonly transactionId: string
   readonly changedPreferenceFields: readonly (

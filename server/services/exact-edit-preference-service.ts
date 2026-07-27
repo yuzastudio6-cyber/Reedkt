@@ -115,6 +115,57 @@ export interface ExactEditPreferenceView {
 type EffectiveLifecycleLock = ExactEditPreferenceLifecycleState
 type ExactEditMutationOperation = PrivateExactEditPreferenceRecord['idempotencyRecords'][number]['operation']
 
+export function createPrivateExactEditPreferenceRecord(input: {
+  readonly scope: ExactEditPreferenceStoreScope
+  readonly baseline: ExactEditPreferenceBaseline
+  readonly timestamp: string
+  readonly idempotencyKey: string
+  readonly requestHash: string
+}): PrivateExactEditPreferenceRecord {
+  return {
+    schemaVersion: PRIVATE_EXACT_EDIT_PREFERENCE_RECORD_VERSION,
+    ownerUserId: input.scope.ownerUserId,
+    workspaceId: input.scope.workspaceId,
+    projectId: input.scope.projectId,
+    editSessionId: input.scope.editSessionId,
+    baseline: cloneJson(input.baseline),
+    values: cloneJson(input.baseline.values),
+    overrideKeys: [],
+    recordRevision: 0,
+    preferenceRevision: 0,
+    preferenceUpdatedAt: input.timestamp,
+    planning: {
+      planningInputRevision: 0,
+      preferenceFingerprintSha256: exactEditPreferenceFingerprint(input.baseline.values),
+      replanRequired: true,
+      reestimateRequired: true,
+      sourcePreparation: { status: 'not_started', updatedAt: input.timestamp },
+      frameConfirmation: { status: 'unconfirmed', updatedAt: input.timestamp },
+    },
+    lifecycle: { phase: 'planning', locked: false },
+    auditEvents: [{
+      id: `exact_edit_preference_audit_${randomUUID()}`,
+      eventType: 'exact_edit_preferences_initialized',
+      actorType: 'internal_service',
+      actorUserId: input.scope.ownerUserId,
+      recordRevision: 0,
+      preferenceRevision: 0,
+      changedInputs: [...exactEditPreferenceFieldKeys],
+      createdAt: input.timestamp,
+    }],
+    idempotencyRecords: [{
+      operation: 'initialize',
+      idempotencyKey: input.idempotencyKey,
+      requestHash: input.requestHash,
+      committedRecordRevision: 0,
+      completedAt: input.timestamp,
+    }],
+    createdAt: input.timestamp,
+    updatedAt: input.timestamp,
+    privateInternalOnly: true,
+  }
+}
+
 export function createExactEditPreferenceService(context: ServiceContext) {
   return {
     async getCurrent(workspaceIdInput: string, projectIdInput: string, editSessionIdInput: string) {
@@ -173,48 +224,13 @@ export function createExactEditPreferenceService(context: ServiceContext) {
           }
           if (canonicalLock.locked) throw approvedEditPreferenceLockError(canonicalLock)
 
-          const record: PrivateExactEditPreferenceRecord = {
-            schemaVersion: PRIVATE_EXACT_EDIT_PREFERENCE_RECORD_VERSION,
-            ownerUserId: scope.ownerUserId,
-            workspaceId: scope.workspaceId,
-            projectId: scope.projectId,
-            editSessionId: scope.editSessionId,
+          const record = createPrivateExactEditPreferenceRecord({
+            scope,
             baseline,
-            values: cloneJson(baseline.values),
-            overrideKeys: [],
-            recordRevision: 0,
-            preferenceRevision: 0,
-            preferenceUpdatedAt: timestamp,
-            planning: {
-              planningInputRevision: 0,
-              preferenceFingerprintSha256: exactEditPreferenceFingerprint(baseline.values),
-              replanRequired: true,
-              reestimateRequired: true,
-              sourcePreparation: { status: 'not_started', updatedAt: timestamp },
-              frameConfirmation: { status: 'unconfirmed', updatedAt: timestamp },
-            },
-            lifecycle: { phase: 'planning', locked: false },
-            auditEvents: [{
-              id: `exact_edit_preference_audit_${randomUUID()}`,
-              eventType: 'exact_edit_preferences_initialized',
-              actorType: 'internal_service',
-              actorUserId: scope.ownerUserId,
-              recordRevision: 0,
-              preferenceRevision: 0,
-              changedInputs: [...exactEditPreferenceFieldKeys],
-              createdAt: timestamp,
-            }],
-            idempotencyRecords: [{
-              operation: 'initialize',
-              idempotencyKey,
-              requestHash,
-              committedRecordRevision: 0,
-              completedAt: timestamp,
-            }],
-            createdAt: timestamp,
-            updatedAt: timestamp,
-            privateInternalOnly: true,
-          }
+            timestamp,
+            idempotencyKey,
+            requestHash,
+          })
           return {
             changed: true,
             record,
@@ -315,7 +331,11 @@ export function createExactEditPreferenceService(context: ServiceContext) {
             recordRevision: nextRecordRevision,
             preferenceRevision: nextPreferenceRevision,
             preferenceUpdatedAt: timestamp,
-            planning: applyPlanningInvalidation(record.planning, invalidation, nextValues),
+            planning: applyExactEditPlanningInvalidation(
+              record.planning,
+              invalidation,
+              nextValues,
+            ),
             auditEvents: [...record.auditEvents, {
               id: `exact_edit_preference_audit_${randomUUID()}`,
               eventType: 'exact_edit_preferences_changed',
@@ -491,7 +511,11 @@ export function createExactEditPreferenceService(context: ServiceContext) {
           const nextRecord: PrivateExactEditPreferenceRecord = {
             ...record,
             recordRevision: nextRecordRevision,
-            planning: applyPlanningInvalidation(record.planning, invalidation, record.values),
+            planning: applyExactEditPlanningInvalidation(
+              record.planning,
+              invalidation,
+              record.values,
+            ),
             auditEvents: [...record.auditEvents, {
               id: `exact_edit_preference_audit_${randomUUID()}`,
               eventType: 'output_frame_change_invalidated_planning',
@@ -781,7 +805,7 @@ async function resolveCanonicalLifecycleLock(
   }
 }
 
-function applyPlanningInvalidation(
+export function applyExactEditPlanningInvalidation(
   planning: ExactEditPreferencePlanningState,
   invalidation: ExactEditPlanningInvalidation,
   values: ExactEditPreferenceValues,

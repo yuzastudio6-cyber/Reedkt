@@ -175,6 +175,11 @@ export async function applyExactEditPreferencesAndReference(input: {
   if (
     !data
     || !isExactEditApplyReceipt(data.receipt)
+    || data.receipt.sourceAuthority !== (
+      input.operation.authority.sourceAuthority === 'private_exact_edit_preference_store'
+        ? 'private_exact_edit_apply_transaction'
+        : 'canonical_exact_edit_apply_rpc'
+    )
     || !isSha256(data.operationDigestSha256)
     || data.authenticatedScopeReboundServerSide !== true
     || data.canonicalRowsReReadInsideTransaction !== true
@@ -333,8 +338,7 @@ function isExactEditApplyAuthority(
   ])) return false
   if (
     value.schemaVersion !== EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_VERSION
-    || value.sourceAuthority !== 'canonical_exact_edit_preference_repository'
-    || value.runtimeSource !== 'verified_live'
+    || !isExactEditApplyAuthoritySource(value.sourceAuthority, value.runtimeSource)
     || !isSafeId(value.authorityReadReceiptId)
     || !isSafeId(value.workspaceId)
     || !isSafeId(value.projectId)
@@ -459,7 +463,10 @@ function isExactEditApplyReceipt(
 ): value is EditReferenceProductionExactEditApplyApiReceipt {
   return isRecord(value)
     && value.schemaVersion === EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RECEIPT_VERSION
-    && value.sourceAuthority === 'canonical_exact_edit_apply_rpc'
+    && [
+      'canonical_exact_edit_apply_rpc',
+      'private_exact_edit_apply_transaction',
+    ].includes(String(value.sourceAuthority))
     && value.canonicalReceiptValidatedServerSide === true
     && isSafeId(value.transactionId)
     && Array.isArray(value.changedPreferenceFields)
@@ -498,6 +505,19 @@ function isSafeId(value: unknown): value is string {
   return typeof value === 'string'
     && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/.test(value)
     && !value.includes('..')
+}
+
+function isExactEditApplyAuthoritySource(
+  sourceAuthority: unknown,
+  runtimeSource: unknown,
+): boolean {
+  return (
+    sourceAuthority === 'canonical_exact_edit_preference_repository'
+    && runtimeSource === 'verified_live'
+  ) || (
+    sourceAuthority === 'private_exact_edit_preference_store'
+    && runtimeSource === 'verified_local'
+  )
 }
 
 function isSha256(value: unknown): value is string {

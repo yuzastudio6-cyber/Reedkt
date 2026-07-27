@@ -121,6 +121,7 @@ export interface ExactEditPreferenceIdempotencyRecord {
   operation:
     | 'initialize'
     | 'update_preferences'
+    | 'apply_preferences'
     | 'record_planning_evidence'
     | 'invalidate_output_frame'
     | 'lock_lifecycle'
@@ -283,6 +284,7 @@ const privateExactEditPreferenceRecordSchema = z.object({
     operation: z.enum([
       'initialize',
       'update_preferences',
+      'apply_preferences',
       'record_planning_evidence',
       'invalidate_output_frame',
       'lock_lifecycle',

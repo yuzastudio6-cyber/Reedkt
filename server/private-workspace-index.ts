@@ -14,10 +14,12 @@ const [
   { createReeditProApiApp },
   { assertRuntimeCanStart, loadRuntimeEnv },
   { createEditBriefPrivateWorkspaceRuntimePort },
+  { createEditReferencePrivateWorkspaceExactEditApplyRuntimePort },
 ] = await Promise.all([
   import('./app'),
   import('./config/env'),
   import('./services/edit-brief-private-workspace-runtime-port'),
+  import('./services/edit-reference-exact-edit-apply-runtime-port'),
 ])
 
 const env = loadRuntimeEnv()
@@ -36,6 +38,10 @@ if (
 const app = createReeditProApiApp(env, {
   editBriefPrivateWorkspaceRuntimePort:
     createEditBriefPrivateWorkspaceRuntimePort(),
+  editReferenceExactEditApplyRuntimePort:
+    createEditReferencePrivateWorkspaceExactEditApplyRuntimePort({
+      localStorageRoot: env.localStorageRoot,
+    }),
 })
 app.listen(env.apiPort, host, () => {
   console.log(`ReeditPro private API listening on http://${formatHost(host)}:${env.apiPort}.`)

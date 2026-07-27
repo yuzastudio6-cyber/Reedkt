@@ -183,6 +183,8 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
   canonicalAuthorityReadRpcVerified: true,
   canonicalAtomicApplyRpcVerified: true,
   twoUserTwoWorkspaceRlsVerified: true,
+  privateSingleHostAtomicPreferenceApplyVerified: false,
+  referenceMutationSupported: true,
   authenticatedActorForwardedServerSide: true,
   noLegacyPreferenceOrApplicationFallback: true,
   browserMutationAuthorityAccepted: false,

@@ -17,6 +17,7 @@ import { getRequiredAuthUserId } from './service-helpers'
 import {
   resolveEditReferenceExactEditApplyRuntimePort,
   type EditReferenceExactEditApplyRuntimeActor,
+  type EditReferenceExactEditApplyRuntimePort,
 } from './edit-reference-exact-edit-apply-runtime-port'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 
@@ -64,6 +65,7 @@ export function createEditReferenceExactEditApplyService(
       })
       const authority = await port.readAuthority({ actor, scope })
       validateEditReferenceProductionExactEditApplyAuthorityRead(authority)
+      assertAuthorityMatchesRuntimePort(port, authority)
       if (
         authority.workspaceId !== scope.workspaceId
         || authority.projectId !== scope.projectId
@@ -88,6 +90,7 @@ export function createEditReferenceExactEditApplyService(
         env: context.env,
         port: context.editReferenceExactEditApplyRuntimePort,
       })
+      assertAuthorityMatchesRuntimePort(port, authority)
       const idempotencyKeyHashSha256 = sha256([
         'exact-edit-preferences-and-reference-apply-v1',
         actor.actorUserId,
@@ -125,6 +128,13 @@ export function createEditReferenceExactEditApplyService(
         request: prepared.request,
         receipt,
       })
+      if (
+        receipt.sourceAuthority !== (
+          port.sourceAuthority === 'private_exact_edit_preference_store'
+            ? 'private_exact_edit_apply_transaction'
+            : 'canonical_exact_edit_apply_rpc'
+        )
+      ) throw invalid('exact_edit_apply_receipt_runtime_source_mismatch', 503)
       return {
         receipt: structuredClone(receipt),
         operationDigestSha256: prepared.browserCommandDigestSha256,
@@ -136,6 +146,23 @@ export function createEditReferenceExactEditApplyService(
         providerOrWorkerExecutionStarted: false,
       }
     },
+  }
+}
+
+function assertAuthorityMatchesRuntimePort(
+  port: EditReferenceExactEditApplyRuntimePort,
+  authority: EditReferenceProductionExactEditApplyAuthorityRead,
+): void {
+  const privateAuthority =
+    authority.sourceAuthority === 'private_exact_edit_preference_store'
+    && authority.runtimeSource === 'verified_local'
+  const runtimeIsPrivate =
+    port.sourceAuthority === 'private_exact_edit_preference_store'
+    && port.evidenceClass === 'loopback_single_host_private_test'
+    && port.privateSingleHostAtomicPreferenceApplyVerified
+    && !port.referenceMutationSupported
+  if (privateAuthority !== runtimeIsPrivate) {
+    throw invalid('exact_edit_apply_authority_runtime_source_mismatch', 503)
   }
 }
 

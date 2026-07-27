@@ -1597,3 +1597,34 @@ All matching rules are subject-neutral. Historical figures, vehicles,
 geographic explanations, and the other named examples remain regression
 fixtures only; no subject name, topic, genre, or category may alter the
 reconciliation algorithm.
+
+## Remotion motion-sample binding
+
+The existing Living Frame Remotion profile records layer and camera motion
+track IDs, but a renderer cannot execute IDs alone. The
+`living-frame-remotion-motion-sample-binding-v1` compiler rereads the exact
+non-executable profile and deterministic motion bundle, proves their scene,
+output-frame, and MasterTiming lineage agree, and binds every referenced track
+to its complete frame-sampled scalar values.
+
+For each layer or virtual camera, the binding retains:
+
+- the ordered source-profile track IDs;
+- the exact compiled track owner, property, role, easing, source keyframes,
+  frame range, restoration expectation, and per-frame samples;
+- the source profile's expected sample count;
+- the independently derived compiled sample count; and
+- closed blockers for missing tracks, owner mismatch, or count mismatch.
+
+This closes only the abstract motion-sample projection gap. It does not admit
+the payload to the offline Remotion protocol. Current profile reread,
+MasterTiming and output-frame revalidation, committed artifact bytes, mask
+artifacts, artifact QA, protocol-profile admission, private execution, and
+private review remain mandatory downstream gates.
+
+The binding contains no media bytes, paths, commands, tool or provider route,
+job, queue, cost, or commercial data. It cannot create artifacts, work items,
+manifest entries, approvals, snapshots, or renderer execution. The existing
+MasterTimingPlan and non-executable Living Frame Remotion profile remain the
+only authorities. Matching is component- and track-based, never
+subject-specific; named scenes remain regression fixtures only.

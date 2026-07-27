@@ -55,11 +55,13 @@ assert.equal(verifyLivingFrameRendererPlanBindingDigest(renderer), true)
 assert.equal(verifyLivingFrameChoreographyBindingDigest(choreography), true)
 assert.equal(verifyLivingFrameApprovedLineageBindingDigest(lineage), true)
 
-const profile = compileLivingFrameRemotionProfile({
-  rendererPlanBinding: renderer,
-  choreographyBinding: choreography,
-  approvedLineageBinding: lineage,
-})
+export const livingFrameRemotionProfileFixture =
+  compileLivingFrameRemotionProfile({
+    rendererPlanBinding: renderer,
+    choreographyBinding: choreography,
+    approvedLineageBinding: lineage,
+  })
+const profile = livingFrameRemotionProfileFixture
 
 assert.equal(verifyLivingFrameRemotionProfileDigest(profile), true)
 assert.equal(

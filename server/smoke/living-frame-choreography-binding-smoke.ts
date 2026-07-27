@@ -41,7 +41,9 @@ mutableScene.attentionSequence[3]!.methods = [
   'focus_depth_expectation',
 ]
 const parent = await createLivingFrameProfessionalSkillComponent(parentDraft)
-const motion = compileMotion()
+export const livingFrameChoreographyFixtureMotionBundle =
+  compileMotion()
+const motion = livingFrameChoreographyFixtureMotionBundle
 const input = {
   livingFrameComponent: parent,
   sceneId: 'scene.hormuz-a-roll',

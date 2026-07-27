@@ -283,6 +283,17 @@ export type {
 } from '../../types/living-frame-component-artifact-reconciliation'
 
 export type {
+  LivingFrameRemotionCameraMotionSampleBinding,
+  LivingFrameRemotionLayerMotionSampleBinding,
+  LivingFrameRemotionMotionSampleBinding,
+  LivingFrameRemotionMotionSampleBindingAuthorityBoundary,
+  LivingFrameRemotionMotionSampleBindingBlocker,
+  LivingFrameRemotionMotionSampleBindingDraft,
+  LivingFrameRemotionMotionSampleBindingMetrics,
+  LivingFrameRemotionMotionSampleBindingState,
+} from '../../types/living-frame-remotion-motion-sample-binding'
+
+export type {
   LivingFrameComponentRigAuthorityBoundary,
   LivingFrameComponentRigMetrics,
   LivingFrameComponentRigSpec,

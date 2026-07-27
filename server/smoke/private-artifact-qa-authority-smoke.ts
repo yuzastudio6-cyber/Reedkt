@@ -123,6 +123,32 @@ class DeterministicQaAdapter implements ServerInjectedArtifactQaAdapter {
               ? 'private_test_quality_fallback_required'
               : 'private_test_quality_user_review_required',
         },
+        ...(input.artifact.lineage.assetRole === 'final'
+          ? [
+              {
+                gateId: 'render_preflight_gate' as const,
+                category: 'render_composition' as const,
+                status: 'passed' as const,
+                failureScope: 'none' as const,
+                evidenceHash: sha256ArtifactQaValue({
+                  artifactId: input.artifact.artifactId,
+                  gate: 'render-preflight',
+                }),
+                notesCode: 'private_test_render_preflight_attestation_passed',
+              },
+              {
+                gateId: 'final_qa_gate' as const,
+                category: 'asset_integrity' as const,
+                status: 'passed' as const,
+                failureScope: 'none' as const,
+                evidenceHash: sha256ArtifactQaValue({
+                  artifactId: input.artifact.artifactId,
+                  gate: 'final-qa',
+                }),
+                notesCode: 'private_test_final_qa_attestation_passed',
+              },
+            ]
+          : []),
       ],
       recovery: mode === 'pass'
         ? {
@@ -189,18 +215,20 @@ const canonicalSnapshotBefore = JSON.stringify(snapshot)
 const jobs = new Map(canonicalBefore.jobs
   .filter((job) => job.snapshotId === snapshot.snapshotId)
   .map((job) => [job.workItemKey, job]))
-const rootJob = jobs.get('snapshot-validation')
-const trimJob = jobs.get('source-trim')
+const independentRootJob = jobs.get('snapshot-validation')
+const rootJob = jobs.get('source-trim')
+const supportingRootJob = jobs.get('caption-overlay')
+const trimJob = jobs.get('final-export')
 const finalQaJob = jobs.get('final-qa')
-const finalExportJob = jobs.get('final-export')
+assert.ok(independentRootJob)
 assert.ok(rootJob)
+assert.ok(supportingRootJob)
 assert.ok(trimJob)
 assert.ok(finalQaJob)
-assert.ok(finalExportJob)
 const rootAssetId = onlyExpectedAssetId(rootJob.expectedAssetIds)
+const supportingRootAssetId = onlyExpectedAssetId(supportingRootJob.expectedAssetIds)
 const trimAssetId = onlyExpectedAssetId(trimJob.expectedAssetIds)
 const finalQaAssetId = onlyExpectedAssetId(finalQaJob.expectedAssetIds)
-const finalExportAssetId = onlyExpectedAssetId(finalExportJob.expectedAssetIds)
 
 const artifactAdapter = new DeterministicArtifactAdapter()
 const qaAdapter = new DeterministicQaAdapter()
@@ -210,9 +238,9 @@ let service = createPrivateArtifactQaAuthorityService(context, {
 })
 
 const rootIdentity = identity(rootJob.id, rootAssetId)
+const supportingRootIdentity = identity(supportingRootJob.id, supportingRootAssetId)
 const trimIdentity = identity(trimJob.id, trimAssetId)
 const finalQaIdentity = identity(finalQaJob.id, finalQaAssetId)
-const finalExportIdentity = identity(finalExportJob.id, finalExportAssetId)
 
 const rootReadinessBefore = await service.deriveJobDependencyReadiness(readinessRequest(rootJob.id))
 assert.equal(rootReadinessBefore.readinessGroup, 'ready_now_private_test_only')
@@ -340,6 +368,37 @@ assert.equal(rootV3Reconcile.reconciliation.decision, 'test_merged_not_live_auth
 assert.equal(rootV3Reconcile.reconciliation.privateTestDependencySatisfied, true)
 assert.equal(rootV3Reconcile.reconciliation.finalRenderAuthorized, false)
 
+const trimWaitingSupportingRoot = await service.deriveJobDependencyReadiness(
+  readinessRequest(trimJob.id),
+)
+assert.equal(trimWaitingSupportingRoot.readinessGroup, 'waiting_for_asset')
+assert.equal(trimWaitingSupportingRoot.privateTestDependencySatisfied, false)
+assert.equal(trimWaitingSupportingRoot.independentWorkCanContinue, true)
+
+artifactAdapter.configure({
+  identity: supportingRootIdentity,
+  artifactVersion: 1,
+  attemptKind: 'initial',
+})
+const supportingRootV1 = (await service.recordArtifactResult(
+  artifactRequest(supportingRootIdentity, 'artifact-caption-v1-pass-0001'),
+)).artifact
+qaAdapter.configure(supportingRootV1.artifactId, 'pass')
+await service.recordArtifactQa(
+  qaRequest(
+    supportingRootIdentity,
+    supportingRootV1.artifactId,
+    'qa-caption-v1-pass-0001',
+  ),
+)
+await service.reconcileArtifact(
+  reconcileRequest(
+    supportingRootIdentity,
+    supportingRootV1.artifactId,
+    'reconcile-caption-v1-pass-0001',
+  ),
+)
+
 const trimReady = await service.deriveJobDependencyReadiness(readinessRequest(trimJob.id))
 assert.equal(trimReady.readinessGroup, 'ready_now_private_test_only')
 assert.equal(trimReady.privateTestDependencySatisfied, true)
@@ -350,13 +409,29 @@ artifactAdapter.configure({
   identity: trimIdentity,
   artifactVersion: 1,
   attemptKind: 'initial',
+  placeholder: true,
+})
+await expectApiError(
+  () => service.recordArtifactResult(
+    artifactRequest(trimIdentity, 'artifact-final-placeholder-rejected-0001'),
+  ),
+  'RENDER_NOT_READY',
+)
+
+artifactAdapter.configure({
+  identity: trimIdentity,
+  artifactVersion: 1,
+  attemptKind: 'initial',
 })
 const trimV1 = (await service.recordArtifactResult(
   artifactRequest(trimIdentity, 'artifact-trim-v1-pass-0001'),
 )).artifact
-assert.deepEqual(trimV1.lineage.segmentIds, ['segment-1', 'segment-2'])
+assert.deepEqual(trimV1.lineage.segmentIds, ['segment-1'])
 assert.deepEqual(trimV1.lineage.timingIds, ['master-timing-plan'])
-assert.deepEqual(trimV1.lineage.rendererLayerIds, ['source-video-layer'])
+assert.deepEqual(
+  trimV1.lineage.rendererLayerIds,
+  ['source-video-layer', 'caption-overlay-layer'],
+)
 qaAdapter.configure(trimV1.artifactId, 'pass')
 await service.recordArtifactQa(qaRequest(trimIdentity, trimV1.artifactId, 'qa-trim-v1-pass-0001'))
 await service.reconcileArtifact(
@@ -365,11 +440,13 @@ await service.reconcileArtifact(
 const finalQaReady = await service.deriveJobDependencyReadiness(readinessRequest(finalQaJob.id))
 assert.equal(finalQaReady.readinessGroup, 'ready_now_private_test_only')
 
-// A completed downstream dependency does not rewrite or globally stop an
-// independent/root work item.
-const rootStillReady = await service.deriveJobDependencyReadiness(readinessRequest(rootJob.id))
-assert.equal(rootStillReady.readinessGroup, 'ready_now_private_test_only')
-assert.equal(rootStillReady.dependencies.length, 0)
+// Completed downstream dependencies do not rewrite or globally stop a
+// separate independent/root work item.
+const independentRootStillReady = await service.deriveJobDependencyReadiness(
+  readinessRequest(independentRootJob.id),
+)
+assert.equal(independentRootStillReady.readinessGroup, 'ready_now_private_test_only')
+assert.equal(independentRootStillReady.dependencies.length, 0)
 
 artifactAdapter.configure({
   identity: finalQaIdentity,
@@ -386,27 +463,11 @@ await service.recordArtifactQa(
 await service.reconcileArtifact(
   reconcileRequest(finalQaIdentity, finalQaV1.artifactId, 'reconcile-final-qa-v1-pass-0001'),
 )
-const finalExportReady = await service.deriveJobDependencyReadiness(readinessRequest(finalExportJob.id))
-assert.equal(finalExportReady.readinessGroup, 'ready_now_private_test_only')
-assert.equal(finalExportReady.renderAuthorized, false)
-
-artifactAdapter.configure({
-  identity: finalExportIdentity,
-  artifactVersion: 1,
-  attemptKind: 'initial',
-  placeholder: true,
-})
-await expectApiError(
-  () => service.recordArtifactResult(
-    artifactRequest(finalExportIdentity, 'artifact-final-placeholder-rejected-0001'),
-  ),
-  'RENDER_NOT_READY',
-)
 
 const storeScope = { localStorageRoot, ownerUserId: userId, workspaceId }
 const aggregateBeforeRestart = await readPrivateArtifactQaAggregate(storeScope)
 assert.ok(aggregateBeforeRestart)
-assert.equal(aggregateBeforeRestart.artifacts.length, 5)
+assert.equal(aggregateBeforeRestart.artifacts.length, 6)
 assert.equal(new Set(aggregateBeforeRestart.artifacts
   .filter((artifact) => artifact.identity.expectedAssetId === rootAssetId)
   .map((artifact) => artifact.artifactVersion)).size, 3)

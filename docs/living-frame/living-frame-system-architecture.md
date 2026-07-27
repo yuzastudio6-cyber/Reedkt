@@ -1442,3 +1442,72 @@ asset and continuity evidence, Tool Strategy projection, provider
 qualification, estimates, approval, immutable snapshot lineage, named work
 creation, asset-manifest entries, artifact QA, Remotion review, and production
 execution remain downstream shared authorities.
+
+## Subject-neutral component asset-intent slice
+
+The component asset-intent compiler converts each verified abstract synthesis
+route into an ordered, dependency-safe list of asset *expectations*. It does
+not create an asset, work item, manifest row, tool route, provider request, or
+queue entry.
+
+The compiler uses the existing named `EditWorkItemType` vocabulary only:
+
+- approved-source reuse has no new work expectation;
+- deterministic vectors and effects expect
+  `prepare_remotion_layer`;
+- exact geography expects `render_map_asset`;
+- exact data graphics expect `render_chart_asset`;
+- opaque still sources expect `generate_image_asset`;
+- still or temporal masks expect `generate_mask_asset`;
+- alpha-processed still components expect `process_image_asset`;
+- bounded video, when the upstream synthesis policy has justified it as the
+  last resort, expects `generate_ai_video_asset`; and
+- a reconstructed plate expects the already admitted
+  `reconstruct_background_plate` work type.
+
+`custom` is forbidden. Every named work expectation must already occur in the
+verified Living Frame work-admission catalog, and later canonical planning must
+revalidate it before creating any real `EditWorkItem`.
+
+Asset intents distinguish source anchors, generated opaque anchors, mask
+companions, processed RGBA components, deterministic specifications, bounded
+video clips, and reconstructed plates. Dependencies are ordered and
+acyclic. A processed RGBA component, for example, depends on exactly one
+opaque/reused still source and its still-alpha mask. Final render placeholders
+are always forbidden; preview placeholders are expectations only.
+
+This boundary preserves the current alpha policy:
+
+```text
+opaque source intent
+  -> mask intent
+  -> processed RGBA component intent
+  -> future canonical asset-manifest projection
+  -> artifact and destination-composite QA
+```
+
+The examples continue to be fixtures only. No person, vehicle, place, genre,
+or narrative topic has a special asset route, and the contract explicitly
+rejects subject-specific routing fields.
+
+The bundle binds the semantic-plan projection, projected Living Frame
+component, synthesis-routing plan, and work-admission catalog by SHA-256. Its
+standalone validator proves closed structure, dependency semantics, and the
+absence of promoted authority. The compiler additionally rereads all upstream
+objects and proves their cross-object lineage; a caller cannot establish that
+lineage by supplying matching booleans or a self-signed packet.
+
+The resulting bundle remains planning-only and non-promotable. These gates stay
+closed:
+
+- current source-asset and continuity evidence;
+- canonical selected-scene admission;
+- Tool Strategy and provider/model-weight qualification;
+- estimate, customer credits, approval, and immutable snapshot binding;
+- exact MasterTimingPlan and SoundSync authority;
+- actual work-item creation, dependency graph mutation, queue dispatch, or
+  asset-manifest mutation;
+- component artifact generation, alpha/mask/reconstruction QA, and final asset
+  reconciliation; and
+- Remotion execution, private review, export, runtime, and production
+  readiness.

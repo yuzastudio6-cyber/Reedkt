@@ -313,6 +313,18 @@ export type {
 } from '../../types/living-frame-synthesis-routing'
 
 export type {
+  LivingFrameComponentAssetBlockerCode,
+  LivingFrameComponentAssetIntent,
+  LivingFrameComponentAssetIntentAuthorityBoundary,
+  LivingFrameComponentAssetIntentBundle,
+  LivingFrameComponentAssetIntentBundleDraft,
+  LivingFrameComponentAssetIntentMetrics,
+  LivingFrameComponentAssetIntentState,
+  LivingFrameComponentAssetKind,
+  LivingFrameComponentAssetStage,
+} from '../../types/living-frame-component-asset-intent'
+
+export type {
   LivingFrameControlledIllustrationCandidateSourceObservation,
   LivingFrameControlledIllustrationDeclaredLabelObservation,
   LivingFrameControlledIllustrationDependencyScopeRule,

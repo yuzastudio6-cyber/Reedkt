@@ -283,6 +283,23 @@ export type {
 } from '../../types/living-frame-component-rig'
 
 export type {
+  LivingFrameBackgroundPlateArtifactExpectation,
+  LivingFrameBackgroundPlateHoleExpectationInput,
+  LivingFrameBackgroundPlateReconstructionAuthorityBoundary,
+  LivingFrameBackgroundPlateReconstructionDecision,
+  LivingFrameBackgroundPlateReconstructionMetrics,
+  LivingFrameBackgroundPlateReconstructionSpec,
+  LivingFrameBackgroundPlateReconstructionSpecDraft,
+  LivingFrameBackgroundPlateSourceBindings,
+  LivingFrameReconstructionBlockerCode,
+  LivingFrameReconstructionFallbackStep,
+  LivingFrameReconstructionProfile,
+  LivingFrameReconstructionQaCode,
+  LivingFrameReconstructionSafetyClass,
+  LivingFrameReconstructionTextureClass,
+} from '../../types/living-frame-background-plate-reconstruction'
+
+export type {
   LivingFrameControlledIllustrationCandidateSourceObservation,
   LivingFrameControlledIllustrationDeclaredLabelObservation,
   LivingFrameControlledIllustrationDependencyScopeRule,

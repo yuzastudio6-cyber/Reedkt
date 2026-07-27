@@ -90,9 +90,13 @@ The private repository uses:
 
 This is restart-safe on one backend host only. It is not a distributed durable
 attempt store, database repository, queue, lease, webhook, or unknown-attempt
-reconciliation system. A later provider-execution slice must add CAS-backed
-attempt state, one-use submission authority, checkback, retry/fallback, and
-unknown-attempt reconciliation before any transport can be enabled.
+reconciliation system. The next bounded server layer now creates a separate
+digest-only first-attempt reservation with the same single-host limitation;
+it still withholds provider-request and one-use submission authority. A later
+provider-execution slice must add distributed CAS state, submission
+consumption, checkback, retry/fallback, and unknown-attempt reconciliation
+before any transport can be enabled. See
+`docs/canonical-living-frame-preapproval-reasoning-attempt-reservation.md`.
 
 ## Closed authorities
 

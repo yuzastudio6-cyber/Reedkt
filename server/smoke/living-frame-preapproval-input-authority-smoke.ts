@@ -43,8 +43,15 @@ import {
   verifyCanonicalLivingFrameSemanticReasoningAdmission,
 } from '../living-frame/canonical-living-frame-semantic-reasoning-admission'
 import {
+  CANONICAL_LIVING_FRAME_PREAPPROVAL_REASONING_ATTEMPT_RESERVATION_BOUNDARY,
+  verifyCanonicalLivingFramePreapprovalReasoningAttemptReservation,
+} from '../living-frame/canonical-living-frame-preapproval-reasoning-attempt-reservation'
+import {
   verifyCanonicalLivingFramePreapprovalReasoningRun,
 } from '../living-frame/canonical-living-frame-preapproval-reasoning-lifecycle'
+import {
+  PrivateCanonicalLivingFramePreapprovalReasoningAttemptRepository,
+} from '../living-frame/private-canonical-living-frame-preapproval-reasoning-attempt-repository'
 import {
   PrivateCanonicalLivingFramePreapprovalReasoningRepository,
 } from '../living-frame/private-canonical-living-frame-preapproval-reasoning-repository'
@@ -105,6 +112,11 @@ import {
   canonicalLivingFrameSemanticAdmissionRequestSchema,
   CANONICAL_LIVING_FRAME_SEMANTIC_ADMISSION_REQUEST_VERSION,
 } from '../services/canonical-living-frame-semantic-reasoning-admission-service'
+import {
+  canonicalLivingFramePreapprovalReasoningAttemptReserveRequestSchema,
+  CANONICAL_LIVING_FRAME_PREAPPROVAL_REASONING_ATTEMPT_RESERVE_REQUEST_VERSION,
+  reserveCanonicalLivingFramePreapprovalReasoningAttempt,
+} from '../services/canonical-living-frame-preapproval-reasoning-attempt-service'
 import {
   canonicalLivingFramePreapprovalReasoningPrepareRequestSchema,
   CANONICAL_LIVING_FRAME_PREAPPROVAL_REASONING_PREPARE_REQUEST_VERSION,
@@ -598,6 +610,16 @@ console.log(JSON.stringify({
     semanticAdmissionEvidence.restartSafePreparedRunPersisted,
   idempotentPreparedRunReplay:
     semanticAdmissionEvidence.idempotentPreparedRunReplay,
+  restartSafeAttemptReservationPersisted:
+    semanticAdmissionEvidence
+      .restartSafeAttemptReservationPersisted,
+  idempotentAttemptReservationReplay:
+    semanticAdmissionEvidence.idempotentAttemptReservationReplay,
+  providerSubmissionAuthorityStillWithheld:
+    semanticAdmissionEvidence
+      .providerSubmissionAuthorityStillWithheld,
+  attemptReservationTamperingRejected:
+    semanticAdmissionEvidence.attemptReservationTamperingRejected,
   providerTransportStillUnauthorized:
     semanticAdmissionEvidence.providerTransportStillUnauthorized,
   preparedRunTamperingRejected:
@@ -617,6 +639,10 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
   readonly exactSemanticPayloadPrepared: true
   readonly restartSafePreparedRunPersisted: true
   readonly idempotentPreparedRunReplay: true
+  readonly restartSafeAttemptReservationPersisted: true
+  readonly idempotentAttemptReservationReplay: true
+  readonly providerSubmissionAuthorityStillWithheld: true
+  readonly attemptReservationTamperingRejected: true
   readonly providerTransportStillUnauthorized: true
   readonly preparedRunTamperingRejected: true
 }> {
@@ -1242,6 +1268,355 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
       'A re-signed all-green prepared-run packet must fail closed.',
     )
 
+    const attemptRepository =
+      new PrivateCanonicalLivingFramePreapprovalReasoningAttemptRepository()
+    const attemptRepositoryScope = {
+      localStorageRoot: root,
+      ownerUserId: USER_ID,
+      workspaceId: WORKSPACE_ID,
+    }
+    const attemptReserveRequest = {
+      schemaVersion:
+        CANONICAL_LIVING_FRAME_PREAPPROVAL_REASONING_ATTEMPT_RESERVE_REQUEST_VERSION,
+      purpose:
+        'reserve_current_living_frame_reasoning_attempt_without_transport' as const,
+      preparedRunLocator: prepared.locator,
+      semanticAdmissionRequest: admissionRequest,
+    }
+    const reserved =
+      await reserveCanonicalLivingFramePreapprovalReasoningAttempt({
+        context,
+        request: attemptReserveRequest,
+        inputReader,
+        planningEvidenceReader: visualReader,
+        sourceSpeechRepositoryScope,
+        routeDataAssuranceRepositoryScope,
+        reasoningRepositoryScope,
+        attemptRepositoryScope,
+        sourceSpeechRepository,
+        routeDataAssuranceRepository,
+        reasoningRepository,
+        attemptRepository,
+      })
+    assert.equal(
+      reserved.reservation.state,
+      'reserved_transport_qualification_required',
+    )
+    assert.equal(
+      reserved.reservation.canonicalBindings
+        .preparedRunRecordDigestSha256,
+      prepared.run.recordDigestSha256,
+    )
+    assert.equal(
+      reserved.reservation.canonicalBindings
+        .providerNeutralPayloadDigestSha256,
+      admission.providerNeutralPayload.payloadDigestSha256,
+    )
+    assert.equal(
+      reserved.reservation.attemptControl.attemptId,
+      prepared.run.preparedProviderEnvelope.attemptId,
+    )
+    assert.equal(
+      reserved.reservation.attemptControl.routeId,
+      'kimi_k3_primary',
+    )
+    assert.equal(
+      reserved.reservation.attemptControl
+        .submissionAuthorityState,
+      'not_issued',
+    )
+    assert.equal(
+      reserved.reservation.attemptControl.providerSubmissionCount,
+      0,
+    )
+    assert.equal(
+      reserved.reservation.providerRequest.state,
+      'not_created',
+    )
+    assert.equal(
+      reserved.reservation.providerRequest
+        .providerCallMayHaveOccurred,
+      false,
+    )
+    assert.equal(
+      reserved.reservation.lifecycle.checkbackState,
+      'not_scheduled',
+    )
+    assert.equal(
+      reserved.reservation.lifecycle.fallbackState,
+      'not_authorized',
+    )
+    assert.equal(
+      reserved.reservation.internalCost.attemptCostState,
+      'not_incurred',
+    )
+    assert.equal(
+      reserved.reservation.internalCost
+        .attemptCostEvidenceDigestSha256,
+      null,
+    )
+    assert.deepEqual(
+      reserved.reservation.authorityBoundary,
+      CANONICAL_LIVING_FRAME_PREAPPROVAL_REASONING_ATTEMPT_RESERVATION_BOUNDARY,
+    )
+    assert.equal(
+      reserved.reservation.authorityBoundary
+        .attemptReservationAuthority,
+      true,
+    )
+    assert.equal(
+      reserved.reservation.authorityBoundary
+        .providerRequestReservationAuthority,
+      false,
+    )
+    assert.equal(
+      reserved.reservation.authorityBoundary
+        .providerTransportAuthority,
+      false,
+    )
+    assert.equal(
+      reserved.reservation.authorityBoundary
+        .providerAttemptCostAuthority,
+      false,
+    )
+    assert.equal(reserved.persistence.disposition, 'created')
+    assert.equal(reserved.attemptReservationCreated, true)
+    assert.equal(reserved.providerRequestCreated, false)
+    assert.equal(
+      reserved.providerSubmissionAuthorityIssued,
+      false,
+    )
+    assert.equal(reserved.providerCallMade, false)
+    assert.equal(reserved.credentialReadMade, false)
+    assert.equal(reserved.providerCheckbackScheduled, false)
+    assert.equal(reserved.fallbackAuthorized, false)
+    assert.equal(reserved.providerAttemptCostCreated, false)
+    assert.equal(reserved.reasoningResultCreated, false)
+    assert.equal(reserved.productionReady, false)
+
+    const reservationReplay =
+      await reserveCanonicalLivingFramePreapprovalReasoningAttempt({
+        context,
+        request: attemptReserveRequest,
+        inputReader,
+        planningEvidenceReader: visualReader,
+        sourceSpeechRepositoryScope,
+        routeDataAssuranceRepositoryScope,
+        reasoningRepositoryScope,
+        attemptRepositoryScope,
+        sourceSpeechRepository,
+        routeDataAssuranceRepository,
+        reasoningRepository,
+        attemptRepository,
+      })
+    assert.equal(
+      reservationReplay.persistence.disposition,
+      'idempotent_replay',
+    )
+    assert.equal(
+      reservationReplay.reservation.recordDigestSha256,
+      reserved.reservation.recordDigestSha256,
+    )
+    const reservationRestartReread =
+      await new PrivateCanonicalLivingFramePreapprovalReasoningAttemptRepository()
+        .readByServerOwnedLocator({
+          scope: attemptRepositoryScope,
+          locator: reserved.locator,
+        })
+    assert.equal(
+      reservationRestartReread.recordDigestSha256,
+      reserved.reservation.recordDigestSha256,
+    )
+    await assert.rejects(
+      attemptRepository.readByServerOwnedLocator({
+        scope: {
+          ...attemptRepositoryScope,
+          ownerUserId:
+            'user-foreign-lf-preapproval-attempt',
+        },
+        locator: reserved.locator,
+      }),
+      /not found/,
+      'Attempt reservations must remain owner scoped.',
+    )
+    await assert.rejects(
+      reserveCanonicalLivingFramePreapprovalReasoningAttempt({
+        context,
+        request: attemptReserveRequest,
+        inputReader,
+        planningEvidenceReader: visualReader,
+        sourceSpeechRepositoryScope,
+        routeDataAssuranceRepositoryScope,
+        reasoningRepositoryScope,
+        attemptRepositoryScope: {
+          ...attemptRepositoryScope,
+          ownerUserId:
+            'user-foreign-lf-attempt-reservation-scope',
+        },
+        sourceSpeechRepository,
+        routeDataAssuranceRepository,
+        reasoningRepository,
+        attemptRepository,
+      }),
+      /stale or inconsistent/,
+      'The service must reject a cross-owner attempt repository before any write.',
+    )
+    const attemptLocatorHash = sha256AuthorityValue(
+      reserved.locator.serverOwnedLocatorId,
+    )
+    const attemptPointerPath = join(
+      root,
+      'canonical-living-frame-preapproval-reasoning-attempts',
+      'scopes',
+      reasoningScopeHash,
+      'locators',
+      attemptLocatorHash,
+      'current.json',
+    )
+    const originalAttemptPointer = await readFile(
+      attemptPointerPath,
+      'utf8',
+    )
+    const corruptedAttemptPointer =
+      JSON.parse(originalAttemptPointer) as Record<string, unknown>
+    corruptedAttemptPointer.attemptId =
+      'lf-preplan-attempt-corrupted'
+    await writeFile(
+      attemptPointerPath,
+      `${JSON.stringify(corruptedAttemptPointer)}\n`,
+      'utf8',
+    )
+    await assert.rejects(
+      attemptRepository.readByServerOwnedLocator({
+        scope: attemptRepositoryScope,
+        locator: reserved.locator,
+      }),
+      /stale or invalid/,
+      'Checksum-protected attempt pointers must reject local corruption.',
+    )
+    await writeFile(
+      attemptPointerPath,
+      originalAttemptPointer,
+      'utf8',
+    )
+    for (const injectedField of [
+      'attemptId',
+      'routeId',
+      'provider',
+      'providerModel',
+      'providerRequest',
+      'providerCredential',
+      'submissionAuthority',
+      'providerCallAuthorized',
+      'checkback',
+      'fallback',
+      'costEvidence',
+      'approvedPlanSnapshotId',
+      'creditReservationId',
+      'workItem',
+      'queueId',
+      'runtime',
+    ]) {
+      assert.equal(
+        canonicalLivingFramePreapprovalReasoningAttemptReserveRequestSchema
+          .safeParse({
+            ...attemptReserveRequest,
+            [injectedField]: true,
+          }).success,
+        false,
+        `Attempt reservation caller input must reject ${injectedField}.`,
+      )
+    }
+    const {
+      recordDigestSha256: _reservationDigest,
+      ...reservationDraft
+    } = reserved.reservation
+    void _reservationDigest
+    const detachedReservationDraft = {
+      ...reservationDraft,
+      canonicalBindings: {
+        ...reservationDraft.canonicalBindings,
+        providerNeutralPayloadDigestSha256:
+          digest('detached-attempt-reservation-payload'),
+      },
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalReasoningAttemptReservation({
+          ...detachedReservationDraft,
+          recordDigestSha256:
+            sha256AuthorityValue(detachedReservationDraft),
+        }),
+      /attempt_reservation_invalid/,
+      'A correctly re-digested attempt reservation cannot detach from its submission key and request payload.',
+    )
+    const gptReservationDraft = {
+      ...reservationDraft,
+      attemptControl: {
+        ...reservationDraft.attemptControl,
+        routeId: 'gpt_fallback',
+        provider: 'openai',
+        exactProviderModelId: 'gpt-5',
+      },
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalReasoningAttemptReservation({
+          ...gptReservationDraft,
+          recordDigestSha256:
+            sha256AuthorityValue(gptReservationDraft),
+        }),
+      'The old Kimi-to-GPT route cannot enter an attempt reservation.',
+    )
+    const issuedReservationDraft = {
+      ...reservationDraft,
+      attemptControl: {
+        ...reservationDraft.attemptControl,
+        submissionAuthorityState: 'issued',
+        providerSubmissionCount: 1,
+        submissionAuthorityConsumed: true,
+      },
+      providerRequest: {
+        ...reservationDraft.providerRequest,
+        providerRequestRecordId: 'forged-provider-request',
+        state: 'submitted',
+        providerCallMayHaveOccurred: true,
+      },
+      internalCost: {
+        ...reservationDraft.internalCost,
+        attemptCostState: 'metered',
+        attemptCostEvidenceDigestSha256:
+          digest('forged-attempt-cost'),
+      },
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalReasoningAttemptReservation({
+          ...issuedReservationDraft,
+          recordDigestSha256:
+            sha256AuthorityValue(issuedReservationDraft),
+        }),
+      'A reservation cannot mint submission, provider request, or attempt-cost authority.',
+    )
+    const promotedReservationDraft = {
+      ...reservationDraft,
+      promotionAllowed: true,
+      productionReady: true,
+      authorityBoundary: Object.fromEntries(
+        Object.keys(reservationDraft.authorityBoundary)
+          .map((key) => [key, true]),
+      ),
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalReasoningAttemptReservation({
+          ...promotedReservationDraft,
+          recordDigestSha256:
+            sha256AuthorityValue(promotedReservationDraft),
+        }),
+      'A re-signed all-green attempt reservation must fail closed.',
+    )
+
     await assert.rejects(
       bindCanonicalLivingFrameSemanticReasoningAdmission({
         context,
@@ -1398,6 +1773,10 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
       exactSemanticPayloadPrepared: true,
       restartSafePreparedRunPersisted: true,
       idempotentPreparedRunReplay: true,
+      restartSafeAttemptReservationPersisted: true,
+      idempotentAttemptReservationReplay: true,
+      providerSubmissionAuthorityStillWithheld: true,
+      attemptReservationTamperingRejected: true,
       providerTransportStillUnauthorized: true,
       preparedRunTamperingRejected: true,
     }

@@ -1734,3 +1734,25 @@ provider call, attempt receipt, actual attempt cost, result, selected scene,
 timing, SoundSync, estimate, credits, approval, snapshot, work, queue, tool,
 asset, render, runtime, or production authority is created here. See
 `docs/canonical-living-frame-preapproval-reasoning-lifecycle.md`.
+
+## Canonical preapproval attempt reservation
+
+The server now reserves the exact first Kimi attempt as a separate,
+content-addressed control-plane record. It rereads the prepared run, rebuilds
+the complete current semantic admission, derives every route and request
+binding server-side, persists the digest-only reservation under a cooperative
+lock, rereads it twice, then repeats the source reads to reject a race.
+
+Reservation does not mean execution. The one-use submission authority remains
+`not_issued`, provider submission count remains zero, no provider-request
+record or request ID exists, and credential, transport, observation,
+checkback, fallback, attempt-cost, and result authorities remain false. The
+caller cannot supply an attempt ID, provider, route, credential, submission,
+cost, work item, queue item, or runtime field.
+
+The repository is restart-safe for one backend host only. A later distributed
+CAS lifecycle must own provider-request reservation, one-use submission
+consumption, append-only observations, checkback leases, terminal
+attempt-and-cost atomicity, exact durable-response replay, and unknown-outcome
+reconciliation. See
+`docs/canonical-living-frame-preapproval-reasoning-attempt-reservation.md`.

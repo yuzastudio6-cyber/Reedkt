@@ -1404,3 +1404,41 @@ copy and runtime registries.
 plans without the explicitly selected parent. Caller-shaped values are removed
 and cannot select the parent. When the parent is selected, only Slice 2B's
 canonical async builder may add the deferred component described above.
+
+## Subject-neutral synthesis-routing slice
+
+Living Frame examples such as an illustrated historical figure, a vehicle with
+selectively moving parts, or an exact geographic explanation are regression
+fixtures only. They are not built-in subjects, categories, prompt routes, or
+runtime branches. The synthesis-routing compiler operates only on verified
+Living Frame semantic-plan components and applies the same closed strategy
+ladder to every subject:
+
+```text
+reuse an approved asset
+  -> construct deterministically
+  -> generate or edit an approved still
+  -> create a controlled still variation when continuity requires it
+  -> use bounded generated video only as a justified last resort
+  -> simplify the visual or deliberately use no extra visual
+```
+
+The compiler emits one abstract candidate route per component. It never emits a
+provider, model, tool, operation, work item, job, queue, price, cost, command,
+path, URL, media byte, or executable renderer instruction. Exact maps and data
+graphics remain deterministic and cannot fall back to generated video.
+Identity-conditioned and unqualified adapter routes fail to the simpler-visual
+fallback. Alpha and temporal-mask needs retain their existing artifact and QA
+gates.
+
+The ordered ladder is semantic and digest-bearing. Reordering it changes the
+digest and fails validation when it violates deterministic-first or
+video-last rules. Set-like capability and blocker codes canonicalize
+independently. Deliberate non-use produces no component routes and is a correct
+outcome.
+
+This slice remains non-promotable. Canonical selected-scene admission, current
+asset and continuity evidence, Tool Strategy projection, provider
+qualification, estimates, approval, immutable snapshot lineage, named work
+creation, asset-manifest entries, artifact QA, Remotion review, and production
+execution remain downstream shared authorities.

@@ -300,6 +300,19 @@ export type {
 } from '../../types/living-frame-background-plate-reconstruction'
 
 export type {
+  LivingFrameComponentSynthesisRoute,
+  LivingFrameSynthesisBlockerCode,
+  LivingFrameSynthesisReasonCode,
+  LivingFrameSynthesisRoutingAuthorityBoundary,
+  LivingFrameSynthesisRoutingMetrics,
+  LivingFrameSynthesisRoutingPlan,
+  LivingFrameSynthesisRoutingPlanDraft,
+  LivingFrameSynthesisSourceBindings,
+  LivingFrameSynthesisState,
+  LivingFrameSynthesisStrategy,
+} from '../../types/living-frame-synthesis-routing'
+
+export type {
   LivingFrameControlledIllustrationCandidateSourceObservation,
   LivingFrameControlledIllustrationDeclaredLabelObservation,
   LivingFrameControlledIllustrationDependencyScopeRule,

@@ -1829,3 +1829,52 @@ request-specific completion-token ceiling, distributed one-use state,
 credential capability, and unknown-outcome reconciliation remain required.
 No provider body or transport authority exists. See
 `docs/canonical-living-frame-preapproval-kimi-mfjs-schema-projection.md`.
+
+## Canonical Kimi request-specific output budget
+
+The server now derives one request-specific constrained-decoding profile from
+the exact MFJS projection and current provider-neutral semantic payload. It
+does not introduce another result DTO: the original Zod schema and semantic
+cross-validator remain the only result-acceptance authorities.
+
+The controlled profile permits one bounded scene with at most eight
+components, 28 component dependencies, 12 mini-skill activations, five timing
+constraints, five attention constraints, eight scale constraints, six sound
+constraints, and 19 QA expectations. Decision kinds, scene modes, segment
+references, and evidence references are narrowed to exact current request
+values. The adapter profile is for one preapproval attempt only and does not
+claim complete multi-scene batching.
+
+A canonical-profile calculator counts every required property and every array
+maximum, the longest enum serialization, a conservative 32 bytes per
+unrestricted finite number, six UTF-8 bytes per unrestricted string code unit,
+and one byte only for canonical ASCII safe-ID and SHA-256 strings. It also
+proves every counted object is closed and every property is required. It does
+not use graph or semantic cross-validation rules to reduce the bound. The
+controlled request is bounded at 118,246 canonical minimal-JSON bytes.
+Equivalent raw JSON with excess whitespace, redundant escapes, or unusual
+numeric lexemes is not bounded and must fail closed if truncated or invalid.
+
+The public `moonshotai/Kimi-K3` tokenizer observation contains all 256
+single-byte tokens, so visible UTF-8 token count cannot exceed byte count for
+that exact observed source. The live API exposes only a mutable `kimi-k3`
+alias, however, and completion tokens include hidden reasoning. The observed
+131,072-token default therefore remains a candidate ceiling, not transport
+authority; its 12,826-token nominal headroom has not been proven sufficient
+for hidden reasoning.
+
+At the current immutable rate card, a deliberately conservative full
+1,000,000-token cache-miss input plus the entire 131,072-token completion cap
+costs at most 4,966,080 normalized USD micros, beneath the prepared
+5,000,000-micro internal budget. This creates no customer price, service fee,
+credit estimate, reservation, wallet change, or actual attempt cost.
+
+Current API and tokenizer reread, authenticated account/model access, a
+bounded live schema/completion probe, completion-ceiling qualification,
+distributed one-use state, least-privilege credentials, and unknown-outcome
+operator reconciliation remain mandatory. No request body, provider call,
+result, selected scene, approval, snapshot, work, render, runtime, or
+production authority exists. GPU-heavy inference remains restricted to
+qualified Google Cloud Run GPU workers; this projection performs no inference
+and adds no CPU fallback. See
+`docs/canonical-living-frame-preapproval-kimi-output-budget-projection.md`.

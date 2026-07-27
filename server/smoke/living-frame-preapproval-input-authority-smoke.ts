@@ -4,16 +4,22 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
+import { z } from 'zod'
+
 import {
   bindLivingFrameCanonicalPlanning,
 } from '../../src/lib/living-frame'
 import {
   createLivingFrameSemanticSceneProposalJsonSchema,
   createLivingFrameSemanticReasoningRequest,
+  livingFrameSemanticSceneProposalResultSchema,
 } from '../../src/lib/living-frame/living-frame-semantic-reasoning-request-contract'
 import {
   createLivingFrameSemanticReasoningRequestFixtureDrafts,
 } from '../../src/lib/living-frame/living-frame-semantic-reasoning-request-fixtures'
+import {
+  createLivingFrameSemanticSceneProposalFixtureInputs,
+} from '../../src/lib/living-frame/living-frame-semantic-scene-proposal-fixtures'
 import {
   createProfessionalSkillPlan,
 } from '../../src/lib/professional-skills'
@@ -64,6 +70,11 @@ import {
   createCanonicalLivingFramePreapprovalKimiMfjsSchemaProjection,
   verifyCanonicalLivingFramePreapprovalKimiMfjsSchemaProjection,
 } from '../living-frame/canonical-living-frame-preapproval-kimi-mfjs-schema-projection'
+import {
+  CANONICAL_LIVING_FRAME_PREAPPROVAL_KIMI_OUTPUT_BUDGET_PROJECTION_BOUNDARY,
+  createCanonicalLivingFramePreapprovalKimiOutputBudgetProjection,
+  verifyCanonicalLivingFramePreapprovalKimiOutputBudgetProjection,
+} from '../living-frame/canonical-living-frame-preapproval-kimi-output-budget-projection'
 import {
   verifyCanonicalLivingFramePreapprovalReasoningRun,
 } from '../living-frame/canonical-living-frame-preapproval-reasoning-lifecycle'
@@ -667,6 +678,30 @@ console.log(JSON.stringify({
       .liveProbeAndTokenCeilingStillRequired,
   mfjsProjectionTamperingRejected:
     semanticAdmissionEvidence.mfjsProjectionTamperingRejected,
+  requestSpecificOutputBudgetValidated:
+    semanticAdmissionEvidence.requestSpecificOutputBudgetValidated,
+  controlledTokenizerByteBoundObserved:
+    semanticAdmissionEvidence.controlledTokenizerByteBoundObserved,
+  conservativeInternalBudgetBoundValidated:
+    semanticAdmissionEvidence
+      .conservativeInternalBudgetBoundValidated,
+  canonicalJsonOutputUpperBoundUtf8Bytes:
+    semanticAdmissionEvidence
+      .canonicalJsonOutputUpperBoundUtf8Bytes,
+  requestSpecificProviderSchemaByteLength:
+    semanticAdmissionEvidence
+      .requestSpecificProviderSchemaByteLength,
+  requestSpecificProviderSchemaDigestSha256:
+    semanticAdmissionEvidence
+      .requestSpecificProviderSchemaDigestSha256,
+  remainingCompletionTokenHeadroom:
+    semanticAdmissionEvidence.remainingCompletionTokenHeadroom,
+  maximumCombinedInternalCostMicros:
+    semanticAdmissionEvidence.maximumCombinedInternalCostMicros,
+  apiTokenizerAndLiveProbeStillRequired:
+    semanticAdmissionEvidence.apiTokenizerAndLiveProbeStillRequired,
+  outputBudgetProjectionTamperingRejected:
+    semanticAdmissionEvidence.outputBudgetProjectionTamperingRejected,
   providerTransportStillUnauthorized:
     semanticAdmissionEvidence.providerTransportStillUnauthorized,
   preparedRunTamperingRejected:
@@ -701,6 +736,16 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
   readonly canonicalAcceptanceStillRequired: true
   readonly liveProbeAndTokenCeilingStillRequired: true
   readonly mfjsProjectionTamperingRejected: true
+  readonly requestSpecificOutputBudgetValidated: true
+  readonly controlledTokenizerByteBoundObserved: true
+  readonly conservativeInternalBudgetBoundValidated: true
+  readonly canonicalJsonOutputUpperBoundUtf8Bytes: number
+  readonly requestSpecificProviderSchemaByteLength: number
+  readonly requestSpecificProviderSchemaDigestSha256: string
+  readonly remainingCompletionTokenHeadroom: number
+  readonly maximumCombinedInternalCostMicros: '4966080'
+  readonly apiTokenizerAndLiveProbeStillRequired: true
+  readonly outputBudgetProjectionTamperingRejected: true
   readonly providerTransportStillUnauthorized: true
   readonly preparedRunTamperingRejected: true
 }> {
@@ -1990,6 +2035,271 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
       52,
     )
 
+    const kimiOutputBudgetProjection =
+      createCanonicalLivingFramePreapprovalKimiOutputBudgetProjection({
+        requestMaterial: kimiRequestMaterial,
+        preparedRun: prepared.run,
+        attemptReservation: reserved.reservation,
+        apiObservation: kimiApiObservation,
+        apiCompatibility: kimiApiCompatibility,
+        mfjsProjection: kimiMfjsProjection,
+      })
+    assert.equal(
+      kimiOutputBudgetProjection.state,
+      'request_specific_output_budget_validated_transport_blocked',
+    )
+    assert.deepEqual(
+      kimiOutputBudgetProjection.outputProfile.allowedDecisionKinds,
+      [...semanticRequest.semanticPayload.requestedDecisionKinds]
+        .sort((left, right) => left.localeCompare(right)),
+    )
+    assert.deepEqual(
+      kimiOutputBudgetProjection.outputProfile.allowedModes,
+      [...semanticRequest.semanticPayload.allowedModes]
+        .sort((left, right) => left.localeCompare(right)),
+    )
+    assert.deepEqual(
+      kimiOutputBudgetProjection.outputProfile
+        .exactSegmentContextIds,
+      ['segment.musashi'],
+    )
+    assert.deepEqual(
+      kimiOutputBudgetProjection.outputProfile
+        .exactEvidenceReferenceIds,
+      ['evidence.musashi.visual'],
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.outputProfile
+        .maximumSceneProposals,
+      1,
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.outputProfile
+        .maximumComponentsPerScene,
+      8,
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.outputProfile
+        .maximumMiniSkillsPerScene,
+      12,
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.canonicalJsonOutputBound
+        .upperBoundUtf8Bytes,
+      118_246,
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.schemaProjection
+        .requestSpecificProviderJsonSchemaByteLength,
+      15_161,
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.canonicalBindings
+        .requestSpecificProviderJsonSchemaDigestSha256,
+      '1183ba843a61b535f18e5ab757d5ae851fed27a6dbd732e6918ece52bd5948ce',
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.completionBudget
+        .proposedMaximumCompletionTokens,
+      131_072,
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.completionBudget
+        .controlledObservedTokenizerVisibleJsonTokenUpperBound,
+      kimiOutputBudgetProjection.canonicalJsonOutputBound
+        .upperBoundUtf8Bytes,
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.tokenizerObservation
+        .mergeableRanks.oneByteTokenCount,
+      256,
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.tokenizerObservation
+        .apiModelAliasTokenizerMatchProven,
+      false,
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.internalCostBudget
+        .maximumCacheMissInputCostMicros,
+      '3000000',
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.internalCostBudget
+        .maximumCompletionCostMicros,
+      '1966080',
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.internalCostBudget
+        .maximumCombinedInternalCostMicros,
+      '4966080',
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.internalCostBudget
+        .maximumAuthorizedInternalCostMicros,
+      '5000000',
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.internalCostBudget
+        .remainingAuthorizedInternalCostMicros,
+      '33920',
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.acceptanceBoundary
+        .secondResultDtoCreated,
+      false,
+    )
+    assert.equal(
+      kimiOutputBudgetProjection.acceptanceBoundary
+        .canonicalAcceptanceUsesOriginalResultSchema,
+      true,
+    )
+    assert.deepEqual(
+      kimiOutputBudgetProjection.authorityBoundary,
+      CANONICAL_LIVING_FRAME_PREAPPROVAL_KIMI_OUTPUT_BUDGET_PROJECTION_BOUNDARY,
+    )
+    assert.equal(
+      containsJsonKey(
+        kimiOutputBudgetProjection.schemaProjection
+          .requestSpecificProviderJsonSchema,
+        'const',
+      ),
+      false,
+    )
+    assert.equal(
+      containsJsonKey(
+        kimiOutputBudgetProjection.schemaProjection
+          .requestSpecificProviderJsonSchema,
+        'pattern',
+      ),
+      false,
+    )
+    assert.equal(
+      containsJsonKey(
+        kimiOutputBudgetProjection.canonicalJsonOutputBound
+          .boundedCanonicalProfileJsonSchema,
+        'const',
+      ),
+      true,
+    )
+    assert.equal(
+      containsJsonKey(
+        kimiOutputBudgetProjection.canonicalJsonOutputBound
+          .boundedCanonicalProfileJsonSchema,
+        'pattern',
+      ),
+      true,
+    )
+    const controlledProposalInputs =
+      await createLivingFrameSemanticSceneProposalFixtureInputs()
+    const controlledMusashiResult =
+      livingFrameSemanticSceneProposalResultSchema.parse(
+        controlledProposalInputs.musashi.result,
+      )
+    const requestSpecificProviderResultSchema = z.fromJSONSchema(
+      kimiOutputBudgetProjection.schemaProjection
+        .requestSpecificProviderJsonSchema as never,
+    )
+    assert.equal(
+      requestSpecificProviderResultSchema.safeParse(
+        controlledMusashiResult,
+      ).success,
+      true,
+      'The controlled result must fit the narrower provider-only output profile without a second DTO.',
+    )
+    assert.equal(
+      requestSpecificProviderResultSchema.safeParse({
+        ...controlledMusashiResult,
+        decisions:
+          controlledMusashiResult.decisions.map(
+            (decision, index) => index === 0
+              ? {
+                  ...decision,
+                  derivedSummary: 'x'.repeat(161),
+                }
+              : decision,
+          ),
+      }).success,
+      false,
+      'The provider-only output profile must reject a summary beyond its bounded preapproval allowance.',
+    )
+    const {
+      recordDigestSha256: _outputBudgetProjectionDigest,
+      ...outputBudgetProjectionDraft
+    } = kimiOutputBudgetProjection
+    void _outputBudgetProjectionDigest
+    const detachedOutputBudgetProjectionDraft = {
+      ...outputBudgetProjectionDraft,
+      canonicalBindings: {
+        ...outputBudgetProjectionDraft.canonicalBindings,
+        mfjsSchemaProjectionRecordDigestSha256:
+          digest('detached-kimi-mfjs-output-budget-projection'),
+      },
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalKimiOutputBudgetProjection({
+          projection: {
+            ...detachedOutputBudgetProjectionDraft,
+            recordDigestSha256:
+              sha256AuthorityValue(detachedOutputBudgetProjectionDraft),
+          },
+          requestMaterial: kimiRequestMaterial,
+          preparedRun: prepared.run,
+          attemptReservation: reserved.reservation,
+          apiObservation: kimiApiObservation,
+          apiCompatibility: kimiApiCompatibility,
+          mfjsProjection: kimiMfjsProjection,
+        }),
+      /kimi_output_budget_projection_invalid/,
+      'A correctly re-digested output budget cannot detach from the exact MFJS source projection.',
+    )
+    const forgedOutputBudgetProjectionDraft = {
+      ...outputBudgetProjectionDraft,
+      tokenizerObservation: {
+        ...outputBudgetProjectionDraft.tokenizerObservation,
+        apiModelAliasTokenizerMatchProven: true,
+      },
+      completionBudget: {
+        ...outputBudgetProjectionDraft.completionBudget,
+        liveTargetModelProbeCompleted: true,
+        currentApiTokenizerMatchProven: true,
+        completionTokenCeilingTransportQualified: true,
+      },
+      acceptanceBoundary: {
+        ...outputBudgetProjectionDraft.acceptanceBoundary,
+        providerRequestBodyCreated: true,
+        executable: true,
+      },
+      runtimeBlockers: [],
+      promotionAllowed: true,
+      productionReady: true,
+      providerCallMade: true,
+      credentialReadMade: true,
+      remoteMutationMade: true,
+      authorityBoundary: Object.fromEntries(
+        Object.keys(outputBudgetProjectionDraft.authorityBoundary)
+          .map((key) => [key, true]),
+      ),
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalKimiOutputBudgetProjection({
+          projection: {
+            ...forgedOutputBudgetProjectionDraft,
+            recordDigestSha256:
+              sha256AuthorityValue(forgedOutputBudgetProjectionDraft),
+          },
+          requestMaterial: kimiRequestMaterial,
+          preparedRun: prepared.run,
+          attemptReservation: reserved.reservation,
+          apiObservation: kimiApiObservation,
+          apiCompatibility: kimiApiCompatibility,
+          mfjsProjection: kimiMfjsProjection,
+        }),
+      'A controlled output budget cannot fabricate tokenizer equivalence, a live probe, request body, provider call, or production authority.',
+    )
+
     const {
       recordDigestSha256: _mfjsProjectionDigest,
       ...mfjsProjectionDraft
@@ -2490,6 +2800,24 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
       canonicalAcceptanceStillRequired: true,
       liveProbeAndTokenCeilingStillRequired: true,
       mfjsProjectionTamperingRejected: true,
+      requestSpecificOutputBudgetValidated: true,
+      controlledTokenizerByteBoundObserved: true,
+      conservativeInternalBudgetBoundValidated: true,
+      canonicalJsonOutputUpperBoundUtf8Bytes:
+        kimiOutputBudgetProjection.canonicalJsonOutputBound
+          .upperBoundUtf8Bytes,
+      requestSpecificProviderSchemaByteLength:
+        kimiOutputBudgetProjection.schemaProjection
+          .requestSpecificProviderJsonSchemaByteLength,
+      requestSpecificProviderSchemaDigestSha256:
+        kimiOutputBudgetProjection.canonicalBindings
+          .requestSpecificProviderJsonSchemaDigestSha256,
+      remainingCompletionTokenHeadroom:
+        kimiOutputBudgetProjection.completionBudget
+          .remainingCompletionTokenHeadroom,
+      maximumCombinedInternalCostMicros: '4966080',
+      apiTokenizerAndLiveProbeStillRequired: true,
+      outputBudgetProjectionTamperingRejected: true,
       providerTransportStillUnauthorized: true,
       preparedRunTamperingRejected: true,
     }

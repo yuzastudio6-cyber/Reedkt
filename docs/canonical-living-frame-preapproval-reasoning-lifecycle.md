@@ -125,6 +125,21 @@ unknown-outcome operator reconciliation remain blocking. The provider body is
 still not created. See
 `docs/canonical-living-frame-preapproval-kimi-mfjs-schema-projection.md`.
 
+A request-specific provider profile now narrows that MFJS projection without
+creating a second result DTO. For the current controlled single-scene request,
+the server derives a conservative canonical JSON upper bound of 118,246 UTF-8
+bytes beneath the observed 131,072-token completion limit, leaving 12,826
+tokens of nominal headroom under the reviewed public Kimi K3 byte-level
+tokenizer. The API's mutable `kimi-k3` alias, chat framing, and hidden reasoning
+remain unproven, so the candidate ceiling is not transport authority.
+
+The same record proves a deliberately conservative maximum internal cost of
+4,966,080 normalized USD micros against the prepared run's 5,000,000-micro
+budget. This is not a customer price or credit estimate. Current API/tokenizer
+reread, an authenticated bounded target-model probe, and distributed
+one-use/unknown-outcome lifecycle authority still block a provider body. See
+`docs/canonical-living-frame-preapproval-kimi-output-budget-projection.md`.
+
 ## Closed authorities
 
 The prepared record contains no attempt receipt, actual attempt cost,

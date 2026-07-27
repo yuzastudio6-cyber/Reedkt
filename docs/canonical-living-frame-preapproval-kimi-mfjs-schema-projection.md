@@ -80,15 +80,20 @@ Static projection validation does not close:
 3. authenticated current-account access to `kimi-k3`;
 4. immutable model revision or an approved mutable-alias policy;
 5. a bounded live target-model schema probe;
-6. an approved `max_completion_tokens` ceiling;
+6. transport qualification of the request-specific
+   `max_completion_tokens` candidate;
 7. distributed one-use attempt state;
 8. least-privilege credential capability; or
 9. unknown-outcome operator reconciliation.
 
-The existing result schema is intentionally broad. Its theoretical maximum
-output is not a defensible small completion ceiling. No request body may be
-created until the server binds a request-specific output bound and internal
-cost budget without weakening semantic validation.
+The server now derives a separate request-specific single-scene output profile,
+canonical JSON byte bound, and conservative internal-cost ceiling without
+weakening semantic validation. That closes the controlled static cardinality
+and cost calculation only. The public tokenizer observation is not proven
+equivalent to the current API alias, hidden reasoning shares the completion
+ceiling, and no authenticated bounded target-model probe has run. A provider
+request body therefore remains blocked. See
+`docs/canonical-living-frame-preapproval-kimi-output-budget-projection.md`.
 
 ## Authority boundary
 

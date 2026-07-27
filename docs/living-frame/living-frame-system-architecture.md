@@ -1069,7 +1069,7 @@ pipeline.
 
 #### Hidden-background-plate reconstruction planning
 
-`living-frame-background-plate-reconstruction-v1` plans the general operation
+`living-frame-background-plate-reconstruction-v2` plans the general operation
 needed when separating any component would expose pixels that were hidden in
 the original still. It is subject-neutral: the removed component may be a
 mechanical part, arm, prop, foreground object, clothing layer, diagram piece,
@@ -1079,11 +1079,11 @@ named example remain test stories rather than routes.
 The compiler consumes a validated component rig and bounded hole expectations.
 It requires an opaque, static plate node plus a removable component with a
 future QA-passed still-alpha artifact. It classifies only small, ordinary,
-interior holes as deterministic OpenCV inpaint candidates. It fails closed for
-frame-edge holes, large holes, complex or unknown texture, identity or
-likeness regions, documentary evidence, and exact map or data regions.
-Reconstruction never invents identity, factual evidence, labels, geography, or
-data.
+interior holes as bounded OpenImageIO push-pull `fillholes` profile
+candidates. It fails closed for frame-edge holes, large holes, complex or
+unknown texture, identity or likeness regions, documentary evidence, and exact
+map or data regions. Reconstruction never invents identity, factual evidence,
+labels, geography, or data.
 
 The ordered fallback ladder is:
 
@@ -1099,13 +1099,16 @@ QA includes unchanged pixels outside the mask, dimension and color-profile
 identity, seam continuity, residual-mask inspection, non-invention safety, and
 destination-composite review.
 
-This slice deliberately creates no pixels. The existing OpenCV runtime has
-only a source-analysis operation and explicitly forbids derived-pixel output;
-therefore both canonical OpenCV pixel-operation admission and current
-QA-passed dependency artifacts remain hard blockers. A future execution slice
-must extend the existing tool-operation, dependency-read, private artifact,
-cost, and QA authorities. It must not launch arbitrary Python, add a Living
-Frame worker, or bypass the approved snapshot and existing work graph.
+This slice deliberately creates no pixels. The existing OpenCV operation is
+analysis-only and explicitly forbids derived-pixel output, so it is not the
+reconstruction owner. The pinned OpenImageIO runtime exposes `oiiotool
+--fillholes`, but there is no admitted Living Frame operation profile that
+binds QA-passed source-plate and mask artifacts to it. That profile and the
+current dependency artifacts therefore remain hard blockers. A future
+execution slice must extend the existing tool-operation, dependency-read,
+private artifact, cost, and QA authorities. It must not launch arbitrary
+commands, add a Living Frame worker, or bypass the approved snapshot and
+existing work graph.
 
 ### Slice 5: renderer and private review
 

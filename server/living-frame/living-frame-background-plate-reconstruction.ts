@@ -297,7 +297,7 @@ function compileDecision(
   hole: LivingFrameBackgroundPlateHoleExpectationInput,
 ): LivingFrameBackgroundPlateReconstructionDecision {
   const blockers: LivingFrameReconstructionBlockerCode[] = [
-    'canonical_opencv_pixel_operation_not_admitted',
+    'canonical_openimageio_fillholes_profile_not_admitted',
     'qa_passed_plate_and_mask_artifacts_required',
   ]
   safetyBlockers(hole).forEach((code) => blockers.push(code))
@@ -328,8 +328,8 @@ function compileDecision(
       ? 'no_pixel_reconstruction_use_fallback'
       : hole.frameCoverageRatio <= SMALL_HOLE_CEILING
         && hole.textureClass === 'low'
-        ? 'opencv_telea_small_hole_candidate'
-        : 'opencv_navier_stokes_bounded_hole_candidate'
+        ? 'openimageio_pushpull_small_hole_candidate'
+        : 'openimageio_pushpull_bounded_hole_candidate'
   return {
     holeId: hole.holeId,
     order: hole.order,
@@ -340,12 +340,10 @@ function compileDecision(
     textureClass: hole.textureClass,
     safetyClass: hole.safetyClass,
     reconstructionProfile: profile,
-    inpaintRadiusPixelsExpectation:
-      profile === 'opencv_telea_small_hole_candidate'
-        ? 3
-        : profile === 'opencv_navier_stokes_bounded_hole_candidate'
-          ? 5
-          : 0,
+    fillholesModeExpectation:
+      profile === 'no_pixel_reconstruction_use_fallback'
+        ? 'none'
+        : 'pushpull',
     blockerCodes: blockers,
     fallbackLadder: FALLBACK_LADDER,
     qaExpectationCodes: QA_EXPECTATIONS,
@@ -396,10 +394,10 @@ function metrics(
     holeCount: decisions.length,
     smallHoleCandidateCount: decisions.filter((decision) =>
       decision.reconstructionProfile
-        === 'opencv_telea_small_hole_candidate').length,
+        === 'openimageio_pushpull_small_hole_candidate').length,
     boundedHoleCandidateCount: decisions.filter((decision) =>
       decision.reconstructionProfile
-        === 'opencv_navier_stokes_bounded_hole_candidate').length,
+        === 'openimageio_pushpull_bounded_hole_candidate').length,
     fallbackOnlyCount: decisions.filter((decision) =>
       decision.reconstructionProfile
         === 'no_pixel_reconstruction_use_fallback').length,
@@ -454,7 +452,7 @@ function validateDecisions(
       'textureClass',
       'safetyClass',
       'reconstructionProfile',
-      'inpaintRadiusPixelsExpectation',
+      'fillholesModeExpectation',
       'blockerCodes',
       'fallbackLadder',
       'qaExpectationCodes',
@@ -482,8 +480,8 @@ function validateDecisions(
         LIVING_FRAME_RECONSTRUCTION_PROFILES,
         decision.reconstructionProfile,
       )
-      || ![0, 3, 5].includes(
-        decision.inpaintRadiusPixelsExpectation,
+      || !['pushpull', 'none'].includes(
+        decision.fillholesModeExpectation,
       )
       || !closedUniqueArray(
         decision.blockerCodes,

@@ -196,15 +196,23 @@ assert.equal(reconstruction.metrics.fallbackOnlyCount, 1)
 assert.equal(reconstruction.metrics.prohibitedSafetyRegionCount, 1)
 assert.equal(
   reconstruction.decisions[0]?.reconstructionProfile,
-  'opencv_telea_small_hole_candidate',
+  'openimageio_pushpull_small_hole_candidate',
 )
 assert.equal(
   reconstruction.decisions[1]?.reconstructionProfile,
-  'opencv_navier_stokes_bounded_hole_candidate',
+  'openimageio_pushpull_bounded_hole_candidate',
 )
 assert.equal(
   reconstruction.decisions[2]?.reconstructionProfile,
   'no_pixel_reconstruction_use_fallback',
+)
+assert.equal(
+  reconstruction.decisions[0]?.fillholesModeExpectation,
+  'pushpull',
+)
+assert.equal(
+  reconstruction.decisions[2]?.fillholesModeExpectation,
+  'none',
 )
 assert.equal(
   reconstruction.decisions[2]?.blockerCodes.includes(

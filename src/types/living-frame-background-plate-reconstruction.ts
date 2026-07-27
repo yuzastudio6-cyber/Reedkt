@@ -3,7 +3,7 @@ import type {
 } from './living-frame-component-geometry'
 
 export const LIVING_FRAME_BACKGROUND_PLATE_RECONSTRUCTION_VERSION =
-  'living-frame-background-plate-reconstruction-v1' as const
+  'living-frame-background-plate-reconstruction-v2' as const
 
 export const LIVING_FRAME_BACKGROUND_PLATE_RECONSTRUCTION_CLASS =
   'controlled_non_promotable_background_plate_reconstruction_spec' as const
@@ -28,8 +28,8 @@ export type LivingFrameReconstructionTextureClass =
   (typeof LIVING_FRAME_RECONSTRUCTION_TEXTURE_CLASSES)[number]
 
 export const LIVING_FRAME_RECONSTRUCTION_PROFILES = [
-  'opencv_telea_small_hole_candidate',
-  'opencv_navier_stokes_bounded_hole_candidate',
+  'openimageio_pushpull_small_hole_candidate',
+  'openimageio_pushpull_bounded_hole_candidate',
   'no_pixel_reconstruction_use_fallback',
 ] as const
 export type LivingFrameReconstructionProfile =
@@ -43,7 +43,7 @@ export const LIVING_FRAME_RECONSTRUCTION_BLOCKER_CODES = [
   'hole_touches_frame_boundary',
   'hole_area_exceeds_deterministic_ceiling',
   'texture_complexity_exceeds_deterministic_ceiling',
-  'canonical_opencv_pixel_operation_not_admitted',
+  'canonical_openimageio_fillholes_profile_not_admitted',
   'qa_passed_plate_and_mask_artifacts_required',
 ] as const
 export type LivingFrameReconstructionBlockerCode =
@@ -102,7 +102,7 @@ export interface LivingFrameBackgroundPlateReconstructionDecision {
   readonly textureClass: LivingFrameReconstructionTextureClass
   readonly safetyClass: LivingFrameReconstructionSafetyClass
   readonly reconstructionProfile: LivingFrameReconstructionProfile
-  readonly inpaintRadiusPixelsExpectation: 0 | 3 | 5
+  readonly fillholesModeExpectation: 'pushpull' | 'none'
   readonly blockerCodes:
     readonly LivingFrameReconstructionBlockerCode[]
   readonly fallbackLadder:

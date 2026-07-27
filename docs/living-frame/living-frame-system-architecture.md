@@ -119,9 +119,15 @@ contracts through the normal one-writer review boundary.
   rejects caller-supplied evidence. Living Frame still cannot consume or
   promote it until the canonical pre-approval input owner injects and rereads
   the package with the current handoff.
-- Shared route data assurance is a separate security and model-routing
-  authority. A semantic request may declare the requirement but cannot bind a
-  provider envelope, certify processing or retention policy, or call a model.
+- The workflow-neutral
+  `canonical-preapproval-route-data-assurance-v1` contract now binds current
+  organization/project evidence, processing region, retention, training use,
+  sensitivity, confidential-source, likeness, minor, rights, and fact-safety
+  policy to the exact Kimi-to-Qwen-to-DeepSeek route. It is private,
+  request-bound, content-addressed, and non-promotable. Living Frame still
+  declares the requirement because its pre-approval input does not yet
+  consume this record, and no provider envelope, transport, or model call is
+  authorized.
 - The Living Frame semantic request has its own bounded payload digest. That
   digest is distinct from the pre-approval input-authority digest, visual
   evidence digest, strict output-schema digest, and whole request-contract
@@ -155,7 +161,7 @@ contracts through the normal one-writer review boundary.
 | Add six new production tool IDs and increase the registry count | Rejected; the six candidates span a host, a preprocessing bundle, adapters/checkpoints, and a training/loading mechanism. |
 | Use the older workload-specific Kimi-to-GPT fallback | Superseded by the shared canonical Kimi-to-Qwen-to-DeepSeek route. |
 | Treat source visual evidence as proof of narration meaning | Rejected; generic source-speech evidence is a separate shared authority and remains required when speech exists. |
-| Treat a provider route name as proof of privacy or data handling | Rejected; shared route data assurance and the provider-envelope binding are separate future authorities. |
+| Treat a provider route name as proof of privacy or data handling | Rejected; the shared route-data assurance record is separate from the still-future provider-envelope and transport authorities. |
 | Use a generic `custom` work item for missing operations | Rejected; missing work requires explicit canonical schema admission. |
 | Assume generated-image transparency always works or always fails | Superseded by exact capability checks plus deterministic alpha fallback and QA. |
 | Treat GPT Image 2 as a native-alpha route | Rejected for the current `gpt-image-2` capability; it requires opaque generation followed by qualified matting and alpha QA. |
@@ -177,9 +183,10 @@ assumption:
 - What workflow-neutral source-speech evidence package, verifier, reader, and
   repository will provide current narration meaning without creating a
   Living Frame-specific transcription lane?
-- What exact shared route-data-assurance record will bind processing region,
-  retention, training use, sensitivity, rights, likeness, minors, and
-  fact-safety policy to the canonical Kimi-to-Qwen-to-DeepSeek route?
+- What released server policy-evidence adapter will populate current,
+  independently verified organization, project, provider-region, retention,
+  training-use, likeness, minor, rights, and fact-safety evidence for
+  `canonical-preapproval-route-data-assurance-v1`?
 - What transport, durable run/result repository, lifecycle, timeout, retry,
   and checkback authority will execute pre-approval reasoning?
 - What canonical planning service will supersede a deferred-analysis handoff
@@ -1010,6 +1017,23 @@ durable preplan lifecycle remain open, and the current Living Frame
 pre-approval service must be extended to consume this reader before selected
 scenes can be admitted.
 
+The second prerequisite now has a workflow-neutral contract and private local
+repository in `server/model-data-assurance/` plus a process-bound persistence
+and reread service in
+`server/services/canonical-preapproval-route-data-assurance-service.ts`.
+It binds the exact request and canonical route to current organization,
+project, provider-region, retention, training-use, sensitivity,
+confidential-source, likeness, minor, rights, and fact-safety evidence.
+Missing, expired, conflicting, or review-required evidence cannot become a
+ready record; explicit policy conflicts block the route. Immutable versions,
+monotonic revisions, checksummed latest pointers, owner/workspace scope, and
+double-read race checks prevent caller-shaped or rolled-back records from
+minting authority. The record remains text-projection-only and grants no
+provider-envelope, transport, credential, run, result, scene, estimate,
+approval, work, render, runtime, or production authority. Living Frame still
+must consume a current namespaced projection through its canonical
+pre-approval input owner.
+
 ### Slice 3C-B: selected scene planning, estimate, and approval
 
 - wait until the shared speech, route-assurance, reasoning lifecycle, and
@@ -1254,8 +1278,9 @@ provider ran, or that any candidate was selected.
 
 The following remain closed:
 
-- generic source-speech evidence, reader, and repository;
-- shared route data assurance and a bound provider envelope;
+- Living Frame consumption of the current generic source-speech evidence;
+- Living Frame consumption of current shared route data assurance and a
+  separately bound provider envelope;
 - provider transport, credentials, attempts, retries, and durable results;
 - deferred-handoff supersession and durable preplan lifecycle;
 - canonical selected/rejected/non-use scene projection;

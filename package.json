@@ -217,6 +217,7 @@
     "smoke:prod-media-foundation": "tsx server/smoke/production-media-analysis-foundation-smoke.ts",
     "smoke:prod-speech-caption": "tsx server/smoke/production-speech-caption-foundation-smoke.ts",
     "smoke:canonical-source-speech-evidence": "tsx server/smoke/canonical-source-speech-evidence-smoke.ts",
+    "smoke:canonical-preapproval-route-data-assurance": "tsx server/smoke/canonical-preapproval-route-data-assurance-smoke.ts",
     "smoke:prod-smart-cut-timeline": "tsx server/smoke/production-smart-cut-timeline-smoke.ts",
     "smoke:prod-audio-sound": "tsx server/smoke/production-audio-sound-foundation-smoke.ts",
     "smoke:sound-music-audio-contracts": "tsx server/smoke/sound-music-audio-contracts-smoke.ts",

@@ -60,6 +60,11 @@ import {
   verifyCanonicalLivingFramePreapprovalKimiApiContractObservation,
 } from '../living-frame/canonical-living-frame-preapproval-kimi-api-contract-observation'
 import {
+  CANONICAL_LIVING_FRAME_PREAPPROVAL_KIMI_MFJS_SCHEMA_PROJECTION_BOUNDARY,
+  createCanonicalLivingFramePreapprovalKimiMfjsSchemaProjection,
+  verifyCanonicalLivingFramePreapprovalKimiMfjsSchemaProjection,
+} from '../living-frame/canonical-living-frame-preapproval-kimi-mfjs-schema-projection'
+import {
   verifyCanonicalLivingFramePreapprovalReasoningRun,
 } from '../living-frame/canonical-living-frame-preapproval-reasoning-lifecycle'
 import {
@@ -652,6 +657,16 @@ console.log(JSON.stringify({
       .providerIdempotencyAndLookupStillUnavailable,
   kimiApiCompatibilityTamperingRejected:
     semanticAdmissionEvidence.kimiApiCompatibilityTamperingRejected,
+  mfjsProviderProjectionStaticallyValidated:
+    semanticAdmissionEvidence
+      .mfjsProviderProjectionStaticallyValidated,
+  canonicalAcceptanceStillRequired:
+    semanticAdmissionEvidence.canonicalAcceptanceStillRequired,
+  liveProbeAndTokenCeilingStillRequired:
+    semanticAdmissionEvidence
+      .liveProbeAndTokenCeilingStillRequired,
+  mfjsProjectionTamperingRejected:
+    semanticAdmissionEvidence.mfjsProjectionTamperingRejected,
   providerTransportStillUnauthorized:
     semanticAdmissionEvidence.providerTransportStillUnauthorized,
   preparedRunTamperingRejected:
@@ -682,6 +697,10 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
   readonly immutableKimiModelRevisionStillUnavailable: true
   readonly providerIdempotencyAndLookupStillUnavailable: true
   readonly kimiApiCompatibilityTamperingRejected: true
+  readonly mfjsProviderProjectionStaticallyValidated: true
+  readonly canonicalAcceptanceStillRequired: true
+  readonly liveProbeAndTokenCeilingStillRequired: true
+  readonly mfjsProjectionTamperingRejected: true
   readonly providerTransportStillUnauthorized: true
   readonly preparedRunTamperingRejected: true
 }> {
@@ -1851,6 +1870,232 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
       'A controlled API-shape observation cannot fabricate model revision, schema, request, transport, or production authority.',
     )
 
+    const kimiMfjsProjection =
+      createCanonicalLivingFramePreapprovalKimiMfjsSchemaProjection({
+        requestMaterial: kimiRequestMaterial,
+        preparedRun: prepared.run,
+        attemptReservation: reserved.reservation,
+        apiObservation: kimiApiObservation,
+        apiCompatibility: kimiApiCompatibility,
+      })
+    assert.equal(
+      kimiMfjsProjection.state,
+      'static_mfjs_projection_validated_transport_blocked',
+    )
+    assert.equal(
+      kimiMfjsProjection.schemaProjection
+        .canonicalAcceptanceJsonSchemaDigestSha256,
+      kimiRequestMaterial.canonicalBindings
+        .outputJsonSchemaDigestSha256,
+    )
+    assert.equal(
+      kimiMfjsProjection.schemaProjection
+        .providerMfjsJsonSchemaDigestSha256,
+      'ad37256789c35be7a482caac420d7b3f1b5775f49fa4da05731684bc2d44635c',
+    )
+    assert.equal(
+      kimiMfjsProjection.schemaProjection
+        .canonicalAcceptanceJsonSchemaByteLength,
+      16_284,
+    )
+    assert.equal(
+      kimiMfjsProjection.schemaProjection
+        .providerMfjsJsonSchemaByteLength,
+      15_145,
+    )
+    assert.deepEqual(
+      kimiMfjsProjection.schemaProjection.transformationAudit,
+      {
+        sourceConstCount: 13,
+        constToSingletonEnumCount: 13,
+        sourcePatternCount: 24,
+        patternsDeferredToCanonicalAcceptanceCount: 24,
+        sourceEnumCount: 39,
+        providerEnumCount: 52,
+        typeShapeChanged: false,
+        objectPropertyShapeChanged: false,
+        arrayCardinalityChanged: false,
+        constSemanticsPreservedBySingletonEnum: true,
+        patternConstraintsPresentInProviderSchema: false,
+        providerSchemaIsCanonicalAcceptanceAuthority: false,
+        canonicalPostParseRevalidationRequired: true,
+      },
+    )
+    assert.equal(
+      kimiMfjsProjection.validatorObservation
+        .originalCanonicalSchema.strictLevelPassed,
+      true,
+    )
+    assert.equal(
+      kimiMfjsProjection.validatorObservation
+        .originalCanonicalSchema.ultraLevelPassed,
+      false,
+    )
+    assert.equal(
+      kimiMfjsProjection.validatorObservation
+        .providerMfjsProjection.strictLevelPassed,
+      true,
+    )
+    assert.equal(
+      kimiMfjsProjection.validatorObservation
+        .providerMfjsProjection.ultraLevelPassed,
+      true,
+    )
+    assert.equal(
+      kimiMfjsProjection.acceptanceBoundary
+        .canonicalAcceptanceSchemaRevalidationRequired,
+      true,
+    )
+    assert.equal(
+      kimiMfjsProjection.acceptanceBoundary
+        .liveTargetModelProbeCompleted,
+      false,
+    )
+    assert.equal(
+      kimiMfjsProjection.acceptanceBoundary
+        .canonicalMaximumCompletionTokens,
+      null,
+    )
+    assert.equal(
+      kimiMfjsProjection.acceptanceBoundary
+        .providerRequestBodyCreated,
+      false,
+    )
+    assert.deepEqual(
+      kimiMfjsProjection.authorityBoundary,
+      CANONICAL_LIVING_FRAME_PREAPPROVAL_KIMI_MFJS_SCHEMA_PROJECTION_BOUNDARY,
+    )
+    assert.equal(
+      containsJsonKey(
+        kimiMfjsProjection.schemaProjection
+          .providerMfjsJsonSchema,
+        'const',
+      ),
+      false,
+    )
+    assert.equal(
+      containsJsonKey(
+        kimiMfjsProjection.schemaProjection
+          .providerMfjsJsonSchema,
+        'pattern',
+      ),
+      false,
+    )
+    assert.equal(
+      countJsonKey(
+        kimiMfjsProjection.schemaProjection
+          .providerMfjsJsonSchema,
+        'enum',
+      ),
+      52,
+    )
+
+    const {
+      recordDigestSha256: _mfjsProjectionDigest,
+      ...mfjsProjectionDraft
+    } = kimiMfjsProjection
+    void _mfjsProjectionDigest
+    const detachedMfjsProjectionDraft = {
+      ...mfjsProjectionDraft,
+      canonicalBindings: {
+        ...mfjsProjectionDraft.canonicalBindings,
+        apiCompatibilityRecordDigestSha256:
+          digest('detached-kimi-api-compatibility'),
+      },
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalKimiMfjsSchemaProjection({
+          projection: {
+            ...detachedMfjsProjectionDraft,
+            recordDigestSha256:
+              sha256AuthorityValue(detachedMfjsProjectionDraft),
+          },
+          requestMaterial: kimiRequestMaterial,
+          preparedRun: prepared.run,
+          attemptReservation: reserved.reservation,
+          apiObservation: kimiApiObservation,
+          apiCompatibility: kimiApiCompatibility,
+        }),
+      /kimi_mfjs_schema_projection_invalid/,
+      'A correctly re-digested MFJS projection cannot detach from the exact API compatibility record.',
+    )
+    const tamperedMfjsSchema = structuredClone(
+      mfjsProjectionDraft.schemaProjection
+        .providerMfjsJsonSchema,
+    )
+    tamperedMfjsSchema.pattern = '.*'
+    const tamperedMfjsProjectionDraft = {
+      ...mfjsProjectionDraft,
+      schemaProjection: {
+        ...mfjsProjectionDraft.schemaProjection,
+        providerMfjsJsonSchema: tamperedMfjsSchema,
+      },
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalKimiMfjsSchemaProjection({
+          projection: {
+            ...tamperedMfjsProjectionDraft,
+            recordDigestSha256:
+              sha256AuthorityValue(tamperedMfjsProjectionDraft),
+          },
+          requestMaterial: kimiRequestMaterial,
+          preparedRun: prepared.run,
+          attemptReservation: reserved.reservation,
+          apiObservation: kimiApiObservation,
+          apiCompatibility: kimiApiCompatibility,
+        }),
+      /kimi_mfjs_schema_projection_invalid/,
+      'A correctly re-digested provider projection cannot reintroduce an unsupported pattern keyword.',
+    )
+    const forgedMfjsProjectionDraft = {
+      ...mfjsProjectionDraft,
+      validatorObservation: {
+        ...mfjsProjectionDraft.validatorObservation,
+        originalCanonicalSchema: {
+          ...mfjsProjectionDraft.validatorObservation
+            .originalCanonicalSchema,
+          ultraLevelPassed: true,
+        },
+        validationReexecutedByThisRuntime: true,
+        currentValidatorSourceRereadRequiredAtTransport: false,
+      },
+      acceptanceBoundary: {
+        ...mfjsProjectionDraft.acceptanceBoundary,
+        liveTargetModelProbeCompleted: true,
+        canonicalMaximumCompletionTokens: 1_048_576,
+        providerRequestBodyCreated: true,
+        executable: true,
+      },
+      runtimeBlockers: [],
+      promotionAllowed: true,
+      productionReady: true,
+      providerCallMade: true,
+      credentialReadMade: true,
+      remoteMutationMade: true,
+      authorityBoundary: Object.fromEntries(
+        Object.keys(mfjsProjectionDraft.authorityBoundary)
+          .map((key) => [key, true]),
+      ),
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalKimiMfjsSchemaProjection({
+          projection: {
+            ...forgedMfjsProjectionDraft,
+            recordDigestSha256:
+              sha256AuthorityValue(forgedMfjsProjectionDraft),
+          },
+          requestMaterial: kimiRequestMaterial,
+          preparedRun: prepared.run,
+          attemptReservation: reserved.reservation,
+          apiObservation: kimiApiObservation,
+          apiCompatibility: kimiApiCompatibility,
+        }),
+      'A controlled static schema projection cannot fabricate a live probe, token ceiling, request, provider call, or production authority.',
+    )
+
     const reservationReplay =
       await reserveCanonicalLivingFramePreapprovalReasoningAttempt({
         context,
@@ -2241,6 +2486,10 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
       immutableKimiModelRevisionStillUnavailable: true,
       providerIdempotencyAndLookupStillUnavailable: true,
       kimiApiCompatibilityTamperingRejected: true,
+      mfjsProviderProjectionStaticallyValidated: true,
+      canonicalAcceptanceStillRequired: true,
+      liveProbeAndTokenCeilingStillRequired: true,
+      mfjsProjectionTamperingRejected: true,
       providerTransportStillUnauthorized: true,
       preparedRunTamperingRejected: true,
     }
@@ -2934,6 +3183,45 @@ function verifiedVisualReadinessFixture():
     deploymentRegionAndDataPolicyVerified: true,
     environmentGpuExecutionGateVerified: true,
   }
+}
+
+function containsJsonKey(input: unknown, expectedKey: string): boolean {
+  if (Array.isArray(input)) {
+    return input.some((value) =>
+      containsJsonKey(value, expectedKey))
+  }
+  if (
+    typeof input !== 'object'
+    || input === null
+  ) {
+    return false
+  }
+  return Object.entries(input).some(([key, value]) =>
+    key === expectedKey
+    || containsJsonKey(value, expectedKey))
+}
+
+function countJsonKey(input: unknown, expectedKey: string): number {
+  if (Array.isArray(input)) {
+    return input.reduce(
+      (total, value) =>
+        total + countJsonKey(value, expectedKey),
+      0,
+    )
+  }
+  if (
+    typeof input !== 'object'
+    || input === null
+  ) {
+    return 0
+  }
+  return Object.entries(input).reduce(
+    (total, [key, value]) =>
+      total
+      + (key === expectedKey ? 1 : 0)
+      + countJsonKey(value, expectedKey),
+    0,
+  )
 }
 
 function authorityDigest(

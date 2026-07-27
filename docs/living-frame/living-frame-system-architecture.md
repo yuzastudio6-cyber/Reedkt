@@ -1806,3 +1806,26 @@ required. The compatibility assessment creates no provider body, request,
 credential, call, cost, result, commercial, selected-scene, work, render,
 runtime, or production authority. See
 `docs/canonical-living-frame-preapproval-kimi-api-contract-observation.md`.
+
+## Canonical Kimi MFJS provider-schema projection
+
+The exact canonical semantic-result schema contains 13 `const` and 24
+`pattern` constraints. Pinned official Walle `v0.1.13` accepted that schema at
+its provider-required permissive `strict` level but rejected `const` at its
+comprehensive `ultra` level. The server therefore derives a separate
+content-addressed provider projection:
+
+- every `const` becomes a same-type singleton enum;
+- regex patterns are omitted from constrained decoding;
+- object shape, required fields, types, array bounds, numeric bounds,
+  text-length bounds, and existing enums remain unchanged; and
+- the original canonical schema remains mandatory after final-content parsing.
+
+The 15,145-byte projection passes both pinned Walle levels. It is not a second
+result DTO or acceptance contract. It cannot bypass the original Zod and
+semantic cross-validation gates. Current API and validator reread, the live
+target-model probe, current account/model access, immutable model identity, a
+request-specific completion-token ceiling, distributed one-use state,
+credential capability, and unknown-outcome reconciliation remain required.
+No provider body or transport authority exists. See
+`docs/canonical-living-frame-preapproval-kimi-mfjs-schema-projection.md`.

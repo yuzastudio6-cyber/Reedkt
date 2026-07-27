@@ -110,12 +110,20 @@ captured separately as controlled evidence. It confirms that the internal
 material can map to non-streaming Chat Completions with top-level
 `reasoning_effort = "max"` and strict JSON Schema output. It also confirms that
 the documented synchronous API exposes no idempotency field or completion
-lookup, and the model list exposes no immutable model revision. Exact-schema
-MFJS validation, a live target-model probe, an approved completion-token
-ceiling, current account availability, distributed one-use state, credential
-capability, and unknown-outcome operator reconciliation therefore remain
-blocking. See
+lookup, and the model list exposes no immutable model revision. See
 `docs/canonical-living-frame-preapproval-kimi-api-contract-observation.md`.
+
+A deterministic provider-schema projection now replaces the canonical
+schema's 13 `const` keywords with equivalent singleton enums and defers its 24
+regex patterns to mandatory canonical post-parse validation. The exact
+projection passed both `strict` and `ultra` validation using pinned official
+Walle `v0.1.13` source. This closes only the controlled static projection
+observation. Current Walle/API reread, a live target-model probe, an approved
+completion-token ceiling, current account availability, immutable model
+identity, distributed one-use state, credential capability, and
+unknown-outcome operator reconciliation remain blocking. The provider body is
+still not created. See
+`docs/canonical-living-frame-preapproval-kimi-mfjs-schema-projection.md`.
 
 ## Closed authorities
 

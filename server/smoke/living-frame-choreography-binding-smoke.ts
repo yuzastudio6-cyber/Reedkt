@@ -77,7 +77,9 @@ const input = {
   }],
 } as const
 
-const binding = await compileLivingFrameChoreographyBinding(input)
+export const livingFrameChoreographyFixtureBinding =
+  await compileLivingFrameChoreographyBinding(input)
+const binding = livingFrameChoreographyFixtureBinding
 assert.equal(verifyLivingFrameChoreographyBindingDigest(binding), true)
 assert.equal(
   binding.bindingState,

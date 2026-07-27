@@ -987,6 +987,29 @@ ledger to bypass these prerequisites.
 - run canonical artifact QA; and
 - use the existing private Remotion review and revision flow.
 
+#### Workflow-neutral Remotion profile boundary
+
+The first renderer-integration contract is
+`living_frame_deterministic_layered_scene_v1`. It is a workflow-neutral
+profile candidate: it does not contain Musashi, helicopter, Hormuz, or any
+other subject-specific route. Those names remain controlled examples that
+exercise character illustration, mechanical selective motion, geographic
+explanation, and restraint.
+
+The profile binds the existing renderer-plan binding, semantic choreography
+binding, immutable approved-snapshot lineage observation, approved work-output
+lineage, and planned asset-manifest lineage into one deterministic layer
+manifest. It does not add a renderer. `RendererCompositionPlan` remains the
+plan authority and the existing private Remotion service remains the only
+future execution boundary.
+
+This profile remains non-executable until canonical planning freezes selected
+Living Frame scene, renderer, and choreography component references; exact
+motion samples and committed artifacts are projected from the approved
+snapshot; artifact QA passes; the existing offline Remotion protocol admits
+the profile; and the existing private review flow approves its rendered
+artifact. All execution and production authority flags remain false.
+
 ### Slice 6: qualified controlled illustration
 
 - qualify an execution host, preprocessors, adapters, checkpoints, model

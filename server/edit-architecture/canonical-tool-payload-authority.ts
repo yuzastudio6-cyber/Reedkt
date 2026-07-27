@@ -433,6 +433,28 @@ function validateByRunnerFamily(
       return 'media_ffmpeg'
     }
     const payload = validateOfflineFfmpegPlanningPayload(structuredPayload)
+    if (
+      payload.recipeProfileId === 'approved_edit_brief_music_bed_wav_v1' ||
+      payload.recipeProfileId === 'approved_edit_brief_sfx_wav_v1'
+    ) {
+      requireBinding(workItem, { source: 0, cleanup: 0, dependencies: 0 })
+      if (
+        workItem.workItemType !== 'process_audio_asset' ||
+        workItem.workerClass !== 'audio_processing_worker' ||
+        workItem.executionInput.operation !==
+          'process_approved_edit_brief_audio_attachment' ||
+        workItem.expectedOutputs.length !== 1 ||
+        workItem.expectedOutputs[0]?.assetRole !== 'processed' ||
+        workItem.expectedOutputs[0]?.contentType !== 'audio/wav'
+      ) {
+        throw invalidPayload(
+          'Edit Brief audio processing lost its exact work-item or WAV-output authority.',
+          workItem.workItemKey,
+          'canonical_edit_brief_audio_processing_authority',
+        )
+      }
+      return 'media_ffmpeg'
+    }
     requireBinding(workItem, {
       source: 1,
       cleanup: 1,
@@ -498,6 +520,11 @@ function validateByRunnerFamily(
       const voiceTrackCount = payload.audioPolicy === 'replace_with_approved_voice_tracks'
         ? (payload.voiceTracks?.length ?? 0)
         : 0
+      const supplementalAudioTrackCount =
+        payload.supplementalAudioPolicy ===
+          'approved_edit_brief_audio_tracks_v1'
+          ? (payload.supplementalAudioTracks?.length ?? 0)
+          : 0
       const colorSourceCount = 'sourceMediaPolicy' in payload &&
         payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
         ? sourceCount
@@ -505,7 +532,9 @@ function validateByRunnerFamily(
       requireBinding(workItem, {
         source: sourceCount,
         cleanup: sourceCount,
-        dependencies: 1 + captionCount + voiceTrackCount + colorSourceCount,
+        dependencies:
+          1 + captionCount + voiceTrackCount + supplementalAudioTrackCount +
+          colorSourceCount,
       })
       if (compositionChunk) {
         const chunkAuthority = workItem.executionInput.chunkAuthority
@@ -521,6 +550,7 @@ function validateByRunnerFamily(
           CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID
         if (
           (!sourceBoundaryProfile && !sourceSliceProfile) ||
+          supplementalAudioTrackCount !== 0 ||
           !Number.isSafeInteger(chunk.chunkIndex) || !Number.isSafeInteger(chunk.chunkCount) ||
           Number(chunk.chunkIndex) < 1 || Number(chunk.chunkIndex) > Number(chunk.chunkCount) ||
           Number(chunk.chunkCount) < 2 ||

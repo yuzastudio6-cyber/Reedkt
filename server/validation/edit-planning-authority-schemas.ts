@@ -222,6 +222,75 @@ const segmentSummarySchema = z.object({
   operationIds: z.array(safeKeySchema).min(1).max(256),
 }).strict()
 
+const canonicalEditBriefAudioPlanningItemSchema = z.object({
+  attachmentId: safeKeySchema,
+  markerId: safeKeySchema,
+  markerType: z.enum(['music', 'sfx']),
+  markerTimeKind: z.enum(['point', 'range']),
+  privateAssetId: safeKeySchema,
+  mimeType: z.enum(['audio/aac', 'audio/mpeg', 'audio/wav', 'audio/x-wav']),
+  startFrame: z.number().int().nonnegative(),
+  endFrameExclusive: z.number().int().positive(),
+  sourceDurationFrames: z.number().int().positive(),
+  placementDurationFrames: z.number().int().positive(),
+  fillPolicy: z.enum(['loop_or_trim_to_window', 'trim_without_loop']),
+  mixProfileId: z.enum([
+    'speech_safe_uploaded_music_bed_v1',
+    'narration_protected_uploaded_sfx_v1',
+  ]),
+}).strict().superRefine((item, context) => {
+  if (
+    item.endFrameExclusive <= item.startFrame
+    || item.placementDurationFrames !==
+      item.endFrameExclusive - item.startFrame
+    || (item.markerType === 'music' && (
+      item.fillPolicy !== 'loop_or_trim_to_window'
+      || item.mixProfileId !== 'speech_safe_uploaded_music_bed_v1'
+    ))
+    || (item.markerType === 'sfx' && (
+      item.fillPolicy !== 'trim_without_loop'
+      || item.mixProfileId !== 'narration_protected_uploaded_sfx_v1'
+    ))
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Edit Brief audio placement does not match its closed planning profile.',
+    })
+  }
+})
+
+export const canonicalEditBriefAudioPlanningSchema = z.object({
+  schemaVersion: z.literal('canonical-edit-brief-audio-planning-v1'),
+  source: z.literal('confirmed_edit_brief_audio_attachments'),
+  fps: z.number().positive().max(240),
+  totalFrames: z.number().int().positive().max(100_000_000),
+  items: z.array(canonicalEditBriefAudioPlanningItemSchema).min(1).max(500),
+  browserMediaExecutionAllowed: z.literal(false),
+  providerExecutionAuthority: z.literal(false),
+  workAuthority: z.literal(false),
+  approvalAuthority: z.literal(false),
+  runtimeAuthority: z.literal(false),
+}).strict().superRefine((binding, context) => {
+  const attachmentIds = new Set<string>()
+  const markerIds = new Set<string>()
+  for (const [index, item] of binding.items.entries()) {
+    if (
+      attachmentIds.has(item.attachmentId)
+      || markerIds.has(item.markerId)
+      || item.startFrame >= binding.totalFrames
+      || item.endFrameExclusive > binding.totalFrames
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['items', index],
+        message: 'Edit Brief audio items must be unique and within canonical timing.',
+      })
+    }
+    attachmentIds.add(item.attachmentId)
+    markerIds.add(item.markerId)
+  }
+})
+
 export const canonicalPlanComponentsSchema = z.object({
   compiledIntent: jsonObjectSchema,
   professionalEditingDirective: jsonObjectSchema,
@@ -245,6 +314,7 @@ export const canonicalPlanComponentsSchema = z.object({
   qaSummary: qaSummarySchema,
   providerPolicy: providerPolicySchema,
   fallbackPolicy: jsonObjectSchema,
+  editBriefAudioPlanning: canonicalEditBriefAudioPlanningSchema.optional(),
   livingFrame: canonicalLivingFramePlanningBindingSchema.optional(),
   motionStudioStorytellingStyleAuthority: canonicalStorytellingStyleAuthoritySchema.optional(),
   motionStudioStorytellingProductionAuthority:
@@ -392,6 +462,7 @@ export const CANONICAL_EDIT_WORK_ITEM_TYPES = [
   'capture_browser_asset',
   'run_audio_analysis',
   'run_audio_stretch',
+  'process_audio_asset',
   'process_image_asset',
   'process_video_asset',
   'generate_mask_asset',

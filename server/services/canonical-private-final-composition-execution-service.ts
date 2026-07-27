@@ -159,6 +159,11 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const planningPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
         workItem.executionInput.structuredPayload,
       )
+      if (mode === 'chunk' && planningPayload.supplementalAudioTracks !== undefined) {
+        throw denied(
+          'Supplemental Edit Brief audio remains final-composition only until chunk-local placement authority is admitted.',
+        )
+      }
       if (
         mode === 'chunk' &&
         'transitionPolicy' in planningPayload &&
@@ -227,6 +232,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         ? planningPayload.sourceSegments.length
         : 1
       const voiceTrackCount = replaceVoice ? (planningPayload.voiceTracks?.length ?? 0) : 0
+      const supplementalAudioTrackCount =
+        planningPayload.supplementalAudioTracks?.length ?? 0
       const dependencyWorkItems = workItem.dependencyKeys.map((dependencyKey) =>
         authority.workItems.find((candidate) => candidate.workItemKey === dependencyKey))
       if (dependencyWorkItems.some((candidate) => !candidate)) {
@@ -238,7 +245,12 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const usesApprovedColorIntermediate = 'sourceMediaPolicy' in planningPayload &&
         planningPayload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
       const colorSourceCount = usesApprovedColorIntermediate ? sourceCount : 0
-      const expectedDependencyCount = 1 + captionCueCount + voiceTrackCount + colorSourceCount
+      const expectedDependencyCount =
+        1 +
+        captionCueCount +
+        voiceTrackCount +
+        supplementalAudioTrackCount +
+        colorSourceCount
       const directFinalOperations = new Set([
         'render_approved_source_caption_final',
         'render_approved_source_sequence_caption_final',
@@ -386,6 +398,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const dependencies: CanonicalPrivateDependencyArtifactReadResult[] = []
       const colorDependencies: CanonicalPrivateDependencyArtifactStreamReadResult[] = []
       const voiceDependencies: CanonicalPrivateDependencyArtifactStreamReadResult[] = []
+      const supplementalAudioDependencies:
+        CanonicalPrivateDependencyArtifactStreamReadResult[] = []
       for (
         let selectedArtifactIndex = 0;
         selectedArtifactIndex < expectedDependencyCount;
@@ -412,11 +426,16 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             maximumBytes: CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
           }))
         } else if (dependencyContentType === 'audio/wav') {
-          voiceDependencies.push(await dependencyReader.readSingleSelectedArtifactStream({
+          const dependency = await dependencyReader.readSingleSelectedArtifactStream({
             ...dependencyInput,
             allowedContentTypes: ['audio/wav'],
             maximumBytes: CANONICAL_PRIVATE_AUDIO_STREAMING_MAXIMUM_BYTES,
-          }))
+          })
+          if (dependencyWorkItem.workItemType === 'process_audio_asset') {
+            supplementalAudioDependencies.push(dependency)
+          } else {
+            voiceDependencies.push(dependency)
+          }
         } else {
           dependencies.push(await dependencyReader.readSingleSelectedArtifact({
             ...dependencyInput,
@@ -430,11 +449,15 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       if (
         !trimArtifact || trimArtifact.byteLength > 1024 * 1024 ||
         captionDependencies.length !== captionCueCount || voiceDependencies.length !== voiceTrackCount ||
+        supplementalAudioDependencies.length !== supplementalAudioTrackCount ||
         colorDependencies.length !== colorSourceCount ||
-        dependencies.length + colorDependencies.length + voiceDependencies.length !== expectedDependencyCount
+        dependencies.length +
+          colorDependencies.length +
+          voiceDependencies.length +
+          supplementalAudioDependencies.length !== expectedDependencyCount
       ) {
         throw denied(
-          'Final composition dependencies must be one approved trim JSON plus exact caption, voice, and color artifacts.',
+          'Final composition dependencies must be one approved trim JSON plus exact caption, voice, supplemental-audio, and color artifacts.',
         )
       }
       const captions = orderCaptionDependencies({
@@ -448,6 +471,14 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         ? orderVoiceDependencies({
             voiceDependencies,
             approvedVoiceTracks: planningPayload.voiceTracks ?? [],
+            fps: planningPayload.fps,
+            authority,
+          })
+        : []
+      const supplementalAudioTracks = planningPayload.supplementalAudioTracks
+        ? orderSupplementalAudioDependencies({
+            supplementalAudioDependencies,
+            approvedTracks: planningPayload.supplementalAudioTracks,
             fps: planningPayload.fps,
             authority,
           })
@@ -544,6 +575,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const sourceInputIds = sources.map((_, index) => `approved-source-${index + 1}`)
       const captionInputIds = captions.map((_, index) => `approved-caption-${index + 1}`)
       const voiceInputIds = voiceTracks.map((_, index) => `approved-voice-${index + 1}`)
+      const supplementalAudioInputIds = supplementalAudioTracks.map(
+        (_, index) => `approved-supplemental-audio-${index + 1}`,
+      )
       const sourceCommitments = sources.map((source, index) => ({
         inputId: sourceInputIds[index]!,
         ...(sequenceProfile ? { sourceSequenceItemId: source.sourceSequenceItemId } : {}),
@@ -571,6 +605,15 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         byteLength: voiceTrack.byteLength,
         sha256: voiceTrack.sha256,
       }))
+      const supplementalAudioCommitments = supplementalAudioTracks.map(
+        (track, index) => ({
+          inputId: supplementalAudioInputIds[index]!,
+          ...planningPayload.supplementalAudioTracks![index]!,
+          mimeType: 'audio/wav' as const,
+          byteLength: track.byteLength,
+          sha256: track.sha256,
+        }),
+      )
       const request = buildOfflineRemotionFinalCompositionStreamingRequest({
         planningPayload,
         ...(sequenceProfile
@@ -580,6 +623,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           ? { captionOverlays: captionCommitments as Array<typeof captionCommitments[number] & { outputKey: string }> }
           : { captionOverlay: captionCommitments[0]! }),
         ...(replaceVoice ? { voiceTracks: voiceCommitments } : {}),
+        ...(supplementalAudioCommitments.length > 0
+          ? { supplementalAudioTracks: supplementalAudioCommitments }
+          : {}),
       })
       const runtimeInputs: OfflineRemotionServerInjectedInput[] = [
         ...sources.map((source, index) => {
@@ -610,6 +656,14 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           byteLength: voiceTrack.byteLength, sha256: voiceTrack.sha256,
           openStream: voiceTrack.openStream,
         })),
+        ...supplementalAudioTracks.map((track, index) => ({
+          inputMode: track.inputMode,
+          inputId: supplementalAudioInputIds[index]!,
+          mimeType: 'audio/wav' as const,
+          byteLength: track.byteLength,
+          sha256: track.sha256,
+          openStream: track.openStream,
+        })),
       ]
       const privateObjectIdentityFor = (contentSha256: string) => sha256ArtifactQaValue({
         domain: mode === 'final'
@@ -629,6 +683,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         sourceTrimSha256: trimArtifact.sha256,
         captionSha256s: captions.map((caption) => caption.sha256),
         voiceTrackSha256s: voiceTracks.map((voiceTrack) => voiceTrack.sha256),
+        supplementalAudioTrackSha256s: supplementalAudioTracks.map(
+          (track) => track.sha256,
+        ),
         colorIntermediateSha256s: colorSources.map((source) => source.dependency.sha256),
         transitionAuthorityHash,
         ...(chunkAuthority ? { chunkAuthority } : {}),
@@ -719,6 +776,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         ),
         voiceDependencyReadEvidenceHashes: voiceTracks.map(
           (voiceTrack) => voiceTrack.dependencyReadEvidenceHash,
+        ),
+        supplementalAudioDependencyReadEvidenceHashes: supplementalAudioTracks.map(
+          (track) => track.dependencyReadEvidenceHash,
         ),
         colorDependencyReadEvidenceHashes: colorSources.map(
           (source) => source.dependency.dependencyReadEvidenceHash,
@@ -842,6 +902,17 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             })),
           }
         : {}
+      const supplementalAudioInputs = supplementalAudioTracks.length > 0
+        ? {
+            supplementalAudioTracks: supplementalAudioTracks.map((track, index) => ({
+              ...planningPayload.supplementalAudioTracks![index]!,
+              audioArtifactId: track.artifactId,
+              audioSha256: track.sha256,
+              audioByteLength: track.byteLength,
+              audioDependencyReadEvidenceHash: track.dependencyReadEvidenceHash,
+            })),
+          }
+        : {}
       const colorInputRecords = colorSources.map((colorSource, index) => ({
         sourceSequenceItemId: colorSource.sourceSequenceItemId,
         outputKey: colorSource.outputKey,
@@ -922,6 +993,16 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             ? 'server_injected_private_stream_v1' as const
             : 'not_applicable' as const,
           approvedVoiceTrackReplacementApplied: replaceVoice,
+          approvedSupplementalAudioDependencyRead:
+            supplementalAudioTracks.length > 0,
+          approvedSupplementalAudioDependencyInputMode:
+            supplementalAudioTracks.length > 0
+              ? 'server_injected_private_stream_v1' as const
+              : 'not_applicable' as const,
+          approvedSupplementalAudioTimelineApplied:
+            supplementalAudioTracks.length > 0,
+          approvedSupplementalAudioSpeechSafeMixApplied:
+            supplementalAudioTracks.length > 0,
           approvedColorDependencyRead: colorSources.length > 0,
           approvedColorDependencyInputMode: colorSources.length > 0
             ? 'server_injected_private_stream_v1' as const
@@ -966,6 +1047,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               sourceTrimDependencyReadEvidenceHash: trimArtifact.dependencyReadEvidenceHash,
               ...captionInputs,
               ...voiceInputs,
+              ...supplementalAudioInputs,
               ...colorInputs,
             }
           : {
@@ -983,6 +1065,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               sourceEndFrameExclusive: sourceTrim[0]!.endFrameExclusive,
               ...captionInputs,
               ...voiceInputs,
+              ...supplementalAudioInputs,
               ...colorInputs,
             },
         lease: {
@@ -1194,6 +1277,121 @@ function orderVoiceDependencies(input: {
     new Set(input.approvedVoiceTracks.map((track) => track.outputKey)).size !==
       input.approvedVoiceTracks.length
   ) throw denied('Voice dependency artifacts do not match approved source, output-key, and duration order.')
+  return ordered.map((entry) => entry!.dependency)
+}
+
+function orderSupplementalAudioDependencies(input: {
+  supplementalAudioDependencies: CanonicalPrivateDependencyArtifactStreamReadResult[]
+  approvedTracks: Array<{
+    outputKey: string
+    attachmentId: string
+    markerId: string
+    markerType: 'music' | 'sfx'
+    startFrame: number
+    endFrameExclusive: number
+    fillPolicy: 'loop_or_trim_to_window' | 'trim_without_loop'
+    mixProfileId:
+      | 'speech_safe_uploaded_music_bed_v1'
+      | 'narration_protected_uploaded_sfx_v1'
+  }>
+  fps: number
+  authority: ApprovedExecutionAuthority
+}): CanonicalPrivateDependencyArtifactStreamReadResult[] {
+  const byOutputKey = new Map<
+    string,
+    {
+      dependency: CanonicalPrivateDependencyArtifactStreamReadResult
+      attachmentId: string
+      markerId: string
+      markerType: 'music' | 'sfx'
+      startFrame: number
+      endFrameExclusive: number
+      fillPolicy: 'loop_or_trim_to_window' | 'trim_without_loop'
+      mixProfileId:
+        | 'speech_safe_uploaded_music_bed_v1'
+        | 'narration_protected_uploaded_sfx_v1'
+    }
+  >()
+  for (const dependency of input.supplementalAudioDependencies) {
+    const asset = input.authority.assetManifest.entries.find(
+      (candidate) => candidate.id === dependency.expectedAssetId,
+    )
+    const workItem = input.authority.workItems.find(
+      (candidate) => candidate.id === asset?.approvedWorkItemId,
+    )
+    if (
+      !asset ||
+      !workItem ||
+      asset.contentType !== 'audio/wav' ||
+      asset.assetRole !== 'processed' ||
+      !asset.required ||
+      asset.previewPlaceholderAllowed ||
+      workItem.workerClass !== 'audio_processing_worker' ||
+      workItem.workItemType !== 'process_audio_asset' ||
+      workItem.executionInput.operation !==
+        'process_approved_edit_brief_audio_attachment' ||
+      workItem.approvedToolIds.length !== 1 ||
+      workItem.approvedToolIds[0] !== 'ffmpeg' ||
+      workItem.sourceSequenceItemIds.length !== 0 ||
+      workItem.sourceCleanupDecisionIds.length !== 0 ||
+      workItem.dependencyKeys.length !== 0 ||
+      byOutputKey.has(asset.outputKey)
+    ) {
+      throw denied(
+        'Supplemental-audio dependency lineage is not an exact approved Edit Brief FFmpeg artifact.',
+      )
+    }
+    const payload = validateOfflineFfmpegPlanningPayload(
+      workItem.executionInput.structuredPayload,
+    )
+    if (
+      ![
+        'approved_edit_brief_music_bed_wav_v1',
+        'approved_edit_brief_sfx_wav_v1',
+      ].includes(payload.recipeProfileId) ||
+      !('attachmentId' in payload) ||
+      payload.frameRate !== input.fps ||
+      payload.sampleRate !== 48_000 ||
+      payload.channelMode !== 'stereo'
+    ) {
+      throw denied(
+        'Supplemental-audio dependency did not execute an approved Edit Brief delivery recipe.',
+      )
+    }
+    byOutputKey.set(asset.outputKey, {
+      dependency,
+      attachmentId: payload.attachmentId,
+      markerId: payload.markerId,
+      markerType: payload.markerType,
+      startFrame: payload.startFrame,
+      endFrameExclusive: payload.endFrameExclusive,
+      fillPolicy: payload.fillPolicy,
+      mixProfileId: payload.mixProfileId,
+    })
+  }
+  const ordered = input.approvedTracks.map((track) => byOutputKey.get(track.outputKey))
+  if (
+    ordered.some((entry, index) => {
+      const expected = input.approvedTracks[index]!
+      return (
+        !entry ||
+        entry.attachmentId !== expected.attachmentId ||
+        entry.markerId !== expected.markerId ||
+        entry.markerType !== expected.markerType ||
+        entry.startFrame !== expected.startFrame ||
+        entry.endFrameExclusive !== expected.endFrameExclusive ||
+        entry.fillPolicy !== expected.fillPolicy ||
+        entry.mixProfileId !== expected.mixProfileId
+      )
+    }) ||
+    ordered.length !== byOutputKey.size ||
+    new Set(input.approvedTracks.map((track) => track.outputKey)).size !==
+      input.approvedTracks.length
+  ) {
+    throw denied(
+      'Supplemental-audio artifacts do not match approved output, marker, placement, and mix order.',
+    )
+  }
   return ordered.map((entry) => entry!.dependency)
 }
 
@@ -1463,6 +1661,7 @@ interface FinalCompositionAdapterInput {
   sourceTrimDependencyReadEvidenceHash: string
   captionDependencyReadEvidenceHashes: string[]
   voiceDependencyReadEvidenceHashes: string[]
+  supplementalAudioDependencyReadEvidenceHashes: string[]
   colorDependencyReadEvidenceHashes: string[]
   transitionAuthorityHash: string
 }
@@ -1503,6 +1702,8 @@ function adapters(input: FinalCompositionAdapterInput): {
               sourceTrimDependencyReadEvidenceHash: input.sourceTrimDependencyReadEvidenceHash,
               captionDependencyReadEvidenceHashes: input.captionDependencyReadEvidenceHashes,
               voiceDependencyReadEvidenceHashes: input.voiceDependencyReadEvidenceHashes,
+              supplementalAudioDependencyReadEvidenceHashes:
+                input.supplementalAudioDependencyReadEvidenceHashes,
               colorDependencyReadEvidenceHashes: input.colorDependencyReadEvidenceHashes,
               transitionAuthorityHash: input.transitionAuthorityHash,
             }),
@@ -1558,6 +1759,8 @@ function adapters(input: FinalCompositionAdapterInput): {
               sourceTrimDependencyReadEvidenceHash: input.sourceTrimDependencyReadEvidenceHash,
               captionDependencyReadEvidenceHashes: input.captionDependencyReadEvidenceHashes,
               voiceDependencyReadEvidenceHashes: input.voiceDependencyReadEvidenceHashes,
+              supplementalAudioDependencyReadEvidenceHashes:
+                input.supplementalAudioDependencyReadEvidenceHashes,
               colorDependencyReadEvidenceHashes: input.colorDependencyReadEvidenceHashes,
               transitionAuthorityHash: input.transitionAuthorityHash,
             }),
@@ -1596,6 +1799,8 @@ function assertFinalResult(
   const sequenceProfile = 'sourceSegments' in request.payload
   const captionTrackProfile = 'captionOverlayCues' in request.payload
   const replaceVoice = request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
+  const supplementalAudio =
+    request.payload.supplementalAudioTracks !== undefined
   const boundedSourceTransitions =
     'sourceSegments' in request.payload &&
     request.payload.transitionPolicy ===
@@ -1626,6 +1831,14 @@ function assertFinalResult(
           result.evidence.semanticEvidence.sourceAudioPreservationRequested !== true ||
           result.evidence.semanticEvidence.approvedVoiceTrackReplacementRequested === true
         )) ||
+    (supplementalAudio && (
+      result.evidence.semanticEvidence.approvedSupplementalAudioBytesVerified !== true ||
+      result.evidence.semanticEvidence
+        .approvedSupplementalAudioInputStreamedWithoutWholeBuffer !== true ||
+      result.evidence.semanticEvidence.approvedSupplementalAudioTimelineApplied !== true ||
+      result.evidence.semanticEvidence
+        .approvedSupplementalAudioSpeechSafeMixApplied !== true
+    )) ||
     result.evidence.semanticEvidence.finalCompositionProfileExecuted !== true ||
     (sequenceProfile && (
       result.evidence.semanticEvidence.approvedSourceSequenceBytesVerified !== true ||

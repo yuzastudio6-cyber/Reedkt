@@ -5,6 +5,9 @@ import type {
   StorytellingMotionStylePlanReviewInput,
 } from '../types/motion-studio'
 import type { EditPlan, PlannerInput } from '../types/reeditpro'
+import type {
+  CanonicalEditBriefAudioPlanningInput,
+} from '../types/edit-brief-authority'
 import type { ApprovedEditExecutionUploadedMediaSourceAssetClientInput } from './approved-edit-execution-package-client'
 import type { CanonicalEditJourney } from './canonical-edit-journey'
 import {
@@ -110,6 +113,7 @@ export type SaveCanonicalPlanningInput = {
   plan: EditPlan
   plannerInput: PlannerInput
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
+  editBriefAudioPlanningInputs?: CanonicalEditBriefAudioPlanningInput[]
   revisionJourney?: CanonicalEditJourney
   motionStudioStorytellingStylePlan?: StorytellingMotionStylePlanReviewInput
 }
@@ -164,6 +168,7 @@ export function saveCanonicalPlanningForNamedEdit(
     plan: input.plan,
     plannerInput: input.plannerInput,
     sourceMediaAssets: input.sourceMediaAssets,
+    editBriefAudioPlanningInputs: input.editBriefAudioPlanningInputs ?? [],
     storytellingStylePlan: input.motionStudioStorytellingStylePlan ?? null,
     revision: input.revisionJourney?.stage === 'revision_requested'
       ? input.revisionJourney.privateReviewMediaAuthority ?? null
@@ -200,6 +205,7 @@ async function prepareAndPerformCanonicalPlanningSave(
     plan: input.plan,
     plannerInput: input.plannerInput,
     sourceMediaAssets: input.sourceMediaAssets,
+    editBriefAudioPlanningInputs: input.editBriefAudioPlanningInputs,
     motionStudioStorytellingStylePlan: input.motionStudioStorytellingStylePlan,
     motionStudioStorytellingPlanningPreparation: preparation.preparation,
   })
@@ -246,6 +252,7 @@ async function prepareAndPerformCanonicalPlanningSave(
     plan: boundInput.plan,
     plannerInput: boundInput.plannerInput,
     sourceMediaAssets: boundInput.sourceMediaAssets,
+    editBriefAudioPlanningInputs: boundInput.editBriefAudioPlanningInputs,
     livingFrameComponent: boundLivingFrame.livingFrame,
     motionStudioStorytellingStylePlan:
       boundInput.motionStudioStorytellingStylePlan,
@@ -1110,6 +1117,7 @@ async function performCanonicalPlanningSave(
         preferenceAuthority.authority.preferenceFingerprintSha256,
     },
     sourceMediaAssets: input.sourceMediaAssets,
+    editBriefAudioPlanningInputs: input.editBriefAudioPlanningInputs,
     livingFrameComponent: input.plan.professionalSkillPlan?.livingFrame,
     motionStudioStorytellingStylePlan: input.motionStudioStorytellingStylePlan,
     motionStudioStorytellingPlanningPreparation: storytellingPlanningPreparation,

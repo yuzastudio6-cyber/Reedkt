@@ -437,6 +437,7 @@ function createEditingAgentExecutionChecks(input: PlannerInput, editingAgentExec
     item.workItemType === 'capture_browser_asset' ||
     item.workItemType === 'run_audio_analysis' ||
     item.workItemType === 'run_audio_stretch' ||
+    item.workItemType === 'process_audio_asset' ||
     item.workItemType === 'process_image_asset' ||
     item.workItemType === 'process_video_asset' ||
     item.workItemType === 'generate_mask_asset'

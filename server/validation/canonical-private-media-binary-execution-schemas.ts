@@ -58,6 +58,23 @@ const mediaInputAuthoritySchema = z.discriminatedUnion('inputKind', [
     inputDependencyJobId: identity,
   }).strict(),
   toolCommon.extend({
+    inputKind: z.literal('approved_edit_brief_audio_attachment'),
+    sourceObjectRead: z.literal(false),
+    dependencyArtifactRead: z.literal(false),
+    editBriefAudioObjectRead: z.literal(true),
+    sourceInputMode: z.literal('server_injected_private_stream_v1'),
+    attachmentId: identity,
+    markerId: identity,
+    privateAssetId: identity,
+    attachmentMimeType: z.enum([
+      'audio/aac', 'audio/mpeg', 'audio/wav', 'audio/x-wav',
+    ]),
+    recipeProfileId: z.enum([
+      'approved_edit_brief_music_bed_wav_v1',
+      'approved_edit_brief_sfx_wav_v1',
+    ]),
+  }).strict(),
+  toolCommon.extend({
     inputKind: z.literal('verified_storytelling_speech_provider_output_set'),
     sourceObjectRead: z.literal(false),
     dependencyArtifactRead: z.literal(true),

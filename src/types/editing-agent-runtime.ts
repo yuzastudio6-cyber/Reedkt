@@ -25,6 +25,7 @@ export type EditWorkItemType =
   | 'capture_browser_asset'
   | 'run_audio_analysis'
   | 'run_audio_stretch'
+  | 'process_audio_asset'
   | 'process_image_asset'
   | 'process_video_asset'
   | 'generate_mask_asset'

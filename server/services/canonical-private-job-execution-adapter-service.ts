@@ -777,7 +777,10 @@ function normalizeResponse(input: {
   const dependencyInputMode = coordinatorTool?.dependencyInputMode ??
     (coordinatorTool?.approvedColorDependencyInputMode === 'server_injected_private_stream_v1'
       ? coordinatorTool.approvedColorDependencyInputMode
-      : coordinatorTool?.approvedVoiceTrackDependencyInputMode)
+      : coordinatorTool?.approvedVoiceTrackDependencyInputMode ===
+          'server_injected_private_stream_v1'
+        ? coordinatorTool.approvedVoiceTrackDependencyInputMode
+        : coordinatorTool?.approvedSupplementalAudioDependencyInputMode)
   const singleColorInput = optionalRecord(coordinatorInputs?.colorSource)
   const dependencyByteLengths = [
     coordinatorTool?.inputArtifactByteLength,
@@ -787,6 +790,10 @@ function normalizeResponse(input: {
       : []),
     ...(Array.isArray(coordinatorInputs?.voiceTracks)
       ? coordinatorInputs.voiceTracks.map((track) => optionalRecord(track)?.voiceByteLength)
+      : []),
+    ...(Array.isArray(coordinatorInputs?.supplementalAudioTracks)
+      ? coordinatorInputs.supplementalAudioTracks.map((track) =>
+          optionalRecord(track)?.audioByteLength)
       : []),
     ...(Array.isArray(coordinatorTool?.chunkInputByteLengths)
       ? coordinatorTool.chunkInputByteLengths

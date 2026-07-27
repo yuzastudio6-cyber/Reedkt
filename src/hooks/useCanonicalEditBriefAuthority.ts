@@ -3,9 +3,11 @@ import type { EditBrief } from '../types'
 import type {
   CanonicalEditBriefAuthority,
   CanonicalEditBriefFields,
+  CanonicalEditBriefMarker,
   CanonicalEditBriefMarkerDraft,
 } from '../types/edit-brief-authority'
 import {
+  addCanonicalEditBriefAudioAttachment,
   appendCanonicalEditBriefMarkerMessage,
   changeCanonicalEditBriefMarkerStatus,
   createCanonicalEditBriefMarker,
@@ -35,7 +37,9 @@ export interface UseCanonicalEditBriefAuthorityResult {
   planningReady: boolean
   refresh: () => Promise<void>
   saveNow: () => Promise<boolean>
-  createMarker: (marker: CanonicalEditBriefMarkerDraft) => Promise<boolean>
+  createMarker: (
+    marker: CanonicalEditBriefMarkerDraft,
+  ) => Promise<CanonicalEditBriefMarker | undefined>
   updateMarker: (
     markerId: string,
     patch: Omit<Partial<CanonicalEditBriefMarkerDraft>, 'endSeconds'>
@@ -48,6 +52,10 @@ export interface UseCanonicalEditBriefAuthorityResult {
   appendMarkerMessage: (
     markerId: string,
     content: string,
+  ) => Promise<boolean>
+  addAudioAttachment: (
+    markerId: string,
+    privateAssetId: string,
   ) => Promise<boolean>
 }
 
@@ -212,11 +220,18 @@ export function useCanonicalEditBriefAuthority(input: {
   const planningAuthorityRequired = input.enabled
     && !frontendApiStatus.mockOnly
     && Boolean(frontendApiStatus.apiBaseUrl)
+  const activeMarkersConfirmed = Boolean(
+    authority
+    && authority.markers
+      .filter((marker) => marker.status !== 'archived')
+      .every((marker) => marker.status === 'confirmed'),
+  )
   const planningReady = !planningAuthorityRequired || Boolean(
     input.started
     && desiredFields?.status === 'ready'
     && status === 'saved'
-    && sameCanonicalFields(authority?.brief?.fields, desiredFields),
+    && sameCanonicalFields(authority?.brief?.fields, desiredFields)
+    && activeMarkersConfirmed,
   )
 
   useEffect(() => {
@@ -260,15 +275,15 @@ export function useCanonicalEditBriefAuthority(input: {
     }>>,
     successMessage: string,
     options: { allowMissingBrief?: boolean } = {},
-  ): Promise<boolean> => {
+  ): Promise<CanonicalEditBriefAuthority | undefined> => {
     if (input.readOnly) {
       setStatus('invalid')
       setMessage('This approved Edit Brief is locked. Request a revision in Chat.')
-      return false
+      return undefined
     }
     if (!options.allowMissingBrief && !authorityRef.current?.brief && !(await saveNow())) {
       setMessage('Save a clear Edit Brief goal before adding timeline markers.')
-      return false
+      return undefined
     }
     setStatus('saving')
     const perform = async () => {
@@ -278,14 +293,17 @@ export function useCanonicalEditBriefAuthority(input: {
         const refreshed = await readCanonicalEditBriefAuthority(scope)
         if (refreshed.status !== 'ready' || !refreshed.data.authority) {
           applyResult(refreshed, '', scopeKey)
-          return false
+          return undefined
         }
         current = refreshed.data.authority
         authorityRef.current = current
-        if (!current && !options.allowMissingBrief) return false
+        if (!current && !options.allowMissingBrief) return undefined
         result = await action(current)
       }
       return applyResult(result, successMessage, scopeKey)
+        && result.status === 'ready'
+        ? result.data.authority
+        : undefined
     }
     const queued = mutationQueueRef.current.then(perform, perform)
     mutationQueueRef.current = queued
@@ -293,14 +311,20 @@ export function useCanonicalEditBriefAuthority(input: {
   }, [applyResult, input.readOnly, saveNow, scope, scopeKey])
 
   const createMarker = useCallback(
-    (marker: CanonicalEditBriefMarkerDraft) => mutate(
-      (current) => createCanonicalEditBriefMarker(scope, {
-        expectedRevision: current?.revision ?? 0,
-        marker,
-      }),
-      'Timeline marker saved. Confirm it when the instruction is final.',
-      { allowMissingBrief: true },
-    ),
+    async (marker: CanonicalEditBriefMarkerDraft) => {
+      const existingMarkerIds = new Set(
+        authorityRef.current?.markers.map((entry) => entry.id) ?? [],
+      )
+      const updated = await mutate(
+        (current) => createCanonicalEditBriefMarker(scope, {
+          expectedRevision: current?.revision ?? 0,
+          marker,
+        }),
+        'Timeline marker saved. Confirm it when the instruction is final.',
+        { allowMissingBrief: true },
+      )
+      return updated?.markers.find((entry) => !existingMarkerIds.has(entry.id))
+    },
     [mutate, scope],
   )
 
@@ -317,7 +341,7 @@ export function useCanonicalEditBriefAuthority(input: {
       }),
       'Marker changes saved. Confirmation was reset for review.',
       { allowMissingBrief: true },
-    ),
+    ).then(Boolean),
     [mutate, scope],
   )
 
@@ -334,7 +358,7 @@ export function useCanonicalEditBriefAuthority(input: {
           ? 'Marker archived without deleting its history.'
           : 'Marker reopened as a draft.',
       { allowMissingBrief: true },
-    ),
+    ).then(Boolean),
     [mutate, scope],
   )
 
@@ -347,7 +371,20 @@ export function useCanonicalEditBriefAuthority(input: {
       }),
       'Marker direction saved. Reconfirm the marker after reviewing the change.',
       { allowMissingBrief: true },
-    ),
+    ).then(Boolean),
+    [mutate, scope],
+  )
+
+  const addAudioAttachment = useCallback(
+    (markerId: string, privateAssetId: string) => mutate(
+      (current) => addCanonicalEditBriefAudioAttachment(scope, {
+        expectedRevision: current?.revision ?? 0,
+        markerId,
+        privateAssetId,
+      }),
+      'Private audio attached. Review and reconfirm this direction for planning.',
+      { allowMissingBrief: true },
+    ).then(Boolean),
     [mutate, scope],
   )
 
@@ -363,6 +400,7 @@ export function useCanonicalEditBriefAuthority(input: {
     updateMarker,
     changeMarkerStatus,
     appendMarkerMessage,
+    addAudioAttachment,
   }
 }
 

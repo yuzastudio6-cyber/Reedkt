@@ -105,6 +105,19 @@ export interface ApprovedCompositionProps {
     outputKey: string
     voiceTrackInternalUrl: string
   }>
+  supplementalAudioTracks?: Array<{
+    outputKey: string
+    attachmentId: string
+    markerId: string
+    markerType: 'music' | 'sfx'
+    startFrame: number
+    endFrameExclusive: number
+    fillPolicy: 'loop_or_trim_to_window' | 'trim_without_loop'
+    mixProfileId:
+      | 'speech_safe_uploaded_music_bed_v1'
+      | 'narration_protected_uploaded_sfx_v1'
+    supplementalAudioInternalUrl: string
+  }>
   chunkSegments?: Array<{
     outputKey: string
     chunkIndex: number
@@ -215,7 +228,8 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
   if (
     ['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
       .includes(props.compositionProfileId ?? '') &&
-    props.sourceInternalUrl && hasApprovedCaptionInput(props) && hasApprovedAudioInput(props, 1)
+    props.sourceInternalUrl && hasApprovedCaptionInput(props) &&
+    hasApprovedAudioInput(props, 1) && hasApprovedSupplementalAudioInput(props)
   ) {
     return <ApprovedSourceCaptionComposition {...props} />
   }
@@ -224,7 +238,8 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
       .includes(props.compositionProfileId ?? '') &&
     props.sourceSegments && props.sourceInternalUrls && hasApprovedCaptionInput(props) &&
     hasApprovedAudioInput(props, props.sourceSegments.length) &&
-    hasApprovedSourceTransitionInput(props)
+    hasApprovedSourceTransitionInput(props) &&
+    hasApprovedSupplementalAudioInput(props)
   ) {
     return <ApprovedSourceSequenceCaptionComposition {...props} />
   }
@@ -722,6 +737,7 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
             volume={replaceVoice ? 0 : 1}
           />}
       {replaceVoice && <Audio src={props.voiceTrackInternalUrls![0]!.voiceTrackInternalUrl} />}
+      <ApprovedSupplementalAudioTracks {...props} />
       <ApprovedCaptionOverlays {...props} />
     </AbsoluteFill>
   )
@@ -820,10 +836,30 @@ const ApprovedSourceSequenceCaptionComposition: React.FC<ApprovedCompositionProp
           {replaceVoice && <Audio src={voiceUrlBySourceId.get(segment.sourceSequenceItemId)!} />}
         </Sequence>
       ))}
+      <ApprovedSupplementalAudioTracks {...props} />
       <ApprovedCaptionOverlays {...props} />
     </AbsoluteFill>
   )
 }
+
+const ApprovedSupplementalAudioTracks: React.FC<ApprovedCompositionProps> = (props) => (
+  <>
+    {(props.supplementalAudioTracks ?? []).map((track) => (
+      <Sequence
+        key={track.outputKey}
+        from={track.startFrame}
+        durationInFrames={track.endFrameExclusive - track.startFrame}
+        name={`Approved ${track.markerType} ${track.markerId}`}
+      >
+        <Audio
+          src={track.supplementalAudioInternalUrl}
+          loop={track.fillPolicy === 'loop_or_trim_to_window'}
+          volume={track.markerType === 'music' ? 0.18 : 0.42}
+        />
+      </Sequence>
+    ))}
+  </>
+)
 
 const captionOverlayStyle: React.CSSProperties = {
   position: 'absolute',
@@ -879,6 +915,48 @@ function hasApprovedAudioInput(props: ApprovedCompositionProps, sourceCount: num
   if (sourceIds.size !== sourceCount || outputKeys.size !== sourceCount) return false
   if (!props.sourceSegments) return sourceCount === 1
   return props.sourceSegments.every((segment) => sourceIds.has(segment.sourceSequenceItemId))
+}
+
+function hasApprovedSupplementalAudioInput(
+  props: ApprovedCompositionProps,
+): boolean {
+  const tracks = props.supplementalAudioTracks
+  if (tracks === undefined) return true
+  if (tracks.length < 1 || tracks.length > 16) return false
+  const outputKeys = new Set<string>()
+  const attachmentIds = new Set<string>()
+  const markerIds = new Set<string>()
+  let previousStartFrame = -1
+  return tracks.every((track, index) => {
+    const policyMatches = track.markerType === 'music'
+      ? (
+          track.fillPolicy === 'loop_or_trim_to_window' &&
+          track.mixProfileId === 'speech_safe_uploaded_music_bed_v1'
+        )
+      : (
+          track.markerType === 'sfx' &&
+          track.fillPolicy === 'trim_without_loop' &&
+          track.mixProfileId === 'narration_protected_uploaded_sfx_v1'
+        )
+    const valid =
+      index < 16 &&
+      track.startFrame >= 0 &&
+      track.endFrameExclusive > track.startFrame &&
+      track.endFrameExclusive <= props.durationFrames &&
+      track.startFrame >= previousStartFrame &&
+      /^http:\/\/127\.0\.0\.1:\d+\/supplemental\/\d+\.wav$/.test(
+        track.supplementalAudioInternalUrl,
+      ) &&
+      !outputKeys.has(track.outputKey) &&
+      !attachmentIds.has(track.attachmentId) &&
+      !markerIds.has(track.markerId) &&
+      policyMatches
+    previousStartFrame = track.startFrame
+    outputKeys.add(track.outputKey)
+    attachmentIds.add(track.attachmentId)
+    markerIds.add(track.markerId)
+    return valid
+  })
 }
 
 function hasApprovedSourceTransitionInput(

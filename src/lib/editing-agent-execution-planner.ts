@@ -508,14 +508,22 @@ function toolWorkType(toolId: OpenSourceToolId): EditWorkItemType | undefined {
 }
 
 function toolOutputType(workItemType: EditWorkItemType): EditWorkExpectedOutput['outputType'] {
-  if (workItemType === 'run_audio_analysis' || workItemType === 'run_audio_stretch') return 'processed_audio'
+  if (
+    workItemType === 'run_audio_analysis' ||
+    workItemType === 'run_audio_stretch' ||
+    workItemType === 'process_audio_asset'
+  ) return 'processed_audio'
   if (workItemType === 'process_image_asset') return 'image_asset'
   if (workItemType === 'capture_browser_asset') return 'browser_capture_asset'
   return 'processed_video'
 }
 
 function manifestAssetTypeForTool(workItemType: EditWorkItemType): EditAssetManifestItem['assetType'] {
-  if (workItemType === 'run_audio_analysis' || workItemType === 'run_audio_stretch') return 'audio_asset'
+  if (
+    workItemType === 'run_audio_analysis' ||
+    workItemType === 'run_audio_stretch' ||
+    workItemType === 'process_audio_asset'
+  ) return 'audio_asset'
   if (workItemType === 'process_image_asset') return 'generated_image'
   if (workItemType === 'capture_browser_asset') return 'browser_capture'
   return 'processed_video'

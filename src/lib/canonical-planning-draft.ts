@@ -8,6 +8,7 @@ import type {
 import type { ProfessionalExportCreditCoverage } from '../types/professional-export'
 import type { PrepareCanonicalStorytellingPlanningResponse } from '../types/motion-studio'
 import type { LivingFrameProfessionalSkillComponent } from '../types/living-frame'
+import type { CanonicalEditBriefAudioPlanningInput } from '../types/edit-brief-authority'
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../types/large-media'
 import {
   CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES,
@@ -29,6 +30,10 @@ import {
   buildProfessionalExportCreditCoverage,
   resolveProfessionalExportFrame,
 } from './professional-export-policy'
+import {
+  buildCanonicalEditBriefAudioPlanningBinding,
+  type CanonicalEditBriefAudioPlanningBinding,
+} from './canonical-edit-brief-audio-planning'
 
 export const CANONICAL_PRIVATE_PLAN_SCHEMA_VERSION = 'private-edit-authority-plan-v2' as const
 
@@ -348,6 +353,7 @@ export type CanonicalPlanComponentsDraft = {
     approvedRoutes: string[]
   }
   fallbackPolicy: JsonRecord
+  editBriefAudioPlanning?: CanonicalEditBriefAudioPlanningBinding
   livingFrame?: LivingFrameProfessionalSkillComponent
   motionStudioStorytellingStyleAuthority?: CanonicalStorytellingStyleAuthorityDraft
   motionStudioStorytellingProductionAuthority?: JsonRecord
@@ -385,6 +391,7 @@ export type CanonicalWorkItemDraft = {
     | 'custom'
     | 'render_remotion_preview'
     | 'render_final_export'
+    | 'process_audio_asset'
     | 'run_asset_qa'
     | 'run_final_qa'
   workerClass: string
@@ -522,6 +529,7 @@ export function buildCanonicalPlanningDraft(input: {
   plan: EditPlan
   plannerInput: PlannerInput
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
+  editBriefAudioPlanningInputs?: readonly CanonicalEditBriefAudioPlanningInput[]
   livingFrameComponent?: LivingFrameProfessionalSkillComponent
   motionStudioStorytellingStylePlan?: CanonicalStorytellingStylePlanReviewSource
   motionStudioStorytellingPlanningPreparation?: CanonicalStorytellingPlanningPreparationSource
@@ -738,6 +746,14 @@ export function buildCanonicalPlanningDraft(input: {
   const sourceSliceMezzanineFinalizationRequired =
     orderedSourceItems.length === 1 &&
     totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
+  const editBriefAudioPlanning = buildCanonicalEditBriefAudioPlanningBinding({
+    audioInputs: input.editBriefAudioPlanningInputs,
+    fps,
+    totalFrames,
+  })
+  if (!editBriefAudioPlanning.ok) {
+    return { ok: false, errors: [editBriefAudioPlanning.error] }
+  }
   const toolStrategy = ideaFirstStorytelling
     ? storytellingPlanning!.components.toolStrategyPlan
     : {
@@ -745,14 +761,16 @@ export function buildCanonicalPlanningDraft(input: {
     toolIds: unique([
       'libass',
       ...(approvedVoiceDeliverySources || approvedColorDeliverySources ||
-        sourceSliceMezzanineFinalizationRequired ? ['ffmpeg'] : []),
+        sourceSliceMezzanineFinalizationRequired ||
+        editBriefAudioPlanning.binding ? ['ffmpeg'] : []),
       'remotion',
       'ffprobe',
     ]),
     exactOperationIds: unique([
       LIBASS_OPERATION,
       ...(approvedVoiceDeliverySources || approvedColorDeliverySources ||
-        sourceSliceMezzanineFinalizationRequired ? [FFMPEG_OPERATION] : []),
+        sourceSliceMezzanineFinalizationRequired ||
+        editBriefAudioPlanning.binding ? [FFMPEG_OPERATION] : []),
       REMOTION_OPERATION,
       FFPROBE_OPERATION,
     ]),
@@ -864,6 +882,9 @@ export function buildCanonicalPlanningDraft(input: {
           unapprovedFallbackAllowed: false,
           policy: toJsonValue(plan.agentQAFallbackPlan ?? {}),
         },
+    ...(editBriefAudioPlanning.binding
+      ? { editBriefAudioPlanning: editBriefAudioPlanning.binding }
+      : {}),
     ...(input.livingFrameComponent
       ? { livingFrame: structuredClone(input.livingFrameComponent) }
       : {}),
@@ -904,6 +925,7 @@ export function buildCanonicalPlanningDraft(input: {
         approvedVoiceDeliverySources,
         approvedColorDeliverySources,
         approvedSourceTransitions,
+        editBriefAudioPlanning: editBriefAudioPlanning.binding,
       })
   if (
     !preferenceSnapshotId ||
@@ -1094,6 +1116,7 @@ function privateReviewPublicationBlockers(input: {
   approvedVoiceDeliverySources: ApprovedVoiceDeliverySource[] | null
   approvedColorDeliverySources: ApprovedColorDeliverySource[] | null
   approvedSourceTransitions: ApprovedSourceTransitionAuthority | null
+  editBriefAudioPlanning?: CanonicalEditBriefAudioPlanningBinding
 }): string[] {
   const blockers: string[] = []
   const captionCues = approvedCaptionCues(input.plan, input.totalFrames)
@@ -1213,13 +1236,12 @@ function privateReviewPublicationBlockers(input: {
       'Approved panel-dip transitions currently require the bounded direct source-sequence compositor; long-form chunk transition continuity remains hard-cut only.',
     )
   }
-  if (
-    (input.plan.masterTimingPlan?.sfxTimingItems.length ?? 0) > 0 ||
-    (input.plan.soundSyncTransitionTimingPlan?.refinedSfxTimings.length ?? 0) > 0
-  ) blockers.push('Sound-effect cues need their own canonical execution work items.')
-  if (hasPlannedMusicDuckingWork(input.plan)) {
-    blockers.push('Music ducking needs its own canonical audio work items.')
-  }
+  blockers.push(...editBriefAudioPlanningPublicationBlockers({
+    plan: input.plan,
+    binding: input.editBriefAudioPlanning,
+    sourceHasAudio: input.sourceMediaAssets.some((asset) =>
+      asset.sourceMetadata?.hasAudio === true),
+  }))
   if ((input.plan.masterTimingPlan?.providerClipTimingItems.length ?? 0) > 0) blockers.push('Provider clips need their own canonical execution work items.')
   if (hasUnrepresentedSegmentOperations(input.plan, {
     audioCleanupRepresented: Boolean(input.approvedVoiceDeliverySources),
@@ -1233,9 +1255,26 @@ function privateReviewPublicationBlockers(input: {
       'The source-color intermediate removes source audio and requires exact approved voice delivery before composition.',
     )
   }
-  if (hasPlannedAudioWork(input.plan) && !input.approvedVoiceDeliverySources) {
+  if (
+    hasPlannedSourceAudioProcessingWork(input.plan) &&
+    !input.approvedVoiceDeliverySources
+  ) {
     blockers.push(
       'The planned audio work exceeds the exact source-bound voice delivery recipe and needs additional canonical work items.',
+    )
+  }
+  if (
+    input.editBriefAudioPlanning &&
+    (
+      input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES ||
+      (
+        input.orderedSourceItems.length === 1 &&
+        input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
+      )
+    )
+  ) {
+    blockers.push(
+      'Confirmed Edit Brief audio currently requires the bounded direct composition profile; chunk-spanning audio continuity evidence is not yet admitted.',
     )
   }
   if (
@@ -1293,11 +1332,14 @@ function buildPrivateReviewCanonicalPlan(input: {
   const approvedLongFormChunkPlan = longFormChunkPlan?.ok
     ? longFormChunkPlan.plan
     : null
+  const editBriefAudioItems =
+    input.components.editBriefAudioPlanning?.items ?? []
   const budgets = fitBudgets(
     estimate.lineItems.reduce((sum, item) => sum + item.estimatedCredits, 0) +
       estimate.fallbackAllowanceCredits,
     captionCues.length,
     input.approvedVoiceDeliverySources?.length ?? 0,
+    editBriefAudioItems.length,
     input.approvedColorDeliverySources?.length ?? 0,
     approvedLongFormChunkPlan ? approvedLongFormChunkPlan.chunkCount + 1 : 1,
   )
@@ -1487,6 +1529,102 @@ function buildPrivateReviewCanonicalPlan(input: {
     outputKey: item.expectedOutputs[0]!.outputKey,
     durationFrames: voiceDeliverySources[index]!.durationFrames,
   }))
+  const editBriefAudioWorkItems = editBriefAudioItems.map(
+    (item, index): CanonicalWorkItemDraft => {
+      const ordinal = index + 1
+      const workItemKey = `edit-brief-audio-${ordinal}`
+      const outputKey = `${workItemKey}-wav`
+      const rendererLayerId = `${workItemKey}-layer`
+      const itemSegmentIds = input.components.segments
+        .filter((segment) =>
+          segment.startFrame < item.endFrameExclusive &&
+          segment.endFrameExclusive > item.startFrame)
+        .map((segment) => segment.segmentId)
+      return {
+        workItemKey,
+        workItemType: 'process_audio_asset',
+        workerClass: 'audio_processing_worker',
+        executionInput: {
+          operation: 'process_approved_edit_brief_audio_attachment',
+          approvedToolOperationIds: [FFMPEG_OPERATION],
+          expectedOutputKeys: [outputKey],
+          structuredPayload: {
+            recipeProfileId: item.markerType === 'music'
+              ? 'approved_edit_brief_music_bed_wav_v1'
+              : 'approved_edit_brief_sfx_wav_v1',
+            timestampPolicy: 'normalize_from_zero',
+            allowUnreviewedCodec: false,
+            trimStartFrame: 0,
+            trimEndFrameExclusive: item.sourceDurationFrames,
+            attachmentId: item.attachmentId,
+            markerId: item.markerId,
+            privateAssetId: item.privateAssetId,
+            markerType: item.markerType,
+            startFrame: item.startFrame,
+            endFrameExclusive: item.endFrameExclusive,
+            sourceDurationFrames: item.sourceDurationFrames,
+            placementDurationFrames: item.placementDurationFrames,
+            fillPolicy: item.fillPolicy,
+            mixProfileId: item.mixProfileId,
+            frameRate: input.fps,
+            sampleRate: 48_000,
+            channelMode: 'stereo',
+            targetLufs: item.markerType === 'music' ? -23 : -18,
+            truePeakDbtp: -2,
+            loudnessRangeLufs: item.markerType === 'music' ? 18 : 20,
+            stripMetadata: true,
+            overwriteExistingArtifact: false,
+          },
+        },
+        sourceSequenceItemIds: [],
+        sourceCleanupDecisionIds: [],
+        expectedOutputs: [output(
+          outputKey,
+          item.markerType === 'music'
+            ? 'controlled_ffmpeg_edit_brief_music_bed_wav'
+            : 'controlled_ffmpeg_edit_brief_sfx_wav',
+          'processed',
+          'audio/wav',
+          {
+            segmentIds: itemSegmentIds,
+            timingIds: [timingId, item.markerId],
+            rendererLayerIds: [rendererLayerId],
+          },
+        )],
+        dependencyKeys: [],
+        approvedToolIds: ['ffmpeg'],
+        providerExecutionMode: 'none',
+        fallbackPolicy: {},
+        maxAttempts: 2,
+        attemptTimeoutSeconds: 600,
+        scheduledDelaySeconds: 0,
+        maximumCreditBudget: budgets[
+          2 + captionCues.length + voiceWorkItems.length + index
+        ]!,
+        required: true,
+      }
+    },
+  )
+  const editBriefAudioDependencyKeys = editBriefAudioWorkItems.map((item) =>
+    item.workItemKey)
+  const editBriefAudioRendererLayerIds = editBriefAudioWorkItems.flatMap(
+    (item) => item.expectedOutputs[0]!.rendererLayerIds,
+  )
+  const approvedEditBriefAudioTracks = editBriefAudioWorkItems.map(
+    (workItem, index) => {
+      const item = editBriefAudioItems[index]!
+      return {
+        outputKey: workItem.expectedOutputs[0]!.outputKey,
+        attachmentId: item.attachmentId,
+        markerId: item.markerId,
+        markerType: item.markerType,
+        startFrame: item.startFrame,
+        endFrameExclusive: item.endFrameExclusive,
+        fillPolicy: item.fillPolicy,
+        mixProfileId: item.mixProfileId,
+      }
+    },
+  )
   const colorWorkItems = colorDeliverySources.map((source, index): CanonicalWorkItemDraft => {
     const ordinal = index + 1
     const workItemKey = `color-delivery-${ordinal}`
@@ -1555,7 +1693,8 @@ function buildPrivateReviewCanonicalPlan(input: {
       attemptTimeoutSeconds: 900,
       scheduledDelaySeconds: 0,
       maximumCreditBudget: budgets[
-        2 + captionCues.length + voiceWorkItems.length + index
+        2 + captionCues.length + voiceWorkItems.length +
+        editBriefAudioWorkItems.length + index
       ]!,
       required: true,
     }
@@ -1571,7 +1710,7 @@ function buildPrivateReviewCanonicalPlan(input: {
       }))
     : sourceTimeline
   const finalBudgetIndex = 2 + captionCues.length + voiceWorkItems.length +
-    colorWorkItems.length
+    editBriefAudioWorkItems.length + colorWorkItems.length
   const finalArtifactType = sourceSequenceComposition
     ? captionTrackComposition
       ? 'private_source_sequence_caption_track_4k_delivery_master_v1'
@@ -1643,6 +1782,7 @@ function buildPrivateReviewCanonicalPlan(input: {
       },
       ...captionWorkItems,
       ...voiceWorkItems,
+      ...editBriefAudioWorkItems,
       ...colorWorkItems,
       ...(approvedLongFormChunkPlan ? longFormRenderWorkItems : [{
         workItemKey: 'final-export', workItemType: 'render_final_export', workerClass: 'render_worker',
@@ -1716,6 +1856,13 @@ function buildPrivateReviewCanonicalPlan(input: {
                 }
               : {}),
             ...(replaceSourceAudio ? { voiceTracks: approvedVoiceTracks } : {}),
+            ...(approvedEditBriefAudioTracks.length > 0
+              ? {
+                  supplementalAudioPolicy:
+                    'approved_edit_brief_audio_tracks_v1',
+                  supplementalAudioTracks: approvedEditBriefAudioTracks,
+                }
+              : {}),
           },
         },
         sourceSequenceItemIds: sourceIds, sourceCleanupDecisionIds: cleanupIds,
@@ -1732,6 +1879,7 @@ function buildPrivateReviewCanonicalPlan(input: {
               ...transitionRendererLayerIds,
               ...colorRendererLayerIds,
               ...voiceRendererLayerIds,
+              ...editBriefAudioRendererLayerIds,
               ...captionRendererLayerIds,
             ],
           },
@@ -1740,6 +1888,7 @@ function buildPrivateReviewCanonicalPlan(input: {
           'source-trim-validation',
           ...captionDependencyKeys,
           ...voiceDependencyKeys,
+          ...editBriefAudioDependencyKeys,
           ...colorDependencyKeys,
         ], approvedToolIds: ['remotion'], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
         attemptTimeoutSeconds: 1_800, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[finalBudgetIndex]!, required: true,
@@ -1766,6 +1915,7 @@ function buildPrivateReviewCanonicalPlan(input: {
               ...transitionRendererLayerIds,
               ...colorRendererLayerIds,
               ...voiceRendererLayerIds,
+              ...editBriefAudioRendererLayerIds,
               ...captionRendererLayerIds,
             ],
           },
@@ -2306,6 +2456,7 @@ function fitBudgets(
   maximumCredits: number,
   captionCueCount: number,
   voiceTrackCount: number,
+  editBriefAudioTrackCount: number,
   colorSourceCount: number,
   remotionStageCount = 1,
 ): number[] {
@@ -2320,6 +2471,7 @@ function fitBudgets(
     3,
     ...Array.from({ length: captionCueCount }, () => 1),
     ...Array.from({ length: voiceTrackCount }, () => 2),
+    ...Array.from({ length: editBriefAudioTrackCount }, () => 2),
     ...Array.from({ length: colorSourceCount }, () => 2),
     ...remotionBudgets,
     2,
@@ -2488,6 +2640,158 @@ function hasPlannedMusicDuckingWork(plan: EditPlan): boolean {
     musicBed.policy !== 'none' ||
     musicBed.duckingEnabled
   ))
+}
+
+function editBriefAudioPlanningPublicationBlockers(input: {
+  plan: EditPlan
+  binding?: CanonicalEditBriefAudioPlanningBinding
+  sourceHasAudio: boolean
+}): string[] {
+  const blockers: string[] = []
+  const audio = input.plan.audioPipelinePlan
+  const masterSfx = input.plan.masterTimingPlan?.sfxTimingItems ?? []
+  const refinedSfx =
+    input.plan.soundSyncTransitionTimingPlan?.refinedSfxTimings ?? []
+  const masterDucking =
+    input.plan.masterTimingPlan?.musicDuckingTimingItems ?? []
+  const refinedDucking =
+    input.plan.soundSyncTransitionTimingPlan?.refinedMusicDuckingTimings ?? []
+  const plannedMusic = Boolean(
+    audio && (
+      audio.musicBedPlan.policy !== 'none' ||
+      audio.musicBedPlan.duckingEnabled ||
+      hasPlannedMusicDuckingWork(input.plan)
+    ),
+  )
+  const plannedSfx = Boolean(
+    (audio && (
+      audio.sfxPlan.policy !== 'none' ||
+      audio.sfxPlan.cues.length > 0 ||
+      audio.soundSyncCues.length > 0
+    )) ||
+    masterSfx.length > 0 ||
+    refinedSfx.length > 0
+  )
+
+  if (!input.binding) {
+    if (plannedSfx) {
+      blockers.push(
+        'Sound-effect cues need their own canonical execution work items.',
+      )
+    }
+    if (plannedMusic) {
+      blockers.push(
+        'Music ducking needs its own canonical audio work items.',
+      )
+    }
+    return blockers
+  }
+
+  const musicItems = input.binding.items.filter((item) =>
+    item.markerType === 'music')
+  const sfxItems = input.binding.items.filter((item) =>
+    item.markerType === 'sfx')
+  const exactRangeMatches = (
+    item: CanonicalEditBriefAudioPlanningBinding['items'][number],
+    startFrame: number,
+    endFrameExclusive: number,
+  ) =>
+    item.startFrame === startFrame &&
+    item.endFrameExclusive === endFrameExclusive
+  const rangeFitsMusic = (startFrame: number, endFrameExclusive: number) =>
+    musicItems.some((item) =>
+      item.startFrame <= startFrame &&
+      item.endFrameExclusive >= endFrameExclusive)
+
+  if (musicItems.length > 0) {
+    if (!audio || audio.musicBedPlan.policy === 'none') {
+      blockers.push(
+        'Confirmed Edit Brief music must be represented by the compiled music-bed plan before publication.',
+      )
+    }
+    if (
+      input.sourceHasAudio &&
+      (
+        !audio?.musicBedPlan.duckingEnabled ||
+        audio.musicBedPlan.duckingStrength === 'none' ||
+        (masterDucking.length === 0 && refinedDucking.length === 0)
+      )
+    ) {
+      blockers.push(
+        'Confirmed Edit Brief music over source narration requires exact speech-priority ducking ranges.',
+      )
+    }
+  } else if (plannedMusic) {
+    blockers.push(
+      'The compiled music plan has no confirmed Edit Brief music attachment and cannot execute.',
+    )
+  }
+
+  if (sfxItems.length > 0) {
+    if (!audio || audio.sfxPlan.policy === 'none') {
+      blockers.push(
+        'Confirmed Edit Brief sound effects must be represented by the compiled SFX plan before publication.',
+      )
+    }
+    const sfxRanges = unique(
+      [...masterSfx, ...refinedSfx].map((item) =>
+        `${item.timeRange.startFrame}:${item.timeRange.endFrame}`),
+    ).map((range) => {
+      const [startFrame, endFrameExclusive] = range.split(':').map(Number)
+      return { startFrame: startFrame!, endFrameExclusive: endFrameExclusive! }
+    })
+    if (
+      sfxRanges.length !== sfxItems.length ||
+      sfxRanges.some((range) =>
+        !sfxItems.some((item) =>
+          exactRangeMatches(item, range.startFrame, range.endFrameExclusive))) ||
+      sfxItems.some((item) =>
+        !sfxRanges.some((range) =>
+          exactRangeMatches(item, range.startFrame, range.endFrameExclusive)))
+    ) {
+      blockers.push(
+        'Every confirmed Edit Brief sound effect must match one exact MasterTiming/SoundSync frame range.',
+      )
+    }
+    if (
+      audio?.soundSyncCues.some((cue) =>
+        !sfxItems.some((item) =>
+          item.startFrame === Math.round(cue.timeSeconds * input.binding!.fps)))
+    ) {
+      blockers.push(
+        'SoundSync cue timing must resolve to a confirmed Edit Brief sound-effect marker.',
+      )
+    }
+  } else if (plannedSfx) {
+    blockers.push(
+      'The compiled SFX plan has no confirmed Edit Brief sound-effect attachment and cannot execute.',
+    )
+  }
+
+  if (
+    masterDucking.some((item) =>
+      !rangeFitsMusic(item.timeRange.startFrame, item.timeRange.endFrame)) ||
+    refinedDucking.some((item) =>
+      !item.voicePriority ||
+      !rangeFitsMusic(item.timeRange.startFrame, item.timeRange.endFrame))
+  ) {
+    blockers.push(
+      'Every music-ducking range must stay inside confirmed Edit Brief music and preserve voice priority.',
+    )
+  }
+  if (
+    audio && (
+      audio.beatSyncPlan.strategy !== 'none' ||
+      audio.beatSyncPlan.bpmDetectionPlanned ||
+      audio.beatSyncPlan.onsetDetectionPlanned ||
+      audio.beatSyncPlan.cues.length > 0
+    )
+  ) {
+    blockers.push(
+      'Beat-synchronized uploaded audio remains blocked until exact private analysis evidence is bound to the approved plan.',
+    )
+  }
+  return unique(blockers)
 }
 
 function buildApprovedSourceTransitionAuthority(input: {
@@ -2829,16 +3133,13 @@ const APPROVED_VOICE_DELIVERY_QA_OPERATIONS = new Set([
   'qa_clipping_check',
 ])
 
-function hasPlannedAudioWork(plan: EditPlan): boolean {
+function hasPlannedSourceAudioProcessingWork(plan: EditPlan): boolean {
   const audio = plan.audioPipelinePlan
   return Boolean(audio && (
     audio.projectOperations.length > 0 ||
-    audio.clipPlans.some((clip) => clip.cleanupOperations.length > 0 || clip.loudnessOperations.length > 0) ||
-    audio.musicBedPlan.policy !== 'none' ||
-    audio.sfxPlan.policy !== 'none' ||
-    audio.sfxPlan.cues.length > 0 ||
-    audio.beatSyncPlan.strategy !== 'none' ||
-    audio.soundSyncCues.length > 0
+    audio.clipPlans.some((clip) =>
+      clip.cleanupOperations.length > 0 ||
+      clip.loudnessOperations.length > 0)
   ))
 }
 
@@ -2850,12 +3151,8 @@ function buildApprovedVoiceDeliverySources(input: {
   cleanupDecisions: CanonicalSourceCleanupDecisionDraft[]
 }): ApprovedVoiceDeliverySource[] | null {
   const audio = input.plan.audioPipelinePlan
-  if (!audio || !hasPlannedAudioWork(input.plan)) return null
+  if (!audio || !hasPlannedSourceAudioProcessingWork(input.plan)) return null
   if (
-    audio.musicBedPlan.policy !== 'none' || audio.musicBedPlan.duckingEnabled ||
-    audio.sfxPlan.policy !== 'none' || audio.sfxPlan.cues.length > 0 ||
-    audio.beatSyncPlan.strategy !== 'none' || audio.beatSyncPlan.bpmDetectionPlanned ||
-    audio.beatSyncPlan.onsetDetectionPlanned || audio.soundSyncCues.length > 0 ||
     audio.clipPlans.length !== input.sourceItems.length ||
     input.sourceMediaAssets.length !== input.sourceItems.length ||
     input.cleanupDecisions.length !== input.sourceItems.length ||

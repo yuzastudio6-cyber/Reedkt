@@ -5962,6 +5962,7 @@ function runtimeJobTypeForWorkItem(workItem: EditWorkItem): string {
     workItem.workItemType === 'render_chart_asset' ||
     workItem.workItemType === 'run_audio_analysis' ||
     workItem.workItemType === 'run_audio_stretch' ||
+    workItem.workItemType === 'process_audio_asset' ||
     workItem.workItemType === 'process_image_asset' ||
     workItem.workItemType === 'process_video_asset' ||
     workItem.workItemType === 'generate_mask_asset' ||
@@ -5982,6 +5983,7 @@ function workerTypeForWorkItem(workItem: EditWorkItem): string {
     workItem.workItemType === 'capture_browser_asset' ||
     workItem.workItemType === 'run_audio_analysis' ||
     workItem.workItemType === 'run_audio_stretch' ||
+    workItem.workItemType === 'process_audio_asset' ||
     workItem.workItemType === 'process_image_asset' ||
     workItem.workItemType === 'process_video_asset' ||
     workItem.workItemType === 'generate_mask_asset' ||

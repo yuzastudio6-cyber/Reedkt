@@ -459,6 +459,14 @@ test.describe('editor mocked browser flow', () => {
     const previewMonitorBox = await previewMonitor.boundingBox()
     expect(Math.abs((sourcePlayerBox?.width ?? 0) - (previewMonitorBox?.width ?? 0))).toBeLessThanOrEqual(1)
     expect(Math.abs((sourcePlayerBox?.height ?? 0) - (previewMonitorBox?.height ?? 0))).toBeLessThanOrEqual(1)
+    await expect(page.locator('.professional-edit-brief__ruler span')).toHaveText([
+      '0:00.0',
+      '0:00.6',
+      '0:01.2',
+      '0:01.8',
+      '0:02.4',
+      '0:03.0',
+    ])
     const markerLane = page.getByTestId('edit-brief-marker-lane')
     await expect(markerLane).toBeVisible()
     await expect(page.getByTestId('edit-brief-source-track')).toBeVisible()
@@ -486,8 +494,15 @@ test.describe('editor mocked browser flow', () => {
     await expect(markerPopover.getByText('More options')).toBeVisible()
     await expect(markerPopover.getByLabel('Type')).toBeHidden()
     await markerPrompt.fill(markerDirection)
+    await markerPopover.getByRole('button', { name: 'Music', exact: true }).click()
+    const markerAudioAttachment = markerPopover.locator('.professional-edit-brief__audio-attachment')
+    await expect(markerAudioAttachment).toBeVisible()
+    await expect(markerAudioAttachment).toContainText('Use your own soundtrack')
+    await expect(markerAudioAttachment.getByRole('button', { name: 'Choose audio', exact: true })).toBeVisible()
+    await expect(markerPopover.getByLabel('Type')).toBeHidden()
     await markerPopover.getByRole('button', { name: 'Add text' }).click()
     await expect(markerPopover.getByRole('button', { name: 'Add text' })).toHaveAttribute('aria-pressed', 'true')
+    await expect(markerAudioAttachment).toHaveCount(0)
     await page.keyboard.press('Escape')
     await expect(markerPopover).toHaveCount(0)
     await expect(addMarker).toBeFocused()

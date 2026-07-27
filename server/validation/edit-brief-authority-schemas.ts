@@ -305,6 +305,13 @@ export const addEditBriefAttachmentSchema = editBriefScopeSchema.extend({
   attachment: editBriefAttachmentMetadataSchema,
 }).strict()
 
+export const addFinalizedEditBriefAudioAttachmentSchema = editBriefScopeSchema.extend({
+  expectedRevision: z.number().int().positive(),
+  idempotencyKey: editBriefScopeIdSchema,
+  markerId: editBriefScopeIdSchema,
+  privateAssetId: editBriefScopeIdSchema,
+}).strict()
+
 export const editBriefSourceContextSchema = z.object({
   sourceAssetIds: z.array(editBriefScopeIdSchema).min(1).max(64)
     .refine((values) => new Set(values).size === values.length, 'Source asset IDs must be unique.'),

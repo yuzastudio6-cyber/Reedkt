@@ -93,18 +93,11 @@ export function createEditBriefAuthorityRoutes(): Router {
     }),
   )
 
-  router.post(`${scopePath()}/markers/:markerId/attachments`, requireAuth, asyncRoute(async () => {
-    throw new ApiError(
-      'TOOL_NOT_READY',
-      'Edit Brief attachments remain blocked until the asset ID is resolved through finalized tenant/project storage authority.',
-      503,
-      {
-        requiredGates: [
-          'tenant_bound_finalized_private_asset_loader',
-          'storage_generation_and_checksum_lineage',
-          'marker_attachment_project_session_authority',
-        ],
-      },
+  router.post(`${scopePath()}/markers/:markerId/audio-attachment`, requireAuth, asyncRoute(async (request, response) => {
+    sendServiceResult(
+      response,
+      await service(request).addFinalizedAudioAttachment(scopedMarkerMutation(request)),
+      201,
     )
   }))
 

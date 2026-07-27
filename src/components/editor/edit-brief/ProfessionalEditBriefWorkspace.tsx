@@ -1,4 +1,5 @@
 import {
+  AudioLines,
   Check,
   CircleAlert,
   Film,
@@ -10,6 +11,7 @@ import {
   RefreshCw,
   Save,
   Trash2,
+  Upload,
   X,
 } from 'lucide-react'
 import {
@@ -33,8 +35,15 @@ import {
 } from '../../../lib/project-source-video-local-preview'
 import type { CanonicalEditBriefScope } from '../../../lib/edit-brief-authority-client'
 import { saveEditBriefLocalPreviewFile } from '../../../lib/edit-brief-local-preview-session'
+import {
+  uploadEditBriefAudioAttachment,
+  validateEditBriefAudioAttachmentFile,
+  type EditBriefAudioAttachmentUploadStage,
+} from '../../../lib/edit-brief-audio-attachment-upload-client'
 import type { EditBrief } from '../../../types'
 import type {
+  CanonicalEditBriefAuthority,
+  CanonicalEditBriefAudioPlanningInput,
   CanonicalEditBriefMarker,
   CanonicalEditBriefMarkerDraft,
   CanonicalEditBriefMarkerPriority,
@@ -85,6 +94,18 @@ type MarkerPopoverPosition = {
   width: number
 }
 
+type AudioAttachmentState = {
+  stage?: EditBriefAudioAttachmentUploadStage
+  message?: string
+  error?: string
+}
+
+type AudioPlanningProjection = {
+  inputs: CanonicalEditBriefAudioPlanningInput[]
+  message: string
+  ready: boolean
+}
+
 export function ProfessionalEditBriefWorkspace({
   children,
   editBrief,
@@ -105,6 +126,7 @@ export function ProfessionalEditBriefWorkspace({
   started: boolean
   onTimelineStarted?: () => void
   onPlanningAuthorityReadyChange?: (state: {
+    editBriefAudioPlanningInputs: CanonicalEditBriefAudioPlanningInput[]
     message: string
     ready: boolean
     status: ReturnType<typeof useCanonicalEditBriefAuthority>['status']
@@ -126,20 +148,35 @@ export function ProfessionalEditBriefWorkspace({
   const sourcePreviewFileRef = useRef<File | undefined>(undefined)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const previewInputRef = useRef<HTMLInputElement | null>(null)
+  const audioInputRef = useRef<HTMLInputElement | null>(null)
   const markerNoteRef = useRef<HTMLTextAreaElement | null>(null)
   const timelineScrollRef = useRef<HTMLDivElement | null>(null)
   const [loadedDuration, setLoadedDuration] = useState<number>()
   const [timelineZoom, setTimelineZoom] = useState(1)
   const [markerPopoverPosition, setMarkerPopoverPosition] =
     useState<MarkerPopoverPosition>()
+  const [pendingAudioFile, setPendingAudioFile] = useState<File>()
+  const [uploadedAudioAssetId, setUploadedAudioAssetId] = useState<string>()
+  const [audioAttachmentState, setAudioAttachmentState] =
+    useState<AudioAttachmentState>({})
+  const audioPlanningProjection = useMemo(
+    () => projectConfirmedAudioPlanningInputs(canonical.authority),
+    [canonical.authority],
+  )
 
   useEffect(() => {
     onPlanningAuthorityReadyChange?.({
-      message: canonical.message,
-      ready: canonical.planningReady,
+      editBriefAudioPlanningInputs: audioPlanningProjection.inputs,
+      message: audioPlanningProjection.ready
+        ? canonical.message
+        : audioPlanningProjection.message,
+      ready: canonical.planningReady && audioPlanningProjection.ready,
       status: canonical.status,
     })
   }, [
+    audioPlanningProjection.inputs,
+    audioPlanningProjection.message,
+    audioPlanningProjection.ready,
     canonical.message,
     canonical.planningReady,
     canonical.status,
@@ -185,6 +222,15 @@ export function ProfessionalEditBriefWorkspace({
       (message) => message.markerId === selectedMarkerId,
     ) ?? [],
     [canonical.authority?.markerMessages, selectedMarkerId],
+  )
+  const selectedAudioAttachment = useMemo(
+    () => canonical.authority?.attachments?.find(
+      (attachment) => (
+        attachment.markerId === markerEditor?.markerId
+        && attachment.kind === 'audio'
+      ),
+    ),
+    [canonical.authority?.attachments, markerEditor?.markerId],
   )
   const timelineDuration = Math.max(
     1,
@@ -278,12 +324,14 @@ export function ProfessionalEditBriefWorkspace({
   }, [markerStartSeconds, timelineDuration, timelineZoom])
 
   function selectMarker(marker: CanonicalEditBriefMarker) {
+    resetPendingAudio()
     setSelectedMarkerId(marker.id)
     setMarkerEditor(editorStateFromMarker(marker))
     seek(marker.startSeconds)
   }
 
   function beginMarkerAt(startSeconds: number) {
+    resetPendingAudio()
     const safeStart = roundTime(startSeconds)
     setSelectedMarkerId(undefined)
     setMarkerEditor({
@@ -301,7 +349,13 @@ export function ProfessionalEditBriefWorkspace({
     beginMarkerAt(playheadSeconds)
   }
 
+  function chooseMarkerType(markerType: CanonicalEditBriefMarkerType) {
+    if (markerType !== 'music' && markerType !== 'sfx') resetPendingAudio()
+    setMarkerEditor((current) => current ? { ...current, markerType } : current)
+  }
+
   function closeMarkerEditor({ returnFocus = true } = {}) {
+    resetPendingAudio()
     setMarkerEditor(undefined)
     setSelectedMarkerId(undefined)
     if (returnFocus) {
@@ -314,9 +368,11 @@ export function ProfessionalEditBriefWorkspace({
   async function saveMarker() {
     if (!markerEditor?.note.trim()) return
     const safeDraft = normalizeMarkerDraft(markerEditor, timelineDuration)
-    if (!markerEditor.markerId) onTimelineStarted?.()
-    const saved = markerEditor.markerId
-      ? await canonical.updateMarker(markerEditor.markerId, {
+    const existingMarkerId = markerEditor.markerId
+    if (!existingMarkerId) onTimelineStarted?.()
+    let targetMarkerId = existingMarkerId
+    const saved = existingMarkerId
+      ? await canonical.updateMarker(existingMarkerId, {
           markerType: safeDraft.markerType,
           timeKind: safeDraft.timeKind,
           startSeconds: safeDraft.startSeconds,
@@ -328,7 +384,16 @@ export function ProfessionalEditBriefWorkspace({
           note: safeDraft.note,
         })
       : await canonical.createMarker(safeDraft)
-    if (saved && !markerEditor.markerId) {
+    if (!saved) return
+    if (!targetMarkerId && typeof saved !== 'boolean') {
+      targetMarkerId = saved.id
+      setSelectedMarkerId(saved.id)
+      setMarkerEditor(editorStateFromMarker(saved))
+    }
+    if (pendingAudioFile && targetMarkerId) {
+      if (!await attachPendingAudio(targetMarkerId, pendingAudioFile)) return
+    }
+    if (!existingMarkerId) {
       closeMarkerEditor()
     }
   }
@@ -399,6 +464,78 @@ export function ProfessionalEditBriefWorkspace({
       // The file picker accept filter and visible boundary copy tell the user
       // what can be decoded; no durable source authority changes here.
     }
+  }
+
+  function chooseMarkerAudio(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0]
+    event.currentTarget.value = ''
+    if (!file) return
+    const validation = validateEditBriefAudioAttachmentFile(file)
+    if (!validation.ok) {
+      setAudioAttachmentState({ error: validation.message })
+      return
+    }
+    setPendingAudioFile(file)
+    setUploadedAudioAssetId(undefined)
+    setAudioAttachmentState({
+      message: 'Ready to attach when this direction is saved.',
+    })
+  }
+
+  async function attachPendingAudio(markerId: string, file: File): Promise<boolean> {
+    try {
+      let privateAssetId = uploadedAudioAssetId
+      if (!privateAssetId) {
+        const uploaded = await uploadEditBriefAudioAttachment({
+          editSessionId: scope.editSessionId,
+          file,
+          projectId: scope.projectId,
+          workspaceId: scope.workspaceId,
+          onStageChange: (stage) => {
+            setAudioAttachmentState({
+              stage,
+              message: audioUploadStageLabel(stage),
+            })
+          },
+          onProgress: (progress) => {
+            if ('fraction' in progress) {
+              setAudioAttachmentState({
+                stage: 'uploading',
+                message: `Uploading privately · ${Math.round(progress.fraction * 100)}%`,
+              })
+            }
+          },
+        })
+        privateAssetId = uploaded.mediaAssetId
+        setUploadedAudioAssetId(privateAssetId)
+      }
+      setAudioAttachmentState({
+        stage: 'finalizing',
+        message: 'Binding verified audio to this direction…',
+      })
+      if (!await canonical.addAudioAttachment(markerId, privateAssetId)) {
+        throw new Error(
+          'The audio is stored privately, but it could not be attached yet. Save again to retry.',
+        )
+      }
+      setPendingAudioFile(undefined)
+      setUploadedAudioAssetId(undefined)
+      setAudioAttachmentState({ message: 'Private audio attached.' })
+      return true
+    } catch (error) {
+      setAudioAttachmentState({
+        error: error instanceof Error
+          ? error.message
+          : 'Private audio could not be attached.',
+      })
+      return false
+    }
+  }
+
+  function resetPendingAudio() {
+    setPendingAudioFile(undefined)
+    setUploadedAudioAssetId(undefined)
+    setAudioAttachmentState({})
   }
 
   return (
@@ -545,7 +682,7 @@ export function ProfessionalEditBriefWorkspace({
               <div className="professional-edit-brief__ruler" aria-hidden="true">
                 {timelineTicks(timelineDuration, timelineZoom).map((tick) => (
                   <span key={tick.seconds} style={{ left: `${tick.percent}%` }}>
-                    {formatTime(tick.seconds)}
+                    {formatRulerTime(tick.seconds, timelineDuration, timelineZoom)}
                   </span>
                 ))}
               </div>
@@ -660,18 +797,67 @@ export function ProfessionalEditBriefWorkspace({
                         ['cut', 'Tighten this'],
                         ['broll', 'Add B-roll'],
                         ['caption', 'Add text'],
+                        ['music', 'Music'],
+                        ['sfx', 'Sound effect'],
                       ].map(([value, label]) => (
                         <button
                           aria-pressed={markerEditor.markerType === value}
                           key={value}
-                          onClick={() => setMarkerEditor((current) => current
-                            ? { ...current, markerType: value as CanonicalEditBriefMarkerType }
-                            : current)}
+                          onClick={() => chooseMarkerType(value as CanonicalEditBriefMarkerType)}
                           type="button"
                         >
                           {label}
                         </button>
                       ))}
+                    </div>
+                  ) : null}
+
+                  {markerEditor.markerType === 'music' || markerEditor.markerType === 'sfx' ? (
+                    <div
+                      className="professional-edit-brief__audio-attachment"
+                      data-state={audioAttachmentState.error
+                        ? 'error'
+                        : selectedAudioAttachment
+                          ? 'attached'
+                          : pendingAudioFile
+                            ? 'pending'
+                            : 'empty'}
+                    >
+                      <input
+                        accept=".aac,.mp3,.wav,audio/aac,audio/mpeg,audio/wav,audio/x-wav"
+                        hidden
+                        onChange={chooseMarkerAudio}
+                        ref={audioInputRef}
+                        type="file"
+                      />
+                      <AudioLines aria-hidden="true" size={18} />
+                      <span>
+                        <strong>
+                          {selectedAudioAttachment?.label
+                            ?? pendingAudioFile?.name
+                            ?? (markerEditor.markerType === 'music'
+                              ? 'Use your own soundtrack'
+                              : 'Use your own sound effect')}
+                        </strong>
+                        <small>
+                          {selectedAudioAttachment
+                            ? `${formatOptionalDuration(selectedAudioAttachment.durationSeconds)} · Private attachment`
+                            : audioAttachmentState.error
+                              ?? audioAttachmentState.message
+                              ?? 'Optional. ReeditPro can also plan the sound from your direction alone.'}
+                        </small>
+                      </span>
+                      {!readOnly && !selectedAudioAttachment ? (
+                        <Button
+                          disabled={Boolean(audioAttachmentState.stage)}
+                          icon={Upload}
+                          onClick={() => audioInputRef.current?.click()}
+                          size="sm"
+                          variant="ghost"
+                        >
+                          {pendingAudioFile ? 'Change' : 'Choose audio'}
+                        </Button>
+                      ) : null}
                     </div>
                   ) : null}
 
@@ -684,7 +870,7 @@ export function ProfessionalEditBriefWorkspace({
                         <select
                           onChange={(event) => {
                             const markerType = event.currentTarget.value as CanonicalEditBriefMarkerType
-                            setMarkerEditor((current) => current ? { ...current, markerType } : current)
+                            chooseMarkerType(markerType)
                           }}
                           value={markerEditor.markerType}
                         >
@@ -777,7 +963,12 @@ export function ProfessionalEditBriefWorkspace({
 
                   <div className="professional-edit-brief__marker-actions">
                     <Button
-                      disabled={readOnly || canonical.status === 'saving' || !markerEditor.note.trim()}
+                      disabled={
+                        readOnly
+                        || canonical.status === 'saving'
+                        || Boolean(audioAttachmentState.stage)
+                        || !markerEditor.note.trim()
+                      }
                       icon={Save}
                       onClick={() => void saveMarker()}
                       size="sm"
@@ -910,6 +1101,74 @@ export function ProfessionalEditBriefWorkspace({
   )
 }
 
+function projectConfirmedAudioPlanningInputs(
+  authority: CanonicalEditBriefAuthority | undefined,
+): AudioPlanningProjection {
+  const empty: AudioPlanningProjection = {
+    inputs: [],
+    message: 'The exact Edit Brief audio directions are ready for planning.',
+    ready: true,
+  }
+  if (!authority) return empty
+
+  const markers = new Map(authority.markers.map((marker) => [marker.id, marker]))
+  const seenMarkers = new Set<string>()
+  const inputs: CanonicalEditBriefAudioPlanningInput[] = []
+
+  for (const attachment of authority.attachments) {
+    if (attachment.kind !== 'audio') continue
+    const marker = markers.get(attachment.markerId)
+    if (!marker) return invalidAudioPlanningProjection()
+    if (marker.status === 'archived') continue
+    if (
+      marker.status !== 'confirmed'
+      || (marker.markerType !== 'music' && marker.markerType !== 'sfx')
+      || seenMarkers.has(marker.id)
+      || !isEditBriefAudioMimeType(attachment.mimeType)
+      || !Number.isFinite(attachment.durationSeconds)
+      || Number(attachment.durationSeconds) <= 0
+    ) {
+      return invalidAudioPlanningProjection()
+    }
+    seenMarkers.add(marker.id)
+    inputs.push({
+      attachmentId: attachment.id,
+      markerId: marker.id,
+      markerType: marker.markerType,
+      markerTimeKind: marker.timeKind,
+      privateAssetId: attachment.privateAssetId,
+      startSeconds: marker.startSeconds,
+      ...(marker.endSeconds === undefined ? {} : { endSeconds: marker.endSeconds }),
+      durationSeconds: attachment.durationSeconds!,
+      mimeType: attachment.mimeType,
+    })
+  }
+
+  inputs.sort((left, right) =>
+    left.startSeconds - right.startSeconds
+    || left.markerId.localeCompare(right.markerId)
+    || left.attachmentId.localeCompare(right.attachmentId)
+  )
+  return { ...empty, inputs }
+}
+
+function invalidAudioPlanningProjection(): AudioPlanningProjection {
+  return {
+    inputs: [],
+    message: 'Review and reconfirm each private Music or Sound effect attachment before creating the plan.',
+    ready: false,
+  }
+}
+
+function isEditBriefAudioMimeType(
+  value: string | undefined,
+): value is CanonicalEditBriefAudioPlanningInput['mimeType'] {
+  return value === 'audio/aac'
+    || value === 'audio/mpeg'
+    || value === 'audio/wav'
+    || value === 'audio/x-wav'
+}
+
 function editorStateFromMarker(marker: CanonicalEditBriefMarker): MarkerEditorState {
   return {
     markerId: marker.id,
@@ -1017,10 +1276,39 @@ function formatTime(value: number): string {
     : `${minutes}:${String(seconds).padStart(2, '0')}`
 }
 
+function formatRulerTime(value: number, duration: number, zoom: number): string {
+  const tickCount = Math.max(6, Math.round(6 * zoom))
+  const tickSpacingSeconds = duration / Math.max(1, tickCount - 1)
+  if (tickSpacingSeconds >= 1) return formatTime(value)
+
+  const precision = tickSpacingSeconds < 0.1 ? 2 : 1
+  const scale = 10 ** precision
+  const totalUnits = Math.round(Math.max(0, value) * scale)
+  const totalSeconds = Math.floor(totalUnits / scale)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  const fractionalSeconds = String(totalUnits % scale).padStart(precision, '0')
+  const clock = hours > 0
+    ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    : `${minutes}:${String(seconds).padStart(2, '0')}`
+  return `${clock}.${fractionalSeconds}`
+}
+
 function formatMarkerTime(marker: CanonicalEditBriefMarker): string {
   return marker.timeKind === 'range' && marker.endSeconds !== undefined
     ? `${formatTime(marker.startSeconds)}–${formatTime(marker.endSeconds)}`
     : formatTime(marker.startSeconds)
+}
+
+function formatOptionalDuration(value: number | undefined): string {
+  return value === undefined ? 'Duration verified' : formatTime(value)
+}
+
+function audioUploadStageLabel(stage: EditBriefAudioAttachmentUploadStage): string {
+  if (stage === 'preparing') return 'Preparing a private upload…'
+  if (stage === 'uploading') return 'Uploading privately…'
+  return 'Verifying the audio file…'
 }
 
 function roundTime(value: number): number {

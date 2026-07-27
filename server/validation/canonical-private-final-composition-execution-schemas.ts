@@ -43,6 +43,72 @@ const approvedVoiceTracksSchema = z.array(z.object({
   voiceDependencyReadEvidenceHash: sha,
 }).strict()).min(1).max(8)
 
+const approvedSupplementalAudioTracksSchema = z.array(z.object({
+  outputKey: identity,
+  attachmentId: identity,
+  markerId: identity,
+  markerType: z.enum(['music', 'sfx']),
+  startFrame: z.number().int().nonnegative(),
+  endFrameExclusive: z.number().int().positive()
+    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES),
+  fillPolicy: z.enum(['loop_or_trim_to_window', 'trim_without_loop']),
+  mixProfileId: z.enum([
+    'speech_safe_uploaded_music_bed_v1',
+    'narration_protected_uploaded_sfx_v1',
+  ]),
+  audioArtifactId: identity,
+  audioSha256: sha,
+  audioByteLength: z.number().int().min(44)
+    .max(OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES),
+  audioDependencyReadEvidenceHash: sha,
+}).strict().superRefine((track, context) => {
+  const policyMatches = track.markerType === 'music'
+    ? (
+        track.fillPolicy === 'loop_or_trim_to_window' &&
+        track.mixProfileId === 'speech_safe_uploaded_music_bed_v1'
+      )
+    : (
+        track.fillPolicy === 'trim_without_loop' &&
+        track.mixProfileId === 'narration_protected_uploaded_sfx_v1'
+      )
+  if (track.endFrameExclusive <= track.startFrame || !policyMatches) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['endFrameExclusive'],
+      message: 'Supplemental audio placement and mix policy are inconsistent.',
+    })
+  }
+})).min(1).max(16).superRefine((tracks, context) => {
+  for (const field of ['outputKey', 'attachmentId', 'markerId'] as const) {
+    if (new Set(tracks.map((track) => track[field])).size !== tracks.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [field],
+        message: 'Supplemental audio identities must be unique.',
+      })
+    }
+  }
+  tracks.forEach((track, index) => {
+    const previous = tracks[index - 1]
+    if (
+      previous &&
+      (
+        track.startFrame < previous.startFrame ||
+        (
+          track.startFrame === previous.startFrame &&
+          track.markerId.localeCompare(previous.markerId) < 0
+        )
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [index, 'startFrame'],
+        message: 'Supplemental audio placements must retain canonical order.',
+      })
+    }
+  })
+})
+
 const approvedColorSourceSchema = z.object({
   sourceSequenceItemId: identity,
   outputKey: identity,
@@ -187,6 +253,7 @@ const finalCompositionDependencyInputsSchema = z.object({
   captionByteLength: z.number().int().positive().max(8 * 1024 * 1024),
   captionDependencyReadEvidenceHash: sha,
   voiceTracks: approvedVoiceTracksSchema.optional(),
+  supplementalAudioTracks: approvedSupplementalAudioTracksSchema.optional(),
 }).strict()
 
 const captionTrackDependencyInputsSchema = z.object({
@@ -203,6 +270,7 @@ const captionTrackDependencyInputsSchema = z.object({
     captionDependencyReadEvidenceHash: sha,
   }).strict()).min(1).max(7),
   voiceTracks: approvedVoiceTracksSchema.optional(),
+  supplementalAudioTracks: approvedSupplementalAudioTracksSchema.optional(),
 }).strict()
 
 const singleSourceFinalCompositionInputsSchema = finalCompositionDependencyInputsSchema.extend({
@@ -320,6 +388,13 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
       'server_injected_private_stream_v1',
     ]),
     approvedVoiceTrackReplacementApplied: z.boolean(),
+    approvedSupplementalAudioDependencyRead: z.boolean(),
+    approvedSupplementalAudioDependencyInputMode: z.enum([
+      'not_applicable',
+      'server_injected_private_stream_v1',
+    ]),
+    approvedSupplementalAudioTimelineApplied: z.boolean(),
+    approvedSupplementalAudioSpeechSafeMixApplied: z.boolean(),
     approvedColorDependencyRead: z.boolean(),
     approvedColorDependencyInputMode: z.enum([
       'not_applicable',
@@ -420,6 +495,27 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
       code: z.ZodIssueCode.custom,
       path: ['tool', 'audioPolicy'],
       message: 'Final-composition audio policy and source-bound voice evidence diverged.',
+    })
+  }
+  const supplementalAudioTracks = value.inputs.supplementalAudioTracks
+  const supplementalAudioEnabled = Boolean(supplementalAudioTracks?.length)
+  if (
+    value.tool.approvedSupplementalAudioDependencyRead !== supplementalAudioEnabled ||
+    value.tool.approvedSupplementalAudioTimelineApplied !== supplementalAudioEnabled ||
+    value.tool.approvedSupplementalAudioSpeechSafeMixApplied !== supplementalAudioEnabled ||
+    value.tool.approvedSupplementalAudioDependencyInputMode !== (
+      supplementalAudioEnabled
+        ? 'server_injected_private_stream_v1'
+        : 'not_applicable'
+    ) ||
+    supplementalAudioTracks?.some((track) =>
+      track.endFrameExclusive > value.qa.frameCount)
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['tool', 'approvedSupplementalAudioTimelineApplied'],
+      message:
+        'Final-composition supplemental-audio evidence diverged from its approved Edit Brief timeline.',
     })
   }
   const sequenceInputs = 'sources' in value.inputs
@@ -744,6 +840,13 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
       'server_injected_private_stream_v1',
     ]),
     approvedVoiceTrackReplacementApplied: z.boolean(),
+    approvedSupplementalAudioDependencyRead: z.boolean(),
+    approvedSupplementalAudioDependencyInputMode: z.enum([
+      'not_applicable',
+      'server_injected_private_stream_v1',
+    ]),
+    approvedSupplementalAudioTimelineApplied: z.boolean(),
+    approvedSupplementalAudioSpeechSafeMixApplied: z.boolean(),
     approvedColorDependencyRead: z.boolean(),
     approvedColorDependencyInputMode: z.enum([
       'not_applicable',
@@ -844,6 +947,12 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
         !value.tool.approvedSmoothPanelDipsApplied &&
         !value.tool.approvedTransitionAudioHardCutsPreserved
       )
+  const supplementalAudioAbsent =
+    value.inputs.supplementalAudioTracks === undefined &&
+    !value.tool.approvedSupplementalAudioDependencyRead &&
+    value.tool.approvedSupplementalAudioDependencyInputMode === 'not_applicable' &&
+    !value.tool.approvedSupplementalAudioTimelineApplied &&
+    !value.tool.approvedSupplementalAudioSpeechSafeMixApplied
   if (
     value.chunkAuthority.globalEndFrameExclusive - value.chunkAuthority.globalStartFrame !==
       value.chunkAuthority.durationFrames ||
@@ -851,6 +960,7 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
     costRequired !== Boolean(cost) ||
     costRequired !== (value.replay.attemptCostEvidenceReplayed !== undefined) ||
     !transitionEvidenceValid ||
+    !supplementalAudioAbsent ||
     (cost && (
       cost.identity.toolId !== 'remotion' ||
       cost.identity.workloadProfileId !==

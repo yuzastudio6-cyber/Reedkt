@@ -28,6 +28,8 @@ import type {
 } from '../private-embedded-process-resource-observation'
 import {
   APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
+  OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
+  OFFLINE_EDIT_BRIEF_SFX_PROFILE,
   OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
@@ -233,6 +235,8 @@ export interface OfflineMediaBinaryRuntimeAuthority {
   ]
   supportedRecipeProfiles: readonly [
     'approved_trim_transcode_v1',
+    typeof OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
+    typeof OFFLINE_EDIT_BRIEF_SFX_PROFILE,
     typeof APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
     typeof OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
     typeof OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
@@ -242,6 +246,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     exactStructuredPayloadOnly: true
     canonicalDispatchMayReference: true
     privateGenericMediaResourceObservationReady: true
+    privateInternalEditBriefAudioReady: true
     privateInternalStorytellingSpeechNormalizationReady: true
     privateInternalMezzanineFinalizationReady: true
     privateInternalObjectMezzanineChunkSeriesReady: true
@@ -676,12 +681,15 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     authority.storageScopeHash !== OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_HASH ||
     stringArray(authority.supportedRecipeProfiles).join('|') !== [
       'approved_trim_transcode_v1',
+      OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
+      OFFLINE_EDIT_BRIEF_SFX_PROFILE,
       APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
       OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
       OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
     ].join('|') ||
     record(authority.readiness).privateInternalExecutionReady !== true ||
     record(authority.readiness).privateGenericMediaResourceObservationReady !== true ||
+    record(authority.readiness).privateInternalEditBriefAudioReady !== true ||
     record(authority.readiness).privateInternalStorytellingSpeechNormalizationReady !== true ||
     record(authority.readiness).privateInternalMezzanineFinalizationReady !== true ||
     record(authority.readiness).privateInternalObjectMezzanineChunkSeriesReady !== true ||
@@ -943,6 +951,8 @@ async function executeServerInjectedStreamingOutput(
     request.payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' &&
     request.payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1' &&
     request.payload.recipeProfileId !== 'approved_voice_delivery_wav_v1' &&
+    request.payload.recipeProfileId !== OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE &&
+    request.payload.recipeProfileId !== OFFLINE_EDIT_BRIEF_SFX_PROFILE &&
     request.payload.recipeProfileId !==
       'approved_storytelling_speech_take_normalization_v1'
   ) throw invalid('Streaming FFmpeg output is restricted to exact approved professional media recipes.')
@@ -4198,6 +4208,16 @@ async function executeFfmpegRequest(
 ): Promise<OfflineFfmpegExecutionResult | OfflineFfmpegStreamingOutputExecutionResult> {
   const resourceObservations: PrivateEmbeddedProcessResourceObservation[] = []
   const voiceDelivery = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
+  const editBriefAudioPayload =
+    request.payload.recipeProfileId === OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE ||
+    request.payload.recipeProfileId === OFFLINE_EDIT_BRIEF_SFX_PROFILE
+      ? request.payload
+      : undefined
+  const editBriefAudioDelivery = Boolean(editBriefAudioPayload)
+  const audioDelivery = voiceDelivery ||
+    editBriefAudioDelivery ||
+    request.payload.recipeProfileId ===
+      'approved_storytelling_speech_take_normalization_v1'
   const storytellingSpeechPayload = request.payload.recipeProfileId ===
     'approved_storytelling_speech_take_normalization_v1'
     ? request.payload
@@ -4271,6 +4291,8 @@ async function executeFfmpegRequest(
     : undefined
   const command = storytellingSpeechNormalization
     ? storytellingSpeechNormalizationCommand(request)
+    : editBriefAudioDelivery
+      ? editBriefAudioDeliveryCommand(request)
     : voiceDelivery
     ? voiceDeliveryCommand(request)
     : colorDelivery && colorCorrection
@@ -4319,7 +4341,7 @@ async function executeFfmpegRequest(
         args: ['start', '--attach', '--interactive', container.id],
         input: source,
         maximumOutputBytes: outputSink.maximumBytes,
-        expectedFormat: voiceDelivery || storytellingSpeechNormalization ? 'wav' : 'mkv',
+        expectedFormat: audioDelivery ? 'wav' : 'mkv',
         timeoutMs,
       })
     }
@@ -4356,21 +4378,21 @@ async function executeFfmpegRequest(
       `stateExit=${String(state.ExitCode)};oomKilled=${String(state.OOMKilled)};` +
       `diagnostic=${safeFfmpegDiagnostic(stderr)}).`,
     )
-    const wave = voiceDelivery || storytellingSpeechNormalization
+    const wave = audioDelivery
       ? streamedOutputSpool
         ? inspectPcmWavePrefix(streamedOutputSpool.signature, outputByteLength)
         : pcmWaveDetails(bufferedOutputBytes!)
       : undefined
-    if (voiceDelivery || storytellingSpeechNormalization ? !wave : colorDelivery
+    if (audioDelivery ? !wave : colorDelivery
       ? !isMatroska(outputSignature)
       : !outputSignature.toString('ascii').includes('nut/multimedia')) {
-      throw unavailable(voiceDelivery || storytellingSpeechNormalization
+      throw unavailable(audioDelivery
         ? 'FFmpeg approved audio output is not the fixed PCM WAV artifact.'
         : colorDelivery
           ? 'FFmpeg professional color output is not the fixed Matroska intermediate container.'
           : 'FFmpeg output is not the fixed NUT intermediate container.')
     }
-    const audioOutputProbe = voiceDelivery || storytellingSpeechNormalization
+    const audioOutputProbe = audioDelivery
       ? await probeFfmpegVoiceDeliveryOutput(
           image,
           outputInput,
@@ -4380,14 +4402,23 @@ async function executeFfmpegRequest(
           storytellingSpeechNormalization ? 1 : 2,
         )
       : undefined
-    const voiceDeliveryLoudnessQa = voiceDelivery
+    const voiceDeliveryLoudnessQa = voiceDelivery || editBriefAudioDelivery
       ? await measureFfmpegVoiceDeliveryOutput(
           image,
           outputInput,
           {
-            targetIntegratedLufs: voiceDeliveryPayload!.targetLufs,
-            maximumTruePeakDbtp: voiceDeliveryPayload!.truePeakDbtp,
-            maximumLoudnessRangeLufs: voiceDeliveryPayload!.loudnessRangeLufs,
+            measurementProfileId: editBriefAudioDelivery
+              ? 'approved_edit_brief_audio_ebur128_v1'
+              : 'approved_voice_delivery_ebur128_v1',
+            targetIntegratedLufs:
+              voiceDeliveryPayload?.targetLufs ??
+              editBriefAudioPayload!.targetLufs,
+            maximumTruePeakDbtp:
+              voiceDeliveryPayload?.truePeakDbtp ??
+              editBriefAudioPayload!.truePeakDbtp,
+            maximumLoudnessRangeLufs:
+              voiceDeliveryPayload?.loudnessRangeLufs ??
+              editBriefAudioPayload!.loudnessRangeLufs,
           },
           resourceObservations,
         )
@@ -4444,7 +4475,7 @@ async function executeFfmpegRequest(
       const persisted = await persistPrivateOutputThroughSink({
         outputSink,
         source: outputInput,
-        mimeType: voiceDelivery || storytellingSpeechNormalization
+        mimeType: audioDelivery
           ? 'audio/wav'
           : 'video/x-matroska',
         expectedByteLength: outputByteLength,
@@ -4562,6 +4593,50 @@ async function executeFfmpegRequest(
                   : 'bounded_legacy_buffer_v1',
                 outputWholeBufferAvoided: Boolean(outputSink),
               }
+            : editBriefAudioDelivery
+              ? {
+                  outputContainer: 'wav',
+                  outputAudioCodec: 'pcm_s16le',
+                  outputSampleRate: 48_000,
+                  outputChannels: 2,
+                  metadataStripped: true,
+                  loudnessNormalizationApplied: true,
+                  truePeakLimiterApplied: true,
+                  targetLufs: editBriefAudioPayload!.targetLufs,
+                  truePeakDbtp: editBriefAudioPayload!.truePeakDbtp,
+                  loudnessRangeLufs:
+                    editBriefAudioPayload!.loudnessRangeLufs,
+                  markerType: editBriefAudioPayload!.markerType,
+                  fillPolicy: editBriefAudioPayload!.fillPolicy,
+                  mixProfileId: editBriefAudioPayload!.mixProfileId,
+                  attachmentId: editBriefAudioPayload!.attachmentId,
+                  markerId: editBriefAudioPayload!.markerId,
+                  privateAssetId: editBriefAudioPayload!.privateAssetId,
+                  placementStartFrame: editBriefAudioPayload!.startFrame,
+                  placementEndFrameExclusive:
+                    editBriefAudioPayload!.endFrameExclusive,
+                  sourceVideoRemoved: true,
+                  outputLoudnessMeasured: true,
+                  outputLoudnessQaPassed: true,
+                  outputLoudnessMeasurementProfileId:
+                    voiceDeliveryLoudnessQa!.measurementProfileId,
+                  integratedLufsWithinPolicy:
+                    voiceDeliveryLoudnessQa!.integratedLufsWithinPolicy,
+                  truePeakWithinPolicy:
+                    voiceDeliveryLoudnessQa!.truePeakWithinPolicy,
+                  loudnessRangeWithinPolicy:
+                    voiceDeliveryLoudnessQa!.loudnessRangeWithinPolicy,
+                  measuredIntegratedLufs:
+                    voiceDeliveryLoudnessQa!.measuredIntegratedLufs,
+                  measuredTruePeakDbfs:
+                    voiceDeliveryLoudnessQa!.measuredTruePeakDbfs,
+                  measuredLoudnessRangeLufs:
+                    voiceDeliveryLoudnessQa!.measuredLoudnessRangeLufs,
+                  outputDeliveryMode: outputSink
+                    ? 'server_committed_private_stream_v1'
+                    : 'bounded_legacy_buffer_v1',
+                  outputWholeBufferAvoided: Boolean(outputSink),
+                }
             : colorDelivery
               ? {
                   outputFrameCount: trimDurationFrames,
@@ -4631,7 +4706,7 @@ async function executeFfmpegRequest(
     if (outputSink) {
       return {
         resultArtifact: {
-          mimeType: voiceDelivery || storytellingSpeechNormalization
+          mimeType: audioDelivery
             ? 'audio/wav'
             : 'video/x-matroska',
           sha256: resultSha256,
@@ -4646,7 +4721,7 @@ async function executeFfmpegRequest(
       }
     }
     const resultArtifact: OfflineFfmpegExecutionResult['resultArtifact'] =
-      voiceDelivery || storytellingSpeechNormalization
+      audioDelivery
         ? {
             mimeType: 'audio/wav',
             bytes: bufferedOutputBytes!,
@@ -4692,6 +4767,37 @@ function voiceDeliveryCommand(
   return [
     '-hide_banner', '-loglevel', 'error', '-nostdin',
     '-i', 'pipe:0', '-map', '0:a:0', '-vn', '-af', filters,
+    '-ar', '48000', '-ac', '2', '-threads', '1',
+    '-c:a', 'pcm_s16le', '-f', 'wav', 'pipe:1',
+  ]
+}
+
+function editBriefAudioDeliveryCommand(
+  request: OfflineFfmpegExecutionRequest | OfflineFfmpegStreamingExecutionRequest,
+): string[] {
+  if (
+    request.payload.recipeProfileId !== OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE &&
+    request.payload.recipeProfileId !== OFFLINE_EDIT_BRIEF_SFX_PROFILE
+  ) {
+    throw invalid(
+      'Edit Brief audio command requires its exact approved recipe.',
+    )
+  }
+  const endSeconds = (
+    request.payload.sourceDurationFrames / request.payload.frameRate
+  ).toFixed(9)
+  const filters = [
+    `atrim=start=0:end=${endSeconds}`,
+    'asetpts=PTS-STARTPTS',
+    `loudnorm=I=${request.payload.targetLufs}:LRA=${request.payload.loudnessRangeLufs}:TP=${request.payload.truePeakDbtp}:linear=true:dual_mono=true`,
+    'alimiter=limit=0.794328:attack=5:release=50',
+    'aformat=sample_fmts=s16:sample_rates=48000:channel_layouts=stereo',
+  ].join(',')
+  return [
+    '-hide_banner', '-loglevel', 'error', '-nostdin',
+    '-i', 'pipe:0', '-map', '0:a:0', '-vn', '-sn', '-dn',
+    '-map_metadata', '-1', '-map_chapters', '-1',
+    '-af', filters,
     '-ar', '48000', '-ac', '2', '-threads', '1',
     '-c:a', 'pcm_s16le', '-f', 'wav', 'pipe:1',
   ]
@@ -6128,9 +6234,12 @@ async function measureFfmpegVoiceDeliveryOutput(
   image: OfflineMediaBinaryImageEvidence,
   source: OfflineMediaBinaryServerInjectedInput,
   policy: {
-    targetIntegratedLufs: -14
-    maximumTruePeakDbtp: -1
-    maximumLoudnessRangeLufs: 7
+    measurementProfileId:
+      | 'approved_voice_delivery_ebur128_v1'
+      | 'approved_edit_brief_audio_ebur128_v1'
+    targetIntegratedLufs: number
+    maximumTruePeakDbtp: number
+    maximumLoudnessRangeLufs: number
   },
   resourceObservations: PrivateEmbeddedProcessResourceObservation[],
 ) {
@@ -6204,7 +6313,7 @@ async function measureFfmpegVoiceDeliveryOutput(
       `maximumLoudnessRange=${policy.maximumLoudnessRangeLufs}).`,
     )
     return Object.freeze({
-      measurementProfileId: 'approved_voice_delivery_ebur128_v1' as const,
+      measurementProfileId: policy.measurementProfileId,
       measuredIntegratedLufs: measured.integratedLufs,
       targetIntegratedLufs: policy.targetIntegratedLufs,
       integratedLufsTolerance,
@@ -6616,6 +6725,8 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
     ] as const,
     supportedRecipeProfiles: [
       'approved_trim_transcode_v1' as const,
+      OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
+      OFFLINE_EDIT_BRIEF_SFX_PROFILE,
       APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
       OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
       OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
@@ -6625,6 +6736,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       exactStructuredPayloadOnly: true as const,
       canonicalDispatchMayReference: true as const,
       privateGenericMediaResourceObservationReady: true as const,
+      privateInternalEditBriefAudioReady: true as const,
       privateInternalStorytellingSpeechNormalizationReady: true as const,
       privateInternalMezzanineFinalizationReady: true as const,
       privateInternalObjectMezzanineChunkSeriesReady: true as const,
@@ -9346,7 +9458,13 @@ async function dockerVerifiedInputToPrivateOutputSpool(input: {
       expectedIdentity: createdDirectory.identity,
     }).catch(() => undefined)
     if (error instanceof ApiError && error.code === 'TOOL_NOT_READY') throw error
-    throw unavailable('Docker media streams failed exact private output verification.')
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'Docker media streams failed exact private output verification.',
+      503,
+      undefined,
+      { cause: error },
+    )
   }
 }
 
@@ -9393,7 +9511,9 @@ function assertStreamingOutputSink(
   recipeProfileId: OfflineFfmpegStreamingExecutionRequest['payload']['recipeProfileId'],
 ): void {
   const expectedMaximum = recipeProfileId === 'approved_voice_delivery_wav_v1' ||
-    recipeProfileId === 'approved_storytelling_speech_take_normalization_v1'
+    recipeProfileId === 'approved_storytelling_speech_take_normalization_v1' ||
+    recipeProfileId === OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE ||
+    recipeProfileId === OFFLINE_EDIT_BRIEF_SFX_PROFILE
     ? OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES
     : OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES
   if (

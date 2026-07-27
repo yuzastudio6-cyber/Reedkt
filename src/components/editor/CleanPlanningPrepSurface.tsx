@@ -7,11 +7,15 @@ import { useSourceLibrary } from '../../hooks/useSourceLibrary'
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus } from '../../types'
 import type { PlannerInput } from '../../types/reeditpro'
 import type { CanonicalEditBriefScope } from '../../lib/edit-brief-authority-client'
+import type {
+  CanonicalEditBriefAudioPlanningInput,
+} from '../../types/edit-brief-authority'
 import { Button } from '../Button'
 import { EditBriefPanel } from './edit-brief'
 import { ProfessionalEditBriefWorkspace } from './edit-brief/ProfessionalEditBriefWorkspace'
 
 export type CanonicalBriefPlanningGateState = {
+  editBriefAudioPlanningInputs: CanonicalEditBriefAudioPlanningInput[]
   message: string
   ready: boolean
   status: string
@@ -98,6 +102,7 @@ export function CleanPlanningPrepSurface({
   const briefWorkspaceActiveRef = useRef(false)
   const [localCanonicalBriefPlanningGate, setLocalCanonicalBriefPlanningGate] =
     useState<CanonicalBriefPlanningGateState>({
+      editBriefAudioPlanningInputs: [],
       message: 'The exact Edit Brief timeline has not been loaded yet.',
       ready: false,
       status: 'idle',
@@ -108,6 +113,8 @@ export function CleanPlanningPrepSurface({
         current.message === state.message
         && current.ready === state.ready
         && current.status === state.status
+        && JSON.stringify(current.editBriefAudioPlanningInputs) ===
+          JSON.stringify(state.editBriefAudioPlanningInputs)
           ? current
           : state
       ))

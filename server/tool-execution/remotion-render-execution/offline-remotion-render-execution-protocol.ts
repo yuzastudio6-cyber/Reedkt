@@ -178,6 +178,8 @@ export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload exte
   audioPolicy: 'preserve_source' | 'replace_with_approved_voice_tracks'
   sourceMediaPolicy?: 'approved_professional_color_intermediate_v1'
   voiceTracks?: OfflineRemotionVoiceTrackPlanningPayload[]
+  supplementalAudioPolicy?: 'approved_edit_brief_audio_tracks_v1'
+  supplementalAudioTracks?: OfflineRemotionSupplementalAudioTrackPlanningPayload[]
   captionOverlayPolicy: 'approved_full_frame_rgba'
 }
 
@@ -193,6 +195,19 @@ export interface OfflineRemotionVoiceTrackPlanningPayload {
   durationFrames: number
 }
 
+export interface OfflineRemotionSupplementalAudioTrackPlanningPayload {
+  outputKey: string
+  attachmentId: string
+  markerId: string
+  markerType: 'music' | 'sfx'
+  startFrame: number
+  endFrameExclusive: number
+  fillPolicy: 'loop_or_trim_to_window' | 'trim_without_loop'
+  mixProfileId:
+    | 'speech_safe_uploaded_music_bed_v1'
+    | 'narration_protected_uploaded_sfx_v1'
+}
+
 export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority {
   compositionProfileId: 'approved_source_caption_track_final_v1'
   sourceStartFrame: number
@@ -202,6 +217,8 @@ export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanning
   audioPolicy: 'preserve_source' | 'replace_with_approved_voice_tracks'
   sourceMediaPolicy?: 'approved_professional_color_intermediate_v1'
   voiceTracks?: OfflineRemotionVoiceTrackPlanningPayload[]
+  supplementalAudioPolicy?: 'approved_edit_brief_audio_tracks_v1'
+  supplementalAudioTracks?: OfflineRemotionSupplementalAudioTrackPlanningPayload[]
   captionOverlayPolicy: 'approved_timed_full_frame_rgba_track'
   captionOverlayCues: OfflineRemotionCaptionOverlayCuePlanningPayload[]
 }
@@ -254,6 +271,8 @@ interface OfflineRemotionSourceSequenceFinalCompositionPlanningPayloadBase exten
   audioPolicy: 'preserve_source_sequence' | 'replace_with_approved_voice_tracks'
   sourceMediaPolicy?: 'approved_professional_color_intermediate_v1'
   voiceTracks?: OfflineRemotionVoiceTrackPlanningPayload[]
+  supplementalAudioPolicy?: 'approved_edit_brief_audio_tracks_v1'
+  supplementalAudioTracks?: OfflineRemotionSupplementalAudioTrackPlanningPayload[]
   captionOverlayPolicy: 'approved_full_frame_rgba'
 }
 
@@ -271,6 +290,8 @@ interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPaylo
   audioPolicy: 'preserve_source_sequence' | 'replace_with_approved_voice_tracks'
   sourceMediaPolicy?: 'approved_professional_color_intermediate_v1'
   voiceTracks?: OfflineRemotionVoiceTrackPlanningPayload[]
+  supplementalAudioPolicy?: 'approved_edit_brief_audio_tracks_v1'
+  supplementalAudioTracks?: OfflineRemotionSupplementalAudioTrackPlanningPayload[]
   captionOverlayPolicy: 'approved_timed_full_frame_rgba_track'
   captionOverlayCues: OfflineRemotionCaptionOverlayCuePlanningPayload[]
 }
@@ -673,6 +694,13 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     const raw = record(value, 'source-sequence final composition planning payload')
     const replaceVoice = raw.audioPolicy === 'replace_with_approved_voice_tracks'
     const sourceMediaPolicyProvided = Object.hasOwn(raw, 'sourceMediaPolicy')
+    const supplementalAudioProvided =
+      Object.hasOwn(raw, 'supplementalAudioPolicy') ||
+      Object.hasOwn(raw, 'supplementalAudioTracks')
+    if (
+      Object.hasOwn(raw, 'supplementalAudioPolicy') !==
+      Object.hasOwn(raw, 'supplementalAudioTracks')
+    ) throw validationFailure('Supplemental audio policy and tracks must be admitted together.')
     const deliveryMasterAuthorityProvided = Object.hasOwn(raw, 'renderPurpose')
     const boundedSourceTransitions =
       raw.transitionPolicy === 'approved_bounded_source_transitions_v1'
@@ -684,6 +712,9 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
       ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
       'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []),
       ...(replaceVoice ? ['voiceTracks'] : []),
+      ...(supplementalAudioProvided
+        ? ['supplementalAudioPolicy', 'supplementalAudioTracks']
+        : []),
       ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
     ], 'source-sequence final composition planning payload')
     const common = commonPayload(
@@ -757,6 +788,16 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
           })),
         ),
       } : {}),
+      ...(supplementalAudioProvided
+        ? {
+            supplementalAudioPolicy: 'approved_edit_brief_audio_tracks_v1' as const,
+            supplementalAudioTracks: supplementalAudioTrackPlanningPayloads(
+              payload.supplementalAudioPolicy,
+              payload.supplementalAudioTracks,
+              common.durationFrames,
+            ),
+          }
+        : {}),
       ...deliveryMasterAuthority,
     } as const
     return captionTrack ? {
@@ -774,6 +815,13 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
   const raw = record(value, 'final composition planning payload')
   const replaceVoice = raw.audioPolicy === 'replace_with_approved_voice_tracks'
   const sourceMediaPolicyProvided = Object.hasOwn(raw, 'sourceMediaPolicy')
+  const supplementalAudioProvided =
+    Object.hasOwn(raw, 'supplementalAudioPolicy') ||
+    Object.hasOwn(raw, 'supplementalAudioTracks')
+  if (
+    Object.hasOwn(raw, 'supplementalAudioPolicy') !==
+    Object.hasOwn(raw, 'supplementalAudioTracks')
+  ) throw validationFailure('Supplemental audio policy and tracks must be admitted together.')
   const deliveryMasterAuthorityProvided = Object.hasOwn(raw, 'renderPurpose')
   const payload = exactRecord(value, [
     'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
@@ -782,6 +830,9 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
     ...(captionTrack ? ['captionOverlayCues'] : []),
     ...(replaceVoice ? ['voiceTracks'] : []),
+    ...(supplementalAudioProvided
+      ? ['supplementalAudioPolicy', 'supplementalAudioTracks']
+      : []),
     ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
   ], 'final composition planning payload')
   const common = commonPayload(
@@ -835,6 +886,16 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
         durationFrames: common.durationFrames,
       }]),
     } : {}),
+    ...(supplementalAudioProvided
+      ? {
+          supplementalAudioPolicy: 'approved_edit_brief_audio_tracks_v1' as const,
+          supplementalAudioTracks: supplementalAudioTrackPlanningPayloads(
+            payload.supplementalAudioPolicy,
+            payload.supplementalAudioTracks,
+            common.durationFrames,
+          ),
+        }
+      : {}),
     ...deliveryMasterAuthority,
   } as const
   return captionTrack ? {
@@ -874,6 +935,11 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
   }>
 }): OfflineRemotionRenderRequest {
   const planning = validateOfflineRemotionFinalCompositionPlanningPayload(input.planningPayload)
+  if (planning.supplementalAudioTracks !== undefined) {
+    throw validationFailure(
+      'Approved Edit Brief audio requires the server-injected streaming Remotion protocol.',
+    )
+  }
   const replaceVoice = planning.audioPolicy === 'replace_with_approved_voice_tracks'
   const voiceTracks = replaceVoice
     ? committedVoiceTracks(input.voiceTracks, planning.voiceTracks ?? [], planning.fps)
@@ -1642,6 +1708,112 @@ function captionOverlayCues(
     seen.add(outputKey)
     previousEndFrame = endFrameExclusive
     return { outputKey, startFrame, endFrameExclusive }
+  })
+}
+
+function supplementalAudioTrackPlanningPayloads(
+  policy: unknown,
+  value: unknown,
+  durationFrames: number,
+): OfflineRemotionSupplementalAudioTrackPlanningPayload[] {
+  if (
+    policy !== 'approved_edit_brief_audio_tracks_v1' ||
+    !Array.isArray(value) ||
+    value.length < 1 ||
+    value.length > 16
+  ) {
+    throw validationFailure(
+      'Supplemental audio requires one to sixteen approved Edit Brief tracks.',
+    )
+  }
+  const outputKeys = new Set<string>()
+  const attachmentIds = new Set<string>()
+  const markerIds = new Set<string>()
+  let previousStartFrame = -1
+  let previousMarkerId = ''
+  let previousAttachmentId = ''
+  return value.map((candidate, index) => {
+    const track = exactRecord(
+      candidate,
+      [
+        'outputKey',
+        'attachmentId',
+        'markerId',
+        'markerType',
+        'startFrame',
+        'endFrameExclusive',
+        'fillPolicy',
+        'mixProfileId',
+      ],
+      `supplemental audio track ${index + 1}`,
+    )
+    const outputKey = safeIdentity(track.outputKey, 'supplemental audio outputKey')
+    const attachmentId = safeIdentity(
+      track.attachmentId,
+      'supplemental audio attachmentId',
+    )
+    const markerId = safeIdentity(track.markerId, 'supplemental audio markerId')
+    const startFrame = integer(
+      track.startFrame,
+      0,
+      durationFrames - 1,
+      'supplemental audio startFrame',
+    )
+    const endFrameExclusive = integer(
+      track.endFrameExclusive,
+      1,
+      durationFrames,
+      'supplemental audio endFrameExclusive',
+    )
+    const markerType = track.markerType
+    const music = markerType === 'music'
+    const sfx = markerType === 'sfx'
+    if (
+      (!music && !sfx) ||
+      endFrameExclusive <= startFrame ||
+      outputKeys.has(outputKey) ||
+      attachmentIds.has(attachmentId) ||
+      markerIds.has(markerId) ||
+      (music && (
+        track.fillPolicy !== 'loop_or_trim_to_window' ||
+        track.mixProfileId !== 'speech_safe_uploaded_music_bed_v1'
+      )) ||
+      (sfx && (
+        track.fillPolicy !== 'trim_without_loop' ||
+        track.mixProfileId !== 'narration_protected_uploaded_sfx_v1'
+      )) ||
+      startFrame < previousStartFrame ||
+      (
+        startFrame === previousStartFrame &&
+        (
+          markerId.localeCompare(previousMarkerId) < 0 ||
+          (
+            markerId === previousMarkerId &&
+            attachmentId.localeCompare(previousAttachmentId) <= 0
+          )
+        )
+      )
+    ) {
+      throw validationFailure(
+        'Supplemental audio tracks must be unique, ordered, in bounds, and policy matched.',
+      )
+    }
+    outputKeys.add(outputKey)
+    attachmentIds.add(attachmentId)
+    markerIds.add(markerId)
+    previousStartFrame = startFrame
+    previousMarkerId = markerId
+    previousAttachmentId = attachmentId
+    return {
+      outputKey,
+      attachmentId,
+      markerId,
+      markerType,
+      startFrame,
+      endFrameExclusive,
+      fillPolicy: track.fillPolicy,
+      mixProfileId: track.mixProfileId,
+    } as OfflineRemotionSupplementalAudioTrackPlanningPayload
   })
 }
 

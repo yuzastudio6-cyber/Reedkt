@@ -838,6 +838,25 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     Array.isArray(finalCompositionStructuredPayload.voiceTracks)
       ? finalCompositionStructuredPayload.voiceTracks.length
       : 0
+  const finalCompositionSupplementalAudioTrackCount =
+    finalCompositionStructuredPayload?.supplementalAudioPolicy ===
+      'approved_edit_brief_audio_tracks_v1' &&
+    Array.isArray(finalCompositionStructuredPayload.supplementalAudioTracks)
+      ? finalCompositionStructuredPayload.supplementalAudioTracks.length
+      : 0
+  const exactFinalCompositionSupplementalAudioShape = (
+    (
+      finalCompositionStructuredPayload?.supplementalAudioPolicy === undefined &&
+      finalCompositionStructuredPayload?.supplementalAudioTracks === undefined
+    ) ||
+    (
+      finalCompositionStructuredPayload?.supplementalAudioPolicy ===
+        'approved_edit_brief_audio_tracks_v1' &&
+      Array.isArray(finalCompositionStructuredPayload.supplementalAudioTracks) &&
+      finalCompositionSupplementalAudioTrackCount >= 1 &&
+      finalCompositionSupplementalAudioTrackCount <= 16
+    )
+  )
   const finalCompositionColorSourceCount =
     finalCompositionStructuredPayload?.sourceMediaPolicy ===
       'approved_professional_color_intermediate_v1'
@@ -880,8 +899,11 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     )) &&
     compositionChunkAuthority?.outputKey === expectedAsset.outputKey &&
     finalCompositionCaptionCueCount >= 1 && finalCompositionCaptionCueCount <= 7 &&
+    finalCompositionSupplementalAudioTrackCount === 0 &&
+    exactFinalCompositionSupplementalAudioShape &&
     workItem.dependencyKeys.length ===
       1 + finalCompositionCaptionCueCount + finalCompositionVoiceTrackCount +
+        finalCompositionSupplementalAudioTrackCount +
         finalCompositionColorSourceCount &&
     (finalCompositionVoiceTrackCount === 0 ||
       finalCompositionVoiceTrackCount === workItem.sourceSequenceItemIds.length) &&
@@ -933,9 +955,11 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     finalCompositionCaptionCueCount >= 1 && finalCompositionCaptionCueCount <= 7 &&
     workItem.dependencyKeys.length ===
       1 + finalCompositionCaptionCueCount + finalCompositionVoiceTrackCount +
+        finalCompositionSupplementalAudioTrackCount +
         finalCompositionColorSourceCount &&
     (finalCompositionVoiceTrackCount === 0 ||
       finalCompositionVoiceTrackCount === workItem.sourceSequenceItemIds.length) &&
+    exactFinalCompositionSupplementalAudioShape &&
     (finalCompositionColorSourceCount === 0 || (
       finalCompositionColorSourceCount === workItem.sourceSequenceItemIds.length &&
       finalCompositionVoiceTrackCount === workItem.sourceSequenceItemIds.length

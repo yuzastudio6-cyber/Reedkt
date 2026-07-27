@@ -5,6 +5,10 @@ export const OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE =
   'approved_generated_music_candidate_normalization_v1' as const
 export const OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE =
   'approved_synchronized_foley_candidate_normalization_v1' as const
+export const OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE =
+  'approved_edit_brief_music_bed_wav_v1' as const
+export const OFFLINE_EDIT_BRIEF_SFX_PROFILE =
+  'approved_edit_brief_sfx_wav_v1' as const
 export const OFFLINE_MEDIA_BINARY_OPERATIONS = Object.freeze({
   ffmpeg: 'tool.ffmpeg.execute_approved_media_recipe.v1',
   ffprobe: 'tool.ffprobe.inspect_approved_media.v1',
@@ -114,6 +118,31 @@ export interface OfflineFfmpegVoiceDeliveryPlanningPayload extends OfflineFfmpeg
   compressorPreset: 'gentle_voice_v1'
 }
 
+export interface OfflineFfmpegEditBriefAudioPlanningPayload
+  extends OfflineFfmpegCommonPlanningPayload {
+  recipeProfileId:
+    | typeof OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE
+    | typeof OFFLINE_EDIT_BRIEF_SFX_PROFILE
+  attachmentId: string
+  markerId: string
+  privateAssetId: string
+  markerType: 'music' | 'sfx'
+  startFrame: number
+  endFrameExclusive: number
+  sourceDurationFrames: number
+  placementDurationFrames: number
+  fillPolicy: 'loop_or_trim_to_window' | 'trim_without_loop'
+  mixProfileId:
+    | 'speech_safe_uploaded_music_bed_v1'
+    | 'narration_protected_uploaded_sfx_v1'
+  sampleRate: 48_000
+  channelMode: 'stereo'
+  targetLufs: -23 | -18
+  truePeakDbtp: -2
+  loudnessRangeLufs: 18 | 20
+  stripMetadata: true
+}
+
 export const APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID =
   'approved_storytelling_speech_take_normalization_v1' as const
 
@@ -193,6 +222,7 @@ export interface OfflineFfmpegColorMatchDeliveryPlanningPayload extends OfflineF
 export type OfflineFfmpegPlanningPayload =
   | OfflineFfmpegTrimPlanningPayload
   | OfflineFfmpegVoiceDeliveryPlanningPayload
+  | OfflineFfmpegEditBriefAudioPlanningPayload
   | OfflineFfmpegStorytellingSpeechTakeNormalizationPlanningPayload
   | OfflineFfmpegColorDeliveryPlanningPayload
   | OfflineFfmpegColorMatchDeliveryPlanningPayload
@@ -225,7 +255,12 @@ export interface OfflineFfprobeExecutionRequest {
 }
 
 type OfflineFfmpegSourceCommitment = {
-  mimeType: 'video/mp4'
+  mimeType:
+    | 'video/mp4'
+    | 'audio/aac'
+    | 'audio/mpeg'
+    | 'audio/wav'
+    | 'audio/x-wav'
   sourceByteLength: number
   sourceSha256: string
   sourceBytesBase64: string
@@ -259,6 +294,11 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     ? value as Record<string, unknown>
     : undefined
   const voiceDelivery = candidate?.recipeProfileId === 'approved_voice_delivery_wav_v1'
+  const editBriefMusic = candidate?.recipeProfileId ===
+    OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE
+  const editBriefSfx = candidate?.recipeProfileId ===
+    OFFLINE_EDIT_BRIEF_SFX_PROFILE
+  const editBriefAudio = editBriefMusic || editBriefSfx
   const colorDelivery = candidate?.recipeProfileId === 'approved_source_color_delivery_matroska_v1'
   const colorMatchDelivery = candidate?.recipeProfileId ===
     'approved_source_color_match_delivery_matroska_v1'
@@ -346,6 +386,15 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
           'loudnessRangeLufs', 'highpassHz', 'compressorPreset',
         ]
       : []),
+    ...(editBriefAudio
+      ? [
+          'attachmentId', 'markerId', 'privateAssetId', 'markerType',
+          'startFrame', 'endFrameExclusive', 'sourceDurationFrames',
+          'placementDurationFrames', 'fillPolicy', 'mixProfileId',
+          'sampleRate', 'channelMode', 'targetLufs', 'truePeakDbtp',
+          'loudnessRangeLufs', 'stripMetadata',
+        ]
+      : []),
     ...(colorDelivery || colorMatchDelivery
       ? [
           'colorGradeStyle', 'intensity', 'approvedColorOperationIds',
@@ -364,6 +413,8 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     ![
       'approved_trim_transcode_v1',
       'approved_voice_delivery_wav_v1',
+      OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
+      OFFLINE_EDIT_BRIEF_SFX_PROFILE,
       'approved_source_color_delivery_matroska_v1',
       'approved_source_color_match_delivery_matroska_v1',
     ].includes(
@@ -385,6 +436,72 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     trimEndFrameExclusive: Number(payload.trimEndFrameExclusive),
     frameRate: Number(payload.frameRate) as OfflineFfmpegPlanningPayload['frameRate'],
   } as const
+  if (editBriefAudio) {
+    const startFrame = Number(payload.startFrame)
+    const endFrameExclusive = Number(payload.endFrameExclusive)
+    const sourceDurationFrames = Number(payload.sourceDurationFrames)
+    const placementDurationFrames = Number(payload.placementDurationFrames)
+    const musicProfileMatches = editBriefMusic &&
+      payload.markerType === 'music' &&
+      payload.fillPolicy === 'loop_or_trim_to_window' &&
+      payload.mixProfileId === 'speech_safe_uploaded_music_bed_v1' &&
+      payload.targetLufs === -23
+    const sfxProfileMatches = editBriefSfx &&
+      payload.markerType === 'sfx' &&
+      payload.fillPolicy === 'trim_without_loop' &&
+      payload.mixProfileId === 'narration_protected_uploaded_sfx_v1' &&
+      payload.targetLufs === -18
+    if (
+      !safeKey(payload.attachmentId) ||
+      !safeKey(payload.markerId) ||
+      !safeKey(payload.privateAssetId) ||
+      ![24, 30].includes(common.frameRate) ||
+      common.trimStartFrame !== 0 ||
+      !Number.isSafeInteger(sourceDurationFrames) ||
+      sourceDurationFrames < 1 ||
+      sourceDurationFrames > common.frameRate * 3_600 ||
+      common.trimEndFrameExclusive !== sourceDurationFrames ||
+      !Number.isSafeInteger(startFrame) ||
+      startFrame < 0 ||
+      !Number.isSafeInteger(endFrameExclusive) ||
+      endFrameExclusive <= startFrame ||
+      endFrameExclusive > 100_000_000 ||
+      !Number.isSafeInteger(placementDurationFrames) ||
+      placementDurationFrames !== endFrameExclusive - startFrame ||
+      payload.sampleRate !== 48_000 ||
+      payload.channelMode !== 'stereo' ||
+      payload.truePeakDbtp !== -2 ||
+      payload.loudnessRangeLufs !== (editBriefMusic ? 18 : 20) ||
+      payload.stripMetadata !== true ||
+      (!musicProfileMatches && !sfxProfileMatches)
+    ) throw invalid()
+    return {
+      recipeProfileId: editBriefMusic
+        ? OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE
+        : OFFLINE_EDIT_BRIEF_SFX_PROFILE,
+      ...common,
+      attachmentId: String(payload.attachmentId),
+      markerId: String(payload.markerId),
+      privateAssetId: String(payload.privateAssetId),
+      markerType: editBriefMusic ? 'music' : 'sfx',
+      startFrame,
+      endFrameExclusive,
+      sourceDurationFrames,
+      placementDurationFrames,
+      fillPolicy: editBriefMusic
+        ? 'loop_or_trim_to_window'
+        : 'trim_without_loop',
+      mixProfileId: editBriefMusic
+        ? 'speech_safe_uploaded_music_bed_v1'
+        : 'narration_protected_uploaded_sfx_v1',
+      sampleRate: 48_000,
+      channelMode: 'stereo',
+      targetLufs: editBriefMusic ? -23 : -18,
+      truePeakDbtp: -2,
+      loudnessRangeLufs: editBriefMusic ? 18 : 20,
+      stripMetadata: true,
+    }
+  }
   if (colorDelivery || colorMatchDelivery) {
     const colorGradeStyle = colorGradeStyleValue(payload.colorGradeStyle)
     const intensity = colorIntensityValue(payload.intensity)
@@ -617,6 +734,9 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
     : undefined
   const colorMatchDelivery = requestPayload?.recipeProfileId ===
     'approved_source_color_match_delivery_matroska_v1'
+  const editBriefAudio = requestPayload?.recipeProfileId ===
+    OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE ||
+    requestPayload?.recipeProfileId === OFFLINE_EDIT_BRIEF_SFX_PROFILE
   const payload = exactObject(request.payload, [
     'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact', 'allowUnreviewedCodec',
     'trimStartFrame', 'trimEndFrameExclusive', 'frameRate',
@@ -628,6 +748,15 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
           ]
         : []
     ),
+    ...(editBriefAudio
+      ? [
+          'attachmentId', 'markerId', 'privateAssetId', 'markerType',
+          'startFrame', 'endFrameExclusive', 'sourceDurationFrames',
+          'placementDurationFrames', 'fillPolicy', 'mixProfileId',
+          'sampleRate', 'channelMode', 'targetLufs', 'truePeakDbtp',
+          'loudnessRangeLufs', 'stripMetadata',
+        ]
+      : []),
     ...(
       requestPayload?.recipeProfileId === 'approved_source_color_delivery_matroska_v1' ||
       colorMatchDelivery
@@ -671,6 +800,26 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
           compressorPreset: payload.compressorPreset,
         }
       : {}),
+    ...(editBriefAudio
+      ? {
+          attachmentId: payload.attachmentId,
+          markerId: payload.markerId,
+          privateAssetId: payload.privateAssetId,
+          markerType: payload.markerType,
+          startFrame: payload.startFrame,
+          endFrameExclusive: payload.endFrameExclusive,
+          sourceDurationFrames: payload.sourceDurationFrames,
+          placementDurationFrames: payload.placementDurationFrames,
+          fillPolicy: payload.fillPolicy,
+          mixProfileId: payload.mixProfileId,
+          sampleRate: payload.sampleRate,
+          channelMode: payload.channelMode,
+          targetLufs: payload.targetLufs,
+          truePeakDbtp: payload.truePeakDbtp,
+          loudnessRangeLufs: payload.loudnessRangeLufs,
+          stripMetadata: payload.stripMetadata,
+        }
+      : {}),
     ...(
       payload.recipeProfileId === 'approved_source_color_delivery_matroska_v1' ||
       payload.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1'
@@ -699,7 +848,7 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
     planning.recipeProfileId ===
       APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID
   ) throw invalid()
-  const source = validateSource(payload)
+  const source = validateSource(payload, planning.recipeProfileId)
   if (planning.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1') {
     const reference = validateReferenceSource(payload)
     return {
@@ -861,20 +1010,40 @@ export function validateOfflineSynchronizedFoleyCandidateNormalizeExecutionReque
   }
 }
 
-function validateSource(payload: Record<string, unknown>) {
+function validateSource(
+  payload: Record<string, unknown>,
+  recipeProfileId: OfflineFfmpegPlanningPayload['recipeProfileId'],
+) {
+  const editBriefAudio = recipeProfileId ===
+    OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE ||
+    recipeProfileId === OFFLINE_EDIT_BRIEF_SFX_PROFILE
+  const allowedMimeTypes = editBriefAudio
+    ? ['audio/aac', 'audio/mpeg', 'audio/wav', 'audio/x-wav']
+    : ['video/mp4']
   if (
-    payload.mimeType !== 'video/mp4' || !Number.isSafeInteger(payload.sourceByteLength) ||
-    Number(payload.sourceByteLength) < 64 || Number(payload.sourceByteLength) > 16 * 1024 * 1024 ||
+    !allowedMimeTypes.includes(String(payload.mimeType)) ||
+    !Number.isSafeInteger(payload.sourceByteLength) ||
+    Number(payload.sourceByteLength) < 64 ||
+    Number(payload.sourceByteLength) > (editBriefAudio
+      ? 64 * 1024 * 1024
+      : 16 * 1024 * 1024) ||
     typeof payload.sourceSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(payload.sourceSha256) ||
     typeof payload.sourceBytesBase64 !== 'string'
   ) throw invalid()
   const bytes = Buffer.from(payload.sourceBytesBase64, 'base64')
   if (
     bytes.byteLength !== payload.sourceByteLength || bytes.toString('base64') !== payload.sourceBytesBase64 ||
-    createHash('sha256').update(bytes).digest('hex') !== payload.sourceSha256
+    createHash('sha256').update(bytes).digest('hex') !== payload.sourceSha256 ||
+    (
+      (payload.mimeType === 'audio/wav' || payload.mimeType === 'audio/x-wav') &&
+      (
+        bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+        bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+      )
+    )
   ) throw invalid()
   return {
-    mimeType: 'video/mp4' as const,
+    mimeType: payload.mimeType as OfflineFfmpegSourceCommitment['mimeType'],
     sourceByteLength: bytes.byteLength,
     sourceSha256: payload.sourceSha256,
     sourceBytesBase64: payload.sourceBytesBase64,

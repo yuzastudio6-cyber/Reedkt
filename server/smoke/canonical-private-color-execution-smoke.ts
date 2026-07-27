@@ -12,6 +12,7 @@ import { createGuidedMockEditPlan } from '../../src/lib/mock-planner/guided'
 import { createMockEditPlan } from '../../src/lib/mock-planner/full'
 import { buildProfessionalExportCreditCoverage } from '../../src/lib/professional-export-policy'
 import { uploadFileToTemporaryObjectTarget } from '../../src/lib/temporary-object-upload-client'
+import type { CanonicalEditBriefAudioPlanningInput } from '../../src/types/edit-brief-authority'
 import {
   REEDITPRO_RESUMABLE_UPLOAD_MIN_CHUNK_BYTES,
   REEDITPRO_RESUMABLE_UPLOAD_THRESHOLD_BYTES,
@@ -24,6 +25,7 @@ import { createCanonicalPlanningHandoffService } from '../services/canonical-pla
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
 import { normalizeCanonicalPrivateFinalMediaQa } from '../services/canonical-private-final-media-qa'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
+import { createEditBriefAuthorityService } from '../services/edit-brief-authority-service'
 import { inspectCanonicalPrivateAudioArtifact } from '../services/canonical-private-audio-artifact-storage'
 import {
   CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
@@ -35,7 +37,10 @@ import { createEditPlanningAuthorityService } from '../services/edit-planning-au
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import { createLargeMediaFinalizationService } from '../services/large-media-finalization-service'
 import { readPrivateCanonicalWorkerLeaseAggregate } from '../services/private-canonical-worker-lease-store'
-import { readPrivateEditAuthorityAggregate } from '../services/private-edit-authority-store'
+import {
+  readPrivateAuthorityJsonBlob,
+  readPrivateEditAuthorityAggregate,
+} from '../services/private-edit-authority-store'
 import { createPrivateArtifactQaAuthorityService } from '../services/private-artifact-qa-authority-service'
 import { createUploadService } from '../services/upload-service'
 import { activatePrivateOfflineLibassCaptionRuntime } from '../tool-execution/libass-caption-execution'
@@ -152,6 +157,10 @@ assert.equal(uploadedSource.mediaAsset.sourceMetadata?.height, 2160)
 assert.ok(
   (uploadedSource.mediaAsset.sizeBytes ?? 0) > CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES,
 )
+const editBriefMusic = await prepareConfirmedEditBriefMusic({
+  projectId,
+  sourceMediaAssetId: uploadedSource.mediaAsset.id,
+})
 const sourceSequenceItemId = 'canonical-professional-color-source-1'
 const uploadedClipId = 'canonical-professional-color-clip-1'
 const plannerInput: PlannerInput = {
@@ -219,6 +228,7 @@ const draft = buildCanonicalPlanningDraft({
   plan: exactPlan,
   plannerInput,
   sourceMediaAssets,
+  editBriefAudioPlanningInputs: [editBriefMusic.planningInput],
 })
 if (!draft.ok) {
   throw new Error(`Professional color plan did not compile: ${draft.errors.join(' | ')}`)
@@ -237,6 +247,7 @@ assert.deepEqual(canonicalPlan.workItems.map((item) => item.workItemKey), [
   'source-trim-validation',
   'caption-overlay',
   'voice-delivery-1',
+  'edit-brief-audio-1',
   'color-delivery-1',
   'final-export',
   'final-qa',
@@ -253,8 +264,28 @@ assert.deepEqual(finalWorkItemDraft.dependencyKeys, [
   'source-trim-validation',
   'caption-overlay',
   'voice-delivery-1',
+  'edit-brief-audio-1',
   'color-delivery-1',
 ])
+assert.equal(
+  asRecord(finalWorkItemDraft.executionInput.structuredPayload)
+    .supplementalAudioPolicy,
+  'approved_edit_brief_audio_tracks_v1',
+)
+assert.deepEqual(
+  asRecord(finalWorkItemDraft.executionInput.structuredPayload)
+    .supplementalAudioTracks,
+  [{
+    outputKey: 'edit-brief-audio-1-wav',
+    attachmentId: editBriefMusic.attachmentId,
+    markerId: editBriefMusic.markerId,
+    markerType: 'music',
+    startFrame: 0,
+    endFrameExclusive: 48,
+    fillPolicy: 'loop_or_trim_to_window',
+    mixProfileId: 'speech_safe_uploaded_music_bed_v1',
+  }],
+)
 assert.equal(
   asRecord(finalWorkItemDraft.executionInput.structuredPayload).sourceMediaPolicy,
   'approved_professional_color_intermediate_v1',
@@ -382,8 +413,8 @@ assert.ok(snapshot)
 const approvedWorkItems = aggregate.approvedWorkItems.filter((candidate) =>
   candidate.snapshotId === snapshot.snapshotId)
 const jobs = aggregate.jobs.filter((candidate) => candidate.snapshotId === snapshot.snapshotId)
-assert.equal(approvedWorkItems.length, 7)
-assert.equal(jobs.length, 7)
+assert.equal(approvedWorkItems.length, 8)
+assert.equal(jobs.length, 8)
 const jobByKey = new Map(approvedWorkItems.map((item) => {
   const job = jobs.find((candidate) => candidate.approvedWorkItemId === item.id)
   assert.ok(job)
@@ -405,6 +436,7 @@ assert.deepEqual(
     jobByKey.get('source-trim-validation')!.id,
     jobByKey.get('caption-overlay')!.id,
     jobByKey.get('voice-delivery-1')!.id,
+    jobByKey.get('edit-brief-audio-1')!.id,
     jobByKey.get('color-delivery-1')!.id,
   ],
 )
@@ -453,6 +485,100 @@ assert.equal(storedVoice.sha256, voice.result.sha256)
 assert.equal(storedVoice.byteLength, voice.result.byteLength)
 assert.equal(storedVoice.sampleRate, 48_000)
 assert.equal(storedVoice.channels, 2)
+const supplementalMusic = await executeJob('edit-brief-audio-1')
+assert.equal(supplementalMusic.identity.canonicalToolId, 'ffmpeg')
+assert.equal(
+  supplementalMusic.identity.runnerClass,
+  'offline_media_binary_execution_v1',
+)
+assert.equal(supplementalMusic.result.contentType, 'audio/wav')
+assert.equal(supplementalMusic.result.qaOutcome, 'passed')
+assert.equal(supplementalMusic.evidence.serverDerivedCanonicalJob, true)
+assert.equal(supplementalMusic.evidence.serverDerivedToolAndOperation, true)
+assert.equal(supplementalMusic.evidence.singleUseDispatchConsumed, true)
+assert.equal(supplementalMusic.evidence.sourceStreamInputVerified, true)
+assert.equal(supplementalMusic.evidence.sourceStagingCleanupVerified, false)
+assert.equal(supplementalMusic.evidence.dependencyArtifactInput, false)
+assert.equal(supplementalMusic.permissions.providerCall, false)
+assert.equal(supplementalMusic.permissions.customerCreditMutation, false)
+const supplementalMusicWorkItem = approvedWorkItems.find((candidate) =>
+  candidate.workItemKey === 'edit-brief-audio-1')
+assert.ok(supplementalMusicWorkItem)
+const supplementalMusicExecutionInput = asRecord(await readPrivateAuthorityJsonBlob({
+  localStorageRoot,
+  ref: supplementalMusicWorkItem.executionInputRef,
+}))
+const supplementalMusicPayload = asRecord(
+  supplementalMusicExecutionInput.structuredPayload,
+)
+assert.deepEqual({
+  operation: supplementalMusicExecutionInput.operation,
+  workItemType: supplementalMusicWorkItem.workItemType,
+  sourceSequenceItemIds: supplementalMusicWorkItem.sourceSequenceItemIds,
+  dependencyKeys: supplementalMusicWorkItem.dependencyKeys,
+  attachmentId: supplementalMusicPayload.attachmentId,
+  markerId: supplementalMusicPayload.markerId,
+  privateAssetId: supplementalMusicPayload.privateAssetId,
+  recipeProfileId: supplementalMusicPayload.recipeProfileId,
+  startFrame: supplementalMusicPayload.startFrame,
+  endFrameExclusive: supplementalMusicPayload.endFrameExclusive,
+  fillPolicy: supplementalMusicPayload.fillPolicy,
+  mixProfileId: supplementalMusicPayload.mixProfileId,
+}, {
+  operation: 'process_approved_edit_brief_audio_attachment',
+  workItemType: 'process_audio_asset',
+  sourceSequenceItemIds: [],
+  dependencyKeys: [],
+  attachmentId: editBriefMusic.attachmentId,
+  markerId: editBriefMusic.markerId,
+  privateAssetId: editBriefMusic.privateAssetId,
+  recipeProfileId: 'approved_edit_brief_music_bed_wav_v1',
+  startFrame: 0,
+  endFrameExclusive: 48,
+  fillPolicy: 'loop_or_trim_to_window',
+  mixProfileId: 'speech_safe_uploaded_music_bed_v1',
+})
+assert.equal(
+  JSON.stringify(supplementalMusicPayload).includes(
+    editBriefMusic.privateStoragePath,
+  ),
+  false,
+)
+const supplementalMusicArtifactAuthority =
+  await createPrivateArtifactQaAuthorityService(context).readArtifactAuthority({
+    workspaceId,
+    projectId,
+    editSessionId,
+    snapshotId: snapshot.snapshotId,
+    jobId: jobByKey.get('edit-brief-audio-1')!.id,
+    expectedAssetId: assetByKey.get('edit-brief-audio-1')!.id,
+    artifactId: supplementalMusic.result.artifactId,
+    purpose: 'read_private_artifact_qa_authority',
+  })
+const storedSupplementalMusic = await inspectCanonicalPrivateAudioArtifact({
+  localStorageRoot,
+  privateObjectIdentityHash:
+    supplementalMusicArtifactAuthority.artifact.storageIdentity
+      .opaqueObjectIdentityHash,
+})
+assert.ok(storedSupplementalMusic)
+assert.equal(storedSupplementalMusic.sha256, supplementalMusic.result.sha256)
+assert.equal(
+  storedSupplementalMusic.byteLength,
+  supplementalMusic.result.byteLength,
+)
+assert.equal(storedSupplementalMusic.sampleRate, 48_000)
+assert.equal(storedSupplementalMusic.channels, 2)
+const supplementalMusicReplay = await executeJob('edit-brief-audio-1')
+assert.equal(
+  supplementalMusicReplay.result.artifactId,
+  supplementalMusic.result.artifactId,
+)
+assert.equal(
+  supplementalMusicReplay.result.sha256,
+  supplementalMusic.result.sha256,
+)
+assert.equal(supplementalMusicReplay.evidence.idempotentAdapterReplay, true)
 const color = await executeJob('color-delivery-1')
 assert.equal(color.identity.canonicalToolId, 'ffmpeg')
 assert.equal(color.identity.runnerClass, 'offline_media_binary_execution_v1')
@@ -549,7 +675,7 @@ const completedFinalLease = leaseAggregate?.leases.find((lease) =>
   lease.executionFence.state === 'completed')
 assert.ok(completedFinalLease)
 assert.equal(completedFinalLease.dependencyAuthority.state, 'private_test_dependencies_verified')
-assert.equal(completedFinalLease.dependencyAuthority.selectedArtifacts.length, 4)
+assert.equal(completedFinalLease.dependencyAuthority.selectedArtifacts.length, 5)
 assert.deepEqual(
   completedFinalLease.dependencyAuthority.selectedArtifacts
     .map((artifact) => artifact.artifactId)
@@ -558,6 +684,7 @@ assert.deepEqual(
     sourceTrim.result.artifactId,
     caption.result.artifactId,
     voice.result.artifactId,
+    supplementalMusic.result.artifactId,
     color.result.artifactId,
   ].sort(),
 )
@@ -762,6 +889,9 @@ console.log(JSON.stringify({
     'exact_source_bound_professional_color_work_item_frozen_before_execution',
     'snapshot_validation_source_trim_caption_and_replacement_voice_dependencies_passed',
     'ffmpeg_voice_delivery_streamed_to_create_only_pcm_wave_storage_and_reopened_without_whole_buffer',
+    'confirmed_edit_brief_music_marker_attachment_and_private_object_authority_bound_to_snapshot',
+    'server_derived_edit_brief_audio_job_streamed_the_exact_private_attachment_through_ffmpeg',
+    'speech_safe_music_bed_wav_reconciled_and_selected_by_the_final_render_lease',
     'lease_and_single_use_ffmpeg_dispatch_verified',
     'source_over_16mib_privately_staged_streamed_reverified_and_cleaned_for_each_attempt',
     'actual_three_frame_color_analysis_bounded_processing_and_pixel_qa_passed',
@@ -770,6 +900,7 @@ console.log(JSON.stringify({
     'server_owned_lease_heartbeat_evidence_bound_to_each_attempt_and_positive_for_long_render',
     'remotion_streamed_the_exact_selected_over_32mib_color_dependency_with_replacement_voice',
     'remotion_streamed_the_exact_lease_selected_voice_dependency_and_validated_pcm_from_file',
+    'remotion_streamed_looped_and_mixed_the_exact_edit_brief_music_dependency',
     'same_attempt_canonical_4k_h264_delivery_master_above_16mib_completed_final_ffprobe_qa',
     'final_qa_streamed_the_exact_qa_passed_over_16mib_private_mp4_without_base64_or_caller_path',
     'original_approved_estimate_and_reservation_reused_without_second_export_charge',
@@ -801,6 +932,218 @@ async function requireEditAuthority() {
   })
   assert.ok(aggregate)
   return aggregate
+}
+
+async function prepareConfirmedEditBriefMusic(input: {
+  projectId: string
+  sourceMediaAssetId: string
+}): Promise<{
+  attachmentId: string
+  markerId: string
+  privateAssetId: string
+  privateStoragePath: string
+  planningInput: CanonicalEditBriefAudioPlanningInput
+}> {
+  const uploaded = await uploadEditBriefMusic(input.projectId)
+  assert.equal(uploaded.mediaAsset.mimeType, 'audio/wav')
+  assert.ok(uploaded.mediaAsset.sizeBytes)
+  assert.ok(uploaded.mediaAsset.checksumSha256)
+  assert.ok(uploaded.mediaAsset.storagePath)
+
+  const service = createEditBriefAuthorityService(context)
+  const brief = await service.createBrief({
+    workspaceId,
+    projectId: input.projectId,
+    editSessionId,
+    expectedRevision: 0,
+    idempotencyKey: 'canonical-color-create-edit-brief',
+    brief: {
+      goal:
+        'Use the uploaded opening music quietly while narration remains primary.',
+      mustIncludeNotes: [
+        'Use the confirmed music only in its approved opening range.',
+      ],
+      avoidNotes: [
+        'Do not let music cover speech or continue outside the marker.',
+      ],
+      status: 'ready',
+    },
+  })
+  const frame = await service.setExportSettings({
+    workspaceId,
+    projectId: input.projectId,
+    editSessionId,
+    expectedRevision: brief.aggregateRevision,
+    idempotencyKey: 'canonical-color-confirm-edit-brief-frame',
+    settings: {
+      platformTarget: 'YouTube',
+      aspectRatio: '16:9',
+      resolution: '3840x2160',
+      resolutionProfileId: 'uhd_2160',
+      frameRate: 24,
+      confirmationStatus: 'confirmed',
+      confirmationId: 'canonical-color-edit-brief-frame-confirmation',
+    },
+  })
+  const marker = await service.createMarker({
+    workspaceId,
+    projectId: input.projectId,
+    editSessionId,
+    expectedRevision: frame.aggregateRevision,
+    idempotencyKey: 'canonical-color-create-opening-music-marker',
+    marker: {
+      markerType: 'music',
+      timeKind: 'range',
+      startSeconds: 0,
+      endSeconds: 2,
+      priority: 'high',
+      title: 'Opening music bed',
+      note:
+        'Loop or trim the uploaded cue only under the first two seconds and protect narration.',
+    },
+  })
+  const intent = await service.setMarkerIntent({
+    workspaceId,
+    projectId: input.projectId,
+    editSessionId,
+    expectedRevision: marker.aggregateRevision,
+    idempotencyKey: 'canonical-color-set-opening-music-intent',
+    markerId: marker.marker.id,
+    intent: {
+      action: 'use_user_music',
+      instruction:
+        'Use this exact uploaded cue quietly from frame 0 through frame 48.',
+      audioBehavior:
+        'Loop if needed, mix under narration, and stop at the marker boundary.',
+      requiredPrivateAssetIds: [uploaded.mediaAsset.id],
+      confidence: 1,
+      status: 'confirmed',
+      plannerHints: [
+        'Speech clarity outranks music energy.',
+        'No beat-synchronized cuts without private analysis evidence.',
+      ],
+      doNotCopy: [],
+      runtimeState: 'metadata_only',
+    },
+  })
+  const attachment = await service.addFinalizedAudioAttachment({
+    workspaceId,
+    projectId: input.projectId,
+    editSessionId,
+    expectedRevision: intent.aggregateRevision,
+    idempotencyKey: 'canonical-color-attach-opening-music',
+    markerId: marker.marker.id,
+    privateAssetId: uploaded.mediaAsset.id,
+  })
+  assert.ok(attachment.attachment.durationSeconds)
+  const confirmed = await service.confirmMarker({
+    workspaceId,
+    projectId: input.projectId,
+    editSessionId,
+    expectedRevision: attachment.aggregateRevision,
+    idempotencyKey: 'canonical-color-confirm-opening-music-marker',
+    markerId: marker.marker.id,
+  })
+  const markerContext = await service.buildMarkerContext({
+    workspaceId,
+    projectId: input.projectId,
+    editSessionId,
+    expectedRevision: confirmed.aggregateRevision,
+    idempotencyKey: 'canonical-color-build-opening-music-context',
+    markerId: marker.marker.id,
+    nearbyWindowSeconds: 8,
+    sourceContext: {
+      sourceAssetIds: [input.sourceMediaAssetId],
+      sourceDurationSeconds: fixtureDurationSeconds,
+      sourceSequenceSummary:
+        'One finalized source video fills the confirmed eight-second timeline.',
+      transcriptWindowSummary:
+        'Opening narration overlaps the complete music marker.',
+      audioWindowSummary:
+        'Narration is the primary audible element and requires speech-safe ducking.',
+      runtimeState: 'metadata_only',
+    },
+  })
+  const qa = await service.runQa({
+    workspaceId,
+    projectId: input.projectId,
+    editSessionId,
+    expectedRevision: markerContext.aggregateRevision,
+    idempotencyKey: 'canonical-color-run-edit-brief-qa',
+  })
+  assert.equal(qa.qaReport.status, 'passed')
+  const hints = await service.createPlanHints({
+    workspaceId,
+    projectId: input.projectId,
+    editSessionId,
+    expectedRevision: qa.aggregateRevision,
+    idempotencyKey: 'canonical-color-create-edit-brief-plan-hints',
+    latestExplicitUserInstruction:
+      'Use the uploaded opening music quietly and protect narration.',
+    approvedProjectOverrides: [],
+  })
+  assert.equal(hints.planHints.readiness, 'ready_for_planning')
+  assert.deepEqual(
+    hints.planHints.confirmedMarkerHints[0]?.requiredPrivateAssetIds,
+    [uploaded.mediaAsset.id],
+  )
+
+  return {
+    attachmentId: attachment.attachment.id,
+    markerId: marker.marker.id,
+    privateAssetId: uploaded.mediaAsset.id,
+    privateStoragePath: uploaded.mediaAsset.storagePath,
+    planningInput: {
+      attachmentId: attachment.attachment.id,
+      markerId: marker.marker.id,
+      markerType: 'music',
+      markerTimeKind: 'range',
+      privateAssetId: uploaded.mediaAsset.id,
+      startSeconds: 0,
+      endSeconds: 2,
+      durationSeconds: attachment.attachment.durationSeconds!,
+      mimeType: 'audio/wav',
+    },
+  }
+}
+
+async function uploadEditBriefMusic(projectId: string) {
+  const bytes = createPcmWav({
+    durationSeconds: 0.5,
+    sampleRate: 48_000,
+    frequency: 330,
+  })
+  const checksumSha256 = createHash('sha256').update(bytes).digest('hex')
+  const uploadService = createUploadService(context)
+  const created = await uploadService.createUploadIntent({
+    workspaceId,
+    projectId,
+    uploadPurpose: 'reference_media',
+    originalFileName: 'canonical-professional-opening-music.wav',
+    mimeType: 'audio/wav',
+    expectedSizeBytes: bytes.byteLength,
+    checksumSha256,
+    idempotencyKey: 'canonical-color-edit-brief-audio-upload-intent',
+  })
+  const uploaded = await uploadFileToTemporaryObjectTarget({
+    apiBaseUrl: 'https://api.reeditpro.invalid',
+    authorization: 'Bearer canonical-smoke-browser-token-must-not-leak',
+    fetchImpl: storage.fetch,
+    file: new Blob([Uint8Array.from(bytes)], { type: 'audio/wav' }),
+    mimeType: 'audio/wav',
+    target: created.uploadTarget,
+    retryDelayMs: 0,
+  })
+  assert.equal(uploaded.uploadedBytes, bytes.byteLength)
+  const finalized = await uploadService.finalizeUploadIntent({
+    workspaceId,
+    uploadIntentId: created.uploadIntent.id,
+  })
+  assert.equal(finalized.mediaAsset.checksumSha256, checksumSha256)
+  assert.equal(finalized.mediaAsset.sourceMetadata?.probeStatus, 'probed')
+  assert.equal(finalized.mediaAsset.sourceMetadata?.hasAudio, true)
+  assert.equal(finalized.mediaAsset.sourceMetadata?.hasVideo, false)
+  return finalized
 }
 
 async function uploadProfessionalColorSource(projectId: string) {
@@ -947,7 +1290,37 @@ function createExactProfessionalColorPlan(input: PlannerInput): EditPlan {
   timing.visualTimingItems = []
   timing.transitionTimingItems = []
   timing.sfxTimingItems = []
-  timing.musicDuckingTimingItems = []
+  timing.musicDuckingTimingItems = [{
+    id: 'music-duck-edit-brief-opening',
+    timeRange: frameRange(0, 2, 0, 48),
+    duckingStrength: 'light',
+    attackFrames: 5,
+    releaseFrames: 8,
+    reason:
+      'The confirmed Edit Brief music stays beneath opening narration.',
+    qaChecks: [
+      'Narration remains intelligible.',
+      'Music stops at the confirmed marker boundary.',
+    ],
+  }]
+  if (plan.soundSyncTransitionTimingPlan) {
+    plan.soundSyncTransitionTimingPlan.refinedMusicDuckingTimings = [{
+      id: 'refined-music-duck-edit-brief-opening',
+      timeRange: frameRange(0, 2, 0, 48),
+      duckingStrength: 'light',
+      reasonType: 'voice_clarity',
+      attackFrames: 5,
+      releaseFrames: 8,
+      preserveMusicDrop: false,
+      voicePriority: true,
+      reason:
+        'The confirmed Edit Brief music stays beneath opening narration.',
+      qaChecks: [
+        'Narration remains intelligible.',
+        'Music stops at the confirmed marker boundary.',
+      ],
+    }]
+  }
   timing.providerClipTimingItems = []
   const cleanup = plan.sourceCleanupPlan!
   const decision = cleanup.decisions[0]! as unknown as Record<string, unknown>
@@ -972,7 +1345,53 @@ function createExactProfessionalColorPlan(input: PlannerInput): EditPlan {
   }
   plan.colorPipelinePlan = structuredClone(fullPlan.colorPipelinePlan)
   plan.audioPipelinePlan = structuredClone(fullPlan.audioPipelinePlan)
+  plan.audioPipelinePlan.musicBedPlan.policy = 'required_subtle'
+  plan.audioPipelinePlan.musicBedPlan.duckingEnabled = true
+  plan.audioPipelinePlan.musicBedPlan.duckingStrength = 'light'
+  plan.audioPipelinePlan.musicBedPlan.introAllowed = true
+  plan.audioPipelinePlan.musicBedPlan.outroAllowed = false
+  plan.audioPipelinePlan.sfxPlan.policy = 'none'
+  plan.audioPipelinePlan.sfxPlan.cues = []
+  plan.audioPipelinePlan.soundSyncCues = []
+  plan.audioPipelinePlan.beatSyncPlan.strategy = 'none'
+  plan.audioPipelinePlan.beatSyncPlan.bpmDetectionPlanned = false
+  plan.audioPipelinePlan.beatSyncPlan.onsetDetectionPlanned = false
+  plan.audioPipelinePlan.beatSyncPlan.cutOnBeat = false
+  plan.audioPipelinePlan.beatSyncPlan.visualRevealOnBeat = false
+  plan.audioPipelinePlan.beatSyncPlan.captionEmphasisOnBeat = false
+  plan.audioPipelinePlan.beatSyncPlan.cues = []
   return plan
+}
+
+function createPcmWav(input: {
+  durationSeconds: number
+  sampleRate: number
+  frequency: number
+}): Buffer {
+  const sampleCount = Math.round(input.durationSeconds * input.sampleRate)
+  const dataByteLength = sampleCount * 2
+  const bytes = Buffer.alloc(44 + dataByteLength)
+  bytes.write('RIFF', 0, 'ascii')
+  bytes.writeUInt32LE(36 + dataByteLength, 4)
+  bytes.write('WAVE', 8, 'ascii')
+  bytes.write('fmt ', 12, 'ascii')
+  bytes.writeUInt32LE(16, 16)
+  bytes.writeUInt16LE(1, 20)
+  bytes.writeUInt16LE(1, 22)
+  bytes.writeUInt32LE(input.sampleRate, 24)
+  bytes.writeUInt32LE(input.sampleRate * 2, 28)
+  bytes.writeUInt16LE(2, 32)
+  bytes.writeUInt16LE(16, 34)
+  bytes.write('data', 36, 'ascii')
+  bytes.writeUInt32LE(dataByteLength, 40)
+  for (let sample = 0; sample < sampleCount; sample += 1) {
+    const value = Math.round(
+      Math.sin((sample / input.sampleRate) * Math.PI * 2 * input.frequency) *
+        7_000,
+    )
+    bytes.writeInt16LE(value, 44 + sample * 2)
+  }
+  return bytes
 }
 
 function frameRange(startSeconds: number, endSeconds: number, startFrame: number, endFrame: number) {

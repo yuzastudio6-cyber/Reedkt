@@ -961,6 +961,7 @@ function createCompiledPlanningFingerprint(input: PlannerInput): string | null {
 }
 
 const INITIAL_CANONICAL_BRIEF_PLANNING_GATE: CanonicalBriefPlanningGateState = {
+  editBriefAudioPlanningInputs: [],
   message: 'The exact Edit Brief timeline has not been loaded yet.',
   ready: false,
   status: 'idle',
@@ -1487,6 +1488,8 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       && current.message === state.message
       && current.ready === state.ready
       && current.status === state.status
+      && JSON.stringify(current.editBriefAudioPlanningInputs) ===
+        JSON.stringify(state.editBriefAudioPlanningInputs)
         ? current
         : { ...state, scopeKey: editBriefScopeKey }
     ))
@@ -3011,6 +3014,8 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         plan: result.editPlan,
         plannerInput: exactPlannerInput,
         sourceMediaAssets: durableUploadedPrivateSourceAssets(sourceMediaAssets),
+        editBriefAudioPlanningInputs:
+          canonicalBriefPlanningGate.editBriefAudioPlanningInputs,
         ...(canonicalJourneyValue?.stage === 'revision_requested'
           ? { revisionJourney: canonicalJourneyValue }
           : {}),

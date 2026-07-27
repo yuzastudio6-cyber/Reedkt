@@ -20,7 +20,11 @@ export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_SOURCE_BYTES = 192 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_SOURCE_BYTES = 192 * 1024 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_CAPTION_BYTES = 8 * 1024 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_VOICE_BYTES = 64 * 1024 * 1024
-export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_INPUT_BYTES = 272 * 1024 * 1024
+export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_SUPPLEMENTAL_AUDIO_BYTES =
+  16 * 1024 * 1024
+export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_SUPPLEMENTAL_AUDIO_BYTES =
+  64 * 1024 * 1024
+export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_INPUT_BYTES = 336 * 1024 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES = 256 * 1024 * 1024
 
 const SHA256 = /^[a-f0-9]{64}$/u
@@ -53,10 +57,28 @@ export interface OfflineRemotionStreamingVoiceCommitment {
   sha256: string
 }
 
+export interface OfflineRemotionStreamingSupplementalAudioCommitment {
+  inputId: string
+  outputKey: string
+  attachmentId: string
+  markerId: string
+  markerType: 'music' | 'sfx'
+  startFrame: number
+  endFrameExclusive: number
+  fillPolicy: 'loop_or_trim_to_window' | 'trim_without_loop'
+  mixProfileId:
+    | 'speech_safe_uploaded_music_bed_v1'
+    | 'narration_protected_uploaded_sfx_v1'
+  mimeType: 'audio/wav'
+  byteLength: number
+  sha256: string
+}
+
 export interface OfflineRemotionStreamingInputs {
   sources: OfflineRemotionStreamingSourceCommitment[]
   captionOverlays: OfflineRemotionStreamingCaptionCommitment[]
   voiceTracks: OfflineRemotionStreamingVoiceCommitment[]
+  supplementalAudioTracks: OfflineRemotionStreamingSupplementalAudioCommitment[]
 }
 
 export interface OfflineRemotionStreamingRenderRequest {
@@ -82,11 +104,13 @@ export function buildOfflineRemotionFinalCompositionStreamingRequest(input: {
   captionOverlay?: Omit<OfflineRemotionStreamingCaptionCommitment, 'outputKey'>
   captionOverlays?: OfflineRemotionStreamingCaptionCommitment[]
   voiceTracks?: OfflineRemotionStreamingVoiceCommitment[]
+  supplementalAudioTracks?: OfflineRemotionStreamingSupplementalAudioCommitment[]
 }): OfflineRemotionStreamingRenderRequest {
   const planning = validateOfflineRemotionFinalCompositionPlanningPayload(input.planningPayload)
   const sourceSequence = 'sourceSegments' in planning
   const captionTrack = 'captionOverlayCues' in planning
   const replaceVoice = planning.audioPolicy === 'replace_with_approved_voice_tracks'
+  const supplementalAudio = planning.supplementalAudioTracks !== undefined
   if (sourceSequence ? input.source !== undefined || !input.sources : !input.source || input.sources !== undefined) {
     throw invalid('Streaming source commitments do not match the approved composition profile.')
   }
@@ -95,6 +119,15 @@ export function buildOfflineRemotionFinalCompositionStreamingRequest(input: {
   }
   if (replaceVoice ? !input.voiceTracks : input.voiceTracks !== undefined) {
     throw invalid('Streaming voice commitments do not match the approved audio policy.')
+  }
+  if (
+    supplementalAudio
+      ? !input.supplementalAudioTracks
+      : input.supplementalAudioTracks !== undefined
+  ) {
+    throw invalid(
+      'Streaming supplemental-audio commitments do not match the approved Edit Brief policy.',
+    )
   }
   return validateOfflineRemotionStreamingRenderRequest({
     schemaVersion: OFFLINE_REMOTION_RENDER_STREAMING_REQUEST_PROTOCOL,
@@ -108,6 +141,7 @@ export function buildOfflineRemotionFinalCompositionStreamingRequest(input: {
         ? input.captionOverlays
         : [{ ...input.captionOverlay, outputKey: SINGLE_CAPTION_OUTPUT_KEY }],
       voiceTracks: input.voiceTracks ?? [],
+      supplementalAudioTracks: input.supplementalAudioTracks ?? [],
     },
   })
 }
@@ -130,9 +164,14 @@ export function validateOfflineRemotionStreamingRenderRequest(
   const captionTrack = 'captionOverlayCues' in planning
   const replaceVoice = planning.audioPolicy === 'replace_with_approved_voice_tracks'
   const inputs = exactRecord(request.inputs, [
-    'sources', 'captionOverlays', 'voiceTracks',
+    'sources', 'captionOverlays', 'voiceTracks', 'supplementalAudioTracks',
   ], 'streaming inputs')
-  if (!Array.isArray(inputs.sources) || !Array.isArray(inputs.captionOverlays) || !Array.isArray(inputs.voiceTracks)) {
+  if (
+    !Array.isArray(inputs.sources) ||
+    !Array.isArray(inputs.captionOverlays) ||
+    !Array.isArray(inputs.voiceTracks) ||
+    !Array.isArray(inputs.supplementalAudioTracks)
+  ) {
     throw invalid('Streaming Remotion inputs must be exact arrays.')
   }
 
@@ -237,7 +276,80 @@ export function validateOfflineRemotionStreamingRenderRequest(
     throw invalid('Streaming voice tracks exceed their combined byte ceiling.')
   }
 
-  const allInputs = [...sources, ...captionOverlays, ...voiceTracks]
+  const expectedSupplementalAudioTracks = planning.supplementalAudioTracks ?? []
+  if (inputs.supplementalAudioTracks.length !== expectedSupplementalAudioTracks.length) {
+    throw invalid(
+      'Streaming supplemental-audio commitments do not match the approved track count.',
+    )
+  }
+  const supplementalAudioTracks = inputs.supplementalAudioTracks.map(
+    (candidate, index) => {
+      const track = exactRecord(candidate, [
+        'inputId',
+        'outputKey',
+        'attachmentId',
+        'markerId',
+        'markerType',
+        'startFrame',
+        'endFrameExclusive',
+        'fillPolicy',
+        'mixProfileId',
+        'mimeType',
+        'byteLength',
+        'sha256',
+      ], `supplemental audio track ${index + 1}`)
+      const expected = expectedSupplementalAudioTracks[index]
+      if (
+        !expected ||
+        track.outputKey !== expected.outputKey ||
+        track.attachmentId !== expected.attachmentId ||
+        track.markerId !== expected.markerId ||
+        track.markerType !== expected.markerType ||
+        track.startFrame !== expected.startFrame ||
+        track.endFrameExclusive !== expected.endFrameExclusive ||
+        track.fillPolicy !== expected.fillPolicy ||
+        track.mixProfileId !== expected.mixProfileId
+      ) {
+        throw invalid(
+          'Streaming supplemental-audio order diverges from the approved Edit Brief timeline.',
+        )
+      }
+      return {
+        ...committedInput(
+          track,
+          'audio/wav',
+          44,
+          OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_SUPPLEMENTAL_AUDIO_BYTES,
+          `supplemental audio track ${index + 1}`,
+        ),
+        outputKey: expected.outputKey,
+        attachmentId: expected.attachmentId,
+        markerId: expected.markerId,
+        markerType: expected.markerType,
+        startFrame: expected.startFrame,
+        endFrameExclusive: expected.endFrameExclusive,
+        fillPolicy: expected.fillPolicy,
+        mixProfileId: expected.mixProfileId,
+      }
+    },
+  )
+  const combinedSupplementalAudioBytes = supplementalAudioTracks.reduce(
+    (total, track) => safeSum(total, track.byteLength),
+    0,
+  )
+  if (
+    combinedSupplementalAudioBytes >
+    OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_SUPPLEMENTAL_AUDIO_BYTES
+  ) {
+    throw invalid('Streaming supplemental audio exceeds its combined byte ceiling.')
+  }
+
+  const allInputs = [
+    ...sources,
+    ...captionOverlays,
+    ...voiceTracks,
+    ...supplementalAudioTracks,
+  ]
   if (new Set(allInputs.map((input) => input.inputId)).size !== allInputs.length) {
     throw invalid('Streaming input identities must be unique.')
   }
@@ -255,7 +367,7 @@ export function validateOfflineRemotionStreamingRenderRequest(
     operationId: OFFLINE_REMOTION_RENDER_OPERATION,
     inputMode: OFFLINE_REMOTION_RENDER_SERVER_INPUT_MODE,
     payload: planning,
-    inputs: { sources, captionOverlays, voiceTracks },
+    inputs: { sources, captionOverlays, voiceTracks, supplementalAudioTracks },
   }
   if (Buffer.byteLength(JSON.stringify(normalized)) > OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_MANIFEST_BYTES) {
     throw invalid('Streaming Remotion manifest exceeds its fixed metadata ceiling.')
@@ -271,6 +383,7 @@ export function offlineRemotionStreamingInputCommitments(
     ...validated.inputs.sources,
     ...validated.inputs.captionOverlays,
     ...validated.inputs.voiceTracks,
+    ...validated.inputs.supplementalAudioTracks,
   ].map(({ inputId, mimeType, byteLength, sha256 }) => ({
     inputId, mimeType, byteLength, sha256,
   }))

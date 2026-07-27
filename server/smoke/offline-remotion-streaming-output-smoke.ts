@@ -33,12 +33,15 @@ const fixtureRoot = await mkdtemp(join(tmpdir(), 'reeditpro-remotion-stream-outp
 const storageRoot = await mkdtemp(join(tmpdir(), 'reeditpro-remotion-stream-output-storage-'))
 const sourcePath = join(fixtureRoot, 'high-detail-4k-source.mp4')
 const captionPath = join(fixtureRoot, 'approved-caption-overlay.png')
+const supplementalAudioPath = join(fixtureRoot, 'approved-edit-brief-music.wav')
 
 try {
   generateHighDetailFourKSource(sourcePath)
   generateCaptionOverlay(captionPath)
+  generateSupplementalMusic(supplementalAudioPath)
   const source = await fileCommitment(sourcePath)
   const caption = await fileCommitment(captionPath)
+  const supplementalAudio = await fileCommitment(supplementalAudioPath)
   assert.ok(source.byteLength < LEGACY_OUTPUT_BOUNDARY_BYTES)
   assert.ok(source.byteLength > 8 * 1024 * 1024)
   assert.ok(caption.byteLength >= 1_024)
@@ -65,6 +68,17 @@ try {
       usesApprovedEditReservation: true,
       requiresSeparateExportEstimate: false,
       allowsAdditionalExportCharge: false,
+      supplementalAudioPolicy: 'approved_edit_brief_audio_tracks_v1',
+      supplementalAudioTracks: [{
+        outputKey: 'edit-brief-audio-1-wav',
+        attachmentId: 'edit-brief-audio-attachment-1',
+        markerId: 'edit-brief-music-marker-1',
+        markerType: 'music',
+        startFrame: 0,
+        endFrameExclusive: 48,
+        fillPolicy: 'loop_or_trim_to_window',
+        mixProfileId: 'speech_safe_uploaded_music_bed_v1',
+      }],
     },
     source: {
       inputId: 'high-detail-approved-source',
@@ -78,6 +92,20 @@ try {
       byteLength: caption.byteLength,
       sha256: caption.sha256,
     },
+    supplementalAudioTracks: [{
+      inputId: 'approved-edit-brief-music-1',
+      outputKey: 'edit-brief-audio-1-wav',
+      attachmentId: 'edit-brief-audio-attachment-1',
+      markerId: 'edit-brief-music-marker-1',
+      markerType: 'music',
+      startFrame: 0,
+      endFrameExclusive: 48,
+      fillPolicy: 'loop_or_trim_to_window',
+      mixProfileId: 'speech_safe_uploaded_music_bed_v1',
+      mimeType: 'audio/wav',
+      byteLength: supplementalAudio.byteLength,
+      sha256: supplementalAudio.sha256,
+    }],
   })
   assert.doesNotMatch(JSON.stringify(request), /bytesBase64|filePath|sourceUrl|https?:\/\//u)
   assert.throws(() => validateOfflineRemotionStreamingRenderRequest({
@@ -107,10 +135,26 @@ try {
       }],
     },
   }), /identities must be unique/u)
+  assert.throws(() => validateOfflineRemotionStreamingRenderRequest({
+    ...request,
+    inputs: {
+      ...request.inputs,
+      supplementalAudioTracks: [{
+        ...request.inputs.supplementalAudioTracks[0],
+        mixProfileId: 'narration_protected_uploaded_sfx_v1',
+      }],
+    },
+  }), /diverges from the approved Edit Brief timeline/u)
   await assertRejectedStreamLeavesNoCommittedTarget()
   const inputs: OfflineRemotionServerInjectedInput[] = [
     privateFileInput('high-detail-approved-source', 'video/mp4', sourcePath, source),
     privateFileInput('approved-caption-overlay', 'image/png', captionPath, caption),
+    privateFileInput(
+      'approved-edit-brief-music-1',
+      'audio/wav',
+      supplementalAudioPath,
+      supplementalAudio,
+    ),
   ]
   await assert.rejects(
     () => runtime.executeServerInjected(request, [...inputs].reverse(), {
@@ -144,6 +188,19 @@ try {
   assert.equal(result.evidence.inputTransport, 'length_framed_server_injected_private_stream_v2')
   assert.equal(result.evidence.outputTransport, 'length_committed_private_stream_v2')
   assert.equal(result.evidence.semanticEvidence.base64MediaTransportAvoided, true)
+  assert.equal(
+    result.evidence.semanticEvidence
+      .approvedSupplementalAudioInputStreamedWithoutWholeBuffer,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence.approvedSupplementalAudioTimelineApplied,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence.approvedSupplementalAudioSpeechSafeMixApplied,
+    true,
+  )
   assert.equal(result.readiness.serverInjectedStreamingReady, true)
   assert.equal(result.readiness.productReady, false)
 
@@ -230,6 +287,7 @@ try {
     proofs: [
       'bounded_json_manifest_contains_no_media_base64_paths_urls_or_commands',
       'server_injected_source_and_caption_streams_rehashed_on_host_and_in_container',
+      'approved_edit_brief_music_wav_stream_rehashed_looped_and_mixed_at_exact_frames',
       'network_none_read_only_non_root_no_mount_confinement_preserved',
       'actual_4k_h264_high_quality_remotion_render_exceeds_legacy_16mib_output_ceiling',
       'raw_mp4_stdout_stream_exact_size_and_sha256_verified',
@@ -268,6 +326,16 @@ function generateCaptionOverlay(outputPath: string): void {
   assert.equal(generated.status, 0, generated.stderr)
 }
 
+function generateSupplementalMusic(outputPath: string): void {
+  const generated = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error',
+    '-f', 'lavfi', '-i', 'sine=frequency=330:sample_rate=48000:duration=0.5',
+    '-ac', '2', '-c:a', 'pcm_s16le', '-map_metadata', '-1',
+    '-y', outputPath,
+  ], { encoding: 'utf8', maxBuffer: 1024 * 1024 })
+  assert.equal(generated.status, 0, generated.stderr)
+}
+
 async function fileCommitment(path: string): Promise<{ byteLength: number; sha256: string }> {
   const fileStat = await stat(path)
   const checksum = createHash('sha256')
@@ -302,7 +370,7 @@ async function assertRejectedStreamLeavesNoCommittedTarget(): Promise<void> {
 
 function privateFileInput(
   inputId: string,
-  mimeType: 'video/mp4' | 'image/png',
+  mimeType: 'video/mp4' | 'image/png' | 'audio/wav',
   path: string,
   commitment: { byteLength: number; sha256: string },
 ): OfflineRemotionServerInjectedInput {

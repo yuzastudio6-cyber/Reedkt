@@ -103,7 +103,7 @@ function relevantWorkItemForCategory(workItems: EditWorkItem[], category: AgentF
           : category === 'mask_generation_failure'
             ? ['generate_mask_asset']
             : category.includes('audio')
-              ? ['run_audio_analysis', 'run_audio_stretch']
+              ? ['run_audio_analysis', 'run_audio_stretch', 'process_audio_asset']
               : category.includes('render')
                 ? ['render_final_export', 'render_remotion_preview']
                 : category.includes('timing')

@@ -108,6 +108,31 @@ export interface CanonicalEditBriefMarkerMessage {
   createdAt: string
 }
 
+export interface CanonicalEditBriefAttachment {
+  id: string
+  markerId: string
+  privateAssetId: string
+  label: string
+  kind: 'image' | 'video' | 'audio' | 'reference'
+  mimeType?: string
+  durationSeconds?: number
+  width?: number
+  height?: number
+  createdAt: string
+}
+
+export interface CanonicalEditBriefAudioPlanningInput {
+  attachmentId: string
+  markerId: string
+  markerType: 'music' | 'sfx'
+  markerTimeKind: 'point' | 'range'
+  privateAssetId: string
+  startSeconds: number
+  endSeconds?: number
+  durationSeconds: number
+  mimeType: 'audio/aac' | 'audio/mpeg' | 'audio/wav' | 'audio/x-wav'
+}
+
 export interface CanonicalEditBriefQaReport {
   id: string
   status: 'passed' | 'warning' | 'needs_user_review' | 'blocked'
@@ -131,6 +156,7 @@ export interface CanonicalEditBriefPlanHints {
     startFrame?: number
     endFrame?: number
     instruction: string
+    requiredPrivateAssetIds: string[]
   }>
   createdAt: string
 }
@@ -147,6 +173,7 @@ export interface CanonicalEditBriefAuthority {
   exportSettings?: CanonicalEditBriefExportSettings
   markers: CanonicalEditBriefMarker[]
   markerMessages: CanonicalEditBriefMarkerMessage[]
+  attachments: CanonicalEditBriefAttachment[]
   qaReports: CanonicalEditBriefQaReport[]
   planHintPackages: CanonicalEditBriefPlanHints[]
   lifecycle: {

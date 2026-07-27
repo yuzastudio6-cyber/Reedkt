@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto'
 
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../../../src/types/large-media'
 import {
+  OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
+  OFFLINE_EDIT_BRIEF_SFX_PROFILE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   validateOfflineFfmpegPlanningPayload,
   validateOfflineFfprobePlanningPayload,
@@ -16,7 +18,14 @@ export const OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE =
   'server_injected_private_stream_v1' as const
 
 export interface OfflineMediaBinaryStreamSourceCommitment {
-  mimeType: 'video/mp4' | 'video/x-matroska' | 'audio/flac' | 'audio/mpeg'
+  mimeType:
+    | 'video/mp4'
+    | 'video/x-matroska'
+    | 'audio/aac'
+    | 'audio/flac'
+    | 'audio/mpeg'
+    | 'audio/wav'
+    | 'audio/x-wav'
   sourceByteLength: number
   sourceSha256: string
   sourceInputMode: typeof OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE
@@ -120,15 +129,25 @@ function validateSourceCommitment(
 ): OfflineMediaBinaryStreamSourceCommitment {
   const storytellingSpeech = recipeProfileId ===
     'approved_storytelling_speech_take_normalization_v1'
+  const editBriefAudio = recipeProfileId ===
+    OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE ||
+    recipeProfileId === OFFLINE_EDIT_BRIEF_SFX_PROFILE
   const maximumBytes = storytellingSpeech
     ? 16 * 1024 * 1024
-    : REEDITPRO_SOURCE_MEDIA_MAX_BYTES
-  if (
-    (storytellingSpeech
-      ? payload.mimeType !== 'audio/mpeg'
-      : !['video/mp4', 'video/x-matroska', 'audio/flac'].includes(
+    : editBriefAudio
+      ? 64 * 1024 * 1024
+      : REEDITPRO_SOURCE_MEDIA_MAX_BYTES
+  const mimeTypeAllowed = storytellingSpeech
+    ? payload.mimeType === 'audio/mpeg'
+    : editBriefAudio
+      ? ['audio/aac', 'audio/mpeg', 'audio/wav', 'audio/x-wav'].includes(
           String(payload.mimeType),
-        )) ||
+        )
+      : ['video/mp4', 'video/x-matroska', 'audio/flac'].includes(
+          String(payload.mimeType),
+        )
+  if (
+    !mimeTypeAllowed ||
     !Number.isSafeInteger(payload.sourceByteLength) ||
     Number(payload.sourceByteLength) < 64 ||
     Number(payload.sourceByteLength) > maximumBytes ||

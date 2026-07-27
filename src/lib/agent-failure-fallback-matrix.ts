@@ -104,7 +104,7 @@ function scenarioDefaults(category: AgentFailureCategory): Omit<AgentFailureScen
   const affectedWorkItemTypes: EditWorkItemType[] = providerCategories.includes(category)
     ? ['generate_image_asset', 'generate_ai_video_asset']
     : toolCategories.includes(category)
-      ? ['render_map_asset', 'render_chart_asset', 'capture_browser_asset', 'run_audio_analysis', 'run_audio_stretch', 'process_image_asset', 'process_video_asset', 'generate_mask_asset', 'reconstruct_background_plate', 'build_component_rig']
+      ? ['render_map_asset', 'render_chart_asset', 'capture_browser_asset', 'run_audio_analysis', 'run_audio_stretch', 'process_audio_asset', 'process_image_asset', 'process_video_asset', 'generate_mask_asset', 'reconstruct_background_plate', 'build_component_rig']
       : category.includes('render')
         ? ['render_final_export', 'render_remotion_preview']
         : category.includes('timing')

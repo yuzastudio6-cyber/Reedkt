@@ -41,7 +41,9 @@ const MAXIMUM_DELIVERY_H264_CHUNK_MANIFEST_BYTES = 64 * 1024
 const MAXIMUM_STREAMING_SOURCE_BYTES = 192 * 1024 * 1024
 const MAXIMUM_STREAMING_COMBINED_SOURCE_BYTES = 192 * 1024 * 1024
 const MAXIMUM_STREAMING_CAPTION_BYTES = 8 * 1024 * 1024
-const MAXIMUM_STREAMING_COMBINED_INPUT_BYTES = 272 * 1024 * 1024
+const MAXIMUM_STREAMING_SUPPLEMENTAL_AUDIO_BYTES = 16 * 1024 * 1024
+const MAXIMUM_STREAMING_COMBINED_SUPPLEMENTAL_AUDIO_BYTES = 64 * 1024 * 1024
+const MAXIMUM_STREAMING_COMBINED_INPUT_BYTES = 336 * 1024 * 1024
 const MAXIMUM_STREAMING_OUTPUT_BYTES = 256 * 1024 * 1024
 const MAXIMUM_DELIVERY_H264_CHUNK_SOURCE_BYTES = 512 * 1024 * 1024
 const MAXIMUM_DELIVERY_H264_CHUNK_OUTPUT_BYTES = 3 * 1024 * 1024 * 1024
@@ -538,6 +540,38 @@ async function validatePcmVoiceTrackFile(path, byteLength, durationFrames, fps) 
       offset += result.bytesRead
     }
     validatePcmVoiceTrack(prefix.subarray(0, offset), durationFrames, fps, byteLength)
+  } finally {
+    await handle.close()
+  }
+}
+
+async function validatePcmSupplementalAudioFile(path, byteLength) {
+  const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW)
+  try {
+    const stat = await handle.stat()
+    if (!stat.isFile() || stat.size !== byteLength) {
+      throw new Error('streaming supplemental audio changed before PCM validation')
+    }
+    const prefix = Buffer.alloc(Math.min(byteLength, MAXIMUM_PCM_WAVE_HEADER_BYTES))
+    let offset = 0
+    while (offset < prefix.byteLength) {
+      const result = await handle.read(prefix, offset, prefix.byteLength - offset, offset)
+      if (result.bytesRead < 1) break
+      offset += result.bytesRead
+    }
+    const details = pcmWaveDetailsFromPrefix(prefix.subarray(0, offset), byteLength)
+    if (
+      !details ||
+      details.channels !== 2 ||
+      details.sampleRate !== 48_000 ||
+      details.bitsPerSample !== 16 ||
+      details.blockAlign !== 4 ||
+      details.sampleFrameCount < 1
+    ) {
+      throw new Error(
+        'supplemental audio does not match the fixed 48 kHz stereo PCM policy',
+      )
+    }
   } finally {
     await handle.close()
   }
@@ -1219,6 +1253,86 @@ function validateStreamingVoicePlans(value, expected, fps) {
   })
 }
 
+function validateStreamingSupplementalAudioPlans(value, durationFrames) {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 16) {
+    throw new Error('streaming supplemental audio requires one to sixteen tracks')
+  }
+  const outputKeys = new Set()
+  const attachmentIds = new Set()
+  const markerIds = new Set()
+  let previousStartFrame = -1
+  let previousMarkerId = ''
+  let previousAttachmentId = ''
+  return value.map((candidate, index) => {
+    const track = exactObject(candidate, [
+      'outputKey', 'attachmentId', 'markerId', 'markerType',
+      'startFrame', 'endFrameExclusive', 'fillPolicy', 'mixProfileId',
+    ], `streaming supplemental audio plan ${index + 1}`)
+    const outputKey = safeIdentity(track.outputKey, 'supplemental audio outputKey')
+    const attachmentId = safeIdentity(
+      track.attachmentId,
+      'supplemental audio attachmentId',
+    )
+    const markerId = safeIdentity(track.markerId, 'supplemental audio markerId')
+    const startFrame = integer(
+      track.startFrame,
+      0,
+      durationFrames - 1,
+      'supplemental audio startFrame',
+    )
+    const endFrameExclusive = integer(
+      track.endFrameExclusive,
+      1,
+      durationFrames,
+      'supplemental audio endFrameExclusive',
+    )
+    const musicPolicy = track.markerType === 'music' &&
+      track.fillPolicy === 'loop_or_trim_to_window' &&
+      track.mixProfileId === 'speech_safe_uploaded_music_bed_v1'
+    const sfxPolicy = track.markerType === 'sfx' &&
+      track.fillPolicy === 'trim_without_loop' &&
+      track.mixProfileId === 'narration_protected_uploaded_sfx_v1'
+    if (
+      endFrameExclusive <= startFrame ||
+      (!musicPolicy && !sfxPolicy) ||
+      outputKeys.has(outputKey) ||
+      attachmentIds.has(attachmentId) ||
+      markerIds.has(markerId) ||
+      startFrame < previousStartFrame ||
+      (
+        startFrame === previousStartFrame &&
+        (
+          markerId.localeCompare(previousMarkerId) < 0 ||
+          (
+            markerId === previousMarkerId &&
+            attachmentId.localeCompare(previousAttachmentId) <= 0
+          )
+        )
+      )
+    ) {
+      throw new Error(
+        'streaming supplemental audio identity, order, placement, or mix policy is invalid',
+      )
+    }
+    outputKeys.add(outputKey)
+    attachmentIds.add(attachmentId)
+    markerIds.add(markerId)
+    previousStartFrame = startFrame
+    previousMarkerId = markerId
+    previousAttachmentId = attachmentId
+    return {
+      outputKey,
+      attachmentId,
+      markerId,
+      markerType: track.markerType,
+      startFrame,
+      endFrameExclusive,
+      fillPolicy: track.fillPolicy,
+      mixProfileId: track.mixProfileId,
+    }
+  })
+}
+
 function validateStreamingPlanningPayload(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('streaming planning payload must be an object')
@@ -1227,6 +1341,15 @@ function validateStreamingPlanningPayload(value) {
   const captionTrack = isCaptionTrackProfile(value.compositionProfileId)
   const replaceVoice = value.audioPolicy === 'replace_with_approved_voice_tracks'
   const sourceMediaPolicyProvided = Object.hasOwn(value, 'sourceMediaPolicy')
+  const supplementalAudioProvided =
+    Object.hasOwn(value, 'supplementalAudioPolicy') ||
+    Object.hasOwn(value, 'supplementalAudioTracks')
+  if (
+    Object.hasOwn(value, 'supplementalAudioPolicy') !==
+    Object.hasOwn(value, 'supplementalAudioTracks')
+  ) {
+    throw new Error('streaming supplemental audio policy and tracks must be paired')
+  }
   const deliveryMasterAuthorityProvided = Object.hasOwn(value, 'renderPurpose')
   if (sourceSequence) {
     const boundedSourceTransitions =
@@ -1239,6 +1362,9 @@ function validateStreamingPlanningPayload(value) {
       ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
       'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []),
       ...(replaceVoice ? ['voiceTracks'] : []),
+      ...(supplementalAudioProvided
+        ? ['supplementalAudioPolicy', 'supplementalAudioTracks']
+        : []),
       ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
     ], 'streaming source-sequence planning payload')
     const dimensions = `${payload.width}x${payload.height}`
@@ -1299,6 +1425,18 @@ function validateStreamingPlanningPayload(value) {
           fps,
         )
       : undefined
+    const supplementalAudioTracks = supplementalAudioProvided
+      ? validateStreamingSupplementalAudioPlans(
+          payload.supplementalAudioTracks,
+          durationFrames,
+        )
+      : undefined
+    if (
+      supplementalAudioProvided &&
+      payload.supplementalAudioPolicy !== 'approved_edit_brief_audio_tracks_v1'
+    ) {
+      throw new Error('streaming supplemental audio policy is unsupported')
+    }
     return {
       ...payload,
       width: integer(payload.width, 360, 3840, 'width'),
@@ -1312,6 +1450,12 @@ function validateStreamingPlanningPayload(value) {
         ? { captionOverlayCues: validateCaptionOverlayCues(payload.captionOverlayCues, durationFrames) }
         : {}),
       ...(voiceTracks ? { voiceTracks } : {}),
+      ...(supplementalAudioTracks
+        ? {
+            supplementalAudioPolicy: 'approved_edit_brief_audio_tracks_v1',
+            supplementalAudioTracks,
+          }
+        : {}),
     }
   }
 
@@ -1322,6 +1466,9 @@ function validateStreamingPlanningPayload(value) {
     ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
     ...(captionTrack ? ['captionOverlayCues'] : []),
     ...(replaceVoice ? ['voiceTracks'] : []),
+    ...(supplementalAudioProvided
+      ? ['supplementalAudioPolicy', 'supplementalAudioTracks']
+      : []),
     ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
   ], 'streaming single-source planning payload')
   if (!['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
@@ -1366,6 +1513,18 @@ function validateStreamingPlanningPayload(value) {
         durationFrames,
       }], fps)
     : undefined
+  const supplementalAudioTracks = supplementalAudioProvided
+    ? validateStreamingSupplementalAudioPlans(
+        payload.supplementalAudioTracks,
+        durationFrames,
+      )
+    : undefined
+  if (
+    supplementalAudioProvided &&
+    payload.supplementalAudioPolicy !== 'approved_edit_brief_audio_tracks_v1'
+  ) {
+    throw new Error('streaming supplemental audio policy is unsupported')
+  }
   return {
     ...payload,
     width: integer(payload.width, 360, 3840, 'width'),
@@ -1379,6 +1538,12 @@ function validateStreamingPlanningPayload(value) {
       ? { captionOverlayCues: validateCaptionOverlayCues(payload.captionOverlayCues, durationFrames) }
       : {}),
     ...(voiceTracks ? { voiceTracks } : {}),
+    ...(supplementalAudioTracks
+      ? {
+          supplementalAudioPolicy: 'approved_edit_brief_audio_tracks_v1',
+          supplementalAudioTracks,
+        }
+      : {}),
   }
 }
 
@@ -1413,10 +1578,11 @@ function validateStreamingManifest(value) {
   const captionTrack = isCaptionTrackProfile(planning.compositionProfileId)
   const replaceVoice = planning.audioPolicy === 'replace_with_approved_voice_tracks'
   const inputs = exactObject(request.inputs, [
-    'sources', 'captionOverlays', 'voiceTracks',
+    'sources', 'captionOverlays', 'voiceTracks', 'supplementalAudioTracks',
   ], 'streaming inputs')
   if (!Array.isArray(inputs.sources) || !Array.isArray(inputs.captionOverlays) ||
-      !Array.isArray(inputs.voiceTracks)) {
+      !Array.isArray(inputs.voiceTracks) ||
+      !Array.isArray(inputs.supplementalAudioTracks)) {
     throw new Error('streaming input commitments must be arrays')
   }
   const expectedSourceCount = sourceSequence ? planning.sourceSegments.length : 1
@@ -1519,7 +1685,61 @@ function validateStreamingManifest(value) {
       combinedVoiceBytes > MAXIMUM_STREAMING_COMBINED_VOICE_TRACK_BYTES) {
     throw new Error('streaming voice tracks exceed their combined ceiling')
   }
-  const commitments = [...sources, ...captionOverlays, ...voiceTracks]
+
+  const expectedSupplementalAudioTracks = planning.supplementalAudioTracks ?? []
+  if (inputs.supplementalAudioTracks.length !== expectedSupplementalAudioTracks.length) {
+    throw new Error('streaming supplemental audio count does not match approved planning')
+  }
+  const supplementalAudioTracks = inputs.supplementalAudioTracks.map(
+    (candidate, index) => {
+      const track = validateStreamingInputCommitment(
+        candidate,
+        [
+          'inputId', 'outputKey', 'attachmentId', 'markerId', 'markerType',
+          'startFrame', 'endFrameExclusive', 'fillPolicy', 'mixProfileId',
+          'mimeType', 'byteLength', 'sha256',
+        ],
+        'audio/wav',
+        44,
+        MAXIMUM_STREAMING_SUPPLEMENTAL_AUDIO_BYTES,
+        `streaming supplemental audio ${index + 1}`,
+      )
+      const expected = expectedSupplementalAudioTracks[index]
+      if (
+        !expected ||
+        candidate.outputKey !== expected.outputKey ||
+        candidate.attachmentId !== expected.attachmentId ||
+        candidate.markerId !== expected.markerId ||
+        candidate.markerType !== expected.markerType ||
+        candidate.startFrame !== expected.startFrame ||
+        candidate.endFrameExclusive !== expected.endFrameExclusive ||
+        candidate.fillPolicy !== expected.fillPolicy ||
+        candidate.mixProfileId !== expected.mixProfileId
+      ) {
+        throw new Error(
+          'streaming supplemental audio order diverges from approved planning',
+        )
+      }
+      return { ...track, ...expected }
+    },
+  )
+  const combinedSupplementalAudioBytes = supplementalAudioTracks.reduce(
+    (total, track) => total + track.byteLength,
+    0,
+  )
+  if (
+    !Number.isSafeInteger(combinedSupplementalAudioBytes) ||
+    combinedSupplementalAudioBytes >
+      MAXIMUM_STREAMING_COMBINED_SUPPLEMENTAL_AUDIO_BYTES
+  ) {
+    throw new Error('streaming supplemental audio exceeds its combined ceiling')
+  }
+  const commitments = [
+    ...sources,
+    ...captionOverlays,
+    ...voiceTracks,
+    ...supplementalAudioTracks,
+  ]
   const combinedInputBytes = commitments.reduce((total, input) => total + input.byteLength, 0)
   if (new Set(commitments.map((input) => input.inputId)).size !== commitments.length ||
       !Number.isSafeInteger(combinedInputBytes) ||
@@ -1532,7 +1752,7 @@ function validateStreamingManifest(value) {
     operationId: OPERATION,
     inputMode: STREAMING_INPUT_MODE,
     payload: planning,
-    inputs: { sources, captionOverlays, voiceTracks },
+    inputs: { sources, captionOverlays, voiceTracks, supplementalAudioTracks },
     commitments,
   }
 }
@@ -2109,13 +2329,21 @@ async function materializeStreamingRequest(manifest, reader, requestHash) {
       if (commitment.mimeType === 'audio/wav') {
         const voicePlan = manifest.inputs.voiceTracks.find((candidate) =>
           candidate.inputId === commitment.inputId)
-        if (!voicePlan) throw new Error('streaming voice commitment lost its approved plan')
-        await validatePcmVoiceTrackFile(
-          path,
-          commitment.byteLength,
-          voicePlan.durationFrames,
-          manifest.payload.fps,
+        const supplementalPlan = manifest.inputs.supplementalAudioTracks.find(
+          (candidate) => candidate.inputId === commitment.inputId,
         )
+        if (voicePlan) {
+          await validatePcmVoiceTrackFile(
+            path,
+            commitment.byteLength,
+            voicePlan.durationFrames,
+            manifest.payload.fps,
+          )
+        } else if (supplementalPlan) {
+          await validatePcmSupplementalAudioFile(path, commitment.byteLength)
+        } else {
+          throw new Error('streaming audio commitment lost its approved plan')
+        }
       }
       materialized.push({ ...commitment, path })
     }
@@ -2139,6 +2367,12 @@ async function materializeStreamingRequest(manifest, reader, requestHash) {
       ...voice,
       voiceTrackInternalFilePath: byInputId.get(voice.inputId).path,
     }))
+    const supplementalAudioTracks = manifest.inputs.supplementalAudioTracks.map(
+      (track) => ({
+        ...track,
+        supplementalAudioInternalFilePath: byInputId.get(track.inputId).path,
+      }),
+    )
     const sourceSequence = isSourceSequenceProfile(manifest.payload.compositionProfileId)
     const captionTrack = isCaptionTrackProfile(manifest.payload.compositionProfileId)
     const replaceVoice = manifest.payload.audioPolicy === 'replace_with_approved_voice_tracks'
@@ -2161,6 +2395,9 @@ async function materializeStreamingRequest(manifest, reader, requestHash) {
                     captionOverlayInternalFilePath: captionOverlays[0].captionOverlayInternalFilePath,
                   }),
               ...(replaceVoice ? { voiceTracks } : {}),
+              ...(supplementalAudioTracks.length > 0
+                ? { supplementalAudioTracks }
+                : {}),
             }
           : {
               ...manifest.payload,
@@ -2177,6 +2414,9 @@ async function materializeStreamingRequest(manifest, reader, requestHash) {
                     captionOverlayInternalFilePath: captionOverlays[0].captionOverlayInternalFilePath,
                   }),
               ...(replaceVoice ? { voiceTracks } : {}),
+              ...(supplementalAudioTracks.length > 0
+                ? { supplementalAudioTracks }
+                : {}),
             },
       },
       materialized,
@@ -2309,7 +2549,24 @@ async function execute(request, options = {}) {
                 track.byteLength,
               ),
             }))
-          : [],
+	          : [],
+        {
+          supplementalAudioTracks:
+            !longFormMerge && !deliveryH264Chunk &&
+            Array.isArray(request.payload.supplementalAudioTracks)
+              ? request.payload.supplementalAudioTracks.map((track) => ({
+                  outputKey: track.outputKey,
+                  attachmentId: track.attachmentId,
+                  markerId: track.markerId,
+                  ...committedMediaLocation(
+                    track,
+                    'bytesBase64',
+                    'supplementalAudioInternalFilePath',
+                    track.byteLength,
+                  ),
+                }))
+              : [],
+        },
       )
     : layered || animatic || routeDraw
       ? await openPrivateLoopbackMediaServer([], [], [], {
@@ -2364,6 +2621,26 @@ async function execute(request, options = {}) {
         })),
       }
     : {}
+  const supplementalAudioRenderPayload =
+    Array.isArray(request.payload.supplementalAudioTracks) &&
+    request.payload.supplementalAudioTracks.length > 0
+      ? {
+          supplementalAudioTracks: request.payload.supplementalAudioTracks.map(
+            (track, index) => ({
+              outputKey: track.outputKey,
+              attachmentId: track.attachmentId,
+              markerId: track.markerId,
+              markerType: track.markerType,
+              startFrame: track.startFrame,
+              endFrameExclusive: track.endFrameExclusive,
+              fillPolicy: track.fillPolicy,
+              mixProfileId: track.mixProfileId,
+              supplementalAudioInternalUrl:
+                `${mediaServer.origin}/supplemental/${index}.wav`,
+            }),
+          ),
+        }
+      : {}
   const renderPayload = scenePreview
     ? request.payload
     : layered
@@ -2477,6 +2754,7 @@ async function execute(request, options = {}) {
         })),
         ...captionRenderPayload,
         ...voiceRenderPayload,
+        ...supplementalAudioRenderPayload,
       }
     : finalComposition
     ? {
@@ -2491,6 +2769,7 @@ async function execute(request, options = {}) {
         sourceInternalUrl: `${mediaServer.origin}/source/0.${sourceExtension(request.payload.sourceMimeType)}`,
         ...captionRenderPayload,
         ...voiceRenderPayload,
+        ...supplementalAudioRenderPayload,
       }
     : request.payload
   let retainStreamingOutput = false
@@ -2710,6 +2989,19 @@ async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks, mo
         return
       }
       serveCommittedMedia(request, response, voiceTrack, 'audio/wav')
+      return
+    }
+    const supplementalAudioMatch =
+      /^\/supplemental\/(\d+)\.wav$/.exec(request.url)
+    if (supplementalAudioMatch) {
+      const track = motionAssets.supplementalAudioTracks?.[
+        Number(supplementalAudioMatch[1])
+      ]
+      if (!track) {
+        response.writeHead(404).end()
+        return
+      }
+      serveCommittedMedia(request, response, track, 'audio/wav')
       return
     }
     if (request.url === '/motion/subject.png' && motionAssets.subject) {
@@ -2963,6 +3255,10 @@ function semanticEvidence(request, streaming) {
       ...(request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
         ? { approvedVoiceTrackInputStreamedWithoutWholeBuffer: true }
         : {}),
+      ...(Array.isArray(request.payload.supplementalAudioTracks) &&
+        request.payload.supplementalAudioTracks.length > 0
+        ? { approvedSupplementalAudioInputStreamedWithoutWholeBuffer: true }
+        : {}),
     } : {}),
     ...(request.payload.renderPurpose === 'private_4k_delivery_master_v1'
       ? {
@@ -3013,6 +3309,14 @@ function semanticEvidence(request, streaming) {
                 approvedVoiceTrackTimelineApplied: true,
               }
             : { sourceAudioPreservationRequested: true }),
+          ...(Array.isArray(request.payload.supplementalAudioTracks) &&
+            request.payload.supplementalAudioTracks.length > 0
+            ? {
+                approvedSupplementalAudioBytesVerified: true,
+                approvedSupplementalAudioTimelineApplied: true,
+                approvedSupplementalAudioSpeechSafeMixApplied: true,
+              }
+            : {}),
           ...(isCaptionTrackProfile(request.payload.compositionProfileId)
             ? { approvedCaptionTrackTimingApplied: true }
             : {}),
@@ -3042,6 +3346,14 @@ function semanticEvidence(request, streaming) {
                   approvedVoiceTrackTimelineApplied: true,
                 }
               : { sourceAudioPreservationRequested: true }),
+            ...(Array.isArray(request.payload.supplementalAudioTracks) &&
+              request.payload.supplementalAudioTracks.length > 0
+              ? {
+                  approvedSupplementalAudioBytesVerified: true,
+                  approvedSupplementalAudioTimelineApplied: true,
+                  approvedSupplementalAudioSpeechSafeMixApplied: true,
+                }
+              : {}),
             ...(isCaptionTrackProfile(request.payload.compositionProfileId)
               ? { approvedCaptionTrackTimingApplied: true }
               : {}),

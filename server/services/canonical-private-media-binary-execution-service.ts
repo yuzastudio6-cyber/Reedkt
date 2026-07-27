@@ -28,6 +28,7 @@ import {
   validateOfflineFfprobePlanningPayload,
   validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload,
   type OfflineFfmpegExecutionResult,
+  type OfflineFfmpegEditBriefAudioPlanningPayload,
   type OfflineFfmpegStreamingOutputExecutionResult,
   type OfflineFfmpegColorMatchDeliveryPlanningPayload,
   type OfflineFfmpegStorytellingSpeechTakeNormalizationPlanningPayload,
@@ -72,6 +73,10 @@ import {
   type CanonicalPrivateDependencyArtifactStreamReadResult,
   type CanonicalPrivateDependencyProviderOutputEvidence,
 } from './canonical-private-dependency-artifact-read-service'
+import {
+  createCanonicalPrivateEditBriefAudioObjectReadService,
+  type CanonicalPrivateEditBriefAudioObjectReadResult,
+} from './canonical-private-edit-brief-audio-object-read-service'
 import { createCanonicalPrivateSourceObjectReadService } from './canonical-private-source-object-read-service'
 import type {
   CanonicalPrivateStagedSourceReadResult,
@@ -842,11 +847,21 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         ? assertCanonicalStorytellingSpeechNormalizationWorkItem(workItem)
         : undefined
       const storytellingSpeechNormalization = Boolean(storytellingSpeechPayload)
+      const editBriefAudioAttachmentProcessing =
+        ffmpegPlanningPayload?.recipeProfileId ===
+          'approved_edit_brief_music_bed_wav_v1' ||
+        ffmpegPlanningPayload?.recipeProfileId ===
+          'approved_edit_brief_sfx_wav_v1'
+      const editBriefAudioPlanningPayload =
+        editBriefAudioAttachmentProcessing
+          ? ffmpegPlanningPayload as OfflineFfmpegEditBriefAudioPlanningPayload
+          : undefined
       const contentType = visualCalibrationObjectiveQa
         ? 'application/json' as const
         : toolId === 'ffmpeg'
         ? ffmpegPlanningPayload?.recipeProfileId === 'approved_voice_delivery_wav_v1' ||
-          storytellingSpeechNormalization
+          storytellingSpeechNormalization ||
+          editBriefAudioAttachmentProcessing
           ? 'audio/wav' as const
           : [
               'approved_source_color_delivery_matroska_v1',
@@ -879,6 +894,16 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           binding.expectedOutput.assetRole !== 'processed' ||
           binding.expectedOutput.contentType !== 'audio/wav'
         )) ||
+        (editBriefAudioAttachmentProcessing && (
+          workItem.workItemType !== 'process_audio_asset' ||
+          workItem.executionInput.operation !==
+            'process_approved_edit_brief_audio_attachment' ||
+          workItem.sourceSequenceItemIds.length !== 0 ||
+          workItem.sourceCleanupDecisionIds.length !== 0 ||
+          workItem.dependencyKeys.length !== 0 ||
+          binding.expectedOutput.assetRole !== 'processed' ||
+          binding.expectedOutput.contentType !== 'audio/wav'
+        )) ||
         (visualCalibrationObjectiveQa && (
           workItem.sourceSequenceItemIds.length !== 0 ||
           workItem.sourceCleanupDecisionIds.length !== 0 ||
@@ -887,6 +912,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           binding.expectedOutput.contentType !== 'application/json'
         )) ||
         (!dependencyFinalQa && !storytellingSpeechNormalization &&
+          !editBriefAudioAttachmentProcessing &&
           !visualCalibrationObjectiveQa && (
           workItem.sourceSequenceItemIds.length !== 1 ||
           workItem.sourceCleanupDecisionIds.length !== 1 ||
@@ -913,6 +939,8 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         !runtimeAuthority || !runtimeAuthority.readiness.privateInternalExecutionReady ||
         (storytellingSpeechNormalization &&
           !runtimeAuthority.readiness.privateInternalStorytellingSpeechNormalizationReady) ||
+        (editBriefAudioAttachmentProcessing &&
+          !runtimeAuthority.readiness.privateInternalEditBriefAudioReady) ||
         (visualCalibrationObjectiveQa &&
           !runtimeAuthority.readiness.privateInternalVisualCalibrationObjectiveQaReady) ||
         runtimeAuthority.readiness.productReady || runtimeAuthority.readiness.finalExportReady ||
@@ -941,6 +969,8 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       let visualProviderEvidence: VisualCalibrationProviderDependencyEvidence |
         undefined
       let sourceRead: CanonicalPrivateStagedSourceReadResult | undefined
+      let editBriefAudioRead:
+        CanonicalPrivateEditBriefAudioObjectReadResult | undefined
       let stagedSourceSet: CanonicalPrivateStagedSourceSet | undefined
       let finalMediaExpectation: CanonicalPrivateFinalMediaExpectation | undefined
       let inputByteLength: number
@@ -1100,6 +1130,21 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
             alignment: alignmentDependencyRead,
             payload: storytellingSpeechPayload!,
           })
+        } else if (editBriefAudioAttachmentProcessing) {
+          editBriefAudioRead =
+            await createCanonicalPrivateEditBriefAudioObjectReadService(
+              context,
+            ).readExactApprovedAttachment({
+              workspaceId: body.workspaceId,
+              projectId: body.projectId,
+              editSessionId: body.editSessionId,
+              snapshotId: authority.snapshot.snapshotId,
+              jobId: body.jobId,
+              executionAttemptId,
+              dispatchGrantId: body.grantId,
+              authority,
+              approvedWorkItemId: workItem.id,
+            })
         } else {
           stagedSourceSet = await createCanonicalPrivateSourceObjectReadService(context)
             .stageExactApprovedSource({
@@ -1134,8 +1179,12 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
             })
           }
         }
-        inputByteLength = dependencyRead?.byteLength ?? sourceRead!.byteLength
-        inputSha256 = dependencyRead?.sha256 ?? sourceRead!.sha256
+        inputByteLength = dependencyRead?.byteLength ??
+          editBriefAudioRead?.byteLength ??
+          sourceRead!.byteLength
+        inputSha256 = dependencyRead?.sha256 ??
+          editBriefAudioRead?.sha256 ??
+          sourceRead!.sha256
         inputReadEvidenceHash = visualCalibrationObjectiveQa
           ? sha256ArtifactQaValue({
               domain:
@@ -1177,7 +1226,9 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
               referenceDependencyReadEvidenceHash:
                 referenceDependencyRead.dependencyReadEvidenceHash,
             })
-          : dependencyRead?.dependencyReadEvidenceHash ?? sourceRead!.sourceReadEvidenceHash
+          : editBriefAudioRead?.sourceReadEvidenceHash ??
+            dependencyRead?.dependencyReadEvidenceHash ??
+            sourceRead!.sourceReadEvidenceHash
         const privateObjectIdentityFor = (contentSha256: string) => sha256ArtifactQaValue({
           domain: 'canonical_private_media_binary_artifact_v1',
           workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
@@ -1187,6 +1238,8 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
             ? 'verified_visual_calibration_provider_output'
             : storytellingSpeechNormalization
             ? 'verified_storytelling_speech_provider_output_set'
+            : editBriefAudioAttachmentProcessing
+            ? 'approved_edit_brief_audio_attachment'
             : dependencyFinalQa
             ? 'qa_passed_dependency_artifact'
             : referenceDependencyRead
@@ -1208,6 +1261,8 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         const sourcePayload = {
           mimeType: storytellingSpeechNormalization
             ? 'audio/mpeg' as const
+            : editBriefAudioRead
+            ? editBriefAudioRead.mimeType
             : 'video/mp4' as const,
           sourceByteLength: inputByteLength,
           sourceSha256: inputSha256,
@@ -1220,7 +1275,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
               sha256: dependencyRead.sha256,
               openStream: dependencyRead.openStream,
             }
-          : sourceRead!.sourceInput
+          : editBriefAudioRead?.sourceInput ?? sourceRead!.sourceInput
         if (visualCalibrationObjectiveQa) {
           const visualRequest =
             buildOfflineMediaBinaryVisualCalibrationObjectiveQaRequest({
@@ -1364,6 +1419,8 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           ? 'verified_visual_calibration_provider_output'
           : storytellingSpeechNormalization
           ? 'verified_storytelling_speech_provider_output_set'
+          : editBriefAudioAttachmentProcessing
+          ? 'approved_edit_brief_audio_attachment'
           : dependencyFinalQa
           ? 'qa_passed_dependency_artifact'
           : referenceDependencyRead
@@ -1496,6 +1553,12 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
               byteLength: alignmentDependencyRead!.byteLength,
             },
           ]
+        : editBriefAudioRead
+        ? [{
+            artifactId: editBriefAudioRead.privateAssetId,
+            sha256: editBriefAudioRead.sha256,
+            byteLength: editBriefAudioRead.byteLength,
+          }]
         : dependencyFinalQa
         ? [{
             artifactId: dependencyRead!.artifactId,
@@ -1688,6 +1751,26 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           customerPriceIncluded: false as const,
           customerCreditsIncluded: false as const,
           serviceFeeIncluded: false as const,
+          renderExecuted: false as const,
+          finalExportExecuted: false as const,
+        } : editBriefAudioRead ? {
+          canonicalToolId: toolId,
+          operationId: binding.operationId,
+          actualBinaryOperationCompleted: true as const,
+          providerCallMade: false as const,
+          inputKind: 'approved_edit_brief_audio_attachment' as const,
+          sourceObjectRead: false as const,
+          dependencyArtifactRead: false as const,
+          editBriefAudioObjectRead: true as const,
+          sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+          inputReadEvidenceHash,
+          inputArtifactSha256: inputSha256,
+          inputArtifactByteLength: inputByteLength,
+          attachmentId: editBriefAudioRead.attachmentId,
+          markerId: editBriefAudioRead.markerId,
+          privateAssetId: editBriefAudioRead.privateAssetId,
+          attachmentMimeType: editBriefAudioRead.mimeType,
+          recipeProfileId: editBriefAudioPlanningPayload!.recipeProfileId,
           renderExecuted: false as const,
           finalExportExecuted: false as const,
         } : dependencyFinalQa ? {

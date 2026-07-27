@@ -174,6 +174,28 @@ export async function appendCanonicalEditBriefMarkerMessage(
   )
 }
 
+export async function addCanonicalEditBriefAudioAttachment(
+  scope: CanonicalEditBriefScope,
+  input: {
+    expectedRevision: number
+    markerId: string
+    privateAssetId: string
+  },
+): Promise<CanonicalEditBriefClientResult<CanonicalEditBriefAuthorityReadResponse>> {
+  return mutateMarkerAuthority(
+    'planning.editBriefMarker.audioAttachment.create',
+    'marker-audio-attachment',
+    scope,
+    input.expectedRevision,
+    {
+      workspaceId: scope.workspaceId,
+      expectedRevision: input.expectedRevision,
+      privateAssetId: input.privateAssetId,
+    },
+    input.markerId,
+  )
+}
+
 async function mutateMarkerAuthority(
   routeId: string,
   operation: string,

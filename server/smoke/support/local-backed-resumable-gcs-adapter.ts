@@ -19,6 +19,7 @@ interface SessionRecord {
   bucketName: string
   objectPath: string
   mimeType: string
+  etag: string
   expectedSizeBytes: number
   localFilePath: string
   committedBytes: number
@@ -63,6 +64,7 @@ export class LocalBackedResumableGcsTestAdapter implements StorageAdapter {
       bucketName: input.bucketName,
       objectPath: input.objectPath,
       mimeType: input.mimeType,
+      etag: '',
       expectedSizeBytes: input.expectedSizeBytes ?? 0,
       localFilePath: path.join(this.providerRoot, 'objects', `${sessionId}.bin`),
       committedBytes: 0,
@@ -149,7 +151,8 @@ export class LocalBackedResumableGcsTestAdapter implements StorageAdapter {
       (input.expectedSizeBytes !== undefined && authority.sizeBytes !== input.expectedSizeBytes) ||
       (input.checksumSha256 !== undefined && authority.checksumSha256 !== input.checksumSha256)
     ) throw new Error('Local-backed GCS object failed stored-byte verification.')
-    this.etag = `"${authority.checksumSha256}"`
+    record.etag = `"${authority.checksumSha256}"`
+    this.etag = record.etag
     return this.metadata(record, authority)
   }
 
@@ -162,7 +165,7 @@ export class LocalBackedResumableGcsTestAdapter implements StorageAdapter {
     etag?: string
   }): Promise<DownloadTarget> {
     const record = this.requiredObject(input.bucketName, input.objectPath)
-    this.assertIdentity(input)
+    this.assertIdentity(record, input)
     return {
       downloadMethod: 'GET',
       downloadUrl: `https://storage.example.invalid/private-download/${path.basename(record.localFilePath)}`,
@@ -171,7 +174,7 @@ export class LocalBackedResumableGcsTestAdapter implements StorageAdapter {
       objectPath: input.objectPath,
       temporary: true,
       generation: this.generation,
-      etag: this.etag,
+      etag: record.etag,
     }
   }
 
@@ -180,8 +183,8 @@ export class LocalBackedResumableGcsTestAdapter implements StorageAdapter {
     objectPath: string,
     identity?: ObjectReadIdentity,
   ): Promise<ObjectMetadata> {
-    this.assertIdentity(identity)
     const record = this.requiredObject(bucketName, objectPath)
+    this.assertIdentity(record, identity)
     return this.metadata(record, await inspectLocalMediaFileAuthority(record.localFilePath))
   }
 
@@ -190,8 +193,8 @@ export class LocalBackedResumableGcsTestAdapter implements StorageAdapter {
     objectPath: string,
     identity?: ObjectReadIdentity,
   ): Promise<Readable> {
-    this.assertIdentity(identity)
     const record = this.requiredObject(bucketName, objectPath)
+    this.assertIdentity(record, identity)
     this.createReadStreamCalls += 1
     const counter = new Transform({
       transform: (chunk: Buffer, _encoding, callback) => {
@@ -207,8 +210,8 @@ export class LocalBackedResumableGcsTestAdapter implements StorageAdapter {
     objectPath: string,
     identity?: ObjectReadIdentity,
   ): Promise<{ deleted: boolean; warnings: string[] }> {
-    this.assertIdentity(identity)
     const record = this.requiredObject(bucketName, objectPath)
+    this.assertIdentity(record, identity)
     await rm(record.localFilePath, { force: true })
     return { deleted: true, warnings: [] }
   }
@@ -237,12 +240,15 @@ export class LocalBackedResumableGcsTestAdapter implements StorageAdapter {
     return record
   }
 
-  private assertIdentity(identity?: ObjectReadIdentity): void {
+  private assertIdentity(
+    record: SessionRecord,
+    identity?: ObjectReadIdentity,
+  ): void {
     if (!identity) return
     if (identity.generation !== undefined && identity.generation !== this.generation) {
       throw new Error('Local-backed GCS generation identity changed.')
     }
-    if (identity.etag !== undefined && identity.etag !== this.etag) {
+    if (identity.etag !== undefined && identity.etag !== record.etag) {
       throw new Error('Local-backed GCS ETag identity changed.')
     }
   }
@@ -259,7 +265,7 @@ export class LocalBackedResumableGcsTestAdapter implements StorageAdapter {
       mimeType: record.mimeType,
       exists: true,
       generation: this.generation,
-      etag: this.etag,
+      etag: record.etag,
       metageneration: '1',
       integrityVerified: true,
       checksumSource: 'server_computed_bytes',

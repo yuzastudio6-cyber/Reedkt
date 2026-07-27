@@ -3,6 +3,7 @@ import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import {
   addEditBriefAttachmentSchema,
+  addFinalizedEditBriefAudioAttachmentSchema,
   appendEditBriefMarkerMessageSchema,
   buildEditBriefMarkerContextSchema,
   createEditBriefMarkerSchema,
@@ -58,6 +59,12 @@ import { authorizeWorkspaceAccess } from './workspace-access-service'
 import {
   assertEditBriefPrivateWorkspaceRuntimePort,
 } from './edit-brief-private-workspace-runtime-port'
+import { createUploadService } from './upload-service'
+import type {
+  PrivateMediaAssetAuthorityRecord,
+  PrivateStorageObjectAuthorityRecord,
+  PrivateUploadIntentAuthorityRecord,
+} from '../validation/private-upload-media-authority-schemas'
 
 export const EDIT_BRIEF_AUTHORITY_CAPABILITY = {
   persistence: 'mock_local',
@@ -78,6 +85,15 @@ const DEFAULT_DO_NOT_COPY_RULES = [
   'Do not copy creator identity, faces, logos, brand marks, watermarks, copyrighted music, or proprietary graphics.',
   'Transfer professional editing principles only and adapt them to this edit source and the latest explicit instruction.',
 ] as const
+
+const MAX_EDIT_BRIEF_AUDIO_ATTACHMENT_BYTES = 64 * 1024 * 1024
+const MAX_EDIT_BRIEF_AUDIO_ATTACHMENT_SECONDS = 60 * 60
+const EDIT_BRIEF_AUDIO_ATTACHMENT_MIME_TYPES = new Set([
+  'audio/aac',
+  'audio/mpeg',
+  'audio/wav',
+  'audio/x-wav',
+])
 
 export interface EditBriefAuthorityPublicationBinding {
   schemaVersion: 'edit-brief-authority-publication-binding-v1'
@@ -305,6 +321,19 @@ export function createEditBriefAuthorityService(
             priority: marker.priority, title: marker.title, note: marker.note,
             ...markerPatch,
           })
+          if (
+            merged.markerType !== 'music'
+            && merged.markerType !== 'sfx'
+            && aggregate.attachments.some(
+              (entry) => entry.markerId === marker.id && entry.kind === 'audio',
+            )
+          ) {
+            throw new ApiError(
+              'VALIDATION_FAILED',
+              'A direction with attached private audio must remain Music or Sound effect.',
+              409,
+            )
+          }
           Object.assign(marker, merged, { status: 'draft' as const, confirmedAt: undefined, revision: marker.revision + 1 })
           frameMarker(marker, aggregate.exportSettings, timestamp)
           invalidateDerived(aggregate)
@@ -422,6 +451,108 @@ export function createEditBriefAuthorityService(
           invalidateDerived(aggregate)
           appendMutationEvidence(aggregate, scope, 'add_attachment', body.idempotencyKey, requestHash, attachment.id, 'attachment', timestamp)
           return { result: { attachment: cloneJson(attachment), aggregateRevision: aggregate.revision + 1, replayed: false }, changed: true }
+        },
+      })
+      return resultEnvelope(result)
+    },
+
+    async addFinalizedAudioAttachment(input: unknown) {
+      const body = parse(addFinalizedEditBriefAudioAttachmentSchema, input)
+      const scope = await authorizeScope(
+        context,
+        body.workspaceId,
+        body.projectId,
+        body.editSessionId,
+        'write',
+      )
+      const finalizedAuthority = await createUploadService(context).getFinalizedSourceMediaAsset(
+        body.privateAssetId,
+        scope.workspaceId,
+        scope.projectId,
+        'reference_media',
+      )
+      const audio = requireFinalizedEditBriefAudioAttachment(finalizedAuthority)
+      const requestHash = mutationHash('add_finalized_audio_attachment', scope, {
+        ...body,
+        finalizedAudio: audio,
+      })
+      const timestamp = nowIso()
+      const result = await mutatePrivateEditBriefAuthorityAggregate({
+        scope,
+        expectedRevision: body.expectedRevision,
+        now: timestamp,
+        replay: (aggregate) => replayEntity(
+          aggregate,
+          'add_finalized_audio_attachment',
+          body.idempotencyKey,
+          requestHash,
+          'attachment',
+          (id) => {
+            const attachment = aggregate.attachments.find((entry) => entry.id === id)
+            if (!attachment) throw replayUnavailable()
+            return {
+              attachment: cloneJson(attachment),
+              aggregateRevision: aggregate.revision,
+              replayed: true,
+            }
+          },
+        ),
+        mutation: (aggregate) => {
+          assertMutable(aggregate)
+          const marker = requireActiveMarker(aggregate, body.markerId)
+          if (marker.markerType !== 'music' && marker.markerType !== 'sfx') {
+            throw new ApiError(
+              'VALIDATION_FAILED',
+              'Private audio can be attached only to a Music or Sound effect direction.',
+              400,
+            )
+          }
+          if (aggregate.attachments.length >= MAX_EDIT_BRIEF_ATTACHMENTS) {
+            throw capacityError('attachment')
+          }
+          if (aggregate.attachments.some(
+            (entry) => entry.markerId === marker.id && entry.kind === 'audio',
+          )) {
+            throw new ApiError(
+              'IDEMPOTENCY_CONFLICT',
+              'This direction already has a private audio attachment.',
+              409,
+            )
+          }
+          assertMutationCapacity(aggregate)
+          const attachment: EditBriefAttachmentRecord = {
+            privateAssetId: audio.privateAssetId,
+            label: marker.markerType === 'music'
+              ? 'Uploaded soundtrack'
+              : 'Uploaded sound effect',
+            kind: 'audio',
+            mimeType: audio.mimeType,
+            durationSeconds: audio.durationSeconds,
+            id: createEditBriefAuthorityId('marker_attachment'),
+            markerId: marker.id,
+            createdAt: timestamp,
+          }
+          aggregate.attachments.push(attachment)
+          resetMarkerConfirmation(marker, timestamp)
+          invalidateDerived(aggregate)
+          appendMutationEvidence(
+            aggregate,
+            scope,
+            'add_finalized_audio_attachment',
+            body.idempotencyKey,
+            requestHash,
+            attachment.id,
+            'attachment',
+            timestamp,
+          )
+          return {
+            result: {
+              attachment: cloneJson(attachment),
+              aggregateRevision: aggregate.revision + 1,
+              replayed: false,
+            },
+            changed: true,
+          }
         },
       })
       return resultEnvelope(result)
@@ -611,10 +742,19 @@ export function createEditBriefAuthorityService(
             .sort((left, right) => left.startSeconds - right.startSeconds)
             .map((marker) => {
               const intent = aggregate.markerIntents.find((entry) => entry.markerId === marker.id)
+              const attachedAudioAssetIds = marker.markerType === 'music' || marker.markerType === 'sfx'
+                ? aggregate.attachments
+                    .filter((entry) => entry.markerId === marker.id && entry.kind === 'audio')
+                    .map((entry) => entry.privateAssetId)
+                : []
               return {
                 markerId: marker.id, markerType: marker.markerType, startSeconds: marker.startSeconds,
                 endSeconds: marker.endSeconds, startFrame: marker.startFrame, endFrame: marker.endFrame,
-                instruction: intent?.instruction ?? marker.note, requiredPrivateAssetIds: intent?.requiredPrivateAssetIds ?? [],
+                instruction: intent?.instruction ?? marker.note,
+                requiredPrivateAssetIds: uniqueStrings([
+                  ...(intent?.requiredPrivateAssetIds ?? []),
+                  ...attachedAudioAssetIds,
+                ]),
               }
             })
           const sourceContextRefs = latestContextPackagesByMarker(aggregate)
@@ -1329,6 +1469,83 @@ function uniqueStrings(values: readonly string[]): string[] {
     seen.add(normalized)
     return true
   })
+}
+
+function requireFinalizedEditBriefAudioAttachment(authority: {
+  uploadIntent: PrivateUploadIntentAuthorityRecord
+  mediaAsset: PrivateMediaAssetAuthorityRecord
+  storageObject: PrivateStorageObjectAuthorityRecord
+}): {
+  privateAssetId: string
+  mimeType: string
+  durationSeconds: number
+  sizeBytes: number
+  checksumSha256: string
+} {
+  const { mediaAsset, storageObject, uploadIntent } = authority
+  const mimeType = mediaAsset.mimeType.trim().toLocaleLowerCase()
+  const metadata = mediaAsset.sourceMetadata
+  if (
+    uploadIntent.uploadPurpose !== 'reference_media'
+    || mediaAsset.uploadPurpose !== 'reference_media'
+    || storageObject.uploadPurpose !== 'reference_media'
+    || storageObject.objectPurpose !== 'reference_media'
+    || mediaAsset.id !== storageObject.mediaAssetId
+    || mediaAsset.uploadIntentId !== uploadIntent.id
+    || storageObject.uploadIntentId !== uploadIntent.id
+    || mediaAsset.integrityVerified !== true
+    || storageObject.integrityVerified !== true
+    || mediaAsset.checksumSource !== 'server_computed_bytes'
+    || storageObject.checksumSource !== 'server_computed_bytes'
+    || mediaAsset.checksumSha256 !== storageObject.checksumSha256
+    || mediaAsset.sizeBytes !== storageObject.sizeBytes
+  ) {
+    throw new ApiError(
+      'UPLOAD_NOT_FINALIZED',
+      'The private audio attachment no longer matches its finalized upload authority.',
+      409,
+    )
+  }
+  if (!EDIT_BRIEF_AUDIO_ATTACHMENT_MIME_TYPES.has(mimeType)) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Choose a finalized WAV, MP3, or AAC audio file for this direction.',
+      400,
+    )
+  }
+  if (
+    !metadata
+    || metadata.probeStatus !== 'probed'
+    || metadata.hasAudio !== true
+    || metadata.hasVideo !== false
+    || !Number.isFinite(metadata.durationSeconds)
+    || (metadata.durationSeconds ?? 0) <= 0
+    || (metadata.durationSeconds ?? 0) > MAX_EDIT_BRIEF_AUDIO_ATTACHMENT_SECONDS
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'The finalized attachment must be an audio-only file with verified duration metadata.',
+      400,
+    )
+  }
+  if (
+    !Number.isSafeInteger(mediaAsset.sizeBytes)
+    || mediaAsset.sizeBytes <= 0
+    || mediaAsset.sizeBytes > MAX_EDIT_BRIEF_AUDIO_ATTACHMENT_BYTES
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Edit Brief audio attachments are limited to 64 MiB.',
+      400,
+    )
+  }
+  return {
+    privateAssetId: mediaAsset.id,
+    mimeType,
+    durationSeconds: metadata.durationSeconds!,
+    sizeBytes: mediaAsset.sizeBytes,
+    checksumSha256: mediaAsset.checksumSha256,
+  }
 }
 
 function parseExactScopeId(value: string, label: string): string {

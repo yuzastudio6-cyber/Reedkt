@@ -27,6 +27,12 @@ import {
 import type {
   CanonicalExactEditPlanningAuthorityRead,
 } from '../../src/types/canonical-exact-edit-planning-authority'
+import type {
+  CanonicalEditBriefAudioPlanningInput,
+} from '../../src/types/edit-brief-authority'
+import {
+  buildCanonicalEditBriefAudioPlanningBinding,
+} from '../../src/lib/canonical-edit-brief-audio-planning'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
 import {
   resolveCanonicalExactEditPreferenceInstruction,
@@ -246,6 +252,11 @@ function resolveEditBriefBinding(
 ) {
   if (!aggregate) {
     if (expectation.status !== 'not_used') throw stalePlanningAuthority('Expected Edit Brief authority does not exist.')
+    if (components.editBriefAudioPlanning) {
+      throw stalePlanningAuthority(
+        'Edit Brief audio planning cannot exist without the exact saved Edit Brief authority.',
+      )
+    }
     return {
       status: 'not_used' as const,
       deterministicHash: sha256AuthorityValue({
@@ -288,6 +299,7 @@ function resolveEditBriefBinding(
     })
   }
   assertEditBriefFrameMatchesCanonical(aggregate, components)
+  assertEditBriefAudioPlanningMatchesCanonical(aggregate, components)
   const planHint = [...aggregate.planHintPackages].reverse().find((candidate) =>
     candidate.authorityInputHash === publicationBinding.authorityInputHash &&
     candidate.readiness === 'ready_for_planning'
@@ -324,6 +336,80 @@ function resolveEditBriefBinding(
     ...resolvedWithoutHash,
     deterministicHash: sha256AuthorityValue(resolvedWithoutHash),
   }
+}
+
+export function assertEditBriefAudioPlanningMatchesCanonical(
+  aggregate: PrivateEditBriefAuthorityAggregate,
+  components: Pick<
+    CanonicalPlanComponentsInput,
+    'editBriefAudioPlanning' | 'timingSummary'
+  >,
+): void {
+  const markers = new Map(aggregate.markers.map((marker) => [marker.id, marker]))
+  const inputs: CanonicalEditBriefAudioPlanningInput[] = []
+  for (const attachment of aggregate.attachments) {
+    if (attachment.kind !== 'audio') continue
+    const marker = markers.get(attachment.markerId)
+    if (!marker) {
+      throw stalePlanningAuthority(
+        'An Edit Brief audio attachment no longer resolves to its saved marker.',
+      )
+    }
+    if (marker.status === 'archived') continue
+    if (
+      marker.status !== 'confirmed'
+      || (marker.markerType !== 'music' && marker.markerType !== 'sfx')
+      || !isCanonicalEditBriefAudioMimeType(attachment.mimeType)
+      || !Number.isFinite(attachment.durationSeconds)
+      || Number(attachment.durationSeconds) <= 0
+    ) {
+      throw stalePlanningAuthority(
+        'Review and reconfirm every active Edit Brief audio attachment before planning.',
+      )
+    }
+    inputs.push({
+      attachmentId: attachment.id,
+      markerId: marker.id,
+      markerType: marker.markerType,
+      markerTimeKind: marker.timeKind,
+      privateAssetId: attachment.privateAssetId,
+      startSeconds: marker.startSeconds,
+      ...(marker.endSeconds === undefined ? {} : { endSeconds: marker.endSeconds }),
+      durationSeconds: attachment.durationSeconds!,
+      mimeType: attachment.mimeType,
+    })
+  }
+
+  const expected = buildCanonicalEditBriefAudioPlanningBinding({
+    audioInputs: inputs,
+    fps: components.timingSummary.fps,
+    totalFrames: components.timingSummary.totalFrames,
+  })
+  if (!expected.ok) {
+    throw stalePlanningAuthority(expected.error)
+  }
+  const actual = components.editBriefAudioPlanning
+  if (
+    Boolean(expected.binding) !== Boolean(actual)
+    || (
+      expected.binding
+      && actual
+      && stableAuthorityStringify(expected.binding) !== stableAuthorityStringify(actual)
+    )
+  ) {
+    throw stalePlanningAuthority(
+      'The canonical plan must include every current confirmed Edit Brief audio attachment exactly once.',
+    )
+  }
+}
+
+function isCanonicalEditBriefAudioMimeType(
+  value: string | undefined,
+): value is CanonicalEditBriefAudioPlanningInput['mimeType'] {
+  return value === 'audio/aac'
+    || value === 'audio/mpeg'
+    || value === 'audio/wav'
+    || value === 'audio/x-wav'
 }
 
 function assertEditBriefFrameMatchesCanonical(

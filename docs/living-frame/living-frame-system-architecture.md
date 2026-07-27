@@ -938,6 +938,41 @@ estimate, modify approval or snapshot state, create work or assets, render, or
 authorize runtime. Even a forged all-green packet fails because every such
 authority is a closed literal `false`.
 
+### Controlled semantic-to-plan projection
+
+`living-frame-semantic-plan-projection-v1` closes the structural gap between
+the content-only semantic proposal and the existing
+`LivingFrameProfessionalSkillComponent` scene/component shape. It is not the
+selected-scene planner.
+
+The compiler:
+
+- revalidates the canonical deferred Living Frame component and the complete
+  controlled semantic-proposal binding;
+- deterministically projects candidate scenes, components, dependencies,
+  mini-skill activations, semantic timing phases, attention, semantic scale,
+  sound requests, region safety, fallbacks, continuity references, capability
+  requirements, QA expectations, and complexity signals;
+- preserves a deliberate non-use result without creating scene, capability,
+  continuity, or estimate complexity;
+- fills only the five required semantic timing lifecycle phases when a
+  content-only candidate omitted one. These remain requests with
+  `exactFramesProvided=false`; `MasterTimingPlan` still owns every frame;
+- marks every candidate scene `defer` and the projected component `blocked`;
+  and
+- keeps the projection workflow-neutral. Musashi, helicopter, Hormuz, and
+  every other named topic remain fixtures, never route selectors.
+
+The projection remains
+`controlled_non_promotable_professional_skill_plan_projection`. It always
+retains `released_reasoning_lifecycle_required` and
+`canonical_selected_scene_admission_required`. It cannot be copied into the
+canonical professional-skill plan, estimate, approval, snapshot, work graph,
+asset manifest, renderer, or runtime. A later canonical planner must reload
+the current shared speech evidence, route-data assurance, durable reasoning
+result, handoff, output frame, timing, and continuity authorities before it
+may select any projected scene.
+
 ### Shared prerequisite gates before selected scenes
 
 The canonical backend owns three workflow-neutral prerequisites. Living Frame

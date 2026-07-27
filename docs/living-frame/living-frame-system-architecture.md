@@ -1554,3 +1554,46 @@ Artifact measurements and destination-composite review must come from the
 existing private artifact and review authorities. A caller-signed or all-green
 packet cannot grant QA, approval, work, render, runtime, or production
 authority.
+
+## Component artifact-intent reconciliation
+
+`living-frame-component-artifact-reconciliation-v1` closes the structural gap
+between the subject-neutral asset-intent compiler and the measured scene
+evidence package. It answers one bounded question:
+
+> Is each measured component artifact structurally compatible with the
+> component's ordered asset-intent chain?
+
+The compiler rereads and verifies both source packets, selects exactly one
+scene, groups intent chains by component, and matches their expected terminal
+form to the measured artifact class:
+
+- approved or generated opaque anchors may match an opaque raster;
+- an opaque still plus still mask plus processed output must match a measured
+  RGBA still;
+- source A-roll plus a temporal-mask intent must match source A-roll and an
+  independently referenced mask artifact;
+- deterministic graphics, maps, and data specs may match their admitted
+  raster or alpha-primitive form;
+- reconstructed plates must match an opaque plate; and
+- bounded generated video is deliberately rejected because the current scene
+  evidence and deterministic Living Frame renderer contracts do not admit a
+  generated-video artifact primitive.
+
+This is a structural candidate, not provenance. Matching an artifact ID and
+digest to an expected intent does **not** prove that an approved work item
+created it. Canonical work-output lineage, asset-manifest lineage, current
+artifact reread, and artifact QA therefore remain mandatory blockers even when
+every component is structurally compatible.
+
+The component binding records ordered intent IDs, expected artifact and mask
+intent references, measured artifact references, the closed compatibility
+class, and any incompatibility blockers. It cannot create work items, manifest
+entries, tool or provider routes, estimates, approvals, timing, renderer
+layers, or execution requests. A deliberate non-use asset bundle accepts no
+scene evidence and produces an empty valid reconciliation.
+
+All matching rules are subject-neutral. Historical figures, vehicles,
+geographic explanations, and the other named examples remain regression
+fixtures only; no subject name, topic, genre, or category may alter the
+reconciliation algorithm.

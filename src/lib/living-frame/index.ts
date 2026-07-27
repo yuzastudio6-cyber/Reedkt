@@ -270,6 +270,19 @@ export type {
 } from './living-frame-controlled-illustration-source-observation-fixtures'
 
 export type {
+  LivingFrameComponentArtifactIntentRef,
+  LivingFrameComponentArtifactMatchKind,
+  LivingFrameComponentArtifactMatchState,
+  LivingFrameComponentArtifactReconciliation,
+  LivingFrameComponentArtifactReconciliationAuthorityBoundary,
+  LivingFrameComponentArtifactReconciliationBinding,
+  LivingFrameComponentArtifactReconciliationBlocker,
+  LivingFrameComponentArtifactReconciliationDraft,
+  LivingFrameComponentArtifactReconciliationMetrics,
+  LivingFrameComponentArtifactReconciliationState,
+} from '../../types/living-frame-component-artifact-reconciliation'
+
+export type {
   LivingFrameComponentRigAuthorityBoundary,
   LivingFrameComponentRigMetrics,
   LivingFrameComponentRigSpec,

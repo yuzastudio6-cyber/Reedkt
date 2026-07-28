@@ -41,6 +41,10 @@ import {
   buildCanonicalIdeaFirstSourceBindingManifestCandidate,
 } from '../services/canonical-motion-studio-storytelling-production-authority-service'
 import { buildCurrentPlanningInputAuthorityExpectation } from '../services/planning-input-authority-binding-service'
+import {
+  createCanonicalLivingFrameSelectedSceneSelectorPort,
+  selectCanonicalLivingFrameScenes,
+} from '../services/canonical-living-frame-selected-scene-binding-service'
 import { createUploadService } from '../services/upload-service'
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
 import { withCanonicalExecutionDomainLock } from '../services/canonical-execution-domain-lock'
@@ -71,6 +75,7 @@ import { readPrivateUploadMediaAuthorityAggregate } from '../services/private-up
 import { clearLocalProjectMemoryForSmoke, createProjectService } from '../services/project-service'
 import type { ServiceContext } from '../types'
 import {
+  canonicalPlanComponentsSchema,
   PRIVATE_EDIT_AUTHORITY_SCHEMA_VERSION,
   type PublishCanonicalEditPlanBody,
 } from '../validation/edit-planning-authority-schemas'
@@ -86,6 +91,33 @@ import {
   projectCanonicalStorytellingStyleAuthority,
   type CanonicalStorytellingStylePlanReviewSource,
 } from '../../src/lib/canonical-planning-draft'
+import {
+  bindLivingFrameCanonicalPlanning,
+  createLivingFrameSemanticReasoningRequest,
+  createLivingFrameSemanticSceneProposalBinding,
+  createLivingFrameVisualContinuityPack,
+  livingFrameOutputFrameDigestProjection,
+} from '../../src/lib/living-frame'
+import {
+  createLivingFrameSemanticSceneProposalFixtureInputs,
+} from '../../src/lib/living-frame/living-frame-semantic-scene-proposal-fixtures'
+import { createProfessionalSkillPlan } from '../../src/lib/professional-skills'
+import type { PlannerInput } from '../../src/types/reeditpro'
+import type { LivingFrameSemanticReasoningRequest } from
+  '../../src/types/living-frame-semantic-reasoning-request'
+import {
+  CANONICAL_LIVING_FRAME_SELECTED_SCENE_ADMISSION_COMPONENT_KEY,
+  CANONICAL_LIVING_FRAME_SELECTED_SCENE_COMPONENT_KEY,
+  CANONICAL_LIVING_FRAME_SEMANTIC_PLAN_PROJECTION_COMPONENT_KEY,
+} from '../../src/types/living-frame-selected-scene-binding'
+import type { LivingFrameVisualContinuityPack } from
+  '../../src/types/living-frame-visual-continuity'
+import {
+  compileLivingFrameSelectedSceneAdmission,
+} from '../living-frame/living-frame-selected-scene-admission'
+import {
+  compileLivingFrameSemanticPlanProjection,
+} from '../living-frame/living-frame-semantic-plan-projection'
 import {
   CANONICAL_PRIVATE_TOOL_DISPATCH_RECORD_VERSION,
   type CanonicalPrivateToolDispatchRecord,
@@ -906,6 +938,7 @@ try {
 
 await provePreferenceAndBriefCanonicalBinding(context)
 await proveAtomicWorkItemCompilation(context)
+await proveCanonicalLivingFrameSelectedSceneAuthority(context)
 await proveCanonicalStorytellingStyleAuthority(context)
 await proveCanonicalIdeaFirstStorytellingProductionAuthority(context)
 
@@ -5075,6 +5108,394 @@ function canonicalWorkGraphProgressRoot(input: {
     'package-progress',
     packageHash,
   )
+}
+
+async function proveCanonicalLivingFrameSelectedSceneAuthority(
+  serviceContext: ServiceContext,
+): Promise<void> {
+  const targetWorkspaceId = 'workspace-planning-binding-integration'
+  const editSessionId = 'edit-session-living-frame-selected-scene'
+  const project = (await createProjectService(serviceContext).createProject({
+    workspaceId: targetWorkspaceId,
+    name: 'Living Frame selected-scene authority integration',
+  })).project
+  const planningInputAuthority = await prepareExactPlanningAuthority(
+    serviceContext,
+    project.id,
+    editSessionId,
+    targetWorkspaceId,
+  )
+  const sourceFixture = await prepareSourceMediaAuthority(
+    serviceContext,
+    targetWorkspaceId,
+    project.id,
+    'living-frame-selected-scene',
+  )
+  const body = createCanonicalPlanBody(
+    'planning-living-frame-selected-scene',
+    planningInputAuthority,
+    sourceFixture,
+  )
+  body.workspaceId = targetWorkspaceId
+
+  const plannerInput: PlannerInput = {
+    projectName: 'Living Frame canonical selected-scene integration',
+    targetPlatform: 'tiktok_reels_shorts',
+    aspectRatio: '9:16',
+    aspectRatioConfirmed: true,
+    frameTemplateType: 'vertical_full_panel',
+    editingCategory: 'education_explainer',
+    workflowType: 'education_explainer',
+    editLevel: 'pro',
+    structurePreference: 'improve_if_needed',
+    moodStyle: 'premium',
+    visualPreference: 'balanced_visual_mix',
+    referenceUrl: '',
+    customInstructions:
+      'Use Living Frame selectively when it makes the explanation clearer.',
+    creditPreference: 'balanced',
+    clips: sourceFixture.sourceSequence.map((source, index) => ({
+      id: source.sourceSequenceItemId,
+      uploadedOrder: index + 1,
+      fileName: `source-${index + 1}.mp4`,
+      duration: '0:05',
+      detectedType: 'talking_head',
+      sourceOrderLocked: true,
+    })),
+  }
+  const professionalSkillPlan = createProfessionalSkillPlan({
+    plannerInput,
+  })
+  const deferred = await bindLivingFrameCanonicalPlanning({
+    professionalSkillPlan,
+    components: body.canonicalPlan.components,
+  })
+  assert.ok(deferred.livingFrame)
+  body.canonicalPlan.components = canonicalPlanComponentsSchema.parse({
+    ...body.canonicalPlan.components,
+    livingFrame: structuredClone(deferred.livingFrame),
+  })
+
+  const handoffService =
+    createCanonicalPlanningHandoffService(serviceContext)
+  const handoff = await handoffService.prepare({
+    workspaceId: targetWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+    purpose: 'prepare_canonical_planning_handoff',
+    orderedSourceItems:
+      body.canonicalPlan.components.sourceSequence.map((item) => ({
+        ...item,
+        checksumSha256: String(item.checksumSha256),
+      })),
+    canonicalPlanComponents: body.canonicalPlan.components,
+  })
+  const fixtureInputs =
+    await createLivingFrameSemanticSceneProposalFixtureInputs()
+  const fixtureRequest =
+    fixtureInputs.helicopter.request as LivingFrameSemanticReasoningRequest
+  const {
+    semanticPayloadDigestSha256: omittedSemanticPayloadDigest,
+    contractDigestSha256: omittedRequestDigest,
+    outputContract,
+    ...requestBase
+  } = fixtureRequest
+  const {
+    outputJsonSchemaDigestSha256: omittedOutputSchemaDigest,
+    ...outputContractDraft
+  } = outputContract
+  void omittedSemanticPayloadDigest
+  void omittedRequestDigest
+  void omittedOutputSchemaDigest
+  const alignedRequest = await createLivingFrameSemanticReasoningRequest({
+    ...requestBase,
+    canonicalBindings: {
+      ...requestBase.canonicalBindings,
+      workspaceId: targetWorkspaceId,
+      projectId: project.id,
+      editSessionId,
+      handoffId: handoff.handoffId,
+      preapprovalInputAuthorityDigestSha256:
+        handoff.resolvedPlanningInputAuthority.bindingHash,
+      visualEvidenceBindingDigestSha256:
+        handoff.sourceBindingManifestCandidate.candidateHash,
+    },
+    semanticPayload: {
+      ...requestBase.semanticPayload,
+      evidence: {
+        ...requestBase.semanticPayload.evidence,
+        visualEvidenceBindingDigestSha256:
+          handoff.sourceBindingManifestCandidate.candidateHash,
+      },
+    },
+    outputContract: outputContractDraft,
+  })
+  const fixturePack =
+    fixtureInputs.helicopter.continuityPack as
+      | LivingFrameVisualContinuityPack
+      | null
+  assert.ok(fixturePack)
+  const {
+    contractDigestSha256: omittedPackDigest,
+    ...packDraft
+  } = fixturePack
+  void omittedPackDigest
+  const alignedPack = await createLivingFrameVisualContinuityPack({
+    ...packDraft,
+    canonicalBindings: {
+      ...packDraft.canonicalBindings,
+      workspaceId: targetWorkspaceId,
+      projectId: project.id,
+      editSessionId,
+      handoffId: handoff.handoffId,
+      deferredLivingFrameComponentDigestSha256:
+        deferred.livingFrame.contractDigestSha256,
+      planningEvidenceBindingDigestSha256:
+        handoff.sourceBindingManifestCandidate.candidateHash,
+      preapprovalReasoningResultBindingDigestSha256:
+        alignedRequest.contractDigestSha256,
+      compiledIntentDigestSha256:
+        sha256AuthorityValue(body.canonicalPlan.components.compiledIntent),
+      sourceSequenceDigestSha256:
+        sha256AuthorityValue(body.canonicalPlan.components.sourceSequence),
+      outputFrameDigestSha256: sha256AuthorityValue(
+        livingFrameOutputFrameDigestProjection(
+          body.canonicalPlan.components,
+        ),
+      ),
+    },
+  })
+  const proposalBinding =
+    await createLivingFrameSemanticSceneProposalBinding({
+      request: alignedRequest,
+      result: fixtureInputs.helicopter.result,
+      continuityPack: alignedPack,
+    })
+  const semanticPlanProjection =
+    await compileLivingFrameSemanticPlanProjection({
+      deferredComponent: deferred.livingFrame,
+      semanticProposalBinding: proposalBinding,
+    })
+  const selectedSceneAdmission =
+    await compileLivingFrameSelectedSceneAdmission({
+      canonicalScope: {
+        workspaceId: targetWorkspaceId,
+        projectId: project.id,
+        editSessionId,
+        handoffId: handoff.handoffId,
+      },
+      semanticPlanProjection,
+      authorityExpectations: [
+        currentLivingFrameExpectation(
+          'canonical_planning_handoff',
+          handoff.handoffHash,
+        ),
+        currentLivingFrameExpectation(
+          'planning_evidence',
+          handoff.sourceBindingManifestCandidate.candidateHash,
+        ),
+        currentLivingFrameExpectation(
+          'source_speech_evidence',
+          sha256ForSmoke('living-frame-no-source-speech-required'),
+        ),
+        currentLivingFrameExpectation(
+          'route_data_assurance',
+          sha256ForSmoke('living-frame-controlled-route-assurance'),
+        ),
+        currentLivingFrameExpectation(
+          'released_reasoning_result',
+          proposalBinding.contractDigestSha256,
+        ),
+        currentLivingFrameExpectation(
+          'visual_continuity_pack',
+          alignedPack.contractDigestSha256,
+        ),
+        currentLivingFrameExpectation(
+          'confirmed_output_frame',
+          semanticPlanProjection.projectedComponent.inputBindings
+            .outputFrame.expectedDigestSha256,
+        ),
+        currentLivingFrameExpectation(
+          'current_master_timing',
+          semanticPlanProjection.projectedComponent.inputBindings
+            .masterTiming.expectedDigestSha256,
+        ),
+      ],
+    })
+  const selectorPort =
+    createCanonicalLivingFrameSelectedSceneSelectorPort(
+      async (request) => ({
+        decision: 'selected_scenes',
+        selectedScenes: request.candidateScenes.map((scene) => ({
+          sceneId: scene.sceneId,
+          treatment: 'use_full' as const,
+        })),
+        reasonCode: 'selective_motion_improves_comprehension' as const,
+      }),
+    )
+  await assert.rejects(
+    () => selectCanonicalLivingFrameScenes({
+      identity: {
+        workspaceId: targetWorkspaceId,
+        projectId: project.id,
+        editSessionId,
+        handoffId: handoff.handoffId,
+        handoffHash: handoff.handoffHash,
+        canonicalPlanComponentsHash:
+          handoff.canonicalPlanComponentsHash,
+      },
+      components: body.canonicalPlan.components,
+      semanticPlanProjection,
+      admission: selectedSceneAdmission,
+      selectorPort: { ...selectorPort },
+    }),
+    /requires an admitted process-bound selector/,
+  )
+  const unknownSceneSelectorPort =
+    createCanonicalLivingFrameSelectedSceneSelectorPort(async () => ({
+      decision: 'selected_scenes',
+      selectedScenes: [{
+        sceneId: 'scene.not-admitted',
+        treatment: 'use_full',
+      }],
+      reasonCode: 'selective_motion_improves_comprehension',
+    }))
+  await assert.rejects(
+    () => selectCanonicalLivingFrameScenes({
+      identity: {
+        workspaceId: targetWorkspaceId,
+        projectId: project.id,
+        editSessionId,
+        handoffId: handoff.handoffId,
+        handoffHash: handoff.handoffHash,
+        canonicalPlanComponentsHash:
+          handoff.canonicalPlanComponentsHash,
+      },
+      components: body.canonicalPlan.components,
+      semanticPlanProjection,
+      admission: selectedSceneAdmission,
+      selectorPort: unknownSceneSelectorPort,
+    }),
+    /unknown, duplicate, or invalid scene treatment/,
+  )
+  const livingFrameSelectedScenePublication =
+    await selectCanonicalLivingFrameScenes({
+      identity: {
+        workspaceId: targetWorkspaceId,
+        projectId: project.id,
+        editSessionId,
+        handoffId: handoff.handoffId,
+        handoffHash: handoff.handoffHash,
+        canonicalPlanComponentsHash:
+          handoff.canonicalPlanComponentsHash,
+      },
+      components: body.canonicalPlan.components,
+      semanticPlanProjection,
+      admission: selectedSceneAdmission,
+      selectorPort,
+    })
+  assert.equal(
+    livingFrameSelectedScenePublication.binding.selectedSceneCount,
+    1,
+  )
+  assert.equal(
+    livingFrameSelectedScenePublication.binding.authorityBoundary
+      .selectedSceneAuthority,
+    true,
+  )
+  assert.equal(
+    livingFrameSelectedScenePublication.binding.authorityBoundary
+      .workGraphAuthority,
+    false,
+  )
+  assert.equal(
+    livingFrameSelectedScenePublication.binding.authorityBoundary
+      .runtimeAuthority,
+    false,
+  )
+
+  const published = await handoffService.publishFromPersistedHandoff({
+    workspaceId: targetWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+    handoffId: handoff.handoffId,
+    expectedHandoffHash: handoff.handoffHash,
+    planningRequestId: body.planningRequestId,
+    canonicalPlan: body.canonicalPlan,
+    idempotencyKey: 'publish-living-frame-selected-scene',
+    livingFrameSelectedScenePublication,
+  })
+  const publishedAuthority = asRecord(published.authority)
+  const publishedPlan = asRecord(publishedAuthority.plan)
+  const publishedEstimate = asRecord(publishedAuthority.estimate)
+  const publishedRefs = asRecord(publishedPlan.componentRefs)
+  for (const key of [
+    CANONICAL_LIVING_FRAME_SELECTED_SCENE_COMPONENT_KEY,
+    CANONICAL_LIVING_FRAME_SELECTED_SCENE_ADMISSION_COMPONENT_KEY,
+    CANONICAL_LIVING_FRAME_SEMANTIC_PLAN_PROJECTION_COMPONENT_KEY,
+  ]) {
+    assert.ok(
+      asRecord(publishedRefs[key]).sha256,
+      `${key} must be content-addressed in the canonical plan.`,
+    )
+  }
+
+  const planningService =
+    createEditPlanningAuthorityService(serviceContext)
+  const approved = await planningService.approveAndFundCanonicalPlan({
+    workspaceId: targetWorkspaceId,
+    editPlanId: String(publishedPlan.id),
+    expectedAuthorityRevision:
+      Number(publishedAuthority.authorityRevision),
+    expectedPlanHash: String(publishedPlan.planHash),
+    expectedEstimateHash: String(publishedEstimate.estimateHash),
+    idempotencyKey: 'approve-living-frame-selected-scene',
+  })
+  const approvedAuthority = asRecord(approved.authority)
+  const approvedSnapshot = asRecord(approvedAuthority.snapshot)
+  assert.deepEqual(
+    asRecord(approvedSnapshot.componentRefs),
+    publishedRefs,
+    'The immutable approved snapshot must freeze the exact Living Frame selected-scene refs.',
+  )
+  const loaded = await planningService.loadApprovedExecutionAuthority(
+    String(approvedSnapshot.snapshotId),
+    targetWorkspaceId,
+  )
+  assert.equal(
+    loaded.livingFrameSelectedSceneAuthority?.binding
+      .bindingDigestSha256,
+    livingFrameSelectedScenePublication.binding.bindingDigestSha256,
+  )
+  assert.equal(
+    loaded.livingFrameSelectedSceneAuthority?.binding
+      .selectedComponent.scenePlans.length,
+    1,
+  )
+  assert.equal(
+    loaded.components.livingFrame?.decisionSummary.decision,
+    'deferred',
+    'The parent user-intent component must remain deferred and immutable.',
+  )
+}
+
+function currentLivingFrameExpectation(
+  authorityKind:
+    | 'canonical_planning_handoff'
+    | 'planning_evidence'
+    | 'source_speech_evidence'
+    | 'route_data_assurance'
+    | 'released_reasoning_result'
+    | 'visual_continuity_pack'
+    | 'confirmed_output_frame'
+    | 'current_master_timing',
+  authorityDigestSha256: string,
+) {
+  return {
+    authorityKind,
+    expectationState: 'controlled_current_match' as const,
+    authorityDigestSha256,
+  }
 }
 
 async function proveAtomicWorkItemCompilation(serviceContext: ServiceContext): Promise<void> {

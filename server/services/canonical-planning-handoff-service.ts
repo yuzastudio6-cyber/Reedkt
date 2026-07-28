@@ -402,6 +402,7 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
       handoffId: string
       idempotencyKey: string
       requestPath?: string
+      livingFrameSelectedScenePublication?: unknown
     }) {
       const {
         projectId,
@@ -409,6 +410,7 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
         handoffId,
         idempotencyKey,
         requestPath,
+        livingFrameSelectedScenePublication,
         ...requestBody
       } = input
       const parsed = publishCanonicalEditPlanFromHandoffSchema.safeParse(requestBody)
@@ -512,6 +514,7 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
           editSessionId,
           idempotencyKey: normalizedIdempotencyKey,
           requestPath,
+          livingFrameSelectedScenePublication,
           planningHandoffBinding: {
             schemaVersion: 'canonical-planning-handoff-publication-binding-v1',
             handoffId: handoff.handoffId,

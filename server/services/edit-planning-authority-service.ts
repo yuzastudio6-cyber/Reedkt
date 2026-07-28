@@ -108,6 +108,15 @@ import {
 import {
   CANONICAL_LIVING_FRAME_COMPONENT_KEY,
 } from '../validation/canonical-living-frame-planning-binding-schemas'
+import type {
+  CanonicalLivingFrameSelectedScenePublication,
+} from '../../src/types/living-frame-selected-scene-binding'
+import {
+  canonicalLivingFrameSelectedScenePublicationDigest,
+  loadCanonicalLivingFrameSelectedScenePublication,
+  persistCanonicalLivingFrameSelectedScenePublication,
+  prepareCanonicalLivingFrameSelectedScenePublication,
+} from './canonical-living-frame-selected-scene-binding-service'
 
 export interface CanonicalApprovedExecutionWorkItem extends AuthorityApprovedWorkItemRecord {
   executionInput: Record<string, unknown>
@@ -128,6 +137,8 @@ export interface CanonicalApprovedExecutionAuthority {
   toolExecutionAuthority: CanonicalToolExecutionAuthority
   toolPayloadAuthority: CanonicalToolPayloadAuthority
   sourceAssetManifest: ApprovedSourceBindingManifest
+  livingFrameSelectedSceneAuthority?:
+    CanonicalLivingFrameSelectedScenePublication
   workItems: CanonicalApprovedExecutionWorkItem[]
   jobs: AuthorityDerivedJobRecord[]
   testOnly: true
@@ -181,6 +192,7 @@ export interface PublishCanonicalEditPlanInput extends PublishCanonicalEditPlanB
   requestPath?: string
   planningHandoffBinding?: CanonicalPlanningHandoffPublicationBinding
   professionalLongFormSeedDraft?: unknown
+  livingFrameSelectedScenePublication?: unknown
 }
 
 export interface ApproveCanonicalEditPlanInput extends ApproveCanonicalEditPlanBody {
@@ -287,6 +299,19 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         expectation: body.sourceMediaAuthority,
         storytellingProductionAuthority,
       })
+      const livingFrameSelectedScenePublication =
+        input.livingFrameSelectedScenePublication === undefined
+          ? undefined
+          : await prepareCanonicalLivingFrameSelectedScenePublication({
+              publication: input.livingFrameSelectedScenePublication,
+              expectedScope: {
+                workspaceId: access.workspaceId,
+                projectId: input.projectId,
+                editSessionId: input.editSessionId,
+              },
+              components: body.canonicalPlan.components,
+              planningHandoffBinding,
+            })
       const professionalLongFormPublication = input.professionalLongFormSeedDraft === undefined
         ? undefined
         : prepareCanonicalProfessionalLongFormPublication({
@@ -363,9 +388,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           publication: professionalLongFormPublication,
         })
       }
+      const livingFrameSelectedSceneRefs =
+        livingFrameSelectedScenePublication
+          ? await persistCanonicalLivingFrameSelectedScenePublication({
+              context,
+              publication: livingFrameSelectedScenePublication,
+            })
+          : {}
       const baseComponentRefs = await persistPlanComponents(context, canonicalPlan.components)
       const componentRefs: Record<string, AuthorityJsonBlobRef> = {
         ...baseComponentRefs,
+        ...livingFrameSelectedSceneRefs,
         ...(professionalLongFormPublication
           ? {
               [PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY]:
@@ -461,6 +494,10 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         editSessionId: input.editSessionId,
         planningRequestId: body.planningRequestId,
         revisionAuthority: body.revisionAuthority,
+        livingFrameSelectedSceneBindingDigestSha256:
+          canonicalLivingFrameSelectedScenePublicationDigest(
+            livingFrameSelectedScenePublication,
+          ),
         planHash,
         estimateHash,
         actorUserId: access.userId,
@@ -670,6 +707,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
                 'Canonical plan authority includes one content-addressed professional long-form seed and one non-authorizing controller work item; no child job was derived or dispatched before approval.',
               ]
             : []),
+          ...(livingFrameSelectedScenePublication
+            ? [
+                'Canonical plan authority preserves the deferred Living Frame request and separately freezes one server-selected scene binding; existing estimate, approval, snapshot, work, asset, QA, and review authorities remain unchanged.',
+              ]
+            : []),
           'Canonical plan authority is private single-host internal-test persistence.',
           ...(body.revisionAuthority
             ? ['Replacement plan publication consumed one exact private-review revision handoff; fresh approval remains blocked pending reservation reconciliation.']
@@ -758,13 +800,26 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       }
       const approvalPlanningInputAuthority = await loadPlanningInputAuthorityBinding(context, targetPlan.componentRefs)
       const approvalSourceMediaAuthority = await loadSourceMediaAuthorityCandidate(context, targetPlan.componentRefs)
-      await loadOptionalPlanningHandoffAuthority({
+      const approvalPlanningHandoffAuthority =
+        await loadOptionalPlanningHandoffAuthority({
         context,
         componentRefs: targetPlan.componentRefs,
         components: approvalComponents,
         planningInputAuthority: approvalPlanningInputAuthority,
         sourceMediaAuthority: approvalSourceMediaAuthority,
       })
+      const approvalLivingFrameSelectedSceneAuthority =
+        await loadCanonicalLivingFrameSelectedScenePublication({
+          context,
+          componentRefs: targetPlan.componentRefs,
+          expectedScope: {
+            workspaceId: access.workspaceId,
+            projectId: targetPlan.projectId,
+            editSessionId: targetPlan.editSessionId,
+          },
+          components: approvalComponents,
+          planningHandoffBinding: approvalPlanningHandoffAuthority,
+        })
       const approvalLongFormPublication =
         await loadCanonicalProfessionalLongFormPublicationAuthority({
           context,
@@ -891,6 +946,32 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             expectation: sourceExpectationFromCandidate(approvalSourceMediaAuthority),
             storytellingProductionAuthority: lockedStorytellingProductionAuthority,
           })
+          const lockedLivingFrameSelectedSceneAuthority =
+            await loadCanonicalLivingFrameSelectedScenePublication({
+              context,
+              componentRefs: plan.componentRefs,
+              expectedScope: {
+                workspaceId: access.workspaceId,
+                projectId: plan.projectId,
+                editSessionId: plan.editSessionId,
+              },
+              components: approvalComponents,
+              planningHandoffBinding:
+                approvalPlanningHandoffAuthority,
+            })
+          if (
+            stableAuthorityStringify(
+              lockedLivingFrameSelectedSceneAuthority ?? null,
+            ) !== stableAuthorityStringify(
+              approvalLivingFrameSelectedSceneAuthority ?? null,
+            )
+          ) {
+            throw new ApiError(
+              'IDEMPOTENCY_CONFLICT',
+              'Canonical Living Frame selected-scene authority changed before approval.',
+              409,
+            )
+          }
           if (plan.status !== 'presented') throw new ApiError('PLAN_NOT_APPROVED', 'Only the current presented plan can be approved.', 409)
           if (estimate.status !== 'presented') throw new ApiError('CREDIT_ESTIMATE_NOT_APPROVED', 'Only the current presented estimate can be approved.', 409)
           if (plan.planHash !== body.expectedPlanHash || estimate.estimateHash !== body.expectedEstimateHash) {
@@ -1448,6 +1529,18 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         planningInputAuthority,
         sourceMediaAuthority,
       })
+      const livingFrameSelectedSceneAuthority =
+        await loadCanonicalLivingFrameSelectedScenePublication({
+          context,
+          componentRefs: snapshot.componentRefs,
+          expectedScope: {
+            workspaceId: access.workspaceId,
+            projectId: snapshot.projectId,
+            editSessionId: snapshot.editSessionId,
+          },
+          components: approvedComponents,
+          planningHandoffBinding: planningHandoffAuthority,
+        })
       await revalidatePlanningInputAuthorityBinding({
         context,
         scope: planningAuthorityScope(context, access.userId, access.workspaceId, lineage.plan),
@@ -1615,6 +1708,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         assetManifest,
         planningInputAuthority,
         planningHandoffAuthority,
+        livingFrameSelectedSceneAuthority,
         toolExecutionAuthority,
         toolPayloadAuthority,
         sourceAssetManifest,

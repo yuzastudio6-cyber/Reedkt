@@ -1081,6 +1081,25 @@ after the complete provider-neutral payload digest exists.
 - freeze the exact component and later timing bindings in the immutable
   snapshot.
 
+The first canonical portion of Slice 3C-B is now implemented. A private
+process-bound selector may compile an admitted candidate or deliberate
+non-use decision into a separate server-derived selected-scene binding while
+the original deferred Living Frame user-intent component remains unchanged.
+The binding, selected-scene admission, and semantic-plan projection are stored
+as three content-addressed component references in the existing canonical
+plan, included in its hash, copied unchanged into the existing immutable
+approved snapshot, and fully revalidated when approval or execution authority
+is loaded.
+
+This is not a second Living Frame workflow. It creates no estimate line,
+work item, asset-manifest entry, timing mutation, SoundSync decision, tool or
+provider route, artifact QA result, renderer payload, or private-review
+decision. The existing WeEditPro edit pipeline remains the only owner of those
+stages. Until the remaining Slice 3C-B estimate bridge and Slice 4 work/asset
+projection are implemented, the selected component is planning and snapshot
+lineage only and is not executable. See
+`docs/living-frame/living-frame-selected-scene-binding.md`.
+
 ### Slice 4: canonical timing, work, and asset mapping
 
 - compile semantic timing and sound requests through `MasterTimingPlan` and

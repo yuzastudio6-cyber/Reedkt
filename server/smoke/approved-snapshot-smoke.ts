@@ -37,6 +37,18 @@ assert.deepEqual(
   findApprovedSnapshotSecretLikePaths({ accessToken: 'not-a-real-secret' }),
   ['$.accessToken'],
 )
+assert.deepEqual(
+  findApprovedSnapshotSecretLikePaths({
+    containsRawChatTranscriptMediaBytesPathsUrlsOrCredentials: false,
+  }),
+  [],
+)
+assert.deepEqual(
+  findApprovedSnapshotSecretLikePaths({
+    containsRawChatTranscriptMediaBytesPathsUrlsOrCredentials: true,
+  }),
+  ['$.containsRawChatTranscriptMediaBytesPathsUrlsOrCredentials'],
+)
 
 await expectToolNotReady(
   () => createApprovedSnapshotService(context).createApprovedSnapshot({

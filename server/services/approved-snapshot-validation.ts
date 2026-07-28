@@ -76,7 +76,15 @@ function looksLikeApprovedSnapshotSecretKey(key: string): boolean {
 }
 
 function isApprovedSnapshotSafeSemanticToken(key: string, value: unknown): boolean {
-  return key === 'motionToken' &&
-    typeof value === 'string' &&
-    APPROVED_SNAPSHOT_SAFE_MOTION_TOKENS.has(value)
+  if (
+    key === 'motionToken'
+    && typeof value === 'string'
+    && APPROVED_SNAPSHOT_SAFE_MOTION_TOKENS.has(value)
+  ) {
+    return true
+  }
+
+  return key ===
+    'containsRawChatTranscriptMediaBytesPathsUrlsOrCredentials'
+    && value === false
 }

@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { GPU_MODEL_WEIGHT_MANIFEST_TEMPLATES } from '../../model-weights/model-weight-manifest-templates'
 import {
+  PRODUCTION_TOOL_IDS,
   evaluateToolLicensePolicy,
   getProductionToolProfile,
   isProductionToolId,
@@ -100,12 +101,12 @@ export const productionContainerManualQualificationReviewPackageSchema = z.objec
   imageRole: imageRoleSchema,
   imageReference: immutableImageReference,
   immutableImageDigest: imageDigest,
-  toolReviewItems: z.array(toolReviewItemSchema).max(72),
+  toolReviewItems: z.array(toolReviewItemSchema).max(PRODUCTION_TOOL_IDS.length),
   toolInventoryHash: sha256,
-  pendingManualQualificationToolIds: z.array(toolIdSchema).max(72),
-  pendingLicenseDecisionToolIds: z.array(toolIdSchema).max(72),
-  pendingModelWeightReviewToolIds: z.array(toolIdSchema).max(72),
-  pendingSourceInstallReviewToolIds: z.array(toolIdSchema).max(72),
+  pendingManualQualificationToolIds: z.array(toolIdSchema).max(PRODUCTION_TOOL_IDS.length),
+  pendingLicenseDecisionToolIds: z.array(toolIdSchema).max(PRODUCTION_TOOL_IDS.length),
+  pendingModelWeightReviewToolIds: z.array(toolIdSchema).max(PRODUCTION_TOOL_IDS.length),
+  pendingSourceInstallReviewToolIds: z.array(toolIdSchema).max(PRODUCTION_TOOL_IDS.length),
   reviewRequirements: z.object({
     exactPackageOrSourceVersionRequired: z.literal(true),
     packageOrSourceChecksumRequired: z.literal(true),

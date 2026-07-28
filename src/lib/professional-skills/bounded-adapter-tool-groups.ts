@@ -17,24 +17,16 @@ export const boundedMotionAdapterToolNames = [
   'babylonjs',
 ] as const
 
-export const boundedModelFoundationAdapterToolNames = [
-  'torch_torchvision',
-  'transformers',
-] as const
+// Runner foundations are evidence dependencies, not product tool adapters.
+export const boundedModelFoundationAdapterToolNames = [] as const
 
 export const boundedVisionModelAdapterToolNames = [
-  'sam2',
-  'birefnet',
   'rembg',
-  'transparent_background',
-  'real_esrgan',
   'kornia',
 ] as const
 
-export const boundedSpeechModelAdapterToolNames = [
-  'faster_whisper',
-  'whisper_cpp',
-] as const
+// Speech candidates do not have canonical private E2E operation evidence yet.
+export const boundedSpeechModelAdapterToolNames = [] as const
 
 export const boundedAudioMusicAdapterToolNames = [
   'librosa',
@@ -60,9 +52,6 @@ export const boundedAudioCleanupModelAdapterToolNames = [
 ] as const
 
 export const boundedMapBrowserColorSceneAdapterToolNames = [
-  'maplibre',
-  'turf',
-  'deck_gl',
   'playwright',
   'pyscenedetect',
   'opencolorio',
@@ -70,7 +59,6 @@ export const boundedMapBrowserColorSceneAdapterToolNames = [
 ] as const
 
 export const boundedRenderPackagingAdapterToolNames = [
-  'streamer_render_pipeline_support',
   'mkvtoolnix_container_validation',
   'gpac_mp4box_packaging_validation',
 ] as const

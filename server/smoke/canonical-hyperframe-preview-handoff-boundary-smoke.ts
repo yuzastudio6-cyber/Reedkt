@@ -125,12 +125,13 @@ for (const forbidden of [
   assert.ok(!projection.includes(forbidden), `Browser-safe handoff projected ${forbidden}.`)
 }
 
-const hyperframeSpec = listCompleteProfessionalToolOperationSpecs()
-  .find((spec) => spec.canonicalToolId === 'hyperframe')
-assert.ok(hyperframeSpec)
-assert.equal(hyperframeSpec.allowedOperationIds[0], first.operationId)
-assert.equal(hyperframeSpec.policyBlocks.length, 0)
-assert.equal(hyperframeSpec.workerRuntime.runtimeClass, 'not_assignable_policy_blocked')
+assert.equal(
+  listCompleteProfessionalToolOperationSpecs()
+    .map((spec) => String(spec.canonicalToolId))
+    .includes('hyperframe'),
+  false,
+  'The retained browser-safe Hyperframe boundary must not create a callable production tool.',
+)
 
 expectRejected(() => buildCanonicalHyperframePreviewHandoffBoundary({
   ...input,

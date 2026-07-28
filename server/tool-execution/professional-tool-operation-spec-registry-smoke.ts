@@ -57,15 +57,12 @@ const privateInternalRunnerVerifiedToolIds = new Set<ProductionToolId>([
   'konva',
   'babylon_js',
   'playwright',
-  'torch_torchvision',
-  'transformers',
   'rembg',
   'deepfilternet',
   'music21',
   'kornia',
   'opencolorio',
   'openimageio',
-  'streamer_render_pipeline_support',
   'rnnoise',
   'mkvtoolnix_container_validation',
   'gpac_mp4box_packaging_validation',
@@ -102,17 +99,26 @@ check(
   sameValues(summary.policyBlockedToolIds, expectedPolicyBlocked),
   'Policy-blocked specs must derive from current production profile policy.',
 )
-check(getProfessionalToolOperationSpec('transparent_background')?.policyBlocks.includes('evaluation_only') === true, 'transparent-background must remain evaluation-only.')
-check(getProfessionalToolOperationSpec('whisper_cpp')?.policyBlocks.includes('evaluation_only') === true, 'whisper.cpp must remain evaluation-only.')
-check(getProfessionalToolOperationSpec('deck_gl')?.policyBlocks.includes('future_only') === true, 'deck.gl must remain future-only.')
-check(getProfessionalToolOperationSpec('maplibre')?.policyBlocks.includes('planning_only') === true, 'MapLibre must remain non-callable while its worker owner is planning-only.')
-check(getProfessionalToolOperationSpec('turf')?.policyBlocks.includes('planning_only') === true, 'Turf must remain non-callable while its worker owner is planning-only.')
+for (const nonE2EToolId of [
+  'transparent_background',
+  'whisper_cpp',
+  'deck_gl',
+  'maplibre',
+  'turf',
+] as const) {
+  check(
+    resolveProfessionalToolOperationSpec(nonE2EToolId) === undefined,
+    `${nonE2EToolId} must not resolve in the production operation registry.`,
+  )
+}
 
 const operationIds = new Set<string>()
 const normalizedAliases = new Map<string, ProductionToolId>()
 for (const spec of specs) {
   const contract = contracts.find((item) => item.canonicalToolId === spec.canonicalToolId)
-  const profile = productionToolProfiles.find((item) => item.toolId === spec.canonicalToolId)
+  const profile = productionToolProfiles.find(
+    (item) => item.toolId === spec.canonicalToolId,
+  )
   check(Boolean(contract), `${spec.canonicalToolId} must retain source contract lineage.`)
   check(Boolean(profile), `${spec.canonicalToolId} must retain production profile lineage.`)
   if (!contract || !profile) continue
@@ -229,11 +235,6 @@ check(playwright.networkPolicy.mode === 'offline_required', 'Current private Pla
 check(playwright.credentialGate.captureAuthorizationRequired, 'Playwright must require approved capture authorization.')
 check(playwright.requestSchema.required.includes('captureAuthorizationId'), 'Playwright request must bind capture authorization by opaque ID.')
 
-const maplibre = requireSpec('maplibre')
-check(maplibre.networkPolicy.mode === 'conditional_approved_destination', 'Future MapLibre execution must use conditional approved tile destinations.')
-check(maplibre.networkPolicy.approvedDestinationKinds.includes('server_authorized_map_tile_proxy'), 'MapLibre may use only the server-authorized map tile proxy class.')
-check(maplibre.disposition === 'policy_blocked', 'MapLibre must not be callable before worker promotion.')
-
 const modelTools = specs.filter((spec) => spec.modelGate.modelWeightsRequired)
 check(modelTools.length > 0, 'Model-backed operation coverage must not be empty.')
 for (const spec of modelTools) {
@@ -270,10 +271,10 @@ expectRejected('d3', {
   }],
 }, ['artifact_contract_failed', 'prohibited_input'])
 
-const validModelRequest = buildValidRequest(requireSpec('sam2'))
+const validModelRequest = buildValidRequest(requireSpec('rembg'))
 const { modelManifestId: _removedModelManifestId, ...withoutModelManifest } = validModelRequest
 check(_removedModelManifestId !== undefined, 'Model fixture must include its manifest ID.')
-expectRejected('sam2', withoutModelManifest, ['missing_field'])
+expectRejected('rembg', withoutModelManifest, ['missing_field'])
 
 const cyclic: Record<string, unknown> = {}
 cyclic.self = cyclic

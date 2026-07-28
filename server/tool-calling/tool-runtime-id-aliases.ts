@@ -55,13 +55,13 @@ export const RUNTIME_TOOL_ID_ALIASES = [
     alias: 'mediainfo',
     runtimeToolId: 'mediainfo',
     externalToolId: 'mediainfo',
-    reason: 'MediaInfo remains a preserved external readiness probe and is not one of the 72 first-class production tool profiles.',
+    reason: 'MediaInfo remains a preserved external readiness probe and is not one of the 50 canonical private E2E production tool profiles.',
   },
   {
     alias: 'exiftool',
     runtimeToolId: 'exiftool',
     externalToolId: 'exiftool',
-    reason: 'ExifTool remains a preserved external readiness probe and is not one of the 72 first-class production tool profiles.',
+    reason: 'ExifTool remains a preserved external readiness probe and is not one of the 50 canonical private E2E production tool profiles.',
   },
   {
     alias: 'tesseract',

@@ -76,9 +76,6 @@ const nodeRunnerPackages: Partial<Record<ProductionToolId, string>> = {
   konva: 'konva',
   babylon_js: '@babylonjs/core',
   playwright: 'playwright',
-  maplibre: 'maplibre-gl',
-  turf: '@turf/turf',
-  deck_gl: '@deck.gl/core',
 }
 
 export function getProfessionalToolAdapterNodeRunnerPackage(toolId: ProductionToolId): string | undefined {
@@ -93,12 +90,6 @@ export interface ProfessionalToolAdapterBinaryRunnerCommand {
 }
 
 const binaryRunnerCommands: Partial<Record<ProductionToolId, ProfessionalToolAdapterBinaryRunnerCommand>> = {
-  streamer_render_pipeline_support: {
-    packageName: 'gstreamer',
-    commandName: 'gst-launch-1.0',
-    declaredWorkerImageRoles: ['render_worker', 'tool_readiness_worker'],
-    declaredRequirementsFiles: ['docker/prod/render-worker/Dockerfile'],
-  },
   mkvtoolnix_container_validation: {
     packageName: 'mkvtoolnix',
     commandName: 'mkvmerge',
@@ -146,20 +137,12 @@ const pythonRunnerImports: Partial<Record<ProductionToolId, { packageName: strin
   mir_eval: { packageName: 'mir_eval', importName: 'mir_eval' },
   pydub_effects: { packageName: 'pydub', importName: 'pydub.effects' },
   ebu_r128_pyloudnorm: { packageName: 'pyloudnorm', importName: 'pyloudnorm' },
-  faster_whisper: { packageName: 'faster-whisper', importName: 'faster_whisper' },
-  whisper_cpp: { packageName: 'whisper.cpp bindings', importName: 'whisper_cpp' },
   pyscenedetect: { packageName: 'scenedetect', importName: 'scenedetect' },
   opencolorio: { packageName: 'opencolorio', importName: 'PyOpenColorIO' },
   openimageio: { packageName: 'openimageio', importName: 'OpenImageIO' },
   deepfilternet: { packageName: 'deepfilternet', importName: 'df' },
   kornia: { packageName: 'kornia', importName: 'kornia' },
-  torch_torchvision: { packageName: 'torch+torchvision', importName: 'torch,torchvision' },
-  transformers: { packageName: 'transformers', importName: 'transformers' },
-  sam2: { packageName: 'sam2', importName: 'sam2' },
-  birefnet: { packageName: 'birefnet', importName: 'birefnet' },
   rembg: { packageName: 'rembg', importName: 'rembg' },
-  transparent_background: { packageName: 'transparent-background', importName: 'transparent_background' },
-  real_esrgan: { packageName: 'real-esrgan', importName: 'realesrgan' },
 }
 
 export function getProfessionalToolAdapterPythonRunnerImport(toolId: ProductionToolId): ProfessionalToolAdapterPythonRunnerImport | undefined {

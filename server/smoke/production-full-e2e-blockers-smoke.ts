@@ -71,7 +71,7 @@ const cpuGpuPayload = buildApprovedWorkflowPayload({
   fixture,
   stage: 'media_foundation',
   workerType: 'cpu_analysis_worker',
-  requestedToolIds: ['real_esrgan'],
+  requestedToolIds: ['kornia'],
   requestedRecipeIds: ['video_enhancement_recipe'],
   requiredQualityGateTypes: ['enhancement_artifacts'],
   metadata: { mediaFoundation: { mode: 'dry_run' } },

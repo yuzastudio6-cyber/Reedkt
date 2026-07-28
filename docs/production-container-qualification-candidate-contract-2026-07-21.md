@@ -28,7 +28,7 @@ Each role-specific plan now requires:
 - no volume or user-media mount;
 - model downloads and inference explicitly disabled.
 
-The API, CPU, GPU, render, QA, and tool-readiness roles each receive a source-owned probe plan derived from the canonical image manifest and 72-tool readiness specs. The executor can run only fixed version/capability commands, fixed Python imports, and fixed Node package-metadata resolution. It accepts no caller-selected command, shell, URL, path, provider, prompt, media, model, or credential.
+The API, CPU, GPU, render, QA, and tool-readiness roles each receive a source-owned probe plan derived from the canonical image manifest and the exact 50-tool readiness specs. The executor can run only fixed version/capability commands, fixed Python imports, and fixed Node package-metadata resolution. It accepts no caller-selected command, shell, URL, path, provider, prompt, media, model, or credential.
 
 Raw command output, resolved local paths, provider data, and errors are not projected. Only bounded evidence hashes and sanitized status are retained.
 

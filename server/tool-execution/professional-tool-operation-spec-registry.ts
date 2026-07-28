@@ -60,15 +60,12 @@ const PRIVATE_INTERNAL_RUNNER_VERIFIED_TOOL_IDS = new Set<ProductionToolId>([
   'konva',
   'babylon_js',
   'playwright',
-  'torch_torchvision',
-  'transformers',
   'rembg',
   'deepfilternet',
   'music21',
   'kornia',
   'opencolorio',
   'openimageio',
-  'streamer_render_pipeline_support',
   'rnnoise',
   'mkvtoolnix_container_validation',
   'gpac_mp4box_packaging_validation',
@@ -120,7 +117,9 @@ const PROHIBITED_STRING_FORMS = [
 
 const sourceContracts = listProfessionalToolAdapterContracts()
 const sourceContractByToolId = new Map(sourceContracts.map((contract) => [contract.canonicalToolId, contract]))
-const profileByToolId = new Map(productionToolProfiles.map((profile) => [profile.toolId, profile]))
+const profileByToolId = new Map(
+  productionToolProfiles.map((profile) => [profile.toolId, profile]),
+)
 
 export const PROFESSIONAL_TOOL_OPERATION_SPECS: readonly ProfessionalToolOperationSpec[] =
   deepFreeze(PROFESSIONAL_TOOL_OPERATION_SEEDS.map(buildOperationSpec))

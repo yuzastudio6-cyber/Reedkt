@@ -32,9 +32,9 @@ The verifier requires:
   implicit reuse of a server from another checkout;
 - eight dedicated browser suites excluded from the generic mock suite and run
   through their own authenticated or runtime-specific configurations;
-- 72 registered profiles, 60 callable candidates, 53 confined runner proofs,
-  at least 50 canonical end-to-end tool identities, and at least 50 canonical
-  job-adapter identities;
+- exactly 50 registered production profiles, 50 confined runner proofs,
+  50 canonical end-to-end tool identities, and 50 canonical job-adapter
+  identities, with all non-end-to-end candidates excluded;
 - every tool record still marked `productReady=false`,
   `externalBetaReady=false`, and `productionReady=false`;
 - the routine two-hour professional long-form profile at 7,200 seconds and 127

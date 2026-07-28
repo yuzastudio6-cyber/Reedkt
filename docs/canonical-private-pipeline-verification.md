@@ -310,8 +310,9 @@ requests and retained private-injected, non-promotable evidence.
 The same run reverified the complete 50-tool canonical lifecycle in
 `911,426 ms`, the three-source composition in `566,487 ms`, the professional
 4K color path in `636,305 ms`, the separate UHD streaming proof in
-`104,699 ms`, all 11 named-edit browser tests in `14,003 ms`, and the 74
-tool/provider resource contracts. It retained exactly 50 canonical E2E and 50
+`104,699 ms`, all 11 named-edit browser tests in `14,003 ms`, and the current
+54 tool/provider resource contracts: 50 tools plus four separate provider
+operations. It retained exactly 50 canonical E2E and 50
 job-adapter tool identities. The six-hour graph remains honestly at eight of
 255 jobs and two of 124 object-chunk pairs; distributed/cloud execution,
 providers, remote Supabase, billing, public delivery, external beta, and paid
@@ -393,8 +394,9 @@ and multi-output provider-operation admission remained false. The same
 aggregate completed the three-source composition in `492,035 ms`, the
 professional-color regression in `597,517 ms`, the 53,269,158-byte UHD
 Remotion streaming proof in `98,328 ms`, and all 11 named-edit browser tests in
-`15,512 ms`. The final report retained 72 registry profiles, 53 confined-runner
-proofs, and exactly 50 canonical private lifecycle plus job-adapter identities.
+`15,512 ms`. The current report scope is reconciled to exactly 50 registry
+profiles, all 50 with confined-runner, canonical private lifecycle, and
+job-adapter evidence.
 A separate post-hardening
 `npm run smoke:canonical-private-tool-dispatch` run then passed with all 28
 eligible Node/Python operations automatically persisting exact embedded CPU,
@@ -417,9 +419,9 @@ approved plan v2 and one 4K-ceiling estimate, completed the server-derived
 MP4, verified all eight source-bound audio tones in approved order, and
 persisted review acceptance. Its review artifact was `1,086,192` bytes with
 SHA-256 `584cdd265fc32d81ca70f5f08420bf65ebfac998a1d4db38fb94efe5aa847505`.
-The final tool report was generated at `2026-07-20T17:58:36.099Z` and again
-reported 72 registry profiles, 53 confined runners, 50 canonical end-to-end
-tool identities, and 50 canonical job adapters. The full run made no provider,
+The final tool report was generated at `2026-07-20T17:58:36.099Z`; its current
+scope is reconciled to 50 registry profiles, all 50 with confined-runner,
+canonical end-to-end, and canonical job-adapter evidence. The full run made no provider,
 Google Cloud, remote Supabase, billing, deployment, public-delivery, external-
 beta, or paid-production claim.
 

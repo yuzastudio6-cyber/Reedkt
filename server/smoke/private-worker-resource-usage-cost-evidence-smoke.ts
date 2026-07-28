@@ -33,9 +33,9 @@ try {
   assert.equal(deepFilterNet.workerRuntime.runtimeClass, 'python3_cuda12_gpu_worker')
 
   const coverage = summarizePrivateWorkerResourceUsageCoverage()
-  assert.equal(coverage.registeredToolOperationSpecCount, 72)
-  assert.equal(coverage.registeredCanonicalToolIdentityCount, 72)
-  assert.equal(coverage.registeredToolOperationIdCount, 72)
+  assert.equal(coverage.registeredToolOperationSpecCount, 50)
+  assert.equal(coverage.registeredCanonicalToolIdentityCount, 50)
+  assert.equal(coverage.registeredToolOperationIdCount, 50)
   assert.equal(coverage.registeredProviderOperationCount, 4)
   assert.deepEqual(coverage.registeredProviderOperationIds, [
     'provider.lyria.generate_music_candidate.v1',
@@ -43,14 +43,14 @@ try {
     'provider.fal.generate_synchronized_foley_candidate.v1',
     'provider.google.generate_visual_calibration_candidate.v1',
   ])
-  assert.equal(coverage.totalOperationContractCount, 76)
-  assert.equal(coverage.toolOperationContractsWithRequiredCpuMemoryMeasurements, 72)
+  assert.equal(coverage.totalOperationContractCount, 54)
+  assert.equal(coverage.toolOperationContractsWithRequiredCpuMemoryMeasurements, 50)
   assert.equal(coverage.providerOperationContractsWithRequiredCpuMemoryMeasurements, 4)
-  assert.equal(coverage.totalOperationContractsWithRequiredCpuMemoryMeasurements, 76)
-  assert.equal(coverage.registeredGpuToolOperationCount, 13)
-  assert.equal(coverage.gpuToolOperationContractsWithRequiredGpuMeasurements, 13)
-  assert.equal(coverage.privateInternalRunnerVerifiedToolOperationCount, 53)
-  assert.equal(coverage.plannedOrPolicyBlockedToolOperationCount, 19)
+  assert.equal(coverage.totalOperationContractsWithRequiredCpuMemoryMeasurements, 54)
+  assert.equal(coverage.registeredGpuToolOperationCount, 3)
+  assert.equal(coverage.gpuToolOperationContractsWithRequiredGpuMeasurements, 3)
+  assert.equal(coverage.privateInternalRunnerVerifiedToolOperationCount, 50)
+  assert.equal(coverage.plannedOrPolicyBlockedToolOperationCount, 0)
   assert.equal(coverage.missingMeasurementOperationIds.length, 0)
   assert.equal(coverage.missingGpuMeasurementOperationIds.length, 0)
   assert.equal(coverage.productReadyCount, 0)
@@ -162,16 +162,18 @@ try {
     'VALIDATION_FAILED',
   )
 
-  const unreadySpec = specs.find((spec) => !spec.privateInternalExecutionReady)
-  assert(unreadySpec)
-  const unready = toolFixture(root, 'tool-unready', unreadySpec.workerRuntime.registryWorkerType)
-  unready.operation = {
+  const nonE2ECandidate = toolFixture(
+    root,
+    'tool-non-e2e-candidate',
+    deepFilterNet.workerRuntime.registryWorkerType,
+  )
+  nonE2ECandidate.operation = {
     kind: 'registered_tool_operation',
-    canonicalToolId: unreadySpec.canonicalToolId,
-    operationId: unreadySpec.allowedOperationIds[0],
+    canonicalToolId: 'sam2',
+    operationId: 'tool.sam2.segment_and_track_subject.v1',
   }
   await expectApiError(
-    () => createPrivateWorkerResourceUsageCostEvidence(unready),
+    () => createPrivateWorkerResourceUsageCostEvidence(nonE2ECandidate),
     'VALIDATION_FAILED',
   )
 

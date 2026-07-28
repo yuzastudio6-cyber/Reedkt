@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { z } from 'zod'
 
 import {
+  PRODUCTION_TOOL_IDS,
   isProductionToolId,
   type ProductionToolId,
 } from '../../tool-registry'
@@ -101,9 +102,9 @@ export const productionContainerQualificationCandidateSchema = z.object({
   immutableImageDigest: imageDigest,
   manifestHash: sha256,
   probeDefinitionHash: sha256,
-  requiredToolIds: z.array(toolIdSchema).max(72),
-  optionalToolIds: z.array(toolIdSchema).max(72),
-  forbiddenToolIds: z.array(toolIdSchema).max(72),
+  requiredToolIds: z.array(toolIdSchema).max(PRODUCTION_TOOL_IDS.length),
+  optionalToolIds: z.array(toolIdSchema).max(PRODUCTION_TOOL_IDS.length),
+  forbiddenToolIds: z.array(toolIdSchema).max(PRODUCTION_TOOL_IDS.length),
   checks: z.array(probeCheckResultSchema).min(1).max(512),
   checksHash: sha256,
   runtimeCheckCoverageComplete: z.boolean(),

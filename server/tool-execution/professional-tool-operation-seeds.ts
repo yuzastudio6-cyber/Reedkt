@@ -43,12 +43,6 @@ const opaqueId = stringConstraint({
   pattern: '^[A-Za-z][A-Za-z0-9_-]{7,95}$',
 })
 
-const sha256Digest = stringConstraint({
-  minLength: 64,
-  maxLength: 64,
-  pattern: '^[a-f0-9]{64}$',
-})
-
 const chartSettings = strictSettings({
   width: integerConstraint(320, 3840),
   height: integerConstraint(180, 2160),
@@ -84,11 +78,6 @@ const threeDSettings = strictSettings({
   lightingProfileId: opaqueId,
 }, ['width', 'height', 'fps', 'durationFrames', 'sceneProfileId', 'cameraProfileId'])
 
-const runtimeReadinessSettings = strictSettings({
-  capabilityProfile: enumConstraint(['cpu_import', 'gpu_import', 'cuda_runtime', 'render_binary']),
-  expectedRuntimeMajor: integerConstraint(1, 99),
-}, ['capabilityProfile'])
-
 const maskSettings = strictSettings({
   confidenceThreshold: numberConstraint(0, 1),
   maximumSubjects: integerConstraint(1, 16),
@@ -97,47 +86,12 @@ const maskSettings = strictSettings({
   preserveContactObjects: booleanConstraint(),
 }, ['confidenceThreshold', 'maximumSubjects', 'frameStride', 'preserveContactObjects'])
 
-const sam2Settings = strictSettings({
-  confidenceThreshold: numberConstraint(0, 1),
-  maximumSubjects: integerConstraint(1, 1),
-  frameStride: integerConstraint(1, 30),
-  edgeRefinementProfileId: opaqueId,
-  preserveContactObjects: booleanConstraint(),
-  subjectPromptProfile: enumConstraint([
-    'normalized_box_or_points_v1',
-  ]),
-  subjectPromptSha256: sha256Digest,
-}, [
-  'confidenceThreshold',
-  'maximumSubjects',
-  'frameStride',
-  'preserveContactObjects',
-  'subjectPromptProfile',
-  'subjectPromptSha256',
-])
-
 const imageBackgroundSettings = strictSettings({
   confidenceThreshold: numberConstraint(0, 1),
   alphaMatteMode: enumConstraint(['straight', 'premultiplied']),
   edgeRefinementProfileId: opaqueId,
   maximumSubjects: integerConstraint(1, 8),
 }, ['confidenceThreshold', 'alphaMatteMode', 'maximumSubjects'])
-
-const enhancementSettings = strictSettings({
-  scaleFactor: numberEnumConstraint([1, 2, 4]),
-  tileSize: integerConstraint(64, 1024),
-  strength: numberConstraint(0, 1),
-  faceEnhancementAllowed: booleanConstraint(false),
-}, ['scaleFactor', 'tileSize', 'strength', 'faceEnhancementAllowed'])
-
-const speechSettings = strictSettings({
-  languageMode: enumConstraint(['auto_detect', 'approved_language_profile']),
-  languageProfileId: opaqueId,
-  computeType: enumConstraint(['int8', 'float16', 'float32']),
-  beamSize: integerConstraint(1, 10),
-  wordTimestamps: booleanConstraint(true),
-  vadFilter: booleanConstraint(),
-}, ['languageMode', 'computeType', 'beamSize', 'wordTimestamps', 'vadFilter'])
 
 const audioAnalysisSettings = strictSettings({
   sampleRate: integerEnumConstraint([16_000, 22_050, 44_100, 48_000]),
@@ -172,21 +126,6 @@ const audioDecodeSettings = strictSettings({
   maximumChannels: integerConstraint(1, 8),
   maximumSampleRate: integerConstraint(8_000, 192_000),
 }, ['decodeProfileId', 'maximumChannels', 'maximumSampleRate'])
-
-const mapSettings = strictSettings({
-  width: integerConstraint(320, 3840),
-  height: integerConstraint(180, 2160),
-  styleProfileId: opaqueId,
-  cameraProfileId: opaqueId,
-  maximumLabels: integerConstraint(1, 200),
-}, ['width', 'height', 'styleProfileId', 'cameraProfileId'])
-
-const geometrySettings = strictSettings({
-  distanceUnit: enumConstraint(['meters', 'kilometers', 'miles']),
-  simplificationTolerance: numberConstraint(0, 1),
-  interpolationSteps: integerConstraint(2, 10_000),
-  geometryProfileId: opaqueId,
-}, ['distanceUnit', 'simplificationTolerance', 'interpolationSteps', 'geometryProfileId'])
 
 const browserCaptureSettings = strictSettings({
   captureSourceKind: enumConstraint(['approved_internal_html_v1']),
@@ -234,12 +173,6 @@ const packagingSettings = strictSettings({
   requireCaptionIntegrity: booleanConstraint(),
 }, ['validationProfileId', 'expectedContainer', 'requireAudioVideoSync', 'requireCaptionIntegrity'])
 
-const renderReadinessSettings = strictSettings({
-  probeProfileId: opaqueId,
-  requireVideoPipeline: booleanConstraint(true),
-  requireAudioPipeline: booleanConstraint(true),
-}, ['probeProfileId', 'requireVideoPipeline', 'requireAudioPipeline'])
-
 export const PROFESSIONAL_TOOL_OPERATION_SEEDS = [
   nodeSeed('d3', 'render_chart_or_diagram', ['d3.js'], chartSettings, 'render_2d', 'd3', 'd3', 'create'),
   nodeSeed('echarts', 'render_standard_chart', ['apache_echarts'], chartSettings, 'render_2d', 'echarts', 'echarts', 'init'),
@@ -254,16 +187,8 @@ export const PROFESSIONAL_TOOL_OPERATION_SEEDS = [
   nodeSeed('pixijs', 'render_pixi_scene', ['pixi_js', 'pixi.js', 'pixi'], vectorSettings, 'render_2d', 'pixi.js', 'pixi.js', 'Application.init'),
   nodeSeed('konva', 'render_canvas_overlay', ['konva.js'], cardSettings, 'render_2d', 'konva', 'konva', 'Stage.toDataURL'),
   nodeSeed('babylon_js', 'render_babylon_scene', ['babylonjs', 'babylon.js', '@babylonjs/core'], threeDSettings, 'render_3d', '@babylonjs/core', '@babylonjs/core', 'Engine.runRenderLoop'),
-  pythonSeed('torch_torchvision', 'verify_tensor_vision_runtime', ['torch', 'torchvision'], runtimeReadinessSettings, 'runtime_readiness', 'torch+torchvision', 'torch,torchvision', 'torch.cuda.is_available'),
-  pythonSeed('transformers', 'verify_transformers_runtime', ['huggingface_transformers'], runtimeReadinessSettings, 'runtime_readiness', 'transformers', 'transformers', 'utils.is_torch_available'),
-  pythonSeed('sam2', 'segment_and_track_subject', ['segment_anything_2'], sam2Settings, 'gpu_video', 'sam2', 'sam2', 'SAM2VideoPredictor'),
-  pythonSeed('birefnet', 'extract_foreground', ['bi_ref_net', 'bi-refnet'], maskSettings, 'gpu_video', 'birefnet', 'birefnet', 'BiRefNet'),
   pythonSeed('rembg', 'remove_image_background', ['remove_background'], imageBackgroundSettings, 'gpu_image', 'rembg', 'rembg', 'remove'),
-  pythonSeed('transparent_background', 'evaluate_background_removal', ['transparent-background'], imageBackgroundSettings, 'gpu_video', 'transparent-background', 'transparent_background', 'Remover.process'),
-  pythonSeed('real_esrgan', 'enhance_media', ['real-esrgan', 'realesrgan'], enhancementSettings, 'gpu_video', 'real-esrgan', 'realesrgan', 'RealESRGAN.predict'),
   pythonSeed('kornia', 'refine_mask', [], maskSettings, 'gpu_video', 'kornia', 'kornia', 'morphology'),
-  pythonSeed('faster_whisper', 'transcribe_and_align', ['faster-whisper'], speechSettings, 'gpu_audio', 'faster-whisper', 'faster_whisper', 'WhisperModel.transcribe'),
-  pythonSeed('whisper_cpp', 'evaluate_transcription', ['whisper.cpp', 'whisper-cpp'], speechSettings, 'gpu_audio', 'whisper.cpp bindings', 'whisper_cpp', 'Whisper.transcribe'),
   pythonSeed('librosa', 'analyze_audio_features', [], audioAnalysisSettings, 'cpu_audio_analysis', 'librosa', 'librosa', 'feature'),
   pythonSeed('audioread', 'verify_audio_decode', [], audioDecodeSettings, 'cpu_audio_analysis', 'audioread', 'audioread', 'audio_open'),
   pythonSeed('pydub', 'process_audio_segments', [], audioProcessSettings, 'cpu_audio_process', 'pydub', 'pydub', 'AudioSegment'),
@@ -281,14 +206,10 @@ export const PROFESSIONAL_TOOL_OPERATION_SEEDS = [
   pythonSeed('ebu_r128_pyloudnorm', 'measure_ebu_r128_loudness', ['ebu_r128', 'pyloudnorm_ebu_r128'], loudnessSettings, 'cpu_audio_analysis', 'pyloudnorm', 'pyloudnorm', 'Meter.integrated_loudness'),
   binarySeed('rnnoise', 'denoise_voice', ['rnnoise_demo'], audioProcessSettings, 'cpu_audio_process', 'rnnoise', 'rnnoise_demo'),
   pythonSeed('deepfilternet', 'enhance_voice', ['deep_filter_net', 'deep-filter-net'], audioProcessSettings, 'gpu_audio', 'deepfilternet', 'df', 'enhance.enhance'),
-  nodeSeed('maplibre', 'render_approved_map', ['maplibre_gl', 'maplibre-gl'], mapSettings, 'render_2d', 'maplibre-gl', 'maplibre-gl', 'Map', 'conditional_approved_destination'),
-  nodeSeed('turf', 'compute_approved_geometry', ['turf.js', '@turf/turf'], geometrySettings, 'render_2d', '@turf/turf', '@turf/turf', 'bbox'),
-  nodeSeed('deck_gl', 'render_advanced_geospatial_layer', ['deck.gl', '@deck.gl/core'], mapSettings, 'render_3d', '@deck.gl/core', '@deck.gl/core', 'Deck', 'conditional_approved_destination'),
   nodeSeed('playwright', 'capture_authorized_internal_page', ['playwright_core', '@playwright/test'], browserCaptureSettings, 'browser_capture', 'playwright', 'playwright', 'chromium.launch', 'offline_required', true),
   pythonSeed('pyscenedetect', 'detect_scene_boundaries', ['py_scene_detect', 'scenedetect'], sceneSettings, 'cpu_media_analysis', 'scenedetect', 'scenedetect', 'detect'),
   pythonSeed('opencolorio', 'apply_color_transform', ['open_color_io', 'ocio'], colorSettings, 'cpu_media_analysis', 'opencolorio', 'PyOpenColorIO', 'Config.getProcessor'),
   pythonSeed('openimageio', 'process_image_sequence', ['open_image_io', 'oiio'], imagePipelineSettings, 'cpu_image_process', 'openimageio', 'OpenImageIO', 'ImageBufAlgo'),
-  binarySeed('streamer_render_pipeline_support', 'verify_render_pipeline_support', ['gstreamer', 'gst_launch'], renderReadinessSettings, 'render_binary_validation', 'gstreamer', 'gst-launch-1.0'),
   binarySeed('mkvtoolnix_container_validation', 'validate_mkv_container', ['mkvtoolnix', 'mkvmerge'], packagingSettings, 'render_binary_validation', 'mkvtoolnix', 'mkvmerge'),
   binarySeed('gpac_mp4box_packaging_validation', 'validate_mp4_package', ['gpac', 'mp4box'], packagingSettings, 'render_binary_validation', 'gpac', 'MP4Box'),
 ] as const satisfies readonly ProfessionalToolOperationSeed[]

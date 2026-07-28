@@ -236,7 +236,7 @@ try {
     toolExecutionPlanId: speechToolExecutionPlanId,
     creditReservationId: creditReservation.id,
     workerType: 'gpu_ai_worker',
-    requestedToolIds: ['faster_whisper'],
+    requestedToolIds: [],
     requestedRecipeIds: ['transcript_recipe'],
     storageReferenceIds: [mediaFoundation.audio.artifact.artifactId],
     requiredQualityGateTypes: ['transcript_alignment'],

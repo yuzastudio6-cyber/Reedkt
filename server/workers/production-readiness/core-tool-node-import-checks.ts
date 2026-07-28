@@ -1,7 +1,7 @@
 import type { ProductionToolId } from '../../tool-registry'
 
 export interface CoreToolNodePackageCheckDefinition {
-  toolId: Extract<ProductionToolId, 'sharp' | 'remotion' | 'hyperframe'>
+  toolId: Extract<ProductionToolId, 'sharp' | 'remotion'>
   checkName: string
   packageName: string
   packageJsonPath: string
@@ -28,15 +28,6 @@ export const CORE_TOOL_NODE_PACKAGE_CHECKS: CoreToolNodePackageCheckDefinition[]
     optional: false,
     metadataOnly: true,
     notes: ['Check package metadata only; do not render compositions in readiness.'],
-  },
-  {
-    toolId: 'hyperframe',
-    checkName: 'node_package_metadata_hyperframe',
-    packageName: 'hyperframe',
-    packageJsonPath: 'hyperframe/package.json',
-    optional: true,
-    metadataOnly: true,
-    notes: ['Hyperframe remains a timeline/preview boundary; do not import browser runtime.'],
   },
 ]
 

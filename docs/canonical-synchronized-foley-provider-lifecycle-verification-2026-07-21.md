@@ -123,9 +123,9 @@ The final authoritative command was:
 
 `npm run qa:canonical-private-pipeline`
 
-It passed all 44 retained stages with exit code 0. The aggregate includes the
-72 registered tool-operation contracts, the three admitted provider-operation
-contracts, 50 canonical end-to-end tool lifecycles, 50 canonical job adapters,
+It passed all 44 retained stages with exit code 0. The current aggregate scope
+includes 50 registered tool-operation contracts, three separate admitted
+provider-operation contracts, 50 canonical end-to-end tool lifecycles, 50 canonical job adapters,
 the synchronized-Foley receipt, large-media and UHD streaming proof, retained
 professional color and multi-source composition, and the mounted named-edit
 browser journey. Provider activation, remote Supabase, customer commerce,

@@ -16,12 +16,18 @@ No lower tier promotes a higher tier.
 
 ## Current retained truth
 
-- Registry profiles: 72.
-- Confined private runner proof: 53.
+- Production registry profiles: 50.
+- Confined private runner proof: 50.
 - Canonical private end-to-end proof: 50.
 - Canonical private job-adapter proof: 50.
+- Non-end-to-end candidate capabilities in the separate audit: 22.
+- Runner foundations excluded from the tool count: 3.
 - Same-source production image qualifications supplied: 0.
 - Deployed release qualifications supplied: 0.
+
+The retired 72 figure was an exploratory catalog size. The historical 53
+figure combined the 50 tools with three runner foundations and was never a
+product tool count.
 
 The report therefore remains `blocked` for external beta and production, while accurately showing the private execution progress already earned.
 
@@ -61,4 +67,4 @@ Internal production tool cost remains separate from future customer price, custo
 - `npm run check:frontend-boundary`
 - `npm run check:secrets`
 
-The focused adversarial smoke proves that FFmpeg can simultaneously be canonical-private-E2E verified and production-image/deployment blocked; runner-only and intentionally non-executable identities remain distinct; all 72 tools carry closed production projections; and the source contains no Docker, child-process, cloud, provider, database, or deployment execution path.
+The focused adversarial smoke proves that FFmpeg can simultaneously be canonical-private-E2E verified and production-image/deployment blocked; all 50 tools carry closed production projections; candidate and runner-foundation evidence cannot enter the production registry; and the source contains no Docker, child-process, cloud, provider, database, or deployment execution path.

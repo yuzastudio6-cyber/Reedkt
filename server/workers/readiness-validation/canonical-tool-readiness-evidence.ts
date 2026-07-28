@@ -1,4 +1,8 @@
-import type { ProductionToolId } from '../../tool-registry'
+import {
+  PRODUCTION_TOOL_IDS,
+  isProductionToolId,
+  type ProductionToolId,
+} from '../../tool-registry'
 import {
   getToolIdentityRecord,
   listProvenToolIdentityCatalog,
@@ -19,8 +23,13 @@ import {
  * it with production image or deployed-release qualification.
  */
 export function getCanonicalPrivateToolReadinessEvidence(
-  toolId: ProductionToolId,
+  toolId: ProductionToolId | string,
 ): CanonicalPrivateToolReadinessEvidence {
+  if (!isProductionToolId(toolId)) {
+    throw new Error(
+      `${toolId} is not in the canonical 50-tool production registry.`,
+    )
+  }
   const record = getToolIdentityRecord(toolId)
   return Object.freeze({
     evidenceClass: 'canonical_private_single_host_lifecycle_evidence' as const,
@@ -77,7 +86,9 @@ export function buildMissingDeployedToolReleaseQualificationEvidence(
 
 export function summarizeCanonicalToolReadinessEvidence(
 ): ProductionReadinessEvidenceTierSummary {
-  const records = listProvenToolIdentityCatalog()
+  const productionToolIds = new Set<string>(PRODUCTION_TOOL_IDS)
+  const records = listProvenToolIdentityCatalog().filter((record) =>
+    productionToolIds.has(record.canonicalToolId))
   const privateInternal = {
     evidenceClass: 'canonical_private_single_host_lifecycle_evidence' as const,
     runnerVerifiedToolIds: records

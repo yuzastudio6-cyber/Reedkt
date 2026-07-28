@@ -5,6 +5,7 @@ files are committed, fetched, copied, baked into images, or treated as approved.
 
 Expected future mount paths:
 
+- `/opt/reeditpro/model-weights/rembg/`
 - `/opt/reeditpro/model-weights/faster-whisper/`
 - `/opt/reeditpro/model-weights/birefnet/`
 - `/opt/reeditpro/model-weights/sam2/`

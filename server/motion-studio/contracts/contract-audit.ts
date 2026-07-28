@@ -49,7 +49,9 @@ export function runMotionStudioContractAudit(): MotionStudioContractAudit {
   if (families.length !== 12) errors.push(`Expected 12 existing professional skill families, received ${families.length}.`)
   if (extensions.length !== skills.length) errors.push('Every existing skill must have exactly one Motion Studio extension.')
   if (new Set(extensions.map((item) => item.sourceProfessionalSkillId)).size !== skills.length) errors.push('Motion Studio skill extensions must be unique and complete.')
-  if (tools.length !== PRODUCTION_TOOL_IDS.length || tools.length !== 72) errors.push(`Expected 72 tool mappings, received ${tools.length}.`)
+  if (tools.length !== PRODUCTION_TOOL_IDS.length || tools.length !== 50) {
+    errors.push(`Expected 50 canonical E2E tool mappings, received ${tools.length}.`)
+  }
   if (tools.some((tool) => tool.productReady !== false)) errors.push('MS-001 must not promote any tool to product-ready.')
   if (new Set(tools.map((tool) => tool.toolId)).size !== PRODUCTION_TOOL_IDS.length) errors.push('Tool mappings must be unique and complete.')
   const taxonomyValidation = validateMotionStudioSkillTaxonomy(taxonomy, capabilityRelationships, extensions)

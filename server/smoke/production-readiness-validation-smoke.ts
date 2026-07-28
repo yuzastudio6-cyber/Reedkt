@@ -43,8 +43,6 @@ const requiredFiles = [
   'server/workers/readiness-validation/production-container-qualification-contract.ts',
   'server/workers/readiness-validation/production-container-qualification-live-probe.ts',
   'server/workers/readiness-validation/index.ts',
-  'server/workers/timeline/canonical-hyperframe-preview-handoff-boundary.ts',
-  'server/smoke/canonical-hyperframe-preview-handoff-boundary-smoke.ts',
   'server/cli/production-readiness-summary.ts',
   'server/cli/production-readiness-action-plan.ts',
   'server/cli/production-readiness-command-plan.ts',
@@ -66,9 +64,9 @@ check(staticReport.toolSummaries.length > 0, 'Readiness report must contain tool
 check(staticReport.evidenceTiers.registryToolCount === staticReport.toolSummaries.length, 'Readiness report must cover every tool in all three evidence tiers.')
 check(staticReport.evidenceTiers.privateInternal.canonicalEndToEndVerifiedToolIds.length === 50, 'Readiness report must retain the 50 canonical private end-to-end proofs.')
 check(
-  staticReport.evidenceTiers.privateInternal.canonicalBoundaryContractVerifiedToolIds.length === 1 &&
-    staticReport.evidenceTiers.privateInternal.canonicalBoundaryContractVerifiedToolIds[0] === 'hyperframe',
-  'Readiness report must classify Hyperframe as the one non-executable canonical boundary contract without adding runner or job proof.',
+  staticReport.evidenceTiers.privateInternal
+    .canonicalBoundaryContractVerifiedToolIds.length === 0,
+  'Production readiness must not mix non-E2E boundary capabilities into the canonical 50-tool registry.',
 )
 check(staticReport.evidenceTiers.productionImageQualification.qualifiedToolIds.length === 0, 'Static readiness must not fabricate production-image qualification.')
 check(staticReport.evidenceTiers.deployedReleaseQualification.qualifiedToolIds.length === 0, 'Static readiness must not fabricate deployed-release qualification.')
@@ -105,12 +103,11 @@ check(
   Boolean(
     launchCoreStage?.canonicalPrivateEndToEndVerifiedToolIds.length === 23 &&
       launchCoreStage?.canonicalPrivateJobAdapterVerifiedToolIds.length === 23 &&
-      launchCoreStage?.canonicalPrivateBoundaryContractVerifiedToolIds.length === 1 &&
-      launchCoreStage.canonicalPrivateBoundaryContractVerifiedToolIds[0] === 'hyperframe' &&
-      launchCoreStage.transitionSummary.includes('23/23 executable tool(s) have canonical private end-to-end proof') &&
-      launchCoreStage.transitionSummary.includes('1/1 non-executable integration boundary has a canonical contract proof'),
+      launchCoreStage?.canonicalPrivateBoundaryContractVerifiedToolIds.length === 0 &&
+      launchCoreStage.transitionSummary.includes('23 tool(s) have canonical private end-to-end proof') &&
+      !launchCoreStage.transitionSummary.includes('non-executable integration boundary'),
   ),
-  'Launch-core readiness must keep its 23 executable proofs separate from the one non-executable Hyperframe boundary proof.',
+  'Launch-core readiness must contain only the 23 canonical E2E launch identities.',
 )
 check(
   Boolean(
@@ -125,13 +122,11 @@ check(
       launchCoreStage?.sourceDeclarationToolIds.includes('ffmpeg') &&
       launchCoreStage?.sourceDeclarationToolIds.includes('libass') &&
       launchCoreStage?.sourceDeclarationToolIds.includes('librosa') &&
-      launchCoreStage?.sourceDeclarationToolIds.includes('hyperframe') &&
       launchCoreStage?.sourceDeclarationToolIds.includes('signalsmith_stretch') &&
-      !launchCoreStage?.sourceDeclarationMissingToolIds.includes('hyperframe') &&
       !launchCoreStage?.sourceDeclarationMissingToolIds.includes('signalsmith_stretch') &&
       launchCoreStage?.productionReadinessMissingToolIds.includes('signalsmith_stretch'),
   ),
-  'Launch-core action plan must distinguish static package declarations, internal integration-boundary declarations, and missing production runtime proof.',
+  'Launch-core action plan must distinguish static package declarations and missing production runtime proof.',
 )
 check(
   Boolean(
@@ -152,17 +147,6 @@ check(
     ),
   ),
   'Signalsmith source declaration must come from worker Dockerfiles and must still require runtime proof.',
-)
-check(
-  Boolean(
-    launchCoreStage?.sourceDeclarationEvidence.some((evidence) =>
-      evidence.toolId === 'hyperframe' &&
-      evidence.evidenceKinds.includes('internal_integration_boundary') &&
-      evidence.runtimeProofRequired === true &&
-      evidence.productReady === false
-    ),
-  ),
-  'Hyperframe source declaration must come from internal metadata-boundary code and must not mark runtime/product readiness.',
 )
 check(
   Boolean(launchCoreStage?.sourceDeclarationEvidence.every((evidence) =>
@@ -223,15 +207,14 @@ check(worker('cpu_analysis_worker')?.expectedTools.includes('ffmpeg'), 'CPU work
 check(worker('cpu_analysis_worker')?.expectedTools.includes('opentimelineio'), 'CPU worker summary must include OpenTimelineIO.')
 check(worker('render_worker')?.expectedTools.includes('remotion'), 'Render worker summary must include Remotion.')
 check(worker('render_worker')?.expectedTools.includes('libass'), 'Render worker summary must include libass.')
-check(worker('gpu_ai_worker')?.expectedTools.includes('faster_whisper'), 'GPU worker summary must include faster-whisper.')
+check(worker('gpu_ai_worker')?.expectedTools.includes('kornia'), 'GPU worker summary must include Kornia.')
 check(worker('gpu_ai_worker')?.expectedTools.includes('deepfilternet'), 'GPU worker summary must include DeepFilterNet.')
+check(worker('gpu_ai_worker')?.expectedTools.includes('rembg'), 'GPU worker summary must include rembg.')
 
-const revideoTool = staticReport.toolSummaries.find((tool) => tool.toolId === 'revideo')
-if (!revideoTool) {
-  throw new Error('Report must include Revideo.')
-}
-check(revideoTool.status === 'evaluation_only', 'Report must mark Revideo evaluation_only.')
-check(revideoTool.blockers.some((blocker) => blocker.severity === 'hard_blocker'), 'Revideo must be production-blocked.')
+check(
+  !staticReport.toolSummaries.some((tool) => String(tool.toolId) === 'revideo'),
+  'Production readiness must exclude the non-E2E Revideo capability.',
+)
 
 const modelWeightTools = staticReport.toolSummaries.filter((tool) => tool.modelWeightsRequired)
 check(modelWeightTools.length > 0, 'Report must include model-weight tools.')
@@ -243,21 +226,19 @@ const apiImage = image('api')
 const cpuImage = image('cpu_worker')
 const renderImage = image('render_worker')
 const gpuOnlyTools: ProductionToolId[] = [
-  'faster_whisper',
-  'birefnet',
-  'sam2',
   'kornia',
   'deepfilternet',
-  'demucs',
-  'real_esrgan',
-  'film',
+  'rembg',
 ]
 for (const toolId of gpuOnlyTools) {
   check(!apiImage?.expectedTools.includes(toolId), `API image must not include GPU tool ${toolId}.`)
   check(!cpuImage?.expectedTools.includes(toolId), `CPU image must not include GPU tool ${toolId}.`)
   check(!renderImage?.expectedTools.includes(toolId), `Render image must not include GPU tool ${toolId}.`)
 }
-check(!renderImage?.expectedTools.includes('revideo'), 'Render image must keep Revideo out.')
+check(
+  !renderImage?.expectedTools.map(String).includes('revideo'),
+  'Render image must keep Revideo out.',
+)
 
 check(
   classifyProductionReadinessBlocker({ kind: 'evaluation_only_production_execution', toolId: 'revideo' }).severity === 'hard_blocker',

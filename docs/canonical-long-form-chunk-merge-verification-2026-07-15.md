@@ -130,9 +130,9 @@ ingest/proxy evidence, multi-source professional color/voice execution,
 large streamed media and audio outputs, UHD Remotion output, browser journey
 coverage, and the versioned tool-identity report.
 
-The report still contains 72 registry profiles, 61 callable candidates, 53
-confined-runner-verified identities, and exactly 50 private canonical E2E plus
-50 canonical job-adapter verified identities. Those 50 are evidence-backed
+The current report scope is reconciled to exactly 50 registry profiles, all 50
+confined-runner, private canonical E2E, and canonical job-adapter verified.
+Those 50 are evidence-backed
 private/internal tool identities; they are not 50 product-, beta-, cloud-, or
 production-ready tools.
 

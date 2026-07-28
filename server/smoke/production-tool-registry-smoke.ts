@@ -1,15 +1,26 @@
 import {
+  NON_E2E_TOOL_CAPABILITY_IDS,
   PRODUCTION_TOOL_IDS,
+  RUNNER_ONLY_FOUNDATION_IDS,
   assertToolAllowedForProduction,
   assertToolAllowedForWorker,
   assertToolModelWeightsAllowed,
+  getNonE2EToolCapabilityProfile,
   getProductionToolProfile,
   getToolsNeedingLicenseReview,
   getToolsWithModelWeights,
+  isProductionToolId,
+  listNonE2EToolCapabilityProfiles,
   listProductionToolProfiles,
+  summarizeNonE2EToolCapabilityCatalog,
   summarizeProductionToolRegistry,
 } from '../tool-registry'
-import type { ProductionToolId, ProductionToolProfile } from '../tool-registry'
+import type {
+  NonE2EToolCapabilityId,
+  NonE2EToolCapabilityProfile,
+  ProductionToolId,
+  ProductionToolProfile,
+} from '../tool-registry'
 
 function check(condition: boolean, message: string): void {
   if (!condition) {
@@ -35,11 +46,49 @@ function requireProfile(toolId: ProductionToolId): ProductionToolProfile {
   return profile as ProductionToolProfile
 }
 
+function requireCapabilityProfile(
+  toolId: NonE2EToolCapabilityId,
+): NonE2EToolCapabilityProfile {
+  const profile = getNonE2EToolCapabilityProfile(toolId)
+  check(Boolean(profile), `Missing non-E2E capability profile for ${toolId}`)
+  return profile as NonE2EToolCapabilityProfile
+}
+
 const profiles = listProductionToolProfiles()
 const profileIds = new Set(profiles.map((profile) => profile.toolId))
+const capabilityProfiles = listNonE2EToolCapabilityProfiles()
+const capabilityProfileIds = new Set(
+  capabilityProfiles.map((profile) => profile.toolId),
+)
+
+check(profiles.length === 50, 'Production registry must contain exactly 50 canonical private E2E tools.')
+check(capabilityProfiles.length === 22, 'Non-E2E capability catalog must contain exactly 22 historical/future identities.')
 
 for (const toolId of PRODUCTION_TOOL_IDS) {
   check(profileIds.has(toolId), `Every required tool must have a profile: missing ${toolId}`)
+}
+
+for (const toolId of NON_E2E_TOOL_CAPABILITY_IDS) {
+  check(
+    capabilityProfileIds.has(toolId),
+    `Every non-E2E capability must retain audit metadata: missing ${toolId}`,
+  )
+  check(
+    !new Set<string>(profileIds).has(toolId),
+    `${toolId} must not appear in the production tool registry.`,
+  )
+  check(
+    !isProductionToolId(toolId),
+    `${toolId} must not pass the production tool ID guard.`,
+  )
+  check(
+    getProductionToolProfile(toolId) === undefined,
+    `${toolId} must not resolve through production lookup.`,
+  )
+  expectThrows(
+    () => assertToolAllowedForProduction(toolId),
+    `${toolId} must not be admitted for production execution.`,
+  )
 }
 
 for (const profile of profiles) {
@@ -80,7 +129,7 @@ for (const profile of profiles.filter((item) => item.productionStatus === 'evalu
   )
 }
 
-const revideo = requireProfile('revideo')
+const revideo = requireCapabilityProfile('revideo')
 check(revideo.productionStatus === 'evaluation_only', 'Revideo must remain evaluation-only.')
 check(!revideo.launchCore, 'Revideo must not be launch core.')
 expectThrows(() => assertToolAllowedForProduction('revideo'), 'Revideo must be blocked from production execution.')
@@ -89,7 +138,7 @@ const remotion = requireProfile('remotion')
 check(remotion.category === 'render_composition', 'Remotion must remain the primary render/composition profile.')
 check(remotion.launchCore, 'Remotion must remain launch core.')
 
-const hyperframe = requireProfile('hyperframe')
+const hyperframe = requireCapabilityProfile('hyperframe')
 check(hyperframe.category === 'timeline', 'Hyperframe must remain timeline/preview boundary.')
 check(hyperframe.executionMode === 'preview_boundary', 'Hyperframe must be modeled as the preview boundary.')
 
@@ -111,22 +160,27 @@ check(opencolorio.qaResponsibilities.includes('color_exposure'), 'OpenColorIO mu
 check(opencolorio.qaResponsibilities.includes('color_skin_tone'), 'OpenColorIO must include skin tone QA.')
 check(opencolorio.qaResponsibilities.includes('color_export_space'), 'OpenColorIO must include export color-space QA.')
 
-const birefnet = requireProfile('birefnet')
+const birefnet = requireCapabilityProfile('birefnet')
 check(birefnet.qaResponsibilities.includes('mask_edge_quality'), 'BiRefNet must include mask edge QA.')
 check(birefnet.qaResponsibilities.includes('mask_subject_coverage'), 'BiRefNet must include subject coverage QA.')
 check(birefnet.modelWeightPolicy.required, 'BiRefNet must require model-weight policy review.')
 
-const sam2 = requireProfile('sam2')
+const sam2 = requireCapabilityProfile('sam2')
 check(sam2.qaResponsibilities.includes('mask_temporal_stability'), 'SAM 2 must include temporal mask QA.')
 check(sam2.modelWeightPolicy.required, 'SAM 2 must require checkpoint/model-weight review.')
 
-check(requireProfile('faster_whisper').qaResponsibilities.includes('transcript_alignment'), 'faster-whisper must include transcript alignment QA.')
+check(requireCapabilityProfile('faster_whisper').qaResponsibilities.includes('transcript_alignment'), 'faster-whisper must include transcript alignment QA.')
 check(requireProfile('deepfilternet').qaResponsibilities.includes('audio_naturalness'), 'DeepFilterNet must include audio naturalness QA.')
 check(requireProfile('deepfilternet').qaResponsibilities.includes('audio_loudness'), 'DeepFilterNet must include audio loudness QA.')
-check(requireProfile('real_esrgan').qaResponsibilities.includes('enhancement_artifacts'), 'Real-ESRGAN must include enhancement artifact QA.')
-check(requireProfile('film').qaResponsibilities.includes('slow_motion_artifacts'), 'FILM must include slow-motion artifact QA.')
+check(requireCapabilityProfile('real_esrgan').qaResponsibilities.includes('enhancement_artifacts'), 'Real-ESRGAN must include enhancement artifact QA.')
+check(requireCapabilityProfile('film').qaResponsibilities.includes('slow_motion_artifacts'), 'FILM must include slow-motion artifact QA.')
 
-const expectedModelWeightTools: ProductionToolId[] = [
+const expectedProductionModelWeightTools: ProductionToolId[] = [
+  'rembg',
+  'deepfilternet',
+]
+
+const expectedCapabilityModelWeightTools: NonE2EToolCapabilityId[] = [
   'faster_whisper',
   'whisper_cpp',
   'paddleocr',
@@ -134,20 +188,29 @@ const expectedModelWeightTools: ProductionToolId[] = [
   'birefnet',
   'sam2',
   'transparent_background',
-  'rembg',
   'torch_torchvision',
   'transformers',
-  'deepfilternet',
   'demucs',
   'real_esrgan',
   'film',
 ]
 
-for (const toolId of expectedModelWeightTools) {
+for (const toolId of expectedProductionModelWeightTools) {
   check(requireProfile(toolId).modelWeightPolicy.required, `${toolId} must have an explicit model-weight policy.`)
 }
 
-check(getToolsWithModelWeights().length >= expectedModelWeightTools.length, 'Model-weight tools must be surfaced by helper.')
+for (const toolId of expectedCapabilityModelWeightTools) {
+  check(
+    requireCapabilityProfile(toolId).modelWeightPolicy.required,
+    `${toolId} capability must retain its model-weight policy.`,
+  )
+}
+
+check(
+  getToolsWithModelWeights().length ===
+    expectedProductionModelWeightTools.length,
+  'Production model-weight helper must cover only the two E2E identities.',
+)
 check(getToolsNeedingLicenseReview().length > 0, 'Tools needing license review must be surfaced.')
 
 expectThrows(() => assertToolAllowedForProduction('not_a_tool'), 'Unknown tools must be blocked from production execution.')
@@ -156,13 +219,31 @@ expectThrows(() => assertToolModelWeightsAllowed('sam2'), 'Unreviewed SAM 2 chec
 expectThrows(() => assertToolAllowedForWorker('real_esrgan', 'cpu_analysis_worker'), 'GPU-only tools must be blocked on CPU workers.')
 
 const summary = summarizeProductionToolRegistry()
+const capabilitySummary = summarizeNonE2EToolCapabilityCatalog()
 check(summary.totalTools === PRODUCTION_TOOL_IDS.length, 'Summary must include every required production tool.')
-check(summary.evaluationOnlyTools.includes('revideo'), 'Summary must surface Revideo as evaluation-only.')
-check(summary.toolsNeedingLicenseReview.includes('birefnet'), 'Summary must surface BiRefNet license/model review.')
+check(summary.totalTools === 50, 'Production summary must expose exactly 50 canonical E2E tools.')
+check(summary.gpuRequiredTools.length === 3, 'Only three current E2E tools may retain GPU placement metadata.')
+check(summary.evaluationOnlyTools.length === 0, 'Evaluation-only candidates must not appear in the production summary.')
+check(
+  !(summary.toolsNeedingLicenseReview as readonly string[]).includes('birefnet'),
+  'BiRefNet must not leak into production registry summaries.',
+)
+check(capabilitySummary.totalCapabilities === 22, 'Capability summary must retain exactly 22 non-E2E identities.')
+check(
+  capabilitySummary.runnerOnlyFoundations.join('|') ===
+    RUNNER_ONLY_FOUNDATION_IDS.join('|'),
+  'Capability summary must identify the exact three runner-only foundations.',
+)
+check(!capabilitySummary.toolCallAllowed, 'Non-E2E capabilities must never be callable.')
+check(!capabilitySummary.plannerSelectionAllowed, 'Non-E2E capabilities must never be planner-selectable.')
+check(!capabilitySummary.workManifestAdmissionAllowed, 'Non-E2E capabilities must never enter work manifests.')
+check(!capabilitySummary.dispatchAllowed, 'Non-E2E capabilities must never enter dispatch.')
 
 console.log(JSON.stringify({
   ok: true,
   totalTools: summary.totalTools,
+  nonE2ECapabilityCount: capabilitySummary.totalCapabilities,
+  runnerOnlyFoundationCount: capabilitySummary.runnerOnlyFoundations.length,
   launchCoreToolCount: summary.launchCoreTools.length,
   gpuRequiredToolCount: summary.gpuRequiredTools.length,
   toolsNeedingLicenseReviewCount: summary.toolsNeedingLicenseReview.length,

@@ -154,8 +154,16 @@ expectError(estimateProductionToolCost({
   toolComputeLevel: 'normal',
 }), 'invalid_context', 'Product edit levels must not be accepted as runtime compute levels.')
 
-const blockedEstimate = unwrap(estimateProductionToolCost({
+expectError(estimateProductionToolCost({
   toolId: 'revideo',
+  workspaceId: 'workspace-toolcost-smoke',
+  projectId: 'project-toolcost-smoke',
+  productEditLevel: 'normal',
+  idempotencyKey: 'toolcost-blocked-estimate',
+}), 'unknown_tool', 'Non-E2E capability estimates must be rejected.')
+
+const blockedEstimate = unwrap(estimateProductionToolCost({
+  toolId: 'rembg',
   workspaceId: 'workspace-toolcost-smoke',
   projectId: 'project-toolcost-smoke',
   productEditLevel: 'normal',
@@ -372,7 +380,7 @@ assert.equal(approvedUserRetry.event.retryAttempt, 1)
 
 const nonBillable = unwrap(emitProductionToolCostEvent({
   store,
-  toolId: 'revideo',
+  toolId: 'rembg',
   workspaceId: 'workspace-toolcost-smoke',
   projectId: 'project-toolcost-smoke',
   productEditLevel: 'normal',

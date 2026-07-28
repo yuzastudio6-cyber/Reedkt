@@ -359,10 +359,10 @@ export function evaluateProtectedInternalTestingReleaseCandidateAdmission(
     release_six_hour_excluded_from_routine:
       snapshot.longForm.releaseStressExecutedByRoutinePipeline === false,
     tool_catalog_partition:
-      snapshot.tools.totalRegistryProfiles === 72
-      && snapshot.tools.callableCandidateCount === 60
-      && snapshot.tools.intentionallyNonExecutableCount === 12
-      && snapshot.tools.confinedRunnerVerifiedCount === 53
+      snapshot.tools.totalRegistryProfiles === 50
+      && snapshot.tools.callableCandidateCount === 50
+      && snapshot.tools.intentionallyNonExecutableCount === 0
+      && snapshot.tools.confinedRunnerVerifiedCount === 50
       && snapshot.tools.callableCandidateCount
         + snapshot.tools.intentionallyNonExecutableCount
         === snapshot.tools.totalRegistryProfiles,

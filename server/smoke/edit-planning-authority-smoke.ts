@@ -450,8 +450,8 @@ await expectApiError(
       ]
     },
   })),
-  'TOOL_NOT_READY',
-  'Future, evaluation, planning-only, or license-blocked tools must not enter an approved execution work item.',
+  'VALIDATION_FAILED',
+  'A non-E2E capability must be rejected before tool-readiness evaluation because it is outside the production registry.',
 )
 
 await expectApiError(
@@ -511,8 +511,8 @@ await expectApiError(
       }
     },
   })),
-  'TOOL_NOT_READY',
-  'A required tool without canonical lifecycle and job-adapter evidence must not enter an approvable plan.',
+  'VALIDATION_FAILED',
+  'A non-E2E capability must not enter an approvable plan or its tool strategy.',
 )
 
 await expectApiError(
@@ -2583,14 +2583,14 @@ try {
   const routeToolEvidence = asRecord(toolEvidenceEnvelope.data?.toolRuntimeEvidenceAuthority)
   const routeToolCoverage = asRecord(routeToolEvidence.coverage)
   const routeToolSummary = asRecord(routeToolEvidence.summary)
-  assert.equal(routeToolCoverage.registryToolIds, 72)
+  assert.equal(routeToolCoverage.registryToolIds, 50)
   assert.deepEqual(routeToolSummary.productionReadyTools, [])
   assert.deepEqual(routeToolSummary.authorityExternalBetaReadyTools, [])
   const provenToolIdentitySummary = asRecord(toolEvidenceEnvelope.data?.provenToolIdentitySummary)
-  assert.equal(provenToolIdentitySummary.totalRegistryProfiles, 72)
-  assert.equal(provenToolIdentitySummary.callableCandidateCount, 60)
+  assert.equal(provenToolIdentitySummary.totalRegistryProfiles, 50)
+  assert.equal(provenToolIdentitySummary.callableCandidateCount, 50)
   assert.equal(provenToolIdentitySummary.canonicalEndToEndVerifiedCount, 50)
-  assert.equal(toolEvidenceEnvelope.data?.provenToolIdentityCatalog?.length, 72)
+  assert.equal(toolEvidenceEnvelope.data?.provenToolIdentityCatalog?.length, 50)
 
   const callerAuthoredReadiness = await fetch(
     `${routeBaseUrl}/v1/edit-executions/jobs/${String(routeRootJob.id)}/readiness-inspection`,

@@ -69,40 +69,48 @@ Current gaps:
 
 ### Registry and planning coverage
 
-- 72 production tool registry profiles.
-- 55 of 72 registry tools have a statically declared source package/binary/API
-  surface; 39 of the 50 bounded adapters are in that set.
-- 109 professional editing skills across 12 families.
-- 55 hidden internal adapter names referenced by professional skills.
-- 50 bounded backend adapter contracts.
-- 50 of 50 bounded adapter contracts have a registered runner definition.
-- 72 of 72 production profiles have structural cost-metering coverage.
-- 0 of 72 production profiles are currently marked product-ready.
+- 50 canonical private end-to-end production tool registry profiles.
+- 110 professional editing skills across 12 families.
+- 44 hidden internal adapter names referenced by professional skills.
+- 38 bounded backend adapter contracts plus 12 accepted core/support operation
+  specs, totaling the same exact 50 tools.
+- 38 of 38 bounded adapter contracts have a registered runner definition.
+- 50 of 50 production profiles have structural cost-metering coverage.
+- 0 of 50 production profiles are currently marked product-ready.
+- 22 non-end-to-end capability candidates remain in a separate audit and
+  cannot enter planning, approved work, dispatch, or the production count.
+
+The retired 72 figure was an exploratory catalog size. The historical “53”
+evidence figure combined these 50 tools with three runner foundations and was
+never a tool count. Living Frame's six controlled-illustration areas are
+capabilities beneath one future ComfyUI execution host, not six tool IDs.
+ComfyUI would increase the production count to 51 only after it earns the same
+complete end-to-end proof and is explicitly promoted.
 
 ### 2026-07-21 executable and boundary-evidence audit
 
 | Evidence | Current count | What it proves |
 | --- | ---: | --- |
-| Production registry | 72 | Named policy/ownership surface only. |
-| Launch-core profiles | 24 | Intended first-wave tools, not readiness. |
-| Hidden adapter names | 55 | Skill/planner references. |
-| Bounded adapter contracts | 50 | Fixed backend contract exists. |
-| Registered runner definitions | 50 / 50 | A bounded runner definition exists. |
-| Callable candidates | 60 / 72 | Operation contract is executable in principle and is not assigned a non-executable worker-runtime disposition. |
-| Intentionally non-executable | 12 / 72 | Planning, future, evaluation, policy-only, or explicit integration-boundary lane; no tool call is permitted. |
-| Confined runner verified | 53 | Exact bounded operation ran in its approved offline runtime profile. |
+| Production registry | 50 | Exact canonical private E2E tool identities only. |
+| Launch-core profiles | 23 | Intended first-wave tools; readiness remains separately gated. |
+| Hidden adapter names | 44 | Skill/planner references that all resolve to one of the 50 tools. |
+| Bounded adapter contracts | 38 | Fixed backend adapter contract exists. |
+| Accepted core/support specs | 12 | Canonical operation spec exists in the owning lane. |
+| Registered runner definitions | 38 / 38 adapters | A bounded adapter runner definition exists. |
+| Callable production tools | 50 / 50 | Exact operation is in the canonical private E2E registry. |
+| Non-end-to-end candidate capabilities | 22, outside registry | Candidate evidence is audit-only and cannot be selected or dispatched. |
+| Confined runner verified | 50 | Exact bounded operation ran in its approved offline runtime profile. |
 | Canonical private E2E identities | 50 | Exact approved snapshot/work item, funded reservation, lease, one-use dispatch, private persistence, QA, reconciliation, replay, and downstream verification passed. |
-| Canonical non-executable boundary contracts | 1 / 72 (`hyperframe`) | Exact approved-timeline handoff and browser-safe projection are deterministic and tamper-evident. This is not runner, job, render, export, external-runtime, or release evidence. |
 | Canonical plan tool-identity authority | 50 / 50 in the complete fixture | All required full-fixture tools are declared by strategy, bound to exact operations, frozen with stable identity/operation/proof hashes before approval, and revalidated before execution packaging. |
 | Approved work-item resource placement authority | 50 / 50 tool identities have exact catalog placement; each approved graph freezes only its exact work items | CPU/GPU/render/control-plane class, accelerator, worker cap, global cap, tool identity/proof, and blocked-provider disposition are content-addressed before approval and hash-bound through readiness, lease, dispatch, and scheduling. This is private/local authority, not deployed cloud capacity. |
 | Canonical pre-approval payload authority | 50 unique tools across 19 runner families in the complete fixture | Exact structured payload, source/cleanup/dependency binding, output role/content type, and offline policy are validated before plan approval, frozen in content-addressed lineage, revalidated before packaging, and reused at dispatch. |
 | Job-only canonical adapter | 15 runner classes implemented; 52 complete-matrix adapter paths plus 1 dedicated professional-color path executed; 50 exact tool identities recorded | Snapshot authority, dependency-bound source trim, and every canonical private E2E tool identity now prove server-derived adapter execution. The proof includes D3 plus dependency-bound Sharp, DuckDB, source-bound PyAV, DeepFilterNet with attempt-cost evidence, controlled libass, exact source-bound FFmpeg trim, voice-delivery, and professional-color recipes, exact Remotion final composition with approved voice replacement and selected color bytes, and dependency-bound final ffprobe QA. The additional color path reuses the already-counted FFmpeg identity; it is not a 51st tool. |
 | Automatic observed CPU/memory cost lifecycle | 31 / 50 canonical identities | All 28 structured Node/Python operations, generic FFmpeg, generic FFprobe, and canonical Remotion retain exact embedded/cgroup observations and create-only internal infrastructure-cost evidence under the same snapshot/package/job/lease/dispatch/artifact/QA/reconciliation lifecycle. The other 19 canonical identities still have lifecycle proof but not this automatic observation class. Specialized long-form, deployed-cloud, official-rate, provider, and commercial metering remain separate gates. |
 | Canonical provider lifecycle contracts | 4 private-injected executable contracts: Lyria V1, Storytelling Speech V2, synchronized Foley V3, and visual calibration V4 | Every provider operation reuses the same funded package queue, claim/lease, one-use provider dispatch, private create-only storage, terminal/replay/unknown-reconciliation, provider-cost, observed worker-resource-cost, and compact receipt authorities. Speech retains its ordered MP3 plus alignment set; Foley retains its 17-request async ceiling; visual calibration binds exact Motion/style/scenario/reference/frame/continuity authority to a primary-only Gemini Omni Flash MP4 lifecycle with a 15-request ceiling and expiring official-public-pricing snapshot. All four are non-promotable, perform zero live provider requests in retained proof, and leave immutable model revision, account/rate qualification, Secret Manager payload access, provider transport, cloud persistence, selection, billing, and production promotion closed. |
-| Product-ready | 0 / 72 | No registry tool meets production evidence gates. |
+| Product-ready | 0 / 50 | No registry tool meets production deployment evidence gates. |
 | Frontend-executable in practice | 0 | Tool execution stays off the browser. |
 
-The authoritative identity source is `server/tool-execution/proven-tool-identity-catalog.ts`, evidence revision `2026-07-21.31`, schema `proven-tool-identity-catalog-v2`. Every one of its 50 `canonical_e2e_verified` identities performs an exact confined operation, passes the complete private canonical lifecycle, and has exact server-derived job-adapter proof. Canonical publication now derives `canonical-tool-execution-authority-v2` from that catalog and the compiled work graph; it embeds the exact approved work-item resource-placement authority before approval, and required executable tools without both proof dimensions fail before approval. Hyperframe is the one separately measured `canonical_boundary_contract_verified` identity: it hands off an already-approved private timeline through `tool.hyperframe.handoff_approved_preview_timeline.v1` without invoking an external Hyperframes runtime, processing source media, or claiming a runner/job/release. Historical revision `.30` recorded FFmpeg's additional verified `video/x-matroska` artifact contract plus its revision-isolated `8.1.2-color-v1-local` runtime identity. Neither revision increases the 50-tool executable count or promotes product readiness. This is private single-host/source-contract evidence, not distributed-worker, external-beta, or production evidence.
+The authoritative identity source is `server/tool-execution/proven-tool-identity-catalog.ts`, evidence revision `2026-07-21.31`, schema `proven-tool-identity-catalog-v2`. Every one of its 50 `canonical_e2e_verified` identities performs an exact confined operation, passes the complete private canonical lifecycle, and has exact server-derived job-adapter proof. Canonical publication now derives `canonical-tool-execution-authority-v2` from that catalog and the compiled work graph; it embeds the exact approved work-item resource-placement authority before approval, and required executable tools without both proof dimensions fail before approval. Historical revision `.30` recorded FFmpeg's additional verified `video/x-matroska` artifact contract plus its revision-isolated `8.1.2-color-v1-local` runtime identity. That additional operation evidence does not increase the 50-tool count or promote product readiness. This is private single-host/source-contract evidence, not distributed-worker, external-beta, or production evidence.
 
 ### Actual execution coverage
 
@@ -146,7 +154,7 @@ Implemented at policy/contract level:
 - Plan and estimate approval precede generation.
 - Tool-cost events represent internal tool cost only; service fee remains in settlement preview/policy math.
 - No silent unapproved overage is allowed.
-- Structural metering profiles cover all 72 production registry profiles.
+- Structural metering profiles cover all 50 production registry profiles.
 
 Not yet production-executable:
 
@@ -275,8 +283,9 @@ The v32 run on 2026-07-21 UTC is the current bounded aggregate verdict for this
 branch. It passed `43/43` stages with exit code `0`; its final tool report was
 generated at `2026-07-21T03:00:20.253Z`. It added the exact two-output
 Storytelling Speech private-injected lifecycle in `1,507 ms`, reverified the
-complete 50-tool canonical lifecycle in `911,426 ms`, covered 74 tool/provider
-resource contracts, and retained exactly 50 canonical E2E plus 50 job-adapter
+complete 50-tool canonical lifecycle in `911,426 ms`; current scope covers 54
+resource contracts (50 tools plus four separate provider operations) and
+retains exactly 50 canonical E2E plus 50 job-adapter
 tool identities. The six-hour graph remains honestly at eight of 255 jobs and
 two of 124 object-chunk pairs. The separate customer-delivery graph,
 three-source composition, professional-color path, UHD Remotion streaming

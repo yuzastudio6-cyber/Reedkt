@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import {
   getProductionToolProfile,
+  isProductionToolId,
   listProductionToolProfiles,
   type ProductionRegistryWorkerType,
   type ProductionToolId,
@@ -55,14 +56,9 @@ const reportWorkerTypes: ProductionRegistryWorkerType[] = [
 ]
 
 const gpuWorkerOnlyToolIds = new Set<ProductionToolId>([
-  'faster_whisper',
-  'birefnet',
-  'sam2',
   'kornia',
   'deepfilternet',
-  'demucs',
-  'real_esrgan',
-  'film',
+  'rembg',
 ])
 
 function mapReadinessStatus(status: string): ReadinessValidationStatus {
@@ -147,7 +143,11 @@ function buildToolBlockers(toolId: ProductionToolId, status: ReadinessValidation
   }
 
   if (profile?.productionStatus === 'evaluation_only') {
-    candidates.push({ kind: toolId === 'revideo' ? 'revideo_production_execution' : 'evaluation_only_production_execution', toolId, detail: `${profile.displayName} is evaluation-only.` })
+    candidates.push({
+      kind: 'evaluation_only_production_execution',
+      toolId,
+      detail: `${profile.displayName} is evaluation-only.`,
+    })
   }
 
   if (profile?.productionStatus === 'future') {
@@ -217,7 +217,7 @@ function buildImageSummaries(toolSummaries: ReadinessToolSummary[]): ReadinessIm
     for (const toolId of entry.forbiddenToolIds) {
       if (expectedTools.includes(toolId)) {
         candidates.push({
-          kind: toolId === 'revideo' ? 'revideo_production_execution' : 'gpu_tool_on_non_gpu_worker',
+          kind: 'gpu_tool_on_non_gpu_worker',
           toolId,
           imageRole: entry.imageRole,
           workerType: entry.workerType,
@@ -309,7 +309,10 @@ function buildWorkerSummaries(imageSummaries: ReadinessImageSummary[]): Readines
 }
 
 function buildModelWeightSummaries(): ReadinessModelWeightSummary[] {
-  return listGpuModelWeightManifestTemplates().map((template) => {
+  return listGpuModelWeightManifestTemplates().flatMap((template) => {
+    const toolId = template.toolId
+    if (!isProductionToolId(toolId)) return []
+
     const evaluation = evaluateModelWeightManifestForMode(template, 'production_ready')
     const status: ReadinessValidationStatus = evaluation.allowedForProduction
       ? 'passed'
@@ -319,7 +322,7 @@ function buildModelWeightSummaries(): ReadinessModelWeightSummary[] {
 
     return {
       manifestId: template.id,
-      toolId: template.toolId,
+      toolId,
       modelName: template.modelName,
       expectedPath: template.expectedPath,
       status,
@@ -354,13 +357,6 @@ function buildLicenseSummaries(modelWeightSummaries: ReadinessModelWeightSummary
       id: 'gpu_model_weight_license_review',
       status: gpu.report.modelWeightReadiness === 'blocked' ? 'needs_model_weight_review' : mapReadinessStatus(gpu.report.modelWeightReadiness),
       message: `GPU model-weight readiness has ${modelWeightSummaries.filter((summary) => summary.blocksProduction).length} production blockers.`,
-      manualReviewRequired: true,
-    },
-    {
-      id: 'revideo_evaluation_only',
-      toolId: 'revideo',
-      status: 'evaluation_only',
-      message: 'Revideo remains evaluation-only and production-blocked.',
       manualReviewRequired: true,
     },
   ]
@@ -509,7 +505,6 @@ function sourceDeclarationPatterns(toolId: ProductionToolId): string[] {
   ]
   const aliases: Partial<Record<ProductionToolId, string[]>> = {
     ffprobe: ['ffmpeg'],
-    hyperframe: ['hyperframe'],
     libass: ['libass9', 'libass-dev', 'libass'],
     sharp: ['sharp', 'libvips42', 'libvips-dev'],
     pydub_effects: ['pydub'],
@@ -668,7 +663,7 @@ function buildActionPlan(
       status: stageStatus(launchCoreTools, launchCoreBlockerCount),
       title: 'Launch-core container readiness',
       summary: launchCoreTools.length > 0
-        ? `${launchCoreTools.length} launch-core identities still need production-image or non-executable boundary release evidence.`
+        ? `${launchCoreTools.length} launch-core identities still need production-image and deployed-release evidence.`
         : 'Launch-core tools have production readiness evidence.',
       toolIds: launchCoreTools,
       adapterContractToolIds: adapterContractToolIds(launchCoreTools),
@@ -683,7 +678,6 @@ function buildActionPlan(
         'Bounded container runtime candidate receipt for required and forbidden tools with no media processing.',
         'Independent same-source/image verification of the candidate receipt.',
         'Manual license review where the package has production licensing obligations.',
-        'For a non-executable integration boundary, same-source browser/server integration and deployed-release proof replace worker-image evidence without granting execution authority.',
       ],
       nextActions: [
         ...(launchCoreSourceMissing.length > 0
@@ -691,7 +685,6 @@ function buildActionPlan(
           : []),
         'Run the approved candidate-receipt command plan for all six immutable production images.',
         'Independently verify exact package evidence, image digests, source identity, and license notes before promoting any worker.',
-        'Qualify Hyperframe only through the non-executable deployed-integration lane; do not build, assign, or dispatch it as a worker tool.',
       ],
       safetyBoundary: 'Does not authorize provider calls, user media processing, public delivery, billing, beta, or production traffic.',
       transitionSummary: transitionSummary(launchCoreTools, toolSummaries),

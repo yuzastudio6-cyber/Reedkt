@@ -18,7 +18,7 @@ import {
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
 import {
-  getProfessionalToolOperationSpec,
+  resolveProfessionalToolOperationSpec,
 } from '../tool-execution'
 
 const SHA = {
@@ -205,32 +205,10 @@ assert.deepEqual(
   candidate,
 )
 
-const sam2Operation = getProfessionalToolOperationSpec('sam2')
-assert.ok(sam2Operation)
-assert.deepEqual(
-  sam2Operation.declaredPrivateInputArtifactKinds,
-  ['image', 'video', 'frame_sequence', 'json_data'],
-)
-assert.deepEqual(
-  sam2Operation.requestSchema.properties.settings.required,
-  [
-    'confidenceThreshold',
-    'maximumSubjects',
-    'frameStride',
-    'preserveContactObjects',
-    'subjectPromptProfile',
-    'subjectPromptSha256',
-  ],
-)
-const subjectPromptSha256Constraint =
-  sam2Operation.requestSchema.properties.settings.properties
-    .subjectPromptSha256
-assert.equal(subjectPromptSha256Constraint?.type, 'string')
 assert.equal(
-  subjectPromptSha256Constraint?.type === 'string'
-    ? subjectPromptSha256Constraint.pattern
-    : undefined,
-  '^[a-f0-9]{64}$',
+  resolveProfessionalToolOperationSpec('sam2'),
+  undefined,
+  'SAM2 must remain outside the callable production operation registry.',
 )
 
 const pointsPrompt = createCanonicalSam2SubjectPromptPacket({

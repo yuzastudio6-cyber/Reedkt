@@ -197,7 +197,7 @@ try {
     creditReservationId: creditReservation.id,
     toolExecutionPlanId: speechToolExecutionPlanId,
     jobId: `job-${planningState.project.id}-speech-caption-handoff`,
-    requestedToolIds: ['faster_whisper', 'ffmpeg'],
+    requestedToolIds: ['ffmpeg'],
     requestedRecipeIds: ['speech_caption_handoff_requires_local_model'],
     storageReferenceId: mediaFoundation.audio.artifact.artifactId,
     metadata: {

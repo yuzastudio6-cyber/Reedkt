@@ -48,7 +48,12 @@ const expectedCanonical = new Map<string, ProductionToolId>([
 for (const name of requestedToolNames) {
   const contract = resolveProfessionalToolAdapterContract(name)
   assert.ok(contract, `Missing adapter contract for ${name}.`)
-  assert.ok(PRODUCTION_TOOL_IDS.includes(contract.canonicalToolId), `${name} resolves to an unknown production tool.`)
+  assert.ok(
+    (PRODUCTION_TOOL_IDS as readonly string[]).includes(
+      contract.canonicalToolId,
+    ),
+    `${name} must resolve to one of the exact 50 E2E production identities.`,
+  )
   assert.equal(contract.frontendExecutionAllowed, false, `${name} must not execute from the frontend.`)
   assert.equal(contract.requiresApprovedSnapshot, true, `${name} must require approved snapshots.`)
   assert.equal(contract.productReady, false, `${name} must default to not product-ready without source-truth evidence.`)
@@ -63,7 +68,7 @@ for (const name of requestedToolNames) {
   }
 }
 
-for (const modelBackedName of ['sam2', 'birefnet', 'rembg', 'transparent_background', 'real_esrgan', 'faster_whisper', 'whisper_cpp', 'deepfilternet']) {
+for (const modelBackedName of ['rembg', 'deepfilternet']) {
   const contract = resolveProfessionalToolAdapterContract(modelBackedName)
   assert.ok(contract?.requiresModelWeightApproval, `${modelBackedName} must keep model-weight approval gates.`)
   assert.ok(contract?.modes.includes('blocked_until_model_weight_ready'), `${modelBackedName} must expose model-weight blocker mode.`)
@@ -99,8 +104,8 @@ assert.equal(
   'Product readiness must not change the hard frontend execution boundary.',
 )
 
-const modelContract = resolveProfessionalToolAdapterContract('sam2')
-assert.ok(modelContract, 'sam2 must resolve for model-weight product-readiness smoke.')
+const modelContract = resolveProfessionalToolAdapterContract('rembg')
+assert.ok(modelContract, 'rembg must resolve for model-weight product-readiness smoke.')
 const missingModelWeightReadiness = evaluateProfessionalToolAdapterProductReadiness(modelContract, {
   ...completeProductReadinessEvidence,
   modelWeightApprovalReady: false,
@@ -206,27 +211,15 @@ const dryRunPlan = createProfessionalToolAdapterPlan({
     privateArtifactRefs: [{ artifactId: 'private-frame-ref', storageObjectPath: 'private/artifact/ref.json' }],
   },
 })
-assert.equal(dryRunPlan.status, 'blocked', 'Foundation-only tools should block dry-run edit execution.')
+assert.equal(dryRunPlan.status, 'ready_for_dry_run', 'All 38 exact adapter-backed tools should support dry-run planning.')
 assert.equal(dryRunPlan.resolvedToolCount, requestedToolNames.length, 'Dry-run plan must resolve every requested tool.')
 assert.equal(
-  dryRunPlan.tools.filter((tool) => tool.status === 'blocked').map((tool) => tool.canonicalToolId).sort().join(','),
-  [...boundedModelFoundationAdapterToolNames].sort().join(','),
-  'Only foundation runtime packages should block dry-run edit execution.',
+  dryRunPlan.tools.filter((tool) => tool.status === 'blocked').length,
+  0,
+  'Runner foundations and non-E2E candidates must not enter the dry-run adapter plan.',
 )
 assert.ok(dryRunPlan.qaGateTypes.includes('render_asset_integrity'), 'Adapter plan must aggregate QA gates.')
 assert.equal(dryRunPlan.userFacingSummary.toLowerCase().includes('d3'), false, 'User-facing plan summary must not expose package names.')
-
-const readinessPlan = createProfessionalToolAdapterPlan({
-  workspaceId: 'workspace-adapter-smoke',
-  projectId: 'project-adapter-smoke',
-  requestedToolNames: [...boundedModelFoundationAdapterToolNames],
-  mode: 'readiness_check',
-  evidence: {
-    approvedPlanSnapshotId: 'approved-snapshot-adapter-smoke',
-  },
-})
-assert.equal(readinessPlan.status, 'ready_for_readiness_check', 'Foundation runtime packages should route to readiness checks.')
-assert.equal(readinessPlan.tools.every((tool) => tool.status === 'ready'), true, 'Readiness-only tools should pass readiness_check mode.')
 
 const packageReadyToolIds = requestedToolNames
   .map((name) => resolveProfessionalToolAdapterContract(name)?.canonicalToolId)
@@ -249,11 +242,6 @@ assert.ok(
   boundedPlan.blockers.some((blocker) => /model\/checkpoint approval/i.test(blocker)),
   'Bounded plan must preserve model/checkpoint blockers.',
 )
-assert.equal(
-  boundedPlan.blockers.some((blocker) => /planning-only/i.test(blocker)),
-  true,
-  'Dry-run-only map/geospatial adapters must still block bounded execution until promoted to a render/worker recipe.',
-)
 for (const renderAdapterName of boundedVisualMotionAdapterToolNames) {
   const canonicalToolId = resolveProfessionalToolAdapterContract(renderAdapterName)?.canonicalToolId
   const tool = boundedPlan.tools.find((item) => item.canonicalToolId === canonicalToolId)
@@ -264,18 +252,6 @@ for (const renderPackagingName of boundedRenderPackagingAdapterToolNames) {
   const tool = boundedPlan.tools.find((item) => item.canonicalToolId === canonicalToolId)
   assert.equal(tool?.status, 'ready', `${renderPackagingName} must be eligible for backend bounded validation handoff when evidence is present.`)
 }
-assert.ok(
-  boundedPlan.blockers.some((blocker) => /torch_torchvision does not support bounded execution/i.test(blocker)),
-  'Foundation packages must remain readiness-only and block bounded edit execution.',
-)
-assert.ok(
-  boundedPlan.blockers.some((blocker) => /whisper_cpp does not support bounded execution/i.test(blocker)),
-  'Evaluation-only fallback speech adapters must not become bounded execution by default.',
-)
-assert.ok(
-  boundedPlan.blockers.some((blocker) => /maplibre is planning-only/i.test(blocker)),
-  'Planning-only map adapters must preserve a render/worker promotion gate.',
-)
 assert.equal(boundedPlan.creditGateRequired, true, 'Bounded render/GPU adapters must require credit gates.')
 assert.equal(boundedPlan.creditGateReady, true, 'Credit gates should be ready when estimate and reservation evidence exist.')
 
@@ -294,8 +270,8 @@ assert.equal(
   'Orchestration should auto-route edit adapters and foundation readiness checks.',
 )
 assert.equal(orchestrationPlan.resolvedToolCount, requestedToolNames.length, 'Orchestration must resolve every requested tool.')
-assert.equal(orchestrationPlan.editAdapterPlan?.resolvedToolCount, requestedToolNames.length - 2, 'Two foundation tools should be excluded from dry-run edit adapters.')
-assert.equal(orchestrationPlan.readinessPlan?.resolvedToolCount, 2, 'Foundation tools should route to readiness checks.')
+assert.equal(orchestrationPlan.editAdapterPlan?.resolvedToolCount, requestedToolNames.length, 'All 38 E2E adapter tools should route to dry-run edit adapters.')
+assert.equal(orchestrationPlan.readinessPlan, undefined, 'Runner foundations must remain outside the product adapter plan.')
 assert.equal(orchestrationPlan.userFacingSummary.toLowerCase().includes('torch'), false, 'Orchestration summary must not expose package names.')
 
 const unresolvedRegistryOnlyPlan = createProfessionalToolAdapterPlan({
@@ -320,18 +296,18 @@ assert.equal(
 )
 assert.deepEqual(
   unresolvedRegistryOnlyPlan.sourceTruthIssues.map((issue) => issue.category),
-  ['model_manifest_required', 'accepted_owner_lane_runtime_gate', 'evaluation_hold', 'accepted_owner_lane_runtime_gate'],
-  'Unresolved source-truth issues must preserve their exact categories.',
+  ['unknown_tool', 'accepted_owner_lane_runtime_gate', 'unknown_tool', 'accepted_owner_lane_runtime_gate'],
+  'Non-E2E candidates must be unknown to the production adapter map while accepted owner-lane tools remain auditable.',
 )
 assert.deepEqual(
   unresolvedRegistryOnlyPlan.sourceTruthIssues.map((issue) => issue.nextGate),
   [
-    'exact_model_weight_owner_manifest_review',
+    'owner_selection_before_adapter_work',
     'owner_lane_runtime_gate',
-    'owner_scope_decision_keep_or_remove',
+    'owner_selection_before_adapter_work',
     'owner_lane_runtime_gate',
   ],
-  'Unresolved source-truth issues must expose their exact next gates.',
+  'Non-E2E candidates must require explicit future owner selection rather than inheriting production-tool gates.',
 )
 for (const issue of unresolvedRegistryOnlyPlan.sourceTruthIssues) {
   assert.equal(
@@ -350,16 +326,16 @@ assert.equal(
   'User-facing readiness summary must not expose unresolved package names.',
 )
 assert.ok(
-  unresolvedRegistryOnlyPlan.blockers.some((blocker) => /paddleocr.*model\/checkpoint manifest approval/i.test(blocker)),
-  'Model-backed registry-only tools must point to the exact model/checkpoint manifest lane.',
+  unresolvedRegistryOnlyPlan.blockers.some((blocker) => /paddleocr.*not registered/i.test(blocker)),
+  'A model-backed non-E2E candidate must be rejected as outside the production adapter map.',
 )
 assert.ok(
   unresolvedRegistryOnlyPlan.blockers.every((blocker) => !/pyav/i.test(blocker)),
   'Accepted owner-lane support tools must not create a hard adapter blocker.',
 )
 assert.ok(
-  unresolvedRegistryOnlyPlan.blockers.some((blocker) => /revideo.*not selected\/evaluation-only/i.test(blocker)),
-  'Evaluation-hold registry-only tools must stay out of execution planning.',
+  unresolvedRegistryOnlyPlan.blockers.some((blocker) => /revideo.*not registered/i.test(blocker)),
+  'An evaluation-only non-E2E candidate must be rejected as outside the production adapter map.',
 )
 assert.ok(
   unresolvedRegistryOnlyPlan.blockers.every((blocker) => !/ffmpeg/i.test(blocker)),
@@ -398,7 +374,7 @@ console.log(JSON.stringify({
   renderPackagingContracts: summary.renderPackagingContracts,
   productReadyContracts: summary.productReadyContracts,
   dryRunPlanStatus: dryRunPlan.status,
-  readinessPlanStatus: readinessPlan.status,
+  readinessFoundationToolCount: boundedModelFoundationAdapterToolNames.length,
   orchestrationPlanStatus: orchestrationPlan.status,
   boundedPlanStatus: boundedPlan.status,
   boundedBlockerCount: boundedPlan.blockers.length,

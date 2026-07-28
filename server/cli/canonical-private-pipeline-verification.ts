@@ -228,7 +228,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'private-worker-resource-usage-cost-evidence',
     'smoke:private-worker-resource-usage-cost-evidence',
-    'All 72 registered tool operations plus the four admitted provider operations expose exact CPU/memory resource evidence contracts, all GPU-capable operations require GPU milliseconds, and completed/failed/unknown private attempts retain create-only internal infrastructure-cost evidence while deployed observers, official cloud rates, provider calls, commerce, and production remain blocked.',
+    'All 50 canonical private end-to-end tool operations plus the four admitted provider operations expose exact CPU/memory resource evidence contracts, all GPU-capable operations require GPU milliseconds, and completed/failed/unknown private attempts retain create-only internal infrastructure-cost evidence while non-end-to-end candidates, deployed observers, official cloud rates, provider calls, commerce, and production remain blocked.',
   ),
   step(
     'canonical-embedded-worker-resource-lifecycle',

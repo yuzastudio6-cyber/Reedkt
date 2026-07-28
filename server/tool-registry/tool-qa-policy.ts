@@ -1,4 +1,13 @@
-import type { ProductionQAProfile, ProductionToolId } from './production-tool-types'
+import {
+  NON_E2E_TOOL_CAPABILITY_IDS,
+  PRODUCTION_TOOL_IDS,
+} from './production-tool-types'
+import type {
+  NonE2EToolCapabilityId,
+  ProfessionalToolCatalogId,
+  ProductionQAProfile,
+  ProductionToolId,
+} from './production-tool-types'
 
 const empty: ProductionQAProfile = {
   gateTypes: [],
@@ -7,7 +16,8 @@ const empty: ProductionQAProfile = {
   notes: ['No direct QA gate; readiness or planning metadata only.'],
 }
 
-export const PRODUCTION_TOOL_QA_POLICIES: Record<ProductionToolId, ProductionQAProfile> = {
+export const PROFESSIONAL_TOOL_CATALOG_QA_POLICIES:
+Record<ProfessionalToolCatalogId, ProductionQAProfile> = {
   ffmpeg: {
     gateTypes: ['export_codec_format', 'export_duration_sync', 'audio_loudness', 'final_delivery'],
     requiredBeforePreview: ['export_duration_sync'],
@@ -112,6 +122,28 @@ export const PRODUCTION_TOOL_QA_POLICIES: Record<ProductionToolId, ProductionQAP
   revideo: { ...empty, gateTypes: ['render_asset_integrity', 'render_timeline_integrity'], notes: ['Evaluation-only; not a core render QA path.'] },
 }
 
-export function getToolQAPolicy(toolId: ProductionToolId): ProductionQAProfile {
-  return PRODUCTION_TOOL_QA_POLICIES[toolId]
+export const PRODUCTION_TOOL_QA_POLICIES = Object.freeze(
+  Object.fromEntries(
+    PRODUCTION_TOOL_IDS.map((toolId) => [
+      toolId,
+      PROFESSIONAL_TOOL_CATALOG_QA_POLICIES[toolId],
+    ]),
+  ),
+) as Readonly<Record<ProductionToolId, ProductionQAProfile>>
+
+export const NON_E2E_TOOL_CAPABILITY_QA_POLICIES = Object.freeze(
+  Object.fromEntries(
+    NON_E2E_TOOL_CAPABILITY_IDS.map((toolId) => [
+      toolId,
+      PROFESSIONAL_TOOL_CATALOG_QA_POLICIES[toolId],
+    ]),
+  ),
+) as Readonly<
+  Record<NonE2EToolCapabilityId, ProductionQAProfile>
+>
+
+export function getToolQAPolicy(
+  toolId: ProfessionalToolCatalogId,
+): ProductionQAProfile {
+  return PROFESSIONAL_TOOL_CATALOG_QA_POLICIES[toolId]
 }

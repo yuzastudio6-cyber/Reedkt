@@ -24,8 +24,8 @@ import {
 
 const map = buildProfessionalToolArchitectureProgramMap()
 
-assert.equal(map.summary.productionRegistryToolCount, 72, 'Production registry count must stay explicit.')
-assert.equal(map.summary.launchCoreRegistryToolCount, 24, 'Launch-core registry count must stay explicit.')
+assert.equal(map.summary.productionRegistryToolCount, 50, 'Production registry count must stay explicit.')
+assert.equal(map.summary.launchCoreRegistryToolCount, 23, 'Launch-core registry count must stay explicit.')
 assert.equal(
   map.summary.boundedInternalAdapterContractCount,
   boundedInternalAdapterToolNames.length,
@@ -33,8 +33,8 @@ assert.equal(
 )
 assert.equal(
   map.summary.boundedInternalAdapterContractCount,
-  50,
-  'The current bounded internal adapter pack must stay visible as 50+ tools, not collapse to one readiness gap.',
+  38,
+  'The package adapter pack must contain the exact 38 non-core production adapters.',
 )
 assert.equal(
   map.summary.professionalSkillCount,
@@ -52,22 +52,22 @@ assert.equal(
 )
 assert.equal(
   map.summary.skillArchitectureIntegratedToolNameCount,
-  55,
-  'The skill architecture-integrated tool surface must stay visible as 55 names.',
+  44,
+  'The skill architecture must reference only the 44 currently applicable production tools.',
 )
 assert.equal(
   map.summary.boundedBackendAdapterWiredCount,
-  50,
-  'The bounded backend adapter-wired count must stay visible as 50 contracts.',
+  38,
+  'The bounded backend adapter-wired count must match the 38 package adapters.',
 )
 assert.equal(
   map.summary.ownerLaneSourceTruthAcceptedToolCount,
-  13,
+  12,
   'Owner-lane launch-core and support tools must be accepted as source truth instead of re-approved by this lane.',
 )
 assert.equal(
   map.summary.launchCoreRegistryOnlyWiredCount,
-  9,
+  8,
   'Launch-core owner-lane tools must be separated from bounded adapters.',
 )
 assert.equal(
@@ -82,18 +82,18 @@ assert.equal(
 )
 assert.equal(
   map.summary.registryNamedOnlyToolCount,
-  9,
-  'Only genuinely unresolved registry named-only tools must remain separated from skill/adapter/owner-lane integrated tools.',
+  0,
+  'Non-E2E candidates must not appear as registry-named production tools.',
 )
 assert.equal(
   map.summary.promotionBacklogItemCount,
-  9,
-  'Only genuinely ambiguous registry-named tools should remain in the promotion backlog.',
+  0,
+  'The production-tool architecture map must not carry candidate promotion backlog entries.',
 )
 assert.equal(
   map.summary.registryNamedOnlyModelManifestLaneCount,
-  4,
-  'Registry-only model/checkpoint lanes must stay explicit.',
+  0,
+  'Candidate model/checkpoint lanes belong outside the production-tool architecture map.',
 )
 assert.equal(
   map.summary.registryNamedOnlyScopeDecisionCount,
@@ -102,22 +102,22 @@ assert.equal(
 )
 assert.equal(
   map.summary.registryNamedOnlyEvaluationHoldCount,
-  5,
-  'Registry-only evaluation/not-selected lanes must stay explicit.',
+  0,
+  'Evaluation-only candidates belong outside the production-tool architecture map.',
 )
 assert.equal(
   map.summary.sourceTruthStatusCounts.bounded_adapter_source_truth_ready,
-  42,
+  36,
   'Bounded adapter source-truth-ready tools must stay explicit.',
 )
 assert.equal(
   map.summary.sourceTruthStatusCounts.bounded_adapter_manifest_evidence_required,
-  8,
-  'Model-backed bounded adapters must keep manifest-evidence status visible.',
+  2,
+  'The two E2E model-backed adapters must keep manifest-evidence status visible.',
 )
 assert.equal(
   map.summary.sourceTruthStatusCounts.owner_lane_source_truth_accepted,
-  13,
+  12,
   'Owner-lane accepted source-truth status must stay explicit.',
 )
 assert.equal(
@@ -127,8 +127,8 @@ assert.equal(
 )
 assert.equal(
   map.summary.sourceTruthStatusCounts.registry_only_model_manifest_required,
-  4,
-  'Registry-only model/checkpoint status must stay explicit.',
+  0,
+  'Non-E2E model candidates must not enter production source-truth counts.',
 )
 assert.equal(
   map.summary.sourceTruthStatusCounts.registry_only_scope_decision_required,
@@ -137,12 +137,13 @@ assert.equal(
 )
 assert.equal(
   map.summary.sourceTruthStatusCounts.registry_only_evaluation_hold,
-  5,
-  'Registry-only evaluation-hold status must stay explicit.',
+  0,
+  'Non-E2E evaluation candidates must not enter production source-truth counts.',
 )
-assert.ok(
-  map.summary.hiddenSkillAdapterNameCount >= 53,
-  'The architecture map must preserve the broad user/tool program surface instead of reporting only Track B 16.',
+assert.equal(
+  map.summary.hiddenSkillAdapterNameCount,
+  44,
+  'Skill definitions must reference only currently admitted production tool names.',
 )
 assert.equal(map.summary.productReadyToolCount, 0, 'Program map must not mark tools product-ready by default.')
 assert.equal(map.summary.frontendExecutableToolCount, 0, 'Program map must not allow frontend execution.')
@@ -168,7 +169,7 @@ requireGroup('bounded_speech_model_adapters', boundedSpeechModelAdapterToolNames
 requireGroup('bounded_music_audio_adapters', boundedAudioMusicAdapterToolNames.length + boundedAudioCleanupModelAdapterToolNames.length)
 requireGroup('bounded_map_browser_color_scene_adapters', boundedMapBrowserColorSceneAdapterToolNames.length)
 requireGroup('bounded_render_packaging_adapters', boundedRenderPackagingAdapterToolNames.length)
-requireGroup('launch_core_registry_foundation', 24)
+requireGroup('launch_core_registry_foundation', 23)
 requireGroup('owner_lane_registry_support', 4)
 requireGroup('skill_hidden_adapter_surface', listProfessionalSkillHiddenAdapterNames().length)
 
@@ -206,7 +207,7 @@ for (const [requestedName, canonicalToolId] of aliasExpectations) {
   assert.equal(entry?.canonicalToolId, canonicalToolId, `${requestedName} must resolve to ${canonicalToolId}.`)
 }
 
-for (const modelTool of ['sam2', 'birefnet', 'rembg', 'transparent_background', 'real_esrgan', 'faster_whisper', 'whisper_cpp', 'deepfilternet']) {
+for (const modelTool of ['rembg', 'deepfilternet']) {
   const entry = resolveProfessionalToolProgramEntry(modelTool)
   assert.equal(entry?.stage, 'model_backed_adapter_ready_requires_owner_manifest_evidence', `${modelTool} must keep owner manifest evidence gates.`)
   assert.equal(entry?.sourceTruthStatus, 'bounded_adapter_manifest_evidence_required', `${modelTool} must expose manifest evidence as its source-truth status.`)
@@ -224,7 +225,7 @@ for (const foundationTool of boundedModelFoundationAdapterToolNames) {
   )
 }
 
-for (const hiddenName of ['ffmpeg', 'ffprobe', 'libass', 'opencv']) {
+for (const hiddenName of ['ffmpeg', 'ffprobe', 'libass', 'opencv', 'remotion', 'sharp']) {
   assert.ok(
     map.summary.hiddenSkillAdapterNamesWithoutBoundedContracts
       .map(normalizeRequestedToolName)
@@ -233,7 +234,7 @@ for (const hiddenName of ['ffmpeg', 'ffprobe', 'libass', 'opencv']) {
   )
 }
 
-for (const launchCoreOnlyName of ['ffmpeg', 'ffprobe', 'hyperframe', 'libass', 'opencv', 'opentimelineio', 'remotion', 'sharp', 'signalsmith_stretch']) {
+for (const launchCoreOnlyName of ['ffmpeg', 'ffprobe', 'libass', 'opencv', 'opentimelineio', 'remotion', 'sharp', 'signalsmith_stretch']) {
   const entry = resolveProfessionalToolProgramEntry(launchCoreOnlyName)
   assert.equal(
     entry?.implementationTier,
@@ -304,50 +305,7 @@ for (const ownerLaneSupportName of ['pyav', 'duckdb', 'polars', 'vapoursynth']) 
   )
 }
 
-const registryNamedOnlyExpectations = new Map([
-  ['paddleocr', ['registry_only_model_manifest_required', 'exact_model_weight_owner_manifest_review']],
-  ['mediapipe', ['registry_only_model_manifest_required', 'exact_model_weight_owner_manifest_review']],
-  ['demucs', ['registry_only_model_manifest_required', 'exact_model_weight_owner_manifest_review']],
-  ['film', ['registry_only_model_manifest_required', 'exact_model_weight_owner_manifest_review']],
-  ['soundtouch', ['registry_only_evaluation_hold', 'owner_scope_decision_keep_or_remove']],
-  ['rubber_band', ['registry_only_evaluation_hold', 'owner_scope_decision_keep_or_remove']],
-  ['essentia', ['registry_only_evaluation_hold', 'owner_scope_decision_keep_or_remove']],
-  ['cesium_js', ['registry_only_evaluation_hold', 'owner_scope_decision_keep_or_remove']],
-  ['revideo', ['registry_only_evaluation_hold', 'owner_scope_decision_keep_or_remove']],
-] as const)
-
-for (const [registryNamedOnlyName, [sourceTruthStatus, nextGate]] of registryNamedOnlyExpectations) {
-  const entry = resolveProfessionalToolProgramEntry(registryNamedOnlyName)
-  assert.equal(
-    entry?.implementationTier,
-    'registry_named_only_not_skill_or_adapter_wired',
-    `${registryNamedOnlyName} must be classified as registry named-only, not architecture implemented.`,
-  )
-  assert.equal(entry?.sourceTruthAuthority, 'production_registry_name_only', `${registryNamedOnlyName} must be production-registry-only source truth.`)
-  assert.equal(entry?.sourceTruthStatus, sourceTruthStatus, `${registryNamedOnlyName} must expose the right source-truth status.`)
-  assert.equal(entry?.nextGate, nextGate, `${registryNamedOnlyName} must expose the right next gate.`)
-}
-
-function requireBacklog(toolName: string, expectedNextGate: string) {
-  const item = map.promotionBacklog.find((backlogItem) => backlogItem.requestedToolName === toolName)
-  assert.ok(item, `Missing promotion backlog item for ${toolName}.`)
-  assert.equal(item.recommendedNextGate, expectedNextGate, `${toolName} must have the right next gate.`)
-  assert.ok(item.requiredEvidence.length > 0, `${toolName} must list required evidence before promotion.`)
-  assert.ok(item.notes.length > 0, `${toolName} must explain why it is not implemented yet.`)
-  return item
-}
-
-requireBacklog('paddleocr', 'exact_model_weight_owner_manifest_review')
-requireBacklog('mediapipe', 'exact_model_weight_owner_manifest_review')
-requireBacklog('demucs', 'exact_model_weight_owner_manifest_review')
-requireBacklog('film', 'exact_model_weight_owner_manifest_review')
-requireBacklog('soundtouch', 'owner_scope_decision_keep_or_remove')
-requireBacklog('rubber_band', 'owner_scope_decision_keep_or_remove')
-requireBacklog('essentia', 'owner_scope_decision_keep_or_remove')
-requireBacklog('cesium_js', 'owner_scope_decision_keep_or_remove')
-requireBacklog('revideo', 'owner_scope_decision_keep_or_remove')
-
-for (const ownerLaneToolName of ['ffmpeg', 'ffprobe', 'hyperframe', 'libass', 'opencv', 'opentimelineio', 'remotion', 'sharp', 'signalsmith_stretch']) {
+for (const ownerLaneToolName of ['ffmpeg', 'ffprobe', 'libass', 'opencv', 'opentimelineio', 'remotion', 'sharp', 'signalsmith_stretch']) {
   assert.equal(
     map.promotionBacklog.some((item) => item.requestedToolName === ownerLaneToolName),
     false,
@@ -363,7 +321,7 @@ for (const ownerLaneSupportName of ['pyav', 'duckdb', 'polars', 'vapoursynth']) 
   )
 }
 
-for (const promotedName of ['deck_gl', 'deepfilternet', 'faster_whisper', 'maplibre', 'opencolorio', 'openimageio', 'playwright', 'pyscenedetect', 'rnnoise', 'turf', 'whisper_cpp']) {
+for (const promotedName of ['deepfilternet', 'opencolorio', 'openimageio', 'playwright', 'pyscenedetect', 'rnnoise']) {
   const entry = resolveProfessionalToolProgramEntry(promotedName)
   assert.equal(
     entry?.implementationTier,

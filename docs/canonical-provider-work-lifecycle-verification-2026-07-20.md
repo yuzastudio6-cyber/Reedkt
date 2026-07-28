@@ -206,9 +206,9 @@ Existing regression proof also passed:
 The final exact-code `npm run qa:canonical-private-pipeline` run passed all
 `39/39` phases with exit code `0`. Its final tool report was generated at
 `2026-07-20T16:50:29.095Z`; the provider receipt phase completed in `1,382 ms`,
-all 11 mounted named-edit browser tests passed, and the report retained 72
-registered profiles, 53 confined runners, and 50 canonical private lifecycle
-plus job-adapter identities. Provider activation, verified runtime, live cloud,
+all 11 mounted named-edit browser tests passed, and the current report scope is
+reconciled to 50 registered profiles, all 50 with confined-runner, canonical
+private lifecycle, and job-adapter evidence. Provider activation, verified runtime, live cloud,
 remote Supabase, billing, deployment, public delivery, external beta, and paid
 production all remained false.
 

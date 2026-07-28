@@ -21,21 +21,17 @@ registered operations production executable.
 
 The current complete server registry contains:
 
-- 72 exact canonical tool-operation specs and operation IDs;
-- 53 operations with a privately verified runner;
-- 19 operations that remain planned, unverified, or policy-blocked;
-- 13 GPU-capable operation contracts, all of which now require
+- 50 exact canonical private end-to-end tool-operation specs and operation IDs;
+- 50 operations with a privately verified runner;
+- 0 planned, unverified, or policy-blocked operations in the production registry;
+- 3 GPU-capable operation contracts, all of which require
   `gpuMilliseconds`; and
-- two separately registered provider operations,
-  `provider.lyria.generate_music_candidate.v1` and
-  `provider.elevenlabs.generate_storytelling_speech_candidate.v1`, admitted
-  only through private injected evidence while both provider transports remain
-  blocked.
+- four separately registered provider operations, admitted only through
+  private injected evidence while every provider transport remains blocked.
 
-That is 74 metering contracts in this bounded proof. It is not a claim of 74
-production-ready tools. The older 50 count refers to the bounded operation
-catalog surfaced by `smoke:professional-tool-operation-specs`; the complete
-registry has since grown to 72 tool-operation identities.
+That is 54 metering contracts: 50 tools plus 4 provider operations. Provider
+operations are not tool IDs. The retired 72-name exploratory catalog and the
+historical 53 evidence count do not define the production registry.
 
 ## Frozen Evidence Contract
 
@@ -145,9 +141,9 @@ The smoke is also a required step in `npm run qa:canonical-private-pipeline`.
 
 The retained deterministic smoke proves:
 
-- 72/72 tool-operation contracts have CPU/memory measurements;
-- 13/13 GPU-capable contracts have GPU measurements;
-- all 74 current tool/provider contracts appear in the coverage evidence;
+- 50/50 tool-operation contracts have CPU/memory measurements;
+- 3/3 GPU-capable tool contracts have GPU measurements;
+- all 54 current tool/provider contracts appear in the coverage evidence;
 - one completed DeepFilterNet GPU attempt has exact snapshot, artifact,
   operation, runtime, cost, create-only readback, and replay proof;
 - failed and unknown attempts retain nonzero internal infrastructure cost;
@@ -201,11 +197,11 @@ The retained deterministic evidence hashes are:
 ### Authoritative Aggregate Regression
 
 `npm run qa:canonical-private-pipeline` passed all 43 v32 phases with exit code
-`0` on 2026-07-21 UTC; its final tool report was generated at
-`2026-07-21T03:00:20.253Z`. The aggregate included both the 74-contract
-resource smoke and the complete canonical embedded-resource lifecycle and
-retained the following adjacent proof without widening this increment's
-authority:
+`0` on 2026-07-21 UTC; its historical final tool report was generated at
+`2026-07-21T03:00:20.253Z`. Current scope reconciliation replaces the old
+exploratory registry count with 50 tools and 4 separate provider operations.
+The aggregate retained the following adjacent proof without widening this
+increment's authority:
 
 - automatic attempt-bound CPU/memory and internal infrastructure-cost evidence
   for 30 operations: 28 structured Node/Python operations plus generic FFmpeg
@@ -219,8 +215,9 @@ authority:
 - one separately confined 4K Remotion streaming proof that produced a
   51,969,263-byte H.264/AAC MP4 above the former 16 MiB output boundary;
 - 11/11 active named-edit Chromium workflow tests; and
-- the final proven-tool report with 72 registry profiles, 53 confined-runner
-  proofs, and 50 canonical private end-to-end/job-adapter proofs.
+- the final proven-tool report, now reconciled to 50 registry profiles, 50
+  confined-runner proofs, and 50 canonical private end-to-end/job-adapter
+  proofs.
 - one exact private-injected Storytelling Speech provider attempt with two
   ordered outputs, observed CPU/memory cost evidence, failed/unknown cost
   retention, exact reconciliation, and zero provider requests.
@@ -244,12 +241,12 @@ Still blocked or false:
 - a qualified cloud observer adapter in each deployed worker runtime (for
   example, verified task/cgroup CPU and memory counters plus a qualified GPU
   counter source);
-- automatic lifecycle capture for the other 23 privately verified operations,
-  all provider attempts, and the 19 operations that still lack private runner
-  proof;
+- automatic attempt-bound lifecycle capture for the canonical identities not
+  yet covered by the embedded-observation subset, plus all provider attempts;
 - exact live package/reservation/lease/one-use-dispatch readback at evidence
   creation time and atomic distributed persistence with the terminal attempt;
-- 19 remaining operation-specific runner integrations and adversarial proofs;
+- deployed observer integration and adversarial proofs for the remaining
+  operation-specific runtime families;
 - official immutable Google Cloud rate snapshots and invoice reconciliation;
 - deployed cross-instance metrics transport, storage, replay, and recovery;
 - provider transport, credential-payload use, Cloud Run/GCS activation, remote

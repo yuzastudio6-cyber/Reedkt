@@ -32,12 +32,7 @@ import type {
 } from './tool-runtime-evidence-types'
 
 const CONDITIONAL_EXTERNAL_NETWORK_TOOL_IDS = new Set<ProductionToolId>([
-  'hyperframe',
   'playwright',
-  'maplibre',
-  'deck_gl',
-  'cesium_js',
-  'revideo',
 ])
 
 const SOURCE_DOCUMENTS = [
@@ -448,7 +443,7 @@ export function createToolRuntimeEvidenceAuthority(input: {
       'Node target packages and Python target modules are not imported. Command probes execute only server-owned version/help arguments; no media/product operation is executed.',
       'No network, provider, cloud, database, storage, render, billing, or credential operation is performed.',
       'Package presence does not prove configuration, license approval, model approval, runtime correctness, QA, security, or production readiness.',
-      'The 50-contract professional adapter layer is narrower than the 72-tool production registry; missing contracts remain explicit.',
+      'The 38-contract package adapter layer plus 12 core operation specs cover the exact 50-tool production registry; this authority reports package-adapter gaps separately.',
     ],
   }
 
@@ -464,7 +459,7 @@ export function verifyToolRuntimeEvidenceAuthority(
   const { authorityHash: claimedHash, ...body } = report
   const issues: string[] = []
   const recordIds = report.records.map((record) => record.toolId)
-  const expectedIds = new Set(PRODUCTION_TOOL_IDS)
+  const expectedIds = new Set<string>(PRODUCTION_TOOL_IDS)
 
   if (authorityHash(body) !== claimedHash) issues.push('Authority hash does not match the report body.')
   if (report.schemaVersion !== 'server-tool-runtime-evidence-authority-v1') issues.push('Authority schema version is unsupported.')

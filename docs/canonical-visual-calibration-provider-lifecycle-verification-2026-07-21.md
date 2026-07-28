@@ -148,8 +148,8 @@ Focused checks passed with exit code `0`:
 - `npm run typecheck:server -- --pretty false`; and
 - `npm run typecheck:api -- --pretty false`.
 
-The shared resource-usage coverage now reports 72 tool operations and four
-provider operations, for 76 exact metering contracts.
+The shared resource-usage coverage now reports 50 tool operations and four
+separate provider operations, for 54 exact metering contracts.
 
 The V34 canonical aggregate started at `2026-07-21T21:47:07.375Z` and ran for
 3,385,114 ms. It completed its first 33 of 45 stages, including the real

@@ -1,5 +1,12 @@
-import { PRODUCTION_TOOL_IDS } from './production-tool-types'
+import {
+  ALL_PROFESSIONAL_TOOL_CATALOG_IDS,
+  NON_E2E_TOOL_CAPABILITY_IDS,
+  PRODUCTION_TOOL_IDS,
+} from './production-tool-types'
 import type {
+  NonE2EToolCapabilityProfile,
+  ProfessionalToolCatalogId,
+  ProfessionalToolCatalogProfile,
   ProductionCommercialUseStatus,
   ProductionLicenseFamily,
   ProductionLicenseRisk,
@@ -16,7 +23,7 @@ import type {
 import { getToolQAPolicy } from './tool-qa-policy'
 
 type ProfileInput = {
-  toolId: ProductionToolId
+  toolId: ProfessionalToolCatalogId
   displayName: string
   category: ProductionToolCategory
   description: string
@@ -34,7 +41,7 @@ type ProfileInput = {
   launchCore?: boolean
   requiredArtifacts?: ProductionToolInputType[]
   producedArtifacts?: ProductionToolOutputType[]
-  fallbackToolIds?: ProductionToolId[]
+  fallbackToolIds?: ProfessionalToolCatalogId[]
   license?: string
   licenseFamily?: ProductionLicenseFamily
   licenseRisk?: ProductionLicenseRisk
@@ -69,7 +76,7 @@ function needsModelWeightReview(notes: string[]): ProductionModelWeightPolicy {
   }
 }
 
-function profile(input: ProfileInput): ProductionToolProfile {
+function profile(input: ProfileInput): ProfessionalToolCatalogProfile {
   const qaPolicy = getToolQAPolicy(input.toolId)
   const modelWeightPolicy = input.modelWeightPolicy ?? noModelWeights
 
@@ -129,7 +136,8 @@ const needsLicenseReview = {
   distributionRisk: 'unknown' as const,
 }
 
-export const productionToolProfiles: ProductionToolProfile[] = [
+export const allProfessionalToolCatalogProfiles:
+ProfessionalToolCatalogProfile[] = [
   profile({
     toolId: 'ffmpeg',
     displayName: 'FFmpeg',
@@ -1463,9 +1471,43 @@ export const productionToolProfiles: ProductionToolProfile[] = [
   }),
 ]
 
-const profileIds = new Set(productionToolProfiles.map((tool) => tool.toolId))
-const missingProfiles = PRODUCTION_TOOL_IDS.filter((toolId) => !profileIds.has(toolId))
+const profileById = new Map(
+  allProfessionalToolCatalogProfiles.map((tool) => [tool.toolId, tool]),
+)
+const missingProfiles = ALL_PROFESSIONAL_TOOL_CATALOG_IDS.filter(
+  (toolId) => !profileById.has(toolId),
+)
 
 if (missingProfiles.length > 0) {
-  throw new Error(`Production tool profiles missing required tools: ${missingProfiles.join(', ')}`)
+  throw new Error(`Professional tool catalog profiles missing required identities: ${missingProfiles.join(', ')}`)
 }
+
+if (
+  profileById.size !== ALL_PROFESSIONAL_TOOL_CATALOG_IDS.length ||
+  allProfessionalToolCatalogProfiles.length !==
+    ALL_PROFESSIONAL_TOOL_CATALOG_IDS.length
+) {
+  throw new Error('Professional tool catalog must contain exactly one profile per known identity.')
+}
+
+const productionToolIdSet = new Set<string>(PRODUCTION_TOOL_IDS)
+
+export const productionToolProfiles: ProductionToolProfile[] =
+  PRODUCTION_TOOL_IDS.map((toolId) => {
+    const profile = profileById.get(toolId)!
+    return {
+      ...profile,
+      toolId,
+      fallbackToolIds: profile.fallbackToolIds.filter(
+        (fallbackToolId): fallbackToolId is ProductionToolId =>
+          productionToolIdSet.has(fallbackToolId),
+      ),
+    }
+  })
+
+export const nonE2EToolCapabilityProfiles:
+NonE2EToolCapabilityProfile[] =
+  NON_E2E_TOOL_CAPABILITY_IDS.map((toolId) => ({
+    ...profileById.get(toolId)!,
+    toolId,
+  }))

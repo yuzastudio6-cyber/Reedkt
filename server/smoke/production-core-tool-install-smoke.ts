@@ -6,12 +6,13 @@ import {
   M10_CORE_CPU_RENDER_TOOL_IDS,
   M10_EXCLUDED_GPU_MODEL_TOOL_IDS,
   assertProductionReadinessSpecsCoverRegistry,
-  assertRevideoReadinessBlocked,
+  assertNonE2ECapabilitiesExcludedFromProductionReadiness,
   getContainerImageExpectation,
   getProductionReadinessSpec,
   runCoreCpuRenderReadinessChecks,
   runProductionToolReadiness,
 } from '../workers/production-readiness'
+import { NON_E2E_TOOL_CAPABILITY_IDS } from '../tool-registry'
 
 function check(condition: boolean, message: string): void {
   if (!condition) {
@@ -121,7 +122,7 @@ check(!/\bapt-get\s+install[\s\S]*\bffmpeg\b/i.test(apiDocker), 'API image must 
 check(!/torch|cuda|faster[-_]?whisper|birefnet|sam2|demucs|deepfilternet/i.test(apiDocker), 'API image must remain free of GPU/model tools.')
 
 assertProductionReadinessSpecsCoverRegistry()
-assertRevideoReadinessBlocked()
+assertNonE2ECapabilitiesExcludedFromProductionReadiness()
 
 const dryRun = runProductionToolReadiness({ dryRun: true })
 check(dryRun.dryRun, 'Dry-run readiness must remain supported.')
@@ -156,11 +157,8 @@ for (const expected of ['av', 'scenedetect', 'cv2', 'duckdb', 'polars', 'opentim
 const nodePackages = new Set(CORE_TOOL_NODE_PACKAGE_CHECKS.map((item) => item.packageName))
 check(nodePackages.has('sharp'), 'Node package checks must include Sharp metadata.')
 check(nodePackages.has('remotion'), 'Node package checks must include Remotion metadata.')
-check(nodePackages.has('hyperframe'), 'Node package checks must include Hyperframe metadata boundary.')
-
-const revideoSpec = getProductionReadinessSpec('revideo')
-check(revideoSpec?.evaluationOnly === true, 'Revideo readiness must remain evaluation-only.')
-check(revideoSpec?.blocksProductionIfMissing === true, 'Revideo readiness must remain production-blocked.')
+check(!nodePackages.has('hyperframe'), 'Node package checks must exclude the non-E2E Hyperframe capability.')
+check(getProductionReadinessSpec('revideo') === undefined, 'Revideo must not have a production readiness spec.')
 
 check(realCore.coreToolReadiness?.report.ffmpegLgplVerificationStatus === 'pending_manual_review', 'FFmpeg LGPL-safe verification must remain pending/manual.')
 check(realCore.coreToolReadiness?.report.gpuModelToolsExcluded === true, 'Core readiness report must state GPU/model tools are excluded.')
@@ -175,7 +173,11 @@ const renderExpectation = getContainerImageExpectation('render_worker')
 check(Boolean(renderExpectation?.expectedToolIds.includes('remotion')), 'Render expectation must include Remotion.')
 check(Boolean(renderExpectation?.expectedToolIds.includes('ffmpeg')), 'Render expectation must include FFmpeg.')
 check(Boolean(renderExpectation?.expectedToolIds.includes('libass')), 'Render expectation must include libass.')
-check(Boolean(renderExpectation?.forbiddenToolIds.includes('revideo')), 'Render expectation must forbid Revideo.')
+check(
+  !renderExpectation?.expectedToolIds.some((toolId) =>
+    (NON_E2E_TOOL_CAPABILITY_IDS as readonly string[]).includes(toolId)),
+  'Render expectation must exclude every non-E2E capability.',
+)
 
 const packageJson = requireRead('package.json')
 check(packageJson.includes('smoke:prod-core-tool-install'), 'package.json must expose smoke:prod-core-tool-install.')
@@ -198,6 +200,6 @@ console.log(JSON.stringify({
   ffprobeStatus: realCore.coreToolReadiness?.report.ffprobeStatus,
   lgplStatus: realCore.coreToolReadiness?.report.ffmpegLgplVerificationStatus,
   libassStatus: realCore.coreToolReadiness?.report.libassSubtitleSupportStatus,
-  revideoStatus: realCore.coreToolReadiness?.report.revideoStatus,
+  nonE2ECapabilityCount: NON_E2E_TOOL_CAPABILITY_IDS.length,
   localChecksAreInformational: true,
 }, null, 2))

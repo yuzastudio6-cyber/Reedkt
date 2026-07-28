@@ -202,7 +202,7 @@ try {
     creditReservationId: creditReservation.id,
     toolExecutionPlanId: speechToolExecutionPlanId,
     jobId: `job-${planningState.project.id}-private-review-speech-caption`,
-    requestedToolIds: ['faster_whisper', 'ffmpeg'],
+    requestedToolIds: ['ffmpeg'],
     requestedRecipeIds: ['private_review_real_transcript_captions'],
     storageReferenceId: mediaFoundation.audio.artifact.artifactId,
     metadata: { internalTestingGate: 'private_review_speech_caption', allowModelDownload: false, finalExportAllowed: false, publicDeliveryAllowed: false },

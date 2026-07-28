@@ -310,7 +310,7 @@ function buildPayload(
     idempotencyKey: 'pending',
     attempt: 1,
     maxAttempts: 1,
-    requestedToolIds: workerType === 'gpu_ai_worker' ? ['birefnet'] : ['opencv'],
+    requestedToolIds: workerType === 'gpu_ai_worker' ? ['rembg'] : ['opencv'],
     requestedRecipeIds: ['background_removal_image_recipe'],
     storageReferenceIds: ['workspaces/workspace-m15c-smoke/projects/project-m15c-smoke/media/source.png'],
     requiredQualityGateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage', 'render_asset_integrity'],

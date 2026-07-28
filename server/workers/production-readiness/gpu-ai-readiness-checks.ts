@@ -7,7 +7,6 @@ import {
 } from './gpu-tool-python-import-checks'
 import {
   listGpuModelWeightReadinessChecks,
-  summarizeGpuModelWeightsForReadiness,
   type GpuModelWeightReadinessCheck,
 } from './gpu-model-weight-checks'
 import { buildGpuRuntimeEnvironmentChecks, type GpuRuntimeEnvironmentCheck } from './gpu-runtime-env-checks'
@@ -15,31 +14,15 @@ import { buildGpuToolReadinessReport, type GpuToolReadinessReport } from './gpu-
 import type { ProductionToolId } from '../../tool-registry'
 
 export const M11_GPU_AI_TOOL_IDS: ProductionToolId[] = [
-  'faster_whisper',
   'kornia',
-  'birefnet',
-  'sam2',
+  'rembg',
   'deepfilternet',
-  'demucs',
-  'torch_torchvision',
-  'transformers',
-  'real_esrgan',
-  'film',
   'opencv',
-  'paddleocr',
 ]
 
 export const M11_GPU_MODEL_WEIGHT_TOOL_IDS: ProductionToolId[] = [
-  'faster_whisper',
-  'birefnet',
-  'sam2',
+  'rembg',
   'deepfilternet',
-  'demucs',
-  'torch_torchvision',
-  'transformers',
-  'real_esrgan',
-  'film',
-  'paddleocr',
 ]
 
 export type GpuAiReadinessCheckKind =
@@ -217,8 +200,11 @@ export function runGpuAiReadinessChecks(
   const timeoutMs = options.timeoutMs ?? 5000
   const maxBuffer = options.maxBuffer ?? 1024 * 1024
   const checkedAt = new Date().toISOString()
+  const productionModelWeightToolIds = new Set<string>(
+    M11_GPU_MODEL_WEIGHT_TOOL_IDS,
+  )
   const modelWeightChecks = listGpuModelWeightReadinessChecks()
-  summarizeGpuModelWeightsForReadiness()
+    .filter((check) => productionModelWeightToolIds.has(check.toolId))
 
   const importChecks = realImportCheckMode && !dryRun
     ? [

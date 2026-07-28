@@ -265,7 +265,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "12ee41dd1b6277abcc18acd1fde961239b4d68a5c3b72fe07c816f0ec7720d11"
+      "sha256": "bc45217501b3abc8981ce5e252200f150fde064ef0d53f697e752272db419e16"
     },
     {
       "path": "server/app.ts",
@@ -517,7 +517,7 @@
     },
     {
       "path": "server/services/planning-input-authority-binding-service.ts",
-      "sha256": "f7c7274d9f182d91d2e462c8cd048214b5ccf51962eb59c38c66e9818abdf010"
+      "sha256": "2a234ff1a3be2e7e91642f09f3dcda45715b1b415756f8624bb97ec8c3944c30"
     },
     {
       "path": "server/services/project-edit-brief-local-service.ts",
@@ -565,7 +565,7 @@
     },
     {
       "path": "server/smoke/edit-planning-authority-smoke.ts",
-      "sha256": "35cbe80697d04878b510223d4beca6e74cdb4a9586f1f8f140d6c4eb2cbd1f51"
+      "sha256": "474e94edd49091cbeb53326559001256ad32bbe7b24e3f8e1ed7bf80f79ba011"
     },
     {
       "path": "server/smoke/edit-reference-canonical-v3-application-preparation-and-apply-smoke.ts",
@@ -645,7 +645,7 @@
     },
     {
       "path": "server/validation/edit-planning-authority-schemas.ts",
-      "sha256": "d19ceb5579c57c8176d643971f666b078e343f725e5a68e20167d0d746590963"
+      "sha256": "c5fc220f69916b3c69049105a493021984b44bba75c59558d0ac637ffff70474"
     },
     {
       "path": "server/validation/edit-reference-application-preparation-schemas.ts",
@@ -665,7 +665,7 @@
     },
     {
       "path": "src/components/editor/ChatNativeEditor.tsx",
-      "sha256": "a71bccd1b5dd5c38d86dde92941a9c87658e5e4c97092cff7a83e5954c855f1b"
+      "sha256": "4f060bccbfad5b3f6dd100e923e00018d19bce70393d0a355b495cf9c1fbd551"
     },
     {
       "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",
@@ -677,11 +677,11 @@
     },
     {
       "path": "src/lib/canonical-planning-draft.ts",
-      "sha256": "e14d93bb6d7f6a91f443f400364912b9edb05dccf3a123d4b4c1140249b4a98f"
+      "sha256": "53204ff726e5141299ff45a281b69a4286abf46c6c1090695a5aa727925665a0"
     },
     {
       "path": "src/lib/canonical-planning-publication-client.ts",
-      "sha256": "352a383003bf86809bd1d0137d732c90c1ac2883c67277a7065290a42ee551c8"
+      "sha256": "e43466b0a9399b7c76874f834bea7995a519bc46762fb15f5cdc3f698bf38ea6"
     },
     {
       "path": "src/lib/current-edit-reference-application-ui.ts",

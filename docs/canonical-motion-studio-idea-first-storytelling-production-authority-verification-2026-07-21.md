@@ -87,7 +87,7 @@ The following checks passed on the backend integration checkout:
 - `npm run smoke:offline-remotion-render-execution`;
 - `npm run typecheck:server`;
 - `npm run qa:canonical-private-pipeline` — 43/43 gates, exit 0;
-- canonical tool report — 72 registry profiles, 61 callable candidates, 53 confined-runner verified, and 50 canonical end-to-end/job-adapter verified;
+- canonical tool report — the current scope is reconciled to exactly 50 registry profiles, all 50 confined-runner, canonical end-to-end, and job-adapter verified;
 - mounted canonical named-edit Chromium journey — 11/11 passed;
 - `git diff --check`.
 

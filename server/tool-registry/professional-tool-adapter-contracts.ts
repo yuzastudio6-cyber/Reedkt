@@ -103,19 +103,8 @@ const motionSeeds: ContractSeed[] = [
 ]
 
 const aiVisionSeeds: ContractSeed[] = [
-  seed('torch_torchvision', 'torch_torchvision', 'model_runtime_foundation', 'Verify model runtime readiness', ['readiness_check']),
-  seed('transformers', 'transformers', 'model_runtime_foundation', 'Verify model adapter readiness', ['readiness_check']),
-  seed('sam2', 'sam2', 'mask_background_layer', 'Prepare a tracked mask pass', ['dry_run', 'blocked_until_model_weight_ready'], true),
-  seed('birefnet', 'birefnet', 'mask_background_layer', 'Prepare a foreground cutout pass', ['dry_run', 'blocked_until_model_weight_ready'], true),
   seed('rembg', 'rembg', 'mask_background_layer', 'Prepare a fallback cutout pass', ['dry_run', 'bounded_execution'], true),
-  seed('transparent_background', 'transparent_background', 'mask_background_layer', 'Prepare a fallback background-removal pass', ['dry_run', 'blocked_until_model_weight_ready'], true),
-  seed('real_esrgan', 'real_esrgan', 'enhancement_layer', 'Prepare an enhancement sample pass', ['dry_run', 'blocked_until_model_weight_ready'], true),
   seed('kornia', 'kornia', 'mask_background_layer', 'Prepare mask refinement checks', ['dry_run', 'bounded_execution'], true),
-]
-
-const speechModelSeeds: ContractSeed[] = [
-  seed('faster_whisper', 'faster_whisper', 'speech_transcript_layer', 'Prepare speech transcript timing', ['dry_run', 'bounded_execution'], true),
-  seed('whisper_cpp', 'whisper_cpp', 'speech_transcript_layer', 'Prepare fallback speech transcript evaluation', ['dry_run'], true),
 ]
 
 const musicAudioSeeds: ContractSeed[] = [
@@ -142,9 +131,6 @@ const audioModelSeeds: ContractSeed[] = [
 ]
 
 const mapBrowserColorSceneSeeds: ContractSeed[] = [
-  seed('maplibre', 'maplibre', 'map_geospatial_layer', 'Prepare a controlled map layer', ['dry_run']),
-  seed('turf', 'turf', 'map_geospatial_layer', 'Prepare route and location geometry', ['dry_run']),
-  seed('deck_gl', 'deck_gl', 'map_geospatial_layer', 'Prepare an advanced map overlay plan', ['dry_run']),
   seed('playwright', 'playwright', 'browser_capture_layer', 'Prepare an approved page capture plan', ['dry_run', 'bounded_execution'], true),
   seed('pyscenedetect', 'pyscenedetect', 'scene_detection_layer', 'Prepare scene boundary checks', ['dry_run', 'bounded_execution'], true),
   seed('opencolorio', 'opencolorio', 'color_image_layer', 'Prepare color-management checks', ['dry_run', 'bounded_execution'], true),
@@ -152,13 +138,6 @@ const mapBrowserColorSceneSeeds: ContractSeed[] = [
 ]
 
 const renderPackagingSeeds: ContractSeed[] = [
-  seed(
-    'streamer_render_pipeline_support',
-    'streamer_render_pipeline_support',
-    'render_pipeline_validation_layer',
-    'Validate internal render pipeline support',
-    ['dry_run', 'readiness_check', 'bounded_execution'],
-  ),
   seed(
     'mkvtoolnix_container_validation',
     'mkvtoolnix_container_validation',
@@ -177,11 +156,10 @@ const renderPackagingSeeds: ContractSeed[] = [
   ),
 ]
 
-const requestedSeeds = [
+const requestedSeeds: ContractSeed[] = [
   ...dataVisualSeeds,
   ...motionSeeds,
   ...aiVisionSeeds,
-  ...speechModelSeeds,
   ...musicAudioSeeds,
   ...audioModelSeeds,
   ...mapBrowserColorSceneSeeds,
@@ -344,7 +322,9 @@ export function evaluateProfessionalToolAdapterProductReadiness(
 }
 
 function buildContract(seedInput: ContractSeed): ProfessionalToolAdapterContract {
-  const profile = productionToolProfiles.find((item) => item.toolId === seedInput.canonicalToolId)
+  const profile = productionToolProfiles.find(
+    (item) => item.toolId === seedInput.canonicalToolId,
+  )
   if (!profile) {
     throw new Error(`Missing production profile for adapter contract: ${seedInput.canonicalToolId}`)
   }

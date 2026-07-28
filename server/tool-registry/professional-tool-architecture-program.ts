@@ -219,14 +219,6 @@ function stageForContract(contract: ProfessionalToolAdapterContract): Profession
   return 'bounded_adapter_contract_ready'
 }
 
-function isEvaluationHoldToolName(toolName: string): boolean {
-  return toolName === 'rubber_band' ||
-    toolName === 'essentia' ||
-    toolName === 'revideo' ||
-    toolName === 'cesium_js' ||
-    toolName === 'soundtouch'
-}
-
 function isOwnerLaneAcceptedRegistrySupportToolName(toolName: string): boolean {
   return toolName === 'pyav' ||
     toolName === 'duckdb' ||
@@ -237,7 +229,6 @@ function isOwnerLaneAcceptedRegistrySupportToolName(toolName: string): boolean {
 function registryOnlySourceTruthStatus(profile: ProductionToolProfile): ProfessionalToolSourceTruthStatus {
   if (profile.launchCore || isOwnerLaneAcceptedRegistrySupportToolName(profile.toolId)) return 'owner_lane_source_truth_accepted'
   if (profile.modelWeightsRequired) return 'registry_only_model_manifest_required'
-  if (isEvaluationHoldToolName(profile.toolId)) return 'registry_only_evaluation_hold'
   return 'registry_only_scope_decision_required'
 }
 
@@ -368,9 +359,6 @@ function promotionPathForEntry(entry: ProfessionalToolProgramEntry): Professiona
   if (entry.requiresModelWeightApproval) return 'model_weight_owner_review_then_bounded_adapter'
   if (entry.implementationTier === 'skill_reference_only_not_bounded_adapter_wired') return 'bounded_adapter_contract_and_runner_plan'
   if (entry.implementationTier === 'registry_named_only_not_skill_or_adapter_wired') {
-    if (entry.stage === 'registry_only_not_adapter_wired' && isEvaluationHoldToolName(entry.requestedToolName)) {
-      return 'not_selected_or_evaluation_hold'
-    }
     return 'scope_decision_before_adapter_work'
   }
   return 'bounded_adapter_contract_and_runner_plan'
@@ -551,6 +539,10 @@ function buildGroup(input: {
 }
 
 export function buildProfessionalToolArchitectureProgramMap(): ProfessionalToolArchitectureProgramMap {
+  // The execution/planning architecture is derived only from the exact
+  // canonical private E2E production identities. The historical 22 candidate
+  // identities remain in the non-E2E catalog and cannot acquire a canonical
+  // production ID through this map.
   const profiles = [...productionToolProfiles]
   const profileMap = profileByToolId(profiles)
   const skills = listProfessionalSkillDefinitions()
@@ -657,7 +649,7 @@ export function buildProfessionalToolArchitectureProgramMap(): ProfessionalToolA
         'Counts are intentionally separated: production registry entries, owner-lane source-truth tools, bounded adapter contracts, and hidden skill adapter names are different source-truth surfaces.',
         'The bounded adapter pack is what the agent can plan toward after upload, approved snapshot, private artifacts, source-truth readiness evidence, idempotency, QA, and cost gates.',
         'Owner-lane launch-core and support tools are accepted for architecture wiring and are not re-approved here; their execution still flows through backend runtime gates.',
-        'The remaining promotion backlog is only truly uncertain registry-named-only work: exact model manifests or not-selected/evaluation holds.',
+        'The production-registry promotion backlog is empty; non-end-to-end candidates remain isolated in the separate capability audit.',
         'The user should see edit activities and progress, not package names. Internal tool names remain available only in developer/source-truth records.',
         'Product-ready remains false until runtime, deployment, owner, model-weight, private artifact, QA, and billing evidence gates pass.',
       ],
@@ -676,7 +668,7 @@ export function buildProfessionalToolArchitectureProgramMap(): ProfessionalToolA
       buildGroup({
         groupId: 'bounded_ai_vision_model_adapters',
         title: 'AI Vision And Model Adapter Pack',
-        purpose: 'Model runtime foundations, masks, background treatment, and quality enhancement gates.',
+        purpose: 'Canonical masks, background treatment, and image-processing gates.',
         requestedToolNames: [
           ...boundedModelFoundationAdapterToolNames,
           ...boundedVisionModelAdapterToolNames,
@@ -686,7 +678,7 @@ export function buildProfessionalToolArchitectureProgramMap(): ProfessionalToolA
       buildGroup({
         groupId: 'bounded_speech_model_adapters',
         title: 'Speech Transcript Model Adapter Pack',
-        purpose: 'Speech transcript and timing adapters for approved private source audio.',
+        purpose: 'Canonical speech transcript and timing adapters for approved private source audio.',
         requestedToolNames: [...boundedSpeechModelAdapterToolNames],
         boundary: 'Backend-only speech adapters require owner-lane model manifest evidence, private audio refs, and approved snapshots before execution.',
       }),
@@ -702,15 +694,15 @@ export function buildProfessionalToolArchitectureProgramMap(): ProfessionalToolA
       }),
       buildGroup({
         groupId: 'bounded_map_browser_color_scene_adapters',
-        title: 'Map, Browser, Color, And Scene Adapter Pack',
-        purpose: 'Map geometry, approved page capture, color/image handling, and scene-boundary preparation.',
+        title: 'Browser, Color, And Scene Adapter Pack',
+        purpose: 'Approved page capture, color/image handling, and scene-boundary preparation.',
         requestedToolNames: [...boundedMapBrowserColorSceneAdapterToolNames],
         boundary: 'Backend or render-planning adapter contracts only; no arbitrary browsing, user media, or public artifact output without approved gates.',
       }),
       buildGroup({
         groupId: 'bounded_render_packaging_adapters',
         title: 'Render Packaging Validation Adapter Pack',
-        purpose: 'Private review packaging, container validation, and internal render pipeline support.',
+        purpose: 'Private review container and packaging validation.',
         requestedToolNames: [...boundedRenderPackagingAdapterToolNames],
         boundary: 'Backend-only validation; no public delivery, no final export claim, and no frontend execution.',
       }),

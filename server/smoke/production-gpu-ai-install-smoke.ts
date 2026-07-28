@@ -54,6 +54,7 @@ check(/nvidia\/cuda/i.test(gpuDocker), 'GPU Dockerfile must reference a CUDA-com
 check(/nvidia-l4/i.test(gpuDocker), 'GPU Dockerfile must document NVIDIA L4 first.')
 
 for (const expectedPath of [
+  '/opt/reeditpro/model-weights/rembg',
   '/opt/reeditpro/model-weights/faster-whisper',
   '/opt/reeditpro/model-weights/birefnet',
   '/opt/reeditpro/model-weights/sam2',
@@ -93,6 +94,7 @@ check(gpuReadme.includes('RTX PRO 6000') && gpuReadme.includes('20 CPU') && gpuR
 const templates = listGpuModelWeightManifestTemplates()
 const templateIds = new Set(templates.map((template) => template.id))
 for (const required of [
+  'rembg_u2netp_model',
   'faster_whisper_model',
   'birefnet_model',
   'sam2_checkpoint',
@@ -139,7 +141,11 @@ const dryGpu = runGpuAiReadinessChecks()
 check(dryGpu.dryRun, 'GPU readiness must default to dry-run.')
 check(!dryGpu.realImportCheckMode, 'Optional real GPU import checks must be disabled by default.')
 check(dryGpu.importChecks.every((result) => result.status === 'not_checked' || result.status === 'pending_manual_review'), 'Dry-run GPU readiness must not report heavy imports as executed.')
-check(dryGpu.report.modelWeightBlockedTools.length >= M11_GPU_MODEL_WEIGHT_TOOL_IDS.length, 'GPU readiness summary must list model-weight blockers.')
+check(
+  dryGpu.report.modelWeightBlockedTools.join('|') ===
+    M11_GPU_MODEL_WEIGHT_TOOL_IDS.join('|'),
+  'Production GPU readiness must list exactly the production model-weight tools and no candidate identities.',
+)
 check(dryGpu.report.pendingSourceInstallReviewTools.length === GPU_PENDING_SOURCE_INSTALL_REVIEW.length, 'GPU readiness must list pending source install review tools.')
 check(summarizeGpuModelWeightReadiness().productionBlocked.length === GPU_MODEL_WEIGHT_MANIFEST_TEMPLATES.length, 'All M11 GPU model templates should block production until reviewed.')
 
@@ -150,7 +156,7 @@ for (const checkDef of GPU_TOOL_PYTHON_IMPORT_CHECKS) {
 const apiExpectation = getContainerImageExpectation('api')
 const cpuExpectation = getContainerImageExpectation('cpu_worker')
 const renderExpectation = getContainerImageExpectation('render_worker')
-const nonGpuImageForbiddenModelTools = M11_GPU_MODEL_WEIGHT_TOOL_IDS.filter((toolId) => toolId !== 'paddleocr')
+const nonGpuImageForbiddenModelTools = M11_GPU_MODEL_WEIGHT_TOOL_IDS
 for (const expectation of [apiExpectation, cpuExpectation, renderExpectation]) {
   check(Boolean(expectation), 'API/CPU/render container expectations must exist.')
   for (const toolId of nonGpuImageForbiddenModelTools) {
@@ -174,10 +180,8 @@ for (const toolId of M11_GPU_MODEL_WEIGHT_TOOL_IDS) {
   check(Boolean(spec?.modelWeightChecks.length), `${toolId} readiness spec must include model-weight checks.`)
 }
 
-const revideoProfile = getProductionToolProfile('revideo')
-const revideoSpec = getProductionReadinessSpec('revideo')
-check(revideoProfile?.productionStatus === 'evaluation_only', 'Revideo must remain evaluation-only.')
-check(revideoSpec?.blocksProductionIfMissing === true, 'Revideo readiness must remain production-blocked.')
+check(getProductionToolProfile('revideo') === undefined, 'Revideo must not resolve as a production tool.')
+check(getProductionReadinessSpec('revideo') === undefined, 'Revideo must not have a production readiness spec.')
 
 const gpuJob = GCP_PRODUCTION_CLOUD_RUN_JOBS.find((job) => job.name === 'reeditpro-gpu-ai-worker')
 check(gpuJob?.gpuType === 'nvidia-l4', 'Cloud Run GPU template must use nvidia-l4 first.')
@@ -203,10 +207,17 @@ check(getExpectedModelWeightRoot() === '/opt/reeditpro/model-weights/', 'Expecte
 
 console.log(JSON.stringify({
   ok: true,
-  gpuManifestTemplates: templates.length,
+  productionGpuModelManifestTemplates: templates.filter((template) =>
+    M11_GPU_MODEL_WEIGHT_TOOL_IDS.includes(
+      template.toolId as typeof M11_GPU_MODEL_WEIGHT_TOOL_IDS[number],
+    )).length,
+  candidateAuditModelManifestTemplates: templates.filter((template) =>
+    !M11_GPU_MODEL_WEIGHT_TOOL_IDS.includes(
+      template.toolId as typeof M11_GPU_MODEL_WEIGHT_TOOL_IDS[number],
+    )).length,
   gpuImportChecks: GPU_TOOL_PYTHON_IMPORT_CHECKS.length,
   pendingSourceInstallReview: GPU_PENDING_SOURCE_INSTALL_REVIEW.length,
-  modelWeightBlockedTools: dryGpu.report.modelWeightBlockedTools,
+  modelWeightBlockedProductionTools: dryGpu.report.modelWeightBlockedTools,
   runtimeChecks: dryGpu.runtimeChecks.length,
   gpuJob: {
     gpuType: gpuJob?.gpuType,

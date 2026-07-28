@@ -23,6 +23,7 @@ import { createMockEditPlan } from '../../src/lib/mock-planner/full'
 import type { PlannerInput } from '../../src/types/reeditpro'
 import { createApprovedEditExecutionPackage } from '../edit-architecture/approved-edit-execution-package'
 import {
+  NON_E2E_TOOL_CAPABILITY_IDS,
   PRODUCTION_TOOL_IDS,
   listProfessionalToolAdapterContracts,
 } from '../tool-registry'
@@ -92,16 +93,15 @@ assert.deepEqual(duplicateDefinitionIds, [], 'Professional skill definitions mus
 assert.ok(hiddenAdapterNames.length >= 35, 'Skill registry must map to the backend adapter/tool ecosystem.')
 assert.equal(readyAudioMusicAdapterToolNames.length, 16, 'The ready audio/music adapter group must contain the 16 approved music/audio tools including RNNoise.')
 assert.equal(readyAudioCleanupModelAdapterToolNames.length, 1, 'The model-gated audio cleanup group must preserve DeepFilterNet as a separate owner-evidence adapter.')
-assert.equal(readyVisualMotionVisionAdapterToolNames.length, 19, 'The ready visual/motion/vision adapter group must contain the 19 approved direct visual tools.')
-assert.equal(readyVisualMotionModelAdapterToolNames.length, 21, 'The full ready visual/model execution pack must contain the 21 approved visual plus model-foundation tools.')
+assert.equal(readyVisualMotionVisionAdapterToolNames.length, 15, 'The ready visual/motion/vision adapter group must contain the 15 canonical private E2E visual tools.')
+assert.equal(readyVisualMotionModelAdapterToolNames.length, 15, 'Runner foundations and non-E2E candidates must not inflate the 15-tool visual execution pack.')
 assert.deepEqual(
   boundedRenderPackagingAdapterToolNames,
   [
-    'streamer_render_pipeline_support',
     'mkvtoolnix_container_validation',
     'gpac_mp4box_packaging_validation',
   ],
-  'The Track A render/packaging adapter group must preserve the three approved validation tools.',
+  'The render/packaging adapter group must contain only the two canonical private E2E validation tools.',
 )
 
 for (const family of families) {
@@ -385,7 +385,6 @@ assert.equal(
   'Editor private-review scope should not include unselected broad music/audio analysis adapters from generic tool-strategy catalog metadata.',
 )
 for (const packagingAdapterToolName of [
-  'streamer_render_pipeline_support',
   'mkvtoolnix_container_validation',
   'gpac_mp4box_packaging_validation',
 ]) {
@@ -422,13 +421,21 @@ const modelBackedUserVisibleCopy = [
   ]),
 ].join('\n').toLowerCase()
 
-for (const expectedModelAdapter of ['sam2', 'birefnet', 'real_esrgan', 'kornia']) {
+for (const expectedModelAdapter of ['rembg', 'kornia']) {
   assert.ok(
     modelBackedScopedAdapterToolNames.includes(expectedModelAdapter),
     `Model-backed prompt should carry selected visual adapter ${expectedModelAdapter}.`,
   )
 }
-for (const expectedFoundationAdapter of boundedModelFoundationAdapterToolNames) {
+for (const nonE2EToolCapabilityId of NON_E2E_TOOL_CAPABILITY_IDS) {
+  assert.equal(
+    approvedSnapshotScopedAdapterToolNames.includes(nonE2EToolCapabilityId) ||
+      modelBackedScopedAdapterToolNames.includes(nonE2EToolCapabilityId),
+    false,
+    `Non-E2E capability ${nonE2EToolCapabilityId} must not enter approved snapshot tool scope.`,
+  )
+}
+for (const expectedFoundationAdapter of boundedModelFoundationAdapterToolNames as readonly string[]) {
   assert.ok(
     modelBackedScopedAdapterToolNames.includes(expectedFoundationAdapter),
     `Model-backed visual adapters should pull in runtime foundation ${expectedFoundationAdapter}.`,

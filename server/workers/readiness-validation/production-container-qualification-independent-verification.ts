@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { z } from 'zod'
 
 import {
+  PRODUCTION_TOOL_IDS,
   evaluateToolLicensePolicy,
   getProductionToolProfile,
   isProductionToolId,
@@ -138,11 +139,11 @@ export const productionContainerQualificationHostVerificationSchema = z.object({
   candidateVersionLabelMatched: z.literal(true),
   runtimeChecksPassed: z.literal(true),
   forbiddenToolAbsenceVerified: z.literal(true),
-  requiredToolIds: z.array(toolIdSchema).max(72),
-  runtimeObservedOptionalToolIds: z.array(toolIdSchema).max(72),
-  pendingManualQualificationToolIds: z.array(toolIdSchema).max(72),
-  pendingLicenseReviewToolIds: z.array(toolIdSchema).max(72),
-  pendingModelWeightReviewToolIds: z.array(toolIdSchema).max(72),
+  requiredToolIds: z.array(toolIdSchema).max(PRODUCTION_TOOL_IDS.length),
+  runtimeObservedOptionalToolIds: z.array(toolIdSchema).max(PRODUCTION_TOOL_IDS.length),
+  pendingManualQualificationToolIds: z.array(toolIdSchema).max(PRODUCTION_TOOL_IDS.length),
+  pendingLicenseReviewToolIds: z.array(toolIdSchema).max(PRODUCTION_TOOL_IDS.length),
+  pendingModelWeightReviewToolIds: z.array(toolIdSchema).max(PRODUCTION_TOOL_IDS.length),
   manualLicenseAndModelGatesVerified: z.literal(false),
   safety: z.object({
     dockerBuildPerformed: z.literal(false),

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 
 import {
+  NON_E2E_TOOL_CAPABILITY_IDS,
   PRODUCTION_TOOL_IDS,
   listProfessionalToolAdapterContracts,
 } from '../tool-registry'
@@ -19,12 +20,12 @@ assert.equal(Object.isFrozen(safeLocalReport), true)
 assert.equal(Object.isFrozen(safeLocalReport.records), true)
 assert.equal(Object.isFrozen(safeLocalReport.records[0]), true)
 
-assert.equal(safeLocalReport.coverage.registryToolIds, 72)
-assert.equal(safeLocalReport.coverage.registryProfiles, 72)
-assert.equal(safeLocalReport.coverage.readinessSpecs, 72)
-assert.equal(safeLocalReport.coverage.qaPolicies, 72)
-assert.equal(safeLocalReport.coverage.meteringProfiles, 72)
-assert.equal(safeLocalReport.coverage.records, 72)
+assert.equal(safeLocalReport.coverage.registryToolIds, 50)
+assert.equal(safeLocalReport.coverage.registryProfiles, 50)
+assert.equal(safeLocalReport.coverage.readinessSpecs, 50)
+assert.equal(safeLocalReport.coverage.qaPolicies, 50)
+assert.equal(safeLocalReport.coverage.meteringProfiles, 50)
+assert.equal(safeLocalReport.coverage.records, 50)
 assert.equal(safeLocalReport.records.length, PRODUCTION_TOOL_IDS.length)
 assert.deepEqual(safeLocalReport.coverage.missingProfileToolIds, [])
 assert.deepEqual(safeLocalReport.coverage.missingReadinessSpecToolIds, [])
@@ -32,12 +33,12 @@ assert.deepEqual(safeLocalReport.coverage.missingQaPolicyToolIds, [])
 assert.deepEqual(safeLocalReport.coverage.missingMeteringProfileToolIds, [])
 
 const contracts = listProfessionalToolAdapterContracts()
-assert.equal(contracts.length, 50)
-assert.equal(safeLocalReport.coverage.professionalAdapterContracts, 50)
-assert.equal(safeLocalReport.coverage.professionalAdapterToolIds, 50)
-assert.equal(safeLocalReport.coverage.registeredPresenceProbeMappings, 50)
-assert.equal(safeLocalReport.coverage.missingProfessionalAdapterContractToolIds.length, 22)
-assert.equal(safeLocalReport.coverage.missingRegisteredPresenceProbeToolIds.length, 22)
+assert.equal(contracts.length, 38)
+assert.equal(safeLocalReport.coverage.professionalAdapterContracts, 38)
+assert.equal(safeLocalReport.coverage.professionalAdapterToolIds, 38)
+assert.equal(safeLocalReport.coverage.registeredPresenceProbeMappings, 38)
+assert.equal(safeLocalReport.coverage.missingProfessionalAdapterContractToolIds.length, 12)
+assert.equal(safeLocalReport.coverage.missingRegisteredPresenceProbeToolIds.length, 12)
 
 for (const contract of contracts) {
   const record = safeLocalReport.records.find((item) => item.toolId === contract.canonicalToolId)
@@ -105,8 +106,8 @@ for (const record of safeLocalReport.records) {
 
 assert.equal(safeLocalReport.summary.productionReadyTools.length, 0)
 assert.equal(safeLocalReport.summary.authorityExternalBetaReadyTools.length, 0)
-assert.equal(safeLocalReport.summary.blockedTools.length, 72)
-assert.equal(safeLocalReport.summary.modelWeightApprovalRequiredTools.length, 14)
+assert.equal(safeLocalReport.summary.blockedTools.length, 50)
+assert.equal(safeLocalReport.summary.modelWeightApprovalRequiredTools.length, 2)
 assert.ok(safeLocalReport.summary.catalogExternalBetaFlaggedTools.length > 0)
 assert.equal(safeLocalReport.credentialsRead, false)
 assert.equal(safeLocalReport.networkCallsMade, false)
@@ -132,12 +133,12 @@ for (const toolId of ['audioflux', 'signalsmith_stretch'] as const) {
   assert.equal(record.productionReadiness.productionReady, false)
 }
 
-for (const toolId of ['rubber_band', 'essentia', 'revideo'] as const) {
-  const record = safeLocalReport.records.find((item) => item.toolId === toolId)
-  assert.ok(record)
-  assert.equal(record.selectionPolicy, 'evaluation_or_review_only')
-  assert.equal(record.configuration.status, 'intentionally_blocked')
-  assert.equal(record.productionReadiness.productionReady, false)
+for (const toolId of NON_E2E_TOOL_CAPABILITY_IDS) {
+  assert.equal(
+    safeLocalReport.records.some((item) => String(item.toolId) === toolId),
+    false,
+    `${toolId} must not receive a production runtime-evidence record.`,
+  )
 }
 
 const disabledReport = createToolRuntimeEvidenceAuthority({ probeMode: 'disabled' })

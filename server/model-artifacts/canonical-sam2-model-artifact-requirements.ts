@@ -5,10 +5,7 @@ import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
-import {
-  getProfessionalToolOperationSpec,
-} from '../tool-execution/professional-tool-operation-spec-registry'
-import { getProductionToolProfile } from '../tool-registry'
+import { getNonE2EToolCapabilityProfile } from '../tool-registry'
 import {
   CANONICAL_MODEL_ARTIFACT_DESCRIPTOR_VERSION,
 } from './canonical-model-artifact-types'
@@ -628,32 +625,16 @@ export function assertCanonicalSam2GpuBundleRequirementProjection(
 }
 
 function assertCanonicalRegistryCompatibility(): void {
-  const profile = getProductionToolProfile('sam2')
-  const operation = getProfessionalToolOperationSpec('sam2')
+  const profile = getNonE2EToolCapabilityProfile('sam2')
   if (
     !profile
     || profile.workerType !== 'gpu_ai_worker'
     || profile.gpuRequired !== true
     || profile.cpuAllowed !== false
     || profile.modelWeightsRequired !== true
-    || !operation
-    || operation.allowedOperationIds[0]
-      !== 'tool.sam2.segment_and_track_subject.v1'
-    || operation.workerRuntime.runtimeClass
-      !== 'python3_cuda12_gpu_worker'
-    || operation.resourceCeilings.gpuLimit !== 1
-    || operation.networkPolicy.mode !== 'offline_required'
-    || operation.networkPolicy.packageOrModelDownloadsAllowed
-      !== false
-    || operation.modelGate.modelWeightsRequired !== true
-    || operation.modelGate.exactManifestRequired !== true
-    || operation.modelGate.checkpointHashRequired !== true
-    || operation.modelGate.downloadAtRuntimeAllowed !== false
-    || operation.modelGate.callerSelectedModelAllowed !== false
-    || operation.modelGate.serverMountedModelOnly !== true
   ) {
     throw new Error(
-      'canonical SAM2 registry or operation contract drifted',
+      'non-E2E SAM2 capability profile drifted',
     )
   }
 }

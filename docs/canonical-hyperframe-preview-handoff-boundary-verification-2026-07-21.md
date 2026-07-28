@@ -14,14 +14,10 @@ exact operation is:
 
 This closes the launch-core evidence-classification gap without pretending
 that Hyperframe is an executable backend media tool. Evidence revision
-`2026-07-21.31` therefore reports:
-
-- 72 registered tool identities;
-- 60 callable candidates;
-- 12 intentionally non-executable identities;
-- 53 confined-runner verified identities;
-- 50 canonical private E2E identities;
-- 50 server-derived job-adapter identities;
+`2026-07-21.31` now reports exactly 50 registered tool identities, all 50 with
+confined-runner, canonical private E2E, and server-derived job-adapter
+evidence. Hyperframe remains outside that production registry as a separate
+non-executable candidate-boundary proof.
 - 1 separately verified non-executable boundary contract (`hyperframe`);
 - 0 production-image qualified tools;
 - 0 deployed-release qualified tools.
@@ -29,7 +25,7 @@ that Hyperframe is an executable backend media tool. Evidence revision
 Because Hyperframe is non-executable, its remaining release blocker is exact
 same-source browser/server integration and deployed-application evidence—not a
 worker image. The readiness report keeps the general image tier closed for all
-72 registered identities while explicitly preventing Hyperframe from being
+50 registered identities while explicitly preventing Hyperframe from being
 promoted through a container runner.
 
 ## Bound authority

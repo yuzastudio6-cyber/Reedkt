@@ -1,4 +1,6 @@
-import { productionToolProfiles } from '../../tool-registry/production-tool-profiles'
+import {
+  productionToolProfiles,
+} from '../../tool-registry/production-tool-profiles'
 import type {
   ProductionRegistryWorkerType,
   ProductionToolId,
@@ -188,13 +190,6 @@ const timelineInterchangeSettings = strictSettings({
   preserveApprovedSourceOrder: booleanConstraint(true),
 }, ['interchangeProfileId', 'frameRate', 'strictRangeValidation', 'preserveApprovedSourceOrder'])
 
-const hyperframeBoundarySettings = strictSettings({
-  boundaryProfileId: constConstraint('approved_timeline_preview_handoff_v1'),
-  approvedSnapshotOnly: booleanConstraint(true),
-  sourceMediaProcessingAllowed: booleanConstraint(false),
-  mutationMode: constConstraint('read_only_handoff'),
-}, ['boundaryProfileId', 'approvedSnapshotOnly', 'sourceMediaProcessingAllowed', 'mutationMode'])
-
 const remotionRenderSettings = strictSettings({
   compositionProfileId: enumConstraint([
     'approved_preview_composition_v1',
@@ -236,34 +231,12 @@ const tableTransformSettings = strictSettings({
   deterministicOrdering: booleanConstraint(true),
 }, ['transformProfileId', 'maximumRows', 'deterministicOrdering'])
 
-const ocrSettings = strictSettings({
-  ocrProfileId: enumConstraint(['approved_screen_text_regions_v1', 'approved_no_cover_zones_v1']),
-  languageProfileId: enumConstraint(['reviewed_multilingual_default_v1']),
-  confidenceThreshold: numberConstraint(0.5, 1),
-  frameStride: integerEnumConstraint([1, 5, 10, 15, 30]),
-  maximumFrames: integerConstraint(1, 2_000),
-}, ['ocrProfileId', 'languageProfileId', 'confidenceThreshold', 'frameStride', 'maximumFrames'])
-
 const visualAnalysisSettings = strictSettings({
   analysisProfileId: enumConstraint(['approved_safe_zone_v1', 'approved_blur_check_v1', 'approved_mask_qa_v1']),
   frameStride: integerEnumConstraint([1, 5, 10, 15, 30]),
   maximumFrames: integerConstraint(1, 5_000),
   emitDerivedPixels: booleanConstraint(false),
 }, ['analysisProfileId', 'frameStride', 'maximumFrames', 'emitDerivedPixels'])
-
-const landmarkSettings = strictSettings({
-  landmarkProfileId: enumConstraint(['future_face_region_v1', 'future_body_region_v1', 'future_hand_region_v1']),
-  confidenceThreshold: numberConstraint(0.5, 1),
-  maximumSubjects: integerConstraint(1, 16),
-  identityInferenceAllowed: booleanConstraint(false),
-}, ['landmarkProfileId', 'confidenceThreshold', 'maximumSubjects', 'identityInferenceAllowed'])
-
-const stemSeparationSettings = strictSettings({
-  separationProfileId: enumConstraint(['approved_voice_music_v1', 'approved_four_stem_v1']),
-  modelProfileId: enumConstraint(['reviewed_demucs_manifest_v1']),
-  preserveVoice: booleanConstraint(true),
-  maximumStemCount: integerEnumConstraint([2, 4]),
-}, ['separationProfileId', 'modelProfileId', 'preserveVoice', 'maximumStemCount'])
 
 const stretchSettings = strictSettings({
   stretchProfileId: enumConstraint(['approved_music_bed_fit_v1', 'approved_pitch_adjust_v1']),
@@ -272,27 +245,6 @@ const stretchSettings = strictSettings({
   preserveVoice: booleanConstraint(false),
 }, ['stretchProfileId', 'speedRatio', 'pitchSemitones', 'preserveVoice'])
 
-const audioFeatureEvaluationSettings = strictSettings({
-  evaluationProfileId: constConstraint('offline_audio_feature_benchmark_v1'),
-  sampleRate: integerEnumConstraint([22_050, 44_100, 48_000]),
-  maximumDurationSeconds: integerConstraint(1, 14_400),
-  productionUseAllowed: booleanConstraint(false),
-}, ['evaluationProfileId', 'sampleRate', 'maximumDurationSeconds', 'productionUseAllowed'])
-
-const interpolationSettings = strictSettings({
-  interpolationProfileId: enumConstraint(['reviewed_2x_interpolation_v1', 'reviewed_4x_interpolation_v1']),
-  modelProfileId: enumConstraint(['reviewed_film_manifest_v1']),
-  interpolationFactor: integerEnumConstraint([2, 4]),
-  rejectTextFaceHandRisk: booleanConstraint(true),
-}, ['interpolationProfileId', 'modelProfileId', 'interpolationFactor', 'rejectTextFaceHandRisk'])
-
-const globePlanningSettings = strictSettings({
-  planningProfileId: constConstraint('future_approved_globe_scene_v1'),
-  terrainMode: enumConstraint(['none', 'server_approved_tiles_only']),
-  maximumLabels: integerConstraint(1, 100),
-  externalTileUrlAllowed: booleanConstraint(false),
-}, ['planningProfileId', 'terrainMode', 'maximumLabels', 'externalTileUrlAllowed'])
-
 const vapourSynthSettings = strictSettings({
   pipelineProfileId: enumConstraint(['approved_frame_preprocess_v1', 'approved_clip_prepare_v1']),
   pluginPackProfileId: enumConstraint(['reviewed_builtin_plugins_v1']),
@@ -300,35 +252,19 @@ const vapourSynthSettings = strictSettings({
   callerScriptAllowed: booleanConstraint(false),
 }, ['pipelineProfileId', 'pluginPackProfileId', 'frameRate', 'callerScriptAllowed'])
 
-const revideoEvaluationSettings = strictSettings({
-  evaluationProfileId: constConstraint('offline_core_stack_gap_comparison_v1'),
-  coreStackGapEvidenceId: opaqueIdConstraint(),
-  productionExecutionAllowed: booleanConstraint(false),
-}, ['evaluationProfileId', 'coreStackGapEvidenceId', 'productionExecutionAllowed'])
-
 const CORE_REGISTRY_OPERATION_SEEDS = [
   binarySeed('ffmpeg', 'execute_approved_media_recipe', ['ffmpeg_cli'], mediaRecipeSettings, 'render_binary_validation', 'ffmpeg', 'ffmpeg'),
   binarySeed('ffprobe', 'inspect_approved_media', ['ffprobe_cli'], mediaInspectionSettings, 'cpu_media_analysis', 'ffmpeg', 'ffprobe'),
   pythonSeed('pyav', 'decode_approved_media', ['py_av', 'av'], frameDecodeSettings, 'cpu_media_analysis', 'pyav', 'av', 'container.open'),
   pythonSeed('opentimelineio', 'interchange_approved_timeline', ['open_timeline_io', 'otio'], timelineInterchangeSettings, 'cpu_media_analysis', 'opentimelineio', 'opentimelineio', 'adapters'),
-  nodeSeed('hyperframe', 'handoff_approved_preview_timeline', ['hyper_frame'], hyperframeBoundarySettings, 'render_2d', 'hyperframe', 'hyperframe', 'approvedTimelineHandoff'),
   nodeSeed('remotion', 'render_approved_composition', ['@remotion/renderer', 'remotion_renderer'], remotionRenderSettings, 'render_2d', '@remotion/renderer', '@remotion/renderer', 'renderMedia'),
   binarySeed('libass', 'render_approved_caption_track', ['lib_ass'], captionRenderSettings, 'render_binary_validation', 'libass', 'ffmpeg'),
   nodeSeed('sharp', 'prepare_approved_image_asset', ['sharp_libvips', 'libvips'], imageAssetSettings, 'cpu_image_process', 'sharp', 'sharp', 'default'),
   pythonSeed('duckdb', 'query_approved_artifact_tables', ['duck_db'], tableQuerySettings, 'cpu_media_analysis', 'duckdb', 'duckdb', 'connect'),
   pythonSeed('polars', 'transform_approved_artifact_tables', ['polars_dataframe'], tableTransformSettings, 'cpu_media_analysis', 'polars', 'polars', 'DataFrame'),
-  pythonSeed('paddleocr', 'detect_approved_text_regions', ['paddle_ocr'], ocrSettings, 'cpu_image_process', 'paddleocr', 'paddleocr', 'PaddleOCR.ocr'),
   pythonSeed('opencv', 'analyze_approved_visual_artifacts', ['open_cv', 'opencv_python', 'cv2'], visualAnalysisSettings, 'cpu_media_analysis', 'opencv-python-headless', 'cv2', 'VideoCapture'),
-  pythonSeed('mediapipe', 'analyze_future_landmark_regions', ['media_pipe'], landmarkSettings, 'cpu_media_analysis', 'mediapipe', 'mediapipe', 'solutions'),
-  pythonSeed('demucs', 'separate_approved_audio_stems', ['demucs_audio'], stemSeparationSettings, 'gpu_audio', 'demucs', 'demucs', 'apply_model'),
   binarySeed('signalsmith_stretch', 'stretch_approved_music_asset', ['signalsmith', 'signalsmith-stretch'], stretchSettings, 'cpu_audio_process', 'signalsmith-stretch', 'signalsmith-stretch'),
-  binarySeed('soundtouch', 'stretch_future_audio_asset', ['sound_touch', 'soundstretch'], stretchSettings, 'cpu_audio_process', 'soundtouch', 'soundstretch'),
-  binarySeed('rubber_band', 'evaluate_audio_stretch_quality', ['rubberband', 'rubberband_cli'], stretchSettings, 'cpu_audio_process', 'rubberband', 'rubberband'),
-  pythonSeed('essentia', 'evaluate_audio_features', ['essentia_standard'], audioFeatureEvaluationSettings, 'cpu_audio_analysis', 'essentia', 'essentia.standard', 'MusicExtractor'),
-  pythonSeed('film', 'interpolate_approved_frames', ['frame_interpolation_for_large_motion', 'film_interpolation'], interpolationSettings, 'gpu_video', 'film', 'film', 'interpolate'),
-  nodeSeed('cesium_js', 'prepare_future_globe_scene', ['cesium', 'cesium.js'], globePlanningSettings, 'render_3d', 'cesium', 'cesium', 'Viewer'),
   pythonSeed('vapoursynth', 'process_approved_frame_pipeline', ['vapour_synth', 'vs'], vapourSynthSettings, 'cpu_media_analysis', 'vapoursynth', 'vapoursynth', 'core'),
-  nodeSeed('revideo', 'evaluate_core_stack_gap', ['re_video', '@revideo/core'], revideoEvaluationSettings, 'render_2d', '@revideo/core', '@revideo/core', 'makeScene2D'),
 ] as const satisfies readonly CoreRegistryOperationSeed[]
 
 export type CoreRegistryOperationToolId = (typeof CORE_REGISTRY_OPERATION_SEEDS)[number]['canonicalToolId']
@@ -338,24 +274,14 @@ export const CORE_REGISTRY_EXPECTED_DISPOSITIONS = deepFreeze({
   ffprobe: candidate('launch_core_candidate'),
   pyav: candidate('planned_candidate'),
   opentimelineio: candidate('launch_core_candidate'),
-  hyperframe: candidate('launch_core_candidate'),
   remotion: candidate('launch_core_candidate'),
   libass: candidate('launch_core_candidate'),
   sharp: candidate('launch_core_candidate'),
   duckdb: candidate('planned_candidate'),
   polars: candidate('planned_candidate'),
-  paddleocr: candidate('planned_candidate'),
   opencv: candidate('launch_core_candidate'),
-  mediapipe: blocked('future_only', ['future_only']),
-  demucs: candidate('planned_candidate'),
   signalsmith_stretch: candidate('launch_core_candidate'),
-  soundtouch: blocked('future_only', ['future_only']),
-  rubber_band: blocked('license_review_only', ['evaluation_only', 'registry_blocked']),
-  essentia: blocked('license_review_only', ['evaluation_only', 'registry_blocked']),
-  film: candidate('planned_candidate'),
-  cesium_js: blocked('future_only', ['future_only', 'planning_only']),
   vapoursynth: candidate('planned_candidate'),
-  revideo: blocked('evaluation_only', ['evaluation_only', 'planning_only']),
 } satisfies Record<CoreRegistryOperationToolId, ExpectedDisposition>)
 
 const boundedSpecs = listProfessionalToolOperationSpecs()
@@ -369,7 +295,9 @@ export const DERIVED_CORE_REGISTRY_OPERATION_TOOL_IDS = deepFreeze(
 
 assertExactDerivedCoverage()
 
-const profileByToolId = new Map(productionToolProfiles.map((profile) => [profile.toolId, profile]))
+const profileByToolId = new Map(
+  productionToolProfiles.map((profile) => [profile.toolId, profile]),
+)
 
 export const CORE_REGISTRY_OPERATION_SPECS: readonly CoreRegistryOperationSpec[] = deepFreeze(
   CORE_REGISTRY_OPERATION_SEEDS.map(buildOperationSpec),
@@ -453,11 +381,10 @@ export function summarizeCompleteProfessionalToolOperationCoverage(): CompletePr
     completeProductReadyCount: 0,
     coreRegistryPolicyBlockedToolIds: policyBlockedToolIds,
     notes: [
-      'Coverage is derived from the live production registry minus the existing bounded 50-spec catalog.',
+      'Coverage is derived from the exact canonical private E2E registry minus the existing bounded adapter-spec catalog.',
       'Candidate means a strict fixed contract exists; it does not mean a runner, package, license, model, worker image, deployment, or product path is ready.',
       'Planned candidates remain productReady=false and cannot receive a production lease until their tool-specific runtime evidence gate passes.',
-      'Future, license-review/evaluation, and planning-only profiles fail closed with explicit non-callable dispositions.',
-      'Hyperframe is limited to an approved manifest handoff contract and never claims backend media processing or frontend implementation.',
+      'The 22 non-E2E capability identities are excluded from this operation registry and cannot resolve to callable specs.',
     ],
   }
 }
@@ -874,18 +801,6 @@ function candidate(promotionGate: 'launch_core_candidate' | 'planned_candidate')
   }
 }
 
-function blocked(
-  promotionGate: Exclude<CoreRegistryOperationPromotionGate, 'launch_core_candidate' | 'planned_candidate'>,
-  policyBlocks: readonly ProfessionalToolOperationPolicyBlock[],
-): ExpectedDisposition {
-  return {
-    disposition: 'policy_blocked',
-    promotionGate,
-    callability: 'non_callable_policy_disposition',
-    policyBlocks,
-  }
-}
-
 function assertDispositionMatchesProfile(profile: ProductionToolProfile, expected: ExpectedDisposition): void {
   if (expected.promotionGate === 'launch_core_candidate' && profile.productionStatus !== 'launch_core') {
     throw new Error(`${profile.toolId} launch candidate disposition no longer matches registry status.`)
@@ -959,8 +874,8 @@ function buildCompleteAliasMap(
 
 function assertExactDerivedCoverage(): void {
   const seedIds = CORE_REGISTRY_OPERATION_SEEDS.map((seed) => seed.canonicalToolId)
-  if (DERIVED_CORE_REGISTRY_OPERATION_TOOL_IDS.length !== 22) {
-    throw new Error(`Expected exactly 22 registry-only operation profiles, found ${DERIVED_CORE_REGISTRY_OPERATION_TOOL_IDS.length}.`)
+  if (DERIVED_CORE_REGISTRY_OPERATION_TOOL_IDS.length !== 12) {
+    throw new Error(`Expected exactly 12 production registry-only operation profiles, found ${DERIVED_CORE_REGISTRY_OPERATION_TOOL_IDS.length}.`)
   }
   if (!sameValues(seedIds, DERIVED_CORE_REGISTRY_OPERATION_TOOL_IDS)) {
     throw new Error('Core registry operation seeds must exactly match the profiles missing from the bounded operation catalog.')
@@ -972,8 +887,8 @@ function assertExactDerivedCoverage(): void {
 
 function assertCompleteCoverage(): void {
   const summary = summarizeCompleteProfessionalToolOperationCoverage()
-  if (summary.productionProfileCount !== 72 || summary.completeCanonicalSpecCount !== 72) {
-    throw new Error(`Complete professional tool operation coverage must remain exactly 72/72; received ${summary.completeCanonicalSpecCount}/${summary.productionProfileCount}.`)
+  if (summary.productionProfileCount !== 50 || summary.completeCanonicalSpecCount !== 50) {
+    throw new Error(`Complete production tool operation coverage must remain exactly 50/50; received ${summary.completeCanonicalSpecCount}/${summary.productionProfileCount}.`)
   }
   if (summary.duplicateCanonicalToolIds.length > 0 || summary.duplicateOperationIds.length > 0) {
     throw new Error('Complete professional tool operation coverage contains duplicate execution identities.')
@@ -1058,20 +973,8 @@ function strictSettings(
   }
 }
 
-function opaqueIdConstraint(): ProfessionalToolOperationSettingConstraint {
-  return { type: 'string', minLength: 8, maxLength: 160, pattern: OPAQUE_ID_PATTERN }
-}
-
-function constConstraint(value: string): ProfessionalToolOperationSettingConstraint {
-  return { type: 'string', const: value }
-}
-
 function enumConstraint(values: readonly string[]): ProfessionalToolOperationSettingConstraint {
   return { type: 'string', enum: values }
-}
-
-function numberConstraint(minimum: number, maximum: number): ProfessionalToolOperationSettingConstraint {
-  return { type: 'number', minimum, maximum }
 }
 
 function integerConstraint(minimum: number, maximum: number): ProfessionalToolOperationSettingConstraint {

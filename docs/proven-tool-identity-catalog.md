@@ -2,7 +2,14 @@
 
 ReEditPro uses `server/tool-execution/proven-tool-identity-catalog.ts` as the machine-readable authority for tool identity and verification state.
 
-Every one of the 72 registry profiles has exactly one stable identity in the form `reeditpro.tool.<canonicalToolId>.v1`. Each record freezes the exact operation ID, operation-spec hash, package or binary name, pinned version when verified, runner class, private input/output contract, verified content types, evidence commands, proof gates, blockers, identity hash, and proof hash.
+Every one of the 50 canonical private end-to-end production-registry profiles has exactly one stable identity in the form `reeditpro.tool.<canonicalToolId>.v1`. Each record freezes the exact operation ID, operation-spec hash, package or binary name, pinned version when verified, runner class, private input/output contract, verified content types, evidence commands, proof gates, blockers, identity hash, and proof hash.
+
+The old 72-name catalog was exploratory and is no longer the production tool
+count. Non-end-to-end candidates are retained only in the separate capability
+audit and cannot enter this identity catalog, planning, approved work, dispatch,
+or product counts. Likewise, the historical “53” evidence total meant these 50
+tools plus three confined-runner foundations; it was never a 53-tool product
+registry.
 
 ## Verification states
 
@@ -27,7 +34,9 @@ Print the complete JSON catalog:
 npm run --silent report:proven-tools
 ```
 
-The report includes all 72 records, not only successful tools. This prevents missing or blocked tools from disappearing from readiness accounting.
+The report includes exactly the 50 canonical private end-to-end tool records.
+Non-end-to-end candidates remain visible in their separate audit without being
+misrepresented as production tools.
 
 The authenticated backend inspection route also returns the summary and full catalog:
 
@@ -47,16 +56,14 @@ POST /v1/edit-executions/tool-runtime-evidence/inspect
 
 The common runner class is `offline_browser_graphics_execution_v1`; its evidence command is `npm run smoke:offline-browser-graphics-execution`. The canonical lifecycle evidence command is `npm run smoke:canonical-private-tool-dispatch`. Every catalog record also exposes its operation-spec hash, identity hash, proof hash, declared input/output kinds, gate booleans, blockers, and independent product/beta/production readiness flags.
 
-### CPU-only AI capability identity package
+### Canonical AI and analysis identity package
 
 | Canonical tool ID | Stable identity | Exact operation | Pinned package | Verified artifact |
 | --- | --- | --- | --- | --- |
-| `torch_torchvision` | `reeditpro.tool.torch_torchvision.v1` | `tool.torch_torchvision.verify_tensor_vision_runtime.v1` | `torch@2.13.0+cpu` + `torchvision@0.28.0+cpu` | deterministic runtime evidence JSON |
-| `transformers` | `reeditpro.tool.transformers.v1` | `tool.transformers.verify_transformers_runtime.v1` | `transformers@5.13.0` | offline configuration evidence JSON; no model weights |
 | `music21` | `reeditpro.tool.music21.v1` | `tool.music21.analyze_music_structure.v1` | `music21@10.5.0` | deterministic music-structure JSON from hash-bound WAV |
 | `kornia` | `reeditpro.tool.kornia.v1` | `tool.kornia.refine_mask.v1` | `kornia@0.8.3` | deterministic 64x64 refined mask PNG |
 
-The common runner class is `offline_ai_capability_execution_v1`; its evidence command is `npm run smoke:offline-ai-capability-execution`. The hash-locked runtime executes with no network, a read-only root filesystem, a non-root user, dropped capabilities, no new privileges, bounded CPU/memory/process limits, exact structured payloads, and checksum-protected authority and attestation records. `music21` and `kornia` additionally pass the canonical edit lifecycle in `npm run smoke:canonical-private-tool-dispatch`. Torch/Torchvision and Transformers remain runtime-readiness probes and are deliberately not misrepresented as approved edit-work operations.
+The common runner class is `offline_ai_capability_execution_v1`; its evidence command is `npm run smoke:offline-ai-capability-execution`. The hash-locked runtime executes with no network, a read-only root filesystem, a non-root user, dropped capabilities, no new privileges, bounded CPU/memory/process limits, exact structured payloads, and checksum-protected authority and attestation records. Both tools additionally pass the canonical edit lifecycle in `npm run smoke:canonical-private-tool-dispatch`.
 
 ### Native color and render-pipeline identity package
 
@@ -64,9 +71,8 @@ The common runner class is `offline_ai_capability_execution_v1`; its evidence co
 | --- | --- | --- | --- | --- |
 | `opencolorio` | `reeditpro.tool.opencolorio.v1` | `tool.opencolorio.apply_color_transform.v1` | `opencolorio-tools@2.1.2+dfsg1-4+b3` | deterministic reviewed-LUT 64x64 PNG |
 | `openimageio` | `reeditpro.tool.openimageio.v1` | `tool.openimageio.process_image_sequence.v1` | `openimageio-tools@2.4.7.1+dfsg-2` | deterministic two-frame processing proof and 64x64 PNG |
-| `streamer_render_pipeline_support` | `reeditpro.tool.streamer_render_pipeline_support.v1` | `tool.streamer_render_pipeline_support.verify_render_pipeline_support.v1` | GStreamer tools/base `1.22.0` Debian revisions | deterministic audio/video pipeline evidence JSON |
 
-The common runner class is `offline_native_image_pipeline_execution_v1`; its evidence command is `npm run smoke:offline-native-image-pipeline-execution`. The image uses Debian snapshot `20260623T000000Z`, exact direct package revisions, fixed server-owned fixtures, no caller paths/LUTs/pipelines, checksum-protected authority, zero-network execution, read-only non-root confinement, and deterministic replay. OpenColorIO and OpenImageIO additionally pass the canonical approved-edit lifecycle in `npm run smoke:canonical-private-tool-dispatch`. GStreamer remains a readiness probe. Dependency, security, license, plugin/build closure, arbitrary user-source, deployment, and product promotion remain separately gated.
+The common runner class is `offline_native_image_pipeline_execution_v1`; its evidence command is `npm run smoke:offline-native-image-pipeline-execution`. The image uses Debian snapshot `20260623T000000Z`, exact direct package revisions, fixed server-owned fixtures, no caller paths/LUTs/pipelines, checksum-protected authority, zero-network execution, read-only non-root confinement, and deterministic replay. Both tools additionally pass the canonical approved-edit lifecycle in `npm run smoke:canonical-private-tool-dispatch`. Dependency, security, license, plugin/build closure, arbitrary user-source, deployment, and product promotion remain separately gated.
 
 ### Native audio processing identity package
 
@@ -123,27 +129,20 @@ The runner class is `offline_deepfilternet_voice_cleanup_execution_v1`; its evid
 Evidence revision `2026-07-21.31` and catalog schema
 `proven-tool-identity-catalog-v2` record:
 
-- 72 total registry profiles with stable identities.
-- 60 callable candidates.
-- 12 intentionally non-executable profiles.
-- 53 confined-runner verified tools.
+- 50 total production registry profiles with stable identities.
+- 50 callable canonical private end-to-end tools.
+- 0 non-end-to-end candidates in the production registry.
+- 50 confined-runner verified tools.
 - 50 exact canonical end-to-end verified tools.
 - 50 exact tool identities verified through the server-derived canonical job adapter.
-- 1 exact non-executable integration-boundary contract: `hyperframe`.
-- 7 callable candidates that remain declared but do not yet have confined-runner proof.
+- 22 non-end-to-end capabilities retained only in the separate candidate audit.
+- 3 runner foundations retained only as evidence dependencies and never counted as tools.
 - 0 product-, external-beta-, or production-ready tools; those promotions require separate deployment evidence.
 
-Revision `.31` preserves all 50 executable identities from revision
-`2026-07-15.30` and adds no runner or job-adapter claim. It corrects Hyperframe's
-classification from callable to intentionally non-executable and records a
-separate source-verified boundary contract for the exact operation
-`tool.hyperframe.handoff_approved_preview_timeline.v1`. The contract verifies a
-server-derived, content-addressed handoff of an already-approved private
-timeline to a browser-safe preview descriptor. It does not invoke an external
-Hyperframes runtime, process source media, render or export video, or create
-browser execution authority. Its runner, canonical E2E, job-adapter,
-production-image, deployed-release, external-beta, and production-readiness
-flags all remain false.
+Revision `.31` now reports only the 50 executable identities. Candidate and
+foundation evidence can still be audited, but it cannot create a production
+profile, stable production identity, approved work item, dispatch grant, or
+tool-count increase.
 
 Historical revision `.30` added `video/x-matroska` to FFmpeg's verified private
 artifact contract and bound the color-capable build to the revision-isolated
@@ -157,8 +156,6 @@ reconciliation, replay, exact Remotion consumption, final FFprobe QA, and
 private download. The complete 50-tool matrix continues to use its honest
 trim/voice FFmpeg adapter evidence key; the color slice does not increase the
 tool count or imply product, beta, or production readiness.
-
-The remaining 10 callable candidates that have not reached canonical E2E stay visible in the same report. Their blocker lists identify the exact missing proof class per tool, including reviewed model/checkpoint manifests and offline caches for model-backed tools and exact fixture/artifact QA for other package-backed tools. A candidate is never promoted from declaration or import availability alone. Hyperframe is not part of that callable remainder: its non-executable contract is intentionally measured in a separate evidence class.
 
 The 50 exact canonical end-to-end identities are:
 
@@ -184,10 +181,10 @@ gpac_mp4box_packaging_validation, ffmpeg, ffprobe, pyav, opentimelineio, remotio
 sharp, duckdb, polars, opencv, signalsmith_stretch, vapoursynth
 ```
 
-`confinedRunnerVerifiedCount` includes tools that have also reached canonical E2E; it is not a count of runner-only tools. At this revision the three runner-only identities are `torch_torchvision`, `transformers`, and `streamer_render_pipeline_support`; all three are readiness probes. DeepFilterNet, AudioFlux, rembg, OpenColorIO, OpenImageIO, RNNoise, Signalsmith Stretch, MKVToolNix, and GPAC/MP4Box now have canonical lifecycle proofs using approved server-owned deterministic fixtures. All tools still require arbitrary user-source, dependency/security/license review, distributed-worker, deployment, and product-promotion evidence. Public delivery, settlement, billing, external beta, and production rendering remain separate blocked gates.
+`confinedRunnerVerifiedCount` includes tools that have also reached canonical E2E; it is not an additional tool count. DeepFilterNet, AudioFlux, rembg, OpenColorIO, OpenImageIO, RNNoise, Signalsmith Stretch, MKVToolNix, and GPAC/MP4Box have canonical lifecycle proofs using approved server-owned deterministic fixtures. All tools still require arbitrary user-source, dependency/security/license review, distributed-worker, deployment, and product-promotion evidence. Public delivery, settlement, billing, external beta, and production rendering remain separate blocked gates.
 
 ## Promotion rule
 
-A tool may move to `canonical_e2e_verified` only when all twelve proof gates are true and its named canonical evidence key exists in `smoke:canonical-private-tool-dispatch`. It may additionally set `privateInternalJobAdapterReady` only when that exact identity has a separate named adapter evidence key in the same executed smoke. A deliberately non-executable integration boundary may instead set `privateInternalBoundaryContractReady` only when its exact deterministic contract smoke and named boundary evidence key pass while all executable and release flags remain false. Boundary proof never counts as runner, E2E, job-adapter, image, or deployed-release proof. Adding a package, declaring an operation, passing an import probe, sharing a coordinator, or merely appearing in the adapter dispatch table is not sufficient.
+A tool may move to `canonical_e2e_verified` only when all twelve proof gates are true and its named canonical evidence key exists in `smoke:canonical-private-tool-dispatch`. It may additionally set `privateInternalJobAdapterReady` only when that exact identity has a separate named adapter evidence key in the same executed smoke. Boundary or candidate proof never counts as runner, E2E, job-adapter, image, or deployed-release proof. Adding a package, declaring an operation, passing an import probe, sharing a coordinator, or merely appearing in a candidate table is not sufficient.
 
 The catalog remains private-internal evidence. Distributed workers, deployed service identities, production object storage, observability, incident response, external beta, public delivery, and production promotion remain separate gates.

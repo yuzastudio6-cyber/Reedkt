@@ -12,11 +12,11 @@ const tiers = report.evidenceTiers
 
 assert.ok(Object.isFrozen(tiers))
 assert.ok(Object.isFrozen(tiers.privateInternal.runnerVerifiedToolIds))
-assert.equal(tiers.registryToolCount, 72)
-assert.equal(tiers.privateInternal.runnerVerifiedToolIds.length, 53)
+assert.equal(tiers.registryToolCount, 50)
+assert.equal(tiers.privateInternal.runnerVerifiedToolIds.length, 50)
 assert.equal(tiers.privateInternal.canonicalEndToEndVerifiedToolIds.length, 50)
 assert.equal(tiers.privateInternal.canonicalJobAdapterVerifiedToolIds.length, 50)
-assert.deepEqual(tiers.privateInternal.canonicalBoundaryContractVerifiedToolIds, ['hyperframe'])
+assert.deepEqual(tiers.privateInternal.canonicalBoundaryContractVerifiedToolIds, [])
 assert.deepEqual(tiers.productionImageQualification.qualifiedToolIds, [])
 assert.deepEqual(tiers.deployedReleaseQualification.qualifiedToolIds, [])
 assert.equal(tiers.productionImageQualification.sameSourceImageEvidenceSupplied, false)
@@ -44,36 +44,21 @@ assert.ok(ffmpeg.blockers.some((blocker) =>
 assert.ok(!ffmpeg.blockers.some((blocker) =>
   /tool is missing for production readiness/i.test(blocker.message)))
 
-const torch = getCanonicalPrivateToolReadinessEvidence('torch_torchvision')
-assert.equal(torch.verificationState, 'confined_runner_verified')
-assert.equal(torch.privateInternalRunnerReady, true)
-assert.equal(torch.privateInternalEndToEndReady, false)
-assert.equal(torch.privateInternalJobAdapterReady, false)
-assert.equal(torch.privateInternalBoundaryContractReady, false)
-assert.equal(torch.productionReady, false)
-
-const revideo = getCanonicalPrivateToolReadinessEvidence('revideo')
-assert.equal(revideo.verificationState, 'intentionally_non_executable')
-assert.equal(revideo.privateInternalRunnerReady, false)
-assert.equal(revideo.privateInternalEndToEndReady, false)
-assert.equal(revideo.privateInternalBoundaryContractReady, false)
-assert.equal(revideo.productionReady, false)
-
-const hyperframe = getCanonicalPrivateToolReadinessEvidence('hyperframe')
-assert.equal(hyperframe.verificationState, 'canonical_boundary_contract_verified')
-assert.equal(hyperframe.privateInternalBoundaryContractReady, true)
-assert.equal(hyperframe.privateInternalRunnerReady, false)
-assert.equal(hyperframe.privateInternalEndToEndReady, false)
-assert.equal(hyperframe.privateInternalJobAdapterReady, false)
-assert.equal(hyperframe.productionReady, false)
-
-const hyperframeSummary = report.toolSummaries.find((tool) => tool.toolId === 'hyperframe')
-assert.ok(hyperframeSummary)
-assert.ok(hyperframeSummary.blockers.some((blocker) =>
-  /non-executable integration-boundary release evidence is missing/i.test(blocker.message) &&
-  /same-source deployed integration receipt/i.test(blocker.message)))
-assert.ok(!hyperframeSummary.blockers.some((blocker) =>
-  /production-image qualification evidence is missing/i.test(blocker.message)))
+for (const nonE2ECapability of [
+  'torch_torchvision',
+  'revideo',
+  'hyperframe',
+] as const) {
+  assert.throws(
+    () => getCanonicalPrivateToolReadinessEvidence(nonE2ECapability),
+    /not in the canonical 50-tool production registry/i,
+  )
+  assert.ok(
+    !report.toolSummaries.some(
+      (tool) => String(tool.toolId) === nonE2ECapability,
+    ),
+  )
+}
 
 for (const tool of report.toolSummaries) {
   assert.equal(tool.statusScope, 'production_image_and_release_qualification')
@@ -90,22 +75,27 @@ assert.ok(launchCore)
 assert.ok(launchCore.canonicalPrivateEndToEndVerifiedToolIds.includes('ffmpeg'))
 assert.ok(launchCore.canonicalPrivateEndToEndVerifiedToolIds.includes('remotion'))
 assert.ok(launchCore.canonicalPrivateJobAdapterVerifiedToolIds.includes('ffmpeg'))
-assert.deepEqual(launchCore.canonicalPrivateBoundaryContractVerifiedToolIds, ['hyperframe'])
+assert.deepEqual(launchCore.canonicalPrivateBoundaryContractVerifiedToolIds, [])
 assert.ok(launchCore.productionReadinessMissingToolIds.includes('ffmpeg'))
 assert.ok(launchCore.productionReadinessMissingToolIds.includes('remotion'))
 assert.match(launchCore.transitionSummary, /canonical private end-to-end proof/i)
-assert.match(launchCore.transitionSummary, /23\/23 executable tool\(s\)/i)
-assert.match(launchCore.transitionSummary, /1\/1 non-executable integration boundary/i)
-assert.match(launchCore.transitionSummary, /production-image evidence for executable tools/i)
-assert.match(launchCore.transitionSummary, /deployed-integration evidence for the non-executable boundary/i)
+assert.match(launchCore.transitionSummary, /23 tool\(s\)/i)
+assert.doesNotMatch(
+  launchCore.transitionSummary,
+  /non-executable integration boundary/i,
+)
+assert.match(
+  launchCore.transitionSummary,
+  /same-source production image and deployed-release evidence/i,
+)
 
 const summary = summarizeProductionReadinessReport(report)
-assert.match(summary, /canonical private runner proof: 53\/72/i)
-assert.match(summary, /canonical private end-to-end proof: 50\/72/i)
-assert.match(summary, /canonical private job-adapter proof: 50\/72/i)
-assert.match(summary, /canonical non-executable boundary-contract proof: 1\/72/i)
-assert.match(summary, /same-source production-image qualification: 0\/72/i)
-assert.match(summary, /deployed-release qualification: 0\/72/i)
+assert.match(summary, /canonical private runner proof: 50\/50/i)
+assert.match(summary, /canonical private end-to-end proof: 50\/50/i)
+assert.match(summary, /canonical private job-adapter proof: 50\/50/i)
+assert.match(summary, /canonical non-executable boundary-contract proof: 0\/50/i)
+assert.match(summary, /same-source production-image qualification: 0\/50/i)
+assert.match(summary, /deployed-release qualification: 0\/50/i)
 assert.match(summary, /Production image\/release qualification statuses:/)
 
 const source = await readFile(new URL(

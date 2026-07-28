@@ -1,7 +1,8 @@
 import type { ReviewStatus } from '../../src/backend/contracts/production-tool-runtime-contracts'
-import type { ProductionToolId } from '../tool-registry'
+import type { ProfessionalToolCatalogId } from '../tool-registry'
 
 export type GpuModelWeightTemplateId =
+  | 'rembg_u2netp_model'
   | 'faster_whisper_model'
   | 'birefnet_model'
   | 'sam2_checkpoint'
@@ -21,7 +22,11 @@ export type ModelWeightCommercialUseStatus =
 
 export interface ProductionModelWeightManifestTemplate {
   id: GpuModelWeightTemplateId
-  toolId: ProductionToolId
+  /**
+   * Historical/candidate model-weight requirements are retained here for
+   * review only. This field does not admit the identity into ProductionToolId.
+   */
+  toolId: ProfessionalToolCatalogId
   modelName: string
   modelVersion: string
   expectedPath: string

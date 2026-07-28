@@ -73,7 +73,7 @@ assert(signedUrl.gateChecks.some((gate) => gate.gateName === 'signed_url_block' 
 const gpuOnCpuPayload = withIdempotency({
   ...basePayload,
   jobId: 'prod-worker-gpu-on-cpu',
-  requestedToolIds: ['real_esrgan'],
+  requestedToolIds: ['kornia'],
 })
 const gpuOnCpu = await runProductionWorkerRuntime({ payload: gpuOnCpuPayload })
 assert(gpuOnCpu.status === 'blocked', 'GPU tool requested on CPU worker should block.')
@@ -84,7 +84,7 @@ const revideoProductionPayload = withIdempotency({
   jobId: 'prod-worker-revideo-production',
   workerType: 'render_worker',
   executionMode: 'production_ready',
-  requestedToolIds: ['revideo'],
+  requestedToolIds: ['revideo'] as unknown as ProductionWorkerJobPayload['requestedToolIds'],
   creditReservationId: 'credit-reservation-prod-smoke',
   requiredQualityGateIds: ['quality-gate-render-integrity'],
   renderMode: 'final_export',
@@ -97,7 +97,7 @@ const evaluationProductionPayload = withIdempotency({
   jobId: 'prod-worker-eval-tool-production',
   workerType: 'gpu_ai_worker',
   executionMode: 'production_ready',
-  requestedToolIds: ['whisper_cpp'],
+  requestedToolIds: ['whisper_cpp'] as unknown as ProductionWorkerJobPayload['requestedToolIds'],
   creditReservationId: 'credit-reservation-prod-smoke',
 })
 const evaluationProduction = await runProductionWorkerRuntime({ payload: evaluationProductionPayload })
@@ -108,7 +108,7 @@ const modelWeightProductionPayload = withIdempotency({
   jobId: 'prod-worker-model-weight-production',
   workerType: 'gpu_ai_worker',
   executionMode: 'production_ready',
-  requestedToolIds: ['real_esrgan'],
+  requestedToolIds: ['rembg'],
   creditReservationId: 'credit-reservation-prod-smoke',
 })
 const modelWeightProduction = await runProductionWorkerRuntime({ payload: modelWeightProductionPayload })
@@ -165,8 +165,8 @@ console.log(JSON.stringify({
     'raw_prompt_blocks',
     'signed_url_blocks',
     'gpu_tool_on_cpu_blocks',
-    'revideo_production_blocks',
-    'evaluation_only_production_blocks',
+    'non_e2e_revideo_runtime_injection_blocks',
+    'non_e2e_whisper_cpp_runtime_injection_blocks',
     'model_weight_production_blocks',
     'mock_safe_secret_blocks',
     'policy_blocked_not_retried',

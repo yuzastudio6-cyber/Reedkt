@@ -20,28 +20,18 @@ const commandChecks: Partial<Record<ProductionToolId, ProductionReadinessCommand
   libass: [{ command: 'ffmpeg', versionArgs: ['-filters'], expectedPattern: 'ass' }],
   rnnoise: [{ command: 'rnnoise_demo', versionArgs: ['--help'] }],
   signalsmith_stretch: [{ command: 'signalsmith-stretch', versionArgs: ['--help'] }],
-  soundtouch: [{ command: 'soundstretch', versionArgs: ['--help'] }],
-  rubber_band: [{ command: 'rubberband', versionArgs: ['--help'] }],
 }
 
 const pythonImports: Partial<Record<ProductionToolId, ProductionReadinessImportCheck[]>> = {
   pyav: [{ packageName: 'av', importName: 'av' }],
   opentimelineio: [{ packageName: 'opentimelineio', importName: 'opentimelineio' }],
-  faster_whisper: [{ packageName: 'faster-whisper', importName: 'faster_whisper' }, { packageName: 'ctranslate2', importName: 'ctranslate2' }],
-  whisper_cpp: [{ packageName: 'whisper.cpp bindings', importName: 'whisper_cpp' }],
-  paddleocr: [{ packageName: 'paddleocr', importName: 'paddleocr' }],
   pyscenedetect: [{ packageName: 'scenedetect', importName: 'scenedetect' }],
   opencv: [{ packageName: 'opencv-python-headless', importName: 'cv2' }],
-  mediapipe: [{ packageName: 'mediapipe', importName: 'mediapipe' }],
   kornia: [{ packageName: 'kornia', importName: 'kornia' }],
-  birefnet: [{ packageName: 'birefnet', importName: 'birefnet' }],
-  sam2: [{ packageName: 'sam2', importName: 'sam2' }],
-  transparent_background: [{ packageName: 'transparent-background', importName: 'transparent_background' }],
   rembg: [{ packageName: 'rembg', importName: 'rembg' }],
   opencolorio: [{ packageName: 'opencolorio', importName: 'PyOpenColorIO' }],
   openimageio: [{ packageName: 'openimageio', importName: 'OpenImageIO' }],
   deepfilternet: [{ packageName: 'deepfilternet', importName: 'df' }],
-  demucs: [{ packageName: 'demucs', importName: 'demucs' }],
   librosa: [{ packageName: 'librosa', importName: 'librosa' }],
   audioread: [{ packageName: 'audioread', importName: 'audioread' }],
   pydub: [{ packageName: 'pydub', importName: 'pydub' }],
@@ -57,16 +47,12 @@ const pythonImports: Partial<Record<ProductionToolId, ProductionReadinessImportC
   mir_eval: [{ packageName: 'mir_eval', importName: 'mir_eval' }],
   pydub_effects: [{ packageName: 'pydub', importName: 'pydub.effects' }],
   ebu_r128_pyloudnorm: [{ packageName: 'pyloudnorm', importName: 'pyloudnorm' }],
-  essentia: [{ packageName: 'essentia', importName: 'essentia' }],
-  real_esrgan: [{ packageName: 'real-esrgan', importName: 'realesrgan' }],
-  film: [{ packageName: 'film', importName: 'film' }],
   vapoursynth: [{ packageName: 'vapoursynth', importName: 'vapoursynth' }],
   duckdb: [{ packageName: 'duckdb', importName: 'duckdb' }],
   polars: [{ packageName: 'polars', importName: 'polars' }],
 }
 
 const nodeImports: Partial<Record<ProductionToolId, ProductionReadinessImportCheck[]>> = {
-  hyperframe: [{ packageName: 'hyperframe integration boundary', importName: 'hyperframe' }],
   remotion: [{ packageName: 'remotion', importName: 'remotion' }],
   sharp: [{ packageName: 'sharp', importName: 'sharp' }],
   pixijs: [{ packageName: 'pixi.js', importName: 'pixi.js' }],
@@ -77,42 +63,17 @@ const nodeImports: Partial<Record<ProductionToolId, ProductionReadinessImportChe
   satori: [{ packageName: 'satori', importName: 'satori' }],
   svg_js: [{ packageName: '@svgdotjs/svg.js', importName: '@svgdotjs/svg.js' }],
   playwright: [{ packageName: 'playwright', importName: 'playwright' }],
-  maplibre: [{ packageName: 'maplibre-gl', importName: 'maplibre-gl' }],
-  turf: [{ packageName: '@turf/turf', importName: '@turf/turf' }],
   d3: [{ packageName: 'd3', importName: 'd3' }],
   echarts: [{ packageName: 'echarts', importName: 'echarts' }],
   vega: [{ packageName: 'vega', importName: 'vega' }],
   vega_lite: [{ packageName: 'vega-lite', importName: 'vega-lite' }],
   viz_js: [{ packageName: '@viz-js/viz', importName: '@viz-js/viz' }],
-  deck_gl: [{ packageName: '@deck.gl/core', importName: '@deck.gl/core' }],
-  cesium_js: [{ packageName: 'cesium', importName: 'cesium' }],
   konva: [{ packageName: 'konva', importName: 'konva' }],
-  revideo: [{ packageName: 'revideo', importName: 'revideo' }],
-}
-
-const foundationPythonImports: Partial<Record<ProductionToolId, ProductionReadinessImportCheck[]>> = {
-  torch_torchvision: [
-    { packageName: 'torch', importName: 'torch' },
-    { packageName: 'torchvision', importName: 'torchvision' },
-  ],
-  transformers: [{ packageName: 'transformers', importName: 'transformers' }],
 }
 
 const modelWeightNames: Partial<Record<ProductionToolId, string[]>> = {
-  faster_whisper: ['Whisper model checkpoint'],
-  whisper_cpp: ['Whisper GGML/GGUF model checkpoint'],
-  paddleocr: ['PaddleOCR recognition/detection model'],
-  mediapipe: ['MediaPipe landmark model'],
-  birefnet: ['BiRefNet checkpoint'],
-  sam2: ['SAM 2 checkpoint'],
-  transparent_background: ['transparent-background checkpoint'],
-  torch_torchvision: ['TorchVision/downstream approved checkpoint'],
-  transformers: ['Transformers model repository/checkpoint/tokenizer'],
   rembg: ['rembg ONNX model'],
   deepfilternet: ['DeepFilterNet model'],
-  demucs: ['Demucs model'],
-  real_esrgan: ['Real-ESRGAN model'],
-  film: ['FILM checkpoint'],
 }
 
 const workerOverrides: Partial<Record<ProductionToolId, ProductionRegistryWorkerType[]>> = {
@@ -122,7 +83,6 @@ const workerOverrides: Partial<Record<ProductionToolId, ProductionRegistryWorker
   sharp: ['cpu_analysis_worker', 'render_worker', 'qa_worker'],
   duckdb: ['cpu_analysis_worker', 'qa_worker'],
   polars: ['cpu_analysis_worker', 'qa_worker'],
-  paddleocr: ['cpu_analysis_worker', 'gpu_ai_worker'],
   opencv: ['cpu_analysis_worker', 'gpu_ai_worker', 'qa_worker'],
   opencolorio: ['cpu_analysis_worker', 'render_worker', 'qa_worker'],
   openimageio: ['cpu_analysis_worker', 'qa_worker'],
@@ -139,8 +99,6 @@ const workerOverrides: Partial<Record<ProductionToolId, ProductionRegistryWorker
   playwright: ['cpu_analysis_worker'],
   vega: ['render_worker'],
   viz_js: ['render_worker'],
-  torch_torchvision: ['gpu_ai_worker'],
-  transformers: ['gpu_ai_worker'],
   vapoursynth: ['cpu_analysis_worker'],
 }
 
@@ -149,13 +107,11 @@ const imageRoleOverrides: Partial<Record<ProductionToolId, ProductionContainerIm
   ffprobe: ['cpu_worker', 'render_worker', 'qa_worker', 'tool_readiness_worker'],
   pyav: ['cpu_worker', 'tool_readiness_worker'],
   opentimelineio: ['cpu_worker', 'render_worker', 'tool_readiness_worker'],
-  hyperframe: ['render_worker', 'tool_readiness_worker'],
   remotion: ['render_worker', 'tool_readiness_worker'],
   libass: ['render_worker', 'tool_readiness_worker'],
   sharp: ['cpu_worker', 'render_worker', 'qa_worker', 'tool_readiness_worker'],
   duckdb: ['cpu_worker', 'qa_worker', 'tool_readiness_worker'],
   polars: ['cpu_worker', 'qa_worker', 'tool_readiness_worker'],
-  paddleocr: ['cpu_worker', 'gpu_worker', 'tool_readiness_worker'],
   opencv: ['cpu_worker', 'gpu_worker', 'qa_worker', 'tool_readiness_worker'],
   opencolorio: ['cpu_worker', 'qa_worker', 'tool_readiness_worker'],
   openimageio: ['cpu_worker', 'qa_worker', 'tool_readiness_worker'],
@@ -169,20 +125,13 @@ const imageRoleOverrides: Partial<Record<ProductionToolId, ProductionContainerIm
   satori: ['render_worker', 'tool_readiness_worker'],
   svg_js: ['render_worker', 'tool_readiness_worker'],
   playwright: ['cpu_worker', 'tool_readiness_worker'],
-  maplibre: ['render_worker', 'tool_readiness_worker'],
-  turf: ['render_worker', 'tool_readiness_worker'],
   d3: ['render_worker', 'tool_readiness_worker'],
   echarts: ['render_worker', 'tool_readiness_worker'],
   vega: ['render_worker', 'tool_readiness_worker'],
   vega_lite: ['render_worker', 'tool_readiness_worker'],
   viz_js: ['render_worker', 'tool_readiness_worker'],
-  deck_gl: ['render_worker', 'tool_readiness_worker'],
-  cesium_js: ['render_worker', 'tool_readiness_worker'],
   konva: ['render_worker', 'tool_readiness_worker'],
-  torch_torchvision: ['gpu_worker', 'tool_readiness_worker'],
-  transformers: ['gpu_worker', 'tool_readiness_worker'],
   vapoursynth: ['cpu_worker', 'tool_readiness_worker'],
-  revideo: ['tool_readiness_worker'],
 }
 
 function defaultImageRoles(profile: ProductionToolProfile): ProductionContainerImageRole[] {
@@ -211,7 +160,7 @@ function checkModes(profile: ProductionToolProfile): ProductionReadinessCheckMod
   ])
 
   if (commandChecks[profile.toolId]?.length) modes.add('command_version')
-  if ((pythonImports[profile.toolId]?.length ?? 0) + (foundationPythonImports[profile.toolId]?.length ?? 0) > 0) modes.add('python_import')
+  if ((pythonImports[profile.toolId]?.length ?? 0) > 0) modes.add('python_import')
   if (nodeImports[profile.toolId]?.length) modes.add('node_import')
   if (modelWeightNames[profile.toolId]?.length) modes.add('model_weight_presence')
   if (profile.commercialUseStatus !== 'allowed') modes.add('manual_review_required')
@@ -239,7 +188,7 @@ function buildSpec(profile: ProductionToolProfile): ProductionToolReadinessSpec 
     productionRequired,
     gpuRequired: profile.gpuRequired,
     commandChecks: commandChecks[profile.toolId] ?? [],
-    pythonImportChecks: [...(pythonImports[profile.toolId] ?? []), ...(foundationPythonImports[profile.toolId] ?? [])],
+    pythonImportChecks: [...(pythonImports[profile.toolId] ?? [])],
     nodePackageChecks: nodeImports[profile.toolId] ?? [],
     modelWeightChecks: modelWeightChecks(profile.toolId),
     environmentChecks: profile.gpuRequired

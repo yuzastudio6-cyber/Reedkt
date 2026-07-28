@@ -1,4 +1,6 @@
-import { productionToolProfiles } from '../../tool-registry/production-tool-profiles'
+import {
+  productionToolProfiles,
+} from '../../tool-registry/production-tool-profiles'
 import { getToolQAPolicy } from '../../tool-registry/tool-qa-policy'
 import { listProfessionalToolOperationSpecs } from '../professional-tool-operation-spec-registry'
 import type {
@@ -54,7 +56,6 @@ const launchCoreCandidates = [
   'ffmpeg',
   'ffprobe',
   'opentimelineio',
-  'hyperframe',
   'remotion',
   'libass',
   'sharp',
@@ -66,51 +67,44 @@ const plannedCandidates = [
   'pyav',
   'duckdb',
   'polars',
-  'paddleocr',
-  'demucs',
-  'film',
   'vapoursynth',
 ] as const satisfies readonly CoreRegistryOperationToolId[]
 
-const exactPolicyBlocked = [
-  'mediapipe',
-  'soundtouch',
-  'rubber_band',
-  'essentia',
-  'cesium_js',
-  'revideo',
-] as const satisfies readonly CoreRegistryOperationToolId[]
+const exactPolicyBlocked = [] as const satisfies readonly CoreRegistryOperationToolId[]
 
-check(productionToolProfiles.length === 72, 'Production registry must contain exactly 72 profiles for this closure milestone.')
-check(boundedSpecs.length === 50, 'Existing bounded catalog must remain exactly 50 specs and must not be modified by this extension.')
-check(coreSpecs.length === 22, 'Registry-only extension must contain exactly the derived 22 gaps.')
-check(completeSpecs.length === 72, 'Complete operation coverage must be exactly 72 specs.')
-check(summary.productionProfileCount === 72, 'Coverage summary must report 72 production profiles.')
-check(summary.boundedAdapterSpecCount === 50, 'Coverage summary must report 50 bounded adapter specs.')
-check(summary.coreRegistryOnlySpecCount === 22, 'Coverage summary must report 22 registry-only specs.')
-check(summary.completeCanonicalSpecCount === 72, 'Coverage summary must report 72 complete canonical specs.')
+check(
+  productionToolProfiles.length === 50,
+  'Production operation coverage must use exactly the 50 canonical private E2E profiles.',
+)
+check(boundedSpecs.length === 38, 'Bounded adapter catalog must contain the exact 38 adapter-backed E2E tools.')
+check(coreSpecs.length === 12, 'Registry-only extension must contain the exact 12 remaining E2E tools.')
+check(completeSpecs.length === 50, 'Complete production operation coverage must be exactly 50 specs.')
+check(summary.productionProfileCount === 50, 'Coverage summary must report 50 production profiles.')
+check(summary.boundedAdapterSpecCount === 38, 'Coverage summary must report 38 bounded adapter specs.')
+check(summary.coreRegistryOnlySpecCount === 12, 'Coverage summary must report 12 registry-only specs.')
+check(summary.completeCanonicalSpecCount === 50, 'Coverage summary must report 50 complete canonical specs.')
 check(summary.duplicateCanonicalToolIds.length === 0, 'Complete coverage must have zero duplicate canonical tool identities.')
 check(summary.duplicateOperationIds.length === 0, 'Complete coverage must have zero duplicate operation identities.')
 check(summary.unclassifiedPlannerSelectableToolIds.length === 0, 'Every production registry profile must have an explicit operation disposition.')
 check(summary.completeProductReadyCount === 0, 'No registry-only or bounded spec may claim product readiness.')
-check(summary.coreRegistryCandidateCount === 16, 'Registry-only extension must contain exactly 16 fixed-contract candidates.')
-check(summary.coreRegistryNonCallableCount === 6, 'Registry-only extension must contain exactly six non-callable policy dispositions.')
-check(sameValues(summary.coreRegistryPolicyBlockedToolIds, exactPolicyBlocked), 'Policy-blocked tool IDs must match the exact future/license/evaluation/planning policy set.')
+check(summary.coreRegistryCandidateCount === 12, 'Registry-only extension must contain exactly 12 fixed-contract candidates.')
+check(summary.coreRegistryNonCallableCount === 0, 'Non-E2E policy dispositions must not appear in the production operation registry.')
+check(sameValues(summary.coreRegistryPolicyBlockedToolIds, exactPolicyBlocked), 'Production operation coverage must contain no non-E2E policy dispositions.')
 
 check(sameValues(
   DERIVED_CORE_REGISTRY_OPERATION_TOOL_IDS,
   coreSpecs.map((spec) => spec.canonicalToolId),
-), 'The 22 specs must be derived exactly from production registry profiles absent from the bounded catalog.')
+), 'The 12 specs must be derived exactly from production profiles absent from the bounded catalog.')
 
 const completeCanonicalIds = completeSpecs.map((spec) => spec.canonicalToolId)
-check(new Set(completeCanonicalIds).size === 72, 'Every complete spec must have one unique canonical identity.')
+check(new Set(completeCanonicalIds).size === 50, 'Every complete spec must have one unique canonical identity.')
 check(sameValues(
   completeCanonicalIds,
   productionToolProfiles.map((profile) => profile.toolId),
-), 'Complete canonical operation identities must exactly cover all production profiles.')
+), 'Complete canonical operation identities must exactly cover the 50 E2E production profiles.')
 
 const completeOperationIds = completeSpecs.flatMap((spec) => spec.allowedOperationIds)
-check(new Set(completeOperationIds).size === 72, 'Every complete spec must have one globally unique operation ID.')
+check(new Set(completeOperationIds).size === 50, 'Every complete spec must have one globally unique operation ID.')
 
 for (const toolId of launchCoreCandidates) {
   const spec = requireSpec(toolId)
@@ -139,7 +133,9 @@ for (const toolId of exactPolicyBlocked) {
 }
 
 for (const spec of coreSpecs) {
-  const profile = productionToolProfiles.find((item) => item.toolId === spec.canonicalToolId)
+  const profile = productionToolProfiles.find(
+    (item) => item.toolId === spec.canonicalToolId,
+  )
   const expected = CORE_REGISTRY_EXPECTED_DISPOSITIONS[
     spec.canonicalToolId as CoreRegistryOperationToolId
   ]
@@ -249,7 +245,7 @@ for (const spec of coreSpecs) {
 
   for (const alias of spec.aliases) {
     check(resolveCoreRegistryOperationSpec(alias)?.canonicalToolId === spec.canonicalToolId, `${alias} must resolve to the one canonical registry-only identity ${spec.canonicalToolId}.`)
-    check(resolveCompleteProfessionalToolOperationSpec(alias)?.canonicalToolId === spec.canonicalToolId, `${alias} must resolve identically in complete 72-tool coverage.`)
+    check(resolveCompleteProfessionalToolOperationSpec(alias)?.canonicalToolId === spec.canonicalToolId, `${alias} must resolve identically in complete 50-tool coverage.`)
   }
 
   const request = buildValidRequest(spec)
@@ -261,12 +257,6 @@ for (const spec of coreSpecs) {
   }
 }
 
-const hyperframe = requireSpec('hyperframe')
-check(hyperframe.workerRuntime.runtimeClass === 'not_assignable_policy_blocked', 'Hyperframe must not claim a backend worker runtime.')
-check(hyperframe.workerRuntime.imageDefinition === 'frontend_preview_boundary_no_backend_worker_assigned', 'Hyperframe must remain an explicit preview-boundary handoff.')
-check(!hyperframe.declaredPrivateInputArtifactKinds.includes('source_media'), 'Hyperframe must not accept source media processing input.')
-check(!hyperframe.declaredPrivateInputArtifactKinds.includes('video'), 'Hyperframe must not accept video processing input.')
-
 check(requireSpec('ffmpeg').entrypoint.commandName === 'ffmpeg', 'FFmpeg must use one server-owned fixed binary identity.')
 check(requireSpec('ffprobe').entrypoint.commandName === 'ffprobe', 'ffprobe must use one server-owned fixed binary identity.')
 check(requireSpec('remotion').entrypoint.packageName === '@remotion/renderer', 'Remotion must use the fixed renderer package identity.')
@@ -274,8 +264,6 @@ check(requireSpec('libass').entrypoint.packageName === 'libass', 'libass must re
 check(requireSpec('sharp').entrypoint.packageName === 'sharp', 'Sharp must retain its fixed package identity.')
 check(requireSpec('opencv').entrypoint.importName === 'cv2', 'OpenCV must retain its fixed Python import identity.')
 check(requireSpec('signalsmith_stretch').entrypoint.commandName === 'signalsmith-stretch', 'Signalsmith Stretch must be the launch stretch binary candidate.')
-check(requireSpec('rubber_band').promotionGate === 'license_review_only', 'Rubber Band must not replace Signalsmith before license review.')
-check(requireSpec('essentia').promotionGate === 'license_review_only', 'Essentia must not replace AudioFlux before license review.')
 
 check(resolveCompleteProfessionalToolOperationSpec('../../ffmpeg') === undefined, 'Traversal-like aliases must not resolve.')
 check(resolveCompleteProfessionalToolOperationSpec('https://example.com/ffmpeg') === undefined, 'URL-like aliases must not resolve.')
@@ -334,20 +322,6 @@ expectRejected('ffmpeg', {
   }],
 }, ['prohibited_input', 'artifact_contract_failed'])
 
-const validDemucs = buildValidRequest(requireSpec('demucs'))
-const { modelManifestId: removedModelManifestId, ...demucsWithoutModelManifest } = validDemucs
-check(removedModelManifestId !== undefined, 'Demucs valid fixture must include a model manifest ID.')
-expectRejected('demucs', demucsWithoutModelManifest, ['missing_field'])
-
-const validHyperframe = buildValidRequest(hyperframe)
-expectRejected('hyperframe', {
-  ...validHyperframe,
-  settings: {
-    ...(validHyperframe.settings as Record<string, unknown>),
-    sourceMediaProcessingAllowed: true,
-  },
-}, ['settings_contract_failed'])
-
 for (const toolId of exactPolicyBlocked) {
   const result = validateCoreRegistryOperationRequestContract(toolId, buildValidRequest(requireSpec(toolId)))
   check(!result.ok && result.errors[0]?.code === 'policy_blocked', `${toolId} adversarial call attempt must fail at policy disposition.`)
@@ -391,9 +365,7 @@ console.log(JSON.stringify({
     'invalid_artifact_hash',
     'artifact_byte_ceiling',
     'artifact_extra_path',
-    'missing_model_manifest',
-    'hyperframe_source_processing_escalation',
-    'future_license_evaluation_call_attempts',
+    'non_e2e_identities_excluded_from_registry',
     'cyclic_non_json',
   ],
 }, null, 2))

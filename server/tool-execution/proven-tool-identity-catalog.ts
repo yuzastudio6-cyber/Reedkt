@@ -18,7 +18,6 @@ import { OFFLINE_VAPOURSYNTH_FRAME_PIPELINE_PACKAGE_IDENTITIES } from './vapours
 import { OFFLINE_AUDIOFLUX_ANALYSIS_PACKAGE_IDENTITIES } from './audioflux-analysis-execution/offline-audioflux-analysis-protocol'
 import { OFFLINE_REMBG_BACKGROUND_REMOVAL_PACKAGE_IDENTITIES } from './rembg-background-removal-execution/offline-rembg-background-removal-protocol'
 import { OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY } from './deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
-import { CANONICAL_HYPERFRAME_PREVIEW_HANDOFF_EVIDENCE_KEY } from '../workers/timeline/canonical-hyperframe-preview-handoff-boundary'
 
 export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v2' as const
 export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-21.31' as const
@@ -118,10 +117,6 @@ export interface ProvenToolIdentityRecord {
   blockers: readonly string[]
   identityHash: string
   proofHash: string
-}
-
-const CANONICAL_BOUNDARY_EVIDENCE_KEYS: Partial<Record<ProductionToolId, string>> = {
-  hyperframe: CANONICAL_HYPERFRAME_PREVIEW_HANDOFF_EVIDENCE_KEY,
 }
 
 const CANONICAL_E2E_EVIDENCE_KEYS: Partial<Record<ProductionToolId, string>> = {
@@ -259,8 +254,7 @@ const records = specs.map((spec): ProvenToolIdentityRecord => {
   const canonicalEvidenceKey = CANONICAL_E2E_EVIDENCE_KEYS[spec.canonicalToolId] ?? null
   const canonicalJobAdapterEvidenceKey =
     CANONICAL_JOB_ADAPTER_EVIDENCE_KEYS[spec.canonicalToolId] ?? null
-  const canonicalBoundaryEvidenceKey =
-    CANONICAL_BOUNDARY_EVIDENCE_KEYS[spec.canonicalToolId] ?? null
+  const canonicalBoundaryEvidenceKey: string | null = null
   const callable = spec.policyBlocks.length === 0 &&
     spec.workerRuntime.runtimeClass !== 'not_assignable_policy_blocked'
   const endToEnd = Boolean(canonicalEvidenceKey)
@@ -350,7 +344,9 @@ export function listProvenToolIdentityCatalog(): readonly ProvenToolIdentityReco
   return PROVEN_TOOL_IDENTITY_CATALOG
 }
 
-export function getToolIdentityRecord(toolId: ProductionToolId): ProvenToolIdentityRecord {
+export function getToolIdentityRecord(
+  toolId: ProductionToolId | string,
+): ProvenToolIdentityRecord {
   const record = PROVEN_TOOL_IDENTITY_CATALOG.find((candidate) => candidate.canonicalToolId === toolId)
   if (!record) throw new Error(`Canonical tool identity is missing: ${toolId}`)
   return record
@@ -638,34 +634,23 @@ function blockers(
 
 function unverifiedToolSpecificBlockers(toolId: ProductionToolId): readonly string[] {
   const blockers: Partial<Record<ProductionToolId, readonly string[]>> = {
-    torch_torchvision: ['exact_torch_torchvision_container_tensor_and_vision_fixture_proof_missing'],
-    transformers: ['exact_transformers_offline_no_model_runtime_fixture_proof_missing'],
-    sam2: ['reviewed_sam2_model_manifest_checkpoint_hash_and_offline_tracking_fixture_missing'],
-    birefnet: ['reviewed_birefnet_model_manifest_checkpoint_hash_and_offline_foreground_fixture_missing'],
-    real_esrgan: ['reviewed_real_esrgan_model_manifest_checkpoint_hash_and_enhancement_fixture_missing'],
     kornia: ['exact_kornia_torch_runtime_and_mask_refinement_fixture_proof_missing'],
-    faster_whisper: ['reviewed_faster_whisper_model_manifest_offline_cache_and_alignment_fixture_missing'],
     music21: ['exact_music21_structure_analysis_fixture_and_canonical_artifact_proof_missing'],
     rnnoise: ['pinned_rnnoise_build_voice_fixture_and_denoised_audio_qa_proof_missing'],
     deepfilternet: ['reviewed_deepfilternet_model_manifest_checkpoint_hash_and_voice_fixture_missing'],
     opencolorio: ['pinned_opencolorio_config_transform_fixture_and_color_qa_proof_missing'],
     openimageio: ['pinned_openimageio_sequence_fixture_and_private_image_artifact_qa_proof_missing'],
-    streamer_render_pipeline_support: ['pinned_gstreamer_binary_plugin_closure_and_pipeline_fixture_proof_missing'],
     mkvtoolnix_container_validation: ['pinned_mkvtoolnix_binary_and_private_mkv_validation_fixture_proof_missing'],
     gpac_mp4box_packaging_validation: ['pinned_gpac_mp4box_binary_and_private_mp4_validation_fixture_proof_missing'],
-    hyperframe: ['exact_hyperframe_timeline_handoff_runtime_and_structured_artifact_proof_missing'],
-    paddleocr: ['reviewed_paddleocr_model_manifest_offline_cache_and_text_region_fixture_missing'],
-    demucs: ['reviewed_demucs_model_manifest_checkpoint_hash_and_audio_stem_fixture_missing'],
     signalsmith_stretch: ['pinned_signalsmith_stretch_build_and_timing_preserving_audio_fixture_proof_missing'],
-    film: ['reviewed_film_model_manifest_checkpoint_hash_and_frame_interpolation_fixture_missing'],
     vapoursynth: ['pinned_vapoursynth_runtime_plugin_closure_and_frame_pipeline_fixture_proof_missing'],
   }
   return blockers[toolId] ?? []
 }
 
 function validateCatalog(catalog: readonly ProvenToolIdentityRecord[]): void {
-  if (catalog.length !== 72) throw new Error('Proven tool identity catalog must cover all 72 profiles.')
-  if (catalog.filter((record) => record.callability === 'callable_candidate').length !== 60) {
+  if (catalog.length !== 50) throw new Error('Proven tool identity catalog must cover the exact 50 production tools.')
+  if (catalog.filter((record) => record.callability === 'callable_candidate').length !== 50) {
     throw new Error('Proven tool identity catalog callable partition changed unexpectedly.')
   }
   for (const key of ['stableToolIdentity', 'identityHash', 'proofHash'] as const) {

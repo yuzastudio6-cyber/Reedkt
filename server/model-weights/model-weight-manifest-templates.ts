@@ -4,6 +4,26 @@ const basePath = '/opt/reeditpro/model-weights'
 
 export const GPU_MODEL_WEIGHT_MANIFEST_TEMPLATES: ProductionModelWeightManifestTemplate[] = [
   {
+    id: 'rembg_u2netp_model',
+    toolId: 'rembg',
+    modelName: 'rembg U2NetP background-removal model',
+    modelVersion: 'placeholder-needs-production-review',
+    expectedPath: `${basePath}/rembg/`,
+    source: 'exact private runner model exists; production GPU mount still requires reviewed manifest promotion',
+    license: 'Apache-2.0-upstream-observed-needs-production-review',
+    commercialUseAllowed: false,
+    commercialUseStatus: 'needs_review',
+    redistributionAllowed: false,
+    requiresAttribution: false,
+    reviewStatus: 'needs_review',
+    riskNotes: [
+      'Private canonical runner evidence does not authorize the production GPU image or model mount.',
+      'The production manifest must independently bind the exact U2NetP revision, checksum, size, license review, and read-only mount.',
+    ],
+    requiredForProduction: true,
+    blocksProductionIfMissing: true,
+  },
+  {
     id: 'faster_whisper_model',
     toolId: 'faster_whisper',
     modelName: 'faster-whisper model checkpoint',

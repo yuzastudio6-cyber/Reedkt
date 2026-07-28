@@ -10,18 +10,24 @@ import {
 import {
   getCanonicalFasterWhisperGpuRuntimeContract,
 } from './canonical-faster-whisper-gpu-runtime-contract'
-import type {
-  CanonicalFasterWhisperGpuRuntimeRunnerRequest,
-} from './canonical-faster-whisper-gpu-runtime-request-types'
 import {
   assertCanonicalFasterWhisperGpuRuntimeWireResponse,
 } from './canonical-faster-whisper-gpu-runtime-result'
 import {
+  getCanonicalRembgGpuRuntimeContract,
+} from './canonical-rembg-gpu-runtime-contract'
+import {
+  assertCanonicalRembgGpuRuntimeWireResponse,
+} from './canonical-rembg-gpu-runtime-result'
+import {
   CANONICAL_GPU_WORKER_OPERATION_ROUTER_RECEIPT_VERSION,
   CANONICAL_GPU_WORKER_OPERATION_ROUTER_VERSION,
   type CanonicalGpuWorkerOperationRouterReceipt,
+  type CanonicalGpuWorkerOperationId,
   type CanonicalGpuWorkerOperationRuntimePort,
   type CanonicalGpuWorkerOperationRuntimePortResult,
+  type CanonicalGpuWorkerRuntimeRequest,
+  type CanonicalGpuWorkerRuntimeSuccessWireResponse,
   type CanonicalGpuWorkerRuntimePortEvidenceClass,
 } from './canonical-gpu-worker-operation-router-types'
 
@@ -34,7 +40,7 @@ const digestSchema = z.string().regex(DIGEST_PATTERN)
 const safeIdSchema = z.string().regex(SAFE_ID_PATTERN)
   .refine((value) => !value.includes('..'))
 
-const modelArtifactsSchema = z.tuple([
+const fasterWhisperModelArtifactsSchema = z.tuple([
   z.object({
     canonicalOrder: z.literal(0),
     slotId: z.literal('faster_whisper_config'),
@@ -73,7 +79,7 @@ const modelArtifactsSchema = z.tuple([
   }).strict(),
 ])
 
-const runtimeRequestSchema = z.object({
+const fasterWhisperRuntimeRequestSchema = z.object({
   schemaVersion: z.literal(
     'canonical-faster-whisper-gpu-runtime-request-v1',
   ),
@@ -99,7 +105,7 @@ const runtimeRequestSchema = z.object({
     channelCount: z.literal(1),
     sampleFormat: z.literal('pcm_s16le'),
   }).strict(),
-  modelArtifacts: modelArtifactsSchema,
+  modelArtifacts: fasterWhisperModelArtifactsSchema,
   settings: z.object({
     device: z.literal('cuda'),
     computeType: z.literal('float16'),
@@ -113,6 +119,79 @@ const runtimeRequestSchema = z.object({
   requestBindingSha256: digestSchema,
 }).strict()
 
+const rembgRuntimeRequestSchema = z.object({
+  schemaVersion: z.literal(
+    'canonical-rembg-gpu-runtime-request-v1',
+  ),
+  operationId: z.literal(
+    'tool.rembg.remove_image_background.v1',
+  ),
+  admissionDigestSha256: digestSchema,
+  dispatch: z.object({
+    dispatchIntentId: safeIdSchema,
+    dispatchBindingHash: digestSchema,
+    attemptPlanHash: digestSchema,
+    runtimeRegion: z.literal('europe-west1'),
+  }).strict(),
+  source: z.object({
+    artifactId: safeIdSchema,
+    contentSha256: digestSchema,
+    byteLength: z.number().int().positive()
+      .max(16_777_216),
+    contentType: z.literal('image/png'),
+    width: z.number().int().positive().max(4_096),
+    height: z.number().int().positive().max(4_096),
+    decodedRgbaSha256: digestSchema,
+    opaquePixelCount: z.number().int().positive()
+      .max(16_777_216),
+  }).strict().superRefine((source, context) => {
+    const pixelCount = source.width * source.height
+    if (
+      pixelCount > 16_777_216
+      || source.opaquePixelCount !== pixelCount
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'opaque source pixel contract changed',
+      })
+    }
+  }),
+  modelArtifacts: z.tuple([
+    z.object({
+      canonicalOrder: z.literal(0),
+      slotId: z.literal('rembg_u2netp_onnx'),
+      fileName: z.literal('u2netp.onnx'),
+      byteLength: z.literal(4_574_861),
+      contentSha256: z.literal(
+        '309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8',
+      ),
+    }).strict(),
+  ]),
+  settings: z.object({
+    device: z.literal('cuda'),
+    modelId: z.literal('u2netp'),
+    outputMode: z.literal('mask_only_png'),
+    confidenceThreshold: z.literal(0.5),
+    alphaMatteMode: z.literal('straight'),
+    edgeRefinementProfileId: z.literal(
+      'approved_u2netp_default_v1',
+    ),
+    maximumSubjects: z.literal(1),
+    preserveSourceDimensions: z.literal(true),
+    runtimeDownloadAllowed: z.literal(false),
+    networkFetchAllowed: z.literal(false),
+  }).strict(),
+  requestBindingSha256: digestSchema,
+}).strict()
+
+const runtimeRequestSchema = z.discriminatedUnion(
+  'operationId',
+  [
+    fasterWhisperRuntimeRequestSchema,
+    rembgRuntimeRequestSchema,
+  ],
+)
+
 const runtimePorts = new WeakSet<object>()
 const consumedRuntimePorts = new WeakSet<object>()
 
@@ -122,25 +201,30 @@ const BLOCKERS = [
   'cloud_run_gpu_job_deployment_and_image_identity_required',
   'live_worker_service_identity_and_iam_required',
   'official_gpu_rate_and_attempt_cost_evidence_required',
-  'private_audio_and_model_mount_materialization_required',
+  'private_input_and_model_mount_materialization_required',
   'private_output_artifact_commit_qa_reconciliation_required',
 ] as const
 
 export function createCanonicalGpuWorkerOperationRuntimePort(input: {
   evidenceClass: CanonicalGpuWorkerRuntimePortEvidenceClass
+  supportedOperationIds?:
+    readonly CanonicalGpuWorkerOperationId[]
   execute(
     input: Parameters<
       CanonicalGpuWorkerOperationRuntimePort['execute']
     >[0],
   ): Promise<CanonicalGpuWorkerOperationRuntimePortResult>
 }): CanonicalGpuWorkerOperationRuntimePort {
+  const supportedOperationIds =
+    input.supportedOperationIds
+    ?? ['tool.faster_whisper.transcribe_private_audio.v1']
+  assertSupportedOperationIds(supportedOperationIds)
   const port: CanonicalGpuWorkerOperationRuntimePort = Object.freeze({
     portVersion:
       'canonical-gpu-worker-operation-runtime-port-v1',
     evidenceClass: input.evidenceClass,
-    supportedOperationIds: [
-      'tool.faster_whisper.transcribe_private_audio.v1',
-    ] as const,
+    supportedOperationIds:
+      Object.freeze([...supportedOperationIds]),
     execute: input.execute,
   })
   runtimePorts.add(port)
@@ -151,17 +235,15 @@ export async function routeCanonicalGpuWorkerOperation(input: {
   request: unknown
   runtimePort: CanonicalGpuWorkerOperationRuntimePort
 }): Promise<CanonicalGpuWorkerOperationRouterReceipt> {
-  assertRuntimePort(input.runtimePort)
   const parsed = runtimeRequestSchema.safeParse(input.request)
   if (!parsed.success) {
     throw invalid('canonical_gpu_worker_runtime_request_invalid')
   }
-  const request =
-    parsed.data as CanonicalFasterWhisperGpuRuntimeRunnerRequest
+  const request = parsed.data as CanonicalGpuWorkerRuntimeRequest
+  assertRuntimePort(input.runtimePort, request.operationId)
   assertRequestBinding(request)
   const runtimeContract =
-    await getCanonicalFasterWhisperGpuRuntimeContract()
-  assertCurrentRuntimeContract(request, runtimeContract)
+    await assertCurrentRuntimeContract(request)
   const serializedRequest = stableAuthorityStringify(request)
   const serializedRequestByteLength =
     Buffer.byteLength(serializedRequest, 'utf8')
@@ -180,11 +262,15 @@ export async function routeCanonicalGpuWorkerOperation(input: {
     timeoutMilliseconds: ROUTER_TIMEOUT_MILLISECONDS,
   })
   assertRuntimeProcessResult(runtimeResult)
-  const response =
-    assertCanonicalFasterWhisperGpuRuntimeWireResponse({
-      value: runtimeResult.wireResponse,
-      request,
-    })
+  const response = assertRuntimeWireResponse({
+    value: runtimeResult.wireResponse,
+    request,
+  })
+  const outputCount = response.outputs.length
+  const processEvidenceCount =
+    'processEvidence' in response
+      ? response.processEvidence.length
+      : 0
 
   const draft = {
     receiptVersion:
@@ -198,7 +284,10 @@ export async function routeCanonicalGpuWorkerOperation(input: {
       executionTarget: 'google_cloud_run_gpu' as const,
       accelerator: 'nvidia_l4' as const,
       device: 'cuda' as const,
-      computeType: 'float16' as const,
+      computeType: request.operationId
+        === 'tool.faster_whisper.transcribe_private_audio.v1'
+        ? 'float16' as const
+        : 'model_native' as const,
       cpuFallbackAllowed: false as const,
     },
     request: {
@@ -238,9 +327,11 @@ export async function routeCanonicalGpuWorkerOperation(input: {
       exactRequestBindingMatched: true as const,
       exactResponseLineageMatched: true as const,
       cudaSuccessWireShapeMatched: true as const,
-      outputCount: 3 as const,
+      outputCount,
+      processEvidenceCount,
       outputBytesIncluded: false as const,
       transcriptTextIncluded: false as const,
+      maskBytesIncluded: false as const,
       callerPathsIncluded: false as const,
       callerUrlsIncluded: false as const,
       credentialsIncluded: false as const,
@@ -263,6 +354,8 @@ export async function routeCanonicalGpuWorkerOperation(input: {
       outputArtifactCommitAuthority: false as const,
       transcriptAlignmentQaAuthority: false as const,
       captionTimingQaAuthority: false as const,
+      maskEdgeQualityQaAuthority: false as const,
+      maskSubjectCoverageQaAuthority: false as const,
       attemptInternalCostEvidenceVerified: false as const,
       customerCostAuthority: false as const,
       cloudDispatchAuthority: false as const,
@@ -285,16 +378,14 @@ export async function routeCanonicalGpuWorkerOperation(input: {
 
 function assertRuntimePort(
   port: CanonicalGpuWorkerOperationRuntimePort,
+  operationId: CanonicalGpuWorkerOperationId,
 ): void {
   if (
     !runtimePorts.has(port)
     || consumedRuntimePorts.has(port)
     || port.portVersion
       !== 'canonical-gpu-worker-operation-runtime-port-v1'
-    || stableAuthorityStringify(port.supportedOperationIds)
-      !== stableAuthorityStringify([
-        'tool.faster_whisper.transcribe_private_audio.v1',
-      ])
+    || !port.supportedOperationIds.includes(operationId)
   ) {
     throw blocked(
       'canonical_gpu_worker_process_bound_runtime_port_required',
@@ -303,7 +394,7 @@ function assertRuntimePort(
 }
 
 function assertRequestBinding(
-  request: CanonicalFasterWhisperGpuRuntimeRunnerRequest,
+  request: CanonicalGpuWorkerRuntimeRequest,
 ): void {
   const {
     requestBindingSha256,
@@ -319,19 +410,52 @@ function assertRequestBinding(
   }
 }
 
-function assertCurrentRuntimeContract(
-  request: CanonicalFasterWhisperGpuRuntimeRunnerRequest,
-  runtimeContract: Awaited<
-    ReturnType<typeof getCanonicalFasterWhisperGpuRuntimeContract>
-  >,
-): void {
+async function assertCurrentRuntimeContract(
+  request: CanonicalGpuWorkerRuntimeRequest,
+): Promise<{
+  readonly contractDigestSha256: string
+  readonly sourceDigestSha256: string
+  readonly runtimeProtocol: {
+    readonly maximumRequestBytes: number
+  }
+}> {
+  if (
+    request.operationId
+      === 'tool.faster_whisper.transcribe_private_audio.v1'
+  ) {
+    const runtimeContract =
+      await getCanonicalFasterWhisperGpuRuntimeContract()
+    if (
+      runtimeContract.operationIdentity.operationId
+        !== request.operationId
+      || runtimeContract.operationIdentity.sharedWorkerType
+        !== 'gpu_ai_worker'
+      || runtimeContract.runtimeProtocol.device !== 'cuda'
+      || runtimeContract.runtimeProtocol.computeType !== 'float16'
+      || runtimeContract.runtimeProtocol.cpuFallbackAllowed
+      || runtimeContract.cloudRunGpuPolicy.admittedExistingRegion
+        !== request.dispatch.runtimeRegion
+      || stableAuthorityStringify(
+        runtimeContract.fixedFileLayout.modelFiles,
+      ) !== stableAuthorityStringify(request.modelArtifacts)
+    ) {
+      throw blocked(
+        'canonical_gpu_worker_current_runtime_contract_mismatch',
+      )
+    }
+    return runtimeContract
+  }
+
+  const runtimeContract =
+    await getCanonicalRembgGpuRuntimeContract()
   if (
     runtimeContract.operationIdentity.operationId
       !== request.operationId
     || runtimeContract.operationIdentity.sharedWorkerType
       !== 'gpu_ai_worker'
     || runtimeContract.runtimeProtocol.device !== 'cuda'
-    || runtimeContract.runtimeProtocol.computeType !== 'float16'
+    || runtimeContract.runtimeProtocol.executionProvider
+      !== 'CUDAExecutionProvider'
     || runtimeContract.runtimeProtocol.cpuFallbackAllowed
     || runtimeContract.cloudRunGpuPolicy.admittedExistingRegion
       !== request.dispatch.runtimeRegion
@@ -341,6 +465,45 @@ function assertCurrentRuntimeContract(
   ) {
     throw blocked(
       'canonical_gpu_worker_current_runtime_contract_mismatch',
+    )
+  }
+  return runtimeContract
+}
+
+function assertRuntimeWireResponse(input: {
+  value: unknown
+  request: CanonicalGpuWorkerRuntimeRequest
+}): CanonicalGpuWorkerRuntimeSuccessWireResponse {
+  if (
+    input.request.operationId
+      === 'tool.faster_whisper.transcribe_private_audio.v1'
+  ) {
+    return assertCanonicalFasterWhisperGpuRuntimeWireResponse({
+      value: input.value,
+      request: input.request,
+    })
+  }
+  return assertCanonicalRembgGpuRuntimeWireResponse({
+    value: input.value,
+    request: input.request,
+  })
+}
+
+function assertSupportedOperationIds(
+  operationIds: readonly CanonicalGpuWorkerOperationId[],
+): void {
+  const allowed = new Set<CanonicalGpuWorkerOperationId>([
+    'tool.faster_whisper.transcribe_private_audio.v1',
+    'tool.rembg.remove_image_background.v1',
+  ])
+  if (
+    operationIds.length < 1
+    || operationIds.length > allowed.size
+    || new Set(operationIds).size !== operationIds.length
+    || operationIds.some((operationId) => !allowed.has(operationId))
+  ) {
+    throw invalid(
+      'canonical_gpu_worker_supported_operations_invalid',
     )
   }
 }

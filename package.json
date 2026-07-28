@@ -98,6 +98,7 @@
     "smoke:offline-media-binary-long-form-master": "tsx server/smoke/offline-media-binary-long-form-master-assembly-smoke.ts",
     "smoke:canonical-cloud-dispatch-handoff": "tsx server/smoke/canonical-cloud-worker-dispatch-handoff-smoke.ts",
     "smoke:canonical-gpu-worker-operation-router": "tsx server/smoke/canonical-gpu-worker-operation-router-smoke.ts",
+    "smoke:canonical-rembg-gpu-runtime": "tsx server/smoke/canonical-rembg-gpu-runtime-contract-smoke.ts && tsx server/smoke/canonical-rembg-cloud-run-gpu-execution-admission-smoke.ts",
     "smoke:canonical-service-identity-verifier": "tsx server/smoke/canonical-service-identity-verifier-smoke.ts",
     "smoke:canonical-live-google-service-identity-verifier": "tsx server/smoke/canonical-live-google-service-identity-verifier-smoke.ts",
     "smoke:canonical-cloud-dispatch-outbox-receivers": "tsx server/smoke/canonical-cloud-dispatch-outbox-receiver-smoke.ts",

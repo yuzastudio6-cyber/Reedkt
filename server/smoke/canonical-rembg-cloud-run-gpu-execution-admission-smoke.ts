@@ -8,9 +8,13 @@ import { deflateSync } from 'node:zlib'
 import {
   assertCanonicalRembgExactSourceFrameArtifactBinding,
   assertCanonicalRembgCloudRunGpuExecutionAdmissionCandidate,
+  assertCanonicalRembgGpuRuntimeRequestCandidate,
+  assertCanonicalRembgGpuRuntimeResultCandidate,
   assertCanonicalRembgModelArtifactRequirementSet,
   createCanonicalRembgExactSourceFrameArtifactBinding,
   createCanonicalRembgCloudRunGpuExecutionAdmissionCandidate,
+  createCanonicalRembgGpuRuntimeRequestCandidate,
+  createCanonicalRembgGpuRuntimeResultCandidate,
   getCanonicalRembgModelArtifactRequirementSet,
   projectCanonicalRembgGpuBundleRequirements,
   type CanonicalModelArtifactGpuBundle,
@@ -242,6 +246,30 @@ const candidate =
     sourceArtifactBinding,
     operationRequest,
   })
+const runtimeRequestCandidate =
+  await createCanonicalRembgGpuRuntimeRequestCandidate({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+  })
+const runtimeWireResponse =
+  controlledRuntimeWireResponse(
+    runtimeRequestCandidate.runnerRequest,
+  )
+const runtimeResultCandidate =
+  await createCanonicalRembgGpuRuntimeResultCandidate({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse,
+  })
 
 assert.equal(
   candidate.admissionClass,
@@ -321,6 +349,65 @@ assert.deepEqual(
     operationRequest: structuredClone(operationRequest),
   }),
   candidate,
+)
+assert.deepEqual(
+  await assertCanonicalRembgGpuRuntimeRequestCandidate({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    candidate: structuredClone(runtimeRequestCandidate),
+  }),
+  runtimeRequestCandidate,
+)
+assert.equal(
+  runtimeRequestCandidate.runnerRequest.operationId,
+  'tool.rembg.remove_image_background.v1',
+)
+assert.equal(
+  runtimeRequestCandidate.runnerRequest.source.contentSha256,
+  frameArtifactSha256,
+)
+assert.equal(runtimeResultCandidate.outputCandidates.length, 1)
+assert.equal(
+  runtimeResultCandidate.outputCandidates[0].width,
+  source.frameWidth,
+)
+assert.equal(
+  runtimeResultCandidate.outputCandidates[0].height,
+  source.frameHeight,
+)
+assert.deepEqual(
+  runtimeResultCandidate.outputCandidates[0].requiredQaGates,
+  ['mask_edge_quality', 'mask_subject_coverage'],
+)
+assert.equal(
+  runtimeResultCandidate.processEvidenceCandidates.length,
+  2,
+)
+assert.equal(
+  runtimeResultCandidate.boundaries.outputArtifactCommitAuthority,
+  false,
+)
+assert.equal(
+  runtimeResultCandidate.boundaries.maskEdgeQualityQaAuthority,
+  false,
+)
+assert.deepEqual(
+  await assertCanonicalRembgGpuRuntimeResultCandidate({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse,
+    resultCandidate: structuredClone(runtimeResultCandidate),
+  }),
+  runtimeResultCandidate,
 )
 
 const rembgProfile = getProductionToolProfile('rembg')
@@ -474,6 +561,67 @@ try {
 }
 
 let adversarialAssertions = 0
+
+await expectRejectsAsync(
+  () => createCanonicalRembgGpuRuntimeResultCandidate({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse: {
+      ...runtimeWireResponse,
+      outputs: [{
+        ...runtimeWireResponse.outputs[0],
+        width: source.frameWidth + 1,
+      }],
+    },
+  }),
+  'runtime mask dimension substitution',
+  'rembg_gpu_runtime_result_request_lineage_mismatch',
+)
+await expectRejectsAsync(
+  () => assertCanonicalRembgGpuRuntimeRequestCandidate({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    candidate: {
+      ...structuredClone(runtimeRequestCandidate),
+      boundaries: {
+        ...runtimeRequestCandidate.boundaries,
+        cloudDispatchAuthorized: true,
+      },
+    },
+  }),
+  'runtime request authority forgery',
+  'rembg_gpu_runtime_request_candidate_mismatch',
+)
+await expectRejectsAsync(
+  () => assertCanonicalRembgGpuRuntimeResultCandidate({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse,
+    resultCandidate: {
+      ...structuredClone(runtimeResultCandidate),
+      boundaries: {
+        ...runtimeResultCandidate.boundaries,
+        outputArtifactCommitAuthority: true,
+      },
+    },
+  }),
+  'runtime result authority forgery',
+  'rembg_gpu_runtime_result_candidate_mismatch',
+)
 
 expectRejects(
   () => assertCanonicalRembgModelArtifactRequirementSet({
@@ -754,6 +902,10 @@ console.log(JSON.stringify({
     candidate.source.frameArtifactContentType,
   outputProfile:
     candidate.expectedOutputs[0].encodingProfile,
+  runtimeRequestVersion:
+    runtimeRequestCandidate.runnerRequest.schemaVersion,
+  runtimeResultVersion:
+    runtimeResultCandidate.resultCandidateVersion,
   executionTarget:
     candidate.modelArtifactBinding.executionTarget,
   cloudRunAccelerator:
@@ -793,6 +945,79 @@ function createCandidate(
     operationRequest:
       overrides.operationRequest ?? operationRequest,
   })
+}
+
+function controlledRuntimeWireResponse(
+  request: typeof runtimeRequestCandidate.runnerRequest,
+) {
+  return {
+    schemaVersion:
+      'canonical-rembg-gpu-runtime-response-v1' as const,
+    ok: true as const,
+    status:
+      'controlled_rembg_gpu_inference_completed' as const,
+    operationId: request.operationId,
+    admissionDigestSha256: request.admissionDigestSha256,
+    requestBindingSha256: request.requestBindingSha256,
+    dispatchIntentId: request.dispatch.dispatchIntentId,
+    runtimeIdentity: {
+      rembgVersion: '2.0.76' as const,
+      onnxRuntimeGpuVersion: '1.27.0' as const,
+      executionProvider: 'CUDAExecutionProvider' as const,
+      providerCount: 1,
+      device: 'cuda' as const,
+      runtimeRegion: 'europe-west1' as const,
+      cpuFallbackDisabled: true as const,
+    },
+    outputs: [{
+      canonicalOrder: 0 as const,
+      artifactKind: 'mask_image' as const,
+      fileName: 'mask.png' as const,
+      contentType: 'image/png' as const,
+      encodingProfile: 'gray8_mask_png_v1' as const,
+      byteLength: 128,
+      contentSha256: 'a'.repeat(64),
+      width: request.source.width,
+      height: request.source.height,
+      minimumMaskValue: 0,
+      maximumMaskValue: 255,
+      uniqueMaskValueCount: 8,
+      transparentPixelCount: 3,
+      partialPixelCount: 5,
+      opaquePixelCount: 4,
+    }] as const,
+    processEvidence: [
+      {
+        canonicalOrder: 0 as const,
+        evidenceKind: 'mask_analysis_receipt' as const,
+        fileName: 'mask-analysis.json' as const,
+        byteLength: 412,
+        contentSha256: 'b'.repeat(64),
+      },
+      {
+        canonicalOrder: 1 as const,
+        evidenceKind:
+          'mask_qa_measurement_receipt' as const,
+        fileName: 'mask-qa-measurement.json' as const,
+        byteLength: 256,
+        contentSha256: 'c'.repeat(64),
+      },
+    ] as const,
+    receiptBoundaries: {
+      outputBytesIncluded: false as const,
+      sourceBytesIncluded: false as const,
+      modelBytesIncluded: false as const,
+      pathsIncluded: false as const,
+      urlsIncluded: false as const,
+      credentialsIncluded: false as const,
+      cpuFallbackAllowed: false as const,
+      runtimeDownloadAllowed: false as const,
+      networkFetchAllowed: false as const,
+      artifactCommitAuthority: false as const,
+      qaPassAuthority: false as const,
+      productionReady: false as const,
+    },
+  }
 }
 
 function controlledRembgGpuBundle():
@@ -1078,6 +1303,27 @@ function expectRejects(
   code: string,
 ): void {
   assert.throws(
+    operation,
+    (error: unknown) => {
+      assert.equal(error instanceof Error, true, `${label}: Error`)
+      assert.equal(
+        (error as Error).message.includes(code),
+        true,
+        `${label}: ${String((error as Error).message)}`,
+      )
+      return true
+    },
+    label,
+  )
+  adversarialAssertions += 1
+}
+
+async function expectRejectsAsync(
+  operation: () => Promise<unknown>,
+  label: string,
+  code: string,
+): Promise<void> {
+  await assert.rejects(
     operation,
     (error: unknown) => {
       assert.equal(error instanceof Error, true, `${label}: Error`)

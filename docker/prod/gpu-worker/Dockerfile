@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 #
-# ReeditPro production GPU AI worker image definition.
+# WeEditPro production GPU AI worker image definition.
 # The image remains an unqualified build candidate and must not be pushed,
 # deployed, or used with customer media until the production evidence gates pass.
 #
@@ -45,7 +45,15 @@ RUN apt-get update \
     python3 \
     python3-pip \
     python3-venv \
+    libbz2-1.0 \
+    libffi8 \
     libgomp1 \
+    liblzma5 \
+    libncursesw6 \
+    libreadline8 \
+    libsqlite3-0 \
+    libssl3 \
+    zlib1g \
   && rm -rf /var/lib/apt/lists/*
 
 COPY docker/prod/gpu-worker/faster-whisper \
@@ -78,7 +86,72 @@ RUN mkdir -p \
     'Runtime mounts/manifests must provide reviewed weights after qualification.' \
     > /opt/reeditpro/model-weights/README.txt
 
-FROM gpu_runtime_foundation AS faster_whisper_runtime_build_candidate
+FROM gpu_runtime_foundation AS rembg_runtime_builder
+ADD --checksum=sha256:563d2a1b2a5ba5d5409b5ecd05a0e1bf9b028cf3e6a6f0c87a5dc8dc3f2d9182 \
+  https://www.python.org/ftp/python/3.11.14/Python-3.11.14.tgz \
+  /tmp/Python-3.11.14.tgz
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    build-essential \
+    libbz2-dev \
+    libffi-dev \
+    libgdbm-dev \
+    liblzma-dev \
+    libncursesw5-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    tk-dev \
+    uuid-dev \
+    xz-utils \
+    zlib1g-dev \
+  && echo \
+    "563d2a1b2a5ba5d5409b5ecd05a0e1bf9b028cf3e6a6f0c87a5dc8dc3f2d9182  /tmp/Python-3.11.14.tgz" \
+    | sha256sum --check --strict \
+  && mkdir /tmp/Python-3.11.14 \
+  && tar \
+    --extract \
+    --gzip \
+    --file /tmp/Python-3.11.14.tgz \
+    --directory /tmp/Python-3.11.14 \
+    --strip-components 1 \
+  && cd /tmp/Python-3.11.14 \
+  && ./configure \
+    --prefix=/opt/python-3.11 \
+    --with-ensurepip=install \
+  && make -j"$(nproc)" \
+  && make install \
+  && /opt/python-3.11/bin/python3.11 \
+    -c "import sys; assert sys.version_info[:3] == (3, 11, 14)"
+
+COPY docker/prod/gpu-worker/rembg \
+  /opt/reeditpro/gpu-operations/rembg
+RUN /opt/python-3.11/bin/python3.11 \
+    -m venv /opt/reeditpro/gpu-operations/rembg/venv \
+  && /opt/reeditpro/gpu-operations/rembg/venv/bin/pip \
+    install \
+    --disable-pip-version-check \
+    --no-cache-dir \
+    --require-hashes \
+    -r /opt/reeditpro/gpu-operations/rembg/requirements.lock.txt \
+  && chmod 0555 \
+    /opt/reeditpro/gpu-operations/rembg/runner.py \
+  && chmod 0444 \
+    /opt/reeditpro/gpu-operations/rembg/requirements.lock.txt \
+    /opt/reeditpro/gpu-operations/rembg/source-provenance.lock \
+  && /opt/reeditpro/gpu-operations/rembg/venv/bin/python \
+    -I \
+    -B \
+    -c "import importlib.metadata as m; import onnxruntime as ort; import rembg; assert m.version('rembg') == '2.0.76'; assert m.version('onnxruntime-gpu') == '1.27.0'; assert rembg.__version__ == '2.0.76'; assert ort.__version__ == '1.27.0'; assert 'CUDAExecutionProvider' in ort.get_available_providers()"
+
+FROM gpu_runtime_foundation AS gpu_runtime_with_operations
+COPY --from=rembg_runtime_builder \
+  /opt/python-3.11 /opt/python-3.11
+COPY --from=rembg_runtime_builder \
+  /opt/reeditpro/gpu-operations/rembg \
+  /opt/reeditpro/gpu-operations/rembg
+
+FROM gpu_runtime_with_operations AS faster_whisper_runtime_build_candidate
 RUN test -x \
     /opt/reeditpro/gpu-operations/faster-whisper/venv/bin/python \
   && test -x \
@@ -88,7 +161,17 @@ RUN test -x \
     -B \
     -c "import importlib.metadata as m; import ctranslate2; assert m.version('faster-whisper') == '1.2.1'; assert m.version('ctranslate2') == '4.6.2'; assert ctranslate2.__version__ == '4.6.2'"
 
-FROM gpu_runtime_foundation AS base
+FROM gpu_runtime_with_operations AS rembg_runtime_build_candidate
+RUN test -x \
+    /opt/reeditpro/gpu-operations/rembg/venv/bin/python \
+  && test -x \
+    /opt/reeditpro/gpu-operations/rembg/runner.py \
+  && /opt/reeditpro/gpu-operations/rembg/venv/bin/python \
+    -I \
+    -B \
+    -c "import importlib.metadata as m; import onnxruntime as ort; import rembg; assert m.version('rembg') == '2.0.76'; assert m.version('onnxruntime-gpu') == '1.27.0'; assert rembg.__version__ == '2.0.76'; assert ort.__version__ == '1.27.0'; assert 'CUDAExecutionProvider' in ort.get_available_providers()"
+
+FROM gpu_runtime_with_operations AS base
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     build-essential \
@@ -112,6 +195,10 @@ RUN test -f dist-server/server.js \
   && test -x \
     /opt/reeditpro/gpu-operations/faster-whisper/runner.py \
   && test -x \
-    /opt/reeditpro/gpu-operations/faster-whisper/venv/bin/python
+    /opt/reeditpro/gpu-operations/faster-whisper/venv/bin/python \
+  && test -x \
+    /opt/reeditpro/gpu-operations/rembg/runner.py \
+  && test -x \
+    /opt/reeditpro/gpu-operations/rembg/venv/bin/python
 
 CMD ["node", "dist-server/server.js"]

@@ -53,9 +53,22 @@ const fasterWhisperRunner =
 const fasterWhisperLockedPackages = fasterWhisperLock
   .split('\n')
   .filter((line) => line.trim() && !line.trim().startsWith('#'))
+const rembgLock =
+  requireRead('docker/prod/gpu-worker/rembg/requirements.lock.txt')
+const rembgRunner =
+  requireRead('docker/prod/gpu-worker/rembg/runner.py')
+const rembgProvenance =
+  requireRead('docker/prod/gpu-worker/rembg/source-provenance.lock')
+const rembgLockedPackages = rembgLock
+  .split('\n')
+  .filter((line) => line.trim() && !line.trim().startsWith('#'))
 
 check(!/wget\s|curl\s|huggingface-cli|snapshot_download|from_pretrained|git\s+clone/i.test(gpuDocker), 'GPU Dockerfile must not include model fetch commands.')
-check(!/OPENAI_API_KEY|SUPABASE_SERVICE_ROLE_KEY|PROVIDER|SECRET_VALUE|sk-[A-Za-z0-9]/i.test(gpuDocker), 'GPU Dockerfile must not contain provider secrets.')
+check(
+  !/OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|SUPABASE_SERVICE_ROLE_KEY|PROVIDER(?:_API)?_(?:KEY|TOKEN|SECRET)|SECRET_VALUE|sk-[A-Za-z0-9]/i
+    .test(gpuDocker),
+  'GPU Dockerfile must not contain provider secrets.',
+)
 check(!/\brevideo\b/i.test(gpuDocker), 'GPU Dockerfile must not install Revideo.')
 check(/nvidia\/cuda/i.test(gpuDocker), 'GPU Dockerfile must reference a CUDA-compatible base image policy.')
 check(/nvidia-l4/i.test(gpuDocker), 'GPU Dockerfile must document NVIDIA L4 first.')
@@ -102,6 +115,70 @@ check(
     fasterWhisperRunner.includes("'cpuFallbackAllowed': False") &&
     fasterWhisperRunner.includes('get_cuda_device_count()'),
   'Faster Whisper runner must remain CUDA-only and fail closed without a GPU.',
+)
+check(
+  gpuDocker.includes(
+    'ADD --checksum=sha256:563d2a1b2a5ba5d5409b5ecd05a0e1bf9b028cf3e6a6f0c87a5dc8dc3f2d9182',
+  ) &&
+    gpuDocker.includes(
+      'AS rembg_runtime_build_candidate',
+    ) &&
+    gpuDocker.includes(
+      '/opt/reeditpro/gpu-operations/rembg/venv',
+    ) &&
+    gpuDocker.includes(
+      "assert m.version('rembg') == '2.0.76'",
+    ) &&
+    gpuDocker.includes(
+      "assert m.version('onnxruntime-gpu') == '1.27.0'",
+    ),
+  'GPU Dockerfile must expose the exact checksum-pinned rembg runtime candidate.',
+)
+check(
+  rembgLockedPackages.length === 29 &&
+    rembgLock.includes(
+      'rembg==2.0.76 --hash=sha256:c98ed085de93f4e1e984f8939afd361fa13d0e4922ed14b3ef77670438a76db3',
+    ) &&
+    rembgLock.includes(
+      'onnxruntime-gpu==1.27.0 --hash=sha256:404fb845dc06a04a28df5a2c6d5967bcf3f534e7df0b98507ff81686a1b49594',
+    ) &&
+    rembgLockedPackages.every((line) =>
+      line.includes('--hash=sha256:'),
+    ),
+  'rembg environment must retain all 29 exact package hashes.',
+)
+check(
+  rembgProvenance.includes(
+    'model_sha256=309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8',
+  ) &&
+    rembgProvenance.includes(
+      'runtime_network_fetch_allowed=false',
+    ) &&
+    rembgProvenance.includes(
+      'runtime_model_download_allowed=false',
+    ) &&
+    rembgProvenance.includes(
+      'runtime_cpu_fallback_allowed=false',
+    ),
+  'rembg provenance must pin the U2NetP artifact and prohibit downloads, network fetch, and CPU fallback.',
+)
+check(
+  rembgRunner.includes(
+    "providers=['CUDAExecutionProvider']",
+  ) &&
+    rembgRunner.includes(
+      "providers != ['CUDAExecutionProvider']",
+    ) &&
+    rembgRunner.includes(
+      "'session.disable_cpu_ep_fallback'",
+    ) &&
+    rembgRunner.includes('os.O_NOFOLLOW') &&
+    rembgRunner.includes('os.fsync(handle.fileno())') &&
+    rembgRunner.includes(
+      "'foregroundPixelCountAtThreshold':",
+    ) &&
+    !rembgRunner.includes('CPUExecutionProvider'),
+  'rembg runner must remain exclusive-CUDA, durable-output, and threshold-measured.',
 )
 
 for (const expectedPath of [

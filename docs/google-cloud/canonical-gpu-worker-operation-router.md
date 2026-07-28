@@ -2,31 +2,36 @@
 
 ## Current bounded result
 
-ReeditPro now has one workflow-neutral, source-implemented GPU operation router
-for the shared `gpu_ai_worker`. Its first admitted operation is the
-candidate-only Faster Whisper transcription contract:
+WeEditPro now has one workflow-neutral, source-implemented GPU operation router
+for the shared `gpu_ai_worker`. It admits two closed operation envelopes:
 
 `tool.faster_whisper.transcribe_private_audio.v1`
 
-The router does not register Faster Whisper as a 51st production tool. The
-canonical production tool count remains exactly 50.
+`tool.rembg.remove_image_background.v1`
+
+The router does not register Faster Whisper as a 51st production tool. rembg
+already belongs to the exact 50-tool production registry, so its GPU runtime
+does not change the count. The canonical production tool count remains exactly
+50.
 
 Before invoking a runtime port, the router:
 
-- accepts only the closed server-derived Faster Whisper runner envelope;
+- accepts only the closed server-derived Faster Whisper or rembg runner
+  envelope;
 - rejects unknown fields, paths, URLs, bytes, credentials, raw chat, arbitrary
   settings, CPU execution, and a non-admitted region;
 - recomputes the complete request binding;
 - rereads the current pinned CUDA runtime source contract;
-- requires the exact four-file Faster Whisper model layout and digests;
-- requires `cuda` plus `float16` and forbids CPU fallback;
+- requires the exact operation-specific model layout and digests;
+- requires `cuda`, requires Faster Whisper `float16` or rembg's fixed native
+  ONNX execution profile, and forbids CPU fallback;
 - consumes one process-bound runtime port exactly once;
-- accepts only the closed digest-only three-output success response; and
+- accepts only the operation-specific digest-only success response; and
 - independently binds the response to the request, dispatch intent, region,
   CUDA device, and compute type.
 
-The serialized router receipt contains no transcript text, output bytes, model
-bytes, source bytes, paths, URLs, or credentials.
+The serialized router receipt contains no transcript text, mask bytes, output
+bytes, model bytes, source bytes, paths, URLs, or credentials.
 
 The GPU image candidate now copies the fixed runner into
 `/opt/reeditpro/gpu-operations/faster-whisper`, creates an isolated Python
@@ -43,6 +48,13 @@ CTranslate2 package imports during build. A local build of that target is
 controlled image evidence only; it cannot advance the Cloud Run, model mount,
 GPU inference, artifact, QA, cost, or production gates below.
 
+The same shared image includes a separate exact Python 3.11 environment and
+fixed rembg runner under `/opt/reeditpro/gpu-operations/rembg`. The
+`rembg_runtime_build_candidate` target verifies the pinned package imports.
+Its process-bound adapter requires the exact canonical source-frame artifact,
+the exact local U2NetP model, an exclusive CUDA execution provider, one mask,
+and two digest-only process-evidence receipts.
+
 ## What this closes
 
 The previous
@@ -58,11 +70,11 @@ This source slice is not evidence of a Cloud Run execution. It does not:
 - deploy or invoke a Cloud Run Job;
 - prove an immutable runtime image;
 - verify the live worker service identity or IAM;
-- materialize the approved private audio or read-only model mounts;
+- materialize the approved private input or read-only model mounts;
 - commit or reread output bytes;
 - create the canonical worker or completion receipts;
 - record attempt-level GPU cost;
-- pass transcript-alignment or caption-timing QA; or
+- pass transcript/caption QA or mask edge/subject-coverage QA; or
 - grant dispatch, work graph, asset-manifest, approval, snapshot, billing,
   delivery, or production authority.
 

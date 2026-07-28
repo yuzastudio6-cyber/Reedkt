@@ -4,6 +4,12 @@ import type {
 import type {
   CanonicalFasterWhisperGpuRuntimeSuccessWireResponse,
 } from './canonical-faster-whisper-gpu-runtime-result-types'
+import type {
+  CanonicalRembgGpuRuntimeRunnerRequest,
+} from './canonical-rembg-gpu-runtime-request-types'
+import type {
+  CanonicalRembgGpuRuntimeSuccessWireResponse,
+} from './canonical-rembg-gpu-runtime-result-types'
 
 export const CANONICAL_GPU_WORKER_OPERATION_ROUTER_VERSION =
   'canonical-gpu-worker-operation-router-v1' as const
@@ -11,7 +17,16 @@ export const CANONICAL_GPU_WORKER_OPERATION_ROUTER_RECEIPT_VERSION =
   'canonical-gpu-worker-operation-router-receipt-v1' as const
 
 export type CanonicalGpuWorkerOperationId =
-  'tool.faster_whisper.transcribe_private_audio.v1'
+  | 'tool.faster_whisper.transcribe_private_audio.v1'
+  | 'tool.rembg.remove_image_background.v1'
+
+export type CanonicalGpuWorkerRuntimeRequest =
+  | CanonicalFasterWhisperGpuRuntimeRunnerRequest
+  | CanonicalRembgGpuRuntimeRunnerRequest
+
+export type CanonicalGpuWorkerRuntimeSuccessWireResponse =
+  | CanonicalFasterWhisperGpuRuntimeSuccessWireResponse
+  | CanonicalRembgGpuRuntimeSuccessWireResponse
 
 export type CanonicalGpuWorkerRuntimePortEvidenceClass =
   | 'controlled_source_fixture'
@@ -35,10 +50,9 @@ export interface CanonicalGpuWorkerOperationRuntimePort {
   readonly evidenceClass:
     CanonicalGpuWorkerRuntimePortEvidenceClass
   readonly supportedOperationIds:
-    readonly ['tool.faster_whisper.transcribe_private_audio.v1']
+    readonly CanonicalGpuWorkerOperationId[]
   execute(input: {
-    readonly request:
-      CanonicalFasterWhisperGpuRuntimeRunnerRequest
+    readonly request: CanonicalGpuWorkerRuntimeRequest
     readonly serializedRequest: string
     readonly maximumResponseBytes: number
     readonly timeoutMilliseconds: number
@@ -54,12 +68,12 @@ export interface CanonicalGpuWorkerOperationRouterReceipt {
     'source_verified_operation_route_non_authoritative'
   readonly operation: {
     readonly operationId:
-      'tool.faster_whisper.transcribe_private_audio.v1'
+      CanonicalGpuWorkerOperationId
     readonly sharedWorkerType: 'gpu_ai_worker'
     readonly executionTarget: 'google_cloud_run_gpu'
     readonly accelerator: 'nvidia_l4'
     readonly device: 'cuda'
-    readonly computeType: 'float16'
+    readonly computeType: 'float16' | 'model_native'
     readonly cpuFallbackAllowed: false
   }
   readonly request: {
@@ -91,15 +105,17 @@ export interface CanonicalGpuWorkerOperationRouterReceipt {
     readonly stderrSha256: string
   }
   readonly response:
-    CanonicalFasterWhisperGpuRuntimeSuccessWireResponse
+    CanonicalGpuWorkerRuntimeSuccessWireResponse
   readonly summary: {
     readonly exactOperationMatched: true
     readonly exactRequestBindingMatched: true
     readonly exactResponseLineageMatched: true
     readonly cudaSuccessWireShapeMatched: true
-    readonly outputCount: 3
+    readonly outputCount: number
+    readonly processEvidenceCount: number
     readonly outputBytesIncluded: false
     readonly transcriptTextIncluded: false
+    readonly maskBytesIncluded: false
     readonly callerPathsIncluded: false
     readonly callerUrlsIncluded: false
     readonly credentialsIncluded: false
@@ -121,6 +137,8 @@ export interface CanonicalGpuWorkerOperationRouterReceipt {
     readonly outputArtifactCommitAuthority: false
     readonly transcriptAlignmentQaAuthority: false
     readonly captionTimingQaAuthority: false
+    readonly maskEdgeQualityQaAuthority: false
+    readonly maskSubjectCoverageQaAuthority: false
     readonly attemptInternalCostEvidenceVerified: false
     readonly customerCostAuthority: false
     readonly cloudDispatchAuthority: false

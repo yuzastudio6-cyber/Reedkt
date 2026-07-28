@@ -1637,8 +1637,8 @@ function createMapAnimationChecks(params: {
   )
   const controlledTools = mapAnimationPlan.items.every((item) =>
     item.toolIds.includes('remotion') &&
-    (item.toolIds.includes('maplibre') || item.mapVisualType === 'screen_map_card') &&
-    (item.toolIds.includes('turf') || item.mapVisualType === 'screen_map_card'),
+    item.toolIds.includes('d3') &&
+    item.toolIds.includes('svg_js'),
   )
   const depthItems = mapAnimationPlan.items.filter((item) => item.mapVisualType === 'map_behind_subject' || item.mapVisualType === 'map_behind_subject_and_contact_object')
   const depthSafe = depthItems.every((item) => Boolean(item.layout.fallbackLayoutMode) && item.layout.foregroundMaskAware)
@@ -1664,7 +1664,7 @@ function createMapAnimationChecks(params: {
       id: 'qa-map-controlled-tools',
       category: 'map_animation',
       label: 'Controlled map tools',
-      check: 'Map visuals should prefer MapLibre/Turf/Remotion planning over AI-video generation.',
+      check: 'Map visuals should prefer D3/SVG.js/Remotion planning over AI-video generation.',
       editLevel: input.editLevel,
       severity: 'blocking',
       status: controlledTools ? 'not_checked' : 'failed',
@@ -1704,7 +1704,7 @@ function createMapAnimationChecks(params: {
       id: 'qa-map-planning-only',
       category: 'map_animation',
       label: 'Map planning only',
-      check: 'Map plan must not imply real MapLibre/Turf execution, geocoding, tile calls, Mapbox APIs, provider generation, rendering, or approval bypass.',
+      check: 'Map plan must not imply real D3/SVG.js/Remotion execution, external geocoding or tile calls, provider generation, rendering, or approval bypass.',
       editLevel: input.editLevel,
       severity: 'blocking',
       status: text.includes('no geocoding') && text.includes('no map') && text.includes('approval') ? 'not_checked' : 'failed',

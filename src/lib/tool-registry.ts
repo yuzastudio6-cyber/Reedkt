@@ -312,7 +312,7 @@ export const openSourceToolProfiles: ToolProfile[] = [
     id: 'maplibre',
     label: 'MapLibre',
     category: 'maps_geospatial',
-    adoptionStage: 'launch_core',
+    adoptionStage: 'future',
     executionMode: 'planning_only',
     description: 'Map visual planning for route reveals, pins, camera moves, and location context.',
     bestFor: ['Map animation', 'Pins', 'Routes', 'Fly/zoom camera', 'Travel/real estate/documentary geography'],
@@ -328,7 +328,7 @@ export const openSourceToolProfiles: ToolProfile[] = [
     id: 'turf',
     label: 'Turf',
     category: 'maps_geospatial',
-    adoptionStage: 'launch_core',
+    adoptionStage: 'future',
     executionMode: 'planning_only',
     description: 'Geospatial math planning for bounds, distances, routes, and geometry prep.',
     bestFor: ['Bounding boxes', 'Routes', 'Distances', 'Geometry prep'],
@@ -1013,6 +1013,7 @@ export function getToolRegistrySummary(): ToolRegistrySummary {
       'The registry does not enable Veo, change model policy, or bypass plan and credit approval.',
       'Remotion remains the final compositor; tools can provide assets, data, screenshots, maps, charts, processing, or QA in future approved workers.',
       'Server-only production tool profiles live in server/tool-registry; this frontend registry stays planning-safe and does not expose heavy tool execution.',
+      'The server exact 50-tool catalog is authoritative; historical and future capability profiles are excluded from planner selection, work manifests, and dispatch.',
     ],
   }
 }

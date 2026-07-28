@@ -83,15 +83,9 @@ const threeDimensionalAdapterToolIds = [
 ] satisfies OpenSourceToolId[]
 const visionFoundationAdapterToolIds = [
   'kornia',
-  'torch_torchvision',
-  'transformers',
 ] satisfies OpenSourceToolId[]
 const modelBackedVisualAdapterToolIds = [
-  'sam2',
-  'birefnet',
   'rembg',
-  'transparent_background',
-  'real_esrgan',
 ] satisfies OpenSourceToolId[]
 const boundedAudioAdapterToolIds = [
   'librosa',
@@ -496,14 +490,14 @@ function definitionForChain(chainId: ToolChainId, input: PlannerInput, audioPipe
       return {
         chainId,
         purpose: 'map_animation',
-        primaryToolId: 'maplibre',
-        toolIds: ['maplibre', 'turf', 'remotion'],
-        fallbackToolIds: ['remotion'],
+        primaryToolId: 'd3',
+        toolIds: ['d3', 'svg_js', 'remotion'],
+        fallbackToolIds: ['svg_js', 'remotion'],
         presetIds: includesAny(input.customInstructions.toLowerCase(), ['real estate', 'neighborhood']) ? ['real_estate_neighborhood_map'] : ['map_route_reveal'],
         whyNotAiVideo: 'Map/location visuals need controlled labels, pins, camera motion, and geography. AI video could invent inaccurate maps.',
-        whyNotRemotionOnly: 'Remotion composes the map, but MapLibre/Turf-style planning is needed for map tiles, route bounds, and geography.',
+        whyNotRemotionOnly: 'Remotion composes the map, while the canonical D3/SVG path keeps approved geographic geometry, labels, and route drawing deterministic.',
         creditImpact: input.editLevel === 'basic' ? 'low' : 'medium',
-        userFacingSummary: 'Map route/reveal planned with controlled geography and Remotion placement.',
+        userFacingSummary: 'Map route/reveal planned with source-bound vector geography and Remotion placement.',
       }
     case 'chart_diagram_chain':
       return {
@@ -639,7 +633,7 @@ function chainFromRenderItem(item: RenderStrategyPlanItem, adaptiveStrategy: Ada
   const hints = adaptiveStrategy?.recommendedToolHints ?? []
   const text = `${item.label} ${item.purpose} ${item.reason} ${params.input.customInstructions}`.toLowerCase()
 
-  if (hints.includes('map_tool') || item.selectedOpenSourceTools.some((tool) => tool === 'maplibre' || tool === 'turf') || includesAny(text, ['map', 'route', 'city', 'location', 'travel', 'real estate'])) {
+  if (hints.includes('map_tool') || includesAny(text, ['map', 'route', 'city', 'location', 'travel', 'real estate'])) {
     return 'map_route_chain'
   }
 
@@ -943,6 +937,7 @@ export function createToolStrategyPlan(params: CreateToolStrategyPlanParams): To
       'License-review or future-only tools are flagged.',
       'Tool strategy does not bypass plan or credit approval.',
       'No selectedToolIds contain provider model IDs.',
+      'Capability-only and runner-foundation identities never enter selectedToolIds.',
     ],
     notes: [
       params.renderStrategyPlan ? `Render strategy source: ${params.renderStrategyPlan.summary}` : 'No render strategy plan was supplied; only global tool planning is available.',
@@ -950,7 +945,7 @@ export function createToolStrategyPlan(params: CreateToolStrategyPlanParams): To
         ? `Confirmed frame canvas: ${params.input.aspectRatioFramePlan.canvasWidth}x${params.input.aspectRatioFramePlan.canvasHeight}.`
         : 'Output frame is unconfirmed; future worker tool inputs are blocked.',
       params.videoUnderstandingReport ? 'Video understanding cues informed tool strategy selection.' : 'No video understanding report supplied to tool strategy planner.',
-      'This module imports registry/settings metadata only; it does not import FFmpeg, OpenCV, MapLibre, D3, ECharts, Playwright, Sharp/libvips, OpenColorIO, AudioFlux, Signalsmith Stretch, Essentia, Remotion, or provider SDKs.',
+      'This module imports registry/settings metadata only; it does not import FFmpeg, OpenCV, D3, ECharts, Playwright, Sharp/libvips, OpenColorIO, AudioFlux, Signalsmith Stretch, Remotion, or provider SDKs.',
     ],
   }
 }

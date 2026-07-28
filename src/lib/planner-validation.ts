@@ -1045,8 +1045,8 @@ function mapAnimationPlanHasItems(plan: EditPlan) {
 function mapAnimationControlledTools(plan: EditPlan) {
   return !plan.mapAnimationPlan?.active || plan.mapAnimationPlan.items.every((item) =>
     item.toolIds.includes('remotion') &&
-    (item.toolIds.includes('maplibre') || item.mapVisualType === 'screen_map_card') &&
-    (item.toolIds.includes('turf') || item.mapVisualType === 'screen_map_card'),
+    item.toolIds.includes('d3') &&
+    item.toolIds.includes('svg_js'),
   )
 }
 
@@ -2407,7 +2407,7 @@ export function validateMockEditPlan(params: {
       label: 'Launch-core tool coverage',
       severity: 'warning',
       passed: toolRegistryHasLaunchCoreCoverage(plan),
-      message: 'Tool registry should include launch-core planning tools such as Remotion, FFmpeg LGPL Configuration, Sharp + libvips, MapLibre, Turf, D3, ECharts, Playwright, OpenCV, AudioFlux, and Signalsmith Stretch.',
+      message: 'Tool registry should include canonical launch planning tools such as Remotion, FFmpeg LGPL Configuration, Sharp + libvips, D3, SVG.js, ECharts, Playwright, OpenCV, AudioFlux, and Signalsmith Stretch.',
       relatedField: 'toolRegistrySummary.launchCoreToolCount',
     }),
     check({
@@ -2893,7 +2893,7 @@ export function validateMockEditPlan(params: {
       label: 'Map uses controlled tools',
       severity: 'blocking',
       passed: mapAnimationControlledTools(plan),
-      message: 'Exact map visuals should use MapLibre/Turf/Remotion planning instead of AI video.',
+      message: 'Exact map visuals should use the canonical source-bound D3/SVG/Remotion path instead of AI video.',
       relatedField: 'mapAnimationPlan.items.toolIds',
     }),
     check({
@@ -2929,7 +2929,7 @@ export function validateMockEditPlan(params: {
       label: 'Map plan is planning-only',
       severity: 'blocking',
       passed: mapAnimationPlanningOnly(plan),
-      message: 'Map planning must not imply real MapLibre/Turf execution, geocoding, tile calls, Mapbox APIs, rendering, or approval bypass.',
+      message: 'Map planning must not imply execution, geocoding, tile calls, external map APIs, rendering, or approval bypass.',
       relatedField: 'mapAnimationPlan.limitations',
     }),
     check({

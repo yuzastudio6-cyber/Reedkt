@@ -8,15 +8,42 @@ import { loadRuntimeEnv } from '../config/env'
 import { ApiError } from '../errors/api-error'
 import { createSyntheticMp4Fixture } from '../media/test-media-fixture'
 import { createApprovedEditExecutionPackageService } from '../services/approved-edit-execution-package-service'
-import { listProfessionalToolAdapterNames } from '../tool-registry'
+import {
+  CANONICAL_PRIVATE_E2E_TOOL_IDS,
+  NON_E2E_TOOL_CAPABILITY_IDS,
+  listProfessionalToolAdapterNames,
+} from '../tool-registry'
 import type { ServiceContext } from '../types'
 import { createApprovedPlanSnapshot } from '../../src/lib/approved-plan-snapshot'
+import { agentFallbackActions } from '../../src/lib/agent-failure-fallback-matrix'
 import { createEditSessionExecutionRehearsal } from '../../src/lib/edit-session-execution-rehearsal'
+import { mapAnimationPresets } from '../../src/lib/map-animation-presets'
 import { sampleClips } from '../../src/lib/mock-planner/default-data'
 import { createMockEditPlan } from '../../src/lib/mock-planner/full'
+import { speakerVisualLayoutModes } from '../../src/lib/speaker-visual-layouts'
 import type { OpenSourceToolId, PlannerInput } from '../../src/types/reeditpro'
 
 const professionalAdapterToolNames = listProfessionalToolAdapterNames()
+const canonicalPrivateE2EToolIdSet = new Set<string>(CANONICAL_PRIVATE_E2E_TOOL_IDS)
+const nonE2EToolCapabilityIdSet = new Set<string>(NON_E2E_TOOL_CAPABILITY_IDS)
+
+function assertCanonicalPlannerToolSelection(
+  candidatePlan: ReturnType<typeof createMockEditPlan>,
+  label: string,
+) {
+  const selectedToolIds = candidatePlan.toolStrategyPlan?.toolIdsUsed ?? []
+  const renderToolIds = candidatePlan.renderStrategyPlan?.openSourceToolsUsed ?? []
+  assert.ok(
+    [...selectedToolIds, ...renderToolIds].every((toolId) =>
+      canonicalPrivateE2EToolIdSet.has(toolId)),
+    `${label} must select only exact canonical 50-tool identities.`,
+  )
+  assert.ok(
+    [...selectedToolIds, ...renderToolIds].every((toolId) =>
+      !nonE2EToolCapabilityIdSet.has(toolId)),
+    `${label} must not select capability-only or runner-foundation identities.`,
+  )
+}
 
 const plannerInput: PlannerInput = {
   projectName: 'Internal architecture video edit',
@@ -42,6 +69,7 @@ const plannerInput: PlannerInput = {
 }
 
 const plan = createMockEditPlan(plannerInput)
+assertCanonicalPlannerToolSelection(plan, 'Default approved plan')
 assert.ok(plan.sourceSequenceMap.length === sampleClips.length, 'Plan must preserve the uploaded source sequence.')
 assert.ok(plan.compiledIntent, 'Plan must compile the user intent before approval.')
 assert.ok(plan.creditEstimate.total > 0, 'Plan must include a credit estimate before approval.')
@@ -89,16 +117,63 @@ for (const toolId of [
   'three_js',
   'babylon_js',
   'kornia',
+  'rembg',
+] satisfies OpenSourceToolId[]) {
+  assert.ok(visualAdapterPlan.toolStrategyPlan?.toolIdsUsed.includes(toolId), `Visual-heavy approved strategy should carry ${toolId} for scoped backend adapter evidence.`)
+}
+assertCanonicalPlannerToolSelection(visualAdapterPlan, 'Visual-heavy approved plan')
+for (const capabilityId of [
   'torch_torchvision',
   'transformers',
   'sam2',
   'birefnet',
-  'rembg',
   'transparent_background',
   'real_esrgan',
 ] satisfies OpenSourceToolId[]) {
-  assert.ok(visualAdapterPlan.toolStrategyPlan?.toolIdsUsed.includes(toolId), `Visual-heavy approved strategy should carry ${toolId} for scoped backend adapter evidence.`)
+  assert.ok(
+    !visualAdapterPlan.toolStrategyPlan?.toolIdsUsed.includes(capabilityId),
+    `Capability-only ${capabilityId} must not enter canonical selectedToolIds.`,
+  )
 }
+
+const mapPlan = createMockEditPlan({
+  ...plannerInput,
+  projectName: 'Internal architecture route map edit',
+  customInstructions: 'Show an exact source-backed route map from Boston to New York with readable labels.',
+})
+assertCanonicalPlannerToolSelection(mapPlan, 'Map approved plan')
+const mapToolStrategy = mapPlan.toolStrategyPlan?.items.find((item) =>
+  item.chainId === 'map_route_chain')
+assert.ok(mapToolStrategy, 'Map request should retain a controlled map tool strategy.')
+assert.deepEqual(
+  mapToolStrategy.selectedToolIds,
+  ['d3', 'svg_js', 'remotion'],
+  'Canonical map selection should use the proven vector/composition path.',
+)
+assert.ok(
+  !mapToolStrategy.selectedToolIds.includes('maplibre') &&
+    !mapToolStrategy.selectedToolIds.includes('turf'),
+  'Capability-only MapLibre/Turf identities must not enter canonical selection.',
+)
+for (const preset of mapAnimationPresets) {
+  assert.deepEqual(
+    preset.preferredTools,
+    ['d3', 'svg_js', 'remotion'],
+    `${preset.id} must expose only the canonical controlled map stack.`,
+  )
+}
+for (const fallbackAction of agentFallbackActions) {
+  assert.ok(
+    (fallbackAction.allowedToolIds ?? []).every((toolId) =>
+      canonicalPrivateE2EToolIdSet.has(toolId)),
+    `${fallbackAction.id} must not authorize a capability-only or retired tool identity.`,
+  )
+}
+assert.deepEqual(
+  speakerVisualLayoutModes.find((layout) => layout.id === 'full_map_takeover')?.preferredTools,
+  ['D3', 'SVG.js', 'Remotion'],
+  'The user-facing map layout must describe the same canonical map stack.',
+)
 
 const snapshot = createApprovedPlanSnapshot({
   approvedBy: 'mock-user',
@@ -140,8 +215,8 @@ assert.equal(executionPackage.status, 'ready_for_mock_preview_review', 'Approved
 assert.equal(executionPackage.agentCallReady, true, 'Agent call rehearsal should be ready after approval, private manifests, and adapter evidence.')
 assert.equal(executionPackage.liveExecutionReady, false, 'Live execution must remain disabled by this architecture smoke.')
 assert.equal(executionPackage.resolvedAdapterToolCount, professionalAdapterToolNames.length, 'Execution package should resolve all professional adapter tools.')
-assert.equal(executionPackage.adapterOrchestrationPlan?.editAdapterPlan?.resolvedToolCount, professionalAdapterToolNames.length - 2, 'Edit adapters should exclude readiness-only foundations.')
-assert.equal(executionPackage.adapterOrchestrationPlan?.readinessPlan?.resolvedToolCount, 2, 'Foundation runtime packages should route to readiness checks.')
+assert.equal(executionPackage.adapterOrchestrationPlan?.editAdapterPlan?.resolvedToolCount, professionalAdapterToolNames.length, 'Every exact professional adapter name should resolve as an edit adapter.')
+assert.equal(executionPackage.adapterOrchestrationPlan?.readinessPlan, undefined, 'Runner-only foundations must remain outside the professional tool adapter request list.')
 assert.ok(executionPackage.privateArtifactRefCount > 0, 'Execution package must expose private artifact references for backend handoff.')
 assert.equal(executionPackage.professionalSkillTrace?.source, 'approved_professional_skill_plan', 'Execution package must preserve the approved professional skill trace.')
 assert.equal(executionPackage.professionalSkillTrace?.editBriefOptional, true, 'Execution package skill trace must preserve optional Edit Brief support.')

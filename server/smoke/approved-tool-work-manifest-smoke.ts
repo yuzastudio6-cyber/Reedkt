@@ -12,7 +12,7 @@ import {
 } from '../edit-architecture/approved-tool-work-manifest'
 import { createBasicPreview, createPrivateFinalRenderFromPreviewClips, probeMediaFile } from '../media/ffmpeg-preview'
 import { createSyntheticMp4Fixture } from '../media/test-media-fixture'
-import { getProductionToolProfile, getToolQAPolicy } from '../tool-registry'
+import { getProductionToolProfile, getToolQAPolicy, isProductionToolId } from '../tool-registry'
 import { createApprovedPlanSnapshot } from '../../src/lib/approved-plan-snapshot'
 import { sampleClips } from '../../src/lib/mock-planner/default-data'
 import { createMockEditPlan } from '../../src/lib/mock-planner/full'
@@ -61,6 +61,10 @@ const blankScopeManifest = createApprovedToolWorkManifest({
   creditReservationId: ' ',
 })
 
+assert.ok(
+  snapshot.toolStrategyPlan?.toolIdsUsed.every(isProductionToolId),
+  'Approved planner tool selection must stay inside the exact canonical 50-tool set.',
+)
 assert.notEqual(manifest.status, 'blocked_structural_inconsistency', manifest.blockers.join(' '))
 assert.equal(blankScopeManifest.status, 'blocked_structural_inconsistency')
 assert.ok(blankScopeManifest.blockers.some((blocker) => /workspace ID/i.test(blocker)))

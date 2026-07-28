@@ -268,7 +268,7 @@ function cameraPlan(params: {
     holdDurationMs: params.input.editLevel === 'basic' ? 1800 : 2400,
     notes: [
       'Camera values are planning placeholders only.',
-      'Future MapLibre/Turf worker must resolve approved coordinates/bounds before rendering.',
+      'Canonical vector-map work must resolve approved coordinates and bounds before rendering.',
     ],
   }
 }
@@ -298,7 +298,7 @@ function routePlan(params: {
     direction: 'start_to_end',
     notes: [
       'Route coordinates are placeholders until approved location data exists.',
-      'Turf planning should calculate bounds and route geometry in a future worker.',
+      'The canonical D3/SVG.js map worker should calculate source-bound route geometry before Remotion composition.',
     ],
   }
 }
@@ -478,12 +478,7 @@ function createMapItem(params: {
     maskStrategy: depthItem?.maskStrategy,
     visualType,
   })
-  const futureTools: OpenSourceToolId[] = visualType === 'globe_reveal_future'
-    ? ['cesium_js']
-    : visualType === 'heatmap_future' || visualType === 'arc_flow_future'
-      ? ['deck_gl']
-      : []
-  const toolIds = unique(['maplibre', 'turf', 'remotion', ...futureTools] as OpenSourceToolId[])
+  const toolIds = ['d3', 'svg_js', 'remotion'] satisfies OpenSourceToolId[]
   const sourceNeeded = locations.some((location) => location.sourceNeeded)
   const sourceSafe = locations.map((location) => location.safeWording).join(', ')
 
@@ -508,7 +503,7 @@ function createMapItem(params: {
     soundSyncCueIds: soundSyncCueIdsFor({ audioPipelinePlan: params.audioPipelinePlan, visualType }),
     creditImpact: creditImpactFor(params.input, visualType),
     tierAllowed: tierAllowedFor(visualType),
-    reason: `Map visual uses controlled MapLibre/Turf/Remotion planning because ${sourceSafe} should not be invented by AI video.`,
+    reason: `Map visual uses the canonical source-bound D3/SVG/Remotion path because ${sourceSafe} should not be invented by AI video.`,
     fallbackStrategy: [
       layout.fallbackLayoutMode ? `Use ${label(layout.fallbackLayoutMode)} if map overlay is too risky.` : 'Use a static location card if animation is too complex.',
       sourceNeeded ? 'Use approximate region or reported-location wording until source confidence improves.' : 'Keep exact labels tied to approved location data.',
@@ -524,8 +519,8 @@ function createMapItem(params: {
         : 'Layout fallback exists for map readability.',
     ],
     workerNotes: [
-      'Planning only: no MapLibre/Turf package is installed or executed.',
-      'Geocoding, tile APIs, Mapbox APIs, and map rendering remain backend-gated.',
+      'Planning only: no map package is installed or executed.',
+      'Geocoding, tile APIs, external map APIs, and map rendering remain backend-gated.',
       'Future workers must use approved plan snapshots and source-confirmed locations.',
       visualType === 'map_behind_subject_and_contact_object'
         ? 'Future mask/segmentation worker required for subject plus contact object preservation.'
@@ -578,7 +573,7 @@ export function createMapAnimationPlan(params: CreateMapAnimationPlanParams): Ma
     id: `map-animation-${params.input.editingCategory}-${params.input.editLevel}`,
     active,
     summary: active
-      ? `${items.length} map/location plan item${items.length === 1 ? '' : 's'} prepared with controlled MapLibre/Turf/Remotion planning.`
+      ? `${items.length} map/location plan item${items.length === 1 ? '' : 's'} prepared with the canonical source-bound vector/Remotion path.`
       : 'No map/location animation plan is active for this edit.',
     items,
     mapToolsPlanned,
@@ -599,8 +594,8 @@ export function createMapAnimationPlan(params: CreateMapAnimationPlanParams): Ma
     ],
     limitations: [
       'Review-only map plan; geocoding and location verification remain backend-gated.',
-      'MapLibre, Turf, deck.gl, CesiumJS, Mapbox, tile APIs, and map rendering require approved backend gates.',
-      'Future worker/tool integration is required for actual MapLibre/Turf rendering.',
+      'External map APIs, tile APIs, advanced globe/heatmap capabilities, and map rendering require approved backend gates.',
+      'Canonical D3/SVG work still requires exact approved source geometry before it can render a map asset.',
     ],
     notes: [
       params.toolStrategyPlan?.chainIdsUsed.includes('map_route_chain')

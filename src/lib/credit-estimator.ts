@@ -477,7 +477,7 @@ function mapAnimationPlanningReason(mapAnimationPlan?: MapAnimationPlan) {
   return [
     `${mapAnimationPlan.items.length} map/location item${mapAnimationPlan.items.length === 1 ? '' : 's'} planned with ${mapAnimationPlan.mapToolsPlanned.map((tool) => tool.replaceAll('_', ' ')).join(', ')}.`,
     'Plans map style, location confidence, route/pin animation, layout, and QA.',
-    'MapLibre/Turf execution, geocoding, tile calls, and map rendering require approved backend gates.',
+    'D3/SVG.js/Remotion map execution and any external geocoding or tile access require approved backend gates.',
   ].join(' ')
 }
 

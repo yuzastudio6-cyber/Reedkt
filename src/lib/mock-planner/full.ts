@@ -712,7 +712,7 @@ function attachMapAnimationToSegments(segmentEditPlans: SegmentEditPlan[], mapAn
       workerNotes: [
         ...segment.workerNotes,
         `Map/location plan items linked: ${mapAnimationPlanItemIds.join(', ')}.`,
-        'Future map workers must use approved source-safe locations; MapLibre/Turf execution remains backend-gated.',
+        'Future map workers must use approved source-safe locations; D3/SVG.js/Remotion execution remains backend-gated.',
       ],
     }
   })

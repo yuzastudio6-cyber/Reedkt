@@ -272,7 +272,7 @@ export const agentFallbackActions: AgentFallbackAction[] = [
     actionType: 'switch_to_tool_generated_asset',
     label: 'Use controlled tool asset',
     description: 'Use an approved controlled tool output instead of generative video.',
-    allowedToolIds: ['maplibre', 'd3', 'echarts', 'vega', 'vega_lite', 'satori', 'svg_js', 'viz_js', 'playwright', 'sharp', 'ffmpeg', 'vapoursynth'],
+    allowedToolIds: ['d3', 'echarts', 'vega', 'vega_lite', 'satori', 'svg_js', 'viz_js', 'playwright', 'sharp', 'ffmpeg', 'vapoursynth', 'remotion'],
     reason: 'Exact maps, charts, screenshots, masks, and processing should use tools/workers later, not AI video.',
   }),
   action({
@@ -280,7 +280,7 @@ export const agentFallbackActions: AgentFallbackAction[] = [
     actionType: 'switch_to_static_map',
     label: 'Use static map card',
     description: 'Use a static map/location card for failed map animation.',
-    allowedToolIds: ['maplibre', 'remotion'],
+    allowedToolIds: ['d3', 'svg_js', 'remotion'],
     reason: 'Maps should stay controlled and not be invented by AI video.',
   }),
   action({

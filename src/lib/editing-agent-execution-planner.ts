@@ -440,7 +440,7 @@ function createControlledVisualWorkItems(params: {
       fallbackPolicy: controlledFallbackPolicy(config.item),
       checkbackPolicy: ['Future worker status events update this work item; no local tool execution runs here.'],
       qaChecks: config.item.qaChecks,
-      notes: ['MapLibre, D3/ECharts, browser, mask, and media tool execution remain backend-gated.'],
+      notes: ['D3/SVG.js/Remotion maps, D3/ECharts charts, browser, mask, and media tool execution remain backend-gated.'],
     }))
 
     assets.push(createManifestItem({

@@ -221,7 +221,7 @@ export const speakerVisualLayoutModes = [
     complexity: 'moderate',
     riskLevel: 'medium',
     tierAvailability: allTiers,
-    preferredTools: ['MapLibre', 'Turf', 'Remotion'],
+    preferredTools: ['D3', 'SVG.js', 'Remotion'],
     promptImplications: ['Map labels, pins, routes, and captions must remain readable.'],
     remotionNotes: ['Map placement is controlled by Remotion, not provider full-canvas generation.'],
     qaChecks: ['Map labels are readable.', 'Location treatment is accurate to user-provided context.'],

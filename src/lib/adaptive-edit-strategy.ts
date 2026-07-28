@@ -762,7 +762,7 @@ export function createAdaptiveEditStrategyPlan({
     ],
     limitations: [
       'Review-only adaptive strategy; media analysis remains backend-gated.',
-      'Tools, providers, rendering, masks, tracking, backend jobs, FFmpeg, OpenCV, Playwright, MapLibre, D3, and ECharts require approved execution gates.',
+      'Tools, providers, rendering, masks, tracking, backend jobs, FFmpeg, OpenCV, Playwright, D3, SVG.js, Remotion, and ECharts require approved execution gates.',
     ],
   }
 }

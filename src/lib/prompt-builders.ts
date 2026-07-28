@@ -622,7 +622,7 @@ function commonConstraints(params: BasePromptParams, providerModel: ProviderMode
       id: `${asset.id}-constraint-map-animation`,
       label: 'Map + location plan',
       instruction: mapAnimationPlan?.active
-        ? `Map plan is active with ${mapAnimationPlan.items.length} item(s). Exact maps use controlled MapLibre/Turf/Remotion planning, not AI video. ${mapAnimationPlan.items.map((item) => `${label(item.mapVisualType)}: ${item.locations.map((location) => `${location.safeWording} (${label(location.confidence)})`).join(', ')}`).slice(0, 2).join(' ')}`
+        ? `Map plan is active with ${mapAnimationPlan.items.length} item(s). Exact maps use controlled D3/SVG.js/Remotion planning, not AI video. ${mapAnimationPlan.items.map((item) => `${label(item.mapVisualType)}: ${item.locations.map((location) => `${location.safeWording} (${label(location.confidence)})`).join(', ')}`).slice(0, 2).join(' ')}`
         : 'No active map/location plan is attached; do not invent exact map geography.',
       source: 'map_animation',
       required: Boolean(mapAnimationPlan?.active),
@@ -913,7 +913,7 @@ function commonWorkerNotes(
         `Map/location plan: ${mapAnimationPlan.items.length} controlled item(s).`,
         `Map tools planned only: ${mapAnimationPlan.mapToolsPlanned.map(label).join(', ')}.`,
         ...mapAnimationPlan.items.slice(0, 2).map((item) => `${label(item.mapVisualType)} uses ${label(item.style.styleFamily)}; ${item.locations.map((location) => location.safeWording).join(', ')}.`),
-        'Exact geography should use MapLibre/Turf/Remotion planning, not AI video.',
+        'Exact geography should use D3/SVG.js/Remotion planning, not AI video.',
         'No map rendering, geocoding, tile calls, or Mapbox API usage is implied.',
       ]
     : []
@@ -1332,7 +1332,7 @@ function mapAnimationLines(params: BasePromptParams) {
     items.some((item) => item.layout.foregroundMaskAware)
       ? 'Map behind subject/contact object: avoid labels in foreground/object zones and keep captions above map and masks.'
       : 'Keep map labels inside safe label zones and away from captions.',
-    'Exact maps should use controlled MapLibre/Turf planning, not AI video. No geocoding or map rendering is implied.',
+    'Exact maps should use controlled D3/SVG.js/Remotion planning, not AI video. No external geocoding, tile access, or map rendering is implied.',
   ])
 }
 

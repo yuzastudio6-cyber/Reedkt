@@ -117,13 +117,7 @@ const controlledDataVizToolIds: OpenSourceToolId[] = ['d3', 'echarts', 'vega', '
 const visualQaAndImageToolIds: OpenSourceToolId[] = [
   'opencv',
   'kornia',
-  'torch_torchvision',
-  'transformers',
-  'sam2',
-  'birefnet',
   'rembg',
-  'transparent_background',
-  'real_esrgan',
 ]
 
 function isControlledDataVizTool(tool: OpenSourceToolId) {
@@ -294,7 +288,7 @@ function toolsForStrategy(strategyType: RenderStrategyType, hints: ToolStrategyH
   }
 
   if (hints.includes('map_tool')) {
-    tools.push('maplibre', 'turf', 'remotion')
+    tools.push('d3', 'svg_js', 'remotion')
   }
 
   if (hints.includes('chart_tool')) {
@@ -317,7 +311,7 @@ function toolsForStrategy(strategyType: RenderStrategyType, hints: ToolStrategyH
   }
 
   if (hints.includes('qa_vision_tool')) {
-    tools.push('opencv', 'kornia', 'torch_torchvision', 'transformers')
+    tools.push('opencv', 'kornia')
   }
 
   if (strategyType === 'open_source_tool_then_remotion' && tools.length === 0) {
@@ -443,13 +437,17 @@ function providerModelsForStrategy(asset: VisualAssetPlanItem, strategyType: Ren
   return unique(models)
 }
 
-function inputsForStrategy(strategyType: RenderStrategyType, tools: OpenSourceToolId[]): ToolInputType[] {
+function inputsForStrategy(
+  strategyType: RenderStrategyType,
+  tools: OpenSourceToolId[],
+  hints: ToolStrategyHint[],
+): ToolInputType[] {
   const inputs: ToolInputType[] = ['frame_layout']
 
   if (strategyType === 'gpt_image_then_remotion') inputs.push('generated_image')
   if (strategyType === 'ai_video_then_remotion') inputs.push('ai_video_clip')
   if (strategyType === 'hybrid_generation_then_remotion') inputs.push('generated_image', 'ai_video_clip')
-  if (tools.some((tool) => tool === 'maplibre' || tool === 'turf')) inputs.push('geojson', 'json_data')
+  if (hints.includes('map_tool')) inputs.push('geojson', 'json_data')
   if (tools.some(isControlledDataVizTool)) inputs.push('json_data')
   if (tools.includes('playwright')) inputs.push('url', 'html')
   if (tools.includes('ffmpeg')) inputs.push('source_video', 'audio')
@@ -458,11 +456,15 @@ function inputsForStrategy(strategyType: RenderStrategyType, tools: OpenSourceTo
   return unique(inputs)
 }
 
-function outputsForStrategy(strategyType: RenderStrategyType, tools: OpenSourceToolId[]): ToolOutputType[] {
+function outputsForStrategy(
+  strategyType: RenderStrategyType,
+  tools: OpenSourceToolId[],
+  hints: ToolStrategyHint[],
+): ToolOutputType[] {
   const outputs: ToolOutputType[] = ['renderer_layer']
 
   if (strategyType === 'gpt_image_then_remotion' || strategyType === 'hybrid_generation_then_remotion') outputs.push('image_asset')
-  if (tools.some((tool) => tool === 'maplibre' || tool === 'turf')) outputs.push('map_visual', 'json_spec')
+  if (hints.includes('map_tool')) outputs.push('map_visual', 'json_spec')
   if (tools.some(isControlledDataVizTool)) outputs.push('chart_visual', 'svg_visual', 'json_spec')
   if (tools.includes('playwright')) outputs.push('screenshot_asset')
   if (tools.includes('ffmpeg')) outputs.push('processed_video', 'processed_audio')
@@ -670,8 +672,8 @@ function createRenderStrategyItem(
     selectedRemotionCapabilities: capabilities,
     selectedOpenSourceTools: tools,
     selectedProviderModels,
-    requiredInputs: inputsForStrategy(strategyType, tools),
-    expectedOutputs: outputsForStrategy(strategyType, tools),
+    requiredInputs: inputsForStrategy(strategyType, tools, hints),
+    expectedOutputs: outputsForStrategy(strategyType, tools, hints),
     complexity,
     creditImpact: strategyType === 'remotion_only' || strategyType === 'qa_tool_only'
       ? 'none'

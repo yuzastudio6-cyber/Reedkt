@@ -113,6 +113,9 @@ import {
 import {
   CANONICAL_LIVING_FRAME_EXECUTION_REQUIREMENTS_COMPONENT_KEY,
 } from '../../src/types/living-frame-execution-requirements'
+import {
+  CANONICAL_LIVING_FRAME_TIMING_BINDING_COMPONENT_KEY,
+} from '../../src/types/living-frame-timing-binding'
 import type { LivingFrameVisualContinuityPack } from
   '../../src/types/living-frame-visual-continuity'
 import {
@@ -5141,6 +5144,11 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     sourceFixture,
   )
   body.workspaceId = targetWorkspaceId
+  body.canonicalPlan.components.soundSyncTransitionTimingPlan = {
+    status: 'ready_mock',
+    speechPriority: true,
+    sfxDensityLevel: 'low',
+  }
 
   const plannerInput: PlannerInput = {
     projectName: 'Living Frame canonical selected-scene integration',
@@ -5438,6 +5446,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     CANONICAL_LIVING_FRAME_SELECTED_SCENE_ADMISSION_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_SEMANTIC_PLAN_PROJECTION_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_EXECUTION_REQUIREMENTS_COMPONENT_KEY,
+    CANONICAL_LIVING_FRAME_TIMING_BINDING_COMPONENT_KEY,
   ]) {
     assert.ok(
       asRecord(publishedRefs[key]).sha256,
@@ -5480,6 +5489,95 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       'process_image_asset',
       'reconstruct_background_plate',
     ],
+  )
+  const timingBinding =
+    asRecord(await readPrivateAuthorityJsonBlob({
+      localStorageRoot:
+        serviceContext.env.localStorageRoot,
+      ref: publishedRefs[
+        CANONICAL_LIVING_FRAME_TIMING_BINDING_COMPONENT_KEY
+      ] as {
+        sha256: string
+        byteLength: number
+      },
+    }))
+  assert.equal(timingBinding.fps, 30)
+  assert.equal(timingBinding.totalFrames, 150)
+  const timingScenes = timingBinding.scenes
+  assert.ok(Array.isArray(timingScenes))
+  assert.equal(timingScenes.length, 1)
+  const timingScene = asRecord(timingScenes[0])
+  assert.deepEqual(
+    asRecord(timingScene.visualTiming).frameRange,
+    {
+      startFrame: 12,
+      endFrameExclusive: 72,
+      durationFrames: 60,
+    },
+  )
+  const phaseBindings = timingScene.semanticPhaseBindings
+  assert.ok(Array.isArray(phaseBindings))
+  assert.deepEqual(
+    phaseBindings.map((binding) => {
+      const record = asRecord(binding)
+      return {
+        phase: record.phase,
+        frameRange: record.frameRange,
+      }
+    }),
+    [
+      {
+        phase: 'prepare',
+        frameRange: {
+          startFrame: 0,
+          endFrameExclusive: 12,
+          durationFrames: 12,
+        },
+      },
+      {
+        phase: 'activate',
+        frameRange: {
+          startFrame: 12,
+          endFrameExclusive: 20,
+          durationFrames: 8,
+        },
+      },
+      {
+        phase: 'demonstrate',
+        frameRange: {
+          startFrame: 20,
+          endFrameExclusive: 64,
+          durationFrames: 44,
+        },
+      },
+      {
+        phase: 'resolve',
+        frameRange: {
+          startFrame: 64,
+          endFrameExclusive: 72,
+          durationFrames: 8,
+        },
+      },
+      {
+        phase: 'settle',
+        frameRange: {
+          startFrame: 72,
+          endFrameExclusive: 150,
+          durationFrames: 78,
+        },
+      },
+    ],
+  )
+  const soundCueBindings = timingScene.soundCueBindings
+  assert.ok(Array.isArray(soundCueBindings))
+  assert.equal(soundCueBindings.length, 1)
+  assert.deepEqual(
+    asRecord(soundCueBindings[0]).frameRange,
+    {
+      startFrame: 12,
+      endFrameExclusive: 18,
+      durationFrames: 6,
+    },
   )
 
   const planningService =

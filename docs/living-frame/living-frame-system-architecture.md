@@ -1091,7 +1091,10 @@ presented plan and included in its hash. The server additionally derives a
 fourth content-addressed `livingFrameExecutionRequirements` record. It maps
 each scene to one exact current canonical segment and projects the closed
 named-work, timing, SoundSync, asset, QA, and private-review requirements
-through the existing work-admission catalog.
+through the existing work-admission catalog. A fifth content-addressed
+`livingFrameTimingBinding` record resolves the five semantic phases and
+requested SoundSync cues to exact frames derived from that same canonical
+segment and freezes the reference into the existing timing hash.
 
 This is not a second Living Frame workflow. It creates no estimate line,
 work item, asset-manifest entry, timing mutation, SoundSync decision, tool or
@@ -1106,6 +1109,8 @@ otherwise valid final-render graph. See
 `docs/living-frame/living-frame-selected-scene-binding.md`.
 The exact requirements record is documented in
 `docs/living-frame/living-frame-execution-requirements.md`.
+The exact timing bridge is documented in
+`docs/living-frame/living-frame-canonical-timing-binding.md`.
 
 ### Slice 4: canonical timing, work, and asset mapping
 

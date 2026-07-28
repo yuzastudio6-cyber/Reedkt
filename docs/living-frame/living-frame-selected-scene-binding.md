@@ -36,10 +36,12 @@ The server also derives and freezes
 `livingFrameExecutionRequirements`, which maps each selected scene to its
 exact current canonical segment and projects its named work, timing,
 SoundSync, asset, QA, and private-review requirements without granting those
-authorities.
+authorities. It then derives `livingFrameTimingBinding`, which resolves the
+five semantic phases and requested SoundSync cues to exact MasterTiming
+frames while preserving speech and caption priority.
 
 Their references participate in the existing presented-plan hash. Approval
-and execution authority reload and fully revalidate all four records.
+and execution authority reload and fully revalidate all five records.
 Missing, partial, cross-scope, stale, or digest-mismatched lineage fails
 closed.
 
@@ -66,7 +68,9 @@ edit pipeline before a selected Living Frame scene can enter an approved
 snapshot or contribute to a deliverable render.
 
 See `docs/living-frame/living-frame-execution-requirements.md` for the exact
-requirements boundary.
+requirements boundary and
+`docs/living-frame/living-frame-canonical-timing-binding.md` for the timing
+boundary.
 
 GPU-heavy Living Frame inference remains restricted to separately qualified
 Google Cloud Run GPU workers. This binding performs no model inference and

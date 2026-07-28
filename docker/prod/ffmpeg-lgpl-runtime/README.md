@@ -165,9 +165,9 @@ readiness.
 For a locally built image:
 
 ```bash
-docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v8-local
-docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v8-local > /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v8.spdx.json
-sha256sum /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v8.spdx.json
+docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local
+docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local > /tmp/reeditpro-ffmpeg-8.1.2-source-frame-v9.spdx.json
+sha256sum /tmp/reeditpro-ffmpeg-8.1.2-source-frame-v9.spdx.json
 ```
 
 The builder package lock and runtime binary/config hashes are stored under

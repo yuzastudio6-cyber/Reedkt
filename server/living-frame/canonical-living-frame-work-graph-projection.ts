@@ -8,9 +8,14 @@ import {
   CANONICAL_LIVING_FRAME_PENDING_OPERATION,
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION,
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+  CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
+  CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
+  CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS,
+  type CanonicalLivingFrameExactSourceFramePngWorkItem,
   CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE,
   CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION,
   type CanonicalLivingFramePendingWorkItem,
+  type CanonicalLivingFrameProjectedCanonicalWorkItem,
   type CanonicalLivingFrameWorkGraphProjection,
   type CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary,
   type CanonicalLivingFrameWorkGraphProjectionDraft,
@@ -30,6 +35,13 @@ import type {
 } from '../../src/types/living-frame-timing-binding'
 import { ApiError } from '../errors/api-error'
 import {
+  assertCanonicalExactSourceFramePngWorkItem,
+} from '../edit-architecture/canonical-exact-source-frame-png-authority'
+import {
+  OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
+  OFFLINE_MEDIA_BINARY_OPERATIONS,
+} from '../tool-execution/media-binary-execution'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
@@ -42,9 +54,10 @@ const AUTHORITY_BOUNDARY:
   CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary =
     Object.freeze({
       serverDerivedPendingWorkGraphMutationAuthority: true,
+      serverDerivedExactSourceFrameOperationAuthority: true,
       callerWorkGraphMutationAuthority: false,
       approvedWorkGraphAuthority: false,
-      exactToolOperationAuthority: false,
+      remainingLivingFrameExactToolOperationAuthority: false,
       queueAuthority: false,
       assetManifestAuthority: false,
       artifactQaAuthority: false,
@@ -80,7 +93,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
   },
 ): CanonicalLivingFrameWorkGraphProjection {
   assertSourceLineage(input)
-  const workItems: CanonicalLivingFramePendingWorkItem[] = []
+  const workItems:
+    CanonicalLivingFrameProjectedCanonicalWorkItem[] = []
   const projectedItems:
     CanonicalLivingFrameWorkGraphProjectedItem[] = []
 
@@ -148,6 +162,28 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       const line = matchingEstimateLines[0]!
       const expectedOutput =
         workRequirement.expectedOutput
+      const exactSourceFrameWorkItem =
+        workRequirement.workItemType ===
+          'generate_mask_asset'
+          ? compileExactSourceFrameWorkItem({
+              workRequirement,
+              expectedOutput,
+            })
+          : undefined
+      if (exactSourceFrameWorkItem) {
+        workItems.push(exactSourceFrameWorkItem)
+      }
+      const admittedDependencyKeys =
+        exactSourceFrameWorkItem
+          ? uniqueSorted([
+              ...workRequirement
+                .dependencyWorkItemKeys,
+              exactSourceFrameWorkItem.workItemKey,
+            ])
+          : [
+              ...workRequirement
+                .dependencyWorkItemKeys,
+            ]
       const pendingAuthority = {
         schemaVersion:
           CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION,
@@ -185,7 +221,7 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         cpuFallbackAllowed:
           workRequirement.cpuFallbackAllowed,
         exactDependencyInputOperationAdmitted:
-          false as const,
+          Boolean(exactSourceFrameWorkItem),
         executableStructuredPayloadPresent:
           false as const,
       }
@@ -233,8 +269,7 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             ],
           }],
           dependencyKeys: [
-            ...workRequirement
-              .dependencyWorkItemKeys,
+            ...admittedDependencyKeys,
           ],
           approvedToolIds: [],
           providerExecutionMode: 'none',
@@ -279,15 +314,14 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             }),
           ),
         dependencyWorkItemKeys: [
-          ...workRequirement
-            .dependencyWorkItemKeys,
+          ...admittedDependencyKeys,
         ],
         workItemDigestSha256:
           sha256AuthorityValue(workItem),
       })
     }
   }
-  assertPendingWorkGraph(workItems)
+  assertProjectedWorkGraph(workItems)
   const selectedSceneCount =
     input.publication.binding.selectedSceneCount
   const draft:
@@ -333,6 +367,10 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       },
       readiness: selectedSceneCount === 0
         ? 'ready_without_living_frame_work_items'
+        : workItems.some((item) =>
+            item.workerClass ===
+              CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS)
+        ? 'canonical_work_items_projected_exact_source_frame_admitted'
         : 'canonical_work_items_projected_operation_admission_pending',
       projectedItems,
       workItems,
@@ -342,6 +380,16 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       metrics: {
         selectedSceneCount,
         canonicalWorkItemCount: workItems.length,
+        admittedExactSourceFrameWorkItemCount:
+          workItems.filter((item) =>
+            item.workerClass ===
+              CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS)
+            .length,
+        executableWorkItemCount:
+          workItems.filter((item) =>
+            item.workerClass ===
+              CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS)
+            .length,
         requiredExpectedOutputCount:
           workItems.reduce(
             (total, item) =>
@@ -354,7 +402,11 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
               item.executionPlacement ===
               'google_cloud_run_gpu',
           ).length,
-        blockedWorkItemCount: workItems.length,
+        blockedWorkItemCount:
+          workItems.filter((item) =>
+            item.workerClass ===
+              CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS)
+            .length,
         maximumCreditBudget:
           workItems.reduce(
             (total, item) =>
@@ -370,7 +422,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       existingApprovedAssetManifestRemainsAuthority: true,
       containsRawChatTranscriptMediaBytesPathsUrlsOrCredentials:
         false,
-      containsProviderPromptOrExecutablePayload: false,
+      containsProviderPrompt: false,
+      containsExactSourceFrameExecutablePayload: true,
       expandsExactFiftyToolRegistry: false,
       subjectSpecificRouting: false,
       productionReady: false,
@@ -529,9 +582,9 @@ function assertSourceLineage(input: {
   }
 }
 
-function assertPendingWorkGraph(
+function assertProjectedWorkGraph(
   workItems:
-    readonly CanonicalLivingFramePendingWorkItem[],
+    readonly CanonicalLivingFrameProjectedCanonicalWorkItem[],
 ): void {
   const keys = new Set(
     workItems.map((item) => item.workItemKey),
@@ -539,7 +592,7 @@ function assertPendingWorkGraph(
   if (
     keys.size !== workItems.length
     || workItems.some((item) =>
-      item.dependencyKeys.includes(
+      Array.from(item.dependencyKeys).includes(
         item.workItemKey,
       )
       || item.dependencyKeys.some(
@@ -548,38 +601,7 @@ function assertPendingWorkGraph(
       )
       || new Set(item.dependencyKeys).size !==
         item.dependencyKeys.length
-      || item.approvedToolIds.length !== 0
-      || item.executionInput
-        .approvedToolOperationIds.length !== 0
-      || item.executionInput
-        .pendingOperationAuthority
-        .exactDependencyInputOperationAdmitted
-      || item.executionInput
-        .pendingOperationAuthority
-        .executableStructuredPayloadPresent
-      || new Set(
-        item.executionInput.pendingOperationAuthority
-          .sourceFrameInputs.map((source) =>
-            source.assetIntentId),
-      ).size !==
-        item.executionInput.pendingOperationAuthority
-          .sourceFrameInputs.length
-      || item.executionInput.pendingOperationAuthority
-        .sourceFrameInputs.some((source) =>
-          !item.sourceSequenceItemIds.includes(
-            source.sourceSequenceItemId,
-          )
-          || !item.sourceCleanupDecisionIds.includes(
-            source.sourceCleanupDecisionId,
-          )
-          || !Number.isInteger(source.masterFrameIndex)
-          || !Number.isInteger(source.sourceFrameIndex)
-          || !Number.isInteger(source.frameRate)
-          || source.masterFrameIndex < 0
-          || source.sourceFrameIndex < 0
-          || source.frameRate < 1
-          || source.frameRate > 240
-        )
+      || !validProjectedWorkItem(item)
     )
   ) {
     throw conflict(
@@ -612,6 +634,189 @@ function assertPendingWorkGraph(
   for (const key of keys) visit(key)
 }
 
+function compileExactSourceFrameWorkItem(input: {
+  readonly workRequirement:
+    CanonicalLivingFrameEstimateWorkAssetProjection[
+      'scenes'
+    ][number]['workRequirements'][number]
+  readonly expectedOutput:
+    CanonicalLivingFrameEstimateWorkAssetProjection[
+      'scenes'
+    ][number]['workRequirements'][number]['expectedOutput']
+}): CanonicalLivingFrameExactSourceFramePngWorkItem {
+  const sourceFrame =
+    input.workRequirement.sourceFrameInputs[0]
+  if (
+    input.workRequirement.sourceFrameInputs.length !== 1
+    || !sourceFrame
+    || ![24, 25, 30, 50, 60].includes(
+      sourceFrame.frameRate,
+    )
+  ) {
+    throw conflict(
+      'Canonical Living Frame mask extraction requires one exact source frame at an admitted frame rate.',
+    )
+  }
+  const workItemKey =
+    `${input.workRequirement.workItemKey}-exact-source-frame-png`
+  const outputKey = `${workItemKey}-output`
+  const workItem:
+    CanonicalLivingFrameExactSourceFramePngWorkItem = {
+      workItemKey,
+      workItemType: 'process_image_asset',
+      workerClass:
+        CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS,
+      executionInput: {
+        operation:
+          CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
+        approvedToolOperationIds: [
+          OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+        ],
+        expectedOutputKeys: [outputKey],
+        structuredPayload: {
+          recipeProfileId:
+            OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
+          timestampPolicy:
+            'select_exact_decoded_source_frame',
+          overwriteExistingArtifact: false,
+          allowUnreviewedCodec: false,
+          sourceSequenceItemId:
+            sourceFrame.sourceSequenceItemId,
+          sourceCleanupDecisionId:
+            sourceFrame.sourceCleanupDecisionId,
+          masterFrameIndex:
+            sourceFrame.masterFrameIndex,
+          sourceFrameIndex:
+            sourceFrame.sourceFrameIndex,
+          frameRate: sourceFrame.frameRate as
+            24 | 25 | 30 | 50 | 60,
+          sourceFrameSelectionDigestSha256:
+            sourceFrame
+              .sourceFrameSelectionDigestSha256,
+          frameSelectionPolicy:
+            'approved_source_frame_ordinal_v1',
+          outputContainer: 'png',
+          outputCodec: 'png',
+          outputPixelFormat: 'rgba',
+          metadataPolicy: 'strip_all',
+          preserveAudio: false,
+          maximumWidth: 4096,
+          maximumHeight: 4096,
+          maximumPixelCount: 16_777_216,
+          maximumOutputBytes: 16_777_216,
+        },
+      },
+      sourceSequenceItemIds: [
+        sourceFrame.sourceSequenceItemId,
+      ],
+      sourceCleanupDecisionIds: [
+        sourceFrame.sourceCleanupDecisionId,
+      ],
+      expectedOutputs: [{
+        outputKey,
+        artifactType:
+          CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
+        assetRole: 'processed',
+        required: true,
+        previewPlaceholderAllowed: false,
+        contentType: 'image/png',
+        segmentIds: [
+          ...input.expectedOutput.segmentIds,
+        ],
+        timingIds: [
+          ...input.expectedOutput.timingIds,
+        ],
+        rendererLayerIds: [
+          ...input.expectedOutput.rendererLayerIds,
+        ],
+      }],
+      dependencyKeys: [],
+      approvedToolIds: ['ffmpeg'],
+      providerExecutionMode: 'none',
+      fallbackPolicy: {
+        policy:
+          'block_living_frame_mask_until_exact_source_frame_exists',
+        unapprovedFallbackAllowed: false,
+        finalRenderBlockedWhilePending: true,
+      },
+      maxAttempts: 2,
+      attemptTimeoutSeconds: 300,
+      scheduledDelaySeconds: 0,
+      maximumCreditBudget: 0,
+      required: true,
+    }
+  assertCanonicalExactSourceFramePngWorkItem(
+    workItem,
+  )
+  return workItem
+}
+
+function validProjectedWorkItem(
+  item: CanonicalLivingFrameProjectedCanonicalWorkItem,
+): boolean {
+  if (
+    item.workerClass ===
+      CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS
+  ) {
+    try {
+      assertCanonicalExactSourceFramePngWorkItem(
+        item,
+      )
+      return item.maximumCreditBudget === 0
+        && item.maxAttempts === 2
+        && item.dependencyKeys.length === 0
+    } catch {
+      return false
+    }
+  }
+  return (
+    item.approvedToolIds.length === 0
+    && item.executionInput
+      .approvedToolOperationIds.length === 0
+    && !item.executionInput
+      .pendingOperationAuthority
+      .executableStructuredPayloadPresent
+    && new Set(
+      item.executionInput.pendingOperationAuthority
+        .sourceFrameInputs.map((source) =>
+          source.assetIntentId),
+    ).size ===
+      item.executionInput.pendingOperationAuthority
+        .sourceFrameInputs.length
+    && item.executionInput.pendingOperationAuthority
+      .sourceFrameInputs.every((source) =>
+        item.sourceSequenceItemIds.includes(
+          source.sourceSequenceItemId,
+        )
+        && item.sourceCleanupDecisionIds.includes(
+          source.sourceCleanupDecisionId,
+        )
+        && Number.isInteger(source.masterFrameIndex)
+        && Number.isInteger(source.sourceFrameIndex)
+        && Number.isInteger(source.frameRate)
+        && source.masterFrameIndex >= 0
+        && source.sourceFrameIndex >= 0
+        && source.frameRate >= 1
+        && source.frameRate <= 240
+      )
+    && (
+      !item.executionInput
+        .pendingOperationAuthority
+        .exactDependencyInputOperationAdmitted
+      || (
+        item.workItemType ===
+          'generate_mask_asset'
+        && item.dependencyKeys.some(
+          (dependencyKey) =>
+            dependencyKey.endsWith(
+              '-exact-source-frame-png',
+            ),
+        )
+      )
+    )
+  )
+}
+
 function withoutDigest(
   value: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -628,6 +833,13 @@ function isRecord(
     && typeof value === 'object'
     && !Array.isArray(value),
   )
+}
+
+function uniqueSorted(
+  values: readonly string[],
+): string[] {
+  return [...new Set(values)].sort((left, right) =>
+    left.localeCompare(right))
 }
 
 function conflict(message: string): ApiError {

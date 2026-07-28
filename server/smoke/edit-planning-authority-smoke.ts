@@ -23,7 +23,10 @@ import {
   createCanonicalVisualCalibrationObjectiveQaPlanningPayload,
   createCanonicalVisualCalibrationProviderPlanningPayload,
 } from '../edit-architecture/canonical-visual-calibration-objective-qa-authority'
-import { OFFLINE_MEDIA_BINARY_OPERATIONS } from
+import {
+  OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
+  OFFLINE_MEDIA_BINARY_OPERATIONS,
+} from
   '../tool-execution/media-binary-execution'
 import { ApiError } from '../errors/api-error'
 import { loadRuntimeEnv } from '../config/env'
@@ -125,6 +128,9 @@ import {
 import {
   CANONICAL_LIVING_FRAME_PENDING_OPERATION,
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+  CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
+  CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
+  CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS,
   CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_COMPONENT_KEY,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import {
@@ -6251,7 +6257,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     }))
   assert.equal(
     workGraphProjection.readiness,
-    'canonical_work_items_projected_operation_admission_pending',
+    'canonical_work_items_projected_exact_source_frame_admitted',
   )
   assert.equal(
     workGraphProjection.createsCanonicalWorkItems,
@@ -6277,8 +6283,10 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     asRecord(workGraphProjection.metrics),
     {
       selectedSceneCount: 1,
-      canonicalWorkItemCount: 3,
-      requiredExpectedOutputCount: 3,
+      canonicalWorkItemCount: 4,
+      admittedExactSourceFrameWorkItemCount: 1,
+      executableWorkItemCount: 1,
+      requiredExpectedOutputCount: 4,
       gpuPendingWorkItemCount: 1,
       blockedWorkItemCount: 3,
       maximumCreditBudget: 3,
@@ -6293,19 +6301,67 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       'final_composition_dependency_binding_required',
     ],
   )
-  const projectedPendingWorkItems =
+  const projectedWorkItems =
     workGraphProjection.workItems
-  assert.ok(Array.isArray(projectedPendingWorkItems))
-  assert.equal(projectedPendingWorkItems.length, 3)
+  assert.ok(Array.isArray(projectedWorkItems))
+  assert.equal(projectedWorkItems.length, 4)
   assert.deepEqual(
-    projectedPendingWorkItems.map((workItem) =>
+    projectedWorkItems.map((workItem) =>
       asRecord(workItem).workItemType),
     [
+      'process_image_asset',
       'generate_mask_asset',
       'process_image_asset',
       'prepare_remotion_layer',
     ],
   )
+  const exactSourceFrameWorkItems =
+    projectedWorkItems.filter((workItem) =>
+      asRecord(workItem).workerClass ===
+        CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS)
+  assert.equal(exactSourceFrameWorkItems.length, 1)
+  const exactSourceFrameWorkItem =
+    asRecord(exactSourceFrameWorkItems[0])
+  assert.equal(
+    asRecord(exactSourceFrameWorkItem.executionInput)
+      .operation,
+    CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
+  )
+  assert.deepEqual(
+    asRecord(exactSourceFrameWorkItem.executionInput)
+      .approvedToolOperationIds,
+    [OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg],
+  )
+  assert.deepEqual(
+    exactSourceFrameWorkItem.approvedToolIds,
+    ['ffmpeg'],
+  )
+  assert.equal(
+    exactSourceFrameWorkItem.maximumCreditBudget,
+    0,
+  )
+  assert.equal(
+    asRecord(
+      asRecord(exactSourceFrameWorkItem.executionInput)
+        .structuredPayload,
+    ).recipeProfileId,
+    OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
+  )
+  assert.equal(
+    asRecord(
+      Array.isArray(
+        exactSourceFrameWorkItem.expectedOutputs,
+      )
+        ? exactSourceFrameWorkItem.expectedOutputs[0]
+        : undefined,
+    ).artifactType,
+    CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
+  )
+  const projectedPendingWorkItems =
+    projectedWorkItems.filter((workItem) =>
+      asRecord(workItem).workerClass ===
+        CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS)
+  assert.equal(projectedPendingWorkItems.length, 3)
   const projectedPendingWorkByType = new Map(
     projectedPendingWorkItems.map((workItem) => {
       const record = asRecord(workItem)
@@ -6319,6 +6375,13 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     projectedWorkRequirements) {
     const requirementRecord =
       asRecord(workRequirement)
+    const requirementDependencyKeys =
+      Array.isArray(
+        requirementRecord.dependencyWorkItemKeys,
+      )
+        ? requirementRecord.dependencyWorkItemKeys
+          .map(String)
+        : []
     const workItem =
       projectedPendingWorkByType.get(
         String(requirementRecord.workItemType),
@@ -6333,7 +6396,13 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     assert.deepEqual(workItem.approvedToolIds, [])
     assert.deepEqual(
       workItem.dependencyKeys,
-      requirementRecord.dependencyWorkItemKeys,
+      requirementRecord.workItemType ===
+          'generate_mask_asset'
+        ? [
+            ...requirementDependencyKeys,
+            exactSourceFrameWorkItem.workItemKey,
+          ].sort()
+        : requirementDependencyKeys,
     )
     const executionInput =
       asRecord(workItem.executionInput)
@@ -6352,7 +6421,8 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     assert.equal(
       pendingOperationAuthority
         .exactDependencyInputOperationAdmitted,
-      false,
+      requirementRecord.workItemType ===
+        'generate_mask_asset',
     )
     assert.equal(
       pendingOperationAuthority
@@ -6376,23 +6446,33 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     persistedAuthority.plans.find((plan) =>
       plan.id === publishedPlan.id)
   assert.ok(persistedPlan)
+  const projectedLivingFrameWorkItemKeys =
+    new Set(projectedWorkItems.map((workItem) =>
+      String(asRecord(workItem).workItemKey)))
   const persistedLivingFrameWorkItems =
     persistedAuthority.planWorkItems.filter(
       (workItem) =>
         workItem.planId === persistedPlan.id
-        && workItem.workerClass ===
-          CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+        && projectedLivingFrameWorkItemKeys.has(
+          workItem.workItemKey,
+        )
+        && (
+          workItem.workerClass ===
+            CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
+          || workItem.workerClass ===
+            CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS
+        ),
     )
   assert.equal(
     persistedPlan.workItemIds.length,
-    body.canonicalPlan.workItems.length + 3,
+    body.canonicalPlan.workItems.length + 4,
   )
   assert.equal(
     persistedLivingFrameWorkItems.length,
-    3,
+    4,
   )
   for (const projectedWorkItem of
-    projectedPendingWorkItems) {
+    projectedWorkItems) {
     const expected = asRecord(projectedWorkItem)
     const actual =
       persistedLivingFrameWorkItems.find(
@@ -6425,7 +6505,13 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       actual.dependencyKeys,
       expected.dependencyKeys,
     )
-    assert.deepEqual(actual.approvedToolIds, [])
+    assert.deepEqual(
+      actual.approvedToolIds,
+      expected.workerClass ===
+        CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS
+        ? ['ffmpeg']
+        : [],
+    )
     assert.equal(
       actual.providerExecutionMode,
       'none',

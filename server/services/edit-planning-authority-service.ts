@@ -2250,7 +2250,7 @@ function assertLivingFrameWorkGraphProjectionMatchesPlan(
   const pendingPlanItems = planWorkItems.filter(
     (item) =>
       item.workerClass ===
-      CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+        CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
   )
   if (!projection) {
     if (pendingPlanItems.length > 0) {
@@ -2262,8 +2262,15 @@ function assertLivingFrameWorkGraphProjectionMatchesPlan(
     }
     return
   }
+  const projectedKeys = new Set(
+    projection.workItems.map((item) =>
+      item.workItemKey),
+  )
+  const projectedPlanItems =
+    planWorkItems.filter((item) =>
+      projectedKeys.has(item.workItemKey))
   if (
-    pendingPlanItems.length !==
+    projectedPlanItems.length !==
       projection.workItems.length
   ) {
     throw new ApiError(
@@ -2273,7 +2280,7 @@ function assertLivingFrameWorkGraphProjectionMatchesPlan(
     )
   }
   const byKey = new Map(
-    pendingPlanItems.map((item) => [
+    projectedPlanItems.map((item) => [
       item.workItemKey,
       item,
     ]),
@@ -2310,7 +2317,11 @@ function assertLivingFrameWorkGraphProjectionMatchesPlan(
       ) !== stableAuthorityStringify(
         expected.dependencyKeys,
       )
-      || actual.approvedToolIds.length !== 0
+      || stableAuthorityStringify(
+        actual.approvedToolIds,
+      ) !== stableAuthorityStringify(
+        expected.approvedToolIds,
+      )
       || actual.approvedProviderRoute !== undefined
       || actual.providerExecutionMode !== 'none'
       || actual.maxAttempts !== expected.maxAttempts
@@ -2496,15 +2507,29 @@ function assertLivingFrameExecutionAuthorityReady(
       .assetWorkInputBindingDigestSha256 !==
       assetWorkInputBinding.bindingDigestSha256
     || workGraphProjection.readiness !==
-      'canonical_work_items_projected_operation_admission_pending'
+      'canonical_work_items_projected_exact_source_frame_admitted'
     || workGraphProjection.metrics.selectedSceneCount !==
       publication.binding.selectedSceneCount
     || workGraphProjection.metrics.canonicalWorkItemCount !==
       estimateWorkAssetProjection.metrics
-        .projectedNamedWorkItemCount
+        .projectedNamedWorkItemCount +
+        workGraphProjection.metrics
+          .admittedExactSourceFrameWorkItemCount
     || workGraphProjection.metrics.requiredExpectedOutputCount !==
       estimateWorkAssetProjection.metrics
-        .projectedExpectedAssetCount
+        .projectedExpectedAssetCount +
+        workGraphProjection.metrics
+          .admittedExactSourceFrameWorkItemCount
+    || workGraphProjection.metrics
+      .admittedExactSourceFrameWorkItemCount !==
+      estimateWorkAssetProjection.metrics
+        .projectedGpuWorkItemCount
+    || workGraphProjection.metrics.executableWorkItemCount !==
+      workGraphProjection.metrics
+        .admittedExactSourceFrameWorkItemCount
+    || workGraphProjection.metrics.blockedWorkItemCount !==
+      estimateWorkAssetProjection.metrics
+        .projectedNamedWorkItemCount
     || workGraphProjection.metrics.gpuPendingWorkItemCount !==
       estimateWorkAssetProjection.metrics
         .projectedGpuWorkItemCount

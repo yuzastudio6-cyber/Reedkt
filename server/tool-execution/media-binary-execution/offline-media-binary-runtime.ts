@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Readable, Transform } from 'node:stream'
 import { finished, pipeline } from 'node:stream/promises'
+import { inflateSync } from 'node:zlib'
 
 import { ApiError } from '../../errors/api-error'
 import { inspectPcmWavePrefix, PCM_WAVE_MAXIMUM_HEADER_BYTES } from '../../media/pcm-wave'
@@ -30,6 +31,7 @@ import {
   APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
   OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
   OFFLINE_EDIT_BRIEF_SFX_PROFILE,
+  OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
   OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
@@ -39,6 +41,7 @@ import {
   validateOfflineStorytellingAudioMeasureExecutionRequest,
   validateOfflineStorytellingAudioNormalizeExecutionRequest,
   validateOfflineSynchronizedFoleyCandidateNormalizeExecutionRequest,
+  type OfflineFfmpegExactSourceFramePngPlanningPayload,
   type OfflineFfmpegExecutionRequest,
   type OfflineFfprobeExecutionRequest,
   type OfflineGeneratedMusicCandidateNormalizeExecutionRequest,
@@ -149,7 +152,7 @@ import {
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from './offline-media-binary-types'
 
-const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v8-local' as const
+const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local' as const
 const FFPROBE_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffprobe' as const
 const FFMPEG_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffmpeg' as const
 const MEZZANINE_FINALIZER_ENTRYPOINT =
@@ -235,6 +238,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
   ]
   supportedRecipeProfiles: readonly [
     'approved_trim_transcode_v1',
+    typeof OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
     typeof OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
     typeof OFFLINE_EDIT_BRIEF_SFX_PROFILE,
     typeof APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
@@ -248,6 +252,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     privateGenericMediaResourceObservationReady: true
     privateInternalEditBriefAudioReady: true
     privateInternalStorytellingSpeechNormalizationReady: true
+    privateInternalExactSourceFramePngReady: true
     privateInternalMezzanineFinalizationReady: true
     privateInternalObjectMezzanineChunkSeriesReady: true
     privateInternalContinuousProgramAudioReady: true
@@ -681,6 +686,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     authority.storageScopeHash !== OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_HASH ||
     stringArray(authority.supportedRecipeProfiles).join('|') !== [
       'approved_trim_transcode_v1',
+      OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
       OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
       OFFLINE_EDIT_BRIEF_SFX_PROFILE,
       APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
@@ -691,6 +697,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     record(authority.readiness).privateGenericMediaResourceObservationReady !== true ||
     record(authority.readiness).privateInternalEditBriefAudioReady !== true ||
     record(authority.readiness).privateInternalStorytellingSpeechNormalizationReady !== true ||
+    record(authority.readiness).privateInternalExactSourceFramePngReady !== true ||
     record(authority.readiness).privateInternalMezzanineFinalizationReady !== true ||
     record(authority.readiness).privateInternalObjectMezzanineChunkSeriesReady !== true ||
     record(authority.readiness).privateInternalContinuousProgramAudioReady !== true ||
@@ -4207,6 +4214,14 @@ async function executeFfmpegRequest(
   outputSink?: OfflineMediaBinaryStreamingOutputSink,
 ): Promise<OfflineFfmpegExecutionResult | OfflineFfmpegStreamingOutputExecutionResult> {
   const resourceObservations: PrivateEmbeddedProcessResourceObservation[] = []
+  const exactSourceFramePayload = request.payload.recipeProfileId ===
+    OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE
+    ? request.payload
+    : undefined
+  const exactSourceFramePng = Boolean(exactSourceFramePayload)
+  if (exactSourceFramePng && outputSink) {
+    throw invalid('Exact source-frame PNG extraction is a bounded buffered operation.')
+  }
   const voiceDelivery = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
   const editBriefAudioPayload =
     request.payload.recipeProfileId === OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE ||
@@ -4236,9 +4251,12 @@ async function executeFfmpegRequest(
   const voiceDeliveryPayload = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
     ? request.payload
     : undefined
-  const trimStartFrame = storytellingSpeechPayload?.startFrame ??
+  const trimStartFrame = exactSourceFramePayload?.sourceFrameIndex ??
+    storytellingSpeechPayload?.startFrame ??
     ('trimStartFrame' in request.payload ? request.payload.trimStartFrame : 0)
-  const trimEndFrameExclusive = storytellingSpeechPayload?.endFrameExclusive ??
+  const trimEndFrameExclusive = exactSourceFramePayload
+    ? exactSourceFramePayload.sourceFrameIndex + 1
+    : storytellingSpeechPayload?.endFrameExclusive ??
     ('trimEndFrameExclusive' in request.payload
       ? request.payload.trimEndFrameExclusive
       : 0)
@@ -4289,7 +4307,9 @@ async function executeFfmpegRequest(
       : deriveColorCorrection(sourceColorAnalysis, colorDeliveryPayload.colorGradeStyle,
           colorDeliveryPayload.intensity)
     : undefined
-  const command = storytellingSpeechNormalization
+  const command = exactSourceFramePayload
+    ? exactSourceFramePngCommand(exactSourceFramePayload)
+    : storytellingSpeechNormalization
     ? storytellingSpeechNormalizationCommand(request)
     : editBriefAudioDelivery
       ? editBriefAudioDeliveryCommand(request)
@@ -4351,6 +4371,10 @@ async function executeFfmpegRequest(
         : bufferedOutput.stdout
       : undefined
     const outputByteLength = streamedOutputSpool?.byteLength ?? bufferedOutputBytes!.byteLength
+    if (
+      exactSourceFramePayload &&
+      outputByteLength > exactSourceFramePayload.maximumOutputBytes
+    ) throw unavailable('Exact source-frame PNG exceeded its fixed output bound.')
     const resultSha256 = streamedOutputSpool?.sha256 ?? sha256(bufferedOutputBytes!)
     const outputSignature = streamedOutputSpool?.signature ?? bufferedOutputBytes!.subarray(0, 25)
     const outputInput = streamedOutputSpool?.source ?? verifiedBufferInput(
@@ -4383,10 +4407,21 @@ async function executeFfmpegRequest(
         ? inspectPcmWavePrefix(streamedOutputSpool.signature, outputByteLength)
         : pcmWaveDetails(bufferedOutputBytes!)
       : undefined
-    if (audioDelivery ? !wave : colorDelivery
+    const exactSourceFramePngDetails = exactSourceFramePayload
+      ? inspectExactSourceFrameRgbaPng(
+          bufferedOutputBytes!,
+          exactSourceFramePayload.maximumWidth,
+          exactSourceFramePayload.maximumHeight,
+          exactSourceFramePayload.maximumPixelCount,
+        )
+      : undefined
+    if (exactSourceFramePng ? !exactSourceFramePngDetails
+      : audioDelivery ? !wave : colorDelivery
       ? !isMatroska(outputSignature)
       : !outputSignature.toString('ascii').includes('nut/multimedia')) {
-      throw unavailable(audioDelivery
+      throw unavailable(exactSourceFramePng
+        ? 'FFmpeg exact source-frame output is not the fixed opaque RGBA PNG artifact.'
+        : audioDelivery
         ? 'FFmpeg approved audio output is not the fixed PCM WAV artifact.'
         : colorDelivery
           ? 'FFmpeg professional color output is not the fixed Matroska intermediate container.'
@@ -4424,7 +4459,19 @@ async function executeFfmpegRequest(
           resourceObservations,
         )
       : undefined
-    const outputProbe = audioOutputProbe
+    const outputProbe = exactSourceFramePngDetails
+      ? {
+          formatName: 'png_pipe',
+          codecName: 'png',
+          pixelFormat: 'rgba',
+          frameCount: 1,
+          width: exactSourceFramePngDetails.width,
+          height: exactSourceFramePngDetails.height,
+          decodedRgbaSha256: exactSourceFramePngDetails.decodedRgbaSha256,
+          opaquePixelCount: exactSourceFramePngDetails.opaquePixelCount,
+          nonOpaquePixelCount: 0,
+        }
+      : audioOutputProbe
       ? {
           ...audioOutputProbe,
           ...(voiceDeliveryLoudnessQa ? { loudnessQa: voiceDeliveryLoudnessQa } : {}),
@@ -4535,7 +4582,38 @@ async function executeFfmpegRequest(
           recipeProfileId: request.payload.recipeProfileId,
           trimStartFrame,
           trimEndFrameExclusive,
-          ...(storytellingSpeechNormalization
+          ...(exactSourceFramePayload && exactSourceFramePngDetails
+            ? {
+                outputFrameCount: 1,
+                outputContainer: 'png',
+                outputVideoCodec: 'png',
+                outputPixelFormat: 'rgba',
+                outputWidth: exactSourceFramePngDetails.width,
+                outputHeight: exactSourceFramePngDetails.height,
+                decodedRgbaSha256:
+                  exactSourceFramePngDetails.decodedRgbaSha256,
+                opaquePixelCount:
+                  exactSourceFramePngDetails.opaquePixelCount,
+                nonOpaquePixelCount: 0,
+                sourceSequenceItemId:
+                  exactSourceFramePayload.sourceSequenceItemId,
+                sourceCleanupDecisionId:
+                  exactSourceFramePayload.sourceCleanupDecisionId,
+                masterFrameIndex:
+                  exactSourceFramePayload.masterFrameIndex,
+                sourceFrameIndex:
+                  exactSourceFramePayload.sourceFrameIndex,
+                frameRate: exactSourceFramePayload.frameRate,
+                sourceFrameSelectionDigestSha256:
+                  exactSourceFramePayload.sourceFrameSelectionDigestSha256,
+                frameSelectionPolicy:
+                  exactSourceFramePayload.frameSelectionPolicy,
+                exactDecodedFrameOrdinalSelected: true,
+                exactlyOneFrameEncoded: true,
+                metadataStripped: true,
+                audioRemoved: true,
+              }
+            : storytellingSpeechNormalization
             ? {
                 outputContainer: 'wav',
                 outputAudioCodec: 'pcm_s16le',
@@ -4746,7 +4824,24 @@ async function executeFfmpegRequest(
       }
     }
     const resultArtifact: OfflineFfmpegExecutionResult['resultArtifact'] =
-      audioDelivery
+      exactSourceFramePngDetails
+        ? {
+            mimeType: 'image/png',
+            bytes: bufferedOutputBytes!,
+            sha256: resultSha256,
+            byteLength: outputByteLength,
+            width: exactSourceFramePngDetails.width,
+            height: exactSourceFramePngDetails.height,
+            bitDepth: 8,
+            colorType: 6,
+            channelCount: 4,
+            hasAlphaChannel: true,
+            opaquePixelCount: exactSourceFramePngDetails.opaquePixelCount,
+            nonOpaquePixelCount: 0,
+            decodedRgbaSha256:
+              exactSourceFramePngDetails.decodedRgbaSha256,
+          }
+        : audioDelivery
         ? {
             mimeType: 'audio/wav',
             bytes: bufferedOutputBytes!,
@@ -4770,6 +4865,177 @@ async function executeFfmpegRequest(
     await streamedOutputSpool?.cleanup().catch(() => undefined)
     await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
   }
+}
+
+function exactSourceFramePngCommand(
+  payload: OfflineFfmpegExactSourceFramePngPlanningPayload,
+): string[] {
+  return [
+    '-hide_banner', '-loglevel', 'error', '-nostdin',
+    '-fflags', '+bitexact',
+    '-i', 'pipe:0',
+    '-map', '0:v:0',
+    '-vf', `select=eq(n\\,${payload.sourceFrameIndex}),format=rgba`,
+    '-frames:v', '1',
+    '-fps_mode', 'passthrough',
+    '-an', '-sn', '-dn',
+    '-map_metadata', '-1',
+    '-threads', '1',
+    '-flags:v', '+bitexact',
+    '-c:v', 'png',
+    '-compression_level', '9',
+    '-pred', 'mixed',
+    '-f', 'image2pipe',
+    'pipe:1',
+  ]
+}
+
+function inspectExactSourceFrameRgbaPng(
+  bytes: Buffer,
+  maximumWidth: number,
+  maximumHeight: number,
+  maximumPixelCount: number,
+): {
+  width: number
+  height: number
+  opaquePixelCount: number
+  decodedRgbaSha256: string
+} {
+  const signature = Buffer.from('89504e470d0a1a0a', 'hex')
+  if (bytes.byteLength < 68 || !bytes.subarray(0, 8).equals(signature)) {
+    throw unavailable('Exact source-frame PNG signature is invalid.')
+  }
+  let offset = 8
+  let width = 0
+  let height = 0
+  let sawIhdr = false
+  let sawIend = false
+  const idat: Buffer[] = []
+  while (offset + 12 <= bytes.byteLength) {
+    const length = bytes.readUInt32BE(offset)
+    const chunkEnd = offset + 12 + length
+    if (length > 16 * 1024 * 1024 || chunkEnd > bytes.byteLength) {
+      throw unavailable('Exact source-frame PNG chunk is outside its fixed bound.')
+    }
+    const expectedCrc = bytes.readUInt32BE(offset + 8 + length)
+    const observedCrc = pngCrc32(bytes.subarray(offset + 4, offset + 8 + length))
+    if (observedCrc !== expectedCrc) {
+      throw unavailable('Exact source-frame PNG chunk checksum is invalid.')
+    }
+    const type = bytes.subarray(offset + 4, offset + 8).toString('ascii')
+    const data = bytes.subarray(offset + 8, offset + 8 + length)
+    if (type === 'IHDR') {
+      if (sawIhdr || offset !== 8 || length !== 13) {
+        throw unavailable('Exact source-frame PNG IHDR is invalid.')
+      }
+      sawIhdr = true
+      width = data.readUInt32BE(0)
+      height = data.readUInt32BE(4)
+      if (
+        width < 1 || height < 1 ||
+        width > maximumWidth || height > maximumHeight ||
+        width * height > maximumPixelCount ||
+        data[8] !== 8 || data[9] !== 6 ||
+        data[10] !== 0 || data[11] !== 0 || data[12] !== 0
+      ) throw unavailable(
+        'Exact source-frame PNG is outside the approved non-interlaced RGBA profile.',
+      )
+    } else if (type === 'IDAT') {
+      if (!sawIhdr || sawIend) {
+        throw unavailable('Exact source-frame PNG IDAT order is invalid.')
+      }
+      idat.push(Buffer.from(data))
+    } else if (type === 'IEND') {
+      if (!sawIhdr || sawIend || length !== 0 || idat.length === 0) {
+        throw unavailable('Exact source-frame PNG IEND is invalid.')
+      }
+      sawIend = true
+    }
+    offset = chunkEnd
+    if (sawIend) break
+  }
+  if (!sawIhdr || !sawIend || idat.length === 0 || offset !== bytes.byteLength) {
+    throw unavailable('Exact source-frame PNG required chunks or final boundary are invalid.')
+  }
+  const stride = width * 4
+  const expectedInflatedBytes = (stride + 1) * height
+  const inflated = inflateSync(Buffer.concat(idat), {
+    maxOutputLength: expectedInflatedBytes,
+  })
+  if (inflated.byteLength !== expectedInflatedBytes) {
+    throw unavailable('Exact source-frame PNG decoded byte length is invalid.')
+  }
+  const rgba = Buffer.allocUnsafe(stride * height)
+  for (let y = 0; y < height; y += 1) {
+    const sourceOffset = y * (stride + 1)
+    const filter = inflated[sourceOffset]!
+    if (filter > 4) {
+      throw unavailable('Exact source-frame PNG uses an unsupported row filter.')
+    }
+    for (let x = 0; x < stride; x += 1) {
+      const raw = inflated[sourceOffset + 1 + x]!
+      const left = x >= 4 ? rgba[y * stride + x - 4]! : 0
+      const above = y > 0 ? rgba[(y - 1) * stride + x]! : 0
+      const upperLeft = y > 0 && x >= 4
+        ? rgba[(y - 1) * stride + x - 4]!
+        : 0
+      const value = filter === 0
+        ? raw
+        : filter === 1
+          ? raw + left
+          : filter === 2
+            ? raw + above
+            : filter === 3
+              ? raw + Math.floor((left + above) / 2)
+              : raw + pngPaeth(left, above, upperLeft)
+      rgba[y * stride + x] = value & 0xff
+    }
+  }
+  let opaquePixelCount = 0
+  for (let offset = 3; offset < rgba.byteLength; offset += 4) {
+    if (rgba[offset] !== 255) {
+      throw unavailable('Exact source-frame PNG contains non-opaque source pixels.')
+    }
+    opaquePixelCount += 1
+  }
+  if (opaquePixelCount !== width * height) {
+    throw unavailable('Exact source-frame PNG pixel accounting is invalid.')
+  }
+  return {
+    width,
+    height,
+    opaquePixelCount,
+    decodedRgbaSha256: sha256(rgba),
+  }
+}
+
+const PNG_CRC32_TABLE = Uint32Array.from({ length: 256 }, (_, index) => {
+  let value = index
+  for (let bit = 0; bit < 8; bit += 1) {
+    value = (value & 1) === 1
+      ? 0xedb88320 ^ (value >>> 1)
+      : value >>> 1
+  }
+  return value >>> 0
+})
+
+function pngCrc32(bytes: Buffer): number {
+  let value = 0xffffffff
+  for (const byte of bytes) {
+    value = PNG_CRC32_TABLE[(value ^ byte) & 0xff]! ^ (value >>> 8)
+  }
+  return (value ^ 0xffffffff) >>> 0
+}
+
+function pngPaeth(left: number, above: number, upperLeft: number): number {
+  const prediction = left + above - upperLeft
+  const leftDistance = Math.abs(prediction - left)
+  const aboveDistance = Math.abs(prediction - above)
+  const upperLeftDistance = Math.abs(prediction - upperLeft)
+  if (leftDistance <= aboveDistance && leftDistance <= upperLeftDistance) {
+    return left
+  }
+  return aboveDistance <= upperLeftDistance ? above : upperLeft
 }
 
 function voiceDeliveryCommand(
@@ -6745,7 +7011,9 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     labels['reeditpro.customer-delivery-master-mux'] !==
       'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only' ||
     labels['reeditpro.visual-calibration-objective-qa'] !==
-      'private_dependency_bound_mp4_and_reference_frames_only'
+      'private_dependency_bound_mp4_and_reference_frames_only' ||
+    labels['reeditpro.exact-source-frame-png'] !==
+      'private_exact_decoded_source_frame_rgba_png_only'
   ) throw unavailable('Pinned media image identity or safety labels are invalid.')
   const sourcePolicyHashes = await policyHashes()
   const imageIdentityHash = sha256AuthorityValue({
@@ -6777,6 +7045,8 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
       'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only',
     visualCalibrationObjectiveQa:
       'private_dependency_bound_mp4_and_reference_frames_only',
+    exactSourceFramePng:
+      'private_exact_decoded_source_frame_rgba_png_only',
     sourcePolicyHashes,
   }
 }
@@ -6796,6 +7066,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
     ] as const,
     supportedRecipeProfiles: [
       'approved_trim_transcode_v1' as const,
+      OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
       OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
       OFFLINE_EDIT_BRIEF_SFX_PROFILE,
       APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
@@ -6809,6 +7080,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       privateGenericMediaResourceObservationReady: true as const,
       privateInternalEditBriefAudioReady: true as const,
       privateInternalStorytellingSpeechNormalizationReady: true as const,
+      privateInternalExactSourceFramePngReady: true as const,
       privateInternalMezzanineFinalizationReady: true as const,
       privateInternalObjectMezzanineChunkSeriesReady: true as const,
       privateInternalContinuousProgramAudioReady: true as const,
@@ -6839,6 +7111,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'Decoded final-master video and audio QA are bounded private single-process evidence; resumable long-form checkpointing, lease recovery, and worker-fleet execution remain blocked.',
       'Generic FFmpeg and FFprobe attempts retain private cgroup-v2 CPU/memory evidence; specialized long-form runner families and deployed cloud telemetry remain separate gates.',
       'Storytelling Speech normalization accepts only the exact verified private provider MP3/alignment dependency set and does not authorize provider transport, selection, mixing, or delivery.',
+      'Exact source-frame extraction accepts only a server-selected decoded frame ordinal and returns one bounded opaque RGBA PNG; source selection, artifact approval, matting, rendering, and delivery remain separate authorities.',
       'Visual-calibration objective QA accepts only one exact provider MP4 and two exact private reference frames; it does not grant creative acceptance, candidate selection, provider execution, timeline mutation, rendering, or delivery.',
     ] as const,
   }

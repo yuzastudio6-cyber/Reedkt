@@ -1496,6 +1496,10 @@ function orderColorDependencies(input: {
       payload.recipeProfileId ===
         'approved_storytelling_speech_take_normalization_v1'
     ) throw denied('Final composition color dependencies cannot use Storytelling Speech normalization.')
+    if (
+      payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' &&
+      payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1'
+    ) throw denied('Color dependency payload lost its exact color recipe identity.')
     const referenceWorkItem = globalIndex > 0
       ? input.authority.workItems.find((candidate) =>
           candidate.workItemKey === workItem.dependencyKeys[0])
@@ -1505,10 +1509,6 @@ function orderColorDependencies(input: {
           candidate.approvedWorkItemId === referenceWorkItem.id)
       : undefined
     if (
-      ![
-        'approved_source_color_delivery_matroska_v1',
-        'approved_source_color_match_delivery_matroska_v1',
-      ].includes(payload.recipeProfileId) ||
       payload.frameRate !== input.fps ||
       payload.trimStartFrame !== cleanupDecision.startFrame ||
       payload.trimEndFrameExclusive !== cleanupDecision.endFrameExclusive ||
@@ -1528,10 +1528,6 @@ function orderColorDependencies(input: {
             globalReferenceCleanupDecision.startFrame
       ))
     ) throw denied('Color dependency did not execute the exact approved professional color recipe.')
-    if (
-      payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' &&
-      payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1'
-    ) throw denied('Color dependency payload lost its exact color recipe identity.')
     usedDependencies.add(dependency.artifactId)
     return {
       dependency,

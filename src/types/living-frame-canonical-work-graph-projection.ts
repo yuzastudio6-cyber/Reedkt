@@ -8,7 +8,7 @@ import type {
 } from './living-frame-asset-work-input-binding'
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION =
-  'canonical-living-frame-work-graph-projection-v2' as const
+  'canonical-living-frame-work-graph-projection-v3' as const
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE =
   'canonical_living_frame_work_graph_projection_compiler' as const
@@ -23,11 +23,21 @@ export const CANONICAL_LIVING_FRAME_PENDING_OPERATION =
   'await_exact_living_frame_dependency_input_operation_admission' as const
 
 export const CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION =
-  'canonical-living-frame-pending-operation-authority-v2' as const
+  'canonical-living-frame-pending-operation-authority-v3' as const
+
+export const CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION =
+  'extract_approved_exact_source_frame_png' as const
+
+export const CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE =
+  'approved_exact_source_frame_png' as const
+
+export const CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS =
+  'media_processing_worker' as const
 
 export type CanonicalLivingFrameWorkGraphProjectionReadiness =
   | 'ready_without_living_frame_work_items'
   | 'canonical_work_items_projected_operation_admission_pending'
+  | 'canonical_work_items_projected_exact_source_frame_admitted'
 
 export interface CanonicalLivingFramePendingOperationAuthority {
   readonly schemaVersion:
@@ -48,7 +58,7 @@ export interface CanonicalLivingFramePendingOperationAuthority {
   readonly executionPlacement:
     CanonicalLivingFrameProjectedExecutionPlacement
   readonly cpuFallbackAllowed: boolean
-  readonly exactDependencyInputOperationAdmitted: false
+  readonly exactDependencyInputOperationAdmitted: boolean
   readonly executableStructuredPayloadPresent: false
 }
 
@@ -101,6 +111,77 @@ export interface CanonicalLivingFramePendingWorkItem {
   readonly required: true
 }
 
+export interface CanonicalLivingFrameExactSourceFramePngWorkItem {
+  readonly workItemKey: string
+  readonly workItemType: 'process_image_asset'
+  readonly workerClass:
+    typeof CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS
+  readonly executionInput: {
+    readonly operation:
+      typeof CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION
+    readonly approvedToolOperationIds:
+      readonly ['tool.ffmpeg.execute_approved_media_recipe.v1']
+    readonly expectedOutputKeys: readonly [string]
+    readonly structuredPayload: {
+      readonly recipeProfileId:
+        'approved_exact_source_frame_png_v1'
+      readonly timestampPolicy:
+        'select_exact_decoded_source_frame'
+      readonly overwriteExistingArtifact: false
+      readonly allowUnreviewedCodec: false
+      readonly sourceSequenceItemId: string
+      readonly sourceCleanupDecisionId: string
+      readonly masterFrameIndex: number
+      readonly sourceFrameIndex: number
+      readonly frameRate: 24 | 25 | 30 | 50 | 60
+      readonly sourceFrameSelectionDigestSha256: string
+      readonly frameSelectionPolicy:
+        'approved_source_frame_ordinal_v1'
+      readonly outputContainer: 'png'
+      readonly outputCodec: 'png'
+      readonly outputPixelFormat: 'rgba'
+      readonly metadataPolicy: 'strip_all'
+      readonly preserveAudio: false
+      readonly maximumWidth: 4096
+      readonly maximumHeight: 4096
+      readonly maximumPixelCount: 16_777_216
+      readonly maximumOutputBytes: 16_777_216
+    }
+  }
+  readonly sourceSequenceItemIds: readonly [string]
+  readonly sourceCleanupDecisionIds: readonly [string]
+  readonly expectedOutputs: readonly [{
+    readonly outputKey: string
+    readonly artifactType:
+      typeof CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE
+    readonly assetRole: 'processed'
+    readonly required: true
+    readonly previewPlaceholderAllowed: false
+    readonly contentType: 'image/png'
+    readonly segmentIds: readonly string[]
+    readonly timingIds: readonly string[]
+    readonly rendererLayerIds: readonly string[]
+  }]
+  readonly dependencyKeys: readonly []
+  readonly approvedToolIds: readonly ['ffmpeg']
+  readonly providerExecutionMode: 'none'
+  readonly fallbackPolicy: {
+    readonly policy:
+      'block_living_frame_mask_until_exact_source_frame_exists'
+    readonly unapprovedFallbackAllowed: false
+    readonly finalRenderBlockedWhilePending: true
+  }
+  readonly maxAttempts: 2
+  readonly attemptTimeoutSeconds: 300
+  readonly scheduledDelaySeconds: 0
+  readonly maximumCreditBudget: 0
+  readonly required: true
+}
+
+export type CanonicalLivingFrameProjectedCanonicalWorkItem =
+  | CanonicalLivingFramePendingWorkItem
+  | CanonicalLivingFrameExactSourceFramePngWorkItem
+
 export interface CanonicalLivingFrameWorkGraphProjectedItem {
   readonly sceneId: string
   readonly workItemKey: string
@@ -122,9 +203,10 @@ export interface CanonicalLivingFrameWorkGraphProjectedItem {
 
 export interface CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary {
   readonly serverDerivedPendingWorkGraphMutationAuthority: true
+  readonly serverDerivedExactSourceFrameOperationAuthority: true
   readonly callerWorkGraphMutationAuthority: false
   readonly approvedWorkGraphAuthority: false
-  readonly exactToolOperationAuthority: false
+  readonly remainingLivingFrameExactToolOperationAuthority: false
   readonly queueAuthority: false
   readonly assetManifestAuthority: false
   readonly artifactQaAuthority: false
@@ -162,7 +244,7 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
   readonly projectedItems:
     readonly CanonicalLivingFrameWorkGraphProjectedItem[]
   readonly workItems:
-    readonly CanonicalLivingFramePendingWorkItem[]
+    readonly CanonicalLivingFrameProjectedCanonicalWorkItem[]
   readonly blockerCodes: readonly [
     'exact_dependency_input_operations_required',
     'artifact_qa_work_items_required',
@@ -172,6 +254,8 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
   readonly metrics: {
     readonly selectedSceneCount: number
     readonly canonicalWorkItemCount: number
+    readonly admittedExactSourceFrameWorkItemCount: number
+    readonly executableWorkItemCount: number
     readonly requiredExpectedOutputCount: number
     readonly gpuPendingWorkItemCount: number
     readonly blockedWorkItemCount: number
@@ -186,7 +270,8 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
   readonly existingApprovedAssetManifestRemainsAuthority: true
   readonly containsRawChatTranscriptMediaBytesPathsUrlsOrCredentials:
     false
-  readonly containsProviderPromptOrExecutablePayload: false
+  readonly containsProviderPrompt: false
+  readonly containsExactSourceFrameExecutablePayload: true
   readonly expandsExactFiftyToolRegistry: false
   readonly subjectSpecificRouting: false
   readonly productionReady: false

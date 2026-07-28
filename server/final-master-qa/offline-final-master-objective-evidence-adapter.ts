@@ -942,7 +942,7 @@ function validateRuntimeImage(
   )
   if (
     image.imageTag !==
-      'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v8-local' ||
+      'reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local' ||
     !/^sha256:[a-f0-9]{64}$/u.test(image.imageId) ||
     image.imageIdentityHash !== authority.expectedRuntimeImageIdentityHash ||
     typeof image.architecture !== 'string' || image.architecture.length < 1 ||

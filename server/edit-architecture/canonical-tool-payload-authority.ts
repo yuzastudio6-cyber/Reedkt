@@ -35,6 +35,10 @@ import {
   assertCanonicalStorytellingSpeechNormalizationWorkItem,
 } from './canonical-storytelling-speech-normalization-authority'
 import {
+  assertCanonicalExactSourceFramePngWorkItem,
+  CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
+} from './canonical-exact-source-frame-png-authority'
+import {
   assertCanonicalVisualCalibrationObjectiveQaWorkItem,
   CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION,
 } from './canonical-visual-calibration-objective-qa-authority'
@@ -398,6 +402,20 @@ function validateByRunnerFamily(
       return 'media_ffmpeg'
     }
     if (
+      workItem.executionInput.operation ===
+        CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION
+    ) {
+      assertCanonicalExactSourceFramePngWorkItem(
+        workItem,
+      )
+      requireBinding(workItem, {
+        source: 1,
+        cleanup: 1,
+        dependencies: 0,
+      })
+      return 'media_ffmpeg'
+    }
+    if (
       workItem.workItemType === 'render_final_export' &&
       workItem.workerClass === 'render_worker' &&
       workItem.executionInput.operation ===
@@ -723,12 +741,19 @@ function validateArtifactAndNetworkPolicy(
     workItem.expectedOutputs.length === 1 &&
     workItem.expectedOutputs[0]?.assetRole === 'qa' &&
     workItem.expectedOutputs[0]?.contentType === 'application/json'
+  const exactSourceFramePng = spec.canonicalToolId === 'ffmpeg' &&
+    workItem.executionInput.operation ===
+      CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION &&
+    workItem.expectedOutputs.length === 1 &&
+    workItem.expectedOutputs[0]?.assetRole === 'processed' &&
+    workItem.expectedOutputs[0]?.contentType === 'image/png'
   for (const output of workItem.expectedOutputs) {
     if (
       !output.contentType ||
       (!allowedContentTypes.includes(output.contentType) &&
         !(exactFfmpegMezzanineFinalization && output.contentType === 'video/mp4') &&
-        !(exactVisualCalibrationObjectiveQa && output.contentType === 'application/json'))
+        !(exactVisualCalibrationObjectiveQa && output.contentType === 'application/json') &&
+        !(exactSourceFramePng && output.contentType === 'image/png'))
     ) {
       throw invalidPayload(
         'Canonical tool output content type is not covered by exact private artifact evidence.',

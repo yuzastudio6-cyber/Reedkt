@@ -247,7 +247,7 @@ export const canonicalPrivateMediaBinaryResponseSchema = z.object({
     artifactId: identity, qaEvaluationId: identity, reconciliationId: identity,
     contentType: z.enum([
       'application/json', 'video/x-nut', 'video/x-matroska', 'audio/wav',
-      'video/mp4',
+      'video/mp4', 'image/png',
     ]),
     sha256: sha,
     byteLength: z.number().int().positive()

@@ -9,6 +9,8 @@ export const OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE =
   'approved_edit_brief_music_bed_wav_v1' as const
 export const OFFLINE_EDIT_BRIEF_SFX_PROFILE =
   'approved_edit_brief_sfx_wav_v1' as const
+export const OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE =
+  'approved_exact_source_frame_png_v1' as const
 export const OFFLINE_MEDIA_BINARY_OPERATIONS = Object.freeze({
   ffmpeg: 'tool.ffmpeg.execute_approved_media_recipe.v1',
   ffprobe: 'tool.ffprobe.inspect_approved_media.v1',
@@ -105,6 +107,29 @@ interface OfflineFfmpegCommonPlanningPayload {
 
 export interface OfflineFfmpegTrimPlanningPayload extends OfflineFfmpegCommonPlanningPayload {
   recipeProfileId: 'approved_trim_transcode_v1'
+}
+
+export interface OfflineFfmpegExactSourceFramePngPlanningPayload {
+  recipeProfileId: typeof OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE
+  timestampPolicy: 'select_exact_decoded_source_frame'
+  overwriteExistingArtifact: false
+  allowUnreviewedCodec: false
+  sourceSequenceItemId: string
+  sourceCleanupDecisionId: string
+  masterFrameIndex: number
+  sourceFrameIndex: number
+  frameRate: 24 | 25 | 30 | 50 | 60
+  sourceFrameSelectionDigestSha256: string
+  frameSelectionPolicy: 'approved_source_frame_ordinal_v1'
+  outputContainer: 'png'
+  outputCodec: 'png'
+  outputPixelFormat: 'rgba'
+  metadataPolicy: 'strip_all'
+  preserveAudio: false
+  maximumWidth: 4096
+  maximumHeight: 4096
+  maximumPixelCount: 16_777_216
+  maximumOutputBytes: 16_777_216
 }
 
 export interface OfflineFfmpegVoiceDeliveryPlanningPayload extends OfflineFfmpegCommonPlanningPayload {
@@ -221,6 +246,7 @@ export interface OfflineFfmpegColorMatchDeliveryPlanningPayload extends OfflineF
 
 export type OfflineFfmpegPlanningPayload =
   | OfflineFfmpegTrimPlanningPayload
+  | OfflineFfmpegExactSourceFramePngPlanningPayload
   | OfflineFfmpegVoiceDeliveryPlanningPayload
   | OfflineFfmpegEditBriefAudioPlanningPayload
   | OfflineFfmpegStorytellingSpeechTakeNormalizationPlanningPayload
@@ -304,6 +330,69 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     'approved_source_color_match_delivery_matroska_v1'
   const storytellingSpeechNormalization = candidate?.recipeProfileId ===
     APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID
+  const exactSourceFramePng = candidate?.recipeProfileId ===
+    OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE
+  if (exactSourceFramePng) {
+    const frame = exactObject(value, [
+      'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact',
+      'allowUnreviewedCodec', 'sourceSequenceItemId',
+      'sourceCleanupDecisionId', 'masterFrameIndex', 'sourceFrameIndex',
+      'frameRate', 'sourceFrameSelectionDigestSha256',
+      'frameSelectionPolicy', 'outputContainer', 'outputCodec',
+      'outputPixelFormat', 'metadataPolicy', 'preserveAudio',
+      'maximumWidth', 'maximumHeight', 'maximumPixelCount',
+      'maximumOutputBytes',
+    ])
+    const masterFrameIndex = Number(frame.masterFrameIndex)
+    const sourceFrameIndex = Number(frame.sourceFrameIndex)
+    const frameRate = Number(frame.frameRate)
+    if (
+      frame.recipeProfileId !== OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE ||
+      frame.timestampPolicy !== 'select_exact_decoded_source_frame' ||
+      frame.overwriteExistingArtifact !== false ||
+      frame.allowUnreviewedCodec !== false ||
+      !safeKey(frame.sourceSequenceItemId) ||
+      !safeKey(frame.sourceCleanupDecisionId) ||
+      !Number.isSafeInteger(masterFrameIndex) || masterFrameIndex < 0 ||
+      !Number.isSafeInteger(sourceFrameIndex) || sourceFrameIndex < 0 ||
+      sourceFrameIndex > 100_000_000 ||
+      ![24, 25, 30, 50, 60].includes(frameRate) ||
+      !sha256Value(frame.sourceFrameSelectionDigestSha256) ||
+      frame.frameSelectionPolicy !== 'approved_source_frame_ordinal_v1' ||
+      frame.outputContainer !== 'png' ||
+      frame.outputCodec !== 'png' ||
+      frame.outputPixelFormat !== 'rgba' ||
+      frame.metadataPolicy !== 'strip_all' ||
+      frame.preserveAudio !== false ||
+      frame.maximumWidth !== 4096 ||
+      frame.maximumHeight !== 4096 ||
+      frame.maximumPixelCount !== 16_777_216 ||
+      frame.maximumOutputBytes !== 16_777_216
+    ) throw invalid()
+    return {
+      recipeProfileId: OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
+      timestampPolicy: 'select_exact_decoded_source_frame',
+      overwriteExistingArtifact: false,
+      allowUnreviewedCodec: false,
+      sourceSequenceItemId: String(frame.sourceSequenceItemId),
+      sourceCleanupDecisionId: String(frame.sourceCleanupDecisionId),
+      masterFrameIndex,
+      sourceFrameIndex,
+      frameRate: frameRate as 24 | 25 | 30 | 50 | 60,
+      sourceFrameSelectionDigestSha256:
+        String(frame.sourceFrameSelectionDigestSha256),
+      frameSelectionPolicy: 'approved_source_frame_ordinal_v1',
+      outputContainer: 'png',
+      outputCodec: 'png',
+      outputPixelFormat: 'rgba',
+      metadataPolicy: 'strip_all',
+      preserveAudio: false,
+      maximumWidth: 4096,
+      maximumHeight: 4096,
+      maximumPixelCount: 16_777_216,
+      maximumOutputBytes: 16_777_216,
+    }
+  }
   if (storytellingSpeechNormalization) {
     const keys = [
       'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact',
@@ -734,12 +823,23 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
     : undefined
   const colorMatchDelivery = requestPayload?.recipeProfileId ===
     'approved_source_color_match_delivery_matroska_v1'
+  const exactSourceFramePng = requestPayload?.recipeProfileId ===
+    OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE
   const editBriefAudio = requestPayload?.recipeProfileId ===
     OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE ||
     requestPayload?.recipeProfileId === OFFLINE_EDIT_BRIEF_SFX_PROFILE
   const payload = exactObject(request.payload, [
     'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact', 'allowUnreviewedCodec',
-    'trimStartFrame', 'trimEndFrameExclusive', 'frameRate',
+    ...(exactSourceFramePng
+      ? [
+          'sourceSequenceItemId', 'sourceCleanupDecisionId',
+          'masterFrameIndex', 'sourceFrameIndex', 'frameRate',
+          'sourceFrameSelectionDigestSha256', 'frameSelectionPolicy',
+          'outputContainer', 'outputCodec', 'outputPixelFormat',
+          'metadataPolicy', 'preserveAudio', 'maximumWidth',
+          'maximumHeight', 'maximumPixelCount', 'maximumOutputBytes',
+        ]
+      : ['trimStartFrame', 'trimEndFrameExclusive', 'frameRate']),
     ...(
       requestPayload?.recipeProfileId === 'approved_voice_delivery_wav_v1'
         ? [
@@ -786,8 +886,29 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
     timestampPolicy: payload.timestampPolicy,
     overwriteExistingArtifact: payload.overwriteExistingArtifact,
     allowUnreviewedCodec: payload.allowUnreviewedCodec,
-    trimStartFrame: payload.trimStartFrame,
-    trimEndFrameExclusive: payload.trimEndFrameExclusive,
+    ...(exactSourceFramePng
+      ? {
+          sourceSequenceItemId: payload.sourceSequenceItemId,
+          sourceCleanupDecisionId: payload.sourceCleanupDecisionId,
+          masterFrameIndex: payload.masterFrameIndex,
+          sourceFrameIndex: payload.sourceFrameIndex,
+          sourceFrameSelectionDigestSha256:
+            payload.sourceFrameSelectionDigestSha256,
+          frameSelectionPolicy: payload.frameSelectionPolicy,
+          outputContainer: payload.outputContainer,
+          outputCodec: payload.outputCodec,
+          outputPixelFormat: payload.outputPixelFormat,
+          metadataPolicy: payload.metadataPolicy,
+          preserveAudio: payload.preserveAudio,
+          maximumWidth: payload.maximumWidth,
+          maximumHeight: payload.maximumHeight,
+          maximumPixelCount: payload.maximumPixelCount,
+          maximumOutputBytes: payload.maximumOutputBytes,
+        }
+      : {
+          trimStartFrame: payload.trimStartFrame,
+          trimEndFrameExclusive: payload.trimEndFrameExclusive,
+        }),
     frameRate: payload.frameRate,
     ...(payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
       ? {

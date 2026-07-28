@@ -6,6 +6,9 @@ import {
   assertCanonicalStorytellingSpeechNormalizationWorkItem,
 } from '../edit-architecture/canonical-storytelling-speech-normalization-authority'
 import {
+  assertCanonicalExactSourceFramePngWorkItem,
+} from '../edit-architecture/canonical-exact-source-frame-png-authority'
+import {
   assertCanonicalVisualCalibrationObjectiveQaWorkItem,
   CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION,
 } from '../edit-architecture/canonical-visual-calibration-objective-qa-authority'
@@ -18,6 +21,7 @@ import {
   OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
   OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_CHUNK_BYTES,
   OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_OUTPUT_BYTES,
+  OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
   buildOfflineMediaBinaryVisualCalibrationObjectiveQaRequest,
   buildOfflineMediaBinaryMezzanineFinalizationRequest,
   openPrivateOfflineMediaBinaryRuntime,
@@ -91,6 +95,10 @@ import {
   persistCanonicalPrivateMediaArtifactStream,
   readCanonicalPrivateMediaArtifact,
 } from './canonical-private-media-artifact-storage'
+import {
+  persistCanonicalPrivateImageArtifact,
+  readCanonicalPrivateImageArtifact,
+} from './canonical-private-image-artifact-storage'
 import {
   CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES,
   inspectCanonicalPrivateRemotionArtifact,
@@ -847,6 +855,14 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         ? assertCanonicalStorytellingSpeechNormalizationWorkItem(workItem)
         : undefined
       const storytellingSpeechNormalization = Boolean(storytellingSpeechPayload)
+      const exactSourceFramePngPayload =
+        ffmpegPlanningPayload?.recipeProfileId ===
+          OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE
+          ? assertCanonicalExactSourceFramePngWorkItem(workItem)
+          : undefined
+      const exactSourceFramePng = Boolean(
+        exactSourceFramePngPayload,
+      )
       const editBriefAudioAttachmentProcessing =
         ffmpegPlanningPayload?.recipeProfileId ===
           'approved_edit_brief_music_bed_wav_v1' ||
@@ -859,7 +875,9 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       const contentType = visualCalibrationObjectiveQa
         ? 'application/json' as const
         : toolId === 'ffmpeg'
-        ? ffmpegPlanningPayload?.recipeProfileId === 'approved_voice_delivery_wav_v1' ||
+        ? exactSourceFramePng
+          ? 'image/png' as const
+        : ffmpegPlanningPayload?.recipeProfileId === 'approved_voice_delivery_wav_v1' ||
           storytellingSpeechNormalization ||
           editBriefAudioAttachmentProcessing
           ? 'audio/wav' as const
@@ -911,9 +929,21 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           binding.expectedOutput.assetRole !== 'qa' ||
           binding.expectedOutput.contentType !== 'application/json'
         )) ||
+        (exactSourceFramePng && (
+          workItem.sourceSequenceItemIds.length !== 1 ||
+          workItem.sourceSequenceItemIds[0] !==
+            exactSourceFramePngPayload!.sourceSequenceItemId ||
+          workItem.sourceCleanupDecisionIds.length !== 1 ||
+          workItem.sourceCleanupDecisionIds[0] !==
+            exactSourceFramePngPayload!.sourceCleanupDecisionId ||
+          workItem.dependencyKeys.length !== 0 ||
+          binding.expectedOutput.assetRole !== 'processed' ||
+          binding.expectedOutput.contentType !== 'image/png'
+        )) ||
         (!dependencyFinalQa && !storytellingSpeechNormalization &&
           !editBriefAudioAttachmentProcessing &&
-          !visualCalibrationObjectiveQa && (
+          !visualCalibrationObjectiveQa &&
+          !exactSourceFramePng && (
           workItem.sourceSequenceItemIds.length !== 1 ||
           workItem.sourceCleanupDecisionIds.length !== 1 ||
           workItem.dependencyKeys.length !== (referenceColorMatch ? 1 : 0)
@@ -943,6 +973,8 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           !runtimeAuthority.readiness.privateInternalEditBriefAudioReady) ||
         (visualCalibrationObjectiveQa &&
           !runtimeAuthority.readiness.privateInternalVisualCalibrationObjectiveQaReady) ||
+        (exactSourceFramePng &&
+          !runtimeAuthority.readiness.privateInternalExactSourceFramePngReady) ||
         runtimeAuthority.readiness.productReady || runtimeAuthority.readiness.finalExportReady ||
         !runtimeAuthority.supportedOperations.some((candidate) =>
           candidate.toolId === toolId && candidate.operationId === binding.operationId)
@@ -1443,6 +1475,15 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           localStorageRoot: context.env.localStorageRoot,
           privateObjectIdentityHash: committedPrivateObjectIdentityHash,
           bytes: requireNormalizedBytes(normalized), expectedSha256: normalized.sha256,
+        })
+      } else if (contentType === 'image/png') {
+        await persistCanonicalPrivateImageArtifact({
+          localStorageRoot: context.env.localStorageRoot,
+          privateObjectIdentityHash:
+            committedPrivateObjectIdentityHash,
+          contentType,
+          bytes: requireNormalizedBytes(normalized),
+          expectedSha256: normalized.sha256,
         })
       } else if (normalized.outputMode === 'server_committed_private_stream_v1') {
         const stored = contentType === 'audio/wav'
@@ -2232,6 +2273,7 @@ interface NormalizedMediaBinaryResult {
     | 'video/x-matroska'
     | 'audio/wav'
     | 'video/mp4'
+    | 'image/png'
   bytes?: Buffer
   sha256: string
   byteLength: number
@@ -2420,6 +2462,13 @@ async function assertStored(input: MediaAdapterInput) {
           localStorageRoot: input.localStorageRoot,
           privateObjectIdentityHash: input.privateObjectIdentityHash,
         })
+      : input.normalized.contentType === 'image/png'
+        ? await readCanonicalPrivateImageArtifact({
+            localStorageRoot: input.localStorageRoot,
+            privateObjectIdentityHash:
+              input.privateObjectIdentityHash,
+            contentType: 'image/png',
+          })
       : await readCanonicalPrivateMediaArtifact({
         localStorageRoot: input.localStorageRoot,
         privateObjectIdentityHash: input.privateObjectIdentityHash,

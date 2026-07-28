@@ -9,7 +9,7 @@ export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES = 192 * 1024 * 
 export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES = 64 * 1024 * 1024
 
 export interface OfflineMediaBinaryImageEvidence {
-  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v8-local'
+  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local'
   imageId: string
   imageIdentityHash: string
   architecture: string
@@ -30,6 +30,8 @@ export interface OfflineMediaBinaryImageEvidence {
     'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only'
   visualCalibrationObjectiveQa:
     'private_dependency_bound_mp4_and_reference_frames_only'
+  exactSourceFramePng:
+    'private_exact_decoded_source_frame_rgba_png_only'
   sourcePolicyHashes: Readonly<Record<string, string>>
 }
 
@@ -288,6 +290,21 @@ export interface OfflineFfmpegExecutionResult {
         bytes: Buffer
         sha256: string
         byteLength: number
+      }
+    | {
+        mimeType: 'image/png'
+        bytes: Buffer
+        sha256: string
+        byteLength: number
+        width: number
+        height: number
+        bitDepth: 8
+        colorType: 6
+        channelCount: 4
+        hasAlphaChannel: true
+        opaquePixelCount: number
+        nonOpaquePixelCount: 0
+        decodedRgbaSha256: string
       }
   evidence: {
     toolId: 'ffmpeg'

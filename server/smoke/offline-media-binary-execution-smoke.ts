@@ -22,6 +22,7 @@ import {
   OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_RECIPE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   OFFLINE_MEDIA_BINARY_PROTOCOL,
+  OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
   OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES,
   OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
@@ -177,6 +178,101 @@ assertMediaAttemptResourceObservation(
 )
 const ffmpegReplay = await runtime.execute(ffmpegRequest)
 assert.equal(ffmpegReplay.resultArtifact.sha256, ffmpegResult.resultArtifact.sha256)
+
+const exactSourceFrameRequest = {
+  schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
+  toolId: 'ffmpeg' as const,
+  operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+  payload: {
+    recipeProfileId: OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
+    timestampPolicy: 'select_exact_decoded_source_frame' as const,
+    overwriteExistingArtifact: false as const,
+    allowUnreviewedCodec: false as const,
+    sourceSequenceItemId: 'source-sequence-item-1',
+    sourceCleanupDecisionId: 'source-cleanup-decision-1',
+    masterFrameIndex: 17,
+    sourceFrameIndex: 24,
+    frameRate: 24 as const,
+    sourceFrameSelectionDigestSha256: hashText(
+      'source-sequence-item-1|source-cleanup-decision-1|17|24|24',
+    ),
+    frameSelectionPolicy: 'approved_source_frame_ordinal_v1' as const,
+    outputContainer: 'png' as const,
+    outputCodec: 'png' as const,
+    outputPixelFormat: 'rgba' as const,
+    metadataPolicy: 'strip_all' as const,
+    preserveAudio: false as const,
+    maximumWidth: 4096 as const,
+    maximumHeight: 4096 as const,
+    maximumPixelCount: 16_777_216 as const,
+    maximumOutputBytes: 16_777_216 as const,
+    ...sourceAuthority,
+  },
+}
+const exactSourceFrame = await runtime.execute(exactSourceFrameRequest)
+assert.equal(exactSourceFrame.resultArtifact.mimeType, 'image/png')
+assert.equal(exactSourceFrame.resultArtifact.width, 320)
+assert.equal(exactSourceFrame.resultArtifact.height, 180)
+assert.equal(exactSourceFrame.resultArtifact.bitDepth, 8)
+assert.equal(exactSourceFrame.resultArtifact.colorType, 6)
+assert.equal(exactSourceFrame.resultArtifact.channelCount, 4)
+assert.equal(exactSourceFrame.resultArtifact.hasAlphaChannel, true)
+assert.equal(exactSourceFrame.resultArtifact.opaquePixelCount, 320 * 180)
+assert.equal(exactSourceFrame.resultArtifact.nonOpaquePixelCount, 0)
+assert.equal(
+  exactSourceFrame.evidence.semanticEvidence.sourceFrameIndex,
+  24,
+)
+assert.equal(
+  exactSourceFrame.evidence.semanticEvidence.masterFrameIndex,
+  17,
+)
+assert.equal(
+  exactSourceFrame.evidence.semanticEvidence.exactDecodedFrameOrdinalSelected,
+  true,
+)
+const decodedExactFrame = spawnSync('ffmpeg', [
+  '-hide_banner', '-loglevel', 'error',
+  '-i', 'pipe:0', '-map', '0:v:0', '-frames:v', '1',
+  '-pix_fmt', 'rgba', '-f', 'rawvideo', 'pipe:1',
+], {
+  input: exactSourceFrame.resultArtifact.bytes,
+  maxBuffer: 2 * 1024 * 1024,
+})
+assert.equal(
+  decodedExactFrame.status,
+  0,
+  decodedExactFrame.stderr.toString('utf8'),
+)
+assert.equal(decodedExactFrame.stdout.byteLength, 320 * 180 * 4)
+assert.equal(
+  hashBytes(decodedExactFrame.stdout),
+  exactSourceFrame.resultArtifact.decodedRgbaSha256,
+)
+const independentlySelectedSourceFrame = spawnSync('ffmpeg', [
+  '-hide_banner', '-loglevel', 'error',
+  '-i', 'pipe:0', '-map', '0:v:0',
+  '-vf', 'select=eq(n\\,24),format=rgba',
+  '-frames:v', '1', '-fps_mode', 'passthrough',
+  '-f', 'rawvideo', 'pipe:1',
+], {
+  input: sourceBytes,
+  maxBuffer: 2 * 1024 * 1024,
+})
+assert.equal(
+  independentlySelectedSourceFrame.status,
+  0,
+  independentlySelectedSourceFrame.stderr.toString('utf8'),
+)
+assert.equal(
+  hashBytes(independentlySelectedSourceFrame.stdout),
+  exactSourceFrame.resultArtifact.decodedRgbaSha256,
+)
+const exactSourceFrameReplay = await runtime.execute(exactSourceFrameRequest)
+assert.equal(
+  exactSourceFrameReplay.resultArtifact.sha256,
+  exactSourceFrame.resultArtifact.sha256,
+)
 
 const frameRateNormalizedTrimRequest = {
   ...ffmpegRequest,
@@ -917,6 +1013,13 @@ assert.equal(
   authority.readiness.privateInternalStorytellingSpeechNormalizationReady,
   true,
 )
+assert.equal(authority.readiness.privateInternalExactSourceFramePngReady, true)
+assert.equal(
+  authority.supportedRecipeProfiles.includes(
+    OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
+  ),
+  true,
+)
 assert.equal(authority.readiness.finalExportReady, false)
 assert.deepEqual(
   authority.supportedOperations.map((operation) => operation.operationId),
@@ -929,7 +1032,7 @@ assert.deepEqual(
 )
 assert.equal(
   authority.image.imageTag,
-  'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v8-local',
+  'reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local',
 )
 assert.equal(authority.image.imageIdentityHash, runtime.image.imageIdentityHash)
 const reopened = await openPrivateOfflineMediaBinaryRuntime()
@@ -969,6 +1072,27 @@ await assertRejects(() => runtime.execute({
 await assertRejects(() => runtime.execute({
   ...ffmpegRequest,
   payload: { ...ffmpegRequest.payload, trimEndFrameExclusive: 12 },
+}))
+await assertRejects(() => runtime.execute({
+  ...exactSourceFrameRequest,
+  payload: {
+    ...exactSourceFrameRequest.payload,
+    sourceFrameSelectionDigestSha256: 'f'.repeat(63),
+  },
+}))
+await assertRejects(() => runtime.execute({
+  ...exactSourceFrameRequest,
+  payload: {
+    ...exactSourceFrameRequest.payload,
+    sourceFrameIndex: 100_000_001,
+  },
+}))
+await assertRejects(() => runtime.execute({
+  ...exactSourceFrameRequest,
+  payload: {
+    ...exactSourceFrameRequest.payload,
+    sourceUrl: 'https://example.invalid/source.mp4',
+  },
 }))
 await assertRejects(() => runtime.execute({
   ...voiceDeliveryRequest,
@@ -1042,6 +1166,9 @@ console.log(JSON.stringify({
     'pinned_ffmpeg_8_1_2_lgpl_image_identity',
     'actual_ffprobe_approved_source_inspection',
     'actual_ffmpeg_approved_frame_trim_to_ffv1_nut_intermediate',
+    'actual_ffmpeg_exact_source_frame_to_rgba_png',
+    'exact_source_frame_png_independently_decoded_and_source_ordinal_matched',
+    'exact_source_frame_png_deterministic_and_authority_tamper_rejected',
     'actual_ffmpeg_approved_voice_delivery_pcm_wav',
     'actual_storytelling_speech_mp3_to_pcm_s16le_48khz_mono_wav',
     'storytelling_speech_exact_provider_and_alignment_authority_bound',

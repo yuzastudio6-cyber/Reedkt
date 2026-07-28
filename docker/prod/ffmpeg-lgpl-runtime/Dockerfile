@@ -192,6 +192,7 @@ LABEL org.opencontainers.image.title="ReEditPro minimal FFmpeg internal-worker f
       reeditpro.long-form-master-assembly="private_vp9_flac_matroska_stream_copy_only" \
       reeditpro.customer-delivery-master-mux="private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only" \
       reeditpro.visual-calibration-objective-qa="private_dependency_bound_mp4_and_reference_frames_only" \
+      reeditpro.exact-source-frame-png="private_exact_decoded_source_frame_rgba_png_only" \
       reeditpro.codec-patent-legal-review="required" \
       reeditpro.runtime-network="must_run_with_network_none" \
       reeditpro.runtime-rootfs="must_run_read_only"

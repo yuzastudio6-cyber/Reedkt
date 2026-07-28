@@ -46,6 +46,7 @@
 --enable-muxer=framemd5
 --enable-muxer=flac
 --enable-muxer=image2
+--enable-muxer=image2pipe
 --enable-muxer=matroska
 --enable-muxer=mp4
 --enable-muxer=null
@@ -106,6 +107,7 @@
 --enable-encoder=pcm_s24le
 --enable-encoder=pcm_s32be
 --enable-encoder=pcm_s32le
+--enable-encoder=png
 --enable-encoder=ppm
 --enable-encoder=rawvideo
 --enable-encoder=wrapped_avframe

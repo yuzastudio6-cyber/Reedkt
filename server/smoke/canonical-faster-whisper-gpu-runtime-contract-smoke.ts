@@ -59,8 +59,20 @@ assert.equal(
   contract.cloudRunGpuPolicy.crossRegionTransferAllowed,
   false,
 )
-assert.equal(contract.packageIdentity.packageCount, 28)
-assert.equal(contract.packageIdentity.packages.length, 28)
+assert.equal(contract.packageIdentity.packageCount, 29)
+assert.equal(contract.packageIdentity.packages.length, 29)
+assert.deepEqual(
+  contract.packageIdentity.packages.find(
+    (entry) => entry.packageName === 'exceptiongroup',
+  ),
+  {
+    canonicalOrder: 6,
+    packageName: 'exceptiongroup',
+    version: '1.3.1',
+    wheelSha256:
+      'a7a39a3bd276781e98394987d3a5701d0c4edffb633bb7a5144577f82c773598',
+  },
+)
 assert.equal(
   contract.packageIdentity.packages.find(
     (entry) => entry.packageName === 'faster-whisper',

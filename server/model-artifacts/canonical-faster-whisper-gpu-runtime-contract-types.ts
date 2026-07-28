@@ -63,7 +63,7 @@ export interface CanonicalFasterWhisperGpuRuntimeContract {
     readonly numpyVersion: '1.26.4'
     readonly avVersion: '14.2.0'
     readonly onnxruntimeVersion: '1.16.3'
-    readonly packageCount: 28
+    readonly packageCount: 29
     readonly packages:
       readonly CanonicalFasterWhisperGpuRuntimePackage[]
     readonly requirementsLockSha256: string

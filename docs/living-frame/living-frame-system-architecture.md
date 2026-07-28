@@ -1114,20 +1114,26 @@ expected output for the existing approved asset manifest. The current mask
 requirement is GPU-only on Google Cloud Run with no CPU fallback. Neither
 record adds a tool identity.
 
-This is not a second Living Frame workflow. The sixth and seventh records create no
-customer estimate line, service fee, executable work item, asset-manifest
-entry, timing mutation, SoundSync decision, tool/provider dispatch route,
-artifact QA result, renderer payload, or private-review decision. Current
-fixture-only rembg, OpenImageIO, Sharp, and Remotion operations cannot be
-treated as real Living Frame dependency-input runtimes. The existing WeEditPro
-estimate, approval, work graph, asset manifest, QA, review, and renderer
-pipeline remains the only owner of those stages. Deliberate non-use may
-continue through ordinary approval. A selected scene fails closed before
-credit reservation or snapshot creation until the customer estimate/service
-fee is recalculated and the real dependency-input operations, canonical work
-items, assets, QA, and review are admitted. Approval and execution reload and
-verify the same selected-scene records; they cannot silently omit the selected
-skill from an otherwise valid final-render graph. See
+The server now derives an eighth content-addressed
+`livingFrameCanonicalWorkGraphProjection` record after recalculating the
+customer estimate and WeEditPro service fee. It adds the three refined
+requirements to the one canonical plan work graph with exact source, cleanup,
+asset-intent, dependency, output, and credit-budget lineage. They are
+tool-free pending-operation items rather than fake executable tool calls.
+Their resource placement is explicitly execution-blocked until the matching
+dependency-input operation is admitted.
+
+This is not a second Living Frame workflow. Current fixture-only rembg,
+OpenImageIO, Sharp, and Remotion operations cannot be treated as real Living
+Frame dependency-input runtimes. The existing WeEditPro estimate, approval,
+work graph, asset manifest, QA, review, and renderer pipeline remains the only
+owner of those stages. Deliberate non-use may continue through ordinary
+approval. A selected scene fails closed before credit reservation or snapshot
+creation until the real dependency-input operations, assets, QA, review, and
+final-composition dependency are admitted. Approval and execution reload both
+the content-addressed projection and every matching plan work item; they
+cannot silently omit or rewrite the selected skill in an otherwise valid
+final-render graph. See
 `docs/living-frame/living-frame-selected-scene-binding.md`.
 The exact requirements record is documented in
 `docs/living-frame/living-frame-execution-requirements.md`.
@@ -1137,6 +1143,8 @@ The exact source/asset/work input bridge is documented in
 `docs/living-frame/living-frame-canonical-asset-work-input-binding.md`.
 The exact cost/work/asset requirements projection is documented in
 `docs/living-frame/living-frame-canonical-estimate-work-asset-projection.md`.
+The exact pending canonical work-graph projection is documented in
+`docs/living-frame/living-frame-canonical-work-graph-projection.md`.
 
 ### Slice 4: canonical timing, work, and asset mapping
 

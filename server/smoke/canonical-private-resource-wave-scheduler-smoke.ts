@@ -13,6 +13,9 @@ import {
   type CanonicalPrivateResourcePlacementManifest,
 } from '../edit-architecture/canonical-private-resource-placement-authority'
 import {
+  CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+} from '../../src/types/living-frame-canonical-work-graph-projection'
+import {
   createCanonicalPrivateResourceSchedulingEvidence,
   executeCanonicalPrivateResourceWave,
   selectCanonicalPrivateResourceWave,
@@ -82,11 +85,41 @@ async function main() {
           ],
           providerExecutionMode: 'none',
         },
+        {
+          workItemKey: 'living-frame-mask-pending',
+          workItemType: 'generate_mask_asset',
+          workerClass:
+            CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+          required: true,
+          approvedToolIds: [],
+          approvedToolOperationIds: [],
+          providerExecutionMode: 'none',
+        },
       ],
       tools: [toolIdentityForPlacement(catalog, 'ffmpeg')],
     })
-  assert.equal(approvedPlacementAuthority.summary.totalWorkItemCount, 2)
+  assert.equal(approvedPlacementAuthority.summary.totalWorkItemCount, 3)
   assert.equal(approvedPlacementAuthority.summary.privatelyExecutableWorkItemCount, 2)
+  assert.equal(approvedPlacementAuthority.summary.blockedWorkItemCount, 1)
+  const livingFramePendingPlacement =
+    approvedPlacementAuthority.placements.find(
+      (placement) =>
+        placement.workItemKey ===
+        'living-frame-mask-pending',
+    )
+  assert.ok(livingFramePendingPlacement)
+  assert.equal(
+    livingFramePendingPlacement.placementSource,
+    'living_frame_operation_admission_pending',
+  )
+  assert.equal(
+    livingFramePendingPlacement.privateExecutionReady,
+    false,
+  )
+  assert.equal(
+    livingFramePendingPlacement.requiredGate,
+    'canonical_living_frame_dependency_input_operation_admission',
+  )
   assert.equal(approvedPlacementAuthority.boundaries.approvedSnapshotHashBindingRequired, true)
   assert.equal(approvedPlacementAuthority.boundaries.placementMutationAfterApprovalAllowed, false)
   assertCanonicalApprovedWorkGraphResourcePlacementAuthority({
@@ -107,6 +140,16 @@ async function main() {
         workItemKey: 'validate-approved-snapshot',
         workItemType: 'validate_approved_snapshot',
         workerClass: 'authority_worker',
+        required: true,
+        approvedToolIds: [],
+        approvedToolOperationIds: [],
+        providerExecutionMode: 'none',
+      },
+      {
+        workItemKey: 'living-frame-mask-pending',
+        workItemType: 'generate_mask_asset',
+        workerClass:
+          CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
         required: true,
         approvedToolIds: [],
         approvedToolOperationIds: [],

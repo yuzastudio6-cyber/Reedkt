@@ -16,6 +16,9 @@ import type {
   CanonicalApprovedEditExecutionPackage,
   CanonicalToolAuthorizationManifest,
 } from './canonical-approved-edit-execution-package'
+import {
+  CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+} from '../../src/types/living-frame-canonical-work-graph-projection'
 import type {
   CanonicalToolExecutionAuthority,
 } from './canonical-tool-execution-authority'
@@ -128,6 +131,7 @@ const workItemPlacementCoreSchema = placementCoreSchema.extend({
     'proven_tool_identity',
     'tool_registry_contract_only',
     'tool_free_control_plane_policy',
+    'living_frame_operation_admission_pending',
     'long_form_controller_contract_only',
     'provider_route_contract_only',
   ]),
@@ -177,6 +181,26 @@ function validatePlacementEvidence(
     if (toolBacked || !entry.privateExecutionReady || entry.runtimeRunnerClass ||
       entry.toolIdentityHash || entry.toolProofHash || entry.requiredGate) {
       context.addIssue({ code: 'custom', message: 'Tool-free placement evidence is inconsistent.' })
+    }
+  }
+  if (
+    entry.placementSource ===
+      'living_frame_operation_admission_pending'
+  ) {
+    if (
+      toolBacked
+      || entry.privateExecutionReady
+      || entry.runtimeRunnerClass
+      || entry.toolIdentityHash
+      || entry.toolProofHash
+      || !entry.requiredGate
+      || entry.providerExecutionMode !== 'none'
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message:
+          'Living Frame pending-operation placement must remain tool-free and execution blocked.',
+      })
     }
   }
   if (entry.placementSource === 'long_form_controller_contract_only') {
@@ -492,7 +516,12 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
     const workerType = toolFreeWorkerType(workItem.workerClass, workItem.workItemType)
     const longFormController = workItem.workerClass ===
       PROFESSIONAL_LONG_FORM_CONTROLLER_WORKER_CLASS
-    const privateExecutionReady = !longFormController &&
+    const livingFrameOperationPending =
+      workItem.workerClass ===
+      CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
+    const privateExecutionReady =
+      !longFormController &&
+      !livingFrameOperationPending &&
       workItem.providerExecutionMode === 'none'
     const withoutHash = {
       workItemKey: workItem.workItemKey,
@@ -504,6 +533,8 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
       providerExecutionMode: resourceProviderExecutionMode(workItem.providerExecutionMode),
       placementSource: longFormController
         ? 'long_form_controller_contract_only' as const
+        : livingFrameOperationPending
+          ? 'living_frame_operation_admission_pending' as const
         : privateExecutionReady
           ? 'tool_free_control_plane_policy' as const
           : 'provider_route_contract_only' as const,
@@ -513,6 +544,8 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
         ? {
             requiredGate: longFormController
               ? 'canonical_professional_long_form_controller_service_only_no_worker_dispatch' as const
+              : livingFrameOperationPending
+                ? 'canonical_living_frame_dependency_input_operation_admission' as const
               : 'provider_activation_and_approved_route' as const,
           }
         : {}),
@@ -870,6 +903,12 @@ function toolFreeWorkerType(
     return 'api_service'
   }
   if (workerClass === PROFESSIONAL_LONG_FORM_CONTROLLER_WORKER_CLASS) {
+    return 'api_service'
+  }
+  if (
+    workerClass ===
+      CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
+  ) {
     return 'api_service'
   }
   if (workerClass === 'provider_worker') return 'cpu_analysis_worker'

@@ -123,6 +123,11 @@ import {
   CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY,
 } from '../../src/types/living-frame-estimate-work-asset-projection'
 import {
+  CANONICAL_LIVING_FRAME_PENDING_OPERATION,
+  CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_COMPONENT_KEY,
+} from '../../src/types/living-frame-canonical-work-graph-projection'
+import {
   CANONICAL_CUSTOMER_ESTIMATE_AUTHORITY_COMPONENT_KEY,
 } from '../../src/types/canonical-customer-estimate-authority'
 import type { LivingFrameVisualContinuityPack } from
@@ -4245,6 +4250,7 @@ console.log(JSON.stringify({
     'edit_brief_post_approval_mutation_blocked',
     'selected_living_frame_scene_fails_closed_before_approval_without_exact_execution_authority',
     'living_frame_exact_50_tool_cost_named_work_and_expected_asset_requirements_projected_without_execution_promotion',
+    'living_frame_requirements_are_content_addressed_and_added_to_the_one_canonical_graph_as_execution_blocked_work',
     'server_recalculates_one_weeditpro_service_fee_before_approval',
     'caller_service_fee_is_replaced_and_caller_living_frame_cost_is_rejected',
     'living_frame_tool_cost_ceilings_are_bound_into_the_customer_estimate',
@@ -5720,6 +5726,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     CANONICAL_LIVING_FRAME_TIMING_BINDING_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY,
+    CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_COMPONENT_KEY,
     CANONICAL_CUSTOMER_ESTIMATE_AUTHORITY_COMPONENT_KEY,
   ]) {
     assert.ok(
@@ -6170,6 +6177,211 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     ).serviceFeeCredits,
     30,
   )
+  const workGraphProjection =
+    asRecord(await readPrivateAuthorityJsonBlob({
+      localStorageRoot:
+        serviceContext.env.localStorageRoot,
+      ref: publishedRefs[
+        CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_COMPONENT_KEY
+      ] as {
+        sha256: string
+        byteLength: number
+      },
+    }))
+  assert.equal(
+    workGraphProjection.readiness,
+    'canonical_work_items_projected_operation_admission_pending',
+  )
+  assert.equal(
+    workGraphProjection.createsCanonicalWorkItems,
+    true,
+  )
+  assert.equal(
+    workGraphProjection.createsApprovedWorkItems,
+    false,
+  )
+  assert.equal(
+    workGraphProjection.createsAssetManifestEntries,
+    false,
+  )
+  assert.equal(
+    workGraphProjection.currentResourcePlacementExecutionReady,
+    false,
+  )
+  assert.equal(
+    workGraphProjection.expandsExactFiftyToolRegistry,
+    false,
+  )
+  assert.deepEqual(
+    asRecord(workGraphProjection.metrics),
+    {
+      selectedSceneCount: 1,
+      canonicalWorkItemCount: 3,
+      requiredExpectedOutputCount: 3,
+      gpuPendingWorkItemCount: 1,
+      blockedWorkItemCount: 3,
+      maximumCreditBudget: 3,
+    },
+  )
+  assert.deepEqual(
+    workGraphProjection.blockerCodes,
+    [
+      'exact_dependency_input_operations_required',
+      'artifact_qa_work_items_required',
+      'private_review_required',
+      'final_composition_dependency_binding_required',
+    ],
+  )
+  const projectedPendingWorkItems =
+    workGraphProjection.workItems
+  assert.ok(Array.isArray(projectedPendingWorkItems))
+  assert.equal(projectedPendingWorkItems.length, 3)
+  assert.deepEqual(
+    projectedPendingWorkItems.map((workItem) =>
+      asRecord(workItem).workItemType),
+    [
+      'generate_mask_asset',
+      'process_image_asset',
+      'prepare_remotion_layer',
+    ],
+  )
+  const projectedPendingWorkByType = new Map(
+    projectedPendingWorkItems.map((workItem) => {
+      const record = asRecord(workItem)
+      return [
+        String(record.workItemType),
+        record,
+      ] as const
+    }),
+  )
+  for (const workRequirement of
+    projectedWorkRequirements) {
+    const requirementRecord =
+      asRecord(workRequirement)
+    const workItem =
+      projectedPendingWorkByType.get(
+        String(requirementRecord.workItemType),
+      )
+    assert.ok(workItem)
+    assert.equal(
+      workItem.workerClass,
+      CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+    )
+    assert.equal(workItem.required, true)
+    assert.equal(workItem.providerExecutionMode, 'none')
+    assert.deepEqual(workItem.approvedToolIds, [])
+    assert.deepEqual(
+      workItem.dependencyKeys,
+      requirementRecord.dependencyWorkItemKeys,
+    )
+    const executionInput =
+      asRecord(workItem.executionInput)
+    assert.equal(
+      executionInput.operation,
+      CANONICAL_LIVING_FRAME_PENDING_OPERATION,
+    )
+    assert.deepEqual(
+      executionInput.approvedToolOperationIds,
+      [],
+    )
+    const pendingOperationAuthority =
+      asRecord(
+        executionInput.pendingOperationAuthority,
+      )
+    assert.equal(
+      pendingOperationAuthority
+        .exactDependencyInputOperationAdmitted,
+      false,
+    )
+    assert.equal(
+      pendingOperationAuthority
+        .executableStructuredPayloadPresent,
+      false,
+    )
+  }
+  const persistedAuthority =
+    await readPrivateEditAuthorityAggregate({
+      localStorageRoot:
+        serviceContext.env.localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: targetWorkspaceId,
+    })
+  assert.ok(persistedAuthority)
+  const persistedPlan =
+    persistedAuthority.plans.find((plan) =>
+      plan.id === publishedPlan.id)
+  assert.ok(persistedPlan)
+  const persistedLivingFrameWorkItems =
+    persistedAuthority.planWorkItems.filter(
+      (workItem) =>
+        workItem.planId === persistedPlan.id
+        && workItem.workerClass ===
+          CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+    )
+  assert.equal(
+    persistedPlan.workItemIds.length,
+    body.canonicalPlan.workItems.length + 3,
+  )
+  assert.equal(
+    persistedLivingFrameWorkItems.length,
+    3,
+  )
+  for (const projectedWorkItem of
+    projectedPendingWorkItems) {
+    const expected = asRecord(projectedWorkItem)
+    const actual =
+      persistedLivingFrameWorkItems.find(
+        (workItem) =>
+          workItem.workItemKey ===
+          expected.workItemKey,
+      )
+    assert.ok(actual)
+    assert.equal(
+      actual.workItemType,
+      expected.workItemType,
+    )
+    assert.equal(
+      actual.maximumCreditBudget,
+      expected.maximumCreditBudget,
+    )
+    assert.deepEqual(
+      actual.sourceSequenceItemIds,
+      expected.sourceSequenceItemIds,
+    )
+    assert.deepEqual(
+      actual.sourceCleanupDecisionIds,
+      expected.sourceCleanupDecisionIds,
+    )
+    assert.deepEqual(
+      actual.expectedOutputs,
+      expected.expectedOutputs,
+    )
+    assert.deepEqual(
+      actual.dependencyKeys,
+      expected.dependencyKeys,
+    )
+    assert.deepEqual(actual.approvedToolIds, [])
+    assert.equal(
+      actual.providerExecutionMode,
+      'none',
+    )
+    assert.deepEqual(
+      await readPrivateAuthorityJsonBlob({
+        localStorageRoot:
+          serviceContext.env.localStorageRoot,
+        ref: actual.executionInputRef,
+      }),
+      expected.executionInput,
+    )
+    assert.deepEqual(
+      await readPrivateAuthorityJsonBlob({
+        localStorageRoot:
+          serviceContext.env.localStorageRoot,
+        ref: actual.fallbackPolicyRef,
+      }),
+      expected.fallbackPolicy,
+    )
+  }
 
   const planningService =
     createEditPlanningAuthorityService(serviceContext)

@@ -3,8 +3,10 @@ import assert from 'node:assert/strict'
 import {
   assertCanonicalFasterWhisperCloudRunGpuExecutionAdmissionCandidate,
   assertCanonicalFasterWhisperGpuBundleRequirementProjection,
+  assertCanonicalFasterWhisperGpuRuntimeRequestCandidate,
   assertCanonicalFasterWhisperModelArtifactRequirementSet,
   createCanonicalFasterWhisperCloudRunGpuExecutionAdmissionCandidate,
+  createCanonicalFasterWhisperGpuRuntimeRequestCandidate,
   getCanonicalFasterWhisperModelArtifactRequirementSet,
   projectCanonicalFasterWhisperGpuBundleRequirements,
   type CanonicalFasterWhisperSourceAudioExpectationInput,
@@ -250,6 +252,8 @@ assert.equal(
   candidate.modelArtifactBinding.cloudRunAccelerator,
   'nvidia_l4',
 )
+assert.equal(candidate.identity.runtimeRegion, 'europe-west1')
+assert.equal(candidate.summary.exactCloudRunL4RegionMatched, true)
 assert.equal(candidate.settings.device, 'cuda')
 assert.equal(candidate.settings.computeType, 'float16')
 assert.equal(candidate.settings.wordTimestamps, true)
@@ -285,6 +289,69 @@ assert.deepEqual(
   candidate,
 )
 
+const runtimeRequestCandidate =
+  await createCanonicalFasterWhisperGpuRuntimeRequestCandidate({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    source,
+    operationRequest,
+  })
+
+assert.equal(
+  runtimeRequestCandidate.requestCandidateClass,
+  'server_derived_non_dispatching_gpu_runtime_request_candidate',
+)
+assert.equal(
+  runtimeRequestCandidate.runnerRequest.dispatch.runtimeRegion,
+  'europe-west1',
+)
+assert.equal(
+  runtimeRequestCandidate.runnerRequest.settings.device,
+  'cuda',
+)
+assert.equal(
+  runtimeRequestCandidate.runnerRequest.settings.computeType,
+  'float16',
+)
+assert.equal(
+  runtimeRequestCandidate.runnerRequest.modelArtifacts.length,
+  4,
+)
+assert.equal(
+  runtimeRequestCandidate.summary.requestContainsCallerPaths,
+  false,
+)
+assert.equal(
+  runtimeRequestCandidate.summary.requestContainsCallerBytes,
+  false,
+)
+assert.equal(
+  runtimeRequestCandidate.boundaries.runnerInvoked,
+  false,
+)
+assert.equal(
+  runtimeRequestCandidate.boundaries.cloudDispatchAuthorized,
+  false,
+)
+assert.equal(
+  runtimeRequestCandidate.boundaries.productionReady,
+  false,
+)
+assert.deepEqual(
+  await assertCanonicalFasterWhisperGpuRuntimeRequestCandidate({
+    candidate: structuredClone(runtimeRequestCandidate),
+    value: structuredClone(candidate),
+    requirementSet: structuredClone(requirementSet),
+    requirementProjection: structuredClone(projection),
+    gpuBundle: structuredClone(gpuBundle),
+    source: structuredClone(source),
+    operationRequest: structuredClone(operationRequest),
+  }),
+  runtimeRequestCandidate,
+)
+
 assert.equal(CANONICAL_PRIVATE_E2E_TOOL_IDS.length, 50)
 assert.equal(
   (CANONICAL_PRIVATE_E2E_TOOL_IDS as readonly string[])
@@ -297,6 +364,64 @@ assert.equal(
 )
 
 let adversarialAssertions = 0
+
+await expectRejectsAsync(
+  () => assertCanonicalFasterWhisperGpuRuntimeRequestCandidate({
+    candidate: {
+      ...structuredClone(runtimeRequestCandidate),
+      sourcePath: '/tmp/caller.wav',
+    },
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    source,
+    operationRequest,
+  }),
+  'runtime request caller path',
+  'faster_whisper_gpu_runtime_request_candidate_mismatch',
+)
+await expectRejectsAsync(
+  () => assertCanonicalFasterWhisperGpuRuntimeRequestCandidate({
+    candidate: {
+      ...structuredClone(runtimeRequestCandidate),
+      runnerRequest: {
+        ...runtimeRequestCandidate.runnerRequest,
+        settings: {
+          ...runtimeRequestCandidate.runnerRequest.settings,
+          device: 'cpu',
+        },
+      },
+    },
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    source,
+    operationRequest,
+  }),
+  'runtime request CPU substitution',
+  'faster_whisper_gpu_runtime_request_candidate_mismatch',
+)
+await expectRejectsAsync(
+  () => assertCanonicalFasterWhisperGpuRuntimeRequestCandidate({
+    candidate: {
+      ...structuredClone(runtimeRequestCandidate),
+      boundaries: {
+        ...runtimeRequestCandidate.boundaries,
+        cloudDispatchAuthorized: true,
+      },
+    },
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    source,
+    operationRequest,
+  }),
+  'runtime request dispatch promotion',
+  'faster_whisper_gpu_runtime_request_candidate_mismatch',
+)
 
 expectRejects(
   () => assertCanonicalFasterWhisperModelArtifactRequirementSet({
@@ -401,6 +526,17 @@ expectRejects(
   }),
   'CPU bundle substitution',
   'faster_whisper_gpu_bundle_invalid',
+)
+expectRejects(
+  () => createCandidate({
+    gpuBundle: mutateBundleIdentity(gpuBundle, {
+      runtimeRegion: 'us-east1',
+      cloudRunJobResourceName:
+        'projects/reeditpro-production/locations/us-east1/jobs/reeditpro-gpu-ai-worker',
+    }),
+  }),
+  'unsupported L4 region',
+  'faster_whisper_gpu_bundle_identity_mismatch',
 )
 expectRejects(
   () => createCandidate({
@@ -535,6 +671,11 @@ console.log(JSON.stringify({
     candidate.modelArtifactBinding.executionTarget,
   cloudRunAccelerator:
     candidate.modelArtifactBinding.cloudRunAccelerator,
+  runtimeRegion: candidate.identity.runtimeRegion,
+  runtimeRequestBytes:
+    runtimeRequestCandidate.serializedRunnerRequestByteLength,
+  runtimeRequestCandidateOnly:
+    runtimeRequestCandidate.boundaries.candidateOnly,
   device: candidate.settings.device,
   computeType: candidate.settings.computeType,
   cpuFallbackAllowed:
@@ -625,10 +766,10 @@ CanonicalModelArtifactGpuBundle {
     approvedToolId: 'faster_whisper',
     approvedToolOperationId:
       'tool.faster_whisper.transcribe_private_audio.v1',
-    runtimeRegion: 'us-east1' as const,
+    runtimeRegion: 'europe-west1' as const,
     targetHash: SHA.target,
     cloudRunJobResourceName:
-      'projects/reeditpro-production/locations/us-east1/jobs/reeditpro-gpu-ai-worker',
+      'projects/reeditpro-production/locations/europe-west1/jobs/reeditpro-gpu-ai-worker',
     cloudRunJobRequestSha256: SHA.cloudRunRequest,
     workerServiceAccountEmail:
       'gpu-worker@reeditpro-production.iam.gserviceaccount.com',
@@ -780,6 +921,30 @@ function mutateFirstArtifact(
   })
 }
 
+function mutateBundleIdentity(
+  bundle: CanonicalModelArtifactGpuBundle,
+  mutation: Partial<
+    CanonicalModelArtifactGpuBundle['identity']
+  >,
+): CanonicalModelArtifactGpuBundle {
+  const identity = {
+    ...structuredClone(bundle.identity),
+    ...mutation,
+  }
+  const bundleId =
+    `model_gpu_bundle_${sha256AuthorityValue({
+      identity,
+      consumerScope: bundle.consumerScope,
+      requirementsDigestSha256:
+        bundle.requirementsDigestSha256,
+    }).slice(0, 32)}`
+  return rehashBundle({
+    ...structuredClone(bundle),
+    identity,
+    bundleId,
+  })
+}
+
 function rehashRequirementSet(
   value: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -819,6 +984,27 @@ function expectRejects(
   code: string,
 ): void {
   assert.throws(
+    operation,
+    (error: unknown) => {
+      assert.equal(error instanceof Error, true, `${label}: Error`)
+      assert.equal(
+        (error as Error).message.includes(code),
+        true,
+        `${label}: ${String((error as Error).message)}`,
+      )
+      return true
+    },
+    label,
+  )
+  adversarialAssertions += 1
+}
+
+async function expectRejectsAsync(
+  operation: () => Promise<unknown>,
+  label: string,
+  code: string,
+): Promise<void> {
+  await assert.rejects(
     operation,
     (error: unknown) => {
       assert.equal(error instanceof Error, true, `${label}: Error`)

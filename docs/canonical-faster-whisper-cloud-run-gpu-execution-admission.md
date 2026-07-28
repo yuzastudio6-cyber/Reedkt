@@ -90,7 +90,9 @@ The candidate deliberately keeps all of these false:
 
 - production tool or operation promotion;
 - canonical operation artifact-set verification;
-- reproducible hash-locked CUDA image and dependency lock;
+- reproducible shared CUDA image (the hash-locked dependency list and
+  CUDA-only runner source now exist in
+  `canonical-faster-whisper-gpu-runtime-contract.md`);
 - Cloud Run L4 benchmark;
 - read-only remote model mounts;
 - private audio reread;

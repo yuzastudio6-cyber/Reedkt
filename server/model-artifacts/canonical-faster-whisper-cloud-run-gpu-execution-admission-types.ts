@@ -83,6 +83,7 @@ export interface CanonicalFasterWhisperCloudRunGpuExecutionAdmissionCandidate {
     readonly dispatchIntentId: string
     readonly dispatchBindingHash: string
     readonly attemptPlanHash: string
+    readonly runtimeRegion: 'europe-west1'
     readonly approvedSnapshotId: string
     readonly approvedSnapshotHash: string
     readonly workItemId: string
@@ -145,6 +146,7 @@ export interface CanonicalFasterWhisperCloudRunGpuExecutionAdmissionCandidate {
   readonly summary: {
     readonly exactModelArtifactSetMatched: true
     readonly exactCloudRunGpuAttemptIdentityMatched: true
+    readonly exactCloudRunL4RegionMatched: true
     readonly exactPrivateAudioBindingMatched: true
     readonly exactGpuOnlySettingsMatched: true
     readonly exactOutputAndQaContractDeclared: true

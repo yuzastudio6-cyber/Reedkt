@@ -235,6 +235,7 @@ const candidateSchema = z.object({
     dispatchIntentId: safeIdSchema,
     dispatchBindingHash: digestSchema,
     attemptPlanHash: digestSchema,
+    runtimeRegion: z.literal('europe-west1'),
     approvedSnapshotId: safeIdSchema,
     approvedSnapshotHash: digestSchema,
     workItemId: safeIdSchema,
@@ -267,6 +268,7 @@ const candidateSchema = z.object({
   summary: z.object({
     exactModelArtifactSetMatched: z.literal(true),
     exactCloudRunGpuAttemptIdentityMatched: z.literal(true),
+    exactCloudRunL4RegionMatched: z.literal(true),
     exactPrivateAudioBindingMatched: z.literal(true),
     exactGpuOnlySettingsMatched: z.literal(true),
     exactOutputAndQaContractDeclared: z.literal(true),
@@ -290,6 +292,7 @@ const BLOCKERS = [
   'approved_package_operation_input_reread_required',
   'cloud_run_cuda_runtime_image_not_qualified',
   'cloud_run_gpu_job_deployment_not_verified',
+  'cloud_run_gpu_region_us_authority_migration_required',
   'cloud_run_l4_cuda_benchmark_not_run',
   'cloud_run_read_only_model_mount_not_verified',
   'faster_whisper_dependency_lock_not_qualified',
@@ -410,6 +413,7 @@ export function createCanonicalFasterWhisperCloudRunGpuExecutionAdmissionCandida
     dispatchIntentId: gpuBundle.identity.dispatchIntentId,
     dispatchBindingHash: gpuBundle.identity.dispatchBindingHash,
     attemptPlanHash: gpuBundle.identity.attemptPlanHash,
+    runtimeRegion: 'europe-west1' as const,
     approvedSnapshotId: operation.approvedSnapshotId,
     approvedSnapshotHash: operation.approvedSnapshotHash,
     workItemId: operation.workItemId,
@@ -425,6 +429,7 @@ export function createCanonicalFasterWhisperCloudRunGpuExecutionAdmissionCandida
   const summary = {
     exactModelArtifactSetMatched: true as const,
     exactCloudRunGpuAttemptIdentityMatched: true as const,
+    exactCloudRunL4RegionMatched: true as const,
     exactPrivateAudioBindingMatched: true as const,
     exactGpuOnlySettingsMatched: true as const,
     exactOutputAndQaContractDeclared: true as const,
@@ -644,6 +649,10 @@ function assertExactFasterWhisperGpuBundle(
       !== 'google_cloud_run_gpu'
     || bundle.execution.cloudRunAccelerator !== 'nvidia_l4'
     || bundle.execution.modelAccelerator !== 'cuda'
+    || bundle.identity.runtimeRegion !== 'europe-west1'
+    || !bundle.identity.cloudRunJobResourceName.includes(
+      '/locations/europe-west1/jobs/reeditpro-gpu-ai-worker',
+    )
     || bundle.summary.cpuFallbackAllowed !== false
     || bundle.summary.runtimeDownloadAllowed !== false
     || bundle.summary.networkFetchAllowed !== false
@@ -822,6 +831,8 @@ function assertCandidateDerivedFields(input: {
       !== input.gpuBundle.identity.dispatchBindingHash
     || identity.attemptPlanHash
       !== input.gpuBundle.identity.attemptPlanHash
+    || identity.runtimeRegion
+      !== input.gpuBundle.identity.runtimeRegion
     || identity.approvedSnapshotId !== operation.approvedSnapshotId
     || identity.approvedSnapshotHash
       !== operation.approvedSnapshotHash

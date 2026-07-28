@@ -6,9 +6,6 @@ import {
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
 import {
-  validateProfessionalToolOperationRequest,
-} from '../tool-execution/professional-tool-operation-request-validator'
-import {
   canonicalModelArtifactGpuBundleSchema,
 } from './canonical-model-artifact-cloud-run-gpu-handoff'
 import type {
@@ -38,6 +35,7 @@ const ARTIFACT_RECORD_PATTERN = /^model-artifact-[a-f0-9]{64}$/u
 const SAFE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{7,239}$/u
 const MAXIMUM_SOURCE_BYTES = (4 * 1_024 * 1_024 * 1_024) - 65_536
 const MAXIMUM_PROMPT_BYTES = 65_536
+const MAXIMUM_OPERATION_INPUT_BYTES = 4 * 1_024 * 1_024 * 1_024
 
 const digestSchema = z.string().regex(DIGEST_PATTERN)
 const safeIdSchema = z.string().regex(SAFE_ID_PATTERN)
@@ -150,6 +148,38 @@ const settingsSchema = z.object({
     'normalized_box_or_points_v1',
   ),
   subjectPromptSha256: digestSchema,
+}).strict()
+
+const operationArtifactBindingSchema = z.object({
+  artifactId: safeIdSchema,
+  kind: z.enum(['video', 'json_data']),
+  sha256: digestSchema,
+  byteLength: z.number().int().positive()
+    .max(MAXIMUM_OPERATION_INPUT_BYTES),
+}).strict()
+
+/**
+ * SAM2 remains a non-E2E capability candidate and therefore must not resolve
+ * through the exact 50-tool production operation registry. This closed
+ * candidate-only request schema preserves the same immutable snapshot, work,
+ * reservation, lease, artifact, settings, and model-manifest lineage without
+ * granting a production tool identity or dispatch authority.
+ */
+const candidateOperationRequestSchema = z.object({
+  operationId: z.literal(
+    'tool.sam2.segment_and_track_subject.v1',
+  ),
+  approvedSnapshotId: safeIdSchema,
+  approvedSnapshotHash: digestSchema,
+  workItemId: safeIdSchema,
+  workItemHash: digestSchema,
+  creditEstimateId: safeIdSchema,
+  creditReservationId: safeIdSchema,
+  workerLeaseId: safeIdSchema,
+  idempotencyKey: safeIdSchema,
+  artifactBindings: z.array(operationArtifactBindingSchema).max(8),
+  settings: settingsSchema,
+  modelManifestId: safeIdSchema,
 }).strict()
 
 const outputSchema = z.tuple([
@@ -762,16 +792,15 @@ function parseExactOperationRequest(input: {
   idempotencyKey: string
   settings: CanonicalSam2OperationSettings
 } {
-  const validation = validateProfessionalToolOperationRequest(
-    'sam2',
+  const validation = candidateOperationRequestSchema.safeParse(
     input.operationRequest,
   )
-  if (!validation.ok) {
+  if (!validation.success) {
     throw invalid(
       'sam2_professional_operation_request_invalid',
     )
   }
-  const request = validation.request
+  const request = validation.data
   if (
     request.modelManifestId
       !== input.gpuBundle.artifacts[0]!.locator.manifestDigestSha256
@@ -823,7 +852,7 @@ function parseExactOperationRequest(input: {
   }
   if (
     input.source.byteLength + input.promptArtifact.byteLength
-      > validation.spec.resourceCeilings.maxInputBytes
+      > MAXIMUM_OPERATION_INPUT_BYTES
   ) {
     throw blocked('sam2_operation_input_byte_limit_exceeded')
   }

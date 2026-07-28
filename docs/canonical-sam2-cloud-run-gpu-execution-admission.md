@@ -13,7 +13,7 @@ ReEditPro now has one SAM2-specific preflight that joins:
 - one private MP4 source expectation;
 - one server-compiled structured subject prompt artifact;
 - the approved snapshot, work item, credit reservation, worker lease, and
-  idempotency fields already required by the professional operation schema;
+  idempotency fields required by the closed candidate request schema;
   and
 - one closed output and QA contract.
 
@@ -26,6 +26,13 @@ an unchecked label, a caller path, or an arbitrary model argument.
 
 The preflight is deliberately non-executable. It does not authorize a Cloud
 Run job or model inference.
+
+SAM2 is one of the separately retained non-E2E capability candidates, not one
+of the exact 50 production tool identities. Its request is therefore validated
+by this closed candidate-only schema and must not resolve through or expand the
+production operation registry. Promotion requires a complete canonical
+private lifecycle, confined GPU runtime, job adapter, QA, cost, and deployment
+proof; this preflight supplies none of those authorities.
 
 ## Structured Prompt Boundary
 
@@ -53,10 +60,10 @@ existing canonical worker-lease dependency authority. This preflight does
 not trust caller-provided bytes or artifact storage locations.
 
 Candidate verification also requires the original source expectation and
-professional operation request again. It reconstructs the source digest and
-duration, reruns the operation validator, and compares the snapshot, work,
-credit, lease, idempotency, settings, and request-digest lineage. Re-signing
-the candidate after changing either parent does not make it valid.
+candidate operation request again. It reconstructs the source digest and
+duration, reruns the closed candidate validator, and compares the snapshot,
+work, credit, lease, idempotency, settings, and request-digest lineage.
+Re-signing the candidate after changing either parent does not make it valid.
 
 ## Model And GPU Binding
 

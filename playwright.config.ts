@@ -28,6 +28,7 @@ export default defineConfig({
     '**/google-oauth-sign-in.spec.ts',
     '**/motion-studio-*.spec.ts',
     '**/professional-long-form-customer-delivery-media-source.spec.ts',
+    '**/professional-long-form-customer-delivery-review-ui.spec.ts',
     '**/project-edit-brief-*.spec.ts',
     '**/project-source-video-brief-playback.spec.ts',
     '**/screenshots.spec.ts',

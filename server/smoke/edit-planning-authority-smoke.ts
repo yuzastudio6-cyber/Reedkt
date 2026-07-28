@@ -110,6 +110,9 @@ import {
   CANONICAL_LIVING_FRAME_SELECTED_SCENE_COMPONENT_KEY,
   CANONICAL_LIVING_FRAME_SEMANTIC_PLAN_PROJECTION_COMPONENT_KEY,
 } from '../../src/types/living-frame-selected-scene-binding'
+import {
+  CANONICAL_LIVING_FRAME_EXECUTION_REQUIREMENTS_COMPONENT_KEY,
+} from '../../src/types/living-frame-execution-requirements'
 import type { LivingFrameVisualContinuityPack } from
   '../../src/types/living-frame-visual-continuity'
 import {
@@ -5434,12 +5437,50 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     CANONICAL_LIVING_FRAME_SELECTED_SCENE_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_SELECTED_SCENE_ADMISSION_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_SEMANTIC_PLAN_PROJECTION_COMPONENT_KEY,
+    CANONICAL_LIVING_FRAME_EXECUTION_REQUIREMENTS_COMPONENT_KEY,
   ]) {
     assert.ok(
       asRecord(publishedRefs[key]).sha256,
       `${key} must be content-addressed in the canonical plan.`,
     )
   }
+  const executionRequirements =
+    asRecord(await readPrivateAuthorityJsonBlob({
+      localStorageRoot:
+        serviceContext.env.localStorageRoot,
+      ref: publishedRefs[
+        CANONICAL_LIVING_FRAME_EXECUTION_REQUIREMENTS_COMPONENT_KEY
+      ] as {
+        sha256: string
+        byteLength: number
+      },
+    }))
+  assert.equal(
+    executionRequirements.readiness,
+    'blocked_until_canonical_execution_projection',
+  )
+  const executionScenes = executionRequirements.scenes
+  assert.ok(Array.isArray(executionScenes))
+  assert.equal(
+    executionScenes.length,
+    1,
+  )
+  const executionScene = asRecord(
+    executionScenes[0],
+  )
+  assert.equal(
+    executionScene.canonicalSegmentId,
+    'segment-1',
+  )
+  assert.deepEqual(
+    executionScene.requiredNamedWorkItemTypes,
+    [
+      'generate_mask_asset',
+      'prepare_remotion_layer',
+      'process_image_asset',
+      'reconstruct_background_plate',
+    ],
+  )
 
   const planningService =
     createEditPlanningAuthorityService(serviceContext)

@@ -1087,7 +1087,11 @@ non-use decision into a separate server-derived selected-scene binding while
 the original deferred Living Frame user-intent component remains unchanged.
 The binding, selected-scene admission, and semantic-plan projection are stored
 as three content-addressed component references in the existing canonical
-presented plan and included in its hash.
+presented plan and included in its hash. The server additionally derives a
+fourth content-addressed `livingFrameExecutionRequirements` record. It maps
+each scene to one exact current canonical segment and projects the closed
+named-work, timing, SoundSync, asset, QA, and private-review requirements
+through the existing work-admission catalog.
 
 This is not a second Living Frame workflow. It creates no estimate line,
 work item, asset-manifest entry, timing mutation, SoundSync decision, tool or
@@ -1100,6 +1104,8 @@ projection are present. Approval and execution reload and verify the same
 selected-scene records; they cannot silently omit the selected skill from an
 otherwise valid final-render graph. See
 `docs/living-frame/living-frame-selected-scene-binding.md`.
+The exact requirements record is documented in
+`docs/living-frame/living-frame-execution-requirements.md`.
 
 ### Slice 4: canonical timing, work, and asset mapping
 

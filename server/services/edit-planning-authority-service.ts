@@ -111,12 +111,20 @@ import {
 import type {
   CanonicalLivingFrameSelectedScenePublication,
 } from '../../src/types/living-frame-selected-scene-binding'
+import type {
+  CanonicalLivingFrameExecutionRequirements,
+} from '../../src/types/living-frame-execution-requirements'
 import {
   canonicalLivingFrameSelectedScenePublicationDigest,
   loadCanonicalLivingFrameSelectedScenePublication,
   persistCanonicalLivingFrameSelectedScenePublication,
   prepareCanonicalLivingFrameSelectedScenePublication,
 } from './canonical-living-frame-selected-scene-binding-service'
+import {
+  loadCanonicalLivingFrameExecutionRequirements,
+  persistCanonicalLivingFrameExecutionRequirements,
+  prepareCanonicalLivingFrameExecutionRequirements,
+} from './canonical-living-frame-execution-requirements-service'
 
 export interface CanonicalApprovedExecutionWorkItem extends AuthorityApprovedWorkItemRecord {
   executionInput: Record<string, unknown>
@@ -139,6 +147,8 @@ export interface CanonicalApprovedExecutionAuthority {
   sourceAssetManifest: ApprovedSourceBindingManifest
   livingFrameSelectedSceneAuthority?:
     CanonicalLivingFrameSelectedScenePublication
+  livingFrameExecutionRequirements?:
+    CanonicalLivingFrameExecutionRequirements
   workItems: CanonicalApprovedExecutionWorkItem[]
   jobs: AuthorityDerivedJobRecord[]
   testOnly: true
@@ -312,6 +322,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
               components: body.canonicalPlan.components,
               planningHandoffBinding,
             })
+      const livingFrameExecutionRequirements =
+        prepareCanonicalLivingFrameExecutionRequirements({
+          publication: livingFrameSelectedScenePublication,
+          components: body.canonicalPlan.components,
+        })
       const professionalLongFormPublication = input.professionalLongFormSeedDraft === undefined
         ? undefined
         : prepareCanonicalProfessionalLongFormPublication({
@@ -395,10 +410,16 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
               publication: livingFrameSelectedScenePublication,
             })
           : {}
+      const livingFrameExecutionRequirementRefs =
+        await persistCanonicalLivingFrameExecutionRequirements({
+          context,
+          requirements: livingFrameExecutionRequirements,
+        })
       const baseComponentRefs = await persistPlanComponents(context, canonicalPlan.components)
       const componentRefs: Record<string, AuthorityJsonBlobRef> = {
         ...baseComponentRefs,
         ...livingFrameSelectedSceneRefs,
+        ...livingFrameExecutionRequirementRefs,
         ...(professionalLongFormPublication
           ? {
               [PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY]:
@@ -498,6 +519,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           canonicalLivingFrameSelectedScenePublicationDigest(
             livingFrameSelectedScenePublication,
           ),
+        livingFrameExecutionRequirementsDigestSha256:
+          livingFrameExecutionRequirements
+            ?.requirementsDigestSha256 ?? null,
         planHash,
         estimateHash,
         actorUserId: access.userId,
@@ -820,8 +844,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           components: approvalComponents,
           planningHandoffBinding: approvalPlanningHandoffAuthority,
         })
+      const approvalLivingFrameExecutionRequirements =
+        await loadCanonicalLivingFrameExecutionRequirements({
+          context,
+          componentRefs: targetPlan.componentRefs,
+          publication:
+            approvalLivingFrameSelectedSceneAuthority,
+          components: approvalComponents,
+        })
       assertLivingFrameExecutionAuthorityReady(
         approvalLivingFrameSelectedSceneAuthority,
+        approvalLivingFrameExecutionRequirements,
       )
       const approvalLongFormPublication =
         await loadCanonicalProfessionalLongFormPublicationAuthority({
@@ -962,6 +995,14 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
               planningHandoffBinding:
                 approvalPlanningHandoffAuthority,
             })
+          const lockedLivingFrameExecutionRequirements =
+            await loadCanonicalLivingFrameExecutionRequirements({
+              context,
+              componentRefs: plan.componentRefs,
+              publication:
+                lockedLivingFrameSelectedSceneAuthority,
+              components: approvalComponents,
+            })
           if (
             stableAuthorityStringify(
               lockedLivingFrameSelectedSceneAuthority ?? null,
@@ -975,8 +1016,22 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
               409,
             )
           }
+          if (
+            stableAuthorityStringify(
+              lockedLivingFrameExecutionRequirements ?? null,
+            ) !== stableAuthorityStringify(
+              approvalLivingFrameExecutionRequirements ?? null,
+            )
+          ) {
+            throw new ApiError(
+              'IDEMPOTENCY_CONFLICT',
+              'Canonical Living Frame execution requirements changed before approval.',
+              409,
+            )
+          }
           assertLivingFrameExecutionAuthorityReady(
             lockedLivingFrameSelectedSceneAuthority,
+            lockedLivingFrameExecutionRequirements,
           )
           if (plan.status !== 'presented') throw new ApiError('PLAN_NOT_APPROVED', 'Only the current presented plan can be approved.', 409)
           if (estimate.status !== 'presented') throw new ApiError('CREDIT_ESTIMATE_NOT_APPROVED', 'Only the current presented estimate can be approved.', 409)
@@ -1547,8 +1602,16 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           components: approvedComponents,
           planningHandoffBinding: planningHandoffAuthority,
         })
+      const livingFrameExecutionRequirements =
+        await loadCanonicalLivingFrameExecutionRequirements({
+          context,
+          componentRefs: snapshot.componentRefs,
+          publication: livingFrameSelectedSceneAuthority,
+          components: approvedComponents,
+        })
       assertLivingFrameExecutionAuthorityReady(
         livingFrameSelectedSceneAuthority,
+        livingFrameExecutionRequirements,
       )
       await revalidatePlanningInputAuthorityBinding({
         context,
@@ -1718,6 +1781,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         planningInputAuthority,
         planningHandoffAuthority,
         livingFrameSelectedSceneAuthority,
+        livingFrameExecutionRequirements,
         toolExecutionAuthority,
         toolPayloadAuthority,
         sourceAssetManifest,
@@ -1733,13 +1797,56 @@ function assertLivingFrameExecutionAuthorityReady(
   publication:
     | CanonicalLivingFrameSelectedScenePublication
     | undefined,
+  requirements:
+    | CanonicalLivingFrameExecutionRequirements
+    | undefined,
 ): void {
+  if (publication === undefined) {
+    if (requirements !== undefined) {
+      throw new ApiError(
+        'IDEMPOTENCY_CONFLICT',
+        'Canonical Living Frame execution requirements exist without selected-scene lineage.',
+        409,
+      )
+    }
+    return
+  }
+  if (!requirements) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Canonical Living Frame selected-scene lineage is missing its execution requirements.',
+      409,
+    )
+  }
   if (
-    publication === undefined
-    || publication.binding.deliberateNonUse
+    publication.binding.deliberateNonUse
     || publication.binding.selectedSceneCount === 0
   ) {
+    if (
+      requirements.readiness !==
+        'ready_without_living_frame_execution'
+      || requirements.scenes.length !== 0
+      || requirements.blockerCodes.length !== 0
+    ) {
+      throw new ApiError(
+        'IDEMPOTENCY_CONFLICT',
+        'Canonical Living Frame deliberate non-use has inconsistent execution requirements.',
+        409,
+      )
+    }
     return
+  }
+  if (
+    requirements.readiness !==
+      'blocked_until_canonical_execution_projection'
+    || requirements.scenes.length !==
+      publication.binding.selectedSceneCount
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Canonical Living Frame selected-scene execution readiness is inconsistent.',
+      409,
+    )
   }
 
   throw new ApiError(
@@ -1749,18 +1856,16 @@ function assertLivingFrameExecutionAuthorityReady(
     {
       requiredGate:
         'canonical_living_frame_execution_authority',
-      selectedSceneIds:
-        publication.binding.selectedComponent.scenePlans.map(
-          (scene) => scene.sceneId,
-        ),
-      unresolvedAuthorityGates: [
-        'canonical_living_frame_master_timing_binding',
-        'canonical_living_frame_soundsync_binding',
-        'canonical_living_frame_estimate_projection',
-        'canonical_living_frame_named_work_projection',
-        'canonical_living_frame_asset_manifest_projection',
-        'canonical_living_frame_qa_private_review_projection',
-      ],
+      executionRequirementsDigestSha256:
+        requirements.requirementsDigestSha256,
+      selectedSceneIds: requirements.scenes.map(
+        (scene) => scene.sceneId,
+      ),
+      blockerCodes: requirements.blockerCodes,
+      requiredNamedWorkItemTypes:
+        [...new Set(requirements.scenes.flatMap(
+          (scene) => scene.requiredNamedWorkItemTypes,
+        ))].sort(),
     },
   )
 }

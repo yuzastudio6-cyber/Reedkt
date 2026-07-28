@@ -29,65 +29,24 @@ import {
   assertCanonicalRembgGpuBundleRequirementProjection,
   assertCanonicalRembgModelArtifactRequirementSet,
 } from './canonical-rembg-model-artifact-requirements'
+import {
+  assertCanonicalRembgExactSourceFrameArtifactBinding,
+} from './canonical-rembg-exact-source-frame-artifact-binding'
+import {
+  CANONICAL_REMBG_MAXIMUM_FRAME_DIMENSION,
+  canonicalRembgSourceFrameExpectationInputSchema,
+  canonicalRembgSourceFrameExpectationSchema,
+} from './canonical-rembg-source-frame-expectation-schema'
 
 const DIGEST_PATTERN = /^[a-f0-9]{64}$/u
 const ARTIFACT_RECORD_PATTERN =
   /^model-artifact-[a-f0-9]{64}$/u
 const SAFE_ID_PATTERN =
   /^[A-Za-z][A-Za-z0-9_-]{7,159}$/u
-const MAXIMUM_SOURCE_MEDIA_BYTES =
-  (4 * 1_024 * 1_024 * 1_024) - 65_536
-const MAXIMUM_SOURCE_FRAME_BYTES = 64 * 1_024 * 1_024
-const MAXIMUM_FRAME_DIMENSION = 8_192
 
 const digestSchema = z.string().regex(DIGEST_PATTERN)
 const safeIdSchema = z.string().regex(SAFE_ID_PATTERN)
   .refine((value) => !value.includes('..'))
-
-const sourceInputSchema = z.object({
-  sourceSequenceItemId: safeIdSchema,
-  mediaAssetId: safeIdSchema,
-  sourceCleanupDecisionId: safeIdSchema,
-  masterFrameIndex: z.number().int().min(0)
-    .max(10_000_000),
-  sourceFrameIndex: z.number().int().min(0)
-    .max(10_000_000),
-  frameRate: z.number().int().min(1).max(240),
-  frameSelectionPolicy: z.literal(
-    'scene_start_meaning_anchor_v1',
-  ),
-  sourceFrameSelectionDigestSha256: digestSchema,
-  sourceMediaContentSha256: digestSchema,
-  sourceMediaByteLength: z.number().int().positive()
-    .max(MAXIMUM_SOURCE_MEDIA_BYTES),
-  sourceMediaContentType: z.enum([
-    'video/mp4',
-    'video/quicktime',
-  ]),
-  sourceBindingHash: digestSchema,
-  storageIdentityHash: digestSchema,
-  frameArtifactId: safeIdSchema,
-  frameArtifactContentType: z.enum([
-    'image/png',
-    'image/jpeg',
-    'image/webp',
-  ]),
-  frameArtifactSha256: digestSchema,
-  frameArtifactByteLength: z.number().int().positive()
-    .max(MAXIMUM_SOURCE_FRAME_BYTES),
-  frameWidth: z.number().int().min(1)
-    .max(MAXIMUM_FRAME_DIMENSION),
-  frameHeight: z.number().int().min(1)
-    .max(MAXIMUM_FRAME_DIMENSION),
-}).strict()
-
-const sourceExpectationSchema = sourceInputSchema.extend({
-  artifactKind: z.literal('image'),
-  frameDerivationPolicy: z.literal(
-    'exact_source_frame_lossless_or_source_codec_decode_v1',
-  ),
-  sourceFrameExpectationDigestSha256: digestSchema,
-}).strict()
 
 const operationSettingsSchema = z.object({
   device: z.literal('cuda'),
@@ -116,23 +75,26 @@ const expectedOutputsSchema = z.tuple([
     trueAlphaOrMaskVariationRequired: z.literal(true),
     privateArtifactRequired: z.literal(true),
   }).strict(),
+])
+
+const processBoundEvidenceReceiptsSchema = z.tuple([
   z.object({
-    canonicalOrder: z.literal(1),
-    artifactKind: z.literal('analysis_report'),
-    contentType: z.literal('application/json'),
+    canonicalOrder: z.literal(0),
+    evidenceKind: z.literal('mask_analysis_receipt'),
     encodingProfile: z.literal(
-      'rembg_u2netp_mask_analysis_report_json_v1',
+      'rembg_u2netp_mask_analysis_receipt_v1',
     ),
-    privateArtifactRequired: z.literal(true),
+    digestOnly: z.literal(true),
+    persistedAsCustomerAsset: z.literal(false),
   }).strict(),
   z.object({
-    canonicalOrder: z.literal(2),
-    artifactKind: z.literal('qa_report'),
-    contentType: z.literal('application/json'),
+    canonicalOrder: z.literal(1),
+    evidenceKind: z.literal('mask_qa_measurement_receipt'),
     encodingProfile: z.literal(
-      'rembg_mask_qa_measurement_report_json_v1',
+      'rembg_mask_qa_measurement_receipt_v1',
     ),
-    privateArtifactRequired: z.literal(true),
+    digestOnly: z.literal(true),
+    persistedAsCustomerAsset: z.literal(false),
   }).strict(),
 ])
 
@@ -145,6 +107,8 @@ const boundariesSchema = z.object({
   approvedSnapshotRereadRequired: z.literal(true),
   workerLeaseRereadRequired: z.literal(true),
   sourceMediaArtifactRereadRequired: z.literal(true),
+  sourceFrameExtractionArtifactAdmissionVerified:
+    z.literal(true),
   sourceFrameExtractionArtifactRereadRequired: z.literal(true),
   cloudRunReadOnlyModelMountVerified: z.literal(false),
   cloudRunCudaRuntimeImageVerified: z.literal(false),
@@ -209,6 +173,7 @@ const candidateSchema = z.object({
     workerLeaseId: safeIdSchema,
     idempotencyKey: safeIdSchema,
     modelManifestId: safeIdSchema,
+    sourceFrameArtifactBindingDigestSha256: digestSchema,
     operationRequestDigestSha256: digestSchema,
   }).strict(),
   modelArtifactBinding: z.object({
@@ -234,9 +199,11 @@ const candidateSchema = z.object({
     runtimeDownloadAllowed: z.literal(false),
     networkFetchAllowed: z.literal(false),
   }).strict(),
-  source: sourceExpectationSchema,
+  source: canonicalRembgSourceFrameExpectationSchema,
   settings: operationSettingsSchema,
   expectedOutputs: expectedOutputsSchema,
+  processBoundEvidenceReceipts:
+    processBoundEvidenceReceiptsSchema,
   requiredQaGates: z.tuple([
     z.literal('mask_edge_quality'),
     z.literal('mask_subject_coverage'),
@@ -245,15 +212,17 @@ const candidateSchema = z.object({
     exactModelArtifactIdentityMatched: z.literal(true),
     exactCloudRunGpuAttemptIdentityMatched: z.literal(true),
     exactSourceMediaAndFrameLineageMatched: z.literal(true),
-    exactPrivateFrameArtifactBindingMatched: z.literal(true),
+    exactCanonicalSourceFrameExtractionArtifactMatched:
+      z.literal(true),
     exactGpuOnlySettingsMatched: z.literal(true),
-    exactMaskOnlyOutputAndQaContractDeclared: z.literal(true),
+    exactSingleMaskArtifactAndProcessEvidenceContractDeclared:
+      z.literal(true),
     sourceMasterFrameIndex: z.number().int().min(0),
     sourceFrameIndex: z.number().int().min(0),
     frameWidth: z.number().int().min(1)
-      .max(MAXIMUM_FRAME_DIMENSION),
+      .max(CANONICAL_REMBG_MAXIMUM_FRAME_DIMENSION),
     frameHeight: z.number().int().min(1)
-      .max(MAXIMUM_FRAME_DIMENSION),
+      .max(CANONICAL_REMBG_MAXIMUM_FRAME_DIMENSION),
     cpuFallbackAllowed: z.literal(false),
     runtimeDownloadAllowed: z.literal(false),
     networkFetchAllowed: z.literal(false),
@@ -280,7 +249,6 @@ const BLOCKERS = [
   'rembg_cuda_dependency_lock_not_qualified',
   'rembg_model_paid_production_approval_missing',
   'rembg_onnx_cuda_provider_load_not_verified',
-  'source_frame_extraction_artifact_not_canonically_admitted',
 ] as const
 
 const BOUNDARIES = {
@@ -292,6 +260,8 @@ const BOUNDARIES = {
   approvedSnapshotRereadRequired: true as const,
   workerLeaseRereadRequired: true as const,
   sourceMediaArtifactRereadRequired: true as const,
+  sourceFrameExtractionArtifactAdmissionVerified:
+    true as const,
   sourceFrameExtractionArtifactRereadRequired: true as const,
   cloudRunReadOnlyModelMountVerified: false as const,
   cloudRunCudaRuntimeImageVerified: false as const,
@@ -336,21 +306,25 @@ const EXPECTED_OUTPUTS = [
     trueAlphaOrMaskVariationRequired: true as const,
     privateArtifactRequired: true as const,
   },
+] as const
+
+const PROCESS_BOUND_EVIDENCE_RECEIPTS = [
   {
-    canonicalOrder: 1 as const,
-    artifactKind: 'analysis_report' as const,
-    contentType: 'application/json' as const,
+    canonicalOrder: 0 as const,
+    evidenceKind: 'mask_analysis_receipt' as const,
     encodingProfile:
-      'rembg_u2netp_mask_analysis_report_json_v1' as const,
-    privateArtifactRequired: true as const,
+      'rembg_u2netp_mask_analysis_receipt_v1' as const,
+    digestOnly: true as const,
+    persistedAsCustomerAsset: false as const,
   },
   {
-    canonicalOrder: 2 as const,
-    artifactKind: 'qa_report' as const,
-    contentType: 'application/json' as const,
+    canonicalOrder: 1 as const,
+    evidenceKind:
+      'mask_qa_measurement_receipt' as const,
     encodingProfile:
-      'rembg_mask_qa_measurement_report_json_v1' as const,
-    privateArtifactRequired: true as const,
+      'rembg_mask_qa_measurement_receipt_v1' as const,
+    digestOnly: true as const,
+    persistedAsCustomerAsset: false as const,
   },
 ] as const
 
@@ -371,7 +345,13 @@ export function createCanonicalRembgCloudRunGpuExecutionAdmissionCandidate(
       input.requirementProjection,
     )
   const gpuBundle = assertExactRembgGpuBundle(input.gpuBundle)
-  const source = createSourceExpectation(input.source)
+  const sourceArtifactBinding =
+    assertCanonicalRembgExactSourceFrameArtifactBinding(
+      input.sourceArtifactBinding,
+    )
+  const source = createSourceExpectation(
+    sourceArtifactBinding.source,
+  )
   const operation = parseExactOperationRequest({
     value: input.operationRequest,
     source,
@@ -398,6 +378,8 @@ export function createCanonicalRembgCloudRunGpuExecutionAdmissionCandidate(
         gpuBundle.bundleDigestSha256,
       sourceFrameExpectationDigestSha256:
         source.sourceFrameExpectationDigestSha256,
+      sourceFrameArtifactBindingDigestSha256:
+        sourceArtifactBinding.bindingDigestSha256,
       operationRequestDigestSha256:
         operation.operationRequestDigestSha256,
     }),
@@ -430,6 +412,8 @@ export function createCanonicalRembgCloudRunGpuExecutionAdmissionCandidate(
       workerLeaseId: operation.workerLeaseId,
       idempotencyKey: operation.idempotencyKey,
       modelManifestId: operation.modelManifestId,
+      sourceFrameArtifactBindingDigestSha256:
+        sourceArtifactBinding.bindingDigestSha256,
       operationRequestDigestSha256:
         operation.operationRequestDigestSha256,
     },
@@ -455,14 +439,18 @@ export function createCanonicalRembgCloudRunGpuExecutionAdmissionCandidate(
     source,
     settings,
     expectedOutputs: EXPECTED_OUTPUTS,
+    processBoundEvidenceReceipts:
+      PROCESS_BOUND_EVIDENCE_RECEIPTS,
     requiredQaGates: REQUIRED_QA_GATES,
     summary: {
       exactModelArtifactIdentityMatched: true as const,
       exactCloudRunGpuAttemptIdentityMatched: true as const,
       exactSourceMediaAndFrameLineageMatched: true as const,
-      exactPrivateFrameArtifactBindingMatched: true as const,
+      exactCanonicalSourceFrameExtractionArtifactMatched:
+        true as const,
       exactGpuOnlySettingsMatched: true as const,
-      exactMaskOnlyOutputAndQaContractDeclared: true as const,
+      exactSingleMaskArtifactAndProcessEvidenceContractDeclared:
+        true as const,
       sourceMasterFrameIndex: source.masterFrameIndex,
       sourceFrameIndex: source.sourceFrameIndex,
       frameWidth: source.frameWidth,
@@ -492,7 +480,7 @@ export function assertCanonicalRembgCloudRunGpuExecutionAdmissionCandidate(
       requirementSet: input.requirementSet,
       requirementProjection: input.requirementProjection,
       gpuBundle: input.gpuBundle,
-      source: input.source,
+      sourceArtifactBinding: input.sourceArtifactBinding,
       operationRequest: input.operationRequest,
     })
   if (
@@ -509,7 +497,9 @@ export function assertCanonicalRembgCloudRunGpuExecutionAdmissionCandidate(
 function createSourceExpectation(
   value: CanonicalRembgSourceFrameExpectationInput,
 ): CanonicalRembgSourceFrameExpectation {
-  const parsed = sourceInputSchema.safeParse(value)
+  const parsed =
+    canonicalRembgSourceFrameExpectationInputSchema
+      .safeParse(value)
   if (!parsed.success) {
     throw invalid('rembg_source_frame_expectation_invalid')
   }
@@ -517,13 +507,15 @@ function createSourceExpectation(
     ...parsed.data,
     artifactKind: 'image' as const,
     frameDerivationPolicy:
-      'exact_source_frame_lossless_or_source_codec_decode_v1' as const,
+      'canonical_ffmpeg_exact_decoded_source_frame_rgba_png_v1' as const,
   }
-  return deepFreeze(sourceExpectationSchema.parse({
+  return deepFreeze(
+    canonicalRembgSourceFrameExpectationSchema.parse({
     ...draft,
     sourceFrameExpectationDigestSha256:
       sha256AuthorityValue(draft),
-  })) as CanonicalRembgSourceFrameExpectation
+    }),
+  ) as CanonicalRembgSourceFrameExpectation
 }
 
 function parseExactOperationRequest(input: {
@@ -791,6 +783,7 @@ function admissionIdFor(input: {
   readonly requirementProjectionDigestSha256: string
   readonly gpuBundleDigestSha256: string
   readonly sourceFrameExpectationDigestSha256: string
+  readonly sourceFrameArtifactBindingDigestSha256: string
   readonly operationRequestDigestSha256: string
 }): string {
   return `rembg_gpu_preflight_${

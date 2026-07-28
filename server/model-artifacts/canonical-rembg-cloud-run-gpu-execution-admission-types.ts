@@ -5,6 +5,9 @@ import type {
   CanonicalRembgGpuBundleRequirementProjection,
   CanonicalRembgModelArtifactRequirementSet,
 } from './canonical-rembg-model-artifact-requirement-types'
+import type {
+  CanonicalRembgExactSourceFrameArtifactBinding,
+} from './canonical-rembg-exact-source-frame-artifact-binding-types'
 
 export const CANONICAL_REMBG_CLOUD_RUN_GPU_EXECUTION_ADMISSION_VERSION =
   'canonical-rembg-cloud-run-gpu-execution-admission-candidate-v1' as const
@@ -26,22 +29,39 @@ export interface CanonicalRembgSourceFrameExpectationInput {
     | 'video/quicktime'
   readonly sourceBindingHash: string
   readonly storageIdentityHash: string
+  readonly frameExtractionWorkItemKey: string
+  readonly frameExtractionWorkItemDigestSha256: string
+  readonly frameExtractionOperation:
+    'extract_approved_exact_source_frame_png'
+  readonly frameExtractionRecipeProfileId:
+    'approved_exact_source_frame_png_v1'
+  readonly frameExtractionToolId: 'ffmpeg'
+  readonly frameExtractionToolOperationId:
+    'tool.ffmpeg.execute_approved_media_recipe.v1'
+  readonly frameExtractionOutputKey: string
+  readonly frameExtractionDependencyJobId: string
+  readonly frameExtractionExecutionAttemptId: string
+  readonly frameExtractionSourceLeaseImmutableHash: string
+  readonly frameExtractionDependencyReadEvidenceHash: string
   readonly frameArtifactId: string
-  readonly frameArtifactContentType:
-    | 'image/png'
-    | 'image/jpeg'
-    | 'image/webp'
+  readonly frameArtifactAssetId: string
+  readonly frameArtifactVersion: number
+  readonly frameArtifactType:
+    'approved_exact_source_frame_png'
+  readonly frameArtifactContentType: 'image/png'
   readonly frameArtifactSha256: string
   readonly frameArtifactByteLength: number
   readonly frameWidth: number
   readonly frameHeight: number
+  readonly frameDecodedRgbaSha256: string
+  readonly frameOpaquePixelCount: number
 }
 
 export interface CanonicalRembgSourceFrameExpectation
   extends CanonicalRembgSourceFrameExpectationInput {
   readonly artifactKind: 'image'
   readonly frameDerivationPolicy:
-    'exact_source_frame_lossless_or_source_codec_decode_v1'
+    'canonical_ffmpeg_exact_decoded_source_frame_rgba_png_v1'
   readonly sourceFrameExpectationDigestSha256: string
 }
 
@@ -85,6 +105,7 @@ export interface CanonicalRembgCloudRunGpuExecutionAdmissionCandidate {
     readonly workerLeaseId: string
     readonly idempotencyKey: string
     readonly modelManifestId: string
+    readonly sourceFrameArtifactBindingDigestSha256: string
     readonly operationRequestDigestSha256: string
   }
   readonly modelArtifactBinding: {
@@ -119,21 +140,23 @@ export interface CanonicalRembgCloudRunGpuExecutionAdmissionCandidate {
       readonly trueAlphaOrMaskVariationRequired: true
       readonly privateArtifactRequired: true
     },
+  ]
+  readonly processBoundEvidenceReceipts: readonly [
     {
-      readonly canonicalOrder: 1
-      readonly artifactKind: 'analysis_report'
-      readonly contentType: 'application/json'
+      readonly canonicalOrder: 0
+      readonly evidenceKind: 'mask_analysis_receipt'
       readonly encodingProfile:
-        'rembg_u2netp_mask_analysis_report_json_v1'
-      readonly privateArtifactRequired: true
+        'rembg_u2netp_mask_analysis_receipt_v1'
+      readonly digestOnly: true
+      readonly persistedAsCustomerAsset: false
     },
     {
-      readonly canonicalOrder: 2
-      readonly artifactKind: 'qa_report'
-      readonly contentType: 'application/json'
+      readonly canonicalOrder: 1
+      readonly evidenceKind: 'mask_qa_measurement_receipt'
       readonly encodingProfile:
-        'rembg_mask_qa_measurement_report_json_v1'
-      readonly privateArtifactRequired: true
+        'rembg_mask_qa_measurement_receipt_v1'
+      readonly digestOnly: true
+      readonly persistedAsCustomerAsset: false
     },
   ]
   readonly requiredQaGates: readonly [
@@ -144,9 +167,10 @@ export interface CanonicalRembgCloudRunGpuExecutionAdmissionCandidate {
     readonly exactModelArtifactIdentityMatched: true
     readonly exactCloudRunGpuAttemptIdentityMatched: true
     readonly exactSourceMediaAndFrameLineageMatched: true
-    readonly exactPrivateFrameArtifactBindingMatched: true
+    readonly exactCanonicalSourceFrameExtractionArtifactMatched: true
     readonly exactGpuOnlySettingsMatched: true
-    readonly exactMaskOnlyOutputAndQaContractDeclared: true
+    readonly exactSingleMaskArtifactAndProcessEvidenceContractDeclared:
+      true
     readonly sourceMasterFrameIndex: number
     readonly sourceFrameIndex: number
     readonly frameWidth: number
@@ -165,6 +189,7 @@ export interface CanonicalRembgCloudRunGpuExecutionAdmissionCandidate {
     readonly approvedSnapshotRereadRequired: true
     readonly workerLeaseRereadRequired: true
     readonly sourceMediaArtifactRereadRequired: true
+    readonly sourceFrameExtractionArtifactAdmissionVerified: true
     readonly sourceFrameExtractionArtifactRereadRequired: true
     readonly cloudRunReadOnlyModelMountVerified: false
     readonly cloudRunCudaRuntimeImageVerified: false
@@ -206,7 +231,8 @@ export interface CanonicalRembgCloudRunGpuExecutionAdmissionCandidateInput {
   readonly requirementProjection:
     CanonicalRembgGpuBundleRequirementProjection
   readonly gpuBundle: CanonicalModelArtifactGpuBundle
-  readonly source: CanonicalRembgSourceFrameExpectationInput
+  readonly sourceArtifactBinding:
+    CanonicalRembgExactSourceFrameArtifactBinding
   readonly operationRequest: unknown
 }
 
@@ -217,6 +243,7 @@ export interface CanonicalRembgCloudRunGpuExecutionAdmissionAssertionInput {
   readonly requirementProjection:
     CanonicalRembgGpuBundleRequirementProjection
   readonly gpuBundle: CanonicalModelArtifactGpuBundle
-  readonly source: CanonicalRembgSourceFrameExpectationInput
+  readonly sourceArtifactBinding:
+    CanonicalRembgExactSourceFrameArtifactBinding
   readonly operationRequest: unknown
 }

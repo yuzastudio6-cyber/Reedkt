@@ -1,8 +1,15 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { deflateSync } from 'node:zlib'
 
 import {
+  assertCanonicalRembgExactSourceFrameArtifactBinding,
   assertCanonicalRembgCloudRunGpuExecutionAdmissionCandidate,
   assertCanonicalRembgModelArtifactRequirementSet,
+  createCanonicalRembgExactSourceFrameArtifactBinding,
   createCanonicalRembgCloudRunGpuExecutionAdmissionCandidate,
   getCanonicalRembgModelArtifactRequirementSet,
   projectCanonicalRembgGpuBundleRequirements,
@@ -10,8 +17,13 @@ import {
   type CanonicalModelArtifactGpuBundleArtifact,
   type CanonicalModelArtifactGpuBundleRequirement,
   type CanonicalModelArtifactLocator,
-  type CanonicalRembgSourceFrameExpectationInput,
 } from '../model-artifacts'
+import {
+  persistCanonicalPrivateImageArtifact,
+} from '../services/canonical-private-image-artifact-storage'
+import {
+  verifyCanonicalPrivateImageArtifact,
+} from '../services/canonical-private-image-artifact-verifier'
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
@@ -21,6 +33,15 @@ import {
 import {
   resolveProfessionalToolOperationSpec,
 } from '../tool-execution'
+import type {
+  CanonicalLivingFrameSourceAssetBinding,
+} from '../../src/types/living-frame-asset-work-input-binding'
+import type {
+  CanonicalWorkItemInput,
+} from '../validation/edit-planning-authority-schemas'
+import {
+  persistedArtifactResultSchema,
+} from '../validation/private-artifact-qa-authority-schemas'
 
 const SHA = {
   artifactRecord: 'a'.repeat(64),
@@ -39,9 +60,10 @@ const SHA = {
   sourceBinding: '8'.repeat(64),
   storageIdentity: '9'.repeat(64),
   frameSelection: '0'.repeat(64),
-  frameArtifact: '1'.repeat(64),
   snapshot: '2'.repeat(64),
   workItem: '3'.repeat(64),
+  extractionLease: '4'.repeat(64),
+  dependencyRead: '5'.repeat(64),
 }
 
 const requirementSet =
@@ -61,27 +83,131 @@ const projection =
     locator,
   })
 const gpuBundle = controlledRembgGpuBundle()
-const source: CanonicalRembgSourceFrameExpectationInput = {
+const framePng = makeRgbaPng(4, 3)
+const nonOpaqueFramePng = makeRgbaPng(4, 3, 128)
+const frameArtifactSha256 = sha256(framePng)
+const sourceAssetBinding:
+CanonicalLivingFrameSourceAssetBinding = {
+  assetIntentId: 'asset-intent-source-0001',
+  sceneId: 'scene-0001',
+  componentId: 'component-0001',
   sourceSequenceItemId: 'source-item-0001',
   mediaAssetId: 'media-asset-0001',
+  uploadedOrder: 0,
   sourceCleanupDecisionId: 'cleanup-decision-0001',
   masterFrameIndex: 12,
   sourceFrameIndex: 12,
   frameRate: 30,
   frameSelectionPolicy: 'scene_start_meaning_anchor_v1',
   sourceFrameSelectionDigestSha256: SHA.frameSelection,
-  sourceMediaContentSha256: SHA.sourceMedia,
-  sourceMediaByteLength: 24_000_000,
-  sourceMediaContentType: 'video/mp4',
+  checksumSha256: SHA.sourceMedia,
+  mimeType: 'video/mp4',
+  sizeBytes: 24_000_000,
   sourceBindingHash: SHA.sourceBinding,
   storageIdentityHash: SHA.storageIdentity,
-  frameArtifactId: 'source-frame-artifact-0001',
-  frameArtifactContentType: 'image/png',
-  frameArtifactSha256: SHA.frameArtifact,
-  frameArtifactByteLength: 184_500,
-  frameWidth: 1_920,
-  frameHeight: 1_080,
+  required: true,
+  authorityState:
+    'exact_verified_source_media_and_cleanup_bound',
 }
+const extractionWorkItem: CanonicalWorkItemInput = {
+  workItemKey:
+    'living-frame-mask-0001-exact-source-frame-png',
+  workItemType: 'process_image_asset',
+  workerClass: 'media_processing_worker',
+  executionInput: {
+    operation: 'extract_approved_exact_source_frame_png',
+    approvedToolOperationIds: [
+      'tool.ffmpeg.execute_approved_media_recipe.v1',
+    ],
+    expectedOutputKeys: [
+      'living-frame-source-frame-output-0001',
+    ],
+    structuredPayload: {
+      recipeProfileId:
+        'approved_exact_source_frame_png_v1',
+      timestampPolicy:
+        'select_exact_decoded_source_frame',
+      overwriteExistingArtifact: false,
+      allowUnreviewedCodec: false,
+      sourceSequenceItemId:
+        sourceAssetBinding.sourceSequenceItemId,
+      sourceCleanupDecisionId:
+        sourceAssetBinding.sourceCleanupDecisionId,
+      masterFrameIndex:
+        sourceAssetBinding.masterFrameIndex,
+      sourceFrameIndex:
+        sourceAssetBinding.sourceFrameIndex,
+      frameRate: sourceAssetBinding.frameRate,
+      sourceFrameSelectionDigestSha256:
+        sourceAssetBinding
+          .sourceFrameSelectionDigestSha256,
+      frameSelectionPolicy:
+        'approved_source_frame_ordinal_v1',
+      outputContainer: 'png',
+      outputCodec: 'png',
+      outputPixelFormat: 'rgba',
+      metadataPolicy: 'strip_all',
+      preserveAudio: false,
+      maximumWidth: 4096,
+      maximumHeight: 4096,
+      maximumPixelCount: 16_777_216,
+      maximumOutputBytes: 16_777_216,
+    },
+  },
+  sourceSequenceItemIds: [
+    sourceAssetBinding.sourceSequenceItemId,
+  ],
+  sourceCleanupDecisionIds: [
+    sourceAssetBinding.sourceCleanupDecisionId,
+  ],
+  expectedOutputs: [{
+    outputKey:
+      'living-frame-source-frame-output-0001',
+    artifactType: 'approved_exact_source_frame_png',
+    assetRole: 'processed',
+    required: true,
+    previewPlaceholderAllowed: false,
+    contentType: 'image/png',
+    segmentIds: ['segment-0001'],
+    timingIds: ['timing-0001'],
+    rendererLayerIds: ['layer-0001'],
+  }],
+  dependencyKeys: [],
+  approvedToolIds: ['ffmpeg'],
+  providerExecutionMode: 'none',
+  fallbackPolicy: {
+    policy:
+      'block_living_frame_mask_until_exact_source_frame_exists',
+    unapprovedFallbackAllowed: false,
+    finalRenderBlockedWhilePending: true,
+  },
+  maxAttempts: 2,
+  attemptTimeoutSeconds: 300,
+  scheduledDelaySeconds: 0,
+  maximumCreditBudget: 0,
+  required: true,
+}
+const dependencyRead = {
+  bytes: framePng,
+  contentType: 'image/png' as const,
+  sha256: frameArtifactSha256,
+  byteLength: framePng.byteLength,
+  dependencyJobId: 'source-frame-job-0001',
+  expectedAssetId: 'source-frame-asset-0001',
+  artifactId: 'source-frame-artifact-0001',
+  artifactVersion: 1,
+  sourceExecutionAttemptId:
+    'source-frame-attempt-0001',
+  sourceLeaseImmutableHash: SHA.extractionLease,
+  dependencyReadEvidenceHash: SHA.dependencyRead,
+}
+const sourceArtifactBinding =
+  createCanonicalRembgExactSourceFrameArtifactBinding({
+    sourceAssetBinding,
+    extractionWorkItem,
+    dependencyRead,
+  })
+const source = sourceArtifactBinding.source
 const operationRequest = {
   operationId: 'tool.rembg.remove_image_background.v1',
   approvedSnapshotId: 'approved_snapshot_0001',
@@ -113,7 +239,7 @@ const candidate =
     requirementSet,
     requirementProjection: projection,
     gpuBundle,
-    source,
+    sourceArtifactBinding,
     operationRequest,
   })
 
@@ -141,11 +267,17 @@ assert.equal(
 assert.equal(candidate.modelArtifactBinding.cpuFallbackAllowed, false)
 assert.equal(candidate.source.masterFrameIndex, 12)
 assert.equal(candidate.source.sourceFrameIndex, 12)
-assert.equal(candidate.source.frameWidth, 1_920)
-assert.equal(candidate.source.frameHeight, 1_080)
+assert.equal(candidate.source.frameWidth, 4)
+assert.equal(candidate.source.frameHeight, 3)
+assert.equal(candidate.source.frameOpaquePixelCount, 12)
+assert.equal(
+  candidate.source.frameArtifactType,
+  'approved_exact_source_frame_png',
+)
 assert.equal(candidate.settings.device, 'cuda')
 assert.equal(candidate.settings.outputMode, 'mask_only_png')
-assert.equal(candidate.expectedOutputs.length, 3)
+assert.equal(candidate.expectedOutputs.length, 1)
+assert.equal(candidate.processBoundEvidenceReceipts.length, 2)
 assert.equal(
   candidate.expectedOutputs[0].artifactKind,
   'mask_image',
@@ -163,17 +295,29 @@ assert.equal(
   false,
 )
 assert.equal(candidate.boundaries.cpuExecutionAccepted, false)
+assert.equal(
+  candidate.boundaries
+    .sourceFrameExtractionArtifactAdmissionVerified,
+  true,
+)
 assert.equal(candidate.boundaries.cloudDispatchAuthorized, false)
 assert.equal(candidate.boundaries.modelInferenceAuthority, false)
 assert.equal(candidate.boundaries.workGraphAuthority, false)
 assert.equal(candidate.boundaries.productionReady, false)
+assert.deepEqual(
+  assertCanonicalRembgExactSourceFrameArtifactBinding(
+    structuredClone(sourceArtifactBinding),
+  ),
+  sourceArtifactBinding,
+)
 assert.deepEqual(
   assertCanonicalRembgCloudRunGpuExecutionAdmissionCandidate({
     value: structuredClone(candidate),
     requirementSet: structuredClone(requirementSet),
     requirementProjection: structuredClone(projection),
     gpuBundle: structuredClone(gpuBundle),
-    source: structuredClone(source),
+    sourceArtifactBinding:
+      structuredClone(sourceArtifactBinding),
     operationRequest: structuredClone(operationRequest),
   }),
   candidate,
@@ -188,6 +332,146 @@ assert.equal(
     ?.allowedOperationIds[0],
   'tool.rembg.remove_image_background.v1',
 )
+
+const privateArtifactRoot = await mkdtemp(join(
+  tmpdir(),
+  'weeditpro-rembg-exact-frame-',
+))
+try {
+  await persistCanonicalPrivateImageArtifact({
+    localStorageRoot: privateArtifactRoot,
+    privateObjectIdentityHash: SHA.objectIdentity,
+    contentType: 'image/png',
+    bytes: framePng,
+    expectedSha256: frameArtifactSha256,
+  })
+  const persistedSourceFrameArtifact =
+    persistedArtifactResultSchema.parse({
+      artifactId: dependencyRead.artifactId,
+      identity: {
+        workspaceId: 'workspace_0001',
+        projectId: 'project_0001',
+        editSessionId: 'edit_session_0001',
+        snapshotId: operationRequest.approvedSnapshotId,
+        jobId: dependencyRead.dependencyJobId,
+        expectedAssetId: dependencyRead.expectedAssetId,
+      },
+      lineage: {
+        assetId: dependencyRead.expectedAssetId,
+        outputKey:
+          extractionWorkItem.expectedOutputs[0]!.outputKey,
+        artifactType: 'approved_exact_source_frame_png',
+        assetRole: 'processed',
+        required: true,
+        previewPlaceholderAllowed: false,
+        contentType: 'image/png',
+        segmentIds: ['segment-0001'],
+        timingIds: ['timing-0001'],
+        rendererLayerIds: ['layer-0001'],
+        approvedWorkItemId: operationRequest.workItemId,
+        workItemKey: extractionWorkItem.workItemKey,
+        jobType: 'process_image_asset',
+        jobAuthorityHash: SHA.extractionLease,
+        snapshotHash: operationRequest.approvedSnapshotHash,
+        approvedAssetManifestHash: SHA.manifest,
+      },
+      artifactVersion: 1,
+      attemptKind: 'initial',
+      content: {
+        sha256: frameArtifactSha256,
+        byteLength: framePng.byteLength,
+        contentType: 'image/png',
+      },
+      storageIdentity: {
+        storageKind: 'private_local_test',
+        opaqueObjectIdentityHash: SHA.objectIdentity,
+      },
+      placeholder: {
+        isPlaceholder: false,
+        scope: 'none',
+      },
+      actualRunEvidence: {
+        state: 'actual_run_evidence_verified_v2',
+        executionAttemptId:
+          dependencyRead.sourceExecutionAttemptId,
+        runnerClass: 'offline_media_binary_execution_v1',
+        runnerEvidenceHash: SHA.dependencyRead,
+        startedAt: '2026-07-28T12:00:00.000Z',
+        finishedAt: '2026-07-28T12:00:01.000Z',
+        exitCode: 0,
+        toolIds: ['ffmpeg'],
+        actualRunVerified: true,
+        dispatchGrantId: 'dispatch_grant_0001',
+        runtimeAuthorityHash: SHA.attemptPlan,
+        runtimeImageIdentityHash: SHA.target,
+        executionAttestationHash: SHA.cloudRunRequest,
+      },
+      resultEvidenceRef: {
+        sha256: SHA.descriptor,
+        byteLength: 64,
+      },
+      resultEvidenceHash: SHA.descriptor,
+      evidenceClass: 'private_internal_test_attested',
+      liveRuntimeEligible: false,
+      createdAt: '2026-07-28T12:00:02.000Z',
+    })
+  const verifiedPrivateSourceFrame =
+    await verifyCanonicalPrivateImageArtifact({
+      localStorageRoot: privateArtifactRoot,
+      artifact: persistedSourceFrameArtifact,
+    })
+  assert.equal(
+    verifiedPrivateSourceFrame.sha256,
+    frameArtifactSha256,
+  )
+  assert.equal(
+    verifiedPrivateSourceFrame.runnerClass,
+    'offline_media_binary_execution_v1',
+  )
+  await assert.rejects(
+    () => verifyCanonicalPrivateImageArtifact({
+      localStorageRoot: privateArtifactRoot,
+      artifact: {
+        ...persistedSourceFrameArtifact,
+        lineage: {
+          ...persistedSourceFrameArtifact.lineage,
+          artifactType: 'generic_image_png',
+        },
+      },
+    }),
+    /canonical FFmpeg source-frame artifact/u,
+  )
+  await persistCanonicalPrivateImageArtifact({
+    localStorageRoot: privateArtifactRoot,
+    privateObjectIdentityHash: SHA.storageIdentity,
+    contentType: 'image/png',
+    bytes: nonOpaqueFramePng,
+    expectedSha256: sha256(nonOpaqueFramePng),
+  })
+  await assert.rejects(
+    () => verifyCanonicalPrivateImageArtifact({
+      localStorageRoot: privateArtifactRoot,
+      artifact: {
+        ...persistedSourceFrameArtifact,
+        content: {
+          ...persistedSourceFrameArtifact.content,
+          sha256: sha256(nonOpaqueFramePng),
+          byteLength: nonOpaqueFramePng.byteLength,
+        },
+        storageIdentity: {
+          ...persistedSourceFrameArtifact.storageIdentity,
+          opaqueObjectIdentityHash: SHA.storageIdentity,
+        },
+      },
+    }),
+    /non-opaque source pixels/u,
+  )
+} finally {
+  await rm(privateArtifactRoot, {
+    recursive: true,
+    force: true,
+  })
+}
 
 let adversarialAssertions = 0
 
@@ -219,24 +503,110 @@ expectRejects(
   'rembg_model_artifact_locator_invalid',
 )
 expectRejects(
-  () => createCandidate({
-    source: {
-      ...source,
+  () => createCanonicalRembgExactSourceFrameArtifactBinding({
+    sourceAssetBinding: {
+      ...sourceAssetBinding,
       sourceFrameSelectionDigestSha256: 'bad',
     },
+    extractionWorkItem,
+    dependencyRead,
   }),
   'invalid frame selection digest',
-  'rembg_source_frame_expectation_invalid',
+  'rembg_exact_source_frame_artifact_lineage_mismatch',
 )
 expectRejects(
-  () => createCandidate({
-    source: {
-      ...source,
-      sourceMediaContentType: 'video/avi' as never,
+  () => createCanonicalRembgExactSourceFrameArtifactBinding({
+    sourceAssetBinding: {
+      ...sourceAssetBinding,
+      mimeType: 'video/avi',
     },
+    extractionWorkItem,
+    dependencyRead,
   }),
   'unsupported source content type',
-  'rembg_source_frame_expectation_invalid',
+  'rembg_exact_source_frame_artifact_lineage_mismatch',
+)
+expectRejects(
+  () => createCanonicalRembgExactSourceFrameArtifactBinding({
+    sourceAssetBinding,
+    extractionWorkItem,
+    dependencyRead: {
+      ...dependencyRead,
+      sha256: 'f'.repeat(64),
+    },
+  }),
+  'source PNG digest mismatch',
+  'rembg_exact_source_frame_artifact_lineage_mismatch',
+)
+const corruptedFramePng = Buffer.from(framePng)
+corruptedFramePng[20] = corruptedFramePng[20]! ^ 1
+expectRejects(
+  () => createCanonicalRembgExactSourceFrameArtifactBinding({
+    sourceAssetBinding,
+    extractionWorkItem,
+    dependencyRead: {
+      ...dependencyRead,
+      bytes: corruptedFramePng,
+      byteLength: corruptedFramePng.byteLength,
+      sha256: sha256(corruptedFramePng),
+    },
+  }),
+  'invalid source PNG CRC',
+  'Exact source-frame PNG chunk checksum is invalid',
+)
+const unknownCriticalChunkPng = Buffer.concat([
+  framePng.subarray(0, 33),
+  pngChunk('ABCD', Buffer.alloc(0)),
+  framePng.subarray(33),
+])
+expectRejects(
+  () => createCanonicalRembgExactSourceFrameArtifactBinding({
+    sourceAssetBinding,
+    extractionWorkItem,
+    dependencyRead: {
+      ...dependencyRead,
+      bytes: unknownCriticalChunkPng,
+      byteLength: unknownCriticalChunkPng.byteLength,
+      sha256: sha256(unknownCriticalChunkPng),
+    },
+  }),
+  'unknown critical PNG chunk',
+  'Exact source-frame PNG contains an unsupported critical chunk',
+)
+expectRejects(
+  () => createCanonicalRembgExactSourceFrameArtifactBinding({
+    sourceAssetBinding,
+    extractionWorkItem,
+    dependencyRead: {
+      ...dependencyRead,
+      bytes: nonOpaqueFramePng,
+      byteLength: nonOpaqueFramePng.byteLength,
+      sha256: sha256(nonOpaqueFramePng),
+    },
+  }),
+  'non-opaque source frame',
+  'Exact source-frame PNG contains non-opaque source pixels',
+)
+expectRejects(
+  () => assertCanonicalRembgExactSourceFrameArtifactBinding({
+    ...structuredClone(sourceArtifactBinding),
+    bindingDigestSha256: 'f'.repeat(64),
+  }),
+  'source binding digest',
+  'rembg_exact_source_frame_artifact_binding_digest_mismatch',
+)
+expectRejects(
+  () => assertCanonicalRembgExactSourceFrameArtifactBinding(
+    rehashSourceBinding({
+      ...structuredClone(sourceArtifactBinding),
+      source: {
+        ...sourceArtifactBinding.source,
+        callerPath: '/tmp/frame.png',
+      },
+    }),
+  ),
+  'source binding caller path',
+  'rembg_exact_source_frame_artifact_binding_invalid',
 )
 expectRejects(
   () => createCandidate({
@@ -329,7 +699,7 @@ expectRejects(
     requirementSet,
     requirementProjection: projection,
     gpuBundle,
-    source,
+    sourceArtifactBinding,
     operationRequest,
   }),
   'output contract substitution',
@@ -347,7 +717,7 @@ expectRejects(
     requirementSet,
     requirementProjection: projection,
     gpuBundle,
-    source,
+    sourceArtifactBinding,
     operationRequest,
   }),
   'authority forgery',
@@ -359,10 +729,13 @@ expectRejects(
     requirementSet,
     requirementProjection: projection,
     gpuBundle,
-    source: {
-      ...source,
-      sourceFrameIndex: 13,
-    },
+    sourceArtifactBinding: rehashSourceBinding({
+      ...structuredClone(sourceArtifactBinding),
+      source: {
+        ...sourceArtifactBinding.source,
+        sourceFrameIndex: 13,
+      },
+    }),
     operationRequest,
   }),
   'source parent drift',
@@ -389,6 +762,9 @@ console.log(JSON.stringify({
     candidate.modelArtifactBinding.cpuFallbackAllowed,
   exactProductionToolRegistryCountPreserved:
     candidate.boundaries.exactFiftyToolRegistryPreserved,
+  sourceFrameExtractionArtifactAdmissionVerified:
+    candidate.boundaries
+      .sourceFrameExtractionArtifactAdmissionVerified,
   canonicalOperationArtifactSetVerified:
     candidate.boundaries.canonicalOperationArtifactSetVerified,
   cloudDispatchAuthorized:
@@ -401,7 +777,8 @@ console.log(JSON.stringify({
 
 function createCandidate(
   overrides: Partial<{
-    readonly source: typeof source
+    readonly sourceArtifactBinding:
+      typeof sourceArtifactBinding
     readonly operationRequest: unknown
     readonly gpuBundle: CanonicalModelArtifactGpuBundle
   }>,
@@ -410,7 +787,9 @@ function createCandidate(
     requirementSet,
     requirementProjection: projection,
     gpuBundle: overrides.gpuBundle ?? gpuBundle,
-    source: overrides.source ?? source,
+    sourceArtifactBinding:
+      overrides.sourceArtifactBinding
+      ?? sourceArtifactBinding,
     operationRequest:
       overrides.operationRequest ?? operationRequest,
   })
@@ -617,6 +996,80 @@ function rehashCandidate(
     ...draft,
     admissionDigestSha256: sha256AuthorityValue(draft),
   }
+}
+
+function rehashSourceBinding(
+  value: Record<string, unknown>,
+): typeof sourceArtifactBinding {
+  const draft = { ...value }
+  delete draft.bindingDigestSha256
+  return {
+    ...draft,
+    bindingDigestSha256: sha256AuthorityValue(draft),
+  } as unknown as typeof sourceArtifactBinding
+}
+
+function makeRgbaPng(
+  width: number,
+  height: number,
+  alpha = 255,
+): Buffer {
+  const rowBytes = width * 4
+  const scanlines = Buffer.alloc((rowBytes + 1) * height)
+  for (let y = 0; y < height; y += 1) {
+    const rowOffset = y * (rowBytes + 1)
+    scanlines[rowOffset] = 0
+    for (let x = 0; x < width; x += 1) {
+      const pixelOffset = rowOffset + 1 + (x * 4)
+      scanlines[pixelOffset] =
+        (x * 61 + y * 17) & 0xff
+      scanlines[pixelOffset + 1] =
+        (x * 23 + y * 83) & 0xff
+      scanlines[pixelOffset + 2] =
+        (x * 97 + y * 31) & 0xff
+      scanlines[pixelOffset + 3] = alpha
+    }
+  }
+  const header = Buffer.alloc(13)
+  header.writeUInt32BE(width, 0)
+  header.writeUInt32BE(height, 4)
+  header[8] = 8
+  header[9] = 6
+  return Buffer.concat([
+    Buffer.from('89504e470d0a1a0a', 'hex'),
+    pngChunk('IHDR', header),
+    pngChunk('IDAT', deflateSync(scanlines, { level: 9 })),
+    pngChunk('IEND', Buffer.alloc(0)),
+  ])
+}
+
+function pngChunk(type: string, data: Buffer): Buffer {
+  const typeBytes = Buffer.from(type, 'ascii')
+  const chunk = Buffer.alloc(12 + data.length)
+  chunk.writeUInt32BE(data.length, 0)
+  typeBytes.copy(chunk, 4)
+  data.copy(chunk, 8)
+  chunk.writeUInt32BE(
+    crc32(Buffer.concat([typeBytes, data])),
+    8 + data.length,
+  )
+  return chunk
+}
+
+function crc32(data: Buffer): number {
+  let crc = 0xffffffff
+  for (const byte of data) {
+    crc ^= byte
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc =
+        (crc >>> 1) ^ (0xedb88320 & -(crc & 1))
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0
+}
+
+function sha256(bytes: Buffer): string {
+  return createHash('sha256').update(bytes).digest('hex')
 }
 
 function expectRejects(

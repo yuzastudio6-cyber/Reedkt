@@ -20,8 +20,9 @@ network fetch: false
 
 The preflight joins the exact U2NetP model identity, canonical repository
 locator projection, one canonical GPU bundle, an approved private source
-frame, the professional operation request, the expected mask outputs, and
-the existing mask QA gates.
+frame extracted by the existing canonical FFmpeg lane, the professional
+operation request, the one expected mask artifact, and the existing mask QA
+gates.
 
 It is deliberately non-executable. It does not start a Cloud Run job, run
 inference, write an artifact, mutate a work item, or approve production use.
@@ -68,25 +69,35 @@ only and has no product-execution authority.
 ## Source-Frame Boundary
 
 rembg consumes one still image, not the source video directly. The admission
-therefore requires a server-owned private frame artifact derived from the
-already selected source meaning frame. It binds:
+therefore requires the exact server-owned, QA-passed dependency selected by
+the current worker lease from the canonical FFmpeg source-frame extraction
+work item. A generic image, caller upload, or planning-only frame expectation
+cannot satisfy this boundary.
+
+The source binding independently decodes and validates the selected PNG. It
+accepts only an 8-bit, non-interlaced, opaque RGBA PNG with valid chunk CRCs,
+bounded dimensions and pixels, a valid zlib stream, supported row filters,
+and an exact decoded RGBA digest. It binds:
 
 - source-sequence item, media asset, and cleanup decision IDs;
 - exact MasterTiming frame and mapped source frame;
 - frame rate and frame-selection policy digest;
 - source-media checksum, byte length, content type, binding hash, and storage
   identity hash;
-- frame-artifact ID, checksum, byte length, PNG/JPEG/WebP content type, and
-  exact dimensions; and
+- exact extraction work-item digest, FFmpeg operation/profile, output key,
+  dependency job, execution attempt, source lease, and dependency-read
+  evidence;
+- frame-artifact ID, asset ID, version, PNG checksum, byte length, exact
+  dimensions, opaque-pixel count, and decoded RGBA checksum; and
 - one matching professional-operation image binding.
 
 Caller bytes, paths, URLs, raw chat, arbitrary frame selection, arbitrary
 settings, arbitrary models, and CPU execution are rejected.
 
-The current canonical edit pipeline has selected the exact source meaning
-frame, but it has not yet admitted and reread the extracted private frame
-artifact. That is the immediate downstream blocker before this candidate can
-be bound to the Living Frame `generate_mask_asset` work item.
+The canonical private-image verifier now admits this one exact FFmpeg output
+class without broadening the image lane to arbitrary FFmpeg images. Execution
+still requires a fresh lease-bound dependency reread immediately before the
+GPU attempt.
 
 ## Fixed Operation Contract
 
@@ -103,15 +114,15 @@ maximum subjects: 1
 preserve source dimensions: true
 ```
 
-It must produce exactly:
+It must produce exactly one customer-asset candidate:
 
-1. a private lossless PNG mask matching the source-frame dimensions;
-2. a private JSON mask-analysis report; and
-3. a private JSON mask-QA measurement report.
+1. a private lossless PNG mask matching the source-frame dimensions.
 
-The mask must contain real alpha or mask variation. The existing canonical QA
-plan remains authoritative for `mask_edge_quality` and
-`mask_subject_coverage`; this preflight cannot pass either gate.
+Mask analysis and mask-QA measurements remain process-bound, digest-only
+receipts rather than two extra customer assets. The mask must contain real
+alpha or mask variation. The existing canonical QA plan remains authoritative
+for `mask_edge_quality` and `mask_subject_coverage`; this preflight cannot pass
+either gate.
 
 ## Remaining Gates
 
@@ -120,11 +131,13 @@ Execution remains blocked on:
 - owner-authorized repository ingest and a fresh full model-byte rehash;
 - exact approved package, snapshot, work item, reservation, lease, and
   dependency rereads;
-- canonical extraction and private reread of the exact source frame;
+- a fresh execution-time private reread of the now-admitted exact source-frame
+  artifact;
 - a dependency-locked, unprivileged, network-disabled CUDA image;
 - read-only model distribution to the Cloud Run attempt;
 - an actual NVIDIA L4 ONNX CUDA-provider load and U2NetP benchmark;
-- private mask/report persistence and immutable reread;
+- private mask persistence, process-bound evidence receipts, and immutable
+  reread;
 - decoded mask edge and subject-coverage QA;
 - actual attempt and internal-cost receipts; and
 - legal/owner approval for paid production.
@@ -144,9 +157,11 @@ npx tsx \
 ```
 
 The smoke proves the exact model, repository projection, GPU-only bundle,
-source-media and frame-artifact lineage, operation settings, output contract,
-QA gates, exact 50-tool registry boundary, and adversarial rejection of model,
-source, checksum, settings, CPU, URL, output, and authority substitution.
+source-media and canonical FFmpeg frame-artifact lineage, strict PNG decode,
+private storage reread, operation settings, output contract, QA gates, exact
+50-tool registry boundary, and adversarial rejection of model, source,
+checksum, non-opaque pixels, settings, CPU, URL, output, and authority
+substitution.
 
 No model bytes were downloaded or deserialized. No Google Cloud resource,
 provider, database, billing system, queue, artifact store, deployment, or

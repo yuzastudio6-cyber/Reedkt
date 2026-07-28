@@ -265,11 +265,11 @@
     },
     {
       "path": "package.json",
-      "sha256": "bc45217501b3abc8981ce5e252200f150fde064ef0d53f697e752272db419e16"
+      "sha256": "d78336732f110a1114c29c79309dad99e63f24204ba5b1594728e5add68fa1df"
     },
     {
       "path": "server/app.ts",
-      "sha256": "27c4eb607506442346cedd7168eaf04dc5520d6a6642f0acc831c51cc444e84d"
+      "sha256": "8bca8d12ef6ce368025e2eef351a13ea729fc28907f44a729a06ed48dd820769"
     },
     {
       "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts",
@@ -365,7 +365,7 @@
     },
     {
       "path": "server/edit-references/edit-reference-long-form-study-scheduler.ts",
-      "sha256": "ce85dad3b18e797063c26211322570f189f81ea89c9ce0c743d15401b87ca637"
+      "sha256": "f799064cb7d3062b3de0aa8ae8d2f913c7ceb692079728f2e8316d265e5f36f9"
     },
     {
       "path": "server/edit-references/edit-reference-production-application-preparation-boundary.ts",
@@ -461,7 +461,7 @@
     },
     {
       "path": "server/services/edit-reference-canonical-v3-local-long-form-runtime-port.ts",
-      "sha256": "ac69c7f0e1dcdeb001350c18cd8fa8e097d3434c3814d035e8d61d9300c6ba39"
+      "sha256": "7899323a98edc960ba67eb5568f504bdd82337820b218b3a18adf3ff3062944b"
     },
     {
       "path": "server/services/edit-reference-canonical-v3-local-target-understanding-package-runtime-port-factory.ts",
@@ -497,7 +497,7 @@
     },
     {
       "path": "server/services/edit-reference-target-video-understanding-service.ts",
-      "sha256": "f117ee70f4e0edcbf21b2335da91f9a4a80fbf9843cc3af87adc49db749550b5"
+      "sha256": "3eaf4f6a805f919f1c7aff817de04c27f044ebfe8fdebcd41e0d9159b186d812"
     },
     {
       "path": "server/services/idempotency-service.ts",
@@ -509,7 +509,7 @@
     },
     {
       "path": "server/services/planning-exact-edit-preference-authority-port.ts",
-      "sha256": "8b321aaf6415ceb397a1f118339fd15cb327a704ee338c9627d7eafbfa1682fd"
+      "sha256": "6cf690e5b841e03a29ea302dd917cb31559ac9cd2d344923ffee5e9bce0f28d2"
     },
     {
       "path": "server/services/planning-exact-edit-preference-authority-service.ts",
@@ -521,7 +521,7 @@
     },
     {
       "path": "server/services/project-edit-brief-local-service.ts",
-      "sha256": "3b64f7ba6ce17eefbdc0094e966e22ebfd4fa35c623e233d69ef7175460d0949"
+      "sha256": "18f4bc654ed8d3035f50bbb8b9fe1a573d3c9a3d8e2b3b1dc07c47211ce28c6d"
     },
     {
       "path": "server/services/project-service.ts",
@@ -577,7 +577,7 @@
     },
     {
       "path": "server/smoke/edit-reference-canonical-v3-local-long-form-runtime-port-smoke.ts",
-      "sha256": "d55c6ce18752a6e7cd769aa73db4ffa7ab72a7d4f494340204aab11dd531b3c5"
+      "sha256": "b26cea2eb8bd0e7186f3043c18e81a6d25dd5ce418c620f19389a3f6ca0e4075"
     },
     {
       "path": "server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts",
@@ -629,7 +629,7 @@
     },
     {
       "path": "server/smoke/planning-exact-edit-preference-authority-port-smoke.ts",
-      "sha256": "40f63a921fc7c794e98e9baf745ee2b5f44652b38179d977bd7ff283d7e5dfb5"
+      "sha256": "42c57e5a2e27bbedd4a3a62dfcaac0050e806e6787dfd490286f0abe460afdc5"
     },
     {
       "path": "server/smoke/upload-boundary-security-smoke.ts",
@@ -673,7 +673,7 @@
     },
     {
       "path": "src/components/editor/edit-reference/ProjectEditReferenceTargetStudy.tsx",
-      "sha256": "b85c572032be3401bc0a4d1e26ad8e94db1190df4c915a74ee0c1133b1645bb9"
+      "sha256": "0038cc53e3bc847121cee338ba8c6bd781cc9c9959bad86273fe2241cdf7f71e"
     },
     {
       "path": "src/lib/canonical-planning-draft.ts",
@@ -697,11 +697,11 @@
     },
     {
       "path": "src/lib/project-edit-brief-backend-local.ts",
-      "sha256": "9a1d5f6f2a8895f4d3c9cb13850bd985ab809f2877678295ca2fefe4aca4d950"
+      "sha256": "6f2b89d4321da01a92b0f966a72dfcef7c2040b9de0fb4b964ac496dabffa9ed"
     },
     {
       "path": "src/lib/project-edit-session-edit-reference-integration.ts",
-      "sha256": "af866aba6df1008d322ce1c1121c093cdb1af2b5e153d64c5879172a77ab6d90"
+      "sha256": "3e7d922855489faaa481c01929d933c3abd4e70cfcfa7c244eb6166f0b2697de"
     },
     {
       "path": "src/types/canonical-exact-edit-planning-authority.ts",
@@ -717,7 +717,7 @@
     },
     {
       "path": "src/types/edit-reference-target-video-understanding.ts",
-      "sha256": "30c9bd6f5dbf43b43835e57f4c3c50edb59490f1212763bb62f150f7722e4c17"
+      "sha256": "6ed43e14ef3a8c4c5035c215954f81bac25cababe1de9c683dc3b4127d1d52b0"
     },
     {
       "path": "src/types/edit-reference.ts",
@@ -737,7 +737,7 @@
     },
     {
       "path": "tests/e2e/edit-reference-canonical-real-file-flow.spec.ts",
-      "sha256": "43d1f34df0330e11149a5a86fdb0810d28b5cbab1bb0d157fd11d01059a8ff05"
+      "sha256": "8a7fc3484cd5b9a262678858051c95f23dfb875b4e04644899b944c78534eae3"
     },
     {
       "path": "tests/e2e/edit-reference-canonical-v3-local-browser.spec.ts",

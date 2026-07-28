@@ -1,5 +1,9 @@
 import { createHash } from 'node:crypto'
 
+import {
+  CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION,
+} from '../../src/types/living-frame-canonical-work-graph-projection'
 import { ApiError } from '../errors/api-error'
 import { readPrivateFileIfExistsWithinRoot } from '../security/private-local-persistence'
 import type { PersistedArtifactResult } from '../validation/private-artifact-qa-authority-schemas'
@@ -10,10 +14,17 @@ const AUTHORITY_PROFILES = {
   authority_validation_evidence: {
     validationProfile: 'snapshot',
     runnerClass: 'canonical_authority_validation_runner_v1',
+    assetRole: 'qa',
   },
   source_trim_validation_evidence: {
     validationProfile: 'source_trim',
     runnerClass: 'canonical_source_trim_validation_runner_v1',
+    assetRole: 'qa',
+  },
+  living_frame_remotion_layer_manifest: {
+    validationProfile: 'living_frame_layer',
+    runnerClass: 'canonical_living_frame_layer_manifest_runner_v1',
+    assetRole: 'processed',
   },
 } as const
 const MAXIMUM_AUTHORITY_ARTIFACT_BYTES = 1024 * 1024
@@ -38,7 +49,10 @@ export interface VerifiedCanonicalInternalAuthorityArtifact {
   immutableLeaseHash: string
   leaseAttemptNumber: number
   executionAttemptId: string
-  runnerClass: 'canonical_authority_validation_runner_v1' | 'canonical_source_trim_validation_runner_v1'
+  runnerClass:
+    | 'canonical_authority_validation_runner_v1'
+    | 'canonical_source_trim_validation_runner_v1'
+    | 'canonical_living_frame_layer_manifest_runner_v1'
 }
 
 /**
@@ -59,7 +73,7 @@ export async function verifyCanonicalInternalAuthorityArtifact(input: {
     !profile ||
     artifact.identity.expectedAssetId !== artifact.lineage.assetId ||
     artifact.identity.jobId === '' ||
-    artifact.lineage.assetRole !== 'qa' ||
+    artifact.lineage.assetRole !== profile.assetRole ||
     artifact.lineage.contentType !== 'application/json' ||
     artifact.content.contentType !== 'application/json' ||
     artifact.content.byteLength <= 0 ||
@@ -143,7 +157,7 @@ export function canonicalInternalAuthorityArtifactRelativePath(identityHash: str
 
 function parseSemanticReport(
   bytes: Buffer,
-  expectedProfile: 'snapshot' | 'source_trim',
+  expectedProfile: 'snapshot' | 'source_trim' | 'living_frame_layer',
 ): Record<string, unknown> {
   let parsed: unknown
   try {
@@ -165,13 +179,62 @@ function parseSemanticReport(
     report.source !== 'immutable_canonical_edit_authority' ||
     report.valid !== true ||
     report.validationProfile !== expectedProfile ||
-    (expectedProfile === 'snapshot' && report.sourceTrim !== null) ||
-    (expectedProfile === 'source_trim' && !validSourceTrimReport(report.sourceTrim)) ||
+    (expectedProfile === 'snapshot' &&
+      (report.sourceTrim !== null ||
+        report.livingFrameLayer !== null)) ||
+    (expectedProfile === 'source_trim' &&
+      (!validSourceTrimReport(report.sourceTrim) ||
+        report.livingFrameLayer !== null)) ||
+    (expectedProfile === 'living_frame_layer' &&
+      (report.sourceTrim !== null ||
+        !validLivingFrameLayerReport(report.livingFrameLayer))) ||
     stableAuthorityStringify(receivedCheckIds) !== stableAuthorityStringify(REQUIRED_CHECK_IDS)
   ) {
     throw invalidArtifact('Private canonical authority artifact failed semantic verification.')
   }
   return report
+}
+
+function validLivingFrameLayerReport(value: unknown): boolean {
+  const report = asRecord(value)
+  const component = asRecord(report.component)
+  return (
+    report.schemaVersion ===
+      CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION &&
+    validSha256(report.selectedSceneBindingDigestSha256) &&
+    validSha256(report.timingBindingDigestSha256) &&
+    validIdentity(report.sceneId) &&
+    validIdentity(report.layerId) &&
+    Number.isSafeInteger(report.startFrame) &&
+    Number(report.startFrame) >= 0 &&
+    Number.isSafeInteger(report.endFrameExclusive) &&
+    Number(report.endFrameExclusive) > Number(report.startFrame) &&
+    Number.isSafeInteger(report.outputWidth) &&
+    Number(report.outputWidth) >= 1 &&
+    Number(report.outputWidth) <= 4_096 &&
+    Number.isSafeInteger(report.outputHeight) &&
+    Number(report.outputHeight) >= 1 &&
+    Number(report.outputHeight) <= 4_096 &&
+    report.fit === 'fill' &&
+    report.opacity === 1 &&
+    report.compositionPolicy ===
+      CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY &&
+    report.captionPlaneRemainsAboveLivingFrame === true &&
+    validIdentity(component.workItemKey) &&
+    validIdentity(component.dependencyJobId) &&
+    validIdentity(component.outputKey) &&
+    validIdentity(component.expectedAssetId) &&
+    component.artifactType === 'living_frame_component_rgba_png' &&
+    component.contentType === 'image/png' &&
+    validIdentity(component.artifactId) &&
+    Number.isSafeInteger(component.artifactVersion) &&
+    Number(component.artifactVersion) > 0 &&
+    validSha256(component.contentSha256) &&
+    validIdentity(component.qaEvaluationId) &&
+    validIdentity(component.reconciliationId) &&
+    validIdentity(component.executionAttemptId) &&
+    validSha256(component.sourceLeaseImmutableHash)
+  )
 }
 
 function validSourceTrimReport(value: unknown): boolean {
@@ -205,6 +268,16 @@ function asRecord(value: unknown): Record<string, unknown> {
     throw invalidArtifact('Private canonical authority artifact has an invalid object shape.')
   }
   return value as Record<string, unknown>
+}
+
+function validSha256(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-f0-9]{64}$/.test(value)
+}
+
+function validIdentity(value: unknown): value is string {
+  return typeof value === 'string' &&
+    /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/.test(value) &&
+    !value.includes('..')
 }
 
 function sha256Bytes(bytes: Buffer): string {

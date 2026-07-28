@@ -10,6 +10,14 @@ import {
   CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
 } from '../../src/types/canonical-private-composition-capacity'
 import {
+  CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION,
+} from '../../src/types/living-frame-canonical-work-graph-projection'
+import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
   OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
@@ -164,6 +172,11 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           'Supplemental Edit Brief audio remains final-composition only until chunk-local placement authority is admitted.',
         )
       }
+      if (mode === 'chunk' && planningPayload.livingFrameOverlayLayers !== undefined) {
+        throw denied(
+          'Living Frame overlays remain final-composition only until chunk-local layer continuity is admitted.',
+        )
+      }
       if (
         mode === 'chunk' &&
         'transitionPolicy' in planningPayload &&
@@ -234,6 +247,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const voiceTrackCount = replaceVoice ? (planningPayload.voiceTracks?.length ?? 0) : 0
       const supplementalAudioTrackCount =
         planningPayload.supplementalAudioTracks?.length ?? 0
+      const livingFrameOverlayCount =
+        planningPayload.livingFrameOverlayLayers?.length ?? 0
       const dependencyWorkItems = workItem.dependencyKeys.map((dependencyKey) =>
         authority.workItems.find((candidate) => candidate.workItemKey === dependencyKey))
       if (dependencyWorkItems.some((candidate) => !candidate)) {
@@ -250,7 +265,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         captionCueCount +
         voiceTrackCount +
         supplementalAudioTrackCount +
-        colorSourceCount
+        colorSourceCount +
+        livingFrameOverlayCount * 2
       const directFinalOperations = new Set([
         'render_approved_source_caption_final',
         'render_approved_source_sequence_caption_final',
@@ -400,6 +416,10 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const voiceDependencies: CanonicalPrivateDependencyArtifactStreamReadResult[] = []
       const supplementalAudioDependencies:
         CanonicalPrivateDependencyArtifactStreamReadResult[] = []
+      const livingFrameManifestDependencies:
+        CanonicalPrivateDependencyArtifactReadResult[] = []
+      const livingFrameComponentDependencies:
+        CanonicalPrivateDependencyArtifactReadResult[] = []
       for (
         let selectedArtifactIndex = 0;
         selectedArtifactIndex < expectedDependencyCount;
@@ -437,11 +457,18 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             voiceDependencies.push(dependency)
           }
         } else {
-          dependencies.push(await dependencyReader.readSingleSelectedArtifact({
+          const dependency = await dependencyReader.readSingleSelectedArtifact({
             ...dependencyInput,
             allowedContentTypes: ['application/json', 'image/png'],
             maximumBytes: 16 * 1024 * 1024,
-          }))
+          })
+          if (isLivingFrameManifestWorkItem(dependencyWorkItem)) {
+            livingFrameManifestDependencies.push(dependency)
+          } else if (isLivingFrameComponentWorkItem(dependencyWorkItem)) {
+            livingFrameComponentDependencies.push(dependency)
+          } else {
+            dependencies.push(dependency)
+          }
         }
       }
       const trimArtifact = dependencies.find((dependency) => dependency.contentType === 'application/json')
@@ -450,14 +477,18 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         !trimArtifact || trimArtifact.byteLength > 1024 * 1024 ||
         captionDependencies.length !== captionCueCount || voiceDependencies.length !== voiceTrackCount ||
         supplementalAudioDependencies.length !== supplementalAudioTrackCount ||
+        livingFrameManifestDependencies.length !== livingFrameOverlayCount ||
+        livingFrameComponentDependencies.length !== livingFrameOverlayCount ||
         colorDependencies.length !== colorSourceCount ||
         dependencies.length +
           colorDependencies.length +
           voiceDependencies.length +
-          supplementalAudioDependencies.length !== expectedDependencyCount
+          supplementalAudioDependencies.length +
+          livingFrameManifestDependencies.length +
+          livingFrameComponentDependencies.length !== expectedDependencyCount
       ) {
         throw denied(
-          'Final composition dependencies must be one approved trim JSON plus exact caption, voice, supplemental-audio, and color artifacts.',
+          'Final composition dependencies must be one approved trim JSON plus exact caption, voice, supplemental-audio, color, and Living Frame artifacts.',
         )
       }
       const captions = orderCaptionDependencies({
@@ -481,6 +512,23 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             approvedTracks: planningPayload.supplementalAudioTracks,
             fps: planningPayload.fps,
             authority,
+          })
+        : []
+      const livingFrameOverlays = planningPayload.livingFrameOverlayLayers
+        ? orderLivingFrameOverlayDependencies({
+            approvedLayers: planningPayload.livingFrameOverlayLayers,
+            manifestDependencies: livingFrameManifestDependencies,
+            componentDependencies: livingFrameComponentDependencies,
+            authority,
+            identity: {
+              workspaceId: body.workspaceId,
+              projectId: body.projectId,
+              editSessionId: body.editSessionId,
+              snapshotId: authority.snapshot.snapshotId,
+            },
+            authorityHashes: readiness.authorityHashes,
+            outputWidth: planningPayload.width,
+            outputHeight: planningPayload.height,
           })
         : []
       const globalSourceSequenceItemIds = mode === 'chunk'
@@ -578,6 +626,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const supplementalAudioInputIds = supplementalAudioTracks.map(
         (_, index) => `approved-supplemental-audio-${index + 1}`,
       )
+      const livingFrameOverlayInputIds = livingFrameOverlays.map(
+        (_, index) => `approved-living-frame-${index + 1}`,
+      )
       const sourceCommitments = sources.map((source, index) => ({
         inputId: sourceInputIds[index]!,
         ...(sequenceProfile ? { sourceSequenceItemId: source.sourceSequenceItemId } : {}),
@@ -614,6 +665,15 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           sha256: track.sha256,
         }),
       )
+      const livingFrameOverlayCommitments = livingFrameOverlays.map(
+        (overlay, index) => ({
+          inputId: livingFrameOverlayInputIds[index]!,
+          outputKey: overlay.layer.componentOutputKey,
+          mimeType: 'image/png' as const,
+          byteLength: overlay.component.byteLength,
+          sha256: overlay.component.sha256,
+        }),
+      )
       const request = buildOfflineRemotionFinalCompositionStreamingRequest({
         planningPayload,
         ...(sequenceProfile
@@ -625,6 +685,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         ...(replaceVoice ? { voiceTracks: voiceCommitments } : {}),
         ...(supplementalAudioCommitments.length > 0
           ? { supplementalAudioTracks: supplementalAudioCommitments }
+          : {}),
+        ...(livingFrameOverlayCommitments.length > 0
+          ? { livingFrameOverlays: livingFrameOverlayCommitments }
           : {}),
       })
       const runtimeInputs: OfflineRemotionServerInjectedInput[] = [
@@ -646,6 +709,12 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
                 openStream: source.sourceInput.openStream,
               }
         }),
+        ...livingFrameOverlays.map((overlay, index) => bufferedRemotionInput({
+          inputId: livingFrameOverlayInputIds[index]!,
+          mimeType: 'image/png',
+          bytes: overlay.component.bytes,
+          sha256: overlay.component.sha256,
+        })),
         ...captions.map((caption, index) => bufferedRemotionInput({
           inputId: captionInputIds[index]!, mimeType: 'image/png',
           bytes: caption.bytes, sha256: caption.sha256,
@@ -687,6 +756,12 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           (track) => track.sha256,
         ),
         colorIntermediateSha256s: colorSources.map((source) => source.dependency.sha256),
+        livingFrameLayerManifestSha256s: livingFrameOverlays.map(
+          (overlay) => overlay.manifest.sha256,
+        ),
+        livingFrameComponentSha256s: livingFrameOverlays.map(
+          (overlay) => overlay.component.sha256,
+        ),
         transitionAuthorityHash,
         ...(chunkAuthority ? { chunkAuthority } : {}),
         contentSha256,
@@ -779,6 +854,12 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         ),
         supplementalAudioDependencyReadEvidenceHashes: supplementalAudioTracks.map(
           (track) => track.dependencyReadEvidenceHash,
+        ),
+        livingFrameDependencyReadEvidenceHashes: livingFrameOverlays.flatMap(
+          (overlay) => [
+            overlay.manifest.dependencyReadEvidenceHash,
+            overlay.component.dependencyReadEvidenceHash,
+          ],
         ),
         colorDependencyReadEvidenceHashes: colorSources.map(
           (source) => source.dependency.dependencyReadEvidenceHash,
@@ -913,6 +994,26 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             })),
           }
         : {}
+      const livingFrameOverlayInputs = livingFrameOverlays.length > 0
+        ? {
+            livingFrameOverlays: livingFrameOverlays.map((overlay) => ({
+              sceneId: overlay.layer.sceneId,
+              layerId: overlay.layer.layerId,
+              startFrame: overlay.layer.startFrame,
+              endFrameExclusive: overlay.layer.endFrameExclusive,
+              manifestArtifactId: overlay.manifest.artifactId,
+              manifestSha256: overlay.manifest.sha256,
+              manifestByteLength: overlay.manifest.byteLength,
+              manifestDependencyReadEvidenceHash:
+                overlay.manifest.dependencyReadEvidenceHash,
+              componentArtifactId: overlay.component.artifactId,
+              componentSha256: overlay.component.sha256,
+              componentByteLength: overlay.component.byteLength,
+              componentDependencyReadEvidenceHash:
+                overlay.component.dependencyReadEvidenceHash,
+            })),
+          }
+        : {}
       const colorInputRecords = colorSources.map((colorSource, index) => ({
         sourceSequenceItemId: colorSource.sourceSequenceItemId,
         outputKey: colorSource.outputKey,
@@ -952,7 +1053,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         : {}
       const responseWithoutHash = {
         schemaVersion: mode === 'final'
-          ? 'canonical-private-final-composition-execution-response-v5' as const
+          ? 'canonical-private-final-composition-execution-response-v6' as const
           : 'canonical-private-composition-chunk-execution-response-v1' as const,
         source: mode === 'final'
           ? 'canonical_private_final_composition_execution_coordinator' as const
@@ -1003,6 +1104,14 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             supplementalAudioTracks.length > 0,
           approvedSupplementalAudioSpeechSafeMixApplied:
             supplementalAudioTracks.length > 0,
+          approvedLivingFrameLayerManifestDependencyRead:
+            livingFrameOverlays.length > 0,
+          approvedLivingFrameOverlayDependencyRead:
+            livingFrameOverlays.length > 0,
+          approvedLivingFrameOverlayTimelineApplied:
+            livingFrameOverlays.length > 0,
+          approvedLivingFrameOverlayBelowCaptionsApplied:
+            livingFrameOverlays.length > 0,
           approvedColorDependencyRead: colorSources.length > 0,
           approvedColorDependencyInputMode: colorSources.length > 0
             ? 'server_injected_private_stream_v1' as const
@@ -1048,6 +1157,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               ...captionInputs,
               ...voiceInputs,
               ...supplementalAudioInputs,
+              ...livingFrameOverlayInputs,
               ...colorInputs,
             }
           : {
@@ -1066,6 +1176,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               ...captionInputs,
               ...voiceInputs,
               ...supplementalAudioInputs,
+              ...livingFrameOverlayInputs,
               ...colorInputs,
             },
         lease: {
@@ -1195,6 +1306,299 @@ interface ApprovedSourceTrimEvidence {
   action: string
   startFrame: number
   endFrameExclusive: number
+}
+
+type ApprovedWorkItem = ApprovedExecutionAuthority['workItems'][number]
+
+interface ApprovedLivingFrameOverlayDependency {
+  layer: {
+    sceneId: string
+    layerId: string
+    manifestOutputKey: string
+    componentOutputKey: string
+    startFrame: number
+    endFrameExclusive: number
+    fit: 'fill'
+    opacity: 1
+  }
+  manifest: CanonicalPrivateDependencyArtifactReadResult
+  component: CanonicalPrivateDependencyArtifactReadResult
+}
+
+function isLivingFrameManifestWorkItem(workItem: ApprovedWorkItem): boolean {
+  return (
+    workItem.workItemType === 'prepare_remotion_layer' &&
+    workItem.workerClass === CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS &&
+    workItem.executionInput.operation ===
+      CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION &&
+    workItem.approvedToolIds.length === 0 &&
+    Array.isArray(workItem.executionInput.approvedToolOperationIds) &&
+    workItem.executionInput.approvedToolOperationIds.length === 0 &&
+    workItem.dependencyKeys.length === 1 &&
+    workItem.expectedOutputs.length === 1 &&
+    workItem.expectedOutputs[0]?.artifactType ===
+      'living_frame_remotion_layer_manifest' &&
+    workItem.expectedOutputs[0]?.contentType === 'application/json'
+  )
+}
+
+function isLivingFrameComponentWorkItem(workItem: ApprovedWorkItem): boolean {
+  return (
+    workItem.workItemType === 'process_image_asset' &&
+    workItem.workerClass === CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS &&
+    workItem.executionInput.operation ===
+      CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION &&
+    workItem.approvedToolIds.length === 1 &&
+    workItem.approvedToolIds[0] === 'sharp' &&
+    workItem.expectedOutputs.length === 1 &&
+    workItem.expectedOutputs[0]?.artifactType ===
+      'living_frame_component_rgba_png' &&
+    workItem.expectedOutputs[0]?.contentType === 'image/png'
+  )
+}
+
+function orderLivingFrameOverlayDependencies(input: {
+  approvedLayers: Array<{
+    sceneId: string
+    layerId: string
+    manifestOutputKey: string
+    componentOutputKey: string
+    startFrame: number
+    endFrameExclusive: number
+    fit: 'fill'
+    opacity: 1
+  }>
+  manifestDependencies: CanonicalPrivateDependencyArtifactReadResult[]
+  componentDependencies: CanonicalPrivateDependencyArtifactReadResult[]
+  authority: ApprovedExecutionAuthority
+  identity: {
+    workspaceId: string
+    projectId: string
+    editSessionId: string
+    snapshotId: string
+  }
+  authorityHashes: {
+    snapshotHash: string
+    sourceSequenceHash: string
+    approvedAssetManifestHash: string
+  }
+  outputWidth: number
+  outputHeight: number
+}): ApprovedLivingFrameOverlayDependency[] {
+  const manifests = new Map<string, {
+    dependency: CanonicalPrivateDependencyArtifactReadResult
+    asset: ApprovedExecutionAuthority['assetManifest']['entries'][number]
+    workItem: ApprovedWorkItem
+  }>()
+  const components = new Map<string, {
+    dependency: CanonicalPrivateDependencyArtifactReadResult
+    asset: ApprovedExecutionAuthority['assetManifest']['entries'][number]
+    workItem: ApprovedWorkItem
+  }>()
+  for (const dependency of input.manifestDependencies) {
+    const asset = input.authority.assetManifest.entries.find(
+      (candidate) => candidate.id === dependency.expectedAssetId,
+    )
+    const workItem = input.authority.workItems.find(
+      (candidate) => candidate.id === asset?.approvedWorkItemId,
+    )
+    if (
+      !asset || !workItem || !isLivingFrameManifestWorkItem(workItem) ||
+      asset.contentType !== 'application/json' || asset.assetRole !== 'processed' ||
+      !asset.required || asset.previewPlaceholderAllowed ||
+      manifests.has(asset.outputKey)
+    ) {
+      throw denied(
+        'Living Frame manifest dependency lineage is not an exact approved tool-free layer artifact.',
+      )
+    }
+    manifests.set(asset.outputKey, { dependency, asset, workItem })
+  }
+  for (const dependency of input.componentDependencies) {
+    const asset = input.authority.assetManifest.entries.find(
+      (candidate) => candidate.id === dependency.expectedAssetId,
+    )
+    const workItem = input.authority.workItems.find(
+      (candidate) => candidate.id === asset?.approvedWorkItemId,
+    )
+    if (
+      !asset || !workItem || !isLivingFrameComponentWorkItem(workItem) ||
+      asset.contentType !== 'image/png' || asset.assetRole !== 'processed' ||
+      !asset.required || asset.previewPlaceholderAllowed ||
+      components.has(asset.outputKey)
+    ) {
+      throw denied(
+        'Living Frame component dependency lineage is not an exact approved Sharp RGBA artifact.',
+      )
+    }
+    components.set(asset.outputKey, { dependency, asset, workItem })
+  }
+  const ordered = input.approvedLayers.map((layer) => {
+    const manifestEntry = manifests.get(layer.manifestOutputKey)
+    const componentEntry = components.get(layer.componentOutputKey)
+    if (!manifestEntry || !componentEntry) {
+      throw denied('Living Frame overlay outputs do not match the approved final timeline.')
+    }
+    const payload = objectRecord(
+      manifestEntry.workItem.executionInput.structuredPayload,
+      'Living Frame layer structured payload',
+    )
+    const componentExpectation = objectRecord(
+      payload.componentDependency,
+      'Living Frame component expectation',
+    )
+    if (
+      payload.schemaVersion !==
+        CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION ||
+      !isSha256(payload.selectedSceneBindingDigestSha256) ||
+      !isSha256(payload.timingBindingDigestSha256) ||
+      payload.sceneId !== layer.sceneId ||
+      payload.layerId !== layer.layerId ||
+      payload.startFrame !== layer.startFrame ||
+      payload.endFrameExclusive !== layer.endFrameExclusive ||
+      payload.outputWidth !== input.outputWidth ||
+      payload.outputHeight !== input.outputHeight ||
+      payload.fit !== layer.fit ||
+      payload.opacity !== layer.opacity ||
+      payload.compositionPolicy !== CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY ||
+      payload.captionPlaneRemainsAboveLivingFrame !== true ||
+      componentExpectation.workItemKey !== componentEntry.workItem.workItemKey ||
+      componentExpectation.outputKey !== layer.componentOutputKey ||
+      componentExpectation.artifactType !== 'living_frame_component_rgba_png' ||
+      componentExpectation.contentType !== 'image/png' ||
+      manifestEntry.workItem.dependencyKeys[0] !== componentEntry.workItem.workItemKey
+    ) {
+      throw denied(
+        'Living Frame layer payload diverged from its approved component, frame, or timing.',
+      )
+    }
+    parseApprovedLivingFrameLayerManifest({
+      bytes: manifestEntry.dependency.bytes,
+      layer,
+      manifest: manifestEntry.dependency,
+      manifestWorkItem: manifestEntry.workItem,
+      component: componentEntry.dependency,
+      selectedSceneBindingDigestSha256:
+        String(payload.selectedSceneBindingDigestSha256),
+      timingBindingDigestSha256:
+        String(payload.timingBindingDigestSha256),
+      identity: input.identity,
+      authorityHashes: input.authorityHashes,
+      outputWidth: input.outputWidth,
+      outputHeight: input.outputHeight,
+    })
+    return {
+      layer,
+      manifest: manifestEntry.dependency,
+      component: componentEntry.dependency,
+    }
+  })
+  if (
+    ordered.length !== manifests.size ||
+    ordered.length !== components.size
+  ) {
+    throw denied('Living Frame dependency order is ambiguous or incomplete.')
+  }
+  return ordered
+}
+
+function parseApprovedLivingFrameLayerManifest(input: {
+  bytes: Buffer
+  layer: ApprovedLivingFrameOverlayDependency['layer']
+  manifest: CanonicalPrivateDependencyArtifactReadResult
+  manifestWorkItem: ApprovedWorkItem
+  component: CanonicalPrivateDependencyArtifactReadResult
+  selectedSceneBindingDigestSha256: string
+  timingBindingDigestSha256: string
+  identity: {
+    workspaceId: string
+    projectId: string
+    editSessionId: string
+    snapshotId: string
+  }
+  authorityHashes: {
+    snapshotHash: string
+    sourceSequenceHash: string
+    approvedAssetManifestHash: string
+  }
+  outputWidth: number
+  outputHeight: number
+}): void {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(input.bytes.toString('utf8'))
+  } catch {
+    throw denied('Approved Living Frame layer manifest is not valid JSON.')
+  }
+  const report = objectRecord(parsed, 'Living Frame layer manifest')
+  const identity = objectRecord(report.identity, 'Living Frame layer identity')
+  const hashes = objectRecord(report.authorityHashes, 'Living Frame layer authority hashes')
+  const layer = objectRecord(report.livingFrameLayer, 'Living Frame layer evidence')
+  const component = objectRecord(layer.component, 'Living Frame component evidence')
+  if (
+    report.schemaVersion !== 'canonical-authority-validation-artifact-v1' ||
+    report.source !== 'immutable_canonical_edit_authority' ||
+    report.validationProfile !== 'living_frame_layer' ||
+    report.sourceTrim !== null ||
+    report.valid !== true ||
+    identity.workspaceId !== input.identity.workspaceId ||
+    identity.projectId !== input.identity.projectId ||
+    identity.editSessionId !== input.identity.editSessionId ||
+    identity.snapshotId !== input.identity.snapshotId ||
+    identity.jobId !== input.manifest.dependencyJobId ||
+    identity.approvedWorkItemId !== input.manifestWorkItem.id ||
+    identity.expectedAssetId !== input.manifest.expectedAssetId ||
+    hashes.snapshotHash !== input.authorityHashes.snapshotHash ||
+    hashes.sourceSequenceHash !== input.authorityHashes.sourceSequenceHash ||
+    hashes.approvedAssetManifestHash !==
+      input.authorityHashes.approvedAssetManifestHash ||
+    layer.schemaVersion !==
+      CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION ||
+    layer.selectedSceneBindingDigestSha256 !==
+      input.selectedSceneBindingDigestSha256 ||
+    layer.timingBindingDigestSha256 !==
+      input.timingBindingDigestSha256 ||
+    layer.sceneId !== input.layer.sceneId ||
+    layer.layerId !== input.layer.layerId ||
+    layer.startFrame !== input.layer.startFrame ||
+    layer.endFrameExclusive !== input.layer.endFrameExclusive ||
+    layer.outputWidth !== input.outputWidth ||
+    layer.outputHeight !== input.outputHeight ||
+    layer.fit !== input.layer.fit ||
+    layer.opacity !== input.layer.opacity ||
+    layer.compositionPolicy !== CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY ||
+    layer.captionPlaneRemainsAboveLivingFrame !== true ||
+    component.workItemKey !==
+      input.manifestWorkItem.dependencyKeys[0] ||
+    component.dependencyJobId !== input.component.dependencyJobId ||
+    component.outputKey !== input.layer.componentOutputKey ||
+    component.expectedAssetId !== input.component.expectedAssetId ||
+    component.artifactType !== 'living_frame_component_rgba_png' ||
+    component.contentType !== 'image/png' ||
+    component.artifactId !== input.component.artifactId ||
+    component.artifactVersion !== input.component.artifactVersion ||
+    component.contentSha256 !== input.component.sha256 ||
+    component.executionAttemptId !== input.component.sourceExecutionAttemptId ||
+    component.sourceLeaseImmutableHash !== input.component.sourceLeaseImmutableHash ||
+    !isCanonicalIdentity(component.qaEvaluationId) ||
+    !isCanonicalIdentity(component.reconciliationId)
+  ) {
+    throw denied(
+      'Approved Living Frame layer manifest diverged from current canonical artifact authority.',
+    )
+  }
+}
+
+function isSha256(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-f0-9]{64}$/u.test(value)
+}
+
+function isCanonicalIdentity(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/u.test(value) &&
+    !value.includes('..')
+  )
 }
 
 function orderCaptionDependencies(input: {
@@ -1658,6 +2062,7 @@ interface FinalCompositionAdapterInput {
   captionDependencyReadEvidenceHashes: string[]
   voiceDependencyReadEvidenceHashes: string[]
   supplementalAudioDependencyReadEvidenceHashes: string[]
+  livingFrameDependencyReadEvidenceHashes: string[]
   colorDependencyReadEvidenceHashes: string[]
   transitionAuthorityHash: string
 }
@@ -1700,6 +2105,8 @@ function adapters(input: FinalCompositionAdapterInput): {
               voiceDependencyReadEvidenceHashes: input.voiceDependencyReadEvidenceHashes,
               supplementalAudioDependencyReadEvidenceHashes:
                 input.supplementalAudioDependencyReadEvidenceHashes,
+              livingFrameDependencyReadEvidenceHashes:
+                input.livingFrameDependencyReadEvidenceHashes,
               colorDependencyReadEvidenceHashes: input.colorDependencyReadEvidenceHashes,
               transitionAuthorityHash: input.transitionAuthorityHash,
             }),
@@ -1757,6 +2164,8 @@ function adapters(input: FinalCompositionAdapterInput): {
               voiceDependencyReadEvidenceHashes: input.voiceDependencyReadEvidenceHashes,
               supplementalAudioDependencyReadEvidenceHashes:
                 input.supplementalAudioDependencyReadEvidenceHashes,
+              livingFrameDependencyReadEvidenceHashes:
+                input.livingFrameDependencyReadEvidenceHashes,
               colorDependencyReadEvidenceHashes: input.colorDependencyReadEvidenceHashes,
               transitionAuthorityHash: input.transitionAuthorityHash,
             }),
@@ -1797,6 +2206,8 @@ function assertFinalResult(
   const replaceVoice = request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
   const supplementalAudio =
     request.payload.supplementalAudioTracks !== undefined
+  const livingFrameOverlays =
+    request.payload.livingFrameOverlayLayers !== undefined
   const boundedSourceTransitions =
     'sourceSegments' in request.payload &&
     request.payload.transitionPolicy ===
@@ -1834,6 +2245,16 @@ function assertFinalResult(
       result.evidence.semanticEvidence.approvedSupplementalAudioTimelineApplied !== true ||
       result.evidence.semanticEvidence
         .approvedSupplementalAudioSpeechSafeMixApplied !== true
+    )) ||
+    (livingFrameOverlays && (
+      result.evidence.semanticEvidence
+        .approvedLivingFrameOverlayInputServerInjectedWithoutBase64 !== true ||
+      result.evidence.semanticEvidence
+        .approvedLivingFrameOverlayBytesVerified !== true ||
+      result.evidence.semanticEvidence
+        .approvedLivingFrameOverlayTimelineApplied !== true ||
+      result.evidence.semanticEvidence
+        .approvedLivingFrameOverlayBelowCaptionsApplied !== true
     )) ||
     result.evidence.semanticEvidence.finalCompositionProfileExecuted !== true ||
     (sequenceProfile && (

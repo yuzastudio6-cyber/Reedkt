@@ -6,6 +6,9 @@ import {
   CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
 } from '../../src/types/canonical-private-composition-capacity'
 import {
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
+} from '../../src/types/living-frame-canonical-work-graph-projection'
+import {
   readPrivateFileIfExistsWithinRoot,
   writePrivateFileCreateOnlyWithinRoot,
 } from '../security/private-local-persistence'
@@ -232,7 +235,15 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         workItem.workItemType === 'validate_approved_snapshot'
       const internalSourceTrimJob = workItem.approvedToolIds.length === 0 &&
         workItem.workItemType === 'prepare_source_trim'
-      const internalServerJob = internalAuthorityJob || internalSourceTrimJob
+      const internalLivingFrameLayerJob =
+        workItem.approvedToolIds.length === 0 &&
+        workItem.workItemType === 'prepare_remotion_layer' &&
+        workItem.executionInput.operation ===
+          CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION
+      const internalServerJob =
+        internalAuthorityJob ||
+        internalSourceTrimJob ||
+        internalLivingFrameLayerJob
       let resolvedProvenTool: ReturnType<typeof getProvenEndToEndToolIdentity>
       if (!internalServerJob) {
         if (workItem.approvedToolIds.length !== 1) {
@@ -261,14 +272,18 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
       }
       const canonicalToolId = internalServerJob ? null : resolvedProvenTool!.canonicalToolId
       const operationId = internalServerJob
-        ? internalSourceTrimJob
-          ? 'internal.validate_approved_source_trim_plan.v1'
-          : 'internal.validate_snapshot_manifest.v1'
+        ? internalLivingFrameLayerJob
+          ? 'internal.compile_approved_living_frame_remotion_layer_manifest.v1'
+          : internalSourceTrimJob
+            ? 'internal.validate_approved_source_trim_plan.v1'
+            : 'internal.validate_snapshot_manifest.v1'
         : resolvedProvenTool!.operationId
       const runnerClass = internalServerJob
-        ? internalSourceTrimJob
-          ? 'canonical_source_trim_validation_runner_v1'
-          : 'canonical_authority_validation_runner_v1'
+        ? internalLivingFrameLayerJob
+          ? 'canonical_living_frame_layer_manifest_runner_v1'
+          : internalSourceTrimJob
+            ? 'canonical_source_trim_validation_runner_v1'
+            : 'canonical_authority_validation_runner_v1'
         : resolvedProvenTool!.runtime.runnerClass!
       const ffmpegMezzanineFinalization = !internalServerJob &&
         resolvedProvenTool!.canonicalToolId === 'ffmpeg' &&
@@ -471,9 +486,11 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
             editSessionId: body.editSessionId,
             jobId,
             expectedAssetId: expectedAsset.id,
-            purpose: internalSourceTrimJob
-              ? 'execute_canonical_internal_source_trim_validation'
-              : 'execute_canonical_internal_authority_validation',
+            purpose: internalLivingFrameLayerJob
+              ? 'execute_canonical_internal_living_frame_layer_manifest'
+              : internalSourceTrimJob
+                ? 'execute_canonical_internal_source_trim_validation'
+                : 'execute_canonical_internal_authority_validation',
           }, leaseAuthority))
         } else {
           const provenTool = resolvedProvenTool!

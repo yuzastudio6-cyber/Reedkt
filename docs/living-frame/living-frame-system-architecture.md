@@ -1145,8 +1145,25 @@ freezes the selected scene, layer identity, MasterTiming range, confirmed
 output frame, full-frame fit, opacity, and the rule that captions remain
 above Living Frame. The server also rewrites the one existing final Remotion
 work item to depend on both the RGBA component and manifest, and adds the
-overlay below the caption plane. This is planning and dependency authority,
-not a second renderer or a new production-tool identity.
+overlay below the caption plane.
+
+The canonical internal job runner now has an exact tool-free operation for
+that manifest. It may run only with an active lease whose dependency authority
+selects the one QA-passed and reconciled Sharp component. The resulting
+private JSON binds the current plan/source/asset-manifest hashes, scene and
+timing digests, frame and output dimensions, component artifact/version/hash,
+dependency job, QA/reconciliation records, attempt, and immutable source
+lease. Worker-lease verification reopens and rehashes the manifest before a
+downstream job can consume it.
+
+The one existing final Remotion coordinator now rereads that manifest and its
+exact RGBA component, streams the PNG in server-owned commitment order, and
+renders its approved window above source and below the existing caption plane.
+The confined runner verifies the input hash and timeline again. A real private
+4K streaming regression exercises source, Living Frame RGBA, captions, and
+approved audio in one H.264/AAC composition. This does not create a second
+renderer, a new production-tool identity, public delivery, or production
+authority.
 
 This is not a second Living Frame workflow. The existing WeEditPro estimate,
 approval, work graph, asset manifest, QA, review, and renderer pipeline remains

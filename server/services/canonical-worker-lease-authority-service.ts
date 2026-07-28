@@ -997,6 +997,7 @@ async function verifySelectedDependencyArtifacts(input: {
       const verifiedArtifact = [
         'authority_validation_evidence',
         'source_trim_validation_evidence',
+        'living_frame_remotion_layer_manifest',
       ].includes(authority.artifact.lineage.artifactType)
         ? await verifyCanonicalInternalAuthorityArtifact({
             localStorageRoot: input.context.env.localStorageRoot,

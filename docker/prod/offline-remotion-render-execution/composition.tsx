@@ -62,6 +62,18 @@ export interface ApprovedCompositionProps {
     outputKey: string
     captionOverlayInternalUrl: string
   }>
+  livingFrameOverlayPolicy?: 'approved_rgba_over_source_below_captions_v1'
+  livingFrameOverlays?: Array<{
+    sceneId: string
+    layerId: string
+    manifestOutputKey: string
+    componentOutputKey: string
+    startFrame: number
+    endFrameExclusive: number
+    fit: 'fill'
+    opacity: 1
+    livingFrameOverlayInternalUrl: string
+  }>
   sourceSegments?: Array<{
     sourceSequenceItemId: string
     sourceStartFrame: number
@@ -229,7 +241,8 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
     ['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
       .includes(props.compositionProfileId ?? '') &&
     props.sourceInternalUrl && hasApprovedCaptionInput(props) &&
-    hasApprovedAudioInput(props, 1) && hasApprovedSupplementalAudioInput(props)
+    hasApprovedAudioInput(props, 1) && hasApprovedSupplementalAudioInput(props) &&
+    hasApprovedLivingFrameInput(props)
   ) {
     return <ApprovedSourceCaptionComposition {...props} />
   }
@@ -239,7 +252,8 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
     props.sourceSegments && props.sourceInternalUrls && hasApprovedCaptionInput(props) &&
     hasApprovedAudioInput(props, props.sourceSegments.length) &&
     hasApprovedSourceTransitionInput(props) &&
-    hasApprovedSupplementalAudioInput(props)
+    hasApprovedSupplementalAudioInput(props) &&
+    hasApprovedLivingFrameInput(props)
   ) {
     return <ApprovedSourceSequenceCaptionComposition {...props} />
   }
@@ -738,6 +752,7 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
           />}
       {replaceVoice && <Audio src={props.voiceTrackInternalUrls![0]!.voiceTrackInternalUrl} />}
       <ApprovedSupplementalAudioTracks {...props} />
+      <ApprovedLivingFrameOverlays {...props} />
       <ApprovedCaptionOverlays {...props} />
     </AbsoluteFill>
   )
@@ -837,6 +852,7 @@ const ApprovedSourceSequenceCaptionComposition: React.FC<ApprovedCompositionProp
         </Sequence>
       ))}
       <ApprovedSupplementalAudioTracks {...props} />
+      <ApprovedLivingFrameOverlays {...props} />
       <ApprovedCaptionOverlays {...props} />
     </AbsoluteFill>
   )
@@ -869,6 +885,31 @@ const captionOverlayStyle: React.CSSProperties = {
   objectFit: 'fill',
 }
 
+const ApprovedLivingFrameOverlays: React.FC<ApprovedCompositionProps> = (props) => (
+  <>
+    {(props.livingFrameOverlays ?? []).map((overlay) => (
+      <Sequence
+        key={overlay.layerId}
+        from={overlay.startFrame}
+        durationInFrames={overlay.endFrameExclusive - overlay.startFrame}
+        name={`Approved Living Frame ${overlay.sceneId} ${overlay.layerId}`}
+      >
+        <Img
+          src={overlay.livingFrameOverlayInternalUrl}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: overlay.fit,
+            opacity: overlay.opacity,
+          }}
+        />
+      </Sequence>
+    ))}
+  </>
+)
+
 const ApprovedCaptionOverlays: React.FC<ApprovedCompositionProps> = (props) => {
   if (props.captionOverlayInternalUrl) {
     return <Img src={props.captionOverlayInternalUrl} style={captionOverlayStyle} />
@@ -891,6 +932,52 @@ const ApprovedCaptionOverlays: React.FC<ApprovedCompositionProps> = (props) => {
       </Sequence>
     ))}
   </>
+}
+
+function hasApprovedLivingFrameInput(props: ApprovedCompositionProps): boolean {
+  const overlays = props.livingFrameOverlays
+  if (overlays === undefined) {
+    return props.livingFrameOverlayPolicy === undefined
+  }
+  if (
+    props.livingFrameOverlayPolicy !==
+      'approved_rgba_over_source_below_captions_v1' ||
+    overlays.length < 1 ||
+    overlays.length > 16
+  ) return false
+  const sceneIds = new Set<string>()
+  const layerIds = new Set<string>()
+  const manifestOutputKeys = new Set<string>()
+  const componentOutputKeys = new Set<string>()
+  let previousStartFrame = -1
+  let previousLayerId = ''
+  return overlays.every((overlay) => {
+    const valid =
+      overlay.startFrame >= 0 &&
+      overlay.endFrameExclusive > overlay.startFrame &&
+      overlay.endFrameExclusive <= props.durationFrames &&
+      overlay.startFrame >= previousStartFrame &&
+      (
+        overlay.startFrame !== previousStartFrame ||
+        overlay.layerId.localeCompare(previousLayerId) > 0
+      ) &&
+      overlay.fit === 'fill' &&
+      overlay.opacity === 1 &&
+      /^http:\/\/127\.0\.0\.1:\d+\/living-frame\/\d+\.png$/.test(
+        overlay.livingFrameOverlayInternalUrl,
+      ) &&
+      !sceneIds.has(overlay.sceneId) &&
+      !layerIds.has(overlay.layerId) &&
+      !manifestOutputKeys.has(overlay.manifestOutputKey) &&
+      !componentOutputKeys.has(overlay.componentOutputKey)
+    previousStartFrame = overlay.startFrame
+    previousLayerId = overlay.layerId
+    sceneIds.add(overlay.sceneId)
+    layerIds.add(overlay.layerId)
+    manifestOutputKeys.add(overlay.manifestOutputKey)
+    componentOutputKeys.add(overlay.componentOutputKey)
+    return valid
+  })
 }
 
 function hasApprovedCaptionInput(props: ApprovedCompositionProps): boolean {

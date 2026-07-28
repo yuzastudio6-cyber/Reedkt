@@ -468,6 +468,9 @@ async function executeStreamingWithImage(
     (request.payload.supplementalAudioTracks !== undefined &&
       record(response.semanticEvidence)
         .approvedSupplementalAudioInputStreamedWithoutWholeBuffer !== true) ||
+    (request.payload.livingFrameOverlayLayers !== undefined &&
+      record(response.semanticEvidence)
+        .approvedLivingFrameOverlayInputServerInjectedWithoutBase64 !== true) ||
     !Object.values(record(response.semanticEvidence)).every((item) => item === true)
   ) throw runtimeFailure('Private streaming Remotion result evidence is invalid.')
   const completedAt = new Date().toISOString()

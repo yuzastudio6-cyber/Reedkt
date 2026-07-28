@@ -24,6 +24,7 @@ export const runCanonicalInternalAuthorityJobSchema = z.object({
   purpose: z.enum([
     'execute_canonical_internal_authority_validation',
     'execute_canonical_internal_source_trim_validation',
+    'execute_canonical_internal_living_frame_layer_manifest',
   ]),
 }).strict()
 
@@ -37,10 +38,12 @@ export const canonicalInternalAuthorityRunnerResponseSchema = z.object({
   source: z.enum([
     'canonical_internal_authority_validation_runner',
     'canonical_internal_source_trim_validation_runner',
+    'canonical_internal_living_frame_layer_manifest_runner',
   ]),
   purpose: z.enum([
     'execute_canonical_internal_authority_validation',
     'execute_canonical_internal_source_trim_validation',
+    'execute_canonical_internal_living_frame_layer_manifest',
   ]),
   identity: z.object({
     workspaceId: safeIdentitySchema,
@@ -68,8 +71,13 @@ export const canonicalInternalAuthorityRunnerResponseSchema = z.object({
     runnerClass: z.enum([
       'canonical_authority_validation_runner_v1',
       'canonical_source_trim_validation_runner_v1',
+      'canonical_living_frame_layer_manifest_runner_v1',
     ]),
-    operation: z.enum(['validate_snapshot_manifest', 'validate_approved_source_trim_plan']),
+    operation: z.enum([
+      'validate_snapshot_manifest',
+      'validate_approved_source_trim_plan',
+      'compile_approved_living_frame_remotion_layer_manifest',
+    ]),
     actualInternalOperationCompleted: z.literal(true),
     externalToolExecuted: z.literal(false),
     providerCallMade: z.literal(false),

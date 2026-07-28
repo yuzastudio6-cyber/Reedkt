@@ -109,6 +109,62 @@ const approvedSupplementalAudioTracksSchema = z.array(z.object({
   })
 })
 
+const approvedLivingFrameOverlaysSchema = z.array(z.object({
+  sceneId: identity,
+  layerId: identity,
+  startFrame: z.number().int().nonnegative()
+    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES - 1),
+  endFrameExclusive: z.number().int().positive()
+    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES),
+  manifestArtifactId: identity,
+  manifestSha256: sha,
+  manifestByteLength: z.number().int().positive().max(1024 * 1024),
+  manifestDependencyReadEvidenceHash: sha,
+  componentArtifactId: identity,
+  componentSha256: sha,
+  componentByteLength: z.number().int().min(67).max(16 * 1024 * 1024),
+  componentDependencyReadEvidenceHash: sha,
+}).strict()).min(1).max(16).superRefine((overlays, context) => {
+  for (
+    const field of [
+      'sceneId',
+      'layerId',
+      'manifestArtifactId',
+      'componentArtifactId',
+    ] as const
+  ) {
+    if (new Set(overlays.map((overlay) => overlay[field])).size !== overlays.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [field],
+        message: 'Living Frame overlay identities must be unique.',
+      })
+    }
+  }
+  overlays.forEach((overlay, index) => {
+    const previous = overlays[index - 1]
+    if (
+      overlay.endFrameExclusive <= overlay.startFrame ||
+      (
+        previous &&
+        (
+          overlay.startFrame < previous.startFrame ||
+          (
+            overlay.startFrame === previous.startFrame &&
+            overlay.layerId.localeCompare(previous.layerId) <= 0
+          )
+        )
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [index, 'startFrame'],
+        message: 'Living Frame overlays must retain their approved timeline order.',
+      })
+    }
+  })
+})
+
 const approvedColorSourceSchema = z.object({
   sourceSequenceItemId: identity,
   outputKey: identity,
@@ -254,6 +310,7 @@ const finalCompositionDependencyInputsSchema = z.object({
   captionDependencyReadEvidenceHash: sha,
   voiceTracks: approvedVoiceTracksSchema.optional(),
   supplementalAudioTracks: approvedSupplementalAudioTracksSchema.optional(),
+  livingFrameOverlays: approvedLivingFrameOverlaysSchema.optional(),
 }).strict()
 
 const captionTrackDependencyInputsSchema = z.object({
@@ -271,6 +328,7 @@ const captionTrackDependencyInputsSchema = z.object({
   }).strict()).min(1).max(7),
   voiceTracks: approvedVoiceTracksSchema.optional(),
   supplementalAudioTracks: approvedSupplementalAudioTracksSchema.optional(),
+  livingFrameOverlays: approvedLivingFrameOverlaysSchema.optional(),
 }).strict()
 
 const singleSourceFinalCompositionInputsSchema = finalCompositionDependencyInputsSchema.extend({
@@ -346,7 +404,7 @@ const sourceSequenceCaptionTrackFinalCompositionInputsSchema =
   ])
 
 export const canonicalPrivateFinalCompositionResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-private-final-composition-execution-response-v5'),
+  schemaVersion: z.literal('canonical-private-final-composition-execution-response-v6'),
   source: z.literal('canonical_private_final_composition_execution_coordinator'),
   purpose: z.literal('execute_canonical_private_final_composition'),
   identity: z.object({
@@ -395,6 +453,10 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     ]),
     approvedSupplementalAudioTimelineApplied: z.boolean(),
     approvedSupplementalAudioSpeechSafeMixApplied: z.boolean(),
+    approvedLivingFrameLayerManifestDependencyRead: z.boolean(),
+    approvedLivingFrameOverlayDependencyRead: z.boolean(),
+    approvedLivingFrameOverlayTimelineApplied: z.boolean(),
+    approvedLivingFrameOverlayBelowCaptionsApplied: z.boolean(),
     approvedColorDependencyRead: z.boolean(),
     approvedColorDependencyInputMode: z.enum([
       'not_applicable',
@@ -516,6 +578,27 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
       path: ['tool', 'approvedSupplementalAudioTimelineApplied'],
       message:
         'Final-composition supplemental-audio evidence diverged from its approved Edit Brief timeline.',
+    })
+  }
+  const livingFrameOverlays = value.inputs.livingFrameOverlays
+  const livingFrameEnabled = Boolean(livingFrameOverlays?.length)
+  if (
+    value.tool.approvedLivingFrameLayerManifestDependencyRead !==
+      livingFrameEnabled ||
+    value.tool.approvedLivingFrameOverlayDependencyRead !==
+      livingFrameEnabled ||
+    value.tool.approvedLivingFrameOverlayTimelineApplied !==
+      livingFrameEnabled ||
+    value.tool.approvedLivingFrameOverlayBelowCaptionsApplied !==
+      livingFrameEnabled ||
+    livingFrameOverlays?.some((overlay) =>
+      overlay.endFrameExclusive > value.qa.frameCount)
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['tool', 'approvedLivingFrameOverlayTimelineApplied'],
+      message:
+        'Final-composition Living Frame evidence diverged from its approved layer timeline.',
     })
   }
   const sequenceInputs = 'sources' in value.inputs
@@ -847,6 +930,10 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
     ]),
     approvedSupplementalAudioTimelineApplied: z.boolean(),
     approvedSupplementalAudioSpeechSafeMixApplied: z.boolean(),
+    approvedLivingFrameLayerManifestDependencyRead: z.boolean(),
+    approvedLivingFrameOverlayDependencyRead: z.boolean(),
+    approvedLivingFrameOverlayTimelineApplied: z.boolean(),
+    approvedLivingFrameOverlayBelowCaptionsApplied: z.boolean(),
     approvedColorDependencyRead: z.boolean(),
     approvedColorDependencyInputMode: z.enum([
       'not_applicable',
@@ -953,6 +1040,12 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
     value.tool.approvedSupplementalAudioDependencyInputMode === 'not_applicable' &&
     !value.tool.approvedSupplementalAudioTimelineApplied &&
     !value.tool.approvedSupplementalAudioSpeechSafeMixApplied
+  const livingFrameOverlaysAbsent =
+    value.inputs.livingFrameOverlays === undefined &&
+    !value.tool.approvedLivingFrameLayerManifestDependencyRead &&
+    !value.tool.approvedLivingFrameOverlayDependencyRead &&
+    !value.tool.approvedLivingFrameOverlayTimelineApplied &&
+    !value.tool.approvedLivingFrameOverlayBelowCaptionsApplied
   if (
     value.chunkAuthority.globalEndFrameExclusive - value.chunkAuthority.globalStartFrame !==
       value.chunkAuthority.durationFrames ||
@@ -961,6 +1054,7 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
     costRequired !== (value.replay.attemptCostEvidenceReplayed !== undefined) ||
     !transitionEvidenceValid ||
     !supplementalAudioAbsent ||
+    !livingFrameOverlaysAbsent ||
     (cost && (
       cost.identity.toolId !== 'remotion' ||
       cost.identity.workloadProfileId !==

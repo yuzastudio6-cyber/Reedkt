@@ -32,18 +32,22 @@ const LEGACY_OUTPUT_BOUNDARY_BYTES = 16 * 1024 * 1024
 const fixtureRoot = await mkdtemp(join(tmpdir(), 'reeditpro-remotion-stream-output-fixture-'))
 const storageRoot = await mkdtemp(join(tmpdir(), 'reeditpro-remotion-stream-output-storage-'))
 const sourcePath = join(fixtureRoot, 'high-detail-4k-source.mp4')
+const livingFrameOverlayPath = join(fixtureRoot, 'approved-living-frame-overlay.png')
 const captionPath = join(fixtureRoot, 'approved-caption-overlay.png')
 const supplementalAudioPath = join(fixtureRoot, 'approved-edit-brief-music.wav')
 
 try {
   generateHighDetailFourKSource(sourcePath)
+  generateLivingFrameOverlay(livingFrameOverlayPath)
   generateCaptionOverlay(captionPath)
   generateSupplementalMusic(supplementalAudioPath)
   const source = await fileCommitment(sourcePath)
+  const livingFrameOverlay = await fileCommitment(livingFrameOverlayPath)
   const caption = await fileCommitment(captionPath)
   const supplementalAudio = await fileCommitment(supplementalAudioPath)
   assert.ok(source.byteLength < LEGACY_OUTPUT_BOUNDARY_BYTES)
   assert.ok(source.byteLength > 8 * 1024 * 1024)
+  assert.ok(livingFrameOverlay.byteLength >= 67)
   assert.ok(caption.byteLength >= 1_024)
 
   await prepareOfflineRemotionDockerRuntime()
@@ -79,6 +83,17 @@ try {
         fillPolicy: 'loop_or_trim_to_window',
         mixProfileId: 'speech_safe_uploaded_music_bed_v1',
       }],
+      livingFrameOverlayPolicy: 'approved_rgba_over_source_below_captions_v1',
+      livingFrameOverlayLayers: [{
+        sceneId: 'living-frame-scene-1',
+        layerId: 'living-frame-layer-1',
+        manifestOutputKey: 'living-frame-layer-manifest-1',
+        componentOutputKey: 'living-frame-component-1',
+        startFrame: 12,
+        endFrameExclusive: 36,
+        fit: 'fill',
+        opacity: 1,
+      }],
     },
     source: {
       inputId: 'high-detail-approved-source',
@@ -92,6 +107,13 @@ try {
       byteLength: caption.byteLength,
       sha256: caption.sha256,
     },
+    livingFrameOverlays: [{
+      inputId: 'approved-living-frame-overlay-1',
+      outputKey: 'living-frame-component-1',
+      mimeType: 'image/png',
+      byteLength: livingFrameOverlay.byteLength,
+      sha256: livingFrameOverlay.sha256,
+    }],
     supplementalAudioTracks: [{
       inputId: 'approved-edit-brief-music-1',
       outputKey: 'edit-brief-audio-1-wav',
@@ -129,6 +151,16 @@ try {
     ...request,
     inputs: {
       ...request.inputs,
+      livingFrameOverlays: [{
+        ...request.inputs.livingFrameOverlays[0],
+        outputKey: 'caller-reordered-living-frame-output',
+      }],
+    },
+  }), /diverges from the approved layer timeline/u)
+  assert.throws(() => validateOfflineRemotionStreamingRenderRequest({
+    ...request,
+    inputs: {
+      ...request.inputs,
       captionOverlays: [{
         ...request.inputs.captionOverlays[0],
         inputId: request.inputs.sources[0]!.inputId,
@@ -148,6 +180,12 @@ try {
   await assertRejectedStreamLeavesNoCommittedTarget()
   const inputs: OfflineRemotionServerInjectedInput[] = [
     privateFileInput('high-detail-approved-source', 'video/mp4', sourcePath, source),
+    privateFileInput(
+      'approved-living-frame-overlay-1',
+      'image/png',
+      livingFrameOverlayPath,
+      livingFrameOverlay,
+    ),
     privateFileInput('approved-caption-overlay', 'image/png', captionPath, caption),
     privateFileInput(
       'approved-edit-brief-music-1',
@@ -199,6 +237,23 @@ try {
   )
   assert.equal(
     result.evidence.semanticEvidence.approvedSupplementalAudioSpeechSafeMixApplied,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .approvedLivingFrameOverlayInputServerInjectedWithoutBase64,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence.approvedLivingFrameOverlayBytesVerified,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence.approvedLivingFrameOverlayTimelineApplied,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence.approvedLivingFrameOverlayBelowCaptionsApplied,
     true,
   )
   assert.equal(result.readiness.serverInjectedStreamingReady, true)
@@ -286,7 +341,8 @@ try {
     },
     proofs: [
       'bounded_json_manifest_contains_no_media_base64_paths_urls_or_commands',
-      'server_injected_source_and_caption_streams_rehashed_on_host_and_in_container',
+      'server_injected_source_living_frame_caption_and_audio_streams_rehashed_on_host_and_in_container',
+      'approved_living_frame_rgba_overlay_rendered_at_exact_frames_above_source_and_below_captions',
       'approved_edit_brief_music_wav_stream_rehashed_looped_and_mixed_at_exact_frames',
       'network_none_read_only_non_root_no_mount_confinement_preserved',
       'actual_4k_h264_high_quality_remotion_render_exceeds_legacy_16mib_output_ceiling',
@@ -322,6 +378,21 @@ function generateCaptionOverlay(outputPath: string): void {
     '-hide_banner', '-loglevel', 'error',
     '-f', 'lavfi', '-i', 'color=c=black@0.0:size=3840x2160:rate=1:duration=1',
     '-vf', 'format=rgba,colorchannelmixer=aa=0', '-frames:v', '1', '-threads', '1', '-y', outputPath,
+  ], { encoding: 'utf8', maxBuffer: 1024 * 1024 })
+  assert.equal(generated.status, 0, generated.stderr)
+}
+
+function generateLivingFrameOverlay(outputPath: string): void {
+  const generated = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error',
+    '-f', 'lavfi', '-i', 'color=c=black@0.0:size=3840x2160:rate=1:duration=1',
+    '-vf', [
+      'format=rgba',
+      'colorchannelmixer=aa=0',
+      'drawbox=x=240:y=240:w=960:h=540:color=0x18A6F0@0.88:t=fill',
+      'drawbox=x=280:y=280:w=880:h=460:color=0xFFCA3A@0.62:t=24',
+    ].join(','),
+    '-frames:v', '1', '-threads', '1', '-y', outputPath,
   ], { encoding: 'utf8', maxBuffer: 1024 * 1024 })
   assert.equal(generated.status, 0, generated.stderr)
 }

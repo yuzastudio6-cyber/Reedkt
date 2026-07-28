@@ -1,5 +1,11 @@
 import { createHash } from 'node:crypto'
 
+import {
+  CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
+} from '../../src/types/living-frame-canonical-work-graph-projection'
 import { ApiError } from '../errors/api-error'
 import {
   readPrivateFileIfExistsWithinRoot,
@@ -46,7 +52,7 @@ const authorityArtifactWriteLocks = new Map<string, Promise<void>>()
 /**
  * Executes the dependency-root, tool-free canonical snapshot validation job.
  *
- * This is ReEditPro server logic, not a third-party tool operation. It verifies
+ * This is WeEditPro server logic, not a third-party tool operation. It verifies
  * the active opaque lease and reloads all immutable planning/source/package
  * authority before committing one private JSON result, QA record, and merge
  * decision. The legacy artifact authority remains private-test-only, so this
@@ -128,6 +134,8 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
         readiness,
         workItemId: workItem.id,
         expectedAssetId: expectedAsset.id,
+        selectedDependencyArtifacts:
+          lease.dependencyAuthority.selectedArtifacts,
       })
       const bytes = Buffer.from(`${stableAuthorityStringify(report)}\n`, 'utf8')
       if (bytes.byteLength <= 0 || bytes.byteLength > MAXIMUM_ARTIFACT_BYTES) {
@@ -403,7 +411,7 @@ function assertCanonicalAuthorityValidationJob(input: {
     workItem.expectedOutputs.length !== 1 ||
     !expectedAsset ||
     expectedAsset.id !== body.expectedAssetId ||
-    expectedAsset.assetRole !== 'qa' ||
+    expectedAsset.assetRole !== (profile.kind === 'living_frame_layer' ? 'processed' : 'qa') ||
     expectedAsset.contentType !== 'application/json' ||
     !expectedAsset.required ||
     expectedAsset.previewPlaceholderAllowed ||
@@ -432,6 +440,57 @@ function assertCanonicalAuthorityValidationJob(input: {
       }) ||
       expectedAsset.artifactType !== 'authority_validation_evidence'
     ) throw invalidAuthority('Canonical snapshot-validation job is not exactly executable.')
+    return
+  }
+  if (profile.kind === 'living_frame_layer') {
+    const selectedArtifact = lease.dependencyAuthority.selectedArtifacts[0]
+    const payload = livingFrameLayerPayload(workItem.executionInput)
+    const dependencyWorkItem = payload
+      ? authority.workItems.find((candidate) =>
+          candidate.workItemKey === payload.componentDependency.workItemKey)
+      : undefined
+    const dependencyJob = dependencyWorkItem
+      ? authority.jobs.find((candidate) =>
+          candidate.approvedWorkItemId === dependencyWorkItem.id)
+      : undefined
+    const dependencyAsset = dependencyWorkItem && payload
+      ? authority.assetManifest.entries.find((candidate) =>
+          candidate.approvedWorkItemId === dependencyWorkItem.id &&
+          candidate.outputKey === payload.componentDependency.outputKey)
+      : undefined
+    if (
+      readiness.job.canonicalGraphState !== 'ready' ||
+      readiness.job.dependencyJobIds.length !== 1 ||
+      readiness.dependencyEvidenceState !==
+        'required_results_and_qa_not_committed' ||
+      lease.dependencyAuthority.state !== 'private_test_dependencies_verified' ||
+      lease.dependencyAuthority.selectedArtifacts.length !== 1 ||
+      !selectedArtifact ||
+      !payload ||
+      workItem.workItemType !== 'prepare_remotion_layer' ||
+      workItem.workerClass !== CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS ||
+      workItem.sourceSequenceItemIds.length === 0 ||
+      workItem.sourceCleanupDecisionIds.length === 0 ||
+      workItem.dependencyKeys.length !== 1 ||
+      workItem.dependencyKeys[0] !== payload.componentDependency.workItemKey ||
+      workItem.expectedOutputs[0]?.outputKey !== expectedAsset.outputKey ||
+      expectedAsset.artifactType !== 'living_frame_remotion_layer_manifest' ||
+      expectedAsset.rendererLayerIds.length !== 1 ||
+      expectedAsset.rendererLayerIds[0] !== payload.layerId ||
+      !dependencyWorkItem ||
+      !dependencyJob ||
+      !dependencyAsset ||
+      dependencyWorkItem.workItemType !== 'process_image_asset' ||
+      dependencyAsset.artifactType !== payload.componentDependency.artifactType ||
+      dependencyAsset.contentType !== payload.componentDependency.contentType ||
+      selectedArtifact.dependencyJobId !== dependencyJob.id ||
+      readiness.job.dependencyJobIds[0] !== dependencyJob.id ||
+      selectedArtifact.expectedAssetId !== dependencyAsset.id
+    ) {
+      throw invalidAuthority(
+        'Canonical Living Frame layer-manifest job is not exactly executable.',
+      )
+    }
     return
   }
   const selectedDependencyCount = lease.dependencyAuthority.selectedArtifacts.length
@@ -472,10 +531,24 @@ function buildAuthorityValidationReport(input: {
   readiness: Readiness
   workItemId: string
   expectedAssetId: string
+  selectedDependencyArtifacts:
+    Lease['dependencyAuthority']['selectedArtifacts']
 }) {
   const workItem = input.authority.workItems.find((item) => item.id === input.workItemId)!
-  const cleanupDecisions = workItem.sourceCleanupDecisionIds.map((decisionId) =>
-    input.authority.components.sourceCleanupPlan.decisions.find((decision) => decision.decisionId === decisionId)!)
+  const cleanupDecisions = input.profile.kind === 'source_trim'
+    ? workItem.sourceCleanupDecisionIds.map((decisionId) =>
+        input.authority.components.sourceCleanupPlan.decisions.find(
+          (decision) => decision.decisionId === decisionId,
+        )!)
+    : []
+  const livingFrameLayer = input.profile.kind === 'living_frame_layer'
+    ? buildLivingFrameLayerEvidence({
+        authority: input.authority,
+        workItem,
+        selectedDependencyArtifacts:
+          input.selectedDependencyArtifacts,
+      })
+    : null
   return {
     schemaVersion: ARTIFACT_SCHEMA_VERSION,
     source: 'immutable_canonical_edit_authority',
@@ -535,8 +608,206 @@ function buildAuthorityValidationReport(input: {
           unresolvedUserReview: false as const,
         }
       : null,
+    livingFrameLayer,
     valid: true as const,
   }
+}
+
+interface LivingFrameLayerPayload {
+  schemaVersion:
+    typeof CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION
+  selectedSceneBindingDigestSha256: string
+  timingBindingDigestSha256: string
+  sceneId: string
+  layerId: string
+  startFrame: number
+  endFrameExclusive: number
+  outputWidth: number
+  outputHeight: number
+  fit: 'fill'
+  opacity: 1
+  compositionPolicy:
+    typeof CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY
+  captionPlaneRemainsAboveLivingFrame: true
+  componentDependency: {
+    workItemKey: string
+    outputKey: string
+    artifactType: 'living_frame_component_rgba_png'
+    contentType: 'image/png'
+  }
+}
+
+function livingFrameLayerPayload(
+  executionInput: unknown,
+): LivingFrameLayerPayload | null {
+  if (!executionInput || typeof executionInput !== 'object' ||
+      Array.isArray(executionInput)) return null
+  const execution = executionInput as Record<string, unknown>
+  const payloadValue = execution.structuredPayload
+  if (
+    execution.operation !==
+      CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION ||
+    !Array.isArray(execution.approvedToolOperationIds) ||
+    execution.approvedToolOperationIds.length !== 0 ||
+    !Array.isArray(execution.expectedOutputKeys) ||
+    execution.expectedOutputKeys.length !== 1 ||
+    !payloadValue ||
+    typeof payloadValue !== 'object' ||
+    Array.isArray(payloadValue)
+  ) return null
+  const payload = payloadValue as Record<string, unknown>
+  const dependencyValue = payload.componentDependency
+  if (
+    !dependencyValue ||
+    typeof dependencyValue !== 'object' ||
+    Array.isArray(dependencyValue)
+  ) return null
+  const dependency = dependencyValue as Record<string, unknown>
+  const exactPayloadKeys = [
+    'captionPlaneRemainsAboveLivingFrame',
+    'componentDependency',
+    'compositionPolicy',
+    'endFrameExclusive',
+    'fit',
+    'layerId',
+    'opacity',
+    'outputHeight',
+    'outputWidth',
+    'sceneId',
+    'schemaVersion',
+    'selectedSceneBindingDigestSha256',
+    'startFrame',
+    'timingBindingDigestSha256',
+  ]
+  const exactDependencyKeys = [
+    'artifactType',
+    'contentType',
+    'outputKey',
+    'workItemKey',
+  ]
+  if (
+    stableAuthorityStringify(Object.keys(payload).sort()) !==
+      stableAuthorityStringify(exactPayloadKeys) ||
+    stableAuthorityStringify(Object.keys(dependency).sort()) !==
+      stableAuthorityStringify(exactDependencyKeys) ||
+    payload.schemaVersion !==
+      CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION ||
+    !validSha256(payload.selectedSceneBindingDigestSha256) ||
+    !validSha256(payload.timingBindingDigestSha256) ||
+    !validInternalIdentity(payload.sceneId) ||
+    !validInternalIdentity(payload.layerId) ||
+    !Number.isSafeInteger(payload.startFrame) ||
+    Number(payload.startFrame) < 0 ||
+    !Number.isSafeInteger(payload.endFrameExclusive) ||
+    Number(payload.endFrameExclusive) <= Number(payload.startFrame) ||
+    !Number.isSafeInteger(payload.outputWidth) ||
+    Number(payload.outputWidth) < 1 ||
+    Number(payload.outputWidth) > 4_096 ||
+    !Number.isSafeInteger(payload.outputHeight) ||
+    Number(payload.outputHeight) < 1 ||
+    Number(payload.outputHeight) > 4_096 ||
+    payload.fit !== 'fill' ||
+    payload.opacity !== 1 ||
+    payload.compositionPolicy !==
+      CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY ||
+    payload.captionPlaneRemainsAboveLivingFrame !== true ||
+    !validInternalIdentity(dependency.workItemKey) ||
+    !validInternalIdentity(dependency.outputKey) ||
+    dependency.artifactType !==
+      'living_frame_component_rgba_png' ||
+    dependency.contentType !== 'image/png'
+  ) return null
+  return payload as unknown as LivingFrameLayerPayload
+}
+
+function buildLivingFrameLayerEvidence(input: {
+  authority: Authority
+  workItem: Authority['workItems'][number]
+  selectedDependencyArtifacts:
+    Lease['dependencyAuthority']['selectedArtifacts']
+}) {
+  const payload = livingFrameLayerPayload(input.workItem.executionInput)
+  if (!payload) {
+    throw invalidAuthority(
+      'Canonical Living Frame layer-manifest payload is missing during compilation.',
+    )
+  }
+  const dependencyWorkItem = input.authority.workItems.find(
+    (candidate) =>
+      candidate.workItemKey === payload.componentDependency.workItemKey,
+  )
+  const dependencyJob = dependencyWorkItem
+    ? input.authority.jobs.find(
+        (candidate) =>
+          candidate.approvedWorkItemId === dependencyWorkItem.id,
+      )
+    : undefined
+  const dependencyAsset = dependencyWorkItem
+    ? input.authority.assetManifest.entries.find(
+        (candidate) =>
+          candidate.approvedWorkItemId === dependencyWorkItem.id &&
+          candidate.outputKey === payload.componentDependency.outputKey,
+      )
+    : undefined
+  const selectedArtifact =
+    input.selectedDependencyArtifacts[0]
+  if (
+    !dependencyJob ||
+    !dependencyAsset ||
+    input.selectedDependencyArtifacts.length !== 1 ||
+    !selectedArtifact ||
+    selectedArtifact.dependencyJobId !== dependencyJob.id ||
+    selectedArtifact.expectedAssetId !== dependencyAsset.id
+  ) {
+    throw invalidAuthority(
+      'Canonical Living Frame component dependency is missing during layer-manifest compilation.',
+    )
+  }
+  return {
+    schemaVersion: payload.schemaVersion,
+    selectedSceneBindingDigestSha256:
+      payload.selectedSceneBindingDigestSha256,
+    timingBindingDigestSha256:
+      payload.timingBindingDigestSha256,
+    sceneId: payload.sceneId,
+    layerId: payload.layerId,
+    startFrame: payload.startFrame,
+    endFrameExclusive: payload.endFrameExclusive,
+    outputWidth: payload.outputWidth,
+    outputHeight: payload.outputHeight,
+    fit: payload.fit,
+    opacity: payload.opacity,
+    compositionPolicy: payload.compositionPolicy,
+    captionPlaneRemainsAboveLivingFrame:
+      payload.captionPlaneRemainsAboveLivingFrame,
+    component: {
+      workItemKey: payload.componentDependency.workItemKey,
+      dependencyJobId: dependencyJob.id,
+      outputKey: payload.componentDependency.outputKey,
+      expectedAssetId: dependencyAsset.id,
+      artifactType: payload.componentDependency.artifactType,
+      contentType: payload.componentDependency.contentType,
+      artifactId: selectedArtifact.artifactId,
+      artifactVersion: selectedArtifact.artifactVersion,
+      contentSha256: selectedArtifact.contentSha256,
+      qaEvaluationId: selectedArtifact.qaEvaluationId,
+      reconciliationId: selectedArtifact.reconciliationId,
+      executionAttemptId: selectedArtifact.executionAttemptId,
+      sourceLeaseImmutableHash:
+        selectedArtifact.sourceLeaseImmutableHash,
+    },
+  }
+}
+
+function validSha256(value: unknown): value is string {
+  return typeof value === 'string' &&
+    /^[a-f0-9]{64}$/.test(value)
+}
+
+function validInternalIdentity(value: unknown): value is string {
+  return typeof value === 'string' &&
+    /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/.test(value) &&
+    !value.includes('..')
 }
 
 function createAuthorityAdapters(input: {
@@ -715,6 +986,7 @@ function parseAuthorityValidationArtifact(bytes: Buffer): Record<string, unknown
   const record = parsed as Record<string, unknown>
   const validationProfile = record.validationProfile
   const sourceTrim = record.sourceTrim
+  const livingFrameLayer = record.livingFrameLayer
   if (
     record.schemaVersion !== ARTIFACT_SCHEMA_VERSION ||
     record.source !== 'immutable_canonical_edit_authority' ||
@@ -723,13 +995,72 @@ function parseAuthorityValidationArtifact(bytes: Buffer): Record<string, unknown
     record.checks.length !== 9 ||
     record.checks.some((check) => !check || typeof check !== 'object' ||
       (check as Record<string, unknown>).status !== 'passed') ||
-    !['snapshot', 'source_trim'].includes(String(validationProfile)) ||
-    (validationProfile === 'snapshot' && sourceTrim !== null) ||
-    (validationProfile === 'source_trim' && !validSourceTrimEvidence(sourceTrim))
+    !['snapshot', 'source_trim', 'living_frame_layer'].includes(
+      String(validationProfile),
+    ) ||
+    (validationProfile === 'snapshot' &&
+      (sourceTrim !== null || livingFrameLayer !== null)) ||
+    (validationProfile === 'source_trim' &&
+      (!validSourceTrimEvidence(sourceTrim) ||
+        livingFrameLayer !== null)) ||
+    (validationProfile === 'living_frame_layer' &&
+      (sourceTrim !== null ||
+        !validLivingFrameLayerEvidence(livingFrameLayer)))
   ) {
     throw new ApiError('VALIDATION_FAILED', 'Canonical authority validation artifact failed semantic QA.', 409)
   }
   return record
+}
+
+function validLivingFrameLayerEvidence(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false
+  }
+  const record = value as Record<string, unknown>
+  const component = record.component
+  if (
+    !component ||
+    typeof component !== 'object' ||
+    Array.isArray(component)
+  ) return false
+  const artifact = component as Record<string, unknown>
+  return (
+    record.schemaVersion ===
+      CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION &&
+    validSha256(record.selectedSceneBindingDigestSha256) &&
+    validSha256(record.timingBindingDigestSha256) &&
+    validInternalIdentity(record.sceneId) &&
+    validInternalIdentity(record.layerId) &&
+    Number.isSafeInteger(record.startFrame) &&
+    Number(record.startFrame) >= 0 &&
+    Number.isSafeInteger(record.endFrameExclusive) &&
+    Number(record.endFrameExclusive) > Number(record.startFrame) &&
+    Number.isSafeInteger(record.outputWidth) &&
+    Number(record.outputWidth) >= 1 &&
+    Number(record.outputWidth) <= 4_096 &&
+    Number.isSafeInteger(record.outputHeight) &&
+    Number(record.outputHeight) >= 1 &&
+    Number(record.outputHeight) <= 4_096 &&
+    record.fit === 'fill' &&
+    record.opacity === 1 &&
+    record.compositionPolicy ===
+      CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY &&
+    record.captionPlaneRemainsAboveLivingFrame === true &&
+    validInternalIdentity(artifact.workItemKey) &&
+    validInternalIdentity(artifact.dependencyJobId) &&
+    validInternalIdentity(artifact.outputKey) &&
+    validInternalIdentity(artifact.expectedAssetId) &&
+    artifact.artifactType === 'living_frame_component_rgba_png' &&
+    artifact.contentType === 'image/png' &&
+    validInternalIdentity(artifact.artifactId) &&
+    Number.isSafeInteger(artifact.artifactVersion) &&
+    Number(artifact.artifactVersion) > 0 &&
+    validSha256(artifact.contentSha256) &&
+    validInternalIdentity(artifact.qaEvaluationId) &&
+    validInternalIdentity(artifact.reconciliationId) &&
+    validInternalIdentity(artifact.executionAttemptId) &&
+    validSha256(artifact.sourceLeaseImmutableHash)
+  )
 }
 
 function validSourceTrimEvidence(value: unknown): boolean {
@@ -793,21 +1124,38 @@ function boundedInternalKey(prefix: string, identityHash: string): string {
 }
 
 function internalValidationProfile(purpose: RunCanonicalInternalAuthorityJobInput['purpose']) {
-  return purpose === 'execute_canonical_internal_source_trim_validation'
-    ? {
-        kind: 'source_trim' as const,
-        source: 'canonical_internal_source_trim_validation_runner' as const,
-        runnerClass: 'canonical_source_trim_validation_runner_v1' as const,
-        operation: 'validate_approved_source_trim_plan' as const,
-        artifactDomain: 'canonical_internal_source_trim_validation_artifact_v1' as const,
-      }
-    : {
-        kind: 'snapshot' as const,
-        source: 'canonical_internal_authority_validation_runner' as const,
-        runnerClass: 'canonical_authority_validation_runner_v1' as const,
-        operation: 'validate_snapshot_manifest' as const,
-        artifactDomain: 'canonical_internal_authority_validation_artifact_v1' as const,
-      }
+  if (purpose === 'execute_canonical_internal_source_trim_validation') {
+    return {
+      kind: 'source_trim' as const,
+      source: 'canonical_internal_source_trim_validation_runner' as const,
+      runnerClass: 'canonical_source_trim_validation_runner_v1' as const,
+      operation: 'validate_approved_source_trim_plan' as const,
+      artifactDomain: 'canonical_internal_source_trim_validation_artifact_v1' as const,
+    }
+  }
+  if (
+    purpose ===
+      'execute_canonical_internal_living_frame_layer_manifest'
+  ) {
+    return {
+      kind: 'living_frame_layer' as const,
+      source:
+        'canonical_internal_living_frame_layer_manifest_runner' as const,
+      runnerClass:
+        'canonical_living_frame_layer_manifest_runner_v1' as const,
+      operation:
+        CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
+      artifactDomain:
+        'canonical_internal_living_frame_layer_manifest_artifact_v1' as const,
+    }
+  }
+  return {
+    kind: 'snapshot' as const,
+    source: 'canonical_internal_authority_validation_runner' as const,
+    runnerClass: 'canonical_authority_validation_runner_v1' as const,
+    operation: 'validate_snapshot_manifest' as const,
+    artifactDomain: 'canonical_internal_authority_validation_artifact_v1' as const,
+  }
 }
 
 function parseRunRequest(input: RunCanonicalInternalAuthorityJobInput): RunCanonicalInternalAuthorityJobInput {

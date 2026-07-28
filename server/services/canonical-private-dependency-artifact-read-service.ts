@@ -477,6 +477,7 @@ async function authorizeSingleSelectedArtifact(
   const internalAuthorityArtifact = [
     'authority_validation_evidence',
     'source_trim_validation_evidence',
+    'living_frame_remotion_layer_manifest',
   ].includes(authority.artifact.lineage.artifactType)
   const contentType = authority.artifact.content.contentType as CanonicalPrivateDependencyContentType
   const providerOutputArtifact =

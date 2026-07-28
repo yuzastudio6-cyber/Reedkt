@@ -41,9 +41,11 @@ const MAXIMUM_DELIVERY_H264_CHUNK_MANIFEST_BYTES = 64 * 1024
 const MAXIMUM_STREAMING_SOURCE_BYTES = 192 * 1024 * 1024
 const MAXIMUM_STREAMING_COMBINED_SOURCE_BYTES = 192 * 1024 * 1024
 const MAXIMUM_STREAMING_CAPTION_BYTES = 8 * 1024 * 1024
+const MAXIMUM_STREAMING_LIVING_FRAME_OVERLAY_BYTES = 32 * 1024 * 1024
+const MAXIMUM_STREAMING_COMBINED_LIVING_FRAME_OVERLAY_BYTES = 128 * 1024 * 1024
 const MAXIMUM_STREAMING_SUPPLEMENTAL_AUDIO_BYTES = 16 * 1024 * 1024
 const MAXIMUM_STREAMING_COMBINED_SUPPLEMENTAL_AUDIO_BYTES = 64 * 1024 * 1024
-const MAXIMUM_STREAMING_COMBINED_INPUT_BYTES = 336 * 1024 * 1024
+const MAXIMUM_STREAMING_COMBINED_INPUT_BYTES = 464 * 1024 * 1024
 const MAXIMUM_STREAMING_OUTPUT_BYTES = 256 * 1024 * 1024
 const MAXIMUM_DELIVERY_H264_CHUNK_SOURCE_BYTES = 512 * 1024 * 1024
 const MAXIMUM_DELIVERY_H264_CHUNK_OUTPUT_BYTES = 3 * 1024 * 1024 * 1024
@@ -1333,6 +1335,85 @@ function validateStreamingSupplementalAudioPlans(value, durationFrames) {
   })
 }
 
+function validateStreamingLivingFrameOverlayPlans(policy, value, durationFrames) {
+  if (
+    policy !== 'approved_rgba_over_source_below_captions_v1' ||
+    !Array.isArray(value) ||
+    value.length < 1 ||
+    value.length > 16
+  ) {
+    throw new Error('streaming Living Frame overlays are unsupported')
+  }
+  const sceneIds = new Set()
+  const layerIds = new Set()
+  const manifestOutputKeys = new Set()
+  const componentOutputKeys = new Set()
+  let previousStartFrame = -1
+  let previousLayerId = ''
+  return value.map((candidate, index) => {
+    const layer = exactObject(candidate, [
+      'sceneId', 'layerId', 'manifestOutputKey', 'componentOutputKey',
+      'startFrame', 'endFrameExclusive', 'fit', 'opacity',
+    ], `streaming Living Frame overlay ${index + 1}`)
+    const sceneId = safeIdentity(layer.sceneId, 'Living Frame sceneId')
+    const layerId = safeIdentity(layer.layerId, 'Living Frame layerId')
+    const manifestOutputKey = safeIdentity(
+      layer.manifestOutputKey,
+      'Living Frame manifestOutputKey',
+    )
+    const componentOutputKey = safeIdentity(
+      layer.componentOutputKey,
+      'Living Frame componentOutputKey',
+    )
+    const startFrame = integer(
+      layer.startFrame,
+      0,
+      durationFrames - 1,
+      'Living Frame startFrame',
+    )
+    const endFrameExclusive = integer(
+      layer.endFrameExclusive,
+      1,
+      durationFrames,
+      'Living Frame endFrameExclusive',
+    )
+    if (
+      endFrameExclusive <= startFrame ||
+      layer.fit !== 'fill' ||
+      layer.opacity !== 1 ||
+      sceneIds.has(sceneId) ||
+      layerIds.has(layerId) ||
+      manifestOutputKeys.has(manifestOutputKey) ||
+      componentOutputKeys.has(componentOutputKey) ||
+      startFrame < previousStartFrame ||
+      (
+        startFrame === previousStartFrame &&
+        layerId.localeCompare(previousLayerId) <= 0
+      )
+    ) {
+      throw new Error(
+        'streaming Living Frame overlays must be exact, unique, and canonically ordered',
+      )
+    }
+    sceneIds.add(sceneId)
+    layerIds.add(layerId)
+    manifestOutputKeys.add(manifestOutputKey)
+    componentOutputKeys.add(componentOutputKey)
+    previousStartFrame = startFrame
+    previousLayerId = layerId
+    return {
+      sceneId,
+      layerId,
+      manifestOutputKey,
+      componentOutputKey,
+      startFrame,
+      endFrameExclusive,
+      fit: 'fill',
+      opacity: 1,
+    }
+  })
+}
+
 function validateStreamingPlanningPayload(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('streaming planning payload must be an object')
@@ -1344,11 +1425,20 @@ function validateStreamingPlanningPayload(value) {
   const supplementalAudioProvided =
     Object.hasOwn(value, 'supplementalAudioPolicy') ||
     Object.hasOwn(value, 'supplementalAudioTracks')
+  const livingFrameOverlaysProvided =
+    Object.hasOwn(value, 'livingFrameOverlayPolicy') ||
+    Object.hasOwn(value, 'livingFrameOverlayLayers')
   if (
     Object.hasOwn(value, 'supplementalAudioPolicy') !==
     Object.hasOwn(value, 'supplementalAudioTracks')
   ) {
     throw new Error('streaming supplemental audio policy and tracks must be paired')
+  }
+  if (
+    Object.hasOwn(value, 'livingFrameOverlayPolicy') !==
+    Object.hasOwn(value, 'livingFrameOverlayLayers')
+  ) {
+    throw new Error('streaming Living Frame overlay policy and layers must be paired')
   }
   const deliveryMasterAuthorityProvided = Object.hasOwn(value, 'renderPurpose')
   if (sourceSequence) {
@@ -1364,6 +1454,9 @@ function validateStreamingPlanningPayload(value) {
       ...(replaceVoice ? ['voiceTracks'] : []),
       ...(supplementalAudioProvided
         ? ['supplementalAudioPolicy', 'supplementalAudioTracks']
+        : []),
+      ...(livingFrameOverlaysProvided
+        ? ['livingFrameOverlayPolicy', 'livingFrameOverlayLayers']
         : []),
       ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
     ], 'streaming source-sequence planning payload')
@@ -1431,6 +1524,13 @@ function validateStreamingPlanningPayload(value) {
           durationFrames,
         )
       : undefined
+    const livingFrameOverlayLayers = livingFrameOverlaysProvided
+      ? validateStreamingLivingFrameOverlayPlans(
+          payload.livingFrameOverlayPolicy,
+          payload.livingFrameOverlayLayers,
+          durationFrames,
+        )
+      : undefined
     if (
       supplementalAudioProvided &&
       payload.supplementalAudioPolicy !== 'approved_edit_brief_audio_tracks_v1'
@@ -1456,6 +1556,13 @@ function validateStreamingPlanningPayload(value) {
             supplementalAudioTracks,
           }
         : {}),
+      ...(livingFrameOverlayLayers
+        ? {
+            livingFrameOverlayPolicy:
+              'approved_rgba_over_source_below_captions_v1',
+            livingFrameOverlayLayers,
+          }
+        : {}),
     }
   }
 
@@ -1468,6 +1575,9 @@ function validateStreamingPlanningPayload(value) {
     ...(replaceVoice ? ['voiceTracks'] : []),
     ...(supplementalAudioProvided
       ? ['supplementalAudioPolicy', 'supplementalAudioTracks']
+      : []),
+    ...(livingFrameOverlaysProvided
+      ? ['livingFrameOverlayPolicy', 'livingFrameOverlayLayers']
       : []),
     ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
   ], 'streaming single-source planning payload')
@@ -1519,6 +1629,13 @@ function validateStreamingPlanningPayload(value) {
         durationFrames,
       )
     : undefined
+  const livingFrameOverlayLayers = livingFrameOverlaysProvided
+    ? validateStreamingLivingFrameOverlayPlans(
+        payload.livingFrameOverlayPolicy,
+        payload.livingFrameOverlayLayers,
+        durationFrames,
+      )
+    : undefined
   if (
     supplementalAudioProvided &&
     payload.supplementalAudioPolicy !== 'approved_edit_brief_audio_tracks_v1'
@@ -1542,6 +1659,13 @@ function validateStreamingPlanningPayload(value) {
       ? {
           supplementalAudioPolicy: 'approved_edit_brief_audio_tracks_v1',
           supplementalAudioTracks,
+        }
+      : {}),
+    ...(livingFrameOverlayLayers
+      ? {
+          livingFrameOverlayPolicy:
+            'approved_rgba_over_source_below_captions_v1',
+          livingFrameOverlayLayers,
         }
       : {}),
   }
@@ -1578,9 +1702,12 @@ function validateStreamingManifest(value) {
   const captionTrack = isCaptionTrackProfile(planning.compositionProfileId)
   const replaceVoice = planning.audioPolicy === 'replace_with_approved_voice_tracks'
   const inputs = exactObject(request.inputs, [
-    'sources', 'captionOverlays', 'voiceTracks', 'supplementalAudioTracks',
+    'sources', 'livingFrameOverlays', 'captionOverlays', 'voiceTracks',
+    'supplementalAudioTracks',
   ], 'streaming inputs')
-  if (!Array.isArray(inputs.sources) || !Array.isArray(inputs.captionOverlays) ||
+  if (!Array.isArray(inputs.sources) ||
+      !Array.isArray(inputs.livingFrameOverlays) ||
+      !Array.isArray(inputs.captionOverlays) ||
       !Array.isArray(inputs.voiceTracks) ||
       !Array.isArray(inputs.supplementalAudioTracks)) {
     throw new Error('streaming input commitments must be arrays')
@@ -1616,6 +1743,40 @@ function validateStreamingManifest(value) {
   if (!Number.isSafeInteger(combinedSourceBytes) ||
       combinedSourceBytes > MAXIMUM_STREAMING_COMBINED_SOURCE_BYTES) {
     throw new Error('streaming sources exceed confined capacity')
+  }
+
+  const expectedLivingFrameOverlays = planning.livingFrameOverlayLayers ?? []
+  if (inputs.livingFrameOverlays.length !== expectedLivingFrameOverlays.length) {
+    throw new Error('streaming Living Frame count does not match approved planning')
+  }
+  const livingFrameOverlays = inputs.livingFrameOverlays.map((candidate, index) => {
+    const overlay = validateStreamingInputCommitment(
+      candidate,
+      ['inputId', 'outputKey', 'mimeType', 'byteLength', 'sha256'],
+      'image/png',
+      67,
+      MAXIMUM_STREAMING_LIVING_FRAME_OVERLAY_BYTES,
+      `streaming Living Frame overlay ${index + 1}`,
+    )
+    const outputKey = safeIdentity(
+      candidate.outputKey,
+      `streaming Living Frame overlay ${index + 1} outputKey`,
+    )
+    if (outputKey !== expectedLivingFrameOverlays[index]?.componentOutputKey) {
+      throw new Error('streaming Living Frame order diverges from approved planning')
+    }
+    return { ...overlay, outputKey }
+  })
+  const combinedLivingFrameOverlayBytes = livingFrameOverlays.reduce(
+    (total, overlay) => total + overlay.byteLength,
+    0,
+  )
+  if (
+    !Number.isSafeInteger(combinedLivingFrameOverlayBytes) ||
+    combinedLivingFrameOverlayBytes >
+      MAXIMUM_STREAMING_COMBINED_LIVING_FRAME_OVERLAY_BYTES
+  ) {
+    throw new Error('streaming Living Frame overlays exceed their combined ceiling')
   }
 
   const expectedCaptionCount = captionTrack ? planning.captionOverlayCues.length : 1
@@ -1736,6 +1897,7 @@ function validateStreamingManifest(value) {
   }
   const commitments = [
     ...sources,
+    ...livingFrameOverlays,
     ...captionOverlays,
     ...voiceTracks,
     ...supplementalAudioTracks,
@@ -1752,7 +1914,13 @@ function validateStreamingManifest(value) {
     operationId: OPERATION,
     inputMode: STREAMING_INPUT_MODE,
     payload: planning,
-    inputs: { sources, captionOverlays, voiceTracks, supplementalAudioTracks },
+    inputs: {
+      sources,
+      livingFrameOverlays,
+      captionOverlays,
+      voiceTracks,
+      supplementalAudioTracks,
+    },
     commitments,
   }
 }
@@ -2356,6 +2524,13 @@ async function materializeStreamingRequest(manifest, reader, requestHash) {
       sourceSha256: source.sha256,
       sourceInternalFilePath: byInputId.get(source.inputId).path,
     }))
+    const livingFrameOverlays = manifest.inputs.livingFrameOverlays.map((overlay) => ({
+      ...overlay,
+      livingFrameOverlayMimeType: 'image/png',
+      livingFrameOverlayByteLength: overlay.byteLength,
+      livingFrameOverlaySha256: overlay.sha256,
+      livingFrameOverlayInternalFilePath: byInputId.get(overlay.inputId).path,
+    }))
     const captionOverlays = manifest.inputs.captionOverlays.map((caption) => ({
       ...caption,
       captionOverlayMimeType: 'image/png',
@@ -2386,6 +2561,9 @@ async function materializeStreamingRequest(manifest, reader, requestHash) {
           ? {
               ...manifest.payload,
               sources,
+              ...(livingFrameOverlays.length > 0
+                ? { livingFrameOverlays }
+                : {}),
               ...(captionTrack
                 ? { captionOverlays }
                 : {
@@ -2405,6 +2583,9 @@ async function materializeStreamingRequest(manifest, reader, requestHash) {
               sourceByteLength: sources[0].sourceByteLength,
               sourceSha256: sources[0].sourceSha256,
               sourceInternalFilePath: sources[0].sourceInternalFilePath,
+              ...(livingFrameOverlays.length > 0
+                ? { livingFrameOverlays }
+                : {}),
               ...(captionTrack
                 ? { captionOverlays }
                 : {
@@ -2551,6 +2732,19 @@ async function execute(request, options = {}) {
             }))
 	          : [],
         {
+          livingFrameOverlays:
+            !longFormMerge && !deliveryH264Chunk &&
+            Array.isArray(request.payload.livingFrameOverlays)
+              ? request.payload.livingFrameOverlays.map((overlay) => ({
+                  outputKey: overlay.outputKey,
+                  ...committedMediaLocation(
+                    overlay,
+                    'bytesBase64',
+                    'livingFrameOverlayInternalFilePath',
+                    overlay.livingFrameOverlayByteLength,
+                  ),
+                }))
+              : [],
           supplementalAudioTracks:
             !longFormMerge && !deliveryH264Chunk &&
             Array.isArray(request.payload.supplementalAudioTracks)
@@ -2611,6 +2805,22 @@ async function execute(request, options = {}) {
       }
     : finalComposition
       ? { captionOverlayInternalUrl: `${mediaServer.origin}/caption/0.png` }
+      : {}
+  const livingFrameOverlayRenderPayload =
+    Array.isArray(request.payload.livingFrameOverlayLayers) &&
+    Array.isArray(request.payload.livingFrameOverlays) &&
+    request.payload.livingFrameOverlayLayers.length > 0
+      ? {
+          livingFrameOverlayPolicy:
+            'approved_rgba_over_source_below_captions_v1',
+          livingFrameOverlays: request.payload.livingFrameOverlayLayers.map(
+            (layer, index) => ({
+              ...layer,
+              livingFrameOverlayInternalUrl:
+                `${mediaServer.origin}/living-frame/${index}.png`,
+            }),
+          ),
+        }
       : {}
   const voiceRenderPayload = replaceVoice
     ? {
@@ -2752,6 +2962,7 @@ async function execute(request, options = {}) {
           sourceSequenceItemId: source.sourceSequenceItemId,
           sourceInternalUrl: `${mediaServer.origin}/source/${index}.${sourceExtension(source.sourceMimeType)}`,
         })),
+        ...livingFrameOverlayRenderPayload,
         ...captionRenderPayload,
         ...voiceRenderPayload,
         ...supplementalAudioRenderPayload,
@@ -2767,6 +2978,7 @@ async function execute(request, options = {}) {
         sourceFit: request.payload.sourceFit, panelBackground: request.payload.panelBackground,
         audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
         sourceInternalUrl: `${mediaServer.origin}/source/0.${sourceExtension(request.payload.sourceMimeType)}`,
+        ...livingFrameOverlayRenderPayload,
         ...captionRenderPayload,
         ...voiceRenderPayload,
         ...supplementalAudioRenderPayload,
@@ -3002,6 +3214,19 @@ async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks, mo
         return
       }
       serveCommittedMedia(request, response, track, 'audio/wav')
+      return
+    }
+    const livingFrameOverlayMatch =
+      /^\/living-frame\/(\d+)\.png$/.exec(request.url)
+    if (livingFrameOverlayMatch) {
+      const overlay = motionAssets.livingFrameOverlays?.[
+        Number(livingFrameOverlayMatch[1])
+      ]
+      if (!overlay) {
+        response.writeHead(404).end()
+        return
+      }
+      serveCommittedMedia(request, response, overlay, 'image/png')
       return
     }
     if (request.url === '/motion/subject.png' && motionAssets.subject) {
@@ -3259,6 +3484,10 @@ function semanticEvidence(request, streaming) {
         request.payload.supplementalAudioTracks.length > 0
         ? { approvedSupplementalAudioInputStreamedWithoutWholeBuffer: true }
         : {}),
+      ...(Array.isArray(request.payload.livingFrameOverlayLayers) &&
+        request.payload.livingFrameOverlayLayers.length > 0
+        ? { approvedLivingFrameOverlayInputServerInjectedWithoutBase64: true }
+        : {}),
     } : {}),
     ...(request.payload.renderPurpose === 'private_4k_delivery_master_v1'
       ? {
@@ -3317,6 +3546,14 @@ function semanticEvidence(request, streaming) {
                 approvedSupplementalAudioSpeechSafeMixApplied: true,
               }
             : {}),
+          ...(Array.isArray(request.payload.livingFrameOverlayLayers) &&
+            request.payload.livingFrameOverlayLayers.length > 0
+            ? {
+                approvedLivingFrameOverlayBytesVerified: true,
+                approvedLivingFrameOverlayTimelineApplied: true,
+                approvedLivingFrameOverlayBelowCaptionsApplied: true,
+              }
+            : {}),
           ...(isCaptionTrackProfile(request.payload.compositionProfileId)
             ? { approvedCaptionTrackTimingApplied: true }
             : {}),
@@ -3352,6 +3589,14 @@ function semanticEvidence(request, streaming) {
                   approvedSupplementalAudioBytesVerified: true,
                   approvedSupplementalAudioTimelineApplied: true,
                   approvedSupplementalAudioSpeechSafeMixApplied: true,
+                }
+              : {}),
+            ...(Array.isArray(request.payload.livingFrameOverlayLayers) &&
+              request.payload.livingFrameOverlayLayers.length > 0
+              ? {
+                  approvedLivingFrameOverlayBytesVerified: true,
+                  approvedLivingFrameOverlayTimelineApplied: true,
+                  approvedLivingFrameOverlayBelowCaptionsApplied: true,
                 }
               : {}),
             ...(isCaptionTrackProfile(request.payload.compositionProfileId)

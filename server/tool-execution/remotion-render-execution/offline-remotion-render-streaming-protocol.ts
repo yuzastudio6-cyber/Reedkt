@@ -19,12 +19,16 @@ export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_MANIFEST_BYTES = 256 * 10
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_SOURCE_BYTES = 192 * 1024 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_SOURCE_BYTES = 192 * 1024 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_CAPTION_BYTES = 8 * 1024 * 1024
+export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_LIVING_FRAME_OVERLAY_BYTES =
+  32 * 1024 * 1024
+export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_LIVING_FRAME_OVERLAY_BYTES =
+  128 * 1024 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_VOICE_BYTES = 64 * 1024 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_SUPPLEMENTAL_AUDIO_BYTES =
   16 * 1024 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_SUPPLEMENTAL_AUDIO_BYTES =
   64 * 1024 * 1024
-export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_INPUT_BYTES = 336 * 1024 * 1024
+export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_INPUT_BYTES = 464 * 1024 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES = 256 * 1024 * 1024
 
 const SHA256 = /^[a-f0-9]{64}$/u
@@ -40,6 +44,14 @@ export interface OfflineRemotionStreamingSourceCommitment {
 }
 
 export interface OfflineRemotionStreamingCaptionCommitment {
+  inputId: string
+  outputKey: string
+  mimeType: 'image/png'
+  byteLength: number
+  sha256: string
+}
+
+export interface OfflineRemotionStreamingLivingFrameOverlayCommitment {
   inputId: string
   outputKey: string
   mimeType: 'image/png'
@@ -76,6 +88,7 @@ export interface OfflineRemotionStreamingSupplementalAudioCommitment {
 
 export interface OfflineRemotionStreamingInputs {
   sources: OfflineRemotionStreamingSourceCommitment[]
+  livingFrameOverlays: OfflineRemotionStreamingLivingFrameOverlayCommitment[]
   captionOverlays: OfflineRemotionStreamingCaptionCommitment[]
   voiceTracks: OfflineRemotionStreamingVoiceCommitment[]
   supplementalAudioTracks: OfflineRemotionStreamingSupplementalAudioCommitment[]
@@ -103,6 +116,7 @@ export function buildOfflineRemotionFinalCompositionStreamingRequest(input: {
   sources?: OfflineRemotionStreamingSourceCommitment[]
   captionOverlay?: Omit<OfflineRemotionStreamingCaptionCommitment, 'outputKey'>
   captionOverlays?: OfflineRemotionStreamingCaptionCommitment[]
+  livingFrameOverlays?: OfflineRemotionStreamingLivingFrameOverlayCommitment[]
   voiceTracks?: OfflineRemotionStreamingVoiceCommitment[]
   supplementalAudioTracks?: OfflineRemotionStreamingSupplementalAudioCommitment[]
 }): OfflineRemotionStreamingRenderRequest {
@@ -111,6 +125,7 @@ export function buildOfflineRemotionFinalCompositionStreamingRequest(input: {
   const captionTrack = 'captionOverlayCues' in planning
   const replaceVoice = planning.audioPolicy === 'replace_with_approved_voice_tracks'
   const supplementalAudio = planning.supplementalAudioTracks !== undefined
+  const livingFrameOverlays = planning.livingFrameOverlayLayers !== undefined
   if (sourceSequence ? input.source !== undefined || !input.sources : !input.source || input.sources !== undefined) {
     throw invalid('Streaming source commitments do not match the approved composition profile.')
   }
@@ -129,6 +144,15 @@ export function buildOfflineRemotionFinalCompositionStreamingRequest(input: {
       'Streaming supplemental-audio commitments do not match the approved Edit Brief policy.',
     )
   }
+  if (
+    livingFrameOverlays
+      ? !input.livingFrameOverlays
+      : input.livingFrameOverlays !== undefined
+  ) {
+    throw invalid(
+      'Streaming Living Frame overlay commitments do not match the approved composition policy.',
+    )
+  }
   return validateOfflineRemotionStreamingRenderRequest({
     schemaVersion: OFFLINE_REMOTION_RENDER_STREAMING_REQUEST_PROTOCOL,
     toolId: 'remotion',
@@ -137,6 +161,7 @@ export function buildOfflineRemotionFinalCompositionStreamingRequest(input: {
     payload: planning,
     inputs: {
       sources: sourceSequence ? input.sources : [input.source],
+      livingFrameOverlays: input.livingFrameOverlays ?? [],
       captionOverlays: captionTrack
         ? input.captionOverlays
         : [{ ...input.captionOverlay, outputKey: SINGLE_CAPTION_OUTPUT_KEY }],
@@ -164,10 +189,12 @@ export function validateOfflineRemotionStreamingRenderRequest(
   const captionTrack = 'captionOverlayCues' in planning
   const replaceVoice = planning.audioPolicy === 'replace_with_approved_voice_tracks'
   const inputs = exactRecord(request.inputs, [
-    'sources', 'captionOverlays', 'voiceTracks', 'supplementalAudioTracks',
+    'sources', 'livingFrameOverlays', 'captionOverlays', 'voiceTracks',
+    'supplementalAudioTracks',
   ], 'streaming inputs')
   if (
     !Array.isArray(inputs.sources) ||
+    !Array.isArray(inputs.livingFrameOverlays) ||
     !Array.isArray(inputs.captionOverlays) ||
     !Array.isArray(inputs.voiceTracks) ||
     !Array.isArray(inputs.supplementalAudioTracks)
@@ -206,6 +233,44 @@ export function validateOfflineRemotionStreamingRenderRequest(
   const combinedSourceBytes = sources.reduce((total, source) => safeSum(total, source.byteLength), 0)
   if (combinedSourceBytes > OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_SOURCE_BYTES) {
     throw invalid('Streaming sources exceed the current confined-render capacity.')
+  }
+
+  const expectedLivingFrameOverlays = planning.livingFrameOverlayLayers ?? []
+  if (inputs.livingFrameOverlays.length !== expectedLivingFrameOverlays.length) {
+    throw invalid(
+      'Streaming Living Frame commitments do not match the approved overlay count.',
+    )
+  }
+  const livingFrameOverlays = inputs.livingFrameOverlays.map((candidate, index) => {
+    const overlay = exactRecord(candidate, [
+      'inputId', 'outputKey', 'mimeType', 'byteLength', 'sha256',
+    ], `Living Frame overlay ${index + 1}`)
+    const expected = expectedLivingFrameOverlays[index]
+    if (!expected || overlay.outputKey !== expected.componentOutputKey) {
+      throw invalid(
+        'Streaming Living Frame order diverges from the approved layer timeline.',
+      )
+    }
+    return {
+      ...committedInput(
+        overlay,
+        'image/png',
+        67,
+        OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_LIVING_FRAME_OVERLAY_BYTES,
+        `Living Frame overlay ${index + 1}`,
+      ),
+      outputKey: expected.componentOutputKey,
+    }
+  })
+  const combinedLivingFrameOverlayBytes = livingFrameOverlays.reduce(
+    (total, overlay) => safeSum(total, overlay.byteLength),
+    0,
+  )
+  if (
+    combinedLivingFrameOverlayBytes >
+    OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_LIVING_FRAME_OVERLAY_BYTES
+  ) {
+    throw invalid('Streaming Living Frame overlays exceed their combined byte ceiling.')
   }
 
   const expectedCaptionCount = captionTrack ? planning.captionOverlayCues.length : 1
@@ -346,6 +411,7 @@ export function validateOfflineRemotionStreamingRenderRequest(
 
   const allInputs = [
     ...sources,
+    ...livingFrameOverlays,
     ...captionOverlays,
     ...voiceTracks,
     ...supplementalAudioTracks,
@@ -367,7 +433,13 @@ export function validateOfflineRemotionStreamingRenderRequest(
     operationId: OFFLINE_REMOTION_RENDER_OPERATION,
     inputMode: OFFLINE_REMOTION_RENDER_SERVER_INPUT_MODE,
     payload: planning,
-    inputs: { sources, captionOverlays, voiceTracks, supplementalAudioTracks },
+    inputs: {
+      sources,
+      livingFrameOverlays,
+      captionOverlays,
+      voiceTracks,
+      supplementalAudioTracks,
+    },
   }
   if (Buffer.byteLength(JSON.stringify(normalized)) > OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_MANIFEST_BYTES) {
     throw invalid('Streaming Remotion manifest exceeds its fixed metadata ceiling.')
@@ -381,6 +453,7 @@ export function offlineRemotionStreamingInputCommitments(
   const validated = validateOfflineRemotionStreamingRenderRequest(request)
   return [
     ...validated.inputs.sources,
+    ...validated.inputs.livingFrameOverlays,
     ...validated.inputs.captionOverlays,
     ...validated.inputs.voiceTracks,
     ...validated.inputs.supplementalAudioTracks,

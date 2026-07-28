@@ -1,8 +1,10 @@
 # Living Frame canonical work-graph projection
 
-Status: private/internal, server-derived canonical plan work. The projection
-adds required items to the one WeEditPro work graph, but it does not approve,
-queue, dispatch, or execute them.
+Status: private/internal, server-derived canonical plan and execution bridge.
+The projection adds required items to the one WeEditPro work graph. The
+tool-free layer-manifest item and the existing final Remotion compositor now
+have bounded private execution paths, but production dispatch, public
+delivery, and customer settlement remain separate closed authorities.
 
 `canonical-living-frame-work-graph-projection-v6` consumes and fully
 revalidates:
@@ -77,13 +79,31 @@ content-addressed final-composition binding. Publication applies it to the one
 existing final Remotion work item, adds the manifest and component dependency
 keys, and inserts the Living Frame layer between source and captions.
 
+The internal job adapter executes the tool-free layer item only after its
+worker lease selects one QA-passed and reconciled Sharp RGBA dependency. It
+writes one content-addressed JSON manifest that binds the current snapshot,
+source sequence, selected-scene and timing digests, exact frame window,
+dimensions, layer identity, component artifact/version/hash, dependency job,
+QA record, reconciliation record, execution attempt, and source lease. Worker
+lease verification reopens and rehashes those bytes before admitting the
+manifest as downstream dependency evidence.
+
+The existing private final-composition service then requires both the manifest
+and the exact RGBA PNG named by it. It independently rereads their immutable
+work-item, asset, artifact, QA, reconciliation, lease, scene, timing, frame,
+dimension, and digest lineage. The existing streaming Remotion protocol places
+the PNG commitment after source media and before caption inputs. The confined
+runner rehashes it again, exposes it only on the private loopback media server,
+and renders the approved frame window above source and below captions. This is
+one extension of the canonical final compositor, not a Living Frame renderer
+or an additional production-tool identity.
+
 This fail-closed representation is intentional. The exact rembg operation and
 GPU policy are admitted into planning, but no cloud job or inference authority
-is granted. Sharp's real alpha-component path is admitted but remains
-dependency-blocked behind the GPU mask and both upstream artifact/QA records.
-The existing Remotion operation now admits the immutable overlay timeline at
-planning time. Treating that planning admission as an executed manifest,
-render, or QA pass would still be false authority.
+is granted. Sharp's real alpha-component path remains dependency-blocked behind
+the GPU mask and both upstream artifact/QA records. The layer-manifest and
+Remotion paths execute only after those exact dependencies exist; planning
+admission alone never counts as an executed manifest, render, or QA pass.
 
 The content-addressed projection is included in the canonical plan hash and is
 reread at approval and approved-execution loading. Every projected plan work
@@ -93,9 +113,10 @@ budget. Missing, extra, or modified Living Frame work fails closed.
 
 Selected scenes are approvable only after the exact estimate, source/mask/
 component/manifest graph, and final-composition binding are frozen. Execution
-remains blocked until rembg GPU runtime qualification, artifact-manifest
-entries, dependency QA, and private review pass. Deliberate non-use produces
-an empty verified projection and continues through normal approval.
+remains blocked end to end until rembg GPU runtime qualification,
+artifact-manifest entries, dependency QA, and private review pass. Deliberate
+non-use produces an empty verified projection and continues through normal
+approval.
 
 This component creates no approved work item, job, queue record, asset-manifest
 entry, artifact, QA result, private-review result, renderer payload, provider

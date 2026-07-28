@@ -8,6 +8,9 @@ import {
 import {
   assertCanonicalFasterWhisperGpuRuntimeRequestCandidate,
 } from './canonical-faster-whisper-gpu-runtime-request'
+import type {
+  CanonicalFasterWhisperGpuRuntimeRunnerRequest,
+} from './canonical-faster-whisper-gpu-runtime-request-types'
 import {
   CANONICAL_FASTER_WHISPER_GPU_RUNTIME_RESULT_CANDIDATE_VERSION,
   type CanonicalFasterWhisperGpuRuntimeResultCandidate,
@@ -102,6 +105,42 @@ const BLOCKERS = [
   'output_bytes_private_reread_required',
 ] as const
 
+export function assertCanonicalFasterWhisperGpuRuntimeWireResponse(
+  input: {
+    value: unknown
+    request: CanonicalFasterWhisperGpuRuntimeRunnerRequest
+  },
+): CanonicalFasterWhisperGpuRuntimeSuccessWireResponse {
+  const parsed = runtimeWireResponseSchema.safeParse(input.value)
+  if (!parsed.success) {
+    throw invalid(
+      'faster_whisper_gpu_runtime_result_wire_invalid',
+    )
+  }
+  const response =
+    parsed.data as CanonicalFasterWhisperGpuRuntimeSuccessWireResponse
+  if (
+    response.operationId !== input.request.operationId
+    || response.admissionDigestSha256
+      !== input.request.admissionDigestSha256
+    || response.requestBindingSha256
+      !== input.request.requestBindingSha256
+    || response.dispatchIntentId
+      !== input.request.dispatch.dispatchIntentId
+    || response.runtimeIdentity.runtimeRegion
+      !== input.request.dispatch.runtimeRegion
+    || response.runtimeIdentity.device
+      !== input.request.settings.device
+    || response.runtimeIdentity.computeType
+      !== input.request.settings.computeType
+  ) {
+    throw blocked(
+      'faster_whisper_gpu_runtime_result_request_lineage_mismatch',
+    )
+  }
+  return deepFreeze(response)
+}
+
 export async function createCanonicalFasterWhisperGpuRuntimeResultCandidate(
   input: CanonicalFasterWhisperGpuRuntimeResultCandidateInput,
 ): Promise<CanonicalFasterWhisperGpuRuntimeResultCandidate> {
@@ -110,17 +149,11 @@ export async function createCanonicalFasterWhisperGpuRuntimeResultCandidate(
       ...input,
       candidate: input.runtimeRequestCandidate,
     })
-  const parsed = runtimeWireResponseSchema.safeParse(
-    input.runtimeWireResponse,
-  )
-  if (!parsed.success) {
-    throw invalid(
-      'faster_whisper_gpu_runtime_result_wire_invalid',
-    )
-  }
   const response =
-    parsed.data as CanonicalFasterWhisperGpuRuntimeSuccessWireResponse
-  assertExactRequestLineage({ requestCandidate, response })
+    assertCanonicalFasterWhisperGpuRuntimeWireResponse({
+      value: input.runtimeWireResponse,
+      request: requestCandidate.runnerRequest,
+    })
   const combinedOutputByteLength = response.outputs.reduce(
     (total, output) => total + output.byteLength,
     0,
@@ -299,36 +332,6 @@ export async function assertCanonicalFasterWhisperGpuRuntimeResultCandidate(
     )
   }
   return expected
-}
-
-function assertExactRequestLineage(input: {
-  requestCandidate: Awaited<
-    ReturnType<
-      typeof assertCanonicalFasterWhisperGpuRuntimeRequestCandidate
-    >
-  >
-  response: CanonicalFasterWhisperGpuRuntimeSuccessWireResponse
-}): void {
-  const request = input.requestCandidate.runnerRequest
-  const response = input.response
-  if (
-    response.operationId !== request.operationId
-    || response.admissionDigestSha256
-      !== request.admissionDigestSha256
-    || response.requestBindingSha256
-      !== request.requestBindingSha256
-    || response.dispatchIntentId
-      !== request.dispatch.dispatchIntentId
-    || response.runtimeIdentity.runtimeRegion
-      !== request.dispatch.runtimeRegion
-    || response.runtimeIdentity.device !== request.settings.device
-    || response.runtimeIdentity.computeType
-      !== request.settings.computeType
-  ) {
-    throw blocked(
-      'faster_whisper_gpu_runtime_result_request_lineage_mismatch',
-    )
-  }
 }
 
 function deepFreeze<T>(value: T): T {

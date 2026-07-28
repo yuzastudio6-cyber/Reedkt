@@ -18,7 +18,7 @@ import {
 } from './canonical-faster-whisper-gpu-runtime-request-types'
 
 const BLOCKERS = [
-  'canonical_gpu_worker_operation_router_not_implemented',
+  'canonical_gpu_worker_operation_router_execution_required',
   'cloud_run_runtime_image_not_qualified',
   'private_audio_mount_not_materialized',
   'read_only_model_mount_not_materialized',

@@ -128,7 +128,7 @@ try {
     repository,
     cloudDispatchManifest: manifest,
     cloudDispatchAttemptPlan: attemptPlan,
-    consumerScope: 'sam2.private-inference',
+    consumerScope: 'rembg.private-inference',
     requirements,
   })
 
@@ -144,10 +144,10 @@ try {
   assert.equal(bundle.execution.gpuCount, 1)
   assert.equal(bundle.execution.noGpuZonalRedundancy, true)
   assert.equal(bundle.execution.cloudRunInternalMaxRetries, 0)
-  assert.equal(bundle.identity.approvedToolId, 'sam2')
+  assert.equal(bundle.identity.approvedToolId, 'rembg')
   assert.equal(
     bundle.identity.approvedToolOperationId,
-    'tool.sam2.segment_and_track_subject.v1',
+    'tool.rembg.remove_image_background.v1',
   )
   assert.equal(bundle.summary.cpuFallbackAllowed, false)
   assert.equal(bundle.summary.runtimeDownloadAllowed, false)
@@ -213,7 +213,7 @@ try {
       } as CanonicalModelArtifactRepositoryPort,
       cloudDispatchManifest: manifest,
       cloudDispatchAttemptPlan: attemptPlan,
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements,
     }),
     'forged repository capability',
@@ -227,7 +227,7 @@ try {
         ...attemptPlan,
         dispatchBindingHash: sha256('wrong-dispatch-binding'),
       },
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements,
     }),
     'forged dispatch attempt',
@@ -243,7 +243,7 @@ try {
           jobId: attemptPlan.jobId,
           deliveryAttempt: 1,
         }),
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements,
     }),
     'CPU cloud target substitution',
@@ -261,7 +261,7 @@ try {
           jobId: attemptPlan.jobId,
           deliveryAttempt: 1,
         }),
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements,
     }),
     'GPU worker service identity substitution',
@@ -279,7 +279,7 @@ try {
           jobId: attemptPlan.jobId,
           deliveryAttempt: 1,
         }),
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements,
     }),
     'unregistered operation substitution',
@@ -301,7 +301,7 @@ try {
       repository,
       cloudDispatchManifest: manifest,
       cloudDispatchAttemptPlan: attemptPlan,
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements: [
         {
           ...requirements[0]!,
@@ -317,7 +317,7 @@ try {
       repository,
       cloudDispatchManifest: manifest,
       cloudDispatchAttemptPlan: attemptPlan,
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements: [
         {
           ...requirements[0]!,
@@ -333,7 +333,7 @@ try {
       repository,
       cloudDispatchManifest: manifest,
       cloudDispatchAttemptPlan: attemptPlan,
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements: [
         requirement({
           canonicalOrder: 0,
@@ -351,7 +351,7 @@ try {
       repository,
       cloudDispatchManifest: manifest,
       cloudDispatchAttemptPlan: attemptPlan,
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements: [
         requirements[0]!,
         { ...requirements[1]!, slotId: 'base_model' },
@@ -365,7 +365,7 @@ try {
       repository,
       cloudDispatchManifest: manifest,
       cloudDispatchAttemptPlan: attemptPlan,
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements: [
         requirements[0]!,
         {
@@ -383,7 +383,7 @@ try {
       repository,
       cloudDispatchManifest: manifest,
       cloudDispatchAttemptPlan: attemptPlan,
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements: [...requirements].reverse(),
     }),
     'reordered requirements',
@@ -394,7 +394,7 @@ try {
       repository,
       cloudDispatchManifest: manifest,
       cloudDispatchAttemptPlan: attemptPlan,
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements: Array.from({
         length: MAXIMUM_MODEL_ARTIFACT_GPU_BUNDLE_ARTIFACTS + 1,
       }, (_, canonicalOrder) => ({
@@ -411,7 +411,7 @@ try {
       repository,
       cloudDispatchManifest: manifest,
       cloudDispatchAttemptPlan: attemptPlan,
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       requirements: [{
         ...requirements[0]!,
         callerUrl: 'https://attacker.invalid/model',
@@ -562,7 +562,7 @@ try {
       CANONICAL_MODEL_ARTIFACT_CLOUD_RUN_GPU_CONSUMER_VERSION,
     consumerClass:
       'process_bound_private_gpu_bundle_handoff_consumer',
-    consumerScope: 'sam2.private-inference',
+    consumerScope: 'rembg.private-inference',
     executionTarget: 'google_cloud_run_gpu',
     cloudRunAccelerator: 'nvidia_l4',
     callerPathAccepted: false,
@@ -599,7 +599,7 @@ try {
   } as CanonicalModelArtifactCloudRunGpuHandoffLease
   const validConsumer =
     createCanonicalModelArtifactCloudRunGpuConsumer({
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       inspectVerifiedReadOnlyGpuBundle: async () => undefined,
     })
   await expectRejects(
@@ -614,7 +614,7 @@ try {
   let consumerCallCount = 0
   const consumer =
     createCanonicalModelArtifactCloudRunGpuConsumer({
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       inspectVerifiedReadOnlyGpuBundle: async (input) => {
         consumerCallCount += 1
         assert.equal(Object.isFrozen(input), true)
@@ -717,7 +717,7 @@ try {
   let mutatedPath = ''
   const mutatingConsumer =
     createCanonicalModelArtifactCloudRunGpuConsumer({
-      consumerScope: 'sam2.private-inference',
+      consumerScope: 'rembg.private-inference',
       inspectVerifiedReadOnlyGpuBundle: async (input) => {
         mutatedPath = input.artifactSources[0]!.sourceAbsolutePath
         await chmod(mutatedPath, 0o600)
@@ -841,7 +841,7 @@ function descriptor(input: {
     modelFamily: input.modelFamily,
     byteLength: input.bytes.length,
     contentSha256: sha256(input.bytes),
-    consumerScopes: ['sam2.private-inference'],
+    consumerScopes: ['rembg.private-inference'],
     repositoryAdmission: 'controlled_internal_test',
     sourceObservationDigestSha256:
       sha256(`${input.artifactId}:source`),
@@ -924,9 +924,9 @@ function createGpuDispatchFixture(): {
     dependencyJobIds: [],
     scheduledFor: '2026-07-27T16:00:00.000Z',
     maxAttempts: 2,
-    approvedToolId: 'sam2',
+    approvedToolId: 'rembg',
     approvedToolOperationIds: [
-      'tool.sam2.segment_and_track_subject.v1',
+      'tool.rembg.remove_image_background.v1',
     ],
     queueJobDefinitionHash: sha256('queue-job-definition'),
     placementHash: sha256('gpu-placement'),
@@ -1054,7 +1054,7 @@ function rehashedInvalidOperationManifest(
 ): CanonicalCloudWorkerDispatchHandoffManifest {
   const manifest = structuredClone(input)
   const entry = manifest.entries[0]!
-  entry.approvedToolOperationIds = ['tool.sam2.unregistered.v1']
+  entry.approvedToolOperationIds = ['tool.rembg.unregistered.v1']
   const entryDraft = { ...entry }
   Reflect.deleteProperty(entryDraft, 'entryHash')
   entry.entryHash = sha256AuthorityValue(entryDraft)

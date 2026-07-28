@@ -90,6 +90,14 @@ templates must be reconciled with the canonical `us-east1`/`europe-west1`
 resource map before any human-run deployment. Target existence and IAM remain
 false until that reconciliation and live inspection pass.
 
+The shared GPU worker now also has a source-implemented, one-shot
+process-bound operation router for the candidate-only Faster Whisper CUDA
+envelope. This is operation-selection and cryptographic request/response
+revalidation only. It neither calls `jobs.run` nor proves an image, live
+identity, IAM, mounts, output artifact, QA, cost, completion receipt, or
+production authority. The runtime must still load exact attempt authority by
+opaque dispatch intent; no browser or caller may submit the runner envelope.
+
 Primary platform constraints:
 
 - [Cloud Tasks quotas](https://docs.cloud.google.com/tasks/docs/quotas)

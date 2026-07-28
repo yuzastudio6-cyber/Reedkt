@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 #
 # ReeditPro production GPU AI worker image definition.
-# Milestone 11 adds GPU package declarations and model-weight placeholders only.
-# Codex must not build this image, run GPU jobs, process media, or fetch weights.
+# The image remains an unqualified build candidate and must not be pushed,
+# deployed, or used with customer media until the production evidence gates pass.
 #
 # First Cloud Run GPU target: NVIDIA L4 (`nvidia-l4`), one GPU per instance, at least
 # 4 CPU and 16Gi memory, with --no-gpu-zonal-redundancy.
@@ -15,7 +15,7 @@ RUN npm ci
 COPY . .
 RUN npm run build:server
 
-FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS base
+FROM nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu22.04@sha256:fa44193567d1908f7ca1f3abf8623ce9c63bc8cba7bcfdb32702eb04d326f7a8 AS base
 WORKDIR /app
 
 ARG REEDITPRO_SOURCE_COMMIT_SHA
@@ -36,6 +36,8 @@ ENV REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV HF_HUB_OFFLINE=1
+ENV TRANSFORMERS_OFFLINE=1
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -57,6 +59,22 @@ RUN apt-get update \
 COPY docker/prod/gpu-worker/requirements.gpu.txt /tmp/requirements.gpu.txt
 RUN python3 -m pip install --no-cache-dir --break-system-packages -r /tmp/requirements.gpu.txt
 
+COPY docker/prod/gpu-worker/faster-whisper \
+  /opt/reeditpro/gpu-operations/faster-whisper
+RUN python3 -m venv \
+    /opt/reeditpro/gpu-operations/faster-whisper/venv \
+  && /opt/reeditpro/gpu-operations/faster-whisper/venv/bin/pip \
+    install \
+    --disable-pip-version-check \
+    --no-cache-dir \
+    --require-hashes \
+    -r /opt/reeditpro/gpu-operations/faster-whisper/requirements.lock.txt \
+  && chmod 0555 \
+    /opt/reeditpro/gpu-operations/faster-whisper/runner.py \
+  && chmod 0444 \
+    /opt/reeditpro/gpu-operations/faster-whisper/requirements.lock.txt \
+    /opt/reeditpro/gpu-operations/faster-whisper/source-provenance.lock
+
 RUN mkdir -p \
     /opt/reeditpro/model-weights/faster-whisper \
     /opt/reeditpro/model-weights/birefnet \
@@ -67,8 +85,8 @@ RUN mkdir -p \
     /opt/reeditpro/model-weights/film \
     /opt/reeditpro/model-weights/paddleocr \
   && printf '%s\n' \
-    'Model-weight directories are intentionally empty in Milestone 11.' \
-    'Runtime mounts/manifests must provide reviewed weights in a later milestone.' \
+    'Model-weight directories are intentionally empty in the build candidate.' \
+    'Runtime mounts/manifests must provide reviewed weights after qualification.' \
     > /opt/reeditpro/model-weights/README.txt
 
 COPY package*.json ./
@@ -76,6 +94,10 @@ RUN npm ci --omit=dev
 
 COPY --from=server_build /app/dist-server ./dist-server
 RUN test -f dist-server/server.js \
-  && test -f dist-server/container-readiness-receipt.js
+  && test -f dist-server/container-readiness-receipt.js \
+  && test -x \
+    /opt/reeditpro/gpu-operations/faster-whisper/runner.py \
+  && test -x \
+    /opt/reeditpro/gpu-operations/faster-whisper/venv/bin/python
 
 CMD ["node", "dist-server/server.js"]

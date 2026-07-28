@@ -46,12 +46,45 @@ const gpuRequirements = requireRead('docker/prod/gpu-worker/requirements.gpu.txt
 const gpuReadme = requireRead('docker/prod/gpu-worker/README.md')
 const modelLayout = requireRead('docker/prod/gpu-worker/model-weight-layout.md')
 const gpuVersionPolicy = requireRead('docker/prod/gpu-worker/gpu-tool-version-policy.md')
+const fasterWhisperLock =
+  requireRead('docker/prod/gpu-worker/faster-whisper/requirements.lock.txt')
+const fasterWhisperRunner =
+  requireRead('docker/prod/gpu-worker/faster-whisper/runner.py')
 
 check(!/wget\s|curl\s|huggingface-cli|snapshot_download|from_pretrained|git\s+clone/i.test(gpuDocker), 'GPU Dockerfile must not include model fetch commands.')
 check(!/OPENAI_API_KEY|SUPABASE_SERVICE_ROLE_KEY|PROVIDER|SECRET_VALUE|sk-[A-Za-z0-9]/i.test(gpuDocker), 'GPU Dockerfile must not contain provider secrets.')
 check(!/\brevideo\b/i.test(gpuDocker), 'GPU Dockerfile must not install Revideo.')
 check(/nvidia\/cuda/i.test(gpuDocker), 'GPU Dockerfile must reference a CUDA-compatible base image policy.')
 check(/nvidia-l4/i.test(gpuDocker), 'GPU Dockerfile must document NVIDIA L4 first.')
+check(
+  gpuDocker.includes(
+    'nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu22.04@sha256:fa44193567d1908f7ca1f3abf8623ce9c63bc8cba7bcfdb32702eb04d326f7a8',
+  ),
+  'GPU Dockerfile must bind the Faster Whisper candidate to its exact CUDA image index.',
+)
+check(
+  gpuDocker.includes('--require-hashes') &&
+    gpuDocker.includes(
+      '/opt/reeditpro/gpu-operations/faster-whisper/venv',
+    ),
+  'GPU Dockerfile must install Faster Whisper in its exact hash-locked environment.',
+)
+check(
+  fasterWhisperLock.includes(
+    'faster-whisper==1.2.1 --hash=sha256:79a66ad50688c0b794dd501dc340a736992a6342f7f95e5811be60b5224a26a7',
+  ) &&
+    fasterWhisperLock
+      .split('\n')
+      .filter((line) => line.trim() && !line.trim().startsWith('#'))
+      .every((line) => line.includes('--hash=sha256:')),
+  'Faster Whisper environment must retain exact package hashes.',
+)
+check(
+  fasterWhisperRunner.includes("device': 'cuda'") &&
+    fasterWhisperRunner.includes("'cpuFallbackAllowed': False") &&
+    fasterWhisperRunner.includes('get_cuda_device_count()'),
+  'Faster Whisper runner must remain CUDA-only and fail closed without a GPU.',
+)
 
 for (const expectedPath of [
   '/opt/reeditpro/model-weights/rembg',

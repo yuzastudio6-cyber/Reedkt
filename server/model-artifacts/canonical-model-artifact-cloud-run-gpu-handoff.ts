@@ -791,7 +791,6 @@ function assertExactGpuDispatchAttempt(input: {
     || !operationSpec
     || toolProfile.workerType !== 'gpu_ai_worker'
     || !toolProfile.gpuRequired
-    || toolProfile.cpuAllowed
     || !toolProfile.modelWeightsRequired
     || operationSpec.canonicalToolId !== approvedToolId
     || operationSpec.allowedOperationIds.length !== 1

@@ -16,6 +16,19 @@ From the repository root:
 npm run dev:private-workspace
 ```
 
+To include the existing confined FFmpeg, libass, and Remotion private-review
+path after approval:
+
+```bash
+npm run dev:private-workspace:review
+```
+
+Private-review mode requires a running local Docker engine. It builds and
+revalidates the pinned private Remotion image before the API accepts requests,
+so its first startup is intentionally slower. The launcher creates a fresh
+server-only lease secret for that process and never places it in the browser
+environment or status output.
+
 The launcher starts:
 
 - the Express API at `http://127.0.0.1:8787`;
@@ -25,6 +38,11 @@ The launcher starts:
 - reviewed `frontend_safe` HTTP transport to the loopback API;
 - local private source uploads and private artifacts under `.reeditpro-local-storage/private-workspace`.
 - the provider-free local worker mode used by bounded technical media stages.
+
+With `dev:private-workspace:review`, the same API process also activates the
+checksum-verified local FFmpeg, libass, and Remotion runtime authorities used
+by the canonical approved work graph. The normal command leaves these
+resource-heavy runtimes off.
 
 Open the printed `/sign-in` URL and select **Enter test workspace**. No bearer token, JWT, Supabase session, API key, or provider credential is created by this flow.
 
@@ -44,15 +62,21 @@ The launcher fails closed when:
 
 The child environments are intentionally rebuilt from a small OS-only allowlist. Supabase, Google Cloud, provider, Stripe, and secret-reference variables are set to empty values. The Vite process uses an isolated empty `envDir`, so repository `.env` files cannot silently activate a different browser runtime for this command.
 
+Private-review mode supplies its generated internal lease secret only to the
+API child. It is not copied to Vite, printed, persisted as plaintext, or
+accepted from the browser.
+
 The Express API binds to the selected loopback host, accepts tokenless mock identity only from a loopback caller/origin, and uses the fixed backend identity `mock-user-runtime`. The browser local-test identity remains tab-scoped in `sessionStorage`; its trusted backend mapping is injected only for this loopback development workflow.
 
 The proxy target is accepted only from the launcher's credential-free loopback HTTP origin. Normal `npm run dev` has no API proxy. This avoids cross-port browser restrictions without widening the local authentication boundary.
 
 Provider calls, Google Cloud, Supabase, Stripe, live credit mutation, public delivery, and deployed services remain disabled.
-The local worker setting does not mount a semantic specialist runtime or authorize
-provider/model execution. A target-video study can therefore complete its
-provider-free technical stages, while unavailable semantic stages remain
-explicitly incomplete instead of being replaced with test fixtures.
+The local worker setting does not mount a semantic specialist runtime or
+authorize provider/model execution. Private-review mode enables only the
+existing provider-free technical media and composition stages. A target-video
+study can therefore complete available technical stages, while unavailable
+semantic stages remain explicitly incomplete instead of being replaced with
+test fixtures.
 
 ## Non-starting Checks
 
@@ -94,6 +118,9 @@ Use this runtime to exercise the current active product only:
 6. Complete source preparation and the optional inline Edit Brief.
 7. Review the edit plan and credit estimate.
 8. Approve before any gated private execution begins.
+Steps 9–18 require `npm run dev:private-workspace:review`. In the default mode,
+the approved snapshot remains visible but runtime work fails closed.
+
 9. Select **Prepare private handoff** and verify the saved workflow reports that the exact approved handoff is ready.
 10. Select **Start private edit** and verify the browser shows a visible in-progress state while the backend advances only the exact approved private work graph.
 11. Verify the saved workflow either reports bounded blocker counts or advances to **Private review ready** after required private QA and review assembly pass.

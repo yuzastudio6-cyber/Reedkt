@@ -35,6 +35,25 @@ if (
   throw new Error('The private workspace API safety boundary is not satisfied.')
 }
 
+const privateReviewRuntimeEnabled =
+  process.env.REEDITPRO_PRIVATE_WORKSPACE_ENABLE_PRIVATE_REVIEW_RUNTIME === 'true'
+if (
+  process.env.REEDITPRO_PRIVATE_WORKSPACE_ENABLE_PRIVATE_REVIEW_RUNTIME &&
+  !privateReviewRuntimeEnabled
+) {
+  throw new Error(
+    'The private workspace review runtime flag must be exactly "true" when provided.',
+  )
+}
+if (privateReviewRuntimeEnabled) {
+  if (!env.internalServiceToken || Buffer.byteLength(env.internalServiceToken, 'utf8') < 32) {
+    throw new Error(
+      'The private workspace review runtime requires a strong server-only internal service token.',
+    )
+  }
+  await activatePrivateReviewRuntimes()
+}
+
 const app = createReeditProApiApp(env, {
   editBriefPrivateWorkspaceRuntimePort:
     createEditBriefPrivateWorkspaceRuntimePort(),
@@ -45,6 +64,11 @@ const app = createReeditProApiApp(env, {
 })
 app.listen(env.apiPort, host, () => {
   console.log(`ReeditPro private API listening on http://${formatHost(host)}:${env.apiPort}.`)
+  if (privateReviewRuntimeEnabled) {
+    console.log(
+      'Canonical private-review execution is active for this loopback-only process.',
+    )
+  }
 })
 
 function normalizeLoopbackHost(value: string | undefined): '127.0.0.1' | 'localhost' | '::1' | undefined {
@@ -57,4 +81,28 @@ function normalizeLoopbackHost(value: string | undefined): '127.0.0.1' | 'localh
 
 function formatHost(value: string): string {
   return value === '::1' ? '[::1]' : value
+}
+
+async function activatePrivateReviewRuntimes(): Promise<void> {
+  const [
+    { activatePrivateOfflineMediaBinaryRuntime },
+    { activatePrivateOfflineLibassCaptionRuntime },
+    {
+      activatePrivateOfflineRemotionRenderRuntime,
+      prepareOfflineRemotionDockerRuntime,
+    },
+  ] = await Promise.all([
+    import('./tool-execution/media-binary-execution'),
+    import('./tool-execution/libass-caption-execution'),
+    import('./tool-execution/remotion-render-execution'),
+  ])
+
+  await Promise.all([
+    activatePrivateOfflineMediaBinaryRuntime(),
+    activatePrivateOfflineLibassCaptionRuntime(),
+    (async () => {
+      await prepareOfflineRemotionDockerRuntime()
+      await activatePrivateOfflineRemotionRenderRuntime()
+    })(),
+  ])
 }

@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs'
 import { mkdir, rm, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { spawn, spawnSync } from 'node:child_process'
+import { randomBytes } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
@@ -16,10 +17,20 @@ const sharedSyntheticFixtureRoot = path.join(repoRoot, 'test-results', 'internal
 const sharedSyntheticFixturePath = path.join(sharedSyntheticFixtureRoot, 'internal-testing-local-upload-e2e.mp4')
 const npmBin = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 const playwrightBin = path.join(repoRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'playwright.cmd' : 'playwright')
-const playwrightSpecs = [
-  'tests/e2e/project-source-video-backend-upload-local-api.spec.ts',
-  'tests/e2e/project-create-edit-upload-local-api.spec.ts',
-]
+const privateReviewMode = process.argv.slice(2).includes('--private-review')
+const unknownArgs = process.argv.slice(2).filter((arg) => arg !== '--private-review')
+if (unknownArgs.length > 0) {
+  throw new Error(`Unsupported local upload E2E argument: ${unknownArgs[0]}`)
+}
+const playwrightSpecs = privateReviewMode
+  ? ['tests/e2e/project-private-review-local-api.spec.ts']
+  : [
+      'tests/e2e/project-source-video-backend-upload-local-api.spec.ts',
+      'tests/e2e/project-create-edit-upload-local-api.spec.ts',
+    ]
+const internalServiceToken = privateReviewMode
+  ? randomBytes(32).toString('base64url')
+  : ''
 const apiBaseUrl = `http://127.0.0.1:${apiPort}`
 const appBaseUrl = `http://127.0.0.1:${appPort}`
 
@@ -77,7 +88,11 @@ async function fetchWithTimeout(url) {
   }
 }
 
-async function waitForHttp(url, label, timeoutMs = 60_000) {
+async function waitForHttp(
+  url,
+  label,
+  timeoutMs = privateReviewMode ? 30 * 60_000 : 60_000,
+) {
   const startedAt = Date.now()
   let lastError
 
@@ -115,6 +130,7 @@ function runPlaywright(fixturePath) {
         PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_API_BASE_URL: apiBaseUrl,
         PLAYWRIGHT_LOCAL_UPLOAD_STORAGE_ROOT: localStorageRoot,
         PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_FIXTURE_PATH: fixturePath,
+        PLAYWRIGHT_PRIVATE_REVIEW_LOCAL_API: privateReviewMode ? 'true' : 'false',
       },
       stdio: 'inherit',
     })
@@ -209,7 +225,11 @@ async function main() {
     console.log(`Synthetic video fixture: ${playwrightFixturePath}`)
   }
   console.log(`Specs: ${playwrightSpecs.join(', ')}`)
-  console.log('Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval gates. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.')
+  console.log(
+    privateReviewMode
+      ? 'Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval/work graph + confined private review. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.'
+      : 'Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval gates. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.',
+  )
 
   spawnServer('api', ['run', 'dev:private-workspace:api'], {
     NODE_ENV: 'development',
@@ -220,9 +240,12 @@ async function main() {
     API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
     STORAGE_MODE: 'local',
     LOCAL_STORAGE_ROOT: path.resolve(repoRoot, localStorageRoot),
-    WORKER_RUNTIME_MODE: 'mock',
+    WORKER_RUNTIME_MODE: privateReviewMode ? 'local' : 'mock',
     REEDITPRO_DISABLE_DOTENV: 'true',
     REEDITPRO_PRIVATE_WORKSPACE_HOST: '127.0.0.1',
+    REEDITPRO_PRIVATE_WORKSPACE_ENABLE_PRIVATE_REVIEW_RUNTIME:
+      privateReviewMode ? 'true' : '',
+    REEDITPRO_INTERNAL_SERVICE_TOKEN: internalServiceToken,
     SUPABASE_URL: '',
     SUPABASE_ANON_KEY: '',
     SUPABASE_SERVICE_ROLE_KEY: '',
@@ -245,7 +268,11 @@ async function main() {
   await waitForHttp(`${apiBaseUrl}/health`, 'API')
   await waitForHttp(`${appBaseUrl}/sign-in`, 'App')
   await runPlaywright(playwrightFixturePath)
-  console.log('Local upload E2E verifier passed: sign-in, project creation, named-edit creation, backend-local source finalization, private source readback, inline Edit Brief, plan creation, approval, and reload checks succeeded.')
+  console.log(
+    privateReviewMode
+      ? 'Local private-review E2E verifier passed: sign-in, project creation, named-edit creation, backend-local source finalization, plan creation, approval, canonical package/work execution, private media load, and review acceptance succeeded.'
+      : 'Local upload E2E verifier passed: sign-in, project creation, named-edit creation, backend-local source finalization, private source readback, inline Edit Brief, plan creation, approval, and reload checks succeeded.',
+  )
 }
 
 try {

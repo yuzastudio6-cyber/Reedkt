@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process'
+import { randomBytes } from 'node:crypto'
 import { createRequire } from 'node:module'
 import { createServer } from 'node:net'
 import { chmod, mkdir } from 'node:fs/promises'
@@ -82,7 +83,8 @@ export function createPrivateWorkspaceConfig({
   cwd = process.cwd(),
   env = process.env,
 } = {}) {
-  const unknownArgs = args.filter((arg) => arg !== '--check')
+  const unknownArgs = args.filter((arg) =>
+    arg !== '--check' && arg !== '--private-review')
   if (unknownArgs.length > 0) {
     throw new Error(`Unsupported private workspace argument: ${unknownArgs[0]}`)
   }
@@ -109,6 +111,7 @@ export function createPrivateWorkspaceConfig({
 
   return {
     checkOnly: args.includes('--check'),
+    privateReviewRuntime: args.includes('--private-review'),
     root,
     host,
     webPort,
@@ -142,6 +145,10 @@ export function createPrivateWorkspaceChildEnvironments(config, sourceEnv = proc
     SFX_PROVIDER_INTEGRATION_MODE: 'mock',
     REEDITPRO_DISABLE_DOTENV: 'true',
     REEDITPRO_PRIVATE_WORKSPACE_HOST: config.host,
+    REEDITPRO_PRIVATE_WORKSPACE_ENABLE_PRIVATE_REVIEW_RUNTIME:
+      config.privateReviewRuntime ? 'true' : '',
+    REEDITPRO_INTERNAL_SERVICE_TOKEN:
+      config.privateReviewRuntime ? randomBytes(32).toString('base64url') : '',
   }
   const frontendEnv = {
     ...base,
@@ -174,6 +181,7 @@ export function createPrivateWorkspaceCheckSummary(config) {
     apiTransport: 'frontend_safe',
     apiBrowserTransport: 'same_origin_vite_proxy',
     localPrivateUploads: true,
+    privateReviewRuntime: config.privateReviewRuntime,
     storageDirectory: relative(config.root, config.storageRoot),
     externalServices: 'disabled',
     startsProcesses: false,
@@ -250,7 +258,10 @@ async function startPrivateWorkspace(config, childEnvironments, runtimePaths) {
       ['--import', runtimePaths.tsxLoader, join(config.root, 'server', 'private-workspace-index.ts')],
       childEnvironments.serverEnv,
     )
-    await guardStartup(waitForHttp(`${config.apiOrigin}/health`, 20_000))
+    await guardStartup(waitForHttp(
+      `${config.apiOrigin}/health`,
+      config.privateReviewRuntime ? 30 * 60_000 : 20_000,
+    ))
 
     spawnService(
       'web',
@@ -268,6 +279,11 @@ async function startPrivateWorkspace(config, childEnvironments, runtimePaths) {
 
     console.log(`\nReeditPro private workspace is ready: ${config.webOrigin}/sign-in`)
     console.log('Select "Enter test workspace". Press Ctrl+C to stop both local services.')
+    if (config.privateReviewRuntime) {
+      console.log(
+        'Private review mode is active: approved local work may use confined FFmpeg, libass, and Remotion.',
+      )
+    }
     console.log('External providers, Supabase, billing, and deployed services remain disabled.\n')
 
     const result = await Promise.race([
@@ -309,6 +325,16 @@ function assertPrivateWorkspaceEnvironment(config, { serverEnv, frontendEnv }) {
     || serverEnv.LOCAL_STORAGE_ROOT !== config.storageRoot
   ) {
     throw new Error('Private workspace server safety configuration is incomplete.')
+  }
+  if (
+    config.privateReviewRuntime &&
+    (
+      serverEnv.REEDITPRO_PRIVATE_WORKSPACE_ENABLE_PRIVATE_REVIEW_RUNTIME !== 'true' ||
+      typeof serverEnv.REEDITPRO_INTERNAL_SERVICE_TOKEN !== 'string' ||
+      Buffer.byteLength(serverEnv.REEDITPRO_INTERNAL_SERVICE_TOKEN, 'utf8') < 32
+    )
+  ) {
+    throw new Error('Private workspace review runtime safety configuration is incomplete.')
   }
   if (
     frontendEnv.VITE_REEDITPRO_AUTH_MODE !== 'local_test'

@@ -12,6 +12,16 @@ For a one-command verifier of the same path, run:
 npm run test:internal-testing:local-upload-e2e
 ```
 
+For the complete provider-free local path through canonical work execution,
+private MP4 playback/download, and review acceptance, run:
+
+```bash
+npm run test:internal-testing:local-private-review-e2e
+```
+
+The private-review verifier requires a running Docker engine and may take
+several minutes while it validates or builds the pinned Remotion image.
+
 The verifier creates a tiny video-and-audio MP4 with local `ffmpeg` unless `REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_PATH` names an existing MP4. It then:
 
 1. signs in with the runner-only browser-local mock auth session;
@@ -21,6 +31,11 @@ The verifier creates a tiny video-and-audio MP4 with local `ffmpeg` unless `REED
 5. publishes and separately approves a prompt-first canonical plan;
 6. durably saves an inline Edit Brief before publishing and approving its canonical plan; and
 7. reloads the named edit and proves the source checksum and private storage identity are preserved.
+
+The private-review variant continues from the approved snapshot: it requests
+the exact canonical execution package, runs only the server-derived work graph
+through the confined local media runtimes, loads and downloads the no-store
+private MP4, and records explicit review acceptance.
 
 The runner shuts down both processes and removes its generated fixture and backend-local test artifacts when the verification completes.
 
@@ -47,17 +62,25 @@ Start at Sign in, enter any valid internal-testing email plus an 8-or-more-chara
 
 ## What It Does Not Enable
 
-The runner does not start provider calls, live Qwen calls, external beta, production, public delivery, Supabase auth or data writes, GCS writes, Stripe, worker dispatch, private rendering, QA approval, or export. It proves the signed-in frontend-to-private-backend planning boundary through an approved snapshot; it does not claim the downstream media execution path.
+The default runner does not start provider calls, live Qwen calls, external beta, production, public delivery, Supabase auth or data writes, GCS writes, Stripe, worker dispatch, private rendering, QA approval, or export. It proves the signed-in frontend-to-private-backend planning boundary through an approved snapshot.
 
 Qwen 3.7 Max remains the named main-brain reasoning identity in the product architecture, but this runner does not call Qwen.
 
-Private review and render execution have separate backend coverage:
+The opt-in private-review verifier adds only local, provider-free canonical
+work execution and private review. It still does not authorize provider calls,
+live Qwen, public delivery, external beta, production, billing, or customer
+export.
+
+The broader maximum-source and revision path retains its standalone backend
+coverage:
 
 ```bash
 npm run smoke:editor-full-stack-private-review
 ```
 
-That smoke must remain separate until the active named-edit UI has a canonical work/asset/runtime bridge. The local-upload verifier must not imply that plan publication and approval performed rendering or export.
+Plan publication and approval still never perform rendering automatically.
+The browser must explicitly request the package and then start the approved
+private edit.
 
 ## Optional Real-Video Acceptance
 

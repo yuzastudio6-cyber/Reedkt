@@ -20,6 +20,16 @@ const sourceEnv = {
 const config = createPrivateWorkspaceConfig({ args: ['--check'], cwd: root, env: sourceEnv })
 const environments = createPrivateWorkspaceChildEnvironments(config, sourceEnv)
 const summary = createPrivateWorkspaceCheckSummary(config)
+const reviewConfig = createPrivateWorkspaceConfig({
+  args: ['--check', '--private-review'],
+  cwd: root,
+  env: sourceEnv,
+})
+const reviewEnvironments = createPrivateWorkspaceChildEnvironments(
+  reviewConfig,
+  sourceEnv,
+)
+const reviewSummary = createPrivateWorkspaceCheckSummary(reviewConfig)
 
 assert.equal(config.checkOnly, true)
 assert.equal(config.host, '127.0.0.1')
@@ -43,7 +53,30 @@ assert.equal(environments.frontendEnv.VITE_SUPABASE_ANON_KEY, '')
 assert.equal(summary.startsProcesses, false)
 assert.equal(summary.externalServices, 'disabled')
 assert.equal(summary.apiBrowserTransport, 'same_origin_vite_proxy')
+assert.equal(summary.privateReviewRuntime, false)
 assert.equal(JSON.stringify(summary).includes('must-not-propagate'), false)
+assert.equal(reviewConfig.privateReviewRuntime, true)
+assert.equal(
+  reviewEnvironments.serverEnv.REEDITPRO_PRIVATE_WORKSPACE_ENABLE_PRIVATE_REVIEW_RUNTIME,
+  'true',
+)
+assert.ok(
+  Buffer.byteLength(
+    reviewEnvironments.serverEnv.REEDITPRO_INTERNAL_SERVICE_TOKEN,
+    'utf8',
+  ) >= 32,
+)
+assert.equal(
+  reviewEnvironments.frontendEnv.REEDITPRO_INTERNAL_SERVICE_TOKEN,
+  undefined,
+)
+assert.equal(reviewSummary.privateReviewRuntime, true)
+assert.equal(
+  JSON.stringify(reviewSummary).includes(
+    reviewEnvironments.serverEnv.REEDITPRO_INTERNAL_SERVICE_TOKEN,
+  ),
+  false,
+)
 
 assert.throws(
   () => createPrivateWorkspaceConfig({ env: { NODE_ENV: 'production' } }),
@@ -80,6 +113,8 @@ console.log(JSON.stringify({
     'same_origin_api_proxy_selected',
     'local_private_uploads_selected',
     'provider_free_local_worker_selected',
+    'private_review_runtime_requires_explicit_flag',
+    'private_review_internal_secret_is_server_only',
     'external_credentials_scrubbed',
     'safe_summary_contains_no_secret_values',
   ],

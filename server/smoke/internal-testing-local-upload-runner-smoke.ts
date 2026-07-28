@@ -30,6 +30,7 @@ const requiredFiles = [
   'server/smoke/internal-testing-local-upload-runner-smoke.ts',
   'tests/e2e/project-source-video-backend-upload-local-api.spec.ts',
   'tests/e2e/project-create-edit-upload-local-api.spec.ts',
+  'tests/e2e/project-private-review-local-api.spec.ts',
   'tests/e2e/helpers/real-local-api-journey.ts',
   'docs/internal-testing-local-upload-runner.md',
   'docs/project-edit-brief-internal-testing-runbook.md',
@@ -49,6 +50,10 @@ assert.equal(
 assert.equal(
   packageJson.scripts?.['test:internal-testing:local-upload-e2e'],
   'node scripts/dev/internal-testing-local-upload-e2e.mjs',
+)
+assert.equal(
+  packageJson.scripts?.['test:internal-testing:local-private-review-e2e'],
+  'node scripts/dev/internal-testing-local-upload-e2e.mjs --private-review',
 )
 assert.equal(
   packageJson.scripts?.['smoke:internal-testing-local-upload-runner'],
@@ -95,7 +100,13 @@ for (const phrase of [
   'active named-edit route',
   'reviewed frontend-safe API transport',
   'canonical plan/approval gates',
+  '--private-review',
+  'PLAYWRIGHT_PRIVATE_REVIEW_LOCAL_API',
+  'REEDITPRO_PRIVATE_WORKSPACE_ENABLE_PRIVATE_REVIEW_RUNTIME',
+  'REEDITPRO_INTERNAL_SERVICE_TOKEN',
+  'canonical plan/approval/work graph + confined private review',
   'sign-in, project creation, named-edit creation, backend-local source finalization, private source readback, inline Edit Brief, plan creation, approval, and reload checks succeeded',
+  'canonical package/work execution, private media load, and review acceptance succeeded',
 ]) {
   assertMentions(e2eRunner, phrase, 'local upload E2E verifier')
 }
@@ -137,6 +148,25 @@ for (const phrase of [
 }
 assert.doesNotMatch(activeJourneySpec, /page\.route\(/, 'Active named-edit journey must not intercept routes.')
 
+const privateReviewSpec = read('tests/e2e/project-private-review-local-api.spec.ts')
+for (const phrase of [
+  'PLAYWRIGHT_PRIVATE_REVIEW_LOCAL_API',
+  'canonical-execution-package-request-submit',
+  'canonical-private-edit-preparation-submit',
+  'canonical-private-review-load',
+  'Download review',
+  'canonical-private-review-accept',
+  'private_review_accepted',
+  'Public delivery is still a separate release step',
+]) {
+  assertMentions(privateReviewSpec, phrase, 'active named-edit private review')
+}
+assert.doesNotMatch(
+  privateReviewSpec,
+  /page\.route\(/,
+  'Active named-edit private review must not intercept routes.',
+)
+
 const journeyHelper = read('tests/e2e/helpers/real-local-api-journey.ts')
 for (const phrase of [
   'edit-upload-gate',
@@ -167,6 +197,7 @@ for (const phrase of [
   'reload',
   'backend-local storage metadata',
   'npm run smoke:editor-full-stack-private-review',
+  'npm run test:internal-testing:local-private-review-e2e',
   'does not start provider calls, live Qwen calls, external beta, production, public delivery',
 ]) {
   assertMentions(runbook.toLowerCase(), phrase.toLowerCase(), 'local upload runbook')
@@ -194,6 +225,7 @@ console.log(JSON.stringify({
     'durable_inline_edit_brief_covered',
     'approved_source_authority_reload_covered',
     'private_review_coverage_kept_separate',
+    'active_named_edit_private_review_execution_covered',
     'runbooks_document_current_local_upload_flow',
     'production_scope_not_enabled',
   ],

@@ -137,7 +137,7 @@ export function createPrivateWorkspaceChildEnvironments(config, sourceEnv = proc
     API_ALLOWED_CORS_ORIGINS: config.webOrigin,
     STORAGE_MODE: 'local',
     LOCAL_STORAGE_ROOT: config.storageRoot,
-    WORKER_RUNTIME_MODE: 'mock',
+    WORKER_RUNTIME_MODE: 'local',
     LYRIA_INTEGRATION_MODE: 'mock',
     SFX_PROVIDER_INTEGRATION_MODE: 'mock',
     REEDITPRO_DISABLE_DOTENV: 'true',
@@ -296,7 +296,11 @@ function createMinimalChildEnvironment(sourceEnv) {
 
 function assertPrivateWorkspaceEnvironment(config, { serverEnv, frontendEnv }) {
   if (!isLoopbackHost(config.host)) throw new Error('Private workspace host validation failed.')
-  if (serverEnv.NODE_ENV === 'production' || serverEnv.E2E_RUNTIME_MODE !== 'local') {
+  if (
+    serverEnv.NODE_ENV === 'production'
+    || serverEnv.E2E_RUNTIME_MODE !== 'local'
+    || serverEnv.WORKER_RUNTIME_MODE !== 'local'
+  ) {
     throw new Error('Private workspace server runtime must remain local and non-production.')
   }
   if (

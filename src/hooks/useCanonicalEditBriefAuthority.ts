@@ -2,10 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { EditBrief } from '../types'
 import type {
   CanonicalEditBriefAuthority,
-  CanonicalEditBriefFields,
   CanonicalEditBriefMarker,
   CanonicalEditBriefMarkerDraft,
 } from '../types/edit-brief-authority'
+import {
+  canonicalEditBriefFieldsEqual,
+  createCanonicalEditBriefFieldsFromEditBrief,
+} from '../lib/edit-brief/edit-brief-reference-binding'
 import {
   addCanonicalEditBriefAudioAttachment,
   appendCanonicalEditBriefMarkerMessage,
@@ -162,7 +165,7 @@ export function useCanonicalEditBriefAuthority(input: {
       return false
     }
 
-    const fields = toCanonicalFields(editBrief)
+    const fields = createCanonicalEditBriefFieldsFromEditBrief(editBrief)
     latestDesiredFingerprintRef.current = JSON.stringify(fields)
     setStatus('saving')
     setMessage('Saving the Brief and timeline authority…')
@@ -181,7 +184,7 @@ export function useCanonicalEditBriefAuthority(input: {
         }
         current = refreshed.data.authority
         authorityRef.current = current
-        if (sameCanonicalFields(current?.brief?.fields, fields)) {
+        if (canonicalEditBriefFieldsEqual(current?.brief?.fields, fields)) {
           return applyResult(
             refreshed,
             'Edit Brief save was already committed and recovered.',
@@ -209,7 +212,9 @@ export function useCanonicalEditBriefAuthority(input: {
   ])
 
   const desiredFields = useMemo(
-    () => input.editBrief ? toCanonicalFields(input.editBrief) : undefined,
+    () => input.editBrief
+      ? createCanonicalEditBriefFieldsFromEditBrief(input.editBrief)
+      : undefined,
     [input.editBrief],
   )
   const desiredFingerprint = useMemo(
@@ -230,7 +235,7 @@ export function useCanonicalEditBriefAuthority(input: {
     input.started
     && desiredFields?.status === 'ready'
     && status === 'saved'
-    && sameCanonicalFields(authority?.brief?.fields, desiredFields)
+    && canonicalEditBriefFieldsEqual(authority?.brief?.fields, desiredFields)
     && activeMarkersConfirmed,
   )
 
@@ -241,7 +246,7 @@ export function useCanonicalEditBriefAuthority(input: {
       || input.readOnly
       || !desiredFields?.goal.trim()
     ) return
-    if (sameCanonicalFields(authority?.brief?.fields, desiredFields)) {
+    if (canonicalEditBriefFieldsEqual(authority?.brief?.fields, desiredFields)) {
       latestDesiredFingerprintRef.current = desiredFingerprint
       return
     }
@@ -402,73 +407,4 @@ export function useCanonicalEditBriefAuthority(input: {
     appendMarkerMessage,
     addAudioAttachment,
   }
-}
-
-function toCanonicalFields(editBrief: EditBrief): CanonicalEditBriefFields {
-  return {
-    goal: editBrief.goal?.trim() ?? '',
-    audience: optional(editBrief.audience),
-    deliverable: editBrief.targetPlatforms.length > 0
-      ? `Professional edit for ${editBrief.targetPlatforms.join(', ')}`
-      : undefined,
-    mustIncludeNotes: unique(editBrief.mustIncludeNotes),
-    avoidNotes: unique(editBrief.avoidNotes),
-    additionalNotes: optional(editBrief.specialInstructions),
-    targetPlatforms: [...editBrief.targetPlatforms],
-    targetDurationMs: editBrief.targetDurationMs,
-    styleKeywords: unique(editBrief.styleKeywords),
-    pacingPreference: editBrief.pacingPreference,
-    captionPreference: editBrief.captionPreference,
-    musicPreference: editBrief.musicPreference,
-    bRollPreference: optional(editBrief.bRollPreference),
-    mustUseAssetIds: unique(editBrief.mustUseAssetIds),
-    avoidAssetIds: unique(editBrief.avoidAssetIds),
-    brandNotes: optional(editBrief.brandNotes),
-    specialInstructions: optional(editBrief.specialInstructions),
-    userProvidedReferenceUrls: unique(editBrief.userProvidedReferenceUrls ?? []),
-    status: editBrief.status === 'ready' || editBrief.status === 'used_in_plan'
-      ? 'ready'
-      : 'draft',
-  }
-}
-
-function sameCanonicalFields(
-  left: CanonicalEditBriefFields | undefined,
-  right: CanonicalEditBriefFields,
-): boolean {
-  if (!left) return false
-  return JSON.stringify(normalizeFields(left)) === JSON.stringify(normalizeFields(right))
-}
-
-function normalizeFields(fields: CanonicalEditBriefFields): CanonicalEditBriefFields {
-  return {
-    goal: fields.goal,
-    audience: optional(fields.audience),
-    deliverable: optional(fields.deliverable),
-    mustIncludeNotes: fields.mustIncludeNotes ?? [],
-    avoidNotes: fields.avoidNotes ?? [],
-    additionalNotes: optional(fields.additionalNotes),
-    targetPlatforms: fields.targetPlatforms ?? [],
-    targetDurationMs: fields.targetDurationMs,
-    styleKeywords: fields.styleKeywords ?? [],
-    pacingPreference: fields.pacingPreference,
-    captionPreference: fields.captionPreference,
-    musicPreference: fields.musicPreference,
-    bRollPreference: optional(fields.bRollPreference),
-    mustUseAssetIds: fields.mustUseAssetIds ?? [],
-    avoidAssetIds: fields.avoidAssetIds ?? [],
-    brandNotes: optional(fields.brandNotes),
-    specialInstructions: optional(fields.specialInstructions),
-    userProvidedReferenceUrls: fields.userProvidedReferenceUrls ?? [],
-    status: fields.status,
-  }
-}
-
-function optional(value: string | undefined): string | undefined {
-  const normalized = value?.trim()
-  return normalized ? normalized : undefined
-}
-
-function unique(values: string[]): string[] {
-  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)))
 }

@@ -199,6 +199,9 @@ export function createEditReferenceTargetVideoUnderstandingService(
         studySessionId: input.studySessionId,
         storageObjectRecordId: authority.storageObject.id,
         mediaChecksumSha256: authority.storageObject.checksumSha256 as string,
+        editBriefId: authority.brief.id,
+        editBriefRevision: authority.brief.revisionNumber,
+        editBriefDigestSha256: calculateTargetVideoEditBriefDigest(authority.brief),
       })
       let persisted = await longFormStudyRuntime.read({ scope: authority.scope, runId })
       let replayed = Boolean(persisted)
@@ -862,6 +865,9 @@ function targetUnderstandingRunId(input: {
   readonly studySessionId: string
   readonly storageObjectRecordId: string
   readonly mediaChecksumSha256: string
+  readonly editBriefId: string
+  readonly editBriefRevision: number
+  readonly editBriefDigestSha256: string
 }): string {
   return `target-video-run-${sha256(stableStringify(input)).slice(0, 32)}`
 }

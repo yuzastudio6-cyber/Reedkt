@@ -431,6 +431,50 @@ try {
     assert(browserAfterRestart.ok)
     assert.equal(browserAfterRestart.data.targetVideoUnderstandingPackage.packageDigestSha256, afterRestart.body.data.targetVideoUnderstandingPackage.packageDigestSha256)
 
+    const revisedBrief = (await createProjectEditBriefLocalService(context).saveProjectEditBrief({
+      workspaceId,
+      projectId: project.id,
+      editSessionId: session.id,
+      idempotencyKey: 'target-understanding-revised-brief-save',
+      briefText: 'Study the complete source again against the revised Edit Brief. Preserve every verified checkpoint under its original brief lineage.',
+      sourceStorageObjectRecordId: finalized.storageObjectRecord.id,
+      sourceMediaAssetId: finalized.mediaAsset.id,
+    })).editBrief
+    const revisedBriefDigest = calculateTargetVideoEditBriefDigest(revisedBrief)
+    const revisedBody = {
+      ...validBody,
+      expectedEditBriefRevision: revisedBrief.revisionNumber,
+      expectedEditBriefDigestSha256: revisedBriefDigest,
+    }
+    const revisedStart = await postTarget(
+      runtime.baseUrl,
+      route,
+      'target-understanding-revised-brief-start',
+      revisedBody,
+    )
+    assert.equal(revisedStart.status, 202)
+    assert.equal(revisedStart.body.data.replayed, false)
+    assert.notEqual(
+      revisedStart.body.data.targetVideoUnderstandingPackage.study.runId,
+      afterRestart.body.data.targetVideoUnderstandingPackage.study.runId,
+    )
+    await waitForEditReferenceLongFormStudySchedulerForSmoke()
+    const revisedStatusQuery = new URLSearchParams({
+      workspaceId,
+      editReferenceId: editReference.reference.id,
+      studySessionId: editReference.study.id,
+      sourceStorageObjectRecordId: finalized.storageObjectRecord.id,
+      sourceMediaAssetId: finalized.mediaAsset.id,
+      expectedEditBriefRevision: String(revisedBrief.revisionNumber),
+      expectedEditBriefDigestSha256: revisedBriefDigest,
+    })
+    const revisedAdvanced = await getTarget(
+      runtime.baseUrl,
+      `${route}?${revisedStatusQuery}`,
+    )
+    assert(revisedAdvanced.body.data.targetVideoUnderstandingPackage.study.completedWorkItemCount > 2)
+    assert.equal(revisedAdvanced.body.data.targetVideoUnderstandingPackage.readyForPreferenceApplication, false)
+
     await createInternalEditStateService(exactEditStateContext(root)).saveInternalEditState({
       workspaceId,
       projectId: project.id,
@@ -447,7 +491,7 @@ try {
       runtime.baseUrl,
       route,
       'target-understanding-approval-locked-start',
-      validBody,
+      revisedBody,
     )
     assert.equal(approvalLockedStart.status, 409)
     assert.equal(approvalLockedStart.code, 'VERSION_CONFLICT')
@@ -467,8 +511,8 @@ try {
         studySessionId: editReference.study.id,
         sourceStorageObjectRecordId: finalized.storageObjectRecord.id,
         sourceMediaAssetId: finalized.mediaAsset.id,
-        expectedEditBriefRevision: brief.revisionNumber,
-        expectedEditBriefDigestSha256: briefDigest,
+        expectedEditBriefRevision: revisedBrief.revisionNumber,
+        expectedEditBriefDigestSha256: revisedBriefDigest,
       }),
       /authenticated project scope|workspace was not found|edit brief was not found/i,
     )
@@ -488,6 +532,7 @@ try {
       analysisProxyMaxWidth: 1280,
       studyAudioSampleRate: 16000,
       checkpointReadbackAfterRuntimeRestart: true,
+      revisedBriefCreatedFreshCheckpointedRun: true,
       strictEditBriefBinding: true,
       strictSourceIdentityBinding: true,
       idempotentStudyIdentity: true,

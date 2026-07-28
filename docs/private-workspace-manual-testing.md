@@ -24,6 +24,7 @@ The launcher starts:
 - local-test browser auth;
 - reviewed `frontend_safe` HTTP transport to the loopback API;
 - local private source uploads and private artifacts under `.reeditpro-local-storage/private-workspace`.
+- the provider-free local worker mode used by bounded technical media stages.
 
 Open the printed `/sign-in` URL and select **Enter test workspace**. No bearer token, JWT, Supabase session, API key, or provider credential is created by this flow.
 
@@ -48,6 +49,10 @@ The Express API binds to the selected loopback host, accepts tokenless mock iden
 The proxy target is accepted only from the launcher's credential-free loopback HTTP origin. Normal `npm run dev` has no API proxy. This avoids cross-port browser restrictions without widening the local authentication boundary.
 
 Provider calls, Google Cloud, Supabase, Stripe, live credit mutation, public delivery, and deployed services remain disabled.
+The local worker setting does not mount a semantic specialist runtime or authorize
+provider/model execution. A target-video study can therefore complete its
+provider-free technical stages, while unavailable semantic stages remain
+explicitly incomplete instead of being replaced with test fixtures.
 
 ## Non-starting Checks
 

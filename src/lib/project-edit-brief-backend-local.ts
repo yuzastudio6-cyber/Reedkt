@@ -34,7 +34,9 @@ export interface ProjectEditBriefBackendLocalRecord {
   updatedAt?: string
   contentDigestSha256: string
   backendLocalBriefStored?: true
-  persistenceAuthority?: 'canonical_v3_local_supabase_rls'
+  persistenceAuthority?:
+    | 'canonical_v3_local_supabase_rls'
+    | 'private_edit_brief_authority_store'
   runtimeSource?: 'verified_live'
   readbackVerified?: true
   providerCallMade?: false
@@ -217,6 +219,8 @@ export async function saveProjectEditBriefBackendLocal(
       ...readback.warnings,
       editBrief.persistenceAuthority === 'canonical_v3_local_supabase_rls'
         ? 'Exact Edit Brief was saved and read back through isolated local RLS authority before plan approval; no tools, render, credits, remote Supabase, GCS, beta, or production work started.'
+        : editBrief.persistenceAuthority === 'private_edit_brief_authority_store'
+          ? 'Exact Edit Brief was read back from the durable private workspace authority before plan approval; no duplicate Brief, tools, render, credits, cloud, beta, or production work started.'
         : 'Backend-local edit brief was saved and read back before plan approval; no tools, render, credits, Supabase, GCS, beta, or production work started.',
     ],
   }

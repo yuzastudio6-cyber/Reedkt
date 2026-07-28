@@ -1016,7 +1016,10 @@ function requireRuntime(
     if (
       context.env.nodeEnv !== 'production'
       && context.env.mode === 'local'
-      && context.env.workerRuntimeMode === 'mock'
+      && (
+        context.env.workerRuntimeMode === 'mock'
+        || context.env.workerRuntimeMode === 'local'
+      )
       && context.env.storageMode === 'local'
       && context.env.allowMockWithoutSupabase
       && context.env.mockOnly

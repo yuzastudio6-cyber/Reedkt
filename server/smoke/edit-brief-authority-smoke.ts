@@ -16,11 +16,17 @@ import {
   clearPrivateEditBriefAuthorityProcessStateForSmoke,
   editBriefAuthorityRelativePath,
 } from '../services/private-edit-brief-authority-store'
+import {
+  clearInternalEditStateMemoryForSmoke,
+  createInternalEditStateService,
+} from '../services/internal-edit-state-service'
+import { createProjectEditBriefLocalService } from '../services/project-edit-brief-local-service'
 import { clearLocalProjectMemoryForSmoke, createProjectService } from '../services/project-service'
 import type { ServiceContext } from '../types'
 import { canonicalPlanComponentsSchema } from '../validation/edit-planning-authority-schemas'
 import { sourceBindingManifestCandidateSchema } from '../validation/source-media-authority-schemas'
 import { buildProfessionalExportCreditCoverage } from '../../src/lib/professional-export-policy'
+import { createEditReferenceBriefTextFromEditBrief } from '../../src/lib/edit-brief/edit-brief-reference-binding'
 
 const localStorageRoot = '/tmp/reeditpro-edit-brief-authority-smoke'
 const workspaceId = 'workspace-edit-brief-smoke'
@@ -889,7 +895,7 @@ const privateWorkspacePort = createEditBriefPrivateWorkspaceRuntimePort()
 const privateWorkspaceEnv = loadRuntimeEnv({
   NODE_ENV: 'test',
   E2E_RUNTIME_MODE: 'local',
-  WORKER_RUNTIME_MODE: 'mock',
+  WORKER_RUNTIME_MODE: 'local',
   STORAGE_MODE: 'local',
   LOCAL_STORAGE_ROOT: privateWorkspaceStorageRoot,
   API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
@@ -912,11 +918,132 @@ const privateWorkspaceProject = (
 ).project
 const privateWorkspaceService =
   createEditBriefAuthorityService(privateWorkspaceContext)
+const privateEditSessionId = 'edit-session-private-workspace-smoke'
+const privateSourceStorageObjectRecordId =
+  'private-workspace-source-storage-record'
+const privateSourceMediaAssetId = 'private-workspace-source-media-asset'
+const privateEditBriefUpdatedAt = '2026-07-28T04:00:00.000Z'
+const privateUiEditBrief = {
+  id: `${privateWorkspaceProject.id}-edit-brief`,
+  projectId: privateWorkspaceProject.id,
+  workspaceId: privateWorkspaceProject.workspaceId,
+  userId: 'mock-user-runtime',
+  status: 'ready' as const,
+  goal: 'Preserve the exact source meaning with restrained documentary pacing.',
+  targetPlatforms: ['youtube'] as ['youtube'],
+  styleKeywords: ['documentary'],
+  pacingPreference: 'natural' as const,
+  captionPreference: 'premium_subtle' as const,
+  musicPreference: 'subtle' as const,
+  mustUseAssetIds: [],
+  avoidAssetIds: [],
+  mustIncludeNotes: ['Keep the complete supporting claim.'],
+  avoidNotes: ['Do not copy the reference composition.'],
+  userProvidedReferenceUrls: [],
+  version: 1,
+  createdAt: privateEditBriefUpdatedAt,
+  updatedAt: privateEditBriefUpdatedAt,
+}
+await createInternalEditStateService(privateWorkspaceContext).saveInternalEditState({
+  workspaceId: privateWorkspaceProject.workspaceId,
+  projectId: privateWorkspaceProject.id,
+  editSessionId: privateEditSessionId,
+  idempotencyKey: 'private-workspace-exact-edit-state-v1',
+  handoff: {
+    id: privateEditSessionId,
+    workspaceId: privateWorkspaceProject.workspaceId,
+    projectId: privateWorkspaceProject.id,
+    editSessionId: privateEditSessionId,
+    projectName: privateWorkspaceProject.name,
+    editName: 'Private workspace durable Brief binding',
+    category: 'documentary_case_study',
+    productWorkflow: 'video_edit',
+    editorPath: `/projects/${privateWorkspaceProject.id}/edits/${privateEditSessionId}`,
+    stage: 'source_uploaded',
+    sourceFileCount: 1,
+    setup: {
+      aspectRatio: '16:9',
+      aspectRatioConfirmed: true,
+      editLevel: 'basic',
+      editLevelConfirmed: true,
+      targetPlatform: 'youtube',
+    },
+    sourceMediaAssets: [{
+      mediaAssetId: privateSourceMediaAssetId,
+      storageObjectRecordId: privateSourceStorageObjectRecordId,
+      uploadedOrder: 1,
+      storageProvider: 'local_private',
+      storageBucket: 'source-media',
+      storagePath: 'private/source.mp4',
+      fileName: 'source.mp4',
+      mimeType: 'video/mp4',
+      byteSize: 1_024,
+      checksumSha256: '7'.repeat(64),
+      privateArtifact: true,
+      publicUrl: null,
+      signedUrl: null,
+    }],
+    editBriefState: {
+      projectId: privateWorkspaceProject.id,
+      workspaceId: privateWorkspaceProject.workspaceId,
+      userId: 'mock-user-runtime',
+      editBrief: privateUiEditBrief,
+      operations: [],
+      updatedAt: privateEditBriefUpdatedAt,
+    },
+    createdAt: privateEditBriefUpdatedAt,
+    updatedAt: privateEditBriefUpdatedAt,
+    persistence: 'browser_local_internal_testing',
+  },
+})
+const privateCanonicalBrief = await privateWorkspaceService.createBrief({
+  workspaceId: privateWorkspaceProject.workspaceId,
+  projectId: privateWorkspaceProject.id,
+  editSessionId: privateEditSessionId,
+  expectedRevision: 0,
+  idempotencyKey: 'private-workspace-durable-brief-v1',
+  brief: {
+    goal: privateUiEditBrief.goal,
+    deliverable: 'Professional edit for youtube',
+    mustIncludeNotes: privateUiEditBrief.mustIncludeNotes,
+    avoidNotes: privateUiEditBrief.avoidNotes,
+    targetPlatforms: [...privateUiEditBrief.targetPlatforms],
+    styleKeywords: privateUiEditBrief.styleKeywords,
+    pacingPreference: privateUiEditBrief.pacingPreference,
+    captionPreference: privateUiEditBrief.captionPreference,
+    musicPreference: privateUiEditBrief.musicPreference,
+    mustUseAssetIds: [],
+    avoidAssetIds: [],
+    userProvidedReferenceUrls: [],
+    status: 'ready',
+  },
+})
+const privateExpectedBriefText =
+  createEditReferenceBriefTextFromEditBrief(privateUiEditBrief)
+const privateBoundBrief = (
+  await createProjectEditBriefLocalService(privateWorkspaceContext)
+    .saveProjectEditBrief({
+      workspaceId: privateWorkspaceProject.workspaceId,
+      projectId: privateWorkspaceProject.id,
+      editSessionId: privateEditSessionId,
+      idempotencyKey: 'private-workspace-bind-durable-brief-v1',
+      briefText: privateExpectedBriefText,
+      sourceStorageObjectRecordId: privateSourceStorageObjectRecordId,
+      sourceMediaAssetId: privateSourceMediaAssetId,
+    })
+).editBrief
+assert.equal(privateBoundBrief.id, privateCanonicalBrief.brief.id)
+assert.equal(privateBoundBrief.revisionNumber, 1)
+assert.equal(
+  privateBoundBrief.persistenceAuthority,
+  'private_edit_brief_authority_store',
+)
+assert.equal(privateBoundBrief.briefText, privateExpectedBriefText)
 const privateMarkerInput = {
   workspaceId: privateWorkspaceProject.workspaceId,
   projectId: privateWorkspaceProject.id,
-  editSessionId: 'edit-session-private-workspace-smoke',
-  expectedRevision: 0,
+  editSessionId: privateEditSessionId,
+  expectedRevision: 1,
   idempotencyKey: 'private-workspace-marker-v1',
   marker: {
     markerType: 'note' as const,
@@ -930,10 +1057,11 @@ const privateMarkerInput = {
 const privateMarker = await privateWorkspaceService.createMarker(
   privateMarkerInput,
 )
-assert.equal(privateMarker.aggregateRevision, 1)
+assert.equal(privateMarker.aggregateRevision, 2)
 assert.equal(privateMarker.marker.status, 'draft')
 clearLocalProjectMemoryForSmoke()
 clearPrivateEditBriefAuthorityProcessStateForSmoke()
+clearInternalEditStateMemoryForSmoke()
 const privateWorkspaceRestartedService =
   createEditBriefAuthorityService(privateWorkspaceContext)
 const privateWorkspaceRestarted = await privateWorkspaceRestartedService.get(
@@ -941,13 +1069,50 @@ const privateWorkspaceRestarted = await privateWorkspaceRestartedService.get(
   privateWorkspaceProject.id,
   privateMarkerInput.editSessionId,
 )
-assert.equal(privateWorkspaceRestarted.aggregateRevision, 1)
+assert.equal(privateWorkspaceRestarted.aggregateRevision, 2)
 assert.equal(privateWorkspaceRestarted.authority?.markers.length, 1)
+const privateBoundBriefAfterRestart = (
+  await createProjectEditBriefLocalService(privateWorkspaceContext)
+    .getProjectEditBriefForSession({
+      workspaceId: privateWorkspaceProject.workspaceId,
+      projectId: privateWorkspaceProject.id,
+      editSessionId: privateEditSessionId,
+    })
+).editBrief
+assert.deepEqual(privateBoundBriefAfterRestart, privateBoundBrief)
 const privateMarkerReplay = await privateWorkspaceRestartedService.createMarker(
   privateMarkerInput,
 )
 assert.equal(privateMarkerReplay.replayed, true)
 assert.equal(privateMarkerReplay.marker.id, privateMarker.marker.id)
+await expectApiError(
+  () => createProjectEditBriefLocalService(privateWorkspaceContext)
+    .saveProjectEditBrief({
+      workspaceId: privateWorkspaceProject.workspaceId,
+      projectId: privateWorkspaceProject.id,
+      editSessionId: privateEditSessionId,
+      idempotencyKey: 'private-workspace-stale-brief-text',
+      briefText: `${privateExpectedBriefText}\nForged: true`,
+      sourceStorageObjectRecordId: privateSourceStorageObjectRecordId,
+      sourceMediaAssetId: privateSourceMediaAssetId,
+    }),
+  'VERSION_CONFLICT',
+  'Private workspace target binding must reject caller Brief text that differs from durable authority.',
+)
+await expectApiError(
+  () => createProjectEditBriefLocalService(privateWorkspaceContext)
+    .saveProjectEditBrief({
+      workspaceId: privateWorkspaceProject.workspaceId,
+      projectId: privateWorkspaceProject.id,
+      editSessionId: privateEditSessionId,
+      idempotencyKey: 'private-workspace-stale-source',
+      briefText: privateExpectedBriefText,
+      sourceStorageObjectRecordId: 'stale-source-storage-record',
+      sourceMediaAssetId: privateSourceMediaAssetId,
+    }),
+  'VERSION_CONFLICT',
+  'Private workspace target binding must reject stale caller source lineage.',
+)
 
 await expectApiError(
   () => createEditBriefAuthorityService({
@@ -1010,6 +1175,9 @@ console.log(JSON.stringify({
   approvalLifecycleLock: true,
   restartRecovery: true,
   privateWorkspaceRuntimeMounted: true,
+  privateWorkspaceLocalWorkerRuntimeMounted: true,
+  privateWorkspaceDurableBriefTargetBinding: true,
+  privateWorkspaceDurableBriefRestartRecovery: true,
   privateWorkspaceRuntimeNotPromotable: true,
   richBriefFieldsPersisted: true,
   canonicalSourceFrameQaAndPlanHintPreparation: true,

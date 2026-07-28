@@ -27,6 +27,7 @@ assert.equal(config.webOrigin, 'http://127.0.0.1:5173')
 assert.equal(config.apiOrigin, 'http://127.0.0.1:8787')
 assert.equal(config.storageRoot, resolve(root, '.reeditpro-local-storage', 'private-workspace'))
 assert.equal(environments.serverEnv.E2E_RUNTIME_MODE, 'local')
+assert.equal(environments.serverEnv.WORKER_RUNTIME_MODE, 'local')
 assert.equal(environments.serverEnv.API_ALLOW_MOCK_WITHOUT_SUPABASE, 'true')
 assert.equal(environments.serverEnv.STORAGE_MODE, 'local')
 assert.equal(environments.serverEnv.REEDITPRO_DISABLE_DOTENV, 'true')
@@ -78,6 +79,7 @@ console.log(JSON.stringify({
     'frontend_safe_transport_selected',
     'same_origin_api_proxy_selected',
     'local_private_uploads_selected',
+    'provider_free_local_worker_selected',
     'external_credentials_scrubbed',
     'safe_summary_contains_no_secret_values',
   ],

@@ -1,5 +1,5 @@
 import type { ApprovedEditExecutionUploadedMediaSourceAssetClientInput } from './approved-edit-execution-package-client'
-import { createEditReferenceDeterministicHash } from './edit-reference-deterministic-hash'
+import { createEditReferenceBriefTextFromEditBrief } from './edit-brief/edit-brief-reference-binding'
 import { mapLegacyRuntimeEditLevelToCanonical } from './edit-level-ui-adapter'
 import { createProjectEditSessionCardModel } from './project-edit-session-fixture-mappers'
 import type { ProjectEditBriefBackendLocalRecord } from './project-edit-brief-backend-local'
@@ -43,32 +43,7 @@ export type CurrentEditReferenceActiveEditorAuthorityResolution =
     }
 
 export function createCurrentEditReferenceBackendBriefText(state: EditBriefState): string {
-  const brief = state.editBrief
-  const rows = [
-    ['Status', brief.status],
-    ['Goal', brief.goal],
-    ['Audience', brief.audience],
-    ['Platforms', brief.targetPlatforms.join(', ')],
-    ['Target duration', brief.targetDurationMs ? `${brief.targetDurationMs} ms` : undefined],
-    ['Style direction', brief.styleKeywords.join(', ')],
-    ['Pacing', brief.pacingPreference],
-    ['Captions', brief.captionPreference],
-    ['Music', brief.musicPreference],
-    ['B-roll', brief.bRollPreference],
-    ['Must include', brief.mustIncludeNotes.join(' | ')],
-    ['Avoid', brief.avoidNotes.join(' | ')],
-    ['Brand direction', brief.brandNotes],
-    ['Special instructions', brief.specialInstructions],
-    ['Must-use asset set', fingerprintPrivateIdentifiers(brief.mustUseAssetIds)],
-    ['Avoid-asset set', fingerprintPrivateIdentifiers(brief.avoidAssetIds)],
-    ['Reference-link set', fingerprintPrivateIdentifiers(brief.userProvidedReferenceUrls ?? [])],
-    ['Brief version', String(brief.version)],
-  ] as const
-
-  return rows
-    .filter(([, value]) => Boolean(value?.trim()))
-    .map(([label, value]) => `${label}: ${value?.trim()}`)
-    .join('\n')
+  return createEditReferenceBriefTextFromEditBrief(state.editBrief)
 }
 
 export function resolveCurrentEditReferenceActiveEditorAuthority(input: {
@@ -287,13 +262,6 @@ function projectEditSessionPlatform(
   if (platform === 'website' || platform === 'course_training') return 'website'
   if (platform === 'client_review') return 'internal_review'
   return 'custom'
-}
-
-function fingerprintPrivateIdentifiers(values: string[]): string | undefined {
-  const normalized = values.map((value) => value.trim()).filter(Boolean).sort()
-  return normalized.length > 0
-    ? `${normalized.length} item(s), fingerprint ${createEditReferenceDeterministicHash(normalized)}`
-    : undefined
 }
 
 function blocked(

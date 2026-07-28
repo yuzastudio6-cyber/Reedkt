@@ -5,9 +5,11 @@ import {
   type KeyObject,
 } from 'node:crypto'
 import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { createServer, type Server } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
+import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
 import { GCP_PRODUCTION_API_SERVICE } from '../config/gcp-production-config'
 import {
@@ -24,6 +26,11 @@ import { ApiError } from '../errors/api-error'
 import {
   createCanonicalPrivateCloudDispatchReceiverService,
 } from '../services/canonical-private-cloud-dispatch-receiver-service'
+import {
+  assertCanonicalCloudDispatchHttpReceiverPort,
+  createCanonicalCloudDispatchHttpReceiverPort,
+  type CanonicalCloudDispatchHttpAcknowledgement,
+} from '../services/canonical-cloud-dispatch-http-receiver-port'
 import {
   canonicalCloudDispatchOutboxAggregateRelativePath,
   clearPrivateCanonicalCloudDispatchOutboxProcessStateForSmoke,
@@ -56,8 +63,17 @@ import {
   createCanonicalPrivateServiceIdentityFixture,
   createCanonicalTrustedJwksContractSnapshot,
   createCanonicalTrustedJwksContractVerifier,
+  type CanonicalLiveGoogleServiceIdentityVerifier,
   type CanonicalVerifiedServiceIdentity,
 } from '../security/canonical-service-identity-verifier'
+import {
+  CANONICAL_CLOUD_DISPATCH_CONTROLLER_PATH,
+  CANONICAL_CLOUD_DISPATCH_WORKER_ACCEPT_PATH,
+  CANONICAL_CLOUD_DISPATCH_WORKER_ATTEMPT_START_PATH,
+  CANONICAL_CLOUD_DISPATCH_WORKER_COMPLETION_PATH,
+  CANONICAL_CLOUD_DISPATCH_WORKER_FAILURE_PATH,
+  CANONICAL_CLOUD_DISPATCH_WORKER_TIMEOUT_PATH,
+} from '../routes/canonical-cloud-dispatch-routes'
 import { REEDITPRO_GCP_PRODUCTION_RESOURCE_MAP } from
   '../../src/backend/cloud/reeditpro-gcp-production-resource-map'
 
@@ -105,6 +121,7 @@ const scope: CanonicalCloudDispatchOutboxStoreScope = {
 }
 const queueScope: CanonicalPrivatePackageWorkQueueStoreScope = { ...scope }
 const context = createContext('test')
+let mountedReceiverServer: Server | undefined
 
 try {
   await ensurePrivateCanonicalPackageWorkQueue({
@@ -274,9 +291,170 @@ try {
     workerResults[0]?.receipt.boundaries.liveGoogleWorkloadIdentityAndIamVerified,
     false,
   )
+
+  const dispatchIntentId = enqueued.outboxEntry.immutable.dispatchIntentId
+  const controllerAuthorizationToken = signIdentityToken({
+    principalEmail: enqueued.outboxEntry.immutable.controllerServiceAccountEmail,
+    audience: controllerAudience,
+    subject: '100000000000000000001',
+  })
+  const workerAuthorizationToken = signIdentityToken({
+    principalEmail: enqueued.outboxEntry.immutable.workerServiceAccountEmail,
+    audience: workerAudience,
+    subject: '100000000000000000002',
+  })
+  const receiverPort = createCanonicalCloudDispatchHttpReceiverPort({
+    resolver: {
+      async resolve(candidateDispatchIntentId) {
+        if (candidateDispatchIntentId !== dispatchIntentId) {
+          throw new Error('Dispatch intent is not in the server-owned receiver index.')
+        }
+        return {
+          receiver: service,
+          controllerIdentityVerifier: authorizationHeaderVerifier({
+            authenticationMechanism: 'google_oidc_id_token',
+            expectedPrincipalEmail:
+              enqueued.outboxEntry.immutable.controllerServiceAccountEmail,
+            expectedAudience: controllerAudience,
+          }),
+          workerIdentityVerifier: authorizationHeaderVerifier({
+            authenticationMechanism: 'google_cloud_run_workload_identity',
+            expectedPrincipalEmail:
+              enqueued.outboxEntry.immutable.workerServiceAccountEmail,
+            expectedAudience: workerAudience,
+          }),
+        }
+      },
+    },
+  })
+  assert.throws(
+    () => assertCanonicalCloudDispatchHttpReceiverPort({
+      receiveController: receiverPort.receiveController,
+      receiveWorker: receiverPort.receiveWorker,
+      beginWorkerAttempt: receiverPort.beginWorkerAttempt,
+      completeWorkerAttempt: receiverPort.completeWorkerAttempt,
+      failWorkerAttempt: receiverPort.failWorkerAttempt,
+      timeoutWorkerAttempt: receiverPort.timeoutWorkerAttempt,
+    }),
+    (error: unknown) =>
+      error instanceof ApiError && error.code === 'TOOL_NOT_READY',
+  )
+  const unmountedReceiverServer = createServer(createReeditProApiApp(
+    context.env,
+    { clients: context.clients },
+  ))
+  await listen(unmountedReceiverServer)
+  try {
+    const unmountedResponse = await fetch(
+      `${httpServerBaseUrl(unmountedReceiverServer)}` +
+        CANONICAL_CLOUD_DISPATCH_CONTROLLER_PATH,
+      {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${controllerAuthorizationToken}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(taskBody),
+      },
+    )
+    assert.equal(unmountedResponse.status, 404)
+  } finally {
+    await closeServer(unmountedReceiverServer)
+  }
+
+  mountedReceiverServer = createServer(createReeditProApiApp(context.env, {
+    clients: context.clients,
+    canonicalCloudDispatchHttpReceiverPort: receiverPort,
+  }))
+  await listen(mountedReceiverServer)
+  const receiverBaseUrl = httpServerBaseUrl(mountedReceiverServer)
+
+  const controllerHttpReplay = await postReceiver({
+    baseUrl: receiverBaseUrl,
+    path: CANONICAL_CLOUD_DISPATCH_CONTROLLER_PATH,
+    token: controllerAuthorizationToken,
+    body: taskBody,
+  })
+  assert.equal(controllerHttpReplay.status, 200)
+  assert.equal(controllerHttpReplay.envelope.ok, true)
+  assert.equal(controllerHttpReplay.envelope.data?.operation, 'controller_acceptance')
+  assert.equal(controllerHttpReplay.envelope.data?.disposition, 'exact_replay')
+  assert.equal(
+    controllerHttpReplay.envelope.data?.authorityReceiptHash,
+    controllerResults[0]?.receipt.receiptHash,
+  )
+
+  const workerHttpReplay = await postReceiver({
+    baseUrl: receiverBaseUrl,
+    path: CANONICAL_CLOUD_DISPATCH_WORKER_ACCEPT_PATH,
+    token: workerAuthorizationToken,
+    body: invocation,
+  })
+  assert.equal(workerHttpReplay.status, 200)
+  assert.equal(workerHttpReplay.envelope.data?.operation, 'worker_acceptance')
+  assert.equal(workerHttpReplay.envelope.data?.disposition, 'exact_replay')
+  assert.equal(
+    workerHttpReplay.envelope.data?.authorityReceiptHash,
+    workerResults[0]?.receipt.receiptHash,
+  )
+  assert.equal(
+    JSON.stringify(workerHttpReplay.envelope).includes(workerAuthorizationToken),
+    false,
+  )
+
+  const invalidControllerHttp = await postReceiver({
+    baseUrl: receiverBaseUrl,
+    path: CANONICAL_CLOUD_DISPATCH_CONTROLLER_PATH,
+    token: controllerAuthorizationToken,
+    body: { ...taskBody, rawMediaPath: '/private/source.mov' },
+  })
+  assert.equal(invalidControllerHttp.status, 400)
+  assert.equal(invalidControllerHttp.envelope.error?.code, 'VALIDATION_FAILED')
+
+  const wrongWorkerIdentityHttp = await postReceiver({
+    baseUrl: receiverBaseUrl,
+    path: CANONICAL_CLOUD_DISPATCH_WORKER_ACCEPT_PATH,
+    token: signIdentityToken({
+      principalEmail: 'wrong-worker@reeditpro.iam.gserviceaccount.com',
+      audience: workerAudience,
+      subject: '100000000000000000003',
+    }),
+    body: invocation,
+  })
+  assert.equal(wrongWorkerIdentityHttp.status, 403)
+  assert.equal(
+    wrongWorkerIdentityHttp.envelope.error?.code,
+    'INTERNAL_SERVICE_AUTH_INVALID',
+  )
+
+  const workerAttemptStartHttp = await postReceiver({
+    baseUrl: receiverBaseUrl,
+    path: CANONICAL_CLOUD_DISPATCH_WORKER_ATTEMPT_START_PATH,
+    token: workerAuthorizationToken,
+    body: { dispatchIntentId },
+  })
+  assert.equal(workerAttemptStartHttp.status, 503)
+  assert.equal(workerAttemptStartHttp.envelope.error?.code, 'TOOL_NOT_READY')
+
+  for (const path of [
+    CANONICAL_CLOUD_DISPATCH_WORKER_FAILURE_PATH,
+    CANONICAL_CLOUD_DISPATCH_WORKER_TIMEOUT_PATH,
+  ]) {
+    const invalidTerminalHttp = await postReceiver({
+      baseUrl: receiverBaseUrl,
+      path,
+      token: path === CANONICAL_CLOUD_DISPATCH_WORKER_TIMEOUT_PATH
+        ? controllerAuthorizationToken
+        : workerAuthorizationToken,
+      body: { dispatchIntentId, callerSelectedAuthority: true },
+    })
+    assert.equal(invalidTerminalHttp.status, 400)
+    assert.equal(invalidTerminalHttp.envelope.error?.code, 'VALIDATION_FAILED')
+  }
+
   await expectApiError(
     () => service.beginWorkerExecutionAttempt({
-      dispatchIntentId: enqueued.outboxEntry.immutable.dispatchIntentId,
+      dispatchIntentId,
       verifiedIdentity: workerIdentity,
     }),
     'TOOL_NOT_READY',
@@ -394,6 +572,26 @@ try {
       .customerPriceCreditsServiceFeeWalletOrBillingIncluded,
     false,
   )
+  const completionHttpReplay = await postReceiver({
+    baseUrl: receiverBaseUrl,
+    path: CANONICAL_CLOUD_DISPATCH_WORKER_COMPLETION_PATH,
+    token: workerAuthorizationToken,
+    body: {
+      dispatchIntentId,
+      completionEvidence,
+    },
+  })
+  assert.equal(completionHttpReplay.status, 200)
+  assert.equal(completionHttpReplay.envelope.data?.operation, 'worker_completion')
+  assert.equal(completionHttpReplay.envelope.data?.disposition, 'exact_replay')
+  assert.equal(
+    completionHttpReplay.envelope.data?.authorityReceiptHash,
+    completionResults[0]?.receipt.receiptHash,
+  )
+  assert.equal(
+    completionHttpReplay.envelope.data?.boundaries.cloudTaskOrCloudRunCallPerformed,
+    false,
+  )
 
   clearPrivateCanonicalCloudDispatchOutboxProcessStateForSmoke()
   service = createService(context)
@@ -478,6 +676,10 @@ try {
       'worker_requires_exact_controller_receipt_workload_identity_and_attempt_binding',
       'unmetered_tool_profile_cannot_claim_durable_attempt_cost_start',
       'controller_and_worker_accept_only_process_branded_cryptographically_verified_identity',
+      'exact_controller_worker_start_completion_failure_and_timeout_http_paths_mount_only_with_process_capability',
+      'http_controller_worker_and_completion_replays_preserve_exact_receipt_hashes',
+      'http_adapter_rejects_unknown_fields_wrong_identity_and_unmetered_attempt_start',
+      'http_acknowledgements_return_no_bearer_media_path_credential_or_cloud_execution_claim',
       'forged_principal_audience_task_worker_and_persistence_bytes_fail_closed',
       'outbox_persists_no_raw_bearer_claim_credential_media_prompt_path_or_signed_url',
       'receiver_atomically_claims_queue_without_starting_cloud_job_tool_media_or_network_work',
@@ -521,6 +723,9 @@ try {
     },
   }))
 } finally {
+  if (mountedReceiverServer) {
+    await closeServer(mountedReceiverServer)
+  }
   await rm(rootPath, { recursive: true, force: true })
 }
 
@@ -1597,6 +1802,92 @@ function createManifest(
   return canonicalCloudWorkerDispatchHandoffManifestSchema.parse({
     ...payload,
     manifestHash: sha256AuthorityValue(payload),
+  })
+}
+
+interface ReceiverHttpEnvelope {
+  ok: boolean
+  data?: CanonicalCloudDispatchHttpAcknowledgement
+  error?: {
+    code: string
+  }
+}
+
+function authorizationHeaderVerifier(input: {
+  authenticationMechanism:
+    CanonicalServiceIdentityEvidence['authenticationMechanism']
+  expectedPrincipalEmail: string
+  expectedAudience: string
+}): CanonicalLiveGoogleServiceIdentityVerifier {
+  return Object.freeze({
+    async verifyAuthorizationHeader(
+      authorizationHeader: unknown,
+    ): Promise<CanonicalVerifiedServiceIdentity> {
+      if (
+        typeof authorizationHeader !== 'string' ||
+        !authorizationHeader.startsWith('Bearer ') ||
+        authorizationHeader.slice('Bearer '.length).length < 1
+      ) {
+        throw new ApiError(
+          'INTERNAL_SERVICE_AUTH_INVALID',
+          'Trusted service identity verification failed.',
+          403,
+        )
+      }
+      return identityVerifier.verify({
+        idToken: authorizationHeader.slice('Bearer '.length),
+        authenticationMechanism: input.authenticationMechanism,
+        expectedPrincipalEmail: input.expectedPrincipalEmail,
+        expectedAudience: input.expectedAudience,
+      })
+    },
+  })
+}
+
+async function postReceiver(input: {
+  baseUrl: string
+  path: string
+  token: string
+  body: unknown
+}): Promise<{
+  status: number
+  envelope: ReceiverHttpEnvelope
+}> {
+  const response = await fetch(`${input.baseUrl}${input.path}`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${input.token}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(input.body),
+  })
+  return {
+    status: response.status,
+    envelope: await response.json() as ReceiverHttpEnvelope,
+  }
+}
+
+async function listen(server: Server): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    server.once('error', reject)
+    server.listen(0, '127.0.0.1', () => {
+      server.off('error', reject)
+      resolve()
+    })
+  })
+}
+
+function httpServerBaseUrl(server: Server): string {
+  const address = server.address()
+  if (!address || typeof address === 'string') {
+    throw new Error('Mounted receiver server address is unavailable.')
+  }
+  return `http://127.0.0.1:${address.port}`
+}
+
+async function closeServer(server: Server): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    server.close((error) => error ? reject(error) : resolve())
   })
 }
 

@@ -17,6 +17,12 @@ process, restores it in `finally`, and performs no Google token, certificate,
 IAM, Cloud Tasks, Cloud Run, Supabase, provider, billing, deployment, or public
 delivery operation. No HTTP receiver was mounted.
 
+A later source-only follow-up now provides a capability-gated HTTP adapter for
+the exact controller path and strict worker callbacks. The default API still
+mounts no receiver, and the original zero-network Google-verifier evidence
+remains unchanged; see
+`docs/canonical-cloud-dispatch-http-receiver-boundary-2026-07-27.md`.
+
 ## Server-Owned Authority
 
 The factory freezes these values at server construction:
@@ -113,7 +119,8 @@ The following remain closed:
 
 - treating this smoke as a live Google key/token or IAM result;
 - constructing the adapter from request JSON or caller claims;
-- mounting controller, worker, completion, failure, or timeout HTTP routes;
+- mounting controller or worker callback routes without a genuine
+  process-created receiver port and server-owned authority resolver;
 - Cloud Tasks creation, Cloud Run invocation, or metadata-server token use;
 - distributed package queue/outbox/terminal transaction authority;
 - enabling any of the 50 private proven tools on deployed workers;

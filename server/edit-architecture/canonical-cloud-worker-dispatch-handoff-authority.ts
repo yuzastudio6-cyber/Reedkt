@@ -280,6 +280,19 @@ export const canonicalCloudWorkerDispatchHandoffManifestSchema = z.object({
   }
 })
 
+export const canonicalCloudWorkerDispatchAttemptTaskBodySchema = z.object({
+  schemaVersion: z.literal(CANONICAL_CLOUD_WORKER_DISPATCH_ATTEMPT_PLAN_VERSION),
+  purpose: z.literal('canonical_cloud_worker_dispatch_attempt'),
+  dispatchIntentId: identity,
+  handoffManifestHash: sha256,
+  manifestEntryHash: sha256,
+  queueDefinitionHash: sha256,
+  regionAuthorityHash: sha256,
+  jobId: identity,
+  deliveryAttempt: z.number().int().positive().max(10),
+  dispatchBindingHash: sha256,
+}).strict()
+
 const cloudTaskAttemptSchema = z.object({
   queueResourceName: z.string().min(1).max(512),
   taskId: z.string().regex(/^rp-[a-f0-9]{40}$/u),
@@ -293,18 +306,7 @@ const cloudTaskAttemptSchema = z.object({
   oidcAudienceState: z.literal('deployed_private_controller_url_required'),
   bodyBase64EncodingRequiredByApi: z.literal(true),
   bodyUtf8ByteLength: z.number().int().positive().max(CANONICAL_CLOUD_TASK_BODY_LIMIT_BYTES),
-  taskBody: z.object({
-    schemaVersion: z.literal(CANONICAL_CLOUD_WORKER_DISPATCH_ATTEMPT_PLAN_VERSION),
-    purpose: z.literal('canonical_cloud_worker_dispatch_attempt'),
-    dispatchIntentId: identity,
-    handoffManifestHash: sha256,
-    manifestEntryHash: sha256,
-    queueDefinitionHash: sha256,
-    regionAuthorityHash: sha256,
-    jobId: identity,
-    deliveryAttempt: z.number().int().positive().max(10),
-    dispatchBindingHash: sha256,
-  }).strict(),
+  taskBody: canonicalCloudWorkerDispatchAttemptTaskBodySchema,
   bodySha256: sha256,
   deterministicTaskNameIsOnlyShortWindowDeduplication: z.literal(true),
 }).strict()
@@ -368,6 +370,9 @@ export type CanonicalCloudWorkerDispatchHandoffManifest = z.infer<
 >
 export type CanonicalCloudWorkerDispatchAttemptPlan = z.infer<
   typeof canonicalCloudWorkerDispatchAttemptPlanSchema
+>
+export type CanonicalCloudWorkerDispatchAttemptTaskBody = z.infer<
+  typeof canonicalCloudWorkerDispatchAttemptTaskBodySchema
 >
 
 export function createCanonicalCloudRuntimeRegionAuthority(input: {

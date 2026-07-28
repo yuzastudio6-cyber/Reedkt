@@ -218,6 +218,14 @@ the receiver state machine:
   refusal, forged lock-capability refusal, restrictive modes, and lock-target
   symlink refusal pass;
 - restart readback and exact enqueue replay preserve identical bytes;
+- the exact controller path frozen in the attempt plan and strict worker
+  acceptance/start/completion/failure/timeout callback paths remain absent by
+  default and mount only with a genuine process-created HTTP receiver port;
+- controller, worker, and terminal completion HTTP replays preserve the exact
+  canonical receipt hashes while acknowledgements return no bearer, media,
+  prompt, path, signed URL, credential, or cloud-execution claim;
+- unknown HTTP fields, a wrong worker identity, and an unmetered attempt-start
+  request fail closed;
 - concurrent controller redelivery yields one acceptance and one replay;
 - concurrent worker redelivery yields one acceptance and one replay;
 - concurrent worker completion yields one reconciliation and one exact replay;

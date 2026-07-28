@@ -9,6 +9,8 @@ import { isExplicitLocalInternalTestRuntime } from './middleware/canonical-worke
 import { REEDITPRO_USER_AUTHORIZATION_HEADER } from './middleware/browser-api-auth-transport'
 import { createControlledLocalStorytellingProductionAuthorityReader } from './motion-studio/storytelling-production'
 import { createApprovalRoutes } from './routes/approval-routes'
+import { createCanonicalCloudDispatchRoutes } from
+  './routes/canonical-cloud-dispatch-routes'
 import { createChatRoutes } from './routes/chat-routes'
 import { createCreditDataRoutes } from './routes/credit-data-routes'
 import { createCreditEstimateRoutes } from './routes/credit-estimate-routes'
@@ -39,6 +41,8 @@ import type { EditReferenceStudyChatRuntimePort } from './services/edit-referenc
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
 import type { EditReferenceExactEditApplyRuntimePort } from './services/edit-reference-exact-edit-apply-runtime-port'
 import type { EditReferenceApplicationPreparationRuntimePort } from './services/edit-reference-application-preparation-runtime-port'
+import type { CanonicalCloudDispatchHttpReceiverPort } from
+  './services/canonical-cloud-dispatch-http-receiver-port'
 import type { StorageAdapter } from './storage/storage-types'
 import type { RuntimeClients, RuntimeRequest, RuntimeState } from './types'
 
@@ -73,6 +77,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['editReferenceTargetUnderstandingPackageRuntimePortFactory']
   editBriefPrivateWorkspaceRuntimePort?:
     RuntimeState['editBriefPrivateWorkspaceRuntimePort']
+  canonicalCloudDispatchHttpReceiverPort?:
+    CanonicalCloudDispatchHttpReceiverPort
 }
 
 export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppOptions = {}): Express {
@@ -234,6 +240,11 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
   app.use(requestIdMiddleware)
 
   app.use(createHealthRoutes())
+  if (options.canonicalCloudDispatchHttpReceiverPort) {
+    app.use(createCanonicalCloudDispatchRoutes(
+      options.canonicalCloudDispatchHttpReceiverPort,
+    ))
+  }
   app.use(createProjectRoutes())
   if (isExplicitLocalInternalTestRuntime(env)) {
     app.use(createProjectEditSessionRoutes())

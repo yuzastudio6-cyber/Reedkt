@@ -148,6 +148,12 @@ export async function compileCanonicalLivingFrameAssetWorkInputBinding(
       scene,
     ]),
   )
+  const timingBySceneId = new Map(
+    input.timingBinding.scenes.map((scene) => [
+      scene.sceneId,
+      scene,
+    ]),
+  )
   const selectedScenePlans =
     input.publication.binding.selectedComponent.scenePlans
   const selectedComponentKeys = new Set(
@@ -188,9 +194,11 @@ export async function compileCanonicalLivingFrameAssetWorkInputBinding(
   const scenes = selectedScenePlans.map((scenePlan) => {
     const requirement =
       requirementsBySceneId.get(scenePlan.sceneId)
-    if (!requirement) {
+    const timingScene =
+      timingBySceneId.get(scenePlan.sceneId)
+    if (!requirement || !timingScene) {
       throw conflict(
-        'Canonical Living Frame selected scene is missing its exact execution requirement.',
+        'Canonical Living Frame selected scene is missing its exact execution requirement or timing binding.',
       )
     }
     const sceneAssetIntents = selectedAssetIntents
@@ -199,6 +207,7 @@ export async function compileCanonicalLivingFrameAssetWorkInputBinding(
     return compileSceneBinding({
       scenePlan,
       requirement,
+      timingScene,
       assetIntents: sceneAssetIntents,
       components: input.components,
       sourceMediaAuthority: input.sourceMediaAuthority,
@@ -282,6 +291,11 @@ export async function compileCanonicalLivingFrameAssetWorkInputBinding(
           0,
         ),
         exactSourceAssetBindingCount: scenes.reduce(
+          (total, scene) =>
+            total + scene.sourceAssetBindings.length,
+          0,
+        ),
+        exactSourceFrameBindingCount: scenes.reduce(
           (total, scene) =>
             total + scene.sourceAssetBindings.length,
           0,
@@ -374,6 +388,8 @@ function compileSceneBinding(input: {
     ]['selectedComponent']['scenePlans'][number]
   readonly requirement:
     CanonicalLivingFrameExecutionRequirements['scenes'][number]
+  readonly timingScene:
+    CanonicalLivingFrameTimingBinding['scenes'][number]
   readonly assetIntents:
     readonly LivingFrameComponentAssetIntent[]
   readonly components: CanonicalPlanComponentsInput
@@ -404,6 +420,7 @@ function compileSceneBinding(input: {
     approvedSourceAssetIntents.length > 0
       ? resolveSceneSourceContext({
           requirement: input.requirement,
+          timingScene: input.timingScene,
           components: input.components,
           sourceMediaAuthority:
             input.sourceMediaAuthority,
@@ -430,6 +447,15 @@ function compileSceneBinding(input: {
         uploadedOrder: sourceContext.uploadedOrder,
         sourceCleanupDecisionId:
           sourceContext.sourceCleanupDecisionId,
+        masterFrameIndex:
+          sourceContext.masterFrameIndex,
+        sourceFrameIndex:
+          sourceContext.sourceFrameIndex,
+        frameRate: sourceContext.frameRate,
+        frameSelectionPolicy:
+          sourceContext.frameSelectionPolicy,
+        sourceFrameSelectionDigestSha256:
+          sourceContext.sourceFrameSelectionDigestSha256,
         checksumSha256: sourceContext.checksumSha256,
         mimeType: sourceContext.mimeType,
         sizeBytes: sourceContext.sizeBytes,
@@ -592,6 +618,22 @@ function compileNamedWorkInput(input: {
       sourceBindings.map((binding) =>
         binding.sourceCleanupDecisionId),
     ),
+    sourceFrameInputs: sourceBindings.map((binding) => ({
+      assetIntentId: binding.assetIntentId,
+      sourceSequenceItemId:
+        binding.sourceSequenceItemId,
+      sourceCleanupDecisionId:
+        binding.sourceCleanupDecisionId,
+      masterFrameIndex:
+        binding.masterFrameIndex,
+      sourceFrameIndex:
+        binding.sourceFrameIndex,
+      frameRate: binding.frameRate,
+      frameSelectionPolicy:
+        binding.frameSelectionPolicy,
+      sourceFrameSelectionDigestSha256:
+        binding.sourceFrameSelectionDigestSha256,
+    })),
   }
 }
 
@@ -636,6 +678,8 @@ function orderNamedWorkInputs(
 function resolveSceneSourceContext(input: {
   readonly requirement:
     CanonicalLivingFrameExecutionRequirements['scenes'][number]
+  readonly timingScene:
+    CanonicalLivingFrameTimingBinding['scenes'][number]
   readonly components: CanonicalPlanComponentsInput
   readonly sourceMediaAuthority:
     SourceBindingManifestCandidate
@@ -644,6 +688,12 @@ function resolveSceneSourceContext(input: {
   readonly mediaAssetId: string
   readonly uploadedOrder: number
   readonly sourceCleanupDecisionId: string
+  readonly masterFrameIndex: number
+  readonly sourceFrameIndex: number
+  readonly frameRate: number
+  readonly frameSelectionPolicy:
+    'scene_start_meaning_anchor_v1'
+  readonly sourceFrameSelectionDigestSha256: string
   readonly checksumSha256: string
   readonly mimeType: string
   readonly sizeBytes: number
@@ -666,8 +716,21 @@ function resolveSceneSourceContext(input: {
       startFrame: input.requirement.startFrame,
       endFrameExclusive:
         input.requirement.endFrameExclusive,
-    })
+  })
   const source = sourceMatch.source
+  const masterFrameIndex =
+    input.timingScene.visualTiming
+      .frameRange.startFrame
+  const sourceFrameIndex =
+    sourceMatch.cleanupDecision.startFrame
+    + (
+      masterFrameIndex
+      - sourceMatch.timelineStartFrame
+    )
+  const frameRate =
+    input.components.timingSummary.fps
+  const frameSelectionPolicy =
+    'scene_start_meaning_anchor_v1' as const
   const authorityBinding =
     input.sourceMediaAuthority.bindings.find(
       (binding) =>
@@ -682,17 +745,55 @@ function resolveSceneSourceContext(input: {
       source.uploadedOrder
     || authorityBinding.checksumSha256 !==
       source.checksumSha256
+    || input.timingScene.sceneId !==
+      input.requirement.sceneId
+    || input.timingScene.canonicalSegmentId !==
+      input.requirement.canonicalSegmentId
+    || masterFrameIndex <
+      input.requirement.startFrame
+    || masterFrameIndex >=
+      input.requirement.endFrameExclusive
+    || !Number.isInteger(masterFrameIndex)
+    || !Number.isInteger(sourceFrameIndex)
+    || sourceFrameIndex <
+      sourceMatch.cleanupDecision.startFrame
+    || sourceFrameIndex >=
+      sourceMatch.cleanupDecision.endFrameExclusive
+    || !Number.isInteger(frameRate)
+    || frameRate < 1
+    || frameRate > 240
   ) {
     throw conflict(
       'Canonical Living Frame scene cannot bind one exact verified source-media and cleanup input.',
     )
   }
+  const sourceFrameSelectionDigestSha256 =
+    sha256AuthorityValue({
+      sourceSequenceItemId:
+        source.sourceSequenceItemId,
+      mediaAssetId: source.mediaAssetId,
+      sourceCleanupDecisionId:
+        sourceMatch.cleanupDecision.decisionId,
+      masterFrameIndex,
+      sourceFrameIndex,
+      frameRate,
+      frameSelectionPolicy,
+      sourceChecksumSha256:
+        authorityBinding.checksumSha256,
+      sourceBindingHash:
+        authorityBinding.bindingHash,
+    })
   return {
     sourceSequenceItemId: source.sourceSequenceItemId,
     mediaAssetId: source.mediaAssetId,
     uploadedOrder: source.uploadedOrder,
     sourceCleanupDecisionId:
       sourceMatch.cleanupDecision.decisionId,
+    masterFrameIndex,
+    sourceFrameIndex,
+    frameRate,
+    frameSelectionPolicy,
+    sourceFrameSelectionDigestSha256,
     checksumSha256: authorityBinding.checksumSha256,
     mimeType: authorityBinding.mimeType,
     sizeBytes: authorityBinding.sizeBytes,
@@ -718,6 +819,8 @@ export function resolveCanonicalLivingFrameSourceTimelineSpan(
     CanonicalPlanComponentsInput[
       'sourceCleanupPlan'
     ]['decisions'][number]
+  readonly timelineStartFrame: number
+  readonly timelineEndFrameExclusive: number
 } {
   if (
     !Number.isInteger(input.startFrame)

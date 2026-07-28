@@ -7,7 +7,7 @@ import type {
 } from './living-frame-estimate-work-asset-projection'
 
 export const CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_VERSION =
-  'canonical-living-frame-asset-work-input-binding-v1' as const
+  'canonical-living-frame-asset-work-input-binding-v2' as const
 
 export const CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_SOURCE =
   'canonical_living_frame_asset_work_input_binding_compiler' as const
@@ -48,6 +48,12 @@ export interface CanonicalLivingFrameSourceAssetBinding {
   readonly mediaAssetId: string
   readonly uploadedOrder: number
   readonly sourceCleanupDecisionId: string
+  readonly masterFrameIndex: number
+  readonly sourceFrameIndex: number
+  readonly frameRate: number
+  readonly frameSelectionPolicy:
+    'scene_start_meaning_anchor_v1'
+  readonly sourceFrameSelectionDigestSha256: string
   readonly checksumSha256: string
   readonly mimeType: string
   readonly sizeBytes: number
@@ -56,6 +62,18 @@ export interface CanonicalLivingFrameSourceAssetBinding {
   readonly required: true
   readonly authorityState:
     'exact_verified_source_media_and_cleanup_bound'
+}
+
+export interface CanonicalLivingFrameNamedWorkSourceFrameInput {
+  readonly assetIntentId: string
+  readonly sourceSequenceItemId: string
+  readonly sourceCleanupDecisionId: string
+  readonly masterFrameIndex: number
+  readonly sourceFrameIndex: number
+  readonly frameRate: number
+  readonly frameSelectionPolicy:
+    'scene_start_meaning_anchor_v1'
+  readonly sourceFrameSelectionDigestSha256: string
 }
 
 export interface CanonicalLivingFrameNamedWorkInput {
@@ -67,6 +85,8 @@ export interface CanonicalLivingFrameNamedWorkInput {
     readonly CanonicalLivingFrameProjectedWorkItemType[]
   readonly sourceSequenceItemIds: readonly string[]
   readonly sourceCleanupDecisionIds: readonly string[]
+  readonly sourceFrameInputs:
+    readonly CanonicalLivingFrameNamedWorkSourceFrameInput[]
 }
 
 export interface CanonicalLivingFrameSceneAssetWorkInputBinding {
@@ -92,6 +112,7 @@ export interface CanonicalLivingFrameAssetWorkInputBindingMetrics {
   readonly selectedComponentCount: number
   readonly selectedAssetIntentCount: number
   readonly exactSourceAssetBindingCount: number
+  readonly exactSourceFrameBindingCount: number
   readonly unresolvedPrimaryAssetIntentCount: number
   readonly originalNamedWorkItemCount: number
   readonly refinedNamedWorkItemCount: number

@@ -404,6 +404,12 @@ function compileWorkRequirement(input: {
     outputAssetIntentIds: [
       ...input.workInput.outputAssetIntentIds,
     ],
+    sourceFrameInputs:
+      input.workInput.sourceFrameInputs.map(
+        (sourceFrameInput) => ({
+          ...sourceFrameInput,
+        }),
+      ),
     costOwnerToolId: profile.toolId,
     costOwnerOperationId: profile.operationId,
     executionPlacement: profile.executionPlacement,

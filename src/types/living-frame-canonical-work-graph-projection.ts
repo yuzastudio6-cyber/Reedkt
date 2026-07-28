@@ -3,9 +3,12 @@ import type {
   CanonicalLivingFrameProjectedToolId,
   CanonicalLivingFrameProjectedWorkItemType,
 } from './living-frame-estimate-work-asset-projection'
+import type {
+  CanonicalLivingFrameNamedWorkSourceFrameInput,
+} from './living-frame-asset-work-input-binding'
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION =
-  'canonical-living-frame-work-graph-projection-v1' as const
+  'canonical-living-frame-work-graph-projection-v2' as const
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE =
   'canonical_living_frame_work_graph_projection_compiler' as const
@@ -20,7 +23,7 @@ export const CANONICAL_LIVING_FRAME_PENDING_OPERATION =
   'await_exact_living_frame_dependency_input_operation_admission' as const
 
 export const CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION =
-  'canonical-living-frame-pending-operation-authority-v1' as const
+  'canonical-living-frame-pending-operation-authority-v2' as const
 
 export type CanonicalLivingFrameWorkGraphProjectionReadiness =
   | 'ready_without_living_frame_work_items'
@@ -37,6 +40,8 @@ export interface CanonicalLivingFramePendingOperationAuthority {
   readonly workRequirementDigestSha256: string
   readonly inputAssetIntentIds: readonly string[]
   readonly outputAssetIntentIds: readonly string[]
+  readonly sourceFrameInputs:
+    readonly CanonicalLivingFrameNamedWorkSourceFrameInput[]
   readonly costOwnerToolId:
     CanonicalLivingFrameProjectedToolId
   readonly costOwnerOperationId: string
@@ -109,6 +114,8 @@ export interface CanonicalLivingFrameWorkGraphProjectedItem {
   readonly cpuFallbackAllowed: boolean
   readonly inputAssetIntentIds: readonly string[]
   readonly outputAssetIntentIds: readonly string[]
+  readonly sourceFrameInputs:
+    readonly CanonicalLivingFrameNamedWorkSourceFrameInput[]
   readonly dependencyWorkItemKeys: readonly string[]
   readonly workItemDigestSha256: string
 }

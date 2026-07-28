@@ -4,7 +4,7 @@ Status: private/internal, server-derived canonical plan work. The projection
 adds required items to the one WeEditPro work graph, but it does not approve,
 queue, dispatch, or execute them.
 
-`canonical-living-frame-work-graph-projection-v1` consumes and fully
+`canonical-living-frame-work-graph-projection-v2` consumes and fully
 revalidates:
 
 - the canonical Living Frame selected-scene publication;
@@ -17,8 +17,8 @@ revalidates:
 For every refined Living Frame requirement, it creates one deterministic
 canonical plan work item with:
 
-- the exact scene, source-sequence, cleanup-decision, input-asset-intent, and
-  output-asset-intent lineage;
+- the exact scene, source-sequence, cleanup-decision, source-frame,
+  input-asset-intent, and output-asset-intent lineage;
 - the existing named work-item type and dependency keys;
 - one required, non-placeholder expected output;
 - the exact server-derived maximum credit budget from the customer estimate;
@@ -41,10 +41,10 @@ recognizes that class as a tool-free control-plane placeholder, marks it
 `canonical_living_frame_dependency_input_operation_admission`.
 
 This fail-closed representation is intentional. The existing rembg operation
-still accepts no dependency artifact, the current Sharp operation does not
-admit the required source/mask PNG pair, and the current Remotion operation
-does not admit the exact Living Frame layer package. Treating those
-fixture-era contracts as executable would be false authority.
+still accepts no real source frame or dependency artifact, the current Sharp
+operation does not admit the required source/mask PNG pair, and the current
+Remotion operation does not admit the exact Living Frame layer package.
+Treating those fixture-era contracts as executable would be false authority.
 
 The content-addressed projection is included in the canonical plan hash and is
 reread at approval and approved-execution loading. Every projected plan work

@@ -1145,6 +1145,10 @@ The exact cost/work/asset requirements projection is documented in
 `docs/living-frame/living-frame-canonical-estimate-work-asset-projection.md`.
 The exact pending canonical work-graph projection is documented in
 `docs/living-frame/living-frame-canonical-work-graph-projection.md`.
+That projection now carries the exact scene-start MasterTiming frame mapped
+back to the verified source-cleanup span. The resulting source-frame digest is
+server-derived and remains non-executable until the existing GPU/tool runtime
+admits the matching private source input.
 
 ### Slice 4: canonical timing, work, and asset mapping
 

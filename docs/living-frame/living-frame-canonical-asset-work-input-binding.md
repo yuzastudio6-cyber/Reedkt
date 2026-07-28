@@ -3,7 +3,7 @@
 Status: private/internal, server-derived planning authority. This binding does
 not create a work item, mutate the asset manifest, or execute a tool.
 
-`canonical-living-frame-asset-work-input-binding-v1` closes the gap between a
+`canonical-living-frame-asset-work-input-binding-v2` closes the gap between a
 selected Living Frame scene and the existing WeEditPro estimate/work/asset
 pipeline. It rereads and cross-validates:
 
@@ -20,11 +20,14 @@ For each selected component it retains the ordered asset-intent chain and
 classifies each input as exact canonical source media, a deterministic semantic
 specification, a pending provider artifact, or a pending named-work output.
 Approved-source intents bind one exact source-sequence item, media asset,
-checksum, size, MIME type, source binding hash, storage identity hash, and
-cleanup decision. The source is resolved from the selected canonical
-segment's full containment in one ordered, confirmed cleanup timeline span;
-segment order is never assumed to equal upload order, and cross-source scenes
-fail closed. Paths, URLs, credentials, and media bytes remain excluded.
+checksum, size, MIME type, source binding hash, storage identity hash, cleanup
+decision, and source frame. The source is resolved from the selected canonical
+segment's full containment in one ordered, confirmed cleanup timeline span.
+The exact scene-start meaning frame is mapped back through that cleanup span
+to one source-frame index and bound with the MasterTiming FPS and a
+content-addressed selection digest. Segment order is never assumed to equal
+upload order, and cross-source scenes or out-of-range frame mappings fail
+closed. Paths, URLs, credentials, and media bytes remain excluded.
 
 The binding also refines broad capability-derived work requirements against
 the actual selected asset-intent graph. For the controlled source-derived

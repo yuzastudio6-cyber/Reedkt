@@ -5913,6 +5913,34 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
         'reconstruct_background_plate'),
     false,
   )
+  for (const sourceReadingWorkItemType of [
+    'generate_mask_asset',
+    'process_image_asset',
+  ]) {
+    const sourceReadingWorkInput = namedWorkInputs.find(
+      (workInput) =>
+        asRecord(workInput).workItemType ===
+          sourceReadingWorkItemType,
+    )
+    assert.ok(sourceReadingWorkInput)
+    assert.equal(
+      (
+        asRecord(sourceReadingWorkInput)
+          .sourceFrameInputs as unknown[]
+      ).length,
+      1,
+    )
+  }
+  const remotionWorkInput = namedWorkInputs.find(
+    (workInput) =>
+      asRecord(workInput).workItemType ===
+        'prepare_remotion_layer',
+  )
+  assert.ok(remotionWorkInput)
+  assert.deepEqual(
+    asRecord(remotionWorkInput).sourceFrameInputs,
+    [],
+  )
   const sourceAssetBindings =
     assetWorkScene.sourceAssetBindings
   assert.ok(Array.isArray(sourceAssetBindings))
@@ -5925,6 +5953,18 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       sourceCleanupDecisionId:
         asRecord(sourceAssetBindings[0])
           .sourceCleanupDecisionId,
+      masterFrameIndex:
+        asRecord(sourceAssetBindings[0])
+          .masterFrameIndex,
+      sourceFrameIndex:
+        asRecord(sourceAssetBindings[0])
+          .sourceFrameIndex,
+      frameRate:
+        asRecord(sourceAssetBindings[0])
+          .frameRate,
+      frameSelectionPolicy:
+        asRecord(sourceAssetBindings[0])
+          .frameSelectionPolicy,
       authorityState:
         asRecord(sourceAssetBindings[0])
           .authorityState,
@@ -5933,9 +5973,26 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       sourceSequenceItemId: 'source-1',
       sourceCleanupDecisionId:
         'cleanup-decision-source-1',
+      masterFrameIndex: 12,
+      sourceFrameIndex: 12,
+      frameRate: 30,
+      frameSelectionPolicy:
+        'scene_start_meaning_anchor_v1',
       authorityState:
         'exact_verified_source_media_and_cleanup_bound',
     },
+  )
+  assert.match(
+    String(
+      asRecord(sourceAssetBindings[0])
+        .sourceFrameSelectionDigestSha256,
+    ),
+    /^[a-f0-9]{64}$/,
+  )
+  assert.equal(
+    asRecord(assetWorkInputBinding.metrics)
+      .exactSourceFrameBindingCount,
+    1,
   )
   assert.equal(
     stableAuthorityStringify(assetWorkInputBinding)
@@ -6084,6 +6141,10 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     assert.deepEqual(
       projectedWork.outputAssetIntentIds,
       inputRecord.outputAssetIntentIds,
+    )
+    assert.deepEqual(
+      projectedWork.sourceFrameInputs,
+      inputRecord.sourceFrameInputs,
     )
     assert.deepEqual(
       projectedWork.dependencyWorkItemKeys,
@@ -6297,6 +6358,10 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       pendingOperationAuthority
         .executableStructuredPayloadPresent,
       false,
+    )
+    assert.deepEqual(
+      pendingOperationAuthority.sourceFrameInputs,
+      requirementRecord.sourceFrameInputs,
     )
   }
   const persistedAuthority =

@@ -131,6 +131,11 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         ) !== stableAuthorityStringify(
           workRequirement.outputAssetIntentIds,
         )
+        || stableAuthorityStringify(
+          workInput.sourceFrameInputs,
+        ) !== stableAuthorityStringify(
+          workRequirement.sourceFrameInputs,
+        )
         || workRequirement.currentRuntimeAdmission !==
           'blocked_until_real_dependency_input_operation_is_admitted'
         || workRequirement.workGraphMutationAuthorized
@@ -165,6 +170,12 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         outputAssetIntentIds: [
           ...workRequirement.outputAssetIntentIds,
         ],
+        sourceFrameInputs:
+          workRequirement.sourceFrameInputs.map(
+            (sourceFrameInput) => ({
+              ...sourceFrameInput,
+            }),
+          ),
         costOwnerToolId:
           workRequirement.costOwnerToolId,
         costOwnerOperationId:
@@ -261,6 +272,12 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         outputAssetIntentIds: [
           ...workRequirement.outputAssetIntentIds,
         ],
+        sourceFrameInputs:
+          workRequirement.sourceFrameInputs.map(
+            (sourceFrameInput) => ({
+              ...sourceFrameInput,
+            }),
+          ),
         dependencyWorkItemKeys: [
           ...workRequirement
             .dependencyWorkItemKeys,
@@ -540,6 +557,29 @@ function assertPendingWorkGraph(
       || item.executionInput
         .pendingOperationAuthority
         .executableStructuredPayloadPresent
+      || new Set(
+        item.executionInput.pendingOperationAuthority
+          .sourceFrameInputs.map((source) =>
+            source.assetIntentId),
+      ).size !==
+        item.executionInput.pendingOperationAuthority
+          .sourceFrameInputs.length
+      || item.executionInput.pendingOperationAuthority
+        .sourceFrameInputs.some((source) =>
+          !item.sourceSequenceItemIds.includes(
+            source.sourceSequenceItemId,
+          )
+          || !item.sourceCleanupDecisionIds.includes(
+            source.sourceCleanupDecisionId,
+          )
+          || !Number.isInteger(source.masterFrameIndex)
+          || !Number.isInteger(source.sourceFrameIndex)
+          || !Number.isInteger(source.frameRate)
+          || source.masterFrameIndex < 0
+          || source.sourceFrameIndex < 0
+          || source.frameRate < 1
+          || source.frameRate > 240
+        )
     )
   ) {
     throw conflict(

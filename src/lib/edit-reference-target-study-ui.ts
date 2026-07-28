@@ -1,4 +1,7 @@
-import type { TargetVideoUnderstandingPackage } from '../types/edit-reference-target-video-understanding'
+import type {
+  TargetVideoUnderstandingPackage,
+  TargetVideoUnderstandingSchedule,
+} from '../types/edit-reference-target-video-understanding'
 
 export type EditReferenceTargetStudyUiState =
   | 'checking'
@@ -17,7 +20,11 @@ export type EditReferenceTargetStudyLifecycle =
   | { kind: 'checking' }
   | { kind: 'not_started' }
   | { kind: 'starting' }
-  | { kind: 'package'; package: TargetVideoUnderstandingPackage }
+  | {
+      kind: 'package'
+      package: TargetVideoUnderstandingPackage
+      schedule: TargetVideoUnderstandingSchedule
+    }
   | { kind: 'error'; message: string }
 
 export interface EditReferenceTargetStudyUiView {
@@ -104,7 +111,7 @@ export function createEditReferenceTargetStudyUiView(
     }
   }
 
-  return viewFromPackage(lifecycle.package)
+  return viewFromPackage(lifecycle.package, lifecycle.schedule)
 }
 
 export function isTargetVideoUnderstandingReadyForUi(
@@ -127,8 +134,11 @@ export function isTargetVideoUnderstandingReadyForUi(
 
 export function shouldPollTargetVideoUnderstandingForUi(
   packageRecord: TargetVideoUnderstandingPackage,
+  schedule: TargetVideoUnderstandingSchedule,
 ): boolean {
   if (isTargetVideoUnderstandingReadyForUi(packageRecord)) return false
+  if (schedule.waitingForSpecialistRuntime) return false
+  if (!schedule.scheduled && !schedule.alreadyActive) return false
   if (packageRecord.status !== 'collecting') return false
   return ['queued', 'running', 'paused'].includes(packageRecord.study.state)
 }
@@ -147,7 +157,10 @@ export function safeTargetVideoStudyError(message: string): string {
   return 'ReEditPro could not refresh the video study right now. Completed work remains safe; try again.'
 }
 
-function viewFromPackage(packageRecord: TargetVideoUnderstandingPackage): EditReferenceTargetStudyUiView {
+function viewFromPackage(
+  packageRecord: TargetVideoUnderstandingPackage,
+  schedule: TargetVideoUnderstandingSchedule,
+): EditReferenceTargetStudyUiView {
   const ready = isTargetVideoUnderstandingReadyForUi(packageRecord)
   const progressPercent = clampPercent(packageRecord.study.progressPercent)
   const common = {
@@ -156,10 +169,12 @@ function viewFromPackage(packageRecord: TargetVideoUnderstandingPackage): EditRe
     coverageLabel: `${formatPercent(packageRecord.study.temporalCoverageRatio * 100)} timeline coverage`,
     etaLabel: ready
       ? 'Complete study verified'
-      : `Estimated time remaining: ${formatStudyEtaRange(
-        packageRecord.study.etaLowerRemainingSeconds,
-        packageRecord.study.etaUpperRemainingSeconds,
-      )}`,
+      : schedule.waitingForSpecialistRuntime
+        ? undefined
+        : `Estimated time remaining: ${formatStudyEtaRange(
+          packageRecord.study.etaLowerRemainingSeconds,
+          packageRecord.study.etaUpperRemainingSeconds,
+        )}`,
     sourceLabel: `${formatStudyDuration(packageRecord.source.durationSeconds)} source · ${formatStudyBytes(packageRecord.source.sizeBytes)} original`,
     sectionLabel: `${packageRecord.study.chunkCount} checkpointed section${packageRecord.study.chunkCount === 1 ? '' : 's'}`,
     recoveryLabel: 'Completed sections are saved after every verified step. Leaving or reloading does not discard them.',
@@ -219,6 +234,21 @@ function viewFromPackage(packageRecord: TargetVideoUnderstandingPackage): EditRe
       statusLabel: 'Study review needed',
       title: 'The study finished but is not verified',
       description: 'The planned study steps finished, but required evidence or whole-story coverage did not pass final checks. Return to Chat to review what is missing before adaptation.',
+      readyForPreferenceApplication: false,
+      primaryAction: null,
+    }
+  }
+
+  if (schedule.waitingForSpecialistRuntime) {
+    return {
+      ...common,
+      state: 'waiting',
+      tone: 'warning',
+      statusLabel: 'Specialist runtime needed',
+      title: 'Technical study saved; specialist analysis is not connected',
+      description: 'ReEditPro completed the available private technical stages. Speech transcription, visible-text analysis, semantic synthesis, whole-story reconciliation, and coverage QA will continue only after the approved specialist GPU and model runtime is connected.',
+      recoveryLabel: 'All completed technical checkpoints are saved. Connecting the specialist runtime continues this exact study instead of starting over.',
+      safetyLabel: 'No Edit Reference adaptation, generation, rendering, or credit use starts from this partial study.',
       readyForPreferenceApplication: false,
       primaryAction: null,
     }

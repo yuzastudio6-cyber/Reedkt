@@ -6,6 +6,9 @@ import {
   executeEditReferenceLongFormStudySpecialistWork,
   executeEditReferenceLongFormStudyTechnicalWork,
 } from './edit-reference-long-form-study-executor'
+import type {
+  EditReferenceLongFormStudyStageId,
+} from './edit-reference-long-form-study-contract'
 import type { EditReferenceLongFormSpecialistStageExecutor } from './edit-reference-long-form-specialist-pipeline-stage-executor'
 import {
   EDIT_REFERENCE_LONG_FORM_SPECIALIST_STAGE_IDS,
@@ -30,6 +33,12 @@ export interface EditReferenceLongFormStudyScheduleResult {
   readonly scheduled: boolean
   readonly alreadyActive: boolean
   readonly runtime: 'backend_local_private' | 'blocked'
+  readonly stageCapability:
+    | 'technical_only'
+    | 'partial_specialist_pipeline'
+    | 'full_specialist_pipeline'
+    | 'blocked'
+  readonly availableStageIds: readonly EditReferenceLongFormStudyStageId[]
   readonly reason?:
     | 'worker_runtime_not_local'
     | 'storage_runtime_not_local'
@@ -67,16 +76,47 @@ export function createEditReferenceLongFormStudyScheduler(
   options: CreateEditReferenceLongFormStudySchedulerOptions = {},
 ): EditReferenceLongFormStudyScheduler {
   validateSpecialistStagePolicy(options)
+  const specialistStageIds = options.specialistStageIds
+    ?? (options.specialistStageExecutor ? EDIT_REFERENCE_LONG_FORM_SPECIALIST_STAGE_IDS : [])
+  const availableStageIds = Object.freeze([
+    ...EDIT_REFERENCE_LONG_FORM_LOCAL_TECHNICAL_STAGE_IDS,
+    ...specialistStageIds,
+  ])
+  const stageCapability = !options.specialistStageExecutor
+    ? 'technical_only' as const
+    : specialistStageIds.length === EDIT_REFERENCE_LONG_FORM_SPECIALIST_STAGE_IDS.length
+      ? 'full_specialist_pipeline' as const
+      : 'partial_specialist_pipeline' as const
   const schedule: EditReferenceLongFormStudyScheduler = (input) => {
     if (input.env.workerRuntimeMode !== 'local') {
-      return { scheduled: false, alreadyActive: false, runtime: 'blocked', reason: 'worker_runtime_not_local' }
+      return {
+        scheduled: false,
+        alreadyActive: false,
+        runtime: 'blocked',
+        stageCapability: 'blocked',
+        availableStageIds: [],
+        reason: 'worker_runtime_not_local',
+      }
     }
     if (input.env.storageMode !== 'local') {
-      return { scheduled: false, alreadyActive: false, runtime: 'blocked', reason: 'storage_runtime_not_local' }
+      return {
+        scheduled: false,
+        alreadyActive: false,
+        runtime: 'blocked',
+        stageCapability: 'blocked',
+        availableStageIds: [],
+        reason: 'storage_runtime_not_local',
+      }
     }
     const key = schedulerKey(input)
     if (activeExecutions.has(key)) {
-      return { scheduled: true, alreadyActive: true, runtime: 'backend_local_private' }
+      return {
+        scheduled: true,
+        alreadyActive: true,
+        runtime: 'backend_local_private',
+        stageCapability,
+        availableStageIds,
+      }
     }
     const timer = retryTimers.get(key)
     if (timer) {
@@ -85,7 +125,13 @@ export function createEditReferenceLongFormStudyScheduler(
     }
     const execution = runScheduledStudy(input, key, schedule, options)
     activeExecutions.set(key, execution)
-    return { scheduled: true, alreadyActive: false, runtime: 'backend_local_private' }
+    return {
+      scheduled: true,
+      alreadyActive: false,
+      runtime: 'backend_local_private',
+      stageCapability,
+      availableStageIds,
+    }
   }
   return schedule
 }

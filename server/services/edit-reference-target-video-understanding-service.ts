@@ -1,5 +1,8 @@
 import { createHash } from 'node:crypto'
-import type { TargetVideoUnderstandingPackage } from '../../src/types/edit-reference-target-video-understanding'
+import type {
+  TargetVideoUnderstandingPackage,
+  TargetVideoUnderstandingSchedule,
+} from '../../src/types/edit-reference-target-video-understanding'
 import type { ServiceContext } from '../types'
 import { ApiError } from '../errors/api-error'
 import {
@@ -13,6 +16,12 @@ import {
   type EditReferenceLongFormSourceInspector,
   type EditReferenceLongFormStorageObject,
 } from '../edit-references/edit-reference-long-form-source-inspector'
+import {
+  EDIT_REFERENCE_LONG_FORM_LOCAL_TECHNICAL_STAGE_IDS,
+} from '../edit-references/edit-reference-long-form-study-executor'
+import {
+  EDIT_REFERENCE_LONG_FORM_SPECIALIST_STAGE_IDS,
+} from '../edit-references/edit-reference-long-form-specialist-stage-contract'
 import {
   type EditReferenceLongFormStudyScheduleResult,
   type EditReferenceLongFormStudyScheduler,
@@ -74,7 +83,7 @@ export interface EditReferenceTargetVideoUnderstandingRuntimeOptions {
 
 export interface EditReferenceTargetVideoUnderstandingServiceResult {
   readonly package: TargetVideoUnderstandingPackage
-  readonly schedule: EditReferenceLongFormStudyScheduleResult
+  readonly schedule: TargetVideoUnderstandingSchedule
   readonly persistence: EditReferenceTargetUnderstandingPackagePersistence
   readonly warnings: readonly string[]
   readonly replayed: boolean
@@ -386,6 +395,8 @@ async function readLatestCanonicalTargetPackage(input: {
       scheduled: false,
       alreadyActive: false,
       runtime: 'blocked',
+      stageCapability: 'blocked',
+      availableStageIds: [],
       reason: 'canonical_worker_dispatch_not_verified',
     },
     true,
@@ -831,10 +842,11 @@ function validateTargetStudyCheckpoint(
 
 function serviceResult(
   packageRecord: TargetVideoUnderstandingPackage,
-  schedule: EditReferenceLongFormStudyScheduleResult,
+  internalSchedule: EditReferenceLongFormStudyScheduleResult,
   replayed: boolean,
   persistence: EditReferenceTargetUnderstandingPackagePersistence,
 ): EditReferenceTargetVideoUnderstandingServiceResult {
+  const schedule = projectTargetStudySchedule(packageRecord, internalSchedule)
   return {
     package: packageRecord,
     schedule,
@@ -850,6 +862,50 @@ function serviceResult(
     ],
     replayed,
     productReady: false,
+  }
+}
+
+function projectTargetStudySchedule(
+  packageRecord: TargetVideoUnderstandingPackage,
+  internalSchedule: EditReferenceLongFormStudyScheduleResult,
+): TargetVideoUnderstandingSchedule {
+  const technicalStageIds = new Set<string>(
+    EDIT_REFERENCE_LONG_FORM_LOCAL_TECHNICAL_STAGE_IDS,
+  )
+  const specialistStageIds = new Set<string>(
+    EDIT_REFERENCE_LONG_FORM_SPECIALIST_STAGE_IDS,
+  )
+  const availableStageIds = new Set<string>(internalSchedule.availableStageIds)
+  const technicalRuns = packageRecord.skillRuns.filter((run) => (
+    technicalStageIds.has(run.stageId)
+  ))
+  const technicalStagesComplete = (
+    technicalRuns.length === EDIT_REFERENCE_LONG_FORM_LOCAL_TECHNICAL_STAGE_IDS.length
+    && technicalRuns.every((run) => ['analyzed', 'not_applicable'].includes(run.status))
+  )
+  const pendingSpecialistRuns = packageRecord.skillRuns.filter((run) => (
+    specialistStageIds.has(run.stageId) && run.status === 'pending'
+  ))
+  const waitingForSpecialistRuntime = (
+    packageRecord.readyForPreferenceApplication !== true
+    && technicalStagesComplete
+    && pendingSpecialistRuns.length > 0
+    && !pendingSpecialistRuns.some((run) => availableStageIds.has(run.stageId))
+  )
+  return {
+    scheduled: internalSchedule.scheduled && !waitingForSpecialistRuntime,
+    alreadyActive: internalSchedule.alreadyActive && !waitingForSpecialistRuntime,
+    runtime: internalSchedule.runtime,
+    stageCapability: internalSchedule.stageCapability,
+    technicalStagesComplete,
+    specialistPipelineAvailable:
+      internalSchedule.stageCapability === 'full_specialist_pipeline',
+    waitingForSpecialistRuntime,
+    ...(waitingForSpecialistRuntime
+      ? { reason: 'specialist_runtime_not_connected' as const }
+      : internalSchedule.reason
+        ? { reason: internalSchedule.reason }
+        : {}),
   }
 }
 

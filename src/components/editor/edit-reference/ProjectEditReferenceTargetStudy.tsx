@@ -15,6 +15,7 @@ import {
 import type { ProjectEditBriefBackendLocalRecord } from '../../../lib/project-edit-brief-backend-local'
 import type { ProjectEditSessionBundleRecord } from '../../../types/project-edit-session-repository'
 import type { TargetVideoUnderstandingPackage } from '../../../types/edit-reference-target-video-understanding'
+import type { TargetVideoUnderstandingSchedule } from '../../../types/edit-reference-target-video-understanding'
 import type { EditReferenceApiClient } from '../../../lib/edit-reference-api-client'
 import { EditReferenceTargetStudyStatus } from './EditReferenceTargetStudyStatus'
 
@@ -96,7 +97,10 @@ export function ProjectEditReferenceTargetStudy({
     editReferenceId,
   ])
 
-  const acceptPackage = useCallback((packageRecord: TargetVideoUnderstandingPackage) => {
+  const acceptPackage = useCallback((
+    packageRecord: TargetVideoUnderstandingPackage,
+    schedule: TargetVideoUnderstandingSchedule,
+  ) => {
     if (!packageMatchesCurrentAuthority({
       packageRecord,
       bundle,
@@ -112,7 +116,7 @@ export function ProjectEditReferenceTargetStudy({
       clearAcceptedPackage()
       return
     }
-    setLifecycle({ kind: 'package', package: packageRecord })
+    setLifecycle({ kind: 'package', package: packageRecord, schedule })
     onPackageChangeRef.current?.(packageRecord)
   }, [
     bundle,
@@ -152,7 +156,7 @@ export function ProjectEditReferenceTargetStudy({
       clearAcceptedPackage()
       return
     }
-    acceptPackage(result.package)
+    acceptPackage(result.package, result.schedule)
   }, [acceptPackage, bundle, clearAcceptedPackage, editBrief, editReferenceClient, editReferenceId, effectiveWorkspaceId])
 
   useEffect(() => {
@@ -168,6 +172,7 @@ export function ProjectEditReferenceTargetStudy({
   }, [authorityKey, readLatest])
 
   const packageRecord = lifecycle.kind === 'package' ? lifecycle.package : undefined
+  const packageSchedule = lifecycle.kind === 'package' ? lifecycle.schedule : undefined
   useEffect(() => {
     if (!packageRecord || !isTargetVideoUnderstandingReadyForUi(packageRecord)) return
     if (deliveredReadyDigest.current === packageRecord.packageDigestSha256) return
@@ -178,7 +183,8 @@ export function ProjectEditReferenceTargetStudy({
   useEffect(() => {
     if (
       !packageRecord
-      || !shouldPollTargetVideoUnderstandingForUi(packageRecord)
+      || !packageSchedule
+      || !shouldPollTargetVideoUnderstandingForUi(packageRecord, packageSchedule)
     ) return
 
     const delay = document.visibilityState === 'visible' ? 3_500 : 15_000
@@ -186,7 +192,7 @@ export function ProjectEditReferenceTargetStudy({
     return () => {
       window.clearTimeout(timeoutId)
     }
-  }, [packageRecord, readLatest])
+  }, [packageRecord, packageSchedule, readLatest])
 
   const startStudy = useCallback(async () => {
     if (busy || disabled) return
@@ -217,7 +223,7 @@ export function ProjectEditReferenceTargetStudy({
       clearAcceptedPackage()
       return
     }
-    acceptPackage(result.package)
+    acceptPackage(result.package, result.schedule)
   }, [
     acceptPackage,
     bundle,

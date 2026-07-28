@@ -5,7 +5,10 @@ import type { AddressInfo } from 'node:net'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { TargetVideoUnderstandingPackage } from '../../src/types/edit-reference-target-video-understanding'
+import type {
+  TargetVideoUnderstandingPackage,
+  TargetVideoUnderstandingSchedule,
+} from '../../src/types/edit-reference-target-video-understanding'
 import type { ProjectEditSessionRecord } from '../../src/types/project-edit-session'
 import type { ProjectEditSessionBundleRecord } from '../../src/types/project-edit-session-repository'
 import { createEditReferenceApiClient } from '../../src/lib/edit-reference-api-client'
@@ -13,6 +16,10 @@ import {
   readTargetVideoUnderstandingForProjectEditSession,
   startTargetVideoUnderstandingForProjectEditSession,
 } from '../../src/lib/project-edit-session-edit-reference-integration'
+import {
+  createEditReferenceTargetStudyUiView,
+  shouldPollTargetVideoUnderstandingForUi,
+} from '../../src/lib/edit-reference-target-study-ui'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
 import {
@@ -229,6 +236,18 @@ try {
     assert.equal(started.body.data.targetVideoUnderstandingPackage.study.browserSessionRequiredForCompletion, false)
     assert.equal(started.body.data.targetVideoUnderstandingPackage.study.fixedWholeStudyWallClockTimeoutApplied, false)
     assert.equal(started.body.data.targetVideoUnderstandingPackage.readyForPreferenceApplication, false)
+    assert.equal(started.body.data.schedule.stageCapability, 'technical_only')
+    assert.equal(started.body.data.schedule.technicalStagesComplete, false)
+    assert.equal(started.body.data.schedule.specialistPipelineAvailable, false)
+    assert.equal(started.body.data.schedule.waitingForSpecialistRuntime, false)
+    assert.equal(started.body.data.schedule.scheduled, true)
+    assert.equal(
+      shouldPollTargetVideoUnderstandingForUi(
+        started.body.data.targetVideoUnderstandingPackage,
+        started.body.data.schedule,
+      ),
+      true,
+    )
     assert(requestWallClockMs < 10_000, 'target study start must return before whole-source analysis finishes')
     const browserClient = createEditReferenceApiClient(runtime.baseUrl, async () => undefined)
     const browserReplay = await browserClient.startTargetVideoUnderstanding(
@@ -286,6 +305,30 @@ try {
     assert(advanced.body.data.targetVideoUnderstandingPackage.missingEvidence.some((record) => (
       record.domain === 'semantic_chunk_synthesis'
     )))
+    assert.equal(advanced.body.data.schedule.stageCapability, 'technical_only')
+    assert.equal(advanced.body.data.schedule.technicalStagesComplete, true)
+    assert.equal(advanced.body.data.schedule.specialistPipelineAvailable, false)
+    assert.equal(advanced.body.data.schedule.waitingForSpecialistRuntime, true)
+    assert.equal(advanced.body.data.schedule.scheduled, false)
+    assert.equal(advanced.body.data.schedule.reason, 'specialist_runtime_not_connected')
+    assert.equal(
+      shouldPollTargetVideoUnderstandingForUi(
+        advanced.body.data.targetVideoUnderstandingPackage,
+        advanced.body.data.schedule,
+      ),
+      false,
+    )
+    const waitingForSpecialistView = createEditReferenceTargetStudyUiView({
+      kind: 'package',
+      package: advanced.body.data.targetVideoUnderstandingPackage,
+      schedule: advanced.body.data.schedule,
+    })
+    assert.equal(waitingForSpecialistView.state, 'waiting')
+    assert.equal(waitingForSpecialistView.tone, 'warning')
+    assert.equal(waitingForSpecialistView.statusLabel, 'Specialist runtime needed')
+    assert.match(waitingForSpecialistView.title, /technical study saved/i)
+    assert.match(waitingForSpecialistView.description, /GPU and model runtime/i)
+    assert.equal(waitingForSpecialistView.etaLabel, undefined)
     const browserReadback = await browserClient.getTargetVideoUnderstanding(project.id, session.id, {
       workspaceId,
       editReferenceId: editReference.reference.id,
@@ -343,6 +386,10 @@ try {
     assert.equal(controlledCompleted.package.runtimeProvenance.everySemanticRuntimeAuthoritative, false)
     assert.equal(controlledCompleted.package.runtimeProvenance.everyRequiredOutputCostAuthoritySatisfied, false)
     assert.equal(controlledCompleted.package.runtimeProvenance.coverageQaPassed, false)
+    assert.equal(controlledCompleted.schedule.stageCapability, 'full_specialist_pipeline')
+    assert.equal(controlledCompleted.schedule.technicalStagesComplete, true)
+    assert.equal(controlledCompleted.schedule.specialistPipelineAvailable, true)
+    assert.equal(controlledCompleted.schedule.waitingForSpecialistRuntime, false)
     assert(controlledCompleted.package.limitations.some((record) => (
       record.blocking && /controlled|cost|authoritative/i.test(record.summary)
     )))
@@ -561,7 +608,7 @@ try {
 
 interface TargetRouteData {
   targetVideoUnderstandingPackage: TargetVideoUnderstandingPackage
-  schedule: unknown
+  schedule: TargetVideoUnderstandingSchedule
   persistence: string
   replayed: boolean
   productReady: false

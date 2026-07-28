@@ -150,6 +150,8 @@ assert.deepEqual(schedule, {
   scheduled: false,
   alreadyActive: false,
   runtime: 'blocked',
+  stageCapability: 'blocked',
+  availableStageIds: [],
   reason: 'canonical_worker_dispatch_not_verified',
 })
 assert.equal(await restartedRuntime.readWorkOutput({

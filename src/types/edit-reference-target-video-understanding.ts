@@ -279,10 +279,19 @@ export interface TargetVideoUnderstandingSchedule {
   scheduled: boolean
   alreadyActive: boolean
   runtime: 'backend_local_private' | 'blocked'
+  stageCapability:
+    | 'technical_only'
+    | 'partial_specialist_pipeline'
+    | 'full_specialist_pipeline'
+    | 'blocked'
+  technicalStagesComplete: boolean
+  specialistPipelineAvailable: boolean
+  waitingForSpecialistRuntime: boolean
   reason?:
     | 'worker_runtime_not_local'
     | 'storage_runtime_not_local'
     | 'canonical_worker_dispatch_not_verified'
+    | 'specialist_runtime_not_connected'
 }
 
 export interface TargetVideoUnderstandingApiData {

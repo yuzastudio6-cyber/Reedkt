@@ -230,6 +230,8 @@ export function createEditReferenceCanonicalV3LocalLongFormRuntimePort(input: {
         scheduled: false,
         alreadyActive: false,
         runtime: 'blocked',
+        stageCapability: 'blocked',
+        availableStageIds: [],
         reason: 'canonical_worker_dispatch_not_verified',
       }
     },

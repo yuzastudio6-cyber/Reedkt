@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock3,
+  Download,
   Film,
   Loader2,
   MessageSquareText,
@@ -36,6 +37,12 @@ import {
   type ProfessionalLongFormCustomerDeliveryMediaSourceState,
   type ProfessionalLongFormCustomerDeliveryPlaybackCoverage,
 } from '../../lib/professional-long-form-customer-delivery-media-source'
+import {
+  professionalLongFormCustomerDeliveryPrivateDownloadSupported,
+  saveProfessionalLongFormCustomerDeliveryPrivateDownload,
+  type ProfessionalLongFormCustomerDeliveryPrivateDownloadProgress,
+  type ProfessionalLongFormCustomerDeliveryPrivateDownloadResult,
+} from '../../lib/professional-long-form-customer-delivery-private-download'
 
 type CanonicalCustomerDeliveryPanelProps = {
   delivery: ProfessionalLongFormCustomerDeliveryDiscoveryClientResult
@@ -143,6 +150,18 @@ export function CanonicalCustomerDeliveryPanel({
   const isAttention =
     discovery.stage === 'customer_delivery_attention_required'
 
+  if (isAccepted && discovery.review) {
+    return (
+      <AcceptedCustomerDelivery
+        authority={authority}
+        deliveryMessage={delivery.message}
+        onRefresh={onRefresh}
+        refreshing={refreshing}
+        review={discovery.review}
+      />
+    )
+  }
+
   return (
     <section
       aria-label="Customer delivery"
@@ -244,6 +263,185 @@ export function CanonicalCustomerDeliveryPanel({
           {refreshing ? 'Refreshing…' : 'Refresh saved delivery'}
         </Button>
       )}
+    </section>
+  )
+}
+
+function AcceptedCustomerDelivery({
+  authority,
+  deliveryMessage,
+  onRefresh,
+  refreshing,
+  review,
+}: {
+  authority: ProfessionalLongFormCustomerDeliveryClientInput
+  deliveryMessage: string
+  onRefresh: () => void
+  refreshing: boolean
+  review: ProfessionalLongFormCustomerDeliveryBrowserReview
+}) {
+  const [saving, setSaving] = useState(false)
+  const [progress, setProgress] =
+    useState<
+      ProfessionalLongFormCustomerDeliveryPrivateDownloadProgress | null
+    >(null)
+  const [result, setResult] =
+    useState<
+      ProfessionalLongFormCustomerDeliveryPrivateDownloadResult | null
+    >(null)
+  const supported =
+    professionalLongFormCustomerDeliveryPrivateDownloadSupported()
+
+  const savePrivateMaster = async () => {
+    if (saving) return
+    setSaving(true)
+    setProgress(null)
+    setResult(null)
+    try {
+      const next =
+        await saveProfessionalLongFormCustomerDeliveryPrivateDownload({
+          authority,
+          review,
+          onProgress: setProgress,
+        })
+      setResult(next)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <section
+      aria-label="Customer delivery"
+      className="canonical-customer-delivery"
+      data-stage="customer_delivery_accepted"
+      data-testid="canonical-customer-delivery-customer-delivery-accepted"
+    >
+      <DeliveryHeading
+        badge="Accepted"
+        icon={CheckCircle2}
+        title="Your exact private delivery is accepted"
+        tone="success"
+      />
+
+      <p className="canonical-customer-delivery-summary">
+        {deliveryMessage}
+      </p>
+
+      <div className="canonical-customer-delivery-state-copy">
+        <strong>Authenticated private download ready</strong>
+        <p>
+          This exact master is covered by the original approved estimate.
+          ReEditPro has not created a public link or a second charge.
+        </p>
+      </div>
+
+      <div
+        className="canonical-customer-delivery-download"
+        data-supported={supported}
+      >
+        <div className="canonical-customer-delivery-download-copy">
+          <Download aria-hidden="true" size={20} />
+          <div>
+            <strong>Save the exact accepted master</strong>
+            <p>
+              Choose a file on this device. ReEditPro writes authenticated
+              private ranges directly to it and never assembles the whole
+              master in browser memory.
+            </p>
+          </div>
+        </div>
+
+        {progress && (
+          <div className="canonical-customer-delivery-download-progress">
+            <div
+              aria-label="Private master save progress"
+              aria-valuemax={progress.totalByteSize}
+              aria-valuemin={0}
+              aria-valuenow={progress.writtenByteCount}
+              role="progressbar"
+            >
+              <span style={{ width: `${progress.completionPercent}%` }} />
+            </div>
+            <small>
+              {formatByteSize(progress.writtenByteCount)} of{' '}
+              {formatByteSize(progress.totalByteSize)} saved
+            </small>
+          </div>
+        )}
+
+        {!supported && (
+          <p
+            className="canonical-customer-delivery-notice"
+            data-tone="attention"
+            role="status"
+          >
+            <AlertTriangle aria-hidden="true" size={18} />
+            <span>
+              Large private-master saving requires current Chrome or Edge on
+              desktop. No memory-heavy fallback or public link will be used.
+            </span>
+          </p>
+        )}
+
+        {result && (
+          <p
+            className="canonical-customer-delivery-notice"
+            data-tone={result.status === 'saved' ? 'success' : 'attention'}
+            role="status"
+          >
+            {result.status === 'saved'
+              ? <CheckCircle2 aria-hidden="true" size={18} />
+              : <AlertTriangle aria-hidden="true" size={18} />}
+            <span>
+              {result.message}
+              {result.status === 'saved' && (
+                <>
+                  {' '}
+                  {formatByteSize(result.receipt.byteSize)} verified across{' '}
+                  {result.receipt.authenticatedRangeCount}{' '}
+                  authenticated {result.receipt.authenticatedRangeCount === 1
+                    ? 'range'
+                    : 'ranges'}.
+                </>
+              )}
+            </span>
+          </p>
+        )}
+
+        <Button
+          aria-busy={saving}
+          data-testid="canonical-customer-delivery-save-private-master"
+          disabled={!supported || saving}
+          icon={saving ? Loader2 : Download}
+          onClick={() => void savePrivateMaster()}
+          size="sm"
+          variant="primary"
+        >
+          {saving
+            ? progress
+              ? `Saving ${progress.completionPercent}%…`
+              : 'Choose destination…'
+            : result?.status === 'saved'
+              ? 'Save another copy'
+              : 'Save private master…'}
+        </Button>
+      </div>
+
+      <p className="canonical-customer-delivery-boundary">
+        Private, signed-in workspace only · Public delivery remains off
+      </p>
+
+      <Button
+        aria-busy={refreshing}
+        disabled={refreshing || saving}
+        icon={RefreshCw}
+        onClick={onRefresh}
+        size="sm"
+        variant="secondary"
+      >
+        {refreshing ? 'Refreshing…' : 'Refresh saved delivery'}
+      </Button>
     </section>
   )
 }
@@ -1075,4 +1273,17 @@ function formatDuration(seconds: number): string {
     return `${hours}:${String(minutes).padStart(2, '0')}:${String(remainder).padStart(2, '0')}`
   }
   return `${minutes}:${String(remainder).padStart(2, '0')}`
+}
+
+function formatByteSize(byteSize: number): string {
+  if (byteSize >= 1024 * 1024 * 1024) {
+    return `${(byteSize / (1024 * 1024 * 1024)).toFixed(1)} GB`
+  }
+  if (byteSize >= 1024 * 1024) {
+    return `${(byteSize / (1024 * 1024)).toFixed(1)} MB`
+  }
+  if (byteSize >= 1024) {
+    return `${(byteSize / 1024).toFixed(1)} KB`
+  }
+  return `${byteSize} B`
 }

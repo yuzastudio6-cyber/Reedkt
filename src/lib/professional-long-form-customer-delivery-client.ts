@@ -541,25 +541,52 @@ export function readProfessionalLongFormCustomerDeliveryReviewRange(input: {
 
 export function readProfessionalLongFormCustomerDeliveryDownloadRange(input: {
   authority: ProfessionalLongFormCustomerDeliveryClientInput
-  decision: ProfessionalLongFormCustomerDeliveryBrowserDecision
   start: number
   end: number
-}): Promise<ProfessionalLongFormCustomerDeliveryMediaRangeClientResult> {
-  const parsed = professionalLongFormCustomerDeliveryBrowserDecisionSchema
-    .safeParse(input.decision)
-  if (
-    !parsed.success ||
-    !receiptMatchesInput(parsed.data, input.authority) ||
-    !parsed.data.privateDownload
-  ) return Promise.resolve(failure(
+} & (
+  | {
+      decision: ProfessionalLongFormCustomerDeliveryBrowserDecision
+      review?: never
+    }
+  | {
+      decision?: never
+      review: ProfessionalLongFormCustomerDeliveryBrowserReview
+    }
+)): Promise<ProfessionalLongFormCustomerDeliveryMediaRangeClientResult> {
+  let descriptor:
+    ProfessionalLongFormCustomerDeliveryBrowserDownloadDescriptor | null = null
+  if ('decision' in input && input.decision) {
+    const parsed = professionalLongFormCustomerDeliveryBrowserDecisionSchema
+      .safeParse(input.decision)
+    if (
+      parsed.success &&
+      receiptMatchesInput(parsed.data, input.authority) &&
+      parsed.data.decision.value ===
+        'accept_exact_private_customer_delivery'
+    ) {
+      descriptor = parsed.data.privateDownload
+    }
+  } else if ('review' in input && input.review) {
+    const parsed = professionalLongFormCustomerDeliveryBrowserReviewSchema
+      .safeParse(input.review)
+    if (
+      parsed.success &&
+      receiptMatchesInput(parsed.data, input.authority) &&
+      parsed.data.decision?.value ===
+        'accept_exact_private_customer_delivery'
+    ) {
+      descriptor = parsed.data.privateDownload
+    }
+  }
+  if (!descriptor) return Promise.resolve(failure(
     'blocked',
-    'An exact accepted quality decision is required before reading the private download.',
+    'An exact accepted quality decision or recovered accepted review is required before reading the private download.',
     false,
     [],
   ))
   return readAuthenticatedRange({
     authority: input.authority,
-    descriptor: parsed.data.privateDownload,
+    descriptor,
     start: input.start,
     end: input.end,
     kind: 'private_download',

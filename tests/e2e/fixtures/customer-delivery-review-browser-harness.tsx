@@ -14,6 +14,7 @@ declare global {
       byteSize: number
       frameCount: number
       masterSha256: string
+      stage?: 'accepted' | 'review'
     }
   }
 }
@@ -46,12 +47,16 @@ const authority: ProfessionalLongFormCustomerDeliveryClientInput = {
 
 export function CustomerDeliveryReviewBrowserHarness() {
   const [refreshCount, setRefreshCount] = useState(0)
-  const review = createCustomerDeliveryReviewFixture()
+  const accepted = fixture.stage === 'accepted'
+  const review = accepted
+    ? createAcceptedCustomerDeliveryReviewFixture()
+    : createCustomerDeliveryReviewFixture()
   const delivery:
     ProfessionalLongFormCustomerDeliveryDiscoveryClientResult = {
       status: 'ready',
-      message:
-        'The exact private customer-delivery master is ready for authenticated playback and quality review.',
+      message: accepted
+        ? 'The exact accepted private customer delivery and authenticated download authority were recovered.'
+        : 'The exact private customer-delivery master is ready for authenticated playback and quality review.',
       retryable: false,
       authority,
       discovery: {
@@ -60,14 +65,16 @@ export function CustomerDeliveryReviewBrowserHarness() {
         source:
           'canonical_professional_long_form_customer_delivery_discovery_service',
         purpose: 'discover_exact_private_customer_delivery_for_named_edit',
-        stage: 'customer_delivery_quality_review_ready',
+        stage: accepted
+          ? 'customer_delivery_accepted'
+          : 'customer_delivery_quality_review_ready',
         identity: customerDeliveryReviewIdentity,
         progress: {
           totalJobCount: 9,
-          completedJobCount: 8,
+          completedJobCount: accepted ? 9 : 8,
           activeJobCount: 0,
-          pendingJobCount: 1,
-          completionPercent: 88,
+          pendingJobCount: accepted ? 0 : 1,
+          completionPercent: accepted ? 100 : 88,
           attentionRequired: false,
         },
         review,
@@ -75,9 +82,9 @@ export function CustomerDeliveryReviewBrowserHarness() {
           exactPackageDiscovered: true,
           exactSnapshotLineageVerified: true,
           qualityReviewReady: true,
-          authenticatedQualityDecisionRecorded: false,
+          authenticatedQualityDecisionRecorded: accepted,
           revisionRequiresFreshPlanEstimateAndApproval: false,
-          authenticatedPrivateDownloadReady: false,
+          authenticatedPrivateDownloadReady: accepted,
           publicDeliveryAuthorized: false,
           productReady: false,
           productionReady: false,
@@ -118,6 +125,64 @@ export function CustomerDeliveryReviewBrowserHarness() {
       />
     </main>
   )
+}
+
+function createAcceptedCustomerDeliveryReviewFixture():
+ProfessionalLongFormCustomerDeliveryBrowserReview {
+  const decisionHash = 'a'.repeat(64)
+  const watchEvidenceHash = '9'.repeat(64)
+  return {
+    ...createCustomerDeliveryReviewFixture(),
+    status: 'quality_decision_already_recorded',
+    watch: {
+      ...createCustomerDeliveryReviewFixture().watch,
+      status: 'complete',
+      watchEvidenceHash,
+      sequence: 1,
+      nextSequence: 2,
+      previousWatchEvidenceHash: null,
+      expectedPreviousWatchEvidenceHash: watchEvidenceHash,
+      coveredFrameCount: fixture!.frameCount,
+      coveragePermille: 1_000,
+      fullProgramPlaybackObserved: true,
+      acceptanceGateSatisfied: true,
+      serverElapsedMs: Math.ceil(
+        (((fixture!.frameCount - 1) / 30) / 2) * 1_000,
+      ) + 250,
+    },
+    decision: {
+      value: 'accept_exact_private_customer_delivery',
+      decisionHash,
+      decidedAt: '2026-07-27T18:00:00.000Z',
+      revisionReasonCodes: [],
+      privateDownloadReconciliationAuthorized: true,
+      revisionRequired: false,
+      requiresFreshPlanEstimateAndApproval: false,
+      watchEvidenceHash,
+    },
+    privateDownload: {
+      method: 'GET',
+      path:
+        '/v1/edit-executions/professional-long-form/' +
+        'customer-delivery-packages/' +
+        `${customerDeliveryReviewIdentity.packageRecordId}/` +
+        'private-download/file',
+      expectedQualityDecisionHash: decisionHash,
+      expectedMasterSha256: fixture!.masterSha256,
+      byteSize: fixture!.byteSize,
+      mimeType: 'video/mp4',
+      authenticatedBearerRequired: true,
+      byteRangesSupported: true,
+      publicOrSignedUrlCreated: false,
+      cachePolicy: 'private_no_store',
+    },
+    readiness: {
+      ...createCustomerDeliveryReviewFixture().readiness,
+      durableWholeProgramWatchEvidenceReady: true,
+      authenticatedQualityDecisionRecorded: true,
+      authenticatedPrivateDownloadReady: true,
+    },
+  }
 }
 
 function createCustomerDeliveryReviewFixture(): ProfessionalLongFormCustomerDeliveryBrowserReview {

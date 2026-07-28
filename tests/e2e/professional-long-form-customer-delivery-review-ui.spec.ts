@@ -367,6 +367,237 @@ test('requires every quality attestation before accepting durable whole-program 
   expect(pageErrors).toEqual([])
 })
 
+test('streams the recovered accepted master to one user-chosen transactional file', async ({
+  page,
+}) => {
+  const pageErrors: string[] = []
+  const rangeRequests: Array<{
+    authorization?: string
+    end: number
+    expectedMasterSha256: string | null
+    expectedQualityDecisionHash: string | null
+    start: number
+  }> = []
+  page.on('pageerror', (error) => pageErrors.push(error.message))
+
+  await installMockPrivateDownloadFilePicker(page, 'write')
+
+  await page.route(
+    `**/v1/edit-executions/professional-long-form/customer-delivery-packages/${identity.packageRecordId}/private-download/file?**`,
+    async (route) => {
+      const request = route.request()
+      const match = /^bytes=(\d+)-(\d+)$/u.exec(
+        request.headers().range ?? '',
+      )
+      expect(match).not.toBeNull()
+      const start = Number(match![1])
+      const end = Number(match![2])
+      const requestUrl = new URL(request.url())
+      rangeRequests.push({
+        authorization: request.headers().authorization,
+        end,
+        expectedMasterSha256:
+          requestUrl.searchParams.get('expectedMasterSha256'),
+        expectedQualityDecisionHash:
+          requestUrl.searchParams.get('expectedQualityDecisionHash'),
+        start,
+      })
+      await route.fulfill({
+        status: 206,
+        headers: {
+          'accept-ranges': 'bytes',
+          'cache-control': 'private, no-store',
+          'content-length': String(end - start + 1),
+          'content-range':
+            `bytes ${start}-${end}/${fixtureBytes.byteLength}`,
+          'content-type': 'video/mp4',
+          'x-reeditpro-artifact-sha256': fixtureSha256,
+          'x-reeditpro-quality-decision-sha256': 'a'.repeat(64),
+          'x-reeditpro-private-download-delivery-id':
+            'private-download-customer-delivery-review',
+        },
+        body: fixtureBytes.subarray(start, end + 1),
+      })
+    },
+  )
+
+  await mountReviewHarness(page, 'accepted')
+  const panel = page.getByTestId(
+    'canonical-customer-delivery-customer-delivery-accepted',
+  )
+  await expect(panel).toBeVisible()
+  await expect(panel).toContainText('Authenticated private download ready')
+  await expect(panel).toContainText('never assembles the whole master')
+  await expect(panel).toContainText('Public delivery remains off')
+
+  const save = page.getByTestId(
+    'canonical-customer-delivery-save-private-master',
+  )
+  await expect(save).toBeEnabled()
+  await save.click()
+  await expect(panel).toContainText(
+    'The exact accepted private master was saved to the file you chose.',
+  )
+
+  expect(rangeRequests).toHaveLength(1)
+  expect(rangeRequests[0]).toEqual({
+    authorization:
+      'Bearer customer-delivery-media-source-playwright-token',
+    start: 0,
+    end: fixtureBytes.byteLength - 1,
+    expectedQualityDecisionHash: 'a'.repeat(64),
+    expectedMasterSha256: fixtureSha256,
+  })
+  const sink = await page.evaluate(() => {
+    const value = (
+      window as unknown as {
+        __reeditproPrivateDownloadSink: {
+          aborted: boolean
+          chunks: number[][]
+          closed: boolean
+          options: {
+            suggestedName?: string
+          }
+        }
+      }
+    ).__reeditproPrivateDownloadSink
+    return value
+  })
+  expect(sink.aborted).toBe(false)
+  expect(sink.closed).toBe(true)
+  expect(sink.options.suggestedName).toBe(
+    'ReEditPro-edit-customer-delivery-review-master.mp4',
+  )
+  expect(Buffer.concat(sink.chunks.map((chunk) => Buffer.from(chunk)))).toEqual(
+    fixtureBytes,
+  )
+  expect(pageErrors).toEqual([])
+})
+
+test('keeps a large accepted master bounded to one authenticated range at a time', async ({
+  page,
+}) => {
+  const largeByteSize = 8 * 1024 * 1024 + 257
+  const largeMasterSha256 = '7'.repeat(64)
+  const ranges: Array<{ start: number; end: number }> = []
+  await installMockPrivateDownloadFilePicker(page, 'count')
+  await page.route(
+    `**/v1/edit-executions/professional-long-form/customer-delivery-packages/${identity.packageRecordId}/private-download/file?**`,
+    async (route) => {
+      const request = route.request()
+      const match = /^bytes=(\d+)-(\d+)$/u.exec(
+        request.headers().range ?? '',
+      )
+      expect(match).not.toBeNull()
+      const start = Number(match![1])
+      const end = Number(match![2])
+      ranges.push({ start, end })
+      await route.fulfill({
+        status: 206,
+        headers: {
+          'accept-ranges': 'bytes',
+          'cache-control': 'private, no-store',
+          'content-length': String(end - start + 1),
+          'content-range': `bytes ${start}-${end}/${largeByteSize}`,
+          'content-type': 'video/mp4',
+          'x-reeditpro-artifact-sha256': largeMasterSha256,
+          'x-reeditpro-quality-decision-sha256': 'a'.repeat(64),
+          'x-reeditpro-private-download-delivery-id':
+            'private-download-large-customer-delivery-review',
+        },
+        body: Buffer.alloc(end - start + 1, ranges.length),
+      })
+    },
+  )
+
+  await mountReviewHarness(page, 'accepted', {
+    byteSize: largeByteSize,
+    masterSha256: largeMasterSha256,
+  })
+  await page
+    .getByTestId('canonical-customer-delivery-save-private-master')
+    .click()
+  const panel = page.getByTestId(
+    'canonical-customer-delivery-customer-delivery-accepted',
+  )
+  await expect(panel).toContainText('verified across 2 authenticated ranges')
+  expect(ranges).toEqual([
+    { start: 0, end: 8 * 1024 * 1024 - 1 },
+    { start: 8 * 1024 * 1024, end: largeByteSize - 1 },
+  ])
+  const sink = await readPrivateDownloadSink(page)
+  expect(sink.writeByteLengths).toEqual([8 * 1024 * 1024, 257])
+  expect(sink.closed).toBe(true)
+  expect(sink.aborted).toBe(false)
+})
+
+test('aborts the chosen file when authenticated download integrity changes', async ({
+  page,
+}) => {
+  const pageErrors: string[] = []
+  page.on('pageerror', (error) => pageErrors.push(error.message))
+  await installMockPrivateDownloadFilePicker(page, 'write')
+  await page.route(
+    `**/v1/edit-executions/professional-long-form/customer-delivery-packages/${identity.packageRecordId}/private-download/file?**`,
+    async (route) => {
+      await route.fulfill({
+        status: 206,
+        headers: {
+          'accept-ranges': 'bytes',
+          'cache-control': 'private, no-store',
+          'content-length': String(fixtureBytes.byteLength),
+          'content-range':
+            `bytes 0-${fixtureBytes.byteLength - 1}/${fixtureBytes.byteLength}`,
+          'content-type': 'video/mp4',
+          'x-reeditpro-artifact-sha256': '0'.repeat(64),
+          'x-reeditpro-quality-decision-sha256': 'a'.repeat(64),
+          'x-reeditpro-private-download-delivery-id':
+            'private-download-customer-delivery-review',
+        },
+        body: fixtureBytes,
+      })
+    },
+  )
+
+  await mountReviewHarness(page, 'accepted')
+  await page
+    .getByTestId('canonical-customer-delivery-save-private-master')
+    .click()
+  const panel = page.getByTestId(
+    'canonical-customer-delivery-customer-delivery-accepted',
+  )
+  await expect(panel).toContainText(
+    'failed its scope, range, privacy, or integrity-header checks',
+  )
+  const sink = await readPrivateDownloadSink(page)
+  expect(sink.aborted).toBe(true)
+  expect(sink.closed).toBe(false)
+  expect(sink.chunks).toEqual([])
+  expect(pageErrors).toEqual([])
+})
+
+test('leaves the destination untouched when the user cancels file selection', async ({
+  page,
+}) => {
+  const pageErrors: string[] = []
+  page.on('pageerror', (error) => pageErrors.push(error.message))
+  await installMockPrivateDownloadFilePicker(page, 'cancel')
+
+  await mountReviewHarness(page, 'accepted')
+  await page
+    .getByTestId('canonical-customer-delivery-save-private-master')
+    .click()
+  const panel = page.getByTestId(
+    'canonical-customer-delivery-customer-delivery-accepted',
+  )
+  await expect(panel).toContainText('No file was changed.')
+  const sink = await readPrivateDownloadSink(page)
+  expect(sink.aborted).toBe(false)
+  expect(sink.closed).toBe(false)
+  expect(sink.chunks).toEqual([])
+  expect(pageErrors).toEqual([])
+})
+
 function reviewFixture() {
   return {
     schemaVersion:
@@ -700,15 +931,30 @@ function persistence() {
   }
 }
 
-async function mountReviewHarness(page: import('@playwright/test').Page) {
+async function mountReviewHarness(
+  page: import('@playwright/test').Page,
+  stage: 'accepted' | 'review' = 'review',
+  descriptor: {
+    byteSize: number
+    masterSha256: string
+  } = {
+    byteSize: fixtureBytes.byteLength,
+    masterSha256: fixtureSha256,
+  },
+) {
   await page.goto('/')
-  await page.evaluate(({ byteSize, masterSha256 }) => {
+  await page.evaluate(({ byteSize, masterSha256, stage: fixtureStage }) => {
     window.__reeditproCustomerDeliveryReviewFixture = {
       byteSize,
       frameCount: 240,
       masterSha256,
+      stage: fixtureStage,
     }
-  }, { byteSize: fixtureBytes.byteLength, masterSha256: fixtureSha256 })
+  }, {
+    byteSize: descriptor.byteSize,
+    masterSha256: descriptor.masterSha256,
+    stage,
+  })
   await page.evaluate(async () => {
     const harness = await import(
       '/tests/e2e/fixtures/mount-customer-delivery-review-browser-harness.ts'
@@ -738,4 +984,77 @@ async function fulfillPrivateMediaRange(
     },
     body: fixtureBytes.subarray(start, end + 1),
   })
+}
+
+type PrivateDownloadSink = {
+  aborted: boolean
+  chunks: number[][]
+  closed: boolean
+  options: {
+    suggestedName?: string
+  } | null
+  writeByteLengths: number[]
+}
+
+async function installMockPrivateDownloadFilePicker(
+  page: import('@playwright/test').Page,
+  mode: 'cancel' | 'count' | 'write',
+) {
+  await page.addInitScript(({ pickerMode }) => {
+    const state = {
+      aborted: false,
+      chunks: [] as number[][],
+      closed: false,
+      options: null as Record<string, unknown> | null,
+      writeByteLengths: [] as number[],
+    }
+    Object.defineProperty(window, '__reeditproPrivateDownloadSink', {
+      configurable: true,
+      value: state,
+    })
+    Object.defineProperty(window, 'showSaveFilePicker', {
+      configurable: true,
+      value: async (options: Record<string, unknown>) => {
+        state.options = options
+        if (pickerMode === 'cancel') {
+          throw new DOMException('File selection cancelled.', 'AbortError')
+        }
+        return {
+          createWritable: async ({
+            keepExistingData,
+          }: {
+            keepExistingData: boolean
+          }) => {
+            if (keepExistingData) {
+              throw new Error('Private download must replace transactionally.')
+            }
+            return {
+              write: async (bytes: Uint8Array) => {
+                state.writeByteLengths.push(bytes.byteLength)
+                if (pickerMode === 'write') {
+                  state.chunks.push(Array.from(bytes))
+                }
+              },
+              close: async () => {
+                state.closed = true
+              },
+              abort: async () => {
+                state.aborted = true
+              },
+            }
+          },
+        }
+      },
+    })
+  }, { pickerMode: mode })
+}
+
+function readPrivateDownloadSink(
+  page: import('@playwright/test').Page,
+): Promise<PrivateDownloadSink> {
+  return page.evaluate(() => (
+    window as unknown as {
+      __reeditproPrivateDownloadSink: PrivateDownloadSink
+    }
+  ).__reeditproPrivateDownloadSink)
 }

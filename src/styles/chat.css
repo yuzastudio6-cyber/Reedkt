@@ -2548,6 +2548,77 @@
   gap: var(--rp-space-2);
 }
 
+.canonical-customer-delivery-download {
+  background: rgba(11, 18, 32, 0.56);
+  border: 1px solid rgba(16, 185, 129, 0.24);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: var(--rp-space-3);
+  padding: var(--rp-space-3);
+}
+
+.canonical-customer-delivery-download-copy {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--rp-space-2);
+}
+
+.canonical-customer-delivery-download-copy > svg {
+  color: var(--rp-success);
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.canonical-customer-delivery-download-copy strong {
+  color: var(--rp-text-primary);
+  display: block;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.canonical-customer-delivery-download-copy p {
+  color: var(--rp-text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  margin: var(--rp-space-1) 0 0;
+}
+
+.canonical-customer-delivery-download-progress {
+  display: grid;
+  gap: var(--rp-space-2);
+}
+
+.canonical-customer-delivery-download-progress > div {
+  background: rgba(30, 42, 61, 0.74);
+  border-radius: var(--rp-radius-pill);
+  height: 8px;
+  overflow: hidden;
+}
+
+.canonical-customer-delivery-download-progress > div > span {
+  background: linear-gradient(
+    90deg,
+    var(--rp-success),
+    var(--rp-brand-cyan)
+  );
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  transition: width var(--rp-duration-slow) var(--rp-ease-standard);
+}
+
+.canonical-customer-delivery-download-progress small {
+  color: var(--rp-text-secondary);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.canonical-customer-delivery-download > .rp-button {
+  justify-self: start;
+  min-height: 44px;
+}
+
 .canonical-customer-delivery > .rp-button {
   justify-self: start;
   min-height: 44px;

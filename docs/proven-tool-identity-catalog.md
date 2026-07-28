@@ -22,6 +22,17 @@ Runner verification, canonical E2E verification, server-derived job-adapter veri
 
 ## Commands
 
+Print the concise authoritative exact-50 summary:
+
+```bash
+npm run tools:summary
+```
+
+This command deliberately excludes historical exploratory names,
+non-end-to-end capability candidates, runner foundations, and the current
+developer machine's package availability. Use `npm run tools:host-summary`
+only when diagnosing the separate nine-dependency developer-host probe.
+
 Run the catalog integrity and evidence-link smoke:
 
 ```bash

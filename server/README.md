@@ -110,6 +110,7 @@ npm run smoke:tools
 npm run smoke:worker
 npm run tools:check
 npm run tools:summary
+npm run tools:host-summary
 npm run smoke:prompt6-ready
 npm run smoke:render
 npm run smoke:render:test

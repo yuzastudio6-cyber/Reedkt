@@ -366,19 +366,33 @@ Example output shape:
 
 ```json
 {
-  "prompt6Ready": false,
-  "required": {
-    "ffmpeg": "unavailable",
-    "ffprobe": "unavailable"
+  "schemaVersion": "canonical-private-tool-summary-v1",
+  "registryScope": "canonical_private_end_to_end",
+  "authoritativeToolCount": 50,
+  "evidence": {
+    "confinedRunnerVerifiedCount": 50,
+    "canonicalPrivateLifecycleVerifiedCount": 50,
+    "canonicalJobAdapterVerifiedCount": 50,
+    "allCanonicalToolsIndividuallyVerified": true,
+    "oneEditInvokedAllTools": false
   },
-  "optional": {
-    "remotion": "unavailable",
-    "sharp_libvips": "unavailable"
+  "releaseReadiness": {
+    "privateInternalEvidenceReady": true,
+    "productReady": false,
+    "externalBetaReady": false,
+    "productionReady": false
   },
-  "notes": [
-    "Prompt 6 is blocked until FFmpeg and FFprobe are available on the host or in the Docker worker image."
-  ]
+  "tools": []
 }
+```
+
+The real output includes all 50 exact tool records. It intentionally does not
+add historical candidates or runner foundations to the count. To inspect only
+the nine convenience dependencies installed on the current developer machine,
+run:
+
+```bash
+npm run tools:host-summary
 ```
 
 ## Strict Prompt 6 Readiness

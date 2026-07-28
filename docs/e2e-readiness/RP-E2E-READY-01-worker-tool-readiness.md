@@ -33,7 +33,7 @@ The first local readiness report found the host missing `ffmpeg`, `ffprobe`, Rem
 Use:
 
 ```bash
-npm run tools:summary
+npm run tools:host-summary
 npm run smoke:prompt6-ready
 npm run docker:worker:build
 npm run docker:worker:tools
@@ -53,11 +53,16 @@ CLI commands:
 
 ```bash
 npm run tools:check
-npm run tools:summary
+npm run tools:host-summary
 npm run smoke:prompt6-ready
 npm run worker:run -- --job-id job_123 --worker-type noop_worker
 npm run worker:probe-media -- --job-id job_123 --storage-object-id storage_object_123
 ```
+
+This document describes the historical nine-dependency developer-host probe.
+The current authoritative registry summary is `npm run tools:summary`, which
+reports exactly 50 canonical private end-to-end tool identities. Host package
+availability does not add to or subtract from that canonical count.
 
 ## Docker Skeleton
 

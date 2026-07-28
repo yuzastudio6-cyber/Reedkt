@@ -7,7 +7,8 @@ Prompt 5.5 creates a reproducible way to verify the required tools before Prompt
 ## What This Adds
 
 - A local/dev/test Docker worker image with Node, FFmpeg, FFprobe, Python 3, pip, and shell utilities.
-- Package scripts for Docker build, Docker tool checks, tool summary, and Prompt 6 readiness smoke.
+- Package scripts for Docker build, Docker host checks, a host-only summary,
+  and the Prompt 6 readiness smoke.
 - A host bootstrap guide for macOS, Ubuntu/Debian, Windows, and Docker fallback.
 - A JSON summary command that marks Prompt 6 ready only when FFmpeg and FFprobe are available.
 
@@ -32,8 +33,12 @@ Missing optional tools should be recorded honestly as unavailable.
 Host summary:
 
 ```bash
-npm run tools:summary
+npm run tools:host-summary
 ```
+
+The current `npm run tools:summary` command is intentionally different: it
+reports the authoritative exact 50-tool canonical private end-to-end registry.
+This historical host probe cannot change that count.
 
 Host Prompt 6 smoke:
 

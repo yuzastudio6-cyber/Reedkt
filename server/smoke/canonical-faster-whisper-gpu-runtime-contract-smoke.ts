@@ -8,6 +8,9 @@ import {
   assertCanonicalFasterWhisperGpuRuntimeContract,
   getCanonicalFasterWhisperGpuRuntimeContract,
 } from '../model-artifacts'
+import {
+  sha256AuthorityValue,
+} from '../services/private-edit-authority-store'
 import { CANONICAL_PRIVATE_E2E_TOOL_IDS } from '../tool-registry'
 import {
   resolveProfessionalToolOperationSpec,
@@ -96,6 +99,14 @@ assert.equal(
   contract.runtimeProtocol.transcriptTextReturnedInReceipt,
   false,
 )
+assert.equal(
+  contract.runtimeProtocol.maximumSingleOutputBytes,
+  33_554_432,
+)
+assert.equal(
+  contract.runtimeProtocol.maximumCombinedOutputBytes,
+  67_108_864,
+)
 assert.equal(contract.boundaries.runnerSourceImplemented, true)
 assert.equal(
   contract.boundaries.packageDependencyLockVerified,
@@ -174,7 +185,7 @@ assert.doesNotMatch(
   /traceback|exception|\/Users\/|\/Volumes\//iu,
 )
 
-const runtimeRequest = {
+const runtimeRequestWithoutBinding = {
   schemaVersion:
     'canonical-faster-whisper-gpu-runtime-request-v1',
   operationId:
@@ -208,6 +219,11 @@ const runtimeRequest = {
     conditionOnPreviousText: true,
   },
 }
+const runtimeRequest = {
+  ...runtimeRequestWithoutBinding,
+  requestBindingSha256:
+    sha256AuthorityValue(runtimeRequestWithoutBinding),
+}
 
 const noMountRun = runRunner(runtimeRequest)
 assert.equal(noMountRun.status, 3)
@@ -220,6 +236,16 @@ assert.deepEqual(JSON.parse(noMountRun.stdout), {
 assert.equal(
   noMountRun.stderr,
   'Private Faster Whisper GPU execution failed.\n',
+)
+
+const bindingTamperRun = runRunner({
+  ...runtimeRequest,
+  requestBindingSha256: '0'.repeat(64),
+})
+assert.equal(bindingTamperRun.status, 3)
+assert.equal(
+  JSON.parse(bindingTamperRun.stdout).code,
+  'REQUEST_VALIDATION_FAILED',
 )
 
 const cpuRun = runRunner({
@@ -357,6 +383,7 @@ console.log(JSON.stringify({
   blockedExistingUsRegion:
     contract.cloudRunGpuPolicy.blockedExistingRegion,
   invalidRunnerRequestRejected: true,
+  requestBindingTamperingRejected: true,
   missingMountsRejectedBeforeGpuImport: true,
   cpuFallbackRejected: true,
   callerPathRejected: true,

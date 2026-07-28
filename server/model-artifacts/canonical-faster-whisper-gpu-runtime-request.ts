@@ -183,7 +183,10 @@ function createRunnerRequest(input: {
   >
 }): CanonicalFasterWhisperGpuRuntimeRunnerRequest {
   const source = input.admission.source
-  return {
+  const requestWithoutBinding: Omit<
+    CanonicalFasterWhisperGpuRuntimeRunnerRequest,
+    'requestBindingSha256'
+  > = {
     schemaVersion:
       'canonical-faster-whisper-gpu-runtime-request-v1',
     operationId:
@@ -212,6 +215,11 @@ function createRunnerRequest(input: {
     modelArtifacts:
       input.runtimeContract.fixedFileLayout.modelFiles,
     settings: input.admission.settings,
+  }
+  return {
+    ...requestWithoutBinding,
+    requestBindingSha256:
+      sha256AuthorityValue(requestWithoutBinding),
   }
 }
 

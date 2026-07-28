@@ -10,6 +10,11 @@ fixed server-owned mount locations. Caller paths, URLs, bytes, commands,
 settings, model aliases, runtime downloads, network fetches, and CPU fallback
 are not accepted.
 
+The envelope includes a SHA-256 binding over every other request field. The
+runner recomputes it before reading mounts, caps each JSON output at 32 MiB and
+all three outputs together at 64 MiB, and echoes only the request binding plus
+digest-only output metadata.
+
 The current existing ReeditPro regions are `us-east1` and `europe-west1`.
 Cloud Run Jobs currently offers NVIDIA L4 in `europe-west1`, not `us-east1`,
 so this contract admits only `europe-west1`. A US deployment requires a

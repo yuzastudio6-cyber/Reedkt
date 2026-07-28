@@ -209,6 +209,8 @@ Promise<CanonicalFasterWhisperGpuRuntimeContract> {
       maximumRequestBytes: 65_536 as const,
       maximumSourceAudioBytes: 2_147_483_648 as const,
       maximumSourceDurationMilliseconds: 7_200_000 as const,
+      maximumSingleOutputBytes: 33_554_432 as const,
+      maximumCombinedOutputBytes: 67_108_864 as const,
       sourceAudioFormat:
         'wav_pcm_s16le_16000hz_mono' as const,
       device: 'cuda' as const,
@@ -231,6 +233,7 @@ Promise<CanonicalFasterWhisperGpuRuntimeContract> {
       fixedServerOwnedFileLayoutDeclared: true as const,
       cudaOnlyPreflightImplemented: true as const,
       localModelOnlyImplemented: true as const,
+      boundedPrivateOutputsImplemented: true as const,
       privateDigestOnlyReceiptImplemented: true as const,
       productionToolRegistryCountPreserved: true as const,
     },

@@ -12,6 +12,8 @@ Whisper inside the one shared `gpu_ai_worker` architecture:
 - one fixed read-only model directory;
 - one fixed private output directory;
 - fixed CUDA/float16/beam/VAD/word-timestamp settings;
+- a SHA-256 binding over the complete server-derived runner request;
+- 32 MiB per-output and 64 MiB combined private-output ceilings;
 - digest-only success receipts that exclude transcript text and media/model
   bytes;
 - fail-closed validation for model files, input audio, runtime packages, CUDA,
@@ -78,6 +80,26 @@ the model. It requires an empty output directory, uses exclusive file
 creation, writes mode `0600`, fsyncs each JSON output, and returns only file
 names, sizes, and SHA-256 digests.
 
+The request carries `requestBindingSha256`, computed over every other request
+field using the canonical stable-JSON encoding. The Python runner independently
+recomputes that digest before reading any mounted artifact. Its response echoes
+the binding so a later canonical worker receipt can tie the output candidates
+to the exact approved request rather than only to an operation name.
+
+## Result boundary
+
+The server can strictly parse the runner's success envelope and derive three
+non-authoritative output candidates. That parser verifies the request binding,
+admission and dispatch lineage, CUDA/float16 identity, exact output order,
+per-output and combined byte ceilings, and the receipt's no-bytes/no-text/
+no-path boundary.
+
+This is intentionally structural verification of an untrusted wire result. It
+does not prove that Cloud Run executed it. Promotion requires the existing
+canonical worker receipt and completion receipt, immutable private artifact
+commit/QA/reconciliation, transcript-alignment and caption-timing QA, and
+GPU-active internal-cost evidence under an approved cloud rate.
+
 ## Authority boundary
 
 Implemented:
@@ -89,6 +111,8 @@ Implemented:
 - CUDA-only and float16-only preflight;
 - local-files-only model load;
 - deterministic JSON encoding and digest-only receipt;
+- strict untrusted-wire result parsing with explicit canonical completion,
+  artifact/QA, and GPU-cost evidence requirements;
 - source-level and adversarial smoke coverage.
 
 Still required:

@@ -71,6 +71,7 @@ export interface CanonicalFasterWhisperGpuRuntimeRunnerRequest {
     readonly temperature: 0
     readonly conditionOnPreviousText: true
   }
+  readonly requestBindingSha256: string
 }
 
 export interface CanonicalFasterWhisperGpuRuntimeRequestCandidate {

@@ -84,6 +84,13 @@ The declared future private outputs are:
 The existing `transcript_alignment` and `caption_timing` QA gates remain
 authoritative. This preflight cannot mark either gate passed.
 
+The server-derived runtime request and result parser are also candidate-only.
+The request binds every runner field with SHA-256. The result parser can
+strictly match that binding and the three digest-only output candidates, but
+an untrusted wire response is not treated as proof of Cloud Run execution.
+Canonical worker/completion receipts, immutable output bytes, artifact
+QA/reconciliation, and GPU-active internal-cost evidence remain mandatory.
+
 ## Still blocked
 
 The candidate deliberately keeps all of these false:

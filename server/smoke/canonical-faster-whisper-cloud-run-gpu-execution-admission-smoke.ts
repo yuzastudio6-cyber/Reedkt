@@ -4,9 +4,11 @@ import {
   assertCanonicalFasterWhisperCloudRunGpuExecutionAdmissionCandidate,
   assertCanonicalFasterWhisperGpuBundleRequirementProjection,
   assertCanonicalFasterWhisperGpuRuntimeRequestCandidate,
+  assertCanonicalFasterWhisperGpuRuntimeResultCandidate,
   assertCanonicalFasterWhisperModelArtifactRequirementSet,
   createCanonicalFasterWhisperCloudRunGpuExecutionAdmissionCandidate,
   createCanonicalFasterWhisperGpuRuntimeRequestCandidate,
+  createCanonicalFasterWhisperGpuRuntimeResultCandidate,
   getCanonicalFasterWhisperModelArtifactRequirementSet,
   projectCanonicalFasterWhisperGpuBundleRequirements,
   type CanonicalFasterWhisperSourceAudioExpectationInput,
@@ -320,6 +322,10 @@ assert.equal(
   4,
 )
 assert.equal(
+  runtimeRequestCandidate.runnerRequest.requestBindingSha256.length,
+  64,
+)
+assert.equal(
   runtimeRequestCandidate.summary.requestContainsCallerPaths,
   false,
 )
@@ -352,6 +358,153 @@ assert.deepEqual(
   runtimeRequestCandidate,
 )
 
+const runtimeWireResponse = {
+  schemaVersion:
+    'canonical-faster-whisper-gpu-runtime-response-v1' as const,
+  ok: true as const,
+  status:
+    'controlled_faster_whisper_gpu_inference_completed' as const,
+  operationId:
+    'tool.faster_whisper.transcribe_private_audio.v1' as const,
+  admissionDigestSha256:
+    runtimeRequestCandidate.runnerRequest.admissionDigestSha256,
+  requestBindingSha256:
+    runtimeRequestCandidate.runnerRequest.requestBindingSha256,
+  dispatchIntentId:
+    runtimeRequestCandidate.runnerRequest.dispatch.dispatchIntentId,
+  runtimeIdentity: {
+    fasterWhisperVersion: '1.2.1' as const,
+    ctranslate2Version: '4.6.2' as const,
+    cudaDeviceCount: 1,
+    device: 'cuda' as const,
+    computeType: 'float16' as const,
+    runtimeRegion: 'europe-west1' as const,
+  },
+  outputs: [
+    {
+      canonicalOrder: 0 as const,
+      artifactKind: 'transcript_json' as const,
+      fileName: 'transcript.json' as const,
+      byteLength: 18_402,
+      contentSha256: '8'.repeat(64),
+    },
+    {
+      canonicalOrder: 1 as const,
+      artifactKind: 'caption_segments_json' as const,
+      fileName: 'caption-segments.json' as const,
+      byteLength: 5_817,
+      contentSha256: '9'.repeat(64),
+    },
+    {
+      canonicalOrder: 2 as const,
+      artifactKind: 'analysis_report' as const,
+      fileName: 'analysis-report.json' as const,
+      byteLength: 614,
+      contentSha256: 'a'.repeat(64),
+    },
+  ] as const,
+  receiptBoundaries: {
+    outputBytesIncluded: false as const,
+    transcriptTextIncluded: false as const,
+    sourceBytesIncluded: false as const,
+    modelBytesIncluded: false as const,
+    pathsIncluded: false as const,
+    urlsIncluded: false as const,
+    credentialsIncluded: false as const,
+    cpuFallbackAllowed: false as const,
+    runtimeDownloadAllowed: false as const,
+    networkFetchAllowed: false as const,
+    artifactCommitAuthority: false as const,
+    qaPassAuthority: false as const,
+    productionReady: false as const,
+  },
+}
+
+const runtimeResultCandidate =
+  await createCanonicalFasterWhisperGpuRuntimeResultCandidate({
+    runtimeRequestCandidate,
+    runtimeWireResponse,
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    source,
+    operationRequest,
+  })
+
+assert.equal(
+  runtimeResultCandidate.resultCandidateClass,
+  'untrusted_wire_structurally_verified_non_authoritative_gpu_result_candidate',
+)
+assert.equal(
+  runtimeResultCandidate.identity.runtimeRequestBindingSha256,
+  runtimeRequestCandidate.runnerRequest.requestBindingSha256,
+)
+assert.equal(
+  runtimeResultCandidate.runtimeWireReceipt.device,
+  'cuda',
+)
+assert.equal(
+  runtimeResultCandidate.runtimeWireReceipt.runtimeRegion,
+  'europe-west1',
+)
+assert.equal(
+  runtimeResultCandidate.runtimeWireReceipt.outputCount,
+  3,
+)
+assert.equal(
+  runtimeResultCandidate.runtimeWireReceipt.combinedOutputByteLength,
+  24_833,
+)
+assert.deepEqual(
+  runtimeResultCandidate.outputCandidates.map(
+    (output) => output.requiredQaGates,
+  ),
+  [
+    ['transcript_alignment'],
+    ['caption_timing'],
+    [],
+  ],
+)
+assert.equal(
+  runtimeResultCandidate.costEvidenceRequirements.allocatedGpuCount,
+  1,
+)
+assert.equal(
+  runtimeResultCandidate.boundaries.untrustedWireOnly,
+  true,
+)
+assert.equal(
+  runtimeResultCandidate.boundaries.actualCloudRunExecutionVerified,
+  false,
+)
+assert.equal(
+  runtimeResultCandidate.boundaries.outputArtifactCommitAuthority,
+  false,
+)
+assert.equal(
+  runtimeResultCandidate.boundaries.attemptInternalCostEvidenceVerified,
+  false,
+)
+assert.equal(
+  runtimeResultCandidate.boundaries.productionReady,
+  false,
+)
+assert.deepEqual(
+  await assertCanonicalFasterWhisperGpuRuntimeResultCandidate({
+    resultCandidate: structuredClone(runtimeResultCandidate),
+    runtimeRequestCandidate: structuredClone(runtimeRequestCandidate),
+    runtimeWireResponse: structuredClone(runtimeWireResponse),
+    value: structuredClone(candidate),
+    requirementSet: structuredClone(requirementSet),
+    requirementProjection: structuredClone(projection),
+    gpuBundle: structuredClone(gpuBundle),
+    source: structuredClone(source),
+    operationRequest: structuredClone(operationRequest),
+  }),
+  runtimeResultCandidate,
+)
+
 assert.equal(CANONICAL_PRIVATE_E2E_TOOL_IDS.length, 50)
 assert.equal(
   (CANONICAL_PRIVATE_E2E_TOOL_IDS as readonly string[])
@@ -380,6 +533,103 @@ await expectRejectsAsync(
   }),
   'runtime request caller path',
   'faster_whisper_gpu_runtime_request_candidate_mismatch',
+)
+await expectRejectsAsync(
+  () => createRuntimeResult({
+    ...runtimeWireResponse,
+    requestBindingSha256: '0'.repeat(64),
+  }),
+  'runtime result request binding substitution',
+  'faster_whisper_gpu_runtime_result_request_lineage_mismatch',
+)
+await expectRejectsAsync(
+  () => createRuntimeResult({
+    ...runtimeWireResponse,
+    runtimeIdentity: {
+      ...runtimeWireResponse.runtimeIdentity,
+      device: 'cpu',
+    },
+  }),
+  'runtime result CPU substitution',
+  'faster_whisper_gpu_runtime_result_wire_invalid',
+)
+await expectRejectsAsync(
+  () => createRuntimeResult({
+    ...runtimeWireResponse,
+    runtimeIdentity: {
+      ...runtimeWireResponse.runtimeIdentity,
+      runtimeRegion: 'us-east1',
+    },
+  }),
+  'runtime result region substitution',
+  'faster_whisper_gpu_runtime_result_wire_invalid',
+)
+await expectRejectsAsync(
+  () => createRuntimeResult({
+    ...runtimeWireResponse,
+    outputPath: '/tmp/transcript.json',
+  }),
+  'runtime result caller path field',
+  'faster_whisper_gpu_runtime_result_wire_invalid',
+)
+await expectRejectsAsync(
+  () => createRuntimeResult({
+    ...runtimeWireResponse,
+    outputs: [
+      runtimeWireResponse.outputs[1],
+      runtimeWireResponse.outputs[0],
+      runtimeWireResponse.outputs[2],
+    ],
+  }),
+  'runtime result output reorder',
+  'faster_whisper_gpu_runtime_result_wire_invalid',
+)
+await expectRejectsAsync(
+  () => createRuntimeResult({
+    ...runtimeWireResponse,
+    outputs: [
+      {
+        ...runtimeWireResponse.outputs[0],
+        byteLength: 33_554_433,
+      },
+      runtimeWireResponse.outputs[1],
+      runtimeWireResponse.outputs[2],
+    ],
+  }),
+  'runtime result output byte ceiling',
+  'faster_whisper_gpu_runtime_result_wire_invalid',
+)
+await expectRejectsAsync(
+  () => createRuntimeResult({
+    ...runtimeWireResponse,
+    receiptBoundaries: {
+      ...runtimeWireResponse.receiptBoundaries,
+      qaPassAuthority: true,
+    },
+  }),
+  'runtime result QA authority promotion',
+  'faster_whisper_gpu_runtime_result_wire_invalid',
+)
+await expectRejectsAsync(
+  () => assertCanonicalFasterWhisperGpuRuntimeResultCandidate({
+    resultCandidate: {
+      ...structuredClone(runtimeResultCandidate),
+      boundaries: {
+        ...runtimeResultCandidate.boundaries,
+        actualCloudRunExecutionVerified: true,
+      },
+    },
+    runtimeRequestCandidate,
+    runtimeWireResponse,
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    source,
+    operationRequest,
+  }),
+  'runtime result execution authority promotion',
+  'faster_whisper_gpu_runtime_result_candidate_mismatch',
 )
 await expectRejectsAsync(
   () => assertCanonicalFasterWhisperGpuRuntimeRequestCandidate({
@@ -676,6 +926,10 @@ console.log(JSON.stringify({
     runtimeRequestCandidate.serializedRunnerRequestByteLength,
   runtimeRequestCandidateOnly:
     runtimeRequestCandidate.boundaries.candidateOnly,
+  runtimeResultStructuralOnly:
+    runtimeResultCandidate.boundaries.structuralResultVerificationOnly,
+  runtimeResultOutputCandidates:
+    runtimeResultCandidate.outputCandidates.length,
   device: candidate.settings.device,
   computeType: candidate.settings.computeType,
   cpuFallbackAllowed:
@@ -699,6 +953,19 @@ function createCandidate(overrides: Partial<{
     source,
     operationRequest:
       overrides.operationRequest ?? operationRequest,
+  })
+}
+
+function createRuntimeResult(runtimeWireResponseValue: unknown) {
+  return createCanonicalFasterWhisperGpuRuntimeResultCandidate({
+    runtimeRequestCandidate,
+    runtimeWireResponse: runtimeWireResponseValue,
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    source,
+    operationRequest,
   })
 }
 

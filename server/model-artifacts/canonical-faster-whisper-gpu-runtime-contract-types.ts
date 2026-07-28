@@ -121,6 +121,8 @@ export interface CanonicalFasterWhisperGpuRuntimeContract {
     readonly maximumRequestBytes: 65_536
     readonly maximumSourceAudioBytes: 2_147_483_648
     readonly maximumSourceDurationMilliseconds: 7_200_000
+    readonly maximumSingleOutputBytes: 33_554_432
+    readonly maximumCombinedOutputBytes: 67_108_864
     readonly sourceAudioFormat:
       'wav_pcm_s16le_16000hz_mono'
     readonly device: 'cuda'
@@ -147,6 +149,7 @@ export interface CanonicalFasterWhisperGpuRuntimeContract {
     readonly fixedServerOwnedFileLayoutDeclared: true
     readonly cudaOnlyPreflightImplemented: true
     readonly localModelOnlyImplemented: true
+    readonly boundedPrivateOutputsImplemented: true
     readonly privateDigestOnlyReceiptImplemented: true
     readonly productionToolRegistryCountPreserved: true
   }

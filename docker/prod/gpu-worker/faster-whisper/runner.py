@@ -21,7 +21,8 @@ PRIVATE_OUTPUT_DIRECTORY = Path('/mnt/reeditpro/private-output')
 MAXIMUM_REQUEST_BYTES = 65_536
 MAXIMUM_SOURCE_AUDIO_BYTES = 2_147_483_648
 MAXIMUM_SOURCE_DURATION_MILLISECONDS = 7_200_000
-MAXIMUM_OUTPUT_BYTES = 64 * 1_024 * 1_024
+MAXIMUM_SINGLE_OUTPUT_BYTES = 32 * 1_024 * 1_024
+MAXIMUM_COMBINED_OUTPUT_BYTES = 64 * 1_024 * 1_024
 DIGEST_PATTERN = re.compile(r'^[a-f0-9]{64}$')
 SAFE_ID_PATTERN = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._:-]{7,239}$')
 
@@ -130,6 +131,7 @@ def validate_request(value):
             'source',
             'modelArtifacts',
             'settings',
+            'requestBindingSha256',
         ],
         'request',
     )
@@ -199,6 +201,26 @@ def validate_request(value):
         raise ValueError('runtime settings are unsupported')
     if request['modelArtifacts'] != list(MODEL_FILES):
         raise ValueError('model artifact set is unsupported')
+    request_binding = exact_digest(
+        request['requestBindingSha256'],
+        'request binding',
+    )
+    request_without_binding = {
+        key: nested
+        for key, nested in request.items()
+        if key != 'requestBindingSha256'
+    }
+    expected_request_binding = hashlib.sha256(
+        json.dumps(
+            request_without_binding,
+            sort_keys=True,
+            separators=(',', ':'),
+            ensure_ascii=True,
+            allow_nan=False,
+        ).encode('utf-8')
+    ).hexdigest()
+    if request_binding != expected_request_binding:
+        raise ValueError('runtime request binding changed')
     return request
 
 
@@ -430,17 +452,33 @@ def stable_json_bytes(value):
         ensure_ascii=True,
         allow_nan=False,
     ).encode('utf-8')
-    if len(encoded) < 2 or len(encoded) > MAXIMUM_OUTPUT_BYTES:
+    if (
+        len(encoded) < 2
+        or len(encoded) > MAXIMUM_SINGLE_OUTPUT_BYTES
+    ):
         raise ValueError('private output is outside bounds')
     return encoded
 
 
 def write_private_outputs(outputs):
-    receipts = []
-    for canonical_order, (artifact_kind, file_name) in enumerate(
-        OUTPUT_FILES
+    encoded_outputs = [
+        (
+            canonical_order,
+            artifact_kind,
+            file_name,
+            stable_json_bytes(outputs[artifact_kind]),
+        )
+        for canonical_order, (artifact_kind, file_name) in enumerate(
+            OUTPUT_FILES
+        )
+    ]
+    if (
+        sum(len(data) for _, _, _, data in encoded_outputs)
+        > MAXIMUM_COMBINED_OUTPUT_BYTES
     ):
-        data = stable_json_bytes(outputs[artifact_kind])
+        raise ValueError('combined private output is outside bounds')
+    receipts = []
+    for canonical_order, artifact_kind, file_name, data in encoded_outputs:
         destination = PRIVATE_OUTPUT_DIRECTORY / file_name
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
         if hasattr(os, 'O_NOFOLLOW'):
@@ -470,6 +508,7 @@ def success_response(request, ctranslate2, outputs):
         'status': 'controlled_faster_whisper_gpu_inference_completed',
         'operationId': OPERATION_ID,
         'admissionDigestSha256': request['admissionDigestSha256'],
+        'requestBindingSha256': request['requestBindingSha256'],
         'dispatchIntentId': request['dispatch']['dispatchIntentId'],
         'runtimeIdentity': {
             'fasterWhisperVersion': PACKAGE_VERSIONS['faster-whisper'],

@@ -7,6 +7,7 @@ export default defineConfig({
   testDir: './tests/e2e',
   testMatch: [
     '**/professional-long-form-customer-delivery-media-source.spec.ts',
+    '**/professional-long-form-customer-delivery-review-ui.spec.ts',
   ],
   outputDir: 'test-results/customer-delivery-media-source',
   fullyParallel: false,

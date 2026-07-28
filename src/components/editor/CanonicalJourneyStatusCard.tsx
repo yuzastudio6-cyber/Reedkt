@@ -18,6 +18,7 @@ import type { CanonicalEditJourneyHookResult } from '../../hooks/useCanonicalEdi
 import type { CanonicalExecutionPackageRequestHookResult } from '../../hooks/useCanonicalExecutionPackageRequest'
 import type { CanonicalPrivateEditPreparationHookResult } from '../../hooks/useCanonicalPrivateEditPreparation'
 import type { CanonicalPrivateReviewHookResult } from '../../hooks/useCanonicalPrivateReview'
+import { CanonicalCustomerDeliveryPanel } from './CanonicalCustomerDeliveryPanel'
 import { CanonicalPrivateReviewPanel } from './CanonicalPrivateReviewPanel'
 
 const toneIcon = {
@@ -279,7 +280,16 @@ export function CanonicalJourneyStatusCard({
           </div>
         )}
 
-        {canUsePrivateReview && privateReview && onLoadPrivateReview &&
+        {result.customerDelivery && (
+          <CanonicalCustomerDeliveryPanel
+            delivery={result.customerDelivery}
+            onRefresh={refreshSavedWorkflow}
+            refreshing={refreshing}
+          />
+        )}
+
+        {!result.customerDelivery &&
+          canUsePrivateReview && privateReview && onLoadPrivateReview &&
           onAcceptPrivateReview && onRequestPrivateReviewRevision && (
           <CanonicalPrivateReviewPanel
             journey={result.journey}

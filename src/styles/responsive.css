@@ -44,6 +44,26 @@
     flex-direction: column;
   }
 
+  .canonical-customer-delivery-heading,
+  .canonical-customer-delivery-watch-heading,
+  .canonical-customer-delivery-load {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .canonical-customer-delivery-decision-modes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .canonical-customer-delivery > .rp-button,
+  .canonical-customer-delivery-load .rp-button,
+  .canonical-customer-delivery-watch > .rp-button,
+  .canonical-customer-delivery-playback-status .rp-button,
+  .canonical-customer-delivery-decision > .rp-button {
+    justify-content: center;
+    width: 100%;
+  }
+
   .sfx-plan-entry-card,
   .music-plan-entry-card {
     align-items: stretch;

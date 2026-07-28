@@ -1096,21 +1096,35 @@ through the existing work-admission catalog. A fifth content-addressed
 requested SoundSync cues to exact frames derived from that same canonical
 segment and freezes the reference into the existing timing hash.
 
-This is not a second Living Frame workflow. It creates no estimate line,
-work item, asset-manifest entry, timing mutation, SoundSync decision, tool or
-provider route, artifact QA result, renderer payload, or private-review
-decision. The existing WeEditPro edit pipeline remains the only owner of those
-stages. Deliberate non-use may continue through ordinary approval. A selected
-scene now fails closed before credit reservation or snapshot creation until
-the remaining Slice 3C-B estimate bridge and Slice 4 timing/work/asset/QA
-projection are present. Approval and execution reload and verify the same
-selected-scene records; they cannot silently omit the selected skill from an
-otherwise valid final-render graph. See
+The server now also derives a sixth content-addressed
+`livingFrameEstimateWorkAssetProjection` record. It binds every currently
+required named work type to one existing exact-50 tool cost owner, a
+conservative mock-safe cost range, explicit resource placement, deterministic
+dependency ordering, and one expected output for the existing approved asset
+manifest. The current mask requirement is GPU-only on Google Cloud Run with no
+CPU fallback. This projection does not add a tool identity.
+
+This is not a second Living Frame workflow. The sixth record creates no
+customer estimate line, service fee, executable work item, asset-manifest
+entry, timing mutation, SoundSync decision, tool/provider dispatch route,
+artifact QA result, renderer payload, or private-review decision. Current
+fixture-only rembg, OpenImageIO, Sharp, and Remotion operations cannot be
+treated as real Living Frame dependency-input runtimes. The existing WeEditPro
+estimate, approval, work graph, asset manifest, QA, review, and renderer
+pipeline remains the only owner of those stages. Deliberate non-use may
+continue through ordinary approval. A selected scene fails closed before
+credit reservation or snapshot creation until the customer estimate/service
+fee is recalculated and the real dependency-input operations, canonical work
+items, assets, QA, and review are admitted. Approval and execution reload and
+verify the same selected-scene records; they cannot silently omit the selected
+skill from an otherwise valid final-render graph. See
 `docs/living-frame/living-frame-selected-scene-binding.md`.
 The exact requirements record is documented in
 `docs/living-frame/living-frame-execution-requirements.md`.
 The exact timing bridge is documented in
 `docs/living-frame/living-frame-canonical-timing-binding.md`.
+The exact cost/work/asset requirements projection is documented in
+`docs/living-frame/living-frame-canonical-estimate-work-asset-projection.md`.
 
 ### Slice 4: canonical timing, work, and asset mapping
 

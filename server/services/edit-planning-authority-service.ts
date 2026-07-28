@@ -117,6 +117,9 @@ import type {
 import type {
   CanonicalLivingFrameTimingBinding,
 } from '../../src/types/living-frame-timing-binding'
+import type {
+  CanonicalLivingFrameEstimateWorkAssetProjection,
+} from '../../src/types/living-frame-estimate-work-asset-projection'
 import {
   CANONICAL_LIVING_FRAME_TIMING_BINDING_COMPONENT_KEY,
 } from '../../src/types/living-frame-timing-binding'
@@ -136,6 +139,11 @@ import {
   persistCanonicalLivingFrameTimingBinding,
   prepareCanonicalLivingFrameTimingBinding,
 } from './canonical-living-frame-timing-binding-service'
+import {
+  loadCanonicalLivingFrameEstimateWorkAssetProjection,
+  persistCanonicalLivingFrameEstimateWorkAssetProjection,
+  prepareCanonicalLivingFrameEstimateWorkAssetProjection,
+} from './canonical-living-frame-estimate-work-asset-projection-service'
 
 export interface CanonicalApprovedExecutionWorkItem extends AuthorityApprovedWorkItemRecord {
   executionInput: Record<string, unknown>
@@ -162,6 +170,8 @@ export interface CanonicalApprovedExecutionAuthority {
     CanonicalLivingFrameExecutionRequirements
   livingFrameTimingBinding?:
     CanonicalLivingFrameTimingBinding
+  livingFrameEstimateWorkAssetProjection?:
+    CanonicalLivingFrameEstimateWorkAssetProjection
   workItems: CanonicalApprovedExecutionWorkItem[]
   jobs: AuthorityDerivedJobRecord[]
   testOnly: true
@@ -346,6 +356,13 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           requirements: livingFrameExecutionRequirements,
           components: body.canonicalPlan.components,
         })
+      const livingFrameEstimateWorkAssetProjection =
+        prepareCanonicalLivingFrameEstimateWorkAssetProjection({
+          publication: livingFrameSelectedScenePublication,
+          requirements: livingFrameExecutionRequirements,
+          timingBinding: livingFrameTimingBinding,
+          components: body.canonicalPlan.components,
+        })
       const professionalLongFormPublication = input.professionalLongFormSeedDraft === undefined
         ? undefined
         : prepareCanonicalProfessionalLongFormPublication({
@@ -439,12 +456,19 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           context,
           timingBinding: livingFrameTimingBinding,
         })
+      const livingFrameEstimateWorkAssetProjectionRefs =
+        await persistCanonicalLivingFrameEstimateWorkAssetProjection({
+          context,
+          projection:
+            livingFrameEstimateWorkAssetProjection,
+        })
       const baseComponentRefs = await persistPlanComponents(context, canonicalPlan.components)
       const componentRefs: Record<string, AuthorityJsonBlobRef> = {
         ...baseComponentRefs,
         ...livingFrameSelectedSceneRefs,
         ...livingFrameExecutionRequirementRefs,
         ...livingFrameTimingBindingRefs,
+        ...livingFrameEstimateWorkAssetProjectionRefs,
         ...(professionalLongFormPublication
           ? {
               [PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY]:
@@ -550,6 +574,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         livingFrameTimingBindingDigestSha256:
           livingFrameTimingBinding
             ?.timingBindingDigestSha256 ?? null,
+        livingFrameEstimateWorkAssetProjectionDigestSha256:
+          livingFrameEstimateWorkAssetProjection
+            ?.projectionDigestSha256 ?? null,
         planHash,
         estimateHash,
         actorUserId: access.userId,
@@ -884,10 +911,23 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             approvalLivingFrameExecutionRequirements,
           components: approvalComponents,
         })
+      const approvalLivingFrameEstimateWorkAssetProjection =
+        await loadCanonicalLivingFrameEstimateWorkAssetProjection({
+          context,
+          componentRefs: targetPlan.componentRefs,
+          publication:
+            approvalLivingFrameSelectedSceneAuthority,
+          requirements:
+            approvalLivingFrameExecutionRequirements,
+          timingBinding:
+            approvalLivingFrameTimingBinding,
+          components: approvalComponents,
+        })
       assertLivingFrameExecutionAuthorityReady(
         approvalLivingFrameSelectedSceneAuthority,
         approvalLivingFrameExecutionRequirements,
         approvalLivingFrameTimingBinding,
+        approvalLivingFrameEstimateWorkAssetProjection,
       )
       const approvalLongFormPublication =
         await loadCanonicalProfessionalLongFormPublicationAuthority({
@@ -1046,6 +1086,18 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
                 lockedLivingFrameExecutionRequirements,
               components: approvalComponents,
             })
+          const lockedLivingFrameEstimateWorkAssetProjection =
+            await loadCanonicalLivingFrameEstimateWorkAssetProjection({
+              context,
+              componentRefs: plan.componentRefs,
+              publication:
+                lockedLivingFrameSelectedSceneAuthority,
+              requirements:
+                lockedLivingFrameExecutionRequirements,
+              timingBinding:
+                lockedLivingFrameTimingBinding,
+              components: approvalComponents,
+            })
           if (
             stableAuthorityStringify(
               lockedLivingFrameSelectedSceneAuthority ?? null,
@@ -1085,10 +1137,24 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
               409,
             )
           }
+          if (
+            stableAuthorityStringify(
+              lockedLivingFrameEstimateWorkAssetProjection ?? null,
+            ) !== stableAuthorityStringify(
+              approvalLivingFrameEstimateWorkAssetProjection ?? null,
+            )
+          ) {
+            throw new ApiError(
+              'IDEMPOTENCY_CONFLICT',
+              'Canonical Living Frame estimate/work/asset projection changed before approval.',
+              409,
+            )
+          }
           assertLivingFrameExecutionAuthorityReady(
             lockedLivingFrameSelectedSceneAuthority,
             lockedLivingFrameExecutionRequirements,
             lockedLivingFrameTimingBinding,
+            lockedLivingFrameEstimateWorkAssetProjection,
           )
           if (plan.status !== 'presented') throw new ApiError('PLAN_NOT_APPROVED', 'Only the current presented plan can be approved.', 409)
           if (estimate.status !== 'presented') throw new ApiError('CREDIT_ESTIMATE_NOT_APPROVED', 'Only the current presented estimate can be approved.', 409)
@@ -1674,10 +1740,23 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           requirements: livingFrameExecutionRequirements,
           components: approvedComponents,
         })
+      const livingFrameEstimateWorkAssetProjection =
+        await loadCanonicalLivingFrameEstimateWorkAssetProjection({
+          context,
+          componentRefs: snapshot.componentRefs,
+          publication:
+            livingFrameSelectedSceneAuthority,
+          requirements:
+            livingFrameExecutionRequirements,
+          timingBinding:
+            livingFrameTimingBinding,
+          components: approvedComponents,
+        })
       assertLivingFrameExecutionAuthorityReady(
         livingFrameSelectedSceneAuthority,
         livingFrameExecutionRequirements,
         livingFrameTimingBinding,
+        livingFrameEstimateWorkAssetProjection,
       )
       await revalidatePlanningInputAuthorityBinding({
         context,
@@ -1849,6 +1928,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         livingFrameSelectedSceneAuthority,
         livingFrameExecutionRequirements,
         livingFrameTimingBinding,
+        livingFrameEstimateWorkAssetProjection,
         toolExecutionAuthority,
         toolPayloadAuthority,
         sourceAssetManifest,
@@ -1870,11 +1950,15 @@ function assertLivingFrameExecutionAuthorityReady(
   timingBinding:
     | CanonicalLivingFrameTimingBinding
     | undefined,
+  estimateWorkAssetProjection:
+    | CanonicalLivingFrameEstimateWorkAssetProjection
+    | undefined,
 ): void {
   if (publication === undefined) {
     if (
       requirements !== undefined
       || timingBinding !== undefined
+      || estimateWorkAssetProjection !== undefined
     ) {
       throw new ApiError(
         'IDEMPOTENCY_CONFLICT',
@@ -1898,6 +1982,13 @@ function assertLivingFrameExecutionAuthorityReady(
       409,
     )
   }
+  if (!estimateWorkAssetProjection) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Canonical Living Frame selected-scene lineage is missing its estimate/work/asset projection.',
+      409,
+    )
+  }
   if (
     publication.binding.deliberateNonUse
     || publication.binding.selectedSceneCount === 0
@@ -1909,6 +2000,9 @@ function assertLivingFrameExecutionAuthorityReady(
       || requirements.blockerCodes.length !== 0
       || !timingBinding.deliberateNonUse
       || timingBinding.scenes.length !== 0
+      || estimateWorkAssetProjection.readiness !==
+        'ready_without_living_frame_projection'
+      || estimateWorkAssetProjection.scenes.length !== 0
     ) {
       throw new ApiError(
         'IDEMPOTENCY_CONFLICT',
@@ -1929,6 +2023,16 @@ function assertLivingFrameExecutionAuthorityReady(
     || timingBinding.sourceBindings
       .executionRequirementsDigestSha256 !==
       requirements.requirementsDigestSha256
+    || estimateWorkAssetProjection.readiness !==
+      'requirements_projected_execution_admission_pending'
+    || estimateWorkAssetProjection.scenes.length !==
+      publication.binding.selectedSceneCount
+    || estimateWorkAssetProjection.sourceBindings
+      .executionRequirementsDigestSha256 !==
+      requirements.requirementsDigestSha256
+    || estimateWorkAssetProjection.sourceBindings
+      .timingBindingDigestSha256 !==
+      timingBinding.timingBindingDigestSha256
   ) {
     throw new ApiError(
       'IDEMPOTENCY_CONFLICT',
@@ -1939,7 +2043,7 @@ function assertLivingFrameExecutionAuthorityReady(
 
   throw new ApiError(
     'TOOL_NOT_READY',
-    'Selected Living Frame scenes now have exact MasterTiming and SoundSync cue placement, but cannot be approved until their estimate, named work items, asset outputs, QA, and private-review dependencies are frozen in the canonical edit graph.',
+    'Selected Living Frame scenes now have exact MasterTiming, SoundSync cue placement, tool-cost bases, named-work requirements, and expected-asset requirements, but cannot be approved until the customer estimate/service fee is recalculated and the real dependency-input operations, approved work graph, asset manifest, QA, and private review are frozen.',
     409,
     {
       requiredGate:
@@ -1948,6 +2052,14 @@ function assertLivingFrameExecutionAuthorityReady(
         requirements.requirementsDigestSha256,
       timingBindingDigestSha256:
         timingBinding.timingBindingDigestSha256,
+      estimateWorkAssetProjectionDigestSha256:
+        estimateWorkAssetProjection.projectionDigestSha256,
+      projectedMaximumInternalToolCostCredits:
+        estimateWorkAssetProjection.metrics
+          .projectedMaximumInternalToolCostCredits,
+      projectedGpuWorkItemCount:
+        estimateWorkAssetProjection.metrics
+          .projectedGpuWorkItemCount,
       selectedSceneIds: requirements.scenes.map(
         (scene) => scene.sceneId,
       ),

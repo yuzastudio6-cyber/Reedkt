@@ -116,6 +116,9 @@ import {
 import {
   CANONICAL_LIVING_FRAME_TIMING_BINDING_COMPONENT_KEY,
 } from '../../src/types/living-frame-timing-binding'
+import {
+  CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY,
+} from '../../src/types/living-frame-estimate-work-asset-projection'
 import type { LivingFrameVisualContinuityPack } from
   '../../src/types/living-frame-visual-continuity'
 import {
@@ -4064,6 +4067,7 @@ console.log(JSON.stringify({
     'preference_dna_and_edit_brief_frozen_into_plan',
     'edit_brief_post_approval_mutation_blocked',
     'selected_living_frame_scene_fails_closed_before_approval_without_exact_execution_authority',
+    'living_frame_exact_50_tool_cost_named_work_and_expected_asset_requirements_projected_without_execution_promotion',
     'frame_confirmation_gate',
     '4k_estimate_exact_timing_gate',
     '4k_estimate_versioned_cost_derivation_gate',
@@ -5447,6 +5451,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     CANONICAL_LIVING_FRAME_SEMANTIC_PLAN_PROJECTION_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_EXECUTION_REQUIREMENTS_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_TIMING_BINDING_COMPONENT_KEY,
+    CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY,
   ]) {
     assert.ok(
       asRecord(publishedRefs[key]).sha256,
@@ -5578,6 +5583,149 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       endFrameExclusive: 18,
       durationFrames: 6,
     },
+  )
+  const estimateWorkAssetProjection =
+    asRecord(await readPrivateAuthorityJsonBlob({
+      localStorageRoot:
+        serviceContext.env.localStorageRoot,
+      ref: publishedRefs[
+        CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY
+      ] as {
+        sha256: string
+        byteLength: number
+      },
+    }))
+  assert.equal(
+    estimateWorkAssetProjection.readiness,
+    'requirements_projected_execution_admission_pending',
+  )
+  assert.equal(
+    estimateWorkAssetProjection.productEditLevel,
+    'normal',
+  )
+  assert.equal(
+    estimateWorkAssetProjection.customerEstimateRecalculationRequired,
+    true,
+  )
+  assert.equal(
+    estimateWorkAssetProjection.createsCanonicalWorkItems,
+    false,
+  )
+  assert.equal(
+    estimateWorkAssetProjection.createsAssetManifestEntries,
+    false,
+  )
+  assert.equal(
+    estimateWorkAssetProjection.expandsExactFiftyToolRegistry,
+    false,
+  )
+  const projectionMetrics =
+    asRecord(estimateWorkAssetProjection.metrics)
+  assert.deepEqual(
+    {
+      projectedEstimateLineItemCount:
+        projectionMetrics.projectedEstimateLineItemCount,
+      projectedNamedWorkItemCount:
+        projectionMetrics.projectedNamedWorkItemCount,
+      projectedExpectedAssetCount:
+        projectionMetrics.projectedExpectedAssetCount,
+      projectedGpuWorkItemCount:
+        projectionMetrics.projectedGpuWorkItemCount,
+      projectedMaximumInternalToolCostCredits:
+        projectionMetrics.projectedMaximumInternalToolCostCredits,
+      exactProductionToolRegistryCount:
+        projectionMetrics.exactProductionToolRegistryCount,
+    },
+    {
+      projectedEstimateLineItemCount: 4,
+      projectedNamedWorkItemCount: 4,
+      projectedExpectedAssetCount: 4,
+      projectedGpuWorkItemCount: 1,
+      projectedMaximumInternalToolCostCredits: 4,
+      exactProductionToolRegistryCount: 50,
+    },
+  )
+  const projectedScenes = estimateWorkAssetProjection.scenes
+  assert.ok(Array.isArray(projectedScenes))
+  assert.equal(projectedScenes.length, 1)
+  const projectedScene = asRecord(projectedScenes[0])
+  const projectedEstimateLines =
+    projectedScene.estimateLineItems
+  assert.ok(Array.isArray(projectedEstimateLines))
+  assert.deepEqual(
+    projectedEstimateLines.map((line) => {
+      const record = asRecord(line)
+      return {
+        workItemType: record.workItemType,
+        costOwnerToolId: record.costOwnerToolId,
+        executionPlacement: record.executionPlacement,
+        cpuFallbackAllowed: record.cpuFallbackAllowed,
+        estimatedCredits: record.estimatedCredits,
+        serviceFeeIncluded:
+          asRecord(record.costRange).serviceFeeIncluded,
+      }
+    }),
+    [
+      {
+        workItemType: 'generate_mask_asset',
+        costOwnerToolId: 'rembg',
+        executionPlacement: 'google_cloud_run_gpu',
+        cpuFallbackAllowed: false,
+        estimatedCredits: 1,
+        serviceFeeIncluded: false,
+      },
+      {
+        workItemType: 'prepare_remotion_layer',
+        costOwnerToolId: 'remotion',
+        executionPlacement: 'private_render_worker',
+        cpuFallbackAllowed: true,
+        estimatedCredits: 1,
+        serviceFeeIncluded: false,
+      },
+      {
+        workItemType: 'process_image_asset',
+        costOwnerToolId: 'sharp',
+        executionPlacement: 'private_render_worker',
+        cpuFallbackAllowed: true,
+        estimatedCredits: 1,
+        serviceFeeIncluded: false,
+      },
+      {
+        workItemType: 'reconstruct_background_plate',
+        costOwnerToolId: 'openimageio',
+        executionPlacement: 'private_cpu_worker',
+        cpuFallbackAllowed: true,
+        estimatedCredits: 1,
+        serviceFeeIncluded: false,
+      },
+    ],
+  )
+  const projectedWorkRequirements =
+    projectedScene.workRequirements
+  assert.ok(Array.isArray(projectedWorkRequirements))
+  assert.equal(
+    projectedWorkRequirements.every((work) => {
+      const record = asRecord(work)
+      const output = asRecord(record.expectedOutput)
+      return (
+        record.currentRuntimeAdmission ===
+          'blocked_until_real_dependency_input_operation_is_admitted'
+        && record.workGraphMutationAuthorized === false
+        && record.executablePayloadPresent === false
+        && output.required === true
+        && output.previewPlaceholderAllowed === false
+        && output.assetManifestEntryRequiredAfterApproval === true
+      )
+    }),
+    true,
+  )
+  const publishedEstimateLines = publishedEstimate.lineItems
+  assert.ok(Array.isArray(publishedEstimateLines))
+  assert.equal(
+    publishedEstimateLines.some((line) =>
+      asRecord(line).category === 'living_frame'),
+    false,
+    'Projection-only cost bases must not masquerade as the recalculated customer estimate.',
   )
 
   const planningService =

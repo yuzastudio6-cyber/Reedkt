@@ -1097,14 +1097,24 @@ requested SoundSync cues to exact frames derived from that same canonical
 segment and freezes the reference into the existing timing hash.
 
 The server now also derives a sixth content-addressed
-`livingFrameEstimateWorkAssetProjection` record. It binds every currently
-required named work type to one existing exact-50 tool cost owner, a
-conservative mock-safe cost range, explicit resource placement, deterministic
-dependency ordering, and one expected output for the existing approved asset
-manifest. The current mask requirement is GPU-only on Google Cloud Run with no
-CPU fallback. This projection does not add a tool identity.
+`livingFrameAssetWorkInputBinding` record. It recomputes the selected
+synthesis route and asset-intent graph, binds approved-source intents to the
+exact current source-media and cleanup authority, and refines broad
+capability-derived work requirements against the actual selected asset chain.
+This prevents over-broad work from entering the estimate: the controlled
+source-derived scene fixture needs mask generation, RGBA processing, and
+Remotion layer preparation, but no reconstructed background plate.
 
-This is not a second Living Frame workflow. The sixth record creates no
+A seventh content-addressed
+`livingFrameEstimateWorkAssetProjection` record consumes that exact input
+binding. It binds every refined named work type to one existing exact-50 tool
+cost owner, a conservative mock-safe cost range, explicit resource placement,
+deterministic dependency ordering, exact asset-intent inputs/outputs, and one
+expected output for the existing approved asset manifest. The current mask
+requirement is GPU-only on Google Cloud Run with no CPU fallback. Neither
+record adds a tool identity.
+
+This is not a second Living Frame workflow. The sixth and seventh records create no
 customer estimate line, service fee, executable work item, asset-manifest
 entry, timing mutation, SoundSync decision, tool/provider dispatch route,
 artifact QA result, renderer payload, or private-review decision. Current
@@ -1123,6 +1133,8 @@ The exact requirements record is documented in
 `docs/living-frame/living-frame-execution-requirements.md`.
 The exact timing bridge is documented in
 `docs/living-frame/living-frame-canonical-timing-binding.md`.
+The exact source/asset/work input bridge is documented in
+`docs/living-frame/living-frame-canonical-asset-work-input-binding.md`.
 The exact cost/work/asset requirements projection is documented in
 `docs/living-frame/living-frame-canonical-estimate-work-asset-projection.md`.
 

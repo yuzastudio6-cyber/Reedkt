@@ -3,7 +3,7 @@ import type {
 } from './editing-agent-runtime'
 
 export const CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_VERSION =
-  'canonical-living-frame-estimate-work-asset-projection-v1' as const
+  'canonical-living-frame-estimate-work-asset-projection-v2' as const
 
 export const CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_SOURCE =
   'canonical_living_frame_estimate_work_asset_projection_compiler' as const
@@ -88,6 +88,8 @@ export interface CanonicalLivingFrameProjectedWorkRequirement {
   readonly workItemType:
     CanonicalLivingFrameProjectedWorkItemType
   readonly dependencyWorkItemKeys: readonly string[]
+  readonly inputAssetIntentIds: readonly string[]
+  readonly outputAssetIntentIds: readonly string[]
   readonly costOwnerToolId:
     CanonicalLivingFrameProjectedToolId
   readonly costOwnerOperationId: string
@@ -161,6 +163,7 @@ export interface CanonicalLivingFrameEstimateWorkAssetProjectionDraft {
     readonly selectedSceneBindingDigestSha256: string
     readonly executionRequirementsDigestSha256: string
     readonly timingBindingDigestSha256: string
+    readonly assetWorkInputBindingDigestSha256: string
     readonly currentMasterTimingDigestSha256: string
     readonly currentSoundSyncDigestSha256: string
     readonly confirmedSettingsDigestSha256: string

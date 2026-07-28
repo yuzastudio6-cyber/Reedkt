@@ -1,4 +1,7 @@
 import type {
+  CanonicalLivingFrameAssetWorkInputBinding,
+} from '../../src/types/living-frame-asset-work-input-binding'
+import type {
   CanonicalLivingFrameExecutionRequirements,
 } from '../../src/types/living-frame-execution-requirements'
 import {
@@ -54,8 +57,6 @@ interface WorkProjectionProfile {
   readonly cpuFallbackAllowed: boolean
   readonly artifactType: string
   readonly contentType: 'application/json' | 'image/png'
-  readonly dependencyTypes:
-    readonly CanonicalLivingFrameProjectedWorkItemType[]
 }
 
 const WORK_PROJECTION_PROFILES: Readonly<
@@ -75,7 +76,6 @@ const WORK_PROJECTION_PROFILES: Readonly<
     cpuFallbackAllowed: false,
     artifactType: 'living_frame_alpha_mask_png',
     contentType: 'image/png',
-    dependencyTypes: [],
   },
   process_image_asset: {
     toolId: 'sharp',
@@ -86,7 +86,6 @@ const WORK_PROJECTION_PROFILES: Readonly<
     cpuFallbackAllowed: true,
     artifactType: 'living_frame_component_rgba_png',
     contentType: 'image/png',
-    dependencyTypes: ['generate_mask_asset'],
   },
   reconstruct_background_plate: {
     toolId: 'openimageio',
@@ -97,7 +96,6 @@ const WORK_PROJECTION_PROFILES: Readonly<
     cpuFallbackAllowed: true,
     artifactType: 'living_frame_background_plate_png',
     contentType: 'image/png',
-    dependencyTypes: ['generate_mask_asset'],
   },
   prepare_remotion_layer: {
     toolId: 'remotion',
@@ -108,11 +106,6 @@ const WORK_PROJECTION_PROFILES: Readonly<
     cpuFallbackAllowed: true,
     artifactType: 'living_frame_remotion_layer_manifest',
     contentType: 'application/json',
-    dependencyTypes: [
-      'generate_mask_asset',
-      'process_image_asset',
-      'reconstruct_background_plate',
-    ],
   },
 })
 
@@ -147,6 +140,8 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
       CanonicalLivingFrameExecutionRequirements
     readonly timingBinding:
       CanonicalLivingFrameTimingBinding
+    readonly assetWorkInputBinding:
+      CanonicalLivingFrameAssetWorkInputBinding
     readonly components: CanonicalPlanComponentsInput
   },
 ): CanonicalLivingFrameEstimateWorkAssetProjection {
@@ -162,27 +157,32 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
   )
   const scenes = input.requirements.scenes.map(
     (scene, sceneIndex) => {
+      const assetWorkScene =
+        input.assetWorkInputBinding.scenes.find(
+          (candidate) =>
+            candidate.sceneId === scene.sceneId,
+        )
       const timingScene = input.timingBinding.scenes.find(
         (candidate) => candidate.sceneId === scene.sceneId,
       )
-      if (!timingScene) {
+      if (!timingScene || !assetWorkScene) {
         throw conflict(
-          'Canonical Living Frame work projection cannot find the exact scene timing binding.',
+          'Canonical Living Frame work projection cannot find the exact scene timing and asset/work input binding.',
         )
       }
       const sceneKey = `lf-${String(sceneIndex + 1).padStart(3, '0')}-${sha256AuthorityValue(scene.sceneId).slice(0, 12)}`
       const workKeyByType = new Map(
-        scene.requiredNamedWorkItemTypes.map((workItemType) => [
+        assetWorkScene.refinedRequiredNamedWorkItemTypes.map((workItemType) => [
           workItemType,
           `${sceneKey}-${workItemType.replaceAll('_', '-')}`,
         ]),
       )
       const workRequirements =
-        scene.requiredNamedWorkItemTypes.map((workItemType) =>
+        assetWorkScene.namedWorkInputs.map((workInput) =>
           compileWorkRequirement({
             scene,
             timingScene,
-            workItemType,
+            workInput,
             workKeyByType,
           }))
       const estimateLineItems = workRequirements.map(
@@ -234,6 +234,8 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
           input.requirements.requirementsDigestSha256,
         timingBindingDigestSha256:
           input.timingBinding.timingBindingDigestSha256,
+        assetWorkInputBindingDigestSha256:
+          input.assetWorkInputBinding.bindingDigestSha256,
         currentMasterTimingDigestSha256:
           sha256AuthorityValue(
             input.components.masterTimingPlan,
@@ -305,6 +307,8 @@ export function verifyCanonicalLivingFrameEstimateWorkAssetProjection(
       CanonicalLivingFrameExecutionRequirements
     readonly timingBinding:
       CanonicalLivingFrameTimingBinding
+    readonly assetWorkInputBinding:
+      CanonicalLivingFrameAssetWorkInputBinding
     readonly components: CanonicalPlanComponentsInput
   },
 ): input is {
@@ -316,6 +320,8 @@ export function verifyCanonicalLivingFrameEstimateWorkAssetProjection(
     CanonicalLivingFrameExecutionRequirements
   readonly timingBinding:
     CanonicalLivingFrameTimingBinding
+  readonly assetWorkInputBinding:
+    CanonicalLivingFrameAssetWorkInputBinding
   readonly components: CanonicalPlanComponentsInput
 } {
   try {
@@ -324,6 +330,8 @@ export function verifyCanonicalLivingFrameEstimateWorkAssetProjection(
         publication: input.publication,
         requirements: input.requirements,
         timingBinding: input.timingBinding,
+        assetWorkInputBinding:
+          input.assetWorkInputBinding,
         components: input.components,
       })
     return (
@@ -349,30 +357,36 @@ function compileWorkRequirement(input: {
     CanonicalLivingFrameExecutionRequirements['scenes'][number]
   readonly timingScene:
     CanonicalLivingFrameTimingBinding['scenes'][number]
-  readonly workItemType:
-    CanonicalLivingFrameProjectedWorkItemType
+  readonly workInput:
+    CanonicalLivingFrameAssetWorkInputBinding[
+      'scenes'
+    ][number]['namedWorkInputs'][number]
   readonly workKeyByType: ReadonlyMap<
     CanonicalLivingFrameProjectedWorkItemType,
     string
   >
 }): CanonicalLivingFrameProjectedWorkRequirement {
   const profile =
-    WORK_PROJECTION_PROFILES[input.workItemType]
+    WORK_PROJECTION_PROFILES[
+      input.workInput.workItemType
+    ]
   if (!profile) {
     throw conflict(
-      `Canonical Living Frame named work type ${input.workItemType} has no admitted exact-50 cost and asset projection.`,
+      `Canonical Living Frame named work type ${input.workInput.workItemType} has no admitted exact-50 cost and asset projection.`,
     )
   }
   assertExactToolOperation(profile)
   const workItemKey =
-    input.workKeyByType.get(input.workItemType)
+    input.workKeyByType.get(
+      input.workInput.workItemType,
+    )
   if (!workItemKey) {
     throw conflict(
       'Canonical Living Frame named work projection lost its deterministic work-item key.',
     )
   }
   const dependencyWorkItemKeys =
-    profile.dependencyTypes.flatMap(
+    input.workInput.dependencyNamedWorkItemTypes.flatMap(
       (dependencyType) => {
         const dependency =
           input.workKeyByType.get(dependencyType)
@@ -382,8 +396,14 @@ function compileWorkRequirement(input: {
   return {
     workItemKey,
     sceneId: input.scene.sceneId,
-    workItemType: input.workItemType,
+    workItemType: input.workInput.workItemType,
     dependencyWorkItemKeys,
+    inputAssetIntentIds: [
+      ...input.workInput.inputAssetIntentIds,
+    ],
+    outputAssetIntentIds: [
+      ...input.workInput.outputAssetIntentIds,
+    ],
     costOwnerToolId: profile.toolId,
     costOwnerOperationId: profile.operationId,
     executionPlacement: profile.executionPlacement,
@@ -530,6 +550,8 @@ function assertSourceLineage(input: {
     CanonicalLivingFrameExecutionRequirements
   readonly timingBinding:
     CanonicalLivingFrameTimingBinding
+  readonly assetWorkInputBinding:
+    CanonicalLivingFrameAssetWorkInputBinding
   readonly components: CanonicalPlanComponentsInput
 }): void {
   const binding = input.publication.binding
@@ -543,6 +565,15 @@ function assertSourceLineage(input: {
     || input.timingBinding.sourceBindings
       .executionRequirementsDigestSha256 !==
       input.requirements.requirementsDigestSha256
+    || input.assetWorkInputBinding.sourceBindings
+      .selectedSceneBindingDigestSha256 !==
+      binding.bindingDigestSha256
+    || input.assetWorkInputBinding.sourceBindings
+      .executionRequirementsDigestSha256 !==
+      input.requirements.requirementsDigestSha256
+    || input.assetWorkInputBinding.sourceBindings
+      .timingBindingDigestSha256 !==
+      input.timingBinding.timingBindingDigestSha256
     || input.requirements.sourceBindings
       .currentMasterTimingDigestSha256 !==
       sha256AuthorityValue(
@@ -562,6 +593,8 @@ function assertSourceLineage(input: {
       input.requirements.scenes.length
     || binding.selectedSceneCount !==
       input.timingBinding.scenes.length
+    || binding.selectedSceneCount !==
+      input.assetWorkInputBinding.scenes.length
     || binding.deliberateNonUse !==
       (input.requirements.scenes.length === 0)
   ) {

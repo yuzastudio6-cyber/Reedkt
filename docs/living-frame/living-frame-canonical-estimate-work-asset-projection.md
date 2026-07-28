@@ -4,9 +4,10 @@ Status: private/internal, server-derived requirements projection. It is not
 customer commercial authority and does not execute a tool, create a work item,
 or create an asset-manifest entry.
 
-The projection consumes the exact persisted Living Frame selected-scene
-publication, named execution requirements, MasterTiming/SoundSync binding, and
-current confirmed settings. For each selected scene it derives:
+The v2 projection consumes the exact persisted Living Frame selected-scene
+publication, named execution requirements, MasterTiming/SoundSync binding,
+server-derived asset/work input binding, and current confirmed settings. For
+each selected scene it derives:
 
 - a conservative estimate-only cost basis from existing exact-50 tool owners;
 - one deterministic requirement for each existing named work-item type;
@@ -20,7 +21,7 @@ The current bounded mapping is:
 | --- | --- | --- |
 | `generate_mask_asset` | `rembg` | Google Cloud Run GPU; no CPU fallback |
 | `process_image_asset` | `sharp` | private render worker |
-| `reconstruct_background_plate` | `openimageio` | private CPU worker |
+| `reconstruct_background_plate` | `openimageio` | private CPU worker, only when the selected asset-intent graph actually requires a reconstructed plate |
 | `prepare_remotion_layer` | `remotion` | private render worker |
 
 These are cost and requirement owners, not executable route authorization.
@@ -38,3 +39,9 @@ closed.
 
 This adds no tool identity. The exact 50-tool registry is revalidated before the
 projection can be compiled.
+
+Broad capability coverage is no longer treated as proof that every candidate
+asset-producing operation is required. The exact selected component
+asset-intent graph refines the work set first. This prevents a scene that only
+needs a source-derived mask and RGBA component from being charged for an
+unneeded background reconstruction.

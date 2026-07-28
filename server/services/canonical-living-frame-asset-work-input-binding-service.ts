@@ -1,10 +1,7 @@
 import {
+  CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_COMPONENT_KEY,
   type CanonicalLivingFrameAssetWorkInputBinding,
 } from '../../src/types/living-frame-asset-work-input-binding'
-import {
-  CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY,
-  type CanonicalLivingFrameEstimateWorkAssetProjection,
-} from '../../src/types/living-frame-estimate-work-asset-projection'
 import type {
   CanonicalLivingFrameExecutionRequirements,
 } from '../../src/types/living-frame-execution-requirements'
@@ -15,21 +12,24 @@ import type {
   CanonicalLivingFrameTimingBinding,
 } from '../../src/types/living-frame-timing-binding'
 import {
-  compileCanonicalLivingFrameEstimateWorkAssetProjection,
-  verifyCanonicalLivingFrameEstimateWorkAssetProjection,
-} from '../living-frame/canonical-living-frame-estimate-work-asset-projection'
+  compileCanonicalLivingFrameAssetWorkInputBinding,
+  verifyCanonicalLivingFrameAssetWorkInputBinding,
+} from '../living-frame/canonical-living-frame-asset-work-input-binding'
 import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import type {
   CanonicalPlanComponentsInput,
 } from '../validation/edit-planning-authority-schemas'
+import type {
+  SourceBindingManifestCandidate,
+} from '../validation/source-media-authority-schemas'
 import {
   type AuthorityJsonBlobRef,
   putPrivateAuthorityJsonBlob,
   readPrivateAuthorityJsonBlob,
 } from './private-edit-authority-store'
 
-export function prepareCanonicalLivingFrameEstimateWorkAssetProjection(
+export async function prepareCanonicalLivingFrameAssetWorkInputBinding(
   input: {
     readonly publication:
       CanonicalLivingFrameSelectedScenePublication | undefined
@@ -37,16 +37,17 @@ export function prepareCanonicalLivingFrameEstimateWorkAssetProjection(
       CanonicalLivingFrameExecutionRequirements | undefined
     readonly timingBinding:
       CanonicalLivingFrameTimingBinding | undefined
-    readonly assetWorkInputBinding:
-      CanonicalLivingFrameAssetWorkInputBinding | undefined
     readonly components: CanonicalPlanComponentsInput
+    readonly sourceMediaAuthority:
+      SourceBindingManifestCandidate
   },
-): CanonicalLivingFrameEstimateWorkAssetProjection | undefined {
+): Promise<
+  CanonicalLivingFrameAssetWorkInputBinding | undefined
+> {
   if (
     !input.publication
     && !input.requirements
     && !input.timingBinding
-    && !input.assetWorkInputBinding
   ) {
     return undefined
   }
@@ -54,43 +55,41 @@ export function prepareCanonicalLivingFrameEstimateWorkAssetProjection(
     !input.publication
     || !input.requirements
     || !input.timingBinding
-    || !input.assetWorkInputBinding
   ) {
     throw conflict(
-      'Canonical Living Frame estimate/work/asset projection requires selected-scene, execution, timing, and asset/work input lineage together.',
+      'Canonical Living Frame asset/work input binding requires selected-scene, execution, and timing lineage together.',
     )
   }
-  return compileCanonicalLivingFrameEstimateWorkAssetProjection({
+  return compileCanonicalLivingFrameAssetWorkInputBinding({
     publication: input.publication,
     requirements: input.requirements,
     timingBinding: input.timingBinding,
-    assetWorkInputBinding:
-      input.assetWorkInputBinding,
     components: input.components,
+    sourceMediaAuthority: input.sourceMediaAuthority,
   })
 }
 
-export async function persistCanonicalLivingFrameEstimateWorkAssetProjection(
+export async function persistCanonicalLivingFrameAssetWorkInputBinding(
   input: {
     readonly context: ServiceContext
-    readonly projection:
-      CanonicalLivingFrameEstimateWorkAssetProjection | undefined
+    readonly binding:
+      CanonicalLivingFrameAssetWorkInputBinding | undefined
   },
 ): Promise<Record<string, AuthorityJsonBlobRef>> {
-  if (!input.projection) return {}
+  if (!input.binding) return {}
   return {
-    [CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY]:
+    [CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_COMPONENT_KEY]:
       await putPrivateAuthorityJsonBlob({
         localStorageRoot:
           input.context.env.localStorageRoot,
         value:
-          input.projection as unknown as Record<string, unknown>,
+          input.binding as unknown as Record<string, unknown>,
         maxBytes: 2 * 1024 * 1024,
       }),
   }
 }
 
-export async function loadCanonicalLivingFrameEstimateWorkAssetProjection(
+export async function loadCanonicalLivingFrameAssetWorkInputBinding(
   input: {
     readonly context: ServiceContext
     readonly componentRefs:
@@ -101,20 +100,21 @@ export async function loadCanonicalLivingFrameEstimateWorkAssetProjection(
       CanonicalLivingFrameExecutionRequirements | undefined
     readonly timingBinding:
       CanonicalLivingFrameTimingBinding | undefined
-    readonly assetWorkInputBinding:
-      CanonicalLivingFrameAssetWorkInputBinding | undefined
     readonly components: CanonicalPlanComponentsInput
+    readonly sourceMediaAuthority:
+      SourceBindingManifestCandidate
   },
-): Promise<CanonicalLivingFrameEstimateWorkAssetProjection | undefined> {
+): Promise<
+  CanonicalLivingFrameAssetWorkInputBinding | undefined
+> {
   const ref =
     input.componentRefs[
-      CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY
+      CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_COMPONENT_KEY
     ]
   if (
     !input.publication
     && !input.requirements
     && !input.timingBinding
-    && !input.assetWorkInputBinding
     && !ref
   ) {
     return undefined
@@ -123,11 +123,10 @@ export async function loadCanonicalLivingFrameEstimateWorkAssetProjection(
     !input.publication
     || !input.requirements
     || !input.timingBinding
-    || !input.assetWorkInputBinding
     || !ref
   ) {
     throw conflict(
-      'Canonical Living Frame estimate/work/asset projection and its complete source lineage must be present together.',
+      'Canonical Living Frame asset/work input binding and its complete source lineage must be present together.',
     )
   }
   const value = await readPrivateAuthorityJsonBlob({
@@ -135,24 +134,22 @@ export async function loadCanonicalLivingFrameEstimateWorkAssetProjection(
     ref,
   })
   const verification = {
-    projection: value,
+    binding: value,
     publication: input.publication,
     requirements: input.requirements,
     timingBinding: input.timingBinding,
-    assetWorkInputBinding:
-      input.assetWorkInputBinding,
     components: input.components,
+    sourceMediaAuthority: input.sourceMediaAuthority,
   }
-  if (
-    !verifyCanonicalLivingFrameEstimateWorkAssetProjection(
-      verification,
-    )
-  ) {
+  if (!(await verifyCanonicalLivingFrameAssetWorkInputBinding(
+    verification,
+  ))) {
     throw conflict(
-      'Canonical Living Frame estimate/work/asset projection failed full source revalidation.',
+      'Canonical Living Frame asset/work input binding failed full source revalidation.',
     )
   }
-  return verification.projection
+  return verification.binding as unknown as
+    CanonicalLivingFrameAssetWorkInputBinding
 }
 
 function conflict(message: string): ApiError {
@@ -162,7 +159,7 @@ function conflict(message: string): ApiError {
     409,
     {
       requiredGate:
-        'canonical_living_frame_estimate_work_asset_projection',
+        'canonical_living_frame_asset_work_input_binding',
     },
   )
 }

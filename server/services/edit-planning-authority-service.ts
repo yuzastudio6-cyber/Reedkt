@@ -118,6 +118,9 @@ import type {
   CanonicalLivingFrameTimingBinding,
 } from '../../src/types/living-frame-timing-binding'
 import type {
+  CanonicalLivingFrameAssetWorkInputBinding,
+} from '../../src/types/living-frame-asset-work-input-binding'
+import type {
   CanonicalLivingFrameEstimateWorkAssetProjection,
 } from '../../src/types/living-frame-estimate-work-asset-projection'
 import type {
@@ -142,6 +145,11 @@ import {
   persistCanonicalLivingFrameTimingBinding,
   prepareCanonicalLivingFrameTimingBinding,
 } from './canonical-living-frame-timing-binding-service'
+import {
+  loadCanonicalLivingFrameAssetWorkInputBinding,
+  persistCanonicalLivingFrameAssetWorkInputBinding,
+  prepareCanonicalLivingFrameAssetWorkInputBinding,
+} from './canonical-living-frame-asset-work-input-binding-service'
 import {
   loadCanonicalLivingFrameEstimateWorkAssetProjection,
   persistCanonicalLivingFrameEstimateWorkAssetProjection,
@@ -178,6 +186,8 @@ export interface CanonicalApprovedExecutionAuthority {
     CanonicalLivingFrameExecutionRequirements
   livingFrameTimingBinding?:
     CanonicalLivingFrameTimingBinding
+  livingFrameAssetWorkInputBinding?:
+    CanonicalLivingFrameAssetWorkInputBinding
   livingFrameEstimateWorkAssetProjection?:
     CanonicalLivingFrameEstimateWorkAssetProjection
   canonicalCustomerEstimateAuthority:
@@ -366,11 +376,21 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           requirements: livingFrameExecutionRequirements,
           components: body.canonicalPlan.components,
         })
+      const livingFrameAssetWorkInputBinding =
+        await prepareCanonicalLivingFrameAssetWorkInputBinding({
+          publication: livingFrameSelectedScenePublication,
+          requirements: livingFrameExecutionRequirements,
+          timingBinding: livingFrameTimingBinding,
+          components: body.canonicalPlan.components,
+          sourceMediaAuthority,
+        })
       const livingFrameEstimateWorkAssetProjection =
         prepareCanonicalLivingFrameEstimateWorkAssetProjection({
           publication: livingFrameSelectedScenePublication,
           requirements: livingFrameExecutionRequirements,
           timingBinding: livingFrameTimingBinding,
+          assetWorkInputBinding:
+            livingFrameAssetWorkInputBinding,
           components: body.canonicalPlan.components,
         })
       const customerEstimateCompilation =
@@ -474,6 +494,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           context,
           timingBinding: livingFrameTimingBinding,
         })
+      const livingFrameAssetWorkInputBindingRefs =
+        await persistCanonicalLivingFrameAssetWorkInputBinding({
+          context,
+          binding: livingFrameAssetWorkInputBinding,
+        })
       const livingFrameEstimateWorkAssetProjectionRefs =
         await persistCanonicalLivingFrameEstimateWorkAssetProjection({
           context,
@@ -491,6 +516,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         ...livingFrameSelectedSceneRefs,
         ...livingFrameExecutionRequirementRefs,
         ...livingFrameTimingBindingRefs,
+        ...livingFrameAssetWorkInputBindingRefs,
         ...livingFrameEstimateWorkAssetProjectionRefs,
         ...canonicalCustomerEstimateAuthorityRefs,
         ...(professionalLongFormPublication
@@ -598,6 +624,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         livingFrameTimingBindingDigestSha256:
           livingFrameTimingBinding
             ?.timingBindingDigestSha256 ?? null,
+        livingFrameAssetWorkInputBindingDigestSha256:
+          livingFrameAssetWorkInputBinding
+            ?.bindingDigestSha256 ?? null,
         livingFrameEstimateWorkAssetProjectionDigestSha256:
           livingFrameEstimateWorkAssetProjection
             ?.projectionDigestSha256 ?? null,
@@ -942,6 +971,20 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             approvalLivingFrameExecutionRequirements,
           components: approvalComponents,
         })
+      const approvalLivingFrameAssetWorkInputBinding =
+        await loadCanonicalLivingFrameAssetWorkInputBinding({
+          context,
+          componentRefs: targetPlan.componentRefs,
+          publication:
+            approvalLivingFrameSelectedSceneAuthority,
+          requirements:
+            approvalLivingFrameExecutionRequirements,
+          timingBinding:
+            approvalLivingFrameTimingBinding,
+          components: approvalComponents,
+          sourceMediaAuthority:
+            approvalSourceMediaAuthority,
+        })
       const approvalLivingFrameEstimateWorkAssetProjection =
         await loadCanonicalLivingFrameEstimateWorkAssetProjection({
           context,
@@ -952,6 +995,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             approvalLivingFrameExecutionRequirements,
           timingBinding:
             approvalLivingFrameTimingBinding,
+          assetWorkInputBinding:
+            approvalLivingFrameAssetWorkInputBinding,
           components: approvalComponents,
         })
       const approvalCustomerEstimateAuthority =
@@ -967,6 +1012,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         approvalLivingFrameSelectedSceneAuthority,
         approvalLivingFrameExecutionRequirements,
         approvalLivingFrameTimingBinding,
+        approvalLivingFrameAssetWorkInputBinding,
         approvalLivingFrameEstimateWorkAssetProjection,
         approvalCustomerEstimateAuthority,
       )
@@ -1127,6 +1173,20 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
                 lockedLivingFrameExecutionRequirements,
               components: approvalComponents,
             })
+          const lockedLivingFrameAssetWorkInputBinding =
+            await loadCanonicalLivingFrameAssetWorkInputBinding({
+              context,
+              componentRefs: plan.componentRefs,
+              publication:
+                lockedLivingFrameSelectedSceneAuthority,
+              requirements:
+                lockedLivingFrameExecutionRequirements,
+              timingBinding:
+                lockedLivingFrameTimingBinding,
+              components: approvalComponents,
+              sourceMediaAuthority:
+                approvalSourceMediaAuthority,
+            })
           const lockedLivingFrameEstimateWorkAssetProjection =
             await loadCanonicalLivingFrameEstimateWorkAssetProjection({
               context,
@@ -1137,6 +1197,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
                 lockedLivingFrameExecutionRequirements,
               timingBinding:
                 lockedLivingFrameTimingBinding,
+              assetWorkInputBinding:
+                lockedLivingFrameAssetWorkInputBinding,
               components: approvalComponents,
             })
           const lockedCustomerEstimateAuthority =
@@ -1189,6 +1251,19 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           }
           if (
             stableAuthorityStringify(
+              lockedLivingFrameAssetWorkInputBinding ?? null,
+            ) !== stableAuthorityStringify(
+              approvalLivingFrameAssetWorkInputBinding ?? null,
+            )
+          ) {
+            throw new ApiError(
+              'IDEMPOTENCY_CONFLICT',
+              'Canonical Living Frame asset/work input binding changed before approval.',
+              409,
+            )
+          }
+          if (
+            stableAuthorityStringify(
               lockedLivingFrameEstimateWorkAssetProjection ?? null,
             ) !== stableAuthorityStringify(
               approvalLivingFrameEstimateWorkAssetProjection ?? null,
@@ -1217,6 +1292,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             lockedLivingFrameSelectedSceneAuthority,
             lockedLivingFrameExecutionRequirements,
             lockedLivingFrameTimingBinding,
+            lockedLivingFrameAssetWorkInputBinding,
             lockedLivingFrameEstimateWorkAssetProjection,
             lockedCustomerEstimateAuthority,
           )
@@ -1804,6 +1880,16 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           requirements: livingFrameExecutionRequirements,
           components: approvedComponents,
         })
+      const livingFrameAssetWorkInputBinding =
+        await loadCanonicalLivingFrameAssetWorkInputBinding({
+          context,
+          componentRefs: snapshot.componentRefs,
+          publication: livingFrameSelectedSceneAuthority,
+          requirements: livingFrameExecutionRequirements,
+          timingBinding: livingFrameTimingBinding,
+          components: approvedComponents,
+          sourceMediaAuthority,
+        })
       const livingFrameEstimateWorkAssetProjection =
         await loadCanonicalLivingFrameEstimateWorkAssetProjection({
           context,
@@ -1814,6 +1900,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             livingFrameExecutionRequirements,
           timingBinding:
             livingFrameTimingBinding,
+          assetWorkInputBinding:
+            livingFrameAssetWorkInputBinding,
           components: approvedComponents,
         })
       const canonicalCustomerEstimateAuthority =
@@ -1829,6 +1917,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         livingFrameSelectedSceneAuthority,
         livingFrameExecutionRequirements,
         livingFrameTimingBinding,
+        livingFrameAssetWorkInputBinding,
         livingFrameEstimateWorkAssetProjection,
         canonicalCustomerEstimateAuthority,
       )
@@ -2002,6 +2091,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         livingFrameSelectedSceneAuthority,
         livingFrameExecutionRequirements,
         livingFrameTimingBinding,
+        livingFrameAssetWorkInputBinding,
         livingFrameEstimateWorkAssetProjection,
         canonicalCustomerEstimateAuthority,
         toolExecutionAuthority,
@@ -2024,6 +2114,9 @@ function assertLivingFrameExecutionAuthorityReady(
     | undefined,
   timingBinding:
     | CanonicalLivingFrameTimingBinding
+    | undefined,
+  assetWorkInputBinding:
+    | CanonicalLivingFrameAssetWorkInputBinding
     | undefined,
   estimateWorkAssetProjection:
     | CanonicalLivingFrameEstimateWorkAssetProjection
@@ -2049,6 +2142,7 @@ function assertLivingFrameExecutionAuthorityReady(
     if (
       requirements !== undefined
       || timingBinding !== undefined
+      || assetWorkInputBinding !== undefined
       || estimateWorkAssetProjection !== undefined
       || customerEstimateAuthority
         .projectedLivingFrameToolCostLineItemCount !== 0
@@ -2077,6 +2171,13 @@ function assertLivingFrameExecutionAuthorityReady(
       409,
     )
   }
+  if (!assetWorkInputBinding) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Canonical Living Frame selected-scene lineage is missing its exact asset/work input binding.',
+      409,
+    )
+  }
   if (!estimateWorkAssetProjection) {
     throw new ApiError(
       'IDEMPOTENCY_CONFLICT',
@@ -2095,6 +2196,9 @@ function assertLivingFrameExecutionAuthorityReady(
       || requirements.blockerCodes.length !== 0
       || !timingBinding.deliberateNonUse
       || timingBinding.scenes.length !== 0
+      || assetWorkInputBinding.readiness !==
+        'ready_without_living_frame_asset_work_inputs'
+      || assetWorkInputBinding.scenes.length !== 0
       || estimateWorkAssetProjection.readiness !==
         'ready_without_living_frame_projection'
       || estimateWorkAssetProjection.scenes.length !== 0
@@ -2122,6 +2226,16 @@ function assertLivingFrameExecutionAuthorityReady(
     || timingBinding.sourceBindings
       .executionRequirementsDigestSha256 !==
       requirements.requirementsDigestSha256
+    || assetWorkInputBinding.readiness !==
+      'source_inputs_bound_operation_admission_pending'
+    || assetWorkInputBinding.scenes.length !==
+      publication.binding.selectedSceneCount
+    || assetWorkInputBinding.sourceBindings
+      .executionRequirementsDigestSha256 !==
+      requirements.requirementsDigestSha256
+    || assetWorkInputBinding.sourceBindings
+      .timingBindingDigestSha256 !==
+      timingBinding.timingBindingDigestSha256
     || estimateWorkAssetProjection.readiness !==
       'requirements_projected_execution_admission_pending'
     || estimateWorkAssetProjection.scenes.length !==
@@ -2132,6 +2246,9 @@ function assertLivingFrameExecutionAuthorityReady(
     || estimateWorkAssetProjection.sourceBindings
       .timingBindingDigestSha256 !==
       timingBinding.timingBindingDigestSha256
+    || estimateWorkAssetProjection.sourceBindings
+      .assetWorkInputBindingDigestSha256 !==
+      assetWorkInputBinding.bindingDigestSha256
     || customerEstimateAuthority
       .projectedLivingFrameToolCostLineItemCount !==
       estimateWorkAssetProjection.metrics
@@ -2159,6 +2276,8 @@ function assertLivingFrameExecutionAuthorityReady(
         requirements.requirementsDigestSha256,
       timingBindingDigestSha256:
         timingBinding.timingBindingDigestSha256,
+      assetWorkInputBindingDigestSha256:
+        assetWorkInputBinding.bindingDigestSha256,
       estimateWorkAssetProjectionDigestSha256:
         estimateWorkAssetProjection.projectionDigestSha256,
       customerEstimateAuthorityDigestSha256:
@@ -2179,8 +2298,14 @@ function assertLivingFrameExecutionAuthorityReady(
           && code !== 'itemized_estimate_projection_required',
       ),
       requiredNamedWorkItemTypes:
-        [...new Set(requirements.scenes.flatMap(
-          (scene) => scene.requiredNamedWorkItemTypes,
+        [...new Set(assetWorkInputBinding.scenes.flatMap(
+          (scene) =>
+            scene.refinedRequiredNamedWorkItemTypes,
+        ))].sort(),
+      omittedOverbroadNamedWorkItemTypes:
+        [...new Set(assetWorkInputBinding.scenes.flatMap(
+          (scene) =>
+            scene.omittedOverbroadNamedWorkItemTypes,
         ))].sort(),
     },
   )

@@ -117,6 +117,9 @@ import {
   CANONICAL_LIVING_FRAME_TIMING_BINDING_COMPONENT_KEY,
 } from '../../src/types/living-frame-timing-binding'
 import {
+  CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_COMPONENT_KEY,
+} from '../../src/types/living-frame-asset-work-input-binding'
+import {
   CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY,
 } from '../../src/types/living-frame-estimate-work-asset-projection'
 import {
@@ -130,6 +133,9 @@ import {
 import {
   compileLivingFrameSemanticPlanProjection,
 } from '../living-frame/living-frame-semantic-plan-projection'
+import {
+  resolveCanonicalLivingFrameSourceTimelineSpan,
+} from '../living-frame/canonical-living-frame-asset-work-input-binding'
 import {
   CANONICAL_PRIVATE_TOOL_DISPATCH_RECORD_VERSION,
   type CanonicalPrivateToolDispatchRecord,
@@ -5327,6 +5333,93 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     speechPriority: true,
     sfxDensityLevel: 'low',
   }
+  const timelineSourceOne =
+    body.canonicalPlan.components.sourceSequence[0]!
+  const timelineCleanupOne = {
+    ...body.canonicalPlan.components.sourceCleanupPlan
+      .decisions[0]!,
+    startFrame: 0,
+    endFrameExclusive: 20,
+    action: 'preserve' as const,
+  }
+  const timelineSourceTwo = {
+    ...timelineSourceOne,
+    sourceSequenceItemId:
+      'source-sequence-item-timeline-two',
+    mediaAssetId:
+      'media-asset-timeline-two',
+    uploadedOrder: 2,
+    checksumSha256:
+      sha256ForSmoke('timeline-source-two'),
+  }
+  const timelineCleanupTwo = {
+    ...timelineCleanupOne,
+    decisionId: 'cleanup-timeline-two',
+    sourceSequenceItemId:
+      timelineSourceTwo.sourceSequenceItemId,
+  }
+  const secondSourceResolution =
+    resolveCanonicalLivingFrameSourceTimelineSpan({
+      sourceSequence: [
+        timelineSourceOne,
+        timelineSourceTwo,
+      ],
+      sourceCleanupPlan: {
+        status: 'confirmed',
+        decisions: [
+          timelineCleanupOne,
+          timelineCleanupTwo,
+        ],
+      },
+      startFrame: 21,
+      endFrameExclusive: 30,
+    })
+  assert.equal(
+    secondSourceResolution.source.sourceSequenceItemId,
+    timelineSourceTwo.sourceSequenceItemId,
+    'Source resolution must follow the canonical cleanup timeline rather than a segment-array index.',
+  )
+  assert.throws(
+    () => resolveCanonicalLivingFrameSourceTimelineSpan({
+      sourceSequence: [
+        timelineSourceOne,
+        timelineSourceTwo,
+      ],
+      sourceCleanupPlan: {
+        status: 'confirmed',
+        decisions: [
+          timelineCleanupOne,
+          timelineCleanupTwo,
+        ],
+      },
+      startFrame: 19,
+      endFrameExclusive: 21,
+    }),
+    /inside one exact current source timeline span/,
+  )
+  assert.throws(
+    () => resolveCanonicalLivingFrameSourceTimelineSpan({
+      sourceSequence: [
+        timelineSourceOne,
+        timelineSourceTwo,
+      ],
+      sourceCleanupPlan: {
+        status: 'confirmed',
+        decisions: [
+          timelineCleanupOne,
+          {
+            ...timelineCleanupOne,
+            decisionId:
+              'cleanup-timeline-one-duplicate',
+          },
+          timelineCleanupTwo,
+        ],
+      },
+      startFrame: 1,
+      endFrameExclusive: 10,
+    }),
+    /one exact cleanup span per source/,
+  )
 
   const plannerInput: PlannerInput = {
     projectName: 'Living Frame canonical selected-scene integration',
@@ -5625,6 +5718,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     CANONICAL_LIVING_FRAME_SEMANTIC_PLAN_PROJECTION_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_EXECUTION_REQUIREMENTS_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_TIMING_BINDING_COMPONENT_KEY,
+    CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY,
     CANONICAL_CUSTOMER_ESTIMATE_AUTHORITY_COMPONENT_KEY,
   ]) {
@@ -5759,6 +5853,88 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       durationFrames: 6,
     },
   )
+  const assetWorkInputBinding =
+    asRecord(await readPrivateAuthorityJsonBlob({
+      localStorageRoot:
+        serviceContext.env.localStorageRoot,
+      ref: publishedRefs[
+        CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_COMPONENT_KEY
+      ] as {
+        sha256: string
+        byteLength: number
+      },
+    }))
+  assert.equal(
+    assetWorkInputBinding.readiness,
+    'source_inputs_bound_operation_admission_pending',
+  )
+  assert.equal(
+    assetWorkInputBinding.expandsExactFiftyToolRegistry,
+    false,
+  )
+  const assetWorkScenes = assetWorkInputBinding.scenes
+  assert.ok(Array.isArray(assetWorkScenes))
+  assert.equal(assetWorkScenes.length, 1)
+  const assetWorkScene = asRecord(assetWorkScenes[0])
+  assert.deepEqual(
+    assetWorkScene.originalRequiredNamedWorkItemTypes,
+    [
+      'generate_mask_asset',
+      'prepare_remotion_layer',
+      'process_image_asset',
+      'reconstruct_background_plate',
+    ],
+  )
+  assert.deepEqual(
+    assetWorkScene.refinedRequiredNamedWorkItemTypes,
+    [
+      'generate_mask_asset',
+      'process_image_asset',
+      'prepare_remotion_layer',
+    ],
+  )
+  assert.deepEqual(
+    assetWorkScene.omittedOverbroadNamedWorkItemTypes,
+    ['reconstruct_background_plate'],
+  )
+  const namedWorkInputs = assetWorkScene.namedWorkInputs
+  assert.ok(Array.isArray(namedWorkInputs))
+  assert.equal(namedWorkInputs.length, 3)
+  assert.equal(
+    namedWorkInputs.some((workInput) =>
+      asRecord(workInput).workItemType ===
+        'reconstruct_background_plate'),
+    false,
+  )
+  const sourceAssetBindings =
+    assetWorkScene.sourceAssetBindings
+  assert.ok(Array.isArray(sourceAssetBindings))
+  assert.equal(sourceAssetBindings.length, 1)
+  assert.deepEqual(
+    {
+      sourceSequenceItemId:
+        asRecord(sourceAssetBindings[0])
+          .sourceSequenceItemId,
+      sourceCleanupDecisionId:
+        asRecord(sourceAssetBindings[0])
+          .sourceCleanupDecisionId,
+      authorityState:
+        asRecord(sourceAssetBindings[0])
+          .authorityState,
+    },
+    {
+      sourceSequenceItemId: 'source-1',
+      sourceCleanupDecisionId:
+        'cleanup-decision-source-1',
+      authorityState:
+        'exact_verified_source_media_and_cleanup_bound',
+    },
+  )
+  assert.equal(
+    stableAuthorityStringify(assetWorkInputBinding)
+      .includes('objectPath'),
+    false,
+  )
   const estimateWorkAssetProjection =
     asRecord(await readPrivateAuthorityJsonBlob({
       localStorageRoot:
@@ -5812,11 +5988,11 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
         projectionMetrics.exactProductionToolRegistryCount,
     },
     {
-      projectedEstimateLineItemCount: 4,
-      projectedNamedWorkItemCount: 4,
-      projectedExpectedAssetCount: 4,
+      projectedEstimateLineItemCount: 3,
+      projectedNamedWorkItemCount: 3,
+      projectedExpectedAssetCount: 3,
       projectedGpuWorkItemCount: 1,
-      projectedMaximumInternalToolCostCredits: 4,
+      projectedMaximumInternalToolCostCredits: 3,
       exactProductionToolRegistryCount: 50,
     },
   )
@@ -5850,14 +6026,6 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
         serviceFeeIncluded: false,
       },
       {
-        workItemType: 'prepare_remotion_layer',
-        costOwnerToolId: 'remotion',
-        executionPlacement: 'private_render_worker',
-        cpuFallbackAllowed: true,
-        estimatedCredits: 1,
-        serviceFeeIncluded: false,
-      },
-      {
         workItemType: 'process_image_asset',
         costOwnerToolId: 'sharp',
         executionPlacement: 'private_render_worker',
@@ -5866,9 +6034,9 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
         serviceFeeIncluded: false,
       },
       {
-        workItemType: 'reconstruct_background_plate',
-        costOwnerToolId: 'openimageio',
-        executionPlacement: 'private_cpu_worker',
+        workItemType: 'prepare_remotion_layer',
+        costOwnerToolId: 'remotion',
+        executionPlacement: 'private_render_worker',
         cpuFallbackAllowed: true,
         estimatedCredits: 1,
         serviceFeeIncluded: false,
@@ -5878,6 +6046,47 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
   const projectedWorkRequirements =
     projectedScene.workRequirements
   assert.ok(Array.isArray(projectedWorkRequirements))
+  const projectedWorkByType = new Map(
+    projectedWorkRequirements.map((work) => {
+      const record = asRecord(work)
+      return [String(record.workItemType), record] as const
+    }),
+  )
+  const projectedWorkKeyByType = new Map(
+    projectedWorkRequirements.map((work) => {
+      const record = asRecord(work)
+      return [
+        String(record.workItemType),
+        String(record.workItemKey),
+      ] as const
+    }),
+  )
+  for (const workInput of namedWorkInputs) {
+    const inputRecord = asRecord(workInput)
+    const workItemType = String(inputRecord.workItemType)
+    const projectedWork =
+      projectedWorkByType.get(workItemType)
+    assert.ok(
+      projectedWork,
+      `Expected exact projected work for ${workItemType}.`,
+    )
+    assert.deepEqual(
+      projectedWork.inputAssetIntentIds,
+      inputRecord.inputAssetIntentIds,
+    )
+    assert.deepEqual(
+      projectedWork.outputAssetIntentIds,
+      inputRecord.outputAssetIntentIds,
+    )
+    assert.deepEqual(
+      projectedWork.dependencyWorkItemKeys,
+      (inputRecord.dependencyNamedWorkItemTypes as string[])
+        .map((dependencyType) =>
+          projectedWorkKeyByType.get(dependencyType))
+        .filter((value): value is string =>
+          value !== undefined),
+    )
+  }
   assert.equal(
     projectedWorkRequirements.every((work) => {
       const record = asRecord(work)
@@ -5901,7 +6110,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       asRecord(line).category === 'living_frame')
   assert.equal(
     publishedLivingFrameEstimateLines.length,
-    4,
+    3,
     'Every projected Living Frame work requirement must become one server-owned customer estimate ceiling.',
   )
   assert.equal(
@@ -5910,7 +6119,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
         total + Number(asRecord(line).estimatedCredits),
       0,
     ),
-    4,
+    3,
   )
   const publishedServiceFeeLines =
     publishedEstimateLines.filter((line) =>
@@ -5932,7 +6141,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     )
   assert.equal(
     publishedEstimate.estimatedCredits,
-    sourceEstimateCredits + 4 + 30,
+    sourceEstimateCredits + 3 + 30,
   )
   const customerEstimateAuthority =
     asRecord(await readPrivateAuthorityJsonBlob({
@@ -5948,12 +6157,12 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
   assert.equal(
     customerEstimateAuthority
       .projectedLivingFrameToolCostLineItemCount,
-    4,
+    3,
   )
   assert.equal(
     customerEstimateAuthority
       .projectedLivingFrameMaximumInternalToolCostCredits,
-    4,
+    3,
   )
   assert.equal(
     asRecord(

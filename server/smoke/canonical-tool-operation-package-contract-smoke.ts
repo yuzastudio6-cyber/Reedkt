@@ -247,6 +247,8 @@ function buildAuthority(workItems: CanonicalApprovedExecutionWorkItem[]): Canoni
     components: {} as CanonicalApprovedExecutionAuthority['components'],
     assetManifest: { entries: [], requiredAssetCount: 0 } as unknown as CanonicalApprovedExecutionAuthority['assetManifest'],
     planningInputAuthority: {} as CanonicalApprovedExecutionAuthority['planningInputAuthority'],
+    canonicalCustomerEstimateAuthority:
+      {} as CanonicalApprovedExecutionAuthority['canonicalCustomerEstimateAuthority'],
     toolExecutionAuthority: {} as CanonicalApprovedExecutionAuthority['toolExecutionAuthority'],
     toolPayloadAuthority: {} as CanonicalApprovedExecutionAuthority['toolPayloadAuthority'],
     sourceAssetManifest: { bindings: [], requiredBindingCount: 0 } as unknown as CanonicalApprovedExecutionAuthority['sourceAssetManifest'],

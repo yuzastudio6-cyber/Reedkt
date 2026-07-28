@@ -20,6 +20,7 @@ const presentedPlan = {
   planVersion: 1,
   planHash: '1'.repeat(64),
 }
+const localDraftEstimateCredits = 11
 const visibleMaximumCredits = 38
 const plan = createGuidedMockEditPlan({
   projectName: 'Canonical approval browser proof',
@@ -52,7 +53,7 @@ const plan = createGuidedMockEditPlan({
 })
 plan.creditEstimate = {
   ...plan.creditEstimate,
-  total: visibleMaximumCredits,
+  total: localDraftEstimateCredits,
   approvalBlocked: false,
   draftReason: undefined,
 }
@@ -127,6 +128,7 @@ export function CanonicalPlanApprovalBrowserHarness() {
         onReviseSetup={() => undefined}
         plan={plan}
         planningContextReady
+        visibleEstimateCredits={visibleMaximumCredits}
       />
     </main>
   )

@@ -17,6 +17,7 @@ export type PlanReviewApprovalCardProps = {
   onReviseSetup?: () => void
   plan: EditPlan
   planSupplement?: ReactNode
+  visibleEstimateCredits?: number
 }
 
 const treatmentLabels: Record<SignatureSystem, string> = {
@@ -82,8 +83,11 @@ export function PlanReviewApprovalCard({
   onReviseSetup,
   plan,
   planSupplement,
+  visibleEstimateCredits,
 }: PlanReviewApprovalCardProps) {
   const estimate = plan.creditEstimate
+  const estimateCredits =
+    visibleEstimateCredits ?? estimate.total
   const frameConfirmed = plan.aspectRatioFramePlan?.status === 'confirmed'
   const approvalDisabled = approved || approvalPending || !approvalAuthorityReady || !frameConfirmed || !planningContextReady || estimate.approvalBlocked
   const systems = uniqueSystems(plan)
@@ -99,7 +103,7 @@ export function PlanReviewApprovalCard({
           <p>One approval covers this exact direction and estimate. Any material change creates a fresh plan.</p>
         </div>
         <div className="clean-plan-estimate">
-          <strong>{estimate.total}</strong>
+          <strong data-testid="plan-review-estimate-credits">{estimateCredits}</strong>
           <span>estimated credits</span>
         </div>
       </header>
@@ -150,7 +154,7 @@ export function PlanReviewApprovalCard({
       {planSupplement}
 
       <div className="clean-plan-credit-note">
-        <strong>{estimate.total} Reedit Credits</strong>
+        <strong>{estimateCredits} credits</strong>
         <span data-testid="plan-review-4k-delivery-ceiling">
           Includes the 4K UHD render and export ceiling. Approving once covers 1080p, 2K, or 4K for this edit—no second export estimate or charge. Credits are used only after you approve.
         </span>

@@ -688,6 +688,8 @@ function createAuthority(input: {
     assetManifest,
     planningInputAuthority:
       {} as CanonicalApprovedExecutionAuthority['planningInputAuthority'],
+    canonicalCustomerEstimateAuthority:
+      {} as CanonicalApprovedExecutionAuthority['canonicalCustomerEstimateAuthority'],
     toolExecutionAuthority:
       {} as CanonicalApprovedExecutionAuthority['toolExecutionAuthority'],
     toolPayloadAuthority:

@@ -119,6 +119,9 @@ import {
 import {
   CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY,
 } from '../../src/types/living-frame-estimate-work-asset-projection'
+import {
+  CANONICAL_CUSTOMER_ESTIMATE_AUTHORITY_COMPONENT_KEY,
+} from '../../src/types/canonical-customer-estimate-authority'
 import type { LivingFrameVisualContinuityPack } from
   '../../src/types/living-frame-visual-continuity'
 import {
@@ -205,6 +208,8 @@ for (const editSession of [
   'edit-session-default-trim-blocked',
   'edit-session-duplicate-output-blocked',
   'edit-session-insufficient',
+  'edit-session-forged-service-fee',
+  'edit-session-forged-living-frame-cost',
   'edit-session-stale-expectation',
   'edit-session-stale-source-expectation',
   'edit-session-preference-changed-after-publish',
@@ -232,6 +237,86 @@ assert.match(String(publishedPlan.planHash), /^[a-f0-9]{64}$/)
 assert.match(String(publishedEstimate.estimateHash), /^[a-f0-9]{64}$/)
 assert.equal('compiledIntent' in publishedPlan, false, 'Plan response should expose content references, not duplicate raw plan payloads.')
 const publishedComponentRefs = asRecord(publishedPlan.componentRefs)
+const publishedEstimateLines =
+  publishedEstimate.lineItems as Record<string, unknown>[]
+const sourceEstimateCredits =
+  primaryPublishInput.canonicalPlan.estimate.lineItems.reduce(
+    (total, item) => total + item.estimatedCredits,
+    0,
+  )
+const serviceFeeLines = publishedEstimateLines.filter(
+  (line) =>
+    line.lineKey === 'weeditpro-service-edit-fee',
+)
+assert.equal(
+  serviceFeeLines.length,
+  1,
+  'Every canonical plan must present exactly one server-derived WeEditPro service/edit fee.',
+)
+assert.deepEqual(
+  {
+    label: serviceFeeLines[0]!.label,
+    category: serviceFeeLines[0]!.category,
+    estimatedCredits:
+      serviceFeeLines[0]!.estimatedCredits,
+    removable: serviceFeeLines[0]!.removable,
+  },
+  {
+    label: 'WeEditPro service/edit fee',
+    category: 'service_fee',
+    estimatedCredits: 30,
+    removable: false,
+  },
+)
+assert.equal(
+  Number(publishedEstimate.estimatedCredits),
+  sourceEstimateCredits + 30,
+)
+assert.equal(
+  Number(publishedEstimate.approvedMaximumCredits),
+  sourceEstimateCredits
+    + 30
+    + primaryPublishInput.canonicalPlan.estimate
+      .fallbackAllowanceCredits,
+)
+const customerEstimateAuthorityRef = asRecord(
+  publishedComponentRefs[
+    CANONICAL_CUSTOMER_ESTIMATE_AUTHORITY_COMPONENT_KEY
+  ],
+)
+const persistedCustomerEstimateAuthority =
+  asRecord(await readPrivateAuthorityJsonBlob({
+    localStorageRoot,
+    ref: {
+      sha256: String(
+        customerEstimateAuthorityRef.sha256,
+      ),
+      byteLength: Number(
+        customerEstimateAuthorityRef.byteLength,
+      ),
+    },
+  }))
+assert.equal(
+  persistedCustomerEstimateAuthority.source,
+  'canonical_customer_estimate_authority_compiler',
+)
+assert.equal(
+  persistedCustomerEstimateAuthority
+    .projectedLivingFrameToolCostLineItemCount,
+  0,
+)
+assert.equal(
+  asRecord(
+    persistedCustomerEstimateAuthority
+      .serviceFeeProjection,
+  ).serviceFeeCredits,
+  30,
+)
+assert.equal(
+  persistedCustomerEstimateAuthority
+    .creditReservationAuthority,
+  false,
+)
 const toolExecutionAuthorityRef = asRecord(
   publishedComponentRefs.canonicalToolExecutionAuthority,
 )
@@ -697,6 +782,19 @@ assert.equal(loadedExecutionAuthority.assetManifest.manifestHash, snapshot.appro
 assert.equal(loadedExecutionAuthority.sourceAssetManifest.bindings.length, 2)
 assert.equal(loadedExecutionAuthority.sourceAssetManifest.requiredBindingCount, 2)
 assert.equal(loadedExecutionAuthority.sourceAssetManifest.manifestHash, snapshot.approvedSourceAssetManifestHash)
+assert.equal(
+  loadedExecutionAuthority
+    .canonicalCustomerEstimateAuthority
+    .authorityDigestSha256,
+  persistedCustomerEstimateAuthority
+    .authorityDigestSha256,
+)
+assert.equal(
+  loadedExecutionAuthority
+    .canonicalCustomerEstimateAuthority
+    .normalizedApprovedMaximumCredits,
+  expectedApprovedMaximumCredits,
+)
 assert.equal(loadedExecutionAuthority.toolExecutionAuthority.authorityHash, persistedToolExecutionAuthority.authorityHash)
 assert.equal(
   loadedExecutionAuthority.toolExecutionAuthority.resourcePlacementAuthority.authorityHash,
@@ -793,6 +891,79 @@ await expectApiError(
   () => service.approveAndFundCanonicalPlan({ ...approvalInput, expectedAuthorityRevision: 3 }),
   'IDEMPOTENCY_CONFLICT',
   'Changed exact replay request must conflict even after approval commits.',
+)
+
+const forgedServiceFeePublished =
+  await service.publishCanonicalPlan(createPublishInput(
+    project.id,
+    'edit-session-forged-service-fee',
+    {
+      planningRequestId:
+        'planning-forged-service-fee',
+      idempotencyKey:
+        'publish-forged-service-fee',
+      mutateBody(body) {
+        body.canonicalPlan.estimate.lineItems.push({
+          lineKey: 'weeditpro-service-edit-fee',
+          label: 'WeEditPro service/edit fee',
+          category: 'service_fee',
+          estimatedCredits: 9_999,
+          removable: true,
+          metadata: {
+            lineItemRole:
+              'reeditpro_service_fee',
+            callerAuthored: true,
+          },
+        })
+      },
+    },
+  ))
+const normalizedForgedFeeEstimate = asRecord(
+  asRecord(forgedServiceFeePublished.authority)
+    .estimate,
+)
+const normalizedForgedFeeLines =
+  normalizedForgedFeeEstimate.lineItems as
+    Record<string, unknown>[]
+assert.deepEqual(
+  normalizedForgedFeeLines
+    .filter((line) =>
+      line.lineKey ===
+        'weeditpro-service-edit-fee')
+    .map((line) => ({
+      estimatedCredits: line.estimatedCredits,
+      removable: line.removable,
+    })),
+  [{
+    estimatedCredits: 30,
+    removable: false,
+  }],
+  'Caller-provided service-fee values must be discarded and recalculated by the server.',
+)
+
+await expectApiError(
+  () => service.publishCanonicalPlan(createPublishInput(
+    project.id,
+    'edit-session-forged-living-frame-cost',
+    {
+      planningRequestId:
+        'planning-forged-living-frame-cost',
+      idempotencyKey:
+        'publish-forged-living-frame-cost',
+      mutateBody(body) {
+        body.canonicalPlan.estimate.lineItems.push({
+          lineKey: 'lf-forged-cost',
+          label: 'Forged Living Frame cost',
+          category: 'living_frame',
+          estimatedCredits: 0,
+          removable: true,
+          metadata: {},
+        })
+      },
+    },
+  )),
+  'CREDIT_ESTIMATE_NOT_APPROVED',
+  'Caller-authored Living Frame cost lines must fail before canonical publication.',
 )
 
 const highCostPublished = await service.publishCanonicalPlan(createPublishInput(project.id, 'edit-session-insufficient', {
@@ -4068,6 +4239,9 @@ console.log(JSON.stringify({
     'edit_brief_post_approval_mutation_blocked',
     'selected_living_frame_scene_fails_closed_before_approval_without_exact_execution_authority',
     'living_frame_exact_50_tool_cost_named_work_and_expected_asset_requirements_projected_without_execution_promotion',
+    'server_recalculates_one_weeditpro_service_fee_before_approval',
+    'caller_service_fee_is_replaced_and_caller_living_frame_cost_is_rejected',
+    'living_frame_tool_cost_ceilings_are_bound_into_the_customer_estimate',
     'frame_confirmation_gate',
     '4k_estimate_exact_timing_gate',
     '4k_estimate_versioned_cost_derivation_gate',
@@ -5452,6 +5626,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     CANONICAL_LIVING_FRAME_EXECUTION_REQUIREMENTS_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_TIMING_BINDING_COMPONENT_KEY,
     CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY,
+    CANONICAL_CUSTOMER_ESTIMATE_AUTHORITY_COMPONENT_KEY,
   ]) {
     assert.ok(
       asRecord(publishedRefs[key]).sha256,
@@ -5721,11 +5896,70 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
   )
   const publishedEstimateLines = publishedEstimate.lineItems
   assert.ok(Array.isArray(publishedEstimateLines))
+  const publishedLivingFrameEstimateLines =
+    publishedEstimateLines.filter((line) =>
+      asRecord(line).category === 'living_frame')
   assert.equal(
-    publishedEstimateLines.some((line) =>
-      asRecord(line).category === 'living_frame'),
-    false,
-    'Projection-only cost bases must not masquerade as the recalculated customer estimate.',
+    publishedLivingFrameEstimateLines.length,
+    4,
+    'Every projected Living Frame work requirement must become one server-owned customer estimate ceiling.',
+  )
+  assert.equal(
+    publishedLivingFrameEstimateLines.reduce(
+      (total, line) =>
+        total + Number(asRecord(line).estimatedCredits),
+      0,
+    ),
+    4,
+  )
+  const publishedServiceFeeLines =
+    publishedEstimateLines.filter((line) =>
+      asRecord(line).lineKey ===
+        'weeditpro-service-edit-fee')
+  assert.equal(
+    publishedServiceFeeLines.length,
+    1,
+  )
+  assert.equal(
+    asRecord(publishedServiceFeeLines[0])
+      .estimatedCredits,
+    30,
+  )
+  const sourceEstimateCredits =
+    body.canonicalPlan.estimate.lineItems.reduce(
+      (total, item) => total + item.estimatedCredits,
+      0,
+    )
+  assert.equal(
+    publishedEstimate.estimatedCredits,
+    sourceEstimateCredits + 4 + 30,
+  )
+  const customerEstimateAuthority =
+    asRecord(await readPrivateAuthorityJsonBlob({
+      localStorageRoot:
+        serviceContext.env.localStorageRoot,
+      ref: publishedRefs[
+        CANONICAL_CUSTOMER_ESTIMATE_AUTHORITY_COMPONENT_KEY
+      ] as {
+        sha256: string
+        byteLength: number
+      },
+    }))
+  assert.equal(
+    customerEstimateAuthority
+      .projectedLivingFrameToolCostLineItemCount,
+    4,
+  )
+  assert.equal(
+    customerEstimateAuthority
+      .projectedLivingFrameMaximumInternalToolCostCredits,
+    4,
+  )
+  assert.equal(
+    asRecord(
+      customerEstimateAuthority.serviceFeeProjection,
+    ).serviceFeeCredits,
+    30,
   )
 
   const planningService =

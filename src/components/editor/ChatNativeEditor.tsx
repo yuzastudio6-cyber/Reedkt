@@ -2100,12 +2100,17 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     : ''
   const planningContextReadyForApproval = Boolean(contextAwarePlanResult) && !planningContextApprovalBlockedReason
   const canonicalPresentedPlan = canonicalPlanningPublication.result?.presentedPlan
+  const visiblePlanEstimateCredits =
+    canonicalPlanningBackendConnected &&
+    canonicalJourneyValue?.plan
+      ? canonicalJourneyValue.plan.maximumCredits
+      : plan.creditEstimate.total
   const canonicalApprovalAuthorityReady = canonicalPlanApprovalReadyForPresentedPlan({
     backendConnected: canonicalPlanningBackendConnected,
     journey: canonicalJourneyValue,
     publicationStatus: canonicalPlanningPublication.result?.status,
     presentedPlan: canonicalPresentedPlan,
-    visibleMaximumCredits: plan.creditEstimate.total,
+    visibleMaximumCredits: visiblePlanEstimateCredits,
   })
   const approvalRecordedForPresentation = approved || canonicalApprovalRecorded
   const canonicalApprovalBlockedLabel = canonicalApprovalRecorded
@@ -3205,7 +3210,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     setContextMockPreview({
       previewId: state.previewJob?.previewId,
       previewLabel: state.previewJob?.previewLabel,
-      creditsUsed: state.creditEstimate?.totalCredits ?? plan.creditEstimate.total,
+      creditsUsed: state.creditEstimate?.totalCredits ?? visiblePlanEstimateCredits,
       payload,
     })
     setShowEditMap(false)
@@ -4970,6 +4975,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             planningPublication={canonicalPlanningBackendConnected ? canonicalPlanningPublication : undefined}
             planningContextBlockedReason={planningContextApprovalBlockedReason}
             planningContextReady={planningContextReadyForApproval}
+            visibleEstimateCredits={visiblePlanEstimateCredits}
           />
         )
       case 'processing':
@@ -5012,7 +5018,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                     : 'Verify playback, then approve this edit or request a revision. Sharing and release remain gated.'}
                 </p>
               </div>
-              <span className="clean-edit-step-meta">{contextMockPreview?.creditsUsed ?? plan.creditEstimate.total} estimated credits</span>
+              <span className="clean-edit-step-meta">{contextMockPreview?.creditsUsed ?? visiblePlanEstimateCredits} estimated credits</span>
             </header>
             {privateFinalQaSummary ? <p className="clean-review-summary">{privateFinalQaSummary}</p> : null}
             {privateInternalDownloadFile ? (
@@ -5559,6 +5565,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
               planningPublication={canonicalPlanningBackendConnected ? canonicalPlanningPublication : undefined}
               planningContextBlockedReason={planningContextApprovalBlockedReason}
               planningContextReady={planningContextReadyForApproval}
+              visibleEstimateCredits={visiblePlanEstimateCredits}
             />
             {shouldShowAdvancedPlanningDetails && (
               <Suspense fallback={<AdvancedCardFallback />}>
@@ -5629,7 +5636,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         return (
           <>
             <PreviewReadyCard
-              creditsUsed={contextMockPreview?.creditsUsed ?? plan.creditEstimate.total}
+              creditsUsed={contextMockPreview?.creditsUsed ?? visiblePlanEstimateCredits}
               onOpenEditMap={handleOpenEditMap}
               privateReviewReady={Boolean(privateInternalTestRun)}
               reviewSummary={privateFinalQaSummary}

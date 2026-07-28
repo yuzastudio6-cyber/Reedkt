@@ -235,6 +235,8 @@ test.describe('canonical journey named-edit UI bridge', () => {
     const harness = page.getByTestId('canonical-approval-browser-harness')
     await expect(harness).toBeVisible()
     await expect(harness.getByTestId('canonical-journey-status')).toHaveAttribute('data-journey-stage', 'plan_approval_required')
+    await expect(harness.getByTestId('plan-review-estimate-credits')).toHaveText('38')
+    await expect(harness.getByTestId('plan-review-card')).not.toContainText('11 credits')
     const approve = harness.getByTestId('plan-review-approve')
     await expect(approve).toBeEnabled()
     await expect(approve).toHaveText('Approve plan')

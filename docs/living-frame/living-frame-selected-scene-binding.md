@@ -14,8 +14,10 @@ deferred Living Frame user-intent component
   + process-bound server selector
   -> canonical selected-scene binding
   -> existing canonical plan component references
-  -> existing immutable approved snapshot
-  -> existing edit execution authority
+  -> canonical Living Frame execution-authority gate
+       -> deliberate non-use: existing immutable approved snapshot
+       -> selected scene: exact timing/estimate/work/assets/QA required
+  -> existing edit execution authority only after that gate passes
 ```
 
 The deferred parent remains unchanged. The browser cannot replace it with a
@@ -30,10 +32,18 @@ Three content-addressed records are frozen into the existing canonical plan:
 - `livingFrameSelectedSceneAdmission`; and
 - `livingFrameSemanticPlanProjection`.
 
-Their references participate in the existing plan hash and are copied
-unchanged into the immutable approved snapshot. Approval and execution
-authority reload and fully revalidate all three records. Missing, partial,
-cross-scope, stale, or digest-mismatched lineage fails closed.
+Their references participate in the existing presented-plan hash. Approval
+and execution authority reload and fully revalidate all three records.
+Missing, partial, cross-scope, stale, or digest-mismatched lineage fails
+closed.
+
+Deliberate non-use can pass through the existing approval path because it
+requires no Living Frame execution. A selected scene cannot yet be approved:
+the server rejects funding before reservation or snapshot creation until the
+same canonical plan also freezes exact MasterTiming and SoundSync bindings,
+an itemized estimate, named work items, asset outputs, QA, and private-review
+dependencies. This prevents a selected skill from being silently omitted by
+an otherwise valid final-render graph.
 
 The selector is process-bound through a `WeakSet`; copying or JSON-serializing
 the port removes its authority. It may either choose admitted candidate scenes
@@ -41,11 +51,13 @@ with a closed treatment or preserve deliberate non-use. It cannot choose an
 unknown scene or add provider, tool, work, queue, cost, timing, SoundSync,
 asset, QA, renderer, or runtime instructions.
 
-This slice establishes selected-scene planning and snapshot lineage only. It
+This slice establishes selected-scene planning lineage and a fail-closed
+approval boundary. It
 does not yet derive Living Frame estimate line items, work items, asset
 manifest entries, exact timing, executable Remotion payloads, artifact QA, or
 private-review completion. Those must be added through the existing WeEditPro
-edit pipeline before Living Frame can contribute to a deliverable render.
+edit pipeline before a selected Living Frame scene can enter an approved
+snapshot or contribute to a deliverable render.
 
 GPU-heavy Living Frame inference remains restricted to separately qualified
 Google Cloud Run GPU workers. This binding performs no model inference and

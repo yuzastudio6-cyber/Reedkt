@@ -820,6 +820,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           components: approvalComponents,
           planningHandoffBinding: approvalPlanningHandoffAuthority,
         })
+      assertLivingFrameExecutionAuthorityReady(
+        approvalLivingFrameSelectedSceneAuthority,
+      )
       const approvalLongFormPublication =
         await loadCanonicalProfessionalLongFormPublicationAuthority({
           context,
@@ -972,6 +975,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
               409,
             )
           }
+          assertLivingFrameExecutionAuthorityReady(
+            lockedLivingFrameSelectedSceneAuthority,
+          )
           if (plan.status !== 'presented') throw new ApiError('PLAN_NOT_APPROVED', 'Only the current presented plan can be approved.', 409)
           if (estimate.status !== 'presented') throw new ApiError('CREDIT_ESTIMATE_NOT_APPROVED', 'Only the current presented estimate can be approved.', 409)
           if (plan.planHash !== body.expectedPlanHash || estimate.estimateHash !== body.expectedEstimateHash) {
@@ -1541,6 +1547,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           components: approvedComponents,
           planningHandoffBinding: planningHandoffAuthority,
         })
+      assertLivingFrameExecutionAuthorityReady(
+        livingFrameSelectedSceneAuthority,
+      )
       await revalidatePlanningInputAuthorityBinding({
         context,
         scope: planningAuthorityScope(context, access.userId, access.workspaceId, lineage.plan),
@@ -1718,6 +1727,42 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       }
     },
   }
+}
+
+function assertLivingFrameExecutionAuthorityReady(
+  publication:
+    | CanonicalLivingFrameSelectedScenePublication
+    | undefined,
+): void {
+  if (
+    publication === undefined
+    || publication.binding.deliberateNonUse
+    || publication.binding.selectedSceneCount === 0
+  ) {
+    return
+  }
+
+  throw new ApiError(
+    'TOOL_NOT_READY',
+    'Selected Living Frame scenes cannot be approved until their exact MasterTiming, SoundSync, estimate, named work items, asset outputs, QA, and private-review dependencies are frozen in the canonical edit graph.',
+    409,
+    {
+      requiredGate:
+        'canonical_living_frame_execution_authority',
+      selectedSceneIds:
+        publication.binding.selectedComponent.scenePlans.map(
+          (scene) => scene.sceneId,
+        ),
+      unresolvedAuthorityGates: [
+        'canonical_living_frame_master_timing_binding',
+        'canonical_living_frame_soundsync_binding',
+        'canonical_living_frame_estimate_projection',
+        'canonical_living_frame_named_work_projection',
+        'canonical_living_frame_asset_manifest_projection',
+        'canonical_living_frame_qa_private_review_projection',
+      ],
+    },
+  )
 }
 
 function assertReconstructedAuthorityHashes(input: {

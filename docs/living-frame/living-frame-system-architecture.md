@@ -1087,17 +1087,18 @@ non-use decision into a separate server-derived selected-scene binding while
 the original deferred Living Frame user-intent component remains unchanged.
 The binding, selected-scene admission, and semantic-plan projection are stored
 as three content-addressed component references in the existing canonical
-plan, included in its hash, copied unchanged into the existing immutable
-approved snapshot, and fully revalidated when approval or execution authority
-is loaded.
+presented plan and included in its hash.
 
 This is not a second Living Frame workflow. It creates no estimate line,
 work item, asset-manifest entry, timing mutation, SoundSync decision, tool or
 provider route, artifact QA result, renderer payload, or private-review
 decision. The existing WeEditPro edit pipeline remains the only owner of those
-stages. Until the remaining Slice 3C-B estimate bridge and Slice 4 work/asset
-projection are implemented, the selected component is planning and snapshot
-lineage only and is not executable. See
+stages. Deliberate non-use may continue through ordinary approval. A selected
+scene now fails closed before credit reservation or snapshot creation until
+the remaining Slice 3C-B estimate bridge and Slice 4 timing/work/asset/QA
+projection are present. Approval and execution reload and verify the same
+selected-scene records; they cannot silently omit the selected skill from an
+otherwise valid final-render graph. See
 `docs/living-frame/living-frame-selected-scene-binding.md`.
 
 ### Slice 4: canonical timing, work, and asset mapping

@@ -4057,6 +4057,7 @@ console.log(JSON.stringify({
     'stale_source_media_expectation_rejected',
     'preference_dna_and_edit_brief_frozen_into_plan',
     'edit_brief_post_approval_mutation_blocked',
+    'selected_living_frame_scene_fails_closed_before_approval_without_exact_execution_authority',
     'frame_confirmation_gate',
     '4k_estimate_exact_timing_gate',
     '4k_estimate_versioned_cost_derivation_gate',
@@ -5442,40 +5443,18 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
 
   const planningService =
     createEditPlanningAuthorityService(serviceContext)
-  const approved = await planningService.approveAndFundCanonicalPlan({
-    workspaceId: targetWorkspaceId,
-    editPlanId: String(publishedPlan.id),
-    expectedAuthorityRevision:
-      Number(publishedAuthority.authorityRevision),
-    expectedPlanHash: String(publishedPlan.planHash),
-    expectedEstimateHash: String(publishedEstimate.estimateHash),
-    idempotencyKey: 'approve-living-frame-selected-scene',
-  })
-  const approvedAuthority = asRecord(approved.authority)
-  const approvedSnapshot = asRecord(approvedAuthority.snapshot)
-  assert.deepEqual(
-    asRecord(approvedSnapshot.componentRefs),
-    publishedRefs,
-    'The immutable approved snapshot must freeze the exact Living Frame selected-scene refs.',
-  )
-  const loaded = await planningService.loadApprovedExecutionAuthority(
-    String(approvedSnapshot.snapshotId),
-    targetWorkspaceId,
-  )
-  assert.equal(
-    loaded.livingFrameSelectedSceneAuthority?.binding
-      .bindingDigestSha256,
-    livingFrameSelectedScenePublication.binding.bindingDigestSha256,
-  )
-  assert.equal(
-    loaded.livingFrameSelectedSceneAuthority?.binding
-      .selectedComponent.scenePlans.length,
-    1,
-  )
-  assert.equal(
-    loaded.components.livingFrame?.decisionSummary.decision,
-    'deferred',
-    'The parent user-intent component must remain deferred and immutable.',
+  await expectApiError(
+    () => planningService.approveAndFundCanonicalPlan({
+      workspaceId: targetWorkspaceId,
+      editPlanId: String(publishedPlan.id),
+      expectedAuthorityRevision:
+        Number(publishedAuthority.authorityRevision),
+      expectedPlanHash: String(publishedPlan.planHash),
+      expectedEstimateHash: String(publishedEstimate.estimateHash),
+      idempotencyKey: 'approve-living-frame-selected-scene',
+    }),
+    'TOOL_NOT_READY',
+    'A selected Living Frame scene must not be approved while its exact timing, estimate, work, assets, QA, and private-review authority is absent.',
   )
 }
 

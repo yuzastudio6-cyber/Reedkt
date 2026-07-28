@@ -36,6 +36,13 @@ adapter invokes only that environment and runner with no shell or
 caller-selected executable, argument, path, or environment. This is source
 implementation, not image-build or GPU-run evidence.
 
+The Dockerfile also exposes the inspection-only
+`faster_whisper_runtime_build_candidate` target. It stops before the legacy
+broad GPU dependency layer and verifies the exact Faster Whisper and
+CTranslate2 package imports during build. A local build of that target is
+controlled image evidence only; it cannot advance the Cloud Run, model mount,
+GPU inference, artifact, QA, cost, or production gates below.
+
 ## What this closes
 
 The previous

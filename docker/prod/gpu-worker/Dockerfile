@@ -15,7 +15,7 @@ RUN npm ci
 COPY . .
 RUN npm run build:server
 
-FROM nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu22.04@sha256:fa44193567d1908f7ca1f3abf8623ce9c63bc8cba7bcfdb32702eb04d326f7a8 AS base
+FROM nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu22.04@sha256:fa44193567d1908f7ca1f3abf8623ce9c63bc8cba7bcfdb32702eb04d326f7a8 AS gpu_runtime_foundation
 WORKDIR /app
 
 ARG REEDITPRO_SOURCE_COMMIT_SHA
@@ -42,22 +42,11 @@ ENV TRANSFORMERS_OFFLINE=1
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     ca-certificates \
-    build-essential \
-    pkg-config \
     python3 \
     python3-pip \
     python3-venv \
-    python3-setuptools \
-    nodejs \
-    npm \
-    ffmpeg \
-    libglib2.0-0 \
-    libgl1 \
     libgomp1 \
   && rm -rf /var/lib/apt/lists/*
-
-COPY docker/prod/gpu-worker/requirements.gpu.txt /tmp/requirements.gpu.txt
-RUN python3 -m pip install --no-cache-dir --break-system-packages -r /tmp/requirements.gpu.txt
 
 COPY docker/prod/gpu-worker/faster-whisper \
   /opt/reeditpro/gpu-operations/faster-whisper
@@ -88,6 +77,31 @@ RUN mkdir -p \
     'Model-weight directories are intentionally empty in the build candidate.' \
     'Runtime mounts/manifests must provide reviewed weights after qualification.' \
     > /opt/reeditpro/model-weights/README.txt
+
+FROM gpu_runtime_foundation AS faster_whisper_runtime_build_candidate
+RUN test -x \
+    /opt/reeditpro/gpu-operations/faster-whisper/venv/bin/python \
+  && test -x \
+    /opt/reeditpro/gpu-operations/faster-whisper/runner.py \
+  && /opt/reeditpro/gpu-operations/faster-whisper/venv/bin/python \
+    -I \
+    -B \
+    -c "import importlib.metadata as m; import ctranslate2; assert m.version('faster-whisper') == '1.2.1'; assert m.version('ctranslate2') == '4.6.2'; assert ctranslate2.__version__ == '4.6.2'"
+
+FROM gpu_runtime_foundation AS base
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    build-essential \
+    pkg-config \
+    python3-setuptools \
+    nodejs \
+    npm \
+    ffmpeg \
+    libglib2.0-0 \
+    libgl1 \
+  && rm -rf /var/lib/apt/lists/*
+COPY docker/prod/gpu-worker/requirements.gpu.txt /tmp/requirements.gpu.txt
+RUN python3 -m pip install --no-cache-dir --break-system-packages -r /tmp/requirements.gpu.txt
 
 COPY package*.json ./
 RUN npm ci --omit=dev

@@ -50,6 +50,9 @@ const fasterWhisperLock =
   requireRead('docker/prod/gpu-worker/faster-whisper/requirements.lock.txt')
 const fasterWhisperRunner =
   requireRead('docker/prod/gpu-worker/faster-whisper/runner.py')
+const fasterWhisperLockedPackages = fasterWhisperLock
+  .split('\n')
+  .filter((line) => line.trim() && !line.trim().startsWith('#'))
 
 check(!/wget\s|curl\s|huggingface-cli|snapshot_download|from_pretrained|git\s+clone/i.test(gpuDocker), 'GPU Dockerfile must not include model fetch commands.')
 check(!/OPENAI_API_KEY|SUPABASE_SERVICE_ROLE_KEY|PROVIDER|SECRET_VALUE|sk-[A-Za-z0-9]/i.test(gpuDocker), 'GPU Dockerfile must not contain provider secrets.')
@@ -70,13 +73,28 @@ check(
   'GPU Dockerfile must install Faster Whisper in its exact hash-locked environment.',
 )
 check(
-  fasterWhisperLock.includes(
-    'faster-whisper==1.2.1 --hash=sha256:79a66ad50688c0b794dd501dc340a736992a6342f7f95e5811be60b5224a26a7',
+  gpuDocker.includes(
+    'AS faster_whisper_runtime_build_candidate',
   ) &&
-    fasterWhisperLock
-      .split('\n')
-      .filter((line) => line.trim() && !line.trim().startsWith('#'))
-      .every((line) => line.includes('--hash=sha256:')),
+    gpuDocker.includes(
+      "assert m.version('faster-whisper') == '1.2.1'",
+    ) &&
+    gpuDocker.includes(
+      "assert m.version('ctranslate2') == '4.6.2'",
+    ),
+  'GPU Dockerfile must expose an independently buildable exact Faster Whisper runtime candidate.',
+)
+check(
+  fasterWhisperLockedPackages.length === 29 &&
+    fasterWhisperLock.includes(
+      'faster-whisper==1.2.1 --hash=sha256:79a66ad50688c0b794dd501dc340a736992a6342f7f95e5811be60b5224a26a7',
+    ) &&
+    fasterWhisperLock.includes(
+      'exceptiongroup==1.3.1 --hash=sha256:a7a39a3bd276781e98394987d3a5701d0c4edffb633bb7a5144577f82c773598',
+    ) &&
+    fasterWhisperLockedPackages.every((line) =>
+      line.includes('--hash=sha256:'),
+    ),
   'Faster Whisper environment must retain exact package hashes.',
 )
 check(

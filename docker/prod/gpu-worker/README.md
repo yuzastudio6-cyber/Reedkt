@@ -21,6 +21,13 @@ router still requires a process-bound adapter and exact current attempt
 authority before it may invoke that runner. The runner itself accepts only a
 closed request on stdin and fixed server-owned mount locations.
 
+The Dockerfile exposes
+`faster_whisper_runtime_build_candidate` as an inspection-only stage. It omits
+the older broad `requirements.gpu.txt` install and performs exact package/import
+checks during the build. Building that target locally proves only that the
+hash-locked Linux/amd64 environment can be assembled; it is not a deployed
+Cloud Run Job, a GPU inference result, or production qualification.
+
 Model-weight directories remain empty placeholders. Production execution
 requires approved manifests and reviewed weights delivered through the
 canonical read-only mount authority. The candidate still needs a clean

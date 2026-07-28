@@ -39,6 +39,12 @@ import {
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
 } from './canonical-exact-source-frame-png-authority'
 import {
+  assertCanonicalLivingFrameRembgGpuMaskWorkItem,
+} from './canonical-living-frame-rembg-gpu-mask-authority'
+import {
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_ITEM_OPERATION,
+} from '../../src/types/living-frame-canonical-work-graph-projection'
+import {
   assertCanonicalVisualCalibrationObjectiveQaWorkItem,
   CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION,
 } from './canonical-visual-calibration-objective-qa-authority'
@@ -147,6 +153,7 @@ const validationEntrySchema = z.object({
     'vapoursynth_frame_pipeline',
     'audioflux_analysis',
     'rembg_background_removal',
+    'rembg_gpu_mask_planning',
     'deepfilternet_voice_cleanup',
   ]),
   structuredPayloadHash: sha256,
@@ -675,6 +682,20 @@ function validateByRunnerFamily(
     return 'audioflux_analysis'
   }
   if ((OFFLINE_REMBG_BACKGROUND_REMOVAL_TOOL_IDS as readonly string[]).includes(toolId)) {
+    if (
+      workItem.executionInput.operation ===
+        CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_ITEM_OPERATION
+    ) {
+      assertCanonicalLivingFrameRembgGpuMaskWorkItem(
+        workItem,
+      )
+      requireBinding(workItem, {
+        source: 1,
+        cleanup: 1,
+        dependencies: 1,
+      })
+      return 'rembg_gpu_mask_planning'
+    }
     buildOfflineRembgBackgroundRemovalApprovedRequest({
       toolId: toolId as (typeof OFFLINE_REMBG_BACKGROUND_REMOVAL_TOOL_IDS)[number],
       operationId,

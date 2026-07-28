@@ -18,9 +18,16 @@ import {
   type CanonicalApprovedWorkGraphResourcePlacementAuthority,
   type CanonicalResourcePlacementAuthorityWorkItem,
 } from './canonical-private-resource-placement-authority'
+import {
+  assertCanonicalLivingFrameRembgGpuMaskWorkItem,
+} from './canonical-living-frame-rembg-gpu-mask-authority'
+import {
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
+} from '../../src/types/living-frame-canonical-work-graph-projection'
 
 export const CANONICAL_TOOL_EXECUTION_AUTHORITY_VERSION =
-  'canonical-tool-execution-authority-v2' as const
+  'canonical-tool-execution-authority-v3' as const
 
 const safeKey = z.string()
   .trim()
@@ -41,6 +48,26 @@ const workItemAuthoritySchema = z.object({
   required: z.boolean(),
   expectedOutputs: z.array(outputAuthoritySchema).min(1).max(128),
 }).strict()
+
+const serverDerivedToolStrategyDeclarationSchema =
+  z.object({
+    source: z.literal(
+      'canonical_living_frame_work_graph_projection',
+    ),
+    sourceDigestSha256: sha256,
+    workItemKeys: z.array(safeKey).min(1).max(256),
+    declaredToolIds: z.tuple([z.literal('rembg')]),
+    declaredExactOperationIds: z.tuple([
+      z.literal(
+        CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+      ),
+    ]),
+  }).strict()
+
+export type CanonicalServerDerivedToolStrategyDeclaration =
+  z.infer<
+    typeof serverDerivedToolStrategyDeclarationSchema
+  >
 
 const toolAuthorityEntrySchema = z.object({
   stableToolIdentity: safeKey,
@@ -84,6 +111,13 @@ export const canonicalToolExecutionAuthoritySchema = z.object({
   catalogVersion: z.literal(PROVEN_TOOL_IDENTITY_CATALOG_VERSION),
   evidenceRevision: z.string().trim().min(1).max(80),
   strategyAuthority: z.object({
+    callerDeclaredToolIds: z.array(safeKey).max(256),
+    callerDeclaredExactOperationIds:
+      z.array(safeKey).max(256),
+    serverDerivedDeclarations:
+      z.array(
+        serverDerivedToolStrategyDeclarationSchema,
+      ).max(16),
     declaredToolIds: z.array(safeKey).max(256),
     declaredExactOperationIds: z.array(safeKey).max(256),
     workGraphToolIds: z.array(safeKey).max(256),
@@ -129,6 +163,10 @@ export interface CanonicalToolAuthorityWorkItem {
 }
 
 interface StrategyProjection {
+  callerDeclaredToolIds: string[]
+  callerDeclaredExactOperationIds: string[]
+  serverDerivedDeclarations:
+    CanonicalServerDerivedToolStrategyDeclaration[]
   declaredToolIds: string[]
   declaredExactOperationIds: string[]
   workGraphToolIds: string[]
@@ -139,8 +177,14 @@ interface StrategyProjection {
 export function createCanonicalToolExecutionAuthority(input: {
   toolStrategyPlan: Record<string, unknown>
   workItems: CanonicalToolAuthorityWorkItem[]
+  serverDerivedStrategyDeclarations?:
+    CanonicalServerDerivedToolStrategyDeclaration[]
 }): CanonicalToolExecutionAuthority {
-  const strategyAuthority = projectStrategyAuthority(input.toolStrategyPlan, input.workItems)
+  const strategyAuthority = projectStrategyAuthority(
+    input.toolStrategyPlan,
+    input.workItems,
+    input.serverDerivedStrategyDeclarations ?? [],
+  )
   const requiredToolIds = unique(input.workItems
     .filter((workItem) => workItem.required)
     .flatMap((workItem) => workItem.approvedToolIds))
@@ -261,6 +305,8 @@ export function assertCanonicalToolExecutionAuthority(input: {
   value: unknown
   toolStrategyPlan: Record<string, unknown>
   workItems: CanonicalToolAuthorityWorkItem[]
+  serverDerivedStrategyDeclarations?:
+    CanonicalServerDerivedToolStrategyDeclaration[]
 }): CanonicalToolExecutionAuthority {
   const parsed = canonicalToolExecutionAuthoritySchema.safeParse(input.value)
   if (!parsed.success) {
@@ -288,6 +334,8 @@ export function assertCanonicalToolExecutionAuthority(input: {
   const current = createCanonicalToolExecutionAuthority({
     toolStrategyPlan: input.toolStrategyPlan,
     workItems: input.workItems,
+    serverDerivedStrategyDeclarations:
+      input.serverDerivedStrategyDeclarations,
   })
   if (
     stableAuthorityStringify(structuralAuthority(authority)) !==
@@ -303,6 +351,8 @@ export function assertCanonicalToolExecutionAuthority(input: {
 function projectStrategyAuthority(
   toolStrategyPlan: Record<string, unknown>,
   workItems: CanonicalToolAuthorityWorkItem[],
+  rawServerDerivedDeclarations:
+    CanonicalServerDerivedToolStrategyDeclaration[],
 ): StrategyProjection {
   const compactToolIds = optionalStringArray(toolStrategyPlan, 'toolIds')
   const richToolIds = optionalStringArray(toolStrategyPlan, 'toolIdsUsed')
@@ -313,11 +363,35 @@ function projectStrategyAuthority(
   ) {
     throw invalid('Canonical tool strategy declarations disagree between toolIds and toolIdsUsed.')
   }
-  const declaredToolIds = unique([...(compactToolIds ?? []), ...(richToolIds ?? [])]).sort()
-  const declaredExactOperationIds = optionalStringArray(
+  const callerDeclaredToolIds =
+    unique([
+      ...(compactToolIds ?? []),
+      ...(richToolIds ?? []),
+    ]).sort()
+  const callerDeclaredExactOperationIds =
+    optionalStringArray(
     toolStrategyPlan,
     'exactOperationIds',
   )?.sort() ?? []
+  const serverDerivedDeclarations =
+    validateServerDerivedStrategyDeclarations(
+      rawServerDerivedDeclarations,
+      workItems,
+    )
+  const declaredToolIds = unique([
+    ...callerDeclaredToolIds,
+    ...serverDerivedDeclarations.flatMap(
+      (declaration) =>
+        declaration.declaredToolIds,
+    ),
+  ]).sort()
+  const declaredExactOperationIds = unique([
+    ...callerDeclaredExactOperationIds,
+    ...serverDerivedDeclarations.flatMap(
+      (declaration) =>
+        declaration.declaredExactOperationIds,
+    ),
+  ]).sort()
   const workGraphToolIds = unique(workItems.flatMap((workItem) => workItem.approvedToolIds)).sort()
   if (workGraphToolIds.length > 0 && declaredToolIds.length === 0) {
     throw invalid('Canonical tool-backed work requires an explicit tool strategy declaration.', {
@@ -361,6 +435,9 @@ function projectStrategyAuthority(
   }
 
   const projection = {
+    callerDeclaredToolIds,
+    callerDeclaredExactOperationIds,
+    serverDerivedDeclarations,
     declaredToolIds,
     declaredExactOperationIds,
     workGraphToolIds,
@@ -371,6 +448,94 @@ function projectStrategyAuthority(
     ...projection,
     declarationHash: sha256AuthorityValue(projection),
   }
+}
+
+function validateServerDerivedStrategyDeclarations(
+  values:
+    CanonicalServerDerivedToolStrategyDeclaration[],
+  workItems: CanonicalToolAuthorityWorkItem[],
+): CanonicalServerDerivedToolStrategyDeclaration[] {
+  const parsed =
+    z.array(serverDerivedToolStrategyDeclarationSchema)
+      .max(16)
+      .safeParse(values)
+  if (!parsed.success) {
+    throw invalid(
+      'Canonical server-derived tool strategy declaration is invalid.',
+    )
+  }
+  const declarations = parsed.data
+  const declaredWorkItemKeys =
+    declarations.flatMap((declaration) =>
+      declaration.workItemKeys)
+  if (
+    new Set(declaredWorkItemKeys).size !==
+      declaredWorkItemKeys.length
+  ) {
+    throw invalid(
+      'Canonical server-derived tool strategy work-item keys must be unique.',
+    )
+  }
+  const workItemByKey = new Map(
+    workItems.map((workItem) => [
+      workItem.workItemKey,
+      workItem,
+    ]),
+  )
+  for (const declaration of declarations) {
+    if (
+      new Set(declaration.workItemKeys).size !==
+        declaration.workItemKeys.length
+      || declaration.workItemKeys.some((workItemKey) => {
+        const workItem = workItemByKey.get(workItemKey)
+        if (
+          !workItem
+          || workItem.workerClass !==
+            CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
+        ) {
+          return true
+        }
+        try {
+          assertCanonicalLivingFrameRembgGpuMaskWorkItem(
+            workItem,
+          )
+          return false
+        } catch {
+          return true
+        }
+      })
+    ) {
+      throw invalid(
+        'Canonical Living Frame tool declaration does not match its exact server-derived rembg GPU work items.',
+      )
+    }
+  }
+  const exactLivingFrameRembgKeys = workItems
+    .filter((workItem) =>
+      workItem.workerClass ===
+        CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS)
+    .map((workItem) => {
+      assertCanonicalLivingFrameRembgGpuMaskWorkItem(
+        workItem,
+      )
+      return workItem.workItemKey
+    })
+    .sort()
+  if (
+    stableAuthorityStringify(
+      [...declaredWorkItemKeys].sort(),
+    ) !== stableAuthorityStringify(
+      exactLivingFrameRembgKeys,
+    )
+  ) {
+    throw invalid(
+      'Canonical Living Frame rembg GPU work must be covered exactly by its server-derived tool declaration.',
+    )
+  }
+  return declarations.map((declaration) => ({
+    ...declaration,
+    workItemKeys: [...declaration.workItemKeys].sort(),
+  }))
 }
 
 function structuralAuthority(authority: CanonicalToolExecutionAuthority) {

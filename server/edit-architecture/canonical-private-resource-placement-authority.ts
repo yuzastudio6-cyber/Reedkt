@@ -18,6 +18,8 @@ import type {
 } from './canonical-approved-edit-execution-package'
 import {
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import type {
   CanonicalToolExecutionAuthority,
@@ -472,7 +474,17 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
         tool.readiness.privateInternalEndToEndReady &&
         tool.readiness.privateInternalJobAdapterReady,
       )
-      const privateExecutionReady = exactProvenIdentity &&
+      const livingFrameRembgGpuRuntimePending =
+        toolId === 'rembg'
+        && operationId ===
+          CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION
+        && workItem.workerClass ===
+          CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
+      const admittedProvenIdentity =
+        exactProvenIdentity
+        && !livingFrameRembgGpuRuntimePending
+      const privateExecutionReady =
+        admittedProvenIdentity &&
         workItem.providerExecutionMode === 'none'
       const withoutHash = {
         workItemKey: workItem.workItemKey,
@@ -492,7 +504,7 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
           gpuRequired: profile.gpuRequired,
           cpuAllowed: profile.cpuAllowed,
         }),
-        ...(exactProvenIdentity
+        ...(admittedProvenIdentity
           ? {
               runtimeRunnerClass: tool.runtime.runnerClass!,
               toolIdentityHash: tool.identityHash,
@@ -503,6 +515,8 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
           ? {
               requiredGate: workItem.providerExecutionMode !== 'none'
                 ? 'provider_activation_and_approved_route' as const
+                : livingFrameRembgGpuRuntimePending
+                  ? 'canonical_rembg_cloud_run_gpu_runtime_qualification' as const
                 : 'canonical_private_tool_execution_evidence' as const,
             }
           : {}),

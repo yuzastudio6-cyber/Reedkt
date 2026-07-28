@@ -24,6 +24,9 @@ import {
   createCanonicalVisualCalibrationProviderPlanningPayload,
 } from '../edit-architecture/canonical-visual-calibration-objective-qa-authority'
 import {
+  assertCanonicalLivingFrameRembgGpuMaskWorkItem,
+} from '../edit-architecture/canonical-living-frame-rembg-gpu-mask-authority'
+import {
   OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
 } from
@@ -128,6 +131,10 @@ import {
 import {
   CANONICAL_LIVING_FRAME_PENDING_OPERATION,
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_INPUT_VERSION,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_ITEM_OPERATION,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS,
@@ -350,7 +357,7 @@ assert.equal(
 )
 assert.equal(
   persistedToolExecutionAuthority.schemaVersion,
-  'canonical-tool-execution-authority-v2',
+  'canonical-tool-execution-authority-v3',
 )
 assert.match(String(persistedToolExecutionAuthority.authorityHash), /^[a-f0-9]{64}$/)
 assert.equal(asRecord(persistedToolExecutionAuthority.summary).workGraphToolCount, 4)
@@ -6257,7 +6264,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     }))
   assert.equal(
     workGraphProjection.readiness,
-    'canonical_work_items_projected_exact_source_frame_admitted',
+    'canonical_work_items_projected_rembg_gpu_operation_admitted',
   )
   assert.equal(
     workGraphProjection.createsCanonicalWorkItems,
@@ -6285,6 +6292,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       selectedSceneCount: 1,
       canonicalWorkItemCount: 4,
       admittedExactSourceFrameWorkItemCount: 1,
+      admittedRembgGpuMaskWorkItemCount: 1,
       executableWorkItemCount: 1,
       requiredExpectedOutputCount: 4,
       gpuPendingWorkItemCount: 1,
@@ -6361,7 +6369,168 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     projectedWorkItems.filter((workItem) =>
       asRecord(workItem).workerClass ===
         CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS)
-  assert.equal(projectedPendingWorkItems.length, 3)
+  assert.equal(projectedPendingWorkItems.length, 2)
+  const rembgGpuMaskWorkItems =
+    projectedWorkItems.filter((workItem) =>
+      asRecord(workItem).workerClass ===
+        CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS)
+  assert.equal(rembgGpuMaskWorkItems.length, 1)
+  const rembgGpuMaskWorkItem =
+    asRecord(rembgGpuMaskWorkItems[0])
+  const rembgExecutionInput =
+    asRecord(rembgGpuMaskWorkItem.executionInput)
+  const rembgStructuredPayload =
+    asRecord(rembgExecutionInput.structuredPayload)
+  const rembgRuntimePolicy =
+    asRecord(rembgStructuredPayload.runtimePolicy)
+  const rembgSourceDependency =
+    asRecord(
+      rembgStructuredPayload.sourceFrameDependency,
+    )
+  assert.equal(
+    rembgExecutionInput.operation,
+    CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_ITEM_OPERATION,
+  )
+  assert.deepEqual(
+    rembgExecutionInput.approvedToolOperationIds,
+    [
+      CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+    ],
+  )
+  assert.deepEqual(
+    rembgGpuMaskWorkItem.approvedToolIds,
+    ['rembg'],
+  )
+  assert.equal(
+    rembgStructuredPayload.schemaVersion,
+    CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_INPUT_VERSION,
+  )
+  assert.equal(
+    rembgRuntimePolicy.executionTarget,
+    'google_cloud_run_gpu',
+  )
+  assert.equal(
+    rembgRuntimePolicy.accelerator,
+    'nvidia_l4',
+  )
+  assert.equal(rembgRuntimePolicy.device, 'cuda')
+  assert.equal(
+    rembgRuntimePolicy.cpuFallbackAllowed,
+    false,
+  )
+  assert.equal(
+    rembgRuntimePolicy.runtimeDownloadAllowed,
+    false,
+  )
+  assert.equal(
+    rembgRuntimePolicy.networkFetchAllowed,
+    false,
+  )
+  assert.equal(
+    rembgSourceDependency.workItemKey,
+    exactSourceFrameWorkItem.workItemKey,
+  )
+  assert.deepEqual(
+    rembgGpuMaskWorkItem.dependencyKeys,
+    [exactSourceFrameWorkItem.workItemKey],
+  )
+  assert.equal(
+    rembgGpuMaskWorkItem.maximumCreditBudget,
+    1,
+  )
+  assert.equal(
+    asRecord(rembgGpuMaskWorkItem.fallbackPolicy)
+      .cpuFallbackAllowed,
+    false,
+  )
+  assert.doesNotThrow(() =>
+    assertCanonicalLivingFrameRembgGpuMaskWorkItem(
+      rembgGpuMaskWorkItem,
+    ))
+  const forgedCpuFallbackRembgWorkItem =
+    structuredClone(rembgGpuMaskWorkItem)
+  const forgedRembgExecutionInput = asRecord(
+    forgedCpuFallbackRembgWorkItem.executionInput,
+  )
+  const forgedRembgStructuredPayload = asRecord(
+    forgedRembgExecutionInput.structuredPayload,
+  )
+  asRecord(
+    forgedRembgStructuredPayload.runtimePolicy,
+  ).cpuFallbackAllowed = true
+  assert.throws(
+    () =>
+      assertCanonicalLivingFrameRembgGpuMaskWorkItem(
+        forgedCpuFallbackRembgWorkItem,
+      ),
+    /GPU-only shape/u,
+  )
+  const livingFrameToolExecutionAuthority =
+    asRecord(await readPrivateAuthorityJsonBlob({
+      localStorageRoot:
+        serviceContext.env.localStorageRoot,
+      ref: publishedRefs
+        .canonicalToolExecutionAuthority as {
+          sha256: string
+          byteLength: number
+        },
+    }))
+  const livingFrameStrategyAuthority =
+    asRecord(
+      livingFrameToolExecutionAuthority
+        .strategyAuthority,
+    )
+  const serverDerivedDeclarations =
+    livingFrameStrategyAuthority
+      .serverDerivedDeclarations
+  assert.ok(Array.isArray(serverDerivedDeclarations))
+  assert.equal(serverDerivedDeclarations.length, 1)
+  assert.deepEqual(
+    asRecord(serverDerivedDeclarations[0]),
+    {
+      source:
+        'canonical_living_frame_work_graph_projection',
+      sourceDigestSha256:
+        workGraphProjection.projectionDigestSha256,
+      workItemKeys: [rembgGpuMaskWorkItem.workItemKey],
+      declaredToolIds: ['rembg'],
+      declaredExactOperationIds: [
+        CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+      ],
+    },
+  )
+  const resourcePlacementAuthority =
+    asRecord(
+      livingFrameToolExecutionAuthority
+        .resourcePlacementAuthority,
+    )
+  assert.ok(
+    Array.isArray(resourcePlacementAuthority.placements),
+  )
+  const rembgResourcePlacement =
+    resourcePlacementAuthority.placements
+      .map(asRecord)
+      .find((placement) =>
+        placement.workItemKey ===
+          rembgGpuMaskWorkItem.workItemKey)
+  assert.ok(rembgResourcePlacement)
+  assert.equal(
+    rembgResourcePlacement.workerType,
+    'gpu_ai_worker',
+  )
+  assert.equal(
+    rembgResourcePlacement.preferredAccelerator,
+    'nvidia_l4',
+  )
+  assert.equal(rembgResourcePlacement.cpuAllowed, false)
+  assert.equal(
+    rembgResourcePlacement.privateExecutionReady,
+    false,
+  )
+  assert.equal(
+    rembgResourcePlacement.requiredGate,
+    'canonical_rembg_cloud_run_gpu_runtime_qualification',
+  )
   const projectedPendingWorkByType = new Map(
     projectedPendingWorkItems.map((workItem) => {
       const record = asRecord(workItem)
@@ -6372,7 +6541,9 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     }),
   )
   for (const workRequirement of
-    projectedWorkRequirements) {
+    projectedWorkRequirements.filter((requirement) =>
+      asRecord(requirement).workItemType !==
+        'generate_mask_asset')) {
     const requirementRecord =
       asRecord(workRequirement)
     const requirementDependencyKeys =
@@ -6396,13 +6567,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     assert.deepEqual(workItem.approvedToolIds, [])
     assert.deepEqual(
       workItem.dependencyKeys,
-      requirementRecord.workItemType ===
-          'generate_mask_asset'
-        ? [
-            ...requirementDependencyKeys,
-            exactSourceFrameWorkItem.workItemKey,
-          ].sort()
-        : requirementDependencyKeys,
+      requirementDependencyKeys,
     )
     const executionInput =
       asRecord(workItem.executionInput)
@@ -6421,8 +6586,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     assert.equal(
       pendingOperationAuthority
         .exactDependencyInputOperationAdmitted,
-      requirementRecord.workItemType ===
-        'generate_mask_asset',
+      false,
     )
     assert.equal(
       pendingOperationAuthority
@@ -6461,6 +6625,8 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
             CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
           || workItem.workerClass ===
             CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS
+          || workItem.workerClass ===
+            CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
         ),
     )
   assert.equal(
@@ -6510,6 +6676,9 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       expected.workerClass ===
         CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS
         ? ['ffmpeg']
+        : expected.workerClass ===
+            CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
+          ? ['rembg']
         : [],
     )
     assert.equal(

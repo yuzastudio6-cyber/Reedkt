@@ -8,7 +8,7 @@ import type {
 } from './living-frame-asset-work-input-binding'
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION =
-  'canonical-living-frame-work-graph-projection-v3' as const
+  'canonical-living-frame-work-graph-projection-v4' as const
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE =
   'canonical_living_frame_work_graph_projection_compiler' as const
@@ -23,7 +23,7 @@ export const CANONICAL_LIVING_FRAME_PENDING_OPERATION =
   'await_exact_living_frame_dependency_input_operation_admission' as const
 
 export const CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION =
-  'canonical-living-frame-pending-operation-authority-v3' as const
+  'canonical-living-frame-pending-operation-authority-v4' as const
 
 export const CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION =
   'extract_approved_exact_source_frame_png' as const
@@ -34,10 +34,23 @@ export const CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE =
 export const CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS =
   'media_processing_worker' as const
 
+export const CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS =
+  'gpu_ai_worker' as const
+
+export const CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_ITEM_OPERATION =
+  'generate_approved_living_frame_rembg_mask_png' as const
+
+export const CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION =
+  'tool.rembg.remove_image_background.v1' as const
+
+export const CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_INPUT_VERSION =
+  'canonical-living-frame-rembg-gpu-mask-work-input-v1' as const
+
 export type CanonicalLivingFrameWorkGraphProjectionReadiness =
   | 'ready_without_living_frame_work_items'
   | 'canonical_work_items_projected_operation_admission_pending'
   | 'canonical_work_items_projected_exact_source_frame_admitted'
+  | 'canonical_work_items_projected_rembg_gpu_operation_admitted'
 
 export interface CanonicalLivingFramePendingOperationAuthority {
   readonly schemaVersion:
@@ -178,9 +191,106 @@ export interface CanonicalLivingFrameExactSourceFramePngWorkItem {
   readonly required: true
 }
 
+export interface CanonicalLivingFrameRembgGpuMaskWorkItem {
+  readonly workItemKey: string
+  readonly workItemType: 'generate_mask_asset'
+  readonly workerClass:
+    typeof CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
+  readonly executionInput: {
+    readonly operation:
+      typeof CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_ITEM_OPERATION
+    readonly approvedToolOperationIds: readonly [
+      typeof CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+    ]
+    readonly expectedOutputKeys: readonly [string]
+    readonly structuredPayload: {
+      readonly schemaVersion:
+        typeof CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_INPUT_VERSION
+      readonly selectedSceneBindingDigestSha256: string
+      readonly assetWorkInputBindingDigestSha256: string
+      readonly estimateWorkAssetProjectionDigestSha256: string
+      readonly customerEstimateAuthorityDigestSha256: string
+      readonly sceneId: string
+      readonly workRequirementDigestSha256: string
+      readonly inputAssetIntentIds: readonly string[]
+      readonly outputAssetIntentIds: readonly string[]
+      readonly sourceFrameDependency: {
+        readonly workItemKey: string
+        readonly outputKey: string
+        readonly artifactType:
+          typeof CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE
+        readonly sourceSequenceItemId: string
+        readonly sourceCleanupDecisionId: string
+        readonly masterFrameIndex: number
+        readonly sourceFrameIndex: number
+        readonly frameRate: 24 | 25 | 30 | 50 | 60
+        readonly frameSelectionPolicy:
+          'approved_source_frame_ordinal_v1'
+        readonly sourceFrameSelectionDigestSha256: string
+        readonly contentType: 'image/png'
+      }
+      readonly runtimePolicy: {
+        readonly executionTarget: 'google_cloud_run_gpu'
+        readonly workerType:
+          typeof CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
+        readonly accelerator: 'nvidia_l4'
+        readonly gpuCount: 1
+        readonly device: 'cuda'
+        readonly modelId: 'u2netp'
+        readonly outputMode: 'mask_only_png'
+        readonly confidenceThreshold: 0.5
+        readonly alphaMatteMode: 'straight'
+        readonly edgeRefinementProfileId:
+          'approved_u2netp_default_v1'
+        readonly maximumSubjects: 1
+        readonly preserveSourceDimensions: true
+        readonly cpuFallbackAllowed: false
+        readonly runtimeDownloadAllowed: false
+        readonly networkFetchAllowed: false
+      }
+      readonly requiredQaGates: readonly [
+        'mask_edge_quality',
+        'mask_subject_coverage',
+      ]
+      readonly runtimeQualificationRequired: true
+      readonly outputArtifactCommitRequired: true
+      readonly artifactQaPassRequired: true
+    }
+  }
+  readonly sourceSequenceItemIds: readonly [string]
+  readonly sourceCleanupDecisionIds: readonly [string]
+  readonly expectedOutputs: readonly [{
+    readonly outputKey: string
+    readonly artifactType: 'living_frame_alpha_mask_png'
+    readonly assetRole: 'processed'
+    readonly required: true
+    readonly previewPlaceholderAllowed: false
+    readonly contentType: 'image/png'
+    readonly segmentIds: readonly string[]
+    readonly timingIds: readonly string[]
+    readonly rendererLayerIds: readonly string[]
+  }]
+  readonly dependencyKeys: readonly string[]
+  readonly approvedToolIds: readonly ['rembg']
+  readonly providerExecutionMode: 'none'
+  readonly fallbackPolicy: {
+    readonly policy:
+      'block_living_frame_branch_until_gpu_runtime_and_mask_qa_pass'
+    readonly unapprovedFallbackAllowed: false
+    readonly cpuFallbackAllowed: false
+    readonly finalRenderBlockedWhilePending: true
+  }
+  readonly maxAttempts: 2
+  readonly attemptTimeoutSeconds: 3_600
+  readonly scheduledDelaySeconds: 0
+  readonly maximumCreditBudget: number
+  readonly required: true
+}
+
 export type CanonicalLivingFrameProjectedCanonicalWorkItem =
   | CanonicalLivingFramePendingWorkItem
   | CanonicalLivingFrameExactSourceFramePngWorkItem
+  | CanonicalLivingFrameRembgGpuMaskWorkItem
 
 export interface CanonicalLivingFrameWorkGraphProjectedItem {
   readonly sceneId: string
@@ -204,6 +314,7 @@ export interface CanonicalLivingFrameWorkGraphProjectedItem {
 export interface CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary {
   readonly serverDerivedPendingWorkGraphMutationAuthority: true
   readonly serverDerivedExactSourceFrameOperationAuthority: true
+  readonly serverDerivedRembgGpuMaskOperationAuthority: true
   readonly callerWorkGraphMutationAuthority: false
   readonly approvedWorkGraphAuthority: false
   readonly remainingLivingFrameExactToolOperationAuthority: false
@@ -223,7 +334,7 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
   readonly source:
     typeof CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE
   readonly evidenceClass:
-    'private_internal_server_derived_pending_canonical_work_graph'
+    'private_internal_server_derived_canonical_work_graph_projection'
   readonly identity: {
     readonly workspaceId: string
     readonly projectId: string
@@ -255,6 +366,7 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
     readonly selectedSceneCount: number
     readonly canonicalWorkItemCount: number
     readonly admittedExactSourceFrameWorkItemCount: number
+    readonly admittedRembgGpuMaskWorkItemCount: number
     readonly executableWorkItemCount: number
     readonly requiredExpectedOutputCount: number
     readonly gpuPendingWorkItemCount: number
@@ -272,6 +384,7 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
     false
   readonly containsProviderPrompt: false
   readonly containsExactSourceFrameExecutablePayload: true
+  readonly containsRembgGpuOperationPayload: true
   readonly expandsExactFiftyToolRegistry: false
   readonly subjectSpecificRouting: false
   readonly productionReady: false

@@ -8,6 +8,10 @@ import {
   CANONICAL_LIVING_FRAME_PENDING_OPERATION,
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION,
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_INPUT_VERSION,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_ITEM_OPERATION,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS,
@@ -16,6 +20,7 @@ import {
   CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION,
   type CanonicalLivingFramePendingWorkItem,
   type CanonicalLivingFrameProjectedCanonicalWorkItem,
+  type CanonicalLivingFrameRembgGpuMaskWorkItem,
   type CanonicalLivingFrameWorkGraphProjection,
   type CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary,
   type CanonicalLivingFrameWorkGraphProjectionDraft,
@@ -38,6 +43,9 @@ import {
   assertCanonicalExactSourceFramePngWorkItem,
 } from '../edit-architecture/canonical-exact-source-frame-png-authority'
 import {
+  assertCanonicalLivingFrameRembgGpuMaskWorkItem,
+} from '../edit-architecture/canonical-living-frame-rembg-gpu-mask-authority'
+import {
   OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
 } from '../tool-execution/media-binary-execution'
@@ -55,6 +63,7 @@ const AUTHORITY_BOUNDARY:
     Object.freeze({
       serverDerivedPendingWorkGraphMutationAuthority: true,
       serverDerivedExactSourceFrameOperationAuthority: true,
+      serverDerivedRembgGpuMaskOperationAuthority: true,
       callerWorkGraphMutationAuthority: false,
       approvedWorkGraphAuthority: false,
       remainingLivingFrameExactToolOperationAuthority: false,
@@ -184,6 +193,60 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
               ...workRequirement
                 .dependencyWorkItemKeys,
             ]
+      if (exactSourceFrameWorkItem) {
+        const rembgGpuMaskWorkItem =
+          compileRembgGpuMaskWorkItem({
+            workRequirement,
+            expectedOutput,
+            exactSourceFrameWorkItem,
+            selectedSceneBindingDigestSha256:
+              input.publication.binding.bindingDigestSha256,
+            assetWorkInputBindingDigestSha256:
+              input.assetWorkInputBinding.bindingDigestSha256,
+            estimateWorkAssetProjectionDigestSha256:
+              input.estimateWorkAssetProjection
+                .projectionDigestSha256,
+            customerEstimateAuthorityDigestSha256:
+              input.customerEstimateAuthority
+                .authorityDigestSha256,
+            maximumCreditBudget:
+              line.estimatedCredits,
+          })
+        workItems.push(rembgGpuMaskWorkItem)
+        projectedItems.push({
+          sceneId: projectedScene.sceneId,
+          workItemKey:
+            workRequirement.workItemKey,
+          workItemType:
+            workRequirement.workItemType,
+          costOwnerToolId:
+            workRequirement.costOwnerToolId,
+          costOwnerOperationId:
+            workRequirement.costOwnerOperationId,
+          executionPlacement:
+            workRequirement.executionPlacement,
+          cpuFallbackAllowed:
+            workRequirement.cpuFallbackAllowed,
+          inputAssetIntentIds: [
+            ...workRequirement.inputAssetIntentIds,
+          ],
+          outputAssetIntentIds: [
+            ...workRequirement.outputAssetIntentIds,
+          ],
+          sourceFrameInputs:
+            workRequirement.sourceFrameInputs.map(
+              (sourceFrameInput) => ({
+                ...sourceFrameInput,
+              }),
+            ),
+          dependencyWorkItemKeys: [
+            ...admittedDependencyKeys,
+          ],
+          workItemDigestSha256:
+            sha256AuthorityValue(rembgGpuMaskWorkItem),
+        })
+        continue
+      }
       const pendingAuthority = {
         schemaVersion:
           CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION,
@@ -221,7 +284,7 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         cpuFallbackAllowed:
           workRequirement.cpuFallbackAllowed,
         exactDependencyInputOperationAdmitted:
-          Boolean(exactSourceFrameWorkItem),
+          false as const,
         executableStructuredPayloadPresent:
           false as const,
       }
@@ -331,7 +394,7 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       source:
         CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE,
       evidenceClass:
-        'private_internal_server_derived_pending_canonical_work_graph',
+        'private_internal_server_derived_canonical_work_graph_projection',
       identity: {
         workspaceId:
           input.publication.binding.identity.workspaceId,
@@ -369,6 +432,10 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         ? 'ready_without_living_frame_work_items'
         : workItems.some((item) =>
             item.workerClass ===
+              CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS)
+        ? 'canonical_work_items_projected_rembg_gpu_operation_admitted'
+        : workItems.some((item) =>
+            item.workerClass ===
               CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS)
         ? 'canonical_work_items_projected_exact_source_frame_admitted'
         : 'canonical_work_items_projected_operation_admission_pending',
@@ -384,6 +451,11 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
           workItems.filter((item) =>
             item.workerClass ===
               CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS)
+            .length,
+        admittedRembgGpuMaskWorkItemCount:
+          workItems.filter((item) =>
+            item.workerClass ===
+              CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS)
             .length,
         executableWorkItemCount:
           workItems.filter((item) =>
@@ -405,7 +477,9 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         blockedWorkItemCount:
           workItems.filter((item) =>
             item.workerClass ===
-              CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS)
+              CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
+            || item.workerClass ===
+              CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS)
             .length,
         maximumCreditBudget:
           workItems.reduce(
@@ -424,6 +498,7 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         false,
       containsProviderPrompt: false,
       containsExactSourceFrameExecutablePayload: true,
+      containsRembgGpuOperationPayload: true,
       expandsExactFiftyToolRegistry: false,
       subjectSpecificRouting: false,
       productionReady: false,
@@ -751,6 +826,183 @@ function compileExactSourceFrameWorkItem(input: {
   return workItem
 }
 
+function compileRembgGpuMaskWorkItem(input: {
+  readonly workRequirement:
+    CanonicalLivingFrameEstimateWorkAssetProjection[
+      'scenes'
+    ][number]['workRequirements'][number]
+  readonly expectedOutput:
+    CanonicalLivingFrameEstimateWorkAssetProjection[
+      'scenes'
+    ][number]['workRequirements'][number]['expectedOutput']
+  readonly exactSourceFrameWorkItem:
+    CanonicalLivingFrameExactSourceFramePngWorkItem
+  readonly selectedSceneBindingDigestSha256: string
+  readonly assetWorkInputBindingDigestSha256: string
+  readonly estimateWorkAssetProjectionDigestSha256: string
+  readonly customerEstimateAuthorityDigestSha256: string
+  readonly maximumCreditBudget: number
+}): CanonicalLivingFrameRembgGpuMaskWorkItem {
+  const sourceFrame =
+    input.workRequirement.sourceFrameInputs[0]
+  const sourceOutput =
+    input.exactSourceFrameWorkItem.expectedOutputs[0]
+  if (
+    input.workRequirement.workItemType !==
+      'generate_mask_asset'
+    || input.workRequirement.costOwnerToolId !== 'rembg'
+    || input.workRequirement.costOwnerOperationId !==
+      CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION
+    || input.workRequirement.executionPlacement !==
+      'google_cloud_run_gpu'
+    || input.workRequirement.cpuFallbackAllowed
+    || input.workRequirement.sourceFrameInputs.length !== 1
+    || !sourceFrame
+    || input.expectedOutput.artifactType !==
+      'living_frame_alpha_mask_png'
+    || input.expectedOutput.contentType !== 'image/png'
+    || !Number.isInteger(input.maximumCreditBudget)
+    || input.maximumCreditBudget <= 0
+  ) {
+    throw conflict(
+      'Canonical Living Frame rembg mask work requires the exact GPU-only operation, source frame, output, and estimate authority.',
+    )
+  }
+  const workItem:
+    CanonicalLivingFrameRembgGpuMaskWorkItem = {
+      workItemKey:
+        input.workRequirement.workItemKey,
+      workItemType: 'generate_mask_asset',
+      workerClass:
+        CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
+      executionInput: {
+        operation:
+          CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_ITEM_OPERATION,
+        approvedToolOperationIds: [
+          CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+        ],
+        expectedOutputKeys: [
+          input.expectedOutput.outputKey,
+        ],
+        structuredPayload: {
+          schemaVersion:
+            CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_INPUT_VERSION,
+          selectedSceneBindingDigestSha256:
+            input.selectedSceneBindingDigestSha256,
+          assetWorkInputBindingDigestSha256:
+            input.assetWorkInputBindingDigestSha256,
+          estimateWorkAssetProjectionDigestSha256:
+            input.estimateWorkAssetProjectionDigestSha256,
+          customerEstimateAuthorityDigestSha256:
+            input.customerEstimateAuthorityDigestSha256,
+          sceneId: input.workRequirement.sceneId,
+          workRequirementDigestSha256:
+            sha256AuthorityValue(input.workRequirement),
+          inputAssetIntentIds: [
+            ...input.workRequirement.inputAssetIntentIds,
+          ],
+          outputAssetIntentIds: [
+            ...input.workRequirement.outputAssetIntentIds,
+          ],
+          sourceFrameDependency: {
+            workItemKey:
+              input.exactSourceFrameWorkItem.workItemKey,
+            outputKey: sourceOutput.outputKey,
+            artifactType:
+              CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
+            sourceSequenceItemId:
+              sourceFrame.sourceSequenceItemId,
+            sourceCleanupDecisionId:
+              sourceFrame.sourceCleanupDecisionId,
+            masterFrameIndex:
+              sourceFrame.masterFrameIndex,
+            sourceFrameIndex:
+              sourceFrame.sourceFrameIndex,
+            frameRate: sourceFrame.frameRate as
+              24 | 25 | 30 | 50 | 60,
+            frameSelectionPolicy:
+              'approved_source_frame_ordinal_v1',
+            sourceFrameSelectionDigestSha256:
+              sourceFrame.sourceFrameSelectionDigestSha256,
+            contentType: 'image/png',
+          },
+          runtimePolicy: {
+            executionTarget: 'google_cloud_run_gpu',
+            workerType:
+              CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
+            accelerator: 'nvidia_l4',
+            gpuCount: 1,
+            device: 'cuda',
+            modelId: 'u2netp',
+            outputMode: 'mask_only_png',
+            confidenceThreshold: 0.5,
+            alphaMatteMode: 'straight',
+            edgeRefinementProfileId:
+              'approved_u2netp_default_v1',
+            maximumSubjects: 1,
+            preserveSourceDimensions: true,
+            cpuFallbackAllowed: false,
+            runtimeDownloadAllowed: false,
+            networkFetchAllowed: false,
+          },
+          requiredQaGates: [
+            'mask_edge_quality',
+            'mask_subject_coverage',
+          ],
+          runtimeQualificationRequired: true,
+          outputArtifactCommitRequired: true,
+          artifactQaPassRequired: true,
+        },
+      },
+      sourceSequenceItemIds: [
+        sourceFrame.sourceSequenceItemId,
+      ],
+      sourceCleanupDecisionIds: [
+        sourceFrame.sourceCleanupDecisionId,
+      ],
+      expectedOutputs: [{
+        outputKey: input.expectedOutput.outputKey,
+        artifactType: 'living_frame_alpha_mask_png',
+        assetRole: 'processed',
+        required: true,
+        previewPlaceholderAllowed: false,
+        contentType: 'image/png',
+        segmentIds: [
+          ...input.expectedOutput.segmentIds,
+        ],
+        timingIds: [
+          ...input.expectedOutput.timingIds,
+        ],
+        rendererLayerIds: [
+          ...input.expectedOutput.rendererLayerIds,
+        ],
+      }],
+      dependencyKeys: uniqueSorted([
+        ...input.workRequirement.dependencyWorkItemKeys,
+        input.exactSourceFrameWorkItem.workItemKey,
+      ]),
+      approvedToolIds: ['rembg'],
+      providerExecutionMode: 'none',
+      fallbackPolicy: {
+        policy:
+          'block_living_frame_branch_until_gpu_runtime_and_mask_qa_pass',
+        unapprovedFallbackAllowed: false,
+        cpuFallbackAllowed: false,
+        finalRenderBlockedWhilePending: true,
+      },
+      maxAttempts: 2,
+      attemptTimeoutSeconds: 3_600,
+      scheduledDelaySeconds: 0,
+      maximumCreditBudget:
+        input.maximumCreditBudget,
+      required: true,
+    }
+  assertCanonicalLivingFrameRembgGpuMaskWorkItem(
+    workItem,
+  )
+  return workItem
+}
+
 function validProjectedWorkItem(
   item: CanonicalLivingFrameProjectedCanonicalWorkItem,
 ): boolean {
@@ -765,6 +1017,25 @@ function validProjectedWorkItem(
       return item.maximumCreditBudget === 0
         && item.maxAttempts === 2
         && item.dependencyKeys.length === 0
+    } catch {
+      return false
+    }
+  }
+  if (
+    item.workerClass ===
+      CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
+  ) {
+    try {
+      assertCanonicalLivingFrameRembgGpuMaskWorkItem(
+        item,
+      )
+      return item.maximumCreditBudget > 0
+        && item.dependencyKeys.some(
+          (dependencyKey) =>
+            dependencyKey.endsWith(
+              '-exact-source-frame-png',
+            ),
+        )
     } catch {
       return false
     }

@@ -1118,22 +1118,30 @@ The server now derives an eighth content-addressed
 `livingFrameCanonicalWorkGraphProjection` record after recalculating the
 customer estimate and WeEditPro service fee. It adds the three refined
 requirements to the one canonical plan work graph with exact source, cleanup,
-asset-intent, dependency, output, and credit-budget lineage. They are
-tool-free pending-operation items rather than fake executable tool calls.
-Their resource placement is explicitly execution-blocked until the matching
-dependency-input operation is admitted.
+asset-intent, dependency, output, and credit-budget lineage. The graph also
+adds the exact FFmpeg source-frame dependency required by mask generation.
+The mask requirement now reuses the existing `rembg` identity and operation
+as a fixed Google Cloud Run GPU/NVIDIA L4/CUDA-only work item. CPU fallback,
+runtime download, and network fetch are literal false. This does not add a
+tool: the production registry remains exactly 50.
 
-This is not a second Living Frame workflow. Current fixture-only rembg,
-OpenImageIO, Sharp, and Remotion operations cannot be treated as real Living
-Frame dependency-input runtimes. The existing WeEditPro estimate, approval,
-work graph, asset manifest, QA, review, and renderer pipeline remains the only
-owner of those stages. Deliberate non-use may continue through ordinary
-approval. A selected scene fails closed before credit reservation or snapshot
-creation until the real dependency-input operations, assets, QA, review, and
-final-composition dependency are admitted. Approval and execution reload both
-the content-addressed projection and every matching plan work item; they
-cannot silently omit or rewrite the selected skill in an otherwise valid
-final-render graph. See
+Operation admission is not runtime authority. The rembg work item remains
+`privateExecutionReady = false` until the existing canonical CUDA image,
+model-artifact mount, source-frame reread, GPU attempt/cost receipt, private
+output verification, artifact commitment, and mask QA gates pass. The older
+CPU rembg fixture cannot satisfy this gate. The Sharp and Remotion requirements
+remain tool-free pending-operation items until their exact dependency-input
+contracts are admitted.
+
+This is not a second Living Frame workflow. The existing WeEditPro estimate,
+approval, work graph, asset manifest, QA, review, and renderer pipeline remains
+the only owner of those stages. Deliberate non-use may continue through
+ordinary approval. A selected scene fails closed before credit reservation or
+snapshot creation until the remaining dependency-input operations, GPU
+runtime, assets, QA, review, and final-composition dependency are admitted.
+Approval and execution reload both the content-addressed projection and every
+matching plan work item; they cannot silently omit or rewrite the selected
+skill in an otherwise valid final-render graph. See
 `docs/living-frame/living-frame-selected-scene-binding.md`.
 The exact requirements record is documented in
 `docs/living-frame/living-frame-execution-requirements.md`.

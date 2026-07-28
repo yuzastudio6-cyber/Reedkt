@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import {
   assertCanonicalToolExecutionAuthority,
   createCanonicalToolExecutionAuthority,
+  type CanonicalServerDerivedToolStrategyDeclaration,
   type CanonicalToolAuthorityWorkItem,
   type CanonicalToolExecutionAuthority,
 } from '../edit-architecture/canonical-tool-execution-authority'
@@ -128,6 +129,8 @@ import type {
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import {
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+  CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import type {
   CanonicalCustomerEstimateAuthority,
@@ -467,6 +470,10 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       const toolExecutionAuthority = createCanonicalToolExecutionAuthority({
         toolStrategyPlan: canonicalPlan.components.toolStrategyPlan,
         workItems: canonicalPlan.workItems,
+        serverDerivedStrategyDeclarations:
+          canonicalLivingFrameServerDerivedToolStrategyDeclarations(
+            livingFrameWorkGraphProjection,
+          ),
       })
       const toolPayloadAuthority = createCanonicalToolPayloadAuthority({
         workItems: canonicalPlan.workItems,
@@ -951,12 +958,6 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         aggregateBefore!,
         targetPlan,
       )
-      await loadCanonicalToolExecutionAuthority({
-        context,
-        componentRefs: targetPlan.componentRefs,
-        toolStrategyPlan: approvalComponents.toolStrategyPlan,
-        workItems: approvalToolWorkItems,
-      })
       await loadCanonicalToolPayloadAuthority({
         context,
         componentRefs: targetPlan.componentRefs,
@@ -1071,6 +1072,15 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         approvalLivingFrameWorkGraphProjection,
         approvalPlanWorkItems,
       )
+      await loadCanonicalToolExecutionAuthority({
+        context,
+        componentRefs: targetPlan.componentRefs,
+        toolStrategyPlan:
+          approvalComponents.toolStrategyPlan,
+        workItems: approvalToolWorkItems,
+        livingFrameWorkGraphProjection:
+          approvalLivingFrameWorkGraphProjection,
+      })
       assertLivingFrameExecutionAuthorityReady(
         approvalLivingFrameSelectedSceneAuthority,
         approvalLivingFrameExecutionRequirements,
@@ -2126,6 +2136,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         componentRefs: snapshot.componentRefs,
         toolStrategyPlan: approvedComponents.toolStrategyPlan,
         workItems,
+        livingFrameWorkGraphProjection,
       })
       const toolPayloadAuthority = await loadCanonicalToolPayloadAuthority({
         context,
@@ -2507,7 +2518,7 @@ function assertLivingFrameExecutionAuthorityReady(
       .assetWorkInputBindingDigestSha256 !==
       assetWorkInputBinding.bindingDigestSha256
     || workGraphProjection.readiness !==
-      'canonical_work_items_projected_exact_source_frame_admitted'
+      'canonical_work_items_projected_rembg_gpu_operation_admitted'
     || workGraphProjection.metrics.selectedSceneCount !==
       publication.binding.selectedSceneCount
     || workGraphProjection.metrics.canonicalWorkItemCount !==
@@ -2522,6 +2533,10 @@ function assertLivingFrameExecutionAuthorityReady(
           .admittedExactSourceFrameWorkItemCount
     || workGraphProjection.metrics
       .admittedExactSourceFrameWorkItemCount !==
+      estimateWorkAssetProjection.metrics
+        .projectedGpuWorkItemCount
+    || workGraphProjection.metrics
+      .admittedRembgGpuMaskWorkItemCount !==
       estimateWorkAssetProjection.metrics
         .projectedGpuWorkItemCount
     || workGraphProjection.metrics.executableWorkItemCount !==
@@ -3082,6 +3097,8 @@ async function loadCanonicalToolExecutionAuthority(input: {
   componentRefs: Record<string, AuthorityJsonBlobRef>
   toolStrategyPlan: Record<string, unknown>
   workItems: CanonicalToolAuthorityWorkItem[]
+  livingFrameWorkGraphProjection?:
+    CanonicalLivingFrameWorkGraphProjection
 }): Promise<CanonicalToolExecutionAuthority> {
   const ref = input.componentRefs.canonicalToolExecutionAuthority
   if (!ref) {
@@ -3100,7 +3117,37 @@ async function loadCanonicalToolExecutionAuthority(input: {
     value,
     toolStrategyPlan: input.toolStrategyPlan,
     workItems: input.workItems,
+    serverDerivedStrategyDeclarations:
+      canonicalLivingFrameServerDerivedToolStrategyDeclarations(
+        input.livingFrameWorkGraphProjection,
+      ),
   })
+}
+
+function canonicalLivingFrameServerDerivedToolStrategyDeclarations(
+  projection:
+    | CanonicalLivingFrameWorkGraphProjection
+    | undefined,
+): CanonicalServerDerivedToolStrategyDeclaration[] {
+  if (!projection) return []
+  const rembgWorkItemKeys = projection.workItems
+    .filter((workItem) =>
+      workItem.workerClass ===
+        CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS)
+    .map((workItem) => workItem.workItemKey)
+    .sort()
+  if (rembgWorkItemKeys.length === 0) return []
+  return [{
+    source:
+      'canonical_living_frame_work_graph_projection',
+    sourceDigestSha256:
+      projection.projectionDigestSha256,
+    workItemKeys: rembgWorkItemKeys,
+    declaredToolIds: ['rembg'],
+    declaredExactOperationIds: [
+      CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+    ],
+  }]
 }
 
 async function loadCanonicalToolPayloadAuthority(input: {

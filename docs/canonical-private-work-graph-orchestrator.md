@@ -18,7 +18,7 @@ The caller cannot provide jobs, ordering, tools, operations, outputs, snapshots,
 ## Scheduling behavior
 
 Canonical publication freezes the exact per-work-item resource placement in
-the content-addressed `canonical-tool-execution-authority-v2`; its component
+the content-addressed `canonical-tool-execution-authority-v3`; its component
 reference is committed by the plan and approved snapshot hashes. The
 orchestrator reloads and revalidates the canonical execution package, derives
 its exact job/work-item graph, and reconciles a job-specific placement manifest

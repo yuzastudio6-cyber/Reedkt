@@ -13,7 +13,7 @@ import {
   structuredExecutionRequestSha256,
 } from './offline-node-structured-execution-protocol'
 
-const MAXIMUM_STDIN_BYTES = 3 * 1024 * 1024 + 8 * 1024
+const MAXIMUM_STDIN_BYTES = 48 * 1024 * 1024 + 8 * 1024
 const PACKAGE_JSON_PATHS: Readonly<Record<OfflineNodeRunnerToolId, string>> = Object.freeze({
   d3: 'd3/package.json',
   echarts: 'echarts/package.json',

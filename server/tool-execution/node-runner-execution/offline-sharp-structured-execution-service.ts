@@ -120,10 +120,19 @@ async function execute(
   ) throw unavailable('Sharp container returned different execution identity.')
   const packageIdentity = record(wire.packageIdentity)
   const invokedEntrypoints = stringArray(packageIdentity.invokedEntrypoints)
+  const alphaComponent =
+    'imageRecipeId' in request.payload &&
+    request.payload.imageRecipeId ===
+      'approved_living_frame_alpha_component_v1'
   if (
     packageIdentity.packageName !== 'sharp' || packageIdentity.version !== '0.35.3' ||
     typeof packageIdentity.packageJsonSha256 !== 'string' || !SHA.test(packageIdentity.packageJsonSha256) ||
-    !invokedEntrypoints.includes('resize') || !invokedEntrypoints.includes('metadata')
+    !invokedEntrypoints.includes('metadata') ||
+    (alphaComponent
+      ? !invokedEntrypoints.includes('raw') ||
+        !invokedEntrypoints.includes('png') ||
+        invokedEntrypoints.includes('resize')
+      : !invokedEntrypoints.includes('resize'))
   ) throw unavailable('Sharp package identity or entrypoints are invalid.')
   const artifacts = array(wire.artifacts)
   if (artifacts.length !== 2) throw unavailable('Sharp must emit one image and one verification document.')
@@ -194,6 +203,51 @@ async function execute(
 
 function verifySemantic(value: unknown, mimeType: string): OfflineNodeRunnerImageSemanticEvidence {
   const semantic = record(value)
+  if (semantic.sourceMimeType === 'image/png') {
+    const outputWidth = Number(semantic.outputWidth)
+    const outputHeight = Number(semantic.outputHeight)
+    const transparentPixelCount =
+      Number(semantic.transparentPixelCount)
+    const partialAlphaPixelCount =
+      Number(semantic.partialAlphaPixelCount)
+    const opaquePixelCount =
+      Number(semantic.opaquePixelCount)
+    if (
+      semantic.sourceBytesVerified !== true ||
+      semantic.maskBytesVerified !== true ||
+      semantic.maskMimeType !== 'image/png' ||
+      semantic.outputFormat !== 'png' ||
+      mimeType !== 'image/png' ||
+      !Number.isSafeInteger(outputWidth) ||
+      outputWidth < 1 ||
+      outputWidth > 4_096 ||
+      !Number.isSafeInteger(outputHeight) ||
+      outputHeight < 1 ||
+      outputHeight > 4_096 ||
+      outputWidth * outputHeight > 16_777_216 ||
+      semantic.outputChannels !== 4 ||
+      semantic.metadataStripped !== true ||
+      semantic.upscaleForbidden !== true ||
+      semantic.alphaPreserved !== true ||
+      semantic.sourceOpaque !== true ||
+      semantic.maskGrayscale !== true ||
+      semantic.maskOpaqueContainer !== true ||
+      semantic.alphaDerivedFromMask !== true ||
+      semantic.straightAlpha !== true ||
+      semantic.transparentRgbCleared !== true ||
+      semantic.sourcePixelsUnmodified !== true ||
+      !Number.isSafeInteger(transparentPixelCount) ||
+      transparentPixelCount < 1 ||
+      !Number.isSafeInteger(partialAlphaPixelCount) ||
+      partialAlphaPixelCount < 0 ||
+      !Number.isSafeInteger(opaquePixelCount) ||
+      opaquePixelCount < 1 ||
+      transparentPixelCount + partialAlphaPixelCount +
+        opaquePixelCount !== outputWidth * outputHeight ||
+      semantic.actualSharpOperationCompleted !== true
+    ) throw unavailable('Sharp alpha-component semantic evidence is invalid.')
+    return semantic as unknown as OfflineNodeRunnerImageSemanticEvidence
+  }
   if (
     semantic.sourceBytesVerified !== true || semantic.sourceMimeType !== 'image/svg+xml' ||
     semantic.metadataStripped !== true || semantic.upscaleForbidden !== true ||

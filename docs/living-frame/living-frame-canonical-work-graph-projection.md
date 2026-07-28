@@ -4,7 +4,7 @@ Status: private/internal, server-derived canonical plan work. The projection
 adds required items to the one WeEditPro work graph, but it does not approve,
 queue, dispatch, or execute them.
 
-`canonical-living-frame-work-graph-projection-v4` consumes and fully
+`canonical-living-frame-work-graph-projection-v5` consumes and fully
 revalidates:
 
 - the canonical Living Frame selected-scene publication;
@@ -36,8 +36,9 @@ items, in dependency order:
 4. `prepare_remotion_layer`.
 
 These items do not add tool IDs. The production registry remains exactly 50.
-The source-frame item reuses `ffmpeg`; the mask item reuses `rembg`; the two
-remaining dependency-input items have empty tool and operation IDs and use
+The source-frame item reuses `ffmpeg`; the mask item reuses `rembg`; the
+component item reuses `sharp`; and only the Remotion-layer item remains an
+empty-tool pending operation using
 `living_frame_operation_admission_pending_worker`.
 
 The rembg work item is exact but not runtime-ready. Its immutable input binds
@@ -61,16 +62,27 @@ Resource placement keeps it `privateExecutionReady = false` and requires
 runtime, model-artifact mount, source-frame reread, output verifier, attempt,
 cost, artifact commitment, and QA authorities must all pass later.
 
-The two remaining pending items are also
-`privateExecutionReady = false` and require
+The Sharp component item now has an exact two-dependency contract. It accepts
+only the approved exact source-frame PNG and the QA-selected rembg grayscale
+mask PNG, both by immutable asset/dependency lineage. The existing Sharp
+operation performs a real deterministic decode, verifies source opacity and
+mask shape, copies source RGB, derives straight alpha from the mask, clears
+RGB under zero alpha, encodes PNG, decodes it again, and requires byte-exact
+RGBA agreement. The operation creates no new tool identity and cannot run
+until both upstream artifacts are committed, selected by the worker lease,
+and reread through the existing private dependency authority.
+
+The remaining Remotion item is still
+`privateExecutionReady = false` and requires
 `canonical_living_frame_dependency_input_operation_admission`.
 
 This fail-closed representation is intentional. The exact rembg operation and
 GPU policy are admitted into planning, but no cloud job or inference authority
-is granted. The current Sharp operation still does not admit the required
-source/mask PNG pair, and the current Remotion operation does not admit the
-exact Living Frame layer package. Treating any of these incomplete stages as
-runtime-ready would be false authority.
+is granted. Sharp's real alpha-component path is admitted but remains
+dependency-blocked behind the GPU mask and both upstream artifact/QA records.
+The current Remotion operation still does not admit the exact Living Frame
+layer package. Treating any incomplete stage as final-render-ready would be
+false authority.
 
 The content-addressed projection is included in the canonical plan hash and is
 reread at approval and approved-execution loading. Every projected plan work
@@ -88,3 +100,6 @@ This component creates no approved work item, job, queue record, asset-manifest
 entry, artifact, QA result, private-review result, renderer payload, provider
 call, tool dispatch, wallet mutation, or production authority. GPU-heavy mask
 inference remains Google Cloud Run GPU-only with no CPU fallback.
+
+The exact Sharp component boundary is documented in
+`docs/living-frame/living-frame-canonical-sharp-alpha-component.md`.

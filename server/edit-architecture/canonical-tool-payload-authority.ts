@@ -42,7 +42,11 @@ import {
   assertCanonicalLivingFrameRembgGpuMaskWorkItem,
 } from './canonical-living-frame-rembg-gpu-mask-authority'
 import {
+  assertCanonicalLivingFrameSharpComponentWorkItem,
+} from './canonical-living-frame-sharp-component-authority'
+import {
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_ITEM_OPERATION,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import {
   assertCanonicalVisualCalibrationObjectiveQaWorkItem,
@@ -136,6 +140,7 @@ const validationEntrySchema = z.object({
   validatorFamily: z.enum([
     'node_structured',
     'sharp',
+    'sharp_living_frame_alpha_component',
     'python_structured',
     'python_source_media',
     'python_source_audio',
@@ -388,7 +393,25 @@ function validateByRunnerFamily(
   const operationId = spec.allowedOperationIds[0]
   if (toolId === 'sharp') {
     validateOfflineSharpPlanningPayload(structuredPayload)
-    requireBinding(workItem, { source: 0, cleanup: 0, dependencies: 1 })
+    if (
+      workItem.executionInput.operation ===
+        CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION
+    ) {
+      assertCanonicalLivingFrameSharpComponentWorkItem(
+        workItem,
+      )
+      requireBinding(workItem, {
+        source: 1,
+        cleanup: 1,
+        dependencies: 2,
+      })
+      return 'sharp_living_frame_alpha_component'
+    }
+    requireBinding(workItem, {
+      source: 0,
+      cleanup: 0,
+      dependencies: 1,
+    })
     return 'sharp'
   }
   if (toolId === 'ffmpeg') {

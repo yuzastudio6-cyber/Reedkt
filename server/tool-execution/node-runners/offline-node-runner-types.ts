@@ -94,7 +94,7 @@ export interface OfflineVizGraphInput extends OfflineNodeRunnerInvocationBase {
   edges: OfflineVizGraphEdge[]
 }
 
-export interface OfflineSharpImageInput extends OfflineNodeRunnerInvocationBase {
+export interface OfflineSharpSvgImageInput extends OfflineNodeRunnerInvocationBase {
   imageRecipeId: 'approved_thumbnail_v1' | 'approved_panel_asset_v1' | 'approved_overlay_asset_v1'
   outputFormat: 'png' | 'jpeg' | 'webp'
   outputWidth: number
@@ -107,6 +107,27 @@ export interface OfflineSharpImageInput extends OfflineNodeRunnerInvocationBase 
   sourceBytes: Uint8Array
 }
 
+export interface OfflineSharpAlphaComponentInput extends OfflineNodeRunnerInvocationBase {
+  imageRecipeId: 'approved_living_frame_alpha_component_v1'
+  outputFormat: 'png'
+  outputWidth: number
+  outputHeight: number
+  preserveMetadata: false
+  allowUpscale: false
+  sourceMimeType: 'image/png'
+  sourceByteLength: number
+  sourceSha256: string
+  sourceBytes: Uint8Array
+  maskMimeType: 'image/png'
+  maskByteLength: number
+  maskSha256: string
+  maskBytes: Uint8Array
+}
+
+export type OfflineSharpImageInput =
+  | OfflineSharpSvgImageInput
+  | OfflineSharpAlphaComponentInput
+
 export interface OfflineNodeRunnerArtifact {
   artifactKind: 'svg' | 'image' | 'verification_json'
   mimeType: 'image/svg+xml' | 'image/png' | 'image/jpeg' | 'image/webp' | 'application/json'
@@ -117,7 +138,7 @@ export interface OfflineNodeRunnerArtifact {
   publicUrl: null
 }
 
-export interface OfflineNodeRunnerImageSemanticEvidence {
+export interface OfflineNodeRunnerResizeImageSemanticEvidence {
   sourceBytesVerified: true
   sourceMimeType: 'image/svg+xml'
   outputFormat: 'png' | 'jpeg' | 'webp'
@@ -129,6 +150,35 @@ export interface OfflineNodeRunnerImageSemanticEvidence {
   alphaPreserved: boolean
   actualSharpOperationCompleted: true
 }
+
+export interface OfflineNodeRunnerAlphaComponentSemanticEvidence {
+  sourceBytesVerified: true
+  sourceMimeType: 'image/png'
+  maskBytesVerified: true
+  maskMimeType: 'image/png'
+  outputFormat: 'png'
+  outputWidth: number
+  outputHeight: number
+  outputChannels: 4
+  metadataStripped: true
+  upscaleForbidden: true
+  alphaPreserved: true
+  sourceOpaque: true
+  maskGrayscale: true
+  maskOpaqueContainer: true
+  alphaDerivedFromMask: true
+  straightAlpha: true
+  transparentRgbCleared: true
+  sourcePixelsUnmodified: true
+  transparentPixelCount: number
+  partialAlphaPixelCount: number
+  opaquePixelCount: number
+  actualSharpOperationCompleted: true
+}
+
+export type OfflineNodeRunnerImageSemanticEvidence =
+  | OfflineNodeRunnerResizeImageSemanticEvidence
+  | OfflineNodeRunnerAlphaComponentSemanticEvidence
 
 export interface OfflineNodeRunnerSvgSemanticEvidence {
   svgRootCount: 1
@@ -185,7 +235,7 @@ export interface OfflineNodeRunnerLimits {
 
 export const OFFLINE_NODE_RUNNER_LIMITS: OfflineNodeRunnerLimits = Object.freeze({
   timeoutMilliseconds: 10_000,
-  maximumInputJsonBytes: 3 * 1024 * 1024,
+  maximumInputJsonBytes: 48 * 1024 * 1024,
   maximumSvgBytes: 2 * 1024 * 1024,
   maximumVerificationJsonBytes: 32 * 1024,
   maximumImageBytes: 16 * 1024 * 1024,

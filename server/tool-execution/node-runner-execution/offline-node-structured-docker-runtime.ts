@@ -136,7 +136,7 @@ export async function runOfflineNodeStructuredContainer(input: {
   image: OfflineNodeStructuredExecutionImageEvidence
   serializedRequest: string
 }): Promise<OfflineNodeStructuredContainerResult> {
-  if (Buffer.byteLength(input.serializedRequest, 'utf8') > 3 * 1024 * 1024 + 8 * 1024) {
+  if (Buffer.byteLength(input.serializedRequest, 'utf8') > 48 * 1024 * 1024 + 8 * 1024) {
     throw runtimeFailure('Structured execution request exceeds the fixed container stdin ceiling.')
   }
   const createResult = await runHostCommand([

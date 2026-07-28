@@ -66,7 +66,7 @@ export interface OfflineNodeStructuredGraphPayload {
   edges: Array<{ from: string; to: string; label?: string }>
 }
 
-export interface OfflineNodeStructuredSharpPayload {
+export interface OfflineNodeStructuredSharpSvgPayload {
   imageRecipeId: 'approved_thumbnail_v1' | 'approved_panel_asset_v1' | 'approved_overlay_asset_v1'
   outputFormat: 'png' | 'jpeg' | 'webp'
   outputWidth: number
@@ -77,6 +77,40 @@ export interface OfflineNodeStructuredSharpPayload {
   sourceByteLength: number
   sourceSha256: string
   sourceBytesBase64: string
+}
+
+export interface OfflineNodeStructuredSharpAlphaComponentPayload {
+  imageRecipeId: 'approved_living_frame_alpha_component_v1'
+  outputFormat: 'png'
+  outputWidth: number
+  outputHeight: number
+  preserveMetadata: false
+  allowUpscale: false
+  sourceMimeType: 'image/png'
+  sourceByteLength: number
+  sourceSha256: string
+  sourceBytesBase64: string
+  maskMimeType: 'image/png'
+  maskByteLength: number
+  maskSha256: string
+  maskBytesBase64: string
+}
+
+export type OfflineNodeStructuredSharpPayload =
+  | OfflineNodeStructuredSharpSvgPayload
+  | OfflineNodeStructuredSharpAlphaComponentPayload
+
+export interface OfflineSharpPlanningPayload {
+  imageRecipeId:
+    | 'approved_thumbnail_v1'
+    | 'approved_panel_asset_v1'
+    | 'approved_overlay_asset_v1'
+    | 'approved_living_frame_alpha_component_v1'
+  outputFormat: 'png' | 'jpeg' | 'webp'
+  outputWidth: number
+  outputHeight: number
+  preserveMetadata: false
+  allowUpscale: false
 }
 
 export interface OfflineNodeStructuredAnimePayload {
@@ -205,7 +239,25 @@ export function createValidatedOfflineNodeRunnerPayload(
   }
   if (request.toolId === 'sharp') {
     const payload = request.payload as OfflineNodeStructuredSharpPayload
-    const { sourceBytesBase64, ...withoutEncodedBytes } = payload
+    if (payload.imageRecipeId === 'approved_living_frame_alpha_component_v1') {
+      const {
+        sourceBytesBase64,
+        maskBytesBase64,
+        ...withoutEncodedBytes
+      } = payload
+      return {
+        request,
+        runnerPayload: {
+          protocol: OFFLINE_NODE_RUNNER_PROTOCOL,
+          source: 'server_resolved_in_memory',
+          ...withoutEncodedBytes,
+          sourceBytes: new Uint8Array(Buffer.from(sourceBytesBase64, 'base64')),
+          maskBytes: new Uint8Array(Buffer.from(maskBytesBase64, 'base64')),
+        },
+      }
+    }
+    const { sourceBytesBase64, ...withoutEncodedBytes } =
+      payload as OfflineNodeStructuredSharpSvgPayload
     return {
       request,
       runnerPayload: {
@@ -382,24 +434,40 @@ function normalizeThreePayload(value: unknown): OfflineNodeStructuredThreePayloa
   }
 }
 
-export function validateOfflineSharpPlanningPayload(value: unknown): Omit<
-  OfflineNodeStructuredSharpPayload,
-  'sourceMimeType' | 'sourceByteLength' | 'sourceSha256' | 'sourceBytesBase64'
-> {
+export function validateOfflineSharpPlanningPayload(
+  value: unknown,
+): OfflineSharpPlanningPayload {
   const payload = exactObject(value, [
     'imageRecipeId', 'outputFormat', 'outputWidth', 'outputHeight',
     'preserveMetadata', 'allowUpscale',
   ], 'Sharp planning payload')
+  const imageRecipeId = oneOf(payload.imageRecipeId, [
+    'approved_thumbnail_v1',
+    'approved_panel_asset_v1',
+    'approved_overlay_asset_v1',
+    'approved_living_frame_alpha_component_v1',
+  ] as const, 'imageRecipeId')
+  const outputFormat = oneOf(
+    payload.outputFormat,
+    ['png', 'jpeg', 'webp'] as const,
+    'outputFormat',
+  )
+  const livingFrameAlphaComponent =
+    imageRecipeId === 'approved_living_frame_alpha_component_v1'
+  const maximumWidth = livingFrameAlphaComponent ? 4_096 : 1_920
+  const maximumHeight = livingFrameAlphaComponent ? 4_096 : 1_080
   if (
     payload.preserveMetadata !== false || payload.allowUpscale !== false ||
-    !Number.isSafeInteger(payload.outputWidth) || Number(payload.outputWidth) < 1 || Number(payload.outputWidth) > 1_920 ||
-    !Number.isSafeInteger(payload.outputHeight) || Number(payload.outputHeight) < 1 || Number(payload.outputHeight) > 1_080
-  ) throw invalidInput('Sharp planning dimensions or metadata policy are invalid.')
+    !Number.isSafeInteger(payload.outputWidth) || Number(payload.outputWidth) < 1 ||
+    Number(payload.outputWidth) > maximumWidth ||
+    !Number.isSafeInteger(payload.outputHeight) || Number(payload.outputHeight) < 1 ||
+    Number(payload.outputHeight) > maximumHeight ||
+    Number(payload.outputWidth) * Number(payload.outputHeight) > 16_777_216 ||
+    (livingFrameAlphaComponent && outputFormat !== 'png')
+  ) throw invalidInput('Sharp planning dimensions, format, or metadata policy are invalid.')
   return {
-    imageRecipeId: oneOf(payload.imageRecipeId, [
-      'approved_thumbnail_v1', 'approved_panel_asset_v1', 'approved_overlay_asset_v1',
-    ] as const, 'imageRecipeId'),
-    outputFormat: oneOf(payload.outputFormat, ['png', 'jpeg', 'webp'] as const, 'outputFormat'),
+    imageRecipeId,
+    outputFormat,
     outputWidth: Number(payload.outputWidth),
     outputHeight: Number(payload.outputHeight),
     preserveMetadata: false,
@@ -408,6 +476,47 @@ export function validateOfflineSharpPlanningPayload(value: unknown): Omit<
 }
 
 function normalizeSharpPayload(value: unknown): OfflineNodeStructuredSharpPayload {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw invalidInput('Sharp execution payload must be a plain object.')
+  }
+  const candidate = value as Record<string, unknown>
+  if (candidate.imageRecipeId === 'approved_living_frame_alpha_component_v1') {
+    const payload = exactObject(value, [
+      'imageRecipeId', 'outputFormat', 'outputWidth', 'outputHeight',
+      'preserveMetadata', 'allowUpscale', 'sourceMimeType', 'sourceByteLength',
+      'sourceSha256', 'sourceBytesBase64', 'maskMimeType', 'maskByteLength',
+      'maskSha256', 'maskBytesBase64',
+    ], 'Sharp alpha-component execution payload')
+    const planning = validateOfflineSharpPlanningPayload({
+      imageRecipeId: payload.imageRecipeId,
+      outputFormat: payload.outputFormat,
+      outputWidth: payload.outputWidth,
+      outputHeight: payload.outputHeight,
+      preserveMetadata: payload.preserveMetadata,
+      allowUpscale: payload.allowUpscale,
+    })
+    if (
+      planning.imageRecipeId !== 'approved_living_frame_alpha_component_v1' ||
+      planning.outputFormat !== 'png' ||
+      payload.sourceMimeType !== 'image/png' ||
+      payload.maskMimeType !== 'image/png'
+    ) throw invalidInput('Sharp alpha-component media policy is invalid.')
+    const source = committedPngBytes(payload, 'source')
+    const mask = committedPngBytes(payload, 'mask')
+    return {
+      ...planning,
+      imageRecipeId: 'approved_living_frame_alpha_component_v1',
+      outputFormat: 'png',
+      sourceMimeType: 'image/png',
+      sourceByteLength: source.byteLength,
+      sourceSha256: String(payload.sourceSha256),
+      sourceBytesBase64: String(payload.sourceBytesBase64),
+      maskMimeType: 'image/png',
+      maskByteLength: mask.byteLength,
+      maskSha256: String(payload.maskSha256),
+      maskBytesBase64: String(payload.maskBytesBase64),
+    }
+  }
   const payload = exactObject(value, [
     'imageRecipeId', 'outputFormat', 'outputWidth', 'outputHeight',
     'preserveMetadata', 'allowUpscale', 'sourceMimeType', 'sourceByteLength',
@@ -435,9 +544,37 @@ function normalizeSharpPayload(value: unknown): OfflineNodeStructuredSharpPayloa
   ) throw invalidInput('Sharp source bytes do not match their immutable commitment.')
   return {
     ...planning,
+    imageRecipeId: planning.imageRecipeId as
+      'approved_thumbnail_v1' | 'approved_panel_asset_v1' | 'approved_overlay_asset_v1',
+    outputFormat: planning.outputFormat,
     sourceMimeType: 'image/svg+xml', sourceByteLength: bytes.byteLength,
     sourceSha256: payload.sourceSha256, sourceBytesBase64: payload.sourceBytesBase64,
   }
+}
+
+function committedPngBytes(
+  payload: Record<string, unknown>,
+  prefix: 'source' | 'mask',
+): Buffer {
+  const byteLength = payload[`${prefix}ByteLength`]
+  const digest = payload[`${prefix}Sha256`]
+  const encoded = payload[`${prefix}BytesBase64`]
+  if (
+    !Number.isSafeInteger(byteLength) ||
+    Number(byteLength) < 64 ||
+    Number(byteLength) > OFFLINE_NODE_RUNNER_LIMITS.maximumImageBytes ||
+    typeof digest !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(digest) ||
+    typeof encoded !== 'string'
+  ) throw invalidInput(`Sharp ${prefix} PNG commitment is invalid.`)
+  const bytes = Buffer.from(encoded, 'base64')
+  if (
+    bytes.byteLength !== byteLength ||
+    bytes.toString('base64') !== encoded ||
+    sha256(bytes) !== digest ||
+    !bytes.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex'))
+  ) throw invalidInput(`Sharp ${prefix} PNG bytes do not match their immutable commitment.`)
+  return bytes
 }
 
 function assertJsonData(

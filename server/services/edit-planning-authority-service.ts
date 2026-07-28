@@ -131,6 +131,9 @@ import {
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import type {
   CanonicalCustomerEstimateAuthority,
@@ -2518,7 +2521,7 @@ function assertLivingFrameExecutionAuthorityReady(
       .assetWorkInputBindingDigestSha256 !==
       assetWorkInputBinding.bindingDigestSha256
     || workGraphProjection.readiness !==
-      'canonical_work_items_projected_rembg_gpu_operation_admitted'
+      'canonical_work_items_projected_sharp_component_operation_admitted'
     || workGraphProjection.metrics.selectedSceneCount !==
       publication.binding.selectedSceneCount
     || workGraphProjection.metrics.canonicalWorkItemCount !==
@@ -2539,12 +2542,19 @@ function assertLivingFrameExecutionAuthorityReady(
       .admittedRembgGpuMaskWorkItemCount !==
       estimateWorkAssetProjection.metrics
         .projectedGpuWorkItemCount
+    || workGraphProjection.metrics
+      .admittedSharpComponentWorkItemCount !==
+      publication.binding.selectedSceneCount
     || workGraphProjection.metrics.executableWorkItemCount !==
       workGraphProjection.metrics
-        .admittedExactSourceFrameWorkItemCount
+        .admittedExactSourceFrameWorkItemCount +
+        workGraphProjection.metrics
+          .admittedSharpComponentWorkItemCount
     || workGraphProjection.metrics.blockedWorkItemCount !==
       estimateWorkAssetProjection.metrics
-        .projectedNamedWorkItemCount
+        .projectedNamedWorkItemCount -
+        workGraphProjection.metrics
+          .admittedSharpComponentWorkItemCount
     || workGraphProjection.metrics.gpuPendingWorkItemCount !==
       estimateWorkAssetProjection.metrics
         .projectedGpuWorkItemCount
@@ -3056,14 +3066,26 @@ async function loadPlanToolAuthorityWorkItems(
         { workItemId },
       )
     }
-    const executionInput = await readPrivateAuthorityJsonBlob({
-      localStorageRoot: context.env.localStorageRoot,
-      ref: workItem.executionInputRef,
-    })
-    if (Array.isArray(executionInput)) {
+    const [executionInput, fallbackPolicy] =
+      await Promise.all([
+        readPrivateAuthorityJsonBlob({
+          localStorageRoot:
+            context.env.localStorageRoot,
+          ref: workItem.executionInputRef,
+        }),
+        readPrivateAuthorityJsonBlob({
+          localStorageRoot:
+            context.env.localStorageRoot,
+          ref: workItem.fallbackPolicyRef,
+        }),
+      ])
+    if (
+      Array.isArray(executionInput)
+      || Array.isArray(fallbackPolicy)
+    ) {
       throw new ApiError(
         'VALIDATION_FAILED',
-        'Canonical plan work-item execution input must remain a JSON object.',
+        'Canonical plan work-item execution input and fallback policy must remain JSON objects.',
         409,
         { workItemId },
       )
@@ -3077,7 +3099,14 @@ async function loadPlanToolAuthorityWorkItems(
       dependencyKeys: [...workItem.dependencyKeys],
       approvedToolIds: [...workItem.approvedToolIds],
       providerExecutionMode: workItem.providerExecutionMode,
+      fallbackPolicy,
       maxAttempts: workItem.maxAttempts,
+      attemptTimeoutSeconds:
+        workItem.attemptTimeoutSeconds,
+      scheduledDelaySeconds:
+        workItem.scheduledDelaySeconds,
+      maximumCreditBudget:
+        workItem.maximumCreditBudget,
       required: workItem.required,
       expectedOutputs: workItem.expectedOutputs.map((output) => ({
         outputKey: output.outputKey,
@@ -3086,6 +3115,11 @@ async function loadPlanToolAuthorityWorkItems(
         ...(output.contentType ? { contentType: output.contentType } : {}),
         required: output.required,
         previewPlaceholderAllowed: output.previewPlaceholderAllowed,
+        segmentIds: [...output.segmentIds],
+        timingIds: [...output.timingIds],
+        rendererLayerIds: [
+          ...output.rendererLayerIds,
+        ],
       })),
       executionInput,
     }
@@ -3130,22 +3164,29 @@ function canonicalLivingFrameServerDerivedToolStrategyDeclarations(
     | undefined,
 ): CanonicalServerDerivedToolStrategyDeclaration[] {
   if (!projection) return []
-  const rembgWorkItemKeys = projection.workItems
+  const workItemKeys = projection.workItems
     .filter((workItem) =>
       workItem.workerClass ===
-        CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS)
+        CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
+      || (
+        workItem.workerClass ===
+          CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS
+        && workItem.executionInput.operation ===
+          CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION
+      ))
     .map((workItem) => workItem.workItemKey)
     .sort()
-  if (rembgWorkItemKeys.length === 0) return []
+  if (workItemKeys.length === 0) return []
   return [{
     source:
       'canonical_living_frame_work_graph_projection',
     sourceDigestSha256:
       projection.projectionDigestSha256,
-    workItemKeys: rembgWorkItemKeys,
-    declaredToolIds: ['rembg'],
+    workItemKeys,
+    declaredToolIds: ['rembg', 'sharp'],
     declaredExactOperationIds: [
       CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+      CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION,
     ],
   }]
 }

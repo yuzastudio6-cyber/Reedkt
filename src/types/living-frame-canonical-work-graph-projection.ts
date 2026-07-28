@@ -8,7 +8,7 @@ import type {
 } from './living-frame-asset-work-input-binding'
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION =
-  'canonical-living-frame-work-graph-projection-v4' as const
+  'canonical-living-frame-work-graph-projection-v5' as const
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE =
   'canonical_living_frame_work_graph_projection_compiler' as const
@@ -23,7 +23,7 @@ export const CANONICAL_LIVING_FRAME_PENDING_OPERATION =
   'await_exact_living_frame_dependency_input_operation_admission' as const
 
 export const CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION =
-  'canonical-living-frame-pending-operation-authority-v4' as const
+  'canonical-living-frame-pending-operation-authority-v5' as const
 
 export const CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION =
   'extract_approved_exact_source_frame_png' as const
@@ -46,11 +46,24 @@ export const CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION =
 export const CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_INPUT_VERSION =
   'canonical-living-frame-rembg-gpu-mask-work-input-v1' as const
 
+export const CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS =
+  'render_worker' as const
+
+export const CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION =
+  'prepare_approved_living_frame_rgba_component' as const
+
+export const CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION =
+  'tool.sharp.prepare_approved_image_asset.v1' as const
+
+export const CANONICAL_LIVING_FRAME_SHARP_COMPONENT_RECIPE =
+  'approved_living_frame_alpha_component_v1' as const
+
 export type CanonicalLivingFrameWorkGraphProjectionReadiness =
   | 'ready_without_living_frame_work_items'
   | 'canonical_work_items_projected_operation_admission_pending'
   | 'canonical_work_items_projected_exact_source_frame_admitted'
   | 'canonical_work_items_projected_rembg_gpu_operation_admitted'
+  | 'canonical_work_items_projected_sharp_component_operation_admitted'
 
 export interface CanonicalLivingFramePendingOperationAuthority {
   readonly schemaVersion:
@@ -287,10 +300,62 @@ export interface CanonicalLivingFrameRembgGpuMaskWorkItem {
   readonly required: true
 }
 
+export interface CanonicalLivingFrameSharpComponentWorkItem {
+  readonly workItemKey: string
+  readonly workItemType: 'process_image_asset'
+  readonly workerClass:
+    typeof CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS
+  readonly executionInput: {
+    readonly operation:
+      typeof CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION
+    readonly approvedToolOperationIds: readonly [
+      typeof CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION,
+    ]
+    readonly expectedOutputKeys: readonly [string]
+    readonly structuredPayload: {
+      readonly imageRecipeId:
+        typeof CANONICAL_LIVING_FRAME_SHARP_COMPONENT_RECIPE
+      readonly outputFormat: 'png'
+      readonly outputWidth: number
+      readonly outputHeight: number
+      readonly preserveMetadata: false
+      readonly allowUpscale: false
+    }
+  }
+  readonly sourceSequenceItemIds: readonly [string]
+  readonly sourceCleanupDecisionIds: readonly [string]
+  readonly expectedOutputs: readonly [{
+    readonly outputKey: string
+    readonly artifactType: 'living_frame_component_rgba_png'
+    readonly assetRole: 'processed'
+    readonly required: true
+    readonly previewPlaceholderAllowed: false
+    readonly contentType: 'image/png'
+    readonly segmentIds: readonly string[]
+    readonly timingIds: readonly string[]
+    readonly rendererLayerIds: readonly string[]
+  }]
+  readonly dependencyKeys: readonly string[]
+  readonly approvedToolIds: readonly ['sharp']
+  readonly providerExecutionMode: 'none'
+  readonly fallbackPolicy: {
+    readonly policy:
+      'block_living_frame_branch_until_source_mask_component_and_alpha_qa_pass'
+    readonly unapprovedFallbackAllowed: false
+    readonly finalRenderBlockedWhilePending: true
+  }
+  readonly maxAttempts: 2
+  readonly attemptTimeoutSeconds: 300
+  readonly scheduledDelaySeconds: 0
+  readonly maximumCreditBudget: number
+  readonly required: true
+}
+
 export type CanonicalLivingFrameProjectedCanonicalWorkItem =
   | CanonicalLivingFramePendingWorkItem
   | CanonicalLivingFrameExactSourceFramePngWorkItem
   | CanonicalLivingFrameRembgGpuMaskWorkItem
+  | CanonicalLivingFrameSharpComponentWorkItem
 
 export interface CanonicalLivingFrameWorkGraphProjectedItem {
   readonly sceneId: string
@@ -315,6 +380,7 @@ export interface CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary {
   readonly serverDerivedPendingWorkGraphMutationAuthority: true
   readonly serverDerivedExactSourceFrameOperationAuthority: true
   readonly serverDerivedRembgGpuMaskOperationAuthority: true
+  readonly serverDerivedSharpComponentOperationAuthority: true
   readonly callerWorkGraphMutationAuthority: false
   readonly approvedWorkGraphAuthority: false
   readonly remainingLivingFrameExactToolOperationAuthority: false
@@ -367,6 +433,7 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
     readonly canonicalWorkItemCount: number
     readonly admittedExactSourceFrameWorkItemCount: number
     readonly admittedRembgGpuMaskWorkItemCount: number
+    readonly admittedSharpComponentWorkItemCount: number
     readonly executableWorkItemCount: number
     readonly requiredExpectedOutputCount: number
     readonly gpuPendingWorkItemCount: number
@@ -385,6 +452,7 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
   readonly containsProviderPrompt: false
   readonly containsExactSourceFrameExecutablePayload: true
   readonly containsRembgGpuOperationPayload: true
+  readonly containsSharpComponentOperationPayload: true
   readonly expandsExactFiftyToolRegistry: false
   readonly subjectSpecificRouting: false
   readonly productionReady: false

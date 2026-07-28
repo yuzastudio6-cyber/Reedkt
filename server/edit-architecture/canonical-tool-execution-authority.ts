@@ -22,8 +22,14 @@ import {
   assertCanonicalLivingFrameRembgGpuMaskWorkItem,
 } from './canonical-living-frame-rembg-gpu-mask-authority'
 import {
+  assertCanonicalLivingFrameSharpComponentWorkItem,
+} from './canonical-living-frame-sharp-component-authority'
+import {
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 
 export const CANONICAL_TOOL_EXECUTION_AUTHORITY_VERSION =
@@ -56,10 +62,16 @@ const serverDerivedToolStrategyDeclarationSchema =
     ),
     sourceDigestSha256: sha256,
     workItemKeys: z.array(safeKey).min(1).max(256),
-    declaredToolIds: z.tuple([z.literal('rembg')]),
+    declaredToolIds: z.tuple([
+      z.literal('rembg'),
+      z.literal('sharp'),
+    ]),
     declaredExactOperationIds: z.tuple([
       z.literal(
         CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
+      ),
+      z.literal(
+        CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION,
       ),
     ]),
   }).strict()
@@ -488,17 +500,27 @@ function validateServerDerivedStrategyDeclarations(
         declaration.workItemKeys.length
       || declaration.workItemKeys.some((workItemKey) => {
         const workItem = workItemByKey.get(workItemKey)
-        if (
-          !workItem
-          || workItem.workerClass !==
-            CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
-        ) {
-          return true
-        }
+        if (!workItem) return true
         try {
-          assertCanonicalLivingFrameRembgGpuMaskWorkItem(
-            workItem,
-          )
+          if (
+            workItem.workerClass ===
+              CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
+          ) {
+            assertCanonicalLivingFrameRembgGpuMaskWorkItem(
+              workItem,
+            )
+          } else if (
+            workItem.workerClass ===
+              CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS
+            && workItem.executionInput.operation ===
+              CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION
+          ) {
+            assertCanonicalLivingFrameSharpComponentWorkItem(
+              workItem,
+            )
+          } else {
+            return true
+          }
           return false
         } catch {
           return true
@@ -506,18 +528,33 @@ function validateServerDerivedStrategyDeclarations(
       })
     ) {
       throw invalid(
-        'Canonical Living Frame tool declaration does not match its exact server-derived rembg GPU work items.',
+        'Canonical Living Frame tool declaration does not match its exact server-derived rembg and Sharp work items.',
       )
     }
   }
-  const exactLivingFrameRembgKeys = workItems
+  const exactLivingFrameToolKeys = workItems
     .filter((workItem) =>
       workItem.workerClass ===
-        CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS)
+        CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
+      || (
+        workItem.workerClass ===
+          CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS
+        && workItem.executionInput.operation ===
+          CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION
+      ))
     .map((workItem) => {
-      assertCanonicalLivingFrameRembgGpuMaskWorkItem(
-        workItem,
-      )
+      if (
+        workItem.workerClass ===
+          CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
+      ) {
+        assertCanonicalLivingFrameRembgGpuMaskWorkItem(
+          workItem,
+        )
+      } else {
+        assertCanonicalLivingFrameSharpComponentWorkItem(
+          workItem,
+        )
+      }
       return workItem.workItemKey
     })
     .sort()
@@ -525,11 +562,11 @@ function validateServerDerivedStrategyDeclarations(
     stableAuthorityStringify(
       [...declaredWorkItemKeys].sort(),
     ) !== stableAuthorityStringify(
-      exactLivingFrameRembgKeys,
+      exactLivingFrameToolKeys,
     )
   ) {
     throw invalid(
-      'Canonical Living Frame rembg GPU work must be covered exactly by its server-derived tool declaration.',
+      'Canonical Living Frame rembg and Sharp work must be covered exactly by its server-derived tool declaration.',
     )
   }
   return declarations.map((declaration) => ({

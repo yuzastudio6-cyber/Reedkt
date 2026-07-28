@@ -210,7 +210,12 @@ const captionRenderSettings = strictSettings({
 }, ['captionProfileId', 'fontPackProfileId', 'collisionPolicy', 'preserveSpeechTiming'])
 
 const imageAssetSettings = strictSettings({
-  imageRecipeId: enumConstraint(['approved_thumbnail_v1', 'approved_panel_asset_v1', 'approved_overlay_asset_v1']),
+  imageRecipeId: enumConstraint([
+    'approved_thumbnail_v1',
+    'approved_panel_asset_v1',
+    'approved_overlay_asset_v1',
+    'approved_living_frame_alpha_component_v1',
+  ]),
   outputFormat: enumConstraint(['png', 'jpeg', 'webp']),
   outputWidth: integerConstraint(1, 8_192),
   outputHeight: integerConstraint(1, 8_192),

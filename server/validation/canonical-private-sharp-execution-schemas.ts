@@ -28,9 +28,31 @@ export const canonicalPrivateSharpResponseSchema = z.object({
     canonicalToolId: z.literal('sharp'), operationId: id,
     actualLibraryOperationCompleted: z.literal(true), providerCallMade: z.literal(false),
     dependencyArtifactRead: z.literal(true), dependencyReadEvidenceHash: sha,
+    dependencyArtifactCount: z.union([z.literal(1), z.literal(2)]),
     sourceArtifactId: id, sourceArtifactSha256: sha,
+    maskArtifactId: id.nullable(),
+    maskArtifactSha256: sha.nullable(),
     renderExecuted: z.literal(false), finalExportExecuted: z.literal(false),
-  }).strict(),
+  }).strict().superRefine((value, context) => {
+    if (
+      (value.dependencyArtifactCount === 1 &&
+        (
+          value.maskArtifactId !== null ||
+          value.maskArtifactSha256 !== null
+        )) ||
+      (value.dependencyArtifactCount === 2 &&
+        (
+          value.maskArtifactId === null ||
+          value.maskArtifactSha256 === null
+        ))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Sharp dependency count and mask identity must agree.',
+      })
+    }
+  }),
   runtime: z.object({
     runtimeAuthorityHash: sha, imageIdentityHash: sha, executionAttestationHash: sha,
     requestEnvelopeSha256: sha, resultSha256: sha,

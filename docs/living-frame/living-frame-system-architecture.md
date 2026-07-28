@@ -1129,9 +1129,16 @@ Operation admission is not runtime authority. The rembg work item remains
 `privateExecutionReady = false` until the existing canonical CUDA image,
 model-artifact mount, source-frame reread, GPU attempt/cost receipt, private
 output verification, artifact commitment, and mask QA gates pass. The older
-CPU rembg fixture cannot satisfy this gate. The Sharp and Remotion requirements
-remain tool-free pending-operation items until their exact dependency-input
-contracts are admitted.
+CPU rembg fixture cannot satisfy this gate.
+
+The existing Sharp identity and operation now own the component-image step
+without adding a tool. Its exact server-derived item depends on the approved
+FFmpeg source-frame PNG and QA-selected rembg grayscale-mask PNG. The confined
+runner performs real straight-alpha RGBA construction, clears transparent
+RGB, deterministically encodes PNG, decodes it, and requires byte-exact pixel
+agreement. It cannot run before both dependency artifacts are committed and
+selected by the immutable worker lease. Only the Remotion-layer requirement
+remains a tool-free pending-operation item.
 
 This is not a second Living Frame workflow. The existing WeEditPro estimate,
 approval, work graph, asset manifest, QA, review, and renderer pipeline remains
@@ -1153,6 +1160,8 @@ The exact cost/work/asset requirements projection is documented in
 `docs/living-frame/living-frame-canonical-estimate-work-asset-projection.md`.
 The exact pending canonical work-graph projection is documented in
 `docs/living-frame/living-frame-canonical-work-graph-projection.md`.
+The exact Sharp component operation is documented in
+`docs/living-frame/living-frame-canonical-sharp-alpha-component.md`.
 That projection now carries the exact scene-start MasterTiming frame mapped
 back to the verified source-cleanup span. The resulting source-frame digest is
 server-derived and remains non-executable until the existing GPU/tool runtime

@@ -12,6 +12,10 @@ import {
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_INPUT_VERSION,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_ITEM_OPERATION,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_RECIPE,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS,
@@ -21,6 +25,7 @@ import {
   type CanonicalLivingFramePendingWorkItem,
   type CanonicalLivingFrameProjectedCanonicalWorkItem,
   type CanonicalLivingFrameRembgGpuMaskWorkItem,
+  type CanonicalLivingFrameSharpComponentWorkItem,
   type CanonicalLivingFrameWorkGraphProjection,
   type CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary,
   type CanonicalLivingFrameWorkGraphProjectionDraft,
@@ -46,6 +51,9 @@ import {
   assertCanonicalLivingFrameRembgGpuMaskWorkItem,
 } from '../edit-architecture/canonical-living-frame-rembg-gpu-mask-authority'
 import {
+  assertCanonicalLivingFrameSharpComponentWorkItem,
+} from '../edit-architecture/canonical-living-frame-sharp-component-authority'
+import {
   OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
 } from '../tool-execution/media-binary-execution'
@@ -64,6 +72,7 @@ const AUTHORITY_BOUNDARY:
       serverDerivedPendingWorkGraphMutationAuthority: true,
       serverDerivedExactSourceFrameOperationAuthority: true,
       serverDerivedRembgGpuMaskOperationAuthority: true,
+      serverDerivedSharpComponentOperationAuthority: true,
       callerWorkGraphMutationAuthority: false,
       approvedWorkGraphAuthority: false,
       remainingLivingFrameExactToolOperationAuthority: false,
@@ -125,6 +134,10 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         workInput,
       ]),
     )
+    let admittedExactSourceFrameWorkItem:
+      CanonicalLivingFrameExactSourceFramePngWorkItem | undefined
+    let admittedRembgGpuMaskWorkItem:
+      CanonicalLivingFrameRembgGpuMaskWorkItem | undefined
     for (const workRequirement of
       projectedScene.workRequirements) {
       const workInput =
@@ -181,6 +194,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
           : undefined
       if (exactSourceFrameWorkItem) {
         workItems.push(exactSourceFrameWorkItem)
+        admittedExactSourceFrameWorkItem =
+          exactSourceFrameWorkItem
       }
       const admittedDependencyKeys =
         exactSourceFrameWorkItem
@@ -213,6 +228,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
               line.estimatedCredits,
           })
         workItems.push(rembgGpuMaskWorkItem)
+        admittedRembgGpuMaskWorkItem =
+          rembgGpuMaskWorkItem
         projectedItems.push({
           sceneId: projectedScene.sceneId,
           workItemKey:
@@ -244,6 +261,73 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
           ],
           workItemDigestSha256:
             sha256AuthorityValue(rembgGpuMaskWorkItem),
+        })
+        continue
+      }
+      if (
+        workRequirement.workItemType ===
+          'process_image_asset'
+      ) {
+        if (
+          !admittedExactSourceFrameWorkItem
+          || !admittedRembgGpuMaskWorkItem
+        ) {
+          throw conflict(
+            'Canonical Living Frame Sharp component requires the already-admitted exact source frame and rembg mask.',
+          )
+        }
+        const sharpComponentWorkItem =
+          compileSharpComponentWorkItem({
+            workRequirement,
+            expectedOutput,
+            exactSourceFrameWorkItem:
+              admittedExactSourceFrameWorkItem,
+            rembgGpuMaskWorkItem:
+              admittedRembgGpuMaskWorkItem,
+            outputWidth:
+              input.components.confirmedSettings
+                .outputFrame.width,
+            outputHeight:
+              input.components.confirmedSettings
+                .outputFrame.height,
+            maximumCreditBudget:
+              line.estimatedCredits,
+          })
+        workItems.push(sharpComponentWorkItem)
+        projectedItems.push({
+          sceneId: projectedScene.sceneId,
+          workItemKey:
+            workRequirement.workItemKey,
+          workItemType:
+            workRequirement.workItemType,
+          costOwnerToolId:
+            workRequirement.costOwnerToolId,
+          costOwnerOperationId:
+            workRequirement.costOwnerOperationId,
+          executionPlacement:
+            workRequirement.executionPlacement,
+          cpuFallbackAllowed:
+            workRequirement.cpuFallbackAllowed,
+          inputAssetIntentIds: [
+            ...workRequirement.inputAssetIntentIds,
+          ],
+          outputAssetIntentIds: [
+            ...workRequirement.outputAssetIntentIds,
+          ],
+          sourceFrameInputs:
+            workRequirement.sourceFrameInputs.map(
+              (sourceFrameInput) => ({
+                ...sourceFrameInput,
+              }),
+            ),
+          dependencyWorkItemKeys: [
+            ...sharpComponentWorkItem
+              .dependencyKeys,
+          ],
+          workItemDigestSha256:
+            sha256AuthorityValue(
+              sharpComponentWorkItem,
+            ),
         })
         continue
       }
@@ -432,6 +516,10 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         ? 'ready_without_living_frame_work_items'
         : workItems.some((item) =>
             item.workerClass ===
+              CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS)
+        ? 'canonical_work_items_projected_sharp_component_operation_admitted'
+        : workItems.some((item) =>
+            item.workerClass ===
               CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS)
         ? 'canonical_work_items_projected_rembg_gpu_operation_admitted'
         : workItems.some((item) =>
@@ -457,10 +545,17 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             item.workerClass ===
               CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS)
             .length,
+        admittedSharpComponentWorkItemCount:
+          workItems.filter((item) =>
+            item.workerClass ===
+              CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS)
+            .length,
         executableWorkItemCount:
           workItems.filter((item) =>
             item.workerClass ===
-              CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS)
+              CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS
+            || item.workerClass ===
+              CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS)
             .length,
         requiredExpectedOutputCount:
           workItems.reduce(
@@ -499,6 +594,7 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       containsProviderPrompt: false,
       containsExactSourceFrameExecutablePayload: true,
       containsRembgGpuOperationPayload: true,
+      containsSharpComponentOperationPayload: true,
       expandsExactFiftyToolRegistry: false,
       subjectSpecificRouting: false,
       productionReady: false,
@@ -1003,6 +1099,150 @@ function compileRembgGpuMaskWorkItem(input: {
   return workItem
 }
 
+function compileSharpComponentWorkItem(input: {
+  readonly workRequirement:
+    CanonicalLivingFrameEstimateWorkAssetProjection[
+      'scenes'
+    ][number]['workRequirements'][number]
+  readonly expectedOutput:
+    CanonicalLivingFrameEstimateWorkAssetProjection[
+      'scenes'
+    ][number]['workRequirements'][number]['expectedOutput']
+  readonly exactSourceFrameWorkItem:
+    CanonicalLivingFrameExactSourceFramePngWorkItem
+  readonly rembgGpuMaskWorkItem:
+    CanonicalLivingFrameRembgGpuMaskWorkItem
+  readonly outputWidth: number
+  readonly outputHeight: number
+  readonly maximumCreditBudget: number
+}): CanonicalLivingFrameSharpComponentWorkItem {
+  const sourceFrame =
+    input.workRequirement.sourceFrameInputs[0]
+  const dependencyKeys = uniqueSorted([
+    ...input.workRequirement.dependencyWorkItemKeys,
+    input.exactSourceFrameWorkItem.workItemKey,
+  ])
+  if (
+    input.workRequirement.workItemType !==
+      'process_image_asset'
+    || input.workRequirement.costOwnerToolId !==
+      'sharp'
+    || input.workRequirement.costOwnerOperationId !==
+      CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION
+    || input.workRequirement.executionPlacement !==
+      'private_render_worker'
+    || !input.workRequirement.cpuFallbackAllowed
+    || input.workRequirement.sourceFrameInputs.length !== 1
+    || !sourceFrame
+    || input.expectedOutput.artifactType !==
+      'living_frame_component_rgba_png'
+    || input.expectedOutput.contentType !== 'image/png'
+    || dependencyKeys.length !== 2
+    || !dependencyKeys.includes(
+      input.rembgGpuMaskWorkItem.workItemKey,
+    )
+    || !dependencyKeys.includes(
+      input.exactSourceFrameWorkItem.workItemKey,
+    )
+    || input.rembgGpuMaskWorkItem
+      .sourceSequenceItemIds[0] !==
+        sourceFrame.sourceSequenceItemId
+    || input.exactSourceFrameWorkItem
+      .sourceSequenceItemIds[0] !==
+        sourceFrame.sourceSequenceItemId
+    || input.rembgGpuMaskWorkItem
+      .sourceCleanupDecisionIds[0] !==
+        sourceFrame.sourceCleanupDecisionId
+    || input.exactSourceFrameWorkItem
+      .sourceCleanupDecisionIds[0] !==
+        sourceFrame.sourceCleanupDecisionId
+    || !Number.isSafeInteger(input.outputWidth)
+    || input.outputWidth < 1
+    || input.outputWidth > 4_096
+    || !Number.isSafeInteger(input.outputHeight)
+    || input.outputHeight < 1
+    || input.outputHeight > 4_096
+    || input.outputWidth * input.outputHeight >
+      16_777_216
+    || !Number.isInteger(input.maximumCreditBudget)
+    || input.maximumCreditBudget <= 0
+  ) {
+    throw conflict(
+      'Canonical Living Frame Sharp component requires the exact source PNG, QA-bound rembg mask, output frame, and estimate authority.',
+    )
+  }
+  const workItem:
+    CanonicalLivingFrameSharpComponentWorkItem = {
+      workItemKey:
+        input.workRequirement.workItemKey,
+      workItemType: 'process_image_asset',
+      workerClass:
+        CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS,
+      executionInput: {
+        operation:
+          CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION,
+        approvedToolOperationIds: [
+          CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION,
+        ],
+        expectedOutputKeys: [
+          input.expectedOutput.outputKey,
+        ],
+        structuredPayload: {
+          imageRecipeId:
+            CANONICAL_LIVING_FRAME_SHARP_COMPONENT_RECIPE,
+          outputFormat: 'png',
+          outputWidth: input.outputWidth,
+          outputHeight: input.outputHeight,
+          preserveMetadata: false,
+          allowUpscale: false,
+        },
+      },
+      sourceSequenceItemIds: [
+        sourceFrame.sourceSequenceItemId,
+      ],
+      sourceCleanupDecisionIds: [
+        sourceFrame.sourceCleanupDecisionId,
+      ],
+      expectedOutputs: [{
+        outputKey: input.expectedOutput.outputKey,
+        artifactType:
+          'living_frame_component_rgba_png',
+        assetRole: 'processed',
+        required: true,
+        previewPlaceholderAllowed: false,
+        contentType: 'image/png',
+        segmentIds: [
+          ...input.expectedOutput.segmentIds,
+        ],
+        timingIds: [
+          ...input.expectedOutput.timingIds,
+        ],
+        rendererLayerIds: [
+          ...input.expectedOutput.rendererLayerIds,
+        ],
+      }],
+      dependencyKeys,
+      approvedToolIds: ['sharp'],
+      providerExecutionMode: 'none',
+      fallbackPolicy: {
+        policy:
+          'block_living_frame_branch_until_source_mask_component_and_alpha_qa_pass',
+        unapprovedFallbackAllowed: false,
+        finalRenderBlockedWhilePending: true,
+      },
+      maxAttempts: 2,
+      attemptTimeoutSeconds: 300,
+      scheduledDelaySeconds: 0,
+      maximumCreditBudget:
+        input.maximumCreditBudget,
+      required: true,
+    }
+  assertCanonicalLivingFrameSharpComponentWorkItem(
+    workItem,
+  )
+  return workItem
+}
+
 function validProjectedWorkItem(
   item: CanonicalLivingFrameProjectedCanonicalWorkItem,
 ): boolean {
@@ -1036,6 +1276,20 @@ function validProjectedWorkItem(
               '-exact-source-frame-png',
             ),
         )
+    } catch {
+      return false
+    }
+  }
+  if (
+    item.workerClass ===
+      CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS
+  ) {
+    try {
+      assertCanonicalLivingFrameSharpComponentWorkItem(
+        item,
+      )
+      return item.maximumCreditBudget > 0
+        && item.dependencyKeys.length === 2
     } catch {
       return false
     }

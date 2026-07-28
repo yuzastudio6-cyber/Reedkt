@@ -18,8 +18,17 @@ import {
   type RunCanonicalPrivateSharpInput,
 } from '../validation/canonical-private-sharp-execution-schemas'
 import type { CanonicalExpectedArtifactLineage, PersistedArtifactResult } from '../validation/private-artifact-qa-authority-schemas'
+import {
+  CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION,
+} from '../../src/types/living-frame-canonical-work-graph-projection'
+import {
+  assertCanonicalLivingFrameSharpComponentWorkItem,
+} from '../edit-architecture/canonical-living-frame-sharp-component-authority'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
 import { createCanonicalPrivateDependencyArtifactReadService } from './canonical-private-dependency-artifact-read-service'
+import type {
+  CanonicalPrivateDependencyArtifactReadResult,
+} from './canonical-private-dependency-artifact-read-service'
 import { persistCanonicalPrivateImageArtifact, readCanonicalPrivateImageArtifact } from './canonical-private-image-artifact-storage'
 import { createCanonicalPrivateToolDispatchAuthorityService } from './canonical-private-tool-dispatch-authority-service'
 import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
@@ -75,6 +84,14 @@ export function createCanonicalPrivateSharpExecutionService(context: ServiceCont
       const expectedAsset = authority.assetManifest.entries.find((candidate) =>
         candidate.id === binding.expectedAssetId && candidate.approvedWorkItemId === workItem?.id)
       if (!workItem || !expectedAsset) throw denied('Sharp work-item or output lineage is missing.')
+      const livingFrameAlphaComponent =
+        workItem.executionInput.operation ===
+          CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION
+      if (livingFrameAlphaComponent) {
+        assertCanonicalLivingFrameSharpComponentWorkItem(
+          workItem,
+        )
+      }
       const planningPayload = validateOfflineSharpPlanningPayload(workItem.executionInput.structuredPayload)
       const contentType = planningPayload.outputFormat === 'png'
         ? 'image/png' as const
@@ -86,7 +103,13 @@ export function createCanonicalPrivateSharpExecutionService(context: ServiceCont
         expectedAsset.assetRole === 'final' || expectedAsset.previewPlaceholderAllowed ||
         binding.expectedOutput.outputKey !== expectedAsset.outputKey ||
         readiness.job.approvedWorkItemId !== workItem.id ||
-        binding.approvedPlanSnapshotId !== authority.snapshot.snapshotId
+        binding.approvedPlanSnapshotId !== authority.snapshot.snapshotId ||
+        (livingFrameAlphaComponent &&
+          (
+            planningPayload.imageRecipeId !==
+              'approved_living_frame_alpha_component_v1' ||
+            planningPayload.outputFormat !== 'png'
+          ))
       ) throw denied('Sharp execution is limited to the exact approved non-final image output.')
       const runtimeAuthority = await readPersistedOfflineNodeStructuredRuntimeAuthority()
       if (
@@ -107,31 +130,199 @@ export function createCanonicalPrivateSharpExecutionService(context: ServiceCont
         runnerClass: RUNNER_CLASS,
       })
       const executionAttemptId = begun.executionFence.executionAttemptId
-      const dependency = await createCanonicalPrivateDependencyArtifactReadService(context)
-        .readSingleSelectedArtifact({
-          workspaceId: body.workspaceId, projectId: body.projectId,
-          editSessionId: body.editSessionId, snapshotId: authority.snapshot.snapshotId,
-          currentJobId: body.jobId, currentApprovedWorkItemId: workItem.id,
-          leaseId: injected.leaseId, leaseCredential: injected.leaseCredential,
-          executionAttemptId, dispatchGrantId: body.grantId,
-          dependencyAuthority: begun.lease.dependencyAuthority,
-          allowedContentTypes: ['image/svg+xml'], maximumBytes: 2 * 1024 * 1024,
+      const dependencyReader =
+        createCanonicalPrivateDependencyArtifactReadService(
+          context,
+        )
+      let sourceDependency:
+        CanonicalPrivateDependencyArtifactReadResult
+      let maskDependency:
+        CanonicalPrivateDependencyArtifactReadResult | undefined
+      if (livingFrameAlphaComponent) {
+        const dependencyAssets =
+          workItem.dependencyKeys.map((dependencyKey) => {
+            const dependencyWorkItem =
+              authority.workItems.find((candidate) =>
+                candidate.workItemKey === dependencyKey)
+            const assets = authority.assetManifest.entries.filter(
+              (candidate) =>
+                candidate.approvedWorkItemId ===
+                  dependencyWorkItem?.id,
+            )
+            if (
+              !dependencyWorkItem ||
+              assets.length !== 1
+            ) {
+              throw denied(
+                'Sharp alpha-component dependency work or asset lineage is missing.',
+              )
+            }
+            return assets[0]!
+          })
+        const sourceAsset = dependencyAssets.find(
+          (candidate) =>
+            candidate.artifactType ===
+              'approved_exact_source_frame_png',
+        )
+        const maskAsset = dependencyAssets.find(
+          (candidate) =>
+            candidate.artifactType ===
+              'living_frame_alpha_mask_png',
+        )
+        if (
+          !sourceAsset ||
+          !maskAsset ||
+          sourceAsset.contentType !== 'image/png' ||
+          maskAsset.contentType !== 'image/png'
+        ) {
+          throw denied(
+            'Sharp alpha-component requires one exact source-frame PNG and one rembg mask PNG.',
+          )
+        }
+        const sourceIndex = begun.lease
+          .dependencyAuthority.selectedArtifacts
+          .findIndex((candidate) =>
+            candidate.expectedAssetId === sourceAsset.id)
+        const maskIndex = begun.lease
+          .dependencyAuthority.selectedArtifacts
+          .findIndex((candidate) =>
+            candidate.expectedAssetId === maskAsset.id)
+        if (
+          sourceIndex < 0 ||
+          maskIndex < 0 ||
+          sourceIndex === maskIndex
+        ) {
+          throw denied(
+            'Sharp alpha-component lease did not select both exact dependency artifacts.',
+          )
+        }
+        const commonRead = {
+          workspaceId: body.workspaceId,
+          projectId: body.projectId,
+          editSessionId: body.editSessionId,
+          snapshotId: authority.snapshot.snapshotId,
+          currentJobId: body.jobId,
+          currentApprovedWorkItemId: workItem.id,
+          leaseId: injected.leaseId,
+          leaseCredential: injected.leaseCredential,
+          executionAttemptId,
+          dispatchGrantId: body.grantId,
+          dependencyAuthority:
+            begun.lease.dependencyAuthority,
+          allowedContentTypes: ['image/png'] as const,
+          maximumBytes: 16 * 1024 * 1024,
+        }
+        sourceDependency =
+          await dependencyReader.readSingleSelectedArtifact({
+            ...commonRead,
+            selectedArtifactIndex: sourceIndex,
+          })
+        maskDependency =
+          await dependencyReader.readSingleSelectedArtifact({
+            ...commonRead,
+            selectedArtifactIndex: maskIndex,
+          })
+        if (
+          sourceDependency.expectedAssetId !==
+            sourceAsset.id ||
+          maskDependency.expectedAssetId !==
+            maskAsset.id
+        ) {
+          throw denied(
+            'Sharp alpha-component dependency bytes do not match selected asset lineage.',
+          )
+        }
+      } else {
+        sourceDependency =
+          await dependencyReader.readSingleSelectedArtifact({
+            workspaceId: body.workspaceId,
+            projectId: body.projectId,
+            editSessionId: body.editSessionId,
+            snapshotId: authority.snapshot.snapshotId,
+            currentJobId: body.jobId,
+            currentApprovedWorkItemId: workItem.id,
+            leaseId: injected.leaseId,
+            leaseCredential: injected.leaseCredential,
+            executionAttemptId,
+            dispatchGrantId: body.grantId,
+            dependencyAuthority:
+              begun.lease.dependencyAuthority,
+            allowedContentTypes: ['image/svg+xml'],
+            maximumBytes: 2 * 1024 * 1024,
+          })
+      }
+      const dependencyReadEvidenceHash =
+        sha256AuthorityValue({
+          domain:
+            'canonical_private_sharp_dependency_set_v1',
+          source:
+            sourceDependency
+              .dependencyReadEvidenceHash,
+          mask:
+            maskDependency
+              ?.dependencyReadEvidenceHash ?? null,
         })
-      const request = validateOfflineNodeStructuredExecutionRequest({
-        toolId: 'sharp', operationId: binding.operationId,
-        payload: {
-          ...planningPayload,
-          sourceMimeType: dependency.contentType,
-          sourceByteLength: dependency.byteLength,
-          sourceSha256: dependency.sha256,
-          sourceBytesBase64: dependency.bytes.toString('base64'),
-        },
-      })
+      const request =
+        validateOfflineNodeStructuredExecutionRequest({
+          toolId: 'sharp',
+          operationId: binding.operationId,
+          payload: livingFrameAlphaComponent
+            ? {
+                ...planningPayload,
+                sourceMimeType:
+                  sourceDependency.contentType,
+                sourceByteLength:
+                  sourceDependency.byteLength,
+                sourceSha256:
+                  sourceDependency.sha256,
+                sourceBytesBase64:
+                  sourceDependency.bytes
+                    .toString('base64'),
+                maskMimeType:
+                  maskDependency!.contentType,
+                maskByteLength:
+                  maskDependency!.byteLength,
+                maskSha256:
+                  maskDependency!.sha256,
+                maskBytesBase64:
+                  maskDependency!.bytes
+                    .toString('base64'),
+              }
+            : {
+                ...planningPayload,
+                sourceMimeType:
+                  sourceDependency.contentType,
+                sourceByteLength:
+                  sourceDependency.byteLength,
+                sourceSha256:
+                  sourceDependency.sha256,
+                sourceBytesBase64:
+                  sourceDependency.bytes
+                    .toString('base64'),
+              },
+        })
       const result = await runtime.execute(request)
       if (
         result.evidence.toolId !== 'sharp' || result.evidence.operationId !== binding.operationId ||
         result.imageArtifact.mimeType !== contentType || result.readiness.productReady ||
-        result.evidence.semanticEvidence.sourceBytesVerified !== true
+        result.evidence.semanticEvidence.sourceBytesVerified !== true ||
+        (livingFrameAlphaComponent &&
+          (
+            result.evidence.semanticEvidence.sourceMimeType !==
+              'image/png' ||
+            result.evidence.semanticEvidence
+              .maskBytesVerified !== true ||
+            result.evidence.semanticEvidence
+              .alphaDerivedFromMask !== true ||
+            result.evidence.semanticEvidence
+              .transparentRgbCleared !== true ||
+            result.evidence.semanticEvidence
+              .outputWidth !==
+                planningPayload.outputWidth ||
+            result.evidence.semanticEvidence
+              .outputHeight !==
+                planningPayload.outputHeight
+          ))
       ) throw denied('Sharp result failed exact operation verification.')
       const privateObjectIdentityHash = sha256ArtifactQaValue({
         domain: 'canonical_private_sharp_image_v1', workspaceId: body.workspaceId,
@@ -165,7 +356,8 @@ export function createCanonicalPrivateSharpExecutionService(context: ServiceCont
         privateObjectIdentityHash, executionAttemptId, dispatchGrantId: body.grantId,
         runtimeAuthorityHash: runtimeAuthority.authorityHash,
         executionStartedAt: begun.executionFence.startedAt,
-        result, dependencyReadEvidenceHash: dependency.dependencyReadEvidenceHash,
+        result,
+        dependencyReadEvidenceHash,
       }
       const artifactAuthority = createPrivateArtifactQaAuthorityService(context, adapters(adapterInput))
       const keyHash = sha256ArtifactQaValue({ domain: 'canonical_sharp_idempotency_v1', body, executionAttemptId })
@@ -205,8 +397,17 @@ export function createCanonicalPrivateSharpExecutionService(context: ServiceCont
           canonicalToolId: 'sharp' as const, operationId: binding.operationId,
           actualLibraryOperationCompleted: true as const, providerCallMade: false as const,
           dependencyArtifactRead: true as const,
-          dependencyReadEvidenceHash: dependency.dependencyReadEvidenceHash,
-          sourceArtifactId: dependency.artifactId, sourceArtifactSha256: dependency.sha256,
+          dependencyReadEvidenceHash,
+          dependencyArtifactCount:
+            maskDependency ? 2 as const : 1 as const,
+          sourceArtifactId:
+            sourceDependency.artifactId,
+          sourceArtifactSha256:
+            sourceDependency.sha256,
+          maskArtifactId:
+            maskDependency?.artifactId ?? null,
+          maskArtifactSha256:
+            maskDependency?.sha256 ?? null,
           renderExecuted: false as const, finalExportExecuted: false as const,
         },
         runtime: {

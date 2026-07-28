@@ -5917,7 +5917,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     'generate_mask_asset',
     'process_image_asset',
   ]) {
-    const sourceReadingWorkInput = namedWorkInputs.find(
+    const sourceReadingWorkInput: unknown = namedWorkInputs.find(
       (workInput) =>
         asRecord(workInput).workItemType ===
           sourceReadingWorkItemType,

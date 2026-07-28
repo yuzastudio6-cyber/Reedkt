@@ -642,7 +642,7 @@ ProfessionalToolCatalogProfile[] = [
     workerType: 'gpu_ai_worker',
     executionMode: 'worker_recipe',
     gpuRequired: true,
-    cpuAllowed: true,
+    cpuAllowed: false,
     inputTypes: ['image', 'frame_sequence'],
     outputTypes: ['mask_image', 'image_asset', 'qa_report'],
     bestFor: ['Still-image fallback masks', 'Lightweight background removal', 'Fallback comparison'],

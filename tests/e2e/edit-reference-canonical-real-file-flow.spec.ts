@@ -714,6 +714,7 @@ test.describe('canonical Edit Preference real-file flow', () => {
       currentUserInstruction: authority.authority.currentUserInstruction,
       outputFrameConfirmed: true,
     })
+    expect(targetContext.projectName).toBe(projectName)
     const storageRoot = String(testInfo.config.metadata.editReferenceCanonicalStorageRoot ?? '')
     expect(path.isAbsolute(storageRoot)).toBe(true)
     const targetPackage = await persistReadyTargetVideoUnderstandingFixture({

@@ -811,7 +811,7 @@ export function createPreferenceApplicationTargetContext(input: {
   return {
     projectId: session.projectId,
     editSessionId: session.id,
-    projectName: titleCaseId(session.projectId),
+    projectName: exactProjectNameForTargetContext(session),
     editName: session.name,
     sourceMode,
     contentType,
@@ -835,6 +835,18 @@ export function createPreferenceApplicationTargetContext(input: {
       'Do not copy exact reference shots, timing, layouts, people, logos, music, sound effects, or creator identity.',
     ],
   }
+}
+
+function exactProjectNameForTargetContext(session: ProjectEditSessionRecord): string {
+  const exactProjectName = session.metadata?.exactProjectName
+  if (
+    session.metadata?.exactActiveEditorAuthority === true
+    && typeof exactProjectName === 'string'
+    && exactProjectName.trim()
+  ) {
+    return exactProjectName.trim().slice(0, 160)
+  }
+  return titleCaseId(session.projectId)
 }
 
 function titleCaseId(value: string): string {

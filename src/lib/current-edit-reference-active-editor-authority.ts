@@ -239,12 +239,17 @@ function createSession(input: {
     mockOnly: true,
     metadata: {
       exactActiveEditorAuthority: true,
+      exactProjectName: normalizedProjectName(input.projectName, input.projectId),
       sourceStorageObjectRecordId: input.source.storageObjectRecordId,
       sourceChecksumSha256: input.source.checksumSha256,
       providerExecutionAuthorized: false,
       creditMutationAuthorized: false,
     },
   }
+}
+
+function normalizedProjectName(projectName: string, projectId: string): string {
+  return projectName.trim().slice(0, 160) || projectId.trim().slice(0, 160)
 }
 
 function createSessionSource(

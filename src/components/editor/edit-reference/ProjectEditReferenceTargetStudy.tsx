@@ -105,7 +105,10 @@ export function ProjectEditReferenceTargetStudy({
       editReferenceId,
       workspaceId: effectiveWorkspaceId,
     })) {
-      setLifecycle({ kind: 'not_started' })
+      setLifecycle({
+        kind: 'error',
+        message: 'The saved study belongs to an earlier project, Edit Brief, instruction, or output frame. Refresh this edit before studying again.',
+      })
       clearAcceptedPackage()
       return
     }

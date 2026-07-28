@@ -43,6 +43,12 @@ const opaqueId = stringConstraint({
   pattern: '^[A-Za-z][A-Za-z0-9_-]{7,95}$',
 })
 
+const sha256Digest = stringConstraint({
+  minLength: 64,
+  maxLength: 64,
+  pattern: '^[a-f0-9]{64}$',
+})
+
 const chartSettings = strictSettings({
   width: integerConstraint(320, 3840),
   height: integerConstraint(180, 2160),
@@ -90,6 +96,25 @@ const maskSettings = strictSettings({
   edgeRefinementProfileId: opaqueId,
   preserveContactObjects: booleanConstraint(),
 }, ['confidenceThreshold', 'maximumSubjects', 'frameStride', 'preserveContactObjects'])
+
+const sam2Settings = strictSettings({
+  confidenceThreshold: numberConstraint(0, 1),
+  maximumSubjects: integerConstraint(1, 1),
+  frameStride: integerConstraint(1, 30),
+  edgeRefinementProfileId: opaqueId,
+  preserveContactObjects: booleanConstraint(),
+  subjectPromptProfile: enumConstraint([
+    'normalized_box_or_points_v1',
+  ]),
+  subjectPromptSha256: sha256Digest,
+}, [
+  'confidenceThreshold',
+  'maximumSubjects',
+  'frameStride',
+  'preserveContactObjects',
+  'subjectPromptProfile',
+  'subjectPromptSha256',
+])
 
 const imageBackgroundSettings = strictSettings({
   confidenceThreshold: numberConstraint(0, 1),
@@ -231,7 +256,7 @@ export const PROFESSIONAL_TOOL_OPERATION_SEEDS = [
   nodeSeed('babylon_js', 'render_babylon_scene', ['babylonjs', 'babylon.js', '@babylonjs/core'], threeDSettings, 'render_3d', '@babylonjs/core', '@babylonjs/core', 'Engine.runRenderLoop'),
   pythonSeed('torch_torchvision', 'verify_tensor_vision_runtime', ['torch', 'torchvision'], runtimeReadinessSettings, 'runtime_readiness', 'torch+torchvision', 'torch,torchvision', 'torch.cuda.is_available'),
   pythonSeed('transformers', 'verify_transformers_runtime', ['huggingface_transformers'], runtimeReadinessSettings, 'runtime_readiness', 'transformers', 'transformers', 'utils.is_torch_available'),
-  pythonSeed('sam2', 'segment_and_track_subject', ['segment_anything_2'], maskSettings, 'gpu_video', 'sam2', 'sam2', 'SAM2VideoPredictor'),
+  pythonSeed('sam2', 'segment_and_track_subject', ['segment_anything_2'], sam2Settings, 'gpu_video', 'sam2', 'sam2', 'SAM2VideoPredictor'),
   pythonSeed('birefnet', 'extract_foreground', ['bi_ref_net', 'bi-refnet'], maskSettings, 'gpu_video', 'birefnet', 'birefnet', 'BiRefNet'),
   pythonSeed('rembg', 'remove_image_background', ['remove_background'], imageBackgroundSettings, 'gpu_image', 'rembg', 'rembg', 'remove'),
   pythonSeed('transparent_background', 'evaluate_background_removal', ['transparent-background'], imageBackgroundSettings, 'gpu_video', 'transparent-background', 'transparent_background', 'Remover.process'),

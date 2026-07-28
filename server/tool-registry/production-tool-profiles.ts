@@ -596,7 +596,7 @@ export const productionToolProfiles: ProductionToolProfile[] = [
     executionMode: 'worker_recipe',
     gpuRequired: true,
     cpuAllowed: false,
-    inputTypes: ['image', 'video', 'frame_sequence'],
+    inputTypes: ['image', 'video', 'frame_sequence', 'json_data'],
     outputTypes: ['mask_image', 'mask_sequence', 'analysis_report', 'qa_report'],
     bestFor: ['Object segmentation', 'Temporal tracking', 'Mask refinement support'],
     notBestFor: ['Unreviewed checkpoint production', 'Replacing user review for ambiguous masks'],

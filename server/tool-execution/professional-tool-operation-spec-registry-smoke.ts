@@ -382,6 +382,7 @@ function validSettingValue(constraint: ProfessionalToolOperationSettingConstrain
   if (constraint.type === 'string') {
     if (constraint.const !== undefined) return constraint.const
     if (constraint.enum?.length) return constraint.enum[0]
+    if (constraint.pattern === '^[a-f0-9]{64}$') return 'd'.repeat(64)
     return 'profile_12345678'
   }
   if (constraint.type === 'boolean') return constraint.const ?? true

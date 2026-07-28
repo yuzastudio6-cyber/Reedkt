@@ -70,6 +70,15 @@ committed to the immutable artifact manifest, and passed by the existing
 `mask_edge_quality` and `mask_subject_coverage` QA gates. The runtime receipt
 cannot pass QA or create an asset by itself.
 
+The private-output reread seam is now implemented. A one-shot process-bound
+reader supplies the fixed mask, analysis, and measurement files; the server
+checks every receipt digest, fully decodes the 8-bit grayscale PNG, recomputes
+all mask populations and the fixed 0.5-threshold population, and requires both
+JSON files to match the runner's exact stable encoding and lineage. Verified
+bytes are delivered only through a separate one-shot process-bound consumer.
+The resulting receipt is byte-free and remains non-authoritative. In
+particular, an empty process finding list does not pass canonical QA.
+
 ## Shared router
 
 The workflow-neutral GPU operation router now discriminates between the
@@ -99,6 +108,8 @@ Implemented:
 - one shared multi-operation GPU router;
 - strict untrusted-wire result verification;
 - mask and process-evidence result candidates; and
+- private output byte reread, grayscale PNG decode, process-evidence
+  recomputation, and out-of-band verified-byte delivery; and
 - adversarial contract, router, source-frame, request, and result smokes.
 
 Still required:
@@ -108,7 +119,7 @@ Still required:
 - exact model and source-frame read-only mounts;
 - an actual ONNX CUDA-provider load and U2NetP inference benchmark;
 - canonical worker and completion receipts;
-- private output byte reread, artifact commit, QA, and reconciliation;
+- private artifact commit, independent edge/coverage QA, and reconciliation;
 - GPU-active attempt-cost evidence; and
 - service identity, IAM, deployment, and production review.
 

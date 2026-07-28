@@ -15,12 +15,18 @@ import {
   createCanonicalRembgCloudRunGpuExecutionAdmissionCandidate,
   createCanonicalRembgGpuRuntimeRequestCandidate,
   createCanonicalRembgGpuRuntimeResultCandidate,
+  createCanonicalRembgGpuPrivateOutputReader,
+  createCanonicalRembgGpuVerifiedOutputConsumer,
   getCanonicalRembgModelArtifactRequirementSet,
   projectCanonicalRembgGpuBundleRequirements,
+  verifyCanonicalRembgGpuPrivateOutputs,
+  verifyCanonicalRembgGray8MaskPng,
   type CanonicalModelArtifactGpuBundle,
   type CanonicalModelArtifactGpuBundleArtifact,
   type CanonicalModelArtifactGpuBundleRequirement,
   type CanonicalModelArtifactLocator,
+  type CanonicalRembgGpuPrivateOutputFiles,
+  type CanonicalRembgGpuVerifiedOutputPayload,
 } from '../model-artifacts'
 import {
   persistCanonicalPrivateImageArtifact,
@@ -30,6 +36,7 @@ import {
 } from '../services/canonical-private-image-artifact-verifier'
 import {
   sha256AuthorityValue,
+  stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
 import {
   getProductionToolProfile,
@@ -69,6 +76,11 @@ const SHA = {
   extractionLease: '4'.repeat(64),
   dependencyRead: '5'.repeat(64),
 }
+const CONTROLLED_MASK_VALUES: Buffer = Buffer.from([
+  0, 0, 0,
+  32, 64, 96, 128, 192,
+  255, 255, 255, 255,
+])
 
 const requirementSet =
   getCanonicalRembgModelArtifactRequirementSet()
@@ -255,9 +267,14 @@ const runtimeRequestCandidate =
     sourceArtifactBinding,
     operationRequest,
   })
+const controlledPrivateOutputs =
+  makeControlledPrivateOutputs(
+    runtimeRequestCandidate.runnerRequest,
+  )
 const runtimeWireResponse =
   controlledRuntimeWireResponse(
     runtimeRequestCandidate.runnerRequest,
+    controlledPrivateOutputs,
   )
 const runtimeResultCandidate =
   await createCanonicalRembgGpuRuntimeResultCandidate({
@@ -269,6 +286,43 @@ const runtimeResultCandidate =
     operationRequest,
     runtimeRequestCandidate,
     runtimeWireResponse,
+  })
+let consumedVerifiedOutput:
+  CanonicalRembgGpuVerifiedOutputPayload | undefined
+const outputReader =
+  createCanonicalRembgGpuPrivateOutputReader({
+    evidenceClass: 'controlled_source_fixture',
+    runtimeRequest: runtimeRequestCandidate.runnerRequest,
+    runtimeWireResponse,
+    readServerOwnedOutputs: async () =>
+      clonePrivateOutputs(controlledPrivateOutputs),
+  })
+const outputConsumer =
+  createCanonicalRembgGpuVerifiedOutputConsumer(
+    async (payload) => {
+      consumedVerifiedOutput = {
+        maskPng: Buffer.from(payload.maskPng),
+        maskAnalysisJson:
+          Buffer.from(payload.maskAnalysisJson),
+        maskQaMeasurementJson:
+          Buffer.from(payload.maskQaMeasurementJson),
+        verification: payload.verification,
+      }
+    },
+  )
+const privateOutputVerification =
+  await verifyCanonicalRembgGpuPrivateOutputs({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse,
+    resultCandidate: runtimeResultCandidate,
+    outputReader,
+    outputConsumer,
   })
 
 assert.equal(
@@ -394,6 +448,50 @@ assert.equal(
 assert.equal(
   runtimeResultCandidate.boundaries.maskEdgeQualityQaAuthority,
   false,
+)
+assert.equal(
+  privateOutputVerification.boundaries.outputBytesRereadVerified,
+  true,
+)
+assert.equal(
+  privateOutputVerification.boundaries.maskPngIntegrityVerified,
+  true,
+)
+assert.equal(
+  privateOutputVerification.boundaries.outputArtifactCommitAuthority,
+  false,
+)
+assert.equal(
+  privateOutputVerification.boundaries.qaPassAuthority,
+  false,
+)
+assert.equal(
+  privateOutputVerification.boundaries.controlledFixtureOnly,
+  true,
+)
+assert.equal(
+  privateOutputVerification.maskVerification
+    .foregroundPixelCountAtThreshold,
+  6,
+)
+assert.equal(
+  privateOutputVerification.maskVerification.uniqueMaskValueCount,
+  7,
+)
+assert.equal(
+  privateOutputVerification.processEvidenceVerification
+    .qaPassAuthority,
+  false,
+)
+assert.equal(
+  consumedVerifiedOutput?.maskPng.equals(
+    controlledPrivateOutputs.maskPng,
+  ),
+  true,
+)
+assert.equal(
+  consumedVerifiedOutput?.verification.decodedMaskSha256,
+  sha256(CONTROLLED_MASK_VALUES),
 )
 assert.deepEqual(
   await assertCanonicalRembgGpuRuntimeResultCandidate({
@@ -561,6 +659,229 @@ try {
 }
 
 let adversarialAssertions = 0
+
+expectRejects(
+  () => verifyCanonicalRembgGray8MaskPng(
+    flipByte(controlledPrivateOutputs.maskPng, 40),
+    {
+      expectedWidth: source.frameWidth,
+      expectedHeight: source.frameHeight,
+      maximumPixelCount: 16_777_216,
+    },
+  ),
+  'private mask CRC tamper',
+  'rembg_mask_png_chunk_crc_invalid',
+)
+expectRejects(
+  () => verifyCanonicalRembgGray8MaskPng(
+    Buffer.concat([
+      controlledPrivateOutputs.maskPng.subarray(0, 33),
+      pngChunk('ABCD', Buffer.alloc(0)),
+      controlledPrivateOutputs.maskPng.subarray(33),
+    ]),
+    {
+      expectedWidth: source.frameWidth,
+      expectedHeight: source.frameHeight,
+      maximumPixelCount: 16_777_216,
+    },
+  ),
+  'private mask unknown critical chunk',
+  'rembg_mask_png_unsupported_critical_chunk',
+)
+await expectRejectsAsync(
+  () => verifyCanonicalRembgGpuPrivateOutputs({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse,
+    resultCandidate: runtimeResultCandidate,
+    outputReader,
+    outputConsumer:
+      createCanonicalRembgGpuVerifiedOutputConsumer(
+        async () => undefined,
+      ),
+  }),
+  'private output reader replay',
+  'rembg_private_output_reader_not_admitted',
+)
+const copiedReader =
+  createCanonicalRembgGpuPrivateOutputReader({
+    evidenceClass: 'controlled_source_fixture',
+    runtimeRequest: runtimeRequestCandidate.runnerRequest,
+    runtimeWireResponse,
+    readServerOwnedOutputs: async () =>
+      clonePrivateOutputs(controlledPrivateOutputs),
+  })
+await expectRejectsAsync(
+  () => verifyCanonicalRembgGpuPrivateOutputs({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse,
+    resultCandidate: runtimeResultCandidate,
+    outputReader: {
+      ...copiedReader,
+    },
+    outputConsumer:
+      createCanonicalRembgGpuVerifiedOutputConsumer(
+        async () => undefined,
+      ),
+  }),
+  'copied private output reader',
+  'rembg_private_output_reader_not_admitted',
+)
+const wrongMaskReader =
+  createCanonicalRembgGpuPrivateOutputReader({
+    evidenceClass: 'controlled_source_fixture',
+    runtimeRequest: runtimeRequestCandidate.runnerRequest,
+    runtimeWireResponse,
+    readServerOwnedOutputs: async () => ({
+      ...clonePrivateOutputs(controlledPrivateOutputs),
+      maskPng: flipByte(
+        controlledPrivateOutputs.maskPng,
+        controlledPrivateOutputs.maskPng.byteLength - 5,
+      ),
+    }),
+  })
+await expectRejectsAsync(
+  () => verifyCanonicalRembgGpuPrivateOutputs({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse,
+    resultCandidate: runtimeResultCandidate,
+    outputReader: wrongMaskReader,
+    outputConsumer:
+      createCanonicalRembgGpuVerifiedOutputConsumer(
+        async () => undefined,
+      ),
+  }),
+  'private mask receipt mismatch',
+  'rembg_private_output_mask_receipt_mismatch',
+)
+const forgedConsumer =
+  createCanonicalRembgGpuVerifiedOutputConsumer(
+    async () => undefined,
+  )
+await expectRejectsAsync(
+  () => verifyCanonicalRembgGpuPrivateOutputs({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse,
+    resultCandidate: runtimeResultCandidate,
+    outputReader:
+      createCanonicalRembgGpuPrivateOutputReader({
+        evidenceClass: 'controlled_source_fixture',
+        runtimeRequest:
+          runtimeRequestCandidate.runnerRequest,
+        runtimeWireResponse,
+        readServerOwnedOutputs: async () =>
+          clonePrivateOutputs(controlledPrivateOutputs),
+      }),
+    outputConsumer: {
+      ...forgedConsumer,
+    },
+  }),
+  'copied verified output consumer',
+  'rembg_verified_output_consumer_not_admitted',
+)
+const failingConsumer =
+  createCanonicalRembgGpuVerifiedOutputConsumer(
+    async () => {
+      throw new Error('controlled consumer failure')
+    },
+  )
+await expectRejectsAsync(
+  () => verifyCanonicalRembgGpuPrivateOutputs({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse,
+    resultCandidate: runtimeResultCandidate,
+    outputReader:
+      createCanonicalRembgGpuPrivateOutputReader({
+        evidenceClass: 'controlled_source_fixture',
+        runtimeRequest:
+          runtimeRequestCandidate.runnerRequest,
+        runtimeWireResponse,
+        readServerOwnedOutputs: async () =>
+          clonePrivateOutputs(controlledPrivateOutputs),
+      }),
+    outputConsumer: failingConsumer,
+  }),
+  'verified output consumer failure',
+  'rembg_verified_output_consumer_failed',
+)
+const promotedQaOutputs =
+  makeControlledPrivateOutputs(
+    runtimeRequestCandidate.runnerRequest,
+    { qaPassAuthority: true },
+  )
+const promotedQaWireResponse =
+  controlledRuntimeWireResponse(
+    runtimeRequestCandidate.runnerRequest,
+    promotedQaOutputs,
+  )
+const promotedQaResultCandidate =
+  await createCanonicalRembgGpuRuntimeResultCandidate({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse: promotedQaWireResponse,
+  })
+await expectRejectsAsync(
+  () => verifyCanonicalRembgGpuPrivateOutputs({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    sourceArtifactBinding,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse: promotedQaWireResponse,
+    resultCandidate: promotedQaResultCandidate,
+    outputReader:
+      createCanonicalRembgGpuPrivateOutputReader({
+        evidenceClass: 'controlled_source_fixture',
+        runtimeRequest:
+          runtimeRequestCandidate.runnerRequest,
+        runtimeWireResponse: promotedQaWireResponse,
+        readServerOwnedOutputs: async () =>
+          clonePrivateOutputs(promotedQaOutputs),
+      }),
+    outputConsumer:
+      createCanonicalRembgGpuVerifiedOutputConsumer(
+        async () => undefined,
+      ),
+  }),
+  'process QA authority promotion',
+  'rembg_private_output_qa_measurement_invalid',
+)
 
 await expectRejectsAsync(
   () => createCanonicalRembgGpuRuntimeResultCandidate({
@@ -906,6 +1227,12 @@ console.log(JSON.stringify({
     runtimeRequestCandidate.runnerRequest.schemaVersion,
   runtimeResultVersion:
     runtimeResultCandidate.resultCandidateVersion,
+  privateOutputVerificationVersion:
+    privateOutputVerification.verificationVersion,
+  privateOutputBytesRereadVerified:
+    privateOutputVerification.boundaries.outputBytesRereadVerified,
+  privateOutputQaPassAuthority:
+    privateOutputVerification.boundaries.qaPassAuthority,
   executionTarget:
     candidate.modelArtifactBinding.executionTarget,
   cloudRunAccelerator:
@@ -949,7 +1276,14 @@ function createCandidate(
 
 function controlledRuntimeWireResponse(
   request: typeof runtimeRequestCandidate.runnerRequest,
+  outputs: CanonicalRembgGpuPrivateOutputFiles,
 ) {
+  const maskVerification =
+    verifyCanonicalRembgGray8MaskPng(outputs.maskPng, {
+      expectedWidth: request.source.width,
+      expectedHeight: request.source.height,
+      maximumPixelCount: 16_777_216,
+    })
   return {
     schemaVersion:
       'canonical-rembg-gpu-runtime-response-v1' as const,
@@ -975,32 +1309,39 @@ function controlledRuntimeWireResponse(
       fileName: 'mask.png' as const,
       contentType: 'image/png' as const,
       encodingProfile: 'gray8_mask_png_v1' as const,
-      byteLength: 128,
-      contentSha256: 'a'.repeat(64),
+      byteLength: outputs.maskPng.byteLength,
+      contentSha256: sha256(outputs.maskPng),
       width: request.source.width,
       height: request.source.height,
-      minimumMaskValue: 0,
-      maximumMaskValue: 255,
-      uniqueMaskValueCount: 8,
-      transparentPixelCount: 3,
-      partialPixelCount: 5,
-      opaquePixelCount: 4,
+      minimumMaskValue:
+        maskVerification.minimumMaskValue,
+      maximumMaskValue:
+        maskVerification.maximumMaskValue,
+      uniqueMaskValueCount:
+        maskVerification.uniqueMaskValueCount,
+      transparentPixelCount:
+        maskVerification.transparentPixelCount,
+      partialPixelCount:
+        maskVerification.partialPixelCount,
+      opaquePixelCount:
+        maskVerification.opaquePixelCount,
     }] as const,
     processEvidence: [
       {
         canonicalOrder: 0 as const,
         evidenceKind: 'mask_analysis_receipt' as const,
         fileName: 'mask-analysis.json' as const,
-        byteLength: 412,
-        contentSha256: 'b'.repeat(64),
+        byteLength: outputs.maskAnalysisJson.byteLength,
+        contentSha256: sha256(outputs.maskAnalysisJson),
       },
       {
         canonicalOrder: 1 as const,
         evidenceKind:
           'mask_qa_measurement_receipt' as const,
         fileName: 'mask-qa-measurement.json' as const,
-        byteLength: 256,
-        contentSha256: 'c'.repeat(64),
+        byteLength: outputs.maskQaMeasurementJson.byteLength,
+        contentSha256:
+          sha256(outputs.maskQaMeasurementJson),
       },
     ] as const,
     receiptBoundaries: {
@@ -1017,6 +1358,74 @@ function controlledRuntimeWireResponse(
       qaPassAuthority: false as const,
       productionReady: false as const,
     },
+  }
+}
+
+function makeControlledPrivateOutputs(
+  request: typeof runtimeRequestCandidate.runnerRequest,
+  overrides: Partial<{
+    readonly qaPassAuthority: boolean
+  }> = {},
+): CanonicalRembgGpuPrivateOutputFiles {
+  const maskPng = makeGray8Png(
+    request.source.width,
+    request.source.height,
+    CONTROLLED_MASK_VALUES,
+  )
+  const maskSha256 = sha256(maskPng)
+  const analysis = {
+    schemaVersion: 'rembg-u2netp-mask-analysis-v1',
+    sourceArtifactSha256: request.source.contentSha256,
+    sourceDecodedRgbaSha256:
+      request.source.decodedRgbaSha256,
+    maskSha256,
+    width: request.source.width,
+    height: request.source.height,
+    minimumMaskValue: 0,
+    maximumMaskValue: 255,
+    uniqueMaskValueCount: 7,
+    transparentPixelCount: 3,
+    partialPixelCount: 5,
+    opaquePixelCount: 4,
+    confidenceThreshold: 0.5,
+    thresholdMaskValue: 128,
+    foregroundPixelCountAtThreshold: 6,
+    maskVariationObserved: true,
+  }
+  const maskAnalysisJson = Buffer.from(
+    stableAuthorityStringify(analysis),
+    'utf8',
+  )
+  const qaMeasurement = {
+    schemaVersion: 'rembg-mask-qa-measurement-v1',
+    analysisSha256: sha256(maskAnalysisJson),
+    maskSha256,
+    requiredQaGates: [
+      'mask_edge_quality',
+      'mask_subject_coverage',
+    ],
+    findingCodes: [],
+    measurementOnly: true,
+    qaPassAuthority: overrides.qaPassAuthority ?? false,
+  }
+  return {
+    maskPng,
+    maskAnalysisJson,
+    maskQaMeasurementJson: Buffer.from(
+      stableAuthorityStringify(qaMeasurement),
+      'utf8',
+    ),
+  }
+}
+
+function clonePrivateOutputs(
+  value: CanonicalRembgGpuPrivateOutputFiles,
+): CanonicalRembgGpuPrivateOutputFiles {
+  return {
+    maskPng: Buffer.from(value.maskPng),
+    maskAnalysisJson: Buffer.from(value.maskAnalysisJson),
+    maskQaMeasurementJson:
+      Buffer.from(value.maskQaMeasurementJson),
   }
 }
 
@@ -1266,6 +1675,42 @@ function makeRgbaPng(
     pngChunk('IDAT', deflateSync(scanlines, { level: 9 })),
     pngChunk('IEND', Buffer.alloc(0)),
   ])
+}
+
+function makeGray8Png(
+  width: number,
+  height: number,
+  pixels: Buffer,
+): Buffer {
+  assert.equal(pixels.byteLength, width * height)
+  const scanlines = Buffer.alloc((width + 1) * height)
+  for (let y = 0; y < height; y += 1) {
+    const rowOffset = y * (width + 1)
+    scanlines[rowOffset] = 0
+    pixels.copy(
+      scanlines,
+      rowOffset + 1,
+      y * width,
+      (y + 1) * width,
+    )
+  }
+  const header = Buffer.alloc(13)
+  header.writeUInt32BE(width, 0)
+  header.writeUInt32BE(height, 4)
+  header[8] = 8
+  header[9] = 0
+  return Buffer.concat([
+    Buffer.from('89504e470d0a1a0a', 'hex'),
+    pngChunk('IHDR', header),
+    pngChunk('IDAT', deflateSync(scanlines, { level: 9 })),
+    pngChunk('IEND', Buffer.alloc(0)),
+  ])
+}
+
+function flipByte(bytes: Buffer, offset: number): Buffer {
+  const copy = Buffer.from(bytes)
+  copy[offset] = copy[offset]! ^ 1
+  return copy
 }
 
 function pngChunk(type: string, data: Buffer): Buffer {

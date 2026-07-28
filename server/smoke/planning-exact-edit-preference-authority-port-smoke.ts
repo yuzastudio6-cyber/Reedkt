@@ -20,6 +20,11 @@ import {
   type PlanningExactEditPreferenceAuthorityPort,
   type PlanningExactEditPreferenceAuthorityResolution,
 } from '../services/planning-exact-edit-preference-authority-port'
+import { createPrivateExactEditPreferenceRecord } from '../services/exact-edit-preference-service'
+import {
+  mutatePrivateExactEditPreferenceRecord,
+  readPrivateExactEditPreferenceRecord,
+} from '../services/private-exact-edit-preference-store'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import type { RuntimeRequest, ServiceContext } from '../types'
 
@@ -175,6 +180,118 @@ assert.equal(
   evidenceRequest.sourceCandidateHashSha256,
 )
 
+const compatibilityScope = {
+  ...scope,
+  workspaceId: 'workspace-private-planning-exact-preference-port',
+  projectId: 'project-private-planning-exact-preference-port',
+  editSessionId: 'edit-private-planning-exact-preference-port',
+}
+const compatibilityTimestamp = '2026-07-21T12:10:00.000Z'
+await mutatePrivateExactEditPreferenceRecord({
+  scope: compatibilityScope,
+  mutation: (current) => {
+    assert.equal(current, undefined)
+    const record = createPrivateExactEditPreferenceRecord({
+      scope: compatibilityScope,
+      baseline: {
+        preferenceSnapshotId: baseline.preferenceSnapshotId,
+        values: baseline.values,
+        capturedAt: baseline.capturedAt,
+        persistenceSource: baseline.persistenceSource,
+        provenance: baseline.provenance,
+      },
+      timestamp: compatibilityTimestamp,
+      idempotencyKey: 'private-planning-exact-preference-bootstrap-v1',
+      requestHash: sha256AuthorityValue('private-planning-exact-preference-bootstrap-v1'),
+    })
+    return { changed: true, record, result: undefined }
+  },
+})
+const compatibilityContext = contextWith(undefined, localEnv)
+const compatibilityBefore = await readPlanningExactEditPreferenceAuthority({
+  context: compatibilityContext,
+  scope: compatibilityScope,
+})
+assert.equal(
+  compatibilityBefore.sourceAuthority,
+  'private_exact_edit_preference_compatibility',
+)
+assert.equal(compatibilityBefore.evidenceClass, 'private_internal_compatibility')
+assert.equal(compatibilityBefore.productionAuthority, false)
+assert.equal(compatibilityBefore.authority.sourcePreparation.status, 'not_ready')
+
+const compatibilityEvidenceRequest = {
+  ...evidenceRequest,
+  workspaceId: compatibilityScope.workspaceId,
+  projectId: compatibilityScope.projectId,
+  editSessionId: compatibilityScope.editSessionId,
+  expectedPreferenceRevision: compatibilityBefore.authority.preferenceRevision,
+  expectedPlanningInputRevision:
+    compatibilityBefore.authority.planningInputRevision,
+  expectedPreferenceFingerprintSha256:
+    compatibilityBefore.authority.preferenceFingerprintSha256,
+  expectedBaselinePreferenceSnapshotId:
+    compatibilityBefore.authority.baseline.preferenceSnapshotId,
+}
+const compatibilityRecorded = await recordPlanningExactEditPreferenceEvidence({
+  context: compatibilityContext,
+  scope: compatibilityScope,
+  request: compatibilityEvidenceRequest,
+})
+assert.equal(compatibilityRecorded.authority.recordRevision, 1)
+assert.equal(compatibilityRecorded.authority.sourcePreparation.status, 'ready')
+if (compatibilityRecorded.authority.sourcePreparation.status !== 'ready') {
+  throw new Error('Private compatibility source evidence was not retained.')
+}
+assert.equal(
+  compatibilityRecorded.authority.sourcePreparation.sourceCandidateHashSha256,
+  null,
+)
+assert.equal(
+  compatibilityRecorded.authority.sourcePreparation.evidenceHashSha256,
+  compatibilityEvidenceRequest.sourcePreparationEvidenceHashSha256,
+)
+assert.equal(compatibilityRecorded.authority.frameConfirmation.status, 'confirmed')
+
+const compatibilityReplay = await recordPlanningExactEditPreferenceEvidence({
+  context: compatibilityContext,
+  scope: compatibilityScope,
+  request: compatibilityEvidenceRequest,
+})
+assert.equal(compatibilityReplay.authority.recordRevision, 1)
+
+const changedCandidateRecorded = await recordPlanningExactEditPreferenceEvidence({
+  context: compatibilityContext,
+  scope: compatibilityScope,
+  request: {
+    ...compatibilityEvidenceRequest,
+    sourceCandidateHashSha256: sha256AuthorityValue('source-candidate-2'),
+  },
+})
+assert.equal(changedCandidateRecorded.authority.recordRevision, 2)
+const persistedCompatibilityRecord = await readPrivateExactEditPreferenceRecord(
+  compatibilityScope,
+)
+assert.equal(persistedCompatibilityRecord?.recordRevision, 2)
+assert.equal(
+  persistedCompatibilityRecord?.auditEvents.filter(
+    (event) => event.eventType === 'planning_evidence_recorded',
+  ).length,
+  2,
+)
+
+await assert.rejects(
+  () => recordPlanningExactEditPreferenceEvidence({
+    context: compatibilityContext,
+    scope: compatibilityScope,
+    request: {
+      ...compatibilityEvidenceRequest,
+      expectedPreferenceFingerprintSha256: sha256AuthorityValue('stale-preferences'),
+    },
+  }),
+  (error: unknown) => hasCode(error, 'IDEMPOTENCY_CONFLICT'),
+)
+
 await assert.rejects(
   () => readPlanningExactEditPreferenceAuthority({
     context: contextWith({
@@ -240,6 +357,9 @@ console.log(JSON.stringify({
   canonicalReadCount: readCount,
   canonicalEvidenceCommitCount: evidenceCount,
   canonicalNoFallbackVerified: true,
+  privateCompatibilityEvidenceWriteVerified: true,
+  privateCompatibilityReplayVerified: true,
+  privateCompatibilityChangedCandidateNotMisclassifiedAsReplay: true,
   unreleasedCanonicalNonPromotable: true,
   productionQualificationFailClosed: true,
   browserMutationAuthorityAccepted: false,

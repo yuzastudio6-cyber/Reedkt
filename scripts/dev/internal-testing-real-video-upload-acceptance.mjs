@@ -17,7 +17,7 @@ if (!existsSync(fixturePath)) {
 console.log('Starting ReEditPro real-video backend-local upload acceptance.')
 console.log(`Fixture: ${fixturePath}`)
 console.log(`Storage root: ${path.resolve(repoRoot, storageRoot)}`)
-console.log('Scope: backend-local upload, local preview smoke, and safety readback only. No provider calls, live Qwen calls, Supabase writes, GCS writes, public delivery, beta, or production.')
+console.log('Scope: active named-edit backend-local upload, durable inline Brief, canonical plan publication and approval, and source-authority reload. No provider calls, live Qwen calls, Supabase writes, GCS writes, public delivery, beta, or production.')
 
 const child = spawn(process.execPath, [
   path.join(repoRoot, 'scripts/dev/internal-testing-local-upload-e2e.mjs'),

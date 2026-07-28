@@ -68,7 +68,7 @@ for (const [id, script] of expectedSteps) {
   )
 }
 
-assert.match(cliSource, /schemaVersion: 'canonical-private-pipeline-verification-v40'/)
+assert.match(cliSource, /schemaVersion: 'canonical-private-pipeline-verification-v44'/)
 for (const claim of [
   'canonicalEditReferenceUiIntegrationSourceVerified: true',
   'canonicalEditReferenceExactEditAtomicApplyContract: true',
@@ -125,7 +125,7 @@ for (const fullClaim of [
 
 console.log(JSON.stringify({
   ok: true,
-  schemaVersion: 'canonical-private-pipeline-edit-reference-coverage-smoke-v2',
+  schemaVersion: 'canonical-private-pipeline-edit-reference-coverage-smoke-v3',
   editReferenceStepCount: expectedSteps.length,
   canonicalStepCount: parsedSteps.length,
   routineLongFormProfile: 'routine_two_hour',

@@ -6,7 +6,13 @@
   "scripts": {
     "dev": "vite",
     "dev:private-workspace": "node scripts/start-private-workspace.mjs",
+    "dev:private-workspace:api": "tsx server/private-workspace-index.ts",
     "dev:private-workspace:check": "node scripts/start-private-workspace.mjs --check",
+    "dev:internal-testing:local-upload": "node scripts/dev/internal-testing-local-upload-runner.mjs",
+    "test:internal-testing:local-upload-e2e": "node scripts/dev/internal-testing-local-upload-e2e.mjs",
+    "test:internal-testing:real-video-upload-acceptance": "node scripts/dev/internal-testing-real-video-upload-acceptance.mjs",
+    "smoke:internal-testing-local-upload-runner": "tsx server/smoke/internal-testing-local-upload-runner-smoke.ts",
+    "smoke:internal-testing-real-video-upload-acceptance-runner": "tsx server/smoke/internal-testing-real-video-upload-acceptance-runner-smoke.ts",
     "build": "tsc -b && vite build",
     "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
     "build:server": "npm run typecheck:server && vite build --config vite.server.config.ts",

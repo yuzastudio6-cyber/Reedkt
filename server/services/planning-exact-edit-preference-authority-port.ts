@@ -16,9 +16,11 @@ import { ApiError } from '../errors/api-error'
 import type {
   EditReferenceLocalSupabaseRpcAdapter,
 } from '../edit-references/edit-reference-local-supabase-rpc-adapter'
-import { createExactEditPreferenceService } from './exact-edit-preference-service'
 import {
   exactEditPreferenceFingerprint,
+  MAX_EXACT_EDIT_PREFERENCE_AUDIT_EVENTS,
+  MAX_EXACT_EDIT_PREFERENCE_IDEMPOTENCY_RECORDS,
+  mutatePrivateExactEditPreferenceRecord,
   readPrivateExactEditPreferenceRecord,
   type ExactEditPreferenceStoreScope,
   type PrivateExactEditPreferenceRecord,
@@ -187,12 +189,10 @@ function selectPort(context: ServiceContext): PlanningExactEditPreferenceAuthori
   if (!isExplicitLocalInternalTestRuntime(context.env)) {
     throw authorityUnavailable('canonical_exact_edit_planning_authority_missing')
   }
-  return createPrivateCompatibilityPort(context)
+  return createPrivateCompatibilityPort()
 }
 
-function createPrivateCompatibilityPort(
-  context: ServiceContext,
-): PlanningExactEditPreferenceAuthorityPort {
+function createPrivateCompatibilityPort(): PlanningExactEditPreferenceAuthorityPort {
   return {
     async readExactPreferenceState(scope) {
       const record = await requirePrivateRecord(scope)
@@ -202,43 +202,107 @@ function createPrivateCompatibilityPort(
       assertRequestScope(scope, request)
       const record = await requirePrivateRecord(scope)
       assertExpectedAuthority(record, request)
-      const frame = record.planning.frameConfirmation
-      if (
-        frame.status === 'confirmed'
-        && frame.aspectRatio === request.confirmedAspectRatio
-        && record.planning.sourcePreparation.status === 'ready'
-        && record.planning.sourcePreparation.evidenceHash
-          === request.sourcePreparationEvidenceHashSha256
-      ) return compatibilityResolution(record)
-
-      const result = await createExactEditPreferenceService(context).recordPlanningEvidence({
-        workspaceId: scope.workspaceId,
-        projectId: scope.projectId,
-        editSessionId: scope.editSessionId,
-        expectedRevision: record.recordRevision,
-        sourcePreparation: {
-          status: 'ready',
-          evidenceHash: request.sourcePreparationEvidenceHashSha256,
-        },
-        frameConfirmation: {
-          status: 'confirmed',
-          aspectRatio: request.confirmedAspectRatio,
-          confirmationId: `canonical-frame-${sha256AuthorityValue({
-            workspaceId: scope.workspaceId,
-            projectId: scope.projectId,
-            editSessionId: scope.editSessionId,
-            aspectRatio: request.confirmedAspectRatio,
-          })}`,
-        },
-        idempotencyKey: `canonical-planning-evidence:${sha256AuthorityValue(request)}`,
+      const updated = await recordPrivateCompatibilityPlanningEvidence({
+        scope,
+        request,
       })
-      const updated = await requirePrivateRecord(scope)
-      if (updated.recordRevision !== result.preferenceRecord.recordRevision) {
-        throw authorityUnavailable('private_planning_evidence_commit_mismatch')
-      }
       return compatibilityResolution(updated)
     },
   }
+}
+
+async function recordPrivateCompatibilityPlanningEvidence(input: {
+  readonly scope: PlanningExactEditPreferenceAuthorityScope
+  readonly request: CanonicalExactEditPlanningEvidenceRequest
+}): Promise<PrivateExactEditPreferenceRecord> {
+  const requestHash = sha256AuthorityValue(input.request)
+  const idempotencyKey = `canonical-planning-evidence:${requestHash}`
+
+  return mutatePrivateExactEditPreferenceRecord({
+    scope: privateScope(input.scope),
+    mutation: (current) => {
+      const record = current
+      if (!record) throw authorityUnavailable('private_exact_edit_preference_missing')
+      assertExpectedAuthority(record, input.request)
+
+      const replay = record.idempotencyRecords.find((entry) =>
+        entry.operation === 'record_planning_evidence'
+        && entry.idempotencyKey === idempotencyKey)
+      if (replay) {
+        if (replay.requestHash !== requestHash) {
+          throw new ApiError(
+            'IDEMPOTENCY_CONFLICT',
+            'Canonical private planning evidence replay changed.',
+            409,
+          )
+        }
+        return { changed: false, result: record }
+      }
+      if (record.lifecycle.locked || record.lifecycle.phase !== 'planning') {
+        throw new ApiError(
+          'PLAN_NOT_APPROVED',
+          'Approved or active exact-edit preferences are immutable.',
+          409,
+        )
+      }
+      if (
+        record.auditEvents.length >= MAX_EXACT_EDIT_PREFERENCE_AUDIT_EVENTS
+        || record.idempotencyRecords.length
+          >= MAX_EXACT_EDIT_PREFERENCE_IDEMPOTENCY_RECORDS
+      ) {
+        throw new ApiError(
+          'IDEMPOTENCY_CAPACITY_EXCEEDED',
+          'Private exact-edit preference persistence reached its safe capacity.',
+          503,
+        )
+      }
+
+      const committedAt = new Date().toISOString()
+      const nextRecordRevision = record.recordRevision + 1
+      const nextRecord: PrivateExactEditPreferenceRecord = {
+        ...record,
+        recordRevision: nextRecordRevision,
+        planning: {
+          ...record.planning,
+          sourcePreparation: {
+            status: 'ready',
+            evidenceHash: input.request.sourcePreparationEvidenceHashSha256,
+            updatedAt: committedAt,
+          },
+          frameConfirmation: {
+            status: 'confirmed',
+            aspectRatio: input.request.confirmedAspectRatio,
+            confirmationId: `canonical-frame-${sha256AuthorityValue({
+              workspaceId: input.scope.workspaceId,
+              projectId: input.scope.projectId,
+              editSessionId: input.scope.editSessionId,
+              aspectRatio: input.request.confirmedAspectRatio,
+            })}`,
+            updatedAt: committedAt,
+          },
+        },
+        auditEvents: [...record.auditEvents, {
+          id: `exact_edit_preference_audit_${requestHash.slice(0, 48)}`,
+          eventType: 'planning_evidence_recorded',
+          actorType: 'internal_service',
+          actorUserId: input.scope.ownerUserId,
+          recordRevision: nextRecordRevision,
+          preferenceRevision: record.preferenceRevision,
+          changedInputs: [],
+          createdAt: committedAt,
+        }],
+        idempotencyRecords: [...record.idempotencyRecords, {
+          operation: 'record_planning_evidence',
+          idempotencyKey,
+          requestHash,
+          committedRecordRevision: nextRecordRevision,
+          completedAt: committedAt,
+        }],
+        updatedAt: committedAt,
+      }
+      return { changed: true, record: nextRecord, result: nextRecord }
+    },
+  })
 }
 
 function compatibilityResolution(

@@ -1,55 +1,89 @@
 # Internal Testing Local Upload Runner
 
-This runner starts the browser app and the API together for the safe source-video Edit Brief test path.
+This runner starts the private-workspace API and browser app for the safe, active named-edit source-video path.
 
 ```bash
 npm run dev:internal-testing:local-upload
 ```
 
-For a one-command verification of the same path, run:
+For a one-command verifier of the same path, run:
 
 ```bash
 npm run test:internal-testing:local-upload-e2e
 ```
 
-The verifier starts the API and app, requires local `ffmpeg` for the tiny synthetic Playwright fixture, signs in through browser-local internal testing auth, uploads through the real local API upload-intent endpoints, saves the brief, approves the local test plan and credit estimate, runs the local preview smoke, records preview approval, runs the professional QA checkpoint, creates a private final export smoke artifact, verifies Qwen 3.7 Max is recorded as the reasoning identity without a live call, then shuts the stack down and removes local test artifacts.
+The verifier creates a tiny video-and-audio MP4 with local `ffmpeg` unless `REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_PATH` names an existing MP4. It then:
+
+1. signs in with the runner-only browser-local mock auth session;
+2. creates a project and chooses `New video edit`;
+3. creates an active named edit;
+4. finalizes the source through the real local upload-intent API and rereads its exact private source authority;
+5. publishes and separately approves a prompt-first canonical plan;
+6. durably saves an inline Edit Brief before publishing and approving its canonical plan; and
+7. reloads the named edit and proves the source checksum and private storage identity are preserved.
+
+The runner shuts down both processes and removes its generated fixture and backend-local test artifacts when the verification completes.
 
 Open:
 
 - Sign in: `http://127.0.0.1:5179/sign-in`
 - Projects: `http://127.0.0.1:5179/projects`
-- Edit Brief source-video test: `http://127.0.0.1:5179/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief`
+- Create a project: `http://127.0.0.1:5179/projects/new`
 - API health: `http://127.0.0.1:9781/health`
 
-Start at the Sign-in route, enter any valid internal-testing email format plus an 8+ character password, and submit. In this runner only, `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true` creates a browser-local mock auth session and opens `/internal-testing`. From there, open the Edit Brief route, select a source video, click `Upload for testing`, save the brief, click `Approve local test plan`, click `Run local edit preview`, click `Approve preview`, click `Run QA check`, then click `Create private export`.
+Start at Sign in, enter any valid internal-testing email plus an 8-or-more-character password, and submit. In this runner only, `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true` creates a browser-local mock auth session and opens `/internal-testing`. Continue to Projects, create a project, choose `New video edit`, name the edit, and upload the source on the active named-edit route.
 
 ## What It Enables
 
-- Browser-local source video selection.
-- Browser-local mock sign-in for repeated internal testing. It does not send credentials to Supabase or create backend auth records.
-- Backend-local upload through the upload-intent, local-object PUT, and finalize endpoints.
-- Backend-local storage metadata and canonical bucket/object metadata displayed in the Edit Brief UI.
-- A visible local plan and credit estimate approval gate before preview smoke.
-- A local edit preview smoke path that creates mock credit approval/reservation records, creates a mock approved snapshot, claims a local worker, and writes a canonical preview object when local media tools are available.
-- Preview review, professional QA, and private final export smoke gates after the preview is explicitly approved.
-- Mock auth for repeated internal testing.
+- Browser-local source selection and runner-only mock sign-in.
+- Backend-local upload through upload-intent, local-object PUT, and finalize endpoints.
+- Backend-local storage metadata with a private bucket/object identity and no public or signed URL.
+- Exact private source readback and source-preparation evidence for the named edit.
+- Prompt-first canonical plan publication followed by explicit approval and an approved snapshot.
+- Durable Edit Brief persistence on the active named-edit route before plan publication.
+- Reload proof for the source checksum, storage path, and private-artifact boundary.
+- Reviewed `frontend_safe` browser transport to the private-workspace API.
 - Local filesystem storage under `.reeditpro-local-upload-storage-dev`.
 
 ## What It Does Not Enable
 
-The runner does not start provider calls, live Qwen calls, external beta, production, public delivery, Supabase auth writes, Supabase data writes, GCS writes, Stripe, or product-ready flows. The optional local edit preview smoke runs a preview-only local worker against backend-local test media after a mock approved snapshot and mock credit reservation exist; the private final export smoke runs only after explicit preview approval and QA, writes only backend-local private test storage, and does not create signed URLs or public delivery.
+The runner does not start provider calls, live Qwen calls, external beta, production, public delivery, Supabase auth or data writes, GCS writes, Stripe, worker dispatch, private rendering, QA approval, or export. It proves the signed-in frontend-to-private-backend planning boundary through an approved snapshot; it does not claim the downstream media execution path.
 
-Qwen 3.7 Max remains the named main-brain reasoning identity in the Brief UI and diagnostics, but this local runner does not call Qwen. It proves the source video can move from browser selection to backend-local canonical upload metadata and then through gated preview, review, QA, and private export smoke for internal testing.
+Qwen 3.7 Max remains the named main-brain reasoning identity in the product architecture, but this runner does not call Qwen.
 
-## Optional Real Local API Playwright Check
-
-In one terminal, start the local stack:
+Private review and render execution have separate backend coverage:
 
 ```bash
-REEDITPRO_LOCAL_UPLOAD_STORAGE_ROOT=.reeditpro-local-upload-storage-playwright npm run dev:internal-testing:local-upload
+npm run smoke:editor-full-stack-private-review
 ```
 
-In another terminal, run:
+That smoke must remain separate until the active named-edit UI has a canonical work/asset/runtime bridge. The local-upload verifier must not imply that plan publication and approval performed rendering or export.
+
+## Optional Real-Video Acceptance
+
+Use an existing MP4:
+
+```bash
+REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_PATH="/absolute/path/to/video.mp4" \
+npm run test:internal-testing:local-upload-e2e
+```
+
+The convenience wrapper defaults to `~/Documents/test video/internal testing.MP4`:
+
+```bash
+npm run test:internal-testing:real-video-upload-acceptance
+```
+
+## Optional Manual Playwright Check
+
+In one terminal:
+
+```bash
+REEDITPRO_LOCAL_UPLOAD_STORAGE_ROOT=.reeditpro-local-upload-storage-playwright \
+npm run dev:internal-testing:local-upload
+```
+
+In another terminal:
 
 ```bash
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:5179 \
@@ -57,7 +91,10 @@ PLAYWRIGHT_INTERNAL_TEST_AUTH=true \
 PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_REAL_API=true \
 PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_API_BASE_URL=http://127.0.0.1:9781 \
 PLAYWRIGHT_LOCAL_UPLOAD_STORAGE_ROOT=.reeditpro-local-upload-storage-playwright \
-npx playwright test tests/e2e/project-source-video-backend-upload-local-api.spec.ts
+PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_FIXTURE_PATH="/absolute/path/to/video.mp4" \
+npx playwright test \
+  tests/e2e/project-source-video-backend-upload-local-api.spec.ts \
+  tests/e2e/project-create-edit-upload-local-api.spec.ts
 ```
 
-The spec uses the real local API. It does not intercept upload, preview, review, QA, or private export routes. It asserts the source video reaches backend-local storage metadata, the local plan and credit estimate are approved before preview, the local preview reaches preview-ready metadata, preview review and QA pass, the private final export object is written to backend-local storage, and no provider, live Qwen, public delivery, Supabase, GCS, beta, production, or product-ready signal appears.
+These specs use the real local API and do not intercept routes. Together they assert active project/edit creation, private upload finalization, exact source readback, prompt-first planning, durable inline Brief persistence, canonical plan publication, separate approval, approved-snapshot availability, source-authority reload, and the absence of provider, live-Qwen, public-delivery, Supabase, GCS, beta, production, and product-ready signals.

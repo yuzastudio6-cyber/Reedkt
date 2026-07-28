@@ -22,10 +22,14 @@ import {
   MAX_EXACT_EDIT_PREFERENCE_IDEMPOTENCY_RECORDS,
   mutatePrivateExactEditPreferenceRecord,
   readPrivateExactEditPreferenceRecord,
+  type ExactEditPreferenceLifecycleState,
   type ExactEditPreferenceStoreScope,
   type PrivateExactEditPreferenceRecord,
 } from './private-exact-edit-preference-store'
 import { sha256AuthorityValue } from './private-edit-authority-store'
+import {
+  resolveCanonicalExactEditPreferenceLifecycleLock,
+} from './exact-edit-preference-service'
 
 export const PLANNING_EXACT_EDIT_PREFERENCE_AUTHORITY_PORT_VERSION =
   'planning-exact-edit-preference-authority-port-v1' as const
@@ -196,7 +200,10 @@ function createPrivateCompatibilityPort(): PlanningExactEditPreferenceAuthorityP
   return {
     async readExactPreferenceState(scope) {
       const record = await requirePrivateRecord(scope)
-      return compatibilityResolution(record)
+      const lifecycle = await resolveCanonicalExactEditPreferenceLifecycleLock(
+        privateScope(scope),
+      )
+      return compatibilityResolution(record, lifecycle)
     },
     async recordVerifiedPlanningEvidence({ scope, request }) {
       assertRequestScope(scope, request)
@@ -206,7 +213,10 @@ function createPrivateCompatibilityPort(): PlanningExactEditPreferenceAuthorityP
         scope,
         request,
       })
-      return compatibilityResolution(updated)
+      const lifecycle = await resolveCanonicalExactEditPreferenceLifecycleLock(
+        privateScope(scope),
+      )
+      return compatibilityResolution(updated, lifecycle)
     },
   }
 }
@@ -220,7 +230,7 @@ async function recordPrivateCompatibilityPlanningEvidence(input: {
 
   return mutatePrivateExactEditPreferenceRecord({
     scope: privateScope(input.scope),
-    mutation: (current) => {
+    mutation: async (current) => {
       const record = current
       if (!record) throw authorityUnavailable('private_exact_edit_preference_missing')
       assertExpectedAuthority(record, input.request)
@@ -238,11 +248,23 @@ async function recordPrivateCompatibilityPlanningEvidence(input: {
         }
         return { changed: false, result: record }
       }
-      if (record.lifecycle.locked || record.lifecycle.phase !== 'planning') {
+      const canonicalLifecycle =
+        await resolveCanonicalExactEditPreferenceLifecycleLock(privateScope(input.scope))
+      if (
+        canonicalLifecycle.locked
+        || canonicalLifecycle.phase !== 'planning'
+        || record.lifecycle.locked
+        || record.lifecycle.phase !== 'planning'
+      ) {
         throw new ApiError(
           'PLAN_NOT_APPROVED',
-          'Approved or active exact-edit preferences are immutable.',
+          'Approved or active exact-edit planning evidence is immutable. A Chat-led revision may reuse only the exact previously recorded request.',
           409,
+          {
+            lifecyclePhase: canonicalLifecycle.phase,
+            requiredFlow: 'chat_led_revision_replanning_and_new_approval',
+            requiredGate: 'locked_exact_planning_evidence_reuse_only',
+          },
         )
       }
       if (
@@ -307,8 +329,9 @@ async function recordPrivateCompatibilityPlanningEvidence(input: {
 
 function compatibilityResolution(
   record: PrivateExactEditPreferenceRecord,
+  lifecycle: ExactEditPreferenceLifecycleState,
 ): PlanningExactEditPreferenceAuthorityResolution {
-  const authority = compatibilityAuthority(record)
+  const authority = compatibilityAuthority(record, lifecycle)
   return createResolution({
     sourceAuthority: 'private_exact_edit_preference_compatibility',
     evidenceClass: 'private_internal_compatibility',
@@ -322,6 +345,7 @@ function compatibilityResolution(
 
 function compatibilityAuthority(
   record: PrivateExactEditPreferenceRecord,
+  lifecycle: ExactEditPreferenceLifecycleState,
 ): CanonicalExactEditPlanningAuthorityRead {
   const sourcePreparation = record.planning.sourcePreparation.status === 'ready'
     ? {
@@ -391,8 +415,8 @@ function compatibilityAuthority(
     },
     sourcePreparation,
     frameConfirmation,
-    lifecyclePhase: record.lifecycle.phase,
-    locked: record.lifecycle.locked,
+    lifecyclePhase: lifecycle.phase,
+    locked: lifecycle.locked,
     currentApplicationState: 'not_selected',
     currentApplicationId: null,
     readAt: new Date().toISOString(),

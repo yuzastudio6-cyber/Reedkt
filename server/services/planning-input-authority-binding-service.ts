@@ -112,10 +112,65 @@ export async function revalidatePlanningInputAuthorityBinding(input: {
     expectation: planningInputAuthorityExpectationFromResolvedBinding(persisted),
     components: input.components,
   })
-  if (current.bindingHash !== persisted.bindingHash || stableAuthorityStringify(current) !== stableAuthorityStringify(persisted)) {
+  if (
+    !planningInputBindingHashIsCurrent(persisted)
+    || !planningInputBindingHashIsCurrent(current)
+    || !exactEditLifecycleRereadIsAllowed(persisted, current)
+    || stableAuthorityStringify(planningInputProjection(current))
+      !== stableAuthorityStringify(planningInputProjection(persisted))
+  ) {
     throw stalePlanningAuthority('Preference or Edit Brief authority changed after canonical plan publication.')
   }
   return current
+}
+
+function planningInputBindingHashIsCurrent(
+  binding: ResolvedPlanningInputAuthorityBinding,
+): boolean {
+  const { bindingHash, ...payload } = binding
+  return bindingHash === sha256AuthorityValue(payload)
+}
+
+function exactEditLifecycleRereadIsAllowed(
+  persisted: ResolvedPlanningInputAuthorityBinding,
+  current: ResolvedPlanningInputAuthorityBinding,
+): boolean {
+  const persistedLifecycle = persisted.exactEditPreference
+  const currentLifecycle = current.exactEditPreference
+  const persistedConsistent = persistedLifecycle.locked
+    ? persistedLifecycle.lifecyclePhase !== 'planning'
+    : persistedLifecycle.lifecyclePhase === 'planning'
+  const currentConsistent = currentLifecycle.locked
+    ? currentLifecycle.lifecyclePhase !== 'planning'
+    : currentLifecycle.lifecyclePhase === 'planning'
+  if (!persistedConsistent || !currentConsistent) return false
+  if (!persistedLifecycle.locked) {
+    return currentLifecycle.lifecyclePhase === 'planning'
+      || currentLifecycle.locked
+  }
+  return currentLifecycle.locked
+}
+
+function planningInputProjection(
+  binding: ResolvedPlanningInputAuthorityBinding,
+) {
+  const {
+    bindingHash,
+    exactEditPreference,
+    ...bindingWithoutHash
+  } = binding
+  const {
+    lifecyclePhase,
+    locked,
+    ...exactEditPreferencePlanningInputs
+  } = exactEditPreference
+  void bindingHash
+  void lifecyclePhase
+  void locked
+  return {
+    ...bindingWithoutHash,
+    exactEditPreference: exactEditPreferencePlanningInputs,
+  }
 }
 
 export async function buildCurrentPlanningInputAuthorityExpectation(

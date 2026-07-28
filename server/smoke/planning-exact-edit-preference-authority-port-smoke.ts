@@ -25,7 +25,10 @@ import {
   mutatePrivateExactEditPreferenceRecord,
   readPrivateExactEditPreferenceRecord,
 } from '../services/private-exact-edit-preference-store'
-import { sha256AuthorityValue } from '../services/private-edit-authority-store'
+import {
+  mutatePrivateEditAuthorityAggregate,
+  sha256AuthorityValue,
+} from '../services/private-edit-authority-store'
 import type { RuntimeRequest, ServiceContext } from '../types'
 
 const localStorageRoot =
@@ -260,13 +263,14 @@ const compatibilityReplay = await recordPlanningExactEditPreferenceEvidence({
 })
 assert.equal(compatibilityReplay.authority.recordRevision, 1)
 
+const changedCandidateEvidenceRequest = {
+  ...compatibilityEvidenceRequest,
+  sourceCandidateHashSha256: sha256AuthorityValue('source-candidate-2'),
+}
 const changedCandidateRecorded = await recordPlanningExactEditPreferenceEvidence({
   context: compatibilityContext,
   scope: compatibilityScope,
-  request: {
-    ...compatibilityEvidenceRequest,
-    sourceCandidateHashSha256: sha256AuthorityValue('source-candidate-2'),
-  },
+  request: changedCandidateEvidenceRequest,
 })
 assert.equal(changedCandidateRecorded.authority.recordRevision, 2)
 const persistedCompatibilityRecord = await readPrivateExactEditPreferenceRecord(
@@ -279,6 +283,65 @@ assert.equal(
   ).length,
   2,
 )
+
+const canonicalApprovalTimestamp = '2026-07-21T12:20:00.000Z'
+await mutatePrivateEditAuthorityAggregate({
+  scope: {
+    localStorageRoot,
+    ownerUserId: compatibilityScope.ownerUserId,
+    workspaceId: compatibilityScope.workspaceId,
+  },
+  now: canonicalApprovalTimestamp,
+  mutation: (aggregate) => {
+    aggregate.plans.push({
+      id: 'approved-plan-private-planning-exact-preference-port',
+      projectId: compatibilityScope.projectId,
+      editSessionId: compatibilityScope.editSessionId,
+      planningRequestId: 'approved-planning-request-private-exact-preference-port',
+      planVersion: 1,
+      status: 'approved',
+      componentRefs: {},
+      estimateId: 'approved-estimate-private-planning-exact-preference-port',
+      workItemIds: [],
+      planHash: sha256AuthorityValue('approved-plan-private-exact-preference-port'),
+      workGraphHash: sha256AuthorityValue('approved-work-graph-private-exact-preference-port'),
+      sourceSequenceHash: sha256AuthorityValue('approved-source-private-exact-preference-port'),
+      timingHash: sha256AuthorityValue('approved-timing-private-exact-preference-port'),
+      createdAt: canonicalApprovalTimestamp,
+      approvedAt: canonicalApprovalTimestamp,
+    })
+    return { changed: true, result: undefined }
+  },
+})
+const compatibilityLocked = await readPlanningExactEditPreferenceAuthority({
+  context: compatibilityContext,
+  scope: compatibilityScope,
+})
+assert.equal(compatibilityLocked.authority.locked, true)
+assert.equal(compatibilityLocked.authority.lifecyclePhase, 'approved_snapshot')
+const lockedExactReplay = await recordPlanningExactEditPreferenceEvidence({
+  context: compatibilityContext,
+  scope: compatibilityScope,
+  request: changedCandidateEvidenceRequest,
+})
+assert.equal(lockedExactReplay.authority.recordRevision, 2)
+assert.equal(lockedExactReplay.authority.locked, true)
+await assert.rejects(
+  () => recordPlanningExactEditPreferenceEvidence({
+    context: compatibilityContext,
+    scope: compatibilityScope,
+    request: {
+      ...changedCandidateEvidenceRequest,
+      sourcePreparationEvidenceHashSha256:
+        sha256AuthorityValue('changed-locked-source-evidence'),
+    },
+  }),
+  (error: unknown) => hasCode(error, 'PLAN_NOT_APPROVED'),
+)
+const rawCompatibilityRecordAfterLockedRejection =
+  await readPrivateExactEditPreferenceRecord(compatibilityScope)
+assert.equal(rawCompatibilityRecordAfterLockedRejection?.recordRevision, 2)
+assert.equal(rawCompatibilityRecordAfterLockedRejection?.lifecycle.locked, false)
 
 await assert.rejects(
   () => recordPlanningExactEditPreferenceEvidence({
@@ -360,6 +423,9 @@ console.log(JSON.stringify({
   privateCompatibilityEvidenceWriteVerified: true,
   privateCompatibilityReplayVerified: true,
   privateCompatibilityChangedCandidateNotMisclassifiedAsReplay: true,
+  canonicalApprovedLifecycleOverlayVerified: true,
+  lockedExactPlanningEvidenceReplayVerified: true,
+  changedLockedPlanningEvidenceRejectedWithoutMutation: true,
   unreleasedCanonicalNonPromotable: true,
   productionQualificationFailClosed: true,
   browserMutationAuthorityAccepted: false,

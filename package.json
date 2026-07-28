@@ -343,6 +343,7 @@
     "qa:edit-reference-long-form-review": "playwright test --config=tests/e2e/playwright.edit-reference-long-form-review.config.ts",
     "qa:canonical-v3-local": "bash database/canonical-v3-local/run-local-verification.sh",
     "qa:canonical-private-pipeline": "tsx server/cli/canonical-private-pipeline-verification.ts",
+    "qa:edit-videos-internal-pipeline": "tsx server/cli/canonical-private-pipeline-verification.ts --full --edit-videos-only",
     "qa:screenshots": "playwright test tests/e2e/screenshots.spec.ts",
     "qa:zoom": "playwright test tests/e2e/zoom.spec.ts",
     "qa:internal-pipeline": "tsx server/cli/canonical-private-pipeline-verification.ts --full"

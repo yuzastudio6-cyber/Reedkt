@@ -183,7 +183,7 @@ export function createExactEditPreferenceService(context: ServiceContext) {
           warnings: exactEditPreferenceWarnings('No exact-edit preference record has been initialized for this edit.'),
         }
       }
-      const canonicalLock = await resolveCanonicalLifecycleLock(scope)
+      const canonicalLock = await resolveCanonicalExactEditPreferenceLifecycleLock(scope)
       return {
         preferenceRecord: toExactEditPreferenceView(record, canonicalLock),
         warnings: exactEditPreferenceWarnings(),
@@ -201,7 +201,7 @@ export function createExactEditPreferenceService(context: ServiceContext) {
         'write',
       )
       const idempotencyKey = requireIdempotencyKey(input.idempotencyKey)
-      const canonicalLock = await resolveCanonicalLifecycleLock(scope)
+      const canonicalLock = await resolveCanonicalExactEditPreferenceLifecycleLock(scope)
       const baseline = await resolveCreationBaseline(context, scope.workspaceId)
       const requestHash = hashMutationRequest('initialize', scope, validated.data)
       const timestamp = nowIso()
@@ -262,7 +262,7 @@ export function createExactEditPreferenceService(context: ServiceContext) {
         'write',
       )
       const idempotencyKey = requireIdempotencyKey(input.idempotencyKey)
-      const canonicalLock = await resolveCanonicalLifecycleLock(scope)
+      const canonicalLock = await resolveCanonicalExactEditPreferenceLifecycleLock(scope)
       const requestHash = hashMutationRequest('update_preferences', scope, validated.data)
       const timestamp = nowIso()
 
@@ -397,7 +397,7 @@ export function createExactEditPreferenceService(context: ServiceContext) {
         'write',
       )
       const idempotencyKey = requireIdempotencyKey(input.idempotencyKey)
-      const canonicalLock = await resolveCanonicalLifecycleLock(scope)
+      const canonicalLock = await resolveCanonicalExactEditPreferenceLifecycleLock(scope)
       const requestHash = hashMutationRequest('record_planning_evidence', scope, validated.data)
       const timestamp = nowIso()
 
@@ -472,7 +472,7 @@ export function createExactEditPreferenceService(context: ServiceContext) {
         'write',
       )
       const idempotencyKey = requireIdempotencyKey(input.idempotencyKey)
-      const canonicalLock = await resolveCanonicalLifecycleLock(scope)
+      const canonicalLock = await resolveCanonicalExactEditPreferenceLifecycleLock(scope)
       const requestHash = hashMutationRequest('invalidate_output_frame', scope, validated.data)
       const timestamp = nowIso()
 
@@ -758,7 +758,7 @@ async function resolveCreationBaseline(
   }
 }
 
-async function resolveCanonicalLifecycleLock(
+export async function resolveCanonicalExactEditPreferenceLifecycleLock(
   scope: ExactEditPreferenceStoreScope,
 ): Promise<EffectiveLifecycleLock> {
   const aggregate = await readPrivateEditAuthorityAggregate({

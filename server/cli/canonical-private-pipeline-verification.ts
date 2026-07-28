@@ -13,6 +13,11 @@ type VerificationStepResult = VerificationStep & {
 }
 
 const full = process.argv.includes('--full')
+const editVideosOnly = process.argv.includes('--edit-videos-only')
+
+if (editVideosOnly && !full) {
+  throw new Error('--edit-videos-only requires --full so no core Edit Videos boundary is skipped.')
+}
 
 const canonicalSteps: VerificationStep[] = [
   step(
@@ -387,11 +392,17 @@ const selectedCanonicalSteps = canonicalSteps.map((verification) =>
     : verification,
 )
 
+const selectedFullBoundarySteps = editVideosOnly
+  ? fullBoundarySteps.filter(
+      (verification) => verification.id !== 'motion-studio-browser-acceptance',
+    )
+  : fullBoundarySteps
+
 const steps = full
   ? [
-      ...fullBoundarySteps.slice(0, -1),
+      ...selectedFullBoundarySteps.slice(0, -1),
       ...selectedCanonicalSteps,
-      fullBoundarySteps.at(-1)!,
+      selectedFullBoundarySteps.at(-1)!,
     ]
   : selectedCanonicalSteps
 const results: VerificationStepResult[] = []
@@ -465,9 +476,13 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v44',
+    schemaVersion: 'canonical-private-pipeline-verification-v45',
     status,
-    mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
+    mode: editVideosOnly
+      ? 'full_edit_videos_regression'
+      : full
+        ? 'full_internal_regression'
+        : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
     finishedAt: finishedAt.toISOString(),
     durationMs: finishedAt.getTime() - runStartedAt.getTime(),
@@ -685,7 +700,9 @@ function printReport(
                 canonicalV3LocalResetRlsAndRecoveryVerified: true,
                 activeProductBrowserAcceptanceVerified: true,
                 professionalEditorBrowserAcceptanceVerified: true,
-                motionStudioBrowserAcceptanceVerified: true,
+                ...(!editVideosOnly
+                  ? { motionStudioBrowserAcceptanceVerified: true }
+                  : {}),
                 currentEditPreferencesAtomicBrowserAcceptanceVerified: true,
                 editReferenceCanonicalRealFileBrowserAcceptanceVerified: true,
                 editReferenceLongFormReviewBrowserAcceptanceVerified: true,

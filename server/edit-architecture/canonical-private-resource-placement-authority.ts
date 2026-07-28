@@ -930,7 +930,11 @@ function toolFreeWorkerType(
     workItemType === 'run_asset_qa' || workItemType === 'run_timing_qa') {
     return 'qa_worker'
   }
-  if (workerClass === 'render_worker' || workerClass === 'controlled_graphics_worker') {
+  if (
+    workerClass === 'render_worker'
+    || workerClass === 'render_planning_worker'
+    || workerClass === 'controlled_graphics_worker'
+  ) {
     return 'render_worker'
   }
   if ([

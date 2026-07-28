@@ -1137,18 +1137,29 @@ FFmpeg source-frame PNG and QA-selected rembg grayscale-mask PNG. The confined
 runner performs real straight-alpha RGBA construction, clears transparent
 RGB, deterministically encodes PNG, decodes it, and requires byte-exact pixel
 agreement. It cannot run before both dependency artifacts are committed and
-selected by the immutable worker lease. Only the Remotion-layer requirement
-remains a tool-free pending-operation item.
+selected by the immutable worker lease.
+
+The Remotion-layer requirement is now admitted as a tool-free, server-owned
+manifest-compilation item. It depends on the exact Sharp RGBA output and
+freezes the selected scene, layer identity, MasterTiming range, confirmed
+output frame, full-frame fit, opacity, and the rule that captions remain
+above Living Frame. The server also rewrites the one existing final Remotion
+work item to depend on both the RGBA component and manifest, and adds the
+overlay below the caption plane. This is planning and dependency authority,
+not a second renderer or a new production-tool identity.
 
 This is not a second Living Frame workflow. The existing WeEditPro estimate,
 approval, work graph, asset manifest, QA, review, and renderer pipeline remains
 the only owner of those stages. Deliberate non-use may continue through
-ordinary approval. A selected scene fails closed before credit reservation or
-snapshot creation until the remaining dependency-input operations, GPU
-runtime, assets, QA, review, and final-composition dependency are admitted.
-Approval and execution reload both the content-addressed projection and every
-matching plan work item; they cannot silently omit or rewrite the selected
-skill in an otherwise valid final-render graph. See
+ordinary approval. A selected scene may now be approved only after its exact
+estimate, four-item work graph, manifest payload, and final-composition
+dependencies are frozen into the immutable plan. Approval does not pretend
+that GPU work has run: dispatch, final render, and delivery remain blocked
+until rembg runtime evidence, dependency artifacts, artifact QA, and private
+review pass. Approval and execution reload both the content-addressed
+projection, every matching plan work item, and the final Remotion binding;
+they cannot silently omit or rewrite the selected skill in an otherwise valid
+final-render graph. See
 `docs/living-frame/living-frame-selected-scene-binding.md`.
 The exact requirements record is documented in
 `docs/living-frame/living-frame-execution-requirements.md`.

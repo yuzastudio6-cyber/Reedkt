@@ -132,7 +132,6 @@ import {
   CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY,
 } from '../../src/types/living-frame-estimate-work-asset-projection'
 import {
-  CANONICAL_LIVING_FRAME_PENDING_OPERATION,
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
@@ -142,6 +141,10 @@ import {
   CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION,
   CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS,
   CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION,
+  CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS,
@@ -6271,7 +6274,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     }))
   assert.equal(
     workGraphProjection.readiness,
-    'canonical_work_items_projected_sharp_component_operation_admitted',
+    'canonical_work_items_projected_remotion_layer_and_final_composition_bound',
   )
   assert.equal(
     workGraphProjection.createsCanonicalWorkItems,
@@ -6301,20 +6304,20 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       admittedExactSourceFrameWorkItemCount: 1,
       admittedRembgGpuMaskWorkItemCount: 1,
       admittedSharpComponentWorkItemCount: 1,
-      executableWorkItemCount: 2,
+      admittedRemotionLayerWorkItemCount: 1,
+      finalCompositionBindingCount: 1,
+      executableWorkItemCount: 3,
       requiredExpectedOutputCount: 4,
       gpuPendingWorkItemCount: 1,
-      blockedWorkItemCount: 2,
+      blockedWorkItemCount: 1,
       maximumCreditBudget: 3,
     },
   )
   assert.deepEqual(
     workGraphProjection.blockerCodes,
     [
-      'exact_dependency_input_operations_required',
       'artifact_qa_work_items_required',
       'private_review_required',
-      'final_composition_dependency_binding_required',
     ],
   )
   const projectedWorkItems =
@@ -6377,7 +6380,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     projectedWorkItems.filter((workItem) =>
       asRecord(workItem).workerClass ===
         CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS)
-  assert.equal(projectedPendingWorkItems.length, 1)
+  assert.equal(projectedPendingWorkItems.length, 0)
   const rembgGpuMaskWorkItems =
     projectedWorkItems.filter((workItem) =>
       asRecord(workItem).workerClass ===
@@ -6610,8 +6613,16 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     rembgResourcePlacement.requiredGate,
     'canonical_rembg_cloud_run_gpu_runtime_qualification',
   )
-  const projectedPendingWorkByType = new Map(
-    projectedPendingWorkItems.map((workItem) => {
+  const projectedRemotionLayerWorkItems =
+    projectedWorkItems.filter((workItem) =>
+      asRecord(workItem).workerClass ===
+        CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS)
+  assert.equal(
+    projectedRemotionLayerWorkItems.length,
+    1,
+  )
+  const projectedRemotionLayerWorkByType = new Map(
+    projectedRemotionLayerWorkItems.map((workItem) => {
       const record = asRecord(workItem)
       return [
         String(record.workItemType),
@@ -6633,13 +6644,13 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
           .map(String)
         : []
     const workItem =
-      projectedPendingWorkByType.get(
+      projectedRemotionLayerWorkByType.get(
         String(requirementRecord.workItemType),
       )
     assert.ok(workItem)
     assert.equal(
       workItem.workerClass,
-      CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+      CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS,
     )
     assert.equal(workItem.required, true)
     assert.equal(workItem.providerExecutionMode, 'none')
@@ -6652,29 +6663,31 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       asRecord(workItem.executionInput)
     assert.equal(
       executionInput.operation,
-      CANONICAL_LIVING_FRAME_PENDING_OPERATION,
+      CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
     )
     assert.deepEqual(
       executionInput.approvedToolOperationIds,
       [],
     )
-    const pendingOperationAuthority =
-      asRecord(
-        executionInput.pendingOperationAuthority,
-      )
     assert.equal(
-      pendingOperationAuthority
-        .exactDependencyInputOperationAdmitted,
-      false,
+      asRecord(executionInput.structuredPayload)
+        .schemaVersion,
+      CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION,
     )
     assert.equal(
-      pendingOperationAuthority
-        .executableStructuredPayloadPresent,
-      false,
+      asRecord(executionInput.structuredPayload)
+        .compositionPolicy,
+      CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY,
     )
-    assert.deepEqual(
-      pendingOperationAuthority.sourceFrameInputs,
-      requirementRecord.sourceFrameInputs,
+    assert.equal(
+      asRecord(executionInput.structuredPayload)
+        .startFrame,
+      12,
+    )
+    assert.equal(
+      asRecord(executionInput.structuredPayload)
+        .endFrameExclusive,
+      72,
     )
   }
   const persistedAuthority =
@@ -6708,6 +6721,8 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
             CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
           || workItem.workerClass ===
             CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS
+          || workItem.workerClass ===
+            CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS
         ),
     )
   assert.equal(
@@ -6786,11 +6801,86 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       expected.fallbackPolicy,
     )
   }
+  const persistedFinalComposition =
+    persistedAuthority.planWorkItems.find(
+      (workItem) =>
+        workItem.planId === persistedPlan.id
+        && workItem.workItemKey === 'final-export',
+    )
+  assert.ok(persistedFinalComposition)
+  const persistedFinalExecutionInput = asRecord(
+    await readPrivateAuthorityJsonBlob({
+      localStorageRoot:
+        serviceContext.env.localStorageRoot,
+      ref: persistedFinalComposition.executionInputRef,
+    }),
+  )
+  const persistedFinalPayload = asRecord(
+    persistedFinalExecutionInput.structuredPayload,
+  )
+  const remotionLayerWorkItem = asRecord(
+    projectedRemotionLayerWorkItems[0],
+  )
+  const remotionLayerOutput = asRecord(
+    (remotionLayerWorkItem.expectedOutputs as unknown[])[0],
+  )
+  const remotionLayerPayload = asRecord(
+    asRecord(remotionLayerWorkItem.executionInput)
+      .structuredPayload,
+  )
+  assert.equal(
+    persistedFinalPayload.livingFrameOverlayPolicy,
+    CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY,
+  )
+  assert.deepEqual(
+    persistedFinalPayload.livingFrameOverlayLayers,
+    [{
+      sceneId: remotionLayerPayload.sceneId,
+      layerId: (
+        remotionLayerOutput.rendererLayerIds as string[]
+      )[0],
+      manifestOutputKey:
+        remotionLayerOutput.outputKey,
+      componentOutputKey: asRecord(
+        (sharpComponentWorkItem
+          .expectedOutputs as unknown[])[0],
+      ).outputKey,
+      startFrame: 12,
+      endFrameExclusive: 72,
+      fit: 'fill',
+      opacity: 1,
+    }],
+  )
+  assert.equal(
+    persistedFinalComposition.dependencyKeys.includes(
+      String(remotionLayerWorkItem.workItemKey),
+    ),
+    true,
+  )
+  assert.equal(
+    persistedFinalComposition.dependencyKeys.includes(
+      String(sharpComponentWorkItem.workItemKey),
+    ),
+    true,
+  )
+  const finalRendererLayerIds =
+    persistedFinalComposition.expectedOutputs[0]!
+      .rendererLayerIds
+  assert.ok(
+    finalRendererLayerIds.indexOf(
+      String(
+        (remotionLayerOutput.rendererLayerIds as string[])[0],
+      ),
+    ) <
+    finalRendererLayerIds.indexOf(
+      'caption-overlay-layer',
+    ),
+  )
 
   const planningService =
     createEditPlanningAuthorityService(serviceContext)
-  await expectApiError(
-    () => planningService.approveAndFundCanonicalPlan({
+  const livingFrameApproval =
+    await planningService.approveAndFundCanonicalPlan({
       workspaceId: targetWorkspaceId,
       editPlanId: String(publishedPlan.id),
       expectedAuthorityRevision:
@@ -6798,9 +6888,20 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       expectedPlanHash: String(publishedPlan.planHash),
       expectedEstimateHash: String(publishedEstimate.estimateHash),
       idempotencyKey: 'approve-living-frame-selected-scene',
-    }),
-    'TOOL_NOT_READY',
-    'A selected Living Frame scene must not be approved while its exact timing, estimate, work, assets, QA, and private-review authority is absent.',
+    })
+  assert.equal(
+    asRecord(
+      asRecord(livingFrameApproval).authority,
+    ).testOnly,
+    true,
+  )
+  assert.equal(
+    asRecord(
+      asRecord(
+        asRecord(livingFrameApproval).authority,
+      ).plan,
+    ).status,
+    'approved',
   )
 }
 

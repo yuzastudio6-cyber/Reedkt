@@ -173,6 +173,7 @@ import {
   persistCanonicalCustomerEstimateAuthority,
 } from './canonical-customer-estimate-authority-service'
 import {
+  bindCanonicalLivingFrameFinalCompositionWorkItems,
   canonicalLivingFrameProjectedWorkItems,
 } from '../living-frame/canonical-living-frame-work-graph-projection'
 import {
@@ -447,8 +448,13 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             sourceMediaAuthority,
             existingWorkItems: body.canonicalPlan.workItems,
           })
+      const livingFrameBoundBaseWorkItems =
+        bindCanonicalLivingFrameFinalCompositionWorkItems({
+          workItems: body.canonicalPlan.workItems,
+          projection: livingFrameWorkGraphProjection,
+        })
       const workItemCompilation = compileCanonicalWorkItems([
-        ...body.canonicalPlan.workItems,
+        ...livingFrameBoundBaseWorkItems,
         ...canonicalLivingFrameProjectedWorkItems(
           livingFrameWorkGraphProjection,
         ),
@@ -1071,7 +1077,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             approvalCustomerEstimateAuthority,
           components: approvalComponents,
         })
-      assertLivingFrameWorkGraphProjectionMatchesPlan(
+      await assertLivingFrameWorkGraphProjectionMatchesPlan(
+        context,
         approvalLivingFrameWorkGraphProjection,
         approvalPlanWorkItems,
       )
@@ -1312,7 +1319,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
                 workItemId,
                 plan.id,
               ))
-          assertLivingFrameWorkGraphProjectionMatchesPlan(
+          await assertLivingFrameWorkGraphProjectionMatchesPlan(
+            context,
             lockedLivingFrameWorkGraphProjection,
             lockedPlanWorkItems,
           )
@@ -2055,7 +2063,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             workItemId,
             lineage.plan.id,
           ))
-      assertLivingFrameWorkGraphProjectionMatchesPlan(
+      await assertLivingFrameWorkGraphProjectionMatchesPlan(
+        context,
         livingFrameWorkGraphProjection,
         livingFramePlanWorkItems,
       )
@@ -2254,13 +2263,14 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
   }
 }
 
-function assertLivingFrameWorkGraphProjectionMatchesPlan(
+async function assertLivingFrameWorkGraphProjectionMatchesPlan(
+  context: ServiceContext,
   projection:
     | CanonicalLivingFrameWorkGraphProjection
     | undefined,
   planWorkItems:
     readonly AuthorityPlanWorkItemRecord[],
-): void {
+): Promise<void> {
   const pendingPlanItems = planWorkItems.filter(
     (item) =>
       item.workerClass ===
@@ -2358,6 +2368,101 @@ function assertLivingFrameWorkGraphProjectionMatchesPlan(
         },
       )
     }
+  }
+  const binding = projection.finalCompositionBinding
+  if (!binding) return
+  const finalItems = planWorkItems.filter(
+    (item) =>
+      item.workItemType ===
+        binding.requiredFinalWorkItemType
+      && item.approvedToolIds.includes('remotion'),
+  )
+  if (finalItems.length !== 1) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Canonical Living Frame requires exactly one immutable Remotion final-composition work item.',
+      409,
+    )
+  }
+  const finalItem = finalItems[0]!
+  const executionInputValue =
+    await readPrivateAuthorityJsonBlob({
+      localStorageRoot:
+        context.env.localStorageRoot,
+      ref: finalItem.executionInputRef,
+    })
+  if (
+    !executionInputValue
+    || typeof executionInputValue !== 'object'
+    || Array.isArray(executionInputValue)
+    || !executionInputValue.structuredPayload
+    || typeof executionInputValue.structuredPayload !==
+      'object'
+    || Array.isArray(
+      executionInputValue.structuredPayload,
+    )
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Canonical Living Frame final-composition payload is missing.',
+      409,
+    )
+  }
+  const executionInput =
+    executionInputValue as Record<string, unknown>
+  const structuredPayload =
+    executionInput.structuredPayload as
+      Record<string, unknown>
+  const expectedOverlayLayers =
+    binding.overlayLayers.map((layer) => ({
+      sceneId: layer.sceneId,
+      layerId: layer.layerId,
+      manifestOutputKey:
+        layer.manifestOutputKey,
+      componentOutputKey:
+        layer.componentOutputKey,
+      startFrame: layer.startFrame,
+      endFrameExclusive:
+        layer.endFrameExclusive,
+      fit: layer.fit,
+      opacity: layer.opacity,
+    }))
+  const finalOutput = finalItem.expectedOutputs[0]
+  if (
+    executionInput.approvedToolOperationIds ===
+      undefined
+    || stableAuthorityStringify(
+      executionInput.approvedToolOperationIds,
+    ) !== stableAuthorityStringify([
+      binding.requiredRemotionOperation,
+    ])
+    || structuredPayload
+      .livingFrameOverlayPolicy !==
+        binding.policy
+    || stableAuthorityStringify(
+      structuredPayload
+        .livingFrameOverlayLayers,
+    ) !== stableAuthorityStringify(
+      expectedOverlayLayers,
+    )
+    || !binding.requiredDependencyWorkItemKeys
+      .every((key) =>
+        finalItem.dependencyKeys.includes(key))
+    || !finalOutput
+    || !binding.overlayLayers.every((layer) =>
+      finalOutput.rendererLayerIds.includes(
+        layer.layerId,
+      ))
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Canonical Living Frame final-composition dependency, timeline, or renderer-layer binding changed.',
+      409,
+      {
+        requiredGate:
+          'canonical_living_frame_final_composition_binding',
+      },
+    )
   }
 }
 
@@ -2521,7 +2626,7 @@ function assertLivingFrameExecutionAuthorityReady(
       .assetWorkInputBindingDigestSha256 !==
       assetWorkInputBinding.bindingDigestSha256
     || workGraphProjection.readiness !==
-      'canonical_work_items_projected_sharp_component_operation_admitted'
+      'canonical_work_items_projected_remotion_layer_and_final_composition_bound'
     || workGraphProjection.metrics.selectedSceneCount !==
       publication.binding.selectedSceneCount
     || workGraphProjection.metrics.canonicalWorkItemCount !==
@@ -2545,16 +2650,21 @@ function assertLivingFrameExecutionAuthorityReady(
     || workGraphProjection.metrics
       .admittedSharpComponentWorkItemCount !==
       publication.binding.selectedSceneCount
+    || workGraphProjection.metrics
+      .admittedRemotionLayerWorkItemCount !==
+      publication.binding.selectedSceneCount
+    || workGraphProjection.metrics
+      .finalCompositionBindingCount !== 1
     || workGraphProjection.metrics.executableWorkItemCount !==
       workGraphProjection.metrics
         .admittedExactSourceFrameWorkItemCount +
         workGraphProjection.metrics
-          .admittedSharpComponentWorkItemCount
-    || workGraphProjection.metrics.blockedWorkItemCount !==
-      estimateWorkAssetProjection.metrics
-        .projectedNamedWorkItemCount -
+          .admittedSharpComponentWorkItemCount +
         workGraphProjection.metrics
-          .admittedSharpComponentWorkItemCount
+          .admittedRemotionLayerWorkItemCount
+    || workGraphProjection.metrics.blockedWorkItemCount !==
+      workGraphProjection.metrics
+        .admittedRembgGpuMaskWorkItemCount
     || workGraphProjection.metrics.gpuPendingWorkItemCount !==
       estimateWorkAssetProjection.metrics
         .projectedGpuWorkItemCount
@@ -2581,6 +2691,12 @@ function assertLivingFrameExecutionAuthorityReady(
       .projectedLivingFrameMaximumInternalToolCostCredits !==
       estimateWorkAssetProjection.metrics
         .projectedMaximumInternalToolCostCredits
+    || workGraphProjection.finalCompositionBinding === null
+    || workGraphProjection.blockerCodes.length !== 2
+    || workGraphProjection.blockerCodes[0] !==
+      'artifact_qa_work_items_required'
+    || workGraphProjection.blockerCodes[1] !==
+      'private_review_required'
   ) {
     throw new ApiError(
       'IDEMPOTENCY_CONFLICT',
@@ -2589,54 +2705,6 @@ function assertLivingFrameExecutionAuthorityReady(
     )
   }
 
-  throw new ApiError(
-    'TOOL_NOT_READY',
-    'Selected Living Frame scenes now have exact MasterTiming, SoundSync cue placement, a server-recalculated customer estimate and WeEditPro service fee, and required server-derived items in the one canonical work graph, but cannot be approved until the real dependency-input operations, asset QA, private review, and final-composition dependency are frozen.',
-    409,
-    {
-      requiredGate:
-        'canonical_living_frame_execution_authority',
-      executionRequirementsDigestSha256:
-        requirements.requirementsDigestSha256,
-      timingBindingDigestSha256:
-        timingBinding.timingBindingDigestSha256,
-      assetWorkInputBindingDigestSha256:
-        assetWorkInputBinding.bindingDigestSha256,
-      estimateWorkAssetProjectionDigestSha256:
-        estimateWorkAssetProjection.projectionDigestSha256,
-      workGraphProjectionDigestSha256:
-        workGraphProjection.projectionDigestSha256,
-      customerEstimateAuthorityDigestSha256:
-        customerEstimateAuthority.authorityDigestSha256,
-      projectedMaximumInternalToolCostCredits:
-        estimateWorkAssetProjection.metrics
-          .projectedMaximumInternalToolCostCredits,
-      projectedGpuWorkItemCount:
-        workGraphProjection.metrics
-          .gpuPendingWorkItemCount,
-      selectedSceneIds: requirements.scenes.map(
-        (scene) => scene.sceneId,
-      ),
-      blockerCodes: requirements.blockerCodes.filter(
-        (code) =>
-          code !== 'exact_master_timing_binding_required'
-          && code !== 'exact_soundsync_binding_required'
-          && code !== 'itemized_estimate_projection_required',
-      ),
-      workGraphBlockerCodes:
-        workGraphProjection.blockerCodes,
-      requiredNamedWorkItemTypes:
-        [...new Set(assetWorkInputBinding.scenes.flatMap(
-          (scene) =>
-            scene.refinedRequiredNamedWorkItemTypes,
-        ))].sort(),
-      omittedOverbroadNamedWorkItemTypes:
-        [...new Set(assetWorkInputBinding.scenes.flatMap(
-          (scene) =>
-            scene.omittedOverbroadNamedWorkItemTypes,
-        ))].sort(),
-    },
-  )
 }
 
 function canonicalTimingHash(

@@ -60,6 +60,24 @@ interface OfflineRemotionFourKDeliveryMasterAuthority {
   allowsAdditionalExportCharge?: false
 }
 
+export interface OfflineRemotionLivingFrameOverlayPlanningPayload {
+  sceneId: string
+  layerId: string
+  manifestOutputKey: string
+  componentOutputKey: string
+  startFrame: number
+  endFrameExclusive: number
+  fit: 'fill'
+  opacity: 1
+}
+
+interface OfflineRemotionLivingFrameOverlayAuthority {
+  livingFrameOverlayPolicy?:
+    'approved_rgba_over_source_below_captions_v1'
+  livingFrameOverlayLayers?:
+    OfflineRemotionLivingFrameOverlayPlanningPayload[]
+}
+
 export interface OfflineRemotionPreviewPlanningPayload extends CommonCompositionPayload {
   frameTemplateId: 'approved_full_panel_v1' | 'approved_lower_panel_v1'
   panelBackground: string
@@ -169,7 +187,7 @@ export interface OfflineRemotionMotionStudioRouteDrawPayload extends OfflineRemo
   keyframeBytesBase64: string
 }
 
-export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority {
+export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority, OfflineRemotionLivingFrameOverlayAuthority {
   compositionProfileId: 'approved_source_caption_final_v1'
   sourceStartFrame: number
   sourceEndFrameExclusive: number
@@ -208,7 +226,7 @@ export interface OfflineRemotionSupplementalAudioTrackPlanningPayload {
     | 'narration_protected_uploaded_sfx_v1'
 }
 
-export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority {
+export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority, OfflineRemotionLivingFrameOverlayAuthority {
   compositionProfileId: 'approved_source_caption_track_final_v1'
   sourceStartFrame: number
   sourceEndFrameExclusive: number
@@ -263,7 +281,8 @@ export type OfflineRemotionSourceSequenceTransitionPlanningAuthority =
 
 interface OfflineRemotionSourceSequenceFinalCompositionPlanningPayloadBase extends
   CommonCompositionPayload,
-  OfflineRemotionFourKDeliveryMasterAuthority {
+  OfflineRemotionFourKDeliveryMasterAuthority,
+  OfflineRemotionLivingFrameOverlayAuthority {
   compositionProfileId: 'approved_source_sequence_caption_final_v1'
   sourceSegments: OfflineRemotionSourceSequenceSegmentPlanningPayload[]
   sourceFit: 'contain'
@@ -282,7 +301,8 @@ export type OfflineRemotionSourceSequenceFinalCompositionPlanningPayload =
 
 interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayloadBase extends
   CommonCompositionPayload,
-  OfflineRemotionFourKDeliveryMasterAuthority {
+  OfflineRemotionFourKDeliveryMasterAuthority,
+  OfflineRemotionLivingFrameOverlayAuthority {
   compositionProfileId: 'approved_source_sequence_caption_track_final_v1'
   sourceSegments: OfflineRemotionSourceSequenceSegmentPlanningPayload[]
   sourceFit: 'contain'
@@ -697,10 +717,17 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     const supplementalAudioProvided =
       Object.hasOwn(raw, 'supplementalAudioPolicy') ||
       Object.hasOwn(raw, 'supplementalAudioTracks')
+    const livingFrameOverlaysProvided =
+      Object.hasOwn(raw, 'livingFrameOverlayPolicy') ||
+      Object.hasOwn(raw, 'livingFrameOverlayLayers')
     if (
       Object.hasOwn(raw, 'supplementalAudioPolicy') !==
       Object.hasOwn(raw, 'supplementalAudioTracks')
     ) throw validationFailure('Supplemental audio policy and tracks must be admitted together.')
+    if (
+      Object.hasOwn(raw, 'livingFrameOverlayPolicy') !==
+      Object.hasOwn(raw, 'livingFrameOverlayLayers')
+    ) throw validationFailure('Living Frame overlay policy and layers must be admitted together.')
     const deliveryMasterAuthorityProvided = Object.hasOwn(raw, 'renderPurpose')
     const boundedSourceTransitions =
       raw.transitionPolicy === 'approved_bounded_source_transitions_v1'
@@ -714,6 +741,9 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
       ...(replaceVoice ? ['voiceTracks'] : []),
       ...(supplementalAudioProvided
         ? ['supplementalAudioPolicy', 'supplementalAudioTracks']
+        : []),
+      ...(livingFrameOverlaysProvided
+        ? ['livingFrameOverlayPolicy', 'livingFrameOverlayLayers']
         : []),
       ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
     ], 'source-sequence final composition planning payload')
@@ -798,6 +828,18 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
             ),
           }
         : {}),
+      ...(livingFrameOverlaysProvided
+        ? {
+            livingFrameOverlayPolicy:
+              'approved_rgba_over_source_below_captions_v1' as const,
+            livingFrameOverlayLayers:
+              livingFrameOverlayPlanningPayloads(
+                payload.livingFrameOverlayPolicy,
+                payload.livingFrameOverlayLayers,
+                common.durationFrames,
+              ),
+          }
+        : {}),
       ...deliveryMasterAuthority,
     } as const
     return captionTrack ? {
@@ -818,10 +860,17 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
   const supplementalAudioProvided =
     Object.hasOwn(raw, 'supplementalAudioPolicy') ||
     Object.hasOwn(raw, 'supplementalAudioTracks')
+  const livingFrameOverlaysProvided =
+    Object.hasOwn(raw, 'livingFrameOverlayPolicy') ||
+    Object.hasOwn(raw, 'livingFrameOverlayLayers')
   if (
     Object.hasOwn(raw, 'supplementalAudioPolicy') !==
     Object.hasOwn(raw, 'supplementalAudioTracks')
   ) throw validationFailure('Supplemental audio policy and tracks must be admitted together.')
+  if (
+    Object.hasOwn(raw, 'livingFrameOverlayPolicy') !==
+    Object.hasOwn(raw, 'livingFrameOverlayLayers')
+  ) throw validationFailure('Living Frame overlay policy and layers must be admitted together.')
   const deliveryMasterAuthorityProvided = Object.hasOwn(raw, 'renderPurpose')
   const payload = exactRecord(value, [
     'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
@@ -832,6 +881,9 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     ...(replaceVoice ? ['voiceTracks'] : []),
     ...(supplementalAudioProvided
       ? ['supplementalAudioPolicy', 'supplementalAudioTracks']
+      : []),
+    ...(livingFrameOverlaysProvided
+      ? ['livingFrameOverlayPolicy', 'livingFrameOverlayLayers']
       : []),
     ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
   ], 'final composition planning payload')
@@ -894,6 +946,18 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
             payload.supplementalAudioTracks,
             common.durationFrames,
           ),
+        }
+      : {}),
+    ...(livingFrameOverlaysProvided
+      ? {
+          livingFrameOverlayPolicy:
+            'approved_rgba_over_source_below_captions_v1' as const,
+          livingFrameOverlayLayers:
+            livingFrameOverlayPlanningPayloads(
+              payload.livingFrameOverlayPolicy,
+              payload.livingFrameOverlayLayers,
+              common.durationFrames,
+            ),
         }
       : {}),
     ...deliveryMasterAuthority,
@@ -1708,6 +1772,108 @@ function captionOverlayCues(
     seen.add(outputKey)
     previousEndFrame = endFrameExclusive
     return { outputKey, startFrame, endFrameExclusive }
+  })
+}
+
+function livingFrameOverlayPlanningPayloads(
+  policy: unknown,
+  value: unknown,
+  durationFrames: number,
+): OfflineRemotionLivingFrameOverlayPlanningPayload[] {
+  if (
+    policy !==
+      'approved_rgba_over_source_below_captions_v1'
+    || !Array.isArray(value)
+    || value.length < 1
+    || value.length > 16
+  ) {
+    throw validationFailure(
+      'Living Frame composition requires one to sixteen approved RGBA overlays.',
+    )
+  }
+  const sceneIds = new Set<string>()
+  const layerIds = new Set<string>()
+  const manifestOutputKeys = new Set<string>()
+  const componentOutputKeys = new Set<string>()
+  let previousStartFrame = -1
+  let previousLayerId = ''
+  return value.map((candidate, index) => {
+    const layer = exactRecord(
+      candidate,
+      [
+        'sceneId',
+        'layerId',
+        'manifestOutputKey',
+        'componentOutputKey',
+        'startFrame',
+        'endFrameExclusive',
+        'fit',
+        'opacity',
+      ],
+      `Living Frame overlay ${index + 1}`,
+    )
+    const sceneId = safeIdentity(
+      layer.sceneId,
+      'Living Frame sceneId',
+    )
+    const layerId = safeIdentity(
+      layer.layerId,
+      'Living Frame layerId',
+    )
+    const manifestOutputKey = safeIdentity(
+      layer.manifestOutputKey,
+      'Living Frame manifestOutputKey',
+    )
+    const componentOutputKey = safeIdentity(
+      layer.componentOutputKey,
+      'Living Frame componentOutputKey',
+    )
+    const startFrame = integer(
+      layer.startFrame,
+      0,
+      durationFrames - 1,
+      'Living Frame startFrame',
+    )
+    const endFrameExclusive = integer(
+      layer.endFrameExclusive,
+      1,
+      durationFrames,
+      'Living Frame endFrameExclusive',
+    )
+    if (
+      endFrameExclusive <= startFrame
+      || layer.fit !== 'fill'
+      || layer.opacity !== 1
+      || sceneIds.has(sceneId)
+      || layerIds.has(layerId)
+      || manifestOutputKeys.has(manifestOutputKey)
+      || componentOutputKeys.has(componentOutputKey)
+      || startFrame < previousStartFrame
+      || (
+        startFrame === previousStartFrame
+        && layerId.localeCompare(previousLayerId) <= 0
+      )
+    ) {
+      throw validationFailure(
+        'Living Frame overlays must be unique, ordered, in bounds, full-frame, and below captions.',
+      )
+    }
+    sceneIds.add(sceneId)
+    layerIds.add(layerId)
+    manifestOutputKeys.add(manifestOutputKey)
+    componentOutputKeys.add(componentOutputKey)
+    previousStartFrame = startFrame
+    previousLayerId = layerId
+    return {
+      sceneId,
+      layerId,
+      manifestOutputKey,
+      componentOutputKey,
+      startFrame,
+      endFrameExclusive,
+      fit: 'fill',
+      opacity: 1,
+    }
   })
 }
 

@@ -16,6 +16,10 @@ import {
   CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION,
   CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS,
   CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION,
+  CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS,
@@ -25,6 +29,7 @@ import {
   type CanonicalLivingFramePendingWorkItem,
   type CanonicalLivingFrameProjectedCanonicalWorkItem,
   type CanonicalLivingFrameRembgGpuMaskWorkItem,
+  type CanonicalLivingFrameRemotionLayerWorkItem,
   type CanonicalLivingFrameSharpComponentWorkItem,
   type CanonicalLivingFrameWorkGraphProjection,
   type CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary,
@@ -73,6 +78,8 @@ const AUTHORITY_BOUNDARY:
       serverDerivedExactSourceFrameOperationAuthority: true,
       serverDerivedRembgGpuMaskOperationAuthority: true,
       serverDerivedSharpComponentOperationAuthority: true,
+      serverDerivedRemotionLayerManifestAuthority: true,
+      serverDerivedFinalCompositionDependencyAuthority: true,
       callerWorkGraphMutationAuthority: false,
       approvedWorkGraphAuthority: false,
       remainingLivingFrameExactToolOperationAuthority: false,
@@ -87,10 +94,8 @@ const AUTHORITY_BOUNDARY:
     })
 
 const BLOCKER_CODES = Object.freeze([
-  'exact_dependency_input_operations_required',
   'artifact_qa_work_items_required',
   'private_review_required',
-  'final_composition_dependency_binding_required',
 ] as const)
 
 export function compileCanonicalLivingFrameWorkGraphProjection(
@@ -138,6 +143,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       CanonicalLivingFrameExactSourceFramePngWorkItem | undefined
     let admittedRembgGpuMaskWorkItem:
       CanonicalLivingFrameRembgGpuMaskWorkItem | undefined
+    let admittedSharpComponentWorkItem:
+      CanonicalLivingFrameSharpComponentWorkItem | undefined
     for (const workRequirement of
       projectedScene.workRequirements) {
       const workInput =
@@ -294,6 +301,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
               line.estimatedCredits,
           })
         workItems.push(sharpComponentWorkItem)
+        admittedSharpComponentWorkItem =
+          sharpComponentWorkItem
         projectedItems.push({
           sceneId: projectedScene.sceneId,
           workItemKey:
@@ -327,6 +336,80 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
           workItemDigestSha256:
             sha256AuthorityValue(
               sharpComponentWorkItem,
+            ),
+        })
+        continue
+      }
+      if (
+        workRequirement.workItemType ===
+          'prepare_remotion_layer'
+      ) {
+        if (!admittedSharpComponentWorkItem) {
+          throw conflict(
+            'Canonical Living Frame Remotion layer requires the already-admitted Sharp RGBA component.',
+          )
+        }
+        const timingScene =
+          input.timingBinding.scenes.find(
+            (scene) =>
+              scene.sceneId === projectedScene.sceneId,
+          )
+        if (!timingScene) {
+          throw conflict(
+            'Canonical Living Frame Remotion layer lost its exact MasterTiming scene.',
+          )
+        }
+        const remotionLayerWorkItem =
+          compileRemotionLayerWorkItem({
+            workRequirement,
+            expectedOutput,
+            sharpComponentWorkItem:
+              admittedSharpComponentWorkItem,
+            selectedSceneBindingDigestSha256:
+              input.publication.binding.bindingDigestSha256,
+            timingBindingDigestSha256:
+              input.timingBinding.timingBindingDigestSha256,
+            startFrame:
+              timingScene.visualTiming.frameRange.startFrame,
+            endFrameExclusive:
+              timingScene.visualTiming.frameRange.endFrameExclusive,
+            outputWidth:
+              input.components.confirmedSettings
+                .outputFrame.width,
+            outputHeight:
+              input.components.confirmedSettings
+                .outputFrame.height,
+            maximumCreditBudget:
+              line.estimatedCredits,
+          })
+        workItems.push(remotionLayerWorkItem)
+        projectedItems.push({
+          sceneId: projectedScene.sceneId,
+          workItemKey:
+            workRequirement.workItemKey,
+          workItemType:
+            workRequirement.workItemType,
+          costOwnerToolId:
+            workRequirement.costOwnerToolId,
+          costOwnerOperationId:
+            workRequirement.costOwnerOperationId,
+          executionPlacement:
+            workRequirement.executionPlacement,
+          cpuFallbackAllowed:
+            workRequirement.cpuFallbackAllowed,
+          inputAssetIntentIds: [
+            ...workRequirement.inputAssetIntentIds,
+          ],
+          outputAssetIntentIds: [
+            ...workRequirement.outputAssetIntentIds,
+          ],
+          sourceFrameInputs: [],
+          dependencyWorkItemKeys: [
+            ...remotionLayerWorkItem.dependencyKeys,
+          ],
+          workItemDigestSha256:
+            sha256AuthorityValue(
+              remotionLayerWorkItem,
             ),
         })
         continue
@@ -471,6 +554,65 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
   assertProjectedWorkGraph(workItems)
   const selectedSceneCount =
     input.publication.binding.selectedSceneCount
+  const remotionLayerWorkItems =
+    workItems.filter(
+      (item): item is CanonicalLivingFrameRemotionLayerWorkItem =>
+        item.workerClass ===
+          CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS,
+    )
+  const finalCompositionBindingDraft =
+    selectedSceneCount === 0
+      ? null
+      : {
+          policy:
+            CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY,
+          requiredFinalWorkItemType:
+            'render_final_export' as const,
+          requiredRemotionOperation:
+            'tool.remotion.render_approved_composition.v1' as const,
+          overlayLayers:
+            remotionLayerWorkItems.map((workItem) => {
+              const payload =
+                workItem.executionInput.structuredPayload
+              return {
+                sceneId: payload.sceneId,
+                layerId: payload.layerId,
+                manifestWorkItemKey:
+                  workItem.workItemKey,
+                manifestOutputKey:
+                  workItem.expectedOutputs[0].outputKey,
+                componentWorkItemKey:
+                  payload.componentDependency.workItemKey,
+                componentOutputKey:
+                  payload.componentDependency.outputKey,
+                startFrame: payload.startFrame,
+                endFrameExclusive:
+                  payload.endFrameExclusive,
+                fit: payload.fit,
+                opacity: payload.opacity,
+              }
+            }),
+          requiredDependencyWorkItemKeys:
+            uniqueSorted(
+              remotionLayerWorkItems.flatMap((workItem) => [
+                workItem.workItemKey,
+                workItem.executionInput.structuredPayload
+                  .componentDependency.workItemKey,
+              ]),
+            ),
+          captionPlaneRemainsAboveLivingFrame:
+            true as const,
+        }
+  const finalCompositionBinding =
+    finalCompositionBindingDraft === null
+      ? null
+      : {
+          ...finalCompositionBindingDraft,
+          bindingDigestSha256:
+            sha256AuthorityValue(
+              finalCompositionBindingDraft,
+            ),
+        }
   const draft:
     CanonicalLivingFrameWorkGraphProjectionDraft = {
       schemaVersion:
@@ -516,6 +658,10 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         ? 'ready_without_living_frame_work_items'
         : workItems.some((item) =>
             item.workerClass ===
+              CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS)
+        ? 'canonical_work_items_projected_remotion_layer_and_final_composition_bound'
+        : workItems.some((item) =>
+            item.workerClass ===
               CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS)
         ? 'canonical_work_items_projected_sharp_component_operation_admitted'
         : workItems.some((item) =>
@@ -529,6 +675,7 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         : 'canonical_work_items_projected_operation_admission_pending',
       projectedItems,
       workItems,
+      finalCompositionBinding,
       blockerCodes: selectedSceneCount === 0
         ? []
         : BLOCKER_CODES,
@@ -550,12 +697,18 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             item.workerClass ===
               CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS)
             .length,
+        admittedRemotionLayerWorkItemCount:
+          remotionLayerWorkItems.length,
+        finalCompositionBindingCount:
+          finalCompositionBinding === null ? 0 : 1,
         executableWorkItemCount:
           workItems.filter((item) =>
             item.workerClass ===
               CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS
             || item.workerClass ===
-              CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS)
+              CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS
+            || item.workerClass ===
+              CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS)
             .length,
         requiredExpectedOutputCount:
           workItems.reduce(
@@ -595,6 +748,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       containsExactSourceFrameExecutablePayload: true,
       containsRembgGpuOperationPayload: true,
       containsSharpComponentOperationPayload: true,
+      containsRemotionLayerManifestPayload: true,
+      containsFinalCompositionDependencyBinding: true,
       expandsExactFiftyToolRegistry: false,
       subjectSpecificRouting: false,
       productionReady: false,
@@ -669,6 +824,149 @@ export function canonicalLivingFrameProjectedWorkItems(
         structuredClone(workItem) as unknown as
           CanonicalWorkItemInput)
     : []
+}
+
+export function bindCanonicalLivingFrameFinalCompositionWorkItems(
+  input: {
+    readonly workItems:
+      readonly CanonicalWorkItemInput[]
+    readonly projection:
+      CanonicalLivingFrameWorkGraphProjection | undefined
+  },
+): CanonicalWorkItemInput[] {
+  const workItems = input.workItems.map((item) =>
+    structuredClone(item))
+  const binding =
+    input.projection?.finalCompositionBinding
+  if (!binding) return workItems
+  const finalIndexes = workItems
+    .map((item, index) =>
+      item.workItemType === 'render_final_export'
+      && item.approvedToolIds.includes('remotion')
+        ? index
+        : -1)
+    .filter((index) => index >= 0)
+  if (finalIndexes.length !== 1) {
+    throw conflict(
+      'Canonical Living Frame final composition requires exactly one existing Remotion final-export work item.',
+    )
+  }
+  const finalIndex = finalIndexes[0]!
+  const finalItem = workItems[finalIndex]!
+  const executionInput =
+    finalItem.executionInput
+  if (!isRecord(executionInput.structuredPayload)) {
+    throw conflict(
+      'Canonical Living Frame final composition requires a structured Remotion payload.',
+    )
+  }
+  const structuredPayload =
+    executionInput.structuredPayload
+  const expectedOutputs =
+    finalItem.expectedOutputs
+  if (
+    executionInput.operation !==
+      'render_approved_source_caption_final'
+    || stableAuthorityStringify(
+      executionInput.approvedToolOperationIds,
+    ) !== stableAuthorityStringify([
+      binding.requiredRemotionOperation,
+    ])
+    || ![
+      'approved_source_caption_final_v1',
+      'approved_source_caption_track_final_v1',
+      'approved_source_sequence_caption_final_v1',
+      'approved_source_sequence_caption_track_final_v1',
+    ].includes(
+      String(structuredPayload.compositionProfileId),
+    )
+    || Object.hasOwn(
+      structuredPayload,
+      'livingFrameOverlayPolicy',
+    )
+    || Object.hasOwn(
+      structuredPayload,
+      'livingFrameOverlayLayers',
+    )
+    || expectedOutputs.length !== 1
+  ) {
+    throw conflict(
+      'Canonical Living Frame final composition cannot mutate an unsupported or already-bound renderer payload.',
+    )
+  }
+  const durationFrames =
+    Number(structuredPayload.durationFrames)
+  if (
+    !Number.isSafeInteger(durationFrames)
+    || binding.overlayLayers.some((layer) =>
+      layer.startFrame < 0
+      || layer.endFrameExclusive <= layer.startFrame
+      || layer.endFrameExclusive > durationFrames)
+  ) {
+    throw conflict(
+      'Canonical Living Frame overlay timing is outside the approved final-composition duration.',
+    )
+  }
+  const output = expectedOutputs[0]!
+  const rendererLayerIds = [
+    ...output.rendererLayerIds,
+  ]
+  const captionIndex = rendererLayerIds.findIndex(
+    (layerId) =>
+      layerId.toLowerCase().includes('caption'),
+  )
+  const insertionIndex =
+    captionIndex < 0
+      ? rendererLayerIds.length
+      : captionIndex
+  rendererLayerIds.splice(
+    insertionIndex,
+    0,
+    ...binding.overlayLayers.map((layer) =>
+      layer.layerId),
+  )
+  if (
+    new Set(rendererLayerIds).size !==
+      rendererLayerIds.length
+  ) {
+    throw conflict(
+      'Canonical Living Frame renderer layer identities collide with the existing final composition.',
+    )
+  }
+  workItems[finalIndex] = {
+    ...finalItem,
+    executionInput: {
+      ...executionInput,
+      structuredPayload: {
+        ...structuredPayload,
+        livingFrameOverlayPolicy:
+          binding.policy,
+        livingFrameOverlayLayers:
+          binding.overlayLayers.map((layer) => ({
+            sceneId: layer.sceneId,
+            layerId: layer.layerId,
+            manifestOutputKey:
+              layer.manifestOutputKey,
+            componentOutputKey:
+              layer.componentOutputKey,
+            startFrame: layer.startFrame,
+            endFrameExclusive:
+              layer.endFrameExclusive,
+            fit: layer.fit,
+            opacity: layer.opacity,
+          })),
+      },
+    },
+    expectedOutputs: [{
+      ...output,
+      rendererLayerIds,
+    }],
+    dependencyKeys: uniqueSorted([
+      ...finalItem.dependencyKeys,
+      ...binding.requiredDependencyWorkItemKeys,
+    ]),
+  } as CanonicalWorkItemInput
+  return workItems
 }
 
 function assertSourceLineage(input: {
@@ -1243,6 +1541,154 @@ function compileSharpComponentWorkItem(input: {
   return workItem
 }
 
+function compileRemotionLayerWorkItem(input: {
+  readonly workRequirement:
+    CanonicalLivingFrameEstimateWorkAssetProjection[
+      'scenes'
+    ][number]['workRequirements'][number]
+  readonly expectedOutput:
+    CanonicalLivingFrameEstimateWorkAssetProjection[
+      'scenes'
+    ][number]['workRequirements'][number]['expectedOutput']
+  readonly sharpComponentWorkItem:
+    CanonicalLivingFrameSharpComponentWorkItem
+  readonly selectedSceneBindingDigestSha256: string
+  readonly timingBindingDigestSha256: string
+  readonly startFrame: number
+  readonly endFrameExclusive: number
+  readonly outputWidth: number
+  readonly outputHeight: number
+  readonly maximumCreditBudget: number
+}): CanonicalLivingFrameRemotionLayerWorkItem {
+  const componentOutput =
+    input.sharpComponentWorkItem.expectedOutputs[0]
+  const layerId =
+    input.expectedOutput.rendererLayerIds[0]
+  if (
+    input.workRequirement.workItemType !==
+      'prepare_remotion_layer'
+    || input.workRequirement.costOwnerToolId !==
+      'remotion'
+    || input.workRequirement.executionPlacement !==
+      'private_render_worker'
+    || !input.workRequirement.cpuFallbackAllowed
+    || input.workRequirement.sourceFrameInputs.length !== 0
+    || input.expectedOutput.artifactType !==
+      'living_frame_remotion_layer_manifest'
+    || input.expectedOutput.contentType !==
+      'application/json'
+    || input.expectedOutput.rendererLayerIds.length !== 1
+    || !layerId
+    || input.workRequirement
+      .dependencyWorkItemKeys.length !== 1
+    || input.workRequirement
+      .dependencyWorkItemKeys[0] !==
+        input.sharpComponentWorkItem.workItemKey
+    || input.startFrame < 0
+    || input.endFrameExclusive <= input.startFrame
+    || !Number.isSafeInteger(input.outputWidth)
+    || !Number.isSafeInteger(input.outputHeight)
+    || input.outputWidth < 1
+    || input.outputHeight < 1
+    || input.outputWidth > 4_096
+    || input.outputHeight > 4_096
+    || !Number.isInteger(input.maximumCreditBudget)
+    || input.maximumCreditBudget <= 0
+  ) {
+    throw conflict(
+      'Canonical Living Frame Remotion layer requires one exact RGBA dependency, MasterTiming range, output frame, and estimate authority.',
+    )
+  }
+  return {
+    workItemKey:
+      input.workRequirement.workItemKey,
+    workItemType: 'prepare_remotion_layer',
+    workerClass:
+      CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS,
+    executionInput: {
+      operation:
+        CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
+      approvedToolOperationIds: [],
+      expectedOutputKeys: [
+        input.expectedOutput.outputKey,
+      ],
+      structuredPayload: {
+        schemaVersion:
+          CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION,
+        selectedSceneBindingDigestSha256:
+          input.selectedSceneBindingDigestSha256,
+        timingBindingDigestSha256:
+          input.timingBindingDigestSha256,
+        sceneId:
+          input.workRequirement.sceneId,
+        layerId,
+        startFrame: input.startFrame,
+        endFrameExclusive:
+          input.endFrameExclusive,
+        outputWidth: input.outputWidth,
+        outputHeight: input.outputHeight,
+        fit: 'fill',
+        opacity: 1,
+        compositionPolicy:
+          CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY,
+        captionPlaneRemainsAboveLivingFrame:
+          true,
+        componentDependency: {
+          workItemKey:
+            input.sharpComponentWorkItem.workItemKey,
+          outputKey:
+            componentOutput.outputKey,
+          artifactType:
+            'living_frame_component_rgba_png',
+          contentType: 'image/png',
+        },
+      },
+    },
+    sourceSequenceItemIds: [
+      ...input.sharpComponentWorkItem
+        .sourceSequenceItemIds,
+    ],
+    sourceCleanupDecisionIds: [
+      ...input.sharpComponentWorkItem
+        .sourceCleanupDecisionIds,
+    ],
+    expectedOutputs: [{
+      outputKey:
+        input.expectedOutput.outputKey,
+      artifactType:
+        'living_frame_remotion_layer_manifest',
+      assetRole: 'processed',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: 'application/json',
+      segmentIds: [
+        ...input.expectedOutput.segmentIds,
+      ],
+      timingIds: [
+        ...input.expectedOutput.timingIds,
+      ],
+      rendererLayerIds: [layerId],
+    }],
+    dependencyKeys: [
+      input.sharpComponentWorkItem.workItemKey,
+    ],
+    approvedToolIds: [],
+    providerExecutionMode: 'none',
+    fallbackPolicy: {
+      policy:
+        'block_final_composition_until_living_frame_component_and_layer_manifest_qa_pass',
+      unapprovedFallbackAllowed: false,
+      finalRenderBlockedWhilePending: true,
+    },
+    maxAttempts: 2,
+    attemptTimeoutSeconds: 300,
+    scheduledDelaySeconds: 0,
+    maximumCreditBudget:
+      input.maximumCreditBudget,
+    required: true,
+  }
+}
+
 function validProjectedWorkItem(
   item: CanonicalLivingFrameProjectedCanonicalWorkItem,
 ): boolean {
@@ -1293,6 +1739,35 @@ function validProjectedWorkItem(
     } catch {
       return false
     }
+  }
+  if (
+    item.workerClass ===
+      CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS
+  ) {
+    const payload =
+      item.executionInput.structuredPayload
+    return (
+      item.workItemType ===
+        'prepare_remotion_layer'
+      && item.approvedToolIds.length === 0
+      && item.executionInput
+        .approvedToolOperationIds.length === 0
+      && item.dependencyKeys.length === 1
+      && item.dependencyKeys[0] ===
+        payload.componentDependency.workItemKey
+      && item.expectedOutputs[0].outputKey ===
+        item.executionInput.expectedOutputKeys[0]
+      && item.expectedOutputs[0]
+        .rendererLayerIds[0] === payload.layerId
+      && payload.startFrame >= 0
+      && payload.endFrameExclusive >
+        payload.startFrame
+      && payload.compositionPolicy ===
+        CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY
+      && payload.captionPlaneRemainsAboveLivingFrame
+      && payload.fit === 'fill'
+      && payload.opacity === 1
+    )
   }
   return (
     item.approvedToolIds.length === 0

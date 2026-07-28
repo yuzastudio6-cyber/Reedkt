@@ -577,12 +577,17 @@ function validateByRunnerFamily(
         payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
         ? sourceCount
         : 0
+      const livingFrameDependencyCount =
+        payload.livingFrameOverlayPolicy ===
+          'approved_rgba_over_source_below_captions_v1'
+          ? (payload.livingFrameOverlayLayers?.length ?? 0) * 2
+          : 0
       requireBinding(workItem, {
         source: sourceCount,
         cleanup: sourceCount,
         dependencies:
           1 + captionCount + voiceTrackCount + supplementalAudioTrackCount +
-          colorSourceCount,
+          colorSourceCount + livingFrameDependencyCount,
       })
       if (compositionChunk) {
         const chunkAuthority = workItem.executionInput.chunkAuthority

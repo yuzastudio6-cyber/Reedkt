@@ -8,7 +8,7 @@ import type {
 } from './living-frame-asset-work-input-binding'
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION =
-  'canonical-living-frame-work-graph-projection-v5' as const
+  'canonical-living-frame-work-graph-projection-v6' as const
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE =
   'canonical_living_frame_work_graph_projection_compiler' as const
@@ -58,12 +58,25 @@ export const CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION =
 export const CANONICAL_LIVING_FRAME_SHARP_COMPONENT_RECIPE =
   'approved_living_frame_alpha_component_v1' as const
 
+export const CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS =
+  'render_planning_worker' as const
+
+export const CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION =
+  'compile_approved_living_frame_remotion_layer_manifest' as const
+
+export const CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION =
+  'canonical-living-frame-remotion-layer-work-input-v1' as const
+
+export const CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY =
+  'approved_rgba_over_source_below_captions_v1' as const
+
 export type CanonicalLivingFrameWorkGraphProjectionReadiness =
   | 'ready_without_living_frame_work_items'
   | 'canonical_work_items_projected_operation_admission_pending'
   | 'canonical_work_items_projected_exact_source_frame_admitted'
   | 'canonical_work_items_projected_rembg_gpu_operation_admitted'
   | 'canonical_work_items_projected_sharp_component_operation_admitted'
+  | 'canonical_work_items_projected_remotion_layer_and_final_composition_bound'
 
 export interface CanonicalLivingFramePendingOperationAuthority {
   readonly schemaVersion:
@@ -351,11 +364,101 @@ export interface CanonicalLivingFrameSharpComponentWorkItem {
   readonly required: true
 }
 
+export interface CanonicalLivingFrameRemotionLayerWorkItem {
+  readonly workItemKey: string
+  readonly workItemType: 'prepare_remotion_layer'
+  readonly workerClass:
+    typeof CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS
+  readonly executionInput: {
+    readonly operation:
+      typeof CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION
+    readonly approvedToolOperationIds: readonly []
+    readonly expectedOutputKeys: readonly [string]
+    readonly structuredPayload: {
+      readonly schemaVersion:
+        typeof CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION
+      readonly selectedSceneBindingDigestSha256: string
+      readonly timingBindingDigestSha256: string
+      readonly sceneId: string
+      readonly layerId: string
+      readonly startFrame: number
+      readonly endFrameExclusive: number
+      readonly outputWidth: number
+      readonly outputHeight: number
+      readonly fit: 'fill'
+      readonly opacity: 1
+      readonly compositionPolicy:
+        typeof CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY
+      readonly captionPlaneRemainsAboveLivingFrame: true
+      readonly componentDependency: {
+        readonly workItemKey: string
+        readonly outputKey: string
+        readonly artifactType: 'living_frame_component_rgba_png'
+        readonly contentType: 'image/png'
+      }
+    }
+  }
+  readonly sourceSequenceItemIds: readonly string[]
+  readonly sourceCleanupDecisionIds: readonly string[]
+  readonly expectedOutputs: readonly [{
+    readonly outputKey: string
+    readonly artifactType: 'living_frame_remotion_layer_manifest'
+    readonly assetRole: 'processed'
+    readonly required: true
+    readonly previewPlaceholderAllowed: false
+    readonly contentType: 'application/json'
+    readonly segmentIds: readonly string[]
+    readonly timingIds: readonly string[]
+    readonly rendererLayerIds: readonly [string]
+  }]
+  readonly dependencyKeys: readonly [string]
+  readonly approvedToolIds: readonly []
+  readonly providerExecutionMode: 'none'
+  readonly fallbackPolicy: {
+    readonly policy:
+      'block_final_composition_until_living_frame_component_and_layer_manifest_qa_pass'
+    readonly unapprovedFallbackAllowed: false
+    readonly finalRenderBlockedWhilePending: true
+  }
+  readonly maxAttempts: 2
+  readonly attemptTimeoutSeconds: 300
+  readonly scheduledDelaySeconds: 0
+  readonly maximumCreditBudget: number
+  readonly required: true
+}
+
 export type CanonicalLivingFrameProjectedCanonicalWorkItem =
   | CanonicalLivingFramePendingWorkItem
   | CanonicalLivingFrameExactSourceFramePngWorkItem
   | CanonicalLivingFrameRembgGpuMaskWorkItem
   | CanonicalLivingFrameSharpComponentWorkItem
+  | CanonicalLivingFrameRemotionLayerWorkItem
+
+export interface CanonicalLivingFrameFinalOverlayLayerBinding {
+  readonly sceneId: string
+  readonly layerId: string
+  readonly manifestWorkItemKey: string
+  readonly manifestOutputKey: string
+  readonly componentWorkItemKey: string
+  readonly componentOutputKey: string
+  readonly startFrame: number
+  readonly endFrameExclusive: number
+  readonly fit: 'fill'
+  readonly opacity: 1
+}
+
+export interface CanonicalLivingFrameFinalCompositionBinding {
+  readonly policy:
+    typeof CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY
+  readonly requiredFinalWorkItemType: 'render_final_export'
+  readonly requiredRemotionOperation:
+    'tool.remotion.render_approved_composition.v1'
+  readonly overlayLayers:
+    readonly CanonicalLivingFrameFinalOverlayLayerBinding[]
+  readonly requiredDependencyWorkItemKeys: readonly string[]
+  readonly captionPlaneRemainsAboveLivingFrame: true
+  readonly bindingDigestSha256: string
+}
 
 export interface CanonicalLivingFrameWorkGraphProjectedItem {
   readonly sceneId: string
@@ -381,6 +484,8 @@ export interface CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary {
   readonly serverDerivedExactSourceFrameOperationAuthority: true
   readonly serverDerivedRembgGpuMaskOperationAuthority: true
   readonly serverDerivedSharpComponentOperationAuthority: true
+  readonly serverDerivedRemotionLayerManifestAuthority: true
+  readonly serverDerivedFinalCompositionDependencyAuthority: true
   readonly callerWorkGraphMutationAuthority: false
   readonly approvedWorkGraphAuthority: false
   readonly remainingLivingFrameExactToolOperationAuthority: false
@@ -422,11 +527,11 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
     readonly CanonicalLivingFrameWorkGraphProjectedItem[]
   readonly workItems:
     readonly CanonicalLivingFrameProjectedCanonicalWorkItem[]
+  readonly finalCompositionBinding:
+    CanonicalLivingFrameFinalCompositionBinding | null
   readonly blockerCodes: readonly [
-    'exact_dependency_input_operations_required',
     'artifact_qa_work_items_required',
     'private_review_required',
-    'final_composition_dependency_binding_required',
   ] | readonly []
   readonly metrics: {
     readonly selectedSceneCount: number
@@ -434,6 +539,8 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
     readonly admittedExactSourceFrameWorkItemCount: number
     readonly admittedRembgGpuMaskWorkItemCount: number
     readonly admittedSharpComponentWorkItemCount: number
+    readonly admittedRemotionLayerWorkItemCount: number
+    readonly finalCompositionBindingCount: number
     readonly executableWorkItemCount: number
     readonly requiredExpectedOutputCount: number
     readonly gpuPendingWorkItemCount: number
@@ -453,6 +560,8 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
   readonly containsExactSourceFrameExecutablePayload: true
   readonly containsRembgGpuOperationPayload: true
   readonly containsSharpComponentOperationPayload: true
+  readonly containsRemotionLayerManifestPayload: true
+  readonly containsFinalCompositionDependencyBinding: true
   readonly expandsExactFiftyToolRegistry: false
   readonly subjectSpecificRouting: false
   readonly productionReady: false

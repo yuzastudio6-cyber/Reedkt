@@ -242,6 +242,18 @@ assert.equal(
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.integratedLufsWithinPolicy, true)
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.truePeakWithinPolicy, true)
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.loudnessRangeWithinPolicy, true)
+assert.equal(
+  voiceDeliveryResult.evidence.semanticEvidence.loudnessDynamicsMeasurementMode,
+  'bounded_max_momentary_under_3s_v1',
+)
+assert.equal(
+  voiceDeliveryResult.evidence.semanticEvidence.loudnessRangePolicyApplied,
+  false,
+)
+assert.equal(
+  voiceDeliveryResult.evidence.semanticEvidence.shortFormDynamicsWithinPolicy,
+  true,
+)
 assert.ok(
   Math.abs(
     Number(voiceDeliveryResult.evidence.semanticEvidence.measuredIntegratedLufs) -
@@ -253,8 +265,8 @@ assert.ok(
     voiceDeliveryRequest.payload.truePeakDbtp + 0.1,
 )
 assert.ok(
-  Number(voiceDeliveryResult.evidence.semanticEvidence.measuredLoudnessRangeLufs) <=
-    voiceDeliveryRequest.payload.loudnessRangeLufs,
+  Number(voiceDeliveryResult.evidence.semanticEvidence.measuredMaximumMomentaryLufs) <=
+    Number(voiceDeliveryResult.evidence.semanticEvidence.maximumShortFormLoudnessLufs),
 )
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.outputProbeVerified, true)
 const voiceDeliveryReplay = await runtime.execute(voiceDeliveryRequest)
@@ -303,6 +315,53 @@ assert.equal(
 )
 assert.equal(
   streamedVoiceDelivery.evidence.semanticEvidence.outputWholeBufferAvoided,
+  true,
+)
+const shortFormFixturePath = join(
+  '/tmp',
+  `reeditpro-offline-voice-short-form-${process.pid}.mp4`,
+)
+const generatedShortFormVoice = spawnSync('ffmpeg', [
+  '-hide_banner', '-loglevel', 'error',
+  '-f', 'lavfi', '-i', 'color=c=black:s=180x320:r=12:d=3',
+  '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=3',
+  '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'mpeg4', '-pix_fmt', 'yuv420p',
+  '-c:a', 'aac', '-b:a', '64k', '-movflags', '+faststart', '-shortest',
+  '-threads', '1', '-y', shortFormFixturePath,
+], { encoding: 'utf8' })
+assert.equal(generatedShortFormVoice.status, 0, generatedShortFormVoice.stderr)
+const shortFormVoiceBytes = await readFile(shortFormFixturePath)
+await rm(shortFormFixturePath, { force: true })
+const shortFormVoiceResult = await runtime.execute({
+  ...voiceDeliveryRequest,
+  payload: {
+    ...voiceDeliveryRequest.payload,
+    trimStartFrame: 0,
+    trimEndFrameExclusive: 90,
+    frameRate: 30 as const,
+    sourceByteLength: shortFormVoiceBytes.byteLength,
+    sourceSha256: hashBytes(shortFormVoiceBytes),
+    sourceBytesBase64: shortFormVoiceBytes.toString('base64'),
+  },
+})
+assert.equal(
+  shortFormVoiceResult.evidence.semanticEvidence.loudnessDynamicsMeasurementMode,
+  'ebu_r128_s1_max_short_term_v1',
+)
+assert.equal(
+  shortFormVoiceResult.evidence.semanticEvidence.loudnessRangePolicyApplied,
+  false,
+)
+assert.ok(
+  Number(shortFormVoiceResult.evidence.semanticEvidence.measuredLoudnessRangeLufs) >
+    voiceDeliveryRequest.payload.loudnessRangeLufs,
+)
+assert.ok(
+  Number(shortFormVoiceResult.evidence.semanticEvidence.measuredMaximumShortTermLufs) <=
+    Number(shortFormVoiceResult.evidence.semanticEvidence.maximumShortFormLoudnessLufs),
+)
+assert.equal(
+  shortFormVoiceResult.evidence.semanticEvidence.shortFormDynamicsWithinPolicy,
   true,
 )
 const silentVoiceFixturePath = join(

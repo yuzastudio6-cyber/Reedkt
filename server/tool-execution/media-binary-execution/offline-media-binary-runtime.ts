@@ -4419,6 +4419,7 @@ async function executeFfmpegRequest(
             maximumLoudnessRangeLufs:
               voiceDeliveryPayload?.loudnessRangeLufs ??
               editBriefAudioPayload!.loudnessRangeLufs,
+            programmeDurationSeconds: wave!.durationSeconds,
           },
           resourceObservations,
         )
@@ -4587,6 +4588,18 @@ async function executeFfmpegRequest(
                   voiceDeliveryLoudnessQa!.measuredTruePeakDbfs,
                 measuredLoudnessRangeLufs:
                   voiceDeliveryLoudnessQa!.measuredLoudnessRangeLufs,
+                loudnessDynamicsMeasurementMode:
+                  voiceDeliveryLoudnessQa!.loudnessDynamicsMeasurementMode,
+                loudnessRangePolicyApplied:
+                  voiceDeliveryLoudnessQa!.loudnessRangePolicyApplied,
+                measuredMaximumShortTermLufs:
+                  voiceDeliveryLoudnessQa!.measuredMaximumShortTermLufs,
+                measuredMaximumMomentaryLufs:
+                  voiceDeliveryLoudnessQa!.measuredMaximumMomentaryLufs,
+                maximumShortFormLoudnessLufs:
+                  voiceDeliveryLoudnessQa!.maximumShortFormLoudnessLufs,
+                shortFormDynamicsWithinPolicy:
+                  voiceDeliveryLoudnessQa!.shortFormDynamicsWithinPolicy,
                 sourceVideoRemoved: true,
                 outputDeliveryMode: outputSink
                   ? 'server_committed_private_stream_v1'
@@ -4632,6 +4645,18 @@ async function executeFfmpegRequest(
                     voiceDeliveryLoudnessQa!.measuredTruePeakDbfs,
                   measuredLoudnessRangeLufs:
                     voiceDeliveryLoudnessQa!.measuredLoudnessRangeLufs,
+                  loudnessDynamicsMeasurementMode:
+                    voiceDeliveryLoudnessQa!.loudnessDynamicsMeasurementMode,
+                  loudnessRangePolicyApplied:
+                    voiceDeliveryLoudnessQa!.loudnessRangePolicyApplied,
+                  measuredMaximumShortTermLufs:
+                    voiceDeliveryLoudnessQa!.measuredMaximumShortTermLufs,
+                  measuredMaximumMomentaryLufs:
+                    voiceDeliveryLoudnessQa!.measuredMaximumMomentaryLufs,
+                  maximumShortFormLoudnessLufs:
+                    voiceDeliveryLoudnessQa!.maximumShortFormLoudnessLufs,
+                  shortFormDynamicsWithinPolicy:
+                    voiceDeliveryLoudnessQa!.shortFormDynamicsWithinPolicy,
                   outputDeliveryMode: outputSink
                     ? 'server_committed_private_stream_v1'
                     : 'bounded_legacy_buffer_v1',
@@ -6240,6 +6265,7 @@ async function measureFfmpegVoiceDeliveryOutput(
     targetIntegratedLufs: number
     maximumTruePeakDbtp: number
     maximumLoudnessRangeLufs: number
+    programmeDurationSeconds: number
   },
   resourceObservations: PrivateEmbeddedProcessResourceObservation[],
 ) {
@@ -6293,6 +6319,31 @@ async function measureFfmpegVoiceDeliveryOutput(
     const measured = parseEbur128Metrics(observedExecution.sanitizedStderr)
     const integratedLufsTolerance = 1.5
     const truePeakQuantizationToleranceDb = 0.1
+    const loudnessRangeStableAfterSeconds = 60
+    const shortTermWindowSeconds = 3
+    const shortFormMaximumRelativeLoudnessLu = 5
+    const shortFormMeasurementToleranceLu = 0.2
+    const maximumShortFormLoudnessLufs =
+      policy.targetIntegratedLufs +
+      shortFormMaximumRelativeLoudnessLu +
+      shortFormMeasurementToleranceLu
+    const loudnessDynamicsMeasurementMode =
+      policy.programmeDurationSeconds >= loudnessRangeStableAfterSeconds
+        ? 'ebu_lra_v1'
+        : policy.programmeDurationSeconds >= shortTermWindowSeconds &&
+            measured.maximumShortTermLufs !== null
+          ? 'ebu_r128_s1_max_short_term_v1'
+          : 'bounded_max_momentary_under_3s_v1'
+    const loudnessRangePolicyApplied =
+      loudnessDynamicsMeasurementMode === 'ebu_lra_v1'
+    const measuredShortFormLoudnessLufs =
+      loudnessDynamicsMeasurementMode ===
+        'ebu_r128_s1_max_short_term_v1'
+        ? measured.maximumShortTermLufs
+        : loudnessDynamicsMeasurementMode ===
+            'bounded_max_momentary_under_3s_v1'
+          ? measured.maximumMomentaryLufs
+          : null
     const integratedLufsWithinPolicy =
       Math.abs(measured.integratedLufs - policy.targetIntegratedLufs) <=
         integratedLufsTolerance
@@ -6300,17 +6351,27 @@ async function measureFfmpegVoiceDeliveryOutput(
       measured.truePeakDbfs <=
         policy.maximumTruePeakDbtp + truePeakQuantizationToleranceDb
     const loudnessRangeWithinPolicy =
+      !loudnessRangePolicyApplied ||
       measured.loudnessRangeLu <= policy.maximumLoudnessRangeLufs
+    const shortFormDynamicsWithinPolicy =
+      loudnessRangePolicyApplied ||
+      measuredShortFormLoudnessLufs !== null &&
+      measuredShortFormLoudnessLufs <= maximumShortFormLoudnessLufs
     if (
       !integratedLufsWithinPolicy || !truePeakWithinPolicy ||
-      !loudnessRangeWithinPolicy
+      !loudnessRangeWithinPolicy || !shortFormDynamicsWithinPolicy
     ) throw unavailable(
       'Approved voice-delivery output failed measured loudness policy ' +
       `(integrated=${measured.integratedLufs};target=${policy.targetIntegratedLufs};` +
       `tolerance=${integratedLufsTolerance};truePeak=${measured.truePeakDbfs};` +
       `maximumTruePeak=${policy.maximumTruePeakDbtp};` +
       `loudnessRange=${measured.loudnessRangeLu};` +
-      `maximumLoudnessRange=${policy.maximumLoudnessRangeLufs}).`,
+      `maximumLoudnessRange=${policy.maximumLoudnessRangeLufs};` +
+      `programmeDuration=${policy.programmeDurationSeconds};` +
+      `dynamicsMode=${loudnessDynamicsMeasurementMode};` +
+      `maximumShortTerm=${String(measured.maximumShortTermLufs)};` +
+      `maximumMomentary=${String(measured.maximumMomentaryLufs)};` +
+      `maximumShortForm=${maximumShortFormLoudnessLufs}).`,
     )
     return Object.freeze({
       measurementProfileId: policy.measurementProfileId,
@@ -6325,6 +6386,16 @@ async function measureFfmpegVoiceDeliveryOutput(
       measuredLoudnessRangeLufs: measured.loudnessRangeLu,
       maximumLoudnessRangeLufs: policy.maximumLoudnessRangeLufs,
       loudnessRangeWithinPolicy: true as const,
+      programmeDurationSeconds: policy.programmeDurationSeconds,
+      loudnessDynamicsMeasurementMode,
+      loudnessRangeStableAfterSeconds,
+      loudnessRangePolicyApplied,
+      measuredMaximumShortTermLufs: measured.maximumShortTermLufs,
+      measuredMaximumMomentaryLufs: measured.maximumMomentaryLufs,
+      maximumShortFormLoudnessLufs: loudnessRangePolicyApplied
+        ? null
+        : maximumShortFormLoudnessLufs,
+      shortFormDynamicsWithinPolicy: true as const,
       diagnosticSha256: sha256(observedExecution.sanitizedStderr),
       diagnosticByteLength: observedExecution.sanitizedStderr.byteLength,
       confinement,
@@ -6862,6 +6933,8 @@ function parseEbur128Metrics(bytes: Buffer): {
   integratedLufs: number
   loudnessRangeLu: number
   truePeakDbfs: number
+  maximumMomentaryLufs: number | null
+  maximumShortTermLufs: number | null
 } {
   const text = bytes.toString('utf8')
   const summaryIndex = text.lastIndexOf('Summary:')
@@ -6873,6 +6946,26 @@ function parseEbur128Metrics(bytes: Buffer): {
   const integratedLufs = Number(integrated?.[1])
   const loudnessRangeLu = Number(loudnessRange?.[1])
   const truePeakDbfs = Number(truePeak?.[1])
+  const momentaryReadings: number[] = []
+  const shortTermReadings: number[] = []
+  const periodicReading =
+    /\bM:\s*(-?\d+(?:\.\d+)?)\s+S:\s*(-?\d+(?:\.\d+)?)/g
+  for (const reading of text.matchAll(periodicReading)) {
+    const momentary = Number(reading[1])
+    const shortTerm = Number(reading[2])
+    if (Number.isFinite(momentary) && momentary > -70 && momentary <= 0) {
+      momentaryReadings.push(momentary)
+    }
+    if (Number.isFinite(shortTerm) && shortTerm > -70 && shortTerm <= 0) {
+      shortTermReadings.push(shortTerm)
+    }
+  }
+  const maximumMomentaryLufs = momentaryReadings.length > 0
+    ? rounded(Math.max(...momentaryReadings))
+    : null
+  const maximumShortTermLufs = shortTermReadings.length > 0
+    ? rounded(Math.max(...shortTermReadings))
+    : null
   if (
     !Number.isFinite(integratedLufs) || integratedLufs < -70 || integratedLufs > 0 ||
     !Number.isFinite(loudnessRangeLu) || loudnessRangeLu < 0 || loudnessRangeLu > 100 ||
@@ -6882,6 +6975,8 @@ function parseEbur128Metrics(bytes: Buffer): {
     integratedLufs: rounded(integratedLufs),
     loudnessRangeLu: rounded(loudnessRangeLu),
     truePeakDbfs: rounded(truePeakDbfs),
+    maximumMomentaryLufs,
+    maximumShortTermLufs,
   }
 }
 

@@ -2759,3 +2759,25 @@ exact L4 runtime, immutable model artifact, operation adapter, and artifact QA
 evidence are qualified. Contract admission does not authorize dispatch,
 provider calls, runtime downloads, customer charging, rendering, or
 production.
+
+### Canonical private-review trace
+
+The existing canonical private-review assembly remains the sole review
+authority. When its approved final Remotion work item contains Living Frame
+overlays, it now derives one optional, checksum-protected Living Frame
+composition evidence block from the immutable approved work graph and the
+server-selected artifact/QA aggregate.
+
+Each reviewed overlay must resolve to exactly one approved tool-free layer
+manifest and one approved Sharp RGBA component. Both artifacts must have
+passed canonical private QA and reconciliation, the manifest must depend on
+that component, the final work item must depend on both, the final renderer
+layer must remain below captions, and the final MP4 must retain its verified
+Remotion runner and render-preflight evidence hashes. Any missing, ambiguous,
+placeholder, failed, unreconciled, or reordered dependency fails closed.
+
+This closes the trace from selected scene through generated asset, alpha
+processing, renderer-layer manifest, final Remotion composition, and private
+review without creating another snapshot, manifest, QA gate, review system,
+or timing authority. It does not open public delivery, further rendering,
+customer charging, or production.

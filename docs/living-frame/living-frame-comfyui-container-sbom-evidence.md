@@ -4,7 +4,7 @@ Status:
 `controlled_non_promotable_image_derived_spdx_package_inventory`
 
 Contract:
-`living-frame-comfyui-container-sbom-evidence-v1`
+`living-frame-comfyui-container-sbom-evidence-v2`
 
 ## Outcome
 
@@ -23,6 +23,14 @@ locked wheel identities, and projects a deterministic SPDX document. The
 document is returned only through a process-bound, single-use byte lease. The
 serializable evidence contains only counts, digests, fixed revisions, policy
 findings, and closed authority flags.
+
+Version 2 also measures the inherited direct-VCS distribution and the exact
+candidate runtime source surface. It proves that `sam-2` is reachable under
+Python isolated mode, records its installed metadata and file-set digest, and
+hashes 1,582 relevant text-source files from pinned ComfyUI plus the two
+whitelisted extensions. The static token-reference count is zero. The
+contract deliberately keeps `runtimeNonUseClaimed = false`: static absence
+cannot prove that a reachable Python package is never imported dynamically.
 
 The current exact observation is:
 
@@ -55,6 +63,19 @@ alone could not prove:
    VCS distribution, normalized as `sam-2`, at revision
    `2b90b9f5ceec907a1c18123530e92e794ad901a4`.
 
+The package identifies itself as version `1.0` with `Apache 2.0` license
+metadata, 114 installed files, and file-list digest
+`e0056305b664ab9f54cf1b4a7f5886a6bcacb389195fe8f1c07aee3547b8e468`.
+It is importable under `python3 -I`. The scanned ComfyUI/custom-node corpus has
+digest
+`d5aff280a7d5867c4be0c96023513ee0fd96eca266b82c40df397d01c83e3efa`
+and zero static `sam2` references.
+
+Those facts narrow the risk but do not close it. Package metadata is not a
+ReeditPro legal approval, and a static source scan is not runtime import
+evidence. Removal from the released operation environment or an explicit
+security/license/runtime disposition remains required.
+
 The SPDX projection deliberately removes the original installation paths and
 repository URL. It preserves the normalized package identity and revision so
 security, license, and image-scope reviewers can make a disposition.
@@ -73,6 +94,9 @@ This contract proves:
 - stable Debian and Python package-manager inventories;
 - the exact locked-wheel set inside the installed environment;
 - the three pinned source archive revisions;
+- isolated-mode reachability and installed metadata for the inherited
+  direct-VCS distribution;
+- the exact scanned runtime-source corpus and absence of static references;
 - a sanitized deterministic SPDX 2.3 package document; and
 - single-use document delivery.
 
@@ -84,6 +108,9 @@ It does not prove:
 - image signature;
 - SLSA or other provenance attestation;
 - package or model commercial-use approval;
+- legal approval of self-declared package-license metadata;
+- runtime non-use of a reachable distribution;
+- absence of dynamic imports outside the measured static source surface;
 - L4 compatibility;
 - canonical operation registration;
 - private dispatch;
@@ -103,7 +130,9 @@ Before the image can be admitted:
 1. Implement and independently attest either a released-image default
    UID/GID `65532:65532` or the exact mandatory platform override now frozen
    by the canonical mounted-runner confinement requirement.
-2. Review or remove the inherited out-of-scope VCS distribution.
+2. Remove the inherited out-of-scope VCS distribution from the released
+   operation environment or record an explicit security, license, and runtime
+   disposition supported by stronger import/runtime evidence.
 3. Review the complete inherited Debian and Python dependency surface.
 4. Validate the generated SPDX document independently.
 5. Run an approved vulnerability scanner and record dispositions.

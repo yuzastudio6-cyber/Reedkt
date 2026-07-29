@@ -1,6 +1,6 @@
 export const
 LIVING_FRAME_COMFYUI_CONTAINER_SBOM_EVIDENCE_VERSION =
-  'living-frame-comfyui-container-sbom-evidence-v1' as const
+  'living-frame-comfyui-container-sbom-evidence-v2' as const
 
 export const
 LIVING_FRAME_COMFYUI_CONTAINER_SBOM_EVIDENCE_CLASS =
@@ -8,7 +8,7 @@ LIVING_FRAME_COMFYUI_CONTAINER_SBOM_EVIDENCE_CLASS =
 
 export const
 LIVING_FRAME_COMFYUI_CONTAINER_SBOM_EVIDENCE_STATE =
-  'exact_local_image_inventory_with_release_policy_failures' as const
+  'exact_local_image_inventory_with_reachable_direct_vcs_release_failure' as const
 
 export const
 LIVING_FRAME_COMFYUI_CONTAINER_SBOM_OPEN_GATES = [
@@ -29,6 +29,8 @@ export type LivingFrameComfyUiContainerSbomOpenGate =
 export interface LivingFrameComfyUiContainerSbomAuthority {
   readonly controlledImageInventoryAuthority: true
   readonly boundedSpdxProjectionAuthority: true
+  readonly controlledDirectVcsReachabilityAuthority: true
+  readonly controlledStaticRuntimeSourceScanAuthority: true
   readonly canonicalImageAuthority: false
   readonly canonicalArtifactRepositoryAuthority: false
   readonly vulnerabilityScanAuthority: false
@@ -122,6 +124,27 @@ export interface LivingFrameComfyUiContainerSbomEvidenceDraft {
       readonly ['sam-2']
     readonly outOfScopeDirectVcsDistributionCount: 1
     readonly rawPathUrlCredentialSecretOrPackageBytesIncluded: false
+  }
+  readonly directVcsDispositionEvidence: {
+    readonly distributionCode: 'sam-2'
+    readonly distributionVersion: '1.0'
+    readonly sourceRevision:
+      '2b90b9f5ceec907a1c18123530e92e794ad901a4'
+    readonly metadataLicense: 'Apache 2.0'
+    readonly metadataLicenseExpression: null
+    readonly isolatedImportReachable: true
+    readonly installedFileCount: 114
+    readonly installedFileListSha256: string
+    readonly scannedRuntimeSourceClass:
+      'exact_local_candidate_comfyui_and_whitelisted_extensions'
+    readonly scannedTextSourceFileCount: 1_582
+    readonly scannedTextSourceCorpusSha256: string
+    readonly staticReferenceCount: 0
+    readonly staticReferenceAbsenceObserved: true
+    readonly runtimeNonUseClaimed: false
+    readonly licenseApprovalClaimed: false
+    readonly removalOrExplicitDispositionRequired: true
+    readonly rawPathUrlCredentialSecretOrSourceBytesIncluded: false
   }
   readonly releasePolicy: {
     readonly packageInventoryAvailableForReview: true

@@ -29,6 +29,10 @@ const EXPECTED_PYTHON_DISTRIBUTION_COUNT = 168
 const EXPECTED_DIRECT_VCS_CODE = 'sam-2'
 const EXPECTED_DIRECT_VCS_REVISION =
   '2b90b9f5ceec907a1c18123530e92e794ad901a4'
+const EXPECTED_DIRECT_VCS_INSTALLED_FILE_LIST_SHA256 =
+  'e0056305b664ab9f54cf1b4a7f5886a6bcacb389195fe8f1c07aee3547b8e468'
+const EXPECTED_RUNTIME_SOURCE_CORPUS_SHA256 =
+  'd5aff280a7d5867c4be0c96023513ee0fd96eca266b82c40df397d01c83e3efa'
 const SPDX_CREATED_AT = '2026-07-28T18:45:28Z'
 
 export interface LivingFrameComfyUiObservedDebianPackage {
@@ -61,6 +65,23 @@ export interface LivingFrameComfyUiContainerInventoryObservation {
     readonly comfyUiRevision: string
     readonly genericIpAdapterRevision: string
     readonly controlNetAuxRevision: string
+  }
+  readonly directVcsDispositionObservation: {
+    readonly distributionCode: 'sam-2'
+    readonly distributionVersion: '1.0'
+    readonly sourceRevision:
+      '2b90b9f5ceec907a1c18123530e92e794ad901a4'
+    readonly metadataLicense: 'Apache 2.0'
+    readonly metadataLicenseExpression: null
+    readonly isolatedImportReachable: true
+    readonly installedFileCount: 114
+    readonly installedFileListSha256: string
+    readonly scannedRuntimeSourceClass:
+      'exact_local_candidate_comfyui_and_whitelisted_extensions'
+    readonly scannedTextSourceFileCount: 1_582
+    readonly scannedTextSourceCorpusSha256: string
+    readonly staticReferenceCount: 0
+    readonly rawPathUrlCredentialSecretOrSourceBytesIncluded: false
   }
   readonly debianPackages:
     readonly LivingFrameComfyUiObservedDebianPackage[]
@@ -97,6 +118,8 @@ const AUTHORITY_BOUNDARY:
   deepFreeze({
     controlledImageInventoryAuthority: true,
     boundedSpdxProjectionAuthority: true,
+    controlledDirectVcsReachabilityAuthority: true,
+    controlledStaticRuntimeSourceScanAuthority: true,
     canonicalImageAuthority: false,
     canonicalArtifactRepositoryAuthority: false,
     vulnerabilityScanAuthority: false,
@@ -298,6 +321,13 @@ export async function createLivingFrameComfyUiContainerSbomEvidence(
         rawPathUrlCredentialSecretOrPackageBytesIncluded:
           false,
       },
+      directVcsDispositionEvidence: {
+        ...first.directVcsDispositionObservation,
+        staticReferenceAbsenceObserved: true,
+        runtimeNonUseClaimed: false,
+        licenseApprovalClaimed: false,
+        removalOrExplicitDispositionRequired: true,
+      },
       releasePolicy: {
         packageInventoryAvailableForReview: true,
         independentSbomValidationPassed: false,
@@ -397,6 +427,7 @@ function hasExpectedEvidenceSemantics(
   const image = value.imageObservation
   const source = value.sourceBinding
   const inventory = value.packageInventory
+  const directVcs = value.directVcsDispositionEvidence
   const release = value.releasePolicy
   if (
     value.contractVersion !==
@@ -410,6 +441,7 @@ function hasExpectedEvidenceSemantics(
     || !isRecord(image)
     || !isRecord(source)
     || !isRecord(inventory)
+    || !isRecord(directVcs)
     || !isRecord(release)
   ) return false
   const revisions = Object.fromEntries(
@@ -490,6 +522,27 @@ function hasExpectedEvidenceSemantics(
     && inventory.outOfScopeDirectVcsDistributionCount === 1
     && inventory.rawPathUrlCredentialSecretOrPackageBytesIncluded ===
       false
+    && directVcs.distributionCode === EXPECTED_DIRECT_VCS_CODE
+    && directVcs.distributionVersion === '1.0'
+    && directVcs.sourceRevision === EXPECTED_DIRECT_VCS_REVISION
+    && directVcs.metadataLicense === 'Apache 2.0'
+    && directVcs.metadataLicenseExpression === null
+    && directVcs.isolatedImportReachable === true
+    && directVcs.installedFileCount === 114
+    && directVcs.installedFileListSha256 ===
+      EXPECTED_DIRECT_VCS_INSTALLED_FILE_LIST_SHA256
+    && directVcs.scannedRuntimeSourceClass ===
+      'exact_local_candidate_comfyui_and_whitelisted_extensions'
+    && directVcs.scannedTextSourceFileCount === 1_582
+    && directVcs.scannedTextSourceCorpusSha256 ===
+      EXPECTED_RUNTIME_SOURCE_CORPUS_SHA256
+    && directVcs.staticReferenceCount === 0
+    && directVcs.staticReferenceAbsenceObserved === true
+    && directVcs.runtimeNonUseClaimed === false
+    && directVcs.licenseApprovalClaimed === false
+    && directVcs.removalOrExplicitDispositionRequired === true
+    && directVcs.rawPathUrlCredentialSecretOrSourceBytesIncluded ===
+      false
     && release.packageInventoryAvailableForReview === true
     && release.independentSbomValidationPassed === false
     && release.vulnerabilityDispositionPassed === false
@@ -549,8 +602,42 @@ function validateObservation(
     '$.inventoryReader.image',
   )
   validateLabels(value.labels)
+  validateDirectVcsDispositionObservation(
+    value.directVcsDispositionObservation,
+  )
   validateDebianPackages(value.debianPackages)
   validatePythonDistributions(value.pythonDistributions)
+}
+
+function validateDirectVcsDispositionObservation(
+  value:
+    LivingFrameComfyUiContainerInventoryObservation[
+      'directVcsDispositionObservation'
+    ],
+): void {
+  if (
+    !isRecord(value)
+    || value.distributionCode !== EXPECTED_DIRECT_VCS_CODE
+    || value.distributionVersion !== '1.0'
+    || value.sourceRevision !== EXPECTED_DIRECT_VCS_REVISION
+    || value.metadataLicense !== 'Apache 2.0'
+    || value.metadataLicenseExpression !== null
+    || value.isolatedImportReachable !== true
+    || value.installedFileCount !== 114
+    || value.installedFileListSha256 !==
+      EXPECTED_DIRECT_VCS_INSTALLED_FILE_LIST_SHA256
+    || value.scannedRuntimeSourceClass !==
+      'exact_local_candidate_comfyui_and_whitelisted_extensions'
+    || value.scannedTextSourceFileCount !== 1_582
+    || value.scannedTextSourceCorpusSha256 !==
+      EXPECTED_RUNTIME_SOURCE_CORPUS_SHA256
+    || value.staticReferenceCount !== 0
+    || value.rawPathUrlCredentialSecretOrSourceBytesIncluded !==
+      false
+  ) throw issue(
+    'source_revision_set_mismatch',
+    '$.inventoryReader.directVcsDispositionObservation',
+  )
 }
 
 function validateLabels(

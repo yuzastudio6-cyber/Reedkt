@@ -23,6 +23,83 @@ const IMAGE =
   process.env.REEDITPRO_LIVING_FRAME_COMFYUI_IMAGE
   ?? 'reeditpro-living-frame-comfyui-locked-candidate:local'
 
+const DIRECT_VCS_DISPOSITION_OBSERVATION_COMMAND = String.raw`
+python3 -I - <<'PY'
+from importlib import metadata
+from pathlib import Path
+import hashlib, json, re
+
+distribution = metadata.distribution("SAM-2")
+metadata_record = distribution.metadata
+installed_files = sorted(
+    str(path) for path in (distribution.files or ())
+)
+import_reachable = False
+try:
+    import sam2
+    import_reachable = sam2 is not None
+except Exception:
+    import_reachable = False
+
+root = Path("/opt/ComfyUI")
+allowed_suffixes = {
+    ".py", ".json", ".toml", ".txt", ".yaml", ".yml"
+}
+excluded_prefixes = (
+    ".git/", ".github/", ".ci/", "web/",
+    "input/", "output/", "models/"
+)
+corpus = hashlib.sha256()
+scanned_files = 0
+static_references = 0
+for path in sorted(root.rglob("*")):
+    if (
+        not path.is_file()
+        or path.suffix.lower() not in allowed_suffixes
+    ):
+        continue
+    relative_path = path.relative_to(root).as_posix()
+    if relative_path.startswith(excluded_prefixes):
+        continue
+    source_bytes = path.read_bytes()
+    scanned_files += 1
+    corpus.update(relative_path.encode())
+    corpus.update(b"\0")
+    corpus.update(hashlib.sha256(source_bytes).digest())
+    corpus.update(b"\n")
+    source_text = source_bytes.decode("utf-8", errors="ignore")
+    static_references += sum(
+        1
+        for line in source_text.splitlines()
+        if re.search(
+            r"(?i)(?:^|[^a-z0-9_])sam[-_]?2(?:[^a-z0-9_]|$)",
+            line,
+        )
+    )
+
+print(json.dumps({
+    "distributionCode": "sam-2",
+    "distributionVersion": metadata_record.get("Version"),
+    "sourceRevision":
+        "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+    "metadataLicense": metadata_record.get("License"),
+    "metadataLicenseExpression":
+        metadata_record.get("License-Expression"),
+    "isolatedImportReachable": import_reachable,
+    "installedFileCount": len(installed_files),
+    "installedFileListSha256": hashlib.sha256(
+        "\n".join(installed_files).encode()
+    ).hexdigest(),
+    "scannedRuntimeSourceClass":
+        "exact_local_candidate_comfyui_and_whitelisted_extensions",
+    "scannedTextSourceFileCount": scanned_files,
+    "scannedTextSourceCorpusSha256": corpus.hexdigest(),
+    "staticReferenceCount": static_references,
+    "rawPathUrlCredentialSecretOrSourceBytesIncluded": False,
+}, sort_keys=True))
+PY
+`
+
 if (!imageAvailable()) {
   console.log(JSON.stringify({
     suite:
@@ -79,6 +156,26 @@ assert.deepEqual(
   ['sam-2'],
 )
 assert.equal(
+  result.evidence.directVcsDispositionEvidence
+    .isolatedImportReachable,
+  true,
+)
+assert.equal(
+  result.evidence.directVcsDispositionEvidence
+    .staticReferenceCount,
+  0,
+)
+assert.equal(
+  result.evidence.directVcsDispositionEvidence
+    .runtimeNonUseClaimed,
+  false,
+)
+assert.equal(
+  result.evidence.directVcsDispositionEvidence
+    .removalOrExplicitDispositionRequired,
+  true,
+)
+assert.equal(
   result.evidence.imageObservation.imageDefaultUser,
   'root_or_unspecified',
 )
@@ -107,6 +204,23 @@ assert.equal(
     ...forgedReleasePolicyDraft,
     evidenceDigestSha256: sha256(
       canonicalJson(forgedReleasePolicyDraft),
+    ),
+  }),
+  false,
+)
+const forgedRuntimeNonUseDraft = {
+  ...validDraft,
+  directVcsDispositionEvidence: {
+    ...validDraft.directVcsDispositionEvidence,
+    runtimeNonUseClaimed: true,
+    removalOrExplicitDispositionRequired: false,
+  },
+}
+assert.equal(
+  verifyLivingFrameComfyUiContainerSbomEvidence({
+    ...forgedRuntimeNonUseDraft,
+    evidenceDigestSha256: sha256(
+      canonicalJson(forgedRuntimeNonUseDraft),
     ),
   }),
   false,
@@ -233,6 +347,15 @@ console.log(JSON.stringify({
   outOfScopeDirectVcsDistributionCodes:
     result.evidence.packageInventory
       .outOfScopeDirectVcsDistributionCodes,
+  directVcsIsolatedImportReachable:
+    result.evidence.directVcsDispositionEvidence
+      .isolatedImportReachable,
+  directVcsStaticRuntimeReferenceCount:
+    result.evidence.directVcsDispositionEvidence
+      .staticReferenceCount,
+  directVcsRuntimeNonUseClaimed:
+    result.evidence.directVcsDispositionEvidence
+      .runtimeNonUseClaimed,
   defaultNonRootPassed:
     result.evidence.releasePolicy.defaultNonRootPassed,
   releasePolicyPassed:
@@ -326,6 +449,8 @@ LivingFrameComfyUiContainerInventoryObservation {
           'org.reeditpro.living-frame.controlnet-aux-revision'
         ]!,
     },
+    directVcsDispositionObservation:
+      observeDirectVcsDisposition(),
     debianPackages,
     pythonDistributions,
     explicitRuntimeUid:
@@ -339,6 +464,19 @@ LivingFrameComfyUiContainerInventoryObservation {
     rawPathUrlCredentialSecretOrPackageBytesIncluded:
       false,
   }
+}
+
+function observeDirectVcsDisposition():
+LivingFrameComfyUiContainerInventoryObservation[
+  'directVcsDispositionObservation'
+] {
+  return JSON.parse(
+    runContainer(
+      DIRECT_VCS_DISPOSITION_OBSERVATION_COMMAND,
+    ),
+  ) as LivingFrameComfyUiContainerInventoryObservation[
+    'directVcsDispositionObservation'
+  ]
 }
 
 function runContainer(command: string): string {

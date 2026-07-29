@@ -83,6 +83,12 @@ This broader inventory exposed release facts that the operation-specific
   distribution, normalized as `sam-2`, at revision
   `2b90b9f5ceec907a1c18123530e92e794ad901a4`.
 
+The v2 image evidence confirms that this distribution is importable under
+Python isolated mode even though an exact 1,582-file ComfyUI and
+whitelisted-extension source scan finds zero static references. Its installed
+metadata reports version `1.0` and `Apache 2.0`, but neither self-declared
+metadata nor static absence is legal approval or proof of runtime non-use.
+
 The sanitized SPDX document and its process-bound delivery contract are
 documented in
 `docs/living-frame/living-frame-comfyui-container-sbom-evidence.md`.

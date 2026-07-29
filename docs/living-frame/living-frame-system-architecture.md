@@ -2730,7 +2730,7 @@ resource cost, persistence, QA, and release remain open.
 
 The exact local candidate image now also has a bounded image-derived SPDX 2.3
 package inventory under
-`living-frame-comfyui-container-sbom-evidence-v1`. The process-bound reader
+`living-frame-comfyui-container-sbom-evidence-v2`. The process-bound reader
 observes the immutable Linux/AMD64 image twice with no network, a read-only
 root filesystem, and explicit UID/GID `65532:65532`; it verifies 590 Debian
 packages, 168 Python distributions, and three pinned source archives, for 761
@@ -2742,6 +2742,14 @@ validation, inherited-scope and license review, vulnerability disposition,
 signature, provenance, default-user policy, direct-VCS disposition, and L4
 operation release remain closed. See
 `docs/living-frame/living-frame-comfyui-container-sbom-evidence.md`.
+
+The v2 evidence further proves that `sam-2` is importable under Python
+isolated mode while a digest-bound scan of 1,582 relevant ComfyUI and
+whitelisted-extension source files finds zero static references. It records
+the package's installed `Apache 2.0` metadata without treating that metadata
+as legal approval. Static absence is not dynamic runtime non-use, so the
+contract explicitly rejects a re-signed claim that runtime non-use is proven
+or disposition is unnecessary.
 
 The atomic mounted-runner source boundary now also freezes the compatible
 release path rather than leaving the root finding as prose. Its canonical

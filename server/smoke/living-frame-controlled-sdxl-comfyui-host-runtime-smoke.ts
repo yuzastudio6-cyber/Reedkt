@@ -49,6 +49,12 @@ import {
   createControlledLivingFrameComfyUiHostFixturePort,
 } from '../living-frame/living-frame-controlled-sdxl-comfyui-loopback-host-port'
 import {
+  createLivingFrameComfyUiControlledProcessFixturePort,
+  executeSupervisedLivingFrameControlledSdxlComfyUiHostRuntime,
+  fixedLivingFrameComfyUiLaunchSpec,
+  verifyLivingFrameComfyUiProcessSupervisorReceipt,
+} from '../living-frame/living-frame-controlled-sdxl-comfyui-process-supervisor'
+import {
   controlledSdxlArtifactCandidateSetSmokeFixture,
 } from './living-frame-controlled-sdxl-artifact-candidate-set-smoke'
 
@@ -80,21 +86,52 @@ async function main(): Promise<void> {
   const recipe = await createCombinedRecipe()
   const png = await createPng(1024, 1024)
   const controlled = await compileControlled(recipe)
-  const completed =
-    await executeLivingFrameControlledSdxlComfyUiHostRuntime({
-      gpuRuntimeRequestReceipt: controlled.receipt,
-      privateWireRequestLease:
-        controlled.privateWireRequestLease,
-      canonicalDispatchConsumption:
-        canonicalDispatchConsumption(),
-      hostPort: completedFixturePort(png),
+  const supervised =
+    await executeSupervisedLivingFrameControlledSdxlComfyUiHostRuntime({
+      processPort: controlledProcessPort(),
+      hostRuntimeInput: {
+        gpuRuntimeRequestReceipt: controlled.receipt,
+        privateWireRequestLease:
+          controlled.privateWireRequestLease,
+        canonicalDispatchConsumption:
+          canonicalDispatchConsumption(),
+        hostPort: completedFixturePort(png),
+      },
     })
+  const completed = supervised.hostRuntime
 
   assert.equal(
     verifyLivingFrameControlledSdxlComfyUiHostRuntimeReceipt(
       completed.receipt,
     ),
     true,
+  )
+  assert.equal(
+    verifyLivingFrameComfyUiProcessSupervisorReceipt(
+      supervised.processLifecycle,
+    ),
+    true,
+  )
+  assert.equal(
+    supervised.processLifecycle.oneProcessPerAttempt,
+    true,
+  )
+  assert.equal(
+    supervised.processLifecycle.actualCostEvidenceCreated,
+    false,
+  )
+  assert.equal(
+    supervised.processLifecycle.customerChargeCreated,
+    false,
+  )
+  assert.equal(
+    fixedLivingFrameComfyUiLaunchSpec().listenAddress,
+    '127.0.0.1',
+  )
+  assert.equal(
+    fixedLivingFrameComfyUiLaunchSpec()
+      .arguments.join(' ').includes('0.0.0.0'),
+    false,
   )
   assert.equal(
     completed.receipt.hostObservation.terminalState,
@@ -155,6 +192,26 @@ async function main(): Promise<void> {
   )
 
   let adversarialAssertions = 1
+  const {
+    receiptDigestSha256: _processPromotionDigest,
+    ...processPromotionDraft
+  } = structuredClone(supervised.processLifecycle)
+  void _processPromotionDigest
+  const forgedProcessPromotion = {
+    ...processPromotionDraft,
+    runtimeAuthority: true,
+    productionAuthority: true,
+    productionReady: true,
+  }
+  assert.equal(
+    verifyLivingFrameComfyUiProcessSupervisorReceipt({
+      ...forgedProcessPromotion,
+      receiptDigestSha256: digest(forgedProcessPromotion),
+    }),
+    false,
+  )
+  adversarialAssertions += 1
+
   const {
     runtimeObservationDigestSha256: _unknownKeyDigest,
     ...unknownKeyDraft
@@ -383,12 +440,14 @@ async function main(): Promise<void> {
   assert.equal(unknown.receipt.customerChargeCreated, false)
   adversarialAssertions += 1
 
-  assert.equal(adversarialAssertions, 11)
+  assert.equal(adversarialAssertions, 12)
   process.stdout.write(JSON.stringify({
     status: 'passed',
     controlledFixtures: 3,
     adversarialAssertions,
     fixedLoopbackTransportImplemented: true,
+    fixedProcessSupervisorImplemented: true,
+    oneProcessPerAttempt: true,
     canonicalDispatchRequired: true,
     oneGpuAttemptForFiveCapabilities: true,
     separateAuraFaceCpuQa: true,
@@ -399,6 +458,47 @@ async function main(): Promise<void> {
     productionReady: false,
   }, null, 2))
   process.stdout.write('\n')
+}
+
+function controlledProcessPort() {
+  const empty = createHash('sha256').update('').digest('hex')
+  return createLivingFrameComfyUiControlledProcessFixturePort(
+    async () => ({
+      handleClass:
+        'process_bound_single_use_comfyui_process_handle_v1',
+      evidenceClass:
+        'controlled_non_promotable_process_fixture',
+      startedAt: STARTED_AT,
+      callerCommandAccepted: false,
+      callerArgumentsAccepted: false,
+      callerEnvironmentAccepted: false,
+      callerPathUrlCredentialAccepted: false,
+      externalListenAllowed: false,
+      runtimeDownloadsAllowed: false,
+      productionQualified: false,
+      async waitUntilReady() {
+        return {
+          readyAt: '2026-07-29T12:00:00.250Z',
+          loopbackOnly: true as const,
+          fixedPort: 8188 as const,
+          externalNetworkPerformed: false as const,
+          runtimeDownloadPerformed: false as const,
+        }
+      },
+      async stop() {
+        return {
+          exitCode: 0,
+          signal: null,
+          timedOut: false,
+          captureExceeded: false,
+          stdoutByteLength: 0,
+          stdoutSha256: empty,
+          stderrByteLength: 0,
+          stderrSha256: empty,
+        }
+      },
+    }),
+  )
 }
 
 function completedFixturePort(png: Uint8Array) {

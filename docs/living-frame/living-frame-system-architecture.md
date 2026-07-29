@@ -2588,6 +2588,31 @@ reconciliation, license review, approved scene/snapshot/work lineage, QA, and
 private review remain required. See
 `docs/living-frame/living-frame-controlled-sdxl-gpu-runtime-protocol.md`.
 
+### Fixed ComfyUI host process and loopback transport
+
+The private host adapter now has a server-owned process supervisor. The
+supervisor fixes the Python executable, pinned ComfyUI source root, loopback
+address and port, private input/model/runtime locations, CUDA device, FP16
+policy, no-preview/no-cache behavior, API-node disablement, and the exact two
+reviewed custom-node directories allowed after all custom nodes are disabled.
+It does not merge caller environment variables or accept a caller command,
+argument, path, URL, endpoint, credential, listen address, or download policy.
+
+One accepted attempt starts one process, waits at most 60 seconds for the fixed
+loopback readiness endpoint, runs the existing single-prompt host adapter, and
+always terminates the process. Stdout and stderr are bounded and represented
+only by byte counts and hashes. The process lifecycle receipt cannot create
+actual-cost, customer-charge, artifact-persistence, dispatch, runtime, or
+production authority.
+
+The source supervisor is real but remains unreachable and unqualified. The
+shared GPU image still needs the exact offline ComfyUI source/wheel closure,
+the reviewed generic IP-Adapter and ControlNet auxiliary sources, fixed model
+path configuration, image scan/signature, and L4 benchmark evidence. Canonical
+tool/operation admission, model mounts, dispatch, output persistence, cost,
+QA, and private review remain owned by their existing authorities. See
+`docs/living-frame/living-frame-controlled-sdxl-comfyui-runtime.md`.
+
 ### Private GPU output observation and opaque-source boundary
 
 `living-frame-controlled-sdxl-gpu-output-observation-v1` adds the next

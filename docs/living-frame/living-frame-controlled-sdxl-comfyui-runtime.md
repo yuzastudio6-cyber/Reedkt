@@ -1,7 +1,7 @@
 # Living Frame controlled SDXL ComfyUI runtime
 
-Status: implemented private host adapter; not registered, dispatched, deployed,
-or production-qualified.
+Status: implemented private host adapter and fixed process supervisor; not
+registered, dispatched, deployed, or production-qualified.
 
 ## Purpose
 
@@ -42,6 +42,31 @@ aliases, private prompt ID, output bytes, paths, URLs, credentials, commands,
 or customer commercial data. Output bytes are held behind a process-bound,
 single-use lease for a future canonical artifact-persistence adapter.
 
+## Fixed process lifecycle
+
+The server now also owns the missing process boundary around that loopback
+transport. The supervisor starts exactly one ComfyUI process for one accepted
+attempt using fixed server source:
+
+- one fixed Python executable and pinned ComfyUI `main.py`;
+- loopback `127.0.0.1:8188` only;
+- API nodes and metadata disabled;
+- all custom nodes disabled before exactly the reviewed generic IP-Adapter and
+  ControlNet auxiliary directories are whitelisted;
+- fixed private input, model-path, runtime, and output locations;
+- preview disabled, cache disabled, FP16 and CUDA device zero fixed;
+- offline Hugging Face/Transformers flags and no caller environment merge;
+- bounded stdout/stderr capture;
+- a 60-second loopback readiness ceiling;
+- guaranteed termination after the one host-runtime result or any failure.
+
+The process port accepts no caller command, arguments, environment, path, URL,
+credential, listen address, or download policy. Its serializable lifecycle
+receipt contains only timestamps, counts, hashes, terminal process facts, and
+closed authority flags. The fixed private subprocess remains unqualified until
+the pinned source and wheel closure is actually packaged into the shared GPU
+image and the L4 qualification gates pass.
+
 ## Cost behavior
 
 - completed, failed, and outcome-unknown attempts remain distinct terminal
@@ -77,6 +102,9 @@ pipeline until the existing shared authorities admit:
   `tool.comfyui.generate_controlled_image.v1` operation;
 - a qualified L4 GPU worker image containing the exact pinned dependency and
   model-artifact closure;
+- the fixed ComfyUI source, wheel lock, two reviewed custom-node source
+  archives, model-path configuration, and process supervisor packaged into
+  that image;
 - canonical read-only model/input mounts;
 - create-only output persistence and asset-manifest binding;
 - real GPU resource-usage evidence;

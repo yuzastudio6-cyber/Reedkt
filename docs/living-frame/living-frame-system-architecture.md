@@ -2087,3 +2087,27 @@ read-only content-addressed mounts, graph allowlists, private dispatch, output
 QA, and observed attempt-cost receipts. Admission to `ProductionToolId` can
 occur only after the existing canonical private end-to-end and job-adapter
 evidence requirements are satisfied.
+
+## Controlled stock ComfyUI graph expectation
+
+Living Frame now has a source-bound, subject-neutral graph compiler for the
+pinned stock ComfyUI node surface. It emits deterministic non-executable
+`base_txt2img`, `lora_txt2img`, `controlnet_txt2img`, and
+`controlnet_lora_txt2img` expectations. The graphs contain only closed
+built-in node classes and opaque digest bindings; they cannot contain raw
+prompts, filenames, paths, URLs, caller-selected providers/tools, custom
+nodes, jobs, queues, `LoadImage`, or `SaveImage`.
+
+ControlNet profiles accept only an externally prepared content-addressed
+control-image expectation. This prevents `comfyui_controlnet_aux` or any
+unreviewed annotator from entering the graph implicitly. LoRA uses the stock
+loader but remains blocked on an exact approved adapter artifact. IP-Adapter
+does not exist in the observed stock node set and therefore remains behind a
+separately qualified extension/runtime binding. AuraFace stays outside the
+generation graph as continuity measurement and QA.
+
+The graph digest proves structure, ordering, closed input contracts, and
+source-observation lineage only. It grants no installation, model artifact,
+prompt, operation, dispatch, work, asset, estimate, approval, timing,
+SoundSync, QA approval, render, runtime, or production authority. See
+`docs/living-frame/living-frame-controlled-comfyui-workflow.md`.

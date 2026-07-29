@@ -381,3 +381,39 @@ export type {
   LivingFrameControlledIllustrationSourceObservationValidationResult,
   LivingFrameControlledIllustrationUpstreamSourceObservation,
 } from '../../types/living-frame-controlled-illustration-source-observation'
+
+export {
+  LIVING_FRAME_CONTROLLED_COMFYUI_BINDING_KINDS,
+  LIVING_FRAME_CONTROLLED_COMFYUI_BUILTIN_NODE_CLASSES,
+  LIVING_FRAME_CONTROLLED_COMFYUI_CONTROL_IMAGE_PREPARATION_MODES,
+  LIVING_FRAME_CONTROLLED_COMFYUI_ISSUE_CODES,
+  LIVING_FRAME_CONTROLLED_COMFYUI_NODE_ROLES,
+  LIVING_FRAME_CONTROLLED_COMFYUI_NODES_SOURCE_DIGEST_SHA256,
+  LIVING_FRAME_CONTROLLED_COMFYUI_OPEN_GATE_CODES,
+  LIVING_FRAME_CONTROLLED_COMFYUI_PORTS,
+  LIVING_FRAME_CONTROLLED_COMFYUI_SOURCE_REVISION,
+  LIVING_FRAME_CONTROLLED_COMFYUI_WORKFLOW_CLASS,
+  LIVING_FRAME_CONTROLLED_COMFYUI_WORKFLOW_PROFILES,
+  LIVING_FRAME_CONTROLLED_COMFYUI_WORKFLOW_VERSION,
+} from '../../types/living-frame-controlled-illustration-comfyui-workflow'
+
+export type {
+  LivingFrameControlledComfyUiAuthorityBoundary,
+  LivingFrameControlledComfyUiBindingKind,
+  LivingFrameControlledComfyUiBuiltinNodeClass,
+  LivingFrameControlledComfyUiCapabilityBoundary,
+  LivingFrameControlledComfyUiControlImagePreparation,
+  LivingFrameControlledComfyUiControlImagePreparationMode,
+  LivingFrameControlledComfyUiExternalBindingExpectation,
+  LivingFrameControlledComfyUiGraphEdge,
+  LivingFrameControlledComfyUiGraphNode,
+  LivingFrameControlledComfyUiIssue,
+  LivingFrameControlledComfyUiIssueCode,
+  LivingFrameControlledComfyUiNodeRole,
+  LivingFrameControlledComfyUiOpenGateCode,
+  LivingFrameControlledComfyUiPort,
+  LivingFrameControlledComfyUiValidationResult,
+  LivingFrameControlledComfyUiWorkflowExpectation,
+  LivingFrameControlledComfyUiWorkflowExpectationDraft,
+  LivingFrameControlledComfyUiWorkflowProfile,
+} from '../../types/living-frame-controlled-illustration-comfyui-workflow'

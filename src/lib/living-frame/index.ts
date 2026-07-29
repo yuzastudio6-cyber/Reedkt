@@ -775,3 +775,24 @@ export type {
   LivingFrameControlledSdxlBenchmarkAdmissionAuditState,
   LivingFrameControlledSdxlBenchmarkRegistryObservation,
 } from '../../types/living-frame-controlled-sdxl-benchmark-admission-audit'
+
+export {
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_REQUEST_BLUEPRINT_CLASS,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_REQUEST_BLUEPRINT_ISSUES,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_REQUEST_BLUEPRINT_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_REQUEST_BLUEPRINT_STATE,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_REQUEST_BLUEPRINT_VERSION,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_REQUEST_SLOT_KINDS,
+} from '../../types/living-frame-controlled-sdxl-benchmark-request-blueprint'
+
+export type {
+  LivingFrameControlledSdxlBenchmarkRequestBlueprint,
+  LivingFrameControlledSdxlBenchmarkRequestBlueprintAuthority,
+  LivingFrameControlledSdxlBenchmarkRequestBlueprintDraft,
+  LivingFrameControlledSdxlBenchmarkRequestBlueprintIssue,
+  LivingFrameControlledSdxlBenchmarkRequestBlueprintIssueCode,
+  LivingFrameControlledSdxlBenchmarkRequestBlueprintOpenGate,
+  LivingFrameControlledSdxlBenchmarkRequestRecipe,
+  LivingFrameControlledSdxlBenchmarkRequestSlot,
+  LivingFrameControlledSdxlBenchmarkRequestSlotKind,
+} from '../../types/living-frame-controlled-sdxl-benchmark-request-blueprint'

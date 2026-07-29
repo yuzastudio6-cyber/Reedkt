@@ -2391,3 +2391,25 @@ exact five-artifact canonical binding and its single-use read-only
 presentation, but it still cannot treat that local presentation as a
 distributed Cloud Run GPU mount. See
 `docs/living-frame/living-frame-controlled-sdxl-benchmark-admission-audit.md`.
+
+### Subject-neutral benchmark request blueprint
+
+The next source boundary projects the seven compatibility cases into a
+content-free request blueprint. Each case declares only its ordered,
+server-owned binding slots: the exact model roles, positive and negative
+conditioning, and control/reference image fixtures where applicable. Every
+slot remains unresolved and contains no value.
+
+The blueprint independently revalidates the benchmark specification and
+current admission audit, binds their exact lineage, and preserves the current
+`not_registered` operation state. It does not repeat or mint a ComfyUI tool or
+operation identity, emit executable node JSON, materialize prompt text or
+image bytes, create work, dispatch a GPU, or generate cost evidence. A future
+private materializer must consume the canonical operation registry, exact
+artifact mounts, signed GPU image, server fixtures, and current node-schema
+evidence before an executable request can exist.
+
+The seven cases contain 41 ordered unresolved slots across six distinct slot
+sets. They are derived solely from capability composition, never from a
+person, place, vehicle, historical topic, or example. See
+`docs/living-frame/living-frame-controlled-sdxl-benchmark-request-blueprint.md`.

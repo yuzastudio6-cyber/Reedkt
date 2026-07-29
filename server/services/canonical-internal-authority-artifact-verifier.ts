@@ -5,6 +5,9 @@ import {
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import { ApiError } from '../errors/api-error'
+import {
+  verifyCanonicalLivingFrameMotionSpec,
+} from '../living-frame/canonical-living-frame-motion'
 import { readPrivateFileIfExistsWithinRoot } from '../security/private-local-persistence'
 import type { PersistedArtifactResult } from '../validation/private-artifact-qa-authority-schemas'
 import { stableAuthorityStringify } from './private-edit-authority-store'
@@ -198,6 +201,7 @@ function parseSemanticReport(
 function validLivingFrameLayerReport(value: unknown): boolean {
   const report = asRecord(value)
   const component = asRecord(report.component)
+  const motionSpec = report.motionSpec
   return (
     report.schemaVersion ===
       CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION &&
@@ -220,6 +224,17 @@ function validLivingFrameLayerReport(value: unknown): boolean {
     report.compositionPolicy ===
       CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY &&
     report.captionPlaneRemainsAboveLivingFrame === true &&
+    verifyCanonicalLivingFrameMotionSpec(motionSpec) &&
+    motionSpec.sceneId === report.sceneId &&
+    motionSpec.sceneStartFrame === report.startFrame &&
+    motionSpec.sceneEndFrameExclusive ===
+      report.endFrameExclusive &&
+    motionSpec.sourceBindings
+      .selectedSceneBindingDigestSha256 ===
+      report.selectedSceneBindingDigestSha256 &&
+    motionSpec.sourceBindings
+      .timingBindingDigestSha256 ===
+      report.timingBindingDigestSha256 &&
     validIdentity(component.workItemKey) &&
     validIdentity(component.dependencyJobId) &&
     validIdentity(component.outputKey) &&

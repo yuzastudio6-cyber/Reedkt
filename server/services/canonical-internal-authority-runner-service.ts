@@ -6,7 +6,13 @@ import {
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION,
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
+import type {
+  CanonicalLivingFrameMotionSpec,
+} from '../../src/types/living-frame-canonical-motion'
 import { ApiError } from '../errors/api-error'
+import {
+  verifyCanonicalLivingFrameMotionSpec,
+} from '../living-frame/canonical-living-frame-motion'
 import {
   readPrivateFileIfExistsWithinRoot,
   writePrivateFileCreateOnlyWithinRoot,
@@ -629,6 +635,7 @@ interface LivingFrameLayerPayload {
   compositionPolicy:
     typeof CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY
   captionPlaneRemainsAboveLivingFrame: true
+  motionSpec: CanonicalLivingFrameMotionSpec
   componentDependency: {
     workItemKey: string
     outputKey: string
@@ -657,6 +664,7 @@ function livingFrameLayerPayload(
   ) return null
   const payload = payloadValue as Record<string, unknown>
   const dependencyValue = payload.componentDependency
+  const motionSpecValue = payload.motionSpec
   if (
     !dependencyValue ||
     typeof dependencyValue !== 'object' ||
@@ -670,6 +678,7 @@ function livingFrameLayerPayload(
     'endFrameExclusive',
     'fit',
     'layerId',
+    'motionSpec',
     'opacity',
     'outputHeight',
     'outputWidth',
@@ -711,6 +720,17 @@ function livingFrameLayerPayload(
     payload.compositionPolicy !==
       CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY ||
     payload.captionPlaneRemainsAboveLivingFrame !== true ||
+    !verifyCanonicalLivingFrameMotionSpec(motionSpecValue) ||
+    motionSpecValue.sceneId !== payload.sceneId ||
+    motionSpecValue.sceneStartFrame !== payload.startFrame ||
+    motionSpecValue.sceneEndFrameExclusive !==
+      payload.endFrameExclusive ||
+    motionSpecValue.sourceBindings
+      .selectedSceneBindingDigestSha256 !==
+      payload.selectedSceneBindingDigestSha256 ||
+    motionSpecValue.sourceBindings
+      .timingBindingDigestSha256 !==
+      payload.timingBindingDigestSha256 ||
     !validInternalIdentity(dependency.workItemKey) ||
     !validInternalIdentity(dependency.outputKey) ||
     dependency.artifactType !==
@@ -780,6 +800,7 @@ function buildLivingFrameLayerEvidence(input: {
     compositionPolicy: payload.compositionPolicy,
     captionPlaneRemainsAboveLivingFrame:
       payload.captionPlaneRemainsAboveLivingFrame,
+    motionSpec: payload.motionSpec,
     component: {
       workItemKey: payload.componentDependency.workItemKey,
       dependencyJobId: dependencyJob.id,
@@ -1046,6 +1067,14 @@ function validLivingFrameLayerEvidence(value: unknown): boolean {
     record.compositionPolicy ===
       CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY &&
     record.captionPlaneRemainsAboveLivingFrame === true &&
+    verifyCanonicalLivingFrameMotionSpec(
+      record.motionSpec,
+    ) &&
+    record.motionSpec.sceneId === record.sceneId &&
+    record.motionSpec.sceneStartFrame ===
+      record.startFrame &&
+    record.motionSpec.sceneEndFrameExclusive ===
+      record.endFrameExclusive &&
     validInternalIdentity(artifact.workItemKey) &&
     validInternalIdentity(artifact.dependencyJobId) &&
     validInternalIdentity(artifact.outputKey) &&

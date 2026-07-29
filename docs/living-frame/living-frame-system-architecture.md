@@ -214,7 +214,9 @@ assumption:
   semantic-scale, and sound thresholds block delivery?
 - What is the measured internal and customer estimate impact per approved,
   revision-ready, reusable scene?
-- When, if ever, should advanced 2.5D or 3D scene construction be admitted?
+- What additional evidence would be required before deep multiplane work moves
+  beyond the current bounded scalar 2.5D treatment, or true 3D scene
+  construction is admitted?
 - Which future exact image model/operation, if any, should be qualified for
   native alpha after passing the same destination-composite QA as the opaque
   GPT Image 2 fallback route?
@@ -1328,12 +1330,13 @@ manifest. It does not add a renderer. `RendererCompositionPlan` remains the
 plan authority and the existing private Remotion service remains the only
 future execution boundary.
 
-This profile remains non-executable until canonical planning freezes selected
-Living Frame scene, renderer, and choreography component references; exact
-motion samples and committed artifacts are projected from the approved
-snapshot; artifact QA passes; the existing offline Remotion protocol admits
-the profile; and the existing private review flow approves its rendered
-artifact. All execution and production authority flags remain false.
+This broad profile candidate remains non-executable on its own. The narrower
+`canonical-living-frame-motion-spec-v1` now admits a closed scalar subset after
+canonical planning freezes selected scene, component, output-frame, and exact
+MasterTiming lineage. The existing offline Remotion protocol executes that
+subset only with committed RGBA artifacts and the existing private review
+flow. True 3D, arbitrary profile tracks, provider motion, public execution, and
+production authority remain closed.
 
 ### Slice 6: qualified controlled illustration
 
@@ -1930,36 +1933,58 @@ geographic explanations, and the other named examples remain regression
 fixtures only; no subject name, topic, genre, or category may alter the
 reconciliation algorithm.
 
-## Remotion motion-sample binding
+## Canonical Remotion motion admission
 
-The existing Living Frame Remotion profile records layer and camera motion
-track IDs, but a renderer cannot execute IDs alone. The
-`living-frame-remotion-motion-sample-binding-v1` compiler rereads the exact
-non-executable profile and deterministic motion bundle, proves their scene,
-output-frame, and MasterTiming lineage agree, and binds every referenced track
-to its complete frame-sampled scalar values.
+The earlier `living-frame-remotion-motion-sample-binding-v1` remains a
+non-executable planning/reconciliation primitive. The canonical work graph now
+adds the narrower executable bridge that was previously missing:
+`canonical-living-frame-motion-spec-v1`.
 
-For each layer or virtual camera, the binding retains:
+For every admitted Living Frame layer, the server rereads the selected scene,
+the exact five MasterTiming semantic phases, the confirmed output frame, and
+the terminal component lineage. It compiles a bounded scalar-keyframe
+performance and freezes that performance in:
 
-- the ordered source-profile track IDs;
-- the exact compiled track owner, property, role, easing, source keyframes,
-  frame range, restoration expectation, and per-frame samples;
-- the source profile's expected sample count;
-- the independently derived compiled sample count; and
-- closed blockers for missing tracks, owner mismatch, or count mismatch.
+- the existing `prepare_remotion_layer` structured payload;
+- the tool-free Living Frame layer-manifest artifact;
+- the existing final Remotion overlay binding;
+- the offline Remotion planning/streaming manifest; and
+- the existing canonical private-review evidence.
 
-This closes only the abstract motion-sample projection gap. It does not admit
-the payload to the offline Remotion protocol. Current profile reread,
-MasterTiming and output-frame revalidation, committed artifact bytes, mask
-artifacts, artifact QA, protocol-profile admission, private execution, and
-private review remain mandatory downstream gates.
+The closed renderable property set is normalized position, rotation, uniform
+scale, opacity, blur, light intensity, and shadow opacity. Targets are the
+component layer, virtual camera, or source plane. Caller code, CSS, commands,
+paths, URLs, provider routes, arbitrary properties, duplicate target/property
+tracks, stale frames, and changed digests are rejected. The renderer supports
+flat, shallow 2.5D, and deep multiplane depth styles; 2.5D is adaptive scene
+direction, not a universal Living Frame look.
 
-The binding contains no media bytes, paths, commands, tool or provider route,
-job, queue, cost, or commercial data. It cannot create artifacts, work items,
-manifest entries, approvals, snapshots, or renderer execution. The existing
-MasterTimingPlan and non-executable Living Frame Remotion profile remain the
-only authorities. Matching is component- and track-based, never
-subject-specific; named scenes remain regression fixtures only.
+The runtime samples the approved keyframes at the current Remotion frame with
+the same closed easing definitions used by the deterministic compiler. It
+applies:
+
+- component position, rotation, scale, opacity, light, blur, and shadow;
+- virtual-camera translation and scale;
+- depth-dependent parallax;
+- source-plane camera movement and focus/contrast treatment when approved; and
+- Living Frame layers above source media but below the existing caption plane.
+
+Multiple layers may share one scene identity so a later approved scene can use
+true multiplane composition. Layer, manifest, and component identities remain
+unique and canonically ordered.
+
+This admission does not create a second timing, renderer, work graph, asset
+manifest, review, approval, or billing authority. MasterTiming owns exact
+frames; SoundSync owns sound; the approved snapshot/work graph owns execution;
+Remotion remains the final deterministic compositor. The original generic
+motion bundle is still non-promotable on its own.
+
+Subject-neutral rendered validation now proves actual pixel displacement,
+camera/source attention execution, and caption-plane priority at 640×360. The
+existing server-injected 4K streaming fixture also renders the same motion
+contract through the private H.264/AAC export path. Both remain private
+internal evidence, not public-delivery or production authorization. See
+`docs/living-frame/living-frame-canonical-motion-runtime.md`.
 
 ## Canonical preapproval reasoning preparation
 
@@ -2866,7 +2891,7 @@ path, one immutable snapshot lineage, one work graph, and one asset manifest.
 
 ### Canonical generated-still alpha dependency admission
 
-`canonical-living-frame-work-graph-projection-v9` admits the generated-still
+`canonical-living-frame-work-graph-projection-v10` admits the generated-still
 dependency shape without relabeling it as source media. The existing rembg
 mask work input now has a closed discriminated source union:
 
@@ -2921,9 +2946,11 @@ Each reviewed overlay must resolve to exactly one approved tool-free layer
 manifest and one approved Sharp RGBA component. Both artifacts must have
 passed canonical private QA and reconciliation, the manifest must depend on
 that component, the final work item must depend on both, the final renderer
-layer must remain below captions, and the final MP4 must retain its verified
-Remotion runner and render-preflight evidence hashes. Any missing, ambiguous,
-placeholder, failed, unreconciled, or reordered dependency fails closed.
+layer must remain below captions, the exact canonical motion-spec digest and
+adaptive depth style must match between the layer manifest and final
+composition binding, and the final MP4 must retain its verified Remotion runner
+and render-preflight evidence hashes. Any missing, ambiguous, placeholder,
+failed, unreconciled, reordered, or motion-divergent dependency fails closed.
 
 This closes the trace from selected scene through generated asset, alpha
 processing, renderer-layer manifest, final Remotion composition, and private
@@ -2957,10 +2984,14 @@ create six tool-registry entries or six independent charges.
 The representative connected trace now goes beyond that metadata matrix. One
 subject-neutral generated-still scene preserves its exact estimate and work
 lineage through the generated opaque source, generated-source rembg mask, Sharp
-RGBA component, Remotion layer manifest, existing final Remotion composition,
-caption-plane ordering, private artifact QA/reconciliation, and the existing
-canonical private-review composition evidence. The trace remains controlled and
-non-promotable: it proves source integration and fail-closed lineage, not a
-released GPU attempt, public export, customer charge, or production runtime.
+RGBA component, exact MasterTiming-derived scalar choreography, adaptive
+flat/shallow-2.5D/deep-multiplane depth treatment, Remotion layer manifest,
+existing final Remotion composition, caption-plane ordering, private artifact
+QA/reconciliation, and the existing canonical private-review composition
+evidence. Separate subject-neutral rendered fixtures prove actual motion,
+source/camera attention, caption priority, and the 4K private streaming/export
+path. The trace remains controlled and non-promotable: it proves source
+integration and fail-closed lineage, not a released GPU attempt, public export,
+customer charge, or production runtime.
 See
 `docs/living-frame/living-frame-representative-end-to-end-validation.md`.

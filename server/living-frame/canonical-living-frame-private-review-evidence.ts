@@ -7,6 +7,12 @@ import {
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
   CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
+import type {
+  CanonicalLivingFrameDepthStyle,
+} from '../../src/types/living-frame-canonical-motion'
+import {
+  verifyCanonicalLivingFrameMotionSpec,
+} from './canonical-living-frame-motion'
 import { ApiError } from '../errors/api-error'
 
 const FINAL_COMPOSITION_OPERATION =
@@ -42,6 +48,14 @@ export interface CanonicalLivingFramePrivateReviewOverlayEvidence {
   readonly layerId: string
   readonly startFrame: number
   readonly endFrameExclusive: number
+  readonly motion: {
+    readonly motionSpecDigestSha256: string
+    readonly depthStyle:
+      CanonicalLivingFrameDepthStyle
+    readonly layerTrackCount: number
+    readonly cameraTrackCount: number
+    readonly sourceTrackCount: number
+  }
   readonly layerManifest: {
     readonly approvedWorkItemId: string
     readonly expectedAssetId: string
@@ -80,6 +94,8 @@ export interface CanonicalLivingFramePrivateReviewEvidence {
   readonly allRgbaComponentsQaPassed: true
   readonly allArtifactsPrivateReconciled: true
   readonly captionPlaneRemainsAboveLivingFrame: true
+  readonly allDeterministicMotionSpecsVerified: true
+  readonly adaptiveDepthStyleEvidenceIncluded: true
   readonly existingPrivateReviewAuthorityRemainsSoleAuthority:
     true
   readonly customerPriceOrCreditAuthority: false
@@ -235,6 +251,8 @@ export function compileCanonicalLivingFramePrivateReviewEvidence(
     allRgbaComponentsQaPassed: true,
     allArtifactsPrivateReconciled: true,
     captionPlaneRemainsAboveLivingFrame: true,
+    allDeterministicMotionSpecsVerified: true,
+    adaptiveDepthStyleEvidenceIncluded: true,
     existingPrivateReviewAuthorityRemainsSoleAuthority:
       true,
     customerPriceOrCreditAuthority: false,
@@ -266,10 +284,19 @@ function compileOverlay(input: {
   const startFrame = safeFrame(layer.startFrame)
   const endFrameExclusive =
     safeFrame(layer.endFrameExclusive)
+  const finalMotionSpec = layer.motionSpec
   if (
     endFrameExclusive <= startFrame
     || layer.fit !== 'fill'
     || layer.opacity !== 1
+    || !verifyCanonicalLivingFrameMotionSpec(
+      finalMotionSpec,
+    )
+    || finalMotionSpec.sceneId !== sceneId
+    || finalMotionSpec.sceneStartFrame !==
+      startFrame
+    || finalMotionSpec.sceneEndFrameExclusive !==
+      endFrameExclusive
   ) {
     throw blocked(
       'Living Frame private-review overlay geometry or frame range is invalid.',
@@ -306,6 +333,8 @@ function compileOverlay(input: {
     manifestPayload.componentDependency,
     'Living Frame layer component dependency',
   )
+  const manifestMotionSpec =
+    manifestPayload.motionSpec
   if (
     !input.finalWorkItem.dependencyKeys.includes(
       manifestWorkItem.workItemKey,
@@ -325,6 +354,11 @@ function compileOverlay(input: {
       OVERLAY_POLICY
     || manifestPayload
       .captionPlaneRemainsAboveLivingFrame !== true
+    || !verifyCanonicalLivingFrameMotionSpec(
+      manifestMotionSpec,
+    )
+    || manifestMotionSpec.motionSpecDigestSha256 !==
+      finalMotionSpec.motionSpecDigestSha256
     || componentDependency.workItemKey !==
       componentWorkItem.workItemKey
     || componentDependency.outputKey !==
@@ -362,6 +396,17 @@ function compileOverlay(input: {
     layerId,
     startFrame,
     endFrameExclusive,
+    motion: {
+      motionSpecDigestSha256:
+        finalMotionSpec.motionSpecDigestSha256,
+      depthStyle: finalMotionSpec.depthStyle,
+      layerTrackCount:
+        finalMotionSpec.metrics.layerTrackCount,
+      cameraTrackCount:
+        finalMotionSpec.metrics.cameraTrackCount,
+      sourceTrackCount:
+        finalMotionSpec.metrics.sourceTrackCount,
+    },
     layerManifest: selectionEvidence(
       manifestSelection,
       manifestWorkItem.id,

@@ -31,7 +31,9 @@ selected-scene publication expectation
 → canonical generated-image work item
 → generated-source rembg mask work item
 → Sharp straight-alpha RGBA component work item
-→ Remotion Living Frame layer-manifest work item
+→ exact five-phase MasterTiming-derived scalar motion specification
+→ adaptive flat / shallow-2.5D / deep-multiplane depth decision
+→ Remotion Living Frame layer-manifest work item with frozen motion digest
 → existing final Remotion composition binding
 → caption-plane ordering
 → private artifact QA and reconciliation selections
@@ -57,16 +59,32 @@ The validation proves:
 - the rembg input is bound to the exact generated output;
 - the Sharp component depends on the exact generated source and mask;
 - the layer manifest depends on the exact Sharp RGBA component;
+- the server derives one bounded motion specification from the selected scene,
+  exact five MasterTiming phases, output frame, and terminal component;
+- unsupported motion properties, duplicate target/property tracks, changed
+  digests, executable code, paths, URLs, and timing drift fail closed;
+- 2.5D is selected only when depth/camera/orbit evidence calls for it; flat and
+  deep-multiplane treatments remain equally valid;
 - the existing final Remotion item is extended through the approved composition
   binding rather than replaced;
 - the Living Frame renderer layer remains below the caption layer;
-- private review resolves the exact manifest, RGBA component, and final MP4
-  selections;
+- private review resolves the exact motion digest, depth style, manifest, RGBA
+  component, and final MP4 selections;
 - every selected artifact is non-placeholder, QA-passed, privately reconciled,
   and still unauthorized for live runtime or public delivery;
 - mixed generated/source lineage fails closed; and
 - serialized scenario, work, estimate, and review evidence contains none of the
   controlled example subjects used during design exploration.
+
+Two actual private renders supplement the connected source-level trace:
+
+- `server/smoke/offline-remotion-living-frame-motion-smoke.ts` renders a
+  subject-neutral 640×360 scene and measures the moving component's cyan-pixel
+  centroid, source/camera attention evidence, and magenta caption-plane
+  priority;
+- `server/smoke/offline-remotion-streaming-output-smoke.ts` renders the same
+  canonical motion contract through the server-injected 4K H.264/AAC private
+  streaming path, including committed source, RGBA, caption, and audio inputs.
 
 ## Mode coverage
 
@@ -83,12 +101,14 @@ separately verifies all five Living Frame modes and deliberate non-use:
 The matrix also checks exact map/data routing, one focal primary, fallback to no
 extra visual, and the six controlled-illustration capability identities.
 
-The connected end-to-end execution trace intentionally uses `living_still`,
-because that mode exercises controlled illustration, opacity extraction, alpha
-preparation, deterministic motion-layer preparation, final composition, and
-private review. The other modes reuse the same canonical authorities but have
-different asset and compositing requirements. They must retain their own
-mode-specific fixtures and must not be inferred to need controlled illustration.
+The connected source-level trace uses a subject-neutral generated component
+inside `living_a_roll`, because that combination exercises controlled
+illustration, opacity extraction, alpha preparation, focus handoff,
+virtual-camera motion, 2.5D layer preparation, final composition, and private
+review in one route. The other modes reuse the same canonical authorities but
+have different asset and compositing requirements. They must retain their own
+mode-specific fixtures and must not be inferred to need controlled
+illustration.
 
 ## Evidence strength and remaining gates
 
@@ -98,6 +118,8 @@ private-review evidence compiler. It is still controlled evidence:
 
 - artifact selections are test-only private selections;
 - the final Remotion evidence is a controlled verified-run record;
+- deterministic Living Frame motion, camera/source attention, depth parallax,
+  and caption ordering have actual private-render evidence;
 - ComfyUI is not yet a released canonical GPU operation;
 - the exact five-model 11.7 GB closure has not run on an approved L4 worker;
 - the canonical distributed read-only mount adapter is not released;

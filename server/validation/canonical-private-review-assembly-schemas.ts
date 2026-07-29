@@ -56,6 +56,20 @@ const livingFrameCompositionEvidenceSchema =
       startFrame: z.number().int().nonnegative(),
       endFrameExclusive:
         z.number().int().positive(),
+      motion: z.object({
+        motionSpecDigestSha256: sha,
+        depthStyle: z.enum([
+          'flat',
+          'shallow_2_5d',
+          'deep_multiplane',
+        ]),
+        layerTrackCount:
+          z.number().int().positive().max(32),
+        cameraTrackCount:
+          z.number().int().nonnegative().max(32),
+        sourceTrackCount:
+          z.number().int().nonnegative().max(32),
+      }).strict(),
       layerManifest:
         livingFrameReviewArtifactEvidenceSchema,
       rgbaComponent:
@@ -74,6 +88,10 @@ const livingFrameCompositionEvidenceSchema =
     allArtifactsPrivateReconciled:
       z.literal(true),
     captionPlaneRemainsAboveLivingFrame:
+      z.literal(true),
+    allDeterministicMotionSpecsVerified:
+      z.literal(true),
+    adaptiveDepthStyleEvidenceIncluded:
       z.literal(true),
     existingPrivateReviewAuthorityRemainsSoleAuthority:
       z.literal(true),

@@ -6,9 +6,12 @@ import type {
 import type {
   CanonicalLivingFrameNamedWorkSourceFrameInput,
 } from './living-frame-asset-work-input-binding'
+import type {
+  CanonicalLivingFrameMotionSpec,
+} from './living-frame-canonical-motion'
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION =
-  'canonical-living-frame-work-graph-projection-v9' as const
+  'canonical-living-frame-work-graph-projection-v10' as const
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE =
   'canonical_living_frame_work_graph_projection_compiler' as const
@@ -68,7 +71,7 @@ export const CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION =
   'compile_approved_living_frame_remotion_layer_manifest' as const
 
 export const CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION =
-  'canonical-living-frame-remotion-layer-work-input-v1' as const
+  'canonical-living-frame-remotion-layer-work-input-v2' as const
 
 export const CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY =
   'approved_rgba_over_source_below_captions_v1' as const
@@ -527,6 +530,8 @@ export interface CanonicalLivingFrameRemotionLayerWorkItem {
       readonly compositionPolicy:
         typeof CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY
       readonly captionPlaneRemainsAboveLivingFrame: true
+      readonly motionSpec:
+        CanonicalLivingFrameMotionSpec
       readonly componentDependency: {
         readonly workItemKey: string
         readonly outputKey: string
@@ -584,6 +589,8 @@ export interface CanonicalLivingFrameFinalOverlayLayerBinding {
   readonly endFrameExclusive: number
   readonly fit: 'fill'
   readonly opacity: 1
+  readonly motionSpec:
+    CanonicalLivingFrameMotionSpec
 }
 
 export interface CanonicalLivingFrameFinalCompositionBinding {

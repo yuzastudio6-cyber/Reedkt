@@ -65,10 +65,92 @@ const assetBindingDigest = 'd'.repeat(64)
 const masterDigest = sha256AuthorityValue(masterTimingPlan)
 const soundDigest = sha256AuthorityValue(soundSyncPlan)
 
+function phase(
+  phaseName:
+    | 'prepare'
+    | 'activate'
+    | 'demonstrate'
+    | 'resolve'
+    | 'settle',
+  startFrame: number,
+  endFrameExclusive: number,
+  order: number,
+) {
+  return {
+    timingRequestId:
+      `timing-request-generated-alpha-${phaseName}`,
+    order,
+    phase: phaseName,
+    frameRange: {
+      startFrame,
+      endFrameExclusive,
+      durationFrames:
+        endFrameExclusive - startFrame,
+    },
+  }
+}
+
 const publication = {
   binding: {
     identity,
     bindingDigestSha256: selectedDigest,
+    sourceBindings: {
+      confirmedOutputFrameDigestSha256:
+        'e'.repeat(64),
+    },
+    selectedComponent: {
+      inputBindings: {
+        outputFrame: {
+          expectationRefId:
+            'output-frame-subject-neutral',
+        },
+      },
+      scenePlans: [{
+        sceneId: 'scene-generated-alpha',
+        mode: 'living_a_roll',
+        decision: 'use_full',
+        visualVerb: 'approach',
+        importance: 'hero',
+        components: [{
+          componentId:
+            'component-generated-alpha',
+          role: 'primary_subject',
+          depthBand: 'in_front_of_subject',
+        }],
+        skillActivations: [{
+          activationId:
+            'activation-camera-subject-neutral',
+          miniSkillKey: 'camera_choreography',
+          decision: 'use_full',
+        }],
+        attentionSequence: [{
+          attentionEventId:
+            'attention-subject-neutral-handoff',
+          eventType: 'handoff',
+          target: 'visual',
+          methods: [
+            'focus_depth_expectation',
+            'camera_push_expectation',
+            'light_emphasis_expectation',
+          ],
+        }, {
+          attentionEventId:
+            'attention-subject-neutral-restore',
+          eventType: 'restore',
+          target: 'speaker',
+          methods: [
+            'focus_depth_expectation',
+          ],
+        }],
+        semanticScaleRequests: [{
+          semanticScaleRequestId:
+            'scale-subject-neutral-perspective',
+          componentId:
+            'component-generated-alpha',
+          mode: 'perspective',
+        }],
+      }],
+    },
     selectedSceneCount: 1,
     deliberateNonUse: false,
   },
@@ -117,18 +199,16 @@ const timingBinding = {
     executionRequirementsDigestSha256: requirementsDigest,
     currentMasterTimingDigestSha256: masterDigest,
   },
+  fps: 30,
   scenes: [{
     sceneId: 'scene-generated-alpha',
-    semanticPhaseBindings: [{
-      timingRequestId:
-        'timing-request-generated-alpha',
-      phase: 'demonstrate',
-      frameRange: {
-        startFrame: 12,
-        endFrameExclusive: 132,
-        durationFrames: 120,
-      },
-    }],
+    semanticPhaseBindings: [
+      phase('prepare', 12, 24, 0),
+      phase('activate', 24, 42, 1),
+      phase('demonstrate', 42, 102, 2),
+      phase('resolve', 102, 120, 3),
+      phase('settle', 120, 132, 4),
+    ],
     soundCueBindings: [],
     visualTiming: {
       frameRange: {
@@ -162,14 +242,17 @@ const assetWorkInputBinding = {
     assetIntents: [
       {
         assetIntentId: 'asset-generated-source',
+        componentId: 'component-generated-alpha',
         assetKind: 'generated_opaque_still_source',
       },
       {
         assetIntentId: 'asset-generated-mask',
+        componentId: 'component-generated-alpha',
         assetKind: 'still_alpha_mask',
       },
       {
         assetIntentId: 'asset-generated-rgba',
+        componentId: 'component-generated-alpha',
         assetKind: 'processed_rgba_still_component',
       },
     ],
@@ -417,6 +500,48 @@ assert.ok(generation)
 assert.ok(mask)
 assert.ok(component)
 assert.ok(layer)
+if (
+  !('structuredPayload' in layer.executionInput)
+  || layer.executionInput.operation !==
+    'compile_approved_living_frame_remotion_layer_manifest'
+) {
+  throw new Error(
+    'Expected an admitted Remotion layer payload.',
+  )
+}
+const layerMotion =
+  layer.executionInput.structuredPayload.motionSpec
+assert.equal(
+  layerMotion.depthStyle,
+  'shallow_2_5d',
+)
+assert.equal(
+  layerMotion.sceneStartFrame,
+  12,
+)
+assert.equal(
+  layerMotion.sceneEndFrameExclusive,
+  132,
+)
+assert.equal(
+  layerMotion.tracks.some((track) =>
+    track.target === 'layer'),
+  true,
+)
+assert.equal(
+  layerMotion.tracks.some((track) =>
+    track.target === 'virtual_camera'),
+  true,
+)
+assert.equal(
+  layerMotion.tracks.some((track) =>
+    track.target === 'source'),
+  true,
+)
+assert.doesNotMatch(
+  JSON.stringify(layerMotion),
+  /musashi|helicopter|hormuz/iu,
+)
 assert.equal(mask.workerClass, 'gpu_ai_worker')
 assert.equal(component.workerClass, 'render_worker')
 assert.deepEqual(mask.sourceSequenceItemIds, [])
@@ -512,6 +637,17 @@ assert.equal(
   ),
   true,
 )
+const boundLivingFrameLayers =
+  boundFinalPayload.livingFrameOverlayLayers as Array<{
+    motionSpec: {
+      motionSpecDigestSha256: string
+    }
+  }>
+assert.equal(
+  boundLivingFrameLayers[0]!.motionSpec
+    .motionSpecDigestSha256,
+  layerMotion.motionSpecDigestSha256,
+)
 assert.equal(
   boundFinalWorkItem.expectedOutputs[0]!
     .rendererLayerIds.indexOf(
@@ -598,6 +734,26 @@ assert.equal(
   true,
 )
 assert.equal(
+  privateReviewEvidence
+    .allDeterministicMotionSpecsVerified,
+  true,
+)
+assert.equal(
+  privateReviewEvidence
+    .adaptiveDepthStyleEvidenceIncluded,
+  true,
+)
+assert.equal(
+  privateReviewEvidence.overlays[0]!
+    .motion.motionSpecDigestSha256,
+  layerMotion.motionSpecDigestSha256,
+)
+assert.equal(
+  privateReviewEvidence.overlays[0]!
+    .motion.depthStyle,
+  'shallow_2_5d',
+)
+assert.equal(
   privateReviewEvidence.customerPriceOrCreditAuthority,
   false,
 )
@@ -653,9 +809,105 @@ assert.equal(
   }),
   false,
 )
+const forgedMotion = structuredClone(projection)
+const forgedMotionLayer =
+  forgedMotion.workItems.find((item) =>
+    item.workItemKey === layer.workItemKey)
+assert.ok(forgedMotionLayer)
+if (
+  !('structuredPayload' in
+    forgedMotionLayer.executionInput)
+  || forgedMotionLayer.executionInput.operation !==
+    'compile_approved_living_frame_remotion_layer_manifest'
+) {
+  throw new Error(
+    'Expected a canonical motion layer for tamper testing.',
+  )
+}
+;(
+  forgedMotionLayer.executionInput
+    .structuredPayload.motionSpec as {
+      motionSpecDigestSha256: string
+    }
+).motionSpecDigestSha256 = 'f'.repeat(64)
+const resignedForgedMotion =
+  resign(forgedMotion)
+assert.equal(
+  verifyCanonicalLivingFrameWorkGraphProjection({
+    projection: resignedForgedMotion,
+    publication,
+    requirements,
+    timingBinding,
+    assetWorkInputBinding,
+    estimateWorkAssetProjection: estimateProjection,
+    customerEstimateAuthority:
+      customerEstimate.authority,
+    controlledIllustrationCostWorkBinding:
+      costWorkBinding,
+    components,
+  }),
+  false,
+)
+const forgedCompiledSamples =
+  structuredClone(projection)
+const forgedCompiledSampleLayer =
+  forgedCompiledSamples.workItems.find((item) =>
+    item.workItemKey === layer.workItemKey)
+assert.ok(forgedCompiledSampleLayer)
+if (
+  !('structuredPayload' in
+    forgedCompiledSampleLayer.executionInput)
+  || forgedCompiledSampleLayer.executionInput.operation !==
+    'compile_approved_living_frame_remotion_layer_manifest'
+) {
+  throw new Error(
+    'Expected a canonical motion layer for compiled-sample tamper testing.',
+  )
+}
+const forgedCompiledSampleMotion =
+  forgedCompiledSampleLayer.executionInput
+    .structuredPayload.motionSpec
+const {
+  motionSpecDigestSha256:
+    _forgedCompiledSampleMotionDigest,
+  ...forgedCompiledSampleMotionDraft
+} = forgedCompiledSampleMotion
+void _forgedCompiledSampleMotionDigest
+;(
+  forgedCompiledSampleMotion.tracks[0] as {
+    compiledSampleDigestSha256: string
+  }
+).compiledSampleDigestSha256 = 'e'.repeat(64)
+;(
+  forgedCompiledSampleMotion as {
+    motionSpecDigestSha256: string
+  }
+).motionSpecDigestSha256 =
+  sha256AuthorityValue(
+    forgedCompiledSampleMotionDraft,
+  )
+const resignedForgedCompiledSamples =
+  resign(forgedCompiledSamples)
+assert.equal(
+  verifyCanonicalLivingFrameWorkGraphProjection({
+    projection:
+      resignedForgedCompiledSamples,
+    publication,
+    requirements,
+    timingBinding,
+    assetWorkInputBinding,
+    estimateWorkAssetProjection: estimateProjection,
+    customerEstimateAuthority:
+      customerEstimate.authority,
+    controlledIllustrationCostWorkBinding:
+      costWorkBinding,
+    components,
+  }),
+  false,
+)
 
 console.log(
-  'Living Frame subject-neutral generated opaque still -> canonical rembg mask -> Sharp RGBA -> Remotion overlay -> private-review evidence passed with exact cost lineage, caption-plane protection, non-promotable authority boundaries, and mixed-source fail-closed coverage.',
+  'Living Frame subject-neutral generated opaque still -> canonical rembg mask -> Sharp RGBA -> deterministic motion/depth -> Remotion overlay -> private-review evidence passed with exact cost lineage, sample-digest integrity, caption-plane protection, non-promotable authority boundaries, and mixed-source fail-closed coverage.',
 )
 
 function createBaseFinalWorkItem():

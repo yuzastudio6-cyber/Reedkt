@@ -46,9 +46,11 @@ canonical by this primitive. Every bundle retains
 `canonicalTimingRevalidationStillRequired = true`, and all timing/exact-frame
 authority remains false.
 
-A future canonical server adapter must re-read the current approved snapshot,
-MasterTimingPlan, output frame, and scene lineage before the bundle can be
-used. Stale or caller-authored frame values must fail closed there.
+The canonical work-graph adapter now rereads the selected scene,
+MasterTimingPlan, output frame, and terminal component lineage before compiling
+the narrower `canonical-living-frame-motion-spec-v1` admitted by the private
+Remotion runtime. This generic bundle remains non-promotable on its own. Stale
+or caller-authored frame values fail closed at the canonical adapter.
 
 ## Motion behavior
 
@@ -81,8 +83,11 @@ selected, already timed scalar performance.
 
 The bundle contains values and metadata, not JavaScript, CSS, Remotion code,
 provider prompts, tool IDs, commands, or media. Remotion remains the final
-deterministic compositor. A later approved renderer adapter may map these
-samples onto validated Living Frame component layers.
+deterministic compositor. The private/internal canonical renderer adapter now
+maps the closed renderable subset onto validated Living Frame component,
+virtual-camera, and source-plane tracks; unsupported generic control signals
+remain unadmitted. See
+`docs/living-frame/living-frame-canonical-motion-runtime.md`.
 
 Particle-emission and path-reveal values are control signals only. Their
 actual implementations remain qualified renderer primitives. Sound is

@@ -7,9 +7,20 @@ import {
 import {
   canonicalPrivateReviewAssemblyResponseSchema,
 } from '../validation/canonical-private-review-assembly-schemas'
+import type {
+  CanonicalLivingFrameMotionSpec,
+  CanonicalLivingFrameMotionSpecDraft,
+} from '../../src/types/living-frame-canonical-motion'
+import {
+  sha256AuthorityValue,
+} from '../services/private-edit-authority-store'
+import {
+  deriveCanonicalLivingFrameCompiledSampleDigestSha256,
+} from '../living-frame/canonical-living-frame-motion'
 
 const sha = (character: string) =>
   character.repeat(64)
+const motionSpec = createMotionSpec()
 
 const componentWorkItem = workItem({
   id: 'work-component',
@@ -46,6 +57,7 @@ const manifestWorkItem = workItem({
     compositionPolicy:
       'approved_rgba_over_source_below_captions_v1',
     captionPlaneRemainsAboveLivingFrame: true,
+    motionSpec,
     componentDependency: {
       workItemKey: componentWorkItem.workItemKey,
       outputKey: 'component-output',
@@ -88,6 +100,7 @@ const finalWorkItem = workItem({
       endFrameExclusive: 120,
       fit: 'fill',
       opacity: 1,
+      motionSpec,
     }],
   },
 })
@@ -158,6 +171,15 @@ assert.equal(
 assert.equal(
   evidence.captionPlaneRemainsAboveLivingFrame,
   true,
+)
+assert.equal(
+  evidence.allDeterministicMotionSpecsVerified,
+  true,
+)
+assert.equal(
+  evidence.overlays[0]!.motion
+    .motionSpecDigestSha256,
+  motionSpec.motionSpecDigestSha256,
 )
 assert.equal(
   evidence.customerPriceOrCreditAuthority,
@@ -396,6 +418,91 @@ assert.throws(
 console.log(
   'Living Frame canonical private-review evidence passed exact manifest/RGBA/final Remotion lineage, QA/reconciliation, caption-plane, non-use, and forged-promotion checks.',
 )
+
+function createMotionSpec():
+CanonicalLivingFrameMotionSpec {
+  const duration = 90
+  const opacityKeyframes = [{
+    frameOffset: 0,
+    value: 0,
+    easingToNext: 'ease_in_out_cubic',
+  }, {
+    frameOffset: duration - 1,
+    value: 1,
+    easingToNext: 'hold',
+  }] as const
+  const draft:
+    CanonicalLivingFrameMotionSpecDraft = {
+      schemaVersion:
+        'canonical-living-frame-motion-spec-v1',
+      motionProfileId:
+        'approved_scalar_keyframe_choreography_v1',
+      sceneId: 'scene-001',
+      componentId: 'component-subject-neutral',
+      sceneStartFrame: 30,
+      sceneEndFrameExclusive: 120,
+      visualVerb: 'reveal',
+      importance: 'important',
+      depthStyle: 'flat',
+      depthBand: 'subject_plane',
+      parallaxFactor: 0,
+      sourceBindings: {
+        selectedSceneBindingDigestSha256:
+          sha('d'),
+        timingBindingDigestSha256:
+          sha('e'),
+        deterministicMotionBundleDigestSha256:
+          sha('f'),
+      },
+      attentionEventIds: [],
+      semanticScaleRequestIds: [],
+      tracks: [{
+        trackId:
+          'lf.track.subject-neutral-opacity',
+        order: 0,
+        target: 'layer',
+        property: 'opacity',
+        role: 'primary',
+        keyframes: opacityKeyframes,
+        compiledSampleCount: duration,
+        compiledSampleDigestSha256:
+          deriveCanonicalLivingFrameCompiledSampleDigestSha256({
+            keyframes: opacityKeyframes,
+            sceneFrameCount: duration,
+          }),
+      }],
+      metrics: {
+        layerTrackCount: 1,
+        cameraTrackCount: 0,
+        sourceTrackCount: 0,
+        keyframeCount: 2,
+        compiledSampleCount: duration,
+      },
+      authorityBoundary: {
+        serverDerivedFromSelectedSceneAndMasterTiming:
+          true,
+        exactFrameAuthority: false,
+        masterTimingMutationAuthority: false,
+        soundSyncAuthority: false,
+        approvalAuthority: false,
+        workGraphAuthority: false,
+        rendererCodeAuthority: false,
+        providerAuthority: false,
+        queueAuthority: false,
+        productionAuthority: false,
+      },
+      exactFramesRemainOwnedByMasterTiming: true,
+      captionsRemainAboveLivingFrame: true,
+      containsExecutableCodeCommandsPathsUrlsOrCredentials:
+        false,
+      subjectSpecificRouting: false,
+    }
+  return {
+    ...draft,
+    motionSpecDigestSha256:
+      sha256AuthorityValue(draft),
+  }
+}
 
 function workItem(input: {
   readonly id: string

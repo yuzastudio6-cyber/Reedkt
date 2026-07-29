@@ -17,6 +17,12 @@ import {
   CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS,
   CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
+import type {
+  CanonicalLivingFrameMotionSpec,
+} from '../../src/types/living-frame-canonical-motion'
+import {
+  verifyCanonicalLivingFrameMotionSpec,
+} from '../living-frame/canonical-living-frame-motion'
 import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
@@ -531,6 +537,13 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             outputHeight: planningPayload.height,
           })
         : []
+      const livingFrameCameraOrSourceAttention =
+        livingFrameOverlays.some((overlay) =>
+          overlay.layer.motionSpec.tracks.some(
+            (track) =>
+              track.target === 'virtual_camera' ||
+              track.target === 'source',
+          ))
       const globalSourceSequenceItemIds = mode === 'chunk'
         ? authority.components.sourceSequence.map((source) => source.sourceSequenceItemId)
         : [...workItem.sourceSequenceItemIds]
@@ -1001,6 +1014,16 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               layerId: overlay.layer.layerId,
               startFrame: overlay.layer.startFrame,
               endFrameExclusive: overlay.layer.endFrameExclusive,
+              motionSpecDigestSha256:
+                overlay.layer.motionSpec.motionSpecDigestSha256,
+              depthStyle:
+                overlay.layer.motionSpec.depthStyle,
+              cameraOrSourceAttentionApplied:
+                overlay.layer.motionSpec.tracks.some(
+                  (track) =>
+                    track.target === 'virtual_camera' ||
+                    track.target === 'source',
+                ),
               manifestArtifactId: overlay.manifest.artifactId,
               manifestSha256: overlay.manifest.sha256,
               manifestByteLength: overlay.manifest.byteLength,
@@ -1112,6 +1135,12 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             livingFrameOverlays.length > 0,
           approvedLivingFrameOverlayBelowCaptionsApplied:
             livingFrameOverlays.length > 0,
+          approvedLivingFrameDeterministicMotionApplied:
+            livingFrameOverlays.length > 0,
+          approvedLivingFrameAdaptiveDepthStyleApplied:
+            livingFrameOverlays.length > 0,
+          approvedLivingFrameCameraOrSourceAttentionApplied:
+            livingFrameCameraOrSourceAttention,
           approvedColorDependencyRead: colorSources.length > 0,
           approvedColorDependencyInputMode: colorSources.length > 0
             ? 'server_injected_private_stream_v1' as const
@@ -1320,6 +1349,7 @@ interface ApprovedLivingFrameOverlayDependency {
     endFrameExclusive: number
     fit: 'fill'
     opacity: 1
+    motionSpec: CanonicalLivingFrameMotionSpec
   }
   manifest: CanonicalPrivateDependencyArtifactReadResult
   component: CanonicalPrivateDependencyArtifactReadResult
@@ -1367,6 +1397,7 @@ function orderLivingFrameOverlayDependencies(input: {
     endFrameExclusive: number
     fit: 'fill'
     opacity: 1
+    motionSpec: CanonicalLivingFrameMotionSpec
   }>
   manifestDependencies: CanonicalPrivateDependencyArtifactReadResult[]
   componentDependencies: CanonicalPrivateDependencyArtifactReadResult[]
@@ -1447,6 +1478,7 @@ function orderLivingFrameOverlayDependencies(input: {
       payload.componentDependency,
       'Living Frame component expectation',
     )
+    const motionSpec = payload.motionSpec
     if (
       payload.schemaVersion !==
         CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION ||
@@ -1462,6 +1494,20 @@ function orderLivingFrameOverlayDependencies(input: {
       payload.opacity !== layer.opacity ||
       payload.compositionPolicy !== CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY ||
       payload.captionPlaneRemainsAboveLivingFrame !== true ||
+      !verifyCanonicalLivingFrameMotionSpec(motionSpec) ||
+      motionSpec.sceneId !== layer.sceneId ||
+      motionSpec.componentId !== layer.motionSpec.componentId ||
+      motionSpec.sceneStartFrame !== layer.startFrame ||
+      motionSpec.sceneEndFrameExclusive !==
+        layer.endFrameExclusive ||
+      motionSpec.motionSpecDigestSha256 !==
+        layer.motionSpec.motionSpecDigestSha256 ||
+      motionSpec.sourceBindings
+        .selectedSceneBindingDigestSha256 !==
+        payload.selectedSceneBindingDigestSha256 ||
+      motionSpec.sourceBindings
+        .timingBindingDigestSha256 !==
+        payload.timingBindingDigestSha256 ||
       componentExpectation.workItemKey !== componentEntry.workItem.workItemKey ||
       componentExpectation.outputKey !== layer.componentOutputKey ||
       componentExpectation.artifactType !== 'living_frame_component_rgba_png' ||
@@ -1482,6 +1528,7 @@ function orderLivingFrameOverlayDependencies(input: {
         String(payload.selectedSceneBindingDigestSha256),
       timingBindingDigestSha256:
         String(payload.timingBindingDigestSha256),
+      motionSpec,
       identity: input.identity,
       authorityHashes: input.authorityHashes,
       outputWidth: input.outputWidth,
@@ -1510,6 +1557,7 @@ function parseApprovedLivingFrameLayerManifest(input: {
   component: CanonicalPrivateDependencyArtifactReadResult
   selectedSceneBindingDigestSha256: string
   timingBindingDigestSha256: string
+  motionSpec: CanonicalLivingFrameMotionSpec
   identity: {
     workspaceId: string
     projectId: string
@@ -1535,6 +1583,7 @@ function parseApprovedLivingFrameLayerManifest(input: {
   const hashes = objectRecord(report.authorityHashes, 'Living Frame layer authority hashes')
   const layer = objectRecord(report.livingFrameLayer, 'Living Frame layer evidence')
   const component = objectRecord(layer.component, 'Living Frame component evidence')
+  const motionSpec = layer.motionSpec
   if (
     report.schemaVersion !== 'canonical-authority-validation-artifact-v1' ||
     report.source !== 'immutable_canonical_edit_authority' ||
@@ -1568,6 +1617,14 @@ function parseApprovedLivingFrameLayerManifest(input: {
     layer.opacity !== input.layer.opacity ||
     layer.compositionPolicy !== CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY ||
     layer.captionPlaneRemainsAboveLivingFrame !== true ||
+    !verifyCanonicalLivingFrameMotionSpec(motionSpec) ||
+    motionSpec.sceneId !== input.layer.sceneId ||
+    motionSpec.componentId !== input.motionSpec.componentId ||
+    motionSpec.sceneStartFrame !== input.layer.startFrame ||
+    motionSpec.sceneEndFrameExclusive !==
+      input.layer.endFrameExclusive ||
+    motionSpec.motionSpecDigestSha256 !==
+      input.motionSpec.motionSpecDigestSha256 ||
     component.workItemKey !==
       input.manifestWorkItem.dependencyKeys[0] ||
     component.dependencyJobId !== input.component.dependencyJobId ||
@@ -2208,6 +2265,14 @@ function assertFinalResult(
     request.payload.supplementalAudioTracks !== undefined
   const livingFrameOverlays =
     request.payload.livingFrameOverlayLayers !== undefined
+  const livingFrameCameraOrSourceAttention =
+    request.payload.livingFrameOverlayLayers?.some(
+      (layer) => layer.motionSpec.tracks.some(
+        (track) =>
+          track.target === 'virtual_camera' ||
+          track.target === 'source',
+      ),
+    ) ?? false
   const boundedSourceTransitions =
     'sourceSegments' in request.payload &&
     request.payload.transitionPolicy ===
@@ -2255,6 +2320,21 @@ function assertFinalResult(
         .approvedLivingFrameOverlayTimelineApplied !== true ||
       result.evidence.semanticEvidence
         .approvedLivingFrameOverlayBelowCaptionsApplied !== true
+      ||
+      result.evidence.semanticEvidence
+        .approvedLivingFrameDeterministicMotionApplied !== true
+      ||
+      result.evidence.semanticEvidence
+        .approvedLivingFrameAdaptiveDepthStyleApplied !== true
+      ||
+      (
+        livingFrameCameraOrSourceAttention
+          ? result.evidence.semanticEvidence
+            .approvedLivingFrameCameraOrSourceAttentionApplied !== true
+          : result.evidence.semanticEvidence
+            .approvedLivingFrameCameraOrSourceAttentionApplied !==
+              undefined
+      )
     )) ||
     result.evidence.semanticEvidence.finalCompositionProfileExecuted !== true ||
     (sequenceProfile && (

@@ -74,6 +74,9 @@ import {
 import {
   verifyCanonicalLivingFrameControlledIllustrationCostWorkBinding,
 } from './living-frame-controlled-illustration-cost-work-binding'
+import {
+  compileCanonicalLivingFrameMotionSpec,
+} from './canonical-living-frame-motion'
 import type {
   CanonicalPlanComponentsInput,
   CanonicalWorkItemInput,
@@ -562,6 +565,11 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
               'Canonical Living Frame Remotion layer lost its exact MasterTiming scene.',
             )
           }
+          const motionComponentId =
+            resolveRemotionMotionComponentId({
+              scene: boundScene,
+              workRequirement,
+            })
           const remotionLayerWorkItem =
             compileRemotionLayerWorkItem({
               workRequirement,
@@ -584,6 +592,17 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
                   .outputFrame.height,
               maximumCreditBudget:
                 line.estimatedCredits,
+              motionSpec:
+                compileCanonicalLivingFrameMotionSpec({
+                  publication: input.publication,
+                  timingBinding:
+                    input.timingBinding,
+                  components: input.components,
+                  sceneId:
+                    projectedScene.sceneId,
+                  componentId:
+                    motionComponentId,
+                }),
             })
           workItems.push(remotionLayerWorkItem)
           projectedItems.push({
@@ -799,6 +818,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
                   payload.endFrameExclusive,
                 fit: payload.fit,
                 opacity: payload.opacity,
+                motionSpec:
+                  payload.motionSpec,
               }
             }),
           requiredDependencyWorkItemKeys:
@@ -1474,6 +1495,8 @@ export function bindCanonicalLivingFrameFinalCompositionWorkItems(
               layer.endFrameExclusive,
             fit: layer.fit,
             opacity: layer.opacity,
+            motionSpec:
+              layer.motionSpec,
           })),
       },
     },
@@ -2195,6 +2218,33 @@ function compileSharpComponentWorkItem(input: {
   return workItem
 }
 
+function resolveRemotionMotionComponentId(input: {
+  readonly scene:
+    CanonicalLivingFrameAssetWorkInputBinding[
+      'scenes'
+    ][number]
+  readonly workRequirement:
+    CanonicalLivingFrameEstimateWorkAssetProjection[
+      'scenes'
+    ][number]['workRequirements'][number]
+}): string {
+  const inputIntentIds = new Set(
+    input.workRequirement.inputAssetIntentIds,
+  )
+  const componentIds = uniqueSorted(
+    input.scene.assetIntents
+      .filter((intent) =>
+        inputIntentIds.has(intent.assetIntentId))
+      .map((intent) => intent.componentId),
+  )
+  if (componentIds.length !== 1) {
+    throw conflict(
+      'Canonical Living Frame Remotion motion requires one exact terminal component lineage per layer.',
+    )
+  }
+  return componentIds[0]!
+}
+
 function compileRemotionLayerWorkItem(input: {
   readonly workRequirement:
     CanonicalLivingFrameEstimateWorkAssetProjection[
@@ -2213,6 +2263,10 @@ function compileRemotionLayerWorkItem(input: {
   readonly outputWidth: number
   readonly outputHeight: number
   readonly maximumCreditBudget: number
+  readonly motionSpec:
+    CanonicalLivingFrameRemotionLayerWorkItem[
+      'executionInput'
+    ]['structuredPayload']['motionSpec']
 }): CanonicalLivingFrameRemotionLayerWorkItem {
   const componentOutput =
     input.sharpComponentWorkItem.expectedOutputs[0]
@@ -2248,6 +2302,12 @@ function compileRemotionLayerWorkItem(input: {
     || input.outputHeight > 4_096
     || !Number.isInteger(input.maximumCreditBudget)
     || input.maximumCreditBudget <= 0
+    || input.motionSpec.sceneId !==
+      input.workRequirement.sceneId
+    || input.motionSpec.sceneStartFrame !==
+      input.startFrame
+    || input.motionSpec.sceneEndFrameExclusive !==
+      input.endFrameExclusive
   ) {
     throw conflict(
       'Canonical Living Frame Remotion layer requires one exact RGBA dependency, MasterTiming range, output frame, and estimate authority.',
@@ -2287,6 +2347,8 @@ function compileRemotionLayerWorkItem(input: {
           CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY,
         captionPlaneRemainsAboveLivingFrame:
           true,
+        motionSpec:
+          structuredClone(input.motionSpec),
         componentDependency: {
           workItemKey:
             input.sharpComponentWorkItem.workItemKey,

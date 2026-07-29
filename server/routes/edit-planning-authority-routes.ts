@@ -1,9 +1,11 @@
 import { Router } from 'express'
 import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
+import { requireSensitiveIdempotencyKey } from '../middleware/idempotency'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createCanonicalEditJourneyService } from '../services/canonical-edit-journey-service'
 import { createCanonicalPlanPresentationCoordinatorService } from '../services/canonical-plan-presentation-coordinator-service'
+import { createCanonicalSourceLedPlanPresentationService } from '../services/canonical-source-led-plan-presentation-service'
 import { createCanonicalRevisionPlanPresentationCoordinatorService } from '../services/canonical-revision-plan-presentation-coordinator-service'
 import { createCanonicalPlanApprovalCoordinatorService } from '../services/canonical-plan-approval-coordinator-service'
 import { createCanonicalPlanPublicationRequestService } from '../services/canonical-plan-publication-request-service'
@@ -22,6 +24,7 @@ import { compensateCanonicalApprovedSnapshotSchema } from '../validation/canonic
 import { canonicalEditJourneyQuerySchema } from '../validation/canonical-edit-journey-schemas'
 import { approvePresentedCanonicalPlanSchema } from '../validation/canonical-plan-approval-schemas'
 import { presentCanonicalRevisionPlanSchema } from '../validation/canonical-revision-plan-presentation-schemas'
+import { presentCanonicalSourceLedPlanSchema } from '../validation/canonical-source-led-plan-presentation-schemas'
 import {
   approveCanonicalEditPlanSchema,
   authorityWorkspaceQuerySchema,
@@ -70,6 +73,25 @@ export function createEditPlanningAuthorityRoutes(): Router {
         'This authenticated handoff verified finalized source media plus the current Exact Edit Preferences, Preference DNA application, Edit Brief, frame, and cleanup state without publishing a plan.',
         'Plan publication, approval, credit reservation, tools, providers, rendering, and production remain separate gates.',
       ])
+    }),
+  )
+
+  router.post(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/source-led-plan-presentations',
+    requireAuth,
+    requireSensitiveIdempotencyKey,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(presentCanonicalSourceLedPlanSchema, request.body)
+      const result = await createCanonicalSourceLedPlanPresentationService(
+        getServiceContext(request),
+      ).present({
+        ...body,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+      })
+      sendOk(response, {
+        canonicalSourceLedPlanPresentation: result,
+      }, result.warnings, 201)
     }),
   )
 

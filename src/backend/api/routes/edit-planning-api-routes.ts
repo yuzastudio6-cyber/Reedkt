@@ -135,6 +135,27 @@ export const EDIT_PLANNING_API_ROUTES: ApiRouteDefinition[] = [
     ],
   },
   {
+    id: 'planning.canonicalSourceLedPlanPresentation.create',
+    domain: 'planning',
+    method: 'POST',
+    path: '/v1/projects/:projectId/edit-sessions/:editSessionId/source-led-plan-presentations',
+    description:
+      'Derive and present one bounded canonical plan from server-reverified uploaded media, exact preferences, and the ready Edit Brief.',
+    securityLevel: 'workspace_editor',
+    runtimeMode: 'frontend_safe',
+    status: 'frontend_safe_ready',
+    requiresSupabase: true,
+    requiresServiceRole: false,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'presentCanonicalSourceLedPlan',
+    notes: [
+      'The browser sends only ordered media-asset identities plus literal source-order and preservation confirmations; it cannot submit an EditPlan, timing, estimate, work graph, provider route, or renderer payload.',
+      'The server re-reads finalized upload/FFprobe authority, exact Edit Preferences, confirmed output frame, and the current ready Edit Brief, then preserves every verified source frame and only exact confirmed caption markers.',
+      'This first bounded mode presents a plan for review only. Approval, snapshot, credit reservation, tool/provider execution, rendering, private review, and delivery remain separate gates.',
+    ],
+  },
+  {
     id: 'planning.canonicalPublicationRequest.create',
     domain: 'planning',
     method: 'POST',

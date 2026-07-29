@@ -63,6 +63,8 @@
     "smoke:canonical-browser-execution-route-selection": "tsx server/smoke/canonical-browser-execution-route-selection-smoke.ts",
     "smoke:approved-snapshot": "tsx server/smoke/approved-snapshot-smoke.ts",
     "smoke:edit-planning-authority": "tsx server/smoke/edit-planning-authority-smoke.ts",
+    "smoke:canonical-source-led-plan-compiler": "tsx server/smoke/canonical-source-led-plan-compiler-smoke.ts",
+    "smoke:canonical-source-led-plan-route": "tsx server/smoke/canonical-source-led-plan-presentation-route-smoke.ts",
     "smoke:canonical-storytelling-style-authority": "tsx server/smoke/canonical-storytelling-style-authority-smoke.ts",
     "smoke:motion-studio-private-local-command-repository": "tsx server/smoke/motion-studio-private-local-command-repository-smoke.ts",
     "smoke:canonical-private-package-work-queue": "tsx server/smoke/canonical-private-package-work-queue-smoke.ts",

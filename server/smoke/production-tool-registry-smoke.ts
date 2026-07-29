@@ -62,7 +62,7 @@ const capabilityProfileIds = new Set(
 )
 
 check(profiles.length === 50, 'Production registry must contain exactly 50 canonical private E2E tools.')
-check(capabilityProfiles.length === 22, 'Non-E2E capability catalog must contain exactly 22 historical/future identities.')
+check(capabilityProfiles.length === 23, 'Non-E2E capability catalog must contain exactly 23 historical/future identities.')
 
 for (const toolId of PRODUCTION_TOOL_IDS) {
   check(profileIds.has(toolId), `Every required tool must have a profile: missing ${toolId}`)
@@ -169,6 +169,14 @@ const sam2 = requireCapabilityProfile('sam2')
 check(sam2.qaResponsibilities.includes('mask_temporal_stability'), 'SAM 2 must include temporal mask QA.')
 check(sam2.modelWeightPolicy.required, 'SAM 2 must require checkpoint/model-weight review.')
 
+const comfyui = requireCapabilityProfile('comfyui')
+check(comfyui.productionStatus === 'evaluation_only', 'ComfyUI must remain evaluation-only before exact private E2E proof.')
+check(comfyui.workerType === 'gpu_ai_worker', 'ComfyUI must retain GPU-only placement metadata.')
+check(comfyui.cpuAllowed === false, 'ComfyUI must not silently fall back to CPU.')
+check(comfyui.modelWeightPolicy.required, 'ComfyUI must require exact loaded-artifact review.')
+check(!isProductionToolId('comfyui'), 'ComfyUI must not enter the exact 50 production-tool set before E2E proof.')
+expectThrows(() => assertToolAllowedForProduction('comfyui'), 'Evaluation-only ComfyUI must not be production executable.')
+
 check(requireCapabilityProfile('faster_whisper').qaResponsibilities.includes('transcript_alignment'), 'faster-whisper must include transcript alignment QA.')
 check(requireProfile('deepfilternet').qaResponsibilities.includes('audio_naturalness'), 'DeepFilterNet must include audio naturalness QA.')
 check(requireProfile('deepfilternet').qaResponsibilities.includes('audio_loudness'), 'DeepFilterNet must include audio loudness QA.')
@@ -190,6 +198,7 @@ const expectedCapabilityModelWeightTools: NonE2EToolCapabilityId[] = [
   'transparent_background',
   'torch_torchvision',
   'transformers',
+  'comfyui',
   'demucs',
   'real_esrgan',
   'film',
@@ -228,7 +237,7 @@ check(
   !(summary.toolsNeedingLicenseReview as readonly string[]).includes('birefnet'),
   'BiRefNet must not leak into production registry summaries.',
 )
-check(capabilitySummary.totalCapabilities === 22, 'Capability summary must retain exactly 22 non-E2E identities.')
+check(capabilitySummary.totalCapabilities === 23, 'Capability summary must retain exactly 23 non-E2E identities.')
 check(
   capabilitySummary.runnerOnlyFoundations.join('|') ===
     RUNNER_ONLY_FOUNDATION_IDS.join('|'),

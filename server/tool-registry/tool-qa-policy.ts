@@ -118,6 +118,19 @@ Record<ProfessionalToolCatalogId, ProductionQAProfile> = {
   konva: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'] },
   torch_torchvision: { ...empty, gateTypes: ['render_asset_integrity', 'mask_edge_quality', 'enhancement_artifacts'] },
   transformers: { ...empty, gateTypes: ['render_asset_integrity', 'mask_edge_quality', 'enhancement_artifacts'] },
+  comfyui: {
+    ...empty,
+    gateTypes: [
+      'render_asset_integrity',
+      'mask_edge_quality',
+      'caption_safe_zone',
+    ],
+    requiredBeforePreview: [],
+    requiredBeforeFinalExport: [],
+    notes: [
+      'Evaluation-only capability metadata. A future admitted operation must bind generated-asset integrity, alpha/edge, continuity, factual-safety, and destination-composite QA through the canonical edit QA plan.',
+    ],
+  },
   vapoursynth: { ...empty, gateTypes: ['render_asset_integrity', 'export_duration_sync'], requiredBeforePreview: ['render_asset_integrity'] },
   revideo: { ...empty, gateTypes: ['render_asset_integrity', 'render_timeline_integrity'], notes: ['Evaluation-only; not a core render QA path.'] },
 }

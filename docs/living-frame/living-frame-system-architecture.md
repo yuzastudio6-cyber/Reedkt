@@ -2063,3 +2063,27 @@ durable events, canonical billability, reservation reconciliation, one
 service-fee calculation, overage/refund policy, wallet settlement, and export
 unlock remain owned by the existing canonical settlement authority. See
 `docs/living-frame/living-frame-controlled-illustration-settlement-contribution.md`.
+
+## Controlled-illustration host catalog boundary
+
+The server capability catalog retains exactly one non-E2E `comfyui`
+execution-host identity for Living Frame qualification work. This does not
+expand the exact 50 canonical private production tools and does not make
+ComfyUI selectable, dispatchable, installed, approved, or customer-visible.
+
+The remaining controlled-illustration pieces are deliberately not modeled as
+five additional production tools. `comfyui_controlnet_aux` is an optional
+external preprocessing bundle; ControlNet, IP-Adapter, and PEFT/LoRA are
+model/adapter capabilities governed by a future operation's exact artifact
+manifest; AuraFace is a separate post-generation continuity-QA capability.
+One future ComfyUI GPU attempt therefore composes the first five capabilities
+and is priced once, while optional AuraFace measurement is accounted for
+separately. This preserves the exact production tool registry and prevents
+capability labels from becoming duplicate customer charges.
+
+The capability profile remains fail-closed on exact model/checkpoint and
+adapter licenses, compatibility, dependency closure, signed GPU image, SBOM,
+read-only content-addressed mounts, graph allowlists, private dispatch, output
+QA, and observed attempt-cost receipts. Admission to `ProductionToolId` can
+occur only after the existing canonical private end-to-end and job-adapter
+evidence requirements are satisfied.

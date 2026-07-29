@@ -2573,6 +2573,31 @@ This contract does not prove dispatch, completion, actual cost, artifact
 commit, transparency, QA approval, rendering, or production. See
 `docs/living-frame/living-frame-controlled-sdxl-gpu-output-observation.md`.
 
+### Opaque output to canonical rembg input
+
+`living-frame-controlled-sdxl-rembg-input-binding-v1` adds a process-bound,
+single-use handoff from the exact opaque GPU-output observation toward the
+existing canonical rembg operation. It rereads the PNG and decoded RGBA bytes,
+recomputes both hashes, enforces the fixed 1024-by-1024 shape, and confirms
+that every source alpha byte is 255. Bytes remain out of serializable planning
+state and are delivered only to a process-bound consumer.
+
+The current canonical rembg admission is bound specifically to FFmpeg-extracted
+source-video frames. A generated Living Frame still is not that source type.
+The binding therefore records that a later shared-authority extension must add
+a strict `living_frame_generated_opaque_still` branch alongside the unchanged
+`canonical_source_frame` branch. It does not relabel the generated image,
+create a rembg request, dispatch a worker, or commit a mask.
+
+The intended continuation reuses the existing `rembg` L4 mask operation,
+existing Sharp straight-alpha component composition, canonical asset
+manifest, alpha/continuity/fact QA, and Remotion compositor. The ComfyUI GPU
+generation attempt is not charged again; rembg remains one separate canonical
+tool attempt whose amount is owned by the existing tool-cost authority.
+Customer credits still aggregate and round once, and the service fee remains
+single and downstream. See
+`docs/living-frame/living-frame-controlled-sdxl-rembg-input-binding.md`.
+
 ### Controlled benchmark result and threshold binding
 
 The source-only result binding accepts benchmark observations only through a

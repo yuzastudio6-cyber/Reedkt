@@ -904,6 +904,22 @@ export type {
 } from '../../types/living-frame-controlled-sdxl-gpu-output-observation'
 
 export {
+  LIVING_FRAME_CONTROLLED_SDXL_REMBG_INPUT_BINDING_CLASS,
+  LIVING_FRAME_CONTROLLED_SDXL_REMBG_INPUT_BINDING_ISSUES,
+  LIVING_FRAME_CONTROLLED_SDXL_REMBG_INPUT_BINDING_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_SDXL_REMBG_INPUT_BINDING_VERSION,
+} from '../../types/living-frame-controlled-sdxl-rembg-input-binding'
+
+export type {
+  LivingFrameControlledSdxlRembgInputBinding,
+  LivingFrameControlledSdxlRembgInputBindingAuthority,
+  LivingFrameControlledSdxlRembgInputBindingDraft,
+  LivingFrameControlledSdxlRembgInputBindingIssue,
+  LivingFrameControlledSdxlRembgInputBindingIssueCode,
+  LivingFrameControlledSdxlRembgInputBindingOpenGate,
+} from '../../types/living-frame-controlled-sdxl-rembg-input-binding'
+
+export {
   LIVING_FRAME_CLOUD_RUN_L4_ESTIMATE_RATE_BASIS_VERSION,
   LIVING_FRAME_CLOUD_RUN_L4_PUBLIC_RATE_OBSERVATION_DIGEST,
   LIVING_FRAME_CLOUD_RUN_L4_PUBLIC_RATE_OBSERVATION_VERSION,

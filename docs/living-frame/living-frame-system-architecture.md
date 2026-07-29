@@ -2199,3 +2199,21 @@ read-only model mounts, node allow/deny enforcement, GPU generation and
 quality benchmarks, selected-scene snapshot binding, dispatch, work, asset
 QA, cost evidence, and private review remain mandatory. See
 `docs/living-frame/living-frame-comfyui-dependency-lock-evidence.md`.
+
+## Controlled model-family coherence
+
+The controlled generation graph now has one fail-closed model-family
+coherence binding across the stock ComfyUI graph, deterministic ControlNet
+input binding, LoRA slot, and optional merged generic IP-Adapter graph. It
+derives the ordered artifact slots and their exact binding digests from the
+already validated parents and rejects missing, extra, cross-family, or
+wrong-CLIP-Vision declarations.
+
+This is not a model manifest and cannot qualify an artifact from a caller
+label. Current artifact metadata remains absent and exact compatibility
+remains unproven until the workflow-neutral canonical model-artifact
+repository, protected mounts, independent metadata verification, legal
+review, and offline compatibility benchmarks exist. AuraFace remains
+separate continuity QA; FaceID, InsightFace, and AuraFace generation
+conditioning remain prohibited. See
+`docs/living-frame/living-frame-controlled-model-family-binding.md`.

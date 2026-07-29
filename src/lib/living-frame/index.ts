@@ -557,3 +557,30 @@ export type {
   LivingFrameControlledComfyUiWorkflowExpectationDraft,
   LivingFrameControlledComfyUiWorkflowProfile,
 } from '../../types/living-frame-controlled-illustration-comfyui-workflow'
+
+export {
+  LIVING_FRAME_CONTROLLED_CLIP_VISION_FAMILIES,
+  LIVING_FRAME_CONTROLLED_MODEL_FAMILIES,
+  LIVING_FRAME_CONTROLLED_MODEL_FAMILY_BINDING_CLASS,
+  LIVING_FRAME_CONTROLLED_MODEL_FAMILY_BINDING_VERSION,
+  LIVING_FRAME_CONTROLLED_MODEL_FAMILY_ISSUES,
+  LIVING_FRAME_CONTROLLED_MODEL_FAMILY_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_MODEL_FAMILY_ROLES,
+} from '../../types/living-frame-controlled-model-family-binding'
+
+export type {
+  LivingFrameControlledAdapterFamilyExpectation,
+  LivingFrameControlledBaseFamilyExpectation,
+  LivingFrameControlledClipVisionFamily,
+  LivingFrameControlledClipVisionFamilyExpectation,
+  LivingFrameControlledModelBindingKind,
+  LivingFrameControlledModelFamily,
+  LivingFrameControlledModelFamilyBinding,
+  LivingFrameControlledModelFamilyBindingAuthority,
+  LivingFrameControlledModelFamilyBindingDraft,
+  LivingFrameControlledModelFamilyExpectation,
+  LivingFrameControlledModelFamilyIssue,
+  LivingFrameControlledModelFamilyIssueCode,
+  LivingFrameControlledModelFamilyOpenGate,
+  LivingFrameControlledModelFamilyRole,
+} from '../../types/living-frame-controlled-model-family-binding'

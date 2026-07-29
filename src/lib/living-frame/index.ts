@@ -867,3 +867,20 @@ export type {
   LivingFrameControlledSdxlPrivatePromptMaterializationOpenGate,
   LivingFrameControlledSdxlPrivatePromptSlotReceipt,
 } from '../../types/living-frame-controlled-sdxl-private-prompt-materialization'
+
+export {
+  LIVING_FRAME_CONTROLLED_SDXL_GPU_RUNTIME_PROTOCOL_ISSUES,
+  LIVING_FRAME_CONTROLLED_SDXL_GPU_RUNTIME_PROTOCOL_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_SDXL_GPU_RUNTIME_PROTOCOL_VERSION,
+  LIVING_FRAME_CONTROLLED_SDXL_GPU_RUNTIME_REQUEST_RECEIPT_CLASS,
+} from '../../types/living-frame-controlled-sdxl-gpu-runtime-protocol'
+
+export type {
+  LivingFrameControlledSdxlGpuRuntimeArtifactReceipt,
+  LivingFrameControlledSdxlGpuRuntimeProtocolAuthority,
+  LivingFrameControlledSdxlGpuRuntimeProtocolIssue,
+  LivingFrameControlledSdxlGpuRuntimeProtocolIssueCode,
+  LivingFrameControlledSdxlGpuRuntimeProtocolOpenGate,
+  LivingFrameControlledSdxlGpuRuntimeRequestReceipt,
+  LivingFrameControlledSdxlGpuRuntimeRequestReceiptDraft,
+} from '../../types/living-frame-controlled-sdxl-gpu-runtime-protocol'

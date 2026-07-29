@@ -878,24 +878,32 @@ function materializeValue(
 function externalSlotKinds(
   recipe: LivingFrameControlledSdxlBenchmarkGraphRecipe,
 ): LivingFrameControlledSdxlBenchmarkRequestSlotKind[] {
-  const slotKinds:
+  const traversedSlotKinds:
     LivingFrameControlledSdxlBenchmarkRequestSlotKind[] = []
   for (const node of recipe.graph.nodes) {
     for (const input of node.inputs) {
       if (input.value.kind === 'external_slot_reference') {
-        slotKinds.push(input.value.slotKind)
+        traversedSlotKinds.push(input.value.slotKind)
       }
     }
   }
+  const declaredSlotKinds = [
+    ...recipe.graph.referencedSlotKinds,
+  ]
   if (
-    new Set(slotKinds).size !== slotKinds.length
-    || canonicalJson(slotKinds)
-      !== canonicalJson(recipe.graph.referencedSlotKinds)
+    new Set(traversedSlotKinds).size !==
+      traversedSlotKinds.length
+    || new Set(declaredSlotKinds).size !==
+      declaredSlotKinds.length
+    || traversedSlotKinds.length !== declaredSlotKinds.length
+    || declaredSlotKinds.some((slotKind) =>
+      traversedSlotKinds.filter((value) =>
+        value === slotKind).length !== 1)
   ) throw invalid(
     'slot_set_invalid',
     '$.packet.graphRecipe.graph.referencedSlotKinds',
   )
-  return slotKinds
+  return declaredSlotKinds
 }
 
 function compileSlotReceipts(

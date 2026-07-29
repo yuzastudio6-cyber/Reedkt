@@ -2471,6 +2471,43 @@ receipts, metric attestation, license review, selected-scene lineage, work,
 asset QA, and private review remain closed. See
 `docs/living-frame/living-frame-controlled-sdxl-private-prompt-materialization.md`.
 
+### Private ComfyUI GPU request and cost lineage
+
+`living-frame-controlled-sdxl-gpu-runtime-protocol-v1` now binds one verified
+prompt-materialization receipt and its single-use process lease to one
+server-read current artifact packet. It requires exact materialization,
+output-frame, artifact-set, slot, alias-digest, content-hash, byte-length, and
+read-only-source lineage before it can compile a private ComfyUI worker
+request.
+
+The raw prompt and private aliases remain behind a second process-bound,
+single-use request lease. The serialized receipt contains only hashes,
+counts, stable record identities, closed worker expectations, and explicit
+non-authority flags. It contains no prompt text, model or image aliases,
+paths, URLs, credentials, commands, artifact bytes, price, credits,
+service-fee amount, reservation, wallet, or ledger data.
+
+The request makes the pricing unit explicit: one wire request represents one
+future shared GPU-host attempt. ComfyUI, the externally prepared control
+image/preprocessing capability, ControlNet, generic IP-Adapter, and loaded
+PEFT/LoRA are capability attributions inside that attempt, not five
+independently rounded GPU charges. The benchmark receives the preprocessing
+output as a server-owned artifact rather than admitting a custom
+preprocessor node. AuraFace continuity measurement stays outside the request
+as an optional CPU QA attempt. Exact reuse adds no attempt; failed and
+unknown attempt cost must remain attributable; customer credits round once
+after bundle aggregation; and the canonical service fee applies once
+downstream.
+
+This does not register `comfyui`, register
+`tool.comfyui.generate_controlled_image.v1`, dispatch a Cloud Run worker,
+mint a GPU attempt or cost receipt, create an asset, or open production.
+Canonical operation identity, signed image, distributed mounts, dispatch,
+released attempt/completion and resource-cost evidence, estimate/settlement
+reconciliation, license review, approved scene/snapshot/work lineage, QA, and
+private review remain required. See
+`docs/living-frame/living-frame-controlled-sdxl-gpu-runtime-protocol.md`.
+
 ### Controlled benchmark result and threshold binding
 
 The source-only result binding accepts benchmark observations only through a

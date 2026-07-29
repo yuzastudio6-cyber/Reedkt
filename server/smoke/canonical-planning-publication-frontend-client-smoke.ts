@@ -1689,6 +1689,7 @@ let exactPreferenceAuthority = exactPreferenceFixture(
   4,
   3,
 )
+let nextFailureMessage: string | undefined
 
 const server = createServer((request, response) => {
   const chunks: Buffer[] = []
@@ -1706,6 +1707,17 @@ const server = createServer((request, response) => {
     const serialized = JSON.stringify(body)
     assert.doesNotMatch(serialized, /storagePath|path-must-never-cross|signedUrl|publicUrl|sourceBytes|bytesBase64/)
     response.setHeader('content-type', 'application/json')
+    if (nextFailureMessage) {
+      const message = nextFailureMessage
+      nextFailureMessage = undefined
+      response.statusCode = 409
+      response.end(JSON.stringify({
+        ok: false,
+        error: { code: 'TOOL_NOT_READY', message },
+        warnings: [],
+      }))
+      return
+    }
     if (request.url?.includes('/edit-preferences')) {
       assert.equal(request.method, 'GET')
       assert.match(request.url ?? '', /\/edit-preferences\/planning-authority\?workspaceId=/)
@@ -1989,6 +2001,45 @@ try {
     lifecyclePhase: 'planning',
     locked: false,
   }
+  nextFailureMessage =
+    'Exact-edit preference writes are blocked until the tenant-bound transactional database authority is deployed.'
+  const actionableBlocker = await saveCanonicalPlanningForNamedEdit({
+    scope,
+    projectId: identity.projectId,
+    editSessionId: identity.editSessionId,
+    plan: exactPlan,
+    plannerInput: {
+      ...baseInput,
+      customInstructions: 'Exercise one safe actionable backend blocker.',
+    },
+    sourceMediaAssets,
+  })
+  assert.equal(actionableBlocker.status, 'blocked')
+  assert.equal(
+    actionableBlocker.message,
+    'Exact-edit preference writes are blocked until the tenant-bound transactional database authority is deployed.',
+    'A bounded backend blocker should remain actionable in the signed-in planning UI.',
+  )
+
+  nextFailureMessage = 'Blocked by token=secret-value at file:///tmp/private-authority.json'
+  const unsafeBlocker = await saveCanonicalPlanningForNamedEdit({
+    scope,
+    projectId: identity.projectId,
+    editSessionId: identity.editSessionId,
+    plan: exactPlan,
+    plannerInput: {
+      ...baseInput,
+      customInstructions: 'Exercise one unsafe backend blocker.',
+    },
+    sourceMediaAssets,
+  })
+  assert.equal(unsafeBlocker.status, 'blocked')
+  assert.equal(
+    unsafeBlocker.message,
+    'The saved edit state changed or no longer matches this plan. Refresh the edit and create a new plan.',
+    'Paths, URLs, and secret-looking values must never cross into browser-visible blocker copy.',
+  )
+
   responseIdentity = { ...identity, workspaceId: 'workspace-foreign' }
   const foreign = await saveCanonicalPlanningForNamedEdit({
     scope,

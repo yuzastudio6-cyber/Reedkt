@@ -1926,9 +1926,11 @@ function classifyApiFailure(
     'VALIDATION_FAILED', 'IDEMPOTENCY_CONFLICT', 'INVALID_STORED_STATE', 'INTEGRITY_CHECK_FAILED',
     'PLAN_NOT_APPROVED', 'JOB_DEPENDENCY_NOT_READY', 'UPLOAD_NOT_FINALIZED', 'TOOL_NOT_READY',
   ].includes(code ?? '')) {
+    const backendBlocker = safeBackendPlanningBlockerMessage(response.error?.message)
     return {
       status: 'blocked',
-      message: 'The saved edit state changed or no longer matches this plan. Refresh the edit and create a new plan.',
+      message: backendBlocker ??
+        'The saved edit state changed or no longer matches this plan. Refresh the edit and create a new plan.',
       retryable: false,
       handoffSaved,
       candidateSaved: false,
@@ -1957,6 +1959,18 @@ function classifyApiFailure(
     warnings: response.warnings,
   }
 }
+
+function safeBackendPlanningBlockerMessage(value: string | undefined): string | null {
+  const normalized = value?.trim()
+  return normalized && SAFE_BACKEND_PLANNING_BLOCKER_MESSAGES.has(normalized)
+    ? normalized
+    : null
+}
+
+const SAFE_BACKEND_PLANNING_BLOCKER_MESSAGES = new Set([
+  'Current Edit Preferences cannot be applied until the canonical transactional runtime is available.',
+  'Exact-edit preference writes are blocked until the tenant-bound transactional database authority is deployed.',
+])
 
 function withDraftBlockers(
   failure: CanonicalPlanningPublicationResult,

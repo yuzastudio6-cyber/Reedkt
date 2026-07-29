@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { z } from 'zod'
 
 import type {
+  LivingFrameAuraFaceCpuCanonicalMountHostSessionInput,
   LivingFrameAuraFaceCpuHostExecutionInput,
   LivingFrameAuraFaceCpuHostExecutionResult,
 } from './living-frame-auraface-cpu-runtime'
@@ -15,6 +16,10 @@ export const LIVING_FRAME_AURAFACE_OFFLINE_RUNNER_PROTOCOL =
   'living-frame-auraface-offline-runner-v1' as const
 export const LIVING_FRAME_AURAFACE_OFFLINE_RUNNER_RESPONSE_PROTOCOL =
   'living-frame-auraface-offline-runner-response-v1' as const
+export const LIVING_FRAME_AURAFACE_ATOMIC_MOUNT_OFFLINE_RUNNER_PROTOCOL =
+  'living-frame-auraface-atomic-mount-offline-runner-v2' as const
+export const LIVING_FRAME_AURAFACE_ATOMIC_MOUNT_OFFLINE_RUNNER_RESPONSE_PROTOCOL =
+  'living-frame-auraface-atomic-mount-offline-runner-response-v2' as const
 export const LIVING_FRAME_AURAFACE_OFFLINE_OPERATION =
   'tool.transformers.measure_auraface_identity_continuity.v1' as const
 export const LIVING_FRAME_AURAFACE_OFFLINE_PACKAGE_PROFILE =
@@ -58,6 +63,27 @@ const requestSchema = z.object({
   }).strict(),
 }).strict()
 
+const atomicMountRequestSchema = z.object({
+  schemaVersion: z.literal(
+    LIVING_FRAME_AURAFACE_ATOMIC_MOUNT_OFFLINE_RUNNER_PROTOCOL,
+  ),
+  operationId: z.literal(
+    LIVING_FRAME_AURAFACE_OFFLINE_OPERATION,
+  ),
+  packageProfile: z.literal(
+    LIVING_FRAME_AURAFACE_OFFLINE_PACKAGE_PROFILE,
+  ),
+  payload: z.object({
+    artifactRequirementSetDigestSha256: z.string().regex(SHA256),
+    canonicalMountSessionDigestSha256: z.string().regex(SHA256),
+    preprocessingSpecDigestSha256: z.literal(
+      LIVING_FRAME_AURAFACE_PREPROCESSING_SPEC_DIGEST,
+    ),
+    referenceImage: imagePacketSchema,
+    candidateImage: imagePacketSchema,
+  }).strict(),
+}).strict()
+
 const packageIdentitySchema = z.object({
   insightfaceVersion: z.literal('1.0.1'),
   onnxruntimeVersion: z.literal('1.28.0'),
@@ -68,9 +94,10 @@ const packageIdentitySchema = z.object({
 }).strict()
 
 const responseCommonSchema = z.object({
-  schemaVersion: z.literal(
+  schemaVersion: z.enum([
     LIVING_FRAME_AURAFACE_OFFLINE_RUNNER_RESPONSE_PROTOCOL,
-  ),
+    LIVING_FRAME_AURAFACE_ATOMIC_MOUNT_OFFLINE_RUNNER_RESPONSE_PROTOCOL,
+  ]),
   ok: z.literal(true),
   operationId: z.literal(
     LIVING_FRAME_AURAFACE_OFFLINE_OPERATION,
@@ -118,9 +145,10 @@ const reviewResponseSchema = responseCommonSchema.extend({
 }).strict()
 
 const failureResponseSchema = z.object({
-  schemaVersion: z.literal(
+  schemaVersion: z.enum([
     LIVING_FRAME_AURAFACE_OFFLINE_RUNNER_RESPONSE_PROTOCOL,
-  ),
+    LIVING_FRAME_AURAFACE_ATOMIC_MOUNT_OFFLINE_RUNNER_RESPONSE_PROTOCOL,
+  ]),
   ok: z.literal(false),
   code: z.enum([
     'REQUEST_VALIDATION_FAILED',
@@ -131,9 +159,17 @@ const failureResponseSchema = z.object({
 
 export type LivingFrameAuraFaceOfflineRunnerRequest =
   z.infer<typeof requestSchema>
+export type LivingFrameAuraFaceAtomicMountOfflineRunnerRequest =
+  z.infer<typeof atomicMountRequestSchema>
 
 export interface LivingFrameAuraFaceOfflineRunnerRequestEnvelope {
   readonly request: LivingFrameAuraFaceOfflineRunnerRequest
+  readonly requestJson: string
+  readonly requestEnvelopeSha256: string
+}
+
+export interface LivingFrameAuraFaceAtomicMountOfflineRunnerRequestEnvelope {
+  readonly request: LivingFrameAuraFaceAtomicMountOfflineRunnerRequest
   readonly requestJson: string
   readonly requestEnvelopeSha256: string
 }
@@ -196,10 +232,87 @@ export function compileLivingFrameAuraFaceOfflineRunnerRequest(
   })
 }
 
+export function compileLivingFrameAuraFaceAtomicMountOfflineRunnerRequest(
+  input: {
+    readonly session:
+      LivingFrameAuraFaceCpuCanonicalMountHostSessionInput
+    readonly canonicalMountSessionDigestSha256: string
+  },
+): LivingFrameAuraFaceAtomicMountOfflineRunnerRequestEnvelope {
+  if (
+    !SHA256.test(input.canonicalMountSessionDigestSha256)
+    || input.session.externalNetworkAllowed !== false
+    || input.session.runtimeDownloadsAllowed !== false
+    || input.session.callerThresholdAccepted !== false
+    || input.session.identityApprovalRequested !== false
+    || input.session.preprocessingSpecDigestSha256
+      !== LIVING_FRAME_AURAFACE_PREPROCESSING_SPEC_DIGEST
+  ) throw invalid('input_invalid')
+
+  const request: LivingFrameAuraFaceAtomicMountOfflineRunnerRequest = {
+    schemaVersion:
+      LIVING_FRAME_AURAFACE_ATOMIC_MOUNT_OFFLINE_RUNNER_PROTOCOL,
+    operationId:
+      LIVING_FRAME_AURAFACE_OFFLINE_OPERATION,
+    packageProfile:
+      LIVING_FRAME_AURAFACE_OFFLINE_PACKAGE_PROFILE,
+    payload: {
+      artifactRequirementSetDigestSha256:
+        input.session.artifactRequirementSetDigestSha256,
+      canonicalMountSessionDigestSha256:
+        input.canonicalMountSessionDigestSha256,
+      preprocessingSpecDigestSha256:
+        LIVING_FRAME_AURAFACE_PREPROCESSING_SPEC_DIGEST,
+      referenceImage:
+        committedImage(input.session.referenceImage),
+      candidateImage:
+        committedImage(input.session.candidateImage),
+    },
+  }
+  const parsed = atomicMountRequestSchema.safeParse(request)
+  if (!parsed.success) throw invalid('input_invalid')
+  const requestJson = stableAuthorityStringify(parsed.data)
+  return Object.freeze({
+    request: parsed.data,
+    requestJson,
+    requestEnvelopeSha256:
+      sha256AuthorityValue(parsed.data),
+  })
+}
+
 export function parseLivingFrameAuraFaceOfflineRunnerResponse(
   input: {
     readonly responseJson: string
     readonly expectedRequestEnvelopeSha256: string
+  },
+): LivingFrameAuraFaceCpuHostExecutionResult {
+  return parseRunnerResponse({
+    ...input,
+    expectedResponseProtocol:
+      LIVING_FRAME_AURAFACE_OFFLINE_RUNNER_RESPONSE_PROTOCOL,
+  })
+}
+
+export function parseLivingFrameAuraFaceAtomicMountOfflineRunnerResponse(
+  input: {
+    readonly responseJson: string
+    readonly expectedRequestEnvelopeSha256: string
+  },
+): LivingFrameAuraFaceCpuHostExecutionResult {
+  return parseRunnerResponse({
+    ...input,
+    expectedResponseProtocol:
+      LIVING_FRAME_AURAFACE_ATOMIC_MOUNT_OFFLINE_RUNNER_RESPONSE_PROTOCOL,
+  })
+}
+
+function parseRunnerResponse(
+  input: {
+    readonly responseJson: string
+    readonly expectedRequestEnvelopeSha256: string
+    readonly expectedResponseProtocol:
+      | typeof LIVING_FRAME_AURAFACE_OFFLINE_RUNNER_RESPONSE_PROTOCOL
+      | typeof LIVING_FRAME_AURAFACE_ATOMIC_MOUNT_OFFLINE_RUNNER_RESPONSE_PROTOCOL
   },
 ): LivingFrameAuraFaceCpuHostExecutionResult {
   let decoded: unknown
@@ -209,9 +322,19 @@ export function parseLivingFrameAuraFaceOfflineRunnerResponse(
     throw invalid('response_invalid')
   }
   const failure = failureResponseSchema.safeParse(decoded)
-  if (failure.success) throw invalid('runner_failed')
+  if (failure.success) {
+    if (
+      failure.data.schemaVersion
+        !== input.expectedResponseProtocol
+    ) throw invalid('response_invalid')
+    throw invalid('runner_failed')
+  }
   const completed = completedResponseSchema.safeParse(decoded)
   if (completed.success) {
+    if (
+      completed.data.schemaVersion
+        !== input.expectedResponseProtocol
+    ) throw invalid('response_invalid')
     assertCommonResponse(
       completed.data,
       input.expectedRequestEnvelopeSha256,
@@ -247,6 +370,10 @@ export function parseLivingFrameAuraFaceOfflineRunnerResponse(
   }
   const review = reviewResponseSchema.safeParse(decoded)
   if (!review.success) throw invalid('response_invalid')
+  if (
+    review.data.schemaVersion
+      !== input.expectedResponseProtocol
+  ) throw invalid('response_invalid')
   assertCommonResponse(
     review.data,
     input.expectedRequestEnvelopeSha256,
@@ -268,9 +395,11 @@ export function parseLivingFrameAuraFaceOfflineRunnerResponse(
 }
 
 function committedImage(
-  input: LivingFrameAuraFaceCpuHostExecutionInput[
-    'referenceImage'
-  ],
+  input:
+    | LivingFrameAuraFaceCpuHostExecutionInput['referenceImage']
+    | LivingFrameAuraFaceCpuCanonicalMountHostSessionInput[
+      'referenceImage'
+    ],
 ): z.infer<typeof imagePacketSchema> {
   const bytes = Uint8Array.from(input.contentBytes)
   if (

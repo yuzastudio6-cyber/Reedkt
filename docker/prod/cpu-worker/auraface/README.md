@@ -16,6 +16,13 @@ commands, thresholds, and identity decisions. The response returns private
 single-use normalized embeddings to the server adapter; the public Living
 Frame receipt never includes embeddings or raw images.
 
+The preferred private protocol is
+`living-frame-auraface-atomic-mount-offline-runner-v2`. It binds the request
+to one canonical mount-session digest created while both exact model-artifact
+leases remain open. The v1 protocol remains only as a controlled compatibility
+lane for the earlier separately bound host contract. A v2 request always
+receives a v2 response, including fail-closed responses.
+
 ## Model presentation
 
 No model is baked into this image. The backend-owned model-artifact authority
@@ -30,6 +37,12 @@ The runner re-hashes both files before each bounded attempt. Their sizes and
 digests are fixed by `living-frame-auraface-artifact-requirements-v1`.
 Runtime downloads and automatic InsightFace model-zoo downloads are never
 used. Production launch must additionally enforce `--network=none`.
+
+The backend-owned atomic session must also verify each canonical object before
+and after the runner consumes it. The container's internal re-hash does not
+replace that outer canonical lease check. The mounted-runner adapter receives
+host paths only inside its process-bound callback; paths and mount aliases are
+not returned by the session contract.
 
 ## Preprocessing
 
@@ -75,3 +88,8 @@ must use `--network=none`, a read-only root filesystem, a bounded temporary
 filesystem, and the backend-owned model-artifact directory mounted read-only.
 Running the image without that model mount fails closed with
 `MODEL_OR_INFERENCE_FAILED`; it never downloads a replacement.
+
+Controlled local integration uses `docker run -i` because the fixed JSON
+request is delivered on stdin. Omitting Docker's stdin attachment produces an
+empty request and must fail validation rather than falling back to any ambient
+configuration.

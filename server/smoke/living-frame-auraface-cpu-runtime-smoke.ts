@@ -27,10 +27,15 @@ import {
   createLivingFrameAuraFaceContinuityMeasurementFromCpuRuntime,
 } from '../living-frame/living-frame-auraface-cpu-measurement-bridge'
 import {
+  createLivingFrameAuraFaceControlledFixtureAtomicMountHostSessionPort,
   createLivingFrameAuraFaceControlledFixtureHostPort,
   createLivingFrameAuraFaceControlledFixtureInputPort,
   createLivingFrameAuraFaceControlledFixtureModelBindingPort,
   createLivingFrameAuraFaceControlledFixtureSafetyAdmissionPort,
+  createLivingFrameAuraFacePrivateInputPort,
+  createLivingFrameAuraFacePrivateModelBindingPort,
+  createLivingFrameAuraFacePrivateOfflineHostPort,
+  createLivingFrameAuraFacePrivateSafetyAdmissionPort,
 } from '../living-frame/living-frame-auraface-cpu-host-port'
 import {
   consumeLivingFrameAuraFaceCpuEmbeddingOutputLease,
@@ -95,6 +100,40 @@ async function main(): Promise<void> {
     LIVING_FRAME_AURAFACE_CPU_RUNTIME_OPEN_GATES,
   )
   assertAllPromotionAuthoritiesFalse(result.receipt)
+
+  const atomicPorts = fixtureAtomicPorts(requirements)
+  const atomicResult =
+    await executeLivingFrameAuraFaceCpuRuntime({
+      artifactRequirements: requirements,
+      sourceBindings,
+      canonicalDispatchConsumption:
+        canonicalDispatchConsumption(),
+      ...atomicPorts,
+    })
+  assert.equal(
+    verifyLivingFrameAuraFaceCpuRuntimeReceipt(
+      atomicResult.receipt,
+    ),
+    true,
+  )
+  assert.equal(
+    atomicResult.receipt.hostObservation.terminalState,
+    'completed',
+  )
+  assert.equal(
+    atomicResult.receipt.modelBindings.every(
+      (binding) =>
+        binding.objectVerifiedBeforeConsumer
+        && binding.objectVerifiedAfterConsumer,
+    ),
+    true,
+  )
+  assert.equal(
+    JSON.stringify(atomicResult.receipt).includes(
+      'canonicalMountSessionDigestSha256',
+    ),
+    false,
+  )
   assert(result.embeddingOutputLease)
   const packet =
     consumeLivingFrameAuraFaceCpuEmbeddingOutputLease(
@@ -166,6 +205,76 @@ async function main(): Promise<void> {
   ), false)
 
   let adversarialAssertions = 0
+
+  const reusableAtomicSession =
+    fixtureAtomicPorts(requirements).canonicalMountHostSessionPort
+  await executeLivingFrameAuraFaceCpuRuntime({
+    artifactRequirements: requirements,
+    sourceBindings,
+    canonicalDispatchConsumption: canonicalDispatchConsumption(),
+    ...fixtureAtomicPorts(requirements),
+    canonicalMountHostSessionPort: reusableAtomicSession,
+  })
+  await expectIssue(
+    () => executeLivingFrameAuraFaceCpuRuntime({
+      artifactRequirements: requirements,
+      sourceBindings,
+      canonicalDispatchConsumption:
+        canonicalDispatchConsumption(),
+      ...fixtureAtomicPorts(requirements),
+      canonicalMountHostSessionPort: reusableAtomicSession,
+    }),
+    'canonical_mount_host_session_port_reused',
+  )
+  adversarialAssertions += 1
+
+  await expectIssue(
+    () => executeLivingFrameAuraFaceCpuRuntime({
+      artifactRequirements: requirements,
+      sourceBindings,
+      canonicalDispatchConsumption:
+        canonicalDispatchConsumption(),
+      ...fixturePorts(requirements),
+      canonicalMountHostSessionPort:
+        fixtureAtomicPorts(requirements)
+          .canonicalMountHostSessionPort,
+    }),
+    'canonical_mount_host_session_port_invalid',
+  )
+  adversarialAssertions += 1
+
+  await expectIssue(
+    () => executeLivingFrameAuraFaceCpuRuntime({
+      artifactRequirements: requirements,
+      sourceBindings,
+      canonicalDispatchConsumption:
+        canonicalDispatchConsumption(),
+      inputPort:
+        createLivingFrameAuraFacePrivateInputPort(
+          async () => inputPacket(requirements),
+        ),
+      modelBindingPort:
+        createLivingFrameAuraFacePrivateModelBindingPort(
+          async () => modelPacket(requirements),
+        ),
+      safetyAdmissionPort:
+        createLivingFrameAuraFacePrivateSafetyAdmissionPort(
+          async () => safetyPacket(),
+        ),
+      hostPort:
+        createLivingFrameAuraFacePrivateOfflineHostPort(
+          async () => ({
+            ...completedHostResult(),
+            evidenceClass:
+              'private_internal_auraface_cpu_runtime_observation_unreleased',
+            detectorInferenceExecuted: true,
+            embeddingInferenceExecuted: true,
+          }),
+        ),
+    }),
+    'canonical_mount_host_session_port_invalid',
+  )
+  adversarialAssertions += 1
 
   const reusablePorts = fixturePorts(requirements)
   await executeLivingFrameAuraFaceCpuRuntime({
@@ -484,13 +593,63 @@ async function main(): Promise<void> {
   )
   adversarialAssertions += 1
 
-  assert.equal(adversarialAssertions, 19)
+  assert.equal(adversarialAssertions, 22)
   console.log(
     'Living Frame AuraFace CPU runtime smoke passed: '
       + '1 separately metered controlled CPU attempt, '
       + '1 user-review outcome, and '
       + `${adversarialAssertions} adversarial assertions.`,
   )
+}
+
+function fixtureAtomicPorts(
+  requirements: LivingFrameAuraFaceArtifactRequirements,
+) {
+  const packet = inputPacket(requirements)
+  return {
+    inputPort:
+      createLivingFrameAuraFaceControlledFixtureInputPort(
+        async () => packet,
+      ),
+    safetyAdmissionPort:
+      createLivingFrameAuraFaceControlledFixtureSafetyAdmissionPort(
+        async () => safetyPacket(),
+      ),
+    canonicalMountHostSessionPort:
+      createLivingFrameAuraFaceControlledFixtureAtomicMountHostSessionPort(
+        async (input) => {
+          assert.equal(
+            input.artifactRequirementSetDigestSha256,
+            requirements.requirementSetDigestSha256,
+          )
+          assert.equal(
+            input.referenceImage.contentSha256,
+            packet.items[0].contentSha256,
+          )
+          assert.equal(
+            input.candidateImage.contentSha256,
+            packet.items[1].contentSha256,
+          )
+          assert.equal(input.callerThresholdAccepted, false)
+          assert.equal(input.identityApprovalRequested, false)
+          assert.equal(input.externalNetworkAllowed, false)
+          assert.equal(input.runtimeDownloadsAllowed, false)
+          return {
+            modelBindingPacket: modelPacket(requirements),
+            hostExecutionResult: completedHostResult(),
+            canonicalMountSessionDigestSha256:
+              digest('atomic-mount-session'),
+            runnerRequestEnvelopeSha256:
+              digest('atomic-runner-request'),
+            atomicMountAndInferenceCompleted: true,
+            callerPathUrlCredentialCommandAccepted: false,
+            externalNetworkPerformed: false,
+            runtimeDownloadPerformed: false,
+            productionQualified: false,
+          }
+        },
+      ),
+  }
 }
 
 async function artifactRequirements() {

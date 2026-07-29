@@ -1,4 +1,5 @@
 import {
+  registerLivingFrameAuraFaceCpuCanonicalMountHostSessionPort,
   registerLivingFrameAuraFaceCpuHostPort,
   registerLivingFrameAuraFaceCpuModelBindingPort,
   registerLivingFrameAuraFaceCpuPrivateInputPort,
@@ -6,6 +7,9 @@ import {
   type LivingFrameAuraFaceCpuHostExecutionInput,
   type LivingFrameAuraFaceCpuHostExecutionResult,
   type LivingFrameAuraFaceCpuHostPort,
+  type LivingFrameAuraFaceCpuCanonicalMountHostSessionInput,
+  type LivingFrameAuraFaceCpuCanonicalMountHostSessionPort,
+  type LivingFrameAuraFaceCpuCanonicalMountHostSessionResult,
   type LivingFrameAuraFaceCpuModelBindingPacket,
   type LivingFrameAuraFaceCpuModelBindingPort,
   type LivingFrameAuraFaceCpuPrivateInputPacket,
@@ -13,6 +17,30 @@ import {
   type LivingFrameAuraFaceCpuSafetyAdmissionPacket,
   type LivingFrameAuraFaceCpuSafetyAdmissionPort,
 } from './living-frame-auraface-cpu-runtime'
+
+export function createLivingFrameAuraFaceControlledFixtureAtomicMountHostSessionPort(
+  executeOne: (
+    input: LivingFrameAuraFaceCpuCanonicalMountHostSessionInput,
+  ) => Promise<LivingFrameAuraFaceCpuCanonicalMountHostSessionResult>,
+): LivingFrameAuraFaceCpuCanonicalMountHostSessionPort {
+  assertFunction(executeOne)
+  return registerLivingFrameAuraFaceCpuCanonicalMountHostSessionPort(
+    Object.freeze({
+      portClass:
+        'controlled_fixture_auraface_atomic_mount_host_session_port_v1' as const,
+      callerLocatorAccepted: false as const,
+      callerPathAccepted: false as const,
+      callerBytesAccepted: false as const,
+      callerUrlAccepted: false as const,
+      callerEndpointAccepted: false as const,
+      externalNetworkAllowed: false as const,
+      runtimeDownloadsAllowed: false as const,
+      atomicMountAndInferenceRequired: true as const,
+      productionQualified: false as const,
+      executeOne: executeOne.bind(undefined),
+    }),
+  )
+}
 
 export function createLivingFrameAuraFaceControlledFixtureInputPort(
   readOnce: () => Promise<

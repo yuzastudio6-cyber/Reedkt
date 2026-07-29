@@ -6,12 +6,16 @@ import type {
   LivingFrameAuraFaceCpuHostExecutionInput,
 } from '../living-frame/living-frame-auraface-cpu-runtime'
 import {
+  LIVING_FRAME_AURAFACE_ATOMIC_MOUNT_OFFLINE_RUNNER_PROTOCOL,
+  LIVING_FRAME_AURAFACE_ATOMIC_MOUNT_OFFLINE_RUNNER_RESPONSE_PROTOCOL,
   LIVING_FRAME_AURAFACE_OFFLINE_OPERATION,
   LIVING_FRAME_AURAFACE_OFFLINE_RUNNER_PROTOCOL,
   LIVING_FRAME_AURAFACE_OFFLINE_RUNNER_RESPONSE_PROTOCOL,
   LIVING_FRAME_AURAFACE_PREPROCESSING_SPEC_DIGEST,
   LivingFrameAuraFaceOfflineRunnerProtocolError,
+  compileLivingFrameAuraFaceAtomicMountOfflineRunnerRequest,
   compileLivingFrameAuraFaceOfflineRunnerRequest,
+  parseLivingFrameAuraFaceAtomicMountOfflineRunnerResponse,
   parseLivingFrameAuraFaceOfflineRunnerResponse,
 } from '../living-frame/living-frame-auraface-offline-runner-protocol'
 
@@ -74,6 +78,45 @@ assert.equal(
   false,
 )
 
+const canonicalMountSessionDigestSha256 =
+  sha('canonical-mount-session')
+const atomicRequest =
+  compileLivingFrameAuraFaceAtomicMountOfflineRunnerRequest({
+    session: {
+      artifactRequirementSetDigestSha256:
+        hostInput.artifactRequirementSetDigestSha256,
+      referenceImage: hostInput.referenceImage,
+      candidateImage: hostInput.candidateImage,
+      preprocessingSpecDigestSha256:
+        hostInput.preprocessingSpecDigestSha256,
+      callerThresholdAccepted: false,
+      identityApprovalRequested: false,
+      externalNetworkAllowed: false,
+      runtimeDownloadsAllowed: false,
+    },
+    canonicalMountSessionDigestSha256,
+  })
+assert.equal(
+  atomicRequest.request.schemaVersion,
+  LIVING_FRAME_AURAFACE_ATOMIC_MOUNT_OFFLINE_RUNNER_PROTOCOL,
+)
+assert.equal(
+  atomicRequest.request.payload
+    .canonicalMountSessionDigestSha256,
+  canonicalMountSessionDigestSha256,
+)
+assert.equal(
+  Object.hasOwn(
+    atomicRequest.request.payload,
+    'modelBindingPacketDigestSha256',
+  ),
+  false,
+)
+assert.equal(
+  atomicRequest.requestEnvelopeSha256,
+  sha(atomicRequest.requestJson),
+)
+
 const referenceEmbedding = embeddingBytes(0)
 const candidateEmbedding = embeddingBytes(1)
 const response = completedResponse({
@@ -95,6 +138,38 @@ assert.equal(parsed.referenceEmbedding?.[0], 1)
 assert.equal(parsed.candidateEmbedding?.[1], 1)
 assert.equal(parsed.externalNetworkPerformed, false)
 assert.equal(parsed.runtimeDownloadPerformed, false)
+
+const atomicResponse = {
+  ...response,
+  schemaVersion:
+    LIVING_FRAME_AURAFACE_ATOMIC_MOUNT_OFFLINE_RUNNER_RESPONSE_PROTOCOL,
+  requestEnvelopeSha256:
+    atomicRequest.requestEnvelopeSha256,
+}
+const atomicParsed =
+  parseLivingFrameAuraFaceAtomicMountOfflineRunnerResponse({
+    responseJson: JSON.stringify(atomicResponse),
+    expectedRequestEnvelopeSha256:
+      atomicRequest.requestEnvelopeSha256,
+  })
+assert.equal(atomicParsed.terminalState, 'completed')
+assert.equal(atomicParsed.embeddingInferenceExecuted, true)
+assert.throws(
+  () => parseLivingFrameAuraFaceOfflineRunnerResponse({
+    responseJson: JSON.stringify(atomicResponse),
+    expectedRequestEnvelopeSha256:
+      atomicRequest.requestEnvelopeSha256,
+  }),
+  LivingFrameAuraFaceOfflineRunnerProtocolError,
+)
+assert.throws(
+  () => parseLivingFrameAuraFaceAtomicMountOfflineRunnerResponse({
+    responseJson: JSON.stringify(response),
+    expectedRequestEnvelopeSha256:
+      request.requestEnvelopeSha256,
+  }),
+  LivingFrameAuraFaceOfflineRunnerProtocolError,
+)
 
 const review =
   parseLivingFrameAuraFaceOfflineRunnerResponse({
@@ -216,6 +291,11 @@ assert.match(runner, /CPUExecutionProvider/u)
 assert.match(runner, /DecompressionBombWarning/u)
 assert.match(runner, /orientation != 1/u)
 assert.match(runner, /identical_inputs/u)
+assert.match(
+  runner,
+  /living-frame-auraface-atomic-mount-offline-runner-v2/u,
+)
+assert.match(runner, /canonicalMountSessionDigestSha256/u)
 assert.doesNotMatch(
   runner,
   /(?:requests|urllib|urlopen|https?:\/\/|huggingface_hub)/u,

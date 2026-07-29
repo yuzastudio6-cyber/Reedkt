@@ -400,6 +400,57 @@ export interface LivingFrameAuraFaceCpuHostPort {
   ): Promise<LivingFrameAuraFaceCpuHostExecutionResult>
 }
 
+export interface LivingFrameAuraFaceCpuCanonicalMountHostSessionInput {
+  readonly artifactRequirementSetDigestSha256: string
+  readonly referenceImage: {
+    readonly contentType: 'image/png' | 'image/jpeg'
+    readonly contentSha256: string
+    readonly contentBytes: Uint8Array
+  }
+  readonly candidateImage: {
+    readonly contentType: 'image/png' | 'image/jpeg'
+    readonly contentSha256: string
+    readonly contentBytes: Uint8Array
+  }
+  readonly preprocessingSpecDigestSha256: string
+  readonly callerThresholdAccepted: false
+  readonly identityApprovalRequested: false
+  readonly externalNetworkAllowed: false
+  readonly runtimeDownloadsAllowed: false
+}
+
+export interface LivingFrameAuraFaceCpuCanonicalMountHostSessionResult {
+  readonly modelBindingPacket:
+    LivingFrameAuraFaceCpuModelBindingPacket
+  readonly hostExecutionResult:
+    LivingFrameAuraFaceCpuHostExecutionResult
+  readonly canonicalMountSessionDigestSha256: string
+  readonly runnerRequestEnvelopeSha256: string
+  readonly atomicMountAndInferenceCompleted: true
+  readonly callerPathUrlCredentialCommandAccepted: false
+  readonly externalNetworkPerformed: false
+  readonly runtimeDownloadPerformed: false
+  readonly productionQualified: false
+}
+
+export interface LivingFrameAuraFaceCpuCanonicalMountHostSessionPort {
+  readonly portClass:
+    | 'controlled_fixture_auraface_atomic_mount_host_session_port_v1'
+    | 'private_canonical_auraface_atomic_mount_host_session_port_v1'
+  readonly callerLocatorAccepted: false
+  readonly callerPathAccepted: false
+  readonly callerBytesAccepted: false
+  readonly callerUrlAccepted: false
+  readonly callerEndpointAccepted: false
+  readonly externalNetworkAllowed: false
+  readonly runtimeDownloadsAllowed: false
+  readonly atomicMountAndInferenceRequired: true
+  readonly productionQualified: false
+  executeOne(
+    input: LivingFrameAuraFaceCpuCanonicalMountHostSessionInput,
+  ): Promise<LivingFrameAuraFaceCpuCanonicalMountHostSessionResult>
+}
+
 export interface LivingFrameAuraFaceCpuRuntimeInput {
   readonly artifactRequirements:
     LivingFrameAuraFaceArtifactRequirements
@@ -409,12 +460,14 @@ export interface LivingFrameAuraFaceCpuRuntimeInput {
     CanonicalPrivateToolDispatchConsumptionResponse
   readonly inputPort:
     LivingFrameAuraFaceCpuPrivateInputPort
-  readonly modelBindingPort:
+  readonly modelBindingPort?:
     LivingFrameAuraFaceCpuModelBindingPort
   readonly safetyAdmissionPort:
     LivingFrameAuraFaceCpuSafetyAdmissionPort
-  readonly hostPort:
+  readonly hostPort?:
     LivingFrameAuraFaceCpuHostPort
+  readonly canonicalMountHostSessionPort?:
+    LivingFrameAuraFaceCpuCanonicalMountHostSessionPort
 }
 
 export interface LivingFrameAuraFaceCpuRuntimeResult {
@@ -464,6 +517,9 @@ export class LivingFrameAuraFaceCpuRuntimeError extends Error {
     | 'model_binding_port_reused'
     | 'model_binding_invalid'
     | 'host_port_invalid'
+    | 'canonical_mount_host_session_port_invalid'
+    | 'canonical_mount_host_session_port_reused'
+    | 'canonical_mount_host_session_result_invalid'
     | 'host_execution_result_invalid'
     | 'face_outcome_invalid'
     | 'embedding_output_invalid'
@@ -524,9 +580,11 @@ const inputPorts = new WeakSet<object>()
 const modelBindingPorts = new WeakSet<object>()
 const safetyAdmissionPorts = new WeakSet<object>()
 const hostPorts = new WeakSet<object>()
+const canonicalMountHostSessionPorts = new WeakSet<object>()
 const consumedInputPorts = new WeakSet<object>()
 const consumedModelBindingPorts = new WeakSet<object>()
 const consumedSafetyAdmissionPorts = new WeakSet<object>()
+const consumedCanonicalMountHostSessionPorts = new WeakSet<object>()
 const outputLeases = new WeakSet<object>()
 const consumedOutputLeases = new WeakSet<object>()
 const embeddingPacketsByLease =
@@ -622,6 +680,34 @@ export function registerLivingFrameAuraFaceCpuHostPort<
   return port
 }
 
+export function registerLivingFrameAuraFaceCpuCanonicalMountHostSessionPort<
+  T extends LivingFrameAuraFaceCpuCanonicalMountHostSessionPort,
+>(port: T): T {
+  if (
+    !port
+    || typeof port !== 'object'
+    || ![
+      'controlled_fixture_auraface_atomic_mount_host_session_port_v1',
+      'private_canonical_auraface_atomic_mount_host_session_port_v1',
+    ].includes(port.portClass)
+    || port.callerLocatorAccepted !== false
+    || port.callerPathAccepted !== false
+    || port.callerBytesAccepted !== false
+    || port.callerUrlAccepted !== false
+    || port.callerEndpointAccepted !== false
+    || port.externalNetworkAllowed !== false
+    || port.runtimeDownloadsAllowed !== false
+    || port.atomicMountAndInferenceRequired !== true
+    || port.productionQualified !== false
+    || typeof port.executeOne !== 'function'
+  ) throw invalid(
+    'canonical_mount_host_session_port_invalid',
+    '$.canonicalMountHostSessionPort',
+  )
+  canonicalMountHostSessionPorts.add(port)
+  return port
+}
+
 export async function executeLivingFrameAuraFaceCpuRuntime(
   input: LivingFrameAuraFaceCpuRuntimeInput,
 ): Promise<LivingFrameAuraFaceCpuRuntimeResult> {
@@ -644,19 +730,54 @@ export async function executeLivingFrameAuraFaceCpuRuntime(
   )
   assertScopeMatchesDispatch(sourceBindings, dispatch)
   assertInputPort(input.inputPort)
-  assertModelBindingPort(input.modelBindingPort)
   assertSafetyAdmissionPort(input.safetyAdmissionPort)
-  assertHostPort(input.hostPort)
-  assertPortClassesCompatible(
-    input.inputPort,
-    input.modelBindingPort,
-    input.safetyAdmissionPort,
-    input.hostPort,
-  )
+  const atomicSession = input.canonicalMountHostSessionPort
+  if (atomicSession) {
+    if (input.modelBindingPort || input.hostPort) {
+      throw invalid(
+        'canonical_mount_host_session_port_invalid',
+        '$.canonicalMountHostSessionPort',
+      )
+    }
+    assertCanonicalMountHostSessionPort(atomicSession)
+    assertAtomicPortClassesCompatible(
+      input.inputPort,
+      input.safetyAdmissionPort,
+      atomicSession,
+    )
+  } else {
+    if (!input.modelBindingPort || !input.hostPort) {
+      throw invalid(
+        'canonical_mount_host_session_port_invalid',
+        '$.canonicalMountHostSessionPort',
+      )
+    }
+    assertModelBindingPort(input.modelBindingPort)
+    assertHostPort(input.hostPort)
+    assertPortClassesCompatible(
+      input.inputPort,
+      input.modelBindingPort,
+      input.safetyAdmissionPort,
+      input.hostPort,
+    )
+    if (
+      input.modelBindingPort.portClass
+        === 'private_canonical_model_mount_binding_port_v1'
+      || input.hostPort.portClass
+        === 'private_offline_auraface_cpu_host_port_v1'
+    ) throw invalid(
+      'canonical_mount_host_session_port_invalid',
+      '$.canonicalMountHostSessionPort',
+    )
+  }
 
   consumedInputPorts.add(input.inputPort)
-  consumedModelBindingPorts.add(input.modelBindingPort)
   consumedSafetyAdmissionPorts.add(input.safetyAdmissionPort)
+  if (atomicSession) {
+    consumedCanonicalMountHostSessionPorts.add(atomicSession)
+  } else {
+    consumedModelBindingPorts.add(input.modelBindingPort!)
+  }
   let inputPacket: LivingFrameAuraFaceCpuPrivateInputPacket
   let modelPacket: LivingFrameAuraFaceCpuModelBindingPacket
   let safetyPacket: LivingFrameAuraFaceCpuSafetyAdmissionPacket
@@ -678,54 +799,97 @@ export async function executeLivingFrameAuraFaceCpuRuntime(
   } catch {
     throw invalid('input_packet_invalid', '$.inputPort')
   }
-  try {
-    modelPacket = await input.modelBindingPort.bindOnce()
-  } catch {
-    throw invalid(
-      'model_binding_invalid',
-      '$.modelBindingPort',
-    )
-  }
   const [reference, candidate] = assertInputPacket(
     inputPacket,
     sourceBindings,
   )
+
+  let hostResult: LivingFrameAuraFaceCpuHostExecutionResult
+  if (atomicSession) {
+    let sessionResult:
+      LivingFrameAuraFaceCpuCanonicalMountHostSessionResult
+    try {
+      sessionResult = await atomicSession.executeOne({
+        artifactRequirementSetDigestSha256:
+          sourceBindings.artifactRequirementSetDigestSha256,
+        referenceImage: {
+          contentType: reference.contentType,
+          contentSha256: reference.contentSha256,
+          contentBytes: copyBytes(reference.contentBytes),
+        },
+        candidateImage: {
+          contentType: candidate.contentType,
+          contentSha256: candidate.contentSha256,
+          contentBytes: copyBytes(candidate.contentBytes),
+        },
+        preprocessingSpecDigestSha256:
+          sourceBindings.preprocessingSpecDigestSha256,
+        callerThresholdAccepted: false,
+        identityApprovalRequested: false,
+        externalNetworkAllowed: false,
+        runtimeDownloadsAllowed: false,
+      })
+    } catch {
+      throw invalid(
+        'canonical_mount_host_session_result_invalid',
+        '$.canonicalMountHostSessionPort',
+      )
+    }
+    assertCanonicalMountHostSessionResult(sessionResult)
+    modelPacket = sessionResult.modelBindingPacket
+    hostResult = sessionResult.hostExecutionResult
+  } else {
+    try {
+      modelPacket = await input.modelBindingPort!.bindOnce()
+    } catch {
+      throw invalid(
+        'model_binding_invalid',
+        '$.modelBindingPort',
+      )
+    }
+    const legacyModelBindingPacketDigestSha256 =
+      digest(modelPacket)
+    try {
+      hostResult = await input.hostPort!.executeOne({
+        artifactRequirementSetDigestSha256:
+          sourceBindings.artifactRequirementSetDigestSha256,
+        referenceImage: {
+          contentType: reference.contentType,
+          contentSha256: reference.contentSha256,
+          contentBytes: copyBytes(reference.contentBytes),
+        },
+        candidateImage: {
+          contentType: candidate.contentType,
+          contentSha256: candidate.contentSha256,
+          contentBytes: copyBytes(candidate.contentBytes),
+        },
+        modelBindingPacketDigestSha256:
+          legacyModelBindingPacketDigestSha256,
+        preprocessingSpecDigestSha256:
+          sourceBindings.preprocessingSpecDigestSha256,
+        callerThresholdAccepted: false,
+        identityApprovalRequested: false,
+        externalNetworkAllowed: false,
+        runtimeDownloadsAllowed: false,
+      })
+    } catch {
+      throw invalid(
+        'host_execution_result_invalid',
+        '$.hostPort',
+      )
+    }
+  }
   const modelBindings = assertModelBindingPacket(
     modelPacket,
     input.artifactRequirements,
   )
   const modelBindingPacketDigestSha256 = digest(modelPacket)
-
-  let hostResult: LivingFrameAuraFaceCpuHostExecutionResult
-  try {
-    hostResult = await input.hostPort.executeOne({
-      artifactRequirementSetDigestSha256:
-        sourceBindings.artifactRequirementSetDigestSha256,
-      referenceImage: {
-        contentType: reference.contentType,
-        contentSha256: reference.contentSha256,
-        contentBytes: copyBytes(reference.contentBytes),
-      },
-      candidateImage: {
-        contentType: candidate.contentType,
-        contentSha256: candidate.contentSha256,
-        contentBytes: copyBytes(candidate.contentBytes),
-      },
-      modelBindingPacketDigestSha256,
-      preprocessingSpecDigestSha256:
-        sourceBindings.preprocessingSpecDigestSha256,
-      callerThresholdAccepted: false,
-      identityApprovalRequested: false,
-      externalNetworkAllowed: false,
-      runtimeDownloadsAllowed: false,
-    })
-  } catch {
-    throw invalid(
-      'host_execution_result_invalid',
-      '$.hostPort',
-    )
-  }
-  assertHostResult(hostResult, input.hostPort.portClass)
+  assertHostResult(
+    hostResult,
+    atomicSession
+      ? atomicSession.portClass
+      : input.hostPort!.portClass,
+  )
 
   const elapsedMilliseconds =
     Date.parse(hostResult.finishedAt)
@@ -1111,6 +1275,44 @@ function assertHostPort(
   }
 }
 
+function assertCanonicalMountHostSessionPort(
+  port: LivingFrameAuraFaceCpuCanonicalMountHostSessionPort,
+): void {
+  if (!canonicalMountHostSessionPorts.has(port)) {
+    throw invalid(
+      'canonical_mount_host_session_port_invalid',
+      '$.canonicalMountHostSessionPort',
+    )
+  }
+  if (consumedCanonicalMountHostSessionPorts.has(port)) {
+    throw invalid(
+      'canonical_mount_host_session_port_reused',
+      '$.canonicalMountHostSessionPort',
+    )
+  }
+}
+
+function assertCanonicalMountHostSessionResult(
+  value: LivingFrameAuraFaceCpuCanonicalMountHostSessionResult,
+): void {
+  if (
+    !value
+    || typeof value !== 'object'
+    || !SHA256.test(value.canonicalMountSessionDigestSha256)
+    || !SHA256.test(value.runnerRequestEnvelopeSha256)
+    || value.atomicMountAndInferenceCompleted !== true
+    || value.callerPathUrlCredentialCommandAccepted !== false
+    || value.externalNetworkPerformed !== false
+    || value.runtimeDownloadPerformed !== false
+    || value.productionQualified !== false
+    || !value.modelBindingPacket
+    || !value.hostExecutionResult
+  ) throw invalid(
+    'canonical_mount_host_session_result_invalid',
+    '$.canonicalMountHostSessionPort.result',
+  )
+}
+
 function assertPortClassesCompatible(
   inputPort: LivingFrameAuraFaceCpuPrivateInputPort,
   modelPort: LivingFrameAuraFaceCpuModelBindingPort,
@@ -1135,6 +1337,29 @@ function assertPortClassesCompatible(
   ) throw invalid(
     'host_port_invalid',
     '$.hostPort',
+  )
+}
+
+function assertAtomicPortClassesCompatible(
+  inputPort: LivingFrameAuraFaceCpuPrivateInputPort,
+  safetyPort: LivingFrameAuraFaceCpuSafetyAdmissionPort,
+  sessionPort:
+    LivingFrameAuraFaceCpuCanonicalMountHostSessionPort,
+): void {
+  const controlled = sessionPort.portClass
+    === 'controlled_fixture_auraface_atomic_mount_host_session_port_v1'
+  if (
+    controlled !== (
+      inputPort.portClass
+        === 'controlled_fixture_auraface_input_port_v1'
+    )
+    || controlled !== (
+      safetyPort.portClass
+        === 'controlled_fixture_auraface_safety_admission_port_v1'
+    )
+  ) throw invalid(
+    'canonical_mount_host_session_port_invalid',
+    '$.canonicalMountHostSessionPort',
   )
 }
 
@@ -1368,7 +1593,9 @@ function assertModelBindingPacket(
 
 function assertHostResult(
   value: LivingFrameAuraFaceCpuHostExecutionResult,
-  portClass: LivingFrameAuraFaceCpuHostPort['portClass'],
+  portClass:
+    | LivingFrameAuraFaceCpuHostPort['portClass']
+    | LivingFrameAuraFaceCpuCanonicalMountHostSessionPort['portClass'],
 ): void {
   if (
     !value
@@ -1393,6 +1620,8 @@ function assertHostResult(
   )
   const controlled = portClass
     === 'controlled_fixture_auraface_cpu_host_port_v1'
+    || portClass
+      === 'controlled_fixture_auraface_atomic_mount_host_session_port_v1'
   if (
     value.evidenceClass !== (
       controlled

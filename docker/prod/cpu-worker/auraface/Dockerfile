@@ -20,7 +20,8 @@ RUN test "${TARGETARCH}" = "amd64" \
 FROM python:3.13.11-slim-bookworm@sha256:20080e807bfc404f8450b185cf0fc95d553462673598549613735f70a5b4d5d0 AS runtime
 LABEL org.opencontainers.image.title="ReEditPro private AuraFace CPU continuity candidate" \
       org.opencontainers.image.base.digest="sha256:20080e807bfc404f8450b185cf0fc95d553462673598549613735f70a5b4d5d0" \
-      com.reeditpro.runner.protocol="living-frame-auraface-offline-runner-v1" \
+      com.reeditpro.runner.protocol="living-frame-auraface-atomic-mount-offline-runner-v2" \
+      com.reeditpro.runner.compatible-protocols="living-frame-auraface-offline-runner-v1,living-frame-auraface-atomic-mount-offline-runner-v2" \
       com.reeditpro.runner.platform="linux/amd64" \
       com.reeditpro.runner.private-internal-only="true" \
       com.reeditpro.runner.identity-decision-authority="false" \

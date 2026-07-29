@@ -15,6 +15,12 @@ MAXIMUM_IMAGE_BYTES = 8 * 1024 * 1024
 MAXIMUM_DECODED_PIXELS = 40_000_000
 PROTOCOL = 'living-frame-auraface-offline-runner-v1'
 RESPONSE_PROTOCOL = 'living-frame-auraface-offline-runner-response-v1'
+ATOMIC_MOUNT_PROTOCOL = (
+    'living-frame-auraface-atomic-mount-offline-runner-v2'
+)
+ATOMIC_MOUNT_RESPONSE_PROTOCOL = (
+    'living-frame-auraface-atomic-mount-offline-runner-response-v2'
+)
 OPERATION = 'tool.transformers.measure_auraface_identity_continuity.v1'
 PACKAGE_PROFILE = 'auraface_v1_cpu_continuity_measurement'
 PREPROCESSING_SPEC_DIGEST = (
@@ -156,16 +162,21 @@ def validate_request(value):
         'request',
     )
     if (
-        request['schemaVersion'] != PROTOCOL
+        request['schemaVersion'] not in (PROTOCOL, ATOMIC_MOUNT_PROTOCOL)
         or request['operationId'] != OPERATION
         or request['packageProfile'] != PACKAGE_PROFILE
     ):
         raise ValueError('request identity is unsupported')
+    binding_field = (
+        'canonicalMountSessionDigestSha256'
+        if request['schemaVersion'] == ATOMIC_MOUNT_PROTOCOL
+        else 'modelBindingPacketDigestSha256'
+    )
     payload = exact(
         request['payload'],
         [
             'artifactRequirementSetDigestSha256',
-            'modelBindingPacketDigestSha256',
+            binding_field,
             'preprocessingSpecDigestSha256',
             'referenceImage',
             'candidateImage',
@@ -177,8 +188,8 @@ def validate_request(value):
         'artifact requirements digest',
     )
     bounded_sha(
-        payload['modelBindingPacketDigestSha256'],
-        'model binding packet digest',
+        payload[binding_field],
+        'model presentation binding digest',
     )
     if payload['preprocessingSpecDigestSha256'] != PREPROCESSING_SPEC_DIGEST:
         raise ValueError('preprocessing specification is unsupported')
@@ -333,6 +344,12 @@ def package_identity():
     }
 
 
+def response_protocol(request):
+    if request['schemaVersion'] == ATOMIC_MOUNT_PROTOCOL:
+        return ATOMIC_MOUNT_RESPONSE_PROTOCOL
+    return RESPONSE_PROTOCOL
+
+
 def completed_response(
     request,
     started_at,
@@ -345,7 +362,7 @@ def completed_response(
     candidate_packet = pack_embedding(candidate_embedding)
     payload = request['payload']
     return {
-        'schemaVersion': RESPONSE_PROTOCOL,
+        'schemaVersion': response_protocol(request),
         'ok': True,
         'operationId': OPERATION,
         'packageIdentity': package_identity(),
@@ -385,7 +402,7 @@ def completed_response(
 
 def review_response(request, started_at, outcome):
     return {
-        'schemaVersion': RESPONSE_PROTOCOL,
+        'schemaVersion': response_protocol(request),
         'ok': True,
         'operationId': OPERATION,
         'packageIdentity': package_identity(),
@@ -461,11 +478,17 @@ def execute(validated, started_at):
 def main():
     started_at = utc_now()
     stage = 'REQUEST_VALIDATION_FAILED'
+    failure_response_protocol = RESPONSE_PROTOCOL
     try:
         raw = sys.stdin.buffer.read(MAXIMUM_REQUEST_BYTES + 1)
         if len(raw) > MAXIMUM_REQUEST_BYTES:
             raise ValueError('request exceeds ceiling')
         request = json.loads(raw.decode('utf-8'))
+        if (
+            isinstance(request, dict)
+            and request.get('schemaVersion') == ATOMIC_MOUNT_PROTOCOL
+        ):
+            failure_response_protocol = ATOMIC_MOUNT_RESPONSE_PROTOCOL
         validated = validate_request(request)
         stage = 'MODEL_OR_INFERENCE_FAILED'
         response = execute(validated, started_at)
@@ -480,7 +503,7 @@ def main():
         sys.stderr.write('Private AuraFace CPU execution failed.\n')
         sys.stdout.write(json.dumps(
             {
-                'schemaVersion': RESPONSE_PROTOCOL,
+                'schemaVersion': failure_response_protocol,
                 'ok': False,
                 'code': stage,
                 'productionReady': False,

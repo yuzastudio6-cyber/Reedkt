@@ -1516,6 +1516,16 @@ actually runs. No operation, work, dispatch, cost receipt, QA approval, or
 runtime authority is opened. See
 `docs/living-frame/living-frame-auraface-artifact-requirements.md`.
 
+The source-side private route now composes those two canonical model leases
+with the fixed CPU host as one atomic session. Both exact source callbacks
+remain active across inference, each artifact is verified before and after
+the runner consumes it, and the session returns no canonical host path or
+mount alias. The legacy separately bound model/host route remains a
+controlled-fixture compatibility seam; private runtime cannot mix the two
+routes. This closes the source-level time-of-check/time-of-use gap without
+claiming that a production backend mount adapter, operation admission, or
+released worker exists.
+
 ### Offline AuraFace CPU package candidate
 
 The source tree now contains a fixed private Linux AMD64 package candidate at
@@ -1534,6 +1544,14 @@ each input, and returns private L2-normalized 512-component embeddings. The
 serializable Living Frame receipt still excludes the embeddings and raw
 images.
 
+The preferred atomic-mount v2 runner protocol binds the image request to the
+canonical mount-session digest rather than a model-binding packet produced
+before inference. Request and response protocol versions must match. Each
+registered atomic session is single-use and can invoke only a registered
+process-bound mounted-runner port; caller commands, paths, locators, URLs,
+endpoints, credentials, thresholds, runtime downloads, external network
+behavior, and cross-protocol responses fail closed.
+
 A controlled local observation dated 2026-07-29 built the Linux AMD64 image
 and completed the fixed detector/alignment/embedding path under
 `--network=none` with a generated fictional adult portrait. The reference and
@@ -1542,6 +1560,15 @@ twice. That observation proves only source-package compatibility. It does not
 qualify latency, fairness, consent, training-data rights, production safety,
 artifact distribution, shared operation dispatch, customer billing, or
 release.
+
+A second controlled observation on the same date exercised that image through
+the local canonical model-artifact repository and the atomic mount/host
+session. The two exact ONNX objects were verified before and after real,
+network-isolated, non-root container inference. A deliberate model mutation
+after the runner returned caused the enclosing canonical session to reject
+the result, demonstrating that a successful inference cannot bypass
+after-consumer verification. This remains non-promotable local evidence, not
+production model-mount, latency, security, or release qualification.
 
 The existing customer-cost design remains unchanged. The first five
 controlled-illustration capabilities share one ComfyUI L4 attempt; optional

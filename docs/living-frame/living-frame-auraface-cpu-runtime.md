@@ -18,8 +18,13 @@ fixtures of the creative idea, not hard-coded routes.
 approved Living Frame work item
   -> consumed canonical tool-dispatch grant
   -> process-bound private reference/candidate image input
-  -> two exact canonical read-only AuraFace model bindings
-  -> fixed private CPU host operation
+  -> one atomic canonical model-mount/CPU-host session
+       -> verify exact embedding model before use
+       -> verify exact detector model before use
+       -> mount both read-only into one fixed offline runner
+       -> run fixed private CPU operation
+       -> verify detector model after use
+       -> verify embedding model after use
   -> process-bound single-use 512-D embedding lease
   -> continuity measurement and project-calibrated QA
   -> canonical resource-usage cost evidence
@@ -28,9 +33,13 @@ approved Living Frame work item
 
 The implemented source boundary includes the namespaced CPU runtime adapter,
 its process-bound ports, output lease, receipt, fixed offline runner protocol,
-and a private CPU container candidate. It does not change the shared tool
-registry, offline capability worker, operation registry, approved snapshot,
-work graph, queue, cost repository, credit ledger, QA authority, or renderer.
+private canonical mount/host session, and a private CPU container candidate.
+The legacy separate model-binding/host seam remains available for controlled
+fixtures, but the private route requires one atomic session so model
+verification cannot finish before inference begins. It does not change the
+shared tool registry, offline capability worker, operation registry, approved
+snapshot, work graph, queue, cost repository, credit ledger, QA authority, or
+renderer.
 
 ## Required Operation
 
@@ -64,11 +73,12 @@ lineage:
 - exact canonical dispatch scope, work item, snapshot, attempt, and output.
 
 Image bytes are supplied only through a registered, process-bound,
-single-use server input port. Model observations are supplied only through a
-registered process-bound binding port that will wrap the canonical
-model-artifact repository and read-only mount authority. Caller bytes, paths,
-URLs, endpoints, credentials, commands, thresholds, identity approvals, and
-model locators are rejected.
+single-use server input port. The private model route uses a registered,
+single-use canonical mount/host session. It creates both canonical read-only
+leases, keeps their verified-source callbacks active through the fixed
+offline inference, and returns only a path-free model-binding packet plus the
+process-bound host result. Caller bytes, paths, URLs, endpoints, credentials,
+commands, thresholds, identity approvals, and model locators are rejected.
 
 The exact required controlled model observations remain:
 
@@ -130,6 +140,17 @@ alignment, 112x112 embedding input, 512-component float32 output, and L2
 normalization. The server protocol permits at most 120 seconds, matching the
 existing namespaced CPU-runtime ceiling.
 
+The runner now accepts two mutually exclusive fixed protocols:
+
+- v1 binds a previously produced model-binding packet and remains the
+  controlled-fixture compatibility lane;
+- atomic-mount v2 binds the canonical mount-session digest created before
+  inference while both canonical model leases remain open.
+
+A response must use the protocol corresponding to its request. Cross-protocol
+responses, request-envelope mismatches, mixed atomic/legacy ports, replayed
+ports, caller paths, and caller commands fail closed.
+
 On 2026-07-29, a controlled local Linux AMD64 build succeeded from the pinned
 wheel set. A private `--network=none`, read-only container execution mounted
 the two exact AuraFace artifacts, processed one generated fictional adult
@@ -139,20 +160,31 @@ inference-output digests. This is a source-package compatibility observation,
 not a production latency, fairness, identity, legal, or release benchmark.
 The test portrait and downloaded model copies were kept outside the repository.
 
+The same dated controlled fixture also exercised the atomic-mount v2 boundary
+through the canonical local model-artifact repository. It ingested and
+re-hashed both exact ONNX files, held nested before/after model-verification
+leases across real container inference, exposed no host path or mount alias in
+the session result, and rejected an otherwise successful inference after the
+fixture deliberately modified one canonical model before its lease closed.
+This is local, non-promotable integration evidence; it does not qualify the
+repository implementation or Docker Desktop mount behavior for production.
+
 ## Current Boundary
 
 Controlled fixtures prove structural behavior, while the dated local
-container run proves that the pinned package can execute the exact model
-pair offline on a fictional test image. Neither observation is released
-runtime evidence. The private host port remains a process-bound integration
-seam and no production AuraFace inference is claimed.
+container runs prove that the pinned package can execute the exact model pair
+offline on a fictional test image and that the atomic canonical lease remains
+open across inference. Neither observation is released runtime evidence. The
+private mounted-runner callback remains a backend-owned integration seam and
+no production AuraFace inference is claimed.
 
 The following gates remain closed:
 
 1. Canonical admission of the Transformers AuraFace operation.
 2. Signed and independently qualified private CPU image admission for the
    current source package.
-3. Canonical read-only mounts for both exact model artifacts.
+3. Production-qualified canonical read-only mounts and a hardened backend
+   mounted-runner adapter for both exact model artifacts.
 4. Canonical private reference/candidate artifact reader.
 5. Consent, likeness, minor, impersonation, and documentary-safety admission.
 6. Detector/alignment/embedding compatibility benchmarks.

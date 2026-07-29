@@ -79,8 +79,10 @@ The validation proves:
 Two actual private renders supplement the connected source-level trace:
 
 - `server/smoke/offline-remotion-living-frame-motion-smoke.ts` renders a
-  subject-neutral 640×360 scene and measures the moving component's cyan-pixel
-  centroid, source/camera attention evidence, and magenta caption-plane
+  subject-neutral 640×360 composition with a shallow layer and a same-scene
+  deep foreground/background pair. It measures the shallow component's
+  cyan-pixel centroid, the deep planes' differential parallax under one shared
+  camera move, source/camera attention evidence, and magenta caption-plane
   priority;
 - `server/smoke/offline-remotion-streaming-output-smoke.ts` renders the same
   canonical motion contract through the server-injected 4K H.264/AAC private

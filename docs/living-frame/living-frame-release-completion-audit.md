@@ -71,7 +71,7 @@ authority.
 | Alpha, masks, edge cleanup, and destination composite | `verified_private_runtime` | generated-still alpha work graph, rembg route, Sharp RGBA route, alpha measurement, edge decontamination, multi-background/destination-composite evidence | Advanced temporal A-roll masks still require a qualified tracking/mask route and real footage benchmarks. |
 | Semantic scale | `verified_source_contract` | Living Frame semantic-scale requests and canonical motion guard preserving literal/data scale | Production QA must continue distinguishing literal, proportional, perspective, and symbolic scale. |
 | Attention, focus handoff, camera, and visual orbit | `verified_private_runtime` for the bounded scalar subset | choreography binding, canonical motion spec, actual 640×360 render | More complex deformation, path, particle, and true 3D primitives remain separately gated. |
-| Adaptive flat / shallow-2.5D / deep-multiplane rendering | `verified_private_runtime` for flat/shallow execution and protocol-verified deep multiplane admission | `canonical-living-frame-motion-spec-v1`, offline Remotion composition, same-scene multiplane validation | A representative actual deep-multiplane rendered fixture is still desirable before production release. |
+| Adaptive flat / shallow-2.5D / deep-multiplane rendering | `verified_source_contract` for flat selection; `verified_private_runtime` for shallow and deep execution | `canonical-living-frame-motion-spec-v1`, offline Remotion composition, same-scene differential-parallax pixel validation | Mode-specific production-footage benchmarks remain part of release qualification. |
 | Selective deterministic motion | `verified_private_runtime` | canonical motion compiler, independent sample-digest verification, Remotion sampler, actual pixel-displacement measurement | Unsupported generic motion signals remain closed by design. |
 | Sound choreography | `verified_source_contract`; `not_required_as_separate_owner` for exact sound | semantic sound requests, choreography binding, canonical timing binding | SoundSync remains the sole exact cue/mix/ducking owner; production motion-linked sound assets and mix evidence remain backend work. |
 | StoryTiming ownership | `verified_source_contract` | canonical Living Frame timing binding and five exact semantic phases | No Living Frame clock may be introduced. |
@@ -124,11 +124,14 @@ Commit `2b19519b` adds:
 - actual source/camera/focus/depth execution; and
 - source → Living Frame → caption z-order.
 
-The real 640×360 fixture verifies motion by measuring the component's rendered
-pixel centroid at separated frames. The 4K fixture verifies committed
-server-injected source, Living Frame RGBA, caption, and audio inputs through
-the private streaming renderer, H.264/AAC output, complete BT.709 metadata,
-content-addressed persistence, and independent FFprobe.
+The real 640×360 fixture verifies shallow motion by measuring the component's
+rendered pixel centroid at separated frames. It also renders separate far and
+near RGBA planes in one deep-multiplane scene and proves differential parallax:
+the background plane moves about 41 pixels while the foreground plane moves
+about 93 pixels under the same virtual-camera track. The 4K fixture verifies
+committed server-injected source, Living Frame RGBA, caption, and audio inputs
+through the private streaming renderer, H.264/AAC output, complete BT.709
+metadata, content-addressed persistence, and independent FFprobe.
 
 These are private runtime proofs, not public or production authorization.
 
@@ -174,7 +177,8 @@ Passed:
 - server TypeScript check;
 - focused Living Frame contract, motion, choreography, geometry, renderer,
   capability-matrix, work-graph, cost, QA, and private-review smokes;
-- actual 640×360 Living Frame Remotion motion render;
+- actual 640×360 Living Frame Remotion shallow and deep-multiplane render with
+  pixel-measured differential parallax;
 - actual 3840×2160 streaming Remotion render and independent FFprobe;
 - selected execution/security smokes;
 - repository secret scan;

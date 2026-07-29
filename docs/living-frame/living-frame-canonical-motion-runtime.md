@@ -131,6 +131,10 @@ private 640×360 render. It verifies:
 
 - deterministic horizontal component displacement by pixel centroid;
 - shallow-2.5D parallax and camera execution;
+- a same-scene deep-multiplane foreground/background pair using separately
+  committed RGBA inputs;
+- differential deep parallax by measuring that the foreground plane responds
+  more strongly than the background plane to the same virtual-camera track;
 - source focus-handoff execution;
 - Living Frame below the caption plane; and
 - private, checksum-committed MP4 output.

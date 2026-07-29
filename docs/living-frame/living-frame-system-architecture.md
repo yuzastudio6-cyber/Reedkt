@@ -219,9 +219,9 @@ assumption:
   semantic-scale, and sound thresholds block delivery?
 - What is the measured internal and customer estimate impact per approved,
   revision-ready, reusable scene?
-- What additional evidence would be required before deep multiplane work moves
-  beyond the current bounded scalar 2.5D treatment, or true 3D scene
-  construction is admitted?
+- What production-footage benchmarks and review thresholds are required before
+  bounded deep multiplane work is released, or before deformation, particles,
+  perspective warps, and true 3D scene construction are admitted?
 - Which future exact image model/operation, if any, should be qualified for
   native alpha after passing the same destination-composite QA as the opaque
   GPT Image 2 fallback route?
@@ -1984,7 +1984,8 @@ frames; SoundSync owns sound; the approved snapshot/work graph owns execution;
 Remotion remains the final deterministic compositor. The original generic
 motion bundle is still non-promotable on its own.
 
-Subject-neutral rendered validation now proves actual pixel displacement,
+Subject-neutral rendered validation now proves actual shallow-layer pixel
+displacement, same-scene deep foreground/background differential parallax,
 camera/source attention execution, and caption-plane priority at 640×360. The
 existing server-injected 4K streaming fixture also renders the same motion
 contract through the private H.264/AAC export path. Both remain private
@@ -2994,9 +2995,10 @@ flat/shallow-2.5D/deep-multiplane depth treatment, Remotion layer manifest,
 existing final Remotion composition, caption-plane ordering, private artifact
 QA/reconciliation, and the existing canonical private-review composition
 evidence. Separate subject-neutral rendered fixtures prove actual motion,
-source/camera attention, caption priority, and the 4K private streaming/export
-path. The trace remains controlled and non-promotable: it proves source
-integration and fail-closed lineage, not a released GPU attempt, public export,
-customer charge, or production runtime.
+shallow and deep differential parallax, source/camera attention, caption
+priority, and the 4K private streaming/export path. The trace remains
+controlled and non-promotable: it proves source integration and fail-closed
+lineage, not a released GPU attempt, public export, customer charge, or
+production runtime.
 See
 `docs/living-frame/living-frame-representative-end-to-end-validation.md`.

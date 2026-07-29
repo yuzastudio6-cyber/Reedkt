@@ -48,17 +48,61 @@ const storageRoot = await mkdtemp(
 )
 const sourcePath = join(fixtureRoot, 'source.mp4')
 const overlayPath = join(fixtureRoot, 'overlay.png')
+const deepFarOverlayPath = join(
+  fixtureRoot,
+  'deep-far-overlay.png',
+)
+const deepNearOverlayPath = join(
+  fixtureRoot,
+  'deep-near-overlay.png',
+)
 const captionPath = join(fixtureRoot, 'caption.png')
 const renderedPath = join(fixtureRoot, 'rendered.mp4')
 
 try {
   makeSource(sourcePath)
   makeOverlay(overlayPath)
+  makeDeepFarOverlay(deepFarOverlayPath)
+  makeDeepNearOverlay(deepNearOverlayPath)
   makeCaption(captionPath)
   const source = await fileCommitment(sourcePath)
   const overlay = await fileCommitment(overlayPath)
+  const deepFarOverlay =
+    await fileCommitment(deepFarOverlayPath)
+  const deepNearOverlay =
+    await fileCommitment(deepNearOverlayPath)
   const caption = await fileCommitment(captionPath)
   const motionSpec = createMotionSpec()
+  const deepFarMotionSpec =
+    createDeepMultiplaneMotionSpec({
+      componentId:
+        'living-frame-component-deep-far',
+      depthBand: 'background',
+      parallaxFactor: -0.35,
+      trackSuffix: 'deep-far',
+    })
+  const deepNearMotionSpec =
+    createDeepMultiplaneMotionSpec({
+      componentId:
+        'living-frame-component-deep-near',
+      depthBand: 'foreground',
+      parallaxFactor: 0.45,
+      trackSuffix: 'deep-near',
+    })
+  assert.equal(
+    deepFarMotionSpec.sceneId,
+    deepNearMotionSpec.sceneId,
+  )
+  assert.deepEqual(
+    deepFarMotionSpec.tracks[0]?.keyframes,
+    deepNearMotionSpec.tracks[0]?.keyframes,
+  )
+  assert.equal(
+    deepFarMotionSpec.tracks[0]
+      ?.compiledSampleDigestSha256,
+    deepNearMotionSpec.tracks[0]
+      ?.compiledSampleDigestSha256,
+  )
 
   await prepareOfflineRemotionDockerRuntime()
   const runtime =
@@ -84,7 +128,7 @@ try {
         livingFrameOverlayLayers: [{
           sceneId: motionSpec.sceneId,
           layerId:
-            'living-frame-layer-subject-neutral',
+            'living-frame-layer-00-shallow',
           manifestOutputKey:
             'living-frame-manifest-subject-neutral',
           componentOutputKey:
@@ -95,6 +139,34 @@ try {
           fit: 'fill',
           opacity: 1,
           motionSpec,
+        }, {
+          sceneId: deepFarMotionSpec.sceneId,
+          layerId:
+            'living-frame-layer-10-deep-far',
+          manifestOutputKey:
+            'living-frame-manifest-deep-far',
+          componentOutputKey:
+            'living-frame-component-deep-far',
+          startFrame: sceneStartFrame,
+          endFrameExclusive:
+            sceneEndFrameExclusive,
+          fit: 'fill',
+          opacity: 1,
+          motionSpec: deepFarMotionSpec,
+        }, {
+          sceneId: deepNearMotionSpec.sceneId,
+          layerId:
+            'living-frame-layer-20-deep-near',
+          manifestOutputKey:
+            'living-frame-manifest-deep-near',
+          componentOutputKey:
+            'living-frame-component-deep-near',
+          startFrame: sceneStartFrame,
+          endFrameExclusive:
+            sceneEndFrameExclusive,
+          fit: 'fill',
+          opacity: 1,
+          motionSpec: deepNearMotionSpec,
         }],
       },
       source: {
@@ -114,6 +186,20 @@ try {
           'living-frame-component-subject-neutral',
         mimeType: 'image/png',
         ...overlay,
+      }, {
+        inputId:
+          'approved-living-frame-deep-far',
+        outputKey:
+          'living-frame-component-deep-far',
+        mimeType: 'image/png',
+        ...deepFarOverlay,
+      }, {
+        inputId:
+          'approved-living-frame-deep-near',
+        outputKey:
+          'living-frame-component-deep-near',
+        mimeType: 'image/png',
+        ...deepNearOverlay,
       }],
     })
   const inputs: OfflineRemotionServerInjectedInput[] = [
@@ -128,6 +214,18 @@ try {
       'image/png',
       overlayPath,
       overlay,
+    ),
+    privateFileInput(
+      'approved-living-frame-deep-far',
+      'image/png',
+      deepFarOverlayPath,
+      deepFarOverlay,
+    ),
+    privateFileInput(
+      'approved-living-frame-deep-near',
+      'image/png',
+      deepNearOverlayPath,
+      deepNearOverlay,
     ),
     privateFileInput(
       'approved-caption',
@@ -206,12 +304,19 @@ try {
 
   const frames = extractFrames(
     renderedPath,
-    [sceneStartFrame, sceneEndFrameExclusive - 1],
+    [
+      sceneStartFrame,
+      sceneStartFrame + Math.floor(
+        (sceneEndFrameExclusive -
+          sceneStartFrame) / 2,
+      ),
+      sceneEndFrameExclusive - 1,
+    ],
   )
   const earlyCentroid =
     cyanCentroid(frames[0]!)
   const lateCentroid =
-    cyanCentroid(frames[1]!)
+    cyanCentroid(frames[2]!)
   assert.ok(
     lateCentroid.x - earlyCentroid.x > width * 0.27,
     `Expected deterministic horizontal motion, received ${earlyCentroid.x} -> ${lateCentroid.x}.`,
@@ -220,7 +325,35 @@ try {
     Math.abs(lateCentroid.y - earlyCentroid.y) <
       height * 0.08,
   )
-  assertCaptionAboveLivingFrame(frames[1]!)
+  const deepFarEarlyCentroid =
+    yellowCentroid(frames[0]!)
+  const deepFarCameraCentroid =
+    yellowCentroid(frames[1]!)
+  const deepNearEarlyCentroid =
+    greenCentroid(frames[0]!)
+  const deepNearCameraCentroid =
+    greenCentroid(frames[1]!)
+  const deepFarLeftDisplacement =
+    deepFarEarlyCentroid.x -
+    deepFarCameraCentroid.x
+  const deepNearLeftDisplacement =
+    deepNearEarlyCentroid.x -
+    deepNearCameraCentroid.x
+  assert.ok(
+    deepNearLeftDisplacement >
+      deepFarLeftDisplacement + width * 0.07,
+    [
+      'Expected the near deep-multiplane layer to respond',
+      'more strongly to the shared camera move than the far layer,',
+      `received ${deepNearLeftDisplacement} versus`,
+      `${deepFarLeftDisplacement}.`,
+    ].join(' '),
+  )
+  assert.ok(
+    deepFarLeftDisplacement > width * 0.04,
+    `Expected visible far-plane parallax, received ${deepFarLeftDisplacement}.`,
+  )
+  assertCaptionAboveLivingFrame(frames[2]!)
 
   const rendered = await readFile(renderedPath)
   assert.equal(
@@ -236,7 +369,28 @@ try {
     depthStyle: motionSpec.depthStyle,
     earlyCyanCentroid: earlyCentroid,
     lateCyanCentroid: lateCentroid,
+    deepMultiplane: {
+      farDepthBand: deepFarMotionSpec.depthBand,
+      farParallaxFactor:
+        deepFarMotionSpec.parallaxFactor,
+      farEarlyCentroid: deepFarEarlyCentroid,
+      farCameraCentroid:
+        deepFarCameraCentroid,
+      farLeftDisplacement:
+        deepFarLeftDisplacement,
+      nearDepthBand: deepNearMotionSpec.depthBand,
+      nearParallaxFactor:
+        deepNearMotionSpec.parallaxFactor,
+      nearEarlyCentroid:
+        deepNearEarlyCentroid,
+      nearCameraCentroid:
+        deepNearCameraCentroid,
+      nearLeftDisplacement:
+        deepNearLeftDisplacement,
+      differentialParallaxObserved: true,
+    },
     deterministicMotionObserved: true,
+    deepMultiplaneRenderedAndMeasured: true,
     sourceAttentionAndCameraTracksApplied: true,
     captionPlaneObservedAboveLivingFrame: true,
     privateInternalOnly: true,
@@ -344,6 +498,116 @@ CanonicalLivingFrameMotionSpec {
         layerTrackCount: 2,
         cameraTrackCount: 1,
         sourceTrackCount: 1,
+        keyframeCount: tracks.reduce(
+          (total, candidate) =>
+            total + candidate.keyframes.length,
+          0,
+        ),
+        compiledSampleCount:
+          tracks.length * duration,
+      },
+      authorityBoundary: {
+        serverDerivedFromSelectedSceneAndMasterTiming:
+          true,
+        exactFrameAuthority: false,
+        masterTimingMutationAuthority: false,
+        soundSyncAuthority: false,
+        approvalAuthority: false,
+        workGraphAuthority: false,
+        rendererCodeAuthority: false,
+        providerAuthority: false,
+        queueAuthority: false,
+        productionAuthority: false,
+      },
+      exactFramesRemainOwnedByMasterTiming: true,
+      captionsRemainAboveLivingFrame: true,
+      containsExecutableCodeCommandsPathsUrlsOrCredentials:
+        false,
+      subjectSpecificRouting: false,
+    }
+  return {
+    ...draft,
+    motionSpecDigestSha256:
+      sha256AuthorityValue(draft),
+  }
+}
+
+function createDeepMultiplaneMotionSpec(
+  options: {
+    readonly componentId: string
+    readonly depthBand:
+      CanonicalLivingFrameMotionSpecDraft[
+        'depthBand'
+      ]
+    readonly parallaxFactor: number
+    readonly trackSuffix: string
+  },
+): CanonicalLivingFrameMotionSpec {
+  const duration =
+    sceneEndFrameExclusive - sceneStartFrame
+  const tracks:
+    CanonicalLivingFrameMotionSpecDraft['tracks'] = [
+      track(
+        `${options.trackSuffix}-camera-x`,
+        0,
+        'virtual_camera',
+        'position_x_normalized',
+        'camera',
+        [
+          [0, 0, 'ease_in_out_cubic'],
+          [
+            Math.floor(duration / 2),
+            0.1,
+            'settle_out',
+          ],
+          [duration - 1, 0, 'hold'],
+        ],
+      ),
+      track(
+        `${options.trackSuffix}-shadow`,
+        1,
+        'layer',
+        'shadow_opacity',
+        'secondary',
+        [
+          [0, 0.08, 'hold'],
+          [duration - 1, 0.08, 'hold'],
+        ],
+      ),
+    ]
+  const draft:
+    CanonicalLivingFrameMotionSpecDraft = {
+      schemaVersion:
+        'canonical-living-frame-motion-spec-v1',
+      motionProfileId:
+        'approved_scalar_keyframe_choreography_v1',
+      sceneId:
+        'living-frame-scene-deep-multiplane',
+      componentId: options.componentId,
+      sceneStartFrame,
+      sceneEndFrameExclusive,
+      visualVerb: 'hold',
+      importance: 'hero',
+      depthStyle: 'deep_multiplane',
+      depthBand: options.depthBand,
+      parallaxFactor: options.parallaxFactor,
+      sourceBindings: {
+        selectedSceneBindingDigestSha256:
+          'd'.repeat(64),
+        timingBindingDigestSha256:
+          'e'.repeat(64),
+        deterministicMotionBundleDigestSha256:
+          'f'.repeat(64),
+      },
+      attentionEventIds: [
+        'attention-deep-multiplane',
+      ],
+      semanticScaleRequestIds: [],
+      tracks,
+      metrics: {
+        layerTrackCount: 1,
+        cameraTrackCount: 1,
+        sourceTrackCount: 0,
         keyframeCount: tracks.reduce(
           (total, candidate) =>
             total + candidate.keyframes.length,
@@ -497,6 +761,55 @@ function makeOverlay(path: string): void {
   assert.equal(result.status, 0, result.stderr)
 }
 
+function makeDeepFarOverlay(path: string): void {
+  makeTransparentBoxOverlay({
+    path,
+    box:
+      'drawbox=x=190:y=85:w=78:h=64:color=0xFFD166@1:t=fill:replace=1',
+  })
+}
+
+function makeDeepNearOverlay(path: string): void {
+  makeTransparentBoxOverlay({
+    path,
+    box:
+      'drawbox=x=460:y=175:w=92:h=86:color=0x57E389@1:t=fill:replace=1',
+  })
+}
+
+function makeTransparentBoxOverlay(
+  input: {
+    readonly path: string
+    readonly box: string
+  },
+): void {
+  const result = spawnSync('ffmpeg', [
+    '-hide_banner',
+    '-loglevel',
+    'error',
+    '-f',
+    'lavfi',
+    '-i',
+    `color=c=black@0:size=${width}x${height}:duration=1`,
+    '-vf',
+    [
+      'format=rgba',
+      'colorchannelmixer=aa=0',
+      input.box,
+    ].join(','),
+    '-frames:v',
+    '1',
+    '-threads',
+    '1',
+    '-y',
+    input.path,
+  ], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
+  })
+  assert.equal(result.status, 0, result.stderr)
+}
+
 function makeCaption(path: string): void {
   const result = spawnSync('ffmpeg', [
     '-hide_banner',
@@ -575,20 +888,85 @@ function cyanCentroid(frame: Buffer): {
   y: number
   count: number
 } {
+  return colorCentroid({
+    frame,
+    label: 'cyan',
+    minimumPixels: 1_000,
+    matches(red, green, blue) {
+      return (
+        red < 90 &&
+        green > 140 &&
+        blue > 150
+      )
+    },
+  })
+}
+
+function yellowCentroid(frame: Buffer): {
+  x: number
+  y: number
+  count: number
+} {
+  return colorCentroid({
+    frame,
+    label: 'yellow far-plane',
+    minimumPixels: 1_500,
+    matches(red, green, blue) {
+      return (
+        red > 160 &&
+        green > 120 &&
+        blue < 130
+      )
+    },
+  })
+}
+
+function greenCentroid(frame: Buffer): {
+  x: number
+  y: number
+  count: number
+} {
+  return colorCentroid({
+    frame,
+    label: 'green near-plane',
+    minimumPixels: 2_000,
+    matches(red, green, blue) {
+      return (
+        red < 130 &&
+        green > 150 &&
+        blue < 170
+      )
+    },
+  })
+}
+
+function colorCentroid(
+  input: {
+    readonly frame: Buffer
+    readonly label: string
+    readonly minimumPixels: number
+    readonly matches: (
+      red: number,
+      green: number,
+      blue: number,
+    ) => boolean
+  },
+): {
+  x: number
+  y: number
+  count: number
+} {
   let count = 0
   let xTotal = 0
   let yTotal = 0
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
       const offset = (y * width + x) * 3
-      const red = frame[offset]!
-      const green = frame[offset + 1]!
-      const blue = frame[offset + 2]!
-      if (
-        red < 90 &&
-        green > 140 &&
-        blue > 150
-      ) {
+      if (input.matches(
+        input.frame[offset]!,
+        input.frame[offset + 1]!,
+        input.frame[offset + 2]!,
+      )) {
         count += 1
         xTotal += x
         yTotal += y
@@ -596,8 +974,8 @@ function cyanCentroid(frame: Buffer): {
     }
   }
   assert.ok(
-    count > 1_000,
-    `Expected a visible cyan component, found ${count} pixels.`,
+    count > input.minimumPixels,
+    `Expected a visible ${input.label} component, found ${count} pixels.`,
   )
   return {
     x: xTotal / count,

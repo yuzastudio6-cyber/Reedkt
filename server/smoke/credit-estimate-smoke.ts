@@ -217,10 +217,10 @@ assert.ok(customPreview.lowerCostOptions.some((option) => option.action === 'cus
 const blockedPreview = buildEditCreditEstimatePreview(parsePreviewRequest({
   ...baseRequest,
   productEditLevel: 'normal',
-  plannedToolIds: ['revideo'],
+  plannedToolIds: ['d3'],
   toolUsageInputs: {
-    revideo: {
-      toolId: 'revideo',
+    d3: {
+      toolId: 'd3',
       actualInternalCostCents: 40,
     },
   },

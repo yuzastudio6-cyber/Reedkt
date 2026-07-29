@@ -194,12 +194,22 @@ assert.ok(ipAdapter.hypothesisCodes.includes(
   'faceid_variant_research_only_noncommercial_due_identity_dependency',
 ))
 
-const pulid = qualification.candidateRequirements.find(
-  (entry) => entry.candidateKey === 'pulid',
+const auraFace = qualification.candidateRequirements.find(
+  (entry) => entry.candidateKey === 'auraface',
 )
-assert.ok(pulid)
-assert.ok(pulid.hypothesisCodes.includes(
-  'pulid_flux_route_inherits_flux1_dev_noncommercial_constraint',
+assert.ok(auraFace)
+assert.equal(
+  auraFace.candidateClass,
+  'identity_continuity_measurement_capability',
+)
+assert.ok(auraFace.hypothesisCodes.includes(
+  'model_card_license_label_does_not_prove_training_data_rights',
+))
+assert.ok(auraFace.hypothesisCodes.includes(
+  'identity_measurement_does_not_authorize_generation_or_likeness',
+))
+assert.ok(auraFace.hypothesisCodes.includes(
+  'measurement_runtime_dependencies_require_independent_qualification',
 ))
 for (const gate of [
   'consent_review',
@@ -207,7 +217,7 @@ for (const gate of [
   'minor_safety_review',
   'retention_review',
   'documentary_fact_safety_review',
-] as const) assert.ok(pulid.reviewGateCodes.includes(gate))
+] as const) assert.ok(auraFace.reviewGateCodes.includes(gate))
 
 for (const candidate of qualification.candidateRequirements) {
   assert.deepEqual(

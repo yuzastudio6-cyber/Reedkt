@@ -6,7 +6,7 @@ import type {
 } from './living-frame-controlled-illustration-qualification'
 
 export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_VERSION =
-  'living-frame-controlled-illustration-source-observation-v1' as const
+  'living-frame-controlled-illustration-source-observation-v2' as const
 export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_SOURCE =
   'living_frame_controlled_illustration_upstream_observation_only' as const
 export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_STATUS =
@@ -24,9 +24,7 @@ export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_LOCATOR_CODES = [
   'github_tencent_ailab_ip_adapter',
   'hf_h94_ip_adapter',
   'hf_h94_ip_adapter_faceid',
-  'github_to_the_beginning_pulid',
-  'hf_guozinan_pulid',
-  'hf_black_forest_labs_flux_1_dev',
+  'hf_fal_auraface_v1',
   'github_deepinsight_insightface',
   'github_huggingface_peft',
 ] as const
@@ -73,6 +71,7 @@ export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_OBSERVATION_DISPOSITIONS = [
   'candidate_source_only',
   'dependency_scope_unresolved',
   'noncommercial_route_blocked',
+  'continuity_measurement_only_unqualified',
   'mechanism_only_no_loaded_artifact',
 ] as const
 export type LivingFrameControlledIllustrationObservationDisposition =
@@ -86,8 +85,8 @@ export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_DEPENDENCY_SCOPE_RULE_CODES = 
   'controlnet_code_weights_and_base_model_are_separate',
   'ip_adapter_generic_does_not_promote_faceid',
   'faceid_insightface_route_is_noncommercial_blocked',
-  'pulid_adapter_does_not_promote_flux_base_model',
-  'pulid_insightface_identity_dependency_is_unresolved',
+  'auraface_model_card_does_not_prove_training_data_rights',
+  'auraface_measurement_does_not_authorize_identity_generation',
   'peft_does_not_qualify_loaded_adapter_data_or_base_model',
 ] as const
 export type LivingFrameControlledIllustrationDependencyScopeRuleCode =
@@ -122,7 +121,7 @@ export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_ISSUE_CODES
   'dependency_rule_set_invalid',
   'dependency_scope_collapse_forbidden',
   'faceid_promotion_forbidden',
-  'pulid_flux_promotion_forbidden',
+  'auraface_promotion_forbidden',
   'loaded_adapter_promotion_forbidden',
   'observation_promotion_forbidden',
   'authority_promotion_forbidden',

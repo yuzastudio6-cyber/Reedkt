@@ -174,16 +174,14 @@ const CANDIDATE_DEFINITIONS: readonly CandidateDefinition[] = [
     ],
   },
   {
-    candidateKey: 'pulid',
-    candidateClass: 'identity_adapter_or_checkpoint_capability',
+    candidateKey: 'auraface',
+    candidateClass: 'identity_continuity_measurement_capability',
     artifactFamilies: [
-      'source_repository',
       'source_license',
-      'base_model',
-      'adapter_checkpoint',
+      'model_checkpoint',
       'identity_dependency',
       'training_data_rights',
-      'workflow_definition',
+      'runtime_protocol',
       'security_configuration',
       'benchmark_fixture',
       'benchmark_result',
@@ -191,11 +189,9 @@ const CANDIDATE_DEFINITIONS: readonly CandidateDefinition[] = [
     reviewGateCodes: [
       ...COMMON_REVIEW_GATES,
       'model_weight_license_review',
-      'base_model_license_review',
       'training_data_rights_review',
       'runtime_download_prohibition_review',
       'character_continuity_review',
-      'style_control_review',
       'consent_review',
       'likeness_and_deepfake_review',
       'minor_safety_review',
@@ -203,9 +199,9 @@ const CANDIDATE_DEFINITIONS: readonly CandidateDefinition[] = [
       'documentary_fact_safety_review',
     ],
     hypothesisCodes: [
-      'source_code_and_checkpoint_terms_are_separate',
-      'adapter_terms_do_not_override_base_model_terms',
-      'pulid_flux_route_inherits_flux1_dev_noncommercial_constraint',
+      'model_card_license_label_does_not_prove_training_data_rights',
+      'identity_measurement_does_not_authorize_generation_or_likeness',
+      'measurement_runtime_dependencies_require_independent_qualification',
       'identity_workflow_requires_consent_likeness_and_documentary_review',
     ],
   },
@@ -251,7 +247,7 @@ LivingFrameControlledIllustrationQualificationDraft {
     status: LIVING_FRAME_CONTROLLED_ILLUSTRATION_QUALIFICATION_STATUS,
     evidenceClass:
       LIVING_FRAME_CONTROLLED_ILLUSTRATION_QUALIFICATION_EVIDENCE_CLASS,
-    qualificationId: 'living-frame.controlled-illustration.v1',
+    qualificationId: 'living-frame.controlled-illustration.v2',
     candidateRequirements: CANDIDATE_DEFINITIONS.map(
       (definition, order) => ({
         candidateRequirementId:
@@ -405,21 +401,28 @@ export function createLivingFrameControlledIllustrationQualificationAdversarialF
         'base_adapter_does_not_promote_faceid_variant',
       )
     }),
-    adversarial('pulid_flux_constraint_removed', 'hypothesis_missing', draft, (root) => {
+    adversarial('auraface_training_rights_boundary_removed', 'hypothesis_missing', draft, (root) => {
       removeHypothesis(
         root,
-        'pulid',
-        'pulid_flux_route_inherits_flux1_dev_noncommercial_constraint',
+        'auraface',
+        'model_card_license_label_does_not_prove_training_data_rights',
       )
     }),
-    adversarial('pulid_consent_gate_removed', 'review_gate_missing', draft, (root) => {
-      removeGate(root, 'pulid', 'consent_review')
+    adversarial('auraface_measurement_boundary_removed', 'hypothesis_missing', draft, (root) => {
+      removeHypothesis(
+        root,
+        'auraface',
+        'identity_measurement_does_not_authorize_generation_or_likeness',
+      )
     }),
-    adversarial('pulid_minor_gate_removed', 'review_gate_missing', draft, (root) => {
-      removeGate(root, 'pulid', 'minor_safety_review')
+    adversarial('auraface_consent_gate_removed', 'review_gate_missing', draft, (root) => {
+      removeGate(root, 'auraface', 'consent_review')
     }),
-    adversarial('pulid_fact_safety_removed', 'review_gate_missing', draft, (root) => {
-      removeGate(root, 'pulid', 'documentary_fact_safety_review')
+    adversarial('auraface_minor_gate_removed', 'review_gate_missing', draft, (root) => {
+      removeGate(root, 'auraface', 'minor_safety_review')
+    }),
+    adversarial('auraface_fact_safety_removed', 'review_gate_missing', draft, (root) => {
+      removeGate(root, 'auraface', 'documentary_fact_safety_review')
     }),
     adversarial('lora_mechanism_promotes_adapter', 'hypothesis_missing', draft, (root) => {
       removeHypothesis(
@@ -449,7 +452,7 @@ export function createLivingFrameControlledIllustrationQualificationAdversarialF
       candidate(root, 'ip_adapter').dispatchAuthorized = true
     }),
     adversarial('production_ready', 'qualification_promotion_forbidden', draft, (root) => {
-      candidate(root, 'pulid').productionReady = true
+      candidate(root, 'auraface').productionReady = true
     }),
     adversarial('authority_forged_green', 'authority_promotion_forbidden', draft, (root) => {
       objectField(root.authorityBoundary).runtimeAuthority = true

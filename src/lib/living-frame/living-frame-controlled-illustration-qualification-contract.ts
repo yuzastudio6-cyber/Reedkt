@@ -116,7 +116,7 @@ Record<
   comfyui_controlnet_aux: 'preprocessing_bundle',
   controlnet: 'model_adapter_or_checkpoint_capability',
   ip_adapter: 'model_adapter_or_checkpoint_capability',
-  pulid: 'identity_adapter_or_checkpoint_capability',
+  auraface: 'identity_continuity_measurement_capability',
   peft_lora: 'training_or_loading_mechanism',
 }
 
@@ -169,14 +169,12 @@ Record<
     'benchmark_fixture',
     'benchmark_result',
   ],
-  pulid: [
-    'source_repository',
+  auraface: [
     'source_license',
-    'base_model',
-    'adapter_checkpoint',
+    'model_checkpoint',
     'identity_dependency',
     'training_data_rights',
-    'workflow_definition',
+    'runtime_protocol',
     'security_configuration',
     'benchmark_fixture',
     'benchmark_result',
@@ -252,14 +250,12 @@ Record<
     'consent_review',
     'likeness_and_deepfake_review',
   ],
-  pulid: [
+  auraface: [
     ...COMMON_REVIEW_GATES,
     'model_weight_license_review',
-    'base_model_license_review',
     'training_data_rights_review',
     'runtime_download_prohibition_review',
     'character_continuity_review',
-    'style_control_review',
     'consent_review',
     'likeness_and_deepfake_review',
     'minor_safety_review',
@@ -304,10 +300,10 @@ Record<
     'faceid_variant_research_only_noncommercial_due_identity_dependency',
     'adapter_terms_do_not_override_base_model_terms',
   ],
-  pulid: [
-    'source_code_and_checkpoint_terms_are_separate',
-    'adapter_terms_do_not_override_base_model_terms',
-    'pulid_flux_route_inherits_flux1_dev_noncommercial_constraint',
+  auraface: [
+    'model_card_license_label_does_not_prove_training_data_rights',
+    'identity_measurement_does_not_authorize_generation_or_likeness',
+    'measurement_runtime_dependencies_require_independent_qualification',
     'identity_workflow_requires_consent_likeness_and_documentary_review',
   ],
   peft_lora: [
@@ -877,7 +873,7 @@ function validateCandidateRequirements(
   ) add('copied_source_scope_missing', path)
 
   if (
-    ['controlnet', 'ip_adapter', 'pulid', 'peft_lora'].includes(
+    ['controlnet', 'ip_adapter', 'peft_lora'].includes(
       candidate.candidateKey,
     )
     && !(
@@ -909,10 +905,16 @@ function validateCandidateRequirements(
   ) add('identity_safety_gate_missing', path)
 
   if (
-    candidate.candidateKey === 'pulid'
+    candidate.candidateKey === 'auraface'
     && !(
       candidate.hypothesisCodes.includes(
-        'pulid_flux_route_inherits_flux1_dev_noncommercial_constraint',
+        'model_card_license_label_does_not_prove_training_data_rights',
+      )
+      && candidate.hypothesisCodes.includes(
+        'identity_measurement_does_not_authorize_generation_or_likeness',
+      )
+      && candidate.hypothesisCodes.includes(
+        'measurement_runtime_dependencies_require_independent_qualification',
       )
       && [
         'consent_review',

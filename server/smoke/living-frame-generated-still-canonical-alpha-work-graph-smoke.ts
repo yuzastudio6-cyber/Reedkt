@@ -12,6 +12,9 @@ import type {
 import type {
   CanonicalLivingFrameTimingBinding,
 } from '../../src/types/living-frame-timing-binding'
+import type {
+  CanonicalWorkItemInput,
+} from '../validation/edit-planning-authority-schemas'
 import {
   compileCanonicalLivingFrameEstimateWorkAssetProjection,
 } from '../living-frame/canonical-living-frame-estimate-work-asset-projection'
@@ -20,9 +23,14 @@ import {
   type CanonicalToolPayloadWorkItem,
 } from '../edit-architecture/canonical-tool-payload-authority'
 import {
+  bindCanonicalLivingFrameFinalCompositionWorkItems,
   compileCanonicalLivingFrameWorkGraphProjection,
   verifyCanonicalLivingFrameWorkGraphProjection,
 } from '../living-frame/canonical-living-frame-work-graph-projection'
+import {
+  compileCanonicalLivingFramePrivateReviewEvidence,
+  type CanonicalLivingFramePrivateReviewArtifactSelection,
+} from '../living-frame/canonical-living-frame-private-review-evidence'
 import {
   compileCanonicalLivingFrameControlledIllustrationCostWorkBinding,
 } from '../living-frame/living-frame-controlled-illustration-cost-work-binding'
@@ -483,6 +491,141 @@ assert.equal(
   true,
 )
 
+const baseFinalWorkItem = createBaseFinalWorkItem()
+const boundFinalWorkItems =
+  bindCanonicalLivingFrameFinalCompositionWorkItems({
+    workItems: [baseFinalWorkItem],
+    projection,
+  })
+assert.equal(boundFinalWorkItems.length, 1)
+const boundFinalWorkItem = boundFinalWorkItems[0]!
+const boundFinalPayload =
+  boundFinalWorkItem.executionInput
+    .structuredPayload as Record<string, unknown>
+assert.equal(
+  boundFinalPayload.livingFrameOverlayPolicy,
+  'approved_rgba_over_source_below_captions_v1',
+)
+assert.equal(
+  Array.isArray(
+    boundFinalPayload.livingFrameOverlayLayers,
+  ),
+  true,
+)
+assert.equal(
+  boundFinalWorkItem.expectedOutputs[0]!
+    .rendererLayerIds.indexOf(
+      layer.expectedOutputs[0]!.rendererLayerIds[0]!,
+    )
+  <
+  boundFinalWorkItem.expectedOutputs[0]!
+    .rendererLayerIds.indexOf('caption-overlay-layer'),
+  true,
+)
+
+const approvedComponentWorkItem =
+  toPrivateReviewWorkItem(
+    component,
+    `approved.${component.workItemKey}`,
+  )
+const approvedLayerWorkItem =
+  toPrivateReviewWorkItem(
+    layer,
+    `approved.${layer.workItemKey}`,
+  )
+const approvedFinalWorkItem =
+  toPrivateReviewWorkItem(
+    boundFinalWorkItem,
+    'approved.final-export',
+  )
+const componentSelection = createPrivateReviewSelection({
+  approvedWorkItemId: approvedComponentWorkItem.id,
+  expectedAssetId: 'asset.subject-neutral-rgba',
+  artifactId: 'artifact.subject-neutral-rgba',
+  contentType: 'image/png',
+  sha256: '1'.repeat(64),
+})
+const layerSelection = createPrivateReviewSelection({
+  approvedWorkItemId: approvedLayerWorkItem.id,
+  expectedAssetId: 'asset.subject-neutral-layer-manifest',
+  artifactId: 'artifact.subject-neutral-layer-manifest',
+  contentType: 'application/json',
+  sha256: '2'.repeat(64),
+})
+const finalSelection = createPrivateReviewSelection({
+  approvedWorkItemId: approvedFinalWorkItem.id,
+  expectedAssetId: 'asset.subject-neutral-final',
+  artifactId: 'artifact.subject-neutral-final',
+  contentType: 'video/mp4',
+  sha256: '3'.repeat(64),
+  finalRemotionRun: true,
+})
+const privateReviewEvidence =
+  compileCanonicalLivingFramePrivateReviewEvidence({
+    finalWorkItem: approvedFinalWorkItem,
+    requiredWorkItems: [
+      approvedComponentWorkItem,
+      approvedLayerWorkItem,
+      approvedFinalWorkItem,
+    ],
+    requiredSelections: [
+      componentSelection,
+      layerSelection,
+      finalSelection,
+    ],
+    finalSelection,
+  })
+assert.ok(privateReviewEvidence)
+assert.equal(privateReviewEvidence.overlayCount, 1)
+assert.equal(
+  privateReviewEvidence.overlays[0]!
+    .rgbaComponent.approvedWorkItemId,
+  approvedComponentWorkItem.id,
+)
+assert.equal(
+  privateReviewEvidence.overlays[0]!
+    .layerManifest.approvedWorkItemId,
+  approvedLayerWorkItem.id,
+)
+assert.equal(
+  privateReviewEvidence.finalComposition
+    .approvedWorkItemId,
+  approvedFinalWorkItem.id,
+)
+assert.equal(
+  privateReviewEvidence
+    .captionPlaneRemainsAboveLivingFrame,
+  true,
+)
+assert.equal(
+  privateReviewEvidence.customerPriceOrCreditAuthority,
+  false,
+)
+assert.equal(
+  privateReviewEvidence.furtherRenderAuthority,
+  false,
+)
+assert.equal(
+  privateReviewEvidence.publicDeliveryAuthority,
+  false,
+)
+assert.equal(
+  privateReviewEvidence.productionAuthority,
+  false,
+)
+assert.doesNotMatch(
+  JSON.stringify({
+    identity,
+    requirements,
+    assetWorkInputBinding,
+    estimateProjection,
+    costWorkBinding,
+    projection,
+    privateReviewEvidence,
+  }),
+  /musashi|helicopter|hormuz/i,
+)
+
 const forgedMixedSource = resign({
   ...structuredClone(projection),
   workItems: projection.workItems.map((item) =>
@@ -512,8 +655,199 @@ assert.equal(
 )
 
 console.log(
-  'Living Frame generated opaque still -> canonical rembg mask -> Sharp RGBA -> Remotion graph passed with exact cost lineage and mixed-source fail-closed coverage.',
+  'Living Frame subject-neutral generated opaque still -> canonical rembg mask -> Sharp RGBA -> Remotion overlay -> private-review evidence passed with exact cost lineage, caption-plane protection, non-promotable authority boundaries, and mixed-source fail-closed coverage.',
 )
+
+function createBaseFinalWorkItem():
+CanonicalWorkItemInput {
+  return {
+    workItemKey: 'final-export',
+    workItemType: 'render_final_export',
+    workerClass: 'render_worker',
+    executionInput: {
+      operation:
+        'render_approved_source_caption_final',
+      approvedToolOperationIds: [
+        'tool.remotion.render_approved_composition.v1',
+      ],
+      expectedOutputKeys: ['final-export'],
+      structuredPayload: {
+        compositionProfileId:
+          'approved_source_caption_final_v1',
+        width: 1920,
+        height: 1080,
+        fps: 30,
+        durationFrames: 180,
+        sourceStartFrame: 0,
+        sourceEndFrameExclusive: 180,
+        sourceFit: 'contain',
+        panelBackground: '#000000',
+        audioPolicy: 'preserve_source',
+        renderPurpose:
+          'private_4k_delivery_master_v1',
+        deliveryProfileId: 'uhd_2160',
+        estimateCostBasisProfileId: 'uhd_2160',
+        sourceQualityPolicy:
+          'immutable_source_master_no_proxy_v1',
+        usesApprovedEditReservation: true,
+        requiresSeparateExportEstimate: false,
+        allowsAdditionalExportCharge: false,
+        captionOverlayPolicy:
+          'approved_full_frame_rgba',
+      },
+    },
+    sourceSequenceItemIds: ['source-1'],
+    sourceCleanupDecisionIds: ['cleanup-1'],
+    expectedOutputs: [{
+      outputKey: 'final-export',
+      artifactType:
+        'private_source_caption_4k_delivery_master_v1',
+      assetRole: 'final',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: 'video/mp4',
+      segmentIds: ['segment-generated-alpha'],
+      timingIds: ['master-lf-generated-alpha'],
+      rendererLayerIds: [
+        'source-video-layer',
+        'caption-overlay-layer',
+      ],
+    }],
+    dependencyKeys: [
+      'source-trim',
+      'caption-overlay',
+    ],
+    approvedToolIds: ['remotion'],
+    providerExecutionMode: 'none',
+    fallbackPolicy: {},
+    maxAttempts: 2,
+    attemptTimeoutSeconds: 1_800,
+    scheduledDelaySeconds: 0,
+    maximumCreditBudget: 4,
+    required: true,
+  }
+}
+
+function createPrivateReviewSelection(input: {
+  readonly approvedWorkItemId: string
+  readonly expectedAssetId: string
+  readonly artifactId: string
+  readonly contentType:
+    | 'application/json'
+    | 'image/png'
+    | 'video/mp4'
+  readonly sha256: string
+  readonly finalRemotionRun?: boolean
+}): CanonicalLivingFramePrivateReviewArtifactSelection {
+  return {
+    artifact: {
+      artifactId: input.artifactId,
+      identity: {
+        expectedAssetId: input.expectedAssetId,
+      },
+      lineage: {
+        approvedWorkItemId:
+          input.approvedWorkItemId,
+      },
+      content: {
+        contentType: input.contentType,
+        sha256: input.sha256,
+      },
+      placeholder: {
+        isPlaceholder: false,
+      },
+      actualRunEvidence: input.finalRemotionRun
+        ? {
+            state:
+              'actual_run_evidence_verified_v2',
+            runnerClass:
+              'offline_remotion_render_execution_v1',
+            toolIds: ['remotion'],
+            actualRunVerified: true,
+            runnerEvidenceHash: '4'.repeat(64),
+          }
+        : {
+            state:
+              'actual_run_evidence_placeholder',
+          },
+    },
+    qa: {
+      qaEvaluationId:
+        `qa.${input.approvedWorkItemId}`,
+      outcome: 'passed',
+      failureScope: 'none',
+      gateResults: input.finalRemotionRun
+        ? [{
+            gateId: 'render_preflight_gate',
+            status: 'passed',
+            evidenceHash: '5'.repeat(64),
+          }]
+        : [],
+    },
+    reconciliation: {
+      reconciliationId:
+        `reconciliation.${input.approvedWorkItemId}`,
+      decision:
+        'test_merged_not_live_authorized',
+      privateTestDependencySatisfied: true,
+      liveRuntimeDependencySatisfied: false,
+      finalRenderAuthorized: false,
+    },
+  } as unknown as
+    CanonicalLivingFramePrivateReviewArtifactSelection
+}
+
+interface PrivateReviewWorkItem {
+  readonly id: string
+  readonly workItemKey: string
+  readonly workItemType: string
+  readonly executionInput:
+    Readonly<Record<string, unknown>>
+  readonly expectedOutputs: readonly {
+    readonly outputKey: string
+    readonly artifactType: string
+    readonly contentType?: string
+    readonly rendererLayerIds: readonly string[]
+  }[]
+  readonly dependencyKeys: readonly string[]
+  readonly approvedToolIds: readonly string[]
+}
+
+function toPrivateReviewWorkItem(
+  item: {
+    readonly workItemKey: string
+    readonly workItemType: string
+    readonly executionInput: object
+    readonly expectedOutputs: readonly {
+      readonly outputKey: string
+      readonly artifactType: string
+      readonly contentType?: string
+      readonly rendererLayerIds:
+        readonly string[]
+    }[]
+    readonly dependencyKeys: readonly string[]
+    readonly approvedToolIds: readonly string[]
+  },
+  id: string,
+): PrivateReviewWorkItem {
+  return {
+    id,
+    workItemKey: item.workItemKey,
+    workItemType: item.workItemType,
+    executionInput: {
+      ...item.executionInput,
+    },
+    expectedOutputs:
+      item.expectedOutputs.map((output) => ({
+        ...output,
+        rendererLayerIds: [
+          ...output.rendererLayerIds,
+        ],
+      })),
+    dependencyKeys: [...item.dependencyKeys],
+    approvedToolIds: [...item.approvedToolIds],
+  }
+}
 
 function resign(
   value: typeof projection,

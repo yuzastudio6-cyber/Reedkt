@@ -2953,3 +2953,14 @@ The six controlled-illustration capability identifiers are similarly
 subject-neutral. Five describe capabilities inside one shared GPU-host attempt;
 AuraFace is a separate conditional CPU continuity measurement. They do not
 create six tool-registry entries or six independent charges.
+
+The representative connected trace now goes beyond that metadata matrix. One
+subject-neutral generated-still scene preserves its exact estimate and work
+lineage through the generated opaque source, generated-source rembg mask, Sharp
+RGBA component, Remotion layer manifest, existing final Remotion composition,
+caption-plane ordering, private artifact QA/reconciliation, and the existing
+canonical private-review composition evidence. The trace remains controlled and
+non-promotable: it proves source integration and fail-closed lineage, not a
+released GPU attempt, public export, customer charge, or production runtime.
+See
+`docs/living-frame/living-frame-representative-end-to-end-validation.md`.

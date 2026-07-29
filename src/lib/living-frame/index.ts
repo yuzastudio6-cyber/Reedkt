@@ -987,3 +987,20 @@ export type {
   LivingFrameGeneratedStillArtifactQaProjection,
   LivingFrameGeneratedStillArtifactQaProjectionDraft,
 } from '../../types/living-frame-generated-still-artifact-qa-projection'
+
+export {
+  LIVING_FRAME_DESTINATION_COMPOSITE_BLOCKING_FINDINGS,
+  LIVING_FRAME_DESTINATION_COMPOSITE_MEASUREMENT_CLASS,
+  LIVING_FRAME_DESTINATION_COMPOSITE_MEASUREMENT_STATES,
+  LIVING_FRAME_DESTINATION_COMPOSITE_MEASUREMENT_VERSION,
+  LIVING_FRAME_DESTINATION_COMPOSITE_OPEN_GATES,
+} from '../../types/living-frame-destination-composite-measurement'
+
+export type {
+  LivingFrameDestinationCompositeBlockingFinding,
+  LivingFrameDestinationCompositeMeasurement,
+  LivingFrameDestinationCompositeMeasurementAuthority,
+  LivingFrameDestinationCompositeMeasurementDraft,
+  LivingFrameDestinationCompositeMeasurementState,
+  LivingFrameDestinationCompositeOpenGate,
+} from '../../types/living-frame-destination-composite-measurement'

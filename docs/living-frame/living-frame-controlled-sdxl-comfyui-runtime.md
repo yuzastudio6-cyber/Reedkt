@@ -42,9 +42,12 @@ private path is one single-use atomic session:
    `controlnet`, `loras`, `ipadapter`, and `clip_vision` destinations;
 6. start one supervised process, execute one prompt, capture one result, and
    stop the process while all five callbacks remain open;
-7. unwind the callbacks so the canonical repository fully verifies every
+7. require the outer mounted runner to attest the digest-bound non-root,
+   read-only-root, drop-all-capabilities, no-new-privileges, network-off,
+   read-only-mount, and ephemeral-write confinement contract;
+8. unwind the callbacks so the canonical repository fully verifies every
    object again after inference;
-8. expose only session, model-binding-packet, and process-lifecycle digests in
+9. expose only session, model-binding-packet, and process-lifecycle digests in
    the host receipt.
 
 The mounted runner input is process-bound and may contain canonical source
@@ -105,6 +108,17 @@ receipt contains only timestamps, counts, hashes, terminal process facts, and
 closed authority flags. The fixed private subprocess remains unqualified until
 the pinned source and wheel closure is actually packaged into the shared GPU
 image and the L4 qualification gates pass.
+
+The inner subprocess cannot establish the container identity or sandbox by
+itself. The atomic mounted-runner boundary therefore carries
+`living-frame-comfyui-runtime-confinement-requirement-v1` and binds its digest
+into the canonical mount-session identity. It accepts either a released image
+default or a platform-enforced exact identity, but the observed UID and GID
+must both be `65532`. The runner result must also attest a read-only root,
+drop-all capabilities, no-new-privileges, blocked external network and
+runtime downloads, read-only model mounts, and ephemeral-only writable
+operation roots. Controlled fixtures prove rejection of a root observation;
+a released platform observation is still required.
 
 ## Offline package source closure
 

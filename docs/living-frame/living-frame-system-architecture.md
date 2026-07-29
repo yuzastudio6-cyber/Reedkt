@@ -2743,6 +2743,18 @@ signature, provenance, default-user policy, direct-VCS disposition, and L4
 operation release remain closed. See
 `docs/living-frame/living-frame-comfyui-container-sbom-evidence.md`.
 
+The atomic mounted-runner source boundary now also freezes the compatible
+release path rather than leaving the root finding as prose. Its canonical
+session digest includes
+`living-frame-comfyui-runtime-confinement-requirement-v1`: exact UID/GID
+`65532:65532` from either the released image default or an exact
+platform-enforced override, non-root execution, read-only root, all
+capabilities dropped, no-new-privileges, no external network or runtime
+downloads, read-only model mounts, and ephemeral-only writable operation
+roots. A controlled runner reporting root fails closed. This is an admission
+contract, not a released-platform observation; the backend/L4 evidence gate
+remains open.
+
 The source-controlled package closure is now explicit under
 `docker/prod/gpu-worker/comfyui/`. Its 35 hash-pinned wheel declarations and
 three exact source-archive identities are revalidated against the existing

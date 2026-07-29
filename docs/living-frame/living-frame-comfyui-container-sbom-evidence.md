@@ -100,9 +100,9 @@ confinement, or repeated observation changes.
 
 Before the image can be admitted:
 
-1. Decide whether the production worker image must set a default non-root user
-   or whether the released canonical runtime can provide a separately attested
-   mandatory user override.
+1. Implement and independently attest either a released-image default
+   UID/GID `65532:65532` or the exact mandatory platform override now frozen
+   by the canonical mounted-runner confinement requirement.
 2. Review or remove the inherited out-of-scope VCS distribution.
 3. Review the complete inherited Debian and Python dependency surface.
 4. Validate the generated SPDX document independently.

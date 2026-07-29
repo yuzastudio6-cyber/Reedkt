@@ -40,6 +40,48 @@ const PRIVATE_ALIAS =
   /^[A-Za-z0-9][A-Za-z0-9._-]{0,126}[A-Za-z0-9]$/u
 const SHA256 = /^[a-f0-9]{64}$/u
 
+export const
+LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT =
+  Object.freeze({
+    policyVersion:
+      'living-frame-comfyui-runtime-confinement-requirement-v1' as const,
+    requiredUid: 65_532 as const,
+    requiredGid: 65_532 as const,
+    identitySourcePolicy:
+      'released_image_default_or_platform_enforced_exact' as const,
+    nonRootRequired: true as const,
+    readOnlyRootFilesystemRequired: true as const,
+    allLinuxCapabilitiesDroppedRequired: true as const,
+    noNewPrivilegesRequired: true as const,
+    externalNetworkAllowed: false as const,
+    runtimeDownloadsAllowed: false as const,
+    readOnlyModelMountsRequired: true as const,
+    writableOperationRootsEphemeralOnlyRequired: true as const,
+  })
+
+export const
+LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT_DIGEST_SHA256 =
+  sha256AuthorityValue(
+    LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT,
+  )
+
+export interface LivingFrameComfyUiRuntimeConfinementObservation {
+  readonly requirementDigestSha256: string
+  readonly identitySource:
+    | 'released_image_default'
+    | 'platform_enforced_override'
+  readonly observedUid: 65_532
+  readonly observedGid: 65_532
+  readonly nonRootObserved: true
+  readonly rootFilesystemReadOnlyObserved: true
+  readonly allLinuxCapabilitiesDroppedObserved: true
+  readonly noNewPrivilegesObserved: true
+  readonly externalNetworkBlockedObserved: true
+  readonly runtimeDownloadsBlockedObserved: true
+  readonly modelMountsReadOnlyObserved: true
+  readonly writableOperationRootsEphemeralOnlyObserved: true
+}
+
 const MODEL_BINDINGS = Object.freeze({
   base_checkpoint: {
     slotKind: 'base_checkpoint_artifact',
@@ -103,6 +145,9 @@ export interface LivingFrameComfyUiMountedSupervisedRunnerInput {
   readonly runtimeDownloadsAllowed: false
   readonly readOnlyModelMountsRequired: true
   readonly oneProcessPerAttemptRequired: true
+  readonly runtimeConfinementRequirement:
+    typeof LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT
+  readonly runtimeConfinementRequirementDigestSha256: string
   readonly productionQualified: false
 }
 
@@ -119,6 +164,8 @@ export interface LivingFrameComfyUiMountedSupervisedRunnerResult {
     readonly oneProcessPerAttempt: true
     readonly externalListenAllowed: false
     readonly runtimeDownloadsAllowed: false
+    readonly runtimeConfinement:
+      LivingFrameComfyUiRuntimeConfinementObservation
     readonly productionQualified: false
   }
   readonly externalNetworkPerformed: false
@@ -139,6 +186,8 @@ export interface LivingFrameComfyUiMountedSupervisedRunnerPort {
   readonly runtimeDownloadsAllowed: false
   readonly readOnlyModelMountsRequired: true
   readonly oneProcessPerAttemptRequired: true
+  readonly runtimeConfinementRequired: true
+  readonly runtimeConfinementRequirementDigestSha256: string
   readonly productionQualified: false
   executeOne(
     input: LivingFrameComfyUiMountedSupervisedRunnerInput,
@@ -210,6 +259,9 @@ export function createLivingFrameComfyUiPrivateMountedSupervisedRunnerPort(
       runtimeDownloadsAllowed: false,
       readOnlyModelMountsRequired: true,
       oneProcessPerAttemptRequired: true,
+      runtimeConfinementRequired: true,
+      runtimeConfinementRequirementDigestSha256:
+        LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT_DIGEST_SHA256,
       productionQualified: false,
       executeOne: executeOne.bind(undefined),
     })
@@ -322,6 +374,8 @@ async function executeCanonicalSession(
       })),
       externalNetworkAllowed: false,
       runtimeDownloadsAllowed: false,
+      runtimeConfinementRequirementDigestSha256:
+        LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT_DIGEST_SHA256,
     })
 
   const sources:
@@ -361,6 +415,10 @@ async function executeCanonicalSession(
             runtimeDownloadsAllowed: false,
             readOnlyModelMountsRequired: true,
             oneProcessPerAttemptRequired: true,
+            runtimeConfinementRequirement:
+              LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT,
+            runtimeConfinementRequirementDigestSha256:
+              LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT_DIGEST_SHA256,
             productionQualified: false,
           })
         },
@@ -571,6 +629,11 @@ function assertFactoryInput(
     || !runnerPorts.has(input.runnerPort)
     || input.runnerPort.portClass
       !== 'private_comfyui_mounted_supervised_runner_port_v1'
+    || input.runnerPort.runtimeConfinementRequired !== true
+    || input.runnerPort
+      .runtimeConfinementRequirementDigestSha256
+      !==
+        LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT_DIGEST_SHA256
   ) throw new TypeError(
     'Living Frame ComfyUI canonical mount session input is invalid.',
   )
@@ -581,6 +644,7 @@ function assertRunnerResult(
   expectedSessionDigestSha256: string,
 ): void {
   const lifecycle = value?.processLifecycle
+  const confinement = lifecycle?.runtimeConfinement
   const host = value?.hostExecutionResult
   const started = Date.parse(host?.startedAt ?? '')
   const finished = Date.parse(host?.finishedAt ?? '')
@@ -597,6 +661,25 @@ function assertRunnerResult(
     || lifecycle.oneProcessPerAttempt !== true
     || lifecycle.externalListenAllowed !== false
     || lifecycle.runtimeDownloadsAllowed !== false
+    || !confinement
+    || confinement.requirementDigestSha256
+      !==
+        LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT_DIGEST_SHA256
+    || ![
+      'released_image_default',
+      'platform_enforced_override',
+    ].includes(confinement.identitySource)
+    || confinement.observedUid !== 65_532
+    || confinement.observedGid !== 65_532
+    || confinement.nonRootObserved !== true
+    || confinement.rootFilesystemReadOnlyObserved !== true
+    || confinement.allLinuxCapabilitiesDroppedObserved !== true
+    || confinement.noNewPrivilegesObserved !== true
+    || confinement.externalNetworkBlockedObserved !== true
+    || confinement.runtimeDownloadsBlockedObserved !== true
+    || confinement.modelMountsReadOnlyObserved !== true
+    || confinement.writableOperationRootsEphemeralOnlyObserved
+      !== true
     || lifecycle.productionQualified !== false
     || !host
     || host.evidenceClass

@@ -93,7 +93,7 @@ The six product-design candidates are not six production tools.
 
 | Capability | Intended placement | Current evidence | Release status |
 | --- | --- | --- | --- |
-| ComfyUI | One shared NVIDIA L4 controlled-image host | Pinned source, locked wheel closure, strict protocol, canonical five-model mount session, local installed-layout observation, and exact 761-package image-derived SPDX inventory | `qualified_local_candidate`; image defaults to root/unspecified, inherited direct-VCS `sam-2` remains undisposed, and canonical image/L4 operation release stays open |
+| ComfyUI | One shared NVIDIA L4 controlled-image host | Pinned source, locked wheel closure, strict protocol, canonical five-model mount session, digest-bound non-root runtime-confinement requirement, local installed-layout observation, and exact 761-package image-derived SPDX inventory | `qualified_local_candidate`; image defaults to root/unspecified, inherited direct-VCS `sam-2` remains undisposed, and an actual released-platform confinement observation plus canonical image/L4 operation release stay open |
 | `comfyui_controlnet_aux` | External deterministic pose/depth/canny preparation | Pinned custom-node/source expectation plus deterministic ReeditPro control-image implementations | `verified_source_contract`; production package/license admission open |
 | ControlNet | Mounted conditioning model inside the shared host | Exact artifact identity, byte observation, workflow binding, model-family binding | `qualified_local_candidate`; L4 compatibility run open |
 | Generic IP-Adapter | Mounted reference-conditioning model inside the shared host | Exact artifact identity, byte observation, generic-only extension and merged workflow | `qualified_local_candidate`; FaceID remains forbidden |
@@ -148,6 +148,9 @@ missing:
    root/unspecified, one inherited direct-VCS distribution remains
    undisposed, and independent SBOM validation, inherited-scope review,
    vulnerability disposition, image signature, and provenance remain open.
+   The mounted-runner source contract now requires exact UID/GID `65532:65532`
+   plus the complete sandbox and rejects root observations; only a released
+   backend/L4 observation can satisfy that requirement.
 3. Released distributed read-only model-artifact mounts for the exact five
    ComfyUI objects and exact two AuraFace objects.
 4. A successful approved-L4 run of the exact five-model ComfyUI workflow,
@@ -187,6 +190,8 @@ Passed:
 - exact local ComfyUI image-derived SPDX package-inventory smoke, including
   repeated immutable-image observation, locked-wheel reconciliation,
   single-use document delivery, and forged release-policy rejection;
+- atomic ComfyUI model-mount smoke with digest-bound runtime-confinement input,
+  exact non-root observation, and adversarial root-observation refusal;
 - selected execution/security smokes;
 - repository secret scan;
 - frontend/server boundary scan; and

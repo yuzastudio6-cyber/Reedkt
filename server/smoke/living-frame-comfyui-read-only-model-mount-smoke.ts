@@ -40,7 +40,10 @@ import {
 import {
   createLivingFrameComfyUiPrivateCanonicalMountHostSessionPort,
   createLivingFrameComfyUiPrivateMountedSupervisedRunnerPort,
+  LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT,
+  LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT_DIGEST_SHA256,
   livingFrameComfyUiCanonicalWireArtifactSourceBindingDigest,
+  type LivingFrameComfyUiMountedSupervisedRunnerInput,
 } from '../living-frame/living-frame-controlled-sdxl-comfyui-canonical-mount-host-session'
 import {
   type LivingFrameControlledSdxlPrivateGpuWireRequest,
@@ -253,6 +256,15 @@ try {
           async (runnerInput) => {
             assert.equal(runnerInput.modelSources.length, 5)
             assert.equal(
+              runnerInput.runtimeConfinementRequirement,
+              LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT,
+            )
+            assert.equal(
+              runnerInput
+                .runtimeConfinementRequirementDigestSha256,
+              LIVING_FRAME_COMFYUI_RUNTIME_CONFINEMENT_REQUIREMENT_DIGEST_SHA256,
+            )
+            assert.equal(
               new Set(
                 runnerInput.modelSources.map(
                   (source) => source.fixedContainerMountPath,
@@ -306,6 +318,8 @@ try {
                 oneProcessPerAttempt: true,
                 externalListenAllowed: false,
                 runtimeDownloadsAllowed: false,
+                runtimeConfinement:
+                  confinementObservation(runnerInput),
                 productionQualified: false,
               },
               externalNetworkPerformed: false,
@@ -335,6 +349,60 @@ try {
   await assert.rejects(
     () => canonicalSession.executeOne(canonicalWireRequest),
     /atomic_mount_session_reused/,
+  )
+
+  const wrongIdentitySession =
+    createLivingFrameComfyUiPrivateCanonicalMountHostSessionPort({
+      sessionId: 'session.comfyui.mount-smoke.root-reject',
+      artifactBinding,
+      artifactBindingInput,
+      repository,
+      runnerPort:
+        createLivingFrameComfyUiPrivateMountedSupervisedRunnerPort(
+          async (runnerInput) => ({
+            canonicalMountSessionDigestSha256:
+              runnerInput.canonicalMountSessionDigestSha256,
+            hostExecutionResult: {
+              evidenceClass:
+                'private_internal_comfyui_host_runtime_observation_unreleased',
+              terminalState: 'completed',
+              failureCode: 'none',
+              promptAccepted: true,
+              modelInferenceExecuted: true,
+              startedAt: '2026-07-29T14:00:10.000Z',
+              finishedAt: '2026-07-29T14:00:14.000Z',
+              outputPngBytes:
+                Uint8Array.from([137, 80, 78, 71]),
+              outputImageCount: 1,
+              externalNetworkPerformed: false,
+              runtimeDownloadPerformed: false,
+            },
+            processLifecycle: {
+              receiptDigestSha256:
+                sha('process-lifecycle-root-reject'),
+              processStarted: true,
+              loopbackReady: true,
+              hostExecutionCompleted: true,
+              processStopped: true,
+              oneProcessPerAttempt: true,
+              externalListenAllowed: false,
+              runtimeDownloadsAllowed: false,
+              runtimeConfinement: {
+                ...confinementObservation(runnerInput),
+                observedUid: 0 as 65_532,
+                nonRootObserved: false as true,
+              },
+              productionQualified: false,
+            },
+            externalNetworkPerformed: false,
+            runtimeDownloadPerformed: false,
+            productionQualified: false,
+          }),
+        ),
+    })
+  await assert.rejects(
+    () => wrongIdentitySession.executeOne(canonicalWireRequest),
+    /mounted_supervised_runner_result_invalid/,
   )
 
   const tamperingSession =
@@ -380,6 +448,8 @@ try {
                 oneProcessPerAttempt: true,
                 externalListenAllowed: false,
                 runtimeDownloadsAllowed: false,
+                runtimeConfinement:
+                  confinementObservation(runnerInput),
                 productionQualified: false,
               },
               externalNetworkPerformed: false,
@@ -397,7 +467,8 @@ try {
   console.log(
     'Living Frame ComfyUI read-only model mount smoke passed: '
     + '5 canonical single-use presentations, atomic host-session '
-    + 'lifetime verification, and post-inference tamper refusal.',
+    + 'lifetime verification, exact non-root confinement admission, '
+    + 'root-observation refusal, and post-inference tamper refusal.',
   )
 } finally {
   await rm(temporaryRoot, { force: true, recursive: true })
@@ -454,6 +525,26 @@ function descriptorFor(
 
 function sha(value: string | Uint8Array): string {
   return createHash('sha256').update(value).digest('hex')
+}
+
+function confinementObservation(
+  input: LivingFrameComfyUiMountedSupervisedRunnerInput,
+) {
+  return {
+    requirementDigestSha256:
+      input.runtimeConfinementRequirementDigestSha256,
+    identitySource: 'platform_enforced_override' as const,
+    observedUid: 65_532 as const,
+    observedGid: 65_532 as const,
+    nonRootObserved: true as const,
+    rootFilesystemReadOnlyObserved: true as const,
+    allLinuxCapabilitiesDroppedObserved: true as const,
+    noNewPrivilegesObserved: true as const,
+    externalNetworkBlockedObserved: true as const,
+    runtimeDownloadsBlockedObserved: true as const,
+    modelMountsReadOnlyObserved: true as const,
+    writableOperationRootsEphemeralOnlyObserved: true as const,
+  }
 }
 
 function wireRequestFor(

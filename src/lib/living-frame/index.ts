@@ -397,6 +397,34 @@ export {
   LIVING_FRAME_CONTROLLED_COMFYUI_WORKFLOW_VERSION,
 } from '../../types/living-frame-controlled-illustration-comfyui-workflow'
 
+export {
+  LIVING_FRAME_IPADAPTER_EXTENSION_BLOCKED_NODE_CLASSES,
+  LIVING_FRAME_IPADAPTER_EXTENSION_EVALUATION_CLASS,
+  LIVING_FRAME_IPADAPTER_EXTENSION_EVALUATION_VERSION,
+  LIVING_FRAME_IPADAPTER_EXTENSION_GENERIC_NODE_CLASSES,
+  LIVING_FRAME_IPADAPTER_EXTENSION_ISSUE_CODES,
+  LIVING_FRAME_IPADAPTER_EXTENSION_OPEN_GATE_CODES,
+  LIVING_FRAME_IPADAPTER_EXTENSION_SOURCE_FILE_CODES,
+  LIVING_FRAME_IPADAPTER_EXTENSION_SOURCE_REVISION,
+  LIVING_FRAME_IPADAPTER_EXTENSION_SOURCE_TREE,
+} from '../../types/living-frame-controlled-illustration-ipadapter-extension'
+
+export type {
+  LivingFrameIpAdapterExtensionAuthorityBoundary,
+  LivingFrameIpAdapterExtensionBlockedNodeClass,
+  LivingFrameIpAdapterExtensionDependencyBoundary,
+  LivingFrameIpAdapterExtensionEvaluation,
+  LivingFrameIpAdapterExtensionEvaluationDraft,
+  LivingFrameIpAdapterExtensionGenericNodeClass,
+  LivingFrameIpAdapterExtensionIssue,
+  LivingFrameIpAdapterExtensionIssueCode,
+  LivingFrameIpAdapterExtensionNodeBoundary,
+  LivingFrameIpAdapterExtensionOpenGateCode,
+  LivingFrameIpAdapterExtensionSourceFileCode,
+  LivingFrameIpAdapterExtensionSourceFileObservation,
+  LivingFrameIpAdapterExtensionValidationResult,
+} from '../../types/living-frame-controlled-illustration-ipadapter-extension'
+
 export type {
   LivingFrameControlledComfyUiAuthorityBoundary,
   LivingFrameControlledComfyUiBindingKind,

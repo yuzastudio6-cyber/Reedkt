@@ -2111,3 +2111,22 @@ source-observation lineage only. It grants no installation, model artifact,
 prompt, operation, dispatch, work, asset, estimate, approval, timing,
 SoundSync, QA approval, render, runtime, or production authority. See
 `docs/living-frame/living-frame-controlled-comfyui-workflow.md`.
+
+## Generic IP-Adapter extension boundary
+
+Because the observed stock ComfyUI revision has no IP-Adapter node, generic
+reference conditioning is isolated behind a source-bound extension
+evaluation. The narrow structural boundary admits only
+`IPAdapterModelLoader` and `IPAdapterAdvanced`; unified loaders, FaceID,
+InsightFace, embed file I/O, runtime downloads, caller filenames, and all
+other arbitrary plugin nodes remain prohibited.
+
+The evaluated extension source, its GPL deployment boundary, exact dependency
+lock, ComfyUI compatibility, generic IP-Adapter and CLIP Vision weights, base
+model compatibility, reference-image artifact, security confinement, and
+quality/identity benchmarks all remain separately gated. AuraFace is not
+injected as an adapter and cannot convert a FaceID workflow into an approved
+generic route. The source evaluation proves only that a generic route can be
+represented; it grants no package, artifact, tool, operation, dispatch, work,
+cost, approval, QA, render, runtime, or production authority. See
+`docs/living-frame/living-frame-ipadapter-extension-evaluation.md`.

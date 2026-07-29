@@ -2413,3 +2413,18 @@ The seven cases contain 41 ordered unresolved slots across six distinct slot
 sets. They are derived solely from capability composition, never from a
 person, place, vehicle, historical topic, or example. See
 `docs/living-frame/living-frame-controlled-sdxl-benchmark-request-blueprint.md`.
+
+### Controlled benchmark result and threshold binding
+
+The source-only result binding accepts benchmark observations only through a
+process-bound server reader. It reads the observation twice, rejects
+instability, validates all seven ordered case observations and eleven ordered
+metric observations, cross-checks load/output/memory/duration aggregates, and
+evaluates the fixed specification thresholds.
+
+Passing controlled thresholds remains deliberately weaker than a released GPU
+attempt or compatibility approval. The binding cannot attest an operation,
+mint actual cost, resolve the LoRA/base mismatch, select a scene, or open
+runtime. Its passing and failing fixtures are controlled and non-promotable.
+See
+`docs/living-frame/living-frame-controlled-sdxl-benchmark-result-binding.md`.

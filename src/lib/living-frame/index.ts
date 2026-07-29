@@ -796,3 +796,27 @@ export type {
   LivingFrameControlledSdxlBenchmarkRequestSlot,
   LivingFrameControlledSdxlBenchmarkRequestSlotKind,
 } from '../../types/living-frame-controlled-sdxl-benchmark-request-blueprint'
+
+export {
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_OBSERVATION_CLASS,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_RESULT_BINDING_CLASS,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_RESULT_BINDING_ISSUES,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_RESULT_BINDING_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_RESULT_BINDING_STATE,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_RESULT_BINDING_VERSION,
+} from '../../types/living-frame-controlled-sdxl-benchmark-result-binding'
+
+export type {
+  LivingFrameControlledSdxlBenchmarkCaseObservation,
+  LivingFrameControlledSdxlBenchmarkMetricObservation,
+  LivingFrameControlledSdxlBenchmarkMetricUnit,
+  LivingFrameControlledSdxlBenchmarkObservation,
+  LivingFrameControlledSdxlBenchmarkObservationDraft,
+  LivingFrameControlledSdxlBenchmarkResultBinding,
+  LivingFrameControlledSdxlBenchmarkResultBindingAuthority,
+  LivingFrameControlledSdxlBenchmarkResultBindingDraft,
+  LivingFrameControlledSdxlBenchmarkResultBindingIssue,
+  LivingFrameControlledSdxlBenchmarkResultBindingIssueCode,
+  LivingFrameControlledSdxlBenchmarkResultBindingOpenGate,
+  LivingFrameControlledSdxlBenchmarkThresholdResult,
+} from '../../types/living-frame-controlled-sdxl-benchmark-result-binding'

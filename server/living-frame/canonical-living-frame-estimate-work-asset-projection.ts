@@ -191,7 +191,11 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
         ]),
       )
       const workRequirements =
-        assetWorkScene.namedWorkInputs.map((workInput) =>
+        assetWorkScene.namedWorkInputs
+        .filter((workInput) =>
+          workInput.workItemType !==
+            'generate_image_asset')
+        .map((workInput) =>
           compileWorkRequirement({
             scene,
             timingScene,

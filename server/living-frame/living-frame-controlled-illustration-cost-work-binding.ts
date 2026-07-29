@@ -1,6 +1,5 @@
 import type {
   CanonicalCustomerEstimateAuthority,
-  CanonicalCustomerEstimateLineItem,
 } from '../../src/types/canonical-customer-estimate-authority'
 import type {
   CanonicalLivingFrameAssetWorkInputBinding,
@@ -147,13 +146,10 @@ export function compileCanonicalLivingFrameControlledIllustrationCostWorkBinding
             auraFaceLine,
           )
         }
+        const sceneKey =
+          `lf-${String(sceneIndex + 1).padStart(3, '0')}-${sha256AuthorityValue(assetScene.sceneId).slice(0, 12)}`
         const workRequirementKey =
-          `lf-ci-${String(sceneIndex + 1).padStart(3, '0')}-${sha256AuthorityValue({
-            sceneId: assetScene.sceneId,
-            generatedAssetIntentIds,
-            generationCostLineKey:
-              generationLine.lineKey,
-          }).slice(0, 20)}`
+          `${sceneKey}-generate-image-asset`
         return [{
           sceneId: assetScene.sceneId,
           workRequirementKey,
@@ -194,6 +190,8 @@ export function compileCanonicalLivingFrameControlledIllustrationCostWorkBinding
           optionalContinuityQaCostBinding:
             auraFaceLine
               ? {
+                  workRequirementKey:
+                    `${workRequirementKey}-auraface-continuity-qa`,
                   workItemType: 'run_asset_qa',
                   costComponentId:
                     'auraface_cpu_continuity_measurement',

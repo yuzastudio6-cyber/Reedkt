@@ -214,6 +214,9 @@ function tinyInfrastructureLine(
     activeControlledIllustrationCapabilityIds: [
       'comfyui_execution_host',
     ],
+    generatedAssetIntentIds: [
+      `asset-intent-tiny-${index}`,
+    ],
     generationUnitCount: 1,
     attemptOrComparisonCount: 1,
     billableMilliseconds: 1_000,

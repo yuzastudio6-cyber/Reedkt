@@ -2687,3 +2687,30 @@ mint actual cost, resolve the LoRA/base mismatch, select a scene, or open
 runtime. Its passing and failing fixtures are controlled and non-promotable.
 See
 `docs/living-frame/living-frame-controlled-sdxl-benchmark-result-binding.md`.
+
+### Controlled-illustration estimate-to-work admission
+
+The canonical customer estimate now has an exact, content-addressed bridge to
+the one existing edit work graph for Living Frame generated stills. The
+bridge binds every generated opaque-still asset-intent ID to one shared
+controlled-illustration GPU cost line and one named
+`generate_image_asset` batch work item. If identity-continuity measurement is
+required, its separate AuraFace CPU cost line binds to one dependent
+`run_asset_qa` item.
+
+The five controlled-generation capabilities—ComfyUI execution, externally
+prepared control preprocessing, ControlNet, generic IP-Adapter, and loaded
+PEFT/LoRA—remain attribution inside one GPU attempt. They do not become five
+charges or five new ProductionToolIds. AuraFace remains a sixth, optional
+post-generation CPU measurement. Exact reuse adds no generation attempt.
+Internal micro-cost is aggregated before customer-credit rounding, and the
+single downstream ReeditPro service fee remains unchanged.
+
+Generated anchors now resolve as pending outputs of named work rather than as
+untracked provider artifacts. The work graph keeps generation and AuraFace
+items operation-pending: approved operation IDs, provider routes, executable
+payloads, runtime leases, dispatch, and production authority are all absent.
+Downstream mask, RGBA, and Remotion work remains dependency-bound and blocked
+until the generated source operation and generated-source rembg variant are
+qualified. This preserves one timing authority, one estimate and approval
+path, one immutable snapshot lineage, one work graph, and one asset manifest.

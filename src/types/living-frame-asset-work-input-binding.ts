@@ -7,7 +7,7 @@ import type {
 } from './living-frame-estimate-work-asset-projection'
 
 export const CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_VERSION =
-  'canonical-living-frame-asset-work-input-binding-v2' as const
+  'canonical-living-frame-asset-work-input-binding-v3' as const
 
 export const CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_SOURCE =
   'canonical_living_frame_asset_work_input_binding_compiler' as const

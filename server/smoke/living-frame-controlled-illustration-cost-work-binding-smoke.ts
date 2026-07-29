@@ -20,6 +20,10 @@ import {
   verifyCanonicalLivingFrameControlledIllustrationCostWorkBinding,
 } from '../living-frame/living-frame-controlled-illustration-cost-work-binding'
 import {
+  compileCanonicalLivingFrameWorkGraphProjection,
+  verifyCanonicalLivingFrameWorkGraphProjection,
+} from '../living-frame/canonical-living-frame-work-graph-projection'
+import {
   compileCanonicalCustomerEstimateAuthority,
 } from '../services/canonical-customer-estimate-authority-service'
 import {
@@ -120,6 +124,8 @@ const timingBinding = {
 const assetWorkInputBinding = {
   identity,
   bindingDigestSha256: 'd'.repeat(64),
+  readiness:
+    'source_inputs_bound_operation_admission_pending',
   sourceBindings: {
     selectedSceneBindingDigestSha256:
       selectedSceneBindingDigest,
@@ -145,12 +151,17 @@ const assetWorkInputBinding = {
     ],
     namedWorkInputs: [],
   }],
+  unresolvedPrimaryAssetIntentIds: [],
 } as unknown as
   CanonicalLivingFrameAssetWorkInputBinding
 
 const components = {
   confirmedSettings: {
     editLevel: 'pro',
+    outputFrame: {
+      width: 1920,
+      height: 1080,
+    },
   },
   timingSummary: {
     totalFrames: 300,
@@ -183,6 +194,17 @@ const binding =
     assetWorkInputBinding,
     estimateWorkAssetProjection: projection,
     customerEstimateAuthority: customer.authority,
+  })
+const workGraph =
+  compileCanonicalLivingFrameWorkGraphProjection({
+    publication,
+    requirements,
+    timingBinding,
+    assetWorkInputBinding,
+    estimateWorkAssetProjection: projection,
+    customerEstimateAuthority: customer.authority,
+    controlledIllustrationCostWorkBinding: binding,
+    components,
   })
 
 assert.equal(
@@ -246,6 +268,68 @@ assert.equal(
 )
 assert.equal(binding.createsCanonicalWorkItems, false)
 assert.equal(binding.productionReady, false)
+assert.equal(
+  verifyCanonicalLivingFrameWorkGraphProjection({
+    projection: workGraph,
+    publication,
+    requirements,
+    timingBinding,
+    assetWorkInputBinding,
+    estimateWorkAssetProjection: projection,
+    customerEstimateAuthority: customer.authority,
+    controlledIllustrationCostWorkBinding: binding,
+    components,
+  }),
+  true,
+)
+assert.equal(
+  workGraph.readiness,
+  'canonical_work_items_projected_operation_admission_pending',
+)
+assert.equal(workGraph.workItems.length, 2)
+assert.equal(
+  workGraph.metrics
+    .admittedControlledIllustrationGenerationWorkItemCount,
+  1,
+)
+assert.equal(
+  workGraph.metrics.admittedAuraFaceQaWorkItemCount,
+  1,
+)
+assert.equal(
+  workGraph.metrics.unassignedControlledIllustrationCreditBudget,
+  0,
+)
+assert.equal(
+  workGraph.metrics.maximumCreditBudget,
+  projection.metrics
+    .projectedMaximumInternalToolCostCredits,
+)
+assert.equal(workGraph.finalCompositionBinding, null)
+assert.ok(workGraph.workItems.every((item) =>
+  item.workerClass ===
+    'living_frame_operation_admission_pending_worker'
+  && item.approvedToolIds.length === 0
+  && item.providerExecutionMode === 'none'))
+const generationWorkItem =
+  workGraph.workItems.find((item) =>
+    item.workItemType === 'generate_image_asset')!
+const auraFaceWorkItem =
+  workGraph.workItems.find((item) =>
+    item.workItemType === 'run_asset_qa')!
+assert.deepEqual(
+  auraFaceWorkItem.dependencyKeys,
+  [generationWorkItem.workItemKey],
+)
+assert.equal(
+  workGraph.authorityBoundary
+    .serverDerivedControlledIllustrationPendingWorkAuthority,
+  true,
+)
+assert.equal(
+  workGraph.containsControlledIllustrationExecutablePayload,
+  false,
+)
 
 const tamperedIntent = resignBinding({
   ...structuredClone(binding),

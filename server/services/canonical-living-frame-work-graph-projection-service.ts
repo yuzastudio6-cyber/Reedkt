@@ -4,6 +4,9 @@ import type {
 import type {
   CanonicalLivingFrameAssetWorkInputBinding,
 } from '../../src/types/living-frame-asset-work-input-binding'
+import type {
+  CanonicalLivingFrameControlledIllustrationCostWorkBinding,
+} from '../../src/types/living-frame-controlled-illustration-cost-work-binding'
 import {
   CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_COMPONENT_KEY,
   type CanonicalLivingFrameWorkGraphProjection,
@@ -49,6 +52,8 @@ export function prepareCanonicalLivingFrameWorkGraphProjection(
       CanonicalLivingFrameEstimateWorkAssetProjection | undefined
     readonly customerEstimateAuthority:
       CanonicalCustomerEstimateAuthority
+    readonly controlledIllustrationCostWorkBinding:
+      CanonicalLivingFrameControlledIllustrationCostWorkBinding | undefined
     readonly components: CanonicalPlanComponentsInput
   },
 ): CanonicalLivingFrameWorkGraphProjection | undefined {
@@ -58,6 +63,7 @@ export function prepareCanonicalLivingFrameWorkGraphProjection(
     && !input.timingBinding
     && !input.assetWorkInputBinding
     && !input.estimateWorkAssetProjection
+    && !input.controlledIllustrationCostWorkBinding
   ) {
     return undefined
   }
@@ -67,6 +73,7 @@ export function prepareCanonicalLivingFrameWorkGraphProjection(
     || !input.timingBinding
     || !input.assetWorkInputBinding
     || !input.estimateWorkAssetProjection
+    || !input.controlledIllustrationCostWorkBinding
   ) {
     throw conflict(
       'Canonical Living Frame work-graph projection requires selected-scene, execution, timing, asset/work, estimate, and customer-estimate lineage together.',
@@ -82,6 +89,8 @@ export function prepareCanonicalLivingFrameWorkGraphProjection(
       input.estimateWorkAssetProjection,
     customerEstimateAuthority:
       input.customerEstimateAuthority,
+    controlledIllustrationCostWorkBinding:
+      input.controlledIllustrationCostWorkBinding,
     components: input.components,
   })
 }
@@ -123,6 +132,8 @@ export async function loadCanonicalLivingFrameWorkGraphProjection(
       CanonicalLivingFrameEstimateWorkAssetProjection | undefined
     readonly customerEstimateAuthority:
       CanonicalCustomerEstimateAuthority
+    readonly controlledIllustrationCostWorkBinding:
+      CanonicalLivingFrameControlledIllustrationCostWorkBinding | undefined
     readonly components: CanonicalPlanComponentsInput
   },
 ): Promise<CanonicalLivingFrameWorkGraphProjection | undefined> {
@@ -136,6 +147,7 @@ export async function loadCanonicalLivingFrameWorkGraphProjection(
     && !input.timingBinding
     && !input.assetWorkInputBinding
     && !input.estimateWorkAssetProjection
+    && !input.controlledIllustrationCostWorkBinding
     && !ref
   ) {
     return undefined
@@ -146,6 +158,7 @@ export async function loadCanonicalLivingFrameWorkGraphProjection(
     || !input.timingBinding
     || !input.assetWorkInputBinding
     || !input.estimateWorkAssetProjection
+    || !input.controlledIllustrationCostWorkBinding
     || !ref
   ) {
     throw conflict(
@@ -168,6 +181,8 @@ export async function loadCanonicalLivingFrameWorkGraphProjection(
       input.estimateWorkAssetProjection,
     customerEstimateAuthority:
       input.customerEstimateAuthority,
+    controlledIllustrationCostWorkBinding:
+      input.controlledIllustrationCostWorkBinding,
     components: input.components,
   }
   if (

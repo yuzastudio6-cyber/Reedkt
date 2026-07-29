@@ -6316,9 +6316,12 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
   assert.deepEqual(
     asRecord(workGraphProjection.metrics),
     {
-      selectedSceneCount: 1,
-      canonicalWorkItemCount: 4,
-      admittedExactSourceFrameWorkItemCount: 1,
+    selectedSceneCount: 1,
+    canonicalWorkItemCount: 4,
+    admittedControlledIllustrationGenerationWorkItemCount:
+      0,
+    admittedAuraFaceQaWorkItemCount: 0,
+    admittedExactSourceFrameWorkItemCount: 1,
       admittedRembgGpuMaskWorkItemCount: 1,
       admittedSharpComponentWorkItemCount: 1,
       admittedRemotionLayerWorkItemCount: 1,

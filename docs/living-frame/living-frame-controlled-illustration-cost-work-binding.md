@@ -48,15 +48,23 @@ generated asset intents
   -> existing settlement policy
 ```
 
-The batch remains blocked until the existing canonical work graph and a
-qualified controlled-illustration operation admit this exact digest-bound
-requirement. The binding contains no prompt, model bytes, paths, URLs,
-credentials, provider route, executable payload, worker lease, dispatch grant,
-asset-manifest mutation, or production authority.
+The existing canonical work graph now admits this exact digest-bound
+requirement as a named, immutable, operation-pending
+`generate_image_asset` work item. When AuraFace continuity measurement is
+required, a separate operation-pending `run_asset_qa` item depends on the
+generation item. Each cost line is assigned to one of those work items, so
+controlled-illustration cost is no longer left outside the graph.
+
+Admission is not execution. Both items have no approved tool operation,
+provider route, executable payload, runtime lease, or dispatch authority.
+The graph blocks only the affected generated-asset branch until the existing
+operation, artifact-mount, dispatch, and QA authorities qualify it.
 
 ## Current Gate
 
-This slice makes missing or duplicated pricing fail closed and eliminates
-unassigned controlled-illustration cost lines at the contract boundary. It
-does not register ComfyUI, install model weights, create approved work items,
-dispatch a GPU worker, mutate credits, or make Living Frame production-ready.
+This slice makes missing or duplicated pricing fail closed, eliminates
+unassigned controlled-illustration cost lines, freezes the binding in the
+same component-ref lineage as the customer estimate, and adds only
+non-executable canonical plan work. It does not register ComfyUI, install
+model weights, create approved execution authority, dispatch a GPU worker,
+mutate credits, or make Living Frame production-ready.

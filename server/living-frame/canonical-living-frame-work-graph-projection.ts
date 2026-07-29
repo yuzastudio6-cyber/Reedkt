@@ -4,6 +4,9 @@ import type {
 import type {
   CanonicalLivingFrameAssetWorkInputBinding,
 } from '../../src/types/living-frame-asset-work-input-binding'
+import type {
+  CanonicalLivingFrameControlledIllustrationCostWorkBinding,
+} from '../../src/types/living-frame-controlled-illustration-cost-work-binding'
 import {
   CANONICAL_LIVING_FRAME_PENDING_OPERATION,
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION,
@@ -27,6 +30,8 @@ import {
   CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE,
   CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION,
   type CanonicalLivingFramePendingWorkItem,
+  type CanonicalLivingFrameControlledIllustrationGenerationWorkItem,
+  type CanonicalLivingFrameAuraFacePendingQaWorkItem,
   type CanonicalLivingFrameProjectedCanonicalWorkItem,
   type CanonicalLivingFrameRembgGpuMaskWorkItem,
   type CanonicalLivingFrameRemotionLayerWorkItem,
@@ -34,7 +39,6 @@ import {
   type CanonicalLivingFrameWorkGraphProjection,
   type CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary,
   type CanonicalLivingFrameWorkGraphProjectionDraft,
-  type CanonicalLivingFrameWorkGraphProjectedItem,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import type {
   CanonicalLivingFrameEstimateWorkAssetProjection,
@@ -66,6 +70,9 @@ import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
+import {
+  verifyCanonicalLivingFrameControlledIllustrationCostWorkBinding,
+} from './living-frame-controlled-illustration-cost-work-binding'
 import type {
   CanonicalPlanComponentsInput,
   CanonicalWorkItemInput,
@@ -75,6 +82,8 @@ const AUTHORITY_BOUNDARY:
   CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary =
     Object.freeze({
       serverDerivedPendingWorkGraphMutationAuthority: true,
+      serverDerivedControlledIllustrationPendingWorkAuthority:
+        true,
       serverDerivedExactSourceFrameOperationAuthority: true,
       serverDerivedRembgGpuMaskOperationAuthority: true,
       serverDerivedSharpComponentOperationAuthority: true,
@@ -112,6 +121,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       CanonicalLivingFrameEstimateWorkAssetProjection
     readonly customerEstimateAuthority:
       CanonicalCustomerEstimateAuthority
+    readonly controlledIllustrationCostWorkBinding:
+      CanonicalLivingFrameControlledIllustrationCostWorkBinding
     readonly components: CanonicalPlanComponentsInput
   },
 ): CanonicalLivingFrameWorkGraphProjection {
@@ -119,7 +130,9 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
   const workItems:
     CanonicalLivingFrameProjectedCanonicalWorkItem[] = []
   const projectedItems:
-    CanonicalLivingFrameWorkGraphProjectedItem[] = []
+    CanonicalLivingFrameWorkGraphProjection[
+      'projectedItems'
+    ][number][] = []
 
   for (const projectedScene of
     input.estimateWorkAssetProjection.scenes) {
@@ -132,6 +145,166 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       throw conflict(
         'Canonical Living Frame work-graph projection lost its exact scene asset/work binding.',
       )
+    }
+    const controlledIllustrationScene =
+      input.controlledIllustrationCostWorkBinding.scenes.find(
+        (candidate) =>
+          candidate.sceneId === projectedScene.sceneId,
+      )
+    const generatedAssetIntentIds =
+      boundScene.assetIntents
+        .filter((intent) =>
+          intent.assetKind ===
+            'generated_opaque_still_source'
+          || intent.assetKind ===
+            'controlled_opaque_still_variation_source')
+        .map((intent) => intent.assetIntentId)
+        .sort()
+    if (
+      (generatedAssetIntentIds.length > 0) !==
+        Boolean(controlledIllustrationScene)
+      || (
+        controlledIllustrationScene
+        && stableAuthorityStringify(
+          controlledIllustrationScene
+            .generatedAssetIntentIds,
+        ) !== stableAuthorityStringify(
+          generatedAssetIntentIds,
+        )
+      )
+    ) {
+      throw conflict(
+        'Canonical Living Frame controlled-illustration work lost its exact generated-asset intent coverage.',
+      )
+    }
+    if (controlledIllustrationScene) {
+      const sceneRequirement =
+        input.requirements.scenes.find(
+          (candidate) =>
+            candidate.sceneId === projectedScene.sceneId,
+        )
+      const sceneTiming =
+        input.timingBinding.scenes.find(
+          (candidate) =>
+            candidate.sceneId === projectedScene.sceneId,
+        )
+      if (!sceneRequirement || !sceneTiming) {
+        throw conflict(
+          'Canonical Living Frame controlled-illustration work lost its segment or timing lineage.',
+        )
+      }
+      const generationWorkItem =
+        compileControlledIllustrationGenerationWorkItem({
+          scene:
+            controlledIllustrationScene,
+          selectedSceneBindingDigestSha256:
+            input.publication.binding.bindingDigestSha256,
+          assetWorkInputBindingDigestSha256:
+            input.assetWorkInputBinding.bindingDigestSha256,
+          estimateWorkAssetProjectionDigestSha256:
+            input.estimateWorkAssetProjection
+              .projectionDigestSha256,
+          customerEstimateAuthorityDigestSha256:
+            input.customerEstimateAuthority
+              .authorityDigestSha256,
+          controlledIllustrationCostWorkBindingDigestSha256:
+            input.controlledIllustrationCostWorkBinding
+              .bindingDigestSha256,
+          segmentIds: [
+            projectedScene.canonicalSegmentId,
+          ],
+          timingIds: uniqueSorted([
+            ...sceneRequirement.semanticTimingRequestIds,
+            ...sceneRequirement.soundRequestIds,
+            ...sceneTiming.semanticPhaseBindings.map(
+              (binding) => binding.timingRequestId,
+            ),
+            ...sceneTiming.soundCueBindings.map(
+              (binding) => binding.soundRequestId,
+            ),
+          ]),
+          rendererLayerIds: uniqueSorted(
+            sceneRequirement.componentIds,
+          ),
+        })
+      workItems.push(generationWorkItem)
+      projectedItems.push(
+        projectControlledIllustrationWorkItem({
+          item: generationWorkItem,
+          sceneId: projectedScene.sceneId,
+          costComponentId:
+            controlledIllustrationScene
+              .generationCostComponentId,
+          costLineKey:
+            controlledIllustrationScene
+              .generationCostLineKey,
+          executionPlacement:
+            controlledIllustrationScene
+              .executionPlacement,
+          inputAssetIntentIds: [],
+          outputAssetIntentIds:
+            controlledIllustrationScene
+              .generatedAssetIntentIds,
+        }),
+      )
+      if (
+        controlledIllustrationScene
+          .optionalContinuityQaCostBinding
+      ) {
+        const auraFaceWorkItem =
+          compileAuraFacePendingQaWorkItem({
+            scene:
+              controlledIllustrationScene,
+            generationWorkItem,
+            selectedSceneBindingDigestSha256:
+              input.publication.binding.bindingDigestSha256,
+            assetWorkInputBindingDigestSha256:
+              input.assetWorkInputBinding.bindingDigestSha256,
+            estimateWorkAssetProjectionDigestSha256:
+              input.estimateWorkAssetProjection
+                .projectionDigestSha256,
+            customerEstimateAuthorityDigestSha256:
+              input.customerEstimateAuthority
+                .authorityDigestSha256,
+            controlledIllustrationCostWorkBindingDigestSha256:
+              input.controlledIllustrationCostWorkBinding
+                .bindingDigestSha256,
+            segmentIds: [
+              projectedScene.canonicalSegmentId,
+            ],
+            timingIds: uniqueSorted([
+              ...sceneRequirement
+                .semanticTimingRequestIds,
+              ...sceneRequirement.soundRequestIds,
+            ]),
+            rendererLayerIds: uniqueSorted(
+              sceneRequirement.componentIds,
+            ),
+          })
+        workItems.push(auraFaceWorkItem)
+        projectedItems.push(
+          projectControlledIllustrationWorkItem({
+            item: auraFaceWorkItem,
+            sceneId: projectedScene.sceneId,
+            costComponentId:
+              controlledIllustrationScene
+                .optionalContinuityQaCostBinding
+                .costComponentId,
+            costLineKey:
+              controlledIllustrationScene
+                .optionalContinuityQaCostBinding
+                .costLineKey,
+            executionPlacement:
+              controlledIllustrationScene
+                .optionalContinuityQaCostBinding
+                .executionPlacement,
+            inputAssetIntentIds:
+              controlledIllustrationScene
+                .generatedAssetIntentIds,
+            outputAssetIntentIds: [],
+          }),
+        )
+      }
     }
     const workInputByType = new Map(
       boundScene.namedWorkInputs.map((workInput) => [
@@ -194,6 +367,7 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       const exactSourceFrameWorkItem =
         workRequirement.workItemType ===
           'generate_mask_asset'
+        && workRequirement.sourceFrameInputs.length > 0
           ? compileExactSourceFrameWorkItem({
               workRequirement,
               expectedOutput,
@@ -276,143 +450,137 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
           'process_image_asset'
       ) {
         if (
-          !admittedExactSourceFrameWorkItem
-          || !admittedRembgGpuMaskWorkItem
+          admittedExactSourceFrameWorkItem
+          && admittedRembgGpuMaskWorkItem
         ) {
-          throw conflict(
-            'Canonical Living Frame Sharp component requires the already-admitted exact source frame and rembg mask.',
-          )
-        }
-        const sharpComponentWorkItem =
-          compileSharpComponentWorkItem({
-            workRequirement,
-            expectedOutput,
-            exactSourceFrameWorkItem:
-              admittedExactSourceFrameWorkItem,
-            rembgGpuMaskWorkItem:
-              admittedRembgGpuMaskWorkItem,
-            outputWidth:
-              input.components.confirmedSettings
-                .outputFrame.width,
-            outputHeight:
-              input.components.confirmedSettings
-                .outputFrame.height,
-            maximumCreditBudget:
-              line.estimatedCredits,
+          const sharpComponentWorkItem =
+            compileSharpComponentWorkItem({
+              workRequirement,
+              expectedOutput,
+              exactSourceFrameWorkItem:
+                admittedExactSourceFrameWorkItem,
+              rembgGpuMaskWorkItem:
+                admittedRembgGpuMaskWorkItem,
+              outputWidth:
+                input.components.confirmedSettings
+                  .outputFrame.width,
+              outputHeight:
+                input.components.confirmedSettings
+                  .outputFrame.height,
+              maximumCreditBudget:
+                line.estimatedCredits,
+            })
+          workItems.push(sharpComponentWorkItem)
+          admittedSharpComponentWorkItem =
+            sharpComponentWorkItem
+          projectedItems.push({
+            sceneId: projectedScene.sceneId,
+            workItemKey:
+              workRequirement.workItemKey,
+            workItemType:
+              workRequirement.workItemType,
+            costOwnerToolId:
+              workRequirement.costOwnerToolId,
+            costOwnerOperationId:
+              workRequirement.costOwnerOperationId,
+            executionPlacement:
+              workRequirement.executionPlacement,
+            cpuFallbackAllowed:
+              workRequirement.cpuFallbackAllowed,
+            inputAssetIntentIds: [
+              ...workRequirement.inputAssetIntentIds,
+            ],
+            outputAssetIntentIds: [
+              ...workRequirement.outputAssetIntentIds,
+            ],
+            sourceFrameInputs:
+              workRequirement.sourceFrameInputs.map(
+                (sourceFrameInput) => ({
+                  ...sourceFrameInput,
+                }),
+              ),
+            dependencyWorkItemKeys: [
+              ...sharpComponentWorkItem
+                .dependencyKeys,
+            ],
+            workItemDigestSha256:
+              sha256AuthorityValue(
+                sharpComponentWorkItem,
+              ),
           })
-        workItems.push(sharpComponentWorkItem)
-        admittedSharpComponentWorkItem =
-          sharpComponentWorkItem
-        projectedItems.push({
-          sceneId: projectedScene.sceneId,
-          workItemKey:
-            workRequirement.workItemKey,
-          workItemType:
-            workRequirement.workItemType,
-          costOwnerToolId:
-            workRequirement.costOwnerToolId,
-          costOwnerOperationId:
-            workRequirement.costOwnerOperationId,
-          executionPlacement:
-            workRequirement.executionPlacement,
-          cpuFallbackAllowed:
-            workRequirement.cpuFallbackAllowed,
-          inputAssetIntentIds: [
-            ...workRequirement.inputAssetIntentIds,
-          ],
-          outputAssetIntentIds: [
-            ...workRequirement.outputAssetIntentIds,
-          ],
-          sourceFrameInputs:
-            workRequirement.sourceFrameInputs.map(
-              (sourceFrameInput) => ({
-                ...sourceFrameInput,
-              }),
-            ),
-          dependencyWorkItemKeys: [
-            ...sharpComponentWorkItem
-              .dependencyKeys,
-          ],
-          workItemDigestSha256:
-            sha256AuthorityValue(
-              sharpComponentWorkItem,
-            ),
-        })
-        continue
+          continue
+        }
       }
       if (
         workRequirement.workItemType ===
           'prepare_remotion_layer'
       ) {
-        if (!admittedSharpComponentWorkItem) {
-          throw conflict(
-            'Canonical Living Frame Remotion layer requires the already-admitted Sharp RGBA component.',
-          )
-        }
-        const timingScene =
-          input.timingBinding.scenes.find(
-            (scene) =>
-              scene.sceneId === projectedScene.sceneId,
-          )
-        if (!timingScene) {
-          throw conflict(
-            'Canonical Living Frame Remotion layer lost its exact MasterTiming scene.',
-          )
-        }
-        const remotionLayerWorkItem =
-          compileRemotionLayerWorkItem({
-            workRequirement,
-            expectedOutput,
-            sharpComponentWorkItem:
-              admittedSharpComponentWorkItem,
-            selectedSceneBindingDigestSha256:
-              input.publication.binding.bindingDigestSha256,
-            timingBindingDigestSha256:
-              input.timingBinding.timingBindingDigestSha256,
-            startFrame:
-              timingScene.visualTiming.frameRange.startFrame,
-            endFrameExclusive:
-              timingScene.visualTiming.frameRange.endFrameExclusive,
-            outputWidth:
-              input.components.confirmedSettings
-                .outputFrame.width,
-            outputHeight:
-              input.components.confirmedSettings
-                .outputFrame.height,
-            maximumCreditBudget:
-              line.estimatedCredits,
+        if (admittedSharpComponentWorkItem) {
+          const timingScene =
+            input.timingBinding.scenes.find(
+              (scene) =>
+                scene.sceneId === projectedScene.sceneId,
+            )
+          if (!timingScene) {
+            throw conflict(
+              'Canonical Living Frame Remotion layer lost its exact MasterTiming scene.',
+            )
+          }
+          const remotionLayerWorkItem =
+            compileRemotionLayerWorkItem({
+              workRequirement,
+              expectedOutput,
+              sharpComponentWorkItem:
+                admittedSharpComponentWorkItem,
+              selectedSceneBindingDigestSha256:
+                input.publication.binding.bindingDigestSha256,
+              timingBindingDigestSha256:
+                input.timingBinding.timingBindingDigestSha256,
+              startFrame:
+                timingScene.visualTiming.frameRange.startFrame,
+              endFrameExclusive:
+                timingScene.visualTiming.frameRange.endFrameExclusive,
+              outputWidth:
+                input.components.confirmedSettings
+                  .outputFrame.width,
+              outputHeight:
+                input.components.confirmedSettings
+                  .outputFrame.height,
+              maximumCreditBudget:
+                line.estimatedCredits,
+            })
+          workItems.push(remotionLayerWorkItem)
+          projectedItems.push({
+            sceneId: projectedScene.sceneId,
+            workItemKey:
+              workRequirement.workItemKey,
+            workItemType:
+              workRequirement.workItemType,
+            costOwnerToolId:
+              workRequirement.costOwnerToolId,
+            costOwnerOperationId:
+              workRequirement.costOwnerOperationId,
+            executionPlacement:
+              workRequirement.executionPlacement,
+            cpuFallbackAllowed:
+              workRequirement.cpuFallbackAllowed,
+            inputAssetIntentIds: [
+              ...workRequirement.inputAssetIntentIds,
+            ],
+            outputAssetIntentIds: [
+              ...workRequirement.outputAssetIntentIds,
+            ],
+            sourceFrameInputs: [],
+            dependencyWorkItemKeys: [
+              ...remotionLayerWorkItem.dependencyKeys,
+            ],
+            workItemDigestSha256:
+              sha256AuthorityValue(
+                remotionLayerWorkItem,
+              ),
           })
-        workItems.push(remotionLayerWorkItem)
-        projectedItems.push({
-          sceneId: projectedScene.sceneId,
-          workItemKey:
-            workRequirement.workItemKey,
-          workItemType:
-            workRequirement.workItemType,
-          costOwnerToolId:
-            workRequirement.costOwnerToolId,
-          costOwnerOperationId:
-            workRequirement.costOwnerOperationId,
-          executionPlacement:
-            workRequirement.executionPlacement,
-          cpuFallbackAllowed:
-            workRequirement.cpuFallbackAllowed,
-          inputAssetIntentIds: [
-            ...workRequirement.inputAssetIntentIds,
-          ],
-          outputAssetIntentIds: [
-            ...workRequirement.outputAssetIntentIds,
-          ],
-          sourceFrameInputs: [],
-          dependencyWorkItemKeys: [
-            ...remotionLayerWorkItem.dependencyKeys,
-          ],
-          workItemDigestSha256:
-            sha256AuthorityValue(
-              remotionLayerWorkItem,
-            ),
-        })
-        continue
+          continue
+        }
       }
       const pendingAuthority = {
         schemaVersion:
@@ -427,6 +595,9 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         customerEstimateAuthorityDigestSha256:
           input.customerEstimateAuthority
             .authorityDigestSha256,
+        controlledIllustrationCostWorkBindingDigestSha256:
+          input.controlledIllustrationCostWorkBinding
+            .bindingDigestSha256,
         sceneId: projectedScene.sceneId,
         workRequirementDigestSha256:
           sha256AuthorityValue(workRequirement),
@@ -562,6 +733,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
     )
   const finalCompositionBindingDraft =
     selectedSceneCount === 0
+    || remotionLayerWorkItems.length !==
+      selectedSceneCount
       ? null
       : {
           policy:
@@ -644,6 +817,9 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         customerEstimateAuthorityDigestSha256:
           input.customerEstimateAuthority
             .authorityDigestSha256,
+        controlledIllustrationCostWorkBindingDigestSha256:
+          input.controlledIllustrationCostWorkBinding
+            .bindingDigestSha256,
         currentMasterTimingDigestSha256:
           sha256AuthorityValue(
             input.components.masterTimingPlan,
@@ -682,6 +858,19 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       metrics: {
         selectedSceneCount,
         canonicalWorkItemCount: workItems.length,
+        admittedControlledIllustrationGenerationWorkItemCount:
+          workItems.filter((item) =>
+            item.workItemType ===
+              'generate_image_asset'
+            && item.workerClass ===
+              CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS)
+            .length,
+        admittedAuraFaceQaWorkItemCount:
+          workItems.filter((item) =>
+            item.workItemType === 'run_asset_qa'
+            && item.workerClass ===
+              CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS)
+            .length,
         admittedExactSourceFrameWorkItemCount:
           workItems.filter((item) =>
             item.workerClass ===
@@ -736,34 +925,13 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             0,
           ),
         unassignedControlledIllustrationCreditBudget:
-          input.estimateWorkAssetProjection.scenes
-            .flatMap((scene) =>
-              scene.estimateLineItems)
-            .filter((line) =>
-              line.costOwnerClass ===
-                'shared_controlled_illustration_runtime')
-            .reduce(
-              (total, line) =>
-                total + line.estimatedCredits,
-              0,
-            ),
+          0,
         maximumCreditBudget:
           workItems.reduce(
             (total, item) =>
               total + item.maximumCreditBudget,
             0,
-          )
-          + input.estimateWorkAssetProjection.scenes
-            .flatMap((scene) =>
-              scene.estimateLineItems)
-            .filter((line) =>
-              line.costOwnerClass ===
-                'shared_controlled_illustration_runtime')
-            .reduce(
-              (total, line) =>
-                total + line.estimatedCredits,
-              0,
-            ),
+          ),
       },
       authorityBoundary: AUTHORITY_BOUNDARY,
       createsCanonicalWorkItems: true,
@@ -774,6 +942,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       containsRawChatTranscriptMediaBytesPathsUrlsOrCredentials:
         false,
       containsProviderPrompt: false,
+      containsControlledIllustrationExecutablePayload:
+        false,
       containsExactSourceFrameExecutablePayload: true,
       containsRembgGpuOperationPayload: true,
       containsSharpComponentOperationPayload: true,
@@ -805,6 +975,8 @@ export function verifyCanonicalLivingFrameWorkGraphProjection(
       CanonicalLivingFrameEstimateWorkAssetProjection
     readonly customerEstimateAuthority:
       CanonicalCustomerEstimateAuthority
+    readonly controlledIllustrationCostWorkBinding:
+      CanonicalLivingFrameControlledIllustrationCostWorkBinding
     readonly components: CanonicalPlanComponentsInput
   },
 ): input is {
@@ -823,6 +995,8 @@ export function verifyCanonicalLivingFrameWorkGraphProjection(
           input.estimateWorkAssetProjection,
         customerEstimateAuthority:
           input.customerEstimateAuthority,
+        controlledIllustrationCostWorkBinding:
+          input.controlledIllustrationCostWorkBinding,
         components: input.components,
       })
     return (
@@ -841,6 +1015,276 @@ export function verifyCanonicalLivingFrameWorkGraphProjection(
     )
   } catch {
     return false
+  }
+}
+
+function compileControlledIllustrationGenerationWorkItem(
+  input: {
+    readonly scene:
+      CanonicalLivingFrameControlledIllustrationCostWorkBinding[
+        'scenes'
+      ][number]
+    readonly selectedSceneBindingDigestSha256: string
+    readonly assetWorkInputBindingDigestSha256: string
+    readonly estimateWorkAssetProjectionDigestSha256: string
+    readonly customerEstimateAuthorityDigestSha256: string
+    readonly controlledIllustrationCostWorkBindingDigestSha256:
+      string
+    readonly segmentIds: readonly string[]
+    readonly timingIds: readonly string[]
+    readonly rendererLayerIds: readonly string[]
+  },
+): CanonicalLivingFrameControlledIllustrationGenerationWorkItem {
+  if (
+    input.scene.workItemType !== 'generate_image_asset'
+    || input.scene.executionPlacement !==
+      'google_cloud_run_gpu'
+    || input.scene.cpuFallbackAllowed
+    || input.scene.expectedOutputs.length === 0
+    || input.scene.expectedOutputs.length !==
+      input.scene.generatedAssetIntentIds.length
+    || input.scene.plannedAttemptCount < 1
+    || input.scene.plannedAttemptCount > 10
+    || input.scene.maximumGenerationCreditBudget < 1
+    || input.scene.currentAdmission !==
+      'blocked_until_existing_work_graph_and_operation_authority_admit_exact_binding'
+    || input.scene.workItemCreated
+    || input.scene.executablePayloadPresent
+  ) {
+    throw conflict(
+      'Canonical Living Frame controlled-illustration generation work is not safe to admit as a blocked canonical work item.',
+    )
+  }
+  return {
+    workItemKey: input.scene.workRequirementKey,
+    workItemType: 'generate_image_asset',
+    workerClass:
+      CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+    executionInput: {
+      operation:
+        CANONICAL_LIVING_FRAME_PENDING_OPERATION,
+      approvedToolOperationIds: [],
+      expectedOutputKeys:
+        input.scene.expectedOutputs.map(
+          (output) => output.outputKey,
+        ),
+      pendingOperationAuthority: {
+        schemaVersion:
+          CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION,
+        selectedSceneBindingDigestSha256:
+          input.selectedSceneBindingDigestSha256,
+        assetWorkInputBindingDigestSha256:
+          input.assetWorkInputBindingDigestSha256,
+        estimateWorkAssetProjectionDigestSha256:
+          input.estimateWorkAssetProjectionDigestSha256,
+        customerEstimateAuthorityDigestSha256:
+          input.customerEstimateAuthorityDigestSha256,
+        controlledIllustrationCostWorkBindingDigestSha256:
+          input.controlledIllustrationCostWorkBindingDigestSha256,
+        sceneId: input.scene.sceneId,
+        workRequirementKey:
+          input.scene.workRequirementKey,
+        costOwnerClass:
+          input.scene.costOwnerClass,
+        costComponentId:
+          input.scene.generationCostComponentId,
+        costLineKey:
+          input.scene.generationCostLineKey,
+        generatedAssetIntentIds: [
+          ...input.scene.generatedAssetIntentIds,
+        ],
+        executionPlacement:
+          input.scene.executionPlacement,
+        cpuFallbackAllowed: false,
+        exactOperationAdmissionRequired: true,
+        executableStructuredPayloadPresent: false,
+      },
+    },
+    sourceSequenceItemIds: [],
+    sourceCleanupDecisionIds: [],
+    expectedOutputs:
+      input.scene.expectedOutputs.map((output) => ({
+        outputKey: output.outputKey,
+        artifactType: output.artifactType,
+        assetRole: output.assetRole,
+        required: true,
+        previewPlaceholderAllowed: false,
+        contentType: output.contentType,
+        segmentIds: [...input.segmentIds],
+        timingIds: [...input.timingIds],
+        rendererLayerIds: [
+          ...input.rendererLayerIds,
+        ],
+      })),
+    dependencyKeys: [],
+    approvedToolIds: [],
+    providerExecutionMode: 'none',
+    fallbackPolicy: {
+      policy:
+        'block_generated_living_frame_branch_until_controlled_illustration_operation_qualification',
+      unapprovedFallbackAllowed: false,
+      cpuFallbackAllowed: false,
+      finalRenderBlockedWhilePending: true,
+    },
+    maxAttempts: input.scene.plannedAttemptCount,
+    attemptTimeoutSeconds: 3_600,
+    scheduledDelaySeconds: 0,
+    maximumCreditBudget:
+      input.scene.maximumGenerationCreditBudget,
+    required: true,
+  }
+}
+
+function compileAuraFacePendingQaWorkItem(
+  input: {
+    readonly scene:
+      CanonicalLivingFrameControlledIllustrationCostWorkBinding[
+        'scenes'
+      ][number]
+    readonly generationWorkItem:
+      CanonicalLivingFrameControlledIllustrationGenerationWorkItem
+    readonly selectedSceneBindingDigestSha256: string
+    readonly assetWorkInputBindingDigestSha256: string
+    readonly estimateWorkAssetProjectionDigestSha256: string
+    readonly customerEstimateAuthorityDigestSha256: string
+    readonly controlledIllustrationCostWorkBindingDigestSha256:
+      string
+    readonly segmentIds: readonly string[]
+    readonly timingIds: readonly string[]
+    readonly rendererLayerIds: readonly string[]
+  },
+): CanonicalLivingFrameAuraFacePendingQaWorkItem {
+  const binding =
+    input.scene.optionalContinuityQaCostBinding
+  if (
+    !binding
+    || binding.workItemType !== 'run_asset_qa'
+    || binding.executionPlacement !==
+      'private_cpu_worker'
+    || binding.maximumCreditBudget < 0
+    || !binding.conditional
+  ) {
+    throw conflict(
+      'Canonical Living Frame AuraFace QA cost binding is invalid.',
+    )
+  }
+  const outputKey =
+    `${binding.workRequirementKey}-output`
+  return {
+    workItemKey: binding.workRequirementKey,
+    workItemType: 'run_asset_qa',
+    workerClass:
+      CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+    executionInput: {
+      operation:
+        CANONICAL_LIVING_FRAME_PENDING_OPERATION,
+      approvedToolOperationIds: [],
+      expectedOutputKeys: [outputKey],
+      pendingOperationAuthority: {
+        schemaVersion:
+          CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION,
+        selectedSceneBindingDigestSha256:
+          input.selectedSceneBindingDigestSha256,
+        assetWorkInputBindingDigestSha256:
+          input.assetWorkInputBindingDigestSha256,
+        estimateWorkAssetProjectionDigestSha256:
+          input.estimateWorkAssetProjectionDigestSha256,
+        customerEstimateAuthorityDigestSha256:
+          input.customerEstimateAuthorityDigestSha256,
+        controlledIllustrationCostWorkBindingDigestSha256:
+          input.controlledIllustrationCostWorkBindingDigestSha256,
+        sceneId: input.scene.sceneId,
+        workRequirementKey:
+          binding.workRequirementKey,
+        costOwnerClass:
+          input.scene.costOwnerClass,
+        costComponentId: binding.costComponentId,
+        costLineKey: binding.costLineKey,
+        generatedAssetIntentIds: [
+          ...input.scene.generatedAssetIntentIds,
+        ],
+        executionPlacement:
+          binding.executionPlacement,
+        cpuFallbackAllowed: false,
+        exactOperationAdmissionRequired: true,
+        executableStructuredPayloadPresent: false,
+      },
+    },
+    sourceSequenceItemIds: [],
+    sourceCleanupDecisionIds: [],
+    expectedOutputs: [{
+      outputKey,
+      artifactType:
+        'living_frame_auraface_continuity_qa_report',
+      assetRole: 'qa',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: 'application/json',
+      segmentIds: [...input.segmentIds],
+      timingIds: [...input.timingIds],
+      rendererLayerIds: [
+        ...input.rendererLayerIds,
+      ],
+    }],
+    dependencyKeys: [
+      input.generationWorkItem.workItemKey,
+    ],
+    approvedToolIds: [],
+    providerExecutionMode: 'none',
+    fallbackPolicy: {
+      policy:
+        'block_identity_sensitive_living_frame_branch_until_auraface_operation_qualification',
+      unapprovedFallbackAllowed: false,
+      finalRenderBlockedWhilePending: true,
+    },
+    maxAttempts: 1,
+    attemptTimeoutSeconds: 300,
+    scheduledDelaySeconds: 0,
+    maximumCreditBudget:
+      binding.maximumCreditBudget,
+    required: true,
+  }
+}
+
+function projectControlledIllustrationWorkItem(
+  input: {
+    readonly item:
+      | CanonicalLivingFrameControlledIllustrationGenerationWorkItem
+      | CanonicalLivingFrameAuraFacePendingQaWorkItem
+    readonly sceneId: string
+    readonly costComponentId:
+      | 'shared_controlled_illustration_gpu_host'
+      | 'auraface_cpu_continuity_measurement'
+    readonly costLineKey: string
+    readonly executionPlacement:
+      | 'google_cloud_run_gpu'
+      | 'private_cpu_worker'
+    readonly inputAssetIntentIds: readonly string[]
+    readonly outputAssetIntentIds: readonly string[]
+  },
+) {
+  return {
+    sceneId: input.sceneId,
+    workItemKey: input.item.workItemKey,
+    workItemType: input.item.workItemType,
+    costOwnerClass:
+      'shared_controlled_illustration_runtime' as const,
+    costComponentId: input.costComponentId,
+    costLineKey: input.costLineKey,
+    executionPlacement:
+      input.executionPlacement,
+    cpuFallbackAllowed: false as const,
+    inputAssetIntentIds: [
+      ...input.inputAssetIntentIds,
+    ],
+    outputAssetIntentIds: [
+      ...input.outputAssetIntentIds,
+    ],
+    dependencyWorkItemKeys: [
+      ...input.item.dependencyKeys,
+    ],
+    workItemDigestSha256:
+      sha256AuthorityValue(input.item),
   }
 }
 
@@ -1011,6 +1455,8 @@ function assertSourceLineage(input: {
     CanonicalLivingFrameEstimateWorkAssetProjection
   readonly customerEstimateAuthority:
     CanonicalCustomerEstimateAuthority
+  readonly controlledIllustrationCostWorkBinding:
+    CanonicalLivingFrameControlledIllustrationCostWorkBinding
   readonly components: CanonicalPlanComponentsInput
 }): void {
   const selectedSceneCount =
@@ -1034,6 +1480,25 @@ function assertSourceLineage(input: {
       .livingFrameEstimateWorkAssetProjectionDigestSha256 !==
       input.estimateWorkAssetProjection
         .projectionDigestSha256
+    || !verifyCanonicalLivingFrameControlledIllustrationCostWorkBinding({
+      binding:
+        input.controlledIllustrationCostWorkBinding,
+      assetWorkInputBinding:
+        input.assetWorkInputBinding,
+      estimateWorkAssetProjection:
+        input.estimateWorkAssetProjection,
+      customerEstimateAuthority:
+        input.customerEstimateAuthority,
+    })
+    || input.controlledIllustrationCostWorkBinding
+      .identity.workspaceId !==
+      input.publication.binding.identity.workspaceId
+    || input.controlledIllustrationCostWorkBinding
+      .identity.projectId !==
+      input.publication.binding.identity.projectId
+    || input.controlledIllustrationCostWorkBinding
+      .identity.editSessionId !==
+      input.publication.binding.identity.editSessionId
     || input.estimateWorkAssetProjection.sourceBindings
       .currentMasterTimingDigestSha256 !==
       sha256AuthorityValue(
@@ -1798,6 +2263,74 @@ function validProjectedWorkItem(
       && payload.opacity === 1
     )
   }
+  if (
+    item.workerClass ===
+      CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
+    && (
+      item.workItemType === 'generate_image_asset'
+      || item.workItemType === 'run_asset_qa'
+    )
+    && 'exactOperationAdmissionRequired' in
+      item.executionInput.pendingOperationAuthority
+  ) {
+    const authority =
+      item.executionInput.pendingOperationAuthority
+    const outputKeys =
+      item.expectedOutputs.map((output) =>
+        output.outputKey)
+    return (
+      item.approvedToolIds.length === 0
+      && item.providerExecutionMode === 'none'
+      && item.executionInput
+        .approvedToolOperationIds.length === 0
+      && authority.exactOperationAdmissionRequired
+      && !authority.executableStructuredPayloadPresent
+      && stableAuthorityStringify(outputKeys) ===
+        stableAuthorityStringify(
+          item.executionInput.expectedOutputKeys,
+        )
+      && authority.generatedAssetIntentIds.length > 0
+      && new Set(authority.generatedAssetIntentIds)
+        .size ===
+        authority.generatedAssetIntentIds.length
+      && (
+        item.workItemType === 'generate_image_asset'
+          ? (
+              item.maximumCreditBudget > 0
+              &&
+              authority.costComponentId ===
+                'shared_controlled_illustration_gpu_host'
+              && authority.executionPlacement ===
+                'google_cloud_run_gpu'
+              && item.dependencyKeys.length === 0
+              && item.expectedOutputs.length ===
+                authority.generatedAssetIntentIds.length
+              && item.expectedOutputs.every((output) =>
+                output.assetRole === 'generated'
+                && output.artifactType ===
+                  'living_frame_generated_opaque_still_png')
+            )
+          : (
+              item.maximumCreditBudget >= 0
+              &&
+              authority.costComponentId ===
+                'auraface_cpu_continuity_measurement'
+              && authority.executionPlacement ===
+                'private_cpu_worker'
+              && item.dependencyKeys.length === 1
+              && item.expectedOutputs.length === 1
+              && item.expectedOutputs[0]?.assetRole === 'qa'
+            )
+      )
+    )
+  }
+  const pendingAuthority =
+    item.executionInput.pendingOperationAuthority
+  if (!('sourceFrameInputs' in pendingAuthority)) {
+    return false
+  }
+  const genericPendingItem =
+    item as CanonicalLivingFramePendingWorkItem
   return (
     item.approvedToolIds.length === 0
     && item.executionInput
@@ -1806,18 +2339,18 @@ function validProjectedWorkItem(
       .pendingOperationAuthority
       .executableStructuredPayloadPresent
     && new Set(
-      item.executionInput.pendingOperationAuthority
+      pendingAuthority
         .sourceFrameInputs.map((source) =>
           source.assetIntentId),
     ).size ===
-      item.executionInput.pendingOperationAuthority
+      pendingAuthority
         .sourceFrameInputs.length
-    && item.executionInput.pendingOperationAuthority
+    && pendingAuthority
       .sourceFrameInputs.every((source) =>
-        item.sourceSequenceItemIds.includes(
+        genericPendingItem.sourceSequenceItemIds.includes(
           source.sourceSequenceItemId,
         )
-        && item.sourceCleanupDecisionIds.includes(
+        && genericPendingItem.sourceCleanupDecisionIds.includes(
           source.sourceCleanupDecisionId,
         )
         && Number.isInteger(source.masterFrameIndex)
@@ -1829,8 +2362,7 @@ function validProjectedWorkItem(
         && source.frameRate <= 240
       )
     && (
-      !item.executionInput
-        .pendingOperationAuthority
+      !pendingAuthority
         .exactDependencyInputOperationAdmitted
       || (
         item.workItemType ===

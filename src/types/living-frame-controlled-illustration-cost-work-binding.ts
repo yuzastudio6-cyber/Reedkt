@@ -1,6 +1,6 @@
 export const
 CANONICAL_LIVING_FRAME_CONTROLLED_ILLUSTRATION_COST_WORK_BINDING_VERSION =
-  'canonical-living-frame-controlled-illustration-cost-work-binding-v1' as const
+  'canonical-living-frame-controlled-illustration-cost-work-binding-v2' as const
 
 export const
 CANONICAL_LIVING_FRAME_CONTROLLED_ILLUSTRATION_COST_WORK_BINDING_SOURCE =
@@ -42,6 +42,7 @@ export interface CanonicalLivingFrameControlledIllustrationSceneCostWorkBinding 
   readonly expectedOutputs:
     readonly CanonicalLivingFrameControlledIllustrationExpectedOutput[]
   readonly optionalContinuityQaCostBinding: {
+    readonly workRequirementKey: string
     readonly workItemType: 'run_asset_qa'
     readonly costComponentId:
       'auraface_cpu_continuity_measurement'

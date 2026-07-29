@@ -125,6 +125,9 @@ import type {
   CanonicalLivingFrameEstimateWorkAssetProjection,
 } from '../../src/types/living-frame-estimate-work-asset-projection'
 import type {
+  CanonicalLivingFrameControlledIllustrationCostWorkBinding,
+} from '../../src/types/living-frame-controlled-illustration-cost-work-binding'
+import type {
   CanonicalLivingFrameWorkGraphProjection,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import {
@@ -173,6 +176,11 @@ import {
   persistCanonicalCustomerEstimateAuthority,
 } from './canonical-customer-estimate-authority-service'
 import {
+  loadCanonicalLivingFrameControlledIllustrationCostWorkBinding,
+  persistCanonicalLivingFrameControlledIllustrationCostWorkBinding,
+  prepareCanonicalLivingFrameControlledIllustrationCostWorkBinding,
+} from './canonical-living-frame-controlled-illustration-cost-work-binding-service'
+import {
   bindCanonicalLivingFrameFinalCompositionWorkItems,
   canonicalLivingFrameProjectedWorkItems,
 } from '../living-frame/canonical-living-frame-work-graph-projection'
@@ -211,6 +219,8 @@ export interface CanonicalApprovedExecutionAuthority {
     CanonicalLivingFrameAssetWorkInputBinding
   livingFrameEstimateWorkAssetProjection?:
     CanonicalLivingFrameEstimateWorkAssetProjection
+  livingFrameControlledIllustrationCostWorkBinding?:
+    CanonicalLivingFrameControlledIllustrationCostWorkBinding
   livingFrameWorkGraphProjection?:
     CanonicalLivingFrameWorkGraphProjection
   canonicalCustomerEstimateAuthority:
@@ -423,6 +433,15 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           livingFrameProjection:
             livingFrameEstimateWorkAssetProjection,
         })
+      const livingFrameControlledIllustrationCostWorkBinding =
+        prepareCanonicalLivingFrameControlledIllustrationCostWorkBinding({
+          assetWorkInputBinding:
+            livingFrameAssetWorkInputBinding,
+          estimateWorkAssetProjection:
+            livingFrameEstimateWorkAssetProjection,
+          customerEstimateAuthority:
+            customerEstimateCompilation.authority,
+        })
       const livingFrameWorkGraphProjection =
         prepareCanonicalLivingFrameWorkGraphProjection({
           publication: livingFrameSelectedScenePublication,
@@ -434,6 +453,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             livingFrameEstimateWorkAssetProjection,
           customerEstimateAuthority:
             customerEstimateCompilation.authority,
+          controlledIllustrationCostWorkBinding:
+            livingFrameControlledIllustrationCostWorkBinding,
           components: body.canonicalPlan.components,
         })
       const professionalLongFormPublication = input.professionalLongFormSeedDraft === undefined
@@ -558,6 +579,12 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           context,
           authority: customerEstimateCompilation.authority,
         })
+      const livingFrameControlledIllustrationCostWorkBindingRefs =
+        await persistCanonicalLivingFrameControlledIllustrationCostWorkBinding({
+          context,
+          binding:
+            livingFrameControlledIllustrationCostWorkBinding,
+        })
       const livingFrameWorkGraphProjectionRefs =
         await persistCanonicalLivingFrameWorkGraphProjection({
           context,
@@ -572,6 +599,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         ...livingFrameAssetWorkInputBindingRefs,
         ...livingFrameEstimateWorkAssetProjectionRefs,
         ...canonicalCustomerEstimateAuthorityRefs,
+        ...livingFrameControlledIllustrationCostWorkBindingRefs,
         ...livingFrameWorkGraphProjectionRefs,
         ...(professionalLongFormPublication
           ? {
@@ -684,6 +712,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         livingFrameEstimateWorkAssetProjectionDigestSha256:
           livingFrameEstimateWorkAssetProjection
             ?.projectionDigestSha256 ?? null,
+        livingFrameControlledIllustrationCostWorkBindingDigestSha256:
+          livingFrameControlledIllustrationCostWorkBinding
+            ?.bindingDigestSha256 ?? null,
         livingFrameWorkGraphProjectionDigestSha256:
           livingFrameWorkGraphProjection
             ?.projectionDigestSha256 ?? null,
@@ -1059,6 +1090,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             approvalLivingFrameEstimateWorkAssetProjection,
           estimateRecord: approvalEstimate,
         })
+      const approvalLivingFrameControlledIllustrationCostWorkBinding =
+        await loadCanonicalLivingFrameControlledIllustrationCostWorkBinding({
+          context,
+          componentRefs: targetPlan.componentRefs,
+          assetWorkInputBinding:
+            approvalLivingFrameAssetWorkInputBinding,
+          estimateWorkAssetProjection:
+            approvalLivingFrameEstimateWorkAssetProjection,
+          customerEstimateAuthority:
+            approvalCustomerEstimateAuthority,
+        })
       const approvalLivingFrameWorkGraphProjection =
         await loadCanonicalLivingFrameWorkGraphProjection({
           context,
@@ -1075,6 +1117,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             approvalLivingFrameEstimateWorkAssetProjection,
           customerEstimateAuthority:
             approvalCustomerEstimateAuthority,
+          controlledIllustrationCostWorkBinding:
+            approvalLivingFrameControlledIllustrationCostWorkBinding,
           components: approvalComponents,
         })
       await assertLivingFrameWorkGraphProjectionMatchesPlan(
@@ -1097,6 +1141,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         approvalLivingFrameTimingBinding,
         approvalLivingFrameAssetWorkInputBinding,
         approvalLivingFrameEstimateWorkAssetProjection,
+        approvalLivingFrameControlledIllustrationCostWorkBinding,
         approvalLivingFrameWorkGraphProjection,
         approvalCustomerEstimateAuthority,
       )
@@ -1294,6 +1339,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
                 lockedLivingFrameEstimateWorkAssetProjection,
               estimateRecord: estimate,
             })
+          const lockedLivingFrameControlledIllustrationCostWorkBinding =
+            await loadCanonicalLivingFrameControlledIllustrationCostWorkBinding({
+              context,
+              componentRefs: plan.componentRefs,
+              assetWorkInputBinding:
+                lockedLivingFrameAssetWorkInputBinding,
+              estimateWorkAssetProjection:
+                lockedLivingFrameEstimateWorkAssetProjection,
+              customerEstimateAuthority:
+                lockedCustomerEstimateAuthority,
+            })
           const lockedLivingFrameWorkGraphProjection =
             await loadCanonicalLivingFrameWorkGraphProjection({
               context,
@@ -1310,6 +1366,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
                 lockedLivingFrameEstimateWorkAssetProjection,
               customerEstimateAuthority:
                 lockedCustomerEstimateAuthority,
+              controlledIllustrationCostWorkBinding:
+                lockedLivingFrameControlledIllustrationCostWorkBinding,
               components: approvalComponents,
             })
           const lockedPlanWorkItems =
@@ -1404,6 +1462,19 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           }
           if (
             stableAuthorityStringify(
+              lockedLivingFrameControlledIllustrationCostWorkBinding ?? null,
+            ) !== stableAuthorityStringify(
+              approvalLivingFrameControlledIllustrationCostWorkBinding ?? null,
+            )
+          ) {
+            throw new ApiError(
+              'IDEMPOTENCY_CONFLICT',
+              'Canonical Living Frame controlled-illustration cost/work binding changed before approval.',
+              409,
+            )
+          }
+          if (
+            stableAuthorityStringify(
               lockedLivingFrameWorkGraphProjection ?? null,
             ) !== stableAuthorityStringify(
               approvalLivingFrameWorkGraphProjection ?? null,
@@ -1421,6 +1492,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             lockedLivingFrameTimingBinding,
             lockedLivingFrameAssetWorkInputBinding,
             lockedLivingFrameEstimateWorkAssetProjection,
+            lockedLivingFrameControlledIllustrationCostWorkBinding,
             lockedLivingFrameWorkGraphProjection,
             lockedCustomerEstimateAuthority,
           )
@@ -2041,6 +2113,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             livingFrameEstimateWorkAssetProjection,
           estimateRecord: lineage.estimate,
         })
+      const livingFrameControlledIllustrationCostWorkBinding =
+        await loadCanonicalLivingFrameControlledIllustrationCostWorkBinding({
+          context,
+          componentRefs: snapshot.componentRefs,
+          assetWorkInputBinding:
+            livingFrameAssetWorkInputBinding,
+          estimateWorkAssetProjection:
+            livingFrameEstimateWorkAssetProjection,
+          customerEstimateAuthority:
+            canonicalCustomerEstimateAuthority,
+        })
       const livingFrameWorkGraphProjection =
         await loadCanonicalLivingFrameWorkGraphProjection({
           context,
@@ -2054,6 +2137,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             livingFrameEstimateWorkAssetProjection,
           customerEstimateAuthority:
             canonicalCustomerEstimateAuthority,
+          controlledIllustrationCostWorkBinding:
+            livingFrameControlledIllustrationCostWorkBinding,
           components: approvedComponents,
         })
       const livingFramePlanWorkItems =
@@ -2074,6 +2159,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         livingFrameTimingBinding,
         livingFrameAssetWorkInputBinding,
         livingFrameEstimateWorkAssetProjection,
+        livingFrameControlledIllustrationCostWorkBinding,
         livingFrameWorkGraphProjection,
         canonicalCustomerEstimateAuthority,
       )
@@ -2250,6 +2336,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         livingFrameTimingBinding,
         livingFrameAssetWorkInputBinding,
         livingFrameEstimateWorkAssetProjection,
+        livingFrameControlledIllustrationCostWorkBinding,
         livingFrameWorkGraphProjection,
         canonicalCustomerEstimateAuthority,
         toolExecutionAuthority,
@@ -2482,6 +2569,9 @@ function assertLivingFrameExecutionAuthorityReady(
   estimateWorkAssetProjection:
     | CanonicalLivingFrameEstimateWorkAssetProjection
     | undefined,
+  controlledIllustrationCostWorkBinding:
+    | CanonicalLivingFrameControlledIllustrationCostWorkBinding
+    | undefined,
   workGraphProjection:
     | CanonicalLivingFrameWorkGraphProjection
     | undefined,
@@ -2508,6 +2598,8 @@ function assertLivingFrameExecutionAuthorityReady(
       || timingBinding !== undefined
       || assetWorkInputBinding !== undefined
       || estimateWorkAssetProjection !== undefined
+      || controlledIllustrationCostWorkBinding !==
+        undefined
       || workGraphProjection !== undefined
       || customerEstimateAuthority
         .projectedLivingFrameToolCostLineItemCount !== 0
@@ -2557,6 +2649,13 @@ function assertLivingFrameExecutionAuthorityReady(
       409,
     )
   }
+  if (!controlledIllustrationCostWorkBinding) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Canonical Living Frame selected-scene lineage is missing its controlled-illustration cost/work binding.',
+      409,
+    )
+  }
   if (
     publication.binding.deliberateNonUse
     || publication.binding.selectedSceneCount === 0
@@ -2574,6 +2673,8 @@ function assertLivingFrameExecutionAuthorityReady(
       || estimateWorkAssetProjection.readiness !==
         'ready_without_living_frame_projection'
       || estimateWorkAssetProjection.scenes.length !== 0
+      || controlledIllustrationCostWorkBinding
+        .scenes.length !== 0
       || workGraphProjection.readiness !==
         'ready_without_living_frame_work_items'
       || workGraphProjection.workItems.length !== 0
@@ -2625,6 +2726,18 @@ function assertLivingFrameExecutionAuthorityReady(
     || estimateWorkAssetProjection.sourceBindings
       .assetWorkInputBindingDigestSha256 !==
       assetWorkInputBinding.bindingDigestSha256
+    || controlledIllustrationCostWorkBinding
+      .sourceBindings
+      .assetWorkInputBindingDigestSha256 !==
+      assetWorkInputBinding.bindingDigestSha256
+    || controlledIllustrationCostWorkBinding
+      .sourceBindings
+      .estimateWorkAssetProjectionDigestSha256 !==
+      estimateWorkAssetProjection.projectionDigestSha256
+    || controlledIllustrationCostWorkBinding
+      .sourceBindings
+      .customerEstimateAuthorityDigestSha256 !==
+      customerEstimateAuthority.authorityDigestSha256
     || workGraphProjection.readiness !==
       'canonical_work_items_projected_remotion_layer_and_final_composition_bound'
     || workGraphProjection.metrics.selectedSceneCount !==
@@ -2633,12 +2746,20 @@ function assertLivingFrameExecutionAuthorityReady(
       estimateWorkAssetProjection.metrics
         .projectedNamedWorkItemCount +
         workGraphProjection.metrics
-          .admittedExactSourceFrameWorkItemCount
+          .admittedExactSourceFrameWorkItemCount +
+        workGraphProjection.metrics
+          .admittedControlledIllustrationGenerationWorkItemCount +
+        workGraphProjection.metrics
+          .admittedAuraFaceQaWorkItemCount
     || workGraphProjection.metrics.requiredExpectedOutputCount !==
       estimateWorkAssetProjection.metrics
         .projectedExpectedAssetCount +
         workGraphProjection.metrics
-          .admittedExactSourceFrameWorkItemCount
+          .admittedExactSourceFrameWorkItemCount +
+        controlledIllustrationCostWorkBinding.metrics
+          .generatedAssetIntentCount +
+        workGraphProjection.metrics
+          .admittedAuraFaceQaWorkItemCount
     || workGraphProjection.metrics
       .admittedExactSourceFrameWorkItemCount !==
       estimateWorkAssetProjection.metrics
@@ -2663,11 +2784,17 @@ function assertLivingFrameExecutionAuthorityReady(
         workGraphProjection.metrics
           .admittedRemotionLayerWorkItemCount
     || workGraphProjection.metrics.blockedWorkItemCount !==
-      workGraphProjection.metrics
-        .admittedRembgGpuMaskWorkItemCount
+      workGraphProjection.workItems.filter((item) =>
+        item.workerClass ===
+          CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
+        || item.workerClass ===
+          CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS)
+        .length
     || workGraphProjection.metrics.gpuPendingWorkItemCount !==
       estimateWorkAssetProjection.metrics
-        .projectedGpuWorkItemCount
+        .projectedGpuWorkItemCount +
+        workGraphProjection.metrics
+          .admittedControlledIllustrationGenerationWorkItemCount
     || workGraphProjection.metrics.maximumCreditBudget !==
       estimateWorkAssetProjection.metrics
         .projectedMaximumInternalToolCostCredits
@@ -2683,6 +2810,10 @@ function assertLivingFrameExecutionAuthorityReady(
     || workGraphProjection.sourceBindings
       .customerEstimateAuthorityDigestSha256 !==
       customerEstimateAuthority.authorityDigestSha256
+    || workGraphProjection.sourceBindings
+      .controlledIllustrationCostWorkBindingDigestSha256 !==
+      controlledIllustrationCostWorkBinding
+        .bindingDigestSha256
     || customerEstimateAuthority
       .projectedLivingFrameToolCostLineItemCount !==
       estimateWorkAssetProjection.metrics

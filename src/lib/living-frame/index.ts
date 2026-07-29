@@ -939,6 +939,24 @@ export type {
 } from '../../types/living-frame-auraface-artifact-requirements'
 
 export {
+  LIVING_FRAME_AURAFACE_CONTINUITY_MEASUREMENT_CLASS,
+  LIVING_FRAME_AURAFACE_CONTINUITY_MEASUREMENT_EVIDENCE_CLASSES,
+  LIVING_FRAME_AURAFACE_CONTINUITY_MEASUREMENT_ISSUES,
+  LIVING_FRAME_AURAFACE_CONTINUITY_MEASUREMENT_OPEN_GATES,
+  LIVING_FRAME_AURAFACE_CONTINUITY_MEASUREMENT_VERSION,
+} from '../../types/living-frame-auraface-continuity-measurement'
+
+export type {
+  LivingFrameAuraFaceContinuityMeasurement,
+  LivingFrameAuraFaceContinuityMeasurementAuthority,
+  LivingFrameAuraFaceContinuityMeasurementDraft,
+  LivingFrameAuraFaceContinuityMeasurementEvidenceClass,
+  LivingFrameAuraFaceContinuityMeasurementIssue,
+  LivingFrameAuraFaceContinuityMeasurementIssueCode,
+  LivingFrameAuraFaceContinuityMeasurementOpenGate,
+} from '../../types/living-frame-auraface-continuity-measurement'
+
+export {
   LIVING_FRAME_CLOUD_RUN_L4_ESTIMATE_RATE_BASIS_VERSION,
   LIVING_FRAME_CLOUD_RUN_L4_PUBLIC_RATE_OBSERVATION_DIGEST,
   LIVING_FRAME_CLOUD_RUN_L4_PUBLIC_RATE_OBSERVATION_VERSION,

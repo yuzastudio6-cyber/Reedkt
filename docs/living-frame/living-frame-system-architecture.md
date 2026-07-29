@@ -1516,6 +1516,33 @@ actually runs. No operation, work, dispatch, cost receipt, QA approval, or
 runtime authority is opened. See
 `docs/living-frame/living-frame-auraface-artifact-requirements.md`.
 
+### Controlled AuraFace continuity measurement
+
+`living-frame-auraface-continuity-measurement-v1` implements the deterministic
+comparison primitive without pretending that AuraFace inference is live. A
+process-bound, single-use server reader supplies two controlled 512-component
+`Float32` embedding fixtures. The contract validates exact artifact,
+continuity-entry, preprocessing, and inference-output digests; requires
+exactly one detected face in each input; rejects shared buffers, wrong vector
+shapes, non-finite values, and zero norms; and returns integer-scaled cosine
+similarity.
+
+The score remains private sensitive evidence. Embeddings are never copied
+into the serializable result, and the result itself has no browser-sharing or
+persistence authority. It accepts no caller threshold, applies no universal
+threshold, and cannot approve identity, likeness, scene selection, QA, or
+historical truth. Project calibration, fairness review, consent, public-figure
+and documentary safety, minor protection, impersonation safeguards, and user
+review remain mandatory.
+
+AuraFace still represents one optional CPU measurement attempt outside the
+shared ComfyUI L4 attempt. The measurement primitive contains no attempt
+amount, customer price, credit, or service fee. Existing tool-cost evidence
+owns actual failed/completed/unknown attempt cost; the canonical estimate
+aggregates and rounds customer credits once and applies the service fee once.
+See
+`docs/living-frame/living-frame-auraface-continuity-measurement.md`.
+
 ## Controlled-illustration operation preflight
 
 The non-executable operation preflight fixes how the six capabilities enter

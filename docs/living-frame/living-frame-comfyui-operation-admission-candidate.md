@@ -3,7 +3,7 @@
 Status date: 2026-07-29
 
 Status:
-`backend_registry_owner_disposition_required`
+`semantic_registry_policy_recorded_release_evidence_pending`
 
 This contract freezes the exact backend decision required to move the
 controlled Living Frame image host from evaluation metadata toward one
@@ -33,10 +33,26 @@ accelerator: one NVIDIA L4
 ```
 
 ComfyUI hosts the first five capabilities inside one GPU attempt. AuraFace
-remains separate, optional CPU post-generation QA. The backend registry owner
-must resolve how the requested single identity interacts with the repository's
-current exact-50 executable-tool contract. This candidate intentionally makes
-no post-admission count claim and changes no shared registry file.
+remains separate, optional CPU post-generation QA. The production registry may
+expand to 51, 60, or more identities when a new identity represents a
+genuinely distinct executable tool/runtime with its own operation, security,
+cost, QA, fallback, and released-evidence boundary. The current observed count
+is not a product cap.
+
+For this controlled generation attempt, ComfyUI,
+`comfyui_controlnet_aux`, ControlNet, generic IP-Adapter, and PEFT/LoRA
+remain capabilities within one supervised GPU host lifetime and one cost
+attempt. They must not become fake tool identities. AuraFace may receive a
+distinct CPU-QA identity only if its independent boundary and released
+evidence justify one. Therefore the post-admission count is derived from the
+distinct identities actually released; this candidate intentionally asserts
+no future count and changes no shared registry file.
+
+One pre-existing shared-interface conflict remains: the canonical Living Frame
+estimate/work/asset projection still contains a temporary exact-count runtime
+guard. The backend one-writer must replace that implementation detail with
+semantic uniqueness/readiness validation before any registry expansion. This
+candidate records the conflict but does not mutate the shared projection.
 
 ## Request boundary
 
@@ -133,5 +149,13 @@ operation binding for each selected-scene request, a signed/scanned non-root
 image, direct-VCS dependency disposition, released confinement observation,
 distributed model mounts, license/commercial-use approval, private L4
 execution evidence, actual worker resource cost, generated-asset QA, private
-review, and fallback proof. Full-frame plate generation additionally remains
-blocked until a frame-ratio profile is qualified.
+review, fallback proof, and backend one-writer reconciliation of the shared
+exact-count guard.
+
+The namespaced full-frame ratio extension now derives controlled qualification
+units for confirmed `16:9`, `9:16`, and custom source-still/background-plate
+frames. It preserves isolated-component `1024 × 1024` requests, prohibits
+square substitution, and keeps Remotion as the final canvas owner. This closes
+the planning contract gap only; full-frame GPU memory/latency/output-quality
+evidence and every operation, dispatch, persistence, QA, review, and
+production gate remain open.

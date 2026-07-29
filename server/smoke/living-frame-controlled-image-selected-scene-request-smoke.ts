@@ -58,7 +58,27 @@ const soundSyncPlan = {
 const selectedSceneBindingDigest = 'a'.repeat(64)
 const executionRequirementsDigest = 'b'.repeat(64)
 const timingBindingDigest = 'c'.repeat(64)
-const outputFrameExpectationDigest = 'd'.repeat(64)
+const confirmedSettings = {
+  aspectRatio: '16:9',
+  outputFrame: {
+    width: 1920,
+    height: 1080,
+    fps: 30,
+  },
+  outputFrameConfirmed: true,
+  outputFramePurpose:
+    'private_canonical_4k_master_review',
+  editLevel: 'pro',
+} as const
+const outputFrameExpectationDigest =
+  sha256AuthorityValue({
+    aspectRatio: confirmedSettings.aspectRatio,
+    outputFrame: confirmedSettings.outputFrame,
+    outputFrameConfirmed:
+      confirmedSettings.outputFrameConfirmed,
+    outputFramePurpose:
+      confirmedSettings.outputFramePurpose,
+  })
 const continuityPackDigest = 'e'.repeat(64)
 const masterTimingDigest =
   sha256AuthorityValue(masterTimingPlan)
@@ -224,13 +244,7 @@ const assetWorkInputBinding = {
   CanonicalLivingFrameAssetWorkInputBinding
 
 const components = {
-  confirmedSettings: {
-    editLevel: 'pro',
-    outputFrame: {
-      width: 1920,
-      height: 1080,
-    },
-  },
+  confirmedSettings,
   timingSummary: {
     totalFrames: 300,
     fps: 30,
@@ -411,6 +425,13 @@ const input = {
 
 const request =
   createLivingFrameControlledImageSelectedSceneRequest(input)
+
+export {
+  components as livingFrameControlledImageSelectedSceneSmokeComponents,
+  input as livingFrameControlledImageSelectedSceneSmokeInput,
+  request as livingFrameControlledImageSelectedSceneSmokeRequest,
+  sceneId as livingFrameControlledImageSelectedSceneSmokeSceneId,
+}
 
 assert.equal(
   verifyLivingFrameControlledImageSelectedSceneRequest(

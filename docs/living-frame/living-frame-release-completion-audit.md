@@ -143,12 +143,20 @@ missing:
 1. Canonical production registry admission for the single ComfyUI host tool
    and its bounded controlled-image operation. The exact non-executable
    admission candidate now freezes one tool identity, one operation, the
-   supervised-entrypoint gap, the no-fanout cost policy, and the current
-   exact-50 registry observation. The server-derived selected-scene request
-   projection now binds approved scene/component/continuity/frame/work
-   lineage, but the backend registry owner must still choose and implement the
-   canonical count/admission disposition and bind that projection to each
-   approved work item.
+   supervised-entrypoint gap, the no-fanout cost policy, and the semantic
+   registry-expansion policy. The current tool count is an observation, not a
+   product cap; the future count is derived from genuinely distinct executable
+   identities that independently pass release. The server-derived
+   selected-scene request projection binds approved
+   scene/component/continuity/frame/work lineage. Its full-frame ratio
+   extension now derives exact confirmed `9:16`, `16:9`, and custom
+   source/background qualification units without square substitution, while
+   isolated components remain separately bounded. The backend registry owner
+   must still implement canonical admission and bind the projection to each
+   approved work item. A pre-existing canonical Living Frame estimate
+   projection still enforces the observed count as a temporary runtime guard;
+   the backend one-writer must reconcile that shared interface before registry
+   expansion.
 2. A signed, reviewed L4 worker image containing the exact pinned source,
    dependency closure, and approved custom nodes. The local candidate now has
    a bounded 761-package SPDX inventory, but its default user is

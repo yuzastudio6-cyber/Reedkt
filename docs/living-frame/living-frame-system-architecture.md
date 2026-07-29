@@ -1114,12 +1114,13 @@ Remotion layer preparation, but no reconstructed background plate.
 
 A seventh content-addressed
 `livingFrameEstimateWorkAssetProjection` record consumes that exact input
-binding. It binds every refined named work type to one existing exact-50 tool
-cost owner, a conservative mock-safe cost range, explicit resource placement,
-deterministic dependency ordering, exact asset-intent inputs/outputs, and one
-expected output for the existing approved asset manifest. The current mask
-requirement is GPU-only on Google Cloud Run with no CPU fallback. Neither
-record adds a tool identity.
+binding. It binds every refined named work type to one existing registered
+tool cost owner, a conservative mock-safe cost range, explicit resource
+placement, deterministic dependency ordering, exact asset-intent
+inputs/outputs, and one expected output for the existing approved asset
+manifest. The current mask requirement is GPU-only on Google Cloud Run with
+no CPU fallback. Neither record adds a tool identity. The observed registry
+count is not a product cap.
 
 The server now derives an eighth content-addressed
 `livingFrameCanonicalWorkGraphProjection` record after recalculating the
@@ -1630,9 +1631,12 @@ approved Living Frame lineage
 
 It expects the existing `generate_image_asset` work type and one future
 server-owned `tool.comfyui.generate_controlled_image.v1` operation. It does
-not add six production tool IDs, mutate the current 50-tool registry, create
+not add six production tool IDs, mutate the current canonical registry, create
 a work item, dispatch a worker, mount a model, mint an attempt-cost receipt,
-or grant runtime authority. See
+or grant runtime authority. Registry expansion remains permitted for genuinely
+distinct released executable identities, but model weights, adapters,
+libraries, and capabilities inside one supervised attempt do not become fake
+tool identities. See
 `living-frame-controlled-illustration-operation-preflight.md`.
 
 ## Closed gates after controlled-illustration qualification requirements
@@ -2240,8 +2244,11 @@ unlock remain owned by the existing canonical settlement authority. See
 
 The server capability catalog retains exactly one non-E2E `comfyui`
 execution-host identity for Living Frame qualification work. This does not
-expand the exact 50 canonical private production tools and does not make
+change the canonical private production-tool registry and does not make
 ComfyUI selectable, dispatchable, installed, approved, or customer-visible.
+The registry's current observed count is not a product cap. Its future count
+is derived from the distinct executable identities that independently pass
+release.
 
 The remaining controlled-illustration pieces are deliberately not modeled as
 five additional production tools. `comfyui_controlnet_aux` is an optional
@@ -2250,8 +2257,10 @@ model/adapter capabilities governed by a future operation's exact artifact
 manifest; AuraFace is a separate post-generation continuity-QA capability.
 One future ComfyUI GPU attempt therefore composes the first five capabilities
 and is priced once, while optional AuraFace measurement is accounted for
-separately. This preserves the exact production tool registry and prevents
-capability labels from becoming duplicate customer charges.
+separately. AuraFace may later receive a distinct CPU-QA identity only if its
+independent runtime, security, cost, QA, fallback, and released evidence
+justify one. This semantic policy prevents capability labels from becoming
+duplicate customer charges without imposing an arbitrary registry-size cap.
 
 The capability profile remains fail-closed on exact model/checkpoint and
 adapter licenses, compatibility, dependency closure, signed GPU image, SBOM,
@@ -2765,13 +2774,20 @@ The corresponding canonical operation-admission candidate is deliberately
 non-executable. It requests one shared `comfyui` identity and
 `tool.comfyui.generate_controlled_image.v1`, never six capability identities
 or five GPU charges. It binds the current offline package and launch digests,
-records the repository's exact-50 executable-tool state without asserting a
-post-admission count, and leaves the count disposition to the backend registry
-owner. It also makes two integration gaps explicit: the generic entrypoint
+records the current registry count as an observation rather than a product
+cap, and defines the post-admission count as whatever number of genuinely
+distinct executable identities have independently passed release. It also
+makes two integration gaps explicit: the generic entrypoint
 union does not yet express the fixed supervised Python process, and the
 benchmark GPU request cannot substitute for a selected-scene generation
 request. Exact model bytes resolve through the model manifest and read-only
 mounts rather than ordinary per-request input bindings.
+
+The existing canonical Living Frame estimate/work/asset projection still has
+a temporary exact-count compatibility guard. That guard is not product policy.
+The backend one-writer must replace it with semantic uniqueness/readiness
+validation before registry expansion; the namespaced admission and ratio
+contracts record the gate without mutating the shared projection.
 
 The selected-scene controlled-image request projection now closes the
 benchmark-versus-production planning ambiguity. It rereads approved snapshot
@@ -2783,11 +2799,14 @@ expectation, and downstream alpha/QA/manifest/Remotion policy. It contains no
 raw conditioning text, executable ComfyUI graph, model or image bytes, paths,
 URLs, credentials, or caller model choice.
 
-The current qualified `1024 × 1024` operation is admitted only as an isolated
-component source. Source-still and background-plate request units remain
-blocked by a frame-ratio generation extension. This preserves frame-first
-professional composition instead of pretending a square benchmark output is
-a valid final `16:9`, `9:16`, or custom-frame scene. ComfyUI still never owns
+The current qualified `1024 × 1024` operation remains bounded to isolated
+component sources. The namespaced full-frame ratio extension now projects
+source-still and background-plate requests at the exact confirmed `16:9`,
+`9:16`, or custom output-frame dimensions for controlled qualification. It
+rejects unconfirmed or mismatched frames, caller-selected dimensions, square
+substitution, final-canvas claims, raw prompt/path/model leakage, and
+cross-scene/work substitution. It does not register an operation, dispatch a
+worker, create an asset, or authorize production. ComfyUI still never owns
 the final canvas.
 
 The atomic mounted-runner source boundary now also freezes the compatible

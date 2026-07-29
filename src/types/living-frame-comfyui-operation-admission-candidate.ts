@@ -1,19 +1,19 @@
 export const
 LIVING_FRAME_COMFYUI_OPERATION_ADMISSION_CANDIDATE_VERSION =
-  'living-frame-comfyui-operation-admission-candidate-v2' as const
+  'living-frame-comfyui-operation-admission-candidate-v3' as const
 
 export const
 LIVING_FRAME_COMFYUI_OPERATION_ADMISSION_CANDIDATE_CLASS =
-  'controlled_non_executable_exact_comfyui_registry_admission_candidate' as const
+  'controlled_non_executable_semantic_comfyui_registry_admission_candidate' as const
 
 export const
 LIVING_FRAME_COMFYUI_OPERATION_ADMISSION_CANDIDATE_STATE =
-  'backend_registry_owner_disposition_required' as const
+  'semantic_registry_policy_recorded_release_evidence_pending' as const
 
 export const
 LIVING_FRAME_COMFYUI_OPERATION_ADMISSION_CANDIDATE_OPEN_GATES = [
-  'backend_registry_owner_disposition_required',
-  'canonical_production_tool_identity_required',
+  'canonical_comfyui_identity_and_operation_promotion_decision_required',
+  'shared_registry_count_guard_reconciliation_required',
   'canonical_operation_seed_and_request_schema_required',
   'fixed_supervised_process_entrypoint_support_required',
   'selected_scene_request_operation_binding_required',
@@ -92,7 +92,8 @@ export interface LivingFrameComfyUiOperationAdmissionCandidateDraft {
     readonly outOfScopeDirectVcsImportsAllowed: false
   }
   readonly currentRegistryObservation: {
-    readonly productionToolIdentityCount: 50
+    readonly productionToolIdentityCount: number
+    readonly productionToolIdentityCountIsProductCap: false
     readonly catalogIdentity: 'comfyui'
     readonly catalogEntryPresent: true
     readonly catalogState: 'non_e2e_evaluation_only'
@@ -118,8 +119,15 @@ export interface LivingFrameComfyUiOperationAdmissionCandidateDraft {
     readonly sixCapabilityToolIdentityFanoutAllowed: false
     readonly fiveGpuCapabilityChargesAllowed: false
     readonly auraFaceExecutionPlacement: 'separate_optional_cpu_qa'
+    readonly auraFaceMayUseDistinctReleasedCpuQaIdentity: true
+    readonly registryExpansionPermitted: true
+    readonly postAdmissionToolIdentityCountDerivedFromReleasedDistinctIdentities:
+      true
+    readonly postAdmissionToolIdentityCountAsserted: false
+    readonly fakeIdentityForModelWeightAdapterOrLibraryAllowed:
+      false
+    readonly currentObservedToolCountIsNotAProductCap: true
     readonly registryMutationIncluded: false
-    readonly backendOwnerMustResolveExactToolCountPolicy: true
   }
   readonly requestProjection: {
     readonly selectedSceneRequestProjectionContractVersion:

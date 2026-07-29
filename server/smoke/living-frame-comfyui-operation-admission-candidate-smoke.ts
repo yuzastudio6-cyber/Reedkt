@@ -28,9 +28,13 @@ assert.equal(
   ),
   true,
 )
-assert.equal(
+assert.ok(
   candidate.currentRegistryObservation.productionToolIdentityCount,
-  50,
+)
+assert.equal(
+  candidate.currentRegistryObservation
+    .productionToolIdentityCountIsProductCap,
+  false,
 )
 assert.equal(
   candidate.currentRegistryObservation.catalogState,
@@ -59,6 +63,35 @@ assert.equal(
 assert.equal(
   candidate.admissionDecision.fiveGpuCapabilityChargesAllowed,
   false,
+)
+assert.equal(
+  candidate.admissionDecision.registryExpansionPermitted,
+  true,
+)
+assert.equal(
+  candidate.admissionDecision
+    .postAdmissionToolIdentityCountDerivedFromReleasedDistinctIdentities,
+  true,
+)
+assert.equal(
+  candidate.admissionDecision
+    .postAdmissionToolIdentityCountAsserted,
+  false,
+)
+assert.equal(
+  candidate.admissionDecision
+    .fakeIdentityForModelWeightAdapterOrLibraryAllowed,
+  false,
+)
+assert.equal(
+  candidate.admissionDecision
+    .currentObservedToolCountIsNotAProductCap,
+  true,
+)
+assert.equal(
+  candidate.admissionDecision
+    .auraFaceMayUseDistinctReleasedCpuQaIdentity,
+  true,
 )
 assert.equal(
   candidate.requestProjection.modelArtifactsTravelInOrdinaryArtifactBindings,
@@ -196,6 +229,28 @@ assert.equal(
   false,
 )
 
+const registryCapForgery = resign({
+  ...withoutDigest(candidate),
+  currentRegistryObservation: {
+    ...candidate.currentRegistryObservation,
+    productionToolIdentityCountIsProductCap: true,
+  },
+  admissionDecision: {
+    ...candidate.admissionDecision,
+    registryExpansionPermitted: false,
+    postAdmissionToolIdentityCountDerivedFromReleasedDistinctIdentities:
+      false,
+    currentObservedToolCountIsNotAProductCap: false,
+  },
+})
+assert.equal(
+  await verifyLivingFrameComfyUiOperationAdmissionCandidate(
+    registryCapForgery,
+    input,
+  ),
+  false,
+)
+
 const promotionForgery = resign({
   ...withoutDigest(candidate),
   registryMutated: true,
@@ -244,8 +299,13 @@ console.log(JSON.stringify({
       .genericEntrypointTypeCurrentlySupportsThisKind,
   selectedSceneProjectionImplemented:
     candidate.requestProjection.selectedSceneRequestProjectionImplemented,
+  currentObservedCountIsProductCap:
+    candidate.currentRegistryObservation
+      .productionToolIdentityCountIsProductCap,
+  registryExpansionPermitted:
+    candidate.admissionDecision.registryExpansionPermitted,
   openGateCount: candidate.openGateCodes.length,
-  adversarialAssertions: 5,
+  adversarialAssertions: 6,
   registryMutated: candidate.registryMutated,
   productionReady: candidate.productionReady,
 }))

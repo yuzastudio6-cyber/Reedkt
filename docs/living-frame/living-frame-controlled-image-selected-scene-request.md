@@ -73,10 +73,12 @@ Isolated subjects and separable components may therefore project as
 opaque background plate, or reconstructed background plate remain
 `blocked_by_full_frame_generation_canvas_extension`.
 
-This is deliberate. A professional Living Frame scene must not silently force
-a `16:9`, `9:16`, or other confirmed output-frame composition into a generic
-square image. The future operation must add a qualified frame-ratio generation
-profile before those request units can become executable.
+This deliberate state remains on the base selected-scene request. The
+namespaced full-frame ratio extension consumes it and derives qualification
+units at the exact confirmed `16:9`, `9:16`, or custom-frame dimensions. It
+does not mutate the base request or make those units executable. A professional
+Living Frame scene must never silently force a non-square confirmed
+composition into a generic square image.
 
 ComfyUI never owns the final video canvas. Remotion remains the final
 deterministic compositor.
@@ -129,4 +131,6 @@ The request projection is implemented, but execution remains closed until:
 - the final Remotion composition passes its existing gates.
 
 Full-frame plate request units additionally require the qualified frame-ratio
-generation extension described above.
+generation evidence described above. The ratio extension contract is now
+implemented, but L4 memory/latency/output-quality qualification and the normal
+release gates remain required.

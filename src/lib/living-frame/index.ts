@@ -268,6 +268,28 @@ export type {
 } from '../../types/living-frame-controlled-image-selected-scene-request'
 
 export {
+  LIVING_FRAME_CONTROLLED_IMAGE_FULL_FRAME_RATIO_EXTENSION_CLASS,
+  LIVING_FRAME_CONTROLLED_IMAGE_FULL_FRAME_RATIO_EXTENSION_COMPONENT_ROLES,
+  LIVING_FRAME_CONTROLLED_IMAGE_FULL_FRAME_RATIO_EXTENSION_FRAME_CLASSES,
+  LIVING_FRAME_CONTROLLED_IMAGE_FULL_FRAME_RATIO_EXTENSION_ISSUE_CODES,
+  LIVING_FRAME_CONTROLLED_IMAGE_FULL_FRAME_RATIO_EXTENSION_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_IMAGE_FULL_FRAME_RATIO_EXTENSION_STATE,
+  LIVING_FRAME_CONTROLLED_IMAGE_FULL_FRAME_RATIO_EXTENSION_VERSION,
+} from '../../types/living-frame-controlled-image-full-frame-ratio-extension'
+
+export type {
+  LivingFrameControlledImageFullFrameRatioAuthority,
+  LivingFrameControlledImageFullFrameRatioClass,
+  LivingFrameControlledImageFullFrameRatioComponentRole,
+  LivingFrameControlledImageFullFrameRatioExtension,
+  LivingFrameControlledImageFullFrameRatioExtensionDraft,
+  LivingFrameControlledImageFullFrameRatioIssue,
+  LivingFrameControlledImageFullFrameRatioIssueCode,
+  LivingFrameControlledImageFullFrameRatioOpenGate,
+  LivingFrameControlledImageFullFrameRatioUnit,
+} from '../../types/living-frame-controlled-image-full-frame-ratio-extension'
+
+export {
   LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_AUTHORITY_BOUNDARY,
   LivingFrameControlledIllustrationSourceObservationError,
   calculateLivingFrameControlledIllustrationSourceObservationDigest,

@@ -9,7 +9,8 @@ publication, named execution requirements, MasterTiming/SoundSync binding,
 server-derived asset/work input binding, and current confirmed settings. For
 each selected scene it derives:
 
-- a conservative estimate-only cost basis from existing exact-50 tool owners;
+- a conservative estimate-only cost basis from existing registered tool
+  owners;
 - one deterministic requirement for each existing named work-item type;
 - one exact expected-output requirement that the existing approved asset
   manifest must eventually own;
@@ -37,8 +38,11 @@ only execution and artifact authorities. QA, private review, approval,
 snapshot, provider/tool dispatch, rendering, runtime, and production remain
 closed.
 
-This adds no tool identity. The exact 50-tool registry is revalidated before the
-projection can be compiled.
+This adds no tool identity. The current canonical production registry is
+revalidated before the projection can be compiled. Its observed identity count
+is not a product cap. The current implementation still contains a temporary
+exact-count compatibility guard; the backend one-writer must replace it with
+semantic uniqueness/readiness validation before the registry expands.
 
 Broad capability coverage is no longer treated as proof that every candidate
 asset-producing operation is required. The exact selected component

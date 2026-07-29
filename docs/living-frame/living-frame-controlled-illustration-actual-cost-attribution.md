@@ -68,4 +68,6 @@ The exact future operation expectations are:
 
 The AuraFace operation identity recorded in the controlled contract is a
 candidate binding only. It does not promote the existing `transformers`
-foundation profile into the 50-tool production registry.
+foundation profile into the canonical production registry. AuraFace may
+receive a distinct CPU-QA identity only if its independent executable,
+security, cost, QA, fallback, and released-evidence boundary is approved.

@@ -38,7 +38,9 @@ runtime model download = forbidden
 ```
 
 Those identifiers are expectations, not released registry entries. The
-current 50-tool registry is unchanged. The operation remains non-executable
+current canonical registry is unchanged. Its observed identity count is not a
+product cap; future count is derived from released distinct executable
+identities. The operation remains non-executable
 until the existing canonical authorities admit the tool identity, operation
 spec, signed worker image, exact model-artifact requirement set, read-only
 mounts, approved work projection, private dispatch, asset QA, and actual-cost
@@ -98,4 +100,3 @@ The smoke re-signs adversarial packets and proves that capability reordering,
 AuraFace placement inside the GPU host, six fabricated production tool IDs,
 the superseded PuLID candidate, caller-selected provider data, and forged
 all-green authority fail closed.
-

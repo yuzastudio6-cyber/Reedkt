@@ -29,7 +29,6 @@ import {
 
 const SAFE_ID = /^[a-z0-9][a-z0-9._:-]{0,127}$/u
 const SHA256 = /^[a-f0-9]{64}$/u
-const EXPECTED_PRODUCTION_TOOL_COUNT = 50
 
 const AUTHORITY_BOUNDARY:
   LivingFrameComfyUiOperationAdmissionCandidateAuthority =
@@ -115,7 +114,8 @@ export async function createLivingFrameComfyUiOperationAdmissionCandidate(
     },
     currentRegistryObservation: {
       productionToolIdentityCount:
-        EXPECTED_PRODUCTION_TOOL_COUNT,
+        PRODUCTION_TOOL_IDS.length,
+      productionToolIdentityCountIsProductCap: false,
       catalogIdentity: 'comfyui',
       catalogEntryPresent: true,
       catalogState: 'non_e2e_evaluation_only',
@@ -141,8 +141,15 @@ export async function createLivingFrameComfyUiOperationAdmissionCandidate(
       sixCapabilityToolIdentityFanoutAllowed: false,
       fiveGpuCapabilityChargesAllowed: false,
       auraFaceExecutionPlacement: 'separate_optional_cpu_qa',
+      auraFaceMayUseDistinctReleasedCpuQaIdentity: true,
+      registryExpansionPermitted: true,
+      postAdmissionToolIdentityCountDerivedFromReleasedDistinctIdentities:
+        true,
+      postAdmissionToolIdentityCountAsserted: false,
+      fakeIdentityForModelWeightAdapterOrLibraryAllowed:
+        false,
+      currentObservedToolCountIsNotAProductCap: true,
       registryMutationIncluded: false,
-      backendOwnerMustResolveExactToolCountPolicy: true,
     },
     requestProjection: {
       selectedSceneRequestProjectionContractVersion:
@@ -323,7 +330,9 @@ export async function verifyLivingFrameComfyUiOperationAdmissionCandidate(
 function assertCurrentRegistryState(): void {
   const profile = getNonE2EToolCapabilityProfile('comfyui')
   if (
-    PRODUCTION_TOOL_IDS.length !== EXPECTED_PRODUCTION_TOOL_COUNT
+    PRODUCTION_TOOL_IDS.length < 1
+    || new Set(PRODUCTION_TOOL_IDS).size !==
+      PRODUCTION_TOOL_IDS.length
     || !profile
     || profile.productionStatus !== 'evaluation_only'
     || profile.executionMode !== 'evaluation_only'
@@ -353,7 +362,11 @@ function assertCandidateSemantics(
     ...delegatedAuthorities
   } = draft.authorityBoundary
   if (
-    draft.admissionDecision.executableToolIdentityCountRequested !== 1
+    !Number.isInteger(
+      draft.currentRegistryObservation.productionToolIdentityCount,
+    )
+    || draft.currentRegistryObservation.productionToolIdentityCount < 1
+    || draft.admissionDecision.executableToolIdentityCountRequested !== 1
     || draft.admissionDecision.representedCapabilityKeys.length !== 6
     || new Set(
       draft.admissionDecision.representedCapabilityKeys,
@@ -361,6 +374,20 @@ function assertCandidateSemantics(
     || draft.admissionDecision.sixCapabilityToolIdentityFanoutAllowed
       !== false
     || draft.admissionDecision.fiveGpuCapabilityChargesAllowed !== false
+    || draft.currentRegistryObservation
+      .productionToolIdentityCountIsProductCap !== false
+    || draft.admissionDecision.registryExpansionPermitted !== true
+    || draft.admissionDecision
+      .postAdmissionToolIdentityCountDerivedFromReleasedDistinctIdentities
+        !== true
+    || draft.admissionDecision
+      .postAdmissionToolIdentityCountAsserted !== false
+    || draft.admissionDecision
+      .fakeIdentityForModelWeightAdapterOrLibraryAllowed !== false
+    || draft.admissionDecision
+      .currentObservedToolCountIsNotAProductCap !== true
+    || draft.admissionDecision
+      .auraFaceMayUseDistinctReleasedCpuQaIdentity !== true
     || draft.requestProjection.modelArtifactsTravelInOrdinaryArtifactBindings
       !== false
     || draft.requestProjection.exactModelRoleCount !== 5

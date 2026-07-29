@@ -68,7 +68,7 @@ authority.
 | Visual Continuity Pack | `verified_source_contract` | `src/lib/living-frame/living-frame-visual-continuity-contract.ts`, `docs/living-frame/visual-continuity-pack.md`, continuity measurement and fixtures | Production persistence, reference retention, consent, fairness, and identity-review policy remain backend/release gates. |
 | Character/object/environment/style consistency | `verified_source_contract` | continuity pack sheets, controlled generic IP-Adapter binding, optional AuraFace measurement-only path | Real project-calibrated continuity thresholds and review evidence remain open. |
 | Component decomposition and rigging | `verified_source_contract` | component asset intent, geometry, rig, background-plate reconstruction, artifact reconciliation | Rich production scene benchmarks remain open; no claim is made that all stills can be safely decomposed. |
-| Alpha, masks, edge cleanup, and destination composite | `verified_private_runtime` | generated-still alpha work graph, rembg route, Sharp RGBA route, alpha measurement, edge decontamination, multi-background/destination-composite evidence | Advanced temporal A-roll masks still require a qualified tracking/mask route and real footage benchmarks. |
+| Alpha, masks, edge cleanup, and destination composite | `verified_private_runtime` | generated-still alpha work graph, rembg route, Sharp RGBA route, selected-scene private opaque-output observation, alpha measurement, edge decontamination, multi-background/destination-composite evidence | The canonical work-graph owner must admit the exact isolated output of a multi-output selected generation item into the existing rembg → Sharp chain. Advanced temporal A-roll masks still require a qualified tracking/mask route and real footage benchmarks. |
 | Semantic scale | `verified_source_contract` | Living Frame semantic-scale requests and canonical motion guard preserving literal/data scale | Production QA must continue distinguishing literal, proportional, perspective, and symbolic scale. |
 | Attention, focus handoff, camera, and visual orbit | `verified_private_runtime` for the bounded scalar subset | choreography binding, canonical motion spec, actual 640×360 render | More complex deformation, path, particle, and true 3D primitives remain separately gated. |
 | Adaptive flat / shallow-2.5D / deep-multiplane rendering | `verified_source_contract` for flat selection; `verified_private_runtime` for shallow and deep execution | `canonical-living-frame-motion-spec-v1`, offline Remotion composition, same-scene differential-parallax pixel validation | Mode-specific production-footage benchmarks remain part of release qualification. |
@@ -154,7 +154,16 @@ missing:
    isolated components remain separately bounded. The selected-scene private
    prompt materializer now compiles the real selected-scene graph family and
    emits one process-bound single-use private request lease per exact approved
-   generated output. It is not the benchmark prompt path, does not dispatch,
+   generated output. The selected-scene private output observer rereads and
+   verifies exact opaque RGB PNG bytes for both isolated and confirmed-ratio
+   canvases without inferring worker completion, persistence, cost, QA, or
+   review. The read-only alpha work-chain reconciliation now proves that the
+   isolated output cannot yet enter the existing canonical rembg → Sharp
+   branch: the work graph currently rejects an exact generated source when its
+   parent generation item has multiple expected outputs, and the selected
+   fixture does not yet project the mask/Sharp named work. This is frozen as a
+   canonical-owner conflict rather than bypassed with a parallel mask job. The
+   path is not the benchmark prompt path, does not dispatch,
    and preserves the confirmed frame, five-model atomic mount, confinement,
    `sam2` denial, and Remotion ownership boundaries. The backend registry owner
    must still implement canonical admission and bind the projection to each
@@ -220,6 +229,10 @@ Passed:
 - selected-scene private prompt materialization with one unit/lease per
   approved output, exact isolated and confirmed-ratio canvases, byte-free
   receipts, and adversarial benchmark/caller/node/lineage/authority refusal;
+- selected-scene private opaque-output observation for exact 1024×1024
+  isolated and 1920×1080 confirmed-ratio RGB PNGs, plus read-only alpha-chain
+  reconciliation that fail-closes on the shared multi-output generation →
+  rembg interface conflict without mutating the canonical work graph;
 - selected execution/security smokes;
 - repository secret scan;
 - frontend/server boundary scan; and

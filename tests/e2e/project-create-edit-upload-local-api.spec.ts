@@ -7,8 +7,10 @@ import {
   completeRequiredEditorSetupBeforeFootagePrep,
 } from './helpers/routes'
 import {
+  applySupportedSourceOnlyPreferences,
   createAndApproveActivePlan,
   expectLocalApiHealth,
+  prepareCurrentSourceLedEditBrief,
   readActiveHandoff,
   signInAndCreateActiveProjectEdit,
   uploadActiveEditorSource,
@@ -85,34 +87,15 @@ test.describe('Active signed-in project to approved named-edit plan', () => {
       localStorageRoot,
     })
 
+    await applySupportedSourceOnlyPreferences(page)
     await completeRequiredEditorSetupBeforeFootagePrep(page)
     await clickWhenReady(page.getByRole('button', { name: /^Prepare source$/i }).first())
     await expect(page.getByText(/Source prep is ready for 1 uploaded source file/i)).toBeVisible()
-    await clickWhenReady(page.getByTestId('editor-header-edit-brief'))
-    await expect(page).toHaveURL(/[?&]view=brief(?:&|$)/)
-    await expect(page.getByTestId('editor-edit-brief-canvas')).toBeVisible()
-    await expect(page.getByText(/Prepare the source in Chat first/i)).toHaveCount(0)
-    const details = page.getByTestId('edit-brief-direction-details')
-    if (await details.getAttribute('open') === null) {
-      await clickWhenReady(details.locator('summary'))
-    }
     const goal = 'Keep the speaker clear, preserve the full source meaning, and use a restrained professional finish.'
-    await page.getByTestId('edit-brief-goal-input').fill(goal)
-    const durableBriefSave = page.waitForResponse((response) => {
-      const url = new URL(response.url())
-      return ['POST', 'PATCH'].includes(response.request().method())
-        && /^\/v1\/projects\/[^/]+\/edit-sessions\/[^/]+\/edit-brief$/.test(
-          url.pathname,
-        )
+    await prepareCurrentSourceLedEditBrief(page, {
+      goal,
+      timeoutMs: 90_000,
     })
-    await clickWhenReady(page.getByTestId('edit-brief-mark-ready'))
-    expect((await durableBriefSave).ok()).toBe(true)
-    await expect(page.getByTestId('edit-brief-authority-status')).toHaveAttribute(
-      'data-state',
-      'saved',
-    )
-    await clickWhenReady(page.getByTestId('edit-workspace-view-chat'))
-    await expect(page).not.toHaveURL(/[?&]view=brief(?:&|$)/)
 
     const outcome = await createAndApproveActivePlan(page, {
       sourceAlreadyPrepared: true,

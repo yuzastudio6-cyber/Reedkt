@@ -145,7 +145,9 @@ The chain provides:
   planning-authority read/evidence/replay, immutable-baseline, cleanup
   invalidation, evidence/DNA/QA/approval replay, recovery, direct-RPC/table
   denial, and internal-cost tests.
-- a destructive local backup/reset/restore rehearsal covering all 61 reviewed
+- signed, idempotent private project creation with authenticated RLS reads,
+  exact API-restart replay, and no browser or service-role table-write grant;
+- a destructive local backup/reset/restore rehearsal covering all 62 reviewed
   canonical data tables, an exact logical-state digest, immutable approved and
   audit history, exact Apply replay/conflict recovery, and restored tenant RLS.
 

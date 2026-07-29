@@ -112,6 +112,8 @@ if [[ "${REEDITPRO_CANONICAL_V3_API_URL}" != 'http://127.0.0.1:57431' ]]; then
   exit 64
 fi
 npx --no-install tsx \
+  "${REPOSITORY_ROOT}/server/smoke/canonical-private-project-authority-local-postgres-smoke.ts"
+npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/canonical-durable-upload-target-local-postgres-smoke.ts"
 npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/canonical-distributed-media-ingest-local-postgres-smoke.ts"
@@ -175,6 +177,8 @@ fi
   -f "${SCRIPT_DIR}/tests/015_canonical_durable_upload_target_rpc_postconditions.sql"
 "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
   -f "${SCRIPT_DIR}/tests/016_canonical_upload_target_credential_escrow_rpc_postconditions.sql"
+"${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
+  -f "${SCRIPT_DIR}/tests/017_canonical_private_project_authority_rpc_postconditions.sql"
 
 trap - EXIT
 cleanup_status=0

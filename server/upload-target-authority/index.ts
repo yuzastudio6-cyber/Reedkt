@@ -1,6 +1,7 @@
 export * from './canonical-durable-upload-target-authority'
 export * from './canonical-durable-upload-target-conformance'
 export * from './canonical-durable-upload-target-local-supabase-http-rpc-client'
+export * from './canonical-durable-upload-target-request-factory'
 export * from './canonical-durable-upload-target-state-rpc-adapter'
 export * from './canonical-upload-target-credential-envelope'
 export * from './canonical-upload-target-credential-escrow-local-supabase-http-rpc-client'

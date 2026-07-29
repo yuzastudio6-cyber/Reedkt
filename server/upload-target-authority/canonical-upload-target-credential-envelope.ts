@@ -26,7 +26,7 @@ const boundedBase64 = z.string().min(4).max(128 * 1024)
 
 const normalizedUploadTargetSchema = z.object({
   uploadMethod: z.enum(['PUT', 'POST']),
-  uploadUrl: z.string().url().max(16 * 1024).refine(isAllowedUploadUrl),
+  uploadUrl: z.string().min(1).max(16 * 1024).refine(isAllowedUploadUrl),
   uploadHeaders: z.record(
     z.string().trim().min(1).max(256).regex(/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/u),
     z.string().max(8 * 1024),
@@ -456,10 +456,20 @@ function sha256Buffer(value: Uint8Array): string {
 }
 
 function isAllowedUploadUrl(value: string): boolean {
+  if (value.startsWith('/')) {
+    const match = value.match(
+      /^\/v1\/upload-intents\/([A-Za-z0-9][A-Za-z0-9._:@-]{0,239})\/local-object\?workspaceId=([a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12})$/u,
+    )
+    return Boolean(match?.[1] && !match[1].includes('..'))
+  }
   try {
     const url = new URL(value)
+    if (url.username || url.password || url.hash) return false
     return url.protocol === 'https:' ||
-      (url.protocol === 'http:' && (url.hostname === '127.0.0.1' || url.hostname === 'localhost'))
+      (
+        url.protocol === 'http:' &&
+        (url.hostname === '127.0.0.1' || url.hostname === 'localhost')
+      )
   } catch {
     return false
   }

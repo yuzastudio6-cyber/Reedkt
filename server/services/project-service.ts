@@ -1,6 +1,11 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
 import {
+  assertCanonicalPrivateProjectRequestAuthorityFactory,
+  assertCanonicalPrivateProjectRequestAuthorityPort,
+  type CanonicalPrivateProject,
+} from '../project-authority/canonical-private-project-request-authority'
+import {
   listPrivateRegularFileNamesWithinRoot,
   readPrivateTextFileIfExistsWithinRoot,
   writePrivateTextFileAtomicWithinRoot,
@@ -28,7 +33,7 @@ export type ProjectView = {
   workerJobCreated?: false
   renderJobCreated?: false
   creditReservedOrSpent?: false
-  supabaseWriteMade?: false
+  supabaseWriteMade?: boolean
   gcsWriteMade?: false
   productReady?: false
 }
@@ -51,6 +56,44 @@ export function createProjectService(context: ServiceContext) {
   return {
     async createProject(input: CreateProjectInput) {
       const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
+      const normalizedName = normalizeProjectName(input.name)
+      const normalizedDescription = normalizeOptionalDescription(input.description)
+
+      if (isCanonicalV3LoopbackSignedInRuntime(context)) {
+        const port = getCanonicalPrivateProjectRequestAuthorityPort(context)
+        const idempotency = context.idempotency
+        if (
+          !idempotency
+          || idempotency.workspaceId !== access.workspaceId
+          || !/^[a-f0-9]{64}$/u.test(idempotency.requestHash)
+        ) {
+          throw new ApiError(
+            'IDEMPOTENCY_ATOMICITY_REQUIRED',
+            'Canonical project creation requires its exact route idempotency authority.',
+            503,
+          )
+        }
+        const result = await port.createProject({
+          workspaceId: access.workspaceId,
+          ownerUserId: access.userId,
+          title: normalizedName,
+          descriptionDigestSha256: normalizedDescription
+            ? sha256(normalizedDescription)
+            : null,
+          idempotencyKey: idempotency.key,
+          requestSha256: idempotency.requestHash,
+          requestedAt: nowIso(),
+        })
+        return {
+          project: canonicalProjectView(
+            result.project,
+            normalizedDescription,
+          ),
+          warnings: [
+            'Project metadata was persisted through the signed canonical V3 loopback authority. No upload bytes, tools, rendering, credits, providers, beta, or production work started.',
+          ],
+        }
+      }
 
       if (usesLocalProjectPersistence(context)) {
         const project: ProjectView = {
@@ -58,8 +101,8 @@ export function createProjectService(context: ServiceContext) {
             ? createMockId('project')
             : randomUUID(),
           workspaceId: access.workspaceId,
-          name: normalizeProjectName(input.name),
-          description: normalizeOptionalDescription(input.description),
+          name: normalizedName,
+          description: normalizedDescription,
           createdByUserId: access.userId,
           createdAt: nowIso(),
           updatedAt: nowIso(),
@@ -90,9 +133,9 @@ export function createProjectService(context: ServiceContext) {
         .insert({
           workspace_id: access.workspaceId,
           owner_id: access.userId,
-          title: normalizeProjectName(input.name),
+          title: normalizedName,
           metadata_json: {
-            description: normalizeOptionalDescription(input.description) ?? null,
+            description: normalizedDescription ?? null,
           },
         })
         .select('*')
@@ -104,6 +147,28 @@ export function createProjectService(context: ServiceContext) {
 
     async getProject(projectId: string, workspaceId: string) {
       const access = await authorizeWorkspaceAccess(context, workspaceId, 'read')
+      if (isCanonicalV3LoopbackSignedInRuntime(context)) {
+        const project = await getCanonicalPrivateProjectRequestAuthorityPort(
+          context,
+        ).readProject({
+          workspaceId: access.workspaceId,
+          ownerUserId: access.userId,
+          projectId,
+        })
+        if (!project) {
+          throw new ApiError(
+            'PROJECT_NOT_FOUND',
+            'Project was not found for this workspace.',
+            404,
+          )
+        }
+        return {
+          project: canonicalProjectView(project),
+          warnings: [
+            'Project metadata was read through authenticated canonical V3 RLS.',
+          ],
+        }
+      }
       if (usesLocalProjectPersistence(context)) {
         const cacheKey = projectMemoryKey(access.userId, access.workspaceId, projectId)
         const localProject = localProjects.get(cacheKey) ?? await loadLocalProject({
@@ -139,6 +204,20 @@ export function createProjectService(context: ServiceContext) {
 
     async listProjects(workspaceId: string) {
       const access = await authorizeWorkspaceAccess(context, workspaceId, 'read')
+      if (isCanonicalV3LoopbackSignedInRuntime(context)) {
+        const projects = await getCanonicalPrivateProjectRequestAuthorityPort(
+          context,
+        ).listProjects({
+          workspaceId: access.workspaceId,
+          ownerUserId: access.userId,
+        })
+        return {
+          projects: projects.map((project) => canonicalProjectView(project)),
+          warnings: [
+            'Project metadata was listed through authenticated canonical V3 RLS.',
+          ],
+        }
+      }
       if (usesLocalProjectPersistence(context)) {
         const localProjectRecords = await listLocalProjects({
           userId: access.userId,
@@ -331,7 +410,11 @@ function projectViewFromDatabaseRow(
     workspaceId,
     name,
     description: stringField(row.description) ?? stringField(metadata?.description),
-    createdByUserId: stringField(row.owner_id) ?? stringField(row.created_by) ?? fallbackUserId,
+    createdByUserId:
+      stringField(row.owner_id)
+      ?? stringField(row.owner_user_id)
+      ?? stringField(row.created_by)
+      ?? fallbackUserId,
     createdAt: stringField(row.created_at) ?? nowIso(),
     updatedAt: stringField(row.updated_at) ?? nowIso(),
   }
@@ -384,7 +467,70 @@ function normalizeOptionalDescription(value: string | undefined): string | undef
 }
 
 function usesLocalProjectPersistence(context: ServiceContext): boolean {
-  return !context.clients.admin || context.env.mockOnly || context.env.allowInternalTestExecutionWithSupabase
+  if (!context.clients.admin || context.env.mockOnly) return true
+  return context.env.allowInternalTestExecutionWithSupabase
+    && !isCanonicalV3LoopbackSignedInRuntime(context)
+}
+
+function getCanonicalPrivateProjectRequestAuthorityPort(
+  context: ServiceContext,
+) {
+  const factory = context.canonicalPrivateProjectRequestAuthorityFactory
+  const auth = context.auth
+  if (!factory || !auth?.accessToken || auth.isMockUser) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Canonical signed-in project authority is unavailable.',
+      503,
+    )
+  }
+  assertCanonicalPrivateProjectRequestAuthorityFactory(factory)
+  const port = factory.createForAuthenticatedRequest({
+    env: context.env,
+    authority: {
+      ownerUserId: auth.userId,
+      authenticatedAccessToken: auth.accessToken,
+      isMockUser: false,
+    },
+  })
+  assertCanonicalPrivateProjectRequestAuthorityPort(port)
+  return port
+}
+
+function canonicalProjectView(
+  project: CanonicalPrivateProject,
+  description?: string,
+): ProjectView {
+  return {
+    id: project.id,
+    workspaceId: project.workspaceId,
+    name: project.title,
+    ...(description ? { description } : {}),
+    createdByUserId: project.ownerUserId,
+    createdAt: project.createdAt,
+    updatedAt: project.updatedAt,
+    mockOnly: false,
+    providerCallMade: false,
+    workerJobCreated: false,
+    renderJobCreated: false,
+    creditReservedOrSpent: false,
+    supabaseWriteMade: true,
+    gcsWriteMade: false,
+    productReady: false,
+  }
+}
+
+function isCanonicalV3LoopbackSignedInRuntime(
+  context: ServiceContext,
+): boolean {
+  return context.env.nodeEnv !== 'production'
+    && context.env.mode === 'local'
+    && context.env.storageMode === 'local'
+    && context.env.allowInternalTestExecutionWithSupabase
+    && !context.env.allowMockWithoutSupabase
+    && context.env.supabaseUrl === 'http://127.0.0.1:57431'
+    && context.auth?.isMockUser === false
+    && Boolean(context.auth.userId.trim())
 }
 
 function getRequiredProjectAdminClient(context: ServiceContext): NonNullable<ServiceContext['clients']['admin']> {

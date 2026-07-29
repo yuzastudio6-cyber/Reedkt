@@ -42,13 +42,17 @@ const playwrightSpecs = privateReviewMode
       'tests/e2e/project-source-video-backend-upload-local-api.spec.ts',
       'tests/e2e/project-create-edit-upload-local-api.spec.ts',
     ]
-const internalServiceToken = privateReviewMode
+const internalServiceToken = privateReviewMode || supabaseAuthMode
+  ? randomBytes(32).toString('base64url')
+  : ''
+const uploadTargetCredentialKey = supabaseAuthMode
   ? randomBytes(32).toString('base64url')
   : ''
 const apiBaseUrl = `http://127.0.0.1:${apiPort}`
 const appBaseUrl = `http://127.0.0.1:${appPort}`
 
 const children = []
+const expectedServerStops = new WeakSet()
 let shuttingDown = false
 let serverFailure
 let canonicalV3Prepared = false
@@ -111,6 +115,8 @@ function readCanonicalV3Status() {
     status.API_URL !== canonicalV3ApiUrl ||
     typeof status.ANON_KEY !== 'string' ||
     !status.ANON_KEY ||
+    typeof status.JWT_SECRET !== 'string' ||
+    status.JWT_SECRET.length < 32 ||
     typeof status.SERVICE_ROLE_KEY !== 'string' ||
     !status.SERVICE_ROLE_KEY
   ) {
@@ -119,6 +125,7 @@ function readCanonicalV3Status() {
   return {
     apiUrl: status.API_URL,
     anonKey: status.ANON_KEY,
+    jwtSecret: status.JWT_SECRET,
     serviceRoleKey: status.SERVICE_ROLE_KEY,
   }
 }
@@ -238,6 +245,7 @@ async function verifyCanonicalV3PasswordAuthBoundary() {
       'Canonical V3 local browser signup must remain disabled.',
     )
   }
+  return signInPayload.access_token
 }
 
 function cleanupCanonicalV3SupabaseAuth() {
@@ -270,12 +278,31 @@ function spawnServer(label, args, env) {
   child.stdout.on('data', (chunk) => process.stdout.write(`[${label}] ${chunk}`))
   child.stderr.on('data', (chunk) => process.stderr.write(`[${label}] ${chunk}`))
   child.on('exit', (code, signal) => {
-    if (shuttingDown) return
+    if (shuttingDown || expectedServerStops.has(child)) return
     serverFailure = new Error(`${label} exited before verification completed (${signal ?? code}).`)
   })
 
   children.push(child)
   return child
+}
+
+function stopServerForRestart(child, label) {
+  return new Promise((resolve, reject) => {
+    if (!child || child.exitCode !== null || child.signalCode !== null) {
+      resolve()
+      return
+    }
+    expectedServerStops.add(child)
+    const timeout = setTimeout(() => {
+      if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL')
+      reject(new Error(`${label} did not stop for the restart proof.`))
+    }, 15_000)
+    child.once('exit', () => {
+      clearTimeout(timeout)
+      resolve()
+    })
+    child.kill('SIGTERM')
+  })
 }
 
 async function fetchWithTimeout(url) {
@@ -313,6 +340,152 @@ async function waitForHttp(
   throw new Error(`${label} did not become ready at ${url}. ${lastError instanceof Error ? lastError.message : ''}`.trim())
 }
 
+function buildPrivateApiEnvironment() {
+  return {
+    NODE_ENV: 'development',
+    API_PORT: String(apiPort),
+    PORT: String(apiPort),
+    API_ALLOWED_CORS_ORIGINS: appBaseUrl,
+    E2E_RUNTIME_MODE: 'local',
+    API_ALLOW_MOCK_WITHOUT_SUPABASE: supabaseAuthMode ? 'false' : 'true',
+    API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE:
+      supabaseAuthMode ? 'true' : '',
+    STORAGE_MODE: 'local',
+    LOCAL_STORAGE_ROOT: path.resolve(repoRoot, localStorageRoot),
+    WORKER_RUNTIME_MODE:
+      privateReviewMode || supabaseAuthMode ? 'local' : 'mock',
+    REEDITPRO_DISABLE_DOTENV: 'true',
+    REEDITPRO_PRIVATE_WORKSPACE_HOST: '127.0.0.1',
+    REEDITPRO_PRIVATE_WORKSPACE_ENABLE_PRIVATE_REVIEW_RUNTIME:
+      privateReviewMode ? 'true' : '',
+    REEDITPRO_PRIVATE_WORKSPACE_ENABLE_DURABLE_UPLOAD_TARGET_RUNTIME:
+      supabaseAuthMode ? 'true' : '',
+    REEDITPRO_PRIVATE_WORKSPACE_UPLOAD_TARGET_SIGNING_SECRET:
+      canonicalV3Runtime?.jwtSecret ?? '',
+    REEDITPRO_PRIVATE_WORKSPACE_UPLOAD_TARGET_KEY_BASE64URL:
+      uploadTargetCredentialKey,
+    REEDITPRO_INTERNAL_SERVICE_TOKEN: internalServiceToken,
+    SUPABASE_URL: canonicalV3Runtime?.apiUrl ?? '',
+    SUPABASE_ANON_KEY: canonicalV3Runtime?.anonKey ?? '',
+    SUPABASE_SERVICE_ROLE_KEY: canonicalV3Runtime?.serviceRoleKey ?? '',
+    GOOGLE_CLOUD_PROJECT_ID: '',
+    GCS_SOURCE_MEDIA_BUCKET: '',
+  }
+}
+
+async function postPrivateApiJson(pathname, accessToken, idempotencyKey, body) {
+  const response = await fetch(`${apiBaseUrl}${pathname}`, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      authorization: `Bearer ${accessToken}`,
+      'content-type': 'application/json',
+      'idempotency-key': idempotencyKey,
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(30_000),
+  })
+  const envelope = await response.json().catch(() => null)
+  if (!response.ok || envelope?.ok !== true) {
+    throw new Error(
+      `Private API ${pathname} failed during restart proof with HTTP ${response.status}.`,
+    )
+  }
+  return envelope
+}
+
+async function verifyDurableUploadTargetApiRestart({
+  accessToken,
+  apiChild,
+  apiEnvironment,
+}) {
+  const projectEnvelope = await postPrivateApiJson(
+    '/v1/projects',
+    accessToken,
+    'canonical-upload-target-api-restart-project-key-v1',
+    {
+      workspaceId: canonicalV3User.workspaceId,
+      name: 'Canonical upload-target API restart proof',
+      description:
+        'Private loopback proof only; no object bytes, editing, rendering, credits, or delivery.',
+    },
+  )
+  const projectId = projectEnvelope?.data?.project?.id
+  if (typeof projectId !== 'string' || !projectId) {
+    throw new Error('Private API restart proof did not create a canonical project.')
+  }
+  const intentPath = `/v1/projects/${encodeURIComponent(projectId)}/upload-intents`
+  const intentBody = {
+    workspaceId: canonicalV3User.workspaceId,
+    chatSessionId: 'canonical-upload-target-api-restart-proof',
+    uploadPurpose: 'source_media',
+    originalFileName: 'restart-proof-source.mp4',
+    mimeType: 'video/mp4',
+    expectedSizeBytes: 1_024,
+  }
+  const intentKey = 'canonical-upload-target-api-restart-intent-key-v1'
+  const first = await postPrivateApiJson(
+    intentPath,
+    accessToken,
+    intentKey,
+    intentBody,
+  )
+  assertCanonicalTargetDisposition(first, 'issued')
+
+  await stopServerForRestart(apiChild, 'Private API')
+  const restartedApi = spawnServer(
+    'api-restarted',
+    ['run', 'dev:private-workspace:api'],
+    apiEnvironment,
+  )
+  await waitForHttp(`${apiBaseUrl}/health`, 'Restarted API')
+
+  const replay = await postPrivateApiJson(
+    intentPath,
+    accessToken,
+    intentKey,
+    intentBody,
+  )
+  assertCanonicalTargetDisposition(replay, 'recovered_exact_target')
+  if (
+    JSON.stringify(replay.data?.uploadIntent)
+      !== JSON.stringify(first.data?.uploadIntent)
+    || JSON.stringify(replay.data?.uploadTarget)
+      !== JSON.stringify(first.data?.uploadTarget)
+  ) {
+    throw new Error(
+      'The restarted private API did not recover the exact upload intent and temporary target.',
+    )
+  }
+  const uploadUrl = replay.data?.uploadTarget?.uploadUrl
+  if (
+    typeof uploadUrl !== 'string'
+    || !/^\/v1\/upload-intents\/[^/]+\/local-object\?workspaceId=[a-f0-9-]+$/u
+      .test(uploadUrl)
+  ) {
+    throw new Error(
+      'The restart proof did not recover the exact bounded local upload route.',
+    )
+  }
+  console.log(
+    'Canonical upload-target API restart proof passed: encrypted target recovery returned the exact prior local route without a second target issuance.',
+  )
+  return restartedApi
+}
+
+function assertCanonicalTargetDisposition(envelope, expectedDisposition) {
+  const warnings = Array.isArray(envelope?.warnings) ? envelope.warnings : []
+  if (
+    !warnings.includes(
+      `Canonical durable target disposition: ${expectedDisposition}.`,
+    )
+  ) {
+    throw new Error(
+      `Private API upload-target disposition was not ${expectedDisposition}.`,
+    )
+  }
+}
+
 function runPlaywright(fixturePath) {
   return new Promise((resolve, reject) => {
     const child = spawn(playwrightBin, [
@@ -338,6 +511,8 @@ function runPlaywright(fixturePath) {
         PLAYWRIGHT_REAL_LOCAL_API_IDENTITY_LABEL: canonicalV3User.displayName,
         PLAYWRIGHT_REAL_LOCAL_API_AUTH_EMAIL: canonicalV3User.email,
         PLAYWRIGHT_REAL_LOCAL_API_AUTH_PASSWORD: canonicalV3User.password,
+        PLAYWRIGHT_CANONICAL_DURABLE_UPLOAD_TARGET_EXPECTED:
+          supabaseAuthMode ? 'true' : 'false',
       },
       stdio: 'inherit',
     })
@@ -420,9 +595,10 @@ async function main() {
   }
 
   await cleanupRuntimeArtifacts()
+  let canonicalAccessToken
   if (supabaseAuthMode) {
     prepareCanonicalV3SupabaseAuth()
-    await verifyCanonicalV3PasswordAuthBoundary()
+    canonicalAccessToken = await verifyCanonicalV3PasswordAuthBoundary()
   }
   const playwrightFixturePath = await preparePlaywrightFixture()
 
@@ -441,32 +617,30 @@ async function main() {
       ? supabaseAuthMode
         ? 'Mode: real loopback Supabase password sign-in and verified bearer token + RLS workspace membership + active named-edit route + backend-private source upload + canonical plan/approval/work graph + confined private review. Project/media/execution persistence remains private local; no GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.'
         : 'Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval/work graph + confined private review. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.'
-      : 'Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval gates. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.',
+      : supabaseAuthMode
+        ? 'Mode: real loopback Supabase password sign-in + signed canonical project creation + authenticated RLS reads + encrypted restart-safe upload target + backend-private source upload + local canonical planning gates. No GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.'
+        : 'Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval gates. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.',
   )
 
-  spawnServer('api', ['run', 'dev:private-workspace:api'], {
-    NODE_ENV: 'development',
-    API_PORT: String(apiPort),
-    PORT: String(apiPort),
-    API_ALLOWED_CORS_ORIGINS: appBaseUrl,
-    E2E_RUNTIME_MODE: 'local',
-    API_ALLOW_MOCK_WITHOUT_SUPABASE: supabaseAuthMode ? 'false' : 'true',
-    API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE:
-      supabaseAuthMode ? 'true' : '',
-    STORAGE_MODE: 'local',
-    LOCAL_STORAGE_ROOT: path.resolve(repoRoot, localStorageRoot),
-    WORKER_RUNTIME_MODE: privateReviewMode ? 'local' : 'mock',
-    REEDITPRO_DISABLE_DOTENV: 'true',
-    REEDITPRO_PRIVATE_WORKSPACE_HOST: '127.0.0.1',
-    REEDITPRO_PRIVATE_WORKSPACE_ENABLE_PRIVATE_REVIEW_RUNTIME:
-      privateReviewMode ? 'true' : '',
-    REEDITPRO_INTERNAL_SERVICE_TOKEN: internalServiceToken,
-    SUPABASE_URL: canonicalV3Runtime?.apiUrl ?? '',
-    SUPABASE_ANON_KEY: canonicalV3Runtime?.anonKey ?? '',
-    SUPABASE_SERVICE_ROLE_KEY: canonicalV3Runtime?.serviceRoleKey ?? '',
-    GOOGLE_CLOUD_PROJECT_ID: '',
-    GCS_SOURCE_MEDIA_BUCKET: '',
-  })
+  const apiEnvironment = buildPrivateApiEnvironment()
+  const apiChild = spawnServer(
+    'api',
+    ['run', 'dev:private-workspace:api'],
+    apiEnvironment,
+  )
+  await waitForHttp(`${apiBaseUrl}/health`, 'API')
+  if (supabaseAuthMode) {
+    if (!canonicalAccessToken) {
+      throw new Error(
+        'Canonical upload-target API restart proof requires a verified user token.',
+      )
+    }
+    await verifyDurableUploadTargetApiRestart({
+      accessToken: canonicalAccessToken,
+      apiChild,
+      apiEnvironment,
+    })
+  }
 
   spawnServer('app', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(appPort), '--strictPort'], {
     VITE_REEDITPRO_API_BASE_URL: apiBaseUrl,
@@ -486,7 +660,6 @@ async function main() {
     VITE_REEDITPRO_API_MODE: 'frontend_safe',
   })
 
-  await waitForHttp(`${apiBaseUrl}/health`, 'API')
   await waitForHttp(`${appBaseUrl}/sign-in`, 'App')
   await runPlaywright(playwrightFixturePath)
   console.log(

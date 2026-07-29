@@ -53,6 +53,10 @@ export interface ReeditProApiAppOptions {
   planningExactEditPreferenceAuthorityPort?: RuntimeState['planningExactEditPreferenceAuthorityPort']
   canonicalDurableUploadTargetStatePort?: RuntimeState['canonicalDurableUploadTargetStatePort']
   canonicalUploadTargetCredentialEscrow?: RuntimeState['canonicalUploadTargetCredentialEscrow']
+  canonicalDurableUploadTargetRequestAuthorityFactory?:
+    RuntimeState['canonicalDurableUploadTargetRequestAuthorityFactory']
+  canonicalPrivateProjectRequestAuthorityFactory?:
+    RuntimeState['canonicalPrivateProjectRequestAuthorityFactory']
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
   canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
@@ -105,6 +109,18 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       : {}),
     ...(options.canonicalUploadTargetCredentialEscrow
       ? { canonicalUploadTargetCredentialEscrow: options.canonicalUploadTargetCredentialEscrow }
+      : {}),
+    ...(options.canonicalDurableUploadTargetRequestAuthorityFactory
+      ? {
+          canonicalDurableUploadTargetRequestAuthorityFactory:
+            options.canonicalDurableUploadTargetRequestAuthorityFactory,
+        }
+      : {}),
+    ...(options.canonicalPrivateProjectRequestAuthorityFactory
+      ? {
+          canonicalPrivateProjectRequestAuthorityFactory:
+            options.canonicalPrivateProjectRequestAuthorityFactory,
+        }
       : {}),
     ...(options.editReferenceStudyChatRuntimePort
       ? { editReferenceStudyChatRuntimePort: options.editReferenceStudyChatRuntimePort }

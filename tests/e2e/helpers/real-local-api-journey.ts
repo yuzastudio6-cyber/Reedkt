@@ -13,6 +13,8 @@ import {
 
 const usesSupabaseAuth =
   process.env.PLAYWRIGHT_REAL_LOCAL_API_AUTH_MODE === 'supabase'
+const expectsCanonicalDurableUploadTarget =
+  process.env.PLAYWRIGHT_CANONICAL_DURABLE_UPLOAD_TARGET_EXPECTED === 'true'
 const journeyUserId = usesSupabaseAuth
   ? requiredJourneyEnvironment('PLAYWRIGHT_REAL_LOCAL_API_USER_ID')
   : 'local-test-user'
@@ -179,6 +181,12 @@ export async function uploadActiveEditorSource(
 ): Promise<UploadedActiveSource> {
   const timeoutMs = input.timeoutMs ?? 120_000
   const fixtureFileName = basename(input.fixturePath)
+  const createIntentResponse = page.waitForResponse((response) => {
+    const url = new URL(response.url())
+    return response.request().method() === 'POST'
+      && url.pathname ===
+        `/v1/projects/${encodeURIComponent(input.edit.projectId)}/upload-intents`
+  }, { timeout: timeoutMs })
   const finalizeResponse = page.waitForResponse((response) => {
     const url = new URL(response.url())
     return response.request().method() === 'POST'
@@ -186,7 +194,21 @@ export async function uploadActiveEditorSource(
   }, { timeout: timeoutMs })
 
   await page.getByTestId('edit-upload-gate-input').setInputFiles(input.fixturePath)
-  const finalized = await finalizeResponse
+  const [created, finalized] = await Promise.all([
+    createIntentResponse,
+    finalizeResponse,
+  ])
+  expect(created.ok()).toBe(true)
+  const createdEnvelope = await created.json() as {
+    ok?: boolean
+    warnings?: string[]
+  }
+  expect(createdEnvelope.ok).toBe(true)
+  if (expectsCanonicalDurableUploadTarget) {
+    expect(createdEnvelope.warnings).toContain(
+      'Canonical durable target disposition: issued.',
+    )
+  }
   expect(finalized.ok()).toBe(true)
   const finalizedEnvelope = await finalized.json() as {
     ok?: boolean
@@ -281,7 +303,18 @@ export async function createAndApproveActivePlan(
 
   if (input.sourceAlreadyPrepared) {
     await expect(page.getByTestId('planning-preparation')).toContainText(/Ready to create the plan/i)
+    const sourceLedPlanPresentation = page.waitForResponse((response) => {
+      const request = response.request()
+      return request.method() === 'POST'
+        && /\/source-led-plan-presentations(?:\?|$)/.test(request.url())
+    }, { timeout: timeoutMs })
     await clickWhenReady(page.getByRole('button', { name: /^Create edit plan$/i }).first())
+    const sourceLedPlanPresentationResponse = await sourceLedPlanPresentation
+    if (!sourceLedPlanPresentationResponse.ok()) {
+      throw new Error(
+        `Canonical source-led plan presentation failed (${sourceLedPlanPresentationResponse.status()}): ${await sourceLedPlanPresentationResponse.text()}`,
+      )
+    }
     await expect(page.getByText(/Plan updated from your source assembly/i)).toBeVisible({
       timeout: timeoutMs,
     })
@@ -351,7 +384,7 @@ export async function createAndApproveActivePlan(
   return 'private_review_ready'
 }
 
-async function applySupportedSourceOnlyPreferences(page: Page): Promise<void> {
+export async function applySupportedSourceOnlyPreferences(page: Page): Promise<void> {
   await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
   const advancedPreferences = page.getByTestId(
     'current-edit-preferences-advanced',
@@ -376,9 +409,12 @@ async function applySupportedSourceOnlyPreferences(page: Page): Promise<void> {
   await clickWhenReady(page.getByTestId('edit-workspace-view-chat'))
 }
 
-async function prepareCurrentSourceLedEditBrief(
+export async function prepareCurrentSourceLedEditBrief(
   page: Page,
-  input: { timeoutMs: number },
+  input: {
+    timeoutMs: number
+    goal?: string
+  },
 ): Promise<void> {
   const route = new URL(page.url()).pathname.match(
     /^\/projects\/([^/]+)\/edits\/([^/]+)$/,
@@ -444,7 +480,8 @@ async function prepareCurrentSourceLedEditBrief(
   await workspace
     .getByTestId('edit-brief-goal-input')
     .fill(
-      'Preserve the complete source meaning and produce a restrained, professional private review.',
+      input.goal ??
+        'Preserve the complete source meaning and produce a restrained, professional private review.',
     )
   await page.waitForTimeout(900)
   await expect(authorityStatus).toContainText('Saved', {

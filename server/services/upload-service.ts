@@ -38,6 +38,11 @@ import type {
   PrivateUploadIntentAuthorityRecord,
 } from '../validation/private-upload-media-authority-schemas'
 import {
+  assertCanonicalDurableUploadTargetRequestAuthorityFactory,
+  assertCanonicalDurableUploadTargetRequestAuthorityPair,
+  type CanonicalDurableUploadTargetRequestAuthorityPair,
+} from '../upload-target-authority/canonical-durable-upload-target-request-factory'
+import {
   commitPrivateFinalizedUploadAuthority,
   createPrivateUploadIntentAuthority,
   loadPrivateFinalizedMediaAuthority,
@@ -986,22 +991,11 @@ async function resolveCanonicalTargetForUploadIntent(input: {
   now: string
   expectedProtocol: 'single_put' | 'gcs_resumable'
 }): Promise<ResolvedCanonicalUploadTarget | undefined> {
-  const port = input.context.canonicalDurableUploadTargetStatePort
-  const escrow = input.context.canonicalUploadTargetCredentialEscrow
-  if (!port && !escrow) return undefined
-  if (!port || !escrow) {
-    throw new ApiError(
-      'IDEMPOTENCY_ATOMICITY_REQUIRED',
-      'Durable upload-target state and credential escrow must be injected together.',
-      503,
-      { requiredGate: 'canonical_durable_upload_target_authority_pair' },
-    )
-  }
-  assertCanonicalDurableUploadTargetStatePort(port)
-  assertCanonicalUploadTargetCredentialEscrow(
-    escrow,
-    input.context.env.nodeEnv === 'production',
+  const authority = resolveCanonicalDurableUploadTargetRequestAuthority(
+    input.context,
   )
+  if (!authority) return undefined
+  const { statePort: port, credentialEscrow: escrow } = authority
   const idempotencyKey = input.input.idempotencyKey?.trim()
   if (!idempotencyKey) {
     throw new ApiError(
@@ -1560,23 +1554,10 @@ function assertCreateUploadIntentDomainIdempotencyAvailable(
   context: ServiceContext,
   idempotencyKey: string | undefined,
 ): void {
-  const port = context.canonicalDurableUploadTargetStatePort
-  const escrow = context.canonicalUploadTargetCredentialEscrow
-  if (Boolean(port) !== Boolean(escrow)) {
-    throw new ApiError(
-      'IDEMPOTENCY_ATOMICITY_REQUIRED',
-      'Durable upload-target state and credential escrow must be injected together.',
-      503,
-      { requiredGate: 'canonical_durable_upload_target_authority_pair' },
-    )
-  }
-  if (port && escrow) {
-    assertCanonicalDurableUploadTargetStatePort(port)
-    assertCanonicalUploadTargetCredentialEscrow(escrow, context.env.nodeEnv === 'production')
-  }
+  const authority = resolveCanonicalDurableUploadTargetRequestAuthority(context)
   if (usesLocalUploadPersistence(context)) return
-  if (port && escrow && idempotencyKey?.trim()) {
-    assertCanonicalDurableUploadTargetProductionAuthority(port)
+  if (authority && idempotencyKey?.trim()) {
+    assertCanonicalDurableUploadTargetProductionAuthority(authority.statePort)
     return
   }
   throw new ApiError(
@@ -1587,12 +1568,80 @@ function assertCreateUploadIntentDomainIdempotencyAvailable(
       requiredGate: 'create_upload_intent_atomic_idempotency_rpc',
       requiredAuthority: 'canonical_durable_upload_target_authority',
       idempotencyKeyPresent: Boolean(idempotencyKey?.trim()),
-      durableStatePortPresent: Boolean(port),
-      credentialEscrowPresent: Boolean(escrow),
+      durableStatePortPresent: Boolean(authority?.statePort),
+      credentialEscrowPresent: Boolean(authority?.credentialEscrow),
       temporaryCredentialReplayCacheAllowed: false,
       retryable: false,
     },
   )
+}
+
+function resolveCanonicalDurableUploadTargetRequestAuthority(
+  context: ServiceContext,
+): CanonicalDurableUploadTargetRequestAuthorityPair | undefined {
+  const statePort = context.canonicalDurableUploadTargetStatePort
+  const credentialEscrow = context.canonicalUploadTargetCredentialEscrow
+  const factory =
+    context.canonicalDurableUploadTargetRequestAuthorityFactory
+  const hasAnyStaticAuthority = Boolean(statePort || credentialEscrow)
+
+  if (factory && hasAnyStaticAuthority) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Static and request-scoped durable upload-target authorities cannot be combined.',
+      503,
+      {
+        requiredGate: 'single_canonical_durable_upload_target_authority',
+        targetSideEffectRetried: false,
+      },
+    )
+  }
+  if (Boolean(statePort) !== Boolean(credentialEscrow)) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Durable upload-target state and credential escrow must be injected together.',
+      503,
+      { requiredGate: 'canonical_durable_upload_target_authority_pair' },
+    )
+  }
+  if (statePort && credentialEscrow) {
+    assertCanonicalDurableUploadTargetStatePort(statePort)
+    assertCanonicalUploadTargetCredentialEscrow(
+      credentialEscrow,
+      context.env.nodeEnv === 'production',
+    )
+    return { statePort, credentialEscrow }
+  }
+  if (!factory) return undefined
+
+  assertCanonicalDurableUploadTargetRequestAuthorityFactory(factory)
+  const authenticatedAccessToken = context.auth?.accessToken
+  if (
+    context.auth?.isMockUser !== false
+    || !context.auth.userId.trim()
+    || !isBoundedAuthenticatedJwt(authenticatedAccessToken)
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Request-scoped durable upload-target authority requires a verified signed-in user token.',
+      503,
+      {
+        requiredGate: 'authenticated_request_scoped_upload_target_authority',
+        authenticatedUserAuthorityPresent: false,
+        targetSideEffectRetried: false,
+      },
+    )
+  }
+  const pair = factory.createForAuthenticatedRequest({
+    env: context.env,
+    authority: {
+      ownerUserId: context.auth.userId,
+      authenticatedAccessToken,
+      isMockUser: false,
+    },
+  })
+  assertCanonicalDurableUploadTargetRequestAuthorityPair(pair)
+  return pair
 }
 
 function getRequiredUploadAdminClient(context: ServiceContext): NonNullable<ServiceContext['clients']['admin']> {

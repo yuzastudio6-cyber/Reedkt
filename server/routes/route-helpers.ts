@@ -23,6 +23,7 @@ export function getServiceContext(request: Request): ServiceContext {
     clients: runtimeRequest.runtime.clients,
     requestId: runtimeRequest.context?.requestId ?? 'request-unknown',
     auth: runtimeRequest.context?.auth,
+    idempotency: runtimeRequest.context?.idempotency,
     storageAdapter: runtimeRequest.runtime.storageAdapter,
     planningPreferenceApplicationAuthorityPort:
       runtimeRequest.runtime.planningPreferenceApplicationAuthorityPort,
@@ -32,6 +33,10 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.canonicalDurableUploadTargetStatePort,
     canonicalUploadTargetCredentialEscrow:
       runtimeRequest.runtime.canonicalUploadTargetCredentialEscrow,
+    canonicalDurableUploadTargetRequestAuthorityFactory:
+      runtimeRequest.runtime.canonicalDurableUploadTargetRequestAuthorityFactory,
+    canonicalPrivateProjectRequestAuthorityFactory:
+      runtimeRequest.runtime.canonicalPrivateProjectRequestAuthorityFactory,
     editReferenceStudyChatRuntimePort:
       runtimeRequest.runtime.editReferenceStudyChatRuntimePort,
     canonicalMotionStudioStorytellingProductionAuthorityReaderPort:

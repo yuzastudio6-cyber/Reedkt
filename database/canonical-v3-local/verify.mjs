@@ -37,9 +37,11 @@ const expectedRepositoryFiles = [
   'docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-brief-target-source-verification-2026-07-21.md',
   'docs/canonical-v3-local-motion-studio-private-command-repository-verification-2026-07-24.md',
+  'docs/canonical-v3-local-private-project-authority-verification-2026-07-29.md',
   'docs/canonical-v3-local-target-understanding-package-persistence-verification-2026-07-21.md',
   'docs/edit-preferences-mounted-atomic-apply-recovery-2026-07-21.md',
   'package.json',
+  'scripts/dev/internal-testing-local-upload-e2e.mjs',
   'server/app.ts',
   'server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts',
   'server/distributed-media-ingest/canonical-distributed-media-ingest-source-registration.ts',
@@ -80,6 +82,8 @@ const expectedRepositoryFiles = [
   'server/motion-studio/commands/runtime-port.ts',
   'server/motion-studio/commands/service.ts',
   'server/motion-studio/commands/types.ts',
+  'server/private-workspace-index.ts',
+  'server/project-authority/canonical-private-project-request-authority.ts',
   'server/routes/edit-reference-target-video-understanding-routes.ts',
   'server/routes/exact-edit-preference-routes.ts',
   'server/routes/route-helpers.ts',
@@ -112,6 +116,7 @@ const expectedRepositoryFiles = [
   'server/smoke/canonical-distributed-pre-plan-study-state-rpc-adapter-smoke.ts',
   'server/smoke/canonical-durable-upload-target-local-postgres-smoke.ts',
   'server/smoke/canonical-planning-publication-frontend-client-smoke.ts',
+  'server/smoke/canonical-private-project-authority-local-postgres-smoke.ts',
   'server/smoke/canonical-private-tool-dispatch-authority-smoke.ts',
   'server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts',
   'server/smoke/canonical-professional-long-form-post-approval-smoke.ts',
@@ -135,6 +140,7 @@ const expectedRepositoryFiles = [
   'server/smoke/upload-boundary-security-smoke.ts',
   'server/types.ts',
   'server/upload-target-authority/canonical-durable-upload-target-local-supabase-http-rpc-client.ts',
+  'server/upload-target-authority/canonical-durable-upload-target-request-factory.ts',
   'server/upload-target-authority/canonical-durable-upload-target-state-rpc-adapter.ts',
   'server/upload-target-authority/canonical-upload-target-credential-envelope.ts',
   'server/upload-target-authority/canonical-upload-target-credential-escrow-local-supabase-http-rpc-client.ts',
@@ -167,9 +173,11 @@ const expectedRepositoryFiles = [
   'tests/e2e/edit-reference-canonical-real-file-flow.spec.ts',
   'tests/e2e/edit-reference-canonical-v3-local-browser.spec.ts',
   'tests/e2e/helpers/canonical-v3-edit-reference-apply-fixture.ts',
+  'tests/e2e/helpers/real-local-api-journey.ts',
   'tests/e2e/playwright.current-edit-preferences-atomic.config.ts',
   'tests/e2e/playwright.edit-reference-canonical-real-file.config.ts',
   'tests/e2e/playwright.edit-reference-canonical-v3-local.config.ts',
+  'tests/e2e/project-create-edit-upload-local-api.spec.ts',
 ]
 const actualRepositoryFiles = manifest.repositoryFiles
   .map((entry) => entry.path)
@@ -199,6 +207,7 @@ const expectedMigrations = [
   '202607210020_canonical_distributed_media_ingest_rpc.sql',
   '202607210021_canonical_durable_upload_target_rpc.sql',
   '202607210022_canonical_upload_target_credential_escrow_rpc.sql',
+  '202607210023_canonical_private_project_authority_rpc.sql',
 ]
 const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .filter((name) => name.endsWith('.sql'))
@@ -209,7 +218,7 @@ const expectedRecoveryDataTables = readFileSync(
   join(directory, 'expected-recovery-data-tables.txt'),
   'utf8',
 ).trim().split('\n')
-assert(expectedRecoveryDataTables.length === 61, 'recovery_table_count_invalid')
+assert(expectedRecoveryDataTables.length === 62, 'recovery_table_count_invalid')
 assert(
   equalArrays(expectedRecoveryDataTables, [...expectedRecoveryDataTables].sort()),
   'recovery_table_order_invalid',
@@ -255,7 +264,9 @@ for (const requiredToken of [
   'canonical-distributed-pre-plan-study-local-postgres-smoke.ts',
   'canonical-distributed-media-ingest-local-postgres-smoke.ts',
   'canonical-durable-upload-target-local-postgres-smoke.ts',
+  'canonical-private-project-authority-local-postgres-smoke.ts',
   '016_canonical_upload_target_credential_escrow_rpc_postconditions.sql',
+  '017_canonical_private_project_authority_rpc_postconditions.sql',
   '127.0.0.1:57431',
 ]) assert(recoveryRunner.includes(requiredToken), `recovery_runner_contract_missing:${requiredToken}`)
 for (const forbiddenPattern of [
@@ -324,6 +335,7 @@ for (const requiredToken of [
   'canonical_upload_target_audit_events',
   'canonical_upload_target_credential_escrow',
   'canonical_upload_target_credential_escrow_audit_events',
+  'canonical_private_project_idempotency_receipts',
   'reeditpro_resolve_upload_intent_v1',
   'reeditpro_claim_upload_target_v1',
   'reeditpro_commit_upload_target_v1',
@@ -332,6 +344,8 @@ for (const requiredToken of [
   'reeditpro_put_upload_target_credential_envelope_v1',
   'reeditpro_read_upload_target_credential_envelope_v1',
   'reeditpro_delete_upload_target_credential_envelope_v1',
+  'reeditpro_create_private_project_v1',
+  'reeditpro_assert_local_project_authority_v1',
   'reeditpro_register_pre_plan_source_v1',
   'exact_edit_brief_versions',
   'reeditpro_save_exact_edit_brief_v1',

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { createHmac } from 'node:crypto'
 
+import { loadRuntimeEnv } from '../config/env'
 import { ApiError } from '../errors/api-error'
 import type { UploadTarget } from '../storage/storage-types'
 import {
@@ -31,10 +32,18 @@ import {
   createCanonicalUploadTargetCredentialEscrowLocalPostgresAdapter,
   createCanonicalUploadTargetCredentialEscrowLocalPostgresCapability,
 } from '../upload-target-authority/canonical-upload-target-credential-escrow-rpc-adapter'
+import {
+  assertCanonicalDurableUploadTargetRequestAuthorityFactory,
+  assertCanonicalDurableUploadTargetRequestAuthorityPair,
+  createCanonicalDurableUploadTargetLocalRequestAuthorityFactory,
+} from '../upload-target-authority/canonical-durable-upload-target-request-factory'
 
 const endpointOrigin = requiredEnvironment('REEDITPRO_CANONICAL_V3_API_URL')
 const anonKey = requiredEnvironment('REEDITPRO_CANONICAL_V3_ANON_KEY')
 const jwtSecret = requiredEnvironment('REEDITPRO_CANONICAL_V3_JWT_SECRET')
+const serviceRoleKey = requiredEnvironment(
+  'REEDITPRO_CANONICAL_V3_SERVICE_ROLE_KEY',
+)
 assert.equal(endpointOrigin, 'http://127.0.0.1:57431')
 
 const ownerA = '11111111-1111-4111-8111-111111111111'
@@ -50,6 +59,17 @@ const localEscrowKeyMaterial = Buffer.from(
   'hex',
 )
 let escrowClock = createdAt
+const localRuntimeEnv = loadRuntimeEnv({
+  NODE_ENV: 'test',
+  E2E_RUNTIME_MODE: 'local',
+  API_ALLOW_MOCK_WITHOUT_SUPABASE: 'false',
+  API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE: 'true',
+  STORAGE_MODE: 'local',
+  WORKER_RUNTIME_MODE: 'local',
+  SUPABASE_URL: endpointOrigin,
+  SUPABASE_ANON_KEY: anonKey,
+  SUPABASE_SERVICE_ROLE_KEY: serviceRoleKey,
+})
 
 const clientA = createClient(ownerA, jwtSecret)
 const clientB = createClient(ownerB, jwtSecret)
@@ -110,6 +130,45 @@ function createEscrow(
 const authorityA = createPort(clientA)
 const authorityB = createPort(clientB)
 const encryptedEscrowA = createEscrow(ownerA, jwtSecret)
+const requestFactoryA = createRequestFactory(
+  ownerA,
+  localEscrowKeyMaterial,
+)
+assertCanonicalDurableUploadTargetRequestAuthorityFactory(requestFactoryA)
+assert.throws(
+  () => assertCanonicalDurableUploadTargetRequestAuthorityFactory(
+    { ...requestFactoryA },
+  ),
+  isAtomicityError,
+)
+const factoryRequestAuthorityA = requestFactoryA.createForAuthenticatedRequest({
+  env: localRuntimeEnv,
+  authority: {
+    ownerUserId: ownerA,
+    authenticatedAccessToken: createLocalAuthenticatedJwt(ownerA, jwtSecret),
+    isMockUser: false,
+  },
+})
+assertCanonicalDurableUploadTargetRequestAuthorityPair(
+  factoryRequestAuthorityA,
+)
+const factoryRequestAuthorityB = createRequestFactory(
+  ownerB,
+  localEscrowKeyMaterial,
+).createForAuthenticatedRequest({
+  env: localRuntimeEnv,
+  authority: {
+    ownerUserId: ownerB,
+    authenticatedAccessToken: createLocalAuthenticatedJwt(ownerB, jwtSecret),
+    isMockUser: false,
+  },
+})
+await assert.rejects(
+  () => factoryRequestAuthorityB.statePort.resolveIntent(
+    resolveRequest(candidateFor('request-owner-swap'), 'owner-swap-key-0000000001'),
+  ),
+  isAtomicityError,
+)
 assert.equal(authorityA.port.descriptor.databaseBackend, 'postgres')
 assert.equal(authorityA.port.descriptor.serializableIntentAndIssuanceTransactionsVerified, true)
 assert.equal(authorityA.port.descriptor.durableIdempotencyResponseAssociationVerified, true)
@@ -193,14 +252,17 @@ const createTarget = async (): Promise<UploadTarget> => {
   return targetFor(successCandidate)
 }
 const first = await resolveCanonicalUploadIntentAndTarget({
-  port: authorityA.port,
-  escrow,
+  port: factoryRequestAuthorityA.statePort,
+  escrow: factoryRequestAuthorityA.credentialEscrow,
   candidate: successCandidate,
   idempotencyKey: 'upload-target-success-domain-key-0001',
   authorizationEvidenceHash,
-  expectedProtocol: 'gcs_resumable',
+  expectedProtocol: 'single_put',
   now: createdAt,
-  createTarget,
+  createTarget: async () => {
+    targetCreationCount += 1
+    return localTargetFor(successCandidate)
+  },
 })
 assert.equal(first.disposition, 'issued')
 assert.equal(first.intent.state, 'target_issued')
@@ -209,13 +271,24 @@ assert.equal(targetCreationCount, 1)
 
 const restartedAuthorityA = createPort(createClient(ownerA, jwtSecret))
 const restartedEncryptedEscrowA = createEscrow(ownerA, jwtSecret)
+const restartedFactoryRequestAuthorityA = createRequestFactory(
+  ownerA,
+  localEscrowKeyMaterial,
+).createForAuthenticatedRequest({
+  env: localRuntimeEnv,
+  authority: {
+    ownerUserId: ownerA,
+    authenticatedAccessToken: createLocalAuthenticatedJwt(ownerA, jwtSecret),
+    isMockUser: false,
+  },
+})
 const replay = await resolveCanonicalUploadIntentAndTarget({
-  port: restartedAuthorityA.port,
-  escrow: restartedEncryptedEscrowA.escrow,
+  port: restartedFactoryRequestAuthorityA.statePort,
+  escrow: restartedFactoryRequestAuthorityA.credentialEscrow,
   candidate: successCandidate,
   idempotencyKey: 'upload-target-success-domain-key-0001',
   authorizationEvidenceHash,
-  expectedProtocol: 'gcs_resumable',
+  expectedProtocol: 'single_put',
   now: createdAt,
   createTarget,
 })
@@ -228,13 +301,14 @@ const successEscrowIdentity = {
   uploadIntentId: first.intent.uploadIntentId,
   attemptId: first.issuanceAttemptId,
 }
-await restartedEncryptedEscrowA.escrow.put({
+await restartedFactoryRequestAuthorityA.credentialEscrow.put({
   ...successEscrowIdentity,
   target: first.target,
   credentialDigestSha256: credentialDigest(first.target),
   expiresAt: first.target.expiresAt,
 })
-const exactEscrowReplay = await restartedEncryptedEscrowA.escrow.read(
+const exactEscrowReplay =
+  await restartedFactoryRequestAuthorityA.credentialEscrow.read(
   successEscrowIdentity,
 )
 assert.equal(exactEscrowReplay?.uploadUrl, first.target.uploadUrl)
@@ -363,6 +437,8 @@ console.log(JSON.stringify({
   schemaVersion: 'canonical-durable-upload-target-local-postgres-proof-v2',
   concurrentExactReplayVerified: true,
   restartReadAndExactTargetReplayVerified: true,
+  requestScopedAuthenticatedAuthorityVerified: true,
+  exactLocalUploadRouteCredentialRecoveredAfterRestart: true,
   restartEncryptedCredentialRecoveryVerified: true,
   envelopeEncryptedCredentialPersistenceVerified: true,
   exactEncryptedEnvelopePutReplayVerified: true,
@@ -389,6 +465,20 @@ function createClient(ownerUserId: string, signingSecret: string) {
     anonKey,
     authenticatedAccessToken: createLocalAuthenticatedJwt(ownerUserId, jwtSecret),
     localInternalSigningSecret: signingSecret,
+  })
+}
+
+function createRequestFactory(
+  ownerUserId: string,
+  keyMaterial: Uint8Array,
+) {
+  return createCanonicalDurableUploadTargetLocalRequestAuthorityFactory({
+    endpointOrigin,
+    anonKey,
+    localInternalSigningSecret: jwtSecret,
+    localCredentialKeyVersionId:
+      `local_upload_target_key_${ownerUserId}`,
+    localCredentialKeyMaterial: keyMaterial,
   })
 }
 
@@ -448,6 +538,27 @@ function targetFor(candidate: ReturnType<typeof candidateFor>): UploadTarget {
     uploadProtocol: 'gcs_resumable',
     supportsResume: true,
     recommendedChunkSizeBytes: 8 * 1024 * 1024,
+    sessionUriIsCredential: true,
+  }
+}
+
+function localTargetFor(
+  candidate: ReturnType<typeof candidateFor>,
+): UploadTarget {
+  return {
+    uploadMethod: 'PUT',
+    uploadUrl:
+      `/v1/upload-intents/${candidate.uploadIntentId}/local-object`
+      + `?workspaceId=${candidate.workspaceId}`,
+    uploadHeaders: { 'content-type': candidate.mimeType },
+    expiresAt: candidate.expiresAt,
+    bucketName: candidate.targetBucket,
+    objectPath: candidate.targetPath,
+    temporary: true,
+    createOnly: true,
+    uploadProtocol: 'single_put',
+    supportsResume: false,
+    recommendedChunkSizeBytes: undefined,
     sessionUriIsCredential: true,
   }
 }

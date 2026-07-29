@@ -27,6 +27,12 @@ import type {
   CanonicalUploadTargetCredentialEscrow,
 } from './upload-target-authority/canonical-durable-upload-target-authority'
 import type {
+  CanonicalDurableUploadTargetRequestAuthorityFactory,
+} from './upload-target-authority/canonical-durable-upload-target-request-factory'
+import type {
+  CanonicalPrivateProjectRequestAuthorityFactory,
+} from './project-authority/canonical-private-project-request-authority'
+import type {
   MotionStudioCommandRepositoryRuntimePort,
 } from './motion-studio/commands/runtime-port'
 import type {
@@ -83,6 +89,10 @@ export interface RuntimeState {
   planningExactEditPreferenceAuthorityPort?: PlanningExactEditPreferenceAuthorityPort
   canonicalDurableUploadTargetStatePort?: CanonicalDurableUploadTargetTransactionAdapter
   canonicalUploadTargetCredentialEscrow?: CanonicalUploadTargetCredentialEscrow
+  canonicalDurableUploadTargetRequestAuthorityFactory?:
+    CanonicalDurableUploadTargetRequestAuthorityFactory
+  canonicalPrivateProjectRequestAuthorityFactory?:
+    CanonicalPrivateProjectRequestAuthorityFactory
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
   canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
@@ -125,11 +135,16 @@ export interface ServiceContext {
   clients: RuntimeClients
   requestId: string
   auth?: AuthContext
+  idempotency?: IdempotencyContext
   storageAdapter?: StorageAdapter
   planningPreferenceApplicationAuthorityPort?: PlanningPreferenceApplicationAuthorityPort
   planningExactEditPreferenceAuthorityPort?: PlanningExactEditPreferenceAuthorityPort
   canonicalDurableUploadTargetStatePort?: CanonicalDurableUploadTargetTransactionAdapter
   canonicalUploadTargetCredentialEscrow?: CanonicalUploadTargetCredentialEscrow
+  canonicalDurableUploadTargetRequestAuthorityFactory?:
+    CanonicalDurableUploadTargetRequestAuthorityFactory
+  canonicalPrivateProjectRequestAuthorityFactory?:
+    CanonicalPrivateProjectRequestAuthorityFactory
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
   canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort

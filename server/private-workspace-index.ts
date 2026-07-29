@@ -15,11 +15,23 @@ const [
   { assertRuntimeCanStart, loadRuntimeEnv },
   { createEditBriefPrivateWorkspaceRuntimePort },
   { createEditReferencePrivateWorkspaceExactEditApplyRuntimePort },
+  {
+    createCanonicalDurableUploadTargetLocalRequestAuthorityFactory,
+  },
+  {
+    createCanonicalPrivateProjectLocalRequestAuthorityFactory,
+  },
 ] = await Promise.all([
   import('./app'),
   import('./config/env'),
   import('./services/edit-brief-private-workspace-runtime-port'),
   import('./services/edit-reference-exact-edit-apply-runtime-port'),
+  import(
+    './upload-target-authority/canonical-durable-upload-target-request-factory'
+  ),
+  import(
+    './project-authority/canonical-private-project-request-authority'
+  ),
 ])
 
 const env = loadRuntimeEnv()
@@ -68,6 +80,28 @@ if (privateReviewRuntimeEnabled) {
   await activatePrivateReviewRuntimes()
 }
 
+const durableUploadTargetRuntimeEnabled =
+  process.env
+    .REEDITPRO_PRIVATE_WORKSPACE_ENABLE_DURABLE_UPLOAD_TARGET_RUNTIME
+    === 'true'
+if (
+  process.env
+    .REEDITPRO_PRIVATE_WORKSPACE_ENABLE_DURABLE_UPLOAD_TARGET_RUNTIME
+  && !durableUploadTargetRuntimeEnabled
+) {
+  throw new Error(
+    'The private workspace durable upload-target runtime flag must be exactly "true" when provided.',
+  )
+}
+const durableUploadTargetRequestAuthorityFactory =
+  durableUploadTargetRuntimeEnabled
+    ? createDurableUploadTargetRequestAuthorityFactory()
+    : undefined
+const canonicalPrivateProjectRequestAuthorityFactory =
+  durableUploadTargetRuntimeEnabled
+    ? createPrivateProjectRequestAuthorityFactory()
+    : undefined
+
 const app = createReeditProApiApp(env, {
   editBriefPrivateWorkspaceRuntimePort:
     createEditBriefPrivateWorkspaceRuntimePort(),
@@ -75,6 +109,17 @@ const app = createReeditProApiApp(env, {
     createEditReferencePrivateWorkspaceExactEditApplyRuntimePort({
       localStorageRoot: env.localStorageRoot,
     }),
+  ...(durableUploadTargetRequestAuthorityFactory
+    ? {
+        canonicalDurableUploadTargetRequestAuthorityFactory:
+          durableUploadTargetRequestAuthorityFactory,
+      }
+    : {}),
+  ...(canonicalPrivateProjectRequestAuthorityFactory
+    ? {
+        canonicalPrivateProjectRequestAuthorityFactory,
+      }
+    : {}),
 })
 app.listen(env.apiPort, host, () => {
   console.log(`ReeditPro private API listening on http://${formatHost(host)}:${env.apiPort}.`)
@@ -86,6 +131,16 @@ app.listen(env.apiPort, host, () => {
   if (privateReviewRuntimeEnabled) {
     console.log(
       'Canonical private-review execution is active for this loopback-only process.',
+    )
+  }
+  if (durableUploadTargetRequestAuthorityFactory) {
+    console.log(
+      'Encrypted restart-safe canonical upload-target recovery is active for this loopback-only process.',
+    )
+  }
+  if (canonicalPrivateProjectRequestAuthorityFactory) {
+    console.log(
+      'Signed canonical project creation and authenticated RLS reads are active for this loopback-only process.',
     )
   }
 })
@@ -100,6 +155,88 @@ function normalizeLoopbackHost(value: string | undefined): '127.0.0.1' | 'localh
 
 function formatHost(value: string): string {
   return value === '::1' ? '[::1]' : value
+}
+
+function createDurableUploadTargetRequestAuthorityFactory() {
+  if (
+    !canonicalLoopbackSupabaseBoundarySatisfied
+    || env.supabaseUrl !== 'http://127.0.0.1:57431'
+    || !env.supabaseAnonKey
+  ) {
+    throw new Error(
+      'The private workspace durable upload-target runtime requires the canonical loopback Supabase boundary.',
+    )
+  }
+  const signingSecret =
+    process.env
+      .REEDITPRO_PRIVATE_WORKSPACE_UPLOAD_TARGET_SIGNING_SECRET
+      ?.trim()
+  if (!signingSecret || Buffer.byteLength(signingSecret, 'utf8') < 32) {
+    throw new Error(
+      'The private workspace durable upload-target runtime requires its server-only local signing secret.',
+    )
+  }
+  const keyMaterial = decodeExactBase64UrlKey(
+    process.env.REEDITPRO_PRIVATE_WORKSPACE_UPLOAD_TARGET_KEY_BASE64URL,
+  )
+  try {
+    return createCanonicalDurableUploadTargetLocalRequestAuthorityFactory({
+      endpointOrigin: env.supabaseUrl,
+      anonKey: env.supabaseAnonKey,
+      localInternalSigningSecret: signingSecret,
+      localCredentialKeyVersionId:
+        'private_workspace_upload_target_key_v1',
+      localCredentialKeyMaterial: keyMaterial,
+    })
+  } finally {
+    keyMaterial.fill(0)
+  }
+}
+
+function createPrivateProjectRequestAuthorityFactory() {
+  if (
+    !canonicalLoopbackSupabaseBoundarySatisfied
+    || env.supabaseUrl !== 'http://127.0.0.1:57431'
+    || !env.supabaseAnonKey
+  ) {
+    throw new Error(
+      'The private workspace project authority requires the canonical loopback Supabase boundary.',
+    )
+  }
+  const signingSecret =
+    process.env
+      .REEDITPRO_PRIVATE_WORKSPACE_UPLOAD_TARGET_SIGNING_SECRET
+      ?.trim()
+  if (!signingSecret || Buffer.byteLength(signingSecret, 'utf8') < 32) {
+    throw new Error(
+      'The private workspace project authority requires its server-only local signing secret.',
+    )
+  }
+  return createCanonicalPrivateProjectLocalRequestAuthorityFactory({
+    endpointOrigin: env.supabaseUrl,
+    anonKey: env.supabaseAnonKey,
+    localInternalSigningSecret: signingSecret,
+  })
+}
+
+function decodeExactBase64UrlKey(value: string | undefined): Buffer {
+  const normalized = value?.trim()
+  if (!normalized || !/^[A-Za-z0-9_-]{43}$/u.test(normalized)) {
+    throw new Error(
+      'The private workspace durable upload-target key must be one exact unpadded 32-byte base64url value.',
+    )
+  }
+  const decoded = Buffer.from(normalized, 'base64url')
+  if (
+    decoded.byteLength !== 32
+    || decoded.toString('base64url') !== normalized
+  ) {
+    decoded.fill(0)
+    throw new Error(
+      'The private workspace durable upload-target key material is invalid.',
+    )
+  }
+  return decoded
 }
 
 async function activatePrivateReviewRuntimes(): Promise<void> {

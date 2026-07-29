@@ -2613,6 +2613,15 @@ tool/operation admission, model mounts, dispatch, output persistence, cost,
 QA, and private review remain owned by their existing authorities. See
 `docs/living-frame/living-frame-controlled-sdxl-comfyui-runtime.md`.
 
+The source-controlled package closure is now explicit under
+`docker/prod/gpu-worker/comfyui/`. Its 35 hash-pinned wheel declarations and
+three exact source-archive identities are revalidated against the existing
+dependency-lock evidence by a server-only source contract. The closure does
+not include the 486 MB wheelhouse or source archives in Git, does not download
+them at runtime, and does not mutate the shared GPU image or operation router.
+Those files are build inputs for the later canonical, scan-and-sign-qualified
+image slice—not evidence that the image was built or that a GPU attempt ran.
+
 ### Private GPU output observation and opaque-source boundary
 
 `living-frame-controlled-sdxl-gpu-output-observation-v1` adds the next

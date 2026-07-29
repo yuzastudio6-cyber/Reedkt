@@ -67,6 +67,24 @@ closed authority flags. The fixed private subprocess remains unqualified until
 the pinned source and wheel closure is actually packaged into the shared GPU
 image and the L4 qualification gates pass.
 
+## Offline package source closure
+
+The repository now contains the source-controlled package inputs for that
+future image under `docker/prod/gpu-worker/comfyui/`:
+
+- an exact 35-entry, hash-pinned Linux wheel requirement lock;
+- an exact three-archive provenance lock for ComfyUI, the generic IP-Adapter
+  extension, and ControlNet auxiliary extension;
+- an explicit offline build and runtime boundary.
+
+A server-side source contract rereads those files, compares every wheel and
+source observation with the existing dependency-lock evidence, binds the fixed
+process-supervisor digest, and keeps image build, scan, signature, router
+admission, mounts, GPU execution, actual cost, customer credits, and production
+authority closed. Wheel binaries and source archives remain outside Git and
+must enter the future clean build only through a reviewed canonical build-input
+authority.
+
 ## Cost behavior
 
 - completed, failed, and outcome-unknown attempts remain distinct terminal

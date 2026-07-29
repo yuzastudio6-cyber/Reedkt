@@ -1,0 +1,76 @@
+# Controlled ComfyUI GPU package inputs
+
+This directory defines the source-controlled portion of the offline ComfyUI
+package used by Living Frame controlled illustration. It does not contain
+model weights, source archives, wheel binaries, credentials, or a runtime
+download path.
+
+The package represents one GPU-hosted operation:
+
+`tool.comfyui.generate_controlled_image.v1`
+
+That operation may use five capabilities during the same attempt:
+
+1. ComfyUI host execution.
+2. ControlNet auxiliary preprocessing.
+3. ControlNet conditioning.
+4. Generic IP-Adapter conditioning.
+5. PEFT/LoRA loading.
+
+They are capabilities inside one GPU attempt, not six new tool identities and
+not five separately billed attempts. AuraFace is excluded and remains an
+optional, separately metered CPU continuity check.
+
+## Offline build inputs
+
+The future canonical image build must receive, through a reviewed build-input
+authority:
+
+- the exact 35 Linux `amd64` wheel files listed by
+  `requirements.lock.txt`;
+- the exact ComfyUI source archive declared by `source-provenance.lock`;
+- the exact generic IP-Adapter extension source archive;
+- the exact ControlNet auxiliary extension source archive.
+
+The wheelhouse installation must use all of:
+
+```text
+--no-index
+--no-deps
+--require-hashes
+```
+
+Repository metadata is excluded. The runtime must not use `pip`, Git, model
+hubs, package indexes, or network downloads.
+
+## Runtime boundary
+
+The server-side process supervisor owns the fixed executable, source root,
+loopback address, port, private input/model locations, custom-node allowlist,
+CUDA device, startup deadline, bounded logs, and cleanup. Callers cannot
+override commands, arguments, environment variables, paths, URLs, endpoints,
+credentials, model locations, custom nodes, or download policy.
+
+The model artifacts are not baked into this directory. They must be supplied
+through the canonical checksum-verified, read-only model-artifact mount
+authority. The generated result is opaque PNG only; transparency requires the
+existing segmentation/matting, edge-decontamination, alpha-QA, destination
+composite, asset-manifest, and private-review chain.
+
+## Closed gates
+
+These source files do not authorize:
+
+- installation into the shared GPU image;
+- a canonical operation-router entry;
+- cloud dispatch or a GPU attempt;
+- model-artifact ingest or mounting;
+- provider calls;
+- actual-cost or customer-credit records;
+- output persistence or asset-manifest mutation;
+- QA approval, rendering, delivery, or production use.
+
+The image still requires a clean pinned build, vulnerability scan, signature,
+L4 startup and generation benchmarks, exact model compatibility checks,
+license review, official resource-cost evidence, and canonical private
+end-to-end review.

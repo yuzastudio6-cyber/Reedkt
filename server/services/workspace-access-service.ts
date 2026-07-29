@@ -36,9 +36,14 @@ export async function authorizeWorkspaceAccess(
     throw new ApiError('AUTH_INVALID', 'Workspace access requires a verified bearer-authenticated user.', 401)
   }
 
-  const membership = shouldReadLegacyInjectedMembershipFixture(context)
+  const legacyMembership = shouldReadLegacyInjectedMembershipFixture(context)
     ? await readLegacyInjectedMembershipFixture(context, workspaceId, userId)
-    : await readAuthenticatedWorkspaceMembership(context, workspaceId, userId)
+    : undefined
+  const membership = legacyMembership?.status === 'found'
+    ? legacyMembership.membership
+    : legacyMembership?.status === 'not_found'
+      ? undefined
+      : await readAuthenticatedWorkspaceMembership(context, workspaceId, userId)
   if (!membership) {
     throw new ApiError('WORKSPACE_ACCESS_DENIED', 'The authenticated user is not a verified member of this workspace.', 403)
   }
@@ -143,17 +148,40 @@ async function readLegacyInjectedMembershipFixture(
   context: ServiceContext,
   workspaceId: string,
   userId: string,
-): Promise<{ workspace_id?: unknown; user_id?: unknown; role?: unknown } | undefined> {
+): Promise<
+  | {
+      status: 'found'
+      membership: {
+        workspace_id?: unknown
+        user_id?: unknown
+        role?: unknown
+      }
+    }
+  | { status: 'not_found' }
+  | { status: 'unavailable' }
+> {
   const adminClient = context.clients.admin
-  if (!adminClient) return undefined
-  const { data, error } = await adminClient
-    .from('workspace_members')
-    .select('workspace_id, user_id, role')
-    .eq('workspace_id', workspaceId)
-    .eq('user_id', userId)
-    .maybeSingle()
-  if (error || !data) return undefined
-  return data as { workspace_id?: unknown; user_id?: unknown; role?: unknown }
+  if (!adminClient) return { status: 'unavailable' }
+  try {
+    const { data, error } = await adminClient
+      .from('workspace_members')
+      .select('workspace_id, user_id, role')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (error) return { status: 'unavailable' }
+    if (!data) return { status: 'not_found' }
+    return {
+      status: 'found',
+      membership: data as {
+        workspace_id?: unknown
+        user_id?: unknown
+        role?: unknown
+      },
+    }
+  } catch {
+    return { status: 'unavailable' }
+  }
 }
 
 async function readAuthenticatedWorkspaceMembership(

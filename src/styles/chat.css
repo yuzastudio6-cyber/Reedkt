@@ -2416,6 +2416,17 @@
   opacity: 0.66;
 }
 
+.canonical-private-review-revision-help {
+  color: var(--rp-text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.55;
+  margin: calc(var(--rp-space-1) * -1) 0 0;
+}
+
+.canonical-private-review-revision-help[data-status='invalid'] {
+  color: var(--rp-text-danger, #ffb4ab);
+}
+
 .canonical-private-review-decision-actions {
   display: flex;
   flex-wrap: wrap;

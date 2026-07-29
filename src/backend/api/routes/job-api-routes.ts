@@ -148,6 +148,27 @@ const RAW_JOB_API_ROUTES: ApiRouteDefinition[] = [
     ],
   },
   {
+    id: 'editExecution.canonicalPrivateAcceptedFinalArtifact.read',
+    domain: 'jobs',
+    method: 'GET',
+    path: '/v1/edit-executions/private-review-assemblies/:reviewAssemblyId/accepted-final-artifact',
+    description:
+      'Download the exact final MP4 only after its immutable private review has been accepted.',
+    securityLevel: 'workspace_member',
+    runtimeMode: 'frontend_safe',
+    status: 'frontend_safe_ready',
+    requiresSupabase: false,
+    requiresServiceRole: false,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'readCanonicalPrivateAcceptedFinalArtifact',
+    notes: [
+      'The route reopens the exact review assembly, accepted decision manifest, approved snapshot, passed final QA, and final artifact bytes before streaming.',
+      'The browser supplies no artifact, job, storage, filesystem, tool, provider, or renderer identity; all such authority is resolved server-side from the accepted review.',
+      'The response is authenticated, private, no-store, and checksum-bound. It creates no public URL, billing mutation, settlement, or deployment authority.',
+    ],
+  },
+  {
     id: 'editExecution.professionalLongFormCustomerDeliveryDiscovery.read',
     domain: 'jobs',
     method: 'GET',

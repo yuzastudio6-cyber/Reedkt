@@ -7,9 +7,12 @@ import {
 } from '../security/private-local-persistence'
 import type { ServiceContext } from '../types'
 import {
+  canonicalPrivateReviewDecisionManifestSchema,
   canonicalPrivateReviewDecisionResponseSchema,
   recordCanonicalPrivateReviewDecisionSchema,
+  type CanonicalPrivateReviewDecisionManifest,
   type CanonicalPrivateReviewDecisionResponse,
+  type CanonicalPrivateRevisionIntent,
   type RecordCanonicalPrivateReviewDecisionBody,
 } from '../validation/canonical-private-review-decision-schemas'
 import { findApprovedSnapshotSecretLikePaths } from './approved-snapshot-validation'
@@ -39,22 +42,37 @@ export function createCanonicalPrivateReviewDecisionService(context: ServiceCont
       reviewAssemblyId: string
       workspaceId: string
     }): Promise<CanonicalPrivateReviewDecisionResponse> {
-      if (!safeIdentity(input.reviewAssemblyId) || !safeIdentity(input.workspaceId)) {
-        throw new ApiError('VALIDATION_FAILED', 'Canonical private-review decision identity validation failed.', 400)
+      return (await loadCompletedDecision(context, input)).response
+    },
+
+    async getCompletedRevision(input: {
+      reviewAssemblyId: string
+      workspaceId: string
+    }): Promise<{
+      decision: CanonicalPrivateReviewDecisionResponse
+      revisionIntent: CanonicalPrivateRevisionIntent
+    }> {
+      const completed = await loadCompletedDecision(context, input)
+      if (
+        completed.response.decision !== 'request_revision' ||
+        completed.response.status !== 'canonical_revision_requested' ||
+        !completed.response.revisionHandoff ||
+        completed.manifest.decision !== 'request_revision' ||
+        !completed.manifest.revisionIntent ||
+        !completed.manifest.revisionHandoff ||
+        sha256AuthorityValue(completed.manifest.revisionIntent) !==
+          completed.response.revisionHandoff.revisionIntentHash ||
+        completed.manifest.revisionHandoff.revisionIntentHash !==
+          completed.response.revisionHandoff.revisionIntentHash
+      ) {
+        throw blocked(
+          'Canonical private-review revision intent is missing or no longer matches its exact decision.',
+        )
       }
-      const actorUserId = getRequiredAuthUserId(context)
-      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'read')
-      if (access.userId !== actorUserId) throw blocked('Private-review decision actor is outside this workspace.')
-      const scopeHash = sha256(`${actorUserId}\u0000${access.workspaceId}`).slice(0, 32)
-      const assemblyHash = sha256(`${scopeHash}\u0000${input.reviewAssemblyId}`)
-      const completionPath = `${STORAGE_PREFIX}/${scopeHash}/assemblies/${assemblyHash}.json`
-      const manifestPath = `${STORAGE_PREFIX}/${scopeHash}/manifests/${assemblyHash}.json`
-      const completed = await readPersistedDecision(context, completionPath)
-      if (!completed || completed.identity.reviewAssemblyId !== input.reviewAssemblyId) {
-        throw blocked('Canonical private-review decision has not completed for this assembly.')
+      return {
+        decision: completed.response,
+        revisionIntent: completed.manifest.revisionIntent,
       }
-      await verifyPersistedDecisionManifest(context, manifestPath, completed)
-      return completed
     },
 
     async record(
@@ -340,7 +358,7 @@ async function verifyPersistedDecisionManifest(
   context: ServiceContext,
   relativePath: string,
   response: CanonicalPrivateReviewDecisionResponse,
-): Promise<void> {
+): Promise<CanonicalPrivateReviewDecisionManifest> {
   const bytes = await readPrivateFileIfExistsWithinRoot({
     rootPath: context.env.localStorageRoot,
     relativePath,
@@ -350,16 +368,56 @@ async function verifyPersistedDecisionManifest(
   try { parsed = JSON.parse(bytes.toString('utf8')) } catch {
     throw blocked('Private-review decision manifest is not valid JSON during replay.')
   }
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+  const validated = canonicalPrivateReviewDecisionManifestSchema.safeParse(parsed)
+  if (!validated.success) {
     throw blocked('Private-review decision manifest has an invalid shape during replay.')
   }
-  const record = parsed as Record<string, unknown>
+  const record = validated.data
   const { manifestSha256, ...withoutHash } = record
   if (
     manifestSha256 !== response.manifest.manifestSha256 ||
     record.manifestId !== response.manifest.manifestId ||
     manifestSha256 !== sha256AuthorityValue(withoutHash)
   ) throw blocked('Private-review decision manifest integrity failed during replay.')
+  return record
+}
+
+async function loadCompletedDecision(
+  context: ServiceContext,
+  input: {
+    reviewAssemblyId: string
+    workspaceId: string
+  },
+): Promise<{
+  response: CanonicalPrivateReviewDecisionResponse
+  manifest: CanonicalPrivateReviewDecisionManifest
+}> {
+  if (!safeIdentity(input.reviewAssemblyId) || !safeIdentity(input.workspaceId)) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Canonical private-review decision identity validation failed.',
+      400,
+    )
+  }
+  const actorUserId = getRequiredAuthUserId(context)
+  const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'read')
+  if (access.userId !== actorUserId) {
+    throw blocked('Private-review decision actor is outside this workspace.')
+  }
+  const scopeHash = sha256(`${actorUserId}\u0000${access.workspaceId}`).slice(0, 32)
+  const assemblyHash = sha256(`${scopeHash}\u0000${input.reviewAssemblyId}`)
+  const completionPath = `${STORAGE_PREFIX}/${scopeHash}/assemblies/${assemblyHash}.json`
+  const manifestPath = `${STORAGE_PREFIX}/${scopeHash}/manifests/${assemblyHash}.json`
+  const response = await readPersistedDecision(context, completionPath)
+  if (!response || response.identity.reviewAssemblyId !== input.reviewAssemblyId) {
+    throw blocked('Canonical private-review decision has not completed for this assembly.')
+  }
+  const manifest = await verifyPersistedDecisionManifest(
+    context,
+    manifestPath,
+    response,
+  )
+  return { response, manifest }
 }
 
 function markReplay(

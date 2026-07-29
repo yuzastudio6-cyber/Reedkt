@@ -326,6 +326,7 @@ function isInternalTestExecutionOrSourceUploadRoute(requestPath: string): boolea
     /^\/v1\/credit-estimates\/[^/]+\/approve$/.test(path) ||
     /^\/v1\/credit-estimates\/[^/]+\/reserve$/.test(path) ||
     /^\/v1\/projects\/[^/]+\/upload-intents$/.test(path) ||
+    /^\/v1\/projects\/[^/]+\/edit-sessions\/[^/]+\/local-brief$/.test(path) ||
     /^\/v1\/projects\/[^/]+\/internal-edit-state$/.test(path) ||
     path.startsWith('/v1/upload-intents/')
 }

@@ -43,9 +43,27 @@ export const canonicalPrivateRevisionIntentSchema = z.object({
     .refine((values) => new Set(values).size === values.length),
   mustPreserve: z.array(canonicalPrivateRevisionPreservationRuleSchema).max(6)
     .refine((values) => new Set(values).size === values.length),
+  captionReplacementText: z.string()
+    .trim()
+    .min(1)
+    .max(120)
+    .regex(/^[\x20-\x7e]+$/)
+    .refine((value) => !/[{}\\[\]]/.test(value))
+    .optional(),
   requiresReplanning: z.literal(true),
   requiresFreshEstimateAndApproval: z.literal(true),
-}).strict()
+}).strict().superRefine((value, context) => {
+  if (
+    value.captionReplacementText !== undefined &&
+    !value.changeCategories.includes('caption')
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['captionReplacementText'],
+      message: 'Exact caption replacement text requires the caption revision category.',
+    })
+  }
+})
 
 export const recordCanonicalPrivateReviewDecisionSchema = z.discriminatedUnion('decision', [
   z.object({
@@ -145,9 +163,47 @@ export const canonicalPrivateReviewDecisionResponseSchema = z.object({
   testOnly: z.literal(true),
 }).strict()
 
+export const canonicalPrivateReviewDecisionManifestSchema = z.object({
+  schemaVersion: z.literal('canonical-private-review-decision-manifest-v1'),
+  manifestId: identity,
+  identity: canonicalPrivateReviewDecisionResponseSchema.shape.identity,
+  decision: canonicalPrivateReviewDecisionResponseSchema.shape.decision,
+  authority: canonicalPrivateReviewDecisionResponseSchema.shape.authority,
+  revisionIntent: z.union([
+    canonicalPrivateRevisionIntentSchema,
+    z.null(),
+  ]),
+  revisionHandoff:
+    canonicalPrivateReviewDecisionResponseSchema.shape.revisionHandoff,
+  decidedAt: z.string().datetime({ offset: true }),
+  privateInternalOnly: z.literal(true),
+  publicDeliveryAuthorized: z.literal(false),
+  replacementPlanPublicationAuthorized: z.literal(false),
+  revisionExecutionAuthorized: z.literal(false),
+  manifestSha256: sha,
+}).strict().superRefine((value, context) => {
+  const revision = value.decision === 'request_revision'
+  if (
+    revision !== (value.revisionIntent !== null) ||
+    revision !== (value.revisionHandoff !== null)
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['revisionIntent'],
+      message: 'Revision intent and handoff must match the recorded decision.',
+    })
+  }
+})
+
 export type RecordCanonicalPrivateReviewDecisionBody = z.infer<
   typeof recordCanonicalPrivateReviewDecisionSchema
 >
 export type CanonicalPrivateReviewDecisionResponse = z.infer<
   typeof canonicalPrivateReviewDecisionResponseSchema
+>
+export type CanonicalPrivateReviewDecisionManifest = z.infer<
+  typeof canonicalPrivateReviewDecisionManifestSchema
+>
+export type CanonicalPrivateRevisionIntent = z.infer<
+  typeof canonicalPrivateRevisionIntentSchema
 >

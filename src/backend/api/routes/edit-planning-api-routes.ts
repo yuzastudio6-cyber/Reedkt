@@ -150,9 +150,30 @@ export const EDIT_PLANNING_API_ROUTES: ApiRouteDefinition[] = [
     requiresStripeSecret: false,
     futureHandlerName: 'presentCanonicalSourceLedPlan',
     notes: [
-      'The browser sends only ordered media-asset identities plus literal source-order and preservation confirmations; it cannot submit an EditPlan, timing, estimate, work graph, provider route, or renderer payload.',
+      'The browser sends only ordered media-asset identities plus the literal user-confirmed aspect ratio, source-order confirmation, and preservation confirmation; it cannot submit an EditPlan, timing, estimate, work graph, provider route, or renderer payload.',
       'The server re-reads finalized upload/FFprobe authority, exact Edit Preferences, confirmed output frame, and the current ready Edit Brief, then preserves every verified source frame and only exact confirmed caption markers.',
       'This first bounded mode presents a plan for review only. Approval, snapshot, credit reservation, tool/provider execution, rendering, private review, and delivery remain separate gates.',
+    ],
+  },
+  {
+    id: 'planning.canonicalSourceLedCaptionRevisionPlanPresentation.create',
+    domain: 'planning',
+    method: 'POST',
+    path: '/v1/projects/:projectId/edit-sessions/:editSessionId/source-led-caption-revision-plan-presentations',
+    description:
+      'Rebuild and present one bounded source-led caption revision from the exact saved private-review decision.',
+    securityLevel: 'workspace_editor',
+    runtimeMode: 'frontend_safe',
+    status: 'frontend_safe_ready',
+    requiresSupabase: false,
+    requiresServiceRole: false,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'presentCanonicalSourceLedCaptionRevisionPlan',
+    notes: [
+      'The browser supplies only exact prior-review identity. The backend re-reads the saved revision intent, prior approved snapshot, finalized media, locked Edit Preferences, and immutable Edit Brief.',
+      'This bounded route supports one exact caption replacement while preserving source order, source meaning, frame, preferences, and all source ranges.',
+      'It accepts no browser plan, timing, estimate, work graph, renderer payload, or caption text at planning time and still requires a fresh estimate approval.',
     ],
   },
   {

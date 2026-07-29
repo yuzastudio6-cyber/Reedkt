@@ -7,6 +7,7 @@ import { loadRuntimeEnv, type RuntimeEnv } from '../config/env'
 import { errorHandlerMiddleware } from '../middleware/error-handler'
 import { createRequireIdempotency } from '../middleware/idempotency'
 import {
+  createIdempotencyService,
   InMemoryIdempotencyStore,
   type IdempotencyInput,
 } from '../services/idempotency-service'
@@ -195,6 +196,7 @@ const supabaseBackedStore = new InMemoryIdempotencyStore({ maxEntries: 4 })
 const supabaseBackedLocalEnv = loadRuntimeEnv({
   NODE_ENV: 'test',
   E2E_RUNTIME_MODE: 'local',
+  API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE: 'true',
   SUPABASE_URL: 'https://idempotency-local-supabase.reeditpro.test',
   SUPABASE_ANON_KEY: 'test-anon-key',
   SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
@@ -231,16 +233,81 @@ try {
   await close(supabaseBackedLocalServer)
 }
 
+const canonicalLocalEditBriefStore = new InMemoryIdempotencyStore({
+  maxEntries: 4,
+})
+const canonicalLocalEditBriefEnv = loadRuntimeEnv({
+  NODE_ENV: 'test',
+  E2E_RUNTIME_MODE: 'local',
+  API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE: 'true',
+  STORAGE_MODE: 'local',
+  SUPABASE_URL: 'http://127.0.0.1:57431',
+  SUPABASE_ANON_KEY: 'test-anon-key',
+  SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+})
+const canonicalLocalEditBriefService = createIdempotencyService({
+  env: canonicalLocalEditBriefEnv,
+  clients: {
+    public: null,
+    admin: createMembershipAdminClient(() => {
+      throw new Error('The route-admission check must not write through the membership client.')
+    }),
+  },
+  requestId: 'canonical-local-edit-brief-idempotency-smoke',
+  auth: {
+    userId: 'canonical-local-edit-brief-user',
+    accessToken: 'verified-canonical-local-token',
+    isMockUser: false,
+  },
+}, canonicalLocalEditBriefStore)
+const canonicalLocalEditBriefReservation = canonicalLocalEditBriefService.begin({
+  workspaceId: 'workspace-canonical-local-edit-brief',
+  userId: 'canonical-local-edit-brief-user',
+  idempotencyKey: 'canonical-local-edit-brief-key',
+  requestMethod: 'POST',
+  requestPath:
+    '/v1/projects/project-canonical/edit-sessions/edit-canonical/local-brief?trace=ignored',
+  requestHash: 'canonical-local-edit-brief-request-hash',
+})
+assert.equal(
+  canonicalLocalEditBriefReservation.kind,
+  'reserved',
+  'The exact local canonical Edit Brief route must admit bounded in-process HTTP replay around its durable route-owned RPC.',
+)
+if (canonicalLocalEditBriefReservation.kind === 'reserved') {
+  canonicalLocalEditBriefService.release(
+    canonicalLocalEditBriefReservation.reservation,
+  )
+}
+assertApiErrorCode(
+  () => canonicalLocalEditBriefService.begin({
+    workspaceId: 'workspace-canonical-local-edit-brief',
+    userId: 'canonical-local-edit-brief-user',
+    idempotencyKey: 'canonical-local-generic-key',
+    requestMethod: 'POST',
+    requestPath: '/v1/projects/project-canonical/edit-sessions/edit-canonical/other-write',
+    requestHash: 'canonical-local-generic-request-hash',
+  }),
+  'IDEMPOTENCY_ATOMICITY_REQUIRED',
+)
+
 let productionHandlerRuns = 0
 let unexpectedDatabaseWrites = 0
 const productionStore = new InMemoryIdempotencyStore({ maxEntries: 4 })
+const productionMembershipRlsServer = await listen(
+  createMembershipRlsApp({
+    workspaceId: 'workspace-production-idempotency',
+    userId: 'production-idempotency-user',
+    accessToken: 'verified-production-token',
+  }),
+)
 const productionEnv = loadRuntimeEnv({
   NODE_ENV: 'production',
   E2E_RUNTIME_MODE: 'cloud_run',
   STORAGE_MODE: 'gcs_disabled',
   WORKER_RUNTIME_MODE: 'disabled',
   API_ALLOWED_CORS_ORIGINS: 'https://app.reeditpro.test',
-  SUPABASE_URL: 'https://idempotency-production.reeditpro.test',
+  SUPABASE_URL: serverBaseUrl(productionMembershipRlsServer),
   SUPABASE_ANON_KEY: 'test-anon-key',
   SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
   REEDITPRO_INTERNAL_SERVICE_TOKEN: 'test-internal-service-token',
@@ -281,7 +348,30 @@ try {
   })
 } finally {
   await close(productionServer)
+  await close(productionMembershipRlsServer)
 }
+const productionEditBriefService = createIdempotencyService({
+  env: productionEnv,
+  clients: productionClients,
+  requestId: 'production-edit-brief-idempotency-smoke',
+  auth: {
+    userId: 'production-idempotency-user',
+    accessToken: 'verified-production-token',
+    isMockUser: false,
+  },
+}, productionStore)
+assertApiErrorCode(
+  () => productionEditBriefService.begin({
+    workspaceId: 'workspace-production-idempotency',
+    userId: 'production-idempotency-user',
+    idempotencyKey: 'production-edit-brief-key',
+    requestMethod: 'POST',
+    requestPath:
+      '/v1/projects/project-production/edit-sessions/edit-production/local-brief',
+    requestHash: 'production-edit-brief-request-hash',
+  }),
+  'IDEMPOTENCY_ATOMICITY_REQUIRED',
+)
 
 console.log(JSON.stringify({
   ok: true,
@@ -295,7 +385,10 @@ console.log(JSON.stringify({
     'bounded_cache_fails_closed_without_live_entry_eviction',
     'oversized_response_seals_key_instead_of_rerunning_handler',
     'supabase_backed_generic_write_blocks_before_mutation_even_in_local_mode',
+    'canonical_local_edit_brief_route_is_narrowly_admitted',
+    'canonical_local_unlisted_write_still_requires_atomicity',
     'production_generic_idempotency_blocks_before_mutation',
+    'production_edit_brief_route_remains_fail_closed',
     'production_generic_idempotency_performs_no_select_then_insert',
   ],
 }))
@@ -367,6 +460,30 @@ function createMembershipAdminClient(onUnexpectedWrite: () => void): SupabaseCli
       return builder
     },
   } as unknown as SupabaseClient
+}
+
+function createMembershipRlsApp(input: {
+  workspaceId: string
+  userId: string
+  accessToken: string
+}): Express {
+  const app = express()
+  app.get('/rest/v1/workspace_members', (request, response) => {
+    const authorized =
+      request.header('authorization') === `Bearer ${input.accessToken}`
+      && request.query.workspace_id === `eq.${input.workspaceId}`
+      && request.query.user_id === `eq.${input.userId}`
+    response.status(authorized ? 200 : 403).json(authorized
+      ? [{
+          workspace_id: input.workspaceId,
+          user_id: input.userId,
+          role: 'owner',
+        }]
+      : {
+          code: 'RLS_SCOPE_DENIED',
+        })
+  })
+  return app
 }
 
 async function postJson(baseUrl: string, idempotencyKey: string, body: Record<string, unknown>) {

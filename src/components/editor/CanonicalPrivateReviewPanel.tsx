@@ -18,7 +18,12 @@ type CanonicalPrivateReviewPanelProps = {
   review: CanonicalPrivateReviewHookResult
   onLoad: () => void
   onAccept: () => void
-  onRequestRevision: (summary: string) => void
+  onRequestRevision: (
+    summary: string,
+    captionReplacementText?: string,
+  ) => void
+  revisionMode?: 'generic' | 'source_led_caption'
+  revisionPresentationBusy?: boolean
 }
 
 export function CanonicalPrivateReviewPanel({
@@ -27,6 +32,8 @@ export function CanonicalPrivateReviewPanel({
   onLoad,
   onRequestRevision,
   review,
+  revisionMode = 'generic',
+  revisionPresentationBusy = false,
 }: CanonicalPrivateReviewPanelProps) {
   const authority = journey.privateReviewMediaAuthority
   const reviewAssemblyId = authority?.reviewAssemblyId ?? ''
@@ -37,7 +44,9 @@ export function CanonicalPrivateReviewPanel({
   const mediaResult = isCurrentRequest ? review.mediaResult : null
   const loading = isCurrentRequest && review.loadingMedia
   const decisionResult = isCurrentRequest ? review.decisionResult : null
-  const recordingDecision = isCurrentRequest && review.recordingDecision
+  const recordingDecision =
+    (isCurrentRequest && review.recordingDecision) ||
+    revisionPresentationBusy
   const decisionAvailable = journey.stage === 'private_review_ready' && Boolean(
     journey.privateReviewDecisionAuthority,
   )
@@ -48,6 +57,13 @@ export function CanonicalPrivateReviewPanel({
   const revisionSummary = revisionDraft.reviewAssemblyId === reviewAssemblyId
     ? revisionDraft.summary
     : ''
+  const exactCaptionRevision = revisionMode === 'source_led_caption'
+  const captionValidationMessage = exactCaptionRevision
+    ? validateCaptionReplacement(revisionSummary)
+    : ''
+  const revisionReady = exactCaptionRevision
+    ? captionValidationMessage === '' && revisionSummary.trim().length > 0
+    : revisionSummary.trim().length >= 8
 
   if (!authority) return null
 
@@ -88,7 +104,7 @@ export function CanonicalPrivateReviewPanel({
       {media ? (
         <div className="canonical-private-review-player" data-testid="canonical-private-review-player">
           <video
-            aria-label="ReeditPro private review video"
+            aria-label="WeEditPro private review video"
             controls
             playsInline
             preload="metadata"
@@ -146,20 +162,38 @@ export function CanonicalPrivateReviewPanel({
             </p>
           </div>
           <label htmlFor="canonical-private-review-revision-summary">
-            Revision direction <span>Required only for changes</span>
+            {exactCaptionRevision ? 'Replacement caption' : 'Revision direction'}
+            <span>Required only for changes</span>
           </label>
           <textarea
             disabled={recordingDecision || decisionResult?.status === 'recorded'}
             id="canonical-private-review-revision-summary"
-            maxLength={4000}
+            aria-describedby={exactCaptionRevision
+              ? 'canonical-private-review-revision-help'
+              : undefined}
+            aria-invalid={Boolean(captionValidationMessage)}
+            maxLength={exactCaptionRevision ? 120 : 4000}
             onChange={(event) => setRevisionDraft({
               reviewAssemblyId,
               summary: event.target.value,
             })}
-            placeholder="Example: Tighten the opening pace, keep the original clip order, and make the captions smaller."
-            rows={3}
+            placeholder={exactCaptionRevision
+              ? 'Type the exact caption you want in the revised edit.'
+              : 'Example: Tighten the opening pace, keep the original clip order, and make the captions smaller.'}
+            rows={exactCaptionRevision ? 2 : 3}
             value={revisionSummary}
           />
+          {exactCaptionRevision && (
+            <p
+              className="canonical-private-review-revision-help"
+              data-status={captionValidationMessage ? 'invalid' : 'ready'}
+              id="canonical-private-review-revision-help"
+              role={captionValidationMessage ? 'alert' : undefined}
+            >
+              {captionValidationMessage ||
+                'This pass changes one caption only. Source order, meaning, output frame, Edit Preferences, and Edit Brief stay locked.'}
+            </p>
+          )}
           <div className="canonical-private-review-decision-actions">
             <Button
               aria-busy={recordingDecision}
@@ -177,16 +211,25 @@ export function CanonicalPrivateReviewPanel({
               data-testid="canonical-private-review-request-revision"
               disabled={
                 !media ||
-                revisionSummary.trim().length < 8 ||
+                !revisionReady ||
                 recordingDecision ||
                 decisionResult?.status === 'recorded'
               }
               icon={MessageSquareText}
-              onClick={() => onRequestRevision(revisionSummary)}
+              onClick={() => onRequestRevision(
+                exactCaptionRevision
+                  ? `Replace the approved caption with: ${revisionSummary.trim()}`
+                  : revisionSummary,
+                exactCaptionRevision ? revisionSummary.trim() : undefined,
+              )}
               size="sm"
               variant="secondary"
             >
-              Request changes
+              {revisionPresentationBusy
+                ? 'Preparing revised plan…'
+                : exactCaptionRevision
+                  ? 'Revise caption'
+                  : 'Request changes'}
             </Button>
           </div>
           {decisionResult && (
@@ -237,4 +280,17 @@ function formatBytes(value: number): string {
   if (value < 1024) return `${value} B`
   if (value < 1024 * 1024) return `${Math.round(value / 1024)} KB`
   return `${(value / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function validateCaptionReplacement(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  if (trimmed.length > 120) return 'Keep the replacement caption to 120 characters or fewer.'
+  if (!/^[\x20-\x7e]+$/.test(trimmed)) {
+    return 'Use plain keyboard characters for this bounded caption revision.'
+  }
+  if (/[{}\\[\]]/.test(trimmed)) {
+    return 'Remove braces, brackets, or backslashes from the replacement caption.'
+  }
+  return ''
 }

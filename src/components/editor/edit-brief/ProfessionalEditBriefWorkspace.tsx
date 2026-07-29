@@ -232,11 +232,17 @@ export function ProfessionalEditBriefWorkspace({
     ),
     [canonical.authority?.attachments, markerEditor?.markerId],
   )
+  const combinedSourceDuration = useMemo(
+    () => combinedClipDuration(sourceClips),
+    [sourceClips],
+  )
   const timelineDuration = Math.max(
     1,
-    loadedDuration
-      ?? combinedClipDuration(sourceClips)
-      ?? Math.max(60, latestMarkerEnd(markers) + 5),
+    loadedDuration ?? 0,
+    combinedSourceDuration ?? 0,
+    loadedDuration === undefined && combinedSourceDuration === undefined
+      ? Math.max(60, latestMarkerEnd(markers) + 5)
+      : 0,
   )
   const confirmedCount = markers.filter((marker) => marker.status === 'confirmed').length
   const markerLayout = useMemo(

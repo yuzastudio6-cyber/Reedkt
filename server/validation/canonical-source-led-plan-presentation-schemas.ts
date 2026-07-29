@@ -9,6 +9,7 @@ export const presentCanonicalSourceLedPlanSchema = z.object({
       (values) => new Set(values).size === values.length,
       'Source media asset IDs must be unique.',
     ),
+  confirmedAspectRatio: z.enum(['9:16', '16:9', '1:1', '4:5', '4:3']),
   sourceOrderConfirmed: z.literal(true),
   preserveUnanalyzedSourceRanges: z.literal(true),
 }).strict()

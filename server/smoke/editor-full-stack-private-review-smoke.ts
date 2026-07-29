@@ -14,6 +14,7 @@ import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
 import { createSyntheticMp4Fixture } from '../media/test-media-fixture'
 import { clearApprovedEditExecutionPrivateDownloadMemoryForSmoke } from '../services/approved-edit-execution-package-service'
+import { createEditReferencePrivateWorkspaceExactEditApplyRuntimePort } from '../services/edit-reference-exact-edit-apply-runtime-port'
 import { clearInternalEditStateMemoryForSmoke } from '../services/internal-edit-state-service'
 import { clearLocalProjectMemoryForSmoke } from '../services/project-service'
 import {
@@ -53,12 +54,10 @@ const browserProjectScope = {
 const getLocalProjectHandoffStorageKey = () => getScopedLocalProjectHandoffStorageKey(browserProjectScope)
 const editorBootTimeoutMs = 12_000
 const privateUploadTimeoutMs = 30_000
-const approvedEditBriefGoal = 'Create a clean internal review edit from the uploaded source proof, keep the speaker clear, make the first beat more direct, and use one restrained fade through the panel background at the first source boundary.'
-const approvedEditBriefMarker = {
-  startSeconds: 0.5,
-  title: 'Protect the opening explanation',
-  note: 'Keep the complete opening explanation, add a restrained caption, and do not cover or cut the speaker.',
-} as const
+const approvedEditBriefGoal =
+  'Create a clean professional review edit from the uploaded source only, preserve its complete confirmed order, keep the speaker clear, and render the one exact readable caption without generated visuals.'
+const canonicalSourceOnlyInstruction =
+  'Use the uploaded source only in its original order with one readable caption. Do not add generated or explanatory visuals or extra scenes. Keep the speaker clear and use only restrained source transitions.'
 const canonicalSourceFixtureDefinitions = [
   { fileName: 'browser-upload-source.mp4', width: 160, height: 90, audioFrequencyHz: 440, videoPattern: 'solid_red' },
   { fileName: 'browser-upload-source-b.mp4', width: 176, height: 100, audioFrequencyHz: 660, videoPattern: 'solid_dark_red' },
@@ -73,13 +72,20 @@ const canonicalSourceCount = canonicalSourceFixtureDefinitions.length
 const canonicalSourceDurationSeconds = 2
 const canonicalSourceDurationLabel = `00:${String(canonicalSourceDurationSeconds).padStart(2, '0')}`
 const canonicalReviewDurationSeconds = canonicalSourceCount * canonicalSourceDurationSeconds
+const approvedEditBriefMarker = {
+  startSeconds: 0,
+  endSeconds: canonicalReviewDurationSeconds,
+  title: 'Protect the complete explanation',
+  note:
+    'Keep the complete opening explanation visible and clear without covering or cutting the speaker.',
+} as const
 assert.equal(
   canonicalReviewDurationSeconds * 30,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
   'The signed-in maximum-source fixture must exercise the exact 30fps sequence ceiling.',
 )
-const canonicalCaptionCount = Math.min(canonicalSourceCount, 7)
-const canonicalWorkItemAndJobCount = 4 + canonicalCaptionCount + canonicalSourceCount * 2
+const canonicalCaptionCount = 1
+const canonicalTopLevelWorkItemAndJobCount = 4 + canonicalCaptionCount
 const canonicalSourceOrders = canonicalSourceFixtureDefinitions.map((_, index) => index + 1)
 const canonicalSourceDimensions = canonicalSourceFixtureDefinitions.map(({ width, height }) => `${width}x${height}`)
 const hiddenDemoStoryPattern = /couple starts happy|pregnan(?:t|cy)|walks away/i
@@ -294,6 +300,7 @@ const env = loadRuntimeEnv({
   E2E_RUNTIME_MODE: 'local',
   API_PORT: '8787',
   STORAGE_MODE: 'local',
+  WORKER_RUNTIME_MODE: 'local',
   LOCAL_STORAGE_ROOT: localStorageRoot,
   SUPABASE_URL: 'https://browser-full-stack-auth.reeditpro.local',
   SUPABASE_ANON_KEY: 'test-anon-key',
@@ -348,12 +355,18 @@ await activatePrivateOfflineLibassCaptionRuntime()
 await prepareOfflineRemotionDockerRuntime()
 await activatePrivateOfflineRemotionRenderRuntime()
 
-const apiServer = await listen(createServer(createReeditProApiApp(env, { clients: fakeClients })))
+const apiServer = await listen(createServer(createReeditProApiApp(env, {
+  clients: fakeClients,
+  editReferenceExactEditApplyRuntimePort:
+    createEditReferencePrivateWorkspaceExactEditApplyRuntimePort({
+      localStorageRoot,
+    }),
+})))
 const apiBaseUrl = `http://127.0.0.1:${addressPort(apiServer)}`
 
 process.env.NODE_ENV = 'test'
 process.env.E2E_RUNTIME_MODE = 'local'
-process.env.WORKER_RUNTIME_MODE = 'mock'
+process.env.WORKER_RUNTIME_MODE = 'local'
 process.env.STORAGE_MODE = 'local'
 process.env.VITE_REEDITPRO_E2E = 'true'
 process.env.VITE_REEDITPRO_AUTH_MODE = 'local_test'
@@ -395,6 +408,18 @@ try {
   const approvedSnapshotResponses: string[] = []
   const canonicalPlanningResponses: string[] = []
   const projectRouteResponses: string[] = []
+  const sourceLedPlanRequests: Array<{
+    authorization: string | undefined
+    body: Record<string, unknown>
+    method: string
+    url: string
+  }> = []
+  const sourceLedCaptionRevisionRequests: Array<{
+    authorization: string | undefined
+    body: Record<string, unknown>
+    method: string
+    url: string
+  }> = []
   const failedBrowserRequests: string[] = []
   page.on('console', (message) => {
     if (message.type() === 'error' || message.type() === 'warning') {
@@ -420,7 +445,7 @@ try {
     }
     if (
       response.url().startsWith(apiBaseUrl)
-      && /canonical-(?:journey|planning|approval)|publication-requests|edit-preferences\/planning-authority/.test(response.url())
+      && /canonical-(?:journey|planning|approval)|source-led-(?:plan|caption-revision)|publication-requests|edit-preferences\/planning-authority/.test(response.url())
     ) {
       const body = await response.text().catch(() => '')
       canonicalPlanningResponses.push(`${response.status()} ${response.request().method()} ${response.url()}${body ? ` body=${body.slice(0, 4000)}` : ''}`)
@@ -428,6 +453,32 @@ try {
   })
   page.on('requestfailed', (request) => {
     failedBrowserRequests.push(`${request.method()} ${request.url()} ${request.failure()?.errorText ?? 'unknown failure'}`)
+  })
+  page.on('request', (request) => {
+    if (
+      request.url().startsWith(apiBaseUrl) &&
+      request.url().includes('/source-led-plan-presentations')
+    ) {
+      sourceLedPlanRequests.push({
+        authorization: request.headers().authorization,
+        body: request.postDataJSON() as Record<string, unknown>,
+        method: request.method(),
+        url: request.url(),
+      })
+    }
+    if (
+      request.url().startsWith(apiBaseUrl) &&
+      request.url().includes(
+        '/source-led-caption-revision-plan-presentations',
+      )
+    ) {
+      sourceLedCaptionRevisionRequests.push({
+        authorization: request.headers().authorization,
+        body: request.postDataJSON() as Record<string, unknown>,
+        method: request.method(),
+        url: request.url(),
+      })
+    }
   })
   await page.goto(`${viteUrl}projects/new`)
   await expect(page).toHaveURL(/\/sign-in\?returnTo=/)
@@ -665,11 +716,38 @@ try {
   assert.equal(uploadedHandoffs[0]?.sourceMediaAssets?.every((asset) => /^[a-f0-9]{64}$/i.test(asset.checksumSha256 ?? '')), true)
   assertUploadedSourceMetadataPreserved(uploadedHandoffs[0]?.sourceMediaAssets, 'Uploaded local handoff')
 
+  await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
+  const advancedEditPreferences = page.getByTestId('current-edit-preferences-advanced')
+  await expect(advancedEditPreferences).toBeVisible()
+  if (await advancedEditPreferences.getAttribute('open') === null) {
+    await clickWhenReady(advancedEditPreferences.locator('summary'))
+  }
+  await page
+    .getByTestId('current-edit-preference-workflow')
+    .selectOption('simple_clean_edit')
+  await page
+    .getByTestId('current-edit-preference-visual-direction')
+    .selectOption('no_extra_visuals')
+  await page
+    .getByTestId('current-edit-preference-cleanup')
+    .selectOption('preserve_natural')
+  await clickWhenReady(page.getByRole('button', { name: /^Apply to this edit$/i }))
+  await expect(page.getByText(/^Current edit is up to date$/i)).toBeVisible()
+  await clickWhenReady(page.getByTestId('edit-workspace-view-chat'))
+
+  await page.getByTestId('chat-composer-textarea').fill(canonicalSourceOnlyInstruction)
+  await clickWhenReady(page.getByTestId('chat-composer-send'))
+  await expect(
+    page.locator('article[data-message-type="user_message"]').filter({ hasText: canonicalSourceOnlyInstruction }),
+  ).toBeVisible()
   await clickWhenReady(page.getByRole('button', { name: /Confirm order|Use this source/i }).first())
   await clickWhenReady(page.getByRole('radio', { name: /16:9/i }).first())
   await clickWhenReady(page.getByRole('button', { name: /Confirm frame/i }).first())
   await clickWhenReady(page.getByRole('button', { name: /Confirm cleanup/i }).first())
   await maybeClickWhenReady(page.getByRole('button', { name: /Use (Normal|Premium|Ultra Premium)/i }).first())
+  const sourceOnlyDirection = page.getByRole('radio', { name: /Source only/i }).first()
+  await expect(sourceOnlyDirection).toBeVisible()
+  await expect(sourceOnlyDirection).toBeChecked()
   await maybeClickWhenReady(page.getByRole('button', { name: /Confirm direction/i }).first())
   await maybeClickWhenReady(page.getByRole('button', { name: /Skip reference/i }).first())
 
@@ -677,6 +755,35 @@ try {
   if (await intentButton.count()) {
     await clickWhenReady(intentButton)
   }
+
+  await expect.poll(async () => {
+    return page.evaluate((storageKey) => {
+      const handoffs = (
+        JSON.parse(window.localStorage.getItem(storageKey) ?? '{}') as {
+          handoffs?: Array<{
+            setup?: {
+              customInstructions?: string
+              userInstructionHistory?: string[]
+              visualPreference?: string
+              visualPreferenceConfirmed?: boolean
+            }
+          }>
+        }
+      ).handoffs ?? []
+      const setup = handoffs[0]?.setup
+      return {
+        customInstructions: setup?.customInstructions,
+        userInstructionHistory: setup?.userInstructionHistory,
+        visualPreference: setup?.visualPreference,
+        visualPreferenceConfirmed: setup?.visualPreferenceConfirmed,
+      }
+    }, getLocalProjectHandoffStorageKey())
+  }).toEqual({
+    customInstructions: canonicalSourceOnlyInstruction,
+    userInstructionHistory: [canonicalSourceOnlyInstruction],
+    visualPreference: 'no_extra_visuals',
+    visualPreferenceConfirmed: true,
+  })
 
   await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
   await expect(page.getByTestId('private-internal-test-run-card')).toHaveCount(0)
@@ -697,7 +804,7 @@ try {
   await page
     .getByTestId('editor-edit-brief-canvas')
     .getByTestId('edit-brief-goal-input')
-    .fill('Create a clean internal review edit that opens with the uploaded source proof and keeps the speaker clear.')
+    .fill(approvedEditBriefGoal)
   await clickEditBriefReadyButton(page)
   await confirmCanonicalEditBriefMarker(page, {
     projectId: handoffs[0]?.projectId ?? '',
@@ -718,22 +825,52 @@ try {
   await expect(page.getByText(/Plan updated from your source assembly/i)).toBeVisible()
   const constrainedRunnerStatus = page.getByTestId('canonical-planning-save-handoff-saved-waiting-for-compiler')
   const exactRunnerStatus = page.getByTestId('canonical-planning-save-plan-published-waiting-for-approval')
-  await expect(constrainedRunnerStatus.or(exactRunnerStatus)).toBeVisible({ timeout: 12_000 })
+  const blockedRunnerStatus = page.getByTestId('canonical-planning-save-blocked')
+  await expect(
+    constrainedRunnerStatus
+      .or(exactRunnerStatus)
+      .or(blockedRunnerStatus),
+  ).toBeVisible({ timeout: 12_000 })
+  assert.equal(sourceLedPlanRequests.length, 1)
+  const sourceLedPlanRequest = sourceLedPlanRequests[0]!
+  assert.equal(sourceLedPlanRequest.method, 'POST')
   assert.equal(
-    canonicalPlanningResponses.some((entry) =>
-      entry.includes('/edit-preferences/planning-authority')
-      && entry.includes('"frameConfirmation":{"status":"not_confirmed"')
-    ),
-    true,
-    'The first canonical planning read should preserve the unconfirmed server frame state until the handoff verifies and promotes the explicit user choice.',
+    sourceLedPlanRequest.authorization,
+    `Bearer ${verifiedToken}`,
+  )
+  assert.deepEqual(
+    Object.keys(sourceLedPlanRequest.body).sort(),
+    [
+      'confirmedAspectRatio',
+      'orderedMediaAssetIds',
+      'preserveUnanalyzedSourceRanges',
+      'purpose',
+      'sourceOrderConfirmed',
+      'workspaceId',
+    ],
+  )
+  assert.equal(
+    sourceLedPlanRequest.body.purpose,
+    'present_server_derived_source_led_plan',
+  )
+  assert.equal(sourceLedPlanRequest.body.confirmedAspectRatio, '16:9')
+  assert.deepEqual(
+    sourceLedPlanRequest.body.orderedMediaAssetIds,
+    uploadedHandoffs[0]?.sourceMediaAssets?.map((asset) =>
+      (asset as { mediaAssetId?: string }).mediaAssetId),
+  )
+  assert.doesNotMatch(
+    JSON.stringify(sourceLedPlanRequest.body),
+    /canonicalPlan|masterTimingPlan|estimate|workGraph|captionText|storagePath|credential|signedUrl|publicUrl/i,
+    'The initial browser request must carry only exact source identities and literal preservation confirmations.',
   )
   assert.equal(
     canonicalPlanningResponses.some((entry) =>
-      entry.includes('/canonical-planning-handoff')
-      && /^20[01] POST /.test(entry)
+      entry.includes('/source-led-plan-presentations')
+      && /^201 POST /.test(entry)
     ),
     true,
-    'The browser-confirmed frame must reach the server handoff instead of being rejected by a circular pre-publication frame check.',
+    `The browser must receive one published backend-derived source-led plan. Responses: ${JSON.stringify(canonicalPlanningResponses.slice(-12))}`,
   )
   const constrainedByExactRunner = await constrainedRunnerStatus.isVisible()
   if (constrainedByExactRunner) {
@@ -772,24 +909,6 @@ try {
   } else {
   await expect(page.getByTestId('plan-review-approve')).toBeEnabled({ timeout: 12_000 })
   await expect(page.locator('body')).not.toContainText(internalToolNameCopyPattern)
-  await openEditBriefWorkspace(page)
-  const approvedBriefGoalInput = page
-    .getByTestId('editor-edit-brief-canvas')
-    .getByTestId('edit-brief-goal-input')
-  await expect(approvedBriefGoalInput).toBeVisible()
-  await approvedBriefGoalInput.fill(approvedEditBriefGoal)
-  await expect(page.getByTestId('edit-brief-plan-impact')).toContainText(
-    /Changes here require a fresh plan and credit approval/i,
-    { timeout: 12_000 },
-  )
-  await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: /Create edit plan/i })).toHaveCount(0)
-  await clickEditBriefReadyButton(page)
-  await openChatWorkspace(page)
-  await waitForCanonicalBriefPlanAction(page)
-  await clickWhenReady(page.getByRole('button', { name: /Create edit plan/i }).first())
-  await expect(page.getByTestId('plan-review-card')).toBeVisible({ timeout: 12_000 })
-  await expect(page.getByText(/Plan updated from your source assembly/i)).toBeVisible()
   const deliveryCeiling = page.getByTestId('plan-review-4k-delivery-ceiling')
   await expect(deliveryCeiling).toContainText(/4K UHD render and export ceiling/i)
   await expect(deliveryCeiling).toContainText(/1080p, 2K, or 4K/i)
@@ -805,19 +924,9 @@ try {
   assert.match(
     revisedCanonicalSaveStatusText,
     /Exact plan saved/,
-    `The revised Edit Brief and confirmed marker must publish a fresh canonical plan before approval. status=${revisedCanonicalSaveStatusText} responses=${JSON.stringify(canonicalPlanningResponses.slice(-8))}`,
+    `The exact Edit Brief and confirmed marker must publish one server-derived plan before approval. status=${revisedCanonicalSaveStatusText} responses=${JSON.stringify(canonicalPlanningResponses.slice(-8))}`,
   )
   await expect(page.getByTestId('plan-review-approve')).toBeEnabled({ timeout: 12_000 })
-  assert.equal(
-    canonicalPlanningResponses.some((entry) =>
-      entry.includes('/edit-preferences/planning-authority')
-      && entry.includes('"sourcePreparation":{"status":"ready"')
-      && entry.includes('"frameConfirmation":{"status":"confirmed"')
-      && entry.includes('"aspectRatio":"16:9"')
-    ),
-    true,
-    'A later plan must read back the same server-owned source-preparation and confirmed-frame authority before approval.',
-  )
   await clickWhenReady(page.getByTestId('plan-review-approve'))
   const canonicalApprovalGateMessage = page.getByText(
     /Standalone credit approval and reservation are disabled\. Canonical plan approval performs both in one authority transaction\./i,
@@ -925,10 +1034,143 @@ try {
     canonicalReviewAudioToneSamples.forEach((sample, index) => {
       assertSourceAudioTone(sample, `Canonical private review source-bound audio segment ${index + 1}`)
     })
-    const canonicalPanelDipSamples = await assertApprovedPanelDipAtBoundary(
-      canonicalReviewDownloadPath,
-      canonicalSourceDurationSeconds,
-      'Canonical private review first source boundary',
+    const priorReviewJourney = await fetchCanonicalJourneyReadback({
+      apiBaseUrl,
+      bearerToken: verifiedToken,
+      projectId: handoffs[0]?.projectId ?? '',
+      editSessionId: handoffs[0]?.editSessionId ?? '',
+    })
+    assert.equal(priorReviewJourney.status, 200)
+    assert.equal(
+      priorReviewJourney.json.data?.canonicalEditJourney?.stage,
+      'private_review_ready',
+    )
+    const priorPlanVersion =
+      priorReviewJourney.json.data?.canonicalEditJourney?.plan?.planVersion
+    assert.ok(
+      typeof priorPlanVersion === 'number' && priorPlanVersion >= 1,
+      'The first private review must retain its exact approved plan version.',
+    )
+
+    const replacementCaption =
+      'Keep the complete opening explanation visible and clear.'
+    await page.getByLabel(/Replacement caption/i).fill(replacementCaption)
+    await clickWhenReady(
+      page.getByTestId('canonical-private-review-request-revision'),
+    )
+    await expect(canonicalJourneyStatus).toHaveAttribute(
+      'data-journey-stage',
+      'plan_approval_required',
+      { timeout: 60_000 },
+    )
+    await expect(page.getByTestId('plan-review-card')).toBeVisible()
+    await expect(page.getByTestId('plan-review-approve')).toBeEnabled()
+    await expect(page.getByTestId('plan-review-approve')).toHaveText(
+      'Approve plan',
+    )
+    assert.equal(sourceLedCaptionRevisionRequests.length, 1)
+    const sourceLedCaptionRevisionRequest =
+      sourceLedCaptionRevisionRequests[0]!
+    assert.equal(sourceLedCaptionRevisionRequest.method, 'POST')
+    assert.equal(
+      sourceLedCaptionRevisionRequest.authorization,
+      `Bearer ${verifiedToken}`,
+    )
+    assert.deepEqual(
+      Object.keys(sourceLedCaptionRevisionRequest.body).sort(),
+      [
+        'expectedDecisionManifestSha256',
+        'expectedFinalArtifactSha256',
+        'expectedPackageRecordId',
+        'expectedReviewAssemblyId',
+        'purpose',
+        'workspaceId',
+      ],
+    )
+    assert.equal(
+      sourceLedCaptionRevisionRequest.body.purpose,
+      'present_server_derived_source_led_caption_revision',
+    )
+    assert.doesNotMatch(
+      JSON.stringify(sourceLedCaptionRevisionRequest.body),
+      /canonicalPlan|captionReplacementText|masterTimingPlan|workGraph|storagePath|credential|signedUrl|publicUrl/i,
+      'The browser must request server-derived caption replanning using only persisted review lineage.',
+    )
+
+    await clickWhenReady(page.getByTestId('plan-review-approve'))
+    await expect(canonicalJourneyStatus).toHaveAttribute(
+      'data-journey-stage',
+      'approved_snapshot_available',
+      { timeout: 60_000 },
+    )
+    await clickWhenReady(
+      page.getByTestId('canonical-execution-package-request-submit'),
+    )
+    await expect(canonicalJourneyStatus).toHaveAttribute(
+      'data-journey-stage',
+      'execution_in_progress',
+      { timeout: 60_000 },
+    )
+    await clickWhenReady(
+      page.getByTestId('canonical-private-edit-preparation-submit'),
+    )
+    const revisedPrivateReviewReady = page.locator(
+      '[data-testid="canonical-journey-status"]' +
+        '[data-journey-stage="private_review_ready"]',
+    )
+    const revisedPreparationBlocked = page.getByTestId(
+      'canonical-private-edit-preparation-blocked',
+    )
+    await expect(
+      revisedPrivateReviewReady.or(revisedPreparationBlocked),
+    ).toBeVisible({ timeout: 900_000 })
+    if (await revisedPreparationBlocked.isVisible()) {
+      throw new Error(
+        `Revised canonical private preparation failed closed: ${
+          (await revisedPreparationBlocked.innerText())
+            .replace(/\s+/g, ' ')
+            .trim()
+        }`,
+      )
+    }
+
+    await clickWhenReady(page.getByTestId('canonical-private-review-load'))
+    await expect(
+      page.getByTestId('canonical-private-review-player'),
+    ).toBeVisible({ timeout: 30_000 })
+    const [revisedCanonicalReviewDownload] = await Promise.all([
+      page.waitForEvent('download'),
+      clickWhenReady(page.getByRole('button', { name: /Download review/i })),
+    ])
+    const revisedCanonicalReviewDownloadPath =
+      await revisedCanonicalReviewDownload.path()
+    assert.ok(
+      revisedCanonicalReviewDownloadPath,
+      'The revised canonical review must download as an MP4.',
+    )
+    const revisedCanonicalReviewBytes = await readFile(
+      revisedCanonicalReviewDownloadPath,
+    )
+    const revisedCanonicalReviewSha256 = sha256Hex(
+      revisedCanonicalReviewBytes,
+    )
+    assert.notEqual(
+      revisedCanonicalReviewSha256,
+      canonicalReviewSha256,
+      'The exact caption revision must produce a new QA-backed review artifact.',
+    )
+    const revisedCanonicalReviewMediaProbe = await probeMedia(
+      revisedCanonicalReviewDownloadPath,
+    )
+    assert.equal(revisedCanonicalReviewMediaProbe.video?.width, 3840)
+    assert.equal(revisedCanonicalReviewMediaProbe.video?.height, 2160)
+    assert.equal(revisedCanonicalReviewMediaProbe.hasAudio, true)
+    assert.ok(
+      Math.abs(
+        (revisedCanonicalReviewMediaProbe.video?.durationSeconds ?? 0) -
+          canonicalReviewDurationSeconds,
+      ) <= 0.25,
+      'The revised private review must preserve the exact approved source duration.',
     )
 
     await clickWhenReady(page.getByTestId('canonical-private-review-accept'))
@@ -944,6 +1186,32 @@ try {
     await expect(page.getByTestId('canonical-private-review-stage-summary')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Load review', exact: true })).toHaveCount(0)
     await expect(page.getByText(/Save needs retry/i)).toHaveCount(0)
+
+    const [acceptedFinalDownload] = await Promise.all([
+      page.waitForEvent('download'),
+      clickWhenReady(
+        page.getByRole('button', { name: 'Download final MP4' }),
+      ),
+    ])
+    assert.match(
+      acceptedFinalDownload.suggestedFilename(),
+      /^weeditpro-private-final-.*\.mp4$/i,
+    )
+    const acceptedFinalDownloadPath = await acceptedFinalDownload.path()
+    assert.ok(
+      acceptedFinalDownloadPath,
+      'The accepted final download must resolve to private MP4 bytes.',
+    )
+    const acceptedFinalBytes = await readFile(acceptedFinalDownloadPath)
+    const acceptedFinalSha256 = sha256Hex(acceptedFinalBytes)
+    assert.equal(
+      acceptedFinalSha256,
+      revisedCanonicalReviewSha256,
+      'The accepted final download must exactly match the revised accepted review artifact.',
+    )
+    await expect(
+      page.getByTestId('canonical-private-final-download-ready'),
+    ).toContainText('verified and downloaded')
     const canonicalAcceptedHandoffs = await page.evaluate((storageKey) => {
       return ((JSON.parse(window.localStorage.getItem(storageKey) ?? '{}') as { handoffs?: unknown[] }).handoffs ?? []) as Array<{
         sourceFileCount?: number
@@ -991,14 +1259,30 @@ try {
     )
     const acceptedJourney = canonicalJourneyReadback.json.data?.canonicalEditJourney
     assert.equal(acceptedJourney?.stage, 'private_review_accepted')
-    assert.equal(acceptedJourney?.plan?.planVersion, 2)
+    assert.equal(
+      acceptedJourney?.plan?.planVersion,
+      priorPlanVersion + 1,
+      'The accepted final must belong to the exact fresh revision plan.',
+    )
     assert.equal(acceptedJourney?.plan?.status, 'approved')
     assert.equal(acceptedJourney?.plan?.estimateStatus, 'approved')
     assert.ok((acceptedJourney?.plan?.approvedMaximumCredits ?? 0) > 0)
-    assert.equal(acceptedJourney?.plan?.workItemCount, canonicalWorkItemAndJobCount)
-    assert.equal(acceptedJourney?.approval?.jobCount, canonicalWorkItemAndJobCount)
-    assert.equal(acceptedJourney?.workGraph?.totalJobCount, canonicalWorkItemAndJobCount)
-    assert.equal(acceptedJourney?.workGraph?.completedJobCount, canonicalWorkItemAndJobCount)
+    assert.equal(
+      acceptedJourney?.plan?.workItemCount,
+      canonicalTopLevelWorkItemAndJobCount,
+    )
+    assert.equal(
+      acceptedJourney?.approval?.jobCount,
+      canonicalTopLevelWorkItemAndJobCount,
+    )
+    assert.equal(
+      acceptedJourney?.workGraph?.totalJobCount,
+      canonicalTopLevelWorkItemAndJobCount,
+    )
+    assert.equal(
+      acceptedJourney?.workGraph?.completedJobCount,
+      canonicalTopLevelWorkItemAndJobCount,
+    )
     assert.equal(acceptedJourney?.workGraph?.requiredBlockedJobCount, 0)
     assert.equal(acceptedJourney?.workGraph?.allRequiredJobsCompleted, true)
     assert.deepEqual(acceptedJourney?.permissions, {
@@ -1029,16 +1313,20 @@ try {
         'maximum_eight_private_sources_uploaded_and_backend_probed',
         'edit_preferences_and_edit_brief_compiled',
         'confirmed_frame_preserved_across_brief_platform_context',
-        'brief_revision_invalidated_and_republished_plan_v2',
+        'initial_plan_server_derived_without_browser_plan_payload',
         'canonical_plan_and_4k_ceiling_estimate_approved_once',
         'immutable_private_execution_handoff_requested_separately',
         'server_derived_private_work_graph_completed',
-        'maximum_source_work_items_and_snapshot_validation_completed_without_browser_execution_authority',
+        'five_server_work_items_and_eight_source_segments_completed_without_browser_execution_authority',
         'eight_source_bound_voice_tones_preserved_in_approved_order',
         'private_4k_master_preserved_sixteen_second_approved_sequence',
         'private_review_loaded_through_authenticated_no_store_bytes',
         'private_review_download_is_not_source_passthrough',
-        'private_review_decision_persisted',
+        'exact_caption_revision_recorded_without_browser_plan_payload',
+        'server_derived_revision_plan_reestimated_and_reapproved',
+        'revised_private_review_rendered_and_qa_backed',
+        'private_review_acceptance_decision_persisted',
+        'accepted_final_download_sha_verified_in_browser',
         'public_delivery_billing_providers_and_deployment_remain_blocked',
       ],
       canonicalReviewByteLength: canonicalReviewBytes.byteLength,
@@ -1046,7 +1334,10 @@ try {
       canonicalReviewFrame: `${canonicalReviewMediaProbe.video?.width}x${canonicalReviewMediaProbe.video?.height}`,
 	      canonicalReviewDurationSeconds: canonicalReviewMediaProbe.video?.durationSeconds,
 	      canonicalReviewAudioToneSamples: canonicalReviewAudioToneSamples.map(formatAudioToneSample),
-	      canonicalPanelDipSamples: canonicalPanelDipSamples.map(formatRgbSample),
+      replacementCaption,
+      revisedCanonicalReviewSha256,
+      acceptedFinalSha256,
+      revisedPlanVersion: acceptedJourney?.plan?.planVersion,
 	      canonicalWorkItemCount: acceptedJourney?.plan?.workItemCount,
       canonicalJobCount: acceptedJourney?.approval?.jobCount,
       canonicalVideoSrcScheme: canonicalVideoSrc.split(':')[0],
@@ -2722,6 +3013,13 @@ async function createCanonicalEditBriefMarkerBeforeBrief(
   await clickWhenReady(directionPopover.locator('summary').filter({ hasText: 'More options' }))
   await directionPopover.getByLabel('Type').selectOption('caption')
   await directionPopover.getByLabel('Priority').selectOption('must_follow')
+  await directionPopover.getByLabel('Starts at').fill(
+    String(approvedEditBriefMarker.startSeconds),
+  )
+  await directionPopover.getByLabel('Timing').selectOption('range')
+  await directionPopover.getByLabel('Ends at').fill(
+    String(approvedEditBriefMarker.endSeconds),
+  )
   await directionPopover.getByLabel('Short label (optional)').fill(approvedEditBriefMarker.title)
   await directionPopover
     .getByLabel('What should happen here?')
@@ -2761,6 +3059,8 @@ async function createCanonicalEditBriefMarkerBeforeBrief(
   assert.equal(markerOnlyAuthority.markers[0]?.title, approvedEditBriefMarker.title)
   assert.equal(markerOnlyAuthority.markers[0]?.note, approvedEditBriefMarker.note)
   assert.equal(markerOnlyAuthority.markers[0]?.startSeconds, approvedEditBriefMarker.startSeconds)
+  assert.equal(markerOnlyAuthority.markers[0]?.timeKind, 'range')
+  assert.equal(markerOnlyAuthority.markers[0]?.endSeconds, approvedEditBriefMarker.endSeconds)
   assert.equal(markerOnlyAuthority.markers[0]?.status, 'draft')
   assert.equal(markerOnlyAuthority.markers[0]?.timingStatus, 'display_seconds_only')
 
@@ -2935,10 +3235,13 @@ async function assertCanonicalEditBriefMarkerLineage(input: {
   assert.equal(marker.status, 'confirmed')
   assert.equal(marker.title, approvedEditBriefMarker.title)
   assert.equal(marker.note, approvedEditBriefMarker.note)
+  assert.equal(marker.timeKind, 'range')
   assert.equal(marker.startSeconds, approvedEditBriefMarker.startSeconds)
+  assert.equal(marker.endSeconds, approvedEditBriefMarker.endSeconds)
   assert.equal(marker.timingStatus, 'frame_authoritative')
   assert.equal(marker.frameRate, 30)
-  assert.equal(marker.startFrame, 15)
+  assert.equal(marker.startFrame, 0)
+  assert.equal(marker.endFrame, approvedEditBriefMarker.endSeconds * 30)
 
   const contextPackage = [...editBriefAuthority.contextPackages]
     .reverse()
@@ -2971,6 +3274,7 @@ async function assertCanonicalEditBriefMarkerLineage(input: {
   assert.ok(currentMarkerHint)
   assert.equal(currentMarkerHint.instruction, approvedEditBriefMarker.note)
   assert.equal(currentMarkerHint.startFrame, marker.startFrame)
+  assert.equal(currentMarkerHint.endFrame, marker.endFrame)
   assert.equal(currentHints.planInputQaStatus, 'passed')
   assert.equal(currentHints.runtimeTruth.plannerExecuted, false)
   assert.equal(currentHints.runtimeTruth.creditsReservedOrSpent, false)
@@ -3022,6 +3326,7 @@ async function assertCanonicalEditBriefMarkerLineage(input: {
   )
   assert.equal(snapshotMarkerHint.instruction, approvedEditBriefMarker.note)
   assert.equal(snapshotMarkerHint.startFrame, marker.startFrame)
+  assert.equal(snapshotMarkerHint.endFrame, marker.endFrame)
 
   const finalCompositionWorkItem = editAuthority?.approvedWorkItems.find(
     (entry) =>
@@ -3045,26 +3350,21 @@ async function assertCanonicalEditBriefMarkerLineage(input: {
     structuredPayload?: {
       transitionPolicy?: string
       panelBackground?: string
-      sourceTransitions?: Array<{
+      hardCutTransitions?: Array<{
         transitionTimingItemId?: string
         refinedTransitionTimingItemId?: string
         fromSourceSequenceItemId?: string
         toSourceSequenceItemId?: string
-        transitionType?: string
         boundaryFrame?: number
-        startFrame?: number
-        endFrameExclusive?: number
-        durationFrames?: number
-        visualCurve?: string
-        audioPolicy?: string
       }>
     }
   }
-  const approvedTransitions = finalCompositionExecutionInput.structuredPayload?.sourceTransitions
+  const approvedTransitions =
+    finalCompositionExecutionInput.structuredPayload?.hardCutTransitions
   assert.equal(
     finalCompositionExecutionInput.structuredPayload?.transitionPolicy,
-    'approved_bounded_source_transitions_v1',
-    'The immutable final-composition payload should retain the approved bounded transition authority.',
+    'approved_hard_cuts_only',
+    'The immutable final-composition payload should retain the exact restrained hard-cut authority approved by the user.',
   )
   assert.equal(
     finalCompositionExecutionInput.structuredPayload?.panelBackground,
@@ -3074,20 +3374,17 @@ async function assertCanonicalEditBriefMarkerLineage(input: {
   assert.equal(
     approvedTransitions?.length,
     canonicalSourceCount - 1,
-    'Every approved source boundary should retain one exact transition record.',
+    'Every approved source boundary should retain one exact hard-cut record.',
   )
-  assert.equal(approvedTransitions?.[0]?.transitionType, 'smooth_panel_dip')
   assert.equal(approvedTransitions?.[0]?.boundaryFrame, 60)
-  assert.equal(approvedTransitions?.[0]?.startFrame, 54)
-  assert.equal(approvedTransitions?.[0]?.endFrameExclusive, 66)
-  assert.equal(approvedTransitions?.[0]?.durationFrames, 12)
-  assert.equal(approvedTransitions?.[0]?.visualCurve, 'linear_dip_to_panel')
-  assert.equal(approvedTransitions?.[0]?.audioPolicy, 'hard_cut_at_boundary')
   assert.equal(
     approvedTransitions?.[0]?.transitionTimingItemId,
-    'transition-timing-final-timing-segment-1-to-final-timing-segment-2',
+    'server-hard-cut-1',
   )
-  assert.equal(approvedTransitions?.[0]?.refinedTransitionTimingItemId, 'refined-transition-1')
+  assert.equal(
+    approvedTransitions?.[0]?.refinedTransitionTimingItemId,
+    'server-refined-hard-cut-1',
+  )
   assert.equal(
     approvedTransitions?.[0]?.fromSourceSequenceItemId,
     finalCompositionWorkItem.sourceSequenceItemIds[0],
@@ -3097,16 +3394,18 @@ async function assertCanonicalEditBriefMarkerLineage(input: {
     finalCompositionWorkItem.sourceSequenceItemIds[1],
   )
   assert.equal(
-    approvedTransitions?.slice(1).every((transition) =>
-      transition.transitionType === 'hard_cut' &&
-      transition.startFrame === transition.boundaryFrame &&
-      transition.endFrameExclusive === transition.boundaryFrame &&
-      transition.durationFrames === 0 &&
-      transition.visualCurve === 'none' &&
-      transition.audioPolicy === 'hard_cut_at_boundary'
+    approvedTransitions?.every((transition, index) =>
+      transition.boundaryFrame === (index + 1) * canonicalSourceDurationSeconds * 30 &&
+      transition.transitionTimingItemId === `server-hard-cut-${index + 1}` &&
+      transition.refinedTransitionTimingItemId ===
+        `server-refined-hard-cut-${index + 1}` &&
+      transition.fromSourceSequenceItemId ===
+        finalCompositionWorkItem.sourceSequenceItemIds[index] &&
+      transition.toSourceSequenceItemId ===
+        finalCompositionWorkItem.sourceSequenceItemIds[index + 1]
     ),
     true,
-    'Every unrequested source boundary should remain an exact audio-preserving hard cut.',
+    'Every source boundary should remain the exact timing- and source-bound hard cut approved in MasterTiming.',
   )
 }
 
@@ -3353,39 +3652,6 @@ async function sampleCenterFrameColor(localFilePath: string, timestampSeconds: n
     blue: buffer[2] ?? 0,
     timestampSeconds,
   }
-}
-
-async function assertApprovedPanelDipAtBoundary(
-  localFilePath: string,
-  boundarySeconds: number,
-  label: string,
-): Promise<RgbSample[]> {
-  const [outgoingReference, panelBoundary, incomingReference] = await Promise.all([
-    sampleCenterFrameColor(localFilePath, boundarySeconds - 0.5),
-    sampleCenterFrameColor(localFilePath, boundarySeconds),
-    sampleCenterFrameColor(localFilePath, boundarySeconds + 0.5),
-  ])
-  assert.ok(
-    panelBoundary.red >= 235 && panelBoundary.green >= 235 && panelBoundary.blue >= 235,
-    `${label} should reach the approved white panel at the exact boundary, got ${formatRgbSample(panelBoundary)}.`,
-  )
-  for (const [phase, reference] of [
-    ['outgoing', outgoingReference],
-    ['incoming', incomingReference],
-  ] as const) {
-    assert.ok(
-      reference.red >= reference.green + 35 &&
-        reference.red >= reference.blue + 35,
-      `${label} should restore the ${phase} red source away from the panel, got ${formatRgbSample(reference)}.`,
-    )
-    assert.ok(
-      Math.abs(reference.red - panelBoundary.red) +
-        Math.abs(reference.green - panelBoundary.green) +
-        Math.abs(reference.blue - panelBoundary.blue) >= 180,
-      `${label} should visibly separate the ${phase} source from the approved panel.`,
-    )
-  }
-  return [outgoingReference, panelBoundary, incomingReference]
 }
 
 async function sampleOverlayBandColor(localFilePath: string, timestampSeconds: number): Promise<RgbSample> {

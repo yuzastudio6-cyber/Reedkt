@@ -86,17 +86,29 @@ export function createCanonicalSourceLedPlanPresentationService(
       const authority = exactPreferenceResolution.authority
       if (
         authority.locked ||
-        authority.lifecyclePhase !== 'planning' ||
-        authority.frameConfirmation.status !== 'confirmed'
+        authority.lifecyclePhase !== 'planning'
       ) {
         throw new ApiError(
           'PLAN_NOT_APPROVED',
-          'Source-led planning requires an unlocked edit and one confirmed output frame.',
+          'Source-led planning requires one unlocked planning-phase edit.',
           409,
           {
             lifecyclePhase: authority.lifecyclePhase,
             locked: authority.locked,
-            outputFrameStatus: authority.frameConfirmation.status,
+          },
+        )
+      }
+      if (
+        authority.frameConfirmation.status === 'confirmed' &&
+        authority.frameConfirmation.aspectRatio !== body.confirmedAspectRatio
+      ) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'The confirmed output frame changed after exact edit authority was recorded.',
+          409,
+          {
+            recordedAspectRatio: authority.frameConfirmation.aspectRatio,
+            requestedAspectRatio: body.confirmedAspectRatio,
           },
         )
       }
@@ -204,6 +216,7 @@ export function createCanonicalSourceLedPlanPresentationService(
       const plannerInput = buildServerPlannerInput({
         projectName: project.name,
         authority,
+        confirmedAspectRatio: body.confirmedAspectRatio,
         sourceMediaAssets,
         editBriefAggregate: editBriefAggregate!,
       })
@@ -279,6 +292,7 @@ export function createCanonicalSourceLedPlanPresentationService(
         },
         derivation: {
           ...compiled.evidence,
+          confirmedAspectRatio: body.confirmedAspectRatio,
           requestAcceptedBrowserPlan: false as const,
           requestAcceptedBrowserTiming: false as const,
           requestAcceptedBrowserEstimate: false as const,
@@ -310,7 +324,7 @@ export function createCanonicalSourceLedPlanPresentationService(
   }
 }
 
-function resolveExactFinalizedSource(input: {
+export function resolveExactFinalizedSource(input: {
   aggregate: NonNullable<
     Awaited<ReturnType<typeof readPrivateUploadMediaAuthorityAggregate>>
   >
@@ -404,19 +418,23 @@ function requireReadySourceLedEditBrief(
   return aggregate.brief
 }
 
-function buildServerPlannerInput(input: {
+export function buildServerPlannerInput(input: {
   projectName: string
   authority: Awaited<
     ReturnType<typeof readPlanningExactEditPreferenceAuthority>
   >['authority']
+  confirmedAspectRatio: '9:16' | '16:9' | '1:1' | '4:5' | '4:3'
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
   editBriefAggregate: PrivateEditBriefAuthorityAggregate
 }): PlannerInput {
   const { authority } = input
-  if (authority.frameConfirmation.status !== 'confirmed') {
+  if (
+    authority.frameConfirmation.status === 'confirmed' &&
+    authority.frameConfirmation.aspectRatio !== input.confirmedAspectRatio
+  ) {
     throw new ApiError(
-      'JOB_DEPENDENCY_NOT_READY',
-      'The exact output frame is not confirmed.',
+      'IDEMPOTENCY_CONFLICT',
+      'The requested output frame does not match exact edit authority.',
       409,
     )
   }
@@ -454,7 +472,7 @@ function buildServerPlannerInput(input: {
       isOptional: false,
     }
   })
-  const aspectRatio = authority.frameConfirmation.aspectRatio as AspectRatio
+  const aspectRatio = input.confirmedAspectRatio as AspectRatio
   return {
     projectName: input.projectName,
     targetPlatform: values.targetPlatform,

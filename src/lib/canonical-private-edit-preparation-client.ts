@@ -11,7 +11,7 @@ type CanonicalPrivateEditPreparationApiResponse = {
 }
 
 export type CanonicalPrivateEditPreparationReceipt = {
-  disposition: 'private_review_ready' | 'blocked'
+  disposition: 'private_review_ready' | 'in_progress' | 'blocked'
   identity: {
     workspaceId: string
     projectId: string
@@ -45,6 +45,13 @@ export type CanonicalPrivateEditPreparationClientResult =
       status: 'ready'
       message: string
       retryable: false
+      receipt: CanonicalPrivateEditPreparationReceipt
+      warnings: string[]
+    }
+  | {
+      status: 'in_progress'
+      message: string
+      retryable: true
       receipt: CanonicalPrivateEditPreparationReceipt
       warnings: string[]
     }
@@ -191,6 +198,18 @@ async function performRequest(
       warnings: response.warnings,
     }
   }
+  if (receipt.disposition === 'in_progress') {
+    return {
+      status: 'in_progress',
+      message:
+        `${receipt.progress.completedJobCount} of ` +
+        `${receipt.progress.totalJobCount} approved private steps are complete. ` +
+        'WeEditPro is continuing from saved server progress; you may leave and return safely.',
+      retryable: true,
+      receipt,
+      warnings: response.warnings,
+    }
+  }
 
   return {
     status: 'ready',
@@ -258,7 +277,7 @@ function parseReceipt(
     root.schemaVersion !== 'canonical-private-edit-preparation-receipt-v1' ||
     root.source !== 'canonical_private_edit_preparation_coordinator_service' ||
     root.purpose !== 'prepare_canonical_private_edit_review' ||
-    !['private_review_ready', 'blocked'].includes(String(root.disposition)) ||
+    !['private_review_ready', 'in_progress', 'blocked'].includes(String(root.disposition)) ||
     root.testOnly !== true ||
     !isOffsetDateTime(root.completedAt) ||
     containsForbiddenPrivateMaterial(root)
@@ -293,6 +312,7 @@ function parseReceipt(
   ])
   const disposition = root.disposition as CanonicalPrivateEditPreparationReceipt['disposition']
   const ready = disposition === 'private_review_ready'
+  const inProgress = disposition === 'in_progress'
   if (
     !identity ||
     identity.workspaceId !== input.scope.workspaceId ||
@@ -305,12 +325,16 @@ function parseReceipt(
     authority.snapshotHash !== expected.snapshotHash ||
     authority.exactApprovedAuthorityRevalidated !== true ||
     authority.serverDerivedWorkGraphOnly !== true ||
-    !validProgress(progress, ready) ||
+    !validProgress(progress, disposition) ||
     !readiness ||
     readiness.privateReviewReady !== ready ||
-    readiness.nextRequiredGate !== (ready
-      ? 'canonical_private_review_user_decision_or_revision'
-      : 'canonical_job_capability_blockers') ||
+    readiness.nextRequiredGate !== (
+      ready
+        ? 'canonical_private_review_user_decision_or_revision'
+        : inProgress
+          ? 'canonical_private_work_graph_advancement'
+          : 'canonical_job_capability_blockers'
+    ) ||
     readiness.productReady !== false ||
     readiness.externalBetaReady !== false ||
     readiness.productionReady !== false ||
@@ -353,9 +377,11 @@ function parseReceipt(
 
 function validProgress(
   progress: Record<string, unknown> | null,
-  ready: boolean,
+  disposition: CanonicalPrivateEditPreparationReceipt['disposition'],
 ): boolean {
   if (!progress) return false
+  const ready = disposition === 'private_review_ready'
+  const inProgress = disposition === 'in_progress'
   const total = progress.totalJobCount
   const completed = progress.completedJobCount
   const blocked = progress.blockedJobCount
@@ -366,7 +392,11 @@ function validProgress(
     progress.allRequiredJobsCompleted === ready &&
     typeof progress.retryAvailable === 'boolean' &&
     typeof progress.userReviewRequired === 'boolean' &&
-    (ready ? progress.retryAvailable === false && progress.userReviewRequired === false : true)
+    (
+      ready || inProgress
+        ? progress.retryAvailable === false && progress.userReviewRequired === false
+        : true
+    )
 }
 
 function parseReview(
@@ -449,7 +479,10 @@ function classifyFailure(response: {
 }
 
 function failure(
-  status: Exclude<CanonicalPrivateEditPreparationClientResult['status'], 'ready'>,
+  status: Exclude<
+    CanonicalPrivateEditPreparationClientResult['status'],
+    'ready' | 'in_progress'
+  >,
   message: string,
   retryable: boolean,
   warnings: string[],

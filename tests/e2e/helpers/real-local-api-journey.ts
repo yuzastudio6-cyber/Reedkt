@@ -7,16 +7,33 @@ import {
 } from '../../../src/lib/local-project-handoff'
 import {
   clickWhenReady,
-  createPlanFromUploadedEditorSources,
+  completeRequiredEditorSetupBeforeFootagePrep,
   gotoRoute,
 } from './routes'
 
-const localTestScope = {
-  authMode: 'local_test' as const,
-  userId: 'local-test-user',
-  workspaceId: 'workspace-internal-testing',
-}
-const localHandoffStorageKey = buildLocalProjectHandoffStorageKey(localTestScope)
+const usesSupabaseAuth =
+  process.env.PLAYWRIGHT_REAL_LOCAL_API_AUTH_MODE === 'supabase'
+const journeyUserId = usesSupabaseAuth
+  ? requiredJourneyEnvironment('PLAYWRIGHT_REAL_LOCAL_API_USER_ID')
+  : 'local-test-user'
+const journeyWorkspaceId = usesSupabaseAuth
+  ? requiredJourneyEnvironment('PLAYWRIGHT_REAL_LOCAL_API_WORKSPACE_ID')
+  : 'workspace-internal-testing'
+const journeyIdentityLabel = usesSupabaseAuth
+  ? process.env.PLAYWRIGHT_REAL_LOCAL_API_IDENTITY_LABEL?.trim() || 'Owner A'
+  : 'Local test user'
+const journeyScope = usesSupabaseAuth
+  ? {
+      authMode: 'supabase' as const,
+      userId: journeyUserId,
+      workspaceId: journeyWorkspaceId,
+    }
+  : {
+      authMode: 'local_test' as const,
+      userId: journeyUserId,
+      workspaceId: journeyWorkspaceId,
+    }
+const localHandoffStorageKey = buildLocalProjectHandoffStorageKey(journeyScope)
 
 export type ActiveProjectEdit = {
   projectId: string
@@ -51,37 +68,104 @@ export async function signInAndCreateActiveProjectEdit(
     editName: string
   },
 ): Promise<ActiveProjectEdit> {
+  await signInForRealLocalApiJourney(page)
   await gotoRoute(page, '/projects/new')
-  await expect(page.getByTestId('app-session-identity')).toContainText('Local test user')
+  await expect(page.getByTestId('app-session-identity')).toContainText(
+    journeyIdentityLabel,
+  )
   await expect(page.getByRole('heading', { level: 1, name: /^New project$/i })).toBeVisible()
   await expect(page.getByRole('heading', { level: 2, name: /What are you working on/i })).toBeVisible()
   await page.getByLabel(/Project name/i).fill(input.projectName)
+  const projectCreateResponse = page.waitForResponse((response) => {
+    const url = new URL(response.url())
+    return response.request().method() === 'POST' && url.pathname === '/v1/projects'
+  })
   await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }).first())
 
-  await expect(page).toHaveURL(/\/projects\/[^/?]+$/)
+  const projectCreateResult = await projectCreateResponse
+  const projectCreateBody = await projectCreateResult.text()
+  expect(
+    projectCreateResult.ok(),
+    `POST /v1/projects returned ${projectCreateResult.status()}: ${projectCreateBody}`,
+  ).toBe(true)
+  await expect(page).toHaveURL(/\/projects\/(?!new(?:[/?]|$))[^/?]+$/)
   await expect(page.getByRole('heading', { level: 1, name: input.projectName })).toBeVisible()
   await clickWhenReady(page.getByRole('button', { name: /^New video edit$/i }).first())
   await expect(page.getByTestId('new-edit-dialog')).toBeVisible()
   await expect(page.getByRole('heading', { name: /Name this edit/i })).toBeVisible()
   await page.getByLabel(/Edit name/i).fill(input.editName)
+  const editStateSaveResponse = page.waitForResponse((response) => {
+    const url = new URL(response.url())
+    return response.request().method() === 'PUT'
+      && /^\/v1\/projects\/[^/]+\/internal-edit-state$/.test(url.pathname)
+  })
   await clickWhenReady(page.getByRole('button', { name: /^Create edit$/i }).first())
 
   await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^?]+(?:\?.*)?$/)
+  const editUrl = new URL(page.url())
+  const editRouteMatch = editUrl.pathname.match(
+    /^\/projects\/([^/]+)\/edits\/([^/]+)$/,
+  )
+  expect(editRouteMatch).not.toBeNull()
+  const projectId = decodeURIComponent(editRouteMatch?.[1] ?? '')
+  const editSessionId = decodeURIComponent(editRouteMatch?.[2] ?? '')
+  const persistedBrowserHandoffs = await page.evaluate((storageKey) => {
+    const raw = window.localStorage.getItem(storageKey)
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as {
+      handoffs?: Array<{
+        projectId?: string
+        editSessionId?: string
+      }>
+    }
+    return parsed.handoffs ?? []
+  }, localHandoffStorageKey)
+  expect(
+    persistedBrowserHandoffs,
+    `The scoped browser handoff was missing after creating edit ${editSessionId}.`,
+  ).toContainEqual(expect.objectContaining({ projectId, editSessionId }))
+  const editStateSaveResult = await editStateSaveResponse
+  const editStateSaveBody = await editStateSaveResult.text()
+  expect(
+    editStateSaveResult.ok(),
+    `PUT /v1/projects/:projectId/internal-edit-state returned ${editStateSaveResult.status()}: ${editStateSaveBody}`,
+  ).toBe(true)
   await expect(page.getByTestId('editor-page')).toBeVisible({ timeout: 30_000 })
   await expect(page.getByTestId('editor-header')).toContainText(input.editName)
   await expect(page.getByTestId('edit-upload-gate')).toBeVisible()
   await expect(page.getByTestId('chat-composer-textarea')).toBeDisabled()
 
-  const url = new URL(page.url())
-  const routeMatch = url.pathname.match(/^\/projects\/([^/]+)\/edits\/([^/]+)$/)
-  expect(routeMatch).not.toBeNull()
-
   return {
-    projectId: decodeURIComponent(routeMatch?.[1] ?? ''),
-    editSessionId: decodeURIComponent(routeMatch?.[2] ?? ''),
+    projectId,
+    editSessionId,
     projectName: input.projectName,
     editName: input.editName,
   }
+}
+
+async function signInForRealLocalApiJourney(page: Page): Promise<void> {
+  if (!usesSupabaseAuth) return
+
+  const email = requiredJourneyEnvironment(
+    'PLAYWRIGHT_REAL_LOCAL_API_AUTH_EMAIL',
+  )
+  const password = requiredJourneyEnvironment(
+    'PLAYWRIGHT_REAL_LOCAL_API_AUTH_PASSWORD',
+  )
+  await page.goto('/sign-in?returnTo=/projects/new')
+  await page.waitForLoadState('domcontentloaded')
+  const signInCard = page.getByTestId('sign-in-card')
+  await expect(signInCard).toBeVisible({ timeout: 30_000 })
+  const passwordFallback = signInCard.getByTestId('auth-password-toggle')
+  await expect(passwordFallback).toBeVisible({ timeout: 30_000 })
+  await passwordFallback.click()
+  await signInCard.getByLabel('Email').fill(email)
+  await signInCard.getByLabel('Password').fill(password)
+  await signInCard.getByTestId('auth-submit-button').click()
+  await expect(page.getByTestId('app-shell')).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByTestId('app-session-identity')).toContainText(
+    journeyIdentityLabel,
+  )
 }
 
 export async function uploadActiveEditorSource(
@@ -202,7 +286,32 @@ export async function createAndApproveActivePlan(
       timeout: timeoutMs,
     })
   } else {
-    await createPlanFromUploadedEditorSources(page)
+    await applySupportedSourceOnlyPreferences(page)
+    await completeRequiredEditorSetupBeforeFootagePrep(page)
+    await clickWhenReady(page.getByRole('button', { name: /^Prepare source$/i }).first())
+    await expect(page.getByText(/Source prep is ready for 1 uploaded source file/i)).toBeVisible({
+      timeout: timeoutMs,
+    })
+    await expect(page.getByTestId('planning-preparation')).toContainText(
+      /Ready to create the plan/i,
+      { timeout: timeoutMs },
+    )
+    await prepareCurrentSourceLedEditBrief(page, { timeoutMs })
+    const sourceLedPlanPresentation = page.waitForResponse((response) => {
+      const request = response.request()
+      return request.method() === 'POST'
+        && /\/source-led-plan-presentations(?:\?|$)/.test(request.url())
+    }, { timeout: timeoutMs })
+    await clickWhenReady(page.getByRole('button', { name: /^Create edit plan$/i }).first())
+    const sourceLedPlanPresentationResponse = await sourceLedPlanPresentation
+    if (!sourceLedPlanPresentationResponse.ok()) {
+      throw new Error(
+        `Canonical source-led plan presentation failed (${sourceLedPlanPresentationResponse.status()}): ${await sourceLedPlanPresentationResponse.text()}`,
+      )
+    }
+    await expect(page.getByText(/Plan updated from your source assembly/i)).toBeVisible({
+      timeout: timeoutMs,
+    })
   }
   await expect(page.getByTestId('plan-review-card')).toBeVisible({ timeout: timeoutMs })
   await expect(page.getByTestId('plan-review-card')).toContainText(/estimated credits/i)
@@ -242,6 +351,165 @@ export async function createAndApproveActivePlan(
   return 'private_review_ready'
 }
 
+async function applySupportedSourceOnlyPreferences(page: Page): Promise<void> {
+  await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
+  const advancedPreferences = page.getByTestId(
+    'current-edit-preferences-advanced',
+  )
+  await expect(advancedPreferences).toBeVisible()
+  if (await advancedPreferences.getAttribute('open') === null) {
+    await clickWhenReady(advancedPreferences.locator('summary'))
+  }
+  await page
+    .getByTestId('current-edit-preference-workflow')
+    .selectOption('simple_clean_edit')
+  await page
+    .getByTestId('current-edit-preference-visual-direction')
+    .selectOption('no_extra_visuals')
+  await page
+    .getByTestId('current-edit-preference-cleanup')
+    .selectOption('preserve_natural')
+  await clickWhenReady(
+    page.getByRole('button', { name: /^Apply to this edit$/i }),
+  )
+  await expect(page.getByText(/^Current edit is up to date$/i)).toBeVisible()
+  await clickWhenReady(page.getByTestId('edit-workspace-view-chat'))
+}
+
+async function prepareCurrentSourceLedEditBrief(
+  page: Page,
+  input: { timeoutMs: number },
+): Promise<void> {
+  const route = new URL(page.url()).pathname.match(
+    /^\/projects\/([^/]+)\/edits\/([^/]+)$/,
+  )
+  expect(route).not.toBeNull()
+  const projectId = decodeURIComponent(route?.[1] ?? '')
+  const editSessionId = decodeURIComponent(route?.[2] ?? '')
+  const handoff = await readActiveHandoff(page, { projectId, editSessionId })
+  const sourceDurationSeconds = handoff?.sourceMediaAssets?.reduce(
+    (total, source) => total + (source.sourceMetadata?.durationSeconds ?? 0),
+    0,
+  ) ?? 0
+  expect(sourceDurationSeconds).toBeGreaterThan(0)
+  const captionEndSeconds = Math.max(
+    0.01,
+    Math.floor(sourceDurationSeconds * 30) / 30,
+  )
+  const captionTitle = 'Protect the complete source'
+  const captionText = 'Keep the complete source clear and readable.'
+
+  await clickWhenReady(page.getByTestId('editor-header-edit-brief'))
+  await expect(page).toHaveURL(/[?&]view=brief(?:&|$)/)
+  const workspace = page.getByTestId('editor-edit-brief-canvas')
+  await expect(workspace).toBeVisible({ timeout: input.timeoutMs })
+  const directionDetails = workspace.getByTestId('edit-brief-direction-details')
+  if (await directionDetails.getAttribute('open') === null) {
+    await clickWhenReady(directionDetails.locator('summary'))
+  }
+  const authorityStatus = workspace.getByTestId('edit-brief-authority-status')
+  await expect(authorityStatus).toContainText('Saved', {
+    timeout: input.timeoutMs,
+  })
+
+  await workspace.getByLabel('Timeline playhead').fill('0')
+  await clickWhenReady(workspace.getByTestId('edit-brief-add-direction'))
+  const markerPopover = page.getByTestId('edit-brief-marker-popover')
+  await expect(markerPopover).toBeVisible()
+  await clickWhenReady(
+    markerPopover.locator('summary').filter({ hasText: 'More options' }),
+  )
+  await markerPopover.getByLabel('Type').selectOption('caption')
+  await markerPopover.getByLabel('Priority').selectOption('must_follow')
+  await markerPopover.getByLabel('Starts at').fill('0')
+  await markerPopover.getByLabel('Timing').selectOption('range')
+  await markerPopover.getByLabel('Ends at').fill(String(captionEndSeconds))
+  await markerPopover.getByLabel('Short label (optional)').fill(captionTitle)
+  await markerPopover.getByLabel(/What should happen here/i).fill(captionText)
+
+  const markerCreate = page.waitForResponse((response) => {
+    const request = response.request()
+    return request.method() === 'POST'
+      && /\/edit-brief\/markers(?:\?|$)/.test(request.url())
+  }, { timeout: input.timeoutMs })
+  await clickWhenReady(
+    markerPopover.getByRole('button', { name: 'Add direction' }),
+  )
+  const markerCreateResponse = await markerCreate
+  expect(markerCreateResponse.status()).toBe(201)
+  await expect(authorityStatus).toContainText('Saved', {
+    timeout: input.timeoutMs,
+  })
+
+  await workspace
+    .getByTestId('edit-brief-goal-input')
+    .fill(
+      'Preserve the complete source meaning and produce a restrained, professional private review.',
+    )
+  await page.waitForTimeout(900)
+  await expect(authorityStatus).toContainText('Saved', {
+    timeout: input.timeoutMs,
+  })
+
+  const readyWrite = page.waitForResponse((response) => {
+    const request = response.request()
+    return ['POST', 'PATCH'].includes(request.method())
+      && /\/edit-brief(?:\?|$)/.test(request.url())
+      && (request.postData() ?? '').includes('"status":"ready"')
+      && response.ok()
+  }, { timeout: input.timeoutMs })
+  const exactLocalBriefWrite = page.waitForResponse((response) => {
+    const request = response.request()
+    const url = new URL(request.url())
+    return request.method() === 'POST'
+      && /^\/v1\/projects\/[^/]+\/edit-sessions\/[^/]+\/local-brief$/.test(
+        url.pathname,
+      )
+  }, { timeout: input.timeoutMs })
+  await clickWhenReady(workspace.getByTestId('edit-brief-mark-ready'))
+  await readyWrite
+  await expect(authorityStatus).toContainText('Saved', {
+    timeout: input.timeoutMs,
+  })
+
+  let confirmButton = markerPopover.getByRole('button', {
+    name: 'Confirm for plan',
+  })
+  if (await confirmButton.count() === 0) {
+    await clickWhenReady(
+      workspace.getByRole('button', {
+        name: new RegExp(captionTitle, 'i'),
+      }),
+    )
+    await expect(markerPopover).toBeVisible({ timeout: input.timeoutMs })
+    confirmButton = markerPopover.getByRole('button', {
+      name: 'Confirm for plan',
+    })
+  }
+  await expect(confirmButton).toBeEnabled({ timeout: input.timeoutMs })
+  const markerConfirm = page.waitForResponse((response) => {
+    const request = response.request()
+    return request.method() === 'POST'
+      && /\/edit-brief\/markers\/[^/]+\/confirm(?:\?|$)/.test(request.url())
+  }, { timeout: input.timeoutMs })
+  await clickWhenReady(confirmButton)
+  expect((await markerConfirm).status()).toBe(200)
+  const exactLocalBriefWriteResponse = await exactLocalBriefWrite
+  const exactLocalBriefWriteBody = await exactLocalBriefWriteResponse.text()
+  expect(
+    exactLocalBriefWriteResponse.ok(),
+    `POST /v1/projects/:projectId/edit-sessions/:editSessionId/local-brief returned ${exactLocalBriefWriteResponse.status()}: ${exactLocalBriefWriteBody}`,
+  ).toBe(true)
+  await expect(authorityStatus).toContainText('Saved', {
+    timeout: input.timeoutMs,
+  })
+
+  await clickWhenReady(page.getByTestId('edit-workspace-view-chat'))
+  await expect(page).not.toHaveURL(/[?&]view=brief(?:&|$)/)
+  await expect(page.getByRole('button', { name: /^Create edit plan$/i }).first())
+    .toBeEnabled({ timeout: input.timeoutMs })
+}
+
 export async function readActiveHandoff(
   page: Page,
   edit: Pick<ActiveProjectEdit, 'projectId' | 'editSessionId'>,
@@ -258,4 +526,12 @@ export async function readActiveHandoff(
     projectId: edit.projectId,
     editSessionId: edit.editSessionId,
   })
+}
+
+function requiredJourneyEnvironment(name: string): string {
+  const value = process.env[name]?.trim()
+  if (!value) {
+    throw new Error(`Real local API journey environment is missing ${name}.`)
+  }
+  return value
 }

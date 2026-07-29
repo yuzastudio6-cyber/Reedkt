@@ -133,9 +133,11 @@ import { useRevisionWorkflow } from '../../hooks/useRevisionWorkflow'
 import { useCanonicalEditJourney } from '../../hooks/useCanonicalEditJourney'
 import { useCanonicalExecutionPackageRequest } from '../../hooks/useCanonicalExecutionPackageRequest'
 import { useCanonicalPlanApproval } from '../../hooks/useCanonicalPlanApproval'
-import { useCanonicalPlanningPublication } from '../../hooks/useCanonicalPlanningPublication'
 import { useCanonicalPrivateEditPreparation } from '../../hooks/useCanonicalPrivateEditPreparation'
+import { useCanonicalPrivateFinalDownload } from '../../hooks/useCanonicalPrivateFinalDownload'
 import { useCanonicalPrivateReview } from '../../hooks/useCanonicalPrivateReview'
+import { useCanonicalSourceLedCaptionRevision } from '../../hooks/useCanonicalSourceLedCaptionRevision'
+import { useCanonicalSourceLedPlanPresentation } from '../../hooks/useCanonicalSourceLedPlanPresentation'
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus, MediaKind, ReeditProChatMessage } from '../../types'
 import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
 import type {
@@ -1018,10 +1020,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     projectId: editorProjectId,
     scope: projectPersistenceScope,
   })
-  const canonicalPlanningPublication = useCanonicalPlanningPublication({
+  const canonicalPlanningPublication = useCanonicalSourceLedPlanPresentation({
     editSessionId: editorEditSessionId,
     enabled: canonicalPlanningBackendConnected,
-    onSaved: canonicalJourney.refresh,
+    onPresented: canonicalJourney.refresh,
     projectId: editorProjectId,
     scope: projectPersistenceScope,
   })
@@ -1049,6 +1051,21 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     projectId: editorProjectId,
     scope: projectPersistenceScope,
   })
+  const canonicalSourceLedCaptionRevision =
+    useCanonicalSourceLedCaptionRevision({
+      editSessionId: editorEditSessionId,
+      enabled: canonicalPlanningBackendConnected,
+      onPresented: canonicalJourney.refresh,
+      projectId: editorProjectId,
+      scope: projectPersistenceScope,
+    })
+  const canonicalPrivateFinalDownload =
+    useCanonicalPrivateFinalDownload({
+      editSessionId: editorEditSessionId,
+      enabled: canonicalPlanningBackendConnected,
+      projectId: editorProjectId,
+      scope: projectPersistenceScope,
+    })
   const canonicalJourneyValue = canonicalJourney.result?.status === 'ready'
     ? canonicalJourney.result.journey
     : undefined
@@ -2099,7 +2116,30 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     ? 'Resolve blocking Planning Context issues before approving credits or starting the review edit.'
     : ''
   const planningContextReadyForApproval = Boolean(contextAwarePlanResult) && !planningContextApprovalBlockedReason
-  const canonicalPresentedPlan = canonicalPlanningPublication.result?.presentedPlan
+  const sourceLedCaptionRevisionPresentedPlan =
+    canonicalSourceLedCaptionRevision.result?.status === 'ready'
+      ? {
+          planId:
+            canonicalSourceLedCaptionRevision.result.receipt
+              .replacementPlanId,
+          planVersion:
+            canonicalSourceLedCaptionRevision.result.receipt
+              .replacementPlanVersion,
+          planHash:
+            canonicalSourceLedCaptionRevision.result.receipt
+              .replacementPlanHash,
+        }
+      : undefined
+  const canonicalPresentedPlan =
+    canonicalPlanningPublication.result?.presentedPlan ??
+    sourceLedCaptionRevisionPresentedPlan
+  const canonicalPublicationStatus =
+    canonicalPlanningPublication.result?.status ??
+    (
+      sourceLedCaptionRevisionPresentedPlan
+        ? 'plan_published_waiting_for_approval'
+        : undefined
+    )
   const visiblePlanEstimateCredits =
     canonicalPlanningBackendConnected &&
     canonicalJourneyValue?.plan
@@ -2108,7 +2148,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const canonicalApprovalAuthorityReady = canonicalPlanApprovalReadyForPresentedPlan({
     backendConnected: canonicalPlanningBackendConnected,
     journey: canonicalJourneyValue,
-    publicationStatus: canonicalPlanningPublication.result?.status,
+    publicationStatus: canonicalPublicationStatus,
     presentedPlan: canonicalPresentedPlan,
     visibleMaximumCredits: visiblePlanEstimateCredits,
   })
@@ -2508,6 +2548,45 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     sourceMediaAssets,
   ])
 
+  useEffect(() => {
+    const state = activeEditBriefState
+    if (
+      !isProjectWorkspace
+      || backendLocalEditBrief
+      || state?.editBrief.status !== 'ready'
+      || canonicalBriefPlanningGate.status !== 'saved'
+      || !canonicalBriefPlanningGate.ready
+    ) return
+
+    const planInvalidationMessageHasPriority = Boolean(
+      contextAwarePlanResult
+      || contextMockPreview
+      || approved
+      || approvedSnapshot
+      || privateInternalTestRun
+      || previewReady
+    )
+    const synchronizationTimer = window.setTimeout(() => {
+      void synchronizeReadyEditBriefAuthority(state, {
+        suppressStatusMessage: planInvalidationMessageHasPriority,
+      })
+    }, 0)
+    return () => window.clearTimeout(synchronizationTimer)
+  }, [
+    activeEditBriefState,
+    approved,
+    approvedSnapshot,
+    backendLocalEditBrief,
+    canonicalBriefPlanningGate.ready,
+    canonicalBriefPlanningGate.status,
+    contextAwarePlanResult,
+    contextMockPreview,
+    isProjectWorkspace,
+    previewReady,
+    privateInternalTestRun,
+    synchronizeReadyEditBriefAuthority,
+  ])
+
   const handleEditBriefStateChange = useCallback((state: EditBriefState) => {
     if (!isProjectWorkspace) return
     latestEditBriefStateRef.current = state
@@ -2519,30 +2598,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     updateLocalInternalEditHandoff(editorProjectId, editorEditSessionId, {
       editBriefState: state,
     })
-    if (state.editBrief.status === 'ready') {
-      const planInvalidationMessageHasPriority = Boolean(
-        contextAwarePlanResult
-        || contextMockPreview
-        || approved
-        || approvedSnapshot
-        || privateInternalTestRun
-        || previewReady
-      )
-      void synchronizeReadyEditBriefAuthority(state, {
-        suppressStatusMessage: planInvalidationMessageHasPriority,
-      })
-    }
   }, [
-    approved,
-    approvedSnapshot,
-    contextAwarePlanResult,
-    contextMockPreview,
     editorEditSessionId,
     editorProjectId,
     isProjectWorkspace,
-    previewReady,
-    privateInternalTestRun,
-    synchronizeReadyEditBriefAuthority,
     updateLocalInternalEditHandoff,
   ])
 
@@ -3014,16 +3073,14 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
 
     if (canonicalPlanningBackendConnected && !preservesRecoveredApprovedSnapshot) {
       canonicalPlanApproval.reset()
-      const exactPlannerInput = createContextAwarePlannerInput(result.planningContext, plannerInput)
+      const orderedMediaAssetIds = durableUploadedPrivateSourceAssets(
+        sourceMediaAssets,
+      )
+        .sort((left, right) => left.uploadedOrder - right.uploadedOrder)
+        .map((asset) => asset.mediaAssetId)
       void canonicalPlanningPublication.submit({
-        plan: result.editPlan,
-        plannerInput: exactPlannerInput,
-        sourceMediaAssets: durableUploadedPrivateSourceAssets(sourceMediaAssets),
-        editBriefAudioPlanningInputs:
-          canonicalBriefPlanningGate.editBriefAudioPlanningInputs,
-        ...(canonicalJourneyValue?.stage === 'revision_requested'
-          ? { revisionJourney: canonicalJourneyValue }
-          : {}),
+        orderedMediaAssetIds,
+        confirmedAspectRatio: aspectRatio,
       })
     }
   }
@@ -3887,7 +3944,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     const result = await canonicalPrivateEditPreparation.prepareEdit(
       canonicalJourneyValue,
     )
-    if (result.status === 'ready' || result.status === 'blocked') {
+    if (
+      result.status === 'ready' ||
+      result.status === 'in_progress' ||
+      result.status === 'blocked'
+    ) {
       canonicalJourney.refresh()
     }
   }
@@ -3906,22 +3967,43 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     if (result.status === 'recorded') canonicalJourney.refresh()
   }
 
-  async function handleRequestCanonicalPrivateReviewRevision(summary: string) {
-    if (!canonicalJourneyValue || !canonicalPrivateReview.media) return
+  async function handleRequestCanonicalPrivateReviewRevision(
+    summary: string,
+    captionReplacementText?: string,
+  ) {
+    if (
+      !canonicalJourneyValue ||
+      !canonicalPrivateReview.media ||
+      !captionReplacementText
+    ) return
+    canonicalSourceLedCaptionRevision.reset()
     const result = await canonicalPrivateReview.recordDecision(
       canonicalJourneyValue,
       'request_revision',
       summary,
+      captionReplacementText,
     )
     if (result.status === 'recorded') {
       canonicalPlanningPublication.reset()
       canonicalPlanApproval.reset()
       canonicalExecutionPackageRequest.reset()
       canonicalPrivateEditPreparation.reset()
-      applyUserPlanningInstruction(summary)
+      canonicalPrivateFinalDownload.reset()
+      canonicalJourney.refresh()
+      await canonicalSourceLedCaptionRevision.presentLatest()
       canonicalPrivateReview.reset()
       canonicalJourney.refresh()
     }
+  }
+
+  async function handlePresentCanonicalSourceLedCaptionRevision() {
+    const result = await canonicalSourceLedCaptionRevision.presentLatest()
+    if (result.status === 'ready') canonicalJourney.refresh()
+  }
+
+  async function handleDownloadCanonicalAcceptedFinal() {
+    if (!canonicalJourneyValue) return
+    await canonicalPrivateFinalDownload.download(canonicalJourneyValue)
   }
 
   async function handleRunRevisionPrivateReview() {
@@ -4865,13 +4947,22 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         {...canonicalJourney}
         executionPackageRequest={canonicalExecutionPackageRequest}
         privateEditPreparation={canonicalPrivateEditPreparation}
+        privateFinalDownload={canonicalPrivateFinalDownload}
         privateReview={canonicalPrivateReview}
+        sourceLedCaptionRevision={canonicalSourceLedCaptionRevision}
         onAcceptPrivateReview={() => void handleAcceptCanonicalPrivateReview()}
+        onDownloadAcceptedFinal={() =>
+          void handleDownloadCanonicalAcceptedFinal()}
         onLoadPrivateReview={() => void handleLoadCanonicalPrivateReview()}
+        onPresentSourceLedCaptionRevision={() =>
+          void handlePresentCanonicalSourceLedCaptionRevision()}
         onPreparePrivateEdit={() => void handlePrepareCanonicalPrivateEdit()}
         onRequestExecutionPackage={() => void handleRequestCanonicalExecutionPackage()}
-        onRequestPrivateReviewRevision={(summary) =>
-          void handleRequestCanonicalPrivateReviewRevision(summary)}
+        onRequestPrivateReviewRevision={(summary, captionReplacementText) =>
+          void handleRequestCanonicalPrivateReviewRevision(
+            summary,
+            captionReplacementText,
+          )}
       />
     )
   }

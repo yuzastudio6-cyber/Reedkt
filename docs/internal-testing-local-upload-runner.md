@@ -35,7 +35,10 @@ The verifier creates a tiny video-and-audio MP4 with local `ffmpeg` unless `REED
 The private-review variant continues from the approved snapshot: it requests
 the exact canonical execution package, runs only the server-derived work graph
 through the confined local media runtimes, loads and downloads the no-store
-private MP4, and records explicit review acceptance.
+private MP4, records one exact caption revision, receives plan v2 with a fresh
+estimate, requires a second explicit approval, runs the second immutable
+package, accepts the revised review, and verifies that the authenticated final
+download bytes match the accepted review.
 
 The runner shuts down both processes and removes its generated fixture and backend-local test artifacts when the verification completes.
 
@@ -90,6 +93,17 @@ Use an existing MP4:
 REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_PATH="/absolute/path/to/video.mp4" \
 npm run test:internal-testing:local-upload-e2e
 ```
+
+Run that real MP4 through the full provider-free private review, exact revision,
+fresh reapproval, second render, acceptance, and final-download check:
+
+```bash
+REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_PATH="/absolute/path/to/video.mp4" \
+npm run test:internal-testing:local-private-review-e2e
+```
+
+The complete genuine-media evidence from 2026-07-29 is recorded in
+`docs/weeditpro-real-media-private-edit-canary-2026-07-29.md`.
 
 The convenience wrapper defaults to `~/Documents/test video/internal testing.MP4`:
 

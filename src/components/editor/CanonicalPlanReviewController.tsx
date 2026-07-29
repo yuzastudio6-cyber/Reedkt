@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react'
 
 import type { CanonicalPlanApprovalHookResult } from '../../hooks/useCanonicalPlanApproval'
-import type { CanonicalPlanningPublicationHookResult } from '../../hooks/useCanonicalPlanningPublication'
 import { CanonicalPlanApprovalStatus } from './CanonicalPlanApprovalStatus'
-import { CanonicalPlanningSaveStatus } from './CanonicalPlanningSaveStatus'
+import {
+  CanonicalPlanningSaveStatus,
+  type CanonicalPlanningSaveStatusSource,
+} from './CanonicalPlanningSaveStatus'
 import {
   PlanReviewApprovalCard,
   type PlanReviewApprovalCardProps,
@@ -15,7 +17,7 @@ type CanonicalPlanReviewControllerProps = Omit<
 > & {
   approvalChecking?: boolean
   planApproval?: CanonicalPlanApprovalHookResult
-  planningPublication?: CanonicalPlanningPublicationHookResult
+  planningPublication?: CanonicalPlanningSaveStatusSource
   statusSupplement?: ReactNode
 }
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { createServer, type Server } from 'node:http'
-import { readFile, rm } from 'node:fs/promises'
+import { readdir, readFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 
@@ -41,7 +41,7 @@ const userId = 'user-source-led-route-smoke'
 const accessToken = 'verified-source-led-route-token'
 const internalServiceToken = 'source-led-route-internal-token-7Gk2Wm9Q'
 
-await rm(localStorageRoot, { force: true, recursive: true })
+await removeSmokeStorageRoot()
 clearLocalProjectMemoryForSmoke()
 clearPrivateEditAuthorityProcessStateForSmoke()
 clearPrivateExactEditPreferenceProcessStateForSmoke()
@@ -369,6 +369,7 @@ try {
       workspaceId,
       purpose: 'present_server_derived_source_led_plan',
       orderedMediaAssetIds: [mediaAssetId],
+      confirmedAspectRatio: '16:9',
       sourceOrderConfirmed: true,
       preserveUnanalyzedSourceRanges: true,
       canonicalPlan: { forged: true },
@@ -389,6 +390,7 @@ try {
       workspaceId,
       purpose: 'present_server_derived_source_led_plan',
       orderedMediaAssetIds: [mediaAssetId],
+      confirmedAspectRatio: '16:9',
       sourceOrderConfirmed: true,
       preserveUnanalyzedSourceRanges: true,
     },
@@ -409,6 +411,7 @@ try {
   assert.equal(derivation.sourceMetadataAuthority, 'server_reverified_finalized_upload_ffprobe')
   assert.equal(derivation.editDirectionAuthority, 'server_reverified_ready_edit_brief')
   assert.equal(derivation.exactPreferenceAuthority, 'server_reverified_exact_edit_preferences')
+  assert.equal(derivation.confirmedAspectRatio, '16:9')
   assert.equal(derivation.sourceObjectReread, true)
   assert.equal(derivation.sourceCount, 1)
   assert.equal(derivation.totalFrames, Math.round(durationSeconds * 30))
@@ -444,10 +447,698 @@ try {
   assert.equal(journey.stage, 'plan_approval_required')
   const nextAction = record(journey.nextAction)
   assert.equal(nextAction.code, 'approve_canonical_plan')
-  assert.equal(record(journey.plan).status, 'presented')
+  const journeyPlan = record(journey.plan)
+  assert.equal(journeyPlan.status, 'presented')
   assert.equal(journey.approval, undefined)
   assert.equal(journey.execution, undefined)
   assert.equal(journey.review, undefined)
+
+  const approvalResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/edit-plans/${requiredString(journeyPlan.planId, 'plan id')}` +
+      '/canonical-approval',
+    method: 'POST',
+    idempotencyKey: 'source-led-route-plan-approval',
+    body: {
+      workspaceId,
+      expectedProjectId: projectId,
+      expectedEditSessionId: editSessionId,
+      expectedPlanVersion: requiredPositiveInteger(
+        journeyPlan.planVersion,
+        'plan version',
+      ),
+      expectedPlanHash: requiredString(journeyPlan.planHash, 'plan hash'),
+      expectedEstimateId: requiredString(
+        journeyPlan.estimateId,
+        'estimate id',
+      ),
+      expectedEstimateHash: requiredString(
+        journeyPlan.estimateHash,
+        'estimate hash',
+      ),
+      expectedMaximumCredits: requiredNonNegativeInteger(
+        journeyPlan.approvedMaximumCredits,
+        'approved maximum credits',
+      ),
+    },
+  })
+  assert.equal(
+    approvalResponse.status,
+    201,
+    `Canonical plan approval should succeed: ${JSON.stringify(approvalResponse.json)}`,
+  )
+  const approvalReceipt = record(
+    approvalResponse.json.data?.canonicalPlanApproval,
+  )
+  assert.equal(approvalReceipt.schemaVersion, 'canonical-plan-approval-receipt-v1')
+  const approval = record(approvalReceipt.approval)
+  const approvalBoundaries = record(approvalReceipt.boundaries)
+  assert.equal(approvalBoundaries.approvedSnapshotAvailable, true)
+  assert.equal(approvalBoundaries.syntheticPrivateCreditReservation, true)
+  assert.equal(approvalBoundaries.jobExecutionStarted, false)
+  assert.equal(approvalBoundaries.toolExecutionStarted, false)
+  assert.equal(approvalBoundaries.renderStarted, false)
+
+  const approvedJourneyResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
+      `/canonical-journey?workspaceId=${encodeURIComponent(workspaceId)}`,
+    method: 'GET',
+  })
+  assert.equal(approvedJourneyResponse.status, 200)
+  const approvedJourney = record(
+    approvedJourneyResponse.json.data?.canonicalEditJourney,
+  )
+  assert.equal(approvedJourney.stage, 'approved_snapshot_available')
+  const approvedJourneyApproval = record(approvedJourney.approval)
+  const snapshotId = requiredString(
+    approvedJourneyApproval.snapshotId,
+    'approved snapshot id',
+  )
+  const snapshotHash = requiredString(
+    approvedJourneyApproval.snapshotHash,
+    'approved snapshot hash',
+  )
+  assert.equal(snapshotId, approval.snapshotId)
+  assert.equal(snapshotHash, approval.snapshotHash)
+
+  const packageResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/approved-snapshots/${snapshotId}` +
+      '/canonical-execution-package',
+    method: 'POST',
+    idempotencyKey: 'source-led-route-execution-package',
+    body: {
+      workspaceId,
+      expectedProjectId: projectId,
+      expectedEditSessionId: editSessionId,
+      expectedSnapshotHash: snapshotHash,
+      purpose: 'request_canonical_execution_package',
+    },
+  })
+  assert.equal(
+    packageResponse.status,
+    201,
+    `Canonical execution package should succeed: ${JSON.stringify(packageResponse.json)}`,
+  )
+  const packageReceipt = record(
+    packageResponse.json.data?.canonicalExecutionPackageRequest,
+  )
+  assert.equal(
+    packageReceipt.schemaVersion,
+    'canonical-execution-package-request-receipt-v1',
+  )
+  const executionPackage = record(packageReceipt.executionPackage)
+  const packageRecordId = requiredString(
+    executionPackage.packageRecordId,
+    'execution package record id',
+  )
+  const packageHash = requiredString(
+    executionPackage.packageHash,
+    'execution package hash',
+  )
+  const packageBoundaries = record(packageReceipt.boundaries)
+  assert.equal(packageBoundaries.executionPackageAvailable, true)
+  assert.equal(packageBoundaries.workGraphStarted, false)
+  assert.equal(packageBoundaries.workerDispatchStarted, false)
+  assert.equal(packageBoundaries.renderStarted, false)
+
+  const privatePreparationStartedAt = Date.now()
+  const privatePreparationResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/edit-executions/packages/${packageRecordId}` +
+      '/canonical-private-edit-preparation',
+    method: 'POST',
+    idempotencyKey: 'source-led-route-private-edit-preparation',
+    body: {
+      workspaceId,
+      expectedProjectId: projectId,
+      expectedEditSessionId: editSessionId,
+      expectedSnapshotId: snapshotId,
+      expectedSnapshotHash: snapshotHash,
+      expectedPackageHash: packageHash,
+      purpose: 'prepare_canonical_private_edit_review',
+    },
+  })
+  assert.equal(
+    privatePreparationResponse.status,
+    202,
+    `Canonical private edit preparation should acknowledge asynchronous work: ${JSON.stringify(privatePreparationResponse.json)}`,
+  )
+  const privatePreparationAcknowledgementMs =
+    Date.now() - privatePreparationStartedAt
+  assert.ok(
+    privatePreparationAcknowledgementMs < 15_000,
+    `Private preparation acknowledgement took ${privatePreparationAcknowledgementMs}ms.`,
+  )
+  const privatePreparation = record(
+    privatePreparationResponse.json.data?.canonicalPrivateEditPreparation,
+  )
+  assert.equal(
+    privatePreparation.schemaVersion,
+    'canonical-private-edit-preparation-receipt-v1',
+  )
+  const privatePreparationProgress = record(privatePreparation.progress)
+  const privatePreparationReadiness = record(privatePreparation.readiness)
+  assert.equal(privatePreparation.disposition, 'in_progress')
+  assert.equal(privatePreparationProgress.totalJobCount, 5)
+  assert.equal(
+    privatePreparationReadiness.nextRequiredGate,
+    'canonical_private_work_graph_advancement',
+  )
+  assert.equal(privatePreparationReadiness.productReady, false)
+  assert.equal(privatePreparationReadiness.externalBetaReady, false)
+  assert.equal(privatePreparationReadiness.productionReady, false)
+
+  const privateReviewJourney = await waitForPrivateReviewJourney({
+    journeyUrl:
+      `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
+      `/canonical-journey?workspaceId=${encodeURIComponent(workspaceId)}`,
+    timeoutMs: 30 * 60 * 1_000,
+  })
+  const privateReview = record(privateReviewJourney.review)
+  const reviewAssemblyId = requiredString(
+    privateReview.reviewAssemblyId,
+    'private review assembly id',
+  )
+  const reviewManifestSha256 = requiredString(
+    privateReview.manifestSha256,
+    'private review manifest hash',
+  )
+  const finalArtifactSha256 = requiredString(
+    privateReview.finalArtifactSha256,
+    'private review artifact hash',
+  )
+  const reviewMediaUrl = new URL(
+    `/v1/edit-executions/private-review-assemblies/${reviewAssemblyId}/media`,
+    baseUrl,
+  )
+  reviewMediaUrl.searchParams.set('workspaceId', workspaceId)
+  reviewMediaUrl.searchParams.set('expectedProjectId', projectId)
+  reviewMediaUrl.searchParams.set('expectedEditSessionId', editSessionId)
+  reviewMediaUrl.searchParams.set('packageRecordId', packageRecordId)
+  reviewMediaUrl.searchParams.set('expectedManifestSha256', reviewManifestSha256)
+  reviewMediaUrl.searchParams.set('expectedFinalArtifactSha256', finalArtifactSha256)
+  reviewMediaUrl.searchParams.set(
+    'purpose',
+    'read_canonical_private_review_media',
+  )
+  const reviewMediaResponse = await fetch(reviewMediaUrl, {
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+      'x-reeditpro-internal-token': internalServiceToken,
+    },
+  })
+  if (reviewMediaResponse.status !== 200) {
+    throw new Error(
+      `Private review media should be readable: ${await reviewMediaResponse.text()}`,
+    )
+  }
+  assert.match(
+    reviewMediaResponse.headers.get('content-type') ?? '',
+    /^video\/mp4\b/,
+  )
+  assert.equal(
+    reviewMediaResponse.headers.get('x-reeditpro-artifact-sha256'),
+    finalArtifactSha256,
+  )
+  assert.equal(
+    reviewMediaResponse.headers.get('x-reeditpro-review-manifest-sha256'),
+    reviewManifestSha256,
+  )
+  const reviewBytes = Buffer.from(await reviewMediaResponse.arrayBuffer())
+  assert.ok(reviewBytes.byteLength > 0)
+  assert.equal(reviewBytes.subarray(4, 8).toString('ascii'), 'ftyp')
+  assert.equal(
+    createHash('sha256').update(reviewBytes).digest('hex'),
+    finalArtifactSha256,
+  )
+  assert.notEqual(finalArtifactSha256, checksumSha256)
+
+  const revisedCaptionText = 'Revised professional source review'
+  const revisionDecisionResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/edit-executions/private-review-assemblies/` +
+      `${reviewAssemblyId}/canonical-decision`,
+    method: 'POST',
+    idempotencyKey: 'source-led-route-caption-revision-decision',
+    body: {
+      workspaceId,
+      expectedProjectId: projectId,
+      expectedEditSessionId: editSessionId,
+      packageRecordId,
+      expectedManifestSha256: reviewManifestSha256,
+      expectedFinalArtifactSha256: finalArtifactSha256,
+      purpose: 'record_canonical_private_review_decision',
+      decision: 'request_revision',
+      revisionIntent: {
+        summary:
+          'Replace the only confirmed caption with the exact revised caption text.',
+        changeCategories: ['caption'],
+        mustPreserve: [
+          'source_order',
+          'source_meaning',
+          'important_clips',
+          'approved_aspect_ratio',
+          'edit_preferences',
+          'edit_brief',
+        ],
+        captionReplacementText: revisedCaptionText,
+        requiresReplanning: true,
+        requiresFreshEstimateAndApproval: true,
+      },
+    },
+  })
+  assert.equal(
+    revisionDecisionResponse.status,
+    201,
+    `Caption revision decision should succeed: ${JSON.stringify(revisionDecisionResponse.json)}`,
+  )
+  const revisionDecision = record(
+    revisionDecisionResponse.json.data?.canonicalPrivateReviewDecision,
+  )
+  const revisionDecisionSummary = record(revisionDecision.decision)
+  assert.equal(revisionDecisionSummary.value, 'request_revision')
+  assert.equal(revisionDecisionSummary.revisionRequested, true)
+  assert.equal(revisionDecisionSummary.requiresReplanning, true)
+  assert.equal(
+    revisionDecisionSummary.requiresFreshEstimateAndApproval,
+    true,
+  )
+
+  const revisionJourneyResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
+      `/canonical-journey?workspaceId=${encodeURIComponent(workspaceId)}`,
+    method: 'GET',
+  })
+  assert.equal(revisionJourneyResponse.status, 200)
+  const revisionJourney = record(
+    revisionJourneyResponse.json.data?.canonicalEditJourney,
+  )
+  assert.equal(revisionJourney.stage, 'revision_requested')
+  const priorReviewDecision = record(revisionJourney.review)
+  assert.equal(priorReviewDecision.decision, 'request_revision')
+  const revisionDecisionManifestSha256 = requiredString(
+    priorReviewDecision.decisionManifestSha256,
+    'revision decision manifest hash',
+  )
+
+  const revisionPresentationUrl =
+    `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
+    '/source-led-caption-revision-plan-presentations'
+  const forgedRevisionResponse = await jsonRequest({
+    url: revisionPresentationUrl,
+    method: 'POST',
+    idempotencyKey: 'source-led-route-reject-browser-revision-plan',
+    body: {
+      workspaceId,
+      expectedPackageRecordId: packageRecordId,
+      expectedReviewAssemblyId: reviewAssemblyId,
+      expectedDecisionManifestSha256:
+        revisionDecisionManifestSha256,
+      expectedFinalArtifactSha256: finalArtifactSha256,
+      purpose:
+        'present_server_derived_source_led_caption_revision',
+      canonicalPlan: { forged: true },
+    },
+  })
+  assert.equal(
+    forgedRevisionResponse.status,
+    400,
+    'The source-led revision route must reject browser-authored plans.',
+  )
+  assert.equal(
+    forgedRevisionResponse.json.error?.code,
+    'VALIDATION_FAILED',
+  )
+
+  const revisionPresentationResponse = await jsonRequest({
+    url: revisionPresentationUrl,
+    method: 'POST',
+    idempotencyKey: 'source-led-route-present-caption-revision',
+    body: {
+      workspaceId,
+      expectedPackageRecordId: packageRecordId,
+      expectedReviewAssemblyId: reviewAssemblyId,
+      expectedDecisionManifestSha256:
+        revisionDecisionManifestSha256,
+      expectedFinalArtifactSha256: finalArtifactSha256,
+      purpose:
+        'present_server_derived_source_led_caption_revision',
+    },
+  })
+  assert.equal(
+    revisionPresentationResponse.status,
+    201,
+    `Server-derived revision plan should succeed: ${JSON.stringify(revisionPresentationResponse.json)}`,
+  )
+  const revisionPresentation = record(
+    revisionPresentationResponse.json.data
+      ?.canonicalSourceLedCaptionRevisionPlanPresentation,
+  )
+  assert.equal(
+    revisionPresentation.schemaVersion,
+    'canonical-source-led-caption-revision-presentation-v1',
+  )
+  const revisionDerivation = record(revisionPresentation.derivation)
+  assert.equal(revisionDerivation.exactRevisionDecisionReread, true)
+  assert.equal(revisionDerivation.priorApprovedSnapshotReread, true)
+  assert.equal(revisionDerivation.finalizedSourceObjectsReread, true)
+  assert.equal(revisionDerivation.exactLockedPreferencesReread, true)
+  assert.equal(revisionDerivation.immutableEditBriefReread, true)
+  assert.equal(revisionDerivation.exactCaptionReplacementApplied, true)
+  assert.equal(revisionDerivation.browserPlanAccepted, false)
+  assert.equal(revisionDerivation.browserTimingAccepted, false)
+  assert.equal(revisionDerivation.browserEstimateAccepted, false)
+  assert.equal(revisionDerivation.browserWorkGraphAccepted, false)
+  assert.equal(
+    revisionDerivation.browserCaptionTextAcceptedAtPlanning,
+    false,
+  )
+
+  const replacementJourneyResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
+      `/canonical-journey?workspaceId=${encodeURIComponent(workspaceId)}`,
+    method: 'GET',
+  })
+  assert.equal(replacementJourneyResponse.status, 200)
+  const replacementJourney = record(
+    replacementJourneyResponse.json.data?.canonicalEditJourney,
+  )
+  assert.equal(replacementJourney.stage, 'plan_approval_required')
+  const replacementPlan = record(replacementJourney.plan)
+  assert.equal(
+    requiredPositiveInteger(
+      replacementPlan.planVersion,
+      'replacement plan version',
+    ),
+    requiredPositiveInteger(journeyPlan.planVersion, 'prior plan version') + 1,
+  )
+  assert.equal(replacementPlan.status, 'presented')
+  assert.equal(replacementPlan.estimateStatus, 'presented')
+  assert.equal(replacementJourney.approval, undefined)
+  assert.equal(replacementJourney.execution, undefined)
+
+  const replacementApprovalResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/edit-plans/` +
+      `${requiredString(replacementPlan.planId, 'replacement plan id')}` +
+      '/canonical-approval',
+    method: 'POST',
+    idempotencyKey: 'source-led-route-replacement-plan-approval',
+    body: {
+      workspaceId,
+      expectedProjectId: projectId,
+      expectedEditSessionId: editSessionId,
+      expectedPlanVersion: requiredPositiveInteger(
+        replacementPlan.planVersion,
+        'replacement plan version',
+      ),
+      expectedPlanHash: requiredString(
+        replacementPlan.planHash,
+        'replacement plan hash',
+      ),
+      expectedEstimateId: requiredString(
+        replacementPlan.estimateId,
+        'replacement estimate id',
+      ),
+      expectedEstimateHash: requiredString(
+        replacementPlan.estimateHash,
+        'replacement estimate hash',
+      ),
+      expectedMaximumCredits: requiredNonNegativeInteger(
+        replacementPlan.approvedMaximumCredits,
+        'replacement maximum credits',
+      ),
+    },
+  })
+  assert.equal(
+    replacementApprovalResponse.status,
+    201,
+    `Replacement approval should succeed: ${JSON.stringify(replacementApprovalResponse.json)}`,
+  )
+
+  const replacementApprovedJourneyResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
+      `/canonical-journey?workspaceId=${encodeURIComponent(workspaceId)}`,
+    method: 'GET',
+  })
+  assert.equal(replacementApprovedJourneyResponse.status, 200)
+  const replacementApprovedJourney = record(
+    replacementApprovedJourneyResponse.json.data?.canonicalEditJourney,
+  )
+  assert.equal(
+    replacementApprovedJourney.stage,
+    'approved_snapshot_available',
+  )
+  const replacementJourneyApproval = record(
+    replacementApprovedJourney.approval,
+  )
+  const replacementSnapshotId = requiredString(
+    replacementJourneyApproval.snapshotId,
+    'replacement snapshot id',
+  )
+  const replacementSnapshotHash = requiredString(
+    replacementJourneyApproval.snapshotHash,
+    'replacement snapshot hash',
+  )
+  assert.notEqual(replacementSnapshotId, snapshotId)
+
+  const replacementPackageResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/approved-snapshots/${replacementSnapshotId}` +
+      '/canonical-execution-package',
+    method: 'POST',
+    idempotencyKey: 'source-led-route-replacement-execution-package',
+    body: {
+      workspaceId,
+      expectedProjectId: projectId,
+      expectedEditSessionId: editSessionId,
+      expectedSnapshotHash: replacementSnapshotHash,
+      purpose: 'request_canonical_execution_package',
+    },
+  })
+  assert.equal(
+    replacementPackageResponse.status,
+    201,
+    `Replacement execution package should succeed: ${JSON.stringify(replacementPackageResponse.json)}`,
+  )
+  const replacementPackageReceipt = record(
+    replacementPackageResponse.json.data
+      ?.canonicalExecutionPackageRequest,
+  )
+  const replacementExecutionPackage = record(
+    replacementPackageReceipt.executionPackage,
+  )
+  const replacementPackageRecordId = requiredString(
+    replacementExecutionPackage.packageRecordId,
+    'replacement package record id',
+  )
+  const replacementPackageHash = requiredString(
+    replacementExecutionPackage.packageHash,
+    'replacement package hash',
+  )
+  assert.notEqual(replacementPackageRecordId, packageRecordId)
+
+  const replacementPreparationStartedAt = Date.now()
+  const replacementPreparationResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/edit-executions/packages/` +
+      `${replacementPackageRecordId}/canonical-private-edit-preparation`,
+    method: 'POST',
+    idempotencyKey: 'source-led-route-replacement-private-preparation',
+    body: {
+      workspaceId,
+      expectedProjectId: projectId,
+      expectedEditSessionId: editSessionId,
+      expectedSnapshotId: replacementSnapshotId,
+      expectedSnapshotHash: replacementSnapshotHash,
+      expectedPackageHash: replacementPackageHash,
+      purpose: 'prepare_canonical_private_edit_review',
+    },
+  })
+  assert.equal(
+    replacementPreparationResponse.status,
+    202,
+    `Replacement preparation should acknowledge asynchronous work: ${JSON.stringify(replacementPreparationResponse.json)}`,
+  )
+  const replacementPreparationAcknowledgementMs =
+    Date.now() - replacementPreparationStartedAt
+  assert.ok(replacementPreparationAcknowledgementMs < 15_000)
+
+  const replacementReviewJourney = await waitForPrivateReviewJourney({
+    journeyUrl:
+      `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
+      `/canonical-journey?workspaceId=${encodeURIComponent(workspaceId)}`,
+    timeoutMs: 30 * 60 * 1_000,
+  })
+  const replacementReview = record(replacementReviewJourney.review)
+  const replacementReviewAssemblyId = requiredString(
+    replacementReview.reviewAssemblyId,
+    'replacement review assembly id',
+  )
+  const replacementReviewManifestSha256 = requiredString(
+    replacementReview.manifestSha256,
+    'replacement review manifest hash',
+  )
+  const replacementFinalArtifactSha256 = requiredString(
+    replacementReview.finalArtifactSha256,
+    'replacement final artifact hash',
+  )
+  assert.notEqual(replacementReviewAssemblyId, reviewAssemblyId)
+  assert.notEqual(replacementFinalArtifactSha256, finalArtifactSha256)
+
+  const replacementReviewMediaUrl = new URL(
+    `/v1/edit-executions/private-review-assemblies/` +
+      `${replacementReviewAssemblyId}/media`,
+    baseUrl,
+  )
+  replacementReviewMediaUrl.searchParams.set('workspaceId', workspaceId)
+  replacementReviewMediaUrl.searchParams.set(
+    'expectedProjectId',
+    projectId,
+  )
+  replacementReviewMediaUrl.searchParams.set(
+    'expectedEditSessionId',
+    editSessionId,
+  )
+  replacementReviewMediaUrl.searchParams.set(
+    'packageRecordId',
+    replacementPackageRecordId,
+  )
+  replacementReviewMediaUrl.searchParams.set(
+    'expectedManifestSha256',
+    replacementReviewManifestSha256,
+  )
+  replacementReviewMediaUrl.searchParams.set(
+    'expectedFinalArtifactSha256',
+    replacementFinalArtifactSha256,
+  )
+  replacementReviewMediaUrl.searchParams.set(
+    'purpose',
+    'read_canonical_private_review_media',
+  )
+  const replacementReviewMediaResponse = await fetch(
+    replacementReviewMediaUrl,
+    {
+      headers: { authorization: `Bearer ${accessToken}` },
+    },
+  )
+  assert.equal(
+    replacementReviewMediaResponse.status,
+    200,
+    'Replacement review must be browser-readable without internal-service credentials.',
+  )
+  const replacementReviewBytes = Buffer.from(
+    await replacementReviewMediaResponse.arrayBuffer(),
+  )
+  assert.equal(
+    createHash('sha256').update(replacementReviewBytes).digest('hex'),
+    replacementFinalArtifactSha256,
+  )
+  assert.equal(
+    replacementReviewBytes.subarray(4, 8).toString('ascii'),
+    'ftyp',
+  )
+
+  const acceptanceResponse = await browserJsonRequest({
+    url:
+      `${baseUrl}/v1/edit-executions/private-review-assemblies/` +
+      `${replacementReviewAssemblyId}/canonical-decision`,
+    method: 'POST',
+    idempotencyKey: 'source-led-route-replacement-review-accept',
+    body: {
+      workspaceId,
+      expectedProjectId: projectId,
+      expectedEditSessionId: editSessionId,
+      packageRecordId: replacementPackageRecordId,
+      expectedManifestSha256: replacementReviewManifestSha256,
+      expectedFinalArtifactSha256:
+        replacementFinalArtifactSha256,
+      purpose: 'record_canonical_private_review_decision',
+      decision: 'accept_private_internal_review',
+    },
+  })
+  assert.equal(
+    acceptanceResponse.status,
+    201,
+    `Replacement private review acceptance should succeed: ${JSON.stringify(acceptanceResponse.json)}`,
+  )
+
+  const acceptedJourneyResponse = await browserJsonRequest({
+    url:
+      `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
+      `/canonical-journey?workspaceId=${encodeURIComponent(workspaceId)}`,
+    method: 'GET',
+  })
+  assert.equal(acceptedJourneyResponse.status, 200)
+  const acceptedJourney = record(
+    acceptedJourneyResponse.json.data?.canonicalEditJourney,
+  )
+  assert.equal(acceptedJourney.stage, 'private_review_accepted')
+  const acceptedReview = record(acceptedJourney.review)
+  assert.equal(
+    acceptedReview.decision,
+    'accept_private_internal_review',
+  )
+  const acceptedDownload = record(
+    acceptedReview.acceptedFinalDownload,
+  )
+  assert.equal(acceptedDownload.method, 'GET')
+  const acceptedDownloadQuery = record(acceptedDownload.query)
+  const acceptedDownloadUrl = new URL(
+    requiredString(
+      acceptedDownload.routeTemplate,
+      'accepted final-download route',
+    ),
+    baseUrl,
+  )
+  for (const [key, value] of Object.entries(acceptedDownloadQuery)) {
+    acceptedDownloadUrl.searchParams.set(key, requiredString(
+      value,
+      `accepted final-download ${key}`,
+    ))
+  }
+  const acceptedFinalResponse = await fetch(acceptedDownloadUrl, {
+    headers: { authorization: `Bearer ${accessToken}` },
+  })
+  if (acceptedFinalResponse.status !== 200) {
+    throw new Error(
+      `Accepted final artifact should download: ${await acceptedFinalResponse.text()}`,
+    )
+  }
+  assert.match(
+    acceptedFinalResponse.headers.get('content-type') ?? '',
+    /^video\/mp4\b/,
+  )
+  assert.equal(
+    acceptedFinalResponse.headers.get('x-reeditpro-artifact-sha256'),
+    replacementFinalArtifactSha256,
+  )
+  assert.equal(
+    acceptedFinalResponse.headers.get('x-reeditpro-review-assembly-id'),
+    replacementReviewAssemblyId,
+  )
+  assert.equal(
+    acceptedFinalResponse.headers.get(
+      'x-reeditpro-review-decision-manifest-sha256',
+    ),
+    acceptedReview.decisionManifestSha256,
+  )
+  const acceptedFinalBytes = Buffer.from(
+    await acceptedFinalResponse.arrayBuffer(),
+  )
+  assert.equal(
+    createHash('sha256').update(acceptedFinalBytes).digest('hex'),
+    replacementFinalArtifactSha256,
+  )
+  assert.equal(
+    acceptedFinalBytes.subarray(4, 8).toString('ascii'),
+    'ftyp',
+  )
 
   console.log(JSON.stringify({
     ok: true,
@@ -463,15 +1154,163 @@ try {
     totalFrames: derivation.totalFrames,
     captionCueCount: derivation.captionCueCount,
     browserPlanFieldsAccepted: false,
-    canonicalJourneyStage: journey.stage,
-    approvalGranted: false,
-    toolExecution: false,
-    render: false,
-    delivery: false,
+    initialCanonicalJourneyStage: journey.stage,
+    approvedSnapshotCreated: true,
+    executionPackageCreated: true,
+    privatePreparationDisposition: privatePreparation.disposition,
+    privatePreparationAcknowledgementMs,
+    privatePreparationProgress,
+    privatePreparationReadiness,
+    privateReview: {
+      stage: privateReviewJourney.stage,
+      reviewAssemblyId,
+      manifestSha256: reviewManifestSha256,
+      finalArtifactSha256,
+      byteLength: reviewBytes.byteLength,
+      mp4HeaderVerified: true,
+    },
+    revision: {
+      decisionRecorded: true,
+      browserPlanFieldsAccepted: false,
+      exactCaptionReplacementApplied: true,
+      replacementPlanVersion: replacementPlan.planVersion,
+      freshSnapshotCreated: true,
+      replacementReviewAssemblyId,
+      replacementFinalArtifactSha256,
+      replacementByteLength: replacementReviewBytes.byteLength,
+    },
+    acceptedFinalDownload: {
+      stage: acceptedJourney.stage,
+      exactAcceptedDecisionRequired: true,
+      browserCredentialOnly: true,
+      byteLength: acceptedFinalBytes.byteLength,
+      sha256: replacementFinalArtifactSha256,
+      mp4HeaderVerified: true,
+    },
+    productionDelivery: false,
   }))
 } finally {
   await close(server)
-  await rm(localStorageRoot, { force: true, recursive: true })
+  await removeSmokeStorageRoot()
+}
+
+async function waitForPrivateReviewJourney(input: {
+  journeyUrl: string
+  timeoutMs: number
+}): Promise<Record<string, unknown>> {
+  const deadline = Date.now() + input.timeoutMs
+  let lastProgress = ''
+  let blockedSince: number | undefined
+  while (Date.now() < deadline) {
+    const response = await jsonRequest({
+      url: input.journeyUrl,
+      method: 'GET',
+    })
+    assert.equal(
+      response.status,
+      200,
+      `Canonical journey checkback should succeed: ${JSON.stringify(response.json)}`,
+    )
+    const journey = record(response.json.data?.canonicalEditJourney)
+    if (journey.stage === 'private_review_ready') return journey
+
+    const progress = journey.workGraphProgress &&
+      typeof journey.workGraphProgress === 'object' &&
+      !Array.isArray(journey.workGraphProgress)
+      ? record(journey.workGraphProgress)
+      : undefined
+    const progressSummary = JSON.stringify({
+      stage: journey.stage,
+      status: progress?.status,
+      completedJobCount: progress?.completedJobCount,
+      pendingJobCount: progress?.pendingJobCount,
+      capabilityBlockedJobCount: progress?.capabilityBlockedJobCount,
+      dependencyBlockedJobCount: progress?.dependencyBlockedJobCount,
+    })
+    if (progressSummary !== lastProgress) {
+      console.log(`Private review checkback: ${progressSummary}`)
+      lastProgress = progressSummary
+    }
+    if (progress?.status === 'blocked_required_jobs') {
+      blockedSince ??= Date.now()
+      if (Date.now() - blockedSince >= 30_000) {
+        const blockedRun = await readBlockedWorkGraphRunDiagnostic()
+        throw new Error(
+          `Canonical private work graph blocked: ${progressSummary}; ` +
+          `outcomes=${JSON.stringify(blockedRun)}`,
+        )
+      }
+    } else {
+      blockedSince = undefined
+    }
+    await delay(2_000)
+  }
+  throw new Error(
+    `Canonical private review did not become ready within ${input.timeoutMs}ms.`,
+  )
+}
+
+function delay(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds))
+}
+
+async function readBlockedWorkGraphRunDiagnostic(): Promise<unknown> {
+  const workGraphRoot = join(
+    localStorageRoot,
+    'private-internal',
+    'canonical-work-graph-runs',
+    'v1',
+  )
+  const adapterRoot = join(
+    localStorageRoot,
+    'private-internal',
+    'canonical-job-execution-adapter',
+    'v1',
+  )
+  const runFiles = (
+    await Promise.all([workGraphRoot, adapterRoot].map(async (root) => {
+      const entries = await readdir(root, { recursive: true, withFileTypes: true })
+        .catch(() => [])
+      return entries
+        .filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
+        .map((entry) => join(entry.parentPath, entry.name))
+    }))
+  ).flat()
+  const failures: unknown[] = []
+  let outcomes: unknown[] = []
+  for (const filePath of runFiles.reverse()) {
+    const value = JSON.parse(await readFile(filePath, 'utf8')) as {
+      failure?: {
+        identity?: Record<string, unknown>
+        failure?: Record<string, unknown>
+      }
+      response?: {
+        jobs?: Array<Record<string, unknown>>
+      }
+    }
+    if (value.failure?.failure) {
+      failures.push({
+        operationId: value.failure.identity?.operationId,
+        category: value.failure.failure.category,
+        originalCode: value.failure.failure.originalCode,
+        executionState: value.failure.failure.executionState,
+        attemptNumber: value.failure.failure.attemptNumber,
+      })
+    }
+    if (Array.isArray(value.response?.jobs) && outcomes.length === 0) {
+      outcomes = value.response.jobs.map((job) => ({
+        workItemKey: job.workItemKey,
+        status: job.status,
+        blockerCode: job.blockerCode,
+        requiredGate: job.requiredGate,
+        failureCategory: job.failureCategory,
+        retryDisposition: job.retryDisposition,
+        attemptNumber: job.attemptNumber,
+        remainingAttempts: job.remainingAttempts,
+      }))
+    }
+  }
+  return { outcomes, failures }
 }
 
 async function jsonRequest(input: {
@@ -498,6 +1337,29 @@ async function jsonRequest(input: {
   }
 }
 
+async function browserJsonRequest(input: {
+  url: string
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT'
+  body?: unknown
+  idempotencyKey?: string
+}): Promise<JsonResponse> {
+  const response = await fetch(input.url, {
+    method: input.method,
+    headers: {
+      ...(input.body === undefined ? {} : { 'content-type': 'application/json' }),
+      ...(input.idempotencyKey
+        ? { 'idempotency-key': input.idempotencyKey }
+        : {}),
+      authorization: `Bearer ${accessToken}`,
+    },
+    ...(input.body === undefined ? {} : { body: JSON.stringify(input.body) }),
+  })
+  return {
+    status: response.status,
+    json: await response.json() as JsonEnvelope,
+  }
+}
+
 function listen(server: Server): Promise<Server> {
   return new Promise((resolve, reject) => {
     server.once('error', reject)
@@ -509,6 +1371,21 @@ function close(server: Server): Promise<void> {
   return new Promise((resolve, reject) => {
     server.close((error) => (error ? reject(error) : resolve()))
   })
+}
+
+async function removeSmokeStorageRoot(): Promise<void> {
+  let lastError: unknown
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try {
+      await rm(localStorageRoot, { force: true, recursive: true })
+      return
+    } catch (error) {
+      lastError = error
+      if ((error as NodeJS.ErrnoException).code !== 'ENOTEMPTY') throw error
+      await new Promise((resolve) => setTimeout(resolve, 250))
+    }
+  }
+  throw lastError
 }
 
 function addressPort(server: Server): number {
@@ -529,19 +1406,25 @@ function record(value: unknown): Record<string, unknown> {
 }
 
 function requiredString(value: unknown, label: string): string {
-  assert.equal(typeof value, 'string', `${label} should be a string.`)
+  if (typeof value !== 'string') {
+    throw new Error(`${label} should be a string.`)
+  }
   assert.ok(value.length > 0, `${label} should not be empty.`)
   return value
 }
 
 function requiredPositiveNumber(value: unknown, label: string): number {
-  assert.equal(typeof value, 'number', `${label} should be a number.`)
+  if (typeof value !== 'number') {
+    throw new Error(`${label} should be a number.`)
+  }
   assert.ok(Number.isFinite(value) && value > 0, `${label} should be positive.`)
   return value
 }
 
 function requiredNonNegativeInteger(value: unknown, label: string): number {
-  assert.equal(typeof value, 'number', `${label} should be a number.`)
+  if (typeof value !== 'number') {
+    throw new Error(`${label} should be a number.`)
+  }
   assert.ok(
     Number.isInteger(value) && value >= 0,
     `${label} should be a non-negative integer.`,

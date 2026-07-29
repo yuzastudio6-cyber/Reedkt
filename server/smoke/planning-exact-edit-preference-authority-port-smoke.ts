@@ -14,6 +14,7 @@ import { getServiceContext } from '../routes/route-helpers'
 import {
   PLANNING_EXACT_EDIT_PREFERENCE_AUTHORITY_PORT_VERSION,
   createCanonicalV3LocalPlanningExactEditPreferenceAuthorityPort,
+  planningExactEditPreferenceAuthorityStateHash,
   readPlanningExactEditPreferenceAuthority,
   recordPlanningExactEditPreferenceEvidence,
   validatePlanningExactEditPreferenceAuthorityResolution,
@@ -273,6 +274,10 @@ const changedCandidateRecorded = await recordPlanningExactEditPreferenceEvidence
   request: changedCandidateEvidenceRequest,
 })
 assert.equal(changedCandidateRecorded.authority.recordRevision, 2)
+assert.notEqual(
+  planningExactEditPreferenceAuthorityStateHash(compatibilityRecorded),
+  planningExactEditPreferenceAuthorityStateHash(changedCandidateRecorded),
+)
 const persistedCompatibilityRecord = await readPrivateExactEditPreferenceRecord(
   compatibilityScope,
 )
@@ -319,6 +324,15 @@ const compatibilityLocked = await readPlanningExactEditPreferenceAuthority({
 })
 assert.equal(compatibilityLocked.authority.locked, true)
 assert.equal(compatibilityLocked.authority.lifecyclePhase, 'approved_snapshot')
+const compatibilityLockedReread =
+  await readPlanningExactEditPreferenceAuthority({
+    context: compatibilityContext,
+    scope: compatibilityScope,
+  })
+assert.equal(
+  planningExactEditPreferenceAuthorityStateHash(compatibilityLocked),
+  planningExactEditPreferenceAuthorityStateHash(compatibilityLockedReread),
+)
 const lockedExactReplay = await recordPlanningExactEditPreferenceEvidence({
   context: compatibilityContext,
   scope: compatibilityScope,

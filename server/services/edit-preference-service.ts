@@ -12,12 +12,12 @@ import {
   writePrivateTextFileAtomicWithinRoot,
 } from '../security/private-local-persistence'
 import type { ServiceContext } from '../types'
-import { getRequiredAuthUserId, nowIso } from './service-helpers'
+import { nowIso } from './service-helpers'
+import { authorizeWorkspaceAccess } from './workspace-access-service'
 import { editableEditPreferenceValuesSchema } from '../validation/edit-preference-schemas'
 
 const RECORD_VERSION = 'authenticated-private-internal-edit-preferences-v1' as const
 const RECORD_SOURCE = 'authenticated_private_internal_backend_file' as const
-const EDITOR_ROLES = new Set(['owner', 'admin', 'editor'])
 const preferenceWriteLocks = new Map<string, Promise<void>>()
 
 type PreferenceWriteEvidence = {
@@ -156,8 +156,6 @@ async function authorizePrivateInternalPreferenceAccess(
   operation: 'read' | 'write',
 ): Promise<{ userId: string; workspaceId: string }> {
   assertPrivateInternalPreferenceRuntime(context)
-  const userId = normalizeScopeId(getRequiredAuthUserId(context), 'authenticated user id')
-  const workspaceId = normalizeScopeId(workspaceIdInput, 'workspace id')
 
   if (context.auth?.isMockUser || !context.auth?.accessToken) {
     throw new ApiError(
@@ -167,40 +165,12 @@ async function authorizePrivateInternalPreferenceAccess(
     )
   }
 
-  const adminClient = context.clients.admin
-  if (!adminClient) {
-    throw new ApiError(
-      'WORKSPACE_ACCESS_DENIED',
-      'Workspace membership could not be verified for private-internal preference persistence.',
-      403,
-    )
-  }
-
-  const { data, error } = await adminClient
-    .from('workspace_members')
-    .select('workspace_id, user_id, role')
-    .eq('workspace_id', workspaceId)
-    .eq('user_id', userId)
-    .maybeSingle()
-
-  if (error || !data) {
-    throw new ApiError(
-      'WORKSPACE_ACCESS_DENIED',
-      'The authenticated user is not a verified member of this workspace.',
-      403,
-    )
-  }
-
-  const membership = data as { workspace_id?: unknown; user_id?: unknown; role?: unknown }
-  const role = typeof membership.role === 'string' ? membership.role : ''
-  if (membership.workspace_id !== workspaceId || membership.user_id !== userId) {
-    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Workspace membership evidence did not match the request scope.', 403)
-  }
-  if (operation === 'write' && !EDITOR_ROLES.has(role)) {
-    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Workspace editor access is required to save edit preferences.', 403)
-  }
-
-  return { userId, workspaceId }
+  const access = await authorizeWorkspaceAccess(
+    context,
+    workspaceIdInput,
+    operation,
+  )
+  return { userId: access.userId, workspaceId: access.workspaceId }
 }
 
 function assertPrivateInternalPreferenceRuntime(context: ServiceContext): void {
@@ -216,19 +186,6 @@ function assertPrivateInternalPreferenceRuntime(context: ServiceContext): void {
       409,
     )
   }
-}
-
-function normalizeScopeId(value: string, label: string): string {
-  const normalized = value.trim()
-  if (
-    !normalized
-    || normalized.length > 160
-    || normalized.includes('..')
-    || !/^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(normalized)
-  ) {
-    throw new ApiError('VALIDATION_FAILED', `A safe ${label} is required.`, 400)
-  }
-  return normalized
 }
 
 function normalizeWriteEvidence(idempotencyKeyInput: string, requestHashInput: string): PreferenceWriteEvidence {

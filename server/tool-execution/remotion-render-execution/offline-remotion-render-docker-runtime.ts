@@ -45,8 +45,11 @@ const TIMEOUT_MS = 15 * 60_000
 
 export const OFFLINE_REMOTION_STANDARD_RESOURCE_PROFILE =
   'standard_remotion_cpu_2vcpu_4gib_v1' as const
+export const OFFLINE_REMOTION_FOUR_K_DELIVERY_MASTER_RESOURCE_PROFILE =
+  'four_k_delivery_master_cpu_4vcpu_8gib_v1' as const
 export type OfflineRemotionContainerResourceProfileId =
   | typeof OFFLINE_REMOTION_STANDARD_RESOURCE_PROFILE
+  | typeof OFFLINE_REMOTION_FOUR_K_DELIVERY_MASTER_RESOURCE_PROFILE
   | typeof OFFLINE_REMOTION_DELIVERY_H264_CHUNK_RESOURCE_PROFILE
 
 const RESOURCE_PROFILES = {
@@ -58,6 +61,16 @@ const RESOURCE_PROFILES = {
     tmpfsSizeBytes: 1_073_741_824 as const,
     shmSizeBytes: 536_870_912 as const,
     timeoutMs: TIMEOUT_MS,
+    maximumOutputBytes: OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES,
+  },
+  [OFFLINE_REMOTION_FOUR_K_DELIVERY_MASTER_RESOURCE_PROFILE]: {
+    memoryArgument: '8g',
+    memoryLimitBytes: 8_589_934_592 as const,
+    cpuArgument: '4',
+    nanoCpus: 4_000_000_000 as const,
+    tmpfsSizeBytes: 7_516_192_768 as const,
+    shmSizeBytes: 1_073_741_824 as const,
+    timeoutMs: 60 * 60_000,
     maximumOutputBytes: OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES,
   },
   [OFFLINE_REMOTION_DELIVERY_H264_CHUNK_RESOURCE_PROFILE]: {

@@ -12,9 +12,11 @@ import type {
 import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
 import { createCanonicalPrivateReviewAssemblyService } from './canonical-private-review-assembly-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from './canonical-private-work-graph-orchestrator-service'
+import { getRequiredAuthUserId } from './service-helpers'
 import { sha256AuthorityValue } from './private-edit-authority-store'
 
 const MAXIMUM_APPROVED_WORK_GRAPH_ATTEMPTS = 10
+const backgroundPreparations = new Map<string, Promise<void>>()
 
 export type CanonicalPrivateEditPreparationCoordinatorResult = {
   receipt: CanonicalPrivateEditPreparationReceipt
@@ -91,6 +93,43 @@ export function createCanonicalPrivateEditPreparationCoordinatorService(
         })
       }
 
+      if (existingCompletion) {
+        const review = await reviewService.assemble({
+          workspaceId: body.workspaceId,
+          packageRecordId: input.packageRecordId,
+          purpose: 'assemble_canonical_private_review',
+          idempotencyKey: stableReviewIdempotencyKey(body, input.packageRecordId),
+        })
+        return readyResult({
+          body,
+          executionPackage,
+          workGraph: existingCompletion,
+          review,
+        })
+      }
+
+      const latestProgress = await workGraphService.findLatestProgress({
+        workspaceId: body.workspaceId,
+        packageRecordId: input.packageRecordId,
+      })
+      if (
+        latestProgress?.runFinished &&
+        !latestProgress.allRequiredJobsCompleted
+      ) {
+        return blockedResult({
+          body,
+          executionPackage,
+          totalJobCount: latestProgress.totalJobCount,
+          completedJobCount: latestProgress.completedJobCount,
+          blockedJobCount:
+            latestProgress.capabilityBlockedJobCount +
+            latestProgress.dependencyBlockedJobCount,
+          retryAvailable:
+            latestProgress.capabilityBlockedJobCount > 0,
+          userReviewRequired: false,
+          completedAt: latestProgress.updatedAt,
+        })
+      }
       const operationKey = sha256AuthorityValue({
         operation: 'prepare_canonical_private_edit_review',
         packageRecordId: input.packageRecordId,
@@ -99,74 +138,16 @@ export function createCanonicalPrivateEditPreparationCoordinatorService(
         snapshotHash: body.expectedSnapshotHash,
         requestIdempotencyKey: input.idempotencyKey,
       })
-      let workGraphRun: CanonicalPrivateWorkGraphRunResponse | undefined
-      if (!existingCompletion) {
-        for (
-          let runNumber = 1;
-          runNumber <= MAXIMUM_APPROVED_WORK_GRAPH_ATTEMPTS;
-          runNumber += 1
-        ) {
-          workGraphRun = await workGraphService.run({
-            workspaceId: body.workspaceId,
-            packageRecordId: input.packageRecordId,
-            purpose: 'run_canonical_private_work_graph',
-            idempotencyKey: workGraphRunIdempotencyKey(operationKey, runNumber),
-          })
-          if (
-            workGraphRun.summary.allRequiredJobsCompleted ||
-            !workGraphRun.jobs.some((job) =>
-              job.status === 'failed_retry_available' &&
-              job.retryDisposition === 'retry_same_approved_operation' &&
-              (job.remainingAttempts ?? 0) > 0)
-          ) break
-        }
-      }
-
-      if (workGraphRun && !workGraphRun.summary.allRequiredJobsCompleted) {
-        const blockedJobCount = workGraphRun.summary.capabilityBlockedJobCount +
-          workGraphRun.summary.dependencyBlockedJobCount
-        const retryAvailable = workGraphRun.jobs.some((job) =>
-          job.status === 'failed_retry_available' ||
-          (
-            job.status === 'blocked_by_job_capability' &&
-            job.blockerCode === 'TOOL_NOT_READY' &&
-            ![
-              'canonical_package_work_queue_approved_attempts_exhausted',
-              'canonical_package_work_queue_user_review_required',
-            ].includes(job.requiredGate ?? '')
-          ))
-        const userReviewRequired = workGraphRun.jobs.some((job) =>
-          job.status === 'failed_user_review_required')
-        return blockedResult({
-          body,
-          executionPackage,
-          totalJobCount: workGraphRun.summary.totalJobCount,
-          completedJobCount: workGraphRun.summary.completedJobCount,
-          blockedJobCount,
-          retryAvailable,
-          userReviewRequired,
-          completedAt: workGraphRun.completedAt,
-        })
-      }
-
-      const completedWorkGraph: CompletedWorkGraphSummary = existingCompletion ?? {
-        totalJobCount: workGraphRun!.summary.totalJobCount,
-        completedJobCount: workGraphRun!.summary.completedJobCount,
-        allRequiredJobsCompleted: true,
-        completedAt: workGraphRun!.completedAt,
-      }
-
-      const review = await reviewService.assemble({
-        workspaceId: body.workspaceId,
+      startBackgroundPreparation({
+        body,
+        context,
+        operationKey,
         packageRecordId: input.packageRecordId,
-        purpose: 'assemble_canonical_private_review',
-        idempotencyKey: `canonical-private-edit:${operationKey}:review`,
       })
-      return readyResult({
+      return inProgressResult({
         body,
         executionPackage,
-        workGraph: completedWorkGraph,
-        review,
+        progress: latestProgress,
       })
     },
   }
@@ -235,6 +216,44 @@ function readyResult(input: {
   }
 }
 
+function inProgressResult(input: {
+  body: PrepareCanonicalPrivateEditBody
+  executionPackage: ExactExecutionPackage & { jobs: unknown[] }
+  progress?: {
+    totalJobCount: number
+    completedJobCount: number
+    capabilityBlockedJobCount: number
+    dependencyBlockedJobCount: number
+    updatedAt: string
+  }
+}): CanonicalPrivateEditPreparationCoordinatorResult {
+  return {
+    receipt: receipt({
+      body: input.body,
+      executionPackage: input.executionPackage,
+      disposition: 'in_progress',
+      progress: {
+        totalJobCount: input.progress?.totalJobCount ?? input.executionPackage.jobs.length,
+        completedJobCount: input.progress?.completedJobCount ?? 0,
+        blockedJobCount: input.progress
+          ? input.progress.capabilityBlockedJobCount +
+            input.progress.dependencyBlockedJobCount
+          : 0,
+        allRequiredJobsCompleted: false,
+        retryAvailable: false,
+        userReviewRequired: false,
+      },
+      review: null,
+      completedAt: input.progress?.updatedAt ?? new Date().toISOString(),
+    }),
+    warnings: [
+      'The exact approved private work graph is advancing asynchronously from durable server-owned package state.',
+      'The browser may disconnect and recover progress without duplicating the canonical package or approved jobs.',
+      'Providers, public delivery, production rendering, customer credits, wallet mutation, billing, settlement, and deployment remained disabled.',
+    ],
+  }
+}
+
 function blockedResult(input: {
   body: PrepareCanonicalPrivateEditBody
   executionPackage: ExactExecutionPackage
@@ -272,12 +291,13 @@ function blockedResult(input: {
 function receipt(input: {
   body: PrepareCanonicalPrivateEditBody
   executionPackage: ExactExecutionPackage
-  disposition: 'private_review_ready' | 'blocked'
+  disposition: 'private_review_ready' | 'in_progress' | 'blocked'
   progress: CanonicalPrivateEditPreparationReceipt['progress']
   review: CanonicalPrivateEditPreparationReceipt['review']
   completedAt: string
 }): CanonicalPrivateEditPreparationReceipt {
   const ready = input.disposition === 'private_review_ready'
+  const inProgress = input.disposition === 'in_progress'
   return canonicalPrivateEditPreparationReceiptSchema.parse({
     schemaVersion: 'canonical-private-edit-preparation-receipt-v1',
     source: 'canonical_private_edit_preparation_coordinator_service',
@@ -302,7 +322,9 @@ function receipt(input: {
       privateReviewReady: ready,
       nextRequiredGate: ready
         ? 'canonical_private_review_user_decision_or_revision'
-        : 'canonical_job_capability_blockers',
+        : inProgress
+          ? 'canonical_private_work_graph_advancement'
+          : 'canonical_job_capability_blockers',
       productReady: false,
       externalBetaReady: false,
       productionReady: false,
@@ -335,6 +357,96 @@ function receipt(input: {
     completedAt: input.completedAt,
     testOnly: true,
   })
+}
+
+function startBackgroundPreparation(input: {
+  body: PrepareCanonicalPrivateEditBody
+  context: ServiceContext
+  operationKey: string
+  packageRecordId: string
+}): void {
+  const actorUserId = getRequiredAuthUserId(input.context)
+  const taskKey = sha256AuthorityValue({
+    actorUserId,
+    localStorageRoot: input.context.env.localStorageRoot,
+    workspaceId: input.body.workspaceId,
+    packageRecordId: input.packageRecordId,
+    packageHash: input.body.expectedPackageHash,
+    snapshotHash: input.body.expectedSnapshotHash,
+  })
+  if (backgroundPreparations.has(taskKey)) return
+
+  const task = advanceBackgroundPreparation(input)
+  backgroundPreparations.set(taskKey, task)
+  void task.then(
+    () => clearBackgroundPreparation(taskKey, task),
+    () => clearBackgroundPreparation(taskKey, task),
+  )
+}
+
+async function advanceBackgroundPreparation(input: {
+  body: PrepareCanonicalPrivateEditBody
+  context: ServiceContext
+  operationKey: string
+  packageRecordId: string
+}): Promise<void> {
+  const workGraphService = createCanonicalPrivateWorkGraphOrchestratorService(input.context)
+  const reviewService = createCanonicalPrivateReviewAssemblyService(input.context)
+  let workGraphRun: CanonicalPrivateWorkGraphRunResponse | undefined
+  for (
+    let runNumber = 1;
+    runNumber <= MAXIMUM_APPROVED_WORK_GRAPH_ATTEMPTS;
+    runNumber += 1
+  ) {
+    workGraphRun = await workGraphService.run({
+      workspaceId: input.body.workspaceId,
+      packageRecordId: input.packageRecordId,
+      purpose: 'run_canonical_private_work_graph',
+      idempotencyKey: workGraphRunIdempotencyKey(input.operationKey, runNumber),
+    })
+    if (
+      workGraphRun.summary.allRequiredJobsCompleted ||
+      !hasApprovedRetry(workGraphRun)
+    ) break
+  }
+  if (!workGraphRun?.summary.allRequiredJobsCompleted) return
+
+  await reviewService.assemble({
+    workspaceId: input.body.workspaceId,
+    packageRecordId: input.packageRecordId,
+    purpose: 'assemble_canonical_private_review',
+    idempotencyKey: stableReviewIdempotencyKey(
+      input.body,
+      input.packageRecordId,
+    ),
+  })
+}
+
+function hasApprovedRetry(workGraphRun: CanonicalPrivateWorkGraphRunResponse): boolean {
+  return workGraphRun.jobs.some((job) =>
+    job.status === 'failed_retry_available' &&
+    job.retryDisposition === 'retry_same_approved_operation' &&
+    (job.remainingAttempts ?? 0) > 0)
+}
+
+function stableReviewIdempotencyKey(
+  body: PrepareCanonicalPrivateEditBody,
+  packageRecordId: string,
+): string {
+  return `canonical-private-edit:${sha256AuthorityValue({
+    operation: 'assemble_canonical_private_review',
+    workspaceId: body.workspaceId,
+    packageRecordId,
+    packageHash: body.expectedPackageHash,
+    snapshotId: body.expectedSnapshotId,
+    snapshotHash: body.expectedSnapshotHash,
+  })}:review`
+}
+
+function clearBackgroundPreparation(taskKey: string, task: Promise<void>): void {
+  if (backgroundPreparations.get(taskKey) === task) {
+    backgroundPreparations.delete(taskKey)
+  }
 }
 
 async function optionalIncomplete<T>(operation: () => Promise<T>): Promise<T | undefined> {

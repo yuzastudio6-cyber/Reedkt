@@ -13,6 +13,7 @@ import {
   clearLocalProjectMemoryForSmoke,
   localProjectRegistryObjectRelativePath,
 } from '../services/project-service'
+import { authorizeWorkspaceAccess } from '../services/workspace-access-service'
 import type { RuntimeClients } from '../types'
 
 type Membership = { workspaceId: string; userId: string; role: string }
@@ -388,10 +389,13 @@ try {
   await rm(localStorageRoot, { recursive: true, force: true })
 }
 
+await assertUserTokenRlsMembershipFallback(env)
+
 console.log(JSON.stringify({
   ok: true,
   checks: [
     'live_workspace_membership_required',
+    'permission_denied_legacy_admin_probe_falls_back_to_user_token_rls',
     'authorization_precedes_project_idempotency_mutation',
     'authorization_precedes_internal_state_idempotency_mutation',
     'local_project_user_workspace_isolation',
@@ -405,6 +409,83 @@ console.log(JSON.stringify({
     'atomic_tenant_persistence_leaves_no_temp_files',
   ],
 }))
+
+async function assertUserTokenRlsMembershipFallback(
+  runtimeEnv: ReturnType<typeof loadRuntimeEnv>,
+): Promise<void> {
+  const originalFetch = globalThis.fetch
+  let membershipRlsReadCount = 0
+  globalThis.fetch = async (input, init) => {
+    const url = input instanceof URL
+      ? input
+      : new URL(typeof input === 'string' ? input : input.url)
+    assert.equal(url.origin, runtimeEnv.supabaseUrl)
+    assert.equal(url.pathname, '/rest/v1/workspace_members')
+    assert.equal(url.searchParams.get('workspace_id'), 'eq.workspace-alpha')
+    assert.equal(url.searchParams.get('user_id'), 'eq.user-a')
+    const headers = new Headers(init?.headers)
+    assert.equal(headers.get('authorization'), 'Bearer token-user-a')
+    membershipRlsReadCount += 1
+    return new Response(JSON.stringify([
+      {
+        workspace_id: 'workspace-alpha',
+        user_id: 'user-a',
+        role: 'owner',
+      },
+    ]), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    })
+  }
+
+  const unavailableAdmin = {
+    from(tableName: string) {
+      assert.equal(tableName, 'workspace_members')
+      const query = {
+        select() {
+          return query
+        },
+        eq() {
+          return query
+        },
+        async maybeSingle() {
+          return {
+            data: null,
+            error: {
+              code: '42501',
+              message: 'permission denied for table workspace_members',
+            },
+          }
+        },
+      }
+      return query
+    },
+  } as unknown as SupabaseClient
+
+  try {
+    const access = await authorizeWorkspaceAccess({
+      env: runtimeEnv,
+      clients: {
+        admin: unavailableAdmin,
+        public: null,
+      },
+      requestId: 'workspace-membership-rls-fallback-smoke',
+      auth: {
+        userId: 'user-a',
+        accessToken: 'token-user-a',
+        isMockUser: false,
+      },
+    }, 'workspace-alpha', 'write')
+    assert.deepEqual(access, {
+      userId: 'user-a',
+      workspaceId: 'workspace-alpha',
+      role: 'owner',
+    })
+    assert.equal(membershipRlsReadCount, 1)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}
 
 function createHandoff(workspaceId: string, projectId: string, editSessionId: string, projectName: string) {
   const now = new Date().toISOString()

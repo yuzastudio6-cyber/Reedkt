@@ -69,6 +69,13 @@ export type CanonicalEditJourney = {
     expectedManifestSha256: string
     expectedFinalArtifactSha256: string
   }
+  privateFinalDownloadAuthority?: {
+    reviewAssemblyId: string
+    packageRecordId: string
+    expectedDecisionManifestSha256: string
+    expectedFinalArtifactSha256: string
+    routeTemplate: string
+  }
   plan?: {
     version: number
     status: 'presented' | 'approved' | 'superseded' | 'rejected' | 'cancellation_pending' | 'cancelled'
@@ -200,6 +207,17 @@ type WireReview = {
       expectedDecisionManifestSha256: string
       expectedFinalArtifactSha256: string
       purpose: 'download_canonical_private_review_history_artifact'
+    }
+  }
+  acceptedFinalDownload?: {
+    method: 'GET'
+    routeTemplate: string
+    query: {
+      workspaceId: string
+      packageRecordId: string
+      expectedDecisionManifestSha256: string
+      expectedFinalArtifactSha256: string
+      purpose: 'download_accepted_canonical_private_final_artifact'
     }
   }
 }
@@ -437,6 +455,23 @@ export function parseCanonicalEditJourney(
                 packageRecordId: execution.packageRecordId,
                 expectedManifestSha256: review.manifestSha256,
                 expectedFinalArtifactSha256: review.finalArtifactSha256,
+              }
+            : undefined,
+        privateFinalDownloadAuthority:
+          stage === 'private_review_accepted' &&
+          review?.acceptedFinalDownload &&
+          execution
+            ? {
+                reviewAssemblyId: review.reviewAssemblyId,
+                packageRecordId: execution.packageRecordId,
+                expectedDecisionManifestSha256:
+                  review.acceptedFinalDownload.query
+                    .expectedDecisionManifestSha256,
+                expectedFinalArtifactSha256:
+                  review.acceptedFinalDownload.query
+                    .expectedFinalArtifactSha256,
+                routeTemplate:
+                  review.acceptedFinalDownload.routeTemplate,
               }
             : undefined,
         plan: plan && {
@@ -884,6 +919,7 @@ function parseReview(value: unknown): WireReview {
   const record = strictRecord(value, 'review', new Set([
     'reviewAssemblyId', 'manifestSha256', 'finalArtifactSha256', 'decision', 'decisionStatus',
     'decisionManifestSha256', 'privateHistoryDownload',
+    'acceptedFinalDownload',
   ]))
   const decision = record.decision === undefined
     ? undefined
@@ -897,6 +933,9 @@ function parseReview(value: unknown): WireReview {
   const privateHistoryDownload = record.privateHistoryDownload === undefined
     ? undefined
     : parsePrivateHistoryDownload(record.privateHistoryDownload)
+  const acceptedFinalDownload = record.acceptedFinalDownload === undefined
+    ? undefined
+    : parseAcceptedFinalDownload(record.acceptedFinalDownload)
   return {
     reviewAssemblyId: identityValue(record, 'reviewAssemblyId'),
     manifestSha256: shaValue(record, 'manifestSha256'),
@@ -905,6 +944,7 @@ function parseReview(value: unknown): WireReview {
     decisionStatus,
     decisionManifestSha256,
     privateHistoryDownload,
+    acceptedFinalDownload,
   }
 }
 
@@ -926,6 +966,44 @@ function parsePrivateHistoryDownload(value: unknown): NonNullable<WireReview['pr
         'purpose',
         'download_canonical_private_review_history_artifact',
       ) as 'download_canonical_private_review_history_artifact',
+    },
+  }
+}
+
+function parseAcceptedFinalDownload(
+  value: unknown,
+): NonNullable<WireReview['acceptedFinalDownload']> {
+  const record = strictRecord(
+    value,
+    'accepted final-download descriptor',
+    new Set(['method', 'routeTemplate', 'query']),
+  )
+  const query = strictRecord(
+    record.query,
+    'accepted final-download query',
+    new Set([
+      'workspaceId',
+      'packageRecordId',
+      'expectedDecisionManifestSha256',
+      'expectedFinalArtifactSha256',
+      'purpose',
+    ]),
+  )
+  return {
+    method: literalString(record, 'method', 'GET') as 'GET',
+    routeTemplate: requiredString(record, 'routeTemplate', 500),
+    query: {
+      workspaceId: identityValue(query, 'workspaceId'),
+      packageRecordId: identityValue(query, 'packageRecordId'),
+      expectedDecisionManifestSha256:
+        shaValue(query, 'expectedDecisionManifestSha256'),
+      expectedFinalArtifactSha256:
+        shaValue(query, 'expectedFinalArtifactSha256'),
+      purpose: literalString(
+        query,
+        'purpose',
+        'download_accepted_canonical_private_final_artifact',
+      ) as 'download_accepted_canonical_private_final_artifact',
     },
   }
 }
@@ -1066,6 +1144,23 @@ function validateLineage(journey: WireJourney): void {
       throw new Error('private review history descriptor lineage is invalid')
     }
   }
+  const acceptedDownload = journey.review?.acceptedFinalDownload
+  if (acceptedDownload && journey.review) {
+    if (
+      journey.stage !== 'private_review_accepted' ||
+      acceptedDownload.routeTemplate !==
+        `/v1/edit-executions/private-review-assemblies/${journey.review.reviewAssemblyId}/accepted-final-artifact` ||
+      acceptedDownload.query.workspaceId !== journey.identity.workspaceId ||
+      acceptedDownload.query.packageRecordId !==
+        journey.execution?.packageRecordId ||
+      acceptedDownload.query.expectedDecisionManifestSha256 !==
+        journey.review.decisionManifestSha256 ||
+      acceptedDownload.query.expectedFinalArtifactSha256 !==
+        journey.review.finalArtifactSha256
+    ) {
+      throw new Error('accepted final-download descriptor lineage is invalid')
+    }
+  }
 }
 
 function validateReviewStage(journey: WireJourney): void {
@@ -1074,14 +1169,17 @@ function validateReviewStage(journey: WireJourney): void {
   if (
     journey.stage === 'private_review_ready' &&
     (review.decision !== undefined || review.decisionStatus !== undefined ||
-      review.decisionManifestSha256 !== undefined || review.privateHistoryDownload !== undefined)
+      review.decisionManifestSha256 !== undefined ||
+      review.privateHistoryDownload !== undefined ||
+      review.acceptedFinalDownload !== undefined)
   ) {
     throw new Error('review-ready stage cannot contain a completed decision')
   }
   if (
     journey.stage === 'revision_requested' &&
     (review.decision !== 'request_revision' || review.decisionStatus !== 'canonical_revision_requested' ||
-      !review.decisionManifestSha256 || !review.privateHistoryDownload)
+      !review.decisionManifestSha256 || !review.privateHistoryDownload ||
+      review.acceptedFinalDownload !== undefined)
   ) {
     throw new Error('revision stage is missing its exact review decision')
   }
@@ -1089,7 +1187,8 @@ function validateReviewStage(journey: WireJourney): void {
     journey.stage === 'private_review_accepted' &&
     (review.decision !== 'accept_private_internal_review' ||
       review.decisionStatus !== 'private_internal_review_accepted' ||
-      !review.decisionManifestSha256 || !review.privateHistoryDownload)
+      !review.decisionManifestSha256 || !review.privateHistoryDownload ||
+      !review.acceptedFinalDownload)
   ) {
     throw new Error('accepted stage is missing its exact review decision')
   }

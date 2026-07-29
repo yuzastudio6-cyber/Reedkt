@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { canonicalPrivateAcceptedFinalArtifactDownloadQuerySchema } from './canonical-private-accepted-final-artifact-download-schemas'
 import { canonicalPrivateReviewHistoryDownloadQuerySchema } from './canonical-private-review-history-schemas'
 
 const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
@@ -256,6 +257,12 @@ const canonicalEditJourneyResponseBaseSchema = z.object({
       routeTemplate: z.string().min(1).max(500),
       query: canonicalPrivateReviewHistoryDownloadQuerySchema,
     }).strict().optional(),
+    acceptedFinalDownload: z.object({
+      method: z.literal('GET'),
+      routeTemplate: z.string().min(1).max(500),
+      query:
+        canonicalPrivateAcceptedFinalArtifactDownloadQuerySchema,
+    }).strict().optional(),
   }).strict().optional(),
   permissions: z.object({
     inspectionOnly: z.literal(true),
@@ -394,7 +401,8 @@ export const canonicalEditJourneyResponseSchema = canonicalEditJourneyResponseBa
         value.review.decision !== undefined ||
         value.review.decisionStatus !== undefined ||
         value.review.decisionManifestSha256 !== undefined ||
-        value.review.privateHistoryDownload !== undefined
+        value.review.privateHistoryDownload !== undefined ||
+        value.review.acceptedFinalDownload !== undefined
       ) {
         invalid(context, ['review'], 'Review-ready journey state must not contain a completed decision.')
       }
@@ -404,7 +412,8 @@ export const canonicalEditJourneyResponseSchema = canonicalEditJourneyResponseBa
         value.review.decision !== 'request_revision' ||
         value.review.decisionStatus !== 'canonical_revision_requested' ||
         value.review.decisionManifestSha256 === undefined ||
-        value.review.privateHistoryDownload === undefined
+        value.review.privateHistoryDownload === undefined ||
+        value.review.acceptedFinalDownload !== undefined
       ) {
         invalid(context, ['review'], 'Revision journey state requires the exact persisted revision decision.')
       }
@@ -414,7 +423,8 @@ export const canonicalEditJourneyResponseSchema = canonicalEditJourneyResponseBa
         value.review.decision !== 'accept_private_internal_review' ||
         value.review.decisionStatus !== 'private_internal_review_accepted' ||
         value.review.decisionManifestSha256 === undefined ||
-        value.review.privateHistoryDownload === undefined
+        value.review.privateHistoryDownload === undefined ||
+        value.review.acceptedFinalDownload === undefined
       ) {
         invalid(context, ['review'], 'Accepted journey state requires the exact persisted acceptance decision.')
       }
@@ -430,6 +440,26 @@ export const canonicalEditJourneyResponseSchema = canonicalEditJourneyResponseBa
         descriptor.query.expectedFinalArtifactSha256 !== value.review.finalArtifactSha256
       ) {
         invalid(context, ['review', 'privateHistoryDownload'], 'Private-review history descriptor lineage is invalid.')
+      }
+    }
+    if (value.review?.acceptedFinalDownload) {
+      const descriptor = value.review.acceptedFinalDownload
+      if (
+        value.stage !== 'private_review_accepted' ||
+        descriptor.routeTemplate !==
+          `/v1/edit-executions/private-review-assemblies/${value.review.reviewAssemblyId}/accepted-final-artifact` ||
+        descriptor.query.workspaceId !== value.identity.workspaceId ||
+        descriptor.query.packageRecordId !== value.execution?.packageRecordId ||
+        descriptor.query.expectedDecisionManifestSha256 !==
+          value.review.decisionManifestSha256 ||
+        descriptor.query.expectedFinalArtifactSha256 !==
+          value.review.finalArtifactSha256
+      ) {
+        invalid(
+          context,
+          ['review', 'acceptedFinalDownload'],
+          'Accepted final-download descriptor lineage is invalid.',
+        )
       }
     }
   })

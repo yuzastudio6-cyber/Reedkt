@@ -6,7 +6,10 @@ import {
 } from '../validation/edit-brief-authority-schemas'
 import type { CanonicalPlanComponentsInput } from '../validation/edit-planning-authority-schemas'
 import type { SourceBindingManifestCandidate } from '../validation/source-media-authority-schemas'
-import { createEditBriefAuthorityService } from './edit-brief-authority-service'
+import {
+  buildEditBriefAuthorityPublicationBinding,
+  createEditBriefAuthorityService,
+} from './edit-brief-authority-service'
 import {
   readPrivateEditBriefAuthorityAggregate,
   type PrivateEditBriefAuthorityAggregate,
@@ -98,6 +101,54 @@ export async function prepareCanonicalEditBriefForPlanning(input: {
     frameRate,
     confirmationStatus: 'confirmed' as const,
     confirmationId: `canonical-frame:${confirmationDigest.slice(0, 40)}`,
+  }
+
+  if (
+    current.authority.lifecycle.phase === 'approved_snapshot' &&
+    current.authority.lifecycle.mutable === false
+  ) {
+    const publicationBinding =
+      buildEditBriefAuthorityPublicationBinding(current.authority)
+    const lifecycle = current.authority.lifecycle
+    const sourceAuthorityVerified = hasVerifiedCurrentSourceContexts(
+      current.authority,
+      input.sourceCandidate,
+    )
+    if (
+      !lifecycle.approvedSnapshotId ||
+      !lifecycle.publicationBindingHash ||
+      !lifecycle.authorityInputHash ||
+      lifecycle.publicationBindingHash !==
+        publicationBinding.deterministicHash ||
+      lifecycle.authorityInputHash !==
+        publicationBinding.authorityInputHash ||
+      publicationBinding.hasApprovalBlockers ||
+      publicationBinding.qaStatus !== 'passed' ||
+      publicationBinding.planHintReadiness !== 'ready_for_planning' ||
+      !sameExportSettings(
+        current.authority.exportSettings,
+        desiredExportSettings,
+      ) ||
+      !sourceAuthorityVerified
+    ) {
+      throw new ApiError(
+        'PLAN_NOT_APPROVED',
+        'The locked Edit Brief cannot be reused because its exact approved source, frame, QA, or planning evidence changed.',
+        409,
+        {
+          requiredGate:
+            'immutable_approved_edit_brief_revision_reuse',
+        },
+      )
+    }
+    return {
+      optionalBriefPresent: true,
+      aggregateRevision: current.aggregateRevision,
+      confirmedMarkerCount: publicationBinding.confirmedMarkerCount,
+      qaStatus: publicationBinding.qaStatus,
+      planHintReadiness: publicationBinding.planHintReadiness,
+      sourceAuthorityVerified,
+    }
   }
 
   if (!sameExportSettings(current.authority.exportSettings, desiredExportSettings)) {
@@ -255,12 +306,16 @@ export async function prepareCanonicalEditBriefForPlanning(input: {
     confirmedMarkerCount: binding?.confirmedMarkerCount ?? 0,
     qaStatus: binding?.qaStatus ?? 'not_run',
     planHintReadiness: binding?.planHintReadiness ?? 'not_created',
-    sourceAuthorityVerified: hasVerifiedCurrentSourceContexts(current.authority),
+    sourceAuthorityVerified: hasVerifiedCurrentSourceContexts(
+      current.authority,
+      input.sourceCandidate,
+    ),
   }
 }
 
 function hasVerifiedCurrentSourceContexts(
   authority: PrivateEditBriefAuthorityAggregate | undefined,
+  sourceCandidate: SourceBindingManifestCandidate,
 ): boolean {
   if (!authority) return false
   const latestByMarker = new Map<string, (typeof authority.contextPackages)[number]>()
@@ -277,7 +332,12 @@ function hasVerifiedCurrentSourceContexts(
       return Boolean(
         contextPackage
         && contextPackage.markerRevision === marker.revision
-        && contextPackage.sourceAuthorityStatus === 'verified_canonical_source_manifest',
+        && contextPackage.sourceAuthorityStatus ===
+          'verified_canonical_source_manifest'
+        && contextPackage.sourceContext.sourceCandidateHashSha256 ===
+          sourceCandidate.candidateHash
+        && contextPackage.sourceContext.sourceSequenceHashSha256 ===
+          sourceCandidate.sourceSequenceHash
       )
     })
 }

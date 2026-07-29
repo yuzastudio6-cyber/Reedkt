@@ -186,6 +186,36 @@ export function validatePlanningExactEditPreferenceAuthorityResolution(
   return { ...value, authority }
 }
 
+/**
+ * Hashes the immutable preference state while excluding the per-read receipt
+ * identity and observation timestamp. Callers that re-read around a bounded
+ * operation must compare this digest, not `authorityReceiptHash`, because a
+ * fresh, fully valid read receipt is expected to have a new observation time.
+ */
+export function planningExactEditPreferenceAuthorityStateHash(
+  value: PlanningExactEditPreferenceAuthorityResolution,
+): string {
+  const validated =
+    validatePlanningExactEditPreferenceAuthorityResolution(value)
+  const {
+    authorityReceiptHash: _authorityReceiptHash,
+    authority,
+    ...resolutionAuthority
+  } = validated
+  void _authorityReceiptHash
+  const {
+    authorityReadReceiptId: _authorityReadReceiptId,
+    readAt: _readAt,
+    ...preferenceState
+  } = authority
+  void _authorityReadReceiptId
+  void _readAt
+  return sha256AuthorityValue({
+    ...resolutionAuthority,
+    authority: preferenceState,
+  })
+}
+
 function selectPort(context: ServiceContext): PlanningExactEditPreferenceAuthorityPort {
   if (context.planningExactEditPreferenceAuthorityPort) {
     return context.planningExactEditPreferenceAuthorityPort

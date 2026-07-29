@@ -25,12 +25,26 @@ const [
 const env = loadRuntimeEnv()
 assertRuntimeCanStart(env)
 
-if (
+const localMockBoundarySatisfied =
   env.mode !== 'local'
-  || !env.allowMockWithoutSupabase
-  || !env.mockOnly
-  || env.storageMode !== 'local'
-  || env.hasSupabaseAdmin
+    ? false
+    : env.allowMockWithoutSupabase
+      && env.mockOnly
+      && env.storageMode === 'local'
+      && !env.hasSupabaseAdmin
+const canonicalLoopbackSupabaseBoundarySatisfied =
+  env.mode === 'local'
+  && !env.allowMockWithoutSupabase
+  && env.allowInternalTestExecutionWithSupabase
+  && !env.mockOnly
+  && env.storageMode === 'local'
+  && env.hasSupabaseAdmin
+  && env.hasSupabasePublic
+  && env.supabaseUrl === 'http://127.0.0.1:57431'
+
+if (
+  !localMockBoundarySatisfied
+  && !canonicalLoopbackSupabaseBoundarySatisfied
 ) {
   throw new Error('The private workspace API safety boundary is not satisfied.')
 }
@@ -64,6 +78,11 @@ const app = createReeditProApiApp(env, {
 })
 app.listen(env.apiPort, host, () => {
   console.log(`ReeditPro private API listening on http://${formatHost(host)}:${env.apiPort}.`)
+  if (canonicalLoopbackSupabaseBoundarySatisfied) {
+    console.log(
+      'Canonical loopback Supabase authentication is active for this private process.',
+    )
+  }
   if (privateReviewRuntimeEnabled) {
     console.log(
       'Canonical private-review execution is active for this loopback-only process.',

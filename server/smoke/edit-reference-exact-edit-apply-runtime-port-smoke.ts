@@ -159,6 +159,24 @@ try {
   assert.doesNotThrow(() => (
     assertEditReferenceExactEditApplyRuntimePortIsNotProduction(privatePort)
   ))
+  const authenticatedPrivateAuthority = await privatePort.readAuthority({
+    actor: {
+      actorUserId,
+      authenticatedAccessToken: 'verified-local-private-workspace-bearer',
+      mockActor: false,
+    },
+    scope: {
+      actorUserId,
+      workspaceId,
+      projectId,
+      editSessionId,
+      selectedApplicationId: null,
+    },
+  })
+  assert.equal(
+    authenticatedPrivateAuthority.sourceAuthority,
+    'private_exact_edit_preference_store',
+  )
   const privateRuntime = await startRuntime(privateStorageRoot, privatePort)
   const priorPrivateRuntimeEnv = snapshotFrontendRuntimeEnv()
   process.env.VITE_REEDITPRO_API_MODE = 'frontend_safe'

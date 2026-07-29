@@ -65,7 +65,13 @@ import {
 } from '../validation/edit-planning-authority-schemas'
 import { getRequiredAuthUserId, nowIso } from './service-helpers'
 import { createCanonicalPrivateReviewDecisionService } from './canonical-private-review-decision-service'
-import { createEditBriefAuthorityService } from './edit-brief-authority-service'
+import {
+  buildEditBriefAuthorityPublicationBinding,
+  createEditBriefAuthorityService,
+} from './edit-brief-authority-service'
+import {
+  readPrivateEditBriefAuthorityAggregate,
+} from './private-edit-brief-authority-store'
 import { createProjectService } from './project-service'
 import {
   type AuthorityApprovedSnapshotManifest,
@@ -1165,6 +1171,53 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           const snapshot = snapshots[0]!
           const publicationBinding =
             approvalPlanningInputAuthority.editBrief.publicationBinding
+          if (persistedPlan.revisionAuthority) {
+            const editBriefAggregate =
+              await readPrivateEditBriefAuthorityAggregate({
+                localStorageRoot: context.env.localStorageRoot,
+                ownerUserId: access.userId,
+                workspaceId: access.workspaceId,
+                projectId: persistedPlan.projectId,
+                editSessionId: persistedPlan.editSessionId,
+              })
+            const currentBinding = editBriefAggregate
+              ? buildEditBriefAuthorityPublicationBinding(
+                  editBriefAggregate,
+                )
+              : undefined
+            if (
+              !editBriefAggregate ||
+              !currentBinding ||
+              editBriefAggregate.lifecycle.phase !==
+                'approved_snapshot' ||
+              editBriefAggregate.lifecycle.mutable !== false ||
+              editBriefAggregate.lifecycle.approvedSnapshotId !==
+                persistedPlan.revisionAuthority
+                  .priorApprovedSnapshotId ||
+              editBriefAggregate.lifecycle.publicationBindingHash !==
+                publicationBinding.deterministicHash ||
+              editBriefAggregate.lifecycle.authorityInputHash !==
+                publicationBinding.authorityInputHash ||
+              currentBinding.deterministicHash !==
+                publicationBinding.deterministicHash ||
+              currentBinding.authorityInputHash !==
+                publicationBinding.authorityInputHash ||
+              currentBinding.aggregateRevision !==
+                publicationBinding.aggregateRevision ||
+              currentBinding.hasApprovalBlockers
+            ) {
+              throw new ApiError(
+                'PLAN_NOT_APPROVED',
+                'Canonical revision approval cannot reuse Edit Brief authority unless its exact prior snapshot lock and publication evidence remain unchanged.',
+                409,
+                {
+                  requiredGate:
+                    'immutable_approved_edit_brief_revision_reuse',
+                },
+              )
+            }
+            return
+          }
           const lifecycleKeyDigest = sha256AuthorityValue({
             domain: 'canonical_plan_approval_edit_brief_lifecycle_v1',
             workspaceId: access.workspaceId,

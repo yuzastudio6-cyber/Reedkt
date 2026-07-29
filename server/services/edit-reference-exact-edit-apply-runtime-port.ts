@@ -236,8 +236,10 @@ export function createEditReferenceCanonicalV3LocalExactEditApplyRuntimePort(
  * Mounts the loopback-only private workspace persistence authority. This port
  * supports exact preference changes only; Edit Reference selection/removal
  * remains unavailable until its own private transaction authority is mounted.
- * The process brand and explicit local metadata prevent a caller-shaped port
- * from being selected in hosted or production runtimes.
+ * It accepts either the explicit local mock identity or a bearer identity that
+ * the server already authenticated and authorized for the workspace. The
+ * process brand and explicit local metadata prevent a caller-shaped port from
+ * being selected in hosted or production runtimes.
  */
 export function createEditReferencePrivateWorkspaceExactEditApplyRuntimePort(
   input: {
@@ -678,10 +680,16 @@ function assertPrivateWorkspaceActor(
   actor: EditReferenceExactEditApplyRuntimeActor,
   expectedActorUserId: string,
 ): void {
-  if (
+  const localMockActor =
+    actor.mockActor
+    && actor.authenticatedAccessToken === null
+  const authenticatedLocalActor =
     !actor.mockActor
-    || actor.authenticatedAccessToken !== null
-    || actor.actorUserId !== expectedActorUserId
+    && typeof actor.authenticatedAccessToken === 'string'
+    && actor.authenticatedAccessToken.length > 0
+  if (
+    actor.actorUserId !== expectedActorUserId
+    || (!localMockActor && !authenticatedLocalActor)
   ) {
     throw new ApiError(
       'WORKSPACE_ACCESS_DENIED',

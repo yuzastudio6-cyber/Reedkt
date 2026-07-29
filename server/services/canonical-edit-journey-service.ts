@@ -298,6 +298,27 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
               purpose: 'download_canonical_private_review_history_artifact' as const,
             },
           },
+          ...(decision.decision === 'accept_private_internal_review'
+            ? {
+                acceptedFinalDownload: {
+                  method: 'GET' as const,
+                  routeTemplate:
+                    `/v1/edit-executions/private-review-assemblies/` +
+                    `${assembly.identity.reviewAssemblyId}/` +
+                    'accepted-final-artifact',
+                  query: {
+                    workspaceId: access.workspaceId,
+                    packageRecordId: execution.packageRecordId,
+                    expectedDecisionManifestSha256:
+                      decision.manifest.manifestSha256,
+                    expectedFinalArtifactSha256:
+                      assembly.finalArtifact.sha256,
+                    purpose:
+                      'download_accepted_canonical_private_final_artifact' as const,
+                  },
+                },
+              }
+            : {}),
         }
         if (decision.decision === 'request_revision') {
           return canonicalEditJourneyResponseSchema.parse({

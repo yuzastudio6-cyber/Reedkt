@@ -17,8 +17,22 @@ const sharedSyntheticFixtureRoot = path.join(repoRoot, 'test-results', 'internal
 const sharedSyntheticFixturePath = path.join(sharedSyntheticFixtureRoot, 'internal-testing-local-upload-e2e.mp4')
 const npmBin = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 const playwrightBin = path.join(repoRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'playwright.cmd' : 'playwright')
+const tsxBin = path.join(repoRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'tsx.cmd' : 'tsx')
+const canonicalV3Directory = path.join(repoRoot, 'database', 'canonical-v3-local')
+const canonicalV3DatabaseUrl = 'postgresql://postgres:postgres@127.0.0.1:57432/postgres'
+const canonicalV3ApiUrl = 'http://127.0.0.1:57431'
+const canonicalV3User = {
+  id: '11111111-1111-4111-8111-111111111111',
+  workspaceId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  email: 'owner-a@example.test',
+  password: 'Canonical-V3-Browser-Only-2026!',
+  displayName: 'Owner A',
+}
 const privateReviewMode = process.argv.slice(2).includes('--private-review')
-const unknownArgs = process.argv.slice(2).filter((arg) => arg !== '--private-review')
+const supabaseAuthMode = process.argv.slice(2).includes('--supabase-auth')
+const unknownArgs = process.argv.slice(2).filter(
+  (arg) => arg !== '--private-review' && arg !== '--supabase-auth',
+)
 if (unknownArgs.length > 0) {
   throw new Error(`Unsupported local upload E2E argument: ${unknownArgs[0]}`)
 }
@@ -37,6 +51,8 @@ const appBaseUrl = `http://127.0.0.1:${appPort}`
 const children = []
 let shuttingDown = false
 let serverFailure
+let canonicalV3Prepared = false
+let canonicalV3Runtime
 
 function assertPort(name, value) {
   if (!Number.isInteger(value) || value <= 0 || value > 65535) {
@@ -49,6 +65,190 @@ function assertExecutable(command, label) {
   if (result.status !== 0) {
     throw new Error(`${label} is required for the local upload E2E verifier. Install it locally, then rerun this command.`)
   }
+}
+
+function assertVersionedExecutable(command, label) {
+  const result = spawnSync(command, ['--version'], { stdio: 'ignore' })
+  if (result.status !== 0) {
+    throw new Error(`${label} is required for the Supabase-authenticated local E2E verifier.`)
+  }
+}
+
+function localOnlyCommandEnvironment(overrides = {}) {
+  const environment = {
+    ...process.env,
+    ...overrides,
+  }
+  delete environment.SUPABASE_ACCESS_TOKEN
+  return environment
+}
+
+function runLocalOnlyCommand(command, args, options = {}) {
+  const result = spawnSync(command, args, {
+    cwd: repoRoot,
+    env: localOnlyCommandEnvironment(options.env),
+    encoding: options.encoding,
+    stdio: options.stdio,
+  })
+  if (result.status !== 0) {
+    throw new Error(`${options.label ?? command} failed in the canonical loopback-only Supabase harness.`)
+  }
+  return result
+}
+
+function readCanonicalV3Status() {
+  const result = runLocalOnlyCommand(
+    'supabase',
+    ['--workdir', canonicalV3Directory, 'status', '--output', 'json'],
+    {
+      encoding: 'utf8',
+      label: 'Canonical V3 local Supabase status',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  )
+  const status = JSON.parse(result.stdout)
+  if (
+    status.API_URL !== canonicalV3ApiUrl ||
+    typeof status.ANON_KEY !== 'string' ||
+    !status.ANON_KEY ||
+    typeof status.SERVICE_ROLE_KEY !== 'string' ||
+    !status.SERVICE_ROLE_KEY
+  ) {
+    throw new Error('Canonical V3 local Supabase status did not match the reviewed loopback contract.')
+  }
+  return {
+    apiUrl: status.API_URL,
+    anonKey: status.ANON_KEY,
+    serviceRoleKey: status.SERVICE_ROLE_KEY,
+  }
+}
+
+function prepareCanonicalV3SupabaseAuth() {
+  assertVersionedExecutable('supabase', 'Supabase CLI')
+  assertVersionedExecutable('psql', 'PostgreSQL psql')
+
+  const status = spawnSync(
+    'supabase',
+    ['--workdir', canonicalV3Directory, 'status'],
+    {
+      cwd: repoRoot,
+      env: localOnlyCommandEnvironment(),
+      stdio: 'ignore',
+    },
+  )
+  if (status.status === 0) {
+    runLocalOnlyCommand(
+      'supabase',
+      ['--workdir', canonicalV3Directory, 'stop', '--no-backup'],
+      { label: 'Canonical V3 local Supabase restart stop', stdio: 'ignore' },
+    )
+  }
+  runLocalOnlyCommand(
+    'supabase',
+    ['--workdir', canonicalV3Directory, 'start'],
+    { label: 'Canonical V3 local Supabase start', stdio: 'ignore' },
+  )
+  runLocalOnlyCommand(
+    'supabase',
+    ['--workdir', canonicalV3Directory, 'db', 'reset', '--local', '--no-seed'],
+    { label: 'Canonical V3 local database reset', stdio: 'ignore' },
+  )
+  canonicalV3Runtime = readCanonicalV3Status()
+  runLocalOnlyCommand(
+    tsxBin,
+    [path.join(canonicalV3Directory, 'setup-local-auth-users.ts')],
+    {
+      env: {
+        REEDITPRO_CANONICAL_V3_API_URL: canonicalV3Runtime.apiUrl,
+        REEDITPRO_CANONICAL_V3_SERVICE_ROLE_KEY:
+          canonicalV3Runtime.serviceRoleKey,
+      },
+      label: 'Canonical V3 local Auth user provisioning',
+      stdio: 'ignore',
+    },
+  )
+  runLocalOnlyCommand(
+    'psql',
+    [
+      canonicalV3DatabaseUrl,
+      '-X',
+      '-q',
+      '-v',
+      'ON_ERROR_STOP=1',
+      '-f',
+      path.join(canonicalV3Directory, 'tests', '_fixture.sql'),
+    ],
+    {
+      label: 'Canonical V3 local tenant fixture',
+      stdio: 'ignore',
+    },
+  )
+  canonicalV3Prepared = true
+}
+
+async function verifyCanonicalV3PasswordAuthBoundary() {
+  if (!canonicalV3Runtime) {
+    throw new Error('Canonical V3 local Supabase runtime was not prepared.')
+  }
+  const signInResponse = await fetch(
+    `${canonicalV3Runtime.apiUrl}/auth/v1/token?grant_type=password`,
+    {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        apikey: canonicalV3Runtime.anonKey,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: canonicalV3User.email,
+        password: canonicalV3User.password,
+      }),
+      signal: AbortSignal.timeout(15_000),
+    },
+  )
+  const signInPayload = await signInResponse.json().catch(() => null)
+  if (
+    !signInResponse.ok ||
+    signInPayload?.user?.id !== canonicalV3User.id ||
+    typeof signInPayload?.access_token !== 'string'
+  ) {
+    throw new Error(
+      'Canonical V3 local password grant did not authenticate the reviewed user.',
+    )
+  }
+
+  const signupResponse = await fetch(
+    `${canonicalV3Runtime.apiUrl}/auth/v1/signup`,
+    {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        apikey: canonicalV3Runtime.anonKey,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: `blocked-signup-${Date.now()}@example.test`,
+        password: 'Blocked-Canonical-V3-Signup-2026!',
+      }),
+      signal: AbortSignal.timeout(15_000),
+    },
+  )
+  if (signupResponse.ok) {
+    throw new Error(
+      'Canonical V3 local browser signup must remain disabled.',
+    )
+  }
+}
+
+function cleanupCanonicalV3SupabaseAuth() {
+  if (!canonicalV3Prepared) return
+  runLocalOnlyCommand(
+    'supabase',
+    ['--workdir', canonicalV3Directory, 'db', 'reset', '--local', '--no-seed'],
+    { label: 'Canonical V3 local cleanup reset', stdio: 'ignore' },
+  )
+  canonicalV3Prepared = false
+  canonicalV3Runtime = undefined
 }
 
 function assertLocalPlaywright() {
@@ -125,12 +325,19 @@ function runPlaywright(fixturePath) {
         ...process.env,
         PLAYWRIGHT_BASE_URL: appBaseUrl,
         PLAYWRIGHT_REUSE_SERVER: 'true',
-        PLAYWRIGHT_INTERNAL_TEST_AUTH: 'true',
+        PLAYWRIGHT_INTERNAL_TEST_AUTH: supabaseAuthMode ? 'false' : 'true',
         PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_REAL_API: 'true',
         PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_API_BASE_URL: apiBaseUrl,
         PLAYWRIGHT_LOCAL_UPLOAD_STORAGE_ROOT: localStorageRoot,
         PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_FIXTURE_PATH: fixturePath,
         PLAYWRIGHT_PRIVATE_REVIEW_LOCAL_API: privateReviewMode ? 'true' : 'false',
+        PLAYWRIGHT_REAL_LOCAL_API_AUTH_MODE:
+          supabaseAuthMode ? 'supabase' : 'local_test',
+        PLAYWRIGHT_REAL_LOCAL_API_USER_ID: canonicalV3User.id,
+        PLAYWRIGHT_REAL_LOCAL_API_WORKSPACE_ID: canonicalV3User.workspaceId,
+        PLAYWRIGHT_REAL_LOCAL_API_IDENTITY_LABEL: canonicalV3User.displayName,
+        PLAYWRIGHT_REAL_LOCAL_API_AUTH_EMAIL: canonicalV3User.email,
+        PLAYWRIGHT_REAL_LOCAL_API_AUTH_PASSWORD: canonicalV3User.password,
       },
       stdio: 'inherit',
     })
@@ -213,6 +420,10 @@ async function main() {
   }
 
   await cleanupRuntimeArtifacts()
+  if (supabaseAuthMode) {
+    prepareCanonicalV3SupabaseAuth()
+    await verifyCanonicalV3PasswordAuthBoundary()
+  }
   const playwrightFixturePath = await preparePlaywrightFixture()
 
   console.log('Starting ReEditPro local upload E2E verifier.')
@@ -227,7 +438,9 @@ async function main() {
   console.log(`Specs: ${playwrightSpecs.join(', ')}`)
   console.log(
     privateReviewMode
-      ? 'Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval/work graph + confined private review. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.'
+      ? supabaseAuthMode
+        ? 'Mode: real loopback Supabase password sign-in and verified bearer token + RLS workspace membership + active named-edit route + backend-private source upload + canonical plan/approval/work graph + confined private review. Project/media/execution persistence remains private local; no GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.'
+        : 'Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval/work graph + confined private review. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.'
       : 'Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval gates. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.',
   )
 
@@ -237,7 +450,9 @@ async function main() {
     PORT: String(apiPort),
     API_ALLOWED_CORS_ORIGINS: appBaseUrl,
     E2E_RUNTIME_MODE: 'local',
-    API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
+    API_ALLOW_MOCK_WITHOUT_SUPABASE: supabaseAuthMode ? 'false' : 'true',
+    API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE:
+      supabaseAuthMode ? 'true' : '',
     STORAGE_MODE: 'local',
     LOCAL_STORAGE_ROOT: path.resolve(repoRoot, localStorageRoot),
     WORKER_RUNTIME_MODE: privateReviewMode ? 'local' : 'mock',
@@ -246,9 +461,9 @@ async function main() {
     REEDITPRO_PRIVATE_WORKSPACE_ENABLE_PRIVATE_REVIEW_RUNTIME:
       privateReviewMode ? 'true' : '',
     REEDITPRO_INTERNAL_SERVICE_TOKEN: internalServiceToken,
-    SUPABASE_URL: '',
-    SUPABASE_ANON_KEY: '',
-    SUPABASE_SERVICE_ROLE_KEY: '',
+    SUPABASE_URL: canonicalV3Runtime?.apiUrl ?? '',
+    SUPABASE_ANON_KEY: canonicalV3Runtime?.anonKey ?? '',
+    SUPABASE_SERVICE_ROLE_KEY: canonicalV3Runtime?.serviceRoleKey ?? '',
     GOOGLE_CLOUD_PROJECT_ID: '',
     GCS_SOURCE_MEDIA_BUCKET: '',
   })
@@ -257,11 +472,17 @@ async function main() {
     VITE_REEDITPRO_API_BASE_URL: apiBaseUrl,
     VITE_REEDITPRO_SOURCE_VIDEO_BACKEND_UPLOAD: 'true',
     VITE_REEDITPRO_LOCAL_EDIT_PREVIEW_SMOKE: 'true',
-    VITE_REEDITPRO_INTERNAL_TEST_AUTH: 'true',
-    VITE_REEDITPRO_AUTH_MODE: 'local_test',
-    VITE_REEDITPRO_INTERNAL_TEST_WORKSPACE_ID: 'workspace-internal-testing',
+    VITE_REEDITPRO_INTERNAL_TEST_AUTH: supabaseAuthMode ? 'false' : 'true',
+    VITE_REEDITPRO_AUTH_MODE: supabaseAuthMode ? 'supabase' : 'local_test',
+    VITE_SUPABASE_URL: canonicalV3Runtime?.apiUrl ?? '',
+    VITE_SUPABASE_ANON_KEY: canonicalV3Runtime?.anonKey ?? '',
+    VITE_REEDITPRO_INTERNAL_TEST_WORKSPACE_ID:
+      supabaseAuthMode
+        ? canonicalV3User.workspaceId
+        : 'workspace-internal-testing',
     VITE_REEDITPRO_LOCAL_PRIVATE_UPLOADS: 'true',
-    VITE_REEDITPRO_LOCAL_TEST_BACKEND_USER_ID: 'mock-user-runtime',
+    VITE_REEDITPRO_LOCAL_TEST_BACKEND_USER_ID:
+      supabaseAuthMode ? canonicalV3User.id : 'mock-user-runtime',
     VITE_REEDITPRO_API_MODE: 'frontend_safe',
   })
 
@@ -270,7 +491,7 @@ async function main() {
   await runPlaywright(playwrightFixturePath)
   console.log(
     privateReviewMode
-      ? 'Local private-review E2E verifier passed: sign-in, project creation, named-edit creation, backend-local source finalization, plan creation, approval, canonical package/work execution, private media load, and review acceptance succeeded.'
+      ? `${supabaseAuthMode ? 'Supabase-authenticated local' : 'Local'} private-review E2E verifier passed: sign-in, project creation, named-edit creation, backend-local source finalization, plan creation, approval, canonical package/work execution, private media load, exact caption revision, fresh plan and reapproval, second private render, review acceptance, and verified final download succeeded.`
       : 'Local upload E2E verifier passed: sign-in, project creation, named-edit creation, backend-local source finalization, private source readback, inline Edit Brief, plan creation, approval, and reload checks succeeded.',
   )
 }
@@ -280,4 +501,5 @@ try {
 } finally {
   await shutdown()
   await cleanupRuntimeArtifacts()
+  cleanupCanonicalV3SupabaseAuth()
 }

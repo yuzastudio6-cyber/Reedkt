@@ -756,23 +756,13 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
   const replaceVoice = props.audioPolicy === 'replace_with_approved_voice_tracks'
   return (
     <AbsoluteFill style={{ backgroundColor: props.panelBackground, overflow: 'hidden' }}>
-      {props.deliveryProfileId === 'uhd_2160'
-        ? <Html5Video
-            src={props.sourceInternalUrl!}
-            startFrom={props.sourceStartFrame!}
-            endAt={props.sourceEndFrameExclusive!}
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            volume={replaceVoice ? 0 : 1}
-            delayRenderTimeoutInMilliseconds={180_000}
-            delayRenderRetries={1}
-          />
-        : <OffthreadVideo
-            src={props.sourceInternalUrl!}
-            startFrom={props.sourceStartFrame!}
-            endAt={props.sourceEndFrameExclusive!}
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            volume={replaceVoice ? 0 : 1}
-          />}
+      <OffthreadVideo
+        src={props.sourceInternalUrl!}
+        startFrom={props.sourceStartFrame!}
+        endAt={props.sourceEndFrameExclusive!}
+        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        volume={replaceVoice ? 0 : 1}
+      />
       {replaceVoice && <Audio src={props.voiceTrackInternalUrls![0]!.voiceTrackInternalUrl} />}
       <ApprovedSupplementalAudioTracks {...props} />
       <ApprovedLivingFrameOverlays {...props} />
@@ -824,23 +814,13 @@ const ApprovedSourceSequenceVisual: React.FC<{
   }
   return (
     <div style={{ position: 'absolute', inset: 0, opacity }}>
-      {props.deliveryProfileId === 'uhd_2160'
-        ? <Html5Video
-            src={sourceInternalUrl}
-            startFrom={segment.sourceStartFrame}
-            endAt={segment.sourceEndFrameExclusive}
-            style={videoStyle}
-            volume={replaceVoice ? 0 : 1}
-            delayRenderTimeoutInMilliseconds={180_000}
-            delayRenderRetries={1}
-          />
-        : <OffthreadVideo
-            src={sourceInternalUrl}
-            startFrom={segment.sourceStartFrame}
-            endAt={segment.sourceEndFrameExclusive}
-            style={videoStyle}
-            volume={replaceVoice ? 0 : 1}
-          />}
+      <OffthreadVideo
+        src={sourceInternalUrl}
+        startFrom={segment.sourceStartFrame}
+        endAt={segment.sourceEndFrameExclusive}
+        style={videoStyle}
+        volume={replaceVoice ? 0 : 1}
+      />
     </div>
   )
 }

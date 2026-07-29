@@ -6,6 +6,7 @@ import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createCanonicalEditJourneyService } from '../services/canonical-edit-journey-service'
 import { createCanonicalPlanPresentationCoordinatorService } from '../services/canonical-plan-presentation-coordinator-service'
 import { createCanonicalSourceLedPlanPresentationService } from '../services/canonical-source-led-plan-presentation-service'
+import { createCanonicalSourceLedRevisionPlanPresentationService } from '../services/canonical-source-led-revision-plan-presentation-service'
 import { createCanonicalRevisionPlanPresentationCoordinatorService } from '../services/canonical-revision-plan-presentation-coordinator-service'
 import { createCanonicalPlanApprovalCoordinatorService } from '../services/canonical-plan-approval-coordinator-service'
 import { createCanonicalPlanPublicationRequestService } from '../services/canonical-plan-publication-request-service'
@@ -25,6 +26,7 @@ import { canonicalEditJourneyQuerySchema } from '../validation/canonical-edit-jo
 import { approvePresentedCanonicalPlanSchema } from '../validation/canonical-plan-approval-schemas'
 import { presentCanonicalRevisionPlanSchema } from '../validation/canonical-revision-plan-presentation-schemas'
 import { presentCanonicalSourceLedPlanSchema } from '../validation/canonical-source-led-plan-presentation-schemas'
+import { presentCanonicalSourceLedCaptionRevisionSchema } from '../validation/canonical-source-led-revision-plan-presentation-schemas'
 import {
   approveCanonicalEditPlanSchema,
   authorityWorkspaceQuerySchema,
@@ -154,6 +156,31 @@ export function createEditPlanningAuthorityRoutes(): Router {
           : 'The backend reused or rejected competing persisted publication authority without creating another plan.',
         'No approval, snapshot, credit reservation, job, tool, provider, render, or delivery authority was created.',
       ], 201)
+    }),
+  )
+
+  router.post(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/source-led-caption-revision-plan-presentations',
+    requireAuth,
+    requireSensitiveIdempotencyKey,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(
+        presentCanonicalSourceLedCaptionRevisionSchema,
+        request.body,
+      )
+      const result =
+        await createCanonicalSourceLedRevisionPlanPresentationService(
+          getServiceContext(request),
+        ).present({
+          ...body,
+          projectId: getRouteParam(request, 'projectId'),
+          editSessionId: getRouteParam(request, 'editSessionId'),
+          idempotencyKey: getIdempotencyKey(request),
+        })
+      sendOk(response, {
+        canonicalSourceLedCaptionRevisionPlanPresentation:
+          result.presentation,
+      }, result.warnings, 201)
     }),
   )
 

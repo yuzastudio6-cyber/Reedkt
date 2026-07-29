@@ -74,6 +74,7 @@ export type CanonicalPrivateReviewClientInput = {
 export type CanonicalPrivateReviewDecisionInput = CanonicalPrivateReviewClientInput & {
   decision: 'accept_private_internal_review' | 'request_revision'
   revisionSummary?: string
+  captionReplacementText?: string
 }
 
 type ReviewMediaAuthority = NonNullable<
@@ -115,7 +116,10 @@ export function recordCanonicalPrivateReviewDecision(
   const authority = decisionAuthority(input)
   if (!authority.ok) return Promise.resolve(authority.result)
   const revisionIntent = input.decision === 'request_revision'
-    ? buildRevisionIntent(input.revisionSummary ?? '')
+    ? buildRevisionIntent(
+        input.revisionSummary ?? '',
+        input.captionReplacementText,
+      )
     : undefined
   if (input.decision === 'request_revision' && !revisionIntent) {
     return Promise.resolve(decisionFailure(
@@ -468,9 +472,36 @@ function buildMediaUrl(
   return url.toString()
 }
 
-function buildRevisionIntent(summaryInput: string) {
+function buildRevisionIntent(
+  summaryInput: string,
+  captionReplacementInput?: string,
+) {
   const summary = summaryInput.trim().replace(/\s+/g, ' ').slice(0, 4_000)
   if (summary.length < 8) return undefined
+  if (captionReplacementInput !== undefined) {
+    const captionReplacementText = captionReplacementInput.trim()
+    if (
+      captionReplacementText.length < 1 ||
+      captionReplacementText.length > 120 ||
+      !/^[\x20-\x7e]+$/.test(captionReplacementText) ||
+      /[{}\\[\]]/.test(captionReplacementText)
+    ) return undefined
+    return {
+      summary,
+      changeCategories: ['caption'],
+      mustPreserve: [
+        'source_order',
+        'source_meaning',
+        'important_clips',
+        'approved_aspect_ratio',
+        'edit_preferences',
+        'edit_brief',
+      ],
+      captionReplacementText,
+      requiresReplanning: true as const,
+      requiresFreshEstimateAndApproval: true as const,
+    }
+  }
   const normalized = summary.toLowerCase()
   const categories = new Set<string>()
   const matchers: Array<[RegExp, string]> = [

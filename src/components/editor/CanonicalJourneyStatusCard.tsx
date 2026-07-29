@@ -2,8 +2,10 @@ import {
   AlertTriangle,
   CheckCircle2,
   CircleDot,
+  Download,
   Film,
   Loader2,
+  MessageSquareText,
   PackageCheck,
   RefreshCw,
   ShieldCheck,
@@ -17,7 +19,9 @@ import {
 import type { CanonicalEditJourneyHookResult } from '../../hooks/useCanonicalEditJourney'
 import type { CanonicalExecutionPackageRequestHookResult } from '../../hooks/useCanonicalExecutionPackageRequest'
 import type { CanonicalPrivateEditPreparationHookResult } from '../../hooks/useCanonicalPrivateEditPreparation'
+import type { CanonicalPrivateFinalDownloadHookResult } from '../../hooks/useCanonicalPrivateFinalDownload'
 import type { CanonicalPrivateReviewHookResult } from '../../hooks/useCanonicalPrivateReview'
+import type { CanonicalSourceLedCaptionRevisionHookResult } from '../../hooks/useCanonicalSourceLedCaptionRevision'
 import { CanonicalCustomerDeliveryPanel } from './CanonicalCustomerDeliveryPanel'
 import { CanonicalPrivateReviewPanel } from './CanonicalPrivateReviewPanel'
 
@@ -31,27 +35,38 @@ const toneIcon = {
 type CanonicalJourneyStatusCardProps = CanonicalEditJourneyHookResult & {
   executionPackageRequest?: CanonicalExecutionPackageRequestHookResult
   privateEditPreparation?: CanonicalPrivateEditPreparationHookResult
+  privateFinalDownload?: CanonicalPrivateFinalDownloadHookResult
   privateReview?: CanonicalPrivateReviewHookResult
+  sourceLedCaptionRevision?: CanonicalSourceLedCaptionRevisionHookResult
   onAcceptPrivateReview?: () => void
+  onDownloadAcceptedFinal?: () => void
   onLoadPrivateReview?: () => void
+  onPresentSourceLedCaptionRevision?: () => void
   onRequestExecutionPackage?: () => void
   onPreparePrivateEdit?: () => void
-  onRequestPrivateReviewRevision?: (summary: string) => void
+  onRequestPrivateReviewRevision?: (
+    summary: string,
+    captionReplacementText?: string,
+  ) => void
 }
 
 export function CanonicalJourneyStatusCard({
   executionPackageRequest,
   loading,
   onAcceptPrivateReview,
+  onDownloadAcceptedFinal,
   onLoadPrivateReview,
+  onPresentSourceLedCaptionRevision,
   onPreparePrivateEdit,
   onRequestExecutionPackage,
   onRequestPrivateReviewRevision,
   privateEditPreparation,
+  privateFinalDownload,
   privateReview,
   refresh,
   refreshing,
   result,
+  sourceLedCaptionRevision,
   updatedAt,
 }: CanonicalJourneyStatusCardProps) {
   if (result?.status === 'not_configured') return null
@@ -150,10 +165,35 @@ export function CanonicalJourneyStatusCard({
     onAcceptPrivateReview &&
     onRequestPrivateReviewRevision,
   )
+  const canPresentSourceLedCaptionRevision = Boolean(
+    result.journey.stage === 'revision_requested' &&
+    result.journey.privateReviewMediaAuthority?.mode === 'history' &&
+    sourceLedCaptionRevision &&
+    onPresentSourceLedCaptionRevision,
+  )
+  const finalDownloadAuthority = result.journey.privateFinalDownloadAuthority
+  const finalDownloadIsCurrent = Boolean(
+    finalDownloadAuthority &&
+    privateFinalDownload?.requestedReviewAssemblyId ===
+      finalDownloadAuthority.reviewAssemblyId,
+  )
+  const finalDownloadResult = finalDownloadIsCurrent
+    ? privateFinalDownload?.result ?? null
+    : null
+  const downloadingFinal =
+    finalDownloadIsCurrent && Boolean(privateFinalDownload?.downloading)
+  const canDownloadAcceptedFinal = Boolean(
+    result.journey.stage === 'private_review_accepted' &&
+    finalDownloadAuthority &&
+    privateFinalDownload &&
+    onDownloadAcceptedFinal,
+  )
   const refreshSavedWorkflow = () => {
     executionPackageRequest?.reset()
     privateEditPreparation?.reset()
+    privateFinalDownload?.reset()
     privateReview?.reset()
+    sourceLedCaptionRevision?.reset()
     refresh()
   }
 
@@ -246,7 +286,12 @@ export function CanonicalJourneyStatusCard({
             data-testid={`canonical-private-edit-preparation-${
               preparing ? 'preparing' : preparationResult?.status ?? 'ready'
             }`}
-            role={preparationResult && preparationResult.status !== 'ready' ? 'alert' : 'status'}
+            role={
+              preparationResult &&
+              !['ready', 'in_progress'].includes(preparationResult.status)
+                ? 'alert'
+                : 'status'
+            }
           >
             <div className="canonical-journey-package-action-copy">
               <Film aria-hidden="true" size={16} />
@@ -280,6 +325,130 @@ export function CanonicalJourneyStatusCard({
           </div>
         )}
 
+        {canPresentSourceLedCaptionRevision &&
+          sourceLedCaptionRevision &&
+          onPresentSourceLedCaptionRevision && (
+          <div
+            aria-live="polite"
+            className="canonical-journey-package-action"
+            data-status={
+              sourceLedCaptionRevision.presenting
+                ? 'preparing'
+                : sourceLedCaptionRevision.result?.status ?? 'ready'
+            }
+            data-testid={`canonical-source-led-caption-revision-${
+              sourceLedCaptionRevision.presenting
+                ? 'preparing'
+                : sourceLedCaptionRevision.result?.status ?? 'ready'
+            }`}
+            role={
+              sourceLedCaptionRevision.result &&
+              sourceLedCaptionRevision.result.status !== 'ready'
+                ? 'alert'
+                : 'status'
+            }
+          >
+            <div className="canonical-journey-package-action-copy">
+              <MessageSquareText aria-hidden="true" size={16} />
+              <div>
+                <strong>
+                  {sourceLedRevisionTitle(
+                    sourceLedCaptionRevision.presenting,
+                    sourceLedCaptionRevision.result,
+                  )}
+                </strong>
+                <p>
+                  {sourceLedRevisionMessage(
+                    sourceLedCaptionRevision.presenting,
+                    sourceLedCaptionRevision.result,
+                  )}
+                </p>
+              </div>
+            </div>
+            <Button
+              aria-busy={sourceLedCaptionRevision.presenting}
+              data-testid="canonical-source-led-caption-revision-submit"
+              disabled={
+                sourceLedCaptionRevision.presenting ||
+                sourceLedCaptionRevision.result?.status === 'ready' ||
+                Boolean(
+                  sourceLedCaptionRevision.result &&
+                  !sourceLedCaptionRevision.result.retryable,
+                )
+              }
+              onClick={onPresentSourceLedCaptionRevision}
+              size="sm"
+              variant="primary"
+            >
+              {sourceLedCaptionRevision.presenting
+                ? 'Preparing revised plan…'
+                : sourceLedCaptionRevision.result?.retryable
+                  ? 'Try again'
+                  : sourceLedCaptionRevision.result?.status === 'ready'
+                    ? 'Revised plan ready'
+                    : 'Prepare revised plan'}
+            </Button>
+          </div>
+        )}
+
+        {canDownloadAcceptedFinal &&
+          privateFinalDownload &&
+          onDownloadAcceptedFinal && (
+          <div
+            aria-live="polite"
+            className="canonical-journey-package-action canonical-final-download-action"
+            data-status={
+              downloadingFinal
+                ? 'downloading'
+                : finalDownloadResult?.status ?? 'ready'
+            }
+            data-testid={`canonical-private-final-download-${
+              downloadingFinal
+                ? 'downloading'
+                : finalDownloadResult?.status ?? 'ready'
+            }`}
+            role={
+              finalDownloadResult &&
+              finalDownloadResult.status !== 'ready'
+                ? 'alert'
+                : 'status'
+            }
+          >
+            <div className="canonical-journey-package-action-copy">
+              <Download aria-hidden="true" size={16} />
+              <div>
+                <strong>
+                  {finalDownloadTitle(
+                    downloadingFinal,
+                    finalDownloadResult,
+                  )}
+                </strong>
+                <p>
+                  {finalDownloadMessage(
+                    downloadingFinal,
+                    finalDownloadResult,
+                  )}
+                </p>
+              </div>
+            </div>
+            <Button
+              aria-busy={downloadingFinal}
+              data-testid="canonical-private-final-download-submit"
+              disabled={downloadingFinal}
+              icon={Download}
+              onClick={onDownloadAcceptedFinal}
+              size="sm"
+              variant="primary"
+            >
+              {downloadingFinal
+                ? 'Verifying final…'
+                : finalDownloadResult?.retryable
+                  ? 'Try download again'
+                  : 'Download final MP4'}
+            </Button>
+          </div>
+        )}
+
         {result.customerDelivery && (
           <CanonicalCustomerDeliveryPanel
             delivery={result.customerDelivery}
@@ -295,6 +464,10 @@ export function CanonicalJourneyStatusCard({
             onAccept={onAcceptPrivateReview}
             onLoad={onLoadPrivateReview}
             onRequestRevision={onRequestPrivateReviewRevision}
+            revisionMode="source_led_caption"
+            revisionPresentationBusy={
+              sourceLedCaptionRevision?.presenting ?? false
+            }
             review={privateReview}
           />
         )}
@@ -310,12 +483,58 @@ export function CanonicalJourneyStatusCard({
   )
 }
 
+function sourceLedRevisionTitle(
+  presenting: boolean,
+  result: CanonicalSourceLedCaptionRevisionHookResult['result'],
+): string {
+  if (presenting) return 'Building the revised plan'
+  if (result?.status === 'ready') return 'Revised plan ready'
+  if (result) return 'Revised plan needs attention'
+  return 'Prepare the exact caption revision'
+}
+
+function sourceLedRevisionMessage(
+  presenting: boolean,
+  result: CanonicalSourceLedCaptionRevisionHookResult['result'],
+): string {
+  if (presenting) {
+    return 'The backend is rereading the saved caption decision, immutable prior edit, source media, Edit Preferences, and Edit Brief.'
+  }
+  if (result) return result.message
+  return 'Build the next plan and fresh estimate from the saved caption replacement. The browser cannot submit a plan, timing map, or estimate.'
+}
+
+function finalDownloadTitle(
+  downloading: boolean,
+  result: CanonicalPrivateFinalDownloadHookResult['result'],
+): string {
+  if (downloading) return 'Verifying the accepted final'
+  if (result?.status === 'ready') return 'Verified final downloaded'
+  if (result) return 'Final download needs attention'
+  return 'Accepted final is ready'
+}
+
+function finalDownloadMessage(
+  downloading: boolean,
+  result: CanonicalPrivateFinalDownloadHookResult['result'],
+): string {
+  if (downloading) {
+    return 'WeEditPro is matching the accepted decision, QA-backed artifact, MP4 bytes, and exact SHA-256 before download.'
+  }
+  if (result?.status === 'ready') {
+    return `${result.message} ${formatBytes(result.download.byteSize)} verified.`
+  }
+  if (result) return result.message
+  return 'Download the exact accepted private MP4. No public or signed link is created.'
+}
+
 function preparationActionTitle(
   preparing: boolean,
   result: CanonicalPrivateEditPreparationHookResult['result'],
 ): string {
   if (preparing) return 'Preparing the private review'
   if (result?.status === 'ready') return 'Private review ready'
+  if (result?.status === 'in_progress') return 'Private edit is running'
   if (result?.status === 'blocked') return 'Private preparation is paused'
   if (result) return 'Private preparation needs attention'
   return 'Approved edit ready to prepare'
@@ -343,6 +562,7 @@ function preparationActionButtonLabel(
 ): string {
   if (preparing) return 'Preparing review…'
   if (result?.status === 'ready') return 'Review ready'
+  if (result?.status === 'in_progress') return 'Check progress'
   if (result?.retryable) return 'Try again'
   if (result) return 'Refresh required'
   return assembling ? 'Assemble private review' : 'Start private edit'
@@ -401,4 +621,10 @@ function formatCheckedAt(value: string): string {
     hour: 'numeric',
     minute: '2-digit',
   }).format(date)}`
+}
+
+function formatBytes(value: number): string {
+  if (value < 1024) return `${value} B`
+  if (value < 1024 * 1024) return `${Math.round(value / 1024)} KB`
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`
 }

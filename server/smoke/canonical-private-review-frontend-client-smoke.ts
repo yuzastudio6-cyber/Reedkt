@@ -300,6 +300,31 @@ try {
     'edit_brief',
   ])
 
+  const exactCaptionRevision = await recordCanonicalPrivateReviewDecision({
+    ...input,
+    decision: 'request_revision',
+    revisionSummary:
+      'Replace the approved caption with: The verified final caption.',
+    captionReplacementText: 'The verified final caption.',
+  })
+  assert.equal(exactCaptionRevision.status, 'recorded')
+  assert.equal(requests.length, 7)
+  const exactCaptionIntent =
+    requests[6]?.body?.revisionIntent as Record<string, unknown>
+  assert.deepEqual(exactCaptionIntent.changeCategories, ['caption'])
+  assert.deepEqual(exactCaptionIntent.mustPreserve, [
+    'source_order',
+    'source_meaning',
+    'important_clips',
+    'approved_aspect_ratio',
+    'edit_preferences',
+    'edit_brief',
+  ])
+  assert.equal(
+    exactCaptionIntent.captionReplacementText,
+    'The verified final caption.',
+  )
+
   responseMode = 'foreign'
   const foreign = await recordCanonicalPrivateReviewDecision({
     ...input,

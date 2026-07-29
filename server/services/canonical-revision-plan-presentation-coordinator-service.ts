@@ -9,8 +9,12 @@ import {
 import { createCanonicalPlanPresentationCoordinatorService } from './canonical-plan-presentation-coordinator-service'
 import { createCanonicalPlanningHandoffService } from './canonical-planning-handoff-service'
 import { createCanonicalPrivateReviewDecisionService } from './canonical-private-review-decision-service'
-import { createExactEditPreferenceService } from './exact-edit-preference-service'
+import {
+  planningExactEditPreferenceAuthorityStateHash,
+  readPlanningExactEditPreferenceAuthority,
+} from './planning-exact-edit-preference-authority-port'
 import { sha256AuthorityValue } from './private-edit-authority-store'
+import { getRequiredAuthUserId } from './service-helpers'
 
 const revisionPresentationLocks = new Map<string, Promise<void>>()
 
@@ -85,13 +89,19 @@ export function createCanonicalRevisionPlanPresentationCoordinatorService(
           )
         }
 
-        const exactPreferenceService = createExactEditPreferenceService(context)
-        const preferenceBefore = await exactPreferenceService.getCurrent(
-          body.workspaceId,
+        const preferenceScope = {
+          localStorageRoot: context.env.localStorageRoot,
+          ownerUserId: getRequiredAuthUserId(context),
+          workspaceId: body.workspaceId,
           projectId,
           editSessionId,
-        )
-        if (!preferenceBefore.preferenceRecord?.lifecycle.locked) {
+        }
+        const preferenceBefore =
+          await readPlanningExactEditPreferenceAuthority({
+            context,
+            scope: preferenceScope,
+          })
+        if (!preferenceBefore.authority.locked) {
           throw new ApiError(
             'PLAN_NOT_APPROVED',
             'A replacement plan requires the locked preference evidence from the prior approved snapshot.',
@@ -99,9 +109,8 @@ export function createCanonicalRevisionPlanPresentationCoordinatorService(
             { requiredGate: 'locked_exact_edit_preference_evidence' },
           )
         }
-        const preferenceAuthorityHash = sha256AuthorityValue(
-          preferenceBefore.preferenceRecord,
-        )
+        const preferenceAuthorityStateHash =
+          planningExactEditPreferenceAuthorityStateHash(preferenceBefore)
 
         const revisionAuthority = {
           reviewAssemblyId: decision.identity.reviewAssemblyId,
@@ -171,14 +180,15 @@ export function createCanonicalRevisionPlanPresentationCoordinatorService(
           )
         }
 
-        const preferenceAfter = await exactPreferenceService.getCurrent(
-          body.workspaceId,
-          projectId,
-          editSessionId,
-        )
+        const preferenceAfter =
+          await readPlanningExactEditPreferenceAuthority({
+            context,
+            scope: preferenceScope,
+          })
         if (
-          !preferenceAfter.preferenceRecord?.lifecycle.locked ||
-          sha256AuthorityValue(preferenceAfter.preferenceRecord) !== preferenceAuthorityHash
+          !preferenceAfter.authority.locked ||
+          planningExactEditPreferenceAuthorityStateHash(preferenceAfter) !==
+            preferenceAuthorityStateHash
         ) {
           throw new ApiError(
             'JOB_DEPENDENCY_NOT_READY',

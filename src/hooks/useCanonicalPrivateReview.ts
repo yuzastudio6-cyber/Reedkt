@@ -29,6 +29,7 @@ export type CanonicalPrivateReviewHookResult = {
     journey: CanonicalEditJourney,
     decision: 'accept_private_internal_review' | 'request_revision',
     revisionSummary?: string,
+    captionReplacementText?: string,
   ) => Promise<CanonicalPrivateReviewDecisionClientResult>
   reset: () => void
 }
@@ -158,6 +159,7 @@ export function useCanonicalPrivateReview({
     journey: CanonicalEditJourney,
     decision: 'accept_private_internal_review' | 'request_revision',
     revisionSummary?: string,
+    captionReplacementText?: string,
   ) => {
     const requestIdentity = identityRef.current
     const requestVersion = ++requestVersionRef.current
@@ -185,6 +187,7 @@ export function useCanonicalPrivateReview({
           journey,
           decision,
           revisionSummary,
+          captionReplacementText,
         })
       } catch {
         result = {

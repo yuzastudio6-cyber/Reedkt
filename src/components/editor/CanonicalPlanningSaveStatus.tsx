@@ -6,6 +6,11 @@ import { IconButton } from '../Button'
 
 type Tone = 'neutral' | 'active' | 'attention' | 'success'
 
+export type CanonicalPlanningSaveStatusSource = Pick<
+  CanonicalPlanningPublicationHookResult,
+  'result' | 'retry' | 'saving'
+>
+
 const toneIcon = {
   neutral: CircleDot,
   active: Loader2,
@@ -17,7 +22,7 @@ export function CanonicalPlanningSaveStatus({
   result,
   retry,
   saving,
-}: Pick<CanonicalPlanningPublicationHookResult, 'result' | 'retry' | 'saving'>) {
+}: CanonicalPlanningSaveStatusSource) {
   if (!saving && (!result || result.status === 'not_configured')) return null
 
   const presentation = saving

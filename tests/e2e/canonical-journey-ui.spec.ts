@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
 import {
   buildLocalProjectHandoffStorageKey,
@@ -29,8 +30,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await page.setViewportSize({ width: 1280, height: 900 })
     const fixture = await installSourceReadyNamedEdit(page, 'canonical-plan-save')
     const preferenceRequests = await installExactEditPreferenceAuthority(page, [fixture])
-    const handoffRequests: Array<Record<string, unknown>> = []
-    let candidateRequestCount = 0
+    const presentationRequests: Array<Record<string, unknown>> = []
 
     await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
       await route.fulfill({
@@ -43,27 +43,21 @@ test.describe('canonical journey named-edit UI bridge', () => {
         }),
       })
     })
-    await page.route('**/v1/projects/*/edit-sessions/*/canonical-planning-handoff', async (route) => {
+    await page.route('**/v1/projects/*/edit-sessions/*/source-led-plan-presentations', async (route) => {
       const body = route.request().postDataJSON() as Record<string, unknown>
-      handoffRequests.push(body)
+      presentationRequests.push(body)
       await route.fulfill({
         contentType: 'application/json',
-        status: 200,
+        status: 409,
         body: JSON.stringify({
-          ok: true,
-          data: {
-            canonicalPlanningHandoff: canonicalPlanningHandoffFixture(
-              fixture.project.id,
-              fixture.edit.editSessionId,
-            ),
+          ok: false,
+          error: {
+            code: 'JOB_DEPENDENCY_NOT_READY',
+            message: 'A current server-verified Edit Brief is required.',
           },
           warnings: [],
         }),
       })
-    })
-    await page.route('**/v1/projects/*/edit-sessions/*/canonical-planning-handoffs/*/publication-requests', async (route) => {
-      candidateRequestCount += 1
-      await route.abort()
     })
 
     await gotoRoute(page, fixture.editPath)
@@ -79,26 +73,37 @@ test.describe('canonical journey named-edit UI bridge', () => {
 
     const planReview = page.getByTestId('plan-review-card')
     await expect(planReview).toBeVisible()
-    await expect.poll(() => handoffRequests.length).toBe(1)
-    const saveStatus = page.getByTestId('canonical-planning-save-handoff-saved-waiting-for-compiler')
+    await expect.poll(() => presentationRequests.length).toBe(1)
+    const saveStatus = page.getByTestId('canonical-planning-save-blocked')
     await expect(saveStatus).toBeVisible()
-    await expect(saveStatus).toContainText('Planning inputs saved')
+    await expect(saveStatus).toContainText('Plan needs a fresh save')
+    await expect(saveStatus).toContainText(
+      'uploaded sources, Edit Preferences, frame, or Edit Brief changed',
+    )
     await expect(saveStatus).toContainText('Saving never approves credits or starts editing')
     await expect(saveStatus).not.toContainText(/\/v1\/|[a-f0-9]{64}|handoff|candidate|ffmpeg|ffprobe|libass|remotion|provider|filesystem|credential/i)
 
-    const requestBody = JSON.stringify(handoffRequests[0])
-    expect(preferenceRequests.readCount).toBe(1)
+    expect(presentationRequests[0]).toEqual({
+      workspaceId: scope.workspaceId,
+      purpose: 'present_server_derived_source_led_plan',
+      orderedMediaAssetIds: [
+        fixture.edit.sourceMediaAssets![0]!.mediaAssetId,
+      ],
+      confirmedAspectRatio: '9:16',
+      sourceOrderConfirmed: true,
+      preserveUnanalyzedSourceRanges: true,
+    })
+    const requestBody = JSON.stringify(presentationRequests[0])
+    expect(preferenceRequests.readCount).toBe(0)
     expect(preferenceRequests.updateCount).toBe(0)
-    expect(requestBody).not.toMatch(/storagePath|private\/source|signedUrl|publicUrl|sourceBytes|bytesBase64/)
-    expect(requestBody).toContain(`server-preference-${fixture.edit.editSessionId}`)
-    expect(requestBody).toContain(fixture.edit.sourceMediaAssets![0]!.sourceSequenceItemId!)
+    expect(requestBody).not.toMatch(
+      /"storagePath"|"signedUrl"|"publicUrl"|"sourceBytes"|"bytesBase64"|"plan"|"masterTiming"|"estimate"|"workGraph"|"caption"|"checksumSha256"|private\/source/i,
+    )
     expect(requestBody).toContain(fixture.edit.sourceMediaAssets![0]!.mediaAssetId)
-    expect(requestBody).toContain(fixture.edit.sourceMediaAssets![0]!.checksumSha256!)
-    expect(candidateRequestCount).toBe(0)
 
     const approve = page.getByTestId('plan-review-approve')
     await expect(approve).toBeDisabled()
-    await expect(approve).toHaveText('Approval not ready')
+    await expect(approve).toHaveText('Refresh saved plan')
     await expectNoGenerationBeforeApproval(page)
     await expectNoInternalToolNamesInEditor(page)
     await expectNoHorizontalOverflow(page)
@@ -110,10 +115,10 @@ test.describe('canonical journey named-edit UI bridge', () => {
     const secondFixture = createSourceReadyNamedEdit('late-save-route-b')
     await installSourceReadyNamedEditFixtures(page, [firstFixture, secondFixture])
     const preferenceRequests = await installExactEditPreferenceAuthority(page, [firstFixture, secondFixture])
-    let handoffRequestCount = 0
-    let releaseHandoff!: () => void
-    const handoffGate = new Promise<void>((resolve) => {
-      releaseHandoff = resolve
+    let presentationRequestCount = 0
+    let releasePresentation!: () => void
+    const presentationGate = new Promise<void>((resolve) => {
+      releasePresentation = resolve
     })
 
     await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
@@ -127,18 +132,20 @@ test.describe('canonical journey named-edit UI bridge', () => {
         }),
       })
     })
-    await page.route('**/v1/projects/*/edit-sessions/*/canonical-planning-handoff', async (route) => {
-      handoffRequestCount += 1
-      await handoffGate
+    await page.route('**/v1/projects/*/edit-sessions/*/source-led-plan-presentations', async (route) => {
+      presentationRequestCount += 1
+      await presentationGate
       await route.fulfill({
         contentType: 'application/json',
         status: 200,
         body: JSON.stringify({
           ok: true,
           data: {
-            canonicalPlanningHandoff: canonicalPlanningHandoffFixture(
+            canonicalSourceLedPlanPresentation:
+              canonicalSourceLedPlanPresentationFixture(
               firstFixture.project.id,
               firstFixture.edit.editSessionId,
+              firstFixture.edit.sourceMediaAssets![0]!.mediaAssetId,
             ),
           },
           warnings: [],
@@ -150,8 +157,8 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await completeRequiredEditorSetupBeforeFootagePrep(page)
     await clickWhenReady(page.getByRole('button', { name: /^Prepare source$/i }))
     await clickWhenReady(page.getByRole('button', { name: /^Create edit plan$/i }))
-    await expect.poll(() => handoffRequestCount).toBe(1)
-    expect(preferenceRequests.readCount).toBe(1)
+    await expect.poll(() => presentationRequestCount).toBe(1)
+    expect(preferenceRequests.readCount).toBe(0)
     await expect(page.getByTestId('canonical-planning-save-saving')).toBeVisible()
 
     await page.evaluate((path) => {
@@ -162,7 +169,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await expect(page.getByRole('heading', { level: 1, name: secondFixture.edit.editName })).toBeVisible()
     await expect(page.locator('[data-testid^="canonical-planning-save-"]')).toHaveCount(0)
 
-    releaseHandoff()
+    releasePresentation()
     await page.waitForTimeout(100)
     await expect(page.locator('[data-testid^="canonical-planning-save-"]')).toHaveCount(0)
     await expectNoGenerationBeforeApproval(page)
@@ -526,7 +533,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('plays the exact private review, records structured changes, and reopens immutable history', async ({ page }) => {
+  test('plays the exact private review, records one bounded caption revision, and reopens immutable history', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 960 })
     const fixture = await installSourceReadyNamedEdit(page, 'canonical-private-review-browser')
     const identity = {
@@ -554,6 +561,12 @@ test.describe('canonical journey named-edit UI bridge', () => {
       idempotencyKey: string | null
       body: Record<string, unknown>
       url: string
+    }> = []
+    const revisionPresentationRequests: Array<{
+      authorization: string | null
+      internalToken: string | null
+      idempotencyKey: string | null
+      body: Record<string, unknown>
     }> = []
     let revisionRecorded = false
 
@@ -657,6 +670,29 @@ test.describe('canonical journey named-edit UI bridge', () => {
         })
       },
     )
+    await page.route(
+      '**/v1/projects/*/edit-sessions/*/source-led-caption-revision-plan-presentations',
+      async (route) => {
+        revisionPresentationRequests.push({
+          authorization: await route.request().headerValue('authorization'),
+          internalToken: await route.request().headerValue('x-reeditpro-internal-token'),
+          idempotencyKey: await route.request().headerValue('idempotency-key'),
+          body: route.request().postDataJSON() as Record<string, unknown>,
+        })
+        await route.fulfill({
+          contentType: 'application/json',
+          status: 503,
+          body: JSON.stringify({
+            ok: false,
+            error: {
+              code: 'BACKEND_UNAVAILABLE',
+              message: 'Controlled presentation retry fixture.',
+            },
+            warnings: [],
+          }),
+        })
+      },
+    )
 
     await gotoRoute(page, fixture.editPath)
 
@@ -688,15 +724,15 @@ test.describe('canonical journey named-edit UI bridge', () => {
       /artifactId|jobId|expectedAssetId|credential|signedUrl|publicUrl|storagePath/i,
     )
     await expect(page.getByTestId('canonical-private-review-player')).toBeVisible()
-    await expect(page.getByLabel('ReeditPro private review video')).toBeVisible()
+    await expect(page.getByLabel('WeEditPro private review video')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Download review' })).toBeVisible()
     await expect(page.getByTestId('canonical-private-review-accept')).toBeEnabled()
 
-    const revisionSummary =
-      'Tighten the opening pace, keep the source order, and make the captions smaller.'
-    await page.getByLabel(/Revision direction/i).fill(revisionSummary)
+    const replacementCaption = 'The verified replacement caption.'
+    await page.getByLabel(/Replacement caption/i).fill(replacementCaption)
     await page.getByTestId('canonical-private-review-request-revision').click()
     await expect.poll(() => decisionRequests.length).toBe(1)
+    await expect.poll(() => revisionPresentationRequests.length).toBe(1)
 
     const decisionRequest = decisionRequests[0]!
     expect(decisionRequest.authorization).toBe('Bearer canonical-journey-playwright-token')
@@ -717,8 +753,8 @@ test.describe('canonical journey named-edit UI bridge', () => {
       purpose: 'record_canonical_private_review_decision',
       decision: 'request_revision',
       revisionIntent: {
-        summary: revisionSummary,
-        changeCategories: ['pacing', 'caption', 'source_order'],
+        summary: `Replace the approved caption with: ${replacementCaption}`,
+        changeCategories: ['caption'],
         mustPreserve: [
           'source_order',
           'source_meaning',
@@ -727,6 +763,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
           'edit_preferences',
           'edit_brief',
         ],
+        captionReplacementText: replacementCaption,
         requiresReplanning: true,
         requiresFreshEstimateAndApproval: true,
       },
@@ -734,14 +771,38 @@ test.describe('canonical journey named-edit UI bridge', () => {
     expect(JSON.stringify(decisionRequest.body)).not.toMatch(
       /artifactId|jobId|expectedAssetId|credential|token|signedUrl|publicUrl|storagePath|provider|price/i,
     )
+    const presentationRequest = revisionPresentationRequests[0]!
+    expect(presentationRequest.authorization).toBe(
+      'Bearer canonical-journey-playwright-token',
+    )
+    expect(presentationRequest.internalToken).toBeNull()
+    expect(presentationRequest.idempotencyKey).toMatch(
+      /^canonical-source-led-caption-revision:[a-f0-9]{64}$/,
+    )
+    expect(presentationRequest.body).toEqual({
+      workspaceId: scope.workspaceId,
+      expectedPackageRecordId: 'package-canonical-approval-browser',
+      expectedReviewAssemblyId: 'review-canonical-approval-browser',
+      expectedDecisionManifestSha256: decisionManifestSha256,
+      expectedFinalArtifactSha256: finalArtifactSha256,
+      purpose: 'present_server_derived_source_led_caption_revision',
+    })
+    expect(JSON.stringify(presentationRequest.body)).not.toMatch(
+      /canonicalPlan|timing|estimate|workGraph|captionReplacementText|storagePath|credential|token/i,
+    )
 
     await expect(status).toHaveAttribute('data-journey-stage', 'revision_requested')
     await expect(status).toContainText('Changes are saved')
     await expect(status).toContainText('fresh plan, estimate, approval, and private review')
     await expect(reviewPanel).toHaveAttribute('data-mode', 'history')
     await expect(page.getByTestId('canonical-private-review-decision')).toHaveCount(0)
-    await expect(page.getByText(revisionSummary, { exact: true })).toBeVisible()
-    await expect(page.getByText(/previous private review stays as context only/i)).toBeVisible()
+    await expect(page.getByText(replacementCaption, { exact: true })).toHaveCount(0)
+    await expect(page.getByTestId('canonical-source-led-caption-revision-unavailable')).toContainText(
+      'safe to try again',
+    )
+    await expect(
+      page.getByText(/previous review remains attached as context/i),
+    ).toBeVisible()
     await expect(page.getByTestId('plan-review-card')).toHaveCount(0)
     await expect(page.getByTestId('preview-ready-card')).toHaveCount(0)
     await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
@@ -793,7 +854,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
     }> = []
     let replacementPresented = false
     let replacementApproved = false
-    let maximumCredits = 0
+    const maximumCredits = 47
     let executionRequestCount = 0
     let releasePresentation!: () => void
     const presentationGate = new Promise<void>((resolve) => {
@@ -842,7 +903,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
       })
     })
     await page.route(
-      '**/v1/projects/*/edit-sessions/*/canonical-revision-plan-presentations',
+      '**/v1/projects/*/edit-sessions/*/source-led-caption-revision-plan-presentations',
       async (route) => {
         const body = route.request().postDataJSON() as Record<string, unknown>
         revisionRequests.push({
@@ -851,13 +912,6 @@ test.describe('canonical journey named-edit UI bridge', () => {
           idempotencyKey: await route.request().headerValue('idempotency-key'),
           body,
         })
-        const canonicalPlan = asRecord(body.canonicalPlan)
-        const estimate = asRecord(canonicalPlan.estimate)
-        const lineItems = estimate.lineItems as Array<{ estimatedCredits: number }>
-        maximumCredits = lineItems.reduce(
-          (total, item) => total + item.estimatedCredits,
-          Number(estimate.fallbackAllowanceCredits),
-        )
         await presentationGate
         replacementPresented = true
         await route.fulfill({
@@ -866,8 +920,8 @@ test.describe('canonical journey named-edit UI bridge', () => {
           body: JSON.stringify({
             ok: true,
             data: {
-              canonicalRevisionPlanPresentation:
-                canonicalRevisionPlanPresentationReceiptFixture(
+              canonicalSourceLedCaptionRevisionPlanPresentation:
+                canonicalSourceLedCaptionRevisionPresentationReceiptFixture(
                   identity.projectId,
                   identity.editSessionId,
                 ),
@@ -915,7 +969,9 @@ test.describe('canonical journey named-edit UI bridge', () => {
     })
 
     const harness = page.getByTestId('canonical-revision-plan-browser-harness')
-    const prepare = harness.getByTestId('canonical-revision-plan-prepare')
+    const prepare = harness.getByTestId(
+      'canonical-source-led-caption-revision-submit',
+    )
     await expect(harness.getByTestId('canonical-journey-status')).toHaveAttribute(
       'data-journey-stage',
       'revision_requested',
@@ -925,41 +981,31 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await expect(prepare).toBeDisabled()
     await expect(prepare).toHaveAttribute('aria-busy', 'true')
     await expect(prepare).toHaveText('Preparing revised plan…')
-    await expect(harness.getByTestId('canonical-planning-save-saving')).toBeVisible()
+    await expect(
+      harness.getByTestId('canonical-source-led-caption-revision-preparing'),
+    ).toBeVisible()
     await expect.poll(() => revisionRequests.length).toBe(1)
 
     const revisionRequest = revisionRequests[0]!
     expect(revisionRequest.authorization).toBe('Bearer canonical-journey-playwright-token')
     expect(revisionRequest.internalToken).toBeNull()
     expect(revisionRequest.idempotencyKey).toMatch(
-      /^canonical-revision-plan-presentation:[a-f0-9]{8}$/,
+      /^canonical-source-led-caption-revision:[a-f0-9]{64}$/,
     )
-    expect(Object.keys(revisionRequest.body).sort()).toEqual([
-      'canonicalPlan',
-      'expectedDecisionManifestSha256',
-      'expectedFinalArtifactSha256',
-      'expectedPackageRecordId',
-      'expectedReviewAssemblyId',
-      'orderedSourceItems',
-      'purpose',
-      'workspaceId',
-    ])
-    const canonicalPlan = asRecord(revisionRequest.body.canonicalPlan)
-    const components = asRecord(canonicalPlan.components)
-    const compiledIntent = asRecord(components.compiledIntent)
-    expect('revisionAuthority' in revisionRequest.body).toBe(false)
-    expect('revisionIntentHash' in compiledIntent).toBe(false)
-    expect('priorApprovedSnapshotId' in compiledIntent).toBe(false)
-    expect('reviewDecisionId' in compiledIntent).toBe(false)
+    expect(revisionRequest.body).toEqual({
+      workspaceId: scope.workspaceId,
+      expectedPackageRecordId: 'package-canonical-approval-browser',
+      expectedReviewAssemblyId: 'review-canonical-approval-browser',
+      expectedDecisionManifestSha256: decisionManifestSha256,
+      expectedFinalArtifactSha256: finalArtifactSha256,
+      purpose: 'present_server_derived_source_led_caption_revision',
+    })
     expect(JSON.stringify(revisionRequest.body)).not.toMatch(
-      /storagePath|source-must-not-cross|signedUrl|publicUrl|sourceBytes|bytesBase64|internalToken/i,
+      /canonicalPlan|timing|estimate|workGraph|captionReplacementText|storagePath|signedUrl|publicUrl|sourceBytes|bytesBase64|internalToken/i,
     )
     expect(executionRequestCount).toBe(0)
 
     releasePresentation()
-    await expect(harness.getByTestId('canonical-planning-save-plan-published-waiting-for-approval')).toContainText(
-      'previous approval was not reused',
-    )
     await expect(harness.getByTestId('canonical-journey-status')).toHaveAttribute(
       'data-journey-stage',
       'plan_approval_required',
@@ -1027,6 +1073,19 @@ test.describe('canonical journey named-edit UI bridge', () => {
   test('rehydrates an accepted private review without reopening source preparation', async ({ page }) => {
     const fixture = await installSourceReadyNamedEdit(page, 'canonical-review-accepted-reload')
     await installExactEditPreferenceAuthority(page, [fixture])
+    const finalBytes = Buffer.from(
+      '000000186674797069736f6d0000020069736f6d69736f32',
+      'hex',
+    )
+    const finalArtifactSha256 = createHash('sha256')
+      .update(finalBytes)
+      .digest('hex')
+    const finalDownloadRequests: Array<{
+      authorization: string | null
+      internalToken: string | null
+      method: string
+      url: string
+    }> = []
     let planningMutationCount = 0
 
     await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
@@ -1039,12 +1098,44 @@ test.describe('canonical journey named-edit UI bridge', () => {
             canonicalEditJourney: canonicalPrivateReviewAcceptedJourneyFixture(
               fixture.project.id,
               fixture.edit.editSessionId,
+              finalArtifactSha256,
             ),
           },
           warnings: [],
         }),
       })
     })
+    await page.route(
+      '**/v1/edit-executions/private-review-assemblies/review-canonical-approval-browser/accepted-final-artifact?*',
+      async (route) => {
+        finalDownloadRequests.push({
+          authorization:
+            await route.request().headerValue('authorization'),
+          internalToken:
+            await route.request().headerValue(
+              'x-reeditpro-internal-token',
+            ),
+          method: route.request().method(),
+          url: route.request().url(),
+        })
+        await route.fulfill({
+          body: finalBytes,
+          contentType: 'video/mp4',
+          headers: {
+            'cache-control': 'private, no-store, max-age=0',
+            'content-disposition':
+              'attachment; filename="weeditpro-private-final-browser.mp4"',
+            'content-length': String(finalBytes.byteLength),
+            'x-reeditpro-artifact-sha256': finalArtifactSha256,
+            'x-reeditpro-review-assembly-id':
+              'review-canonical-approval-browser',
+            'x-reeditpro-review-decision-manifest-sha256':
+              '9'.repeat(64),
+          },
+          status: 200,
+        })
+      },
+    )
     await page.route('**/v1/projects/*/edit-sessions/*/canonical-planning-handoff', async (route) => {
       planningMutationCount += 1
       await route.abort()
@@ -1062,6 +1153,9 @@ test.describe('canonical journey named-edit UI bridge', () => {
         'private_review',
       )
       await expect(page.getByRole('heading', { name: 'Review approved' })).toBeVisible()
+      await expect(
+        page.getByRole('button', { name: 'Download final MP4' }),
+      ).toBeVisible()
       await expect(page.getByRole('button', { name: /^Prepare source$/i })).toHaveCount(0)
       await expect(page.getByRole('button', { name: /^Create edit plan$/i })).toHaveCount(0)
       await expect(page.getByTestId('editor-stage')).toContainText(
@@ -1072,6 +1166,45 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await gotoRoute(page, fixture.editPath)
     await expectRecoveredApproval()
     expect(planningMutationCount).toBe(0)
+
+    const browserDownload = page.waitForEvent('download')
+    await page.getByRole('button', { name: 'Download final MP4' }).click()
+    const downloadedFinal = await browserDownload
+    expect(downloadedFinal.suggestedFilename()).toBe(
+      'weeditpro-private-final-browser.mp4',
+    )
+    const downloadedPath = await downloadedFinal.path()
+    expect(downloadedPath).not.toBeNull()
+    expect(
+      createHash('sha256')
+        .update(await readFile(downloadedPath!))
+        .digest('hex'),
+    ).toBe(finalArtifactSha256)
+    await expect.poll(() => finalDownloadRequests.length).toBe(1)
+    const finalRequest = finalDownloadRequests[0]!
+    expect(finalRequest.authorization).toBe(
+      'Bearer canonical-journey-playwright-token',
+    )
+    expect(finalRequest.internalToken).toBeNull()
+    expect(finalRequest.method).toBe('GET')
+    const finalUrl = new URL(finalRequest.url)
+    expect(finalUrl.pathname).toBe(
+      '/v1/edit-executions/private-review-assemblies/' +
+        'review-canonical-approval-browser/accepted-final-artifact',
+    )
+    expect(Object.fromEntries(finalUrl.searchParams.entries())).toEqual({
+      workspaceId: scope.workspaceId,
+      packageRecordId: 'package-canonical-approval-browser',
+      expectedDecisionManifestSha256: '9'.repeat(64),
+      expectedFinalArtifactSha256: finalArtifactSha256,
+      purpose: 'download_accepted_canonical_private_final_artifact',
+    })
+    expect(finalRequest.url).not.toMatch(
+      /artifactId|jobId|expectedAssetId|credential|signedUrl|publicUrl|storagePath/i,
+    )
+    await expect(
+      page.getByTestId('canonical-private-final-download-ready'),
+    ).toContainText('verified and downloaded')
 
     await page.reload({ waitUntil: 'domcontentloaded' })
     await expectRecoveredApproval()
@@ -1618,6 +1751,59 @@ function canonicalRevisionPlanPresentationReceiptFixture(
   }
 }
 
+function canonicalSourceLedCaptionRevisionPresentationReceiptFixture(
+  projectId: string,
+  editSessionId: string,
+) {
+  return {
+    schemaVersion:
+      'canonical-source-led-caption-revision-presentation-v1',
+    source:
+      'canonical_source_led_caption_revision_plan_presentation_service',
+    purpose:
+      'present_server_derived_source_led_caption_revision',
+    identity: {
+      workspaceId: scope.workspaceId,
+      projectId,
+      editSessionId,
+      priorReviewAssemblyId: 'review-canonical-approval-browser',
+      priorApprovedSnapshotId: 'snapshot-canonical-approval-browser',
+    },
+    derivation: {
+      exactRevisionDecisionReread: true,
+      priorApprovedSnapshotReread: true,
+      finalizedSourceObjectsReread: true,
+      exactLockedPreferencesReread: true,
+      immutableEditBriefReread: true,
+      exactCaptionReplacementApplied: true,
+      revisionIntentHash: 'c'.repeat(64),
+      sourceCount: 1,
+      captionCueCount: 1,
+      browserPlanAccepted: false,
+      browserTimingAccepted: false,
+      browserEstimateAccepted: false,
+      browserWorkGraphAccepted: false,
+      browserCaptionTextAcceptedAtPlanning: false,
+    },
+    revisionPresentation:
+      canonicalRevisionPlanPresentationReceiptFixture(
+        projectId,
+        editSessionId,
+      ),
+    permissions: {
+      replacementPlanPresented: true,
+      freshApprovalRequired: true,
+      snapshotCreated: false,
+      creditReserved: false,
+      workGraphStarted: false,
+      toolExecutionStarted: false,
+      renderStarted: false,
+      deliveryStarted: false,
+    },
+    testOnly: true,
+  }
+}
+
 function canonicalReplacementPlanApprovalReceiptFixture(
   projectId: string,
   editSessionId: string,
@@ -1675,12 +1861,6 @@ function canonicalReplacementPlanApprovalReceiptFixture(
     pathOrCredentialReturned: false,
     testOnly: true,
   }
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : {}
 }
 
 function executionJourney(projectId: string, editSessionId: string) {
@@ -1771,45 +1951,104 @@ function executionJourney(projectId: string, editSessionId: string) {
   }
 }
 
-function canonicalPlanningHandoffFixture(projectId: string, editSessionId: string) {
+function canonicalSourceLedPlanPresentationFixture(
+  projectId: string,
+  editSessionId: string,
+  mediaAssetId: string,
+) {
+  const handoffId = `source-led-handoff-${editSessionId}`
+  const candidateId = `source-led-candidate-${editSessionId}`
   return {
-    schemaVersion: 'canonical-planning-handoff-response-v1',
-    source: 'canonical_planning_handoff_service',
+    schemaVersion: 'canonical-source-led-plan-presentation-v1',
+    source: 'canonical_source_led_plan_presentation_service',
     identity: {
       workspaceId: scope.workspaceId,
       projectId,
       editSessionId,
+      handoffId,
+      handoffHash: 'b'.repeat(64),
     },
-    canonicalPlanComponentsHash: 'c'.repeat(64),
-    sourceBindingManifestCandidate: {},
-    sourceMediaAuthority: {},
-    planningInputAuthority: {},
-    resolvedPlanningInputAuthority: {},
-    readiness: {
-      finalizedSourceMediaVerified: true,
-      exactEditPreferencesVerified: true,
-      preferenceApplicationVerified: true,
-      editBriefVerified: true,
-      outputFrameAndCleanupVerified: true,
-      readyForCanonicalPlanPublication: true,
+    derivation: {
+      sourceMetadataAuthority: 'server_reverified_finalized_upload_ffprobe',
+      editDirectionAuthority: 'server_reverified_ready_edit_brief',
+      exactPreferenceAuthority: 'server_reverified_exact_edit_preferences',
+      browserPlanAccepted: false,
+      browserTimingAccepted: false,
+      sourceRangePolicy: 'preserve_every_verified_source_frame',
+      confirmedAspectRatio: '9:16',
+      sourceCount: 1,
+      totalFrames: 60,
+      fps: 30,
+      captionCueCount: 1,
+      requestAcceptedBrowserPlan: false,
+      requestAcceptedBrowserTiming: false,
+      requestAcceptedBrowserEstimate: false,
+      requestAcceptedBrowserWorkGraph: false,
+      sourceObjectReread: true,
+      exactPreferenceReread: true,
+      editBriefReread: true,
     },
-    handoffHash: 'b'.repeat(64),
-    handoffId: 'canonical-ui-plan-handoff',
-    persistence: {
-      privateLocal: true,
-      tenantScoped: true,
-      createOnly: true,
-      checksumProtected: true,
-      contentAddressed: true,
-      distributed: false,
-      productionAuthority: false,
+    publicationRequest: {
+      schemaVersion: 'canonical-plan-publication-request-inspection-v1',
+      source: 'canonical_plan_publication_request_service',
+      identity: {
+        workspaceId: scope.workspaceId,
+        projectId,
+        editSessionId,
+        handoffId,
+        candidateId,
+      },
+      candidateHash: 'c'.repeat(64),
+      handoffHash: 'b'.repeat(64),
+      canonicalPlanComponentsHash: 'd'.repeat(64),
+      publicationBodyHash: 'e'.repeat(64),
+      publicationRequestHash: 'f'.repeat(64),
+      persistence: {
+        privateLocal: true,
+        tenantScoped: true,
+        createOnly: true,
+        checksumProtected: true,
+        contentAddressed: true,
+        distributed: false,
+        productionAuthority: false,
+      },
+      permissions: {
+        inspectionOnly: true,
+        internalPublicationRequired: true,
+        planMutation: false,
+        snapshotCreation: false,
+        creditReservation: false,
+        toolExecution: false,
+        providerCall: false,
+        render: false,
+      },
+      requestBodyReturned: false,
+      pathOrCredentialReturned: false,
+      testOnly: true,
+      publicationStatus: 'published',
+      publication: {
+        planId: `source-led-plan-${editSessionId}`,
+        planningRequestId: `source-led-request-${mediaAssetId}`,
+        planVersion: 1,
+        planStatus: 'presented',
+        planHash: '1'.repeat(64),
+        internalPublicationMayBeAttempted: false,
+        fullRevalidationRequired: true,
+        exactReplayOnlyAfterPublication: true,
+      },
     },
-    noPlanPublished: true,
-    noSnapshotCreated: true,
-    noCreditReservation: true,
-    noToolExecution: true,
-    noProviderCall: true,
-    noRender: true,
+    newlyPresented: true,
+    permissions: {
+      planPresentedForReview: true,
+      approvalGranted: false,
+      snapshotCreated: false,
+      creditReserved: false,
+      toolExecution: false,
+      providerCall: false,
+      render: false,
+      delivery: false,
+    },
+    warnings: [],
     testOnly: true,
   }
 }
@@ -1983,8 +2222,13 @@ function canonicalPrivateReviewReadyJourneyFixture(
 function canonicalPrivateReviewAcceptedJourneyFixture(
   projectId: string,
   editSessionId: string,
+  finalArtifactSha256 = '8'.repeat(64),
 ) {
-  const reviewReady = canonicalPrivateReviewReadyJourneyFixture(projectId, editSessionId)
+  const reviewReady = canonicalPrivateReviewReadyJourneyFixture(
+    projectId,
+    editSessionId,
+    finalArtifactSha256,
+  )
   const decisionManifestSha256 = '9'.repeat(64)
   return {
     ...reviewReady,
@@ -2012,6 +2256,21 @@ function canonicalPrivateReviewAcceptedJourneyFixture(
           expectedDecisionManifestSha256: decisionManifestSha256,
           expectedFinalArtifactSha256: reviewReady.review.finalArtifactSha256,
           purpose: 'download_canonical_private_review_history_artifact',
+        },
+      },
+      acceptedFinalDownload: {
+        method: 'GET',
+        routeTemplate:
+          '/v1/edit-executions/private-review-assemblies/' +
+          'review-canonical-approval-browser/accepted-final-artifact',
+        query: {
+          workspaceId: scope.workspaceId,
+          packageRecordId: 'package-canonical-approval-browser',
+          expectedDecisionManifestSha256: decisionManifestSha256,
+          expectedFinalArtifactSha256:
+            reviewReady.review.finalArtifactSha256,
+          purpose:
+            'download_accepted_canonical_private_final_artifact',
         },
       },
     },

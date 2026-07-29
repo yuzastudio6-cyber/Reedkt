@@ -42,7 +42,7 @@ export const canonicalPrivateEditPreparationReceiptSchema = z.object({
   schemaVersion: z.literal('canonical-private-edit-preparation-receipt-v1'),
   source: z.literal('canonical_private_edit_preparation_coordinator_service'),
   purpose: z.literal('prepare_canonical_private_edit_review'),
-  disposition: z.enum(['private_review_ready', 'blocked']),
+  disposition: z.enum(['private_review_ready', 'in_progress', 'blocked']),
   identity: z.object({
     workspaceId: identity,
     projectId: identity,
@@ -61,6 +61,7 @@ export const canonicalPrivateEditPreparationReceiptSchema = z.object({
   readiness: z.object({
     privateReviewReady: z.boolean(),
     nextRequiredGate: z.enum([
+      'canonical_private_work_graph_advancement',
       'canonical_job_capability_blockers',
       'canonical_private_review_user_decision_or_revision',
     ]),
@@ -97,14 +98,20 @@ export const canonicalPrivateEditPreparationReceiptSchema = z.object({
   testOnly: z.literal(true),
 }).strict().superRefine((receipt, context) => {
   const ready = receipt.disposition === 'private_review_ready'
+  const inProgress = receipt.disposition === 'in_progress'
+  const expectedGate = ready
+    ? 'canonical_private_review_user_decision_or_revision'
+    : inProgress
+      ? 'canonical_private_work_graph_advancement'
+      : 'canonical_job_capability_blockers'
   if (
     ready !== receipt.readiness.privateReviewReady ||
     ready !== (receipt.review !== null) ||
     ready !== receipt.progress.allRequiredJobsCompleted ||
-    receipt.readiness.nextRequiredGate !== (
-      ready
-        ? 'canonical_private_review_user_decision_or_revision'
-        : 'canonical_job_capability_blockers'
+    receipt.readiness.nextRequiredGate !== expectedGate ||
+    (
+      inProgress &&
+      (receipt.progress.retryAvailable || receipt.progress.userReviewRequired)
     )
   ) {
     context.addIssue({

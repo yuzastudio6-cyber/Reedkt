@@ -1,15 +1,13 @@
 import { useCanonicalEditJourney } from '../../../src/hooks/useCanonicalEditJourney'
 import { useCanonicalPlanApproval } from '../../../src/hooks/useCanonicalPlanApproval'
-import { useCanonicalPlanningPublication } from '../../../src/hooks/useCanonicalPlanningPublication'
+import { useCanonicalSourceLedCaptionRevision } from '../../../src/hooks/useCanonicalSourceLedCaptionRevision'
 import { canonicalPlanApprovalReadyForPresentedPlan } from '../../../src/lib/canonical-plan-approval-readiness'
 import { createGuidedMockEditPlan } from '../../../src/lib/mock-planner/guided'
 import { buildProfessionalExportCreditCoverage } from '../../../src/lib/professional-export-policy'
 import type { ProjectPersistenceScope } from '../../../src/lib/project-persistence-scope'
 import type { EditPlan, PlannerInput } from '../../../src/types/reeditpro'
-import { Button } from '../../../src/components/Button'
 import { CanonicalJourneyStatusCard } from '../../../src/components/editor/CanonicalJourneyStatusCard'
 import { CanonicalPlanApprovalStatus } from '../../../src/components/editor/CanonicalPlanApprovalStatus'
-import { CanonicalPlanningSaveStatus } from '../../../src/components/editor/CanonicalPlanningSaveStatus'
 import { PlanReviewApprovalCard } from '../../../src/components/editor/PlanReviewApprovalCard'
 
 const scope: ProjectPersistenceScope = {
@@ -54,28 +52,6 @@ const plannerInput: PlannerInput = {
   preferenceSnapshotId: 'browser-revision-preference',
   currentEditPreferenceRevision: 0,
 }
-const sourceMediaAssets = [{
-  mediaAssetId: 'canonical-revision-browser-media',
-  sourceSequenceItemId: 'canonical-revision-browser-source',
-  uploadedClipId: plannerInput.clips[0]!.id,
-  uploadedOrder: 1,
-  storageProvider: 'local_private' as const,
-  storagePath: 'private/browser-revision/source-must-not-cross.mp4',
-  fileName: 'canonical-revision-browser.mp4',
-  mimeType: 'video/mp4',
-  byteSize: 4_096,
-  checksumSha256: 'a'.repeat(64),
-  sourceMetadata: {
-    probeStatus: 'probed' as const,
-    source: 'local_ffprobe' as const,
-    durationSeconds: 2,
-    hasVideo: true,
-    hasAudio: true,
-  },
-  privateArtifact: true as const,
-  publicUrl: null,
-  signedUrl: null,
-}]
 const plan = createExactRevisionPlan()
 
 export function CanonicalRevisionPlanBrowserHarness() {
@@ -85,10 +61,10 @@ export function CanonicalRevisionPlanBrowserHarness() {
     projectId,
     scope,
   })
-  const publication = useCanonicalPlanningPublication({
+  const sourceLedCaptionRevision = useCanonicalSourceLedCaptionRevision({
     editSessionId,
     enabled: true,
-    onSaved: journey.refresh,
+    onPresented: journey.refresh,
     projectId,
     scope,
   })
@@ -101,27 +77,30 @@ export function CanonicalRevisionPlanBrowserHarness() {
   const currentJourney = journey.result?.status === 'ready'
     ? journey.result.journey
     : undefined
+  const sourceLedReceipt =
+    sourceLedCaptionRevision.result?.status === 'ready'
+      ? sourceLedCaptionRevision.result.receipt
+      : undefined
   const authorityReady = canonicalPlanApprovalReadyForPresentedPlan({
     backendConnected: true,
     journey: currentJourney,
-    publicationStatus: publication.result?.status,
-    presentedPlan: publication.result?.presentedPlan,
-    visibleMaximumCredits: plan.creditEstimate.total,
+    publicationStatus: sourceLedReceipt
+      ? 'plan_published_waiting_for_approval'
+      : undefined,
+    presentedPlan: sourceLedReceipt
+      ? {
+          planId: sourceLedReceipt.replacementPlanId,
+          planVersion: sourceLedReceipt.replacementPlanVersion,
+          planHash: sourceLedReceipt.replacementPlanHash,
+        }
+      : undefined,
+    visibleMaximumCredits:
+      currentJourney?.plan?.maximumCredits ?? plan.creditEstimate.total,
   })
   const approved = approval.result?.status === 'approved' || Boolean(
     currentJourney?.stage === 'approved_snapshot_available' &&
     currentJourney.plan?.version === 2,
   )
-
-  async function handlePrepareRevision() {
-    if (currentJourney?.stage !== 'revision_requested') return
-    await publication.submit({
-      plan,
-      plannerInput,
-      sourceMediaAssets,
-      revisionJourney: currentJourney,
-    })
-  }
 
   async function handleApprove() {
     if (!currentJourney || !authorityReady) return
@@ -134,22 +113,11 @@ export function CanonicalRevisionPlanBrowserHarness() {
       data-testid="editor-page"
       style={{ margin: '0 auto', maxWidth: 920, padding: '32px 20px 80px' }}
     >
-      <CanonicalJourneyStatusCard {...journey} />
-      {currentJourney?.stage === 'revision_requested' ? (
-        <Button
-          aria-busy={publication.saving}
-          data-testid="canonical-revision-plan-prepare"
-          disabled={publication.saving}
-          onClick={() => void handlePrepareRevision()}
-          variant="primary"
-        >
-          {publication.saving ? 'Preparing revised plan…' : 'Prepare revised plan'}
-        </Button>
-      ) : null}
-      <CanonicalPlanningSaveStatus
-        result={publication.result}
-        retry={publication.retry}
-        saving={publication.saving}
+      <CanonicalJourneyStatusCard
+        {...journey}
+        onPresentSourceLedCaptionRevision={() =>
+          void sourceLedCaptionRevision.presentLatest()}
+        sourceLedCaptionRevision={sourceLedCaptionRevision}
       />
       <PlanReviewApprovalCard
         approved={approved}
@@ -169,6 +137,9 @@ export function CanonicalRevisionPlanBrowserHarness() {
         onReviseSetup={() => undefined}
         plan={plan}
         planningContextReady
+        visibleEstimateCredits={
+          currentJourney?.plan?.maximumCredits ?? plan.creditEstimate.total
+        }
       />
     </main>
   )

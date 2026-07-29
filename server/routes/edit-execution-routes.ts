@@ -10,6 +10,7 @@ import { createCanonicalEditExecutionPackageService } from '../services/canonica
 import { createCanonicalExecutionPackageRequestCoordinatorService } from '../services/canonical-execution-package-request-coordinator-service'
 import { createCanonicalExecutionReadinessService } from '../services/canonical-execution-readiness-service'
 import { createCanonicalPrivateEditPreparationCoordinatorService } from '../services/canonical-private-edit-preparation-coordinator-service'
+import { createCanonicalPrivateAcceptedFinalArtifactDownloadService } from '../services/canonical-private-accepted-final-artifact-download-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
 import { createCanonicalProfessionalLongFormCustomerDeliveryBrowserService } from '../services/canonical-professional-long-form-customer-delivery-browser-service'
 import { createCanonicalProfessionalLongFormCustomerDeliveryDiscoveryService } from '../services/canonical-professional-long-form-customer-delivery-discovery-service'
@@ -66,6 +67,7 @@ import {
   recordCanonicalPrivateReviewDecisionCoordinatorSchema,
 } from '../validation/canonical-private-review-browser-schemas'
 import { canonicalPrivateFinalArtifactDownloadQuerySchema } from '../validation/canonical-private-final-artifact-download-schemas'
+import { canonicalPrivateAcceptedFinalArtifactDownloadQuerySchema } from '../validation/canonical-private-accepted-final-artifact-download-schemas'
 import { executeCanonicalPrivateJobAdapterSchema } from '../validation/canonical-private-job-execution-adapter-schemas'
 import { runCanonicalPrivateWorkGraphSchema } from '../validation/canonical-private-work-graph-run-schemas'
 import { assembleCanonicalPrivateReviewSchema } from '../validation/canonical-private-review-assembly-schemas'
@@ -273,7 +275,7 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
         response,
         { canonicalPrivateEditPreparation: result.receipt },
         result.warnings,
-        201,
+        result.receipt.disposition === 'in_progress' ? 202 : 201,
       )
     }),
   )
@@ -334,6 +336,48 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
         result.warnings,
         201,
       )
+    }),
+  )
+
+  router.get(
+    '/v1/edit-executions/private-review-assemblies/:reviewAssemblyId/accepted-final-artifact',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(
+        canonicalPrivateAcceptedFinalArtifactDownloadQuerySchema,
+        request.query,
+      )
+      const file =
+        await createCanonicalPrivateAcceptedFinalArtifactDownloadService(
+          getServiceContext(request),
+        ).read({
+          ...query,
+          reviewAssemblyId: getRouteParam(request, 'reviewAssemblyId'),
+        })
+      response.setHeader('content-type', file.mimeType)
+      response.setHeader(
+        'content-disposition',
+        `attachment; filename="${file.fileName}"`,
+      )
+      response.setHeader('cache-control', 'private, no-store, max-age=0')
+      response.setHeader('x-content-type-options', 'nosniff')
+      response.setHeader(
+        'content-security-policy',
+        "default-src 'none'; sandbox",
+      )
+      response.setHeader(
+        'x-reeditpro-artifact-sha256',
+        file.sha256,
+      )
+      response.setHeader(
+        'x-reeditpro-review-decision-manifest-sha256',
+        file.decisionManifestSha256,
+      )
+      response.setHeader(
+        'x-reeditpro-review-assembly-id',
+        file.reviewAssemblyId,
+      )
+      await streamPrivateMp4(request, response, file)
     }),
   )
 

@@ -4,6 +4,7 @@ import { ApiError } from '../../errors/api-error'
 import { readPrivateTextFileIfExistsWithinRoot, writePrivateTextFileAtomicWithinRoot } from '../../security/private-local-persistence'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
 import {
+  OFFLINE_REMOTION_FOUR_K_DELIVERY_MASTER_RESOURCE_PROFILE,
   OFFLINE_REMOTION_LOCAL_RUNTIME_NAMESPACE,
   inspectExistingOfflineRemotionDockerRuntime,
   runOfflineRemotionContainer,
@@ -424,11 +425,20 @@ async function executeStreamingWithImage(
     typeof outputSink.persist !== 'function'
   ) throw validationFailure('Server-injected Remotion streams do not match the exact request commitments.')
   const serializedManifest = JSON.stringify(request)
+  const fourKDeliveryMaster =
+    'renderPurpose' in request.payload &&
+    request.payload.renderPurpose === 'private_4k_delivery_master_v1'
   const result = await runOfflineRemotionStreamingContainer({
     image,
     serializedManifest,
     inputs,
     outputSink,
+    ...(fourKDeliveryMaster
+      ? {
+          resourceProfileId:
+            OFFLINE_REMOTION_FOUR_K_DELIVERY_MASTER_RESOURCE_PROFILE,
+        }
+      : {}),
   })
   if (result.exitCode !== 0 || result.oomKilled || result.stderr.trim()) {
     throw runtimeFailure(

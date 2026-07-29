@@ -47,7 +47,14 @@ const originalMode = process.env.VITE_REEDITPRO_API_MODE
 const originalBaseUrl = process.env.VITE_REEDITPRO_API_BASE_URL
 const originalE2E = process.env.VITE_REEDITPRO_E2E
 const originalToken = process.env.VITE_REEDITPRO_E2E_AUTH_TOKEN
-let mode: 'valid' | 'blocked' | 'foreign' | 'stale' | 'unavailable' | 'access_denied' = 'valid'
+let mode:
+  | 'valid'
+  | 'in_progress'
+  | 'blocked'
+  | 'foreign'
+  | 'stale'
+  | 'unavailable'
+  | 'access_denied' = 'valid'
 const requests: Array<{
   authorization?: string
   internalToken?: string
@@ -71,7 +78,7 @@ const server = createServer((request, response) => {
       url: request.url,
     })
     response.setHeader('content-type', 'application/json')
-    if (!['valid', 'blocked', 'foreign'].includes(mode)) {
+    if (!['valid', 'in_progress', 'blocked', 'foreign'].includes(mode)) {
       const failure = {
         stale: { status: 409, code: 'IDEMPOTENCY_CONFLICT' },
         unavailable: { status: 503, code: 'BACKEND_UNAVAILABLE' },
@@ -85,12 +92,16 @@ const server = createServer((request, response) => {
       }))
       return
     }
-    response.statusCode = 201
+    response.statusCode = mode === 'in_progress' ? 202 : 201
     response.end(JSON.stringify({
       ok: true,
       data: {
         canonicalPrivateEditPreparation: receiptFixture({
-          disposition: mode === 'blocked' ? 'blocked' : 'private_review_ready',
+          disposition: mode === 'in_progress'
+            ? 'in_progress'
+            : mode === 'blocked'
+              ? 'blocked'
+              : 'private_review_ready',
           workspaceId: mode === 'foreign' ? 'workspace-foreign' : identity.workspaceId,
         }),
       },
@@ -164,6 +175,16 @@ try {
     /credential|token|jobs|tools|command|path|provider|price|componentRefs/i,
   )
 
+  mode = 'in_progress'
+  const inProgress = await prepareCanonicalPrivateEditForNamedEdit(input)
+  assert.equal(inProgress.status, 'in_progress')
+  assert.equal(inProgress.retryable, true)
+  if (inProgress.status === 'in_progress') {
+    assert.equal(inProgress.receipt.progress.completedJobCount, 3)
+    assert.equal(inProgress.receipt.progress.blockedJobCount, 0)
+    assert.equal(inProgress.receipt.review, null)
+  }
+
   mode = 'blocked'
   const blocked = await prepareCanonicalPrivateEditForNamedEdit(input)
   assert.equal(blocked.status, 'blocked')
@@ -215,10 +236,11 @@ try {
 console.log('Canonical private edit preparation frontend client smoke passed.')
 
 function receiptFixture(input: {
-  disposition: 'private_review_ready' | 'blocked'
+  disposition: 'private_review_ready' | 'in_progress' | 'blocked'
   workspaceId: string
 }): Record<string, unknown> {
   const ready = input.disposition === 'private_review_ready'
+  const inProgress = input.disposition === 'in_progress'
   return {
     schemaVersion: 'canonical-private-edit-preparation-receipt-v1',
     source: 'canonical_private_edit_preparation_coordinator_service',
@@ -239,9 +261,9 @@ function receiptFixture(input: {
     progress: {
       totalJobCount: 6,
       completedJobCount: ready ? 6 : 3,
-      blockedJobCount: ready ? 0 : 3,
+      blockedJobCount: ready || inProgress ? 0 : 3,
       allRequiredJobsCompleted: ready,
-      retryAvailable: !ready,
+      retryAvailable: !ready && !inProgress,
       userReviewRequired: false,
     },
     review: ready ? {
@@ -255,7 +277,9 @@ function receiptFixture(input: {
       privateReviewReady: ready,
       nextRequiredGate: ready
         ? 'canonical_private_review_user_decision_or_revision'
-        : 'canonical_job_capability_blockers',
+        : inProgress
+          ? 'canonical_private_work_graph_advancement'
+          : 'canonical_job_capability_blockers',
       productReady: false,
       externalBetaReady: false,
       productionReady: false,

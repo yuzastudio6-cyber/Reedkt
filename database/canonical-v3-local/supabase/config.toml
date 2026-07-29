@@ -54,7 +54,10 @@ enable_signup = false
 enable_anonymous_sign_ins = false
 
 [auth.email]
-enable_signup = false
+# The isolated loopback project must accept password grants for the two
+# admin-provisioned verification users. Top-level auth signup remains disabled,
+# so browser callers still cannot create arbitrary accounts.
+enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 secure_password_change = false

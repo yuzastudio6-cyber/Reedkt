@@ -2356,3 +2356,28 @@ CLIP Vision artifacts load or behave correctly together. Compatibility,
 license, paid-use, signed-image, distributed read-only mount, selected scene,
 snapshot, dispatch, cost, output QA, and private review remain closed. See
 `docs/living-frame/living-frame-controlled-sdxl-canonical-artifact-binding.md`.
+
+### Subject-neutral SDXL compatibility benchmark specification
+
+The controlled illustration route now has a current-parent compatibility
+benchmark specification:
+`living-frame-controlled-sdxl-compatibility-benchmark-spec-v2`.
+
+The specification consumes the five-role candidate set, the exact unresolved
+artifact requirements, the current stock ControlNet/LoRA plus generic
+IP-Adapter merged graph, the model-family coherence binding, and the pinned
+offline dependency lock. It deliberately does not revive the superseded
+Living Frame-specific preflight-package or runtime-evidence authorities.
+
+Seven ordered GPU probes cover exact bundle loading, a base-only baseline,
+isolated LoRA, ControlNet, and generic IP-Adapter effects, a full combined
+generation, and a same-seed replay. The fixed measurements cover load
+integrity, network-off confinement, output validity, effect strength,
+determinism, peak memory, and load/generation duration.
+
+This is a non-executable, subject-neutral specification. It contains no
+Musashi, helicopter, Hormuz, or other content-specific routing. Exact
+canonical repository identities, read-only mounts, GPU admission, measured
+results, legal review, dispatch, assets, QA, selection, approval, and
+production remain false. See
+`docs/living-frame/living-frame-controlled-sdxl-compatibility-benchmark-spec.md`.

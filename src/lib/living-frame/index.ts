@@ -731,3 +731,28 @@ export type {
   LivingFrameComfyUiReadOnlyModelMountIssueCode,
   LivingFrameComfyUiReadOnlyModelMountOpenGate,
 } from '../../types/living-frame-comfyui-read-only-model-mount'
+
+export {
+  LIVING_FRAME_CONTROLLED_SDXL_COMPATIBILITY_BENCHMARK_CASE_IDS,
+  LIVING_FRAME_CONTROLLED_SDXL_COMPATIBILITY_BENCHMARK_COMPONENTS,
+  LIVING_FRAME_CONTROLLED_SDXL_COMPATIBILITY_BENCHMARK_ISSUES,
+  LIVING_FRAME_CONTROLLED_SDXL_COMPATIBILITY_BENCHMARK_METRICS,
+  LIVING_FRAME_CONTROLLED_SDXL_COMPATIBILITY_BENCHMARK_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_SDXL_COMPATIBILITY_BENCHMARK_SPEC_CLASS,
+  LIVING_FRAME_CONTROLLED_SDXL_COMPATIBILITY_BENCHMARK_SPEC_STATE,
+  LIVING_FRAME_CONTROLLED_SDXL_COMPATIBILITY_BENCHMARK_SPEC_VERSION,
+} from '../../types/living-frame-controlled-sdxl-compatibility-benchmark-spec'
+
+export type {
+  LivingFrameControlledSdxlCompatibilityBenchmarkAuthority,
+  LivingFrameControlledSdxlCompatibilityBenchmarkCase,
+  LivingFrameControlledSdxlCompatibilityBenchmarkCaseId,
+  LivingFrameControlledSdxlCompatibilityBenchmarkComponent,
+  LivingFrameControlledSdxlCompatibilityBenchmarkIssue,
+  LivingFrameControlledSdxlCompatibilityBenchmarkIssueCode,
+  LivingFrameControlledSdxlCompatibilityBenchmarkMetric,
+  LivingFrameControlledSdxlCompatibilityBenchmarkOpenGate,
+  LivingFrameControlledSdxlCompatibilityBenchmarkSpec,
+  LivingFrameControlledSdxlCompatibilityBenchmarkSpecDraft,
+  LivingFrameControlledSdxlCompatibilityBenchmarkThreshold,
+} from '../../types/living-frame-controlled-sdxl-compatibility-benchmark-spec'

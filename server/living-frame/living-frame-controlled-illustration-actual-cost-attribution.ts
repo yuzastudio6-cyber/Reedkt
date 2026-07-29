@@ -6,6 +6,7 @@ import {
   LIVING_FRAME_CONTROLLED_ILLUSTRATION_ACTUAL_COST_LOCATOR_VERSION,
   LIVING_FRAME_CONTROLLED_ILLUSTRATION_ACTUAL_COST_OPEN_GATES,
   LIVING_FRAME_CONTROLLED_ILLUSTRATION_ACTUAL_COST_READER_VERSION,
+  LIVING_FRAME_CONTROLLED_ILLUSTRATION_ATTEMPT_EVIDENCE_SOURCE_CLASSES,
   type LivingFrameControlledIllustrationActualCostAttribution,
   type LivingFrameControlledIllustrationActualCostAttributionDraft,
   type LivingFrameControlledIllustrationActualCostAuthorityBoundary,
@@ -93,6 +94,11 @@ const reuseSchema = z.object({
 
 const attemptAttributionSchema = z.object({
   order: z.number().int().nonnegative().max(10_000),
+  evidenceClass: z.enum([
+    'private_injected_observed_usage_test',
+    'private_embedded_observed_usage_test',
+    'canonical_backend_observed_usage_unreleased',
+  ]),
   costComponentId: z.enum([
     'shared_controlled_illustration_gpu_host',
     'auraface_cpu_continuity_measurement',
@@ -195,6 +201,9 @@ const attributionDraftSchema = z.object({
   attributionId: z.string().regex(SAFE_ID),
   canonicalScope: scopeSchema,
   sourceBindings: z.object({
+    attemptEvidenceSourceClass: z.enum(
+      LIVING_FRAME_CONTROLLED_ILLUSTRATION_ATTEMPT_EVIDENCE_SOURCE_CLASSES,
+    ),
     operationPreflightDigestSha256: z.string().regex(SHA256),
     approvedLineageBindingDigestSha256: z.string().regex(SHA256),
     selectedSceneAdmissionDigestSha256: z.string().regex(SHA256),
@@ -241,11 +250,12 @@ const attributionSchema = attributionDraftSchema.extend({
 }).strict()
 
 const readerResultSchema = z.object({
-  sourceAuthority: z.literal(
+  sourceAuthority: z.enum([
     'controlled_living_frame_actual_cost_fixture_reader',
-  ),
-  evidenceClass: z.literal(
-    'controlled_non_promotable_attempt_cost_source',
+    'canonical_private_worker_resource_usage_repository',
+  ]),
+  evidenceClass: z.enum(
+    LIVING_FRAME_CONTROLLED_ILLUSTRATION_ATTEMPT_EVIDENCE_SOURCE_CLASSES,
   ),
   productionReady: z.literal(false),
   canonicalScope: scopeSchema,
@@ -262,6 +272,35 @@ const readerResultSchema = z.object({
     context.addIssue({
       code: 'custom',
       message: 'At least one attempt or exact reuse is required.',
+    })
+  }
+  const fixtureSource =
+    value.sourceAuthority ===
+      'controlled_living_frame_actual_cost_fixture_reader'
+    && value.evidenceClass ===
+      'controlled_non_promotable_attempt_cost_source'
+  const repositorySource =
+    value.sourceAuthority ===
+      'canonical_private_worker_resource_usage_repository'
+    && value.evidenceClass ===
+      'canonical_private_attempt_cost_repository_unreleased'
+  if (!fixtureSource && !repositorySource) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Actual-cost reader source authority and evidence class are inconsistent.',
+    })
+  }
+  const acceptedEvidenceClasses = fixtureSource
+    ? new Set(['private_injected_observed_usage_test'])
+    : new Set([
+        'private_embedded_observed_usage_test',
+        'canonical_backend_observed_usage_unreleased',
+      ])
+  if (value.attemptEvidence.some((evidence) =>
+    !acceptedEvidenceClasses.has(evidence.evidenceClass))) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Attempt evidence class does not match its server reader authority.',
     })
   }
 })
@@ -301,9 +340,11 @@ export interface LivingFrameControlledIllustrationActualCostReaderPort {
   readonly schemaVersion:
     typeof LIVING_FRAME_CONTROLLED_ILLUSTRATION_ACTUAL_COST_READER_VERSION
   readonly sourceAuthority:
-    'controlled_living_frame_actual_cost_fixture_reader'
+    | 'controlled_living_frame_actual_cost_fixture_reader'
+    | 'canonical_private_worker_resource_usage_repository'
   readonly evidenceClass:
-    'process_bound_controlled_attempt_cost_reader'
+    | 'process_bound_controlled_attempt_cost_reader'
+    | 'process_bound_canonical_attempt_cost_repository_reader'
   readonly productionReady: false
   readCurrentByServerOwnedLocator(
     locator: LivingFrameControlledIllustrationActualCostLocator,
@@ -328,6 +369,30 @@ export function createLivingFrameControlledIllustrationActualCostReader(
       'controlled_living_frame_actual_cost_fixture_reader' as const,
     evidenceClass:
       'process_bound_controlled_attempt_cost_reader' as const,
+    productionReady: false as const,
+    readCurrentByServerOwnedLocator:
+      readCurrentByServerOwnedLocator.bind(undefined),
+  })
+  admittedReaders.add(reader)
+  return reader
+}
+
+export function createLivingFrameControlledIllustrationCanonicalActualCostReader(
+  readCurrentByServerOwnedLocator:
+    LivingFrameControlledIllustrationActualCostReaderPort[
+      'readCurrentByServerOwnedLocator'
+    ],
+): LivingFrameControlledIllustrationActualCostReaderPort {
+  if (typeof readCurrentByServerOwnedLocator !== 'function') {
+    throw blocked('A process-bound canonical actual-cost repository reader is required.')
+  }
+  const reader = Object.freeze({
+    schemaVersion:
+      LIVING_FRAME_CONTROLLED_ILLUSTRATION_ACTUAL_COST_READER_VERSION,
+    sourceAuthority:
+      'canonical_private_worker_resource_usage_repository' as const,
+    evidenceClass:
+      'process_bound_canonical_attempt_cost_repository_reader' as const,
     productionReady: false as const,
     readCurrentByServerOwnedLocator:
       readCurrentByServerOwnedLocator.bind(undefined),
@@ -402,6 +467,7 @@ export async function bindLivingFrameControlledIllustrationActualCost(
         }).slice(0, 48)}`,
       canonicalScope: result.canonicalScope,
       sourceBindings: {
+        attemptEvidenceSourceClass: result.evidenceClass,
         operationPreflightDigestSha256:
           preflight.preflightDigestSha256,
         approvedLineageBindingDigestSha256:
@@ -501,6 +567,7 @@ function compileAttemptAttribution(input: {
     : AURAFACE_CAPABILITY_IDS
   return Object.freeze({
     order: input.order,
+    evidenceClass: evidence.evidenceClass,
     costComponentId,
     capabilityIds,
     evidenceId: evidence.evidenceId,
@@ -580,14 +647,12 @@ function assertEvidenceIntegrity(
     throw invalid('Attempt cost evidence digest changed.')
   }
   if (
-    parsed.data.evidenceClass !==
-      'private_injected_observed_usage_test'
-    || parsed.data.readiness.productionReady
+    parsed.data.readiness.productionReady
     || parsed.data.readiness.productionRateAuthority
     || parsed.data.commercialBoundary.customerPriceIncluded
     || parsed.data.commercialBoundary.customerCreditsIncluded
     || parsed.data.commercialBoundary.serviceFeeIncluded
-  ) throw invalid('Only controlled non-promotable attempt evidence is accepted.')
+  ) throw invalid('Only non-promotable internal attempt evidence is accepted.')
 }
 
 function assertScope(
@@ -637,6 +702,18 @@ function assertAttributionSemantics(
       entry.capabilityIds,
     )
   })
+  const acceptedEvidenceClasses =
+    draft.sourceBindings.attemptEvidenceSourceClass ===
+      'controlled_non_promotable_attempt_cost_source'
+      ? new Set(['private_injected_observed_usage_test'])
+      : new Set([
+          'private_embedded_observed_usage_test',
+          'canonical_backend_observed_usage_unreleased',
+        ])
+  if (draft.attemptAttributions.some((entry) =>
+    !acceptedEvidenceClasses.has(entry.evidenceClass))) {
+    throw invalid('Attempt attribution evidence source changed.')
+  }
   draft.exactReuseAttributions.forEach((entry, order) => {
     if (entry.order !== order) {
       throw invalid('Exact-reuse attribution order changed.')

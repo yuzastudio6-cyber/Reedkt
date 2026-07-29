@@ -1,14 +1,21 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
+import { mkdtemp } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 import {
   LIVING_FRAME_CONTROLLED_ILLUSTRATION_ACTUAL_COST_LOCATOR_VERSION,
 } from '../../src/types/living-frame-controlled-illustration-actual-cost-attribution'
 import {
   createLivingFrameControlledIllustrationActualCostReader,
+  createLivingFrameControlledIllustrationCanonicalActualCostReader,
   bindLivingFrameControlledIllustrationActualCost,
   verifyLivingFrameControlledIllustrationActualCostAttribution,
 } from '../living-frame/living-frame-controlled-illustration-actual-cost-attribution'
+import {
+  createLivingFrameControlledIllustrationCanonicalRepositoryCostReader,
+} from '../living-frame/living-frame-controlled-illustration-canonical-actual-cost-reader'
 import {
   createLivingFrameControlledIllustrationOperationPreflight,
 } from '../living-frame/living-frame-controlled-illustration-operation-preflight'
@@ -212,6 +219,112 @@ assert.equal(
   attribution.attributionDigestSha256,
 )
 
+const canonicalCompletedGpu = withEvidenceClass(
+  completedGpu,
+  'canonical_backend_observed_usage_unreleased',
+  'canonical_backend_observed_resource_snapshots_unreleased',
+)
+const canonicalReader =
+  createLivingFrameControlledIllustrationCanonicalActualCostReader(
+    async () => ({
+      sourceAuthority:
+        'canonical_private_worker_resource_usage_repository',
+      evidenceClass:
+        'canonical_private_attempt_cost_repository_unreleased',
+      productionReady: false,
+      canonicalScope: scope,
+      operationPreflight: preflight,
+      attemptEvidence: [canonicalCompletedGpu],
+      exactReuseEvidence: [],
+    }),
+  )
+const canonicalAttribution =
+  await bindLivingFrameControlledIllustrationActualCost({
+    locator,
+    reader: canonicalReader,
+  })
+assert.equal(
+  canonicalAttribution.sourceBindings.attemptEvidenceSourceClass,
+  'canonical_private_attempt_cost_repository_unreleased',
+)
+assert.equal(
+  canonicalAttribution.attemptAttributions[0]?.evidenceClass,
+  'canonical_backend_observed_usage_unreleased',
+)
+
+const wrongCanonicalEvidenceReader =
+  createLivingFrameControlledIllustrationCanonicalActualCostReader(
+    async () => ({
+      sourceAuthority:
+        'canonical_private_worker_resource_usage_repository',
+      evidenceClass:
+        'canonical_private_attempt_cost_repository_unreleased',
+      productionReady: false,
+      canonicalScope: scope,
+      operationPreflight: preflight,
+      attemptEvidence: [completedGpu],
+      exactReuseEvidence: [],
+    }),
+  )
+await assert.rejects(
+  bindLivingFrameControlledIllustrationActualCost({
+    locator,
+    reader: wrongCanonicalEvidenceReader,
+  }),
+  /evidence class does not match/u,
+)
+
+const privateCostEvidenceStorageRoot = await mkdtemp(
+  join(tmpdir(), 'reeditpro-lf-cost-reader-'),
+)
+const exactReuseOnlyReader =
+  createLivingFrameControlledIllustrationCanonicalRepositoryCostReader({
+    privateCostEvidenceStorageRoot,
+    resolveSourceBundle: async () => ({
+      canonicalScope: scope,
+      operationPreflight: preflight,
+      attemptLocators: [],
+      exactReuseEvidence:
+        readerResult.exactReuseEvidence,
+    }),
+  })
+const exactReuseOnly =
+  await bindLivingFrameControlledIllustrationActualCost({
+    locator,
+    reader: exactReuseOnlyReader,
+  })
+assert.equal(exactReuseOnly.aggregate.exactReuseCount, 1)
+assert.equal(exactReuseOnly.aggregate.completedAttemptCount, 0)
+assert.equal(
+  exactReuseOnly.aggregate.totalObservedAttemptInternalCostMicros,
+  0,
+)
+assert.equal(
+  exactReuseOnly.sourceBindings.attemptEvidenceSourceClass,
+  'canonical_private_attempt_cost_repository_unreleased',
+)
+
+const missingRepositoryEvidenceReader =
+  createLivingFrameControlledIllustrationCanonicalRepositoryCostReader({
+    privateCostEvidenceStorageRoot,
+    resolveSourceBundle: async () => ({
+      canonicalScope: scope,
+      operationPreflight: preflight,
+      attemptLocators: [{
+        order: 0,
+        executionAttemptId: 'missing-attempt',
+      }],
+      exactReuseEvidence: [],
+    }),
+  })
+await assert.rejects(
+  bindLivingFrameControlledIllustrationActualCost({
+    locator,
+    reader: missingRepositoryEvidenceReader,
+  }),
+  /attempt-cost evidence is missing/u,
+)
+
 await assert.rejects(
   bindLivingFrameControlledIllustrationActualCost({
     locator,
@@ -294,8 +407,42 @@ console.log(
   'Living Frame controlled-illustration actual-cost attribution passed '
   + 'shared-GPU, AuraFace CPU, completed/failed/unknown retention, '
   + 'exact-reuse zero-increment, deterministic ordering, scope, '
-  + 'process-bound reader, and forged-promotion checks.',
+  + 'process-bound controlled/canonical readers, canonical repository '
+  + 'missing-evidence closure, and forged-promotion checks.',
 )
+
+function withEvidenceClass(
+  evidence: PrivateWorkerResourceUsageCostEvidence,
+  evidenceClass:
+    'private_embedded_observed_usage_test'
+    | 'canonical_backend_observed_usage_unreleased',
+  measurementClass:
+    'private_embedded_observed_resource_snapshots'
+    | 'canonical_backend_observed_resource_snapshots_unreleased',
+): PrivateWorkerResourceUsageCostEvidence {
+  const { evidenceHash: _evidenceHash, ...payload } = evidence
+  void _evidenceHash
+  const changed = {
+    ...payload,
+    evidenceClass,
+    runtime: {
+      ...payload.runtime,
+      cloudExecutionResourceDigest:
+        evidenceClass ===
+          'canonical_backend_observed_usage_unreleased'
+          ? sha(`cloud:${payload.identity.executionAttemptId}`)
+          : null,
+    },
+    resourceUsage: {
+      ...payload.resourceUsage,
+      measurementClass,
+    },
+  }
+  return privateWorkerResourceUsageCostEvidenceSchema.parse({
+    ...changed,
+    evidenceHash: sha256AuthorityValue(changed),
+  })
+}
 
 function createEvidence(input: {
   component: 'gpu' | 'auraface'

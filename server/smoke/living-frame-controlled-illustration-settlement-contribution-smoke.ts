@@ -54,6 +54,8 @@ const attributionDraft = {
     packageHashSha256: sha('package'),
   },
   sourceBindings: {
+    attemptEvidenceSourceClass:
+      'controlled_non_promotable_attempt_cost_source',
     operationPreflightDigestSha256: sha('preflight'),
     approvedLineageBindingDigestSha256: sha('lineage'),
     selectedSceneAdmissionDigestSha256: sha('scene'),
@@ -298,6 +300,7 @@ function attempt(
   const gpu = component === 'gpu'
   return {
     order: attemptsOrder(evidenceId),
+    evidenceClass: 'private_injected_observed_usage_test',
     costComponentId: gpu
       ? 'shared_controlled_illustration_gpu_host'
       : 'auraface_cpu_continuity_measurement',

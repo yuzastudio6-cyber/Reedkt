@@ -113,6 +113,21 @@ produce durable, idempotent attempt evidence for:
 - unknown attempts that may have incurred cost;
 - cache hits or reused assets that did not repeat generation.
 
+The Living Frame attribution layer has a server-owned adapter to the
+existing private worker-resource usage evidence repository. The
+browser or job caller supplies only an opaque locator. A process-bound
+server resolver supplies the approved scope and exact attempt
+identities, and the adapter re-reads each create-only canonical
+attempt record. It accepts only private embedded observations or
+canonical-backend observations that remain explicitly unreleased.
+Injected fixture evidence cannot cross that repository boundary.
+
+This prevents a duplicate ledger. ComfyUI and AuraFace do not write a
+Living Frame-specific cost store. Their future registered workers must
+write the same canonical worker-resource usage evidence as other
+ReeditPro operations; Living Frame then classifies each observed
+attempt as the shared GPU host or the separate AuraFace CPU component.
+
 Failed and unknown infrastructure use is retained as internal cost.
 Whether it is billable to the customer remains governed by the
 existing Reeditpro failure and overage policy. ReeditPro absorbs

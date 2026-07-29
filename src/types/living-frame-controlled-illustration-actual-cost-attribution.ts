@@ -4,16 +4,24 @@ import type {
 } from './living-frame-controlled-illustration-estimate-basis'
 
 export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_ACTUAL_COST_ATTRIBUTION_VERSION =
-  'living-frame-controlled-illustration-actual-cost-attribution-v1' as const
+  'living-frame-controlled-illustration-actual-cost-attribution-v2' as const
 
 export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_ACTUAL_COST_ATTRIBUTION_CLASS =
   'controlled_non_promotable_actual_cost_attribution_binding' as const
 
 export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_ACTUAL_COST_READER_VERSION =
-  'living-frame-controlled-illustration-actual-cost-reader-v1' as const
+  'living-frame-controlled-illustration-actual-cost-reader-v2' as const
 
 export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_ACTUAL_COST_LOCATOR_VERSION =
   'living-frame-controlled-illustration-actual-cost-locator-v1' as const
+
+export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_ATTEMPT_EVIDENCE_SOURCE_CLASSES = [
+  'controlled_non_promotable_attempt_cost_source',
+  'canonical_private_attempt_cost_repository_unreleased',
+] as const
+
+export type LivingFrameControlledIllustrationAttemptEvidenceSourceClass =
+  (typeof LIVING_FRAME_CONTROLLED_ILLUSTRATION_ATTEMPT_EVIDENCE_SOURCE_CLASSES)[number]
 
 export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_ACTUAL_COST_OPEN_GATES = [
   'canonical_comfyui_operation_registration_required',
@@ -63,6 +71,10 @@ export interface LivingFrameControlledIllustrationExactReuseEvidence {
 
 export interface LivingFrameControlledIllustrationAttemptCostAttribution {
   readonly order: number
+  readonly evidenceClass:
+    | 'private_injected_observed_usage_test'
+    | 'private_embedded_observed_usage_test'
+    | 'canonical_backend_observed_usage_unreleased'
   readonly costComponentId:
     CanonicalLivingFrameControlledIllustrationCostComponentId
   readonly capabilityIds:
@@ -155,6 +167,8 @@ export interface LivingFrameControlledIllustrationActualCostAttributionDraft {
   readonly canonicalScope:
     LivingFrameControlledIllustrationActualCostScope
   readonly sourceBindings: {
+    readonly attemptEvidenceSourceClass:
+      LivingFrameControlledIllustrationAttemptEvidenceSourceClass
     readonly operationPreflightDigestSha256: string
     readonly approvedLineageBindingDigestSha256: string
     readonly selectedSceneAdmissionDigestSha256: string

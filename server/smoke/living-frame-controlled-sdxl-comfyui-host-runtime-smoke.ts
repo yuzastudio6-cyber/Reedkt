@@ -43,10 +43,12 @@ import {
   consumeLivingFrameControlledSdxlComfyUiOutputLease,
   executeLivingFrameControlledSdxlComfyUiHostRuntime,
   LivingFrameControlledSdxlComfyUiHostRuntimeError,
+  registerLivingFrameControlledSdxlComfyUiCanonicalMountHostSessionPort,
   verifyLivingFrameControlledSdxlComfyUiHostRuntimeReceipt,
 } from '../living-frame/living-frame-controlled-sdxl-comfyui-host-runtime'
 import {
   createControlledLivingFrameComfyUiHostFixturePort,
+  createLivingFrameControlledSdxlComfyUiLoopbackHostPort,
 } from '../living-frame/living-frame-controlled-sdxl-comfyui-loopback-host-port'
 import {
   createLivingFrameComfyUiControlledProcessFixturePort,
@@ -162,6 +164,14 @@ async function main(): Promise<void> {
     completed.receipt.operation.separateAuraFaceCpuQaExcluded,
     true,
   )
+  assert.deepEqual(completed.receipt.modelMountObservation, {
+    mode: 'controlled_fixture_unmounted',
+    atomicCanonicalMountSessionObserved: false,
+    requiredArtifactCount: 0,
+    hostPathIncluded: false,
+    mountAliasIncluded: false,
+    modelBytesIncluded: false,
+  })
   assert.equal(completed.receipt.actualCostEvidenceCreated, false)
   assert.equal(completed.receipt.customerChargeCreated, false)
   assert.equal(
@@ -202,6 +212,75 @@ async function main(): Promise<void> {
     'host_port_invalid',
   )
 
+  const atomicCompiled = await compileControlled(recipe)
+  const atomic =
+    await executeLivingFrameControlledSdxlComfyUiHostRuntime({
+      gpuRuntimeRequestReceipt: atomicCompiled.receipt,
+      privateWireRequestLease:
+        atomicCompiled.privateWireRequestLease,
+      canonicalDispatchConsumption:
+        canonicalDispatchConsumption(),
+      hostPort:
+        registerLivingFrameControlledSdxlComfyUiCanonicalMountHostSessionPort({
+          hostPortClass:
+            'private_atomic_canonical_mount_comfyui_host_session_port_v1',
+          callerEndpointAccepted: false,
+          callerPathUrlCredentialAccepted: false,
+          externalNetworkAllowed: false,
+          runtimeDownloadsAllowed: false,
+          productionQualified: false,
+          async executeOne() {
+            return {
+              evidenceClass:
+                'private_internal_comfyui_host_runtime_observation_unreleased',
+              terminalState: 'completed',
+              failureCode: 'none',
+              promptAccepted: true,
+              modelInferenceExecuted: true,
+              startedAt: STARTED_AT,
+              finishedAt: FINISHED_AT,
+              privatePromptId: 'prompt.private.atomic.fixture',
+              outputPngBytes: png,
+              outputImageCount: 1,
+              externalNetworkPerformed: false,
+              runtimeDownloadPerformed: false,
+              canonicalModelMountSession: {
+                canonicalMountSessionDigestSha256:
+                  digest('atomic-mount-session'),
+                modelBindingPacketDigestSha256:
+                  digest('model-binding-packet'),
+                processLifecycleReceiptDigestSha256:
+                  digest('process-lifecycle'),
+                requiredArtifactCount: 5,
+                everyObjectVerifiedBeforeAndAfterInference: true,
+                processStartedAndStoppedInsideSession: true,
+                hostPathIncluded: false,
+                mountAliasIncluded: false,
+                modelBytesIncluded: false,
+              },
+            }
+          },
+        }),
+    })
+  assert.equal(
+    atomic.receipt.modelMountObservation.mode,
+    'atomic_canonical_mount_session',
+  )
+  assert.equal(
+    atomic.receipt.evidenceClass,
+    'private_internal_comfyui_host_runtime_observation_unreleased',
+  )
+  assert.equal(
+    verifyLivingFrameControlledSdxlComfyUiHostRuntimeReceipt(
+      atomic.receipt,
+    ),
+    true,
+  )
+  assert(atomic.outputLease)
+  consumeLivingFrameControlledSdxlComfyUiOutputLease(
+    atomic.outputLease,
+  )
+
   let adversarialAssertions = 1
   const {
     receiptDigestSha256: _processPromotionDigest,
@@ -220,6 +299,23 @@ async function main(): Promise<void> {
       receiptDigestSha256: digest(forgedProcessPromotion),
     }),
     false,
+  )
+  adversarialAssertions += 1
+
+  const legacyPrivateLoopbackControlled =
+    await compileControlled(recipe)
+  await expectAsyncIssue(
+    () => executeLivingFrameControlledSdxlComfyUiHostRuntime({
+      gpuRuntimeRequestReceipt:
+        legacyPrivateLoopbackControlled.receipt,
+      privateWireRequestLease:
+        legacyPrivateLoopbackControlled.privateWireRequestLease,
+      canonicalDispatchConsumption:
+        canonicalDispatchConsumption(),
+      hostPort:
+        createLivingFrameControlledSdxlComfyUiLoopbackHostPort(),
+    }),
+    'legacy_private_loopback_forbidden',
   )
   adversarialAssertions += 1
 
@@ -451,10 +547,10 @@ async function main(): Promise<void> {
   assert.equal(unknown.receipt.customerChargeCreated, false)
   adversarialAssertions += 1
 
-  assert.equal(adversarialAssertions, 12)
+  assert.equal(adversarialAssertions, 13)
   process.stdout.write(JSON.stringify({
     status: 'passed',
-    controlledFixtures: 3,
+    controlledFixtures: 4,
     adversarialAssertions,
     fixedLoopbackTransportImplemented: true,
     fixedProcessSupervisorImplemented: true,

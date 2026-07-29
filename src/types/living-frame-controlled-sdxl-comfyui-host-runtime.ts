@@ -54,6 +54,8 @@ LIVING_FRAME_CONTROLLED_SDXL_COMFYUI_HOST_RUNTIME_ISSUE_CODES = [
   'canonical_operation_mismatch',
   'private_wire_request_invalid',
   'host_port_invalid',
+  'legacy_private_loopback_forbidden',
+  'canonical_model_mount_session_required',
   'host_execution_result_invalid',
   'output_image_invalid',
   'unsafe_receipt_forbidden',
@@ -67,7 +69,7 @@ export const
 LIVING_FRAME_CONTROLLED_SDXL_COMFYUI_HOST_RUNTIME_OPEN_GATES = [
   'canonical_comfyui_tool_operation_registry_admission_required',
   'qualified_comfyui_gpu_worker_image_required',
-  'canonical_model_mount_runtime_binding_required',
+  'canonical_model_mount_backend_adapter_and_qualification_required',
   'real_gpu_execution_and_resource_usage_evidence_required',
   'output_artifact_persistence_and_manifest_binding_required',
   'opaque_to_alpha_pipeline_and_qa_required_when_transparency_is_requested',
@@ -134,6 +136,28 @@ export interface LivingFrameControlledSdxlComfyUiHostRuntimeReceipt {
     readonly expectedAssetId: string
     readonly approvedPlanSnapshotId: string
   }
+  readonly modelMountObservation:
+    | {
+        readonly mode: 'controlled_fixture_unmounted'
+        readonly atomicCanonicalMountSessionObserved: false
+        readonly requiredArtifactCount: 0
+        readonly hostPathIncluded: false
+        readonly mountAliasIncluded: false
+        readonly modelBytesIncluded: false
+      }
+    | {
+        readonly mode: 'atomic_canonical_mount_session'
+        readonly atomicCanonicalMountSessionObserved: true
+        readonly requiredArtifactCount: 5
+        readonly canonicalMountSessionDigestSha256: string
+        readonly modelBindingPacketDigestSha256: string
+        readonly processLifecycleReceiptDigestSha256: string
+        readonly everyObjectVerifiedBeforeAndAfterInference: true
+        readonly processStartedAndStoppedInsideSession: true
+        readonly hostPathIncluded: false
+        readonly mountAliasIncluded: false
+        readonly modelBytesIncluded: false
+      }
   readonly operation: {
     readonly canonicalToolId: 'comfyui'
     readonly operationId:

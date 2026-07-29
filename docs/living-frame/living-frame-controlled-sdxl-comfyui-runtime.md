@@ -1,7 +1,8 @@
 # Living Frame controlled SDXL ComfyUI runtime
 
-Status: implemented private host adapter and fixed process supervisor; not
-registered, dispatched, deployed, or production-qualified.
+Status: implemented private host adapter, atomic canonical model-mount/host
+session, and fixed process supervisor; not registered, dispatched, deployed,
+or production-qualified.
 
 ## Purpose
 
@@ -18,15 +19,52 @@ Those capabilities are not five billable provider calls. One accepted graph
 request is one shared GPU attempt. AuraFace is a separate optional CPU
 continuity measurement and is never part of the generation graph.
 
-The new host adapter consumes the existing single-use private GPU request,
+The host adapter consumes the existing single-use private GPU request,
 requires an already-consumed canonical private tool-dispatch authority, and
-submits exactly one prompt to a fixed loopback ComfyUI host. It accepts no
-caller endpoint, path, URL, credential, model bytes, runtime download, arbitrary
-node class, or external network route.
+submits exactly one prompt through an atomic canonical model-mount session. It
+accepts no caller endpoint, path, URL, credential, model bytes, runtime
+download, arbitrary node class, or external network route.
+
+## Atomic canonical model-mount session
+
+The previous read-only mount preparation remains useful as a planning and
+admission observation, but it is not execution proof: consuming five leases
+before process startup would leave a time-of-check/time-of-use gap. Private
+host execution now rejects the standalone loopback port. The executable
+private path is one single-use atomic session:
+
+1. revalidate the current five-entry canonical artifact binding;
+2. require the private GPU wire request to name the same artifact record,
+   content hash, role, and source-binding digest for every model slot;
+3. create five canonical read-only leases;
+4. enter all five verified source callbacks before starting the attempt;
+5. project only server-derived aliases into the fixed `checkpoints`,
+   `controlnet`, `loras`, `ipadapter`, and `clip_vision` destinations;
+6. start one supervised process, execute one prompt, capture one result, and
+   stop the process while all five callbacks remain open;
+7. unwind the callbacks so the canonical repository fully verifies every
+   object again after inference;
+8. expose only session, model-binding-packet, and process-lifecycle digests in
+   the host receipt.
+
+The mounted runner input is process-bound and may contain canonical source
+paths because the backend mount adapter needs them. Those paths, aliases,
+model bytes, prompt text, and private prompt IDs never appear in the
+serializable runtime receipt. A reused atomic session fails closed. A model
+object changed during the supervised attempt fails its post-inference
+verification and cannot produce a valid session result.
+
+The repository smoke covers five simultaneously open verified sources,
+role-to-directory projection, single-use behavior, no path leakage, and
+post-inference tamper refusal. This closes the source-side lease-lifetime gap;
+it does not prove the future distributed mount adapter, exact 11.7 GB bundle
+compatibility, L4 execution, image signature, license approval, or production
+release.
 
 ## Fixed transport
 
-The concrete server-only port talks only to the co-located loopback host:
+Inside the atomic mounted runner, the concrete server-only transport talks
+only to the co-located loopback host:
 
 - `POST /prompt` with the already-materialized graph and private client ID;
 - `WS /ws?clientId=...` for execution events and the one
@@ -44,9 +82,9 @@ single-use lease for a future canonical artifact-persistence adapter.
 
 ## Fixed process lifecycle
 
-The server now also owns the missing process boundary around that loopback
-transport. The supervisor starts exactly one ComfyUI process for one accepted
-attempt using fixed server source:
+The server also owns the process boundary around that loopback transport. The
+future mounted-runner backend adapter must use the supervisor to start exactly
+one ComfyUI process for one accepted attempt using fixed server source:
 
 - one fixed Python executable, pinned ComfyUI `main.py`, and fixed isolated
   bootstrap that adds only the pinned source root to `sys.path`;
@@ -159,7 +197,8 @@ pipeline until the existing shared authorities admit:
 - the fixed ComfyUI source, wheel lock, two reviewed custom-node source
   archives, model-path configuration, and process supervisor packaged into
   that image;
-- canonical read-only model/input mounts;
+- the backend adapter that maps the five atomic canonical sources read-only
+  into the fixed model destinations for the supervised process;
 - create-only output persistence and asset-manifest binding;
 - real GPU resource-usage evidence;
 - opaque-to-alpha processing where required;

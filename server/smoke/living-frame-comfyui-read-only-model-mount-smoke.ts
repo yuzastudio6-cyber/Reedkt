@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { mkdtemp, rm } from 'node:fs/promises'
+import {
+  chmod,
+  mkdtemp,
+  readFile,
+  rm,
+  writeFile,
+} from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Readable } from 'node:stream'
@@ -8,6 +14,9 @@ import { Readable } from 'node:stream'
 import type {
   LivingFrameComfyUiModelArtifactRequirements,
 } from '../../src/types/living-frame-comfyui-model-artifact-requirements'
+import {
+  LIVING_FRAME_CONTROLLED_SDXL_GPU_RUNTIME_PROTOCOL_VERSION,
+} from '../../src/types/living-frame-controlled-sdxl-gpu-runtime-protocol'
 import type {
   CanonicalModelArtifactDescriptor,
   CanonicalModelArtifactLocator,
@@ -28,6 +37,14 @@ import {
   bindLivingFrameComfyUiCanonicalModelArtifacts,
   createLivingFrameComfyUiCanonicalModelArtifactLocatorResolver,
 } from '../living-frame/living-frame-comfyui-canonical-model-artifact-binding'
+import {
+  createLivingFrameComfyUiPrivateCanonicalMountHostSessionPort,
+  createLivingFrameComfyUiPrivateMountedSupervisedRunnerPort,
+  livingFrameComfyUiCanonicalWireArtifactSourceBindingDigest,
+} from '../living-frame/living-frame-controlled-sdxl-comfyui-canonical-mount-host-session'
+import {
+  type LivingFrameControlledSdxlPrivateGpuWireRequest,
+} from '../living-frame/living-frame-controlled-sdxl-gpu-runtime-protocol'
 import {
   prepareLivingFrameComfyUiReadOnlyModelMount,
   verifyLivingFrameComfyUiReadOnlyModelMount,
@@ -222,9 +239,165 @@ try {
     false,
   )
 
+  const canonicalWireRequest =
+    wireRequestFor(artifactBinding)
+  let concurrentVerifiedSourceCount = 0
+  const canonicalSession =
+    createLivingFrameComfyUiPrivateCanonicalMountHostSessionPort({
+      sessionId: 'session.comfyui.mount-smoke.success',
+      artifactBinding,
+      artifactBindingInput,
+      repository,
+      runnerPort:
+        createLivingFrameComfyUiPrivateMountedSupervisedRunnerPort(
+          async (runnerInput) => {
+            assert.equal(runnerInput.modelSources.length, 5)
+            assert.equal(
+              new Set(
+                runnerInput.modelSources.map(
+                  (source) => source.fixedContainerMountPath,
+                ),
+              ).size,
+              5,
+            )
+            const sourceBytes = await Promise.all(
+              runnerInput.modelSources.map(
+                (source) => readFile(source.sourceAbsolutePath),
+              ),
+            )
+            concurrentVerifiedSourceCount = sourceBytes.length
+            runnerInput.modelSources.forEach((source, index) => {
+              assert.equal(
+                sha(sourceBytes[index]!),
+                source.expectedContentSha256,
+              )
+              assert.equal(
+                source.fixedContainerMountPath.endsWith(
+                  `/${source.privatePromptModelAlias}`,
+                ),
+                true,
+              )
+              assert.equal(source.readOnly, true)
+            })
+            return {
+              canonicalMountSessionDigestSha256:
+                runnerInput.canonicalMountSessionDigestSha256,
+              hostExecutionResult: {
+                evidenceClass:
+                  'private_internal_comfyui_host_runtime_observation_unreleased',
+                terminalState: 'completed',
+                failureCode: 'none',
+                promptAccepted: true,
+                modelInferenceExecuted: true,
+                startedAt: '2026-07-29T14:00:00.000Z',
+                finishedAt: '2026-07-29T14:00:04.000Z',
+                privatePromptId: 'prompt.private.atomic.001',
+                outputPngBytes: Uint8Array.from([137, 80, 78, 71]),
+                outputImageCount: 1,
+                externalNetworkPerformed: false,
+                runtimeDownloadPerformed: false,
+              },
+              processLifecycle: {
+                receiptDigestSha256: sha('process-lifecycle-success'),
+                processStarted: true,
+                loopbackReady: true,
+                hostExecutionCompleted: true,
+                processStopped: true,
+                oneProcessPerAttempt: true,
+                externalListenAllowed: false,
+                runtimeDownloadsAllowed: false,
+                productionQualified: false,
+              },
+              externalNetworkPerformed: false,
+              runtimeDownloadPerformed: false,
+              productionQualified: false,
+            }
+          },
+        ),
+    })
+  const canonicalSessionResult =
+    await canonicalSession.executeOne(canonicalWireRequest)
+  assert.equal(concurrentVerifiedSourceCount, 5)
+  assert.equal(
+    canonicalSessionResult.canonicalModelMountSession
+      ?.requiredArtifactCount,
+    5,
+  )
+  assert.equal(
+    canonicalSessionResult.canonicalModelMountSession
+      ?.everyObjectVerifiedBeforeAndAfterInference,
+    true,
+  )
+  assert.equal(
+    JSON.stringify(canonicalSessionResult).includes(temporaryRoot),
+    false,
+  )
+  await assert.rejects(
+    () => canonicalSession.executeOne(canonicalWireRequest),
+    /atomic_mount_session_reused/,
+  )
+
+  const tamperingSession =
+    createLivingFrameComfyUiPrivateCanonicalMountHostSessionPort({
+      sessionId: 'session.comfyui.mount-smoke.tamper',
+      artifactBinding,
+      artifactBindingInput,
+      repository,
+      runnerPort:
+        createLivingFrameComfyUiPrivateMountedSupervisedRunnerPort(
+          async (runnerInput) => {
+            await chmod(
+              runnerInput.modelSources[4]!.sourceAbsolutePath,
+              0o600,
+            )
+            await writeFile(
+              runnerInput.modelSources[4]!.sourceAbsolutePath,
+              Buffer.from('post-inference canonical tamper'),
+            )
+            return {
+              canonicalMountSessionDigestSha256:
+                runnerInput.canonicalMountSessionDigestSha256,
+              hostExecutionResult: {
+                evidenceClass:
+                  'private_internal_comfyui_host_runtime_observation_unreleased',
+                terminalState: 'completed',
+                failureCode: 'none',
+                promptAccepted: true,
+                modelInferenceExecuted: true,
+                startedAt: '2026-07-29T14:01:00.000Z',
+                finishedAt: '2026-07-29T14:01:04.000Z',
+                outputPngBytes: Uint8Array.from([137, 80, 78, 71]),
+                outputImageCount: 1,
+                externalNetworkPerformed: false,
+                runtimeDownloadPerformed: false,
+              },
+              processLifecycle: {
+                receiptDigestSha256: sha('process-lifecycle-tamper'),
+                processStarted: true,
+                loopbackReady: true,
+                hostExecutionCompleted: true,
+                processStopped: true,
+                oneProcessPerAttempt: true,
+                externalListenAllowed: false,
+                runtimeDownloadsAllowed: false,
+                productionQualified: false,
+              },
+              externalNetworkPerformed: false,
+              runtimeDownloadPerformed: false,
+              productionQualified: false,
+            }
+          },
+        ),
+    })
+  await assert.rejects(
+    () => tamperingSession.executeOne(canonicalWireRequest),
+    /unavailable or unsafe|verification|checksum|artifact/iu,
+  )
+
   console.log(
     'Living Frame ComfyUI read-only model mount smoke passed: '
-    + '5 canonical single-use presentations, 9 adversarial assertions.',
+    + '5 canonical single-use presentations, atomic host-session '
+    + 'lifetime verification, and post-inference tamper refusal.',
   )
 } finally {
   await rm(temporaryRoot, { force: true, recursive: true })
@@ -281,4 +454,89 @@ function descriptorFor(
 
 function sha(value: string | Uint8Array): string {
   return createHash('sha256').update(value).digest('hex')
+}
+
+function wireRequestFor(
+  binding: Awaited<
+    ReturnType<typeof bindLivingFrameComfyUiCanonicalModelArtifacts>
+  >,
+): LivingFrameControlledSdxlPrivateGpuWireRequest {
+  const aliases = {
+    base_checkpoint: 'sdxl_base_private.safetensors',
+    controlnet_checkpoint:
+      'controlnet_canny_private.safetensors',
+    lora_adapter: 'editorial_style_private.safetensors',
+    generic_ipadapter_checkpoint:
+      'ipadapter_generic_private.safetensors',
+    clip_vision_checkpoint:
+      'clip_vision_private.safetensors',
+  } as const
+  const slots = {
+    base_checkpoint: 'base_checkpoint_artifact',
+    controlnet_checkpoint:
+      'controlnet_checkpoint_artifact',
+    lora_adapter: 'lora_adapter_artifact',
+    generic_ipadapter_checkpoint:
+      'generic_ipadapter_checkpoint_artifact',
+    clip_vision_checkpoint:
+      'clip_vision_checkpoint_artifact',
+  } as const
+  return {
+    protocolVersion:
+      LIVING_FRAME_CONTROLLED_SDXL_GPU_RUNTIME_PROTOCOL_VERSION,
+    requestId: 'request.comfyui.mount-smoke',
+    clientId: 'client.comfyui.mount-smoke',
+    expectedOperation: {
+      canonicalToolId: 'comfyui',
+      operationId:
+        'tool.comfyui.generate_controlled_image.v1',
+    },
+    prompt: {
+      output: {
+        class_type: 'SaveImageWebsocket',
+        inputs: {
+          images: ['source', 0],
+        },
+      },
+    },
+    artifactMountBindings: binding.entries.map(
+      (entry) => ({
+        order: entry.canonicalOrder,
+        slotKind: slots[entry.role],
+        artifactRecordId: entry.locator.artifactRecordId,
+        artifactContentSha256: entry.contentSha256,
+        artifactSourceBindingDigestSha256:
+          livingFrameComfyUiCanonicalWireArtifactSourceBindingDigest(
+            binding,
+            entry,
+          ),
+        privateAlias: aliases[entry.role],
+        readOnlyMountRequired: true as const,
+      }),
+    ),
+    outputExpectation: {
+      transport: 'websocket_image_output',
+      contentType: 'image/png',
+      widthPixels: 1024,
+      heightPixels: 1024,
+      imageCount: 1,
+    },
+    costEventExpectation: {
+      costComponentId:
+        'shared_controlled_illustration_gpu_host',
+      sharedGpuCapabilityKeys: [
+        'comfyui',
+        'comfyui_controlnet_aux',
+        'controlnet',
+        'ip_adapter',
+        'peft_lora',
+      ],
+      separateCpuQaCapabilityKey: 'auraface',
+      oneRequestEqualsOneGpuAttempt: true,
+      fiveGpuCapabilitiesShareAttemptLifetime: true,
+      auraFaceCpuMeasurementExcluded: true,
+      exactReuseCreatesNoNewGpuAttempt: true,
+      failedOrUnknownAttemptCostMustBeRetained: true,
+    },
+  }
 }

@@ -92,6 +92,16 @@ authority. The generated result is opaque PNG only; transparency requires the
 existing segmentation/matting, edge-decontamination, alpha-QA, destination
 composite, asset-manifest, and private-review chain.
 
+All five model sources must be presented through one atomic canonical
+mount/host session. Their verified source callbacks stay open while the
+backend adapter creates the fixed read-only mounts, starts the one supervised
+ComfyUI process, executes the one prompt, captures its result, and stops the
+process. Only after shutdown may the callbacks unwind and reverify every
+canonical object. A preflight mount receipt or direct private loopback call is
+not execution evidence. The source contract for this boundary is
+`living-frame-controlled-sdxl-comfyui-canonical-mount-host-session.ts`; the
+distributed/container mount adapter and L4 qualification remain open.
+
 ## Closed gates
 
 These source files do not authorize:

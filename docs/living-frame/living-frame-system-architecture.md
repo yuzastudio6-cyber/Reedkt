@@ -2677,6 +2677,26 @@ tool/operation admission, model mounts, dispatch, output persistence, cost,
 QA, and private review remain owned by their existing authorities. See
 `docs/living-frame/living-frame-controlled-sdxl-comfyui-runtime.md`.
 
+The private route now also closes the model-mount lifetime gap. A serialized
+read-only mount-preparation receipt is not execution authority because its
+five callbacks would have ended before ComfyUI loaded the models. The
+executable source boundary is one atomic canonical mount/host session: it
+revalidates the five-entry binding and private wire-request artifact lineage,
+nests all five checksum-protected read-only source callbacks, keeps them open
+while one mounted runner starts the supervised process, executes the prompt,
+captures the terminal host result, and stops the process, then lets every
+callback perform its post-inference verification.
+
+The standalone private loopback port is rejected by the outer runtime. A
+controlled unmounted port remains only for non-promotable protocol fixtures.
+Private runtime receipts record only the atomic session, model-binding-packet,
+and process-lifecycle digests plus the five-object before/after-verification
+fact; canonical paths, mount aliases, model bytes, prompt text, and private
+prompt identifiers stay process-bound. Reuse and post-inference canonical
+object changes fail closed. The distributed backend mount adapter, exact
+11.7 GB compatibility benchmark, L4 attempt, signed image, licenses, actual
+resource cost, persistence, QA, and release remain open.
+
 The source-controlled package closure is now explicit under
 `docker/prod/gpu-worker/comfyui/`. Its 35 hash-pinned wheel declarations and
 three exact source-archive identities are revalidated against the existing

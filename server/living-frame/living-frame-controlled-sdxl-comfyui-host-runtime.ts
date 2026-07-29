@@ -103,6 +103,33 @@ const receiptDraftSchema = z.object({
     expectedAssetId: z.string().regex(SAFE_ID),
     approvedPlanSnapshotId: z.string().regex(SAFE_ID),
   }).strict(),
+  modelMountObservation: z.discriminatedUnion('mode', [
+    z.object({
+      mode: z.literal('controlled_fixture_unmounted'),
+      atomicCanonicalMountSessionObserved: z.literal(false),
+      requiredArtifactCount: z.literal(0),
+      hostPathIncluded: z.literal(false),
+      mountAliasIncluded: z.literal(false),
+      modelBytesIncluded: z.literal(false),
+    }).strict(),
+    z.object({
+      mode: z.literal('atomic_canonical_mount_session'),
+      atomicCanonicalMountSessionObserved: z.literal(true),
+      requiredArtifactCount: z.literal(5),
+      canonicalMountSessionDigestSha256:
+        z.string().regex(SHA256),
+      modelBindingPacketDigestSha256:
+        z.string().regex(SHA256),
+      processLifecycleReceiptDigestSha256:
+        z.string().regex(SHA256),
+      everyObjectVerifiedBeforeAndAfterInference:
+        z.literal(true),
+      processStartedAndStoppedInsideSession: z.literal(true),
+      hostPathIncluded: z.literal(false),
+      mountAliasIncluded: z.literal(false),
+      modelBytesIncluded: z.literal(false),
+    }).strict(),
+  ]),
   operation: z.object({
     canonicalToolId: z.literal('comfyui'),
     operationId: z.literal(
@@ -156,6 +183,8 @@ export class LivingFrameControlledSdxlComfyUiHostRuntimeError
     | 'canonical_operation_mismatch'
     | 'private_wire_request_invalid'
     | 'host_port_invalid'
+    | 'legacy_private_loopback_forbidden'
+    | 'canonical_model_mount_session_required'
     | 'host_execution_result_invalid'
     | 'output_image_invalid'
     | 'unsafe_receipt_forbidden'
@@ -169,6 +198,8 @@ export class LivingFrameControlledSdxlComfyUiHostRuntimeError
       | 'canonical_operation_mismatch'
       | 'private_wire_request_invalid'
       | 'host_port_invalid'
+      | 'legacy_private_loopback_forbidden'
+      | 'canonical_model_mount_session_required'
       | 'host_execution_result_invalid'
       | 'output_image_invalid'
       | 'unsafe_receipt_forbidden',
@@ -201,12 +232,24 @@ export interface LivingFrameControlledSdxlComfyUiHostExecutionResult {
   readonly outputImageCount: number
   readonly externalNetworkPerformed: false
   readonly runtimeDownloadPerformed: false
+  readonly canonicalModelMountSession?: {
+    readonly canonicalMountSessionDigestSha256: string
+    readonly modelBindingPacketDigestSha256: string
+    readonly processLifecycleReceiptDigestSha256: string
+    readonly requiredArtifactCount: 5
+    readonly everyObjectVerifiedBeforeAndAfterInference: true
+    readonly processStartedAndStoppedInsideSession: true
+    readonly hostPathIncluded: false
+    readonly mountAliasIncluded: false
+    readonly modelBytesIncluded: false
+  }
 }
 
 export interface LivingFrameControlledSdxlComfyUiHostPort {
   readonly hostPortClass:
     | 'controlled_fixture_comfyui_host_port_v1'
     | 'private_loopback_comfyui_host_port_v1'
+    | 'private_atomic_canonical_mount_comfyui_host_session_port_v1'
   readonly callerEndpointAccepted: false
   readonly callerPathUrlCredentialAccepted: false
   readonly externalNetworkAllowed: false
@@ -265,6 +308,8 @@ const AUTHORITY_BOUNDARY:
   })
 
 const registeredHostPorts = new WeakSet<object>()
+const registeredAtomicCanonicalMountSessionPorts =
+  new WeakSet<object>()
 const outputLeases = new WeakSet<object>()
 const consumedOutputLeases = new WeakSet<object>()
 const outputBytesByLease = new WeakMap<object, Uint8Array>()
@@ -290,6 +335,27 @@ export function registerLivingFrameControlledSdxlComfyUiHostPort<
   return hostPort
 }
 
+export function registerLivingFrameControlledSdxlComfyUiCanonicalMountHostSessionPort<
+  T extends LivingFrameControlledSdxlComfyUiHostPort,
+>(hostPort: T): T {
+  if (
+    !hostPort
+    || typeof hostPort !== 'object'
+    || hostPort.hostPortClass
+      !==
+        'private_atomic_canonical_mount_comfyui_host_session_port_v1'
+    || hostPort.callerEndpointAccepted !== false
+    || hostPort.callerPathUrlCredentialAccepted !== false
+    || hostPort.externalNetworkAllowed !== false
+    || hostPort.runtimeDownloadsAllowed !== false
+    || hostPort.productionQualified !== false
+    || typeof hostPort.executeOne !== 'function'
+  ) throw invalid('host_port_invalid', '$.hostPort')
+  registeredHostPorts.add(hostPort)
+  registeredAtomicCanonicalMountSessionPorts.add(hostPort)
+  return hostPort
+}
+
 export async function executeLivingFrameControlledSdxlComfyUiHostRuntime(
   input: LivingFrameControlledSdxlComfyUiHostRuntimeInput,
 ): Promise<LivingFrameControlledSdxlComfyUiHostRuntimeResult> {
@@ -299,6 +365,21 @@ export async function executeLivingFrameControlledSdxlComfyUiHostRuntime(
   assertRequestReceipt(input.gpuRuntimeRequestReceipt)
   if (!registeredHostPorts.has(input.hostPort)) {
     throw invalid('host_port_invalid', '$.hostPort')
+  }
+  if (
+    input.hostPort.hostPortClass
+      ===
+        'private_atomic_canonical_mount_comfyui_host_session_port_v1'
+    && !registeredAtomicCanonicalMountSessionPorts.has(input.hostPort)
+  ) throw invalid('host_port_invalid', '$.hostPort')
+  if (
+    input.hostPort.hostPortClass
+      === 'private_loopback_comfyui_host_port_v1'
+  ) {
+    throw invalid(
+      'legacy_private_loopback_forbidden',
+      '$.hostPort',
+    )
   }
 
   const wireRequest =
@@ -336,6 +417,9 @@ export async function executeLivingFrameControlledSdxlComfyUiHostRuntime(
       finishedAt: hostResult.finishedAt,
       terminalState: hostResult.terminalState,
       output: output?.outputContentSha256 ?? null,
+      canonicalMountSession:
+        hostResult.canonicalModelMountSession
+          ?.canonicalMountSessionDigestSha256 ?? null,
     }).slice(0, 40)}`
   const elapsedMilliseconds =
     Date.parse(hostResult.finishedAt)
@@ -359,6 +443,37 @@ export async function executeLivingFrameControlledSdxlComfyUiHostRuntime(
       approvedPlanSnapshotId:
         dispatch.grant.binding.approvedPlanSnapshotId,
     },
+    modelMountObservation:
+      hostResult.canonicalModelMountSession
+        ? {
+            mode:
+              'atomic_canonical_mount_session' as const,
+            atomicCanonicalMountSessionObserved: true as const,
+            requiredArtifactCount: 5 as const,
+            canonicalMountSessionDigestSha256:
+              hostResult.canonicalModelMountSession
+                .canonicalMountSessionDigestSha256,
+            modelBindingPacketDigestSha256:
+              hostResult.canonicalModelMountSession
+                .modelBindingPacketDigestSha256,
+            processLifecycleReceiptDigestSha256:
+              hostResult.canonicalModelMountSession
+                .processLifecycleReceiptDigestSha256,
+            everyObjectVerifiedBeforeAndAfterInference:
+              true as const,
+            processStartedAndStoppedInsideSession: true as const,
+            hostPathIncluded: false as const,
+            mountAliasIncluded: false as const,
+            modelBytesIncluded: false as const,
+          }
+        : {
+            mode: 'controlled_fixture_unmounted' as const,
+            atomicCanonicalMountSessionObserved: false as const,
+            requiredArtifactCount: 0 as const,
+            hostPathIncluded: false as const,
+            mountAliasIncluded: false as const,
+            modelBytesIncluded: false as const,
+          },
     operation: {
       canonicalToolId: 'comfyui' as const,
       operationId:
@@ -600,6 +715,10 @@ function assertHostResult(
     hostPortClass === 'controlled_fixture_comfyui_host_port_v1'
       ? 'controlled_non_promotable_comfyui_host_runtime_fixture'
       : 'private_internal_comfyui_host_runtime_observation_unreleased'
+  const atomicSessionRequired =
+    hostPortClass
+      ===
+        'private_atomic_canonical_mount_comfyui_host_session_port_v1'
   if (
     result.evidenceClass !== expectedEvidenceClass
     || !Number.isFinite(started)
@@ -623,10 +742,36 @@ function assertHostResult(
         'controlled_fixture_comfyui_host_port_v1'
       && result.modelInferenceExecuted
     )
+    || (
+      atomicSessionRequired
+      !== validCanonicalModelMountSession(
+        result.canonicalModelMountSession,
+      )
+    )
   ) throw invalid(
-    'host_execution_result_invalid',
+    atomicSessionRequired
+      ? 'canonical_model_mount_session_required'
+      : 'host_execution_result_invalid',
     '$.hostPort.result',
   )
+}
+
+function validCanonicalModelMountSession(
+  value:
+    LivingFrameControlledSdxlComfyUiHostExecutionResult[
+      'canonicalModelMountSession'
+    ],
+): boolean {
+  return value !== undefined
+    && SHA256.test(value.canonicalMountSessionDigestSha256)
+    && SHA256.test(value.modelBindingPacketDigestSha256)
+    && SHA256.test(value.processLifecycleReceiptDigestSha256)
+    && value.requiredArtifactCount === 5
+    && value.everyObjectVerifiedBeforeAndAfterInference === true
+    && value.processStartedAndStoppedInsideSession === true
+    && value.hostPathIncluded === false
+    && value.mountAliasIncluded === false
+    && value.modelBytesIncluded === false
 }
 
 async function inspectOutput(
@@ -782,6 +927,13 @@ function assertReceiptSafe(
   }
   const completed =
     draft.hostObservation.terminalState === 'completed'
+  const privateEvidence =
+    draft.evidenceClass
+      ===
+        'private_internal_comfyui_host_runtime_observation_unreleased'
+  const atomicModelMountObserved =
+    draft.modelMountObservation.mode
+      === 'atomic_canonical_mount_session'
   if (
     !SAFE_ID.test(draft.runtimeObservationId)
     || !SHA256.test(
@@ -792,6 +944,7 @@ function assertReceiptSafe(
       draft.sourceBindings
         .canonicalDispatchConsumptionResponseHash,
     )
+    || privateEvidence !== atomicModelMountObserved
     || draft.outputLeaseIssued !== completed
     || (completed !== (draft.output !== undefined))
     || draft.outputArtifactPersisted !== false

@@ -2414,6 +2414,36 @@ sets. They are derived solely from capability composition, never from a
 person, place, vehicle, historical topic, or example. See
 `docs/living-frame/living-frame-controlled-sdxl-benchmark-request-blueprint.md`.
 
+### Subject-neutral benchmark graph blueprint
+
+`living-frame-controlled-sdxl-benchmark-graph-blueprint-v1` converts the
+seven request recipes into exact, non-executable ComfyUI graph topologies.
+It independently revalidates the request blueprint, stock
+`controlnet_lora_txt2img` expectation, reviewed generic IP-Adapter extension,
+and merged graph before it emits any topology.
+
+The load-only case has no graph. The six generation cases contain
+7, 8, 10, 11, 15, and 15 nodes respectively, for 66 total nodes and 36
+external slot references. Base, LoRA, ControlNet, generic IP-Adapter, and
+full-combined cases are rewired independently so a disabled capability cannot
+remain connected by accident. The combined primary and deterministic replay
+use the same graph policy.
+
+Only the closed node allowlist is represented. FaceID, InsightFace,
+unified/embedding loaders, in-graph preprocessors, arbitrary preview/save
+nodes, and AuraFace generation conditioning remain forbidden. Control and
+reference images are unresolved server-owned slots, and the sole output is a
+`SaveImageWebsocket` bridge node.
+
+The graph blueprint still contains no prompt text, image pixels, model alias,
+filename, path, URL, credential, executable API-format prompt, tool or
+operation identity, dispatch, work, cost, asset, or selected-scene authority.
+Private slot materialization, current runtime node-schema evidence, a
+registered canonical ComfyUI operation, exact read-only model mounts, signed
+GPU image, attempt/cost receipts, metrics, QA, and private review remain
+required. See
+`docs/living-frame/living-frame-controlled-sdxl-benchmark-graph-blueprint.md`.
+
 ### Controlled benchmark result and threshold binding
 
 The source-only result binding accepts benchmark observations only through a

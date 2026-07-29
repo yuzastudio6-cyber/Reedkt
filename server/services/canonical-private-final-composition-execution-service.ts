@@ -36,6 +36,8 @@ import {
   type OfflineRemotionServerInjectedInput,
   type OfflineRemotionStreamingRenderResult,
 } from '../tool-execution/remotion-render-execution'
+import { getOfflineNodeRunnerCanonicalOperation } from '../tool-execution/node-runners/offline-node-runner-canonical-operations'
+import { validateOfflineNodeStructuredExecutionRequest } from '../tool-execution/node-runner-execution/offline-node-structured-execution-protocol'
 import {
   PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS,
   beginPrivateInternalAttemptCostEvidence,
@@ -179,6 +181,14 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       }
       if (
         mode === 'chunk' &&
+        planningPayload.controlledVisualOverlayLayers !== undefined
+      ) {
+        throw denied(
+          'Controlled visual overlays remain final-composition only until chunk-local layer continuity is admitted.',
+        )
+      }
+      if (
+        mode === 'chunk' &&
         'transitionPolicy' in planningPayload &&
         planningPayload.transitionPolicy !== 'approved_hard_cuts_only'
       ) {
@@ -249,6 +259,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         planningPayload.supplementalAudioTracks?.length ?? 0
       const livingFrameOverlayCount =
         planningPayload.livingFrameOverlayLayers?.length ?? 0
+      const controlledVisualOverlayCount =
+        planningPayload.controlledVisualOverlayLayers?.length ?? 0
       const dependencyWorkItems = workItem.dependencyKeys.map((dependencyKey) =>
         authority.workItems.find((candidate) => candidate.workItemKey === dependencyKey))
       if (dependencyWorkItems.some((candidate) => !candidate)) {
@@ -266,7 +278,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         voiceTrackCount +
         supplementalAudioTrackCount +
         colorSourceCount +
-        livingFrameOverlayCount * 2
+        livingFrameOverlayCount * 2 +
+        controlledVisualOverlayCount
       const directFinalOperations = new Set([
         'render_approved_source_caption_final',
         'render_approved_source_sequence_caption_final',
@@ -420,6 +433,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         CanonicalPrivateDependencyArtifactReadResult[] = []
       const livingFrameComponentDependencies:
         CanonicalPrivateDependencyArtifactReadResult[] = []
+      const controlledVisualDependencies:
+        CanonicalPrivateDependencyArtifactReadResult[] = []
       for (
         let selectedArtifactIndex = 0;
         selectedArtifactIndex < expectedDependencyCount;
@@ -456,6 +471,19 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           } else {
             voiceDependencies.push(dependency)
           }
+        } else if (dependencyContentType === 'image/svg+xml') {
+          if (!isControlledDataVizWorkItem(dependencyWorkItem)) {
+            throw denied(
+              'Final composition SVG dependencies must be exact approved D3 or ECharts chart work.',
+            )
+          }
+          controlledVisualDependencies.push(
+            await dependencyReader.readSingleSelectedArtifact({
+              ...dependencyInput,
+              allowedContentTypes: ['image/svg+xml'],
+              maximumBytes: 2 * 1024 * 1024,
+            }),
+          )
         } else {
           const dependency = await dependencyReader.readSingleSelectedArtifact({
             ...dependencyInput,
@@ -479,16 +507,19 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         supplementalAudioDependencies.length !== supplementalAudioTrackCount ||
         livingFrameManifestDependencies.length !== livingFrameOverlayCount ||
         livingFrameComponentDependencies.length !== livingFrameOverlayCount ||
+        controlledVisualDependencies.length !==
+          controlledVisualOverlayCount ||
         colorDependencies.length !== colorSourceCount ||
         dependencies.length +
           colorDependencies.length +
           voiceDependencies.length +
           supplementalAudioDependencies.length +
           livingFrameManifestDependencies.length +
-          livingFrameComponentDependencies.length !== expectedDependencyCount
+          livingFrameComponentDependencies.length +
+          controlledVisualDependencies.length !== expectedDependencyCount
       ) {
         throw denied(
-          'Final composition dependencies must be one approved trim JSON plus exact caption, voice, supplemental-audio, color, and Living Frame artifacts.',
+          'Final composition dependencies must be one approved trim JSON plus exact caption, voice, supplemental-audio, color, Living Frame, and controlled visual artifacts.',
         )
       }
       const captions = orderCaptionDependencies({
@@ -531,6 +562,15 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             outputHeight: planningPayload.height,
           })
         : []
+      const controlledVisualOverlays =
+        planningPayload.controlledVisualOverlayLayers
+          ? bindCanonicalControlledVisualOverlayDependencies({
+              approvedLayers: planningPayload.controlledVisualOverlayLayers,
+              dependencies: controlledVisualDependencies,
+              authority,
+              finalAsset: expectedAsset,
+            })
+          : []
       const globalSourceSequenceItemIds = mode === 'chunk'
         ? authority.components.sourceSequence.map((source) => source.sourceSequenceItemId)
         : [...workItem.sourceSequenceItemIds]
@@ -629,6 +669,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const livingFrameOverlayInputIds = livingFrameOverlays.map(
         (_, index) => `approved-living-frame-${index + 1}`,
       )
+      const controlledVisualOverlayInputIds = controlledVisualOverlays.map(
+        (_, index) => `approved-controlled-visual-${index + 1}`,
+      )
       const sourceCommitments = sources.map((source, index) => ({
         inputId: sourceInputIds[index]!,
         ...(sequenceProfile ? { sourceSequenceItemId: source.sourceSequenceItemId } : {}),
@@ -674,6 +717,15 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           sha256: overlay.component.sha256,
         }),
       )
+      const controlledVisualOverlayCommitments = controlledVisualOverlays.map(
+        (overlay, index) => ({
+          inputId: controlledVisualOverlayInputIds[index]!,
+          outputKey: overlay.layer.outputKey,
+          mimeType: 'image/svg+xml' as const,
+          byteLength: overlay.dependency.byteLength,
+          sha256: overlay.dependency.sha256,
+        }),
+      )
       const request = buildOfflineRemotionFinalCompositionStreamingRequest({
         planningPayload,
         ...(sequenceProfile
@@ -688,6 +740,12 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           : {}),
         ...(livingFrameOverlayCommitments.length > 0
           ? { livingFrameOverlays: livingFrameOverlayCommitments }
+          : {}),
+        ...(controlledVisualOverlayCommitments.length > 0
+          ? {
+              controlledVisualOverlays:
+                controlledVisualOverlayCommitments,
+            }
           : {}),
       })
       const runtimeInputs: OfflineRemotionServerInjectedInput[] = [
@@ -715,6 +773,13 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           bytes: overlay.component.bytes,
           sha256: overlay.component.sha256,
         })),
+        ...controlledVisualOverlays.map((overlay, index) =>
+          bufferedRemotionInput({
+            inputId: controlledVisualOverlayInputIds[index]!,
+            mimeType: 'image/svg+xml',
+            bytes: overlay.dependency.bytes,
+            sha256: overlay.dependency.sha256,
+          })),
         ...captions.map((caption, index) => bufferedRemotionInput({
           inputId: captionInputIds[index]!, mimeType: 'image/png',
           bytes: caption.bytes, sha256: caption.sha256,
@@ -761,6 +826,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         ),
         livingFrameComponentSha256s: livingFrameOverlays.map(
           (overlay) => overlay.component.sha256,
+        ),
+        controlledVisualSha256s: controlledVisualOverlays.map(
+          (overlay) => overlay.dependency.sha256,
         ),
         transitionAuthorityHash,
         ...(chunkAuthority ? { chunkAuthority } : {}),
@@ -861,6 +929,10 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             overlay.component.dependencyReadEvidenceHash,
           ],
         ),
+        controlledVisualDependencyReadEvidenceHashes:
+          controlledVisualOverlays.map(
+            (overlay) => overlay.dependency.dependencyReadEvidenceHash,
+          ),
         colorDependencyReadEvidenceHashes: colorSources.map(
           (source) => source.dependency.dependencyReadEvidenceHash,
         ),
@@ -1014,6 +1086,31 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             })),
           }
         : {}
+      const controlledVisualOverlayInputs =
+        controlledVisualOverlays.length > 0
+          ? {
+              controlledVisualOverlays: controlledVisualOverlays.map(
+                (overlay) => ({
+                  outputKey: overlay.layer.outputKey,
+                  rendererLayerId: overlay.layer.rendererLayerId,
+                  toolId: overlay.layer.toolId,
+                  startFrame: overlay.layer.startFrame,
+                  endFrameExclusive: overlay.layer.endFrameExclusive,
+                  x: overlay.layer.x,
+                  y: overlay.layer.y,
+                  width: overlay.layer.width,
+                  height: overlay.layer.height,
+                  sourceConfidence: overlay.layer.sourceConfidence,
+                  safeWording: overlay.layer.safeWording,
+                  visualArtifactId: overlay.dependency.artifactId,
+                  visualSha256: overlay.dependency.sha256,
+                  visualByteLength: overlay.dependency.byteLength,
+                  visualDependencyReadEvidenceHash:
+                    overlay.dependency.dependencyReadEvidenceHash,
+                }),
+              ),
+            }
+          : {}
       const colorInputRecords = colorSources.map((colorSource, index) => ({
         sourceSequenceItemId: colorSource.sourceSequenceItemId,
         outputKey: colorSource.outputKey,
@@ -1112,6 +1209,12 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             livingFrameOverlays.length > 0,
           approvedLivingFrameOverlayBelowCaptionsApplied:
             livingFrameOverlays.length > 0,
+          approvedControlledVisualOverlayDependencyRead:
+            controlledVisualOverlays.length > 0,
+          approvedControlledVisualOverlayTimelineApplied:
+            controlledVisualOverlays.length > 0,
+          approvedControlledVisualOverlayBelowCaptionsApplied:
+            controlledVisualOverlays.length > 0,
           approvedColorDependencyRead: colorSources.length > 0,
           approvedColorDependencyInputMode: colorSources.length > 0
             ? 'server_injected_private_stream_v1' as const
@@ -1158,6 +1261,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               ...voiceInputs,
               ...supplementalAudioInputs,
               ...livingFrameOverlayInputs,
+              ...controlledVisualOverlayInputs,
               ...colorInputs,
             }
           : {
@@ -1177,6 +1281,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               ...voiceInputs,
               ...supplementalAudioInputs,
               ...livingFrameOverlayInputs,
+              ...controlledVisualOverlayInputs,
               ...colorInputs,
             },
         lease: {
@@ -1309,6 +1414,146 @@ interface ApprovedSourceTrimEvidence {
 }
 
 type ApprovedWorkItem = ApprovedExecutionAuthority['workItems'][number]
+
+interface ApprovedControlledVisualOverlayDependency {
+  layer: {
+    outputKey: string
+    rendererLayerId: string
+    toolId: 'd3' | 'echarts'
+    startFrame: number
+    endFrameExclusive: number
+    x: number
+    y: number
+    width: number
+    height: number
+    fit: 'contain'
+    opacity: 1
+    sourceConfidence: 'verified' | 'mock' | 'fictional'
+    safeWording: 'verified data' | 'mock demo data' | 'fictional story data'
+  }
+  dependency: CanonicalPrivateDependencyArtifactReadResult
+}
+
+function isControlledDataVizWorkItem(workItem: ApprovedWorkItem): boolean {
+  return (
+    workItem.workItemType === 'render_chart_asset' &&
+    workItem.workerClass === 'controlled_graphics_worker' &&
+    workItem.executionInput.operation === 'render_approved_chart' &&
+    workItem.approvedToolIds.length === 1 &&
+    (workItem.approvedToolIds[0] === 'd3' ||
+      workItem.approvedToolIds[0] === 'echarts') &&
+    workItem.providerExecutionMode === 'none' &&
+    workItem.required === true &&
+    Object.keys(workItem.fallbackPolicy).length === 0 &&
+    workItem.sourceSequenceItemIds.length === 0 &&
+    workItem.sourceCleanupDecisionIds.length === 0 &&
+    workItem.dependencyKeys.length === 1 &&
+    workItem.dependencyKeys[0] === 'snapshot-validation' &&
+    workItem.expectedOutputs.length === 1 &&
+    workItem.expectedOutputs[0]?.artifactType ===
+      'controlled_structured_dataviz_svg' &&
+    workItem.expectedOutputs[0]?.assetRole === 'generated' &&
+    workItem.expectedOutputs[0]?.contentType === 'image/svg+xml' &&
+    workItem.expectedOutputs[0]?.required === true &&
+    workItem.expectedOutputs[0]?.previewPlaceholderAllowed === false
+  )
+}
+
+export function bindCanonicalControlledVisualOverlayDependencies(input: {
+  approvedLayers: ApprovedControlledVisualOverlayDependency['layer'][]
+  dependencies: CanonicalPrivateDependencyArtifactReadResult[]
+  authority: ApprovedExecutionAuthority
+  finalAsset: ApprovedExecutionAuthority['assetManifest']['entries'][number]
+}): ApprovedControlledVisualOverlayDependency[] {
+  const byOutputKey = new Map<string, {
+    dependency: CanonicalPrivateDependencyArtifactReadResult
+    asset: ApprovedExecutionAuthority['assetManifest']['entries'][number]
+    workItem: ApprovedWorkItem
+  }>()
+  for (const dependency of input.dependencies) {
+    const asset = input.authority.assetManifest.entries.find(
+      (candidate) => candidate.id === dependency.expectedAssetId,
+    )
+    const workItem = input.authority.workItems.find(
+      (candidate) => candidate.id === asset?.approvedWorkItemId,
+    )
+    if (
+      !asset ||
+      !workItem ||
+      !isControlledDataVizWorkItem(workItem) ||
+      asset.outputKey !== workItem.expectedOutputs[0]?.outputKey ||
+      asset.artifactType !== 'controlled_structured_dataviz_svg' ||
+      asset.assetRole !== 'generated' ||
+      asset.contentType !== 'image/svg+xml' ||
+      !asset.required ||
+      asset.previewPlaceholderAllowed ||
+      byOutputKey.has(asset.outputKey)
+    ) {
+      throw denied(
+        'Controlled visual dependency lineage is not an exact approved D3 or ECharts SVG artifact.',
+      )
+    }
+    byOutputKey.set(asset.outputKey, { dependency, asset, workItem })
+  }
+  const ordered = input.approvedLayers.map((layer) => {
+    const entry = byOutputKey.get(layer.outputKey)
+    if (!entry) {
+      throw denied(
+        'Controlled visual output does not match the approved final timeline.',
+      )
+    }
+    const expectedOutput = entry.workItem.expectedOutputs[0]!
+    const toolId = entry.workItem.approvedToolIds[0]
+    if (toolId !== layer.toolId) {
+      throw denied(
+        'Controlled visual tool identity diverged from the approved renderer layer.',
+      )
+    }
+    const canonicalOperation = getOfflineNodeRunnerCanonicalOperation(toolId)
+    const approvedOperationIds =
+      entry.workItem.executionInput.approvedToolOperationIds
+    const expectedOutputKeys = entry.workItem.executionInput.expectedOutputKeys
+    if (
+      !Array.isArray(approvedOperationIds) ||
+      approvedOperationIds.length !== 1 ||
+      approvedOperationIds[0] !== canonicalOperation.operationId ||
+      !Array.isArray(expectedOutputKeys) ||
+      expectedOutputKeys.length !== 1 ||
+      expectedOutputKeys[0] !== layer.outputKey ||
+      expectedOutput.rendererLayerIds.length !== 1 ||
+      expectedOutput.rendererLayerIds[0] !== layer.rendererLayerId ||
+      expectedOutput.segmentIds.length < 1 ||
+      expectedOutput.segmentIds.some(
+        (segmentId) => !input.finalAsset.segmentIds.includes(segmentId),
+      ) ||
+      expectedOutput.timingIds.length < 1 ||
+      expectedOutput.timingIds.some(
+        (timingId) => !input.finalAsset.timingIds.includes(timingId),
+      ) ||
+      !input.finalAsset.rendererLayerIds.includes(layer.rendererLayerId)
+    ) {
+      throw denied(
+        'Controlled visual work item diverged from its approved operation, timing, or renderer lineage.',
+      )
+    }
+    try {
+      validateOfflineNodeStructuredExecutionRequest({
+        toolId,
+        operationId: canonicalOperation.operationId,
+        payload: entry.workItem.executionInput.structuredPayload,
+      })
+    } catch {
+      throw denied(
+        'Controlled visual work item no longer passes the exact structured runtime protocol.',
+      )
+    }
+    return { layer, dependency: entry.dependency }
+  })
+  if (ordered.length !== byOutputKey.size) {
+    throw denied('Controlled visual dependency order is ambiguous or incomplete.')
+  }
+  return ordered
+}
 
 interface ApprovedLivingFrameOverlayDependency {
   layer: {
@@ -2063,6 +2308,7 @@ interface FinalCompositionAdapterInput {
   voiceDependencyReadEvidenceHashes: string[]
   supplementalAudioDependencyReadEvidenceHashes: string[]
   livingFrameDependencyReadEvidenceHashes: string[]
+  controlledVisualDependencyReadEvidenceHashes: string[]
   colorDependencyReadEvidenceHashes: string[]
   transitionAuthorityHash: string
 }
@@ -2107,6 +2353,8 @@ function adapters(input: FinalCompositionAdapterInput): {
                 input.supplementalAudioDependencyReadEvidenceHashes,
               livingFrameDependencyReadEvidenceHashes:
                 input.livingFrameDependencyReadEvidenceHashes,
+              controlledVisualDependencyReadEvidenceHashes:
+                input.controlledVisualDependencyReadEvidenceHashes,
               colorDependencyReadEvidenceHashes: input.colorDependencyReadEvidenceHashes,
               transitionAuthorityHash: input.transitionAuthorityHash,
             }),
@@ -2166,6 +2414,8 @@ function adapters(input: FinalCompositionAdapterInput): {
                 input.supplementalAudioDependencyReadEvidenceHashes,
               livingFrameDependencyReadEvidenceHashes:
                 input.livingFrameDependencyReadEvidenceHashes,
+              controlledVisualDependencyReadEvidenceHashes:
+                input.controlledVisualDependencyReadEvidenceHashes,
               colorDependencyReadEvidenceHashes: input.colorDependencyReadEvidenceHashes,
               transitionAuthorityHash: input.transitionAuthorityHash,
             }),
@@ -2208,6 +2458,8 @@ function assertFinalResult(
     request.payload.supplementalAudioTracks !== undefined
   const livingFrameOverlays =
     request.payload.livingFrameOverlayLayers !== undefined
+  const controlledVisualOverlays =
+    request.payload.controlledVisualOverlayLayers !== undefined
   const boundedSourceTransitions =
     'sourceSegments' in request.payload &&
     request.payload.transitionPolicy ===
@@ -2255,6 +2507,17 @@ function assertFinalResult(
         .approvedLivingFrameOverlayTimelineApplied !== true ||
       result.evidence.semanticEvidence
         .approvedLivingFrameOverlayBelowCaptionsApplied !== true
+    )) ||
+    (controlledVisualOverlays && (
+      result.evidence.semanticEvidence
+        .approvedControlledVisualOverlayInputServerInjectedWithoutBase64 !==
+          true ||
+      result.evidence.semanticEvidence
+        .approvedControlledVisualOverlayBytesVerified !== true ||
+      result.evidence.semanticEvidence
+        .approvedControlledVisualOverlayTimelineApplied !== true ||
+      result.evidence.semanticEvidence
+        .approvedControlledVisualOverlayBelowCaptionsApplied !== true
     )) ||
     result.evidence.semanticEvidence.finalCompositionProfileExecuted !== true ||
     (sequenceProfile && (
@@ -2329,7 +2592,12 @@ function assertPersisted(
 
 function bufferedRemotionInput(input: {
   inputId: string
-  mimeType: 'video/mp4' | 'video/x-matroska' | 'image/png' | 'audio/wav'
+  mimeType:
+    | 'video/mp4'
+    | 'video/x-matroska'
+    | 'image/png'
+    | 'image/svg+xml'
+    | 'audio/wav'
   bytes: Buffer
   sha256: string
 }): OfflineRemotionServerInjectedInput {

@@ -939,6 +939,10 @@ try {
     )
     await expect(canonicalJourneyStatus).toContainText('Private review approved')
     await expect(canonicalJourneyStatus).toContainText('Public delivery is still a separate release step')
+    await expect(page.getByTestId('canonical-private-review')).toBeVisible()
+    await expect(page.getByTestId('canonical-private-review')).toContainText('Reopen this review version')
+    await expect(page.getByTestId('canonical-private-review-stage-summary')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Load review', exact: true })).toHaveCount(0)
     await expect(page.getByText(/Save needs retry/i)).toHaveCount(0)
     const canonicalAcceptedHandoffs = await page.evaluate((storageKey) => {
       return ((JSON.parse(window.localStorage.getItem(storageKey) ?? '{}') as { handoffs?: unknown[] }).handoffs ?? []) as Array<{

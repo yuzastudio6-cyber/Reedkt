@@ -74,6 +74,27 @@ export interface ApprovedCompositionProps {
     opacity: 1
     livingFrameOverlayInternalUrl: string
   }>
+  controlledVisualOverlayPolicy?:
+    'approved_structured_svg_below_captions_v1'
+  controlledVisualOverlays?: Array<{
+    outputKey: string
+    rendererLayerId: string
+    toolId: 'd3' | 'echarts'
+    startFrame: number
+    endFrameExclusive: number
+    x: number
+    y: number
+    width: number
+    height: number
+    fit: 'contain'
+    opacity: 1
+    sourceConfidence: 'verified' | 'mock' | 'fictional'
+    safeWording:
+      | 'verified data'
+      | 'mock demo data'
+      | 'fictional story data'
+    controlledVisualOverlayInternalUrl: string
+  }>
   sourceSegments?: Array<{
     sourceSequenceItemId: string
     sourceStartFrame: number
@@ -242,7 +263,8 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
       .includes(props.compositionProfileId ?? '') &&
     props.sourceInternalUrl && hasApprovedCaptionInput(props) &&
     hasApprovedAudioInput(props, 1) && hasApprovedSupplementalAudioInput(props) &&
-    hasApprovedLivingFrameInput(props)
+    hasApprovedLivingFrameInput(props) &&
+    hasApprovedControlledVisualInput(props)
   ) {
     return <ApprovedSourceCaptionComposition {...props} />
   }
@@ -253,7 +275,8 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
     hasApprovedAudioInput(props, props.sourceSegments.length) &&
     hasApprovedSourceTransitionInput(props) &&
     hasApprovedSupplementalAudioInput(props) &&
-    hasApprovedLivingFrameInput(props)
+    hasApprovedLivingFrameInput(props) &&
+    hasApprovedControlledVisualInput(props)
   ) {
     return <ApprovedSourceSequenceCaptionComposition {...props} />
   }
@@ -753,6 +776,7 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
       {replaceVoice && <Audio src={props.voiceTrackInternalUrls![0]!.voiceTrackInternalUrl} />}
       <ApprovedSupplementalAudioTracks {...props} />
       <ApprovedLivingFrameOverlays {...props} />
+      <ApprovedControlledVisualOverlays {...props} />
       <ApprovedCaptionOverlays {...props} />
     </AbsoluteFill>
   )
@@ -853,6 +877,7 @@ const ApprovedSourceSequenceCaptionComposition: React.FC<ApprovedCompositionProp
       ))}
       <ApprovedSupplementalAudioTracks {...props} />
       <ApprovedLivingFrameOverlays {...props} />
+      <ApprovedControlledVisualOverlays {...props} />
       <ApprovedCaptionOverlays {...props} />
     </AbsoluteFill>
   )
@@ -905,6 +930,40 @@ const ApprovedLivingFrameOverlays: React.FC<ApprovedCompositionProps> = (props) 
             opacity: overlay.opacity,
           }}
         />
+      </Sequence>
+    ))}
+  </>
+)
+
+const ApprovedControlledVisualOverlays: React.FC<ApprovedCompositionProps> = (props) => (
+  <>
+    {(props.controlledVisualOverlays ?? []).map((overlay) => (
+      <Sequence
+        key={overlay.rendererLayerId}
+        from={overlay.startFrame}
+        durationInFrames={overlay.endFrameExclusive - overlay.startFrame}
+        name={`Approved ${overlay.toolId} visual ${overlay.rendererLayerId}`}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            left: overlay.x,
+            top: overlay.y,
+            width: overlay.width,
+            height: overlay.height,
+            opacity: overlay.opacity,
+            overflow: 'hidden',
+          }}
+        >
+          <Img
+            src={overlay.controlledVisualOverlayInternalUrl}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: overlay.fit,
+            }}
+          />
+        </div>
       </Sequence>
     ))}
   </>
@@ -976,6 +1035,62 @@ function hasApprovedLivingFrameInput(props: ApprovedCompositionProps): boolean {
     layerIds.add(overlay.layerId)
     manifestOutputKeys.add(overlay.manifestOutputKey)
     componentOutputKeys.add(overlay.componentOutputKey)
+    return valid
+  })
+}
+
+function hasApprovedControlledVisualInput(
+  props: ApprovedCompositionProps,
+): boolean {
+  const overlays = props.controlledVisualOverlays
+  if (overlays === undefined) {
+    return props.controlledVisualOverlayPolicy === undefined
+  }
+  if (
+    props.controlledVisualOverlayPolicy !==
+      'approved_structured_svg_below_captions_v1' ||
+    overlays.length < 1 ||
+    overlays.length > 4
+  ) return false
+  const outputKeys = new Set<string>()
+  const rendererLayerIds = new Set<string>()
+  let previousStartFrame = -1
+  let previousRendererLayerId = ''
+  return overlays.every((overlay) => {
+    const expectedSafeWording = overlay.sourceConfidence === 'verified'
+      ? 'verified data'
+      : overlay.sourceConfidence === 'mock'
+        ? 'mock demo data'
+        : 'fictional story data'
+    const valid =
+      ['d3', 'echarts'].includes(overlay.toolId) &&
+      ['verified', 'mock', 'fictional'].includes(overlay.sourceConfidence) &&
+      overlay.safeWording === expectedSafeWording &&
+      overlay.startFrame >= 0 &&
+      overlay.endFrameExclusive > overlay.startFrame &&
+      overlay.endFrameExclusive <= props.durationFrames &&
+      overlay.startFrame >= previousStartFrame &&
+      (
+        overlay.startFrame !== previousStartFrame ||
+        overlay.rendererLayerId.localeCompare(previousRendererLayerId) > 0
+      ) &&
+      overlay.x >= 0 &&
+      overlay.y >= 0 &&
+      overlay.width > 0 &&
+      overlay.height > 0 &&
+      overlay.x + overlay.width <= props.width &&
+      overlay.y + overlay.height <= props.height &&
+      overlay.fit === 'contain' &&
+      overlay.opacity === 1 &&
+      /^http:\/\/127\.0\.0\.1:\d+\/controlled-visual\/\d+\.svg$/.test(
+        overlay.controlledVisualOverlayInternalUrl,
+      ) &&
+      !outputKeys.has(overlay.outputKey) &&
+      !rendererLayerIds.has(overlay.rendererLayerId)
+    previousStartFrame = overlay.startFrame
+    previousRendererLayerId = overlay.rendererLayerId
+    outputKeys.add(overlay.outputKey)
+    rendererLayerIds.add(overlay.rendererLayerId)
     return valid
   })
 }

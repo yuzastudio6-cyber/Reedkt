@@ -82,7 +82,12 @@ interface OfflineRemotionContainerHandle {
 
 export interface OfflineRemotionContainerStreamingInput {
   inputId: string
-  mimeType: 'video/mp4' | 'video/x-matroska' | 'image/png' | 'audio/wav'
+  mimeType:
+    | 'video/mp4'
+    | 'video/x-matroska'
+    | 'image/png'
+    | 'image/svg+xml'
+    | 'audio/wav'
   byteLength: number
   sha256: string
   openStream(): Promise<Readable>
@@ -410,11 +415,14 @@ async function receiveStreamingOutput(
   try { response = record(JSON.parse(line.toString('utf8'))) } catch {
     throw runtimeFailure('Streaming Remotion response header is invalid JSON.')
   }
+  if (response.ok !== true) {
+    throw runtimeFailure('Streaming Remotion execution failed before output commitment.')
+  }
   const artifact = record(response.artifact)
   const expectedByteLength = Number(artifact.byteLength)
   const expectedSha256 = artifact.sha256
   if (
-    response.ok !== true || artifact.mimeType !== 'video/mp4' ||
+    artifact.mimeType !== 'video/mp4' ||
     !Number.isSafeInteger(expectedByteLength) || expectedByteLength < 1_024 ||
     expectedByteLength > outputSink.maximumBytes ||
     typeof expectedSha256 !== 'string' || !/^[a-f0-9]{64}$/u.test(expectedSha256)

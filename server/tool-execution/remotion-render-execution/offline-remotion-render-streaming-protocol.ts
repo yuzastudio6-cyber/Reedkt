@@ -23,6 +23,10 @@ export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_LIVING_FRAME_OVERLAY_BYTE
   32 * 1024 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_LIVING_FRAME_OVERLAY_BYTES =
   128 * 1024 * 1024
+export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_CONTROLLED_VISUAL_OVERLAY_BYTES =
+  2 * 1024 * 1024
+export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_CONTROLLED_VISUAL_OVERLAY_BYTES =
+  8 * 1024 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_VOICE_BYTES = 64 * 1024 * 1024
 export const OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_SUPPLEMENTAL_AUDIO_BYTES =
   16 * 1024 * 1024
@@ -59,6 +63,14 @@ export interface OfflineRemotionStreamingLivingFrameOverlayCommitment {
   sha256: string
 }
 
+export interface OfflineRemotionStreamingControlledVisualOverlayCommitment {
+  inputId: string
+  outputKey: string
+  mimeType: 'image/svg+xml'
+  byteLength: number
+  sha256: string
+}
+
 export interface OfflineRemotionStreamingVoiceCommitment {
   inputId: string
   sourceSequenceItemId: string
@@ -89,6 +101,8 @@ export interface OfflineRemotionStreamingSupplementalAudioCommitment {
 export interface OfflineRemotionStreamingInputs {
   sources: OfflineRemotionStreamingSourceCommitment[]
   livingFrameOverlays: OfflineRemotionStreamingLivingFrameOverlayCommitment[]
+  controlledVisualOverlays:
+    OfflineRemotionStreamingControlledVisualOverlayCommitment[]
   captionOverlays: OfflineRemotionStreamingCaptionCommitment[]
   voiceTracks: OfflineRemotionStreamingVoiceCommitment[]
   supplementalAudioTracks: OfflineRemotionStreamingSupplementalAudioCommitment[]
@@ -105,7 +119,11 @@ export interface OfflineRemotionStreamingRenderRequest {
 
 type InputCommitment = {
   inputId: string
-  mimeType: OfflineRemotionSingleSourceMimeType | 'image/png' | 'audio/wav'
+  mimeType:
+    | OfflineRemotionSingleSourceMimeType
+    | 'image/png'
+    | 'image/svg+xml'
+    | 'audio/wav'
   byteLength: number
   sha256: string
 }
@@ -117,6 +135,8 @@ export function buildOfflineRemotionFinalCompositionStreamingRequest(input: {
   captionOverlay?: Omit<OfflineRemotionStreamingCaptionCommitment, 'outputKey'>
   captionOverlays?: OfflineRemotionStreamingCaptionCommitment[]
   livingFrameOverlays?: OfflineRemotionStreamingLivingFrameOverlayCommitment[]
+  controlledVisualOverlays?:
+    OfflineRemotionStreamingControlledVisualOverlayCommitment[]
   voiceTracks?: OfflineRemotionStreamingVoiceCommitment[]
   supplementalAudioTracks?: OfflineRemotionStreamingSupplementalAudioCommitment[]
 }): OfflineRemotionStreamingRenderRequest {
@@ -126,6 +146,8 @@ export function buildOfflineRemotionFinalCompositionStreamingRequest(input: {
   const replaceVoice = planning.audioPolicy === 'replace_with_approved_voice_tracks'
   const supplementalAudio = planning.supplementalAudioTracks !== undefined
   const livingFrameOverlays = planning.livingFrameOverlayLayers !== undefined
+  const controlledVisualOverlays =
+    planning.controlledVisualOverlayLayers !== undefined
   if (sourceSequence ? input.source !== undefined || !input.sources : !input.source || input.sources !== undefined) {
     throw invalid('Streaming source commitments do not match the approved composition profile.')
   }
@@ -153,6 +175,15 @@ export function buildOfflineRemotionFinalCompositionStreamingRequest(input: {
       'Streaming Living Frame overlay commitments do not match the approved composition policy.',
     )
   }
+  if (
+    controlledVisualOverlays
+      ? !input.controlledVisualOverlays
+      : input.controlledVisualOverlays !== undefined
+  ) {
+    throw invalid(
+      'Streaming controlled visual commitments do not match the approved composition policy.',
+    )
+  }
   return validateOfflineRemotionStreamingRenderRequest({
     schemaVersion: OFFLINE_REMOTION_RENDER_STREAMING_REQUEST_PROTOCOL,
     toolId: 'remotion',
@@ -162,6 +193,7 @@ export function buildOfflineRemotionFinalCompositionStreamingRequest(input: {
     inputs: {
       sources: sourceSequence ? input.sources : [input.source],
       livingFrameOverlays: input.livingFrameOverlays ?? [],
+      controlledVisualOverlays: input.controlledVisualOverlays ?? [],
       captionOverlays: captionTrack
         ? input.captionOverlays
         : [{ ...input.captionOverlay, outputKey: SINGLE_CAPTION_OUTPUT_KEY }],
@@ -189,12 +221,13 @@ export function validateOfflineRemotionStreamingRenderRequest(
   const captionTrack = 'captionOverlayCues' in planning
   const replaceVoice = planning.audioPolicy === 'replace_with_approved_voice_tracks'
   const inputs = exactRecord(request.inputs, [
-    'sources', 'livingFrameOverlays', 'captionOverlays', 'voiceTracks',
-    'supplementalAudioTracks',
+    'sources', 'livingFrameOverlays', 'controlledVisualOverlays',
+    'captionOverlays', 'voiceTracks', 'supplementalAudioTracks',
   ], 'streaming inputs')
   if (
     !Array.isArray(inputs.sources) ||
     !Array.isArray(inputs.livingFrameOverlays) ||
+    !Array.isArray(inputs.controlledVisualOverlays) ||
     !Array.isArray(inputs.captionOverlays) ||
     !Array.isArray(inputs.voiceTracks) ||
     !Array.isArray(inputs.supplementalAudioTracks)
@@ -271,6 +304,53 @@ export function validateOfflineRemotionStreamingRenderRequest(
     OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_LIVING_FRAME_OVERLAY_BYTES
   ) {
     throw invalid('Streaming Living Frame overlays exceed their combined byte ceiling.')
+  }
+
+  const expectedControlledVisualOverlays =
+    planning.controlledVisualOverlayLayers ?? []
+  if (
+    inputs.controlledVisualOverlays.length !==
+    expectedControlledVisualOverlays.length
+  ) {
+    throw invalid(
+      'Streaming controlled visual commitments do not match the approved overlay count.',
+    )
+  }
+  const controlledVisualOverlays = inputs.controlledVisualOverlays.map(
+    (candidate, index) => {
+      const overlay = exactRecord(candidate, [
+        'inputId', 'outputKey', 'mimeType', 'byteLength', 'sha256',
+      ], `controlled visual overlay ${index + 1}`)
+      const expected = expectedControlledVisualOverlays[index]
+      if (!expected || overlay.outputKey !== expected.outputKey) {
+        throw invalid(
+          'Streaming controlled visual order diverges from approved planning.',
+        )
+      }
+      return {
+        ...committedInput(
+          overlay,
+          'image/svg+xml',
+          64,
+          OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_CONTROLLED_VISUAL_OVERLAY_BYTES,
+          `controlled visual overlay ${index + 1}`,
+        ),
+        outputKey: expected.outputKey,
+      }
+    },
+  )
+  const combinedControlledVisualOverlayBytes =
+    controlledVisualOverlays.reduce(
+      (total, overlay) => safeSum(total, overlay.byteLength),
+      0,
+    )
+  if (
+    combinedControlledVisualOverlayBytes >
+    OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_COMBINED_CONTROLLED_VISUAL_OVERLAY_BYTES
+  ) {
+    throw invalid(
+      'Streaming controlled visual overlays exceed their combined byte ceiling.',
+    )
   }
 
   const expectedCaptionCount = captionTrack ? planning.captionOverlayCues.length : 1
@@ -412,6 +492,7 @@ export function validateOfflineRemotionStreamingRenderRequest(
   const allInputs = [
     ...sources,
     ...livingFrameOverlays,
+    ...controlledVisualOverlays,
     ...captionOverlays,
     ...voiceTracks,
     ...supplementalAudioTracks,
@@ -436,6 +517,7 @@ export function validateOfflineRemotionStreamingRenderRequest(
     inputs: {
       sources,
       livingFrameOverlays,
+      controlledVisualOverlays,
       captionOverlays,
       voiceTracks,
       supplementalAudioTracks,
@@ -454,6 +536,7 @@ export function offlineRemotionStreamingInputCommitments(
   return [
     ...validated.inputs.sources,
     ...validated.inputs.livingFrameOverlays,
+    ...validated.inputs.controlledVisualOverlays,
     ...validated.inputs.captionOverlays,
     ...validated.inputs.voiceTracks,
     ...validated.inputs.supplementalAudioTracks,

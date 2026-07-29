@@ -29,6 +29,15 @@ import {
   validateOfflineRemotionFinalCompositionPlanningPayload,
 } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-protocol'
 import {
+  validateOfflineNodeStructuredExecutionRequest,
+} from '../tool-execution/node-runner-execution/offline-node-structured-execution-protocol'
+import {
+  bindCanonicalControlledVisualOverlayDependencies,
+} from '../services/canonical-private-final-composition-execution-service'
+import type {
+  CanonicalPrivateDependencyArtifactReadResult,
+} from '../services/canonical-private-dependency-artifact-read-service'
+import {
   createCanonicalPlanningHandoffSchema,
   publishCanonicalEditPlanFromHandoffSchema,
 } from '../validation/canonical-planning-handoff-schemas'
@@ -1260,6 +1269,223 @@ validateOfflineRemotionFinalCompositionPlanningPayload(asRecord(finalItem.execut
 const qaItem = exactDraft.draft.publication.canonicalPlan.workItems.find((item) => item.workItemKey === 'final-qa')!
 validateOfflineFfprobePlanningPayload(asRecord(qaItem.executionInput.structuredPayload))
 
+const controlledDataVizPlan = createExactControlledDataVizReviewPlan()
+const controlledDataVizDraft = buildCanonicalPlanningDraft({
+  plan: controlledDataVizPlan,
+  plannerInput: baseInput,
+  sourceMediaAssets,
+})
+if (!controlledDataVizDraft.ok || !controlledDataVizDraft.draft.publication) {
+  throw new Error(
+    `Exact controlled data visualization did not compile: ${
+      controlledDataVizDraft.ok
+        ? controlledDataVizDraft.draft.publicationBlockers.join(' | ')
+        : controlledDataVizDraft.errors.join(' | ')
+    }`,
+  )
+}
+const controlledDataVizCanonicalPlan =
+  controlledDataVizDraft.draft.publication.canonicalPlan
+const controlledDataVizWorkItem =
+  controlledDataVizCanonicalPlan.workItems.find(
+    (item) => item.workItemKey === 'controlled-dataviz-overlay',
+  )
+assert.ok(controlledDataVizWorkItem)
+assert.equal(controlledDataVizWorkItem.workItemType, 'render_chart_asset')
+assert.equal(controlledDataVizWorkItem.workerClass, 'controlled_graphics_worker')
+assert.deepEqual(controlledDataVizWorkItem.approvedToolIds, ['d3'])
+assert.deepEqual(controlledDataVizWorkItem.dependencyKeys, [
+  'snapshot-validation',
+])
+assert.equal(
+  controlledDataVizWorkItem.expectedOutputs[0]?.contentType,
+  'image/svg+xml',
+)
+validateOfflineNodeStructuredExecutionRequest({
+  toolId: 'd3',
+  operationId: 'tool.d3.render_chart_or_diagram.v1',
+  payload: asRecord(
+    controlledDataVizWorkItem.executionInput.structuredPayload,
+  ),
+})
+const controlledDataVizFinalWorkItem =
+  controlledDataVizCanonicalPlan.workItems.find(
+    (item) => item.workItemKey === 'final-export',
+  )
+assert.ok(controlledDataVizFinalWorkItem)
+assert.deepEqual(controlledDataVizFinalWorkItem.dependencyKeys, [
+  'source-trim-validation',
+  'caption-overlay',
+  'controlled-dataviz-overlay',
+])
+const controlledDataVizFinalPayload =
+  validateOfflineRemotionFinalCompositionPlanningPayload(
+    asRecord(controlledDataVizFinalWorkItem.executionInput.structuredPayload),
+  )
+assert.equal(
+  controlledDataVizFinalPayload.controlledVisualOverlayPolicy,
+  'approved_structured_svg_below_captions_v1',
+)
+assert.deepEqual(
+  controlledDataVizFinalPayload.controlledVisualOverlayLayers,
+  [{
+    outputKey: 'controlled-dataviz-overlay-svg',
+    rendererLayerId: 'controlled-dataviz-overlay-layer',
+    toolId: 'd3',
+    startFrame: 4,
+    endFrameExclusive: 32,
+    x: 400,
+    y: 160,
+    width: 2_000,
+    height: 1_040,
+    fit: 'contain',
+    opacity: 1,
+    sourceConfidence: 'verified',
+    safeWording: 'verified data',
+  }],
+  'The approved chart must preserve exact source confidence, timing, geometry, and below-caption layering.',
+)
+assert.deepEqual(
+  asRecord(controlledDataVizCanonicalPlan.components.toolStrategyPlan).toolIds,
+  ['libass', 'd3', 'remotion', 'ffprobe'],
+)
+const controlledDataVizOutput = controlledDataVizWorkItem.expectedOutputs[0]!
+const controlledDataVizFinalOutput =
+  controlledDataVizFinalWorkItem.expectedOutputs[0]!
+const approvedControlledDataVizWorkItemId =
+  'approved-work-controlled-dataviz-overlay'
+const approvedControlledDataVizFinalWorkItemId =
+  'approved-work-controlled-dataviz-final'
+const controlledDataVizAsset = {
+  ...controlledDataVizOutput,
+  id: 'approved-asset-controlled-dataviz-overlay',
+  approvedWorkItemId: approvedControlledDataVizWorkItemId,
+}
+const controlledDataVizFinalAsset = {
+  ...controlledDataVizFinalOutput,
+  id: 'approved-asset-controlled-dataviz-final',
+  approvedWorkItemId: approvedControlledDataVizFinalWorkItemId,
+}
+const controlledDataVizSvgBytes = Buffer.from(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="998" viewBox="0 0 1920 998"><rect width="1920" height="998" fill="#FFFFFF"/><rect x="120" y="120" width="240" height="758" fill="#4F46E5"/></svg>',
+  'utf8',
+)
+const controlledDataVizDependency:
+  CanonicalPrivateDependencyArtifactReadResult = {
+    bytes: controlledDataVizSvgBytes,
+    contentType: 'image/svg+xml',
+    sha256: sha('d'),
+    byteLength: controlledDataVizSvgBytes.byteLength,
+    dependencyJobId: 'approved-job-controlled-dataviz-overlay',
+    expectedAssetId: controlledDataVizAsset.id,
+    artifactId: 'artifact-controlled-dataviz-overlay',
+    artifactVersion: 1,
+    sourceExecutionAttemptId: 'attempt-controlled-dataviz-overlay',
+    sourceLeaseImmutableHash: sha('e'),
+    dependencyReadEvidenceHash: sha('f'),
+  }
+type ControlledVisualBindingInput = Parameters<
+  typeof bindCanonicalControlledVisualOverlayDependencies
+>[0]
+const approvedControlledDataVizWorkItem = {
+  ...controlledDataVizWorkItem,
+  id: approvedControlledDataVizWorkItemId,
+}
+const controlledVisualBindingAuthority = {
+  workItems: [approvedControlledDataVizWorkItem],
+  assetManifest: {
+    entries: [controlledDataVizAsset, controlledDataVizFinalAsset],
+  },
+} as unknown as ControlledVisualBindingInput['authority']
+const boundControlledVisualDependencies =
+  bindCanonicalControlledVisualOverlayDependencies({
+    approvedLayers: controlledDataVizFinalPayload
+      .controlledVisualOverlayLayers!,
+    dependencies: [controlledDataVizDependency],
+    authority: controlledVisualBindingAuthority,
+    finalAsset: controlledDataVizFinalAsset as unknown as
+      ControlledVisualBindingInput['finalAsset'],
+  })
+assert.equal(boundControlledVisualDependencies.length, 1)
+assert.equal(
+  boundControlledVisualDependencies[0]?.dependency,
+  controlledDataVizDependency,
+  'Final composition must consume the exact server-reverified SVG dependency instead of caller bytes.',
+)
+assert.throws(
+  () => bindCanonicalControlledVisualOverlayDependencies({
+    approvedLayers: controlledDataVizFinalPayload
+      .controlledVisualOverlayLayers!,
+    dependencies: [controlledDataVizDependency],
+    authority: {
+      ...controlledVisualBindingAuthority,
+      workItems: [{
+        ...approvedControlledDataVizWorkItem,
+        fallbackPolicy: { allowedToolIds: ['echarts'] },
+      }],
+    } as unknown as ControlledVisualBindingInput['authority'],
+    finalAsset: controlledDataVizFinalAsset as unknown as
+      ControlledVisualBindingInput['finalAsset'],
+  }),
+  /exact approved D3 or ECharts SVG artifact/i,
+  'A fallback-capable or otherwise widened chart work item must not enter final composition.',
+)
+assert.throws(
+  () => bindCanonicalControlledVisualOverlayDependencies({
+    approvedLayers: [{
+      ...controlledDataVizFinalPayload.controlledVisualOverlayLayers![0]!,
+      toolId: 'echarts',
+    }],
+    dependencies: [controlledDataVizDependency],
+    authority: controlledVisualBindingAuthority,
+    finalAsset: controlledDataVizFinalAsset as unknown as
+      ControlledVisualBindingInput['finalAsset'],
+  }),
+  /tool identity diverged/i,
+  'Final composition must reject tool identity substitution after approval.',
+)
+const unsafeControlledDataVizPlan = createExactControlledDataVizReviewPlan()
+unsafeControlledDataVizPlan.dataVizPlan!.items[0]!.dataPlan.safeWording =
+  'reported data'
+const unsafeControlledDataVizDraft = buildCanonicalPlanningDraft({
+  plan: unsafeControlledDataVizPlan,
+  plannerInput: baseInput,
+  sourceMediaAssets,
+})
+assert.equal(unsafeControlledDataVizDraft.ok, true)
+assert.equal(
+  unsafeControlledDataVizDraft.ok &&
+    unsafeControlledDataVizDraft.draft.publication,
+  undefined,
+  'Caller-reworded confidence must fail closed before chart work is approved.',
+)
+assert.match(
+  unsafeControlledDataVizDraft.ok
+    ? unsafeControlledDataVizDraft.draft.publicationBlockers.join(' ')
+    : '',
+  /source-safe D3 or ECharts overlay/i,
+)
+const unboundControlledDataVizPlan = createExactControlledDataVizReviewPlan()
+unboundControlledDataVizPlan.visualAssetPlan = []
+const unboundControlledDataVizDraft = buildCanonicalPlanningDraft({
+  plan: unboundControlledDataVizPlan,
+  plannerInput: baseInput,
+  sourceMediaAssets,
+})
+assert.equal(unboundControlledDataVizDraft.ok, true)
+assert.equal(
+  unboundControlledDataVizDraft.ok &&
+    unboundControlledDataVizDraft.draft.publication,
+  undefined,
+  'An active chart plan without its exact visual-asset binding must fail closed.',
+)
+assert.match(
+  unboundControlledDataVizDraft.ok
+    ? unboundControlledDataVizDraft.draft.publicationBlockers.join(' ')
+    : '',
+  /source-safe D3 or ECharts overlay/i,
+)
+
 const multiSourcePlan = createExactMultiSourcePrivateReviewPlan()
 const multiSourceDraft = buildCanonicalPlanningDraft({
   plan: multiSourcePlan,
@@ -2170,6 +2396,176 @@ function createExactPrivateReviewPlan(): EditPlan {
   plan.segmentEditPlans = []
   plan.colorPipelinePlan = undefined
   plan.audioPipelinePlan = undefined
+  return plan
+}
+
+function createExactControlledDataVizReviewPlan(): EditPlan {
+  const plan = createExactPrivateReviewPlan()
+  const visualZone = {
+    x: 200,
+    y: 80,
+    width: 1_000,
+    height: 520,
+    label: 'Approved chart zone',
+  }
+  const captionSafeZone = {
+    x: 200,
+    y: 760,
+    width: 1_000,
+    height: 200,
+    label: 'Approved caption safe zone',
+  }
+  plan.aspectRatioFramePlan = {
+    ...plan.aspectRatioFramePlan!,
+    canvasWidth: 1_920,
+    canvasHeight: 1_080,
+    visualZone,
+    captionSafeZone,
+    panelBackgroundColor: '#FFFFFF',
+  }
+  plan.masterTimingPlan!.visualTimingItems = [{
+    id: 'controlled-dataviz-timing-1',
+    label: 'Verified conversion chart',
+    visualType: 'chart_or_diagram',
+    timeRange: frameRange(4 / 24, 32 / 24, 4, 32),
+    linkedSegmentId: 'segment-1',
+    linkedVisualAssetPlanItemId: 'controlled-dataviz-asset-1',
+    revealFrames: 0,
+    holdFrames: 28,
+    exitFrames: 0,
+    readTimeFrames: 28,
+    reason: 'Show the exact verified figures in a bounded chart zone.',
+    qaChecks: ['Keep the chart outside the caption safe zone.'],
+  }]
+  plan.visualAssetPlan = [{
+    id: 'controlled-dataviz-asset-1',
+    beatLabel: 'Verified conversion comparison',
+    storyPurpose: 'Clarify two exact verified values.',
+    narrativePhase: 'evidence',
+    emotion: 'clear',
+    actionIntensity: 'low',
+    assetType: 'graphic_design_frame',
+    signatureSystem: 'graphic_design',
+    frameTemplateType: 'youtube_side_panel',
+    needsCharacterConsistency: false,
+    needsStartFrame: false,
+    needsEndFrame: false,
+    recommendedDurationSeconds: 28 / 24,
+    plannedDurationFrames: 28,
+    visualTimingItemId: 'controlled-dataviz-timing-1',
+    providerRoute: {
+      primaryModel: 'none',
+      fallbackModels: [],
+      fallbackSteps: [],
+      resolution: 'frame',
+      durationSeconds: 28 / 24,
+      providerPurpose: 'No provider; use exact structured D3 rendering.',
+      internalCostHint: 'bounded_local_tool',
+      userCreditImpact: 'low',
+      reason: 'Exact numbers require deterministic chart rendering.',
+      veoAllowed: false,
+      premiumOnlyFallback: false,
+    },
+    reason: 'Use a deterministic structured chart.',
+    qaChecks: ['Verify labels and values against the approved source.'],
+    creditImpact: 'low',
+    dataVizPlanItemId: 'controlled-dataviz-item-1',
+  }]
+  plan.dataVizPlan = {
+    id: 'controlled-dataviz-plan-1',
+    active: true,
+    summary: 'One exact verified D3 bar chart.',
+    items: [{
+      id: 'controlled-dataviz-item-1',
+      segmentId: 'segment-1',
+      assetPlanItemId: 'controlled-dataviz-asset-1',
+      visualAssetPlanItemId: 'controlled-dataviz-asset-1',
+      visualType: 'bar_chart',
+      title: 'Verified Conversion Rate',
+      purpose: 'Compare the approved conversion figures.',
+      dataPlan: {
+        id: 'controlled-dataviz-data-1',
+        dataSourceType: 'uploaded_document',
+        confidence: 'verified',
+        sourceNeeded: false,
+        sourceLabel: 'Approved analytics export',
+        safeWording: 'verified data',
+        mockData: false,
+        fictionalData: false,
+        dataPoints: [{
+          id: 'baseline',
+          label: 'Baseline',
+          value: 12,
+          unit: 'Percent',
+          confidence: 'verified',
+          sourceLabel: 'Approved analytics export',
+          notes: [],
+        }, {
+          id: 'current',
+          label: 'Current',
+          value: 19,
+          unit: 'Percent',
+          confidence: 'verified',
+          sourceLabel: 'Approved analytics export',
+          notes: [],
+        }],
+        nodes: [],
+        edges: [],
+        qaChecks: ['Match the approved source exactly.'],
+        notes: [],
+      },
+      style: {
+        styleFamily: 'clean_visual_explain',
+        colorPalette: ['#FFFFFF', '#1769E0'],
+        highlightColor: '#1769E0',
+        labelDensity: 'low',
+        typographyScale: 'large',
+        lineWeight: 'medium',
+        cardStyle: 'flat',
+        documentaryNeutrality: true,
+        brandColorUse: false,
+        playfulElementsAllowed: false,
+        notes: [],
+      },
+      animation: {
+        animationType: 'static_hold',
+        durationMs: 0,
+        revealOrder: [],
+        easing: 'linear',
+        soundSyncCueIds: [],
+        notes: [],
+      },
+      layout: {
+        layoutMode: 'side_by_side_speaker_visual',
+        frameTemplateType: 'youtube_side_panel',
+        visualZone,
+        captionSafeZone,
+        safeMargins: 80,
+        panelBackgroundColor: '#FFFFFF',
+        labelAvoidZones: [],
+        maxLabelCount: 2,
+        compactMode: false,
+        fullTakeoverMode: false,
+        notes: [],
+      },
+      preferredTool: 'd3',
+      toolChain: 'chart_diagram_chain',
+      toolIds: ['d3'],
+      remotionCapabilities: [],
+      creditImpact: 'low',
+      tierAllowed: { basic: true, pro: true, premium: true },
+      reason: 'D3 renders the exact approved values deterministically.',
+      whyNotAiVideo: 'AI video must not invent chart values.',
+      fallbackStrategy: ['Use a simpler static approved card.'],
+      qaChecks: ['Keep captions unobstructed.'],
+      workerNotes: ['Render from the approved structured payload only.'],
+    }],
+    toolsPlanned: ['d3'],
+    globalRules: ['Do not invent values.'],
+    qaChecks: ['Verify exact values.'],
+    limitations: [],
+    notes: [],
+  }
   return plan
 }
 

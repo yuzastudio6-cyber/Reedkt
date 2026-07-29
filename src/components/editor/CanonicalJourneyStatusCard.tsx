@@ -288,8 +288,7 @@ export function CanonicalJourneyStatusCard({
           />
         )}
 
-        {!result.customerDelivery &&
-          canUsePrivateReview && privateReview && onLoadPrivateReview &&
+        {canUsePrivateReview && privateReview && onLoadPrivateReview &&
           onAcceptPrivateReview && onRequestPrivateReviewRevision && (
           <CanonicalPrivateReviewPanel
             journey={result.journey}

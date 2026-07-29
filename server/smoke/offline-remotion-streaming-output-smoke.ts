@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
 import { createReadStream } from 'node:fs'
-import { mkdtemp, rm, stat } from 'node:fs/promises'
+import { mkdtemp, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Readable } from 'node:stream'
@@ -27,27 +27,53 @@ import {
   inspectCanonicalPrivateRemotionArtifact,
   persistCanonicalPrivateRemotionArtifactStream,
 } from '../services/canonical-private-remotion-artifact-storage'
+import {
+  createPrivateOfflineNodeStructuredExecutionRuntime,
+} from '../tool-execution/node-runner-execution/offline-node-structured-execution-service'
+import {
+  getOfflineNodeRunnerCanonicalOperation,
+} from '../tool-execution/node-runners/offline-node-runner-canonical-operations'
 
 const LEGACY_OUTPUT_BOUNDARY_BYTES = 16 * 1024 * 1024
 const fixtureRoot = await mkdtemp(join(tmpdir(), 'reeditpro-remotion-stream-output-fixture-'))
 const storageRoot = await mkdtemp(join(tmpdir(), 'reeditpro-remotion-stream-output-storage-'))
 const sourcePath = join(fixtureRoot, 'high-detail-4k-source.mp4')
 const livingFrameOverlayPath = join(fixtureRoot, 'approved-living-frame-overlay.png')
+const d3ControlledVisualOverlayPath = join(
+  fixtureRoot,
+  'approved-d3-controlled-visual-overlay.svg',
+)
+const echartsControlledVisualOverlayPath = join(
+  fixtureRoot,
+  'approved-echarts-controlled-visual-overlay.svg',
+)
 const captionPath = join(fixtureRoot, 'approved-caption-overlay.png')
 const supplementalAudioPath = join(fixtureRoot, 'approved-edit-brief-music.wav')
 
 try {
   generateHighDetailFourKSource(sourcePath)
   generateLivingFrameOverlay(livingFrameOverlayPath)
+  await generateControlledVisualOverlays({
+    d3Path: d3ControlledVisualOverlayPath,
+    echartsPath: echartsControlledVisualOverlayPath,
+  })
   generateCaptionOverlay(captionPath)
   generateSupplementalMusic(supplementalAudioPath)
   const source = await fileCommitment(sourcePath)
   const livingFrameOverlay = await fileCommitment(livingFrameOverlayPath)
+  const d3ControlledVisualOverlay = await fileCommitment(
+    d3ControlledVisualOverlayPath,
+  )
+  const echartsControlledVisualOverlay = await fileCommitment(
+    echartsControlledVisualOverlayPath,
+  )
   const caption = await fileCommitment(captionPath)
   const supplementalAudio = await fileCommitment(supplementalAudioPath)
   assert.ok(source.byteLength < LEGACY_OUTPUT_BOUNDARY_BYTES)
   assert.ok(source.byteLength > 8 * 1024 * 1024)
   assert.ok(livingFrameOverlay.byteLength >= 67)
+  assert.ok(d3ControlledVisualOverlay.byteLength >= 64)
+  assert.ok(echartsControlledVisualOverlay.byteLength >= 64)
   assert.ok(caption.byteLength >= 1_024)
 
   await prepareOfflineRemotionDockerRuntime()
@@ -94,6 +120,40 @@ try {
         fit: 'fill',
         opacity: 1,
       }],
+      controlledVisualOverlayPolicy:
+        'approved_structured_svg_below_captions_v1',
+      controlledVisualOverlayLayers: [
+        {
+          outputKey: 'controlled-d3-overlay-svg',
+          rendererLayerId: 'controlled-dataviz-d3-layer',
+          toolId: 'd3',
+          startFrame: 8,
+          endFrameExclusive: 40,
+          x: 2_000,
+          y: 160,
+          width: 1_400,
+          height: 720,
+          fit: 'contain',
+          opacity: 1,
+          sourceConfidence: 'verified',
+          safeWording: 'verified data',
+        },
+        {
+          outputKey: 'controlled-echarts-overlay-svg',
+          rendererLayerId: 'controlled-dataviz-echarts-layer',
+          toolId: 'echarts',
+          startFrame: 8,
+          endFrameExclusive: 40,
+          x: 2_000,
+          y: 960,
+          width: 1_400,
+          height: 720,
+          fit: 'contain',
+          opacity: 1,
+          sourceConfidence: 'mock',
+          safeWording: 'mock demo data',
+        },
+      ],
     },
     source: {
       inputId: 'high-detail-approved-source',
@@ -114,6 +174,22 @@ try {
       byteLength: livingFrameOverlay.byteLength,
       sha256: livingFrameOverlay.sha256,
     }],
+    controlledVisualOverlays: [
+      {
+        inputId: 'approved-controlled-d3-overlay-1',
+        outputKey: 'controlled-d3-overlay-svg',
+        mimeType: 'image/svg+xml',
+        byteLength: d3ControlledVisualOverlay.byteLength,
+        sha256: d3ControlledVisualOverlay.sha256,
+      },
+      {
+        inputId: 'approved-controlled-echarts-overlay-2',
+        outputKey: 'controlled-echarts-overlay-svg',
+        mimeType: 'image/svg+xml',
+        byteLength: echartsControlledVisualOverlay.byteLength,
+        sha256: echartsControlledVisualOverlay.sha256,
+      },
+    ],
     supplementalAudioTracks: [{
       inputId: 'approved-edit-brief-music-1',
       outputKey: 'edit-brief-audio-1-wav',
@@ -161,6 +237,17 @@ try {
     ...request,
     inputs: {
       ...request.inputs,
+      controlledVisualOverlays: request.inputs.controlledVisualOverlays.map(
+        (overlay, index) => index === 0
+          ? { ...overlay, outputKey: 'caller-reordered-controlled-visual' }
+          : overlay,
+      ),
+    },
+  }), /diverges from approved planning/u)
+  assert.throws(() => validateOfflineRemotionStreamingRenderRequest({
+    ...request,
+    inputs: {
+      ...request.inputs,
       captionOverlays: [{
         ...request.inputs.captionOverlays[0],
         inputId: request.inputs.sources[0]!.inputId,
@@ -185,6 +272,18 @@ try {
       'image/png',
       livingFrameOverlayPath,
       livingFrameOverlay,
+    ),
+    privateFileInput(
+      'approved-controlled-d3-overlay-1',
+      'image/svg+xml',
+      d3ControlledVisualOverlayPath,
+      d3ControlledVisualOverlay,
+    ),
+    privateFileInput(
+      'approved-controlled-echarts-overlay-2',
+      'image/svg+xml',
+      echartsControlledVisualOverlayPath,
+      echartsControlledVisualOverlay,
     ),
     privateFileInput('approved-caption-overlay', 'image/png', captionPath, caption),
     privateFileInput(
@@ -254,6 +353,26 @@ try {
   )
   assert.equal(
     result.evidence.semanticEvidence.approvedLivingFrameOverlayBelowCaptionsApplied,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .approvedControlledVisualOverlayInputServerInjectedWithoutBase64,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .approvedControlledVisualOverlayBytesVerified,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .approvedControlledVisualOverlayTimelineApplied,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .approvedControlledVisualOverlayBelowCaptionsApplied,
     true,
   )
   assert.equal(result.readiness.serverInjectedStreamingReady, true)
@@ -343,6 +462,7 @@ try {
       'bounded_json_manifest_contains_no_media_base64_paths_urls_or_commands',
       'server_injected_source_living_frame_caption_and_audio_streams_rehashed_on_host_and_in_container',
       'approved_living_frame_rgba_overlay_rendered_at_exact_frames_above_source_and_below_captions',
+      'actual_approved_d3_and_echarts_svg_overlays_rendered_at_exact_frames_above_source_and_below_captions',
       'approved_edit_brief_music_wav_stream_rehashed_looped_and_mixed_at_exact_frames',
       'network_none_read_only_non_root_no_mount_confinement_preserved',
       'actual_4k_h264_high_quality_remotion_render_exceeds_legacy_16mib_output_ceiling',
@@ -397,6 +517,51 @@ function generateLivingFrameOverlay(outputPath: string): void {
   assert.equal(generated.status, 0, generated.stderr)
 }
 
+async function generateControlledVisualOverlays(input: {
+  d3Path: string
+  echartsPath: string
+}): Promise<void> {
+  const runtime = await createPrivateOfflineNodeStructuredExecutionRuntime()
+  for (const candidate of [
+    {
+      toolId: 'd3' as const,
+      outputPath: input.d3Path,
+      title: 'Verified conversion rate',
+    },
+    {
+      toolId: 'echarts' as const,
+      outputPath: input.echartsPath,
+      title: 'Mock demo conversion rate',
+    },
+  ]) {
+    const result = await runtime.execute({
+      toolId: candidate.toolId,
+      operationId: getOfflineNodeRunnerCanonicalOperation(candidate.toolId)
+        .operationId,
+      payload: {
+        width: 1_400,
+        height: 720,
+        title: candidate.title,
+        xAxisLabel: 'Period',
+        yAxisLabel: 'Conversion rate',
+        theme: 'light',
+        data: [
+          { label: 'Baseline', value: 12 },
+          { label: 'Current', value: 19 },
+        ],
+      },
+    })
+    assert.equal(result.evidence.toolId, candidate.toolId)
+    assert.equal(result.evidence.semanticEvidence.unsafeMarkupRejected, true)
+    assert.equal(
+      result.evidence.semanticEvidence.externalReferencesRejected,
+      true,
+    )
+    assert.equal(result.readiness.productReady, false)
+    await writeFile(candidate.outputPath, result.svg.bytes, { mode: 0o600 })
+  }
+}
+
 function generateSupplementalMusic(outputPath: string): void {
   const generated = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error',
@@ -441,7 +606,7 @@ async function assertRejectedStreamLeavesNoCommittedTarget(): Promise<void> {
 
 function privateFileInput(
   inputId: string,
-  mimeType: 'video/mp4' | 'image/png' | 'audio/wav',
+  mimeType: 'video/mp4' | 'image/png' | 'image/svg+xml' | 'audio/wav',
   path: string,
   commitment: { byteLength: number; sha256: string },
 ): OfflineRemotionServerInjectedInput {

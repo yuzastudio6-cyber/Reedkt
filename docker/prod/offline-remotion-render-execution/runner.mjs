@@ -43,6 +43,9 @@ const MAXIMUM_STREAMING_COMBINED_SOURCE_BYTES = 192 * 1024 * 1024
 const MAXIMUM_STREAMING_CAPTION_BYTES = 8 * 1024 * 1024
 const MAXIMUM_STREAMING_LIVING_FRAME_OVERLAY_BYTES = 32 * 1024 * 1024
 const MAXIMUM_STREAMING_COMBINED_LIVING_FRAME_OVERLAY_BYTES = 128 * 1024 * 1024
+const MAXIMUM_STREAMING_CONTROLLED_VISUAL_OVERLAY_BYTES = 2 * 1024 * 1024
+const MAXIMUM_STREAMING_COMBINED_CONTROLLED_VISUAL_OVERLAY_BYTES =
+  8 * 1024 * 1024
 const MAXIMUM_STREAMING_SUPPLEMENTAL_AUDIO_BYTES = 16 * 1024 * 1024
 const MAXIMUM_STREAMING_COMBINED_SUPPLEMENTAL_AUDIO_BYTES = 64 * 1024 * 1024
 const MAXIMUM_STREAMING_COMBINED_INPUT_BYTES = 464 * 1024 * 1024
@@ -1414,6 +1417,124 @@ function validateStreamingLivingFrameOverlayPlans(policy, value, durationFrames)
   })
 }
 
+function validateStreamingControlledVisualOverlayPlans(
+  policy,
+  value,
+  width,
+  height,
+  durationFrames,
+) {
+  if (
+    policy !== 'approved_structured_svg_below_captions_v1' ||
+    !Array.isArray(value) ||
+    value.length < 1 ||
+    value.length > 4
+  ) throw new Error('streaming controlled visual overlays are unsupported')
+  const outputKeys = new Set()
+  const rendererLayerIds = new Set()
+  let previousStartFrame = -1
+  let previousRendererLayerId = ''
+  return value.map((candidate, index) => {
+    const layer = exactObject(candidate, [
+      'outputKey', 'rendererLayerId', 'toolId', 'startFrame',
+      'endFrameExclusive', 'x', 'y', 'width', 'height', 'fit', 'opacity',
+      'sourceConfidence', 'safeWording',
+    ], `streaming controlled visual overlay ${index + 1}`)
+    const outputKey = safeIdentity(
+      layer.outputKey,
+      'controlled visual outputKey',
+    )
+    const rendererLayerId = safeIdentity(
+      layer.rendererLayerId,
+      'controlled visual rendererLayerId',
+    )
+    const toolId = oneOf(
+      layer.toolId,
+      ['d3', 'echarts'],
+      'controlled visual toolId',
+    )
+    const startFrame = integer(
+      layer.startFrame,
+      0,
+      durationFrames - 1,
+      'controlled visual startFrame',
+    )
+    const endFrameExclusive = integer(
+      layer.endFrameExclusive,
+      1,
+      durationFrames,
+      'controlled visual endFrameExclusive',
+    )
+    const x = integer(layer.x, 0, width - 1, 'controlled visual x')
+    const y = integer(layer.y, 0, height - 1, 'controlled visual y')
+    const overlayWidth = integer(
+      layer.width,
+      1,
+      width,
+      'controlled visual width',
+    )
+    const overlayHeight = integer(
+      layer.height,
+      1,
+      height,
+      'controlled visual height',
+    )
+    const sourceConfidence = oneOf(
+      layer.sourceConfidence,
+      ['verified', 'mock', 'fictional'],
+      'controlled visual sourceConfidence',
+    )
+    const safeWording = oneOf(
+      layer.safeWording,
+      ['verified data', 'mock demo data', 'fictional story data'],
+      'controlled visual safeWording',
+    )
+    const expectedSafeWording = sourceConfidence === 'verified'
+      ? 'verified data'
+      : sourceConfidence === 'mock'
+        ? 'mock demo data'
+        : 'fictional story data'
+    if (
+      endFrameExclusive <= startFrame ||
+      x + overlayWidth > width ||
+      y + overlayHeight > height ||
+      layer.fit !== 'contain' ||
+      layer.opacity !== 1 ||
+      safeWording !== expectedSafeWording ||
+      outputKeys.has(outputKey) ||
+      rendererLayerIds.has(rendererLayerId) ||
+      startFrame < previousStartFrame ||
+      (
+        startFrame === previousStartFrame &&
+        rendererLayerId.localeCompare(previousRendererLayerId) <= 0
+      )
+    ) {
+      throw new Error(
+        'streaming controlled visual overlays must be exact, safe, and canonically ordered',
+      )
+    }
+    outputKeys.add(outputKey)
+    rendererLayerIds.add(rendererLayerId)
+    previousStartFrame = startFrame
+    previousRendererLayerId = rendererLayerId
+    return {
+      outputKey,
+      rendererLayerId,
+      toolId,
+      startFrame,
+      endFrameExclusive,
+      x,
+      y,
+      width: overlayWidth,
+      height: overlayHeight,
+      fit: 'contain',
+      opacity: 1,
+      sourceConfidence,
+      safeWording,
+    }
+  })
+}
+
 function validateStreamingPlanningPayload(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('streaming planning payload must be an object')
@@ -1428,6 +1549,9 @@ function validateStreamingPlanningPayload(value) {
   const livingFrameOverlaysProvided =
     Object.hasOwn(value, 'livingFrameOverlayPolicy') ||
     Object.hasOwn(value, 'livingFrameOverlayLayers')
+  const controlledVisualOverlaysProvided =
+    Object.hasOwn(value, 'controlledVisualOverlayPolicy') ||
+    Object.hasOwn(value, 'controlledVisualOverlayLayers')
   if (
     Object.hasOwn(value, 'supplementalAudioPolicy') !==
     Object.hasOwn(value, 'supplementalAudioTracks')
@@ -1439,6 +1563,14 @@ function validateStreamingPlanningPayload(value) {
     Object.hasOwn(value, 'livingFrameOverlayLayers')
   ) {
     throw new Error('streaming Living Frame overlay policy and layers must be paired')
+  }
+  if (
+    Object.hasOwn(value, 'controlledVisualOverlayPolicy') !==
+    Object.hasOwn(value, 'controlledVisualOverlayLayers')
+  ) {
+    throw new Error(
+      'streaming controlled visual overlay policy and layers must be paired',
+    )
   }
   const deliveryMasterAuthorityProvided = Object.hasOwn(value, 'renderPurpose')
   if (sourceSequence) {
@@ -1457,6 +1589,9 @@ function validateStreamingPlanningPayload(value) {
         : []),
       ...(livingFrameOverlaysProvided
         ? ['livingFrameOverlayPolicy', 'livingFrameOverlayLayers']
+        : []),
+      ...(controlledVisualOverlaysProvided
+        ? ['controlledVisualOverlayPolicy', 'controlledVisualOverlayLayers']
         : []),
       ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
     ], 'streaming source-sequence planning payload')
@@ -1531,6 +1666,15 @@ function validateStreamingPlanningPayload(value) {
           durationFrames,
         )
       : undefined
+    const controlledVisualOverlayLayers = controlledVisualOverlaysProvided
+      ? validateStreamingControlledVisualOverlayPlans(
+          payload.controlledVisualOverlayPolicy,
+          payload.controlledVisualOverlayLayers,
+          payload.width,
+          payload.height,
+          durationFrames,
+        )
+      : undefined
     if (
       supplementalAudioProvided &&
       payload.supplementalAudioPolicy !== 'approved_edit_brief_audio_tracks_v1'
@@ -1563,6 +1707,13 @@ function validateStreamingPlanningPayload(value) {
             livingFrameOverlayLayers,
           }
         : {}),
+      ...(controlledVisualOverlayLayers
+        ? {
+            controlledVisualOverlayPolicy:
+              'approved_structured_svg_below_captions_v1',
+            controlledVisualOverlayLayers,
+          }
+        : {}),
     }
   }
 
@@ -1578,6 +1729,9 @@ function validateStreamingPlanningPayload(value) {
       : []),
     ...(livingFrameOverlaysProvided
       ? ['livingFrameOverlayPolicy', 'livingFrameOverlayLayers']
+      : []),
+    ...(controlledVisualOverlaysProvided
+      ? ['controlledVisualOverlayPolicy', 'controlledVisualOverlayLayers']
       : []),
     ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
   ], 'streaming single-source planning payload')
@@ -1636,6 +1790,15 @@ function validateStreamingPlanningPayload(value) {
         durationFrames,
       )
     : undefined
+  const controlledVisualOverlayLayers = controlledVisualOverlaysProvided
+    ? validateStreamingControlledVisualOverlayPlans(
+        payload.controlledVisualOverlayPolicy,
+        payload.controlledVisualOverlayLayers,
+        payload.width,
+        payload.height,
+        durationFrames,
+      )
+    : undefined
   if (
     supplementalAudioProvided &&
     payload.supplementalAudioPolicy !== 'approved_edit_brief_audio_tracks_v1'
@@ -1666,6 +1829,13 @@ function validateStreamingPlanningPayload(value) {
           livingFrameOverlayPolicy:
             'approved_rgba_over_source_below_captions_v1',
           livingFrameOverlayLayers,
+        }
+      : {}),
+    ...(controlledVisualOverlayLayers
+      ? {
+          controlledVisualOverlayPolicy:
+            'approved_structured_svg_below_captions_v1',
+          controlledVisualOverlayLayers,
         }
       : {}),
   }
@@ -1702,11 +1872,12 @@ function validateStreamingManifest(value) {
   const captionTrack = isCaptionTrackProfile(planning.compositionProfileId)
   const replaceVoice = planning.audioPolicy === 'replace_with_approved_voice_tracks'
   const inputs = exactObject(request.inputs, [
-    'sources', 'livingFrameOverlays', 'captionOverlays', 'voiceTracks',
-    'supplementalAudioTracks',
+    'sources', 'livingFrameOverlays', 'controlledVisualOverlays',
+    'captionOverlays', 'voiceTracks', 'supplementalAudioTracks',
   ], 'streaming inputs')
   if (!Array.isArray(inputs.sources) ||
       !Array.isArray(inputs.livingFrameOverlays) ||
+      !Array.isArray(inputs.controlledVisualOverlays) ||
       !Array.isArray(inputs.captionOverlays) ||
       !Array.isArray(inputs.voiceTracks) ||
       !Array.isArray(inputs.supplementalAudioTracks)) {
@@ -1777,6 +1948,53 @@ function validateStreamingManifest(value) {
       MAXIMUM_STREAMING_COMBINED_LIVING_FRAME_OVERLAY_BYTES
   ) {
     throw new Error('streaming Living Frame overlays exceed their combined ceiling')
+  }
+
+  const expectedControlledVisualOverlays =
+    planning.controlledVisualOverlayLayers ?? []
+  if (
+    inputs.controlledVisualOverlays.length !==
+    expectedControlledVisualOverlays.length
+  ) {
+    throw new Error(
+      'streaming controlled visual count does not match approved planning',
+    )
+  }
+  const controlledVisualOverlays = inputs.controlledVisualOverlays.map(
+    (candidate, index) => {
+      const overlay = validateStreamingInputCommitment(
+        candidate,
+        ['inputId', 'outputKey', 'mimeType', 'byteLength', 'sha256'],
+        'image/svg+xml',
+        64,
+        MAXIMUM_STREAMING_CONTROLLED_VISUAL_OVERLAY_BYTES,
+        `streaming controlled visual overlay ${index + 1}`,
+      )
+      const outputKey = safeIdentity(
+        candidate.outputKey,
+        `streaming controlled visual overlay ${index + 1} outputKey`,
+      )
+      if (outputKey !== expectedControlledVisualOverlays[index]?.outputKey) {
+        throw new Error(
+          'streaming controlled visual order diverges from approved planning',
+        )
+      }
+      return { ...overlay, outputKey }
+    },
+  )
+  const combinedControlledVisualOverlayBytes =
+    controlledVisualOverlays.reduce(
+      (total, overlay) => total + overlay.byteLength,
+      0,
+    )
+  if (
+    !Number.isSafeInteger(combinedControlledVisualOverlayBytes) ||
+    combinedControlledVisualOverlayBytes >
+      MAXIMUM_STREAMING_COMBINED_CONTROLLED_VISUAL_OVERLAY_BYTES
+  ) {
+    throw new Error(
+      'streaming controlled visual overlays exceed their combined ceiling',
+    )
   }
 
   const expectedCaptionCount = captionTrack ? planning.captionOverlayCues.length : 1
@@ -1898,6 +2116,7 @@ function validateStreamingManifest(value) {
   const commitments = [
     ...sources,
     ...livingFrameOverlays,
+    ...controlledVisualOverlays,
     ...captionOverlays,
     ...voiceTracks,
     ...supplementalAudioTracks,
@@ -1917,6 +2136,7 @@ function validateStreamingManifest(value) {
     inputs: {
       sources,
       livingFrameOverlays,
+      controlledVisualOverlays,
       captionOverlays,
       voiceTracks,
       supplementalAudioTracks,
@@ -2513,6 +2733,9 @@ async function materializeStreamingRequest(manifest, reader, requestHash) {
           throw new Error('streaming audio commitment lost its approved plan')
         }
       }
+      if (commitment.mimeType === 'image/svg+xml') {
+        await validateControlledVisualSvgFile(path, commitment.byteLength)
+      }
       materialized.push({ ...commitment, path })
     }
     await reader.assertEnd()
@@ -2531,6 +2754,15 @@ async function materializeStreamingRequest(manifest, reader, requestHash) {
       livingFrameOverlaySha256: overlay.sha256,
       livingFrameOverlayInternalFilePath: byInputId.get(overlay.inputId).path,
     }))
+    const controlledVisualOverlays =
+      manifest.inputs.controlledVisualOverlays.map((overlay) => ({
+        ...overlay,
+        controlledVisualOverlayMimeType: 'image/svg+xml',
+        controlledVisualOverlayByteLength: overlay.byteLength,
+        controlledVisualOverlaySha256: overlay.sha256,
+        controlledVisualOverlayInternalFilePath:
+          byInputId.get(overlay.inputId).path,
+      }))
     const captionOverlays = manifest.inputs.captionOverlays.map((caption) => ({
       ...caption,
       captionOverlayMimeType: 'image/png',
@@ -2564,6 +2796,9 @@ async function materializeStreamingRequest(manifest, reader, requestHash) {
               ...(livingFrameOverlays.length > 0
                 ? { livingFrameOverlays }
                 : {}),
+              ...(controlledVisualOverlays.length > 0
+                ? { controlledVisualOverlays }
+                : {}),
               ...(captionTrack
                 ? { captionOverlays }
                 : {
@@ -2585,6 +2820,9 @@ async function materializeStreamingRequest(manifest, reader, requestHash) {
               sourceInternalFilePath: sources[0].sourceInternalFilePath,
               ...(livingFrameOverlays.length > 0
                 ? { livingFrameOverlays }
+                : {}),
+              ...(controlledVisualOverlays.length > 0
+                ? { controlledVisualOverlays }
                 : {}),
               ...(captionTrack
                 ? { captionOverlays }
@@ -2615,11 +2853,57 @@ function approvedStreamingInputSignature(bytes, mimeType) {
       bytes[2] === 0xdf && bytes[3] === 0xa3
   }
   if (mimeType === 'image/png') return bytes.subarray(0, 8).toString('hex') === '89504e470d0a1a0a'
+  if (mimeType === 'image/svg+xml') {
+    const prefix = bytes.subarray(0, Math.min(bytes.length, 64))
+      .toString('utf8')
+      .trimStart()
+      .toLowerCase()
+    return prefix.startsWith('<svg')
+  }
   if (mimeType === 'audio/wav') {
     return bytes.subarray(0, 4).toString('ascii') === 'RIFF' &&
       bytes.subarray(8, 12).toString('ascii') === 'WAVE'
   }
   return false
+}
+
+async function validateControlledVisualSvgFile(path, byteLength) {
+  const bytes = await readFile(path)
+  if (bytes.byteLength !== byteLength) {
+    throw new Error('controlled visual SVG changed before validation')
+  }
+  const text = bytes.toString('utf8')
+  if (Buffer.from(text, 'utf8').byteLength !== bytes.byteLength) {
+    throw new Error('controlled visual SVG is not canonical UTF-8')
+  }
+  const normalized = text.trim()
+  const lower = normalized.toLowerCase()
+  const canonicalNamespacePattern =
+    /\sxmlns=(["'])http:\/\/www\.w3\.org\/2000\/svg\1/gi
+  const canonicalNamespaceMatches =
+    normalized.match(canonicalNamespacePattern) ?? []
+  const canonicalXlinkNamespacePattern =
+    /\sxmlns:xlink=(["'])http:\/\/www\.w3\.org\/1999\/xlink\1/gi
+  const canonicalXlinkNamespaceMatches =
+    normalized.match(canonicalXlinkNamespacePattern) ?? []
+  const activeContentScan = normalized
+    .replace(canonicalNamespacePattern, '')
+    .replace(canonicalXlinkNamespacePattern, '')
+  if (
+    !/^<svg(?:\s|>)/.test(lower) ||
+    !lower.endsWith('</svg>') ||
+    canonicalNamespaceMatches.length !== 1 ||
+    canonicalXlinkNamespaceMatches.length > 1 ||
+    /<\s*(?:script|foreignobject|iframe|object|embed|audio|video|image)\b/i
+      .test(normalized) ||
+    /<!doctype|<!entity|<\?xml-stylesheet/i.test(normalized) ||
+    /\b(?:href|xlink:href|src)\s*=/i.test(normalized) ||
+    /\bon[a-z]+\s*=/i.test(normalized) ||
+    /(?:https?:|ftp:|file:|javascript:|data:|url\s*\(|@import)/i
+      .test(activeContentScan)
+  ) {
+    throw new Error('controlled visual SVG contains unsupported active content')
+  }
 }
 
 async function execute(request, options = {}) {
@@ -2745,6 +3029,19 @@ async function execute(request, options = {}) {
                   ),
                 }))
               : [],
+          controlledVisualOverlays:
+            !longFormMerge && !deliveryH264Chunk &&
+            Array.isArray(request.payload.controlledVisualOverlays)
+              ? request.payload.controlledVisualOverlays.map((overlay) => ({
+                  outputKey: overlay.outputKey,
+                  ...committedMediaLocation(
+                    overlay,
+                    'bytesBase64',
+                    'controlledVisualOverlayInternalFilePath',
+                    overlay.controlledVisualOverlayByteLength,
+                  ),
+                }))
+              : [],
           supplementalAudioTracks:
             !longFormMerge && !deliveryH264Chunk &&
             Array.isArray(request.payload.supplementalAudioTracks)
@@ -2820,6 +3117,23 @@ async function execute(request, options = {}) {
                 `${mediaServer.origin}/living-frame/${index}.png`,
             }),
           ),
+        }
+      : {}
+  const controlledVisualOverlayRenderPayload =
+    Array.isArray(request.payload.controlledVisualOverlayLayers) &&
+    Array.isArray(request.payload.controlledVisualOverlays) &&
+    request.payload.controlledVisualOverlayLayers.length > 0
+      ? {
+          controlledVisualOverlayPolicy:
+            'approved_structured_svg_below_captions_v1',
+          controlledVisualOverlays:
+            request.payload.controlledVisualOverlayLayers.map(
+              (layer, index) => ({
+                ...layer,
+                controlledVisualOverlayInternalUrl:
+                  `${mediaServer.origin}/controlled-visual/${index}.svg`,
+              }),
+            ),
         }
       : {}
   const voiceRenderPayload = replaceVoice
@@ -2963,6 +3277,7 @@ async function execute(request, options = {}) {
           sourceInternalUrl: `${mediaServer.origin}/source/${index}.${sourceExtension(source.sourceMimeType)}`,
         })),
         ...livingFrameOverlayRenderPayload,
+        ...controlledVisualOverlayRenderPayload,
         ...captionRenderPayload,
         ...voiceRenderPayload,
         ...supplementalAudioRenderPayload,
@@ -2979,6 +3294,7 @@ async function execute(request, options = {}) {
         audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
         sourceInternalUrl: `${mediaServer.origin}/source/0.${sourceExtension(request.payload.sourceMimeType)}`,
         ...livingFrameOverlayRenderPayload,
+        ...controlledVisualOverlayRenderPayload,
         ...captionRenderPayload,
         ...voiceRenderPayload,
         ...supplementalAudioRenderPayload,
@@ -3229,6 +3545,19 @@ async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks, mo
       serveCommittedMedia(request, response, overlay, 'image/png')
       return
     }
+    const controlledVisualOverlayMatch =
+      /^\/controlled-visual\/(\d+)\.svg$/.exec(request.url)
+    if (controlledVisualOverlayMatch) {
+      const overlay = motionAssets.controlledVisualOverlays?.[
+        Number(controlledVisualOverlayMatch[1])
+      ]
+      if (!overlay) {
+        response.writeHead(404).end()
+        return
+      }
+      serveCommittedMedia(request, response, overlay, 'image/svg+xml')
+      return
+    }
     if (request.url === '/motion/subject.png' && motionAssets.subject) {
       serveCommittedMedia(
         request,
@@ -3277,6 +3606,7 @@ function sourceExtension(mimeType) {
   if (mimeType === 'video/mp4') return 'mp4'
   if (mimeType === 'video/x-matroska') return 'mkv'
   if (mimeType === 'image/png') return 'png'
+  if (mimeType === 'image/svg+xml') return 'svg'
   if (mimeType === 'audio/wav') return 'wav'
   throw new Error('source MIME type is unsupported')
 }
@@ -3488,6 +3818,13 @@ function semanticEvidence(request, streaming) {
         request.payload.livingFrameOverlayLayers.length > 0
         ? { approvedLivingFrameOverlayInputServerInjectedWithoutBase64: true }
         : {}),
+      ...(Array.isArray(request.payload.controlledVisualOverlayLayers) &&
+        request.payload.controlledVisualOverlayLayers.length > 0
+        ? {
+            approvedControlledVisualOverlayInputServerInjectedWithoutBase64:
+              true,
+          }
+        : {}),
     } : {}),
     ...(request.payload.renderPurpose === 'private_4k_delivery_master_v1'
       ? {
@@ -3554,6 +3891,14 @@ function semanticEvidence(request, streaming) {
                 approvedLivingFrameOverlayBelowCaptionsApplied: true,
               }
             : {}),
+          ...(Array.isArray(request.payload.controlledVisualOverlayLayers) &&
+            request.payload.controlledVisualOverlayLayers.length > 0
+            ? {
+                approvedControlledVisualOverlayBytesVerified: true,
+                approvedControlledVisualOverlayTimelineApplied: true,
+                approvedControlledVisualOverlayBelowCaptionsApplied: true,
+              }
+            : {}),
           ...(isCaptionTrackProfile(request.payload.compositionProfileId)
             ? { approvedCaptionTrackTimingApplied: true }
             : {}),
@@ -3597,6 +3942,14 @@ function semanticEvidence(request, streaming) {
                   approvedLivingFrameOverlayBytesVerified: true,
                   approvedLivingFrameOverlayTimelineApplied: true,
                   approvedLivingFrameOverlayBelowCaptionsApplied: true,
+                }
+              : {}),
+            ...(Array.isArray(request.payload.controlledVisualOverlayLayers) &&
+              request.payload.controlledVisualOverlayLayers.length > 0
+              ? {
+                  approvedControlledVisualOverlayBytesVerified: true,
+                  approvedControlledVisualOverlayTimelineApplied: true,
+                  approvedControlledVisualOverlayBelowCaptionsApplied: true,
                 }
               : {}),
             ...(isCaptionTrackProfile(request.payload.compositionProfileId)

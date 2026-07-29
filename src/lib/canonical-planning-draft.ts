@@ -41,6 +41,8 @@ const FFPROBE_OPERATION = 'tool.ffprobe.inspect_approved_media.v1'
 const FFMPEG_OPERATION = 'tool.ffmpeg.execute_approved_media_recipe.v1'
 const LIBASS_OPERATION = 'tool.libass.render_approved_caption_track.v1'
 const REMOTION_OPERATION = 'tool.remotion.render_approved_composition.v1'
+const D3_OPERATION = 'tool.d3.render_chart_or_diagram.v1'
+const ECHARTS_OPERATION = 'tool.echarts.render_standard_chart.v1'
 const LONG_FORM_MERGE_COMPOSITION_PROFILE = 'approved_4k_composition_chunk_merge_final_v1'
 const SAFE_KEY = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/
 const SHA256 = /^[a-f0-9]{64}$/
@@ -272,6 +274,32 @@ type ApprovedSourceTransitionAuthority =
       transitions: ApprovedBoundedSourceTransition[]
     }
 
+type ApprovedControlledDataVizOverlay = {
+  toolId: 'd3' | 'echarts'
+  operationId: typeof D3_OPERATION | typeof ECHARTS_OPERATION
+  outputKey: 'controlled-dataviz-overlay-svg'
+  rendererLayerId: 'controlled-dataviz-overlay-layer'
+  visualAssetPlanItemId: string
+  dataVizPlanItemId: string
+  visualTimingItemId: string
+  segmentIds: string[]
+  startFrame: number
+  endFrameExclusive: number
+  x: number
+  y: number
+  width: number
+  height: number
+  intrinsicWidth: number
+  intrinsicHeight: number
+  title: string
+  xAxisLabel: string
+  yAxisLabel: string
+  theme: 'light' | 'dark'
+  data: Array<{ label: string; value: number }>
+  sourceConfidence: 'verified' | 'mock' | 'fictional'
+  safeWording: 'verified data' | 'mock demo data' | 'fictional story data'
+}
+
 export type CanonicalSourceAuthorityItem = {
   sourceSequenceItemId: string
   mediaAssetId: string
@@ -388,6 +416,7 @@ export type CanonicalWorkItemDraft = {
   workItemType:
     | 'validate_approved_snapshot'
     | 'prepare_source_trim'
+    | 'render_chart_asset'
     | 'custom'
     | 'render_remotion_preview'
     | 'render_final_export'
@@ -754,6 +783,14 @@ export function buildCanonicalPlanningDraft(input: {
   if (!editBriefAudioPlanning.ok) {
     return { ok: false, errors: [editBriefAudioPlanning.error] }
   }
+  const controlledDataViz = ideaFirstStorytelling
+    ? { overlay: undefined, blockers: [] as string[] }
+    : deriveApprovedControlledDataVizOverlay({
+        plan,
+        frame,
+        totalFrames,
+        segments: segments.segments,
+      })
   const toolStrategy = ideaFirstStorytelling
     ? storytellingPlanning!.components.toolStrategyPlan
     : {
@@ -763,6 +800,7 @@ export function buildCanonicalPlanningDraft(input: {
       ...(approvedVoiceDeliverySources || approvedColorDeliverySources ||
         sourceSliceMezzanineFinalizationRequired ||
         editBriefAudioPlanning.binding ? ['ffmpeg'] : []),
+      ...(controlledDataViz.overlay ? [controlledDataViz.overlay.toolId] : []),
       'remotion',
       'ffprobe',
     ]),
@@ -771,6 +809,7 @@ export function buildCanonicalPlanningDraft(input: {
       ...(approvedVoiceDeliverySources || approvedColorDeliverySources ||
         sourceSliceMezzanineFinalizationRequired ||
         editBriefAudioPlanning.binding ? [FFMPEG_OPERATION] : []),
+      ...(controlledDataViz.overlay ? [controlledDataViz.overlay.operationId] : []),
       REMOTION_OPERATION,
       FFPROBE_OPERATION,
     ]),
@@ -926,6 +965,8 @@ export function buildCanonicalPlanningDraft(input: {
         approvedColorDeliverySources,
         approvedSourceTransitions,
         editBriefAudioPlanning: editBriefAudioPlanning.binding,
+        controlledDataVizOverlay: controlledDataViz.overlay,
+        controlledDataVizBlockers: controlledDataViz.blockers,
       })
   if (
     !preferenceSnapshotId ||
@@ -964,6 +1005,7 @@ export function buildCanonicalPlanningDraft(input: {
                 policy: 'approved_hard_cuts_only',
                 transitions: [],
               },
+              controlledDataVizOverlay: controlledDataViz.overlay,
             }),
         planningRequestIdSeed: safeKey(plan.planningInputTrace?.fingerprint ?? plan.planningContextTrace?.planningContextId ?? 'named-edit-plan', 'named-edit-plan'),
       }
@@ -1117,6 +1159,8 @@ function privateReviewPublicationBlockers(input: {
   approvedColorDeliverySources: ApprovedColorDeliverySource[] | null
   approvedSourceTransitions: ApprovedSourceTransitionAuthority | null
   editBriefAudioPlanning?: CanonicalEditBriefAudioPlanningBinding
+  controlledDataVizOverlay?: ApprovedControlledDataVizOverlay
+  controlledDataVizBlockers: string[]
 }): string[] {
   const blockers: string[] = []
   const captionCues = approvedCaptionCues(input.plan, input.totalFrames)
@@ -1210,12 +1254,24 @@ function privateReviewPublicationBlockers(input: {
   ) {
     blockers.push('Final timeline segments must map one-to-one to the ordered approved source ranges for this bounded composition.')
   }
-  if ((input.plan.visualAssetPlan?.length ?? 0) > 0) blockers.push('The planned visual assets need their exact canonical tool or provider work items before publication.')
+  blockers.push(...input.controlledDataVizBlockers)
+  if (
+    input.controlledDataVizOverlay &&
+    input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES
+  ) {
+    blockers.push(
+      'Approved data-visualization overlays currently require the bounded direct compositor; chunk-spanning overlay continuity remains closed.',
+    )
+  }
   if ((input.plan.providerPromptPlans?.length ?? 0) > 0) blockers.push('Provider-backed plan items remain gated until their canonical work items are compiled.')
   if (!captionCues) {
     blockers.push('Private canonical review requires one full-duration caption or two to seven safe, ordered, non-overlapping caption cues.')
   }
-  if (hasUnrepresentedVisualTiming(input.plan, input.totalFrames)) {
+  if (hasUnrepresentedVisualTiming(
+    input.plan,
+    input.totalFrames,
+    input.controlledDataVizOverlay,
+  )) {
     blockers.push('Timed visual cues need their own canonical execution work items.')
   }
   const plannedTransitionCount = Math.max(
@@ -1301,6 +1357,7 @@ function buildPrivateReviewCanonicalPlan(input: {
   approvedVoiceDeliverySources: ApprovedVoiceDeliverySource[] | null
   approvedColorDeliverySources: ApprovedColorDeliverySource[] | null
   approvedSourceTransitions: ApprovedSourceTransitionAuthority
+  controlledDataVizOverlay?: ApprovedControlledDataVizOverlay
 }): CanonicalPlanDraft {
   const segmentIds = input.components.segments.map((segment) => segment.segmentId)
   const timingId = safeKey(input.plan.masterTimingPlan?.id ?? 'master-timing-plan', 'master-timing-plan')
@@ -1341,6 +1398,7 @@ function buildPrivateReviewCanonicalPlan(input: {
     input.approvedVoiceDeliverySources?.length ?? 0,
     editBriefAudioItems.length,
     input.approvedColorDeliverySources?.length ?? 0,
+    input.controlledDataVizOverlay ? 1 : 0,
     approvedLongFormChunkPlan ? approvedLongFormChunkPlan.chunkCount + 1 : 1,
   )
   const sourceSequenceComposition = sourceTimeline.length > 1
@@ -1702,6 +1760,70 @@ function buildPrivateReviewCanonicalPlan(input: {
   const colorDependencyKeys = colorWorkItems.map((item) => item.workItemKey)
   const colorRendererLayerIds = colorWorkItems.flatMap((item) =>
     item.expectedOutputs[0]!.rendererLayerIds)
+  const controlledDataVizWorkItems: CanonicalWorkItemDraft[] =
+    input.controlledDataVizOverlay
+      ? [{
+          workItemKey: 'controlled-dataviz-overlay',
+          workItemType: 'render_chart_asset',
+          workerClass: 'controlled_graphics_worker',
+          executionInput: {
+            operation: 'render_approved_chart',
+            approvedToolOperationIds: [
+              input.controlledDataVizOverlay.operationId,
+            ],
+            expectedOutputKeys: [input.controlledDataVizOverlay.outputKey],
+            structuredPayload: {
+              width: input.controlledDataVizOverlay.intrinsicWidth,
+              height: input.controlledDataVizOverlay.intrinsicHeight,
+              title: input.controlledDataVizOverlay.title,
+              xAxisLabel: input.controlledDataVizOverlay.xAxisLabel,
+              yAxisLabel: input.controlledDataVizOverlay.yAxisLabel,
+              theme: input.controlledDataVizOverlay.theme,
+              data: input.controlledDataVizOverlay.data,
+            },
+          },
+          sourceSequenceItemIds: [],
+          sourceCleanupDecisionIds: [],
+          expectedOutputs: [output(
+            input.controlledDataVizOverlay.outputKey,
+            'controlled_structured_dataviz_svg',
+            'generated',
+            'image/svg+xml',
+            {
+              segmentIds: input.controlledDataVizOverlay.segmentIds,
+              timingIds: [
+                timingId,
+                input.controlledDataVizOverlay.visualTimingItemId,
+              ],
+              rendererLayerIds: [
+                input.controlledDataVizOverlay.rendererLayerId,
+              ],
+            },
+          )],
+          dependencyKeys: ['snapshot-validation'],
+          approvedToolIds: [input.controlledDataVizOverlay.toolId],
+          providerExecutionMode: 'none',
+          fallbackPolicy: {},
+          maxAttempts: 2,
+          attemptTimeoutSeconds: 300,
+          scheduledDelaySeconds: 0,
+          maximumCreditBudget: budgets[
+            2 + captionCues.length + voiceWorkItems.length +
+            editBriefAudioWorkItems.length + colorWorkItems.length
+          ]!,
+          required: true,
+        }]
+      : []
+  const controlledDataVizDependencyKeys = controlledDataVizWorkItems.map(
+    (item) => item.workItemKey,
+  )
+  const controlledDataVizRendererLayerIds = controlledDataVizWorkItems.flatMap(
+    (item) => item.expectedOutputs[0]!.rendererLayerIds,
+  )
+  const controlledDataVizTimingIds = [
+    ...new Set(controlledDataVizWorkItems.flatMap((item) =>
+      item.expectedOutputs[0]!.timingIds)),
+  ].filter((id) => id !== timingId)
   const compositionSourceTimeline = colorWorkItems.length > 0
     ? sourceTimeline.map((segment, index) => ({
         ...segment,
@@ -1710,7 +1832,8 @@ function buildPrivateReviewCanonicalPlan(input: {
       }))
     : sourceTimeline
   const finalBudgetIndex = 2 + captionCues.length + voiceWorkItems.length +
-    editBriefAudioWorkItems.length + colorWorkItems.length
+    editBriefAudioWorkItems.length + colorWorkItems.length +
+    controlledDataVizWorkItems.length
   const finalArtifactType = sourceSequenceComposition
     ? captionTrackComposition
       ? 'private_source_sequence_caption_track_4k_delivery_master_v1'
@@ -1784,6 +1907,7 @@ function buildPrivateReviewCanonicalPlan(input: {
       ...voiceWorkItems,
       ...editBriefAudioWorkItems,
       ...colorWorkItems,
+      ...controlledDataVizWorkItems,
       ...(approvedLongFormChunkPlan ? longFormRenderWorkItems : [{
         workItemKey: 'final-export', workItemType: 'render_final_export', workerClass: 'render_worker',
         executionInput: {
@@ -1863,6 +1987,30 @@ function buildPrivateReviewCanonicalPlan(input: {
                   supplementalAudioTracks: approvedEditBriefAudioTracks,
                 }
               : {}),
+            ...(input.controlledDataVizOverlay
+              ? {
+                  controlledVisualOverlayPolicy:
+                    'approved_structured_svg_below_captions_v1',
+                  controlledVisualOverlayLayers: [{
+                    outputKey: input.controlledDataVizOverlay.outputKey,
+                    rendererLayerId:
+                      input.controlledDataVizOverlay.rendererLayerId,
+                    toolId: input.controlledDataVizOverlay.toolId,
+                    startFrame: input.controlledDataVizOverlay.startFrame,
+                    endFrameExclusive:
+                      input.controlledDataVizOverlay.endFrameExclusive,
+                    x: input.controlledDataVizOverlay.x,
+                    y: input.controlledDataVizOverlay.y,
+                    width: input.controlledDataVizOverlay.width,
+                    height: input.controlledDataVizOverlay.height,
+                    fit: 'contain',
+                    opacity: 1,
+                    sourceConfidence:
+                      input.controlledDataVizOverlay.sourceConfidence,
+                    safeWording: input.controlledDataVizOverlay.safeWording,
+                  }],
+                }
+              : {}),
           },
         },
         sourceSequenceItemIds: sourceIds, sourceCleanupDecisionIds: cleanupIds,
@@ -1873,13 +2021,18 @@ function buildPrivateReviewCanonicalPlan(input: {
           'video/mp4',
           {
             segmentIds,
-            timingIds: [timingId, ...transitionTimingIds],
+            timingIds: [
+              timingId,
+              ...transitionTimingIds,
+              ...controlledDataVizTimingIds,
+            ],
             rendererLayerIds: [
               'source-video-layer',
               ...transitionRendererLayerIds,
               ...colorRendererLayerIds,
               ...voiceRendererLayerIds,
               ...editBriefAudioRendererLayerIds,
+              ...controlledDataVizRendererLayerIds,
               ...captionRendererLayerIds,
             ],
           },
@@ -1890,6 +2043,7 @@ function buildPrivateReviewCanonicalPlan(input: {
           ...voiceDependencyKeys,
           ...editBriefAudioDependencyKeys,
           ...colorDependencyKeys,
+          ...controlledDataVizDependencyKeys,
         ], approvedToolIds: ['remotion'], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
         attemptTimeoutSeconds: 1_800, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[finalBudgetIndex]!, required: true,
       }]),
@@ -1909,13 +2063,18 @@ function buildPrivateReviewCanonicalPlan(input: {
           'application/json',
           {
             segmentIds,
-            timingIds: [timingId, ...transitionTimingIds],
+            timingIds: [
+              timingId,
+              ...transitionTimingIds,
+              ...controlledDataVizTimingIds,
+            ],
             rendererLayerIds: [
               'source-video-layer',
               ...transitionRendererLayerIds,
               ...colorRendererLayerIds,
               ...voiceRendererLayerIds,
               ...editBriefAudioRendererLayerIds,
+              ...controlledDataVizRendererLayerIds,
               ...captionRendererLayerIds,
             ],
           },
@@ -2458,6 +2617,7 @@ function fitBudgets(
   voiceTrackCount: number,
   editBriefAudioTrackCount: number,
   colorSourceCount: number,
+  controlledDataVizCount: number,
   remotionStageCount = 1,
 ): number[] {
   const remotionBudgets = remotionStageCount === 1
@@ -2473,6 +2633,7 @@ function fitBudgets(
     ...Array.from({ length: voiceTrackCount }, () => 2),
     ...Array.from({ length: editBriefAudioTrackCount }, () => 2),
     ...Array.from({ length: colorSourceCount }, () => 2),
+    ...Array.from({ length: controlledDataVizCount }, () => 1),
     ...remotionBudgets,
     2,
   ]
@@ -2600,7 +2761,344 @@ function approvedCaptionCues(
   return cues
 }
 
-function hasUnrepresentedVisualTiming(plan: EditPlan, totalFrames: number): boolean {
+function deriveApprovedControlledDataVizOverlay(input: {
+  plan: EditPlan
+  frame: { width: number; height: number }
+  totalFrames: number
+  segments: CanonicalPlanComponentsDraft['segments']
+}): {
+  overlay?: ApprovedControlledDataVizOverlay
+  blockers: string[]
+} {
+  const dataVizPlan = input.plan.dataVizPlan
+  const visualAssets = input.plan.visualAssetPlan ?? []
+  const dataVizItems = dataVizPlan?.items ?? []
+  const hasDataVizIntent =
+    dataVizItems.length > 0 ||
+    visualAssets.some((asset) => asset.dataVizPlanItemId !== undefined)
+  if (visualAssets.length === 0) {
+    return hasDataVizIntent
+      ? {
+          blockers: [
+            'Planned visual work must resolve to one exact source-safe D3 or ECharts overlay before private publication.',
+          ],
+        }
+      : { blockers: [] }
+  }
+  if (!hasDataVizIntent) {
+    return {
+      blockers: [
+        'Planned visual work must resolve to one exact source-safe D3 or ECharts overlay before private publication.',
+      ],
+    }
+  }
+
+  const blocker =
+    'Planned visual work must resolve to one exact source-safe D3 or ECharts overlay before private publication.'
+  const fail = (): { blockers: string[] } => ({ blockers: [blocker] })
+  if (
+    dataVizPlan?.active !== true ||
+    dataVizItems.length !== 1 ||
+    visualAssets.length !== 1 ||
+    (input.plan.providerPromptPlans?.length ?? 0) > 0
+  ) return fail()
+
+  const item = dataVizItems[0]!
+  const asset = visualAssets[0]!
+  const toolId = item.preferredTool
+  if (
+    (toolId !== 'd3' && toolId !== 'echarts') ||
+    item.toolIds.length !== 1 ||
+    item.toolIds[0] !== toolId ||
+    dataVizPlan.toolsPlanned.length !== 1 ||
+    dataVizPlan.toolsPlanned[0] !== toolId ||
+    asset.dataVizPlanItemId !== item.id ||
+    item.visualAssetPlanItemId !== asset.id ||
+    (item.assetPlanItemId !== undefined && item.assetPlanItemId !== asset.id) ||
+    asset.assetType !== 'graphic_design_frame' ||
+    asset.providerRoute.primaryModel !== 'none' ||
+    asset.providerRoute.fallbackModels.length !== 0 ||
+    asset.providerRoute.fallbackSteps.length !== 0 ||
+    asset.providerRoute.veoAllowed !== false
+  ) return fail()
+
+  const segment = input.segments.find((candidate) =>
+    candidate.segmentId === item.segmentId)
+  const visualTimings = input.plan.masterTimingPlan?.visualTimingItems ?? []
+  const matchingVisualTimings = visualTimings.filter((timing) =>
+    timing.linkedVisualAssetPlanItemId === asset.id)
+  const visualTiming = matchingVisualTimings[0]
+  if (
+    !segment ||
+    matchingVisualTimings.length !== 1 ||
+    !visualTiming ||
+    visualTiming.linkedSegmentId !== segment.segmentId ||
+    !['chart_or_diagram', 'graphic_explainer', 'graphic_design_frame']
+      .includes(visualTiming.visualType) ||
+    !Number.isInteger(visualTiming.timeRange.startFrame) ||
+    !Number.isInteger(visualTiming.timeRange.endFrame) ||
+    visualTiming.timeRange.startFrame < segment.startFrame ||
+    visualTiming.timeRange.endFrame > segment.endFrameExclusive ||
+    visualTiming.timeRange.endFrame <= visualTiming.timeRange.startFrame ||
+    visualTiming.timeRange.durationFrames !==
+      visualTiming.timeRange.endFrame - visualTiming.timeRange.startFrame ||
+    visualTiming.timeRange.endFrame > input.totalFrames ||
+    (
+      asset.plannedDurationFrames !== undefined &&
+      asset.plannedDurationFrames !== visualTiming.timeRange.durationFrames
+    )
+  ) return fail()
+
+  const dataPlan = item.dataPlan
+  const sourceConfidence = dataPlan.confidence
+  if (
+    sourceConfidence !== 'verified' &&
+    sourceConfidence !== 'mock' &&
+    sourceConfidence !== 'fictional'
+  ) return fail()
+  const safeWording = dataPlan.safeWording.trim().toLowerCase()
+  const confidenceValid =
+    (
+      sourceConfidence === 'verified' &&
+      safeWording === 'verified data' &&
+      dataPlan.sourceNeeded === false &&
+      dataPlan.mockData === false &&
+      dataPlan.fictionalData === false &&
+      validatedDataVizText(dataPlan.sourceLabel, 96) !== null &&
+      !['unknown', 'mock_demo_data', 'fictional_story_data']
+        .includes(dataPlan.dataSourceType)
+    ) ||
+    (
+      sourceConfidence === 'mock' &&
+      safeWording === 'mock demo data' &&
+      dataPlan.sourceNeeded === false &&
+      dataPlan.mockData === true &&
+      dataPlan.fictionalData === false &&
+      dataPlan.dataSourceType === 'mock_demo_data' &&
+      item.title.startsWith('Mock ')
+    ) ||
+    (
+      sourceConfidence === 'fictional' &&
+      safeWording === 'fictional story data' &&
+      dataPlan.sourceNeeded === false &&
+      dataPlan.mockData === false &&
+      dataPlan.fictionalData === true &&
+      dataPlan.dataSourceType === 'fictional_story_data' &&
+      item.title.startsWith('Fictional ')
+    )
+  if (
+    !confidenceValid ||
+    dataPlan.nodes.length !== 0 ||
+    dataPlan.edges.length !== 0 ||
+    dataPlan.dataPoints.length < 1 ||
+    dataPlan.dataPoints.length > 12
+  ) return fail()
+
+  const title = validatedDataVizText(item.title, 96)
+  const seenPointIds = new Set<string>()
+  const seenLabels = new Set<string>()
+  const data = dataPlan.dataPoints.flatMap((point) => {
+    const id = safeOptionalKey(point.id)
+    const label = validatedDataVizText(point.label, 48)
+    if (
+      !id ||
+      seenPointIds.has(id) ||
+      !label ||
+      seenLabels.has(label) ||
+      typeof point.value !== 'number' ||
+      !Number.isFinite(point.value) ||
+      point.value < 0 ||
+      point.value > 1_000_000_000 ||
+      point.confidence !== sourceConfidence ||
+      (
+        point.unit !== undefined &&
+        validatedDataVizText(point.unit, 48) === null
+      )
+    ) return []
+    seenPointIds.add(id)
+    seenLabels.add(label)
+    return [{ label, value: point.value }]
+  })
+  if (!title || data.length !== dataPlan.dataPoints.length) return fail()
+
+  const units = unique(dataPlan.dataPoints.flatMap((point) =>
+    point.unit ? [point.unit] : []))
+  const yAxisLabel = units.length === 1
+    ? validatedDataVizText(units[0], 48)
+    : 'Value'
+  if (!yAxisLabel) return fail()
+
+  const framePlan = input.plan.aspectRatioFramePlan
+  const canvasWidth = framePlan?.canvasWidth
+  const canvasHeight = framePlan?.canvasHeight
+  const visualZone = item.layout.visualZone ?? framePlan?.visualZone
+  const captionSafeZone = item.layout.captionSafeZone ??
+    framePlan?.captionSafeZone
+  if (
+    typeof canvasWidth !== 'number' ||
+    typeof canvasHeight !== 'number' ||
+    !Number.isInteger(canvasWidth) ||
+    !Number.isInteger(canvasHeight) ||
+    !canvasWidth ||
+    !canvasHeight ||
+    canvasWidth < 360 ||
+    canvasHeight < 360 ||
+    canvasWidth > 7_680 ||
+    canvasHeight > 7_680 ||
+    !visualZone ||
+    !captionSafeZone ||
+    !validBoundedRect(visualZone, canvasWidth, canvasHeight) ||
+    !validBoundedRect(captionSafeZone, canvasWidth, canvasHeight) ||
+    rectanglesIntersect(visualZone, captionSafeZone) ||
+    (
+      item.layout.visualZone !== undefined &&
+      framePlan?.visualZone !== undefined &&
+      !sameRect(item.layout.visualZone, framePlan.visualZone)
+    ) ||
+    (
+      item.layout.captionSafeZone !== undefined &&
+      framePlan?.captionSafeZone !== undefined &&
+      !sameRect(item.layout.captionSafeZone, framePlan.captionSafeZone)
+    )
+  ) return fail()
+
+  const x = Math.round(visualZone.x * input.frame.width / canvasWidth)
+  const y = Math.round(visualZone.y * input.frame.height / canvasHeight)
+  const width = Math.round(visualZone.width * input.frame.width / canvasWidth)
+  const height = Math.round(
+    visualZone.height * input.frame.height / canvasHeight,
+  )
+  if (
+    width < 1 ||
+    height < 1 ||
+    x < 0 ||
+    y < 0 ||
+    x + width > input.frame.width ||
+    y + height > input.frame.height
+  ) return fail()
+  const intrinsic = fitControlledDataVizIntrinsicFrame(width, height)
+  if (!intrinsic) return fail()
+
+  return {
+    blockers: [],
+    overlay: {
+      toolId,
+      operationId: toolId === 'd3' ? D3_OPERATION : ECHARTS_OPERATION,
+      outputKey: 'controlled-dataviz-overlay-svg',
+      rendererLayerId: 'controlled-dataviz-overlay-layer',
+      visualAssetPlanItemId: asset.id,
+      dataVizPlanItemId: item.id,
+      visualTimingItemId: visualTiming.id,
+      segmentIds: [segment.segmentId],
+      startFrame: visualTiming.timeRange.startFrame,
+      endFrameExclusive: visualTiming.timeRange.endFrame,
+      x,
+      y,
+      width,
+      height,
+      intrinsicWidth: intrinsic.width,
+      intrinsicHeight: intrinsic.height,
+      title,
+      xAxisLabel: 'Category',
+      yAxisLabel,
+      theme: dataVizTheme(
+        item.layout.panelBackgroundColor ||
+          framePlan?.panelBackgroundColor ||
+          '#FFFFFF',
+      ),
+      data,
+      sourceConfidence,
+      safeWording: safeWording as ApprovedControlledDataVizOverlay['safeWording'],
+    },
+  }
+}
+
+function validatedDataVizText(
+  value: string | undefined,
+  maximumLength: number,
+): string | null {
+  if (
+    !value ||
+    value !== value.trim() ||
+    value.length > maximumLength ||
+    !/^[\x20-\x7E]+$/.test(value) ||
+    /[<>{}\\[\]]/.test(value) ||
+    /(?:https?:\/\/|file:|data:|javascript:|\.\.\/|\$\(|`|&&|\|\||#!)/i
+      .test(value)
+  ) return null
+  return value
+}
+
+function validBoundedRect(
+  rect: { x: number; y: number; width: number; height: number },
+  canvasWidth: number,
+  canvasHeight: number,
+): boolean {
+  return [rect.x, rect.y, rect.width, rect.height].every(Number.isInteger) &&
+    rect.x >= 0 &&
+    rect.y >= 0 &&
+    rect.width > 0 &&
+    rect.height > 0 &&
+    rect.x + rect.width <= canvasWidth &&
+    rect.y + rect.height <= canvasHeight
+}
+
+function sameRect(
+  left: { x: number; y: number; width: number; height: number },
+  right: { x: number; y: number; width: number; height: number },
+): boolean {
+  return left.x === right.x &&
+    left.y === right.y &&
+    left.width === right.width &&
+    left.height === right.height
+}
+
+function rectanglesIntersect(
+  left: { x: number; y: number; width: number; height: number },
+  right: { x: number; y: number; width: number; height: number },
+): boolean {
+  return left.x < right.x + right.width &&
+    left.x + left.width > right.x &&
+    left.y < right.y + right.height &&
+    left.y + left.height > right.y
+}
+
+function fitControlledDataVizIntrinsicFrame(
+  width: number,
+  height: number,
+): { width: number; height: number } | null {
+  const downScale = Math.min(1, 1_920 / width, 1_080 / height)
+  let fittedWidth = Math.round(width * downScale)
+  let fittedHeight = Math.round(height * downScale)
+  const upScale = Math.max(1, 320 / fittedWidth, 180 / fittedHeight)
+  fittedWidth = Math.round(fittedWidth * upScale)
+  fittedHeight = Math.round(fittedHeight * upScale)
+  if (
+    fittedWidth < 320 ||
+    fittedWidth > 1_920 ||
+    fittedHeight < 180 ||
+    fittedHeight > 1_080
+  ) return null
+  return { width: fittedWidth, height: fittedHeight }
+}
+
+function dataVizTheme(value: string): 'light' | 'dark' {
+  const match = /^#([a-f0-9]{6})$/i.exec(value.trim())
+  if (!match) return 'light'
+  const rgb = match[1]!
+  const red = Number.parseInt(rgb.slice(0, 2), 16)
+  const green = Number.parseInt(rgb.slice(2, 4), 16)
+  const blue = Number.parseInt(rgb.slice(4, 6), 16)
+  return (red * 299 + green * 587 + blue * 114) / 1_000 >= 140
+    ? 'light'
+    : 'dark'
+}
+
+function hasUnrepresentedVisualTiming(
+  plan: EditPlan,
+  totalFrames: number,
+  controlledDataVizOverlay?: ApprovedControlledDataVizOverlay,
+): boolean {
   const visualTimings = plan.masterTimingPlan?.visualTimingItems ?? []
   if (visualTimings.length === 0) return false
 
@@ -2609,6 +3107,10 @@ function hasUnrepresentedVisualTiming(plan: EditPlan, totalFrames: number): bool
 
   const representedCaptionTimingIds = new Set<string>()
   return visualTimings.some((visualTiming) => {
+    if (
+      controlledDataVizOverlay &&
+      visualTiming.id === controlledDataVizOverlay.visualTimingItemId
+    ) return false
     if (
       visualTiming.visualType !== 'caption_only' ||
       visualTiming.linkedVisualAssetPlanItemId !== undefined ||

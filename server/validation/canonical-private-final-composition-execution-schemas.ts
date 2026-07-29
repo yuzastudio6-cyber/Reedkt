@@ -165,6 +165,75 @@ const approvedLivingFrameOverlaysSchema = z.array(z.object({
   })
 })
 
+const approvedControlledVisualOverlaysSchema = z.array(z.object({
+  outputKey: identity,
+  rendererLayerId: identity,
+  toolId: z.enum(['d3', 'echarts']),
+  startFrame: z.number().int().nonnegative()
+    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES - 1),
+  endFrameExclusive: z.number().int().positive()
+    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES),
+  x: z.number().int().nonnegative().max(7_679),
+  y: z.number().int().nonnegative().max(7_679),
+  width: z.number().int().positive().max(7_680),
+  height: z.number().int().positive().max(7_680),
+  sourceConfidence: z.enum(['verified', 'mock', 'fictional']),
+  safeWording: z.enum([
+    'verified data',
+    'mock demo data',
+    'fictional story data',
+  ]),
+  visualArtifactId: identity,
+  visualSha256: sha,
+  visualByteLength: z.number().int().min(64).max(2 * 1024 * 1024),
+  visualDependencyReadEvidenceHash: sha,
+}).strict()).min(1).max(4).superRefine((overlays, context) => {
+  for (
+    const field of [
+      'outputKey',
+      'rendererLayerId',
+      'visualArtifactId',
+    ] as const
+  ) {
+    if (new Set(overlays.map((overlay) => overlay[field])).size !== overlays.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [field],
+        message: 'Controlled visual overlay identities must be unique.',
+      })
+    }
+  }
+  overlays.forEach((overlay, index) => {
+    const previous = overlays[index - 1]
+    const expectedWording = overlay.sourceConfidence === 'verified'
+      ? 'verified data'
+      : overlay.sourceConfidence === 'mock'
+        ? 'mock demo data'
+        : 'fictional story data'
+    if (
+      overlay.endFrameExclusive <= overlay.startFrame ||
+      overlay.safeWording !== expectedWording ||
+      (
+        previous &&
+        (
+          overlay.startFrame < previous.startFrame ||
+          (
+            overlay.startFrame === previous.startFrame &&
+            overlay.rendererLayerId.localeCompare(previous.rendererLayerId) <= 0
+          )
+        )
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [index, 'startFrame'],
+        message:
+          'Controlled visual overlays must retain safe wording and approved timeline order.',
+      })
+    }
+  })
+})
+
 const approvedColorSourceSchema = z.object({
   sourceSequenceItemId: identity,
   outputKey: identity,
@@ -311,6 +380,7 @@ const finalCompositionDependencyInputsSchema = z.object({
   voiceTracks: approvedVoiceTracksSchema.optional(),
   supplementalAudioTracks: approvedSupplementalAudioTracksSchema.optional(),
   livingFrameOverlays: approvedLivingFrameOverlaysSchema.optional(),
+  controlledVisualOverlays: approvedControlledVisualOverlaysSchema.optional(),
 }).strict()
 
 const captionTrackDependencyInputsSchema = z.object({
@@ -329,6 +399,7 @@ const captionTrackDependencyInputsSchema = z.object({
   voiceTracks: approvedVoiceTracksSchema.optional(),
   supplementalAudioTracks: approvedSupplementalAudioTracksSchema.optional(),
   livingFrameOverlays: approvedLivingFrameOverlaysSchema.optional(),
+  controlledVisualOverlays: approvedControlledVisualOverlaysSchema.optional(),
 }).strict()
 
 const singleSourceFinalCompositionInputsSchema = finalCompositionDependencyInputsSchema.extend({
@@ -457,6 +528,9 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     approvedLivingFrameOverlayDependencyRead: z.boolean(),
     approvedLivingFrameOverlayTimelineApplied: z.boolean(),
     approvedLivingFrameOverlayBelowCaptionsApplied: z.boolean(),
+    approvedControlledVisualOverlayDependencyRead: z.boolean(),
+    approvedControlledVisualOverlayTimelineApplied: z.boolean(),
+    approvedControlledVisualOverlayBelowCaptionsApplied: z.boolean(),
     approvedColorDependencyRead: z.boolean(),
     approvedColorDependencyInputMode: z.enum([
       'not_applicable',
@@ -599,6 +673,27 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
       path: ['tool', 'approvedLivingFrameOverlayTimelineApplied'],
       message:
         'Final-composition Living Frame evidence diverged from its approved layer timeline.',
+    })
+  }
+  const controlledVisualOverlays = value.inputs.controlledVisualOverlays
+  const controlledVisualEnabled = Boolean(controlledVisualOverlays?.length)
+  if (
+    value.tool.approvedControlledVisualOverlayDependencyRead !==
+      controlledVisualEnabled ||
+    value.tool.approvedControlledVisualOverlayTimelineApplied !==
+      controlledVisualEnabled ||
+    value.tool.approvedControlledVisualOverlayBelowCaptionsApplied !==
+      controlledVisualEnabled ||
+    controlledVisualOverlays?.some((overlay) =>
+      overlay.endFrameExclusive > value.qa.frameCount ||
+      overlay.x + overlay.width > value.qa.width ||
+      overlay.y + overlay.height > value.qa.height)
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['tool', 'approvedControlledVisualOverlayTimelineApplied'],
+      message:
+        'Final-composition controlled visual evidence diverged from its approved layer timeline or output frame.',
     })
   }
   const sequenceInputs = 'sources' in value.inputs
@@ -934,6 +1029,9 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
     approvedLivingFrameOverlayDependencyRead: z.boolean(),
     approvedLivingFrameOverlayTimelineApplied: z.boolean(),
     approvedLivingFrameOverlayBelowCaptionsApplied: z.boolean(),
+    approvedControlledVisualOverlayDependencyRead: z.boolean(),
+    approvedControlledVisualOverlayTimelineApplied: z.boolean(),
+    approvedControlledVisualOverlayBelowCaptionsApplied: z.boolean(),
     approvedColorDependencyRead: z.boolean(),
     approvedColorDependencyInputMode: z.enum([
       'not_applicable',
@@ -1046,6 +1144,11 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
     !value.tool.approvedLivingFrameOverlayDependencyRead &&
     !value.tool.approvedLivingFrameOverlayTimelineApplied &&
     !value.tool.approvedLivingFrameOverlayBelowCaptionsApplied
+  const controlledVisualOverlaysAbsent =
+    value.inputs.controlledVisualOverlays === undefined &&
+    !value.tool.approvedControlledVisualOverlayDependencyRead &&
+    !value.tool.approvedControlledVisualOverlayTimelineApplied &&
+    !value.tool.approvedControlledVisualOverlayBelowCaptionsApplied
   if (
     value.chunkAuthority.globalEndFrameExclusive - value.chunkAuthority.globalStartFrame !==
       value.chunkAuthority.durationFrames ||
@@ -1055,6 +1158,7 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
     !transitionEvidenceValid ||
     !supplementalAudioAbsent ||
     !livingFrameOverlaysAbsent ||
+    !controlledVisualOverlaysAbsent ||
     (cost && (
       cost.identity.toolId !== 'remotion' ||
       cost.identity.workloadProfileId !==

@@ -5006,6 +5006,34 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
           </section>
         )
       case 'private_review':
+        if (canonicalPrivateReviewRecovered) {
+          return (
+            <section
+              className="clean-edit-step clean-private-review"
+              data-testid="canonical-private-review-stage-summary"
+            >
+              <header className="clean-edit-step-header">
+                <div>
+                  <span className="clean-edit-step-count">Private review</span>
+                  <h2>{canonicalPrivateReviewAccepted ? 'Review approved' : 'Review the edit'}</h2>
+                  <p>
+                    {canonicalPrivateReviewAccepted
+                      ? 'The exact review decision is saved. Reopen the verified review from Saved workflow above while delivery and release stay gated.'
+                      : 'Load the verified review from Saved workflow above, then approve it or request a fresh revision plan.'}
+                  </p>
+                </div>
+                <span className="clean-edit-step-meta">{visiblePlanEstimateCredits} estimated credits</span>
+              </header>
+              <div className="clean-edit-step-actions">
+                <span>
+                  {canonicalPrivateReviewAccepted
+                    ? 'Review history remains private and read-only. Customer delivery is a separate gated step.'
+                    : 'Playback and review decisions use the verified signed-in review above.'}
+                </span>
+              </div>
+            </section>
+          )
+        }
         return (
           <section className="clean-edit-step clean-private-review" data-testid="private-review">
             <header className="clean-edit-step-header">

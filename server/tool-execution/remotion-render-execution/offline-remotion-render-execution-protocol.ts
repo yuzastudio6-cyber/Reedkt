@@ -78,6 +78,29 @@ interface OfflineRemotionLivingFrameOverlayAuthority {
     OfflineRemotionLivingFrameOverlayPlanningPayload[]
 }
 
+export interface OfflineRemotionControlledVisualOverlayPlanningPayload {
+  outputKey: string
+  rendererLayerId: string
+  toolId: 'd3' | 'echarts'
+  startFrame: number
+  endFrameExclusive: number
+  x: number
+  y: number
+  width: number
+  height: number
+  fit: 'contain'
+  opacity: 1
+  sourceConfidence: 'verified' | 'mock' | 'fictional'
+  safeWording: 'verified data' | 'mock demo data' | 'fictional story data'
+}
+
+interface OfflineRemotionControlledVisualOverlayAuthority {
+  controlledVisualOverlayPolicy?:
+    'approved_structured_svg_below_captions_v1'
+  controlledVisualOverlayLayers?:
+    OfflineRemotionControlledVisualOverlayPlanningPayload[]
+}
+
 export interface OfflineRemotionPreviewPlanningPayload extends CommonCompositionPayload {
   frameTemplateId: 'approved_full_panel_v1' | 'approved_lower_panel_v1'
   panelBackground: string
@@ -187,7 +210,7 @@ export interface OfflineRemotionMotionStudioRouteDrawPayload extends OfflineRemo
   keyframeBytesBase64: string
 }
 
-export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority, OfflineRemotionLivingFrameOverlayAuthority {
+export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority, OfflineRemotionLivingFrameOverlayAuthority, OfflineRemotionControlledVisualOverlayAuthority {
   compositionProfileId: 'approved_source_caption_final_v1'
   sourceStartFrame: number
   sourceEndFrameExclusive: number
@@ -226,7 +249,7 @@ export interface OfflineRemotionSupplementalAudioTrackPlanningPayload {
     | 'narration_protected_uploaded_sfx_v1'
 }
 
-export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority, OfflineRemotionLivingFrameOverlayAuthority {
+export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority, OfflineRemotionLivingFrameOverlayAuthority, OfflineRemotionControlledVisualOverlayAuthority {
   compositionProfileId: 'approved_source_caption_track_final_v1'
   sourceStartFrame: number
   sourceEndFrameExclusive: number
@@ -282,7 +305,8 @@ export type OfflineRemotionSourceSequenceTransitionPlanningAuthority =
 interface OfflineRemotionSourceSequenceFinalCompositionPlanningPayloadBase extends
   CommonCompositionPayload,
   OfflineRemotionFourKDeliveryMasterAuthority,
-  OfflineRemotionLivingFrameOverlayAuthority {
+  OfflineRemotionLivingFrameOverlayAuthority,
+  OfflineRemotionControlledVisualOverlayAuthority {
   compositionProfileId: 'approved_source_sequence_caption_final_v1'
   sourceSegments: OfflineRemotionSourceSequenceSegmentPlanningPayload[]
   sourceFit: 'contain'
@@ -302,7 +326,8 @@ export type OfflineRemotionSourceSequenceFinalCompositionPlanningPayload =
 interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayloadBase extends
   CommonCompositionPayload,
   OfflineRemotionFourKDeliveryMasterAuthority,
-  OfflineRemotionLivingFrameOverlayAuthority {
+  OfflineRemotionLivingFrameOverlayAuthority,
+  OfflineRemotionControlledVisualOverlayAuthority {
   compositionProfileId: 'approved_source_sequence_caption_track_final_v1'
   sourceSegments: OfflineRemotionSourceSequenceSegmentPlanningPayload[]
   sourceFit: 'contain'
@@ -720,6 +745,9 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     const livingFrameOverlaysProvided =
       Object.hasOwn(raw, 'livingFrameOverlayPolicy') ||
       Object.hasOwn(raw, 'livingFrameOverlayLayers')
+    const controlledVisualOverlaysProvided =
+      Object.hasOwn(raw, 'controlledVisualOverlayPolicy') ||
+      Object.hasOwn(raw, 'controlledVisualOverlayLayers')
     if (
       Object.hasOwn(raw, 'supplementalAudioPolicy') !==
       Object.hasOwn(raw, 'supplementalAudioTracks')
@@ -728,6 +756,12 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
       Object.hasOwn(raw, 'livingFrameOverlayPolicy') !==
       Object.hasOwn(raw, 'livingFrameOverlayLayers')
     ) throw validationFailure('Living Frame overlay policy and layers must be admitted together.')
+    if (
+      Object.hasOwn(raw, 'controlledVisualOverlayPolicy') !==
+      Object.hasOwn(raw, 'controlledVisualOverlayLayers')
+    ) throw validationFailure(
+      'Controlled visual overlay policy and layers must be admitted together.',
+    )
     const deliveryMasterAuthorityProvided = Object.hasOwn(raw, 'renderPurpose')
     const boundedSourceTransitions =
       raw.transitionPolicy === 'approved_bounded_source_transitions_v1'
@@ -744,6 +778,9 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
         : []),
       ...(livingFrameOverlaysProvided
         ? ['livingFrameOverlayPolicy', 'livingFrameOverlayLayers']
+        : []),
+      ...(controlledVisualOverlaysProvided
+        ? ['controlledVisualOverlayPolicy', 'controlledVisualOverlayLayers']
         : []),
       ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
     ], 'source-sequence final composition planning payload')
@@ -840,6 +877,18 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
               ),
           }
         : {}),
+      ...(controlledVisualOverlaysProvided
+        ? {
+            controlledVisualOverlayPolicy:
+              'approved_structured_svg_below_captions_v1' as const,
+            controlledVisualOverlayLayers:
+              controlledVisualOverlayPlanningPayloads(
+                payload.controlledVisualOverlayPolicy,
+                payload.controlledVisualOverlayLayers,
+                common,
+              ),
+          }
+        : {}),
       ...deliveryMasterAuthority,
     } as const
     return captionTrack ? {
@@ -863,6 +912,9 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
   const livingFrameOverlaysProvided =
     Object.hasOwn(raw, 'livingFrameOverlayPolicy') ||
     Object.hasOwn(raw, 'livingFrameOverlayLayers')
+  const controlledVisualOverlaysProvided =
+    Object.hasOwn(raw, 'controlledVisualOverlayPolicy') ||
+    Object.hasOwn(raw, 'controlledVisualOverlayLayers')
   if (
     Object.hasOwn(raw, 'supplementalAudioPolicy') !==
     Object.hasOwn(raw, 'supplementalAudioTracks')
@@ -871,6 +923,12 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     Object.hasOwn(raw, 'livingFrameOverlayPolicy') !==
     Object.hasOwn(raw, 'livingFrameOverlayLayers')
   ) throw validationFailure('Living Frame overlay policy and layers must be admitted together.')
+  if (
+    Object.hasOwn(raw, 'controlledVisualOverlayPolicy') !==
+    Object.hasOwn(raw, 'controlledVisualOverlayLayers')
+  ) throw validationFailure(
+    'Controlled visual overlay policy and layers must be admitted together.',
+  )
   const deliveryMasterAuthorityProvided = Object.hasOwn(raw, 'renderPurpose')
   const payload = exactRecord(value, [
     'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
@@ -884,6 +942,9 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
       : []),
     ...(livingFrameOverlaysProvided
       ? ['livingFrameOverlayPolicy', 'livingFrameOverlayLayers']
+      : []),
+    ...(controlledVisualOverlaysProvided
+      ? ['controlledVisualOverlayPolicy', 'controlledVisualOverlayLayers']
       : []),
     ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
   ], 'final composition planning payload')
@@ -957,6 +1018,18 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
               payload.livingFrameOverlayPolicy,
               payload.livingFrameOverlayLayers,
               common.durationFrames,
+            ),
+        }
+      : {}),
+    ...(controlledVisualOverlaysProvided
+      ? {
+          controlledVisualOverlayPolicy:
+            'approved_structured_svg_below_captions_v1' as const,
+          controlledVisualOverlayLayers:
+            controlledVisualOverlayPlanningPayloads(
+              payload.controlledVisualOverlayPolicy,
+              payload.controlledVisualOverlayLayers,
+              common,
             ),
         }
       : {}),
@@ -1873,6 +1946,140 @@ function livingFrameOverlayPlanningPayloads(
       endFrameExclusive,
       fit: 'fill',
       opacity: 1,
+    }
+  })
+}
+
+function controlledVisualOverlayPlanningPayloads(
+  policy: unknown,
+  value: unknown,
+  composition: Pick<CommonCompositionPayload, 'width' | 'height' | 'durationFrames'>,
+): OfflineRemotionControlledVisualOverlayPlanningPayload[] {
+  if (
+    policy !== 'approved_structured_svg_below_captions_v1' ||
+    !Array.isArray(value) ||
+    value.length < 1 ||
+    value.length > 4
+  ) {
+    throw validationFailure(
+      'Controlled visual composition requires one to four approved SVG overlays.',
+    )
+  }
+  const outputKeys = new Set<string>()
+  const rendererLayerIds = new Set<string>()
+  let previousStartFrame = -1
+  let previousRendererLayerId = ''
+  return value.map((candidate, index) => {
+    const layer = exactRecord(
+      candidate,
+      [
+        'outputKey',
+        'rendererLayerId',
+        'toolId',
+        'startFrame',
+        'endFrameExclusive',
+        'x',
+        'y',
+        'width',
+        'height',
+        'fit',
+        'opacity',
+        'sourceConfidence',
+        'safeWording',
+      ],
+      `controlled visual overlay ${index + 1}`,
+    )
+    const outputKey = safeIdentity(
+      layer.outputKey,
+      'controlled visual outputKey',
+    )
+    const rendererLayerId = safeIdentity(
+      layer.rendererLayerId,
+      'controlled visual rendererLayerId',
+    )
+    const toolId = oneOf(
+      layer.toolId,
+      ['d3', 'echarts'],
+      'controlled visual toolId',
+    )
+    const startFrame = integer(
+      layer.startFrame,
+      0,
+      composition.durationFrames - 1,
+      'controlled visual startFrame',
+    )
+    const endFrameExclusive = integer(
+      layer.endFrameExclusive,
+      1,
+      composition.durationFrames,
+      'controlled visual endFrameExclusive',
+    )
+    const x = integer(layer.x, 0, composition.width - 1, 'controlled visual x')
+    const y = integer(layer.y, 0, composition.height - 1, 'controlled visual y')
+    const width = integer(
+      layer.width,
+      1,
+      composition.width,
+      'controlled visual width',
+    )
+    const height = integer(
+      layer.height,
+      1,
+      composition.height,
+      'controlled visual height',
+    )
+    const sourceConfidence = oneOf(
+      layer.sourceConfidence,
+      ['verified', 'mock', 'fictional'],
+      'controlled visual sourceConfidence',
+    )
+    const safeWording = oneOf(
+      layer.safeWording,
+      ['verified data', 'mock demo data', 'fictional story data'],
+      'controlled visual safeWording',
+    )
+    const expectedSafeWording = sourceConfidence === 'verified'
+      ? 'verified data'
+      : sourceConfidence === 'mock'
+        ? 'mock demo data'
+        : 'fictional story data'
+    if (
+      endFrameExclusive <= startFrame ||
+      x + width > composition.width ||
+      y + height > composition.height ||
+      layer.fit !== 'contain' ||
+      layer.opacity !== 1 ||
+      safeWording !== expectedSafeWording ||
+      outputKeys.has(outputKey) ||
+      rendererLayerIds.has(rendererLayerId) ||
+      startFrame < previousStartFrame ||
+      (
+        startFrame === previousStartFrame &&
+        rendererLayerId.localeCompare(previousRendererLayerId) <= 0
+      )
+    ) {
+      throw validationFailure(
+        'Controlled visual overlay authority is inconsistent or out of order.',
+      )
+    }
+    outputKeys.add(outputKey)
+    rendererLayerIds.add(rendererLayerId)
+    previousStartFrame = startFrame
+    previousRendererLayerId = rendererLayerId
+    return {
+      outputKey,
+      rendererLayerId,
+      toolId,
+      startFrame,
+      endFrameExclusive,
+      x,
+      y,
+      width,
+      height,
+      fit: 'contain',
+      opacity: 1,
+      sourceConfidence,
+      safeWording,
     }
   })
 }

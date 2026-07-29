@@ -409,6 +409,32 @@ export {
   LIVING_FRAME_IPADAPTER_EXTENSION_SOURCE_TREE,
 } from '../../types/living-frame-controlled-illustration-ipadapter-extension'
 
+export {
+  LIVING_FRAME_IPADAPTER_COMBINE_EMBEDS,
+  LIVING_FRAME_IPADAPTER_EMBEDS_SCALING,
+  LIVING_FRAME_IPADAPTER_WEIGHT_TYPES,
+  LIVING_FRAME_IPADAPTER_WORKFLOW_EXTENSION_CLASS,
+  LIVING_FRAME_IPADAPTER_WORKFLOW_EXTENSION_VERSION,
+  LIVING_FRAME_IPADAPTER_WORKFLOW_ISSUE_CODES,
+  LIVING_FRAME_IPADAPTER_WORKFLOW_NODE_CLASSES,
+  LIVING_FRAME_IPADAPTER_WORKFLOW_OPEN_GATES,
+} from '../../types/living-frame-ipadapter-workflow-extension'
+
+export type {
+  LivingFrameIpAdapterCombineEmbeds,
+  LivingFrameIpAdapterEmbedsScaling,
+  LivingFrameIpAdapterWeightType,
+  LivingFrameIpAdapterWorkflowAuthorityBoundary,
+  LivingFrameIpAdapterWorkflowExtension,
+  LivingFrameIpAdapterWorkflowExtensionDraft,
+  LivingFrameIpAdapterWorkflowExtensionEdge,
+  LivingFrameIpAdapterWorkflowExtensionNode,
+  LivingFrameIpAdapterWorkflowIssue,
+  LivingFrameIpAdapterWorkflowIssueCode,
+  LivingFrameIpAdapterWorkflowOpenGate,
+  LivingFrameIpAdapterWorkflowValidationResult,
+} from '../../types/living-frame-ipadapter-workflow-extension'
+
 export type {
   LivingFrameIpAdapterExtensionAuthorityBoundary,
   LivingFrameIpAdapterExtensionBlockedNodeClass,

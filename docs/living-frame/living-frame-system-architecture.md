@@ -2130,3 +2130,13 @@ generic route. The source evaluation proves only that a generic route can be
 represented; it grants no package, artifact, tool, operation, dispatch, work,
 cost, approval, QA, render, runtime, or production authority. See
 `docs/living-frame/living-frame-ipadapter-extension-evaluation.md`.
+
+The corresponding generic workflow-extension contract connects a validated
+stock ComfyUI graph to exactly three additional nodes:
+`CLIPVisionLoader`, `IPAdapterModelLoader`, and `IPAdapterAdvanced`. It
+supersedes the direct stock model-to-sampler edge with a digest-bound
+reference-conditioning path. The IP-Adapter model, CLIP Vision model, and
+reference image remain unresolved content-addressed expectations; no bytes,
+filenames, paths, URLs, runtime selection, or executable prompt enters the
+contract. See
+`docs/living-frame/living-frame-ipadapter-workflow-extension.md`.

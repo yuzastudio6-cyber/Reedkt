@@ -2781,3 +2781,26 @@ processing, renderer-layer manifest, final Remotion composition, and private
 review without creating another snapshot, manifest, QA gate, review system,
 or timing authority. It does not open public delivery, further rendering,
 customer charging, or production.
+
+### Subject-neutral capability coverage
+
+Musashi, a helicopter, and the Strait of Hormuz are controlled examples, not
+product routes or a closed list of supported subjects. Living Frame decisions
+are expressed through modes, narrative purposes, visual verbs, component
+roles, mini-skill activations, capability requirements, truth constraints,
+attention behavior, and fallback order. No canonical work operation contains
+those example subjects.
+
+The subject-neutral regression matrix exercises all five modes across
+scientific process diagrams, financial relationship graphics, archival
+chronologies, product mechanisms, conceptual speaker explanations, geographic
+hybrid expansions, and deliberate non-use for emotionally sensitive delivery.
+It also proves that exact map or data truth remains deterministic, controlled
+illustration is optional rather than universal, every active scene has one
+focal primary, every fallback can resolve to no extra visual, and non-use
+creates no animation capabilities.
+
+The six controlled-illustration capability identifiers are similarly
+subject-neutral. Five describe capabilities inside one shared GPU-host attempt;
+AuraFace is a separate conditional CPU continuity measurement. They do not
+create six tool-registry entries or six independent charges.

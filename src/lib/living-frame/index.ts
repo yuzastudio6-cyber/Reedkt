@@ -1004,3 +1004,17 @@ export type {
   LivingFrameDestinationCompositeMeasurementState,
   LivingFrameDestinationCompositeOpenGate,
 } from '../../types/living-frame-destination-composite-measurement'
+
+export {
+  CANONICAL_LIVING_FRAME_CONTROLLED_ILLUSTRATION_COST_WORK_BINDING_COMPONENT_KEY,
+  CANONICAL_LIVING_FRAME_CONTROLLED_ILLUSTRATION_COST_WORK_BINDING_SOURCE,
+  CANONICAL_LIVING_FRAME_CONTROLLED_ILLUSTRATION_COST_WORK_BINDING_VERSION,
+} from '../../types/living-frame-controlled-illustration-cost-work-binding'
+
+export type {
+  CanonicalLivingFrameControlledIllustrationCostWorkBinding,
+  CanonicalLivingFrameControlledIllustrationCostWorkBindingAuthorityBoundary,
+  CanonicalLivingFrameControlledIllustrationCostWorkBindingDraft,
+  CanonicalLivingFrameControlledIllustrationExpectedOutput,
+  CanonicalLivingFrameControlledIllustrationSceneCostWorkBinding,
+} from '../../types/living-frame-controlled-illustration-cost-work-binding'

@@ -401,6 +401,8 @@ function compileInfrastructureEstimateLineItem(input: {
       input.costComponent.componentId,
     activeControlledIllustrationCapabilityIds:
       input.costComponent.activeCapabilityIds,
+    generatedAssetIntentIds:
+      input.costComponent.generatedAssetIntentIds,
     generationUnitCount:
       input.costComponent.generationUnitCount,
     attemptOrComparisonCount:

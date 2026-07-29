@@ -102,7 +102,7 @@ const publication = {
       scenePlans: [{
         sceneId,
         mode: 'living_still',
-        sourceTruthMode: 'illustrative',
+        sourceTruthMode: 'canonical_illustrative_interpretation',
         narrativePurposeCode: 'explain_process',
         visualVerb: 'reveal',
         importance: 'hero',

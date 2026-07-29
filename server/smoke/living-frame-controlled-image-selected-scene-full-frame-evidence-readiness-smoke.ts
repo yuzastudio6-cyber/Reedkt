@@ -30,7 +30,7 @@ const fullFrameObservation = await observe(
   fullFrameFixture.receipt,
   createOpaqueRgbPng(1_920, 1_080),
 )
-const input = {
+export const input = {
   selectedSceneRequest:
     fullFrameFixture.selectedSceneRequest,
   selectedSceneRequestInput:
@@ -44,7 +44,7 @@ const input = {
     fullFrameFixture.selectedSceneRequestInput
       .workGraphProjection,
 } as const
-const readiness =
+export const readiness =
   await compileLivingFrameControlledImageSelectedSceneFullFrameEvidenceReadiness(
     input,
   )

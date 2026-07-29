@@ -69,10 +69,17 @@ The receipt identifies, but does not replace:
 - `canonical_private_review_assembly_service`; and
 - Remotion as the final-canvas owner.
 
-The selected fixture carries a Visual Continuity Pack, so an approved reference
-artifact and continuity evidence remain required. Its current illustrative
-source-truth mode still requires canonical source-truth revalidation; it does
-not manufacture a documentary-fact approval.
+The selected fixture carries a Visual Continuity Pack, so semantic
+style-continuity evidence remains required. That fact alone does **not** prove
+that a raster reference exists or that the aligned-same-view deterministic
+measurement applies. The follow-up
+`living-frame-controlled-image-selected-scene-full-frame-continuity-fact-reconciliation-v1`
+derives those requirements from the exact request unit: the current
+background plate is not reference-conditioned, so it requires semantic style
+QA but not a fabricated raster reference or aligned measurement. Its current
+canonical-illustrative source-truth mode still requires provenance and
+canonical source-truth revalidation; it does not manufacture documentary-fact
+approval.
 
 ## Artifact policy
 

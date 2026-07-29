@@ -65,7 +65,7 @@ authority.
 | Five Living Frame modes | `verified_source_contract` | `src/types/living-frame.ts`, `server/smoke/living-frame-subject-neutral-capability-matrix-smoke.ts` | Mode-specific production media benchmarks remain release work. |
 | Reusable mini-skill family | `verified_source_contract` | `src/types/living-frame.ts`, `src/lib/living-frame/living-frame-contract.ts`, `server/living-frame/living-frame-semantic-plan-projection.ts` | No new skill taxonomy is needed. |
 | Narrative and animation-aware illustration | `verified_source_contract` | mini-skill identities, component asset intent, synthesis routing, work admission, controlled-illustration qualification | Production generation remains gated by the controlled ComfyUI operation or another approved route. |
-| Visual Continuity Pack | `verified_source_contract` | `src/lib/living-frame/living-frame-visual-continuity-contract.ts`, `docs/living-frame/visual-continuity-pack.md`, continuity measurement and fixtures | Production persistence, reference retention, consent, fairness, and identity-review policy remain backend/release gates. |
+| Visual Continuity Pack | `verified_source_contract` | `src/lib/living-frame/living-frame-visual-continuity-contract.ts`, `docs/living-frame/visual-continuity-pack.md`, continuity measurement and fixtures | Production persistence, reference retention, consent, fairness, and identity-review policy remain backend/release gates. Selected-scene execution currently retains the pack digest but not the validated pack payload or a canonical persisted reference-artifact binding. |
 | Character/object/environment/style consistency | `verified_source_contract` | continuity pack sheets, controlled generic IP-Adapter binding, optional AuraFace measurement-only path | Real project-calibrated continuity thresholds and review evidence remain open. |
 | Component decomposition and rigging | `verified_source_contract` | component asset intent, geometry, rig, background-plate reconstruction, artifact reconciliation | Rich production scene benchmarks remain open; no claim is made that all stills can be safely decomposed. |
 | Alpha, masks, edge cleanup, and destination composite | `verified_private_runtime` | generated-still alpha work graph, rembg route, Sharp RGBA route, selected-scene private opaque-output observation, selected-scene full-frame evidence readiness, alpha measurement, edge decontamination, multi-background/destination-composite evidence | The canonical work-graph owner must admit the exact isolated output of a multi-output selected generation item into the existing rembg → Sharp chain. Full-frame plates now bind to the existing private artifact, continuity, fact-safety, manifest, review, and Remotion owners without entering the alpha branch. Advanced temporal A-roll masks still require a qualified tracking/mask route and real footage benchmarks. |
@@ -83,7 +83,7 @@ authority.
 | Async work graph and asset manifest | `verified_source_contract` | canonical work-graph projection v10, generated source → mask → RGBA → layer manifest → final composition lineage | Released distributed dispatch is still open. |
 | Asset QA and private review | `verified_private_runtime` for the representative trace | generated-still QA projection, destination composite evidence, canonical private-review evidence | Actual ComfyUI output must pass the same gates after L4 release. |
 | Remotion final composition | `verified_private_runtime` | actual 640×360 motion render and actual 3840×2160 H.264/AAC streaming render | Public delivery and production promotion remain false. |
-| Documentary/factual integrity | `verified_source_contract` | source-truth mode, provenance, documentary fact-safety dependencies | Generated illustration must never be presented as authentic evidence. |
+| Documentary/factual integrity | `verified_source_contract` | source-truth mode, provenance, documentary fact-safety dependencies, full-frame continuity/fact reconciliation | Generated illustration must never be presented as authentic evidence. The strict selected-scene component interface does not yet carry the approved `documentaryFactSafetyPlan` snapshot component, so exact claim/source evidence remains an explicit canonical-owner bridge. |
 | Subject-neutral behavior | `verified_source_contract` | capability matrix and serialized-evidence name scans | Named examples remain fixtures only. |
 | Backend workflow coordination | `handoff_delivered` | handoff sent to canonical backend task `019f4c76-4ec8-75f3-9cc6-39399dbee47d` for commit `2b19519b` | Backend task must reconcile without changing canonical ownership. |
 
@@ -162,7 +162,16 @@ missing:
    artifact-QA, continuity, documentary-fact, scene-evidence, asset-manifest,
    private-review, and Remotion owners without executing any of them. It
    rejects isolated-output, square-substitution, cross-output, and final-canvas
-   claims. The read-only alpha work-chain reconciliation now proves that the
+   claims. Its continuity/fact reconciliation prevents an overbroad assumption
+   that every Visual Continuity Pack requires a raster reference: the current
+   unconditioned background plate requires semantic style QA, while a persisted
+   reference plus exact alignment registration is required only before the
+   aligned-same-view measurement can become eligible. It also records that the
+   selected-scene interface lacks the validated pack payload, canonical
+   reference-artifact registration, semantic style-QA owner binding, and
+   approved documentary fact-safety snapshot needed for later evidence. A
+   process-private reference alias is never promoted into evidence. The
+   read-only alpha work-chain reconciliation now proves that the
    isolated output cannot yet enter the existing canonical rembg → Sharp
    branch: the work graph currently rejects an exact generated source when its
    parent generation item has multiple expected outputs, and the selected
@@ -239,7 +248,10 @@ Passed:
   reconciliation that fail-closes on the shared multi-output generation →
   rembg interface conflict without mutating the canonical work graph, and
   full-frame evidence readiness that binds the confirmed-ratio plate to the
-  existing artifact/QA/continuity/fact/manifest/review/Remotion owners;
+  existing artifact/QA/continuity/fact/manifest/review/Remotion owners, plus
+  continuity/fact reconciliation that separates semantic style QA from
+  reference-conditioned aligned measurement and preserves the missing
+  canonical evidence bridges;
 - selected execution/security smokes;
 - repository secret scan;
 - frontend/server boundary scan; and

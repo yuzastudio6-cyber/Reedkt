@@ -756,3 +756,22 @@ export type {
   LivingFrameControlledSdxlCompatibilityBenchmarkSpecDraft,
   LivingFrameControlledSdxlCompatibilityBenchmarkThreshold,
 } from '../../types/living-frame-controlled-sdxl-compatibility-benchmark-spec'
+
+export {
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_ADMISSION_AUDIT_CLASS,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_ADMISSION_AUDIT_ISSUES,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_ADMISSION_AUDIT_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_ADMISSION_AUDIT_STATES,
+  LIVING_FRAME_CONTROLLED_SDXL_BENCHMARK_ADMISSION_AUDIT_VERSION,
+} from '../../types/living-frame-controlled-sdxl-benchmark-admission-audit'
+
+export type {
+  LivingFrameControlledSdxlBenchmarkAdmissionAudit,
+  LivingFrameControlledSdxlBenchmarkAdmissionAuditAuthority,
+  LivingFrameControlledSdxlBenchmarkAdmissionAuditDraft,
+  LivingFrameControlledSdxlBenchmarkAdmissionAuditIssue,
+  LivingFrameControlledSdxlBenchmarkAdmissionAuditIssueCode,
+  LivingFrameControlledSdxlBenchmarkAdmissionAuditOpenGate,
+  LivingFrameControlledSdxlBenchmarkAdmissionAuditState,
+  LivingFrameControlledSdxlBenchmarkRegistryObservation,
+} from '../../types/living-frame-controlled-sdxl-benchmark-admission-audit'

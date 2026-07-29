@@ -2381,3 +2381,13 @@ canonical repository identities, read-only mounts, GPU admission, measured
 results, legal review, dispatch, assets, QA, selection, approval, and
 production remain false. See
 `docs/living-frame/living-frame-controlled-sdxl-compatibility-benchmark-spec.md`.
+
+The companion
+`living-frame-controlled-sdxl-benchmark-admission-audit-v2` reads the current
+server tool catalog and operation registry directly. It confirms that
+ComfyUI is an evaluation-only, non-E2E GPU capability candidate, not yet a
+production tool or registered operation. The audit can later revalidate an
+exact five-artifact canonical binding and its single-use read-only
+presentation, but it still cannot treat that local presentation as a
+distributed Cloud Run GPU mount. See
+`docs/living-frame/living-frame-controlled-sdxl-benchmark-admission-audit.md`.

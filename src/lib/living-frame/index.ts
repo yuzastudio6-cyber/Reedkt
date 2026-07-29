@@ -410,6 +410,72 @@ export {
 } from '../../types/living-frame-controlled-illustration-ipadapter-extension'
 
 export {
+  LIVING_FRAME_CONTROL_IMAGE_CANNY_CLASS,
+  LIVING_FRAME_CONTROL_IMAGE_CANNY_PROFILE,
+  LIVING_FRAME_CONTROL_IMAGE_CANNY_VERSION,
+} from '../../types/living-frame-control-image-canny'
+
+export type {
+  LivingFrameControlImageCannyAuthorityBoundary,
+  LivingFrameControlImageCannyMetrics,
+  LivingFrameControlImageCannyReport,
+  LivingFrameControlImageCannyReportDraft,
+} from '../../types/living-frame-control-image-canny'
+
+export {
+  LIVING_FRAME_CONTROL_IMAGE_DEPTH_CLASS,
+  LIVING_FRAME_CONTROL_IMAGE_DEPTH_PROFILE,
+  LIVING_FRAME_CONTROL_IMAGE_DEPTH_VERSION,
+} from '../../types/living-frame-control-image-depth'
+
+export type {
+  LivingFrameControlImageDepthAuthorityBoundary,
+  LivingFrameControlImageDepthMetrics,
+  LivingFrameControlImageDepthReport,
+  LivingFrameControlImageDepthReportDraft,
+} from '../../types/living-frame-control-image-depth'
+
+export {
+  LIVING_FRAME_CONTROL_IMAGE_POSE_CLASS,
+  LIVING_FRAME_CONTROL_IMAGE_POSE_PROFILE,
+  LIVING_FRAME_CONTROL_IMAGE_POSE_VERSION,
+  LIVING_FRAME_POSE_KEYPOINTS,
+} from '../../types/living-frame-control-image-pose'
+
+export type {
+  LivingFrameControlImagePoseAuthorityBoundary,
+  LivingFrameControlImagePoseMetrics,
+  LivingFrameControlImagePoseReport,
+  LivingFrameControlImagePoseReportDraft,
+  LivingFramePoseKeypoint,
+  LivingFramePoseLandmark,
+  LivingFramePosePerson,
+} from '../../types/living-frame-control-image-pose'
+
+export {
+  LIVING_FRAME_CONTROL_IMAGE_KINDS,
+  LIVING_FRAME_CONTROL_IMAGE_WORKFLOW_BINDING_CLASS,
+  LIVING_FRAME_CONTROL_IMAGE_WORKFLOW_BINDING_ISSUE_CODES,
+  LIVING_FRAME_CONTROL_IMAGE_WORKFLOW_BINDING_OPEN_GATES,
+  LIVING_FRAME_CONTROL_IMAGE_WORKFLOW_BINDING_VERSION,
+} from '../../types/living-frame-control-image-workflow-binding'
+
+export type {
+  LivingFrameCannyControlImageSourceBinding,
+  LivingFrameControlImageKind,
+  LivingFrameControlImageSourceBinding,
+  LivingFrameDepthControlImageSourceBinding,
+  LivingFrameControlImageWorkflowBinding,
+  LivingFrameControlImageWorkflowBindingAuthorityBoundary,
+  LivingFrameControlImageWorkflowBindingDraft,
+  LivingFrameControlImageWorkflowBindingIssue,
+  LivingFrameControlImageWorkflowBindingIssueCode,
+  LivingFrameControlImageWorkflowBindingOpenGate,
+  LivingFrameControlImageWorkflowBindingValidationResult,
+  LivingFramePoseControlImageSourceBinding,
+} from '../../types/living-frame-control-image-workflow-binding'
+
+export {
   LIVING_FRAME_IPADAPTER_COMBINE_EMBEDS,
   LIVING_FRAME_IPADAPTER_EMBEDS_SCALING,
   LIVING_FRAME_IPADAPTER_WEIGHT_TYPES,

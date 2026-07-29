@@ -2149,3 +2149,31 @@ combines stock and extension binding expectations without duplicate or
 dangling identifiers. The result is still non-executable and contains only
 graph metadata and digests. See
 `docs/living-frame/living-frame-ipadapter-merged-workflow.md`.
+
+## Deterministic external ControlNet images
+
+ControlNet does not depend on an unqualified in-graph
+`comfyui_controlnet_aux` node. Living Frame has deterministic reference-pixel
+contracts for three externally prepared control-image kinds:
+
+- Canny: a fixed grayscale, blur, Sobel, non-maximum-suppression, and
+  hysteresis pipeline over bounded RGBA input;
+- depth: a fixed big-endian uint16 depth-sample packet normalized into a
+  measured grayscale RGBA image; and
+- pose: a deterministic COCO-17-style skeleton rasterizer over an already
+  source-bound landmark packet.
+
+These processors do not detect poses, estimate depth, choose the semantic
+control mode, or claim source truth. They transform already admitted inputs
+into deterministic bytes and reports. The control-image workflow binding
+revalidates the matching report, exact output bytes, frame dimensions, and
+the target stock ControlNet graph before replacing its unresolved
+control-image expectation with content-addressed lineage.
+
+No generated artifact is committed by these contracts, and no source
+analysis, model weight, work, asset manifest, tool, dispatch, timing,
+estimate, approval, QA approval, render, runtime, or production authority is
+created. See `docs/living-frame/living-frame-control-image-canny.md`,
+`docs/living-frame/living-frame-control-image-depth.md`,
+`docs/living-frame/living-frame-control-image-pose.md`, and
+`docs/living-frame/living-frame-control-image-workflow-binding.md`.

@@ -604,3 +604,20 @@ export type {
   LivingFrameComfyUiModelArtifactRequirementsDraft,
   LivingFrameComfyUiModelArtifactRequirementState,
 } from '../../types/living-frame-comfyui-model-artifact-requirements'
+
+export {
+  LIVING_FRAME_COMFYUI_READ_ONLY_MODEL_MOUNT_CLASS,
+  LIVING_FRAME_COMFYUI_READ_ONLY_MODEL_MOUNT_ISSUES,
+  LIVING_FRAME_COMFYUI_READ_ONLY_MODEL_MOUNT_OPEN_GATES,
+  LIVING_FRAME_COMFYUI_READ_ONLY_MODEL_MOUNT_VERSION,
+} from '../../types/living-frame-comfyui-read-only-model-mount'
+
+export type {
+  LivingFrameComfyUiReadOnlyModelMount,
+  LivingFrameComfyUiReadOnlyModelMountAuthority,
+  LivingFrameComfyUiReadOnlyModelMountDraft,
+  LivingFrameComfyUiReadOnlyModelMountEntry,
+  LivingFrameComfyUiReadOnlyModelMountIssue,
+  LivingFrameComfyUiReadOnlyModelMountIssueCode,
+  LivingFrameComfyUiReadOnlyModelMountOpenGate,
+} from '../../types/living-frame-comfyui-read-only-model-mount'

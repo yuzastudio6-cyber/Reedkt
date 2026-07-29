@@ -2254,3 +2254,19 @@ Living Frame bundle authority. Repository verification is not compatibility,
 license approval, mounting, dispatch, inference, output QA, cost evidence, or
 production readiness. Those remain separately fail-closed. See
 `docs/living-frame/living-frame-comfyui-canonical-model-artifact-binding.md`.
+
+## Single-use read-only model source presentation
+
+The canonical repository binding can now be consumed through the existing
+single-use read-only model-artifact lease. Each of the five ordered model
+roles is verified before and after presentation to one process-bound
+`comfyui.private-inference` consumer. The consumer receives a server-derived
+alias only inside its callback; the returned evidence contains identities and
+digests, never host paths, aliases, URLs, credentials, filenames, or bytes.
+
+This proves local canonical source presentation, not a distributed Cloud Run
+mount and not inference. Bundle compatibility, paid-use approval, a canonical
+operation artifact set, signed GPU image, private distribution, selected
+scene/snapshot/work dispatch, output QA, actual attempt-cost evidence, and
+private review remain closed. See
+`docs/living-frame/living-frame-comfyui-read-only-model-mount.md`.

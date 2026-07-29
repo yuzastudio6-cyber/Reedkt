@@ -2773,6 +2773,23 @@ benchmark GPU request cannot substitute for a selected-scene generation
 request. Exact model bytes resolve through the model manifest and read-only
 mounts rather than ordinary per-request input bindings.
 
+The selected-scene controlled-image request projection now closes the
+benchmark-versus-production planning ambiguity. It rereads approved snapshot
+lineage and the current canonical pending work graph, then creates one
+non-executable request unit per generated component output. Each unit binds
+scene, component, asset intent, output key, semantic/component/continuity
+digests, exact control/reference/LoRA slot requirements, final-frame
+expectation, and downstream alpha/QA/manifest/Remotion policy. It contains no
+raw conditioning text, executable ComfyUI graph, model or image bytes, paths,
+URLs, credentials, or caller model choice.
+
+The current qualified `1024 × 1024` operation is admitted only as an isolated
+component source. Source-still and background-plate request units remain
+blocked by a frame-ratio generation extension. This preserves frame-first
+professional composition instead of pretending a square benchmark output is
+a valid final `16:9`, `9:16`, or custom-frame scene. ComfyUI still never owns
+the final canvas.
+
 The atomic mounted-runner source boundary now also freezes the compatible
 release path rather than leaving the root finding as prose. Its canonical
 session digest includes

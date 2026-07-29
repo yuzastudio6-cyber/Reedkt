@@ -13,6 +13,9 @@ import {
   type LivingFrameComfyUiOperationAdmissionCandidateIssueCode,
 } from '../../src/types/living-frame-comfyui-operation-admission-candidate'
 import {
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_REQUEST_VERSION,
+} from '../../src/types/living-frame-controlled-image-selected-scene-request'
+import {
   PRODUCTION_TOOL_IDS,
   getNonE2EToolCapabilityProfile,
   isProductionToolId,
@@ -142,6 +145,8 @@ export async function createLivingFrameComfyUiOperationAdmissionCandidate(
       backendOwnerMustResolveExactToolCountPolicy: true,
     },
     requestProjection: {
+      selectedSceneRequestProjectionContractVersion:
+        LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_REQUEST_VERSION,
       callerRequestContainsRawPrompt: false,
       callerRequestContainsPathUrlCommandOrCredential: false,
       approvedSnapshotRequired: true,
@@ -168,7 +173,7 @@ export async function createLivingFrameComfyUiOperationAdmissionCandidate(
         outputContentType: 'image/png',
       },
       benchmarkRequestMaySubstituteForSelectedSceneRequest: false,
-      selectedSceneRequestProjectionImplemented: false,
+      selectedSceneRequestProjectionImplemented: true,
     },
     workerRuntimeExpectation: {
       workerType: 'gpu_ai_worker',
@@ -363,6 +368,8 @@ function assertCandidateSemantics(
       !== 11_700_367_157
     || draft.requestProjection.benchmarkRequestMaySubstituteForSelectedSceneRequest
       !== false
+    || draft.requestProjection.selectedSceneRequestProjectionImplemented
+      !== true
     || draft.workerRuntimeExpectation.processEntrypointKind
       !== 'fixed_supervised_python_process'
     || draft.workerRuntimeExpectation.genericEntrypointTypeCurrentlySupportsThisKind

@@ -61,8 +61,11 @@ through the canonical model manifest plus released read-only model mounts.
 They must not be forced through the generic per-request artifact-binding byte
 ceiling. The current GPU protocol proves benchmark request materialization,
 but a benchmark request must never substitute for a selected-scene production
-request. The selected-scene request projection remains a required backend
-integration gate.
+request. The server-derived selected-scene request projection now binds the
+approved snapshot, scene, component, continuity, output-frame, estimate,
+pending work, and expected-output lineage without including raw conditioning
+text. The canonical operation must still consume that binding from the
+approved work item before dispatch.
 
 ## Entrypoint gap
 
@@ -125,8 +128,10 @@ fixed launch spec, locked dependency manifest, and exact denied import set.
 It fails closed if the current registry state changes before the backend
 owner consumes it.
 
-The remaining release gates include canonical admission, selected-scene
-request projection, a signed/scanned non-root image, direct-VCS dependency
-disposition, released confinement observation, distributed model mounts,
-license/commercial-use approval, private L4 execution evidence, actual worker
-resource cost, generated-asset QA, private review, and fallback proof.
+The remaining release gates include canonical admission, approved-work-item
+operation binding for each selected-scene request, a signed/scanned non-root
+image, direct-VCS dependency disposition, released confinement observation,
+distributed model mounts, license/commercial-use approval, private L4
+execution evidence, actual worker resource cost, generated-asset QA, private
+review, and fallback proof. Full-frame plate generation additionally remains
+blocked until a frame-ratio profile is qualified.

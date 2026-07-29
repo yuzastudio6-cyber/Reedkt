@@ -1,6 +1,6 @@
 export const
 LIVING_FRAME_COMFYUI_OPERATION_ADMISSION_CANDIDATE_VERSION =
-  'living-frame-comfyui-operation-admission-candidate-v1' as const
+  'living-frame-comfyui-operation-admission-candidate-v2' as const
 
 export const
 LIVING_FRAME_COMFYUI_OPERATION_ADMISSION_CANDIDATE_CLASS =
@@ -16,7 +16,7 @@ LIVING_FRAME_COMFYUI_OPERATION_ADMISSION_CANDIDATE_OPEN_GATES = [
   'canonical_production_tool_identity_required',
   'canonical_operation_seed_and_request_schema_required',
   'fixed_supervised_process_entrypoint_support_required',
-  'selected_scene_request_projection_required',
+  'selected_scene_request_operation_binding_required',
   'signed_scanned_nonroot_gpu_image_required',
   'direct_vcs_dependency_disposition_required',
   'released_import_guard_and_confinement_observation_required',
@@ -122,6 +122,8 @@ export interface LivingFrameComfyUiOperationAdmissionCandidateDraft {
     readonly backendOwnerMustResolveExactToolCountPolicy: true
   }
   readonly requestProjection: {
+    readonly selectedSceneRequestProjectionContractVersion:
+      'living-frame-controlled-image-selected-scene-request-v1'
     readonly callerRequestContainsRawPrompt: false
     readonly callerRequestContainsPathUrlCommandOrCredential: false
     readonly approvedSnapshotRequired: true
@@ -148,7 +150,7 @@ export interface LivingFrameComfyUiOperationAdmissionCandidateDraft {
       readonly outputContentType: 'image/png'
     }
     readonly benchmarkRequestMaySubstituteForSelectedSceneRequest: false
-    readonly selectedSceneRequestProjectionImplemented: false
+    readonly selectedSceneRequestProjectionImplemented: true
   }
   readonly workerRuntimeExpectation: {
     readonly workerType: 'gpu_ai_worker'

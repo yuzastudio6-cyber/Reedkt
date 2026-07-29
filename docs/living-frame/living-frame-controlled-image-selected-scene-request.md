@@ -1,0 +1,132 @@
+# Living Frame controlled-image selected-scene request
+
+Status date: 2026-07-29
+
+Status:
+`selected_scene_request_projected_operation_admission_pending`
+
+This contract closes the planning gap between an approved Living Frame scene
+and the future canonical ComfyUI operation. It is a server-derived,
+non-executable request projection. It does not register ComfyUI, create an
+approved operation binding, dispatch a worker, materialize a prompt, or create
+an asset.
+
+## Required lineage
+
+The compiler revalidates:
+
+- the canonical approved-snapshot lineage binding;
+- the selected Living Frame scene and its Visual Continuity Pack digest;
+- the current execution requirements and MasterTiming lineage;
+- the component asset/work binding;
+- the canonical estimate and controlled-illustration cost/work binding;
+- the canonical pending work graph;
+- the exact generated asset intent and expected output; and
+- the confirmed final output-frame expectation.
+
+The resulting receipt contains digests and server-owned locator identities,
+not raw chat, prompt text, image bytes, model bytes, paths, URLs, commands,
+credentials, or caller-selected model names.
+
+## One request unit per generated component
+
+Each generated opaque still output becomes one request unit. A request unit
+binds:
+
+- one scene, component, asset intent, pending work item, and output key;
+- the semantic direction digest;
+- the animation-aware component direction digest;
+- the approved Visual Continuity Pack digest when reference or identity
+  conditioning is required;
+- the exact private slot kinds needed by the component;
+- the final output-frame expectation;
+- one-image-per-attempt behavior; and
+- the existing downstream alpha, QA, manifest, private-review, and Remotion
+  requirements.
+
+The server derives the private slot policy from the selected component:
+
+```text
+base still generation
+  -> base checkpoint + private positive/negative conditioning
+
+structure-conditioned illustration
+  -> ControlNet checkpoint + externally prepared control image
+
+reference- or identity-conditioned illustration
+  -> generic IP-Adapter + CLIP Vision + approved reference image
+
+approved low-rank adapter use
+  -> LoRA artifact slot
+```
+
+FaceID and unapproved identity adapters remain forbidden. AuraFace is not a
+generation slot; it remains separate optional CPU continuity QA.
+
+## Frame-aware restraint
+
+The currently qualified controlled SDXL operation proves a square
+`1024 × 1024` component output, not arbitrary full-frame generation.
+
+Isolated subjects and separable components may therefore project as
+`isolated_component_square_1024`. Components whose role is a source still,
+opaque background plate, or reconstructed background plate remain
+`blocked_by_full_frame_generation_canvas_extension`.
+
+This is deliberate. A professional Living Frame scene must not silently force
+a `16:9`, `9:16`, or other confirmed output-frame composition into a generic
+square image. The future operation must add a qualified frame-ratio generation
+profile before those request units can become executable.
+
+ComfyUI never owns the final video canvas. Remotion remains the final
+deterministic compositor.
+
+## Benchmark separation
+
+The controlled SDXL compatibility benchmark remains useful for model, node,
+and graph qualification. It cannot substitute for this selected-scene
+request.
+
+The selected-scene request has exact approval, scene, component, asset,
+continuity, timing, frame, estimate, and work lineage that a benchmark case
+does not have.
+
+## Cost and operation boundary
+
+The projection expects exactly one canonical production identity:
+
+```text
+tool: comfyui
+operation: tool.comfyui.generate_controlled_image.v1
+work item: generate_image_asset
+worker: gpu_ai_worker
+accelerator: one NVIDIA L4
+```
+
+ComfyUI, deterministic control-image preparation, ControlNet, generic
+IP-Adapter, and LoRA loading share one GPU-attempt lifetime. They do not
+become five tool charges. AuraFace remains separately attributable optional
+CPU QA.
+
+The five model roles still resolve through the canonical model manifest and
+read-only model mounts. They do not travel in ordinary request artifact
+bindings.
+
+## Remaining gates
+
+The request projection is implemented, but execution remains closed until:
+
+- the backend registry owner admits the one ComfyUI identity and operation;
+- the approved work item receives that exact operation binding;
+- the fixed supervised-process entrypoint is represented canonically;
+- the signed, scanned, non-root image is released;
+- the exact model manifest is mounted read-only;
+- license and paid-use review passes;
+- private GPU dispatch and worker leases exist;
+- actual worker resource-cost receipts exist;
+- generated artifacts pass QA and asset-manifest reconciliation;
+- private review succeeds; and
+- the final Remotion composition passes its existing gates.
+
+Full-frame plate request units additionally require the qualified frame-ratio
+generation extension described above.

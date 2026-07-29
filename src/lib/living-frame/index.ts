@@ -256,6 +256,17 @@ export type {
   LivingFrameComfyUiOperationAdmissionCandidateOpenGate,
 } from '../../types/living-frame-comfyui-operation-admission-candidate'
 
+export type {
+  LivingFrameControlledImageSelectedSceneRequest,
+  LivingFrameControlledImageSelectedSceneRequestAuthority,
+  LivingFrameControlledImageSelectedSceneRequestDraft,
+  LivingFrameControlledImageSelectedSceneRequestIssue,
+  LivingFrameControlledImageSelectedSceneRequestIssueCode,
+  LivingFrameControlledImageSelectedSceneRequestOpenGate,
+  LivingFrameControlledImageSelectedSceneRequestUnit,
+  LivingFrameControlledImageSelectedSceneRequestUnitState,
+} from '../../types/living-frame-controlled-image-selected-scene-request'
+
 export {
   LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_AUTHORITY_BOUNDARY,
   LivingFrameControlledIllustrationSourceObservationError,

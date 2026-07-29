@@ -74,6 +74,10 @@ assert.equal(
   false,
 )
 assert.equal(
+  candidate.requestProjection.selectedSceneRequestProjectionImplemented,
+  true,
+)
+assert.equal(
   candidate.workerRuntimeExpectation.processEntrypointKind,
   'fixed_supervised_python_process',
 )
@@ -166,7 +170,7 @@ const benchmarkSubstitutionForgery = resign({
   requestProjection: {
     ...candidate.requestProjection,
     benchmarkRequestMaySubstituteForSelectedSceneRequest: true,
-    selectedSceneRequestProjectionImplemented: true,
+    selectedSceneRequestProjectionImplemented: false,
   },
 })
 assert.equal(
@@ -238,8 +242,8 @@ console.log(JSON.stringify({
   genericEntrypointExtensionRequired:
     !candidate.workerRuntimeExpectation
       .genericEntrypointTypeCurrentlySupportsThisKind,
-  selectedSceneProjectionOpen:
-    !candidate.requestProjection.selectedSceneRequestProjectionImplemented,
+  selectedSceneProjectionImplemented:
+    candidate.requestProjection.selectedSceneRequestProjectionImplemented,
   openGateCount: candidate.openGateCodes.length,
   adversarialAssertions: 5,
   registryMutated: candidate.registryMutated,

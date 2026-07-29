@@ -1450,7 +1450,7 @@ The v1 source contract classifies exactly six evaluation candidates:
 | `comfyui_controlnet_aux` | preprocessing bundle |
 | ControlNet | model/adapter/checkpoint capability |
 | IP-Adapter | model/adapter/checkpoint capability |
-| PuLID | identity adapter/checkpoint capability |
+| AuraFace | identity-continuity measurement capability |
 | PEFT/LoRA | training/loading mechanism |
 
 This is not a list of six production tool identities. The packet records the
@@ -1467,9 +1467,11 @@ The contract keeps these distinctions fail-closed:
   base model;
 - generic IP-Adapter cannot promote the official FaceID variant, whose model
   card describes it as research-only and non-commercial due to InsightFace;
-- PuLID adapter terms cannot override FLUX.1-dev's non-commercial base-model
-  restriction;
-- PuLID and every other identity-conditioned route also require consent,
+- AuraFace is measurement-only: it cannot generate a likeness, condition an
+  image model, select a scene, or approve identity continuity;
+- AuraFace model-card and license labels do not prove training-data rights,
+  consent, fairness, privacy compliance, or production suitability;
+- AuraFace and every other identity-related route still require consent,
   likeness/deepfake, minor, retention, and documentary-fact-safety review; and
 - PEFT/LoRA framework or mechanism terms cannot qualify a loaded adapter,
   training data, or base model.
@@ -1486,6 +1488,11 @@ gpt-image-2 opaque separable source
 
 It does not call the provider, select a model route, create a mask, or approve
 an asset.
+
+PuLID is a superseded proposal and is not part of the v2 candidate set.
+Generic IP-Adapter plus the approved Visual Continuity Pack provide reference
+conditioning. AuraFace supplies only a separately qualified continuity
+measurement signal.
 
 ## Closed gates after controlled-illustration qualification requirements
 

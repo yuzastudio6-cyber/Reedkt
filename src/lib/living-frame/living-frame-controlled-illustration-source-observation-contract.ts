@@ -140,7 +140,7 @@ const CANDIDATE_CLASS_BY_KEY = {
   comfyui_controlnet_aux: 'preprocessing_bundle',
   controlnet: 'model_adapter_or_checkpoint_capability',
   ip_adapter: 'model_adapter_or_checkpoint_capability',
-  pulid: 'identity_adapter_or_checkpoint_capability',
+  auraface: 'identity_continuity_measurement_capability',
   peft_lora: 'training_or_loading_mechanism',
 } as const satisfies Readonly<
   Record<
@@ -154,7 +154,7 @@ const CANDIDATE_DISPOSITION_BY_KEY = {
   comfyui_controlnet_aux: 'dependency_scope_unresolved',
   controlnet: 'dependency_scope_unresolved',
   ip_adapter: 'dependency_scope_unresolved',
-  pulid: 'noncommercial_route_blocked',
+  auraface: 'continuity_measurement_only_unqualified',
   peft_lora: 'mechanism_only_no_loaded_artifact',
 } as const satisfies Readonly<
   Record<
@@ -238,34 +238,13 @@ const SOURCE_SPECS_BY_CANDIDATE = {
       'research_only_noncommercial_model_card_statement',
     ),
   ],
-  pulid: [
+  auraface: [
     sourceSpec(
-      'github_to_the_beginning_pulid',
-      'source_repository',
-      'source_license',
-      'license_file',
-      'apache_2_0_source_label',
-    ),
-    sourceSpec(
-      'hf_guozinan_pulid',
+      'hf_fal_auraface_v1',
       'model_repository',
       'model_card',
       'readme_model_card',
       'apache_2_0_source_label',
-    ),
-    sourceSpec(
-      'hf_black_forest_labs_flux_1_dev',
-      'model_repository',
-      'model_card',
-      'readme_model_card',
-      'gated_other_license_model_card',
-    ),
-    sourceSpec(
-      'github_deepinsight_insightface',
-      'source_repository',
-      'model_card',
-      'readme_model_card',
-      'research_only_noncommercial_model_card_statement',
     ),
   ],
   peft_lora: [
@@ -321,19 +300,13 @@ const DEPENDENCY_RULE_SPECS = {
       'github_deepinsight_insightface',
     ],
   },
-  pulid_adapter_does_not_promote_flux_base_model: {
-    candidateKeys: ['pulid'],
-    sourceLocatorCodes: [
-      'hf_guozinan_pulid',
-      'hf_black_forest_labs_flux_1_dev',
-    ],
+  auraface_model_card_does_not_prove_training_data_rights: {
+    candidateKeys: ['auraface'],
+    sourceLocatorCodes: ['hf_fal_auraface_v1'],
   },
-  pulid_insightface_identity_dependency_is_unresolved: {
-    candidateKeys: ['pulid'],
-    sourceLocatorCodes: [
-      'hf_guozinan_pulid',
-      'github_deepinsight_insightface',
-    ],
+  auraface_measurement_does_not_authorize_identity_generation: {
+    candidateKeys: ['auraface'],
+    sourceLocatorCodes: ['hf_fal_auraface_v1'],
   },
   peft_does_not_qualify_loaded_adapter_data_or_base_model: {
     candidateKeys: ['peft_lora'],
@@ -937,7 +910,7 @@ function dependencyScopeIssueCode(
   code: LivingFrameControlledIllustrationDependencyScopeRuleCode,
 ): LivingFrameControlledIllustrationSourceObservationIssueCode {
   if (code.includes('faceid')) return 'faceid_promotion_forbidden'
-  if (code.includes('pulid')) return 'pulid_flux_promotion_forbidden'
+  if (code.includes('auraface')) return 'auraface_promotion_forbidden'
   if (code.includes('peft')) return 'loaded_adapter_promotion_forbidden'
   return 'dependency_scope_collapse_forbidden'
 }

@@ -1,5 +1,5 @@
 export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_QUALIFICATION_VERSION =
-  'living-frame-controlled-illustration-qualification-v1' as const
+  'living-frame-controlled-illustration-qualification-v2' as const
 export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_QUALIFICATION_SOURCE =
   'living_frame_controlled_illustration_source_requirements_only' as const
 export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_QUALIFICATION_STATUS =
@@ -14,7 +14,7 @@ export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_CANDIDATE_KEYS = [
   'comfyui_controlnet_aux',
   'controlnet',
   'ip_adapter',
-  'pulid',
+  'auraface',
   'peft_lora',
 ] as const
 export type LivingFrameControlledIllustrationCandidateKey =
@@ -24,7 +24,7 @@ export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_CANDIDATE_CLASSES = [
   'execution_host_orchestrator',
   'preprocessing_bundle',
   'model_adapter_or_checkpoint_capability',
-  'identity_adapter_or_checkpoint_capability',
+  'identity_continuity_measurement_capability',
   'training_or_loading_mechanism',
 ] as const
 export type LivingFrameControlledIllustrationCandidateClass =
@@ -114,7 +114,9 @@ export const LIVING_FRAME_CONTROLLED_ILLUSTRATION_HYPOTHESIS_CODES = [
   'base_adapter_does_not_promote_faceid_variant',
   'faceid_variant_research_only_noncommercial_due_identity_dependency',
   'adapter_terms_do_not_override_base_model_terms',
-  'pulid_flux_route_inherits_flux1_dev_noncommercial_constraint',
+  'model_card_license_label_does_not_prove_training_data_rights',
+  'identity_measurement_does_not_authorize_generation_or_likeness',
+  'measurement_runtime_dependencies_require_independent_qualification',
   'identity_workflow_requires_consent_likeness_and_documentary_review',
   'mechanism_terms_do_not_qualify_loaded_adapters',
 ] as const

@@ -3,9 +3,9 @@
 Status: evaluation-only requirements plus dated controlled source observations
 Production approval: none
 Registry changes in this slice: none
-Contract: `living-frame-controlled-illustration-qualification-v1`
+Contract: `living-frame-controlled-illustration-qualification-v2`
 Source observation contract:
-`living-frame-controlled-illustration-source-observation-v1`
+`living-frame-controlled-illustration-source-observation-v2`
 
 ## Purpose
 
@@ -18,8 +18,9 @@ does not say that six production tool identities should be added. Several are
 models, adapters, checkpoints, or training/loading mechanisms that may belong
 inside one future reviewed runtime profile and artifact manifest.
 
-The source observations below were rechecked on 2026-07-26 and recorded
-against immutable repository revisions in a controlled, non-promotable packet.
+The v2 source packet was rebuilt on 2026-07-28. The AuraFace model-card
+observation was read at the exact revision below; the other candidate
+observations retain their prior exact revisions and digests.
 That packet is not a release pin, package lock, artifact manifest, independent
 source reread, model-weight manifest, legal review, or qualification.
 Code-license labels and model-card statements are dated observations, not
@@ -44,9 +45,7 @@ only so a later reviewer can independently reread the primary source.
 | [IP-Adapter source](https://github.com/tencent-ailab/IP-Adapter) | `62e4af9d0c1ac7d5f8dd386a0ccf2211346af1a2` | Repository source and declared `LICENSE` label |
 | [Generic IP-Adapter collection](https://huggingface.co/h94/IP-Adapter) | `018e402774aeeddd60609b4ecdb7e298259dc729` | Generic model-card label; no FaceID promotion |
 | [IP-Adapter-FaceID](https://huggingface.co/h94/IP-Adapter-FaceID) | `43907e6f44d079bf1a9102d9a6e56aef7a219bae` | Research-only/non-commercial statement tied to InsightFace |
-| [PuLID source](https://github.com/ToTheBeginning/PuLID) | `1aa2fc7df4bf51080df39f355f9abdc1cbfefbaa` | Repository source and declared `LICENSE` label |
-| [PuLID collection](https://huggingface.co/guozinan/PuLID) | `492b1451255dc9d9bc3c857259690b5f8b998d4a` | Adapter model-card label; no base-model promotion |
-| [FLUX.1-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev) | `3de623fc3c33e44ffbe2bad470d0f45bccf2eb21` | Gated model-card terms; no model bytes verified |
+| [AuraFace v1](https://huggingface.co/fal/AuraFace-v1) | `af6d057c9b0ec4071d4c49c80e3539258798b609` | Model-card Apache-2.0 label, intended use, training-data description, limitations, and benchmark claims; no model bytes or rights verified |
 | [InsightFace](https://github.com/deepinsight/insightface) | `1456819742fd09bc4ad5293856a143a3e807c78e` | README distinction between code and pretrained model/training-data use |
 | [PEFT](https://github.com/huggingface/peft) | `051b2c5d9f2a94413418e6a8f65881bb2e31bc71` | Framework source and declared `LICENSE` label |
 
@@ -90,7 +89,7 @@ existing profile is ready for a new Living Frame route.
 | `comfyui_controlnet_aux` | Preprocessing bundle | Repository labels its own code Apache-2.0 and states that it connects copied annotator code to downloaded assets; every annotator source and checkpoint remains separately unqualified | Evaluation only |
 | ControlNet | Model/adapter/checkpoint capability | Reference code repository labels code Apache-2.0; the referenced ControlNet v1.1 weight collection labels itself OpenRAIL | Evaluation only |
 | IP-Adapter | Model/adapter/checkpoint capability | Base code and the referenced generic `h94/IP-Adapter` artifact label themselves Apache-2.0; that observation cannot promote FaceID variants | Evaluation only |
-| PuLID | Identity adapter/checkpoint capability | Adapter source and the referenced PuLID artifact label themselves Apache-2.0; a PuLID-FLUX route still inherits the FLUX.1-dev non-commercial base-model restriction | Evaluation only and safety-blocked |
+| AuraFace | Identity-continuity measurement capability | The exact model card labels the repository Apache-2.0 and describes commercial/public training sources, limitations, demographic variability, and privacy obligations; those statements are controlled observations, not independent rights, fairness, or production qualification | Evaluation only and measurement-only |
 | PEFT/LoRA | Training/loading mechanism | PEFT repository labels framework code Apache-2.0; a LoRA artifact still depends on base-model, data, training, and distribution terms | Evaluation only |
 
 The last four are not automatically separate `ProductionToolId` values. A
@@ -241,19 +240,26 @@ Primary-source starting point:
 - <https://huggingface.co/h94/IP-Adapter>
 - <https://huggingface.co/h94/IP-Adapter-FaceID>
 
-### PuLID
+### AuraFace
 
 Working hypothesis:
 
-- It may provide identity-oriented conditioning for compatible image models.
-- Its repository labels code Apache-2.0, and the referenced
-  `guozinan/PuLID` model card labels that artifact Apache-2.0.
-- Its own project notes and future benchmarking must be consulted for identity
-  fidelity limits.
-- Base-model and checkpoint terms remain separate.
-- A PuLID-FLUX workflow based on FLUX.1-dev inherits the FLUX.1-dev
-  non-commercial license constraint. The PuLID adapter's own label cannot
-  override that base-model restriction.
+- AuraFace is a face-embedding model used only to measure identity continuity
+  between approved references and generated candidates.
+- It is not a generator, identity adapter, likeness creator, or approval
+  authority. Generic IP-Adapter plus the approved Visual Continuity Pack remain
+  the reference-conditioning route.
+- The exact `fal/AuraFace-v1` model card labels the repository Apache-2.0 and
+  describes the model as trained on commercial and publicly available sources.
+  That self-description does not independently prove training-data rights,
+  consent, demographic fairness, privacy compliance, or commercial
+  suitability for ReeditPro.
+- The model card reports ethnicity-dependent performance and training-data
+  limitations. ReeditPro therefore needs project-calibrated thresholds and
+  human review rather than a universal similarity threshold.
+- Every runtime dependency, face detector, aligner, ONNX artifact, and
+  preprocessing implementation requires independent artifact and license
+  qualification.
 
 This route is blocked beyond ordinary technical qualification. It requires:
 
@@ -269,15 +275,23 @@ This route is blocked beyond ordinary technical qualification. It requires:
 - legal approval for the exact deployment.
 
 Historical figures without photographic identity, such as Miyamoto Musashi,
-must use an approved canonical illustrative interpretation. PuLID may not turn
-that interpretation into a claim of verified historical likeness.
+must use an approved canonical illustrative interpretation. AuraFace may
+compare that interpretation with later illustrations, but it cannot turn the
+interpretation into verified historical likeness or evidence.
 
 Primary-source starting point:
 
-- <https://github.com/ToTheBeginning/PuLID>
-- <https://github.com/ToTheBeginning/PuLID/blob/main/LICENSE>
-- <https://huggingface.co/guozinan/PuLID>
-- <https://huggingface.co/black-forest-labs/FLUX.1-dev>
+- <https://huggingface.co/fal/AuraFace-v1>
+- <https://huggingface.co/fal/AuraFace-v1/blob/af6d057c9b0ec4071d4c49c80e3539258798b609/README.md>
+- <https://huggingface.co/fal/AuraFace-v1/blob/af6d057c9b0ec4071d4c49c80e3539258798b609/LICENSE.md>
+- <https://huggingface.co/blog/isidentical/auraface>
+
+### Superseded identity candidate
+
+PuLID is no longer a Living Frame controlled-illustration candidate. The v2
+contract replaces it with AuraFace because ReeditPro needs a separately
+measured continuity signal, not another identity-generation adapter. Historical
+PuLID observations do not authorize installation, fallback, or dispatch.
 
 ### PEFT/LoRA
 

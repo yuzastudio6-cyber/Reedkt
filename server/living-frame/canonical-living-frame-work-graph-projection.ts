@@ -729,12 +729,41 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             || item.workerClass ===
               CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS)
             .length,
-        maximumCreditBudget:
+        assignedWorkItemCreditBudget:
           workItems.reduce(
             (total, item) =>
               total + item.maximumCreditBudget,
             0,
           ),
+        unassignedControlledIllustrationCreditBudget:
+          input.estimateWorkAssetProjection.scenes
+            .flatMap((scene) =>
+              scene.estimateLineItems)
+            .filter((line) =>
+              line.costOwnerClass ===
+                'shared_controlled_illustration_runtime')
+            .reduce(
+              (total, line) =>
+                total + line.estimatedCredits,
+              0,
+            ),
+        maximumCreditBudget:
+          workItems.reduce(
+            (total, item) =>
+              total + item.maximumCreditBudget,
+            0,
+          )
+          + input.estimateWorkAssetProjection.scenes
+            .flatMap((scene) =>
+              scene.estimateLineItems)
+            .filter((line) =>
+              line.costOwnerClass ===
+                'shared_controlled_illustration_runtime')
+            .reduce(
+              (total, line) =>
+                total + line.estimatedCredits,
+              0,
+            ),
       },
       authorityBoundary: AUTHORITY_BOUNDARY,
       createsCanonicalWorkItems: true,

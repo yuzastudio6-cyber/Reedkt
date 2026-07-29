@@ -8,7 +8,7 @@ import type {
 } from './living-frame-asset-work-input-binding'
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION =
-  'canonical-living-frame-work-graph-projection-v6' as const
+  'canonical-living-frame-work-graph-projection-v7' as const
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE =
   'canonical_living_frame_work_graph_projection_compiler' as const
@@ -545,6 +545,9 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
     readonly requiredExpectedOutputCount: number
     readonly gpuPendingWorkItemCount: number
     readonly blockedWorkItemCount: number
+    readonly assignedWorkItemCreditBudget: number
+    readonly unassignedControlledIllustrationCreditBudget:
+      number
     readonly maximumCreditBudget: number
   }
   readonly authorityBoundary:

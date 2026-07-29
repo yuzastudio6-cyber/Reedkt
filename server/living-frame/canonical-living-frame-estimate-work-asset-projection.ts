@@ -13,6 +13,7 @@ import {
   type CanonicalLivingFrameProjectedEstimateLineItem,
   type CanonicalLivingFrameProjectedExecutionPlacement,
   type CanonicalLivingFrameProjectedExpectedOutput,
+  type CanonicalLivingFrameProjectedInfrastructureEstimateLineItem,
   type CanonicalLivingFrameProjectedToolId,
   type CanonicalLivingFrameProjectedWorkItemType,
   type CanonicalLivingFrameProjectedWorkRequirement,
@@ -34,6 +35,12 @@ import {
   estimateProductionToolCost,
 } from '../tool-cost-metering'
 import {
+  COST_MICROS_PER_CENT,
+} from '../tool-cost-metering/rate-card'
+import {
+  CREDIT_RETAIL_VALUE_CENTS,
+} from '../../src/types/credit-policy'
+import {
   listProductionToolProfiles,
 } from '../tool-registry'
 import {
@@ -47,6 +54,12 @@ import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
+import {
+  compileCanonicalLivingFrameControlledIllustrationEstimateBasis,
+} from './canonical-living-frame-controlled-illustration-estimate-basis'
+
+const COST_MICROS_PER_CREDIT =
+  COST_MICROS_PER_CENT * CREDIT_RETAIL_VALUE_CENTS
 
 interface WorkProjectionProfile {
   readonly toolId: CanonicalLivingFrameProjectedToolId
@@ -155,7 +168,7 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
   const productEditLevel = resolveProductEditLevel(
     input.components.confirmedSettings.editLevel,
   )
-  const scenes = input.requirements.scenes.map(
+  const unallocatedScenes = input.requirements.scenes.map(
     (scene, sceneIndex) => {
       const assetWorkScene =
         input.assetWorkInputBinding.scenes.find(
@@ -185,7 +198,7 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
             workInput,
             workKeyByType,
           }))
-      const estimateLineItems = workRequirements.map(
+      const registeredToolEstimateLineItems = workRequirements.map(
         (workRequirement, workIndex) =>
           compileEstimateLineItem({
             identity: input.publication.binding.identity,
@@ -195,6 +208,32 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
             workRequirement,
           }),
       )
+      const generatedAssetIntentIds =
+        assetWorkScene.assetIntents
+          .filter((assetIntent) =>
+            assetIntent.assetKind ===
+              'generated_opaque_still_source'
+            || assetIntent.assetKind ===
+              'controlled_opaque_still_variation_source')
+          .map((assetIntent) =>
+            assetIntent.assetIntentId)
+      const controlledIllustrationEstimateBasis =
+        compileCanonicalLivingFrameControlledIllustrationEstimateBasis({
+          sceneId: scene.sceneId,
+          productEditLevel,
+          generatedAssetIntentIds,
+          capabilityKeys: scene.capabilityKeys,
+        })
+      const controlledIllustrationEstimateLineItems =
+        controlledIllustrationEstimateBasis.costComponents.map(
+          (costComponent, componentIndex) =>
+            compileInfrastructureEstimateLineItem({
+              sceneKey,
+              sceneId: scene.sceneId,
+              componentIndex,
+              costComponent,
+            }),
+        )
       return {
         sceneId: scene.sceneId,
         canonicalSegmentId: scene.canonicalSegmentId,
@@ -202,11 +241,18 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
         endFrameExclusive: scene.endFrameExclusive,
         timingSceneDigestSha256:
           sha256AuthorityValue(timingScene),
-        estimateLineItems,
+        estimateLineItems: [
+          ...controlledIllustrationEstimateLineItems,
+          ...registeredToolEstimateLineItems,
+        ],
         workRequirements,
       }
     },
   )
+  const scenes =
+    allocateCreditsOnceAcrossLivingFrameBundle(
+      unallocatedScenes,
+    )
   const projectedEstimateLineItems = scenes.flatMap(
     (scene) => scene.estimateLineItems,
   )
@@ -268,12 +314,43 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
               work.executionPlacement ===
               'google_cloud_run_gpu',
           ).length,
+        projectedControlledIllustrationGenerationUnitCount:
+          projectedEstimateLineItems.reduce(
+            (total, item) =>
+              total
+              + (
+                item.costOwnerClass ===
+                  'shared_controlled_illustration_runtime'
+                && item
+                  .controlledIllustrationCostComponentId ===
+                  'shared_controlled_illustration_gpu_host'
+                  ? item.generationUnitCount
+                  : 0
+              ),
+            0,
+          ),
+        projectedControlledIllustrationCostComponentCount:
+          projectedEstimateLineItems.filter(
+            (item) =>
+              item.costOwnerClass ===
+                'shared_controlled_illustration_runtime',
+          ).length,
         projectedMaximumInternalToolCostCredits:
           projectedEstimateLineItems.reduce(
             (total, item) =>
               total + item.estimatedCredits,
             0,
           ),
+        projectedMaximumInternalToolCostMicros:
+          projectedEstimateLineItems.reduce(
+            (total, item) =>
+              total
+              + item.costRange
+                .highInternalCostMicros,
+            0,
+          ),
+        controlledIllustrationCreditRoundingAppliedOnceAcrossLivingFrameBundle:
+          true,
         exactProductionToolRegistryCount: 50,
       },
       authorityBoundary: AUTHORITY_BOUNDARY,
@@ -295,6 +372,70 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
   return {
     ...draft,
     projectionDigestSha256: sha256AuthorityValue(draft),
+  }
+}
+
+function compileInfrastructureEstimateLineItem(input: {
+  readonly sceneKey: string
+  readonly sceneId: string
+  readonly componentIndex: number
+  readonly costComponent:
+    ReturnType<
+      typeof compileCanonicalLivingFrameControlledIllustrationEstimateBasis
+    >['costComponents'][number]
+}): CanonicalLivingFrameProjectedInfrastructureEstimateLineItem {
+  return {
+    lineKey:
+      `${input.sceneKey}-${input.costComponent.componentId}-estimate-${String(input.componentIndex + 1).padStart(2, '0')}`,
+    label: input.costComponent.label,
+    category: 'living_frame',
+    estimatedCredits: 0,
+    removable: false,
+    sceneId: input.sceneId,
+    costOwnerClass:
+      'shared_controlled_illustration_runtime',
+    workItemType: null,
+    costOwnerToolId: null,
+    costOwnerOperationId: null,
+    controlledIllustrationCostComponentId:
+      input.costComponent.componentId,
+    activeControlledIllustrationCapabilityIds:
+      input.costComponent.activeCapabilityIds,
+    generationUnitCount:
+      input.costComponent.generationUnitCount,
+    attemptOrComparisonCount:
+      input.costComponent.attemptOrComparisonCount,
+    billableMilliseconds:
+      input.costComponent.billableMilliseconds,
+    executionPlacement:
+      input.costComponent.executionPlacement,
+    cpuFallbackAllowed:
+      input.costComponent.cpuFallbackAllowed,
+    costRange: {
+      lowCredits: 0,
+      expectedCredits: 0,
+      highCredits: 0,
+      lowInternalCostMicros:
+        input.costComponent.costRange
+          .lowInternalCostMicros,
+      expectedInternalCostMicros:
+        input.costComponent.costRange
+          .expectedInternalCostMicros,
+      highInternalCostMicros:
+        input.costComponent.costRange
+          .highInternalCostMicros,
+      riskLevel:
+        input.costComponent.costRange.riskLevel,
+      rateCardVersion:
+        input.costComponent.costRange
+          .rateCardVersion,
+      serviceFeeIncluded: false,
+    },
+    exactFiftyToolRegistryMember: false,
+    operationContractObserved: false,
+    actualAttemptCostEvidenceRequired: true,
+    productionRateAuthority: false,
+    estimateOnly: true,
   }
 }
 
@@ -499,11 +640,14 @@ function compileEstimateLineItem(input: {
     estimatedCredits: cost.data.range.highCredits,
     removable: false,
     sceneId: input.sceneId,
+    costOwnerClass: 'canonical_production_tool',
     workItemType: input.workRequirement.workItemType,
     costOwnerToolId:
       input.workRequirement.costOwnerToolId,
     costOwnerOperationId:
       input.workRequirement.costOwnerOperationId,
+    controlledIllustrationCostComponentId: null,
+    activeControlledIllustrationCapabilityIds: [],
     executionPlacement:
       input.workRequirement.executionPlacement,
     cpuFallbackAllowed:
@@ -525,8 +669,149 @@ function compileEstimateLineItem(input: {
     },
     exactFiftyToolRegistryMember: true,
     operationContractObserved: true,
+    actualAttemptCostEvidenceRequired: true,
+    productionRateAuthority: false,
     estimateOnly: true,
   }
+}
+
+export function allocateCreditsOnceAcrossLivingFrameBundle<
+  TScene extends {
+    readonly estimateLineItems:
+      readonly CanonicalLivingFrameProjectedEstimateLineItem[]
+  },
+>(
+  scenes: readonly TScene[],
+): TScene[] {
+  const lineItems = scenes.flatMap(
+    (scene) => scene.estimateLineItems,
+  ).filter((lineItem) =>
+    lineItem.costOwnerClass ===
+      'shared_controlled_illustration_runtime')
+  if (lineItems.length === 0) {
+    return scenes.map((scene) => ({
+      ...scene,
+      estimateLineItems: [
+        ...scene.estimateLineItems,
+      ],
+    }))
+  }
+  const lowCreditsByLineKey =
+    allocateCreditsByExactMicros(
+      lineItems,
+      'lowInternalCostMicros',
+    )
+  const expectedCreditsByLineKey =
+    allocateCreditsByExactMicros(
+      lineItems,
+      'expectedInternalCostMicros',
+    )
+  const highCreditsByLineKey =
+    allocateCreditsByExactMicros(
+      lineItems,
+      'highInternalCostMicros',
+    )
+  const allocatedByLineKey = new Map(
+    lineItems.map((lineItem) => {
+      const lowCredits =
+        lowCreditsByLineKey.get(lineItem.lineKey) ?? 0
+      const expectedCredits =
+        expectedCreditsByLineKey.get(
+          lineItem.lineKey,
+        ) ?? 0
+      const highCredits =
+        highCreditsByLineKey.get(
+          lineItem.lineKey,
+        ) ?? 0
+      return [
+        lineItem.lineKey,
+        {
+          ...lineItem,
+          estimatedCredits: highCredits,
+          costRange: {
+            ...lineItem.costRange,
+            lowCredits,
+            expectedCredits,
+            highCredits,
+          },
+        },
+      ]
+    }),
+  )
+  return scenes.map((scene) => ({
+    ...scene,
+    estimateLineItems:
+      scene.estimateLineItems.map(
+        (lineItem) =>
+          allocatedByLineKey.get(lineItem.lineKey)
+          ?? lineItem,
+      ),
+  }))
+}
+
+function allocateCreditsByExactMicros(
+  lineItems:
+    readonly CanonicalLivingFrameProjectedEstimateLineItem[],
+  microsField:
+    | 'lowInternalCostMicros'
+    | 'expectedInternalCostMicros'
+    | 'highInternalCostMicros',
+): Map<string, number> {
+  const totalMicros = lineItems.reduce(
+    (total, lineItem) =>
+      total + lineItem.costRange[microsField],
+    0,
+  )
+  if (
+    !Number.isSafeInteger(totalMicros)
+    || totalMicros < 0
+  ) {
+    throw conflict(
+      'Canonical Living Frame estimate cost exceeds safe integer bounds.',
+    )
+  }
+  const totalCredits = Math.ceil(
+    totalMicros / COST_MICROS_PER_CREDIT,
+  )
+  const allocations = new Map<string, number>()
+  const remainders = lineItems.map((lineItem) => {
+    const micros = lineItem.costRange[microsField]
+    const wholeCredits = Math.floor(
+      micros / COST_MICROS_PER_CREDIT,
+    )
+    allocations.set(lineItem.lineKey, wholeCredits)
+    return {
+      lineKey: lineItem.lineKey,
+      remainder:
+        micros % COST_MICROS_PER_CREDIT,
+    }
+  }).sort((left, right) =>
+    right.remainder - left.remainder
+    || left.lineKey.localeCompare(right.lineKey))
+  let remainingCredits =
+    totalCredits
+    - [...allocations.values()].reduce(
+      (total, value) => total + value,
+      0,
+    )
+  for (
+    let index = 0;
+    remainingCredits > 0;
+    index += 1
+  ) {
+    const target = remainders[index]
+    if (!target) {
+      throw conflict(
+        'Canonical Living Frame estimate credit allocation could not reconcile its total.',
+      )
+    }
+    allocations.set(
+      target.lineKey,
+      (allocations.get(target.lineKey) ?? 0) + 1,
+    )
+    remainingCredits -= 1
+  }
+  return allocations
 }
 
 function assertExactToolOperation(

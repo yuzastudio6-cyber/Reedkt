@@ -352,10 +352,26 @@ function compileLivingFrameEstimateLines(
         projectionDigestSha256:
           projection.projectionDigestSha256,
         sceneId: item.sceneId,
+        costOwnerClass: item.costOwnerClass,
         workItemType: item.workItemType,
         costOwnerToolId: item.costOwnerToolId,
         costOwnerOperationId:
           item.costOwnerOperationId,
+        controlledIllustrationCostComponentId:
+          item.controlledIllustrationCostComponentId,
+        activeControlledIllustrationCapabilityIds:
+          item.activeControlledIllustrationCapabilityIds,
+        ...(item.costOwnerClass ===
+          'shared_controlled_illustration_runtime'
+          ? {
+              generationUnitCount:
+                item.generationUnitCount,
+              attemptOrComparisonCount:
+                item.attemptOrComparisonCount,
+              billableMilliseconds:
+                item.billableMilliseconds,
+            }
+          : {}),
         executionPlacement:
           item.executionPlacement,
         cpuFallbackAllowed:
@@ -366,6 +382,14 @@ function compileLivingFrameEstimateLines(
         highCredits: item.costRange.highCredits,
         rateCardVersion:
           item.costRange.rateCardVersion,
+        exactFiftyToolRegistryMember:
+          item.exactFiftyToolRegistryMember,
+        operationContractObserved:
+          item.operationContractObserved,
+        actualAttemptCostEvidenceRequired:
+          item.actualAttemptCostEvidenceRequired,
+        productionRateAuthority:
+          item.productionRateAuthority,
         serviceFeeIncluded: false,
         estimateOnly: true,
         executionAuthorized: false,

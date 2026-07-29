@@ -95,6 +95,8 @@ one ComfyUI process for one accepted attempt using fixed server source:
 - API nodes and metadata disabled;
 - all custom nodes disabled before exactly the reviewed generic IP-Adapter and
   ControlNet auxiliary directories are whitelisted;
+- a fixed Python meta-path guard denying the inherited `sam2` top-level module
+  and all `sam2.*` submodules before ComfyUI source is loaded;
 - fixed private input, model-path, runtime, and output locations;
 - preview disabled, cache disabled, FP16 and CUDA device zero fixed;
 - offline Hugging Face/Transformers flags and no caller environment merge;
@@ -119,6 +121,15 @@ drop-all capabilities, no-new-privileges, blocked external network and
 runtime downloads, read-only model mounts, and ephemeral-only writable
 operation roots. Controlled fixtures prove rejection of a root observation;
 a released platform observation is still required.
+
+The import guard is deliberately operation-scoped. It prevents the controlled
+ComfyUI process from importing the out-of-scope inherited VCS package, while
+leaving ReeditPro's separately governed SAM 2 mask/tracking operation
+untouched. The launch-spec digest and offline package source contract include
+the exact denied top-level import set. A controlled network-off container
+probe proves that the same guard blocks `sam2` while ordinary standard-library
+imports remain available. This reduces runtime exposure; it does not remove
+the package from the image or satisfy license/distribution review.
 
 ## Offline package source closure
 
@@ -211,6 +222,9 @@ pipeline until the existing shared authorities admit:
 - the fixed ComfyUI source, wheel lock, two reviewed custom-node source
   archives, model-path configuration, and process supervisor packaged into
   that image;
+- independent confirmation that the operation-scoped import guard remains
+  active in the released image, plus explicit disposition or removal of the
+  inherited direct-VCS package;
 - the backend adapter that maps the five atomic canonical sources read-only
   into the fixed model destinations for the supervised process;
 - create-only output persistence and asset-manifest binding;

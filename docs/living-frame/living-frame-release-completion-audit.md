@@ -93,7 +93,7 @@ The six product-design candidates are not six production tools.
 
 | Capability | Intended placement | Current evidence | Release status |
 | --- | --- | --- | --- |
-| ComfyUI | One shared NVIDIA L4 controlled-image host | Pinned source, locked wheel closure, strict protocol, canonical five-model mount session, digest-bound non-root runtime-confinement requirement, local installed-layout observation, exact 761-package SPDX inventory, and 1,582-file static source-corpus scan | `qualified_local_candidate`; image defaults to root/unspecified, inherited direct-VCS `sam-2` is isolated-mode importable despite zero static references, and explicit disposition plus actual released-platform confinement and canonical image/L4 release stay open |
+| ComfyUI | One shared NVIDIA L4 controlled-image host | Pinned source, locked wheel closure, strict protocol, canonical five-model mount session, digest-bound non-root runtime-confinement requirement, operation-scoped `sam2` import guard, local installed-layout observation, exact 761-package SPDX inventory, and 1,582-file static source-corpus scan | `qualified_local_candidate`; image defaults to root/unspecified, inherited direct-VCS `sam-2` remains present despite the proven local guard, and explicit disposition plus actual released-platform confinement/guard observation and canonical image/L4 release stay open |
 | `comfyui_controlnet_aux` | External deterministic pose/depth/canny preparation | Pinned custom-node/source expectation plus deterministic ReeditPro control-image implementations | `verified_source_contract`; production package/license admission open |
 | ControlNet | Mounted conditioning model inside the shared host | Exact artifact identity, byte observation, workflow binding, model-family binding | `qualified_local_candidate`; L4 compatibility run open |
 | Generic IP-Adapter | Mounted reference-conditioning model inside the shared host | Exact artifact identity, byte observation, generic-only extension and merged workflow | `qualified_local_candidate`; FaceID remains forbidden |
@@ -194,6 +194,9 @@ Passed:
   rejection;
 - atomic ComfyUI model-mount smoke with digest-bound runtime-confinement input,
   exact non-root observation, and adversarial root-observation refusal;
+- fixed ComfyUI process/offline-package smokes with an exact non-empty denied
+  import set, relaxed-policy refusal, and a live network-off container probe
+  proving `sam2` is blocked while standard-library imports remain available;
 - selected execution/security smokes;
 - repository secret scan;
 - frontend/server boundary scan; and

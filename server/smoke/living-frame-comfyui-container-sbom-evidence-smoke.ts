@@ -18,6 +18,9 @@ import {
   type LivingFrameComfyUiContainerInventoryObservation,
   type LivingFrameComfyUiObservedPythonDistribution,
 } from '../living-frame/living-frame-comfyui-container-sbom-evidence'
+import {
+  LIVING_FRAME_COMFYUI_FIXED_IMPORT_GUARD_SOURCE,
+} from '../living-frame/living-frame-controlled-sdxl-comfyui-process-supervisor'
 
 const IMAGE =
   process.env.REEDITPRO_LIVING_FRAME_COMFYUI_IMAGE
@@ -174,6 +177,13 @@ assert.equal(
   result.evidence.directVcsDispositionEvidence
     .removalOrExplicitDispositionRequired,
   true,
+)
+assert.deepEqual(
+  JSON.parse(runFixedImportGuardProbe()),
+  {
+    allowedStandardLibraryImport: true,
+    deniedImportBlocked: true,
+  },
 )
 assert.equal(
   result.evidence.imageObservation.imageDefaultUser,
@@ -477,6 +487,28 @@ LivingFrameComfyUiContainerInventoryObservation[
   ) as LivingFrameComfyUiContainerInventoryObservation[
     'directVcsDispositionObservation'
   ]
+}
+
+function runFixedImportGuardProbe(): string {
+  return runContainer(
+    String.raw`
+python3 -I - <<'PY'
+import sys
+${LIVING_FRAME_COMFYUI_FIXED_IMPORT_GUARD_SOURCE}
+import json
+standard_library_import = json is not None
+blocked = False
+try:
+    import sam2
+except ImportError:
+    blocked = True
+print(json.dumps({
+    "allowedStandardLibraryImport": standard_library_import,
+    "deniedImportBlocked": blocked,
+}, sort_keys=True))
+PY
+`,
+  )
 }
 
 function runContainer(command: string): string {

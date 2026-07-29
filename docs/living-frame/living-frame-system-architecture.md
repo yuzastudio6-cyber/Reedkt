@@ -2751,6 +2751,16 @@ as legal approval. Static absence is not dynamic runtime non-use, so the
 contract explicitly rejects a re-signed claim that runtime non-use is proven
 or disposition is unnecessary.
 
+The fixed controlled-ComfyUI bootstrap now further narrows that reachable
+surface through an operation-scoped Python meta-path guard. It denies `sam2`
+and all `sam2.*` imports before loading ComfyUI, is included in the fixed
+launch-spec and offline-package source digests, and rejects an empty or
+relaxed denied-import set. A controlled network-off candidate-container probe
+confirms the exact guard blocks the otherwise reachable package while normal
+standard-library imports succeed. This does not alter the separately governed
+SAM 2 tracking operation, remove the package from the image, establish legal
+approval, or prove released-L4 enforcement.
+
 The atomic mounted-runner source boundary now also freezes the compatible
 release path rather than leaving the root finding as prose. Its canonical
 session digest includes

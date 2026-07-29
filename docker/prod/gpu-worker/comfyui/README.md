@@ -86,6 +86,13 @@ CUDA device, startup deadline, bounded logs, and cleanup. Callers cannot
 override commands, arguments, environment variables, paths, URLs, endpoints,
 credentials, model locations, custom nodes, or download policy.
 
+The fixed isolated Python bootstrap also installs a server-owned meta-path
+guard that denies the inherited top-level `sam2` module and every `sam2.*`
+submodule before loading ComfyUI. This guard is specific to the controlled
+ComfyUI operation; it does not change or authorize ReeditPro's separately
+governed SAM 2 mask/tracking operation. The source contract binds the exact
+denied-import set and rejects an empty or relaxed policy.
+
 The model artifacts are not baked into this directory. They must be supplied
 through the canonical checksum-verified, read-only model-artifact mount
 authority. The generated result is opaque PNG only; transparency requires the
@@ -117,5 +124,6 @@ These source files do not authorize:
 
 The image still requires a clean pinned build, vulnerability scan, signature,
 L4 startup and generation benchmarks, exact model compatibility checks,
-license review, official resource-cost evidence, and canonical private
-end-to-end review.
+license review—including disposition of the inherited direct-VCS
+distribution—official resource-cost evidence, and canonical private end-to-end
+review.

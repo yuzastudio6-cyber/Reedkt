@@ -8,12 +8,13 @@ import {
   LIVING_FRAME_COMFYUI_LOCKED_WHEEL_MANIFEST_DIGEST_SHA256,
 } from './living-frame-comfyui-dependency-lock-manifest'
 import {
+  LIVING_FRAME_COMFYUI_DENIED_TOP_LEVEL_IMPORTS,
   fixedLivingFrameComfyUiLaunchSpec,
 } from './living-frame-controlled-sdxl-comfyui-process-supervisor'
 
 export const
 LIVING_FRAME_COMFYUI_OFFLINE_PACKAGE_SOURCE_CONTRACT_VERSION =
-  'living-frame-comfyui-offline-package-source-contract-v1' as const
+  'living-frame-comfyui-offline-package-source-contract-v2' as const
 
 const SOURCE_ROOT =
   'docker/prod/gpu-worker/comfyui' as const
@@ -85,6 +86,8 @@ export interface LivingFrameComfyUiOfflinePackageSourceContract {
     readonly oneProcessPerAttempt: true
     readonly callerOverridesAllowed: false
     readonly externalListenAllowed: false
+    readonly deniedTopLevelImports: readonly ['sam2']
+    readonly outOfScopeDirectVcsImportsAllowed: false
   }
   readonly capabilityAndCostBoundary: {
     readonly oneGpuAttemptCapabilityKeys: readonly [
@@ -239,6 +242,10 @@ Promise<LivingFrameComfyUiOfflinePackageSourceContract> {
       oneProcessPerAttempt: true as const,
       callerOverridesAllowed: false as const,
       externalListenAllowed: false as const,
+      deniedTopLevelImports: [
+        ...LIVING_FRAME_COMFYUI_DENIED_TOP_LEVEL_IMPORTS,
+      ] as readonly ['sam2'],
+      outOfScopeDirectVcsImportsAllowed: false as const,
     },
     capabilityAndCostBoundary: {
       oneGpuAttemptCapabilityKeys: [

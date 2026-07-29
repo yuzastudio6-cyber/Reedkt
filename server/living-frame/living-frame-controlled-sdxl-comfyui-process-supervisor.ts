@@ -26,8 +26,27 @@ export const LIVING_FRAME_COMFYUI_FIXED_IPADAPTER_NODE_DIRECTORY =
 export const LIVING_FRAME_COMFYUI_FIXED_CONTROLNET_AUX_NODE_DIRECTORY =
   '/opt/reeditpro/gpu-operations/comfyui/custom_nodes/comfyui_controlnet_aux' as const
 
+export const
+LIVING_FRAME_COMFYUI_DENIED_TOP_LEVEL_IMPORTS =
+  Object.freeze(['sam2'] as const)
+
+export const LIVING_FRAME_COMFYUI_FIXED_IMPORT_GUARD_SOURCE = [
+  'import importlib.abc',
+  'class _ReeditProDeniedImportFinder(importlib.abc.MetaPathFinder):',
+  '    def find_spec(self, fullname, path=None, target=None):',
+  '        if fullname == "sam2" or fullname.startswith("sam2."):',
+  '            raise ImportError("import blocked by fixed ComfyUI operation policy")',
+  '        return None',
+  'sys.meta_path.insert(0, _ReeditProDeniedImportFinder())',
+].join('\n')
+
 export const LIVING_FRAME_COMFYUI_FIXED_BOOTSTRAP = [
   'import runpy,sys',
+  `exec(${
+    JSON.stringify(
+      LIVING_FRAME_COMFYUI_FIXED_IMPORT_GUARD_SOURCE,
+    )
+  })`,
   `sys.path.insert(0, ${
     JSON.stringify(LIVING_FRAME_COMFYUI_FIXED_SOURCE_ROOT)
   })`,
@@ -102,6 +121,7 @@ export interface LivingFrameComfyUiProcessHandle {
   readonly callerPathUrlCredentialAccepted: false
   readonly externalListenAllowed: false
   readonly runtimeDownloadsAllowed: false
+  readonly outOfScopeDirectVcsImportsAllowed: false
   readonly productionQualified: false
   waitUntilReady(): Promise<{
     readonly readyAt: string
@@ -125,6 +145,7 @@ export interface LivingFrameComfyUiProcessPort {
   readonly callerPathUrlCredentialAccepted: false
   readonly externalListenAllowed: false
   readonly runtimeDownloadsAllowed: false
+  readonly outOfScopeDirectVcsImportsAllowed: false
   readonly productionQualified: false
   startOnce(): Promise<LivingFrameComfyUiProcessHandle>
 }
@@ -148,6 +169,7 @@ export interface LivingFrameComfyUiProcessSupervisorReceipt {
   readonly oneProcessPerAttempt: true
   readonly externalListenAllowed: false
   readonly runtimeDownloadsAllowed: false
+  readonly outOfScopeDirectVcsImportsAllowed: false
   readonly callerCommandArgumentsEnvironmentOrPathAccepted: false
   readonly actualCostEvidenceCreated: false
   readonly customerChargeCreated: false
@@ -205,6 +227,7 @@ export function registerLivingFrameComfyUiProcessPort<
     || port.callerPathUrlCredentialAccepted !== false
     || port.externalListenAllowed !== false
     || port.runtimeDownloadsAllowed !== false
+    || port.outOfScopeDirectVcsImportsAllowed !== false
     || port.productionQualified !== false
     || typeof port.startOnce !== 'function'
   ) {
@@ -236,6 +259,7 @@ export function createLivingFrameComfyUiControlledProcessFixturePort(
     callerPathUrlCredentialAccepted: false as const,
     externalListenAllowed: false as const,
     runtimeDownloadsAllowed: false as const,
+    outOfScopeDirectVcsImportsAllowed: false as const,
     productionQualified: false as const,
     startOnce: startOnce.bind(undefined),
   }))
@@ -255,6 +279,7 @@ LivingFrameComfyUiProcessPort {
     callerPathUrlCredentialAccepted: false as const,
     externalListenAllowed: false as const,
     runtimeDownloadsAllowed: false as const,
+    outOfScopeDirectVcsImportsAllowed: false as const,
     productionQualified: false as const,
     startOnce: startFixedSubprocess,
   }))
@@ -340,6 +365,7 @@ export async function executeSupervisedLivingFrameControlledSdxlComfyUiHostRunti
     oneProcessPerAttempt: true as const,
     externalListenAllowed: false as const,
     runtimeDownloadsAllowed: false as const,
+    outOfScopeDirectVcsImportsAllowed: false as const,
     callerCommandArgumentsEnvironmentOrPathAccepted: false as const,
     actualCostEvidenceCreated: false as const,
     customerChargeCreated: false as const,
@@ -408,6 +434,7 @@ export function verifyLivingFrameComfyUiProcessSupervisorReceipt(
     || draft.oneProcessPerAttempt !== true
     || draft.externalListenAllowed !== false
     || draft.runtimeDownloadsAllowed !== false
+    || draft.outOfScopeDirectVcsImportsAllowed !== false
     || draft.callerCommandArgumentsEnvironmentOrPathAccepted
       !== false
     || draft.actualCostEvidenceCreated !== false
@@ -432,6 +459,10 @@ export function fixedLivingFrameComfyUiLaunchSpec() {
       'disable_all_then_whitelist_exact_two' as const,
     runtimeNetworkFetchAllowed: false as const,
     runtimeModelDownloadAllowed: false as const,
+    deniedTopLevelImports: [
+      ...LIVING_FRAME_COMFYUI_DENIED_TOP_LEVEL_IMPORTS,
+    ],
+    outOfScopeDirectVcsImportsAllowed: false as const,
     callerOverridesAllowed: false as const,
     productionQualified: false as const,
   })
@@ -502,6 +533,7 @@ function createChildProcessHandle(
     callerPathUrlCredentialAccepted: false,
     externalListenAllowed: false,
     runtimeDownloadsAllowed: false,
+    outOfScopeDirectVcsImportsAllowed: false,
     productionQualified: false,
     async waitUntilReady() {
       await waitForReady({
@@ -698,6 +730,7 @@ function assertHandle(
     || handle.callerPathUrlCredentialAccepted !== false
     || handle.externalListenAllowed !== false
     || handle.runtimeDownloadsAllowed !== false
+    || handle.outOfScopeDirectVcsImportsAllowed !== false
     || handle.productionQualified !== false
     || typeof handle.waitUntilReady !== 'function'
     || typeof handle.stop !== 'function'

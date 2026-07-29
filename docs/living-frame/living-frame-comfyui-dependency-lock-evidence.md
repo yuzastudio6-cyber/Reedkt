@@ -89,6 +89,12 @@ whitelisted-extension source scan finds zero static references. Its installed
 metadata reports version `1.0` and `Apache 2.0`, but neither self-declared
 metadata nor static absence is legal approval or proof of runtime non-use.
 
+The fixed ComfyUI bootstrap now denies `sam2` and every `sam2.*` submodule
+through an operation-scoped import guard. A controlled candidate-container
+probe confirms the exact guard blocks the reachable package without blocking
+normal standard-library imports. This does not remove the dependency or close
+license/distribution review.
+
 The sanitized SPDX document and its process-bound delivery contract are
 documented in
 `docs/living-frame/living-frame-comfyui-container-sbom-evidence.md`.

@@ -53,7 +53,9 @@ import {
 import {
   createLivingFrameComfyUiControlledProcessFixturePort,
   executeSupervisedLivingFrameControlledSdxlComfyUiHostRuntime,
+  LIVING_FRAME_COMFYUI_DENIED_TOP_LEVEL_IMPORTS,
   LIVING_FRAME_COMFYUI_FIXED_BOOTSTRAP,
+  LIVING_FRAME_COMFYUI_FIXED_IMPORT_GUARD_SOURCE,
   fixedLivingFrameComfyUiLaunchSpec,
   verifyLivingFrameComfyUiProcessSupervisorReceipt,
 } from '../living-frame/living-frame-controlled-sdxl-comfyui-process-supervisor'
@@ -139,6 +141,29 @@ async function main(): Promise<void> {
   assert.deepEqual(
     fixedLivingFrameComfyUiLaunchSpec().arguments.slice(0, 4),
     ['-I', '-B', '-c', LIVING_FRAME_COMFYUI_FIXED_BOOTSTRAP],
+  )
+  assert.deepEqual(
+    fixedLivingFrameComfyUiLaunchSpec()
+      .deniedTopLevelImports,
+    LIVING_FRAME_COMFYUI_DENIED_TOP_LEVEL_IMPORTS,
+  )
+  assert.equal(
+    fixedLivingFrameComfyUiLaunchSpec()
+      .outOfScopeDirectVcsImportsAllowed,
+    false,
+  )
+  assert.equal(
+    LIVING_FRAME_COMFYUI_FIXED_BOOTSTRAP.includes(
+      JSON.stringify(
+        LIVING_FRAME_COMFYUI_FIXED_IMPORT_GUARD_SOURCE,
+      ),
+    ),
+    true,
+    'The multiline guard must be JSON-encoded into the one fixed -c argument.',
+  )
+  assert.equal(
+    LIVING_FRAME_COMFYUI_FIXED_BOOTSTRAP.includes('sam2'),
+    true,
   )
   assert.equal(
     LIVING_FRAME_COMFYUI_FIXED_BOOTSTRAP.includes(
@@ -582,6 +607,7 @@ function controlledProcessPort() {
       callerPathUrlCredentialAccepted: false,
       externalListenAllowed: false,
       runtimeDownloadsAllowed: false,
+      outOfScopeDirectVcsImportsAllowed: false,
       productionQualified: false,
       async waitUntilReady() {
         return {

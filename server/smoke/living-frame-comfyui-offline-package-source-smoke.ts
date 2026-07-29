@@ -70,6 +70,15 @@ async function main(): Promise<void> {
     contract.boundaries.fixedModelMountLayoutDeclared,
     true,
   )
+  assert.deepEqual(
+    contract.processContract.deniedTopLevelImports,
+    ['sam2'],
+  )
+  assert.equal(
+    contract.processContract
+      .outOfScopeDirectVcsImportsAllowed,
+    false,
+  )
   assert.equal(contract.boundaries.gpuExecutionObserved, false)
   assert.equal(contract.boundaries.actualCostEvidenceCreated, false)
   assert.equal(contract.boundaries.customerCreditAuthority, false)
@@ -113,6 +122,15 @@ async function main(): Promise<void> {
   adversarialAssertions += 1
   await rejects({
     ...structuredClone(contract),
+    processContract: {
+      ...contract.processContract,
+      deniedTopLevelImports: [],
+      outOfScopeDirectVcsImportsAllowed: true,
+    },
+  })
+  adversarialAssertions += 1
+  await rejects({
+    ...structuredClone(contract),
     offlineInstaller: {
       ...contract.offlineInstaller,
       installerArgumentsAllowed: true,
@@ -131,7 +149,7 @@ async function main(): Promise<void> {
   })
   adversarialAssertions += 1
 
-  assert.equal(adversarialAssertions, 5)
+  assert.equal(adversarialAssertions, 6)
   process.stdout.write(JSON.stringify({
     status: 'passed',
     sourceFileCount: contract.sourceFiles.length,

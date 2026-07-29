@@ -76,6 +76,15 @@ ReeditPro legal approval, and a static source scan is not runtime import
 evidence. Removal from the released operation environment or an explicit
 security/license/runtime disposition remains required.
 
+The fixed controlled-ComfyUI bootstrap now installs an operation-scoped
+meta-path guard that denies `sam2` and `sam2.*`. A network-off, read-only,
+non-root candidate-container probe confirms that the exact guard blocks the
+otherwise reachable module while a standard-library import still succeeds.
+The offline package source contract binds the non-empty denied-import set.
+This is stronger runtime-exposure mitigation, but the evidence deliberately
+continues to report `runtimeNonUseClaimed = false`: it is not a released L4
+host observation and the package remains distributed in the image.
+
 The SPDX projection deliberately removes the original installation paths and
 repository URL. It preserves the normalized package identity and revision so
 security, license, and image-scope reviewers can make a disposition.

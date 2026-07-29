@@ -1,8 +1,9 @@
 # Living Frame Storytelling System Architecture
 
-Status: controlled semantic request v2, proposal binding v1, and visual
-continuity contract v1
-Runtime readiness: planning expectations only, not executable
+Status: controlled semantic request v2, selected-scene/canonical work
+projection, and private deterministic render evidence
+Runtime readiness: source/private slices active; controlled-illustration GPU
+and production release remain closed
 Component contract: `living-frame-professional-skill-component-v1`
 Evidence contract: `living-frame-planning-evidence-binding-v1`
 Visual continuity contract: `living-frame-visual-continuity-pack-v1`
@@ -10,9 +11,12 @@ Semantic request contract: `living-frame-semantic-reasoning-request-v2`
 Semantic proposal binding:
 `living-frame-semantic-scene-proposal-binding-v1`
 Controlled-illustration qualification requirements:
-`living-frame-controlled-illustration-qualification-v1`
+`living-frame-controlled-illustration-qualification-v2`
 Controlled-illustration upstream observation:
-`living-frame-controlled-illustration-source-observation-v1`
+`living-frame-controlled-illustration-source-observation-v2`
+
+Current completion audit:
+`docs/living-frame/living-frame-release-completion-audit.md`
 
 ## Purpose
 
@@ -27,15 +31,16 @@ The central creative rule is:
 
 Living Frame is not a new Signature System, planner, timeline, approval flow,
 queue, provider, tool registry, cost ledger, QA gate, or renderer. It is a
-professional skill component. The current canonical integration may construct
-only one deferred expectation component and attach it to the existing
-`ProfessionalSkillPlan`.
+professional skill component. The current canonical integration can publish a
+selected skill component, bind exact timing, project approved work and asset
+lineage, prepare RGBA layers, compile bounded deterministic choreography, and
+render privately through the existing Remotion authority.
 
-The contracts and canonical bindings remain planning-only and cannot prove
-that any live provider, tool, worker, asset, estimate, approval, render, or QA
-result exists. Slice 3A can project a source-bound private visual evidence
-package only after the existing verifier passes; that projection still grants
-none of those authorities.
+Those source/private runtime slices do not release the controlled-illustration
+GPU operation, distributed model mounts, provider generation, public delivery,
+customer charging, or production execution. The existing approval, snapshot,
+work graph, asset manifest, StoryTiming, SoundSync, Remotion, private-review,
+and commercial authorities remain the only owners of their domains.
 
 ## Product meaning
 

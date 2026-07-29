@@ -130,3 +130,7 @@ private-review evidence compiler. It is still controlled evidence:
 Those gates must be closed by the canonical backend execution task. Passing this
 validation must never be used to relabel the controlled ComfyUI or AuraFace
 runtime as production-ready.
+
+The requirement-by-requirement status, frozen capability placement, and
+remaining release gates are maintained in
+`docs/living-frame/living-frame-release-completion-audit.md`.

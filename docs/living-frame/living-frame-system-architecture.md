@@ -2022,3 +2022,25 @@ production authority exists. GPU-heavy inference remains restricted to
 qualified Google Cloud Run GPU workers; this projection performs no inference
 and adds no CPU fallback. See
 `docs/canonical-living-frame-preapproval-kimi-output-budget-projection.md`.
+
+## Controlled-illustration actual-cost attribution
+
+Living Frame now has a controlled, non-promotable bridge from the existing
+private worker resource-usage evidence into capability-level cost
+attribution. One observed ComfyUI GPU attempt owns the combined
+ComfyUI/preprocessor/ControlNet/IP-Adapter/PEFT-LoRA cost; those capability
+labels never become five independent charges. AuraFace remains a separately
+measured optional CPU continuity check.
+
+Completed, failed, and unknown attempts retain incurred internal cost. Exact
+approved-asset reuse adds zero new attempt cost without deleting the original
+attempt lineage. The bridge contains no customer price or credits: the
+existing canonical settlement authority must first decide the billable
+subset, perform canonical aggregate rounding, add the one approved service
+fee, apply refund/overage policy, and enforce the reservation ceiling.
+
+This is controlled fixture evidence only. Released observed-usage transport,
+official cloud rates, invoice reconciliation, distributed attempt-cost
+durability, canonical settlement-event projection, and customer billability
+remain closed. See
+`docs/living-frame/living-frame-controlled-illustration-actual-cost-attribution.md`.

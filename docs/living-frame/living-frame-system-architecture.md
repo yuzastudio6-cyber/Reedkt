@@ -2647,6 +2647,32 @@ Customer credits still aggregate and round once, and the service fee remains
 single and downstream. See
 `docs/living-frame/living-frame-controlled-sdxl-rembg-input-binding.md`.
 
+### Generated-still rembg and true-alpha execution evidence
+
+The namespaced
+`living-frame-controlled-sdxl-rembg-gpu-runtime-v1` now binds a verified
+opaque generated-still input to an already consumed canonical `rembg`
+dispatch, the fixed CUDA/L4 `u2netp` runtime contract, an exact process-bound
+model-mount observation, and a strict 1024x1024 gray8 mask verifier. It
+preserves failed and outcome-unknown attempt cost lineage and cannot charge
+the shared ComfyUI generation attempt again.
+
+The subsequent
+`living-frame-controlled-sdxl-rembg-alpha-bridge-v1` consumes the verified
+source and mask through single-use leases, consumes the matching canonical
+Sharp dispatch, executes the existing confined Sharp `0.35.3`
+`approved_living_frame_alpha_component_v1` recipe, and measures the resulting
+straight-alpha raster with the existing Living Frame alpha-measurement
+primitive.
+
+This is real private package-execution evidence, but not production
+promotion. The shared canonical rembg and Sharp services still need an
+explicit generated-still dependency/source variant, followed by artifact
+commit, asset-manifest reconciliation, alpha QA, continuity/fact QA, private
+review, and Remotion consumption. No source frame is relabeled, no tool ID is
+added, and no second cost or credit authority is created. See
+`docs/living-frame/living-frame-controlled-sdxl-rembg-gpu-runtime.md`.
+
 ### Controlled benchmark result and threshold binding
 
 The source-only result binding accepts benchmark observations only through a

@@ -1494,6 +1494,29 @@ Generic IP-Adapter plus the approved Visual Continuity Pack provide reference
 conditioning. AuraFace supplies only a separately qualified continuity
 measurement signal.
 
+## Controlled-illustration operation preflight
+
+The non-executable operation preflight fixes how the six capabilities enter
+the existing backend spine:
+
+```text
+approved Living Frame lineage
+  -> selected component asset intent
+  -> one future ComfyUI generate-image operation
+  -> one bounded L4 GPU host lifetime
+  -> conditional ControlNet / IP-Adapter / LoRA capabilities
+  -> external control-image preparation when needed
+  -> separate AuraFace CPU continuity measurement when needed
+  -> canonical component asset QA and actual-cost evidence
+```
+
+It expects the existing `generate_image_asset` work type and one future
+server-owned `tool.comfyui.generate_controlled_image.v1` operation. It does
+not add six production tool IDs, mutate the current 50-tool registry, create
+a work item, dispatch a worker, mount a model, mint an attempt-cost receipt,
+or grant runtime authority. See
+`living-frame-controlled-illustration-operation-preflight.md`.
+
 ## Closed gates after controlled-illustration qualification requirements
 
 The qualification packet is controlled, source-only, and non-promotable. It

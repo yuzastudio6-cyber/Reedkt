@@ -420,6 +420,26 @@ export {
   LIVING_FRAME_IPADAPTER_WORKFLOW_OPEN_GATES,
 } from '../../types/living-frame-ipadapter-workflow-extension'
 
+export {
+  LIVING_FRAME_IPADAPTER_MERGED_WORKFLOW_CLASS,
+  LIVING_FRAME_IPADAPTER_MERGED_WORKFLOW_OPEN_GATES,
+  LIVING_FRAME_IPADAPTER_MERGED_WORKFLOW_VERSION,
+} from '../../types/living-frame-ipadapter-merged-workflow'
+
+export type {
+  LivingFrameIpAdapterMergedBindingKind,
+  LivingFrameIpAdapterMergedNodeClass,
+  LivingFrameIpAdapterMergedNodeRole,
+  LivingFrameIpAdapterMergedPort,
+  LivingFrameIpAdapterMergedWorkflow,
+  LivingFrameIpAdapterMergedWorkflowAuthorityBoundary,
+  LivingFrameIpAdapterMergedWorkflowBinding,
+  LivingFrameIpAdapterMergedWorkflowDraft,
+  LivingFrameIpAdapterMergedWorkflowEdge,
+  LivingFrameIpAdapterMergedWorkflowNode,
+  LivingFrameIpAdapterMergedWorkflowOpenGate,
+} from '../../types/living-frame-ipadapter-merged-workflow'
+
 export type {
   LivingFrameIpAdapterCombineEmbeds,
   LivingFrameIpAdapterEmbedsScaling,

@@ -2140,3 +2140,12 @@ reference image remain unresolved content-addressed expectations; no bytes,
 filenames, paths, URLs, runtime selection, or executable prompt enters the
 contract. See
 `docs/living-frame/living-frame-ipadapter-workflow-extension.md`.
+
+The merged-workflow compiler revalidates both parent contracts and
+materializes one effective acyclic graph. It preserves every stock node,
+adds the three reviewed generic IP-Adapter nodes, removes exactly the direct
+stock model-to-sampler edge, inserts the reference-conditioning path, and
+combines stock and extension binding expectations without duplicate or
+dangling identifiers. The result is still non-executable and contains only
+graph metadata and digests. See
+`docs/living-frame/living-frame-ipadapter-merged-workflow.md`.

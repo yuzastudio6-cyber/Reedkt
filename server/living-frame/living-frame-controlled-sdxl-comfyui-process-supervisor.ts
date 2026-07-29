@@ -26,6 +26,16 @@ export const LIVING_FRAME_COMFYUI_FIXED_IPADAPTER_NODE_DIRECTORY =
 export const LIVING_FRAME_COMFYUI_FIXED_CONTROLNET_AUX_NODE_DIRECTORY =
   '/opt/reeditpro/gpu-operations/comfyui/custom_nodes/comfyui_controlnet_aux' as const
 
+export const LIVING_FRAME_COMFYUI_FIXED_BOOTSTRAP = [
+  'import runpy,sys',
+  `sys.path.insert(0, ${
+    JSON.stringify(LIVING_FRAME_COMFYUI_FIXED_SOURCE_ROOT)
+  })`,
+  `runpy.run_path(${
+    JSON.stringify(LIVING_FRAME_COMFYUI_FIXED_MAIN)
+  }, run_name="__main__")`,
+].join(';')
+
 const READY_ENDPOINT = 'http://127.0.0.1:8188/system_stats'
 const MAXIMUM_CAPTURE_BYTES = 256 * 1_024
 const READY_TIMEOUT_MILLISECONDS = 60_000
@@ -39,7 +49,8 @@ const SHA256 = /^[a-f0-9]{64}$/u
 export const LIVING_FRAME_COMFYUI_FIXED_ARGUMENTS = Object.freeze([
   '-I',
   '-B',
-  LIVING_FRAME_COMFYUI_FIXED_MAIN,
+  '-c',
+  LIVING_FRAME_COMFYUI_FIXED_BOOTSTRAP,
   '--listen',
   '127.0.0.1',
   '--port',

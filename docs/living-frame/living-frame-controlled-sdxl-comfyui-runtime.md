@@ -48,7 +48,8 @@ The server now also owns the missing process boundary around that loopback
 transport. The supervisor starts exactly one ComfyUI process for one accepted
 attempt using fixed server source:
 
-- one fixed Python executable and pinned ComfyUI `main.py`;
+- one fixed Python executable, pinned ComfyUI `main.py`, and fixed isolated
+  bootstrap that adds only the pinned source root to `sys.path`;
 - loopback `127.0.0.1:8188` only;
 - API nodes and metadata disabled;
 - all custom nodes disabled before exactly the reviewed generic IP-Adapter and
@@ -100,6 +101,17 @@ but its observed entrypoint and source layout are
 fixed package/process contract and cannot be relabeled as the canonical
 runtime image. A later reviewed build must apply this fixed installer or
 prove a byte-equivalent layout before router admission.
+
+On 2026-07-29, the exact controlled image digest
+`1de2c0415c477537dc4035a0550cec1859b8e5c5719647a64c0172962a770a64`
+was also started under Linux `amd64` CPU emulation with no network, two CPUs,
+4 GiB memory, a process limit, dropped capabilities, no-new-privileges, and
+temporary operation roots. The fixed isolated bootstrap, fixed model map,
+base directory, private input directory, disable-all/whitelist-two custom-node
+policy, and loopback readiness endpoint worked together. No model artifacts
+were mounted and no generation or GPU inference ran. This is controlled
+non-promotable startup evidence only; it does not qualify the future image,
+installer execution, L4 behavior, or production route.
 
 ## Cost behavior
 

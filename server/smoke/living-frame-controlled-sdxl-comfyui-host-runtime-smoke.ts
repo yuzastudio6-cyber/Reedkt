@@ -51,6 +51,7 @@ import {
 import {
   createLivingFrameComfyUiControlledProcessFixturePort,
   executeSupervisedLivingFrameControlledSdxlComfyUiHostRuntime,
+  LIVING_FRAME_COMFYUI_FIXED_BOOTSTRAP,
   fixedLivingFrameComfyUiLaunchSpec,
   verifyLivingFrameComfyUiProcessSupervisorReceipt,
 } from '../living-frame/living-frame-controlled-sdxl-comfyui-process-supervisor'
@@ -132,6 +133,16 @@ async function main(): Promise<void> {
     fixedLivingFrameComfyUiLaunchSpec()
       .arguments.join(' ').includes('0.0.0.0'),
     false,
+  )
+  assert.deepEqual(
+    fixedLivingFrameComfyUiLaunchSpec().arguments.slice(0, 4),
+    ['-I', '-B', '-c', LIVING_FRAME_COMFYUI_FIXED_BOOTSTRAP],
+  )
+  assert.equal(
+    LIVING_FRAME_COMFYUI_FIXED_BOOTSTRAP.includes(
+      '/opt/reeditpro/gpu-operations/comfyui/source',
+    ),
+    true,
   )
   assert.equal(
     completed.receipt.hostObservation.terminalState,

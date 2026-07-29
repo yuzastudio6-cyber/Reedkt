@@ -2597,6 +2597,9 @@ policy, no-preview/no-cache behavior, API-node disablement, and the exact two
 reviewed custom-node directories allowed after all custom nodes are disabled.
 It does not merge caller environment variables or accept a caller command,
 argument, path, URL, endpoint, credential, listen address, or download policy.
+Python isolated mode remains enabled; a fixed bootstrap adds only the pinned
+ComfyUI source root before running the pinned `main.py`, because isolated mode
+correctly excludes an unpacked source tree from ambient module search.
 
 One accepted attempt starts one process, waits at most 60 seconds for the fixed
 loopback readiness endpoint, runs the existing single-prompt host adapter, and
@@ -2636,6 +2639,13 @@ The measured local candidate image remains controlled evidence only. Its
 `/opt/ComfyUI` entrypoint/layout does not meet the fixed production layout, so
 the architecture rejects direct promotion even though its source revisions
 and dependency image digest are pinned.
+
+A bounded no-network CPU-emulation startup on 2026-07-29 verified that the
+fixed isolated bootstrap and fixed layout can reach ComfyUI's loopback
+readiness endpoint while loading only the two whitelisted extension folders.
+It used no model weights and performed no generation. The observation closes
+the source-import/startup bug; it does not substitute for running the exact
+offline installer or for an L4 generation, security, cost, or quality gate.
 
 ### Private GPU output observation and opaque-source boundary
 

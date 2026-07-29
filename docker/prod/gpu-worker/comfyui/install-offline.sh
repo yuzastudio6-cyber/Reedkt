@@ -99,6 +99,7 @@ mkdir -p \
   "${SOURCE_ROOT}" \
   "${CUSTOM_NODE_ROOT}/ComfyUI_IPAdapter_plus" \
   "${CUSTOM_NODE_ROOT}/comfyui_controlnet_aux" \
+  "${RUNTIME_ROOT}/custom_nodes" \
   "${RUNTIME_ROOT}/input" \
   "${RUNTIME_ROOT}/models" \
   "${RUNTIME_ROOT}/output" \

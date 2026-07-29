@@ -5,8 +5,8 @@ Status date: 2026-07-29
 Feature branch:
 `codex/living-frame-gpu-operation-preflight-v1`
 
-Latest frozen feature commit:
-`2b19519b`
+Latest frozen motion feature commit:
+`69ab856b`
 
 Overall status:
 `source_and_private_runtime_complete_for_current_slice_external_release_open`
@@ -93,7 +93,7 @@ The six product-design candidates are not six production tools.
 
 | Capability | Intended placement | Current evidence | Release status |
 | --- | --- | --- | --- |
-| ComfyUI | One shared NVIDIA L4 controlled-image host | Pinned source, locked wheel closure, fixed non-root/network-isolated host, strict protocol, canonical five-model mount session, local installed-layout observation | `qualified_local_candidate`; L4 operation release open |
+| ComfyUI | One shared NVIDIA L4 controlled-image host | Pinned source, locked wheel closure, strict protocol, canonical five-model mount session, local installed-layout observation, and exact 761-package image-derived SPDX inventory | `qualified_local_candidate`; image defaults to root/unspecified, inherited direct-VCS `sam-2` remains undisposed, and canonical image/L4 operation release stays open |
 | `comfyui_controlnet_aux` | External deterministic pose/depth/canny preparation | Pinned custom-node/source expectation plus deterministic ReeditPro control-image implementations | `verified_source_contract`; production package/license admission open |
 | ControlNet | Mounted conditioning model inside the shared host | Exact artifact identity, byte observation, workflow binding, model-family binding | `qualified_local_candidate`; L4 compatibility run open |
 | Generic IP-Adapter | Mounted reference-conditioning model inside the shared host | Exact artifact identity, byte observation, generic-only extension and merged workflow | `qualified_local_candidate`; FaceID remains forbidden |
@@ -143,7 +143,11 @@ missing:
 1. Canonical production registry admission for the single ComfyUI host tool
    and its bounded controlled-image operation.
 2. A signed, reviewed L4 worker image containing the exact pinned source,
-   dependency closure, and approved custom nodes.
+   dependency closure, and approved custom nodes. The local candidate now has
+   a bounded 761-package SPDX inventory, but its default user is
+   root/unspecified, one inherited direct-VCS distribution remains
+   undisposed, and independent SBOM validation, inherited-scope review,
+   vulnerability disposition, image signature, and provenance remain open.
 3. Released distributed read-only model-artifact mounts for the exact five
    ComfyUI objects and exact two AuraFace objects.
 4. A successful approved-L4 run of the exact five-model ComfyUI workflow,
@@ -180,6 +184,9 @@ Passed:
 - actual 640×360 Living Frame Remotion shallow and deep-multiplane render with
   pixel-measured differential parallax;
 - actual 3840×2160 streaming Remotion render and independent FFprobe;
+- exact local ComfyUI image-derived SPDX package-inventory smoke, including
+  repeated immutable-image observation, locked-wheel reconciliation,
+  single-use document delivery, and forged release-policy rejection;
 - selected execution/security smokes;
 - repository secret scan;
 - frontend/server boundary scan; and

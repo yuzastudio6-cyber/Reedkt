@@ -2728,6 +2728,21 @@ object changes fail closed. The distributed backend mount adapter, exact
 11.7 GB compatibility benchmark, L4 attempt, signed image, licenses, actual
 resource cost, persistence, QA, and release remain open.
 
+The exact local candidate image now also has a bounded image-derived SPDX 2.3
+package inventory under
+`living-frame-comfyui-container-sbom-evidence-v1`. The process-bound reader
+observes the immutable Linux/AMD64 image twice with no network, a read-only
+root filesystem, and explicit UID/GID `65532:65532`; it verifies 590 Debian
+packages, 168 Python distributions, and three pinned source archives, for 761
+package records. This exposed that the image defaults to root/unspecified and
+that its inherited Python environment includes one out-of-scope direct-VCS
+`sam-2` distribution. Those are release-policy failures, not permissions to
+promote the image. Canonical repository admission, independent SBOM
+validation, inherited-scope and license review, vulnerability disposition,
+signature, provenance, default-user policy, direct-VCS disposition, and L4
+operation release remain closed. See
+`docs/living-frame/living-frame-comfyui-container-sbom-evidence.md`.
+
 The source-controlled package closure is now explicit under
 `docker/prod/gpu-worker/comfyui/`. Its 35 hash-pinned wheel declarations and
 three exact source-archive identities are revalidated against the existing

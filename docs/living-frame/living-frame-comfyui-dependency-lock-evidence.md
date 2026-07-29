@@ -65,6 +65,31 @@ installed from the offline wheelhouse, the frozen entries include their wheel
 SHA-256 identities. The inventory digest is
 `ae56ebd7ca96226994383da7a09c5a3b25b8d1424e863ee2ef9ef90f020fa738`.
 
+## Image-derived package inventory
+
+The exact local candidate now also has a bounded, deterministic SPDX 2.3
+package inventory derived from the immutable image itself. It contains 590
+Debian packages, 168 Python distributions, and the three pinned source
+archives, for 761 package records. The image reader runs twice under explicit
+UID/GID `65532:65532`, a read-only root filesystem, no network, and the fixed
+Linux/AMD64 platform; both observations must be identical.
+
+This broader inventory exposed release facts that the operation-specific
+35-wheel lock could not establish:
+
+- the image has no default non-root user and currently relies on the explicit
+  runtime override; and
+- the inherited shared Python environment includes one out-of-scope direct-VCS
+  distribution, normalized as `sam-2`, at revision
+  `2b90b9f5ceec907a1c18123530e92e794ad901a4`.
+
+The sanitized SPDX document and its process-bound delivery contract are
+documented in
+`docs/living-frame/living-frame-comfyui-container-sbom-evidence.md`.
+This does not weaken the release gate: complete inherited-dependency review,
+independent SBOM validation, vulnerability disposition, signature,
+provenance, default-user policy, and direct-VCS disposition remain open.
+
 ## Runtime compatibility proof
 
 The rebuilt candidate was run under controlled CPU emulation with:

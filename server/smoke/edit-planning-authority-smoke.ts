@@ -6069,6 +6069,15 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
         projectionMetrics.projectedExpectedAssetCount,
       projectedGpuWorkItemCount:
         projectionMetrics.projectedGpuWorkItemCount,
+      projectedControlledIllustrationGenerationUnitCount:
+        projectionMetrics
+          .projectedControlledIllustrationGenerationUnitCount,
+      projectedControlledIllustrationCostComponentCount:
+        projectionMetrics
+          .projectedControlledIllustrationCostComponentCount,
+      controlledIllustrationCreditRoundingAppliedOnceAcrossLivingFrameBundle:
+        projectionMetrics
+          .controlledIllustrationCreditRoundingAppliedOnceAcrossLivingFrameBundle,
       projectedMaximumInternalToolCostCredits:
         projectionMetrics.projectedMaximumInternalToolCostCredits,
       exactProductionToolRegistryCount:
@@ -6079,6 +6088,10 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       projectedNamedWorkItemCount: 3,
       projectedExpectedAssetCount: 3,
       projectedGpuWorkItemCount: 1,
+      projectedControlledIllustrationGenerationUnitCount: 0,
+      projectedControlledIllustrationCostComponentCount: 0,
+      controlledIllustrationCreditRoundingAppliedOnceAcrossLivingFrameBundle:
+        true,
       projectedMaximumInternalToolCostCredits: 3,
       exactProductionToolRegistryCount: 50,
     },
@@ -6094,6 +6107,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     projectedEstimateLines.map((line) => {
       const record = asRecord(line)
       return {
+        costOwnerClass: record.costOwnerClass,
         workItemType: record.workItemType,
         costOwnerToolId: record.costOwnerToolId,
         executionPlacement: record.executionPlacement,
@@ -6105,6 +6119,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     }),
     [
       {
+        costOwnerClass: 'canonical_production_tool',
         workItemType: 'generate_mask_asset',
         costOwnerToolId: 'rembg',
         executionPlacement: 'google_cloud_run_gpu',
@@ -6113,6 +6128,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
         serviceFeeIncluded: false,
       },
       {
+        costOwnerClass: 'canonical_production_tool',
         workItemType: 'process_image_asset',
         costOwnerToolId: 'sharp',
         executionPlacement: 'private_render_worker',
@@ -6121,6 +6137,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
         serviceFeeIncluded: false,
       },
       {
+        costOwnerClass: 'canonical_production_tool',
         workItemType: 'prepare_remotion_layer',
         costOwnerToolId: 'remotion',
         executionPlacement: 'private_render_worker',
@@ -6310,6 +6327,8 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       requiredExpectedOutputCount: 4,
       gpuPendingWorkItemCount: 1,
       blockedWorkItemCount: 1,
+      assignedWorkItemCreditBudget: 3,
+      unassignedControlledIllustrationCreditBudget: 0,
       maximumCreditBudget: 3,
     },
   )

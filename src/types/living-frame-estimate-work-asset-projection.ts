@@ -4,9 +4,13 @@ import type {
 import type {
   CanonicalLivingFrameNamedWorkSourceFrameInput,
 } from './living-frame-asset-work-input-binding'
+import type {
+  CanonicalLivingFrameControlledIllustrationCapabilityId,
+  CanonicalLivingFrameControlledIllustrationCostComponentId,
+} from './living-frame-controlled-illustration-estimate-basis'
 
 export const CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_VERSION =
-  'canonical-living-frame-estimate-work-asset-projection-v3' as const
+  'canonical-living-frame-estimate-work-asset-projection-v4' as const
 
 export const CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_SOURCE =
   'canonical_living_frame_estimate_work_asset_projection_compiler' as const
@@ -50,27 +54,61 @@ export interface CanonicalLivingFrameProjectedCostRange {
   readonly serviceFeeIncluded: false
 }
 
-export interface CanonicalLivingFrameProjectedEstimateLineItem {
+interface CanonicalLivingFrameProjectedEstimateLineItemBase {
   readonly lineKey: string
   readonly label: string
   readonly category: 'living_frame'
   readonly estimatedCredits: number
   readonly removable: false
   readonly sceneId: string
-  readonly workItemType:
-    CanonicalLivingFrameProjectedWorkItemType
-  readonly costOwnerToolId:
-    CanonicalLivingFrameProjectedToolId
-  readonly costOwnerOperationId: string
   readonly executionPlacement:
     CanonicalLivingFrameProjectedExecutionPlacement
   readonly cpuFallbackAllowed: boolean
   readonly costRange:
     CanonicalLivingFrameProjectedCostRange
-  readonly exactFiftyToolRegistryMember: true
-  readonly operationContractObserved: true
   readonly estimateOnly: true
 }
+
+export interface CanonicalLivingFrameProjectedRegisteredToolEstimateLineItem
+  extends CanonicalLivingFrameProjectedEstimateLineItemBase {
+  readonly costOwnerClass: 'canonical_production_tool'
+  readonly workItemType:
+    CanonicalLivingFrameProjectedWorkItemType
+  readonly costOwnerToolId:
+    CanonicalLivingFrameProjectedToolId
+  readonly costOwnerOperationId: string
+  readonly controlledIllustrationCostComponentId: null
+  readonly activeControlledIllustrationCapabilityIds:
+    readonly []
+  readonly exactFiftyToolRegistryMember: true
+  readonly operationContractObserved: true
+  readonly actualAttemptCostEvidenceRequired: true
+  readonly productionRateAuthority: false
+}
+
+export interface CanonicalLivingFrameProjectedInfrastructureEstimateLineItem
+  extends CanonicalLivingFrameProjectedEstimateLineItemBase {
+  readonly costOwnerClass:
+    'shared_controlled_illustration_runtime'
+  readonly workItemType: null
+  readonly costOwnerToolId: null
+  readonly costOwnerOperationId: null
+  readonly controlledIllustrationCostComponentId:
+    CanonicalLivingFrameControlledIllustrationCostComponentId
+  readonly activeControlledIllustrationCapabilityIds:
+    readonly CanonicalLivingFrameControlledIllustrationCapabilityId[]
+  readonly generationUnitCount: number
+  readonly attemptOrComparisonCount: number
+  readonly billableMilliseconds: number
+  readonly exactFiftyToolRegistryMember: false
+  readonly operationContractObserved: false
+  readonly actualAttemptCostEvidenceRequired: true
+  readonly productionRateAuthority: false
+}
+
+export type CanonicalLivingFrameProjectedEstimateLineItem =
+  | CanonicalLivingFrameProjectedRegisteredToolEstimateLineItem
+  | CanonicalLivingFrameProjectedInfrastructureEstimateLineItem
 
 export interface CanonicalLivingFrameProjectedExpectedOutput {
   readonly outputKey: string
@@ -127,7 +165,14 @@ export interface CanonicalLivingFrameEstimateWorkAssetProjectionMetrics {
   readonly projectedNamedWorkItemCount: number
   readonly projectedExpectedAssetCount: number
   readonly projectedGpuWorkItemCount: number
+  readonly projectedControlledIllustrationGenerationUnitCount:
+    number
+  readonly projectedControlledIllustrationCostComponentCount:
+    number
   readonly projectedMaximumInternalToolCostCredits: number
+  readonly projectedMaximumInternalToolCostMicros: number
+  readonly controlledIllustrationCreditRoundingAppliedOnceAcrossLivingFrameBundle:
+    true
   readonly exactProductionToolRegistryCount: 50
 }
 

@@ -884,3 +884,21 @@ export type {
   LivingFrameControlledSdxlGpuRuntimeRequestReceipt,
   LivingFrameControlledSdxlGpuRuntimeRequestReceiptDraft,
 } from '../../types/living-frame-controlled-sdxl-gpu-runtime-protocol'
+
+export {
+  LIVING_FRAME_CONTROLLED_SDXL_GPU_OUTPUT_OBSERVATION_CLASS,
+  LIVING_FRAME_CONTROLLED_SDXL_GPU_OUTPUT_OBSERVATION_EVIDENCE_CLASSES,
+  LIVING_FRAME_CONTROLLED_SDXL_GPU_OUTPUT_OBSERVATION_ISSUES,
+  LIVING_FRAME_CONTROLLED_SDXL_GPU_OUTPUT_OBSERVATION_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_SDXL_GPU_OUTPUT_OBSERVATION_VERSION,
+} from '../../types/living-frame-controlled-sdxl-gpu-output-observation'
+
+export type {
+  LivingFrameControlledSdxlGpuOutputEvidenceClass,
+  LivingFrameControlledSdxlGpuOutputObservation,
+  LivingFrameControlledSdxlGpuOutputObservationAuthority,
+  LivingFrameControlledSdxlGpuOutputObservationDraft,
+  LivingFrameControlledSdxlGpuOutputObservationIssue,
+  LivingFrameControlledSdxlGpuOutputObservationIssueCode,
+  LivingFrameControlledSdxlGpuOutputObservationOpenGate,
+} from '../../types/living-frame-controlled-sdxl-gpu-output-observation'

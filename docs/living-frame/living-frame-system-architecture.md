@@ -2508,6 +2508,40 @@ reconciliation, license review, approved scene/snapshot/work lineage, QA, and
 private review remain required. See
 `docs/living-frame/living-frame-controlled-sdxl-gpu-runtime-protocol.md`.
 
+### Private GPU output observation and opaque-source boundary
+
+`living-frame-controlled-sdxl-gpu-output-observation-v1` adds the next
+server-private boundary after the controlled ComfyUI request. A process-bound,
+single-use reader returns the exact PNG associated with the verified request,
+and a second process-bound consumer receives verified bytes out of band.
+The serializable observation retains only request/output hashes, dimensions,
+alpha measurements, cost lineage, and closed gates.
+
+The fixed decoder accepts only a bounded 1024-by-1024, 8-bit,
+non-interlaced RGB PNG. It validates chunk CRCs, critical-chunk policy,
+bounded decompression, scanline filters, and exact decoded-byte accounting,
+then reruns the existing alpha-measurement primitive. Every source pixel must
+be opaque.
+
+Opaque output is deliberately **not** promoted to a transparent component.
+It must continue through qualified segmentation or matting, alpha-edge
+decontamination, true-alpha artifact commit, multi-background and
+destination-composite QA, continuity and documentary-safety QA, and the
+existing canonical artifact authority. A source PNG with alpha is rejected
+by this route, and an opaque checkerboard remains opaque content.
+
+The observation preserves one-output/one-GPU-attempt lineage without minting
+an amount. ComfyUI, external preprocessing, ControlNet, generic IP-Adapter,
+and loaded PEFT/LoRA share that attempt; AuraFace remains separate optional
+CPU QA. Actual cost still requires canonical worker-resource evidence.
+Bundle aggregation, one-time credit rounding, the single downstream service
+fee, approval, reservation, and settlement remain owned by the existing
+commercial pipeline.
+
+This contract does not prove dispatch, completion, actual cost, artifact
+commit, transparency, QA approval, rendering, or production. See
+`docs/living-frame/living-frame-controlled-sdxl-gpu-output-observation.md`.
+
 ### Controlled benchmark result and threshold binding
 
 The source-only result binding accepts benchmark observations only through a

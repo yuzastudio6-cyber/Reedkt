@@ -19,6 +19,9 @@ import {
 import {
   COST_MICROS_PER_CENT,
 } from '../tool-cost-metering/rate-card'
+import {
+  calculateLivingFrameCloudRunL4PublicListEstimate,
+} from './living-frame-cloud-run-l4-rate-observation'
 
 const SAFE_ID = /^[a-z0-9][a-z0-9._:-]{0,255}$/u
 const GPU_ATTEMPT_DURATION_MILLISECONDS = 90_000
@@ -76,9 +79,8 @@ export function compileCanonicalLivingFrameControlledIllustrationEstimateBasis(
         generatedAssetIntentIds.length,
       attemptOrComparisonCount:
         plannedGpuAttemptCount,
-      wallTimeMilliseconds:
-        plannedGpuAttemptCount
-        * GPU_ATTEMPT_DURATION_MILLISECONDS,
+      perAttemptWallTimeMilliseconds:
+        GPU_ATTEMPT_DURATION_MILLISECONDS,
       allocatedVcpuCount: 8,
       allocatedMemoryGib: 32,
       gpuCount: 1,
@@ -115,9 +117,8 @@ export function compileCanonicalLivingFrameControlledIllustrationEstimateBasis(
           generatedAssetIntentIds.length,
         attemptOrComparisonCount:
           plannedGpuAttemptCount,
-        wallTimeMilliseconds:
-          plannedGpuAttemptCount
-          * AURAFACE_COMPARISON_DURATION_MILLISECONDS,
+        perAttemptWallTimeMilliseconds:
+          AURAFACE_COMPARISON_DURATION_MILLISECONDS,
         allocatedVcpuCount: 2,
         allocatedMemoryGib: 4,
         gpuCount: 0,
@@ -181,7 +182,7 @@ function compileCostComponent(input: {
   readonly generatedAssetIntentIds: readonly string[]
   readonly generationUnitCount: number
   readonly attemptOrComparisonCount: number
-  readonly wallTimeMilliseconds: number
+  readonly perAttemptWallTimeMilliseconds: number
   readonly allocatedVcpuCount: number
   readonly allocatedMemoryGib: number
   readonly gpuCount: 0 | 1
@@ -189,27 +190,10 @@ function compileCostComponent(input: {
   readonly outputStorageGibHours: number
 }): CanonicalLivingFrameControlledIllustrationCostComponent {
   const calculation =
-    calculateInfrastructureRuntimeCostMicros({
-      wallTimeMilliseconds:
-        input.wallTimeMilliseconds,
-      vcpuCount: input.allocatedVcpuCount,
-      memoryGib: input.allocatedMemoryGib,
-      gpuCount: input.gpuCount,
-      tempStorageGibHours:
-        input.tempStorageGibHours,
-      outputStorageGibHours:
-        input.outputStorageGibHours,
-      networkEgressMib: 0,
-      computeLevel: 'standard',
-    })
-  if (!calculation.ok) {
-    throw invalid(
-      'Living Frame could not calculate the controlled-illustration infrastructure estimate.',
-    )
-  }
+    compileInfrastructureCalculation(input)
   const range = calculateEstimateRangeFromExpectedCost({
     expectedInternalCostMicros:
-      calculation.data.actualInternalCostMicros,
+      calculation.expectedInternalCostMicros,
     riskLevel: 'high',
     sourceKind: 'infrastructure_runtime',
     computeLevel: 'standard',
@@ -233,8 +217,7 @@ function compileCostComponent(input: {
     attemptOrComparisonCount:
       input.attemptOrComparisonCount,
     billableMilliseconds:
-      calculation.data.billableMilliseconds
-      ?? input.wallTimeMilliseconds,
+      calculation.billableMilliseconds,
     allocatedVcpuCount: input.allocatedVcpuCount,
     allocatedMemoryGib: input.allocatedMemoryGib,
     gpuCount: input.gpuCount,
@@ -248,12 +231,12 @@ function compileCostComponent(input: {
         range.data.lowInternalCostCents
         * COST_MICROS_PER_CENT,
       expectedInternalCostMicros:
-        calculation.data.actualInternalCostMicros,
+        calculation.expectedInternalCostMicros,
       highInternalCostMicros:
         range.data.highInternalCostCents
         * COST_MICROS_PER_CENT,
       riskLevel: 'high',
-      rateCardVersion: range.data.rateCardVersion,
+      rateCardVersion: calculation.rateCardVersion,
       serviceFeeIncluded: false,
     }),
     capabilityIdsAreAttributionNotIndependentCharges: true,
@@ -263,6 +246,89 @@ function compileCostComponent(input: {
     productionRateAuthority: false,
     estimateOnly: true,
   })
+}
+
+function compileInfrastructureCalculation(input: {
+  readonly componentId:
+    CanonicalLivingFrameControlledIllustrationCostComponent[
+      'componentId'
+    ]
+  readonly attemptOrComparisonCount: number
+  readonly perAttemptWallTimeMilliseconds: number
+  readonly allocatedVcpuCount: number
+  readonly allocatedMemoryGib: number
+  readonly gpuCount: 0 | 1
+  readonly tempStorageGibHours: number
+  readonly outputStorageGibHours: number
+  readonly generationUnitCount: number
+}): {
+  readonly expectedInternalCostMicros: number
+  readonly billableMilliseconds: number
+  readonly rateCardVersion: string
+} {
+  if (
+    input.componentId
+    === 'shared_controlled_illustration_gpu_host'
+  ) {
+    if (input.gpuCount !== 1) {
+      throw invalid(
+        'Living Frame controlled illustration requires one L4 GPU per shared host attempt.',
+      )
+    }
+    const calculation =
+      calculateLivingFrameCloudRunL4PublicListEstimate({
+        attemptCount: input.attemptOrComparisonCount,
+        perAttemptWallTimeMilliseconds:
+          input.perAttemptWallTimeMilliseconds,
+        vcpuCount: input.allocatedVcpuCount,
+        memoryGib: input.allocatedMemoryGib,
+        gpuCount: 1,
+        tempStorageGib: TEMP_STORAGE_GIB,
+        outputArtifactCount: input.generationUnitCount,
+        outputMibPerArtifact:
+          GIB_PER_GENERATED_OUTPUT * 1_024,
+        outputRetentionHours: OUTPUT_RETENTION_HOURS,
+      })
+    return {
+      expectedInternalCostMicros:
+        calculation.expectedInternalCostMicros,
+      billableMilliseconds:
+        calculation.totalBillableMilliseconds,
+      rateCardVersion: calculation.rateBasisVersion,
+    }
+  }
+
+  const calculation =
+    calculateInfrastructureRuntimeCostMicros({
+      wallTimeMilliseconds:
+        input.attemptOrComparisonCount
+        * input.perAttemptWallTimeMilliseconds,
+      vcpuCount: input.allocatedVcpuCount,
+      memoryGib: input.allocatedMemoryGib,
+      gpuCount: input.gpuCount,
+      tempStorageGibHours:
+        input.tempStorageGibHours,
+      outputStorageGibHours:
+        input.outputStorageGibHours,
+      networkEgressMib: 0,
+      computeLevel: 'standard',
+    })
+  if (!calculation.ok) {
+    throw invalid(
+      'Living Frame could not calculate the controlled-illustration infrastructure estimate.',
+    )
+  }
+  return {
+    expectedInternalCostMicros:
+      calculation.data.actualInternalCostMicros,
+    billableMilliseconds:
+      calculation.data.billableMilliseconds
+      ?? (
+        input.attemptOrComparisonCount
+        * input.perAttemptWallTimeMilliseconds
+      ),
+    rateCardVersion: calculation.data.rateCardVersion,
+  }
 }
 
 function resolveGpuCapabilityIds(

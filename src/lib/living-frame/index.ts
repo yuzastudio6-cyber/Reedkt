@@ -902,3 +902,17 @@ export type {
   LivingFrameControlledSdxlGpuOutputObservationIssueCode,
   LivingFrameControlledSdxlGpuOutputObservationOpenGate,
 } from '../../types/living-frame-controlled-sdxl-gpu-output-observation'
+
+export {
+  LIVING_FRAME_CLOUD_RUN_L4_ESTIMATE_RATE_BASIS_VERSION,
+  LIVING_FRAME_CLOUD_RUN_L4_PUBLIC_RATE_OBSERVATION_DIGEST,
+  LIVING_FRAME_CLOUD_RUN_L4_PUBLIC_RATE_OBSERVATION_VERSION,
+  LIVING_FRAME_CLOUD_RUN_L4_PUBLIC_RATE_SOURCE_CODES,
+} from '../../types/living-frame-cloud-run-l4-rate-observation'
+
+export type {
+  LivingFrameCloudRunL4EstimateCalculation,
+  LivingFrameCloudRunL4EstimateInput,
+  LivingFrameCloudRunL4PublicRateObservation,
+  LivingFrameCloudRunL4PublicRateSourceCode,
+} from '../../types/living-frame-cloud-run-l4-rate-observation'

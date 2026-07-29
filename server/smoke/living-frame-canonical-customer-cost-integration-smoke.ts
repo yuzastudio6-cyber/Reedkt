@@ -205,6 +205,7 @@ assert.equal(
   allocatedCredits,
   Math.ceil(exactHighMicros / 100_000),
 )
+assert.equal(allocatedCredits, 3)
 assert.equal(
   projection.metrics
     .projectedMaximumInternalToolCostCredits,
@@ -241,6 +242,7 @@ const controlledLines =
   )
 assert.equal(serviceFeeLines.length, 1)
 assert.equal(controlledLines.length, 2)
+assert.equal(serviceFeeLines[0]!.estimatedCredits, 50)
 assert.equal(
   controlledLines.reduce(
     (total, line) =>

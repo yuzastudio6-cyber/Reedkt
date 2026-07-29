@@ -2025,6 +2025,37 @@ and adds no CPU fallback. See
 
 ## Controlled-illustration actual-cost attribution
 
+### Dated Cloud Run L4 estimate-rate correction
+
+The Living Frame controlled-illustration GPU estimate now uses a namespaced,
+dated 2026-07-29 observation of the default public list prices for Cloud Run
+CPU, memory, non-zonally-redundant NVIDIA L4 time, Cloud Run ephemeral disk,
+and `europe-west1` Regional Standard Cloud Storage. It also accounts for one
+Class A output write per generated asset.
+
+The calculator applies Cloud Run's 60-second instance-based minimum and
+100-millisecond rounding separately to every planned attempt. It holds the
+public prices in integer USD nanos, aggregates the SKU contributions, and
+rounds to USD micros once. It adds no synthetic renderer charge. At the
+current controlled 8-vCPU, 32-GiB, one-L4, 90-second assumption, one generated
+asset attempt is 35,598 expected internal USD micros including two GiB of
+temporary disk and one approximately 100-MiB output retained for 24 hours.
+
+ComfyUI, external preprocessing, ControlNet, generic IP-Adapter, and loaded
+PEFT/LoRA continue to share that one host-attempt cost. Normal, Premium, and
+Ultra Premium plan one, two, and three attempts per generated asset. AuraFace
+remains a separately attributed optional CPU continuity measurement and
+retains the generic placeholder estimate until its production placement is
+qualified.
+
+This is not a production rate card. Free-tier and account discounts are not
+applied, and current Cloud Billing Pricing API reread, billing-account rate
+binding, actual worker usage, invoice reconciliation, customer billability,
+one-time credit rounding, the single Reeditpro service fee, approval,
+reservation, wallet, and settlement remain owned by the existing canonical
+authorities. See
+`docs/living-frame/living-frame-cloud-run-l4-pricing.md`.
+
 Living Frame now has a controlled, non-promotable bridge from the existing
 private worker resource-usage evidence into capability-level cost
 attribution. One observed ComfyUI GPU attempt owns the combined

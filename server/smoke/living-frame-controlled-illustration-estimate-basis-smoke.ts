@@ -4,11 +4,17 @@ import type {
   CanonicalLivingFrameProjectedInfrastructureEstimateLineItem,
 } from '../../src/types/living-frame-estimate-work-asset-projection'
 import {
+  LIVING_FRAME_CLOUD_RUN_L4_ESTIMATE_RATE_BASIS_VERSION,
+} from '../../src/types/living-frame-cloud-run-l4-rate-observation'
+import {
   allocateCreditsOnceAcrossLivingFrameBundle,
 } from '../living-frame/canonical-living-frame-estimate-work-asset-projection'
 import {
   compileCanonicalLivingFrameControlledIllustrationEstimateBasis,
 } from '../living-frame/canonical-living-frame-controlled-illustration-estimate-basis'
+import {
+  calculateInfrastructureRuntimeCostMicros,
+} from '../tool-cost-metering/cost-math'
 
 const generated = [
   'asset-intent-character-anchor',
@@ -54,6 +60,19 @@ assert.equal(
   basis.costComponents[0]!.attemptOrComparisonCount,
   4,
 )
+assert.equal(
+  basis.costComponents[0]!.billableMilliseconds,
+  360_000,
+)
+assert.equal(
+  basis.costComponents[0]!.costRange
+    .expectedInternalCostMicros,
+  142_253,
+)
+assert.equal(
+  basis.costComponents[0]!.costRange.rateCardVersion,
+  LIVING_FRAME_CLOUD_RUN_L4_ESTIMATE_RATE_BASIS_VERSION,
+)
 assert.ok(
   basis.costComponents[0]!.tempStorageGibHours > 0,
 )
@@ -84,6 +103,37 @@ assert.ok(
   basis.totalHighInternalCostMicros
   >= basis.totalExpectedInternalCostMicros,
 )
+
+const obsoleteMockGpuCalculation =
+  calculateInfrastructureRuntimeCostMicros({
+    wallTimeMilliseconds: 360_000,
+    vcpuCount: 8,
+    memoryGib: 32,
+    gpuCount: 1,
+    tempStorageGibHours:
+      basis.costComponents[0]!.tempStorageGibHours,
+    outputStorageGibHours:
+      basis.costComponents[0]!.outputStorageGibHours,
+    networkEgressMib: 0,
+    computeLevel: 'standard',
+  })
+assert.equal(obsoleteMockGpuCalculation.ok, true)
+if (obsoleteMockGpuCalculation.ok) {
+  assert.ok(
+    obsoleteMockGpuCalculation.data.actualInternalCostMicros
+    > (
+      basis.costComponents[0]!.costRange
+        .expectedInternalCostMicros
+      * 10
+    ),
+  )
+  assert.ok(
+    Number(
+      obsoleteMockGpuCalculation.data
+        .breakdownMicros?.renderMicros ?? 0,
+    ) > 0,
+  )
+}
 
 const nonUse =
   compileCanonicalLivingFrameControlledIllustrationEstimateBasis({

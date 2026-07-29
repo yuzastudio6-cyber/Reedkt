@@ -151,7 +151,12 @@ missing:
    scene/component/continuity/frame/work lineage. Its full-frame ratio
    extension now derives exact confirmed `9:16`, `16:9`, and custom
    source/background qualification units without square substitution, while
-   isolated components remain separately bounded. The backend registry owner
+   isolated components remain separately bounded. The selected-scene private
+   prompt materializer now compiles the real selected-scene graph family and
+   emits one process-bound single-use private request lease per exact approved
+   generated output. It is not the benchmark prompt path, does not dispatch,
+   and preserves the confirmed frame, five-model atomic mount, confinement,
+   `sam2` denial, and Remotion ownership boundaries. The backend registry owner
    must still implement canonical admission and bind the projection to each
    approved work item. A pre-existing canonical Living Frame estimate
    projection still enforces the observed count as a temporary runtime guard;
@@ -212,6 +217,9 @@ Passed:
 - fixed ComfyUI process/offline-package smokes with an exact non-empty denied
   import set, relaxed-policy refusal, and a live network-off container probe
   proving `sam2` is blocked while standard-library imports remain available;
+- selected-scene private prompt materialization with one unit/lease per
+  approved output, exact isolated and confirmed-ratio canvases, byte-free
+  receipts, and adversarial benchmark/caller/node/lineage/authority refusal;
 - selected execution/security smokes;
 - repository secret scan;
 - frontend/server boundary scan; and

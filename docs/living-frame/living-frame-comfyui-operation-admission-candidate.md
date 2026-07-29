@@ -159,3 +159,11 @@ square substitution, and keeps Remotion as the final canvas owner. This closes
 the planning contract gap only; full-frame GPU memory/latency/output-quality
 evidence and every operation, dispatch, persistence, QA, review, and
 production gate remain open.
+
+The selected-scene private prompt materializer now binds that ratio extension
+to the real selected-scene request, not the benchmark path. It emits one
+process-bound single-use private prompt-request lease per approved generated
+output and a byte-free lineage receipt. This closes prompt materialization
+only. It does not consume the candidate as an admitted production operation,
+does not dispatch, and does not alter any canonical registry, routing, work,
+cost, manifest, approval, render, or review owner.

@@ -2809,6 +2809,31 @@ cross-scene/work substitution. It does not register an operation, dispatch a
 worker, create an asset, or authorize production. ComfyUI still never owns
 the final canvas.
 
+The server-private selected-scene materializer now closes the next source
+boundary without reusing the benchmark prompt path. It revalidates the
+selected-scene request, Visual Continuity Pack, approved snapshot,
+MasterTiming, work graph, exact planned asset/output lineage, cost/work
+binding, confirmed-frame digest, ratio extension, and admission candidate.
+It then compiles only the qualified base/optional-LoRA/optional-external-
+ControlNet/optional-generic-IP-Adapter graph family.
+
+Each approved generated output becomes one materialization unit and one
+process-bound single-use prompt-request lease. Isolated components remain
+exactly `1024 × 1024`; source stills and background plates use their exact
+confirmed ratio-extension dimensions. The seed is server-derived, private
+slot values stay process-bound, and the serializable receipt contains only
+digests, counts, policy, and lineage. FaceID, InsightFace, in-graph
+preprocessors, arbitrary preview/save nodes, benchmark substitution,
+caller-selected request values, square substitution, and final-canvas claims
+fail closed.
+
+This is prompt materialization authority only. It does not register
+`comfyui`, bind an approved operation, dispatch, mint a canonical worker
+lease, execute the GPU, meter actual cost, persist an asset, mutate the asset
+manifest, approve QA, open private review, render, bill, or promote
+production. See
+`docs/living-frame/living-frame-controlled-image-selected-scene-private-prompt-materialization.md`.
+
 The atomic mounted-runner source boundary now also freezes the compatible
 release path rather than leaving the root finding as prose. Its canonical
 session digest includes

@@ -8,8 +8,11 @@ Status:
 This contract closes the planning gap between an approved Living Frame scene
 and the future canonical ComfyUI operation. It is a server-derived,
 non-executable request projection. It does not register ComfyUI, create an
-approved operation binding, dispatch a worker, materialize a prompt, or create
-an asset.
+approved operation binding, dispatch a worker, or create an asset. A separate
+server-only materializer can now consume this projection plus the
+confirmed-frame ratio extension and create a process-bound private
+prompt-request lease. That later bridge does not make this base projection
+executable.
 
 ## Required lineage
 
@@ -93,6 +96,11 @@ The selected-scene request has exact approval, scene, component, asset,
 continuity, timing, frame, estimate, and work lineage that a benchmark case
 does not have.
 
+The server-private selected-scene materializer now compiles the already
+qualified graph family independently from these exact request units. It
+explicitly records that no benchmark case or recipe was used. See
+`docs/living-frame/living-frame-controlled-image-selected-scene-private-prompt-materialization.md`.
+
 ## Cost and operation boundary
 
 The projection expects exactly one canonical production identity:
@@ -134,3 +142,9 @@ Full-frame plate request units additionally require the qualified frame-ratio
 generation evidence described above. The ratio extension contract is now
 implemented, but L4 memory/latency/output-quality qualification and the normal
 release gates remain required.
+
+The private selected-scene materialization bridge is also implemented. It
+creates one process-bound single-use prompt-request lease per approved
+generated output and nothing more: operation registration, dispatch, runtime,
+cost, persistence, QA approval, private review, final composition, and
+production remain closed.

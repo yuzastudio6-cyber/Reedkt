@@ -51,6 +51,12 @@ The extension applies only to:
 Each matching selected-scene unit produces one derived full-frame ratio unit
 with the exact confirmed output-frame dimensions.
 
+The server-private selected-scene prompt materializer now consumes that unit
+when compiling the actual private ComfyUI API-format prompt. It copies the
+verified width and height exactly into `EmptyLatentImage`; it does not accept
+caller dimensions and does not use the benchmark prompt materializer. See
+`docs/living-frame/living-frame-controlled-image-selected-scene-private-prompt-materialization.md`.
+
 Isolated subjects and other separable components remain on the independently
 bounded `isolated_component_square_1024` path. The extension records those
 units but cannot mutate them. It therefore never turns one full-frame request
@@ -136,6 +142,10 @@ The smoke fixture proves rejection of:
 The extension leaves all operation, registry, routing, approved dispatch,
 worker lease, runtime, persistence, actual cost, billing, asset-manifest,
 private review, final render, and production authorities false.
+
+The downstream private materializer preserves the same boundary. Its
+process-bound lease is a prompt/request capability only, not a canonical
+worker lease or dispatch capability.
 
 Before promotion, the backend still requires:
 

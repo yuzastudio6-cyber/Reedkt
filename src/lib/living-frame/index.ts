@@ -290,6 +290,27 @@ export type {
 } from '../../types/living-frame-controlled-image-full-frame-ratio-extension'
 
 export {
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_GRAPH_FEATURES,
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_PROMPT_ISSUE_CODES,
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_PROMPT_MATERIALIZATION_CLASS,
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_PROMPT_MATERIALIZATION_STATE,
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_PROMPT_MATERIALIZATION_VERSION,
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_PROMPT_OPEN_GATES,
+} from '../../types/living-frame-controlled-image-selected-scene-private-prompt-materialization'
+
+export type {
+  LivingFrameControlledImageSelectedSceneGraphFeature,
+  LivingFrameControlledImageSelectedScenePrivatePromptAuthority,
+  LivingFrameControlledImageSelectedScenePrivatePromptIssue,
+  LivingFrameControlledImageSelectedScenePrivatePromptIssueCode,
+  LivingFrameControlledImageSelectedScenePrivatePromptMaterialization,
+  LivingFrameControlledImageSelectedScenePrivatePromptMaterializationDraft,
+  LivingFrameControlledImageSelectedScenePrivatePromptMaterializationUnit,
+  LivingFrameControlledImageSelectedScenePrivatePromptOpenGate,
+  LivingFrameControlledImageSelectedScenePrivatePromptSlotReceipt,
+} from '../../types/living-frame-controlled-image-selected-scene-private-prompt-materialization'
+
+export {
   LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_AUTHORITY_BOUNDARY,
   LivingFrameControlledIllustrationSourceObservationError,
   calculateLivingFrameControlledIllustrationSourceObservationDigest,

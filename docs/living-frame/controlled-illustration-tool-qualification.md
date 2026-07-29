@@ -285,6 +285,23 @@ Primary-source starting point:
 - <https://huggingface.co/fal/AuraFace-v1/blob/af6d057c9b0ec4071d4c49c80e3539258798b609/README.md>
 - <https://huggingface.co/fal/AuraFace-v1/blob/af6d057c9b0ec4071d4c49c80e3539258798b609/LICENSE.md>
 - <https://huggingface.co/blog/isidentical/auraface>
+- <https://github.com/deepinsight/insightface/tree/master/python-package>
+- <https://github.com/deepinsight/insightface/blob/master/python-package/README.md>
+
+Current source-side package status, dated 2026-07-29:
+
+- a private Linux AMD64 AuraFace CPU image candidate now exists in source;
+- Python 3.13.11, 23 wheels, InsightFace code 1.0.1, ONNX Runtime 1.28.0,
+  and OpenCV headless 5.0.0.93 are pinned;
+- InsightFace package code is treated separately from upstream InsightFace
+  pretrained models, which are not included;
+- the exact AuraFace detector and embedding artifacts remain separately
+  mounted, checksum-verified inputs rather than baked image contents;
+- one controlled offline fictional-image execution completed under
+  `--network=none`; and
+- this does not promote the package to installed product capability,
+  canonical operation, production route, legal approval, fairness evidence,
+  or identity-decision authority.
 
 ### Superseded identity candidate
 
@@ -457,10 +474,15 @@ exact future artifact inventories, license scopes, safety reviews, and
 benchmarks while fixing every installation, registry, operation, dispatch,
 runtime, and production authority to false.
 
-No candidate is installed, package-pinned, artifact-pinned, independently
-verified, registered, routed, dispatched, or production-ready in this slice.
-The controlled revision observations do not alter the canonical model-weight
-manifest, including the separately discovered fail-closed
-`transparent-background`/`rembg` manifest gap. Canonical planner, estimate,
-approval, snapshot, work-graph, tool, provider, cost, asset, QA, and
-private-review gates remain closed.
+The original qualification contract did not install or pin any candidate.
+Later namespaced source slices now pin the controlled ComfyUI package boundary
+and the AuraFace CPU package candidate, but neither is registered, dispatched,
+deployed, independently production-qualified, or product-ready. Exact
+generation-model compatibility, auxiliary annotator bundles, IP-Adapter
+extensions, model licenses, artifact distribution, signed images, and
+backend-owned mounts remain fail-closed. These observations do not alter the
+canonical model-weight manifest, including the separately discovered
+`transparent-background`/`rembg` manifest gap. Canonical planner, approval,
+snapshot, live work dispatch, provider, QA approval, and production-release
+gates remain closed; existing estimate and cost authorities may consume only
+their separately admitted, non-duplicative cost contributions.

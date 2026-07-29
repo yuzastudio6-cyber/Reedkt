@@ -26,11 +26,11 @@ approved Living Frame work item
   -> existing settlement and private-review authorities
 ```
 
-This slice implements the namespaced CPU runtime adapter, its process-bound
-ports, output lease, receipt, and adversarial validation. It does not change
-the shared tool registry, offline capability worker, operation registry,
-approved snapshot, work graph, queue, cost repository, credit ledger, QA
-authority, or renderer.
+The implemented source boundary includes the namespaced CPU runtime adapter,
+its process-bound ports, output lease, receipt, fixed offline runner protocol,
+and a private CPU container candidate. It does not change the shared tool
+registry, offline capability worker, operation registry, approved snapshot,
+work graph, queue, cost repository, credit ledger, QA authority, or renderer.
 
 ## Required Operation
 
@@ -102,16 +102,56 @@ No face or multiple faces produces `user_review_required` without an
 embedding lease. A host failure or lost result produces `failed` or
 `outcome_unknown`; it cannot be rewritten as success.
 
+## Fixed Offline Package Candidate
+
+`docker/prod/cpu-worker/auraface/` now provides a private, unreleased Linux
+AMD64 package candidate:
+
+- Python `3.13.11` is pinned by base-image digest;
+- 23 Python wheels are version- and SHA-256-pinned;
+- InsightFace Python code is fixed at `1.0.1`;
+- ONNX Runtime is fixed at `1.28.0`;
+- OpenCV headless is fixed at `5.0.0.93`;
+- no face model or detector is baked into the image;
+- package-shipped ONNX test fixtures are removed before the runtime image is
+  assembled;
+- the runtime user is non-root;
+- the model directory is read-only;
+- the request accepts committed PNG/JPEG bytes rather than caller paths or
+  URLs;
+- encoded-byte, decoded-dimension, EXIF-orientation, exact-one-face,
+  artifact-size, and artifact-digest checks fail closed; and
+- the operation emits no similarity threshold or identity decision.
+
+The fixed preprocessing digest
+`2660c1ec27667e691e9d1a84c0426fee95ccde4ddd35470e485ff5dcd4c6d614`
+binds OpenCV BGR decode, 640x640 SCRFD detection, five-landmark ArcFace
+alignment, 112x112 embedding input, 512-component float32 output, and L2
+normalization. The server protocol permits at most 120 seconds, matching the
+existing namespaced CPU-runtime ceiling.
+
+On 2026-07-29, a controlled local Linux AMD64 build succeeded from the pinned
+wheel set. A private `--network=none`, read-only container execution mounted
+the two exact AuraFace artifacts, processed one generated fictional adult
+portrait as both reference and candidate, detected exactly one face in each
+input, and returned two valid 512-component embeddings with identical
+inference-output digests. This is a source-package compatibility observation,
+not a production latency, fairness, identity, legal, or release benchmark.
+The test portrait and downloaded model copies were kept outside the repository.
+
 ## Current Boundary
 
-Controlled fixture execution proves structural behavior only. The private
-host port is present as a process-bound integration seam, but no released
-AuraFace model inference is claimed.
+Controlled fixtures prove structural behavior, while the dated local
+container run proves that the pinned package can execute the exact model
+pair offline on a fictional test image. Neither observation is released
+runtime evidence. The private host port remains a process-bound integration
+seam and no production AuraFace inference is claimed.
 
 The following gates remain closed:
 
 1. Canonical admission of the Transformers AuraFace operation.
-2. Qualified private CPU image with exact ONNX/OpenCV preprocessing.
+2. Signed and independently qualified private CPU image admission for the
+   current source package.
 3. Canonical read-only mounts for both exact model artifacts.
 4. Canonical private reference/candidate artifact reader.
 5. Consent, likeness, minor, impersonation, and documentary-safety admission.

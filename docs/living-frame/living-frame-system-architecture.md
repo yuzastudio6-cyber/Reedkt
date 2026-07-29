@@ -1516,6 +1516,40 @@ actually runs. No operation, work, dispatch, cost receipt, QA approval, or
 runtime authority is opened. See
 `docs/living-frame/living-frame-auraface-artifact-requirements.md`.
 
+### Offline AuraFace CPU package candidate
+
+The source tree now contains a fixed private Linux AMD64 package candidate at
+`docker/prod/cpu-worker/auraface/` and a strict server protocol at
+`server/living-frame/living-frame-auraface-offline-runner-protocol.ts`.
+The image pins Python 3.13.11 by base digest and 23 wheel artifacts by version
+and SHA-256. It installs the InsightFace Python code but does not bake any
+face model, detector, reference image, threshold, or identity decision into
+the image.
+
+The runner accepts only two committed private image packets plus bounded
+lineage digests. It verifies the exact two AuraFace artifact sizes and hashes,
+requires CPU ONNX Runtime, rejects runtime download/network behavior, protects
+decoded-pixel and EXIF-orientation boundaries, requires exactly one face in
+each input, and returns private L2-normalized 512-component embeddings. The
+serializable Living Frame receipt still excludes the embeddings and raw
+images.
+
+A controlled local observation dated 2026-07-29 built the Linux AMD64 image
+and completed the fixed detector/alignment/embedding path under
+`--network=none` with a generated fictional adult portrait. The reference and
+candidate inference-output digests matched when the same image was supplied
+twice. That observation proves only source-package compatibility. It does not
+qualify latency, fairness, consent, training-data rights, production safety,
+artifact distribution, shared operation dispatch, customer billing, or
+release.
+
+The existing customer-cost design remains unchanged. The first five
+controlled-illustration capabilities share one ComfyUI L4 attempt; optional
+AuraFace continuity measurement is one separately attributable CPU attempt.
+Internal attempt costs aggregate before the existing estimate converts to
+credits, and the existing settlement policy applies the ReeditPro service fee
+once.
+
 ### Controlled AuraFace continuity measurement
 
 `living-frame-auraface-continuity-measurement-v1` implements the deterministic

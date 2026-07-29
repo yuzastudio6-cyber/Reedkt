@@ -6,6 +6,7 @@ export const LIVING_FRAME_AURAFACE_CONTINUITY_MEASUREMENT_CLASS =
 
 export const LIVING_FRAME_AURAFACE_CONTINUITY_MEASUREMENT_EVIDENCE_CLASSES = [
   'controlled_non_promotable_embedding_fixture',
+  'private_internal_auraface_cpu_embedding_observation_unreleased',
 ] as const
 
 export type LivingFrameAuraFaceContinuityMeasurementEvidenceClass =
@@ -153,7 +154,8 @@ export interface LivingFrameAuraFaceContinuityMeasurementDraft {
   readonly authorityBoundary:
     LivingFrameAuraFaceContinuityMeasurementAuthority
   readonly processBoundReaderConsumedExactlyOnce: true
-  readonly controlledFixtureVectorsCompared: true
+  readonly controlledFixtureVectorsCompared: boolean
+  readonly privateRuntimeVectorsComparedUnreleased: boolean
   readonly liveInferenceExecuted: false
   readonly continuityDecisionCreated: false
   readonly containsEmbeddingImagePathUrlCredentialOrIdentityReference:

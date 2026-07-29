@@ -28,7 +28,8 @@ const SCORE_SCALE = 1_000_000
 
 export interface LivingFrameAuraFacePrivateEmbeddingPacket {
   readonly packetClass:
-    'server_owned_controlled_auraface_embedding_fixture_packet_v1'
+    | 'server_owned_controlled_auraface_embedding_fixture_packet_v1'
+    | 'process_bound_private_auraface_cpu_embedding_packet_v1'
   readonly evidenceClass:
     LivingFrameAuraFaceContinuityMeasurementEvidenceClass
   readonly artifactRequirementSetDigestSha256: string
@@ -44,7 +45,7 @@ export interface LivingFrameAuraFacePrivateEmbeddingPacket {
   readonly embeddingDimension: 512
   readonly referenceEmbedding: Float32Array
   readonly candidateEmbedding: Float32Array
-  readonly controlledFixtureOnly: true
+  readonly controlledFixtureOnly: boolean
   readonly callerThresholdAccepted: false
   readonly callerBytesPathUrlOrCredentialAccepted: false
   readonly liveInferenceAuthority: false
@@ -57,7 +58,8 @@ export interface LivingFrameAuraFacePrivateEmbeddingReader {
   readonly readerVersion:
     'living-frame-auraface-private-embedding-reader-v1'
   readonly readerClass:
-    'process_bound_server_owned_controlled_embedding_fixture_reader'
+    | 'process_bound_server_owned_controlled_embedding_fixture_reader'
+    | 'process_bound_private_auraface_cpu_embedding_reader'
   readonly evidenceClass:
     LivingFrameAuraFaceContinuityMeasurementEvidenceClass
   readonly binding: {
@@ -226,7 +228,8 @@ const draftSchema = z.object({
   ),
   authorityBoundary: authoritySchema,
   processBoundReaderConsumedExactlyOnce: z.literal(true),
-  controlledFixtureVectorsCompared: z.literal(true),
+  controlledFixtureVectorsCompared: z.boolean(),
+  privateRuntimeVectorsComparedUnreleased: z.boolean(),
   liveInferenceExecuted: z.literal(false),
   continuityDecisionCreated: z.literal(false),
   containsEmbeddingImagePathUrlCredentialOrIdentityReference:
@@ -336,7 +339,10 @@ export function createLivingFrameAuraFacePrivateEmbeddingReader(
       readerVersion:
         'living-frame-auraface-private-embedding-reader-v1',
       readerClass:
-        'process_bound_server_owned_controlled_embedding_fixture_reader',
+        input.evidenceClass
+          === 'controlled_non_promotable_embedding_fixture'
+          ? 'process_bound_server_owned_controlled_embedding_fixture_reader'
+          : 'process_bound_private_auraface_cpu_embedding_reader',
       evidenceClass: input.evidenceClass,
       binding: Object.freeze({
         ...bindingDraft,
@@ -482,7 +488,12 @@ export async function createLivingFrameAuraFaceContinuityMeasurement(
       LIVING_FRAME_AURAFACE_CONTINUITY_MEASUREMENT_OPEN_GATES,
     authorityBoundary: AUTHORITY_BOUNDARY,
     processBoundReaderConsumedExactlyOnce: true,
-    controlledFixtureVectorsCompared: true,
+    controlledFixtureVectorsCompared:
+      reader.evidenceClass
+        === 'controlled_non_promotable_embedding_fixture',
+    privateRuntimeVectorsComparedUnreleased:
+      reader.evidenceClass
+        === 'private_internal_auraface_cpu_embedding_observation_unreleased',
     liveInferenceExecuted: false,
     continuityDecisionCreated: false,
     containsEmbeddingImagePathUrlCredentialOrIdentityReference: false,
@@ -584,11 +595,26 @@ function assertPacket(
       'actualCostAuthority',
       'productionReady',
     ])
-    || value.packetClass
-      !==
-        'server_owned_controlled_auraface_embedding_fixture_packet_v1'
+    || ![
+      'server_owned_controlled_auraface_embedding_fixture_packet_v1',
+      'process_bound_private_auraface_cpu_embedding_packet_v1',
+    ].includes(value.packetClass)
     || value.evidenceClass !== reader.evidenceClass
-    || value.controlledFixtureOnly !== true
+    || value.controlledFixtureOnly
+      !== (
+        value.evidenceClass
+          === 'controlled_non_promotable_embedding_fixture'
+      )
+    || (
+      value.controlledFixtureOnly
+      && value.packetClass
+        !== 'server_owned_controlled_auraface_embedding_fixture_packet_v1'
+    )
+    || (
+      !value.controlledFixtureOnly
+      && value.packetClass
+        !== 'process_bound_private_auraface_cpu_embedding_packet_v1'
+    )
     || value.callerThresholdAccepted !== false
     || value.callerBytesPathUrlOrCredentialAccepted !== false
     || value.liveInferenceAuthority !== false
@@ -700,6 +726,8 @@ function assertDraft(
     || draft.liveInferenceExecuted !== false
     || draft.continuityDecisionCreated !== false
     || draft.productionReady !== false
+    || draft.controlledFixtureVectorsCompared
+      === draft.privateRuntimeVectorsComparedUnreleased
   ) throw invalid(
     'authority_promotion_forbidden',
     '$.authorityBoundary',

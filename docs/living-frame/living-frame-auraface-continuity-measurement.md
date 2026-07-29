@@ -1,15 +1,17 @@
 # Living Frame AuraFace Continuity Measurement
 
-Status: deterministic controlled vector-math primitive implemented; AuraFace
-inference, identity decision, QA approval, persistence, costing, and production
-gates closed.
+Status: deterministic vector math and the process-bound CPU-runtime lease
+bridge are implemented; released AuraFace inference, identity decision, QA
+approval, persistence, costing, and production gates remain closed.
 
 This contract implements the comparison step for the sixth Living Frame
-controlled-illustration capability. It does not run AuraFace. A process-bound,
-single-use server reader supplies two controlled 512-component `Float32`
-embedding fixtures out of band. The contract validates their exact lineage,
-face counts, type, length, finite values, non-zero norms, and non-shared
-buffers before calculating cosine similarity.
+controlled-illustration capability. It does not itself run AuraFace. A
+process-bound, single-use server reader supplies two 512-component `Float32`
+embeddings out of band. They may come from a controlled fixture or from the
+unreleased private CPU-runtime output lease; the two evidence classes cannot
+be mixed or relabeled. The contract validates exact lineage, face counts,
+type, length, finite values, non-zero norms, and non-shared buffers before
+calculating cosine similarity.
 
 The score is represented as an integer in millionths from `-1,000,000` to
 `1,000,000`. The result contains no embedding, image, path, URL, credential,
@@ -29,10 +31,11 @@ Cosine similarity is evidence, not identity truth. The contract:
   non-persistable by this contract; and
 - never serializes or persists the source embeddings.
 
-The controlled fixture evidence class cannot be relabeled live, verified,
-released, or production-ready. A future server-owned AuraFace inference
-operation must provide separate released evidence through the canonical model
-artifact, dispatch, attempt, cost, privacy, consent, and QA authorities.
+Neither the controlled fixture class nor the private internal runtime
+observation can be relabeled live, verified, released, or production-ready.
+A released server-owned AuraFace operation still requires separate evidence
+through the canonical model-artifact, dispatch, attempt, cost, privacy,
+consent, and QA authorities.
 
 ## Cost boundary
 

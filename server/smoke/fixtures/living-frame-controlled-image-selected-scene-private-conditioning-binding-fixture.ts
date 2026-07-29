@@ -136,10 +136,24 @@ export async function createLivingFrameControlledImageSelectedScenePrivateCondit
         publication.binding.sourceBindings
           .currentMasterTimingDigestSha256,
     },
+    fps: 30,
     scenes: [{
       sceneId: scene.sceneId,
-      semanticPhaseBindings: [],
+      semanticPhaseBindings: [
+        phase('prepare', 0, 15, 0, suffix),
+        phase('activate', 15, 30, 1, suffix),
+        phase('demonstrate', 30, 105, 2, suffix),
+        phase('resolve', 105, 135, 3, suffix),
+        phase('settle', 135, 150, 4, suffix),
+      ],
       soundCueBindings: [],
+      visualTiming: {
+        frameRange: {
+          startFrame: 0,
+          endFrameExclusive: 150,
+          durationFrames: 150,
+        },
+      },
     }],
   } as unknown as CanonicalLivingFrameTimingBinding
   const generatedComponents = scene.components.filter(
@@ -452,6 +466,32 @@ function createApprovedLineageBinding(input: {
 
 function hash(value: unknown): string {
   return sha256AuthorityValue(value)
+}
+
+function phase(
+  phaseName:
+    | 'prepare'
+    | 'activate'
+    | 'demonstrate'
+    | 'resolve'
+    | 'settle',
+  startFrame: number,
+  endFrameExclusive: number,
+  order: number,
+  suffix: string,
+) {
+  return {
+    timingRequestId:
+      `timing-request-conditioning-${phaseName}-${suffix}`,
+    order,
+    phase: phaseName,
+    frameRange: {
+      startFrame,
+      endFrameExclusive,
+      durationFrames:
+        endFrameExclusive - startFrame,
+    },
+  }
 }
 
 function nextId(): string {

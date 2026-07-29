@@ -44,6 +44,18 @@ The server derives one of three depth styles:
 archive scenes, objects, and A-roll integrations do not all receive the same
 depth treatment.
 
+The current compiler derives this value from canonical component and motion
+signals. The approved Visual Continuity Pack can also direct `dimensional`,
+which the current canonical motion and renderer contracts do not support.
+The namespaced read-only selected-scene motion-style reconciliation therefore
+compares the exact approved scene depth with the independently recompiled
+canonical motion observation before a future canonical owner admits motion.
+Supported depths must match exactly. Divergence fails closed, and dimensional
+scenes remain blocked until a dimensional runtime exists or a new plan version
+explicitly approves a downgrade. The reconciler cannot mutate either source.
+See
+`docs/living-frame/living-frame-selected-scene-motion-style-reconciliation.md`.
+
 ## Closed motion language
 
 Targets:
@@ -119,6 +131,10 @@ digest.
 Changed digests, stale scene frames, unsupported fields, duplicate target
 properties, unsafe identities, incorrect metrics, altered authority flags, or
 manifest/final-binding divergence fail closed.
+
+An inferred canonical depth style also cannot silently replace the approved
+Visual Continuity Pack depth. Exact style binding remains an open
+canonical-owner integration requirement.
 
 ## Validation
 

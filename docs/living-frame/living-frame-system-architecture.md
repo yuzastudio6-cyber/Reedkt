@@ -3165,3 +3165,30 @@ exactly and never become the final video canvas. Documentary, geographic, and
 data truth remains blocked behind canonical fact owners, and controlled
 reference expectations never become artifacts by implication. See
 `docs/living-frame/living-frame-controlled-image-selected-scene-private-conditioning-binding.md`.
+
+### Selected-scene motion-style reconciliation
+
+The animation-aware conditioning path preserves the Visual Continuity Pack's
+approved `flat`, `shallow_2_5d`, `deep_multiplane`, or `dimensional` scene
+depth. The existing canonical motion compiler supports only the first three
+and currently infers its depth from component and motion signals rather than
+consuming the exact approved scene-design value.
+
+The namespaced
+`living-frame-selected-scene-motion-style-reconciliation-v1` makes that
+shared-interface conflict explicit without changing either owner. It
+re-verifies the exact private conditioning binding and lineage, independently
+recompiles every supplied canonical motion spec, and compares one approved
+generated output intent with one canonical motion observation.
+
+Exact supported matches are recorded as evidence only. Supported-style
+divergence blocks the affected canonical motion admission. `dimensional`
+always blocks under the current runtime because silently relabeling it as
+2.5D would violate the approved style. A new approved plan is required for any
+downgrade.
+
+The candidate grants no selected-scene, planning, timing, work-graph,
+renderer, runtime, artifact, QA, private-review, cost, billing, or production
+authority. Canonical integration must either consume the exact approved depth
+or add a qualified dimensional motion/renderer contract. See
+`docs/living-frame/living-frame-selected-scene-motion-style-reconciliation.md`.

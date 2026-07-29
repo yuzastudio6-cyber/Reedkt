@@ -334,6 +334,26 @@ export type {
 } from '../../types/living-frame-controlled-image-selected-scene-private-conditioning-binding'
 
 export {
+  LIVING_FRAME_SELECTED_SCENE_MOTION_STYLE_RECONCILIATION_CLASS,
+  LIVING_FRAME_SELECTED_SCENE_MOTION_STYLE_RECONCILIATION_ISSUE_CODES,
+  LIVING_FRAME_SELECTED_SCENE_MOTION_STYLE_RECONCILIATION_OPEN_GATES,
+  LIVING_FRAME_SELECTED_SCENE_MOTION_STYLE_RECONCILIATION_STATE,
+  LIVING_FRAME_SELECTED_SCENE_MOTION_STYLE_RECONCILIATION_STATUSES,
+  LIVING_FRAME_SELECTED_SCENE_MOTION_STYLE_RECONCILIATION_VERSION,
+} from '../../types/living-frame-selected-scene-motion-style-reconciliation'
+
+export type {
+  LivingFrameSelectedSceneMotionStyleReconciliation,
+  LivingFrameSelectedSceneMotionStyleReconciliationAuthority,
+  LivingFrameSelectedSceneMotionStyleReconciliationDraft,
+  LivingFrameSelectedSceneMotionStyleReconciliationIssue,
+  LivingFrameSelectedSceneMotionStyleReconciliationIssueCode,
+  LivingFrameSelectedSceneMotionStyleReconciliationOpenGate,
+  LivingFrameSelectedSceneMotionStyleReconciliationStatus,
+  LivingFrameSelectedSceneMotionStyleReconciliationUnit,
+} from '../../types/living-frame-selected-scene-motion-style-reconciliation'
+
+export {
   LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_AUTHORITY_BOUNDARY,
   LivingFrameControlledIllustrationSourceObservationError,
   calculateLivingFrameControlledIllustrationSourceObservationDigest,

@@ -398,7 +398,11 @@ async function assertInput(
 export function classifyLivingFrameSelectedSceneFullFrameFactEvidenceRequirement(
   sourceTruthMode: LivingFrameSourceTruthMode,
 ): LivingFrameControlledImageSelectedSceneFullFrameFactEvidenceRequirement {
-  if (EXACT_FACT_SAFETY_MODES.has(sourceTruthMode)) {
+  if (
+    sourceTruthMode === 'exact_geography_verification_required'
+    || sourceTruthMode === 'exact_data_verification_required'
+    || sourceTruthMode === 'documentary_source_verification_required'
+  ) {
     return 'canonical_documentary_fact_safety_snapshot_required'
   }
   if (

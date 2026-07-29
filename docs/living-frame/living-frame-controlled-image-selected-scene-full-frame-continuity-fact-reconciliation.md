@@ -41,6 +41,15 @@ one-attempt input locator, not an artifact record, manifest entry, approved
 reference, or QA result. A controlled reference-view expectation in the
 Visual Continuity Pack is also not a persisted asset.
 
+The follow-up
+`living-frame-controlled-image-selected-scene-visual-continuity-pack-binding-v1`
+now revalidates the complete pack payload from the semantic proposal binding
+against the exact canonical selected scene and emits a subject-neutral,
+digest-only read-only binding candidate. It does not mutate the canonical
+selected-scene interface or persist an immutable pack artifact. The canonical
+backend owner must adopt that candidate at its one-writer boundary before this
+reconciliation can treat the interface gap as resolved.
+
 ## Correct continuity routing
 
 For the current confirmed-ratio background plate:
@@ -123,3 +132,4 @@ commercial-data-free, and subject-neutral.
 - `src/types/living-frame-controlled-image-selected-scene-full-frame-continuity-fact-reconciliation.ts`
 - `server/living-frame/living-frame-controlled-image-selected-scene-full-frame-continuity-fact-reconciliation.ts`
 - `server/smoke/living-frame-controlled-image-selected-scene-full-frame-continuity-fact-reconciliation-smoke.ts`
+- `docs/living-frame/living-frame-controlled-image-selected-scene-visual-continuity-pack-binding.md`

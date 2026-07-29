@@ -90,7 +90,8 @@ The package now also includes a no-argument offline installer and an exact
 `/opt/reeditpro/build-inputs/comfyui`, verifies the complete wheel/source
 closure, creates the process supervisor's fixed
 `/opt/reeditpro/gpu-operations/comfyui` layout, and leaves model weights out of
-the image. Model files remain a later single-use read-only mount under
+the image. Model files remain under the existing canonical read-only artifact
+authority, followed by a fixed operation projection under
 `/mnt/reeditpro/model-artifacts`.
 
 The measured local locked candidate image is useful compatibility evidence,

@@ -2628,8 +2628,9 @@ verify every locked wheel hash without an index or dependency resolution,
 verifies the three pinned source archives, and materializes the exact
 `/opt/reeditpro/gpu-operations/comfyui` venv, source, custom-node, runtime, and
 configuration paths used by the process supervisor. Verified model artifacts
-remain external, read-only, and role-separated below
-`/mnt/reeditpro/model-artifacts`.
+remain external and read-only under the existing canonical authority, then
+must be projected by the future fixed operation consumer into role-separated
+paths below `/mnt/reeditpro/model-artifacts`.
 
 The measured local candidate image remains controlled evidence only. Its
 `/opt/ComfyUI` entrypoint/layout does not meet the fixed production layout, so

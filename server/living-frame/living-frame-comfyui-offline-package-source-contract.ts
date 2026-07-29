@@ -384,6 +384,7 @@ function assertInstaller(value: string): void {
     '--no-index',
     '--no-deps',
     '--require-hashes',
+    '--force-reinstall',
     '--find-links',
     'ComfyUI_IPAdapter_plus',
     'comfyui_controlnet_aux',

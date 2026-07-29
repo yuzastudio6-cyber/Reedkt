@@ -62,11 +62,12 @@ server-owned process supervisor:
 └── extra_model_paths.yaml
 ```
 
-The model-path file maps only fixed directories beneath the canonical
-read-only mount root `/mnt/reeditpro/model-artifacts`. The installer does not
-copy model weights into the image. The future canonical operation consumer
-must place each verified single-use artifact alias into its server-selected
-role directory; a caller cannot choose a path.
+The model-path file maps only fixed operation directories beneath
+`/mnt/reeditpro/model-artifacts`. The installer does not copy model weights
+into the image. The future canonical operation consumer must project each
+verified single-use artifact from the existing canonical read-only source
+authority into its server-selected role directory; a caller cannot choose a
+path.
 
 ## Runtime boundary
 

@@ -110,6 +110,7 @@ python3 -m venv --system-site-packages "${TARGET_ROOT}/venv"
 "${TARGET_ROOT}/venv/bin/pip" install \
   --disable-pip-version-check \
   --no-cache-dir \
+  --force-reinstall \
   --no-index \
   --no-deps \
   --require-hashes \

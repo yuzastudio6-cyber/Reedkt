@@ -920,6 +920,25 @@ export type {
 } from '../../types/living-frame-controlled-sdxl-rembg-input-binding'
 
 export {
+  LIVING_FRAME_AURAFACE_ARTIFACT_REQUIREMENT_IDS,
+  LIVING_FRAME_AURAFACE_ARTIFACT_REQUIREMENTS_CLASS,
+  LIVING_FRAME_AURAFACE_ARTIFACT_REQUIREMENTS_ISSUES,
+  LIVING_FRAME_AURAFACE_ARTIFACT_REQUIREMENTS_OPEN_GATES,
+  LIVING_FRAME_AURAFACE_ARTIFACT_REQUIREMENTS_VERSION,
+} from '../../types/living-frame-auraface-artifact-requirements'
+
+export type {
+  LivingFrameAuraFaceArtifactRequirement,
+  LivingFrameAuraFaceArtifactRequirementId,
+  LivingFrameAuraFaceArtifactRequirements,
+  LivingFrameAuraFaceArtifactRequirementsAuthority,
+  LivingFrameAuraFaceArtifactRequirementsDraft,
+  LivingFrameAuraFaceArtifactRequirementsIssue,
+  LivingFrameAuraFaceArtifactRequirementsIssueCode,
+  LivingFrameAuraFaceArtifactRequirementsOpenGate,
+} from '../../types/living-frame-auraface-artifact-requirements'
+
+export {
   LIVING_FRAME_CLOUD_RUN_L4_ESTIMATE_RATE_BASIS_VERSION,
   LIVING_FRAME_CLOUD_RUN_L4_PUBLIC_RATE_OBSERVATION_DIGEST,
   LIVING_FRAME_CLOUD_RUN_L4_PUBLIC_RATE_OBSERVATION_VERSION,

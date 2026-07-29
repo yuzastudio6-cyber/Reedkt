@@ -1494,6 +1494,28 @@ Generic IP-Adapter plus the approved Visual Continuity Pack provide reference
 conditioning. AuraFace supplies only a separately qualified continuity
 measurement signal.
 
+### Exact AuraFace artifact expectation
+
+`living-frame-auraface-artifact-requirements-v1` gives the sixth capability a
+concrete but non-promotable artifact boundary. It binds the pinned controlled
+source observation and records exactly two ONNX identities: the
+`glintr100` embedding model and `scrfd_10g_bnkps` detector/alignment model.
+The gender/age model and identity-generation adapters are excluded.
+
+The files are not downloaded or mounted. Publisher license/model-card labels
+remain observations rather than legal or training-data-rights approval. The
+contract keeps AuraFace measurement-only, prevents embedding/reference
+persistence, requires project-calibrated thresholds and review for no-face or
+multiple-face cases, and preserves consent, minor, impersonation, retention,
+fairness, public-figure, and documentary-safety gates.
+
+Future execution must reuse the shared model-artifact repository and
+read-only mount authority on a bounded private CPU attempt. AuraFace remains
+outside the shared ComfyUI L4 attempt and is costed separately only when it
+actually runs. No operation, work, dispatch, cost receipt, QA approval, or
+runtime authority is opened. See
+`docs/living-frame/living-frame-auraface-artifact-requirements.md`.
+
 ## Controlled-illustration operation preflight
 
 The non-executable operation preflight fixes how the six capabilities enter

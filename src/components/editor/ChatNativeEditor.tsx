@@ -5018,7 +5018,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                   <h2>{canonicalPrivateReviewAccepted ? 'Review approved' : 'Review the edit'}</h2>
                   <p>
                     {canonicalPrivateReviewAccepted
-                      ? 'The exact review decision is saved. Reopen the verified review from Saved workflow above while delivery and release stay gated.'
+                      ? 'The exact review decision is saved. Reopen the verified review from Saved workflow above. Sharing, delivery, and release remain gated.'
                       : 'Load the verified review from Saved workflow above, then approve it or request a fresh revision plan.'}
                   </p>
                 </div>

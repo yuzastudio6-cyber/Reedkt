@@ -179,6 +179,8 @@ await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
 const address = server.address()
 assert(address && typeof address === 'object', 'Source upload smoke server should expose a TCP address.')
 
+const originalNodeEnv = process.env.NODE_ENV
+process.env.NODE_ENV = 'test'
 process.env.VITE_REEDITPRO_API_MODE = 'frontend_safe'
 process.env.VITE_REEDITPRO_API_BASE_URL = `http://127.0.0.1:${address.port}`
 process.env.VITE_SUPABASE_URL = ''
@@ -530,6 +532,7 @@ try {
     sourceSequenceItemCount: result.sourceSequence?.sourceSequenceItems.length ?? 0,
   }))
 } finally {
+  restoreEnvValue('NODE_ENV', originalNodeEnv)
   await new Promise<void>((resolve, reject) => {
     server.close((error) => (error ? reject(error) : resolve()))
   })

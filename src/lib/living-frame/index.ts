@@ -584,3 +584,23 @@ export type {
   LivingFrameControlledModelFamilyOpenGate,
   LivingFrameControlledModelFamilyRole,
 } from '../../types/living-frame-controlled-model-family-binding'
+
+export {
+  LIVING_FRAME_COMFYUI_MODEL_ARTIFACT_ISSUES,
+  LIVING_FRAME_COMFYUI_MODEL_ARTIFACT_OPEN_GATES,
+  LIVING_FRAME_COMFYUI_MODEL_ARTIFACT_REQUIREMENTS_CLASS,
+  LIVING_FRAME_COMFYUI_MODEL_ARTIFACT_REQUIREMENTS_VERSION,
+  LIVING_FRAME_COMFYUI_MODEL_ARTIFACT_REQUIREMENT_STATES,
+} from '../../types/living-frame-comfyui-model-artifact-requirements'
+
+export type {
+  LivingFrameComfyUiModelArtifactExpectedFamily,
+  LivingFrameComfyUiModelArtifactIssue,
+  LivingFrameComfyUiModelArtifactIssueCode,
+  LivingFrameComfyUiModelArtifactOpenGate,
+  LivingFrameComfyUiModelArtifactRequirement,
+  LivingFrameComfyUiModelArtifactRequirements,
+  LivingFrameComfyUiModelArtifactRequirementsAuthority,
+  LivingFrameComfyUiModelArtifactRequirementsDraft,
+  LivingFrameComfyUiModelArtifactRequirementState,
+} from '../../types/living-frame-comfyui-model-artifact-requirements'

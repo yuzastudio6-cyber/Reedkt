@@ -2217,3 +2217,40 @@ review, and offline compatibility benchmarks exist. AuraFace remains
 separate continuity QA; FaceID, InsightFace, and AuraFace generation
 conditioning remain prohibited. See
 `docs/living-frame/living-frame-controlled-model-family-binding.md`.
+
+## Exact unresolved ComfyUI model-artifact requirements
+
+The validated model-family binding now projects an ordered, subject-neutral
+requirement set for the actual generation graph. A full controlled route
+contains five GPU-required roles: base diffusion checkpoint, matching
+ControlNet checkpoint, matching LoRA adapter, matching generic IP-Adapter
+checkpoint, and matching CLIP Vision checkpoint. Each role retains its
+original graph-binding digest, family expectation, CUDA placement, no-CPU
+fallback, and no-download/no-network policy.
+
+The projection also revalidates the controlled dependency-lock observation
+and binds its exact digest. It is still unresolved: it contains no locator,
+manifest, bytes, filename, path, URL, tool/provider route, work item, cost
+event, approval, mount, or runtime authority. Resolution must use the shared
+canonical model-artifact repository, then separately prove exact bundle
+compatibility, licensing, signed-image construction, read-only mounts,
+dispatch, output QA, observed cost, and private review. See
+`docs/living-frame/living-frame-comfyui-model-artifact-requirements.md`.
+
+## Canonical ComfyUI model-artifact binding
+
+The unresolved five-role requirement set can now be bound to the existing
+workflow-neutral canonical model-artifact repository through a process-bound
+server resolver. For each role, the adapter forces a fresh full-object
+checksum verification and matches the exact role, model family,
+`safetensors` format, `comfyui.private-inference` consumer scope, byte length,
+revision, GPU target, CUDA requirement, and no-CPU/no-download/no-network
+policy.
+
+The output contains repository locators and verification digests but no host
+path, mount alias, credential, filename, or model bytes. It projects the
+existing canonical GPU-bundle requirement shape rather than creating a
+Living Frame bundle authority. Repository verification is not compatibility,
+license approval, mounting, dispatch, inference, output QA, cost evidence, or
+production readiness. Those remain separately fail-closed. See
+`docs/living-frame/living-frame-comfyui-canonical-model-artifact-binding.md`.

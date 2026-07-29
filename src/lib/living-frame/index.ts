@@ -316,6 +316,7 @@ export {
   LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_CONDITIONING_BINDING_VERSION,
   LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_CONDITIONING_ISSUE_CODES,
   LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_CONDITIONING_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_MOTION_PREPARATION_CLASSES,
 } from '../../types/living-frame-controlled-image-selected-scene-private-conditioning-binding'
 
 export type {
@@ -326,6 +327,7 @@ export type {
   LivingFrameControlledImageSelectedScenePrivateConditioningIssue,
   LivingFrameControlledImageSelectedScenePrivateConditioningIssueCode,
   LivingFrameControlledImageSelectedScenePrivateConditioningLease,
+  LivingFrameControlledImageSelectedSceneMotionPreparationClass,
   LivingFrameControlledImageSelectedScenePrivateConditioningOpenGate,
   LivingFrameControlledImageSelectedScenePrivateConditioningResult,
   LivingFrameControlledImageSelectedScenePrivateConditioningUnit,

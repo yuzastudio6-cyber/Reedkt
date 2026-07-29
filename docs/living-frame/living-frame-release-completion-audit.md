@@ -180,9 +180,14 @@ missing:
    alias-only packet with fixed pending sentinels. Its integration smoke proves
    exact conditioning-digest equality at the existing selected-scene prompt
    materializer for isolated 1024-square character/weapon sources and an exact
-   3840x2160 deep-multiplane background plate. It does not force 2.5D on flat
-   scenes, promote controlled reference expectations to artifacts, accept
-   caller prompts, or claim final-canvas authority. The read-only alpha
+   3840x2160 deep-multiplane background plate. Its adaptive style grammar now
+   emits distinct flat-layer, shallow-2.5D, deep-multiplane, and dimensional
+   preparation classes plus treatment-specific photographic, archival,
+   editorial, vector, collage, technical, cinematic, anime, ink, and
+   graphic-novel direction. A four-profile private-brief matrix proves that
+   flat stays flat and dimensional is not mislabeled as 2.5D. It does not
+   promote controlled reference expectations to artifacts, accept caller
+   prompts, or claim final-canvas authority. The read-only alpha
    work-chain reconciliation now proves that the
    isolated output cannot yet enter the existing canonical rembg → Sharp
    branch: the work graph currently rejects an exact generated source when its
@@ -262,6 +267,10 @@ Passed:
   the real selected-scene prompt materializer; isolated 1024-square and exact
   3840x2160 full-frame coverage; and adversarial caller/cross-pack/cross-frame/
   cross-work/reference-promotion/lease refusal;
+- adaptive selected-scene private conditioning across flat editorial cutout,
+  shallow-2.5D paper collage, deep-multiplane cinematic anime, and dimensional
+  graphic-novel profiles, with exact motion-class metrics, treatment-specific
+  source grammar, and regression refusal of the former universal-2.5D phrase;
 - selected-scene private opaque-output observation for exact 1024×1024
   isolated and 1920×1080 confirmed-ratio RGB PNGs, plus read-only alpha-chain
   reconciliation that fail-closes on the shared multi-output generation →

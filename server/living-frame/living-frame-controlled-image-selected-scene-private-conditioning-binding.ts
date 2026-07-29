@@ -21,6 +21,7 @@ import {
   type LivingFrameControlledImageSelectedScenePrivateConditioningIssue,
   type LivingFrameControlledImageSelectedScenePrivateConditioningIssueCode,
   type LivingFrameControlledImageSelectedScenePrivateConditioningLease,
+  type LivingFrameControlledImageSelectedSceneMotionPreparationClass,
   type LivingFrameControlledImageSelectedScenePrivateConditioningResult,
   type LivingFrameControlledImageSelectedScenePrivateConditioningUnit,
 } from '../../src/types/living-frame-controlled-image-selected-scene-private-conditioning-binding'
@@ -31,7 +32,9 @@ import type {
   LivingFrameSemanticSceneProposal,
 } from '../../src/types/living-frame-semantic-reasoning-request'
 import type {
+  LivingFrameVisualContinuityAssetTreatment,
   LivingFrameVisualContinuityCharacterSheet,
+  LivingFrameVisualContinuityDepthStyle,
   LivingFrameVisualContinuityEnvironmentSheet,
   LivingFrameVisualContinuityObjectSheet,
   LivingFrameVisualContinuityPack,
@@ -321,6 +324,26 @@ export async function compileLivingFrameControlledImageSelectedScenePrivateCondi
         twoPointFiveDDirectedUnitCount:
           units.filter((unit) =>
             unit.styleDirection.depthStyleSupportsTwoPointFiveD).length,
+        flatLayerAnimationUnitCount:
+          countMotionPreparationClass(
+            units,
+            'flat_layer_animation',
+          ),
+        shallowTwoPointFiveDUnitCount:
+          countMotionPreparationClass(
+            units,
+            'shallow_2_5d_parallax',
+          ),
+        deepMultiplaneUnitCount:
+          countMotionPreparationClass(
+            units,
+            'deep_multiplane_parallax',
+          ),
+        dimensionalSpatialUnitCount:
+          countMotionPreparationClass(
+            units,
+            'dimensional_spatial_composition',
+          ),
       },
       openGateCodes:
         LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_CONDITIONING_OPEN_GATES,
@@ -943,6 +966,7 @@ function compileUnit(input: {
     requestUnit: input.requestUnit,
     sourceTruthMode: input.semanticScene.sourceTruthMode,
     pack: input.pack,
+    depthStyle: input.designSheet.depthStyle,
     fullFrame: Boolean(fullFrameUnit),
   })
   assertConditioningText(
@@ -1065,8 +1089,11 @@ function compileUnit(input: {
       assetTreatment:
         input.pack.styleBible.assetTreatment,
       depthStyle: input.designSheet.depthStyle,
+      motionPreparationClass:
+        motionPreparationClass(input.designSheet.depthStyle),
       depthStyleSupportsTwoPointFiveD:
-        input.designSheet.depthStyle !== 'flat',
+        input.designSheet.depthStyle === 'shallow_2_5d'
+        || input.designSheet.depthStyle === 'deep_multiplane',
       styleRuleCount: styleRuleCount(input.pack),
       avoidanceRuleCount:
         input.pack.styleBible.avoidanceCodes.length,
@@ -1230,6 +1257,10 @@ function buildPositiveConditioning(input: {
   const palette = style.palette
     .map((color) => `${color.role} ${color.hex}`)
     .join(', ')
+  const assetPreparation =
+    assetTreatmentPreparation(style.assetTreatment)
+  const depthPreparation =
+    depthStylePreparation(input.designSheet.depthStyle)
   const parts = [
     'Create one still illustration source for a professionally directed Living Frame scene.',
     `Narrative direction: ${input.semanticScene.derivedSummary}`,
@@ -1240,9 +1271,10 @@ function buildPositiveConditioning(input: {
     `Composition strategy and depth: ${input.designSheet.compositionStrategy}, ${input.designSheet.depthStyle}.`,
     `Style: ${style.summary}`,
     `Asset treatment: ${style.assetTreatment}; line language: ${style.lineLanguage}; edge treatment: ${style.edgeTreatment}; texture: ${style.textureTreatment}; detail density: ${style.detailDensity}.`,
+    `Asset-treatment preparation: ${assetPreparation}`,
     `Lighting: ${style.lightingDirection}, ${style.lightingCharacter}.`,
     `Controlled palette: ${style.paletteMode}${palette ? `; ${palette}` : ''}.`,
-    `Animation preparation: preserve a clean readable silhouette, separable foreground and background, independently isolatable moving parts, complete component geometry, and usable layer boundaries for selective 2.5D motion.`,
+    `Animation preparation: preserve a clean readable silhouette, independently isolatable moving parts, complete component geometry, and usable layer boundaries. ${depthPreparation}`,
     `Motion language for downstream preparation only: ${input.pack.motionLanguageSheet.summary}; ${input.pack.motionLanguageSheet.motionCharacter}, ${input.pack.motionLanguageSheet.motionDensity}, camera ${input.pack.motionLanguageSheet.cameraCharacter}.`,
     `Generate at exactly ${input.generationCanvas.widthPixels} by ${input.generationCanvas.heightPixels} pixels as an opaque still source; downstream deterministic matting, rigging, camera, motion, sound, and final Remotion composition remain separate.`,
   ]
@@ -1299,6 +1331,7 @@ function buildNegativeConditioning(input: {
     LivingFrameControlledImageSelectedSceneRequestUnit
   readonly sourceTruthMode: LivingFrameSourceTruthMode
   readonly pack: LivingFrameVisualContinuityPack
+  readonly depthStyle: LivingFrameVisualContinuityDepthStyle
   readonly fullFrame: boolean
 }): string {
   const avoid = [
@@ -1312,6 +1345,7 @@ function buildNegativeConditioning(input: {
     ...input.pack.styleBible.avoidanceCodes.map(
       (code) => `avoid ${code.replaceAll('_', ' ')}`,
     ),
+    depthStyleNegativeConditioning(input.depthStyle),
   ]
   if (!input.fullFrame) {
     avoid.push(
@@ -1333,6 +1367,89 @@ function buildNegativeConditioning(input: {
     )
   }
   return avoid.join('; ')
+}
+
+function assetTreatmentPreparation(
+  treatment: LivingFrameVisualContinuityAssetTreatment,
+): string {
+  switch (treatment) {
+    case 'photographic':
+      return 'Preserve photographic material realism, coherent lens perspective, natural edges, and lighting-consistent separability without converting the source into a painterly or graphic treatment.'
+    case 'archival':
+      return 'Use restrained archival-documentary image language, period-compatible texture, and clean separable evidence framing while never claiming the generated illustration is authentic archive.'
+    case 'editorial_cutout':
+      return 'Use bold readable editorial silhouettes, deliberate cut edges, simple separable masses, and controlled negative space suitable for flat layer animation.'
+    case 'vector':
+      return 'Use clean vector-like geometry, economical shapes, stable color fields, and independently addressable graphic parts without raster noise or pseudo-photographic detail.'
+    case 'paper_collage':
+      return 'Use materially legible paper layers, controlled torn or cut edges, separate collage pieces, and restrained overlap suitable for limited layer motion.'
+    case 'technical':
+      return 'Use precise technical form, clean line hierarchy, unambiguous component boundaries, restrained decoration, and space for deterministic labels supplied downstream.'
+    case 'cinematic_realistic':
+      return 'Use believable physical proportions, coherent cinematic lighting, material detail, and separable mechanical or environmental parts without baking animation into the still.'
+    case 'cinematic_anime':
+      return 'Use a premium cinematic-anime silhouette, disciplined ink hierarchy, controlled facial and costume detail, and separable hair, clothing, prop, and environment shapes without generic glossy-anime treatment.'
+    case 'sumi_e_ink':
+      return 'Use restrained sumi-e-inspired ink masses, intentional dry-brush and negative-space structure, and separable wash or silhouette layers without imitating a named artist.'
+    case 'graphic_novel':
+      return 'Use a strong graphic-novel silhouette, controlled panel-like value hierarchy, disciplined ink texture, and separable character, prop, effect, and environment masses without baked lettering.'
+  }
+}
+
+function depthStylePreparation(
+  depthStyle: LivingFrameVisualContinuityDepthStyle,
+): string {
+  switch (depthStyle) {
+    case 'flat':
+      return 'Keep the approved scene intentionally flat: separate only semantic 2D layers needed for masks, transforms, path reveals, and editorial timing; do not stage parallax bands, fake extrusion, or perspective-camera travel.'
+    case 'shallow_2_5d':
+      return 'Prepare a restrained shallow-2.5D layout with only the minimum readable near, subject, and background separation needed for gentle parallax; keep depth subtle and preserve graphic clarity.'
+    case 'deep_multiplane':
+      return 'Prepare explicit far-background, background, subject, in-front-of-subject, and foreground planes for deep multiplane parallax, clean occlusion, and motivated virtual-camera movement; do not fuse those planes.'
+    case 'dimensional':
+      return 'Prepare coherent perspective, volume, overlap, occlusion, and spatially consistent component geometry for a dimensional composition while keeping every generated deliverable a still source rather than generated video or a final canvas.'
+  }
+}
+
+function depthStyleNegativeConditioning(
+  depthStyle: LivingFrameVisualContinuityDepthStyle,
+): string {
+  switch (depthStyle) {
+    case 'flat':
+      return 'no fake 3D extrusion, depth-map look, parallax staging, perspective warp, or dimensional camera claim'
+    case 'shallow_2_5d':
+      return 'no exaggerated deep parallax, extreme foreground scale, theatrical orbit, or depth effect that overwhelms the approved shallow graphic hierarchy'
+    case 'deep_multiplane':
+      return 'no flattened plane stack, fused foreground and background, contradictory depth order, or scale jump between multiplane layers'
+    case 'dimensional':
+      return 'no incoherent perspective, warped volume, impossible occlusion, arbitrary camera geometry, or flattened pseudo-3D treatment'
+  }
+}
+
+function motionPreparationClass(
+  depthStyle: LivingFrameVisualContinuityDepthStyle,
+): LivingFrameControlledImageSelectedSceneMotionPreparationClass {
+  switch (depthStyle) {
+    case 'flat':
+      return 'flat_layer_animation'
+    case 'shallow_2_5d':
+      return 'shallow_2_5d_parallax'
+    case 'deep_multiplane':
+      return 'deep_multiplane_parallax'
+    case 'dimensional':
+      return 'dimensional_spatial_composition'
+  }
+}
+
+function countMotionPreparationClass(
+  units:
+    readonly LivingFrameControlledImageSelectedScenePrivateConditioningUnit[],
+  motionClass:
+    LivingFrameControlledImageSelectedSceneMotionPreparationClass,
+): number {
+  return units.filter((unit) =>
+    unit.styleDirection.motionPreparationClass ===
+      motionClass).length
 }
 
 function assertContinuityDigests(input: {

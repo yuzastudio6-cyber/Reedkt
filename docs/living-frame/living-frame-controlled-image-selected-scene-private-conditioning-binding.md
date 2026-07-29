@@ -36,6 +36,20 @@ The image model is the illustrator. It does not become the animator,
 cinematographer, SoundSync owner, StoryTiming owner, or final compositor.
 Remotion retains the final canvas and deterministic motion ownership.
 
+The private receipt now records one exact motion-preparation class rather than
+reducing every non-flat scene to a generic 2.5D instruction:
+
+| Approved depth style | Private motion-preparation class | Source-image direction |
+| --- | --- | --- |
+| `flat` | `flat_layer_animation` | semantic 2D masks, transforms, and reveals; no parallax or fake extrusion |
+| `shallow_2_5d` | `shallow_2_5d_parallax` | minimum restrained near/subject/background separation |
+| `deep_multiplane` | `deep_multiplane_parallax` | explicit far, background, subject, front, and foreground planes |
+| `dimensional` | `dimensional_spatial_composition` | coherent perspective, volume, overlap, and occlusion without generated video |
+
+Only the shallow and deep-multiplane classes are counted as 2.5D-directed.
+Dimensional treatment is tracked separately rather than being mislabeled as
+2.5D.
+
 ## Exact source chain
 
 ```text
@@ -74,6 +88,13 @@ cross-pack, and cross-frame substitutions fail closed.
 
 The conditioning brief is compiled deterministically from validated fields. A
 caller cannot supply prompt text.
+
+Every approved asset treatment receives treatment-specific preparation rather
+than only passing an enum name to the image model. The compiler covers
+photographic, archival, editorial cutout, vector, paper collage, technical,
+cinematic realistic, cinematic anime, sumi-e ink, and graphic-novel language.
+Those directions control silhouette, material, line hierarchy, separability,
+detail, and documentary restraint without imitating named artists.
 
 The positive conditioning includes:
 
@@ -161,6 +182,16 @@ The integration smoke proves that the positive and negative slot digests in
 the actual selected-scene prompt-materialization receipt exactly equal the
 conditioning digests in this binding. Benchmark recipes and generic prompt
 text are not used.
+
+The adaptive-style matrix additionally proves:
+
+- flat editorial-cutout scenes never receive 2.5D or dimensional direction;
+- paper-collage scenes receive restrained shallow-2.5D preparation;
+- cinematic-anime scenes receive deep-multiplane preparation;
+- dimensional graphic-novel scenes receive coherent volume and perspective
+  preparation without being counted as 2.5D; and
+- every class remains a still-source request with downstream Remotion
+  ownership.
 
 ## Runtime and registry boundary
 

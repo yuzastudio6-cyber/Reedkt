@@ -33,6 +33,10 @@ assert.equal(receipt.metrics.conditioningUnitCount, 3)
 assert.equal(receipt.metrics.isolatedComponentUnitCount, 2)
 assert.equal(receipt.metrics.confirmedFullFrameUnitCount, 1)
 assert.equal(receipt.metrics.twoPointFiveDDirectedUnitCount, 3)
+assert.equal(receipt.metrics.flatLayerAnimationUnitCount, 0)
+assert.equal(receipt.metrics.shallowTwoPointFiveDUnitCount, 0)
+assert.equal(receipt.metrics.deepMultiplaneUnitCount, 3)
+assert.equal(receipt.metrics.dimensionalSpatialUnitCount, 0)
 assert.equal(
   receipt.animationAwareConditioningDerivedServerSide,
   true,
@@ -98,6 +102,10 @@ for (const unit of receipt.conditioningUnits) {
   assert.equal(
     unit.styleDirection.depthStyleSupportsTwoPointFiveD,
     true,
+  )
+  assert.equal(
+    unit.styleDirection.motionPreparationClass,
+    'deep_multiplane_parallax',
   )
   assert.equal(
     unit.animationAwareIllustrationDirection
@@ -197,6 +205,10 @@ assert.match(
   /Premium cinematic anime/u,
 )
 assert.match(
+  privateBrief.positiveConditioningText,
+  /deep multiplane parallax/u,
+)
+assert.doesNotMatch(
   privateBrief.positiveConditioningText,
   /selective 2\.5D motion/u,
 )

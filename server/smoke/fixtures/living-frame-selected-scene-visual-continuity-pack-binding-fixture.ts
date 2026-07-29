@@ -7,6 +7,7 @@ import {
   livingFrameOutputFrameDigestProjection,
   type LivingFrameSemanticReasoningRequest,
   type LivingFrameVisualContinuityPack,
+  type LivingFrameVisualContinuityPackDraft,
 } from '../../../src/lib/living-frame'
 import {
   createProfessionalSkillPlan,
@@ -42,9 +43,17 @@ import type {
 
 let sequence = 0
 
+export type LivingFrameSelectedSceneConditioningStyleFixtureProfile =
+  | 'cinematic_anime_deep_multiplane'
+  | 'editorial_cutout_flat'
+  | 'paper_collage_shallow_2_5d'
+  | 'graphic_novel_dimensional'
+
 export async function createLivingFrameSelectedSceneVisualContinuityPackBindingSmokeFixture(
   options?: {
     readonly includeGeneratedBackgroundPlate?: boolean
+    readonly conditioningStyleProfile?:
+      LivingFrameSelectedSceneConditioningStyleFixtureProfile
   },
 ): Promise<{
   readonly input:
@@ -99,6 +108,8 @@ export async function createLivingFrameSelectedSceneVisualContinuityPackBindingS
     planningEvidenceDigest,
     alignedRequestDigestSha256:
       alignedRequest.contractDigestSha256,
+    conditioningStyleProfile:
+      options?.conditioningStyleProfile,
   })
   const semanticProposalBinding =
     await createLivingFrameSemanticSceneProposalBinding({
@@ -288,16 +299,22 @@ async function alignPack(input: {
   }
   readonly planningEvidenceDigest: string
   readonly alignedRequestDigestSha256: string
+  readonly conditioningStyleProfile?:
+    LivingFrameSelectedSceneConditioningStyleFixtureProfile
 }): Promise<LivingFrameVisualContinuityPack> {
   const {
     contractDigestSha256: omittedPackDigest,
     ...packDraft
   } = input.pack
   void omittedPackDigest
+  const styledPackDraft = applyConditioningStyleProfile(
+    packDraft,
+    input.conditioningStyleProfile,
+  )
   return createLivingFrameVisualContinuityPack({
-    ...packDraft,
+    ...styledPackDraft,
     canonicalBindings: {
-      ...packDraft.canonicalBindings,
+      ...styledPackDraft.canonicalBindings,
       ...input.canonicalScope,
       deferredLivingFrameComponentDigestSha256:
         input.deferredComponentDigestSha256,
@@ -314,6 +331,98 @@ async function alignPack(input: {
       ),
     },
   })
+}
+
+function applyConditioningStyleProfile(
+  packDraft: LivingFrameVisualContinuityPackDraft,
+  profile:
+    LivingFrameSelectedSceneConditioningStyleFixtureProfile
+    | undefined,
+): LivingFrameVisualContinuityPackDraft {
+  if (
+    !profile
+    || profile === 'cinematic_anime_deep_multiplane'
+  ) return packDraft
+  const style = conditioningStyleProfile(profile)
+  return {
+    ...packDraft,
+    styleBible: {
+      ...packDraft.styleBible,
+      summary: style.summary,
+      assetTreatment: style.assetTreatment,
+      lineLanguage: style.lineLanguage,
+      lightingCharacter: style.lightingCharacter,
+      edgeTreatment: style.edgeTreatment,
+      textureTreatment: style.textureTreatment,
+      detailDensity: style.detailDensity,
+    },
+    environmentSheets: packDraft.environmentSheets.map(
+      (sheet) => ({
+        ...sheet,
+        depthStyle: style.depthStyle,
+      }),
+    ),
+    sceneDesignSheets: packDraft.sceneDesignSheets.map(
+      (sheet) => ({
+        ...sheet,
+        depthStyle: style.depthStyle,
+      }),
+    ),
+    motionLanguageSheet: {
+      ...packDraft.motionLanguageSheet,
+      cameraCharacter: style.cameraCharacter,
+    },
+  }
+}
+
+function conditioningStyleProfile(
+  profile:
+    Exclude<
+      LivingFrameSelectedSceneConditioningStyleFixtureProfile,
+      'cinematic_anime_deep_multiplane'
+    >,
+) {
+  switch (profile) {
+    case 'editorial_cutout_flat':
+      return {
+        summary:
+          'Flat premium editorial cutout language with bold silhouettes, restrained ink, and deliberate negative space.',
+        assetTreatment: 'editorial_cutout' as const,
+        lineLanguage: 'bold_silhouette' as const,
+        lightingCharacter: 'graphic' as const,
+        edgeTreatment: 'clean' as const,
+        textureTreatment: 'clean_digital' as const,
+        detailDensity: 'sparse' as const,
+        depthStyle: 'flat' as const,
+        cameraCharacter: 'locked' as const,
+      }
+    case 'paper_collage_shallow_2_5d':
+      return {
+        summary:
+          'Premium paper-collage illustration with controlled material edges and restrained shallow depth.',
+        assetTreatment: 'paper_collage' as const,
+        lineLanguage: 'mixed_weight_ink' as const,
+        lightingCharacter: 'graphic' as const,
+        edgeTreatment: 'torn_paper' as const,
+        textureTreatment: 'paper' as const,
+        detailDensity: 'balanced' as const,
+        depthStyle: 'shallow_2_5d' as const,
+        cameraCharacter: 'restrained_documentary' as const,
+      }
+    case 'graphic_novel_dimensional':
+      return {
+        summary:
+          'Dimensional premium graphic-novel language with disciplined ink, coherent volume, and controlled spatial drama.',
+        assetTreatment: 'graphic_novel' as const,
+        lineLanguage: 'mixed_weight_ink' as const,
+        lightingCharacter: 'hard_side' as const,
+        edgeTreatment: 'inked' as const,
+        textureTreatment: 'ink_bleed' as const,
+        detailDensity: 'rich' as const,
+        depthStyle: 'dimensional' as const,
+        cameraCharacter: 'controlled_orbit' as const,
+      }
+  }
 }
 
 function expectation(

@@ -3138,6 +3138,19 @@ and Remotion final composition. The approved depth style remains adaptive:
 flat stays flat, while shallow 2.5D, deep multiplane, and dimensional scenes
 receive their selected depth language.
 
+That decision now compiles to one explicit private preparation class:
+`flat_layer_animation`, `shallow_2_5d_parallax`,
+`deep_multiplane_parallax`, or `dimensional_spatial_composition`. Only shallow
+and deep-multiplane preparations count as 2.5D-directed. Dimensional
+composition remains separate, and flat scenes explicitly prohibit parallax,
+fake extrusion, and perspective-camera staging.
+
+Asset treatment also compiles to a concrete preparation grammar rather than
+an enum label alone. The grammar covers photographic, archival, editorial
+cutout, vector, paper collage, technical, cinematic realistic, cinematic
+anime, sumi-e ink, and graphic-novel source language while keeping named-artist
+imitation and false archival-evidence claims prohibited.
+
 Each private brief remains behind a process-bound single-use lease. The public
 receipt contains only lineage digests and byte lengths. A server-owned adapter
 merges the brief into an alias-only private packet whose conditioning slots

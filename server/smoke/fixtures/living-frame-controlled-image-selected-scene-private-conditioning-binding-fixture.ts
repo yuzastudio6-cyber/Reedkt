@@ -45,15 +45,23 @@ import {
 } from '../../services/private-edit-authority-store'
 import {
   createLivingFrameSelectedSceneVisualContinuityPackBindingSmokeFixture,
+  type LivingFrameSelectedSceneConditioningStyleFixtureProfile,
 } from './living-frame-selected-scene-visual-continuity-pack-binding-fixture'
 
 let sequence = 0
 
-export async function createLivingFrameControlledImageSelectedScenePrivateConditioningBindingSmokeFixture() {
+export async function createLivingFrameControlledImageSelectedScenePrivateConditioningBindingSmokeFixture(
+  options?: {
+    readonly conditioningStyleProfile?:
+      LivingFrameSelectedSceneConditioningStyleFixtureProfile
+  },
+) {
   const suffix = nextId()
   const continuityFixture =
     await createLivingFrameSelectedSceneVisualContinuityPackBindingSmokeFixture({
       includeGeneratedBackgroundPlate: true,
+      conditioningStyleProfile:
+        options?.conditioningStyleProfile,
     })
   const visualContinuityPackBindingInput =
     continuityFixture.input

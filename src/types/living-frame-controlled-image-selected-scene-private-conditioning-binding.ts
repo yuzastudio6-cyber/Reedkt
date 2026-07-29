@@ -61,6 +61,16 @@ export const LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_CONDITIONING_I
 export type LivingFrameControlledImageSelectedScenePrivateConditioningIssueCode =
   (typeof LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_CONDITIONING_ISSUE_CODES)[number]
 
+export const LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_MOTION_PREPARATION_CLASSES = [
+  'flat_layer_animation',
+  'shallow_2_5d_parallax',
+  'deep_multiplane_parallax',
+  'dimensional_spatial_composition',
+] as const
+
+export type LivingFrameControlledImageSelectedSceneMotionPreparationClass =
+  (typeof LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_MOTION_PREPARATION_CLASSES)[number]
+
 export interface LivingFrameControlledImageSelectedScenePrivateConditioningAuthority {
   readonly privateConditioningCompilationAuthority: true
   readonly canonicalSelectedSceneMutationAuthority: false
@@ -183,6 +193,8 @@ export interface LivingFrameControlledImageSelectedScenePrivateConditioningUnit 
       LivingFrameVisualContinuityAssetTreatment
     readonly depthStyle:
       LivingFrameVisualContinuityDepthStyle
+    readonly motionPreparationClass:
+      LivingFrameControlledImageSelectedSceneMotionPreparationClass
     readonly depthStyleSupportsTwoPointFiveD: boolean
     readonly styleRuleCount: number
     readonly avoidanceRuleCount: number
@@ -291,6 +303,10 @@ export interface LivingFrameControlledImageSelectedScenePrivateConditioningBindi
     readonly structureConditionedUnitCount: number
     readonly exactFactRevalidationUnitCount: number
     readonly twoPointFiveDDirectedUnitCount: number
+    readonly flatLayerAnimationUnitCount: number
+    readonly shallowTwoPointFiveDUnitCount: number
+    readonly deepMultiplaneUnitCount: number
+    readonly dimensionalSpatialUnitCount: number
   }
   readonly openGateCodes:
     readonly LivingFrameControlledImageSelectedScenePrivateConditioningOpenGate[]

@@ -1,3 +1,5 @@
 export * from './canonical-durable-upload-target-authority'
 export * from './canonical-durable-upload-target-conformance'
+export * from './canonical-durable-upload-target-local-supabase-http-rpc-client'
+export * from './canonical-durable-upload-target-state-rpc-adapter'
 export * from './in-memory-canonical-durable-upload-target-fixture'

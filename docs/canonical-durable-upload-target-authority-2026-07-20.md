@@ -1,6 +1,7 @@
 # Canonical Durable Upload-Target Authority
 
-Status: protected local/internal conformance passed; production remains blocked.
+Status: protected local/internal conformance and canonical V3 loopback
+Postgres/PostgREST lifecycle passed; production remains blocked.
 
 This slice closes the source-level ordering defect that could create a temporary
 GCS resumable session before ReEditPro had durably committed the corresponding
@@ -27,29 +28,43 @@ authority. The existing private upload-media authority remains the downstream
 local lifecycle/finalization projection; the new port is the pre-media intent
 and temporary-target authority and does not create a second queue or worker.
 
-The in-memory adapter and process-memory escrow are contract fixtures only. They
-cannot self-promote because production requires a Postgres transaction adapter,
-multi-replica read-after-write, exact idempotency-response association, an
-explicit canonical upload-lifecycle projection, authenticated tenant isolation,
-live GCS issuance evidence, and envelope-encrypted multi-replica credential
-escrow with expiry/deletion evidence. No such live adapter is installed by this
-slice, so hosted upload creation continues to fail closed.
+The in-memory adapter and process-memory escrow are contract fixtures only. A
+2026-07-29 canonical V3 local follow-up now provides a real loopback
+Postgres/PostgREST transaction adapter with forced RLS, authenticated tenant
+isolation, exact idempotency-response association, restart-safe lifecycle
+state, and backup/reset/restore evidence. That adapter is intentionally
+loopback-only and still reports multi-replica durability, live GCS issuance,
+durable credential escrow, remote database mutation, and production authority
+as false. The upload credential used by the focused proof remains in the
+process-memory escrow fixture and is never persisted in canonical Postgres.
+
+Production still requires multi-replica read-after-write evidence, live GCS
+issuance, an envelope-encrypted multi-replica credential escrow with
+expiry/deletion evidence, and released hosted deployment/RLS evidence. Hosted
+upload creation therefore continues to fail closed.
 
 Verification:
 
 ```text
 npm run smoke:canonical-durable-upload-target-authority
+npm run smoke:canonical-durable-upload-target-local-postgres
 npm run smoke:upload-boundary-security
 npm run smoke:upload
 npm run typecheck:server
 ```
 
-The focused smoke exercises both the authority directly and the actual
+The original focused smoke exercises both the authority directly and the actual
 `POST /v1/projects/:projectId/upload-intents` route through the application
 runtime injection seam. The route does not use generic response caching for the
 temporary target; the domain authority returns the same intent and target.
 The frozen local conformance contains 14 adversarial checks and has evidence
 digest `bb494e2f2395abc9f72e579de762467b280428a699f643df34c3ee7aa8931432`.
 
-No SQL, migration, Supabase mutation, GCS session, provider request, billing,
+The canonical V3 follow-up adds migration
+`202607210021_canonical_durable_upload_target_rpc.sql`, a five-function fixed
+RPC adapter, a real loopback PostgREST smoke, SQL postconditions, and inclusion
+in the 59-table destructive local backup/reset/restore rehearsal. See
+`docs/canonical-v3-local-durable-upload-target-verification-2026-07-29.md`.
+
+No remote SQL, remote migration, live GCS session, provider request, billing,
 deployment, production rendering, or public delivery was performed.

@@ -48,6 +48,10 @@ const expectedSteps = [
     'canonical-distributed-pre-plan-study-rpc-transport',
     'smoke:canonical-distributed-pre-plan-study-rpc-adapter',
   ],
+  [
+    'canonical-durable-upload-target-authority',
+    'smoke:canonical-durable-upload-target-authority',
+  ],
 ] as const
 
 const parsedSteps = [...canonicalSource.matchAll(/step\(\s*'([^']+)'\s*,\s*'([^']+)'/g)]
@@ -68,7 +72,7 @@ for (const [id, script] of expectedSteps) {
   )
 }
 
-assert.match(cliSource, /schemaVersion: 'canonical-private-pipeline-verification-v44'/)
+assert.match(cliSource, /schemaVersion: 'canonical-private-pipeline-verification-v45'/)
 for (const claim of [
   'canonicalEditReferenceUiIntegrationSourceVerified: true',
   'canonicalEditReferenceExactEditAtomicApplyContract: true',
@@ -125,7 +129,7 @@ for (const fullClaim of [
 
 console.log(JSON.stringify({
   ok: true,
-  schemaVersion: 'canonical-private-pipeline-edit-reference-coverage-smoke-v3',
+  schemaVersion: 'canonical-private-pipeline-edit-reference-coverage-smoke-v4',
   editReferenceStepCount: expectedSteps.length,
   canonicalStepCount: parsedSteps.length,
   routineLongFormProfile: 'routine_two_hour',
@@ -155,6 +159,8 @@ function expectedScriptCommand(script: string): string {
       'tsx server/smoke/canonical-distributed-pre-plan-study-state-port-smoke.ts',
     'smoke:canonical-distributed-pre-plan-study-rpc-adapter':
       'tsx server/smoke/canonical-distributed-pre-plan-study-state-rpc-adapter-smoke.ts',
+    'smoke:canonical-durable-upload-target-authority':
+      'tsx server/smoke/canonical-durable-upload-target-authority-smoke.ts',
   }
   const command = commands[script]
   assert.ok(command, `No reviewed command fixture exists for ${script}.`)

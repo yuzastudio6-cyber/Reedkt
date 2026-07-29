@@ -66,6 +66,14 @@ The chain provides:
   infrastructure cost while keeping GCS byte reads, cloud dispatch, customer
   pricing, credits, service fees, wallet, billing, and production authority
   disabled;
+- a separate durable pre-media upload-target authority that commits the
+  immutable upload intent before any external target side effect, serializes
+  one-use target issuance, associates exact idempotency receipts, recovers
+  state after process restart, and permanently fences an unknown target
+  outcome. PostgreSQL stores only bounded metadata and digests; the resumable
+  session URL and headers remain in a separate process-memory fixture during
+  this local proof. Live GCS issuance, encrypted multi-replica credential
+  escrow, and hosted production authority remain false;
 - a forward study-scoped enqueue concurrency fence that serializes plan-version
   allocation across different runs of the same study while preserving exact
   same-request replay; the stress proof starts six runs and their duplicate
@@ -135,7 +143,7 @@ The chain provides:
   planning-authority read/evidence/replay, immutable-baseline, cleanup
   invalidation, evidence/DNA/QA/approval replay, recovery, direct-RPC/table
   denial, and internal-cost tests.
-- a destructive local backup/reset/restore rehearsal covering all 56 reviewed
+- a destructive local backup/reset/restore rehearsal covering all 59 reviewed
   canonical data tables, an exact logical-state digest, immutable approved and
   audit history, exact Apply replay/conflict recovery, and restored tenant RLS.
 
@@ -158,7 +166,8 @@ database/canonical-v3-local/run-local-verification.sh
 The runner starts the isolated local stack if needed, performs a clean local
 reset, executes all SQL tests with `ON_ERROR_STOP`, verifies the local adapter,
 provisions two local Auth users, installs the controlled fixture, exercises the
-actual loopback PostgREST RPC and RLS path, proves server-owned target
+actual loopback PostgREST RPC and RLS paths, proves durable upload-intent
+commit/claim/issuance/unknown-outcome recovery, proves server-owned target
 application preparation plus atomic Apply, runs all four mounted signed-in
 Chromium journeys, and performs a private data-only backup/reset/restore rehearsal with
 the PostgreSQL 15 tools from the matching local database container, verifies

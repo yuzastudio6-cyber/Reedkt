@@ -91,6 +91,11 @@ const canonicalSteps: VerificationStep[] = [
     'Finalized source identity, checksum, source order, project scope, and immutable source authority.',
   ),
   step(
+    'canonical-durable-upload-target-authority',
+    'smoke:canonical-durable-upload-target-authority',
+    'A server-owned pre-media transaction commits immutable upload intent before external target creation, recovers the exact escrowed target after response loss, and permanently blocks duplicate issuance after an unknown side-effect outcome; local fixtures remain non-production and live GCS plus durable credential escrow stay closed.',
+  ),
+  step(
     'large-media-private-4k-pipeline',
     'smoke:large-media-private-4k-pipeline',
     'A real resumable-sized 4K source crosses interrupted chunk recovery, backend byte verification, generation-bound private finalization, durable replay, and immutable-master proxy lineage.',

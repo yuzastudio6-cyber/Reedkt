@@ -11,19 +11,19 @@
     },
     {
       "path": "README.md",
-      "sha256": "2680f7478dc16bd098ca84af00b85161d681596b12aaf11a7e702c2b50fa76a7"
+      "sha256": "623248ae3ce280bbda918e39dc3720b9f65369782a7bcde8046942ee1e995ef5"
     },
     {
       "path": "expected-recovery-data-tables.txt",
-      "sha256": "15fe117a30beb19926dfc80fb23f88a71338c6083cacba9d436bf100f7c1225f"
+      "sha256": "58347edd4e5608982e8c899d4e994f3da020a46b37f90779b1a2781e632c01f9"
     },
     {
       "path": "run-local-recovery-verification.sh",
-      "sha256": "544f786cf22c592aa985aa35a2740482154729fa36071736689e7f056047f6dd"
+      "sha256": "d5ce9922b24c17ebf2d518960728f331cca46a4a7a90e156eb8f9d022d78c0df"
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "aa22a6f139c0236ece6bf2b5eb911f3899bcf74beec1b1a240e69974e9354f00"
+      "sha256": "8527a2f6859141cf610e7a6d3cb378bc6f8e2dc411ddac8c39188d120f2a0a90"
     },
     {
       "path": "setup-local-auth-users.ts",
@@ -118,6 +118,10 @@
       "sha256": "edac3b9af68c233326dd5c0fd2c389a863d8fb1ffa7f2f8d0b0abf5a3f4cabbf"
     },
     {
+      "path": "supabase/migrations/202607210021_canonical_durable_upload_target_rpc.sql",
+      "sha256": "75e0c4aa02803aa89fcf1af07e7c37a77b26e30417d9d9c62fc7312842adcb4f"
+    },
+    {
       "path": "tests/001_two_user_two_workspace_rls.sql",
       "sha256": "4229abef3613004a7ce75467e6e030bfe6c1baa5237d7a55a7d8580d6822a816"
     },
@@ -174,6 +178,10 @@
       "sha256": "efef2147436e607d00b8b78d78ac38d5e1231a2066812e92fd55e70dccde03ec"
     },
     {
+      "path": "tests/015_canonical_durable_upload_target_rpc_postconditions.sql",
+      "sha256": "08b689bfe799934c19940971f0ac39ae803effe099827a8b9f94178f15cc4480"
+    },
+    {
       "path": "tests/_fixture.sql",
       "sha256": "293b582bf3f5539fed0f0673fe48c70e464e4570f58cdd34d6ad29fd14e24816"
     },
@@ -187,10 +195,14 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "c989ffd3aadca48e1351cf738ddbc627dc6b26b20b9b322a3a4a1bfd49de5f7a"
+      "sha256": "e6aada4adbe5b210abedbbac812bfeed1e85c3a01901a2757c85f42b14140105"
     }
   ],
   "repositoryFiles": [
+    {
+      "path": "docs/canonical-durable-upload-target-authority-2026-07-20.md",
+      "sha256": "f8c67a1434ab2f708f064eb925446d42587b73255d1ff4a42c777543ba5bbac5"
+    },
     {
       "path": "docs/canonical-edit-reference-application-preparation-verification-2026-07-21.md",
       "sha256": "0ae541f03c4658b0d61c360938cd3a1b6bec1883138eec6ab7dde5f4d976d738"
@@ -214,6 +226,10 @@
     {
       "path": "docs/canonical-v3-local-distributed-pre-plan-study-runtime-verification-2026-07-21.md",
       "sha256": "897675e612f1867526807f0f37ec9b5619644170f6231fc9b7999ca6f29949b3"
+    },
+    {
+      "path": "docs/canonical-v3-local-durable-upload-target-verification-2026-07-29.md",
+      "sha256": "13783a98a7c39ccb2afbfbab9a657e68384fa988ece278c0b48901ccfdb29aa5"
     },
     {
       "path": "docs/canonical-v3-local-edit-reference-domain-library-study-verification-2026-07-21.md",
@@ -265,7 +281,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "fe0efe9f1199844cdeab629929890247d4c94cb90151bee97dafe7b8b69bfbc9"
+      "sha256": "12bf1b5b6bc728c67c9121d267bab3e475c118dfa898c70e8e51092a5ce6b0c2"
     },
     {
       "path": "server/app.ts",
@@ -548,6 +564,10 @@
       "sha256": "0b395ed5c46344896cbb2b681e93d3b5e767624ce7cc161637ef36d82f60a7a2"
     },
     {
+      "path": "server/smoke/canonical-durable-upload-target-local-postgres-smoke.ts",
+      "sha256": "e013d548db2d87ac182f876a7c5b651262ae5a24231312521415e339ac74c327"
+    },
+    {
       "path": "server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
       "sha256": "9f738079500f584f70214d103438d827e07e7234eb0b0ea4c6c5bf37fc79f1bc"
     },
@@ -638,6 +658,18 @@
     {
       "path": "server/types.ts",
       "sha256": "0e95b6a2427b2fb9db8ae0aff29c702974598d65cafb91d2a3661844f165df16"
+    },
+    {
+      "path": "server/upload-target-authority/canonical-durable-upload-target-local-supabase-http-rpc-client.ts",
+      "sha256": "c84aff63a19b712701c9b3636051fd69bf2134b45802929b9a1ffa3a324b2c49"
+    },
+    {
+      "path": "server/upload-target-authority/canonical-durable-upload-target-state-rpc-adapter.ts",
+      "sha256": "2e16bfaf4a7c938eccf3e23da0bf5e34cb565510d8346fc34acc5f525c0eb549"
+    },
+    {
+      "path": "server/upload-target-authority/index.ts",
+      "sha256": "093b28172e35dd6b6da5c1f6528313485c4e4d89c598662bf2244c63e0258ceb"
     },
     {
       "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",

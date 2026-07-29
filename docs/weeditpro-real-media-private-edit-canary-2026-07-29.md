@@ -58,7 +58,7 @@ Final run results:
 
 ```text
 local_test:          1 passed (2.5m)
-local Supabase auth: 1 passed (2.8m)
+local Supabase auth: 1 passed (2.7m)
 ```
 
 Neither browser test used network interception for the edit lifecycle. Each
@@ -114,16 +114,16 @@ last successful runs were:
 
 ```text
 local_test:
-weeditpro-private-final-private_review_6cabab0f33547ecfdcf4a9d1eb4956dc1100acd6b7fbde89.mp4
+weeditpro-private-final-private_review_011b19f07c359a94821dd05ab36a6df61b4ce45a5809244d.mp4
 
 local Supabase auth:
-weeditpro-private-final-private_review_9c5bf1aa56e3d32d2c7e6bd23d08b00283d02c1dcd26beaf.mp4
+weeditpro-private-final-private_review_7ffc8b4c6feb321063f9100d03dcf9cf6dd026ac2488e703.mp4
 ```
 
 Both replacement plans were version 2. The last `local_test` plan hash was
-`88363771582fd16762ef593821612fc98d26cdd8feffd89c04198a8bd5b287f7`.
+`0eb93543801f34ab3efe7f3505a3472a76dbededd4cbfb310d612c3cf5e7cc7f`.
 The last local Supabase-authenticated plan hash was
-`bd56fe8167320eda4db3575882c858f5b33d2566ea3bdfc9f96e7fe4c3da4d7b`.
+`e41a6eb692e6d044d8ec8407cdfb1f1d69fff32cfa9c06c86110514eebea958b`.
 Run IDs differ by design.
 
 ## Defects found and fixed
@@ -173,11 +173,12 @@ Green after the fix:
 - `database/canonical-v3-local/run-local-verification.sh`, including two-user /
   two-workspace RLS, CAS and idempotency checks, distributed media-ingest and
   pre-plan restart checks, four signed-in Chromium journeys, and a destructive
-  56-table backup/reset/restore drill;
+  59-table backup/reset/restore drill that now includes the durable
+  upload-intent/target metadata authority;
 - canonical V3 archive SHA-256
-  `3b6c8cedb97085fcaca2ce98ada2c3e3acbda205eabe5c67e8468ba102e162ae`
+  `121da6a8a6ce56a3a7a3a54fb28ccb5cabd33b79a6903ee9c8d5effef30bb9a5`
   and restored-state SHA-256
-  `81364c842676f3fe747c197b16439c0459001d97206181a50a0c64382b64a4c2`;
+  `5592d67c038249fadd3c7b0064060cffb773f50eecea1c20262016238459ad8d`;
 - `npm run smoke:idempotency-boundary`;
 - `npm run smoke:planning-exact-edit-preference-authority-port`;
 - `npm run smoke:canonical-exact-review-lifecycle-client`;
@@ -192,9 +193,9 @@ Green after the fix:
 - `npm run lint`;
 - `npm run build`;
 - `npm run check:frontend-boundary` (`1,040` files); and
-- `npm run check:secrets` (`5,813` files, no secret values).
+- `npm run check:secrets` (`5,819` files, no secret values).
 
-The canonical V3 local manifest independently verified 20 migrations and 188
+The canonical V3 local manifest independently verified 21 migrations and 196
 pinned files with `remoteMutationAllowed=false` and
 `productionAuthority=false`.
 

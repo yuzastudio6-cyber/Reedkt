@@ -661,6 +661,42 @@ export type {
   LivingFrameControlledSdxlLoraOpenGate,
 } from '../../types/living-frame-controlled-sdxl-lora-byte-observation'
 
+export type {
+  LivingFrameControlledSdxlControlNetByteObservation,
+  LivingFrameControlledSdxlControlNetByteObservationAuthority,
+  LivingFrameControlledSdxlControlNetByteObservationDraft,
+  LivingFrameControlledSdxlControlNetByteObservationIssue,
+  LivingFrameControlledSdxlControlNetByteObservationIssueCode,
+  LivingFrameControlledSdxlControlNetOpenGate,
+} from '../../types/living-frame-controlled-sdxl-controlnet-byte-observation'
+
+export type {
+  LivingFrameControlledSdxlIpAdapterByteObservation,
+  LivingFrameControlledSdxlIpAdapterByteObservationAuthority,
+  LivingFrameControlledSdxlIpAdapterByteObservationDraft,
+  LivingFrameControlledSdxlIpAdapterByteObservationIssue,
+  LivingFrameControlledSdxlIpAdapterByteObservationIssueCode,
+  LivingFrameControlledSdxlIpAdapterOpenGate,
+} from '../../types/living-frame-controlled-sdxl-ipadapter-byte-observation'
+
+export type {
+  LivingFrameControlledSdxlClipVisionByteObservation,
+  LivingFrameControlledSdxlClipVisionByteObservationAuthority,
+  LivingFrameControlledSdxlClipVisionByteObservationDraft,
+  LivingFrameControlledSdxlClipVisionByteObservationIssue,
+  LivingFrameControlledSdxlClipVisionByteObservationIssueCode,
+  LivingFrameControlledSdxlClipVisionOpenGate,
+} from '../../types/living-frame-controlled-sdxl-clip-vision-byte-observation'
+
+export type {
+  LivingFrameControlledSdxlBaseByteObservation,
+  LivingFrameControlledSdxlBaseByteObservationAuthority,
+  LivingFrameControlledSdxlBaseByteObservationDraft,
+  LivingFrameControlledSdxlBaseByteObservationIssue,
+  LivingFrameControlledSdxlBaseByteObservationIssueCode,
+  LivingFrameControlledSdxlBaseOpenGate,
+} from '../../types/living-frame-controlled-sdxl-base-byte-observation'
+
 export {
   LIVING_FRAME_COMFYUI_READ_ONLY_MODEL_MOUNT_CLASS,
   LIVING_FRAME_COMFYUI_READ_ONLY_MODEL_MOUNT_ISSUES,

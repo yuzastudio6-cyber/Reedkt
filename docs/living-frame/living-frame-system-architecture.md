@@ -2312,3 +2312,29 @@ verification when the exact server-owned artifact path is injected; a
 missing artifact produces an explicit skip rather than a fabricated pass.
 See
 `docs/living-frame/living-frame-controlled-sdxl-lora-byte-observation.md`.
+
+## Complete five-role SDXL byte-verification chain
+
+Equivalent process-bound, single-use full-stream verifiers now exist for the
+remaining ControlNet, generic IP-Adapter, CLIP Vision, and SDXL base roles.
+Each verifier depends on the prior role observations, so a later role cannot
+claim completion while an earlier artifact is missing or tampered. The
+shared bounded `safetensors` inspector checks full SHA-256, tensor accounting,
+dtype and shape spans, namespace summaries, selected compatibility shapes,
+metadata digests, and exact end-of-data coverage.
+
+The source-only smokes are intentionally conditional. When the canonical
+server-owned artifact paths are not injected, each reports
+`skipped_exact_server_owned_artifact_paths_not_injected`; it does not count
+that as a controlled fixture or production proof. When all five exact
+artifacts are supplied, the base smoke replays the entire dependency chain
+and produces the complete-bundle byte observation. Compatibility, quality,
+license, paid-use, GPU execution, output QA, cost, and private review remain
+separate gates.
+
+See:
+
+- `docs/living-frame/living-frame-controlled-sdxl-controlnet-byte-observation.md`;
+- `docs/living-frame/living-frame-controlled-sdxl-ipadapter-byte-observation.md`;
+- `docs/living-frame/living-frame-controlled-sdxl-clip-vision-byte-observation.md`; and
+- `docs/living-frame/living-frame-controlled-sdxl-base-byte-observation.md`.

@@ -2177,3 +2177,25 @@ created. See `docs/living-frame/living-frame-control-image-canny.md`,
 `docs/living-frame/living-frame-control-image-depth.md`,
 `docs/living-frame/living-frame-control-image-pose.md`, and
 `docs/living-frame/living-frame-control-image-workflow-binding.md`.
+
+## Controlled ComfyUI dependency closure
+
+The candidate ComfyUI host now has controlled, non-promotable dependency-lock
+evidence for a Linux amd64 Ubuntu 22.04 / Python 3.10.12 / CUDA 12.4-family
+worker image. The evidence binds 35 exact wheel artifacts by ordered name,
+version, filename, byte length, and SHA-256, plus immutable source archives
+for the ComfyUI host, the generic IP-Adapter extension, and the auxiliary
+preprocessor bundle. The offline rebuild used no package index, no dependency
+resolution, and no network.
+
+A confined CPU-emulation probe verified the measured node schemas and repeated
+five small deterministic stock/preprocessor graphs. This proves only the
+observed dependency closure and deterministic bounded host behavior. The
+candidate image is not canonical, scanned, signed, deployed, or approved; no
+model generation or GPU execution occurred.
+
+Canonical wheel/source repository admission, signed-image rebuild, exact
+read-only model mounts, node allow/deny enforcement, GPU generation and
+quality benchmarks, selected-scene snapshot binding, dispatch, work, asset
+QA, cost evidence, and private review remain mandatory. See
+`docs/living-frame/living-frame-comfyui-dependency-lock-evidence.md`.

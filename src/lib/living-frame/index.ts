@@ -247,6 +247,15 @@ export type {
   LivingFrameControlledIllustrationValidationResult,
 } from '../../types/living-frame-controlled-illustration-qualification'
 
+export type {
+  LivingFrameComfyUiOperationAdmissionCandidate,
+  LivingFrameComfyUiOperationAdmissionCandidateAuthority,
+  LivingFrameComfyUiOperationAdmissionCandidateDraft,
+  LivingFrameComfyUiOperationAdmissionCandidateIssue,
+  LivingFrameComfyUiOperationAdmissionCandidateIssueCode,
+  LivingFrameComfyUiOperationAdmissionCandidateOpenGate,
+} from '../../types/living-frame-comfyui-operation-admission-candidate'
+
 export {
   LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_AUTHORITY_BOUNDARY,
   LivingFrameControlledIllustrationSourceObservationError,

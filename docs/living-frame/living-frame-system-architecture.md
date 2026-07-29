@@ -2761,6 +2761,18 @@ standard-library imports succeed. This does not alter the separately governed
 SAM 2 tracking operation, remove the package from the image, establish legal
 approval, or prove released-L4 enforcement.
 
+The corresponding canonical operation-admission candidate is deliberately
+non-executable. It requests one shared `comfyui` identity and
+`tool.comfyui.generate_controlled_image.v1`, never six capability identities
+or five GPU charges. It binds the current offline package and launch digests,
+records the repository's exact-50 executable-tool state without asserting a
+post-admission count, and leaves the count disposition to the backend registry
+owner. It also makes two integration gaps explicit: the generic entrypoint
+union does not yet express the fixed supervised Python process, and the
+benchmark GPU request cannot substitute for a selected-scene generation
+request. Exact model bytes resolve through the model manifest and read-only
+mounts rather than ordinary per-request input bindings.
+
 The atomic mounted-runner source boundary now also freezes the compatible
 release path rather than leaving the root finding as prose. Its canonical
 session digest includes

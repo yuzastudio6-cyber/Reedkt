@@ -2338,3 +2338,21 @@ See:
 - `docs/living-frame/living-frame-controlled-sdxl-ipadapter-byte-observation.md`;
 - `docs/living-frame/living-frame-controlled-sdxl-clip-vision-byte-observation.md`; and
 - `docs/living-frame/living-frame-controlled-sdxl-base-byte-observation.md`.
+
+## Exact SDXL candidate-to-repository binding
+
+The complete five-role byte-observation chain can now be cross-validated
+against the existing workflow-neutral canonical model-artifact repository.
+The server adapter revalidates both parents and requires exact semantic order,
+role, binding kind, artifact ID, immutable revision, model family, byte
+length, SHA-256, repository admission, review state, and canonical GPU-bundle
+slot identity for every object. The canonical repository performs another
+full checksum verification rather than trusting the candidate packet.
+
+This binding runs only when the five exact server-owned artifacts are
+available; its smoke reports a fail-closed skip otherwise. Repository
+identity still does not prove that the base, ControlNet, LoRA, IP-Adapter, and
+CLIP Vision artifacts load or behave correctly together. Compatibility,
+license, paid-use, signed-image, distributed read-only mount, selected scene,
+snapshot, dispatch, cost, output QA, and private review remain closed. See
+`docs/living-frame/living-frame-controlled-sdxl-canonical-artifact-binding.md`.

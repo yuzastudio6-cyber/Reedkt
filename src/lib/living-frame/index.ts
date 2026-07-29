@@ -698,6 +698,24 @@ export type {
 } from '../../types/living-frame-controlled-sdxl-base-byte-observation'
 
 export {
+  LIVING_FRAME_CONTROLLED_SDXL_CANONICAL_ARTIFACT_BINDING_CLASS,
+  LIVING_FRAME_CONTROLLED_SDXL_CANONICAL_ARTIFACT_BINDING_ISSUES,
+  LIVING_FRAME_CONTROLLED_SDXL_CANONICAL_ARTIFACT_BINDING_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_SDXL_CANONICAL_ARTIFACT_BINDING_STATE,
+  LIVING_FRAME_CONTROLLED_SDXL_CANONICAL_ARTIFACT_BINDING_VERSION,
+} from '../../types/living-frame-controlled-sdxl-canonical-artifact-binding'
+
+export type {
+  LivingFrameControlledSdxlCanonicalArtifactBinding,
+  LivingFrameControlledSdxlCanonicalArtifactBindingAuthority,
+  LivingFrameControlledSdxlCanonicalArtifactBindingDraft,
+  LivingFrameControlledSdxlCanonicalArtifactBindingEntry,
+  LivingFrameControlledSdxlCanonicalArtifactBindingIssue,
+  LivingFrameControlledSdxlCanonicalArtifactBindingIssueCode,
+  LivingFrameControlledSdxlCanonicalArtifactBindingOpenGate,
+} from '../../types/living-frame-controlled-sdxl-canonical-artifact-binding'
+
+export {
   LIVING_FRAME_COMFYUI_READ_ONLY_MODEL_MOUNT_CLASS,
   LIVING_FRAME_COMFYUI_READ_ONLY_MODEL_MOUNT_ISSUES,
   LIVING_FRAME_COMFYUI_READ_ONLY_MODEL_MOUNT_OPEN_GATES,

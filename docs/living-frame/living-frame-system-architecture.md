@@ -2270,3 +2270,26 @@ operation artifact set, signed GPU image, private distribution, selected
 scene/snapshot/work dispatch, output QA, actual attempt-cost evidence, and
 private review remain closed. See
 `docs/living-frame/living-frame-comfyui-read-only-model-mount.md`.
+
+## Exact controlled SDXL artifact candidates
+
+The five unresolved ComfyUI model roles now have one exact, subject-neutral
+SDXL candidate set rather than family labels alone. The server-only contract
+binds immutable, dated upstream metadata for the SDXL 1.0 base checkpoint,
+matching SDXL canny ControlNet, SDXL example LoRA, generic non-FaceID SDXL
+IP-Adapter, and its OpenCLIP ViT-bigG-14 image encoder.
+
+This is deliberately weaker than repository admission. The candidate packet
+records upstream-reported revisions, sizes, LFS SHA-256 values, model-card
+digests, and declared license labels, while stating that ReeditPro has not
+yet independently read and hashed every full artifact, inspected every
+`safetensors` schema, proven bundle behavior, or approved paid production
+use. It cannot satisfy the canonical artifact repository, read-only lease,
+GPU operation, selected-scene, snapshot, dispatch, cost, QA, or private-
+review gates by itself.
+
+The exact candidate definition prevents an SD1.5 ControlNet, FaceID route,
+InsightFace dependency, AuraFace generation route, or mismatched CLIP Vision
+checkpoint from silently entering the SDXL graph. AuraFace remains a
+separate continuity-measurement capability only. See
+`docs/living-frame/living-frame-controlled-sdxl-artifact-candidate-set.md`.

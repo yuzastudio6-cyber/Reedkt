@@ -606,6 +606,35 @@ export type {
 } from '../../types/living-frame-comfyui-model-artifact-requirements'
 
 export {
+  LIVING_FRAME_CONTROLLED_SDXL_ARTIFACT_CANDIDATE_ISSUES,
+  LIVING_FRAME_CONTROLLED_SDXL_ARTIFACT_CANDIDATE_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_SDXL_ARTIFACT_CANDIDATE_SET_CLASS,
+  LIVING_FRAME_CONTROLLED_SDXL_ARTIFACT_CANDIDATE_SET_STATE,
+  LIVING_FRAME_CONTROLLED_SDXL_ARTIFACT_CANDIDATE_SET_VERSION,
+  LIVING_FRAME_CONTROLLED_SDXL_ARTIFACT_CODES,
+  LIVING_FRAME_CONTROLLED_SDXL_ARTIFACT_REPOSITORY_CODES,
+  LIVING_FRAME_CONTROLLED_SDXL_COMPATIBILITY_OBSERVATION_CODES,
+  LIVING_FRAME_CONTROLLED_SDXL_DECLARED_LICENSE_LABELS,
+  LIVING_FRAME_CONTROLLED_SDXL_DOCUMENT_CODES,
+} from '../../types/living-frame-controlled-sdxl-artifact-candidate-set'
+
+export type {
+  LivingFrameControlledSdxlArtifactCandidate,
+  LivingFrameControlledSdxlArtifactCandidateAuthority,
+  LivingFrameControlledSdxlArtifactCandidateIssue,
+  LivingFrameControlledSdxlArtifactCandidateIssueCode,
+  LivingFrameControlledSdxlArtifactCandidateOpenGate,
+  LivingFrameControlledSdxlArtifactCandidateSet,
+  LivingFrameControlledSdxlArtifactCandidateSetDraft,
+  LivingFrameControlledSdxlArtifactCode,
+  LivingFrameControlledSdxlArtifactRepositoryCode,
+  LivingFrameControlledSdxlCompatibilityObservationCode,
+  LivingFrameControlledSdxlDeclaredLicenseLabel,
+  LivingFrameControlledSdxlDocumentCode,
+  LivingFrameControlledSdxlDocumentObservation,
+} from '../../types/living-frame-controlled-sdxl-artifact-candidate-set'
+
+export {
   LIVING_FRAME_COMFYUI_READ_ONLY_MODEL_MOUNT_CLASS,
   LIVING_FRAME_COMFYUI_READ_ONLY_MODEL_MOUNT_ISSUES,
   LIVING_FRAME_COMFYUI_READ_ONLY_MODEL_MOUNT_OPEN_GATES,

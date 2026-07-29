@@ -23,6 +23,7 @@ SOURCE_ROOT=/opt/reeditpro/gpu-operations/comfyui/source
 CUSTOM_NODE_ROOT=/opt/reeditpro/gpu-operations/comfyui/custom_nodes
 RUNTIME_ROOT=/opt/reeditpro/gpu-operations/comfyui/runtime
 PRIVATE_INPUT_ROOT=/mnt/reeditpro/private-input
+LAYOUT_VERIFIER="${PACKAGE_INPUT_ROOT}/verify-installed-layout.sh"
 
 COMFYUI_ARCHIVE="${SOURCE_ARCHIVE_ROOT}/comfyui-host.tar"
 IPADAPTER_ARCHIVE="${SOURCE_ARCHIVE_ROOT}/generic-ipadapter-extension.tar"
@@ -52,6 +53,7 @@ verify_archive() {
 require_regular_file "${PACKAGE_INPUT_ROOT}/requirements.lock.txt"
 require_regular_file "${PACKAGE_INPUT_ROOT}/source-provenance.lock"
 require_regular_file "${PACKAGE_INPUT_ROOT}/extra_model_paths.yaml"
+require_regular_file "${LAYOUT_VERIFIER}"
 
 if [ -e "${TARGET_ROOT}" ]; then
   echo "Fixed ComfyUI target root must not already exist." >&2
@@ -139,6 +141,8 @@ cp "${PACKAGE_INPUT_ROOT}/source-provenance.lock" \
   "${TARGET_ROOT}/source-provenance.lock"
 cp "${PACKAGE_INPUT_ROOT}/extra_model_paths.yaml" \
   "${TARGET_ROOT}/extra_model_paths.yaml"
+cp "${LAYOUT_VERIFIER}" \
+  "${TARGET_ROOT}/verify-installed-layout.sh"
 
 find "${SOURCE_ROOT}" "${CUSTOM_NODE_ROOT}" \
   -type d -exec chmod 0555 {} +
@@ -148,8 +152,10 @@ chmod 0444 \
   "${TARGET_ROOT}/requirements.lock.txt" \
   "${TARGET_ROOT}/source-provenance.lock" \
   "${TARGET_ROOT}/extra_model_paths.yaml"
+chmod 0555 "${TARGET_ROOT}/verify-installed-layout.sh"
 
 "${TARGET_ROOT}/venv/bin/python" -I -B -c \
   'import importlib.metadata as m; assert m.version("aiohttp") == "3.14.3"; assert m.version("comfyui_frontend_package") == "1.47.10"; assert m.version("torchsde") == "0.2.6"'
+"${TARGET_ROOT}/verify-installed-layout.sh"
 
 echo "Living Frame ComfyUI offline package installed."

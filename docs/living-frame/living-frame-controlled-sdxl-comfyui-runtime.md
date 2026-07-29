@@ -95,6 +95,14 @@ the image. Model files remain under the existing canonical read-only artifact
 authority, followed by a fixed operation projection under
 `/mnt/reeditpro/model-artifacts`.
 
+The installer now ends with a fixed no-argument installed-layout verifier.
+It checks the exact two custom-node directories, exact empty runtime-directory
+set, pinned Python and selected package versions, copied lock-file hashes,
+read-only extracted sources, empty private input, and absence of model files
+baked beneath the model-artifact root. The source contract proves that the
+verifier is wired into installation; only a later image build can prove that
+it passed inside a specific image digest.
+
 The measured local locked candidate image is useful compatibility evidence,
 but its observed entrypoint and source layout are
 `/usr/bin/python3 /opt/ComfyUI/main.py`. It therefore does not satisfy the

@@ -2635,6 +2635,15 @@ remain external and read-only under the existing canonical authority, then
 must be projected by the future fixed operation consumer into role-separated
 paths below `/mnt/reeditpro/model-artifacts`.
 
+The installer invokes a fixed installed-layout verifier as its final build
+step. That verifier accepts no arguments and checks the exact
+source/custom-node and empty runtime layout, pinned interpreter/package
+versions, copied lock identities, read-only extracted trees, empty private
+input, and absence of model weights in the image. Source verification proves
+the gate is wired; it deliberately does not claim that a particular image
+digest passed, was scanned, signed, mounted with artifacts, or qualified on
+L4.
+
 The measured local candidate image remains controlled evidence only. Its
 `/opt/ComfyUI` entrypoint/layout does not meet the fixed production layout, so
 the architecture rejects direct promotion even though its source revisions

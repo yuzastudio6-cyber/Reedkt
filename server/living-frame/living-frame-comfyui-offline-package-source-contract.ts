@@ -21,6 +21,7 @@ const SOURCE_FILES = [
   `${SOURCE_ROOT}/requirements.lock.txt`,
   `${SOURCE_ROOT}/source-provenance.lock`,
   `${SOURCE_ROOT}/install-offline.sh`,
+  `${SOURCE_ROOT}/verify-installed-layout.sh`,
   `${SOURCE_ROOT}/extra_model_paths.yaml`,
   `${SOURCE_ROOT}/README.md`,
 ] as const
@@ -73,6 +74,7 @@ export interface LivingFrameComfyUiOfflinePackageSourceContract {
     readonly sourceArchiveHashesVerified: true
     readonly wheelHashesVerifiedByPip: true
     readonly customNodeDirectoriesExactlyTwo: true
+    readonly installedLayoutVerifierExecutedByInstaller: true
     readonly imageContainsModelWeights: false
     readonly runtimeDownloadsAllowed: false
   }
@@ -103,6 +105,8 @@ export interface LivingFrameComfyUiOfflinePackageSourceContract {
     readonly exactSourceArchiveClosureDeclared: true
     readonly fixedProcessSupervisorLinked: true
     readonly offlineInstallerSourceVerified: true
+    readonly installedLayoutVerifierSourceVerified: true
+    readonly installedLayoutVerifiedInBuiltImage: false
     readonly fixedModelMountLayoutDeclared: true
     readonly wheelArtifactsIncludedInRepository: false
     readonly sourceArchivesIncludedInRepository: false
@@ -140,6 +144,7 @@ export class LivingFrameComfyUiOfflinePackageSourceContractError
     | 'requirements_lock_mismatch'
     | 'source_provenance_mismatch'
     | 'offline_installer_mismatch'
+    | 'installed_layout_verifier_mismatch'
     | 'extra_model_paths_mismatch'
     | 'readme_boundary_mismatch'
     | 'contract_mismatch'
@@ -171,11 +176,13 @@ Promise<LivingFrameComfyUiOfflinePackageSourceContract> {
   const requirements = await readText(SOURCE_FILES[0])
   const provenance = await readText(SOURCE_FILES[1])
   const installer = await readText(SOURCE_FILES[2])
-  const extraModelPaths = await readText(SOURCE_FILES[3])
-  const readme = await readText(SOURCE_FILES[4])
+  const layoutVerifier = await readText(SOURCE_FILES[3])
+  const extraModelPaths = await readText(SOURCE_FILES[4])
+  const readme = await readText(SOURCE_FILES[5])
   assertRequirements(requirements)
   assertProvenance(provenance)
   assertInstaller(installer)
+  assertInstalledLayoutVerifier(layoutVerifier)
   assertExtraModelPaths(extraModelPaths)
   assertReadme(readme)
 
@@ -221,6 +228,7 @@ Promise<LivingFrameComfyUiOfflinePackageSourceContract> {
       sourceArchiveHashesVerified: true as const,
       wheelHashesVerifiedByPip: true as const,
       customNodeDirectoriesExactlyTwo: true as const,
+      installedLayoutVerifierExecutedByInstaller: true as const,
       imageContainsModelWeights: false as const,
       runtimeDownloadsAllowed: false as const,
     },
@@ -252,6 +260,8 @@ Promise<LivingFrameComfyUiOfflinePackageSourceContract> {
       exactSourceArchiveClosureDeclared: true as const,
       fixedProcessSupervisorLinked: true as const,
       offlineInstallerSourceVerified: true as const,
+      installedLayoutVerifierSourceVerified: true as const,
+      installedLayoutVerifiedInBuiltImage: false as const,
       fixedModelMountLayoutDeclared: true as const,
       wheelArtifactsIncludedInRepository: false as const,
       sourceArchivesIncludedInRepository: false as const,
@@ -388,6 +398,7 @@ function assertInstaller(value: string): void {
     '--find-links',
     'ComfyUI_IPAdapter_plus',
     'comfyui_controlnet_aux',
+    'verify-installed-layout.sh',
   ]
   const forbidden = [
     'curl ',
@@ -406,6 +417,42 @@ function assertInstaller(value: string): void {
   ) {
     throw new LivingFrameComfyUiOfflinePackageSourceContractError(
       'offline_installer_mismatch',
+    )
+  }
+}
+
+function assertInstalledLayoutVerifier(value: string): void {
+  const required = [
+    '#!/bin/sh',
+    'if [ "$#" -ne 0 ]',
+    'TARGET_ROOT=/opt/reeditpro/gpu-operations/comfyui',
+    'PRIVATE_INPUT_ROOT=/mnt/reeditpro/private-input',
+    'MODEL_ARTIFACT_ROOT=/mnt/reeditpro/model-artifacts',
+    'ComfyUI_IPAdapter_plus',
+    'comfyui_controlnet_aux',
+    'custom_nodes input models output temp user',
+    'venv/bin/python',
+    'modelWeightsBakedIntoImage',
+    'productionQualified',
+  ]
+  const forbidden = [
+    'curl ',
+    'wget ',
+    'git clone',
+    'http://',
+    'https://',
+    'pip install',
+    'pip download',
+    '0.0.0.0',
+  ]
+  if (
+    value.length < 4_000
+    || value.length > 16_000
+    || !required.every((text) => value.includes(text))
+    || forbidden.some((text) => value.includes(text))
+  ) {
+    throw new LivingFrameComfyUiOfflinePackageSourceContractError(
+      'installed_layout_verifier_mismatch',
     )
   }
 }

@@ -59,8 +59,17 @@ server-owned process supervisor:
 │   ├── ComfyUI_IPAdapter_plus/
 │   └── comfyui_controlnet_aux/
 ├── runtime/
+├── verify-installed-layout.sh
 └── extra_model_paths.yaml
 ```
+
+The installer finishes by running `verify-installed-layout.sh`. The verifier
+accepts no arguments and checks the fixed Python and package versions, exact
+two-node allowlist, exact empty runtime directories, read-only source trees,
+copied lock-file hashes, empty private input directory, and absence of baked
+model files under the fixed model-artifact root. It is a build-time image
+layout gate only; it does not qualify the image, mount runtime artifacts, run
+inference, or authorize production.
 
 The model-path file maps only fixed operation directories beneath
 `/mnt/reeditpro/model-artifacts`. The installer does not copy model weights

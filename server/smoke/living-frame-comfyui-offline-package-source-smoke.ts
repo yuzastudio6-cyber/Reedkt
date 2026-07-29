@@ -9,7 +9,7 @@ import {
 async function main(): Promise<void> {
   const contract =
     await getLivingFrameComfyUiOfflinePackageSourceContract()
-  assert.equal(contract.sourceFiles.length, 5)
+  assert.equal(contract.sourceFiles.length, 6)
   assert.equal(contract.dependencyClosure.wheelArtifactCount, 35)
   assert.equal(
     contract.dependencyClosure.wheelArtifactTotalByteLength,
@@ -29,6 +29,7 @@ async function main(): Promise<void> {
     sourceArchiveHashesVerified: true,
     wheelHashesVerifiedByPip: true,
     customNodeDirectoriesExactlyTwo: true,
+    installedLayoutVerifierExecutedByInstaller: true,
     imageContainsModelWeights: false,
     runtimeDownloadsAllowed: false,
   })
@@ -56,6 +57,14 @@ async function main(): Promise<void> {
   assert.equal(
     contract.boundaries.offlineInstallerSourceVerified,
     true,
+  )
+  assert.equal(
+    contract.boundaries.installedLayoutVerifierSourceVerified,
+    true,
+  )
+  assert.equal(
+    contract.boundaries.installedLayoutVerifiedInBuiltImage,
+    false,
   )
   assert.equal(
     contract.boundaries.fixedModelMountLayoutDeclared,

@@ -62,8 +62,14 @@ const sharpComponentWorkItemSchema = z.object({
       allowUpscale: z.literal(false),
     }).strict(),
   }).strict(),
-  sourceSequenceItemIds: z.tuple([safeKeySchema]),
-  sourceCleanupDecisionIds: z.tuple([safeKeySchema]),
+  sourceSequenceItemIds: z.union([
+    z.tuple([safeKeySchema]),
+    z.tuple([]),
+  ]),
+  sourceCleanupDecisionIds: z.union([
+    z.tuple([safeKeySchema]),
+    z.tuple([]),
+  ]),
   expectedOutputs: z.tuple([outputSchema]),
   dependencyKeys: z.array(safeKeySchema)
     .length(2)
@@ -101,18 +107,28 @@ export function assertCanonicalLivingFrameSharpComponentWorkItem(
     workItem.executionInput.structuredPayload,
   )
   const output = workItem.expectedOutputs[0]
-  const sourceFrameKeys = workItem.dependencyKeys.filter(
+  const sourceKeys = workItem.dependencyKeys.filter(
     (dependencyKey) =>
       dependencyKey.endsWith(
         '-exact-source-frame-png',
+      )
+      || dependencyKey.endsWith(
+        '-generate-image-asset',
       ),
   )
   const maskKeys = workItem.dependencyKeys.filter(
     (dependencyKey) =>
-      !dependencyKey.endsWith(
-        '-exact-source-frame-png',
-      ),
+      !sourceKeys.includes(dependencyKey),
   )
+  const sourceKey = sourceKeys[0]
+  const exactSourceBranch =
+    sourceKey?.endsWith(
+      '-exact-source-frame-png',
+    ) ?? false
+  const generatedSourceBranch =
+    sourceKey?.endsWith(
+      '-generate-image-asset',
+    ) ?? false
   const profile = getProductionToolProfile('sharp')
   const operation =
     resolveCompleteProfessionalToolOperationSpec(
@@ -124,8 +140,12 @@ export function assertCanonicalLivingFrameSharpComponentWorkItem(
     || planning.outputFormat !== 'png'
     || planning.outputWidth *
       planning.outputHeight > 16_777_216
-    || sourceFrameKeys.length !== 1
+    || sourceKeys.length !== 1
     || maskKeys.length !== 1
+    || !maskKeys[0]?.endsWith(
+      '-generate-mask-asset',
+    )
+    || sourceKey === workItem.workItemKey
     || maskKeys[0] === workItem.workItemKey
     || workItem.executionInput
       .expectedOutputKeys[0] !== output.outputKey
@@ -138,9 +158,23 @@ export function assertCanonicalLivingFrameSharpComponentWorkItem(
     || !operation.allowedOperationIds.includes(
       CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION,
     )
+    || (
+      exactSourceBranch
+      && (
+        workItem.sourceSequenceItemIds.length !== 1
+        || workItem.sourceCleanupDecisionIds.length !== 1
+      )
+    )
+    || (
+      generatedSourceBranch
+      && (
+        workItem.sourceSequenceItemIds.length !== 0
+        || workItem.sourceCleanupDecisionIds.length !== 0
+      )
+    )
   ) {
     throw invalid(
-      'Living Frame Sharp component work item lost its exact source-frame, mask, output, dimensions, or tool authority.',
+      'Living Frame Sharp component work item lost its exact source-frame/generated-still, mask, output, dimensions, or tool authority.',
     )
   }
 }

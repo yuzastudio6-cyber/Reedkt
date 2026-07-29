@@ -2761,7 +2761,9 @@ function assertLivingFrameExecutionAuthorityReady(
         workGraphProjection.metrics
           .admittedAuraFaceQaWorkItemCount
     || workGraphProjection.metrics
-      .admittedExactSourceFrameWorkItemCount !==
+      .admittedExactSourceFrameWorkItemCount
+      + workGraphProjection.metrics
+        .admittedGeneratedOpaqueStillMaskSourceCount !==
       estimateWorkAssetProjection.metrics
         .projectedGpuWorkItemCount
     || workGraphProjection.metrics

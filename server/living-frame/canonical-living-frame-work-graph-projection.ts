@@ -11,6 +11,7 @@ import {
   CANONICAL_LIVING_FRAME_PENDING_OPERATION,
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION,
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_GENERATED_OPAQUE_STILL_OUTPUT_ROLE,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_INPUT_VERSION,
@@ -160,6 +161,9 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             'controlled_opaque_still_variation_source')
         .map((intent) => intent.assetIntentId)
         .sort()
+    let controlledIllustrationGenerationWorkItem:
+      CanonicalLivingFrameControlledIllustrationGenerationWorkItem
+      | undefined
     if (
       (generatedAssetIntentIds.length > 0) !==
         Boolean(controlledIllustrationScene)
@@ -227,6 +231,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             sceneRequirement.componentIds,
           ),
         })
+      controlledIllustrationGenerationWorkItem =
+        generationWorkItem
       workItems.push(generationWorkItem)
       projectedItems.push(
         projectControlledIllustrationWorkItem({
@@ -373,6 +379,19 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
               expectedOutput,
             })
           : undefined
+      const generatedSourceWorkItem =
+        workRequirement.workItemType ===
+          'generate_mask_asset'
+        && workRequirement.sourceFrameInputs.length === 0
+        && workRequirement.inputAssetIntentIds.length === 1
+        && controlledIllustrationGenerationWorkItem
+        && controlledIllustrationGenerationWorkItem
+          .executionInput.pendingOperationAuthority
+          .generatedAssetIntentIds.includes(
+            workRequirement.inputAssetIntentIds[0]!,
+          )
+          ? controlledIllustrationGenerationWorkItem
+          : undefined
       if (exactSourceFrameWorkItem) {
         workItems.push(exactSourceFrameWorkItem)
         admittedExactSourceFrameWorkItem =
@@ -385,16 +404,26 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
                 .dependencyWorkItemKeys,
               exactSourceFrameWorkItem.workItemKey,
             ])
-          : [
-              ...workRequirement
-                .dependencyWorkItemKeys,
-            ]
-      if (exactSourceFrameWorkItem) {
+          : generatedSourceWorkItem
+            ? uniqueSorted([
+                ...workRequirement
+                  .dependencyWorkItemKeys,
+                generatedSourceWorkItem.workItemKey,
+              ])
+            : [
+                ...workRequirement
+                  .dependencyWorkItemKeys,
+              ]
+      if (
+        exactSourceFrameWorkItem
+        || generatedSourceWorkItem
+      ) {
         const rembgGpuMaskWorkItem =
           compileRembgGpuMaskWorkItem({
             workRequirement,
             expectedOutput,
             exactSourceFrameWorkItem,
+            generatedSourceWorkItem,
             selectedSceneBindingDigestSha256:
               input.publication.binding.bindingDigestSha256,
             assetWorkInputBindingDigestSha256:
@@ -450,8 +479,11 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
           'process_image_asset'
       ) {
         if (
-          admittedExactSourceFrameWorkItem
-          && admittedRembgGpuMaskWorkItem
+          admittedRembgGpuMaskWorkItem
+          && (
+            admittedExactSourceFrameWorkItem
+            || controlledIllustrationGenerationWorkItem
+          )
         ) {
           const sharpComponentWorkItem =
             compileSharpComponentWorkItem({
@@ -459,6 +491,10 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
               expectedOutput,
               exactSourceFrameWorkItem:
                 admittedExactSourceFrameWorkItem,
+              generatedSourceWorkItem:
+                admittedExactSourceFrameWorkItem
+                  ? undefined
+                  : controlledIllustrationGenerationWorkItem,
               rembgGpuMaskWorkItem:
                 admittedRembgGpuMaskWorkItem,
               outputWidth:
@@ -876,6 +912,14 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             item.workerClass ===
               CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS)
             .length,
+        admittedGeneratedOpaqueStillMaskSourceCount:
+          workItems.filter((item) =>
+            item.workerClass ===
+              CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS
+            && item.executionInput.structuredPayload
+              .sourceDependency.sourceVariant ===
+                'living_frame_generated_opaque_still')
+            .length,
         admittedRembgGpuMaskWorkItemCount:
           workItems.filter((item) =>
             item.workerClass ===
@@ -944,7 +988,10 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       containsProviderPrompt: false,
       containsControlledIllustrationExecutablePayload:
         false,
-      containsExactSourceFrameExecutablePayload: true,
+      containsExactSourceFrameExecutablePayload:
+        workItems.some((item) =>
+          item.workerClass ===
+            CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS),
       containsRembgGpuOperationPayload: true,
       containsSharpComponentOperationPayload: true,
       containsRemotionLayerManifestPayload: true,
@@ -1723,8 +1770,10 @@ function compileRembgGpuMaskWorkItem(input: {
     CanonicalLivingFrameEstimateWorkAssetProjection[
       'scenes'
     ][number]['workRequirements'][number]['expectedOutput']
-  readonly exactSourceFrameWorkItem:
+  readonly exactSourceFrameWorkItem?:
     CanonicalLivingFrameExactSourceFramePngWorkItem
+  readonly generatedSourceWorkItem?:
+    CanonicalLivingFrameControlledIllustrationGenerationWorkItem
   readonly selectedSceneBindingDigestSha256: string
   readonly assetWorkInputBindingDigestSha256: string
   readonly estimateWorkAssetProjectionDigestSha256: string
@@ -1733,8 +1782,26 @@ function compileRembgGpuMaskWorkItem(input: {
 }): CanonicalLivingFrameRembgGpuMaskWorkItem {
   const sourceFrame =
     input.workRequirement.sourceFrameInputs[0]
-  const sourceOutput =
-    input.exactSourceFrameWorkItem.expectedOutputs[0]
+  const exactSourceOutput =
+    input.exactSourceFrameWorkItem?.expectedOutputs[0]
+  const generatedAssetIntentId =
+    input.workRequirement.inputAssetIntentIds[0]
+  const generatedSourceIndex =
+    generatedAssetIntentId
+      ? input.generatedSourceWorkItem
+        ?.executionInput.pendingOperationAuthority
+        .generatedAssetIntentIds.indexOf(
+          generatedAssetIntentId,
+        ) ?? -1
+      : -1
+  const generatedSourceOutput =
+    generatedSourceIndex >= 0
+      ? input.generatedSourceWorkItem
+        ?.expectedOutputs[generatedSourceIndex]
+      : undefined
+  const sourceBranchCount =
+    Number(Boolean(input.exactSourceFrameWorkItem))
+    + Number(Boolean(input.generatedSourceWorkItem))
   if (
     input.workRequirement.workItemType !==
       'generate_mask_asset'
@@ -1744,8 +1811,29 @@ function compileRembgGpuMaskWorkItem(input: {
     || input.workRequirement.executionPlacement !==
       'google_cloud_run_gpu'
     || input.workRequirement.cpuFallbackAllowed
-    || input.workRequirement.sourceFrameInputs.length !== 1
-    || !sourceFrame
+    || sourceBranchCount !== 1
+    || (
+      input.exactSourceFrameWorkItem
+      && (
+        input.workRequirement.sourceFrameInputs.length !== 1
+        || !sourceFrame
+        || !exactSourceOutput
+      )
+    )
+    || (
+      input.generatedSourceWorkItem
+      && (
+        input.workRequirement.sourceFrameInputs.length !== 0
+        || input.workRequirement.inputAssetIntentIds.length !== 1
+        || input.workRequirement.outputAssetIntentIds.length !== 1
+        || !generatedAssetIntentId
+        || !generatedSourceOutput
+        || generatedSourceOutput.artifactType !==
+          CANONICAL_LIVING_FRAME_GENERATED_OPAQUE_STILL_OUTPUT_ROLE
+        || generatedSourceOutput.contentType !== 'image/png'
+        || input.generatedSourceWorkItem.expectedOutputs.length !== 1
+      )
+    )
     || input.expectedOutput.artifactType !==
       'living_frame_alpha_mask_png'
     || input.expectedOutput.contentType !== 'image/png'
@@ -1792,28 +1880,50 @@ function compileRembgGpuMaskWorkItem(input: {
           outputAssetIntentIds: [
             ...input.workRequirement.outputAssetIntentIds,
           ],
-          sourceFrameDependency: {
-            workItemKey:
-              input.exactSourceFrameWorkItem.workItemKey,
-            outputKey: sourceOutput.outputKey,
-            artifactType:
-              CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
-            sourceSequenceItemId:
-              sourceFrame.sourceSequenceItemId,
-            sourceCleanupDecisionId:
-              sourceFrame.sourceCleanupDecisionId,
-            masterFrameIndex:
-              sourceFrame.masterFrameIndex,
-            sourceFrameIndex:
-              sourceFrame.sourceFrameIndex,
-            frameRate: sourceFrame.frameRate as
-              24 | 25 | 30 | 50 | 60,
-            frameSelectionPolicy:
-              'approved_source_frame_ordinal_v1',
-            sourceFrameSelectionDigestSha256:
-              sourceFrame.sourceFrameSelectionDigestSha256,
-            contentType: 'image/png',
-          },
+          sourceDependency:
+            input.exactSourceFrameWorkItem
+            && sourceFrame
+            && exactSourceOutput
+              ? {
+                  sourceVariant:
+                    'canonical_source_frame',
+                  workItemKey:
+                    input.exactSourceFrameWorkItem
+                      .workItemKey,
+                  outputKey:
+                    exactSourceOutput.outputKey,
+                  artifactType:
+                    CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
+                  sourceSequenceItemId:
+                    sourceFrame.sourceSequenceItemId,
+                  sourceCleanupDecisionId:
+                    sourceFrame.sourceCleanupDecisionId,
+                  masterFrameIndex:
+                    sourceFrame.masterFrameIndex,
+                  sourceFrameIndex:
+                    sourceFrame.sourceFrameIndex,
+                  frameRate: sourceFrame.frameRate as
+                    24 | 25 | 30 | 50 | 60,
+                  frameSelectionPolicy:
+                    'approved_source_frame_ordinal_v1',
+                  sourceFrameSelectionDigestSha256:
+                    sourceFrame.sourceFrameSelectionDigestSha256,
+                  contentType: 'image/png',
+                }
+              : {
+                  sourceVariant:
+                    'living_frame_generated_opaque_still',
+                  workItemKey:
+                    input.generatedSourceWorkItem!
+                      .workItemKey,
+                  outputKey:
+                    generatedSourceOutput!.outputKey,
+                  artifactType:
+                    CANONICAL_LIVING_FRAME_GENERATED_OPAQUE_STILL_OUTPUT_ROLE,
+                  assetIntentId:
+                    generatedAssetIntentId!,
+                  contentType: 'image/png',
+                },
           runtimePolicy: {
             executionTarget: 'google_cloud_run_gpu',
             workerType:
@@ -1842,12 +1952,14 @@ function compileRembgGpuMaskWorkItem(input: {
           artifactQaPassRequired: true,
         },
       },
-      sourceSequenceItemIds: [
-        sourceFrame.sourceSequenceItemId,
-      ],
-      sourceCleanupDecisionIds: [
-        sourceFrame.sourceCleanupDecisionId,
-      ],
+      sourceSequenceItemIds:
+        sourceFrame
+          ? [sourceFrame.sourceSequenceItemId]
+          : [],
+      sourceCleanupDecisionIds:
+        sourceFrame
+          ? [sourceFrame.sourceCleanupDecisionId]
+          : [],
       expectedOutputs: [{
         outputKey: input.expectedOutput.outputKey,
         artifactType: 'living_frame_alpha_mask_png',
@@ -1867,7 +1979,8 @@ function compileRembgGpuMaskWorkItem(input: {
       }],
       dependencyKeys: uniqueSorted([
         ...input.workRequirement.dependencyWorkItemKeys,
-        input.exactSourceFrameWorkItem.workItemKey,
+        input.exactSourceFrameWorkItem?.workItemKey
+          ?? input.generatedSourceWorkItem!.workItemKey,
       ]),
       approvedToolIds: ['rembg'],
       providerExecutionMode: 'none',
@@ -1900,8 +2013,10 @@ function compileSharpComponentWorkItem(input: {
     CanonicalLivingFrameEstimateWorkAssetProjection[
       'scenes'
     ][number]['workRequirements'][number]['expectedOutput']
-  readonly exactSourceFrameWorkItem:
+  readonly exactSourceFrameWorkItem?:
     CanonicalLivingFrameExactSourceFramePngWorkItem
+  readonly generatedSourceWorkItem?:
+    CanonicalLivingFrameControlledIllustrationGenerationWorkItem
   readonly rembgGpuMaskWorkItem:
     CanonicalLivingFrameRembgGpuMaskWorkItem
   readonly outputWidth: number
@@ -1910,9 +2025,17 @@ function compileSharpComponentWorkItem(input: {
 }): CanonicalLivingFrameSharpComponentWorkItem {
   const sourceFrame =
     input.workRequirement.sourceFrameInputs[0]
+  const sourceWorkItem =
+    input.exactSourceFrameWorkItem
+    ?? input.generatedSourceWorkItem
+  const sourceBranchCount =
+    Number(Boolean(input.exactSourceFrameWorkItem))
+    + Number(Boolean(input.generatedSourceWorkItem))
   const dependencyKeys = uniqueSorted([
     ...input.workRequirement.dependencyWorkItemKeys,
-    input.exactSourceFrameWorkItem.workItemKey,
+    ...(sourceWorkItem
+      ? [sourceWorkItem.workItemKey]
+      : []),
   ])
   if (
     input.workRequirement.workItemType !==
@@ -1924,8 +2047,25 @@ function compileSharpComponentWorkItem(input: {
     || input.workRequirement.executionPlacement !==
       'private_render_worker'
     || !input.workRequirement.cpuFallbackAllowed
-    || input.workRequirement.sourceFrameInputs.length !== 1
-    || !sourceFrame
+    || sourceBranchCount !== 1
+    || (
+      input.exactSourceFrameWorkItem
+      && (
+        input.workRequirement.sourceFrameInputs.length !== 1
+        || !sourceFrame
+      )
+    )
+    || (
+      input.generatedSourceWorkItem
+      && (
+        input.workRequirement.sourceFrameInputs.length !== 0
+        || input.generatedSourceWorkItem.expectedOutputs.length !== 1
+        || input.generatedSourceWorkItem.expectedOutputs[0]
+          ?.artifactType !==
+            CANONICAL_LIVING_FRAME_GENERATED_OPAQUE_STILL_OUTPUT_ROLE
+        || input.workRequirement.inputAssetIntentIds.length !== 2
+      )
+    )
     || input.expectedOutput.artifactType !==
       'living_frame_component_rgba_png'
     || input.expectedOutput.contentType !== 'image/png'
@@ -1934,20 +2074,38 @@ function compileSharpComponentWorkItem(input: {
       input.rembgGpuMaskWorkItem.workItemKey,
     )
     || !dependencyKeys.includes(
-      input.exactSourceFrameWorkItem.workItemKey,
+      sourceWorkItem?.workItemKey ?? '',
     )
-    || input.rembgGpuMaskWorkItem
-      .sourceSequenceItemIds[0] !==
-        sourceFrame.sourceSequenceItemId
-    || input.exactSourceFrameWorkItem
-      .sourceSequenceItemIds[0] !==
-        sourceFrame.sourceSequenceItemId
-    || input.rembgGpuMaskWorkItem
-      .sourceCleanupDecisionIds[0] !==
-        sourceFrame.sourceCleanupDecisionId
-    || input.exactSourceFrameWorkItem
-      .sourceCleanupDecisionIds[0] !==
-        sourceFrame.sourceCleanupDecisionId
+    || (
+      sourceFrame
+      && (
+        input.rembgGpuMaskWorkItem
+          .sourceSequenceItemIds[0] !==
+            sourceFrame.sourceSequenceItemId
+        || input.exactSourceFrameWorkItem
+          ?.sourceSequenceItemIds[0] !==
+            sourceFrame.sourceSequenceItemId
+        || input.rembgGpuMaskWorkItem
+          .sourceCleanupDecisionIds[0] !==
+            sourceFrame.sourceCleanupDecisionId
+        || input.exactSourceFrameWorkItem
+          ?.sourceCleanupDecisionIds[0] !==
+            sourceFrame.sourceCleanupDecisionId
+      )
+    )
+    || (
+      input.generatedSourceWorkItem
+      && (
+        input.rembgGpuMaskWorkItem
+          .sourceSequenceItemIds.length !== 0
+        || input.rembgGpuMaskWorkItem
+          .sourceCleanupDecisionIds.length !== 0
+        || input.rembgGpuMaskWorkItem
+          .executionInput.structuredPayload
+          .sourceDependency.sourceVariant !==
+            'living_frame_generated_opaque_still'
+      )
+    )
     || !Number.isSafeInteger(input.outputWidth)
     || input.outputWidth < 1
     || input.outputWidth > 4_096
@@ -1989,12 +2147,14 @@ function compileSharpComponentWorkItem(input: {
           allowUpscale: false,
         },
       },
-      sourceSequenceItemIds: [
-        sourceFrame.sourceSequenceItemId,
-      ],
-      sourceCleanupDecisionIds: [
-        sourceFrame.sourceCleanupDecisionId,
-      ],
+      sourceSequenceItemIds:
+        sourceFrame
+          ? [sourceFrame.sourceSequenceItemId]
+          : [],
+      sourceCleanupDecisionIds:
+        sourceFrame
+          ? [sourceFrame.sourceCleanupDecisionId]
+          : [],
       expectedOutputs: [{
         outputKey: input.expectedOutput.outputKey,
         artifactType:
@@ -2210,11 +2370,9 @@ function validProjectedWorkItem(
         item,
       )
       return item.maximumCreditBudget > 0
-        && item.dependencyKeys.some(
-          (dependencyKey) =>
-            dependencyKey.endsWith(
-              '-exact-source-frame-png',
-            ),
+        && item.dependencyKeys.includes(
+          item.executionInput.structuredPayload
+            .sourceDependency.workItemKey,
         )
     } catch {
       return false

@@ -1,8 +1,8 @@
 # Living Frame Controlled SDXL rembg Input Binding
 
-Status: server-private opaque-input reread contract implemented; generic rembg
-source admission, execution, mask commit, alpha composition, QA, and production
-gates closed.
+Status: server-private opaque-input reread contract and canonical generated-
+source dependency shape implemented; rembg runtime execution, mask commit,
+alpha artifact commit, QA, and production gates closed.
 
 This contract closes one narrow lineage gap between a verified opaque ComfyUI
 PNG and ReeditPro's existing canonical rembg operation. It does not create or
@@ -29,20 +29,24 @@ confirms every alpha byte is 255. Verified bytes are delivered only through a
 second process-bound one-shot consumer. No bytes, paths, URLs, credentials,
 prompts, commands, or raw media enter the serializable binding.
 
-## Required shared-runtime extension
+## Canonical dependency extension
 
-A later shared-authority change must add a strict discriminated source union
-to the canonical rembg admission:
+`canonical-living-frame-rembg-gpu-mask-work-input-v2` now adds the strict
+discriminated source union to canonical Living Frame rembg work admission:
 
 ```text
 canonical_source_frame
   → existing FFmpeg/source-media lineage, unchanged
 
 living_frame_generated_opaque_still
-  → exact Living Frame output-observation and opaque-input binding lineage
+  → exact named generation work, output key, and asset-intent lineage
 ```
 
-The generated-still branch must preserve the existing rembg runtime policy:
+The generated branch cannot contain source-sequence or cleanup IDs, and the
+source-frame branch cannot omit them. Mixed branches, duplicate dependencies,
+ambiguous multi-output generation, and output-key substitution fail closed.
+
+The admitted work contract preserves the existing rembg runtime policy:
 
 - canonical tool `rembg`;
 - operation `tool.rembg.remove_image_background.v1`;
@@ -55,8 +59,10 @@ The generated-still branch must preserve the existing rembg runtime policy:
 - no runtime download; and
 - no network fetch.
 
-This source-only slice does not admit that variant, create a tool request,
-dispatch a worker, or commit a mask.
+This is dependency and payload admission, not runtime qualification. The
+specialized resource placement remains blocked until the exact L4 runtime,
+immutable model mount, operation adapter, actual attempt-cost recording, and
+artifact QA are qualified. It does not dispatch a worker or commit a mask.
 
 ## Alpha pipeline
 
@@ -94,9 +100,9 @@ downstream ReeditPro service fee.
 
 ## Closed authority
 
-The contract grants only one private reread authority. Generic rembg source
-admission, model artifact qualification, tool operation, dispatch, completion,
-actual cost, customer price or credits, scene selection, MasterTiming,
-SoundSync, estimate, approval, snapshot, work graph, queue, asset manifest,
-mask commit, mask QA, alpha composition, alpha QA, rendering, runtime, and
-production authority all remain false.
+The namespaced input binding itself still grants only one private reread
+authority. The canonical work-graph compiler now owns the generated-source
+dependency admission, while model artifact qualification, dispatch,
+completion, actual cost, customer price or credits, mask commit, mask QA,
+alpha artifact commit, alpha QA, rendering, runtime, and production authority
+remain closed.

@@ -8,7 +8,7 @@ import type {
 } from './living-frame-asset-work-input-binding'
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION =
-  'canonical-living-frame-work-graph-projection-v8' as const
+  'canonical-living-frame-work-graph-projection-v9' as const
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE =
   'canonical_living_frame_work_graph_projection_compiler' as const
@@ -44,7 +44,10 @@ export const CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION =
   'tool.rembg.remove_image_background.v1' as const
 
 export const CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_INPUT_VERSION =
-  'canonical-living-frame-rembg-gpu-mask-work-input-v1' as const
+  'canonical-living-frame-rembg-gpu-mask-work-input-v2' as const
+
+export const CANONICAL_LIVING_FRAME_GENERATED_OPAQUE_STILL_OUTPUT_ROLE =
+  'living_frame_generated_opaque_still_png' as const
 
 export const CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORKER_CLASS =
   'render_worker' as const
@@ -354,21 +357,33 @@ export interface CanonicalLivingFrameRembgGpuMaskWorkItem {
       readonly workRequirementDigestSha256: string
       readonly inputAssetIntentIds: readonly string[]
       readonly outputAssetIntentIds: readonly string[]
-      readonly sourceFrameDependency: {
-        readonly workItemKey: string
-        readonly outputKey: string
-        readonly artifactType:
-          typeof CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE
-        readonly sourceSequenceItemId: string
-        readonly sourceCleanupDecisionId: string
-        readonly masterFrameIndex: number
-        readonly sourceFrameIndex: number
-        readonly frameRate: 24 | 25 | 30 | 50 | 60
-        readonly frameSelectionPolicy:
-          'approved_source_frame_ordinal_v1'
-        readonly sourceFrameSelectionDigestSha256: string
-        readonly contentType: 'image/png'
-      }
+      readonly sourceDependency:
+        | {
+          readonly sourceVariant: 'canonical_source_frame'
+          readonly workItemKey: string
+          readonly outputKey: string
+          readonly artifactType:
+            typeof CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE
+          readonly sourceSequenceItemId: string
+          readonly sourceCleanupDecisionId: string
+          readonly masterFrameIndex: number
+          readonly sourceFrameIndex: number
+          readonly frameRate: 24 | 25 | 30 | 50 | 60
+          readonly frameSelectionPolicy:
+            'approved_source_frame_ordinal_v1'
+          readonly sourceFrameSelectionDigestSha256: string
+          readonly contentType: 'image/png'
+        }
+        | {
+          readonly sourceVariant:
+            'living_frame_generated_opaque_still'
+          readonly workItemKey: string
+          readonly outputKey: string
+          readonly artifactType:
+            typeof CANONICAL_LIVING_FRAME_GENERATED_OPAQUE_STILL_OUTPUT_ROLE
+          readonly assetIntentId: string
+          readonly contentType: 'image/png'
+        }
       readonly runtimePolicy: {
         readonly executionTarget: 'google_cloud_run_gpu'
         readonly workerType:
@@ -397,8 +412,12 @@ export interface CanonicalLivingFrameRembgGpuMaskWorkItem {
       readonly artifactQaPassRequired: true
     }
   }
-  readonly sourceSequenceItemIds: readonly [string]
-  readonly sourceCleanupDecisionIds: readonly [string]
+  readonly sourceSequenceItemIds:
+    | readonly [string]
+    | readonly []
+  readonly sourceCleanupDecisionIds:
+    | readonly [string]
+    | readonly []
   readonly expectedOutputs: readonly [{
     readonly outputKey: string
     readonly artifactType: 'living_frame_alpha_mask_png'
@@ -449,8 +468,12 @@ export interface CanonicalLivingFrameSharpComponentWorkItem {
       readonly allowUpscale: false
     }
   }
-  readonly sourceSequenceItemIds: readonly [string]
-  readonly sourceCleanupDecisionIds: readonly [string]
+  readonly sourceSequenceItemIds:
+    | readonly [string]
+    | readonly []
+  readonly sourceCleanupDecisionIds:
+    | readonly [string]
+    | readonly []
   readonly expectedOutputs: readonly [{
     readonly outputKey: string
     readonly artifactType: 'living_frame_component_rgba_png'
@@ -684,6 +707,8 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
       number
     readonly admittedAuraFaceQaWorkItemCount: number
     readonly admittedExactSourceFrameWorkItemCount: number
+    readonly admittedGeneratedOpaqueStillMaskSourceCount:
+      number
     readonly admittedRembgGpuMaskWorkItemCount: number
     readonly admittedSharpComponentWorkItemCount: number
     readonly admittedRemotionLayerWorkItemCount: number
@@ -709,7 +734,7 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
   readonly containsProviderPrompt: false
   readonly containsControlledIllustrationExecutablePayload:
     false
-  readonly containsExactSourceFrameExecutablePayload: true
+  readonly containsExactSourceFrameExecutablePayload: boolean
   readonly containsRembgGpuOperationPayload: true
   readonly containsSharpComponentOperationPayload: true
   readonly containsRemotionLayerManifestPayload: true

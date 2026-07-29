@@ -6322,17 +6322,18 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       0,
     admittedAuraFaceQaWorkItemCount: 0,
     admittedExactSourceFrameWorkItemCount: 1,
-      admittedRembgGpuMaskWorkItemCount: 1,
-      admittedSharpComponentWorkItemCount: 1,
-      admittedRemotionLayerWorkItemCount: 1,
-      finalCompositionBindingCount: 1,
-      executableWorkItemCount: 3,
-      requiredExpectedOutputCount: 4,
-      gpuPendingWorkItemCount: 1,
-      blockedWorkItemCount: 1,
-      assignedWorkItemCreditBudget: 3,
-      unassignedControlledIllustrationCreditBudget: 0,
-      maximumCreditBudget: 3,
+    admittedGeneratedOpaqueStillMaskSourceCount: 0,
+    admittedRembgGpuMaskWorkItemCount: 1,
+    admittedSharpComponentWorkItemCount: 1,
+    admittedRemotionLayerWorkItemCount: 1,
+    finalCompositionBindingCount: 1,
+    executableWorkItemCount: 3,
+    requiredExpectedOutputCount: 4,
+    gpuPendingWorkItemCount: 1,
+    blockedWorkItemCount: 1,
+    assignedWorkItemCreditBudget: 3,
+    unassignedControlledIllustrationCreditBudget: 0,
+    maximumCreditBudget: 3,
     },
   )
   assert.deepEqual(
@@ -6418,8 +6419,12 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     asRecord(rembgStructuredPayload.runtimePolicy)
   const rembgSourceDependency =
     asRecord(
-      rembgStructuredPayload.sourceFrameDependency,
+      rembgStructuredPayload.sourceDependency,
     )
+  assert.equal(
+    rembgSourceDependency.sourceVariant,
+    'canonical_source_frame',
+  )
   assert.equal(
     rembgExecutionInput.operation,
     CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_ITEM_OPERATION,

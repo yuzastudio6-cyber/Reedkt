@@ -2714,3 +2714,48 @@ Downstream mask, RGBA, and Remotion work remains dependency-bound and blocked
 until the generated source operation and generated-source rembg variant are
 qualified. This preserves one timing authority, one estimate and approval
 path, one immutable snapshot lineage, one work graph, and one asset manifest.
+
+### Canonical generated-still alpha dependency admission
+
+`canonical-living-frame-work-graph-projection-v9` admits the generated-still
+dependency shape without relabeling it as source media. The existing rembg
+mask work input now has a closed discriminated source union:
+
+- `canonical_source_frame` retains the exact FFmpeg frame, source-sequence,
+  cleanup-decision, frame-index, and frame-rate lineage; or
+- `living_frame_generated_opaque_still` binds exactly one generated opaque
+  PNG output, its named `generate_image_asset` work item, output key, and
+  asset-intent ID.
+
+The branches are mutually exclusive. Generated inputs have no source-sequence
+or cleanup IDs, and a caller cannot mix those IDs into the generated branch.
+The current generated branch admits only one source output for one mask and
+one RGBA component. An ambiguous multi-output generated batch remains blocked
+until the work projection can create independently priced and independently
+QA-bound per-component mask operations.
+
+The downstream Sharp alpha-component authority accepts exactly one approved
+source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg
+mask PNG. It continues to use the existing straight-alpha recipe and canonical
+dependency-artifact reader. The generated source, mask, RGBA derivative, and
+Remotion layer remain expected outputs of the one canonical work graph and
+therefore flow into the existing approved asset manifest when that graph is
+approved; no Living Frame manifest or worker lane is created.
+
+Cost lineage remains unchanged:
+
+- the generated opaque PNG belongs to the single shared controlled-
+  illustration GPU attempt;
+- rembg is one separate canonical GPU tool attempt;
+- Sharp and Remotion use their existing deterministic cost owners;
+- failed or outcome-unknown attempts remain internal retained cost evidence;
+- only completed attempts may become customer-billable candidates;
+- infrastructure micro-cost is aggregated before credit rounding; and
+- the ReeditPro service fee is applied once by the downstream customer
+  estimate authority.
+
+The specialized rembg resource placement remains execution-blocked until the
+exact L4 runtime, immutable model artifact, operation adapter, and artifact QA
+evidence are qualified. Contract admission does not authorize dispatch,
+provider calls, runtime downloads, customer charging, rendering, or
+production.

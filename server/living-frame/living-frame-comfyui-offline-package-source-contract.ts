@@ -20,6 +20,8 @@ const SOURCE_ROOT =
 const SOURCE_FILES = [
   `${SOURCE_ROOT}/requirements.lock.txt`,
   `${SOURCE_ROOT}/source-provenance.lock`,
+  `${SOURCE_ROOT}/install-offline.sh`,
+  `${SOURCE_ROOT}/extra_model_paths.yaml`,
   `${SOURCE_ROOT}/README.md`,
 ] as const
 const MAXIMUM_SOURCE_FILE_BYTES = 128 * 1_024
@@ -54,6 +56,26 @@ export interface LivingFrameComfyUiOfflinePackageSourceContract {
     readonly repositoryMetadataIncluded: false
     readonly runtimeDownloadsAllowed: false
   }
+  readonly offlineInstaller: {
+    readonly fixedBuildInputRoot:
+      '/opt/reeditpro/build-inputs/comfyui'
+    readonly fixedTargetRoot:
+      '/opt/reeditpro/gpu-operations/comfyui'
+    readonly fixedModelMountRoot:
+      '/mnt/reeditpro/model-artifacts'
+    readonly fixedPrivateInputRoot:
+      '/mnt/reeditpro/private-input'
+    readonly installerArgumentsAllowed: false
+    readonly wheelhouseEntryCount: 35
+    readonly wheelhouseTotalByteLength: 486_459_097
+    readonly pythonVersion: '3.10.12'
+    readonly venvUsesSystemSitePackages: true
+    readonly sourceArchiveHashesVerified: true
+    readonly wheelHashesVerifiedByPip: true
+    readonly customNodeDirectoriesExactlyTwo: true
+    readonly imageContainsModelWeights: false
+    readonly runtimeDownloadsAllowed: false
+  }
   readonly processContract: {
     readonly fixedLaunchSpecDigestSha256: string
     readonly loopbackAddress: '127.0.0.1'
@@ -80,6 +102,8 @@ export interface LivingFrameComfyUiOfflinePackageSourceContract {
     readonly packageDependencyClosureDeclared: true
     readonly exactSourceArchiveClosureDeclared: true
     readonly fixedProcessSupervisorLinked: true
+    readonly offlineInstallerSourceVerified: true
+    readonly fixedModelMountLayoutDeclared: true
     readonly wheelArtifactsIncludedInRepository: false
     readonly sourceArchivesIncludedInRepository: false
     readonly runtimeImageBuilt: false
@@ -115,6 +139,8 @@ export class LivingFrameComfyUiOfflinePackageSourceContractError
     | 'source_file_invalid'
     | 'requirements_lock_mismatch'
     | 'source_provenance_mismatch'
+    | 'offline_installer_mismatch'
+    | 'extra_model_paths_mismatch'
     | 'readme_boundary_mismatch'
     | 'contract_mismatch'
 
@@ -144,9 +170,13 @@ Promise<LivingFrameComfyUiOfflinePackageSourceContract> {
   )
   const requirements = await readText(SOURCE_FILES[0])
   const provenance = await readText(SOURCE_FILES[1])
-  const readme = await readText(SOURCE_FILES[2])
+  const installer = await readText(SOURCE_FILES[2])
+  const extraModelPaths = await readText(SOURCE_FILES[3])
+  const readme = await readText(SOURCE_FILES[4])
   assertRequirements(requirements)
   assertProvenance(provenance)
+  assertInstaller(installer)
+  assertExtraModelPaths(extraModelPaths)
   assertReadme(readme)
 
   const launchSpec = fixedLivingFrameComfyUiLaunchSpec()
@@ -172,6 +202,26 @@ Promise<LivingFrameComfyUiOfflinePackageSourceContract> {
     sourceClosure: {
       sourceArchiveCount: 3 as const,
       repositoryMetadataIncluded: false as const,
+      runtimeDownloadsAllowed: false as const,
+    },
+    offlineInstaller: {
+      fixedBuildInputRoot:
+        '/opt/reeditpro/build-inputs/comfyui' as const,
+      fixedTargetRoot:
+        '/opt/reeditpro/gpu-operations/comfyui' as const,
+      fixedModelMountRoot:
+        '/mnt/reeditpro/model-artifacts' as const,
+      fixedPrivateInputRoot:
+        '/mnt/reeditpro/private-input' as const,
+      installerArgumentsAllowed: false as const,
+      wheelhouseEntryCount: 35 as const,
+      wheelhouseTotalByteLength: 486_459_097 as const,
+      pythonVersion: '3.10.12' as const,
+      venvUsesSystemSitePackages: true as const,
+      sourceArchiveHashesVerified: true as const,
+      wheelHashesVerifiedByPip: true as const,
+      customNodeDirectoriesExactlyTwo: true as const,
+      imageContainsModelWeights: false as const,
       runtimeDownloadsAllowed: false as const,
     },
     processContract: {
@@ -201,6 +251,8 @@ Promise<LivingFrameComfyUiOfflinePackageSourceContract> {
       packageDependencyClosureDeclared: true as const,
       exactSourceArchiveClosureDeclared: true as const,
       fixedProcessSupervisorLinked: true as const,
+      offlineInstallerSourceVerified: true as const,
+      fixedModelMountLayoutDeclared: true as const,
       wheelArtifactsIncludedInRepository: false as const,
       sourceArchivesIncludedInRepository: false as const,
       runtimeImageBuilt: false as const,
@@ -309,6 +361,69 @@ function assertProvenance(value: string): void {
   ) {
     throw new LivingFrameComfyUiOfflinePackageSourceContractError(
       'source_provenance_mismatch',
+    )
+  }
+}
+
+function assertInstaller(value: string): void {
+  const required = [
+    '#!/bin/sh',
+    'if [ "$#" -ne 0 ]',
+    'PIP_NO_INDEX=1',
+    'HF_HUB_OFFLINE=1',
+    'TRANSFORMERS_OFFLINE=1',
+    'PACKAGE_INPUT_ROOT=/opt/reeditpro/build-inputs/comfyui/package',
+    'WHEELHOUSE_ROOT=/opt/reeditpro/build-inputs/comfyui/wheelhouse',
+    'SOURCE_ARCHIVE_ROOT=/opt/reeditpro/build-inputs/comfyui/sources',
+    'TARGET_ROOT=/opt/reeditpro/gpu-operations/comfyui',
+    'PRIVATE_INPUT_ROOT=/mnt/reeditpro/private-input',
+    'comfyui-host.tar',
+    'generic-ipadapter-extension.tar',
+    'controlnet-aux-extension.tar',
+    'python3 -m venv --system-site-packages',
+    '--no-index',
+    '--no-deps',
+    '--require-hashes',
+    '--find-links',
+    'ComfyUI_IPAdapter_plus',
+    'comfyui_controlnet_aux',
+  ]
+  const forbidden = [
+    'curl ',
+    'wget ',
+    'git clone',
+    'http://',
+    'https://',
+    'pip download',
+    '0.0.0.0',
+  ]
+  if (
+    value.length < 4_000
+    || value.length > 16_000
+    || !required.every((text) => value.includes(text))
+    || forbidden.some((text) => value.includes(text))
+  ) {
+    throw new LivingFrameComfyUiOfflinePackageSourceContractError(
+      'offline_installer_mismatch',
+    )
+  }
+}
+
+function assertExtraModelPaths(value: string): void {
+  const expected = [
+    'reeditpro_living_frame:',
+    '  base_path: /mnt/reeditpro/model-artifacts',
+    '  is_default: true',
+    '  checkpoints: checkpoints',
+    '  controlnet: controlnet',
+    '  loras: loras',
+    '  clip_vision: clip_vision',
+    '  ipadapter: ipadapter',
+    '',
+  ].join('\n')
+  if (value.replace(/\r\n/gu, '\n') !== expected) {
+    throw new LivingFrameComfyUiOfflinePackageSourceContractError(
+      'extra_model_paths_mismatch',
     )
   }
 }

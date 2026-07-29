@@ -43,6 +43,31 @@ The wheelhouse installation must use all of:
 Repository metadata is excluded. The runtime must not use `pip`, Git, model
 hubs, package indexes, or network downloads.
 
+`install-offline.sh` is the fixed build-time installer. It accepts no
+arguments or caller-selected paths. It requires the package inputs under
+`/opt/reeditpro/build-inputs/comfyui`, verifies the exact wheelhouse count and
+byte total, verifies all three source-archive byte lengths and SHA-256
+identities, installs the locked wheels with `--no-index --no-deps
+--require-hashes`, and creates the exact package layout expected by the
+server-owned process supervisor:
+
+```text
+/opt/reeditpro/gpu-operations/comfyui/
+├── venv/
+├── source/
+├── custom_nodes/
+│   ├── ComfyUI_IPAdapter_plus/
+│   └── comfyui_controlnet_aux/
+├── runtime/
+└── extra_model_paths.yaml
+```
+
+The model-path file maps only fixed directories beneath the canonical
+read-only mount root `/mnt/reeditpro/model-artifacts`. The installer does not
+copy model weights into the image. The future canonical operation consumer
+must place each verified single-use artifact alias into its server-selected
+role directory; a caller cannot choose a path.
+
 ## Runtime boundary
 
 The server-side process supervisor owns the fixed executable, source root,

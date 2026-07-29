@@ -2622,6 +2622,20 @@ them at runtime, and does not mutate the shared GPU image or operation router.
 Those files are build inputs for the later canonical, scan-and-sign-qualified
 image slice—not evidence that the image was built or that a GPU attempt ran.
 
+The closure now also contains a no-argument offline installer and a fixed
+model-mount map. It verifies the 35-wheel count and total bytes, lets pip
+verify every locked wheel hash without an index or dependency resolution,
+verifies the three pinned source archives, and materializes the exact
+`/opt/reeditpro/gpu-operations/comfyui` venv, source, custom-node, runtime, and
+configuration paths used by the process supervisor. Verified model artifacts
+remain external, read-only, and role-separated below
+`/mnt/reeditpro/model-artifacts`.
+
+The measured local candidate image remains controlled evidence only. Its
+`/opt/ComfyUI` entrypoint/layout does not meet the fixed production layout, so
+the architecture rejects direct promotion even though its source revisions
+and dependency image digest are pinned.
+
 ### Private GPU output observation and opaque-source boundary
 
 `living-frame-controlled-sdxl-gpu-output-observation-v1` adds the next

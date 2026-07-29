@@ -85,6 +85,21 @@ authority closed. Wheel binaries and source archives remain outside Git and
 must enter the future clean build only through a reviewed canonical build-input
 authority.
 
+The package now also includes a no-argument offline installer and an exact
+`extra_model_paths.yaml`. The installer reads only from
+`/opt/reeditpro/build-inputs/comfyui`, verifies the complete wheel/source
+closure, creates the process supervisor's fixed
+`/opt/reeditpro/gpu-operations/comfyui` layout, and leaves model weights out of
+the image. Model files remain a later single-use read-only mount under
+`/mnt/reeditpro/model-artifacts`.
+
+The measured local locked candidate image is useful compatibility evidence,
+but its observed entrypoint and source layout are
+`/usr/bin/python3 /opt/ComfyUI/main.py`. It therefore does not satisfy the
+fixed package/process contract and cannot be relabeled as the canonical
+runtime image. A later reviewed build must apply this fixed installer or
+prove a byte-equivalent layout before router admission.
+
 ## Cost behavior
 
 - completed, failed, and outcome-unknown attempts remain distinct terminal

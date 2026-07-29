@@ -9,13 +9,29 @@ import {
 async function main(): Promise<void> {
   const contract =
     await getLivingFrameComfyUiOfflinePackageSourceContract()
-  assert.equal(contract.sourceFiles.length, 3)
+  assert.equal(contract.sourceFiles.length, 5)
   assert.equal(contract.dependencyClosure.wheelArtifactCount, 35)
   assert.equal(
     contract.dependencyClosure.wheelArtifactTotalByteLength,
     486_459_097,
   )
   assert.equal(contract.sourceClosure.sourceArchiveCount, 3)
+  assert.deepEqual(contract.offlineInstaller, {
+    fixedBuildInputRoot: '/opt/reeditpro/build-inputs/comfyui',
+    fixedTargetRoot: '/opt/reeditpro/gpu-operations/comfyui',
+    fixedModelMountRoot: '/mnt/reeditpro/model-artifacts',
+    fixedPrivateInputRoot: '/mnt/reeditpro/private-input',
+    installerArgumentsAllowed: false,
+    wheelhouseEntryCount: 35,
+    wheelhouseTotalByteLength: 486_459_097,
+    pythonVersion: '3.10.12',
+    venvUsesSystemSitePackages: true,
+    sourceArchiveHashesVerified: true,
+    wheelHashesVerifiedByPip: true,
+    customNodeDirectoriesExactlyTwo: true,
+    imageContainsModelWeights: false,
+    runtimeDownloadsAllowed: false,
+  })
   assert.deepEqual(
     contract.capabilityAndCostBoundary
       .oneGpuAttemptCapabilityKeys,
@@ -37,6 +53,14 @@ async function main(): Promise<void> {
     false,
   )
   assert.equal(contract.boundaries.canonicalRouterAdmission, false)
+  assert.equal(
+    contract.boundaries.offlineInstallerSourceVerified,
+    true,
+  )
+  assert.equal(
+    contract.boundaries.fixedModelMountLayoutDeclared,
+    true,
+  )
   assert.equal(contract.boundaries.gpuExecutionObserved, false)
   assert.equal(contract.boundaries.actualCostEvidenceCreated, false)
   assert.equal(contract.boundaries.customerCreditAuthority, false)
@@ -80,6 +104,15 @@ async function main(): Promise<void> {
   adversarialAssertions += 1
   await rejects({
     ...structuredClone(contract),
+    offlineInstaller: {
+      ...contract.offlineInstaller,
+      installerArgumentsAllowed: true,
+      runtimeDownloadsAllowed: true,
+    },
+  })
+  adversarialAssertions += 1
+  await rejects({
+    ...structuredClone(contract),
     sourceFiles: contract.sourceFiles.map((source, index) => ({
       ...source,
       contentSha256: index === 0
@@ -89,7 +122,7 @@ async function main(): Promise<void> {
   })
   adversarialAssertions += 1
 
-  assert.equal(adversarialAssertions, 4)
+  assert.equal(adversarialAssertions, 5)
   process.stdout.write(JSON.stringify({
     status: 'passed',
     sourceFileCount: contract.sourceFiles.length,

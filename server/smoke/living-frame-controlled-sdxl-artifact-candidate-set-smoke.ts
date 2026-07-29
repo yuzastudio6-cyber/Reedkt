@@ -191,6 +191,11 @@ const input = {
 const candidateSet =
   await createLivingFrameControlledSdxlArtifactCandidateSet(input)
 
+export const controlledSdxlArtifactCandidateSetSmokeFixture = {
+  candidateSet,
+  input,
+} as const
+
 assert.equal(
   await verifyLivingFrameControlledSdxlArtifactCandidateSet(
     candidateSet,

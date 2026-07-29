@@ -2293,3 +2293,22 @@ InsightFace dependency, AuraFace generation route, or mismatched CLIP Vision
 checkpoint from silently entering the SDXL graph. AuraFace remains a
 separate continuity-measurement capability only. See
 `docs/living-frame/living-frame-controlled-sdxl-artifact-candidate-set.md`.
+
+## Exact SDXL LoRA byte observation
+
+The first candidate role has a reusable full-stream verifier and strict
+`safetensors` inspector. It checks the exact byte length and SHA-256, parses
+the bounded header, verifies every tensor span against shape and dtype,
+requires contiguous non-overlapping offsets, and proves that the tensor
+payload exactly accounts for the data section. It returns only measurement
+digests and counts, never model bytes or a filesystem location.
+
+The retained controlled observation also exposes a material compatibility
+warning: the selected LoRA metadata names `sdxl_base_v0-9` even though the
+candidate is hosted at the pinned SDXL 1.0 repository revision. Therefore
+the full bundle remains unqualified until an exact load and behavior
+benchmark resolves that difference. The smoke only claims a new byte
+verification when the exact server-owned artifact path is injected; a
+missing artifact produces an explicit skip rather than a fabricated pass.
+See
+`docs/living-frame/living-frame-controlled-sdxl-lora-byte-observation.md`.

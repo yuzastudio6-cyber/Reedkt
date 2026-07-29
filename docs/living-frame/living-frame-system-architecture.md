@@ -2044,3 +2044,22 @@ official cloud rates, invoice reconciliation, distributed attempt-cost
 durability, canonical settlement-event projection, and customer billability
 remain closed. See
 `docs/living-frame/living-frame-controlled-illustration-actual-cost-attribution.md`.
+
+## Controlled-illustration settlement contribution
+
+The controlled actual-cost attribution now compiles into a non-promotable
+settlement contribution that aggregates the completed-attempt subset in USD
+micros before converting it to integer credits. Credits are then assigned to
+completed attempts by deterministic largest-remainder allocation. This
+prevents five capabilities inside one ComfyUI host from being rounded into
+five separate charges and prevents optional AuraFace measurement from causing
+per-event rounding inflation.
+
+Failed and unknown attempts remain recorded as incurred internal cost but are
+excluded from the customer-billable candidate total. Exact approved-asset
+reuse creates no new settlement event. The adapter contains no service-fee
+line or final charge. Current-evidence reread, official rates and invoices,
+durable events, canonical billability, reservation reconciliation, one
+service-fee calculation, overage/refund policy, wallet settlement, and export
+unlock remain owned by the existing canonical settlement authority. See
+`docs/living-frame/living-frame-controlled-illustration-settlement-contribution.md`.

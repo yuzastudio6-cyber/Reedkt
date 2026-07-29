@@ -33,6 +33,7 @@ mutableScene.attentionSequence[0]!.methods = [
 mutableScene.attentionSequence[1]!.methods = [
   'focus_depth_expectation',
   'motion_emphasis_expectation',
+  'sound_emphasis_expectation',
 ]
 mutableScene.attentionSequence[2]!.methods = [
   'motion_emphasis_expectation',
@@ -52,7 +53,7 @@ const input = {
     {
       attentionEventId: 'attention.hormuz-prepare',
       motionTrackIds: ['track.hormuz-route-reveal'],
-      soundRequestIds: [],
+      soundRequestIds: ['sound.hormuz-route'],
     },
     {
       attentionEventId: 'attention.hormuz-handoff',
@@ -60,7 +61,7 @@ const input = {
         'track.hormuz-focus',
         'track.hormuz-route-reveal',
       ],
-      soundRequestIds: [],
+      soundRequestIds: ['sound.hormuz-handoff'],
     },
     {
       attentionEventId: 'attention.hormuz-hold',
@@ -97,10 +98,85 @@ assert.equal(binding.soundRequestProjections.length, 2)
 assert.equal(
   binding.soundRequestProjections.every((request) =>
     request.narrationProtection === 'strict'
+    && request.semanticTriggerBound
+    && request.linkedComponentMotionPolicy ===
+      'required_and_matched'
+    && request.semanticTriggerExactFramesProvided === false
     && request.exactCuePlacementProvided === false
     && request.exactMixProvided === false
     && request.downstreamSoundSyncRequired),
   true,
+)
+assert.deepEqual(
+  binding.soundRequestProjections.map((request) => ({
+    soundRequestId: request.soundRequestId,
+    attentionEventId:
+      request.semanticTriggerAttentionEventId,
+    eventType: request.semanticTriggerEventType,
+    motionTrackIds:
+      request.semanticTriggerMotionTrackIds,
+  })),
+  [
+    {
+      soundRequestId: 'sound.hormuz-route',
+      attentionEventId: 'attention.hormuz-prepare',
+      eventType: 'prepare',
+      motionTrackIds: ['track.hormuz-route-reveal'],
+    },
+    {
+      soundRequestId: 'sound.hormuz-handoff',
+      attentionEventId: 'attention.hormuz-handoff',
+      eventType: 'handoff',
+      motionTrackIds: [
+        'track.hormuz-focus',
+        'track.hormuz-route-reveal',
+      ],
+    },
+  ],
+)
+const environmentalDraft = structuredClone(parentDraft)
+const environmentalScene =
+  environmentalDraft.scenePlans[0] as unknown as {
+    soundRequests: Array<{
+      purpose: string
+      linkedComponentId: string | null
+    }>
+  }
+environmentalScene.soundRequests[0]!.purpose =
+  'environmental_presence'
+const environmentalBinding =
+  await compileLivingFrameChoreographyBinding({
+    ...input,
+    livingFrameComponent:
+      await createLivingFrameProfessionalSkillComponent(
+        environmentalDraft,
+      ),
+  })
+assert.equal(
+  environmentalBinding.soundRequestProjections[0]
+    ?.linkedComponentMotionPolicy,
+  'not_required_environmental_presence',
+)
+const unlinkedDraft = structuredClone(parentDraft)
+const unlinkedScene =
+  unlinkedDraft.scenePlans[0] as unknown as {
+    soundRequests: Array<{
+      linkedComponentId: string | null
+    }>
+  }
+unlinkedScene.soundRequests[0]!.linkedComponentId = null
+const unlinkedBinding =
+  await compileLivingFrameChoreographyBinding({
+    ...input,
+    livingFrameComponent:
+      await createLivingFrameProfessionalSkillComponent(
+        unlinkedDraft,
+      ),
+  })
+assert.equal(
+  unlinkedBinding.soundRequestProjections[0]
+    ?.linkedComponentMotionPolicy,
+  'not_applicable_unlinked_sound',
 )
 assert.equal(
   binding.motionBudget.onePrimaryMotionGroupAtATimeVerified,
@@ -220,6 +296,58 @@ await assert.rejects(
 await assert.rejects(
   () => compileLivingFrameChoreographyBinding({
     ...input,
+    attentionTrackBindings:
+      input.attentionTrackBindings.map(
+        (item) => ({
+          ...item,
+          soundRequestIds: [],
+        }),
+      ),
+  }),
+  /sound attention lacks a semantic sound request/,
+)
+await assert.rejects(
+  () => compileLivingFrameChoreographyBinding({
+    ...input,
+    attentionTrackBindings:
+      input.attentionTrackBindings.map(
+        (item, index) => index === 2
+          ? {
+              ...item,
+              soundRequestIds: [
+                'sound.hormuz-handoff',
+              ],
+            }
+          : item,
+      ),
+  }),
+  /sound request requires exactly one semantic attention trigger/,
+)
+await assert.rejects(
+  () => compileLivingFrameChoreographyBinding({
+    ...input,
+    attentionTrackBindings:
+      input.attentionTrackBindings.map(
+        (item, index) => index === 0
+          ? {
+              ...item,
+              soundRequestIds: [],
+            }
+          : index === 3
+            ? {
+                ...item,
+                soundRequestIds: [
+                  'sound.hormuz-route',
+                ],
+              }
+            : item,
+      ),
+  }),
+  /motion-dependent component-linked Living Frame sound request must trigger with motion from that component/,
+)
+await assert.rejects(
+  () => compileLivingFrameChoreographyBinding({
+    ...input,
     motionBundle: compileMotion('unknown_component'),
   }),
   /non-scene component/,
@@ -267,6 +395,40 @@ assert.equal(
   verifyLivingFrameChoreographyBindingDigest(resign(forgedScale)),
   false,
 )
+const forgedSoundEvent = asObject(structuredClone(binding))
+asObject(asArray(
+  forgedSoundEvent.soundRequestProjections,
+)[1]).semanticTriggerAttentionEventId =
+  'attention.hormuz-hold'
+assert.equal(
+  verifyLivingFrameChoreographyBindingDigest(
+    resign(forgedSoundEvent),
+  ),
+  false,
+)
+const forgedSoundMotion = asObject(structuredClone(binding))
+asObject(asArray(
+  forgedSoundMotion.soundRequestProjections,
+)[1]).semanticTriggerMotionTrackIds = [
+  'track.hormuz-route-reveal',
+]
+assert.equal(
+  verifyLivingFrameChoreographyBindingDigest(
+    resign(forgedSoundMotion),
+  ),
+  false,
+)
+const forgedSoundPolicy = asObject(structuredClone(binding))
+asObject(asArray(
+  forgedSoundPolicy.soundRequestProjections,
+)[1]).linkedComponentMotionPolicy =
+  'not_required_environmental_presence'
+assert.equal(
+  verifyLivingFrameChoreographyBindingDigest(
+    resign(forgedSoundPolicy),
+  ),
+  false,
+)
 const missingRequiredGate = {
   ...binding,
   openGateCodes: binding.openGateCodes.filter(
@@ -287,8 +449,8 @@ assert.equal(
 
 console.log(JSON.stringify({
   suite: 'living-frame-choreography-binding',
-  controlledCases: 2,
-  adversarialCases: 15,
+  controlledCases: 4,
+  adversarialCases: 21,
   subjectSpecificRouting: binding.subjectSpecificRouting,
   semanticScaleTruthPreserved:
     binding.semanticScaleBindings[0]?.treatment,

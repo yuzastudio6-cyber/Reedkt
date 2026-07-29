@@ -17,7 +17,7 @@ import type {
 } from './living-frame-deterministic-motion'
 
 export const LIVING_FRAME_CHOREOGRAPHY_BINDING_VERSION =
-  'living-frame-choreography-binding-v1' as const
+  'living-frame-choreography-binding-v2' as const
 
 export const LIVING_FRAME_CHOREOGRAPHY_BINDING_CLASS =
   'controlled_non_executable_semantic_choreography_binding_candidate' as const
@@ -106,6 +106,17 @@ export interface LivingFrameSoundChoreographyProjection {
   readonly priority: LivingFrameSoundPriority
   readonly narrationProtection: LivingFrameNarrationProtection
   readonly duckingExpectation: LivingFrameDuckingExpectation
+  readonly semanticTriggerAttentionEventId: string
+  readonly semanticTriggerEventType:
+    LivingFrameAttentionEventType
+  readonly semanticTriggerMotionTrackIds:
+    readonly string[]
+  readonly semanticTriggerBound: true
+  readonly linkedComponentMotionPolicy:
+    | 'required_and_matched'
+    | 'not_required_environmental_presence'
+    | 'not_applicable_unlinked_sound'
+  readonly semanticTriggerExactFramesProvided: false
   readonly exactCuePlacementProvided: false
   readonly exactMixProvided: false
   readonly downstreamSoundSyncRequired: boolean

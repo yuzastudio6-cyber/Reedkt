@@ -18,6 +18,7 @@ import {
   LIVING_FRAME_SOUND_PURPOSES,
 } from '../../src/types/living-frame'
 import type {
+  LivingFrameAttentionChoreographyBinding,
   LivingFrameAttentionMethodCoverage,
   LivingFrameAttentionTrackBindingDraft,
   LivingFrameChoreographyAuthorityBoundary,
@@ -27,6 +28,7 @@ import type {
   LivingFrameChoreographyMotionBudget,
   LivingFrameChoreographyOpenGate,
   LivingFrameSemanticScaleTrackBindingDraft,
+  LivingFrameSoundChoreographyProjection,
 } from '../../src/types/living-frame-choreography-binding'
 import {
   LIVING_FRAME_CHOREOGRAPHY_BINDING_CLASS,
@@ -151,19 +153,12 @@ export async function compileLivingFrameChoreographyBinding(
     drafts: input.semanticScaleTrackBindings,
     tracksById,
   })
-  const soundRequestProjections = scene.soundRequests.map((request) => ({
-    order: request.order,
-    soundRequestId: request.soundRequestId,
-    linkedComponentId: request.linkedComponentId,
-    purpose: request.purpose,
-    priority: request.priority,
-    narrationProtection: request.narrationProtection,
-    duckingExpectation: request.duckingExpectation,
-    exactCuePlacementProvided: false as const,
-    exactMixProvided: false as const,
-    downstreamSoundSyncRequired:
-      request.duckingExpectation === 'downstream_soundsync_required',
-  }))
+  const soundRequestProjections =
+    compileSoundRequestProjections({
+      scene,
+      attentionBindings,
+      tracksById,
+    })
   const motionBudget = deriveMotionBudget(
     scene,
     input.motionBundle,
@@ -325,6 +320,89 @@ function compileAttentionBindings(input: {
       soundRequestIds: [...draft.soundRequestIds].sort(),
       restorationCandidatePresent,
       exactFramesStillOwnedByMasterTiming: true as const,
+    }
+  })
+}
+
+function compileSoundRequestProjections(input: {
+  readonly scene: LivingFrameScenePlan
+  readonly attentionBindings:
+    readonly LivingFrameAttentionChoreographyBinding[]
+  readonly tracksById:
+    ReadonlyMap<string, LivingFrameCompiledMotionTrack>
+}): readonly LivingFrameSoundChoreographyProjection[] {
+  const triggerBySoundRequestId = new Map<
+    string,
+    LivingFrameAttentionChoreographyBinding
+  >()
+  for (const attentionBinding of input.attentionBindings) {
+    for (const soundRequestId of attentionBinding.soundRequestIds) {
+      if (triggerBySoundRequestId.has(soundRequestId)) {
+        throw invalid(
+          'Each Living Frame sound request requires exactly one semantic attention trigger.',
+        )
+      }
+      triggerBySoundRequestId.set(
+        soundRequestId,
+        attentionBinding,
+      )
+    }
+  }
+  if (
+    triggerBySoundRequestId.size !==
+      input.scene.soundRequests.length
+  ) {
+    throw invalid(
+      'Every Living Frame sound request requires exactly one semantic attention trigger.',
+    )
+  }
+  return input.scene.soundRequests.map((request) => {
+    const trigger =
+      triggerBySoundRequestId.get(request.soundRequestId)
+    if (!trigger) {
+      throw invalid(
+        'Every Living Frame sound request requires exactly one semantic attention trigger.',
+      )
+    }
+    const linkedComponentMotionMatched =
+      request.linkedComponentId !== null
+      && trigger.motionTrackIds.some((trackId) =>
+        input.tracksById.get(trackId)?.componentId ===
+          request.linkedComponentId)
+    const linkedComponentMotionPolicy =
+      request.linkedComponentId === null
+        ? 'not_applicable_unlinked_sound' as const
+        : request.purpose === 'environmental_presence'
+          ? 'not_required_environmental_presence' as const
+          : linkedComponentMotionMatched
+            ? 'required_and_matched' as const
+            : null
+    if (linkedComponentMotionPolicy === null) {
+      throw invalid(
+        'A motion-dependent component-linked Living Frame sound request must trigger with motion from that component.',
+      )
+    }
+    return {
+      order: request.order,
+      soundRequestId: request.soundRequestId,
+      linkedComponentId: request.linkedComponentId,
+      purpose: request.purpose,
+      priority: request.priority,
+      narrationProtection: request.narrationProtection,
+      duckingExpectation: request.duckingExpectation,
+      semanticTriggerAttentionEventId:
+        trigger.attentionEventId,
+      semanticTriggerEventType: trigger.eventType,
+      semanticTriggerMotionTrackIds:
+        [...trigger.motionTrackIds],
+      semanticTriggerBound: true as const,
+      linkedComponentMotionPolicy,
+      semanticTriggerExactFramesProvided: false as const,
+      exactCuePlacementProvided: false as const,
+      exactMixProvided: false as const,
+      downstreamSoundSyncRequired:
+        request.duckingExpectation ===
+          'downstream_soundsync_required',
     }
   })
 }
@@ -682,7 +760,26 @@ function assertBindingCollections(
           && track.componentId === item.componentId
           && track.property === 'scale_uniform')))
     || value.soundRequestProjections.some((item, index) =>
-      item.order !== index
+      !isRecord(item)
+      || !hasExactKeys(item, [
+        'order',
+        'soundRequestId',
+        'linkedComponentId',
+        'purpose',
+        'priority',
+        'narrationProtection',
+        'duckingExpectation',
+        'semanticTriggerAttentionEventId',
+        'semanticTriggerEventType',
+        'semanticTriggerMotionTrackIds',
+        'semanticTriggerBound',
+        'linkedComponentMotionPolicy',
+        'semanticTriggerExactFramesProvided',
+        'exactCuePlacementProvided',
+        'exactMixProvided',
+        'downstreamSoundSyncRequired',
+      ])
+      || item.order !== index
       || item.narrationProtection !== 'strict'
       || !LIVING_FRAME_SOUND_PURPOSES.includes(item.purpose)
       || !LIVING_FRAME_SOUND_PRIORITIES.includes(item.priority)
@@ -692,10 +789,30 @@ function assertBindingCollections(
       || !LIVING_FRAME_DUCKING_EXPECTATIONS.includes(
         item.duckingExpectation,
       )
+      || !SAFE_ID.test(item.semanticTriggerAttentionEventId)
+      || !LIVING_FRAME_ATTENTION_EVENT_TYPES.includes(
+        item.semanticTriggerEventType,
+      )
+      || !Array.isArray(
+        item.semanticTriggerMotionTrackIds,
+      )
+      || item.semanticTriggerMotionTrackIds.some(
+        (trackId) =>
+          typeof trackId !== 'string'
+          || !SAFE_ID.test(trackId),
+      )
+      || item.semanticTriggerBound !== true
+      || ![
+        'required_and_matched',
+        'not_required_environmental_presence',
+        'not_applicable_unlinked_sound',
+      ].includes(item.linkedComponentMotionPolicy)
+      || item.semanticTriggerExactFramesProvided !== false
       || item.exactCuePlacementProvided !== false
       || item.exactMixProvided !== false
       || item.downstreamSoundSyncRequired !==
-        (item.duckingExpectation === 'downstream_soundsync_required'))
+        (item.duckingExpectation === 'downstream_soundsync_required')
+      || !soundTriggerIsConsistent(item, value))
     || value.boundMotionTracks.some((item) =>
       !SAFE_ID.test(item.componentId)
       || !LIVING_FRAME_MOTION_PROPERTIES.includes(item.property)
@@ -763,6 +880,50 @@ function attentionCoverageIsConsistent(
   return methodValid
     && item.restorationCandidatePresent
       === (item.eventType === 'restore' && restoration)
+}
+
+function soundTriggerIsConsistent(
+  item:
+    LivingFrameChoreographyBinding['soundRequestProjections'][number],
+  binding: LivingFrameChoreographyBinding,
+): boolean {
+  const matchingAttentionBindings =
+    binding.attentionBindings.filter(
+      (attentionBinding) =>
+        attentionBinding.soundRequestIds.includes(
+          item.soundRequestId,
+        ),
+    )
+  if (
+    matchingAttentionBindings.length !== 1
+    || matchingAttentionBindings[0]!.attentionEventId !==
+      item.semanticTriggerAttentionEventId
+    || matchingAttentionBindings[0]!.eventType !==
+      item.semanticTriggerEventType
+    || canonicalJsonStringify(
+      matchingAttentionBindings[0]!.motionTrackIds,
+    ) !== canonicalJsonStringify(
+      item.semanticTriggerMotionTrackIds,
+    )
+  ) return false
+  if (item.linkedComponentId === null) {
+    return item.linkedComponentMotionPolicy ===
+      'not_applicable_unlinked_sound'
+  }
+  if (item.purpose === 'environmental_presence') {
+    return item.linkedComponentMotionPolicy ===
+      'not_required_environmental_presence'
+  }
+  return item.linkedComponentMotionPolicy ===
+    'required_and_matched'
+    && item.semanticTriggerMotionTrackIds.some(
+    (trackId) =>
+      binding.boundMotionTracks.some(
+        (track) =>
+          track.trackId === trackId
+          && track.componentId === item.linkedComponentId,
+      ),
+    )
 }
 
 function scaleTreatmentIsConsistent(

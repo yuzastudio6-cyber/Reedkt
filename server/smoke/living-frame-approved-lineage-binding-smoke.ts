@@ -717,6 +717,7 @@ async function createCompiledChoreography(
   mutableScene.attentionSequence[1]!.methods = [
     'focus_depth_expectation',
     'motion_emphasis_expectation',
+    'sound_emphasis_expectation',
   ]
   mutableScene.attentionSequence[2]!.methods = [
     'motion_emphasis_expectation',
@@ -778,7 +779,7 @@ async function createCompiledChoreography(
       {
         attentionEventId: 'attention.hormuz-prepare',
         motionTrackIds: ['track.hormuz-route-reveal'],
-        soundRequestIds: [],
+        soundRequestIds: ['sound.hormuz-route'],
       },
       {
         attentionEventId: 'attention.hormuz-handoff',
@@ -786,7 +787,7 @@ async function createCompiledChoreography(
           'track.hormuz-focus',
           'track.hormuz-route-reveal',
         ],
-        soundRequestIds: [],
+        soundRequestIds: ['sound.hormuz-handoff'],
       },
       {
         attentionEventId: 'attention.hormuz-hold',

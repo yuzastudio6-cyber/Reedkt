@@ -3192,3 +3192,26 @@ renderer, runtime, artifact, QA, private-review, cost, billing, or production
 authority. Canonical integration must either consume the exact approved depth
 or add a qualified dimensional motion/renderer contract. See
 `docs/living-frame/living-frame-selected-scene-motion-style-reconciliation.md`.
+
+### Semantic sound-trigger completeness
+
+`living-frame-choreography-binding-v2` closes an upstream sound-direction gap.
+Every Living Frame sound request must now appear in exactly one approved
+attention event. A motion-dependent component-linked request must share at
+least one motion track with that exact component. Environmental presence may
+remain attention-bound without forcing a static environment to move. The
+binding preserves the trigger attention event, event type, motion-track
+lineage, and component-motion policy while keeping exact frames and mix unset.
+
+This prevents a route sound, blade accent, mechanical bed, environmental
+texture, or focus-handoff cue from being attached to an unrelated visual
+merely because both occur in the same scene. It also preserves the rule that
+sound confirms meaningful motion rather than announcing every element with a
+template whoosh.
+
+The canonical timing v1 implementation currently distributes requested sound
+cues evenly by request order. That produces bounded frames but does not prove
+semantic synchronization. The canonical SoundSync owner must consume the new
+one-to-one trigger lineage and assign exact attention/motion-aligned frames,
+gain, panning, attack/release, voice ducking, asset provenance, QA, and
+private-review evidence. Living Frame does not create a second audio system.

@@ -73,7 +73,7 @@ authority.
 | Attention, focus handoff, camera, and visual orbit | `verified_private_runtime` for the bounded scalar subset | choreography binding, canonical motion spec, actual 640×360 render | More complex deformation, path, particle, and true 3D primitives remain separately gated. |
 | Adaptive flat / shallow-2.5D / deep-multiplane rendering | `verified_source_contract` for approved-depth preservation and fail-closed reconciliation; `verified_private_runtime` for shallow and deep execution | selected-scene private conditioning, read-only selected-scene motion-style reconciliation, `canonical-living-frame-motion-spec-v1`, offline Remotion composition, same-scene differential-parallax pixel validation | The canonical motion owner must consume the exact approved scene-design depth instead of independently inferring a conflicting style. Dimensional motion/renderer support or a newly approved downgrade remains required. Mode-specific production-footage benchmarks remain release work. |
 | Selective deterministic motion | `verified_private_runtime` | canonical motion compiler, independent sample-digest verification, Remotion sampler, actual pixel-displacement measurement | Unsupported generic motion signals remain closed by design. |
-| Sound choreography | `verified_source_contract`; `not_required_as_separate_owner` for exact sound | semantic sound requests, choreography binding, canonical timing binding | SoundSync remains the sole exact cue/mix/ducking owner; production motion-linked sound assets and mix evidence remain backend work. |
+| Sound choreography | `verified_source_contract` for one-to-one semantic trigger coverage; `not_required_as_separate_owner` for exact sound | semantic sound requests, choreography binding v2, canonical timing binding | Every request now binds to one attention event and component-linked motion. The canonical timing v1 compiler still spaces cues by request order rather than consuming that trigger. SoundSync remains the sole exact cue/mix/ducking owner; meaning-bound placement, production sound assets, spatial/mix envelopes, QA, and private-review evidence remain backend work. |
 | StoryTiming ownership | `verified_source_contract` | canonical Living Frame timing binding and five exact semantic phases | No Living Frame clock may be introduced. |
 | Caption coordination | `verified_private_runtime` for z-order | canonical render path and cyan/magenta pixel fixture | Caption Direction remains a separate parent system; spatial/attention negotiation continues through shared occupancy and timing. |
 | Maps, charts, diagrams, and exact labels | `not_required_as_separate_owner` | Living Frame modes route exact components through existing map/dataviz/Remotion owners | Do not replace exact content with generated images. |
@@ -276,6 +276,12 @@ Passed:
   approved-depth matches, fail-closes on flat/shallow divergence, blocks
   dimensional scenes under the current motion/renderer contract, and never
   mutates either the approved style or canonical motion;
+- Living Frame choreography v2 with complete one-to-one semantic sound
+  triggers, exact component-motion matching for motion-dependent
+  component-linked requests, an explicit environmental-presence exception
+  that does not force artificial motion, strict narration protection, and
+  adversarial missing/duplicate/unrelated trigger refusal while exact
+  SoundSync frames and mix remain unclaimed;
 - selected-scene private opaque-output observation for exact 1024×1024
   isolated and 1920×1080 confirmed-ratio RGB PNGs, plus read-only alpha-chain
   reconciliation that fail-closes on the shared multi-output generation →

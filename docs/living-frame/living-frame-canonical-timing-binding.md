@@ -32,5 +32,14 @@ mix QA, and private-review evidence remain required. The binding does not
 modify MasterTiming or SoundSync, create work items or assets, estimate cost,
 approve a plan, render, dispatch a worker, or authorize production.
 
+The current v1 compiler assigns cue slots by request order across the visual
+range. That is an exact-frame calculation, but it is not yet proof of a
+meaning-bound cue. Living Frame choreography v2 now requires every sound
+request to bind exactly once to an approved attention event and, when
+component-linked, to motion from that component. The canonical timing owner
+must consume that semantic trigger instead of relying on even index spacing
+before these cue placements can be considered professionally choreographed.
+Until then, exact mix and semantic cue-readiness remain open.
+
 The record contains no caption text, transcript, audio, media bytes, paths,
 URLs, credentials, provider prompt, model route, or subject-specific logic.

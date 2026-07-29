@@ -23,8 +23,16 @@ scale, stillness, or narration protection has been respected.
   an explicit scale track.
 - The existing one-primary-motion-group rule remains intact.
 - Components with no motion tracks remain intentional still design states.
-- Sound requests retain strict narration protection and stay semantic until the
-  existing SoundSync authority assigns cue frames, ducking, gain, and mix.
+- Every sound request has exactly one semantic attention trigger.
+- A motion-dependent component-linked sound trigger includes motion from that
+  exact component; it cannot be attached to an unrelated moving object.
+- Environmental presence may remain tied to an attention event without
+  forcing a static environment to move merely to justify ambience.
+- Sound triggers preserve their attention event, event type, and motion-track
+  lineage while exact frames remain unset.
+- Sound requests retain strict narration protection and stay semantic until
+  the existing SoundSync authority assigns meaning-bound cue frames, ducking,
+  gain, panning, attack/release, and mix.
 
 ## What it cannot prove
 
@@ -42,6 +50,13 @@ methods, scale truth, and motion properties. `subjectSpecificRouting` is always
 
 The server must re-read the current Living Frame component and motion bundle,
 revalidate their digests against the same MasterTimingPlan and output frame,
-project sound through the existing SoundSync planner, project layers through
-the existing RendererCompositionPlan, and freeze the resulting references in
-the one immutable approved snapshot before any existing work graph may execute.
+project each sound request through the existing SoundSync planner using its
+exact semantic attention trigger, project layers through the existing
+RendererCompositionPlan, and freeze the resulting references in the one
+immutable approved snapshot before any existing work graph may execute.
+
+The current canonical Living Frame timing compiler must not treat request order
+as a semantic trigger. Even spacing across the visual range is not sufficient
+evidence that an SFX or ambience cue is tied to a visual action. Exact
+attention-event timing, mix envelopes, voice ducking, spatial placement,
+asset provenance, audio QA, and private review remain canonical-owner gates.

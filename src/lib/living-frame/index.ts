@@ -850,3 +850,20 @@ export type {
   LivingFrameControlledSdxlBenchmarkResultBindingOpenGate,
   LivingFrameControlledSdxlBenchmarkThresholdResult,
 } from '../../types/living-frame-controlled-sdxl-benchmark-result-binding'
+
+export {
+  LIVING_FRAME_CONTROLLED_SDXL_PRIVATE_PROMPT_MATERIALIZATION_CLASS,
+  LIVING_FRAME_CONTROLLED_SDXL_PRIVATE_PROMPT_MATERIALIZATION_ISSUES,
+  LIVING_FRAME_CONTROLLED_SDXL_PRIVATE_PROMPT_MATERIALIZATION_OPEN_GATES,
+  LIVING_FRAME_CONTROLLED_SDXL_PRIVATE_PROMPT_MATERIALIZATION_VERSION,
+} from '../../types/living-frame-controlled-sdxl-private-prompt-materialization'
+
+export type {
+  LivingFrameControlledSdxlPrivatePromptMaterialization,
+  LivingFrameControlledSdxlPrivatePromptMaterializationAuthority,
+  LivingFrameControlledSdxlPrivatePromptMaterializationDraft,
+  LivingFrameControlledSdxlPrivatePromptMaterializationIssue,
+  LivingFrameControlledSdxlPrivatePromptMaterializationIssueCode,
+  LivingFrameControlledSdxlPrivatePromptMaterializationOpenGate,
+  LivingFrameControlledSdxlPrivatePromptSlotReceipt,
+} from '../../types/living-frame-controlled-sdxl-private-prompt-materialization'

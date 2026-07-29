@@ -2444,6 +2444,33 @@ GPU image, attempt/cost receipts, metrics, QA, and private review remain
 required. See
 `docs/living-frame/living-frame-controlled-sdxl-benchmark-graph-blueprint.md`.
 
+### Server-private ComfyUI prompt materialization
+
+`living-frame-controlled-sdxl-private-prompt-materialization-v1` converts one
+current generation-case graph into exact ComfyUI API-format prompt JSON. The
+caller provides only a server-owned locator; a process-bound reader supplies
+the current graph recipe and its private model, conditioning, control-image,
+and reference-image slots.
+
+The compiler preserves the closed node allowlist, topological edges, frozen
+literal parameters, exact slot set, and websocket-only output. It stores the
+raw prompt only in a process-bound single-use lease. The serializable receipt
+contains digests, byte lengths, node counts, slot classes, and lineage, never
+prompt text, model or image aliases, paths, URLs, credentials, or bytes.
+
+This closes the graph-to-private-request source gap without registering a tool
+or operation or dispatching a GPU. One future consumed lease maps to one
+shared ComfyUI GPU attempt; ControlNet Aux, ControlNet, IP-Adapter, and LoRA
+loading remain capabilities inside that attempt, while AuraFace remains
+separate post-generation CPU QA. Pricing and actual-cost evidence continue to
+come only from the canonical estimate and worker-resource cost authorities.
+
+Current GPU node schemas, a signed dependency-locked image, distributed
+read-only mounts, canonical operation registration, released attempt/cost
+receipts, metric attestation, license review, selected-scene lineage, work,
+asset QA, and private review remain closed. See
+`docs/living-frame/living-frame-controlled-sdxl-private-prompt-materialization.md`.
+
 ### Controlled benchmark result and threshold binding
 
 The source-only result binding accepts benchmark observations only through a

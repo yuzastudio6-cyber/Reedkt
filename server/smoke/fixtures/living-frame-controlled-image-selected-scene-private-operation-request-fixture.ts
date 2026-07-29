@@ -157,6 +157,11 @@ export async function createLivingFrameControlledImageSelectedScenePrivateOperat
     receipt: result.receipt,
     privateOperationRequestLease:
       result.privateOperationRequestLease,
+    selectedSceneRequest,
+    selectedSceneRequestInput,
+    admissionCandidate,
+    fullFrameRatioExtension,
+    fullFrameRatioExtensionInput,
   };
 }
 

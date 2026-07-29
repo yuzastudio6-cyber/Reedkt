@@ -68,7 +68,7 @@ authority.
 | Visual Continuity Pack | `verified_source_contract` | `src/lib/living-frame/living-frame-visual-continuity-contract.ts`, `docs/living-frame/visual-continuity-pack.md`, continuity measurement and fixtures | Production persistence, reference retention, consent, fairness, and identity-review policy remain backend/release gates. |
 | Character/object/environment/style consistency | `verified_source_contract` | continuity pack sheets, controlled generic IP-Adapter binding, optional AuraFace measurement-only path | Real project-calibrated continuity thresholds and review evidence remain open. |
 | Component decomposition and rigging | `verified_source_contract` | component asset intent, geometry, rig, background-plate reconstruction, artifact reconciliation | Rich production scene benchmarks remain open; no claim is made that all stills can be safely decomposed. |
-| Alpha, masks, edge cleanup, and destination composite | `verified_private_runtime` | generated-still alpha work graph, rembg route, Sharp RGBA route, selected-scene private opaque-output observation, alpha measurement, edge decontamination, multi-background/destination-composite evidence | The canonical work-graph owner must admit the exact isolated output of a multi-output selected generation item into the existing rembg → Sharp chain. Advanced temporal A-roll masks still require a qualified tracking/mask route and real footage benchmarks. |
+| Alpha, masks, edge cleanup, and destination composite | `verified_private_runtime` | generated-still alpha work graph, rembg route, Sharp RGBA route, selected-scene private opaque-output observation, selected-scene full-frame evidence readiness, alpha measurement, edge decontamination, multi-background/destination-composite evidence | The canonical work-graph owner must admit the exact isolated output of a multi-output selected generation item into the existing rembg → Sharp chain. Full-frame plates now bind to the existing private artifact, continuity, fact-safety, manifest, review, and Remotion owners without entering the alpha branch. Advanced temporal A-roll masks still require a qualified tracking/mask route and real footage benchmarks. |
 | Semantic scale | `verified_source_contract` | Living Frame semantic-scale requests and canonical motion guard preserving literal/data scale | Production QA must continue distinguishing literal, proportional, perspective, and symbolic scale. |
 | Attention, focus handoff, camera, and visual orbit | `verified_private_runtime` for the bounded scalar subset | choreography binding, canonical motion spec, actual 640×360 render | More complex deformation, path, particle, and true 3D primitives remain separately gated. |
 | Adaptive flat / shallow-2.5D / deep-multiplane rendering | `verified_source_contract` for flat selection; `verified_private_runtime` for shallow and deep execution | `canonical-living-frame-motion-spec-v1`, offline Remotion composition, same-scene differential-parallax pixel validation | Mode-specific production-footage benchmarks remain part of release qualification. |
@@ -157,7 +157,12 @@ missing:
    generated output. The selected-scene private output observer rereads and
    verifies exact opaque RGB PNG bytes for both isolated and confirmed-ratio
    canvases without inferring worker completion, persistence, cost, QA, or
-   review. The read-only alpha work-chain reconciliation now proves that the
+   review. The full-frame evidence-readiness projection now binds the exact
+   confirmed-ratio output to the existing canonical private-image persistence,
+   artifact-QA, continuity, documentary-fact, scene-evidence, asset-manifest,
+   private-review, and Remotion owners without executing any of them. It
+   rejects isolated-output, square-substitution, cross-output, and final-canvas
+   claims. The read-only alpha work-chain reconciliation now proves that the
    isolated output cannot yet enter the existing canonical rembg → Sharp
    branch: the work graph currently rejects an exact generated source when its
    parent generation item has multiple expected outputs, and the selected
@@ -232,7 +237,9 @@ Passed:
 - selected-scene private opaque-output observation for exact 1024×1024
   isolated and 1920×1080 confirmed-ratio RGB PNGs, plus read-only alpha-chain
   reconciliation that fail-closes on the shared multi-output generation →
-  rembg interface conflict without mutating the canonical work graph;
+  rembg interface conflict without mutating the canonical work graph, and
+  full-frame evidence readiness that binds the confirmed-ratio plate to the
+  existing artifact/QA/continuity/fact/manifest/review/Remotion owners;
 - selected execution/security smokes;
 - repository secret scan;
 - frontend/server boundary scan; and

@@ -969,3 +969,21 @@ export type {
   LivingFrameCloudRunL4PublicRateObservation,
   LivingFrameCloudRunL4PublicRateSourceCode,
 } from '../../types/living-frame-cloud-run-l4-rate-observation'
+
+export {
+  LIVING_FRAME_GENERATED_STILL_ARTIFACT_QA_ISSUE_CODES,
+  LIVING_FRAME_GENERATED_STILL_ARTIFACT_QA_OPEN_GATES,
+  LIVING_FRAME_GENERATED_STILL_ARTIFACT_QA_PROJECTION_CLASS,
+  LIVING_FRAME_GENERATED_STILL_ARTIFACT_QA_PROJECTION_STATE,
+  LIVING_FRAME_GENERATED_STILL_ARTIFACT_QA_PROJECTION_VERSION,
+} from '../../types/living-frame-generated-still-artifact-qa-projection'
+
+export type {
+  LivingFrameGeneratedStillArtifactDependencyProjection,
+  LivingFrameGeneratedStillArtifactQaAuthorityBoundary,
+  LivingFrameGeneratedStillArtifactQaIssue,
+  LivingFrameGeneratedStillArtifactQaIssueCode,
+  LivingFrameGeneratedStillArtifactQaOpenGate,
+  LivingFrameGeneratedStillArtifactQaProjection,
+  LivingFrameGeneratedStillArtifactQaProjectionDraft,
+} from '../../types/living-frame-generated-still-artifact-qa-projection'

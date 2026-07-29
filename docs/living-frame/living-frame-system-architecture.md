@@ -1442,7 +1442,7 @@ asset, render, runtime, or production authority.
 
 ## Controlled-illustration qualification requirements
 
-The v1 source contract classifies exactly six evaluation candidates:
+The v2 source contract classifies exactly six evaluation candidates:
 
 | Candidate | Contract class |
 | --- | --- |
@@ -1527,11 +1527,13 @@ candidates. It records:
 - the original candidate classifications;
 - every still-unresolved qualification artifact family and review gate; and
 - explicit dependency-scope rules that prevent a generic source label from
-  promoting copied annotators, downloaded checkpoints, FaceID, FLUX.1-dev,
-  InsightFace-dependent identity routes, or a future loaded LoRA/base
-  model/training-data combination.
+  promoting copied annotators, downloaded checkpoints, FaceID,
+  AuraFace measurement into identity generation, InsightFace-dependent
+  identity routes, or a future loaded LoRA/base model/training-data
+  combination.
 
-The controlled fixture observes exact revisions dated 2026-07-26. Those values
+The controlled fixture was rebuilt on 2026-07-28 with exact immutable
+revisions and document digests. Those values
 are not “latest,” live, released, verified, or production-current. A future
 canonical qualification service must independently reread the primary source,
 fetch and hash the exact selected artifacts, close dependency and base-model

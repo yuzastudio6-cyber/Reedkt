@@ -225,7 +225,7 @@ export async function createLivingFrameControlledIllustrationSourceObservationFi
       evidenceClass:
         'controlled_non_promotable_upstream_source_observation',
       observationPacketId:
-        'living-frame.controlled-illustration.source-observation.2026-07-26',
+        'living-frame.controlled-illustration.source-observation.2026-07-28',
       observedOnDate: OBSERVED_ON_DATE,
       qualificationContractDigestSha256:
         resolvedQualification.qualificationDigestSha256,

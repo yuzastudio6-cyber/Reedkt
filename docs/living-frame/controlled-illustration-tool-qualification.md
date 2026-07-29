@@ -36,7 +36,7 @@ revision hashes, document-content digests, and literal non-authority fields.
 It contains no URL or filesystem path. These documentation links are included
 only so a later reviewer can independently reread the primary source.
 
-| Controlled locator | Revision observed on 2026-07-26 | What was observed |
+| Controlled locator | Immutable revision bound in the 2026-07-28 packet | What was observed |
 | --- | --- | --- |
 | [ComfyUI](https://github.com/Comfy-Org/ComfyUI) | `806e092ed42772e4ce7abf44c97c50021cc4bd10` | Repository source and declared `LICENSE` label |
 | [`comfyui_controlnet_aux`](https://github.com/Fannovel16/comfyui_controlnet_aux) | `e8b689a513c3e6b63edc44066560ca5919c0576e` | Repository source and declared `LICENSE.txt` label |
@@ -451,7 +451,7 @@ generally available.
 
 ## Qualification contract conclusion
 
-The v1 contract records the six candidates as classified, evaluation-only
+The v2 contract records the six candidates as classified, evaluation-only
 requirements. It does not claim six `ProductionToolId` values. It requires
 exact future artifact inventories, license scopes, safety reviews, and
 benchmarks while fixing every installation, registry, operation, dispatch,

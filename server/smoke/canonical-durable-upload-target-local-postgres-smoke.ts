@@ -8,7 +8,7 @@ import {
   canonicalDurableUploadIntentRequestHash,
   createCanonicalDurableUploadIntentCandidate,
   createCanonicalDurableUploadTargetStatePort,
-  createCanonicalUploadTargetCredentialEscrow,
+  credentialDigest,
   hashCanonicalUploadTargetValue,
   resolveCanonicalUploadIntentAndTarget,
 } from '../upload-target-authority/canonical-durable-upload-target-authority'
@@ -21,8 +21,16 @@ import {
   createCanonicalDurableUploadTargetLocalPostgresCapability,
 } from '../upload-target-authority/canonical-durable-upload-target-state-rpc-adapter'
 import {
-  InMemoryCanonicalUploadTargetCredentialEscrow,
-} from '../upload-target-authority/in-memory-canonical-durable-upload-target-fixture'
+  createLocalCanonicalUploadTargetCredentialKeyWrapCapability,
+} from '../upload-target-authority/canonical-upload-target-credential-envelope'
+import {
+  createCanonicalUploadTargetCredentialEscrowLocalHttpClient,
+  assertCanonicalUploadTargetCredentialEscrowLocalHttpClientIsNotProduction,
+} from '../upload-target-authority/canonical-upload-target-credential-escrow-local-supabase-http-rpc-client'
+import {
+  createCanonicalUploadTargetCredentialEscrowLocalPostgresAdapter,
+  createCanonicalUploadTargetCredentialEscrowLocalPostgresCapability,
+} from '../upload-target-authority/canonical-upload-target-credential-escrow-rpc-adapter'
 
 const endpointOrigin = requiredEnvironment('REEDITPRO_CANONICAL_V3_API_URL')
 const anonKey = requiredEnvironment('REEDITPRO_CANONICAL_V3_ANON_KEY')
@@ -37,6 +45,11 @@ const projectA = 'aaaaaaaa-1000-4000-8000-000000000001'
 const createdAt = '2026-07-29T15:00:00.000Z'
 const expiresAt = '2026-07-29T15:15:00.000Z'
 const authorizationEvidenceHash = hash('authorized-user-a')
+const localEscrowKeyMaterial = Buffer.from(
+  hashCanonicalUploadTargetValue({ fixture: 'local-envelope-key-v1' }),
+  'hex',
+)
+let escrowClock = createdAt
 
 const clientA = createClient(ownerA, jwtSecret)
 const clientB = createClient(ownerB, jwtSecret)
@@ -60,8 +73,43 @@ function createPort(client: typeof clientA) {
   }
 }
 
+function createEscrow(
+  ownerUserId: string,
+  signingSecret: string,
+  keyMaterial = localEscrowKeyMaterial,
+) {
+  const client = createCanonicalUploadTargetCredentialEscrowLocalHttpClient({
+    endpointOrigin,
+    anonKey,
+    authenticatedAccessToken: createLocalAuthenticatedJwt(ownerUserId, jwtSecret),
+    localInternalSigningSecret: signingSecret,
+  })
+  const capability =
+    createCanonicalUploadTargetCredentialEscrowLocalPostgresCapability({
+      client,
+      endpointOrigin,
+    })
+  const keyWrapCapability =
+    createLocalCanonicalUploadTargetCredentialKeyWrapCapability({
+      keyVersionId: 'local_canonical_upload_target_key_v1',
+      keyMaterial,
+    })
+  return {
+    client,
+    capability,
+    keyWrapCapability,
+    escrow: createCanonicalUploadTargetCredentialEscrowLocalPostgresAdapter({
+      client,
+      capability,
+      keyWrapCapability,
+      now: () => escrowClock,
+    }),
+  }
+}
+
 const authorityA = createPort(clientA)
 const authorityB = createPort(clientB)
+const encryptedEscrowA = createEscrow(ownerA, jwtSecret)
 assert.equal(authorityA.port.descriptor.databaseBackend, 'postgres')
 assert.equal(authorityA.port.descriptor.serializableIntentAndIssuanceTransactionsVerified, true)
 assert.equal(authorityA.port.descriptor.durableIdempotencyResponseAssociationVerified, true)
@@ -78,9 +126,31 @@ assert.throws(
   isAtomicityError,
 )
 assert.throws(
+  () => assertCanonicalUploadTargetCredentialEscrowLocalHttpClientIsNotProduction(
+    encryptedEscrowA.client,
+  ),
+  isAtomicityError,
+)
+assert.equal(
+  encryptedEscrowA.escrow.descriptor.implementationClass,
+  'server_envelope_encrypted_ephemeral_store',
+)
+assert.equal(encryptedEscrowA.escrow.descriptor.envelopeEncryptionVerified, true)
+assert.equal(encryptedEscrowA.escrow.descriptor.expiryAndDeletionVerified, true)
+assert.equal(encryptedEscrowA.escrow.descriptor.multiReplicaRecoveryVerified, false)
+assert.equal(encryptedEscrowA.escrow.descriptor.productionAuthority, false)
+assert.throws(
   () => createCanonicalDurableUploadTargetLocalPostgresAdapter({
     client: clientA,
     capability: structuredClone(authorityA.capability),
+  }),
+  isAtomicityError,
+)
+assert.throws(
+  () => createCanonicalUploadTargetCredentialEscrowLocalPostgresAdapter({
+    client: encryptedEscrowA.client,
+    capability: structuredClone(encryptedEscrowA.capability),
+    keyWrapCapability: encryptedEscrowA.keyWrapCapability,
   }),
   isAtomicityError,
 )
@@ -116,8 +186,7 @@ assert.equal(concurrent[0]?.intent.uploadIntentId, concurrent[1]?.intent.uploadI
 assert.equal(concurrent[0]?.transaction.transactionId, concurrent[1]?.transaction.transactionId)
 
 const successCandidate = candidateFor('success')
-const escrowFixture = new InMemoryCanonicalUploadTargetCredentialEscrow()
-const escrow = createCanonicalUploadTargetCredentialEscrow(escrowFixture)
+const escrow = encryptedEscrowA.escrow
 let targetCreationCount = 0
 const createTarget = async (): Promise<UploadTarget> => {
   targetCreationCount += 1
@@ -139,9 +208,10 @@ assert.equal(first.intent.revision, 3)
 assert.equal(targetCreationCount, 1)
 
 const restartedAuthorityA = createPort(createClient(ownerA, jwtSecret))
+const restartedEncryptedEscrowA = createEscrow(ownerA, jwtSecret)
 const replay = await resolveCanonicalUploadIntentAndTarget({
   port: restartedAuthorityA.port,
-  escrow,
+  escrow: restartedEncryptedEscrowA.escrow,
   candidate: successCandidate,
   idempotencyKey: 'upload-target-success-domain-key-0001',
   authorizationEvidenceHash,
@@ -153,6 +223,36 @@ assert.equal(replay.disposition, 'recovered_exact_target')
 assert.equal(replay.target.uploadUrl, first.target.uploadUrl)
 assert.equal(replay.intent.recordHash, first.intent.recordHash)
 assert.equal(targetCreationCount, 1)
+const successEscrowIdentity = {
+  recordId: `upload_target_escrow_${first.issuanceAttemptId}`,
+  uploadIntentId: first.intent.uploadIntentId,
+  attemptId: first.issuanceAttemptId,
+}
+await restartedEncryptedEscrowA.escrow.put({
+  ...successEscrowIdentity,
+  target: first.target,
+  credentialDigestSha256: credentialDigest(first.target),
+  expiresAt: first.target.expiresAt,
+})
+const exactEscrowReplay = await restartedEncryptedEscrowA.escrow.read(
+  successEscrowIdentity,
+)
+assert.equal(exactEscrowReplay?.uploadUrl, first.target.uploadUrl)
+
+const wrongKeyEscrow = createEscrow(
+  ownerA,
+  jwtSecret,
+  Buffer.from(hashCanonicalUploadTargetValue({ fixture: 'wrong-local-key' }), 'hex'),
+)
+await assert.rejects(
+  () => wrongKeyEscrow.escrow.read(successEscrowIdentity),
+  isAtomicityError,
+)
+const crossTenantEscrow = createEscrow(ownerB, jwtSecret)
+await assert.rejects(
+  () => crossTenantEscrow.escrow.read(successEscrowIdentity),
+  isAtomicityError,
+)
 const readback = await restartedAuthorityA.port.readIntent({
   ownerUserId: ownerA,
   workspaceId: workspaceA,
@@ -210,11 +310,66 @@ assert.equal(
   'TARGET_CREATION_OUTCOME_UNKNOWN',
 )
 
+const expiringCandidate = candidateFor(
+  'expiring',
+  '2026-07-29T15:01:00.000Z',
+)
+const expiringResult = await resolveCanonicalUploadIntentAndTarget({
+  port: authorityA.port,
+  escrow,
+  candidate: expiringCandidate,
+  idempotencyKey: 'upload-target-expiring-domain-key-0001',
+  authorizationEvidenceHash,
+  expectedProtocol: 'gcs_resumable',
+  now: createdAt,
+  createTarget: async () => targetFor(expiringCandidate),
+})
+const expiringEscrowIdentity = {
+  recordId: `upload_target_escrow_${expiringResult.issuanceAttemptId}`,
+  uploadIntentId: expiringResult.intent.uploadIntentId,
+  attemptId: expiringResult.issuanceAttemptId,
+}
+escrowClock = '2026-07-29T15:02:00.000Z'
+const expiryRecoveryEscrow = createEscrow(ownerA, jwtSecret)
+assert.equal(await expiryRecoveryEscrow.escrow.read(expiringEscrowIdentity), undefined)
+assert.equal(await expiryRecoveryEscrow.escrow.read(expiringEscrowIdentity), undefined)
+
+escrowClock = createdAt
+const deletedCandidate = candidateFor('deleted')
+const deletedResult = await resolveCanonicalUploadIntentAndTarget({
+  port: authorityA.port,
+  escrow,
+  candidate: deletedCandidate,
+  idempotencyKey: 'upload-target-deleted-domain-key-0001',
+  authorizationEvidenceHash,
+  expectedProtocol: 'gcs_resumable',
+  now: createdAt,
+  createTarget: async () => targetFor(deletedCandidate),
+})
+const deletedEscrowIdentity = {
+  recordId: `upload_target_escrow_${deletedResult.issuanceAttemptId}`,
+  uploadIntentId: deletedResult.intent.uploadIntentId,
+  attemptId: deletedResult.issuanceAttemptId,
+}
+await restartedEncryptedEscrowA.escrow.delete(deletedEscrowIdentity)
+await restartedEncryptedEscrowA.escrow.delete(deletedEscrowIdentity)
+assert.equal(
+  await restartedEncryptedEscrowA.escrow.read(deletedEscrowIdentity),
+  undefined,
+)
+
 console.log(JSON.stringify({
   status: 'passed',
-  schemaVersion: 'canonical-durable-upload-target-local-postgres-proof-v1',
+  schemaVersion: 'canonical-durable-upload-target-local-postgres-proof-v2',
   concurrentExactReplayVerified: true,
   restartReadAndExactTargetReplayVerified: true,
+  restartEncryptedCredentialRecoveryVerified: true,
+  envelopeEncryptedCredentialPersistenceVerified: true,
+  exactEncryptedEnvelopePutReplayVerified: true,
+  wrongKeyDecryptionRejected: true,
+  encryptedEscrowTenantIsolationVerified: true,
+  expiredCredentialCiphertextScrubVerified: true,
+  explicitCredentialCiphertextDeletionVerified: true,
   intentCommittedBeforeExternalTargetSideEffect: true,
   unknownTargetOutcomeBlocksDuplicateIssuance: true,
   authenticatedTenantIsolationVerified: true,
@@ -222,6 +377,7 @@ console.log(JSON.stringify({
   localPostgresCallPerformed: true,
   multiReplicaReadAfterWriteVerified: false,
   liveGcsSessionIssuanceVerified: false,
+  liveCloudKmsVerified: false,
   productionCredentialEscrowVerified: false,
   remoteDatabaseMutationPerformed: false,
   productionAuthority: false,
@@ -236,7 +392,7 @@ function createClient(ownerUserId: string, signingSecret: string) {
   })
 }
 
-function candidateFor(suffix: string) {
+function candidateFor(suffix: string, targetExpiresAt = expiresAt) {
   const requestHash = canonicalDurableUploadIntentRequestHash({
     ownerUserId: ownerA,
     workspaceId: workspaceA,
@@ -262,7 +418,7 @@ function candidateFor(suffix: string) {
     checksumSha256: hash(`checksum:${suffix}`),
     requestHash,
     createdAt,
-    expiresAt,
+    expiresAt: targetExpiresAt,
   })
 }
 

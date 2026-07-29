@@ -11,19 +11,19 @@
     },
     {
       "path": "README.md",
-      "sha256": "623248ae3ce280bbda918e39dc3720b9f65369782a7bcde8046942ee1e995ef5"
+      "sha256": "22fbfc8a93e92cd1852cf0ac74ad4539415e67abd5a5214e65bb5c8234a65ff0"
     },
     {
       "path": "expected-recovery-data-tables.txt",
-      "sha256": "58347edd4e5608982e8c899d4e994f3da020a46b37f90779b1a2781e632c01f9"
+      "sha256": "38c1107a401b4fa321de381f37671fd81c918672d8cf6a2a661a43625b3dd770"
     },
     {
       "path": "run-local-recovery-verification.sh",
-      "sha256": "d5ce9922b24c17ebf2d518960728f331cca46a4a7a90e156eb8f9d022d78c0df"
+      "sha256": "eaab330ae7fb1e0e47035fee3889b2e999385b7f648587ec8176019ecafb5e2e"
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "8527a2f6859141cf610e7a6d3cb378bc6f8e2dc411ddac8c39188d120f2a0a90"
+      "sha256": "b337f66d66a7bafe7af31d973eb288dc020ef10948c711f97cdc00e0e0119f6f"
     },
     {
       "path": "setup-local-auth-users.ts",
@@ -122,6 +122,10 @@
       "sha256": "75e0c4aa02803aa89fcf1af07e7c37a77b26e30417d9d9c62fc7312842adcb4f"
     },
     {
+      "path": "supabase/migrations/202607210022_canonical_upload_target_credential_escrow_rpc.sql",
+      "sha256": "92efc87ed0f1f903a4c63ad9f8b9efd2b1c83842df1a6b65e83a02694705929f"
+    },
+    {
       "path": "tests/001_two_user_two_workspace_rls.sql",
       "sha256": "4229abef3613004a7ce75467e6e030bfe6c1baa5237d7a55a7d8580d6822a816"
     },
@@ -179,7 +183,11 @@
     },
     {
       "path": "tests/015_canonical_durable_upload_target_rpc_postconditions.sql",
-      "sha256": "08b689bfe799934c19940971f0ac39ae803effe099827a8b9f94178f15cc4480"
+      "sha256": "2d37a43e81998d111732feca210fec6b583c7b432e2a24114e069902bd317644"
+    },
+    {
+      "path": "tests/016_canonical_upload_target_credential_escrow_rpc_postconditions.sql",
+      "sha256": "2e9f606b1086496eb4224eb009862a4ec11b1161d5f47e799afba5df7ff5c10e"
     },
     {
       "path": "tests/_fixture.sql",
@@ -195,13 +203,13 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "e6aada4adbe5b210abedbbac812bfeed1e85c3a01901a2757c85f42b14140105"
+      "sha256": "60ca2b0ab4aa1ad16d4c19c60a4de94787210ab6017812091b49029df5cc74e9"
     }
   ],
   "repositoryFiles": [
     {
       "path": "docs/canonical-durable-upload-target-authority-2026-07-20.md",
-      "sha256": "f8c67a1434ab2f708f064eb925446d42587b73255d1ff4a42c777543ba5bbac5"
+      "sha256": "f940cef9319a8fb61b633da7affc59d7e9e3e5d6c29f94cffbdd1520b25c57b7"
     },
     {
       "path": "docs/canonical-edit-reference-application-preparation-verification-2026-07-21.md",
@@ -229,7 +237,7 @@
     },
     {
       "path": "docs/canonical-v3-local-durable-upload-target-verification-2026-07-29.md",
-      "sha256": "13783a98a7c39ccb2afbfbab9a657e68384fa988ece278c0b48901ccfdb29aa5"
+      "sha256": "79489f914432f4575fd423945fd81327802227937513b29cf7ae2792e2d2a4f6"
     },
     {
       "path": "docs/canonical-v3-local-edit-reference-domain-library-study-verification-2026-07-21.md",
@@ -254,6 +262,10 @@
     {
       "path": "docs/canonical-v3-local-edit-reference-target-application-e2e-verification-2026-07-21.md",
       "sha256": "2c7608270f4fcf8fdc1a328c789575886af54ad9706edbe75704275961bb4ca5"
+    },
+    {
+      "path": "docs/canonical-v3-local-encrypted-upload-target-credential-escrow-verification-2026-07-29.md",
+      "sha256": "fb640775f0c71429af66287e5cd51e063ac6bca66f40603f19a25ce84c3e9a4d"
     },
     {
       "path": "docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md",
@@ -565,7 +577,7 @@
     },
     {
       "path": "server/smoke/canonical-durable-upload-target-local-postgres-smoke.ts",
-      "sha256": "e013d548db2d87ac182f876a7c5b651262ae5a24231312521415e339ac74c327"
+      "sha256": "241faa026d2577cd248f54723e3fad362fdd6548d2877cf8576b628ba8a96a33"
     },
     {
       "path": "server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
@@ -668,8 +680,20 @@
       "sha256": "2e16bfaf4a7c938eccf3e23da0bf5e34cb565510d8346fc34acc5f525c0eb549"
     },
     {
+      "path": "server/upload-target-authority/canonical-upload-target-credential-envelope.ts",
+      "sha256": "1767f66781f97573beed51f2ab87af642d1b345b1ee98466ab2041cf76d828a8"
+    },
+    {
+      "path": "server/upload-target-authority/canonical-upload-target-credential-escrow-local-supabase-http-rpc-client.ts",
+      "sha256": "3870ca4d972bb6e9f3105bad3ae9df91f3efbf0a0ca44acfa7e0c6ffb855cd7c"
+    },
+    {
+      "path": "server/upload-target-authority/canonical-upload-target-credential-escrow-rpc-adapter.ts",
+      "sha256": "23b335c812da3bf9e4cd4ead53fe4dac4bf49c9620540f1756feeab0caacef36"
+    },
+    {
       "path": "server/upload-target-authority/index.ts",
-      "sha256": "093b28172e35dd6b6da5c1f6528313485c4e4d89c598662bf2244c63e0258ceb"
+      "sha256": "e8752c7451c8363eccdee556905b9460cb6ce24a757b4548e9b356c95513b080"
     },
     {
       "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",

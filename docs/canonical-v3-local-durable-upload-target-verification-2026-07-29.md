@@ -12,10 +12,11 @@ allowed to create an external upload target, records one-use claim and
 completion transitions, preserves exact idempotency receipts, and records a
 terminal unknown outcome when the external side effect cannot be proven.
 
-This closes the process-memory state gap for upload-intent metadata. It does
-not close the separate temporary-credential gap: the controlled test target is
-held only by the existing process-memory escrow fixture and uses the
-non-routable `storage.invalid` host. No live GCS resumable session is created.
+This closes the process-memory state gap for upload-intent metadata. A
+follow-up local migration now also closes the process-memory-only credential
+gap with an envelope-encrypted Postgres escrow. The controlled target still
+uses the non-routable `storage.invalid` host, and no live GCS resumable session
+is created.
 
 ## Durable database surface
 
@@ -58,10 +59,16 @@ The real loopback Postgres/PostgREST smoke verified:
 - database reset, data-only backup, destructive reset, and restore preserve the
   complete upload-target state and audit lineage.
 
-The canonical recovery inventory is now 59 reviewed data tables. The new SQL
+The canonical recovery inventory is now 61 reviewed data tables after the
+encrypted-escrow follow-up. The SQL
 postcondition test verifies forced RLS, direct-table grant denial, fixed RPC
 role boundaries, all four mutation operations, exact lifecycle counts,
 receipt/audit linkage, canonical hashes, and credential exclusion.
+
+See
+`docs/canonical-v3-local-encrypted-upload-target-credential-escrow-verification-2026-07-29.md`
+for the separate AES-256-GCM envelope, fresh-process recovery, wrong-key,
+tenant-isolation, expiry-scrub, and deletion evidence.
 
 ## Verification commands
 
@@ -79,7 +86,7 @@ unsets `SUPABASE_ACCESS_TOKEN`, refuses any database URL outside local port
 ## Gates that remain closed
 
 - live GCS resumable-session issuance;
-- envelope-encrypted credential escrow durable across replicas;
+- Cloud-KMS-backed credential escrow durable across multiple replicas;
 - multi-replica read-after-write evidence;
 - staging or production Supabase deployment and RLS evidence;
 - deployed upload-lifecycle integration with signed GCS finalization;

@@ -32,6 +32,7 @@ const expectedRepositoryFiles = [
   'docs/canonical-v3-local-edit-reference-recovery-verification-2026-07-21.md',
   'docs/canonical-v3-local-edit-reference-request-scoped-long-form-verification-2026-07-21.md',
   'docs/canonical-v3-local-edit-reference-target-application-e2e-verification-2026-07-21.md',
+  'docs/canonical-v3-local-encrypted-upload-target-credential-escrow-verification-2026-07-29.md',
   'docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-brief-target-source-verification-2026-07-21.md',
@@ -135,6 +136,9 @@ const expectedRepositoryFiles = [
   'server/types.ts',
   'server/upload-target-authority/canonical-durable-upload-target-local-supabase-http-rpc-client.ts',
   'server/upload-target-authority/canonical-durable-upload-target-state-rpc-adapter.ts',
+  'server/upload-target-authority/canonical-upload-target-credential-envelope.ts',
+  'server/upload-target-authority/canonical-upload-target-credential-escrow-local-supabase-http-rpc-client.ts',
+  'server/upload-target-authority/canonical-upload-target-credential-escrow-rpc-adapter.ts',
   'server/upload-target-authority/index.ts',
   'server/validation/canonical-exact-edit-planning-authority-schemas.ts',
   'server/validation/edit-planning-authority-schemas.ts',
@@ -194,6 +198,7 @@ const expectedMigrations = [
   '202607210019_edit_reference_idempotency_concurrency_fence.sql',
   '202607210020_canonical_distributed_media_ingest_rpc.sql',
   '202607210021_canonical_durable_upload_target_rpc.sql',
+  '202607210022_canonical_upload_target_credential_escrow_rpc.sql',
 ]
 const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .filter((name) => name.endsWith('.sql'))
@@ -204,7 +209,7 @@ const expectedRecoveryDataTables = readFileSync(
   join(directory, 'expected-recovery-data-tables.txt'),
   'utf8',
 ).trim().split('\n')
-assert(expectedRecoveryDataTables.length === 59, 'recovery_table_count_invalid')
+assert(expectedRecoveryDataTables.length === 61, 'recovery_table_count_invalid')
 assert(
   equalArrays(expectedRecoveryDataTables, [...expectedRecoveryDataTables].sort()),
   'recovery_table_order_invalid',
@@ -250,6 +255,7 @@ for (const requiredToken of [
   'canonical-distributed-pre-plan-study-local-postgres-smoke.ts',
   'canonical-distributed-media-ingest-local-postgres-smoke.ts',
   'canonical-durable-upload-target-local-postgres-smoke.ts',
+  '016_canonical_upload_target_credential_escrow_rpc_postconditions.sql',
   '127.0.0.1:57431',
 ]) assert(recoveryRunner.includes(requiredToken), `recovery_runner_contract_missing:${requiredToken}`)
 for (const forbiddenPattern of [
@@ -316,11 +322,16 @@ for (const requiredToken of [
   'canonical_upload_intents',
   'canonical_upload_target_idempotency_receipts',
   'canonical_upload_target_audit_events',
+  'canonical_upload_target_credential_escrow',
+  'canonical_upload_target_credential_escrow_audit_events',
   'reeditpro_resolve_upload_intent_v1',
   'reeditpro_claim_upload_target_v1',
   'reeditpro_commit_upload_target_v1',
   'reeditpro_mark_upload_target_unknown_v1',
   'reeditpro_read_upload_intent_v1',
+  'reeditpro_put_upload_target_credential_envelope_v1',
+  'reeditpro_read_upload_target_credential_envelope_v1',
+  'reeditpro_delete_upload_target_credential_envelope_v1',
   'reeditpro_register_pre_plan_source_v1',
   'exact_edit_brief_versions',
   'reeditpro_save_exact_edit_brief_v1',

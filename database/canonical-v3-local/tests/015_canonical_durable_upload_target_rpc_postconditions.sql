@@ -62,9 +62,9 @@ begin
     end if;
   end loop;
 
-  if (select count(*) from public.canonical_upload_intents) <> 3
-    or (select count(*) from public.canonical_upload_target_idempotency_receipts) <> 7
-    or (select count(*) from public.canonical_upload_target_audit_events) <> 7 then
+  if (select count(*) from public.canonical_upload_intents) <> 5
+    or (select count(*) from public.canonical_upload_target_idempotency_receipts) <> 13
+    or (select count(*) from public.canonical_upload_target_audit_events) <> 13 then
     raise exception 'UPLOAD_TARGET_EXPECTED_PERSISTED_LIFECYCLE_COUNTS_MISSING';
   end if;
   if not exists (

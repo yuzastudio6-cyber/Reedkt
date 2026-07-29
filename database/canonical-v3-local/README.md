@@ -70,10 +70,12 @@ The chain provides:
   immutable upload intent before any external target side effect, serializes
   one-use target issuance, associates exact idempotency receipts, recovers
   state after process restart, and permanently fences an unknown target
-  outcome. PostgreSQL stores only bounded metadata and digests; the resumable
-  session URL and headers remain in a separate process-memory fixture during
-  this local proof. Live GCS issuance, encrypted multi-replica credential
-  escrow, and hosted production authority remain false;
+  outcome. A separate envelope-encrypted escrow stores only AES-256-GCM
+  ciphertext and wrapped-key material, recovers through a fresh local server
+  adapter, rejects a wrong key and another tenant, and scrubs ciphertext on
+  expiry or explicit deletion. The wrapping key remains process-bound and
+  unpersisted. Live GCS issuance, Cloud KMS/workload identity, multi-replica
+  credential recovery, and hosted production authority remain false;
 - a forward study-scoped enqueue concurrency fence that serializes plan-version
   allocation across different runs of the same study while preserving exact
   same-request replay; the stress proof starts six runs and their duplicate
@@ -143,7 +145,7 @@ The chain provides:
   planning-authority read/evidence/replay, immutable-baseline, cleanup
   invalidation, evidence/DNA/QA/approval replay, recovery, direct-RPC/table
   denial, and internal-cost tests.
-- a destructive local backup/reset/restore rehearsal covering all 59 reviewed
+- a destructive local backup/reset/restore rehearsal covering all 61 reviewed
   canonical data tables, an exact logical-state digest, immutable approved and
   audit history, exact Apply replay/conflict recovery, and restored tenant RLS.
 
@@ -184,6 +186,7 @@ rehearsal fail closed.
 - no staging or production database authority;
 - no deployed Auth/RLS/Storage evidence;
 - no provider or Google Cloud execution;
+- no live Secret Manager or Cloud KMS access;
 - no customer pricing, credits, wallet, billing, or service-fee mutation;
 - no deployment, public delivery, or production-readiness claim.
 

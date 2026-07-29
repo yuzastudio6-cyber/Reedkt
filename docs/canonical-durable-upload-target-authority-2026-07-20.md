@@ -32,11 +32,13 @@ The in-memory adapter and process-memory escrow are contract fixtures only. A
 2026-07-29 canonical V3 local follow-up now provides a real loopback
 Postgres/PostgREST transaction adapter with forced RLS, authenticated tenant
 isolation, exact idempotency-response association, restart-safe lifecycle
-state, and backup/reset/restore evidence. That adapter is intentionally
-loopback-only and still reports multi-replica durability, live GCS issuance,
-durable credential escrow, remote database mutation, and production authority
-as false. The upload credential used by the focused proof remains in the
-process-memory escrow fixture and is never persisted in canonical Postgres.
+state, and backup/reset/restore evidence. A second local-only follow-up stores
+the temporary target as AES-256-GCM ciphertext with a separately wrapped data
+key, proves fresh-process recovery, wrong-key rejection, tenant isolation,
+expiry scrubbing, and deletion, and never stores the plaintext credential in
+canonical Postgres. Both adapters remain loopback-only and still report
+multi-replica durability, live GCS issuance, Cloud KMS, remote database
+mutation, and production authority as false.
 
 Production still requires multi-replica read-after-write evidence, live GCS
 issuance, an envelope-encrypted multi-replica credential escrow with
@@ -61,9 +63,10 @@ The frozen local conformance contains 14 adversarial checks and has evidence
 digest `bb494e2f2395abc9f72e579de762467b280428a699f643df34c3ee7aa8931432`.
 
 The canonical V3 follow-up adds migration
-`202607210021_canonical_durable_upload_target_rpc.sql`, a five-function fixed
-RPC adapter, a real loopback PostgREST smoke, SQL postconditions, and inclusion
-in the 59-table destructive local backup/reset/restore rehearsal. See
+`202607210021_canonical_durable_upload_target_rpc.sql`, followed by encrypted
+escrow migration `202607210022_canonical_upload_target_credential_escrow_rpc.sql`,
+fixed RPC adapters, a real loopback PostgREST smoke, SQL postconditions, and
+inclusion in the 61-table destructive local backup/reset/restore rehearsal. See
 `docs/canonical-v3-local-durable-upload-target-verification-2026-07-29.md`.
 
 No remote SQL, remote migration, live GCS session, provider request, billing,

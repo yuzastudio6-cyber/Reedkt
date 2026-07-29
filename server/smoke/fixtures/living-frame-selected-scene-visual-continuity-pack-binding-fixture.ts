@@ -42,7 +42,11 @@ import type {
 
 let sequence = 0
 
-export async function createLivingFrameSelectedSceneVisualContinuityPackBindingSmokeFixture(): Promise<{
+export async function createLivingFrameSelectedSceneVisualContinuityPackBindingSmokeFixture(
+  options?: {
+    readonly includeGeneratedBackgroundPlate?: boolean
+  },
+): Promise<{
   readonly input:
     CreateLivingFrameControlledImageSelectedSceneVisualContinuityPackBindingInput
 }> {
@@ -99,7 +103,11 @@ export async function createLivingFrameSelectedSceneVisualContinuityPackBindingS
   const semanticProposalBinding =
     await createLivingFrameSemanticSceneProposalBinding({
       request: alignedRequest,
-      result: fixtureInputs.musashi.result,
+      result: options?.includeGeneratedBackgroundPlate
+        ? withGeneratedBackgroundPlate(
+          fixtureInputs.musashi.result,
+        )
+        : fixtureInputs.musashi.result,
       continuityPack: alignedPack,
     })
   const semanticPlanProjection =
@@ -173,6 +181,54 @@ export async function createLivingFrameSelectedSceneVisualContinuityPackBindingS
       selectedSceneBinding,
     },
   }
+}
+
+function withGeneratedBackgroundPlate<T>(result: T): T {
+  const clone = structuredClone(result) as T
+  const root = clone as {
+    sceneProposals: Array<{
+      components: Array<Record<string, unknown>>
+    }>
+  }
+  const scene = root.sceneProposals[0]
+  if (!scene) {
+    throw new Error('Missing Musashi scene proposal fixture.')
+  }
+  const sword = scene.components.find(
+    (component) =>
+      component.componentKey === 'component.sword',
+  )
+  if (!sword || !Array.isArray(sword.capabilityKeys)) {
+    throw new Error('Missing Musashi sword component fixture.')
+  }
+  if (!sword.capabilityKeys.includes(
+    'still_image_generation_or_edit',
+  )) {
+    sword.capabilityKeys.push(
+      'still_image_generation_or_edit',
+    )
+  }
+  scene.components.push({
+    componentKey: 'component.musashi.background',
+    order: scene.components.length,
+    role: 'opaque_background_plate',
+    focalRole: 'static_anchor',
+    derivedSummary:
+      'A full-frame illustrated duel-clearing plate preserves negative space and deep multiplane separation behind the isolated character.',
+    parentComponentKey: null,
+    anchorComponentKey: null,
+    depthBand: 'background',
+    transparencyExpectation: 'opaque_plate',
+    alphaSourceExpectation: 'opaque_plate',
+    provenanceExpectation: 'generated_illustration_expectation',
+    capabilityKeys: [
+      'still_image_generation_or_edit',
+    ],
+    evidenceCitations: [{
+      evidenceRefId: 'evidence.musashi.visual',
+    }],
+  })
+  return clone
 }
 
 async function alignRequest(input: {
@@ -367,7 +423,7 @@ function createCanonicalComponents(
     },
     captionVisualCueTimingPlan: { status: 'synced' },
     soundSyncTransitionTimingPlan: {
-      status: 'not_needed',
+      status: 'ready_mock',
       speechPriority: true,
     },
     timingValidationPlan: {

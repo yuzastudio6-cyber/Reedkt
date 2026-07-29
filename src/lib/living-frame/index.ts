@@ -311,6 +311,27 @@ export type {
 } from '../../types/living-frame-controlled-image-selected-scene-private-prompt-materialization'
 
 export {
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_CONDITIONING_BINDING_CLASS,
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_CONDITIONING_BINDING_STATE,
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_CONDITIONING_BINDING_VERSION,
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_CONDITIONING_ISSUE_CODES,
+  LIVING_FRAME_CONTROLLED_IMAGE_SELECTED_SCENE_PRIVATE_CONDITIONING_OPEN_GATES,
+} from '../../types/living-frame-controlled-image-selected-scene-private-conditioning-binding'
+
+export type {
+  LivingFrameControlledImageSelectedScenePrivateConditioningAuthority,
+  LivingFrameControlledImageSelectedScenePrivateConditioningBinding,
+  LivingFrameControlledImageSelectedScenePrivateConditioningBindingDraft,
+  LivingFrameControlledImageSelectedScenePrivateConditioningBrief,
+  LivingFrameControlledImageSelectedScenePrivateConditioningIssue,
+  LivingFrameControlledImageSelectedScenePrivateConditioningIssueCode,
+  LivingFrameControlledImageSelectedScenePrivateConditioningLease,
+  LivingFrameControlledImageSelectedScenePrivateConditioningOpenGate,
+  LivingFrameControlledImageSelectedScenePrivateConditioningResult,
+  LivingFrameControlledImageSelectedScenePrivateConditioningUnit,
+} from '../../types/living-frame-controlled-image-selected-scene-private-conditioning-binding'
+
+export {
   LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_AUTHORITY_BOUNDARY,
   LivingFrameControlledIllustrationSourceObservationError,
   calculateLivingFrameControlledIllustrationSourceObservationDigest,

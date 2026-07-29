@@ -64,7 +64,7 @@ authority.
 | Composite parent skill and deliberate non-use | `verified_source_contract` | `src/lib/professional-skills/professional-skill-registry.ts`, `src/lib/living-frame/living-frame-selection-policy.ts`, `src/types/living-frame.ts` | Backend must preserve the selected/non-use decision when integrating the frozen component. |
 | Five Living Frame modes | `verified_source_contract` | `src/types/living-frame.ts`, `server/smoke/living-frame-subject-neutral-capability-matrix-smoke.ts` | Mode-specific production media benchmarks remain release work. |
 | Reusable mini-skill family | `verified_source_contract` | `src/types/living-frame.ts`, `src/lib/living-frame/living-frame-contract.ts`, `server/living-frame/living-frame-semantic-plan-projection.ts` | No new skill taxonomy is needed. |
-| Narrative and animation-aware illustration | `verified_source_contract` | mini-skill identities, component asset intent, synthesis routing, work admission, controlled-illustration qualification | Production generation remains gated by the controlled ComfyUI operation or another approved route. |
+| Narrative and animation-aware illustration | `verified_source_contract` | mini-skill identities, component asset intent, synthesis routing, work admission, controlled-illustration qualification, and the selected-scene private conditioning binding | The private conditioning source now derives exact style, scene, component, separability, depth, frame, and truth instructions from the validated Visual Continuity Pack and proves their digest equality at the real selected-scene prompt materializer. Production generation remains gated by the controlled ComfyUI operation or another approved route. |
 | Visual Continuity Pack | `verified_source_contract` | `src/lib/living-frame/living-frame-visual-continuity-contract.ts`, `docs/living-frame/visual-continuity-pack.md`, selected-scene read-only pack binding candidate, continuity measurement, and fixtures | Production persistence, reference retention, consent, fairness, and identity-review policy remain backend/release gates. The namespaced candidate now revalidates the complete pack payload against the exact selected scene and emits a digest-only binding, but the canonical selected-scene interface or immutable private pack-artifact bridge and any persisted reference-artifact binding remain canonical-owner gates. |
 | Character/object/environment/style consistency | `verified_source_contract` | continuity pack sheets, controlled generic IP-Adapter binding, optional AuraFace measurement-only path | Real project-calibrated continuity thresholds and review evidence remain open. |
 | Component decomposition and rigging | `verified_source_contract` | component asset intent, geometry, rig, background-plate reconstruction, artifact reconciliation | Rich production scene benchmarks remain open; no claim is made that all stills can be safely decomposed. |
@@ -171,7 +171,19 @@ missing:
    reference-artifact registration, semantic style-QA owner binding, and
    approved documentary fact-safety snapshot needed for later evidence. A
    process-private reference alias is never promoted into evidence. The
-   read-only alpha work-chain reconciliation now proves that the
+   selected-scene private conditioning binding now removes the generic-text
+   gap before prompt materialization. It revalidates the exact selected
+   semantic scene and component, complete Visual Continuity Pack payload,
+   scene design sheet, animation separability, source truth, work/output
+   lineage, and confirmed frame; emits only digest/length receipts plus
+   process-bound single-use leases; and merges those private briefs into an
+   alias-only packet with fixed pending sentinels. Its integration smoke proves
+   exact conditioning-digest equality at the existing selected-scene prompt
+   materializer for isolated 1024-square character/weapon sources and an exact
+   3840x2160 deep-multiplane background plate. It does not force 2.5D on flat
+   scenes, promote controlled reference expectations to artifacts, accept
+   caller prompts, or claim final-canvas authority. The read-only alpha
+   work-chain reconciliation now proves that the
    isolated output cannot yet enter the existing canonical rembg → Sharp
    branch: the work graph currently rejects an exact generated source when its
    parent generation item has multiple expected outputs, and the selected
@@ -243,6 +255,13 @@ Passed:
 - selected-scene private prompt materialization with one unit/lease per
   approved output, exact isolated and confirmed-ratio canvases, byte-free
   receipts, and adversarial benchmark/caller/node/lineage/authority refusal;
+- selected-scene private animation-aware conditioning with exact semantic,
+  component, Visual Continuity Pack, scene-design, depth, source-truth,
+  output-frame, work/output, and planned-asset lineage; process-bound
+  single-use private delivery; byte-free receipts; exact digest equality at
+  the real selected-scene prompt materializer; isolated 1024-square and exact
+  3840x2160 full-frame coverage; and adversarial caller/cross-pack/cross-frame/
+  cross-work/reference-promotion/lease refusal;
 - selected-scene private opaque-output observation for exact 1024×1024
   isolated and 1920×1080 confirmed-ratio RGB PNGs, plus read-only alpha-chain
   reconciliation that fail-closes on the shared multi-output generation →

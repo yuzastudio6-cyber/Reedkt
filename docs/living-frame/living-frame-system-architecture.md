@@ -3120,3 +3120,35 @@ lineage, not a released GPU attempt, public export, customer charge, or
 production runtime.
 See
 `docs/living-frame/living-frame-representative-end-to-end-validation.md`.
+
+### Selected-scene animation-aware private conditioning
+
+The namespaced
+`living-frame-controlled-image-selected-scene-private-conditioning-binding-v1`
+binds the exact approved generated output to its validated semantic scene,
+semantic component, Visual Continuity Pack, scene design sheet, linked
+character/object/environment sheets, motion language, alpha rules, source
+truth, and confirmed frame.
+
+It deterministically produces a private still-illustration brief designed for
+later selective animation: readable silhouettes, independently isolatable
+moving parts, foreground/background separation, no baked motion blur or text,
+and explicit downstream ownership for matting, rigging, motion, camera, sound,
+and Remotion final composition. The approved depth style remains adaptive:
+flat stays flat, while shallow 2.5D, deep multiplane, and dimensional scenes
+receive their selected depth language.
+
+Each private brief remains behind a process-bound single-use lease. The public
+receipt contains only lineage digests and byte lengths. A server-owned adapter
+merges the brief into an alias-only private packet whose conditioning slots
+were fixed pending sentinels, then hands it to the existing selected-scene
+prompt materializer. The integration fixture verifies exact conditioning
+digest equality without accepting caller text, benchmark prompt substitution,
+or model/path/runtime data.
+
+Isolated components remain 1024-square opaque sources for the existing
+matting path. Full-frame source/background candidates use the confirmed frame
+exactly and never become the final video canvas. Documentary, geographic, and
+data truth remains blocked behind canonical fact owners, and controlled
+reference expectations never become artifacts by implication. See
+`docs/living-frame/living-frame-controlled-image-selected-scene-private-conditioning-binding.md`.

@@ -14,6 +14,18 @@ The bridge creates no tool registration, approved operation binding, worker
 lease, queue item, GPU attempt, cost receipt, asset, asset-manifest mutation,
 QA approval, render, customer charge, or production authority.
 
+The later
+`living-frame-controlled-image-selected-scene-private-conditioning-binding-v1`
+provides the animation-aware source boundary for these private text slots. It
+derives conditioning from the exact selected semantic scene, component,
+Visual Continuity Pack, scene design sheet, source truth, and confirmed frame.
+Its process-bound adapter accepts an alias-only packet with fixed pending
+sentinels, consumes one private conditioning lease per output, and proves that
+the digests entering this materializer match the approved conditioning
+receipt. Generic fixture text and compatibility-benchmark text are not an
+approved production source. See
+`docs/living-frame/living-frame-controlled-image-selected-scene-private-conditioning-binding.md`.
+
 ## Exact source revalidation
 
 Before reading any private conditioning value, the materializer revalidates:

@@ -8,6 +8,15 @@ import {
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
 import {
+  getCanonicalComfyUiGpuRuntimeContract,
+} from './canonical-comfyui-gpu-runtime-contract'
+import {
+  canonicalComfyUiGpuRuntimeRunnerRequestSchema,
+} from './canonical-comfyui-gpu-runtime-request'
+import {
+  assertCanonicalComfyUiGpuRuntimeWireResponse,
+} from './canonical-comfyui-gpu-runtime-result'
+import {
   getCanonicalFasterWhisperGpuRuntimeContract,
 } from './canonical-faster-whisper-gpu-runtime-contract'
 import {
@@ -374,6 +383,7 @@ const sam2RuntimeRequestSchema = z.object({
 const runtimeRequestSchema = z.discriminatedUnion(
   'operationId',
   [
+    canonicalComfyUiGpuRuntimeRunnerRequestSchema,
     fasterWhisperRuntimeRequestSchema,
     rembgRuntimeRequestSchema,
     sam2RuntimeRequestSchema,
@@ -609,6 +619,50 @@ async function assertCurrentRuntimeContract(
 }> {
   if (
     request.operationId
+      === 'tool.comfyui.generate_controlled_image.v1'
+  ) {
+    const runtimeContract =
+      await getCanonicalComfyUiGpuRuntimeContract()
+    const currentModelFiles =
+      runtimeContract.fixedFileLayout.modelFiles.map((model) => ({
+        canonicalOrder: model.canonicalOrder,
+        role: model.role,
+        slotId: model.slotId,
+        fileName: model.fileName,
+        byteLength: model.byteLength,
+        contentSha256: model.contentSha256,
+      }))
+    const requestModelFiles = request.modelArtifacts.map(
+      (model) => ({
+        canonicalOrder: model.canonicalOrder,
+        role: model.role,
+        slotId: model.slotId,
+        fileName: model.fileName,
+        byteLength: model.byteLength,
+        contentSha256: model.contentSha256,
+      }),
+    )
+    if (
+      runtimeContract.operationIdentity.operationId
+        !== request.operationId
+      || runtimeContract.operationIdentity.sharedWorkerType
+        !== 'gpu_ai_worker'
+      || runtimeContract.runtimeProtocol.device !== 'cuda'
+      || runtimeContract.runtimeProtocol.cpuFallbackAllowed
+      || runtimeContract.cloudRunGpuPolicy.admittedExistingRegion
+        !== request.dispatch.runtimeRegion
+      || stableAuthorityStringify(currentModelFiles)
+        !== stableAuthorityStringify(requestModelFiles)
+    ) {
+      throw blocked(
+        'canonical_gpu_worker_current_runtime_contract_mismatch',
+      )
+    }
+    return runtimeContract
+  }
+
+  if (
+    request.operationId
       === 'tool.faster_whisper.transcribe_private_audio.v1'
   ) {
     const runtimeContract =
@@ -678,6 +732,15 @@ function assertRuntimeWireResponse(input: {
 }): CanonicalGpuWorkerRuntimeSuccessWireResponse {
   if (
     input.request.operationId
+      === 'tool.comfyui.generate_controlled_image.v1'
+  ) {
+    return assertCanonicalComfyUiGpuRuntimeWireResponse({
+      value: input.value,
+      request: input.request,
+    })
+  }
+  if (
+    input.request.operationId
       === 'tool.faster_whisper.transcribe_private_audio.v1'
   ) {
     return assertCanonicalFasterWhisperGpuRuntimeWireResponse({
@@ -704,6 +767,7 @@ function assertSupportedOperationIds(
   operationIds: readonly CanonicalGpuWorkerOperationId[],
 ): void {
   const allowed = new Set<CanonicalGpuWorkerOperationId>([
+    'tool.comfyui.generate_controlled_image.v1',
     'tool.faster_whisper.transcribe_private_audio.v1',
     'tool.rembg.remove_image_background.v1',
     'tool.sam2.segment_and_track_subject.v1',

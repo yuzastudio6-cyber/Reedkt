@@ -70,6 +70,13 @@ Record<ProfessionalToolCatalogId, ProductionQAProfile> = {
   kornia: { ...empty, gateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'enhancement_artifacts'], requiredBeforePreview: ['mask_edge_quality'] },
   birefnet: { ...empty, gateTypes: ['mask_edge_quality', 'mask_subject_coverage'], requiredBeforePreview: ['mask_edge_quality'], requiredBeforeFinalExport: ['mask_edge_quality', 'mask_subject_coverage'] },
   sam2: { ...empty, gateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'], requiredBeforePreview: ['mask_temporal_stability'], requiredBeforeFinalExport: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'] },
+  comfyui: {
+    ...empty,
+    gateTypes: ['render_asset_integrity', 'enhancement_artifacts'],
+    requiredBeforePreview: ['render_asset_integrity'],
+    requiredBeforeFinalExport: ['render_asset_integrity', 'enhancement_artifacts'],
+    notes: ['Generated opaque PNG integrity only; Living Frame alpha, continuity, fact, destination, manifest, and private-review gates remain downstream.'],
+  },
   transparent_background: { ...empty, gateTypes: ['mask_edge_quality', 'mask_subject_coverage'], requiredBeforePreview: ['mask_edge_quality'] },
   rembg: { ...empty, gateTypes: ['mask_edge_quality', 'mask_subject_coverage'], requiredBeforePreview: ['mask_edge_quality'] },
   opencolorio: { ...empty, gateTypes: ['color_exposure', 'color_skin_tone', 'color_export_space', 'color_shot_match'], requiredBeforePreview: ['color_exposure'], requiredBeforeFinalExport: ['color_exposure', 'color_skin_tone', 'color_export_space', 'color_shot_match'] },

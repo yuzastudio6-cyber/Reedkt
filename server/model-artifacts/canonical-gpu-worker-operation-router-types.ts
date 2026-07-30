@@ -1,4 +1,10 @@
 import type {
+  CanonicalComfyUiGpuRuntimeRunnerRequest,
+} from './canonical-comfyui-gpu-runtime-request-types'
+import type {
+  CanonicalComfyUiGpuRuntimeSuccessWireResponse,
+} from './canonical-comfyui-gpu-runtime-result-types'
+import type {
   CanonicalFasterWhisperGpuRuntimeRunnerRequest,
 } from './canonical-faster-whisper-gpu-runtime-request-types'
 import type {
@@ -23,16 +29,19 @@ export const CANONICAL_GPU_WORKER_OPERATION_ROUTER_RECEIPT_VERSION =
   'canonical-gpu-worker-operation-router-receipt-v1' as const
 
 export type CanonicalGpuWorkerOperationId =
+  | 'tool.comfyui.generate_controlled_image.v1'
   | 'tool.faster_whisper.transcribe_private_audio.v1'
   | 'tool.rembg.remove_image_background.v1'
   | 'tool.sam2.segment_and_track_subject.v1'
 
 export type CanonicalGpuWorkerRuntimeRequest =
+  | CanonicalComfyUiGpuRuntimeRunnerRequest
   | CanonicalFasterWhisperGpuRuntimeRunnerRequest
   | CanonicalRembgGpuRuntimeRunnerRequest
   | CanonicalSam2GpuRuntimeRunnerRequest
 
 export type CanonicalGpuWorkerRuntimeSuccessWireResponse =
+  | CanonicalComfyUiGpuRuntimeSuccessWireResponse
   | CanonicalFasterWhisperGpuRuntimeSuccessWireResponse
   | CanonicalRembgGpuRuntimeSuccessWireResponse
   | CanonicalSam2GpuRuntimeSuccessWireResponse

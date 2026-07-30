@@ -540,7 +540,7 @@ function buildGroup(input: {
 
 export function buildProfessionalToolArchitectureProgramMap(): ProfessionalToolArchitectureProgramMap {
   // The execution/planning architecture is derived only from the exact
-  // canonical private E2E production identities. The historical 22 candidate
+  // canonical private E2E production identities. The 23 current candidate
   // identities remain in the non-E2E catalog and cannot acquire a canonical
   // production ID through this map.
   const profiles = [...productionToolProfiles]

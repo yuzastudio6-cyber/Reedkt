@@ -81,6 +81,7 @@ export const NON_E2E_TOOL_CAPABILITY_IDS = [
   'mediapipe',
   'birefnet',
   'sam2',
+  'comfyui',
   'transparent_background',
   'demucs',
   'soundtouch',

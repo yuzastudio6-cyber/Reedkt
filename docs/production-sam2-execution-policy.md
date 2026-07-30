@@ -43,6 +43,16 @@ not download checkpoints or run inference. Missing GPU, CUDA, artifact,
 runtime, capacity, or QA evidence must block SAM2 or use an already approved
 fallback; it must never trigger silent CPU execution.
 
+An adjacent private internal test now proves that the exact pinned SAM2 source
+revision, selected native Meta config, native video-predictor builder, Torch
+2.5.1+cu124, TorchVision 0.20.1+cu124, and CUDA 12.4 build are present and
+importable in the measured local GPU-worker proof image. The derived wrapper
+runs model-free as UID/GID 65532 with a fixed entrypoint, no network, read-only
+root, no capabilities, no caller arguments, and no model mounts. This is
+local CPU-emulated source/config/runtime packaging evidence only. It does not
+qualify the image, checkpoint, L4 runtime, deserialization, inference, output,
+QA, cost, dispatch, or production boundary.
+
 The first byte-producing output contract is a private gray8 FFV1 Matroska
 mask sequence with source dimensions, frame count, and timing preserved, plus
 private JSON analysis and QA reports. The legacy planning-only mask-sequence

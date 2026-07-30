@@ -68,6 +68,17 @@ allowlist, read-only root, zero network, zero capabilities, and no prompt,
 model, GPU, artifact, dispatch, or cost action. It does not discharge the
 five-model/L4 gate.
 
+The exact local GPU-worker proof image is likewise host-specific. When it is
+present,
+`smoke:living-frame-sam2-local-runtime-confinement-internal-test`
+additionally proves the pinned SAM2 source revision, selected native Meta
+config, Apache-2.0 license bytes, native video-predictor builder, Torch
+2.5.1+cu124, TorchVision 0.20.1+cu124, and CUDA 12.4 build under a derived
+fixed-entrypoint, non-root, read-only, zero-network, zero-capability
+confinement. It rejects caller arguments, root override, and unexpected model
+mounts. It loads no checkpoint, performs no inference, and does not discharge
+the checkpoint/L4 gate.
+
 ## Honest result
 
 Passing this audit proves that the currently executable private Living Frame
@@ -77,9 +88,11 @@ pass must still report two open internal runtime gates:
 1. exact ComfyUI controlled generation needs the released five-model bundle and
    real L4 execution evidence; and
 2. advanced temporal Living A-Roll subject masking has an exact namespaced
-   source-video/SAM2 work-admission candidate plus a verified byte-output and
-   downstream QA path, but model inference still needs canonical work-graph
-   admission plus an approved SAM2 checkpoint.
+   source-video/SAM2 work-admission candidate, a verified byte-output and
+   downstream QA path, canonical backend work-graph admission frozen at
+   `576ca54b`, and a model-free local source/config/runtime confinement pass.
+   Model inference still needs the approved SAM2 checkpoint ingest/read-only
+   mount plus a real L4/CUDA run and measured mask QA.
 
 These are genuine internal execution dependencies. They are not waived merely
 because customer release is out of scope. Until both exist, the audit status is

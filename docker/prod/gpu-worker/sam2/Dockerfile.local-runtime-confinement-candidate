@@ -1,0 +1,11 @@
+FROM reeditpro/ai-graphics-gpu-worker:proof-local@sha256:8f83b1b549daac2800c8d86ef785be669340e8b504f948804209c7800fc76df4
+
+LABEL org.reeditpro.living-frame.runtime-class="sam2-model-free-local-runtime-confinement-candidate"
+LABEL org.reeditpro.living-frame.parent-image-sha256="8f83b1b549daac2800c8d86ef785be669340e8b504f948804209c7800fc76df4"
+LABEL org.reeditpro.living-frame.entrypoint-source-sha256="603c450cf046f08efc166aec10fbf4f7b193171657a48d1c1303e69c6f4612e8"
+
+COPY local-runtime-confinement-entrypoint.py /opt/reeditpro/local-sam2-runtime-confinement-entrypoint.py
+
+USER 65532:65532
+WORKDIR /tmp
+ENTRYPOINT ["/usr/bin/python3", "-I", "-B", "/opt/reeditpro/local-sam2-runtime-confinement-entrypoint.py"]

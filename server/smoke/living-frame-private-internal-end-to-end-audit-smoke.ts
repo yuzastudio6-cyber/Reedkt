@@ -353,7 +353,7 @@ const receipt = {
       gate:
         'advanced_temporal_living_a_roll_subject_mask',
       reason:
-        'namespaced_source_video_and_sam2_work_candidate_plus_byte_output_and_qa_path_pass_but_shared_work_graph_admission_and_approved_sam2_checkpoint_are_unavailable_for_inference',
+        'namespaced_source_video_and_sam2_work_candidate_plus_byte_output_and_qa_path_pass_canonical_owner_admission_is_frozen_at_576ca54b_and_model_free_local_source_config_runtime_confinement_passes_but_approved_checkpoint_mount_and_real_l4_inference_remain_unavailable',
     },
   ],
   internalEndToEndReadyForOwnerReview: false,

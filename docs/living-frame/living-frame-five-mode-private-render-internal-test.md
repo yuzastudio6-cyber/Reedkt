@@ -14,7 +14,7 @@ This internal test proves that Living Frame's product definition is executable
 across all five modes. It is not a metadata-only capability matrix and it does
 not equate Living Frame with a universal 2.5D treatment.
 
-One real 180-frame, 640×360, 30 FPS private Remotion artifact contains six
+One real 210-frame, 640×360, 30 FPS private Remotion artifact contains seven
 frame-accurate ranges:
 
 1. `living_a_roll`;
@@ -22,7 +22,8 @@ frame-accurate ranges:
 3. `living_archive`;
 4. `living_diagram`;
 5. `hybrid_expansion`; and
-6. deliberate non-use for an emotionally sensitive range.
+6. deliberate non-use for an emotionally sensitive range; and
+7. a static-card fallback when richer motion is not justified or available.
 
 All Living Frame layers remain below the caption plane. The source plate and
 audio remain owned by the existing final composition, and the resulting MP4 is
@@ -83,6 +84,18 @@ cyan, green, or purple Living Frame components while retaining the source and
 caption planes. This is runtime evidence that restraint is an executable
 professional decision rather than documentation-only guidance.
 
+### Fallback treatments
+
+The artifact exercises three real fallback rungs:
+
+- a safe-space overlay instead of unqualified temporal A-roll masking;
+- a static card instead of unsupported or unnecessary richer motion; and
+- no extra visual when source delivery must remain primary.
+
+The static card remains below captions and uses a constant approved scalar
+track, proving that the fallback does not require fake motion to satisfy the
+renderer contract.
+
 ## Runtime and QA evidence
 
 The test executes:
@@ -103,7 +116,7 @@ The expected final artifact is:
 H.264 MP4
 640×360
 30/1 FPS
-180 frames
+210 frames
 ```
 
 ## Authority boundary

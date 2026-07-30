@@ -42,7 +42,7 @@ const width = 640
 const height = 360
 const fps = 30
 const sceneFrameCount = 30
-const durationFrames = sceneFrameCount * 6
+const durationFrames = sceneFrameCount * 7
 
 const sceneRanges = {
   livingARoll: range(0),
@@ -51,6 +51,7 @@ const sceneRanges = {
   livingDiagram: range(3),
   hybridExpansion: range(4),
   deliberateNonUse: range(5),
+  staticCardFallback: range(6),
 } as const
 
 const fixtureRoot = await mkdtemp(
@@ -71,6 +72,7 @@ const fixturePaths = {
   archiveNear: join(fixtureRoot, 'archive-near.png'),
   diagram: join(fixtureRoot, 'diagram.png'),
   hybrid: join(fixtureRoot, 'hybrid.png'),
+  staticFallback: join(fixtureRoot, 'static-fallback.png'),
 } as const
 
 const colorMatchers = {
@@ -95,6 +97,9 @@ const colorMatchers = {
     return red > 90 && red < 190 &&
       green > 55 && green < 150 &&
       blue > 160
+  },
+  white(red: number, green: number, blue: number) {
+    return red > 225 && green > 225 && blue > 225
   },
 } as const
 
@@ -153,6 +158,15 @@ try {
       'drawbox=x=0:y=0:w=640:h=360:color=0x8B5CF6@0.94:t=fill:replace=1',
       'drawbox=x=70:y=64:w=500:h=18:color=0xF5F3FF@0.92:t=fill:replace=1',
       'drawbox=x=70:y=112:w=360:h=14:color=0xF5F3FF@0.92:t=fill:replace=1',
+    ],
+  )
+  makeTransparentOverlay(
+    fixturePaths.staticFallback,
+    [
+      'drawbox=x=170:y=78:w=300:h=190:color=0xF8FAFC@1:t=fill:replace=1',
+      'drawbox=x=202:y=118:w=236:h=16:color=0x334155@1:t=fill:replace=1',
+      'drawbox=x=202:y=158:w=184:h=12:color=0x64748B@1:t=fill:replace=1',
+      'drawbox=x=202:y=192:w=214:h=12:color=0x64748B@1:t=fill:replace=1',
     ],
   )
 
@@ -389,6 +403,40 @@ try {
         ],
       }),
     }),
+    layer({
+      sceneId: 'living-frame-fallback-static-card',
+      layerId: 'lf-mode-70-static-card-fallback',
+      componentOutputKey:
+        'lf-mode-static-card-fallback',
+      manifestOutputKey:
+        'lf-mode-static-card-fallback-manifest',
+      fixtureKey: 'staticFallback',
+      timeRange: sceneRanges.staticCardFallback,
+      motionSpec: motionSpec({
+        sceneId:
+          'living-frame-fallback-static-card',
+        componentId:
+          'lf-mode-static-card-fallback',
+        timeRange: sceneRanges.staticCardFallback,
+        visualVerb: 'hold',
+        depthStyle: 'flat',
+        depthBand: 'in_front_of_subject',
+        parallaxFactor: 0,
+        tracks: [
+          track(
+            'static-card-hold',
+            0,
+            'layer',
+            'opacity',
+            'primary',
+            [
+              [0, 1, 'hold'],
+              [29, 1, 'hold'],
+            ],
+          ),
+        ],
+      }),
+    }),
   ] as const
 
   await prepareOfflineRemotionDockerRuntime()
@@ -547,6 +595,7 @@ try {
     90, 108, 119,
     120, 134, 149,
     165,
+    195,
   ] as const
   const sampledFrames = extractFrames(
     renderedPath,
@@ -679,6 +728,11 @@ try {
       25,
   )
 
+  const staticFallbackWhite =
+    colorStats(frame(195), colorMatchers.white).count
+  assert.ok(staticFallbackWhite > 45_000)
+  assertCaptionAboveLivingFrame(frame(195))
+
   const probe = probeRenderedVideo(renderedPath)
   assert.equal(probe.width, width)
   assert.equal(probe.height, height)
@@ -704,6 +758,11 @@ try {
       'hybrid_expansion',
     ],
     deliberateNonUseRendered: true,
+    fallbackTreatmentsRendered: [
+      'safe_space_overlay',
+      'static_card',
+      'no_extra_visual',
+    ],
     livingARoll: {
       safeSpaceFallbackExercised: true,
       focusHandoffRenderedAndMeasured: true,
@@ -729,6 +788,10 @@ try {
     nonUse: {
       emotionalDeliveryProtectionRangeRendered: true,
       noLivingFrameOverlayObserved: true,
+    },
+    staticFallback: {
+      staticCardRenderedWithoutUnsupportedMotion: true,
+      captionPlanePreserved: true,
     },
     captionPlaneObservedAboveEveryMode: true,
     persistedPrivateArtifactReopenedAndVerified: true,
@@ -976,11 +1039,11 @@ function makeSource(path: string): void {
     '-f',
     'lavfi',
     '-i',
-    `color=c=0x202938:size=${width}x${height}:rate=${fps}:duration=6`,
+    `color=c=0x202938:size=${width}x${height}:rate=${fps}:duration=${durationFrames / fps}`,
     '-f',
     'lavfi',
     '-i',
-    'sine=frequency=330:sample_rate=48000:duration=6',
+    `sine=frequency=330:sample_rate=48000:duration=${durationFrames / fps}`,
     '-vf',
     [
       'drawgrid=width=16:height=16:thickness=2:color=0x64748B@0.9',

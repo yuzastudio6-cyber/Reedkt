@@ -112,12 +112,14 @@ Actual private renders supplement the connected source-level trace:
   sub-perceptual fade frames from missing overlays without relaxing materially
   visible-frame requirements.
 - `server/smoke/living-frame-five-mode-private-render-smoke.ts` renders one
-  frame-accurate 180-frame private artifact containing all five Living Frame
-  modes plus deliberate non-use. Real decoded-pixel assertions prove A-roll
+  frame-accurate 210-frame private artifact containing all five Living Frame
+  modes, deliberate non-use, and a static-card fallback. Real decoded-pixel
+  assertions prove A-roll
   focus handoff and restoration, selective mechanical component rotation,
   archive differential parallax, deterministic diagram reveal, hybrid
-  expansion and return, caption-plane priority in every range, and the absence
-  of Living Frame overlays in the restraint range.
+  expansion and return, caption-plane priority in every range, the absence
+  of Living Frame overlays in the restraint range, and a readable static card
+  without unsupported motion.
 - `server/smoke/living-frame-confirmed-ratio-private-render-smoke.ts` renders
   real 360×640 portrait and 480×600 custom-frame hybrid scenes, persists and
   reopens both private MP4s, and proves exact dimensions, expansion/return, and

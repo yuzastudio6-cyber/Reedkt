@@ -1,6 +1,7 @@
 # Living Frame SAM2 Local Runtime-Confinement Internal Test
 
-Status: `controlled_non_promotable_local_runtime_passed`
+Status: `controlled_non_promotable_local_runtime_passed`;
+L4 admission is additionally blocked by the critical Torch vulnerability gate.
 
 ## Outcome
 
@@ -70,9 +71,17 @@ bytes, media bytes, or output bytes.
 Passing this test proves only that the model-free SAM2 source/config/runtime
 can start inside the measured local confinement boundary.
 
+The later independent vulnerability evidence binds the required
+`torch 2.5.1+cu124` runtime to critical `CVE-2025-32434`, fixed in Torch
+`2.6.0`. Because the fixed runner rejects any other Torch version, the
+canonical owner must publish a versioned hardened SAM2 source/runtime contract
+and compatible TorchVision/CUDA matrix before an L4 attempt. See
+`docs/living-frame/living-frame-sam2-runtime-vulnerability-gate.md`.
+
 It does not prove:
 
 - canonical signed/scanned image release;
+- a hardened Torch/TorchVision/CUDA runtime contract;
 - the approved `184,416,285`-byte checkpoint repository ingest;
 - read-only checkpoint distribution or mount;
 - exact source-config/checkpoint deserialization;

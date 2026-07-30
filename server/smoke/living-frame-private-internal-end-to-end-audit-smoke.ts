@@ -303,6 +303,39 @@ const cases: readonly AuditCase[] = [
     },
   },
   {
+    id: 'sam2_runtime_vulnerability_admission_gate',
+    relativePath:
+      'server/smoke/living-frame-sam2-runtime-vulnerability-gate-smoke.ts',
+    expectedJsonStatus: 'passed',
+    validate(receipt) {
+      assert.equal(
+        receipt.vulnerableTorchVersion,
+        '2.5.1+cu124',
+      )
+      assert.equal(
+        receipt.vulnerabilityId,
+        'CVE-2025-32434',
+      )
+      assert.equal(
+        receipt.minimumFixedTorchVersion,
+        '2.6.0',
+      )
+      assert.equal(receipt.severity, 'CRITICAL')
+      assert.equal(
+        receipt.sourceContractVersionBumpRequired,
+        true,
+      )
+      assert.equal(
+        receipt.currentRuntimeAdmittedForL4,
+        false,
+      )
+      assert.equal(receipt.operationRegistered, false)
+      assert.equal(receipt.dispatchGranted, false)
+      assert.equal(receipt.runtimeExecuted, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  },
+  {
     id: 'temporal_mask_byte_output_and_measurement',
     relativePath:
       'server/smoke/living-frame-temporal-mask-private-output-contract-internal-test-smoke.ts',
@@ -393,6 +426,7 @@ const receipt = {
     'actual_style_adaptive_flat_editorial_shallow_paper_collage_and_deep_anime_rendering',
     'paper_collage_mechanical_wheel_decomposition_rotation_and_static_rod_compositing',
     'selected_scene_temporal_source_video_and_sam2_work_admission_candidate',
+    'sam2_critical_torch_vulnerability_and_versioned_runtime_contract_gate',
     'real_gray8_ffv1_temporal_mask_output_decode_measurement_persistence_and_review_frames',
     'render_fallbacks',
     'canonical_private_review_lineage',
@@ -408,7 +442,7 @@ const receipt = {
       gate:
         'advanced_temporal_living_a_roll_subject_mask',
       reason:
-        'canonical_ffmpeg_to_sam2_work_admission_is_frozen_at_576ca54b_and_fixed_runner_router_plus_exact_private_checkpoint_read_only_mount_and_hard_cuda_refusal_are_frozen_at_3e59ce45_but_real_l4_inference_private_output_resource_and_mask_qa_evidence_remain_unavailable',
+        'canonical_ffmpeg_to_sam2_work_admission_is_frozen_at_576ca54b_and_fixed_runner_router_plus_exact_private_checkpoint_read_only_mount_and_hard_cuda_refusal_are_frozen_at_3e59ce45_but_the_fixed_runner_requires_torch_2_5_1_cu124_which_is_bound_to_critical_cve_2025_32434_so_a_versioned_hardened_parent_torch_torchvision_cuda_contract_and_real_l4_inference_private_output_resource_and_mask_qa_evidence_remain_required',
     },
   ],
   internalEndToEndReadyForOwnerReview: false,

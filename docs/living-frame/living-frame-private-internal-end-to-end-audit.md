@@ -55,9 +55,11 @@ The aggregate audit executes:
 13. canonical private-review lineage;
 14. the exact selected-scene source-video → normalized subject prompt → SAM2
     temporal-mask work-admission candidate;
-15. a real gray8 FFV1 temporal-mask output through decode, stability
+15. the exact SAM2 runtime/parent/Torch vulnerability admission gate, including
+    the required versioned hardened source/runtime replacement;
+16. a real gray8 FFV1 temporal-mask output through decode, stability
     measurement, create-only persistence, and review frames; and
-16. the exact temporal-mask work-graph conflict.
+17. the exact temporal-mask work-graph conflict.
 
 Every subprocess is bounded, uses the pinned workspace `tsx` executable, and
 returns only an output digest plus structured status to the aggregate receipt.
@@ -72,7 +74,8 @@ proves model-free startup with a default non-root derived image, fixed
 entrypoint, scrubbed environment, `sam2` denial, the reviewed two-node
 allowlist, read-only root, zero network, zero capabilities, and no prompt,
 model, GPU, artifact, dispatch, or cost action. It does not discharge the
-five-model/L4 gate.
+five-model/L4 gate, and the independently extracted metadata now blocks the
+image pending a hardened rebuild and complete scan.
 
 When the exact five private model artifacts are also present,
 `smoke:living-frame-comfyui-five-model-local-mount-internal-test` runs a
@@ -126,7 +129,12 @@ config, Apache-2.0 license bytes, native video-predictor builder, Torch
 fixed-entrypoint, non-root, read-only, zero-network, zero-capability
 confinement. It rejects caller arguments, root override, and unexpected model
 mounts. It loads no checkpoint, performs no inference, and does not discharge
-the checkpoint/L4 gate.
+the checkpoint/L4 gate. The fixed runner also requires Torch `2.5.1+cu124`.
+The independently verified vulnerability evidence binds that exact version to
+critical `CVE-2025-32434`, fixed in Torch `2.6.0`. Therefore a new versioned
+SAM2 source/runtime contract with a compatible TorchVision/CUDA matrix,
+hardened image, complete scan, and repeated checkpoint/runtime validation is
+required before any real L4 attempt.
 
 ## Honest result
 
@@ -145,16 +153,22 @@ pass must still report two open internal runtime gates:
    `canonical-comfyui-gpu-runtime-request-candidate-v1` input lease without
    invoking or duplicating the canonical compiler. The exact offline package
    now builds into a fixed non-root private image.
-   That image is not yet independently scanned, signed, or released, and no
-   complete L4 model load, output, resource, persistence, or QA evidence
-   exists; and
+   A checksum-verified partial metadata scan found one unique critical and 16
+   unique high Python findings; full-image and OS coverage are still absent.
+   The image is therefore blocked pending a hardened rebuild, complete
+   independent Linux-host scan, finding/license/VCS disposition, signature,
+   and complete L4 model load, output, resource, persistence, and QA evidence;
+   and
 2. advanced temporal Living A-Roll subject masking has an exact namespaced
    source-video/SAM2 work-admission candidate, a verified byte-output and
    downstream QA path, canonical backend work-graph admission frozen at
    `576ca54b`, and a fixed runner/router plus exact private checkpoint
    read-only-mount/CUDA-refusal handoff frozen at backend commit `3e59ce45`.
-   Model inference still needs a real L4/CUDA run, private output persistence,
-   a resource receipt, and measured mask QA.
+   That frozen runner requires vulnerable Torch `2.5.1+cu124`, so a versioned
+   hardened parent plus compatible Torch/TorchVision/CUDA contract must be
+   released and revalidated before model inference. It then still needs a real
+   L4/CUDA run, private output persistence, a resource receipt, and measured
+   mask QA.
 
 These are genuine internal execution dependencies. They are not waived merely
 because customer release is out of scope. Until both exist, the audit status is

@@ -3081,6 +3081,31 @@ reconciliation freezes that exact shared-owner conflict without changing the
 selected scene or canonical motion. Retained rotations still require approved
 component-rig pivots and pivot-physics QA before renderer admission.
 
+### Selected-scene environmental particle admission
+
+`living-frame-selected-scene-environmental-particle-admission-v1` now binds
+the selected environmental component to its exact selected-scene,
+MasterTiming, confirmed-frame, geometry, activation, capability, and
+selective-motion lineage. It derives a server-owned deterministic seed digest
+and the exact active frame range without accepting caller particle settings,
+dimensions, seed, prompt, paths, URLs, bytes, credentials, commands, or
+environment.
+
+The candidate does not infer dust, smoke, fog, rain, or another physical
+treatment from a component ID or human-readable summary. The current selected
+scene contract has no immutable typed environmental-effect profile, so exact
+physics and appearance remain blocked on a canonical profile reference.
+
+PixiJS remains the existing tool identity. No separate particle tool identity
+is created. Its current operation renders one opaque 640×360 static review
+card PNG, while Living Frame requires a time-sampled transparent procedural
+primitive. The current Remotion Living Frame input also accepts one static PNG
+per overlay. The candidate therefore records one exact shared-interface
+conflict spanning the typed profile, the bounded PixiJS operation extension,
+and the Remotion time-sampled overlay adapter. It does not register an
+operation, dispatch work, create an asset or cost, mutate either shared
+runtime, or claim private/production readiness.
+
 The downstream Sharp alpha-component authority accepts exactly one approved
 source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg
 mask PNG. It continues to use the existing straight-alpha recipe and canonical

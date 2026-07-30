@@ -21,6 +21,15 @@ They are capabilities inside one GPU attempt, not six new tool identities and
 not five separately billed attempts. AuraFace is excluded and remains an
 optional, separately metered CPU continuity check.
 
+`Dockerfile.local-confinement-candidate` and
+`local-candidate-confinement-entrypoint.py` are a separate internal-test-only
+compatibility wrapper for the exact already measured local image. They prove
+default non-root startup, a fixed entrypoint, environment scrubbing,
+operation-scoped `sam2` denial, the two-node allowlist, and container
+confinement under CPU emulation. They do not implement the canonical offline
+package layout, mount model artifacts, run inference, authorize dispatch, or
+define the released L4 image.
+
 ## Offline build inputs
 
 The future canonical image build must receive, through a reviewed build-input
@@ -127,3 +136,7 @@ L4 startup and generation benchmarks, exact model compatibility checks,
 license review—including disposition of the inherited direct-VCS
 distribution—official resource-cost evidence, and canonical private end-to-end
 review.
+
+The internal compatibility wrapper also currently needs bounded stop
+escalation under Apple-host CPU emulation. Its receipt preserves that finding
+and keeps the released process-shutdown contract open.

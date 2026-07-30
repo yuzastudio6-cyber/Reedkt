@@ -184,6 +184,21 @@ were mounted and no generation or GPU inference ran. This is controlled
 non-promotable startup evidence only; it does not qualify the future image,
 installer execution, L4 behavior, or production route.
 
+That observation is now reproducible through
+`smoke:living-frame-comfyui-local-confinement-internal-test`. A
+source-controlled local derived wrapper sets default UID/GID `65532:65532`
+and a fixed entrypoint, scrubs an injected caller environment value, rejects
+caller arguments and a root override, applies the exact `sam2` guard before
+ComfyUI loads, and proves that the two reviewed custom nodes actually load
+under a read-only-root, zero-network, drop-all-capabilities,
+no-new-privileges container. It mounts no models and submits no prompt.
+
+The CPU-emulated process currently requires bounded Docker stop escalation
+and exits 137. The evidence records that fact and leaves released process
+shutdown open. The derived wrapper retains the measured local image's
+`/opt/ComfyUI` compatibility layout, so it is not the canonical offline
+package image and cannot satisfy the released fixed-process/L4 gate.
+
 ## Cost behavior
 
 - completed, failed, and outcome-unknown attempts remain distinct terminal

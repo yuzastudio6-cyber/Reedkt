@@ -1,0 +1,11 @@
+FROM reeditpro-living-frame-comfyui-locked-candidate:local@sha256:1de2c0415c477537dc4035a0550cec1859b8e5c5719647a64c0172962a770a64
+
+LABEL org.reeditpro.living-frame.runtime-class="controlled-local-confinement-candidate"
+LABEL org.reeditpro.living-frame.parent-image-sha256="1de2c0415c477537dc4035a0550cec1859b8e5c5719647a64c0172962a770a64"
+LABEL org.reeditpro.living-frame.entrypoint-source-sha256="1f12a36bbdea0f8aa51dd247a085db4d8658df71cd5d7ddac0bbec88df01055a"
+
+COPY local-candidate-confinement-entrypoint.py /opt/reeditpro/local-confinement-entrypoint.py
+
+USER 65532:65532
+WORKDIR /opt/ComfyUI
+ENTRYPOINT ["/usr/bin/python3", "-I", "-B", "/opt/reeditpro/local-confinement-entrypoint.py"]

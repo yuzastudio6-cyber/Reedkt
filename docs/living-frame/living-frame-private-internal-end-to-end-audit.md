@@ -58,6 +58,16 @@ returns only an output digest plus structured status to the aggregate receipt.
 The aggregate receipt does not expose artifact bytes, local paths, prompts,
 credentials, commands, or customer pricing.
 
+The exact local ComfyUI image is host-specific and therefore remains an
+adjacent conditional internal test rather than one of the 14 portable
+aggregate cases. When that exact image is present,
+`smoke:living-frame-comfyui-local-confinement-internal-test` additionally
+proves model-free startup with a default non-root derived image, fixed
+entrypoint, scrubbed environment, `sam2` denial, the reviewed two-node
+allowlist, read-only root, zero network, zero capabilities, and no prompt,
+model, GPU, artifact, dispatch, or cost action. It does not discharge the
+five-model/L4 gate.
+
 ## Honest result
 
 Passing this audit proves that the currently executable private Living Frame

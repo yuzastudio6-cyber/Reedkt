@@ -51,6 +51,13 @@ That digest is evidence for the exact local image
 `1de2c0415c477537dc4035a0550cec1859b8e5c5719647a64c0172962a770a64`.
 It must change if the image inventory changes.
 
+A separate internal-test-only derived wrapper now proves that this exact
+parent can start with default UID/GID `65532:65532`, a fixed entrypoint,
+environment scrubbing, the `sam2` guard, and the reviewed two-node allowlist
+inside a read-only, zero-network container. That wrapper does not alter this
+SBOM disposition: it is local, unsigned, unscanned, model-free, CPU-emulated,
+and not the canonical offline-package image.
+
 ## Findings
 
 The inventory exposed two release-policy failures that the wheel/source lock
@@ -149,6 +156,10 @@ Before the image can be admitted:
 7. Re-run the same inventory against that release digest.
 8. Complete the L4, model-artifact, operation, cost, QA, and private-review
    gates.
+
+The local wrapper also exposes one honest process-lifecycle finding: Apple-host
+CPU emulation currently requires bounded stop escalation. The released
+runner/process shutdown contract must still be proven on the actual L4 image.
 
 No tool-registry, operation, dispatch, billing, approval, or production
 authority is created by this evidence.

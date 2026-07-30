@@ -2908,6 +2908,28 @@ The measured local candidate image remains controlled evidence only. Its
 the architecture rejects direct promotion even though its source revisions
 and dependency image digest are pinned.
 
+The follow-on source-defined pruned image checkpoint resolves the previous
+non-reproducible local-derivative and incomplete-scan uncertainty for private
+internal testing. Commit
+`b871bfee33837f00eac297a1f05e866246e9abb0` builds the exact hardened runtime
+from the digest-bound parent with network disabled for install and pruning.
+The resulting Linux AMD64 image is `12,657,934,444` bytes, defaults to
+UID/GID `65532:65532`, retains the fixed runner and `sam2` denial, contains 33
+runtime distributions, and contains no model weights.
+
+Pinned Trivy `0.72.0` completed OS/Python vulnerability scanning with zero
+critical or high findings, emitted a 691-package SPDX 2.3 SBOM, and completed
+a 6,718-observation full-file license scan. This passes the critical/high
+image gate for the next private L4 review. It does not grant full
+vulnerability clearance or license approval: 745 medium and 132 low
+vulnerability observations plus restricted, reciprocal, unknown, and
+`NOASSERTION` license evidence still require explicit disposition. Canonical
+image ingestion, five-model distribution/mount, signed provenance, real L4
+execution/resource evidence, private output persistence/QA/review, operation
+registration, dispatch, billing, public delivery, and production remain
+false. See
+`docs/living-frame/living-frame-comfyui-pruned-source-build-evidence.md`.
+
 A bounded no-network CPU-emulation startup on 2026-07-29 verified that the
 fixed isolated bootstrap and fixed layout can reach ComfyUI's loopback
 readiness endpoint while loading only the two whitelisted extension folders.

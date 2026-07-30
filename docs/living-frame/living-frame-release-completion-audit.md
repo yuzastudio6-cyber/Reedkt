@@ -100,6 +100,36 @@ The six product-design candidates are not six production tools.
 | PEFT/LoRA | Mounted adapter loaded inside the shared host | Exact artifact identity, safetensors inspection, byte/behavior observations, workflow binding | `qualified_local_candidate`; loaded adapter/base/training rights still require approval |
 | AuraFace | Separate CPU post-generation continuity measurement, never generation conditioning | Exact two-model expectation, pinned CPU image, atomic mount/host session, real network-isolated local inference, post-consumer mutation rejection | `qualified_local_candidate`; distributed mount, policy calibration, fairness/privacy/release gates open |
 
+### ComfyUI pruned source-build update
+
+The ComfyUI row's former
+`blocked_reproducible_build_and_complete_scan_required` disposition is
+superseded for private internal image testing by
+`living-frame-comfyui-pruned-source-build-evidence-v1`.
+
+The exact source-defined pruned image now:
+
+- builds from feature commit
+  `b871bfee33837f00eac297a1f05e866246e9abb0` and the exact hardened parent;
+- is a `12,657,934,444`-byte Linux AMD64 image with UID/GID `65532:65532`;
+- passes strict non-root, read-only-root, zero-network, zero-capability,
+  no-new-privileges verification;
+- preserves the fixed runner, exact hardened package matrix, and `sam2` import
+  denial;
+- contains 33 runtime distributions and no model weights;
+- completes OS and Python vulnerability scanning with 877 findings, zero
+  critical, and zero high;
+- emits an SPDX 2.3 SBOM with 691 packages; and
+- completes the full-file license scan with 6,718 observations.
+
+The current disposition is
+`internal_l4_image_candidate_manual_and_canonical_gates_open`. This is not
+full vulnerability clearance or license approval. Medium/low vulnerability,
+restricted/reciprocal/unknown license, direct-VCS, signed provenance,
+canonical ingest, distributed five-model mount, real L4 graph/resource,
+private persistence/QA/review, dispatch, billing, public delivery, and
+production gates remain open.
+
 Cost ownership is also frozen:
 
 - the first five capabilities are one shared ComfyUI GPU attempt and are not

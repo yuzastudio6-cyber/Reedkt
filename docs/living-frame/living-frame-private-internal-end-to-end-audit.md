@@ -45,29 +45,34 @@ The aggregate audit executes:
    scan and release denial preserved;
 9. the exact digest-bound `docker save` archive-input scan attempt, its
    no-report timeout, and complete temporary artifact cleanup;
-10. a real Remotion render covering all five Living Frame modes, deliberate
+10. the source-defined pruned hardened image build, strict non-root
+    verification, complete OS/Python vulnerability scan with zero
+    critical/high findings, SPDX SBOM, and complete full-file license scan,
+    while manual vulnerability/license and every execution authority remain
+    closed;
+11. a real Remotion render covering all five Living Frame modes, deliberate
    non-use, multiple depth styles, attention, caption priority, sound, and
    fallbacks;
-11. real portrait and custom non-square confirmed-frame renders without square
+12. real portrait and custom non-square confirmed-frame renders without square
    substitution;
-12. the complete selected-scene PixiJS environmental-particle slice through
+13. the complete selected-scene PixiJS environmental-particle slice through
    Remotion, create-only persistence, media QA, and private-review evidence;
-13. the real Musashi illustration through alpha, exact destination composite,
+14. the real Musashi illustration through alpha, exact destination composite,
    base/sword-arm/hair/robe decomposition, deterministic bounded shoulder-plate
    reconstruction, a synchronized articulated strike, Remotion, captions,
    sound, media QA, and retained review frames;
-14. real generated flat-editorial and paper-collage alpha fixtures through
+15. real generated flat-editorial and paper-collage alpha fixtures through
    adaptive flat and shallow-2.5D Remotion scenes, measured spatial behavior,
    caption priority, create-only persistence, and retained review frames;
-15. semantic sound timing reconciliation;
-16. canonical private-review lineage;
-17. the exact selected-scene source-video → normalized subject prompt → SAM2
+16. semantic sound timing reconciliation;
+17. canonical private-review lineage;
+18. the exact selected-scene source-video → normalized subject prompt → SAM2
     temporal-mask work-admission candidate;
-18. the exact SAM2 runtime/parent/Torch vulnerability admission gate, including
+19. the exact SAM2 runtime/parent/Torch vulnerability admission gate, including
     the required versioned hardened source/runtime replacement;
-19. a real gray8 FFV1 temporal-mask output through decode, stability
+20. a real gray8 FFV1 temporal-mask output through decode, stability
     measurement, create-only persistence, and review frames; and
-20. the exact temporal-mask work-graph conflict.
+21. the exact temporal-mask work-graph conflict.
 
 Every subprocess is bounded, uses the pinned workspace `tsx` executable, and
 returns only an output digest plus structured status to the aggregate receipt.
@@ -134,6 +139,20 @@ projection and found 40 unique Python findings, including one critical and
 image is therefore explicitly blocked pending a hardened rebuild, complete
 Linux-host image scan, finding/license/VCS disposition, signature, distributed
 mount, L4, output, resource, persistence, and QA evidence.
+
+That former rebuild-and-scan gap is now narrowed by the adjacent
+`living-frame-comfyui-pruned-source-build-evidence-v1` checkpoint. A
+source-defined, network-disabled Linux AMD64 image was built from the exact
+hardened parent and pruned closure, then verified under UID/GID `65532:65532`,
+a read-only root, no network, no capabilities, and no-new-privileges. Pinned
+Trivy `0.72.0` completed OS and Python vulnerability scanning with 877 total
+findings and zero critical/high findings, emitted an SPDX 2.3 SBOM with 691
+packages, and completed a full-file license scan with 6,718 observations.
+Manual medium/low vulnerability, restricted/reciprocal/unknown license,
+direct-VCS, signature/provenance, and canonical-ingest disposition remain
+open. The evidence permits the next private L4 review from the image-security
+perspective but does not itself dispatch, mount models, execute a graph, create
+an asset/cost receipt, or grant customer/public/production authority.
 
 When the exact two private AuraFace ONNX artifacts and a synthetic
 single-person portrait are injected,

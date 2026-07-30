@@ -417,9 +417,14 @@ function sourceLedPlanPresentationFixture(): Record<string, unknown> {
     derivation: {
       sourceMetadataAuthority:
         'server_reverified_finalized_upload_ffprobe',
-      editDirectionAuthority: 'server_reverified_ready_edit_brief',
+      editDirectionAuthority:
+        'server_reverified_chat_preferences_and_optional_edit_brief',
       exactPreferenceAuthority:
         'server_reverified_exact_edit_preferences',
+      chatDirectionAuthority: 'server_reverified_named_edit_chat',
+      chatDirectionCount: 1,
+      chatThreadRevision: 1,
+      chatDirectionAuthorityDigestSha256: '7'.repeat(64),
       browserPlanAccepted: false,
       browserTimingAccepted: false,
       sourceRangePolicy: 'preserve_every_verified_source_frame',
@@ -435,6 +440,7 @@ function sourceLedPlanPresentationFixture(): Record<string, unknown> {
       sourceObjectReread: true,
       exactPreferenceReread: true,
       editBriefReread: true,
+      chatDirectionReread: true,
     },
     publicationRequest: {
       schemaVersion:

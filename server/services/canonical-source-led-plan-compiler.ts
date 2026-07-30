@@ -26,7 +26,7 @@ export interface CanonicalSourceLedPlanCompilation {
   canonicalDraft: CanonicalPlanningDraft
   evidence: {
     sourceMetadataAuthority: 'server_reverified_finalized_upload_ffprobe'
-    editDirectionAuthority: 'server_reverified_ready_edit_brief'
+    editDirectionAuthority: 'server_reverified_chat_preferences_and_optional_edit_brief'
     exactPreferenceAuthority: 'server_reverified_exact_edit_preferences'
     browserPlanAccepted: false
     browserTimingAccepted: false
@@ -42,9 +42,10 @@ export interface CanonicalSourceLedPlanCompilation {
  * Compiles the first honest, deliberately bounded backend plan:
  *
  * - source order and full ranges come from finalized upload + FFprobe evidence;
- * - user direction comes from the persisted ready Edit Brief;
+ * - user direction comes from verified named-edit Chat, exact preferences, and
+ *   an optional persisted ready Edit Brief when the user created one;
  * - edit settings come from exact server-owned preferences;
- * - captions must be explicit confirmed Edit Brief markers;
+ * - captions, when present, must be explicit confirmed Edit Brief markers;
  * - no transcript/content inference, generated media, music, SFX, b-roll, or
  *   content-aware trim is invented.
  *
@@ -54,7 +55,7 @@ export interface CanonicalSourceLedPlanCompilation {
 export function compileCanonicalSourceLedPlan(input: {
   plannerInput: PlannerInput
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
-  editBrief: EditBriefRecord
+  editBrief?: EditBriefRecord
   confirmedCaptionMarkers: EditBriefMarkerRecord[]
 }): CanonicalSourceLedPlanCompilation {
   assertBoundedSourceLedInput(input)
@@ -99,7 +100,7 @@ export function compileCanonicalSourceLedPlan(input: {
 
   const plan: EditPlan = {
     ...base,
-    goalSummary: input.editBrief.fields.goal,
+    goalSummary: input.editBrief?.fields.goal ?? base.goalSummary,
     sourceCleanupPlan,
     trimReviewPlan: {
       ...base.trimReviewPlan!,
@@ -178,7 +179,8 @@ export function compileCanonicalSourceLedPlan(input: {
     canonicalDraft: canonical.draft,
     evidence: {
       sourceMetadataAuthority: 'server_reverified_finalized_upload_ffprobe',
-      editDirectionAuthority: 'server_reverified_ready_edit_brief',
+      editDirectionAuthority:
+        'server_reverified_chat_preferences_and_optional_edit_brief',
       exactPreferenceAuthority: 'server_reverified_exact_edit_preferences',
       browserPlanAccepted: false,
       browserTimingAccepted: false,
@@ -194,7 +196,7 @@ export function compileCanonicalSourceLedPlan(input: {
 function assertBoundedSourceLedInput(input: {
   plannerInput: PlannerInput
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
-  editBrief: EditBriefRecord
+  editBrief?: EditBriefRecord
   confirmedCaptionMarkers: EditBriefMarkerRecord[]
 }): void {
   if (
@@ -221,23 +223,21 @@ function assertBoundedSourceLedInput(input: {
       'Generated or explanatory visual requests require the later server visual-planning route.',
     )
   }
-  if (input.editBrief.fields.status !== 'ready') {
+  if (input.editBrief && input.editBrief.fields.status !== 'ready') {
     throw new Error('The server-owned Edit Brief must be ready before planning.')
   }
   if (
-    input.editBrief.fields.musicPreference &&
+    input.editBrief?.fields.musicPreference &&
     !['none', 'ai_decides'].includes(input.editBrief.fields.musicPreference)
   ) {
     throw new Error('Requested music requires a separately admitted audio-planning route.')
   }
-  if (input.editBrief.fields.captionPreference === 'none') {
+  if (
+    input.editBrief?.fields.captionPreference === 'none' &&
+    input.confirmedCaptionMarkers.length > 0
+  ) {
     throw new Error(
-      'Caption-free source delivery requires the pending no-caption canonical composition profile.',
-    )
-  }
-  if (input.confirmedCaptionMarkers.length < 1) {
-    throw new Error(
-      'No transcript is inferred: add and confirm exact caption markers in the Edit Brief.',
+      'A caption-free Edit Brief cannot also contain confirmed caption markers.',
     )
   }
   input.sourceMediaAssets.forEach((asset, index) => {
@@ -395,8 +395,8 @@ function buildConfirmedCaptionCues(
         endFrame,
       }
     })
-  if (captions.length < 1 || captions.length > 7) {
-    throw new Error('The bounded source-led route requires one to seven exact caption markers.')
+  if (captions.length > 7) {
+    throw new Error('The bounded source-led route supports at most seven exact caption markers.')
   }
   let previousEnd = 0
   captions.forEach((caption, index) => {

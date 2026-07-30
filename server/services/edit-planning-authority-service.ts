@@ -72,6 +72,9 @@ import {
 import {
   readPrivateEditBriefAuthorityAggregate,
 } from './private-edit-brief-authority-store'
+import {
+  revalidateCanonicalSourceLedChatPlanBinding,
+} from './canonical-source-led-chat-direction-service'
 import { createProjectService } from './project-service'
 import {
   type AuthorityApprovedSnapshotManifest,
@@ -1260,6 +1263,18 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             scope: planningAuthorityScope(context, access.userId, access.workspaceId, plan),
             persistedBinding: approvalPlanningInputAuthority,
             components: approvalComponents,
+          })
+          await revalidateCanonicalSourceLedChatPlanBinding({
+            context,
+            scope: planningAuthorityScope(
+              context,
+              access.userId,
+              access.workspaceId,
+              plan,
+            ),
+            compiledIntent: approvalComponents.compiledIntent,
+            confirmedAspectRatio:
+              approvalComponents.confirmedSettings.aspectRatio,
           })
           const lockedStorytellingProductionAuthority =
             await revalidateCanonicalMotionStudioStorytellingProductionAuthority({

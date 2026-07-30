@@ -17,6 +17,9 @@ import {
 import {
   clearLocalProjectMemoryForSmoke,
 } from '../services/project-service'
+import type {
+  KimiK3SourceLedChatAssistantPort,
+} from '../services/kimi-k3-source-led-chat-assistant'
 
 type JsonEnvelope = {
   data?: Record<string, unknown>
@@ -40,6 +43,48 @@ const editSessionId = 'edit-session-source-led-route-smoke'
 const userId = 'user-source-led-route-smoke'
 const accessToken = 'verified-source-led-route-token'
 const internalServiceToken = 'source-led-route-internal-token-7Gk2Wm9Q'
+let kimiK3CallCount = 0
+const kimiK3SourceLedChatAssistantPort:
+KimiK3SourceLedChatAssistantPort = {
+  async respond(input) {
+    kimiK3CallCount += 1
+    assert.equal(input.workspaceId, workspaceId)
+    assert.equal(input.editSessionId, editSessionId)
+    if (kimiK3CallCount === 1) {
+      return {
+        status: 'credential_unavailable',
+        routeId: 'kimi_k3_primary',
+        providerModel: 'kimi-k3',
+        credentialSource: 'google_secret_manager_pinned_version',
+        credentialVersion: null,
+        providerCallMade: false,
+        modelCallMade: false,
+        attemptDigestSha256: createHash('sha256')
+          .update(input.clientMessageId)
+          .digest('hex'),
+      }
+    }
+    return {
+      status: 'completed',
+      routeId: 'kimi_k3_primary',
+      providerModel: 'kimi-k3',
+      credentialSource: 'google_secret_manager_pinned_version',
+      credentialVersion: 2,
+      providerCallMade: true,
+      modelCallMade: true,
+      assistantContent:
+        'I saved that direction for the next server-derived plan. No editing, generation, or credits started.',
+      attemptDigestSha256: createHash('sha256')
+        .update(input.clientMessageId)
+        .digest('hex'),
+      usage: {
+        promptTokens: 120,
+        completionTokens: 32,
+        totalTokens: 152,
+      },
+    }
+  },
+}
 
 await removeSmokeStorageRoot()
 clearLocalProjectMemoryForSmoke()
@@ -90,6 +135,7 @@ const server = await listen(createServer(createReeditProApiApp(env, {
     ]),
     public: createPublicAuthClient(new Map([[accessToken, routeUser]])),
   },
+  kimiK3SourceLedChatAssistantPort,
 })))
 
 try {
@@ -110,6 +156,24 @@ try {
   )
   const project = record(projectResponse.json.data?.project)
   const projectId = requiredString(project.id, 'project id')
+  const chatUrl =
+    `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
+    '/source-led-chat'
+  const prePreferenceChatResponse = await jsonRequest({
+    url: `${chatUrl}?workspaceId=${encodeURIComponent(workspaceId)}`,
+    method: 'GET',
+  })
+  assert.equal(
+    prePreferenceChatResponse.status,
+    200,
+    'An empty named-edit Chat must be readable while exact preferences initialize.',
+  )
+  assert.equal(
+    record(
+      prePreferenceChatResponse.json.data?.canonicalSourceLedChat,
+    ).revision,
+    0,
+  )
 
   const uploadIntentResponse = await jsonRequest({
     url: `${baseUrl}/v1/projects/${projectId}/upload-intents`,
@@ -358,6 +422,166 @@ try {
   )
   assert.equal(record(markerConfirmResponse.json.data?.marker).status, 'confirmed')
 
+  const emptyChatResponse = await jsonRequest({
+    url: `${chatUrl}?workspaceId=${encodeURIComponent(workspaceId)}`,
+    method: 'GET',
+  })
+  assert.equal(
+    emptyChatResponse.status,
+    200,
+    `Initial named-edit Chat read should succeed: ${JSON.stringify(emptyChatResponse.json)}`,
+  )
+  const emptyChat = record(
+    emptyChatResponse.json.data?.canonicalSourceLedChat,
+  )
+  assert.equal(emptyChat.revision, 0)
+  assert.deepEqual(emptyChat.exchanges, [])
+
+  const chatDirection =
+    'Preserve every complete explanation from the speaker and keep each confirmed caption exactly as written.'
+  const appendChatResponse = await jsonRequest({
+    url: chatUrl,
+    method: 'POST',
+    idempotencyKey: 'source-led-route-chat-direction',
+    body: {
+      workspaceId,
+      purpose: 'append_named_edit_planning_direction',
+      clientMessageId: 'source-led-route-chat-message-1',
+      message: chatDirection,
+    },
+  })
+  assert.equal(
+    appendChatResponse.status,
+    201,
+    `Named-edit Chat append should succeed: ${JSON.stringify(appendChatResponse.json)}`,
+  )
+  const appendedChat = record(
+    appendChatResponse.json.data?.canonicalSourceLedChat,
+  )
+  const appendedExchange = record(appendChatResponse.json.data?.exchange)
+  const appendedEffect = record(appendedExchange.effect)
+  assert.equal(appendedChat.revision, 1)
+  assert.equal(appendedChat.providerModelCalled, false)
+  assert.deepEqual(appendedChat.activeInstructionHistory, [])
+  assert.equal(appendedExchange.revision, 1)
+  assert.equal(record(appendedExchange.userMessage).content, chatDirection)
+  assert.match(
+    requiredString(
+      record(appendedExchange.assistantMessage).content,
+      'server Chat acknowledgement',
+    ),
+    /could not be verified/i,
+  )
+  assert.equal(appendedEffect.status, 'waiting_for_ai_response')
+  assert.equal(appendedEffect.activeForPlanning, false)
+  assert.equal(appendedEffect.draftPlanInvalidated, true)
+  assert.equal(appendedEffect.executionStarted, false)
+  assert.equal(appendedEffect.creditsReservedOrSpent, false)
+  assert.deepEqual(record(appendedExchange.assistantRuntime), {
+    source: 'kimi_k3',
+    status: 'credential_unavailable',
+    routeId: 'kimi_k3_primary',
+    providerModel: 'kimi-k3',
+    credentialSource: 'google_secret_manager_pinned_version',
+    credentialVersion: null,
+    providerCallMade: false,
+    modelCallMade: false,
+    attemptDigestSha256: createHash('sha256')
+      .update('source-led-route-chat-message-1')
+      .digest('hex'),
+  })
+  assert.equal(kimiK3CallCount, 1)
+  assert.equal(appendChatResponse.json.data?.replayed, false)
+
+  const retryChatResponse = await jsonRequest({
+    url: chatUrl,
+    method: 'POST',
+    idempotencyKey: 'source-led-route-chat-direction-retry',
+    body: {
+      workspaceId,
+      purpose: 'append_named_edit_planning_direction',
+      clientMessageId: 'source-led-route-chat-message-1-retry',
+      message: chatDirection,
+    },
+  })
+  assert.equal(
+    retryChatResponse.status,
+    201,
+    `Named-edit Chat retry should succeed: ${JSON.stringify(retryChatResponse.json)}`,
+  )
+  const retriedChat = record(
+    retryChatResponse.json.data?.canonicalSourceLedChat,
+  )
+  const retriedExchange = record(retryChatResponse.json.data?.exchange)
+  assert.equal(retriedChat.revision, 1)
+  assert.equal(retriedChat.providerModelCalled, true)
+  assert.equal(
+    (retriedChat.exchanges as unknown[]).length,
+    1,
+  )
+  assert.deepEqual(retriedChat.activeInstructionHistory, [chatDirection])
+  assert.equal(retriedExchange.exchangeId, appendedExchange.exchangeId)
+  assert.equal(
+    retriedExchange.clientMessageId,
+    'source-led-route-chat-message-1',
+  )
+  assert.equal(record(retriedExchange.userMessage).createdAt,
+    record(appendedExchange.userMessage).createdAt)
+  assert.equal(record(retriedExchange.effect).status, 'applied_to_next_plan')
+  assert.equal(record(retriedExchange.effect).activeForPlanning, true)
+  assert.deepEqual(record(retriedExchange.assistantRuntime), {
+    source: 'kimi_k3',
+    status: 'completed',
+    routeId: 'kimi_k3_primary',
+    providerModel: 'kimi-k3',
+    credentialSource: 'google_secret_manager_pinned_version',
+    credentialVersion: 2,
+    providerCallMade: true,
+    modelCallMade: true,
+    attemptDigestSha256: createHash('sha256')
+      .update('source-led-route-chat-message-1-retry')
+      .digest('hex'),
+    usage: {
+      promptTokens: 120,
+      completionTokens: 32,
+      totalTokens: 152,
+    },
+  })
+  assert.equal(kimiK3CallCount, 2)
+  assert.equal(retryChatResponse.json.data?.replayed, false)
+
+  const replayedChatResponse = await jsonRequest({
+    url: chatUrl,
+    method: 'POST',
+    idempotencyKey: 'source-led-route-chat-direction',
+    body: {
+      workspaceId,
+      purpose: 'append_named_edit_planning_direction',
+      clientMessageId: 'source-led-route-chat-message-1',
+      message: chatDirection,
+    },
+  })
+  assert.equal(replayedChatResponse.status, 200)
+  assert.equal(replayedChatResponse.json.data?.replayed, true)
+  assert.equal(kimiK3CallCount, 2)
+  assert.equal(
+    record(
+      replayedChatResponse.json.data?.canonicalSourceLedChat,
+    ).revision,
+    1,
+  )
+
+  const persistedChatResponse = await jsonRequest({
+    url: `${chatUrl}?workspaceId=${encodeURIComponent(workspaceId)}`,
+    method: 'GET',
+  })
+  assert.equal(persistedChatResponse.status, 200)
+  const persistedChat = record(
+    persistedChatResponse.json.data?.canonicalSourceLedChat,
+  )
+  assert.equal(persistedChat.revision, 1)
+  assert.deepEqual(persistedChat.activeInstructionHistory, [chatDirection])
+
   const presentationUrl =
     `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
     '/source-led-plan-presentations'
@@ -409,8 +633,24 @@ try {
   )
   const derivation = record(presentation.derivation)
   assert.equal(derivation.sourceMetadataAuthority, 'server_reverified_finalized_upload_ffprobe')
-  assert.equal(derivation.editDirectionAuthority, 'server_reverified_ready_edit_brief')
+  assert.equal(
+    derivation.editDirectionAuthority,
+    'server_reverified_chat_preferences_and_optional_edit_brief',
+  )
   assert.equal(derivation.exactPreferenceAuthority, 'server_reverified_exact_edit_preferences')
+  assert.equal(
+    derivation.chatDirectionAuthority,
+    'server_reverified_named_edit_chat',
+  )
+  assert.equal(derivation.chatDirectionCount, 1)
+  assert.equal(derivation.chatThreadRevision, 1)
+  assert.match(
+    requiredString(
+      derivation.chatDirectionAuthorityDigestSha256,
+      'chat direction authority digest',
+    ),
+    /^[a-f0-9]{64}$/,
+  )
   assert.equal(derivation.confirmedAspectRatio, '16:9')
   assert.equal(derivation.sourceObjectReread, true)
   assert.equal(derivation.sourceCount, 1)
@@ -420,6 +660,7 @@ try {
   assert.equal(derivation.requestAcceptedBrowserTiming, false)
   assert.equal(derivation.requestAcceptedBrowserEstimate, false)
   assert.equal(derivation.requestAcceptedBrowserWorkGraph, false)
+  assert.equal(derivation.chatDirectionReread, true)
   const publicationRequest = record(presentation.publicationRequest)
   assert.equal(publicationRequest.publicationStatus, 'published')
   const permissions = record(presentation.permissions)
@@ -447,11 +688,124 @@ try {
   assert.equal(journey.stage, 'plan_approval_required')
   const nextAction = record(journey.nextAction)
   assert.equal(nextAction.code, 'approve_canonical_plan')
-  const journeyPlan = record(journey.plan)
+  let journeyPlan = record(journey.plan)
   assert.equal(journeyPlan.status, 'presented')
   assert.equal(journey.approval, undefined)
   assert.equal(journey.execution, undefined)
   assert.equal(journey.review, undefined)
+
+  const stalePlanId = requiredString(journeyPlan.planId, 'stale plan id')
+  const secondChatDirection =
+    'Keep the pacing calm and use only source-supported visual treatment.'
+  const secondChatResponse = await jsonRequest({
+    url: chatUrl,
+    method: 'POST',
+    idempotencyKey: 'source-led-route-chat-direction-2',
+    body: {
+      workspaceId,
+      purpose: 'append_named_edit_planning_direction',
+      clientMessageId: 'source-led-route-chat-message-2',
+      message: secondChatDirection,
+    },
+  })
+  assert.equal(
+    secondChatResponse.status,
+    201,
+    `A new direction should invalidate the presented plan: ${JSON.stringify(secondChatResponse.json)}`,
+  )
+  assert.equal(
+    record(
+      secondChatResponse.json.data?.canonicalSourceLedChat,
+    ).revision,
+    2,
+  )
+  assert.equal(kimiK3CallCount, 3)
+
+  const staleApprovalResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/edit-plans/${stalePlanId}` +
+      '/canonical-approval',
+    method: 'POST',
+    idempotencyKey: 'source-led-route-stale-chat-plan-approval',
+    body: {
+      workspaceId,
+      expectedProjectId: projectId,
+      expectedEditSessionId: editSessionId,
+      expectedPlanVersion: requiredPositiveInteger(
+        journeyPlan.planVersion,
+        'stale plan version',
+      ),
+      expectedPlanHash: requiredString(
+        journeyPlan.planHash,
+        'stale plan hash',
+      ),
+      expectedEstimateId: requiredString(
+        journeyPlan.estimateId,
+        'stale estimate id',
+      ),
+      expectedEstimateHash: requiredString(
+        journeyPlan.estimateHash,
+        'stale estimate hash',
+      ),
+      expectedMaximumCredits: requiredNonNegativeInteger(
+        journeyPlan.approvedMaximumCredits,
+        'stale approved maximum credits',
+      ),
+    },
+  })
+  assert.equal(staleApprovalResponse.status, 409)
+  assert.equal(
+    staleApprovalResponse.json.error?.code,
+    'IDEMPOTENCY_CONFLICT',
+  )
+  assert.match(
+    staleApprovalResponse.json.error?.message ?? '',
+    /chat direction changed/i,
+  )
+
+  const refreshedPresentationResponse = await jsonRequest({
+    url: presentationUrl,
+    method: 'POST',
+    idempotencyKey: 'source-led-route-present-after-chat-change',
+    body: {
+      workspaceId,
+      purpose: 'present_server_derived_source_led_plan',
+      orderedMediaAssetIds: [mediaAssetId],
+      confirmedAspectRatio: '16:9',
+      sourceOrderConfirmed: true,
+      preserveUnanalyzedSourceRanges: true,
+    },
+  })
+  assert.equal(
+    refreshedPresentationResponse.status,
+    201,
+    `A fresh plan should bind the latest Chat revision: ${JSON.stringify(refreshedPresentationResponse.json)}`,
+  )
+  const refreshedPresentation = record(
+    refreshedPresentationResponse.json.data
+      ?.canonicalSourceLedPlanPresentation,
+  )
+  const refreshedDerivation = record(refreshedPresentation.derivation)
+  assert.equal(refreshedDerivation.chatDirectionCount, 2)
+  assert.equal(refreshedDerivation.chatThreadRevision, 2)
+
+  const refreshedJourneyResponse = await jsonRequest({
+    url:
+      `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
+      `/canonical-journey?workspaceId=${encodeURIComponent(workspaceId)}`,
+    method: 'GET',
+  })
+  assert.equal(refreshedJourneyResponse.status, 200)
+  const refreshedJourney = record(
+    refreshedJourneyResponse.json.data?.canonicalEditJourney,
+  )
+  assert.equal(refreshedJourney.stage, 'plan_approval_required')
+  journeyPlan = record(refreshedJourney.plan)
+  assert.equal(journeyPlan.status, 'presented')
+  assert.notEqual(
+    requiredString(journeyPlan.planId, 'fresh plan id'),
+    stalePlanId,
+  )
 
   const approvalResponse = await jsonRequest({
     url:
@@ -498,6 +852,23 @@ try {
   assert.equal(approvalBoundaries.jobExecutionStarted, false)
   assert.equal(approvalBoundaries.toolExecutionStarted, false)
   assert.equal(approvalBoundaries.renderStarted, false)
+
+  const approvedChatMutationResponse = await jsonRequest({
+    url: chatUrl,
+    method: 'POST',
+    idempotencyKey: 'source-led-route-chat-after-approval',
+    body: {
+      workspaceId,
+      purpose: 'append_named_edit_planning_direction',
+      clientMessageId: 'source-led-route-chat-message-after-approval',
+      message: 'Silently change the approved edit.',
+    },
+  })
+  assert.equal(approvedChatMutationResponse.status, 409)
+  assert.equal(
+    approvedChatMutationResponse.json.error?.code,
+    'PLAN_NOT_APPROVED',
+  )
 
   const approvedJourneyResponse = await jsonRequest({
     url:

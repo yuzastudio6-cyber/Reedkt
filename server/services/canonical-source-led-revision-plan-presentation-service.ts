@@ -16,6 +16,10 @@ import {
   buildServerPlannerInput,
   resolveExactFinalizedSource,
 } from './canonical-source-led-plan-presentation-service'
+import {
+  createCanonicalSourceLedChatPlanBinding,
+  readCanonicalSourceLedChatDirectionsForPlanning,
+} from './canonical-source-led-chat-direction-service'
 import { createCanonicalPrivateReviewDecisionService } from './canonical-private-review-decision-service'
 import { createCanonicalRevisionPlanPresentationCoordinatorService } from './canonical-revision-plan-presentation-coordinator-service'
 import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
@@ -199,6 +203,12 @@ export function createCanonicalSourceLedRevisionPlanPresentationService(
           'The exact locked Edit Preferences no longer match the approved source-led snapshot.',
         )
       }
+      const chatDirections =
+        await readCanonicalSourceLedChatDirectionsForPlanning({
+          scope,
+          authority: preference,
+          confirmedAspectRatio: preference.frameConfirmation.aspectRatio,
+        })
 
       const editBriefAggregate =
         await readPrivateEditBriefAuthorityAggregate(scope)
@@ -284,6 +294,7 @@ export function createCanonicalSourceLedRevisionPlanPresentationService(
         confirmedAspectRatio: preference.frameConfirmation.aspectRatio,
         sourceMediaAssets,
         editBriefAggregate,
+        chatInstructionHistory: chatDirections.instructionHistory,
       })
       const compiled = compileCanonicalSourceLedPlan({
         plannerInput,
@@ -300,6 +311,18 @@ export function createCanonicalSourceLedRevisionPlanPresentationService(
           'The revised source-led plan did not produce a publishable canonical package.',
         )
       }
+      const chatPlanBinding = createCanonicalSourceLedChatPlanBinding({
+        scope,
+        directions: chatDirections,
+      })
+      const compiledIntentWithChatAuthority = {
+        ...compiled.canonicalDraft.components.compiledIntent,
+        canonicalSourceLedChatAuthority: { ...chatPlanBinding },
+      }
+      compiled.canonicalDraft.components.compiledIntent =
+        compiledIntentWithChatAuthority
+      publication.canonicalPlan.components.compiledIntent =
+        structuredClone(compiledIntentWithChatAuthority)
       const canonicalPlan =
         publishCanonicalEditPlanSchema.shape.canonicalPlan.parse(
           publication.canonicalPlan,
@@ -349,6 +372,11 @@ export function createCanonicalSourceLedRevisionPlanPresentationService(
             finalizedSourceObjectsReread: true,
             exactLockedPreferencesReread: true,
             immutableEditBriefReread: true,
+            chatDirectionReread: true,
+            chatDirectionCount: chatDirections.instructionHistory.length,
+            chatThreadRevision: chatDirections.threadRevision,
+            chatDirectionAuthorityDigestSha256:
+              chatDirections.authorityDigestSha256,
             exactCaptionReplacementApplied: true,
             revisionIntentHash:
               decision.revisionHandoff.revisionIntentHash,

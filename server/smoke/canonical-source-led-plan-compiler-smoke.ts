@@ -240,8 +240,7 @@ assert.deepEqual(
   ],
 )
 
-assert.throws(
-  () => compileCanonicalSourceLedPlan({
+const captionFreeWithExplicitBrief = compileCanonicalSourceLedPlan({
     plannerInput,
     sourceMediaAssets,
     editBrief: {
@@ -249,17 +248,21 @@ assert.throws(
       fields: { ...editBrief.fields, captionPreference: 'none' },
     },
     confirmedCaptionMarkers: [],
-  }),
-  /no-caption canonical composition profile/i,
+  })
+assert.equal(captionFreeWithExplicitBrief.evidence.captionCueCount, 0)
+assert.deepEqual(
+  captionFreeWithExplicitBrief.plan.masterTimingPlan?.captionTimingItems,
+  [],
 )
-assert.throws(
-  () => compileCanonicalSourceLedPlan({
-    plannerInput,
-    sourceMediaAssets,
-    editBrief,
-    confirmedCaptionMarkers: [],
-  }),
-  /add and confirm exact caption markers/i,
+const captionFreeWithoutOptionalBrief = compileCanonicalSourceLedPlan({
+  plannerInput,
+  sourceMediaAssets,
+  confirmedCaptionMarkers: [],
+})
+assert.equal(captionFreeWithoutOptionalBrief.evidence.captionCueCount, 0)
+assert.deepEqual(
+  captionFreeWithoutOptionalBrief.plan.masterTimingPlan?.captionTimingItems,
+  [],
 )
 assert.throws(
   () => compileCanonicalSourceLedPlan({

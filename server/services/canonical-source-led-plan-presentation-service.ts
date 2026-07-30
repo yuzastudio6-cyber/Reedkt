@@ -26,6 +26,10 @@ import {
   readPlanningExactEditPreferenceAuthority,
 } from './planning-exact-edit-preference-authority-port'
 import {
+  createCanonicalSourceLedChatPlanBinding,
+  readCanonicalSourceLedChatDirectionsForPlanning,
+} from './canonical-source-led-chat-direction-service'
+import {
   readPrivateEditBriefAuthorityAggregate,
   type PrivateEditBriefAuthorityAggregate,
 } from './private-edit-brief-authority-store'
@@ -112,6 +116,12 @@ export function createCanonicalSourceLedPlanPresentationService(
           },
         )
       }
+      const chatDirections =
+        await readCanonicalSourceLedChatDirectionsForPlanning({
+          scope,
+          authority,
+          confirmedAspectRatio: body.confirmedAspectRatio,
+        })
 
       const uploadAggregate = await readPrivateUploadMediaAuthorityAggregate({
         localStorageRoot: context.env.localStorageRoot,
@@ -149,17 +159,19 @@ export function createCanonicalSourceLedPlanPresentationService(
       })
 
       const editBriefAggregate = await readPrivateEditBriefAuthorityAggregate(scope)
-      const editBrief = requireReadySourceLedEditBrief(editBriefAggregate)
+      const editBrief = resolveOptionalReadySourceLedEditBrief(editBriefAggregate)
       const selectedMediaAssetIds = new Set(body.orderedMediaAssetIds)
-      const unsupportedRequiredAssets = (editBrief.fields.mustUseAssetIds ?? [])
+      const unsupportedRequiredAssets = (editBrief?.fields.mustUseAssetIds ?? [])
         .filter((assetId) => !selectedMediaAssetIds.has(assetId))
-      const explicitlyAvoidedSelectedAssets = (editBrief.fields.avoidAssetIds ?? [])
+      const explicitlyAvoidedSelectedAssets = (editBrief?.fields.avoidAssetIds ?? [])
         .filter((assetId) => selectedMediaAssetIds.has(assetId))
+      const bRollPreferenceDisposition =
+        classifySourceLedBRollPreference(editBrief?.fields.bRollPreference)
       if (
         unsupportedRequiredAssets.length > 0 ||
         explicitlyAvoidedSelectedAssets.length > 0 ||
-        (editBrief.fields.userProvidedReferenceUrls?.length ?? 0) > 0 ||
-        Boolean(editBrief.fields.bRollPreference?.trim())
+        (editBrief?.fields.userProvidedReferenceUrls?.length ?? 0) > 0 ||
+        bRollPreferenceDisposition === 'asset_planning_required'
       ) {
         throw new ApiError(
           'JOB_DEPENDENCY_NOT_READY',
@@ -169,10 +181,11 @@ export function createCanonicalSourceLedPlanPresentationService(
             requiredGate: 'server_asset_and_reference_planning',
             unsupportedRequiredAssetCount: unsupportedRequiredAssets.length,
             avoidedSelectedAssetCount: explicitlyAvoidedSelectedAssets.length,
+            bRollPreferenceDisposition,
           },
         )
       }
-      const confirmedMarkers = editBriefAggregate!.markers.filter(
+      const confirmedMarkers = (editBriefAggregate?.markers ?? []).filter(
         (marker) => marker.status === 'confirmed',
       )
       const unsupportedMarkers = confirmedMarkers.filter(
@@ -218,7 +231,8 @@ export function createCanonicalSourceLedPlanPresentationService(
         authority,
         confirmedAspectRatio: body.confirmedAspectRatio,
         sourceMediaAssets,
-        editBriefAggregate: editBriefAggregate!,
+        editBriefAggregate,
+        chatInstructionHistory: chatDirections.instructionHistory,
       })
 
       let compiled: ReturnType<typeof compileCanonicalSourceLedPlan>
@@ -254,6 +268,18 @@ export function createCanonicalSourceLedPlanPresentationService(
           },
         )
       }
+      const chatPlanBinding = createCanonicalSourceLedChatPlanBinding({
+        scope,
+        directions: chatDirections,
+      })
+      const compiledIntentWithChatAuthority = {
+        ...compiled.canonicalDraft.components.compiledIntent,
+        canonicalSourceLedChatAuthority: { ...chatPlanBinding },
+      }
+      compiled.canonicalDraft.components.compiledIntent =
+        compiledIntentWithChatAuthority
+      publication.canonicalPlan.components.compiledIntent =
+        structuredClone(compiledIntentWithChatAuthority)
 
       const handoff = await createCanonicalPlanningHandoffService(context).prepare({
         workspaceId: access.workspaceId,
@@ -292,6 +318,12 @@ export function createCanonicalSourceLedPlanPresentationService(
         },
         derivation: {
           ...compiled.evidence,
+          chatDirectionAuthority:
+            'server_reverified_named_edit_chat' as const,
+          chatDirectionCount: chatDirections.instructionHistory.length,
+          chatThreadRevision: chatDirections.threadRevision,
+          chatDirectionAuthorityDigestSha256:
+            chatDirections.authorityDigestSha256,
           confirmedAspectRatio: body.confirmedAspectRatio,
           requestAcceptedBrowserPlan: false as const,
           requestAcceptedBrowserTiming: false as const,
@@ -300,6 +332,7 @@ export function createCanonicalSourceLedPlanPresentationService(
           sourceObjectReread: true as const,
           exactPreferenceReread: true as const,
           editBriefReread: true as const,
+          chatDirectionReread: true as const,
         },
         publicationRequest: presentation.publicationRequest,
         newlyPresented: presentation.newlyPresented,
@@ -398,12 +431,11 @@ export function resolveExactFinalizedSource(input: {
   return { mediaAsset, uploadIntent, storageObject }
 }
 
-function requireReadySourceLedEditBrief(
+function resolveOptionalReadySourceLedEditBrief(
   aggregate: PrivateEditBriefAuthorityAggregate | undefined,
 ) {
+  if (!aggregate?.brief) return undefined
   if (
-    !aggregate ||
-    !aggregate.brief ||
     aggregate.brief.fields.status !== 'ready' ||
     aggregate.lifecycle.phase !== 'planning' ||
     aggregate.lifecycle.mutable !== true
@@ -425,7 +457,8 @@ export function buildServerPlannerInput(input: {
   >['authority']
   confirmedAspectRatio: '9:16' | '16:9' | '1:1' | '4:5' | '4:3'
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
-  editBriefAggregate: PrivateEditBriefAuthorityAggregate
+  editBriefAggregate?: PrivateEditBriefAuthorityAggregate
+  chatInstructionHistory?: readonly string[]
 }): PlannerInput {
   const { authority } = input
   if (
@@ -439,21 +472,27 @@ export function buildServerPlannerInput(input: {
     )
   }
   const values = authority.values
-  const brief = input.editBriefAggregate.brief!
+  const brief = input.editBriefAggregate?.brief
   const instructions = [
-    `Edit Brief goal: ${brief.fields.goal}`,
-    ...(brief.fields.mustIncludeNotes ?? []).map((note) => `Must include: ${note}`),
-    ...(brief.fields.avoidNotes ?? []).map((note) => `Avoid: ${note}`),
-    ...(brief.fields.additionalNotes
+    ...(brief ? [`Edit Brief goal: ${brief.fields.goal}`] : []),
+    ...(brief?.fields.mustIncludeNotes ?? []).map((note) => `Must include: ${note}`),
+    ...(brief?.fields.avoidNotes ?? []).map((note) => `Avoid: ${note}`),
+    ...(brief?.fields.additionalNotes
       ? [`Additional direction: ${brief.fields.additionalNotes}`]
       : []),
-    ...(brief.fields.specialInstructions
+    ...(brief?.fields.specialInstructions
       ? [`Special instruction: ${brief.fields.specialInstructions}`]
       : []),
-    ...input.editBriefAggregate.markers
+    ...(brief?.fields.bRollPreference
+      ? [`B-roll direction: ${brief.fields.bRollPreference}`]
+      : []),
+    ...(input.editBriefAggregate?.markers ?? [])
       .filter((marker) =>
         marker.status === 'confirmed' && marker.markerType === 'keep')
       .map((marker) => `Confirmed keep range: ${marker.note}`),
+    ...(input.chatInstructionHistory ?? []).map(
+      (direction) => `Chat direction: ${direction}`,
+    ),
   ]
   const clips = input.sourceMediaAssets.map((source, index) => {
     const sourceFrames = Math.round(
@@ -525,4 +564,73 @@ function frameTemplateForAspectRatio(
 function safeIdentity(value: string): boolean {
   return /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/.test(value)
     && !value.includes('..')
+}
+
+export type SourceLedBRollPreferenceDisposition =
+  | 'not_specified'
+  | 'explicit_non_use'
+  | 'asset_planning_required'
+
+/**
+ * The bounded source-led route may accept an explicit instruction to use no
+ * B-roll. Any positive, conditional, or ambiguous B-roll direction still
+ * requires the richer asset planner.
+ */
+export function classifySourceLedBRollPreference(
+  value: string | undefined,
+): SourceLedBRollPreferenceDisposition {
+  const normalized = value
+    ?.normalize('NFKC')
+    .toLowerCase()
+    .replace(/[’]/g, "'")
+    .replace(/[‐‑‒–—]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!normalized) return 'not_specified'
+
+  const canonicalNonUseValues = new Set([
+    'none',
+    'no_b_roll',
+    'no-b-roll',
+    'source_only',
+    'source-only',
+    'source only',
+    'source footage only',
+    'uploaded footage only',
+  ])
+  if (canonicalNonUseValues.has(normalized)) return 'explicit_non_use'
+
+  const explicitNonUse =
+    /\bno (?:any |added |additional |extra |new )?b[ -]?roll\b/.test(
+      normalized,
+    ) ||
+    /\bwithout (?:any |added |additional |extra |new )?b[ -]?roll\b/.test(
+      normalized,
+    ) ||
+    /\b(?:do not|don't|dont|never) (?:add|use|include|insert|generate|create) (?:any |added |additional |extra |new )?b[ -]?roll\b/.test(
+      normalized,
+    ) ||
+    /\b(?:omit|exclude|disable) (?:all |any )?b[ -]?roll\b/.test(
+      normalized,
+    ) ||
+    /\b(?:source(?: footage)?|uploaded footage) only\b/.test(normalized) ||
+    /\bonly (?:use )?(?:the )?(?:uploaded )?source(?: footage)?(?![-\w])/.test(
+      normalized,
+    )
+  if (!explicitNonUse) return 'asset_planning_required'
+
+  const withoutDeferredApprovalClause = normalized
+    .replace(
+      /\bunless (?:the )?user (?:later )?approves?(?: (?:it|a revision))?\b/g,
+      '',
+    )
+    .replace(/\bunless (?:later )?approved\b/g, '')
+  const hasPositiveOrConditionalException =
+    /\b(?:except|unless|only when|only if|when needed|when useful|where useful|as needed|if needed|if useful|but (?:add|use|include|insert|generate|create))\b/.test(
+      withoutDeferredApprovalClause,
+    )
+
+  return hasPositiveOrConditionalException
+    ? 'asset_planning_required'
+    : 'explicit_non_use'
 }

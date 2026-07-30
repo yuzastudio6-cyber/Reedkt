@@ -25,6 +25,9 @@ export type CanonicalSourceLedPlanPresentationReceipt = {
   totalFrames: number
   fps: 30
   captionCueCount: number
+  chatDirectionCount: number
+  chatThreadRevision: number
+  chatDirectionAuthorityDigestSha256: string
 }
 
 export type CanonicalSourceLedPlanPresentationClientResult =
@@ -209,6 +212,10 @@ function parseReceipt(
     'sourceMetadataAuthority',
     'editDirectionAuthority',
     'exactPreferenceAuthority',
+    'chatDirectionAuthority',
+    'chatDirectionCount',
+    'chatThreadRevision',
+    'chatDirectionAuthorityDigestSha256',
     'browserPlanAccepted',
     'browserTimingAccepted',
     'sourceRangePolicy',
@@ -224,6 +231,7 @@ function parseReceipt(
     'sourceObjectReread',
     'exactPreferenceReread',
     'editBriefReread',
+    'chatDirectionReread',
   ])
   const permissions = exactRecord(root.permissions, [
     'planPresentedForReview',
@@ -248,9 +256,16 @@ function parseReceipt(
     derivation.sourceMetadataAuthority !==
       'server_reverified_finalized_upload_ffprobe' ||
     derivation.editDirectionAuthority !==
-      'server_reverified_ready_edit_brief' ||
+      'server_reverified_chat_preferences_and_optional_edit_brief' ||
     derivation.exactPreferenceAuthority !==
       'server_reverified_exact_edit_preferences' ||
+    derivation.chatDirectionAuthority !==
+      'server_reverified_named_edit_chat' ||
+    !isIntegerInRange(derivation.chatDirectionCount, 0, 256) ||
+    !isIntegerInRange(derivation.chatThreadRevision, 0, 256) ||
+    Number(derivation.chatDirectionCount) >
+      Number(derivation.chatThreadRevision) ||
+    !isSha(derivation.chatDirectionAuthorityDigestSha256) ||
     derivation.browserPlanAccepted !== false ||
     derivation.browserTimingAccepted !== false ||
     derivation.sourceRangePolicy !==
@@ -259,7 +274,7 @@ function parseReceipt(
     derivation.sourceCount !== input.orderedMediaAssetIds.length ||
     !isIntegerInRange(derivation.totalFrames, 24, Number.MAX_SAFE_INTEGER) ||
     derivation.fps !== 30 ||
-    !isIntegerInRange(derivation.captionCueCount, 1, 7) ||
+    !isIntegerInRange(derivation.captionCueCount, 0, 7) ||
     derivation.requestAcceptedBrowserPlan !== false ||
     derivation.requestAcceptedBrowserTiming !== false ||
     derivation.requestAcceptedBrowserEstimate !== false ||
@@ -267,6 +282,7 @@ function parseReceipt(
     derivation.sourceObjectReread !== true ||
     derivation.exactPreferenceReread !== true ||
     derivation.editBriefReread !== true ||
+    derivation.chatDirectionReread !== true ||
     !permissions ||
     permissions.planPresentedForReview !== true ||
     !allFalse(permissions, [
@@ -298,6 +314,10 @@ function parseReceipt(
       totalFrames: derivation.totalFrames as number,
       fps: 30,
       captionCueCount: derivation.captionCueCount as number,
+      chatDirectionCount: derivation.chatDirectionCount as number,
+      chatThreadRevision: derivation.chatThreadRevision as number,
+      chatDirectionAuthorityDigestSha256:
+        derivation.chatDirectionAuthorityDigestSha256 as string,
     },
     warnings,
   }
@@ -449,7 +469,7 @@ function parsePublishedPublication(value: unknown): {
 
 function classifyFailure(response: {
   statusCode?: number
-  error?: { code?: string }
+  error?: { code?: string; message?: string }
   warnings: string[]
 }): CanonicalSourceLedPlanPresentationClientResult {
   const code = response.error?.code
@@ -479,7 +499,8 @@ function classifyFailure(response: {
   ) {
     return failure(
       'blocked',
-      'The uploaded sources, Edit Preferences, frame, or Edit Brief changed. Refresh them before creating the plan.',
+      response.error?.message
+        ?? 'The uploaded sources, Edit Preferences, frame, or Edit Brief changed. Refresh them before creating the plan.',
       false,
       response.warnings,
     )

@@ -1265,7 +1265,7 @@ function privateReviewPublicationBlockers(input: {
   }
   if ((input.plan.providerPromptPlans?.length ?? 0) > 0) blockers.push('Provider-backed plan items remain gated until their canonical work items are compiled.')
   if (!captionCues) {
-    blockers.push('Private canonical review requires one full-duration caption or two to seven safe, ordered, non-overlapping caption cues.')
+    blockers.push('Private canonical review captions, when present, must be one full-duration cue or two to seven safe, ordered, non-overlapping cues.')
   }
   if (hasUnrepresentedVisualTiming(
     input.plan,
@@ -1402,9 +1402,12 @@ function buildPrivateReviewCanonicalPlan(input: {
     approvedLongFormChunkPlan ? approvedLongFormChunkPlan.chunkCount + 1 : 1,
   )
   const sourceSequenceComposition = sourceTimeline.length > 1
-  const captionTrackComposition = captionCues.length > 1
   const voiceDeliverySources = input.approvedVoiceDeliverySources ?? []
   const colorDeliverySources = input.approvedColorDeliverySources ?? []
+  // The timed-track profile is the canonical zero-or-many representation.
+  // Keep the legacy single-cue profile only for exactly one full-duration
+  // approved cue; a caption-free edit carries an empty, verified cue track.
+  const captionTrackComposition = captionCues.length !== 1
   const replaceSourceAudio = voiceDeliverySources.length > 0
   const sourceTransitions = input.approvedSourceTransitions.transitions
   const approvedHardCutTransitions =
@@ -2172,8 +2175,8 @@ function buildLongFormRenderWorkItems(input: {
         endFrameExclusive: endFrameExclusive - chunk.globalStartFrame,
       }]
     })
-    if (chunkCaptionEntries.length < 1 || chunkCaptionEntries.length > 7) {
-      throw new Error('Every long-form chunk requires one through seven exact caption cues.')
+    if (chunkCaptionEntries.length > 7) {
+      throw new Error('Every long-form chunk supports zero through seven exact caption cues.')
     }
     const chunkTransitions = input.approvedHardCutTransitions
       .filter((transition) =>
@@ -2735,7 +2738,8 @@ function approvedCaptionCues(
   endFrameExclusive: number
 }> | null {
   const timingItems = plan.masterTimingPlan?.captionTimingItems ?? []
-  if (timingItems.length < 1 || timingItems.length > 7) return null
+  if (timingItems.length > 7) return null
+  if (timingItems.length === 0) return []
   const seenTimingIds = new Set<string>()
   let previousEndFrame = 0
   const cues = timingItems.flatMap((item, index) => {

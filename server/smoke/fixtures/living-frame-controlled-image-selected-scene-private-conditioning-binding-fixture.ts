@@ -46,6 +46,7 @@ import {
 import {
   createLivingFrameSelectedSceneVisualContinuityPackBindingSmokeFixture,
   type LivingFrameSelectedSceneConditioningStyleFixtureProfile,
+  type LivingFrameSelectedSceneFixtureScenario,
 } from './living-frame-selected-scene-visual-continuity-pack-binding-fixture'
 
 let sequence = 0
@@ -54,6 +55,8 @@ export async function createLivingFrameControlledImageSelectedScenePrivateCondit
   options?: {
     readonly conditioningStyleProfile?:
       LivingFrameSelectedSceneConditioningStyleFixtureProfile
+    readonly scenario?:
+      LivingFrameSelectedSceneFixtureScenario
   },
 ) {
   const suffix = nextId()
@@ -62,6 +65,7 @@ export async function createLivingFrameControlledImageSelectedScenePrivateCondit
       includeGeneratedBackgroundPlate: true,
       conditioningStyleProfile:
         options?.conditioningStyleProfile,
+      scenario: options?.scenario,
     })
   const visualContinuityPackBindingInput =
     continuityFixture.input

@@ -151,6 +151,15 @@ contracts through the normal one-writer review boundary.
   native alpha only after its capability and output pass the same QA.
 - Documentary truth, generated-illustration disclosure, likeness safety,
   semantic-scale truth, and exact-geography/data verification are mandatory.
+- Selected controlled-illustration prompts must consume a process-private,
+  immutable approved documentary fact-safety projection when the scene carries
+  claim or exact-fact requirements. The current read-only binding validates the
+  exact snapshot, scene, expectation references, claim IDs, source-truth
+  disposition, and resolved-source state; it then adds status-derived safety
+  constraints without copying raw claim text, safe wording, source labels, or
+  the fact-safety plan into its receipt or image-model input. It never verifies
+  facts or replaces deterministic map, data, document, label, attribution,
+  approval, QA, or private-review owners.
 - Rollout begins with Living Still and deterministic scenes, then clean Living
   A-Roll, then advanced temporal depth after masking benchmarks pass.
 - No provider, controlled tool, generation, worker, or rendering activity may

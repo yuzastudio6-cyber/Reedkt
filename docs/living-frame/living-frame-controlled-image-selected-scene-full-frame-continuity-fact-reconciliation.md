@@ -94,6 +94,16 @@ that it is satisfied:
 `documentaryFactSafetyPlan` remains the existing product owner. This
 namespaced contract does not create a second fact system.
 
+The separate
+`living-frame-controlled-image-selected-scene-documentary-fact-safety-binding-v1`
+now proves the process-private approved-snapshot and scene-claim binding
+candidate and merges status-derived safety constraints into the existing
+selected-scene prompt path. This reconciliation intentionally continues to
+report the canonical selected-scene interface as unresolved until its owner
+publishes that binding through the shared immutable snapshot boundary. A
+passing namespaced candidate is not silently relabeled as canonical
+integration.
+
 ## Preserved runtime and commercial boundaries
 
 The reconciliation preserves:

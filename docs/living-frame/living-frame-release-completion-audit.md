@@ -5,8 +5,8 @@ Status date: 2026-07-29
 Feature branch:
 `codex/living-frame-gpu-operation-preflight-v1`
 
-Latest frozen motion feature commit:
-`69ab856b`
+Latest frozen feature state:
+tracked by the clean branch head and exact backend handoff hash
 
 Overall status:
 `source_and_private_runtime_complete_for_current_slice_external_release_open`
@@ -83,9 +83,9 @@ authority.
 | Async work graph and asset manifest | `verified_source_contract` | canonical work-graph projection v10, generated source → mask → RGBA → layer manifest → final composition lineage | Released distributed dispatch is still open. |
 | Asset QA and private review | `verified_private_runtime` for the representative trace | generated-still QA projection, destination composite evidence, canonical private-review evidence | Actual ComfyUI output must pass the same gates after L4 release. |
 | Remotion final composition | `verified_private_runtime` | actual 640×360 motion render and actual 3840×2160 H.264/AAC streaming render | Public delivery and production promotion remain false. |
-| Documentary/factual integrity | `verified_source_contract` | source-truth mode, provenance, documentary fact-safety dependencies, full-frame continuity/fact reconciliation | Generated illustration must never be presented as authentic evidence. The strict selected-scene component interface does not yet carry the approved `documentaryFactSafetyPlan` snapshot component, so exact claim/source evidence remains an explicit canonical-owner bridge. |
+| Documentary/factual integrity | `verified_source_contract` | source-truth mode, provenance, documentary fact-safety dependencies, selected-scene private documentary fact-safety binding, full-frame continuity/fact reconciliation | Generated illustration must never be presented as authentic evidence. The new process-private binding revalidates an immutable approved fact-safety packet, exact scene expectation/claim mapping, and source-truth disposition, then adds generic status-derived constraints to the real selected-scene prompt without copying raw claims or claiming fact verification. The canonical snapshot reader and scene-to-claim join remain explicit shared-owner bridges. |
 | Subject-neutral behavior | `verified_source_contract` | capability matrix and serialized-evidence name scans | Named examples remain fixtures only. |
-| Backend workflow coordination | `handoff_delivered` | handoff sent to canonical backend task `019f4c76-4ec8-75f3-9cc6-39399dbee47d` for commit `2b19519b` | Backend task must reconcile without changing canonical ownership. |
+| Backend workflow coordination | `handoff_delivered` | material frozen commits are handed to canonical backend task `019f4c76-4ec8-75f3-9cc6-39399dbee47d`; the exact clean head is recorded in each handoff | Backend task must reconcile without changing canonical ownership. |
 
 ## Six controlled-illustration capabilities
 
@@ -282,6 +282,13 @@ Passed:
   that does not force artificial motion, strict narration protection, and
   adversarial missing/duplicate/unrelated trigger refusal while exact
   SoundSync frames and mix remain unclaimed;
+- selected-scene documentary fact-safety binding across a stylized historical
+  illustration and an exact-geography background plate, with immutable
+  snapshot/scene/claim lineage, raw-claim-free private constraints, real
+  animation-aware prompt integration, single-use leases, and adversarial
+  snapshot/scene/source-truth/expectation/claim/source/authority refusal while
+  fact verification, exact map/data, approval, QA, review, and final canvas
+  remain with their canonical owners;
 - selected-scene private opaque-output observation for exact 1024×1024
   isolated and 1920×1080 confirmed-ratio RGB PNGs, plus read-only alpha-chain
   reconciliation that fail-closes on the shared multi-output generation →

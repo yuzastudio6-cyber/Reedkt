@@ -108,6 +108,13 @@ alphaEdgeDecontaminationReport = null
 That package is not compiled until the canonical artifact, continuity, and
 fact-safety evidence exists.
 
+The later process-private selected-scene documentary fact-safety binding
+provides a tested candidate for reading the immutable approved plan, joining
+the exact scene to claim dispositions, and constraining the actual private
+prompt without exposing raw claims. This readiness projection remains
+fail-closed until the canonical snapshot/selected-scene owner publishes that
+evidence through the shared interface.
+
 ## Fixed runtime and cost boundaries
 
 The projection preserves:

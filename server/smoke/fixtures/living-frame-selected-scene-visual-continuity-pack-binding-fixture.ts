@@ -49,11 +49,17 @@ export type LivingFrameSelectedSceneConditioningStyleFixtureProfile =
   | 'paper_collage_shallow_2_5d'
   | 'graphic_novel_dimensional'
 
+export type LivingFrameSelectedSceneFixtureScenario =
+  | 'musashi'
+  | 'hormuz'
+
 export async function createLivingFrameSelectedSceneVisualContinuityPackBindingSmokeFixture(
   options?: {
     readonly includeGeneratedBackgroundPlate?: boolean
     readonly conditioningStyleProfile?:
       LivingFrameSelectedSceneConditioningStyleFixtureProfile
+    readonly scenario?:
+      LivingFrameSelectedSceneFixtureScenario
   },
 ): Promise<{
   readonly input:
@@ -85,15 +91,17 @@ export async function createLivingFrameSelectedSceneVisualContinuityPackBindingS
   const planningEvidenceDigest = hash(`planning-evidence-${suffix}`)
   const fixtureInputs =
     await createLivingFrameSemanticSceneProposalFixtureInputs()
+  const scenario = options?.scenario ?? 'musashi'
+  const scenarioFixture = fixtureInputs[scenario]
   const sourceRequest =
-    fixtureInputs.musashi.request as LivingFrameSemanticReasoningRequest
+    scenarioFixture.request as LivingFrameSemanticReasoningRequest
   const alignedRequest = await alignRequest({
     request: sourceRequest,
     canonicalScope,
     planningEvidenceDigest,
   })
   const sourcePack =
-    fixtureInputs.musashi.continuityPack as
+    scenarioFixture.continuityPack as
       | LivingFrameVisualContinuityPack
       | null
   if (!sourcePack) {
@@ -116,9 +124,10 @@ export async function createLivingFrameSelectedSceneVisualContinuityPackBindingS
       request: alignedRequest,
       result: options?.includeGeneratedBackgroundPlate
         ? withGeneratedBackgroundPlate(
-          fixtureInputs.musashi.result,
+          scenarioFixture.result,
+          scenario,
         )
-        : fixtureInputs.musashi.result,
+        : scenarioFixture.result,
       continuityPack: alignedPack,
     })
   const semanticPlanProjection =
@@ -194,7 +203,10 @@ export async function createLivingFrameSelectedSceneVisualContinuityPackBindingS
   }
 }
 
-function withGeneratedBackgroundPlate<T>(result: T): T {
+function withGeneratedBackgroundPlate<T>(
+  result: T,
+  scenario: LivingFrameSelectedSceneFixtureScenario,
+): T {
   const clone = structuredClone(result) as T
   const root = clone as {
     sceneProposals: Array<{
@@ -203,29 +215,40 @@ function withGeneratedBackgroundPlate<T>(result: T): T {
   }
   const scene = root.sceneProposals[0]
   if (!scene) {
-    throw new Error('Missing Musashi scene proposal fixture.')
+    throw new Error('Missing selected Living Frame scene proposal fixture.')
   }
-  const sword = scene.components.find(
-    (component) =>
-      component.componentKey === 'component.sword',
-  )
-  if (!sword || !Array.isArray(sword.capabilityKeys)) {
-    throw new Error('Missing Musashi sword component fixture.')
-  }
-  if (!sword.capabilityKeys.includes(
-    'still_image_generation_or_edit',
-  )) {
-    sword.capabilityKeys.push(
-      'still_image_generation_or_edit',
+  if (scenario === 'musashi') {
+    const sword = scene.components.find(
+      (component) =>
+        component.componentKey === 'component.sword',
     )
+    if (!sword || !Array.isArray(sword.capabilityKeys)) {
+      throw new Error('Missing Musashi sword component fixture.')
+    }
+    if (!sword.capabilityKeys.includes(
+      'still_image_generation_or_edit',
+    )) {
+      sword.capabilityKeys.push(
+        'still_image_generation_or_edit',
+      )
+    }
   }
+  const componentPrefix =
+    scenario === 'musashi'
+      ? 'component.musashi'
+      : 'component.hormuz'
+  const evidenceRefId =
+    scenario === 'musashi'
+      ? 'evidence.musashi.visual'
+      : 'evidence.hormuz.visual'
   scene.components.push({
-    componentKey: 'component.musashi.background',
+    componentKey: `${componentPrefix}.background`,
     order: scene.components.length,
     role: 'opaque_background_plate',
     focalRole: 'static_anchor',
-    derivedSummary:
-      'A full-frame illustrated duel-clearing plate preserves negative space and deep multiplane separation behind the isolated character.',
+    derivedSummary: scenario === 'musashi'
+      ? 'A full-frame illustrated duel-clearing plate preserves negative space and deep multiplane separation behind the isolated character.'
+      : 'A restrained full-frame regional atmosphere plate preserves negative space behind the exact deterministic map and route layers.',
     parentComponentKey: null,
     anchorComponentKey: null,
     depthBand: 'background',
@@ -235,9 +258,7 @@ function withGeneratedBackgroundPlate<T>(result: T): T {
     capabilityKeys: [
       'still_image_generation_or_edit',
     ],
-    evidenceCitations: [{
-      evidenceRefId: 'evidence.musashi.visual',
-    }],
+    evidenceCitations: [{ evidenceRefId }],
   })
   return clone
 }

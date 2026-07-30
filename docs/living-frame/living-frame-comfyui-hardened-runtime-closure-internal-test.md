@@ -133,3 +133,10 @@ frozen parent image, source lineage, exact package-cache bytes, read-only
 mounts, sealed container constraints, non-root verifier, post-use cache
 digests, and authority denials without serializing host paths or file
 payloads.
+
+The later local derivative observation is frozen separately in
+`living-frame-comfyui-hardened-local-image-evidence.md`. That evidence records
+the sanitized local image, strict read-only non-root verification, rejected
+host-path-leaking intermediate, and the still-incomplete full-image scan. It
+does not upgrade the local container-commit method into a reproducible OCI
+build.

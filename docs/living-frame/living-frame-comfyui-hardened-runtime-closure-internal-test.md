@@ -126,3 +126,10 @@ local/OCI build context.
 
 Operation registration, dispatch, asset creation, cost admission, customer
 billing, public delivery, and production remain false.
+
+The source-controlled private-host replay contract is documented in
+`living-frame-comfyui-hardened-runtime-host-evidence.md`. It revalidates the
+frozen parent image, source lineage, exact package-cache bytes, read-only
+mounts, sealed container constraints, non-root verifier, post-use cache
+digests, and authority denials without serializing host paths or file
+payloads.

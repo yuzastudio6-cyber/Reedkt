@@ -70,6 +70,8 @@ export function getServiceContext(request: Request): ServiceContext {
         .editReferenceTargetUnderstandingPackageRuntimePortFactory,
     editBriefPrivateWorkspaceRuntimePort:
       runtimeRequest.runtime.editBriefPrivateWorkspaceRuntimePort,
+    kimiK3SourceLedChatAssistantPort:
+      runtimeRequest.runtime.kimiK3SourceLedChatAssistantPort,
   }
 }
 

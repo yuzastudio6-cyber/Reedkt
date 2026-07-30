@@ -94,6 +94,14 @@ The future qualified runtime must use:
 This is a request contract only. It does not prove that the current browser
 graphics runner supports the new operation or output.
 
+An adjacent
+`living-frame-environmental-particle-sequence-observation-v1` candidate now
+defines the byte-level output measurement contract. Its controlled fixture
+decodes real RGBA PNG bytes, verifies exact frame/digest/alpha lineage, and
+measures temporal alpha variation without claiming that PixiJS produced the
+bytes. It does not satisfy runtime, artifact, canonical QA, private-review,
+cost, billing, or production gates.
+
 ## Output contract
 
 One future attempt may produce exactly one logical bundle:
@@ -217,3 +225,4 @@ The server implementation contains no named example-subject routing.
 - `src/types/living-frame-environmental-particle-operation-materialization.ts`
 - `server/living-frame/living-frame-environmental-particle-operation-materialization.ts`
 - `server/smoke/living-frame-environmental-particle-operation-materialization-smoke.ts`
+- `docs/living-frame/living-frame-environmental-particle-sequence-observation.md`

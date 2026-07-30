@@ -166,9 +166,20 @@ dispatch, runtime, artifacts, costs, QA, review, billing, and production
 false. It consumes a verified kernel only; it does not bypass the missing
 selected-scene profile or timing owners.
 
+The adjacent
+`living-frame-environmental-particle-sequence-observation-v1` candidate now
+proves the process-private byte observation and measurement shape against a
+controlled eight-frame 3840×2160 RGBA PNG fixture. It verifies exact frame
+lineage, CRC/inflate/alpha behavior, settled endpoints, temporal variation,
+and alpha-centroid movement while keeping PixiJS entrypoint/runtime,
+artifact, canonical QA, review, cost, billing, and production evidence false.
+It is not a substitute for the selected-scene, operation, or runtime owners.
+
 See
 `docs/living-frame/living-frame-environmental-particle-kernel.md` and
-`docs/living-frame/living-frame-environmental-particle-operation-materialization.md`.
+`docs/living-frame/living-frame-environmental-particle-operation-materialization.md`,
+plus
+`docs/living-frame/living-frame-environmental-particle-sequence-observation.md`.
 
 ## Required canonical continuation
 
@@ -195,3 +206,4 @@ See
 - `server/smoke/living-frame-selected-scene-environmental-particle-admission-smoke.ts`
 - `docs/living-frame/living-frame-environmental-particle-kernel.md`
 - `docs/living-frame/living-frame-environmental-particle-operation-materialization.md`
+- `docs/living-frame/living-frame-environmental-particle-sequence-observation.md`

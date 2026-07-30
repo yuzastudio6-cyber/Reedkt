@@ -168,6 +168,14 @@ cost, billing, or release gate.
 See
 `docs/living-frame/living-frame-environmental-particle-operation-materialization.md`.
 
+The adjacent
+`living-frame-environmental-particle-sequence-observation-v1` candidate
+exercises the future output boundary with controlled fixture PNG bytes. It
+proves exact RGBA/alpha/frame/temporal measurement behavior but explicitly
+does not prove PixiJS execution, a qualified runtime artifact, canonical QA,
+or release readiness. See
+`docs/living-frame/living-frame-environmental-particle-sequence-observation.md`.
+
 ## Open shared-owner gates
 
 1. Add one immutable typed environmental-profile reference to approved
@@ -212,3 +220,4 @@ The server implementation contains no named example-subject routing.
 - `server/living-frame/living-frame-environmental-particle-kernel.ts`
 - `server/smoke/living-frame-environmental-particle-kernel-smoke.ts`
 - `docs/living-frame/living-frame-environmental-particle-operation-materialization.md`
+- `docs/living-frame/living-frame-environmental-particle-sequence-observation.md`

@@ -3130,6 +3130,17 @@ persist an artifact, mutate the work graph or manifest, create a cost, or
 change Remotion. The sequence remains an input to a future qualified
 time-sampled overlay adapter; Remotion remains the final canvas.
 
+An additional namespaced candidate,
+`living-frame-environmental-particle-sequence-observation-v1`, now defines the
+process-private byte and alpha measurement boundary for that future output.
+Its controlled non-promotable fixture encodes and decodes an exact
+eight-frame 3840×2160 RGBA PNG sequence, verifies chunk CRCs, inflation,
+frame/digest lineage, settled endpoints, temporal variation, and
+alpha-centroid movement, then emits a byte-free report. The evidence source
+explicitly does not prove the PixiJS entrypoint, qualified browser runtime,
+artifact persistence, canonical QA, private review, cost, billing, or
+production release.
+
 PixiJS remains the existing tool identity. No separate particle tool identity
 is created. Its current operation renders one opaque 640×360 static review
 card PNG, while Living Frame requires a time-sampled transparent procedural
@@ -3142,7 +3153,9 @@ runtime, or claim private/production readiness.
 
 See
 `docs/living-frame/living-frame-environmental-particle-kernel.md` and
-`docs/living-frame/living-frame-environmental-particle-operation-materialization.md`.
+`docs/living-frame/living-frame-environmental-particle-operation-materialization.md`,
+plus
+`docs/living-frame/living-frame-environmental-particle-sequence-observation.md`.
 
 The downstream Sharp alpha-component authority accepts exactly one approved
 source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg

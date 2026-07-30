@@ -1352,7 +1352,7 @@ plan authority and the existing private Remotion service remains the only
 future execution boundary.
 
 This broad profile candidate remains non-executable on its own. The narrower
-`canonical-living-frame-motion-spec-v1` now admits a closed scalar subset after
+`canonical-living-frame-motion-spec-v2` now admits a closed scalar subset after
 canonical planning freezes selected scene, component, output-frame, and exact
 MasterTiming lineage. The existing offline Remotion protocol executes that
 subset only with committed RGBA artifacts and the existing private review
@@ -1962,7 +1962,7 @@ reconciliation algorithm.
 The earlier `living-frame-remotion-motion-sample-binding-v1` remains a
 non-executable planning/reconciliation primitive. The canonical work graph now
 adds the narrower executable bridge that was previously missing:
-`canonical-living-frame-motion-spec-v1`.
+`canonical-living-frame-motion-spec-v2`.
 
 For every admitted Living Frame layer, the server rereads the selected scene,
 the exact five MasterTiming semantic phases, the confirmed output frame, and

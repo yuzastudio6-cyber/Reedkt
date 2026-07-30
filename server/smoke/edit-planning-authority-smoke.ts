@@ -54,6 +54,9 @@ import {
   createCanonicalLivingFrameSelectedSceneSelectorPort,
   selectCanonicalLivingFrameScenes,
 } from '../services/canonical-living-frame-selected-scene-binding-service'
+import {
+  compileCanonicalLivingFrameMotionSpec,
+} from '../living-frame/canonical-living-frame-motion'
 import { createUploadService } from '../services/upload-service'
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
 import { withCanonicalExecutionDomainLock } from '../services/canonical-execution-domain-lock'
@@ -124,7 +127,12 @@ import {
 } from '../../src/types/living-frame-execution-requirements'
 import {
   CANONICAL_LIVING_FRAME_TIMING_BINDING_COMPONENT_KEY,
+  type CanonicalLivingFrameTimingBinding,
 } from '../../src/types/living-frame-timing-binding'
+import {
+  CANONICAL_LIVING_FRAME_MOTION_PROFILE,
+  CANONICAL_LIVING_FRAME_MOTION_SPEC_VERSION,
+} from '../../src/types/living-frame-canonical-motion'
 import {
   CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_COMPONENT_KEY,
 } from '../../src/types/living-frame-asset-work-input-binding'
@@ -5872,6 +5880,185 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       },
     ],
   )
+  const canonicalTimingBinding =
+    timingBinding as unknown as
+      CanonicalLivingFrameTimingBinding
+  const selectedMotionScene =
+    livingFrameSelectedScenePublication.binding
+      .selectedComponent.scenePlans[0]!
+  const selectedMotionComponent =
+    selectedMotionScene.components[0]!
+  const compileMotionFromCanonicalTiming = (
+    candidateTimingBinding:
+      CanonicalLivingFrameTimingBinding,
+  ) =>
+    compileCanonicalLivingFrameMotionSpec({
+      publication:
+        livingFrameSelectedScenePublication,
+      timingBinding: candidateTimingBinding,
+      components: body.canonicalPlan.components,
+      sceneId: selectedMotionScene.sceneId,
+      componentId:
+        selectedMotionComponent.componentId,
+    })
+  const canonicalMotionFromCompiledTiming =
+    compileMotionFromCanonicalTiming(
+      canonicalTimingBinding,
+    )
+  assert.equal(
+    canonicalMotionFromCompiledTiming.schemaVersion,
+    CANONICAL_LIVING_FRAME_MOTION_SPEC_VERSION,
+  )
+  assert.equal(
+    canonicalMotionFromCompiledTiming.motionProfileId,
+    CANONICAL_LIVING_FRAME_MOTION_PROFILE,
+  )
+  assert.equal(
+    canonicalMotionFromCompiledTiming.sceneStartFrame,
+    12,
+  )
+  assert.equal(
+    canonicalMotionFromCompiledTiming
+      .sceneEndFrameExclusive,
+    72,
+  )
+  for (const track of
+    canonicalMotionFromCompiledTiming.tracks) {
+    assert.deepEqual(
+      track.keyframes.map((keyframe) =>
+        canonicalMotionFromCompiledTiming.sceneStartFrame +
+          keyframe.frameOffset),
+      [12, 16, 20, 64, 68, 71],
+    )
+  }
+  const rehashTimingBinding = (
+    candidate: CanonicalLivingFrameTimingBinding,
+  ): CanonicalLivingFrameTimingBinding => {
+    const draft = structuredClone(candidate) as unknown as
+      Record<string, unknown>
+    delete draft.timingBindingDigestSha256
+    return {
+      ...draft,
+      timingBindingDigestSha256:
+        sha256AuthorityValue(draft),
+    } as unknown as CanonicalLivingFrameTimingBinding
+  }
+  const forgedGapTiming =
+    structuredClone(canonicalTimingBinding)
+  const forgedGapScene = asRecord(
+    forgedGapTiming.scenes[0],
+  )
+  const forgedGapPhases =
+    forgedGapScene.semanticPhaseBindings as unknown[]
+  const forgedGapDemonstrate = asRecord(
+    forgedGapPhases[2],
+  )
+  const forgedGapRange = asRecord(
+    forgedGapDemonstrate.frameRange,
+  )
+  forgedGapRange.startFrame =
+    Number(forgedGapRange.startFrame) + 1
+  forgedGapRange.durationFrames =
+    Number(forgedGapRange.endFrameExclusive) -
+      Number(forgedGapRange.startFrame)
+  assert.throws(
+    () => compileMotionFromCanonicalTiming(
+      rehashTimingBinding(forgedGapTiming),
+    ),
+    /partition the full MasterTiming segment range/,
+  )
+  const forgedVisualBoundaryTiming =
+    structuredClone(canonicalTimingBinding)
+  const forgedVisualBoundaryScene = asRecord(
+    forgedVisualBoundaryTiming.scenes[0],
+  )
+  const forgedVisualBoundary = asRecord(
+    asRecord(forgedVisualBoundaryScene.visualTiming)
+      .frameRange,
+  )
+  forgedVisualBoundary.startFrame =
+    Number(forgedVisualBoundary.startFrame) + 1
+  forgedVisualBoundary.durationFrames =
+    Number(forgedVisualBoundary.endFrameExclusive) -
+      Number(forgedVisualBoundary.startFrame)
+  assert.throws(
+    () => compileMotionFromCanonicalTiming(
+      rehashTimingBinding(
+        forgedVisualBoundaryTiming,
+      ),
+    ),
+    /visual reveal, hold, exit, and semantic phase boundaries diverged/,
+  )
+  const forgedVisualDurationTiming =
+    structuredClone(canonicalTimingBinding)
+  const forgedVisualDuration = asRecord(
+    asRecord(
+      forgedVisualDurationTiming.scenes[0],
+    ).visualTiming,
+  )
+  forgedVisualDuration.revealFrames =
+    Number(forgedVisualDuration.revealFrames) + 1
+  forgedVisualDuration.holdFrames =
+    Number(forgedVisualDuration.holdFrames) - 1
+  assert.throws(
+    () => compileMotionFromCanonicalTiming(
+      rehashTimingBinding(
+        forgedVisualDurationTiming,
+      ),
+    ),
+    /visual reveal, hold, exit, and semantic phase boundaries diverged/,
+  )
+  const duplicateFrameTiming =
+    structuredClone(canonicalTimingBinding)
+  const duplicateFrameScene = asRecord(
+    duplicateFrameTiming.scenes[0],
+  )
+  const duplicateFrameVisual = asRecord(
+    duplicateFrameScene.visualTiming,
+  )
+  duplicateFrameVisual.revealFrames = 2
+  duplicateFrameVisual.holdFrames = 56
+  duplicateFrameVisual.exitFrames = 2
+  const duplicateFramePhases =
+    duplicateFrameScene.semanticPhaseBindings as unknown[]
+  const duplicateActivateRange = asRecord(
+    asRecord(duplicateFramePhases[1]).frameRange,
+  )
+  duplicateActivateRange.endFrameExclusive = 14
+  duplicateActivateRange.durationFrames = 2
+  const duplicateDemonstrateRange = asRecord(
+    asRecord(duplicateFramePhases[2]).frameRange,
+  )
+  duplicateDemonstrateRange.startFrame = 14
+  duplicateDemonstrateRange.endFrameExclusive = 70
+  duplicateDemonstrateRange.durationFrames = 56
+  const duplicateResolveRange = asRecord(
+    asRecord(duplicateFramePhases[3]).frameRange,
+  )
+  duplicateResolveRange.startFrame = 70
+  duplicateResolveRange.durationFrames = 2
+  assert.throws(
+    () => compileMotionFromCanonicalTiming(
+      rehashTimingBinding(
+        duplicateFrameTiming,
+      ),
+    ),
+    /six distinct bounded motion keyframes/,
+  )
+  const forgedLineageTiming =
+    structuredClone(canonicalTimingBinding)
+  asRecord(
+    forgedLineageTiming.sourceBindings,
+  ).currentMasterTimingDigestSha256 =
+    sha256ForSmoke('forged-master-timing-lineage')
+  assert.throws(
+    () => compileMotionFromCanonicalTiming(
+      rehashTimingBinding(
+        forgedLineageTiming,
+      ),
+    ),
+    /timing-binding lineage diverged/,
+  )
   const soundCueBindings = timingScene.soundCueBindings
   assert.ok(Array.isArray(soundCueBindings))
   assert.equal(soundCueBindings.length, 1)
@@ -6876,6 +7063,8 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       endFrameExclusive: 72,
       fit: 'fill',
       opacity: 1,
+      motionSpec:
+        canonicalMotionFromCompiledTiming,
     }],
   )
   assert.equal(

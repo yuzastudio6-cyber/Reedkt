@@ -10,15 +10,15 @@ import type {
 import type {
   CanonicalLivingFrameSelectedScenePublication,
 } from '../../../src/types/living-frame-selected-scene-binding'
-import type {
-  CanonicalLivingFrameTimingBinding,
-} from '../../../src/types/living-frame-timing-binding'
 import {
   compileCanonicalLivingFrameEstimateWorkAssetProjection,
 } from '../../living-frame/canonical-living-frame-estimate-work-asset-projection'
 import {
   compileCanonicalLivingFrameWorkGraphProjection,
 } from '../../living-frame/canonical-living-frame-work-graph-projection'
+import {
+  compileCanonicalLivingFrameTimingBinding,
+} from '../../living-frame/canonical-living-frame-timing-binding'
 import {
   createLivingFrameComfyUiOperationAdmissionCandidate,
 } from '../../living-frame/living-frame-comfyui-operation-admission-candidate'
@@ -89,10 +89,6 @@ export async function createLivingFrameControlledImageSelectedScenePrivateCondit
     kind: 'conditioning-requirements',
     suffix,
   })
-  const timingBindingDigestSha256 = hash({
-    kind: 'conditioning-timing',
-    suffix,
-  })
   const requirements = {
     requirementsDigestSha256,
     sourceBindings: {
@@ -104,9 +100,13 @@ export async function createLivingFrameControlledImageSelectedScenePrivateCondit
       currentSoundSyncDigestSha256: hash(
         components.soundSyncTransitionTimingPlan,
       ),
+      canonicalSegmentsDigestSha256: hash(
+        components.segments,
+      ),
     },
     scenes: [{
       sceneId: scene.sceneId,
+      treatment: 'use_full',
       canonicalSegmentId:
         components.segments[0]!.segmentId,
       startFrame:
@@ -127,39 +127,27 @@ export async function createLivingFrameControlledImageSelectedScenePrivateCondit
       requiredExternalGateCodes: [],
       qaExpectationCodes: [],
     }],
+    metrics: {
+      selectedSceneCount: 1,
+      selectedComponentCount:
+        scene.components.length,
+      semanticTimingRequestCount:
+        scene.semanticTimingRequests.length,
+      soundRequestCount:
+        scene.soundRequests.length,
+      requiredNamedWorkItemTypeCount: 0,
+      requiredExternalGateCount: 0,
+      missingOperationCount: 0,
+      qaExpectationCount: 0,
+    },
   } as unknown as
     CanonicalLivingFrameExecutionRequirements
-  const timingBinding = {
-    timingBindingDigestSha256,
-    sourceBindings: {
-      selectedSceneBindingDigestSha256:
-        publication.binding.bindingDigestSha256,
-      executionRequirementsDigestSha256:
-        requirementsDigestSha256,
-      currentMasterTimingDigestSha256:
-        publication.binding.sourceBindings
-          .currentMasterTimingDigestSha256,
-    },
-    fps: 30,
-    scenes: [{
-      sceneId: scene.sceneId,
-      semanticPhaseBindings: [
-        phase('prepare', 0, 15, 0, suffix),
-        phase('activate', 15, 30, 1, suffix),
-        phase('demonstrate', 30, 105, 2, suffix),
-        phase('resolve', 105, 135, 3, suffix),
-        phase('settle', 135, 150, 4, suffix),
-      ],
-      soundCueBindings: [],
-      visualTiming: {
-        frameRange: {
-          startFrame: 0,
-          endFrameExclusive: 150,
-          durationFrames: 150,
-        },
-      },
-    }],
-  } as unknown as CanonicalLivingFrameTimingBinding
+  const timingBinding =
+    compileCanonicalLivingFrameTimingBinding({
+      publication,
+      requirements,
+      components,
+    })
   const generatedComponents = scene.components.filter(
     (component) =>
       component.capabilityKeys.includes(
@@ -179,7 +167,8 @@ export async function createLivingFrameControlledImageSelectedScenePrivateCondit
         publication.binding.bindingDigestSha256,
       executionRequirementsDigestSha256:
         requirementsDigestSha256,
-      timingBindingDigestSha256,
+      timingBindingDigestSha256:
+        timingBinding.timingBindingDigestSha256,
     },
     scenes: [{
       sceneId: scene.sceneId,
@@ -470,32 +459,6 @@ function createApprovedLineageBinding(input: {
 
 function hash(value: unknown): string {
   return sha256AuthorityValue(value)
-}
-
-function phase(
-  phaseName:
-    | 'prepare'
-    | 'activate'
-    | 'demonstrate'
-    | 'resolve'
-    | 'settle',
-  startFrame: number,
-  endFrameExclusive: number,
-  order: number,
-  suffix: string,
-) {
-  return {
-    timingRequestId:
-      `timing-request-conditioning-${phaseName}-${suffix}`,
-    order,
-    phase: phaseName,
-    frameRange: {
-      startFrame,
-      endFrameExclusive,
-      durationFrames:
-        endFrameExclusive - startFrame,
-    },
-  }
 }
 
 function nextId(): string {

@@ -395,9 +395,9 @@ function createMotionSpec(input: {
   const draft:
     CanonicalLivingFrameMotionSpecDraft = {
       schemaVersion:
-        'canonical-living-frame-motion-spec-v1',
+        'canonical-living-frame-motion-spec-v2',
       motionProfileId:
-        'approved_scalar_keyframe_choreography_v1',
+        'approved_visual_interval_scalar_keyframe_choreography_v2',
       sceneId: input.sceneId,
       componentId: input.componentId,
       sceneStartFrame: 0,
@@ -454,8 +454,7 @@ function createMotionSpec(input: {
       },
       exactFramesRemainOwnedByMasterTiming: true,
       captionsRemainAboveLivingFrame: true,
-      containsExecutableCodeCommandsPathsUrlsOrCredentials:
-        false,
+      containsExecutableOrOperationalPayload: false,
       subjectSpecificRouting: false,
     }
   return {

@@ -81,10 +81,17 @@ const selectedComponent =
   contractFixtures.helicopterSelectiveMotion
 const scene = selectedComponent.scenePlans[0]!
 const componentId = 'helicopter.downwash'
+const masterTimingPlan = {
+  id:
+    'master-timing.selected-scene-environmental-internal',
+}
+const outputFrame = {
+  width: 1080,
+  height: 1920,
+  fps: 30,
+}
 const currentMasterTimingDigestSha256 =
-  sha256AuthorityValue(
-    'selected-scene-environmental-internal-master-timing',
-  )
+  sha256AuthorityValue(masterTimingPlan)
 
 const baseContinuityDraft =
   createLivingFrameVisualContinuityFixtureDrafts()
@@ -116,11 +123,6 @@ const selectedSceneBindingDigestSha256 =
     visualContinuityPackDigestSha256:
       visualContinuityPack.contractDigestSha256,
   })
-const timingBindingDigestSha256 =
-  sha256AuthorityValue({
-    selectedSceneBindingDigestSha256,
-    currentMasterTimingDigestSha256,
-  })
 const publication = {
   binding: {
     identity: {
@@ -144,15 +146,21 @@ const publication = {
   admission: {},
   semanticPlanProjection: {},
 } as unknown as CanonicalLivingFrameSelectedScenePublication
-const timingBinding = {
-  timingBindingDigestSha256,
+const timingBindingDraft = {
   sourceBindings: {
     selectedSceneBindingDigestSha256,
     currentMasterTimingDigestSha256,
+    confirmedOutputFrameDigestSha256:
+      sha256AuthorityValue(outputFrame),
   },
   fps: 30,
   scenes: [{
     sceneId: scene.sceneId,
+    segmentFrameRange: {
+      startFrame: 0,
+      endFrameExclusive: 150,
+      durationFrames: 150,
+    },
     semanticPhaseBindings: [
       phase('prepare', 0, 15),
       phase('activate', 15, 30),
@@ -162,17 +170,29 @@ const timingBinding = {
     ],
     visualTiming: {
       frameRange: {
-        startFrame: 0,
-        endFrameExclusive: 150,
-        durationFrames: 150,
+        startFrame: 15,
+        endFrameExclusive: 135,
+        durationFrames: 120,
       },
+      revealFrames: 15,
+      holdFrames: 75,
+      exitFrames: 30,
     },
   }],
+}
+const timingBinding = {
+  ...timingBindingDraft,
+  timingBindingDigestSha256:
+    sha256AuthorityValue(timingBindingDraft),
 } as unknown as CanonicalLivingFrameTimingBinding
 const components = {
-  masterTimingPlan: {
-    id:
-      'master-timing.selected-scene-environmental-internal',
+  masterTimingPlan,
+  confirmedSettings: {
+    aspectRatio: '9:16',
+    outputFrame,
+    outputFrameConfirmed: true,
+    outputFramePurpose:
+      'private_canonical_4k_master_review',
   },
 } as unknown as CanonicalPlanComponentsInput
 const canonicalMotionSpecs = scene.components.map(

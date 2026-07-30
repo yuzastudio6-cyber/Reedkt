@@ -149,13 +149,18 @@ export function compileCanonicalLivingFrameMotionSpec(input: {
       'Canonical Living Frame motion requires one selected scene, component, and exact timing binding.',
     )
   }
+  assertCanonicalLivingFrameMotionLineage(input)
   if (
-    input.publication.binding.bindingDigestSha256 !==
-      input.timingBinding.sourceBindings
-        .selectedSceneBindingDigestSha256
+    timingScene.semanticPhaseBindings.length !==
+      REQUIRED_PHASES.length
+    || timingScene.semanticPhaseBindings.some(
+      (binding, index) =>
+        binding.order !== index
+        || binding.phase !== REQUIRED_PHASES[index],
+    )
   ) {
     throw new Error(
-      'Canonical Living Frame motion selected-scene and timing lineage diverged.',
+      'Canonical Living Frame motion requires one exact ordered five-phase MasterTiming sequence.',
     )
   }
   const phases = REQUIRED_PHASES.map((phase) => {
@@ -168,33 +173,126 @@ export function compileCanonicalLivingFrameMotionSpec(input: {
     }
     return binding
   })
+  const segmentRange = timingScene.segmentFrameRange
   const visualRange = timingScene.visualTiming.frameRange
   if (
     phases.some((phase, index) =>
       phase.frameRange.startFrame !== (
         index === 0
-          ? visualRange.startFrame
+          ? segmentRange.startFrame
           : phases[index - 1]!.frameRange.endFrameExclusive
       ))
     || phases[phases.length - 1]!.frameRange
-      .endFrameExclusive !== visualRange.endFrameExclusive
-    || visualRange.endFrameExclusive <= visualRange.startFrame
+      .endFrameExclusive !== segmentRange.endFrameExclusive
+    || segmentRange.endFrameExclusive <=
+      segmentRange.startFrame
+    || segmentRange.durationFrames !==
+      segmentRange.endFrameExclusive -
+        segmentRange.startFrame
+    || phases.some((phase) =>
+      phase.frameRange.durationFrames !==
+        phase.frameRange.endFrameExclusive -
+          phase.frameRange.startFrame
+      || phase.frameRange.durationFrames <= 0)
   ) {
     throw new Error(
-      'Canonical Living Frame motion phases must exactly partition the visual MasterTiming range.',
+      'Canonical Living Frame motion phases must exactly partition the full MasterTiming segment range.',
     )
   }
-  const phaseFrames = [
-    phases[0]!.frameRange.startFrame,
-    phases[1]!.frameRange.startFrame,
-    phases[2]!.frameRange.startFrame,
-    phases[3]!.frameRange.startFrame,
-    phases[4]!.frameRange.startFrame,
+  const revealEndFrame =
+    visualRange.startFrame +
+      timingScene.visualTiming.revealFrames
+  const exitStartFrame =
+    visualRange.endFrameExclusive -
+      timingScene.visualTiming.exitFrames
+  if (
+    visualRange.endFrameExclusive <= visualRange.startFrame
+    || visualRange.durationFrames !==
+      visualRange.endFrameExclusive -
+        visualRange.startFrame
+    || !Number.isSafeInteger(
+      timingScene.visualTiming.revealFrames,
+    )
+    || timingScene.visualTiming.revealFrames < 2
+    || !Number.isSafeInteger(
+      timingScene.visualTiming.holdFrames,
+    )
+    || timingScene.visualTiming.holdFrames < 1
+    || !Number.isSafeInteger(
+      timingScene.visualTiming.exitFrames,
+    )
+    || timingScene.visualTiming.exitFrames < 2
+    || timingScene.visualTiming.revealFrames +
+      timingScene.visualTiming.holdFrames +
+      timingScene.visualTiming.exitFrames !==
+        visualRange.durationFrames
+    || phases[0]!.frameRange.endFrameExclusive !==
+      visualRange.startFrame
+    || phases[1]!.frameRange.startFrame !==
+      visualRange.startFrame
+    || phases[1]!.frameRange.endFrameExclusive !==
+      revealEndFrame
+    || phases[1]!.frameRange.durationFrames !==
+      timingScene.visualTiming.revealFrames
+    || phases[2]!.frameRange.startFrame !==
+      revealEndFrame
+    || phases[2]!.frameRange.endFrameExclusive !==
+      exitStartFrame
+    || phases[2]!.frameRange.durationFrames !==
+      timingScene.visualTiming.holdFrames
+    || phases[3]!.frameRange.startFrame !==
+      exitStartFrame
+    || phases[3]!.frameRange.endFrameExclusive !==
+      visualRange.endFrameExclusive
+    || phases[3]!.frameRange.durationFrames !==
+      timingScene.visualTiming.exitFrames
+    || phases[4]!.frameRange.startFrame !==
+      visualRange.endFrameExclusive
+  ) {
+    throw new Error(
+      'Canonical Living Frame motion visual reveal, hold, exit, and semantic phase boundaries diverged.',
+    )
+  }
+  const revealMidFrame = Math.min(
+    revealEndFrame - 1,
+    Math.max(
+      visualRange.startFrame + 1,
+      visualRange.startFrame + Math.floor(
+        timingScene.visualTiming.revealFrames / 2,
+      ),
+    ),
+  )
+  const exitMidFrame = Math.min(
+    visualRange.endFrameExclusive - 2,
+    Math.max(
+      exitStartFrame + 1,
+      exitStartFrame + Math.floor(
+        timingScene.visualTiming.exitFrames / 2,
+      ),
+    ),
+  )
+  const visualMotionFrames = [
+    visualRange.startFrame,
+    revealMidFrame,
+    revealEndFrame,
+    exitStartFrame,
+    exitMidFrame,
     visualRange.endFrameExclusive - 1,
   ] as const
-  if (new Set(phaseFrames).size !== phaseFrames.length) {
+  if (
+    new Set(visualMotionFrames).size !==
+      visualMotionFrames.length
+    || visualMotionFrames.some((frame, index) =>
+      !Number.isSafeInteger(frame)
+      || frame < visualRange.startFrame
+      || frame >= visualRange.endFrameExclusive
+      || (
+        index > 0
+        && frame <= visualMotionFrames[index - 1]!
+      ))
+  ) {
     throw new Error(
-      'Canonical Living Frame motion phases are too short for bounded keyframe choreography.',
+      'Canonical Living Frame visual timing is too short for six distinct bounded motion keyframes.',
     )
   }
 
@@ -240,7 +338,7 @@ export function compileCanonicalLivingFrameMotionSpec(input: {
           || intent.target === 'virtual_camera'
             ? 'required_return_to_initial'
             : 'not_applicable',
-        keyframes: phaseFrames.map((frame, index) => ({
+        keyframes: visualMotionFrames.map((frame, index) => ({
           frame,
           value: intent.values[index]!,
           easingToNext: intent.easings[index]!,
@@ -248,7 +346,13 @@ export function compileCanonicalLivingFrameMotionSpec(input: {
       }
     })
   const masterTimingPlanId =
-    stringRecordValue(input.components.masterTimingPlan, 'id')
+    input.publication.binding.selectedComponent.inputBindings
+      .masterTiming.expectationRefId
+  if (!safeId(masterTimingPlanId)) {
+    throw new Error(
+      'Canonical Living Frame motion MasterTiming identity is invalid.',
+    )
+  }
   const outputFrameId =
     input.publication.binding.selectedComponent.inputBindings
       .outputFrame.expectationRefId
@@ -368,14 +472,50 @@ export function compileCanonicalLivingFrameMotionSpec(input: {
     authorityBoundary: AUTHORITY_BOUNDARY,
     exactFramesRemainOwnedByMasterTiming: true,
     captionsRemainAboveLivingFrame: true,
-    containsExecutableCodeCommandsPathsUrlsOrCredentials:
-      false,
+    containsExecutableOrOperationalPayload: false,
     subjectSpecificRouting: false,
   }
   return {
     ...draft,
     motionSpecDigestSha256:
       sha256AuthorityValue(draft),
+  }
+}
+
+function assertCanonicalLivingFrameMotionLineage(input: {
+  readonly publication:
+    CanonicalLivingFrameSelectedScenePublication
+  readonly timingBinding:
+    CanonicalLivingFrameTimingBinding
+  readonly components: CanonicalPlanComponentsInput
+}): void {
+  const currentMasterTimingDigestSha256 =
+    sha256AuthorityValue(input.components.masterTimingPlan)
+  const confirmedOutputFrameDigestSha256 =
+    sha256AuthorityValue(
+      input.components.confirmedSettings.outputFrame,
+    )
+  if (
+    input.publication.binding.bindingDigestSha256 !==
+      input.timingBinding.sourceBindings
+        .selectedSceneBindingDigestSha256
+    || input.publication.binding.sourceBindings
+      .currentMasterTimingDigestSha256 !==
+        currentMasterTimingDigestSha256
+    || input.timingBinding.sourceBindings
+      .currentMasterTimingDigestSha256 !==
+        currentMasterTimingDigestSha256
+    || input.timingBinding.sourceBindings
+      .confirmedOutputFrameDigestSha256 !==
+        confirmedOutputFrameDigestSha256
+    || input.timingBinding.timingBindingDigestSha256 !==
+      sha256AuthorityValue(
+        withoutTimingBindingDigest(input.timingBinding),
+      )
+  ) {
+    throw new Error(
+      'Canonical Living Frame motion selected-scene, MasterTiming, output-frame, or timing-binding lineage diverged.',
+    )
   }
 }
 
@@ -391,7 +531,7 @@ export function verifyCanonicalLivingFrameMotionSpec(
       'authorityBoundary',
       'captionsRemainAboveLivingFrame',
       'componentId',
-      'containsExecutableCodeCommandsPathsUrlsOrCredentials',
+      'containsExecutableOrOperationalPayload',
       'depthBand',
       'depthStyle',
       'exactFramesRemainOwnedByMasterTiming',
@@ -449,8 +589,7 @@ export function verifyCanonicalLivingFrameMotionSpec(
     || !validAuthorityBoundary(spec.authorityBoundary)
     || spec.exactFramesRemainOwnedByMasterTiming !== true
     || spec.captionsRemainAboveLivingFrame !== true
-    || spec
-      .containsExecutableCodeCommandsPathsUrlsOrCredentials !== false
+    || spec.containsExecutableOrOperationalPayload !== false
     || spec.subjectSpecificRouting !== false
     || !SHA256.test(spec.motionSpecDigestSha256)
     || spec.motionSpecDigestSha256 !==
@@ -816,32 +955,25 @@ function standardEasings(): MotionTrackIntent['easings'] {
   ]
 }
 
-function stringRecordValue(
-  value: unknown,
-  key: string,
-): string {
-  if (!isRecord(value)) {
-    throw new Error(
-      'Canonical Living Frame motion lost its MasterTiming identity.',
-    )
-  }
-  const result = value[key]
-  if (
-    typeof result !== 'string'
-    || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(result)
-  ) {
-    throw new Error(
-      'Canonical Living Frame motion MasterTiming identity is invalid.',
-    )
-  }
-  return result
-}
-
 function withoutDigest(
   value: CanonicalLivingFrameMotionSpec,
 ): CanonicalLivingFrameMotionSpecDraft {
   const {
     motionSpecDigestSha256: _digest,
+    ...draft
+  } = value
+  void _digest
+  return draft
+}
+
+function withoutTimingBindingDigest(
+  value: CanonicalLivingFrameTimingBinding,
+): Omit<
+  CanonicalLivingFrameTimingBinding,
+  'timingBindingDigestSha256'
+> {
+  const {
+    timingBindingDigestSha256: _digest,
     ...draft
   } = value
   void _digest

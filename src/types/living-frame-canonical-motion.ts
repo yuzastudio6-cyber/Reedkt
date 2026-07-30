@@ -10,10 +10,10 @@ import type {
 } from './living-frame-deterministic-motion'
 
 export const CANONICAL_LIVING_FRAME_MOTION_SPEC_VERSION =
-  'canonical-living-frame-motion-spec-v1' as const
+  'canonical-living-frame-motion-spec-v2' as const
 
 export const CANONICAL_LIVING_FRAME_MOTION_PROFILE =
-  'approved_scalar_keyframe_choreography_v1' as const
+  'approved_visual_interval_scalar_keyframe_choreography_v2' as const
 
 export const CANONICAL_LIVING_FRAME_DEPTH_STYLES = [
   'flat',
@@ -107,7 +107,7 @@ export interface CanonicalLivingFrameMotionSpecDraft {
     CanonicalLivingFrameMotionSpecAuthorityBoundary
   readonly exactFramesRemainOwnedByMasterTiming: true
   readonly captionsRemainAboveLivingFrame: true
-  readonly containsExecutableCodeCommandsPathsUrlsOrCredentials: false
+  readonly containsExecutableOrOperationalPayload: false
   readonly subjectSpecificRouting: false
 }
 

@@ -58,9 +58,13 @@ const soundSyncPlan = {
   id: 'soundsync-lf-generated-alpha',
   cueCount: 0,
 }
+const outputFrame = {
+  width: 1920,
+  height: 1080,
+  fps: 30,
+}
 const selectedDigest = 'a'.repeat(64)
 const requirementsDigest = 'b'.repeat(64)
-const timingDigest = 'c'.repeat(64)
 const assetBindingDigest = 'd'.repeat(64)
 const masterDigest = sha256AuthorityValue(masterTimingPlan)
 const soundDigest = sha256AuthorityValue(soundSyncPlan)
@@ -97,12 +101,18 @@ const publication = {
     sourceBindings: {
       confirmedOutputFrameDigestSha256:
         'e'.repeat(64),
+      currentMasterTimingDigestSha256:
+        masterDigest,
     },
     selectedComponent: {
       inputBindings: {
         outputFrame: {
           expectationRefId:
             'output-frame-subject-neutral',
+        },
+        masterTiming: {
+          expectationRefId:
+            'master-timing-generated-alpha',
         },
       },
       scenePlans: [{
@@ -192,16 +202,22 @@ const requirements = {
   }],
 } as unknown as CanonicalLivingFrameExecutionRequirements
 
-const timingBinding = {
-  timingBindingDigestSha256: timingDigest,
+const timingBindingDraft = {
   sourceBindings: {
     selectedSceneBindingDigestSha256: selectedDigest,
     executionRequirementsDigestSha256: requirementsDigest,
     currentMasterTimingDigestSha256: masterDigest,
+    confirmedOutputFrameDigestSha256:
+      sha256AuthorityValue(outputFrame),
   },
   fps: 30,
   scenes: [{
     sceneId: 'scene-generated-alpha',
+    segmentFrameRange: {
+      startFrame: 12,
+      endFrameExclusive: 132,
+      durationFrames: 120,
+    },
     semanticPhaseBindings: [
       phase('prepare', 12, 24, 0),
       phase('activate', 24, 42, 1),
@@ -212,13 +228,23 @@ const timingBinding = {
     soundCueBindings: [],
     visualTiming: {
       frameRange: {
-        startFrame: 12,
-        endFrameExclusive: 132,
-        durationFrames: 120,
+        startFrame: 24,
+        endFrameExclusive: 120,
+        durationFrames: 96,
       },
+      revealFrames: 18,
+      holdFrames: 60,
+      exitFrames: 18,
     },
   }],
+}
+const timingBinding = {
+  ...timingBindingDraft,
+  timingBindingDigestSha256:
+    sha256AuthorityValue(timingBindingDraft),
 } as unknown as CanonicalLivingFrameTimingBinding
+const timingDigest =
+  timingBinding.timingBindingDigestSha256
 
 const assetWorkInputBinding = {
   identity,
@@ -303,10 +329,11 @@ const assetWorkInputBinding = {
 const components = {
   confirmedSettings: {
     editLevel: 'pro',
-    outputFrame: {
-      width: 1920,
-      height: 1080,
-    },
+    aspectRatio: '16:9',
+    outputFrame,
+    outputFrameConfirmed: true,
+    outputFramePurpose:
+      'private_canonical_4k_master_review',
   },
   timingSummary: {
     totalFrames: 180,
@@ -517,11 +544,11 @@ assert.equal(
 )
 assert.equal(
   layerMotion.sceneStartFrame,
-  12,
+  24,
 )
 assert.equal(
   layerMotion.sceneEndFrameExclusive,
-  132,
+  120,
 )
 assert.equal(
   layerMotion.tracks.some((track) =>

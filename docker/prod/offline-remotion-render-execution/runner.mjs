@@ -1339,7 +1339,7 @@ function validateCanonicalLivingFrameMotionSpec(value) {
   const spec = exactObject(value, [
     'attentionEventIds', 'authorityBoundary',
     'captionsRemainAboveLivingFrame', 'componentId',
-    'containsExecutableCodeCommandsPathsUrlsOrCredentials',
+    'containsExecutableOrOperationalPayload',
     'depthBand', 'depthStyle',
     'exactFramesRemainOwnedByMasterTiming', 'importance',
     'metrics', 'motionProfileId', 'motionSpecDigestSha256',
@@ -1365,8 +1365,8 @@ function validateCanonicalLivingFrameMotionSpec(value) {
     'Living Frame motion sceneEndFrameExclusive',
   )
   if (
-    spec.schemaVersion !== 'canonical-living-frame-motion-spec-v1' ||
-    spec.motionProfileId !== 'approved_scalar_keyframe_choreography_v1' ||
+    spec.schemaVersion !== 'canonical-living-frame-motion-spec-v2' ||
+    spec.motionProfileId !== 'approved_visual_interval_scalar_keyframe_choreography_v2' ||
     sceneEndFrameExclusive <= sceneStartFrame ||
     sceneEndFrameExclusive - sceneStartFrame > 18_000 ||
     ![
@@ -1385,7 +1385,7 @@ function validateCanonicalLivingFrameMotionSpec(value) {
     spec.parallaxFactor > 1 ||
     spec.exactFramesRemainOwnedByMasterTiming !== true ||
     spec.captionsRemainAboveLivingFrame !== true ||
-    spec.containsExecutableCodeCommandsPathsUrlsOrCredentials !== false ||
+    spec.containsExecutableOrOperationalPayload !== false ||
     spec.subjectSpecificRouting !== false
   ) throw new Error('canonical Living Frame motion identity is unsupported')
   const sourceBindings = exactObject(spec.sourceBindings, [

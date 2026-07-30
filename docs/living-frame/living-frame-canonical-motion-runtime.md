@@ -19,7 +19,7 @@ The canonical bridge is:
 selected Living Frame scene
 → exact five-phase MasterTiming binding
 → terminal approved component lineage
-→ canonical-living-frame-motion-spec-v1
+→ canonical-living-frame-motion-spec-v2
 → existing prepare_remotion_layer work item
 → tool-free layer-manifest artifact
 → existing final Remotion overlay binding
@@ -88,6 +88,27 @@ band, parallax factor, semantic references, metrics, and a content digest.
 The payload contains no executable renderer code, CSS, command, path, URL,
 credential, provider route, arbitrary property, or free-form instruction.
 
+## Segment phases versus visual lifetime
+
+MasterTiming retains two related ranges with different responsibilities:
+
+- the ordered `prepare → activate → demonstrate → resolve → settle` phases
+  exactly and contiguously partition the complete segment range; and
+- the Living Frame layer exists only for the shorter visual range spanning
+  `activate → demonstrate → resolve`.
+
+The v2 motion spec does not collapse those authorities into one range. It
+requires `prepare.end` to equal visual start, `activate` to equal the reveal
+interval, `demonstrate` to equal the hold interval, `resolve` to equal the exit
+interval, and `settle.start` to equal visual end.
+
+Six strictly increasing keyframes are then derived only from the visual
+interval: visual start, reveal midpoint, reveal end, exit start, exit midpoint,
+and the final included visual frame. The canonical 30 FPS integration fixture
+therefore keeps the full segment at `0..150`, the visual layer at `12..72`,
+and emits absolute keyframes `[12, 16, 20, 64, 68, 71]`. Remotion never expands
+the layer into the prepare or settle padding.
+
 ## Rendering behavior
 
 The isolated Remotion composition samples keyframes on the current frame with
@@ -141,6 +162,12 @@ canonical-owner integration requirement.
 `server/smoke/living-frame-generated-still-canonical-alpha-work-graph-smoke.ts`
 proves exact selected-scene → timing → component → motion → work graph → final
 binding → private-review lineage and rejects a resigned motion-digest forgery.
+
+`server/smoke/edit-planning-authority-smoke.ts` compiles motion from the real
+`compileCanonicalLivingFrameTimingBinding` result used by the canonical
+selected-scene authority proof. It verifies the exact v2 visual keyframes and
+rejects phase gaps, visual-boundary drift, reveal/hold/exit drift, duplicate
+derived frames, and forged timing lineage.
 
 `server/smoke/offline-remotion-living-frame-motion-smoke.ts` performs an actual
 private 640×360 render. It verifies:

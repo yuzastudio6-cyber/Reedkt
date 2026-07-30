@@ -2513,6 +2513,8 @@ async function assertLivingFrameWorkGraphProjectionMatchesPlan(
         layer.endFrameExclusive,
       fit: layer.fit,
       opacity: layer.opacity,
+      motionSpec:
+        structuredClone(layer.motionSpec),
     }))
   const finalOutput = finalItem.expectedOutputs[0]
   if (

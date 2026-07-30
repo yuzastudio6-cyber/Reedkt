@@ -607,9 +607,9 @@ function subjectNeutralMotionSpec(
   ]
   const draft: CanonicalLivingFrameMotionSpecDraft = {
     schemaVersion:
-      'canonical-living-frame-motion-spec-v1',
+      'canonical-living-frame-motion-spec-v2',
     motionProfileId:
-      'approved_scalar_keyframe_choreography_v1',
+      'approved_visual_interval_scalar_keyframe_choreography_v2',
     sceneId: 'living-frame-scene-1',
     componentId:
       options.componentId ??
@@ -659,8 +659,7 @@ function subjectNeutralMotionSpec(
     },
     exactFramesRemainOwnedByMasterTiming: true,
     captionsRemainAboveLivingFrame: true,
-    containsExecutableCodeCommandsPathsUrlsOrCredentials:
-      false,
+    containsExecutableOrOperationalPayload: false,
     subjectSpecificRouting: false,
   }
   return {

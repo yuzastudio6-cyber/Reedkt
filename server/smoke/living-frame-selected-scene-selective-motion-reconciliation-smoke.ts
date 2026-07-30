@@ -33,20 +33,22 @@ import {
 const fixtures = await createLivingFrameContractFixtures()
 const selectedComponent = fixtures.helicopterSelectiveMotion
 const scene = selectedComponent.scenePlans[0]!
+const masterTimingPlan = {
+  id: 'master-timing.selective-motion',
+}
+const outputFrame = {
+  width: 1080,
+  height: 1920,
+  fps: 30,
+}
 const currentMasterTimingDigestSha256 =
-  sha256AuthorityValue('selective-motion-master-timing')
+  sha256AuthorityValue(masterTimingPlan)
 const selectedSceneBindingDigestSha256 =
   sha256AuthorityValue({
     selectedComponent:
       selectedComponent.contractDigestSha256,
     sceneId: scene.sceneId,
   })
-const timingBindingDigestSha256 =
-  sha256AuthorityValue({
-    selectedSceneBindingDigestSha256,
-    currentMasterTimingDigestSha256,
-  })
-
 const publication = {
   binding: {
     identity: {
@@ -68,15 +70,21 @@ const publication = {
   semanticPlanProjection: {},
 } as unknown as CanonicalLivingFrameSelectedScenePublication
 
-const timingBinding = {
-  timingBindingDigestSha256,
+const timingBindingDraft = {
   sourceBindings: {
     selectedSceneBindingDigestSha256,
     currentMasterTimingDigestSha256,
+    confirmedOutputFrameDigestSha256:
+      sha256AuthorityValue(outputFrame),
   },
   fps: 30,
   scenes: [{
     sceneId: scene.sceneId,
+    segmentFrameRange: {
+      startFrame: 0,
+      endFrameExclusive: 150,
+      durationFrames: 150,
+    },
     semanticPhaseBindings: [
       phase('prepare', 0, 15),
       phase('activate', 15, 30),
@@ -86,17 +94,30 @@ const timingBinding = {
     ],
     visualTiming: {
       frameRange: {
-        startFrame: 0,
-        endFrameExclusive: 150,
-        durationFrames: 150,
+        startFrame: 15,
+        endFrameExclusive: 135,
+        durationFrames: 120,
       },
+      revealFrames: 15,
+      holdFrames: 75,
+      exitFrames: 30,
     },
   }],
+}
+const timingBinding = {
+  ...timingBindingDraft,
+  timingBindingDigestSha256:
+    sha256AuthorityValue(timingBindingDraft),
 } as unknown as CanonicalLivingFrameTimingBinding
 
 const components = {
-  masterTimingPlan: {
-    id: 'master-timing.selective-motion',
+  masterTimingPlan,
+  confirmedSettings: {
+    aspectRatio: '9:16',
+    outputFrame,
+    outputFrameConfirmed: true,
+    outputFramePurpose:
+      'private_canonical_4k_master_review',
   },
 } as unknown as CanonicalPlanComponentsInput
 

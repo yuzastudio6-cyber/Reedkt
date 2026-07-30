@@ -465,9 +465,9 @@ CanonicalLivingFrameMotionSpec {
   const draft:
     CanonicalLivingFrameMotionSpecDraft = {
       schemaVersion:
-        'canonical-living-frame-motion-spec-v1',
+        'canonical-living-frame-motion-spec-v2',
       motionProfileId:
-        'approved_scalar_keyframe_choreography_v1',
+        'approved_visual_interval_scalar_keyframe_choreography_v2',
       sceneId:
         'living-frame-scene-subject-neutral',
       componentId:
@@ -521,8 +521,7 @@ CanonicalLivingFrameMotionSpec {
       },
       exactFramesRemainOwnedByMasterTiming: true,
       captionsRemainAboveLivingFrame: true,
-      containsExecutableCodeCommandsPathsUrlsOrCredentials:
-        false,
+      containsExecutableOrOperationalPayload: false,
       subjectSpecificRouting: false,
     }
   return {
@@ -578,9 +577,9 @@ function createDeepMultiplaneMotionSpec(
   const draft:
     CanonicalLivingFrameMotionSpecDraft = {
       schemaVersion:
-        'canonical-living-frame-motion-spec-v1',
+        'canonical-living-frame-motion-spec-v2',
       motionProfileId:
-        'approved_scalar_keyframe_choreography_v1',
+        'approved_visual_interval_scalar_keyframe_choreography_v2',
       sceneId:
         'living-frame-scene-deep-multiplane',
       componentId: options.componentId,
@@ -631,8 +630,7 @@ function createDeepMultiplaneMotionSpec(
       },
       exactFramesRemainOwnedByMasterTiming: true,
       captionsRemainAboveLivingFrame: true,
-      containsExecutableCodeCommandsPathsUrlsOrCredentials:
-        false,
+      containsExecutableOrOperationalPayload: false,
       subjectSpecificRouting: false,
     }
   return {

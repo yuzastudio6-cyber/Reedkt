@@ -38,8 +38,8 @@ type ApprovedLivingFrameMotionEasing =
   | 'settle_out'
 
 interface ApprovedLivingFrameMotionSpec {
-  schemaVersion: 'canonical-living-frame-motion-spec-v1'
-  motionProfileId: 'approved_scalar_keyframe_choreography_v1'
+  schemaVersion: 'canonical-living-frame-motion-spec-v2'
+  motionProfileId: 'approved_visual_interval_scalar_keyframe_choreography_v2'
   sceneId: string
   componentId: string
   sceneStartFrame: number
@@ -1301,9 +1301,9 @@ function hasRenderableLivingFrameMotionSpec(
   if (
     !spec ||
     spec.schemaVersion !==
-      'canonical-living-frame-motion-spec-v1' ||
+      'canonical-living-frame-motion-spec-v2' ||
     spec.motionProfileId !==
-      'approved_scalar_keyframe_choreography_v1' ||
+      'approved_visual_interval_scalar_keyframe_choreography_v2' ||
     spec.sceneId !== sceneId ||
     spec.sceneStartFrame !== startFrame ||
     spec.sceneEndFrameExclusive !== endFrameExclusive ||

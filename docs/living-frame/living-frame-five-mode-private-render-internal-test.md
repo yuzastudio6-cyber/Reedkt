@@ -14,7 +14,7 @@ This internal test proves that Living Frame's product definition is executable
 across all five modes. It is not a metadata-only capability matrix and it does
 not equate Living Frame with a universal 2.5D treatment.
 
-One real 210-frame, 640×360, 30 FPS private Remotion artifact contains seven
+One real 240-frame, 640×360, 30 FPS private Remotion artifact contains eight
 frame-accurate ranges:
 
 1. `living_a_roll`;
@@ -23,7 +23,10 @@ frame-accurate ranges:
 4. `living_diagram`;
 5. `hybrid_expansion`; and
 6. deliberate non-use for an emotionally sensitive range; and
-7. a static-card fallback when richer motion is not justified or available.
+7. a static-card fallback when richer motion is not justified or available;
+   and
+8. a safe-negative-space fallback when subject masking is unavailable or too
+   risky.
 
 All Living Frame layers remain below the caption plane. The source plate and
 audio remain owned by the existing final composition, and the resulting MP4 is
@@ -34,16 +37,21 @@ storage owner.
 
 ### Living A-Roll
 
-The fixture keeps the speaker/source frame active and introduces the visual in
-safe negative space. Actual decoded pixels prove:
+The fixture keeps the speaker/source frame active and places one explanatory
+route between the source plate and an approved low-risk subject-plus-contact
+cutout. Actual decoded pixels prove:
 
 - the explanatory component enters and settles;
+- the route remains visible before and after the foreground group but is
+  occluded inside both the subject and contact-object regions;
 - a smooth source-plane focus and luminance handoff occurs;
 - source attention returns by the end of the range; and
-- captions remain above the Living Frame visual.
+- captions remain above the explanatory visual and foreground cutout.
 
-This fixture deliberately exercises the safe-space fallback. It does not claim
-that temporal behind/in-front subject masking is qualified.
+This is a real subject/contact-object layer-order and composition test using a
+static, low-risk RGBA cutout whose appearance is known by the fixture. It does
+not claim that temporal mask inference, hair-edge tracking, moving contact
+objects, or arbitrary footage are qualified.
 
 ### Living Still
 
@@ -79,7 +87,7 @@ preserved during the takeover.
 
 ### Deliberate non-use
 
-The final range contains no Living Frame overlay. Pixel checks reject residual
+The deliberate non-use range contains no Living Frame overlay. Pixel checks reject residual
 cyan, green, or purple Living Frame components while retaining the source and
 caption planes. This is runtime evidence that restraint is an executable
 professional decision rather than documentation-only guidance.
@@ -94,7 +102,9 @@ The artifact exercises three real fallback rungs:
 
 The static card remains below captions and uses a constant approved scalar
 track, proving that the fallback does not require fake motion to satisfy the
-renderer contract.
+renderer contract. The separate safe-space range places the explanatory
+elements entirely outside the subject-plus-contact region, and pixel
+measurements prove both the protected negative space and caption priority.
 
 ## Sound choreography evidence
 
@@ -139,7 +149,7 @@ The expected final artifact is:
 H.264 MP4
 640×360
 30/1 FPS
-210 frames
+240 frames
 ```
 
 ## Authority boundary

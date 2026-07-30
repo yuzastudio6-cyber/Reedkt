@@ -42,7 +42,7 @@ const width = 640
 const height = 360
 const fps = 30
 const sceneFrameCount = 30
-const durationFrames = sceneFrameCount * 7
+const durationFrames = sceneFrameCount * 8
 
 const sceneRanges = {
   livingARoll: range(0),
@@ -52,6 +52,7 @@ const sceneRanges = {
   hybridExpansion: range(4),
   deliberateNonUse: range(5),
   staticCardFallback: range(6),
+  safeSpaceFallback: range(7),
 } as const
 
 const fixtureRoot = await mkdtemp(
@@ -70,6 +71,10 @@ const renderedPath = join(fixtureRoot, 'five-mode-private-render.mp4')
 
 const fixturePaths = {
   aRollVisual: join(fixtureRoot, 'a-roll-visual.png'),
+  aRollSubjectContact: join(
+    fixtureRoot,
+    'a-roll-subject-contact-cutout.png',
+  ),
   stillBody: join(fixtureRoot, 'still-body.png'),
   stillRotor: join(fixtureRoot, 'still-rotor.png'),
   archiveFar: join(fixtureRoot, 'archive-far.png'),
@@ -77,6 +82,10 @@ const fixturePaths = {
   diagram: join(fixtureRoot, 'diagram.png'),
   hybrid: join(fixtureRoot, 'hybrid.png'),
   staticFallback: join(fixtureRoot, 'static-fallback.png'),
+  safeSpaceFallback: join(
+    fixtureRoot,
+    'safe-space-fallback.png',
+  ),
 } as const
 
 const colorMatchers = {
@@ -105,6 +114,24 @@ const colorMatchers = {
   white(red: number, green: number, blue: number) {
     return red > 225 && green > 225 && blue > 225
   },
+  gray(red: number, green: number, blue: number) {
+    return (
+      red > 165 &&
+      red < 235 &&
+      green > 175 &&
+      green < 240 &&
+      blue > 185 &&
+      blue < 245
+    )
+  },
+  orange(red: number, green: number, blue: number) {
+    return (
+      red > 155 &&
+      green > 75 &&
+      green < 190 &&
+      blue < 80
+    )
+  },
 } as const
 
 try {
@@ -114,9 +141,18 @@ try {
   makeTransparentOverlay(
     fixturePaths.aRollVisual,
     [
+      'drawbox=x=40:y=158:w=560:h=22:color=0x00E5FF@1:t=fill:replace=1',
       'drawbox=x=430:y=82:w=150:h=24:color=0x00E5FF@1:t=fill:replace=1',
       'drawbox=x=430:y=124:w=110:h=24:color=0x00E5FF@1:t=fill:replace=1',
       'drawbox=x=430:y=166:w=132:h=24:color=0x00E5FF@1:t=fill:replace=1',
+    ],
+  )
+  makeTransparentOverlay(
+    fixturePaths.aRollSubjectContact,
+    [
+      'drawbox=x=68:y=42:w=164:h=252:color=0xF59E0B@1:t=fill:replace=1',
+      'drawgrid=x=68:y=42:w=164:h=252:width=12:height=12:thickness=2:color=0x7C2D12@0.8',
+      'drawbox=x=244:y=76:w=20:h=218:color=0xCBD5E1@1:t=fill:replace=1',
     ],
   )
   makeTransparentOverlay(
@@ -174,6 +210,14 @@ try {
       'drawbox=x=202:y=192:w=214:h=12:color=0x64748B@1:t=fill:replace=1',
     ],
   )
+  makeTransparentOverlay(
+    fixturePaths.safeSpaceFallback,
+    [
+      'drawbox=x=430:y=82:w=150:h=24:color=0x00E5FF@1:t=fill:replace=1',
+      'drawbox=x=430:y=124:w=110:h=24:color=0x00E5FF@1:t=fill:replace=1',
+      'drawbox=x=430:y=166:w=132:h=24:color=0x00E5FF@1:t=fill:replace=1',
+    ],
+  )
 
   const source = await fileCommitment(sourcePath)
   const caption = await fileCommitment(captionPath)
@@ -207,7 +251,7 @@ try {
         timeRange: sceneRanges.livingARoll,
         visualVerb: 'converge',
         depthStyle: 'shallow_2_5d',
-        depthBand: 'in_front_of_subject',
+        depthBand: 'behind_subject',
         parallaxFactor: 0.12,
         tracks: [
           track('a-roll-enter', 0, 'layer', 'position_x_normalized', 'primary', [
@@ -227,6 +271,56 @@ try {
           ]),
         ],
         attentionEventIds: ['attention-a-roll-focus-handoff'],
+      }),
+    }),
+    layer({
+      sceneId: 'living-frame-mode-living-a-roll',
+      layerId:
+        'lf-mode-05-a-roll-subject-contact-cutout',
+      componentOutputKey:
+        'lf-mode-a-roll-subject-contact-cutout',
+      manifestOutputKey:
+        'lf-mode-a-roll-subject-contact-manifest',
+      fixtureKey: 'aRollSubjectContact',
+      timeRange: sceneRanges.livingARoll,
+      motionSpec: motionSpec({
+        sceneId: 'living-frame-mode-living-a-roll',
+        componentId:
+          'lf-mode-a-roll-subject-contact-cutout',
+        timeRange: sceneRanges.livingARoll,
+        visualVerb: 'hold',
+        depthStyle: 'shallow_2_5d',
+        depthBand: 'foreground',
+        parallaxFactor: 0,
+        tracks: [
+          track(
+            'a-roll-subject-focus',
+            0,
+            'layer',
+            'blur_pixels',
+            'secondary',
+            [
+              [0, 0, 'ease_in_out_cubic'],
+              [14, 6, 'settle_out'],
+              [29, 0, 'hold'],
+            ],
+          ),
+          track(
+            'a-roll-subject-light',
+            1,
+            'layer',
+            'light_intensity',
+            'secondary',
+            [
+              [0, 1, 'ease_in_out_cubic'],
+              [14, 0.74, 'settle_out'],
+              [29, 1, 'hold'],
+            ],
+          ),
+        ],
+        attentionEventIds: [
+          'attention-a-roll-focus-handoff',
+        ],
       }),
     }),
     layer({
@@ -439,6 +533,41 @@ try {
             [
               [0, 1, 'hold'],
               [29, 1, 'hold'],
+            ],
+          ),
+        ],
+      }),
+    }),
+    layer({
+      sceneId: 'living-frame-fallback-safe-space',
+      layerId: 'lf-mode-80-safe-space-fallback',
+      componentOutputKey:
+        'lf-mode-safe-space-fallback',
+      manifestOutputKey:
+        'lf-mode-safe-space-fallback-manifest',
+      fixtureKey: 'safeSpaceFallback',
+      timeRange: sceneRanges.safeSpaceFallback,
+      motionSpec: motionSpec({
+        sceneId:
+          'living-frame-fallback-safe-space',
+        componentId:
+          'lf-mode-safe-space-fallback',
+        timeRange: sceneRanges.safeSpaceFallback,
+        visualVerb: 'reveal',
+        depthStyle: 'flat',
+        depthBand: 'in_front_of_subject',
+        parallaxFactor: 0,
+        tracks: [
+          track(
+            'safe-space-fallback-enter',
+            0,
+            'layer',
+            'position_x_normalized',
+            'primary',
+            [
+              [0, 0.12, 'ease_out_quad'],
+              [14, 0, 'settle_out'],
+              [29, 0, 'hold'],
             ],
           ),
         ],
@@ -662,6 +791,7 @@ try {
     120, 134, 149,
     165,
     195,
+    225,
   ] as const
   const sampledFrames = extractFrames(
     renderedPath,
@@ -685,7 +815,8 @@ try {
     colorStats(frame(29), colorMatchers.cyan)
   assert.ok(aRollEarly.count > 900)
   assert.ok(
-    aRollLate.count > aRollEarly.count * 1.25,
+    aRollLate.count > aRollEarly.count * 1.15,
+    `Expected settled A-roll visual to reveal more cyan pixels; early=${JSON.stringify(aRollEarly)}, late=${JSON.stringify(aRollLate)}.`,
   )
   assert.ok(
     aRollEarly.centroidX - aRollLate.centroidX >
@@ -705,6 +836,73 @@ try {
     aRollRestoredEdgeEnergy >
       aRollFocusEdgeEnergy * 1.25,
   )
+  const aRollOcclusionFrame = frame(29)
+  const routeBeforeSubject = colorCountInRegion(
+    aRollOcclusionFrame,
+    colorMatchers.cyan,
+    {
+      xStart: 40,
+      xEndExclusive: 68,
+      yStart: 158,
+      yEndExclusive: 180,
+    },
+  )
+  const routeAfterContact = colorCountInRegion(
+    aRollOcclusionFrame,
+    colorMatchers.cyan,
+    {
+      xStart: 264,
+      xEndExclusive: 600,
+      yStart: 158,
+      yEndExclusive: 180,
+    },
+  )
+  const routeInsideSubject = colorCountInRegion(
+    aRollOcclusionFrame,
+    colorMatchers.cyan,
+    {
+      xStart: 68,
+      xEndExclusive: 232,
+      yStart: 158,
+      yEndExclusive: 180,
+    },
+  )
+  const routeInsideContact = colorCountInRegion(
+    aRollOcclusionFrame,
+    colorMatchers.cyan,
+    {
+      xStart: 244,
+      xEndExclusive: 264,
+      yStart: 158,
+      yEndExclusive: 180,
+    },
+  )
+  const preservedSubjectPixels = colorCountInRegion(
+    aRollOcclusionFrame,
+    colorMatchers.orange,
+    {
+      xStart: 68,
+      xEndExclusive: 232,
+      yStart: 158,
+      yEndExclusive: 180,
+    },
+  )
+  const preservedContactPixels = colorCountInRegion(
+    aRollOcclusionFrame,
+    colorMatchers.gray,
+    {
+      xStart: 244,
+      xEndExclusive: 264,
+      yStart: 158,
+      yEndExclusive: 180,
+    },
+  )
+  assert.ok(routeBeforeSubject > 350)
+  assert.ok(routeAfterContact > 4_500)
+  assert.ok(routeInsideSubject < 25)
+  assert.ok(routeInsideContact < 10)
+  assert.ok(preservedSubjectPixels > 2_000)
+  assert.ok(preservedContactPixels > 300)
 
   const rotorEarly =
     colorStats(
@@ -779,6 +977,7 @@ try {
   assertCaptionAboveLivingFrame(frame(119))
   assertCaptionAboveLivingFrame(frame(134))
   assertCaptionAboveLivingFrame(frame(165))
+  assertCaptionAboveLivingFrame(frame(225))
 
   const nonUseFrame = frame(165)
   assert.ok(
@@ -798,6 +997,30 @@ try {
     colorStats(frame(195), colorMatchers.white).count
   assert.ok(staticFallbackWhite > 45_000)
   assertCaptionAboveLivingFrame(frame(195))
+
+  const safeSpaceCyan = colorCountInRegion(
+    frame(225),
+    colorMatchers.cyan,
+    {
+      xStart: 420,
+      xEndExclusive: 590,
+      yStart: 70,
+      yEndExclusive: 205,
+    },
+  )
+  const safeSpaceSubjectCollision =
+    colorCountInRegion(
+      frame(225),
+      colorMatchers.cyan,
+      {
+        xStart: 68,
+        xEndExclusive: 264,
+        yStart: 42,
+        yEndExclusive: 294,
+      },
+    )
+  assert.ok(safeSpaceCyan > 5_000)
+  assert.ok(safeSpaceSubjectCollision < 25)
 
   const probe = probeRenderedVideo(renderedPath)
   assert.equal(probe.width, width)
@@ -880,9 +1103,14 @@ try {
       'no_extra_visual',
     ],
     livingARoll: {
-      safeSpaceFallbackExercised: true,
+      lowRiskSubjectAndContactOcclusionExercised:
+        true,
       focusHandoffRenderedAndMeasured: true,
       attentionRestorationRenderedAndMeasured: true,
+      graphicObservedBehindSubjectAndContactObject:
+        true,
+      captionsObservedAboveForegroundCutout: true,
+      temporalMaskInferenceClaimed: false,
     },
     livingStill: {
       selectiveMechanicalMotionRenderedAndMeasured: true,
@@ -907,6 +1135,11 @@ try {
     },
     staticFallback: {
       staticCardRenderedWithoutUnsupportedMotion: true,
+      captionPlanePreserved: true,
+    },
+    safeSpaceFallback: {
+      negativeSpaceVisualRenderedAndMeasured: true,
+      subjectAndContactRegionsProtected: true,
       captionPlanePreserved: true,
     },
     soundChoreography: {
@@ -1175,6 +1408,7 @@ function makeSource(path: string): void {
       'drawgrid=width=16:height=16:thickness=2:color=0x64748B@0.9',
       'drawbox=x=68:y=42:w=164:h=252:color=0xF59E0B@1:t=fill',
       'drawgrid=x=68:y=42:w=164:h=252:width=12:height=12:thickness=2:color=0x7C2D12@0.8',
+      'drawbox=x=244:y=76:w=20:h=218:color=0xCBD5E1@1:t=fill',
     ].join(','),
     '-c:v',
     'libx264',
@@ -1371,6 +1605,23 @@ function colorStats(
     width: count === 0 ? 0 : maxX - minX + 1,
     height: count === 0 ? 0 : maxY - minY + 1,
   }
+}
+
+function colorCountInRegion(
+  frame: Buffer,
+  matches: (
+    red: number,
+    green: number,
+    blue: number,
+  ) => boolean,
+  region: {
+    readonly xStart: number
+    readonly xEndExclusive: number
+    readonly yStart: number
+    readonly yEndExclusive: number
+  },
+): number {
+  return colorStats(frame, matches, region).count
 }
 
 function sourceEdgeEnergy(frame: Buffer): number {

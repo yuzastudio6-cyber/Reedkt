@@ -112,14 +112,18 @@ Actual private renders supplement the connected source-level trace:
   sub-perceptual fade frames from missing overlays without relaxing materially
   visible-frame requirements.
 - `server/smoke/living-frame-five-mode-private-render-smoke.ts` renders one
-  frame-accurate 210-frame private artifact containing all five Living Frame
-  modes, deliberate non-use, and a static-card fallback. Real decoded-pixel
-  assertions prove A-roll
-  focus handoff and restoration, selective mechanical component rotation,
+  frame-accurate 240-frame private artifact containing all five Living Frame
+  modes, deliberate non-use, a static-card fallback, and a separate
+  safe-negative-space fallback. Real decoded-pixel assertions prove A-roll
+  subject-plus-contact-object occlusion, focus handoff and restoration,
+  selective mechanical component rotation,
   archive differential parallax, deterministic diagram reveal, hybrid
   expansion and return, caption-plane priority in every range, the absence
   of Living Frame overlays in the restraint range, and a readable static card
-  without unsupported motion. The Living Still range also carries one exact
+  without unsupported motion. The low-risk A-roll fixture proves the route is
+  visible outside the foreground group while the subject and contact object
+  remain in front; it does not claim temporal mask inference. The Living Still
+  range also carries one exact
   narration-protected mechanical cue. FFmpeg-decoded frequency measurements
   prove that the cue is absent before its frame range, present during the
   rotor motion, and remains subordinate to the preserved source

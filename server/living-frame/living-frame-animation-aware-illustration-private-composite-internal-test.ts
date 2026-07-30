@@ -88,6 +88,20 @@ export interface LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTe
     readonly destinationCompositeLowContrastEdgeRatio: number
     readonly blockingFindingCodes: readonly string[]
   }
+  readonly decomposition: {
+    readonly profile:
+      'fixture_specific_appendage_cutout_rig_v1'
+    readonly baseComponentSha256: string
+    readonly hairComponentSha256: string
+    readonly robeComponentSha256: string
+    readonly hairSelectedPixelCount: number
+    readonly robeSelectedPixelCount: number
+    readonly hairPivot: readonly [444, 58]
+    readonly robePivot: readonly [489, 119]
+    readonly hiddenAreaReconstructionRequired: false
+    readonly articulatedComponentMotionRendered: true
+    readonly fixtureSpecificInternalMasking: true
+  }
   readonly scene: {
     readonly outputFrameId:
       'frame.landscape.640x360.internal-test'
@@ -97,11 +111,19 @@ export interface LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTe
       'modern_cinematic_anime_sumi_e_graphic_novel'
     readonly depthStyle: 'deep_multiplane_2_5d'
     readonly layerOrder:
-      readonly ['ink_background', 'character', 'slash_foreground']
+      readonly [
+        'ink_background',
+        'character_base',
+        'hair',
+        'robe',
+        'slash_foreground',
+      ]
     readonly selectiveMotion:
       readonly [
         'background_parallax',
-        'character_drift_and_push',
+        'character_anchor_drift',
+        'hair_pivot_motion',
+        'robe_pivot_motion',
         'slash_reveal_and_settle',
       ]
     readonly focusHandoffRendered: true
@@ -124,6 +146,8 @@ export interface LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTe
   readonly renderedQa: {
     readonly distinctSampleFrameDigestCount: number
     readonly characterMotionPixelDelta: number
+    readonly hairRegionPixelDelta: number
+    readonly robeRegionPixelDelta: number
     readonly slashCuePixelDelta: number
     readonly captionProtectedPixelCount: number
     readonly sourceToneBefore: number
@@ -131,6 +155,7 @@ export interface LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTe
     readonly swordCueBefore: number
     readonly swordCueDuring: number
     readonly narrationProtectedMixMeasured: true
+    readonly reviewFrameIndexes: readonly [20, 35, 82]
     readonly reviewFrameSha256: readonly [string, string, string]
   }
   readonly privateArtifacts: {
@@ -188,6 +213,12 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
   ))
   const sourceAlphaPath = join(fixtureRoot, 'source-alpha.png')
   const characterPath = join(fixtureRoot, 'character-overlay.png')
+  const characterBasePath = join(
+    fixtureRoot,
+    'character-base-overlay.png',
+  )
+  const hairPath = join(fixtureRoot, 'hair-overlay.png')
+  const robePath = join(fixtureRoot, 'robe-overlay.png')
   const inkBackgroundPath = join(
     fixtureRoot,
     'ink-background-overlay.png',
@@ -204,6 +235,12 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
       mode: 0o600,
     })
     scaleCharacterToLandscape(sourceAlphaPath, characterPath)
+    const decomposition = await decomposeCharacter({
+      sourcePath: characterPath,
+      basePath: characterBasePath,
+      hairPath,
+      robePath,
+    })
     makeTransparentOverlay(inkBackgroundPath, [
       'drawbox=x=356:y=22:w=10:h=300:color=0x7F1D1D@0.28:t=fill:replace=1',
       'drawbox=x=382:y=10:w=36:h=330:color=0x991B1B@0.20:t=fill:replace=1',
@@ -276,8 +313,16 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
         inkBackgroundPath,
       ),
       overlayCommitment(
-        'lf-musashi-character',
-        characterPath,
+        'lf-musashi-character-base',
+        characterBasePath,
+      ),
+      overlayCommitment(
+        'lf-musashi-hair',
+        hairPath,
+      ),
+      overlayCommitment(
+        'lf-musashi-robe',
+        robePath,
       ),
       overlayCommitment(
         'lf-musashi-slash-foreground',
@@ -325,20 +370,19 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
       }),
       layer({
         sceneId: 'lf-musashi-living-still-scene',
-        layerId: 'lf-musashi-20-character',
-        componentOutputKey: 'lf-musashi-character',
-        manifestOutputKey: 'lf-musashi-character-manifest',
+        layerId: 'lf-musashi-20-character-base',
+        componentOutputKey:
+          'lf-musashi-character-base',
+        manifestOutputKey:
+          'lf-musashi-character-base-manifest',
         motionSpec: motionSpec({
-          componentId: 'lf-musashi-character',
+          componentId: 'lf-musashi-character-base',
           visualVerb: 'reveal',
           depthBand: 'subject_plane',
           parallaxFactor: 0.1,
           attentionEventIds: [
             'lf-musashi-focus-handoff',
             'lf-musashi-attention-restoration',
-          ],
-          semanticScaleRequestIds: [
-            'lf-musashi-perspective-approach',
           ],
           tracks: [
             track(
@@ -367,20 +411,8 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
               ],
             ),
             track(
-              'character-push',
-              2,
-              'virtual_camera',
-              'scale_uniform',
-              'camera',
-              [
-                [0, 0.97, 'ease_in_out_cubic'],
-                [68, 1.065, 'settle_out'],
-                [119, 1.03, 'hold'],
-              ],
-            ),
-            track(
               'source-focus-handoff',
-              3,
+              2,
               'source',
               'blur_pixels',
               'secondary',
@@ -394,7 +426,7 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
             ),
             track(
               'source-deemphasis',
-              4,
+              3,
               'source',
               'light_intensity',
               'secondary',
@@ -404,6 +436,138 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
                 [82, 0.72, 'ease_in_out_cubic'],
                 [114, 1, 'hold'],
                 [119, 1, 'hold'],
+              ],
+            ),
+          ],
+        }),
+      }),
+      layer({
+        sceneId: 'lf-musashi-living-still-scene',
+        layerId: 'lf-musashi-25-hair',
+        componentOutputKey: 'lf-musashi-hair',
+        manifestOutputKey:
+          'lf-musashi-hair-manifest',
+        motionSpec: motionSpec({
+          componentId: 'lf-musashi-hair',
+          visualVerb: 'transform',
+          depthBand: 'in_front_of_subject',
+          parallaxFactor: 0.1,
+          tracks: [
+            track(
+              'hair-opacity',
+              0,
+              'layer',
+              'opacity',
+              'secondary',
+              [
+                [0, 0.08, 'ease_out_quad'],
+                [16, 1, 'settle_out'],
+                [106, 1, 'ease_in_out_cubic'],
+                [119, 0.82, 'hold'],
+              ],
+            ),
+            track(
+              'hair-pivot-x',
+              1,
+              'layer',
+              'position_x_normalized',
+              'secondary',
+              [
+                [0, 0.25375, 'ease_out_quad'],
+                [52, 0.19375, 'settle_out'],
+                [119, 0.16875, 'hold'],
+              ],
+            ),
+            track(
+              'hair-pivot-y',
+              2,
+              'layer',
+              'position_y_normalized',
+              'secondary',
+              [
+                [0, -0.338889, 'ease_in_out_cubic'],
+                [42, -0.347, 'settle_out'],
+                [78, -0.333, 'ease_in_out_cubic'],
+                [119, -0.338889, 'hold'],
+              ],
+            ),
+            track(
+              'hair-rotation',
+              3,
+              'layer',
+              'rotation_degrees',
+              'secondary',
+              [
+                [0, 0, 'ease_in_out_cubic'],
+                [42, 3, 'settle_out'],
+                [78, -1.5, 'ease_in_out_cubic'],
+                [119, 0.3, 'hold'],
+              ],
+            ),
+          ],
+        }),
+      }),
+      layer({
+        sceneId: 'lf-musashi-living-still-scene',
+        layerId: 'lf-musashi-27-robe',
+        componentOutputKey: 'lf-musashi-robe',
+        manifestOutputKey:
+          'lf-musashi-robe-manifest',
+        motionSpec: motionSpec({
+          componentId: 'lf-musashi-robe',
+          visualVerb: 'transform',
+          depthBand: 'in_front_of_subject',
+          parallaxFactor: 0.12,
+          tracks: [
+            track(
+              'robe-opacity',
+              0,
+              'layer',
+              'opacity',
+              'secondary',
+              [
+                [0, 0.08, 'ease_out_quad'],
+                [16, 1, 'settle_out'],
+                [106, 1, 'ease_in_out_cubic'],
+                [119, 0.82, 'hold'],
+              ],
+            ),
+            track(
+              'robe-pivot-x',
+              1,
+              'layer',
+              'position_x_normalized',
+              'secondary',
+              [
+                [0, 0.324063, 'ease_out_quad'],
+                [52, 0.264063, 'settle_out'],
+                [119, 0.239063, 'hold'],
+              ],
+            ),
+            track(
+              'robe-pivot-y',
+              2,
+              'layer',
+              'position_y_normalized',
+              'secondary',
+              [
+                [0, -0.169444, 'ease_in_out_cubic'],
+                [40, -0.164, 'settle_out'],
+                [82, -0.177, 'ease_in_out_cubic'],
+                [119, -0.169444, 'hold'],
+              ],
+            ),
+            track(
+              'robe-rotation',
+              3,
+              'layer',
+              'rotation_degrees',
+              'secondary',
+              [
+                [0, 0, 'ease_in_out_cubic'],
+                [40, -2.2, 'settle_out'],
+                [82, 2.1, 'ease_in_out_cubic'],
+                [119, 0, 'hold'],
               ],
             ),
           ],
@@ -692,6 +856,20 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
       new Set(frameDigests).size
     const characterMotionPixelDelta =
       pixelDifferenceCount(frames[1]!, frames[4]!, 18)
+    const hairRegionPixelDelta =
+      pixelDifferenceCount(frames[1]!, frames[4]!, 12, {
+        xStart: 390,
+        xEndExclusive: 520,
+        yStart: 0,
+        yEndExclusive: 110,
+      })
+    const robeRegionPixelDelta =
+      pixelDifferenceCount(frames[1]!, frames[4]!, 12, {
+        xStart: 465,
+        xEndExclusive: 565,
+        yStart: 88,
+        yEndExclusive: 190,
+      })
     const slashCuePixelDelta =
       pixelDifferenceCount(frames[1]!, frames[3]!, 42, {
         xStart: 210,
@@ -709,11 +887,13 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
     if (
       distinctSampleFrameDigestCount < 5
       || characterMotionPixelDelta < 8_000
+      || hairRegionPixelDelta < 400
+      || robeRegionPixelDelta < 400
       || slashCuePixelDelta < 2_500
       || captionProtectedPixelCount < 800
     ) {
       throw new Error(
-        `Private Musashi rendered-frame QA failed: distinct=${distinctSampleFrameDigestCount}, characterDelta=${characterMotionPixelDelta}, slashDelta=${slashCuePixelDelta}, caption=${captionProtectedPixelCount}.`,
+        `Private Musashi rendered-frame QA failed: distinct=${distinctSampleFrameDigestCount}, characterDelta=${characterMotionPixelDelta}, hairDelta=${hairRegionPixelDelta}, robeDelta=${robeRegionPixelDelta}, slashDelta=${slashCuePixelDelta}, caption=${captionProtectedPixelCount}.`,
       )
     }
 
@@ -761,7 +941,7 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
       )
     }
 
-    const reviewFrameIndexes = [20, 58, 92] as const
+    const reviewFrameIndexes = [20, 35, 82] as const
     const reviewFramePngs = reviewFrameIndexes.map((frame) =>
       extractPngFrame(renderedPath, frame))
     const reviewFrameSha256 = reviewFramePngs.map(
@@ -817,6 +997,25 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
           destinationComposite.lowContrastEdgeRatio,
         blockingFindingCodes,
       },
+      decomposition: {
+        profile:
+          'fixture_specific_appendage_cutout_rig_v1',
+        baseComponentSha256:
+          decomposition.baseComponentSha256,
+        hairComponentSha256:
+          decomposition.hairComponentSha256,
+        robeComponentSha256:
+          decomposition.robeComponentSha256,
+        hairSelectedPixelCount:
+          decomposition.hairSelectedPixelCount,
+        robeSelectedPixelCount:
+          decomposition.robeSelectedPixelCount,
+        hairPivot: [444, 58],
+        robePivot: [489, 119],
+        hiddenAreaReconstructionRequired: false,
+        articulatedComponentMotionRendered: true,
+        fixtureSpecificInternalMasking: true,
+      },
       scene: {
         outputFrameId:
           'frame.landscape.640x360.internal-test',
@@ -827,12 +1026,16 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
         depthStyle: 'deep_multiplane_2_5d',
         layerOrder: [
           'ink_background',
-          'character',
+          'character_base',
+          'hair',
+          'robe',
           'slash_foreground',
         ],
         selectiveMotion: [
           'background_parallax',
-          'character_drift_and_push',
+          'character_anchor_drift',
+          'hair_pivot_motion',
+          'robe_pivot_motion',
           'slash_reveal_and_settle',
         ],
         focusHandoffRendered: true,
@@ -855,6 +1058,8 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
       renderedQa: {
         distinctSampleFrameDigestCount,
         characterMotionPixelDelta,
+        hairRegionPixelDelta,
+        robeRegionPixelDelta,
         slashCuePixelDelta,
         captionProtectedPixelCount,
         sourceToneBefore,
@@ -862,6 +1067,7 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
         swordCueBefore,
         swordCueDuring,
         narrationProtectedMixMeasured: true,
+        reviewFrameIndexes,
         reviewFrameSha256,
       },
       privateArtifacts: {
@@ -1075,6 +1281,262 @@ function scaleCharacterToLandscape(
     'png',
     outputPath,
   ])
+}
+
+async function decomposeCharacter(input: {
+  readonly sourcePath: string
+  readonly basePath: string
+  readonly hairPath: string
+  readonly robePath: string
+}): Promise<{
+  readonly baseComponentSha256: string
+  readonly hairComponentSha256: string
+  readonly robeComponentSha256: string
+  readonly hairSelectedPixelCount: number
+  readonly robeSelectedPixelCount: number
+}> {
+  const sourcePng = await readFile(input.sourcePath)
+  const source =
+    decodeLivingFrameEnvironmentalParticleRgbaPng(
+      sourcePng,
+    )
+  if (
+    source.width !== WIDTH
+    || source.height !== HEIGHT
+    || source.rgba.byteLength !== WIDTH * HEIGHT * 4
+  ) {
+    throw new Error(
+      'Fixture-specific character decomposition source changed.',
+    )
+  }
+
+  const hairPolygon = [
+    [426, 18],
+    [481, 16],
+    [491, 54],
+    [468, 75],
+    [445, 64],
+    [439, 52],
+    [423, 45],
+  ] as const
+  const robePolygon = [
+    [484, 105],
+    [514, 103],
+    [544, 120],
+    [539, 150],
+    [517, 143],
+    [496, 134],
+    [480, 120],
+  ] as const
+  const hairPivot = [444, 58] as const
+  const robePivot = [489, 119] as const
+  const baseRgba = Buffer.from(source.rgba)
+  const hairRgba = Buffer.alloc(source.rgba.byteLength)
+  const robeRgba = Buffer.alloc(source.rgba.byteLength)
+  let hairSelectedPixelCount = 0
+  let robeSelectedPixelCount = 0
+
+  for (let y = 0; y < HEIGHT; y += 1) {
+    for (let x = 0; x < WIDTH; x += 1) {
+      const sourceOffset = (y * WIDTH + x) * 4
+      if (source.rgba[sourceOffset + 3] === 0) {
+        continue
+      }
+      const inHair = pointInPolygon(
+        x + 0.5,
+        y + 0.5,
+        hairPolygon,
+      )
+      const inRobe = pointInPolygon(
+        x + 0.5,
+        y + 0.5,
+        robePolygon,
+      )
+      if (inHair && inRobe) {
+        throw new Error(
+          'Fixture-specific character component masks overlap.',
+        )
+      }
+      if (inHair) {
+        copyPivotCenteredPixel({
+          source: source.rgba,
+          sourceOffset,
+          destination: hairRgba,
+          sourceX: x,
+          sourceY: y,
+          pivot: hairPivot,
+        })
+        clearRgbaPixel(baseRgba, sourceOffset)
+        hairSelectedPixelCount += 1
+      } else if (inRobe) {
+        copyPivotCenteredPixel({
+          source: source.rgba,
+          sourceOffset,
+          destination: robeRgba,
+          sourceX: x,
+          sourceY: y,
+          pivot: robePivot,
+        })
+        clearRgbaPixel(baseRgba, sourceOffset)
+        robeSelectedPixelCount += 1
+      }
+    }
+  }
+  if (
+    hairSelectedPixelCount < 350
+    || robeSelectedPixelCount < 350
+  ) {
+    throw new Error(
+      `Fixture-specific character decomposition selected too little artwork: hair=${hairSelectedPixelCount}, robe=${robeSelectedPixelCount}.`,
+    )
+  }
+
+  encodeRgbaPng(baseRgba, input.basePath)
+  encodeRgbaPng(hairRgba, input.hairPath)
+  encodeRgbaPng(robeRgba, input.robePath)
+  const [basePng, hairPng, robePng] = await Promise.all([
+    readFile(input.basePath),
+    readFile(input.hairPath),
+    readFile(input.robePath),
+  ])
+  for (const [name, png] of [
+    ['base', basePng],
+    ['hair', hairPng],
+    ['robe', robePng],
+  ] as const) {
+    const decoded =
+      decodeLivingFrameEnvironmentalParticleRgbaPng(png)
+    if (
+      decoded.width !== WIDTH
+      || decoded.height !== HEIGHT
+      || decoded.rgba.byteLength !== WIDTH * HEIGHT * 4
+    ) {
+      throw new Error(
+        `Fixture-specific ${name} component failed PNG revalidation.`,
+      )
+    }
+  }
+  return {
+    baseComponentSha256: sha256Bytes(basePng),
+    hairComponentSha256: sha256Bytes(hairPng),
+    robeComponentSha256: sha256Bytes(robePng),
+    hairSelectedPixelCount,
+    robeSelectedPixelCount,
+  }
+}
+
+function pointInPolygon(
+  x: number,
+  y: number,
+  polygon: ReadonlyArray<readonly [number, number]>,
+): boolean {
+  let inside = false
+  for (
+    let current = 0, previous = polygon.length - 1;
+    current < polygon.length;
+    previous = current, current += 1
+  ) {
+    const [currentX, currentY] = polygon[current]!
+    const [previousX, previousY] = polygon[previous]!
+    const crossesScanline =
+      (currentY > y) !== (previousY > y)
+    if (
+      crossesScanline
+      && x < (
+        (previousX - currentX)
+        * (y - currentY)
+        / (previousY - currentY)
+        + currentX
+      )
+    ) {
+      inside = !inside
+    }
+  }
+  return inside
+}
+
+function copyPivotCenteredPixel(input: {
+  readonly source: Uint8Array
+  readonly sourceOffset: number
+  readonly destination: Buffer
+  readonly sourceX: number
+  readonly sourceY: number
+  readonly pivot: readonly [number, number]
+}): void {
+  const destinationX =
+    input.sourceX - input.pivot[0] + WIDTH / 2
+  const destinationY =
+    input.sourceY - input.pivot[1] + HEIGHT / 2
+  if (
+    destinationX < 0
+    || destinationX >= WIDTH
+    || destinationY < 0
+    || destinationY >= HEIGHT
+  ) {
+    throw new Error(
+      'Fixture-specific pivot-centered component left its canvas.',
+    )
+  }
+  const destinationOffset =
+    (destinationY * WIDTH + destinationX) * 4
+  input.destination.set(
+    input.source.subarray(
+      input.sourceOffset,
+      input.sourceOffset + 4,
+    ),
+    destinationOffset,
+  )
+}
+
+function clearRgbaPixel(
+  rgba: Buffer,
+  offset: number,
+): void {
+  rgba[offset] = 0
+  rgba[offset + 1] = 0
+  rgba[offset + 2] = 0
+  rgba[offset + 3] = 0
+}
+
+function encodeRgbaPng(
+  rgba: Uint8Array,
+  outputPath: string,
+): void {
+  if (rgba.byteLength !== WIDTH * HEIGHT * 4) {
+    throw new Error(
+      'Fixture-specific component RGBA length changed.',
+    )
+  }
+  const result = spawnSync('ffmpeg', [
+    '-hide_banner',
+    '-loglevel',
+    'error',
+    '-f',
+    'rawvideo',
+    '-pix_fmt',
+    'rgba',
+    '-s',
+    `${WIDTH}x${HEIGHT}`,
+    '-i',
+    'pipe:0',
+    '-frames:v',
+    '1',
+    '-c:v',
+    'png',
+    '-threads',
+    '1',
+    '-y',
+    outputPath,
+  ], {
+    input: Buffer.from(rgba),
+    encoding: 'utf8',
+    maxBuffer: 4 * 1024 * 1024,
+  })
+  if (result.status !== 0) {
+    throw new Error(
+      `Fixture-specific component PNG encoding failed: ${result.stderr}`,
+    )
+  }
 }
 
 function makeSource(path: string): void {

@@ -15,10 +15,39 @@ assert.deepEqual(receipt.alphaQa.blockingFindingCodes, [])
 assert.equal(receipt.alphaQa.destinationRasterMeasured, true)
 assert.equal(receipt.scene.mode, 'living_still')
 assert.equal(receipt.scene.depthStyle, 'deep_multiplane_2_5d')
+assert.equal(
+  receipt.decomposition.profile,
+  'fixture_specific_appendage_cutout_rig_v1',
+)
+assert.equal(
+  receipt.decomposition.hairSelectedPixelCount > 350,
+  true,
+)
+assert.equal(
+  receipt.decomposition.robeSelectedPixelCount > 350,
+  true,
+)
+assert.equal(
+  receipt.decomposition.articulatedComponentMotionRendered,
+  true,
+)
+assert.equal(
+  receipt.decomposition.fixtureSpecificInternalMasking,
+  true,
+)
 assert.deepEqual(receipt.scene.layerOrder, [
   'ink_background',
-  'character',
+  'character_base',
+  'hair',
+  'robe',
   'slash_foreground',
+])
+assert.deepEqual(receipt.scene.selectiveMotion, [
+  'background_parallax',
+  'character_anchor_drift',
+  'hair_pivot_motion',
+  'robe_pivot_motion',
+  'slash_reveal_and_settle',
 ])
 assert.equal(receipt.scene.focusHandoffRendered, true)
 assert.equal(receipt.scene.captionPlaneAboveLivingFrame, true)
@@ -38,6 +67,14 @@ assert.equal(
   true,
 )
 assert.equal(
+  receipt.renderedQa.hairRegionPixelDelta > 400,
+  true,
+)
+assert.equal(
+  receipt.renderedQa.robeRegionPixelDelta > 400,
+  true,
+)
+assert.equal(
   receipt.renderedQa.slashCuePixelDelta > 2_500,
   true,
 )
@@ -48,6 +85,10 @@ assert.equal(
 assert.equal(
   receipt.renderedQa.narrationProtectedMixMeasured,
   true,
+)
+assert.deepEqual(
+  receipt.renderedQa.reviewFrameIndexes,
+  [20, 35, 82],
 )
 assert.equal(
   receipt.authorityBoundary.privateInternalExecutionAuthority,
@@ -104,10 +145,20 @@ console.log(JSON.stringify({
     receipt.renderedQa.distinctSampleFrameDigestCount,
   characterMotionPixelDelta:
     receipt.renderedQa.characterMotionPixelDelta,
+  hairSelectedPixelCount:
+    receipt.decomposition.hairSelectedPixelCount,
+  robeSelectedPixelCount:
+    receipt.decomposition.robeSelectedPixelCount,
+  hairRegionPixelDelta:
+    receipt.renderedQa.hairRegionPixelDelta,
+  robeRegionPixelDelta:
+    receipt.renderedQa.robeRegionPixelDelta,
   slashCuePixelDelta:
     receipt.renderedQa.slashCuePixelDelta,
   captionProtectedPixelCount:
     receipt.renderedQa.captionProtectedPixelCount,
+  reviewFrameIndexes:
+    receipt.renderedQa.reviewFrameIndexes,
   reviewFrameSha256:
     receipt.renderedQa.reviewFrameSha256,
   privateInternalOnly: true,

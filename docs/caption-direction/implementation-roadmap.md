@@ -1,0 +1,101 @@
+# Implementation Roadmap
+
+Status: CAP-00 complete for review; CAP-01+ blocked on owner approval.
+
+## Dependency graph
+
+```text
+CAP-00 architecture
+  -> CAP-01 skill relationships
+  -> CAP-02 domain contracts/lifecycle
+  -> CAP-03 transcript lineage/provenance
+      -> CAP-04 alignment/diarization qualification
+      -> CAP-05 font/Unicode runtime
+  -> CAP-06 strategy/opportunity/reservation
+  -> CAP-07 picture lock/finish readiness
+  -> CAP-08 final-frame occupancy/late resolution
+  -> CAP-09 style/legibility
+  -> CAP-10 multi-track scene graph
+  -> CAP-11 motion/handoffs/camera
+  -> CAP-12 sound choreography
+  -> CAP-13 Remotion creative runtime
+  -> CAP-14 libass/accessibility/localization/export
+  -> CAP-15 QA/repair/fallback/invalidation
+  -> CAP-16 UI/approval/credits/observability/persistence
+  -> CAP-17 end-to-end production readiness
+```
+
+Milestones may overlap only when contracts are approved and independent; production gates do not move forward merely because later code exists.
+
+## Milestones
+
+| Milestone | Reviewable outcome | Explicit boundary |
+| --- | --- | --- |
+| CAP-01 | `caption_design` composite, component relationships, legacy mapping, cycle validation, `no_captions` | no runtime model/tool execution |
+| CAP-02 | versioned core plan, opportunity, reservation, approval, profile, lifecycle, dependency schemas | adapters before consumer migration |
+| CAP-03 | canonical transcript projections, lineage, transformations, sensitive-text review, timing provenance gate | synthetic timing blocked from final word motion |
+| CAP-04 | qualified forced alignment/diarization artifacts and fallbacks | no unreviewed weights/downloads |
+| CAP-05 | font registry, sanitizer/metrics/shaping runtime, Unicode fixtures | no unreviewed custom font execution |
+| CAP-06 | early strategy, opportunities, integration classes, reservation, blocking metadata | no final choreography |
+| CAP-07 | general PictureLockManifest, visual proxy, FinishReadiness, staleness | no finish without stable dependencies |
+| CAP-08 | VisualOccupancyManifest, semantic/layout proposal, output recomposition | model observations validated deterministically |
+| CAP-09 | executable style/legibility/color/optical sizing and calibration preview | minimum sufficient treatment |
+| CAP-10 | simultaneous tracks, depth, anchors, lists, hero, occlusion, B-roll composition | accessible projection always retained |
+| CAP-11 | typed motion, mode switching, camera requests, Caption-to-Visual/Living Frame handoffs | StoryTiming owns frames; receivers own visuals |
+| CAP-12 | motion-locked sound budget/cues and SoundSync/final-mix handoff | dialogue protection |
+| CAP-13 | pinned deterministic Remotion creative renderer | typed specs only, no model code |
+| CAP-14 | canvas-aware ASS, SRT/WebVTT, localization, FFmpeg delivery | projection and frame parity |
+| CAP-15 | full QA, local repair, fallback, invalidation | required failures block delivery |
+| CAP-16 | chat cards, approvals, credits, lineage/metrics, canonical persistence and compatibility | production writes only after security gates |
+| CAP-17 | end-to-end, performance, security/license, old snapshot, production-readiness evidence | production remains blocked until every gate passes |
+
+## Required fixture plan
+
+At minimum:
+
+- 9:16 energetic short; 16:9 documentary; long-form television; business talking head; educational explainer;
+- accessibility-only and no-caption restraint;
+- dual stable/hero tracks; spatial sentence around speaker; behind/in-front subject; object anchor; persistent list; full-screen type;
+- Caption-to-Visual map and Caption-to-Living-Frame handoffs;
+- overlapping dialogue; busy movement; dark-to-light background;
+- crop/reframe, mask, and Living Frame invalidation;
+- low-confidence person name and claim-sensitive number;
+- custom and malformed fonts; missing glyph;
+- Japanese, Arabic RTL, Indic, combining marks, emoji graphemes, translated track;
+- reduced motion; alignment failure; diarization uncertainty;
+- Remotion-to-libass fallback; old snapshot; multi-aspect recomposition.
+
+## Test plan
+
+For applicable milestones run typecheck, lint, units, contracts/schemas, integration, workers, snapshots, security, storage/path safety, StoryTiming conflicts, font/Unicode fixtures, render smokes, visual regression/golden frames, timing/collision/occlusion/accessibility tests, export validation, and legacy compatibility.
+
+Benchmarks cover semantic accuracy, timing, layout, occupancy, occlusion, contrast, stable read duration, render determinism/performance, resource/cost use, fallback rate, and accessible parity. Thresholds and hardware profiles must be versioned.
+
+## Risk register
+
+| Risk | Impact | Mitigation / owner gate |
+| --- | --- | --- |
+| Truncated conversation or unavailable references | missed nuance | owner approves ledger or supplies canonical transcript/media |
+| Duplicate transcript/timing/layout systems | divergence | source-of-truth contracts and adapters |
+| Raw migration baseline divergence | unsafe persistence | canonical isolated chain and two-tenant tests |
+| Font/model/tool license or security | legal/security exposure | qualification manifests and manual approval |
+| Semantic text mutation | misinformation | lineage, sensitive-text review, immutable source |
+| Synthetic timing used as truth | bad sync | hard provenance gate |
+| Occlusion reduces comprehension | accessibility failure | stable projection and rendered-frame QA |
+| Renderer/browser drift | visual nondeterminism | pinned image and golden frames |
+| Motion/sound overload | poor edit quality | attention/sound budgets and dialogue priority |
+| Cross-system failure | broken continuity | typed handoff/fallback and scoped invalidation |
+| Cost or overage drift | unapproved spend | existing estimate/reservation gates and local repair |
+| Private asset leakage | user harm | tenant/private storage, safe DTOs, no path/signed URL logs |
+
+## Scoped blocker report
+
+Blocked action: starting CAP-01 or changing runtime.
+
+Missing evidence/approval: owner review of CAP-00 decisions, especially skill-ID migration, transcript authority, picture-lock owner, tool/font/provider choices, approval envelope, credit policy, and reference availability.
+
+Safe progress completed: all required CAP-00 documents, gap/contract/migration maps, dependency/risk/test/fixture plans.
+
+Smallest next step: owner approves CAP-01 and the stable `caption_design` compatibility direction.
+
+Fallback: revise CAP-00 documents only; do not cross the owner gate.

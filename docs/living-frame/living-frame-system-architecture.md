@@ -3206,6 +3206,20 @@ The selected-scene full-range evidence is specified in
 The full-timeline Remotion evidence is specified in
 `docs/living-frame/living-frame-selected-scene-environmental-particle-remotion-full-timeline-internal-test.md`.
 
+The adjacent
+`living-frame-selected-scene-environmental-particle-private-persistence-internal-test-v1`
+qualification consumes a separate process-bound single-use lease for the
+exact final 105-frame MP4. It invokes the existing canonical private Remotion
+artifact-storage owner, proves create-only persistence plus exact digest/length
+readback, and returns only a byte/path-free receipt. It does not mutate the
+canonical asset manifest or infer QA, private-review, cost, billing, external
+beta, or production authority. This closes the private render-to-artifact
+boundary for internal testing; exact scene-evidence QA and private review
+remain next.
+
+The private-persistence evidence is specified in
+`docs/living-frame/living-frame-selected-scene-environmental-particle-private-persistence-internal-test.md`.
+
 The downstream Sharp alpha-component authority accepts exactly one approved
 source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg
 mask PNG. It continues to use the existing straight-alpha recipe and canonical

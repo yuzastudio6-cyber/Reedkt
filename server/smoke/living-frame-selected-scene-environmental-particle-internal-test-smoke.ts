@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 import {
   createLivingFrameContractFixtures,
@@ -22,6 +25,9 @@ import {
   LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_REMOTION_FULL_TIMELINE_INTERNAL_TEST_VERSION,
 } from '../../src/types/living-frame-selected-scene-environmental-particle-remotion-full-timeline-internal-test'
 import {
+  LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_PRIVATE_PERSISTENCE_INTERNAL_TEST_VERSION,
+} from '../../src/types/living-frame-selected-scene-environmental-particle-private-persistence-internal-test'
+import {
   compileLivingFrameComponentGeometry,
 } from '../living-frame/living-frame-component-geometry'
 import {
@@ -31,8 +37,13 @@ import {
   executeLivingFrameSelectedSceneEnvironmentalParticleInternalTest,
 } from '../living-frame/living-frame-selected-scene-environmental-particle-internal-test'
 import {
+  consumeLivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutputLease,
   executeLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTest,
+  executeLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestWithPrivateReviewOutput,
 } from '../living-frame/living-frame-environmental-particle-remotion-internal-composite'
+import {
+  executeLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTest,
+} from '../living-frame/living-frame-selected-scene-environmental-particle-private-persistence-internal-test'
 import {
   inspectLivingFrameEnvironmentalParticleAdmission,
   type InspectLivingFrameEnvironmentalParticleAdmissionInput,
@@ -440,8 +451,8 @@ assert.equal(
 assert.equal(report.customerCharged, false)
 assert.equal(report.productionReady, false)
 
-const fullTimelineReport =
-  await executeLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTest({
+const fullTimelineExecution =
+  await executeLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestWithPrivateReviewOutput({
     qualificationId:
       'living-frame.selected-scene-environmental-internal.remotion-full-timeline-v1',
     selectedSceneInternalTestReport:
@@ -451,6 +462,8 @@ const fullTimelineReport =
     privateSequenceOutputLease:
       execution.privateSequenceOutputLease,
   })
+const fullTimelineReport =
+  fullTimelineExecution.report
 
 assert.equal(
   fullTimelineReport.contractVersion,
@@ -576,6 +589,117 @@ assert.equal(
   false,
 )
 
+const persistenceReport = await (async () => {
+  const localStorageRoot =
+    await mkdtemp(
+      join(
+        tmpdir(),
+        'reeditpro-lf-particle-persistence-',
+      ),
+    )
+  try {
+    return await executeLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTest({
+      qualificationId:
+        'living-frame.selected-scene-environmental-internal.private-persistence-v1',
+      localStorageRoot,
+      fullTimelineReport,
+      privateReviewOutputLease:
+        fullTimelineExecution
+          .privateReviewOutputLease,
+    })
+  } finally {
+    await rm(localStorageRoot, {
+      recursive: true,
+      force: true,
+    })
+  }
+})()
+
+assert.equal(
+  persistenceReport.contractVersion,
+  LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_PRIVATE_PERSISTENCE_INTERNAL_TEST_VERSION,
+)
+assert.equal(
+  persistenceReport.canonicalScope.sceneId,
+  scene.sceneId,
+)
+assert.equal(
+  persistenceReport.canonicalScope.componentId,
+  componentId,
+)
+assert.equal(
+  persistenceReport.persistedArtifact
+    .storageOwner,
+  'persistCanonicalPrivateRemotionArtifactStream',
+)
+assert.equal(
+  persistenceReport.persistedArtifact
+    .inspectionOwner,
+  'inspectCanonicalPrivateRemotionArtifact',
+)
+assert.equal(
+  persistenceReport.persistedArtifact
+    .sha256,
+  fullTimelineReport.sourceBindings
+    .finalPackagedReviewDigestSha256,
+)
+assert.equal(
+  persistenceReport.persistedArtifact
+    .byteLength,
+  fullTimelineReport.compositionIdentity
+    .finalPackagedReviewByteLength,
+)
+assert.equal(
+  persistenceReport.persistedArtifact
+    .createOnlyPersistenceUsed,
+  true,
+)
+assert.equal(
+  persistenceReport.persistedArtifact
+    .exactReadbackVerified,
+  true,
+)
+assert.equal(
+  persistenceReport.privateOutputLeaseConsumedExactlyOnce,
+  true,
+)
+assert.equal(
+  persistenceReport.artifactPersisted,
+  true,
+)
+assert.equal(
+  persistenceReport.assetManifestMutated,
+  false,
+)
+assert.equal(
+  persistenceReport.qaApproved,
+  false,
+)
+assert.equal(
+  persistenceReport.privateReviewApproved,
+  false,
+)
+assert.equal(
+  persistenceReport.customerCharged,
+  false,
+)
+assert.equal(
+  persistenceReport.internalTestReadyForSceneEvidenceAndPrivateReview,
+  true,
+)
+assert.equal(
+  persistenceReport.productionReady,
+  false,
+)
+assert.throws(
+  () =>
+    consumeLivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutputLease(
+      fullTimelineExecution
+        .privateReviewOutputLease,
+    ),
+  /unknown or already consumed/u,
+)
+
 let adversarialAssertions = 0
 const mismatchedPack = {
   ...visualContinuityPack,
@@ -648,6 +772,8 @@ adversarialAssertions += 1
 const serializedReport = JSON.stringify(report)
 const serializedFullTimelineReport =
   JSON.stringify(fullTimelineReport)
+const serializedPersistenceReport =
+  JSON.stringify(persistenceReport)
 for (const forbidden of [
   'pngBytes',
   'rgbaBytes',
@@ -664,6 +790,12 @@ for (const forbidden of [
   )
   assert.equal(
     serializedFullTimelineReport.includes(
+      forbidden,
+    ),
+    false,
+  )
+  assert.equal(
+    serializedPersistenceReport.includes(
       forbidden,
     ),
     false,
@@ -713,6 +845,16 @@ process.stdout.write(`${JSON.stringify({
   internalTestReadyForPersistenceAndReview:
     fullTimelineReport
       .internalTestReadyForPersistenceAndReview,
+  artifactPersisted:
+    persistenceReport.artifactPersisted,
+  canonicalPrivateRemotionStorageReused:
+    persistenceReport.persistedArtifact
+      .storageOwner ===
+      'persistCanonicalPrivateRemotionArtifactStream',
+  assetManifestMutated:
+    persistenceReport.assetManifestMutated,
+  privateReviewApproved:
+    persistenceReport.privateReviewApproved,
   customerCharged: report.customerCharged,
   productionReady: report.productionReady,
   adversarialAssertions,

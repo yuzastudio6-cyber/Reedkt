@@ -31,8 +31,10 @@ import {
   LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_REMOTION_FULL_TIMELINE_INTERNAL_TEST_STATE,
   LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_REMOTION_FULL_TIMELINE_INTERNAL_TEST_VERSION,
   type LivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineChunk,
+  type LivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestExecution,
   type LivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestReport,
   type LivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestReportDraft,
+  type LivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutputLease,
 } from '../../src/types/living-frame-selected-scene-environmental-particle-remotion-full-timeline-internal-test'
 import type {
   CanonicalLivingFrameMotionSpec,
@@ -86,10 +88,97 @@ export interface ExecuteLivingFrameSelectedSceneEnvironmentalParticleRemotionFul
     LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutputLease
 }
 
+export interface LivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutput {
+  readonly reportDigestSha256: string
+  readonly finalPackagedReviewDigestSha256: string
+  readonly expectedByteLength: number
+  readonly contentType: 'video/mp4'
+  readonly bytes: Buffer
+}
+
+const privateReviewOutputByLease =
+  new WeakMap<
+    LivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutputLease,
+    LivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutput
+  >()
+
 export async function executeLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTest(
   input:
     ExecuteLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestInput,
 ): Promise<LivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestReport> {
+  const execution =
+    await executeFullTimelineInternalTest(
+      input,
+    )
+  return execution.report
+}
+
+export async function executeLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestWithPrivateReviewOutput(
+  input:
+    ExecuteLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestInput,
+): Promise<LivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestExecution> {
+  const execution =
+    await executeFullTimelineInternalTest(
+      input,
+    )
+  const lease =
+    createPrivateReviewOutputLease(
+      execution.report,
+      execution.packagedBytes,
+    )
+  return {
+    report: execution.report,
+    privateReviewOutputLease: lease,
+  }
+}
+
+export function consumeLivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutputLease(
+  lease:
+    LivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutputLease,
+): LivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutput {
+  if (
+    !isRecord(lease)
+    || lease.leaseClass !==
+      'process_bound_single_use_selected_scene_particle_remotion_private_review_output_lease_v1'
+    || lease.callerSerializable !== false
+    || lease.artifactAuthority !== false
+    || lease.assetManifestAuthority !== false
+    || lease.qaApprovalAuthority !== false
+    || lease.privateReviewAuthority !== false
+    || lease.billingAuthority !== false
+    || lease.productionAuthority !== false
+  ) throw validationFailure('Living Frame private review output lease is invalid.')
+  const output =
+    privateReviewOutputByLease.get(lease)
+  if (output == null) {
+    throw validationFailure('Living Frame private review output lease is unknown or already consumed.')
+  }
+  privateReviewOutputByLease.delete(lease)
+  if (
+    lease.reportDigestSha256 !==
+      output.reportDigestSha256
+    || lease.finalPackagedReviewDigestSha256 !==
+      output.finalPackagedReviewDigestSha256
+    || lease.expectedByteLength !==
+      output.expectedByteLength
+    || lease.contentType !==
+      output.contentType
+    || digestBytes(output.bytes) !==
+      output.finalPackagedReviewDigestSha256
+    || output.bytes.byteLength !==
+      output.expectedByteLength
+  ) throw validationFailure('Living Frame private review output lease lineage is invalid.')
+  return output
+}
+
+async function executeFullTimelineInternalTest(
+  input:
+    ExecuteLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestInput,
+): Promise<{
+  readonly report:
+    LivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestReport
+  readonly packagedBytes: Buffer
+}> {
   assertFullTimelineInput(input)
   assertPixiJsReport(input.pixiJsRuntimeReport)
   assertSelectedSceneInternalTestReport(
@@ -390,11 +479,75 @@ export async function executeLivingFrameSelectedSceneEnvironmentalParticleRemoti
       externalBetaReady: false,
       productionReady: false,
     }
-  return deepFreeze({
+  const report = deepFreeze({
     ...draft,
     reportDigestSha256:
       sha256AuthorityValue(draft),
   })
+  return {
+    report,
+    packagedBytes,
+  }
+}
+
+function createPrivateReviewOutputLease(
+  report:
+    LivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestReport,
+  packagedBytes: Buffer,
+): LivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutputLease {
+  if (
+    packagedBytes.byteLength !==
+      report.compositionIdentity
+        .finalPackagedReviewByteLength
+    || digestBytes(packagedBytes) !==
+      report.sourceBindings
+        .finalPackagedReviewDigestSha256
+  ) throw runtimeFailure('Living Frame private review output changed before lease creation.')
+  const lease =
+    Object.freeze({
+      leaseClass:
+        'process_bound_single_use_selected_scene_particle_remotion_private_review_output_lease_v1' as const,
+      leaseId:
+        `lf-particle-remotion-review-output.${sha256AuthorityValue({
+          reportDigestSha256:
+            report.reportDigestSha256,
+          finalPackagedReviewDigestSha256:
+            report.sourceBindings
+              .finalPackagedReviewDigestSha256,
+          expectedByteLength:
+            packagedBytes.byteLength,
+        }).slice(0, 40)}`,
+      reportDigestSha256:
+        report.reportDigestSha256,
+      finalPackagedReviewDigestSha256:
+        report.sourceBindings
+          .finalPackagedReviewDigestSha256,
+      expectedByteLength:
+        packagedBytes.byteLength,
+      contentType: 'video/mp4' as const,
+      callerSerializable: false as const,
+      artifactAuthority: false as const,
+      assetManifestAuthority: false as const,
+      qaApprovalAuthority: false as const,
+      privateReviewAuthority: false as const,
+      billingAuthority: false as const,
+      productionAuthority: false as const,
+    })
+  privateReviewOutputByLease.set(
+    lease,
+    Object.freeze({
+      reportDigestSha256:
+        report.reportDigestSha256,
+      finalPackagedReviewDigestSha256:
+        report.sourceBindings
+          .finalPackagedReviewDigestSha256,
+      expectedByteLength:
+        packagedBytes.byteLength,
+      contentType: 'video/mp4' as const,
+      bytes: Buffer.from(packagedBytes),
+    }),
+  )
+  return lease
 }
 
 export async function executeLivingFrameEnvironmentalParticleRemotionInternalComposite(

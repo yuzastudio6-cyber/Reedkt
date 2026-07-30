@@ -99,8 +99,11 @@ Two actual private renders supplement the connected source-level trace:
   1920×1080 PixiJS RGBA frames, consumes the private lease once, renders seven
   bounded real Remotion chunks, packages the exact 105-frame 30 FPS review,
   and decodes every final frame for source, caption, particle, temporal, and
-  alpha-centroid QA. It distinguishes sub-perceptual fade frames from missing
-  overlays without relaxing materially visible-frame requirements.
+  alpha-centroid QA. It then consumes one separate process-bound final-output
+  lease through the existing canonical private Remotion artifact-storage
+  owner and verifies create-only persistence plus exact digest/length
+  readback. It distinguishes sub-perceptual fade frames from missing overlays
+  without relaxing materially visible-frame requirements.
 
 ## Mode coverage
 
@@ -139,8 +142,10 @@ private-review evidence compiler. It is still controlled evidence:
 - ComfyUI is not yet a released canonical GPU operation;
 - the exact five-model 11.7 GB closure has not run on an approved L4 worker;
 - the canonical distributed read-only mount adapter is not released;
-- generated output persistence, actual worker resource-cost evidence, and
-  released alpha/continuity QA remain open;
+- selected-scene particle review persistence is now proven through the
+  canonical private Remotion artifact owner;
+- actual controlled-illustration output persistence, actual worker
+  resource-cost evidence, and released alpha/continuity QA remain open;
 - public delivery, production, customer charging, and deployment remain false.
 
 The current implementation target is full private internal testing. Customer

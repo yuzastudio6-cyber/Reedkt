@@ -159,3 +159,27 @@ export interface LivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimeli
   extends LivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestReportDraft {
   readonly reportDigestSha256: string
 }
+
+export interface LivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutputLease {
+  readonly leaseClass:
+    'process_bound_single_use_selected_scene_particle_remotion_private_review_output_lease_v1'
+  readonly leaseId: string
+  readonly reportDigestSha256: string
+  readonly finalPackagedReviewDigestSha256: string
+  readonly expectedByteLength: number
+  readonly contentType: 'video/mp4'
+  readonly callerSerializable: false
+  readonly artifactAuthority: false
+  readonly assetManifestAuthority: false
+  readonly qaApprovalAuthority: false
+  readonly privateReviewAuthority: false
+  readonly billingAuthority: false
+  readonly productionAuthority: false
+}
+
+export interface LivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestExecution {
+  readonly report:
+    LivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestReport
+  readonly privateReviewOutputLease:
+    LivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutputLease
+}

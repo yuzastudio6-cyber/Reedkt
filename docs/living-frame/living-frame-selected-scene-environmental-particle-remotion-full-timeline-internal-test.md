@@ -1,7 +1,7 @@
 # Living Frame Selected-Scene Particle Full-Timeline Remotion Test
 
 Status:
-`selected_scene_full_particle_timeline_remotion_composite_green_persistence_and_review_pending`
+`selected_scene_full_particle_timeline_remotion_composite_green_private_persistence_green_scene_qa_and_review_pending`
 
 Contract:
 `living-frame-selected-scene-environmental-particle-remotion-full-timeline-internal-test-v1`
@@ -101,9 +101,11 @@ It keeps false:
 - external beta; and
 - production readiness.
 
-The next internal milestone is to persist the private scene package through the
-existing create-only artifact/asset owners and bind destination-composite QA
-and private review. Customer-production promotion is intentionally deferred.
+The adjacent private-persistence test now persists and independently reads
+back the exact final MP4 through the existing canonical private Remotion
+artifact-storage owner. The next internal milestone is to bind canonical
+scene-evidence QA and private review to that persisted output. Customer-
+production promotion is intentionally deferred.
 
 ## Validation
 
@@ -120,3 +122,6 @@ assertions.
 - `src/types/living-frame-selected-scene-environmental-particle-remotion-full-timeline-internal-test.ts`
 - `server/living-frame/living-frame-environmental-particle-remotion-internal-composite.ts`
 - `server/smoke/living-frame-selected-scene-environmental-particle-internal-test-smoke.ts`
+
+See also
+`docs/living-frame/living-frame-selected-scene-environmental-particle-private-persistence-internal-test.md`.

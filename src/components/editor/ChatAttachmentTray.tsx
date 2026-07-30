@@ -8,9 +8,17 @@ type ChatAttachmentTrayProps = {
   onAttachClips: () => void
   onAttachFiles?: (files: File[]) => void
   onReference: () => void
+  showReference?: boolean
 }
 
-export function ChatAttachmentTray({ clipsAttached, disabled = false, onAttachClips, onAttachFiles, onReference }: ChatAttachmentTrayProps) {
+export function ChatAttachmentTray({
+  clipsAttached,
+  disabled = false,
+  onAttachClips,
+  onAttachFiles,
+  onReference,
+  showReference = true,
+}: ChatAttachmentTrayProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const clipLabel = clipsAttached ? 'Add source files' : 'Attach source files'
 
@@ -55,15 +63,17 @@ export function ChatAttachmentTray({ clipsAttached, disabled = false, onAttachCl
         onClick={handleAttachClick}
         title={clipLabel}
       />
-      <IconButton
-        className="chat-composer-icon-button"
-        data-testid="chat-composer-reference"
-        disabled={disabled}
-        icon={Link2}
-        label="Attach reference"
-        onClick={onReference}
-        title="Attach reference"
-      />
+      {showReference ? (
+        <IconButton
+          className="chat-composer-icon-button"
+          data-testid="chat-composer-reference"
+          disabled={disabled}
+          icon={Link2}
+          label="Attach reference"
+          onClick={onReference}
+          title="Attach reference"
+        />
+      ) : null}
     </div>
   )
 }

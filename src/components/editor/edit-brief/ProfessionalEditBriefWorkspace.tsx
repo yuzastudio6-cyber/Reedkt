@@ -107,6 +107,7 @@ type AudioPlanningProjection = {
 }
 
 export function ProfessionalEditBriefWorkspace({
+  authorityOnly = false,
   children,
   editBrief,
   readOnly,
@@ -117,6 +118,7 @@ export function ProfessionalEditBriefWorkspace({
   onTimelineStarted,
   onPlanningAuthorityReadyChange,
 }: {
+  authorityOnly?: boolean
   children: ReactNode
   editBrief: EditBrief | null
   readOnly: boolean
@@ -543,6 +545,8 @@ export function ProfessionalEditBriefWorkspace({
     setUploadedAudioAssetId(undefined)
     setAudioAttachmentState({})
   }
+
+  if (authorityOnly) return null
 
   return (
     <section

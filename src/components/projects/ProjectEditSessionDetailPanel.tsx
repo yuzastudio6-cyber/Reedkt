@@ -92,10 +92,6 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
               <dd>{detail.latestPreviewLabel}</dd>
             </div>
             <div>
-              <dt>Edit level</dt>
-              <dd>{detail.selectedEditLevelLabel}</dd>
-            </div>
-            <div>
               <dt>Preference</dt>
               <dd>{detail.selectedPreferenceSummary}</dd>
             </div>

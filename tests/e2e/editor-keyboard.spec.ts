@@ -63,7 +63,7 @@ test.describe('editor keyboard and interaction polish QA', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('keeps source and reference controls keyboard reachable with clear focus treatment', async ({ page }) => {
+  test('keeps source controls keyboard reachable without unavailable reference controls', async ({ page }) => {
     await gotoEditor(page)
 
     const sourceCard = page.getByTestId('source-sequence-card')
@@ -84,14 +84,11 @@ test.describe('editor keyboard and interaction polish QA', () => {
     await clickWhenReady(page.getByTestId('output-frame-control').getByRole('radio', { name: /9:16/i }))
     await clickWhenReady(page.getByRole('button', { name: /Confirm frame/i }))
     await clickWhenReady(page.getByRole('button', { name: /Confirm cleanup/i }))
-    await clickWhenReady(page.getByRole('button', { name: /Use (Normal|Premium|Ultra Premium)/i }))
+    await expect(page.getByTestId('edit-level-inline-card')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /Use (Normal|Premium|Ultra Premium)/i })).toHaveCount(0)
     await clickWhenReady(page.getByRole('button', { name: /Confirm direction/i }))
-    const referenceCard = page.getByTestId('reference-control')
-    await referenceCard.scrollIntoViewIfNeeded()
-    await expect(referenceCard).toBeVisible()
-    await expectFocusedControl(page, referenceCard.getByLabel(/Public reference link/i), 'reference URL field')
-    await expectFocusedControl(page, referenceCard.getByRole('button', { name: /Pacing/i }), 'reference pacing focus chip')
-    await expectFocusedControl(page, referenceCard.getByRole('button', { name: /Skip reference/i }), 'reference skip action')
+    await expect(page.getByTestId('reference-control')).toHaveCount(0)
+    await expect(page.getByTestId('planning-preparation')).toBeVisible()
 
     await expectNoHorizontalOverflow(page)
     await expectNoCardHorizontalOverflow(page)

@@ -129,7 +129,10 @@ export function CleanPlanningPrepSurface({
     editBrief.editBrief?.status === 'ready'
     && activeCanonicalBriefPlanningGate.ready,
   )
-  const canCreateExactPlan = canCreatePlan && editBriefReadyForCanonicalPlan
+  const canCreateExactPlan =
+    canCreatePlan
+    && editBriefReadyForCanonicalPlan
+    && !planningContext.hasBlockingIssues
 
   useEffect(() => {
     onEditBriefStatusChange(
@@ -163,7 +166,9 @@ export function CleanPlanningPrepSurface({
 
   useEffect(() => {
     if (!briefWorkspaceActive || !result) {
+      const wasBriefWorkspaceActive = briefWorkspaceActiveRef.current
       briefWorkspaceActiveRef.current = false
+      if (wasBriefWorkspaceActive && editBrief.isOpen) editBrief.closeBrief()
       return
     }
     if (briefWorkspaceActiveRef.current) return
@@ -187,12 +192,13 @@ export function CleanPlanningPrepSurface({
   }, [briefWorkspaceActive, editBrief.isOpen, editBriefOpenRequestId])
 
   function handleToggleBrief() {
-    if (onOpenEditBrief) {
-      onOpenEditBrief()
-      return
-    }
     if (editBrief.isOpen) {
       editBrief.closeBrief()
+      if (briefWorkspaceActive) onCloseEditBrief?.()
+      return
+    }
+    if (onOpenEditBrief) {
+      onOpenEditBrief()
       return
     }
     editBrief.openBrief()
@@ -209,23 +215,27 @@ export function CleanPlanningPrepSurface({
     if (nextPlan) onContextAwarePlanCreated(nextPlan)
   }
 
-  const editBriefContent = editBrief.isOpen && (briefWorkspaceActive || !onOpenEditBrief) ? (
-    <div className="clean-edit-brief" ref={editBriefWorkspaceRef}>
-      {editBriefPlanImpactNotice ? (
-        <p className="clean-edit-inline-warning" data-testid="edit-brief-plan-impact" role="note">
-          Changes here require a fresh plan and credit approval before more editing runs.
-        </p>
-      ) : null}
-      <ProfessionalEditBriefWorkspace
-        editBrief={editBrief.editBrief}
-        readOnly={editBriefLocked}
-        onTimelineStarted={editBrief.startBrief}
-        onPlanningAuthorityReadyChange={handleCanonicalBriefPlanningGateChange}
-        scope={scope}
-        sourceClips={plannerInput.clips}
-        sourcePreviewFile={sourcePreviewFile}
-        started={editBrief.hasStarted}
-      >
+  const editBriefWorkspaceVisible =
+    editBrief.isOpen && (briefWorkspaceActive || !onOpenEditBrief)
+  const editBriefContent = briefWorkspaceActive || editBrief.hasStarted ? (
+    <ProfessionalEditBriefWorkspace
+      authorityOnly={!editBriefWorkspaceVisible}
+      editBrief={editBrief.editBrief}
+      readOnly={editBriefLocked}
+      onTimelineStarted={editBrief.startBrief}
+      onPlanningAuthorityReadyChange={handleCanonicalBriefPlanningGateChange}
+      scope={scope}
+      sourceClips={plannerInput.clips}
+      sourcePreviewFile={sourcePreviewFile}
+      started={editBrief.hasStarted}
+    >
+      {editBriefWorkspaceVisible ? (
+        <div className="clean-edit-brief" ref={editBriefWorkspaceRef}>
+          {editBriefPlanImpactNotice ? (
+            <p className="clean-edit-inline-warning" data-testid="edit-brief-plan-impact" role="note">
+              Changes here require a fresh plan and credit approval before more editing runs.
+            </p>
+          ) : null}
         <EditBriefPanel
           activityEvents={editBrief.activityEvents}
           editBriefState={editBrief.editBriefState}
@@ -256,8 +266,9 @@ export function CleanPlanningPrepSurface({
           sourceAssets={sourceLibrary.assets}
           summary={editBrief.summary}
         />
-      </ProfessionalEditBriefWorkspace>
-    </div>
+        </div>
+      ) : null}
+    </ProfessionalEditBriefWorkspace>
   ) : null
 
   if (briefWorkspaceActive) {
@@ -327,8 +338,12 @@ export function CleanPlanningPrepSurface({
       <header className="clean-edit-step-header">
         <div>
           <span className="clean-edit-step-count">Source prepared</span>
-          <h2>Ready to create the plan</h2>
-          <p>Add an Edit Brief only if you want more control. It is optional.</p>
+          <h2>{canCreateExactPlan ? 'Ready to create the plan' : 'One step before the plan'}</h2>
+          <p>
+            {canCreateExactPlan
+              ? 'Add an Edit Brief only if you want more control. It is optional.'
+              : 'Resolve the item below. Your prepared source is preserved.'}
+          </p>
         </div>
         <div className="clean-prep-summary" aria-label="Prepared source summary">
           <strong>{result.footagePrepSession.sourceMediaIds.length} source{result.footagePrepSession.sourceMediaIds.length === 1 ? '' : 's'}</strong>

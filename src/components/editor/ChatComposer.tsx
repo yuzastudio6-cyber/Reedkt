@@ -1,5 +1,5 @@
 import { useEffect, useRef, type KeyboardEvent } from 'react'
-import { Mic, Send } from 'lucide-react'
+import { Send } from 'lucide-react'
 import { IconButton } from '../Button'
 import { ChatAttachmentTray } from './ChatAttachmentTray'
 
@@ -14,6 +14,8 @@ type ChatComposerProps = {
   onReference: () => void
   onSend: () => void
   placeholder?: string
+  sendLabel?: string
+  showReference?: boolean
 }
 
 export function ChatComposer({
@@ -27,6 +29,8 @@ export function ChatComposer({
   onReference,
   onSend,
   placeholder = 'Message ReeditPro...',
+  sendLabel = 'Send',
+  showReference = true,
 }: ChatComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -57,6 +61,7 @@ export function ChatComposer({
           onAttachClips={onAttachClips}
           onAttachFiles={onAttachFiles}
           onReference={onReference}
+          showReference={showReference}
         />
         <label className="chat-native-input chat-composer-field">
           <span className="sr-only">Message ReeditPro</span>
@@ -75,21 +80,13 @@ export function ChatComposer({
         <p className="sr-only" id="chat-composer-helper">Plan first. Approve credits. Then editing can begin.</p>
         <div className="chat-composer-control-row" aria-label="Composer controls">
           <IconButton
-            className="composer-mic-button"
-            data-testid="chat-composer-mic"
-            disabled
-            icon={Mic}
-            label="Voice input is not available yet"
-            title="Voice input is not available yet"
-          />
-          <IconButton
             className="chat-composer-send"
             data-testid="chat-composer-send"
             disabled={disabled || inputValue.trim().length === 0}
             icon={Send}
-            label="Send"
+            label={sendLabel}
             onClick={onSend}
-            title="Send"
+            title={sendLabel}
           />
         </div>
       </div>

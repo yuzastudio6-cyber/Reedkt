@@ -29,8 +29,10 @@ export interface ApprovedEditReferenceOption {
 }
 
 export interface ApprovedEditReferenceOptionsResult {
+  code?: string
   ok: boolean
   options: ApprovedEditReferenceOption[]
+  status?: number
   warnings: string[]
   message?: string
 }
@@ -51,15 +53,26 @@ export async function loadApprovedEditReferenceOptions(input: {
 }): Promise<ApprovedEditReferenceOptionsResult> {
   if (!input.api.available) {
     return {
+      code: 'EDIT_REFERENCE_BACKEND_UNAVAILABLE',
       ok: false,
       options: [],
+      status: 503,
       warnings: [],
       message: 'Approved Edit References are unavailable in this browser runtime.',
     }
   }
 
   const list = await input.api.list(input.workspaceId)
-  if (!list.ok) return { ok: false, options: [], warnings: [], message: list.message }
+  if (!list.ok) {
+    return {
+      code: list.code,
+      ok: false,
+      options: [],
+      status: list.status,
+      warnings: [],
+      message: list.message,
+    }
+  }
   const approvedItems = list.data.references.filter(isApprovedListItem)
   const details = await Promise.all(approvedItems.map((item) => input.api.get(input.workspaceId, item.reference.id)))
   const warnings = [...list.warnings]

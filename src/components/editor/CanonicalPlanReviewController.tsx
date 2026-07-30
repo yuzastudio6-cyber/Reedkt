@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import type { CanonicalPlanApprovalHookResult } from '../../hooks/useCanonicalPlanApproval'
+import { Button } from '../Button'
 import { CanonicalPlanApprovalStatus } from './CanonicalPlanApprovalStatus'
 import {
   CanonicalPlanningSaveStatus,
@@ -35,6 +36,40 @@ export function CanonicalPlanReviewController({
   statusSupplement,
   ...card
 }: CanonicalPlanReviewControllerProps) {
+  const canonicalPlanPublished =
+    planningPublication?.result?.status ===
+    'plan_published_waiting_for_approval'
+  if (planningPublication && !canonicalPlanPublished) {
+    return (
+      <section
+        className="clean-edit-step clean-plan-review"
+        data-testid="canonical-plan-publication-blocker"
+      >
+        <div className="clean-plan-checkpoint">
+          <header className="clean-edit-step-header">
+            <div>
+              <span className="clean-edit-step-count">Plan verification</span>
+              <h2>The executable plan is not ready yet</h2>
+              <p>
+                ReeditPro will show an estimate and approval button only after
+                the private backend publishes the exact plan it can execute.
+              </p>
+            </div>
+          </header>
+          <CanonicalPlanningSaveStatus {...planningPublication} />
+          {statusSupplement}
+          {card.onReviseSetup ? (
+            <div className="clean-edit-step-actions">
+              <Button onClick={card.onReviseSetup} variant="secondary">
+                Revise setup
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      </section>
+    )
+  }
+
   const authorityStatus = planningPublication || planApproval || statusSupplement ? (
     <>
       {planningPublication ? <CanonicalPlanningSaveStatus {...planningPublication} /> : null}

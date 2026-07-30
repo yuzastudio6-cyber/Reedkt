@@ -69,6 +69,12 @@ import {
   resolveMaterialPlanningInstruction,
 } from '../../lib/planning-input-safety'
 import {
+  appendCanonicalSourceLedChatDirection,
+  createCanonicalSourceLedChatClientMessageId,
+  createCanonicalSourceLedChatIdempotencyKey,
+  readCanonicalSourceLedChat,
+} from '../../lib/canonical-source-led-chat-client'
+import {
   getCurrentEditPreferenceOverrideKeys,
   readCurrentEditPreferenceValues,
   resolveCurrentEditPreferenceBaseline,
@@ -141,6 +147,10 @@ import { useCanonicalSourceLedPlanPresentation } from '../../hooks/useCanonicalS
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus, MediaKind, ReeditProChatMessage } from '../../types'
 import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
 import type {
+  CanonicalSourceLedChatExchange,
+  CanonicalSourceLedChatThread,
+} from '../../types/canonical-source-led-chat-direction'
+import type {
   EditReferenceProductionExactEditApplyApiReceipt,
   EditReferenceProductionExactEditApplyAuthorityRead,
   EditReferenceProductionExactEditApplyOperation,
@@ -172,9 +182,7 @@ import { CanonicalPlanReviewController } from './CanonicalPlanReviewController'
 import { canonicalPlanApprovalReadyForPresentedPlan } from '../../lib/canonical-plan-approval-readiness'
 import {
   CleanupSetup,
-  EditLevelSetup,
   FrameSetup,
-  ReferenceSetup,
   SourceSetup,
   VisualSetup,
 } from './CleanEditSetupSurface'
@@ -238,12 +246,6 @@ const AdvancedPlanningDetails = lazy(() =>
 const DetailedTimelineDrawer = lazy(() =>
   import('./DetailedTimelineDrawer').then((module) => ({
     default: module.DetailedTimelineDrawer,
-  })),
-)
-
-const InlineEditLevelCard = lazy(() =>
-  import('./InlineEditLevelCard').then((module) => ({
-    default: module.InlineEditLevelCard,
   })),
 )
 
@@ -879,6 +881,38 @@ function attachManifestAudioQaSummary(
 
 const DEFAULT_REFERENCE_FOCUS_SELECTIONS = ['pacing', 'visual_language']
 
+function canonicalChatExchangeMessages(
+  exchange: CanonicalSourceLedChatExchange,
+): ReeditProChatMessage[] {
+  return [
+    createUserTextMessage(exchange.userMessage.content, {
+      id: exchange.userMessage.id,
+    }),
+    createRevisionResponseMessage(exchange.assistantMessage.content, {
+      id: exchange.assistantMessage.id,
+      status: exchange.effect.status === 'waiting_for_setup_confirmation'
+        ? 'pending'
+        : exchange.effect.status === 'not_applied'
+          || exchange.effect.status === 'waiting_for_ai_response'
+          ? 'warning'
+          : 'success',
+    }),
+  ]
+}
+
+function visibleCanonicalChatExchanges(
+  thread: CanonicalSourceLedChatThread,
+): CanonicalSourceLedChatExchange[] {
+  return thread.exchanges.filter((exchange, index, exchanges) => {
+    if (exchange.effect.status !== 'waiting_for_ai_response') return true
+    return !exchanges.slice(index + 1).some((laterExchange) =>
+      laterExchange.effect.activeForPlanning
+      && laterExchange.userMessage.contentDigestSha256 ===
+        exchange.userMessage.contentDigestSha256,
+    )
+  })
+}
+
 type ChatNativeEditorProps = {
   onOpenTimeline?: () => void
   projectPersistenceScope: ProjectPersistenceScope
@@ -892,13 +926,13 @@ type CleanEditorStage =
   | 'frame'
   | 'cleanup'
   | 'source_review'
-  | 'edit_level'
   | 'visual_direction'
-  | 'reference'
   | 'planning'
   | 'plan_review'
   | 'processing'
   | 'private_review'
+
+const INTERNAL_FULL_CAPABILITY_EDIT_LEVEL: EditLevel = 'premium'
 
 const currentEditPreferenceLockedStages = new Set<LocalInternalProjectHandoff['stage']>([
   'plan_approved',
@@ -915,6 +949,25 @@ function recoveredCleanEditorStage(
 ): CleanEditorStage | null {
   if (canonicalStage === 'private_review_ready' || canonicalStage === 'private_review_accepted') {
     return 'private_review'
+  }
+  if (
+    canonicalStage === 'approved_snapshot_available' ||
+    canonicalStage === 'execution_in_progress' ||
+    canonicalStage === 'private_review_assembly_required'
+  ) {
+    return 'processing'
+  }
+  if (canonicalStage === 'plan_approval_required') {
+    return 'plan_review'
+  }
+  if (
+    canonicalStage === 'planning_handoff_required' ||
+    canonicalStage === 'publication_request_required' ||
+    canonicalStage === 'internal_publication_pending' ||
+    canonicalStage === 'revision_requested' ||
+    canonicalStage === 'replanning_required'
+  ) {
+    return 'planning'
   }
   return null
 }
@@ -1196,7 +1249,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     (searchParams.get('demo') === '1' || searchParams.get('developerControls') === '1')
   const initialScenarioId = getInitialDemoScenarioId(categoryFromQuery)
   const initialScenario = defaultDemoScenario
-  const initialEditPreferenceValues = readCurrentEditPreferenceValues(restoredSetup, {
+  const recoveredInitialEditPreferenceValues = readCurrentEditPreferenceValues(restoredSetup, {
     editLevel: initialScenario.editLevel,
     workflowType: initialScenario.workflowType,
     cleanupPreference: restoredSetup?.cleanupPreference ?? 'balanced_cleanup',
@@ -1205,6 +1258,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     creditPreference: initialScenario.creditPreference,
     targetPlatform: isProjectWorkspace ? 'custom' : initialScenario.targetPlatform,
   })
+  const initialEditPreferenceValues = isProjectWorkspace
+    ? {
+        ...recoveredInitialEditPreferenceValues,
+        editLevel: INTERNAL_FULL_CAPABILITY_EDIT_LEVEL,
+      }
+    : recoveredInitialEditPreferenceValues
   const [currentEditPreferenceBaseline] = useState(() => resolveCurrentEditPreferenceBaseline(
     restoredSetup,
     initialEditPreferenceValues,
@@ -1253,9 +1312,20 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const [sourceSequenceMode, setSourceSequenceMode] = useState<SourceSequenceMode>(() =>
     restoredSetup?.sourceSequenceMode ?? inferSourceSequenceMode(initialClips, initialCustomInstructions),
   )
-  const [composerValue, setComposerValue] = useState(initialCustomInstructions)
+  const [composerValue, setComposerValue] = useState(
+    isProjectWorkspace ? '' : initialCustomInstructions,
+  )
   const [customInstructions, setCustomInstructions] = useState(initialCustomInstructions)
   const [userInstructionHistory, setUserInstructionHistory] = useState(initialUserInstructionHistory)
+  const [canonicalChatThread, setCanonicalChatThread] =
+    useState<CanonicalSourceLedChatThread | null>(null)
+  const [canonicalChatLoading, setCanonicalChatLoading] = useState(false)
+  const [canonicalChatSending, setCanonicalChatSending] = useState(false)
+  const [canonicalChatPendingMessage, setCanonicalChatPendingMessage] =
+    useState<{ readonly clientMessageId: string; readonly content: string } | null>(
+      null,
+    )
+  const [canonicalChatError, setCanonicalChatError] = useState('')
   const [clipsAttached, setClipsAttached] = useState(initialClips.length > 0)
   const [sourceOrderConfirmed, setSourceOrderConfirmed] = useState(restoredSetup?.sourceOrderConfirmed ?? false)
   const [cleanupPreference, setCleanupPreference] = useState<CleanupPreference | undefined>(initialEditPreferenceValues.cleanupPreference)
@@ -1270,7 +1340,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   )
   const [editingCategory, setEditingCategory] = useState<EditingCategory>(initialEditingCategory)
   const [editLevel, setEditLevel] = useState<EditLevel>(initialEditPreferenceValues.editLevel)
-  const [editLevelConfirmed, setEditLevelConfirmed] = useState(restoredSetup?.editLevelConfirmed ?? false)
+  const [editLevelConfirmed, setEditLevelConfirmed] = useState(
+    isProjectWorkspace ? true : restoredSetup?.editLevelConfirmed ?? false,
+  )
   const [targetPlatform, setTargetPlatform] = useState<TargetPlatform>(initialEditPreferenceValues.targetPlatform)
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>(restoredSetup?.aspectRatio ?? (isProjectWorkspace ? 'let_ai_decide' : initialScenario.aspectRatio))
   const [frameTemplateType, setFrameTemplateType] = useState<FrameTemplateType>(restoredSetup?.frameTemplateType ?? (isProjectWorkspace ? 'let_ai_decide' : initialScenario.frameTemplateType))
@@ -1345,6 +1417,58 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     editorEditSessionId,
     editorProjectId,
     hasProjectEditRoute,
+    projectPersistenceScope,
+  ])
+  useEffect(() => {
+    if (
+      !isProjectWorkspace
+      || !hasProjectEditRoute
+      || !canonicalPlanningBackendConnected
+    ) return
+    let active = true
+    const loadTimer = window.setTimeout(() => {
+      if (!active) return
+      setCanonicalChatLoading(true)
+      setCanonicalChatError('')
+      void readCanonicalSourceLedChat({
+        scope: projectPersistenceScope,
+        projectId: editorProjectId,
+        editSessionId: editorEditSessionId,
+      }).then((result) => {
+        if (!active) return
+        if (!result.ok) {
+          setCanonicalChatError(result.message)
+          return
+        }
+        const instructions = [...result.thread.activeInstructionHistory]
+        const latestExchange = result.thread.exchanges.at(-1)
+        setCanonicalChatThread(result.thread)
+        setUserInstructionHistory(instructions)
+        setCustomInstructions(joinOrderedUserInstructions(instructions))
+        if (latestExchange?.effect.status === 'waiting_for_ai_response') {
+          setComposerValue((current) =>
+            current || latestExchange.userMessage.content,
+          )
+        }
+      }).catch(() => {
+        if (!active) return
+        setCanonicalChatError(
+          'Saved Chat could not be loaded. Messages are disabled until the private backend responds.',
+        )
+      }).finally(() => {
+        if (active) setCanonicalChatLoading(false)
+      })
+    }, 0)
+    return () => {
+      active = false
+      window.clearTimeout(loadTimer)
+    }
+  }, [
+    canonicalPlanningBackendConnected,
+    editorEditSessionId,
+    editorProjectId,
+    hasProjectEditRoute,
+    isProjectWorkspace,
     projectPersistenceScope,
   ])
   useEffect(() => {
@@ -1995,6 +2119,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
 
   const basePlan = useMemo(() => createGuidedMockEditPlan(plannerInput), [plannerInput])
   const plan = contextAwarePlanResult?.editPlan ?? basePlan
+  const visibleEstimateReady = canonicalPlanningBackendConnected
+    ? canonicalEstimateReady
+    : Boolean(contextAwarePlanResult)
   const liveApprovalPlanningFingerprint = useMemo(
     () => contextAwarePlanResult
       ? createCompiledPlanningFingerprint(
@@ -2052,14 +2179,14 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const confirmedMaterialPlanningConflicts = findConfirmedMaterialPlanningConflicts(plannerInput, plan.compiledIntent)
   const cleanupReady = cleanupPreferenceConfirmed && plan.sourceCleanupPlan?.status === 'confirmed'
   const trimReviewReady = Boolean(plan.trimReviewPlan && !plan.trimReviewPlan.approvalBlocked)
-  const setupReady = sourceOrderConfirmed && aspectRatioConfirmed && cleanupReady && trimReviewReady && editLevelConfirmed && visualPreferenceConfirmed && confirmedMaterialPlanningConflicts.length === 0
+  const setupReady = sourceOrderConfirmed && aspectRatioConfirmed && cleanupReady && trimReviewReady && visualPreferenceConfirmed && confirmedMaterialPlanningConflicts.length === 0
   const canonicalCleanEditorStage = recoveredCleanEditorStage(canonicalJourneyValue?.stage)
-  const cleanEditorStage: CleanEditorStage = canonicalCleanEditorStage ?? (
+  const localCleanEditorStage: CleanEditorStage = (
     effectivePreviewReady
       ? 'private_review'
       : approved
         ? 'processing'
-        : contextAwarePlanResult
+        : !canonicalPlanningBackendConnected && contextAwarePlanResult
           ? 'plan_review'
           : !sourceOrderConfirmed
             ? 'source'
@@ -2069,14 +2196,14 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                 ? 'cleanup'
                 : !trimReviewReady
                   ? 'source_review'
-                  : !editLevelConfirmed
-                    ? 'edit_level'
-                    : !visualPreferenceConfirmed
-                      ? 'visual_direction'
-                      : !referenceAttached && !referenceSkipped
-                        ? 'reference'
-                        : 'planning'
+                  : !visualPreferenceConfirmed
+                  ? 'visual_direction'
+                    : 'planning'
   )
+  const cleanEditorStage: CleanEditorStage =
+    canonicalCleanEditorStage === 'planning' && !setupReady
+      ? localCleanEditorStage
+      : canonicalCleanEditorStage ?? localCleanEditorStage
   const sourceUploadComplete = durableUploadedPrivateSourceAssets(sourceMediaAssets).length > 0
   const editChatLockedUntilUpload = isProjectWorkspace && !sourceUploadComplete
   const privateUploadedSourcesReadyForPrep = uploadedPrivateSourceAssetsCoverClips(sourceMediaAssets, clips)
@@ -2100,18 +2227,23 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     Boolean(approvedSnapshot) &&
     privateUploadedSourcesReadyForPrep &&
     !contextMockPreview
+  const canonicalChatRequiresVerifiedRetry =
+    canonicalChatThread?.exchanges.at(-1)?.effect.status ===
+    'waiting_for_ai_response'
   const missingContextPlanSetupItems = [
     !aspectRatioConfirmed && 'output frame',
     !cleanupReady && 'source cleanup preference',
     !trimReviewReady && 'trim review',
-    !editLevelConfirmed && 'edit level',
     !visualPreferenceConfirmed && 'visual preference',
     confirmedMaterialPlanningConflicts.length > 0 && 'chat changes that need setup reconfirmation',
   ].filter((item): item is string => Boolean(item))
-  const canCreateContextAwarePlan = setupReady
-  const contextPlanBlockedReason = missingContextPlanSetupItems.length > 0
-    ? `Finish ${missingContextPlanSetupItems.join(', ')} before creating the edit plan from this footage.`
-    : ''
+  const canCreateContextAwarePlan =
+    setupReady && !canonicalChatRequiresVerifiedRetry
+  const contextPlanBlockedReason = canonicalChatRequiresVerifiedRetry
+    ? 'Retry the prefilled Chat direction and wait for its verified AI reply before creating the edit plan.'
+    : missingContextPlanSetupItems.length > 0
+      ? `Finish ${missingContextPlanSetupItems.join(', ')} before creating the edit plan from this footage.`
+      : ''
   const planningContextApprovalBlockedReason = contextAwarePlanResult?.planningContext.status === 'blocked'
     ? 'Resolve blocking Planning Context issues before approving credits or starting the review edit.'
     : ''
@@ -2145,6 +2277,27 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     canonicalJourneyValue?.plan
       ? canonicalJourneyValue.plan.maximumCredits
       : plan.creditEstimate.total
+  const canonicalPlanReviewEvidence =
+    canonicalPlanningBackendConnected && canonicalJourneyValue?.plan
+      ? {
+          planVersion: canonicalJourneyValue.plan.version,
+          workItemCount: canonicalJourneyValue.plan.workItemCount,
+          ...(canonicalPlanningPublication.result?.receipt
+            ? {
+                sourceCount:
+                  canonicalPlanningPublication.result.receipt.sourceCount,
+                totalFrames:
+                  canonicalPlanningPublication.result.receipt.totalFrames,
+                fps: canonicalPlanningPublication.result.receipt.fps,
+                captionCueCount:
+                  canonicalPlanningPublication.result.receipt.captionCueCount,
+                chatDirectionCount:
+                  canonicalPlanningPublication.result.receipt
+                    .chatDirectionCount,
+              }
+            : {}),
+        }
+      : undefined
   const canonicalApprovalAuthorityReady = canonicalPlanApprovalReadyForPresentedPlan({
     backendConnected: canonicalPlanningBackendConnected,
     journey: canonicalJourneyValue,
@@ -2183,7 +2336,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             ? 'review_ready'
             : approved || privateInternalTestRunRunning
               ? 'approved_review_building'
-              : contextAwarePlanResult
+              : !canonicalPlanningBackendConnected && contextAwarePlanResult
                 ? 'plan_review'
                 : 'planning_setup'
     )
@@ -2192,11 +2345,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     sourceOrderConfirmed && { id: 'source-order', label: 'Source order confirmed' },
     aspectRatioConfirmed && { id: 'output-frame', label: 'Output frame confirmed' },
     cleanupReady && { id: 'cleanup', label: 'Cleanup preference confirmed' },
-    editLevelConfirmed && { id: 'edit-level', label: 'Edit level confirmed' },
     visualPreferenceConfirmed && { id: 'visual-direction', label: 'Visual direction confirmed' },
     footagePrepResult && { id: 'source-prep', label: 'Source video prepared' },
     editBriefReadyForPlanning && { id: 'edit-brief', label: 'Edit Brief ready' },
-    (contextAwarePlanResult || canonicalEstimateReady) && { id: 'edit-plan', label: 'Edit plan created' },
+    visibleEstimateReady && { id: 'edit-plan', label: 'Edit plan created' },
     (approved || canonicalApprovalRecorded) && { id: 'approval', label: 'Plan and credits approved' },
     (effectivePreviewReady || canonicalPrivateReviewRecovered) && { id: 'private-review', label: 'Private review ready' },
     canonicalPrivateReviewAccepted && { id: 'private-review-approval', label: 'Private review approved' },
@@ -2216,7 +2368,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       ),
     [cardById, displayMode],
   )
-  const shouldShowAdvancedPlanningDetails = setupReady && Object.values(advancedVisibleCards).some(Boolean)
+  const shouldShowAdvancedPlanningDetails =
+    !canonicalPlanningBackendConnected &&
+    setupReady &&
+    Object.values(advancedVisibleCards).some(Boolean)
 
   const showCard = useCallback((id: string) => shouldShowCard(cardById[id], displayMode), [cardById, displayMode])
 
@@ -2360,7 +2515,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     setCleanupPreferenceConfirmed(false)
     setAspectRatioConfirmed(false)
     setAspectRatioSource('demo_scenario')
-    setEditLevelConfirmed(false)
+    if (!isProjectWorkspace) setEditLevelConfirmed(false)
     setVisualPreferenceConfirmed(false)
     clearRuntimeMessages()
     resetFootagePrep()
@@ -2889,7 +3044,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       }
     }
 
-    const next = request.values
+    const next = isProjectWorkspace
+      ? {
+          ...request.values,
+          editLevel: INTERNAL_FULL_CAPABILITY_EDIT_LEVEL,
+        }
+      : request.values
     const change = resolveCurrentEditPreferenceChange(
       currentEditPreferenceValues,
       next,
@@ -3545,7 +3705,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     setCleanupPreferenceConfirmed(false)
     setAspectRatioSource('user_selected')
     setIntentApproved(false)
-    setEditLevelConfirmed(false)
+    if (!isProjectWorkspace) setEditLevelConfirmed(false)
     setVisualPreferenceConfirmed(false)
     persistCurrentEditSetupAfterPlanInvalidation({
       aspectRatio: ratio,
@@ -3553,7 +3713,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       aspectRatioConfirmed: false,
       cleanupPreferenceConfirmed: false,
       aspectRatioSource: 'user_selected',
-      editLevelConfirmed: false,
+      editLevelConfirmed: isProjectWorkspace ? true : false,
       visualPreferenceConfirmed: false,
     })
   }
@@ -3599,27 +3759,120 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     })
   }
 
-  function handleConfirmCleanupPreference() {
+  async function applyCanonicalSetupPreferencePatch(
+    patch: Partial<LocalInternalEditPreferenceValues>,
+  ): Promise<boolean> {
+    if (!isProjectWorkspace || frontendApiStatus.mockOnly) return true
+    if (!hasProjectEditRoute || !canonicalPlanningBackendConnected) {
+      setCanonicalChatError(
+        'This setup choice was not saved because the reviewed private backend is unavailable.',
+      )
+      return false
+    }
+    if (currentEditPreferencesLocked || approvalCheckingRef.current) {
+      setCanonicalChatError(
+        'This edit is locked. Use the exact revision flow before changing its setup.',
+      )
+      return false
+    }
+
+    const savedPending = pendingExactEditPreferenceApply
+      ?? readExactEditPreferencePendingApply({
+        scope: projectPersistenceScope,
+        projectId: editorProjectId,
+        editSessionId: editorEditSessionId,
+      })
+    if (savedPending) {
+      setPendingExactEditPreferenceApply(savedPending)
+      const retry = await commitPendingExactEditPreferenceApply(savedPending)
+      if (!retry.ok) {
+        setCanonicalChatError(retry.message)
+        return false
+      }
+    }
+
+    const authorityResult = await readExactEditPreferenceApplyAuthority({
+      scope: projectPersistenceScope,
+      projectId: editorProjectId,
+      editSessionId: editorEditSessionId,
+      selectedApplicationId: null,
+    })
+    if (!authorityResult.ok) {
+      setCanonicalChatError(authorityResult.message)
+      return false
+    }
+    const operation = createExactEditPreferenceApplyOperation({
+      authority: authorityResult.authority,
+      values: {
+        ...authorityResult.authority.values,
+        ...(isProjectWorkspace
+          ? { editLevel: INTERNAL_FULL_CAPABILITY_EDIT_LEVEL }
+          : {}),
+        ...patch,
+      },
+      referenceMutation: null,
+    })
+    if (Object.keys(operation.preferencePatch).length > 0) {
+      const saved = saveExactEditPreferencePendingApply({
+        scope: projectPersistenceScope,
+        projectId: editorProjectId,
+        editSessionId: editorEditSessionId,
+        operation,
+        idempotencyKey: createExactEditPreferenceApplyIdempotencyKey(),
+      })
+      if (!saved.ok) {
+        setCanonicalChatError(saved.message)
+        return false
+      }
+      setPendingExactEditPreferenceApply(saved.pending)
+      const committed = await commitPendingExactEditPreferenceApply(
+        saved.pending,
+      )
+      if (!committed.ok) {
+        setCanonicalChatError(committed.message)
+        return false
+      }
+    }
+
+    const chat = await readCanonicalSourceLedChat({
+      scope: projectPersistenceScope,
+      projectId: editorProjectId,
+      editSessionId: editorEditSessionId,
+    })
+    if (chat.ok) {
+      const instructions = [...chat.thread.activeInstructionHistory]
+      setCanonicalChatThread(chat.thread)
+      setUserInstructionHistory(instructions)
+      setCustomInstructions(joinOrderedUserInstructions(instructions))
+      setCanonicalChatError('')
+    }
+    return true
+  }
+
+  async function handleConfirmCleanupPreference() {
     const nextCleanupPreference = cleanupPreference ?? plan.sourceCleanupPlan?.recommendedPreference.recommendedPreference ?? 'balanced_cleanup'
+    if (!await applyCanonicalSetupPreferencePatch({
+      cleanupPreference: nextCleanupPreference,
+      ...(canonicalPlanningBackendConnected
+        ? { visualPreference: 'keep_visuals_minimal' as const }
+        : {}),
+    })) return
     setCleanupPreference(nextCleanupPreference)
     setCleanupPreferenceConfirmed(true)
-    persistCurrentEditSetupAfterPlanInvalidation({ cleanupPreference: nextCleanupPreference, cleanupPreferenceConfirmed: true })
-  }
-
-  function handleEditLevelSelect(value: EditLevel) {
-    setEditLevel(value)
-    setEditLevelConfirmed(false)
-    setVisualPreferenceConfirmed(false)
+    if (canonicalPlanningBackendConnected) {
+      setVisualPreference('keep_visuals_minimal')
+      setVisualPreferenceConfirmed(true)
+    }
     persistCurrentEditSetupAfterPlanInvalidation({
-      editLevel: value,
-      editLevelConfirmed: false,
-      visualPreferenceConfirmed: false,
+      cleanupPreference: nextCleanupPreference,
+      cleanupPreferenceConfirmed: true,
+      ...(canonicalPlanningBackendConnected
+        ? {
+            visualPreference: 'keep_visuals_minimal' as const,
+            visualPreferenceConfirmed: true,
+          }
+        : {}),
     })
-  }
-
-  function handleConfirmEditLevel() {
-    setEditLevelConfirmed(true)
-    persistCurrentEditSetupAfterPlanInvalidation({ editLevelConfirmed: true })
   }
 
   function handleVisualPreferenceSelect(value: VisualPreference) {
@@ -3631,7 +3884,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     })
   }
 
-  function handleConfirmVisualPreference() {
+  async function handleConfirmVisualPreference() {
+    if (!await applyCanonicalSetupPreferencePatch({
+      visualPreference,
+    })) return
     setVisualPreferenceConfirmed(true)
     persistCurrentEditSetupAfterPlanInvalidation({ visualPreferenceConfirmed: true })
   }
@@ -3686,15 +3942,19 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   function handleReviseSetupFromPlanReview() {
     setAspectRatioConfirmed(false)
     setCleanupPreferenceConfirmed(false)
-    setEditLevelConfirmed(false)
-    setVisualPreferenceConfirmed(false)
+    if (!isProjectWorkspace) setEditLevelConfirmed(false)
+    setVisualPreferenceConfirmed(canonicalPlanningBackendConnected)
     persistCurrentEditSetupAfterPlanInvalidation({
       aspectRatioConfirmed: false,
       cleanupPreferenceConfirmed: false,
-      editLevelConfirmed: false,
-      visualPreferenceConfirmed: false,
+      editLevelConfirmed: isProjectWorkspace ? true : false,
+      visualPreferenceConfirmed: canonicalPlanningBackendConnected,
     })
-    showRevisionMessage('Setup is open again. Adjust the frame, cleanup, edit level, or visual direction before creating a fresh plan.')
+    showRevisionMessage(
+      canonicalPlanningBackendConnected
+        ? 'Setup is open again. Adjust the frame or cleanup before creating a fresh executable plan.'
+        : 'Setup is open again. Adjust the frame, cleanup, or visual direction before creating a fresh plan.',
+    )
   }
 
   async function handleApprove() {
@@ -3755,7 +4015,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     if (!setupReady || confirmedMaterialPlanningConflicts.length > 0) {
       blockApproval(
         confirmedMaterialPlanningConflicts[0] ??
-        'Reconfirm the current output frame, edit level, visual direction, and required setup before approval.',
+        'Reconfirm the current output frame, cleanup, visual direction, and required setup before approval.',
       )
       setApprovalChecking(false)
       return
@@ -4684,13 +4944,143 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     }
   }
 
-  function applyUserPlanningInstruction(nextMessageInput: string) {
+  async function applyUserPlanningInstruction(nextMessageInput: string) {
     if (approvalCheckingRef.current) {
       showRevisionMessage('Approval checks are in progress. Wait for them to finish before changing the edit.')
       return
     }
     const nextMessage = nextMessageInput.trim()
     if (!nextMessage) {
+      return
+    }
+    if (isProjectWorkspace && !frontendApiStatus.mockOnly) {
+      if (!hasProjectEditRoute || !canonicalPlanningBackendConnected) {
+        setCanonicalChatError(
+          'This message was not saved because the reviewed private backend is unavailable.',
+        )
+        return
+      }
+      if (canonicalChatLoading || canonicalChatSending) return
+
+      const clientMessageId = createCanonicalSourceLedChatClientMessageId()
+      setCanonicalChatSending(true)
+      setCanonicalChatPendingMessage({
+        clientMessageId,
+        content: nextMessage,
+      })
+      setCanonicalChatError('')
+      try {
+        const result = await appendCanonicalSourceLedChatDirection({
+          scope: projectPersistenceScope,
+          projectId: editorProjectId,
+          editSessionId: editorEditSessionId,
+          clientMessageId,
+          message: nextMessage,
+          idempotencyKey: createCanonicalSourceLedChatIdempotencyKey(),
+        })
+        if (!result.ok || !result.exchange) {
+          setCanonicalChatError(
+            result.ok
+              ? 'The backend response did not include the saved Chat exchange.'
+              : result.message,
+          )
+          return
+        }
+
+        const exchange = result.exchange
+        const instructions = [...result.thread.activeInstructionHistory]
+        const nextCustomInstructions = joinOrderedUserInstructions(instructions)
+        const requiredSetup = new Set(
+          exchange.effect.requiredSetupConfirmations,
+        )
+        const aiResponseNeedsRetry =
+          exchange.effect.status === 'waiting_for_ai_response'
+        const requested = exchange.effect.requestedSettings
+        const setupPatch: Partial<LocalInternalEditSetupSnapshot> = {
+          customInstructions: nextCustomInstructions,
+          userInstructionHistory: instructions,
+        }
+
+        setCanonicalChatThread(result.thread)
+        setUserInstructionHistory(instructions)
+        setCustomInstructions(nextCustomInstructions)
+        setComposerValue(aiResponseNeedsRetry ? nextMessage : '')
+
+        if (requested.aspectRatio) {
+          const nextFrameTemplateType =
+            getDefaultFrameTemplateForAspectRatio(
+              requested.aspectRatio,
+            ).templateType
+          setAspectRatio(requested.aspectRatio)
+          setFrameTemplateType(nextFrameTemplateType)
+          setupPatch.aspectRatio = requested.aspectRatio
+          setupPatch.frameTemplateType = nextFrameTemplateType
+          if (requiredSetup.has('output_frame')) {
+            setAspectRatioConfirmed(false)
+            setAspectRatioSource('user_selected')
+            setupPatch.aspectRatioConfirmed = false
+            setupPatch.aspectRatioSource = 'user_selected'
+          }
+        }
+        if (requested.cleanupPreference) {
+          setCleanupPreference(requested.cleanupPreference)
+          setupPatch.cleanupPreference = requested.cleanupPreference
+          if (requiredSetup.has('cleanup_preference')) {
+            setCleanupPreferenceConfirmed(false)
+            setupPatch.cleanupPreferenceConfirmed = false
+          }
+        }
+        if (requested.visualPreference) {
+          setVisualPreference(requested.visualPreference)
+          setupPatch.visualPreference = requested.visualPreference
+          if (requiredSetup.has('visual_direction')) {
+            setVisualPreferenceConfirmed(false)
+            setupPatch.visualPreferenceConfirmed = false
+          }
+        }
+        if (
+          requested.workflowType
+          && !requiredSetup.has('workflow_context')
+        ) {
+          setWorkflowType(requested.workflowType)
+          setupPatch.workflowType = requested.workflowType
+        }
+        if (requested.moodStyle && !requiredSetup.has('mood')) {
+          setMoodStyle(requested.moodStyle)
+          setupPatch.moodStyle = requested.moodStyle
+        }
+        if (
+          requested.creditPreference
+          && !requiredSetup.has('cost_posture')
+        ) {
+          setCreditPreference(requested.creditPreference)
+          setupPatch.creditPreference = requested.creditPreference
+        }
+        if (
+          requested.targetPlatform
+          && !requiredSetup.has('destination')
+        ) {
+          setTargetPlatform(requested.targetPlatform)
+          setupPatch.targetPlatform = requested.targetPlatform
+        }
+
+        const nextSourceSequenceMode = inferNextSourceSequenceMode(
+          clips,
+          nextCustomInstructions,
+        )
+        setSourceSequenceMode(nextSourceSequenceMode)
+        setupPatch.sourceSequenceMode = nextSourceSequenceMode
+        if (exchange.effect.draftPlanInvalidated) {
+          persistCurrentEditSetupAfterPlanInvalidation(setupPatch)
+        }
+      } catch {
+        setCanonicalChatError(
+          'The message was not saved. Retry when the private backend responds.',
+        )
+      } finally {
+        setCanonicalChatPendingMessage(null)
+        setCanonicalChatSending(false)
+      }
       return
     }
 
@@ -4835,7 +5225,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   }
 
   function handleSend() {
-    applyUserPlanningInstruction(composerValue)
+    void applyUserPlanningInstruction(composerValue)
   }
 
   const cleanChatMessages = useMemo(() => {
@@ -4889,6 +5279,51 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         { id: 'clean-message-source-ready' },
       ))
     }
+    if (canonicalChatLoading && !canonicalChatThread) {
+      messages.push(createAssistantSystemStatusMessage(
+        'Loading the saved conversation for this exact edit…',
+        {
+          id: 'clean-message-chat-loading',
+          status: 'loading',
+          ariaLive: 'polite',
+        },
+      ))
+    }
+    if (canonicalChatThread) {
+      const persistedExchanges = visibleCanonicalChatExchanges(
+        canonicalChatThread,
+      ).filter((exchange) =>
+        !(
+          canonicalChatPendingMessage
+          && exchange.effect.status === 'waiting_for_ai_response'
+          && exchange.userMessage.content === canonicalChatPendingMessage.content
+        ))
+      messages.push(
+        ...persistedExchanges.flatMap(canonicalChatExchangeMessages),
+      )
+    }
+    if (canonicalChatPendingMessage) {
+      messages.push(
+        createUserTextMessage(canonicalChatPendingMessage.content, {
+          id:
+            `source-led-chat-pending-user-${canonicalChatPendingMessage.clientMessageId}`,
+        }),
+        createAssistantSystemStatusMessage(
+          'Reading your direction and waiting for the verified private AI reply…',
+          {
+            id:
+              `source-led-chat-pending-assistant-${canonicalChatPendingMessage.clientMessageId}`,
+            status: 'loading',
+            ariaLive: 'polite',
+          },
+        ),
+      )
+    }
+    if (canonicalChatError) {
+      messages.push(createAssistantErrorMessage(canonicalChatError, {
+        id: 'clean-message-chat-error',
+      }))
+    }
     messages.push(...runtimeMessages)
 
     const stageCopy: Record<CleanEditorStage, string> = {
@@ -4896,10 +5331,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       frame: 'What final frame should this edit use?',
       cleanup: 'How tightly should I clean the source?',
       source_review: 'A meaning-sensitive source decision needs attention before planning can continue.',
-      edit_level: 'Choose how deep the planning and creative treatment should go.',
       visual_direction: 'Choose the visual restraint for this edit.',
-      reference: 'A reference is optional. Add one to study its style, or skip it.',
-      planning: 'The setup is ready. I can now prepare the source and build one reviewable plan.',
+      planning: canonicalChatRequiresVerifiedRetry
+        ? 'Your source setup is ready, but I still need a verified AI response to your direction before I can build the plan.'
+        : 'The setup is ready. I can now prepare the source and build one reviewable plan.',
       plan_review: 'Your edit plan and credit estimate are ready for review.',
       processing: 'The approved plan is being prepared as a private review.',
       private_review: canonicalPrivateReviewAccepted
@@ -4930,6 +5365,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     return messages
   }, [
     categoryLabel,
+    canonicalChatError,
+    canonicalChatLoading,
+    canonicalChatPendingMessage,
+    canonicalChatRequiresVerifiedRetry,
+    canonicalChatThread,
     canonicalJourney.loading,
     canonicalJourney.result,
     canonicalPrivateReviewAccepted,
@@ -4980,6 +5420,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             onRemoveClip={handleRemoveClip}
             onSetSourceSequenceMode={handleSetSourceSequenceMode}
             sourceSequenceMode={sourceSequenceMode}
+            totalSteps={canonicalPlanningBackendConnected ? 3 : 4}
           />
         )
       case 'frame':
@@ -4988,6 +5429,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             onConfirm={handleConfirmAspectRatio}
             onSelect={handleAspectRatioSelect}
             selected={aspectRatio}
+            totalSteps={canonicalPlanningBackendConnected ? 3 : 4}
           />
         )
       case 'cleanup': {
@@ -5001,6 +5443,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             options={sourceCleanupPlan?.cleanupQuestion.options ?? ['light_cleanup', 'balanced_cleanup', 'tight_retention_cleanup']}
             recommended={recommended}
             selected={selected}
+            totalSteps={canonicalPlanningBackendConnected ? 3 : 4}
           />
         )
       }
@@ -5020,31 +5463,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             </div>
           </section>
         )
-      case 'edit_level':
-        return (
-          <EditLevelSetup
-            onConfirm={handleConfirmEditLevel}
-            onSelect={handleEditLevelSelect}
-            selected={editLevel}
-          />
-        )
       case 'visual_direction':
         return (
           <VisualSetup
             onConfirm={handleConfirmVisualPreference}
             onSelect={handleVisualPreferenceSelect}
             selected={visualPreference}
-          />
-        )
-      case 'reference':
-        return (
-          <ReferenceSetup
-            onAttach={handleReferenceAttach}
-            onChangeUrl={handleReferenceUrlChange}
-            onSkip={handleReferenceSkip}
-            onToggleFocus={handleToggleReferenceFocus}
-            selectedFocus={referenceFocusSelections}
-            url={referenceUrl}
           />
         )
       case 'planning':
@@ -5056,6 +5480,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             approvalAuthorityBlockedLabel={canonicalApprovalBlockedLabel}
             approvalAuthorityReady={canonicalApprovalAuthorityReady}
             approvalChecking={approvalChecking}
+            canonicalEvidence={canonicalPlanReviewEvidence}
             onApprove={handleApprove}
             onAskQuestion={handleAskPlanQuestion}
             onLowerCost={handleLowerCost}
@@ -5079,7 +5504,13 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                 <p>ReeditPro is following the exact approved snapshot. Public sharing remains off.</p>
               </div>
             </header>
-            <AIEditingProgressStage activeIndex={progressIndex} complete={previewReady} executionRehearsal={executionRehearsal} />
+            {canonicalPlanningBackendConnected ? (
+              <p className="inline-helper">
+                Live backend progress, blockers, retry state, and the private review appear in Saved workflow above.
+              </p>
+            ) : (
+              <AIEditingProgressStage activeIndex={progressIndex} complete={previewReady} executionRehearsal={executionRehearsal} />
+            )}
             {privateInternalTestRunError ? (
               <p className="clean-edit-inline-warning" role="alert">{hideInternalToolNamesInCopy(privateInternalTestRunError)}</p>
             ) : null}
@@ -5321,15 +5752,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       }))
     }
 
-    if (sourceOrderConfirmed && aspectRatioConfirmed && cleanupReady && trimReviewReady && !editLevelConfirmed) {
-      messages.push(createAssistantQuestionMessage('How deep should this edit be?', {
-        id: 'message-edit-level-question',
-        status: editLevelConfirmed ? 'success' : 'pending',
-        cards: [{ id: 'card-edit-level', type: 'edit_level', priority: 'required', requiredBeforeApproval: true }],
-      }))
-    }
-
-    if (sourceOrderConfirmed && aspectRatioConfirmed && editLevelConfirmed && !visualPreferenceConfirmed) {
+    if (sourceOrderConfirmed && aspectRatioConfirmed && !visualPreferenceConfirmed) {
       messages.push(createAssistantQuestionMessage('How visual should this edit feel?', {
         id: 'message-visual-preference-question',
         status: visualPreferenceConfirmed ? 'success' : 'pending',
@@ -5354,21 +5777,21 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       }))
     }
 
-    if (contextAwarePlanResult && showCard('video_understanding')) {
+    if (!canonicalPlanningBackendConnected && contextAwarePlanResult && showCard('video_understanding')) {
       messages.push(createAssistantTextMessage("I'll read the source first so the edit fits the footage.", {
         id: 'message-video-understanding',
         cards: [{ id: 'card-video-understanding', type: 'video_understanding', priority: 'summary' }],
       }))
     }
 
-    if (contextAwarePlanResult && showCard('adaptive_edit_strategy')) {
+    if (!canonicalPlanningBackendConnected && contextAwarePlanResult && showCard('adaptive_edit_strategy')) {
       messages.push(createAssistantTextMessage("I'll choose the right treatment for each segment, not one template for everything.", {
         id: 'message-adaptive-strategy',
         cards: [{ id: 'card-adaptive-strategy', type: 'adaptive_strategy', priority: 'summary' }],
       }))
     }
 
-    if (contextAwarePlanResult && showCard('master_timing')) {
+    if (!canonicalPlanningBackendConnected && contextAwarePlanResult && showCard('master_timing')) {
       messages.push(createAssistantTextMessage("I'll map timing before approval so captions, visuals, and sound land cleanly.", {
         id: 'message-master-timing',
         status: plan.masterTimingPlan?.status === 'needs_frame_confirmation' ? 'warning' : 'success',
@@ -5376,7 +5799,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       }))
     }
 
-    if (contextAwarePlanResult && showCard('caption_visual_cue_timing')) {
+    if (!canonicalPlanningBackendConnected && contextAwarePlanResult && showCard('caption_visual_cue_timing')) {
       messages.push(createAssistantTextMessage("I'll keep captions and visual cues timed to meaning.", {
         id: 'message-caption-visual-timing',
         status: plan.captionVisualCueTimingPlan?.status === 'blocked' ? 'warning' : 'success',
@@ -5384,7 +5807,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       }))
     }
 
-    if (contextAwarePlanResult && showCard('soundsync_transition_timing')) {
+    if (!canonicalPlanningBackendConnected && contextAwarePlanResult && showCard('soundsync_transition_timing')) {
       messages.push(createAssistantTextMessage("I'll keep transitions, SFX, and ducking speech-first, with beat sync used only when it helps the edit.", {
         id: 'message-soundsync-timing',
         status: plan.soundSyncTransitionTimingPlan?.status === 'blocked' ? 'warning' : 'success',
@@ -5392,7 +5815,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       }))
     }
 
-    if (contextAwarePlanResult && showCard('timing_validation')) {
+    if (!canonicalPlanningBackendConnected && contextAwarePlanResult && showCard('timing_validation')) {
       messages.push(createAssistantTextMessage("I'll validate timing before approval so the plan is safe to run.", {
         id: 'message-timing-validation',
         status: plan.timingValidationPlan?.approvalBlocked ? 'warning' : 'success',
@@ -5400,7 +5823,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       }))
     }
 
-    if (setupReady && plan.compiledIntent) {
+    if (!canonicalPlanningBackendConnected && setupReady && plan.compiledIntent) {
       messages.push(createAssistantTextMessage("Here's the intent I'll use for the plan.", {
         id: 'message-compiled-intent',
         status: intentApproved ? 'approved' : 'pending',
@@ -5414,16 +5837,20 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         status: approved ? 'approved' : approvalChecking ? 'loading' : 'pending',
         cards: [
           { id: 'card-plan-review-approval', type: 'plan_review_approval', priority: 'required', requiredBeforeApproval: true },
-          ...(shouldShowAdvancedPlanningDetails ? [{ id: 'card-advanced-details', type: 'advanced_details' as const, priority: 'advanced' as const }] : []),
-          { id: 'card-sfx-plan-entry', type: 'sfx_plan', priority: 'advanced' },
-          { id: 'card-music-plan-entry', type: 'music_plan', priority: 'advanced' },
+          ...(!canonicalPlanningBackendConnected
+            ? [
+                ...(shouldShowAdvancedPlanningDetails ? [{ id: 'card-advanced-details', type: 'advanced_details' as const, priority: 'advanced' as const }] : []),
+                { id: 'card-sfx-plan-entry', type: 'sfx_plan' as const, priority: 'advanced' as const },
+                { id: 'card-music-plan-entry', type: 'music_plan' as const, priority: 'advanced' as const },
+              ]
+            : []),
         ],
       }))
     }
 
     messages.push(...runtimeMessages)
 
-    if (approved) {
+    if (approved && !canonicalPlanningBackendConnected) {
       messages.push(createProgressUpdateMessage("Plan approved. I'm preparing the review edit.", {
         id: 'message-approved-progress',
         status: previewReady ? 'success' : 'generating',
@@ -5443,11 +5870,13 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       ))
     }
 
-    messages.push(createAssistantSystemStatusMessage('Advanced details stay tucked away.', {
-      id: 'message-timeline-link',
-      cards: [{ id: 'card-timeline-link', type: 'timeline_link', priority: 'advanced' }],
-      actions: [{ id: 'open_timeline', label: 'Show detailed timeline only if I ask', variant: 'ghost' }],
-    }))
+    if (!canonicalPlanningBackendConnected) {
+      messages.push(createAssistantSystemStatusMessage('Advanced details stay tucked away.', {
+        id: 'message-timeline-link',
+        cards: [{ id: 'card-timeline-link', type: 'timeline_link', priority: 'advanced' }],
+        actions: [{ id: 'open_timeline', label: 'Show detailed timeline only if I ask', variant: 'ghost' }],
+      }))
+    }
 
     return messages
   }, [
@@ -5459,9 +5888,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     cleanupReady,
     clips.length,
     clipsAttached,
+    canonicalPlanningBackendConnected,
     contextAwarePlanResult,
     contextMockPreview,
-    editLevelConfirmed,
     editChatLockedUntilUpload,
     editWorkspaceStage,
     effectivePreviewReady,
@@ -5593,17 +6022,6 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         )
       case 'message-trim-review':
         return <InlineTrimReviewCard descriptor={cardById.trim_review} plan={plan} />
-      case 'message-edit-level-question':
-        return (
-          <Suspense fallback={<AdvancedCardFallback label="Loading edit levels..." />}>
-            <InlineEditLevelCard
-              confirmed={editLevelConfirmed}
-              onConfirm={handleConfirmEditLevel}
-              onSelect={handleEditLevelSelect}
-              selectedLevel={editLevel}
-            />
-          </Suspense>
-        )
       case 'message-visual-preference-question':
         return (
           <InlineVisualPreferenceCard
@@ -5618,8 +6036,6 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
           <>
             <InlinePlanningContextCard
               aspectRatio={aspectRatio}
-              editLevel={editLevel}
-              editLevelConfirmed={editLevelConfirmed}
               editingCategory={editingCategory}
               aspectRatioConfirmed={aspectRatioConfirmed}
               frameTemplateType={frameTemplateType}
@@ -5674,6 +6090,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
               approvalAuthorityBlockedLabel={canonicalApprovalBlockedLabel}
               approvalAuthorityReady={canonicalApprovalAuthorityReady}
               approvalChecking={approvalChecking}
+              canonicalEvidence={canonicalPlanReviewEvidence}
               onApprove={handleApprove}
               onAskQuestion={handleAskPlanQuestion}
               onLowerCost={handleLowerCost}
@@ -5697,27 +6114,31 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                 />
               </Suspense>
             )}
-            <div className="sfx-plan-entry-card">
-              <div>
-                <span className="section-eyebrow">Sound effects</span>
-                <strong>Plan sound effects inside chat</strong>
-                <p>Plan subtle effects for transitions, graphics, motion, and story beats.</p>
-                <small>Source-action sound stays restrained unless the plan needs it.</small>
-              </div>
-              <Button onClick={() => setShowSFXPlan(true)} variant={showSFXPlan ? 'secondary' : 'primary'}>
-                {showSFXPlan ? 'Sound effects opened' : 'Plan sound effects'}
-              </Button>
-            </div>
-            <div className="music-plan-entry-card">
-              <div>
-                <span className="section-eyebrow">Music</span>
-                <strong>Plan music inside chat</strong>
-                <p>Shape cue timing, mood, credits, and voice-safe mix choices.</p>
-              </div>
-              <Button onClick={() => setShowMusicPlan(true)} variant={showMusicPlan ? 'secondary' : 'primary'}>
-                {showMusicPlan ? 'Music plan opened' : 'Plan music'}
-              </Button>
-            </div>
+            {!canonicalPlanningBackendConnected ? (
+              <>
+                <div className="sfx-plan-entry-card">
+                  <div>
+                    <span className="section-eyebrow">Sound effects</span>
+                    <strong>Plan sound effects inside chat</strong>
+                    <p>Plan subtle effects for transitions, graphics, motion, and story beats.</p>
+                    <small>Source-action sound stays restrained unless the plan needs it.</small>
+                  </div>
+                  <Button onClick={() => setShowSFXPlan(true)} variant={showSFXPlan ? 'secondary' : 'primary'}>
+                    {showSFXPlan ? 'Sound effects opened' : 'Plan sound effects'}
+                  </Button>
+                </div>
+                <div className="music-plan-entry-card">
+                  <div>
+                    <span className="section-eyebrow">Music</span>
+                    <strong>Plan music inside chat</strong>
+                    <p>Shape cue timing, mood, credits, and voice-safe mix choices.</p>
+                  </div>
+                  <Button onClick={() => setShowMusicPlan(true)} variant={showMusicPlan ? 'secondary' : 'primary'}>
+                    {showMusicPlan ? 'Music plan opened' : 'Plan music'}
+                  </Button>
+                </div>
+              </>
+            ) : null}
           </>
         )
       case 'message-approved-progress':
@@ -6114,11 +6535,15 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     <section className="chat-native-editor" data-testid="editor-page">
       <MinimalProjectHeader
         activeWorkspaceView={activeWorkspaceView}
-        currentEditPreferenceOverrideCount={currentEditPreferenceOverrideKeys.length}
+        currentEditPreferenceOverrideCount={
+          currentEditPreferenceOverrideKeys.filter(
+            (key) => key !== 'editLevel',
+          ).length
+        }
         editBriefAvailable={isProjectWorkspace}
         editBriefStatus={editBriefGate.status}
         editPreferencesAvailable={isProjectWorkspace}
-        estimateReady={Boolean(contextAwarePlanResult) || canonicalEstimateReady}
+        estimateReady={visibleEstimateReady}
         onOpenChat={handleOpenChatWorkspace}
         onOpenEditBrief={handleOpenEditBriefFromHeader}
         onOpenEditPreferences={handleOpenCurrentEditPreferences}
@@ -6268,13 +6693,13 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             <ChatThread>
               <ChatMessageList messages={chatMessages} renderCards={renderCardsForMessage} />
 
-              {setupReady && showSFXPlan && (
+              {!canonicalPlanningBackendConnected && setupReady && showSFXPlan && (
                 <Suspense fallback={<AdvancedCardFallback label="Loading sound effects plan..." />}>
                   <SFXPlanChatFlow />
                 </Suspense>
               )}
 
-              {setupReady && showMusicPlan && (
+              {!canonicalPlanningBackendConnected && setupReady && showMusicPlan && (
                 <Suspense fallback={<AdvancedCardFallback label="Loading music plan..." />}>
                   <MusicPlanChatFlow />
                 </Suspense>
@@ -6289,20 +6714,32 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             <div aria-hidden="true" className="chat-composer-occlusion" data-testid="chat-composer-occlusion" />
             <div className="chat-composer-layer chat-composer-float-wrap" data-testid="chat-composer-layer">
               <ChatComposer
-                attachmentsDisabled={sourceUploadPlanning || editChatLockedUntilUpload || composerHardBlocked}
+                attachmentsDisabled={sourceUploadPlanning || editChatLockedUntilUpload || composerHardBlocked || canonicalChatSending}
                 clipsAttached={clipsAttached}
-                disabled={sourceUploadPlanning || editChatLockedUntilUpload || composerHardBlocked}
+                disabled={sourceUploadPlanning || editChatLockedUntilUpload || composerHardBlocked || canonicalChatLoading || canonicalChatSending}
                 inputValue={composerValue}
                 onAttachClips={handleAddMockClip}
                 onAttachFiles={handleAttachSourceFiles}
                 onInputChange={setComposerValue}
                 onReference={handleReferenceAttach}
                 onSend={handleSend}
+                showReference={!isProjectWorkspace}
                 placeholder={editChatLockedUntilUpload
                   ? 'Upload source video to unlock chat...'
+                  : canonicalChatLoading
+                    ? 'Loading saved Chat…'
+                    : canonicalChatSending
+                      ? 'Waiting for a verified AI reply…'
                   : composerHardBlocked
                     ? 'Resolve the blocker before continuing...'
                     : 'Message ReeditPro...'}
+                sendLabel={
+                  canonicalChatSending
+                    ? 'Waiting for AI reply'
+                    : canonicalChatRequiresVerifiedRetry
+                      ? 'Retry AI reply'
+                      : 'Send'
+                }
               />
             </div>
           </>
@@ -6312,7 +6749,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
           <EditWorkspaceRail
             aspectRatio={aspectRatio}
             editName={editorEditName}
-            estimateReady={Boolean(contextAwarePlanResult) || canonicalEstimateReady}
+            estimateReady={visibleEstimateReady}
             projectName={editorProjectName}
             sourceCount={Math.max(clips.length, localProjectHandoff?.sourceFileCount ?? 0)}
             stage={editWorkspaceStage}

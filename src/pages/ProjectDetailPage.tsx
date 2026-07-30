@@ -23,7 +23,6 @@ import { Button, IconButton } from '../components/Button'
 import { ProjectResourceState } from '../components/ProjectResourceState'
 import {
   createEditSetupSnapshotFromPreferences,
-  summarizeLocalEditPreferences,
 } from '../lib/edit-preferences'
 import {
   createEditPreferenceRepository,
@@ -157,7 +156,6 @@ function ProjectDetailContent({ projectId }: ProjectDetailContentProps) {
   const [preferenceResult, setPreferenceResult] = useState(initialPreferenceResult)
   const [preferenceLoadPending, setPreferenceLoadPending] = useState(preferenceRepository.requiresAsyncLoad)
   const preferenceDefaults = preferenceResult.preferences
-  const preferenceSummary = useMemo(() => summarizeLocalEditPreferences(preferenceDefaults), [preferenceDefaults])
   const normalEdits = useMemo(() => edits.filter(isNormalVideoEditHandoff), [edits])
   const storytellingItems = useMemo(() => createStorytellingLibraryItems(edits), [edits])
   const [modalOpen, setModalOpen] = useState(false)
@@ -382,7 +380,7 @@ function ProjectDetailContent({ projectId }: ProjectDetailContentProps) {
           <span aria-hidden="true"><SlidersHorizontal size={18} /></span>
           <div>
             <strong>{preferenceResult.persisted ? 'Saved edit preferences ready' : 'Safe edit defaults ready'}</strong>
-            <p>New edits begin with {preferenceSummary}.</p>
+            <p>Internal tests use the fullest genuinely ready workflow. You can still refine the exact edit direction inside Edit Chat.</p>
           </div>
         </section>
 

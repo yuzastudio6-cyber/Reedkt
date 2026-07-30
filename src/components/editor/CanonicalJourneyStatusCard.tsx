@@ -14,6 +14,7 @@ import { Badge } from '../Badge'
 import { Button, IconButton } from '../Button'
 import {
   createCanonicalEditJourneyPresentation,
+  type CanonicalEditJourneyProgress,
   type CanonicalEditJourneyTone,
 } from '../../lib/canonical-edit-journey'
 import type { CanonicalEditJourneyHookResult } from '../../hooks/useCanonicalEditJourney'
@@ -149,6 +150,11 @@ export function CanonicalJourneyStatusCard({
     ? privateEditPreparation?.result ?? null
     : null
   const preparing = preparationIsCurrent && Boolean(privateEditPreparation?.preparing)
+  const preparationProgress = result.journey.progress
+  const preparationHasSavedProgress = Boolean(
+    preparationProgress?.state === 'advancing' ||
+    preparationResult?.status === 'in_progress',
+  )
   const canPreparePrivateEdit = Boolean(
     (
       result.journey.stage === 'execution_in_progress' ||
@@ -282,9 +288,19 @@ export function CanonicalJourneyStatusCard({
           <div
             aria-live="polite"
             className="canonical-journey-package-action"
-            data-status={preparing ? 'preparing' : preparationResult?.status ?? 'ready'}
+            data-status={
+              refreshing || preparationHasSavedProgress
+                ? 'preparing'
+                : preparationProgress?.state === 'blocked'
+                  ? 'blocked'
+                  : preparationResult?.status ?? 'ready'
+            }
             data-testid={`canonical-private-edit-preparation-${
-              preparing ? 'preparing' : preparationResult?.status ?? 'ready'
+              refreshing || preparationHasSavedProgress
+                ? 'preparing'
+                : preparationProgress?.state === 'blocked'
+                  ? 'blocked'
+                  : preparationResult?.status ?? 'ready'
             }`}
             role={
               preparationResult &&
@@ -296,19 +312,25 @@ export function CanonicalJourneyStatusCard({
             <div className="canonical-journey-package-action-copy">
               <Film aria-hidden="true" size={16} />
               <div>
-                <strong>{preparationActionTitle(preparing, preparationResult)}</strong>
+                <strong>{preparationActionTitle(
+                  preparing,
+                  preparationResult,
+                  preparationProgress,
+                )}</strong>
                 <p>{preparationActionMessage(
                   preparing,
                   preparationResult,
+                  preparationProgress,
                   result.journey.stage === 'private_review_assembly_required',
                 )}</p>
               </div>
             </div>
             <Button
-              aria-busy={preparing}
+              aria-busy={preparing || refreshing}
               data-testid="canonical-private-edit-preparation-submit"
               disabled={
                 preparing ||
+                refreshing ||
                 preparationResult?.status === 'ready' ||
                 Boolean(preparationResult && !preparationResult.retryable)
               }
@@ -319,6 +341,7 @@ export function CanonicalJourneyStatusCard({
               {preparationActionButtonLabel(
                 preparing,
                 preparationResult,
+                preparationProgress,
                 result.journey.stage === 'private_review_assembly_required',
               )}
             </Button>
@@ -531,8 +554,11 @@ function finalDownloadMessage(
 function preparationActionTitle(
   preparing: boolean,
   result: CanonicalPrivateEditPreparationHookResult['result'],
+  progress: CanonicalEditJourneyProgress | undefined,
 ): string {
   if (preparing) return 'Preparing the private review'
+  if (progress?.state === 'blocked') return 'Approved work is blocked'
+  if (progress?.state === 'advancing') return 'Private edit has saved progress'
   if (result?.status === 'ready') return 'Private review ready'
   if (result?.status === 'in_progress') return 'Private edit is running'
   if (result?.status === 'blocked') return 'Private preparation is paused'
@@ -543,10 +569,17 @@ function preparationActionTitle(
 function preparationActionMessage(
   preparing: boolean,
   result: CanonicalPrivateEditPreparationHookResult['result'],
+  progress: CanonicalEditJourneyProgress | undefined,
   assembling: boolean,
 ): string {
   if (preparing) {
     return 'Running only the approved private steps from the exact approved plan. Saved progress can be recovered if you leave and return.'
+  }
+  if (progress?.state === 'advancing') {
+    return `${progress.completedJobCount} of ${progress.totalJobCount} approved steps are complete. Checking resumes the exact saved package only when needed; server idempotency prevents a duplicate edit.`
+  }
+  if (progress?.state === 'blocked') {
+    return `${progress.completedJobCount} of ${progress.totalJobCount} approved steps completed. ${progress.blockedJobCount} required steps are blocked; a retry uses only the remaining approved attempt allowance.`
   }
   if (result) return result.message
   if (assembling) {
@@ -558,11 +591,14 @@ function preparationActionMessage(
 function preparationActionButtonLabel(
   preparing: boolean,
   result: CanonicalPrivateEditPreparationHookResult['result'],
+  progress: CanonicalEditJourneyProgress | undefined,
   assembling: boolean,
 ): string {
   if (preparing) return 'Preparing review…'
+  if (progress?.state === 'advancing') return 'Check / resume progress'
+  if (progress?.state === 'blocked') return 'Retry approved work'
   if (result?.status === 'ready') return 'Review ready'
-  if (result?.status === 'in_progress') return 'Check progress'
+  if (result?.status === 'in_progress') return 'Refresh progress'
   if (result?.retryable) return 'Try again'
   if (result) return 'Refresh required'
   return assembling ? 'Assemble private review' : 'Start private edit'

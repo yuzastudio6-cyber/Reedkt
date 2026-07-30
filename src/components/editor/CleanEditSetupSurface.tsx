@@ -14,6 +14,7 @@ import { Button, IconButton } from '../Button'
 
 type SetupSurfaceProps = {
   step: number
+  totalSteps?: number
   title: string
   description: string
   children: ReactNode
@@ -21,12 +22,20 @@ type SetupSurfaceProps = {
   testId: string
 }
 
-export function SetupSurface({ aside, children, description, step, testId, title }: SetupSurfaceProps) {
+export function SetupSurface({
+  aside,
+  children,
+  description,
+  step,
+  testId,
+  title,
+  totalSteps = 4,
+}: SetupSurfaceProps) {
   return (
     <section className="clean-edit-step" data-testid={testId}>
       <header className="clean-edit-step-header">
         <div>
-          <span className="clean-edit-step-count">Setup {step} of 5</span>
+          <span className="clean-edit-step-count">Setup {step} of {totalSteps}</span>
           <h2>{title}</h2>
           <p>{description}</p>
         </div>
@@ -46,6 +55,7 @@ type SourceSetupProps = {
   onRemoveClip: (id: string) => void
   onSetSourceSequenceMode: (mode: SourceSequenceMode) => void
   sourceSequenceMode: SourceSequenceMode
+  totalSteps?: number
 }
 
 export function SourceSetup({
@@ -57,6 +67,7 @@ export function SourceSetup({
   onRemoveClip,
   onSetSourceSequenceMode,
   sourceSequenceMode,
+  totalSteps,
 }: SourceSetupProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
 
@@ -81,6 +92,7 @@ export function SourceSetup({
       step={1}
       testId="source-summary"
       title={clips.length === 1 ? 'Use this source video' : 'Confirm source order'}
+      totalSteps={totalSteps}
     >
       <div className="clean-source-list">
         {clips.map((clip, index) => (
@@ -143,9 +155,15 @@ type FrameSetupProps = {
   onConfirm: () => void
   onSelect: (ratio: AspectRatio) => void
   selected: AspectRatio
+  totalSteps?: number
 }
 
-export function FrameSetup({ onConfirm, onSelect, selected }: FrameSetupProps) {
+export function FrameSetup({
+  onConfirm,
+  onSelect,
+  selected,
+  totalSteps,
+}: FrameSetupProps) {
   const concreteSelection = selected === 'let_ai_decide' ? undefined : selected
 
   return (
@@ -154,6 +172,7 @@ export function FrameSetup({ onConfirm, onSelect, selected }: FrameSetupProps) {
       step={2}
       testId="output-frame-control"
       title="Choose the output frame"
+      totalSteps={totalSteps}
     >
       <div aria-label="Output frame" className="clean-choice-grid clean-choice-grid-frame" role="radiogroup">
         {aspectRatioOptions.map((option) => (
@@ -195,15 +214,24 @@ type CleanupSetupProps = {
   options: CleanupPreference[]
   recommended?: CleanupPreference
   selected?: CleanupPreference
+  totalSteps?: number
 }
 
-export function CleanupSetup({ onConfirm, onSelect, options, recommended, selected }: CleanupSetupProps) {
+export function CleanupSetup({
+  onConfirm,
+  onSelect,
+  options,
+  recommended,
+  selected,
+  totalSteps,
+}: CleanupSetupProps) {
   return (
     <SetupSurface
       description="Choose how tightly ReeditPro should clean the source. Meaning and required context always outrank pace."
       step={3}
       testId="cleanup-control"
       title="Set the cleanup level"
+      totalSteps={totalSteps}
     >
       <div aria-label="Cleanup level" className="clean-choice-grid" role="radiogroup">
         {options.map((option) => {
@@ -243,6 +271,10 @@ type EditLevelSetupProps = {
   selected: EditLevel
 }
 
+/**
+ * Motion Studio still imports this shared setup surface. The main ReeditPro
+ * internal-testing journey no longer renders it.
+ */
 export function EditLevelSetup({ onConfirm, onSelect, selected }: EditLevelSetupProps) {
   return (
     <SetupSurface
@@ -267,7 +299,9 @@ export function EditLevelSetup({ onConfirm, onSelect, selected }: EditLevelSetup
         ))}
       </div>
       <div className="clean-edit-step-actions">
-        <Button onClick={onConfirm} variant="primary">Use {editLevelOptions.find((option) => option.id === selected)?.label}</Button>
+        <Button onClick={onConfirm} variant="primary">
+          Use {editLevelOptions.find((option) => option.id === selected)?.label}
+        </Button>
       </div>
     </SetupSurface>
   )
@@ -279,7 +313,7 @@ const visualOptions: Array<{ id: VisualPreference; label: string; description: s
   { id: 'balanced_visual_mix', label: 'Balanced', description: 'Mix clean source editing with useful visual explanation.' },
   { id: 'more_stroke_motion', label: 'More story animation', description: 'Use animated explanation when it clarifies meaning.' },
   { id: 'more_graphic_design', label: 'More visual design', description: 'Use cards, diagrams, labels, and designed evidence.' },
-  { id: 'real_motion_if_useful', label: 'Premium motion if useful', description: 'Allow premium motion only where the plan justifies it.' },
+  { id: 'real_motion_if_useful', label: 'Advanced motion if useful', description: 'Allow heavier motion only where the plan and proven runtime justify it.' },
   { id: 'no_extra_visuals', label: 'Source only', description: 'Avoid added visual systems unless required for clarity.' },
 ]
 
@@ -293,7 +327,7 @@ export function VisualSetup({ onConfirm, onSelect, selected }: VisualSetupProps)
   return (
     <SetupSurface
       description="Set the visual restraint. The plan will still choose treatments segment by segment instead of applying one template."
-      step={5}
+      step={4}
       testId="visual-direction-control"
       title="Choose the visual direction"
     >

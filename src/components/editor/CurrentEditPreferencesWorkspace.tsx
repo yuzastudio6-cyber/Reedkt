@@ -3,7 +3,6 @@ import { type FormEvent, type KeyboardEvent, type ReactNode, useEffect, useMemo,
 import {
   cleanupPreferenceOptions,
   creditPreferenceOptions,
-  editLevelPreferenceOptions,
   moodPreferenceOptions,
   targetPlatformPreferenceOptions,
   visualPreferenceOptions,
@@ -116,6 +115,7 @@ export function CurrentEditPreferencesWorkspace({
   const [draft, setDraft] = useState(current)
   const [approvedReferences, setApprovedReferences] = useState<ApprovedEditReferenceOption[]>([])
   const [referenceResource, setReferenceResource] = useState<CurrentEditReferenceSupplementResource>({ state: 'loading' })
+  const [referenceSectionHidden, setReferenceSectionHidden] = useState(false)
   const [referenceRefresh, setReferenceRefresh] = useState(0)
   const [originalReference, setOriginalReference] = useState<CurrentEditReferenceOriginalDecision>({ kind: 'none' })
   const [connectedReferenceApplication, setConnectedReferenceApplication] = useState<EditReferenceProductionPreparedApplicationAuthority>()
@@ -132,11 +132,13 @@ export function CurrentEditPreferencesWorkspace({
     [baseline, current, draft],
   )
   const overrideKeys = useMemo(
-    () => getCurrentEditPreferenceOverrideKeys(current, baseline),
+    () => getCurrentEditPreferenceOverrideKeys(current, baseline)
+      .filter((key) => key !== 'editLevel'),
     [baseline, current],
   )
   const draftOverrideKeys = useMemo(
-    () => getCurrentEditPreferenceOverrideKeys(draft, baseline),
+    () => getCurrentEditPreferenceOverrideKeys(draft, baseline)
+      .filter((key) => key !== 'editLevel'),
     [baseline, draft],
   )
   const originalReferenceId = originalReference.kind === 'connected' ? originalReference.referenceId : undefined
@@ -192,9 +194,9 @@ export function CurrentEditPreferencesWorkspace({
     targetStudy,
   ])
   const referenceDirty = referenceResolution.dirtyContribution
-  const referenceContextDraftChanged = change.changedFields.some((field) => (
-    field === 'editLevel' || field === 'targetPlatform'
-  ))
+  const referenceContextDraftChanged = change.changedFields.includes(
+    'targetPlatform',
+  )
   const referenceContextRequiresRefresh = referenceContextDraftChanged
     && referenceResolution.operation !== 'remove'
     && Boolean(selectedReferenceId || originalReference.kind === 'connected')
@@ -249,6 +251,7 @@ export function CurrentEditPreferencesWorkspace({
         if (!active) return
         setApprovedReferences([])
         setConnectedReferenceApplication(undefined)
+        setReferenceSectionHidden(true)
         setReferenceResource({ state: 'unavailable' })
       }, 0)
       return () => {
@@ -271,9 +274,14 @@ export function CurrentEditPreferencesWorkspace({
         if (!result.ok) {
           setApprovedReferences([])
           setConnectedReferenceApplication(undefined)
+          setReferenceSectionHidden(
+            result.code === 'EDIT_REFERENCE_PERSISTENCE_BLOCKED'
+            || result.code === 'EDIT_REFERENCE_BACKEND_UNAVAILABLE',
+          )
           setReferenceResource({ state: 'needs_retry' })
           return
         }
+        setReferenceSectionHidden(false)
         setApprovedReferences(result.options)
         if (!exactAuthorityResult.ok) {
           setConnectedReferenceApplication(undefined)
@@ -318,6 +326,7 @@ export function CurrentEditPreferencesWorkspace({
         if (!active) return
         setApprovedReferences([])
         setConnectedReferenceApplication(undefined)
+        setReferenceSectionHidden(false)
         setReferenceResource({ state: 'needs_retry' })
       })
 
@@ -461,9 +470,9 @@ export function CurrentEditPreferencesWorkspace({
     >
       <header className="current-edit-preferences-heading">
         <div>
-          <span className="section-eyebrow">Editing style</span>
-          <h2>Edit Preference for this video</h2>
-          <p>Choose one approved preference. ReEditPro studies this video before adapting the guidance.</p>
+          <span className="section-eyebrow">Current edit</span>
+          <h2>Edit Preferences for this video</h2>
+          <p>Set how ReeditPro should clean, style, and plan this edit. Only Apply writes a change.</p>
         </div>
         <div className="current-edit-preferences-summary" aria-label="Current Edit Preferences source">
           <span className={`current-edit-preferences-scope ${overrideKeys.length > 0 ? 'is-changed' : ''}`.trim()}>
@@ -490,41 +499,47 @@ export function CurrentEditPreferencesWorkspace({
         </section>
       ) : null}
 
-      <fieldset
-        className="current-edit-preferences-pending-boundary"
-        disabled={pendingApplyRecovery}
-      >
-        <legend className="sr-only">Edit Reference selection</legend>
-        <CurrentEditReferenceStudySupplement
-          application={referenceApplicationResource}
-          locked={locked}
-          onRetryResource={() => {
-            setReferenceResource({ state: 'loading' })
-            setReferenceRefresh((value) => value + 1)
-          }}
-          onReturnToChat={onReturnToChat}
-          onSelectionChange={(editReferenceId) => {
-            referenceSelectionTouchedRef.current = true
-            setApplyState({ status: 'idle' })
-            setTargetStudy(undefined)
-            setSelectedReferenceId(editReferenceId)
-          }}
-          onUseOriginal={() => {
-            referenceSelectionTouchedRef.current = true
-            setApplyState({ status: 'idle' })
-            setTargetStudy(undefined)
-            setSelectedReferenceId(originalReferenceId)
-          }}
-          onPackageChange={setTargetStudy}
-          options={referenceOptions}
-          originalReferenceId={originalReferenceId}
-          resource={effectiveReferenceResource}
-          selectedReferenceId={selectedReferenceId}
-          targetAuthority={targetAuthority}
-        />
-      </fieldset>
+      {!referenceSectionHidden ? (
+        <fieldset
+          className="current-edit-preferences-pending-boundary"
+          disabled={pendingApplyRecovery}
+        >
+          <legend className="sr-only">Edit Reference selection</legend>
+          <CurrentEditReferenceStudySupplement
+            application={referenceApplicationResource}
+            locked={locked}
+            onRetryResource={() => {
+              setReferenceResource({ state: 'loading' })
+              setReferenceRefresh((value) => value + 1)
+            }}
+            onReturnToChat={onReturnToChat}
+            onSelectionChange={(editReferenceId) => {
+              referenceSelectionTouchedRef.current = true
+              setApplyState({ status: 'idle' })
+              setTargetStudy(undefined)
+              setSelectedReferenceId(editReferenceId)
+            }}
+            onUseOriginal={() => {
+              referenceSelectionTouchedRef.current = true
+              setApplyState({ status: 'idle' })
+              setTargetStudy(undefined)
+              setSelectedReferenceId(originalReferenceId)
+            }}
+            onPackageChange={setTargetStudy}
+            options={referenceOptions}
+            originalReferenceId={originalReferenceId}
+            resource={effectiveReferenceResource}
+            selectedReferenceId={selectedReferenceId}
+            targetAuthority={targetAuthority}
+          />
+        </fieldset>
+      ) : null}
 
-      <details className="current-edit-preferences-advanced" data-testid="current-edit-preferences-advanced">
+      <details
+        className="current-edit-preferences-advanced"
+        data-testid="current-edit-preferences-advanced"
+        open={referenceSectionHidden}
+      >
         <summary>
           <span>
             <strong>Fine-tune this edit</strong>
@@ -533,17 +548,7 @@ export function CurrentEditPreferencesWorkspace({
           <ChevronDown aria-hidden="true" size={18} />
         </summary>
         <div className="current-edit-preferences-advanced__content">
-          <PreferenceGroup description="Set the planning depth, workflow context, and cleanup behavior." title="Editing approach">
-            <CurrentPreferenceSelect
-              baseline={baseline}
-              disabled={editingDisabled}
-              field="editLevel"
-              onChange={updatePreference}
-              onReset={resetField}
-              options={editLevelPreferenceOptions}
-              testId={fieldTestIds.editLevel}
-              value={draft.editLevel}
-            />
+          <PreferenceGroup description="Set the workflow context and cleanup behavior." title="Editing approach">
             <CurrentPreferenceSelect
               baseline={baseline}
               disabled={editingDisabled}
@@ -639,7 +644,7 @@ export function CurrentEditPreferencesWorkspace({
           {!canJoinPageApply && (referenceDirty || referenceContextRequiresRefresh) ? (
             <p data-testid="current-edit-reference-apply-blocker">
               {referenceContextRequiresRefresh
-                ? 'Edit level and destination change the target-study context. Remove the connected preference first, apply the context change, reconfirm the output frame when required, then study and reconnect the preference.'
+                ? 'The destination changes the target-study context. Remove the connected preference first, apply the destination change, reconfirm the output frame when required, then study and reconnect the preference.'
                 : referenceResolution.message}
             </p>
           ) : null}

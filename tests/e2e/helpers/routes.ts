@@ -453,17 +453,21 @@ export async function completeRequiredEditorSetupBeforeFootagePrep(page: Page) {
     await expect(outputFrame).toBeVisible()
     await clickWhenReady(outputFrame.getByRole('radio', { name: /9:16/i }))
     await clickWhenReady(page.getByRole('button', { name: /Confirm frame/i }))
-    await clickWhenReady(page.getByRole('button', { name: /Confirm cleanup/i }))
-    await clickWhenReady(page.getByRole('button', { name: /Use (Normal|Premium|Ultra Premium)/i }))
-    await clickWhenReady(page.getByRole('button', { name: /Confirm direction/i }))
-    await clickWhenReady(page.getByRole('button', { name: /Skip reference/i }))
+    const confirmCleanup = page.getByRole('button', { name: /Confirm cleanup/i })
+    await clickWhenReady(confirmCleanup)
+    await expect(confirmCleanup).toBeHidden()
+    await expect(page.getByTestId('edit-level-inline-card')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /Use (Normal|Premium|Ultra Premium)/i })).toHaveCount(0)
+    await clickOptionalSetupAction(page.getByRole('button', { name: /Confirm direction/i }))
+    await clickOptionalSetupAction(page.getByRole('button', { name: /Skip reference/i }))
     return
   }
 
   await clickWhenReady(legacySourceConfirmation)
   await clickWhenReady(page.getByRole('button', { name: /Confirm output frame/i }).first())
   await clickWhenReady(page.getByRole('button', { name: /Confirm (Preserve natural|Light cleanup|Balanced cleanup|Tight retention|Aggressive|Documentary faithful|Tutorial complete|Custom)/i }).first())
-  await clickOptionalSetupAction(page.getByRole('button', { name: /Use this level/i }).first())
+  await expect(page.getByTestId('edit-level-inline-card')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /Use this level/i })).toHaveCount(0)
   await clickOptionalSetupAction(page.getByRole('button', { name: /Use this preference/i }).first())
 
   const intentButton = page.getByRole('button', { name: /Looks right/i }).first()

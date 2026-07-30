@@ -127,8 +127,10 @@ export async function inspectLivingFrameEnvironmentalParticleAdmission(
   if (
     !scene
     || !component
-    || !['environmental_effect', 'atmosphere']
-      .includes(component.role)
+    || (
+      component.role !== 'environmental_effect'
+      && component.role !== 'atmosphere'
+    )
   ) {
     throw invalid(
       'scene_or_component_mismatch',
@@ -431,7 +433,10 @@ function assertLineage(
       !== timing.timingBindingDigestSha256
     || reconciliation.canonicalScope.sceneId !== input.sceneId
     || reconciliation.reconciliationDigestSha256 !==
-      sha256AuthorityValue(withoutDigest(reconciliation))
+      sha256AuthorityValue(withoutDigest(
+        reconciliation as unknown as
+          Record<string, unknown>,
+      ))
     || geometry.motionBinding.motionSceneId !== input.sceneId
   ) {
     throw invalid(

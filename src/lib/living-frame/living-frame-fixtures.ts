@@ -387,8 +387,16 @@ function createMusashiDraft(): LivingFrameProfessionalSkillComponentDraft {
         ['activation.musashi-strike'],
       ),
       activation(
-        'activation.musashi-camera',
+        'activation.musashi-environment',
         5,
+        'environmental_motion',
+        ['musashi.dust'],
+        [timing[2].timingRequestId, timing[3].timingRequestId],
+        ['activation.musashi-strike'],
+      ),
+      activation(
+        'activation.musashi-camera',
+        6,
         'camera_choreography',
         ['musashi.body'],
         [timing[0].timingRequestId, timing[3].timingRequestId],
@@ -396,7 +404,7 @@ function createMusashiDraft(): LivingFrameProfessionalSkillComponentDraft {
       ),
       activation(
         'activation.musashi-sound',
-        6,
+        7,
         'sound_choreography',
         ['musashi.sword', 'musashi.dust'],
         [timing[2].timingRequestId],
@@ -404,7 +412,7 @@ function createMusashiDraft(): LivingFrameProfessionalSkillComponentDraft {
       ),
       activation(
         'activation.musashi-restraint',
-        7,
+        8,
         'living_frame_restraint_qa',
         ['musashi.body'],
         [timing[4].timingRequestId],

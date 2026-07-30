@@ -274,6 +274,62 @@ async function main(): Promise<void> {
         + 'network-isolated mounted inference, no path leakage, '
         + 'single-use session behavior, and post-inference tamper refusal.',
     )
+    console.log(JSON.stringify({
+      suite:
+        'living-frame-auraface-canonical-mount-host-session',
+      status: 'passed',
+      evidenceClass:
+        result.hostExecutionResult.evidenceClass,
+      modelArtifactCount: requirements.artifacts.length,
+      aggregateModelByteLength:
+        requirements.artifacts.reduce(
+          (total, artifact) =>
+            total + artifact.byteLength,
+          0,
+        ),
+      modelArtifacts:
+        requirements.artifacts.map((artifact) => ({
+          artifactIdentityCode:
+            artifact.artifactIdentityCode,
+          byteLength: artifact.byteLength,
+          contentSha256: artifact.contentSha256,
+        })),
+      exactCanonicalRepositoryIngestExecuted: true,
+      atomicReadOnlyMountAndInferenceCompleted:
+        result.atomicMountAndInferenceCompleted,
+      everyObjectVerifiedBeforeAndAfterInference:
+        result.modelBindingPacket.bindings.every(
+          (binding) =>
+            binding.objectVerifiedBeforeConsumer
+            && binding.objectVerifiedAfterConsumer,
+        ),
+      faceOutcome:
+        result.hostExecutionResult.faceOutcome,
+      detectorInferenceExecuted:
+        result.hostExecutionResult
+          .detectorInferenceExecuted,
+      embeddingInferenceExecuted:
+        result.hostExecutionResult
+          .embeddingInferenceExecuted,
+      referenceEmbeddingDimension:
+        result.hostExecutionResult
+          .referenceEmbedding?.length,
+      candidateEmbeddingDimension:
+        result.hostExecutionResult
+          .candidateEmbedding?.length,
+      referenceAndCandidateUseSameSyntheticFixture: true,
+      rawPortraitIncluded: false,
+      embeddingValuesIncluded: false,
+      callerThresholdAccepted: false,
+      identityOrLikenessApproved: false,
+      externalNetworkPerformed: false,
+      runtimeDownloadPerformed: false,
+      postInferenceTamperRefusalObserved: true,
+      actualCostEvidenceCreated: false,
+      customerChargeCreated: false,
+      publicDeliveryCreated: false,
+      productionReady: false,
+    }))
   } finally {
     await rm(temporaryRoot, { force: true, recursive: true })
   }

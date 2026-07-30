@@ -80,6 +80,19 @@ production evidence. This closes the former local artifact-presence and
 atomic-mount uncertainty; the released image, complete L4 load, generation,
 resource receipt, persistence, and QA gates remain open.
 
+When the exact two private AuraFace ONNX artifacts and a synthetic
+single-person portrait are injected,
+`smoke:living-frame-auraface-canonical-mount-host-session` runs the optional
+CPU continuity-QA path as a third adjacent host-specific proof. It ingests the
+exact 277,617,978-byte pair into the canonical model-artifact repository,
+keeps both models mounted read-only during one network-isolated container
+session, executes real detector, landmark-alignment, and 512-dimensional
+embedding inference, verifies both objects before and after the consumer,
+rejects post-inference mutation, and serializes no image, embedding, model
+path, or mount path. This proves the private-local CPU execution path; it does
+not approve identity, likeness, thresholds, fairness, privacy, distributed
+mounts, actual cost, customer billing, public delivery, or production use.
+
 The exact local GPU-worker proof image is likewise host-specific. When it is
 present,
 `smoke:living-frame-sam2-local-runtime-confinement-internal-test`
@@ -99,8 +112,12 @@ pass must still report two open internal runtime gates:
 
 1. exact ComfyUI controlled generation needs a released image and real L4
    execution evidence. Exact private-local five-model byte identity and
-   simultaneous read-only mounting are now verified, but that local CPU
-   preflight is not a complete model load or generation result; and
+   simultaneous read-only mounting are now verified, and canonical backend
+   commit `bffa1ec0` freezes the full-frame-capable runtime/source/router
+   bridge plus the complete 15-node controlled graph. The local CPU preflight
+   is still not a complete model load or generation result, and the bridge
+   still lacks released-image, distributed-mount, L4 output, resource,
+   persistence, and QA evidence; and
 2. advanced temporal Living A-Roll subject masking has an exact namespaced
    source-video/SAM2 work-admission candidate, a verified byte-output and
    downstream QA path, canonical backend work-graph admission frozen at

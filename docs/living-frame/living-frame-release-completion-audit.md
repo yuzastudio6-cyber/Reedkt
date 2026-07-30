@@ -85,7 +85,7 @@ authority.
 | Remotion final composition | `verified_private_runtime` | actual 640×360 scalar-motion render, actual five-mode 240-frame private render, actual confirmed-ratio 360×640 and 480×600 renders, selected-scene particle renders, and actual 3840×2160 H.264/AAC streaming render | Public delivery and production promotion remain intentionally deferred; they do not block internal E2E testing. |
 | Documentary/factual integrity | `verified_source_contract` | source-truth mode, provenance, documentary fact-safety dependencies, selected-scene private documentary fact-safety binding, full-frame continuity/fact reconciliation | Generated illustration must never be presented as authentic evidence. The new process-private binding revalidates an immutable approved fact-safety packet, exact scene expectation/claim mapping, and source-truth disposition, then adds generic status-derived constraints to the real selected-scene prompt without copying raw claims or claiming fact verification. The canonical snapshot reader and scene-to-claim join remain explicit shared-owner bridges. |
 | Subject-neutral behavior | `verified_source_contract` | capability matrix and serialized-evidence name scans | Named examples remain fixtures only. |
-| Backend workflow coordination | `handoff_delivered` | material frozen commits are handed to canonical backend task `019f4c76-4ec8-75f3-9cc6-39399dbee47d`; the exact clean head is recorded in each handoff | Backend task must reconcile without changing canonical ownership. |
+| Backend workflow coordination | `handoff_delivered` | material frozen commits are handed to canonical backend task `019f4c76-4ec8-75f3-9cc6-39399dbee47d`; canonical temporal admission/runner commits `576ca54b` and `3e59ce45` plus full-frame ComfyUI runtime/source/router bridge `bffa1ec0` are frozen | Final one-writer reconciliation must preserve canonical ownership and the remaining runtime gates. |
 
 ## Six controlled-illustration capabilities
 
@@ -223,7 +223,11 @@ recorded separately and do not block internal testing:
    ComfyUI objects and exact two AuraFace objects. The five ComfyUI files have
    now passed a private-local simultaneous read-only mount and complete
    11.7 GB byte reread; that host-local proof is not distributed-mount or L4
-   evidence.
+   evidence. The two AuraFace files have independently passed private-local
+   canonical repository ingest, simultaneous read-only mounting, real
+   network-isolated CPU detector/embedding inference, before/after object
+   verification, and post-consumer mutation refusal; that local proof is not
+   released distributed-mount or policy approval.
 4. A successful approved-L4 run of the exact five-model ComfyUI workflow,
    including image signature, latency, peak memory, deterministic request
    binding, and after-consumer artifact verification.
@@ -279,6 +283,20 @@ Passed:
   entrypoint, caller argument/root refusal, environment scrubbing, `sam2`
   denial, hard CUDA-required exit `78`, and no prompt, inference, output,
   dispatch, cost, billing, or production action;
+- canonical backend ComfyUI runtime/source/router bridge frozen at `bffa1ec0`,
+  including the fixed offline package closure, one operation and one GPU
+  attempt, exact selected-scene 1024-square and confirmed full-frame
+  dimensions, base and complete 15-node controlled graph families, server
+  seed, verified zero-to-two private PNG inputs, `sam2` denial, required
+  CUDA/L4 execution, one opaque output contract, and cross-operation
+  regressions while keeping dispatch and production authority closed;
+- exact private-local AuraFace canonical mount/host-session smoke proving both
+  ONNX artifacts, all `277,617,978` bytes, canonical repository ingest,
+  simultaneous read-only mounts, real network-isolated face detection,
+  landmark alignment, 512-dimensional embedding inference, before/after
+  object verification, post-inference mutation refusal, and no serialized
+  portrait, embedding values, paths, identity decision, threshold, cost,
+  billing, public delivery, or production action;
 - selected-scene private prompt materialization with one unit/lease per
   approved output, exact isolated and confirmed-ratio canvases, byte-free
   receipts, and adversarial benchmark/caller/node/lineage/authority refusal;
@@ -435,12 +453,15 @@ alpha/component/render path, adaptive deterministic motion, cost semantics,
 and backend handoff are materially implemented and verified. The requested
 private internal end state still includes exact controlled-generation and
 temporal-mask model runtime evidence. Customer production release is not the
-current completion criterion. The exact five ComfyUI model files and SAM2
-checkpoint now exist in private local caches and pass byte/read-only-mount
-preflight; canonical backend commits `576ca54b` and `3e59ce45` also close the
-temporal work discriminator and fixed SAM2 runner/router source gaps. The
-remaining internal blockers are real L4 model load/inference, private output
-persistence, resource evidence, and output QA for both runtime paths. The
+current completion criterion. The exact five ComfyUI model files, exact two
+AuraFace models, and SAM2 checkpoint now exist in private local caches.
+ComfyUI and SAM2 pass exact byte/read-only-mount preflight, while AuraFace
+passes real network-isolated CPU inference. Canonical backend commits
+`576ca54b`, `3e59ce45`, and `bffa1ec0` close the temporal work discriminator,
+fixed SAM2 runner/router, and full-frame ComfyUI runtime/source/router source
+gaps. The remaining internal blockers are real L4 model load/inference,
+private output persistence, resource evidence, and output QA for the two GPU
+runtime paths. The
 aggregate
 `server/smoke/living-frame-private-internal-end-to-end-audit-smoke.ts` must
 remain `passed_with_explicit_blocked_model_runtimes` until those two gates are

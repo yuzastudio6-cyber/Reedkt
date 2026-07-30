@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 
 import type {
-  ReEditProReasoningModelRouteId,
+  ReEditProActiveReasoningModelRouteId,
 } from '../../src/types/reasoning-model-routing'
 import { getReEditProReasoningModelRoute } from '../../src/lib/reasoning-model-routing-contract'
 import {
@@ -42,7 +42,7 @@ export interface CanonicalReasoningRouteAttemptLifecycleEvidence {
   readonly reasoningRunId: string
   readonly attemptId: string
   readonly attemptOrdinal: 1 | 2 | 3
-  readonly routeId: ReEditProReasoningModelRouteId
+  readonly routeId: ReEditProActiveReasoningModelRouteId
   readonly routeAuthorizationDigestSha256: string
   readonly attemptCostEvidenceHashSha256: string
   readonly provider: string

@@ -101,11 +101,11 @@ const coreProfessionalSkillDefinitions: ProfessionalSkillDefinition[] = [
         requestedModelUse: 'edit_planning',
       }),
       modelRoleIntent({
-        intentId: 'intent.compile_prompt_direction.qwen_first_fallback',
+        intentId: 'intent.compile_prompt_direction.terra_first_fallback',
         userFacingActivity: 'Understand the edit request and turn it into clear direction',
-        providerRoute: 'qwen_3_7_provider_boundary',
-        providerModel: 'qwen3.7-max-2026-06-08',
-        modelRoleId: 'qwen_3_7_main_edit_agent',
+        providerRoute: 'gpt_5_6_terra_provider_boundary',
+        providerModel: 'gpt-5.6-terra',
+        modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
         requestedModelUse: 'edit_planning',
       }),
       modelRoleIntent({
@@ -1583,11 +1583,11 @@ const expandedProfessionalSkillDefinitions: ProfessionalSkillDefinition[] = [
         requestedModelUse: 'remotion_draft',
       }),
       modelRoleIntent({
-        intentId: 'motion.renderer_layer_brief.qwen_fallback_remotion_draft',
+        intentId: 'motion.renderer_layer_brief.terra_fallback_remotion_draft',
         userFacingActivity: 'Prepare a renderer-ready motion brief after approval',
-        providerRoute: 'qwen_3_7_provider_boundary',
-        providerModel: 'qwen3.7-max-2026-06-08',
-        modelRoleId: 'qwen_3_7_main_edit_agent',
+        providerRoute: 'gpt_5_6_terra_provider_boundary',
+        providerModel: 'gpt-5.6-terra',
+        modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
         requestedModelUse: 'remotion_draft',
       }),
       modelRoleIntent({

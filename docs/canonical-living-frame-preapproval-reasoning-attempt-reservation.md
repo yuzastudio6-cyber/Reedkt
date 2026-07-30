@@ -12,7 +12,7 @@ provider, meter an attempt, or release a reasoning result.
 
 The prepared run already binds the current Living Frame input, source-visual
 and source-speech evidence, complete provider-neutral payload, strict output
-schema, route-data assurance, Kimi/Qwen/DeepSeek route, rate card, and internal
+schema, route-data assurance, Kimi/Terra/DeepSeek route, rate card, and internal
 budget. A transport worker must not infer an attempt from that packet or
 silently treat its idempotency digest as submission permission.
 

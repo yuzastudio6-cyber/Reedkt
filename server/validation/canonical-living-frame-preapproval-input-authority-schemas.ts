@@ -214,7 +214,7 @@ export const canonicalLivingFramePreapprovalInputAuthoritySchema =
       routeContractVersion: z.string().trim().min(1).max(160),
       orderedRouteIds: z.tuple([
         z.literal('kimi_k3_primary'),
-        z.literal('qwen_3_7_fallback'),
+        z.literal('gpt_5_6_terra_fallback'),
         z.literal('deepseek_v4_pro_fallback'),
       ]).readonly(),
       routeIdentityDigestSha256: sha256Schema,

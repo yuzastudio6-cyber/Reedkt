@@ -7,10 +7,12 @@ ReEditPro separates editorial reasoning from source/video understanding. These a
 The canonical reasoning route is ordered and may not be skipped:
 
 1. Kimi K3 through `kimi_k3_main_edit_agent` is the primary route for user-intent reasoning, edit planning, creative edit strategy, edit-QA reasoning, tool code, and Remotion drafts.
-2. Qwen 3.7 through the retained compatibility identifier `qwen_3_7_main_edit_agent` is the first full-capability fallback. The identifier is persisted compatibility metadata; it no longer means Qwen is the default route.
-3. DeepSeek V4 Pro through the retained compatibility identifier `deepseek_v4_tool_code_agent` is the final full-capability fallback. It may perform reasoning or coding only after the two earlier routes have reached an allowed terminal failure.
+2. GPT-5.6 Terra through `gpt_5_6_terra_fallback_edit_agent` is the first full-capability fallback. It must consume the same immutable request and source-evidence authority after an allowed terminal Kimi failure.
+3. DeepSeek V4 Pro through the retained compatibility identifier `deepseek_v4_tool_code_agent` is the final full-capability fallback. It may perform reasoning or coding only after Kimi and Terra have each reached an allowed terminal failure.
 
-Qwen2.5-VL through `qwen2_5_vl_visual_understanding` remains a separate visual-understanding specialist. It produces source-bound, timestamped visual evidence for the reasoning route. It must not create canonical edit authority independently, and Kimi/Qwen/DeepSeek must not claim that they inspected video when no visual-specialist evidence exists.
+Qwen 3.7 through the retained `qwen_3_7_main_edit_agent` compatibility identifier is no longer a head-reasoning fallback. It may be used only as an explicitly authorized Marker Chat or Edit Reference specialist and may verify frozen v1 Qwen attempt records. It must not create or approve the canonical edit plan.
+
+Qwen2.5-VL through `qwen2_5_vl_visual_understanding` remains a separate visual-understanding specialist. It produces source-bound, timestamped visual evidence for the reasoning route. It must not create canonical edit authority independently, and Kimi/Terra/DeepSeek must not claim that they inspected video when no visual-specialist evidence exists.
 
 Fallback is permitted only for a classified provider availability/rate-limit/timeout/transient error, malformed structured output, or deterministic quality-validation failure. Missing approval, reservation, immutable snapshot, tenant authority, safety authority, or a valid request blocks the operation instead of selecting another model. The final DeepSeek failure requires deterministic recovery or user review.
 
@@ -28,8 +30,9 @@ An external visual API may be introduced only as a separately approved overflow 
 
 Every attempted reasoning route, including a failed attempt that triggers fallback, must retain provisional internal provider-cost evidence bound to the exact approved snapshot, reservation, idempotency key, request hash, response-usage hash, route ordinal, outcome, and rate-card version.
 
-- Kimi and DeepSeek rates are recorded in their native USD pricing boundary.
-- Qwen rates are recorded in native CNY. USD normalization requires an immutable, sourced FX snapshot; ReEditPro must not guess an exchange rate.
+- Kimi, GPT-5.6 Terra, and DeepSeek rates are recorded in their native USD pricing boundary.
+- GPT-5.6 Terra standard pricing is $2.50 per million uncached input tokens, $0.25 per million cached input tokens, and $15 per million output tokens. Cache writes are $3.125 per million tokens. Requests above 272,000 input tokens apply the published 2x input and 1.5x output multipliers to the whole request.
+- Historical Qwen v1 attempt records retain their native CNY evidence. USD normalization requires their immutable, sourced FX snapshot; ReEditPro must not guess an exchange rate or relabel that spend as Terra.
 - Qwen2.5-VL on ReEditPro-hosted Google Cloud is infrastructure cost: GPU/CPU runtime, storage, and networking. It is not assigned a provider-token price without an approved external-provider route.
 - Internal production cost is separate from customer price, customer credits, wallet mutation, and the ReEditPro service fee.
 

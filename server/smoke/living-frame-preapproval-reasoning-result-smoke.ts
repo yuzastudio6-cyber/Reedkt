@@ -34,6 +34,7 @@ import {
   createPrePlanEditReferenceStudyChatReasoningAuthority,
   createPrePlanLivingFrameSemanticReasoningAuthority,
   createReasoningModelAttemptCostEvidenceV2,
+  REEDITPRO_REASONING_MODEL_RATE_CARD_VERSION,
   reasoningModelRateCardIdentityDigest,
   validatePrePlanLivingFrameSemanticReasoningAuthority,
   validatePrePlanReasoningWorkloadAuthority,
@@ -240,7 +241,7 @@ const workloadAuthorityResult =
     reasoningResultSchemaDigestSha256:
       preapprovalAuthority.reasoning.resultSchemaDigestSha256,
     routeContractVersion:
-      'reeditpro-reasoning-model-route-v1-kimi-qwen-deepseek',
+      'reeditpro-reasoning-model-route-v2-kimi-terra-deepseek',
     orderedRouteIds: preapprovalAuthority.reasoning.orderedRouteIds,
     routeIdentityDigestSha256:
       preapprovalAuthority.reasoning.routeIdentityDigestSha256,
@@ -269,7 +270,7 @@ assert.equal(
       'kimi_k3_primary',
       'qwen_3_7_fallback',
       'deepseek_v4_pro_fallback',
-    ],
+    ] as never,
     routeIdentityDigestSha256:
       preapprovalAuthority.reasoning.routeIdentityDigestSha256,
     rateCardIdentityDigestSha256:
@@ -822,10 +823,6 @@ function createControlledLivingFrameRunReceipt(input: {
     outputTokens: 1_000,
     cacheBillingMode: 'provider_native',
   }
-  const qwenUsage: ReasoningModelTokenUsage = {
-    ...nativeUsage,
-    cacheBillingMode: 'qwen_implicit',
-  }
   const kimi = createLivingFrameAttempt({
     authority: input.authority,
     routeId: 'kimi_k3_primary',
@@ -836,21 +833,14 @@ function createControlledLivingFrameRunReceipt(input: {
     usage: nativeUsage,
     recordedAt: '2026-07-26T15:00:10.000Z',
   })
-  const qwen = createLivingFrameAttempt({
+  const terra = createLivingFrameAttempt({
     authority: input.authority,
-    routeId: 'qwen_3_7_fallback',
+    routeId: 'gpt_5_6_terra_fallback',
     attemptOrdinal: 2,
     entryFallbackTrigger: 'provider_timeout',
     terminalOutcome: 'failed',
     terminalFallbackTrigger: 'malformed_structured_output',
-    usage: qwenUsage,
-    fxSnapshot: {
-      snapshotId: 'fx-living-frame-result-smoke',
-      source: 'immutable controlled FX fixture',
-      sourceUrl: 'https://example.com/immutable-fx-fixture',
-      observedAt: '2026-07-26T14:59:00.000Z',
-      cnyToUsdMicrosPerCny: 140_000,
-    },
+    usage: nativeUsage,
     recordedAt: '2026-07-26T15:00:20.000Z',
   })
   const deepseek = createLivingFrameAttempt({
@@ -864,7 +854,7 @@ function createControlledLivingFrameRunReceipt(input: {
     recordedAt: '2026-07-26T15:00:30.000Z',
   })
   const reordered =
-    aggregateReasoningModelAttemptCostsV2([qwen, kimi])
+    aggregateReasoningModelAttemptCostsV2([terra, kimi])
   assert.equal(reordered.ok, false)
   if (reordered.ok) {
     throw new Error('Reordered reasoning attempts unexpectedly passed.')
@@ -878,7 +868,7 @@ function createControlledLivingFrameRunReceipt(input: {
   }
   assert.equal(duplicated.error.code, 'duplicate_attempt')
   const aggregate =
-    aggregateReasoningModelAttemptCostsV2([kimi, qwen, deepseek])
+    aggregateReasoningModelAttemptCostsV2([kimi, terra, deepseek])
   if (!aggregate.ok) throw new Error(aggregate.error.message)
   assert.equal(aggregate.data.failedAttemptCount, 2)
   assert.equal(aggregate.data.failedAttemptCostRetained, true)
@@ -894,7 +884,7 @@ function createControlledLivingFrameRunReceipt(input: {
       'provider_timeout',
     ),
     createLivingFrameLifecycle(
-      qwen,
+      terra,
       '2026-07-26T15:00:11.000Z',
       '2026-07-26T15:00:20.000Z',
       'malformed_structured_output',
@@ -910,7 +900,7 @@ function createControlledLivingFrameRunReceipt(input: {
     workloadAuthority: input.authority,
     attempts: [
       { costEvidence: kimi, lifecycleEvidence: lifecycle[0]! },
-      { costEvidence: qwen, lifecycleEvidence: lifecycle[1]! },
+      { costEvidence: terra, lifecycleEvidence: lifecycle[1]! },
       { costEvidence: deepseek, lifecycleEvidence: lifecycle[2]! },
     ],
     finalResultDigestSha256: input.finalResultDigestSha256,
@@ -950,7 +940,7 @@ function assertBudgetBreachRejected(): void {
       reasoningResultSchemaDigestSha256:
         preapprovalAuthority.reasoning.resultSchemaDigestSha256,
       routeContractVersion:
-        'reeditpro-reasoning-model-route-v1-kimi-qwen-deepseek',
+        'reeditpro-reasoning-model-route-v2-kimi-terra-deepseek',
       orderedRouteIds: preapprovalAuthority.reasoning.orderedRouteIds,
       routeIdentityDigestSha256:
         preapprovalAuthority.reasoning.routeIdentityDigestSha256,
@@ -990,7 +980,7 @@ function createLivingFrameAttempt(input: {
   authority: PrePlanLivingFrameSemanticReasoningAuthority
   routeId:
     | 'kimi_k3_primary'
-    | 'qwen_3_7_fallback'
+    | 'gpt_5_6_terra_fallback'
     | 'deepseek_v4_pro_fallback'
   attemptOrdinal: 1 | 2 | 3
   entryFallbackTrigger:
@@ -1114,7 +1104,7 @@ function createInputReaderResult(input: {
       evidenceClass:
         'controlled_non_promotable_internal_cost_ceiling_expectation',
       rateCardVersion:
-        'reeditpro-reasoning-model-rate-card-v1-2026-07-18',
+        REEDITPRO_REASONING_MODEL_RATE_CARD_VERSION,
       denomination: 'normalized_usd_micros',
       maximumAuthorizedInternalCostMicros: '5000000',
       actualAttemptReceiptProvided: false,
@@ -1669,10 +1659,6 @@ function assertEditReferenceByteIdentity(): void {
     outputTokens: 10_000,
     cacheBillingMode: 'provider_native',
   }
-  const qwenUsage: ReasoningModelTokenUsage = {
-    ...nativeUsage,
-    cacheBillingMode: 'qwen_implicit',
-  }
   const studyAttempts = [
     createStudyAttempt({
       authority: authorityResult.data,
@@ -1686,19 +1672,12 @@ function assertEditReferenceByteIdentity(): void {
     }),
     createStudyAttempt({
       authority: authorityResult.data,
-      routeId: 'qwen_3_7_fallback',
+      routeId: 'gpt_5_6_terra_fallback',
       ordinal: 2,
       entryTrigger: 'provider_timeout',
       outcome: 'failed',
       terminalTrigger: 'malformed_structured_output',
-      usage: qwenUsage,
-      fxSnapshot: {
-        snapshotId: 'fx-cny-usd-study-chat-smoke-v1',
-        source: 'immutable controlled FX fixture',
-        sourceUrl: 'https://example.com/immutable-fx-fixture',
-        observedAt: '2026-07-20T15:59:00.000Z',
-        cnyToUsdMicrosPerCny: 140_000,
-      },
+      usage: nativeUsage,
       recordedAt: '2026-07-20T16:00:20.000Z',
     }),
     createStudyAttempt({
@@ -1714,7 +1693,7 @@ function assertEditReferenceByteIdentity(): void {
   ] as const
   assert.equal(
     studyAttempts[0].evidenceHashSha256,
-    'd136376d73df3aa2eaf29ca0c8fd837e2159e91b7a9e45eea2e7e7cea876abe5',
+    '81f41c23087e33ccff6c02709c3710bf8db0d329e9e379b42079bc6dc5fcda68',
   )
   const lifecycle = [
     createStudyLifecycle(
@@ -1738,7 +1717,7 @@ function assertEditReferenceByteIdentity(): void {
   ] as const
   assert.equal(
     lifecycle[0].lifecycleEvidenceDigestSha256,
-    '6fcf01673929f2ac255ec0336a45f991b2fb9438a8dc2c8d676cfeb1a918e71d',
+    '58315c09336e80bb8d7383586d0df5497beef8a6ed7875931b21f75eb96d0d38',
   )
   const canonical = createCanonicalReasoningRunReceipt({
     workloadAuthority: authorityResult.data,
@@ -1763,7 +1742,7 @@ function assertEditReferenceByteIdentity(): void {
   if (!canonical.ok) throw new Error(canonical.error.message)
   assert.equal(
     canonical.data.receiptDigestSha256,
-    'a49078572fa95c325bbdfe380c5b73fd658c7bfa5a2a5926e5633e7ca69d6d02',
+    'f6e0d1396bf4aa18772ac086cdd1a0e756e38d017de4d0f8d852751e982a7464',
   )
   const studyReceipt =
     createEditReferenceStudyChatReasoningRunReceipt({
@@ -1772,7 +1751,7 @@ function assertEditReferenceByteIdentity(): void {
     })
   assert.equal(
     studyReceipt.receiptDigestSha256,
-    'b22b56bd44051564fbf663e43333c6f5c43b604a21a588cc37225d530e9247ae',
+    '49e9e50ce683562e3b8110ca2d24470be2cc4147df22e4d9e578d9662eb2eeaf',
   )
 }
 
@@ -1780,7 +1759,7 @@ function createStudyAttempt(input: {
   authority: PrePlanEditReferenceStudyChatReasoningAuthority
   routeId:
     | 'kimi_k3_primary'
-    | 'qwen_3_7_fallback'
+    | 'gpt_5_6_terra_fallback'
     | 'deepseek_v4_pro_fallback'
   ordinal: 1 | 2 | 3
   entryTrigger:

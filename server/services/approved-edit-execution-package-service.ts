@@ -11169,7 +11169,7 @@ function createApprovedProfessionalSkillTrace(
 
 const allowedModelRoleIds: ReEditProModelRoleId[] = [
   'kimi_k3_main_edit_agent',
-  'qwen_3_7_main_edit_agent',
+  'gpt_5_6_terra_fallback_edit_agent',
   'qwen2_5_vl_visual_understanding',
   'deepseek_v4_tool_code_agent',
 ]

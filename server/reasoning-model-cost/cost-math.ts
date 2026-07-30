@@ -37,23 +37,52 @@ export function calculateReasoningModelInternalCost(input: {
 
   const cacheRates = resolveCacheRates(input.routeId, input.usage)
   if (!cacheRates.ok) return cacheRates
+  const totalInputTokens =
+    input.usage.uncachedInputTokens
+    + input.usage.cachedInputTokens
+    + input.usage.cacheCreationInputTokens
+  const longContextPricingApplied =
+    rate.longContextInputThresholdTokens !== null
+    && totalInputTokens > rate.longContextInputThresholdTokens
+  const inputRateMultiplierBps = longContextPricingApplied
+    ? rate.longContextInputRateMultiplierBps
+    : 10_000
+  const outputRateMultiplierBps = longContextPricingApplied
+    ? rate.longContextOutputRateMultiplierBps
+    : 10_000
+  const effectiveInputRate = applyRateMultiplier(
+    rate.cacheMissInputMicrosPerMillionTokens,
+    inputRateMultiplierBps,
+  )
+  const effectiveCacheHitRate = applyRateMultiplier(
+    cacheRates.data.cacheHitMicrosPerMillionTokens,
+    inputRateMultiplierBps,
+  )
+  const effectiveCacheCreationRate = applyRateMultiplier(
+    cacheRates.data.cacheCreationMicrosPerMillionTokens,
+    inputRateMultiplierBps,
+  )
+  const effectiveOutputRate = applyRateMultiplier(
+    rate.outputMicrosPerMillionTokens,
+    outputRateMultiplierBps,
+  )
 
   const breakdownNativeMicros = {
     uncachedInput: tokenCost(
       input.usage.uncachedInputTokens,
-      rate.cacheMissInputMicrosPerMillionTokens,
+      effectiveInputRate,
     ),
     cachedInput: tokenCost(
       input.usage.cachedInputTokens,
-      cacheRates.data.cacheHitMicrosPerMillionTokens,
+      effectiveCacheHitRate,
     ),
     cacheCreationInput: tokenCost(
       input.usage.cacheCreationInputTokens,
-      cacheRates.data.cacheCreationMicrosPerMillionTokens,
+      effectiveCacheCreationRate,
     ),
     output: tokenCost(
       input.usage.outputTokens,
-      rate.outputMicrosPerMillionTokens,
+      effectiveOutputRate,
     ),
   }
   const nativeCostMicros = Object.values(breakdownNativeMicros)
@@ -83,7 +112,7 @@ export function calculateReasoningModelInternalCost(input: {
   return {
     ok: true,
     data: {
-      schemaVersion: 'reasoning-model-internal-cost-calculation-v1',
+      schemaVersion: 'reasoning-model-internal-cost-calculation-v2',
       boundary: 'internal_provider_cost_only',
       routeId: input.routeId,
       provider: rate.provider,
@@ -95,6 +124,11 @@ export function calculateReasoningModelInternalCost(input: {
       normalization,
       fxSnapshot,
       usage: { ...input.usage },
+      pricingClass: longContextPricingApplied
+        ? 'long_context'
+        : 'standard',
+      longContextInputThresholdTokens:
+        rate.longContextInputThresholdTokens,
       breakdownNativeMicros,
       pricingSourceUrls: [...rate.pricingSourceUrls],
       providerInvoiceReconciled: false,
@@ -282,51 +316,27 @@ function resolveCacheRates(
 }> {
   const rate = getReasoningModelRateCardEntry(routeId)
 
-  if (routeId === 'qwen_3_7_fallback') {
-    if (usage.cacheBillingMode === 'none') {
-      if (usage.cachedInputTokens !== 0 || usage.cacheCreationInputTokens !== 0) {
-        return failure('invalid_cache_usage', 'cacheBillingMode', 'Qwen cache tokens require an explicit Qwen cache billing mode.')
-      }
-      return { ok: true, data: { cacheHitMicrosPerMillionTokens: 0, cacheCreationMicrosPerMillionTokens: 0 } }
-    }
-    if (usage.cacheBillingMode === 'qwen_implicit') {
-      if (usage.cacheCreationInputTokens !== 0) {
-        return failure('invalid_cache_usage', 'cacheCreationInputTokens', 'Implicit Qwen caching cannot include explicit cache-creation tokens.')
-      }
-      return {
-        ok: true,
-        data: {
-          cacheHitMicrosPerMillionTokens: rate.qwenImplicitCacheHitMicrosPerMillionTokens!,
-          cacheCreationMicrosPerMillionTokens: 0,
-        },
-      }
-    }
-    if (usage.cacheBillingMode === 'qwen_explicit') {
-      return {
-        ok: true,
-        data: {
-          cacheHitMicrosPerMillionTokens: rate.qwenExplicitCacheHitMicrosPerMillionTokens!,
-          cacheCreationMicrosPerMillionTokens: rate.qwenExplicitCacheCreationMicrosPerMillionTokens!,
-        },
-      }
-    }
-    return failure('invalid_cache_mode', 'cacheBillingMode', 'Qwen does not use provider_native cache billing.')
-  }
-
   if (usage.cacheBillingMode === 'none') {
     if (usage.cachedInputTokens !== 0 || usage.cacheCreationInputTokens !== 0) {
       return failure('invalid_cache_usage', 'cacheBillingMode', 'Cache tokens require provider_native cache billing.')
     }
     return { ok: true, data: { cacheHitMicrosPerMillionTokens: 0, cacheCreationMicrosPerMillionTokens: 0 } }
   }
-  if (usage.cacheBillingMode !== 'provider_native' || usage.cacheCreationInputTokens !== 0) {
-    return failure('invalid_cache_mode', 'cacheBillingMode', 'Kimi and DeepSeek accept only provider_native cache hits and no cache-creation token class.')
+  if (usage.cacheBillingMode !== 'provider_native') {
+    return failure('invalid_cache_mode', 'cacheBillingMode', 'Active reasoning routes accept only provider-native cache accounting.')
+  }
+  if (
+    usage.cacheCreationInputTokens > 0
+    && rate.providerNativeCacheCreationMicrosPerMillionTokens === null
+  ) {
+    return failure('invalid_cache_usage', 'cacheCreationInputTokens', 'This active provider route does not expose a cache-write token class.')
   }
   return {
     ok: true,
     data: {
       cacheHitMicrosPerMillionTokens: rate.providerNativeCacheHitMicrosPerMillionTokens!,
-      cacheCreationMicrosPerMillionTokens: 0,
+      cacheCreationMicrosPerMillionTokens:
+        rate.providerNativeCacheCreationMicrosPerMillionTokens ?? 0,
     },
   }
 }
@@ -379,6 +389,16 @@ function tokenCost(tokens: number, rateMicrosPerMillionTokens: number): number {
   return safeNumber(ceilDivide(
     BigInt(tokens) * BigInt(rateMicrosPerMillionTokens),
     TOKENS_PER_MILLION,
+  ))
+}
+
+function applyRateMultiplier(
+  rateMicrosPerMillionTokens: number,
+  multiplierBps: number,
+): number {
+  return safeNumber(ceilDivide(
+    BigInt(rateMicrosPerMillionTokens) * BigInt(multiplierBps),
+    10_000n,
   ))
 }
 

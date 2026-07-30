@@ -1,5 +1,6 @@
 export const REEDITPRO_MODEL_ROLE_IDS = [
   'kimi_k3_main_edit_agent',
+  'gpt_5_6_terra_fallback_edit_agent',
   'qwen_3_7_main_edit_agent',
   'qwen2_5_vl_visual_understanding',
   'deepseek_v4_tool_code_agent',
@@ -10,6 +11,7 @@ export type ReEditProModelRoleId = (typeof REEDITPRO_MODEL_ROLE_IDS)[number]
 export type ReEditProModelRole =
   | 'main_edit_reasoning_agent'
   | 'fallback_edit_reasoning_agent'
+  | 'marker_reference_reasoning_specialist'
   | 'visual_understanding_specialist'
 
 export type ReEditProReasoningRouteRole = 'primary' | 'fallback' | 'specialist'

@@ -300,11 +300,11 @@ export const livingFrameSemanticRequestPayloadSchema = z.object({
 
 const routeAssuranceSchema = z.object({
   routeContract: z.literal(
-    'reeditpro-reasoning-model-route-v1-kimi-qwen-deepseek',
+    'reeditpro-reasoning-model-route-v2-kimi-terra-deepseek',
   ),
   orderedRouteIds: z.tuple([
     z.literal('kimi_k3_primary'),
-    z.literal('qwen_3_7_fallback'),
+    z.literal('gpt_5_6_terra_fallback'),
     z.literal('deepseek_v4_pro_fallback'),
   ]),
   state: z.literal('shared_route_data_assurance_required'),

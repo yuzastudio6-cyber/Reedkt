@@ -17,6 +17,7 @@ export const PROVIDER_ROUTES = [
   'hailuo',
   'veo',
   'kimi_k3_provider_boundary',
+  'gpt_5_6_terra_provider_boundary',
   'qwen_3_7_provider_boundary',
   'qwen2_5_vl_7b_instruct_provider_boundary',
   'deepseek_v4_pro_tool_code_boundary',
@@ -32,6 +33,7 @@ export type ProviderRoute = (typeof PROVIDER_ROUTES)[number]
 
 export const MODEL_ROLE_PROVIDER_ROUTES = [
   'kimi_k3_provider_boundary',
+  'gpt_5_6_terra_provider_boundary',
   'qwen_3_7_provider_boundary',
   'qwen2_5_vl_7b_instruct_provider_boundary',
   'deepseek_v4_pro_tool_code_boundary',
@@ -143,7 +145,8 @@ export const PROVIDER_GATEWAY_POLICY: string[] = [
   'Hailuo is normal fallback/alternate.',
   'GPT-Image-2 is still/keyframe/card route.',
   'Kimi K3 is the primary edit reasoning, planning, creativity, and coding route.',
-  'Qwen 3.7 is the first edit reasoning fallback.',
+  'GPT-5.6 Terra is the first full-capability edit reasoning fallback.',
+  'Qwen 3.7 is a bounded Marker Chat and Edit Reference specialist, not a head-reasoning fallback.',
   'Qwen2.5-VL is visual-understanding only.',
   'DeepSeek V4 Pro is the final bounded edit reasoning/coding fallback.',
   'Mirelo SFX V1.5 and MMAudio V2 are generated audio/SFX routes.',

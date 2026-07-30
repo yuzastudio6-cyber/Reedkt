@@ -24,7 +24,7 @@ export const REEDITPRO_INTELLIGENCE_RESPONSIBILITY_CONTRACT_VERSION =
 
 const canonicalReasoningRouteModelRoles: ReEditProModelRoleId[] = [
   'kimi_k3_main_edit_agent',
-  'qwen_3_7_main_edit_agent',
+  'gpt_5_6_terra_fallback_edit_agent',
   'deepseek_v4_tool_code_agent',
 ]
 
@@ -83,7 +83,7 @@ export const REEDITPRO_INTELLIGENCE_RESPONSIBILITY_BINDINGS:
         'run tools, workers, renderers, storage, billing, or delivery',
       ],
       costBoundary:
-        'Kimi is primary; Qwen 3.7 and DeepSeek V4 Pro are ordered fallback candidates, never an eager ensemble.',
+        'Kimi is primary; GPT-5.6 Terra and DeepSeek V4 Pro are ordered fallback candidates, never an eager ensemble.',
     },
     {
       roleId: 'operations_orchestrator',
@@ -229,7 +229,7 @@ export function validateReEditProIntelligenceResponsibilityArchitecture(): {
   if (
     creative.modelRoleIds.join(',') !== canonicalReasoningRouteModelRoles.join(',')
     || creative.invocationPolicy !== 'ordered_single_active_reasoning_attempt'
-  ) blockers.push('Creative Director must use the exact ordered Kimi/Qwen/DeepSeek route.')
+  ) blockers.push('Creative Director must use the exact ordered Kimi/Terra/DeepSeek route.')
 
   const operations = getReEditProIntelligenceResponsibilityBinding(
     'operations_orchestrator',

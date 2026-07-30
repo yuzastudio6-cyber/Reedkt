@@ -1,7 +1,7 @@
 import type {
   ReEditProReasoningFallbackTrigger,
+  ReEditProActiveReasoningModelRouteId,
   ReEditProReasoningModelProvider,
-  ReEditProReasoningModelRouteId,
 } from '../../src/types/reasoning-model-routing'
 
 export type ReasoningModelCostCurrency = 'USD' | 'CNY'
@@ -29,25 +29,29 @@ export interface ReasoningModelFxSnapshot {
 }
 
 export interface ReasoningModelRateCardEntry {
-  routeId: ReEditProReasoningModelRouteId
+  routeId: ReEditProActiveReasoningModelRouteId
   provider: ReEditProReasoningModelProvider
   exactProviderModelId: string
   nativeCurrency: ReasoningModelCostCurrency
-  contextWindowTokens: 1_000_000
+  contextWindowTokens: number
   cacheMissInputMicrosPerMillionTokens: number
   providerNativeCacheHitMicrosPerMillionTokens: number | null
+  providerNativeCacheCreationMicrosPerMillionTokens: number | null
   qwenImplicitCacheHitMicrosPerMillionTokens: number | null
   qwenExplicitCacheHitMicrosPerMillionTokens: number | null
   qwenExplicitCacheCreationMicrosPerMillionTokens: number | null
   outputMicrosPerMillionTokens: number
+  longContextInputThresholdTokens: number | null
+  longContextInputRateMultiplierBps: number
+  longContextOutputRateMultiplierBps: number
   pricingSourceUrls: readonly string[]
   observedAt: string
 }
 
 export interface ReasoningModelInternalCostCalculation {
-  schemaVersion: 'reasoning-model-internal-cost-calculation-v1'
+  schemaVersion: 'reasoning-model-internal-cost-calculation-v2'
   boundary: 'internal_provider_cost_only'
-  routeId: ReEditProReasoningModelRouteId
+  routeId: ReEditProActiveReasoningModelRouteId
   provider: ReEditProReasoningModelProvider
   exactProviderModelId: string
   rateCardVersion: string
@@ -57,6 +61,8 @@ export interface ReasoningModelInternalCostCalculation {
   normalization: 'native_usd' | 'versioned_fx_snapshot' | 'requires_versioned_fx_snapshot'
   fxSnapshot: ReasoningModelFxSnapshot | null
   usage: ReasoningModelTokenUsage
+  pricingClass: 'standard' | 'long_context'
+  longContextInputThresholdTokens: number | null
   breakdownNativeMicros: {
     uncachedInput: number
     cachedInput: number
@@ -74,7 +80,7 @@ export interface ReasoningModelAttemptCostEvidenceInput {
   reasoningRunId: string
   attemptId: string
   attemptOrdinal: 1 | 2 | 3
-  routeId: ReEditProReasoningModelRouteId
+  routeId: ReEditProActiveReasoningModelRouteId
   approvedPlanSnapshotId: string
   creditReservationId: string
   idempotencyKey: string
@@ -94,7 +100,7 @@ export interface ReasoningModelAttemptCostEvidence {
   reasoningRunId: string
   attemptId: string
   attemptOrdinal: 1 | 2 | 3
-  routeId: ReEditProReasoningModelRouteId
+  routeId: ReEditProActiveReasoningModelRouteId
   approvedPlanSnapshotId: string
   creditReservationId: string
   idempotencyKey: string
@@ -123,7 +129,7 @@ export interface ReasoningModelAttemptCostAggregate {
   reasoningRunId: string
   approvedPlanSnapshotId: string
   creditReservationId: string
-  routeIds: ReEditProReasoningModelRouteId[]
+  routeIds: ReEditProActiveReasoningModelRouteId[]
   attemptCount: number
   completedAttemptCount: number
   failedAttemptCount: number

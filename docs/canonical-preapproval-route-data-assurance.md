@@ -10,13 +10,14 @@ envelope.
 The exact route is:
 
 1. Kimi K3 primary;
-2. Qwen 3.7 fallback; and
+2. GPT-5.6 Terra fallback; and
 3. DeepSeek V4 Pro fallback.
 
 This record does not choose a route, create a provider request, read a
 credential, call a model, or authorize a reasoning run. Qwen2.5-VL remains a
 separate visual-understanding specialist and cannot be substituted into this
-reasoning route.
+reasoning route. Qwen 3.7 is likewise outside the head route and is limited to
+explicit Marker Chat/Edit Reference specialist or frozen-v1 verification use.
 
 ## Bound inputs
 

@@ -7,7 +7,7 @@ server boundary that joins a current Living Frame semantic request to the two
 workflow-neutral prerequisites it previously declared but could not consume:
 
 1. current generic source-speech evidence; and
-2. current route-data assurance for the exact Kimi K3, Qwen 3.7, and
+2. current route-data assurance for the exact Kimi K3, GPT-5.6 Terra, and
    DeepSeek V4 Pro route.
 
 The result is ready only for a later, separately authorized provider-envelope

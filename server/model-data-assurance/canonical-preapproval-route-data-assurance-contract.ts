@@ -8,7 +8,7 @@ import {
 import {
   REEDITPRO_REASONING_MODEL_ROUTE_IDS,
   type ReEditProReasoningModelProvider,
-  type ReEditProReasoningModelRouteId,
+  type ReEditProActiveReasoningModelRouteId,
 } from '../../src/types/reasoning-model-routing'
 import {
   sha256AuthorityValue,
@@ -77,7 +77,7 @@ const safeIdentitySchema = z.string().trim().min(1).max(240)
 const isoDateSchema = z.string().datetime({ offset: true })
 const providerSchema = z.enum([
   'moonshot_ai',
-  'alibaba_cloud_model_studio',
+  'openai',
   'deepseek',
 ])
 const routeIdSchema = z.enum(REEDITPRO_REASONING_MODEL_ROUTE_IDS)
@@ -396,7 +396,7 @@ const bindingDraftSchema = z.object({
   ),
   orderedRouteIds: z.tuple([
     z.literal('kimi_k3_primary'),
-    z.literal('qwen_3_7_fallback'),
+    z.literal('gpt_5_6_terra_fallback'),
     z.literal('deepseek_v4_pro_fallback'),
   ]),
   projectPolicy: canonicalPreapprovalProjectModelDataPolicySchema,
@@ -1088,7 +1088,7 @@ function earliestEvidenceExpiry(input: {
 
 function requiredRouteAssurance(
   assurances: readonly CanonicalPreapprovalModelRouteDataAssurance[],
-  routeId: ReEditProReasoningModelRouteId,
+  routeId: ReEditProActiveReasoningModelRouteId,
 ): CanonicalPreapprovalModelRouteDataAssurance {
   const assurance = assurances.find((candidate) =>
     candidate.routeId === routeId)
@@ -1100,7 +1100,7 @@ function requiredRouteAssurance(
   return assurance
 }
 
-function canonicalRoute(routeId: ReEditProReasoningModelRouteId) {
+function canonicalRoute(routeId: ReEditProActiveReasoningModelRouteId) {
   const route = listReEditProReasoningModelRoutes().find(
     (candidate) => candidate.routeId === routeId,
   )

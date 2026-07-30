@@ -5,15 +5,32 @@ import type {
 
 export const REEDITPRO_REASONING_MODEL_ROUTE_IDS = [
   'kimi_k3_primary',
-  'qwen_3_7_fallback',
+  'gpt_5_6_terra_fallback',
   'deepseek_v4_pro_fallback',
 ] as const
 
-export type ReEditProReasoningModelRouteId =
+export type ReEditProActiveReasoningModelRouteId =
   (typeof REEDITPRO_REASONING_MODEL_ROUTE_IDS)[number]
+
+/**
+ * Frozen v1 records may still contain this route ID. It is not part of the
+ * active head-reasoning chain and must never be selected by the v2 fallback
+ * resolver.
+ */
+export const REEDITPRO_LEGACY_REASONING_MODEL_ROUTE_IDS = [
+  'qwen_3_7_fallback',
+] as const
+
+export type ReEditProLegacyReasoningModelRouteId =
+  (typeof REEDITPRO_LEGACY_REASONING_MODEL_ROUTE_IDS)[number]
+
+export type ReEditProReasoningModelRouteId =
+  | ReEditProActiveReasoningModelRouteId
+  | ReEditProLegacyReasoningModelRouteId
 
 export type ReEditProReasoningModelProvider =
   | 'moonshot_ai'
+  | 'openai'
   | 'alibaba_cloud_model_studio'
   | 'deepseek'
 
@@ -43,23 +60,23 @@ export type ReEditProReasoningNonFallbackBlocker =
   (typeof REEDITPRO_REASONING_NON_FALLBACK_BLOCKERS)[number]
 
 export interface ReEditProReasoningModelRouteContract {
-  routeId: ReEditProReasoningModelRouteId
+  routeId: ReEditProActiveReasoningModelRouteId
   routeRole: 'primary' | 'fallback'
   priority: 1 | 2 | 3
   provider: ReEditProReasoningModelProvider
   modelRoleId: ReEditProModelRoleId
   exactProviderModelId: string
   providerBoundary: string
-  contextWindowTokens: 1_000_000
+  contextWindowTokens: number
   exactModelPinned: true
   structuredOutputRequired: true
   approvedUses: ReEditProRequestedModelUse[]
-  nextRouteId: ReEditProReasoningModelRouteId | null
+  nextRouteId: ReEditProActiveReasoningModelRouteId | null
   runtimeStatus: 'provider_activation_gated'
 }
 
 export interface ReEditProReasoningRouteTransitionInput {
-  currentRouteId: ReEditProReasoningModelRouteId
+  currentRouteId: ReEditProActiveReasoningModelRouteId
   failureTrigger: ReEditProReasoningFallbackTrigger | ReEditProReasoningNonFallbackBlocker
   approvedPlanSnapshotId: string
   creditReservationId: string
@@ -70,8 +87,8 @@ export interface ReEditProReasoningRouteTransitionInput {
 export interface ReEditProReasoningRouteResolution {
   ok: boolean
   blocked: boolean
-  currentRouteId: ReEditProReasoningModelRouteId
-  nextRouteId: ReEditProReasoningModelRouteId | null
+  currentRouteId: ReEditProActiveReasoningModelRouteId
+  nextRouteId: ReEditProActiveReasoningModelRouteId | null
   failureTrigger: ReEditProReasoningFallbackTrigger | ReEditProReasoningNonFallbackBlocker
   errors: string[]
   requiresUserReview: boolean

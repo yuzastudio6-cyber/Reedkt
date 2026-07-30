@@ -4,7 +4,7 @@ import {
   REEDITPRO_REASONING_FALLBACK_TRIGGERS,
   REEDITPRO_REASONING_MODEL_ROUTE_IDS,
   type ReEditProReasoningFallbackTrigger,
-  type ReEditProReasoningModelRouteId,
+  type ReEditProActiveReasoningModelRouteId,
 } from '../../src/types/reasoning-model-routing'
 import {
   getReEditProReasoningModelRoute,
@@ -131,7 +131,7 @@ export interface PrePlanLivingFrameSemanticReasoningAuthority {
     typeof REEDITPRO_REASONING_MODEL_ROUTE_CONTRACT_VERSION
   readonly orderedRouteIds: readonly [
     'kimi_k3_primary',
-    'qwen_3_7_fallback',
+    'gpt_5_6_terra_fallback',
     'deepseek_v4_pro_fallback',
   ]
   readonly routeIdentityDigestSha256: string
@@ -168,7 +168,7 @@ export interface CreatePrePlanLivingFrameSemanticReasoningAuthorityInput {
     typeof REEDITPRO_REASONING_MODEL_ROUTE_CONTRACT_VERSION
   readonly orderedRouteIds: readonly [
     'kimi_k3_primary',
-    'qwen_3_7_fallback',
+    'gpt_5_6_terra_fallback',
     'deepseek_v4_pro_fallback',
   ]
   readonly routeIdentityDigestSha256: string
@@ -203,7 +203,7 @@ export interface PrePlanLivingFrameSemanticReasoningPreparedAuthority {
     typeof REEDITPRO_REASONING_MODEL_ROUTE_CONTRACT_VERSION
   readonly orderedRouteIds: readonly [
     'kimi_k3_primary',
-    'qwen_3_7_fallback',
+    'gpt_5_6_terra_fallback',
     'deepseek_v4_pro_fallback',
   ]
   readonly routeIdentityDigestSha256: string
@@ -249,7 +249,7 @@ export interface CreatePrePlanLivingFrameSemanticReasoningPreparedAuthorityInput
     typeof REEDITPRO_REASONING_MODEL_ROUTE_CONTRACT_VERSION
   readonly orderedRouteIds: readonly [
     'kimi_k3_primary',
-    'qwen_3_7_fallback',
+    'gpt_5_6_terra_fallback',
     'deepseek_v4_pro_fallback',
   ]
   readonly routeIdentityDigestSha256: string
@@ -275,7 +275,7 @@ export interface ReasoningModelAttemptCostEvidenceV2Input<
   readonly reasoningRunId: string
   readonly attemptId: string
   readonly attemptOrdinal: 1 | 2 | 3
-  readonly routeId: ReEditProReasoningModelRouteId
+  readonly routeId: ReEditProActiveReasoningModelRouteId
   readonly routeAuthorizationDigestSha256: string
   readonly idempotencyKeyDigestSha256: string
   readonly requestPayloadHashSha256: string
@@ -299,7 +299,7 @@ export interface ReasoningModelAttemptCostEvidenceV2<
   readonly reasoningRunId: string
   readonly attemptId: string
   readonly attemptOrdinal: 1 | 2 | 3
-  readonly routeId: ReEditProReasoningModelRouteId
+  readonly routeId: ReEditProActiveReasoningModelRouteId
   readonly routeAuthorizationDigestSha256: string
   readonly idempotencyKeyDigestSha256: string
   readonly requestPayloadHashSha256: string
@@ -337,7 +337,7 @@ export interface ReasoningModelAttemptCostAggregateV2<
   readonly boundary: 'internal_provider_cost_only'
   readonly workloadAuthority: TAuthority
   readonly reasoningRunId: string
-  readonly routeIds: ReEditProReasoningModelRouteId[]
+  readonly routeIds: ReEditProActiveReasoningModelRouteId[]
   readonly attemptIds: string[]
   readonly attemptCount: number
   readonly completedAttemptCount: number
@@ -692,7 +692,7 @@ export function createPrePlanLivingFrameSemanticReasoningAuthority(
     return failure(
       'invalid_living_frame_reasoning_route',
       'orderedRouteIds',
-      'Living Frame semantic reasoning requires the exact canonical Kimi, Qwen, then DeepSeek route.',
+      'Living Frame semantic reasoning requires the exact canonical Kimi, GPT-5.6 Terra, then DeepSeek route.',
     )
   }
   if (
@@ -740,7 +740,7 @@ export function createPrePlanLivingFrameSemanticReasoningAuthority(
     routeContractVersion: input.routeContractVersion,
     orderedRouteIds: [
       'kimi_k3_primary',
-      'qwen_3_7_fallback',
+      'gpt_5_6_terra_fallback',
       'deepseek_v4_pro_fallback',
     ] as const,
     routeIdentityDigestSha256:
@@ -1004,7 +1004,7 @@ export function createPrePlanLivingFrameSemanticReasoningPreparedAuthority(
     return failure(
       'invalid_living_frame_prepared_reasoning_route',
       'orderedRouteIds',
-      'Prepared Living Frame reasoning requires the exact canonical Kimi, Qwen, then DeepSeek route.',
+      'Prepared Living Frame reasoning requires the exact canonical Kimi, GPT-5.6 Terra, then DeepSeek route.',
     )
   }
   if (
@@ -1070,7 +1070,7 @@ export function createPrePlanLivingFrameSemanticReasoningPreparedAuthority(
     routeContractVersion: input.routeContractVersion,
     orderedRouteIds: [
       'kimi_k3_primary',
-      'qwen_3_7_fallback',
+      'gpt_5_6_terra_fallback',
       'deepseek_v4_pro_fallback',
     ] as const,
     routeIdentityDigestSha256:
@@ -1613,7 +1613,7 @@ export function validateReasoningModelAttemptCostEvidenceV2<
 }
 
 export function reasoningModelRateCardDigest(
-  routeId: ReEditProReasoningModelRouteId,
+  routeId: ReEditProActiveReasoningModelRouteId,
 ): string {
   return sha256(stableStringify({
     rateCardVersion: REEDITPRO_REASONING_MODEL_RATE_CARD_VERSION,

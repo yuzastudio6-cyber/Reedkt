@@ -78,10 +78,11 @@ This proves the private source-led fallback transport and structured response
 boundary. It does not prove source-media analysis, plan compilation, work-graph
 execution, rendering, or final delivery.
 
-## Remaining routing reconciliation
+## Canonical routing reconciliation
 
-The broader canonical reasoning policy still contains historical
-Kimi → Qwen → DeepSeek head-routing records. A separate versioned migration
-must make GPT-5.6 Terra the active head-reasoning fallback while retaining Qwen
-only for explicitly assigned specialist or compatibility roles. Frozen
-historical records must not be silently relabeled.
+The active v2 head-reasoning route is Kimi → GPT-5.6 Terra → DeepSeek.
+Professional-skill traces, execution-package validation, provider-gateway
+metadata, Living Frame preapproval, data assurance, and attempt-cost evidence
+all consume that order. Qwen 3.7 remains only an explicitly assigned
+Marker Chat/Edit Reference specialist and a verifier for frozen v1 records;
+historical Qwen attempt evidence is never relabeled as Terra.

@@ -207,8 +207,8 @@ function createModelRoleTrace(backendIntents: ProfessionalSkillBackendIntent[]):
     errors.push('Professional skill planning must carry the Kimi K3 primary edit-agent role intent.')
   }
 
-  if (!roleIntentMap.has('qwen_3_7_main_edit_agent')) {
-    errors.push('Professional skill planning must carry the Qwen 3.7 first-fallback role intent.')
+  if (!roleIntentMap.has('gpt_5_6_terra_fallback_edit_agent')) {
+    errors.push('Professional skill planning must carry the GPT-5.6 Terra first-fallback role intent.')
   }
 
   if (!roleIntentMap.has('deepseek_v4_tool_code_agent')) {

@@ -92,8 +92,10 @@ function outputAssetType(providerRoute: ProviderRoute): string {
       return 'lottie_overlay_asset'
     case 'kimi_k3_provider_boundary':
       return 'edit_planning_result'
-    case 'qwen_3_7_provider_boundary':
+    case 'gpt_5_6_terra_provider_boundary':
       return 'edit_planning_fallback_result'
+    case 'qwen_3_7_provider_boundary':
+      return 'marker_or_reference_specialist_result'
     case 'qwen2_5_vl_7b_instruct_provider_boundary':
       return 'visual_understanding_result'
     case 'deepseek_v4_pro_tool_code_boundary':

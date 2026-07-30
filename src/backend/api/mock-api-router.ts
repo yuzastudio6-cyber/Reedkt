@@ -1368,22 +1368,24 @@ function mockProfessionalSkillModelRoleTraceIsPackageReady(
     return false
   }
 
-  const qwenFallbackRole = trace.roles.find((role) => role.modelRoleId === 'qwen_3_7_main_edit_agent')
+  const terraFallbackRole = trace.roles.find(
+    (role) => role.modelRoleId === 'gpt_5_6_terra_fallback_edit_agent',
+  )
   if (
-    !qwenFallbackRole ||
-    qwenFallbackRole.providerBoundary !== 'qwen_3_7_provider_boundary' ||
-    qwenFallbackRole.canonicalProviderModel !== 'qwen3.7-max-2026-06-08' ||
-    !qwenFallbackRole.requestedUses.includes('edit_planning') ||
-    qwenFallbackRole.reasoningRouteRole !== 'fallback' ||
-    qwenFallbackRole.reasoningRoutePriority !== 2 ||
-    qwenFallbackRole.fallbackOnly !== true ||
-    qwenFallbackRole.userReasoningAllowed !== true ||
-    qwenFallbackRole.editPlanningAllowed !== true ||
-    qwenFallbackRole.creativeStrategyAllowed !== true ||
-    qwenFallbackRole.editQaReasoningAllowed !== true ||
-    qwenFallbackRole.visualUnderstandingAllowed !== false ||
-    qwenFallbackRole.toolCodeAllowed !== true ||
-    qwenFallbackRole.remotionDraftAllowed !== true
+    !terraFallbackRole ||
+    terraFallbackRole.providerBoundary !== 'gpt_5_6_terra_provider_boundary' ||
+    terraFallbackRole.canonicalProviderModel !== 'gpt-5.6-terra' ||
+    !terraFallbackRole.requestedUses.includes('edit_planning') ||
+    terraFallbackRole.reasoningRouteRole !== 'fallback' ||
+    terraFallbackRole.reasoningRoutePriority !== 2 ||
+    terraFallbackRole.fallbackOnly !== true ||
+    terraFallbackRole.userReasoningAllowed !== true ||
+    terraFallbackRole.editPlanningAllowed !== true ||
+    terraFallbackRole.creativeStrategyAllowed !== true ||
+    terraFallbackRole.editQaReasoningAllowed !== true ||
+    terraFallbackRole.visualUnderstandingAllowed !== false ||
+    terraFallbackRole.toolCodeAllowed !== true ||
+    terraFallbackRole.remotionDraftAllowed !== true
   ) {
     return false
   }

@@ -49,7 +49,7 @@ assert.deepEqual(
   creative.modelRoleIds,
   [
     'kimi_k3_main_edit_agent',
-    'qwen_3_7_main_edit_agent',
+    'gpt_5_6_terra_fallback_edit_agent',
     'deepseek_v4_tool_code_agent',
   ],
 )
@@ -79,15 +79,15 @@ assert.deepEqual(finalJudge.modelRoleIds, [])
 assert.equal(finalJudge.invocationPolicy, 'recommendation_only_never_user_approval')
 
 assert.equal(
-  JSON.stringify(bindings).toLowerCase().includes('gpt-5.6'),
+  creative.modelRoleIds.includes('qwen_3_7_main_edit_agent'),
   false,
-  'Example model names must not become hardcoded workflow business logic.',
+  'Qwen 3.7 must not re-enter the active head-reasoning route.',
 )
 
 const validPlan = createReEditProIntelligenceResponsibilityPlan({
   availableModelRoleIds: [
     'kimi_k3_main_edit_agent',
-    'qwen_3_7_main_edit_agent',
+    'gpt_5_6_terra_fallback_edit_agent',
     'deepseek_v4_tool_code_agent',
     'qwen2_5_vl_visual_understanding',
   ],
@@ -115,7 +115,7 @@ assert.equal(
 const missingFallback = createReEditProIntelligenceResponsibilityPlan({
   availableModelRoleIds: [
     'kimi_k3_main_edit_agent',
-    'qwen_3_7_main_edit_agent',
+    'gpt_5_6_terra_fallback_edit_agent',
   ],
   requestedTasks: ['creative_blueprint'],
 })

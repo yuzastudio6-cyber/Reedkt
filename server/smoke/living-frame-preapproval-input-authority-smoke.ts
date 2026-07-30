@@ -276,7 +276,7 @@ assert.equal(authority.evidence.evidenceReReadByServer, true)
 assert.equal(authority.evidence.selectedSceneAuthority, false)
 assert.deepEqual(authority.reasoning.orderedRouteIds, [
   'kimi_k3_primary',
-  'qwen_3_7_fallback',
+  'gpt_5_6_terra_fallback',
   'deepseek_v4_pro_fallback',
 ])
 assert.equal(authority.reasoning.providerTransportAuthorized, false)
@@ -496,7 +496,7 @@ assert.notEqual(
     reasoning: {
       ...authority.reasoning,
       orderedRouteIds: [
-        'qwen_3_7_fallback',
+        'gpt_5_6_terra_fallback',
         'kimi_k3_primary',
         'deepseek_v4_pro_fallback',
       ],
@@ -2906,7 +2906,7 @@ function createRouteDataAssurance(input: {
       sensitivity: 'internal',
       permittedProviderIds: [
         'moonshot_ai',
-        'alibaba_cloud_model_studio',
+        'openai',
         'deepseek',
       ],
       allowedProcessingRegions: [regionId],
@@ -2943,7 +2943,7 @@ function createRouteDataAssurance(input: {
     })
   const routeAssurances = ([
     'kimi_k3_primary',
-    'qwen_3_7_fallback',
+    'gpt_5_6_terra_fallback',
     'deepseek_v4_pro_fallback',
   ] as const).map((routeId) =>
     createCanonicalPreapprovalModelRouteDataAssurance({

@@ -217,7 +217,7 @@ export async function bindCanonicalLivingFramePreapprovalInputAuthority(
     stableAuthorityStringify(orderedRouteIds) !==
     stableAuthorityStringify([
       'kimi_k3_primary',
-      'qwen_3_7_fallback',
+      'gpt_5_6_terra_fallback',
       'deepseek_v4_pro_fallback',
     ])
   ) {
@@ -354,7 +354,7 @@ export async function bindCanonicalLivingFramePreapprovalInputAuthority(
         REEDITPRO_REASONING_MODEL_ROUTE_CONTRACT_VERSION,
       orderedRouteIds: [
         'kimi_k3_primary',
-        'qwen_3_7_fallback',
+        'gpt_5_6_terra_fallback',
         'deepseek_v4_pro_fallback',
       ] as const,
       routeIdentityDigestSha256,

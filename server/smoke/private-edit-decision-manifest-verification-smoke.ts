@@ -143,9 +143,9 @@ const validManifest: ProfessionalEditDecisionManifestClientModel = {
           intentId: 'intent.private_manifest.qwen_first_fallback',
           intentKind: 'model_role',
           executionBoundary: 'backend_approved_after_snapshot',
-          providerRoute: 'qwen_3_7_provider_boundary',
-          providerModel: 'qwen3.7-max-2026-06-08',
-          modelRoleId: 'qwen_3_7_main_edit_agent',
+          providerRoute: 'gpt_5_6_terra_provider_boundary',
+          providerModel: 'gpt-5.6-terra',
+          modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
           requestedModelUse: 'edit_planning',
           hiddenAdapterToolCount: 0,
           requiredApprovalGates: [
@@ -214,11 +214,11 @@ const validManifest: ProfessionalEditDecisionManifestClientModel = {
             remotionDraftAllowed: true,
           },
           {
-            modelRoleId: 'qwen_3_7_main_edit_agent',
-            providerBoundary: 'qwen_3_7_provider_boundary',
-            canonicalProviderModel: 'qwen3.7-max-2026-06-08',
+            modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
+            providerBoundary: 'gpt_5_6_terra_provider_boundary',
+            canonicalProviderModel: 'gpt-5.6-terra',
             requestedUses: ['edit_planning'],
-            intentIds: ['intent.private_manifest.qwen_first_fallback'],
+            intentIds: ['intent.private_manifest.terra_first_fallback'],
             reasoningRouteRole: 'fallback',
             reasoningRoutePriority: 2,
             fallbackOnly: true,
@@ -478,8 +478,8 @@ if (validResult.ok) {
   )
   assert.ok(
     validResult.verification.approvedEditContext.professionalSkillTrace?.backendIntents?.some((intent) =>
-      intent.providerRoute === 'qwen_3_7_provider_boundary' &&
-      intent.modelRoleId === 'qwen_3_7_main_edit_agent' &&
+      intent.providerRoute === 'gpt_5_6_terra_provider_boundary' &&
+      intent.modelRoleId === 'gpt_5_6_terra_fallback_edit_agent' &&
       intent.requestedModelUse === 'edit_planning',
     ),
     'Private manifest verification must preserve the Qwen 3.7 first-fallback backend intent.',
@@ -522,9 +522,9 @@ if (validResult.ok) {
   )
   assert.ok(
     validResult.verification.approvedEditContext.professionalSkillTrace?.modelRoleTrace?.roles.some((role) =>
-      role.modelRoleId === 'qwen_3_7_main_edit_agent' &&
-      role.providerBoundary === 'qwen_3_7_provider_boundary' &&
-      role.canonicalProviderModel === 'qwen3.7-max-2026-06-08' &&
+      role.modelRoleId === 'gpt_5_6_terra_fallback_edit_agent' &&
+      role.providerBoundary === 'gpt_5_6_terra_provider_boundary' &&
+      role.canonicalProviderModel === 'gpt-5.6-terra' &&
       role.requestedUses.includes('edit_planning') &&
       role.reasoningRouteRole === 'fallback' &&
       role.reasoningRoutePriority === 2 &&

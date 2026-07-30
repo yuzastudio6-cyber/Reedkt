@@ -6,7 +6,8 @@ import type {
   ReEditProRequestedModelUse,
 } from '../types'
 
-export const REEDITPRO_MODEL_ROLE_CONTRACT_VERSION = 'reeditpro-model-role-routing-v2-kimi-primary'
+export const REEDITPRO_MODEL_ROLE_CONTRACT_VERSION =
+  'reeditpro-model-role-routing-v3-kimi-terra-deepseek'
 
 export const REEDITPRO_MODEL_ROLE_CONTRACTS: ReEditProModelRoleContract[] = [
   {
@@ -38,14 +39,19 @@ export const REEDITPRO_MODEL_ROLE_CONTRACTS: ReEditProModelRoleContract[] = [
       'perform source video visual understanding directly instead of consuming specialist evidence',
       'run tools, workers, render, storage, billing, or Supabase mutations',
     ],
-    fallbackPolicy: 'If an allowed, classified failure occurs, advance exactly once to the Qwen 3.7 fallback route under the same immutable edit authority.',
+    fallbackPolicy: 'If an allowed, classified failure occurs, advance exactly once to the GPT-5.6 Terra fallback route under the same immutable edit authority.',
     mockOnly: true,
   },
   {
-    modelRoleId: 'qwen_3_7_main_edit_agent',
-    displayName: 'Qwen 3.7 fallback edit agent',
-    aliases: ['Qwen 3.7', 'Qwen 3.7 Max', 'qwen3.7-max', 'qwen3.7-max-2026-06-08', 'qwen_3_reasoning'],
-    canonicalProviderModel: 'qwen3.7-max-2026-06-08',
+    modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
+    displayName: 'GPT-5.6 Terra fallback edit agent',
+    aliases: [
+      'GPT-5.6 Terra',
+      'gpt-5.6-terra',
+      'gpt_5_6_terra',
+      'terra_fallback_edit_agent',
+    ],
+    canonicalProviderModel: 'gpt-5.6-terra',
     role: 'fallback_edit_reasoning_agent',
     reasoningRouteRole: 'fallback',
     reasoningRoutePriority: 2,
@@ -58,20 +64,55 @@ export const REEDITPRO_MODEL_ROLE_CONTRACTS: ReEditProModelRoleContract[] = [
     visualUnderstandingAllowed: false,
     toolCodeAllowed: true,
     remotionDraftAllowed: true,
-    providerBoundary: 'qwen_3_7_provider_boundary',
-    purpose: 'First fallback for ReEditPro reasoning, planning, creative edit strategy, coding, Remotion drafts, and edit-QA reasoning after a classified Kimi K3 attempt failure.',
+    providerBoundary: 'gpt_5_6_terra_provider_boundary',
+    purpose: 'First full-capability fallback for ReEditPro reasoning, planning, creative edit strategy, coding, Remotion drafts, and edit-QA reasoning after a classified Kimi K3 attempt failure.',
     allowedResponsibilities: [
       'continue the exact approved reasoning task after an allowed Kimi K3 failure',
-      'reason from the same immutable prompt package and evidence authority',
-      'produce validated edit plans, creative strategy, or bounded coding drafts as a fallback',
+      'reason from the same immutable prompt package and source-bound evidence authority',
+      'produce validated edit plans, creative strategy, QA explanations, or bounded coding drafts as a fallback',
     ],
     forbiddenResponsibilities: [
       'act as the primary/default edit reasoning route',
       'execute provider calls from frontend or mock planning',
-      'perform visual/video understanding directly',
+      'claim source-media inspection without exact specialist evidence',
       'run tools, workers, render, storage, billing, or Supabase mutations',
     ],
     fallbackPolicy: 'Run only after an allowed Kimi K3 failure; on another allowed failure, advance exactly once to DeepSeek V4 Pro.',
+    mockOnly: true,
+  },
+  {
+    modelRoleId: 'qwen_3_7_main_edit_agent',
+    displayName: 'Qwen 3.7 marker and reference reasoning specialist',
+    aliases: ['Qwen 3.7', 'Qwen 3.7 Max', 'qwen3.7-max', 'qwen3.7-max-2026-06-08', 'qwen_3_reasoning'],
+    canonicalProviderModel: 'qwen3.7-max-2026-06-08',
+    role: 'marker_reference_reasoning_specialist',
+    reasoningRouteRole: 'specialist',
+    reasoningRoutePriority: null,
+    fallbackOnly: false,
+    executionStatus: 'provider_required_future_gated',
+    userReasoningAllowed: true,
+    editPlanningAllowed: false,
+    creativeStrategyAllowed: false,
+    editQaReasoningAllowed: false,
+    visualUnderstandingAllowed: false,
+    toolCodeAllowed: false,
+    remotionDraftAllowed: false,
+    providerBoundary: 'qwen_3_7_provider_boundary',
+    purpose: 'Specialist reasoning for explicitly authorized Marker Chat and Edit Reference analysis. Qwen 3.7 is not in the active head-reasoning fallback chain.',
+    allowedResponsibilities: [
+      'reason about an explicitly bounded marker or edit-reference evidence package',
+      'produce a specialist finding for the canonical Kimi or Terra head route',
+      'verify frozen v1 Qwen attempt records without relabeling them as Terra',
+    ],
+    forbiddenResponsibilities: [
+      'act as the primary/default edit reasoning route',
+      'act as the fallback head edit agent',
+      'create or approve the canonical edit plan',
+      'execute provider calls from frontend or mock planning',
+      'perform visual/video understanding directly',
+      'run tools, workers, render, storage, billing, or Supabase mutations',
+    ],
+    fallbackPolicy: 'No head-route fallback authority. If the bounded specialist is unavailable, the head route continues without it or asks for review according to the owning feature policy.',
     mockOnly: true,
   },
   {
@@ -125,15 +166,15 @@ export const REEDITPRO_MODEL_ROLE_CONTRACTS: ReEditProModelRoleContract[] = [
     toolCodeAllowed: true,
     remotionDraftAllowed: true,
     providerBoundary: 'deepseek_v4_pro_tool_code_boundary',
-    purpose: 'Final bounded fallback for reasoning, planning, creative edit strategy, coding, Remotion drafts, and edit-QA reasoning after Kimi K3 and Qwen 3.7 fail with allowed classifications.',
+    purpose: 'Final bounded fallback for reasoning, planning, creative edit strategy, coding, Remotion drafts, and edit-QA reasoning after Kimi K3 and GPT-5.6 Terra fail with allowed classifications.',
     allowedResponsibilities: [
-      'continue the exact approved reasoning task after allowed Kimi K3 and Qwen 3.7 failures',
+      'continue the exact approved reasoning task after allowed Kimi K3 and GPT-5.6 Terra failures',
       'produce validated edit plans or QA explanations from the same immutable evidence package',
       'draft bounded coding, tool-code, deterministic adapter, or Remotion implementation hints',
     ],
     forbiddenResponsibilities: [
       'act as the primary/default edit reasoning route',
-      'skip the Qwen 3.7 fallback without a separately approved route-policy exception',
+      'skip the GPT-5.6 Terra fallback without a separately approved route-policy exception',
       'replace Qwen2.5-VL visual understanding',
       'run provider/tool/worker/render/storage/billing calls from frontend or mock planning',
     ],
@@ -179,6 +220,9 @@ export function validateReEditProModelRoleContracts(
 ): ReEditProModelRoleContractValidation {
   const errors: string[] = []
   const kimi = contracts.find((contract) => contract.modelRoleId === 'kimi_k3_main_edit_agent')
+  const terra = contracts.find((contract) =>
+    contract.modelRoleId === 'gpt_5_6_terra_fallback_edit_agent'
+  )
   const qwen = contracts.find((contract) => contract.modelRoleId === 'qwen_3_7_main_edit_agent')
   const visual = contracts.find((contract) => contract.modelRoleId === 'qwen2_5_vl_visual_understanding')
   const deepseek = contracts.find((contract) => contract.modelRoleId === 'deepseek_v4_tool_code_agent')
@@ -193,12 +237,23 @@ export function validateReEditProModelRoleContracts(
   }
 
   if (
-    !qwen?.userReasoningAllowed || !qwen.editPlanningAllowed ||
-    !qwen.creativeStrategyAllowed || !qwen.editQaReasoningAllowed ||
-    !qwen.toolCodeAllowed || !qwen.remotionDraftAllowed ||
-    qwen.reasoningRouteRole !== 'fallback' || qwen.reasoningRoutePriority !== 2 || !qwen.fallbackOnly
+    !terra?.userReasoningAllowed || !terra.editPlanningAllowed ||
+    !terra.creativeStrategyAllowed || !terra.editQaReasoningAllowed ||
+    !terra.toolCodeAllowed || !terra.remotionDraftAllowed ||
+    terra.reasoningRouteRole !== 'fallback' ||
+    terra.reasoningRoutePriority !== 2 || !terra.fallbackOnly
   ) {
-    errors.push('Qwen 3.7 must remain the first full-capability fallback route at priority 2.')
+    errors.push('GPT-5.6 Terra must remain the first full-capability fallback route at priority 2.')
+  }
+
+  if (
+    !qwen?.userReasoningAllowed || qwen.editPlanningAllowed ||
+    qwen.creativeStrategyAllowed || qwen.editQaReasoningAllowed ||
+    qwen.toolCodeAllowed || qwen.remotionDraftAllowed ||
+    qwen.reasoningRouteRole !== 'specialist' ||
+    qwen.reasoningRoutePriority !== null || qwen.fallbackOnly
+  ) {
+    errors.push('Qwen 3.7 must remain a bounded marker/reference specialist outside the head-reasoning fallback chain.')
   }
 
   if (

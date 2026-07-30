@@ -24,7 +24,7 @@ import {
 } from '../reasoning-model-cost'
 import type {
   ReEditProReasoningFallbackTrigger,
-  ReEditProReasoningModelRouteId,
+  ReEditProActiveReasoningModelRouteId,
 } from '../../src/types/reasoning-model-routing'
 
 const request: EditReferenceStudyChatReasoningRequest = {
@@ -82,7 +82,7 @@ const nativeUsage: ReasoningModelTokenUsage = {
   cacheBillingMode: 'provider_native',
 }
 
-const qwenUsage: ReasoningModelTokenUsage = {
+const invalidLegacyQwenCacheUsage: ReasoningModelTokenUsage = {
   uncachedInputTokens: 100_000,
   cachedInputTokens: 50_000,
   cacheCreationInputTokens: 0,
@@ -99,20 +99,13 @@ const kimi = attempt({
   usage: nativeUsage,
   recordedAt: '2026-07-20T16:00:10.000Z',
 })
-const qwen = attempt({
-  routeId: 'qwen_3_7_fallback',
+const terra = attempt({
+  routeId: 'gpt_5_6_terra_fallback',
   ordinal: 2,
   entryFallbackTrigger: 'provider_timeout',
   terminalOutcome: 'failed',
   terminalFallbackTrigger: 'malformed_structured_output',
-  usage: qwenUsage,
-  fxSnapshot: {
-    snapshotId: 'fx-cny-usd-study-chat-smoke-v1',
-    source: 'immutable controlled FX fixture',
-    sourceUrl: 'https://example.com/immutable-fx-fixture',
-    observedAt: '2026-07-20T15:59:00.000Z',
-    cnyToUsdMicrosPerCny: 140_000,
-  },
+  usage: nativeUsage,
   recordedAt: '2026-07-20T16:00:20.000Z',
 })
 const deepseek = attempt({
@@ -125,11 +118,11 @@ const deepseek = attempt({
   recordedAt: '2026-07-20T16:00:30.000Z',
 })
 
-const aggregate = aggregateReasoningModelAttemptCostsV2([kimi, qwen, deepseek])
+const aggregate = aggregateReasoningModelAttemptCostsV2([kimi, terra, deepseek])
 if (!aggregate.ok) throw new Error(aggregate.error.message)
 assert.deepEqual(aggregate.data.routeIds, [
   'kimi_k3_primary',
-  'qwen_3_7_fallback',
+  'gpt_5_6_terra_fallback',
   'deepseek_v4_pro_fallback',
 ])
 assert.equal(aggregate.data.failedAttemptCount, 2)
@@ -143,14 +136,14 @@ assert.equal(aggregate.data.serviceFeeIncluded, false)
 
 const evidence = [
   lifecycle(kimi, '2026-07-20T16:00:00.000Z', '2026-07-20T16:00:10.000Z', 'provider_timeout'),
-  lifecycle(qwen, '2026-07-20T16:00:11.000Z', '2026-07-20T16:00:20.000Z', 'malformed_structured_output'),
+  lifecycle(terra, '2026-07-20T16:00:11.000Z', '2026-07-20T16:00:20.000Z', 'malformed_structured_output'),
   lifecycle(deepseek, '2026-07-20T16:00:21.000Z', '2026-07-20T16:00:30.000Z', null),
 ]
 const canonical = createCanonicalReasoningRunReceipt({
   workloadAuthority: authority,
   attempts: [
     { costEvidence: kimi, lifecycleEvidence: evidence[0] },
-    { costEvidence: qwen, lifecycleEvidence: evidence[1] },
+    { costEvidence: terra, lifecycleEvidence: evidence[1] },
     { costEvidence: deepseek, lifecycleEvidence: evidence[2] },
   ],
   finalResultDigestSha256: sha256('bounded-study-chat-answer'),
@@ -171,7 +164,7 @@ const studyReceipt = createEditReferenceStudyChatReasoningRunReceipt({
 assert.equal(studyReceipt.reasoningRunId, 'reasoning-run-study-chat-smoke')
 assert.deepEqual(studyReceipt.routeIds, [
   'kimi_k3_primary',
-  'qwen_3_7_fallback',
+  'gpt_5_6_terra_fallback',
   'deepseek_v4_pro_fallback',
 ])
 assert.equal(studyReceipt.failedAttemptCount, 2)
@@ -225,37 +218,32 @@ assert.equal(
   request.maximumAuthorizedInternalCostMicros,
 )
 
-const missingFx = createReasoningModelAttemptCostEvidenceV2({
+const legacyQwenCacheMode = createReasoningModelAttemptCostEvidenceV2({
   ...attemptInput({
-    routeId: 'qwen_3_7_fallback',
+    routeId: 'gpt_5_6_terra_fallback',
     ordinal: 2,
     entryFallbackTrigger: 'provider_timeout',
     terminalOutcome: 'completed',
     terminalFallbackTrigger: null,
-    usage: qwenUsage,
+    usage: invalidLegacyQwenCacheUsage,
     recordedAt: '2026-07-20T18:00:00.000Z',
   }),
 })
-assert.equal(missingFx.ok, false)
-if (!missingFx.ok) assert.equal(missingFx.error.code, 'missing_fx_normalization')
+assert.equal(legacyQwenCacheMode.ok, false)
+if (!legacyQwenCacheMode.ok) {
+  assert.equal(legacyQwenCacheMode.error.code, 'invalid_cache_mode')
+}
 
-assert.equal(aggregateReasoningModelAttemptCostsV2([qwen]).ok, false)
+assert.equal(aggregateReasoningModelAttemptCostsV2([terra]).ok, false)
 const mismatchedFallback = attempt({
-  routeId: 'qwen_3_7_fallback',
+  routeId: 'gpt_5_6_terra_fallback',
   ordinal: 2,
   entryFallbackTrigger: 'provider_unavailable',
   terminalOutcome: 'completed',
   terminalFallbackTrigger: null,
-  usage: qwenUsage,
-  fxSnapshot: {
-    snapshotId: 'fx-cny-usd-study-chat-smoke-mismatch',
-    source: 'immutable controlled FX fixture',
-    sourceUrl: 'https://example.com/immutable-fx-fixture-mismatch',
-    observedAt: '2026-07-20T18:00:00.000Z',
-    cnyToUsdMicrosPerCny: 140_000,
-  },
+  usage: nativeUsage,
   recordedAt: '2026-07-20T18:00:01.000Z',
-  suffix: 'qwen-mismatched-entry',
+  suffix: 'terra-mismatched-entry',
 })
 assert.equal(aggregateReasoningModelAttemptCostsV2([kimi, mismatchedFallback]).ok, false)
 const completedKimi = attempt({
@@ -268,7 +256,7 @@ const completedKimi = attempt({
   recordedAt: '2026-07-20T18:00:02.000Z',
   suffix: 'kimi-completed-before-fallback',
 })
-assert.equal(aggregateReasoningModelAttemptCostsV2([completedKimi, qwen]).ok, false)
+assert.equal(aggregateReasoningModelAttemptCostsV2([completedKimi, terra]).ok, false)
 assert.equal(aggregateReasoningModelAttemptCostsV2([
   { ...kimi, evidenceHashSha256: '0'.repeat(64) },
 ]).ok, false)
@@ -316,7 +304,7 @@ console.log(JSON.stringify({
   failedAttemptCostRetained: studyReceipt.failedAttemptCostRetained,
   normalizedUsdInternalCostMicros: studyReceipt.normalizedUsdInternalCostMicros,
   unknownOutcomeBlocksFallback: true,
-  qwenRequiresVersionedFx: true,
+  terraRejectsLegacyQwenCacheAccounting: true,
   approvedPlanSnapshotFabricated: false,
   creditReservationFabricated: false,
   providerCallMade: false,
@@ -380,7 +368,7 @@ function lifecycle(
 }
 
 interface AttemptInput {
-  readonly routeId: ReEditProReasoningModelRouteId
+  readonly routeId: ReEditProActiveReasoningModelRouteId
   readonly ordinal: 1 | 2 | 3
   readonly entryFallbackTrigger: ReEditProReasoningFallbackTrigger | null
   readonly terminalOutcome: ReasoningModelAttemptTerminalOutcome

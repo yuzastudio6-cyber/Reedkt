@@ -311,10 +311,10 @@ export interface LivingFrameSemanticRequestPayload {
 
 export interface LivingFrameSemanticRequestRouteAssuranceExpectation {
   readonly routeContract:
-    'reeditpro-reasoning-model-route-v1-kimi-qwen-deepseek'
+    'reeditpro-reasoning-model-route-v2-kimi-terra-deepseek'
   readonly orderedRouteIds: readonly [
     'kimi_k3_primary',
-    'qwen_3_7_fallback',
+    'gpt_5_6_terra_fallback',
     'deepseek_v4_pro_fallback',
   ]
   readonly state: 'shared_route_data_assurance_required'

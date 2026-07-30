@@ -1,15 +1,15 @@
 import {
   REEDITPRO_REASONING_FALLBACK_TRIGGERS,
   REEDITPRO_REASONING_MODEL_ROUTE_IDS,
+  type ReEditProActiveReasoningModelRouteId,
   type ReEditProReasoningModelRouteContract,
-  type ReEditProReasoningModelRouteId,
   type ReEditProReasoningRouteResolution,
   type ReEditProReasoningRouteTransitionInput,
 } from '../types/reasoning-model-routing'
 import { getReEditProModelRoleContract } from './model-role-routing-contract'
 
 export const REEDITPRO_REASONING_MODEL_ROUTE_CONTRACT_VERSION =
-  'reeditpro-reasoning-model-route-v1-kimi-qwen-deepseek'
+  'reeditpro-reasoning-model-route-v2-kimi-terra-deepseek'
 
 const approvedReasoningUses = [
   'user_reasoning',
@@ -33,18 +33,18 @@ export const REEDITPRO_REASONING_MODEL_ROUTE_CHAIN: readonly ReEditProReasoningM
     exactModelPinned: true,
     structuredOutputRequired: true,
     approvedUses: [...approvedReasoningUses],
-    nextRouteId: 'qwen_3_7_fallback',
+    nextRouteId: 'gpt_5_6_terra_fallback',
     runtimeStatus: 'provider_activation_gated',
   },
   {
-    routeId: 'qwen_3_7_fallback',
+    routeId: 'gpt_5_6_terra_fallback',
     routeRole: 'fallback',
     priority: 2,
-    provider: 'alibaba_cloud_model_studio',
-    modelRoleId: 'qwen_3_7_main_edit_agent',
-    exactProviderModelId: 'qwen3.7-max-2026-06-08',
-    providerBoundary: 'qwen_3_7_provider_boundary',
-    contextWindowTokens: 1_000_000,
+    provider: 'openai',
+    modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
+    exactProviderModelId: 'gpt-5.6-terra',
+    providerBoundary: 'gpt_5_6_terra_provider_boundary',
+    contextWindowTokens: 1_050_000,
     exactModelPinned: true,
     structuredOutputRequired: true,
     approvedUses: [...approvedReasoningUses],
@@ -76,7 +76,7 @@ export function listReEditProReasoningModelRoutes(): ReEditProReasoningModelRout
 }
 
 export function getReEditProReasoningModelRoute(
-  routeId: ReEditProReasoningModelRouteId,
+  routeId: ReEditProActiveReasoningModelRouteId,
 ): ReEditProReasoningModelRouteContract {
   const route = REEDITPRO_REASONING_MODEL_ROUTE_CHAIN.find((item) => item.routeId === routeId)
   if (!route) throw new Error(`Missing ReEditPro reasoning model route: ${routeId}`)

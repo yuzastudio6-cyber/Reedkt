@@ -206,7 +206,7 @@ const routeDataAssuranceProjectionSchema = z.object({
   routeContractVersion: safeIdentitySchema,
   orderedRouteIds: z.tuple([
     z.literal('kimi_k3_primary'),
-    z.literal('qwen_3_7_fallback'),
+    z.literal('gpt_5_6_terra_fallback'),
     z.literal('deepseek_v4_pro_fallback'),
   ]),
   routeDecisionSetDigestSha256: digestSchema,

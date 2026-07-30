@@ -529,29 +529,57 @@ assert.equal(
 productionToolCostEstimateSchema.parse(providerResult.toolCostEstimate)
 assert.ok(providerResult.warnings.some((warning) => warning.includes('No OpenAI')))
 
-const qwenPlanningProviderResult = await createProviderGatewayService(context).createProviderRequestAttempt({
+const terraPlanningProviderResult = await createProviderGatewayService(context).createProviderRequestAttempt({
   workspaceId: 'workspace-toolcost-smoke',
   projectId: 'project-toolcost-smoke',
-  providerRoute: 'qwen_3_7_provider_boundary',
-  providerModel: 'qwen3.7-max-2026-06-08',
+  providerRoute: 'gpt_5_6_terra_provider_boundary',
+  providerModel: 'gpt-5.6-terra',
   requestedModelUse: 'edit_planning',
   approvedPlanSnapshotId: 'approved-toolcost-smoke',
   creditEstimateId: 'estimate-toolcost-smoke',
   creditReservationId: 'reservation-toolcost-smoke',
-  requestPayloadHash: 'hash-qwen-planning-smoke',
+  requestPayloadHash: 'hash-terra-planning-smoke',
   mockOnly: true,
 })
-assert.equal(qwenPlanningProviderResult.providerRequestAttempt.modelRoleId, 'qwen_3_7_main_edit_agent')
-assert.equal(qwenPlanningProviderResult.providerRequestAttempt.canonicalProviderModel, 'qwen3.7-max-2026-06-08')
-assert.equal(qwenPlanningProviderResult.providerRequestAttempt.modelRoleProviderBoundary, 'qwen_3_7_provider_boundary')
-assert.equal(qwenPlanningProviderResult.providerRequestAttempt.requestedModelUse, 'edit_planning')
-assert.equal(qwenPlanningProviderResult.warnings.some((warning) => warning.includes('No OpenAI, Kimi, Qwen, DeepSeek')), true)
+assert.equal(
+  terraPlanningProviderResult.providerRequestAttempt.modelRoleId,
+  'gpt_5_6_terra_fallback_edit_agent',
+)
+assert.equal(
+  terraPlanningProviderResult.providerRequestAttempt.canonicalProviderModel,
+  'gpt-5.6-terra',
+)
+assert.equal(
+  terraPlanningProviderResult.providerRequestAttempt.modelRoleProviderBoundary,
+  'gpt_5_6_terra_provider_boundary',
+)
+assert.equal(terraPlanningProviderResult.providerRequestAttempt.requestedModelUse, 'edit_planning')
+assert.equal(terraPlanningProviderResult.warnings.some((warning) => warning.includes('No OpenAI, Kimi, Qwen, DeepSeek')), true)
 
 await assert.rejects(
   () => createProviderGatewayService(context).createProviderRequestAttempt({
     workspaceId: 'workspace-toolcost-smoke',
     projectId: 'project-toolcost-smoke',
     providerRoute: 'qwen_3_7_provider_boundary',
+    providerModel: 'qwen3.7-max-2026-06-08',
+    requestedModelUse: 'edit_planning',
+    approvedPlanSnapshotId: 'approved-toolcost-smoke',
+    creditEstimateId: 'estimate-toolcost-smoke',
+    creditReservationId: 'reservation-toolcost-smoke',
+    requestPayloadHash: 'hash-qwen-head-route-forbidden-smoke',
+    mockOnly: true,
+  }),
+  (error) => error instanceof Error
+    && 'code' in error
+    && error.code === 'PROVIDER_MODEL_ROLE_FORBIDDEN',
+  'Provider gateway must reject Qwen 3.7 as an edit-planning head fallback.',
+)
+
+await assert.rejects(
+  () => createProviderGatewayService(context).createProviderRequestAttempt({
+    workspaceId: 'workspace-toolcost-smoke',
+    projectId: 'project-toolcost-smoke',
+    providerRoute: 'gpt_5_6_terra_provider_boundary',
     providerModel: 'DeepSeek V4 Pro',
     requestedModelUse: 'edit_planning',
     approvedPlanSnapshotId: 'approved-toolcost-smoke',
@@ -571,7 +599,7 @@ await assert.rejects(
     workspaceId: 'workspace-toolcost-smoke',
     projectId: 'project-toolcost-smoke',
     providerRoute: 'gpt_image_2',
-    providerModel: 'Qwen 3.7 Max',
+    providerModel: 'GPT-5.6 Terra',
     requestedModelUse: 'edit_planning',
     approvedPlanSnapshotId: 'approved-toolcost-smoke',
     creditEstimateId: 'estimate-toolcost-smoke',
@@ -582,7 +610,7 @@ await assert.rejects(
   (error) => error instanceof Error &&
     'code' in error &&
     error.code === 'PROVIDER_MODEL_ROLE_FORBIDDEN',
-  'Provider gateway must reject Qwen/DeepSeek model roles on concrete asset-generation routes.',
+  'Provider gateway must reject reasoning model roles on concrete asset-generation routes.',
 )
 
 await assert.rejects(
@@ -631,7 +659,7 @@ const providerGatewayRoleRequestBase: ProviderGatewayRequest = {
 }
 assert.equal(validateProviderGatewayRequest({
   ...providerGatewayRoleRequestBase,
-  modelRoleId: 'qwen_3_7_main_edit_agent',
+  modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
   requestedModelUse: 'edit_planning',
 }).ok, true)
 assert.equal(validateProviderGatewayRequest({
@@ -646,62 +674,62 @@ assert.equal(validateProviderGatewayRequest({
   safetyConstraints: { routeRole: 'primary' },
 }).ok, true)
 
-const qwenCloudGatewayRequest: ProviderGatewayRequest = {
+const terraCloudGatewayRequest: ProviderGatewayRequest = {
   ...providerGatewayRoleRequestBase,
-  providerRoute: 'qwen_3_7_provider_boundary',
-  providerModel: 'qwen3.7-max-2026-06-08',
-  modelRoleId: 'qwen_3_7_main_edit_agent',
+  providerRoute: 'gpt_5_6_terra_provider_boundary',
+  providerModel: 'gpt-5.6-terra',
+  modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
   requestedModelUse: 'edit_planning',
 }
-assert.equal(validateProviderGatewayRequest(qwenCloudGatewayRequest).ok, true)
-const missingQwenUseResult = validateProviderGatewayRequest({
+assert.equal(validateProviderGatewayRequest(terraCloudGatewayRequest).ok, true)
+const missingTerraUseResult = validateProviderGatewayRequest({
   ...providerGatewayRoleRequestBase,
-  providerRoute: 'qwen_3_7_provider_boundary',
-  modelRoleId: 'qwen_3_7_main_edit_agent',
+  providerRoute: 'gpt_5_6_terra_provider_boundary',
+  modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
 })
-assert.equal(missingQwenUseResult.ok, false)
+assert.equal(missingTerraUseResult.ok, false)
 assert.equal(
-  missingQwenUseResult.errors.some((error) => error.includes('requires an explicit requested model use')),
+  missingTerraUseResult.errors.some((error) => error.includes('requires an explicit requested model use')),
   true,
 )
-const mismatchedQwenRouteResult = validateProviderGatewayRequest({
+const mismatchedTerraRouteResult = validateProviderGatewayRequest({
   ...providerGatewayRoleRequestBase,
   providerRoute: 'deepseek_v4_pro_tool_code_boundary',
-  modelRoleId: 'qwen_3_7_main_edit_agent',
+  modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
   requestedModelUse: 'edit_planning',
 })
-assert.equal(mismatchedQwenRouteResult.ok, false)
+assert.equal(mismatchedTerraRouteResult.ok, false)
 assert.equal(
-  mismatchedQwenRouteResult.errors.some((error) => error.includes('model role metadata mismatch')),
+  mismatchedTerraRouteResult.errors.some((error) => error.includes('model role metadata mismatch')),
   true,
 )
-const mismatchedQwenModelResult = validateProviderGatewayRequest({
+const mismatchedTerraModelResult = validateProviderGatewayRequest({
   ...providerGatewayRoleRequestBase,
-  providerRoute: 'qwen_3_7_provider_boundary',
+  providerRoute: 'gpt_5_6_terra_provider_boundary',
   providerModel: 'DeepSeek V4 Pro',
   requestedModelUse: 'edit_planning',
 })
-assert.equal(mismatchedQwenModelResult.ok, false)
+assert.equal(mismatchedTerraModelResult.ok, false)
 assert.equal(
-  mismatchedQwenModelResult.errors.some((error) => error.includes('model role metadata mismatch')),
+  mismatchedTerraModelResult.errors.some((error) => error.includes('model role metadata mismatch')),
   true,
 )
-const unknownQwenModelResult = validateProviderGatewayRequest({
+const unknownTerraModelResult = validateProviderGatewayRequest({
   ...providerGatewayRoleRequestBase,
-  providerRoute: 'qwen_3_7_provider_boundary',
+  providerRoute: 'gpt_5_6_terra_provider_boundary',
   providerModel: 'unknown-planner-model',
-  modelRoleId: 'qwen_3_7_main_edit_agent',
+  modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
   requestedModelUse: 'edit_planning',
 })
-assert.equal(unknownQwenModelResult.ok, false)
+assert.equal(unknownTerraModelResult.ok, false)
 assert.equal(
-  unknownQwenModelResult.errors.some((error) => error.includes('canonical provider model qwen3.7-max-2026-06-08')),
+  unknownTerraModelResult.errors.some((error) => error.includes('canonical provider model gpt-5.6-terra')),
   true,
 )
 const concreteRouteWithModelRoleResult = validateProviderGatewayRequest({
   ...providerGatewayRoleRequestBase,
   providerRoute: 'gpt_image_2',
-  modelRoleId: 'qwen_3_7_main_edit_agent',
+  modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
   requestedModelUse: 'edit_planning',
 })
 assert.equal(concreteRouteWithModelRoleResult.ok, false)
@@ -711,15 +739,18 @@ assert.equal(
 )
 assert.equal(PROVIDER_ROUTES.includes('qwen_3_7_provider_boundary'), true)
 assert.equal(PROVIDER_ROUTES.includes('kimi_k3_provider_boundary'), true)
+assert.equal(PROVIDER_ROUTES.includes('gpt_5_6_terra_provider_boundary'), true)
 assert.equal(PROVIDER_ROUTES.includes('qwen2_5_vl_7b_instruct_provider_boundary'), true)
 assert.equal(PROVIDER_ROUTES.includes('deepseek_v4_pro_tool_code_boundary'), true)
 assert.deepEqual([...MODEL_ROLE_PROVIDER_ROUTES], [
   'kimi_k3_provider_boundary',
+  'gpt_5_6_terra_provider_boundary',
   'qwen_3_7_provider_boundary',
   'qwen2_5_vl_7b_instruct_provider_boundary',
   'deepseek_v4_pro_tool_code_boundary',
 ])
 assert.equal(isModelRoleProviderRoute('qwen_3_7_provider_boundary'), true)
+assert.equal(isModelRoleProviderRoute('gpt_5_6_terra_provider_boundary'), true)
 assert.equal(isModelRoleProviderRoute('gpt_image_2'), false)
 assert.equal(GENERATED_ASSET_PROVIDER_ROUTES.includes('gpt_image_2'), true)
 assert.equal(isGeneratedAssetProviderRoute('gpt_image_2'), true)
@@ -814,52 +845,56 @@ assert.equal(
   mireloNonAudioOutputResult.errors.some((error) => error.includes('audio output asset type')),
   true,
 )
-const qwenMockGatewayResponse = createMockProviderGatewayClient('qwen_3_7_provider_boundary')
-  .prepareRequest(qwenCloudGatewayRequest)
-assert.equal(qwenMockGatewayResponse.status, 'accepted_mock')
-assert.equal(qwenMockGatewayResponse.generatedAssetDraft, undefined)
-assert.equal(qwenMockGatewayResponse.secretReferenceName, 'reeditpro-prod-qwen-api-key')
-assert.equal(qwenMockGatewayResponse.providerModel, 'qwen3.7-max-2026-06-08')
-assert.equal(qwenMockGatewayResponse.modelRoleId, 'qwen_3_7_main_edit_agent')
-assert.equal(qwenMockGatewayResponse.canonicalProviderModel, 'qwen3.7-max-2026-06-08')
-assert.equal(qwenMockGatewayResponse.modelRoleProviderBoundary, 'qwen_3_7_provider_boundary')
-assert.equal(qwenMockGatewayResponse.requestedModelUse, 'edit_planning')
-assert.equal(qwenMockGatewayResponse.usageEstimate.providerModel, 'qwen3.7-max-2026-06-08')
-assert.equal(qwenMockGatewayResponse.usageEstimate.modelRoleId, 'qwen_3_7_main_edit_agent')
-assert.equal(qwenMockGatewayResponse.usageEstimate.canonicalProviderModel, 'qwen3.7-max-2026-06-08')
-assert.equal(qwenMockGatewayResponse.usageEstimate.modelRoleProviderBoundary, 'qwen_3_7_provider_boundary')
-assert.equal(qwenMockGatewayResponse.usageEstimate.requestedModelUse, 'edit_planning')
-assert.equal(qwenMockGatewayResponse.providerEventPayload.providerRoute, 'qwen_3_7_provider_boundary')
-assert.equal(qwenMockGatewayResponse.providerEventPayload.providerModel, 'qwen3.7-max-2026-06-08')
-assert.equal(qwenMockGatewayResponse.providerEventPayload.modelRoleId, 'qwen_3_7_main_edit_agent')
-assert.equal(qwenMockGatewayResponse.providerEventPayload.canonicalProviderModel, 'qwen3.7-max-2026-06-08')
-assert.equal(qwenMockGatewayResponse.providerEventPayload.modelRoleProviderBoundary, 'qwen_3_7_provider_boundary')
-assert.equal(qwenMockGatewayResponse.providerEventPayload.requestedModelUse, 'edit_planning')
+const terraMockGatewayResponse =
+  createMockProviderGatewayClient('gpt_5_6_terra_provider_boundary')
+    .prepareRequest(terraCloudGatewayRequest)
+assert.equal(terraMockGatewayResponse.status, 'accepted_mock')
+assert.equal(terraMockGatewayResponse.generatedAssetDraft, undefined)
+assert.equal(terraMockGatewayResponse.secretReferenceName, 'reeditpro-prod-openai-api-key')
+assert.equal(terraMockGatewayResponse.providerModel, 'gpt-5.6-terra')
+assert.equal(terraMockGatewayResponse.modelRoleId, 'gpt_5_6_terra_fallback_edit_agent')
+assert.equal(terraMockGatewayResponse.canonicalProviderModel, 'gpt-5.6-terra')
+assert.equal(terraMockGatewayResponse.modelRoleProviderBoundary, 'gpt_5_6_terra_provider_boundary')
+assert.equal(terraMockGatewayResponse.requestedModelUse, 'edit_planning')
+assert.equal(terraMockGatewayResponse.usageEstimate.providerModel, 'gpt-5.6-terra')
+assert.equal(terraMockGatewayResponse.usageEstimate.modelRoleId, 'gpt_5_6_terra_fallback_edit_agent')
+assert.equal(terraMockGatewayResponse.usageEstimate.canonicalProviderModel, 'gpt-5.6-terra')
+assert.equal(terraMockGatewayResponse.usageEstimate.modelRoleProviderBoundary, 'gpt_5_6_terra_provider_boundary')
+assert.equal(terraMockGatewayResponse.usageEstimate.requestedModelUse, 'edit_planning')
+assert.equal(terraMockGatewayResponse.providerEventPayload.providerRoute, 'gpt_5_6_terra_provider_boundary')
+assert.equal(terraMockGatewayResponse.providerEventPayload.providerModel, 'gpt-5.6-terra')
+assert.equal(terraMockGatewayResponse.providerEventPayload.modelRoleId, 'gpt_5_6_terra_fallback_edit_agent')
+assert.equal(terraMockGatewayResponse.providerEventPayload.canonicalProviderModel, 'gpt-5.6-terra')
+assert.equal(terraMockGatewayResponse.providerEventPayload.modelRoleProviderBoundary, 'gpt_5_6_terra_provider_boundary')
+assert.equal(terraMockGatewayResponse.providerEventPayload.requestedModelUse, 'edit_planning')
 assert.equal(getProviderSecretReference('qwen2_5_vl_7b_instruct_provider_boundary')?.secretName, 'reeditpro-prod-qwen-api-key')
 assert.equal(getProviderSecretReference('kimi_k3_provider_boundary')?.secretName, 'reeditpro-prod-kimi-api-key')
+assert.equal(getProviderSecretReference('gpt_5_6_terra_provider_boundary')?.secretName, 'reeditpro-prod-openai-api-key')
 assert.equal(getProviderSecretReference('deepseek_v4_pro_tool_code_boundary')?.secretName, 'reeditpro-prod-deepseek-api-key')
 assert.equal(isKnownProviderSecretName('reeditpro-prod-qwen-api-key'), true)
 assert.equal(isKnownProviderSecretName('reeditpro-prod-deepseek-api-key'), true)
-const qwenDispatchResult = dispatchProviderGatewayRequest(qwenCloudGatewayRequest)
-assert.equal(qwenDispatchResult.ok, true)
-assert.equal(qwenDispatchResult.response?.generatedAssetDraft, undefined)
-assert.equal(qwenDispatchResult.response?.secretReferenceName, 'reeditpro-prod-qwen-api-key')
-assert.equal(qwenDispatchResult.response?.modelRoleId, 'qwen_3_7_main_edit_agent')
-assert.equal(qwenDispatchResult.response?.requestedModelUse, 'edit_planning')
-const qwenRouteOnlyGatewayRequest: ProviderGatewayRequest = {
+const terraDispatchResult = dispatchProviderGatewayRequest(terraCloudGatewayRequest)
+assert.equal(terraDispatchResult.ok, true)
+assert.equal(terraDispatchResult.response?.generatedAssetDraft, undefined)
+assert.equal(terraDispatchResult.response?.secretReferenceName, 'reeditpro-prod-openai-api-key')
+assert.equal(terraDispatchResult.response?.modelRoleId, 'gpt_5_6_terra_fallback_edit_agent')
+assert.equal(terraDispatchResult.response?.requestedModelUse, 'edit_planning')
+const terraRouteOnlyGatewayRequest: ProviderGatewayRequest = {
   ...providerGatewayRoleRequestBase,
-  providerRoute: 'qwen_3_7_provider_boundary',
+  providerRoute: 'gpt_5_6_terra_provider_boundary',
   requestedModelUse: 'edit_planning',
 }
-assert.equal(validateProviderGatewayRequest(qwenRouteOnlyGatewayRequest).ok, true)
-const qwenRouteOnlyResponse = createMockProviderGatewayClient('qwen_3_7_provider_boundary')
-  .prepareRequest(qwenRouteOnlyGatewayRequest)
-assert.equal(qwenRouteOnlyResponse.modelRoleId, 'qwen_3_7_main_edit_agent')
-assert.equal(qwenRouteOnlyResponse.usageEstimate.modelRoleId, 'qwen_3_7_main_edit_agent')
-assert.equal(qwenRouteOnlyResponse.providerEventPayload.modelRoleId, 'qwen_3_7_main_edit_agent')
-const qwenRouteOnlyDispatch = dispatchProviderGatewayRequest(qwenRouteOnlyGatewayRequest)
-assert.equal(qwenRouteOnlyDispatch.ok, true)
-assert.equal(qwenRouteOnlyDispatch.response?.modelRoleId, 'qwen_3_7_main_edit_agent')
+assert.equal(validateProviderGatewayRequest(terraRouteOnlyGatewayRequest).ok, true)
+const terraRouteOnlyResponse =
+  createMockProviderGatewayClient('gpt_5_6_terra_provider_boundary')
+    .prepareRequest(terraRouteOnlyGatewayRequest)
+assert.equal(terraRouteOnlyResponse.modelRoleId, 'gpt_5_6_terra_fallback_edit_agent')
+assert.equal(terraRouteOnlyResponse.usageEstimate.modelRoleId, 'gpt_5_6_terra_fallback_edit_agent')
+assert.equal(terraRouteOnlyResponse.providerEventPayload.modelRoleId, 'gpt_5_6_terra_fallback_edit_agent')
+const terraRouteOnlyDispatch =
+  dispatchProviderGatewayRequest(terraRouteOnlyGatewayRequest)
+assert.equal(terraRouteOnlyDispatch.ok, true)
+assert.equal(terraRouteOnlyDispatch.response?.modelRoleId, 'gpt_5_6_terra_fallback_edit_agent')
 const deepseekDispatchResult = dispatchProviderGatewayRequest({
   ...providerGatewayRoleRequestBase,
   providerRoute: 'deepseek_v4_pro_tool_code_boundary',
@@ -867,7 +902,7 @@ const deepseekDispatchResult = dispatchProviderGatewayRequest({
   requestedModelUse: 'user_reasoning',
 })
 assert.equal(deepseekDispatchResult.ok, true)
-const blockedRealProviderDispatch = dispatchProviderGatewayRequest(qwenCloudGatewayRequest, {
+const blockedRealProviderDispatch = dispatchProviderGatewayRequest(terraCloudGatewayRequest, {
   executionMode: 'real_provider_blocked',
   allowRealProviderCalls: false,
 })

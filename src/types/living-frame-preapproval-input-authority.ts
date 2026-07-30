@@ -74,7 +74,7 @@ export interface LivingFramePreapprovalReasoningExpectation {
   readonly routeContractVersion: string
   readonly orderedRouteIds: readonly [
     'kimi_k3_primary',
-    'qwen_3_7_fallback',
+    'gpt_5_6_terra_fallback',
     'deepseek_v4_pro_fallback',
   ]
   readonly routeIdentityDigestSha256: string
@@ -165,6 +165,6 @@ export interface LivingFramePreapprovalInputAuthority {
 export type LivingFramePreapprovalCanonicalRouteId = Extract<
   ReEditProReasoningModelRouteId,
   | 'kimi_k3_primary'
-  | 'qwen_3_7_fallback'
+  | 'gpt_5_6_terra_fallback'
   | 'deepseek_v4_pro_fallback'
 >

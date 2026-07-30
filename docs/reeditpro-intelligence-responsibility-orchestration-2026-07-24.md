@@ -13,7 +13,7 @@ five responsibilities to the canonical authorities that exist in this product:
 | Responsibility | Current ReEditPro authority |
 | --- | --- |
 | Visual Analyst | Qwen2.5-VL visual-understanding specialist, using bounded source/proxy evidence |
-| Creative Director | Ordered Kimi K3 primary, Qwen 3.7 fallback, DeepSeek V4 Pro final-fallback reasoning route |
+| Creative Director | Ordered Kimi K3 primary, GPT-5.6 Terra fallback, DeepSeek V4 Pro final-fallback reasoning route |
 | Operations Orchestrator | Existing deterministic approved-snapshot work graph, queue, lease, tool dispatch, artifact, checkback, and cost authorities |
 | Engineering Specialist | Operator-reviewed engineering boundary; never an automatic customer-job patch or arbitrary shell authority |
 | Final Judge | Exceptional recommendation boundary; explicit user approval and canonical policy remain final |

@@ -168,8 +168,8 @@ assert.ok(
   'Professional skill planning must carry the canonical Kimi K3 primary edit-agent intent.',
 )
 assert.ok(
-  backendIntentIds.has('intent.compile_prompt_direction.qwen_first_fallback'),
-  'Professional skill planning must carry the canonical Qwen 3.7 first-fallback intent.',
+  backendIntentIds.has('intent.compile_prompt_direction.terra_first_fallback'),
+  'Professional skill planning must carry the canonical GPT-5.6 Terra first-fallback intent.',
 )
 assert.ok(
   backendIntentIds.has('intent.compile_prompt_direction.deepseek_final_fallback'),
@@ -200,8 +200,8 @@ assert.ok(
   'Kimi K3 must remain the primary edit-planning, user-reasoning, creativity, and coding role.',
 )
 assert.ok(plan.modelRoleTrace.roles.some((role) =>
-  role.modelRoleId === 'qwen_3_7_main_edit_agent' &&
-  role.canonicalProviderModel === 'qwen3.7-max-2026-06-08' &&
+  role.modelRoleId === 'gpt_5_6_terra_fallback_edit_agent' &&
+  role.canonicalProviderModel === 'gpt-5.6-terra' &&
   role.reasoningRouteRole === 'fallback' &&
   role.reasoningRoutePriority === 2 &&
   role.toolCodeAllowed

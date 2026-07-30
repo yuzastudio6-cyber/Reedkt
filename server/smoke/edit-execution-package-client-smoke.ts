@@ -74,9 +74,9 @@ const approvedSnapshot = {
         intentKind: 'model_role',
         userFacingActivity: 'Continue approved edit planning after an allowed primary-route failure.',
         executionBoundary: 'backend_approved_after_snapshot',
-        providerRoute: 'qwen_3_7_provider_boundary',
-        providerModel: 'qwen3.7-max-2026-06-08',
-        modelRoleId: 'qwen_3_7_main_edit_agent',
+        providerRoute: 'gpt_5_6_terra_provider_boundary',
+        providerModel: 'gpt-5.6-terra',
+        modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
         requestedModelUse: 'edit_planning',
         hiddenAdapterToolNames: [],
         requiredApprovalGates: [
@@ -147,11 +147,11 @@ const approvedSnapshot = {
           remotionDraftAllowed: true,
         },
         {
-          modelRoleId: 'qwen_3_7_main_edit_agent',
-          providerBoundary: 'qwen_3_7_provider_boundary',
-          canonicalProviderModel: 'qwen3.7-max-2026-06-08',
+          modelRoleId: 'gpt_5_6_terra_fallback_edit_agent',
+          providerBoundary: 'gpt_5_6_terra_provider_boundary',
+          canonicalProviderModel: 'gpt-5.6-terra',
           requestedUses: ['edit_planning'],
-          intentIds: ['intent.client_smoke.qwen_first_fallback'],
+          intentIds: ['intent.client_smoke.terra_first_fallback'],
           reasoningRouteRole: 'fallback',
           reasoningRoutePriority: 2,
           fallbackOnly: true,
@@ -359,8 +359,8 @@ assert.ok(
 )
 assert.ok(
   executionPackage.professionalSkillTrace?.backendIntents.some((intent) =>
-    intent.providerRoute === 'qwen_3_7_provider_boundary' &&
-    intent.modelRoleId === 'qwen_3_7_main_edit_agent' &&
+    intent.providerRoute === 'gpt_5_6_terra_provider_boundary' &&
+    intent.modelRoleId === 'gpt_5_6_terra_fallback_edit_agent' &&
     intent.requestedModelUse === 'edit_planning',
   ),
   'Client package skill trace must preserve the Qwen 3.7 first-fallback backend intent.',
@@ -394,14 +394,14 @@ assert.ok(
 )
 assert.ok(
   executionPackage.professionalSkillTrace?.modelRoleTrace.roles.some((role) =>
-    role.modelRoleId === 'qwen_3_7_main_edit_agent' &&
-    role.canonicalProviderModel === 'qwen3.7-max-2026-06-08' &&
+    role.modelRoleId === 'gpt_5_6_terra_fallback_edit_agent' &&
+    role.canonicalProviderModel === 'gpt-5.6-terra' &&
     role.requestedUses.includes('edit_planning') &&
     role.reasoningRouteRole === 'fallback' &&
     role.reasoningRoutePriority === 2 &&
     role.fallbackOnly === true,
   ),
-  'Client package skill trace must preserve the canonical Qwen 3.7 fallback model-role trace.',
+  'Client package skill trace must preserve the canonical GPT-5.6 Terra fallback model-role trace.',
 )
 assert.ok(
   executionPackage.professionalSkillTrace?.modelRoleTrace.roles.some((role) =>

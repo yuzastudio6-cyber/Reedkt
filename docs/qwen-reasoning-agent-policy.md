@@ -1,8 +1,13 @@
-# Qwen Reasoning Fallback Policy
+# Qwen Specialist And Legacy-Compatibility Policy
 
-Original implementation date: 2026-06-18. Superseded route decision: 2026-07-18.
+Original implementation date: 2026-06-18. Superseded route decision:
+2026-07-30.
 
-Qwen 3.7 is the first full-capability fallback for ReEditPro reasoning and editorial judgment. Kimi K3 is now the primary reasoning/edit-planning/creativity/coding route. This is a role-binding policy, not a provider call.
+Qwen 3.7 is no longer a full-capability head fallback. The active head route
+is Kimi K3 primary, GPT-5.6 Terra first fallback, and DeepSeek V4 Pro final
+fallback. Qwen 3.7 is limited to explicitly authorized Marker Chat/Edit
+Reference specialist work and verification of frozen v1 evidence. This is a
+role-binding policy, not a provider call.
 
 ## Qwen Role Coverage
 
@@ -15,21 +20,33 @@ Historical Qwen-backed role names in RP-MODEL-01 remain persisted compatibility 
 - `revision_learning_agent` for revision interpretation;
 - `provider_prompt_agent`, `music_prompt_agent`, `sfx_prompt_agent`, and `render_manifest_agent` for planning language and readiness summaries.
 
-Those role names must resolve through the canonical Kimi-primary route policy rather than creating a second Qwen-primary authority. Edit Reference/Edit Preference consumers remain externally owned and must be reconciled through their accepted handoff instead of being rewritten in this backend slice.
+Those role names must resolve through the canonical Kimi/Terra/DeepSeek route
+policy rather than creating a second Qwen-primary or Qwen-fallback authority.
+Edit Reference specialist consumers may retain Qwen only under their own
+bounded specialist authorization.
 
 ## Current Boundary
 
-The canonical route contract can create fail-closed metadata, validate the exact Kimi -> Qwen -> DeepSeek order, and calculate provisional per-attempt internal provider cost. It does not call Qwen, configure Qwen secrets, deploy backend runtime, reserve or mutate credits, dispatch workers, or render media.
+The canonical route contract can create fail-closed metadata, validate the
+exact Kimi → Terra → DeepSeek order, and calculate provisional per-attempt
+internal provider cost. It does not call providers, configure secrets, deploy
+backend runtime, reserve or mutate credits, dispatch workers, or render media.
 
 RP-MODEL-02 records expected Qwen secret names and readiness blockers only. It does not add or inspect Qwen secret values.
 
 RP-MODEL-03 adds the Qwen reasoning adapter skeleton and structured reasoning prompt contracts. The skeleton returns blocked/configured-later summaries only; it has no SDK, HTTP client, token usage, secret access, or provider call.
 
-Qwen fallback may run only after an allowed terminal Kimi failure, against the same immutable edit authority. Missing approval, reservation, tenant authority, safety authority, or snapshot blocks instead of triggering Qwen. A failed Qwen attempt remains part of internal production cost before DeepSeek is considered.
+Qwen must not be selected after a Kimi failure. Terra owns that fallback slot.
+Frozen v1 Qwen attempt records retain their original cost and lifecycle
+identity for audit; they are not replay authority and are never rewritten as
+Terra.
 
 ## Future Boundary
 
-Future production Qwen use requires backend-only execution, secure secrets, rate limiting, project context, exact approved snapshot, existing reservation, idempotent one-use dispatch, durable attempts, provider usage readback, QA, and cost reconciliation.
+Future production Qwen specialist use requires backend-only execution, secure
+secrets, rate limiting, exact specialist input authority, idempotent one-use
+dispatch, durable attempts, provider usage readback, QA, and cost
+reconciliation. It cannot approve or replace the canonical edit plan.
 
 ## RP-PREF-VIDEO-01 Qwen Bridge
 

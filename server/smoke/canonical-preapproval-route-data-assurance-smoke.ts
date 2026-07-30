@@ -5,7 +5,7 @@ import { join } from 'node:path'
 
 import {
   REEDITPRO_REASONING_MODEL_ROUTE_IDS,
-  type ReEditProReasoningModelRouteId,
+  type ReEditProActiveReasoningModelRouteId,
 } from '../../src/types/reasoning-model-routing'
 import {
   canonicalPreapprovalRouteDataAssuranceBindingSchema,
@@ -343,7 +343,7 @@ try {
         requestDigestSha256: digest('sensitivity-request'),
         sensitivity: 'restricted',
         routeOverrides: {
-          qwen_3_7_fallback: {
+          gpt_5_6_terra_fallback: {
             maximumSensitivity: 'internal',
           },
         },
@@ -677,7 +677,7 @@ function fixture(input?: {
     | 'blocked'
     | 'review_required'
   routeOverrides?: Partial<Record<
-    ReEditProReasoningModelRouteId,
+    ReEditProActiveReasoningModelRouteId,
     Partial<{
       maximumSensitivity:
         'public' | 'internal' | 'confidential' | 'restricted'
@@ -725,7 +725,7 @@ function fixture(input?: {
       sensitivity: input?.sensitivity ?? 'internal',
       permittedProviderIds: [
         'moonshot_ai',
-        'alibaba_cloud_model_studio',
+        'openai',
         'deepseek',
       ],
       allowedProcessingRegions:

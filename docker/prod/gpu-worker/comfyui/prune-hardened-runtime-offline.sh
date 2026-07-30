@@ -117,8 +117,11 @@ for package_name in ${FORBIDDEN_PACKAGES}; do
   fi
 done
 
-find /var/lib/apt/lists -depth -mindepth 1 -delete
-find /var/cache/apt/archives -depth -mindepth 1 -delete
+for apt_cache_root in /var/lib/apt/lists /var/cache/apt/archives; do
+  if [ -d "${apt_cache_root}" ]; then
+    find "${apt_cache_root}" -depth -mindepth 1 -delete
+  fi
+done
 
 "${RUNTIME_ROOT}/verify-installed-layout.sh"
 

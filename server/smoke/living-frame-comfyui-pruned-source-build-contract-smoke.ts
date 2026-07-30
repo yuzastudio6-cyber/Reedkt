@@ -50,6 +50,7 @@ for (const required of [
   "build-essential",
   "python3-dev",
   "dpkg --purge --force-depends apt gpgv",
+  'if [ -d "${apt_cache_root}" ]',
   "verify-installed-layout.sh",
 ] as const) {
   assert.equal(

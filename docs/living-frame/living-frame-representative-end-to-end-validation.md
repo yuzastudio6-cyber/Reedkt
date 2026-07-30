@@ -76,7 +76,7 @@ The validation proves:
 - serialized scenario, work, estimate, and review evidence contains none of the
   controlled example subjects used during design exploration.
 
-Two actual private renders supplement the connected source-level trace:
+Actual private renders supplement the connected source-level trace:
 
 - `server/smoke/offline-remotion-living-frame-motion-smoke.ts` renders a
   subject-neutral 640×360 composition with a shallow layer and a same-scene
@@ -111,11 +111,20 @@ Two actual private renders supplement the connected source-level trace:
   slice is therefore privately end-to-end green. It distinguishes
   sub-perceptual fade frames from missing overlays without relaxing materially
   visible-frame requirements.
+- `server/smoke/living-frame-five-mode-private-render-smoke.ts` renders one
+  frame-accurate 180-frame private artifact containing all five Living Frame
+  modes plus deliberate non-use. Real decoded-pixel assertions prove A-roll
+  focus handoff and restoration, selective mechanical component rotation,
+  archive differential parallax, deterministic diagram reveal, hybrid
+  expansion and return, caption-plane priority in every range, and the absence
+  of Living Frame overlays in the restraint range.
 
 ## Mode coverage
 
 `server/smoke/living-frame-subject-neutral-capability-matrix-smoke.ts`
-separately verifies all five Living Frame modes and deliberate non-use:
+verifies the subject-neutral capability and fallback decisions, while
+`server/smoke/living-frame-five-mode-private-render-smoke.ts` now executes all
+five modes and deliberate non-use through the real private Remotion runtime:
 
 - `living_a_roll`
 - `living_still`
@@ -124,8 +133,10 @@ separately verifies all five Living Frame modes and deliberate non-use:
 - `hybrid_expansion`
 - emotionally sensitive delivery where Living Frame is deliberately not used
 
-The matrix also checks exact map/data routing, one focal primary, fallback to no
-extra visual, and the six controlled-illustration capability identities.
+The matrix checks exact map/data routing, one focal primary, fallback to no
+extra visual, and the six controlled-illustration capability identities. The
+private render adds actual motion, depth, focus, scale, z-order, restoration,
+and no-overlay pixel evidence.
 
 The connected source-level trace uses a subject-neutral generated component
 inside `living_a_roll`, because that combination exercises controlled

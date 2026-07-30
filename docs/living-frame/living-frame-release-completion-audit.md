@@ -1,6 +1,6 @@
 # Living Frame Release Completion Audit
 
-Status date: 2026-07-29
+Status date: 2026-07-30
 
 Feature branch:
 `codex/living-frame-gpu-operation-preflight-v1`
@@ -9,7 +9,7 @@ Latest frozen feature state:
 tracked by the clean branch head and exact backend handoff hash
 
 Overall status:
-`source_and_private_runtime_complete_for_current_slice_external_release_open`
+`private_internal_e2e_in_progress_customer_release_deferred`
 
 This audit measures the current repository against the complete Living Frame
 product direction. It does not redefine success around the latest renderer
@@ -62,7 +62,7 @@ authority.
 | Requirement | Current status | Authoritative evidence | Remaining work |
 | --- | --- | --- | --- |
 | Composite parent skill and deliberate non-use | `verified_source_contract` | `src/lib/professional-skills/professional-skill-registry.ts`, `src/lib/living-frame/living-frame-selection-policy.ts`, `src/types/living-frame.ts` | Backend must preserve the selected/non-use decision when integrating the frozen component. |
-| Five Living Frame modes | `verified_source_contract` | `src/types/living-frame.ts`, `server/smoke/living-frame-subject-neutral-capability-matrix-smoke.ts` | Mode-specific production media benchmarks remain release work. |
+| Five Living Frame modes | `verified_private_runtime` | `src/types/living-frame.ts`, subject-neutral capability matrix, and `server/smoke/living-frame-five-mode-private-render-smoke.ts` | One real 180-frame private render now proves all five modes plus deliberate non-use. Broader aspect-ratio and real-project fixture coverage remains internal-test work. |
 | Reusable mini-skill family | `verified_source_contract` | `src/types/living-frame.ts`, `src/lib/living-frame/living-frame-contract.ts`, `server/living-frame/living-frame-semantic-plan-projection.ts` | No new skill taxonomy is needed. |
 | Narrative and animation-aware illustration | `verified_source_contract` | mini-skill identities, component asset intent, synthesis routing, work admission, controlled-illustration qualification, and the selected-scene private conditioning binding | The private conditioning source now derives exact style, scene, component, separability, depth, frame, and truth instructions from the validated Visual Continuity Pack and proves their digest equality at the real selected-scene prompt materializer. Production generation remains gated by the controlled ComfyUI operation or another approved route. |
 | Visual Continuity Pack | `verified_source_contract` | `src/lib/living-frame/living-frame-visual-continuity-contract.ts`, `docs/living-frame/visual-continuity-pack.md`, selected-scene read-only pack binding candidate, continuity measurement, and fixtures | Production persistence, reference retention, consent, fairness, and identity-review policy remain backend/release gates. The namespaced candidate now revalidates the complete pack payload against the exact selected scene and emits a digest-only binding, but the canonical selected-scene interface or immutable private pack-artifact bridge and any persisted reference-artifact binding remain canonical-owner gates. |
@@ -82,7 +82,7 @@ authority.
 | Approval and immutable snapshot | `verified_source_contract`; `not_required_as_separate_owner` | existing canonical approval/snapshot authorities and Living Frame bindings | Backend remains sole approval and reservation authority. |
 | Async work graph and asset manifest | `verified_source_contract` | canonical work-graph projection v10, generated source → mask → RGBA → layer manifest → final composition lineage | Released distributed dispatch is still open. |
 | Asset QA and private review | `verified_private_runtime` for the representative static-RGBA trace and the namespaced selected procedural-particle trace | generated-still QA projection, destination composite evidence, canonical static-RGBA private-review evidence, persisted selected-particle scene QA, process-private selected-particle review evidence | Actual ComfyUI output must pass the same gates after L4 release. The canonical review compiler also needs an approved procedural-timeline artifact contract before it can consume the selected particle trace generically; the namespaced proof records the conflict without replacing the canonical owner. |
-| Remotion final composition | `verified_private_runtime` | actual 640×360 motion render and actual 3840×2160 H.264/AAC streaming render | Public delivery and production promotion remain false. |
+| Remotion final composition | `verified_private_runtime` | actual 640×360 scalar-motion render, actual five-mode 180-frame private render, selected-scene particle renders, and actual 3840×2160 H.264/AAC streaming render | Public delivery and production promotion remain intentionally deferred; they do not block internal E2E testing. |
 | Documentary/factual integrity | `verified_source_contract` | source-truth mode, provenance, documentary fact-safety dependencies, selected-scene private documentary fact-safety binding, full-frame continuity/fact reconciliation | Generated illustration must never be presented as authentic evidence. The new process-private binding revalidates an immutable approved fact-safety packet, exact scene expectation/claim mapping, and source-truth disposition, then adds generic status-derived constraints to the real selected-scene prompt without copying raw claims or claiming fact verification. The canonical snapshot reader and scene-to-claim join remain explicit shared-owner bridges. |
 | Subject-neutral behavior | `verified_source_contract` | capability matrix and serialized-evidence name scans | Named examples remain fixtures only. |
 | Backend workflow coordination | `handoff_delivered` | material frozen commits are handed to canonical backend task `019f4c76-4ec8-75f3-9cc6-39399dbee47d`; the exact clean head is recorded in each handoff | Backend task must reconcile without changing canonical ownership. |

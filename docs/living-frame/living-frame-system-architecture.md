@@ -2,8 +2,9 @@
 
 Status: controlled semantic request v2, selected-scene/canonical work
 projection, and private deterministic render evidence
-Runtime readiness: source/private slices active; controlled-illustration GPU
-and production release remain closed
+Runtime readiness: private internal E2E in progress; all five modes have actual
+private-render evidence; controlled-illustration GPU execution remains open
+and customer production release is deferred
 Component contract: `living-frame-professional-skill-component-v1`
 Evidence contract: `living-frame-planning-evidence-binding-v1`
 Visual continuity contract: `living-frame-visual-continuity-pack-v1`
@@ -41,6 +42,11 @@ GPU operation, distributed model mounts, provider generation, public delivery,
 customer charging, or production execution. The existing approval, snapshot,
 work graph, asset manifest, StoryTiming, SoundSync, Remotion, private-review,
 and commercial authorities remain the only owners of their domains.
+
+The current completion target is complete private internal testing. Customer
+production readiness, public delivery, live billing, and external deployment
+are deliberately later gates and do not block internal render, artifact, QA,
+fallback, or private-review evidence.
 
 ## Product meaning
 

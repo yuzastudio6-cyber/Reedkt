@@ -347,13 +347,13 @@ const receipt = {
       gate:
         'exact_comfyui_controlled_generation_runtime',
       reason:
-        'released_five_model_bundle_and_real_l4_execution_evidence_are_unavailable',
+        'exact_private_bundle_and_atomic_read_only_mount_are_verified_by_the_adjacent_host_specific_smoke_but_released_image_complete_model_load_and_real_l4_generation_resource_and_qa_evidence_remain_unavailable',
     },
     {
       gate:
         'advanced_temporal_living_a_roll_subject_mask',
       reason:
-        'namespaced_source_video_and_sam2_work_candidate_plus_byte_output_and_qa_path_pass_canonical_owner_admission_is_frozen_at_576ca54b_and_model_free_local_source_config_runtime_confinement_passes_but_approved_checkpoint_mount_and_real_l4_inference_remain_unavailable',
+        'canonical_ffmpeg_to_sam2_work_admission_is_frozen_at_576ca54b_and_fixed_runner_router_plus_exact_private_checkpoint_read_only_mount_and_hard_cuda_refusal_are_frozen_at_3e59ce45_but_real_l4_inference_private_output_resource_and_mask_qa_evidence_remain_unavailable',
     },
   ],
   internalEndToEndReadyForOwnerReview: false,

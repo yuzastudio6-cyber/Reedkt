@@ -93,7 +93,7 @@ The six product-design candidates are not six production tools.
 
 | Capability | Intended placement | Current evidence | Release status |
 | --- | --- | --- | --- |
-| ComfyUI | One shared NVIDIA L4 controlled-image host | Pinned source, locked wheel closure, strict protocol, canonical five-model mount session, digest-bound non-root runtime-confinement requirement, operation-scoped `sam2` import guard, local installed-layout observation, exact 761-package SPDX inventory, 1,582-file static source-corpus scan, and reproducible model-free local confinement/startup smoke | `qualified_local_candidate`; an internal derived wrapper proves default UID/GID 65532, fixed-entrypoint startup, caller argument/root rejection, environment scrubbing, the `sam2` guard, and both reviewed custom nodes under CPU emulation, but the measured parent still defaults to root/unspecified, inherited direct-VCS `sam-2` remains distributed, CPU emulation needs bounded stop escalation, and the clean canonical image, released runner/process lifecycle, five-model bundle, and actual L4 generation evidence remain open |
+| ComfyUI | One shared NVIDIA L4 controlled-image host | Pinned source, locked wheel closure, strict protocol, canonical five-model mount session, digest-bound non-root runtime-confinement requirement, operation-scoped `sam2` import guard, local installed-layout observation, exact 761-package SPDX inventory, 1,582-file static source-corpus scan, reproducible model-free local confinement/startup, and exact private-local five-model atomic read-only mount evidence | `qualified_local_candidate`; the internal derived wrappers prove default UID/GID 65532, fixed entrypoints, caller argument/root rejection, environment scrubbing, the `sam2` guard, both reviewed custom nodes, exact reread of all 11,700,367,157 model bytes, five simultaneous read-only mounts, and hard CUDA refusal under CPU emulation. The measured parent still defaults to root/unspecified, inherited direct-VCS `sam-2` remains distributed, the clean canonical image and released runner/process lifecycle remain open, and no complete graph load or actual L4 generation has occurred. |
 | `comfyui_controlnet_aux` | External deterministic pose/depth/canny preparation | Pinned custom-node/source expectation plus deterministic ReeditPro control-image implementations | `verified_source_contract`; production package/license admission open |
 | ControlNet | Mounted conditioning model inside the shared host | Exact artifact identity, byte observation, workflow binding, model-family binding | `qualified_local_candidate`; L4 compatibility run open |
 | Generic IP-Adapter | Mounted reference-conditioning model inside the shared host | Exact artifact identity, byte observation, generic-only extension and merged workflow | `qualified_local_candidate`; FaceID remains forbidden |
@@ -220,7 +220,10 @@ recorded separately and do not block internal testing:
    plus the complete sandbox and rejects root observations; only a released
    backend/L4 observation can satisfy that requirement.
 3. Released distributed read-only model-artifact mounts for the exact five
-   ComfyUI objects and exact two AuraFace objects.
+   ComfyUI objects and exact two AuraFace objects. The five ComfyUI files have
+   now passed a private-local simultaneous read-only mount and complete
+   11.7 GB byte reread; that host-local proof is not distributed-mount or L4
+   evidence.
 4. A successful approved-L4 run of the exact five-model ComfyUI workflow,
    including image signature, latency, peak memory, deterministic request
    binding, and after-consumer artifact verification.
@@ -270,6 +273,12 @@ Passed:
   refusal, environment scrubbing, zero-capability/read-only/no-network
   startup, and actual loading of the two reviewed custom nodes while
   preserving the observed stop-escalation and L4/model gates;
+- exact private-local five-model ComfyUI mount smoke proving all five
+  controlled artifacts, all `11,700,367,157` bytes, exact SHA-256 identities,
+  individual read-only mounts, one atomic container lifetime, fixed
+  entrypoint, caller argument/root refusal, environment scrubbing, `sam2`
+  denial, hard CUDA-required exit `78`, and no prompt, inference, output,
+  dispatch, cost, billing, or production action;
 - selected-scene private prompt materialization with one unit/lease per
   approved output, exact isolated and confirmed-ratio canvases, byte-free
   receipts, and adversarial benchmark/caller/node/lineage/authority refusal;
@@ -426,9 +435,13 @@ alpha/component/render path, adaptive deterministic motion, cost semantics,
 and backend handoff are materially implemented and verified. The requested
 private internal end state still includes exact controlled-generation and
 temporal-mask model runtime evidence. Customer production release is not the
-current completion criterion, but missing model artifacts and a missing
-canonical temporal work discriminator are also real internal-test blockers.
-The aggregate
+current completion criterion. The exact five ComfyUI model files and SAM2
+checkpoint now exist in private local caches and pass byte/read-only-mount
+preflight; canonical backend commits `576ca54b` and `3e59ce45` also close the
+temporal work discriminator and fixed SAM2 runner/router source gaps. The
+remaining internal blockers are real L4 model load/inference, private output
+persistence, resource evidence, and output QA for both runtime paths. The
+aggregate
 `server/smoke/living-frame-private-internal-end-to-end-audit-smoke.ts` must
 remain `passed_with_explicit_blocked_model_runtimes` until those two gates are
 discharged. Living Frame must not yet be described as fully internally

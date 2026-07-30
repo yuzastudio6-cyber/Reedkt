@@ -68,6 +68,18 @@ allowlist, read-only root, zero network, zero capabilities, and no prompt,
 model, GPU, artifact, dispatch, or cost action. It does not discharge the
 five-model/L4 gate.
 
+When the exact five private model artifacts are also present,
+`smoke:living-frame-comfyui-five-model-local-mount-internal-test` runs a
+second adjacent bounded proof. It presents all five artifacts simultaneously
+as individual read-only mounts, independently rehashes the complete
+`11,700,367,157`-byte bundle inside one fixed-entrypoint container lifetime,
+preserves the `sam2` import denial and full confinement policy, and stops at
+the hard CUDA-required boundary with exit `78`. It submits no prompt, loads no
+graph, performs no inference, creates no output, dispatch, cost, billing, or
+production evidence. This closes the former local artifact-presence and
+atomic-mount uncertainty; the released image, complete L4 load, generation,
+resource receipt, persistence, and QA gates remain open.
+
 The exact local GPU-worker proof image is likewise host-specific. When it is
 present,
 `smoke:living-frame-sam2-local-runtime-confinement-internal-test`
@@ -85,14 +97,17 @@ Passing this audit proves that the currently executable private Living Frame
 pipeline works together across its selected-scene and renderer boundaries. A
 pass must still report two open internal runtime gates:
 
-1. exact ComfyUI controlled generation needs the released five-model bundle and
-   real L4 execution evidence; and
+1. exact ComfyUI controlled generation needs a released image and real L4
+   execution evidence. Exact private-local five-model byte identity and
+   simultaneous read-only mounting are now verified, but that local CPU
+   preflight is not a complete model load or generation result; and
 2. advanced temporal Living A-Roll subject masking has an exact namespaced
    source-video/SAM2 work-admission candidate, a verified byte-output and
    downstream QA path, canonical backend work-graph admission frozen at
-   `576ca54b`, and a model-free local source/config/runtime confinement pass.
-   Model inference still needs the approved SAM2 checkpoint ingest/read-only
-   mount plus a real L4/CUDA run and measured mask QA.
+   `576ca54b`, and a fixed runner/router plus exact private checkpoint
+   read-only-mount/CUDA-refusal handoff frozen at backend commit `3e59ce45`.
+   Model inference still needs a real L4/CUDA run, private output persistence,
+   a resource receipt, and measured mask QA.
 
 These are genuine internal execution dependencies. They are not waived merely
 because customer release is out of scope. Until both exist, the audit status is

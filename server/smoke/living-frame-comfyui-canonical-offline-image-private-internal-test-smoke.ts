@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 
 const IMAGE =
   process.env
@@ -123,6 +124,22 @@ assert.deepEqual(fileDigests, {
   modelPaths: EXPECTED_MODEL_PATHS_SHA256,
   layoutVerifier: EXPECTED_LAYOUT_VERIFIER_SHA256,
 })
+const packageInventory = observePackageInventory()
+assert.deepEqual(packageInventory, {
+  debianPackageCount: 590,
+  debianInventorySha256:
+    '0557e31224324128f2f2bca45ddce066d78c25ea673e8f15379f5f073458ca69',
+  pythonDistributionCount: 173,
+  uniquePythonDistributionCount: 171,
+  pythonInventorySha256:
+    '01e58929953a6131905cb91eb8c05a4de663442b701842e6bdaf5ebec5c7b919',
+  aiohttpVersion: '3.14.3',
+  comfyUiFrontendVersion: '1.47.10',
+  torchsdeVersion: '0.2.6',
+})
+const packageInventoryDigestSha256 = sha256(
+  Buffer.from(canonicalJson(packageInventory)),
+)
 
 process.stdout.write(`${JSON.stringify({
   suite:
@@ -142,8 +159,16 @@ process.stdout.write(`${JSON.stringify({
   offlineWheelArtifactByteLength: 486_459_097,
   sourceArchiveCount: 3,
   reviewedCustomNodeCount: 2,
+  debianPackageCount:
+    packageInventory.debianPackageCount,
+  pythonDistributionCount:
+    packageInventory.pythonDistributionCount,
+  uniquePythonDistributionCount:
+    packageInventory.uniquePythonDistributionCount,
+  packageInventoryDigestSha256,
   installedLayoutVerified: true,
   exactInstalledFileDigestsVerified: true,
+  boundedInternalPackageInventoryCompleted: true,
   rootFilesystemReadOnlyObserved: true,
   externalNetworkDisabledObserved: true,
   allCapabilitiesDroppedObserved: true,
@@ -152,7 +177,7 @@ process.stdout.write(`${JSON.stringify({
   runtimeDownloadsAllowed: false,
   gpuExecutionPerformed: false,
   outputCreated: false,
-  sbomCompleted: false,
+  independentSbomCompleted: false,
   vulnerabilityDispositionCompleted: false,
   imageSignatureCompleted: false,
   canonicalOperationDispatched: false,
@@ -242,6 +267,104 @@ function digestInstalledFiles(): {
   }
 }
 
+function observePackageInventory(): {
+  readonly debianPackageCount: 590
+  readonly debianInventorySha256: string
+  readonly pythonDistributionCount: 173
+  readonly uniquePythonDistributionCount: 171
+  readonly pythonInventorySha256: string
+  readonly aiohttpVersion: '3.14.3'
+  readonly comfyUiFrontendVersion: '1.47.10'
+  readonly torchsdeVersion: '0.2.6'
+} {
+  const debianProbe = runDocker([
+    'run',
+    '--rm',
+    '--platform',
+    'linux/amd64',
+    '--read-only',
+    '--network',
+    'none',
+    '--cap-drop',
+    'ALL',
+    '--security-opt',
+    'no-new-privileges',
+    '--entrypoint',
+    '/bin/sh',
+    IMAGE,
+    '-lc',
+    [
+      'dpkg-query -W -f="${Package}\\t${Version}\\n"',
+      '| LC_ALL=C sort | sha256sum;',
+      'dpkg-query -W -f="${Package}\\n" | wc -l',
+    ].join(' '),
+  ]).stdout.trim().split('\n')
+  assert.equal(debianProbe.length, 2)
+  const debianDigest =
+    debianProbe[0]?.split(/\s+/u)[0] ?? ''
+  assert.match(debianDigest, /^[a-f0-9]{64}$/u)
+  assert.equal(debianProbe[1]?.trim(), '590')
+
+  const pythonProbe = JSON.parse(
+    runDocker([
+      'run',
+      '--rm',
+      '--platform',
+      'linux/amd64',
+      '--read-only',
+      '--network',
+      'none',
+      '--cap-drop',
+      'ALL',
+      '--security-opt',
+      'no-new-privileges',
+      '--entrypoint',
+      '/opt/reeditpro/gpu-operations/comfyui/venv/bin/python',
+      IMAGE,
+      '-I',
+      '-B',
+      '-c',
+      [
+        'import hashlib, importlib.metadata as m, json',
+        'rows=sorted((str(d.metadata.get("Name") or "").lower(), str(d.version)) for d in m.distributions())',
+        'payload="\\n".join(f"{n}\\t{v}" for n,v in rows).encode()',
+        'print(json.dumps({"distributionCount":len(rows),"uniqueDistributionCount":len(set(rows)),"inventorySha256":hashlib.sha256(payload).hexdigest(),"aiohttp":m.version("aiohttp"),"comfyuiFrontend":m.version("comfyui_frontend_package"),"torchsde":m.version("torchsde")},sort_keys=True))',
+      ].join(';'),
+    ]).stdout,
+  ) as {
+    readonly distributionCount: number
+    readonly uniqueDistributionCount: number
+    readonly inventorySha256: string
+    readonly aiohttp: string
+    readonly comfyuiFrontend: string
+    readonly torchsde: string
+  }
+  assert.match(
+    pythonProbe.inventorySha256,
+    /^[a-f0-9]{64}$/u,
+  )
+  assert.equal(pythonProbe.distributionCount, 173)
+  assert.equal(pythonProbe.uniqueDistributionCount, 171)
+  assert.equal(pythonProbe.aiohttp, '3.14.3')
+  assert.equal(
+    pythonProbe.comfyuiFrontend,
+    '1.47.10',
+  )
+  assert.equal(pythonProbe.torchsde, '0.2.6')
+
+  return {
+    debianPackageCount: 590,
+    debianInventorySha256: debianDigest,
+    pythonDistributionCount: 173,
+    uniquePythonDistributionCount: 171,
+    pythonInventorySha256:
+      pythonProbe.inventorySha256,
+    aiohttpVersion: '3.14.3',
+    comfyUiFrontendVersion: '1.47.10',
+    torchsdeVersion: '0.2.6',
+  }
+}
+
 function runDocker(
   arguments_: readonly string[],
 ): {
@@ -271,4 +394,22 @@ function runDocker(
     stdout: result.stdout,
     stderr: result.stderr,
   }
+}
+
+function canonicalJson(value: unknown): string {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value)
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map(canonicalJson).join(',')}]`
+  }
+  const record = value as Readonly<Record<string, unknown>>
+  return `{${Object.keys(record).sort().map(
+    (key) =>
+      `${JSON.stringify(key)}:${canonicalJson(record[key])}`,
+  ).join(',')}}`
+}
+
+function sha256(value: Buffer): string {
+  return createHash('sha256').update(value).digest('hex')
 }

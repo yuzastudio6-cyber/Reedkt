@@ -87,15 +87,33 @@ the final release build definition remains a canonical backend-owner gate.
 
 ## Honest scanner result
 
-The local Docker Scout SPDX attempt did not complete. The scanner tried to
+The local Docker Scout SPDX attempts did not complete. The first tried to
 copy/index the 11.4 GB image in the host temporary volume and stopped with
-`no space left on device` after creating an incomplete 3.1 GB cache. That
-incomplete scanner cache was deleted; the image and verified build inputs
-were preserved.
+`no space left on device` after creating an incomplete 3.1 GB cache. A second
+attempt used a dedicated 154 GB scratch volume, copied approximately 12 GB,
+then remained idle without an SPDX output beyond the bounded ten-minute
+window. Both incomplete scanner caches were deleted; the image and verified
+build inputs were preserved.
 
 This is a scanner-environment failure, not an SBOM pass and not an image
 failure. Independent SBOM, vulnerability, license/VCS, provenance, and
 signature disposition therefore remain open.
+
+The host-specific smoke separately completes a bounded internal package
+inventory without copying the image. Under the same read-only, network-off
+container policy, it measures:
+
+- 590 Debian packages, inventory SHA-256
+  `0557e31224324128f2f2bca45ddce066d78c25ea673e8f15379f5f073458ca69`;
+- 173 Python distribution records with 171 unique name/version pairs,
+  inventory SHA-256
+  `01e58929953a6131905cb91eb8c05a4de663442b701842e6bdaf5ebec5c7b919`;
+  and
+- exact runtime versions `aiohttp 3.14.3`,
+  `comfyui_frontend_package 1.47.10`, and `torchsde 0.2.6`.
+
+This is useful private inventory evidence, but it is not an independent
+full-image SPDX/vulnerability scanner, license approval, or signature.
 
 ## Remaining gates
 

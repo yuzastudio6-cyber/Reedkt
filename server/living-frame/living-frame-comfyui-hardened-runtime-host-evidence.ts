@@ -47,6 +47,8 @@ export function compileLivingFrameComfyUiHardenedRuntimeHostEvidence(
     networkDenied: true as const,
     gpuAccessGranted: false as const,
     containerRemovedAfterRun: true as const,
+    ephemeralInstallerRootOnly: true as const,
+    finalVerifierNonRoot: true as const,
     imageBuilt: false as const,
     imageScanned: false as const,
     controlledGenerationRuntimeExecuted: false as const,
@@ -134,6 +136,10 @@ function assertObservation(
     || observation.dockerAttemptCount !== 1
     || !observation.disposableOverlayUsed
     || !observation.containerRemovedAfterRun
+    || observation.installerIdentity !==
+      'ephemeral_overlay_root'
+    || observation.finalVerifierIdentity !==
+      'non_root_65532'
     || !observation.installerCompleted
     || !observation.nonRootVerifierCompleted
     || verifier.contract !==

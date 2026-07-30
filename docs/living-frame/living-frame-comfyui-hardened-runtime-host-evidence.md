@@ -79,8 +79,10 @@ image pull: never
 ```
 
 The three package caches and the source contract are mounted read-only. The
-installer changes only the disposable container overlay. The final verifier
-runs as UID/GID `65532:65532`. The container is removed after the attempt.
+installer runs as root only to change the disposable container overlay. It
+cannot change any read-only input mount. The final verifier runs after an
+explicit privilege drop to UID/GID `65532:65532`. The container is removed
+after the attempt.
 
 No model, source media, prompt material, credential, endpoint, provider,
 cloud resource, or customer artifact is mounted.

@@ -172,6 +172,8 @@ async function main(): Promise<void> {
     containerName,
     '--platform',
     'linux/amd64',
+    '--user',
+    '0:0',
     '--network',
     'none',
     '--pids-limit',
@@ -269,6 +271,8 @@ async function main(): Promise<void> {
       dockerAttemptCount: 1,
       disposableOverlayUsed: true,
       containerRemovedAfterRun: true,
+      installerIdentity: 'ephemeral_overlay_root',
+      finalVerifierIdentity: 'non_root_65532',
       installerCompleted: true,
       nonRootVerifierCompleted: true,
       verifierObservation,
@@ -401,6 +405,10 @@ async function main(): Promise<void> {
     networkDenied: evidence.networkDenied,
     containerRemovedAfterRun:
       evidence.containerRemovedAfterRun,
+    ephemeralInstallerRootOnly:
+      evidence.ephemeralInstallerRootOnly,
+    finalVerifierNonRoot:
+      evidence.finalVerifierNonRoot,
     imageBuilt: evidence.imageBuilt,
     controlledGenerationRuntimeExecuted:
       evidence.controlledGenerationRuntimeExecuted,

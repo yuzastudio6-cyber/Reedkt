@@ -73,6 +73,8 @@ export interface LivingFrameComfyUiHardenedRuntimeHostObservation {
   readonly dockerAttemptCount: 1
   readonly disposableOverlayUsed: true
   readonly containerRemovedAfterRun: true
+  readonly installerIdentity: 'ephemeral_overlay_root'
+  readonly finalVerifierIdentity: 'non_root_65532'
   readonly installerCompleted: true
   readonly nonRootVerifierCompleted: true
   readonly verifierObservation:
@@ -132,6 +134,8 @@ export interface LivingFrameComfyUiHardenedRuntimeHostEvidence {
   readonly networkDenied: true
   readonly gpuAccessGranted: false
   readonly containerRemovedAfterRun: true
+  readonly ephemeralInstallerRootOnly: true
+  readonly finalVerifierNonRoot: true
   readonly imageBuilt: false
   readonly imageScanned: false
   readonly controlledGenerationRuntimeExecuted: false

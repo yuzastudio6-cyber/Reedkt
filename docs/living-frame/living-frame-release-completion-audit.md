@@ -68,7 +68,7 @@ authority.
 | Visual Continuity Pack | `verified_source_contract` | `src/lib/living-frame/living-frame-visual-continuity-contract.ts`, `docs/living-frame/visual-continuity-pack.md`, selected-scene read-only pack binding candidate, continuity measurement, and fixtures | Production persistence, reference retention, consent, fairness, and identity-review policy remain backend/release gates. The namespaced candidate now revalidates the complete pack payload against the exact selected scene and emits a digest-only binding, but the canonical selected-scene interface or immutable private pack-artifact bridge and any persisted reference-artifact binding remain canonical-owner gates. |
 | Character/object/environment/style consistency | `verified_source_contract` | continuity pack sheets, controlled generic IP-Adapter binding, optional AuraFace measurement-only path | Real project-calibrated continuity thresholds and review evidence remain open. |
 | Component decomposition and rigging | `verified_source_contract` | component asset intent, geometry, rig, background-plate reconstruction, artifact reconciliation | Rich production scene benchmarks remain open; no claim is made that all stills can be safely decomposed. |
-| Alpha, masks, edge cleanup, and destination composite | `verified_private_runtime` | generated-still alpha work graph, rembg route, Sharp RGBA route, selected-scene private opaque-output observation, selected-scene full-frame evidence readiness, alpha measurement, edge decontamination, multi-background/destination-composite evidence | The canonical work-graph owner must admit the exact isolated output of a multi-output selected generation item into the existing rembg → Sharp chain. Full-frame plates now bind to the existing private artifact, continuity, fact-safety, manifest, review, and Remotion owners without entering the alpha branch. Advanced temporal A-roll masks still require a qualified tracking/mask route and real footage benchmarks. |
+| Alpha, masks, edge cleanup, and destination composite | `verified_private_runtime` | generated-still alpha work graph, rembg route, Sharp RGBA route, selected-scene private opaque-output observation, exact-output alpha-source handoff, selected-scene full-frame evidence readiness, alpha measurement, edge decontamination, multi-background/destination-composite evidence | The namespaced handoff now proves and privately leases the exact isolated output index/asset-intent from a multi-output selected generation item. The canonical work-graph owner must consume that selector when admitting the existing rembg → Sharp work items; this branch does not mutate the shared graph. Full-frame plates bind to existing artifact, continuity, fact-safety, manifest, review, and Remotion owners without entering alpha. Advanced temporal A-roll masks still require a qualified tracking/mask route and real footage benchmarks. |
 | Semantic scale | `verified_source_contract` | Living Frame semantic-scale requests and canonical motion guard preserving literal/data scale | Production QA must continue distinguishing literal, proportional, perspective, and symbolic scale. |
 | Attention, focus handoff, camera, and visual orbit | `verified_private_runtime` for the bounded scalar subset | choreography binding, canonical motion spec, actual 640×360 render | More complex deformation, path, particle, and true 3D primitives remain separately gated. |
 | Adaptive flat / shallow-2.5D / deep-multiplane rendering | `verified_source_contract` for approved-depth preservation and fail-closed reconciliation; `verified_private_runtime` for shallow and deep execution | selected-scene private conditioning, read-only selected-scene motion-style reconciliation, `canonical-living-frame-motion-spec-v1`, offline Remotion composition, same-scene differential-parallax pixel validation | The canonical motion owner must consume the exact approved scene-design depth instead of independently inferring a conflicting style. Dimensional motion/renderer support or a newly approved downgrade remains required. Mode-specific production-footage benchmarks remain release work. |
@@ -193,8 +193,13 @@ missing:
    branch: the work graph currently rejects an exact generated source when its
    parent generation item has multiple expected outputs, and the selected
    fixture does not yet project the mask/Sharp named work. This is frozen as a
-   canonical-owner conflict rather than bypassed with a parallel mask job. The
-   path is not the benchmark prompt path, does not dispatch,
+   canonical-owner conflict rather than bypassed with a parallel mask job. A
+   new exact-output alpha-source handoff now revalidates the selected request,
+   observation, conflict receipt, and work graph; proves one unique parent
+   output index and generated asset-intent; rereads the exact opaque PNG/RGBA
+   bytes; and emits one byte-free receipt plus one process-bound single-use
+   private source lease. It still creates no rembg/Sharp work, artifact, or
+   authority. The path is not the benchmark prompt path, does not dispatch,
    and preserves the confirmed frame, five-model atomic mount, confinement,
    `sam2` denial, and Remotion ownership boundaries. The backend registry owner
    must still implement canonical admission and bind the projection to each
@@ -300,7 +305,11 @@ Passed:
 - selected-scene private opaque-output observation for exact 1024×1024
   isolated and 1920×1080 confirmed-ratio RGB PNGs, plus read-only alpha-chain
   reconciliation that fail-closes on the shared multi-output generation →
-  rembg interface conflict without mutating the canonical work graph, and
+  rembg interface conflict without mutating the canonical work graph, plus an
+  exact-output alpha-source handoff that binds the unique parent output
+  index/asset-intent and delivers verified opaque bytes through a
+  process-bound single-use private lease without creating rembg or Sharp work,
+  and
   full-frame evidence readiness that binds the confirmed-ratio plate to the
   existing artifact/QA/continuity/fact/manifest/review/Remotion owners, plus
   continuity/fact reconciliation that separates semantic style QA from

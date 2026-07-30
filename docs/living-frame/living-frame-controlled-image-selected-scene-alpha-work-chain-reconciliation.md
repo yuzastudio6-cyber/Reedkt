@@ -64,6 +64,14 @@ canonical_sharp_rgba_output_missing
 This is a canonical-owner conflict, not permission to create a parallel mask
 worker.
 
+The namespaced
+`living-frame-controlled-image-selected-scene-exact-output-alpha-source-handoff-v1`
+candidate now supplies the exact parent output index, output key, generated
+asset-intent ID, and process-private one-shot opaque source lease needed at
+that future canonical boundary. It does not resolve this reconciliation state
+because it deliberately does not create or mutate the missing rembg/Sharp
+work items.
+
 ## Required canonical-owner resolution
 
 At the canonical work-graph boundary:

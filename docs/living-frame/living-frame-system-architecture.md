@@ -3037,9 +3037,27 @@ mask work input now has a closed discriminated source union:
 The branches are mutually exclusive. Generated inputs have no source-sequence
 or cleanup IDs, and a caller cannot mix those IDs into the generated branch.
 The current generated branch admits only one source output for one mask and
-one RGBA component. An ambiguous multi-output generated batch remains blocked
-until the work projection can create independently priced and independently
-QA-bound per-component mask operations.
+one RGBA component. A multi-output parent generation item remains blocked
+until the work projection can admit one exact output selector and create
+independently priced and independently QA-bound per-component mask operations.
+
+The namespaced
+`living-frame-controlled-image-selected-scene-exact-output-alpha-source-handoff-v1`
+candidate closes the private-source selection side of that interface without
+mutating the canonical graph. It binds one unique parent output index, output
+key, generated asset-intent ID, selected component, approved work item,
+planned asset-manifest entry, renderer layer, observation, snapshot,
+MasterTiming, confirmed frame, work graph, and cost/work lineage. It rereads
+and rehashes the exact opaque PNG and decoded RGBA bytes, enforces a 1024 by
+1024 fully opaque source, and emits one byte-free receipt plus one
+process-bound single-use private source lease. Full-frame outputs, duplicate
+matches, copied/reused readers or leases, cross-output/work/scene
+substitution, and authority promotion fail closed.
+
+The handoff is not a work item, worker lease, rembg request, Sharp request,
+artifact, manifest entry, QA result, or renderer payload. The canonical
+work-graph owner must still consume the exact selector when it admits the
+existing rembg and Sharp items. Remotion remains the final canvas.
 
 The downstream Sharp alpha-component authority accepts exactly one approved
 source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg

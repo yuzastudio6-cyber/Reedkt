@@ -41,5 +41,13 @@ must consume that semantic trigger instead of relying on even index spacing
 before these cue placements can be considered professionally choreographed.
 Until then, exact mix and semantic cue-readiness remain open.
 
+The separate read-only
+`living-frame-semantic-sound-timing-reconciliation-v1` now independently
+recompiles this binding and compares each exact cue range with the semantic
+phase required by its choreography trigger. It proves one phase-compatible
+handoff case and one real `hold` → `demonstrate` conflict where v1 order
+spacing places the cue in `activate`. It never changes the canonical cue,
+claims an exact hit frame, or becomes a SoundSync owner.
+
 The record contains no caption text, transcript, audio, media bytes, paths,
 URLs, credentials, provider prompt, model route, or subject-specific logic.

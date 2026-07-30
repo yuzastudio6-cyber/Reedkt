@@ -3224,3 +3224,21 @@ semantic synchronization. The canonical SoundSync owner must consume the new
 one-to-one trigger lineage and assign exact attention/motion-aligned frames,
 gain, panning, attack/release, voice ducking, asset provenance, QA, and
 private-review evidence. Living Frame does not create a second audio system.
+
+The read-only
+`living-frame-semantic-sound-timing-reconciliation-v1` now makes this
+distinction executable. It independently revalidates the choreography,
+selected-scene publication, canonical execution requirements, current
+MasterTiming/SoundSync binding, and output-frame lineage. It maps the approved
+attention lifecycle to the existing semantic phases and checks whether each
+current exact cue range falls wholly inside the required phase.
+
+The controlled evidence proves that a single `handoff` cue may happen to land
+inside `activate`, while a single `hold` cue can still be placed in `activate`
+even though its approved semantic phase is `demonstrate`. That second result
+is a real order-spacing conflict, not a hypothetical warning. Neither result
+is promoted to professional sound readiness because canonical v1 carries no
+attention-event identity, motion-track lineage, exact transient/hit frame, or
+mix envelope. The reconciliation mutates neither timing nor sound and grants
+no approval, work, asset, runtime, cost, or production authority. See
+`docs/living-frame/living-frame-semantic-sound-timing-reconciliation.md`.

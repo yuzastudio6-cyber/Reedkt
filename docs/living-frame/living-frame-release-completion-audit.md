@@ -73,7 +73,7 @@ authority.
 | Attention, focus handoff, camera, and visual orbit | `verified_private_runtime` for the bounded scalar subset | choreography binding, canonical motion spec, actual 640×360 render | More complex deformation, path, particle, and true 3D primitives remain separately gated. |
 | Adaptive flat / shallow-2.5D / deep-multiplane rendering | `verified_source_contract` for approved-depth preservation and fail-closed reconciliation; `verified_private_runtime` for shallow and deep execution | selected-scene private conditioning, read-only selected-scene motion-style reconciliation, `canonical-living-frame-motion-spec-v1`, offline Remotion composition, same-scene differential-parallax pixel validation | The canonical motion owner must consume the exact approved scene-design depth instead of independently inferring a conflicting style. Dimensional motion/renderer support or a newly approved downgrade remains required. Mode-specific production-footage benchmarks remain release work. |
 | Selective deterministic motion | `verified_private_runtime` | canonical motion compiler, independent sample-digest verification, Remotion sampler, actual pixel-displacement measurement | Unsupported generic motion signals remain closed by design. |
-| Sound choreography | `verified_source_contract` for one-to-one semantic trigger coverage; `not_required_as_separate_owner` for exact sound | semantic sound requests, choreography binding v2, canonical timing binding | Every request now binds to one attention event and component-linked motion. The canonical timing v1 compiler still spaces cues by request order rather than consuming that trigger. SoundSync remains the sole exact cue/mix/ducking owner; meaning-bound placement, production sound assets, spatial/mix envelopes, QA, and private-review evidence remain backend work. |
+| Sound choreography | `verified_source_contract` for one-to-one semantic trigger coverage and fail-closed phase reconciliation; `not_required_as_separate_owner` for exact sound | semantic sound requests, choreography binding v2, canonical timing binding, semantic sound timing reconciliation v1 | Every request binds to one attention event and component-linked motion. The reconciliation independently recompiles canonical timing and proves both a phase-compatible handoff and a real order-spacing divergence where a `hold` trigger that belongs in `demonstrate` lands in `activate`. Even compatible v1 cues remain blocked as professional sound proof because canonical timing does not carry the trigger identity, motion lineage, exact hit, asset, or mix. SoundSync remains the sole exact cue/mix/ducking owner. |
 | StoryTiming ownership | `verified_source_contract` | canonical Living Frame timing binding and five exact semantic phases | No Living Frame clock may be introduced. |
 | Caption coordination | `verified_private_runtime` for z-order | canonical render path and cyan/magenta pixel fixture | Caption Direction remains a separate parent system; spatial/attention negotiation continues through shared occupancy and timing. |
 | Maps, charts, diagrams, and exact labels | `not_required_as_separate_owner` | Living Frame modes route exact components through existing map/dataviz/Remotion owners | Do not replace exact content with generated images. |
@@ -282,6 +282,14 @@ Passed:
   that does not force artificial motion, strict narration protection, and
   adversarial missing/duplicate/unrelated trigger refusal while exact
   SoundSync frames and mix remain unclaimed;
+- read-only semantic sound timing reconciliation that independently
+  recompiles the canonical execution requirements and timing binding,
+  preserves exact request/cue metadata, observes one phase-compatible
+  `handoff` → `activate` candidate, proves one real order-spacing divergence
+  where `hold` → `demonstrate` is incorrectly placed in `activate`, and keeps
+  every cue blocked from professional sound admission until canonical
+  attention identity, motion lineage, exact hit/envelope, asset, mix, QA, and
+  private-review evidence exist;
 - selected-scene documentary fact-safety binding across a stylized historical
   illustration and an exact-geography background plate, with immutable
   snapshot/scene/claim lineage, raw-claim-free private constraints, real

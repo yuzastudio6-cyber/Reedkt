@@ -176,6 +176,7 @@
     "smoke:offline-remotion-living-frame-motion": "tsx server/smoke/offline-remotion-living-frame-motion-smoke.ts",
     "smoke:living-frame-confirmed-ratio-private-render": "tsx server/smoke/living-frame-confirmed-ratio-private-render-smoke.ts",
     "smoke:living-frame-five-mode-private-render": "tsx server/smoke/living-frame-five-mode-private-render-smoke.ts",
+    "smoke:living-frame-animation-aware-illustration-private-alpha-internal-test": "tsx server/smoke/living-frame-animation-aware-illustration-private-alpha-internal-test-smoke.ts",
     "smoke:living-frame-comfyui-container-sbom": "tsx server/smoke/living-frame-comfyui-container-sbom-evidence-smoke.ts",
     "smoke:living-frame-comfyui-model-mount": "tsx server/smoke/living-frame-comfyui-read-only-model-mount-smoke.ts",
     "smoke:living-frame-environmental-particle-pixijs-internal-runtime": "tsx server/smoke/living-frame-environmental-particle-pixijs-internal-runtime-smoke.ts",

@@ -64,11 +64,11 @@ authority.
 | Composite parent skill and deliberate non-use | `verified_source_contract` | `src/lib/professional-skills/professional-skill-registry.ts`, `src/lib/living-frame/living-frame-selection-policy.ts`, `src/types/living-frame.ts` | Backend must preserve the selected/non-use decision when integrating the frozen component. |
 | Five Living Frame modes | `verified_private_runtime` | `src/types/living-frame.ts`, subject-neutral capability matrix, and `server/smoke/living-frame-five-mode-private-render-smoke.ts` | One real 240-frame private render now proves all five modes, low-risk subject/contact-object occlusion, safe-space and static-card fallbacks, plus deliberate non-use. Real-project fixture breadth remains internal-test work. |
 | Reusable mini-skill family | `verified_source_contract` | `src/types/living-frame.ts`, `src/lib/living-frame/living-frame-contract.ts`, `server/living-frame/living-frame-semantic-plan-projection.ts` | No new skill taxonomy is needed. |
-| Narrative and animation-aware illustration | `verified_source_contract` | mini-skill identities, component asset intent, synthesis routing, work admission, controlled-illustration qualification, and the selected-scene private conditioning binding | The private conditioning source now derives exact style, scene, component, separability, depth, frame, and truth instructions from the validated Visual Continuity Pack and proves their digest equality at the real selected-scene prompt materializer. Production generation remains gated by the controlled ComfyUI operation or another approved route. |
+| Narrative and animation-aware illustration | `verified_private_runtime` for a real modern illustration source; `verified_source_contract` for canonical controlled generation | mini-skill identities, component asset intent, synthesis routing, work admission, controlled-illustration qualification, selected-scene private conditioning, `server/smoke/fixtures/assets/living-frame-musashi-animation-aware-illustration-v1.png`, and `server/smoke/living-frame-animation-aware-illustration-private-alpha-internal-test-smoke.ts` | A real animation-aware illustration workflow is now exercised using a modern cinematic anime/ink character fixture created for separability, preserved as illustrative rather than archival evidence, normalized to the canonical 1024-square isolated-component frame, and passed through actual private alpha processing. Exact ComfyUI generation remains gated by the five released model weights and GPU execution; that gate does not invalidate the real downstream internal proof. |
 | Visual Continuity Pack | `verified_source_contract` | `src/lib/living-frame/living-frame-visual-continuity-contract.ts`, `docs/living-frame/visual-continuity-pack.md`, selected-scene read-only pack binding candidate, continuity measurement, and fixtures | Production persistence, reference retention, consent, fairness, and identity-review policy remain backend/release gates. The namespaced candidate now revalidates the complete pack payload against the exact selected scene and emits a digest-only binding, but the canonical selected-scene interface or immutable private pack-artifact bridge and any persisted reference-artifact binding remain canonical-owner gates. |
 | Character/object/environment/style consistency | `verified_source_contract` | continuity pack sheets, controlled generic IP-Adapter binding, optional AuraFace measurement-only path | Real project-calibrated continuity thresholds and review evidence remain open. |
 | Component decomposition and rigging | `verified_source_contract` | component asset intent, geometry, rig, background-plate reconstruction, artifact reconciliation | Rich production scene benchmarks remain open; no claim is made that all stills can be safely decomposed. |
-| Alpha, masks, edge cleanup, and destination composite | `verified_private_runtime` for still alpha and bounded known-cutout occlusion; `shared_interface_conflict` for temporal masks | generated-still alpha work graph, rembg route, Sharp RGBA route, selected-scene private opaque-output observation, exact-output alpha-source handoff, selected-scene full-frame evidence readiness, alpha measurement, edge decontamination, multi-background/destination-composite evidence, five-mode low-risk A-roll cutout fixture, and `server/smoke/living-frame-temporal-mask-canonical-work-graph-conflict-smoke.ts` | The namespaced handoff now proves and privately leases the exact isolated output index/asset-intent from a multi-output selected generation item. The canonical work-graph owner must consume that selector when admitting the existing rembg → Sharp work items; this branch does not mutate the shared graph. Full-frame plates bind to existing artifact, continuity, fact-safety, manifest, review, and Remotion owners without entering alpha. The real 240-frame private render proves source → explanatory graphic → known subject-plus-contact RGBA cutout → captions and independently measures both foreground occlusion regions. A new read-only selected Hormuz probe proves that `temporal_subject_mask_sequence` collapses into the undifferentiated `generate_mask_asset` input and is then assigned to `rembg` with one PNG output instead of `tool.sam2.segment_and_track_subject.v1` with a temporal mask-sequence/analysis/QA output set. Advanced temporal A-roll therefore cannot reach an executable SAM2 work item until the canonical work-input and work-graph owner adds an asset-kind/operation discriminator. |
+| Alpha, masks, edge cleanup, and destination composite | `verified_private_runtime` for real generated-still alpha, deterministic edge cleanup, and bounded known-cutout occlusion; `shared_interface_conflict` for temporal masks | generated-still alpha work graph, rembg route, Sharp RGBA route, selected-scene private opaque-output observation, exact-output alpha-source handoff, selected-scene full-frame evidence readiness, alpha measurement, edge decontamination, multi-background/destination-composite evidence, `server/smoke/living-frame-animation-aware-illustration-private-alpha-internal-test-smoke.ts`, five-mode low-risk A-roll cutout fixture, and `server/smoke/living-frame-temporal-mask-canonical-work-graph-conflict-smoke.ts` | The real illustration proof executes `rembg@2.0.76` with U2NetP in a fixed-entrypoint, non-root, read-only, zero-network container; verifies the canonical gray8 mask; executes the actual confined `sharp@0.35.3` straight-alpha recipe; applies the existing known-matte edge-decontamination primitive; remeasures the cleaned RGBA; and persists mask plus cleaned alpha create-only in private storage. The local CPU inference is explicitly a functional internal substitute and not evidence of canonical L4/GPU equivalence. Destination-scene composite/review of this exact artifact is the next internal slice. Separately, the selected Hormuz probe proves that `temporal_subject_mask_sequence` still collapses into undifferentiated `generate_mask_asset` and is assigned to still-image `rembg` rather than SAM2; the canonical work-input/work-graph owner must add the temporal discriminator. |
 | Semantic scale | `verified_source_contract` | Living Frame semantic-scale requests and canonical motion guard preserving literal/data scale | Production QA must continue distinguishing literal, proportional, perspective, and symbolic scale. |
 | Attention, focus handoff, camera, and visual orbit | `verified_private_runtime` for the bounded scalar subset | choreography binding, canonical motion spec, actual 640×360 render | More complex deformation, path, particle, and true 3D primitives remain separately gated. |
 | Adaptive flat / shallow-2.5D / deep-multiplane rendering | `verified_source_contract` for approved-depth preservation and fail-closed reconciliation; `verified_private_runtime` for shallow and deep execution | selected-scene private conditioning, read-only selected-scene motion-style reconciliation, `canonical-living-frame-motion-spec-v1`, offline Remotion composition, same-scene differential-parallax pixel validation | The canonical motion owner must consume the exact approved scene-design depth instead of independently inferring a conflicting style. Dimensional motion/renderer support or a newly approved downgrade remains required. Mode-specific production-footage benchmarks remain release work. |
@@ -135,10 +135,11 @@ metadata, content-addressed persistence, and independent FFprobe.
 
 These are private runtime proofs, not public or production authorization.
 
-## Current closed release gates
+## Current open internal and later release gates
 
-The full objective is not yet production-complete because these proofs are
-missing:
+The private internal objective still requires the applicable execution,
+artifact, review, and fallback proofs below. Customer release items remain
+recorded separately and do not block internal testing:
 
 1. Canonical production registry admission for the single ComfyUI host tool
    and its bounded controlled-image operation. The exact non-executable
@@ -203,10 +204,11 @@ missing:
    and preserves the confirmed frame, five-model atomic mount, confinement,
    `sam2` denial, and Remotion ownership boundaries. The backend registry owner
    must still implement canonical admission and bind the projection to each
-   approved work item. A pre-existing canonical Living Frame estimate
-   projection still enforces the observed count as a temporary runtime guard;
-   the backend one-writer must reconcile that shared interface before registry
-   expansion.
+   approved work item. The canonical one-writer has removed the temporary
+   literal-count rejection in its clean checkout and now validates semantic
+   identity uniqueness plus one-to-one profile coverage. Integration of that
+   backend change remains a normal merge/reconciliation step; this branch
+   still does not mutate shared registry or projection paths.
 2. A signed, reviewed L4 worker image containing the exact pinned source,
    dependency closure, and approved custom nodes. The local candidate now has
    a bounded 761-package SPDX inventory, but its default user is
@@ -342,6 +344,16 @@ Passed:
   continuity/fact reconciliation that separates semantic style QA from
   reference-conditioned aligned measurement and preserves the missing
   canonical evidence bridges;
+- real animation-aware illustration alpha processing for one modern
+  cinematic anime/ink source: exact 1024-square opaque source verification,
+  actual `rembg@2.0.76`/U2NetP CPU inference in a fixed-entrypoint,
+  non-root/read-only/zero-network container, canonical gray8 mask decoding,
+  actual confined `sharp@0.35.3` straight-alpha composition, deterministic
+  known-matte edge decontamination, post-cleanup alpha measurement, and
+  create-only private mask/cleaned-alpha persistence. The receipt explicitly
+  treats the CPU run as an internal functional substitute rather than
+  canonical GPU-equivalence, fact evidence, billing, public delivery, or
+  production evidence;
 - selected Hormuz Living A-Roll temporal-mask work-graph conflict coverage,
   proving that the exact `temporal_subject_mask_sequence` intent currently
   collapses into generic `generate_mask_asset`, is costed and compiled as the

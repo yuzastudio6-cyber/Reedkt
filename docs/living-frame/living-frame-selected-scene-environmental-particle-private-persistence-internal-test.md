@@ -71,10 +71,12 @@ this stage. The target is a complete private internal Living Frame workflow
 with real execution, persisted artifacts, scene QA, private review, and
 representative mode tests.
 
-The next internal milestone is canonical scene-evidence QA plus private review
-for this exact persisted artifact. Public delivery, live billing, cloud
-deployment, external beta, and production promotion remain later release
-work.
+The adjacent selected-scene particle QA test now re-opens this exact artifact
+through a process-bound lease and executes independent persisted-media,
+procedural-alpha, timing, destination-composite, and caption-plane QA. The next
+internal milestone is private-review evidence compilation. Public delivery,
+live billing, cloud deployment, external beta, and production promotion
+remain later release work.
 
 ## Validation
 
@@ -91,3 +93,6 @@ canonical private persistence boundary and its adversarial single-use checks.
 - `server/living-frame/living-frame-selected-scene-environmental-particle-private-persistence-internal-test.ts`
 - `server/living-frame/living-frame-environmental-particle-remotion-internal-composite.ts`
 - `server/smoke/living-frame-selected-scene-environmental-particle-internal-test-smoke.ts`
+
+See also
+`docs/living-frame/living-frame-selected-scene-environmental-particle-scene-qa-internal-test.md`.

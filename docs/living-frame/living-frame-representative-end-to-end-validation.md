@@ -102,8 +102,12 @@ Two actual private renders supplement the connected source-level trace:
   alpha-centroid QA. It then consumes one separate process-bound final-output
   lease through the existing canonical private Remotion artifact-storage
   owner and verifies create-only persistence plus exact digest/length
-  readback. It distinguishes sub-perceptual fade frames from missing overlays
-  without relaxing materially visible-frame requirements.
+  readback. A second process-bound lease re-opens that stored MP4 through the
+  private media runtime, independently verifies H.264, 640×360, 30 FPS, and
+  105 frames, and binds the actual procedural-alpha and destination-composite
+  measurements into a private scene-QA receipt. It distinguishes
+  sub-perceptual fade frames from missing overlays without relaxing materially
+  visible-frame requirements.
 
 ## Mode coverage
 
@@ -144,6 +148,9 @@ private-review evidence compiler. It is still controlled evidence:
 - the canonical distributed read-only mount adapter is not released;
 - selected-scene particle review persistence is now proven through the
   canonical private Remotion artifact owner;
+- selected-scene particle persisted-media and procedural scene QA are now
+  proven; the generic v1 scene-evidence package still needs a canonical
+  procedural-QA discharge extension;
 - actual controlled-illustration output persistence, actual worker
   resource-cost evidence, and released alpha/continuity QA remain open;
 - public delivery, production, customer charging, and deployment remain false.

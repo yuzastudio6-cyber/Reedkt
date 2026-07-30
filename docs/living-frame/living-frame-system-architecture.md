@@ -3220,6 +3220,25 @@ remain next.
 The private-persistence evidence is specified in
 `docs/living-frame/living-frame-selected-scene-environmental-particle-private-persistence-internal-test.md`.
 
+The adjacent
+`living-frame-selected-scene-environmental-particle-scene-qa-internal-test-v1`
+qualification consumes a process-bound persisted-artifact lease and re-opens
+the exact review through the existing private media runtime. Real FFprobe
+execution verifies H.264, 640×360, 30 FPS, and 105 frames; the report also
+revalidates all-frame procedural-alpha, temporal, source-plane, caption-plane,
+ratio, and MasterTiming evidence. It marks private internal scene QA green
+without claiming canonical QA or review approval.
+
+This qualification exposes one exact shared-interface conflict:
+`living-frame-scene-evidence-package-v1` stores a primitive-QA expectation but
+has no field or downstream discharge for actual time-sampled procedural QA.
+The namespaced report records that conflict without mutating the shared
+package or creating a parallel owner. Private-review evidence compilation and
+canonical procedural-QA discharge reconciliation remain next.
+
+The scene-QA evidence is specified in
+`docs/living-frame/living-frame-selected-scene-environmental-particle-scene-qa-internal-test.md`.
+
 The downstream Sharp alpha-component authority accepts exactly one approved
 source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg
 mask PNG. It continues to use the existing straight-alpha recipe and canonical

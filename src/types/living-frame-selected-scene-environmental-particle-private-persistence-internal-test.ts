@@ -90,3 +90,28 @@ export interface LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistence
   extends LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestReportDraft {
   readonly reportDigestSha256: string
 }
+
+export interface LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistedArtifactLease {
+  readonly leaseClass:
+    'process_bound_single_use_selected_scene_particle_persisted_artifact_lease_v1'
+  readonly leaseId: string
+  readonly persistenceReportDigestSha256: string
+  readonly privateObjectIdentityHash: string
+  readonly expectedByteLength: number
+  readonly sha256: string
+  readonly contentType: 'video/mp4'
+  readonly callerSerializable: false
+  readonly artifactPersistenceAuthority: false
+  readonly assetManifestAuthority: false
+  readonly qaApprovalAuthority: false
+  readonly privateReviewAuthority: false
+  readonly billingAuthority: false
+  readonly productionAuthority: false
+}
+
+export interface LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestExecution {
+  readonly report:
+    LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestReport
+  readonly privatePersistedArtifactLease:
+    LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistedArtifactLease
+}

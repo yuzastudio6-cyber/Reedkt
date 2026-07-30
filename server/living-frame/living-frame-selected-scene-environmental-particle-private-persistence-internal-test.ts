@@ -5,6 +5,8 @@ import {
   LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_PRIVATE_PERSISTENCE_INTERNAL_TEST_OPEN_GATES,
   LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_PRIVATE_PERSISTENCE_INTERNAL_TEST_STATE,
   LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_PRIVATE_PERSISTENCE_INTERNAL_TEST_VERSION,
+  type LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistedArtifactLease,
+  type LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestExecution,
   type LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestReport,
   type LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestReportDraft,
 } from '../../src/types/living-frame-selected-scene-environmental-particle-private-persistence-internal-test'
@@ -27,6 +29,30 @@ import {
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const SHA256 = /^[a-f0-9]{64}$/u
 
+export interface LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistedArtifact {
+  readonly persistenceReportDigestSha256: string
+  readonly privateObjectIdentityHash: string
+  readonly byteLength: number
+  readonly sha256: string
+  readonly contentType: 'video/mp4'
+  readonly openStream: () => Promise<Readable>
+}
+
+interface PrivatePersistedArtifactLeaseBinding {
+  readonly localStorageRoot: string
+  readonly persistenceReportDigestSha256: string
+  readonly privateObjectIdentityHash: string
+  readonly expectedByteLength: number
+  readonly sha256: string
+  readonly contentType: 'video/mp4'
+}
+
+const privatePersistedArtifactByLease =
+  new WeakMap<
+    LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistedArtifactLease,
+    PrivatePersistedArtifactLeaseBinding
+  >()
+
 export interface ExecuteLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestInput {
   readonly qualificationId: string
   readonly localStorageRoot: string
@@ -40,6 +66,100 @@ export async function executeLivingFrameSelectedSceneEnvironmentalParticlePrivat
   input:
     ExecuteLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestInput,
 ): Promise<LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestReport> {
+  const execution =
+    await executePrivatePersistenceInternalTest(
+      input,
+    )
+  return execution.report
+}
+
+export async function executeLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestWithArtifactLease(
+  input:
+    ExecuteLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestInput,
+): Promise<LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestExecution> {
+  const execution =
+    await executePrivatePersistenceInternalTest(
+      input,
+    )
+  return {
+    report: execution.report,
+    privatePersistedArtifactLease:
+      createPrivatePersistedArtifactLease(
+        input.localStorageRoot,
+        execution.report,
+      ),
+  }
+}
+
+export async function consumeLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistedArtifactLease(
+  lease:
+    LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistedArtifactLease,
+): Promise<LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistedArtifact> {
+  if (
+    !isRecord(lease)
+    || lease.leaseClass !==
+      'process_bound_single_use_selected_scene_particle_persisted_artifact_lease_v1'
+    || lease.callerSerializable !== false
+    || lease.artifactPersistenceAuthority !== false
+    || lease.assetManifestAuthority !== false
+    || lease.qaApprovalAuthority !== false
+    || lease.privateReviewAuthority !== false
+    || lease.billingAuthority !== false
+    || lease.productionAuthority !== false
+  ) throw invalid('Living Frame persisted-artifact lease is invalid.')
+  const binding =
+    privatePersistedArtifactByLease.get(
+      lease,
+    )
+  if (binding == null) {
+    throw invalid('Living Frame persisted-artifact lease is unknown or already consumed.')
+  }
+  privatePersistedArtifactByLease.delete(lease)
+  if (
+    lease.persistenceReportDigestSha256 !==
+      binding
+        .persistenceReportDigestSha256
+    || lease.privateObjectIdentityHash !==
+      binding.privateObjectIdentityHash
+    || lease.expectedByteLength !==
+      binding.expectedByteLength
+    || lease.sha256 !== binding.sha256
+    || lease.contentType !==
+      binding.contentType
+  ) throw invalid('Living Frame persisted-artifact lease lineage is invalid.')
+  const inspected =
+    await inspectCanonicalPrivateRemotionArtifact({
+      localStorageRoot:
+        binding.localStorageRoot,
+      privateObjectIdentityHash:
+        binding.privateObjectIdentityHash,
+    })
+  if (
+    inspected == null
+    || inspected.byteLength !==
+      binding.expectedByteLength
+    || inspected.sha256 !== binding.sha256
+  ) throw invalid('Living Frame persisted artifact changed before consumption.')
+  return Object.freeze({
+    persistenceReportDigestSha256:
+      binding.persistenceReportDigestSha256,
+    privateObjectIdentityHash:
+      binding.privateObjectIdentityHash,
+    byteLength: inspected.byteLength,
+    sha256: inspected.sha256,
+    contentType: 'video/mp4' as const,
+    openStream:
+      () => inspected.openStream(),
+  })
+}
+
+async function executePrivatePersistenceInternalTest(
+  input:
+    ExecuteLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestInput,
+): Promise<{
+  readonly report:
+    LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestReport
+}> {
   assertInput(input)
   assertFullTimelineReport(
     input.fullTimelineReport,
@@ -200,11 +320,77 @@ export async function executeLivingFrameSelectedSceneEnvironmentalParticlePrivat
       externalBetaReady: false,
       productionReady: false,
     }
-  return deepFreeze({
+  const report = deepFreeze({
     ...draft,
     reportDigestSha256:
       sha256AuthorityValue(draft),
   })
+  return { report }
+}
+
+function createPrivatePersistedArtifactLease(
+  localStorageRoot: string,
+  report:
+    LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestReport,
+): LivingFrameSelectedSceneEnvironmentalParticlePrivatePersistedArtifactLease {
+  if (
+    !report.artifactPersisted
+    || !report.persistedArtifact
+      .exactReadbackVerified
+  ) throw invalid('Living Frame persistence report is not ready for an artifact lease.')
+  const lease = Object.freeze({
+    leaseClass:
+      'process_bound_single_use_selected_scene_particle_persisted_artifact_lease_v1' as const,
+    leaseId:
+      `lf-particle-persisted-artifact.${sha256AuthorityValue({
+        reportDigestSha256:
+          report.reportDigestSha256,
+        privateObjectIdentityHash:
+          report.persistedArtifact
+            .privateObjectIdentityHash,
+        expectedByteLength:
+          report.persistedArtifact
+            .byteLength,
+        sha256:
+          report.persistedArtifact.sha256,
+      }).slice(0, 40)}`,
+    persistenceReportDigestSha256:
+      report.reportDigestSha256,
+    privateObjectIdentityHash:
+      report.persistedArtifact
+        .privateObjectIdentityHash,
+    expectedByteLength:
+      report.persistedArtifact.byteLength,
+    sha256:
+      report.persistedArtifact.sha256,
+    contentType: 'video/mp4' as const,
+    callerSerializable: false as const,
+    artifactPersistenceAuthority:
+      false as const,
+    assetManifestAuthority: false as const,
+    qaApprovalAuthority: false as const,
+    privateReviewAuthority: false as const,
+    billingAuthority: false as const,
+    productionAuthority: false as const,
+  })
+  privatePersistedArtifactByLease.set(
+    lease,
+    Object.freeze({
+      localStorageRoot,
+      persistenceReportDigestSha256:
+        report.reportDigestSha256,
+      privateObjectIdentityHash:
+        report.persistedArtifact
+          .privateObjectIdentityHash,
+      expectedByteLength:
+        report.persistedArtifact
+          .byteLength,
+      sha256:
+        report.persistedArtifact.sha256,
+      contentType: 'video/mp4' as const,
+    }),
+  )
+  return lease
 }
 
 function assertInput(

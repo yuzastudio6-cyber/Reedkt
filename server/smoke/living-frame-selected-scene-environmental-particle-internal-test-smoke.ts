@@ -28,6 +28,9 @@ import {
   LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_PRIVATE_PERSISTENCE_INTERNAL_TEST_VERSION,
 } from '../../src/types/living-frame-selected-scene-environmental-particle-private-persistence-internal-test'
 import {
+  LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_SCENE_QA_INTERNAL_TEST_VERSION,
+} from '../../src/types/living-frame-selected-scene-environmental-particle-scene-qa-internal-test'
+import {
   compileLivingFrameComponentGeometry,
 } from '../living-frame/living-frame-component-geometry'
 import {
@@ -42,8 +45,12 @@ import {
   executeLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTestWithPrivateReviewOutput,
 } from '../living-frame/living-frame-environmental-particle-remotion-internal-composite'
 import {
-  executeLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTest,
+  consumeLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistedArtifactLease,
+  executeLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestWithArtifactLease,
 } from '../living-frame/living-frame-selected-scene-environmental-particle-private-persistence-internal-test'
+import {
+  executeLivingFrameSelectedSceneEnvironmentalParticleSceneQaInternalTest,
+} from '../living-frame/living-frame-selected-scene-environmental-particle-scene-qa-internal-test'
 import {
   inspectLivingFrameEnvironmentalParticleAdmission,
   type InspectLivingFrameEnvironmentalParticleAdmissionInput,
@@ -589,7 +596,11 @@ assert.equal(
   false,
 )
 
-const persistenceReport = await (async () => {
+const {
+  persistenceReport,
+  sceneQaReport,
+  sceneQaAdversarialAssertions,
+} = await (async () => {
   const localStorageRoot =
     await mkdtemp(
       join(
@@ -598,7 +609,8 @@ const persistenceReport = await (async () => {
       ),
     )
   try {
-    return await executeLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTest({
+    const persistenceExecution =
+      await executeLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestWithArtifactLease({
       qualificationId:
         'living-frame.selected-scene-environmental-internal.private-persistence-v1',
       localStorageRoot,
@@ -607,6 +619,50 @@ const persistenceReport = await (async () => {
         fullTimelineExecution
           .privateReviewOutputLease,
     })
+    await assert.rejects(
+      executeLivingFrameSelectedSceneEnvironmentalParticleSceneQaInternalTest({
+        qualificationId:
+          'living-frame.selected-scene-environmental-internal.scene-qa-forged-persistence',
+        fullTimelineReport,
+        persistenceReport: {
+          ...persistenceExecution.report,
+          persistedArtifact: {
+            ...persistenceExecution.report
+              .persistedArtifact,
+            sha256: 'f'.repeat(64),
+          },
+        },
+        privatePersistedArtifactLease:
+          persistenceExecution
+            .privatePersistedArtifactLease,
+      }),
+      /persistence report is invalid/u,
+    )
+    const sceneQaExecution =
+      await executeLivingFrameSelectedSceneEnvironmentalParticleSceneQaInternalTest({
+        qualificationId:
+          'living-frame.selected-scene-environmental-internal.scene-qa-v1',
+        fullTimelineReport,
+        persistenceReport:
+          persistenceExecution.report,
+        privatePersistedArtifactLease:
+          persistenceExecution
+            .privatePersistedArtifactLease,
+      })
+    await assert.rejects(
+      consumeLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistedArtifactLease(
+        persistenceExecution
+          .privatePersistedArtifactLease,
+      ),
+      /unknown or already consumed/u,
+    )
+    return {
+      persistenceReport:
+        persistenceExecution.report,
+      sceneQaReport:
+        sceneQaExecution.report,
+      sceneQaAdversarialAssertions: 2,
+    }
   } finally {
     await rm(localStorageRoot, {
       recursive: true,
@@ -691,6 +747,101 @@ assert.equal(
   persistenceReport.productionReady,
   false,
 )
+assert.equal(
+  sceneQaReport.contractVersion,
+  LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_SCENE_QA_INTERNAL_TEST_VERSION,
+)
+assert.equal(
+  sceneQaReport.canonicalScope.sceneId,
+  scene.sceneId,
+)
+assert.equal(
+  sceneQaReport.canonicalScope.componentId,
+  componentId,
+)
+assert.equal(
+  sceneQaReport.persistedMediaQa.codecName,
+  'h264',
+)
+assert.equal(
+  sceneQaReport.persistedMediaQa.widthPixels,
+  640,
+)
+assert.equal(
+  sceneQaReport.persistedMediaQa.heightPixels,
+  360,
+)
+assert.equal(
+  sceneQaReport.persistedMediaQa.fps,
+  30,
+)
+assert.equal(
+  sceneQaReport.persistedMediaQa.readFrameCount,
+  105,
+)
+assert.equal(
+  sceneQaReport.persistedMediaQa
+    .actualRuntimeExecuted,
+  true,
+)
+assert.equal(
+  sceneQaReport.proceduralAlphaQa
+    .everyFrameExpectationMatched,
+  true,
+)
+assert.equal(
+  sceneQaReport.proceduralAlphaQa
+    .temporalVariationVerified,
+  true,
+)
+assert.equal(
+  sceneQaReport.destinationCompositeQa
+    .captionPlaneVisibleAboveParticlesAcrossTimeline,
+  true,
+)
+assert.equal(
+  sceneQaReport.sceneEvidenceDisposition
+    .actualNamespacedProceduralQaCompleted,
+  true,
+)
+assert.equal(
+  sceneQaReport.sceneEvidenceDisposition
+    .genericPackageStillMarksProceduralPrimitivePending,
+  true,
+)
+assert.equal(
+  sceneQaReport.sceneEvidenceDisposition
+    .noParallelSceneEvidenceOwnerCreated,
+  true,
+)
+assert.equal(
+  sceneQaReport.privateInternalSceneQaPassed,
+  true,
+)
+assert.equal(
+  sceneQaReport.canonicalQaApproved,
+  false,
+)
+assert.equal(
+  sceneQaReport.assetManifestMutated,
+  false,
+)
+assert.equal(
+  sceneQaReport.privateReviewEvidenceReady,
+  true,
+)
+assert.equal(
+  sceneQaReport.privateReviewApproved,
+  false,
+)
+assert.equal(
+  sceneQaReport.customerCharged,
+  false,
+)
+assert.equal(
+  sceneQaReport.productionReady,
+  false,
+)
 assert.throws(
   () =>
     consumeLivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutputLease(
@@ -700,7 +851,8 @@ assert.throws(
   /unknown or already consumed/u,
 )
 
-let adversarialAssertions = 0
+let adversarialAssertions =
+  sceneQaAdversarialAssertions
 const mismatchedPack = {
   ...visualContinuityPack,
   canonicalBindings: {
@@ -774,6 +926,8 @@ const serializedFullTimelineReport =
   JSON.stringify(fullTimelineReport)
 const serializedPersistenceReport =
   JSON.stringify(persistenceReport)
+const serializedSceneQaReport =
+  JSON.stringify(sceneQaReport)
 for (const forbidden of [
   'pngBytes',
   'rgbaBytes',
@@ -796,6 +950,12 @@ for (const forbidden of [
   )
   assert.equal(
     serializedPersistenceReport.includes(
+      forbidden,
+    ),
+    false,
+  )
+  assert.equal(
+    serializedSceneQaReport.includes(
       forbidden,
     ),
     false,
@@ -855,6 +1015,18 @@ process.stdout.write(`${JSON.stringify({
     persistenceReport.assetManifestMutated,
   privateReviewApproved:
     persistenceReport.privateReviewApproved,
+  privateInternalSceneQaPassed:
+    sceneQaReport
+      .privateInternalSceneQaPassed,
+  persistedMediaQaActualRuntimeExecuted:
+    sceneQaReport.persistedMediaQa
+      .actualRuntimeExecuted,
+  proceduralAlphaQaCompleted:
+    sceneQaReport.sceneEvidenceDisposition
+      .actualNamespacedProceduralQaCompleted,
+  canonicalSceneEvidencePrimitiveDischargePending:
+    sceneQaReport.sceneEvidenceDisposition
+      .genericPackageStillMarksProceduralPrimitivePending,
   customerCharged: report.customerCharged,
   productionReady: report.productionReady,
   adversarialAssertions,

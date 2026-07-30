@@ -11,6 +11,8 @@ const require = createRequire(import.meta.url)
 const DEFAULT_HOST = '127.0.0.1'
 const DEFAULT_WEB_PORT = 5173
 const DEFAULT_API_PORT = 8787
+const INTERNAL_KIMI_SECRET_REFERENCE =
+  'projects/reeditpro/secrets/reeditpro-prod-kimi-api-key/versions/2'
 const PRIVATE_STORAGE_DIRECTORY = join('.reeditpro-local-storage', 'private-workspace')
 const PASSTHROUGH_ENV_KEYS = [
   'PATH',
@@ -63,12 +65,14 @@ const EXTERNAL_RUNTIME_ENV_KEYS = [
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
   'GOOGLE_SECRET_OPENAI_API_KEY_NAME',
+  'GOOGLE_SECRET_KIMI_API_KEY_NAME',
   'GOOGLE_SECRET_WAN_API_KEY_NAME',
   'GOOGLE_SECRET_HAILUO_API_KEY_NAME',
   'GOOGLE_SECRET_VEO_VERTEX_CONFIG_NAME',
   'GOOGLE_SECRET_LYRIA_API_KEY_NAME',
   'GOOGLE_SECRET_MIRELO_API_KEY_NAME',
   'GOOGLE_SECRET_MMAUDIO_API_KEY_NAME',
+  'REEDITPRO_KIMI_RUNTIME_MODE',
 ]
 
 class StopRequestedError extends Error {}
@@ -84,7 +88,7 @@ export function createPrivateWorkspaceConfig({
   env = process.env,
 } = {}) {
   const unknownArgs = args.filter((arg) =>
-    arg !== '--check' && arg !== '--private-review')
+    arg !== '--check' && arg !== '--private-review' && arg !== '--kimi')
   if (unknownArgs.length > 0) {
     throw new Error(`Unsupported private workspace argument: ${unknownArgs[0]}`)
   }
@@ -112,6 +116,7 @@ export function createPrivateWorkspaceConfig({
   return {
     checkOnly: args.includes('--check'),
     privateReviewRuntime: args.includes('--private-review'),
+    kimiRuntime: args.includes('--kimi'),
     root,
     host,
     webPort,
@@ -147,6 +152,10 @@ export function createPrivateWorkspaceChildEnvironments(config, sourceEnv = proc
     REEDITPRO_PRIVATE_WORKSPACE_HOST: config.host,
     REEDITPRO_PRIVATE_WORKSPACE_ENABLE_PRIVATE_REVIEW_RUNTIME:
       config.privateReviewRuntime ? 'true' : '',
+    REEDITPRO_KIMI_RUNTIME_MODE:
+      config.kimiRuntime ? 'internal_test' : 'disabled',
+    GOOGLE_SECRET_KIMI_API_KEY_NAME:
+      config.kimiRuntime ? INTERNAL_KIMI_SECRET_REFERENCE : '',
     REEDITPRO_INTERNAL_SERVICE_TOKEN:
       config.privateReviewRuntime ? randomBytes(32).toString('base64url') : '',
   }
@@ -182,8 +191,9 @@ export function createPrivateWorkspaceCheckSummary(config) {
     apiBrowserTransport: 'same_origin_vite_proxy',
     localPrivateUploads: true,
     privateReviewRuntime: config.privateReviewRuntime,
+    kimiRuntime: config.kimiRuntime,
     storageDirectory: relative(config.root, config.storageRoot),
-    externalServices: 'disabled',
+    externalServices: config.kimiRuntime ? 'kimi_k3_only' : 'disabled',
     startsProcesses: false,
   }
 }
@@ -284,7 +294,16 @@ async function startPrivateWorkspace(config, childEnvironments, runtimePaths) {
         'Private review mode is active: approved local work may use confined FFmpeg, libass, and Remotion.',
       )
     }
-    console.log('External providers, Supabase, billing, and deployed services remain disabled.\n')
+    if (config.kimiRuntime) {
+      console.log(
+        'Kimi K3 Chat is active through the pinned server-only Secret Manager reference.',
+      )
+    }
+    console.log(
+      config.kimiRuntime
+        ? 'All other external providers, Supabase, billing, and deployed services remain disabled.\n'
+        : 'External providers, Supabase, billing, and deployed services remain disabled.\n',
+    )
 
     const result = await Promise.race([
       unexpectedExit.then((exit) => ({ kind: 'exit', exit })),
@@ -337,6 +356,20 @@ function assertPrivateWorkspaceEnvironment(config, { serverEnv, frontendEnv }) {
     throw new Error('Private workspace review runtime safety configuration is incomplete.')
   }
   if (
+    config.kimiRuntime
+    && (
+      serverEnv.REEDITPRO_KIMI_RUNTIME_MODE !== 'internal_test'
+      || serverEnv.GOOGLE_SECRET_KIMI_API_KEY_NAME
+        !== INTERNAL_KIMI_SECRET_REFERENCE
+      || frontendEnv.REEDITPRO_KIMI_RUNTIME_MODE
+      || frontendEnv.GOOGLE_SECRET_KIMI_API_KEY_NAME
+    )
+  ) {
+    throw new Error(
+      'Private workspace Kimi runtime safety configuration is incomplete.',
+    )
+  }
+  if (
     frontendEnv.VITE_REEDITPRO_AUTH_MODE !== 'local_test'
     || frontendEnv.VITE_REEDITPRO_API_MODE !== 'frontend_safe'
     || frontendEnv.VITE_REEDITPRO_API_BASE_URL !== config.webOrigin
@@ -346,6 +379,13 @@ function assertPrivateWorkspaceEnvironment(config, { serverEnv, frontendEnv }) {
     throw new Error('Private workspace frontend safety configuration is incomplete.')
   }
   for (const key of EXTERNAL_RUNTIME_ENV_KEYS) {
+    if (
+      config.kimiRuntime
+      && (
+        key === 'REEDITPRO_KIMI_RUNTIME_MODE'
+        || key === 'GOOGLE_SECRET_KIMI_API_KEY_NAME'
+      )
+    ) continue
     if (serverEnv[key] || frontendEnv[key]) {
       throw new Error('Private workspace external-service isolation failed.')
     }

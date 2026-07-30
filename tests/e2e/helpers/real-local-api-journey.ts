@@ -95,6 +95,7 @@ export async function signInAndCreateActiveProjectEdit(
   await clickWhenReady(page.getByRole('button', { name: /^New video edit$/i }).first())
   await expect(page.getByTestId('new-edit-dialog')).toBeVisible()
   await expect(page.getByRole('heading', { name: /Name this edit/i })).toBeVisible()
+  await expect(page.getByTestId('new-edit-level-picker')).toHaveCount(0)
   await page.getByLabel(/Edit name/i).fill(input.editName)
   const editStateSaveResponse = page.waitForResponse((response) => {
     const url = new URL(response.url())
@@ -134,6 +135,7 @@ export async function signInAndCreateActiveProjectEdit(
   ).toBe(true)
   await expect(page.getByTestId('editor-page')).toBeVisible({ timeout: 30_000 })
   await expect(page.getByTestId('editor-header')).toContainText(input.editName)
+  await expect(page.getByTestId('edit-level-inline-card')).toHaveCount(0)
   await expect(page.getByTestId('edit-upload-gate')).toBeVisible()
   await expect(page.getByTestId('chat-composer-textarea')).toBeDisabled()
 
@@ -295,10 +297,63 @@ export async function createAndApproveActivePlan(
   const timeoutMs = input.timeoutMs ?? 60_000
   if (input.prompt) {
     await page.getByTestId('chat-composer-textarea').fill(input.prompt)
+    const chatResponse = page.waitForResponse((response) => {
+      const request = response.request()
+      return request.method() === 'POST'
+        && /\/source-led-chat(?:\?|$)/.test(request.url())
+    }, { timeout: timeoutMs })
     await clickWhenReady(page.getByTestId('chat-composer-send'))
+    const persistedChatResponse = await chatResponse
+    const persistedChatBody = await persistedChatResponse.json() as {
+      data?: {
+        canonicalSourceLedChat?: {
+          providerModelCalled?: boolean
+        }
+        exchange?: {
+          assistantRuntime?: {
+            source?: string
+            status?: string
+            routeId?: string
+            providerModel?: string
+            credentialVersion?: number | null
+            providerCallMade?: boolean
+            modelCallMade?: boolean
+          }
+        }
+      }
+    }
+    expect(
+      persistedChatResponse.ok(),
+      `POST source-led-chat returned ${persistedChatResponse.status()}.`,
+    ).toBe(true)
+    if (process.env.PLAYWRIGHT_KIMI_CHAT_EXPECTED === 'true') {
+      expect(persistedChatBody.data?.canonicalSourceLedChat?.providerModelCalled)
+        .toBe(true)
+      expect(persistedChatBody.data?.exchange?.assistantRuntime).toMatchObject({
+        source: 'kimi_k3',
+        status: 'completed',
+        routeId: 'kimi_k3_primary',
+        providerModel: 'kimi-k3',
+        credentialVersion: 2,
+        providerCallMade: true,
+        modelCallMade: true,
+      })
+    }
     await expect(
       page.locator('article[data-message-type="user_message"]').filter({ hasText: input.prompt }),
     ).toBeVisible()
+    const verifiedAssistantReply = page
+      .locator('article[data-message-type="assistant_revision_response"]')
+      .last()
+    await expect(verifiedAssistantReply).toBeVisible({ timeout: timeoutMs })
+    await expect(verifiedAssistantReply).toHaveAttribute(
+      'data-message-status',
+      /^(?:pending|success)$/,
+      { timeout: timeoutMs },
+    )
+    await expect(verifiedAssistantReply).not.toContainText(
+      /AI response could not be verified|private AI service is available/i,
+    )
   }
 
   if (input.sourceAlreadyPrepared) {
@@ -390,6 +445,9 @@ export async function applySupportedSourceOnlyPreferences(page: Page): Promise<v
     'current-edit-preferences-advanced',
   )
   await expect(advancedPreferences).toBeVisible()
+  await expect(
+    page.getByTestId('current-edit-preference-edit-level'),
+  ).toHaveCount(0)
   if (await advancedPreferences.getAttribute('open') === null) {
     await clickWhenReady(advancedPreferences.locator('summary'))
   }

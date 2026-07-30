@@ -30,6 +30,16 @@ const reviewEnvironments = createPrivateWorkspaceChildEnvironments(
   sourceEnv,
 )
 const reviewSummary = createPrivateWorkspaceCheckSummary(reviewConfig)
+const kimiConfig = createPrivateWorkspaceConfig({
+  args: ['--check', '--kimi'],
+  cwd: root,
+  env: sourceEnv,
+})
+const kimiEnvironments = createPrivateWorkspaceChildEnvironments(
+  kimiConfig,
+  sourceEnv,
+)
+const kimiSummary = createPrivateWorkspaceCheckSummary(kimiConfig)
 
 assert.equal(config.checkOnly, true)
 assert.equal(config.host, '127.0.0.1')
@@ -54,6 +64,7 @@ assert.equal(summary.startsProcesses, false)
 assert.equal(summary.externalServices, 'disabled')
 assert.equal(summary.apiBrowserTransport, 'same_origin_vite_proxy')
 assert.equal(summary.privateReviewRuntime, false)
+assert.equal(summary.kimiRuntime, false)
 assert.equal(JSON.stringify(summary).includes('must-not-propagate'), false)
 assert.equal(reviewConfig.privateReviewRuntime, true)
 assert.equal(
@@ -71,6 +82,24 @@ assert.equal(
   undefined,
 )
 assert.equal(reviewSummary.privateReviewRuntime, true)
+assert.equal(kimiSummary.kimiRuntime, true)
+assert.equal(kimiSummary.externalServices, 'kimi_k3_only')
+assert.equal(
+  kimiEnvironments.serverEnv.REEDITPRO_KIMI_RUNTIME_MODE,
+  'internal_test',
+)
+assert.equal(
+  kimiEnvironments.serverEnv.GOOGLE_SECRET_KIMI_API_KEY_NAME,
+  'projects/reeditpro/secrets/reeditpro-prod-kimi-api-key/versions/2',
+)
+assert.equal(
+  kimiEnvironments.frontendEnv.GOOGLE_SECRET_KIMI_API_KEY_NAME,
+  '',
+)
+assert.equal(
+  JSON.stringify(kimiSummary).includes('reeditpro-prod-kimi-api-key'),
+  false,
+)
 assert.equal(
   JSON.stringify(reviewSummary).includes(
     reviewEnvironments.serverEnv.REEDITPRO_INTERNAL_SERVICE_TOKEN,
@@ -114,6 +143,8 @@ console.log(JSON.stringify({
     'local_private_uploads_selected',
     'provider_free_local_worker_selected',
     'private_review_runtime_requires_explicit_flag',
+    'kimi_runtime_requires_explicit_flag',
+    'kimi_secret_reference_is_server_only',
     'private_review_internal_secret_is_server_only',
     'external_credentials_scrubbed',
     'safe_summary_contains_no_secret_values',

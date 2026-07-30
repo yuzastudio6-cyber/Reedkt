@@ -28,10 +28,17 @@ const canonicalV3User = {
   password: 'Canonical-V3-Browser-Only-2026!',
   displayName: 'Owner A',
 }
-const privateReviewMode = process.argv.slice(2).includes('--private-review')
-const supabaseAuthMode = process.argv.slice(2).includes('--supabase-auth')
+const args = process.argv.slice(2)
+const privateReviewMode = args.includes('--private-review')
+const supabaseAuthMode = args.includes('--supabase-auth')
+const kimiMode = args.includes('--kimi')
+const internalKimiSecretReference =
+  'projects/reeditpro/secrets/reeditpro-prod-kimi-api-key/versions/2'
 const unknownArgs = process.argv.slice(2).filter(
-  (arg) => arg !== '--private-review' && arg !== '--supabase-auth',
+  (arg) =>
+    arg !== '--private-review'
+    && arg !== '--supabase-auth'
+    && arg !== '--kimi',
 )
 if (unknownArgs.length > 0) {
   throw new Error(`Unsupported local upload E2E argument: ${unknownArgs[0]}`)
@@ -370,6 +377,10 @@ function buildPrivateApiEnvironment() {
     SUPABASE_SERVICE_ROLE_KEY: canonicalV3Runtime?.serviceRoleKey ?? '',
     GOOGLE_CLOUD_PROJECT_ID: '',
     GCS_SOURCE_MEDIA_BUCKET: '',
+    REEDITPRO_KIMI_RUNTIME_MODE:
+      kimiMode ? 'internal_test' : 'disabled',
+    GOOGLE_SECRET_KIMI_API_KEY_NAME:
+      kimiMode ? internalKimiSecretReference : '',
   }
 }
 
@@ -513,6 +524,7 @@ function runPlaywright(fixturePath) {
         PLAYWRIGHT_REAL_LOCAL_API_AUTH_PASSWORD: canonicalV3User.password,
         PLAYWRIGHT_CANONICAL_DURABLE_UPLOAD_TARGET_EXPECTED:
           supabaseAuthMode ? 'true' : 'false',
+        PLAYWRIGHT_KIMI_CHAT_EXPECTED: kimiMode ? 'true' : 'false',
       },
       stdio: 'inherit',
     })
@@ -612,14 +624,22 @@ async function main() {
     console.log(`Synthetic video fixture: ${playwrightFixturePath}`)
   }
   console.log(`Specs: ${playwrightSpecs.join(', ')}`)
+  const providerBoundarySummary = kimiMode
+    ? 'One Kimi K3 Chat call is allowed through the pinned server-only Secret Manager reference; no other provider or live Qwen call is allowed.'
+    : 'No provider or live Qwen call is allowed.'
   console.log(
     privateReviewMode
       ? supabaseAuthMode
-        ? 'Mode: real loopback Supabase password sign-in and verified bearer token + RLS workspace membership + active named-edit route + backend-private source upload + canonical plan/approval/work graph + confined private review. Project/media/execution persistence remains private local; no GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.'
-        : 'Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval/work graph + confined private review. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.'
+        ? `Mode: real loopback Supabase password sign-in and verified bearer token + RLS workspace membership + active named-edit route + backend-private source upload + canonical plan/approval/work graph + confined private review. Project/media/execution persistence remains private local; ${providerBoundarySummary} No GCS writes, public delivery, external beta, or production.`
+        : `Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval/work graph + confined private review. ${providerBoundarySummary} No Supabase writes, GCS writes, public delivery, external beta, or production.`
       : supabaseAuthMode
-        ? 'Mode: real loopback Supabase password sign-in + signed canonical project creation + authenticated RLS reads + encrypted restart-safe upload target + backend-private source upload + local canonical planning gates. No GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.'
-        : 'Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval gates. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.',
+        ? `Mode: real loopback Supabase password sign-in + signed canonical project creation + authenticated RLS reads + encrypted restart-safe upload target + backend-private source upload + local canonical planning gates. ${providerBoundarySummary} No GCS writes, public delivery, external beta, or production.`
+        : `Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source upload + canonical plan/approval gates. ${providerBoundarySummary} No Supabase writes, GCS writes, public delivery, external beta, or production.`,
+  )
+  console.log(
+    kimiMode
+      ? 'Chat model: Kimi K3 enabled through one pinned Google Secret Manager reference; no raw key enters the browser.'
+      : 'Chat model: disabled; the deterministic persisted server acknowledgement is used.',
   )
 
   const apiEnvironment = buildPrivateApiEnvironment()

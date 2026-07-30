@@ -98,6 +98,12 @@ vulnerability clearance: false
 The next scan should run on a Linux scanner host with fast local storage.
 Runtime verification must not be represented as vulnerability clearance.
 
+An adjacent archive-input attempt is frozen in
+`living-frame-comfyui-hardened-archive-scan-evidence.md`. It binds the exact
+completed `docker save` tar by byte length and SHA-256, but the archive scan
+also reached its 1,200-second boundary without producing a report. It narrows
+the remaining requirement to a Linux scanner host with fast local storage.
+
 ## Open gates
 
 - reproducible source-bound OCI build;

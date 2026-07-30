@@ -40,29 +40,34 @@ The aggregate audit executes:
 7. the exact official Torch `2.6.0` / TorchVision `0.21.0` / Triton `3.2.0`
    / cuSPARSELt `0.6.2` shared-parent hardening candidate and current-parent
    dependency delta, without package download or build admission;
-8. a real Remotion render covering all five Living Frame modes, deliberate
+8. the sanitized local hardened derivative through strict non-root,
+   read-only-root, zero-network verification, with its incomplete full-image
+   scan and release denial preserved;
+9. the exact digest-bound `docker save` archive-input scan attempt, its
+   no-report timeout, and complete temporary artifact cleanup;
+10. a real Remotion render covering all five Living Frame modes, deliberate
    non-use, multiple depth styles, attention, caption priority, sound, and
    fallbacks;
-9. real portrait and custom non-square confirmed-frame renders without square
+11. real portrait and custom non-square confirmed-frame renders without square
    substitution;
-10. the complete selected-scene PixiJS environmental-particle slice through
+12. the complete selected-scene PixiJS environmental-particle slice through
    Remotion, create-only persistence, media QA, and private-review evidence;
-11. the real Musashi illustration through alpha, exact destination composite,
+13. the real Musashi illustration through alpha, exact destination composite,
    base/sword-arm/hair/robe decomposition, deterministic bounded shoulder-plate
    reconstruction, a synchronized articulated strike, Remotion, captions,
    sound, media QA, and retained review frames;
-12. real generated flat-editorial and paper-collage alpha fixtures through
+14. real generated flat-editorial and paper-collage alpha fixtures through
    adaptive flat and shallow-2.5D Remotion scenes, measured spatial behavior,
    caption priority, create-only persistence, and retained review frames;
-13. semantic sound timing reconciliation;
-14. canonical private-review lineage;
-15. the exact selected-scene source-video → normalized subject prompt → SAM2
+15. semantic sound timing reconciliation;
+16. canonical private-review lineage;
+17. the exact selected-scene source-video → normalized subject prompt → SAM2
     temporal-mask work-admission candidate;
-16. the exact SAM2 runtime/parent/Torch vulnerability admission gate, including
+18. the exact SAM2 runtime/parent/Torch vulnerability admission gate, including
     the required versioned hardened source/runtime replacement;
-17. a real gray8 FFV1 temporal-mask output through decode, stability
+19. a real gray8 FFV1 temporal-mask output through decode, stability
     measurement, create-only persistence, and review frames; and
-18. the exact temporal-mask work-graph conflict.
+20. the exact temporal-mask work-graph conflict.
 
 Every subprocess is bounded, uses the pinned workspace `tsx` executable, and
 returns only an output digest plus structured status to the aggregate receipt.

@@ -193,6 +193,7 @@
     "smoke:living-frame-shared-gpu-parent-hardened-core-package-cache-internal-test": "tsx server/smoke/living-frame-shared-gpu-parent-hardened-core-package-cache-internal-test-smoke.ts",
     "smoke:living-frame-comfyui-hardened-runtime-host-evidence": "tsx server/smoke/living-frame-comfyui-hardened-runtime-host-evidence-smoke.ts",
     "smoke:living-frame-comfyui-hardened-local-image-evidence": "tsx server/smoke/living-frame-comfyui-hardened-local-image-evidence-smoke.ts",
+    "smoke:living-frame-comfyui-hardened-archive-scan-evidence": "tsx server/smoke/living-frame-comfyui-hardened-archive-scan-evidence-smoke.ts",
     "smoke:living-frame-auraface-canonical-mount-host-session": "tsx server/smoke/living-frame-auraface-canonical-mount-host-session-smoke.ts",
     "smoke:living-frame-comfyui-model-mount": "tsx server/smoke/living-frame-comfyui-read-only-model-mount-smoke.ts",
     "smoke:living-frame-environmental-particle-pixijs-internal-runtime": "tsx server/smoke/living-frame-environmental-particle-pixijs-internal-runtime-smoke.ts",

@@ -140,6 +140,40 @@ const cases: readonly AuditCase[] = [
     },
   },
   {
+    id: 'hardened_comfyui_local_image_evidence',
+    relativePath:
+      'server/smoke/living-frame-comfyui-hardened-local-image-evidence-smoke.ts',
+    validate(receipt) {
+      assert.equal(
+        receipt.strictNonRootVerificationPassed,
+        true,
+      )
+      assert.equal(receipt.fullImageScanCompleted, false)
+      assert.equal(
+        receipt.vulnerabilityClearanceGranted,
+        false,
+      )
+      assert.equal(receipt.operationRegistered, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  },
+  {
+    id: 'hardened_comfyui_archive_scan_evidence',
+    relativePath:
+      'server/smoke/living-frame-comfyui-hardened-archive-scan-evidence-smoke.ts',
+    validate(receipt) {
+      assert.equal(receipt.archiveInputVerified, true)
+      assert.equal(receipt.fullImageScanCompleted, false)
+      assert.equal(
+        receipt.vulnerabilityClearanceGranted,
+        false,
+      )
+      assert.equal(receipt.archiveAndScratchDeleted, true)
+      assert.equal(receipt.operationRegistered, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  },
+  {
     id: 'five_modes_depth_attention_captions_sound_and_fallbacks',
     relativePath:
       'server/smoke/living-frame-five-mode-private-render-smoke.ts',
@@ -444,6 +478,8 @@ const receipt = {
     'selected_scene_private_operation_and_canonical_comfyui_candidate_input_reconciliation',
     'partial_independent_canonical_offline_image_vulnerability_evidence_and_fail_closed_disposition',
     'official_shared_gpu_parent_hardened_package_matrix_and_dependency_delta',
+    'strict_non_root_sanitized_local_hardened_image_verification',
+    'digest_bound_archive_scan_attempt_and_complete_temporary_artifact_cleanup',
     'all_five_modes_and_deliberate_non_use',
     'flat_shallow_and_deep_2_5d',
     'focus_handoff_attention_restoration_and_low_risk_occlusion',

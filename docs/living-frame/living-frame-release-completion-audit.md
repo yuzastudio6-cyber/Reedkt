@@ -130,6 +130,30 @@ canonical ingest, distributed five-model mount, real L4 graph/resource,
 private persistence/QA/review, dispatch, billing, public delivery, and
 production gates remain open.
 
+That historical image is now superseded for private L4 selection by
+`living-frame-comfyui-pruned-no-sam2-source-build-evidence-v1`:
+
+- the exact unused inherited direct-VCS `sam-2` distribution is validated by
+  name, version, source revision, license, 114-file inventory, and file-list
+  digest before removal;
+- only its exact three package roots may be removed;
+- the final image retains the runner's fail-closed `sam2` import guard;
+- strict runtime verification proves its distribution and modules are absent;
+- the repeated SPDX SBOM contains 690 packages and zero exact `sam-2`
+  identities;
+- the repeated full license scan contains 6,716 observations and zero findings
+  owned by the removed distribution; and
+- the repeated vulnerability scan remains at 877 findings with zero
+  critical/high.
+
+The new disposition is
+`internal_l4_image_candidate_direct_vcs_removed_manual_and_canonical_gates_open`.
+The direct-VCS distribution gate is closed for this private image. Manual
+medium/low and whole-image license review, signed provenance, canonical ingest,
+distributed five-model mounts, real L4 graph/resource evidence, private
+persistence/QA/review, dispatch, billing, public delivery, and production
+remain open.
+
 Cost ownership is also frozen:
 
 - the first five capabilities are one shared ComfyUI GPU attempt and are not

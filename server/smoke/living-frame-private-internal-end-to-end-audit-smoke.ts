@@ -217,6 +217,44 @@ const cases: readonly AuditCase[] = [
     },
   },
   {
+    id:
+      'pruned_no_sam2_source_build_and_complete_scan_evidence',
+    relativePath:
+      'server/smoke/living-frame-comfyui-pruned-no-sam2-source-build-evidence-smoke.ts',
+    expectedJsonStatus: 'passed',
+    validate(receipt) {
+      assert.equal(
+        receipt.inheritedDirectVcsDistributionRemoved,
+        true,
+      )
+      assert.equal(
+        receipt.inheritedDirectVcsPackageAbsentFromSbom,
+        true,
+      )
+      assert.equal(
+        receipt.inheritedDirectVcsPackageAbsentFromLicenseReport,
+        true,
+      )
+      assert.equal(
+        receipt.runnerSam2ImportGuardRetained,
+        true,
+      )
+      assert.equal(
+        receipt.directVcsDispositionPassedForPrivateImage,
+        true,
+      )
+      assert.equal(receipt.criticalFindingCount, 0)
+      assert.equal(receipt.highFindingCount, 0)
+      assert.equal(
+        receipt.privateL4InternalTestEligibleFromImageEvidence,
+        true,
+      )
+      assert.equal(receipt.operationRegistered, false)
+      assert.equal(receipt.dispatchGranted, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  },
+  {
     id: 'five_modes_depth_attention_captions_sound_and_fallbacks',
     relativePath:
       'server/smoke/living-frame-five-mode-private-render-smoke.ts',
@@ -524,6 +562,7 @@ const receipt = {
     'strict_non_root_sanitized_local_hardened_image_verification',
     'digest_bound_archive_scan_attempt_and_complete_temporary_artifact_cleanup',
     'source_defined_pruned_image_build_complete_os_python_vulnerability_scan_spdx_sbom_and_full_file_license_scan',
+    'source_defined_pruned_image_exact_inherited_direct_vcs_sam2_removal_repeat_complete_scan_and_retained_runner_import_denial',
     'all_five_modes_and_deliberate_non_use',
     'flat_shallow_and_deep_2_5d',
     'focus_handoff_attention_restoration_and_low_risk_occlusion',
@@ -545,7 +584,7 @@ const receipt = {
       gate:
         'exact_comfyui_controlled_generation_runtime',
       reason:
-        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_selected_scene_candidate_input_reconciliation_source_defined_pruned_hardened_build_strict_non_root_verification_zero_critical_high_complete_os_python_vulnerability_scan_spdx_sbom_and_full_file_license_scan_are_verified_but_manual_medium_low_license_direct_vcs_signature_canonical_ingest_distributed_mount_real_l4_generation_resource_persistence_and_qa_evidence_remain_required',
+        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_selected_scene_candidate_input_reconciliation_source_defined_pruned_hardened_build_exact_inherited_direct_vcs_sam2_removal_strict_non_root_verification_zero_critical_high_complete_os_python_vulnerability_scan_spdx_sbom_and_full_file_license_scan_are_verified_but_manual_medium_low_license_signature_canonical_ingest_distributed_mount_real_l4_generation_resource_persistence_and_qa_evidence_remain_required',
     },
     {
       gate:

@@ -154,6 +154,23 @@ open. The evidence permits the next private L4 review from the image-security
 perspective but does not itself dispatch, mount models, execute a graph, create
 an asset/cost receipt, or grant customer/public/production authority.
 
+The adjacent
+`living-frame-comfyui-pruned-no-sam2-source-build-evidence-v1` checkpoint now
+supersedes that image for private L4 selection. It validates and removes the
+unused inherited direct-VCS `sam-2` distribution before the final image is
+committed, allows removal of only the exact `sam2`, `training`, and
+`sam_2-1.0.dist-info` roots, and preserves the supervised runner's `sam2`
+import denial. The rebuilt 12,657,937,701-byte image again passes strict
+non-root confinement. Its repeated complete vulnerability scan remains at 877
+findings with zero critical/high; its SPDX inventory drops to 690 packages and
+contains zero exact `sam-2` identities; and its 6,716-observation license scan
+contains zero findings owned by the removed distribution. Direct-VCS
+disposition is therefore closed for this private image. Medium/low
+vulnerability review, full-image manual license review, signed provenance,
+canonical ingest, distributed mounts, real L4 generation/resource evidence,
+private output persistence/QA/review, and all customer/public/production
+authorities remain open.
+
 When the exact two private AuraFace ONNX artifacts and a synthetic
 single-person portrait are injected,
 `smoke:living-frame-auraface-canonical-mount-host-session` runs the optional

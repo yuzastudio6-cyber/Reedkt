@@ -2930,6 +2930,20 @@ registration, dispatch, billing, public delivery, and production remain
 false. See
 `docs/living-frame/living-frame-comfyui-pruned-source-build-evidence.md`.
 
+The subsequent no-SAM2 rebuild supersedes that image for private L4
+selection. It validates the exact inherited direct-VCS `sam-2` identity and
+114-file inventory, removes only its three owned package roots, preserves the
+runner's `sam2` import denial, and repeats strict image verification plus every
+complete scan. The resulting 12,657,937,701-byte image contains no inherited
+`sam-2` package or importable module. Its vulnerability findings remain
+877/zero critical/zero high; its SPDX inventory is 690 packages with zero
+exact `sam-2` identities; and its 6,716-observation license report contains
+zero findings owned by the removed distribution. This closes only that
+private-image direct-VCS disposition. All manual whole-image, signature,
+canonical ingest, L4, persistence, QA, dispatch, billing, public, and
+production gates remain closed. See
+`docs/living-frame/living-frame-comfyui-pruned-no-sam2-source-build-evidence.md`.
+
 A bounded no-network CPU-emulation startup on 2026-07-29 verified that the
 fixed isolated bootstrap and fixed layout can reach ComfyUI's loopback
 readiness endpoint while loading only the two whitelisted extension folders.

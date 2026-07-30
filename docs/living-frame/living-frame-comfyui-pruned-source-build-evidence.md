@@ -2,6 +2,11 @@
 
 Status date: 2026-07-30
 
+Historical status: this checkpoint remains immutable audit evidence. The later
+`living-frame-comfyui-pruned-no-sam2-source-build-evidence-v1` image rebuild
+supersedes it for private L4 image selection by removing the unused inherited
+direct-VCS `sam-2` distribution and repeating every complete scan.
+
 ## Disposition
 
 The source-defined, network-disabled pruned ComfyUI image build completed from

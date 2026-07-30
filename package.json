@@ -181,6 +181,7 @@
     "smoke:living-frame-environmental-particle-pixijs-internal-runtime": "tsx server/smoke/living-frame-environmental-particle-pixijs-internal-runtime-smoke.ts",
     "smoke:living-frame-environmental-particle-remotion-internal-composite": "tsx server/smoke/living-frame-environmental-particle-remotion-internal-composite-smoke.ts",
     "smoke:living-frame-selected-scene-environmental-particle-internal-test": "tsx server/smoke/living-frame-selected-scene-environmental-particle-internal-test-smoke.ts",
+    "smoke:living-frame-temporal-mask-canonical-work-graph-conflict": "tsx server/smoke/living-frame-temporal-mask-canonical-work-graph-conflict-smoke.ts",
     "smoke:offline-browser-graphics-execution": "tsx server/smoke/offline-browser-graphics-execution-smoke.ts",
     "smoke:offline-ai-capability-execution": "tsx server/smoke/offline-ai-capability-execution-smoke.ts",
     "smoke:offline-native-image-pipeline-execution": "tsx server/smoke/offline-native-image-pipeline-execution-smoke.ts",

@@ -3171,6 +3171,19 @@ testing while keeping both authorities, plus operation registration, shared
 dispatch, persistence, QA/review, cost, billing, external beta, and production
 false.
 
+The adjacent
+`living-frame-selected-scene-environmental-particle-remotion-full-timeline-internal-test-v1`
+qualification now consumes that exact process-bound 105-frame lease. It uses
+seven bounded real Remotion renders to preserve the existing sixteen-overlay
+request limit, packages only the already composited retained frames, and
+independently decodes all 105 final review frames. Pixel QA proves exact
+duration, materially visible particle motion, source-plate preservation,
+caption-plane priority, temporal variation, and alpha-centroid motion.
+Sub-perceptual fade frames remain consumed and digest-bound but are not
+misreported as missing overlays after review-scale reduction. Shared
+operation, work graph, asset manifest, QA, review, cost, billing, external
+beta, and production authorities remain false.
+
 PixiJS remains the existing tool identity. No separate particle tool identity
 is created. Its current operation renders one opaque 640×360 static review
 card PNG, while Living Frame requires a time-sampled transparent procedural
@@ -3190,6 +3203,8 @@ The real internal runtime evidence is specified in
 `docs/living-frame/living-frame-environmental-particle-pixijs-internal-runtime.md`.
 The selected-scene full-range evidence is specified in
 `docs/living-frame/living-frame-selected-scene-environmental-particle-internal-test.md`.
+The full-timeline Remotion evidence is specified in
+`docs/living-frame/living-frame-selected-scene-environmental-particle-remotion-full-timeline-internal-test.md`.
 
 The downstream Sharp alpha-component authority accepts exactly one approved
 source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg

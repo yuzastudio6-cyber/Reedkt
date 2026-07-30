@@ -2,6 +2,7 @@ import type {
   LivingFrameEnvironmentalParticleProfileId,
 } from './living-frame-environmental-particle-kernel'
 import type {
+  LivingFrameEnvironmentalParticlePixiJsInternalRuntimeReport,
   LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutputLease,
 } from './living-frame-environmental-particle-pixijs-internal-runtime'
 
@@ -147,6 +148,8 @@ export interface LivingFrameSelectedSceneEnvironmentalParticleInternalTestReport
 export interface LivingFrameSelectedSceneEnvironmentalParticleInternalTestExecution {
   readonly report:
     LivingFrameSelectedSceneEnvironmentalParticleInternalTestReport
+  readonly pixiJsRuntimeReport:
+    LivingFrameEnvironmentalParticlePixiJsInternalRuntimeReport
   readonly privateSequenceOutputLease:
     LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutputLease
 }

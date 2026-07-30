@@ -19,6 +19,9 @@ import {
   LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_INTERNAL_TEST_VERSION,
 } from '../../src/types/living-frame-selected-scene-environmental-particle-internal-test'
 import {
+  LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_REMOTION_FULL_TIMELINE_INTERNAL_TEST_VERSION,
+} from '../../src/types/living-frame-selected-scene-environmental-particle-remotion-full-timeline-internal-test'
+import {
   compileLivingFrameComponentGeometry,
 } from '../living-frame/living-frame-component-geometry'
 import {
@@ -27,6 +30,9 @@ import {
 import {
   executeLivingFrameSelectedSceneEnvironmentalParticleInternalTest,
 } from '../living-frame/living-frame-selected-scene-environmental-particle-internal-test'
+import {
+  executeLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTest,
+} from '../living-frame/living-frame-environmental-particle-remotion-internal-composite'
 import {
   inspectLivingFrameEnvironmentalParticleAdmission,
   type InspectLivingFrameEnvironmentalParticleAdmissionInput,
@@ -434,6 +440,142 @@ assert.equal(
 assert.equal(report.customerCharged, false)
 assert.equal(report.productionReady, false)
 
+const fullTimelineReport =
+  await executeLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTest({
+    qualificationId:
+      'living-frame.selected-scene-environmental-internal.remotion-full-timeline-v1',
+    selectedSceneInternalTestReport:
+      report,
+    pixiJsRuntimeReport:
+      execution.pixiJsRuntimeReport,
+    privateSequenceOutputLease:
+      execution.privateSequenceOutputLease,
+  })
+
+assert.equal(
+  fullTimelineReport.contractVersion,
+  LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_REMOTION_FULL_TIMELINE_INTERNAL_TEST_VERSION,
+)
+assert.equal(
+  fullTimelineReport.canonicalScope.sceneId,
+  scene.sceneId,
+)
+assert.equal(
+  fullTimelineReport.canonicalScope.componentId,
+  componentId,
+)
+assert.equal(
+  fullTimelineReport.compositionIdentity
+    .selectedDurationFrames,
+  105,
+)
+assert.equal(
+  fullTimelineReport.compositionIdentity
+    .finalReviewDurationFrames,
+  105,
+)
+assert.equal(
+  fullTimelineReport.compositionIdentity
+    .frameImageCount,
+  105,
+)
+assert.equal(
+  fullTimelineReport.compositionIdentity
+    .remotionChunkCount,
+  7,
+)
+assert.equal(
+  fullTimelineReport.compositionIdentity
+    .maximumOverlaysPerChunk,
+  16,
+)
+assert.equal(
+  fullTimelineReport.compositionIdentity
+    .everyFinalFrameCompositedByRemotion,
+  true,
+)
+assert.equal(
+  fullTimelineReport.compositionIdentity
+    .packagingOnly,
+  true,
+)
+assert.equal(
+  fullTimelineReport.compositionIdentity
+    .remotionRemainsFinalCanvas,
+  true,
+)
+assert.equal(
+  fullTimelineReport.compositionIdentity
+    .finalCustomerCanvas,
+  false,
+)
+assert.equal(
+  fullTimelineReport.runtimeIdentity
+    .actualRemotionRenderCount,
+  7,
+)
+assert.equal(
+  fullTimelineReport.aggregateMeasurement
+    .everyParticleFrameTimeSampled,
+  true,
+)
+assert.equal(
+  fullTimelineReport.aggregateMeasurement
+    .captionPlaneVisibleAboveParticlesAcrossTimeline,
+  true,
+)
+assert.ok(
+  fullTimelineReport.aggregateMeasurement
+    .perceptibleParticleFrameCount > 2,
+)
+assert.ok(
+  fullTimelineReport.aggregateMeasurement
+    .subPerceptualTransitionFrameCount > 0,
+)
+assert.equal(
+  fullTimelineReport.aggregateMeasurement
+    .subPerceptualTransitionFramesPreserved,
+  true,
+)
+assert.equal(
+  fullTimelineReport.frameMeasurements.every(
+    (frame) =>
+      !frame.expectedPerceptiblyVisible
+      || frame.particleVisible,
+  ),
+  true,
+)
+assert.equal(
+  fullTimelineReport
+    .fullSelectedEnvironmentalRangeComposited,
+  true,
+)
+assert.equal(
+  fullTimelineReport
+    .internalTestReadyForPersistenceAndReview,
+  true,
+)
+assert.equal(
+  fullTimelineReport.artifactPersisted,
+  false,
+)
+assert.equal(
+  fullTimelineReport.qaApproved,
+  false,
+)
+assert.equal(
+  fullTimelineReport.privateReviewApproved,
+  false,
+)
+assert.equal(
+  fullTimelineReport.customerCharged,
+  false,
+)
+assert.equal(
+  fullTimelineReport.productionReady,
+  false,
+)
+
 let adversarialAssertions = 0
 const mismatchedPack = {
   ...visualContinuityPack,
@@ -489,7 +631,23 @@ await assert.rejects(
 )
 adversarialAssertions += 1
 
+await assert.rejects(
+  executeLivingFrameSelectedSceneEnvironmentalParticleRemotionFullTimelineInternalTest({
+    qualificationId:
+      'living-frame.selected-scene-environmental-internal.remotion-reuse',
+    selectedSceneInternalTestReport:
+      report,
+    pixiJsRuntimeReport:
+      execution.pixiJsRuntimeReport,
+    privateSequenceOutputLease:
+      execution.privateSequenceOutputLease,
+  }),
+)
+adversarialAssertions += 1
+
 const serializedReport = JSON.stringify(report)
+const serializedFullTimelineReport =
+  JSON.stringify(fullTimelineReport)
 for (const forbidden of [
   'pngBytes',
   'rgbaBytes',
@@ -502,6 +660,12 @@ for (const forbidden of [
 ]) {
   assert.equal(
     serializedReport.includes(forbidden),
+    false,
+  )
+  assert.equal(
+    serializedFullTimelineReport.includes(
+      forbidden,
+    ),
     false,
   )
 }
@@ -534,6 +698,21 @@ process.stdout.write(`${JSON.stringify({
     report.canonicalTimingBound,
   internalTestReadyForRemotion:
     report.internalTestReadyForRemotion,
+  remotionChunkCount:
+    fullTimelineReport.compositionIdentity
+      .remotionChunkCount,
+  fullTimelineFrameCount:
+    fullTimelineReport.compositionIdentity
+      .finalReviewDurationFrames,
+  everyParticleFrameTimeSampled:
+    fullTimelineReport.aggregateMeasurement
+      .everyParticleFrameTimeSampled,
+  captionPlaneVisibleAboveParticles:
+    fullTimelineReport.aggregateMeasurement
+      .captionPlaneVisibleAboveParticlesAcrossTimeline,
+  internalTestReadyForPersistenceAndReview:
+    fullTimelineReport
+      .internalTestReadyForPersistenceAndReview,
   customerCharged: report.customerCharged,
   productionReady: report.productionReady,
   adversarialAssertions,

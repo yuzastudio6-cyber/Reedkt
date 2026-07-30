@@ -24,6 +24,9 @@ export interface LivingFrameEnvironmentalParticleRemotionInternalCompositeFrameM
   readonly order: number
   readonly absoluteFrame: number
   readonly expectedActiveParticleCount: number
+  readonly expectedPerceptiblyVisible: boolean
+  readonly projectedAlphaWeightedPixelCount: number
+  readonly sourceMaximumAlpha: number
   readonly sourcePlateVisible: true
   readonly captionPlaneVisibleAboveParticleLayer: true
   readonly particleVisible: boolean

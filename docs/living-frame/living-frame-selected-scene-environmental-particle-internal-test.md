@@ -1,7 +1,7 @@
 # Living Frame Selected-Scene Environmental Particle Internal Test
 
 Status:
-`actual_private_internal_selected_scene_full_range_pixijs_green_remotion_timeline_pending`
+`actual_private_internal_selected_scene_full_range_pixijs_and_remotion_timeline_green_persistence_pending`
 
 Contract:
 `living-frame-selected-scene-environmental-particle-internal-test-v1`
@@ -97,9 +97,16 @@ It keeps false:
 - external beta; and
 - production readiness.
 
-The next internal step is to consume the one 105-frame lease in a bounded
-full-duration Remotion timeline adapter. Customer billing and production
-release are not prerequisites for that internal test.
+The same smoke now consumes the one 105-frame lease in the bounded
+full-duration Remotion timeline adapter. Seven real Remotion chunks preserve
+all 105 selected frames, and final pixel QA proves materially visible
+particles, temporal movement, source-plate preservation, and caption-plane
+priority.
+
+The next internal step is canonical create-only scene-package persistence,
+asset-manifest reconciliation, destination-composite QA, and private review.
+Customer billing and production release are not prerequisites for those
+internal tests.
 
 ## Validation
 
@@ -121,3 +128,5 @@ The smoke also rejects:
 - `server/living-frame/living-frame-selected-scene-environmental-particle-internal-test.ts`
 - `server/smoke/living-frame-selected-scene-environmental-particle-internal-test-smoke.ts`
 - `docker/qualification/living-frame-environmental-particle-pixijs/runner.mjs`
+- `src/types/living-frame-selected-scene-environmental-particle-remotion-full-timeline-internal-test.ts`
+- `docs/living-frame/living-frame-selected-scene-environmental-particle-remotion-full-timeline-internal-test.md`

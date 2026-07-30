@@ -75,6 +75,8 @@ export interface LivingFrameEnvironmentalParticlePixiJsInternalFrameMeasurement 
   readonly decodedRgbaDigestSha256: string
   readonly alphaMeasurementReportDigestSha256: string
   readonly alphaCoverageRatio: number
+  readonly alphaWeightedPixelCount: number
+  readonly maximumAlpha: number
   readonly borderTransparentRatio: number
   readonly nonTransparentPixelCount: number
   readonly alphaWeightedCentroid: {

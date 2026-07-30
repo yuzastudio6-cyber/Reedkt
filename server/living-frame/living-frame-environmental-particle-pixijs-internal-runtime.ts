@@ -1120,6 +1120,8 @@ function measureFrames(
     const nonTransparentPixelCount =
       alphaReport.distribution.pixelCount
       - alphaReport.distribution.transparentPixelCount
+    const alphaSignal =
+      measureAlphaSignal(decoded.rgba)
     const expectationMatched =
       expectedActiveParticleCount === 0
         ? nonTransparentPixelCount === 0
@@ -1142,6 +1144,10 @@ function measureFrames(
         alphaReport.reportDigestSha256,
       alphaCoverageRatio:
         alphaReport.distribution.alphaCoverageRatio,
+      alphaWeightedPixelCount:
+        alphaSignal.alphaWeightedPixelCount,
+      maximumAlpha:
+        alphaSignal.maximumAlpha,
       borderTransparentRatio:
         alphaReport.distribution.borderTransparentRatio,
       nonTransparentPixelCount,
@@ -1155,6 +1161,31 @@ function measureFrames(
       expectationMatched: true,
     }
   })
+}
+
+function measureAlphaSignal(
+  rgbaBytes: Uint8Array,
+): {
+  readonly alphaWeightedPixelCount: number
+  readonly maximumAlpha: number
+} {
+  let alphaSum = 0
+  let maximumAlpha = 0
+  for (
+    let offset = 3;
+    offset < rgbaBytes.byteLength;
+    offset += 4
+  ) {
+    const alpha = rgbaBytes[offset]!
+    alphaSum += alpha
+    maximumAlpha =
+      Math.max(maximumAlpha, alpha)
+  }
+  return {
+    alphaWeightedPixelCount:
+      Number((alphaSum / 255).toFixed(6)),
+    maximumAlpha,
+  }
 }
 
 function compileAggregate(

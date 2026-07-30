@@ -378,6 +378,8 @@ export async function executeLivingFrameSelectedSceneEnvironmentalParticleIntern
   })
   return Object.freeze({
     report,
+    pixiJsRuntimeReport:
+      pixiExecution.report,
     privateSequenceOutputLease:
       pixiExecution.privateSequenceOutputLease,
   })

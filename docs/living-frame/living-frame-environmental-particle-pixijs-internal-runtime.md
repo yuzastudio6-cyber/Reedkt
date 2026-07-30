@@ -153,9 +153,9 @@ testing before any customer-facing release work.
    logical sequence asset.
 3. Persist the private frame sequence through the existing create-only
    artifact and asset-manifest owners.
-4. Render the full 105-frame sequence through the bounded Remotion timeline
-   adapter.
-5. Run procedural-alpha, temporal, destination-composite,
+4. Persist and review the now-green full 105-frame Remotion timeline through
+   the canonical create-only scene-package owners.
+5. Run destination-composite,
    narration/caption-safety, and private-review QA.
 
 Customer billing, public delivery, and production promotion are later release

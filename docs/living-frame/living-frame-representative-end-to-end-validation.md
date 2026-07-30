@@ -94,6 +94,13 @@ Two actual private renders supplement the connected source-level trace:
   measures transparent endpoints, visible temporal movement, source-plate
   preservation, and caption-plane priority in a 16:9 private review render.
   It does not mutate the shared renderer or claim customer delivery authority.
+- `server/smoke/living-frame-selected-scene-environmental-particle-internal-test-smoke.ts`
+  executes the exact selected `helicopter.downwash` range as 105 real
+  1920×1080 PixiJS RGBA frames, consumes the private lease once, renders seven
+  bounded real Remotion chunks, packages the exact 105-frame 30 FPS review,
+  and decodes every final frame for source, caption, particle, temporal, and
+  alpha-centroid QA. It distinguishes sub-perceptual fade frames from missing
+  overlays without relaxing materially visible-frame requirements.
 
 ## Mode coverage
 

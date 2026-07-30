@@ -55,8 +55,11 @@ PixiJS frames become eight ordered server-injected PNG commitments. The
 existing Remotion operation
 `tool.remotion.render_approved_composition.v1` performs the real render.
 
-This is intentionally bounded to at most sixteen frames and is qualification
-evidence, not the final canonical time-sampled sequence contract.
+Each individual Remotion request remains intentionally bounded to at most
+sixteen overlays. The selected-scene full-timeline adapter composes the exact
+105-frame range as seven bounded Remotion chunks, then uses FFmpeg only to trim
+known local filler frames and concatenate the already composited results.
+Every retained final review frame is still produced by Remotion.
 
 ## Actual evidence
 
@@ -90,21 +93,27 @@ customer 4K delivery master was rendered, and it does not fabricate delivery
 authority or an approved credit reservation merely to satisfy the existing 4K
 delivery profile.
 
+The selected-scene smoke additionally proves:
+
+- one exact 105-frame 1920×1080 PixiJS input range;
+- seven real Remotion chunk renders;
+- one final 640×360, 30 FPS, 105-frame private review;
+- full-frame pixel sampling rather than sparse sampling;
+- perceptual QA that distinguishes sub-perceptual fade endpoints from missing
+  particle overlays; and
+- exact selected-scene, MasterTiming, output-frame, geometry,
+  selective-motion, and continuity-pack lineage.
+
 ## Remaining internal end-to-end work
 
-This adapter is green for isolated internal testing. Full selected-scene
-internal E2E still needs canonical-owner integration for:
+This adapter is green for isolated and full selected-scene timeline internal
+testing. Internal E2E still needs canonical-owner integration for:
 
 1. an immutable selected-scene environmental profile reference;
-2. reconciliation of the 12–72 visual range with the 0–150 semantic phase
-   range;
-3. the registered PixiJS operation extension;
-4. work-item and asset-manifest persistence for the sequence;
-5. canonical attempt-cost attribution;
-6. canonical private artifact storage and review;
-7. destination-composite scene QA; and
-8. the final shared time-sampled overlay contract or an explicitly approved
-   bounded equivalent.
+2. work-item and asset-manifest persistence for the sequence;
+3. canonical private artifact storage and review;
+4. destination-composite scene QA; and
+5. later shared-operation admission if customer execution is pursued.
 
 Customer production readiness is not the current completion target. These
 internal integration gates must close first; public delivery, deployment,

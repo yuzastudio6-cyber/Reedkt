@@ -137,11 +137,35 @@ This candidate:
 - does not approve QA or private review; and
 - does not authorize production or customer billing.
 
+## Adjacent deterministic kernel candidate
+
+`living-frame-environmental-particle-kernel-v1` now provides the bounded,
+subject-neutral portion of the future continuation:
+
+- seven typed restrained environmental-effect profiles;
+- Visual Continuity Pack style, palette, lighting, depth, and motion-density
+  binding;
+- server-seed-derived deterministic one-shot particle state tracks;
+- confirmed-frame and MasterTiming digest inputs; and
+- explicit refusal of selected-scene, timing, operation, runtime, artifact,
+  renderer, QA, cost, billing, or production authority.
+
+It is deliberately not wired into this selected-scene admission. The approved
+scene still lacks the immutable typed profile reference, and the current
+canonical timing/motion contracts disagree on whether the five semantic
+phases partition the full segment or the narrower visual range. Binding around
+either missing owner would create a parallel decision or clock.
+
+See
+`docs/living-frame/living-frame-environmental-particle-kernel.md`.
+
 ## Required canonical continuation
 
 1. Add an immutable typed environmental-effect profile reference to the
-   approved selected-scene/component evidence.
-2. Bind exact style and physics values to the existing motion-budget owner.
+   approved selected-scene/component evidence; the adjacent catalog is a
+   candidate, not the canonical selection owner.
+2. Reconcile the canonical visual-range versus five-phase timing domain, then
+   bind exact style and physics values to the existing motion-budget owner.
 3. Extend the existing PixiJS identity with a closed, server-derived,
    time-sampled transparent particle operation.
 4. Bind that operation to one canonical work item, asset-manifest output, and
@@ -158,3 +182,4 @@ This candidate:
 - `src/types/living-frame-selected-scene-environmental-particle-admission.ts`
 - `server/living-frame/living-frame-selected-scene-environmental-particle-admission.ts`
 - `server/smoke/living-frame-selected-scene-environmental-particle-admission-smoke.ts`
+- `docs/living-frame/living-frame-environmental-particle-kernel.md`

@@ -3096,6 +3096,24 @@ treatment from a component ID or human-readable summary. The current selected
 scene contract has no immutable typed environmental-effect profile, so exact
 physics and appearance remain blocked on a canonical profile reference.
 
+An adjacent namespaced candidate,
+`living-frame-environmental-particle-kernel-v1`, now supplies a subject-neutral
+seven-profile catalog and deterministic frame-state sampler. It validates and
+binds the Visual Continuity Pack's style, palette, lighting, depth, motion
+density, and camera language; caps particle counts by motion density; and
+preserves exact confirmed-frame and MasterTiming digests. It accepts no caller
+seed, settings, dimensions, prompt, model, path, URL, bytes, command, or
+authority flag. The same server-derived seed produces the same one-shot
+sequence digest, and every particle begins and settles at zero opacity.
+
+The kernel is not yet attached to the selected scene. It has no profile-
+selection, timing, geometry, operation, work, runtime, artifact, renderer, QA,
+cost, billing, or production authority. Canonical integration is also blocked
+by an observed phase-domain conflict: selected-scene MasterTiming exposes a
+narrower visual range, while the current motion compiler requires all five
+semantic phases to exactly partition that visual range even though the phases
+currently span the full segment. Neither owner is changed here.
+
 PixiJS remains the existing tool identity. No separate particle tool identity
 is created. Its current operation renders one opaque 640×360 static review
 card PNG, while Living Frame requires a time-sampled transparent procedural
@@ -3105,6 +3123,9 @@ conflict spanning the typed profile, the bounded PixiJS operation extension,
 and the Remotion time-sampled overlay adapter. It does not register an
 operation, dispatch work, create an asset or cost, mutate either shared
 runtime, or claim private/production readiness.
+
+See
+`docs/living-frame/living-frame-environmental-particle-kernel.md`.
 
 The downstream Sharp alpha-component authority accepts exactly one approved
 source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg

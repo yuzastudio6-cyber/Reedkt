@@ -70,7 +70,7 @@ const CACHE_CONFIGURATION = [
   },
 ] as const
 
-const containerScript = String.raw`
+const containerScript = `
 set -eu
 RUNTIME_ROOT=/opt/reeditpro/gpu-operations/comfyui
 CONTRACT_SOURCE=/mnt/reeditpro-hardened-contract

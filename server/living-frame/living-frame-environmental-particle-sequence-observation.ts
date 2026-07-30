@@ -657,7 +657,10 @@ function measureFrame(
       `$.outputPacket.frames.${frame.order}`,
     )
   }
-  const decoded = decodeRgbaPng(frame.pngBytes)
+  const decoded =
+    decodeLivingFrameEnvironmentalParticleRgbaPng(
+      frame.pngBytes,
+    )
   const kernel = input.kernelCandidate
   if (
     decoded.width !==
@@ -741,7 +744,7 @@ function measureFrame(
     nonTransparentBounds:
       alphaReport.distribution.nonTransparentBounds,
     alphaWeightedCentroid:
-      measureAlphaWeightedCentroid(
+      measureLivingFrameEnvironmentalParticleAlphaWeightedCentroid(
         decoded.rgba,
         decoded.width,
         decoded.height,
@@ -840,7 +843,7 @@ function compileAggregate(
   }
 }
 
-function measureAlphaWeightedCentroid(
+export function measureLivingFrameEnvironmentalParticleAlphaWeightedCentroid(
   rgba: Uint8Array,
   width: number,
   height: number,
@@ -874,7 +877,7 @@ function measureAlphaWeightedCentroid(
   }
 }
 
-function decodeRgbaPng(
+export function decodeLivingFrameEnvironmentalParticleRgbaPng(
   bytes: Buffer,
 ): {
   readonly width: number

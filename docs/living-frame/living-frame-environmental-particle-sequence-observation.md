@@ -33,6 +33,14 @@ contract does not prove a PixiJS entrypoint, a qualified browser runtime,
 artifact persistence, canonical QA approval, private review, or production
 readiness.
 
+An adjacent
+`living-frame-environmental-particle-pixijs-internal-runtime-v1`
+qualification now executes the real `pixi.js@8.19.0`
+`Application.init` entrypoint and independently reuses this module's strict
+RGBA PNG decoder and alpha-centroid measurement against actual private
+browser output. It leaves this controlled fixture's evidence class unchanged
+instead of relabeling fixture bytes as runtime bytes.
+
 ## Closed input boundary
 
 The caller may supply only:
@@ -165,11 +173,11 @@ canvas.
 2. Add the immutable approved typed environmental-profile reference.
 3. Bind the selected scene, profile, kernel, operation request, one work item,
    one logical artifact bundle, and one attempt cost through canonical owners.
-4. Qualify and register the fixed PixiJS operation in the existing supervised
-   browser-graphics runtime.
-5. Feed its actual process-private output bytes into this observer with
-   `qualifiedRuntimeOutputProven` governed by released runtime evidence, not
-   inferred locally.
+4. Reconcile the now-green namespaced PixiJS internal runtime into the
+   canonical operation owner; do not register it merely from this adjacent
+   evidence.
+5. Feed the eventual canonical runtime output into a canonical output
+   observation/persistence owner. Do not relabel this fixture packet.
 6. Persist the verified logical bundle through the canonical create-only
    artifact and asset-manifest owners.
 7. Run canonical procedural-alpha, temporal, destination-composite,
@@ -204,3 +212,4 @@ The smoke covers:
 - `src/types/living-frame-environmental-particle-sequence-observation.ts`
 - `server/living-frame/living-frame-environmental-particle-sequence-observation.ts`
 - `server/smoke/living-frame-environmental-particle-sequence-observation-smoke.ts`
+- `docs/living-frame/living-frame-environmental-particle-pixijs-internal-runtime.md`

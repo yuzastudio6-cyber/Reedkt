@@ -3141,6 +3141,20 @@ explicitly does not prove the PixiJS entrypoint, qualified browser runtime,
 artifact persistence, canonical QA, private review, cost, billing, or
 production release.
 
+The namespaced
+`living-frame-environmental-particle-pixijs-internal-runtime-v1`
+qualification now executes the actual `pixi.js@8.19.0`
+`Application.init` entrypoint for the same closed materialized request. Its
+derived qualification image inherits the inspected private browser runtime
+without modifying the shared runtime. One non-root, read-only,
+network-disabled container returns eight real 3840×2160 RGBA PNG frames; the
+host independently verifies exact dimensions, transparent endpoints, six
+active frames, seven distinct frame digests, and alpha-centroid movement.
+This makes the isolated particle renderer internal-test ready while keeping
+selected-scene/timing binding, operation registration, canonical dispatch,
+artifact/manifest persistence, Remotion adaptation, QA/private review, cost,
+billing, external beta, and production false.
+
 PixiJS remains the existing tool identity. No separate particle tool identity
 is created. Its current operation renders one opaque 640×360 static review
 card PNG, while Living Frame requires a time-sampled transparent procedural
@@ -3156,6 +3170,8 @@ See
 `docs/living-frame/living-frame-environmental-particle-operation-materialization.md`,
 plus
 `docs/living-frame/living-frame-environmental-particle-sequence-observation.md`.
+The real internal runtime evidence is specified in
+`docs/living-frame/living-frame-environmental-particle-pixijs-internal-runtime.md`.
 
 The downstream Sharp alpha-component authority accepts exactly one approved
 source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg

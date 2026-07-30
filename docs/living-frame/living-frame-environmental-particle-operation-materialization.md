@@ -102,6 +102,15 @@ measures temporal alpha variation without claiming that PixiJS produced the
 bytes. It does not satisfy runtime, artifact, canonical QA, private-review,
 cost, billing, or production gates.
 
+An additional adjacent
+`living-frame-environmental-particle-pixijs-internal-runtime-v1`
+qualification consumes this exact process-bound lease, executes the real
+`pixi.js@8.19.0` `Application.init` entrypoint in a confined offline browser
+container, and host-remeasures the real transparent PNG sequence. That
+internal-test evidence does not change this materialization receipt's false
+runtime authority, register the operation, dispatch canonical work, persist
+an artifact, create cost, or promote production readiness.
+
 ## Output contract
 
 One future attempt may produce exactly one logical bundle:
@@ -226,3 +235,4 @@ The server implementation contains no named example-subject routing.
 - `server/living-frame/living-frame-environmental-particle-operation-materialization.ts`
 - `server/smoke/living-frame-environmental-particle-operation-materialization-smoke.ts`
 - `docs/living-frame/living-frame-environmental-particle-sequence-observation.md`
+- `docs/living-frame/living-frame-environmental-particle-pixijs-internal-runtime.md`

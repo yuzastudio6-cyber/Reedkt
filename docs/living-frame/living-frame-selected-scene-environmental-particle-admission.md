@@ -175,11 +175,23 @@ and alpha-centroid movement while keeping PixiJS entrypoint/runtime,
 artifact, canonical QA, review, cost, billing, and production evidence false.
 It is not a substitute for the selected-scene, operation, or runtime owners.
 
+The adjacent
+`living-frame-environmental-particle-pixijs-internal-runtime-v1`
+qualification now closes the isolated kernel-to-real-pixels boundary for
+private internal testing. It executes eight 3840×2160 transparent samples
+through the real `pixi.js@8.19.0` `Application.init` entrypoint inside a
+network-disabled, non-root, read-only container and independently measures
+the actual PNG alpha planes on the host. It intentionally remains
+unregistered, non-dispatchable, unpersisted, unbilled, and non-production.
+The selected-scene profile and timing-owner conflict remains unchanged.
+
 See
 `docs/living-frame/living-frame-environmental-particle-kernel.md` and
 `docs/living-frame/living-frame-environmental-particle-operation-materialization.md`,
 plus
 `docs/living-frame/living-frame-environmental-particle-sequence-observation.md`.
+See also
+`docs/living-frame/living-frame-environmental-particle-pixijs-internal-runtime.md`.
 
 ## Required canonical continuation
 
@@ -207,3 +219,4 @@ plus
 - `docs/living-frame/living-frame-environmental-particle-kernel.md`
 - `docs/living-frame/living-frame-environmental-particle-operation-materialization.md`
 - `docs/living-frame/living-frame-environmental-particle-sequence-observation.md`
+- `docs/living-frame/living-frame-environmental-particle-pixijs-internal-runtime.md`

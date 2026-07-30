@@ -39,8 +39,11 @@ assert.equal(PRODUCTION_TOOL_IDS.length, 50)
 assert.equal(PRODUCTION_TOOL_IDS.includes(
   'comfyui' as never,
 ), false)
+const comfyUiCapabilityProfile =
+  getNonE2EToolCapabilityProfile('comfyui')
+assert.ok(comfyUiCapabilityProfile)
 assert.equal(
-  getNonE2EToolCapabilityProfile('comfyui').productionStatus,
+  comfyUiCapabilityProfile.productionStatus,
   'evaluation_only',
 )
 assert.equal(contract.operationIdentity.requestedToolId, 'comfyui')

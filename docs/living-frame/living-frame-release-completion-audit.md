@@ -389,6 +389,12 @@ Current decision:
 The source architecture, six-capability placement, representative private
 alpha/component/render path, adaptive deterministic motion, cost semantics,
 and backend handoff are materially implemented and verified. The requested
-end state still includes released backend/GPU operation evidence. Until the
-closed gates above are satisfied, Living Frame must not be described as
-production-complete.
+private internal end state still includes exact controlled-generation and
+temporal-mask model runtime evidence. Customer production release is not the
+current completion criterion, but missing model artifacts and a missing
+canonical temporal work discriminator are also real internal-test blockers.
+The aggregate
+`server/smoke/living-frame-private-internal-end-to-end-audit-smoke.ts` must
+remain `passed_with_explicit_blocked_model_runtimes` until those two gates are
+discharged. Living Frame must not yet be described as fully internally
+end-to-end complete or production-complete.

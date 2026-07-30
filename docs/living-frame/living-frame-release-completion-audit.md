@@ -156,7 +156,15 @@ recorded separately and do not block internal testing:
    isolated components remain separately bounded. The selected-scene private
    prompt materializer now compiles the real selected-scene graph family and
    emits one process-bound single-use private request lease per exact approved
-   generated output. The selected-scene private output observer rereads and
+   generated output. The private operation compiler binds that lease to the
+   exact five-model and zero-to-two-image artifact set. The canonical ComfyUI
+   input reconciliation now consumes the operation lease exactly once,
+   verifies the fixed runtime filenames, supplies only server-owned
+   input-image dimensions, work-item hash, and pending dispatch/attempt
+   lineage, and emits a process-private input structurally matching
+   `canonical-comfyui-gpu-runtime-request-candidate-v1`. It does not invoke or
+   duplicate the canonical compiler and grants no dispatch authority. The
+   selected-scene private output observer rereads and
    verifies exact opaque RGB PNG bytes for both isolated and confirmed-ratio
    canvases without inferring worker completion, persistence, cost, QA, or
    review. The full-frame evidence-readiness projection now binds the exact
@@ -312,6 +320,12 @@ Passed:
 - selected-scene private prompt materialization with one unit/lease per
   approved output, exact isolated and confirmed-ratio canvases, byte-free
   receipts, and adversarial benchmark/caller/node/lineage/authority refusal;
+- selected-scene private operation-request compilation and canonical ComfyUI
+  candidate-input reconciliation with exact fixed aliases, decoded external
+  input-image metadata, work-item hash, pending dispatch/attempt lineage,
+  process-bound single-use delivery, full-frame and isolated canvas support,
+  and no canonical compiler, dispatch, runtime, cost, asset, or production
+  authority;
 - selected-scene private animation-aware conditioning with exact semantic,
   component, Visual Continuity Pack, scene-design, depth, source-truth,
   output-frame, work/output, and planned-asset lineage; process-bound
@@ -472,8 +486,11 @@ ComfyUI offline closure builds into a fixed private non-root image, and
 AuraFace passes real network-isolated CPU inference. Canonical backend commits
 `576ca54b`, `3e59ce45`, and `bffa1ec0` close the temporal work discriminator,
 fixed SAM2 runner/router, and full-frame ComfyUI runtime/source/router source
-gaps. Independent ComfyUI image scan/signature/release disposition remains
-open, and the remaining internal runtime blockers are real L4 model
+gaps. The namespaced candidate-input reconciliation closes the remaining
+feature-to-canonical request-shape gap while preserving the backend
+one-writer boundary. Independent ComfyUI image scan/signature/release
+disposition remains open, and the remaining internal runtime blockers are
+real L4 model
 load/inference, private output persistence, resource evidence, and output QA
 for the two GPU runtime paths. The
 aggregate

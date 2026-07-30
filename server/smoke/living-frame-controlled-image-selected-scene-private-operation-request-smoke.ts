@@ -17,6 +17,14 @@ import {
   createLivingFrameControlledImageFullFrameRatioExtension,
 } from '../living-frame/living-frame-controlled-image-full-frame-ratio-extension'
 import {
+  LivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationError,
+  consumeLivingFrameControlledImageSelectedSceneCanonicalComfyUiCandidateInputLease,
+  createLivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationReader,
+  reconcileLivingFrameControlledImageSelectedSceneCanonicalComfyUiCandidateInput,
+  type LivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationPacket,
+  verifyLivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationReceipt,
+} from '../living-frame/living-frame-controlled-image-selected-scene-canonical-comfyui-input-reconciliation'
+import {
   LivingFrameControlledImageSelectedScenePrivateOperationRequestError,
   compileLivingFrameControlledImageSelectedScenePrivateOperationRequest,
   consumeLivingFrameControlledImageSelectedScenePrivateOperationRequestLease,
@@ -41,7 +49,7 @@ const MODEL_ARTIFACTS = [
   {
     role: 'base_checkpoint',
     slotKind: 'base_checkpoint_artifact',
-    privateAlias: 'private-base.safetensors',
+    privateAlias: 'sd_xl_base_1.0.safetensors',
     artifactByteLength: 6_938_078_334,
     artifactContentSha256:
       '31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b',
@@ -49,7 +57,8 @@ const MODEL_ARTIFACTS = [
   {
     role: 'controlnet_checkpoint',
     slotKind: 'controlnet_checkpoint_artifact',
-    privateAlias: 'private-controlnet.safetensors',
+    privateAlias:
+      'diffusion_pytorch_model.fp16.safetensors',
     artifactByteLength: 320_237_179,
     artifactContentSha256:
       'fde4888a5f0a5648118991cc50e0ac4d60a2356dbaddf5e0649dd69c1119a2f9',
@@ -57,7 +66,8 @@ const MODEL_ARTIFACTS = [
   {
     role: 'lora_adapter',
     slotKind: 'lora_adapter_artifact',
-    privateAlias: 'private-lora.safetensors',
+    privateAlias:
+      'sd_xl_offset_example-lora_1.0.safetensors',
     artifactByteLength: 49_553_604,
     artifactContentSha256:
       '4852686128f953d0277d0793e2f0335352f96a919c9c16a09787d77f55cbdf6f',
@@ -65,7 +75,7 @@ const MODEL_ARTIFACTS = [
   {
     role: 'generic_ipadapter_checkpoint',
     slotKind: 'generic_ipadapter_checkpoint_artifact',
-    privateAlias: 'private-ipadapter.safetensors',
+    privateAlias: 'ip-adapter_sdxl.safetensors',
     artifactByteLength: 702_585_376,
     artifactContentSha256:
       'ba1002529e783604c5f326d49f0122025392d1d20ac8d573b3eeb3e6dea4ebb6',
@@ -73,7 +83,7 @@ const MODEL_ARTIFACTS = [
   {
     role: 'clip_vision_checkpoint',
     slotKind: 'clip_vision_checkpoint_artifact',
-    privateAlias: 'private-clipvision.safetensors',
+    privateAlias: 'model.safetensors',
     artifactByteLength: 3_689_912_664,
     artifactContentSha256:
       '657723e09f46a7c3957df651601029f66b1748afb12b419816330f16ed45d64d',
@@ -194,6 +204,131 @@ assert.equal(privateRequest.dispatchAuthority, false)
 assert.equal(privateRequest.runtimeAuthority, false)
 assert.equal(privateRequest.finalCanvasAuthority, false)
 assert.equal(privateRequest.productionReady, false)
+
+const reconciliationFixture = await createFixture()
+const reconciliationOperationResult =
+  await compileLivingFrameControlledImageSelectedScenePrivateOperationRequest(
+    reconciliationFixture.input,
+  )
+const reconciliationPacket =
+  createCanonicalReconciliationPacket({
+    selectedSceneRequest:
+      livingFrameControlledImageSelectedSceneSmokeRequest,
+    operationRequestReceipt:
+      reconciliationOperationResult.receipt,
+  })
+const reconciliationReader =
+  createLivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationReader(
+    async () => structuredClone(reconciliationPacket),
+  )
+const reconciliationResult =
+  await reconcileLivingFrameControlledImageSelectedSceneCanonicalComfyUiCandidateInput({
+    serverOwnedReconciliationLocatorId:
+      `selected-canonical-comfyui-input.${nextId()}`,
+    selectedSceneRequest:
+      livingFrameControlledImageSelectedSceneSmokeRequest,
+    selectedSceneRequestInput:
+      livingFrameControlledImageSelectedSceneSmokeInput,
+    operationRequestReceipt:
+      reconciliationOperationResult.receipt,
+    privateOperationRequestLease:
+      reconciliationOperationResult.privateOperationRequestLease,
+    reader: reconciliationReader,
+  })
+assert.equal(
+  verifyLivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationReceipt(
+    reconciliationResult.receipt,
+  ),
+  true,
+)
+assert.equal(
+  reconciliationResult.receipt.canonicalTarget
+    .requestCandidateVersion,
+  'canonical-comfyui-gpu-runtime-request-candidate-v1',
+)
+assert.equal(
+  reconciliationResult.receipt.canonicalTarget
+    .exactCanonicalModelAndImageAliasesVerified,
+  true,
+)
+assert.equal(
+  reconciliationResult.receipt.canonicalTarget
+    .exactInputImageMetadataVerified,
+  true,
+)
+assert.equal(
+  reconciliationResult.receipt.canonicalTarget.width,
+  1920,
+)
+assert.equal(
+  reconciliationResult.receipt.canonicalTarget.height,
+  1080,
+)
+assert.equal(
+  reconciliationResult.receipt
+    .canonicalRuntimeCompilerInvoked,
+  false,
+)
+assert.equal(reconciliationResult.receipt.dispatchGranted, false)
+assert.equal(reconciliationResult.receipt.runtimeExecuted, false)
+assert.equal(reconciliationResult.receipt.productionReady, false)
+assert.equal(
+  JSON.stringify(reconciliationResult.receipt).includes(
+    'Premium editorial illustration',
+  ),
+  false,
+)
+assert.equal(
+  JSON.stringify(reconciliationResult.receipt).includes(
+    'sd_xl_base_1.0.safetensors',
+  ),
+  false,
+)
+const canonicalCandidateInput =
+  consumeLivingFrameControlledImageSelectedSceneCanonicalComfyUiCandidateInputLease(
+    reconciliationResult.privateCandidateInputLease,
+  )
+assert.equal(
+  canonicalCandidateInput.selectedScene.requestBindingId,
+  livingFrameControlledImageSelectedSceneSmokeRequest
+    .requestBindingId,
+)
+assert.equal(
+  canonicalCandidateInput.selectedScene.workItemHash,
+  reconciliationPacket.workItemHash,
+)
+assert.equal(
+  canonicalCandidateInput.prompt.outputNodeId,
+  String(
+    Object.keys(canonicalCandidateInput.prompt.graph)
+      .length,
+  ),
+)
+assert.equal(
+  canonicalCandidateInput.inputImages.length,
+  1,
+)
+assert.equal(
+  canonicalCandidateInput.inputImages[0]?.fileName,
+  'control-image.png',
+)
+assert.equal(
+  canonicalCandidateInput.output.canvasClass,
+  'confirmed_full_frame_ratio',
+)
+assert.equal(canonicalCandidateInput.output.width, 1920)
+assert.equal(canonicalCandidateInput.output.height, 1080)
+assert.throws(
+  () =>
+    consumeLivingFrameControlledImageSelectedSceneCanonicalComfyUiCandidateInputLease(
+      reconciliationResult.privateCandidateInputLease,
+    ),
+  (error) =>
+    hasCanonicalReconciliationIssue(
+      error,
+      'candidate_input_lease_reused',
+    ),
+)
 
 const isolatedFixture = await createFixture('isolated')
 const isolatedResult =
@@ -374,6 +509,41 @@ await rejectsPacketMutation(
   'authority_promotion_forbidden',
 )
 
+await rejectsCanonicalReconciliationPacketMutation(
+  (packet) => {
+    packet.workItemHash = 'not-a-digest'
+  },
+  'canonical_work_item_hash_missing',
+)
+await rejectsCanonicalReconciliationPacketMutation(
+  (packet) => {
+    const image = packet.inputImages[0] as {
+      width: number
+    }
+    image.width = 8_192
+  },
+  'canonical_input_image_metadata_mismatch',
+)
+await rejectsCanonicalReconciliationPacketMutation(
+  (packet) => {
+    packet.dispatch.dispatchAuthority = true
+  },
+  'canonical_dispatch_binding_missing',
+)
+await rejectsCanonicalReconciliationPacketMutation(
+  (packet) => {
+    packet.outputKey = 'output.cross-scene-substitution'
+  },
+  'cross_scene_work_item_or_output_substitution',
+)
+await rejectsCanonicalReconciliationPacketMutation(
+  (packet) => {
+    ;(packet as Record<string, unknown>)
+      .finalCanvasAuthority = true
+  },
+  'packet_invalid',
+)
+
 const squareFixture = await createFixture()
 const squareSubstitution = resignMaterializationReceipt(
   squareFixture.promptMaterialization,
@@ -501,9 +671,21 @@ console.log(JSON.stringify({
       .fiveGpuCapabilitiesCreateOneAttemptCostEvent,
   benchmarkPromptOrRuntimePathUsed:
     result.receipt.benchmarkPromptOrRuntimePathUsed,
+  canonicalCandidateInputReconciled:
+    reconciliationResult.receipt
+      .canonicalCandidateInputProjected,
+  canonicalTargetVersion:
+    reconciliationResult.receipt.canonicalTarget
+      .requestCandidateVersion,
+  canonicalAliasesVerified:
+    reconciliationResult.receipt.canonicalTarget
+      .exactCanonicalModelAndImageAliasesVerified,
+  canonicalRuntimeCompilerInvoked:
+    reconciliationResult.receipt
+      .canonicalRuntimeCompilerInvoked,
   operationRegistered: result.receipt.operationRegistered,
   dispatchGranted: result.receipt.dispatchGranted,
-  adversarialAssertions: 36,
+  adversarialAssertions: 41,
   productionReady: result.receipt.productionReady,
 }))
 
@@ -652,23 +834,23 @@ function privateSlot(
   > = {
     base_checkpoint_artifact: [
       'private_model_alias',
-      'private-base.safetensors',
+      'sd_xl_base_1.0.safetensors',
     ],
     controlnet_checkpoint_artifact: [
       'private_model_alias',
-      'private-controlnet.safetensors',
+      'diffusion_pytorch_model.fp16.safetensors',
     ],
     lora_adapter_artifact: [
       'private_model_alias',
-      'private-lora.safetensors',
+      'sd_xl_offset_example-lora_1.0.safetensors',
     ],
     generic_ipadapter_checkpoint_artifact: [
       'private_model_alias',
-      'private-ipadapter.safetensors',
+      'ip-adapter_sdxl.safetensors',
     ],
     clip_vision_checkpoint_artifact: [
       'private_model_alias',
-      'private-clipvision.safetensors',
+      'model.safetensors',
     ],
     positive_conditioning_text: [
       'private_conditioning_text',
@@ -680,11 +862,11 @@ function privateSlot(
     ],
     control_image_artifact: [
       'private_image_alias',
-      'private-control.png',
+      'control-image.png',
     ],
     reference_image_artifact: [
       'private_image_alias',
-      'private-reference.png',
+      'reference-image.png',
     ],
   }
   const [valueClass, value] = values[slotKind]
@@ -736,8 +918,8 @@ function createOperationPacket(input: {
   const inputImageArtifacts = imageSlots.map((slot, order) => {
     const privateAlias =
       slot.slotKind === 'control_image_artifact'
-        ? 'private-control.png'
-        : 'private-reference.png'
+        ? 'control-image.png'
+        : 'reference-image.png'
     return {
       order: 5 + order,
       promptSlotOrder: slot.order,
@@ -818,6 +1000,190 @@ function createOperationPacket(input: {
     ...draft,
     artifactPacketDigestSha256: digest(draft),
   }
+}
+
+function createCanonicalReconciliationPacket(input: {
+  readonly selectedSceneRequest:
+    typeof livingFrameControlledImageSelectedSceneSmokeRequest
+  readonly operationRequestReceipt:
+    LivingFrameControlledImageSelectedScenePrivateOperationRequestReceipt
+}): LivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationPacket {
+  const receipt = input.operationRequestReceipt
+  const inputImages =
+    receipt.requestSummary.artifactReceipts
+      .filter(
+        (artifact) =>
+          artifact.artifactClass ===
+            'private_selected_scene_input_image_artifact',
+      )
+      .map((artifact, order) => {
+        const slotId = artifact.slotKind as
+          | 'control_image_artifact'
+          | 'reference_image_artifact'
+        return {
+          canonicalOrder: order as 0 | 1,
+          slotId,
+          fileName:
+            slotId === 'control_image_artifact'
+              ? 'control-image.png' as const
+              : 'reference-image.png' as const,
+          artifactId: artifact.artifactRecordId,
+          contentSha256:
+            artifact.artifactContentSha256,
+          byteLength: artifact.artifactByteLength,
+          width: 1_024,
+          height: 1_024,
+          sourceBindingDigestSha256:
+            artifact.artifactSourceBindingDigestSha256,
+          readOnlyMountRequired: true as const,
+        }
+      })
+  const draft = {
+    packetClass:
+      'server_owned_selected_scene_canonical_comfyui_candidate_input_binding_packet_v1',
+    targetContractVersion:
+      'canonical-comfyui-gpu-runtime-request-candidate-v1',
+    targetOperationId:
+      'tool.comfyui.generate_controlled_image.v1',
+    selectedSceneRequestBindingDigestSha256:
+      input.selectedSceneRequest.requestBindingDigestSha256,
+    operationRequestReceiptDigestSha256:
+      receipt.operationRequestReceiptDigestSha256,
+    privateOperationRequestDigestSha256:
+      receipt.requestSummary
+        .privateOperationRequestDigestSha256,
+    materializationUnitId:
+      receipt.exactOutputLineage.materializationUnitId,
+    requestUnitId:
+      receipt.exactOutputLineage.requestUnitId,
+    sceneId: receipt.canonicalScope.sceneId,
+    workItemId:
+      receipt.exactOutputLineage.approvedWorkItemId,
+    workItemKey:
+      receipt.exactOutputLineage.approvedWorkItemKey,
+    workItemHash: digest({
+      canonicalWorkGraphProjectionDigestSha256:
+        receipt.sourceBindings
+          .canonicalWorkGraphProjectionDigestSha256,
+      workItemId:
+        receipt.exactOutputLineage.approvedWorkItemId,
+      workItemKey:
+        receipt.exactOutputLineage.approvedWorkItemKey,
+      outputKey:
+        receipt.exactOutputLineage.outputKey,
+    }),
+    outputKey: receipt.exactOutputLineage.outputKey,
+    plannedAssetManifestEntryId:
+      receipt.exactOutputLineage
+        .approvedPlannedAssetManifestEntryId,
+    confirmedOutputFrameExpectationDigestSha256:
+      receipt.sourceBindings
+        .confirmedOutputFrameExpectationDigestSha256,
+    dispatch: {
+      dispatchIntentId:
+        `dispatch-intent-living-frame.${nextId()}`,
+      dispatchBindingHash: digest({
+        operationRequestReceiptDigestSha256:
+          receipt.operationRequestReceiptDigestSha256,
+        binding: 'pending-private-dispatch',
+      }),
+      attemptPlanHash: digest({
+        privateOperationRequestDigestSha256:
+          receipt.requestSummary
+            .privateOperationRequestDigestSha256,
+        attempt: 'one-request-one-attempt',
+      }),
+      runtimeRegion: 'europe-west1',
+      dispatchAuthority: false,
+      workerLeaseAuthority: false,
+      gpuAttemptAuthority: false,
+    },
+    inputImages,
+    callerPacketAccepted: false,
+    callerPromptSeedDimensionsModelPathUrlBytesCredentialCommandOrEnvironmentAccepted:
+      false,
+    canonicalRuntimeCompilerAuthority: false,
+    dispatchAuthority: false,
+    runtimeAuthority: false,
+    productionReady: false,
+  } as const
+  return {
+    ...draft,
+    packetDigestSha256: digest(draft),
+  }
+}
+
+async function rejectsCanonicalReconciliationPacketMutation(
+  mutate: (
+    packet:
+      MutableLivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationPacket,
+  ) => void,
+  issueCode: string,
+): Promise<void> {
+  const current = await createFixture()
+  const operationResult =
+    await compileLivingFrameControlledImageSelectedScenePrivateOperationRequest(
+      current.input,
+    )
+  const packet =
+    structuredClone(
+      createCanonicalReconciliationPacket({
+        selectedSceneRequest:
+          livingFrameControlledImageSelectedSceneSmokeRequest,
+        operationRequestReceipt:
+          operationResult.receipt,
+      }),
+    ) as unknown as
+      MutableLivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationPacket
+  mutate(packet)
+  resignCanonicalReconciliationPacket(packet)
+  const reader =
+    createLivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationReader(
+      async () => structuredClone(packet),
+    )
+  let caught: unknown
+  try {
+    await reconcileLivingFrameControlledImageSelectedSceneCanonicalComfyUiCandidateInput({
+      serverOwnedReconciliationLocatorId:
+        `selected-canonical-comfyui-rejection.${nextId()}`,
+      selectedSceneRequest:
+        livingFrameControlledImageSelectedSceneSmokeRequest,
+      selectedSceneRequestInput:
+        livingFrameControlledImageSelectedSceneSmokeInput,
+      operationRequestReceipt: operationResult.receipt,
+      privateOperationRequestLease:
+        operationResult.privateOperationRequestLease,
+      reader,
+    })
+  } catch (error) {
+    caught = error
+  }
+  assert.equal(
+    hasCanonicalReconciliationIssue(caught, issueCode),
+    true,
+  )
+}
+
+type MutableLivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationPacket =
+  {
+    -readonly [Key in keyof
+      LivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationPacket]:
+      Key extends 'inputImages'
+        ? Array<Record<string, unknown>>
+        : Key extends 'dispatch'
+          ? Record<string, unknown>
+          : LivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationPacket[Key]
+  }
+
+function resignCanonicalReconciliationPacket(
+  packet:
+    MutableLivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationPacket,
+): void {
+  const draft =
+    structuredClone(packet) as unknown as
+      Record<string, unknown>
+  delete draft.packetDigestSha256
+  packet.packetDigestSha256 = digest(draft)
 }
 
 async function rejectsPacketMutation(
@@ -902,6 +1268,17 @@ function hasIssue(
   return (
     value instanceof
       LivingFrameControlledImageSelectedScenePrivateOperationRequestError
+    && value.issues[0]?.code === code
+  )
+}
+
+function hasCanonicalReconciliationIssue(
+  value: unknown,
+  code: string,
+): boolean {
+  return (
+    value instanceof
+      LivingFrameControlledImageSelectedSceneCanonicalComfyUiInputReconciliationError
     && value.issues[0]?.code === code
   )
 }

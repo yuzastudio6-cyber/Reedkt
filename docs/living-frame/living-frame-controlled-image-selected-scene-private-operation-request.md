@@ -193,39 +193,28 @@ The smoke fixture covers both a `1920 × 1080` full-frame plate and a
 - operation, dispatch, runtime, cost, asset, approval, or production
   promotion.
 
-## Exact shared-interface conflict
+## Shared-interface reconciliation
 
-The existing
-`LivingFrameControlledSdxlPrivateGpuWireRequest` and the current canonical
-mount-host runner input are benchmark-oriented and type their output width and
-height as literal `1024`. They therefore cannot consume a selected-scene
-full-frame request such as `1920 × 1080` without an unsafe cast or square
-substitution.
+The earlier benchmark-only `1024 × 1024` shared-interface conflict is resolved
+by canonical backend commit
+`bffa1ec0632fe26cd72ec4b8fe373bdcb38e353b`. Its canonical GPU candidate now
+supports exact isolated `1024 × 1024` requests and confirmed full-frame
+dimensions through 4096 pixels per axis and 8,294,400 total pixels.
 
-This namespaced contract intentionally does not mutate those shared runtime
-interfaces while the backend one-writer boundary is active. Before execution
-can be admitted, the canonical backend owner must reconcile that interface by
-introducing a selected-scene-capable wire envelope or a safely generalized
-dimension contract while keeping:
-
-- the compatibility benchmark frozen;
-- the exact five-model canonical mount checks;
-- the fixed supervised entrypoint and confinement digest;
-- the `sam2` denial;
-- one-request/one-attempt semantics; and
-- all canonical dispatch, cost, asset, and QA owners unchanged.
-
-This conflict blocks execution integration, not the non-executable request
-candidate delivered here.
+The remaining feature-to-canonical field mapping is implemented by
+`living-frame-controlled-image-selected-scene-canonical-comfyui-input-reconciliation-v1`.
+That boundary consumes this request's process-private lease, verifies exact
+canonical runtime aliases, adds only server-owned work-item, input-image, and
+pending-dispatch metadata, and creates a non-dispatched candidate-input lease
+for the canonical backend compiler. It does not duplicate the canonical
+compiler or router.
 
 ## Remaining release gates
 
 The candidate remains blocked on:
 
-- semantic reconciliation of the shared registry compatibility guard;
-- canonical ComfyUI identity and operation admission;
-- the shared wire-interface reconciliation described above;
-- a signed, scanned, dependency-locked, non-root image;
+- canonical one-writer integration of the candidate-input reconciliation;
+- a released, independently scanned and signed non-root image;
 - licensing, vulnerability, dependency, and model-weight disposition;
 - exact atomic read-only model distribution and mount evidence;
 - real NVIDIA L4 memory, latency, determinism, and quality evidence;

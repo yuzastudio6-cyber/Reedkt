@@ -31,27 +31,30 @@ The aggregate audit executes:
 2. parent and reusable mini-skill contracts;
 3. the subject-neutral capability matrix;
 4. selected-scene private ComfyUI prompt materialization without dispatch;
-5. a real Remotion render covering all five Living Frame modes, deliberate
+5. selected-scene private operation-request compilation plus exact
+   reconciliation into the canonical ComfyUI candidate-input shape without
+   invoking the canonical compiler or dispatch;
+6. a real Remotion render covering all five Living Frame modes, deliberate
    non-use, multiple depth styles, attention, caption priority, sound, and
    fallbacks;
-6. real portrait and custom non-square confirmed-frame renders without square
+7. real portrait and custom non-square confirmed-frame renders without square
    substitution;
-7. the complete selected-scene PixiJS environmental-particle slice through
+8. the complete selected-scene PixiJS environmental-particle slice through
    Remotion, create-only persistence, media QA, and private-review evidence;
-8. the real Musashi illustration through alpha, exact destination composite,
+9. the real Musashi illustration through alpha, exact destination composite,
    base/sword-arm/hair/robe decomposition, deterministic bounded shoulder-plate
    reconstruction, a synchronized articulated strike, Remotion, captions,
    sound, media QA, and retained review frames;
-9. real generated flat-editorial and paper-collage alpha fixtures through
+10. real generated flat-editorial and paper-collage alpha fixtures through
    adaptive flat and shallow-2.5D Remotion scenes, measured spatial behavior,
    caption priority, create-only persistence, and retained review frames;
-10. semantic sound timing reconciliation;
-11. canonical private-review lineage;
-12. the exact selected-scene source-video → normalized subject prompt → SAM2
+11. semantic sound timing reconciliation;
+12. canonical private-review lineage;
+13. the exact selected-scene source-video → normalized subject prompt → SAM2
     temporal-mask work-admission candidate;
-13. a real gray8 FFV1 temporal-mask output through decode, stability
+14. a real gray8 FFV1 temporal-mask output through decode, stability
     measurement, create-only persistence, and review frames; and
-14. the exact temporal-mask work-graph conflict.
+15. the exact temporal-mask work-graph conflict.
 
 Every subprocess is bounded, uses the pinned workspace `tsx` executable, and
 returns only an output digest plus structured status to the aggregate receipt.
@@ -127,8 +130,13 @@ pass must still report two open internal runtime gates:
    and real L4 execution evidence. Exact private-local five-model byte
    identity and simultaneous read-only mounting are verified; canonical
    backend commit `bffa1ec0` freezes the full-frame-capable
-   runtime/source/router bridge and complete 15-node controlled graph; and
-   the exact offline package now builds into a fixed non-root private image.
+   runtime/source/router bridge and complete 15-node controlled graph. The
+   feature chain now also consumes its existing private operation lease and
+   reconciles canonical aliases, input-image dimensions, work-item hash, and
+   pending dispatch/attempt lineage into an exact process-private
+   `canonical-comfyui-gpu-runtime-request-candidate-v1` input lease without
+   invoking or duplicating the canonical compiler. The exact offline package
+   now builds into a fixed non-root private image.
    That image is not yet independently scanned, signed, or released, and no
    complete L4 model load, output, resource, persistence, or QA evidence
    exists; and

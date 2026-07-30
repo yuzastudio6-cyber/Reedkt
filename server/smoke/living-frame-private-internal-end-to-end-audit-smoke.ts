@@ -112,6 +112,34 @@ const cases: readonly AuditCase[] = [
     },
   },
   {
+    id:
+      'shared_gpu_parent_hardened_package_matrix_candidate',
+    relativePath:
+      'server/smoke/living-frame-shared-gpu-parent-hardened-package-matrix-candidate-smoke.ts',
+    expectedJsonStatus: 'passed',
+    validate(receipt) {
+      assert.equal(
+        receipt.candidateTorchVersion,
+        '2.6.0+cu124',
+      )
+      assert.equal(
+        receipt.candidateTorchVisionVersion,
+        '0.21.0+cu124',
+      )
+      assert.equal(receipt.candidateTritonVersion, '3.2.0')
+      assert.equal(receipt.requiredCusparseLtVersion, '0.6.2')
+      assert.equal(receipt.publishedArtifactCount, 4)
+      assert.equal(
+        receipt.publishedArtifactByteLength,
+        1_178_861_927,
+      )
+      assert.equal(receipt.completeOfflineClosure, false)
+      assert.equal(receipt.imageBuilt, false)
+      assert.equal(receipt.runtimeExecuted, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  },
+  {
     id: 'five_modes_depth_attention_captions_sound_and_fallbacks',
     relativePath:
       'server/smoke/living-frame-five-mode-private-render-smoke.ts',
@@ -415,6 +443,7 @@ const receipt = {
     'selected_scene_lineage_and_private_prompt_materialization',
     'selected_scene_private_operation_and_canonical_comfyui_candidate_input_reconciliation',
     'partial_independent_canonical_offline_image_vulnerability_evidence_and_fail_closed_disposition',
+    'official_shared_gpu_parent_hardened_package_matrix_and_dependency_delta',
     'all_five_modes_and_deliberate_non_use',
     'flat_shallow_and_deep_2_5d',
     'focus_handoff_attention_restoration_and_low_risk_occlusion',
@@ -436,13 +465,13 @@ const receipt = {
       gate:
         'exact_comfyui_controlled_generation_runtime',
       reason:
-        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_private_offline_image_build_and_selected_scene_candidate_input_reconciliation_are_verified_and_partial_metadata_scanning_found_one_unique_critical_plus_sixteen_unique_high_python_findings_so_a_hardened_rebuild_complete_independent_image_scan_canonical_distributed_mount_real_l4_generation_resource_persistence_and_qa_evidence_remain_required',
+        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_private_offline_image_build_selected_scene_candidate_input_reconciliation_and_the_official_torch_2_6_torchvision_0_21_cuda_12_4_core_candidate_matrix_are_verified_but_the_complete_offline_closure_hardened_rebuild_complete_independent_image_scan_canonical_distributed_mount_real_l4_generation_resource_persistence_and_qa_evidence_remain_required',
     },
     {
       gate:
         'advanced_temporal_living_a_roll_subject_mask',
       reason:
-        'canonical_ffmpeg_to_sam2_work_admission_is_frozen_at_576ca54b_and_fixed_runner_router_plus_exact_private_checkpoint_read_only_mount_and_hard_cuda_refusal_are_frozen_at_3e59ce45_but_the_fixed_runner_requires_torch_2_5_1_cu124_which_is_bound_to_critical_cve_2025_32434_so_a_versioned_hardened_parent_torch_torchvision_cuda_contract_and_real_l4_inference_private_output_resource_and_mask_qa_evidence_remain_required',
+        'canonical_ffmpeg_to_sam2_work_admission_is_frozen_at_576ca54b_and_fixed_runner_router_plus_exact_private_checkpoint_read_only_mount_hard_cuda_refusal_and_the_official_torch_2_6_torchvision_0_21_cuda_12_4_core_candidate_matrix_are_frozen_but_the_complete_offline_closure_versioned_hardened_runtime_contract_checkpoint_regression_and_real_l4_inference_private_output_resource_and_mask_qa_evidence_remain_required',
     },
   ],
   internalEndToEndReadyForOwnerReview: false,

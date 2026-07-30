@@ -86,6 +86,13 @@ cuSPARSELt `0.6.2` wheel identities plus the current-parent CUDA dependency
 delta. It downloads no packages and does not claim a complete offline closure,
 build, scan, compatibility result, or L4 admission.
 
+The host-specific adjacent core-cache test has now downloaded and rehashed all
+four artifacts, validated each ZIP archive, reproduced every embedded
+distribution-metadata digest, and verified the wheel tags. Because the backup
+volume still projects the files as owner-writable after `chmod`, the cache is
+explicitly mutable and not build-admitted. Canonical repository ingest,
+pre/post-consumer rehash, and an atomic read-only mount remain required.
+
 When the exact five private model artifacts are also present,
 `smoke:living-frame-comfyui-five-model-local-mount-internal-test` runs a
 second adjacent bounded proof. It presents all five artifacts simultaneously

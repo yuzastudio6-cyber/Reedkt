@@ -190,6 +190,7 @@
     "smoke:living-frame-sam2-local-runtime-confinement-internal-test": "tsx server/smoke/living-frame-sam2-local-runtime-confinement-internal-test-smoke.ts",
     "smoke:living-frame-sam2-runtime-vulnerability-gate": "tsx server/smoke/living-frame-sam2-runtime-vulnerability-gate-smoke.ts",
     "smoke:living-frame-shared-gpu-parent-hardened-package-matrix-candidate": "tsx server/smoke/living-frame-shared-gpu-parent-hardened-package-matrix-candidate-smoke.ts",
+    "smoke:living-frame-shared-gpu-parent-hardened-core-package-cache-internal-test": "tsx server/smoke/living-frame-shared-gpu-parent-hardened-core-package-cache-internal-test-smoke.ts",
     "smoke:living-frame-auraface-canonical-mount-host-session": "tsx server/smoke/living-frame-auraface-canonical-mount-host-session-smoke.ts",
     "smoke:living-frame-comfyui-model-mount": "tsx server/smoke/living-frame-comfyui-read-only-model-mount-smoke.ts",
     "smoke:living-frame-environmental-particle-pixijs-internal-runtime": "tsx server/smoke/living-frame-environmental-particle-pixijs-internal-runtime-smoke.ts",

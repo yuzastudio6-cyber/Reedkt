@@ -43,20 +43,23 @@ The available pasted specification is sufficient to create the requested archite
 - claim the entire linked conversation was read verbatim;
 - validate the raw reference videos;
 - resolve unrecorded nuances from truncated turns;
-- begin runtime changes before owner review.
+- claim unavailable conversation/reference evidence as verified.
 
-## Scoped blocker
+## Resolved milestone blocker
 
-Blocked action: CAP-01 and later runtime or schema implementation.
+The original CAP-00 owner-review pause was explicitly replaced by the user with
+an evidence-backed self-review-and-continue policy. CAP-01 may proceed after the
+CAP-00 self-review.
 
-Missing evidence or approval:
+Remaining evidence limitations:
 
-1. owner approval of this CAP-00 package;
-2. confirmation that the pasted goal is authoritative where truncated conversation content may differ;
-3. the original reference media, if exact reference analysis is required.
+1. the pasted goal remains authoritative where truncated conversation content may differ;
+2. original reference media is still required for exact reference verification.
 
 Safe work completed: repository audit and CAP-00 architecture only.
 
-Smallest next step: owner reviews the decision ledger and either approves CAP-01 or provides the missing canonical transcript/reference assets.
+Next step: implement and self-review CAP-01 while retaining explicit
+`unverified` provenance for unavailable reference evidence.
 
-Fallback: continue from the pasted goal while marking unverified conversation/reference details as unavailable.
+Fallback: continue from the pasted goal while marking unavailable
+conversation/reference details as unverified; do not invent them.

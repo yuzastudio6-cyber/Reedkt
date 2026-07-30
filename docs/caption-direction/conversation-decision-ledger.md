@@ -20,7 +20,8 @@ This ledger separates binding direction from examples, corrections, and unresolv
 | CD-012 | Caption sound is choreographed after caption motion lock and must protect dialogue. | final | SoundSync owns mix execution; captions submit eligible cues and restraint budgets. |
 | CD-013 | Models produce structured observations and proposals, never executable renderer code. | final | Deterministic validators and typed render specs gate execution. |
 | CD-014 | Remotion owns creative caption composition; libass owns stable subtitle fallback/delivery; FFmpeg packages outputs. | final | Canvas-aware, pinned, deterministic render paths with accessibility parity. |
-| CD-015 | CAP-00 is documentation-only and stops for owner review. | current explicit instruction | No runtime, package, provider, media, migration, billing, secret, or deployment change. |
+| CD-015 | CAP-00 is documentation-only and originally stopped for owner review. | superseded milestone instruction | CAP-00 itself made no runtime, package, provider, media, migration, billing, secret, or deployment change. CD-016 replaces the later milestone pause. |
+| CD-016 | After evidence-backed milestone self-review, continue automatically without a separate development owner-approval stop. | latest explicit user decision | CAP-01 and later CAP milestones proceed when their documented checks pass. This does not bypass user-facing edit-plan/credit approval or external security, spending, deployment, migration, secret, and dependency gates. |
 
 ## Corrections and supersessions
 

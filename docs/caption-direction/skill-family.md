@@ -62,4 +62,5 @@ Activation is scene-aware. The parent selects only the capabilities justified by
 | `captions.multilingual_placeholder_policy` | localization and multilingual layout |
 | `captions.no_caption_policy` | `no_captions` compatibility alias |
 
-Exact IDs and seed migration require CAP-01 owner approval.
+CAP-01 implements these IDs and compatibility mappings after evidence-backed
+self-review, preserving legacy snapshots and current consumers.

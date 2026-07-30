@@ -1,6 +1,6 @@
 # Caption Direction — CAP-00 Architecture Checkpoint
 
-Status: `owner_review_required`  
+Status: `self_review_passed_cap_01_in_progress`
 Checkpoint: `CAP-00`  
 Runtime changes: none
 
@@ -19,7 +19,9 @@ This package reconciles that target with the current repository. It does not aut
 - The repository has useful caption, speech, StoryTiming, approval, worker, render, and QA foundations, but no composite `caption_design` owner or multi-track late-bound Caption Direction domain.
 - Existing behavior must be adapted, not replaced in parallel. In particular, current flat `captions.*` professional skills, coarse caption plans, StoryTiming records, speech artifacts, caption workers, Remotion plans, and libass output remain compatibility inputs.
 - A deliberate policy migration is required: current documents place captions above masks; the target allows approved creative typography behind, beside, and in front of subjects while keeping a complete accessible projection.
-- Work stops at owner review before CAP-01.
+- CAP milestone progression uses evidence-backed self-review and continues
+  automatically when the checkpoint passes. Product approval/credit gates and
+  risky external actions retain their existing authorization requirements.
 
 ## Document map
 
@@ -63,9 +65,17 @@ This package reconciles that target with the current repository. It does not aut
 - [Implementation roadmap](implementation-roadmap.md)
 - [Definition of done](definition-of-done.md)
 
-## Approval requested
+## Milestone progression
 
-Before CAP-01, the owner should review the scoped decisions in the [decision ledger](conversation-decision-ledger.md), unresolved choices in the [roadmap](implementation-roadmap.md), and the explicit context limitations in the [availability report](context-availability-report.md). CAP-00 is not completion of the larger Caption Direction goal.
+CAP-00 passed its documented coverage, link, scope, and no-runtime-change
+self-review. CAP-01 may proceed without a separate owner pause. Each later CAP
+checkpoint must publish its evidence, review its complete scope, and continue
+only when its milestone requirements pass.
+
+This progression rule does not bypass ReeditPro's edit-plan/credit approval,
+approved-snapshot, security, spending, production deployment, migration,
+secret, or unreviewed dependency gates. CAP-00 is not completion of the larger
+Caption Direction goal.
 
 ## Canonical specification coverage
 

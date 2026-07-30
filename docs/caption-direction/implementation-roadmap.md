@@ -1,6 +1,6 @@
 # Implementation Roadmap
 
-Status: CAP-00 complete for review; CAP-01+ blocked on owner approval.
+Status: CAP-00 self-review passed; CAP-01 in progress.
 
 ## Dependency graph
 
@@ -84,7 +84,9 @@ Every CAP milestone must:
 7. review the complete diff for unrelated changes;
 8. update canonical documentation and write a milestone report;
 9. publish a reviewable checkpoint;
-10. stop at explicit owner gates instead of silently making product, security, spending, dependency, or migration decisions.
+10. continue automatically after milestone self-review; pause only for a real
+    product/user approval, security, spending, secret, deployment, migration,
+    destructive compatibility, or unreviewed dependency gate.
 
 Milestone reports record phase, status, outcome, files/contracts, reused owners,
 duplicates avoided, checks/pass/fail, limitations, scoped blockers, safe
@@ -107,17 +109,18 @@ progress, owner decisions, and next milestone.
 | Cost or overage drift | unapproved spend | existing estimate/reservation gates and local repair |
 | Private asset leakage | user harm | tenant/private storage, safe DTOs, no path/signed URL logs |
 
-## Scoped blocker report
+## Resolved CAP-00 progression gate
 
-Blocked action: starting CAP-01 or changing runtime.
+The user explicitly replaced the development owner-review pause with
+evidence-backed agent self-review and automatic continuation. CAP-00 passed:
+all required documents exist, the 60-section coverage matrix is complete,
+links resolve, scope is documentation-only, and the checkpoint is published.
 
-Missing evidence/approval: owner review of CAP-00 decisions, especially skill-ID migration, transcript authority, picture-lock owner, tool/font/provider choices, approval envelope, credit policy, and reference availability.
-
-Safe progress completed: all required CAP-00 documents, gap/contract/migration maps, dependency/risk/test/fixture plans.
-
-Smallest next step: owner approves CAP-01 and the stable `caption_design` compatibility direction.
-
-Fallback: revise CAP-00 documents only; do not cross the owner gate.
+CAP-01 therefore proceeds with the stable `caption_design` compatibility
+direction. Unresolved choices are decided during the narrowest applicable
+milestone using repository evidence and recorded tradeoffs. Only real external,
+production, spending, security, migration, secret, destructive compatibility,
+or product/user approval gates pause work.
 
 ## General blocker policy
 

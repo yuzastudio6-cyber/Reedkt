@@ -47,7 +47,7 @@ The goal may be marked complete only when:
 
 ## CAP-00 acceptance
 
-CAP-00 itself is ready for owner review when:
+CAP-00 passes self-review when:
 
 - all files listed in the canonical goal exist;
 - current-versus-target gaps, owner map, migration compatibility, dependency graph, risk register, blockers, unresolved decisions, tests, benchmarks, fixtures, and CAP-01–17 are documented;
@@ -55,4 +55,7 @@ CAP-00 itself is ready for owner review when:
 - only `docs/caption-direction/` changed for this checkpoint;
 - no runtime, package, media, provider, migration, billing, secret, or deployment action occurred.
 
-Owner approval of CAP-00 authorizes only the explicitly agreed next milestone. It does not authorize the full roadmap or production.
+Passing CAP-00 self-review authorizes CAP-01 implementation and automatic
+progression through later reviewable CAP milestones when their own evidence
+passes. It does not authorize production, user edit execution, credit spend,
+provider spend, secrets, deployments, migrations, or unreviewed dependencies.

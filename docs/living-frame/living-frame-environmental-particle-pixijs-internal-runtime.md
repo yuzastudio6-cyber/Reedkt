@@ -96,14 +96,19 @@ The runtime request itself is digest-bound before container execution.
 
 ## Real pixel evidence
 
-The current internal fixture executes eight 3840×2160 samples. The actual
-browser output proves:
+The original bounded fixture executes eight 3840×2160 samples. A selected-scene
+internal fixture additionally executes the exact 105-frame 1920×1080
+`helicopter.downwash` range from frame 30 through exclusive frame 135. The
+qualification runner accepts the same maximum 600-frame effect duration as the
+deterministic kernel while retaining every byte, pixel, particle, memory, CPU,
+PID, network, and one-attempt limit. The actual browser output proves:
 
 - `pixi.js@8.19.0` was installed in the image;
 - the real `Application.init` entrypoint executed;
 - a transparent PixiJS canvas and stage rendered;
-- eight real PNG byte strings were returned;
-- every PNG has the exact 3840×2160 dimensions and RGBA color type;
+- the bounded fixture returned eight real 3840×2160 PNG byte strings;
+- the selected-scene fixture returned 105 real 1920×1080 PNG byte strings;
+- every PNG has its exact confirmed dimensions and RGBA color type;
 - first and last frames are fully transparent;
 - six frames contain expected particle alpha;
 - seven distinct PNG digests exist;
@@ -117,7 +122,9 @@ caller prompt, caller path, URL, credential, command, or environment.
 ## Internal-testing disposition
 
 This evidence is sufficient to mark the isolated PixiJS particle kernel/runtime
-boundary `internalTestReady = true`.
+boundary `internalTestReady = true`. The selected-scene wrapper also proves
+`selectedSceneBound = true` and `canonicalTimingBound = true` for the exact
+105-frame internal fixture without acquiring either authority.
 
 It deliberately keeps:
 
@@ -140,17 +147,15 @@ testing before any customer-facing release work.
 
 ## Remaining internal end-to-end path
 
-1. Reconcile the canonical selected-scene visual-range versus five-phase
-   timing conflict.
-2. Attach the immutable typed environmental profile through the selected-scene
-   owner.
-3. Bind one selected component, one canonical work item, and one planned
+1. Promote the explicit internal-test profile binding into an immutable
+   canonical selected-scene profile reference when that owner is available.
+2. Bind one selected component, one canonical work item, and one planned
    logical sequence asset.
-4. Persist the private frame sequence through the existing create-only
+3. Persist the private frame sequence through the existing create-only
    artifact and asset-manifest owners.
-5. Add the canonical Remotion time-sampled transparent overlay adapter.
-6. Render the sequence inside the real Living Frame scene.
-7. Run procedural-alpha, temporal, destination-composite,
+4. Render the full 105-frame sequence through the bounded Remotion timeline
+   adapter.
+5. Run procedural-alpha, temporal, destination-composite,
    narration/caption-safety, and private-review QA.
 
 Customer billing, public delivery, and production promotion are later release

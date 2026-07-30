@@ -3155,6 +3155,22 @@ selected-scene/timing binding, operation registration, canonical dispatch,
 artifact/manifest persistence, Remotion adaptation, QA/private review, cost,
 billing, external beta, and production false.
 
+The adjacent
+`living-frame-selected-scene-environmental-particle-internal-test-v1`
+qualification now moves beyond that isolated eight-frame proof. It revalidates
+the actual selected `helicopter.downwash` component, the canonical timing
+binding, confirmed frame, component geometry, selective-motion result, and a
+lineage-compatible Visual Continuity Pack. A server-owned internal-test
+profile binding supplies the otherwise missing typed profile without parsing
+the component ID, summary, subject, or genre. One real PixiJS attempt then
+emits all 105 exact 1920×1080 RGBA frames for the selected frame 30–135
+environmental window. The report is byte-free and the exact PNG sequence
+remains behind a process-bound single-use lease for full-duration Remotion
+testing. This proves selected-scene and canonical-timing binding for internal
+testing while keeping both authorities, plus operation registration, shared
+dispatch, persistence, QA/review, cost, billing, external beta, and production
+false.
+
 PixiJS remains the existing tool identity. No separate particle tool identity
 is created. Its current operation renders one opaque 640×360 static review
 card PNG, while Living Frame requires a time-sampled transparent procedural
@@ -3172,6 +3188,8 @@ plus
 `docs/living-frame/living-frame-environmental-particle-sequence-observation.md`.
 The real internal runtime evidence is specified in
 `docs/living-frame/living-frame-environmental-particle-pixijs-internal-runtime.md`.
+The selected-scene full-range evidence is specified in
+`docs/living-frame/living-frame-selected-scene-environmental-particle-internal-test.md`.
 
 The downstream Sharp alpha-component authority accepts exactly one approved
 source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg

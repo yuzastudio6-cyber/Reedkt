@@ -20,7 +20,7 @@ const OPERATION =
   'tool.pixijs.render_living_frame_environmental_particles.v1'
 const MAXIMUM_REQUEST_BYTES = 16 * 1024 * 1024
 const MAXIMUM_OUTPUT_BYTES = 256 * 1024 * 1024
-const MAXIMUM_FRAME_COUNT = 60
+const MAXIMUM_FRAME_COUNT = 600
 const MAXIMUM_PARTICLES_PER_FRAME = 128
 const MAXIMUM_DIMENSION = 8_192
 const MAXIMUM_PIXEL_COUNT = 16_777_216

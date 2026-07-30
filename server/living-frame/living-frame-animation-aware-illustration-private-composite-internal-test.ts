@@ -65,7 +65,7 @@ const OUTPUT_STORAGE_ROOT =
 
 export interface LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt {
   readonly schemaVersion:
-    'living-frame-animation-aware-illustration-private-composite-internal-test-v1'
+    'living-frame-animation-aware-illustration-private-composite-internal-test-v2'
   readonly evidenceClass:
     'actual_private_internal_animation_aware_illustration_2_5d_composite'
   readonly source: {
@@ -90,16 +90,24 @@ export interface LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTe
   }
   readonly decomposition: {
     readonly profile:
-      'fixture_specific_appendage_cutout_rig_v1'
+      'fixture_specific_character_action_cutout_rig_v2'
     readonly baseComponentSha256: string
+    readonly swordArmComponentSha256: string
     readonly hairComponentSha256: string
     readonly robeComponentSha256: string
+    readonly swordArmSelectedPixelCount: number
+    readonly swordArmReconstructedPixelCount: number
+    readonly swordArmTransparentClearedPixelCount: number
     readonly hairSelectedPixelCount: number
     readonly robeSelectedPixelCount: number
+    readonly swordArmPivot: readonly [390, 104]
     readonly hairPivot: readonly [444, 58]
     readonly robePivot: readonly [489, 119]
-    readonly hiddenAreaReconstructionRequired: false
+    readonly hiddenAreaReconstructionRequired: true
+    readonly hiddenAreaReconstructionMethod:
+      'fixture_specific_nearest_opaque_border_fill_v1'
     readonly articulatedComponentMotionRendered: true
+    readonly articulatedSwordArmMotionRendered: true
     readonly fixtureSpecificInternalMasking: true
   }
   readonly scene: {
@@ -114,6 +122,7 @@ export interface LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTe
       readonly [
         'ink_background',
         'character_base',
+        'sword_arm',
         'hair',
         'robe',
         'slash_foreground',
@@ -122,6 +131,7 @@ export interface LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTe
       readonly [
         'background_parallax',
         'character_anchor_drift',
+        'sword_arm_pivot_strike',
         'hair_pivot_motion',
         'robe_pivot_motion',
         'slash_reveal_and_settle',
@@ -146,6 +156,7 @@ export interface LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTe
   readonly renderedQa: {
     readonly distinctSampleFrameDigestCount: number
     readonly characterMotionPixelDelta: number
+    readonly swordArmRegionPixelDelta: number
     readonly hairRegionPixelDelta: number
     readonly robeRegionPixelDelta: number
     readonly slashCuePixelDelta: number
@@ -155,7 +166,7 @@ export interface LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTe
     readonly swordCueBefore: number
     readonly swordCueDuring: number
     readonly narrationProtectedMixMeasured: true
-    readonly reviewFrameIndexes: readonly [20, 35, 82]
+    readonly reviewFrameIndexes: readonly [35, 58, 82]
     readonly reviewFrameSha256: readonly [string, string, string]
   }
   readonly privateArtifacts: {
@@ -217,6 +228,10 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
     fixtureRoot,
     'character-base-overlay.png',
   )
+  const swordArmPath = join(
+    fixtureRoot,
+    'sword-arm-overlay.png',
+  )
   const hairPath = join(fixtureRoot, 'hair-overlay.png')
   const robePath = join(fixtureRoot, 'robe-overlay.png')
   const inkBackgroundPath = join(
@@ -238,6 +253,7 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
     const decomposition = await decomposeCharacter({
       sourcePath: characterPath,
       basePath: characterBasePath,
+      swordArmPath,
       hairPath,
       robePath,
     })
@@ -315,6 +331,10 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
       overlayCommitment(
         'lf-musashi-character-base',
         characterBasePath,
+      ),
+      overlayCommitment(
+        'lf-musashi-sword-arm',
+        swordArmPath,
       ),
       overlayCommitment(
         'lf-musashi-hair',
@@ -436,6 +456,73 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
                 [82, 0.72, 'ease_in_out_cubic'],
                 [114, 1, 'hold'],
                 [119, 1, 'hold'],
+              ],
+            ),
+          ],
+        }),
+      }),
+      layer({
+        sceneId: 'lf-musashi-living-still-scene',
+        layerId: 'lf-musashi-23-sword-arm',
+        componentOutputKey: 'lf-musashi-sword-arm',
+        manifestOutputKey:
+          'lf-musashi-sword-arm-manifest',
+        motionSpec: motionSpec({
+          componentId: 'lf-musashi-sword-arm',
+          visualVerb: 'transform',
+          depthBand: 'in_front_of_subject',
+          parallaxFactor: 0.11,
+          tracks: [
+            track(
+              'sword-arm-opacity',
+              0,
+              'layer',
+              'opacity',
+              'primary',
+              [
+                [0, 0.08, 'ease_out_quad'],
+                [16, 1, 'settle_out'],
+                [106, 1, 'ease_in_out_cubic'],
+                [119, 0.82, 'hold'],
+              ],
+            ),
+            track(
+              'sword-arm-pivot-x',
+              1,
+              'layer',
+              'position_x_normalized',
+              'secondary',
+              [
+                [0, 0.169375, 'ease_out_quad'],
+                [52, 0.109375, 'settle_out'],
+                [119, 0.084375, 'hold'],
+              ],
+            ),
+            track(
+              'sword-arm-pivot-y',
+              2,
+              'layer',
+              'position_y_normalized',
+              'secondary',
+              [
+                [0, -0.211111, 'hold'],
+                [119, -0.211111, 'hold'],
+              ],
+            ),
+            track(
+              'sword-arm-strike',
+              3,
+              'layer',
+              'rotation_degrees',
+              'primary',
+              [
+                [0, 0, 'hold'],
+                [30, 0, 'ease_in_out_cubic'],
+                [37, 15, 'mechanical_accelerate'],
+                [52, -28, 'settle_out'],
+                [64, -20, 'settle_out'],
+                [82, -6, 'ease_in_out_cubic'],
+                [119, 0.4, 'hold'],
               ],
             ),
           ],
@@ -856,6 +943,13 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
       new Set(frameDigests).size
     const characterMotionPixelDelta =
       pixelDifferenceCount(frames[1]!, frames[4]!, 18)
+    const swordArmRegionPixelDelta =
+      pixelDifferenceCount(frames[2]!, frames[3]!, 12, {
+        xStart: 360,
+        xEndExclusive: 620,
+        yStart: 35,
+        yEndExclusive: 175,
+      })
     const hairRegionPixelDelta =
       pixelDifferenceCount(frames[1]!, frames[4]!, 12, {
         xStart: 390,
@@ -887,13 +981,14 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
     if (
       distinctSampleFrameDigestCount < 5
       || characterMotionPixelDelta < 8_000
+      || swordArmRegionPixelDelta < 1_000
       || hairRegionPixelDelta < 400
       || robeRegionPixelDelta < 400
       || slashCuePixelDelta < 2_500
       || captionProtectedPixelCount < 800
     ) {
       throw new Error(
-        `Private Musashi rendered-frame QA failed: distinct=${distinctSampleFrameDigestCount}, characterDelta=${characterMotionPixelDelta}, hairDelta=${hairRegionPixelDelta}, robeDelta=${robeRegionPixelDelta}, slashDelta=${slashCuePixelDelta}, caption=${captionProtectedPixelCount}.`,
+        `Private Musashi rendered-frame QA failed: distinct=${distinctSampleFrameDigestCount}, characterDelta=${characterMotionPixelDelta}, swordArmDelta=${swordArmRegionPixelDelta}, hairDelta=${hairRegionPixelDelta}, robeDelta=${robeRegionPixelDelta}, slashDelta=${slashCuePixelDelta}, caption=${captionProtectedPixelCount}.`,
       )
     }
 
@@ -941,7 +1036,7 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
       )
     }
 
-    const reviewFrameIndexes = [20, 35, 82] as const
+    const reviewFrameIndexes = [35, 58, 82] as const
     const reviewFramePngs = reviewFrameIndexes.map((frame) =>
       extractPngFrame(renderedPath, frame))
     const reviewFrameSha256 = reviewFramePngs.map(
@@ -966,7 +1061,7 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
         'receiptDigestSha256'
       > = {
       schemaVersion:
-        'living-frame-animation-aware-illustration-private-composite-internal-test-v1',
+        'living-frame-animation-aware-illustration-private-composite-internal-test-v2',
       evidenceClass:
         'actual_private_internal_animation_aware_illustration_2_5d_composite',
       source: {
@@ -999,21 +1094,33 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
       },
       decomposition: {
         profile:
-          'fixture_specific_appendage_cutout_rig_v1',
+          'fixture_specific_character_action_cutout_rig_v2',
         baseComponentSha256:
           decomposition.baseComponentSha256,
+        swordArmComponentSha256:
+          decomposition.swordArmComponentSha256,
         hairComponentSha256:
           decomposition.hairComponentSha256,
         robeComponentSha256:
           decomposition.robeComponentSha256,
+        swordArmSelectedPixelCount:
+          decomposition.swordArmSelectedPixelCount,
+        swordArmReconstructedPixelCount:
+          decomposition.swordArmReconstructedPixelCount,
+        swordArmTransparentClearedPixelCount:
+          decomposition.swordArmTransparentClearedPixelCount,
         hairSelectedPixelCount:
           decomposition.hairSelectedPixelCount,
         robeSelectedPixelCount:
           decomposition.robeSelectedPixelCount,
+        swordArmPivot: [390, 104],
         hairPivot: [444, 58],
         robePivot: [489, 119],
-        hiddenAreaReconstructionRequired: false,
+        hiddenAreaReconstructionRequired: true,
+        hiddenAreaReconstructionMethod:
+          'fixture_specific_nearest_opaque_border_fill_v1',
         articulatedComponentMotionRendered: true,
+        articulatedSwordArmMotionRendered: true,
         fixtureSpecificInternalMasking: true,
       },
       scene: {
@@ -1027,6 +1134,7 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
         layerOrder: [
           'ink_background',
           'character_base',
+          'sword_arm',
           'hair',
           'robe',
           'slash_foreground',
@@ -1034,6 +1142,7 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
         selectiveMotion: [
           'background_parallax',
           'character_anchor_drift',
+          'sword_arm_pivot_strike',
           'hair_pivot_motion',
           'robe_pivot_motion',
           'slash_reveal_and_settle',
@@ -1058,6 +1167,7 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
       renderedQa: {
         distinctSampleFrameDigestCount,
         characterMotionPixelDelta,
+        swordArmRegionPixelDelta,
         hairRegionPixelDelta,
         robeRegionPixelDelta,
         slashCuePixelDelta,
@@ -1286,12 +1396,17 @@ function scaleCharacterToLandscape(
 async function decomposeCharacter(input: {
   readonly sourcePath: string
   readonly basePath: string
+  readonly swordArmPath: string
   readonly hairPath: string
   readonly robePath: string
 }): Promise<{
   readonly baseComponentSha256: string
+  readonly swordArmComponentSha256: string
   readonly hairComponentSha256: string
   readonly robeComponentSha256: string
+  readonly swordArmSelectedPixelCount: number
+  readonly swordArmReconstructedPixelCount: number
+  readonly swordArmTransparentClearedPixelCount: number
   readonly hairSelectedPixelCount: number
   readonly robeSelectedPixelCount: number
 }> {
@@ -1328,13 +1443,54 @@ async function decomposeCharacter(input: {
     [496, 134],
     [480, 120],
   ] as const
+  const swordArmPolygon = [
+    [379, 92],
+    [389, 83],
+    [405, 77],
+    [423, 82],
+    [438, 87],
+    [441, 98],
+    [422, 108],
+    [409, 117],
+    [392, 119],
+    [380, 108],
+  ] as const
+  const swordBladePolygon = [
+    [432, 79],
+    [584, 42],
+    [592, 55],
+    [438, 106],
+  ] as const
+  const swordArmPivot = [390, 104] as const
   const hairPivot = [444, 58] as const
   const robePivot = [489, 119] as const
   const baseRgba = Buffer.from(source.rgba)
+  const swordArmRgba =
+    Buffer.alloc(source.rgba.byteLength)
   const hairRgba = Buffer.alloc(source.rgba.byteLength)
   const robeRgba = Buffer.alloc(source.rgba.byteLength)
+  let swordArmSelectedPixelCount = 0
+  let swordArmReconstructedPixelCount = 0
+  let swordArmTransparentClearedPixelCount = 0
   let hairSelectedPixelCount = 0
   let robeSelectedPixelCount = 0
+
+  const isInsideComponentMask = (
+    x: number,
+    y: number,
+  ): boolean =>
+    pointInPolygon(x + 0.5, y + 0.5, hairPolygon)
+    || pointInPolygon(x + 0.5, y + 0.5, robePolygon)
+    || pointInPolygon(
+      x + 0.5,
+      y + 0.5,
+      swordArmPolygon,
+    )
+    || pointInPolygon(
+      x + 0.5,
+      y + 0.5,
+      swordBladePolygon,
+    )
 
   for (let y = 0; y < HEIGHT; y += 1) {
     for (let x = 0; x < WIDTH; x += 1) {
@@ -1352,12 +1508,64 @@ async function decomposeCharacter(input: {
         y + 0.5,
         robePolygon,
       )
-      if (inHair && inRobe) {
+      const inSwordArm =
+        pointInPolygon(
+          x + 0.5,
+          y + 0.5,
+          swordArmPolygon,
+        )
+        || pointInPolygon(
+          x + 0.5,
+          y + 0.5,
+          swordBladePolygon,
+        )
+      if (
+        Number(inHair)
+        + Number(inRobe)
+        + Number(inSwordArm)
+        > 1
+      ) {
         throw new Error(
           'Fixture-specific character component masks overlap.',
         )
       }
-      if (inHair) {
+      if (inSwordArm) {
+        copyPivotCenteredPixel({
+          source: source.rgba,
+          sourceOffset,
+          destination: swordArmRgba,
+          sourceX: x,
+          sourceY: y,
+          pivot: swordArmPivot,
+        })
+        swordArmSelectedPixelCount += 1
+        if (x >= 435) {
+          clearRgbaPixel(baseRgba, sourceOffset)
+          swordArmTransparentClearedPixelCount += 1
+          continue
+        }
+        const replacementOffset =
+          findNearestOpaqueOutsideFixtureMasks({
+            source: source.rgba,
+            sourceX: x,
+            sourceY: y,
+            maximumRadiusPixels: 18,
+            isExcluded: isInsideComponentMask,
+          })
+        if (replacementOffset == null) {
+          clearRgbaPixel(baseRgba, sourceOffset)
+          swordArmTransparentClearedPixelCount += 1
+        } else {
+          baseRgba.set(
+            source.rgba.subarray(
+              replacementOffset,
+              replacementOffset + 4,
+            ),
+            sourceOffset,
+          )
+          swordArmReconstructedPixelCount += 1
+        }
+      } else if (inHair) {
         copyPivotCenteredPixel({
           source: source.rgba,
           sourceOffset,
@@ -1383,24 +1591,35 @@ async function decomposeCharacter(input: {
     }
   }
   if (
-    hairSelectedPixelCount < 350
+    swordArmSelectedPixelCount < 3_000
+    || swordArmReconstructedPixelCount < 1_000
+    || swordArmTransparentClearedPixelCount < 1_000
+    || hairSelectedPixelCount < 350
     || robeSelectedPixelCount < 350
   ) {
     throw new Error(
-      `Fixture-specific character decomposition selected too little artwork: hair=${hairSelectedPixelCount}, robe=${robeSelectedPixelCount}.`,
+      `Fixture-specific character decomposition selected too little artwork: swordArm=${swordArmSelectedPixelCount}, reconstructed=${swordArmReconstructedPixelCount}, transparent=${swordArmTransparentClearedPixelCount}, hair=${hairSelectedPixelCount}, robe=${robeSelectedPixelCount}.`,
     )
   }
 
   encodeRgbaPng(baseRgba, input.basePath)
+  encodeRgbaPng(swordArmRgba, input.swordArmPath)
   encodeRgbaPng(hairRgba, input.hairPath)
   encodeRgbaPng(robeRgba, input.robePath)
-  const [basePng, hairPng, robePng] = await Promise.all([
+  const [
+    basePng,
+    swordArmPng,
+    hairPng,
+    robePng,
+  ] = await Promise.all([
     readFile(input.basePath),
+    readFile(input.swordArmPath),
     readFile(input.hairPath),
     readFile(input.robePath),
   ])
   for (const [name, png] of [
     ['base', basePng],
+    ['sword-arm', swordArmPng],
     ['hair', hairPng],
     ['robe', robePng],
   ] as const) {
@@ -1418,11 +1637,74 @@ async function decomposeCharacter(input: {
   }
   return {
     baseComponentSha256: sha256Bytes(basePng),
+    swordArmComponentSha256:
+      sha256Bytes(swordArmPng),
     hairComponentSha256: sha256Bytes(hairPng),
     robeComponentSha256: sha256Bytes(robePng),
+    swordArmSelectedPixelCount,
+    swordArmReconstructedPixelCount,
+    swordArmTransparentClearedPixelCount,
     hairSelectedPixelCount,
     robeSelectedPixelCount,
   }
+}
+
+function findNearestOpaqueOutsideFixtureMasks(input: {
+  readonly source: Uint8Array
+  readonly sourceX: number
+  readonly sourceY: number
+  readonly maximumRadiusPixels: number
+  readonly isExcluded: (x: number, y: number) => boolean
+}): number | undefined {
+  let selectedOffset: number | undefined
+  let selectedDistanceSquared = Number.POSITIVE_INFINITY
+  for (
+    let radius = 1;
+    radius <= input.maximumRadiusPixels;
+    radius += 1
+  ) {
+    let foundAtRadius = false
+    const yStart = Math.max(0, input.sourceY - radius)
+    const yEnd = Math.min(
+      HEIGHT - 1,
+      input.sourceY + radius,
+    )
+    const xStart = Math.max(0, input.sourceX - radius)
+    const xEnd = Math.min(
+      WIDTH - 1,
+      input.sourceX + radius,
+    )
+    for (let candidateY = yStart; candidateY <= yEnd; candidateY += 1) {
+      for (let candidateX = xStart; candidateX <= xEnd; candidateX += 1) {
+        if (
+          Math.max(
+            Math.abs(candidateX - input.sourceX),
+            Math.abs(candidateY - input.sourceY),
+          ) !== radius
+          || input.isExcluded(candidateX, candidateY)
+        ) {
+          continue
+        }
+        const candidateOffset =
+          (candidateY * WIDTH + candidateX) * 4
+        if (input.source[candidateOffset + 3] === 0) {
+          continue
+        }
+        const distanceSquared =
+          (candidateX - input.sourceX) ** 2
+          + (candidateY - input.sourceY) ** 2
+        if (distanceSquared < selectedDistanceSquared) {
+          selectedDistanceSquared = distanceSquared
+          selectedOffset = candidateOffset
+          foundAtRadius = true
+        }
+      }
+    }
+    if (foundAtRadius) {
+      break
+    }
+  }
+  return selectedOffset
 }
 
 function pointInPolygon(

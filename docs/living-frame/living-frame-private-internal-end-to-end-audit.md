@@ -39,8 +39,9 @@ The aggregate audit executes:
 7. the complete selected-scene PixiJS environmental-particle slice through
    Remotion, create-only persistence, media QA, and private-review evidence;
 8. the real Musashi illustration through alpha, exact destination composite,
-   base/hair/robe decomposition, selective articulated motion, Remotion,
-   captions, sound, media QA, and retained review frames;
+   base/sword-arm/hair/robe decomposition, deterministic bounded shoulder-plate
+   reconstruction, a synchronized articulated strike, Remotion, captions,
+   sound, media QA, and retained review frames;
 9. real generated flat-editorial and paper-collage alpha fixtures through
    adaptive flat and shallow-2.5D Remotion scenes, measured spatial behavior,
    caption priority, create-only persistence, and retained review frames;

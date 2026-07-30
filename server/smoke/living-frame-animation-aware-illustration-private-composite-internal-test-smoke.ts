@@ -17,7 +17,19 @@ assert.equal(receipt.scene.mode, 'living_still')
 assert.equal(receipt.scene.depthStyle, 'deep_multiplane_2_5d')
 assert.equal(
   receipt.decomposition.profile,
-  'fixture_specific_appendage_cutout_rig_v1',
+  'fixture_specific_character_action_cutout_rig_v2',
+)
+assert.equal(
+  receipt.decomposition.swordArmSelectedPixelCount > 3_000,
+  true,
+)
+assert.equal(
+  receipt.decomposition.swordArmReconstructedPixelCount > 1_000,
+  true,
+)
+assert.equal(
+  receipt.decomposition.swordArmTransparentClearedPixelCount > 1_000,
+  true,
 )
 assert.equal(
   receipt.decomposition.hairSelectedPixelCount > 350,
@@ -32,12 +44,21 @@ assert.equal(
   true,
 )
 assert.equal(
+  receipt.decomposition.articulatedSwordArmMotionRendered,
+  true,
+)
+assert.equal(
+  receipt.decomposition.hiddenAreaReconstructionRequired,
+  true,
+)
+assert.equal(
   receipt.decomposition.fixtureSpecificInternalMasking,
   true,
 )
 assert.deepEqual(receipt.scene.layerOrder, [
   'ink_background',
   'character_base',
+  'sword_arm',
   'hair',
   'robe',
   'slash_foreground',
@@ -45,6 +66,7 @@ assert.deepEqual(receipt.scene.layerOrder, [
 assert.deepEqual(receipt.scene.selectiveMotion, [
   'background_parallax',
   'character_anchor_drift',
+  'sword_arm_pivot_strike',
   'hair_pivot_motion',
   'robe_pivot_motion',
   'slash_reveal_and_settle',
@@ -64,6 +86,10 @@ assert.equal(
 )
 assert.equal(
   receipt.renderedQa.characterMotionPixelDelta > 8_000,
+  true,
+)
+assert.equal(
+  receipt.renderedQa.swordArmRegionPixelDelta > 1_000,
   true,
 )
 assert.equal(
@@ -88,7 +114,7 @@ assert.equal(
 )
 assert.deepEqual(
   receipt.renderedQa.reviewFrameIndexes,
-  [20, 35, 82],
+  [35, 58, 82],
 )
 assert.equal(
   receipt.authorityBoundary.privateInternalExecutionAuthority,
@@ -145,6 +171,14 @@ console.log(JSON.stringify({
     receipt.renderedQa.distinctSampleFrameDigestCount,
   characterMotionPixelDelta:
     receipt.renderedQa.characterMotionPixelDelta,
+  swordArmSelectedPixelCount:
+    receipt.decomposition.swordArmSelectedPixelCount,
+  swordArmReconstructedPixelCount:
+    receipt.decomposition.swordArmReconstructedPixelCount,
+  swordArmTransparentClearedPixelCount:
+    receipt.decomposition.swordArmTransparentClearedPixelCount,
+  swordArmRegionPixelDelta:
+    receipt.renderedQa.swordArmRegionPixelDelta,
   hairSelectedPixelCount:
     receipt.decomposition.hairSelectedPixelCount,
   robeSelectedPixelCount:

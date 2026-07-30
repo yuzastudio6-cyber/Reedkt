@@ -114,6 +114,18 @@ const cases: readonly AuditCase[] = [
     expectedJsonStatus: 'passed',
     validate(receipt) {
       assert.equal(
+        Number(receipt.swordArmSelectedPixelCount) > 3_000,
+        true,
+      )
+      assert.equal(
+        Number(receipt.swordArmReconstructedPixelCount) > 1_000,
+        true,
+      )
+      assert.equal(
+        Number(receipt.swordArmTransparentClearedPixelCount) > 1_000,
+        true,
+      )
+      assert.equal(
         Number(receipt.hairSelectedPixelCount) > 350,
         true,
       )
@@ -127,6 +139,10 @@ const cases: readonly AuditCase[] = [
       )
       assert.equal(
         Number(receipt.robeRegionPixelDelta) > 400,
+        true,
+      )
+      assert.equal(
+        Number(receipt.swordArmRegionPixelDelta) > 1_000,
         true,
       )
     },
@@ -273,7 +289,7 @@ const receipt = {
     'caption_plane_priority',
     'environmental_particle_runtime_persistence_qa_and_private_review',
     'narration_protected_sound',
-    'real_illustration_alpha_destination_composite_and_component_rig',
+    'real_illustration_alpha_destination_composite_and_character_action_rig',
     'actual_style_adaptive_flat_editorial_shallow_paper_collage_and_deep_anime_rendering',
     'selected_scene_temporal_source_video_and_sam2_work_admission_candidate',
     'real_gray8_ffv1_temporal_mask_output_decode_measurement_persistence_and_review_frames',

@@ -24,10 +24,11 @@ video:
 
 1. an ink-background plane moves with negative parallax;
 2. the cleaned still is decomposed into a stable character base, pivot-centered
-   hair, and pivot-centered trailing robe components;
-3. the character base receives restrained anchor drift while the hair and robe
-   receive different small rotations and vertical response around their
-   attachment pivots;
+   sword-arm, hair, and trailing-robe components;
+3. the character base receives restrained anchor drift, the sword arm performs
+   a timed pivot strike into the foreground slash, and the hair and robe receive
+   different small rotations and vertical response around their attachment
+   pivots;
 4. a separate foreground slash trail reveals, settles, and exits with stronger
    parallax;
 5. source blur and luminance perform a smooth Focus Handoff and restoration;
@@ -44,24 +45,35 @@ general-purpose automatic character-part segmenter.
 
 ## Component decomposition
 
-The test decodes the exact 640 × 360 straight-alpha character overlay, selects
-the hair and trailing robe with fixed polygon masks, removes those selected
-pixels from the base, and recenters each isolated component around its approved
-pivot before encoding it as its own RGBA PNG.
+The test decodes the exact 640 × 360 straight-alpha character overlay. It
+selects the shoulder/forearm/sword, hair, and trailing robe with fixed,
+fixture-specific polygon masks and recenters each isolated component around its
+approved pivot before encoding it as its own RGBA PNG.
+
+The sword-arm selection crosses both opaque character artwork and transparent
+space. The base reconstruction therefore uses two explicit policies: selected
+shoulder/robe pixels receive deterministic nearest-opaque-border fill within a
+bounded radius, while the blade and open-space selection is cleared to
+transparency so the static base cannot retain a duplicate sword. This is a
+small fixture-specific hidden-area reconstruction proof, not a generative
+inpainting or general occluded-body reconstruction system.
 
 The decomposition must:
 
-- select at least 350 nontransparent pixels for each articulated component;
-- keep the hair and robe selections disjoint;
+- select at least 3,000 nontransparent sword-arm pixels and at least 350
+  nontransparent pixels for each secondary articulated component;
+- reconstruct at least 1,000 selected shoulder pixels and clear at least 1,000
+  selected blade/open-space pixels;
+- keep the sword arm, hair, and robe selections disjoint;
 - keep every recentered component inside the approved canvas;
 - re-decode every encoded component and verify exact RGBA dimensions;
-- bind the base, hair, and robe digests into the receipt; and
-- preserve hidden-area reconstruction as unnecessary for this fixture because
-  both appendages sit against transparent space at their free edges.
+- bind the base, sword-arm, hair, and robe digests into the receipt; and
+- state the exact reconstruction method and attachment pivots in the receipt.
 
-Hair and robe motion is intentionally restrained. The point of the proof is
-selective life-bearing motion with stable attachment, not exaggerated puppet
-animation.
+Sword-arm motion is synchronized to the slash and sound cue; hair and robe
+motion remains intentionally restrained. The point of the proof is selective
+life-bearing and narrative action with stable attachment, not exaggerated
+puppet animation.
 
 ## Alpha and destination QA
 
@@ -87,6 +99,7 @@ reopens the exact bytes, and independently verifies:
 - H.264 output dimensions, frame count, and rate through FFprobe;
 - multiple distinct rendered-frame digests;
 - visible character-anchor motion;
+- independently measurable sword-arm strike motion;
 - independently measurable motion in the hair and robe regions;
 - visible but temporary slash motion;
 - the caption plane above the Living Frame scene;
@@ -94,17 +107,18 @@ reopens the exact bytes, and independently verifies:
 - the sword cue absent before and present during its assigned range; and
 - narration remaining dominant over the cue.
 
-Three content-addressed private review frames are retained at frames 20, 35,
-and 82. They cover the settled base state and both sides of the articulated
-motion arc so human visual review can reject torn seams, detached appendages,
-or technically valid but creatively poor motion.
+Three content-addressed private review frames are retained at frames 35, 58,
+and 82. They cover the pre-hit guard, peak strike/slash, and settled follow-
+through so human visual review can reject duplicate blades, torn shoulder
+seams, detached appendages, or technically valid but creatively poor motion.
 
 ## Honest boundary
 
 This proof exercises real animation-aware illustration, postprocessed alpha,
 deep multiplane 2.5D composition, attention, captions, sound, persistence, and
 rendered QA. It now proves one bounded articulated component rig with separate
-hair and robe motion. It does not prove automatic arbitrary-character
-decomposition, hidden-area reconstruction, arm or sword articulation, skeletal
-deformation, or general production admission. Those remain separate
-qualification and fixture-breadth requirements.
+sword-arm, hair, and robe motion plus deterministic small-region hidden-area
+reconstruction. It does not prove automatic arbitrary-character decomposition,
+general occluded-body reconstruction, skeletal deformation, motion transfer,
+or general production admission. Those remain separate qualification and
+fixture-breadth requirements.

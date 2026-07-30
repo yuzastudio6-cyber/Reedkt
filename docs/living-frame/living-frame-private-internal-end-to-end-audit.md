@@ -34,36 +34,39 @@ The aggregate audit executes:
 5. selected-scene private operation-request compilation plus exact
    reconciliation into the canonical ComfyUI candidate-input shape without
    invoking the canonical compiler or dispatch;
-6. a real Remotion render covering all five Living Frame modes, deliberate
+6. exact partial vulnerability evidence for the canonical-offline ComfyUI
+   image, including the fail-closed critical/high finding disposition and
+   explicit absence of full-image or OS coverage;
+7. a real Remotion render covering all five Living Frame modes, deliberate
    non-use, multiple depth styles, attention, caption priority, sound, and
    fallbacks;
-7. real portrait and custom non-square confirmed-frame renders without square
+8. real portrait and custom non-square confirmed-frame renders without square
    substitution;
-8. the complete selected-scene PixiJS environmental-particle slice through
+9. the complete selected-scene PixiJS environmental-particle slice through
    Remotion, create-only persistence, media QA, and private-review evidence;
-9. the real Musashi illustration through alpha, exact destination composite,
+10. the real Musashi illustration through alpha, exact destination composite,
    base/sword-arm/hair/robe decomposition, deterministic bounded shoulder-plate
    reconstruction, a synchronized articulated strike, Remotion, captions,
    sound, media QA, and retained review frames;
-10. real generated flat-editorial and paper-collage alpha fixtures through
+11. real generated flat-editorial and paper-collage alpha fixtures through
    adaptive flat and shallow-2.5D Remotion scenes, measured spatial behavior,
    caption priority, create-only persistence, and retained review frames;
-11. semantic sound timing reconciliation;
-12. canonical private-review lineage;
-13. the exact selected-scene source-video → normalized subject prompt → SAM2
+12. semantic sound timing reconciliation;
+13. canonical private-review lineage;
+14. the exact selected-scene source-video → normalized subject prompt → SAM2
     temporal-mask work-admission candidate;
-14. a real gray8 FFV1 temporal-mask output through decode, stability
+15. a real gray8 FFV1 temporal-mask output through decode, stability
     measurement, create-only persistence, and review frames; and
-15. the exact temporal-mask work-graph conflict.
+16. the exact temporal-mask work-graph conflict.
 
 Every subprocess is bounded, uses the pinned workspace `tsx` executable, and
 returns only an output digest plus structured status to the aggregate receipt.
 The aggregate receipt does not expose artifact bytes, local paths, prompts,
 credentials, commands, or customer pricing.
 
-The exact local ComfyUI image is host-specific and therefore remains an
-adjacent conditional internal test rather than one of the 14 portable
-aggregate cases. When that exact image is present,
+The aggregate includes a portable verifier for the exact frozen partial
+vulnerability receipt. The actual image extraction and Trivy execution remain
+host-specific adjacent evidence. When that exact image is present,
 `smoke:living-frame-comfyui-local-confinement-internal-test` additionally
 proves model-free startup with a default non-root derived image, fixed
 entrypoint, scrubbed environment, `sam2` denial, the reviewed two-node
@@ -91,10 +94,15 @@ offline closure now builds successfully from canonical backend commit
 uses the fixed canonical runner entrypoint, contains the exact two reviewed
 custom-node source trees, contains no model weights, and passes a read-only,
 network-disabled, capability-free, no-new-privileges layout probe. The local
-SPDX scanner did not complete because its temporary image copy exhausted host
-scratch space, so independent SBOM, vulnerability, license/VCS, provenance,
-signature, distributed-mount, L4, output, resource, persistence, and QA
-evidence remain open.
+full-image scanners did not complete because Docker Desktop could not export
+the 11.4 GB image within their bounded resource/time windows. A separate
+network-off, read-only, non-root metadata extraction was independently scanned
+with checksum-verified Trivy `v0.72.0`. It produced a 186-package SPDX 2.3
+projection and found 40 unique Python findings, including one critical and
+16 high findings. OS and full-filesystem coverage remain false. The current
+image is therefore explicitly blocked pending a hardened rebuild, complete
+Linux-host image scan, finding/license/VCS disposition, signature, distributed
+mount, L4, output, resource, persistence, and QA evidence.
 
 When the exact two private AuraFace ONNX artifacts and a synthetic
 single-person portrait are injected,

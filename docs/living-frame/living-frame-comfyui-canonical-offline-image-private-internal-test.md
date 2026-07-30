@@ -1,8 +1,9 @@
 # Living Frame canonical offline ComfyUI image private internal test
 
 Status: exact offline package materialization, image build, and confined
-installed-layout verification passed; SBOM, vulnerability, signature, L4, and
-release gates remain closed.
+installed-layout verification passed; partial Python metadata vulnerability
+evidence is release-blocking; complete SBOM, vulnerability, signature, L4,
+and release gates remain closed.
 
 ## Scope
 
@@ -96,8 +97,24 @@ window. Both incomplete scanner caches were deleted; the image and verified
 build inputs were preserved.
 
 This is a scanner-environment failure, not an SBOM pass and not an image
-failure. Independent SBOM, vulnerability, license/VCS, provenance, and
-signature disposition therefore remain open.
+failure.
+
+A later checksum-verified Trivy `v0.72.0` attempt encountered the same
+Docker-engine full-image export boundary and emitted no full-image report
+within ten minutes. A bounded fallback extracted 185 Python metadata files,
+the DPKG status database, and Ubuntu release metadata from this exact image
+under network-off, read-only, non-root confinement. Trivy produced a partial
+186-package SPDX 2.3 projection and found 40 unique Python vulnerabilities:
+one critical, 16 high, 17 medium, and six low. The critical/high findings
+include Torch, Pillow, transformers, setuptools, and wheel. The reduced root
+did not produce OS vulnerability coverage, so the result is partial and
+blocks rather than releases this image.
+
+The exact report, scanner, database, finding, and coverage digests are frozen
+in
+`docs/living-frame/living-frame-comfyui-canonical-offline-image-vulnerability-evidence.md`.
+Independent full-image SBOM/vulnerability coverage, license/VCS, provenance,
+signature, and finding disposition remain open.
 
 The host-specific smoke separately completes a bounded internal package
 inventory without copying the image. Under the same read-only, network-off
@@ -120,7 +137,8 @@ full-image SPDX/vulnerability scanner, license approval, or signature.
 This proof closes the former exact offline build-input and private-local image
 build gap. It does not prove:
 
-- an independently reviewed, signed, or released image;
+- a hardened, completely scanned, independently reviewed, signed, or released
+  image;
 - canonical distributed read-only model mounts;
 - a real NVIDIA L4 model load or selected-scene generation;
 - output persistence or re-read;
@@ -129,5 +147,7 @@ build gap. It does not prove:
 - canonical operation dispatch;
 - customer billing, public delivery, or production readiness.
 
-The next internal execution gate remains one exact selected-scene L4 attempt
-using all five model roles and the canonical server-derived request.
+The next engineering gate is a hardened image rebuild and complete
+independent Linux-host image scan. One exact selected-scene L4 attempt using
+all five model roles and the canonical server-derived request follows only
+after an explicit private-internal risk/cost decision.

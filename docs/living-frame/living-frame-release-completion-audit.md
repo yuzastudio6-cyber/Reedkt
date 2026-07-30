@@ -93,7 +93,7 @@ The six product-design candidates are not six production tools.
 
 | Capability | Intended placement | Current evidence | Release status |
 | --- | --- | --- | --- |
-| ComfyUI | One shared NVIDIA L4 controlled-image host | Pinned source, locked wheel closure, strict protocol, canonical five-model mount session, digest-bound non-root runtime-confinement requirement, operation-scoped `sam2` import guard, exact 761-package legacy-candidate SPDX inventory, 1,582-file static source-corpus scan, reproducible model-free local confinement/startup, exact private-local five-model atomic read-only mount evidence, exact canonical offline-image build/layout proof, and bounded new-image package inventory | `qualified_private_internal_candidate`; the exact canonical 35-wheel/three-source closure now builds into an 11,392,910,414-byte `linux/amd64` image with default UID/GID 65532, fixed canonical runner entrypoint, two reviewed custom-node trees, no baked model weights, and a passing read-only/no-network/capability-free layout verifier. The new image inventory measures 590 Debian and 173 Python distribution records without copying paths or bytes. The five-model mount proof separately rereads all 11,700,367,157 bytes and stops at hard CUDA refusal under CPU emulation. The new image is not independently scanned, signed, or released; inherited direct-VCS `sam-2` remains undisposed; distributed mounts, complete graph load, and actual L4 generation remain open. |
+| ComfyUI | One shared NVIDIA L4 controlled-image host | Pinned source, locked wheel closure, strict protocol, canonical five-model mount session, digest-bound non-root runtime-confinement requirement, operation-scoped `sam2` import guard, exact 761-package legacy-candidate SPDX inventory, 1,582-file static source-corpus scan, reproducible model-free local confinement/startup, exact private-local five-model atomic read-only mount evidence, exact canonical offline-image build/layout proof, bounded new-image package inventory, and checksum-verified partial Trivy metadata vulnerability evidence | `blocked_hardened_rebuild_and_complete_scan_required`; the exact canonical 35-wheel/three-source closure builds into an 11,392,910,414-byte `linux/amd64` image with default UID/GID 65532, fixed runner, two reviewed custom-node trees, no baked model weights, and passing confinement/layout verification. The five-model mount proof separately rereads all 11,700,367,157 bytes and stops at hard CUDA refusal. Full-image Docker export did not complete in the bounded scanner window. The partial 186-package Trivy SPDX projection covers Python metadata only and found 40 unique findings: one critical, 16 high, 17 medium, and six low. The current image must be hardened and completely scanned before L4 admission; OS/filesystem coverage, inherited direct-VCS disposition, signature, distributed mounts, complete graph load, and actual L4 generation remain open. |
 | `comfyui_controlnet_aux` | External deterministic pose/depth/canny preparation | Pinned custom-node/source expectation plus deterministic ReeditPro control-image implementations | `verified_source_contract`; production package/license admission open |
 | ControlNet | Mounted conditioning model inside the shared host | Exact artifact identity, byte observation, workflow binding, model-family binding | `qualified_local_candidate`; L4 compatibility run open |
 | Generic IP-Adapter | Mounted reference-conditioning model inside the shared host | Exact artifact identity, byte observation, generic-only extension and merged workflow | `qualified_local_candidate`; FaceID remains forbidden |
@@ -224,12 +224,14 @@ recorded separately and do not block internal testing:
    the fixed runner and final installed-layout verification passing. The
    bounded 761-package SPDX record belongs to the earlier legacy local
    candidate. The new image has a deterministic in-container inventory of
-   590 Debian and 173 Python distribution records, but two independent Docker
-   Scout SPDX attempts could not complete on this host: one exhausted local
-   scratch space and the larger-volume retry remained idle after copying the
-   complete 12 GB image. Independent SBOM validation, inherited direct-VCS
-   scope review, vulnerability disposition, image signature, provenance, and
-   release therefore remain open.
+   590 Debian and 173 Python distribution records. Docker Scout and a later
+   Trivy full-image attempt could not complete on this host because Docker
+   Desktop did not provide the 11.4 GB image layers within the bounded
+   resource/time windows. The checksum-verified Trivy `v0.72.0` metadata scan
+   still found one unique critical and 16 unique high Python findings. A
+   hardened rebuild, complete Linux-host SBOM/vulnerability scan, inherited
+   direct-VCS scope review, finding disposition, image signature, provenance,
+   and release therefore remain open.
 3. Released distributed read-only model-artifact mounts for the exact five
    ComfyUI objects and exact two AuraFace objects. The five ComfyUI files have
    now passed a private-local simultaneous read-only mount and complete

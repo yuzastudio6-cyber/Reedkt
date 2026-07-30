@@ -84,6 +84,34 @@ const cases: readonly AuditCase[] = [
     },
   },
   {
+    id:
+      'canonical_offline_comfyui_image_vulnerability_evidence',
+    relativePath:
+      'server/smoke/living-frame-comfyui-canonical-offline-image-vulnerability-evidence-smoke.ts',
+    expectedJsonStatus: 'passed',
+    validate(receipt) {
+      assert.equal(receipt.fullImageScanCompleted, false)
+      assert.equal(
+        receipt.pythonPackageMetadataCovered,
+        true,
+      )
+      assert.equal(
+        receipt.osPackageVulnerabilitiesCovered,
+        false,
+      )
+      assert.equal(receipt.uniqueCriticalCount, 1)
+      assert.equal(receipt.uniqueHighCount, 16)
+      assert.equal(
+        receipt.releaseDisposition,
+        'blocked_hardened_rebuild_and_complete_scan_required',
+      )
+      assert.equal(receipt.operationRegistered, false)
+      assert.equal(receipt.dispatchGranted, false)
+      assert.equal(receipt.runtimeExecuted, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  },
+  {
     id: 'five_modes_depth_attention_captions_sound_and_fallbacks',
     relativePath:
       'server/smoke/living-frame-five-mode-private-render-smoke.ts',
@@ -353,6 +381,7 @@ const receipt = {
     'composite_parent_and_mini_skill_contract',
     'selected_scene_lineage_and_private_prompt_materialization',
     'selected_scene_private_operation_and_canonical_comfyui_candidate_input_reconciliation',
+    'partial_independent_canonical_offline_image_vulnerability_evidence_and_fail_closed_disposition',
     'all_five_modes_and_deliberate_non_use',
     'flat_shallow_and_deep_2_5d',
     'focus_handoff_attention_restoration_and_low_risk_occlusion',
@@ -373,7 +402,7 @@ const receipt = {
       gate:
         'exact_comfyui_controlled_generation_runtime',
       reason:
-        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_private_offline_image_build_and_selected_scene_candidate_input_reconciliation_are_verified_but_independent_image_disposition_canonical_distributed_mount_real_l4_generation_resource_persistence_and_qa_evidence_remain_unavailable',
+        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_private_offline_image_build_and_selected_scene_candidate_input_reconciliation_are_verified_and_partial_metadata_scanning_found_one_unique_critical_plus_sixteen_unique_high_python_findings_so_a_hardened_rebuild_complete_independent_image_scan_canonical_distributed_mount_real_l4_generation_resource_persistence_and_qa_evidence_remain_required',
     },
     {
       gate:

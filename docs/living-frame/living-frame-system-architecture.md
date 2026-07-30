@@ -2785,6 +2785,20 @@ standard-library imports succeed. This does not alter the separately governed
 SAM 2 tracking operation, remove the package from the image, establish legal
 approval, or prove released-L4 enforcement.
 
+The later canonical-offline image at digest
+`84358d2b8272998bb3258ca18c46fad4de80118da24528aae98be39ae25bcc1b`
+corrects the default-user problem and adds only the exact offline
+35-wheel/three-source operation closure atop the measured inherited base.
+Independent full-image export still did not
+complete on Docker Desktop. A checksum-verified Trivy `v0.72.0` scan of 185
+extracted Python metadata files produced a partial 186-package SPDX 2.3
+projection and found 40 unique Python findings: one critical, 16 high, 17
+medium, and six low. OS and full-filesystem coverage remain false. The
+canonical-offline image is therefore blocked pending a hardened rebuild,
+complete Linux-host scan, finding/license/VCS disposition, signature, and
+explicit private-internal L4 authorization. See
+`docs/living-frame/living-frame-comfyui-canonical-offline-image-vulnerability-evidence.md`.
+
 The corresponding canonical operation-admission candidate is deliberately
 non-executable. It requests one shared `comfyui` identity and
 `tool.comfyui.generate_controlled_image.v1`, never six capability identities

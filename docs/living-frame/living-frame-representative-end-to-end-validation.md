@@ -118,6 +118,11 @@ Actual private renders supplement the connected source-level trace:
   archive differential parallax, deterministic diagram reveal, hybrid
   expansion and return, caption-plane priority in every range, and the absence
   of Living Frame overlays in the restraint range.
+- `server/smoke/living-frame-confirmed-ratio-private-render-smoke.ts` renders
+  real 360×640 portrait and 480×600 custom-frame hybrid scenes, persists and
+  reopens both private MP4s, and proves exact dimensions, expansion/return, and
+  caption priority without square or 640×360 substitution. The five-mode and
+  particle fixtures provide the corresponding 16:9 runtime evidence.
 
 ## Mode coverage
 
@@ -157,6 +162,8 @@ private-review evidence compiler. It is still controlled evidence:
 - the final Remotion evidence is a controlled verified-run record;
 - deterministic Living Frame motion, camera/source attention, depth parallax,
   and caption ordering have actual private-render evidence;
+- confirmed 16:9, 9:16, and custom non-square review canvases have actual
+  private-render and FFprobe evidence;
 - ComfyUI is not yet a released canonical GPU operation;
 - the exact five-model 11.7 GB closure has not run on an approved L4 worker;
 - the canonical distributed read-only mount adapter is not released;

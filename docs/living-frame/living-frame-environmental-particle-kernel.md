@@ -157,6 +157,17 @@ It explicitly does not own:
 `selectedSceneBound`, `canonicalTimingBound`, `operationRegistered`,
 `dispatchGranted`, and `productionReady` therefore remain false.
 
+An adjacent
+`living-frame-environmental-particle-operation-materialization-v1` candidate
+now proves the next private boundary: it converts only a verified kernel into
+one process-bound single-use request lease for the unregistered PixiJS
+operation and emits a byte-free receipt. It does not change this kernel's
+authority or satisfy any selected-scene, runtime, artifact, renderer, QA,
+cost, billing, or release gate.
+
+See
+`docs/living-frame/living-frame-environmental-particle-operation-materialization.md`.
+
 ## Open shared-owner gates
 
 1. Add one immutable typed environmental-profile reference to approved
@@ -200,3 +211,4 @@ The server implementation contains no named example-subject routing.
 - `src/types/living-frame-environmental-particle-kernel.ts`
 - `server/living-frame/living-frame-environmental-particle-kernel.ts`
 - `server/smoke/living-frame-environmental-particle-kernel-smoke.ts`
+- `docs/living-frame/living-frame-environmental-particle-operation-materialization.md`

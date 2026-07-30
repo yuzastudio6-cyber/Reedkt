@@ -156,8 +156,19 @@ canonical timing/motion contracts disagree on whether the five semantic
 phases partition the full segment or the narrower visual range. Binding around
 either missing owner would create a parallel decision or clock.
 
+The adjacent
+`living-frame-environmental-particle-operation-materialization-v1` candidate
+also defines the closed future PixiJS request envelope and a process-bound
+single-use private lease. It preserves the exact confirmed canvas, time range,
+profile, state-sequence digest, fixed PixiJS entrypoint, transparent output,
+and Remotion final-canvas ownership while keeping operation registration,
+dispatch, runtime, artifacts, costs, QA, review, billing, and production
+false. It consumes a verified kernel only; it does not bypass the missing
+selected-scene profile or timing owners.
+
 See
-`docs/living-frame/living-frame-environmental-particle-kernel.md`.
+`docs/living-frame/living-frame-environmental-particle-kernel.md` and
+`docs/living-frame/living-frame-environmental-particle-operation-materialization.md`.
 
 ## Required canonical continuation
 
@@ -183,3 +194,4 @@ See
 - `server/living-frame/living-frame-selected-scene-environmental-particle-admission.ts`
 - `server/smoke/living-frame-selected-scene-environmental-particle-admission-smoke.ts`
 - `docs/living-frame/living-frame-environmental-particle-kernel.md`
+- `docs/living-frame/living-frame-environmental-particle-operation-materialization.md`

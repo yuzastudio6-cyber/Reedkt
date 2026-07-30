@@ -3114,6 +3114,22 @@ narrower visual range, while the current motion compiler requires all five
 semantic phases to exactly partition that visual range even though the phases
 currently span the full segment. Neither owner is changed here.
 
+The namespaced
+`living-frame-environmental-particle-operation-materialization-v1` candidate
+now defines the next private boundary without changing those owners. It
+revalidates the kernel and creates a process-bound single-use lease for one
+closed, server-derived PixiJS request. The private request preserves the exact
+confirmed canvas and frame range, approved style/depth/profile, deterministic
+state tracks, fixed `pixi.js@8.19.0` `Application.init` entrypoint, zero
+network/caller code, and one transparent PNG sample per bound frame. The
+public receipt contains only digests, counts, classifications, and false
+authority flags.
+
+The candidate does not register or dispatch the operation, execute PixiJS,
+persist an artifact, mutate the work graph or manifest, create a cost, or
+change Remotion. The sequence remains an input to a future qualified
+time-sampled overlay adapter; Remotion remains the final canvas.
+
 PixiJS remains the existing tool identity. No separate particle tool identity
 is created. Its current operation renders one opaque 640×360 static review
 card PNG, while Living Frame requires a time-sampled transparent procedural
@@ -3125,7 +3141,8 @@ operation, dispatch work, create an asset or cost, mutate either shared
 runtime, or claim private/production readiness.
 
 See
-`docs/living-frame/living-frame-environmental-particle-kernel.md`.
+`docs/living-frame/living-frame-environmental-particle-kernel.md` and
+`docs/living-frame/living-frame-environmental-particle-operation-materialization.md`.
 
 The downstream Sharp alpha-component authority accepts exactly one approved
 source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg

@@ -87,6 +87,13 @@ Two actual private renders supplement the connected source-level trace:
 - `server/smoke/offline-remotion-streaming-output-smoke.ts` renders the same
   canonical motion contract through the server-injected 4K H.264/AAC private
   streaming path, including committed source, RGBA, caption, and audio inputs.
+- `server/smoke/living-frame-environmental-particle-remotion-internal-composite-smoke.ts`
+  executes the real PixiJS particle entrypoint, privately leases all eight
+  exact 3840×2160 RGBA PNG frames into the existing Remotion runtime,
+  time-samples them through bounded scalar alpha gates, and independently
+  measures transparent endpoints, visible temporal movement, source-plate
+  preservation, and caption-plane priority in a 16:9 private review render.
+  It does not mutate the shared renderer or claim customer delivery authority.
 
 ## Mode coverage
 
@@ -128,6 +135,10 @@ private-review evidence compiler. It is still controlled evidence:
 - generated output persistence, actual worker resource-cost evidence, and
   released alpha/continuity QA remain open;
 - public delivery, production, customer charging, and deployment remain false.
+
+The current implementation target is full private internal testing. Customer
+production readiness is intentionally not a prerequisite for completing that
+stage.
 
 Those gates must be closed by the canonical backend execution task. Passing this
 validation must never be used to relabel the controlled ComfyUI or AuraFace

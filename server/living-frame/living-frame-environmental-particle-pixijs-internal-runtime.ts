@@ -19,11 +19,15 @@ import {
   LIVING_FRAME_ENVIRONMENTAL_PARTICLE_PIXIJS_INTERNAL_RUNTIME_OPEN_GATES,
   LIVING_FRAME_ENVIRONMENTAL_PARTICLE_PIXIJS_INTERNAL_RUNTIME_STATE,
   LIVING_FRAME_ENVIRONMENTAL_PARTICLE_PIXIJS_INTERNAL_RUNTIME_VERSION,
+  LIVING_FRAME_ENVIRONMENTAL_PARTICLE_PIXIJS_PRIVATE_SEQUENCE_OUTPUT_LEASE_VERSION,
   type LivingFrameEnvironmentalParticlePixiJsInternalConfinementEvidence,
   type LivingFrameEnvironmentalParticlePixiJsInternalFrameMeasurement,
   type LivingFrameEnvironmentalParticlePixiJsInternalImageEvidence,
+  type LivingFrameEnvironmentalParticlePixiJsInternalRuntimeExecution,
   type LivingFrameEnvironmentalParticlePixiJsInternalRuntimeReport,
   type LivingFrameEnvironmentalParticlePixiJsInternalRuntimeReportDraft,
+  type LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutput,
+  type LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutputLease,
 } from '../../src/types/living-frame-environmental-particle-pixijs-internal-runtime'
 import type {
   LivingFrameEnvironmentalParticleKernelCandidate,
@@ -87,6 +91,12 @@ const MAXIMUM_REQUEST_BYTES = 16 * 1024 * 1024
 const MAXIMUM_OUTPUT_BYTES = 256 * 1024 * 1024
 const SHA256 = /^[a-f0-9]{64}$/u
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
+const privateSequenceOutputLeases = new WeakSet<object>()
+const consumedPrivateSequenceOutputLeases = new WeakSet<object>()
+const privateSequenceOutputs = new WeakMap<
+  object,
+  LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutput
+>()
 
 interface HostResult {
   readonly exitCode: number
@@ -245,6 +255,117 @@ export async function executeLivingFrameEnvironmentalParticlePixiJsInternalRunti
   input:
     ExecuteLivingFrameEnvironmentalParticlePixiJsInternalRuntimeInput,
 ): Promise<LivingFrameEnvironmentalParticlePixiJsInternalRuntimeReport> {
+  return (await executeRuntime(input)).report
+}
+
+export async function executeLivingFrameEnvironmentalParticlePixiJsInternalRuntimeWithPrivateSequenceOutput(
+  input:
+    ExecuteLivingFrameEnvironmentalParticlePixiJsInternalRuntimeInput,
+): Promise<LivingFrameEnvironmentalParticlePixiJsInternalRuntimeExecution> {
+  const execution = await executeRuntime(input)
+  const sequenceDigestSha256 = sha256AuthorityValue(
+    execution.privateSequenceOutput.frames.map((frame) => ({
+      order: frame.order,
+      absoluteFrame: frame.absoluteFrame,
+      pngByteLength: frame.pngByteLength,
+      pngDigestSha256: frame.pngDigestSha256,
+    })),
+  )
+  if (
+    sequenceDigestSha256 !==
+      execution.privateSequenceOutput.sequenceDigestSha256
+  ) throw runtimeFailure('Living Frame PixiJS private sequence digest diverged.')
+  const lease = Object.freeze({
+    contractVersion:
+      LIVING_FRAME_ENVIRONMENTAL_PARTICLE_PIXIJS_PRIVATE_SEQUENCE_OUTPUT_LEASE_VERSION,
+    leaseId: `lf-pixijs-sequence.${sha256AuthorityValue({
+      qualificationId: input.qualificationId,
+      reportDigestSha256:
+        execution.report.reportDigestSha256,
+      sequenceDigestSha256,
+    }).slice(0, 40)}`,
+    qualificationId: input.qualificationId,
+    reportDigestSha256:
+      execution.report.reportDigestSha256,
+    sequenceDigestSha256,
+    frameImageCount:
+      execution.privateSequenceOutput.frames.length,
+    processBound: true,
+    singleUse: true,
+    containsRawPngBytes: false,
+    containsPathUrlCredentialCommandOrEnvironment: false,
+    dispatchAuthority: false,
+    artifactAuthority: false,
+    assetManifestAuthority: false,
+    rendererAuthority: false,
+    qaApprovalAuthority: false,
+    costAuthority: false,
+    billingAuthority: false,
+    productionAuthority: false,
+  } satisfies LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutputLease)
+  privateSequenceOutputLeases.add(lease)
+  privateSequenceOutputs.set(
+    lease,
+    execution.privateSequenceOutput,
+  )
+  return Object.freeze({
+    report: execution.report,
+    privateSequenceOutputLease: lease,
+  })
+}
+
+export function consumeLivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutputLease(
+  lease:
+    LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutputLease,
+): LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutput {
+  if (
+    !isRecord(lease)
+    || !privateSequenceOutputLeases.has(lease)
+    || consumedPrivateSequenceOutputLeases.has(lease)
+  ) throw validationFailure('Living Frame PixiJS private sequence lease is invalid or consumed.')
+  const output = privateSequenceOutputs.get(lease)
+  if (
+    output == null
+    || lease.contractVersion !==
+      LIVING_FRAME_ENVIRONMENTAL_PARTICLE_PIXIJS_PRIVATE_SEQUENCE_OUTPUT_LEASE_VERSION
+    || lease.qualificationId !== output.qualificationId
+    || lease.reportDigestSha256 !== output.reportDigestSha256
+    || lease.sequenceDigestSha256 !== output.sequenceDigestSha256
+    || lease.frameImageCount !== output.frames.length
+    || lease.processBound !== true
+    || lease.singleUse !== true
+    || lease.containsRawPngBytes !== false
+    || lease.containsPathUrlCredentialCommandOrEnvironment !== false
+    || lease.dispatchAuthority !== false
+    || lease.artifactAuthority !== false
+    || lease.assetManifestAuthority !== false
+    || lease.rendererAuthority !== false
+    || lease.qaApprovalAuthority !== false
+    || lease.costAuthority !== false
+    || lease.billingAuthority !== false
+    || lease.productionAuthority !== false
+  ) throw validationFailure('Living Frame PixiJS private sequence lease lineage is invalid.')
+  consumedPrivateSequenceOutputLeases.add(lease)
+  privateSequenceOutputs.delete(lease)
+  return Object.freeze({
+    ...output,
+    frames: Object.freeze(output.frames.map((frame) =>
+      Object.freeze({
+        ...frame,
+        pngBytes: new Uint8Array(frame.pngBytes),
+      }))),
+  })
+}
+
+async function executeRuntime(
+  input:
+    ExecuteLivingFrameEnvironmentalParticlePixiJsInternalRuntimeInput,
+): Promise<{
+  readonly report:
+    LivingFrameEnvironmentalParticlePixiJsInternalRuntimeReport
+  readonly privateSequenceOutput:
+    LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutput
+}> {
   assertInput(input)
   if (
     !verifyLivingFrameEnvironmentalParticleOperationMaterialization(
@@ -395,7 +516,44 @@ export async function executeLivingFrameEnvironmentalParticlePixiJsInternalRunti
     ...draft,
     reportDigestSha256: sha256AuthorityValue(draft),
   })
-  return report
+  const privateFrames = response.frames.map((frame, index) => {
+    const measurement = frameMeasurements[index]
+    if (measurement == null) {
+      throw runtimeFailure('Living Frame PixiJS private frame measurement is missing.')
+    }
+    return Object.freeze({
+      order: frame.order,
+      absoluteFrame: frame.absoluteFrame,
+      pngBytes: new Uint8Array(
+        Buffer.from(frame.bytesBase64, 'base64'),
+      ),
+      pngByteLength: frame.byteLength,
+      pngDigestSha256: frame.sha256,
+    })
+  })
+  const sequenceDigestSha256 = sha256AuthorityValue(
+    privateFrames.map((frame) => ({
+      order: frame.order,
+      absoluteFrame: frame.absoluteFrame,
+      pngByteLength: frame.pngByteLength,
+      pngDigestSha256: frame.pngDigestSha256,
+    })),
+  )
+  return {
+    report,
+    privateSequenceOutput: Object.freeze({
+      qualificationId: input.qualificationId,
+      reportDigestSha256: report.reportDigestSha256,
+      sequenceDigestSha256,
+      widthPixels: report.sequenceIdentity.widthPixels,
+      heightPixels: report.sequenceIdentity.heightPixels,
+      fps: report.sequenceIdentity.fps,
+      startFrame: report.sequenceIdentity.startFrame,
+      endFrameExclusive:
+        report.sequenceIdentity.endFrameExclusive,
+      frames: Object.freeze(privateFrames),
+    }),
+  }
 }
 
 export async function prepareLivingFrameEnvironmentalParticlePixiJsInternalImage(): Promise<LivingFrameEnvironmentalParticlePixiJsInternalImageEvidence> {

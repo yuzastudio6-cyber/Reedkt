@@ -177,6 +177,7 @@
     "smoke:living-frame-comfyui-container-sbom": "tsx server/smoke/living-frame-comfyui-container-sbom-evidence-smoke.ts",
     "smoke:living-frame-comfyui-model-mount": "tsx server/smoke/living-frame-comfyui-read-only-model-mount-smoke.ts",
     "smoke:living-frame-environmental-particle-pixijs-internal-runtime": "tsx server/smoke/living-frame-environmental-particle-pixijs-internal-runtime-smoke.ts",
+    "smoke:living-frame-environmental-particle-remotion-internal-composite": "tsx server/smoke/living-frame-environmental-particle-remotion-internal-composite-smoke.ts",
     "smoke:offline-browser-graphics-execution": "tsx server/smoke/offline-browser-graphics-execution-smoke.ts",
     "smoke:offline-ai-capability-execution": "tsx server/smoke/offline-ai-capability-execution-smoke.ts",
     "smoke:offline-native-image-pipeline-execution": "tsx server/smoke/offline-native-image-pipeline-execution-smoke.ts",

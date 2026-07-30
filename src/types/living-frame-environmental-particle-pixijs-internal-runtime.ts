@@ -7,6 +7,9 @@ export const LIVING_FRAME_ENVIRONMENTAL_PARTICLE_PIXIJS_INTERNAL_RUNTIME_CLASS =
 export const LIVING_FRAME_ENVIRONMENTAL_PARTICLE_PIXIJS_INTERNAL_RUNTIME_STATE =
   'actual_private_internal_runtime_green_canonical_release_gates_closed' as const
 
+export const LIVING_FRAME_ENVIRONMENTAL_PARTICLE_PIXIJS_PRIVATE_SEQUENCE_OUTPUT_LEASE_VERSION =
+  'living-frame-environmental-particle-pixijs-private-sequence-output-lease-v1' as const
+
 export const LIVING_FRAME_ENVIRONMENTAL_PARTICLE_PIXIJS_INTERNAL_RUNTIME_OPEN_GATES = [
   'canonical_selected_scene_profile_and_timing_binding_required',
   'canonical_pixi_operation_registration_required',
@@ -186,4 +189,55 @@ export interface LivingFrameEnvironmentalParticlePixiJsInternalRuntimeReportDraf
 export interface LivingFrameEnvironmentalParticlePixiJsInternalRuntimeReport
   extends LivingFrameEnvironmentalParticlePixiJsInternalRuntimeReportDraft {
   readonly reportDigestSha256: string
+}
+
+/**
+ * Process-local capability object. The PNG bytes are intentionally retained in
+ * a server-side WeakMap rather than serialized into this receipt.
+ */
+export interface LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutputLease {
+  readonly contractVersion:
+    typeof LIVING_FRAME_ENVIRONMENTAL_PARTICLE_PIXIJS_PRIVATE_SEQUENCE_OUTPUT_LEASE_VERSION
+  readonly leaseId: string
+  readonly qualificationId: string
+  readonly reportDigestSha256: string
+  readonly sequenceDigestSha256: string
+  readonly frameImageCount: number
+  readonly processBound: true
+  readonly singleUse: true
+  readonly containsRawPngBytes: false
+  readonly containsPathUrlCredentialCommandOrEnvironment: false
+  readonly dispatchAuthority: false
+  readonly artifactAuthority: false
+  readonly assetManifestAuthority: false
+  readonly rendererAuthority: false
+  readonly qaApprovalAuthority: false
+  readonly costAuthority: false
+  readonly billingAuthority: false
+  readonly productionAuthority: false
+}
+
+export interface LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutput {
+  readonly qualificationId: string
+  readonly reportDigestSha256: string
+  readonly sequenceDigestSha256: string
+  readonly widthPixels: number
+  readonly heightPixels: number
+  readonly fps: number
+  readonly startFrame: number
+  readonly endFrameExclusive: number
+  readonly frames: readonly {
+    readonly order: number
+    readonly absoluteFrame: number
+    readonly pngBytes: Uint8Array
+    readonly pngByteLength: number
+    readonly pngDigestSha256: string
+  }[]
+}
+
+export interface LivingFrameEnvironmentalParticlePixiJsInternalRuntimeExecution {
+  readonly report:
+    LivingFrameEnvironmentalParticlePixiJsInternalRuntimeReport
+  readonly privateSequenceOutputLease:
+    LivingFrameEnvironmentalParticlePixiJsPrivateSequenceOutputLease
 }

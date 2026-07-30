@@ -71,6 +71,25 @@ For applicable milestones run typecheck, lint, units, contracts/schemas, integra
 
 Benchmarks cover semantic accuracy, timing, layout, occupancy, occlusion, contrast, stable read duration, render determinism/performance, resource/cost use, fallback rate, and accessible parity. Thresholds and hardware profiles must be versioned.
 
+## Per-milestone protocol
+
+Every CAP milestone must:
+
+1. re-read applicable repository instructions and canonical Caption Direction documents;
+2. inspect the current implementation and identify existing owners/duplicate-lane risk;
+3. state intended files and contracts;
+4. make the smallest coherent end-state-aligned change;
+5. add or update applicable tests and fixtures;
+6. run relevant type, lint, contract, worker, security, render, and compatibility checks;
+7. review the complete diff for unrelated changes;
+8. update canonical documentation and write a milestone report;
+9. publish a reviewable checkpoint;
+10. stop at explicit owner gates instead of silently making product, security, spending, dependency, or migration decisions.
+
+Milestone reports record phase, status, outcome, files/contracts, reused owners,
+duplicates avoided, checks/pass/fail, limitations, scoped blockers, safe
+progress, owner decisions, and next milestone.
+
 ## Risk register
 
 | Risk | Impact | Mitigation / owner gate |
@@ -99,3 +118,12 @@ Safe progress completed: all required CAP-00 documents, gap/contract/migration m
 Smallest next step: owner approves CAP-01 and the stable `caption_design` compatibility direction.
 
 Fallback: revise CAP-00 documents only; do not cross the owner gate.
+
+## General blocker policy
+
+A blocker names one unsafe action, exact missing evidence/approval, affected
+milestone, safe parallel work, smallest next step, and fallback. It does not
+stop unrelated safe work. Explicit approval is required before deployment,
+provider spending, secret changes, unreviewed downloads/fonts/dependencies,
+irreversible migrations, billing changes, compatibility-path deletion, or
+unresolved product choices.

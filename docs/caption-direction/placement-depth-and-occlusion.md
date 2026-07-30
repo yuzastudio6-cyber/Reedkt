@@ -37,6 +37,18 @@ Never intentionally hide proper names, critical numbers, negation, claim-sensiti
 
 ## Anchors
 
-Object/environmental typography may attach to a product, phone, hand, wall, desk, screen, or map region. Anchor records include coordinate space, transform, tracking confidence, occlusion relationship, lost-anchor behavior, camera relationship, and fallback region.
+Object/environmental typography may attach to a product, phone, hand, wall, desk, screen, or map region. Anchor records include coordinate space, perspective transform, scale/rotation compensation, tracking confidence, occlusion ordering, motion blur policy, camera relationship, exit behavior when the anchor leaves frame, lost-anchor behavior, and a stable screen-space fallback.
+
+Environmental typography may belong to a wall, landscape, glowing background,
+title environment, projected surface, or stylized depth composition. It remains
+speech-derived typography and must not be confused with untracked source text.
 
 Rendered-frame QA—not bounding boxes alone—must validate final visibility, mask edges, glyph recognition, and stable read time.
+
+## Camera coordination
+
+Caption Direction may request a digital push, reframe, drift, focus handoff,
+speaker de-emphasis, background softening, follow, or full-screen transition
+when it has a narrative reason. The camera/layout system and StoryTiming retain
+execution and conflict authority. The attention budget rejects simultaneous
+excessive camera, caption, Living Frame, B-roll, and transition movement.

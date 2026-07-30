@@ -37,6 +37,28 @@ Finish readiness passes only when:
 
 Readiness returns structured blockers and degraded routes. A missing mask may allow a safe top-layer fallback but may not pretend intentional occlusion is ready.
 
+## Caption Approval Envelope
+
+The envelope is frozen inside the existing plan approval; it is not another
+approval system. It records:
+
+- permitted integration classes and caption modes;
+- project caption language;
+- permitted typography and color roles;
+- maximum motion intensity and hero-typography moments;
+- whether behind-subject, front-of-subject, and object-anchored typography are permitted;
+- whether Caption-to-Visual transformations and caption sound are permitted;
+- allowed text transformations;
+- required accessible outputs and translation scope;
+- maximum caption credit allowance;
+- approved fallback permissions.
+
+Late Caption Choreography may proceed without another approval only while every
+resolved choice remains inside this envelope. Extra hero moments, advanced
+depth, custom fonts, translations, claim-sensitive paraphrase, new
+Caption-to-Visual transformations, or higher credit requirements return to the
+existing revision and approval path.
+
 ## Blocking preview
 
 During the main edit, a low-cost preview may show approximate boxes, approximate phrases, and reserved zones. It must be labeled `blocking_preview_only`, use no synthetic timing as final evidence, and never be mistaken for the approved final caption scene.

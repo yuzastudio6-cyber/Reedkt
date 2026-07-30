@@ -6,14 +6,38 @@ The conversation described uploaded reference videos, but their raw files were n
 
 ## Canonical observed patterns
 
-The pasted goal records these reusable patterns:
+The pasted goal records three reference families:
+
+### Pattern A — layered editorial typography
+
+- small continuous readable speech captions;
+- separate large editorial typography;
+- multiple semantic font roles;
+- text behind subject;
+- hero words;
+- typography-driven transitions;
+- environmental typography.
+
+### Pattern B — controlled creator captions
+
+- stable high-retention creator captions;
+- short phrase replacement;
+- strong contrast;
+- semantic color emphasis;
+- controlled scale hierarchy;
+- restrained spatial complexity.
+
+### Pattern C — spatial multi-track composition
 
 - spatial sentence assembly;
 - multiple simultaneous caption tracks;
 - speaker surrounded by text;
 - persistent topic/list typography;
 - captions sharing the frame with B-roll;
-- caption mode switching within one video;
+- caption mode switching within one video.
+
+Additional target patterns include:
+
 - text behind and in front of subjects;
 - object/environmental anchors;
 - hero/full-screen typography;

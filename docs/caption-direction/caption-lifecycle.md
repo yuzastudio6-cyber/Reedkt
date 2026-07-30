@@ -1,34 +1,43 @@
 # Caption Lifecycle
 
-## States
+## Canonical states
 
-| State | Meaning | Allowed next states |
+| State | Meaning | Typical next state |
 | --- | --- | --- |
-| `strategy_draft` | Intent and initial role are being compiled. | `strategy_review`, `superseded` |
-| `strategy_review` | User-facing strategy, restraint, and estimate impact are reviewable. | `strategy_approved`, `strategy_draft`, `superseded` |
-| `strategy_approved` | Caption strategy is part of the approved planning context. | `reservation_planned`, `stale` |
-| `reservation_planned` | Space, structural timing, and approximate blocking needs are recorded. | `editing_in_progress`, `stale` |
-| `editing_in_progress` | Main edit consumes reservations. | `waiting_for_picture_lock`, `stale` |
-| `waiting_for_picture_lock` | Final choreography is prohibited pending stable dependencies. | `finish_ready`, `stale` |
-| `finish_ready` | Picture lock, frame, occupancy inputs, transcript, masks, and visuals meet the finish gate. | `choreography_draft`, `stale` |
-| `choreography_draft` | Phrases, tracks, placement, depth, and motion are proposed. | `timing_resolution`, `revision_required`, `stale` |
-| `timing_resolution` | Caption requirements are being resolved by StoryTiming. | `motion_locked`, `revision_required`, `stale` |
-| `motion_locked` | Caption motion frames/spec are frozen for sound planning. | `sound_locked`, `revision_required`, `stale` |
-| `sound_locked` | SoundSync handoff/mix dependencies are frozen. | `render_ready`, `revision_required`, `stale` |
-| `render_ready` | Approved snapshot, assets, fonts, renderer, and QA prerequisites are ready. | `rendered`, `stale` |
-| `rendered` | Creative and delivery artifacts exist in the asset manifest. | `qa_review`, `revision_required` |
-| `qa_review` | Required caption and export QA is running or reviewable. | `delivery_ready`, `revision_required` |
-| `delivery_ready` | All required projections and QA gates passed. | `stale`, `superseded` |
-| `stale` | A dependency version changed. | `revision_required`, `superseded` |
-| `revision_required` | Scoped regeneration/reapproval/repair is needed. | earlier appropriate state, `superseded` |
-| `superseded` | A newer plan/version replaced this record. | none |
+| `strategy_draft` | Intent and initial caption role are being compiled. | `strategy_reviewable` |
+| `strategy_reviewable` | Strategy, restraint, estimate impact, and approval envelope are user-reviewable. | `strategy_approved` or `strategy_draft` |
+| `strategy_approved` | Strategy is inside the approved planning context. | `opportunities_mapped` |
+| `opportunities_mapped` | Candidate scenes, roles, and integration classes are recorded. | `space_reserved` |
+| `space_reserved` | Structural time/space and visual-system handoffs are reserved. | `blocking_ready` |
+| `blocking_ready` | Approximate edit-time caption blocking is available and labeled non-final. | `awaiting_picture_lock` |
+| `awaiting_picture_lock` | Exact choreography is prohibited pending stable dependencies. | `finish_readiness_blocked` or `finish_ready` |
+| `finish_readiness_blocked` | One or more required finish dependencies are unavailable or stale. | `finish_ready` or `revision_required` |
+| `finish_ready` | Picture lock, frame, transcript, visual proxy, masks, fonts, and output inputs meet the gate. | `choreography_resolving` |
+| `choreography_resolving` | Semantic phrases, tracks, layout, depth, motion, and handoffs are resolving. | `choreography_resolved` |
+| `choreography_resolved` | The deterministic caption scene is valid but final frames are not yet authoritative. | `storytiming_locked` |
+| `storytiming_locked` | StoryTiming has resolved every final caption/motion/handoff frame. | `sound_handoff_ready` |
+| `sound_handoff_ready` | Caption motion is locked and eligible cues can enter SoundSync. | `render_ready` |
+| `render_ready` | Snapshot, assets, fonts, audio dependencies, render specs, and preflight QA are ready. | `rendered` |
+| `rendered` | Required creative and delivery artifacts are in the asset manifest. | `qa_warning`, `qa_failed`, or `qa_passed` |
+| `qa_warning` | Nonblocking findings require an explicit accepted warning or local repair. | `qa_passed` or `revision_required` |
+| `qa_failed` | Required QA failed and delivery is blocked. | `revision_required` |
+| `qa_passed` | Required caption/render/export QA passed. | `delivery_ready` |
+| `delivery_ready` | Every approved projection and packaging requirement is ready. | `stale` or `superseded` |
+| `stale` | At least one referenced dependency version no longer matches. | `revision_required` or `superseded` |
+| `revision_required` | Scoped repair, regeneration, or reapproval is required. | the narrowest valid earlier state |
+| `superseded` | A newer immutable plan/version replaced this record. | none |
 
 ## Transition rules
 
 - Lifecycle transitions are append-audited; approved versions are never overwritten.
 - Strategy approval does not authorize generation; existing plan and credit approval gates still apply.
 - `finish_ready` requires a real PictureLockManifest, not an inferred UI flag.
-- `motion_locked` freezes caption motion before sound choreography.
+- `storytiming_locked` freezes caption motion timing before `sound_handoff_ready`.
 - Any dependency hash/version mismatch moves affected results to `stale`.
 - Local repair may re-enter the narrowest safe prior state; it must not silently widen scope.
 - Delivery readiness requires creative and accessible projections defined by the approval envelope.
+
+Earlier exploratory names such as `strategy_review`, `reservation_planned`,
+`waiting_for_picture_lock`, `motion_locked`, `sound_locked`, and `qa_review` are
+not separate target states. If any prototype introduces them, a version adapter
+must map them to the canonical states above.

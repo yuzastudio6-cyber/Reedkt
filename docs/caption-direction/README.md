@@ -66,3 +66,72 @@ This package reconciles that target with the current repository. It does not aut
 ## Approval requested
 
 Before CAP-01, the owner should review the scoped decisions in the [decision ledger](conversation-decision-ledger.md), unresolved choices in the [roadmap](implementation-roadmap.md), and the explicit context limitations in the [availability report](context-availability-report.md). CAP-00 is not completion of the larger Caption Direction goal.
+
+## Canonical specification coverage
+
+This matrix identifies the CAP-00 evidence for every numbered section of the
+canonical pasted goal. It is a documentation-coverage map, not a claim that the
+post-CAP-00 runtime requirement is implemented.
+
+| # | Canonical area | CAP-00 evidence |
+| --- | --- | --- |
+| 1 | Chat context assimilation | [Context availability](context-availability-report.md), [decision ledger](conversation-decision-ledger.md) |
+| 2 | Repository audit | [Current inventory](current-caption-inventory.md), [reconciliation](repository-reconciliation.md) |
+| 3 | Source priority | [Decision ledger](conversation-decision-ledger.md), [source-of-truth map](source-of-truth-map.md) |
+| 4 | CAP-00 checkpoint | This README, [roadmap](implementation-roadmap.md), [definition of done](definition-of-done.md) |
+| 5 | Core caption concept | [Architecture](caption-direction-architecture.md) |
+| 6 | Parent and mini skills | [Skill family](skill-family.md) |
+| 7 | Late binding | [Late binding and picture lock](late-binding-and-picture-lock.md) |
+| 8 | Integration classes | [Integration classes](caption-integration-classes.md) |
+| 9 | Planning levels | [Architecture](caption-direction-architecture.md) |
+| 10 | Multi-track system | [Multi-track system](multi-track-caption-system.md) |
+| 11 | Canonical transcript | [Transcript and alignment](transcript-and-alignment.md) |
+| 12 | Two-pass planning | [Architecture](caption-direction-architecture.md) |
+| 13 | Opportunities and reservation | [Architecture](caption-direction-architecture.md), [integration classes](caption-integration-classes.md) |
+| 14 | Blocking preview | [Late binding and picture lock](late-binding-and-picture-lock.md) |
+| 15 | PictureLockManifest | [Late binding and picture lock](late-binding-and-picture-lock.md) |
+| 16 | Lifecycle | [Lifecycle](caption-lifecycle.md) |
+| 17 | Approval envelope | [Late binding and picture lock](late-binding-and-picture-lock.md) |
+| 18 | Semantic phrases | [Semantic segmentation](semantic-segmentation.md) |
+| 19 | Language-aware lines | [Semantic segmentation](semantic-segmentation.md), [accessibility/localization](accessibility-and-localization.md) |
+| 20 | Style profile | [Style profile](style-profile.md) |
+| 21 | Visual occupancy | [Placement, depth, and occlusion](placement-depth-and-occlusion.md) |
+| 22 | Spatial scene graph | [Caption scene graph](caption-scene-graph.md) |
+| 23 | Occlusion typography | [Placement, depth, and occlusion](placement-depth-and-occlusion.md) |
+| 24 | Anchored/environmental type | [Placement, depth, and occlusion](placement-depth-and-occlusion.md) |
+| 25 | Hero type and lists | [Multi-track system](multi-track-caption-system.md) |
+| 26 | Mode switching | [Multi-track system](multi-track-caption-system.md) |
+| 27 | Caption-to-Visual | [Living Frame coordination](living-frame-coordination.md), [B-roll/visual co-composition](broll-and-visual-co-composition.md) |
+| 28 | Living Frame/B-roll | [Living Frame coordination](living-frame-coordination.md), [B-roll/visual co-composition](broll-and-visual-co-composition.md) |
+| 29 | Camera coordination | [Placement, depth, and occlusion](placement-depth-and-occlusion.md) |
+| 30 | Sound choreography | [Sound choreography](sound-choreography.md) |
+| 31 | StoryTiming | [Motion grammar](motion-grammar.md), [source-of-truth map](source-of-truth-map.md) |
+| 32 | Timestamp provenance | [Transcript and alignment](transcript-and-alignment.md) |
+| 33 | Tool qualification | [Tool qualification](tool-qualification.md) |
+| 34 | Head Intelligence/Qwen | [Architecture](caption-direction-architecture.md), [tool qualification](tool-qualification.md) |
+| 35 | Font/Unicode runtime | [Font runtime and security](font-runtime-and-security.md) |
+| 36 | Color management | [Rendering, color, and export](rendering-color-and-export.md) |
+| 37 | Calibration preview | [Rendering, color, and export](rendering-color-and-export.md) |
+| 38 | Approved snapshot | [Backend and worker architecture](backend-worker-architecture.md) |
+| 39 | Backend services | [Backend and worker architecture](backend-worker-architecture.md) |
+| 40 | Worker graph | [Backend and worker architecture](backend-worker-architecture.md) |
+| 41 | Rendering | [Rendering, color, and export](rendering-color-and-export.md) |
+| 42 | Render order | [Rendering, color, and export](rendering-color-and-export.md) |
+| 43 | Accessibility projections | [Accessibility and localization](accessibility-and-localization.md) |
+| 44 | Localization | [Accessibility and localization](accessibility-and-localization.md) |
+| 45 | Revision/invalidation | [Revision and invalidation](revision-and-invalidation.md) |
+| 46 | QA gates | [QA, repair, and fallbacks](qa-repair-and-fallbacks.md) |
+| 47 | QA repair/fallback | [QA, repair, and fallbacks](qa-repair-and-fallbacks.md) |
+| 48 | Chat-native UX | [Architecture](caption-direction-architecture.md) |
+| 49 | Credits/cost | [Architecture](caption-direction-architecture.md), [roadmap](implementation-roadmap.md) |
+| 50 | Security/privacy/licensing | [Font security](font-runtime-and-security.md), [backend security](backend-worker-architecture.md) |
+| 51 | Persistence/backward compatibility | [Backend architecture](backend-worker-architecture.md), [reconciliation](repository-reconciliation.md) |
+| 52 | Observability/provenance | [Backend and worker architecture](backend-worker-architecture.md) |
+| 53 | Reference videos | [Reference-video analysis](reference-video-analysis.md) |
+| 54 | Milestones | [Implementation roadmap](implementation-roadmap.md) |
+| 55 | Fixtures | [Implementation roadmap](implementation-roadmap.md) |
+| 56 | Tests | [Implementation roadmap](implementation-roadmap.md), [QA/fallback](qa-repair-and-fallbacks.md) |
+| 57 | Milestone protocol | [Implementation roadmap](implementation-roadmap.md) |
+| 58 | Blocker policy | [Implementation roadmap](implementation-roadmap.md), [context report](context-availability-report.md) |
+| 59 | Final definition of done | [Definition of done](definition-of-done.md) |
+| 60 | First action/owner gate | [Context report](context-availability-report.md), [roadmap](implementation-roadmap.md) |

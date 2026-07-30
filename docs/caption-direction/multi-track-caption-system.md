@@ -43,3 +43,25 @@ Example: a small accessible phrase can remain in a safe lower region while a her
 ## Restraint
 
 More tracks are not inherently better. The strategy planner should activate the fewest tracks that improve comprehension, story, accessibility, or creative intent. Density, cognitive load, television viewing distance, platform, language, and existing visuals constrain concurrency.
+
+## Hero typography
+
+A hero phrase may temporarily become the primary visual through an approved
+display role, semantic scale, depth, camera/focus handoff, restrained sound, or
+full-screen composition. Hero moments are rare, earned, counted in the approval
+envelope, and never used merely to make ordinary speech louder.
+
+## Persistent topic and list tracks
+
+Steps, principles, causes, names, or repeated concepts may accumulate across
+phrases. Items retain hierarchy, preserve earlier entries, avoid protected
+visuals, meet stable read time, define their clear condition, and coordinate
+with scene transitions. They are not one-at-a-time subtitle cues.
+
+## Controlled mode switching
+
+One project language may intentionally move between clean verbatim captions,
+spatial sentence composition, hero typography, minimal emotional passages,
+persistent lists, and Caption-to-Visual handoffs. Changes occur at scene
+boundaries, story beats, typographic transitions, or visual handoffs—not
+randomly phrase by phrase.

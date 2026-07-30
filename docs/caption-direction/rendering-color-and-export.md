@@ -31,16 +31,56 @@ The current fixed-canvas ASS builder remains a legacy path until CAP-14 adds a v
 
 ## Layer order
 
-Logical order supports background/environmental type, behind-subject type, source/visual content, object-attached type, in-front creative type, stable accessible captions, and mandatory notices. Exact renderer layers are derived from the approved scene graph.
+The target logical stack is:
+
+1. final/color-managed source picture;
+2. far-background typography;
+3. environmental background typography;
+4. behind-subject typography;
+5. Living Frame background elements;
+6. subject or foreground masks;
+7. subject-plane typography;
+8. object-attached typography;
+9. in-front-of-subject typography;
+10. foreground hero typography;
+11. standard readable speech captions;
+12. explicitly required accessibility-safe visible text;
+13. transitions and output finishing.
+
+Depth roles select layers; captions are not forced into one global topmost
+layer. Critical readable projections must remain comprehensible regardless of
+creative depth.
 
 ## Color management
 
+- `CaptionColorManagementPlan` records the output color space, whether the look
+  is already applied, where captions enter the pipeline, brand preservation,
+  HDR/SDR behavior, alpha behavior, local scrim/backplate behavior, and
+  preview/final parity.
 - Design colors are interpreted in a declared working/output space.
 - Contrast and legibility QA run on color-managed rendered frames.
 - HDR/SDR and gamut transforms cannot silently change semantic colors or reduce readability.
 - Calibration previews identify proxy limitations.
 - Transparent/alpha handling, premultiplication, stroke/shadow blending, and local scrims are specified.
 - Font rasterization and subpixel behavior are tested across preview/final paths.
+
+Caption colors normally composite in a controlled output/display space so a
+creative grade cannot unpredictably alter approved text. The existing color
+pipeline remains the owner.
+
+## Caption Calibration Preview
+
+Before full final-caption rendering, produce a representative preview from
+final or near-final frames: clean, busy, dark, bright, B-roll, Living Frame,
+subject-occluded, hero, ordinary phrase, and reduced-motion examples as
+applicable.
+
+The preview demonstrates exact fonts, measured breaks/sizes, typography roles,
+colors, emphasis, stroke/shadow/backplate, placement, depth, masks,
+entry/internal/exit motion, a representative sound example, and reduced-motion
+behavior. It uses the same approved font assets, color plan, renderer versions,
+and scene contracts as final output. Review uses the existing approval/revision
+system; users do not approve every ordinary phrase individually.
 
 ## Export
 

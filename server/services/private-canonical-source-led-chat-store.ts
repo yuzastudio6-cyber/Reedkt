@@ -12,8 +12,8 @@ import {
 } from '../security/private-local-persistence'
 import { withPlanningDomainMutationLock } from './planning-domain-mutation-lock'
 import {
-  kimiK3SourceLedChatAssistantRuntimeSchema,
-} from './kimi-k3-source-led-chat-assistant'
+  sourceLedChatAssistantRuntimeSchema,
+} from './source-led-chat-assistant'
 
 const PRIVATE_SOURCE_LED_CHAT_STORE_SOURCE =
   'private_canonical_source_led_chat_store' as const
@@ -159,7 +159,7 @@ const exchangeSchema = z.object({
     content: z.string().min(1).max(4_000),
     createdAt: isoSchema,
   }).strict(),
-  assistantRuntime: kimiK3SourceLedChatAssistantRuntimeSchema.optional(),
+  assistantRuntime: sourceLedChatAssistantRuntimeSchema.optional(),
   effect: z.object({
     status: z.enum([
       'applied_to_next_plan',
@@ -297,7 +297,9 @@ export function projectPrivateCanonicalSourceLedChatThread(
     updatedAt: record?.updatedAt ?? null,
     privateInternalOnly: true,
     providerModelCalled: (record?.exchanges ?? []).some(
-      (exchange) => exchange.assistantRuntime?.modelCallMade === true,
+      (exchange) =>
+        exchange.assistantRuntime?.modelCallMade === true
+        || exchange.assistantRuntime?.fallbackFrom?.modelCallMade === true,
     ),
     planCreated: false,
     executionStarted: false,

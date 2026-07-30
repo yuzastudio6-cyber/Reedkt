@@ -48,19 +48,42 @@ export interface CanonicalSourceLedChatEffect {
   readonly creditsReservedOrSpent: false
 }
 
-export interface CanonicalSourceLedChatAssistantRuntime {
+export type CanonicalSourceLedChatAssistantStatus =
+  | 'completed'
+  | 'credential_unavailable'
+  | 'credential_rejected'
+  | 'model_unavailable'
+  | 'rate_limited'
+  | 'invalid_response'
+  | 'provider_failed'
+  | 'outcome_unknown'
+
+export type CanonicalSourceLedChatAssistantFallbackTrigger =
+  | 'provider_unavailable'
+  | 'provider_rate_limited'
+  | 'provider_timeout'
+  | 'transient_provider_error'
+  | 'malformed_structured_output'
+
+export interface CanonicalSourceLedChatAssistantAttemptEvidence {
   readonly source: 'kimi_k3'
-  readonly status:
-    | 'completed'
-    | 'credential_unavailable'
-    | 'credential_rejected'
-    | 'model_unavailable'
-    | 'rate_limited'
-    | 'invalid_response'
-    | 'provider_failed'
-    | 'outcome_unknown'
   readonly routeId: 'kimi_k3_primary'
   readonly providerModel: 'kimi-k3'
+  readonly status: CanonicalSourceLedChatAssistantStatus
+  readonly credentialVersion: number | null
+  readonly providerCallMade: boolean
+  readonly modelCallMade: boolean
+  readonly attemptDigestSha256: string
+}
+
+export interface CanonicalSourceLedChatAssistantRuntime {
+  readonly source: 'kimi_k3' | 'gpt_5_6_terra'
+  readonly status:
+    CanonicalSourceLedChatAssistantStatus
+  readonly routeId:
+    | 'kimi_k3_primary'
+    | 'gpt_5_6_terra_fallback'
+  readonly providerModel: 'kimi-k3' | 'gpt-5.6-terra'
   readonly credentialSource: 'google_secret_manager_pinned_version'
   readonly credentialVersion: number | null
   readonly providerCallMade: boolean
@@ -71,6 +94,9 @@ export interface CanonicalSourceLedChatAssistantRuntime {
     readonly completionTokens: number
     readonly totalTokens: number
   }
+  readonly fallbackFrom?: CanonicalSourceLedChatAssistantAttemptEvidence
+  readonly fallbackTrigger?:
+    CanonicalSourceLedChatAssistantFallbackTrigger
 }
 
 export interface CanonicalSourceLedChatExchange {

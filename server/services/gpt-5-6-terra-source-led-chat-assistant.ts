@@ -5,21 +5,21 @@ import { GoogleAuth } from 'google-auth-library'
 import { z } from 'zod'
 
 import type { RuntimeEnv } from '../config/env'
+import type {
+  SourceLedChatAssistantPort,
+  SourceLedChatAssistantRequest,
+  SourceLedChatAssistantResult,
+} from './source-led-chat-assistant'
 
-export const KIMI_K3_SOURCE_LED_CHAT_ROUTE_ID = 'kimi_k3_primary' as const
-export const KIMI_K3_SOURCE_LED_CHAT_MODEL_ID = 'kimi-k3' as const
-export const KIMI_K3_SOURCE_LED_CHAT_ENDPOINT =
-  'https://api.moonshot.ai/v1/chat/completions' as const
-export const KIMI_K3_SOURCE_LED_CHAT_MAXIMUM_COMPLETION_TOKENS = 1_024 as const
+export const GPT_5_6_TERRA_SOURCE_LED_CHAT_ROUTE_ID =
+  'gpt_5_6_terra_fallback' as const
+export const GPT_5_6_TERRA_SOURCE_LED_CHAT_MODEL_ID =
+  'gpt-5.6-terra' as const
+export const GPT_5_6_TERRA_SOURCE_LED_CHAT_ENDPOINT =
+  'https://api.openai.com/v1/responses' as const
+export const GPT_5_6_TERRA_SOURCE_LED_CHAT_MAX_OUTPUT_TOKENS = 1_024 as const
 
 const execFileAsync = promisify(execFile)
-const sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u)
-const safeUsageSchema = z.object({
-  promptTokens: z.number().int().nonnegative(),
-  completionTokens: z.number().int().nonnegative(),
-  totalTokens: z.number().int().nonnegative(),
-}).strict()
-
 const assistantPayloadSchema = z.object({
   assistant_reply: z.string().trim().min(1).max(1_000),
   direction_saved: z.literal(true),
@@ -27,78 +27,39 @@ const assistantPayloadSchema = z.object({
   plan_created: z.literal(false),
   credits_changed: z.literal(false),
 }).strict()
+const safeUsageSchema = z.object({
+  promptTokens: z.number().int().nonnegative(),
+  completionTokens: z.number().int().nonnegative(),
+  totalTokens: z.number().int().nonnegative(),
+}).strict()
 
-export type KimiK3SourceLedChatAssistantStatus =
-  | 'completed'
-  | 'credential_unavailable'
-  | 'credential_rejected'
-  | 'model_unavailable'
-  | 'rate_limited'
-  | 'invalid_response'
-  | 'provider_failed'
-  | 'outcome_unknown'
-
-export interface KimiK3SourceLedChatAssistantResult {
-  readonly source: 'kimi_k3'
-  readonly status: KimiK3SourceLedChatAssistantStatus
-  readonly routeId: typeof KIMI_K3_SOURCE_LED_CHAT_ROUTE_ID
-  readonly providerModel: typeof KIMI_K3_SOURCE_LED_CHAT_MODEL_ID
-  readonly credentialSource: 'google_secret_manager_pinned_version'
-  readonly credentialVersion: number | null
-  readonly providerCallMade: boolean
-  readonly modelCallMade: boolean
-  readonly assistantContent?: string
-  readonly attemptDigestSha256: string
-  readonly usage?: z.infer<typeof safeUsageSchema>
-}
-
-export interface KimiK3SourceLedChatAssistantPort {
-  respond(input: {
-    readonly workspaceId: string
-    readonly projectId: string
-    readonly editSessionId: string
-    readonly clientMessageId: string
-    readonly message: string
-    readonly priorExchanges: readonly {
-      readonly userContent: string
-      readonly assistantContent: string
-    }[]
-    readonly serverDisposition:
-      | 'applied_to_next_plan'
-      | 'waiting_for_setup_confirmation'
-      | 'not_applied'
-    readonly requiredSetupConfirmations: readonly string[]
-    readonly requestedSettings: Readonly<Record<string, string>>
-  }): Promise<KimiK3SourceLedChatAssistantResult>
-}
-
-export interface KimiK3CredentialResolver {
+export interface Gpt56TerraCredentialResolver {
   resolve(): Promise<{
     readonly value: string
     readonly version: number
   }>
 }
 
-export function createKimiK3SourceLedChatAssistantPort(input: {
+export function createGpt56TerraSourceLedChatAssistantPort(input: {
   readonly env: RuntimeEnv
   readonly fetchImpl?: typeof fetch
-  readonly credentialResolver?: KimiK3CredentialResolver
-}): KimiK3SourceLedChatAssistantPort {
+  readonly credentialResolver?: Gpt56TerraCredentialResolver
+}): SourceLedChatAssistantPort {
   const fetchImpl = input.fetchImpl ?? fetch
   const credentialResolver =
     input.credentialResolver ??
-    createGoogleSecretManagerKimiK3CredentialResolver(input.env)
+    createGoogleSecretManagerGpt56TerraCredentialResolver(input.env)
   let credentialPromise:
     | Promise<{ readonly value: string; readonly version: number }>
     | undefined
 
   return Object.freeze({
     async respond(
-      request: Parameters<KimiK3SourceLedChatAssistantPort['respond']>[0],
-    ): Promise<KimiK3SourceLedChatAssistantResult> {
+      request: SourceLedChatAssistantRequest,
+    ): Promise<SourceLedChatAssistantResult> {
       const attemptDigestSha256 = sha256(stableStringify({
-        routeId: KIMI_K3_SOURCE_LED_CHAT_ROUTE_ID,
-        providerModel: KIMI_K3_SOURCE_LED_CHAT_MODEL_ID,
+        routeId: GPT_5_6_TERRA_SOURCE_LED_CHAT_ROUTE_ID,
+        providerModel: GPT_5_6_TERRA_SOURCE_LED_CHAT_MODEL_ID,
         workspaceId: request.workspaceId,
         projectId: request.projectId,
         editSessionId: request.editSessionId,
@@ -115,7 +76,7 @@ export function createKimiK3SourceLedChatAssistantPort(input: {
         credential = await credentialPromise
       } catch {
         credentialPromise = undefined
-        return safeResult({
+        return result({
           status: 'credential_unavailable',
           credentialVersion: null,
           providerCallMade: false,
@@ -124,23 +85,25 @@ export function createKimiK3SourceLedChatAssistantPort(input: {
         })
       }
 
-      const body = createProviderBody(request)
       const controller = new AbortController()
       const timeout = setTimeout(() => controller.abort(), 60_000)
       let response: Response
       try {
-        response = await fetchImpl(KIMI_K3_SOURCE_LED_CHAT_ENDPOINT, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${credential.value}`,
-            'Content-Type': 'application/json',
+        response = await fetchImpl(
+          GPT_5_6_TERRA_SOURCE_LED_CHAT_ENDPOINT,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${credential.value}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(createProviderBody(request)),
+            signal: controller.signal,
           },
-          body: JSON.stringify(body),
-          signal: controller.signal,
-        })
+        )
       } catch {
         clearTimeout(timeout)
-        return safeResult({
+        return result({
           status: 'outcome_unknown',
           credentialVersion: credential.version,
           providerCallMade: true,
@@ -152,7 +115,7 @@ export function createKimiK3SourceLedChatAssistantPort(input: {
 
       if (!response.ok) {
         await discardResponseBody(response)
-        return safeResult({
+        return result({
           status: response.status === 401 || response.status === 403
             ? 'credential_rejected'
             : response.status === 404
@@ -167,11 +130,11 @@ export function createKimiK3SourceLedChatAssistantPort(input: {
         })
       }
 
-      let providerPayload: unknown
+      let payload: unknown
       try {
-        providerPayload = await response.json()
+        payload = await response.json()
       } catch {
-        return safeResult({
+        return result({
           status: 'invalid_response',
           credentialVersion: credential.version,
           providerCallMade: true,
@@ -179,9 +142,9 @@ export function createKimiK3SourceLedChatAssistantPort(input: {
           attemptDigestSha256,
         })
       }
-      const parsed = parseProviderResponse(providerPayload)
+      const parsed = parseProviderResponse(payload)
       if (!parsed) {
-        return safeResult({
+        return result({
           status: 'invalid_response',
           credentialVersion: credential.version,
           providerCallMade: true,
@@ -189,7 +152,7 @@ export function createKimiK3SourceLedChatAssistantPort(input: {
           attemptDigestSha256,
         })
       }
-      return safeResult({
+      return result({
         status: 'completed',
         credentialVersion: credential.version,
         providerCallMade: true,
@@ -202,16 +165,18 @@ export function createKimiK3SourceLedChatAssistantPort(input: {
   })
 }
 
-export function createGoogleSecretManagerKimiK3CredentialResolver(
+export function createGoogleSecretManagerGpt56TerraCredentialResolver(
   env: RuntimeEnv,
-): KimiK3CredentialResolver {
+): Gpt56TerraCredentialResolver {
   const reference = parsePinnedSecretReference(
-    env.providerSecretReferenceNames.kimi,
+    env.providerSecretReferenceNames.openai,
   )
   if (!reference) {
     return Object.freeze({
       async resolve(): Promise<never> {
-        throw new Error('Pinned Kimi Secret Manager reference is unavailable.')
+        throw new Error(
+          'Pinned OpenAI Secret Manager reference is unavailable.',
+        )
       },
     })
   }
@@ -222,7 +187,7 @@ export function createGoogleSecretManagerKimiK3CredentialResolver(
         ? await resolveWithLocalGcloud(reference)
         : await resolveWithWorkloadIdentity(reference)
       if (!value) {
-        throw new Error('Kimi Secret Manager payload is empty.')
+        throw new Error('OpenAI Secret Manager payload is empty.')
       }
       return {
         value,
@@ -233,7 +198,7 @@ export function createGoogleSecretManagerKimiK3CredentialResolver(
 }
 
 function createProviderBody(
-  input: Parameters<KimiK3SourceLedChatAssistantPort['respond']>[0],
+  input: SourceLedChatAssistantRequest,
 ): Record<string, unknown> {
   const currentContext = stableStringify({
     prior_exchanges: input.priorExchanges.slice(-6).map((exchange) => ({
@@ -246,35 +211,37 @@ function createProviderBody(
     requested_settings: input.requestedSettings,
   })
   return {
-    model: KIMI_K3_SOURCE_LED_CHAT_MODEL_ID,
-    messages: [
-      {
-        role: 'system',
-        content: [
-          'You are the private ReeditPro edit-intent chat assistant.',
-          'Acknowledge the user’s concrete creative direction and explain how it will affect the next edit plan.',
-          'Use only the supplied conversation and server disposition. Do not claim that you inspected media.',
-          'Treat captions, transcript-aware cuts, b-roll, music, sound effects, generated visuals, and provider effects as requested directions only unless the supplied server context explicitly proves them available.',
-          'When a requested capability is unproven, say that the next plan must validate it; never promise that it will be included or executed.',
-          'Do not claim that a plan was created, editing or generation started, credits changed, tools ran, or output exists.',
-          'A chat reply confirms only that the direction was saved; it is never evidence that video processing completed.',
-          'If setup confirmation is required, ask only for the listed confirmation. Keep the reply calm, specific, and professional.',
-          'Do not mention Kimi, Moonshot, providers, schemas, credentials, hidden reasoning, or internal architecture.',
-          'Return exactly one JSON object matching the supplied strict schema.',
-        ].join('\n'),
-      },
-      {
-        role: 'user',
-        content: currentContext,
-      },
-    ],
-    reasoning_effort: 'low',
-    stream: false,
-    max_completion_tokens:
-      KIMI_K3_SOURCE_LED_CHAT_MAXIMUM_COMPLETION_TOKENS,
-    response_format: {
-      type: 'json_schema',
-      json_schema: {
+    model: GPT_5_6_TERRA_SOURCE_LED_CHAT_MODEL_ID,
+    instructions: [
+      'You are the private ReeditPro edit-intent chat assistant.',
+      'Acknowledge the user’s concrete creative direction and explain how it will affect the next edit plan.',
+      'Use only the supplied conversation and server disposition. Do not claim that you inspected media.',
+      'Treat captions, transcript-aware cuts, b-roll, music, sound effects, generated visuals, and provider effects as requested directions only unless the supplied server context explicitly proves them available.',
+      'When a requested capability is unproven, say that the next plan must validate it; never promise that it will be included or executed.',
+      'Do not claim that a plan was created, editing or generation started, credits changed, tools ran, or output exists.',
+      'A chat reply confirms only that the direction was saved; it is never evidence that video processing completed.',
+      'If setup confirmation is required, ask only for the listed confirmation. Keep the reply calm, specific, and professional.',
+      'Do not mention OpenAI, GPT, providers, schemas, credentials, hidden reasoning, or internal architecture.',
+      'Return exactly one JSON object matching the supplied strict schema.',
+    ].join('\n'),
+    input: currentContext,
+    reasoning: {
+      effort: 'low',
+      context: 'current_turn',
+    },
+    max_output_tokens: GPT_5_6_TERRA_SOURCE_LED_CHAT_MAX_OUTPUT_TOKENS,
+    store: false,
+    truncation: 'disabled',
+    safety_identifier: sha256(input.workspaceId),
+    prompt_cache_key: sha256([
+      input.workspaceId,
+      input.projectId,
+      input.editSessionId,
+    ].join('\u0000')),
+    text: {
+      verbosity: 'low',
+      format: {
+        type: 'json_schema',
         name: 'reeditpro_source_led_chat_acknowledgement',
         strict: true,
         schema: {
@@ -323,25 +290,43 @@ function parseProviderResponse(value: unknown): {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return
   const payload = value as Record<string, unknown>
   if (
-    payload.object !== 'chat.completion'
-    || payload.model !== KIMI_K3_SOURCE_LED_CHAT_MODEL_ID
-    || !Array.isArray(payload.choices)
-    || payload.choices.length !== 1
+    payload.object !== 'response'
+    || payload.status !== 'completed'
+    || payload.model !== GPT_5_6_TERRA_SOURCE_LED_CHAT_MODEL_ID
+    || !Array.isArray(payload.output)
   ) return
-  const choice = payload.choices[0]
-  if (!choice || typeof choice !== 'object' || Array.isArray(choice)) return
-  const choiceRecord = choice as Record<string, unknown>
-  if (
-    choiceRecord.finish_reason !== 'stop'
-    || !choiceRecord.message
-    || typeof choiceRecord.message !== 'object'
-    || Array.isArray(choiceRecord.message)
-  ) return
-  const content = (choiceRecord.message as Record<string, unknown>).content
-  if (typeof content !== 'string') return
+  const outputTexts: string[] = []
+  for (const item of payload.output) {
+    if (
+      !item
+      || typeof item !== 'object'
+      || Array.isArray(item)
+    ) continue
+    const record = item as Record<string, unknown>
+    if (
+      record.type !== 'message'
+      || record.role !== 'assistant'
+      || record.status !== 'completed'
+      || !Array.isArray(record.content)
+    ) continue
+    for (const content of record.content) {
+      if (
+        content
+        && typeof content === 'object'
+        && !Array.isArray(content)
+        && (content as Record<string, unknown>).type === 'output_text'
+        && typeof (content as Record<string, unknown>).text === 'string'
+      ) {
+        outputTexts.push(
+          (content as Record<string, unknown>).text as string,
+        )
+      }
+    }
+  }
+  if (outputTexts.length !== 1) return
   let assistantPayload: unknown
   try {
-    assistantPayload = JSON.parse(content)
+    assistantPayload = JSON.parse(outputTexts[0]!)
   } catch {
     return
   }
@@ -362,8 +347,8 @@ function parseUsage(value: unknown): z.infer<typeof safeUsageSchema> | undefined
   if (!value || typeof value !== 'object' || Array.isArray(value)) return
   const usage = value as Record<string, unknown>
   const parsed = safeUsageSchema.safeParse({
-    promptTokens: usage.prompt_tokens,
-    completionTokens: usage.completion_tokens,
+    promptTokens: usage.input_tokens,
+    completionTokens: usage.output_tokens,
     totalTokens: usage.total_tokens,
   })
   if (
@@ -387,20 +372,25 @@ async function discardResponseBody(response: Response): Promise<void> {
   try {
     await response.arrayBuffer()
   } catch {
-    // The provider error body is intentionally ignored and never logged.
+    // Provider error content is intentionally discarded without logging.
   }
 }
 
-function safeResult(
+function result(
   input: Omit<
-    KimiK3SourceLedChatAssistantResult,
-    'source' | 'routeId' | 'providerModel' | 'credentialSource'
+    SourceLedChatAssistantResult,
+    | 'source'
+    | 'routeId'
+    | 'providerModel'
+    | 'credentialSource'
+    | 'fallbackFrom'
+    | 'fallbackTrigger'
   >,
-): KimiK3SourceLedChatAssistantResult {
+): SourceLedChatAssistantResult {
   return {
-    source: 'kimi_k3',
-    routeId: KIMI_K3_SOURCE_LED_CHAT_ROUTE_ID,
-    providerModel: KIMI_K3_SOURCE_LED_CHAT_MODEL_ID,
+    source: 'gpt_5_6_terra',
+    routeId: GPT_5_6_TERRA_SOURCE_LED_CHAT_ROUTE_ID,
+    providerModel: GPT_5_6_TERRA_SOURCE_LED_CHAT_MODEL_ID,
     credentialSource: 'google_secret_manager_pinned_version',
     ...input,
   }
@@ -431,7 +421,7 @@ async function resolveWithLocalGcloud(reference: {
   readonly secretId: string
   readonly version: number
 }): Promise<string> {
-  const result = await execFileAsync('gcloud', [
+  const response = await execFileAsync('gcloud', [
     'secrets',
     'versions',
     'access',
@@ -443,7 +433,7 @@ async function resolveWithLocalGcloud(reference: {
     maxBuffer: 16 * 1024,
     timeout: 15_000,
   })
-  return result.stdout.trim()
+  return response.stdout.trim()
 }
 
 async function resolveWithWorkloadIdentity(reference: {
@@ -483,59 +473,3 @@ function stableJsonValue(value: unknown): unknown {
       .map(([key, entry]) => [key, stableJsonValue(entry)]),
   )
 }
-
-export const kimiK3SourceLedChatAssistantRuntimeSchema = z.object({
-  source: z.literal('kimi_k3'),
-  status: z.enum([
-    'completed',
-    'credential_unavailable',
-    'credential_rejected',
-    'model_unavailable',
-    'rate_limited',
-    'invalid_response',
-    'provider_failed',
-    'outcome_unknown',
-  ]),
-  routeId: z.literal(KIMI_K3_SOURCE_LED_CHAT_ROUTE_ID).nullable(),
-  providerModel: z.literal(KIMI_K3_SOURCE_LED_CHAT_MODEL_ID).nullable(),
-  credentialSource:
-    z.literal('google_secret_manager_pinned_version').nullable(),
-  credentialVersion: z.number().int().positive().nullable(),
-  providerCallMade: z.boolean(),
-  modelCallMade: z.boolean(),
-  attemptDigestSha256: sha256Schema,
-  usage: safeUsageSchema.optional(),
-}).strict().superRefine((value, context) => {
-  if (
-    value.modelCallMade
-    && !value.providerCallMade
-  ) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'A model call requires a provider call.',
-    })
-  }
-  if (
-    value.status === 'completed'
-    && (
-      !value.providerCallMade
-      || !value.modelCallMade
-      || value.credentialVersion === null
-      || !value.usage
-    )
-  ) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Completed Kimi evidence requires a verified call and usage.',
-    })
-  }
-  if (
-    value.status !== 'completed'
-    && value.usage !== undefined
-  ) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Unverified Kimi outcomes cannot report billable usage.',
-    })
-  }
-})

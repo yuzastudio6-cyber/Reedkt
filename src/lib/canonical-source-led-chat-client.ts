@@ -225,7 +225,9 @@ function parseCanonicalSourceLedChatThread(
     || JSON.stringify(value.activeInstructionHistory)
       !== JSON.stringify(activeInstructionHistory)
     || value.providerModelCalled !== verifiedExchanges.some(
-      (exchange) => exchange.assistantRuntime?.modelCallMade === true,
+      (exchange) =>
+        exchange.assistantRuntime?.modelCallMade === true
+        || exchange.assistantRuntime?.fallbackFrom?.modelCallMade === true,
     )
   ) return undefined
   return structuredClone(value) as unknown as CanonicalSourceLedChatThread
@@ -365,9 +367,22 @@ function validAssistantRuntime(value: unknown): boolean {
     'modelCallMade',
     'attemptDigestSha256',
     'usage',
+    'fallbackFrom',
+    'fallbackTrigger',
   ])) return false
+  const routeMatches =
+    (
+      value.source === 'kimi_k3'
+      && value.routeId === 'kimi_k3_primary'
+      && value.providerModel === 'kimi-k3'
+    )
+    || (
+      value.source === 'gpt_5_6_terra'
+      && value.routeId === 'gpt_5_6_terra_fallback'
+      && value.providerModel === 'gpt-5.6-terra'
+    )
   if (
-    value.source !== 'kimi_k3'
+    !routeMatches
     || ![
       'completed',
       'credential_unavailable',
@@ -378,8 +393,6 @@ function validAssistantRuntime(value: unknown): boolean {
       'provider_failed',
       'outcome_unknown',
     ].includes(String(value.status))
-    || value.routeId !== 'kimi_k3_primary'
-    || value.providerModel !== 'kimi-k3'
     || value.credentialSource !== 'google_secret_manager_pinned_version'
     || !(
       value.credentialVersion === null
@@ -410,12 +423,71 @@ function validAssistantRuntime(value: unknown): boolean {
       === Number(value.usage.totalTokens)
   )
   if (!usageValid) return false
+  const fallbackValid = value.source === 'gpt_5_6_terra'
+    ? validKimiFallbackAttempt(
+        value.fallbackFrom,
+        value.fallbackTrigger,
+      )
+    : value.fallbackFrom === undefined
+      && value.fallbackTrigger === undefined
+  if (!fallbackValid) return false
   return value.status === 'completed'
     ? value.providerCallMade
       && value.modelCallMade
       && value.credentialVersion !== null
       && value.usage !== undefined
     : value.usage === undefined
+}
+
+function validKimiFallbackAttempt(
+  value: unknown,
+  trigger: unknown,
+): boolean {
+  if (!exactObject(value, [
+    'source',
+    'routeId',
+    'providerModel',
+    'status',
+    'credentialVersion',
+    'providerCallMade',
+    'modelCallMade',
+    'attemptDigestSha256',
+  ])) return false
+  if (
+    value.source !== 'kimi_k3'
+    || value.routeId !== 'kimi_k3_primary'
+    || value.providerModel !== 'kimi-k3'
+    || ![
+      'credential_unavailable',
+      'model_unavailable',
+      'rate_limited',
+      'invalid_response',
+      'provider_failed',
+      'outcome_unknown',
+    ].includes(String(value.status))
+    || !(
+      value.credentialVersion === null
+      || (
+        Number.isInteger(value.credentialVersion)
+        && Number(value.credentialVersion) > 0
+      )
+    )
+    || typeof value.providerCallMade !== 'boolean'
+    || typeof value.modelCallMade !== 'boolean'
+    || (value.modelCallMade && !value.providerCallMade)
+    || !sha256(value.attemptDigestSha256)
+  ) return false
+  const expectedTrigger = value.status === 'credential_unavailable'
+    || value.status === 'model_unavailable'
+    ? 'provider_unavailable'
+    : value.status === 'rate_limited'
+      ? 'provider_rate_limited'
+      : value.status === 'outcome_unknown'
+        ? 'provider_timeout'
+        : value.status === 'provider_failed'
+          ? 'transient_provider_error'
+          : 'malformed_structured_output'
+  return trigger === expectedTrigger
 }
 
 function validAssistantRuntimeEffect(

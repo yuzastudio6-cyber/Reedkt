@@ -83,7 +83,10 @@ assert.equal(
 )
 assert.equal(reviewSummary.privateReviewRuntime, true)
 assert.equal(kimiSummary.kimiRuntime, true)
-assert.equal(kimiSummary.externalServices, 'kimi_k3_only')
+assert.equal(
+  kimiSummary.externalServices,
+  'kimi_k3_with_gpt_5_6_terra_fallback',
+)
 assert.equal(
   kimiEnvironments.serverEnv.REEDITPRO_KIMI_RUNTIME_MODE,
   'internal_test',
@@ -93,7 +96,19 @@ assert.equal(
   'projects/reeditpro/secrets/reeditpro-prod-kimi-api-key/versions/2',
 )
 assert.equal(
+  kimiEnvironments.serverEnv.REEDITPRO_OPENAI_RUNTIME_MODE,
+  'internal_test',
+)
+assert.equal(
+  kimiEnvironments.serverEnv.GOOGLE_SECRET_OPENAI_API_KEY_NAME,
+  'projects/reeditpro/secrets/reeditpro-prod-openai-api-key/versions/2',
+)
+assert.equal(
   kimiEnvironments.frontendEnv.GOOGLE_SECRET_KIMI_API_KEY_NAME,
+  '',
+)
+assert.equal(
+  kimiEnvironments.frontendEnv.GOOGLE_SECRET_OPENAI_API_KEY_NAME,
   '',
 )
 assert.equal(
@@ -145,6 +160,7 @@ console.log(JSON.stringify({
     'private_review_runtime_requires_explicit_flag',
     'kimi_runtime_requires_explicit_flag',
     'kimi_secret_reference_is_server_only',
+    'terra_fallback_secret_reference_is_server_only',
     'private_review_internal_secret_is_server_only',
     'external_credentials_scrubbed',
     'safe_summary_contains_no_secret_values',

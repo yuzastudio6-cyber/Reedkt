@@ -52,6 +52,7 @@ KimiK3SourceLedChatAssistantPort = {
     assert.equal(input.editSessionId, editSessionId)
     if (kimiK3CallCount === 1) {
       return {
+        source: 'kimi_k3',
         status: 'credential_unavailable',
         routeId: 'kimi_k3_primary',
         providerModel: 'kimi-k3',
@@ -65,6 +66,7 @@ KimiK3SourceLedChatAssistantPort = {
       }
     }
     return {
+      source: 'kimi_k3',
       status: 'completed',
       routeId: 'kimi_k3_primary',
       providerModel: 'kimi-k3',

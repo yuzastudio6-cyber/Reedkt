@@ -46,6 +46,12 @@ import type { CanonicalCloudDispatchHttpReceiverPort } from
 import {
   createKimiK3SourceLedChatAssistantPort,
 } from './services/kimi-k3-source-led-chat-assistant'
+import {
+  createGpt56TerraSourceLedChatAssistantPort,
+} from './services/gpt-5-6-terra-source-led-chat-assistant'
+import {
+  createKimiTerraSourceLedChatAssistantPort,
+} from './services/source-led-chat-assistant'
 import type { StorageAdapter } from './storage/storage-types'
 import type { RuntimeClients, RuntimeRequest, RuntimeState } from './types'
 
@@ -100,10 +106,18 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
     (isExplicitLocalInternalTestRuntime(env) && clients.admin
       ? createControlledLocalStorytellingProductionAuthorityReader(clients.admin)
       : undefined)
-  const kimiK3SourceLedChatAssistantPort =
+  const configuredSourceLedChatAssistantPort =
     options.kimiK3SourceLedChatAssistantPort ??
     (env.kimiRuntimeMode !== 'disabled'
-      ? createKimiK3SourceLedChatAssistantPort({ env })
+      ? createKimiTerraSourceLedChatAssistantPort({
+          kimi: createKimiK3SourceLedChatAssistantPort({ env }),
+          ...(env.openAiRuntimeMode !== 'disabled'
+            ? {
+                terra:
+                  createGpt56TerraSourceLedChatAssistantPort({ env }),
+              }
+            : {}),
+        })
       : undefined)
   const runtime: RuntimeState = {
     env,
@@ -213,8 +227,11 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
             options.editBriefPrivateWorkspaceRuntimePort,
         }
       : {}),
-    ...(kimiK3SourceLedChatAssistantPort
-      ? { kimiK3SourceLedChatAssistantPort }
+    ...(configuredSourceLedChatAssistantPort
+      ? {
+          kimiK3SourceLedChatAssistantPort:
+            configuredSourceLedChatAssistantPort,
+        }
       : {}),
     clients,
   }

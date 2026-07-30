@@ -12,6 +12,7 @@ export type LargeMediaFinalizationMode = 'disabled' | 'private_local' | 'distrib
 export type WorkerRuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
 export type BrowserApiTransportMode = 'direct' | 'google_api_gateway'
 export type KimiRuntimeMode = 'disabled' | 'internal_test' | 'cloud_run'
+export type OpenAiRuntimeMode = 'disabled' | 'internal_test' | 'cloud_run'
 
 export interface RuntimeEnv {
   nodeEnv: string
@@ -55,6 +56,7 @@ export interface RuntimeEnv {
   toolAdapterPythonBinConfigured: boolean
   playwrightBin: string
   kimiRuntimeMode: KimiRuntimeMode
+  openAiRuntimeMode: OpenAiRuntimeMode
   providerSecretReferenceNames: Record<string, string | undefined>
   hasSupabaseAdmin: boolean
   hasSupabasePublic: boolean
@@ -107,6 +109,11 @@ const envSchema = z.object({
   TOOL_ADAPTER_PYTHON_BIN: z.string().optional(),
   PLAYWRIGHT_BIN: z.string().default('npx playwright'),
   REEDITPRO_KIMI_RUNTIME_MODE: z.enum([
+    'disabled',
+    'internal_test',
+    'cloud_run',
+  ]).default('disabled'),
+  REEDITPRO_OPENAI_RUNTIME_MODE: z.enum([
     'disabled',
     'internal_test',
     'cloud_run',
@@ -214,6 +221,7 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     toolAdapterPythonBinConfigured: Boolean(clean(parsed.TOOL_ADAPTER_PYTHON_BIN)),
     playwrightBin: parsed.PLAYWRIGHT_BIN,
     kimiRuntimeMode: parsed.REEDITPRO_KIMI_RUNTIME_MODE,
+    openAiRuntimeMode: parsed.REEDITPRO_OPENAI_RUNTIME_MODE,
     providerSecretReferenceNames: {
       openai: clean(parsed.GOOGLE_SECRET_OPENAI_API_KEY_NAME),
       kimi: clean(parsed.GOOGLE_SECRET_KIMI_API_KEY_NAME),
@@ -325,6 +333,43 @@ export function assertRuntimeCanStart(env: RuntimeEnv): void {
       'REEDITPRO_KIMI_RUNTIME_MODE=cloud_run requires E2E_RUNTIME_MODE=cloud_run.',
     )
   }
+
+  if (env.openAiRuntimeMode !== 'disabled') {
+    if (env.kimiRuntimeMode === 'disabled') {
+      throw new Error(
+        'GPT-5.6 Terra is a Kimi fallback and requires the Kimi primary runtime.',
+      )
+    }
+    const secretReference = env.providerSecretReferenceNames.openai
+    if (
+      !secretReference
+      || !/^projects\/(?:[a-z][a-z0-9-]{4,28}[a-z0-9]|[0-9]{6,20})\/secrets\/[A-Za-z0-9_-]{1,255}\/versions\/[1-9][0-9]*$/u.test(
+        secretReference,
+      )
+    ) {
+      throw new Error(
+        'OpenAI runtime requires GOOGLE_SECRET_OPENAI_API_KEY_NAME as an explicitly pinned Secret Manager version.',
+      )
+    }
+  }
+
+  if (
+    env.nodeEnv === 'production'
+    && env.openAiRuntimeMode === 'internal_test'
+  ) {
+    throw new Error(
+      'REEDITPRO_OPENAI_RUNTIME_MODE=internal_test is forbidden in production.',
+    )
+  }
+
+  if (
+    env.openAiRuntimeMode === 'cloud_run'
+    && env.mode !== 'cloud_run'
+  ) {
+    throw new Error(
+      'REEDITPRO_OPENAI_RUNTIME_MODE=cloud_run requires E2E_RUNTIME_MODE=cloud_run.',
+    )
+  }
 }
 
 export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknown> {
@@ -377,6 +422,15 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
       ),
       endpoint: 'https://api.moonshot.ai/v1/chat/completions',
       model: 'kimi-k3',
+    },
+    openAiRuntime: {
+      mode: env.openAiRuntimeMode,
+      pinnedSecretReferenceConfigured: Boolean(
+        env.providerSecretReferenceNames.openai,
+      ),
+      endpoint: 'https://api.openai.com/v1/responses',
+      model: 'gpt-5.6-terra',
+      role: 'kimi_fallback',
     },
     providerSecretReferenceNamesConfigured: Object.fromEntries(
       Object.entries(env.providerSecretReferenceNames).map(([key, value]) => [key, Boolean(value)]),

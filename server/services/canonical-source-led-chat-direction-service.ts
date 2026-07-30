@@ -41,8 +41,8 @@ import {
   readPlanningExactEditPreferenceAuthority,
 } from './planning-exact-edit-preference-authority-port'
 import type {
-  KimiK3SourceLedChatAssistantResult,
-} from './kimi-k3-source-led-chat-assistant'
+  SourceLedChatAssistantResult,
+} from './source-led-chat-assistant'
 import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 
@@ -619,10 +619,12 @@ async function createExchange(input: {
 }
 
 function assistantRuntimeFromResult(
-  result: KimiK3SourceLedChatAssistantResult,
+  result: SourceLedChatAssistantResult,
 ): CanonicalSourceLedChatAssistantRuntime {
   return {
-    source: 'kimi_k3',
+    source: result.routeId === 'gpt_5_6_terra_fallback'
+      ? 'gpt_5_6_terra'
+      : 'kimi_k3',
     status: result.status,
     routeId: result.routeId,
     providerModel: result.providerModel,
@@ -632,6 +634,12 @@ function assistantRuntimeFromResult(
     modelCallMade: result.modelCallMade,
     attemptDigestSha256: result.attemptDigestSha256,
     ...(result.usage ? { usage: structuredClone(result.usage) } : {}),
+    ...(result.fallbackFrom
+      ? { fallbackFrom: structuredClone(result.fallbackFrom) }
+      : {}),
+    ...(result.fallbackTrigger
+      ? { fallbackTrigger: result.fallbackTrigger }
+      : {}),
   }
 }
 

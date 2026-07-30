@@ -13,6 +13,8 @@ const DEFAULT_WEB_PORT = 5173
 const DEFAULT_API_PORT = 8787
 const INTERNAL_KIMI_SECRET_REFERENCE =
   'projects/reeditpro/secrets/reeditpro-prod-kimi-api-key/versions/2'
+const INTERNAL_OPENAI_SECRET_REFERENCE =
+  'projects/reeditpro/secrets/reeditpro-prod-openai-api-key/versions/2'
 const PRIVATE_STORAGE_DIRECTORY = join('.reeditpro-local-storage', 'private-workspace')
 const PASSTHROUGH_ENV_KEYS = [
   'PATH',
@@ -73,6 +75,7 @@ const EXTERNAL_RUNTIME_ENV_KEYS = [
   'GOOGLE_SECRET_MIRELO_API_KEY_NAME',
   'GOOGLE_SECRET_MMAUDIO_API_KEY_NAME',
   'REEDITPRO_KIMI_RUNTIME_MODE',
+  'REEDITPRO_OPENAI_RUNTIME_MODE',
 ]
 
 class StopRequestedError extends Error {}
@@ -154,8 +157,12 @@ export function createPrivateWorkspaceChildEnvironments(config, sourceEnv = proc
       config.privateReviewRuntime ? 'true' : '',
     REEDITPRO_KIMI_RUNTIME_MODE:
       config.kimiRuntime ? 'internal_test' : 'disabled',
+    REEDITPRO_OPENAI_RUNTIME_MODE:
+      config.kimiRuntime ? 'internal_test' : 'disabled',
     GOOGLE_SECRET_KIMI_API_KEY_NAME:
       config.kimiRuntime ? INTERNAL_KIMI_SECRET_REFERENCE : '',
+    GOOGLE_SECRET_OPENAI_API_KEY_NAME:
+      config.kimiRuntime ? INTERNAL_OPENAI_SECRET_REFERENCE : '',
     REEDITPRO_INTERNAL_SERVICE_TOKEN:
       config.privateReviewRuntime ? randomBytes(32).toString('base64url') : '',
   }
@@ -193,7 +200,9 @@ export function createPrivateWorkspaceCheckSummary(config) {
     privateReviewRuntime: config.privateReviewRuntime,
     kimiRuntime: config.kimiRuntime,
     storageDirectory: relative(config.root, config.storageRoot),
-    externalServices: config.kimiRuntime ? 'kimi_k3_only' : 'disabled',
+    externalServices: config.kimiRuntime
+      ? 'kimi_k3_with_gpt_5_6_terra_fallback'
+      : 'disabled',
     startsProcesses: false,
   }
 }
@@ -296,7 +305,7 @@ async function startPrivateWorkspace(config, childEnvironments, runtimePaths) {
     }
     if (config.kimiRuntime) {
       console.log(
-        'Kimi K3 Chat is active through the pinned server-only Secret Manager reference.',
+        'Kimi K3 Chat is active with GPT-5.6 Terra fallback through pinned server-only Secret Manager references.',
       )
     }
     console.log(
@@ -359,10 +368,15 @@ function assertPrivateWorkspaceEnvironment(config, { serverEnv, frontendEnv }) {
     config.kimiRuntime
     && (
       serverEnv.REEDITPRO_KIMI_RUNTIME_MODE !== 'internal_test'
+      || serverEnv.REEDITPRO_OPENAI_RUNTIME_MODE !== 'internal_test'
       || serverEnv.GOOGLE_SECRET_KIMI_API_KEY_NAME
         !== INTERNAL_KIMI_SECRET_REFERENCE
+      || serverEnv.GOOGLE_SECRET_OPENAI_API_KEY_NAME
+        !== INTERNAL_OPENAI_SECRET_REFERENCE
       || frontendEnv.REEDITPRO_KIMI_RUNTIME_MODE
+      || frontendEnv.REEDITPRO_OPENAI_RUNTIME_MODE
       || frontendEnv.GOOGLE_SECRET_KIMI_API_KEY_NAME
+      || frontendEnv.GOOGLE_SECRET_OPENAI_API_KEY_NAME
     )
   ) {
     throw new Error(
@@ -383,7 +397,9 @@ function assertPrivateWorkspaceEnvironment(config, { serverEnv, frontendEnv }) {
       config.kimiRuntime
       && (
         key === 'REEDITPRO_KIMI_RUNTIME_MODE'
+        || key === 'REEDITPRO_OPENAI_RUNTIME_MODE'
         || key === 'GOOGLE_SECRET_KIMI_API_KEY_NAME'
+        || key === 'GOOGLE_SECRET_OPENAI_API_KEY_NAME'
       )
     ) continue
     if (serverEnv[key] || frontendEnv[key]) {

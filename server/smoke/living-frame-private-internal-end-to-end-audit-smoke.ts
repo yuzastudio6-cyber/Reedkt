@@ -347,7 +347,7 @@ const receipt = {
       gate:
         'exact_comfyui_controlled_generation_runtime',
       reason:
-        'exact_private_bundle_and_atomic_read_only_mount_are_verified_and_canonical_full_frame_runtime_source_router_bridge_is_frozen_at_bffa1ec0_but_released_image_canonical_distributed_mount_real_l4_generation_resource_persistence_and_qa_evidence_remain_unavailable',
+        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_and_private_offline_image_build_are_verified_but_independent_image_disposition_canonical_distributed_mount_real_l4_generation_resource_persistence_and_qa_evidence_remain_unavailable',
     },
     {
       gate:

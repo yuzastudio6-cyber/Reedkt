@@ -80,6 +80,19 @@ production evidence. This closes the former local artifact-presence and
 atomic-mount uncertainty; the released image, complete L4 load, generation,
 resource receipt, persistence, and QA gates remain open.
 
+`smoke:living-frame-comfyui-canonical-offline-image-private-internal-test`
+runs a third host-specific ComfyUI proof. The exact 35-wheel/three-source
+offline closure now builds successfully from canonical backend commit
+`bffa1ec0`; both the installer and final-image layout verifier pass. The
+11,392,910,414-byte `linux/amd64` image defaults to UID/GID `65532:65532`,
+uses the fixed canonical runner entrypoint, contains the exact two reviewed
+custom-node source trees, contains no model weights, and passes a read-only,
+network-disabled, capability-free, no-new-privileges layout probe. The local
+SPDX scanner did not complete because its temporary image copy exhausted host
+scratch space, so independent SBOM, vulnerability, license/VCS, provenance,
+signature, distributed-mount, L4, output, resource, persistence, and QA
+evidence remain open.
+
 When the exact two private AuraFace ONNX artifacts and a synthetic
 single-person portrait are injected,
 `smoke:living-frame-auraface-canonical-mount-host-session` runs the optional
@@ -110,14 +123,15 @@ Passing this audit proves that the currently executable private Living Frame
 pipeline works together across its selected-scene and renderer boundaries. A
 pass must still report two open internal runtime gates:
 
-1. exact ComfyUI controlled generation needs a released image and real L4
-   execution evidence. Exact private-local five-model byte identity and
-   simultaneous read-only mounting are now verified, and canonical backend
-   commit `bffa1ec0` freezes the full-frame-capable runtime/source/router
-   bridge plus the complete 15-node controlled graph. The local CPU preflight
-   is still not a complete model load or generation result, and the bridge
-   still lacks released-image, distributed-mount, L4 output, resource,
-   persistence, and QA evidence; and
+1. exact ComfyUI controlled generation needs independent image disposition
+   and real L4 execution evidence. Exact private-local five-model byte
+   identity and simultaneous read-only mounting are verified; canonical
+   backend commit `bffa1ec0` freezes the full-frame-capable
+   runtime/source/router bridge and complete 15-node controlled graph; and
+   the exact offline package now builds into a fixed non-root private image.
+   That image is not yet independently scanned, signed, or released, and no
+   complete L4 model load, output, resource, persistence, or QA evidence
+   exists; and
 2. advanced temporal Living A-Roll subject masking has an exact namespaced
    source-video/SAM2 work-admission candidate, a verified byte-output and
    downstream QA path, canonical backend work-graph admission frozen at

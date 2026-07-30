@@ -119,7 +119,11 @@ Actual private renders supplement the connected source-level trace:
   archive differential parallax, deterministic diagram reveal, hybrid
   expansion and return, caption-plane priority in every range, the absence
   of Living Frame overlays in the restraint range, and a readable static card
-  without unsupported motion.
+  without unsupported motion. The Living Still range also carries one exact
+  narration-protected mechanical cue. FFmpeg-decoded frequency measurements
+  prove that the cue is absent before its frame range, present during the
+  rotor motion, and remains subordinate to the preserved source
+  narration-proxy tone.
 - `server/smoke/living-frame-confirmed-ratio-private-render-smoke.ts` renders
   real 360×640 portrait and 480×600 custom-frame hybrid scenes, persists and
   reopens both private MP4s, and proves exact dimensions, expansion/return, and
@@ -163,7 +167,8 @@ private-review evidence compiler. It is still controlled evidence:
 - artifact selections are test-only private selections;
 - the final Remotion evidence is a controlled verified-run record;
 - deterministic Living Frame motion, camera/source attention, depth parallax,
-  and caption ordering have actual private-render evidence;
+  caption ordering, and one exact speech-protected mechanical cue have actual
+  private-render evidence;
 - confirmed 16:9, 9:16, and custom non-square review canvases have actual
   private-render and FFprobe evidence;
 - ComfyUI is not yet a released canonical GPU operation;

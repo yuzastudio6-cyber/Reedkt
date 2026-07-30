@@ -96,6 +96,28 @@ The static card remains below captions and uses a constant approved scalar
 track, proving that the fallback does not require fake motion to satisfy the
 renderer contract.
 
+## Sound choreography evidence
+
+The Living Still range carries one approved mechanical SFX cue on exactly
+frames 30–60. The cue is a fixed 48 kHz stereo PCM input, is streamed through
+the existing supplemental-audio contract, and uses the existing
+`narration_protected_uploaded_sfx_v1` mix profile. It is not a new Living Frame
+audio owner.
+
+The source fixture carries a 330 Hz narration-proxy tone, and the approved SFX
+carries an 880 Hz mechanical tone. After the real render, FFmpeg decodes the
+mixed AAC stream back to mono PCM. Frequency-domain measurements prove that:
+
+- the mechanical tone is effectively absent before its approved range;
+- it is present during the selective rotor motion;
+- the source narration-proxy tone remains materially dominant; and
+- the source tone does not suffer a material drop during the cue.
+
+This is a real timing and mix proof for one subject-neutral internal fixture.
+It does not claim that a sine tone is human speech, and it does not replace
+SoundSync's ownership of real cue selection, gain envelopes, ducking, or
+project-specific narration QA.
+
 ## Runtime and QA evidence
 
 The test executes:
@@ -106,6 +128,7 @@ The test executes:
 - create-only canonical private artifact persistence;
 - exact digest and byte-length readback;
 - real FFmpeg frame extraction;
+- real FFmpeg audio decode and frequency-domain cue/mix measurement;
 - real FFprobe width, height, frame-rate, and frame-count inspection; and
 - pixel-level motion, scale, depth, visibility, restoration, caption-order, and
   non-use assertions.

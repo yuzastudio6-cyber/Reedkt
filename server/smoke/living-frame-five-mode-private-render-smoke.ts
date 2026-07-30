@@ -62,6 +62,10 @@ const storageRoot = await mkdtemp(
 )
 const sourcePath = join(fixtureRoot, 'source.mp4')
 const captionPath = join(fixtureRoot, 'caption.png')
+const mechanicalSfxPath = join(
+  fixtureRoot,
+  'living-still-mechanical-sfx.wav',
+)
 const renderedPath = join(fixtureRoot, 'five-mode-private-render.mp4')
 
 const fixturePaths = {
@@ -106,6 +110,7 @@ const colorMatchers = {
 try {
   makeSource(sourcePath)
   makeCaption(captionPath)
+  makeMechanicalSfx(mechanicalSfxPath)
   makeTransparentOverlay(
     fixturePaths.aRollVisual,
     [
@@ -172,6 +177,8 @@ try {
 
   const source = await fileCommitment(sourcePath)
   const caption = await fileCommitment(captionPath)
+  const mechanicalSfx =
+    await fileCommitment(mechanicalSfxPath)
   const fixtureCommitments = await Promise.all(
     Object.entries(fixturePaths).map(async ([key, path]) => ({
       key,
@@ -456,6 +463,24 @@ try {
         sourceFit: 'contain',
         panelBackground: '#111827',
         audioPolicy: 'preserve_source',
+        supplementalAudioPolicy:
+          'approved_edit_brief_audio_tracks_v1',
+        supplementalAudioTracks: [{
+          outputKey:
+            'lf-five-mode-mechanical-sfx',
+          attachmentId:
+            'lf-five-mode-mechanical-sfx-asset',
+          markerId:
+            'lf-five-mode-living-still-motion-hit',
+          markerType: 'sfx',
+          startFrame:
+            sceneRanges.livingStill.startFrame,
+          endFrameExclusive:
+            sceneRanges.livingStill.endFrameExclusive,
+          fillPolicy: 'trim_without_loop',
+          mixProfileId:
+            'narration_protected_uploaded_sfx_v1',
+        }],
         captionOverlayPolicy:
           'approved_full_frame_rgba',
         livingFrameOverlayPolicy:
@@ -490,6 +515,26 @@ try {
           }
         },
       ),
+      supplementalAudioTracks: [{
+        inputId:
+          'approved-living-still-mechanical-sfx',
+        outputKey:
+          'lf-five-mode-mechanical-sfx',
+        attachmentId:
+          'lf-five-mode-mechanical-sfx-asset',
+        markerId:
+          'lf-five-mode-living-still-motion-hit',
+        markerType: 'sfx',
+        startFrame:
+          sceneRanges.livingStill.startFrame,
+        endFrameExclusive:
+          sceneRanges.livingStill.endFrameExclusive,
+        fillPolicy: 'trim_without_loop',
+        mixProfileId:
+          'narration_protected_uploaded_sfx_v1',
+        mimeType: 'audio/wav',
+        ...mechanicalSfx,
+      }],
     })
 
   const inputs: OfflineRemotionServerInjectedInput[] = [
@@ -516,6 +561,12 @@ try {
       'image/png',
       captionPath,
       caption,
+    ),
+    privateFileInput(
+      'approved-living-still-mechanical-sfx',
+      'audio/wav',
+      mechanicalSfxPath,
+      mechanicalSfx,
     ),
   ]
 
@@ -585,6 +636,21 @@ try {
   assert.equal(
     result.evidence.semanticEvidence
       .approvedLivingFrameOverlayBelowCaptionsApplied,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .approvedSupplementalAudioInputStreamedWithoutWholeBuffer,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .approvedSupplementalAudioTimelineApplied,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .approvedSupplementalAudioSpeechSafeMixApplied,
     true,
   )
 
@@ -739,6 +805,56 @@ try {
   assert.equal(probe.frameCount, durationFrames)
   assert.equal(probe.frameRate, `${fps}/1`)
 
+  const decodedAudio = extractMonoPcm(
+    renderedPath,
+    48_000,
+  )
+  const samplesPerSecond = 48_000
+  const sourceToneBefore = toneMagnitude(
+    decodedAudio.subarray(
+      0,
+      samplesPerSecond * 2,
+    ),
+    330,
+    samplesPerSecond,
+  )
+  const sourceToneDuring = toneMagnitude(
+    decodedAudio.subarray(
+      samplesPerSecond * 2,
+      samplesPerSecond * 4,
+    ),
+    330,
+    samplesPerSecond,
+  )
+  const sfxToneBefore = toneMagnitude(
+    decodedAudio.subarray(
+      0,
+      samplesPerSecond * 2,
+    ),
+    880,
+    samplesPerSecond,
+  )
+  const sfxToneDuring = toneMagnitude(
+    decodedAudio.subarray(
+      samplesPerSecond * 2,
+      samplesPerSecond * 4,
+    ),
+    880,
+    samplesPerSecond,
+  )
+  assert.ok(
+    sfxToneDuring > sfxToneBefore * 8,
+    `Expected the 880Hz mechanical cue only during Living Still; before=${sfxToneBefore}, during=${sfxToneDuring}.`,
+  )
+  assert.ok(
+    sourceToneDuring > sfxToneDuring * 3,
+    `Expected the 330Hz narration-proxy tone to remain dominant; source=${sourceToneDuring}, sfx=${sfxToneDuring}.`,
+  )
+  assert.ok(
+    sourceToneDuring > sourceToneBefore * 0.65,
+    `Expected the narration-proxy tone to remain protected; before=${sourceToneBefore}, during=${sourceToneDuring}.`,
+  )
+
   const rendered = await readFile(renderedPath)
   assert.equal(
     createHash('sha256').update(rendered).digest('hex'),
@@ -792,6 +908,16 @@ try {
     staticFallback: {
       staticCardRenderedWithoutUnsupportedMotion: true,
       captionPlanePreserved: true,
+    },
+    soundChoreography: {
+      exactMechanicalCueRangeApplied: true,
+      sourceNarrationProxyTonePreserved: true,
+      narrationProtectedMixMeasured: true,
+      sfxAbsentBeforeCueAndPresentDuringCue: true,
+      sourceToneBefore,
+      sourceToneDuring,
+      sfxToneBefore,
+      sfxToneDuring,
     },
     captionPlaneObservedAboveEveryMode: true,
     persistedPrivateArtifactReopenedAndVerified: true,
@@ -1074,6 +1200,32 @@ function makeSource(path: string): void {
   assert.equal(result.status, 0, result.stderr)
 }
 
+function makeMechanicalSfx(path: string): void {
+  const result = spawnSync('ffmpeg', [
+    '-hide_banner',
+    '-loglevel',
+    'error',
+    '-f',
+    'lavfi',
+    '-i',
+    'sine=frequency=880:sample_rate=48000:duration=1',
+    '-af',
+    'volume=0.2',
+    '-ac',
+    '2',
+    '-c:a',
+    'pcm_s16le',
+    '-threads',
+    '1',
+    '-y',
+    path,
+  ], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
+  })
+  assert.equal(result.status, 0, result.stderr)
+}
+
 function makeCaption(path: string): void {
   makeTransparentOverlay(path, [
     'drawbox=x=220:y=302:w=200:h=34:color=0xFF00D4@1:t=fill:replace=1',
@@ -1305,6 +1457,67 @@ function probeRenderedVideo(path: string): {
   }
 }
 
+function extractMonoPcm(
+  path: string,
+  sampleRate: number,
+): Buffer {
+  const result = spawnSync('ffmpeg', [
+    '-hide_banner',
+    '-loglevel',
+    'error',
+    '-i',
+    path,
+    '-vn',
+    '-ac',
+    '1',
+    '-ar',
+    String(sampleRate),
+    '-f',
+    's16le',
+    'pipe:1',
+  ], {
+    encoding: null,
+    maxBuffer: 4 * 1024 * 1024,
+  })
+  assert.equal(
+    result.status,
+    0,
+    Buffer.isBuffer(result.stderr)
+      ? result.stderr.toString('utf8')
+      : String(result.stderr),
+  )
+  assert.ok(Buffer.isBuffer(result.stdout))
+  return result.stdout
+}
+
+function toneMagnitude(
+  pcmS16le: Buffer,
+  frequency: number,
+  sampleRate: number,
+): number {
+  assert.equal(pcmS16le.byteLength % 2, 0)
+  const sampleCount = pcmS16le.byteLength / 2
+  assert.ok(sampleCount > 0)
+  const normalizedFrequency =
+    (2 * Math.PI * frequency) / sampleRate
+  let real = 0
+  let imaginary = 0
+  for (let index = 0; index < sampleCount; index += 1) {
+    const sample =
+      pcmS16le.readInt16LE(index * 2) / 32768
+    real += sample * Math.cos(
+      normalizedFrequency * index,
+    )
+    imaginary -= sample * Math.sin(
+      normalizedFrequency * index,
+    )
+  }
+  return (
+    Math.sqrt(real * real + imaginary * imaginary) /
+    sampleCount
+  )
+}
+
 async function fileCommitment(path: string): Promise<{
   byteLength: number
   sha256: string
@@ -1328,7 +1541,10 @@ async function fileCommitment(path: string): Promise<{
 
 function privateFileInput(
   inputId: string,
-  mimeType: 'video/mp4' | 'image/png',
+  mimeType:
+    | 'video/mp4'
+    | 'image/png'
+    | 'audio/wav',
   path: string,
   commitment: {
     byteLength: number

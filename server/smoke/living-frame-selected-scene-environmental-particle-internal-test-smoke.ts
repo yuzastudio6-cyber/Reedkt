@@ -31,6 +31,9 @@ import {
   LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_SCENE_QA_INTERNAL_TEST_VERSION,
 } from '../../src/types/living-frame-selected-scene-environmental-particle-scene-qa-internal-test'
 import {
+  LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_PRIVATE_REVIEW_INTERNAL_TEST_VERSION,
+} from '../../src/types/living-frame-selected-scene-environmental-particle-private-review-internal-test'
+import {
   compileLivingFrameComponentGeometry,
 } from '../living-frame/living-frame-component-geometry'
 import {
@@ -49,8 +52,12 @@ import {
   executeLivingFrameSelectedSceneEnvironmentalParticlePrivatePersistenceInternalTestWithArtifactLease,
 } from '../living-frame/living-frame-selected-scene-environmental-particle-private-persistence-internal-test'
 import {
+  consumeLivingFrameSelectedSceneEnvironmentalParticlePrivateReviewArtifactLease,
   executeLivingFrameSelectedSceneEnvironmentalParticleSceneQaInternalTest,
 } from '../living-frame/living-frame-selected-scene-environmental-particle-scene-qa-internal-test'
+import {
+  executeLivingFrameSelectedSceneEnvironmentalParticlePrivateReviewInternalTest,
+} from '../living-frame/living-frame-selected-scene-environmental-particle-private-review-internal-test'
 import {
   inspectLivingFrameEnvironmentalParticleAdmission,
   type InspectLivingFrameEnvironmentalParticleAdmissionInput,
@@ -599,6 +606,7 @@ assert.equal(
 const {
   persistenceReport,
   sceneQaReport,
+  privateReviewReport,
   sceneQaAdversarialAssertions,
 } = await (async () => {
   const localStorageRoot =
@@ -656,12 +664,52 @@ const {
       ),
       /unknown or already consumed/u,
     )
+    await assert.rejects(
+      executeLivingFrameSelectedSceneEnvironmentalParticlePrivateReviewInternalTest({
+        qualificationId:
+          'living-frame.selected-scene-environmental-internal.private-review-forged-scene-qa',
+        fullTimelineReport,
+        persistenceReport:
+          persistenceExecution.report,
+        sceneQaReport: {
+          ...sceneQaExecution.report,
+          reportDigestSha256:
+            'f'.repeat(64),
+        },
+        privateReviewArtifactLease:
+          sceneQaExecution
+            .privateReviewArtifactLease,
+      }),
+      /private-review lineage is invalid/u,
+    )
+    const privateReviewReport =
+      await executeLivingFrameSelectedSceneEnvironmentalParticlePrivateReviewInternalTest({
+        qualificationId:
+          'living-frame.selected-scene-environmental-internal.private-review-v1',
+        fullTimelineReport,
+        persistenceReport:
+          persistenceExecution.report,
+        sceneQaReport:
+          sceneQaExecution.report,
+        privateReviewArtifactLease:
+          sceneQaExecution
+            .privateReviewArtifactLease,
+      })
+    assert.throws(
+      () =>
+        consumeLivingFrameSelectedSceneEnvironmentalParticlePrivateReviewArtifactLease(
+          sceneQaExecution
+            .privateReviewArtifactLease,
+        ),
+      /unknown or already consumed/u,
+    )
     return {
       persistenceReport:
         persistenceExecution.report,
       sceneQaReport:
         sceneQaExecution.report,
-      sceneQaAdversarialAssertions: 2,
+      privateReviewReport,
+      sceneQaAdversarialAssertions: 4,
     }
   } finally {
     await rm(localStorageRoot, {
@@ -842,6 +890,92 @@ assert.equal(
   sceneQaReport.productionReady,
   false,
 )
+assert.equal(
+  privateReviewReport.contractVersion,
+  LIVING_FRAME_SELECTED_SCENE_ENVIRONMENTAL_PARTICLE_PRIVATE_REVIEW_INTERNAL_TEST_VERSION,
+)
+assert.equal(
+  privateReviewReport.canonicalScope.sceneId,
+  scene.sceneId,
+)
+assert.equal(
+  privateReviewReport.canonicalScope.componentId,
+  componentId,
+)
+assert.equal(
+  privateReviewReport.privateReviewArtifact
+    .fullStreamByteLengthReverified,
+  true,
+)
+assert.equal(
+  privateReviewReport.privateReviewArtifact
+    .fullStreamSha256Reverified,
+  true,
+)
+assert.equal(
+  privateReviewReport.reviewEvidence
+    .privateReviewEvidenceCompiled,
+  true,
+)
+assert.equal(
+  privateReviewReport.reviewEvidence
+    .privateInternalReviewEvidencePassed,
+  true,
+)
+assert.equal(
+  privateReviewReport.reviewEvidence
+    .proceduralAlphaQaPassed,
+  true,
+)
+assert.equal(
+  privateReviewReport.reviewEvidence
+    .captionPlanePriorityPassed,
+  true,
+)
+assert.equal(
+  privateReviewReport.canonicalReviewDisposition
+    .canonicalCompilerSupportsStaticRgbaWorkChain,
+  true,
+)
+assert.equal(
+  privateReviewReport.canonicalReviewDisposition
+    .canonicalCompilerSupportsProceduralTimelineWorkChain,
+  false,
+)
+assert.equal(
+  privateReviewReport.canonicalReviewDisposition
+    .noParallelPrivateReviewOwnerCreated,
+  true,
+)
+assert.equal(
+  privateReviewReport
+    .privateInternalParticleSliceEndToEndPassed,
+  true,
+)
+assert.equal(
+  privateReviewReport.assetManifestMutated,
+  false,
+)
+assert.equal(
+  privateReviewReport.canonicalQaApproved,
+  false,
+)
+assert.equal(
+  privateReviewReport.privateReviewApproved,
+  false,
+)
+assert.equal(
+  privateReviewReport.customerCharged,
+  false,
+)
+assert.equal(
+  privateReviewReport.publicDeliveryReady,
+  false,
+)
+assert.equal(
+  privateReviewReport.productionReady,
+  false,
+)
 assert.throws(
   () =>
     consumeLivingFrameSelectedSceneEnvironmentalParticleRemotionPrivateReviewOutputLease(
@@ -928,6 +1062,8 @@ const serializedPersistenceReport =
   JSON.stringify(persistenceReport)
 const serializedSceneQaReport =
   JSON.stringify(sceneQaReport)
+const serializedPrivateReviewReport =
+  JSON.stringify(privateReviewReport)
 for (const forbidden of [
   'pngBytes',
   'rgbaBytes',
@@ -956,6 +1092,12 @@ for (const forbidden of [
   )
   assert.equal(
     serializedSceneQaReport.includes(
+      forbidden,
+    ),
+    false,
+  )
+  assert.equal(
+    serializedPrivateReviewReport.includes(
       forbidden,
     ),
     false,
@@ -1027,6 +1169,15 @@ process.stdout.write(`${JSON.stringify({
   canonicalSceneEvidencePrimitiveDischargePending:
     sceneQaReport.sceneEvidenceDisposition
       .genericPackageStillMarksProceduralPrimitivePending,
+  privateReviewEvidenceCompiled:
+    privateReviewReport.reviewEvidence
+      .privateReviewEvidenceCompiled,
+  privateInternalParticleSliceEndToEndPassed:
+    privateReviewReport
+      .privateInternalParticleSliceEndToEndPassed,
+  canonicalPrivateReviewProceduralTimelineExtensionPending:
+    !privateReviewReport.canonicalReviewDisposition
+      .canonicalCompilerSupportsProceduralTimelineWorkChain,
   customerCharged: report.customerCharged,
   productionReady: report.productionReady,
   adversarialAssertions,

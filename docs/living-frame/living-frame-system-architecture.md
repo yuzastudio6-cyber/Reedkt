@@ -3239,6 +3239,25 @@ canonical procedural-QA discharge reconciliation remain next.
 The scene-QA evidence is specified in
 `docs/living-frame/living-frame-selected-scene-environmental-particle-scene-qa-internal-test.md`.
 
+The adjacent
+`living-frame-selected-scene-environmental-particle-private-review-internal-test-v1`
+qualification consumes a third process-bound lease, re-opens and re-hashes the
+complete persisted MP4, and compiles a byte-free private-review receipt. It
+binds selected-scene, MasterTiming, confirmed-frame, persisted-media,
+procedural-alpha, destination-composite, caption-plane, and Remotion evidence.
+This makes the selected environmental-particle slice privately end-to-end
+green.
+
+The generic canonical private-review compiler currently requires the static
+Sharp RGBA component plus static layer-manifest route. It has no
+procedural-timeline artifact contract. The namespaced evidence records this
+exact conflict while preserving the canonical review owner and keeping review
+approval, manifest mutation, cost, billing, public delivery, external beta,
+and production false.
+
+The private-review evidence is specified in
+`docs/living-frame/living-frame-selected-scene-environmental-particle-private-review-internal-test.md`.
+
 The downstream Sharp alpha-component authority accepts exactly one approved
 source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg
 mask PNG. It continues to use the existing straight-alpha recipe and canonical

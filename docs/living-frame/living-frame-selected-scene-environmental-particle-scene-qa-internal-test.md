@@ -77,9 +77,10 @@ The test proves `privateInternalSceneQaPassed: true`. It keeps false:
 - external beta; and
 - production readiness.
 
-The next internal milestone is to compile a private-review evidence receipt
-for this exact artifact and QA lineage while preserving the existing canonical
-review authority.
+The adjacent private-review test now consumes a separate single-use lease,
+re-hashes the complete stored artifact, and compiles a byte-free review
+receipt for this exact lineage while preserving the existing canonical review
+authority.
 
 ## Validation
 
@@ -95,3 +96,6 @@ persisted-artifact lease and final-render lease reject reuse.
 - `src/types/living-frame-selected-scene-environmental-particle-scene-qa-internal-test.ts`
 - `server/living-frame/living-frame-selected-scene-environmental-particle-scene-qa-internal-test.ts`
 - `server/smoke/living-frame-selected-scene-environmental-particle-internal-test-smoke.ts`
+
+See also
+`docs/living-frame/living-frame-selected-scene-environmental-particle-private-review-internal-test.md`.

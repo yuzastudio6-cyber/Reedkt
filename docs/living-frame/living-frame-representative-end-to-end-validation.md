@@ -105,7 +105,10 @@ Two actual private renders supplement the connected source-level trace:
   readback. A second process-bound lease re-opens that stored MP4 through the
   private media runtime, independently verifies H.264, 640×360, 30 FPS, and
   105 frames, and binds the actual procedural-alpha and destination-composite
-  measurements into a private scene-QA receipt. It distinguishes
+  measurements into a private scene-QA receipt. A third single-use lease
+  re-opens and re-hashes the complete stored MP4, then compiles byte-free
+  selected-scene private-review evidence. The selected environmental-particle
+  slice is therefore privately end-to-end green. It distinguishes
   sub-perceptual fade frames from missing overlays without relaxing materially
   visible-frame requirements.
 
@@ -151,6 +154,9 @@ private-review evidence compiler. It is still controlled evidence:
 - selected-scene particle persisted-media and procedural scene QA are now
   proven; the generic v1 scene-evidence package still needs a canonical
   procedural-QA discharge extension;
+- selected-scene particle private-review evidence is now compiled; the
+  canonical review compiler still needs a procedural-timeline artifact
+  contract because its current route is intentionally static Sharp RGBA;
 - actual controlled-illustration output persistence, actual worker
   resource-cost evidence, and released alpha/continuity QA remain open;
 - public delivery, production, customer charging, and deployment remain false.

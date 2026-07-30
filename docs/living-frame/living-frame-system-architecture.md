@@ -3059,6 +3059,28 @@ artifact, manifest entry, QA result, or renderer payload. The canonical
 work-graph owner must still consume the exact selector when it admits the
 existing rembg and Sharp items. Remotion remains the final canvas.
 
+### Per-component selective-motion reconciliation
+
+The scene visual verb expresses narrative direction; it is not a blanket
+component transform. The current canonical scalar compiler applies
+`rotation_degrees` whenever the scene verb is `rotate`, including for
+components that are not linked to `mechanical_part_motion`.
+
+`living-frame-selected-scene-selective-motion-reconciliation-v1` now
+independently recompiles every current component spec and compares it with the
+selected component role and linked mini-skill activations. Mechanical rotation
+is eligible only for an explicitly activated `mechanical_component`. Static
+anchors and stable non-mechanical subjects must remain unrotated.
+Environmental effects linked to `environmental_motion` require a qualified
+environmental primitive or approved fallback and may not inherit mechanical
+rotation.
+
+The representative five-component scene currently yields five rotation
+tracks, but only two components meet the role/activation rule. The
+reconciliation freezes that exact shared-owner conflict without changing the
+selected scene or canonical motion. Retained rotations still require approved
+component-rig pivots and pivot-physics QA before renderer admission.
+
 The downstream Sharp alpha-component authority accepts exactly one approved
 source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg
 mask PNG. It continues to use the existing straight-alpha recipe and canonical

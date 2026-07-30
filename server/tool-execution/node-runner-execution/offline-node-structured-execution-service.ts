@@ -85,6 +85,19 @@ Promise<PrivateOfflineNodeStructuredExecutionRuntime> {
   })
 }
 
+export async function activatePrivateOfflineNodeStructuredExecutionRuntime():
+Promise<PrivateOfflineNodeStructuredExecutionRuntime> {
+  if (arguments.length !== 0) {
+    throw new ApiError('VALIDATION_FAILED', 'Structured Node runtime activation does not accept caller input.', 400)
+  }
+  const image = await inspectExistingOfflineNodeStructuredDockerRuntime()
+  await persistOfflineNodeStructuredRuntimeAuthority(image)
+  return Object.freeze({
+    image,
+    execute: (request: unknown) => executeWithImage(image, request),
+  })
+}
+
 export async function openPersistedPrivateOfflineNodeStructuredExecutionRuntime():
 Promise<PrivateOfflineNodeStructuredExecutionRuntime> {
   if (arguments.length !== 0) {

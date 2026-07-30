@@ -240,25 +240,19 @@ function decodeExactBase64UrlKey(value: string | undefined): Buffer {
 }
 
 async function activatePrivateReviewRuntimes(): Promise<void> {
-  const [
-    { activatePrivateOfflineMediaBinaryRuntime },
-    { activatePrivateOfflineLibassCaptionRuntime },
-    {
-      activatePrivateOfflineRemotionRenderRuntime,
-      prepareOfflineRemotionDockerRuntime,
-    },
-  ] = await Promise.all([
-    import('./tool-execution/media-binary-execution'),
-    import('./tool-execution/libass-caption-execution'),
-    import('./tool-execution/remotion-render-execution'),
-  ])
-
-  await Promise.all([
-    activatePrivateOfflineMediaBinaryRuntime(),
-    activatePrivateOfflineLibassCaptionRuntime(),
-    (async () => {
-      await prepareOfflineRemotionDockerRuntime()
-      await activatePrivateOfflineRemotionRenderRuntime()
-    })(),
-  ])
+  const {
+    activateCompletePrivateInternalToolRuntimeSet,
+  } = await import('./tool-execution/private-internal-tool-runtime-activation')
+  const report = await activateCompletePrivateInternalToolRuntimeSet()
+  if (
+    !report.readiness.allCanonicalToolsReady
+    || !report.readiness.privateInternalExecutionReady
+    || report.tools.some(
+      (tool) => tool.status !== 'ready_for_private_internal_execution',
+    )
+  ) {
+    throw new Error(
+      'The private workspace did not activate every verified canonical tool runtime.',
+    )
+  }
 }

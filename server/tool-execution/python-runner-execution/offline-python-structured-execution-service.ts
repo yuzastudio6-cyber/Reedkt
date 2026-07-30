@@ -83,6 +83,14 @@ Promise<PrivateOfflinePythonStructuredExecutionRuntime> {
   return Object.freeze({ image, execute: (request: unknown) => executeWithImage(image, request) })
 }
 
+export async function activatePrivateOfflinePythonStructuredExecutionRuntime():
+Promise<PrivateOfflinePythonStructuredExecutionRuntime> {
+  if (arguments.length !== 0) throw validationFailure('Python runtime activation accepts no caller input.')
+  const image = await inspectExistingOfflinePythonStructuredDockerRuntime()
+  await persistRuntimeAuthority(image)
+  return Object.freeze({ image, execute: (request: unknown) => executeWithImage(image, request) })
+}
+
 export async function openPersistedPrivateOfflinePythonStructuredExecutionRuntime():
 Promise<PrivateOfflinePythonStructuredExecutionRuntime> {
   if (arguments.length !== 0) throw validationFailure('Python runtime open accepts no caller input.')

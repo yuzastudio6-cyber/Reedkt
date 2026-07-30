@@ -1,4 +1,5 @@
 export {
+  activatePrivateOfflineNodeStructuredExecutionRuntime,
   createPrivateOfflineNodeStructuredExecutionRuntime,
   OFFLINE_NODE_STRUCTURED_PACKAGE_IDENTITIES,
   OFFLINE_NODE_STRUCTURED_EXECUTION_STORAGE_ROOT,

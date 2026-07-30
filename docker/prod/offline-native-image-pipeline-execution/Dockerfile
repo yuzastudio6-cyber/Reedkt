@@ -15,13 +15,13 @@ LABEL org.opencontainers.image.title="ReEditPro private offline native image pip
   com.reeditpro.gstreamer-tools.version="1.22.0-2+deb12u1" \
   com.reeditpro.gstreamer-plugins-base.version="1.22.0-3+deb12u6"
 RUN printf '%s\n' \
-      'deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/20260623T000000Z bookworm main' \
-      'deb [check-valid-until=no] http://snapshot.debian.org/archive/debian-security/20260623T000000Z bookworm-security main' \
+      'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20260623T000000Z bookworm main' \
+      'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/20260623T000000Z bookworm-security main' \
       > /etc/apt/sources.list \
   && rm -f /etc/apt/sources.list.d/debian.sources \
-  && apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Retries=5 update \
+  && apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Retries=5 -o Acquire::https::Timeout=30 update \
   && DEBIAN_FRONTEND=noninteractive apt-get \
-      -o Acquire::Check-Valid-Until=false -o Acquire::Retries=5 install -y --no-install-recommends \
+      -o Acquire::Check-Valid-Until=false -o Acquire::Retries=5 -o Acquire::https::Timeout=30 install -y --no-install-recommends \
       opencolorio-tools=2.1.2+dfsg1-4+b3 \
       openimageio-tools=2.4.7.1+dfsg-2 \
       gstreamer1.0-tools=1.22.0-2+deb12u1 \

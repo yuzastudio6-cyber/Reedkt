@@ -154,6 +154,47 @@ const server = createServer(async (request, response) => {
     return
   }
 
+  if (
+    request.method === 'GET'
+    && request.url ===
+      '/v1/edit-executions/private-internal-tool-runtime-readiness'
+  ) {
+    response.setHeader('content-type', 'application/json')
+    response.end(JSON.stringify({
+      ok: true,
+      data: {
+        privateInternalToolRuntimeReadiness: {
+          schemaVersion:
+            'private-internal-tool-runtime-readiness-browser-v1',
+          evidenceRevision: 'frontend-http-smoke',
+          observedAt: '2026-07-30T00:00:00.000Z',
+          status: 'ready_for_private_internal_execution',
+          canonicalToolCount: 1,
+          readyToolCount: 1,
+          runnerClassCount: 1,
+          runtimeAuthorityCount: 1,
+          allCanonicalToolsReady: true,
+          privateInternalExecutionReady: true,
+          productReady: false,
+          externalBetaReady: false,
+          productionReady: false,
+          tools: [{
+            toolId: 'ffmpeg',
+            displayName: 'FFmpeg',
+            operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
+            runtimeFamily: 'media_binary',
+            status: 'ready_for_private_internal_execution',
+          }],
+          releaseBlockers: [
+            'product_external_beta_and_production_promotion_not_verified',
+          ],
+        },
+      },
+      warnings: ['HTTP transport tool readiness smoke response.'],
+    }))
+    return
+  }
+
   response.statusCode = 404
   response.setHeader('content-type', 'application/json')
   response.end(JSON.stringify({
@@ -179,10 +220,16 @@ try {
     fetchApprovedPlanSnapshotFromBackend,
     persistApprovedPlanSnapshotToBackend,
   } = await import('../../src/lib/approved-snapshot-backend-sync')
+  const {
+    readPrivateInternalToolRuntimeReadiness,
+  } = await import(
+    '../../src/lib/private-internal-tool-runtime-readiness-client'
+  )
   const { getApiRouteById } = await import('../../src/backend/api/api-route-registry')
 
   for (const routeId of [
     'editExecution.canonicalPackageRequest.create',
+    'editExecution.privateInternalToolRuntimeReadiness.read',
     'editExecution.canonicalPrivateEditPreparation.create',
     'editExecution.canonicalPrivateReviewMedia.read',
     'editExecution.canonicalPrivateReviewDecision.create',
@@ -364,6 +411,25 @@ try {
   assert.equal(backendRequiredResponse.error?.code, 'backend_runtime_required')
   assert.equal(seenRequests.length, 5, 'Backend-required route should not call backend HTTP transport.')
 
+  const runtimeReadiness =
+    await readPrivateInternalToolRuntimeReadiness()
+  assert.equal(runtimeReadiness.readyToolCount, 1)
+  assert.equal(runtimeReadiness.tools[0]?.toolId, 'ffmpeg')
+  assert.equal(
+    runtimeReadiness.tools[0]?.status,
+    'ready_for_private_internal_execution',
+  )
+  assert.equal(seenRequests.length, 6)
+  assert.equal(
+    seenRequests[5]?.url,
+    '/v1/edit-executions/private-internal-tool-runtime-readiness',
+  )
+  assert.equal(
+    seenRequests[5]?.idempotencyKey,
+    undefined,
+    'Read-only runtime inspection must not send an idempotency key.',
+  )
+
   console.log(JSON.stringify({
     ok: true,
     checks: [
@@ -377,6 +443,7 @@ try {
       'metadata_api_routes_stay_mock_only',
       'backend_required_routes_fail_closed_without_network',
       'canonical_edit_execution_routes_registered_frontend_safe_without_secrets',
+      'private_internal_tool_runtime_readiness_uses_authenticated_get_transport',
       'retired_edit_execution_routes_fail_before_http_transport',
     ],
     requestCount: seenRequests.length,

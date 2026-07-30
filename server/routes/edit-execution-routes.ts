@@ -436,6 +436,50 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
     ])
   }))
 
+  router.get('/v1/edit-executions/private-internal-tool-runtime-readiness', requireAuth, asyncRoute(async (_request, response) => {
+    const {
+      inspectActivePrivateInternalToolRuntimeSet,
+    } = await import('../tool-execution/private-internal-tool-runtime-activation')
+    const report = await inspectActivePrivateInternalToolRuntimeSet()
+    const catalogByToolId = new Map(
+      listProvenToolIdentityCatalog().map((record) => [
+        record.canonicalToolId,
+        record,
+      ]),
+    )
+
+    sendOk(response, {
+      privateInternalToolRuntimeReadiness: {
+        schemaVersion: 'private-internal-tool-runtime-readiness-browser-v1',
+        evidenceRevision: report.evidenceRevision,
+        observedAt: report.observedAt,
+        status: 'ready_for_private_internal_execution',
+        canonicalToolCount: report.canonicalToolCount,
+        readyToolCount: report.tools.length,
+        runnerClassCount: report.runnerClassCount,
+        runtimeAuthorityCount: report.runtimeAuthorityCount,
+        allCanonicalToolsReady: report.readiness.allCanonicalToolsReady,
+        privateInternalExecutionReady:
+          report.readiness.privateInternalExecutionReady,
+        productReady: report.readiness.productReady,
+        externalBetaReady: report.readiness.externalBetaReady,
+        productionReady: report.readiness.productionReady,
+        tools: report.tools.map((tool) => ({
+          toolId: tool.toolId,
+          displayName:
+            catalogByToolId.get(tool.toolId)?.displayName ?? tool.toolId,
+          operationId: tool.operationId,
+          runtimeFamily: tool.runtimeFamily,
+          status: tool.status,
+        })),
+        releaseBlockers: report.blockers,
+      },
+    }, [
+      'Every current canonical tool runtime is active for authenticated private internal execution in this server process.',
+      'Internal runtime readiness does not authorize customer billing, public delivery, external beta, deployment, or production promotion.',
+    ])
+  }))
+
   router.post('/v1/edit-executions/jobs/:jobId/leases', requireAuth, requireSensitiveIdempotencyKey, asyncRoute(async (request, response) => {
     const body = validateBody(claimCanonicalWorkerLeaseRouteBodySchema, request.body)
     const result = await createCanonicalWorkerLeaseAuthorityService(getServiceContext(request)).claim({

@@ -88,6 +88,27 @@ const RAW_JOB_API_ROUTES: ApiRouteDefinition[] = [
     ],
   },
   {
+    id: 'editExecution.privateInternalToolRuntimeReadiness.read',
+    domain: 'jobs',
+    method: 'GET',
+    path: '/v1/edit-executions/private-internal-tool-runtime-readiness',
+    description:
+      'Read the current authenticated server process readiness for every canonical private internal tool runtime.',
+    securityLevel: 'workspace_member',
+    runtimeMode: 'frontend_safe',
+    status: 'frontend_safe_ready',
+    requiresSupabase: false,
+    requiresServiceRole: false,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'readPrivateInternalToolRuntimeReadiness',
+    notes: [
+      'The route is read-only and derives readiness from server-owned persisted runtime authorities activated at private-workspace startup.',
+      'It exposes bounded tool identity and readiness labels only; image identities, authority hashes, commands, paths, environment, and credentials remain server-only.',
+      'Private internal readiness does not authorize customer billing, public delivery, external beta, deployment, or production promotion.',
+    ],
+  },
+  {
     id: 'editExecution.canonicalPrivateEditPreparation.create',
     domain: 'jobs',
     method: 'POST',

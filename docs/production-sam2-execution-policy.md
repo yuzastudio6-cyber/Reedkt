@@ -38,12 +38,21 @@ Production execution requires all of:
   and
 - explicit owner/legal approval for paid production.
 
-The current mask runner remains planning-only and local-path-based. It does
-not download checkpoints or run inference. Missing GPU, CUDA, artifact,
-runtime, capacity, or QA evidence must block SAM2 or use an already approved
-fallback; it must never trigger silent CPU execution.
+The legacy worker mask runner remains planning-only. A separate fixed,
+server-owned byte-producing runtime source, typed request/result protocol,
+one-shot subprocess boundary, and shared GPU-operation-router lane are now
+defined in `canonical-sam2-gpu-runtime-source-and-router.md`. That source is
+not itself checkpoint, L4, persistence, cost, or QA evidence. Missing GPU,
+CUDA, artifact, runtime, capacity, or QA evidence must block SAM2 or use an
+already approved fallback; it must never trigger silent CPU execution.
 
 The first byte-producing output contract is a private gray8 FFV1 Matroska
 mask sequence with source dimensions, frame count, and timing preserved, plus
 private JSON analysis and QA reports. The legacy planning-only mask-sequence
 JSON record is not evidence of real SAM2 inference.
+
+The current executable registry count is observational, not a product cap.
+SAM2 already exists as one capability identity and must remain one operation
+surface. Checkpoints, configs, preprocessing, CUDA libraries, and QA
+capabilities never become separate tool identities or separate customer
+charges.

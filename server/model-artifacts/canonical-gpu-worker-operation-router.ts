@@ -20,6 +20,12 @@ import {
   assertCanonicalRembgGpuRuntimeWireResponse,
 } from './canonical-rembg-gpu-runtime-result'
 import {
+  getCanonicalSam2GpuRuntimeContract,
+} from './canonical-sam2-gpu-runtime-contract'
+import {
+  assertCanonicalSam2GpuRuntimeWireResponse,
+} from './canonical-sam2-gpu-runtime-result'
+import {
   CANONICAL_GPU_WORKER_OPERATION_ROUTER_RECEIPT_VERSION,
   CANONICAL_GPU_WORKER_OPERATION_ROUTER_VERSION,
   type CanonicalGpuWorkerOperationRouterReceipt,
@@ -184,11 +190,193 @@ const rembgRuntimeRequestSchema = z.object({
   requestBindingSha256: digestSchema,
 }).strict()
 
+const sam2SubjectPromptBaseSchema = z.object({
+  promptPacketVersion: z.literal(
+    'canonical-sam2-subject-prompt-packet-v1',
+  ),
+  promptPacketClass: z.literal(
+    'server_compiled_normalized_subject_selection',
+  ),
+  subjectSelectionId: safeIdSchema,
+  sourceArtifactId: safeIdSchema,
+  sourceArtifactSha256: digestSchema,
+  sourceFrameIndex: z.number().int().nonnegative()
+    .max(17_999),
+  sourceFrameWidth: z.number().int().min(16).max(8_192),
+  sourceFrameHeight: z.number().int().min(16).max(8_192),
+  coordinateSpace: z.literal('normalized_source_frame'),
+  subjectCount: z.literal(1),
+  approvedSubjectLabelIncluded: z.literal(false),
+  rawChatIncluded: z.literal(false),
+  rawMediaIncluded: z.literal(false),
+  promptDigestSha256: digestSchema,
+})
+
+const sam2NormalizedCoordinateSchema =
+  z.number().finite().min(0).max(1)
+
+const sam2SubjectPromptSchema = z.discriminatedUnion(
+  'promptMode',
+  [
+    sam2SubjectPromptBaseSchema.extend({
+      promptMode: z.literal('box'),
+      boundingBox: z.object({
+        x: sam2NormalizedCoordinateSchema,
+        y: sam2NormalizedCoordinateSchema,
+        width: sam2NormalizedCoordinateSchema
+          .refine((value) => value >= 0.001),
+        height: sam2NormalizedCoordinateSchema
+          .refine((value) => value >= 0.001),
+      }).strict().superRefine((box, context) => {
+        if (box.x + box.width > 1 || box.y + box.height > 1) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'SAM2 prompt box exceeds source frame',
+          })
+        }
+      }),
+      points: z.tuple([]),
+    }).strict(),
+    sam2SubjectPromptBaseSchema.extend({
+      promptMode: z.literal('points'),
+      boundingBox: z.null(),
+      points: z.array(z.object({
+        x: sam2NormalizedCoordinateSchema,
+        y: sam2NormalizedCoordinateSchema,
+        label: z.enum(['foreground', 'background']),
+      }).strict()).min(1).max(32)
+        .refine((points) => points.some(
+          (point) => point.label === 'foreground',
+        )),
+    }).strict(),
+  ],
+)
+
+const sam2RuntimeRequestSchema = z.object({
+  schemaVersion: z.literal(
+    'canonical-sam2-gpu-runtime-request-v1',
+  ),
+  operationId: z.literal(
+    'tool.sam2.segment_and_track_subject.v1',
+  ),
+  admissionDigestSha256: digestSchema,
+  dispatch: z.object({
+    dispatchIntentId: safeIdSchema,
+    dispatchBindingHash: digestSchema,
+    attemptPlanHash: digestSchema,
+    runtimeRegion: z.literal('europe-west1'),
+  }).strict(),
+  source: z.object({
+    artifactId: safeIdSchema,
+    contentSha256: digestSchema,
+    byteLength: z.number().int().positive()
+      .max(4_294_901_760),
+    contentType: z.literal('video/mp4'),
+    width: z.number().int().min(16).max(8_192),
+    height: z.number().int().min(16).max(8_192),
+    frameCount: z.number().int().min(2).max(18_000),
+    fpsNumerator: z.number().int().positive().max(240_000),
+    fpsDenominator: z.number().int().positive().max(10_000),
+    durationMilliseconds: z.number().int().positive()
+      .max(600_000),
+    sourceExpectationDigestSha256: digestSchema,
+  }).strict().superRefine((source, context) => {
+    if (
+      source.width * source.height * source.frameCount
+        > 4_294_901_760
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'SAM2 raw mask spool ceiling exceeded',
+      })
+    }
+  }),
+  subjectPromptArtifact: z.object({
+    artifactId: safeIdSchema,
+    contentSha256: digestSchema,
+    byteLength: z.number().int().min(2).max(65_536),
+    contentType: z.literal('application/json'),
+    canonicalJsonEncoding: z.literal(
+      'stable_authority_json_utf8_no_bom',
+    ),
+  }).strict(),
+  subjectPrompt: sam2SubjectPromptSchema,
+  modelArtifacts: z.tuple([
+    z.object({
+      canonicalOrder: z.literal(0),
+      slotId: z.literal('sam2_checkpoint'),
+      fileName: z.literal('sam2.1_hiera_small.pt'),
+      artifactId: z.literal(
+        'meta-sam2.1-hiera-small-checkpoint',
+      ),
+      revision: z.literal(
+        'ee5bba1d82bb8749febdf90f45e84b687142ba03',
+      ),
+      modelFamily: z.literal('sam2.1-hiera-small'),
+      byteLength: z.literal(184_416_285),
+      contentSha256: z.literal(
+        '6d1aa6f30de5c92224f8172114de081d104bbd23dd9dc5c58996f0cad5dc4d38',
+      ),
+    }).strict(),
+  ]),
+  settings: z.object({
+    device: z.literal('cuda'),
+    modelConfigPath: z.literal(
+      'configs/sam2.1/sam2.1_hiera_s.yaml',
+    ),
+    confidenceThreshold: z.number().finite().min(0.01).max(0.99),
+    maximumSubjects: z.literal(1),
+    frameStride: z.literal(1),
+    preserveContactObjects: z.boolean(),
+    subjectPromptProfile: z.literal(
+      'normalized_box_or_points_v1',
+    ),
+    subjectPromptSha256: digestSchema,
+    outputMode: z.literal(
+      'gray8_ffv1_matroska_mask_sequence_v1',
+    ),
+    runtimeDownloadAllowed: z.literal(false),
+    networkFetchAllowed: z.literal(false),
+  }).strict(),
+  requestBindingSha256: digestSchema,
+}).strict().superRefine((request, context) => {
+  const source = request.source
+  const prompt = request.subjectPrompt
+  const {
+    promptDigestSha256,
+    ...promptWithoutDigest
+  } = prompt
+  const promptBytes = Buffer.byteLength(
+    stableAuthorityStringify(prompt),
+    'utf8',
+  )
+  if (
+    prompt.sourceArtifactId !== source.artifactId
+    || prompt.sourceArtifactSha256 !== source.contentSha256
+    || prompt.sourceFrameWidth !== source.width
+    || prompt.sourceFrameHeight !== source.height
+    || prompt.sourceFrameIndex >= source.frameCount
+    || request.subjectPromptArtifact.byteLength !== promptBytes
+    || request.subjectPromptArtifact.contentSha256
+      !== sha256AuthorityValue(prompt)
+    || request.settings.subjectPromptSha256
+      !== request.subjectPromptArtifact.contentSha256
+    || promptDigestSha256
+      !== sha256AuthorityValue(promptWithoutDigest)
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'SAM2 prompt and source lineage changed',
+    })
+  }
+})
+
 const runtimeRequestSchema = z.discriminatedUnion(
   'operationId',
   [
     fasterWhisperRuntimeRequestSchema,
     rembgRuntimeRequestSchema,
+    sam2RuntimeRequestSchema,
   ],
 )
 
@@ -447,21 +635,35 @@ async function assertCurrentRuntimeContract(
   }
 
   const runtimeContract =
-    await getCanonicalRembgGpuRuntimeContract()
+    request.operationId
+      === 'tool.rembg.remove_image_background.v1'
+      ? await getCanonicalRembgGpuRuntimeContract()
+      : await getCanonicalSam2GpuRuntimeContract()
   if (
     runtimeContract.operationIdentity.operationId
       !== request.operationId
     || runtimeContract.operationIdentity.sharedWorkerType
       !== 'gpu_ai_worker'
     || runtimeContract.runtimeProtocol.device !== 'cuda'
-    || runtimeContract.runtimeProtocol.executionProvider
-      !== 'CUDAExecutionProvider'
     || runtimeContract.runtimeProtocol.cpuFallbackAllowed
     || runtimeContract.cloudRunGpuPolicy.admittedExistingRegion
       !== request.dispatch.runtimeRegion
     || stableAuthorityStringify(
       runtimeContract.fixedFileLayout.modelFiles,
     ) !== stableAuthorityStringify(request.modelArtifacts)
+  ) {
+    throw blocked(
+      'canonical_gpu_worker_current_runtime_contract_mismatch',
+    )
+  }
+  if (
+    request.operationId
+      === 'tool.rembg.remove_image_background.v1'
+    && (
+      !('executionProvider' in runtimeContract.runtimeProtocol)
+      || runtimeContract.runtimeProtocol.executionProvider
+        !== 'CUDAExecutionProvider'
+    )
   ) {
     throw blocked(
       'canonical_gpu_worker_current_runtime_contract_mismatch',
@@ -483,7 +685,16 @@ function assertRuntimeWireResponse(input: {
       request: input.request,
     })
   }
-  return assertCanonicalRembgGpuRuntimeWireResponse({
+  if (
+    input.request.operationId
+      === 'tool.rembg.remove_image_background.v1'
+  ) {
+    return assertCanonicalRembgGpuRuntimeWireResponse({
+      value: input.value,
+      request: input.request,
+    })
+  }
+  return assertCanonicalSam2GpuRuntimeWireResponse({
     value: input.value,
     request: input.request,
   })
@@ -495,6 +706,7 @@ function assertSupportedOperationIds(
   const allowed = new Set<CanonicalGpuWorkerOperationId>([
     'tool.faster_whisper.transcribe_private_audio.v1',
     'tool.rembg.remove_image_background.v1',
+    'tool.sam2.segment_and_track_subject.v1',
   ])
   if (
     operationIds.length < 1

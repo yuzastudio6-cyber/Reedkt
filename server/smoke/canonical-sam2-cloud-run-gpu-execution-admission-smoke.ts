@@ -4,6 +4,8 @@ import {
   assertCanonicalSam2CloudRunGpuExecutionAdmissionCandidate,
   assertCanonicalSam2SubjectPromptPacket,
   createCanonicalSam2CloudRunGpuExecutionAdmissionCandidate,
+  createCanonicalSam2GpuRuntimeRequestCandidate,
+  createCanonicalSam2GpuRuntimeResultCandidate,
   createCanonicalSam2SubjectPromptPacket,
   getCanonicalSam2ModelArtifactRequirementSet,
   projectCanonicalSam2GpuBundleRequirements,
@@ -137,6 +139,29 @@ const candidate =
     subjectPrompt: prompt,
     operationRequest,
   })
+const runtimeRequestCandidate =
+  await createCanonicalSam2GpuRuntimeRequestCandidate({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    source,
+    operationRequest,
+  })
+const runtimeWireResponse = sam2RuntimeSuccessResponse(
+  runtimeRequestCandidate.runnerRequest,
+)
+const runtimeResultCandidate =
+  await createCanonicalSam2GpuRuntimeResultCandidate({
+    value: candidate,
+    requirementSet,
+    requirementProjection: projection,
+    gpuBundle,
+    source,
+    operationRequest,
+    runtimeRequestCandidate,
+    runtimeWireResponse,
+  })
 
 assert.equal(
   candidate.admissionClass,
@@ -193,6 +218,29 @@ assert.equal(
 assert.equal(candidate.boundaries.cloudDispatchAuthorized, false)
 assert.equal(candidate.boundaries.modelInferenceAuthority, false)
 assert.equal(candidate.boundaries.productionReady, false)
+assert.equal(
+  runtimeRequestCandidate.runnerRequest.operationId,
+  'tool.sam2.segment_and_track_subject.v1',
+)
+assert.equal(
+  runtimeRequestCandidate.runnerRequest.modelArtifacts[0]
+    .byteLength,
+  184_416_285,
+)
+assert.equal(
+  runtimeRequestCandidate.boundaries.cloudRunL4ExecutionVerified,
+  false,
+)
+assert.equal(runtimeResultCandidate.outputCandidates.length, 3)
+assert.equal(
+  runtimeResultCandidate.outputCandidates[0].frameCount,
+  source.frameCount,
+)
+assert.equal(
+  runtimeResultCandidate.boundaries.actualCloudRunExecutionVerified,
+  false,
+)
+assert.equal(runtimeResultCandidate.boundaries.productionReady, false)
 assert.deepEqual(
   assertCanonicalSam2CloudRunGpuExecutionAdmissionCandidate({
     value: structuredClone(candidate),
@@ -523,8 +571,102 @@ console.log(JSON.stringify({
   modelInferenceAuthority:
     candidate.boundaries.modelInferenceAuthority,
   productionReady: candidate.boundaries.productionReady,
+  runtimeRequestSourceImplemented:
+    runtimeRequestCandidate.summary.exactRuntimeSourceReread,
+  runtimeOutputCount:
+    runtimeResultCandidate.outputCandidates.length,
   adversarialAssertions,
 }, null, 2))
+
+function sam2RuntimeSuccessResponse(
+  request: typeof runtimeRequestCandidate.runnerRequest,
+) {
+  return {
+    schemaVersion:
+      'canonical-sam2-gpu-runtime-response-v1' as const,
+    ok: true as const,
+    status: 'controlled_sam2_gpu_inference_completed' as const,
+    operationId: request.operationId,
+    admissionDigestSha256: request.admissionDigestSha256,
+    requestBindingSha256: request.requestBindingSha256,
+    dispatchIntentId: request.dispatch.dispatchIntentId,
+    runtimeIdentity: {
+      sam2DistributionVersion: '1.0' as const,
+      sam2SourceRevision:
+        '2b90b9f5ceec907a1c18123530e92e794ad901a4' as const,
+      sam2ConfigSha256:
+        '0f36b91e86e58d06c87e42997166212468b88b98b60e4d816d5e4d4d088b6f55' as const,
+      torchVersion: '2.5.1+cu124' as const,
+      torchvisionVersion: '0.20.1+cu124' as const,
+      cudaBuild: '12.4' as const,
+      cudaDeviceCount: 1 as const,
+      accelerator: 'nvidia_l4' as const,
+      device: 'cuda' as const,
+      runtimeRegion: 'europe-west1' as const,
+      checkpointLoaded: true as const,
+      cpuFallbackDisabled: true as const,
+    },
+    outputs: [
+      {
+        canonicalOrder: 0 as const,
+        artifactKind: 'mask_sequence' as const,
+        fileName: 'mask-sequence.mkv' as const,
+        contentType: 'video/x-matroska' as const,
+        encodingProfile:
+          'gray8_ffv1_matroska_mask_sequence_v1' as const,
+        byteLength: 4_200_000,
+        contentSha256: 'a'.repeat(64),
+        width: request.source.width,
+        height: request.source.height,
+        frameCount: request.source.frameCount,
+        fpsNumerator: request.source.fpsNumerator,
+        fpsDenominator: request.source.fpsDenominator,
+        activeFrameCount: request.source.frameCount,
+        minimumCoveragePpm: 100_000,
+        maximumCoveragePpm: 300_000,
+        meanCoveragePpm: 200_000,
+        meanTemporalIouPpm: 950_000,
+        centroidMotionPpm: 50_000,
+      },
+      {
+        canonicalOrder: 1 as const,
+        artifactKind: 'analysis_report' as const,
+        fileName: 'tracking-analysis.json' as const,
+        contentType: 'application/json' as const,
+        encodingProfile:
+          'sam2_tracking_analysis_report_json_v1' as const,
+        byteLength: 900,
+        contentSha256: 'b'.repeat(64),
+      },
+      {
+        canonicalOrder: 2 as const,
+        artifactKind: 'qa_report' as const,
+        fileName: 'mask-qa-measurement.json' as const,
+        contentType: 'application/json' as const,
+        encodingProfile:
+          'sam2_mask_qa_measurement_report_json_v1' as const,
+        byteLength: 1_100,
+        contentSha256: 'c'.repeat(64),
+      },
+    ] as const,
+    receiptBoundaries: {
+      outputBytesIncluded: false as const,
+      sourceBytesIncluded: false as const,
+      modelBytesIncluded: false as const,
+      promptCoordinatesIncluded: false as const,
+      pathsIncluded: false as const,
+      urlsIncluded: false as const,
+      credentialsIncluded: false as const,
+      cpuFallbackAllowed: false as const,
+      runtimeDownloadAllowed: false as const,
+      networkFetchAllowed: false as const,
+      artifactCommitAuthority: false as const,
+      qaPassAuthority: false as const,
+      customerCostAuthority: false as const,
+      productionReady: false as const,
+    },
+  }
+}
 
 function createCandidate(
   overrides: Partial<{

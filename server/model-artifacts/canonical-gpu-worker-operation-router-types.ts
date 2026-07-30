@@ -10,6 +10,12 @@ import type {
 import type {
   CanonicalRembgGpuRuntimeSuccessWireResponse,
 } from './canonical-rembg-gpu-runtime-result-types'
+import type {
+  CanonicalSam2GpuRuntimeRunnerRequest,
+} from './canonical-sam2-gpu-runtime-request-types'
+import type {
+  CanonicalSam2GpuRuntimeSuccessWireResponse,
+} from './canonical-sam2-gpu-runtime-result-types'
 
 export const CANONICAL_GPU_WORKER_OPERATION_ROUTER_VERSION =
   'canonical-gpu-worker-operation-router-v1' as const
@@ -19,14 +25,17 @@ export const CANONICAL_GPU_WORKER_OPERATION_ROUTER_RECEIPT_VERSION =
 export type CanonicalGpuWorkerOperationId =
   | 'tool.faster_whisper.transcribe_private_audio.v1'
   | 'tool.rembg.remove_image_background.v1'
+  | 'tool.sam2.segment_and_track_subject.v1'
 
 export type CanonicalGpuWorkerRuntimeRequest =
   | CanonicalFasterWhisperGpuRuntimeRunnerRequest
   | CanonicalRembgGpuRuntimeRunnerRequest
+  | CanonicalSam2GpuRuntimeRunnerRequest
 
 export type CanonicalGpuWorkerRuntimeSuccessWireResponse =
   | CanonicalFasterWhisperGpuRuntimeSuccessWireResponse
   | CanonicalRembgGpuRuntimeSuccessWireResponse
+  | CanonicalSam2GpuRuntimeSuccessWireResponse
 
 export type CanonicalGpuWorkerRuntimePortEvidenceClass =
   | 'controlled_source_fixture'

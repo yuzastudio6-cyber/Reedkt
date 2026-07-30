@@ -1,0 +1,72 @@
+# syntax=docker/dockerfile:1.7
+
+# The internal build wrapper must first prove this local tag resolves to
+# sha256:84358d2b8272998bb3258ca18c46fad4de80118da24528aae98be39ae25bcc1b.
+# BuildKit cannot resolve a local image-ID digest through FROM without treating
+# the repository as a remote registry, so the digest is enforced by the host
+# evidence gate and repeated in the immutable candidate labels below.
+FROM reeditpro-living-frame-comfyui-canonical-offline:private-internal-bffa1ec0
+
+ARG REEDITPRO_LIVING_FRAME_SOURCE_COMMIT
+ARG REEDITPRO_LIVING_FRAME_SOURCE_TREE
+ARG REEDITPRO_LIVING_FRAME_SOURCE_CLEAN
+
+USER 0:0
+
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PIP_NO_INDEX=1
+ENV HF_HUB_OFFLINE=1
+ENV TRANSFORMERS_OFFLINE=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+COPY docker/prod/gpu-worker/comfyui/hardened-core.sha256 \
+  /opt/reeditpro/gpu-operations/comfyui/hardening/hardened-core.sha256
+COPY docker/prod/gpu-worker/comfyui/hardened-remediation.sha256 \
+  /opt/reeditpro/gpu-operations/comfyui/hardening/hardened-remediation.sha256
+COPY docker/prod/gpu-worker/comfyui/hardened-transformers-closure.sha256 \
+  /opt/reeditpro/gpu-operations/comfyui/hardening/hardened-transformers-closure.sha256
+COPY docker/prod/gpu-worker/comfyui/install-hardened-runtime-offline.sh \
+  /opt/reeditpro/gpu-operations/comfyui/install-hardened-runtime-offline.sh
+COPY docker/prod/gpu-worker/comfyui/verify-hardened-runtime.py \
+  /opt/reeditpro/gpu-operations/comfyui/verify-hardened-runtime.py
+
+RUN printf '%s' "${REEDITPRO_LIVING_FRAME_SOURCE_COMMIT}" \
+      | grep -Eq '^[a-f0-9]{40}$' \
+  && printf '%s' "${REEDITPRO_LIVING_FRAME_SOURCE_TREE}" \
+      | grep -Eq '^[a-f0-9]{40}$' \
+  && test "${REEDITPRO_LIVING_FRAME_SOURCE_CLEAN}" = "true" \
+  && chmod 0444 \
+    /opt/reeditpro/gpu-operations/comfyui/hardening/hardened-core.sha256 \
+    /opt/reeditpro/gpu-operations/comfyui/hardening/hardened-remediation.sha256 \
+    /opt/reeditpro/gpu-operations/comfyui/hardening/hardened-transformers-closure.sha256 \
+    /opt/reeditpro/gpu-operations/comfyui/verify-hardened-runtime.py
+RUN chmod 0555 \
+  /opt/reeditpro/gpu-operations/comfyui/install-hardened-runtime-offline.sh
+
+RUN --network=none \
+    --mount=type=bind,from=living_frame_hardened_core,source=/,target=/mnt/reeditpro-hardened-core,ro \
+    --mount=type=bind,from=living_frame_hardened_remediation,source=/,target=/mnt/reeditpro-hardened-remediation,ro \
+    --mount=type=bind,from=living_frame_hardened_transformers,source=/,target=/mnt/reeditpro-hardened-transformers,ro \
+  /opt/reeditpro/gpu-operations/comfyui/install-hardened-runtime-offline.sh
+
+LABEL org.reeditpro.living-frame.runtime-class="private-local-hardened-comfyui-build-candidate"
+LABEL org.reeditpro.living-frame.parent-image-sha256="84358d2b8272998bb3258ca18c46fad4de80118da24528aae98be39ae25bcc1b"
+LABEL org.reeditpro.living-frame.source-commit="${REEDITPRO_LIVING_FRAME_SOURCE_COMMIT}"
+LABEL org.reeditpro.living-frame.source-tree="${REEDITPRO_LIVING_FRAME_SOURCE_TREE}"
+LABEL org.reeditpro.living-frame.core-wheel-count="4"
+LABEL org.reeditpro.living-frame.remediation-wheel-count="2"
+LABEL org.reeditpro.living-frame.transformers-closure-wheel-count="27"
+LABEL org.reeditpro.living-frame.operation-registered="false"
+LABEL org.reeditpro.living-frame.runtime-executed="false"
+LABEL org.reeditpro.living-frame.production-qualified="false"
+
+USER 65532:65532
+WORKDIR /opt/reeditpro/gpu-operations/comfyui
+
+RUN /usr/bin/python3 \
+  -I \
+  -B \
+  /opt/reeditpro/gpu-operations/comfyui/verify-hardened-runtime.py
+
+ENTRYPOINT ["/opt/reeditpro/gpu-operations/comfyui/venv/bin/python", "-I", "-B", "/opt/reeditpro/gpu-operations/comfyui/runner.py"]

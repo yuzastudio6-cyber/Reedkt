@@ -93,6 +93,13 @@ volume still projects the files as owner-writable after `chmod`, the cache is
 explicitly mutable and not build-admitted. Canonical repository ingest,
 pre/post-consumer rehash, and an atomic read-only mount remain required.
 
+A follow-on sealed ephemeral-container test found and corrected the missing
+TorchAudio companion dependency, added the fixed Pillow and Transformers
+packages plus the complete Python 3.10 Transformers subgraph, removed
+runtime-unnecessary wheel tooling, and passed `pip check` plus non-root import
+and canonical-runner-lineage verification. This is compatibility evidence,
+not an image build, scan, model load, graph execution, or runtime admission.
+
 When the exact five private model artifacts are also present,
 `smoke:living-frame-comfyui-five-model-local-mount-internal-test` runs a
 second adjacent bounded proof. It presents all five artifacts simultaneously

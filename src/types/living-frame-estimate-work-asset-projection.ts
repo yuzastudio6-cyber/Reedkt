@@ -2,15 +2,19 @@ import type {
   EditWorkItemType,
 } from './editing-agent-runtime'
 import type {
+  CanonicalLivingFrameNamedWorkOperationClass,
   CanonicalLivingFrameNamedWorkSourceFrameInput,
 } from './living-frame-asset-work-input-binding'
+import type {
+  LivingFrameComponentAssetKind,
+} from './living-frame-component-asset-intent'
 import type {
   CanonicalLivingFrameControlledIllustrationCapabilityId,
   CanonicalLivingFrameControlledIllustrationCostComponentId,
 } from './living-frame-controlled-illustration-estimate-basis'
 
 export const CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_VERSION =
-  'canonical-living-frame-estimate-work-asset-projection-v4' as const
+  'canonical-living-frame-estimate-work-asset-projection-v6' as const
 
 export const CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_SOURCE =
   'canonical_living_frame_estimate_work_asset_projection_compiler' as const
@@ -19,9 +23,11 @@ export const CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_COMPONENT_KEY
   'livingFrameEstimateWorkAssetProjection' as const
 
 export const CANONICAL_LIVING_FRAME_PROJECTED_TOOL_IDS = [
+  'ffmpeg',
   'openimageio',
   'rembg',
   'remotion',
+  'sam2',
   'sharp',
 ] as const
 
@@ -40,6 +46,7 @@ export type CanonicalLivingFrameProjectedExecutionPlacement =
 
 export type CanonicalLivingFrameEstimateWorkAssetProjectionReadiness =
   | 'ready_without_living_frame_projection'
+  | 'requirements_projected_unreleased_cost_and_execution_admission_pending'
   | 'requirements_projected_execution_admission_pending'
 
 export interface CanonicalLivingFrameProjectedCostRange {
@@ -86,6 +93,26 @@ export interface CanonicalLivingFrameProjectedRegisteredToolEstimateLineItem
   readonly productionRateAuthority: false
 }
 
+export interface CanonicalLivingFrameProjectedUnreleasedToolEstimateLineItem
+  extends CanonicalLivingFrameProjectedEstimateLineItemBase {
+  readonly costOwnerClass:
+    'canonical_unreleased_tool_candidate'
+  readonly workItemType:
+    CanonicalLivingFrameProjectedWorkItemType
+  readonly costOwnerToolId: 'sam2'
+  readonly costOwnerOperationId:
+    'tool.sam2.segment_and_track_subject.v1'
+  readonly controlledIllustrationCostComponentId: null
+  readonly activeControlledIllustrationCapabilityIds:
+    readonly []
+  readonly exactFiftyToolRegistryMember: false
+  readonly operationContractObserved: false
+  readonly actualAttemptCostEvidenceRequired: true
+  readonly productionRateAuthority: false
+  readonly runtimeCostAdmissionRequired: true
+  readonly customerEstimateEligibleBeforeCostAdmission: false
+}
+
 export interface CanonicalLivingFrameProjectedInfrastructureEstimateLineItem
   extends CanonicalLivingFrameProjectedEstimateLineItemBase {
   readonly costOwnerClass:
@@ -108,15 +135,20 @@ export interface CanonicalLivingFrameProjectedInfrastructureEstimateLineItem
 
 export type CanonicalLivingFrameProjectedEstimateLineItem =
   | CanonicalLivingFrameProjectedRegisteredToolEstimateLineItem
+  | CanonicalLivingFrameProjectedUnreleasedToolEstimateLineItem
   | CanonicalLivingFrameProjectedInfrastructureEstimateLineItem
 
 export interface CanonicalLivingFrameProjectedExpectedOutput {
   readonly outputKey: string
   readonly artifactType: string
-  readonly assetRole: 'processed'
+  readonly assetRole: 'processed' | 'qa'
   readonly required: true
   readonly previewPlaceholderAllowed: false
-  readonly contentType: 'application/json' | 'image/png'
+  readonly contentType:
+    | 'application/json'
+    | 'image/png'
+    | 'video/mp4'
+    | 'video/x-matroska'
   readonly segmentIds: readonly string[]
   readonly timingIds: readonly string[]
   readonly rendererLayerIds: readonly string[]
@@ -124,10 +156,16 @@ export interface CanonicalLivingFrameProjectedExpectedOutput {
 }
 
 export interface CanonicalLivingFrameProjectedWorkRequirement {
+  readonly workInputKey: string
   readonly workItemKey: string
   readonly sceneId: string
   readonly workItemType:
     CanonicalLivingFrameProjectedWorkItemType
+  readonly operationClass:
+    CanonicalLivingFrameNamedWorkOperationClass
+  readonly outputAssetKinds:
+    readonly LivingFrameComponentAssetKind[]
+  readonly dependencyWorkInputKeys: readonly string[]
   readonly dependencyWorkItemKeys: readonly string[]
   readonly inputAssetIntentIds: readonly string[]
   readonly outputAssetIntentIds: readonly string[]
@@ -139,10 +177,11 @@ export interface CanonicalLivingFrameProjectedWorkRequirement {
   readonly executionPlacement:
     CanonicalLivingFrameProjectedExecutionPlacement
   readonly cpuFallbackAllowed: boolean
-  readonly expectedOutput:
-    CanonicalLivingFrameProjectedExpectedOutput
+  readonly expectedOutputs:
+    readonly CanonicalLivingFrameProjectedExpectedOutput[]
   readonly currentRuntimeAdmission:
-    'blocked_until_real_dependency_input_operation_is_admitted'
+    | 'blocked_until_real_dependency_input_operation_is_admitted'
+    | 'blocked_until_temporal_source_recipe_and_sam2_model_runtime_are_admitted'
   readonly workGraphMutationAuthorized: false
   readonly executablePayloadPresent: false
 }
@@ -173,7 +212,9 @@ export interface CanonicalLivingFrameEstimateWorkAssetProjectionMetrics {
   readonly projectedMaximumInternalToolCostMicros: number
   readonly controlledIllustrationCreditRoundingAppliedOnceAcrossLivingFrameBundle:
     true
-  readonly exactProductionToolRegistryCount: 50
+  readonly observedProductionToolRegistryCount: number
+  readonly productionToolRegistryCountIsProductCap: false
+  readonly productionToolRegistrySemanticIntegrityVerified: true
 }
 
 export interface CanonicalLivingFrameEstimateWorkAssetProjectionAuthorityBoundary {
@@ -236,6 +277,7 @@ export interface CanonicalLivingFrameEstimateWorkAssetProjectionDraft {
   readonly containsProviderPromptOrExecutablePayload: false
   readonly createsCanonicalWorkItems: false
   readonly createsAssetManifestEntries: false
+  readonly createsProductionToolIdentity: false
   readonly expandsExactFiftyToolRegistry: false
   readonly subjectSpecificRouting: false
   readonly productionReady: false

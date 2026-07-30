@@ -8,7 +8,7 @@ import type {
 } from './editing-agent-runtime'
 
 export const LIVING_FRAME_COMPONENT_ASSET_INTENT_VERSION =
-  'living-frame-component-asset-intent-v1' as const
+  'living-frame-component-asset-intent-v2' as const
 
 export const LIVING_FRAME_COMPONENT_ASSET_INTENT_CLASS =
   'controlled_non_promotable_component_asset_intent_bundle' as const
@@ -23,6 +23,7 @@ export type LivingFrameComponentAssetIntentState =
 
 export const LIVING_FRAME_COMPONENT_ASSET_STAGES = [
   'source_or_generated_anchor',
+  'prepared_temporal_source',
   'alpha_or_mask_companion',
   'processed_component',
   'deterministic_component',
@@ -37,6 +38,7 @@ export const LIVING_FRAME_COMPONENT_ASSET_KINDS = [
   'controlled_opaque_still_variation_source',
   'processed_rgba_still_component',
   'still_alpha_mask',
+  'prepared_temporal_source_video',
   'temporal_subject_mask_sequence',
   'procedural_graphic_spec',
   'exact_map_spec',
@@ -96,6 +98,7 @@ export interface LivingFrameComponentAssetIntentMetrics {
   readonly generatedStillSourceIntentCount: number
   readonly deterministicIntentCount: number
   readonly alphaOrMaskIntentCount: number
+  readonly preparedTemporalSourceVideoIntentCount: number
   readonly processedRgbaIntentCount: number
   readonly boundedVideoIntentCount: number
   readonly reconstructedPlateIntentCount: number

@@ -117,7 +117,10 @@ const CAPABILITY_COVERAGE:
     capability(
       'temporal_subject_masking',
       'existing_named_work_type_candidate',
-      ['generate_mask_asset'],
+      [
+        'process_video_asset',
+        'generate_mask_asset',
+      ],
       [],
       TOOL_MODEL_GATES,
     ),

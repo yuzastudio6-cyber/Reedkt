@@ -5,6 +5,7 @@ import type {
   CanonicalLivingFrameAssetWorkInputBindingDraft,
   CanonicalLivingFrameBoundAssetIntent,
   CanonicalLivingFrameNamedWorkInput,
+  CanonicalLivingFrameNamedWorkOperationClass,
   CanonicalLivingFrameSceneAssetWorkInputBinding,
   CanonicalLivingFrameSourceAssetBinding,
 } from '../../src/types/living-frame-asset-work-input-binding'
@@ -62,6 +63,7 @@ const ASSET_PRODUCING_WORK_TYPES = new Set<
 >([
   'generate_mask_asset',
   'process_image_asset',
+  'process_video_asset',
   'reconstruct_background_plate',
 ])
 
@@ -523,18 +525,26 @@ function compileSceneBinding(input: {
           workItemType,
         ),
     )
+  const workInputGroups = compileWorkInputGroups({
+    assetIntents,
+    refinedRequiredNamedWorkItemTypes:
+      refinedNamedWorkItemCandidates,
+  })
   const namedWorkInputs = orderNamedWorkInputs(
-    refinedNamedWorkItemCandidates.map((workItemType) =>
+    workInputGroups.map((group) =>
       compileNamedWorkInput({
-        workItemType,
+        group,
+        groups: workInputGroups,
         assetIntents,
         sourceAssetBindings,
-        refinedRequiredNamedWorkItemTypes:
-          refinedNamedWorkItemCandidates,
       })),
   )
-  const refinedRequiredNamedWorkItemTypes =
-    namedWorkInputs.map((input) => input.workItemType)
+  const refinedRequiredNamedWorkItemTypes = [
+    ...new Set(
+      namedWorkInputs.map((input) =>
+        input.workItemType),
+    ),
+  ]
   return {
     sceneId: input.scenePlan.sceneId,
     canonicalSegmentId:
@@ -549,15 +559,102 @@ function compileSceneBinding(input: {
   }
 }
 
-function compileNamedWorkInput(input: {
+interface CanonicalLivingFrameWorkInputGroup {
+  readonly workInputKey: string
   readonly workItemType:
     CanonicalLivingFrameProjectedWorkItemType
+  readonly operationClass:
+    CanonicalLivingFrameNamedWorkOperationClass
+  readonly outputIntents:
+    readonly CanonicalLivingFrameBoundAssetIntent[]
+}
+
+function compileWorkInputGroups(input: {
+  readonly assetIntents:
+    readonly CanonicalLivingFrameBoundAssetIntent[]
+  readonly refinedRequiredNamedWorkItemTypes:
+    readonly CanonicalLivingFrameProjectedWorkItemType[]
+}): CanonicalLivingFrameWorkInputGroup[] {
+  const grouped = new Map<
+    string,
+    {
+      readonly workItemType:
+        CanonicalLivingFrameProjectedWorkItemType
+      readonly operationClass:
+        CanonicalLivingFrameNamedWorkOperationClass
+      readonly outputIntents:
+        CanonicalLivingFrameBoundAssetIntent[]
+    }
+  >()
+  for (const intent of input.assetIntents) {
+    for (const workItemType of
+      intent.expectedNamedWorkItemTypes) {
+      if (
+        !input.refinedRequiredNamedWorkItemTypes.includes(
+          workItemType,
+        )
+      ) continue
+      const operationClass =
+        operationClassForIntent(intent)
+      const groupKey =
+        `${workItemType}\u0000${operationClass}`
+      const existing = grouped.get(groupKey)
+      if (existing) {
+        existing.outputIntents.push(intent)
+      } else {
+        grouped.set(groupKey, {
+          workItemType,
+          operationClass,
+          outputIntents: [intent],
+        })
+      }
+    }
+  }
+  for (const workItemType of
+    input.refinedRequiredNamedWorkItemTypes) {
+    if ([...grouped.values()].some((group) =>
+      group.workItemType === workItemType)) continue
+    if (workItemType !== 'prepare_remotion_layer') {
+      throw conflict(
+        'Canonical Living Frame named work requirement has no exact asset-kind operation class.',
+      )
+    }
+    grouped.set(
+      `${workItemType}\u0000compile_remotion_layer`,
+      {
+        workItemType,
+        operationClass: 'compile_remotion_layer',
+        outputIntents: [],
+      },
+    )
+  }
+  return [...grouped.values()]
+    .map((group) => ({
+      ...group,
+      outputIntents: [...group.outputIntents]
+        .sort((left, right) => left.order - right.order),
+      workInputKey: `lf-work-input.${
+        sha256AuthorityValue({
+          workItemType: group.workItemType,
+          operationClass: group.operationClass,
+          outputAssetIntentIds: group.outputIntents
+            .map((intent) => intent.assetIntentId)
+            .sort(),
+        }).slice(0, 40)
+      }`,
+    }))
+    .sort((left, right) =>
+      left.workInputKey.localeCompare(right.workInputKey))
+}
+
+function compileNamedWorkInput(input: {
+  readonly group: CanonicalLivingFrameWorkInputGroup
+  readonly groups:
+    readonly CanonicalLivingFrameWorkInputGroup[]
   readonly assetIntents:
     readonly CanonicalLivingFrameBoundAssetIntent[]
   readonly sourceAssetBindings:
     readonly CanonicalLivingFrameSourceAssetBinding[]
-  readonly refinedRequiredNamedWorkItemTypes:
-    readonly CanonicalLivingFrameProjectedWorkItemType[]
 }): CanonicalLivingFrameNamedWorkInput {
   const intentById = new Map(
     input.assetIntents.map((intent) => [
@@ -565,12 +662,14 @@ function compileNamedWorkInput(input: {
       intent,
     ]),
   )
-  const outputIntents = input.assetIntents.filter(
-    (intent) =>
-      intent.expectedNamedWorkItemTypes.includes(
-        input.workItemType,
-      ),
+  const groupByOutputIntentId = new Map(
+    input.groups.flatMap((group) =>
+      group.outputIntents.map((intent) => [
+        intent.assetIntentId,
+        group,
+      ] as const)),
   )
+  const outputIntents = input.group.outputIntents
   const dependedIntentIds = new Set(
     input.assetIntents.flatMap((intent) =>
       intent.dependencyAssetIntentIds),
@@ -580,21 +679,35 @@ function compileNamedWorkInput(input: {
       !dependedIntentIds.has(intent.assetIntentId),
   )
   const inputAssetIntentIds = uniqueSorted(
-    input.workItemType === 'prepare_remotion_layer'
+    input.group.workItemType === 'prepare_remotion_layer'
       ? terminalIntents.map((intent) =>
           intent.assetIntentId)
       : outputIntents.flatMap((intent) =>
           intent.dependencyAssetIntentIds),
+  )
+  const dependencyGroups = inputAssetIntentIds.flatMap(
+    (assetIntentId) => {
+      const dependency = groupByOutputIntentId.get(
+        assetIntentId,
+      )
+      return dependency
+        && dependency.workInputKey !==
+          input.group.workInputKey
+        ? [dependency]
+        : []
+    },
+  )
+  const dependencyNamedWorkInputKeys = uniqueSorted(
+    dependencyGroups.map((group) =>
+      group.workInputKey),
   )
   const dependencyNamedWorkItemTypes = uniqueSorted(
     inputAssetIntentIds.flatMap((assetIntentId) =>
       intentById.get(assetIntentId)
         ?.expectedNamedWorkItemTypes ?? []),
   ).filter((workItemType) =>
-    workItemType !== input.workItemType
-    && input.refinedRequiredNamedWorkItemTypes.includes(
-      workItemType,
-    ))
+    dependencyGroups.some((group) =>
+      group.workItemType === workItemType))
   const directlyBoundSourceIds = new Set(
     inputAssetIntentIds,
   )
@@ -603,12 +716,19 @@ function compileNamedWorkInput(input: {
       directlyBoundSourceIds.has(binding.assetIntentId),
   )
   return {
-    workItemType: input.workItemType,
+    workInputKey: input.group.workInputKey,
+    workItemType: input.group.workItemType,
+    operationClass: input.group.operationClass,
+    outputAssetKinds: uniqueSorted(
+      outputIntents.map((intent) =>
+        intent.assetKind),
+    ),
     inputAssetIntentIds,
     outputAssetIntentIds: uniqueSorted(
       outputIntents.map((intent) =>
         intent.assetIntentId),
     ),
+    dependencyNamedWorkInputKeys,
     dependencyNamedWorkItemTypes,
     sourceSequenceItemIds: uniqueSorted(
       sourceBindings.map((binding) =>
@@ -622,6 +742,7 @@ function compileNamedWorkInput(input: {
       assetIntentId: binding.assetIntentId,
       sourceSequenceItemId:
         binding.sourceSequenceItemId,
+      mediaAssetId: binding.mediaAssetId,
       sourceCleanupDecisionId:
         binding.sourceCleanupDecisionId,
       masterFrameIndex:
@@ -633,6 +754,12 @@ function compileNamedWorkInput(input: {
         binding.frameSelectionPolicy,
       sourceFrameSelectionDigestSha256:
         binding.sourceFrameSelectionDigestSha256,
+      contentSha256: binding.checksumSha256,
+      contentType: binding.mimeType,
+      byteLength: binding.sizeBytes,
+      sourceBindingHash: binding.sourceBindingHash,
+      storageIdentityHash:
+        binding.storageIdentityHash,
     })),
   }
 }
@@ -642,24 +769,22 @@ function orderNamedWorkInputs(
 ): CanonicalLivingFrameNamedWorkInput[] {
   const remaining = new Map(
     inputs.map((input) => [
-      input.workItemType,
+      input.workInputKey,
       input,
     ]),
   )
   const ordered:
     CanonicalLivingFrameNamedWorkInput[] = []
-  const resolved = new Set<
-    CanonicalLivingFrameProjectedWorkItemType
-  >()
+  const resolved = new Set<string>()
   while (remaining.size > 0) {
     const ready = [...remaining.values()]
       .filter((input) =>
-        input.dependencyNamedWorkItemTypes.every(
+        input.dependencyNamedWorkInputKeys.every(
           (dependency) => resolved.has(dependency),
         ))
       .sort((left, right) =>
-        left.workItemType.localeCompare(
-          right.workItemType,
+        left.workInputKey.localeCompare(
+          right.workInputKey,
         ))
     if (ready.length === 0) {
       throw conflict(
@@ -667,12 +792,44 @@ function orderNamedWorkInputs(
       )
     }
     for (const input of ready) {
-      remaining.delete(input.workItemType)
-      resolved.add(input.workItemType)
+      remaining.delete(input.workInputKey)
+      resolved.add(input.workInputKey)
       ordered.push(input)
     }
   }
   return ordered
+}
+
+function operationClassForIntent(
+  intent: CanonicalLivingFrameBoundAssetIntent,
+): CanonicalLivingFrameNamedWorkOperationClass {
+  switch (intent.assetKind) {
+    case 'generated_opaque_still_source':
+    case 'controlled_opaque_still_variation_source':
+      return 'generate_controlled_image_asset'
+    case 'bounded_generated_video_clip':
+      return 'generate_bounded_video_asset'
+    case 'exact_map_spec':
+      return 'render_exact_map_asset'
+    case 'exact_data_graphic_spec':
+      return 'render_exact_data_graphic_asset'
+    case 'still_alpha_mask':
+      return 'remove_still_image_background'
+    case 'prepared_temporal_source_video':
+      return 'prepare_temporal_source_video'
+    case 'temporal_subject_mask_sequence':
+      return 'temporal_video_subject_segmentation_and_tracking'
+    case 'processed_rgba_still_component':
+      return 'prepare_straight_alpha_component'
+    case 'reconstructed_background_plate_png':
+      return 'reconstruct_background_plate'
+    case 'procedural_graphic_spec':
+      return 'compile_remotion_layer'
+    case 'approved_source_asset_reference':
+      throw conflict(
+        'Canonical Living Frame approved source reference cannot itself create named work.',
+      )
+  }
 }
 
 function resolveSceneSourceContext(input: {

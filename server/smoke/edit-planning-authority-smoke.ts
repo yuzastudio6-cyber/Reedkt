@@ -55,6 +55,7 @@ import {
   selectCanonicalLivingFrameScenes,
 } from '../services/canonical-living-frame-selected-scene-binding-service'
 import { createUploadService } from '../services/upload-service'
+import { listProductionToolProfiles } from '../tool-registry'
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
 import { withCanonicalExecutionDomainLock } from '../services/canonical-execution-domain-lock'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
@@ -2670,19 +2671,23 @@ try {
     },
     body: JSON.stringify(privatePreparationBody),
   })
-  assert.equal(privatePreparationResponse.status, 201)
+  assert.equal(privatePreparationResponse.status, 202)
   const privatePreparationEnvelope = await privatePreparationResponse.json() as {
     data?: { canonicalPrivateEditPreparation?: Record<string, unknown> }
   }
   const privatePreparationReceipt = canonicalPrivateEditPreparationReceiptSchema.parse(
     privatePreparationEnvelope.data?.canonicalPrivateEditPreparation,
   )
-  assert.equal(privatePreparationReceipt.disposition, 'blocked')
+  assert.equal(privatePreparationReceipt.disposition, 'in_progress')
   assert.equal(privatePreparationReceipt.identity.packageRecordId, workGraphPackage.packageRecordId)
   assert.equal(privatePreparationReceipt.authority.packageHash, workGraphPackage.packageHash)
   assert.equal(privatePreparationReceipt.progress.totalJobCount, 5)
   assert.equal(privatePreparationReceipt.progress.allRequiredJobsCompleted, false)
   assert.equal(privatePreparationReceipt.review, null)
+  assert.equal(
+    privatePreparationReceipt.readiness.nextRequiredGate,
+    'canonical_private_work_graph_advancement',
+  )
   assert.equal(privatePreparationReceipt.boundaries.browserSuppliedJobsAccepted, false)
   assert.equal(privatePreparationReceipt.boundaries.browserSuppliedToolsAccepted, false)
   assert.equal(privatePreparationReceipt.boundaries.jobOrToolDetailsReturned, false)
@@ -4272,7 +4277,7 @@ console.log(JSON.stringify({
     'preference_dna_and_edit_brief_frozen_into_plan',
     'edit_brief_post_approval_mutation_blocked',
     'selected_living_frame_scene_fails_closed_before_approval_without_exact_execution_authority',
-    'living_frame_exact_50_tool_cost_named_work_and_expected_asset_requirements_projected_without_execution_promotion',
+    'living_frame_semantic_registry_tool_cost_named_work_and_expected_asset_requirements_projected_without_execution_promotion',
     'living_frame_requirements_are_content_addressed_and_added_to_the_one_canonical_graph_as_execution_blocked_work',
     'server_recalculates_one_weeditpro_service_fee_before_approval',
     'caller_service_fee_is_replaced_and_caller_living_frame_cost_is_rejected',
@@ -6057,6 +6062,10 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
     estimateWorkAssetProjection.expandsExactFiftyToolRegistry,
     false,
   )
+  assert.equal(
+    estimateWorkAssetProjection.createsProductionToolIdentity,
+    false,
+  )
   const projectionMetrics =
     asRecord(estimateWorkAssetProjection.metrics)
   assert.deepEqual(
@@ -6080,8 +6089,13 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
           .controlledIllustrationCreditRoundingAppliedOnceAcrossLivingFrameBundle,
       projectedMaximumInternalToolCostCredits:
         projectionMetrics.projectedMaximumInternalToolCostCredits,
-      exactProductionToolRegistryCount:
-        projectionMetrics.exactProductionToolRegistryCount,
+      observedProductionToolRegistryCount:
+        projectionMetrics.observedProductionToolRegistryCount,
+      productionToolRegistryCountIsProductCap:
+        projectionMetrics.productionToolRegistryCountIsProductCap,
+      productionToolRegistrySemanticIntegrityVerified:
+        projectionMetrics
+          .productionToolRegistrySemanticIntegrityVerified,
     },
     {
       projectedEstimateLineItemCount: 3,
@@ -6093,7 +6107,10 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       controlledIllustrationCreditRoundingAppliedOnceAcrossLivingFrameBundle:
         true,
       projectedMaximumInternalToolCostCredits: 3,
-      exactProductionToolRegistryCount: 50,
+      observedProductionToolRegistryCount:
+        listProductionToolProfiles().length,
+      productionToolRegistryCountIsProductCap: false,
+      productionToolRegistrySemanticIntegrityVerified: true,
     },
   )
   const projectedScenes = estimateWorkAssetProjection.scenes
@@ -6198,15 +6215,22 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
   assert.equal(
     projectedWorkRequirements.every((work) => {
       const record = asRecord(work)
-      const output = asRecord(record.expectedOutput)
+      const outputs = record.expectedOutputs
+      assert.ok(Array.isArray(outputs))
       return (
         record.currentRuntimeAdmission ===
           'blocked_until_real_dependency_input_operation_is_admitted'
         && record.workGraphMutationAuthorized === false
         && record.executablePayloadPresent === false
-        && output.required === true
-        && output.previewPlaceholderAllowed === false
-        && output.assetManifestEntryRequiredAfterApproval === true
+        && outputs.length > 0
+        && outputs.every((outputCandidate) => {
+          const output = asRecord(outputCandidate)
+          return (
+            output.required === true
+            && output.previewPlaceholderAllowed === false
+            && output.assetManifestEntryRequiredAfterApproval === true
+          )
+        })
       )
     }),
     true,
@@ -6322,6 +6346,8 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       admittedRembgGpuMaskWorkItemCount: 1,
       admittedSharpComponentWorkItemCount: 1,
       admittedRemotionLayerWorkItemCount: 1,
+      pendingTemporalSourceVideoWorkItemCount: 0,
+      pendingSam2TemporalMaskWorkItemCount: 0,
       finalCompositionBindingCount: 1,
       executableWorkItemCount: 3,
       requiredExpectedOutputCount: 4,

@@ -4,11 +4,15 @@ import type {
   CanonicalLivingFrameProjectedWorkItemType,
 } from './living-frame-estimate-work-asset-projection'
 import type {
+  CanonicalLivingFrameNamedWorkOperationClass,
   CanonicalLivingFrameNamedWorkSourceFrameInput,
 } from './living-frame-asset-work-input-binding'
+import type {
+  LivingFrameComponentAssetKind,
+} from './living-frame-component-asset-intent'
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION =
-  'canonical-living-frame-work-graph-projection-v7' as const
+  'canonical-living-frame-work-graph-projection-v8' as const
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE =
   'canonical_living_frame_work_graph_projection_compiler' as const
@@ -23,7 +27,7 @@ export const CANONICAL_LIVING_FRAME_PENDING_OPERATION =
   'await_exact_living_frame_dependency_input_operation_admission' as const
 
 export const CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION =
-  'canonical-living-frame-pending-operation-authority-v5' as const
+  'canonical-living-frame-pending-operation-authority-v6' as const
 
 export const CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION =
   'extract_approved_exact_source_frame_png' as const
@@ -74,9 +78,97 @@ export type CanonicalLivingFrameWorkGraphProjectionReadiness =
   | 'ready_without_living_frame_work_items'
   | 'canonical_work_items_projected_operation_admission_pending'
   | 'canonical_work_items_projected_exact_source_frame_admitted'
+  | 'canonical_work_items_projected_temporal_mask_admission_pending'
   | 'canonical_work_items_projected_rembg_gpu_operation_admitted'
   | 'canonical_work_items_projected_sharp_component_operation_admitted'
   | 'canonical_work_items_projected_remotion_layer_and_final_composition_bound'
+
+export interface CanonicalLivingFrameTemporalSourcePreparationRequirement {
+  readonly requirementVersion:
+    'canonical-living-frame-temporal-source-preparation-requirement-v1'
+  readonly operation:
+    'prepare_approved_living_frame_temporal_source_video'
+  readonly transcodeProfile:
+    'approved_sam2_source_proxy_high_quality_v1'
+  readonly selectedMasterFrameRange: {
+    readonly startFrame: number
+    readonly endFrameExclusive: number
+    readonly durationFrames: number
+  }
+  readonly selectedSourceTimeRange: {
+    readonly startSourceFrameIndex: number
+    readonly sourceFpsNumerator: number
+    readonly sourceFpsDenominator: 1
+    readonly durationMasterFrames: number
+    readonly masterFpsNumerator: number
+    readonly masterFpsDenominator: 1
+  }
+  readonly sourceMedia: {
+    readonly sourceSequenceItemId: string
+    readonly mediaAssetId: string
+    readonly contentSha256: string
+    readonly contentType: string
+    readonly byteLength: number
+    readonly sourceBindingHash: string
+    readonly storageIdentityHash: string
+    readonly dimensionsBindingState:
+      'pending_server_owned_private_source_metadata'
+  }
+  readonly outputArtifactType:
+    'living_frame_temporal_source_video_mp4'
+  readonly outputContentType: 'video/mp4'
+  readonly displayOrientationNormalized: true
+  readonly preserveDisplayAspectRatio: true
+  readonly maximumOutputBytes: 4_294_901_760
+  readonly privateArtifactRequired: true
+  readonly exactSceneRangeRequired: true
+  readonly metadataStripped: true
+  readonly audioRemoved: true
+  readonly runtimeDownloadAllowed: false
+  readonly networkFetchAllowed: false
+  readonly recipeOperationRegistered: false
+  readonly dispatchAuthorized: false
+}
+
+export interface CanonicalLivingFrameSam2TemporalMaskRequirement {
+  readonly requirementVersion:
+    'canonical-living-frame-sam2-temporal-mask-requirement-v1'
+  readonly requirementSetDigestSha256: string
+  readonly checkpointSlotId: 'sam2_checkpoint'
+  readonly checkpointArtifactId:
+    'meta-sam2.1-hiera-small-checkpoint'
+  readonly checkpointModelFamily: 'sam2.1-hiera-small'
+  readonly checkpointByteLength: 184_416_285
+  readonly checkpointContentSha256: string
+  readonly executionTarget: 'google_cloud_run_gpu'
+  readonly accelerator: 'nvidia_l4'
+  readonly modelAccelerator: 'cuda'
+  readonly cpuFallbackAllowed: false
+  readonly runtimeDownloadAllowed: false
+  readonly networkFetchAllowed: false
+  readonly maximumSubjects: 1
+  readonly preserveContactObjects: true
+  readonly subjectPromptBindingState:
+    'pending_server_owned_normalized_box'
+  readonly outputEncodingProfiles: readonly [
+    'gray8_ffv1_matroska_mask_sequence_v1',
+    'sam2_tracking_analysis_report_json_v1',
+    'sam2_mask_qa_measurement_report_json_v1',
+  ]
+  readonly requiredQaGates: readonly [
+    'mask_edge_quality',
+    'mask_temporal_stability',
+    'mask_subject_coverage',
+  ]
+  readonly checkpointIngested: false
+  readonly readOnlyMountVerified: false
+  readonly l4RuntimeQualified: false
+  readonly operationRegistered: false
+  readonly dispatchAuthorized: false
+  readonly modelInferenceAuthorized: false
+  readonly runtimeCostAdmissionComplete: false
+  readonly temporalQaComplete: false
+}
 
 export interface CanonicalLivingFramePendingOperationAuthority {
   readonly schemaVersion:
@@ -86,6 +178,11 @@ export interface CanonicalLivingFramePendingOperationAuthority {
   readonly estimateWorkAssetProjectionDigestSha256: string
   readonly customerEstimateAuthorityDigestSha256: string
   readonly sceneId: string
+  readonly workInputKey: string
+  readonly operationClass:
+    CanonicalLivingFrameNamedWorkOperationClass
+  readonly outputAssetKinds:
+    readonly LivingFrameComponentAssetKind[]
   readonly workRequirementDigestSha256: string
   readonly inputAssetIntentIds: readonly string[]
   readonly outputAssetIntentIds: readonly string[]
@@ -94,9 +191,16 @@ export interface CanonicalLivingFramePendingOperationAuthority {
   readonly costOwnerToolId:
     CanonicalLivingFrameProjectedToolId
   readonly costOwnerOperationId: string
+  readonly requestedToolId:
+    CanonicalLivingFrameProjectedToolId
+  readonly requestedToolOperationId: string
   readonly executionPlacement:
     CanonicalLivingFrameProjectedExecutionPlacement
   readonly cpuFallbackAllowed: boolean
+  readonly temporalSourcePreparationRequirement:
+    CanonicalLivingFrameTemporalSourcePreparationRequirement | null
+  readonly sam2TemporalMaskRequirement:
+    CanonicalLivingFrameSam2TemporalMaskRequirement | null
   readonly exactDependencyInputOperationAdmitted: boolean
   readonly executableStructuredPayloadPresent: false
 }
@@ -105,7 +209,7 @@ export interface CanonicalLivingFramePendingWorkExecutionInput {
   readonly operation:
     typeof CANONICAL_LIVING_FRAME_PENDING_OPERATION
   readonly approvedToolOperationIds: readonly []
-  readonly expectedOutputKeys: readonly [string]
+  readonly expectedOutputKeys: readonly string[]
   readonly pendingOperationAuthority:
     CanonicalLivingFramePendingOperationAuthority
 }
@@ -113,10 +217,14 @@ export interface CanonicalLivingFramePendingWorkExecutionInput {
 export interface CanonicalLivingFramePendingExpectedOutput {
   readonly outputKey: string
   readonly artifactType: string
-  readonly assetRole: 'processed'
+  readonly assetRole: 'processed' | 'qa'
   readonly required: true
   readonly previewPlaceholderAllowed: false
-  readonly contentType: 'application/json' | 'image/png'
+  readonly contentType:
+    | 'application/json'
+    | 'image/png'
+    | 'video/mp4'
+    | 'video/x-matroska'
   readonly segmentIds: readonly string[]
   readonly timingIds: readonly string[]
   readonly rendererLayerIds: readonly string[]
@@ -133,7 +241,7 @@ export interface CanonicalLivingFramePendingWorkItem {
   readonly sourceSequenceItemIds: readonly string[]
   readonly sourceCleanupDecisionIds: readonly string[]
   readonly expectedOutputs:
-    readonly [CanonicalLivingFramePendingExpectedOutput]
+    readonly CanonicalLivingFramePendingExpectedOutput[]
   readonly dependencyKeys: readonly string[]
   readonly approvedToolIds: readonly []
   readonly providerExecutionMode: 'none'
@@ -465,6 +573,11 @@ export interface CanonicalLivingFrameWorkGraphProjectedItem {
   readonly workItemKey: string
   readonly workItemType:
     CanonicalLivingFrameProjectedWorkItemType
+  readonly workInputKey: string
+  readonly operationClass:
+    CanonicalLivingFrameNamedWorkOperationClass
+  readonly outputAssetKinds:
+    readonly LivingFrameComponentAssetKind[]
   readonly costOwnerToolId:
     CanonicalLivingFrameProjectedToolId
   readonly costOwnerOperationId: string
@@ -485,6 +598,8 @@ export interface CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary {
   readonly serverDerivedRembgGpuMaskOperationAuthority: true
   readonly serverDerivedSharpComponentOperationAuthority: true
   readonly serverDerivedRemotionLayerManifestAuthority: true
+  readonly serverDerivedTemporalSourceAndSam2AdmissionAuthority:
+    true
   readonly serverDerivedFinalCompositionDependencyAuthority: true
   readonly callerWorkGraphMutationAuthority: false
   readonly approvedWorkGraphAuthority: false
@@ -532,6 +647,12 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
   readonly blockerCodes: readonly [
     'artifact_qa_work_items_required',
     'private_review_required',
+  ] | readonly [
+    'artifact_qa_work_items_required',
+    'private_review_required',
+    'temporal_source_recipe_and_private_metadata_required',
+    'sam2_checkpoint_runtime_and_cost_admission_required',
+    'sam2_inference_and_temporal_qa_required',
   ] | readonly []
   readonly metrics: {
     readonly selectedSceneCount: number
@@ -540,6 +661,8 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
     readonly admittedRembgGpuMaskWorkItemCount: number
     readonly admittedSharpComponentWorkItemCount: number
     readonly admittedRemotionLayerWorkItemCount: number
+    readonly pendingTemporalSourceVideoWorkItemCount: number
+    readonly pendingSam2TemporalMaskWorkItemCount: number
     readonly finalCompositionBindingCount: number
     readonly executableWorkItemCount: number
     readonly requiredExpectedOutputCount: number
@@ -564,6 +687,8 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
   readonly containsRembgGpuOperationPayload: true
   readonly containsSharpComponentOperationPayload: true
   readonly containsRemotionLayerManifestPayload: true
+  readonly containsTemporalSourceAndSam2PendingAuthority:
+    boolean
   readonly containsFinalCompositionDependencyBinding: true
   readonly expandsExactFiftyToolRegistry: false
   readonly subjectSpecificRouting: false

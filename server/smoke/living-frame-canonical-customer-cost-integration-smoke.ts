@@ -15,6 +15,7 @@ import type {
 import {
   compileCanonicalLivingFrameEstimateWorkAssetProjection,
 } from '../living-frame/canonical-living-frame-estimate-work-asset-projection'
+import { listProductionToolProfiles } from '../tool-registry'
 import {
   compileCanonicalCustomerEstimateAuthority,
 } from '../services/canonical-customer-estimate-authority-service'
@@ -184,9 +185,18 @@ assert.equal(
   2,
 )
 assert.equal(
-  projection.metrics.exactProductionToolRegistryCount,
-  50,
+  projection.metrics.observedProductionToolRegistryCount,
+  listProductionToolProfiles().length,
 )
+assert.equal(
+  projection.metrics.productionToolRegistryCountIsProductCap,
+  false,
+)
+assert.equal(
+  projection.metrics.productionToolRegistrySemanticIntegrityVerified,
+  true,
+)
+assert.equal(projection.createsProductionToolIdentity, false)
 assert.equal(
   projection.expandsExactFiftyToolRegistry,
   false,
@@ -272,5 +282,5 @@ assert.equal(
 )
 
 console.log(
-  'Living Frame canonical customer-cost integration passed generated-intent derivation, shared GPU plus separate AuraFace pricing, exact 50-tool preservation, whole-bundle rounding, and one service-fee checks.',
+  'Living Frame canonical customer-cost integration passed generated-intent derivation, shared GPU plus separate AuraFace pricing, semantic registry validation without a count cap, whole-bundle rounding, and one service-fee checks.',
 )

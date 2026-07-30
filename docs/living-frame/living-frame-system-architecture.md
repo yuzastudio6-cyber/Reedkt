@@ -1107,23 +1107,40 @@ Remotion layer preparation, but no reconstructed background plate.
 
 A seventh content-addressed
 `livingFrameEstimateWorkAssetProjection` record consumes that exact input
-binding. It binds every refined named work type to one existing exact-50 tool
+binding. It binds every refined named work type to one existing canonical tool
 cost owner, a conservative mock-safe cost range, explicit resource placement,
 deterministic dependency ordering, exact asset-intent inputs/outputs, and one
-expected output for the existing approved asset manifest. The current mask
-requirement is GPU-only on Google Cloud Run with no CPU fallback. Neither
-record adds a tool identity.
+or more expected outputs for the existing approved asset manifest. Named work
+now carries a server-derived asset-kind operation class, so a still-image
+`generate_mask_asset` remains rembg while a temporal
+`generate_mask_asset` is preserved as SAM2 video segmentation/tracking. Neither
+record adds a tool identity. The observed registry count is not a product cap;
+the compiler validates unique identities and complete profile coverage instead
+of requiring a literal count.
 
 The server now derives an eighth content-addressed
 `livingFrameCanonicalWorkGraphProjection` record after recalculating the
 customer estimate and WeEditPro service fee. It adds the three refined
-requirements to the one canonical plan work graph with exact source, cleanup,
+requirements in the current still-alpha fixture—and the exact refined set for
+other selected scenes—to the one canonical plan work graph with exact source,
+cleanup,
 asset-intent, dependency, output, and credit-budget lineage. The graph also
 adds the exact FFmpeg source-frame dependency required by mask generation.
-The mask requirement now reuses the existing `rembg` identity and operation
-as a fixed Google Cloud Run GPU/NVIDIA L4/CUDA-only work item. CPU fallback,
-runtime download, and network fetch are literal false. This does not add a
-tool: the production registry remains exactly 50.
+The still-alpha mask requirement reuses the existing `rembg` identity and
+operation as a fixed Google Cloud Run GPU/NVIDIA L4/CUDA-only work item. CPU
+fallback, runtime download, and network fetch are literal false.
+
+Temporal Living A-Roll now takes a separate exact two-step path. One pending
+FFmpeg `process_video_asset` prepares the selected private source-video range;
+one pending `sam2` `generate_mask_asset` depends on that exact work key and
+requires a gray8 FFV1 Matroska mask sequence plus analysis and QA JSON. Neither
+pending item carries an executable payload or approved dispatch identity.
+The FFmpeg recipe/private metadata bridge, server-owned normalized subject
+prompt, SAM2 checkpoint ingest/read-only mount, L4 runtime, inference, QA,
+actual cost, and operation release remain explicit gates. SAM2 receives no
+fabricated customer estimate while its canonical cost owner is unreleased.
+This does not add a tool identity and does not treat the current registry count
+as a product cap.
 
 Operation admission is not runtime authority. The rembg work item remains
 `privateExecutionReady = false` until the existing canonical CUDA image,

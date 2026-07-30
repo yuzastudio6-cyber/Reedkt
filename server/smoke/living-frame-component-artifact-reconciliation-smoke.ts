@@ -438,7 +438,7 @@ function assetBundle(
         'canonical_work_item_projection_required',
       ] as const
   const draft = {
-    contractVersion: 'living-frame-component-asset-intent-v1',
+    contractVersion: 'living-frame-component-asset-intent-v2',
     intentClass:
       'controlled_non_promotable_component_asset_intent_bundle',
     intentState,
@@ -473,6 +473,8 @@ function assetBundle(
       alphaOrMaskIntentCount:
         count(assetIntents, 'still_alpha_mask')
         + count(assetIntents, 'temporal_subject_mask_sequence'),
+      preparedTemporalSourceVideoIntentCount:
+        count(assetIntents, 'prepared_temporal_source_video'),
       processedRgbaIntentCount:
         count(assetIntents, 'processed_rgba_still_component'),
       boundedVideoIntentCount:

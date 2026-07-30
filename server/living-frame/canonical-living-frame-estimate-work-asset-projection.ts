@@ -1,5 +1,6 @@
 import type {
   CanonicalLivingFrameAssetWorkInputBinding,
+  CanonicalLivingFrameNamedWorkOperationClass,
 } from '../../src/types/living-frame-asset-work-input-binding'
 import type {
   CanonicalLivingFrameExecutionRequirements,
@@ -15,7 +16,7 @@ import {
   type CanonicalLivingFrameProjectedExpectedOutput,
   type CanonicalLivingFrameProjectedInfrastructureEstimateLineItem,
   type CanonicalLivingFrameProjectedToolId,
-  type CanonicalLivingFrameProjectedWorkItemType,
+  type CanonicalLivingFrameProjectedUnreleasedToolEstimateLineItem,
   type CanonicalLivingFrameProjectedWorkRequirement,
 } from '../../src/types/living-frame-estimate-work-asset-projection'
 import type {
@@ -42,10 +43,14 @@ import {
 } from '../../src/types/credit-policy'
 import {
   listProductionToolProfiles,
+  PRODUCTION_TOOL_IDS,
 } from '../tool-registry'
 import {
   resolveCompleteProfessionalToolOperationSpec,
 } from '../tool-execution/core-registry-operations/core-registry-operation-specs'
+import {
+  getCanonicalSam2ModelArtifactRequirementSet,
+} from '../model-artifacts/canonical-sam2-model-artifact-requirements'
 import type {
   CanonicalPlanComponentsInput,
 } from '../validation/edit-planning-authority-schemas'
@@ -62,63 +67,147 @@ const COST_MICROS_PER_CREDIT =
   COST_MICROS_PER_CENT * CREDIT_RETAIL_VALUE_CENTS
 
 interface WorkProjectionProfile {
+  readonly operationClass:
+    CanonicalLivingFrameNamedWorkOperationClass
   readonly toolId: CanonicalLivingFrameProjectedToolId
   readonly operationId: string
+  readonly costAdmission:
+    | 'registered_production_tool'
+    | 'unreleased_canonical_tool_candidate'
   readonly label: string
   readonly executionPlacement:
     CanonicalLivingFrameProjectedExecutionPlacement
   readonly cpuFallbackAllowed: boolean
-  readonly artifactType: string
-  readonly contentType: 'application/json' | 'image/png'
+  readonly expectedOutputs: readonly {
+    readonly outputSuffix: string
+    readonly artifactType: string
+    readonly assetRole: 'processed' | 'qa'
+    readonly contentType:
+      | 'application/json'
+      | 'image/png'
+      | 'video/mp4'
+      | 'video/x-matroska'
+  }[]
 }
 
 const WORK_PROJECTION_PROFILES: Readonly<
   Partial<
     Record<
-      CanonicalLivingFrameProjectedWorkItemType,
+      CanonicalLivingFrameNamedWorkOperationClass,
       WorkProjectionProfile
     >
   >
 > = Object.freeze({
-  generate_mask_asset: {
+  remove_still_image_background: {
+    operationClass: 'remove_still_image_background',
     toolId: 'rembg',
     operationId:
       'tool.rembg.remove_image_background.v1',
+    costAdmission: 'registered_production_tool',
     label: 'Living Frame alpha mask preparation',
     executionPlacement: 'google_cloud_run_gpu',
     cpuFallbackAllowed: false,
-    artifactType: 'living_frame_alpha_mask_png',
-    contentType: 'image/png',
+    expectedOutputs: [{
+      outputSuffix: 'output',
+      artifactType: 'living_frame_alpha_mask_png',
+      assetRole: 'processed',
+      contentType: 'image/png',
+    }],
   },
-  process_image_asset: {
+  prepare_temporal_source_video: {
+    operationClass: 'prepare_temporal_source_video',
+    toolId: 'ffmpeg',
+    operationId:
+      'tool.ffmpeg.execute_approved_media_recipe.v1',
+    costAdmission: 'registered_production_tool',
+    label: 'Living Frame temporal source-video preparation',
+    executionPlacement: 'private_cpu_worker',
+    cpuFallbackAllowed: true,
+    expectedOutputs: [{
+      outputSuffix: 'output',
+      artifactType:
+        'living_frame_temporal_source_video_mp4',
+      assetRole: 'processed',
+      contentType: 'video/mp4',
+    }],
+  },
+  temporal_video_subject_segmentation_and_tracking: {
+    operationClass:
+      'temporal_video_subject_segmentation_and_tracking',
+    toolId: 'sam2',
+    operationId:
+      'tool.sam2.segment_and_track_subject.v1',
+    costAdmission: 'unreleased_canonical_tool_candidate',
+    label: 'Living Frame temporal subject mask tracking',
+    executionPlacement: 'google_cloud_run_gpu',
+    cpuFallbackAllowed: false,
+    expectedOutputs: [{
+      outputSuffix: 'mask-sequence',
+      artifactType:
+        'living_frame_temporal_subject_mask_sequence_ffv1_mkv',
+      assetRole: 'processed',
+      contentType: 'video/x-matroska',
+    }, {
+      outputSuffix: 'analysis',
+      artifactType:
+        'living_frame_temporal_subject_tracking_analysis_json',
+      assetRole: 'processed',
+      contentType: 'application/json',
+    }, {
+      outputSuffix: 'qa',
+      artifactType:
+        'living_frame_temporal_subject_mask_qa_json',
+      assetRole: 'qa',
+      contentType: 'application/json',
+    }],
+  },
+  prepare_straight_alpha_component: {
+    operationClass: 'prepare_straight_alpha_component',
     toolId: 'sharp',
     operationId:
       'tool.sharp.prepare_approved_image_asset.v1',
+    costAdmission: 'registered_production_tool',
     label: 'Living Frame component image preparation',
     executionPlacement: 'private_render_worker',
     cpuFallbackAllowed: true,
-    artifactType: 'living_frame_component_rgba_png',
-    contentType: 'image/png',
+    expectedOutputs: [{
+      outputSuffix: 'output',
+      artifactType: 'living_frame_component_rgba_png',
+      assetRole: 'processed',
+      contentType: 'image/png',
+    }],
   },
   reconstruct_background_plate: {
+    operationClass: 'reconstruct_background_plate',
     toolId: 'openimageio',
     operationId:
       'tool.openimageio.process_image_sequence.v1',
+    costAdmission: 'registered_production_tool',
     label: 'Living Frame background plate reconstruction',
     executionPlacement: 'private_cpu_worker',
     cpuFallbackAllowed: true,
-    artifactType: 'living_frame_background_plate_png',
-    contentType: 'image/png',
+    expectedOutputs: [{
+      outputSuffix: 'output',
+      artifactType: 'living_frame_background_plate_png',
+      assetRole: 'processed',
+      contentType: 'image/png',
+    }],
   },
-  prepare_remotion_layer: {
+  compile_remotion_layer: {
+    operationClass: 'compile_remotion_layer',
     toolId: 'remotion',
     operationId:
       'tool.remotion.render_approved_composition.v1',
+    costAdmission: 'registered_production_tool',
     label: 'Living Frame Remotion layer preparation',
     executionPlacement: 'private_render_worker',
     cpuFallbackAllowed: true,
-    artifactType: 'living_frame_remotion_layer_manifest',
-    contentType: 'application/json',
+    expectedOutputs: [{
+      outputSuffix: 'output',
+      artifactType: 'living_frame_remotion_layer_manifest',
+      assetRole: 'processed',
+      contentType: 'application/json',
+    }],
   },
 })
 
@@ -159,12 +248,12 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
   },
 ): CanonicalLivingFrameEstimateWorkAssetProjection {
   assertSourceLineage(input)
-  const exactToolCount = listProductionToolProfiles().length
-  if (exactToolCount !== 50) {
-    throw conflict(
-      'Canonical Living Frame projection refused drift from the exact 50-tool registry.',
-    )
-  }
+  const productionToolProfiles = listProductionToolProfiles()
+  assertProductionToolRegistrySemanticIntegrity(
+    productionToolProfiles,
+  )
+  const observedProductionToolRegistryCount =
+    productionToolProfiles.length
   const productEditLevel = resolveProductEditLevel(
     input.components.confirmedSettings.editLevel,
   )
@@ -184,10 +273,10 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
         )
       }
       const sceneKey = `lf-${String(sceneIndex + 1).padStart(3, '0')}-${sha256AuthorityValue(scene.sceneId).slice(0, 12)}`
-      const workKeyByType = new Map(
-        assetWorkScene.refinedRequiredNamedWorkItemTypes.map((workItemType) => [
-          workItemType,
-          `${sceneKey}-${workItemType.replaceAll('_', '-')}`,
+      const workKeyByInputKey = new Map(
+        assetWorkScene.namedWorkInputs.map((workInput) => [
+          workInput.workInputKey,
+          `${sceneKey}-${workInput.operationClass.replaceAll('_', '-')}-${sha256AuthorityValue(workInput.workInputKey).slice(0, 8)}`,
         ]),
       )
       const workRequirements =
@@ -196,7 +285,7 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
             scene,
             timingScene,
             workInput,
-            workKeyByType,
+            workKeyByInputKey,
           }))
       const registeredToolEstimateLineItems = workRequirements.map(
         (workRequirement, workIndex) =>
@@ -298,7 +387,11 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
       productEditLevel,
       readiness: scenes.length === 0
         ? 'ready_without_living_frame_projection'
-        : 'requirements_projected_execution_admission_pending',
+        : projectedEstimateLineItems.some((line) =>
+            line.costOwnerClass ===
+              'canonical_unreleased_tool_candidate')
+          ? 'requirements_projected_unreleased_cost_and_execution_admission_pending'
+          : 'requirements_projected_execution_admission_pending',
       scenes,
       metrics: {
         selectedSceneCount: scenes.length,
@@ -307,7 +400,11 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
         projectedNamedWorkItemCount:
           projectedWorkRequirements.length,
         projectedExpectedAssetCount:
-          projectedWorkRequirements.length,
+          projectedWorkRequirements.reduce(
+            (total, work) =>
+              total + work.expectedOutputs.length,
+            0,
+          ),
         projectedGpuWorkItemCount:
           projectedWorkRequirements.filter(
             (work) =>
@@ -351,7 +448,9 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
           ),
         controlledIllustrationCreditRoundingAppliedOnceAcrossLivingFrameBundle:
           true,
-        exactProductionToolRegistryCount: 50,
+        observedProductionToolRegistryCount,
+        productionToolRegistryCountIsProductCap: false,
+        productionToolRegistrySemanticIntegrityVerified: true,
       },
       authorityBoundary: AUTHORITY_BOUNDARY,
       existingCustomerEstimateAndServiceFeePipelineRemainsAuthority:
@@ -365,6 +464,7 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
       containsProviderPromptOrExecutablePayload: false,
       createsCanonicalWorkItems: false,
       createsAssetManifestEntries: false,
+      createsProductionToolIdentity: false,
       expandsExactFiftyToolRegistry: false,
       subjectSpecificRouting: false,
       productionReady: false,
@@ -502,24 +602,22 @@ function compileWorkRequirement(input: {
     CanonicalLivingFrameAssetWorkInputBinding[
       'scenes'
     ][number]['namedWorkInputs'][number]
-  readonly workKeyByType: ReadonlyMap<
-    CanonicalLivingFrameProjectedWorkItemType,
-    string
-  >
+  readonly workKeyByInputKey:
+    ReadonlyMap<string, string>
 }): CanonicalLivingFrameProjectedWorkRequirement {
   const profile =
     WORK_PROJECTION_PROFILES[
-      input.workInput.workItemType
+      input.workInput.operationClass
     ]
   if (!profile) {
     throw conflict(
-      `Canonical Living Frame named work type ${input.workInput.workItemType} has no admitted exact-50 cost and asset projection.`,
+      `Canonical Living Frame operation class ${input.workInput.operationClass} has no admitted canonical cost and asset projection.`,
     )
   }
   assertExactToolOperation(profile)
   const workItemKey =
-    input.workKeyByType.get(
-      input.workInput.workItemType,
+    input.workKeyByInputKey.get(
+      input.workInput.workInputKey,
     )
   if (!workItemKey) {
     throw conflict(
@@ -527,17 +625,35 @@ function compileWorkRequirement(input: {
     )
   }
   const dependencyWorkItemKeys =
-    input.workInput.dependencyNamedWorkItemTypes.flatMap(
-      (dependencyType) => {
+    input.workInput.dependencyNamedWorkInputKeys.flatMap(
+      (dependencyInputKey) => {
         const dependency =
-          input.workKeyByType.get(dependencyType)
+          input.workKeyByInputKey.get(
+            dependencyInputKey,
+          )
         return dependency ? [dependency] : []
       },
     )
+  if (
+    dependencyWorkItemKeys.length !==
+      input.workInput.dependencyNamedWorkInputKeys.length
+  ) {
+    throw conflict(
+      'Canonical Living Frame named work projection lost an exact dependency work-input key.',
+    )
+  }
   return {
+    workInputKey: input.workInput.workInputKey,
     workItemKey,
     sceneId: input.scene.sceneId,
     workItemType: input.workInput.workItemType,
+    operationClass: input.workInput.operationClass,
+    outputAssetKinds: [
+      ...input.workInput.outputAssetKinds,
+    ],
+    dependencyWorkInputKeys: [
+      ...input.workInput.dependencyNamedWorkInputKeys,
+    ],
     dependencyWorkItemKeys,
     inputAssetIntentIds: [
       ...input.workInput.inputAssetIntentIds,
@@ -555,50 +671,79 @@ function compileWorkRequirement(input: {
     costOwnerOperationId: profile.operationId,
     executionPlacement: profile.executionPlacement,
     cpuFallbackAllowed: profile.cpuFallbackAllowed,
-    expectedOutput: compileExpectedOutput({
+    expectedOutputs: compileExpectedOutputs({
       scene: input.scene,
       timingScene: input.timingScene,
       workItemKey,
       profile,
     }),
     currentRuntimeAdmission:
-      'blocked_until_real_dependency_input_operation_is_admitted',
+      profile.operationClass ===
+          'prepare_temporal_source_video'
+        || profile.operationClass ===
+          'temporal_video_subject_segmentation_and_tracking'
+        ? 'blocked_until_temporal_source_recipe_and_sam2_model_runtime_are_admitted'
+        : 'blocked_until_real_dependency_input_operation_is_admitted',
     workGraphMutationAuthorized: false,
     executablePayloadPresent: false,
   }
 }
 
-function compileExpectedOutput(input: {
+function assertProductionToolRegistrySemanticIntegrity(
+  profiles: ReturnType<typeof listProductionToolProfiles>,
+): void {
+  const declaredToolIds = [...PRODUCTION_TOOL_IDS]
+  const profileToolIds = profiles.map((profile) => profile.toolId)
+  const declaredToolIdSet = new Set<string>(declaredToolIds)
+  const profileToolIdSet = new Set<string>(profileToolIds)
+  if (
+    declaredToolIds.length === 0
+    || declaredToolIdSet.size !== declaredToolIds.length
+    || profileToolIdSet.size !== profileToolIds.length
+    || profileToolIds.length !== declaredToolIds.length
+    || declaredToolIds.some((toolId) => !profileToolIdSet.has(toolId))
+    || profileToolIds.some((toolId) => !declaredToolIdSet.has(toolId))
+  ) {
+    throw conflict(
+      'Canonical Living Frame projection refused a production-tool registry with duplicate identities or incomplete profile coverage.',
+    )
+  }
+}
+
+function compileExpectedOutputs(input: {
   readonly scene:
     CanonicalLivingFrameExecutionRequirements['scenes'][number]
   readonly timingScene:
     CanonicalLivingFrameTimingBinding['scenes'][number]
   readonly workItemKey: string
   readonly profile: WorkProjectionProfile
-}): CanonicalLivingFrameProjectedExpectedOutput {
-  return {
-    outputKey: `${input.workItemKey}-output`,
-    artifactType: input.profile.artifactType,
-    assetRole: 'processed',
+}): CanonicalLivingFrameProjectedExpectedOutput[] {
+  const timingIds = uniqueSorted([
+    ...input.scene.semanticTimingRequestIds,
+    ...input.scene.soundRequestIds,
+    ...input.timingScene.semanticPhaseBindings.map(
+      (binding) => binding.timingRequestId,
+    ),
+    ...input.timingScene.soundCueBindings.map(
+      (binding) => binding.soundRequestId,
+    ),
+  ])
+  const rendererLayerIds = uniqueSorted(
+    input.scene.componentIds,
+  )
+  return input.profile.expectedOutputs.map((output) => ({
+    outputKey:
+      `${input.workItemKey}-${output.outputSuffix}`,
+    artifactType: output.artifactType,
+    assetRole: output.assetRole,
     required: true,
     previewPlaceholderAllowed: false,
-    contentType: input.profile.contentType,
+    contentType: output.contentType,
     segmentIds: [input.scene.canonicalSegmentId],
-    timingIds: uniqueSorted([
-      ...input.scene.semanticTimingRequestIds,
-      ...input.scene.soundRequestIds,
-      ...input.timingScene.semanticPhaseBindings.map(
-        (binding) => binding.timingRequestId,
-      ),
-      ...input.timingScene.soundCueBindings.map(
-        (binding) => binding.soundRequestId,
-      ),
-    ]),
-    rendererLayerIds: uniqueSorted(
-      input.scene.componentIds,
-    ),
+    timingIds,
+    rendererLayerIds,
     assetManifestEntryRequiredAfterApproval: true,
-  }
+  }))
 }
 
 function compileEstimateLineItem(input: {
@@ -613,6 +758,26 @@ function compileEstimateLineItem(input: {
   readonly workRequirement:
     CanonicalLivingFrameProjectedWorkRequirement
 }): CanonicalLivingFrameProjectedEstimateLineItem {
+  const profile =
+    WORK_PROJECTION_PROFILES[
+      input.workRequirement.operationClass
+    ]
+  if (!profile) {
+    throw conflict(
+      'Canonical Living Frame cost projection lost its exact operation-class profile.',
+    )
+  }
+  if (
+    profile.costAdmission ===
+      'unreleased_canonical_tool_candidate'
+  ) {
+    return compileUnreleasedToolEstimateLineItem({
+      sceneId: input.sceneId,
+      workIndex: input.workIndex,
+      workRequirement: input.workRequirement,
+      profile,
+    })
+  }
   const cost = estimateProductionToolCost({
     toolId: input.workRequirement.costOwnerToolId,
     workspaceId: input.identity.workspaceId,
@@ -623,13 +788,6 @@ function compileEstimateLineItem(input: {
   if (!cost.ok || cost.data.serviceFeeIncluded) {
     throw conflict(
       `Canonical Living Frame could not derive a mock-safe cost-owner estimate for ${input.workRequirement.costOwnerToolId}.`,
-    )
-  }
-  const profile =
-    WORK_PROJECTION_PROFILES[input.workRequirement.workItemType]
-  if (!profile) {
-    throw conflict(
-      'Canonical Living Frame cost projection lost its named-work profile.',
     )
   }
   return {
@@ -671,6 +829,66 @@ function compileEstimateLineItem(input: {
     operationContractObserved: true,
     actualAttemptCostEvidenceRequired: true,
     productionRateAuthority: false,
+    estimateOnly: true,
+  }
+}
+
+function compileUnreleasedToolEstimateLineItem(input: {
+  readonly sceneId: string
+  readonly workIndex: number
+  readonly workRequirement:
+    CanonicalLivingFrameProjectedWorkRequirement
+  readonly profile: WorkProjectionProfile
+}): CanonicalLivingFrameProjectedUnreleasedToolEstimateLineItem {
+  if (
+    input.profile.toolId !== 'sam2'
+    || input.profile.operationId !==
+      'tool.sam2.segment_and_track_subject.v1'
+    || input.workRequirement.costOwnerToolId !== 'sam2'
+    || input.workRequirement.costOwnerOperationId !==
+      'tool.sam2.segment_and_track_subject.v1'
+  ) {
+    throw conflict(
+      'Canonical Living Frame unreleased cost admission is limited to the exact SAM2 temporal operation.',
+    )
+  }
+  return {
+    lineKey:
+      `${input.workRequirement.workItemKey}-estimate-${String(input.workIndex + 1).padStart(2, '0')}`,
+    label: input.profile.label,
+    category: 'living_frame',
+    estimatedCredits: 0,
+    removable: false,
+    sceneId: input.sceneId,
+    costOwnerClass:
+      'canonical_unreleased_tool_candidate',
+    workItemType: input.workRequirement.workItemType,
+    costOwnerToolId: 'sam2',
+    costOwnerOperationId:
+      'tool.sam2.segment_and_track_subject.v1',
+    controlledIllustrationCostComponentId: null,
+    activeControlledIllustrationCapabilityIds: [],
+    executionPlacement:
+      input.workRequirement.executionPlacement,
+    cpuFallbackAllowed: false,
+    costRange: {
+      lowCredits: 0,
+      expectedCredits: 0,
+      highCredits: 0,
+      lowInternalCostMicros: 0,
+      expectedInternalCostMicros: 0,
+      highInternalCostMicros: 0,
+      riskLevel: 'high',
+      rateCardVersion:
+        'unreleased-sam2-runtime-cost-admission-pending',
+      serviceFeeIncluded: false,
+    },
+    exactFiftyToolRegistryMember: false,
+    operationContractObserved: false,
+    actualAttemptCostEvidenceRequired: true,
+    productionRateAuthority: false,
+    runtimeCostAdmissionRequired: true,
+    customerEstimateEligibleBeforeCostAdmission: false,
     estimateOnly: true,
   }
 }
@@ -817,6 +1035,29 @@ function allocateCreditsByExactMicros(
 function assertExactToolOperation(
   profile: WorkProjectionProfile,
 ): void {
+  if (
+    profile.costAdmission ===
+      'unreleased_canonical_tool_candidate'
+  ) {
+    const requirement =
+      getCanonicalSam2ModelArtifactRequirementSet()
+    if (
+      profile.operationClass !==
+        'temporal_video_subject_segmentation_and_tracking'
+      || profile.toolId !== requirement.approvedToolId
+      || profile.operationId !==
+        requirement.approvedOperationId
+      || requirement.boundaries.runtimeAuthority
+      || requirement.boundaries.productionReady
+      || !requirement.summary.googleCloudRunGpuRequired
+      || requirement.summary.cpuFallbackAllowed
+    ) {
+      throw conflict(
+        'Canonical Living Frame SAM2 projection lost its exact non-executable model-artifact requirement.',
+      )
+    }
+    return
+  }
   const operation =
     resolveCompleteProfessionalToolOperationSpec(
       profile.toolId,

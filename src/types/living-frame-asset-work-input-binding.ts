@@ -7,7 +7,7 @@ import type {
 } from './living-frame-estimate-work-asset-projection'
 
 export const CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_VERSION =
-  'canonical-living-frame-asset-work-input-binding-v2' as const
+  'canonical-living-frame-asset-work-input-binding-v3' as const
 
 export const CANONICAL_LIVING_FRAME_ASSET_WORK_INPUT_BINDING_SOURCE =
   'canonical_living_frame_asset_work_input_binding_compiler' as const
@@ -67,6 +67,7 @@ export interface CanonicalLivingFrameSourceAssetBinding {
 export interface CanonicalLivingFrameNamedWorkSourceFrameInput {
   readonly assetIntentId: string
   readonly sourceSequenceItemId: string
+  readonly mediaAssetId: string
   readonly sourceCleanupDecisionId: string
   readonly masterFrameIndex: number
   readonly sourceFrameIndex: number
@@ -74,13 +75,37 @@ export interface CanonicalLivingFrameNamedWorkSourceFrameInput {
   readonly frameSelectionPolicy:
     'scene_start_meaning_anchor_v1'
   readonly sourceFrameSelectionDigestSha256: string
+  readonly contentSha256: string
+  readonly contentType: string
+  readonly byteLength: number
+  readonly sourceBindingHash: string
+  readonly storageIdentityHash: string
 }
 
+export type CanonicalLivingFrameNamedWorkOperationClass =
+  | 'generate_controlled_image_asset'
+  | 'generate_bounded_video_asset'
+  | 'render_exact_map_asset'
+  | 'render_exact_data_graphic_asset'
+  | 'remove_still_image_background'
+  | 'prepare_temporal_source_video'
+  | 'temporal_video_subject_segmentation_and_tracking'
+  | 'prepare_straight_alpha_component'
+  | 'reconstruct_background_plate'
+  | 'compile_remotion_layer'
+
 export interface CanonicalLivingFrameNamedWorkInput {
+  readonly workInputKey: string
   readonly workItemType:
     CanonicalLivingFrameProjectedWorkItemType
+  readonly operationClass:
+    CanonicalLivingFrameNamedWorkOperationClass
+  readonly outputAssetKinds:
+    readonly LivingFrameComponentAssetKind[]
   readonly inputAssetIntentIds: readonly string[]
   readonly outputAssetIntentIds: readonly string[]
+  readonly dependencyNamedWorkInputKeys:
+    readonly string[]
   readonly dependencyNamedWorkItemTypes:
     readonly CanonicalLivingFrameProjectedWorkItemType[]
   readonly sourceSequenceItemIds: readonly string[]

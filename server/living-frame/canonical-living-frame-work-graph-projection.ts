@@ -24,6 +24,8 @@ import {
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS,
   type CanonicalLivingFrameExactSourceFramePngWorkItem,
+  type CanonicalLivingFrameSam2TemporalMaskRequirement,
+  type CanonicalLivingFrameTemporalSourcePreparationRequirement,
   CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE,
   CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION,
   type CanonicalLivingFramePendingWorkItem,
@@ -63,6 +65,9 @@ import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
 } from '../tool-execution/media-binary-execution'
 import {
+  getCanonicalSam2ModelArtifactRequirementSet,
+} from '../model-artifacts/canonical-sam2-model-artifact-requirements'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
@@ -79,6 +84,8 @@ const AUTHORITY_BOUNDARY:
       serverDerivedRembgGpuMaskOperationAuthority: true,
       serverDerivedSharpComponentOperationAuthority: true,
       serverDerivedRemotionLayerManifestAuthority: true,
+      serverDerivedTemporalSourceAndSam2AdmissionAuthority:
+        true,
       serverDerivedFinalCompositionDependencyAuthority: true,
       callerWorkGraphMutationAuthority: false,
       approvedWorkGraphAuthority: false,
@@ -96,6 +103,12 @@ const AUTHORITY_BOUNDARY:
 const BLOCKER_CODES = Object.freeze([
   'artifact_qa_work_items_required',
   'private_review_required',
+] as const)
+const TEMPORAL_MASK_BLOCKER_CODES = Object.freeze([
+  ...BLOCKER_CODES,
+  'temporal_source_recipe_and_private_metadata_required',
+  'sam2_checkpoint_runtime_and_cost_admission_required',
+  'sam2_inference_and_temporal_qa_required',
 ] as const)
 
 export function compileCanonicalLivingFrameWorkGraphProjection(
@@ -133,9 +146,9 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         'Canonical Living Frame work-graph projection lost its exact scene asset/work binding.',
       )
     }
-    const workInputByType = new Map(
+    const workInputByKey = new Map(
       boundScene.namedWorkInputs.map((workInput) => [
-        workInput.workItemType,
+        workInput.workInputKey,
         workInput,
       ]),
     )
@@ -148,8 +161,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
     for (const workRequirement of
       projectedScene.workRequirements) {
       const workInput =
-        workInputByType.get(
-          workRequirement.workItemType,
+        workInputByKey.get(
+          workRequirement.workInputKey,
         )
       const matchingEstimateLines =
         projectedScene.estimateLineItems.filter(
@@ -165,6 +178,13 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         !workInput
         || matchingEstimateLines.length !== 1
         || stableAuthorityStringify(
+          workInput.outputAssetKinds,
+        ) !== stableAuthorityStringify(
+          workRequirement.outputAssetKinds,
+        )
+        || workInput.operationClass !==
+          workRequirement.operationClass
+        || stableAuthorityStringify(
           workInput.inputAssetIntentIds,
         ) !== stableAuthorityStringify(
           workRequirement.inputAssetIntentIds,
@@ -179,8 +199,12 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         ) !== stableAuthorityStringify(
           workRequirement.sourceFrameInputs,
         )
-        || workRequirement.currentRuntimeAdmission !==
-          'blocked_until_real_dependency_input_operation_is_admitted'
+        || ![
+          'blocked_until_real_dependency_input_operation_is_admitted',
+          'blocked_until_temporal_source_recipe_and_sam2_model_runtime_are_admitted',
+        ].includes(
+          workRequirement.currentRuntimeAdmission,
+        )
         || workRequirement.workGraphMutationAuthorized
         || workRequirement.executablePayloadPresent
       ) {
@@ -189,11 +213,17 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         )
       }
       const line = matchingEstimateLines[0]!
-      const expectedOutput =
-        workRequirement.expectedOutput
+      const expectedOutputs =
+        workRequirement.expectedOutputs
+      const expectedOutput = expectedOutputs[0]
+      if (!expectedOutput || expectedOutputs.length < 1) {
+        throw conflict(
+          'Canonical Living Frame work requirement lost its exact expected outputs.',
+        )
+      }
       const exactSourceFrameWorkItem =
-        workRequirement.workItemType ===
-          'generate_mask_asset'
+        workRequirement.operationClass ===
+          'remove_still_image_background'
           ? compileExactSourceFrameWorkItem({
               workRequirement,
               expectedOutput,
@@ -243,6 +273,13 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             workRequirement.workItemKey,
           workItemType:
             workRequirement.workItemType,
+          workInputKey:
+            workRequirement.workInputKey,
+          operationClass:
+            workRequirement.operationClass,
+          outputAssetKinds: [
+            ...workRequirement.outputAssetKinds,
+          ],
           costOwnerToolId:
             workRequirement.costOwnerToolId,
           costOwnerOperationId:
@@ -272,8 +309,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         continue
       }
       if (
-        workRequirement.workItemType ===
-          'process_image_asset'
+        workRequirement.operationClass ===
+          'prepare_straight_alpha_component'
       ) {
         if (
           !admittedExactSourceFrameWorkItem
@@ -309,6 +346,13 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             workRequirement.workItemKey,
           workItemType:
             workRequirement.workItemType,
+          workInputKey:
+            workRequirement.workInputKey,
+          operationClass:
+            workRequirement.operationClass,
+          outputAssetKinds: [
+            ...workRequirement.outputAssetKinds,
+          ],
           costOwnerToolId:
             workRequirement.costOwnerToolId,
           costOwnerOperationId:
@@ -341,14 +385,10 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         continue
       }
       if (
-        workRequirement.workItemType ===
-          'prepare_remotion_layer'
+        workRequirement.operationClass ===
+          'compile_remotion_layer'
+        && admittedSharpComponentWorkItem
       ) {
-        if (!admittedSharpComponentWorkItem) {
-          throw conflict(
-            'Canonical Living Frame Remotion layer requires the already-admitted Sharp RGBA component.',
-          )
-        }
         const timingScene =
           input.timingBinding.scenes.find(
             (scene) =>
@@ -389,6 +429,13 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             workRequirement.workItemKey,
           workItemType:
             workRequirement.workItemType,
+          workInputKey:
+            workRequirement.workInputKey,
+          operationClass:
+            workRequirement.operationClass,
+          outputAssetKinds: [
+            ...workRequirement.outputAssetKinds,
+          ],
           costOwnerToolId:
             workRequirement.costOwnerToolId,
           costOwnerOperationId:
@@ -414,6 +461,12 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         })
         continue
       }
+      const temporalAdmissionRequirements =
+        compileTemporalAdmissionRequirements({
+          projectedScene,
+          workRequirement,
+          masterFps: input.timingBinding.fps,
+        })
       const pendingAuthority = {
         schemaVersion:
           CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION,
@@ -428,6 +481,13 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
           input.customerEstimateAuthority
             .authorityDigestSha256,
         sceneId: projectedScene.sceneId,
+        workInputKey:
+          workRequirement.workInputKey,
+        operationClass:
+          workRequirement.operationClass,
+        outputAssetKinds: [
+          ...workRequirement.outputAssetKinds,
+        ],
         workRequirementDigestSha256:
           sha256AuthorityValue(workRequirement),
         inputAssetIntentIds: [
@@ -446,10 +506,20 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
           workRequirement.costOwnerToolId,
         costOwnerOperationId:
           workRequirement.costOwnerOperationId,
+        requestedToolId:
+          workRequirement.costOwnerToolId,
+        requestedToolOperationId:
+          workRequirement.costOwnerOperationId,
         executionPlacement:
           workRequirement.executionPlacement,
         cpuFallbackAllowed:
           workRequirement.cpuFallbackAllowed,
+        temporalSourcePreparationRequirement:
+          temporalAdmissionRequirements
+            .temporalSourcePreparationRequirement,
+        sam2TemporalMaskRequirement:
+          temporalAdmissionRequirements
+            .sam2TemporalMaskRequirement,
         exactDependencyInputOperationAdmitted:
           false as const,
         executableStructuredPayloadPresent:
@@ -467,9 +537,9 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             operation:
               CANONICAL_LIVING_FRAME_PENDING_OPERATION,
             approvedToolOperationIds: [],
-            expectedOutputKeys: [
-              expectedOutput.outputKey,
-            ],
+            expectedOutputKeys:
+              expectedOutputs.map((output) =>
+                output.outputKey),
             pendingOperationAuthority:
               pendingAuthority,
           },
@@ -479,25 +549,21 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
           sourceCleanupDecisionIds: [
             ...workInput.sourceCleanupDecisionIds,
           ],
-          expectedOutputs: [{
-            outputKey: expectedOutput.outputKey,
-            artifactType:
-              expectedOutput.artifactType,
-            assetRole: 'processed',
-            required: true,
-            previewPlaceholderAllowed: false,
-            contentType:
-              expectedOutput.contentType,
-            segmentIds: [
-              ...expectedOutput.segmentIds,
-            ],
-            timingIds: [
-              ...expectedOutput.timingIds,
-            ],
-            rendererLayerIds: [
-              ...expectedOutput.rendererLayerIds,
-            ],
-          }],
+          expectedOutputs:
+            expectedOutputs.map((output) => ({
+              outputKey: output.outputKey,
+              artifactType: output.artifactType,
+              assetRole: output.assetRole,
+              required: true as const,
+              previewPlaceholderAllowed:
+                false as const,
+              contentType: output.contentType,
+              segmentIds: [...output.segmentIds],
+              timingIds: [...output.timingIds],
+              rendererLayerIds: [
+                ...output.rendererLayerIds,
+              ],
+            })),
           dependencyKeys: [
             ...admittedDependencyKeys,
           ],
@@ -523,6 +589,13 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
           workRequirement.workItemKey,
         workItemType:
           workRequirement.workItemType,
+        workInputKey:
+          workRequirement.workInputKey,
+        operationClass:
+          workRequirement.operationClass,
+        outputAssetKinds: [
+          ...workRequirement.outputAssetKinds,
+        ],
         costOwnerToolId:
           workRequirement.costOwnerToolId,
         costOwnerOperationId:
@@ -560,6 +633,20 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         item.workerClass ===
           CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS,
     )
+  const pendingTemporalSourceVideoWorkItems =
+    workItems.filter((item) =>
+      item.workerClass ===
+        CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
+      && item.executionInput.pendingOperationAuthority
+        .operationClass ===
+        'prepare_temporal_source_video')
+  const pendingSam2TemporalMaskWorkItems =
+    workItems.filter((item) =>
+      item.workerClass ===
+        CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
+      && item.executionInput.pendingOperationAuthority
+        .operationClass ===
+        'temporal_video_subject_segmentation_and_tracking')
   const finalCompositionBindingDraft =
     selectedSceneCount === 0
       ? null
@@ -656,6 +743,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       },
       readiness: selectedSceneCount === 0
         ? 'ready_without_living_frame_work_items'
+        : pendingSam2TemporalMaskWorkItems.length > 0
+          ? 'canonical_work_items_projected_temporal_mask_admission_pending'
         : workItems.some((item) =>
             item.workerClass ===
               CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS)
@@ -678,7 +767,9 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       finalCompositionBinding,
       blockerCodes: selectedSceneCount === 0
         ? []
-        : BLOCKER_CODES,
+        : pendingSam2TemporalMaskWorkItems.length > 0
+          ? TEMPORAL_MASK_BLOCKER_CODES
+          : BLOCKER_CODES,
       metrics: {
         selectedSceneCount,
         canonicalWorkItemCount: workItems.length,
@@ -699,6 +790,10 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
             .length,
         admittedRemotionLayerWorkItemCount:
           remotionLayerWorkItems.length,
+        pendingTemporalSourceVideoWorkItemCount:
+          pendingTemporalSourceVideoWorkItems.length,
+        pendingSam2TemporalMaskWorkItemCount:
+          pendingSam2TemporalMaskWorkItems.length,
         finalCompositionBindingCount:
           finalCompositionBinding === null ? 0 : 1,
         executableWorkItemCount:
@@ -778,6 +873,9 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       containsRembgGpuOperationPayload: true,
       containsSharpComponentOperationPayload: true,
       containsRemotionLayerManifestPayload: true,
+      containsTemporalSourceAndSam2PendingAuthority:
+        pendingTemporalSourceVideoWorkItems.length > 0
+        || pendingSam2TemporalMaskWorkItems.length > 0,
       containsFinalCompositionDependencyBinding: true,
       expandsExactFiftyToolRegistry: false,
       subjectSpecificRouting: false,
@@ -1067,8 +1165,12 @@ function assertSourceLineage(input: {
       && (
         input.assetWorkInputBinding.readiness !==
           'source_inputs_bound_operation_admission_pending'
-        || input.estimateWorkAssetProjection.readiness !==
-          'requirements_projected_execution_admission_pending'
+        || ![
+          'requirements_projected_execution_admission_pending',
+          'requirements_projected_unreleased_cost_and_execution_admission_pending',
+        ].includes(
+          input.estimateWorkAssetProjection.readiness,
+        )
         || input.assetWorkInputBinding
           .unresolvedPrimaryAssetIntentIds.length !== 0
       )
@@ -1114,6 +1216,31 @@ function assertProjectedWorkGraph(
       item,
     ]),
   )
+  for (const item of workItems) {
+    if (
+      item.workerClass !==
+        CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
+      || item.executionInput.pendingOperationAuthority
+        .operationClass !==
+        'temporal_video_subject_segmentation_and_tracking'
+    ) continue
+    const dependency =
+      byKey.get(item.dependencyKeys[0] ?? '')
+    if (
+      !dependency
+      || dependency.workerClass !==
+        CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
+      || dependency.executionInput.pendingOperationAuthority
+        .operationClass !==
+        'prepare_temporal_source_video'
+      || dependency.expectedOutputs[0]?.artifactType !==
+        'living_frame_temporal_source_video_mp4'
+    ) {
+      throw conflict(
+        'Canonical Living Frame SAM2 temporal mask must depend on the exact pending FFmpeg temporal source-video work item.',
+      )
+    }
+  }
   const visit = (key: string): void => {
     if (visited.has(key)) return
     if (visiting.has(key)) {
@@ -1140,7 +1267,7 @@ function compileExactSourceFrameWorkItem(input: {
   readonly expectedOutput:
     CanonicalLivingFrameEstimateWorkAssetProjection[
       'scenes'
-    ][number]['workRequirements'][number]['expectedOutput']
+    ][number]['workRequirements'][number]['expectedOutputs'][number]
 }): CanonicalLivingFrameExactSourceFramePngWorkItem {
   const sourceFrame =
     input.workRequirement.sourceFrameInputs[0]
@@ -1257,7 +1384,7 @@ function compileRembgGpuMaskWorkItem(input: {
   readonly expectedOutput:
     CanonicalLivingFrameEstimateWorkAssetProjection[
       'scenes'
-    ][number]['workRequirements'][number]['expectedOutput']
+    ][number]['workRequirements'][number]['expectedOutputs'][number]
   readonly exactSourceFrameWorkItem:
     CanonicalLivingFrameExactSourceFramePngWorkItem
   readonly selectedSceneBindingDigestSha256: string
@@ -1434,7 +1561,7 @@ function compileSharpComponentWorkItem(input: {
   readonly expectedOutput:
     CanonicalLivingFrameEstimateWorkAssetProjection[
       'scenes'
-    ][number]['workRequirements'][number]['expectedOutput']
+    ][number]['workRequirements'][number]['expectedOutputs'][number]
   readonly exactSourceFrameWorkItem:
     CanonicalLivingFrameExactSourceFramePngWorkItem
   readonly rembgGpuMaskWorkItem:
@@ -1578,7 +1705,7 @@ function compileRemotionLayerWorkItem(input: {
   readonly expectedOutput:
     CanonicalLivingFrameEstimateWorkAssetProjection[
       'scenes'
-    ][number]['workRequirements'][number]['expectedOutput']
+    ][number]['workRequirements'][number]['expectedOutputs'][number]
   readonly sharpComponentWorkItem:
     CanonicalLivingFrameSharpComponentWorkItem
   readonly selectedSceneBindingDigestSha256: string
@@ -1805,6 +1932,22 @@ function validProjectedWorkItem(
     && !item.executionInput
       .pendingOperationAuthority
       .executableStructuredPayloadPresent
+    && item.expectedOutputs.length > 0
+    && item.expectedOutputs.length <= 3
+    && stableAuthorityStringify(
+      item.executionInput.expectedOutputKeys,
+    ) === stableAuthorityStringify(
+      item.expectedOutputs.map((output) =>
+        output.outputKey),
+    )
+    && item.executionInput.pendingOperationAuthority
+      .requestedToolId ===
+      item.executionInput.pendingOperationAuthority
+        .costOwnerToolId
+    && item.executionInput.pendingOperationAuthority
+      .requestedToolOperationId ===
+      item.executionInput.pendingOperationAuthority
+        .costOwnerOperationId
     && new Set(
       item.executionInput.pendingOperationAuthority
         .sourceFrameInputs.map((source) =>
@@ -1843,7 +1986,349 @@ function validProjectedWorkItem(
         )
       )
     )
+    && validPendingOperationClass(item)
   )
+}
+
+function validPendingOperationClass(
+  item: CanonicalLivingFramePendingWorkItem,
+): boolean {
+  const authority =
+    item.executionInput.pendingOperationAuthority
+  if (
+    authority.operationClass ===
+      'prepare_temporal_source_video'
+  ) {
+    const source = authority.sourceFrameInputs[0]
+    const requirement =
+      authority.temporalSourcePreparationRequirement
+    return (
+      item.workItemType === 'process_video_asset'
+      && authority.requestedToolId === 'ffmpeg'
+      && authority.requestedToolOperationId ===
+        'tool.ffmpeg.execute_approved_media_recipe.v1'
+      && stableAuthorityStringify(
+        authority.outputAssetKinds,
+      ) === stableAuthorityStringify([
+        'prepared_temporal_source_video',
+      ])
+      && authority.sourceFrameInputs.length === 1
+      && source !== undefined
+      && requirement !== null
+      && authority.sam2TemporalMaskRequirement === null
+      && requirement.operation ===
+        'prepare_approved_living_frame_temporal_source_video'
+      && requirement.transcodeProfile ===
+        'approved_sam2_source_proxy_high_quality_v1'
+      && requirement.selectedMasterFrameRange
+            .startFrame === source.masterFrameIndex
+      && requirement.selectedMasterFrameRange
+        .durationFrames ===
+          requirement.selectedMasterFrameRange
+            .endFrameExclusive
+          - requirement.selectedMasterFrameRange
+            .startFrame
+      && requirement.selectedSourceTimeRange
+        .startSourceFrameIndex ===
+          source.sourceFrameIndex
+      && requirement.selectedSourceTimeRange
+        .sourceFpsNumerator === source.frameRate
+      && requirement.sourceMedia
+        .sourceSequenceItemId ===
+          source.sourceSequenceItemId
+      && requirement.sourceMedia.mediaAssetId ===
+        source.mediaAssetId
+      && requirement.sourceMedia.contentSha256 ===
+        source.contentSha256
+      && requirement.sourceMedia.byteLength ===
+        source.byteLength
+      && requirement.outputArtifactType ===
+        'living_frame_temporal_source_video_mp4'
+      && requirement.maximumOutputBytes ===
+        4_294_901_760
+      && !requirement.recipeOperationRegistered
+      && !requirement.dispatchAuthorized
+      && item.dependencyKeys.length === 0
+      && item.expectedOutputs.length === 1
+      && item.expectedOutputs[0]?.artifactType ===
+        'living_frame_temporal_source_video_mp4'
+      && item.expectedOutputs[0]?.contentType ===
+        'video/mp4'
+    )
+  }
+  if (
+    authority.operationClass ===
+      'temporal_video_subject_segmentation_and_tracking'
+  ) {
+    const requirement =
+      authority.sam2TemporalMaskRequirement
+    return (
+      item.workItemType === 'generate_mask_asset'
+      && authority.requestedToolId === 'sam2'
+      && authority.requestedToolOperationId ===
+        'tool.sam2.segment_and_track_subject.v1'
+      && stableAuthorityStringify(
+        authority.outputAssetKinds,
+      ) === stableAuthorityStringify([
+        'temporal_subject_mask_sequence',
+      ])
+      && authority.sourceFrameInputs.length === 0
+      && authority.temporalSourcePreparationRequirement ===
+        null
+      && requirement !== null
+      && requirement.checkpointSlotId ===
+        'sam2_checkpoint'
+      && requirement.checkpointArtifactId ===
+        'meta-sam2.1-hiera-small-checkpoint'
+      && requirement.checkpointModelFamily ===
+        'sam2.1-hiera-small'
+      && requirement.checkpointByteLength ===
+        184_416_285
+      && requirement.executionTarget ===
+        'google_cloud_run_gpu'
+      && requirement.accelerator === 'nvidia_l4'
+      && requirement.modelAccelerator === 'cuda'
+      && !requirement.cpuFallbackAllowed
+      && !requirement.runtimeDownloadAllowed
+      && !requirement.networkFetchAllowed
+      && requirement.maximumSubjects === 1
+      && requirement.preserveContactObjects
+      && stableAuthorityStringify(
+        requirement.outputEncodingProfiles,
+      ) === stableAuthorityStringify([
+        'gray8_ffv1_matroska_mask_sequence_v1',
+        'sam2_tracking_analysis_report_json_v1',
+        'sam2_mask_qa_measurement_report_json_v1',
+      ])
+      && stableAuthorityStringify(
+        requirement.requiredQaGates,
+      ) === stableAuthorityStringify([
+        'mask_edge_quality',
+        'mask_temporal_stability',
+        'mask_subject_coverage',
+      ])
+      && !requirement.checkpointIngested
+      && !requirement.readOnlyMountVerified
+      && !requirement.l4RuntimeQualified
+      && !requirement.operationRegistered
+      && !requirement.dispatchAuthorized
+      && !requirement.modelInferenceAuthorized
+      && !requirement.runtimeCostAdmissionComplete
+      && !requirement.temporalQaComplete
+      && item.dependencyKeys.length === 1
+      && item.expectedOutputs.length === 3
+      && item.expectedOutputs[0]?.artifactType ===
+        'living_frame_temporal_subject_mask_sequence_ffv1_mkv'
+      && item.expectedOutputs[0]?.contentType ===
+        'video/x-matroska'
+      && item.expectedOutputs[1]?.artifactType ===
+        'living_frame_temporal_subject_tracking_analysis_json'
+      && item.expectedOutputs[1]?.contentType ===
+        'application/json'
+      && item.expectedOutputs[2]?.artifactType ===
+        'living_frame_temporal_subject_mask_qa_json'
+      && item.expectedOutputs[2]?.assetRole === 'qa'
+    )
+  }
+  return (
+    authority.temporalSourcePreparationRequirement === null
+    && authority.sam2TemporalMaskRequirement === null
+  )
+}
+
+function compileTemporalAdmissionRequirements(input: {
+  readonly projectedScene:
+    CanonicalLivingFrameEstimateWorkAssetProjection[
+      'scenes'
+    ][number]
+  readonly workRequirement:
+    CanonicalLivingFrameEstimateWorkAssetProjection[
+      'scenes'
+    ][number]['workRequirements'][number]
+  readonly masterFps: number
+}): {
+  readonly temporalSourcePreparationRequirement:
+    CanonicalLivingFrameTemporalSourcePreparationRequirement | null
+  readonly sam2TemporalMaskRequirement:
+    CanonicalLivingFrameSam2TemporalMaskRequirement | null
+} {
+  if (
+    input.workRequirement.operationClass ===
+      'prepare_temporal_source_video'
+  ) {
+    const source =
+      input.workRequirement.sourceFrameInputs[0]
+    const durationFrames =
+      input.projectedScene.endFrameExclusive
+      - input.projectedScene.startFrame
+    if (
+      input.workRequirement.sourceFrameInputs.length !== 1
+      || !source
+      || source.masterFrameIndex !==
+        input.projectedScene.startFrame
+      || !source.contentType.startsWith('video/')
+      || !Number.isSafeInteger(source.byteLength)
+      || source.byteLength < 1
+      || !Number.isSafeInteger(source.sourceFrameIndex)
+      || source.sourceFrameIndex < 0
+      || !Number.isSafeInteger(source.frameRate)
+      || source.frameRate < 1
+      || source.frameRate > 240
+      || !Number.isSafeInteger(input.masterFps)
+      || input.masterFps < 1
+      || input.masterFps > 240
+      || !Number.isSafeInteger(durationFrames)
+      || durationFrames < 1
+    ) {
+      throw conflict(
+        'Canonical Living Frame temporal source preparation requires one exact private source-video identity and selected MasterTiming range.',
+      )
+    }
+    return {
+      temporalSourcePreparationRequirement: {
+        requirementVersion:
+          'canonical-living-frame-temporal-source-preparation-requirement-v1',
+        operation:
+          'prepare_approved_living_frame_temporal_source_video',
+        transcodeProfile:
+          'approved_sam2_source_proxy_high_quality_v1',
+        selectedMasterFrameRange: {
+          startFrame:
+            input.projectedScene.startFrame,
+          endFrameExclusive:
+            input.projectedScene.endFrameExclusive,
+          durationFrames,
+        },
+        selectedSourceTimeRange: {
+          startSourceFrameIndex:
+            source.sourceFrameIndex,
+          sourceFpsNumerator: source.frameRate,
+          sourceFpsDenominator: 1,
+          durationMasterFrames: durationFrames,
+          masterFpsNumerator: input.masterFps,
+          masterFpsDenominator: 1,
+        },
+        sourceMedia: {
+          sourceSequenceItemId:
+            source.sourceSequenceItemId,
+          mediaAssetId: source.mediaAssetId,
+          contentSha256: source.contentSha256,
+          contentType: source.contentType,
+          byteLength: source.byteLength,
+          sourceBindingHash:
+            source.sourceBindingHash,
+          storageIdentityHash:
+            source.storageIdentityHash,
+          dimensionsBindingState:
+            'pending_server_owned_private_source_metadata',
+        },
+        outputArtifactType:
+          'living_frame_temporal_source_video_mp4',
+        outputContentType: 'video/mp4',
+        displayOrientationNormalized: true,
+        preserveDisplayAspectRatio: true,
+        maximumOutputBytes: 4_294_901_760,
+        privateArtifactRequired: true,
+        exactSceneRangeRequired: true,
+        metadataStripped: true,
+        audioRemoved: true,
+        runtimeDownloadAllowed: false,
+        networkFetchAllowed: false,
+        recipeOperationRegistered: false,
+        dispatchAuthorized: false,
+      },
+      sam2TemporalMaskRequirement: null,
+    }
+  }
+  if (
+    input.workRequirement.operationClass ===
+      'temporal_video_subject_segmentation_and_tracking'
+  ) {
+    const requirementSet =
+      getCanonicalSam2ModelArtifactRequirementSet()
+    const checkpoint = requirementSet.artifacts[0]
+    if (
+      requirementSet.artifacts.length !== 1
+      || !checkpoint
+      || requirementSet.approvedToolId !== 'sam2'
+      || requirementSet.approvedOperationId !==
+        'tool.sam2.segment_and_track_subject.v1'
+      || checkpoint.slotId !== 'sam2_checkpoint'
+      || checkpoint.artifactId !==
+        'meta-sam2.1-hiera-small-checkpoint'
+      || checkpoint.modelFamily !==
+        'sam2.1-hiera-small'
+      || checkpoint.byteLength !== 184_416_285
+      || !requirementSet.summary.googleCloudRunGpuRequired
+      || !requirementSet.summary.cudaRequired
+      || requirementSet.summary.cpuFallbackAllowed
+      || requirementSet.summary.runtimeDownloadAllowed
+      || requirementSet.summary.networkFetchAllowed
+      || requirementSet.boundaries.modelArtifactIngested
+      || requirementSet.boundaries
+        .cloudRunReadOnlyMountVerified
+      || requirementSet.boundaries
+        .cloudRunL4CudaBenchmarkVerified
+      || requirementSet.boundaries.cloudDispatchAuthorized
+      || requirementSet.boundaries.modelInferenceAuthority
+      || requirementSet.boundaries.customerCostAuthority
+      || requirementSet.boundaries.temporalMaskQaVerified
+      || requirementSet.boundaries.productionReady
+    ) {
+      throw conflict(
+        'Canonical Living Frame SAM2 temporal masking lost its exact unreleased checkpoint and L4 admission boundary.',
+      )
+    }
+    return {
+      temporalSourcePreparationRequirement: null,
+      sam2TemporalMaskRequirement: {
+        requirementVersion:
+          'canonical-living-frame-sam2-temporal-mask-requirement-v1',
+        requirementSetDigestSha256:
+          requirementSet.requirementSetDigestSha256,
+        checkpointSlotId: 'sam2_checkpoint',
+        checkpointArtifactId:
+          'meta-sam2.1-hiera-small-checkpoint',
+        checkpointModelFamily:
+          'sam2.1-hiera-small',
+        checkpointByteLength: 184_416_285,
+        checkpointContentSha256:
+          checkpoint.contentSha256,
+        executionTarget: 'google_cloud_run_gpu',
+        accelerator: 'nvidia_l4',
+        modelAccelerator: 'cuda',
+        cpuFallbackAllowed: false,
+        runtimeDownloadAllowed: false,
+        networkFetchAllowed: false,
+        maximumSubjects: 1,
+        preserveContactObjects: true,
+        subjectPromptBindingState:
+          'pending_server_owned_normalized_box',
+        outputEncodingProfiles: [
+          'gray8_ffv1_matroska_mask_sequence_v1',
+          'sam2_tracking_analysis_report_json_v1',
+          'sam2_mask_qa_measurement_report_json_v1',
+        ],
+        requiredQaGates: [
+          'mask_edge_quality',
+          'mask_temporal_stability',
+          'mask_subject_coverage',
+        ],
+        checkpointIngested: false,
+        readOnlyMountVerified: false,
+        l4RuntimeQualified: false,
+        operationRegistered: false,
+        dispatchAuthorized: false,
+        modelInferenceAuthorized: false,
+        runtimeCostAdmissionComplete: false,
+        temporalQaComplete: false,
+      },
+    }
+  }
+  return {
+    temporalSourcePreparationRequirement: null,
+    sam2TemporalMaskRequirement: null,
+  }
 }
 
 function withoutDigest(

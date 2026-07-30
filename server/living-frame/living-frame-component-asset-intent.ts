@@ -406,13 +406,23 @@ function compileComponentIntents(input: {
   } else if (
     component.transparencyExpectation === 'temporal_mask_required'
   ) {
+    const preparedSource = intent({
+      route,
+      component,
+      order: input.firstOrder + intents.length,
+      stage: 'prepared_temporal_source',
+      assetKind: 'prepared_temporal_source_video',
+      dependencies: [source.assetIntentId],
+      work: ['process_video_asset'],
+    })
+    intents.push(preparedSource)
     intents.push(intent({
       route,
       component,
       order: input.firstOrder + intents.length,
       stage: 'alpha_or_mask_companion',
       assetKind: 'temporal_subject_mask_sequence',
-      dependencies: [source.assetIntentId],
+      dependencies: [preparedSource.assetIntentId],
       work: ['generate_mask_asset'],
     }))
   }
@@ -559,6 +569,7 @@ function deriveBlockers(
       || type === 'generate_ai_video_asset'
       || type === 'generate_mask_asset'
       || type === 'process_image_asset'
+      || type === 'process_video_asset'
       || type === 'reconstruct_background_plate'))) {
     blockers.push('canonical_tool_or_provider_route_required')
   }
@@ -714,11 +725,18 @@ function validateIntentSemantics(
   if (dependencies.some((dependency) => !dependency)) return false
   if (
     intentEntry.assetKind === 'still_alpha_mask'
-    || intentEntry.assetKind
-      === 'temporal_subject_mask_sequence'
+    || intentEntry.assetKind ===
+      'prepared_temporal_source_video'
   ) {
     return dependencies[0]?.stage
       === 'source_or_generated_anchor'
+  }
+  if (
+    intentEntry.assetKind ===
+      'temporal_subject_mask_sequence'
+  ) {
+    return dependencies[0]?.assetKind ===
+      'prepared_temporal_source_video'
   }
   if (
     intentEntry.assetKind
@@ -778,6 +796,19 @@ function expectedIntentSemantics(
         placeholderAllowedForPreviewOnly: true,
       }
     case 'still_alpha_mask':
+      return {
+        stage: 'alpha_or_mask_companion',
+        work: ['generate_mask_asset'],
+        dependencyCount: 1,
+        placeholderAllowedForPreviewOnly: true,
+      }
+    case 'prepared_temporal_source_video':
+      return {
+        stage: 'prepared_temporal_source',
+        work: ['process_video_asset'],
+        dependencyCount: 1,
+        placeholderAllowedForPreviewOnly: true,
+      }
     case 'temporal_subject_mask_sequence':
       return {
         stage: 'alpha_or_mask_companion',
@@ -918,6 +949,8 @@ function deriveMetrics(
     alphaOrMaskIntentCount:
       countKind(intents, 'still_alpha_mask')
       + countKind(intents, 'temporal_subject_mask_sequence'),
+    preparedTemporalSourceVideoIntentCount:
+      countKind(intents, 'prepared_temporal_source_video'),
     processedRgbaIntentCount:
       countKind(intents, 'processed_rgba_still_component'),
     boundedVideoIntentCount:

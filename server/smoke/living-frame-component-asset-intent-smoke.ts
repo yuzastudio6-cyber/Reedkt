@@ -106,6 +106,49 @@ assert.equal(
 assert.ok(hormuz.assetIntents.some((intent) =>
   intent.assetKind === 'exact_map_spec'
   && intent.expectedNamedWorkItemTypes.includes('render_map_asset')))
+const hormuzTemporalMask = hormuz.assetIntents.find(
+  (intent) =>
+    intent.assetKind ===
+      'temporal_subject_mask_sequence',
+)
+const hormuzPreparedTemporalSource =
+  hormuz.assetIntents.find((intent) =>
+    intent.assetKind ===
+      'prepared_temporal_source_video')
+assert.ok(hormuzTemporalMask)
+assert.ok(hormuzPreparedTemporalSource)
+const hormuzTemporalSource =
+  hormuz.assetIntents.find((intent) =>
+    intent.assetIntentId ===
+      hormuzPreparedTemporalSource
+        .dependencyAssetIntentIds[0])
+assert.ok(hormuzTemporalSource)
+assert.equal(
+  hormuzTemporalSource.assetKind,
+  'approved_source_asset_reference',
+)
+assert.deepEqual(
+  hormuzPreparedTemporalSource
+    .expectedNamedWorkItemTypes,
+  ['process_video_asset'],
+)
+assert.deepEqual(
+  hormuzPreparedTemporalSource
+    .dependencyAssetIntentIds,
+  [hormuzTemporalSource.assetIntentId],
+)
+assert.deepEqual(
+  hormuzTemporalMask.expectedNamedWorkItemTypes,
+  ['generate_mask_asset'],
+)
+assert.deepEqual(
+  hormuzTemporalMask.dependencyAssetIntentIds,
+  [hormuzPreparedTemporalSource.assetIntentId],
+)
+assert.equal(
+  hormuz.metrics.preparedTemporalSourceVideoIntentCount,
+  1,
+)
 assert.equal(
   hormuz.metrics.boundedVideoIntentCount,
   0,

@@ -142,6 +142,24 @@ const cases: readonly AuditCase[] = [
       'server/smoke/living-frame-canonical-private-review-evidence-smoke.ts',
   },
   {
+    id: 'temporal_mask_byte_output_and_measurement',
+    relativePath:
+      'server/smoke/living-frame-temporal-mask-private-output-contract-internal-test-smoke.ts',
+    expectedJsonStatus: 'passed',
+    validate(receipt) {
+      assert.equal(
+        receipt.encodingProfile,
+        'gray8_ffv1_matroska_mask_sequence_v1',
+      )
+      assert.equal(
+        receipt.losslessFrameReplayVerified,
+        true,
+      )
+      assert.deepEqual(receipt.findingCodes, [])
+      assert.equal(receipt.sam2InferenceClaimed, false)
+    },
+  },
+  {
     id: 'temporal_mask_shared_interface_gate',
     relativePath:
       'server/smoke/living-frame-temporal-mask-canonical-work-graph-conflict-smoke.ts',
@@ -174,6 +192,7 @@ const runtimeCaseIds = [
   'confirmed_non_square_output_frames',
   'selected_scene_environmental_particle_slice',
   'animation_aware_illustration_component_rig',
+  'temporal_mask_byte_output_and_measurement',
 ] as const
 for (const runtimeCaseId of runtimeCaseIds) {
   assert.equal(
@@ -207,6 +226,7 @@ const receipt = {
     'environmental_particle_runtime_persistence_qa_and_private_review',
     'narration_protected_sound',
     'real_illustration_alpha_destination_composite_and_component_rig',
+    'real_gray8_ffv1_temporal_mask_output_decode_measurement_persistence_and_review_frames',
     'render_fallbacks',
     'canonical_private_review_lineage',
   ],
@@ -221,7 +241,7 @@ const receipt = {
       gate:
         'advanced_temporal_living_a_roll_subject_mask',
       reason:
-        'shared_work_graph_temporal_discriminator_and_approved_sam2_checkpoint_are_unavailable',
+        'byte_output_and_qa_path_passes_but_shared_work_graph_temporal_discriminator_and_approved_sam2_checkpoint_are_unavailable_for_inference',
     },
   ],
   internalEndToEndReadyForOwnerReview: false,

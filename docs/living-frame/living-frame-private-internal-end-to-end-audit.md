@@ -42,8 +42,10 @@ The aggregate audit executes:
    base/hair/robe decomposition, selective articulated motion, Remotion,
    captions, sound, media QA, and retained review frames;
 9. semantic sound timing reconciliation;
-10. canonical private-review lineage; and
-11. the exact temporal-mask work-graph conflict.
+10. canonical private-review lineage;
+11. a real gray8 FFV1 temporal-mask output through decode, stability
+    measurement, create-only persistence, and review frames; and
+12. the exact temporal-mask work-graph conflict.
 
 Every subprocess is bounded, uses the pinned workspace `tsx` executable, and
 returns only an output digest plus structured status to the aggregate receipt.
@@ -58,8 +60,9 @@ pass must still report two open internal runtime gates:
 
 1. exact ComfyUI controlled generation needs the released five-model bundle and
    real L4 execution evidence; and
-2. advanced temporal Living A-Roll subject masking needs the canonical temporal
-   work-graph discriminator plus an approved SAM2 checkpoint.
+2. advanced temporal Living A-Roll subject masking has a verified byte-output
+   and downstream QA path, but model inference still needs the canonical
+   temporal work-graph discriminator plus an approved SAM2 checkpoint.
 
 These are genuine internal execution dependencies. They are not waived merely
 because customer release is out of scope. Until both exist, the audit status is

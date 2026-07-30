@@ -601,7 +601,15 @@ function phase(
   startFrame: number,
   endFrameExclusive: number,
 ) {
+  const order = {
+    prepare: 0,
+    activate: 1,
+    demonstrate: 2,
+    resolve: 3,
+    settle: 4,
+  } as const
   return {
+    order: order[phaseValue],
     phase: phaseValue,
     frameRange: {
       startFrame,

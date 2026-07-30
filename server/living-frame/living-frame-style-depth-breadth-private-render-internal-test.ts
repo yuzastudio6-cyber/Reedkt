@@ -10,6 +10,7 @@ import {
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { deflateSync } from 'node:zlib'
 
 import type {
   CanonicalLivingFrameMotionSpec,
@@ -90,11 +91,33 @@ const LOCOMOTIVE_FIXTURE = {
   expectedHeight: 1_024,
 } as const
 
+const LOCOMOTIVE_DRIVE_WHEELS = [{
+  componentId: 'paper-collage-drive-wheel-leading',
+  centerX: 322,
+  centerY: 262,
+  radius: 43,
+}, {
+  componentId: 'paper-collage-drive-wheel-center',
+  centerX: 383,
+  centerY: 262,
+  radius: 43,
+}, {
+  componentId: 'paper-collage-drive-wheel-trailing',
+  centerX: 438,
+  centerY: 262,
+  radius: 43,
+}] as const
+
+const LOCOMOTIVE_STATIC_ROD_BAND = {
+  yStart: 250,
+  yEndExclusive: 272,
+} as const
+
 export interface LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt {
   readonly schemaVersion:
-    'living-frame-style-depth-breadth-private-render-internal-test-v1'
+    'living-frame-style-depth-breadth-private-render-internal-test-v2'
   readonly evidenceClass:
-    'actual_private_internal_style_adaptive_flat_and_shallow_2_5d_render'
+    'actual_private_internal_style_adaptive_flat_and_shallow_2_5d_selective_mechanical_motion_render'
   readonly generatedFixtureEvidence: {
     readonly generationChannel:
       'codex_image_gen_builtin'
@@ -141,16 +164,29 @@ export interface LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt {
     readonly depthStyle: 'shallow_2_5d'
     readonly spatialParallaxAllowed: true
     readonly permittedMotion:
-      readonly ['restrained_far_plane_drift', 'subject_anchor_drift', 'paper_smoke_rise', 'restrained_foreground_drift']
+      readonly ['restrained_far_plane_drift', 'subject_anchor_drift', 'mechanical_drive_wheel_rotation', 'paper_smoke_rise', 'restrained_foreground_drift']
     readonly farPlaneDisplacementPixels: number
     readonly foregroundDisplacementPixels: number
     readonly smokeVerticalDisplacementPixels: number
+    readonly mechanicalWheelComponentCount: 3
+    readonly mechanicalWheelSelectedPixelCounts:
+      readonly [number, number, number]
+    readonly mechanicalWheelReconstructedPixelCount: number
+    readonly mechanicalWheelComponentSha256:
+      readonly [string, string, string]
+    readonly staticDriveRodSelectedPixelCount: number
+    readonly staticDriveRodSha256: string
+    readonly staticDriveRodRemainedUnrotated: true
+    readonly mechanicalWheelRegionPixelDelta: number
+    readonly mechanicalWheelRotationDegrees: 240
   }]
   readonly adaptiveDepthQa: {
     readonly flatSceneDidNotReceiveParallax: true
     readonly shallowSceneDifferentialParallaxMeasured: true
     readonly shallowForegroundMovedMoreThanFarPlane: true
     readonly generatedFixtureBytesDecodedAndMeasured: true
+    readonly mechanicalComponentDecompositionMeasured: true
+    readonly mechanicalWheelRasterMotionMeasured: true
     readonly captionPlaneObservedAboveBothStyles: true
     readonly distinctSampleFrameDigestCount: number
   }
@@ -226,6 +262,46 @@ interface LoadedFixture {
   readonly height: number
 }
 
+interface LocomotiveWheelRig {
+  readonly bodyPath: string
+  readonly reconstructedPixelCount: number
+  readonly staticDriveRod: {
+    readonly componentId:
+      'paper-collage-static-drive-rod'
+    readonly path: string
+    readonly selectedPixelCount: number
+    readonly sha256: string
+  }
+  readonly components: readonly [{
+    readonly componentId:
+      'paper-collage-drive-wheel-leading'
+    readonly centerX: 322
+    readonly centerY: 262
+    readonly radius: 43
+    readonly path: string
+    readonly selectedPixelCount: number
+    readonly sha256: string
+  }, {
+    readonly componentId:
+      'paper-collage-drive-wheel-center'
+    readonly centerX: 383
+    readonly centerY: 262
+    readonly radius: 43
+    readonly path: string
+    readonly selectedPixelCount: number
+    readonly sha256: string
+  }, {
+    readonly componentId:
+      'paper-collage-drive-wheel-trailing'
+    readonly centerX: 438
+    readonly centerY: 262
+    readonly radius: 43
+    readonly path: string
+    readonly selectedPixelCount: number
+    readonly sha256: string
+  }]
+}
+
 interface RenderLayer {
   readonly inputId: string
   readonly outputKey: string
@@ -278,7 +354,11 @@ Promise<LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt> {
   )
   const shallowLocomotivePath = join(
     fixtureRoot,
-    'shallow-locomotive.png',
+    'shallow-locomotive-source.png',
+  )
+  const shallowLocomotiveBodyPath = join(
+    fixtureRoot,
+    'shallow-locomotive-body.png',
   )
   const shallowSmokePath = join(
     fixtureRoot,
@@ -330,6 +410,12 @@ Promise<LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt> {
       padX: 60,
       padY: 6,
     })
+    const locomotiveWheelRig =
+      await buildLocomotiveWheelRig({
+        sourcePath: shallowLocomotivePath,
+        bodyPath: shallowLocomotiveBodyPath,
+        componentRoot: fixtureRoot,
+      })
     makeTransparentOverlay(shallowSmokePath, [
       'drawbox=x=150:y=92:w=42:h=34:color=0x72B5C8@1:t=fill:replace=1',
       'drawbox=x=178:y=66:w=54:h=42:color=0x72B5C8@0.96:t=fill:replace=1',
@@ -476,7 +562,7 @@ Promise<LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt> {
         ],
       }),
       buildLayer({
-        path: shallowLocomotivePath,
+        path: locomotiveWheelRig.bodyPath,
         sceneId: 'lf-style-depth-paper-collage-scene',
         layerId: 'shallow-20-locomotive',
         componentId: 'paper-collage-locomotive',
@@ -500,6 +586,125 @@ Promise<LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt> {
           ),
           track(
             'shallow-locomotive-drift',
+            1,
+            'layer',
+            'position_x_normalized',
+            'secondary',
+            [
+              [0, 0.012, 'ease_in_out_cubic'],
+              [59, -0.012, 'hold'],
+            ],
+          ),
+        ],
+      }),
+      ...locomotiveWheelRig.components.map((
+        wheel,
+        wheelIndex,
+      ) => buildLayer({
+        path: wheel.path,
+        sceneId: 'lf-style-depth-paper-collage-scene',
+        layerId:
+          `shallow-2${wheelIndex + 1}-drive-wheel`,
+        componentId: wheel.componentId,
+        timeRange: SHALLOW_RANGE,
+        visualVerb: 'transform',
+        depthStyle: 'shallow_2_5d',
+        depthBand: 'in_front_of_subject',
+        parallaxFactor: 0.04,
+        tracks: [
+          track(
+            `${wheel.componentId}-opacity`,
+            0,
+            'layer',
+            'opacity',
+            'primary',
+            [
+              [0, 0.08, 'ease_out_quad'],
+              [12, 1, 'settle_out'],
+              [59, 1, 'hold'],
+            ],
+          ),
+          track(
+            `${wheel.componentId}-pivot-x`,
+            1,
+            'layer',
+            'position_x_normalized',
+            'secondary',
+            [
+              [
+                0,
+                (wheel.centerX - WIDTH / 2) / WIDTH
+                  + 0.012,
+                'ease_in_out_cubic',
+              ],
+              [
+                59,
+                (wheel.centerX - WIDTH / 2) / WIDTH
+                  - 0.012,
+                'hold',
+              ],
+            ],
+          ),
+          track(
+            `${wheel.componentId}-pivot-y`,
+            2,
+            'layer',
+            'position_y_normalized',
+            'secondary',
+            [
+              [
+                0,
+                (wheel.centerY - HEIGHT / 2) / HEIGHT,
+                'hold',
+              ],
+              [
+                59,
+                (wheel.centerY - HEIGHT / 2) / HEIGHT,
+                'hold',
+              ],
+            ],
+          ),
+          track(
+            `${wheel.componentId}-rotation`,
+            3,
+            'layer',
+            'rotation_degrees',
+            'primary',
+            [
+              [0, 0, 'hold'],
+              [12, 0, 'mechanical_accelerate'],
+              [20, 24, 'linear'],
+              [59, 240, 'hold'],
+            ],
+          ),
+        ],
+      })),
+      buildLayer({
+        path: locomotiveWheelRig.staticDriveRod.path,
+        sceneId: 'lf-style-depth-paper-collage-scene',
+        layerId: 'shallow-24-static-drive-rod',
+        componentId:
+          locomotiveWheelRig.staticDriveRod.componentId,
+        timeRange: SHALLOW_RANGE,
+        visualVerb: 'transform',
+        depthStyle: 'shallow_2_5d',
+        depthBand: 'in_front_of_subject',
+        parallaxFactor: 0.04,
+        tracks: [
+          track(
+            'shallow-static-drive-rod-opacity',
+            0,
+            'layer',
+            'opacity',
+            'secondary',
+            [
+              [0, 0.08, 'ease_out_quad'],
+              [12, 1, 'settle_out'],
+              [59, 1, 'hold'],
+            ],
+          ),
+          track(
+            'shallow-static-drive-rod-drift',
             1,
             'layer',
             'position_x_normalized',
@@ -660,7 +865,7 @@ Promise<LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt> {
         async persist(output) {
           outputObjectIdentityHash = createHash('sha256')
             .update(
-              `living-frame-style-depth-breadth-v1\n${output.expectedSha256}`,
+              `living-frame-style-depth-breadth-v2\n${output.expectedSha256}`,
             )
             .digest('hex')
           const persisted =
@@ -754,7 +959,7 @@ Promise<LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt> {
       )
     }
     const sampleFrameNumbers =
-      [0, 18, 32, 55, 60, 68, 92, 112, 119] as const
+      [0, 18, 32, 55, 60, 68, 80, 92, 100, 112, 119] as const
     const sampleFrames =
       extractFrames(renderedPath, sampleFrameNumbers)
     const frameByNumber = new Map<number, Buffer>(
@@ -913,6 +1118,26 @@ Promise<LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt> {
       Math.abs(
         smokeLate.centroidY - smokeEarly.centroidY,
       )
+    const mechanicalWheelRegionPixelDelta =
+      regionPixelDifferenceCount(
+        frame(80),
+        frame(100),
+        {
+          xStart: 270,
+          xEndExclusive: 490,
+          yStart: 205,
+          yEndExclusive: 310,
+        },
+        18,
+      )
+    const mechanicalWheelSelectedPixelCounts =
+      locomotiveWheelRig.components.map(
+        (component) => component.selectedPixelCount,
+      ) as [number, number, number]
+    const mechanicalWheelComponentSha256 =
+      locomotiveWheelRig.components.map(
+        (component) => component.sha256,
+      ) as [string, string, string]
     if (
       farEarly.count < 2_000
       || farLate.count < 2_000
@@ -924,9 +1149,17 @@ Promise<LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt> {
       || foregroundDisplacementPixels
         < farPlaneDisplacementPixels + 20
       || smokeVerticalDisplacementPixels < 18
+      || mechanicalWheelSelectedPixelCounts.some(
+        (count) => count < 1_700,
+      )
+      || locomotiveWheelRig.reconstructedPixelCount
+        < 5_100
+      || locomotiveWheelRig.staticDriveRod
+        .selectedPixelCount < 1_000
+      || mechanicalWheelRegionPixelDelta < 1_800
     ) {
       throw new Error(
-        `Shallow paper-collage depth QA failed: far=${JSON.stringify(farEarly)}/${JSON.stringify(farLate)}, foreground=${JSON.stringify(foregroundEarly)}/${JSON.stringify(foregroundLate)}, smoke=${JSON.stringify(smokeEarly)}/${JSON.stringify(smokeLate)}, displacement=${farPlaneDisplacementPixels}/${foregroundDisplacementPixels}/${smokeVerticalDisplacementPixels}.`,
+        `Shallow paper-collage depth/selective-motion QA failed: far=${JSON.stringify(farEarly)}/${JSON.stringify(farLate)}, foreground=${JSON.stringify(foregroundEarly)}/${JSON.stringify(foregroundLate)}, smoke=${JSON.stringify(smokeEarly)}/${JSON.stringify(smokeLate)}, displacement=${farPlaneDisplacementPixels}/${foregroundDisplacementPixels}/${smokeVerticalDisplacementPixels}, wheels=${JSON.stringify(mechanicalWheelSelectedPixelCounts)}/${locomotiveWheelRig.reconstructedPixelCount}/${mechanicalWheelRegionPixelDelta}.`,
       )
     }
 
@@ -990,9 +1223,9 @@ Promise<LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt> {
         'receiptDigestSha256'
       > = {
         schemaVersion:
-          'living-frame-style-depth-breadth-private-render-internal-test-v1',
+          'living-frame-style-depth-breadth-private-render-internal-test-v2',
         evidenceClass:
-          'actual_private_internal_style_adaptive_flat_and_shallow_2_5d_render',
+          'actual_private_internal_style_adaptive_flat_and_shallow_2_5d_selective_mechanical_motion_render',
         generatedFixtureEvidence: {
           generationChannel:
             'codex_image_gen_builtin',
@@ -1044,12 +1277,26 @@ Promise<LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt> {
           permittedMotion: [
             'restrained_far_plane_drift',
             'subject_anchor_drift',
+            'mechanical_drive_wheel_rotation',
             'paper_smoke_rise',
             'restrained_foreground_drift',
           ],
           farPlaneDisplacementPixels,
           foregroundDisplacementPixels,
           smokeVerticalDisplacementPixels,
+          mechanicalWheelComponentCount: 3,
+          mechanicalWheelSelectedPixelCounts,
+          mechanicalWheelReconstructedPixelCount:
+            locomotiveWheelRig.reconstructedPixelCount,
+          mechanicalWheelComponentSha256,
+          staticDriveRodSelectedPixelCount:
+            locomotiveWheelRig.staticDriveRod
+              .selectedPixelCount,
+          staticDriveRodSha256:
+            locomotiveWheelRig.staticDriveRod.sha256,
+          staticDriveRodRemainedUnrotated: true,
+          mechanicalWheelRegionPixelDelta,
+          mechanicalWheelRotationDegrees: 240,
         }],
         adaptiveDepthQa: {
           flatSceneDidNotReceiveParallax: true,
@@ -1059,6 +1306,9 @@ Promise<LivingFrameStyleDepthBreadthPrivateRenderInternalTestReceipt> {
             true,
           generatedFixtureBytesDecodedAndMeasured:
             true,
+          mechanicalComponentDecompositionMeasured:
+            true,
+          mechanicalWheelRasterMotionMeasured: true,
           captionPlaneObservedAboveBothStyles: true,
           distinctSampleFrameDigestCount,
         },
@@ -1429,6 +1679,214 @@ function prepareAlphaFixtureOverlay(input: {
   ])
 }
 
+async function buildLocomotiveWheelRig(input: {
+  readonly sourcePath: string
+  readonly bodyPath: string
+  readonly componentRoot: string
+}): Promise<LocomotiveWheelRig> {
+  const sourceBytes = await readFile(input.sourcePath)
+  const decoded =
+    decodeLivingFrameEnvironmentalParticleRgbaPng(
+      sourceBytes,
+    )
+  if (
+    decoded.width !== WIDTH
+    || decoded.height !== HEIGHT
+    || decoded.rgba.byteLength
+      !== WIDTH * HEIGHT * 4
+  ) {
+    throw new Error(
+      'Prepared locomotive RGBA geometry changed.',
+    )
+  }
+  const body = Buffer.from(decoded.rgba)
+  const staticDriveRod = Buffer.alloc(
+    WIDTH * HEIGHT * 4,
+  )
+  let staticDriveRodSelectedPixelCount = 0
+  for (
+    let y = LOCOMOTIVE_STATIC_ROD_BAND.yStart;
+    y < LOCOMOTIVE_STATIC_ROD_BAND.yEndExclusive;
+    y += 1
+  ) {
+    for (let x = 270; x < 480; x += 1) {
+      const offset = (y * WIDTH + x) * 4
+      if (decoded.rgba[offset + 3]! < 8) continue
+      decoded.rgba.copy(
+        staticDriveRod,
+        offset,
+        offset,
+        offset + 4,
+      )
+      staticDriveRodSelectedPixelCount += 1
+    }
+  }
+  let reconstructedPixelCount = 0
+  const components = [] as Array<{
+    componentId:
+      (typeof LOCOMOTIVE_DRIVE_WHEELS)[number]['componentId']
+    centerX:
+      (typeof LOCOMOTIVE_DRIVE_WHEELS)[number]['centerX']
+    centerY:
+      (typeof LOCOMOTIVE_DRIVE_WHEELS)[number]['centerY']
+    radius:
+      (typeof LOCOMOTIVE_DRIVE_WHEELS)[number]['radius']
+    path: string
+    selectedPixelCount: number
+    sha256: string
+  }>
+  for (
+    let wheelIndex = 0;
+    wheelIndex < LOCOMOTIVE_DRIVE_WHEELS.length;
+    wheelIndex += 1
+  ) {
+    const wheel = LOCOMOTIVE_DRIVE_WHEELS[wheelIndex]!
+    const component = Buffer.alloc(WIDTH * HEIGHT * 4)
+    let selectedPixelCount = 0
+    for (
+      let y = wheel.centerY - wheel.radius;
+      y <= wheel.centerY + wheel.radius;
+      y += 1
+    ) {
+      for (
+        let x = wheel.centerX - wheel.radius;
+        x <= wheel.centerX + wheel.radius;
+        x += 1
+      ) {
+        if (
+          (x - wheel.centerX) ** 2
+            + (y - wheel.centerY) ** 2
+              > wheel.radius ** 2
+          || !isNearestDriveWheelPixel(
+            x,
+            y,
+            wheelIndex,
+          )
+        ) {
+          continue
+        }
+        const sourceOffset = (y * WIDTH + x) * 4
+        const alpha = decoded.rgba[sourceOffset + 3]!
+        if (alpha < 8) continue
+        const destinationX =
+          x - wheel.centerX + WIDTH / 2
+        const destinationY =
+          y - wheel.centerY + HEIGHT / 2
+        const destinationOffset =
+          (destinationY * WIDTH + destinationX) * 4
+        decoded.rgba.copy(
+          component,
+          destinationOffset,
+          sourceOffset,
+          sourceOffset + 4,
+        )
+        const texture =
+          ((x * 17 + y * 11 + wheelIndex * 13) % 13)
+          - 6
+        body[sourceOffset] = 53 + texture
+        body[sourceOffset + 1] = 43 + texture
+        body[sourceOffset + 2] = 35 + texture
+        body[sourceOffset + 3] = alpha
+        selectedPixelCount += 1
+        reconstructedPixelCount += 1
+      }
+    }
+    const componentBytes = encodeRgbaPng(
+      WIDTH,
+      HEIGHT,
+      component,
+    )
+    const componentPath = join(
+      input.componentRoot,
+      `${wheel.componentId}.png`,
+    )
+    await writeFile(
+      componentPath,
+      componentBytes,
+      { flag: 'wx', mode: 0o600 },
+    )
+    components.push({
+      ...wheel,
+      path: componentPath,
+      selectedPixelCount,
+      sha256: sha256Bytes(componentBytes),
+    })
+  }
+  const staticDriveRodBytes = encodeRgbaPng(
+    WIDTH,
+    HEIGHT,
+    staticDriveRod,
+  )
+  const staticDriveRodPath = join(
+    input.componentRoot,
+    'paper-collage-static-drive-rod.png',
+  )
+  await writeFile(
+    staticDriveRodPath,
+    staticDriveRodBytes,
+    { flag: 'wx', mode: 0o600 },
+  )
+  await writeFile(
+    input.bodyPath,
+    encodeRgbaPng(WIDTH, HEIGHT, body),
+    { flag: 'wx', mode: 0o600 },
+  )
+  if (
+    components.length !== 3
+    || components.some(
+      (component) =>
+        component.selectedPixelCount < 1_700,
+    )
+    || reconstructedPixelCount < 5_100
+    || staticDriveRodSelectedPixelCount < 1_000
+  ) {
+    throw new Error(
+      `Locomotive wheel decomposition is incomplete: ${JSON.stringify({
+        selectedPixelCounts: components.map(
+          (component) =>
+            component.selectedPixelCount,
+        ),
+        reconstructedPixelCount,
+        staticDriveRodSelectedPixelCount,
+      })}.`,
+    )
+  }
+  return {
+    bodyPath: input.bodyPath,
+    reconstructedPixelCount,
+    staticDriveRod: {
+      componentId:
+        'paper-collage-static-drive-rod',
+      path: staticDriveRodPath,
+      selectedPixelCount:
+        staticDriveRodSelectedPixelCount,
+      sha256: sha256Bytes(staticDriveRodBytes),
+    },
+    components:
+      components as unknown as
+        LocomotiveWheelRig['components'],
+  }
+}
+
+function isNearestDriveWheelPixel(
+  x: number,
+  y: number,
+  candidateWheelIndex: number,
+): boolean {
+  const candidate =
+    LOCOMOTIVE_DRIVE_WHEELS[candidateWheelIndex]!
+  const candidateDistance =
+    (x - candidate.centerX) ** 2
+    + (y - candidate.centerY) ** 2
+  return LOCOMOTIVE_DRIVE_WHEELS.every(
+    (wheel, wheelIndex) =>
+      wheelIndex === candidateWheelIndex
+      || candidateDistance
+        < (x - wheel.centerX) ** 2
+          + (y - wheel.centerY) ** 2,
+  )
+}
+
 function makeTransparentOverlay(
   path: string,
   filters: readonly string[],
@@ -1740,6 +2198,55 @@ function colorStats(
   }
 }
 
+function regionPixelDifferenceCount(
+  left: Buffer,
+  right: Buffer,
+  region: {
+    readonly xStart: number
+    readonly xEndExclusive: number
+    readonly yStart: number
+    readonly yEndExclusive: number
+  },
+  minimumChannelDelta: number,
+): number {
+  if (
+    left.byteLength !== WIDTH * HEIGHT * 3
+    || right.byteLength !== WIDTH * HEIGHT * 3
+    || minimumChannelDelta < 1
+  ) {
+    throw new Error(
+      'Wheel-region pixel comparison input is invalid.',
+    )
+  }
+  let changedPixelCount = 0
+  for (
+    let y = region.yStart;
+    y < region.yEndExclusive;
+    y += 1
+  ) {
+    for (
+      let x = region.xStart;
+      x < region.xEndExclusive;
+      x += 1
+    ) {
+      const offset = (y * WIDTH + x) * 3
+      const maximumDelta = Math.max(
+        Math.abs(left[offset]! - right[offset]!),
+        Math.abs(
+          left[offset + 1]! - right[offset + 1]!,
+        ),
+        Math.abs(
+          left[offset + 2]! - right[offset + 2]!,
+        ),
+      )
+      if (maximumDelta >= minimumChannelDelta) {
+        changedPixelCount += 1
+      }
+    }
+  }
+  return changedPixelCount
+}
+
 function distance(
   leftX: number,
   leftY: number,
@@ -1750,6 +2257,91 @@ function distance(
     (rightX - leftX) ** 2
     + (rightY - leftY) ** 2,
   )
+}
+
+function encodeRgbaPng(
+  width: number,
+  height: number,
+  rgba: Uint8Array,
+): Buffer {
+  if (
+    width < 1
+    || height < 1
+    || rgba.byteLength !== width * height * 4
+  ) {
+    throw new Error(
+      'Style-depth RGBA PNG input is invalid.',
+    )
+  }
+  const scanlines = Buffer.alloc(
+    height * (width * 4 + 1),
+  )
+  for (let row = 0; row < height; row += 1) {
+    const targetOffset =
+      row * (width * 4 + 1)
+    scanlines[targetOffset] = 0
+    Buffer.from(
+      rgba.buffer,
+      rgba.byteOffset + row * width * 4,
+      width * 4,
+    ).copy(scanlines, targetOffset + 1)
+  }
+  const ihdr = Buffer.alloc(13)
+  ihdr.writeUInt32BE(width, 0)
+  ihdr.writeUInt32BE(height, 4)
+  ihdr[8] = 8
+  ihdr[9] = 6
+  ihdr[10] = 0
+  ihdr[11] = 0
+  ihdr[12] = 0
+  return Buffer.concat([
+    Buffer.from('89504e470d0a1a0a', 'hex'),
+    pngChunk('IHDR', ihdr),
+    pngChunk(
+      'IDAT',
+      deflateSync(scanlines, { level: 9 }),
+    ),
+    pngChunk('IEND', Buffer.alloc(0)),
+  ])
+}
+
+function pngChunk(
+  type: 'IHDR' | 'IDAT' | 'IEND',
+  data: Buffer,
+): Buffer {
+  const typeBytes = Buffer.from(type, 'ascii')
+  const chunk = Buffer.alloc(data.byteLength + 12)
+  chunk.writeUInt32BE(data.byteLength, 0)
+  typeBytes.copy(chunk, 4)
+  data.copy(chunk, 8)
+  chunk.writeUInt32BE(
+    pngCrc32(Buffer.concat([typeBytes, data])),
+    data.byteLength + 8,
+  )
+  return chunk
+}
+
+const PNG_CRC32_TABLE = Uint32Array.from(
+  { length: 256 },
+  (_, index) => {
+    let value = index
+    for (let bit = 0; bit < 8; bit += 1) {
+      value = (value & 1) === 1
+        ? 0xedb88320 ^ (value >>> 1)
+        : value >>> 1
+    }
+    return value >>> 0
+  },
+)
+
+function pngCrc32(bytes: Buffer): number {
+  let value = 0xffffffff
+  for (const byte of bytes) {
+    value =
+      PNG_CRC32_TABLE[(value ^ byte) & 0xff]!
+      ^ (value >>> 8)
+  }
+  return (value ^ 0xffffffff) >>> 0
 }
 
 async function fileCommitment(path: string): Promise<{

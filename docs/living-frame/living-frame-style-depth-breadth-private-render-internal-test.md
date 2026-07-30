@@ -50,12 +50,37 @@ separation:
 
 - slow far-paper drift;
 - smaller subject-anchor drift;
+- three independently isolated drive wheels rotating around their own hubs;
+- one separately layered static connecting-rod band above the rotating wheels;
 - one paper-smoke rise; and
 - stronger but bounded foreground drift.
 
 The runtime measures the actual rendered output and requires the foreground
 to move materially farther than the far plane. It also measures vertical smoke
 movement rather than trusting motion-plan metadata.
+
+The drive-wheel proof is also byte- and raster-backed. The test decodes the
+prepared locomotive RGBA, assigns each wheel pixel to one nearest circular
+component, reconstructs the exposed undercarriage with a bounded deterministic
+paper-dark fill, centers every wheel in its own full-frame alpha sprite, and
+then places the sprite back at the exact approved hub. This lets the existing
+Remotion scalar motion runtime rotate each wheel about the correct component
+pivot. A separate static rod overlay remains above those rotating components.
+
+The receipt records:
+
+- exactly three wheel components;
+- selected-pixel counts and content digests for every component;
+- the reconstructed-pixel count;
+- the static-rod selected-pixel count and digest;
+- the approved 240-degree motion arc; and
+- an independently decoded wheel-region pixel delta between separated output
+  frames.
+
+This is the second real selective-part rig after the Musashi character fixture
+and proves that the same architecture works for a different visual treatment
+and a mechanical object. It remains a fixture-specific deterministic rig, not
+automatic arbitrary-object decomposition.
 
 The scene does not claim deep multiplane, volumetric, skeletal, or true-3D
 behavior.
@@ -72,7 +97,8 @@ The test:
 6. persists and reopens the final artifact through canonical private storage;
 7. probes the exact H.264 output with FFprobe;
 8. decodes selected output frames and measures flat stability, differential
-   shallow parallax, smoke movement, temporal variation, and caption priority;
+   shallow parallax, smoke movement, mechanical wheel-region motion, temporal
+   variation, and caption priority;
 9. retains three content-addressed private review frames; and
 10. emits only a byte-free evidence receipt.
 

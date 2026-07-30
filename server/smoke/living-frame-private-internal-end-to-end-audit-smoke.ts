@@ -170,6 +170,51 @@ const cases: readonly AuditCase[] = [
         ),
         true,
       )
+      assert.equal(
+        Number(
+          receipt.mechanicalWheelComponentCount,
+        ),
+        3,
+      )
+      assert.equal(
+        Array.isArray(
+          receipt.mechanicalWheelSelectedPixelCounts,
+        )
+        && receipt.mechanicalWheelSelectedPixelCounts
+          .length === 3
+        && receipt.mechanicalWheelSelectedPixelCounts
+          .every((value) => Number(value) > 1_700),
+        true,
+      )
+      assert.equal(
+        Number(
+          receipt
+            .mechanicalWheelReconstructedPixelCount,
+        ) > 5_100,
+        true,
+      )
+      assert.equal(
+        Number(
+          receipt.staticDriveRodSelectedPixelCount,
+        ) > 1_000,
+        true,
+      )
+      assert.equal(
+        receipt.staticDriveRodRemainedUnrotated,
+        true,
+      )
+      assert.equal(
+        Number(
+          receipt.mechanicalWheelRegionPixelDelta,
+        ) > 1_800,
+        true,
+      )
+      assert.equal(
+        Number(
+          receipt.mechanicalWheelRotationDegrees,
+        ),
+        240,
+      )
     },
   },
   {
@@ -291,6 +336,7 @@ const receipt = {
     'narration_protected_sound',
     'real_illustration_alpha_destination_composite_and_character_action_rig',
     'actual_style_adaptive_flat_editorial_shallow_paper_collage_and_deep_anime_rendering',
+    'paper_collage_mechanical_wheel_decomposition_rotation_and_static_rod_compositing',
     'selected_scene_temporal_source_video_and_sam2_work_admission_candidate',
     'real_gray8_ffv1_temporal_mask_output_decode_measurement_persistence_and_review_frames',
     'render_fallbacks',

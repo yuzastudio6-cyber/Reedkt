@@ -9,11 +9,11 @@ const receipt =
 
 assert.equal(
   receipt.schemaVersion,
-  'living-frame-style-depth-breadth-private-render-internal-test-v1',
+  'living-frame-style-depth-breadth-private-render-internal-test-v2',
 )
 assert.equal(
   receipt.evidenceClass,
-  'actual_private_internal_style_adaptive_flat_and_shallow_2_5d_render',
+  'actual_private_internal_style_adaptive_flat_and_shallow_2_5d_selective_mechanical_motion_render',
 )
 assert.equal(
   receipt.generatedFixtureEvidence.fixtures.length,
@@ -49,6 +49,16 @@ assert.equal(
 assert.equal(
   receipt.adaptiveDepthQa
     .shallowForegroundMovedMoreThanFarPlane,
+  true,
+)
+assert.equal(
+  receipt.adaptiveDepthQa
+    .mechanicalComponentDecompositionMeasured,
+  true,
+)
+assert.equal(
+  receipt.adaptiveDepthQa
+    .mechanicalWheelRasterMotionMeasured,
   true,
 )
 assert.equal(
@@ -94,6 +104,52 @@ assert.equal(
   receipt.authorityBoundary.productionAuthority,
   false,
 )
+assert.equal(
+  receipt.scenes[1].mechanicalWheelComponentCount,
+  3,
+)
+assert.equal(
+  receipt.scenes[1]
+    .mechanicalWheelSelectedPixelCounts.every(
+      (count) => count > 1_700,
+    ),
+  true,
+)
+assert.equal(
+  receipt.scenes[1]
+    .mechanicalWheelReconstructedPixelCount > 5_100,
+  true,
+)
+assert.equal(
+  receipt.scenes[1]
+    .mechanicalWheelComponentSha256.every(
+      (digest) => /^[a-f0-9]{64}$/.test(digest),
+  ),
+  true,
+)
+assert.equal(
+  receipt.scenes[1]
+    .staticDriveRodSelectedPixelCount > 1_000,
+  true,
+)
+assert.match(
+  receipt.scenes[1].staticDriveRodSha256,
+  /^[a-f0-9]{64}$/,
+)
+assert.equal(
+  receipt.scenes[1].staticDriveRodRemainedUnrotated,
+  true,
+)
+assert.equal(
+  receipt.scenes[1]
+    .mechanicalWheelRegionPixelDelta > 1_800,
+  true,
+)
+assert.equal(
+  receipt.scenes[1]
+    .mechanicalWheelRotationDegrees,
+  240,
+)
 assert.match(
   receipt.receiptDigestSha256,
   /^[a-f0-9]{64}$/,
@@ -128,6 +184,25 @@ process.stdout.write(`${JSON.stringify({
     receipt.scenes[1].foregroundDisplacementPixels,
   shallowSmokeVerticalDisplacementPixels:
     receipt.scenes[1].smokeVerticalDisplacementPixels,
+  mechanicalWheelComponentCount:
+    receipt.scenes[1].mechanicalWheelComponentCount,
+  mechanicalWheelSelectedPixelCounts:
+    receipt.scenes[1]
+      .mechanicalWheelSelectedPixelCounts,
+  mechanicalWheelReconstructedPixelCount:
+    receipt.scenes[1]
+      .mechanicalWheelReconstructedPixelCount,
+  staticDriveRodSelectedPixelCount:
+    receipt.scenes[1]
+      .staticDriveRodSelectedPixelCount,
+  staticDriveRodRemainedUnrotated:
+    receipt.scenes[1]
+      .staticDriveRodRemainedUnrotated,
+  mechanicalWheelRegionPixelDelta:
+    receipt.scenes[1]
+      .mechanicalWheelRegionPixelDelta,
+  mechanicalWheelRotationDegrees:
+    receipt.scenes[1].mechanicalWheelRotationDegrees,
   reviewFrameSha256:
     receipt.privateArtifacts.reviewFrameSha256,
   actualRemotionRuntimeExecuted:

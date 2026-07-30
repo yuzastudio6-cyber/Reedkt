@@ -128,6 +128,18 @@ Actual private renders supplement the connected source-level trace:
   prove that the cue is absent before its frame range, present during the
   rotor motion, and remains subordinate to the preserved source
   narration-proxy tone.
+- `server/smoke/living-frame-style-depth-breadth-private-render-internal-test-smoke.ts`
+  renders three distinct illustration/depth decisions rather than applying
+  one universal 2.5D style. The flat-editorial astronaut remains spatially
+  locked, the paper-collage locomotive receives restrained shallow parallax,
+  and the existing Musashi proof remains the deep-multiplane character-action
+  case. The locomotive now adds a second real selective-part rig: three
+  non-overlapping drive-wheel alpha components rotate around their own hubs
+  behind a separately committed static connecting-rod overlay. The test
+  measures component/reconstruction pixel counts, component digests, smoke
+  rise, differential parallax, and changed wheel-region pixels from the actual
+  decoded Remotion output. This remains fixture-specific deterministic
+  decomposition and does not claim arbitrary object rigging or true 3D.
 - `server/smoke/living-frame-confirmed-ratio-private-render-smoke.ts` renders
   real 360×640 portrait and 480×600 custom-frame hybrid scenes, persists and
   reopens both private MP4s, and proves exact dimensions, expansion/return, and

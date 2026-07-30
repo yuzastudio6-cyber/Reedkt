@@ -41,13 +41,16 @@ The aggregate audit executes:
 8. the real Musashi illustration through alpha, exact destination composite,
    base/hair/robe decomposition, selective articulated motion, Remotion,
    captions, sound, media QA, and retained review frames;
-9. semantic sound timing reconciliation;
-10. canonical private-review lineage;
-11. the exact selected-scene source-video → normalized subject prompt → SAM2
+9. real generated flat-editorial and paper-collage alpha fixtures through
+   adaptive flat and shallow-2.5D Remotion scenes, measured spatial behavior,
+   caption priority, create-only persistence, and retained review frames;
+10. semantic sound timing reconciliation;
+11. canonical private-review lineage;
+12. the exact selected-scene source-video → normalized subject prompt → SAM2
     temporal-mask work-admission candidate;
-12. a real gray8 FFV1 temporal-mask output through decode, stability
+13. a real gray8 FFV1 temporal-mask output through decode, stability
     measurement, create-only persistence, and review frames; and
-13. the exact temporal-mask work-graph conflict.
+14. the exact temporal-mask work-graph conflict.
 
 Every subprocess is bounded, uses the pinned workspace `tsx` executable, and
 returns only an output digest plus structured status to the aggregate receipt.

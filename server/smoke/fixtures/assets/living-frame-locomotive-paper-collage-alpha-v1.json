@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "living-frame-style-depth-fixture-provenance-v1",
+  "artifactId": "lf.style-depth.locomotive-paper-collage.v1",
+  "createdFor": "private_internal_living_frame_style_depth_runtime_testing",
+  "generationChannel": "codex_image_gen_builtin",
+  "depictionStatus": "original_stylized_mechanical_illustration_not_archival_evidence",
+  "subjectUse": "style_depth_and_selective_motion_regression_fixture_only",
+  "animationAwareDirection": [
+    "readable full locomotive silhouette",
+    "unobstructed driving wheels",
+    "clear coupling rods",
+    "separable chimney smoke origin",
+    "restrained handcrafted paper depth",
+    "no text or watermark"
+  ],
+  "sourceStyle": [
+    "paper_collage",
+    "deckled_cut_paper",
+    "documentary_motion_design"
+  ],
+  "originalGeneration": {
+    "widthPixels": 1536,
+    "heightPixels": 1024,
+    "contentSha256": "269368ed8be63422b59ae27e54aa1ebbd34642bbcd77af01501a0a308367cbb8",
+    "byteLength": 2160650,
+    "background": "flat_chroma_magenta"
+  },
+  "normalizedFixture": {
+    "fileName": "living-frame-locomotive-paper-collage-alpha-v1.png",
+    "widthPixels": 1536,
+    "heightPixels": 1024,
+    "contentSha256": "f8b7c75bd4bec69161af22f113cf09aac3de98231f3457eb40d4c0ee83331ac3",
+    "byteLength": 1504845,
+    "rgbaPng": true,
+    "transparentCorners": true,
+    "subjectCoverage": 0.408719,
+    "normalization": "builtin_image_generation_then_skill_chroma_key_soft_matte_and_despill"
+  },
+  "prohibitedClaims": [
+    "real_historical_vehicle",
+    "authentic_archival_evidence",
+    "documented_event_reconstruction",
+    "customer_ready_output"
+  ]
+}

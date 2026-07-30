@@ -132,6 +132,31 @@ const cases: readonly AuditCase[] = [
     },
   },
   {
+    id: 'style_adaptive_flat_and_shallow_2_5d_render',
+    relativePath:
+      'server/smoke/living-frame-style-depth-breadth-private-render-internal-test-smoke.ts',
+    expectedJsonStatus: 'passed',
+    validate(receipt) {
+      assert.deepEqual(receipt.renderedStyles, [{
+        assetTreatment: 'flat_editorial_cutout',
+        depthStyle: 'flat',
+        spatialParallaxAllowed: false,
+      }, {
+        assetTreatment: 'paper_collage',
+        depthStyle: 'shallow_2_5d',
+        spatialParallaxAllowed: true,
+      }])
+      assert.equal(
+        Number(
+          receipt.shallowForegroundDisplacementPixels,
+        ) > Number(
+          receipt.shallowFarPlaneDisplacementPixels,
+        ),
+        true,
+      )
+    },
+  },
+  {
     id: 'semantic_sound_timing_reconciliation',
     relativePath:
       'server/smoke/living-frame-semantic-sound-timing-reconciliation-smoke.ts',
@@ -214,6 +239,7 @@ const runtimeCaseIds = [
   'confirmed_non_square_output_frames',
   'selected_scene_environmental_particle_slice',
   'animation_aware_illustration_component_rig',
+  'style_adaptive_flat_and_shallow_2_5d_render',
   'temporal_mask_byte_output_and_measurement',
 ] as const
 for (const runtimeCaseId of runtimeCaseIds) {
@@ -248,6 +274,7 @@ const receipt = {
     'environmental_particle_runtime_persistence_qa_and_private_review',
     'narration_protected_sound',
     'real_illustration_alpha_destination_composite_and_component_rig',
+    'actual_style_adaptive_flat_editorial_shallow_paper_collage_and_deep_anime_rendering',
     'selected_scene_temporal_source_video_and_sam2_work_admission_candidate',
     'real_gray8_ffv1_temporal_mask_output_decode_measurement_persistence_and_review_frames',
     'render_fallbacks',

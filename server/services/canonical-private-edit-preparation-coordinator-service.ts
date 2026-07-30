@@ -14,8 +14,8 @@ import { createCanonicalPrivateReviewAssemblyService } from './canonical-private
 import { createCanonicalPrivateWorkGraphOrchestratorService } from './canonical-private-work-graph-orchestrator-service'
 import { getRequiredAuthUserId } from './service-helpers'
 import { sha256AuthorityValue } from './private-edit-authority-store'
+import { createDetachedWorkspaceAccessContext } from './workspace-access-service'
 
-const MAXIMUM_APPROVED_WORK_GRAPH_ATTEMPTS = 10
 const backgroundPreparations = new Map<string, Promise<void>>()
 
 export type CanonicalPrivateEditPreparationCoordinatorResult = {
@@ -112,9 +112,14 @@ export function createCanonicalPrivateEditPreparationCoordinatorService(
         workspaceId: body.workspaceId,
         packageRecordId: input.packageRecordId,
       })
+      const retryAvailable = Boolean(
+        latestProgress?.capabilityBlockedJobCount &&
+        latestProgress.capabilityBlockedJobCount > 0,
+      )
       if (
         latestProgress?.runFinished &&
-        !latestProgress.allRequiredJobsCompleted
+        !latestProgress.allRequiredJobsCompleted &&
+        !retryAvailable
       ) {
         return blockedResult({
           body,
@@ -124,9 +129,8 @@ export function createCanonicalPrivateEditPreparationCoordinatorService(
           blockedJobCount:
             latestProgress.capabilityBlockedJobCount +
             latestProgress.dependencyBlockedJobCount,
-          retryAvailable:
-            latestProgress.capabilityBlockedJobCount > 0,
-          userReviewRequired: false,
+          retryAvailable: false,
+          userReviewRequired: true,
           completedAt: latestProgress.updatedAt,
         })
       }
@@ -138,9 +142,13 @@ export function createCanonicalPrivateEditPreparationCoordinatorService(
         snapshotHash: body.expectedSnapshotHash,
         requestIdempotencyKey: input.idempotencyKey,
       })
+      const detachedContext = await createDetachedWorkspaceAccessContext(
+        context,
+        body.workspaceId,
+      )
       startBackgroundPreparation({
         body,
-        context,
+        context: detachedContext,
         operationKey,
         packageRecordId: input.packageRecordId,
       })
@@ -392,24 +400,14 @@ async function advanceBackgroundPreparation(input: {
 }): Promise<void> {
   const workGraphService = createCanonicalPrivateWorkGraphOrchestratorService(input.context)
   const reviewService = createCanonicalPrivateReviewAssemblyService(input.context)
-  let workGraphRun: CanonicalPrivateWorkGraphRunResponse | undefined
-  for (
-    let runNumber = 1;
-    runNumber <= MAXIMUM_APPROVED_WORK_GRAPH_ATTEMPTS;
-    runNumber += 1
-  ) {
-    workGraphRun = await workGraphService.run({
+  const workGraphRun: CanonicalPrivateWorkGraphRunResponse =
+    await workGraphService.run({
       workspaceId: input.body.workspaceId,
       packageRecordId: input.packageRecordId,
       purpose: 'run_canonical_private_work_graph',
-      idempotencyKey: workGraphRunIdempotencyKey(input.operationKey, runNumber),
+      idempotencyKey: workGraphRunIdempotencyKey(input.operationKey, 1),
     })
-    if (
-      workGraphRun.summary.allRequiredJobsCompleted ||
-      !hasApprovedRetry(workGraphRun)
-    ) break
-  }
-  if (!workGraphRun?.summary.allRequiredJobsCompleted) return
+  if (!workGraphRun.summary.allRequiredJobsCompleted) return
 
   await reviewService.assemble({
     workspaceId: input.body.workspaceId,
@@ -420,13 +418,6 @@ async function advanceBackgroundPreparation(input: {
       input.packageRecordId,
     ),
   })
-}
-
-function hasApprovedRetry(workGraphRun: CanonicalPrivateWorkGraphRunResponse): boolean {
-  return workGraphRun.jobs.some((job) =>
-    job.status === 'failed_retry_available' &&
-    job.retryDisposition === 'retry_same_approved_operation' &&
-    (job.remainingAttempts ?? 0) > 0)
 }
 
 function stableReviewIdempotencyKey(

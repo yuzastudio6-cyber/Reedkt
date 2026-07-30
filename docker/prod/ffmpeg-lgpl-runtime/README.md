@@ -40,13 +40,23 @@ FLAC/PCM audio, hashes, null analysis, and image sequences. The VP9 encoder is
 the pinned Debian `libvpx 1.12.0-1+deb12u5` build used only for the bounded,
 Remotion-decodable professional color intermediate. The exact allowlist also
 contains the bounded `colorchannelmixer`, `colorlevels`, `unsharp`, and
-`setparams` filters required by the private professional source-color recipe;
+`setparams` filters required by the private professional source-color recipe,
+plus `tpad` for the exact bounded last-picture hold needed when an approved
+container timeline extends a few frames beyond its encoded video stream;
 caller-authored filter strings remain forbidden.
 
 The image does **not** compile H.264, HEVC, `libx264`, `libx265`, or OpenH264
 encoders. Its native AAC encoder is compiled only for the fixed private
-source-slice finalizer, and its MP4/MOV muxer is restricted to that finalizer
-and the first-object-chunk runner's temporary source-slice extraction. The
+source-slice finalizer. That finalizer stream-copies the already approved H.264
+chunk video and encodes exactly one server-verified audio authority: either the
+approved source stream for untouched-audio edits or the exact picture-locked
+professional voice-delivery PCM WAVE for voice-processed edits. It never
+concatenates independently encoded chunk audio. The exact `s16le` raw PCM
+demuxer is enabled only so the fixed finalizer can strip and verify the
+server-produced WAVE container before the one approved AAC encode. Its MP4/MOV
+muxer is restricted
+to that finalizer and the first-object-chunk runner's temporary source-slice
+extraction. The
 first-object-chunk runner does not encode H.264 or AAC: it stream-copies exact,
 compatible H.264 MP4 slices into a video-only Matroska object chunk. These
 recipes are server-owned and caller-authored FFmpeg commands remain forbidden.

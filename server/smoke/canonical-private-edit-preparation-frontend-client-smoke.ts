@@ -3,6 +3,12 @@ import { createServer } from 'node:http'
 
 import type { CanonicalEditJourney } from '../../src/lib/canonical-edit-journey'
 import type { ProjectPersistenceScope } from '../../src/lib/project-persistence-scope'
+import {
+  REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES,
+} from '../../src/types/large-media'
+import {
+  canonicalPrivateEditPreparationReceiptSchema,
+} from '../validation/canonical-private-edit-preparation-schemas'
 
 const identity = {
   workspaceId: 'workspace-private-edit-client',
@@ -13,6 +19,7 @@ const packageRecordId = 'package-private-edit-client'
 const packageHash = '4'.repeat(64)
 const snapshotId = 'snapshot-private-edit-client'
 const snapshotHash = '3'.repeat(64)
+const longFormPrivateReviewBytes = 64 * 1024 * 1024
 const journey: CanonicalEditJourney = {
   identity,
   stage: 'execution_in_progress',
@@ -42,6 +49,26 @@ const scope: ProjectPersistenceScope = {
   userId: 'user-private-edit-client',
   workspaceId: identity.workspaceId,
 }
+const longFormReadyReceipt = receiptFixture({
+  disposition: 'private_review_ready',
+  workspaceId: identity.workspaceId,
+})
+assert.equal(
+  canonicalPrivateEditPreparationReceiptSchema.parse(longFormReadyReceipt)
+    .review?.finalArtifactByteLength,
+  longFormPrivateReviewBytes,
+)
+assert.equal(
+  canonicalPrivateEditPreparationReceiptSchema.safeParse({
+    ...longFormReadyReceipt,
+    review: {
+      ...(longFormReadyReceipt.review as Record<string, unknown>),
+      finalArtifactByteLength:
+        REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES + 1,
+    },
+  }).success,
+  false,
+)
 
 const originalMode = process.env.VITE_REEDITPRO_API_MODE
 const originalBaseUrl = process.env.VITE_REEDITPRO_API_BASE_URL
@@ -151,6 +178,10 @@ try {
     assert.equal(ready.receipt.authority.packageHash, packageHash)
     assert.equal(ready.receipt.progress.allRequiredJobsCompleted, true)
     assert.ok(ready.receipt.review)
+    assert.equal(
+      ready.receipt.review?.finalArtifactByteLength,
+      longFormPrivateReviewBytes,
+    )
   }
   assert.equal(requests.length, 1)
   assert.equal(requests[0]?.method, 'POST')
@@ -270,7 +301,7 @@ function receiptFixture(input: {
       reviewAssemblyId: 'review-private-edit-client',
       manifestSha256: '5'.repeat(64),
       finalArtifactSha256: '6'.repeat(64),
-      finalArtifactByteLength: 4096,
+      finalArtifactByteLength: longFormPrivateReviewBytes,
       readyForPrivateReview: true,
     } : null,
     readiness: {

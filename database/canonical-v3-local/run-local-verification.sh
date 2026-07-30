@@ -84,6 +84,8 @@ npx --no-install tsx \
 "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
   -f "${SCRIPT_DIR}/tests/015_canonical_durable_upload_target_rpc_postconditions.sql"
 "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
+  -f "${SCRIPT_DIR}/tests/018_canonical_local_resumable_upload_protocol.sql"
+"${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
   -f "${SCRIPT_DIR}/tests/016_canonical_upload_target_credential_escrow_rpc_postconditions.sql"
 npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/canonical-distributed-media-ingest-local-postgres-smoke.ts"

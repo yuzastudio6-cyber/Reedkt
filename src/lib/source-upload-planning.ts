@@ -310,6 +310,8 @@ interface BackendUploadIntentData {
     uploadProtocol?: TemporaryUploadProtocol
     supportsResume?: boolean
     recommendedChunkSizeBytes?: number
+    uploadStatusUrl?: string
+    retryFromVerifiedOffset?: boolean
   }
 }
 

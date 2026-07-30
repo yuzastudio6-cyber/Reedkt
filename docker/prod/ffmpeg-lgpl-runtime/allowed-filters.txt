@@ -45,6 +45,7 @@ split
 ssim
 testsrc2
 thumbnail
+tpad
 transpose
 trim
 unsharp

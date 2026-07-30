@@ -244,6 +244,10 @@ function parseReceipt(
     'finalizedSourceObjectsReread',
     'exactLockedPreferencesReread',
     'immutableEditBriefReread',
+    'chatDirectionReread',
+    'chatDirectionCount',
+    'chatThreadRevision',
+    'chatDirectionAuthorityDigestSha256',
     'exactCaptionReplacementApplied',
     'revisionIntentHash',
     'sourceCount',
@@ -293,6 +297,14 @@ function parseReceipt(
     derivation.finalizedSourceObjectsReread !== true ||
     derivation.exactLockedPreferencesReread !== true ||
     derivation.immutableEditBriefReread !== true ||
+    derivation.chatDirectionReread !== true ||
+    !isIntegerInRange(derivation.chatDirectionCount, 0, 200) ||
+    !isIntegerInRange(
+      derivation.chatThreadRevision,
+      0,
+      Number.MAX_SAFE_INTEGER,
+    ) ||
+    !isSha(derivation.chatDirectionAuthorityDigestSha256) ||
     derivation.exactCaptionReplacementApplied !== true ||
     !isSha(derivation.revisionIntentHash) ||
     !isIntegerInRange(derivation.sourceCount, 1, 8) ||

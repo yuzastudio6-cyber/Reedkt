@@ -1715,6 +1715,84 @@ export async function completePrivateCanonicalPackageWorkQueueClaim(input: {
   return result.aggregate
 }
 
+/**
+ * Finalizes a queue entry after the execution adapter proves that an earlier
+ * queue claim already committed the exact artifact, QA, reconciliation, and
+ * scoped cost evidence. This path never grants a new execution attempt: it is
+ * available only after the approved queue attempts are exhausted, the entry
+ * is no longer leased, and the adapter has returned the exact completed
+ * outcome from its post-commit recovery authority.
+ */
+export async function completePrivateCanonicalPackageWorkQueueRecovery(input: {
+  scope: CanonicalPrivatePackageWorkQueueStoreScope
+  definition: CanonicalPrivatePackageWorkQueueDefinition
+  jobId: string
+  outcome: CanonicalPrivatePackageWorkQueueCompletedOutcome
+  now: string
+}): Promise<CanonicalPrivatePackageWorkQueueAggregate> {
+  const now = validTimestamp(input.now, 'queue completion recovery')
+  const outcome = canonicalPrivatePackageWorkQueueCompletedOutcomeSchema.parse(input.outcome)
+  const result = await mutateQueue(input.scope, input.definition, now, (aggregate) => {
+    const entry = requiredEntry(aggregate, input.jobId)
+    if (entry.state === 'completed') {
+      if (
+        stableAuthorityStringify(entry.completion!.outcome) !==
+          stableAuthorityStringify(outcome)
+      ) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'Canonical queue recovery already completed with different bytes.',
+          409,
+        )
+      }
+      return { disposition: 'completed_replay' as const }
+    }
+    const priorRelease = entry.lastRelease
+    if (
+      entry.state !== 'queued' ||
+      entry.deliveryAttemptCount < entry.definition.maxAttempts ||
+      !priorRelease ||
+      ![
+        'approved_attempt_failure',
+        'unexpected_execution_failure',
+        'expired_claim_recovered',
+      ].includes(priorRelease.reason) ||
+      entry.providerExecutionAttempt ||
+      entry.professionalLongFormExecutionAttempt
+    ) {
+      throw new ApiError(
+        'IDEMPOTENCY_ATOMICITY_REQUIRED',
+        'Canonical queue completion recovery lacks an exhausted private claim boundary.',
+        503,
+      )
+    }
+    assertOutcomeMatchesDefinition(outcome, entry.definition)
+    assertProfessionalLongFormCompletionEvidence(entry, outcome)
+    const completionWithoutHash = {
+      claimId: priorRelease.claimId,
+      credentialSha256: priorRelease.credentialSha256,
+      outcome,
+      completedAt: now,
+    }
+    entry.state = 'completed'
+    entry.activeClaim = undefined
+    entry.completion = {
+      ...completionWithoutHash,
+      completionHash: sha256AuthorityValue(completionWithoutHash),
+    }
+    entry.lastRelease = undefined
+    touchEntry(entry, now)
+    appendEvent(aggregate, {
+      eventType: 'job_completed',
+      jobId: entry.definition.jobId,
+      claimId: priorRelease.claimId,
+      at: now,
+    })
+    return { disposition: 'completed_recovery' as const }
+  })
+  return result.aggregate
+}
+
 export async function releasePrivateCanonicalPackageWorkQueueClaim(input: {
   scope: CanonicalPrivatePackageWorkQueueStoreScope
   definition: CanonicalPrivatePackageWorkQueueDefinition

@@ -21,7 +21,10 @@ import {
   OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
   OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_CHUNK_BYTES,
   OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_OUTPUT_BYTES,
+  OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_SOURCE_BYTES,
   OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
+  OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE,
+  OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE,
   buildOfflineMediaBinaryVisualCalibrationObjectiveQaRequest,
   buildOfflineMediaBinaryMezzanineFinalizationRequest,
   openPrivateOfflineMediaBinaryRuntime,
@@ -31,6 +34,7 @@ import {
   validateOfflineFfprobeStreamingExecutionRequest,
   validateOfflineFfprobePlanningPayload,
   validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload,
+  isColorMatchDeliveryProfile,
   type OfflineFfmpegExecutionResult,
   type OfflineFfmpegEditBriefAudioPlanningPayload,
   type OfflineFfmpegStreamingOutputExecutionResult,
@@ -77,6 +81,9 @@ import {
   type CanonicalPrivateDependencyArtifactStreamReadResult,
   type CanonicalPrivateDependencyProviderOutputEvidence,
 } from './canonical-private-dependency-artifact-read-service'
+import {
+  isExactCanonicalPrivateSourceSliceChunkPayload,
+} from './canonical-private-long-form-merge-execution-service'
 import {
   createCanonicalPrivateEditBriefAudioObjectReadService,
   type CanonicalPrivateEditBriefAudioObjectReadResult,
@@ -210,8 +217,18 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         const cleanupDecision = authority.components.sourceCleanupPlan.decisions.find(
           (decision) => decision.decisionId === payload.sourceCleanupDecisionId,
         )
+        const voiceDependencyCandidates = payload.approvedVoiceOutputKey
+          ? authority.workItems.filter((candidate) =>
+              candidate.expectedOutputs.length === 1 &&
+              candidate.expectedOutputs[0]?.outputKey ===
+                payload.approvedVoiceOutputKey)
+          : []
+        const voiceDependencyWorkItem = voiceDependencyCandidates[0]
         const expectedDependencyKeys = [
           'source-trim-validation',
+          ...(voiceDependencyWorkItem
+            ? [voiceDependencyWorkItem.workItemKey]
+            : []),
           ...payload.chunks.map((chunk) =>
             `composition-chunk-${chunk.chunkIndex}`),
         ]
@@ -245,6 +262,8 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           cleanupDecision.sourceSequenceItemId !== payload.sourceSequenceItemId ||
           cleanupDecision.startFrame !== payload.sourceStartFrame ||
           cleanupDecision.endFrameExclusive !== payload.sourceEndFrameExclusive ||
+          voiceDependencyCandidates.length !==
+            (payload.approvedVoiceOutputKey ? 1 : 0) ||
           authority.components.confirmedSettings.outputFramePurpose !==
             'private_canonical_4k_master_review' ||
           authority.components.confirmedSettings.outputFrame.width !==
@@ -324,11 +343,13 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         let canonicalLifecycleCompleted = false
         let attemptOutputByteLength: number | null = null
         try {
+        const voiceDependencyCount = voiceDependencyWorkItem ? 1 : 0
+        const chunkDependencyStartIndex = 1 + voiceDependencyCount
         if (
           begun.lease.dependencyAuthority.selectedArtifacts.length !==
-            payload.chunks.length + 1
+            payload.chunks.length + 1 + voiceDependencyCount
         ) throw denied(
-          'Mezzanine finalization lease lost an exact trim or chunk dependency.',
+          'Mezzanine finalization lease lost an exact trim, approved voice, or chunk dependency.',
         )
         const dependencyReader =
           createCanonicalPrivateDependencyArtifactReadService(context)
@@ -353,6 +374,35 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           payload,
           dependency: trimDependency,
         })
+        const voiceDependency = voiceDependencyWorkItem
+          ? await dependencyReader.readSingleSelectedArtifactStream({
+              workspaceId: body.workspaceId,
+              projectId: body.projectId,
+              editSessionId: body.editSessionId,
+              snapshotId: authority.snapshot.snapshotId,
+              currentJobId: body.jobId,
+              currentApprovedWorkItemId: workItem.id,
+              leaseId: injected.leaseId,
+              leaseCredential: injected.leaseCredential,
+              executionAttemptId,
+              dispatchGrantId: body.grantId,
+              dependencyAuthority: begun.lease.dependencyAuthority,
+              selectedArtifactIndex: 1,
+              allowedContentTypes: ['audio/wav'],
+              maximumBytes:
+                OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_SOURCE_BYTES,
+            })
+          : undefined
+        if (voiceDependencyWorkItem && voiceDependency) {
+          await assertMezzanineVoiceDependency({
+            context,
+            body,
+            authority,
+            payload,
+            dependency: voiceDependency,
+            workItem: voiceDependencyWorkItem,
+          })
+        }
         const chunkDependencies: CanonicalPrivateDependencyArtifactStreamReadResult[] = []
         for (let index = 0; index < payload.chunks.length; index += 1) {
           const dependency = await dependencyReader.readSingleSelectedArtifactStream({
@@ -367,7 +417,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
             executionAttemptId,
             dispatchGrantId: body.grantId,
             dependencyAuthority: begun.lease.dependencyAuthority,
-            selectedArtifactIndex: index + 1,
+            selectedArtifactIndex: chunkDependencyStartIndex + index,
             allowedContentTypes: ['video/mp4'],
             maximumBytes:
               OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_CHUNK_BYTES,
@@ -378,7 +428,8 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
             authority,
             planned: payload.chunks[index]!,
             dependency,
-            dependencyKey: workItem.dependencyKeys[index + 1]!,
+            dependencyKey:
+              workItem.dependencyKeys[chunkDependencyStartIndex + index]!,
           })
           chunkDependencies.push(dependency)
         }
@@ -390,26 +441,49 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         let executionResult!: OfflineFfmpegMezzanineFinalizationExecutionResult
         let finalArtifactQa!: CanonicalPrivateFinalMediaQa
         try {
-          stagedSourceSet = await createCanonicalPrivateSourceObjectReadService(context)
-            .stageExactApprovedSource({
-              workspaceId: body.workspaceId,
-              projectId: body.projectId,
-              editSessionId: body.editSessionId,
-              snapshotId: authority.snapshot.snapshotId,
-              jobId: body.jobId,
-              approvedWorkItem: workItem,
-              approvedSourceManifest: authority.sourceAssetManifest,
-              leaseId: injected.leaseId,
-              executionAttemptId,
-              dispatchGrantId: body.grantId,
-            })
-          sourceRead = stagedSourceSet.sources[0]
-          if (
-            stagedSourceSet.sources.length !== 1 || !sourceRead ||
-            sourceRead.sourceSequenceItemId !== payload.sourceSequenceItemId
-          ) throw denied(
-            'Mezzanine finalization source staging diverged from approved source authority.',
-          )
+          if (!voiceDependency) {
+            stagedSourceSet =
+              await createCanonicalPrivateSourceObjectReadService(context)
+                .stageExactApprovedSource({
+                  workspaceId: body.workspaceId,
+                  projectId: body.projectId,
+                  editSessionId: body.editSessionId,
+                  snapshotId: authority.snapshot.snapshotId,
+                  jobId: body.jobId,
+                  approvedWorkItem: workItem,
+                  approvedSourceManifest: authority.sourceAssetManifest,
+                  leaseId: injected.leaseId,
+                  executionAttemptId,
+                  dispatchGrantId: body.grantId,
+                })
+            sourceRead = stagedSourceSet.sources[0]
+            if (
+              stagedSourceSet.sources.length !== 1 || !sourceRead ||
+              sourceRead.sourceSequenceItemId !== payload.sourceSequenceItemId
+            ) throw denied(
+              'Mezzanine finalization source staging diverged from approved source authority.',
+            )
+          }
+          if (!voiceDependency && !sourceRead) {
+            throw denied(
+              'Mezzanine finalization lost its approved audio authority.',
+            )
+          }
+          const approvedAudioSha256 =
+            voiceDependency?.sha256 ?? sourceRead!.sha256
+          const approvedAudioByteLength =
+            voiceDependency?.byteLength ?? sourceRead!.byteLength
+          const approvedAudioReadEvidenceHash =
+            voiceDependency?.dependencyReadEvidenceHash ??
+            sourceRead!.sourceReadEvidenceHash
+          const approvedAudioInput = voiceDependency
+            ? {
+                inputMode: voiceDependency.inputMode,
+                byteLength: voiceDependency.byteLength,
+                sha256: voiceDependency.sha256,
+                openStream: voiceDependency.openStream,
+              }
+            : sourceRead!.sourceInput
           const request = buildOfflineMediaBinaryMezzanineFinalizationRequest({
             planningPayload: payload,
             chunks: chunkDependencies.map((dependency, index) => ({
@@ -420,16 +494,29 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
               byteLength: dependency.byteLength,
               sha256: dependency.sha256,
             })),
-            source: {
-              inputId: 'approved-mezzanine-source',
-              sourceSequenceItemId: sourceRead.sourceSequenceItemId,
-              mimeType: 'video/mp4',
-              byteLength: sourceRead.byteLength,
-              sha256: sourceRead.sha256,
-            },
+            source: voiceDependency
+              ? {
+                  inputId: 'approved-mezzanine-voice-delivery',
+                  sourceSequenceItemId: payload.sourceSequenceItemId,
+                  mimeType: 'audio/wav',
+                  byteLength: voiceDependency.byteLength,
+                  sha256: voiceDependency.sha256,
+                  outputKey: payload.approvedVoiceOutputKey!,
+                  durationFrames: payload.durationFrames,
+                }
+              : {
+                  inputId: 'approved-mezzanine-source',
+                  sourceSequenceItemId: sourceRead!.sourceSequenceItemId,
+                  mimeType: 'video/mp4',
+                  byteLength: sourceRead!.byteLength,
+                  sha256: sourceRead!.sha256,
+                },
           })
           const inputReadEvidenceHash = sha256ArtifactQaValue({
-            sourceReadEvidenceHash: sourceRead.sourceReadEvidenceHash,
+            approvedAudioInputKind: voiceDependency
+              ? 'approved_voice_delivery_wav'
+              : 'approved_source_media',
+            approvedAudioReadEvidenceHash,
             sourceTrimDependencyReadEvidenceHash:
               trimDependency.dependencyReadEvidenceHash,
             chunkDependencyReadEvidenceHashes: chunkDependencies.map(
@@ -439,15 +526,19 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           const privateObjectIdentityFor = (contentSha256: string) =>
             sha256ArtifactQaValue({
               domain:
-                'canonical_private_ffmpeg_mezzanine_finalization_mp4_stream_v1',
+                'canonical_private_ffmpeg_mezzanine_finalization_mp4_stream_v2',
               workspaceId: body.workspaceId,
               snapshotId: authority.snapshot.snapshotId,
               jobId: body.jobId,
               expectedAssetId: expectedAsset.id,
               dispatchGrantId: body.grantId,
               executionAttemptId,
-              sourceSha256: sourceRead!.sha256,
-              sourceReadEvidenceHash: sourceRead!.sourceReadEvidenceHash,
+              approvedAudioInputKind: voiceDependency
+                ? 'approved_voice_delivery_wav'
+                : 'approved_source_media',
+              approvedAudioSha256,
+              approvedAudioReadEvidenceHash,
+              approvedVoiceOutputKey: payload.approvedVoiceOutputKey ?? null,
               sourceTrimDependencyReadEvidenceHash:
                 trimDependency.dependencyReadEvidenceHash,
               chunkLineage: chunkDependencies.map((dependency, index) => ({
@@ -471,7 +562,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
                   sha256: dependency.sha256,
                   openStream: dependency.openStream,
                 })),
-                source: sourceRead.sourceInput,
+                source: approvedAudioInput,
               },
               {
                 maximumBytes:
@@ -711,20 +802,37 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
               operationId: binding.operationId,
               actualBinaryOperationCompleted: true as const,
               providerCallMade: false as const,
-              inputKind: 'approved_source_and_chunk_dependencies' as const,
-              sourceObjectRead: true as const,
+              inputKind: voiceDependency
+                ? 'approved_voice_and_chunk_dependencies' as const
+                : 'approved_source_and_chunk_dependencies' as const,
+              sourceObjectRead: voiceDependency
+                ? false as const
+                : true as const,
               dependencyArtifactRead: true as const,
               dependencyInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
               dependencyArtifactStreamed: true as const,
               inputReadEvidenceHash,
-              inputArtifactSha256: sourceRead.sha256,
-              inputArtifactByteLength: sourceRead.byteLength,
-              sourceSequenceItemId: sourceRead.sourceSequenceItemId,
-              sourceBindingHash: sourceRead.bindingHash,
-              sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
-              sourceStagingEvidenceHash: sourceRead.stagingEvidenceHash,
-              sourceCapacityEvidenceHash: stagedSourceSet.capacityEvidenceHash,
-              sourceStagingCleaned: true as const,
+              inputArtifactSha256: approvedAudioSha256,
+              inputArtifactByteLength: approvedAudioByteLength,
+              sourceSequenceItemId: payload.sourceSequenceItemId,
+              ...(voiceDependency
+                ? {
+                    approvedVoiceOutputKey: payload.approvedVoiceOutputKey!,
+                    approvedVoiceArtifactId: voiceDependency.artifactId,
+                    approvedVoiceDependencyJobId:
+                      voiceDependency.dependencyJobId,
+                    approvedVoiceReadEvidenceHash:
+                      voiceDependency.dependencyReadEvidenceHash,
+                  }
+                : {
+                    sourceBindingHash: sourceRead!.bindingHash,
+                    sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+                    sourceStagingEvidenceHash:
+                      sourceRead!.stagingEvidenceHash,
+                    sourceCapacityEvidenceHash:
+                      stagedSourceSet!.capacityEvidenceHash,
+                    sourceStagingCleaned: true as const,
+                  }),
               sourceTrimDependencyArtifactId: trimDependency.artifactId,
               sourceTrimDependencyJobId: trimDependency.dependencyJobId,
               sourceTrimDependencyReadEvidenceHash:
@@ -884,13 +992,16 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           : [
               'approved_source_color_delivery_matroska_v1',
               'approved_source_color_match_delivery_matroska_v1',
+              OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE,
+              OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE,
             ].includes(String(ffmpegPlanningPayload?.recipeProfileId))
             ? 'video/x-matroska' as const
             : 'video/x-nut' as const
         : 'application/json' as const
       const dependencyFinalQa = toolId === 'ffprobe' && workItem?.workItemType === 'run_final_qa'
-      const referenceColorMatch = ffmpegPlanningPayload?.recipeProfileId ===
-        'approved_source_color_match_delivery_matroska_v1'
+      const referenceColorMatch = isColorMatchDeliveryProfile(
+        ffmpegPlanningPayload?.recipeProfileId,
+      )
       const referenceColorPlanningPayload = referenceColorMatch
         ? ffmpegPlanningPayload as OfflineFfmpegColorMatchDeliveryPlanningPayload
         : undefined
@@ -2139,6 +2250,75 @@ function assertMezzanineTrimDependency(input: {
   )
 }
 
+async function assertMezzanineVoiceDependency(input: {
+  context: ServiceContext
+  body: RunCanonicalPrivateMediaBinaryInput
+  authority: CanonicalApprovedExecutionAuthority
+  payload: ReturnType<
+    typeof validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload
+  >
+  dependency: CanonicalPrivateDependencyArtifactStreamReadResult
+  workItem: CanonicalApprovedExecutionAuthority['workItems'][number]
+}): Promise<void> {
+  const expectedAssets = input.authority.assetManifest.entries.filter(
+    (candidate) =>
+      candidate.approvedWorkItemId === input.workItem.id &&
+      candidate.outputKey === input.payload.approvedVoiceOutputKey,
+  )
+  const expectedAsset = expectedAssets[0]
+  const dependencyReadiness = (await createCanonicalExecutionReadinessService(
+    input.context,
+  ).inspectJob({
+    workspaceId: input.body.workspaceId,
+    projectId: input.body.projectId,
+    editSessionId: input.body.editSessionId,
+    jobId: input.dependency.dependencyJobId,
+    purpose: 'private_internal_dry_run_readiness',
+  })).executionReadinessEnvelope
+  const voicePayload = validateOfflineFfmpegPlanningPayload(
+    input.workItem.executionInput.structuredPayload,
+  )
+  if (
+    !input.payload.approvedVoiceOutputKey ||
+    expectedAssets.length !== 1 || !expectedAsset ||
+    input.workItem.workItemType !== 'custom' ||
+    input.workItem.workerClass !== 'audio_processing_worker' ||
+    input.workItem.executionInput.operation !==
+      'process_approved_source_voice_delivery' ||
+    stableArtifactQaStringify(
+      input.workItem.executionInput.approvedToolOperationIds,
+    ) !== stableArtifactQaStringify([OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg]) ||
+    input.workItem.approvedToolIds.length !== 1 ||
+    input.workItem.approvedToolIds[0] !== 'ffmpeg' ||
+    input.workItem.providerExecutionMode !== 'none' ||
+    input.workItem.dependencyKeys.length !== 0 ||
+    stableArtifactQaStringify(input.workItem.sourceSequenceItemIds) !==
+      stableArtifactQaStringify([input.payload.sourceSequenceItemId]) ||
+    stableArtifactQaStringify(input.workItem.sourceCleanupDecisionIds) !==
+      stableArtifactQaStringify([input.payload.sourceCleanupDecisionId]) ||
+    input.workItem.expectedOutputs.length !== 1 ||
+    input.workItem.expectedOutputs[0]?.outputKey !==
+      input.payload.approvedVoiceOutputKey ||
+    input.workItem.expectedOutputs[0]?.contentType !== 'audio/wav' ||
+    expectedAsset.id !== input.dependency.expectedAssetId ||
+    expectedAsset.assetRole !== 'processed' ||
+    expectedAsset.contentType !== 'audio/wav' ||
+    expectedAsset.artifactType !==
+      'controlled_ffmpeg_professional_voice_delivery_wav' ||
+    !expectedAsset.required || expectedAsset.previewPlaceholderAllowed ||
+    input.dependency.contentType !== 'audio/wav' ||
+    dependencyReadiness.job.approvedWorkItemId !== input.workItem.id ||
+    voicePayload.recipeProfileId !== 'approved_voice_delivery_wav_v1' ||
+    voicePayload.frameRate !== input.payload.fps ||
+    voicePayload.trimStartFrame !== input.payload.sourceStartFrame ||
+    voicePayload.trimEndFrameExclusive !== input.payload.sourceEndFrameExclusive ||
+    voicePayload.trimEndFrameExclusive - voicePayload.trimStartFrame !==
+      input.payload.durationFrames
+  ) throw denied(
+    'Approved voice dependency diverged from exact source, picture-lock, or artifact authority.',
+  )
+}
+
 async function assertMezzanineChunkDependency(input: {
   context: ServiceContext
   body: RunCanonicalPrivateMediaBinaryInput
@@ -2171,6 +2351,57 @@ async function assertMezzanineChunkDependency(input: {
   const chunkPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
     workItem.executionInput.structuredPayload,
   )
+  const approvedDependencyWorkItems = workItem.dependencyKeys
+    .map((dependencyKey) => input.authority.workItems.find((candidate) =>
+      candidate.workItemKey === dependencyKey))
+    .filter((candidate): candidate is NonNullable<typeof candidate> =>
+      Boolean(candidate))
+  const approvedVoiceOutputKeys = approvedDependencyWorkItems.flatMap(
+    (candidate) =>
+      candidate.executionInput.operation ===
+        'process_approved_source_voice_delivery' &&
+      candidate.sourceSequenceItemIds.length === 1 &&
+      candidate.sourceSequenceItemIds[0] === workItem.sourceSequenceItemIds[0] &&
+      candidate.sourceCleanupDecisionIds.length === 1 &&
+      candidate.sourceCleanupDecisionIds[0] ===
+        workItem.sourceCleanupDecisionIds[0] &&
+      candidate.expectedOutputs.length === 1 &&
+      candidate.expectedOutputs[0]?.contentType === 'audio/wav'
+        ? [candidate.expectedOutputs[0].outputKey]
+        : [],
+  )
+  const approvedColorOutputKeys = approvedDependencyWorkItems.flatMap(
+    (candidate) =>
+      candidate.executionInput.operation ===
+        'process_approved_source_professional_color_delivery' &&
+      candidate.sourceSequenceItemIds.length === 1 &&
+      candidate.sourceSequenceItemIds[0] === workItem.sourceSequenceItemIds[0] &&
+      candidate.sourceCleanupDecisionIds.length === 1 &&
+      candidate.sourceCleanupDecisionIds[0] ===
+        workItem.sourceCleanupDecisionIds[0] &&
+      candidate.expectedOutputs.length === 1 &&
+      candidate.expectedOutputs[0]?.contentType === 'video/x-matroska'
+        ? [candidate.expectedOutputs[0].outputKey]
+        : [],
+  )
+  const cleanupDecision =
+    input.authority.components.sourceCleanupPlan.decisions.find((decision) =>
+      decision.decisionId === workItem.sourceCleanupDecisionIds[0] &&
+      decision.sourceSequenceItemId === workItem.sourceSequenceItemIds[0])
+  const exactSourceSlicePayload =
+    isExactCanonicalPrivateSourceSliceChunkPayload({
+      payload: chunkPayload,
+      planned: {
+        durationFrames: input.planned.durationFrames,
+        sourceSequenceItemIds: workItem.sourceSequenceItemIds,
+        sourceCleanupDecisionIds: workItem.sourceCleanupDecisionIds,
+        sourceStartFrame: input.planned.sourceStartFrame,
+        sourceEndFrameExclusive: input.planned.sourceEndFrameExclusive,
+      },
+      cleanupDecision,
+      approvedVoiceOutputKeys,
+      approvedColorOutputKeys,
+    })
   if (
     !chunkAuthority.success ||
     chunkAuthority.data.profileId !==
@@ -2202,15 +2433,10 @@ async function assertMezzanineChunkDependency(input: {
       sourceStartFrame: input.planned.sourceStartFrame,
       sourceEndFrameExclusive: input.planned.sourceEndFrameExclusive,
     }) ||
-    chunkPayload.compositionProfileId !==
-      'approved_source_caption_track_final_v1' ||
-    !('sourceStartFrame' in chunkPayload) ||
-    chunkPayload.sourceStartFrame !== input.planned.sourceStartFrame ||
-    chunkPayload.sourceEndFrameExclusive !==
-      input.planned.sourceEndFrameExclusive ||
+    !exactSourceSlicePayload ||
     chunkPayload.durationFrames !== input.planned.durationFrames ||
-    chunkPayload.audioPolicy !== 'preserve_source' ||
-    'sourceMediaPolicy' in chunkPayload || 'voiceTracks' in chunkPayload ||
+    chunkPayload.deliveryProfileId !== 'uhd_2160' ||
+    chunkPayload.estimateCostBasisProfileId !== 'uhd_2160' ||
     stableArtifactQaStringify(workItem.sourceSequenceItemIds) !==
       stableArtifactQaStringify([input.authority.components.sourceSequence[0]!
         .sourceSequenceItemId]) ||
@@ -2256,8 +2482,13 @@ function assertReferenceColorDependency(input: {
   const referencePayload = validateOfflineFfmpegPlanningPayload(
     workItem.executionInput.structuredPayload,
   )
+  const expectedReferenceProfile =
+    input.planningPayload.recipeProfileId ===
+      OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE
+      ? OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE
+      : 'approved_source_color_delivery_matroska_v1'
   if (
-    referencePayload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' ||
+    referencePayload.recipeProfileId !== expectedReferenceProfile ||
     referencePayload.frameRate !== input.planningPayload.frameRate ||
     referencePayload.colorGradeStyle !== input.planningPayload.colorGradeStyle ||
     referencePayload.intensity !== input.planningPayload.intensity ||

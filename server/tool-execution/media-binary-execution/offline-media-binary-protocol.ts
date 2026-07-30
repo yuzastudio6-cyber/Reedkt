@@ -11,6 +11,10 @@ export const OFFLINE_EDIT_BRIEF_SFX_PROFILE =
   'approved_edit_brief_sfx_wav_v1' as const
 export const OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE =
   'approved_exact_source_frame_png_v1' as const
+export const OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE =
+  'approved_source_color_delivery_matroska_v2' as const
+export const OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE =
+  'approved_source_color_match_delivery_matroska_v2' as const
 export const OFFLINE_MEDIA_BINARY_OPERATIONS = Object.freeze({
   ffmpeg: 'tool.ffmpeg.execute_approved_media_recipe.v1',
   ffprobe: 'tool.ffprobe.inspect_approved_media.v1',
@@ -214,8 +218,8 @@ export type OfflineFfmpegColorOperationKind =
   | 'shot_matching'
   | 'white_balance'
 
-export interface OfflineFfmpegColorDeliveryPlanningPayload extends OfflineFfmpegCommonPlanningPayload {
-  recipeProfileId: 'approved_source_color_delivery_matroska_v1'
+interface OfflineFfmpegColorDeliveryPlanningFields
+  extends OfflineFfmpegCommonPlanningPayload {
   colorGradeStyle: OfflineFfmpegColorGradeStyle
   intensity: OfflineFfmpegColorIntensity
   approvedColorOperationIds: string[]
@@ -227,8 +231,15 @@ export interface OfflineFfmpegColorDeliveryPlanningPayload extends OfflineFfmpeg
   preserveAudio: false
 }
 
-export interface OfflineFfmpegColorMatchDeliveryPlanningPayload extends OfflineFfmpegCommonPlanningPayload {
-  recipeProfileId: 'approved_source_color_match_delivery_matroska_v1'
+export type OfflineFfmpegColorDeliveryPlanningPayload =
+  OfflineFfmpegColorDeliveryPlanningFields & {
+    recipeProfileId:
+      | 'approved_source_color_delivery_matroska_v1'
+      | typeof OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE
+  }
+
+interface OfflineFfmpegColorMatchDeliveryPlanningFields
+  extends OfflineFfmpegCommonPlanningPayload {
   colorGradeStyle: OfflineFfmpegColorGradeStyle
   intensity: OfflineFfmpegColorIntensity
   approvedColorOperationIds: string[]
@@ -242,6 +253,47 @@ export interface OfflineFfmpegColorMatchDeliveryPlanningPayload extends OfflineF
   outputColorSpace: 'bt709'
   outputPixelFormat: 'yuv420p'
   preserveAudio: false
+}
+
+export type OfflineFfmpegColorMatchDeliveryPlanningPayload =
+  OfflineFfmpegColorMatchDeliveryPlanningFields & {
+    recipeProfileId:
+      | 'approved_source_color_match_delivery_matroska_v1'
+      | typeof OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE
+  }
+
+export function isColorDeliveryProfile(
+  value: unknown,
+): value is OfflineFfmpegColorDeliveryPlanningPayload['recipeProfileId'] {
+  return value === 'approved_source_color_delivery_matroska_v1' ||
+    value === OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE
+}
+
+export function isColorMatchDeliveryProfile(
+  value: unknown,
+): value is OfflineFfmpegColorMatchDeliveryPlanningPayload['recipeProfileId'] {
+  return value === 'approved_source_color_match_delivery_matroska_v1' ||
+    value === OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE
+}
+
+export function isColorDeliveryRecipeProfile(
+  value: unknown,
+): value is
+  | OfflineFfmpegColorDeliveryPlanningPayload['recipeProfileId']
+  | OfflineFfmpegColorMatchDeliveryPlanningPayload['recipeProfileId'] {
+  return isColorDeliveryProfile(value) || isColorMatchDeliveryProfile(value)
+}
+
+export function isColorDeliveryPlanningPayload(
+  value: OfflineFfmpegPlanningPayload,
+): value is OfflineFfmpegColorDeliveryPlanningPayload {
+  return isColorDeliveryProfile(value.recipeProfileId)
+}
+
+export function isColorMatchDeliveryPlanningPayload(
+  value: OfflineFfmpegPlanningPayload,
+): value is OfflineFfmpegColorMatchDeliveryPlanningPayload {
+  return isColorMatchDeliveryProfile(value.recipeProfileId)
 }
 
 export type OfflineFfmpegPlanningPayload =
@@ -325,9 +377,10 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
   const editBriefSfx = candidate?.recipeProfileId ===
     OFFLINE_EDIT_BRIEF_SFX_PROFILE
   const editBriefAudio = editBriefMusic || editBriefSfx
-  const colorDelivery = candidate?.recipeProfileId === 'approved_source_color_delivery_matroska_v1'
-  const colorMatchDelivery = candidate?.recipeProfileId ===
-    'approved_source_color_match_delivery_matroska_v1'
+  const colorDelivery = isColorDeliveryProfile(candidate?.recipeProfileId)
+  const colorMatchDelivery = isColorMatchDeliveryProfile(
+    candidate?.recipeProfileId,
+  )
   const storytellingSpeechNormalization = candidate?.recipeProfileId ===
     APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID
   const exactSourceFramePng = candidate?.recipeProfileId ===
@@ -506,6 +559,8 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
       OFFLINE_EDIT_BRIEF_SFX_PROFILE,
       'approved_source_color_delivery_matroska_v1',
       'approved_source_color_match_delivery_matroska_v1',
+      OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE,
+      OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE,
     ].includes(
       String(payload.recipeProfileId),
     ) ||
@@ -616,7 +671,8 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
         !safeKey(payload.referenceOutputKey)
       ) throw invalid()
       return {
-        recipeProfileId: 'approved_source_color_match_delivery_matroska_v1',
+        recipeProfileId: payload.recipeProfileId as
+          OfflineFfmpegColorMatchDeliveryPlanningPayload['recipeProfileId'],
         ...common,
         colorGradeStyle,
         intensity,
@@ -634,7 +690,8 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
       }
     }
     return {
-      recipeProfileId: 'approved_source_color_delivery_matroska_v1',
+      recipeProfileId: payload.recipeProfileId as
+        OfflineFfmpegColorDeliveryPlanningPayload['recipeProfileId'],
       ...common,
       colorGradeStyle,
       intensity,
@@ -821,8 +878,9 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
     !Array.isArray(request.payload)
     ? request.payload as Record<string, unknown>
     : undefined
-  const colorMatchDelivery = requestPayload?.recipeProfileId ===
-    'approved_source_color_match_delivery_matroska_v1'
+  const colorMatchDelivery = isColorMatchDeliveryProfile(
+    requestPayload?.recipeProfileId,
+  )
   const exactSourceFramePng = requestPayload?.recipeProfileId ===
     OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE
   const editBriefAudio = requestPayload?.recipeProfileId ===
@@ -858,7 +916,7 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
         ]
       : []),
     ...(
-      requestPayload?.recipeProfileId === 'approved_source_color_delivery_matroska_v1' ||
+      isColorDeliveryProfile(requestPayload?.recipeProfileId) ||
       colorMatchDelivery
         ? [
             'colorGradeStyle', 'intensity', 'approvedColorOperationIds',
@@ -942,8 +1000,7 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
         }
       : {}),
     ...(
-      payload.recipeProfileId === 'approved_source_color_delivery_matroska_v1' ||
-      payload.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1'
+      isColorDeliveryRecipeProfile(payload.recipeProfileId)
       ? {
           colorGradeStyle: payload.colorGradeStyle,
           intensity: payload.intensity,
@@ -951,7 +1008,7 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
           approvedColorOperationKinds: payload.approvedColorOperationKinds,
           analysisProfileId: payload.analysisProfileId,
           correctionProfileId: payload.correctionProfileId,
-          ...(payload.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1'
+          ...(isColorMatchDeliveryProfile(payload.recipeProfileId)
             ? {
                 shotMatchProfileId: payload.shotMatchProfileId,
                 referenceSourceSequenceItemId: payload.referenceSourceSequenceItemId,
@@ -970,7 +1027,7 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
       APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID
   ) throw invalid()
   const source = validateSource(payload, planning.recipeProfileId)
-  if (planning.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1') {
+  if (isColorMatchDeliveryPlanningPayload(planning)) {
     const reference = validateReferenceSource(payload)
     return {
       schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,

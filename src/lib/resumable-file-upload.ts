@@ -80,10 +80,11 @@ class TemporaryUploadRequestError extends Error {
 }
 
 export async function uploadFileToTemporaryTarget(input: {
-  file: File
+  file: Blob
   target: BrowserTemporaryUploadTarget
   baseUrl: string
   authorization?: string
+  reeditProUserAuthorization?: string
   fetchImpl?: typeof fetch
   signal?: AbortSignal
   onProgress?: (progress: BrowserTemporaryUploadProgress) => void
@@ -95,7 +96,10 @@ export async function uploadFileToTemporaryTarget(input: {
       method: input.target.uploadMethod,
       headers: headers({
         ...input.target.uploadHeaders,
-        authorization: input.authorization,
+        authorization: isAbsoluteUrl(input.target.uploadUrl) ? undefined : input.authorization,
+        'x-reeditpro-user-authorization': isAbsoluteUrl(input.target.uploadUrl)
+          ? undefined
+          : input.reeditProUserAuthorization,
       }),
       body: input.file,
       signal: input.signal,
@@ -124,7 +128,13 @@ export async function uploadFileToTemporaryTarget(input: {
     ? joinUrl(input.baseUrl, input.target.uploadStatusUrl)
     : undefined
   let acceptedBytes = localStatusUrl
-    ? await queryLocalOffset(fetchImpl, localStatusUrl, input.authorization, input.signal)
+    ? await queryLocalOffset(
+        fetchImpl,
+        localStatusUrl,
+        input.authorization,
+        input.reeditProUserAuthorization,
+        input.signal,
+      )
     : 0
   if (acceptedBytes > input.file.size) throw new Error('Upload checkpoint exceeds the selected file size.')
   let requestCount = 0
@@ -142,6 +152,9 @@ export async function uploadFileToTemporaryTarget(input: {
         headers: headers({
           ...input.target.uploadHeaders,
           authorization: isAbsoluteUrl(input.target.uploadUrl) ? undefined : input.authorization,
+          'x-reeditpro-user-authorization': isAbsoluteUrl(input.target.uploadUrl)
+            ? undefined
+            : input.reeditProUserAuthorization,
           'content-range': `bytes ${acceptedBytes}-${endExclusive - 1}/${input.file.size}`,
           'x-reeditpro-chunk-sha256': localChunkChecksum,
         }),
@@ -198,7 +211,13 @@ export async function uploadFileToTemporaryTarget(input: {
       if (isRetryableStorageCapacityError(error)) {
         storageRecoveryAttempt += 1
         const checkpoint = localStatusUrl
-          ? await queryLocalOffset(fetchImpl, localStatusUrl, input.authorization, input.signal)
+          ? await queryLocalOffset(
+              fetchImpl,
+              localStatusUrl,
+              input.authorization,
+              input.reeditProUserAuthorization,
+              input.signal,
+            )
             .catch(() => validAcceptedBytes(error.acceptedBytes, acceptedBytes, input.file.size))
           : validAcceptedBytes(error.acceptedBytes, acceptedBytes, input.file.size)
         acceptedBytes = checkpoint
@@ -218,7 +237,13 @@ export async function uploadFileToTemporaryTarget(input: {
       recoveryAttempt += 1
       if (recoveryAttempt > MAX_NETWORK_RECOVERY_ATTEMPTS) throw error
       const verifiedOffset = localStatusUrl
-        ? await queryLocalOffset(fetchImpl, localStatusUrl, input.authorization, input.signal)
+        ? await queryLocalOffset(
+            fetchImpl,
+            localStatusUrl,
+            input.authorization,
+            input.reeditProUserAuthorization,
+            input.signal,
+          )
         : await queryExternalResumableOffset(fetchImpl, uploadUrl, input.target, input.file.size, input.signal)
       if (verifiedOffset < 0 || verifiedOffset > input.file.size) {
         throw new Error('Upload recovery returned an invalid byte offset.', { cause: error })
@@ -242,11 +267,16 @@ async function queryLocalOffset(
   fetchImpl: typeof fetch,
   statusUrl: string,
   authorization: string | undefined,
+  reeditProUserAuthorization: string | undefined,
   signal: AbortSignal | undefined,
 ): Promise<number> {
   const response = await fetchImpl(statusUrl, {
     method: 'GET',
-    headers: headers({ accept: 'application/json', authorization }),
+    headers: headers({
+      accept: 'application/json',
+      authorization,
+      'x-reeditpro-user-authorization': reeditProUserAuthorization,
+    }),
     signal,
   })
   if (!response.ok) throw await uploadFailureError(response, 'Upload checkpoint lookup failed.')

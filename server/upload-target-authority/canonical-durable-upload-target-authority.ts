@@ -20,7 +20,11 @@ const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const timestamp = z.string().datetime({ offset: true })
 const positiveSafeInteger = z.number().int().positive().refine(Number.isSafeInteger)
 const uploadPurpose = z.enum(['source_media', 'reference_media'])
-const targetProtocol = z.enum(['single_put', 'gcs_resumable'])
+const targetProtocol = z.enum([
+  'single_put',
+  'gcs_resumable',
+  'resumable_content_range_v1',
+])
 
 export const canonicalDurableUploadIntentCandidateSchema = z.object({
   schemaVersion: z.literal('canonical-durable-upload-intent-candidate-v1'),
@@ -99,7 +103,9 @@ export const canonicalDurableUploadTargetIssuanceSchema = z.object({
     (issuance.state === 'issuing' && (!hasClaim || hasAnyIssued || hasAnyUnknown)) ||
     (issuance.state === 'issued' && (!hasClaim || !hasIssued || hasAnyUnknown)) ||
     (issuance.state === 'unknown' && (!hasClaim || hasAnyIssued || !hasUnknown)) ||
-    (issuance.targetProtocol === 'gcs_resumable' && issuance.supportsResume === false) ||
+    (issuance.targetProtocol !== null &&
+      issuance.targetProtocol !== 'single_put' &&
+      issuance.supportsResume === false) ||
     (issuance.targetProtocol === 'single_put' && issuance.supportsResume === true)
   ) {
     context.addIssue({ code: 'custom', message: 'Temporary upload-target issuance state is inconsistent.' })
@@ -181,7 +187,7 @@ const issuedTargetMetadataSchema = z.object({
   targetMetadataHash: sha256,
 }).strict().superRefine((metadata, context) => {
   if (
-    (metadata.targetProtocol === 'gcs_resumable' && !metadata.supportsResume) ||
+    (metadata.targetProtocol !== 'single_put' && !metadata.supportsResume) ||
     (metadata.targetProtocol === 'single_put' && metadata.supportsResume)
   ) context.addIssue({ code: 'custom', message: 'Issued upload-target protocol metadata is invalid.' })
 })
@@ -494,7 +500,7 @@ export interface ResolveCanonicalUploadTargetInput {
   readonly candidate: CanonicalDurableUploadIntentCandidate
   readonly idempotencyKey: string
   readonly authorizationEvidenceHash: string
-  readonly expectedProtocol: 'single_put' | 'gcs_resumable'
+  readonly expectedProtocol: z.infer<typeof targetProtocol>
   readonly now: string
   readonly createTarget: (intent: CanonicalDurableUploadIntentRecord) => Promise<UploadTarget>
 }
@@ -507,7 +513,7 @@ export interface ResolvedCanonicalUploadTarget {
   readonly safeRecovery: {
     readonly uploadIntentId: string
     readonly issuanceAttemptId: string
-    readonly targetProtocol: 'single_put' | 'gcs_resumable'
+    readonly targetProtocol: z.infer<typeof targetProtocol>
     readonly expiresAt: string
     readonly credentialPersistedInCanonicalAuthority: false
     readonly rawTargetLogged: false
@@ -807,9 +813,18 @@ function resolvedTarget(
 function assertTargetMatchesIntent(
   target: UploadTarget,
   intent: CanonicalDurableUploadIntentRecord,
-  protocol: 'single_put' | 'gcs_resumable',
+  protocol: z.infer<typeof targetProtocol>,
 ): void {
   const actualProtocol = target.uploadProtocol ?? 'single_put'
+  const supportsResume = target.supportsResume ?? false
+  const retryFromVerifiedOffset = target.retryFromVerifiedOffset ?? false
+  const protocolMetadataMismatch =
+    (actualProtocol === 'single_put' &&
+      (supportsResume || Boolean(target.uploadStatusUrl) || retryFromVerifiedOffset)) ||
+    (actualProtocol === 'gcs_resumable' &&
+      (!supportsResume || Boolean(target.uploadStatusUrl) || retryFromVerifiedOffset)) ||
+    (actualProtocol === 'resumable_content_range_v1' &&
+      (!supportsResume || !target.uploadStatusUrl || !retryFromVerifiedOffset))
   if (
     target.bucketName !== intent.targetBucket ||
     target.objectPath !== intent.targetPath ||
@@ -818,6 +833,7 @@ function assertTargetMatchesIntent(
     target.createOnly !== true ||
     target.temporary !== true ||
     target.sessionUriIsCredential !== true ||
+    protocolMetadataMismatch ||
     !target.uploadUrl ||
     Object.keys(target.uploadHeaders).some((header) => header.toLowerCase() === 'authorization')
   ) throw atomicityError('temporary_upload_target_does_not_match_committed_intent')
@@ -930,7 +946,9 @@ export function canonicalDurableUploadIntentRequestHash(input: {
 export function credentialDigest(target: UploadTarget): string {
   return hashCanonicalUploadTargetValue({
     uploadUrl: target.uploadUrl,
+    uploadStatusUrl: target.uploadStatusUrl ?? null,
     uploadHeaders: target.uploadHeaders,
+    retryFromVerifiedOffset: target.retryFromVerifiedOffset ?? false,
     expiresAt: target.expiresAt,
   })
 }
@@ -946,6 +964,8 @@ export function targetMetadataHash(target: UploadTarget): string {
     uploadProtocol: target.uploadProtocol ?? 'single_put',
     supportsResume: target.supportsResume ?? false,
     recommendedChunkSizeBytes: target.recommendedChunkSizeBytes ?? null,
+    uploadStatusUrl: target.uploadStatusUrl ?? null,
+    retryFromVerifiedOffset: target.retryFromVerifiedOffset ?? false,
     sessionUriIsCredential: target.sessionUriIsCredential ?? true,
   })
 }

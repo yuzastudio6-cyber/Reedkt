@@ -4,6 +4,12 @@ import { createServer } from 'node:http'
 
 import type { CanonicalEditJourney } from '../../src/lib/canonical-edit-journey'
 import type { ProjectPersistenceScope } from '../../src/lib/project-persistence-scope'
+import {
+  REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES,
+} from '../../src/types/large-media'
+import {
+  canonicalPrivateReviewHistoryMetadataSchema,
+} from '../validation/canonical-private-review-history-schemas'
 
 const identity = {
   workspaceId: 'workspace-private-review-client',
@@ -16,6 +22,10 @@ const manifestSha256 = '7'.repeat(64)
 const decisionManifestSha256 = '9'.repeat(64)
 const mediaBytes = Buffer.from('canonical-private-review-client-smoke-mp4-bytes')
 const finalArtifactSha256 = createHash('sha256').update(mediaBytes).digest('hex')
+const longFormReviewAssemblyId = `${reviewAssemblyId}-long-form`
+const longFormMediaBytes = Buffer.alloc(32 * 1024 * 1024 + 4096, 0x52)
+const longFormFinalArtifactSha256 =
+  createHash('sha256').update(longFormMediaBytes).digest('hex')
 const scope: ProjectPersistenceScope = {
   authMode: 'local_test',
   userId: 'user-private-review-client',
@@ -53,6 +63,69 @@ const historyJourney: CanonicalEditJourney = {
   },
   privateReviewDecisionAuthority: undefined,
 }
+const longFormJourney: CanonicalEditJourney = {
+  ...currentJourney,
+  privateReviewMediaAuthority: {
+    mode: 'current',
+    reviewAssemblyId: longFormReviewAssemblyId,
+    packageRecordId,
+    expectedManifestSha256: manifestSha256,
+    expectedFinalArtifactSha256: longFormFinalArtifactSha256,
+  },
+  privateReviewDecisionAuthority: {
+    reviewAssemblyId: longFormReviewAssemblyId,
+    packageRecordId,
+    expectedManifestSha256: manifestSha256,
+    expectedFinalArtifactSha256: longFormFinalArtifactSha256,
+  },
+}
+const longFormHistoryMetadata = {
+  schemaVersion: 'canonical-private-review-history-download-v1',
+  source: 'canonical_private_review_history_service',
+  identity: {
+    ...identity,
+    packageRecordId,
+    approvedPlanSnapshotId: 'snapshot-private-review-client',
+    approvedPlanId: 'plan-private-review-client',
+    approvedPlanVersion: 1,
+    reviewAssemblyId: longFormReviewAssemblyId,
+    reviewDecisionId: 'decision-private-review-client',
+    artifactId: 'artifact-private-review-client',
+    expectedAssetId: 'asset-private-review-client',
+  },
+  reviewState: 'current',
+  decision: 'accept_private_internal_review',
+  planStatus: 'approved',
+  reservationStatus: 'released',
+  mimeType: 'video/mp4',
+  fileName: 'canonical-private-review.mp4',
+  byteSize: longFormMediaBytes.byteLength,
+  sha256: longFormFinalArtifactSha256,
+  assemblyManifestSha256: manifestSha256,
+  decisionManifestSha256,
+  qaEvaluationId: 'qa-private-review-client',
+  reconciliationId: 'reconciliation-private-review-client',
+  historyEvidenceHash: '8'.repeat(64),
+  archivedExecutionAuthorityRestored: false,
+  publicUrlCreated: false,
+  signedUrlCreated: false,
+  customerCreditMutationPerformed: false,
+  billingMutationPerformed: false,
+  settlementPerformed: false,
+  testOnly: true,
+} as const
+assert.equal(
+  canonicalPrivateReviewHistoryMetadataSchema.parse(longFormHistoryMetadata)
+    .byteSize,
+  longFormMediaBytes.byteLength,
+)
+assert.equal(
+  canonicalPrivateReviewHistoryMetadataSchema.safeParse({
+    ...longFormHistoryMetadata,
+    byteSize: REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES + 1,
+  }).success,
+  false,
+)
 
 const originalMode = process.env.VITE_REEDITPRO_API_MODE
 const originalBaseUrl = process.env.VITE_REEDITPRO_API_BASE_URL
@@ -86,13 +159,23 @@ const server = createServer((request, response) => {
 
     if (request.method === 'GET') {
       const history = request.url?.includes('/private-review-history/') ?? false
+      const longForm =
+        request.url?.includes(`/private-review-assemblies/${longFormReviewAssemblyId}/`) ??
+        false
+      const responseBytes = longForm ? longFormMediaBytes : mediaBytes
+      const responseArtifactSha256 = longForm
+        ? longFormFinalArtifactSha256
+        : finalArtifactSha256
+      const responseReviewAssemblyId = longForm
+        ? longFormReviewAssemblyId
+        : reviewAssemblyId
       response.statusCode = 200
       response.setHeader('content-type', 'video/mp4')
-      response.setHeader('content-length', String(mediaBytes.byteLength))
+      response.setHeader('content-length', String(responseBytes.byteLength))
       response.setHeader('content-disposition', 'inline; filename="canonical-private-review.mp4"')
       response.setHeader('cache-control', 'private, no-store, max-age=0')
-      response.setHeader('x-reeditpro-artifact-sha256', finalArtifactSha256)
-      response.setHeader('x-reeditpro-review-assembly-id', reviewAssemblyId)
+      response.setHeader('x-reeditpro-artifact-sha256', responseArtifactSha256)
+      response.setHeader('x-reeditpro-review-assembly-id', responseReviewAssemblyId)
       if (history) {
         response.setHeader(
           'x-reeditpro-review-decision-manifest-sha256',
@@ -101,7 +184,7 @@ const server = createServer((request, response) => {
       } else {
         response.setHeader('x-reeditpro-review-manifest-sha256', manifestSha256)
       }
-      response.end(mediaBytes)
+      response.end(responseBytes)
       return
     }
 
@@ -339,6 +422,22 @@ try {
   })
   assert.equal(invalid.status, 'blocked')
   assert.equal(requests.length, beforeInvalid)
+
+  const beforeLongForm = requests.length
+  const longForm = await loadCanonicalPrivateReviewMedia({
+    ...input,
+    journey: longFormJourney,
+  })
+  assert.equal(longForm.status, 'ready')
+  if (longForm.status === 'ready') {
+    assert.equal(longForm.media.byteSize, longFormMediaBytes.byteLength)
+    assert.equal(longForm.media.mode, 'current')
+  }
+  assert.equal(requests.length, beforeLongForm + 1)
+  assert.match(
+    requests.at(-1)?.url ?? '',
+    new RegExp(`/private-review-assemblies/${longFormReviewAssemblyId}/media`),
+  )
 } finally {
   await new Promise<void>((resolve, reject) =>
     server.close((error) => error ? reject(error) : resolve()))

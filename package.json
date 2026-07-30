@@ -216,6 +216,7 @@
     "smoke:editor-full-stack-private-review": "tsx server/smoke/editor-full-stack-private-review-smoke.ts",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
     "smoke:upload-boundary-security": "tsx server/smoke/upload-boundary-security-smoke.ts",
+    "smoke:local-resumable-source-upload": "tsx server/smoke/local-resumable-source-upload-smoke.ts",
     "smoke:canonical-durable-upload-target-authority": "tsx server/smoke/canonical-durable-upload-target-authority-smoke.ts",
     "smoke:canonical-durable-upload-target-local-postgres": "tsx server/smoke/canonical-durable-upload-target-local-postgres-smoke.ts",
     "smoke:large-media-ingest-readiness": "tsx server/smoke/large-media-ingest-readiness-smoke.ts",

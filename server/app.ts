@@ -244,10 +244,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
     allowedHeaders: [
       'accept',
       'authorization',
+      'content-range',
       'content-type',
       'idempotency-key',
       'range',
       'x-request-id',
+      'x-reeditpro-chunk-sha256',
       REEDITPRO_USER_AUTHORIZATION_HEADER,
     ],
     exposedHeaders: [

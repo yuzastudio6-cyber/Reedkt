@@ -12,6 +12,8 @@ import type {
   SoundSyncTransitionTimingPlan,
   SourceCleanupPlan,
 } from '../../src/types/reeditpro'
+import { createAudioPipelinePlan } from '../../src/lib/audio-pipeline-planner'
+import { createColorPipelinePlan } from '../../src/lib/color-pipeline-planner'
 import type {
   EditBriefMarkerRecord,
   EditBriefRecord,
@@ -97,6 +99,51 @@ export function compileCanonicalSourceLedPlan(input: {
     'Content-aware trims remain disabled until transcript and visual-analysis worker evidence exists.',
   ]
   timingValidationPlan.notes = []
+  // The active internal workflow has no user-facing Edit Level. Keep the
+  // legacy planner field at its full-capability value, but compile source
+  // audio/color through the strongest profile whose exact worker recipes are
+  // currently admitted. This prevents an unavailable OpenColorIO/OpenCV path
+  // from being implied while preserving the professional voice/color pass.
+  const professionalEditingDirective =
+    input.plannerInput.professionalEditingDirective ??
+    base.professionalEditingDirective
+  if (!professionalEditingDirective) {
+    throw new Error(
+      'Canonical source-led planning requires one compiled professional editing directive.',
+    )
+  }
+  const professionalSourceBaselineInput: PlannerInput = {
+    ...input.plannerInput,
+    editLevel: 'pro',
+    customInstructions: [
+      'Use only the verified uploaded source footage.',
+      'Use source-only professional voice cleanup with no music, SFX, beat sync, or generated audio.',
+      'Apply only the bounded clean natural FFmpeg source color recipe; do not infer targeted face, person, or skin-isolation processing.',
+    ].join('\n'),
+    userInstructionHistory: [],
+    professionalEditingDirective: {
+      ...professionalEditingDirective,
+      colorGradeStyle: 'clean_natural',
+    },
+    clips: input.plannerInput.clips.map((clip) => ({
+      ...clip,
+      fileName: `verified-source-${clip.uploadedOrder}.mp4`,
+      detectedType: 'verified_uploaded_video',
+      notes: undefined,
+      sourceRole: undefined,
+      previewLabel: undefined,
+      thumbnailHint: undefined,
+    })),
+  }
+  const audioPipelinePlan = createAudioPipelinePlan({
+    input: professionalSourceBaselineInput,
+    segmentEditPlans: [],
+    visualAssetPlan: [],
+  })
+  const colorPipelinePlan = createColorPipelinePlan({
+    input: professionalSourceBaselineInput,
+    visualAssetPlan: [],
+  })
 
   const plan: EditPlan = {
     ...base,
@@ -136,11 +183,11 @@ export function compileCanonicalSourceLedPlan(input: {
     browserCapturePlan: undefined,
     providerPromptPlans: [],
     providerPromptGuidance: [],
-    audioPipelinePlan: undefined,
-    colorPipelinePlan: undefined,
+    audioPipelinePlan,
+    colorPipelinePlan,
     segmentEditPlans: [],
     soundSyncDirection:
-      'Preserve source audio. Do not add music, SFX, beat sync, ducking, or inferred cleanup.',
+      'Apply the approved source-bound professional voice recipe. Do not add music, SFX, beat sync, ducking, or inferred transcript edits.',
     captionDirection:
       'Render only the exact confirmed Edit Brief caption markers; never infer transcript text.',
   }

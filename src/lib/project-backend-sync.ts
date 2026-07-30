@@ -139,6 +139,27 @@ export async function createBackendProjectForInternalTestingResult(input: {
     return { status: 'created', projectId }
   }
 
+  if (response.statusCode === 401 || response.statusCode === 403) {
+    return {
+      status: 'failed',
+      errorMessage:
+        'Your signed-in workspace could not authorize project creation. Refresh the session and retry; no local duplicate was created.',
+    }
+  }
+  if (response.statusCode === 409) {
+    return {
+      status: 'failed',
+      errorMessage:
+        'This project creation is still recoverable. Retry the same action to confirm it without creating a duplicate.',
+    }
+  }
+  if (response.statusCode === 0 || response.statusCode >= 500) {
+    return {
+      status: 'failed',
+      errorMessage:
+        'Private project creation is temporarily unavailable. Retry to recover the same project; no local duplicate was created.',
+    }
+  }
   return {
     status: 'failed',
     errorMessage: 'Project creation could not be confirmed. Retry to recover the same project.',

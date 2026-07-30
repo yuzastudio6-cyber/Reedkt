@@ -53,6 +53,8 @@ export interface UploadTarget {
   uploadProtocol?: TemporaryUploadProtocol
   supportsResume?: boolean
   recommendedChunkSizeBytes?: number
+  uploadStatusUrl?: string
+  retryFromVerifiedOffset?: boolean
   sessionUriIsCredential?: boolean
 }
 

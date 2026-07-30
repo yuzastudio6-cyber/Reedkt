@@ -34,6 +34,8 @@ const supabaseAuthMode = args.includes('--supabase-auth')
 const kimiMode = args.includes('--kimi')
 const internalKimiSecretReference =
   'projects/reeditpro/secrets/reeditpro-prod-kimi-api-key/versions/2'
+const internalOpenAiSecretReference =
+  'projects/reeditpro/secrets/reeditpro-prod-openai-api-key/versions/2'
 const unknownArgs = process.argv.slice(2).filter(
   (arg) =>
     arg !== '--private-review'
@@ -381,6 +383,10 @@ function buildPrivateApiEnvironment() {
       kimiMode ? 'internal_test' : 'disabled',
     GOOGLE_SECRET_KIMI_API_KEY_NAME:
       kimiMode ? internalKimiSecretReference : '',
+    REEDITPRO_OPENAI_RUNTIME_MODE:
+      kimiMode ? 'internal_test' : 'disabled',
+    GOOGLE_SECRET_OPENAI_API_KEY_NAME:
+      kimiMode ? internalOpenAiSecretReference : '',
   }
 }
 
@@ -525,6 +531,8 @@ function runPlaywright(fixturePath) {
         PLAYWRIGHT_CANONICAL_DURABLE_UPLOAD_TARGET_EXPECTED:
           supabaseAuthMode ? 'true' : 'false',
         PLAYWRIGHT_KIMI_CHAT_EXPECTED: kimiMode ? 'true' : 'false',
+        PLAYWRIGHT_FULL_SOURCE_PRIVATE_REVIEW_EXPECTED:
+          realVideoFixturePath ? 'true' : 'false',
       },
       stdio: 'inherit',
     })
@@ -625,7 +633,7 @@ async function main() {
   }
   console.log(`Specs: ${playwrightSpecs.join(', ')}`)
   const providerBoundarySummary = kimiMode
-    ? 'One Kimi K3 Chat call is allowed through the pinned server-only Secret Manager reference; no other provider or live Qwen call is allowed.'
+    ? 'Kimi K3 is the primary Chat model and GPT-5.6 Terra is available only through the reviewed eligible-failure fallback policy; both use pinned server-only Secret Manager references. No live Qwen call is allowed.'
     : 'No provider or live Qwen call is allowed.'
   console.log(
     privateReviewMode
@@ -638,7 +646,7 @@ async function main() {
   )
   console.log(
     kimiMode
-      ? 'Chat model: Kimi K3 enabled through one pinned Google Secret Manager reference; no raw key enters the browser.'
+      ? 'Chat model: Kimi K3 primary with GPT-5.6 Terra eligible-failure fallback; both use pinned Google Secret Manager references and no raw key enters the browser.'
       : 'Chat model: disabled; the deterministic persisted server acknowledgement is used.',
   )
 

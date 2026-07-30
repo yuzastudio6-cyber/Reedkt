@@ -7,8 +7,7 @@ import { buildProfessionalExportCreditCoverage } from '../../../src/lib/professi
 import type { ProjectPersistenceScope } from '../../../src/lib/project-persistence-scope'
 import type { EditPlan, PlannerInput } from '../../../src/types/reeditpro'
 import { CanonicalJourneyStatusCard } from '../../../src/components/editor/CanonicalJourneyStatusCard'
-import { CanonicalPlanApprovalStatus } from '../../../src/components/editor/CanonicalPlanApprovalStatus'
-import { PlanReviewApprovalCard } from '../../../src/components/editor/PlanReviewApprovalCard'
+import { CanonicalPlanReviewController } from '../../../src/components/editor/CanonicalPlanReviewController'
 
 const scope: ProjectPersistenceScope = {
   authMode: 'local_test',
@@ -119,17 +118,17 @@ export function CanonicalRevisionPlanBrowserHarness() {
           void sourceLedCaptionRevision.presentLatest()}
         sourceLedCaptionRevision={sourceLedCaptionRevision}
       />
-      <PlanReviewApprovalCard
+      <CanonicalPlanReviewController
         approved={approved}
         approvalAuthorityBlockedLabel="Fresh approval required"
         approvalAuthorityReady={authorityReady}
-        approvalAuthorityStatus={(
-          <CanonicalPlanApprovalStatus
-            approving={approval.approving}
-            result={approval.result}
-          />
-        )}
-        approvalPending={approval.approving}
+        planApproval={approval}
+        planningPublication={{
+          result: null,
+          retry: async () => null,
+          saving: false,
+        }}
+        replacementPlanPresentationVerified={Boolean(sourceLedReceipt)}
         onApprove={() => void handleApprove()}
         onAskQuestion={() => undefined}
         onLowerCost={() => undefined}

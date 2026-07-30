@@ -50,6 +50,129 @@ export type UploadedActiveSource = {
   storagePath: string
 }
 
+type PrivateAssistantAttemptEvidence = {
+  source?: string
+  status?: string
+  routeId?: string
+  providerModel?: string
+  credentialVersion?: number | null
+  providerCallMade?: boolean
+  modelCallMade?: boolean
+}
+
+type PrivateAssistantRuntimeEvidence = PrivateAssistantAttemptEvidence & {
+  credentialSource?: string
+  usage?: {
+    promptTokens?: number
+    completionTokens?: number
+    totalTokens?: number
+  }
+  fallbackFrom?: PrivateAssistantAttemptEvidence
+  fallbackTrigger?: string
+}
+
+type SourceLedChatResponseEnvelope = {
+  data?: {
+    canonicalSourceLedChat?: {
+      providerModelCalled?: boolean
+      revision?: number
+    }
+    exchange?: {
+      exchangeId?: string
+      clientMessageId?: string
+      revision?: number
+      assistantRuntime?: PrivateAssistantRuntimeEvidence
+    }
+    replayed?: boolean
+  }
+}
+
+const privateAssistantFallbackTriggerByStatus: Readonly<Record<string, string>> =
+  Object.freeze({
+    credential_unavailable: 'provider_unavailable',
+    model_unavailable: 'provider_unavailable',
+    rate_limited: 'provider_rate_limited',
+    outcome_unknown: 'provider_timeout',
+    provider_failed: 'transient_provider_error',
+    invalid_response: 'malformed_structured_output',
+  })
+
+function isVerifiedPrivateAssistantRuntime(
+  runtime: PrivateAssistantRuntimeEvidence | undefined,
+): boolean {
+  if (
+    runtime?.status !== 'completed'
+    || runtime.credentialSource !== 'google_secret_manager_pinned_version'
+    || runtime.credentialVersion !== 2
+    || runtime.providerCallMade !== true
+    || runtime.modelCallMade !== true
+    || !runtime.usage
+    || !Number.isInteger(runtime.usage.promptTokens)
+    || !Number.isInteger(runtime.usage.completionTokens)
+    || !Number.isInteger(runtime.usage.totalTokens)
+    || Number(runtime.usage.promptTokens) < 0
+    || Number(runtime.usage.completionTokens) < 0
+    || Number(runtime.usage.promptTokens)
+      + Number(runtime.usage.completionTokens)
+      !== Number(runtime.usage.totalTokens)
+  ) return false
+
+  if (
+    runtime.source === 'kimi_k3'
+    && runtime.routeId === 'kimi_k3_primary'
+    && runtime.providerModel === 'kimi-k3'
+  ) {
+    return runtime.fallbackFrom === undefined
+      && runtime.fallbackTrigger === undefined
+  }
+
+  const fallback = runtime.fallbackFrom
+  const expectedFallbackTrigger = fallback?.status
+    ? privateAssistantFallbackTriggerByStatus[fallback.status]
+    : undefined
+  return runtime.source === 'gpt_5_6_terra'
+    && runtime.routeId === 'gpt_5_6_terra_fallback'
+    && runtime.providerModel === 'gpt-5.6-terra'
+    && fallback?.source === 'kimi_k3'
+    && fallback.routeId === 'kimi_k3_primary'
+    && fallback.providerModel === 'kimi-k3'
+    && fallback.status !== undefined
+    && fallback.status !== 'completed'
+    && fallback.status !== 'credential_rejected'
+    && expectedFallbackTrigger !== undefined
+    && expectedFallbackTrigger === runtime.fallbackTrigger
+}
+
+function privateAssistantRuntimeSummary(
+  runtime: PrivateAssistantRuntimeEvidence | undefined,
+): string {
+  return JSON.stringify({
+    source: runtime?.source ?? null,
+    status: runtime?.status ?? null,
+    routeId: runtime?.routeId ?? null,
+    providerModel: runtime?.providerModel ?? null,
+    credentialVersion: runtime?.credentialVersion ?? null,
+    providerCallMade: runtime?.providerCallMade ?? false,
+    modelCallMade: runtime?.modelCallMade ?? false,
+    fallbackStatus: runtime?.fallbackFrom?.status ?? null,
+    fallbackTrigger: runtime?.fallbackTrigger ?? null,
+  })
+}
+
+function assertVerifiedPrivateAssistantResponse(
+  body: SourceLedChatResponseEnvelope,
+): void {
+  const runtime = body.data?.exchange?.assistantRuntime
+  expect(
+    body.data?.canonicalSourceLedChat?.providerModelCalled,
+    `The persisted Chat thread lacked verified model-call evidence. Runtime: ${privateAssistantRuntimeSummary(runtime)}`,
+  ).toBe(true)
+  expect(
+    isVerifiedPrivateAssistantRuntime(runtime),
+    `The private Chat response was not a completed Kimi primary or eligible Terra fallback. Runtime: ${privateAssistantRuntimeSummary(runtime)}`,
+  ).toBe(true)
+}
+
 export async function expectLocalApiHealth(apiBaseUrl: string): Promise<void> {
   const healthResponse = await fetch(`${apiBaseUrl}/health`)
   expect(healthResponse.ok).toBe(true)
@@ -188,23 +311,38 @@ export async function uploadActiveEditorSource(
     return response.request().method() === 'POST'
       && url.pathname ===
         `/v1/projects/${encodeURIComponent(input.edit.projectId)}/upload-intents`
-  }, { timeout: timeoutMs })
+  }, { timeout: timeoutMs }).then(async (response) => ({
+    response,
+    envelope: await response.json() as {
+      ok?: boolean
+      warnings?: string[]
+    },
+  }))
   const finalizeResponse = page.waitForResponse((response) => {
     const url = new URL(response.url())
     return response.request().method() === 'POST'
       && /^\/v1\/upload-intents\/[^/]+\/finalize$/.test(url.pathname)
-  }, { timeout: timeoutMs })
+  }, { timeout: timeoutMs }).then(async (response) => ({
+    response,
+    envelope: await response.json() as {
+      ok?: boolean
+      data?: {
+        mediaAsset?: {
+          fileName?: string
+          status?: string
+        }
+      }
+    },
+  }))
 
   await page.getByTestId('edit-upload-gate-input').setInputFiles(input.fixturePath)
-  const [created, finalized] = await Promise.all([
+  const [createdResult, finalizedResult] = await Promise.all([
     createIntentResponse,
     finalizeResponse,
   ])
+  const { response: created, envelope: createdEnvelope } = createdResult
+  const { response: finalized, envelope: finalizedEnvelope } = finalizedResult
   expect(created.ok()).toBe(true)
-  const createdEnvelope = await created.json() as {
-    ok?: boolean
-    warnings?: string[]
-  }
   expect(createdEnvelope.ok).toBe(true)
   if (expectsCanonicalDurableUploadTarget) {
     expect(createdEnvelope.warnings).toContain(
@@ -212,15 +350,6 @@ export async function uploadActiveEditorSource(
     )
   }
   expect(finalized.ok()).toBe(true)
-  const finalizedEnvelope = await finalized.json() as {
-    ok?: boolean
-    data?: {
-      mediaAsset?: {
-        fileName?: string
-        status?: string
-      }
-    }
-  }
   expect(finalizedEnvelope.ok).toBe(true)
   expect(finalizedEnvelope.data?.mediaAsset?.fileName).toBe(fixtureFileName)
   expect(finalizedEnvelope.data?.mediaAsset?.status).toMatch(/uploaded|ready|finalized/i)
@@ -303,41 +432,56 @@ export async function createAndApproveActivePlan(
         && /\/source-led-chat(?:\?|$)/.test(request.url())
     }, { timeout: timeoutMs })
     await clickWhenReady(page.getByTestId('chat-composer-send'))
-    const persistedChatResponse = await chatResponse
-    const persistedChatBody = await persistedChatResponse.json() as {
-      data?: {
-        canonicalSourceLedChat?: {
-          providerModelCalled?: boolean
-        }
-        exchange?: {
-          assistantRuntime?: {
-            source?: string
-            status?: string
-            routeId?: string
-            providerModel?: string
-            credentialVersion?: number | null
-            providerCallMade?: boolean
-            modelCallMade?: boolean
-          }
-        }
-      }
-    }
+    let persistedChatResponse = await chatResponse
+    let persistedChatBody =
+      await persistedChatResponse.json() as SourceLedChatResponseEnvelope
     expect(
       persistedChatResponse.ok(),
       `POST source-led-chat returned ${persistedChatResponse.status()}.`,
     ).toBe(true)
-    if (process.env.PLAYWRIGHT_KIMI_CHAT_EXPECTED === 'true') {
-      expect(persistedChatBody.data?.canonicalSourceLedChat?.providerModelCalled)
-        .toBe(true)
-      expect(persistedChatBody.data?.exchange?.assistantRuntime).toMatchObject({
-        source: 'kimi_k3',
-        status: 'completed',
-        routeId: 'kimi_k3_primary',
-        providerModel: 'kimi-k3',
-        credentialVersion: 2,
-        providerCallMade: true,
-        modelCallMade: true,
+    const privateAssistantExpected =
+      process.env.PLAYWRIGHT_KIMI_CHAT_EXPECTED === 'true'
+    if (
+      privateAssistantExpected
+      && !isVerifiedPrivateAssistantRuntime(
+        persistedChatBody.data?.exchange?.assistantRuntime,
+      )
+    ) {
+      const initialExchange = persistedChatBody.data?.exchange
+      expect(initialExchange?.exchangeId).toBeTruthy()
+      expect(initialExchange?.clientMessageId).toBeTruthy()
+      expect(initialExchange?.revision).toBeGreaterThan(0)
+      await expect(page.getByTestId('chat-composer-textarea')).toHaveValue(
+        input.prompt,
+        { timeout: timeoutMs },
+      )
+      await expect(page.getByTestId('chat-composer-send')).toHaveAccessibleName(
+        /^Retry AI reply$/,
+        { timeout: timeoutMs },
+      )
+
+      const retryResponse = page.waitForResponse((response) => {
+        const request = response.request()
+        return request.method() === 'POST'
+          && /\/source-led-chat(?:\?|$)/.test(request.url())
+      }, { timeout: timeoutMs })
+      await clickWhenReady(page.getByTestId('chat-composer-send'))
+      persistedChatResponse = await retryResponse
+      persistedChatBody =
+        await persistedChatResponse.json() as SourceLedChatResponseEnvelope
+      expect(
+        persistedChatResponse.ok(),
+        `POST source-led-chat retry returned ${persistedChatResponse.status()}.`,
+      ).toBe(true)
+      expect(persistedChatBody.data?.replayed).toBe(false)
+      expect(persistedChatBody.data?.exchange).toMatchObject({
+        exchangeId: initialExchange?.exchangeId,
+        clientMessageId: initialExchange?.clientMessageId,
+        revision: initialExchange?.revision,
       })
+    }
+    if (privateAssistantExpected) {
+      assertVerifiedPrivateAssistantResponse(persistedChatBody)
     }
     await expect(
       page.locator('article[data-message-type="user_message"]').filter({ hasText: input.prompt }),
@@ -486,10 +630,11 @@ export async function prepareCurrentSourceLedEditBrief(
     0,
   ) ?? 0
   expect(sourceDurationSeconds).toBeGreaterThan(0)
-  const captionEndSeconds = Math.max(
-    0.01,
-    Math.floor(sourceDurationSeconds * 30) / 30,
-  )
+  // Preserve the exact FFprobe display duration here. The canonical
+  // source-led compiler owns projection onto the confirmed 30 fps output
+  // frame grid. Rounding down in the browser can drop the final output frame
+  // for fractional-frame source durations.
+  const captionEndSeconds = sourceDurationSeconds
   const captionTitle = 'Protect the complete source'
   const captionText = 'Keep the complete source clear and readable.'
 

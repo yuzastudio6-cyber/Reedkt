@@ -16,6 +16,7 @@ import {
   CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import {
+  canonicalPrivateLocalResourceLaneConcurrencyLimit,
   createCanonicalPrivateResourceSchedulingEvidence,
   executeCanonicalPrivateResourceWave,
   selectCanonicalPrivateResourceWave,
@@ -23,6 +24,9 @@ import {
   type CanonicalPrivateResourceWaveResult,
 } from '../services/canonical-private-resource-wave-scheduler'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
+import {
+  canonicalPrivateResourceSchedulingEvidenceSchema,
+} from '../validation/canonical-private-work-graph-run-schemas'
 
 interface SmokeJob extends CanonicalPrivateResourceSchedulableJob {
   workerType: CanonicalPrivateExecutableWorkerType
@@ -225,20 +229,70 @@ async function main() {
   const firstExecution = await executeGraph(jobs, placementManifest)
   const secondExecution = await executeGraph(jobs, placementManifest)
   assert.deepEqual(firstExecution.waveHashes, secondExecution.waveHashes)
-  assert.deepEqual(firstExecution.waveWidths, [1, 4, 2, 1, 1])
+  assert.deepEqual(firstExecution.waveWidths, [1, 4, 1, 1, 1, 1])
   assert.equal(firstExecution.observedCallbackPeak, 4)
-  assert.equal(firstExecution.evidence.waveCount, 5)
-  assert.equal(firstExecution.evidence.parallelWaveCount, 2)
+  assert.equal(firstExecution.evidence.waveCount, 6)
+  assert.equal(firstExecution.evidence.parallelWaveCount, 1)
   assert.equal(firstExecution.evidence.maximumWaveWidth, 4)
   assert.equal(firstExecution.evidence.actualExecutionCount, 9)
-  assert.equal(firstExecution.evidence.parallelJobCount, 6)
+  assert.equal(firstExecution.evidence.parallelJobCount, 4)
   assert.equal(firstExecution.evidence.observedPeakConcurrency, 4)
   assert.deepEqual(firstExecution.evidence.observedPeakConcurrencyByWorkerType, {
     api_service: 1,
     cpu_analysis_worker: 4,
-    render_worker: 2,
+    render_worker: 1,
     qa_worker: 1,
   })
+  const highMemoryRenderLane = 'render_worker:render_cpu_high_memory_v1:none'
+  assert.equal(
+    firstExecution.evidence.configuredLocalResourceLaneConcurrencyLimits[
+      highMemoryRenderLane
+    ],
+    1,
+  )
+  assert.equal(
+    firstExecution.evidence.observedPeakConcurrencyByResourceLane[
+      highMemoryRenderLane
+    ],
+    1,
+  )
+  assert.equal(firstExecution.evidence.localResourceLaneConcurrencyEnforced, true)
+  assert.deepEqual(
+    canonicalPrivateResourceSchedulingEvidenceSchema.parse(firstExecution.evidence),
+    firstExecution.evidence,
+  )
+  const forgedLaneLimit = structuredClone(firstExecution.evidence)
+  forgedLaneLimit.configuredLocalResourceLaneConcurrencyLimits[
+    highMemoryRenderLane
+  ] = 2
+  assert.equal(
+    canonicalPrivateResourceSchedulingEvidenceSchema.safeParse(forgedLaneLimit).success,
+    false,
+  )
+  const {
+    configuredLocalResourceLaneConcurrencyLimits: _configuredLaneLimits,
+    observedPeakConcurrencyByResourceLane: _observedLaneConcurrency,
+    localResourceLaneConcurrencyEnforced: _laneEnforced,
+    ...legacySchedulingEvidence
+  } = firstExecution.evidence
+  void _configuredLaneLimits
+  void _observedLaneConcurrency
+  void _laneEnforced
+  assert.equal(
+    canonicalPrivateResourceSchedulingEvidenceSchema.safeParse({
+      ...legacySchedulingEvidence,
+      schedulerVersion: 'canonical-private-resource-wave-scheduler-v2',
+    }).success,
+    true,
+  )
+  const renderPlacement = placementManifest.placements.find((placement) =>
+    placement.workerType === 'render_worker')
+  assert.ok(renderPlacement)
+  assert.equal(renderPlacement.workerConcurrencyLimit, 2)
+  assert.equal(
+    canonicalPrivateLocalResourceLaneConcurrencyLimit(renderPlacement),
+    1,
+  )
   assert.equal(firstExecution.evidence.cloudDispatchAuthorized, false)
   assert.equal(firstExecution.evidence.distributedExecutionProven, false)
   assert.equal(

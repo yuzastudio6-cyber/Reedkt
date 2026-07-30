@@ -4,7 +4,7 @@ set -eu
 FFMPEG=/opt/reeditpro-ffmpeg/bin/ffmpeg
 FFPROBE=/opt/reeditpro-ffmpeg/bin/ffprobe
 TAB=$(printf '\t')
-MAGIC=REEDITPRO_FFMPEG_SOURCE_SLICE_FINALIZER_V1
+MAGIC=REEDITPRO_FFMPEG_SOURCE_SLICE_FINALIZER_V2
 MAX_CHUNKS=16
 MAX_CHUNK_BYTES=268435456
 MAX_SOURCE_BYTES=201326592
@@ -24,6 +24,7 @@ read_blob() {
   destination=$1
   expected_bytes=$2
   expected_sha256=$3
+  expected_format=$4
   blocks=$((expected_bytes / 65536))
   remainder=$((expected_bytes % 65536))
   : > "$destination"
@@ -41,8 +42,19 @@ read_blob() {
     | sha256sum --check --strict - >/dev/null \
     || fail 'blob checksum changed'
   chmod 0600 "$destination"
-  signature=$(dd if="$destination" bs=1 skip=4 count=4 status=none)
-  [ "$signature" = 'ftyp' ] || fail 'blob is not an MP4'
+  case "$expected_format" in
+    mp4)
+      signature=$(dd if="$destination" bs=1 skip=4 count=4 status=none)
+      [ "$signature" = 'ftyp' ] || fail 'blob is not an MP4'
+      ;;
+    wav)
+      riff=$(dd if="$destination" bs=1 count=4 status=none)
+      wave=$(dd if="$destination" bs=1 skip=8 count=4 status=none)
+      [ "$riff" = 'RIFF' ] && [ "$wave" = 'WAVE' ] \
+        || fail 'blob is not a PCM WAVE'
+      ;;
+    *) fail 'unsupported blob format' ;;
+  esac
 }
 
 valid_uint() {
@@ -58,6 +70,81 @@ valid_sha256() {
     *[!a-f0-9]*) return 1 ;;
     *) return 0 ;;
   esac
+}
+
+read_le_uint() {
+  source=$1
+  offset=$2
+  length=$3
+  set -- $(od -An -v -tu1 -j "$offset" -N "$length" "$source")
+  case "$length" in
+    2)
+      [ "$#" -eq 2 ] || fail 'truncated little-endian integer'
+      printf '%s\n' $(( $1 + ($2 * 256) ))
+      ;;
+    4)
+      [ "$#" -eq 4 ] || fail 'truncated little-endian integer'
+      printf '%s\n' $(( $1 + ($2 * 256) + ($3 * 65536) + ($4 * 16777216) ))
+      ;;
+    *) fail 'unsupported little-endian integer width' ;;
+  esac
+}
+
+extract_exact_voice_pcm() {
+  source=$1
+  destination=$2
+  expected_frames=$3
+  frame_rate=$4
+  source_bytes=$(stat -c '%s' "$source")
+  offset=12
+  fmt_seen=false
+  data_offset=
+  data_length=
+  while [ $((offset + 8)) -le "$source_bytes" ]; do
+    chunk_id=$(dd if="$source" bs=1 skip="$offset" count=4 status=none)
+    chunk_length=$(read_le_uint "$source" $((offset + 4)) 4)
+    chunk_data_offset=$((offset + 8))
+    case "$chunk_id" in
+      'fmt ')
+        [ "$chunk_length" -ge 16 ] \
+          && [ "$(read_le_uint "$source" "$chunk_data_offset" 2)" -eq 1 ] \
+          && [ "$(read_le_uint "$source" $((chunk_data_offset + 2)) 2)" -eq 2 ] \
+          && [ "$(read_le_uint "$source" $((chunk_data_offset + 4)) 4)" -eq 48000 ] \
+          && [ "$(read_le_uint "$source" $((chunk_data_offset + 8)) 4)" -eq 192000 ] \
+          && [ "$(read_le_uint "$source" $((chunk_data_offset + 12)) 2)" -eq 4 ] \
+          && [ "$(read_le_uint "$source" $((chunk_data_offset + 14)) 2)" -eq 16 ] \
+          || fail 'approved voice WAVE format is not exact PCM stereo 48 kHz'
+        fmt_seen=true
+        ;;
+      data)
+        [ "$fmt_seen" = true ] || fail 'approved voice WAVE data precedes format'
+        data_offset=$chunk_data_offset
+        if [ "$chunk_length" -eq 4294967295 ]; then
+          data_length=$((source_bytes - data_offset))
+        else
+          data_length=$chunk_length
+        fi
+        break
+        ;;
+    esac
+    [ "$chunk_length" -ne 4294967295 ] \
+      && [ $((chunk_data_offset + chunk_length)) -le "$source_bytes" ] \
+      || fail 'approved voice WAVE chunk exceeds its exact bytes'
+    offset=$((chunk_data_offset + chunk_length + (chunk_length % 2)))
+  done
+  [ -n "$data_offset" ] && [ -n "$data_length" ] \
+    && [ $((data_offset + data_length)) -eq "$source_bytes" ] \
+    || fail 'approved voice WAVE data is not the terminal exact payload'
+  samples_per_frame=$((48000 / frame_rate))
+  [ $((samples_per_frame * frame_rate)) -eq 48000 ] \
+    || fail 'approved voice frame rate cannot map to exact PCM samples'
+  expected_pcm_bytes=$((expected_frames * samples_per_frame * 4))
+  [ "$data_length" -eq "$expected_pcm_bytes" ] \
+    || fail 'approved voice WAVE duration diverges from exact frame authority'
+  dd if="$source" bs="$data_offset" skip=1 status=none > "$destination"
+  [ "$(stat -c '%s' "$destination")" -eq "$expected_pcm_bytes" ] \
+    || fail 'approved voice PCM extraction changed exact bytes'
+  chmod 0600 "$destination"
 }
 
 work=$(mktemp -d /tmp/reeditpro-source-slice-finalizer.XXXXXX)
@@ -110,7 +197,7 @@ while [ "$index" -le "$chunk_count" ]; do
   [ "$chunk_bytes" -ge 1024 ] && [ "$chunk_bytes" -le "$MAX_CHUNK_BYTES" ] \
     || fail 'chunk byte length is outside the fixed bound'
   chunk_path=$(printf '%s/chunk-%04d.mp4' "$work" "$index")
-  read_blob "$chunk_path" "$chunk_bytes" "$chunk_sha"
+  read_blob "$chunk_path" "$chunk_bytes" "$chunk_sha" mp4
 
   stream_types=$($FFPROBE -v error -show_entries stream=codec_type \
     -of default=nw=1:nk=1 "$chunk_path") \
@@ -158,28 +245,42 @@ done
   && [ "$expected_source_start" -eq "$source_end" ] \
   || fail 'chunks do not cover the complete approved range'
 
-IFS="$TAB" read -r kind source_bytes source_sha extra || fail 'missing source authority'
-[ "$kind" = 'source' ] && [ -z "${extra:-}" ] || fail 'invalid source authority'
-valid_uint "$source_bytes" && valid_sha256 "$source_sha" || fail 'invalid source commitment'
+IFS="$TAB" read -r kind source_bytes source_sha extra || fail 'missing audio authority'
+case "$kind" in source|voice) ;; *) fail 'invalid audio authority' ;; esac
+[ -z "${extra:-}" ] || fail 'invalid audio authority fields'
+valid_uint "$source_bytes" && valid_sha256 "$source_sha" || fail 'invalid audio commitment'
 [ "$source_bytes" -ge 1024 ] && [ "$source_bytes" -le "$MAX_SOURCE_BYTES" ] \
-  || fail 'source byte length is outside the fixed bound'
-source_path="$work/source.mp4"
-read_blob "$source_path" "$source_bytes" "$source_sha"
+  || fail 'audio byte length is outside the fixed bound'
+if [ "$kind" = source ]; then
+  source_path="$work/source.mp4"
+  read_blob "$source_path" "$source_bytes" "$source_sha" mp4
+else
+  source_path="$work/voice.wav"
+  read_blob "$source_path" "$source_bytes" "$source_sha" wav
+fi
 read_line 'protocol terminator' 'end'
 
-source_stream_types=$($FFPROBE -v error -show_entries stream=codec_type \
-  -of default=nw=1:nk=1 "$source_path") \
-  || fail 'source stream inspection failed'
-[ "$(printf '%s\n' "$source_stream_types" | grep -c '^audio$')" -eq 1 ] \
-  || fail 'source must contain exactly one approved audio stream'
-
-start_seconds=$(awk -v frames="$source_start" -v rate="$fps" 'BEGIN { printf "%.9f", frames / rate }')
 duration_seconds=$(awk -v frames="$duration_frames" -v rate="$fps" 'BEGIN { printf "%.9f", frames / rate }')
+if [ "$kind" = source ]; then
+  source_stream_types=$($FFPROBE -v error -show_entries stream=codec_type \
+    -of default=nw=1:nk=1 "$source_path") \
+    || fail 'source stream inspection failed'
+  [ "$(printf '%s\n' "$source_stream_types" | grep -c '^audio$')" -eq 1 ] \
+    || fail 'source must contain exactly one approved audio stream'
+  start_seconds=$(awk -v frames="$source_start" -v rate="$fps" \
+    'BEGIN { printf "%.9f", frames / rate }')
+  audio_input_args="-ss $start_seconds -i source.mp4"
+else
+  extract_exact_voice_pcm "$source_path" "$work/voice.pcm" \
+    "$duration_frames" "$fps"
+  audio_input_args="-f s16le -ar 48000 -ac 2 -i voice.pcm"
+fi
 (
   cd "$work"
+  # shellcheck disable=SC2086
   "$FFMPEG" -hide_banner -loglevel error -nostdin \
     -f concat -safe 1 -i concat.txt \
-    -ss "$start_seconds" -i source.mp4 \
+    $audio_input_args \
     -map 0:v:0 -map 1:a:0 \
     -filter:a "atrim=duration=${duration_seconds},asetpts=PTS-STARTPTS,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo" \
     -c:v copy -c:a aac -b:a 192k -ar 48000 -ac 2 \

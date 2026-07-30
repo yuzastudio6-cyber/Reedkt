@@ -724,11 +724,11 @@ const realisticMatchedColorPayload = validateOfflineFfmpegPlanningPayload(
   asRecord(realisticColorItems[1]!.executionInput.structuredPayload),
 )
 assert.equal(realisticReferenceColorPayload.recipeProfileId,
-  'approved_source_color_delivery_matroska_v1')
+  'approved_source_color_delivery_matroska_v2')
 assert.equal(realisticMatchedColorPayload.recipeProfileId,
-  'approved_source_color_match_delivery_matroska_v1')
+  'approved_source_color_match_delivery_matroska_v2')
 if (realisticMatchedColorPayload.recipeProfileId !==
-  'approved_source_color_match_delivery_matroska_v1') {
+  'approved_source_color_match_delivery_matroska_v2') {
   throw new Error('Second source did not compile to the exact reference-bound color recipe.')
 }
 assert.equal(realisticMatchedColorPayload.referenceSourceSequenceItemId,
@@ -918,8 +918,8 @@ for (const matchedColorItem of realisticThreeSourceColorItems.slice(1)) {
   const payload = validateOfflineFfmpegPlanningPayload(
     asRecord(matchedColorItem.executionInput.structuredPayload),
   )
-  assert.equal(payload.recipeProfileId, 'approved_source_color_match_delivery_matroska_v1')
-  if (payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1') {
+  assert.equal(payload.recipeProfileId, 'approved_source_color_match_delivery_matroska_v2')
+  if (payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v2') {
     throw new Error('A later source did not compile to the exact reference-bound color recipe.')
   }
   assert.equal(payload.referenceSourceSequenceItemId, 'canonical-save-source-1')
@@ -1754,8 +1754,8 @@ assert.deepEqual(
 const colorPayload = validateOfflineFfmpegPlanningPayload(
   asRecord(colorItems[0]!.executionInput.structuredPayload),
 )
-assert.equal(colorPayload.recipeProfileId, 'approved_source_color_delivery_matroska_v1')
-if (colorPayload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1') {
+assert.equal(colorPayload.recipeProfileId, 'approved_source_color_delivery_matroska_v2')
+if (colorPayload.recipeProfileId !== 'approved_source_color_delivery_matroska_v2') {
   throw new Error('Professional color compiled to the wrong confined FFmpeg recipe.')
 }
 assert.equal(colorPayload.trimStartFrame, 0)

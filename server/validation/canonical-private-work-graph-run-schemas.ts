@@ -25,8 +25,7 @@ const observedWorkerConcurrencyEvidence = z.object({
   tool_readiness_worker: z.number().int().nonnegative().max(1).optional(),
 }).strict()
 
-const resourceSchedulingEvidence = z.object({
-  schedulerVersion: z.literal('canonical-private-resource-wave-scheduler-v2'),
+const resourceSchedulingCommonShape = {
   placementPolicyVersion: z.literal('canonical-private-resource-placement-policy-v1'),
   placementManifestHash: sha256,
   toolExecutionAuthorityHash: sha256,
@@ -53,7 +52,31 @@ const resourceSchedulingEvidence = z.object({
   cloudWorkerConcurrencyProven: z.literal(false),
   performanceSlaProven: z.literal(false),
   immutableSnapshotPlacementBindingProven: z.literal(true),
-}).strict().superRefine((evidence, context) => {
+}
+
+const resourceSchedulingEvidenceV2 = z.object({
+  schedulerVersion: z.literal('canonical-private-resource-wave-scheduler-v2'),
+  ...resourceSchedulingCommonShape,
+}).strict()
+
+const resourceSchedulingEvidenceV3 = z.object({
+  schedulerVersion: z.literal('canonical-private-resource-wave-scheduler-v3'),
+  ...resourceSchedulingCommonShape,
+  configuredLocalResourceLaneConcurrencyLimits: z.record(
+    identity,
+    z.number().int().positive().max(4),
+  ),
+  observedPeakConcurrencyByResourceLane: z.record(
+    identity,
+    z.number().int().nonnegative().max(4),
+  ),
+  localResourceLaneConcurrencyEnforced: z.literal(true),
+}).strict()
+
+export const canonicalPrivateResourceSchedulingEvidenceSchema = z.discriminatedUnion('schedulerVersion', [
+  resourceSchedulingEvidenceV2,
+  resourceSchedulingEvidenceV3,
+]).superRefine((evidence, context) => {
   if (
     evidence.parallelWaveCount > evidence.waveCount ||
     evidence.parallelJobCount > evidence.actualExecutionCount ||
@@ -71,6 +94,29 @@ const resourceSchedulingEvidence = z.object({
     ]
     if (configured === undefined || observedPeak > configured) {
       context.addIssue({ code: 'custom', message: 'Observed worker concurrency exceeds authority.' })
+    }
+  }
+  if (evidence.schedulerVersion === 'canonical-private-resource-wave-scheduler-v3') {
+    for (const [laneKey, observedPeak] of Object.entries(
+      evidence.observedPeakConcurrencyByResourceLane,
+    )) {
+      const configured = evidence.configuredLocalResourceLaneConcurrencyLimits[laneKey]
+      if (configured === undefined || observedPeak > configured) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Observed local resource-lane concurrency exceeds authority.',
+        })
+      }
+    }
+    const highMemoryRenderLane =
+      evidence.configuredLocalResourceLaneConcurrencyLimits[
+        'render_worker:render_cpu_high_memory_v1:none'
+      ]
+    if (highMemoryRenderLane !== undefined && highMemoryRenderLane !== 1) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Local high-memory render concurrency must remain serialized.',
+      })
     }
   }
 })
@@ -231,7 +277,7 @@ export const canonicalPrivateWorkGraphRunResponseSchema = z.object({
   }).strict(),
   // Optional only so persisted pre-scheduler private-test responses remain replayable.
   // Every newly produced response includes this server-derived evidence.
-  scheduling: resourceSchedulingEvidence.optional(),
+  scheduling: canonicalPrivateResourceSchedulingEvidenceSchema.optional(),
   // Optional only so persisted v2 private/local responses remain replayable.
   // Every newly produced v3 response carries durable queue evidence.
   queue: durablePackageWorkQueueEvidence.optional(),

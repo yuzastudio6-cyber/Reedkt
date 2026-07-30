@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto'
 import { ApiError, normalizeUnknownError } from '../errors/api-error'
 import { API_ERROR_CODES, type ApiErrorCode } from '../errors/error-codes'
 import {
-  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
+  isCanonicalPrivateMeteredSourceSliceChunkProfileId,
 } from '../../src/types/canonical-private-composition-capacity'
 import {
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
@@ -30,6 +30,7 @@ import {
   executeCanonicalPrivateJobAdapterSchema,
   type CanonicalPrivateJobExecutionAdapterFailure,
   type CanonicalPrivateJobExecutionAdapterResponse,
+  type CanonicalPrivateJobExecutionDiagnosticClass,
   type CanonicalPrivateJobExecutionFailureCategory,
   type CanonicalPrivateJobExecutionRetryDisposition,
   type ExecuteCanonicalPrivateJobAdapterBody,
@@ -194,7 +195,9 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
           readPersistedResponse(context, responseRelativePath, requestHash),
           readPersistedFailure(context, failureRelativePath, requestHash),
         ])
-        if (replay && failureReplay) {
+        const postCommitFailureReplay =
+          failureReplay?.failure.category === 'post_commit_reconciliation'
+        if (replay && failureReplay && !postCommitFailureReplay) {
           throw new ApiError(
             'VALIDATION_FAILED',
             'Canonical job adapter has conflicting terminal idempotency outcomes.',
@@ -202,7 +205,9 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
           )
         }
         if (replay) return markReplay(replay)
-        if (failureReplay) throw adapterFailureError(failureReplay)
+        if (failureReplay && !postCommitFailureReplay) {
+          throw adapterFailureError(failureReplay)
+        }
         return withAdapterExecutionLock(completionRelativePath, async () => {
           const completion = await readPersistedCompletion(context, completionRelativePath, requestHash)
           if (completion) {
@@ -307,17 +312,19 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
       const attemptCostProfileId: PrivateInternalAttemptCostProfileId | null =
         !internalServerJob && canonicalToolId === 'deepfilternet'
           ? PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.deepFilterNetVoiceCleanup
-          : compositionChunkExecution && chunkAuthority?.profileId ===
-              CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
+          : compositionChunkExecution &&
+              isCanonicalPrivateMeteredSourceSliceChunkProfileId(
+                chunkAuthority?.profileId,
+              )
             ? PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk
             : ffmpegMezzanineFinalization
               ? PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
               : null
       const longFormMergeExecution = finalCompositionExecution &&
         workItem.executionInput.operation === 'merge_approved_4k_composition_chunks'
-      const completionRecovery = await createCanonicalPrivateJobCompletionRecoveryService(
-        context,
-      ).recoverIfCompleted({
+      const completionRecoveryService =
+        createCanonicalPrivateJobCompletionRecoveryService(context)
+      const completionRecoveryInput = {
         workspaceId: body.workspaceId,
         projectId: body.projectId,
         editSessionId: body.editSessionId,
@@ -332,7 +339,10 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         finalCompositionExecution,
         attemptCostProfileId,
         readiness,
-      })
+      }
+      const completionRecovery = await completionRecoveryService.recoverIfCompleted(
+        completionRecoveryInput,
+      )
       if (completionRecovery.status === 'blocked') {
         const originalError = new ApiError(
           'JOB_DEPENDENCY_NOT_READY',
@@ -619,6 +629,32 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
             },
             { cause: terminalizationError, internal: true },
           )
+        }
+        if (resolution.resolution === 'completed_requires_reconciliation') {
+          try {
+            const postCommitRecovery =
+              await completionRecoveryService.recoverIfCompleted(
+                completionRecoveryInput,
+              )
+            if (postCommitRecovery.status === 'recovered') {
+              await persistAdapterCompletion(
+                context,
+                completionRelativePath,
+                requestHash,
+                postCommitRecovery.response,
+              )
+              await persistIdempotencyResponse(
+                context,
+                responseRelativePath,
+                requestHash,
+                postCommitRecovery.response,
+              )
+              return postCommitRecovery.response
+            }
+          } catch {
+            // The durable failure record below keeps the completed execution
+            // fail-closed when exact server reconciliation cannot be proven.
+          }
         }
         const failure = buildAdapterFailure({
           body,
@@ -1039,6 +1075,20 @@ function buildAdapterFailure(input: {
   const originalCode = fence.state === 'failed'
     ? apiErrorCode(fence.failureCode)
     : input.originalError.code
+  const originRequiredGate = adapterFailureOriginRequiredGate(input.originalError)
+  const diagnosticClass = adapterFailureDiagnosticClass({
+    category,
+    error: input.originalError,
+    originRequiredGate,
+  })
+  const diagnosticFingerprintSha256 = sha256AuthorityValue({
+    category,
+    diagnosticClass,
+    originalCode,
+    originRequiredGate: originRequiredGate ?? null,
+    status: input.originalError.status,
+    messageDigestSha256: sha256AuthorityValue(input.originalError.message),
+  })
   const failedAt = fence.state === 'failed' && fence.failedAt
     ? fence.failedAt
     : fence.state === 'completed' && fence.completedAt
@@ -1072,6 +1122,9 @@ function buildAdapterFailure(input: {
       ...(fence.state === 'failed' && fence.failureEvidenceHash
         ? { fenceFailureEvidenceHash: fence.failureEvidenceHash }
         : {}),
+      diagnosticClass,
+      diagnosticFingerprintSha256,
+      ...(originRequiredGate ? { originRequiredGate } : {}),
       requiredGate,
     },
     permissions: deniedPermissions(),
@@ -1082,6 +1135,43 @@ function buildAdapterFailure(input: {
     ...recordWithoutHash,
     failureRecordHash: sha256AuthorityValue(recordWithoutHash),
   })
+}
+
+function adapterFailureOriginRequiredGate(error: ApiError): string | undefined {
+  if (!error.details || typeof error.details !== 'object' || Array.isArray(error.details)) {
+    return undefined
+  }
+  const requiredGate = (error.details as Record<string, unknown>).requiredGate
+  return typeof requiredGate === 'string' && safeIdentity(requiredGate)
+    ? requiredGate
+    : undefined
+}
+
+function adapterFailureDiagnosticClass(input: {
+  category: CanonicalPrivateJobExecutionFailureCategory
+  error: ApiError
+  originRequiredGate?: string
+}): CanonicalPrivateJobExecutionDiagnosticClass {
+  if (input.category === 'post_commit_reconciliation') {
+    return 'post_commit_reconciliation'
+  }
+  if (input.category === 'execution_timeout') return 'runtime_timeout'
+  if (input.category === 'output_validation_failed') return 'output_validation'
+  if (input.category === 'authority_changed') return 'authority_revalidation'
+  if (
+    input.originRequiredGate?.includes('dispatch') ||
+    input.originRequiredGate?.includes('tool_operation')
+  ) {
+    return 'dispatch_admission'
+  }
+  if (
+    input.category === 'runtime_unavailable' ||
+    ['TOOL_NOT_READY', 'RENDER_TOOL_UNAVAILABLE', 'LOCAL_STORAGE_REQUIRED']
+      .includes(input.error.code)
+  ) {
+    return 'runtime_prerequisite_or_launch'
+  }
+  return 'unknown_internal'
 }
 
 function classifyAdapterExecutionFailure(error: ApiError): {
@@ -1178,6 +1268,12 @@ function adapterFailureError(
       executionFailure: {
         failureRecordHash: failure.failureRecordHash,
         category: failure.failure.category,
+        diagnosticClass: failure.failure.diagnosticClass,
+        diagnosticFingerprintSha256:
+          failure.failure.diagnosticFingerprintSha256,
+        ...(failure.failure.originRequiredGate
+          ? { originRequiredGate: failure.failure.originRequiredGate }
+          : {}),
         originalCode: failure.failure.originalCode,
         executionState: failure.failure.executionState,
         retryDisposition: failure.failure.retryDisposition,

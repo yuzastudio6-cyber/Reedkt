@@ -1,5 +1,9 @@
 import { z } from 'zod'
 
+import {
+  REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES,
+} from '../../src/types/large-media'
+
 const identity = z.string()
   .min(1)
   .max(200)
@@ -34,7 +38,8 @@ const privateReviewSummarySchema = z.object({
   reviewAssemblyId: identity,
   manifestSha256: sha256,
   finalArtifactSha256: sha256,
-  finalArtifactByteLength: z.number().int().positive().max(32 * 1024 * 1024),
+  finalArtifactByteLength: z.number().int().positive()
+    .max(REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES),
   readyForPrivateReview: z.literal(true),
 }).strict()
 

@@ -27,6 +27,16 @@ export const canonicalPrivateJobExecutionRetryDispositionSchema = z.enum([
   'server_reconciliation_required',
 ])
 
+export const canonicalPrivateJobExecutionDiagnosticClassSchema = z.enum([
+  'dispatch_admission',
+  'runtime_prerequisite_or_launch',
+  'runtime_timeout',
+  'output_validation',
+  'authority_revalidation',
+  'post_commit_reconciliation',
+  'unknown_internal',
+])
+
 export const executeCanonicalPrivateJobAdapterSchema = z.object({
   workspaceId: identitySchema,
   projectId: identitySchema,
@@ -138,6 +148,9 @@ export const canonicalPrivateJobExecutionAdapterFailureSchema = z.object({
     remainingAttempts: z.number().int().nonnegative().max(10),
     executionAttemptId: identitySchema.optional(),
     fenceFailureEvidenceHash: sha256Schema.optional(),
+    diagnosticClass: canonicalPrivateJobExecutionDiagnosticClassSchema,
+    diagnosticFingerprintSha256: sha256Schema,
+    originRequiredGate: identitySchema.optional(),
     requiredGate: identitySchema,
   }).strict(),
   permissions: z.object({
@@ -218,6 +231,9 @@ export type CanonicalPrivateJobExecutionAdapterFailure = z.infer<
 >
 export type CanonicalPrivateJobExecutionFailureCategory = z.infer<
   typeof canonicalPrivateJobExecutionFailureCategorySchema
+>
+export type CanonicalPrivateJobExecutionDiagnosticClass = z.infer<
+  typeof canonicalPrivateJobExecutionDiagnosticClassSchema
 >
 export type CanonicalPrivateJobExecutionRetryDisposition = z.infer<
   typeof canonicalPrivateJobExecutionRetryDispositionSchema

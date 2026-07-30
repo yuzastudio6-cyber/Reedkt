@@ -11,7 +11,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "45f6a3ccf772ee8dbd45c93a19220cc2888957c6e9e062792b3f8bc6ed1b992e"
+      "sha256": "1397fb9102d7a09e2f9e6bc4a259603f489dc60f189abe6661a5a06f7213a1e0"
     },
     {
       "path": "expected-recovery-data-tables.txt",
@@ -19,11 +19,11 @@
     },
     {
       "path": "run-local-recovery-verification.sh",
-      "sha256": "c17bbefc85ead3c78aaea8189e2e2ef1fc726327c1b925b6cd044ecb6ca9fab5"
+      "sha256": "cccdc786c980e7fa8460e41384188e6d10916334209cedbe5f18c3f0881a6901"
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "d975b153e3e39744dbb81c97a2b5a6616332e5677a6a7a8053ff20e847f3f076"
+      "sha256": "a33a18f295167767d57ff62c671635bde094a21407441b59211fca3ed22e53c4"
     },
     {
       "path": "setup-local-auth-users.ts",
@@ -130,6 +130,10 @@
       "sha256": "6d43893400cdd81a772f778a8bc57b29df685654168aa8948c0aff27310b2c68"
     },
     {
+      "path": "supabase/migrations/202607210024_canonical_local_resumable_upload_protocol.sql",
+      "sha256": "56acac22104d5f93a350957d03efb6c77f01fb3002619f832bdc7828e2f34cff"
+    },
+    {
       "path": "tests/001_two_user_two_workspace_rls.sql",
       "sha256": "4229abef3613004a7ce75467e6e030bfe6c1baa5237d7a55a7d8580d6822a816"
     },
@@ -187,7 +191,7 @@
     },
     {
       "path": "tests/015_canonical_durable_upload_target_rpc_postconditions.sql",
-      "sha256": "adb7c7589b3e695a0bab76d8d078a820b6899ed235fba273b31f0ad9b2e1d185"
+      "sha256": "d6d4b4f5925e88f2085866324361384f9e7e9c3051b4b2f661ffded2c2f488ad"
     },
     {
       "path": "tests/016_canonical_upload_target_credential_escrow_rpc_postconditions.sql",
@@ -196,6 +200,10 @@
     {
       "path": "tests/017_canonical_private_project_authority_rpc_postconditions.sql",
       "sha256": "1949a421688d9d165a65d014225e8379bd0d9e4c49ad39a80524ea9f4318acdc"
+    },
+    {
+      "path": "tests/018_canonical_local_resumable_upload_protocol.sql",
+      "sha256": "74adbc12139a4c4acf82e4cb4e2fcf2cadeb3e7c32ad59ed1e736f8195d994a6"
     },
     {
       "path": "tests/_fixture.sql",
@@ -211,13 +219,13 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "5548c76dda7cadb9ff76f1f026e0fa8419a2aca2c70826dd1b8c1c926eccaca8"
+      "sha256": "0a55ac3a0443fcf9fa3661f1d5860a1fed383b4b025eebfde4b6eec086d48adb"
     }
   ],
   "repositoryFiles": [
     {
       "path": "docs/canonical-durable-upload-target-authority-2026-07-20.md",
-      "sha256": "f940cef9319a8fb61b633da7affc59d7e9e3e5d6c29f94cffbdd1520b25c57b7"
+      "sha256": "ea99a557b142e5de35325176456fd585fef53bee7e99a24a21664df7c32be51a"
     },
     {
       "path": "docs/canonical-edit-reference-application-preparation-verification-2026-07-21.md",
@@ -245,7 +253,7 @@
     },
     {
       "path": "docs/canonical-v3-local-durable-upload-target-verification-2026-07-29.md",
-      "sha256": "79489f914432f4575fd423945fd81327802227937513b29cf7ae2792e2d2a4f6"
+      "sha256": "b3b5772528ddbdb0653386904302eb9f61c1c88e33204fc92ccb87536ae1e46d"
     },
     {
       "path": "docs/canonical-v3-local-edit-reference-domain-library-study-verification-2026-07-21.md",
@@ -305,7 +313,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "12bf1b5b6bc728c67c9121d267bab3e475c118dfa898c70e8e51092a5ce6b0c2"
+      "sha256": "c0f43613c0f75c9d30fed9c9ae4d347c67fb56dd8f2b621fb7228f9f319c15f5"
     },
     {
       "path": "scripts/dev/internal-testing-local-upload-e2e.mjs",
@@ -492,6 +500,10 @@
       "sha256": "c63050e73bfb00c8940283627ce846c5b1f8ae6a84a191419de1b6281b0eb5b8"
     },
     {
+      "path": "server/routes/upload-routes.ts",
+      "sha256": "e164a57b841b2220c6abf1112d137961a4e0ed43f1b6e62d8f3c776d246a4f2b"
+    },
+    {
       "path": "server/services/canonical-planning-handoff-service.ts",
       "sha256": "6cceea4806272b6103cf355bea6b7f7e09c4385c987a618e5e342d87a744b68c"
     },
@@ -581,7 +593,7 @@
     },
     {
       "path": "server/services/upload-service.ts",
-      "sha256": "7c234ea2a94a2457ee0b54cf2b4d2e698f4a6c59485afacb127be96a49216c01"
+      "sha256": "eff3b544a2a11c4e1eb528083d8036205277082f7eefe8f941f0792a2147b2f5"
     },
     {
       "path": "server/services/workspace-access-service.ts",
@@ -601,7 +613,7 @@
     },
     {
       "path": "server/smoke/canonical-durable-upload-target-local-postgres-smoke.ts",
-      "sha256": "8d0ee20fda26a5308e337fd8953a00145308aad567a9b5bb6fc85bb5f7b4cb37"
+      "sha256": "f47c227a06a6dbdb6e6026a2168d33d06a5a29898d23d159a34230aa4b31c873"
     },
     {
       "path": "server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
@@ -684,6 +696,10 @@
       "sha256": "4f1345cfd41475e8f96ae82980300250e49d21ed5d324ff2fee3e4d3278693fc"
     },
     {
+      "path": "server/smoke/local-resumable-source-upload-smoke.ts",
+      "sha256": "c2320dba1d3d2ee1f4a8ef1a090c458cb8a88fca4f996f4a33a2f925649b49df"
+    },
+    {
       "path": "server/smoke/motion-studio-private-local-command-repository-smoke.ts",
       "sha256": "fb1f2476103b9d7ce1cf1fe49f51b81cdca755ef39f8ffab63c95020e8a13384"
     },
@@ -696,8 +712,24 @@
       "sha256": "fbfe10dd1be1fcd42637f3cea756f9644ecee8b4d2e389110a1d02dfae6a59e3"
     },
     {
+      "path": "server/storage/local-resumable-upload-ledger.ts",
+      "sha256": "efee2adb11f29e9fc1729f8adf806d03f30fdd86a5a177d94ce018ee10e29616"
+    },
+    {
+      "path": "server/storage/local-storage-adapter.ts",
+      "sha256": "ad51802a57eae71f06d2c8a9d08e10aa27c78c0944282d85e4593a613fb588e4"
+    },
+    {
+      "path": "server/storage/storage-types.ts",
+      "sha256": "bfa69ddf5043ba0d1eb6d0ef6f72153ffc6f788d08bf0060131ae160373845a5"
+    },
+    {
       "path": "server/types.ts",
       "sha256": "1b31112b9e3c13b6703e8f1dee3525b8c3a841da8e821c9fd6432e1961cfd637"
+    },
+    {
+      "path": "server/upload-target-authority/canonical-durable-upload-target-authority.ts",
+      "sha256": "68de13a66c991bcdcae5a3f996fd2ecb571e34f0d72883b520660fa9c4f31206"
     },
     {
       "path": "server/upload-target-authority/canonical-durable-upload-target-local-supabase-http-rpc-client.ts",
@@ -713,7 +745,7 @@
     },
     {
       "path": "server/upload-target-authority/canonical-upload-target-credential-envelope.ts",
-      "sha256": "41067416f8bb9afe735a904502890a410e85ce8a0d213141cab1c5c24f2c3fcf"
+      "sha256": "a6b6630d55e88a224a7e4b543b9b49f42f05c821901058f281c740aaa76d00e4"
     },
     {
       "path": "server/upload-target-authority/canonical-upload-target-credential-escrow-local-supabase-http-rpc-client.ts",
@@ -746,6 +778,10 @@
     {
       "path": "src/backend/api/routes/edit-planning-api-routes.ts",
       "sha256": "3b6efd62c17c236beb04a10a18b1c2b1aa55ea0c5bd4dd080044582a7a8a3f16"
+    },
+    {
+      "path": "src/backend/api/routes/media-upload-api-routes.ts",
+      "sha256": "2844477945f150aabbfc516e0374149a030c93af0e18cd2caf984d748cbce49f"
     },
     {
       "path": "src/backend/auth/workspace-bootstrap-service.ts",
@@ -792,8 +828,28 @@
       "sha256": "3e7d922855489faaa481c01929d933c3abd4e70cfcfa7c244eb6166f0b2697de"
     },
     {
+      "path": "src/lib/project-source-video-backend-upload.ts",
+      "sha256": "533897f2159495f9527cbe7b55ebaf79d692b548548546f83892b8dae01eb7b3"
+    },
+    {
+      "path": "src/lib/resumable-file-upload.ts",
+      "sha256": "2af11bfc95c98d61f495264450e0fabdf3722a45d7ebd8e496abcc920af2e260"
+    },
+    {
+      "path": "src/lib/source-upload-planning.ts",
+      "sha256": "2d7cd2a73069ce647c6dcfcd74cbd10eebb8715906f38fa462ee3542b18ae32a"
+    },
+    {
+      "path": "src/lib/temporary-object-upload-client.ts",
+      "sha256": "2c3391cfa6523597b012bd9129dc77f8bf640808e02cb5521704ae984eb7b5b0"
+    },
+    {
       "path": "src/types/canonical-exact-edit-planning-authority.ts",
       "sha256": "c15c42d3976172bfd7102588f311c470e06982132337194a8eb12979708bb6b9"
+    },
+    {
+      "path": "src/types/e2e-runtime.ts",
+      "sha256": "0bfd5c92e1d3a50299a88e6a1f40ef463200e7d8c1e7e9c8d9cc85cf02dae3e7"
     },
     {
       "path": "src/types/edit-reference-production-application-preparation-api.ts",
@@ -810,6 +866,10 @@
     {
       "path": "src/types/edit-reference.ts",
       "sha256": "f3ea11b498c0283541e098e01320ad131bfd465887e3062caa08b7e5fdd84502"
+    },
+    {
+      "path": "src/types/large-media.ts",
+      "sha256": "34dd2ab5f1ce1e6df8a6f81714e60cb7c409e3e565e686f35a1ac05dc9768ff8"
     },
     {
       "path": "src/types/reeditpro.ts",

@@ -103,7 +103,7 @@ Upload
 Rules:
 
 - Show only the current decision; completed setup controls do not remain as a card wall in the conversation.
-- Source order, output frame, cleanup, meaning-safe trim status, edit level, and visual direction remain real approval gates even though their old `Inline*Card` presentation is gone.
+- Source order, output frame, cleanup, meaning-safe trim status, and visual direction remain real approval gates even though their old `Inline*Card` presentation is gone. Private internal testing does not expose Edit Level; full internal capabilities are selected by policy rather than a user tier.
 - Planning Context, Video Understanding, Adaptive Strategy, timing subplans, Timing Validation, and Compiled Intent remain planner data. They do not render as separate default chat cards; concise understanding, timing status, and blockers belong in Plan Review.
 - Advanced provider, prompt, tool, database, migration, and regression UI is excluded from the active named-edit conversation.
 - SFX, Music, and Timeline do not render entry cards or a permanent advanced-status message in the active chat. Reintroducing them requires a quiet contextual access pattern.
@@ -318,7 +318,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 - Drafts survive load/save/conflict/network failures.
 - Retry save, non-destructive refresh, and explicit discard are implemented.
 - Unsaved browser-unload protection is implemented.
-- New edits store an immutable seven-field creation baseline; exact edits persist effective values, override keys, revision, and update time.
+- New edits store an immutable six-field user-editable creation baseline plus one non-user-facing compatibility value; exact edits persist effective values, override keys, revision, and update time.
 - Current Edit Preferences supports explicit apply, per-field reset, reset-all, query-addressable recovery, and dirty-leave protection.
 - A shared consequence resolver requires replanning/re-estimation and resets Footage Prep/output-frame confirmation for dependent changes.
 - Approved/private-review edits expose read-only preferences and route revision requests through Chat.
@@ -349,7 +349,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 ### 5. Whole-Product Visual Consistency — In Progress
 
 - Home, Projects (`/projects`), Edit Videos (`/edit-videos`), and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
-- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Landing, Sign In, Create Project, shared project/edit recovery, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, Private Review, and normal revision replanning now follow the same system. Gated revised-review continuation and founder-level whole-product signoff remain separate evidence steps.
+- Saved and Current Edit Preferences now expose six user-editable fields with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. The legacy edit-level value is compatibility-only during internal testing. Landing, Sign In, Create Project, shared project/edit recovery, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, Private Review, and normal revision replanning now follow the same system. Gated revised-review continuation and founder-level whole-product signoff remain separate evidence steps.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 
 ### 6. Final Active-Route Signoff — Automated Suite Complete; Founder Review Pending
@@ -399,7 +399,7 @@ Focused Saved Edit Preferences evidence on 2026-07-13:
 
 Focused Current Edit Preferences presentation evidence on 2026-07-13:
 
-- Focused browser coverage proves the three-group/seven-field hierarchy, bounded grid, inherited and overridden treatment, sticky action rail, dirty-leave guard, apply state, reload persistence, planning invalidation, and approval lock.
+- Focused browser coverage proves the three-group/six-field hierarchy, absence of user-facing Edit Level, bounded grid, inherited and overridden treatment, sticky action rail, dirty-leave guard, apply state, reload persistence, planning invalidation, and approval lock.
 - Guarded local review passed for clean, overridden, leave-guard, and applied states at 700px, 1024px, and 1280px without horizontal overflow or console errors.
 - This closes the Current Edit Preferences route-specific presentation pass only; the full active-route suite and whole-product visual signoff remain pending.
 

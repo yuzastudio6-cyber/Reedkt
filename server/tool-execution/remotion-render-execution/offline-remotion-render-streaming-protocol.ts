@@ -76,6 +76,8 @@ export interface OfflineRemotionStreamingVoiceCommitment {
   sourceSequenceItemId: string
   outputKey: string
   durationFrames: number
+  sourceStartFrame?: number
+  sourceEndFrameExclusive?: number
   mimeType: 'audio/wav'
   byteLength: number
   sha256: string
@@ -391,14 +393,23 @@ export function validateOfflineRemotionStreamingRenderRequest(
     throw invalid('Streaming voice commitments do not match the approved voice-track count.')
   }
   const voiceTracks = inputs.voiceTracks.map((candidate, index) => {
+    const expected = expectedVoiceTracks[index]
+    const sourceSliceProvided = expected?.sourceStartFrame !== undefined
     const voice = exactRecord(candidate, [
       'inputId', 'sourceSequenceItemId', 'outputKey', 'durationFrames',
+      ...(sourceSliceProvided
+        ? ['sourceStartFrame', 'sourceEndFrameExclusive']
+        : []),
       'mimeType', 'byteLength', 'sha256',
     ], `voice track ${index + 1}`)
-    const expected = expectedVoiceTracks[index]
     if (
       !expected || voice.sourceSequenceItemId !== expected.sourceSequenceItemId ||
-      voice.outputKey !== expected.outputKey || voice.durationFrames !== expected.durationFrames
+      voice.outputKey !== expected.outputKey ||
+      voice.durationFrames !== expected.durationFrames ||
+      (sourceSliceProvided && (
+        voice.sourceStartFrame !== expected.sourceStartFrame ||
+        voice.sourceEndFrameExclusive !== expected.sourceEndFrameExclusive
+      ))
     ) throw invalid('Streaming voice order diverges from the approved voice timeline.')
     return {
       ...committedInput(
@@ -411,6 +422,12 @@ export function validateOfflineRemotionStreamingRenderRequest(
       sourceSequenceItemId: expected.sourceSequenceItemId,
       outputKey: expected.outputKey,
       durationFrames: expected.durationFrames,
+      ...(sourceSliceProvided
+        ? {
+            sourceStartFrame: expected.sourceStartFrame,
+            sourceEndFrameExclusive: expected.sourceEndFrameExclusive!,
+          }
+        : {}),
     }
   })
   const combinedVoiceBytes = voiceTracks.reduce(

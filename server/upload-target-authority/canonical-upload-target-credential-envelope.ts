@@ -46,15 +46,30 @@ const normalizedUploadTargetSchema = z.object({
     .refine((value) => value.split('/').every((part) => Boolean(part) && part !== '.' && part !== '..')),
   temporary: z.literal(true),
   createOnly: z.literal(true),
-  uploadProtocol: z.enum(['single_put', 'gcs_resumable']),
+  uploadProtocol: z.enum([
+    'single_put',
+    'gcs_resumable',
+    'resumable_content_range_v1',
+  ]),
   supportsResume: z.boolean(),
   recommendedChunkSizeBytes: z.number().int().positive().max(1024 ** 3)
     .refine(Number.isSafeInteger).nullable(),
+  uploadStatusUrl: z.string().min(1).max(16 * 1024)
+    .refine(isAllowedUploadUrl).nullable(),
+  retryFromVerifiedOffset: z.boolean(),
   sessionUriIsCredential: z.literal(true),
 }).strict().superRefine((target, context) => {
   if (
-    (target.uploadProtocol === 'gcs_resumable' && !target.supportsResume) ||
-    (target.uploadProtocol === 'single_put' && target.supportsResume)
+    (target.uploadProtocol !== 'single_put' && !target.supportsResume) ||
+    (target.uploadProtocol === 'single_put' && target.supportsResume) ||
+    (
+      target.uploadProtocol === 'resumable_content_range_v1' &&
+      (!target.uploadStatusUrl || !target.retryFromVerifiedOffset)
+    ) ||
+    (
+      target.uploadProtocol !== 'resumable_content_range_v1' &&
+      (target.uploadStatusUrl !== null || target.retryFromVerifiedOffset)
+    )
   ) context.addIssue({ code: 'custom', message: 'Upload protocol and resume support diverge.' })
 })
 
@@ -368,6 +383,8 @@ function normalizeUploadTarget(target: UploadTarget): z.infer<
     uploadProtocol: target.uploadProtocol ?? 'single_put',
     supportsResume: target.supportsResume ?? false,
     recommendedChunkSizeBytes: target.recommendedChunkSizeBytes ?? null,
+    uploadStatusUrl: target.uploadStatusUrl ?? null,
+    retryFromVerifiedOffset: target.retryFromVerifiedOffset ?? false,
     sessionUriIsCredential: target.sessionUriIsCredential ?? true,
   })
 }
@@ -375,11 +392,21 @@ function normalizeUploadTarget(target: UploadTarget): z.infer<
 function toUploadTarget(
   target: z.infer<typeof normalizedUploadTargetSchema>,
 ): UploadTarget {
+  const {
+    recommendedChunkSizeBytes,
+    uploadStatusUrl,
+    retryFromVerifiedOffset,
+    ...requiredTarget
+  } = structuredClone(target)
   return {
-    ...structuredClone(target),
-    ...(target.recommendedChunkSizeBytes === null
+    ...requiredTarget,
+    ...(recommendedChunkSizeBytes === null
       ? { recommendedChunkSizeBytes: undefined }
-      : { recommendedChunkSizeBytes: target.recommendedChunkSizeBytes }),
+      : { recommendedChunkSizeBytes }),
+    ...(uploadStatusUrl === null
+      ? { uploadStatusUrl: undefined }
+      : { uploadStatusUrl }),
+    ...(retryFromVerifiedOffset ? { retryFromVerifiedOffset: true } : {}),
   }
 }
 
@@ -458,7 +485,7 @@ function sha256Buffer(value: Uint8Array): string {
 function isAllowedUploadUrl(value: string): boolean {
   if (value.startsWith('/')) {
     const match = value.match(
-      /^\/v1\/upload-intents\/([A-Za-z0-9][A-Za-z0-9._:@-]{0,239})\/local-object\?workspaceId=([a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12})$/u,
+      /^\/v1\/upload-intents\/([A-Za-z0-9][A-Za-z0-9._:@-]{0,239})\/(?:local-object|local-object-resumable(?:\/status)?)\?workspaceId=([a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12})$/u,
     )
     return Boolean(match?.[1] && !match[1].includes('..'))
   }

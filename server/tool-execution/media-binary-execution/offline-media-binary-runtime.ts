@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process'
 import { createHash, randomBytes } from 'node:crypto'
-import { readFile } from 'node:fs/promises'
+import { constants } from 'node:fs'
+import { open, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Readable, Transform } from 'node:stream'
 import { finished, pipeline } from 'node:stream/promises'
@@ -36,7 +37,12 @@ import {
   OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
   OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
+  OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE,
+  OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE,
   OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
+  isColorDeliveryPlanningPayload,
+  isColorDeliveryRecipeProfile,
+  isColorMatchDeliveryPlanningPayload,
   validateOfflineGeneratedMusicCandidateNormalizeExecutionRequest,
   validateOfflineFfmpegExecutionRequest,
   validateOfflineFfprobeExecutionRequest,
@@ -157,6 +163,7 @@ import {
 const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local' as const
 const FFPROBE_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffprobe' as const
 const FFMPEG_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffmpeg' as const
+const PRIVATE_SEEKABLE_INPUT_PATH = '/private-input/source.media' as const
 const MEZZANINE_FINALIZER_ENTRYPOINT =
   '/usr/local/bin/reeditpro-ffmpeg-source-slice-finalizer' as const
 const MEZZANINE_FINALIZER_COMMAND = ['source-slice-finalization-v1'] as const
@@ -957,8 +964,7 @@ async function executeServerInjectedStreamingOutput(
     throw invalid('Structured streaming-output FFmpeg execution request was rejected.')
   }
   if (
-    request.payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' &&
-    request.payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1' &&
+    !isColorDeliveryRecipeProfile(request.payload.recipeProfileId) &&
     request.payload.recipeProfileId !== 'approved_voice_delivery_wav_v1' &&
     request.payload.recipeProfileId !== OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE &&
     request.payload.recipeProfileId !== OFFLINE_EDIT_BRIEF_SFX_PROFILE &&
@@ -1061,12 +1067,21 @@ async function executeMezzanineFinalizationServerInjected(
     const completedAt = new Date().toISOString()
     const requestEnvelopeSha256 =
       offlineMediaBinaryMezzanineFinalizationRequestSha256(request)
+    const approvedVoiceDelivery =
+      request.payload.audioFinalizationPolicy ===
+        'single_approved_voice_delivery_audio_encode_v2'
     const semanticEvidence = Object.freeze({
       fixedRecipeExecuted: true,
       recipeProfileId: request.payload.recipeProfileId,
       capacityProfileId: request.payload.capacityProfileId,
-      sourceBytesVerified: true,
+      sourceBytesVerified: !approvedVoiceDelivery,
+      approvedVoiceDeliveryBytesVerified: approvedVoiceDelivery,
+      approvedAudioBytesVerified: true,
+      approvedAudioInputKind: approvedVoiceDelivery
+        ? 'approved_voice_delivery_wav'
+        : 'approved_source_media',
       chunkBytesVerified: true,
+      approvedAudioDeliveryMode: inputs.source.inputMode,
       sourceDeliveryMode: inputs.source.inputMode,
       chunkDeliveryMode: 'private_verified_stream_v1',
       chunkCount: request.inputs.chunks.length,
@@ -1075,7 +1090,9 @@ async function executeMezzanineFinalizationServerInjected(
       frameDerivedConcatDurationsApplied: true,
       exactH264ExtradataTimebaseFrameColorCompatibilityVerified: true,
       h264VideoStreamCopiedWithoutDecodeOrReencode: true,
-      sourceAudioDecodedAndEncodedOnce: true,
+      sourceAudioDecodedAndEncodedOnce: !approvedVoiceDelivery,
+      approvedVoiceDeliveryAudioDecodedAndEncodedOnce:
+        approvedVoiceDelivery,
       chunkAudioIgnored: true,
       outputTimestampsNormalizedFromZeroWithinOneFrame: true,
       outputContainer: 'mp4',
@@ -1097,7 +1114,7 @@ async function executeMezzanineFinalizationServerInjected(
       distributedExecutionProven: false,
     })
     const attestationWithoutHash = {
-      domain: 'offline_media_binary_mezzanine_finalization_attestation_v1',
+      domain: 'offline_media_binary_mezzanine_finalization_attestation_v2',
       completedAt,
       imageIdentityHash: image.imageIdentityHash,
       toolId: 'ffmpeg' as const,
@@ -1117,7 +1134,7 @@ async function executeMezzanineFinalizationServerInjected(
       relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
       content: `${stableAuthorityStringify({
         recordVersion:
-          'offline-media-binary-mezzanine-finalization-attestation-record-v1',
+          'offline-media-binary-mezzanine-finalization-attestation-record-v2',
         source:
           'private_local_checksum_protected_media_binary_mezzanine_finalization',
         attestation: { ...attestationWithoutHash, recordId, attestationHash },
@@ -4240,16 +4257,23 @@ async function executeFfmpegRequest(
     ? request.payload
     : undefined
   const storytellingSpeechNormalization = Boolean(storytellingSpeechPayload)
-  const colorMatchDeliveryPayload = request.payload.recipeProfileId ===
-    'approved_source_color_match_delivery_matroska_v1'
+  const colorMatchDeliveryPayload = isColorMatchDeliveryPlanningPayload(
+    request.payload,
+  )
     ? request.payload
     : undefined
   const colorMatchDelivery = Boolean(colorMatchDeliveryPayload)
-  const colorDeliveryPayload = request.payload.recipeProfileId ===
-    'approved_source_color_delivery_matroska_v1'
+  const colorDeliveryPayload = isColorDeliveryPlanningPayload(
+    request.payload,
+  )
     ? request.payload
     : colorMatchDeliveryPayload
   const colorDelivery = Boolean(colorDeliveryPayload)
+  const cq12ColorDelivery =
+    request.payload.recipeProfileId ===
+      OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE ||
+    request.payload.recipeProfileId ===
+      OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE
   const voiceDeliveryPayload = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
     ? request.payload
     : undefined
@@ -4269,71 +4293,94 @@ async function executeFfmpegRequest(
         colorMatchDeliveryPayload!.referenceSourceSha256,
       )
     : undefined
-  const sourceColorAnalysis = colorDelivery
-    ? await analyzeVideoColor({
-        image,
-        source,
-        startFrame: trimStartFrame,
-        endFrameExclusive: trimEndFrameExclusive,
-        frameRate: request.payload.frameRate,
-        resourceObservations,
-      })
+  const privateInput = voiceDelivery || colorDelivery
+    ? await spoolVerifiedPrivateSeekableInput(source)
     : undefined
-  const referenceColorAnalysis = colorMatchDelivery
-    ? await analyzeVideoColor({
-        image,
-        source: referenceInput!,
-        startFrame: 0,
-        endFrameExclusive: colorMatchDeliveryPayload!.referenceDurationFrames,
-        frameRate: request.payload.frameRate,
-        resourceObservations,
-      })
-    : undefined
-  const storytellingSpeechSourceProbe = storytellingSpeechPayload
-    ? await probeStorytellingSpeechSource(
-        image,
-        source,
-        trimDurationFrames / storytellingSpeechPayload.frameRate,
-        1 / storytellingSpeechPayload.frameRate,
-        resourceObservations,
-      )
-    : undefined
-  const colorCorrection = sourceColorAnalysis && colorDeliveryPayload
-    ? referenceColorAnalysis
-      ? deriveReferenceMatchedColorCorrection(
-          sourceColorAnalysis,
-          referenceColorAnalysis,
-          colorDeliveryPayload.colorGradeStyle,
-          colorDeliveryPayload.intensity,
-        )
-      : deriveColorCorrection(sourceColorAnalysis, colorDeliveryPayload.colorGradeStyle,
-          colorDeliveryPayload.intensity)
-    : undefined
-  const command = exactSourceFramePayload
-    ? exactSourceFramePngCommand(exactSourceFramePayload)
-    : storytellingSpeechNormalization
-    ? storytellingSpeechNormalizationCommand(request)
-    : editBriefAudioDelivery
-      ? editBriefAudioDeliveryCommand(request)
-    : voiceDelivery
-    ? voiceDeliveryCommand(request)
-    : colorDelivery && colorCorrection
-      ? colorDeliveryCommand(request, colorCorrection)
-      : [
-        '-hide_banner', '-loglevel', 'error', '-nostdin',
-        '-i', 'pipe:0', '-map', '0:v:0',
-        '-vf', timelineFrameRangeNormalizationFilters({
+  let sourceColorAnalysis: ColorPixelAnalysis | undefined
+  let referenceColorAnalysis: ColorPixelAnalysis | undefined
+  let colorCorrection: DerivedColorCorrection | undefined
+  let storytellingSpeechSourceProbe:
+    Awaited<ReturnType<typeof probeStorytellingSpeechSource>> | undefined
+  let command: string[]
+  let requestPreflightCompleted = false
+  try {
+    sourceColorAnalysis = colorDelivery
+      ? await analyzeVideoColor({
+          image,
+          source,
+          ...(privateInput ? { privateInput } : {}),
           startFrame: trimStartFrame,
           endFrameExclusive: trimEndFrameExclusive,
           frameRate: request.payload.frameRate,
-        }).join(','),
-        '-an', '-threads', '1', '-c:v', 'ffv1', '-level', '3', '-f', 'nut', 'pipe:1',
-  ]
-  const container = await createContainer(image, FFMPEG_ENTRYPOINT, command, {
-    observeCgroupResources: true,
-  })
+          resourceObservations,
+        })
+      : undefined
+    referenceColorAnalysis = colorMatchDelivery
+      ? await analyzeVideoColor({
+          image,
+          source: referenceInput!,
+          startFrame: 0,
+          endFrameExclusive: colorMatchDeliveryPayload!.referenceDurationFrames,
+          frameRate: request.payload.frameRate,
+          resourceObservations,
+        })
+      : undefined
+    storytellingSpeechSourceProbe = storytellingSpeechPayload
+      ? await probeStorytellingSpeechSource(
+          image,
+          source,
+          trimDurationFrames / storytellingSpeechPayload.frameRate,
+          1 / storytellingSpeechPayload.frameRate,
+          resourceObservations,
+        )
+      : undefined
+    colorCorrection = sourceColorAnalysis && colorDeliveryPayload
+      ? referenceColorAnalysis
+        ? deriveReferenceMatchedColorCorrection(
+            sourceColorAnalysis,
+            referenceColorAnalysis,
+            colorDeliveryPayload.colorGradeStyle,
+            colorDeliveryPayload.intensity,
+          )
+        : deriveColorCorrection(
+            sourceColorAnalysis,
+            colorDeliveryPayload.colorGradeStyle,
+            colorDeliveryPayload.intensity,
+          )
+      : undefined
+    command = exactSourceFramePayload
+      ? exactSourceFramePngCommand(exactSourceFramePayload)
+      : storytellingSpeechNormalization
+      ? storytellingSpeechNormalizationCommand(request)
+      : editBriefAudioDelivery
+        ? editBriefAudioDeliveryCommand(request)
+      : voiceDelivery
+      ? voiceDeliveryCommand(request)
+      : colorDelivery && colorCorrection
+        ? colorDeliveryCommand(request, colorCorrection)
+        : [
+          '-hide_banner', '-loglevel', 'error', '-nostdin',
+          '-i', 'pipe:0', '-map', '0:v:0',
+          '-vf', timelineFrameRangeNormalizationFilters({
+            startFrame: trimStartFrame,
+            endFrameExclusive: trimEndFrameExclusive,
+            frameRate: request.payload.frameRate,
+          }).join(','),
+          '-an', '-threads', '1', '-c:v', 'ffv1', '-level', '3', '-f', 'nut', 'pipe:1',
+        ]
+    requestPreflightCompleted = true
+  } finally {
+    if (!requestPreflightCompleted) {
+      await privateInput?.cleanup().catch(() => undefined)
+    }
+  }
+  let container: OfflineMediaBinaryContainerHandle | undefined
   let streamedOutputSpool: DockerVerifiedPrivateOutputSpool | undefined
   try {
+    container = await createContainer(image, FFMPEG_ENTRYPOINT, command, {
+      observeCgroupResources: true,
+      ...(privateInput ? { privateInput } : {}),
+    })
     const before = await inspectContainer(container.id)
     const confinement = validateConfinement(
       before,
@@ -4352,16 +4399,23 @@ async function executeFfmpegRequest(
       : calculatedTimeoutMs
     const bufferedOutput = outputSink
       ? undefined
-      : await dockerVerifiedInput(
-          ['start', '--attach', '--interactive', container.id],
-          source,
-          OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES,
-          timeoutMs,
-        )
+      : privateInput
+        ? await dockerVerifiedSeekableInput(
+            ['start', '--attach', '--interactive', container.id],
+            privateInput,
+            OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES,
+            timeoutMs,
+          )
+        : await dockerVerifiedInput(
+            ['start', '--attach', '--interactive', container.id],
+            source,
+            OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES,
+            timeoutMs,
+          )
     if (outputSink) {
       streamedOutputSpool = await dockerVerifiedInputToPrivateOutputSpool({
         args: ['start', '--attach', '--interactive', container.id],
-        input: source,
+        ...(privateInput ? { seekableInput: privateInput } : { input: source }),
         maximumOutputBytes: outputSink.maximumBytes,
         expectedFormat: audioDelivery ? 'wav' : 'mkv',
         timeoutMs,
@@ -4655,6 +4709,9 @@ async function executeFfmpegRequest(
                 outputSampleRate: 48_000, outputChannels: 2,
                 highpassApplied: true, gentleCompressionApplied: true,
                 loudnessNormalizationApplied: true, truePeakLimiterApplied: true,
+                pictureLockEndPaddingBounded: true,
+                exactPictureLockSampleCount:
+                  trimDurationFrames * (48_000 / request.payload.frameRate),
                 targetLufs: voiceDeliveryPayload!.targetLufs,
                 truePeakDbtp: voiceDeliveryPayload!.truePeakDbtp,
                 outputLoudnessMeasured: true,
@@ -4750,8 +4807,21 @@ async function executeFfmpegRequest(
             : colorDelivery
               ? {
                   outputFrameCount: trimDurationFrames,
-                  outputContainer: 'matroska', outputVideoCodec: 'vp9', audioRemoved: true,
+                  outputContainer: 'matroska',
+                  outputVideoCodec: cq12ColorDelivery
+                    ? 'vp9_cq12'
+                    : 'vp9',
+                  professionalColorIntermediateEncodingProfile:
+                    cq12ColorDelivery
+                      ? 'libvpx_vp9_cq12_v1'
+                      : 'libvpx_vp9_lossless_v1',
+                  boundedStreamingCapacityProfileApplied:
+                    cq12ColorDelivery,
+                  audioRemoved: true,
                   timelineFrameRateNormalizationApplied: true,
+                  timelineTailFrameHoldPolicy:
+                    'clone_last_decoded_frame_to_approved_picture_lock_v1',
+                  timelineTailFrameHoldBoundedByApprovedRange: true,
                   colorGradeStyle: colorDeliveryPayload!.colorGradeStyle,
                   colorIntensity: colorDeliveryPayload!.intensity,
                   approvedColorOperationIds:
@@ -4783,6 +4853,8 @@ async function executeFfmpegRequest(
                   lgplColorChannelMixerApplied: true,
                   lgplColorLevelsApplied: true,
                   lgplClarityFilterApplied: colorCorrection!.clarityApplied,
+                  highBitDepthSourceSafeWorkingFormatApplied: true,
+                  colorWorkingPixelFormat: 'gbrp16le',
                   clippingProtectionVerified: true,
                   histogramQaPassed: true,
                   outputColorSpace: 'bt709',
@@ -4870,7 +4942,11 @@ async function executeFfmpegRequest(
     }
   } finally {
     await streamedOutputSpool?.cleanup().catch(() => undefined)
-    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+    if (container) {
+      await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+        .catch(() => undefined)
+    }
+    await privateInput?.cleanup().catch(() => undefined)
   }
 }
 
@@ -4905,18 +4981,35 @@ function voiceDeliveryCommand(
   }
   const startSeconds = (request.payload.trimStartFrame / request.payload.frameRate).toFixed(9)
   const endSeconds = (request.payload.trimEndFrameExclusive / request.payload.frameRate).toFixed(9)
-  const filters = [
+  const exactOutputSampleCount =
+    (request.payload.trimEndFrameExclusive - request.payload.trimStartFrame) *
+    (48_000 / request.payload.frameRate)
+  if (!Number.isSafeInteger(exactOutputSampleCount) || exactOutputSampleCount <= 0) {
+    throw invalid('Voice-delivery picture lock does not resolve to exact PCM samples.')
+  }
+  const voiceFilters = [
     `atrim=start=${startSeconds}:end=${endSeconds}`,
     'asetpts=PTS-STARTPTS',
     `highpass=f=${request.payload.highpassHz}`,
     'acompressor=threshold=0.125:ratio=2:attack=20:release=250:makeup=1.5',
     `loudnorm=I=${request.payload.targetLufs}:LRA=${request.payload.loudnessRangeLufs}:TP=${request.payload.truePeakDbtp}:linear=true`,
-    'alimiter=limit=0.891251:attack=5:release=50',
+    'alimiter=limit=0.891251:attack=5:release=50:level=false:latency=true',
     'aformat=sample_fmts=s16:sample_rates=48000:channel_layouts=stereo',
   ].join(',')
+  const silenceDurationSeconds = (exactOutputSampleCount / 48_000).toFixed(9)
+  const filterComplex = [
+    `[0:a:0]${voiceFilters}[voice]`,
+    '[1:a:0]aformat=sample_fmts=s16:sample_rates=48000:channel_layouts=stereo[silence]',
+    `[voice][silence]concat=n=2:v=0:a=1,atrim=end_sample=${exactOutputSampleCount},` +
+      'asetpts=PTS-STARTPTS[voice_out]',
+  ].join(';')
   return [
     '-hide_banner', '-loglevel', 'error', '-nostdin',
-    '-i', 'pipe:0', '-map', '0:a:0', '-vn', '-af', filters,
+    '-i', PRIVATE_SEEKABLE_INPUT_PATH,
+    '-f', 'lavfi',
+    '-i', `sine=frequency=0:sample_rate=48000:duration=${silenceDurationSeconds}:samples_per_frame=1600`,
+    '-filter_complex', filterComplex,
+    '-map', '[voice_out]', '-vn',
     '-ar', '48000', '-ac', '2', '-threads', '1',
     '-c:a', 'pcm_s16le', '-f', 'wav', 'pipe:1',
   ]
@@ -4940,7 +5033,7 @@ function editBriefAudioDeliveryCommand(
     `atrim=start=0:end=${endSeconds}`,
     'asetpts=PTS-STARTPTS',
     `loudnorm=I=${request.payload.targetLufs}:LRA=${request.payload.loudnessRangeLufs}:TP=${request.payload.truePeakDbtp}:linear=true:dual_mono=true`,
-    'alimiter=limit=0.794328:attack=5:release=50',
+    'alimiter=limit=0.794328:attack=5:release=50:level=false:latency=true',
     'aformat=sample_fmts=s16:sample_rates=48000:channel_layouts=stereo',
   ].join(',')
   return [
@@ -5008,6 +5101,7 @@ type ReferenceColorMatchQa = {
 async function analyzeVideoColor(input: {
   image: OfflineMediaBinaryImageEvidence
   source: OfflineMediaBinaryServerInjectedInput
+  privateInput?: DockerVerifiedPrivateInputSpool
   startFrame: number
   endFrameExclusive: number
   frameRate: number
@@ -5019,6 +5113,7 @@ async function analyzeVideoColor(input: {
 async function analyzeVideoColorWithConfinement(input: {
   image: OfflineMediaBinaryImageEvidence
   source: OfflineMediaBinaryServerInjectedInput
+  privateInput?: DockerVerifiedPrivateInputSpool
   startFrame: number
   endFrameExclusive: number
   frameRate: number
@@ -5040,18 +5135,24 @@ async function analyzeVideoColorWithConfinement(input: {
   ]
   const command = [
     '-hide_banner', '-loglevel', 'error', '-nostdin',
-    '-i', 'pipe:0', '-map', '0:v:0',
+    '-i', PRIVATE_SEEKABLE_INPUT_PATH, '-map', '0:v:0',
     '-vf', filters.join(','),
     '-fps_mode', 'passthrough', '-frames:v', String(selectedFrames.length),
     '-threads', '1', '-f', 'rawvideo', 'pipe:1',
   ]
-  const container = await createContainer(
-    input.image,
-    FFMPEG_ENTRYPOINT,
-    command,
-    input.resourceObservations ? { observeCgroupResources: true } : undefined,
-  )
+  const ownedPrivateInput = input.privateInput ??
+    await spoolVerifiedPrivateSeekableInput(input.source)
+  let container: OfflineMediaBinaryContainerHandle | undefined
   try {
+    container = await createContainer(
+      input.image,
+      FFMPEG_ENTRYPOINT,
+      command,
+      {
+        ...(input.resourceObservations ? { observeCgroupResources: true as const } : {}),
+        privateInput: ownedPrivateInput,
+      },
+    )
     const confinement = validateConfinement(
       await inspectContainer(container.id),
       input.image,
@@ -5059,9 +5160,9 @@ async function analyzeVideoColorWithConfinement(input: {
       command,
       container,
     )
-    const result = await dockerVerifiedInput(
+    const result = await dockerVerifiedSeekableInput(
       ['start', '--attach', '--interactive', container.id],
-      input.source,
+      ownedPrivateInput,
       256 * 1024,
       mediaExecutionTimeoutMs(
         input.source.byteLength,
@@ -5087,8 +5188,13 @@ async function analyzeVideoColorWithConfinement(input: {
       confinement,
     }
   } finally {
-    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
-      .catch(() => undefined)
+    if (container) {
+      await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+        .catch(() => undefined)
+    }
+    if (!input.privateInput) {
+      await ownedPrivateInput.cleanup().catch(() => undefined)
+    }
   }
 }
 
@@ -5303,11 +5409,16 @@ function colorDeliveryCommand(
   correction: DerivedColorCorrection,
 ): string[] {
   if (
-    request.payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' &&
-    request.payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1'
+    !isColorDeliveryPlanningPayload(request.payload) &&
+    !isColorMatchDeliveryPlanningPayload(request.payload)
   ) {
     throw invalid('Color-delivery command requires its exact approved recipe.')
   }
+  const cq12ColorDelivery =
+    request.payload.recipeProfileId ===
+      OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE ||
+    request.payload.recipeProfileId ===
+      OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE
   const saturationMatrix = colorSaturationMatrix(correction.saturation)
   const filters = [
     ...timelineFrameRangeNormalizationFilters({
@@ -5315,6 +5426,7 @@ function colorDeliveryCommand(
       endFrameExclusive: request.payload.trimEndFrameExclusive,
       frameRate: request.payload.frameRate,
     }),
+    'format=gbrp16le',
     `colorchannelmixer=rr=${correction.redMultiplier}:gg=${correction.greenMultiplier}:bb=${correction.blueMultiplier}:pc=lum:pa=0.75`,
     `colorchannelmixer=${saturationMatrix}`,
     'colorlevels=' + [
@@ -5330,7 +5442,6 @@ function colorDeliveryCommand(
       `romax=${correction.outputWhitePoint}`,
       `gomax=${correction.outputWhitePoint}`,
       `bomax=${correction.outputWhitePoint}`,
-      'preserve=lum',
     ].join(':'),
     ...(correction.clarityApplied ? ['unsharp=5:5:0.35:3:3:0'] : []),
     'format=yuv420p',
@@ -5338,10 +5449,20 @@ function colorDeliveryCommand(
   ].join(',')
   return [
     '-hide_banner', '-loglevel', 'error', '-nostdin',
-    '-i', 'pipe:0', '-map', '0:v:0', '-vf', filters,
-    '-an', '-threads', '1', '-c:v', 'libvpx-vp9',
-    '-lossless', '1', '-deadline', 'good', '-cpu-used', '2',
-    '-row-mt', '0', '-auto-alt-ref', '0', '-lag-in-frames', '0',
+    '-i', PRIVATE_SEEKABLE_INPUT_PATH, '-map', '0:v:0', '-vf', filters,
+    '-an', '-c:v', 'libvpx-vp9',
+    ...(cq12ColorDelivery
+      ? [
+          '-b:v', '0', '-crf', '12', '-deadline', 'good',
+          '-cpu-used', '4', '-row-mt', '1', '-threads', '2',
+          '-tile-columns', '0', '-frame-parallel', '0', '-g', '240',
+          '-lag-in-frames', '0', '-auto-alt-ref', '0',
+        ]
+      : [
+          '-threads', '1', '-lossless', '1', '-deadline', 'good',
+          '-cpu-used', '2', '-row-mt', '0', '-auto-alt-ref', '0',
+          '-lag-in-frames', '0',
+        ]),
     '-pix_fmt', 'yuv420p',
     '-color_primaries', 'bt709', '-color_trc', 'bt709',
     '-colorspace', 'bt709', '-color_range', 'tv',
@@ -5366,12 +5487,17 @@ function timelineFrameRangeNormalizationFilters(input: {
   ) {
     throw invalid('Approved timeline frame range cannot be normalized.')
   }
-  const startSeconds = (input.startFrame / input.frameRate).toFixed(9)
-  const endSeconds = (input.endFrameExclusive / input.frameRate).toFixed(9)
   return [
-    `trim=start=${startSeconds}:end=${endSeconds}`,
-    'setpts=PTS-STARTPTS',
     `fps=fps=${input.frameRate}:round=near`,
+    // The approved edit clock can legitimately extend a few frames beyond the
+    // encoded video stream when the source container carries a longer audio
+    // tail. Hold the last decoded picture only as far as the approved range,
+    // then trim to the exact requested frame count. Without this bounded pad,
+    // the terminal source slice silently loses frames after frame-rate
+    // normalization and fails exact output QA.
+    `tpad=stop_mode=clone:stop=${input.endFrameExclusive}`,
+    `trim=start_frame=${input.startFrame}:end_frame=${input.endFrameExclusive}`,
+    'setpts=PTS-STARTPTS',
   ]
 }
 
@@ -5532,7 +5658,7 @@ async function probeLongFormMasterOutput(
       ['start', '--attach', '--interactive', container.id], source,
       2 * 1024 * 1024, LONG_FORM_MASTER_ASSEMBLY_TIMEOUT_MS,
     )
-    if (result.exitCode !== 0 || result.stderr.length > 0) {
+    if (result.exitCode !== 0) {
       throw unavailable('Long-form master output probe failed closed.')
     }
     const parsed = record(JSON.parse(result.stdout.toString('utf8')))
@@ -5707,7 +5833,7 @@ async function probeCustomerDeliveryMuxOutput(
       2 * 1024 * 1024,
       CUSTOMER_DELIVERY_MUX_TIMEOUT_MS,
     )
-    if (result.exitCode !== 0 || result.stderr.length > 0) {
+    if (result.exitCode !== 0) {
       throw unavailable('Customer-delivery mux output probe failed closed.')
     }
     const parsed = record(JSON.parse(result.stdout.toString('utf8')))
@@ -6226,15 +6352,20 @@ async function probeFfmpegOutput(
   const command = [
     '-v', 'error', '-count_frames', '-show_entries',
     'format=format_name,duration,size:stream=codec_name,codec_type,width,height,avg_frame_rate,nb_read_frames,pix_fmt,color_space,color_transfer,color_primaries,color_range',
-    '-print_format', 'json', '-i', 'pipe:0',
+    '-print_format', 'json', '-i', PRIVATE_SEEKABLE_INPUT_PATH,
   ]
-  const container = await createContainer(
-    image,
-    FFPROBE_ENTRYPOINT,
-    command,
-    resourceObservations ? { observeCgroupResources: true } : undefined,
-  )
+  const privateInput = await spoolVerifiedPrivateSeekableInput(source)
+  let container: OfflineMediaBinaryContainerHandle | undefined
   try {
+    container = await createContainer(
+      image,
+      FFPROBE_ENTRYPOINT,
+      command,
+      {
+        ...(resourceObservations ? { observeCgroupResources: true as const } : {}),
+        privateInput,
+      },
+    )
     validateConfinement(
       await inspectContainer(container.id),
       image,
@@ -6242,9 +6373,9 @@ async function probeFfmpegOutput(
       command,
       container,
     )
-    const result = await dockerVerifiedInput(
+    const result = await dockerVerifiedSeekableInput(
       ['start', '--attach', '--interactive', container.id],
-      source,
+      privateInput,
       2 * 1024 * 1024,
       mediaExecutionTimeoutMs(source.byteLength),
     )
@@ -6285,7 +6416,11 @@ async function probeFfmpegOutput(
       durationSeconds: optionalNumber(format.duration), sizeBytes: optionalInteger(format.size),
     }
   } finally {
-    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+    if (container) {
+      await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+        .catch(() => undefined)
+    }
+    await privateInput.cleanup().catch(() => undefined)
   }
 }
 
@@ -6314,15 +6449,20 @@ async function probeFfmpegVoiceDeliveryOutput(
   const command = [
     '-v', 'error', '-show_entries',
     'format=format_name,duration,size:stream=codec_name,codec_type,sample_rate,channels,channel_layout,duration',
-    '-print_format', 'json', '-i', 'pipe:0',
+    '-print_format', 'json', '-i', PRIVATE_SEEKABLE_INPUT_PATH,
   ]
-  const container = await createContainer(
-    image,
-    FFPROBE_ENTRYPOINT,
-    command,
-    resourceObservations ? { observeCgroupResources: true } : undefined,
-  )
+  const privateInput = await spoolVerifiedPrivateSeekableInput(source)
+  let container: OfflineMediaBinaryContainerHandle | undefined
   try {
+    container = await createContainer(
+      image,
+      FFPROBE_ENTRYPOINT,
+      command,
+      {
+        ...(resourceObservations ? { observeCgroupResources: true as const } : {}),
+        privateInput,
+      },
+    )
     validateConfinement(
       await inspectContainer(container.id),
       image,
@@ -6330,9 +6470,9 @@ async function probeFfmpegVoiceDeliveryOutput(
       command,
       container,
     )
-    const result = await dockerVerifiedInput(
+    const result = await dockerVerifiedSeekableInput(
       ['start', '--attach', '--interactive', container.id],
-      source,
+      privateInput,
       2 * 1024 * 1024,
       mediaExecutionTimeoutMs(source.byteLength),
     )
@@ -6376,7 +6516,11 @@ async function probeFfmpegVoiceDeliveryOutput(
       durationToleranceSeconds, sizeBytes: optionalInteger(format.size),
     }
   } finally {
-    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+    if (container) {
+      await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+        .catch(() => undefined)
+    }
+    await privateInput.cleanup().catch(() => undefined)
   }
 }
 
@@ -6396,18 +6540,20 @@ async function measureFfmpegVoiceDeliveryOutput(
 ) {
   const command = [
     '-hide_banner', '-nostats', '-nostdin',
-    '-i', 'pipe:0',
+    '-i', PRIVATE_SEEKABLE_INPUT_PATH,
     '-map', '0:a:0', '-vn', '-sn', '-dn',
     '-af', 'ebur128=peak=true',
     '-f', 'null', '-',
   ]
-  const container = await createContainer(
-    image,
-    FFMPEG_ENTRYPOINT,
-    command,
-    { observeCgroupResources: true },
-  )
+  const privateInput = await spoolVerifiedPrivateSeekableInput(source)
+  let container: OfflineMediaBinaryContainerHandle | undefined
   try {
+    container = await createContainer(
+      image,
+      FFMPEG_ENTRYPOINT,
+      command,
+      { observeCgroupResources: true, privateInput },
+    )
     const confinement = validateConfinement(
       await inspectContainer(container.id),
       image,
@@ -6415,9 +6561,9 @@ async function measureFfmpegVoiceDeliveryOutput(
       command,
       container,
     )
-    const result = await dockerVerifiedInput(
+    const result = await dockerVerifiedSeekableInput(
       ['start', '--attach', '--interactive', container.id],
-      source,
+      privateInput,
       64 * 1024,
       mediaExecutionTimeoutMs(source.byteLength),
     )
@@ -6526,8 +6672,11 @@ async function measureFfmpegVoiceDeliveryOutput(
       confinement,
     })
   } finally {
-    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
-      .catch(() => undefined)
+    if (container) {
+      await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+        .catch(() => undefined)
+    }
+    await privateInput.cleanup().catch(() => undefined)
   }
 }
 
@@ -7356,13 +7505,17 @@ interface OfflineMediaBinaryContainerHandle {
   resourceObserver?: {
     nonce: string
   }
+  privateInput?: DockerVerifiedPrivateInputSpool
 }
 
 async function createContainer(
   image: OfflineMediaBinaryImageEvidence,
   entrypoint: OfflineMediaBinaryEntrypoint,
   command: string[],
-  options?: { observeCgroupResources: true },
+  options?: {
+    observeCgroupResources?: true
+    privateInput?: DockerVerifiedPrivateInputSpool
+  },
 ): Promise<OfflineMediaBinaryContainerHandle> {
   const customerDeliveryMuxEntrypoint =
     entrypoint === CUSTOMER_DELIVERY_MUX_ENTRYPOINT
@@ -7391,12 +7544,20 @@ async function createContainer(
     ? PRIVATE_MEDIA_CGROUP_RESOURCE_OBSERVER_ENTRYPOINT
     : entrypoint
   const configuredCommand = resourceObserver?.command ?? command
+  const privateInputArguments = options?.privateInput
+    ? [
+        '--mount',
+        `type=bind,source=${options.privateInput.absolutePath},` +
+        `target=${PRIVATE_SEEKABLE_INPUT_PATH},readonly,bind-propagation=rprivate`,
+      ]
+    : []
   const created = await dockerBuffer([
     'create', '--interactive', '--network', 'none', '--read-only',
     '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true',
     '--pids-limit', '128', '--memory', memory, '--memory-swap', memory,
     '--cpus', cpus,
     '--tmpfs', `/tmp:rw,noexec,nosuid,nodev,size=${tmpfsSizeBytes},mode=1777`,
+    ...privateInputArguments,
     '--user', '65532:65532', '--entrypoint', configuredEntrypoint,
     image.imageId, ...configuredCommand,
   ], undefined, 64 * 1024)
@@ -7409,6 +7570,7 @@ async function createContainer(
     ...(resourceObserver
       ? { resourceObserver: { nonce: resourceObserver.nonce } }
       : {}),
+    ...(options?.privateInput ? { privateInput: options.privateInput } : {}),
   }
 }
 
@@ -7449,6 +7611,19 @@ function validateConfinement(
   const configuredCommand = container?.resourceObserver
     ? [container.resourceObserver.nonce, entrypoint, ...command]
     : command
+  const mounts = Array.isArray(inspect.Mounts)
+    ? inspect.Mounts.map(record)
+    : []
+  const expectedPrivateInput = container?.privateInput
+  const privateInputMount = mounts[0]
+  const privateInputMountValid = expectedPrivateInput
+    ? mounts.length === 1 &&
+      privateInputMount?.Type === 'bind' &&
+      privateInputMount.Source === expectedPrivateInput.absolutePath &&
+      privateInputMount.Destination === PRIVATE_SEEKABLE_INPUT_PATH &&
+      privateInputMount.RW === false &&
+      privateInputMount.Propagation === 'rprivate'
+    : mounts.length === 0
   if (
     inspect.Image !== image.imageId || host.NetworkMode !== 'none' || host.ReadonlyRootfs !== true ||
     host.Privileged !== false || stringArray(host.CapDrop).join('|') !== 'ALL' ||
@@ -7460,7 +7635,7 @@ function validateConfinement(
     stringArray(config.Entrypoint).join('|') !== configuredEntrypoint ||
     stableAuthorityStringify(stringArray(config.Cmd)) !==
       stableAuthorityStringify(configuredCommand) ||
-    (Array.isArray(inspect.Mounts) && inspect.Mounts.length > 0) ||
+    !privateInputMountValid ||
     (Array.isArray(host.Binds) && host.Binds.length > 0) ||
     !tmpfsPolicy.includes('noexec') ||
     !tmpfsPolicy.includes(`size=${tmpfsSizeBytes}`)
@@ -7472,6 +7647,16 @@ function validateConfinement(
     nanoCpus, tmpfsPath: '/tmp', tmpfsSizeBytes,
     user: '65532:65532',
     callerBindsPresent: false, callerMountsPresent: false, callerEnvironmentPresent: false,
+    ...(expectedPrivateInput
+      ? {
+          serverOwnedReadOnlyInputMount: {
+            destination: PRIVATE_SEEKABLE_INPUT_PATH,
+            readOnly: true as const,
+            byteLength: expectedPrivateInput.byteLength,
+            sha256: expectedPrivateInput.sha256,
+          },
+        }
+      : {}),
     serverOwnedEntrypoint: entrypoint, serverDerivedArgumentsOnly: true,
     ...(container?.resourceObserver
       ? {
@@ -7721,7 +7906,12 @@ async function policyHashes(): Promise<Record<string, string>> {
   return Object.fromEntries(await Promise.all(names.map(async (name) => [name, sha256(await readFile(join(directory, name)))])))
 }
 
-function dockerBuffer(args: string[], input: Buffer | undefined, maximumBytes: number): Promise<{ exitCode: number; stdout: Buffer; stderr: Buffer }> {
+function dockerBuffer(
+  args: string[],
+  input: Buffer | undefined,
+  maximumBytes: number,
+  timeoutMs: number = DOCKER_CONTROL_TIMEOUT_MS,
+): Promise<{ exitCode: number; stdout: Buffer; stderr: Buffer }> {
   return new Promise((resolve, reject) => {
     const invocation = createPrivateDockerCliInvocation(args)
     const child = spawn(invocation.executable, invocation.args, { stdio: ['pipe', 'pipe', 'pipe'], env: invocation.env })
@@ -7732,7 +7922,7 @@ function dockerBuffer(args: string[], input: Buffer | undefined, maximumBytes: n
     const timer = setTimeout(() => {
       child.kill('SIGKILL')
       reject(unavailable('Docker media operation timed out.'))
-    }, DOCKER_CONTROL_TIMEOUT_MS)
+    }, timeoutMs)
     child.stdout.on('data', (chunk: Buffer) => {
       stdoutBytes += chunk.byteLength
       if (stdoutBytes > maximumBytes) child.kill('SIGKILL')
@@ -7752,6 +7942,21 @@ function dockerBuffer(args: string[], input: Buffer | undefined, maximumBytes: n
     if (input) child.stdin.end(input)
     else child.stdin.end()
   })
+}
+
+async function dockerVerifiedSeekableInput(
+  args: string[],
+  input: DockerVerifiedPrivateInputSpool,
+  maximumOutputBytes: number,
+  timeoutMs: number,
+): Promise<{ exitCode: number; stdout: Buffer; stderr: Buffer }> {
+  if (
+    !input ||
+    !Number.isSafeInteger(input.byteLength) ||
+    input.byteLength < 64 ||
+    !/^[a-f0-9]{64}$/u.test(input.sha256)
+  ) throw invalid('Seekable FFmpeg input authority is invalid.')
+  return dockerBuffer(args, undefined, maximumOutputBytes, timeoutMs)
 }
 
 async function dockerVerifiedInput(
@@ -8028,6 +8233,13 @@ interface DockerVerifiedPrivateOutputSpool {
   sha256: string
   signature: Buffer
   source: OfflineMediaBinaryServerInjectedInput
+  cleanup(): Promise<void>
+}
+
+interface DockerVerifiedPrivateInputSpool {
+  absolutePath: string
+  byteLength: number
+  sha256: string
   cleanup(): Promise<void>
 }
 
@@ -9368,7 +9580,12 @@ function mezzanineFinalizationProtocolStream(
       yield Buffer.from('\n', 'utf8')
     }
     yield line([
-      'source', request.inputs.source.byteLength, request.inputs.source.sha256,
+      request.payload.audioFinalizationPolicy ===
+        'single_approved_voice_delivery_audio_encode_v2'
+        ? 'voice'
+        : 'source',
+      request.inputs.source.byteLength,
+      request.inputs.source.sha256,
     ])
     yield* verifiedBlob(
       inputs.source,
@@ -9533,14 +9750,99 @@ async function dockerVerifiedMezzanineInputToPrivateOutputSpool(input: {
   }
 }
 
+async function spoolVerifiedPrivateSeekableInput(
+  input: OfflineMediaBinaryServerInjectedInput,
+): Promise<DockerVerifiedPrivateInputSpool> {
+  assertServerInjectedInput(input, input.byteLength, input.sha256)
+  const spoolId = randomBytes(16).toString('hex')
+  const relativeDirectoryPath = `runtime-input-spools/${spoolId}`
+  const relativeArtifactPath = `${relativeDirectoryPath}/source.media`
+  const createdDirectory = await createPrivateDirectoryCreateOnlyWithinRoot({
+    rootPath: STORAGE_ROOT,
+    relativePath: relativeDirectoryPath,
+  })
+  let sourceStream: Readable | undefined
+  try {
+    sourceStream = await input.openStream()
+    if (!sourceStream || typeof sourceStream.pipe !== 'function') {
+      throw new Error('Private media input did not return a readable stream.')
+    }
+    const persisted = await writePrivateStreamCreateOnlyWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: relativeArtifactPath,
+      stream: sourceStream,
+      maximumBytes: input.byteLength,
+    })
+    if (
+      persisted.byteLength !== input.byteLength ||
+      persisted.checksumSha256 !== input.sha256
+    ) throw new Error('Seekable private media input did not match its exact commitment.')
+    const handle = await open(
+      persisted.absolutePath,
+      constants.O_RDONLY | constants.O_NOFOLLOW,
+    )
+    try {
+      const stat = await handle.stat()
+      if (!stat.isFile() || stat.size !== input.byteLength) {
+        throw new Error('Seekable private media input is not an exact regular file.')
+      }
+      // The owned parent remains 0700. Read-only world access is needed only
+      // because the rootless container UID differs from the host account.
+      await handle.chmod(0o444)
+    } finally {
+      await handle.close()
+    }
+    let cleaned = false
+    return {
+      absolutePath: persisted.absolutePath,
+      byteLength: persisted.byteLength,
+      sha256: persisted.checksumSha256,
+      async cleanup() {
+        if (cleaned) return
+        const removed = await removePrivateDirectoryTreeWithinRoot({
+          rootPath: STORAGE_ROOT,
+          relativePath: relativeDirectoryPath,
+          expectedIdentity: createdDirectory.identity,
+        })
+        if (!removed.removed) {
+          throw unavailable('Seekable private media input disappeared before cleanup.')
+        }
+        cleaned = true
+      },
+    }
+  } catch (error) {
+    sourceStream?.destroy()
+    await removePrivateDirectoryTreeWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: relativeDirectoryPath,
+      expectedIdentity: createdDirectory.identity,
+    }).catch(() => undefined)
+    if (error instanceof ApiError) throw error
+    throw unavailable('Seekable private media input failed exact staging.')
+  }
+}
+
 async function dockerVerifiedInputToPrivateOutputSpool(input: {
   args: string[]
-  input: OfflineMediaBinaryServerInjectedInput
+  input?: OfflineMediaBinaryServerInjectedInput
+  seekableInput?: DockerVerifiedPrivateInputSpool
   maximumOutputBytes: number
   expectedFormat: 'mkv' | 'wav'
   timeoutMs: number
 }): Promise<DockerVerifiedPrivateOutputSpool> {
-  assertServerInjectedInput(input.input, input.input.byteLength, input.input.sha256)
+  if (Boolean(input.input) === Boolean(input.seekableInput)) {
+    throw invalid('Streaming FFmpeg input authority is ambiguous.')
+  }
+  if (input.input) {
+    assertServerInjectedInput(input.input, input.input.byteLength, input.input.sha256)
+  } else if (
+    !input.seekableInput ||
+    !Number.isSafeInteger(input.seekableInput.byteLength) ||
+    input.seekableInput.byteLength < 64 ||
+    !/^[a-f0-9]{64}$/u.test(input.seekableInput.sha256)
+  ) {
+    throw invalid('Seekable FFmpeg input authority is invalid.')
+  }
   const expectedMaximum = input.expectedFormat === 'wav'
     ? OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES
     : OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES
@@ -9604,22 +9906,27 @@ async function dockerVerifiedInputToPrivateOutputSpool(input: {
   let inputByteLength = 0
   const inputChecksum = createHash('sha256')
   try {
-    sourceStream = await input.input.openStream()
-    if (!sourceStream || typeof sourceStream.pipe !== 'function') {
-      throw new Error('Private media input did not return a readable stream.')
-    }
-    const inputVerifier = new Transform({
-      transform(chunk, _encoding, callback) {
-        const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
-        inputByteLength += bytes.byteLength
-        if (inputByteLength > input.input.byteLength) {
-          callback(new Error('Private media input exceeded its exact byte commitment.'))
-          return
-        }
-        inputChecksum.update(bytes)
-        callback(null, bytes)
-      },
-    })
+    const inputPipeline = input.input
+      ? (async () => {
+          sourceStream = await input.input!.openStream()
+          if (!sourceStream || typeof sourceStream.pipe !== 'function') {
+            throw new Error('Private media input did not return a readable stream.')
+          }
+          const inputVerifier = new Transform({
+            transform(chunk, _encoding, callback) {
+              const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+              inputByteLength += bytes.byteLength
+              if (inputByteLength > input.input!.byteLength) {
+                callback(new Error('Private media input exceeded its exact byte commitment.'))
+                return
+              }
+              inputChecksum.update(bytes)
+              callback(null, bytes)
+            },
+          })
+          await pipeline(sourceStream, inputVerifier, child.stdin)
+        })()
+      : Promise.resolve().then(() => child.stdin.end())
     const persistedPromise = writePrivateStreamCreateOnlyWithinRoot({
       rootPath: STORAGE_ROOT,
       relativePath: relativeArtifactPath,
@@ -9627,15 +9934,23 @@ async function dockerVerifiedInputToPrivateOutputSpool(input: {
       maximumBytes: input.maximumOutputBytes,
     })
     const [, result, persisted] = await Promise.all([
-      pipeline(sourceStream, inputVerifier, child.stdin),
+      inputPipeline,
       resultPromise,
       persistedPromise,
     ])
     const signature = Buffer.concat(signatureChunks, signatureByteLength)
-    if (
-      inputByteLength !== input.input.byteLength ||
-      inputChecksum.digest('hex') !== input.input.sha256
-    ) throw new Error('Private media input did not match its exact byte commitment.')
+    if (input.input) {
+      if (
+        inputByteLength !== input.input.byteLength ||
+        inputChecksum.digest('hex') !== input.input.sha256
+      ) throw new Error('Private media input did not match its exact byte commitment.')
+    }
+    if (result.exitCode !== 0) {
+      throw unavailable(
+        `Confined FFmpeg stream failed before output verification ` +
+        `(exit=${result.exitCode};diagnostic=${safeFfmpegDiagnostic(result.stderr)}).`,
+      )
+    }
     if (
       persisted.byteLength < 44 || persisted.byteLength > input.maximumOutputBytes ||
       (input.expectedFormat === 'mkv'

@@ -6,11 +6,22 @@ import { Button } from '../components/Button'
 import { useProjectPersistenceScope } from '../hooks/useProjectPersistenceScope'
 import { createLocalProjectRecord, saveLocalProjectRecord } from '../lib/local-projects'
 import {
-  createBackendProjectForInternalTesting,
+  createBackendProjectForInternalTestingResult,
   createProjectCreateIntentId,
+  normalizeProjectCreateIntentId,
 } from '../lib/project-backend-sync'
+import { buildProjectPersistenceScopeStorageKey } from '../lib/project-persistence-scope'
 import { launchEditingCategories } from '../lib/product-taxonomy'
 import type { EditingCategory } from '../types/reeditpro'
+
+const PROJECT_CREATE_DRAFT_STORAGE_PREFIX = 'reeditpro.projectCreateDraft.v1'
+
+type ProjectCreateDraft = {
+  readonly version: 1
+  readonly projectName: string
+  readonly category: EditingCategory
+  readonly createIntentId: string
+}
 
 const categoryDescriptions: Partial<Record<EditingCategory, string>> = {
   storytelling: 'Story, proof, personal, and case-based edits.',
@@ -23,12 +34,28 @@ const categoryDescriptions: Partial<Record<EditingCategory, string>> = {
 export function CreateProjectPage() {
   const navigate = useNavigate()
   const projectPersistenceScope = useProjectPersistenceScope()
-  const [projectName, setProjectName] = useState('')
-  const [category, setCategory] = useState<EditingCategory>('storytelling')
+  const draftStorageKey = useMemo(
+    () => buildProjectPersistenceScopeStorageKey(
+      PROJECT_CREATE_DRAFT_STORAGE_PREFIX,
+      projectPersistenceScope,
+    ),
+    [projectPersistenceScope],
+  )
+  const initialDraft = useMemo(
+    () => readProjectCreateDraft(draftStorageKey),
+    [draftStorageKey],
+  )
+  const [projectName, setProjectName] = useState(initialDraft?.projectName ?? '')
+  const [category, setCategory] = useState<EditingCategory>(
+    initialDraft?.category ?? 'storytelling',
+  )
   const [starting, setStarting] = useState(false)
   const [nameError, setNameError] = useState('')
+  const [submitError, setSubmitError] = useState('')
   const [saveLabel, setSaveLabel] = useState('Nothing is created until you continue.')
-  const createIntentIdRef = useRef(createProjectCreateIntentId())
+  const createIntentIdRef = useRef(
+    initialDraft?.createIntentId ?? createProjectCreateIntentId(),
+  )
 
   const selectedCategory = useMemo(
     () => launchEditingCategories.find((item) => item.value === category) ?? launchEditingCategories[0],
@@ -44,30 +71,51 @@ export function CreateProjectPage() {
     }
 
     setNameError('')
+    setSubmitError('')
     setStarting(true)
     setSaveLabel('Creating project...')
+    persistProjectCreateDraft(draftStorageKey, {
+      version: 1,
+      projectName: normalizedProjectName,
+      category,
+      createIntentId: createIntentIdRef.current,
+    })
 
-    const backendProject = await createBackendProjectForInternalTesting({
+    const backendResult = await createBackendProjectForInternalTestingResult({
       category,
       createIntentId: createIntentIdRef.current,
       projectName: normalizedProjectName,
       scope: projectPersistenceScope,
     })
-    if (!backendProject && projectPersistenceScope.authMode === 'supabase') {
+    if (
+      backendResult.status === 'failed'
+      || (
+        backendResult.status === 'not_configured'
+        && projectPersistenceScope.authMode !== 'local_test'
+      )
+    ) {
       setStarting(false)
-      setSaveLabel('Project creation was not authorized. Revalidate the signed-in workspace and try again.')
+      setSubmitError(
+        backendResult.status === 'failed'
+          ? backendResult.errorMessage
+          : 'Private workspace project creation is not configured. No local duplicate was created.',
+      )
+      setSaveLabel('Project not created. Your name and context are preserved for a safe retry.')
       return
     }
+    const backendProjectId =
+      backendResult.status === 'created' ? backendResult.projectId : undefined
     const project = createLocalProjectRecord({
       category,
-      projectId: backendProject?.id ?? `local-project-${createIntentIdRef.current}`,
+      projectId: backendProjectId ?? `local-project-${createIntentIdRef.current}`,
       name: normalizedProjectName,
       workspaceId: projectPersistenceScope.workspaceId,
     })
     saveLocalProjectRecord(projectPersistenceScope, project)
-    setSaveLabel(backendProject
+    setSaveLabel(backendProjectId
       ? 'Project created. Open it to add an edit.'
-      : 'Project created locally. Account sync may be unavailable.')
+      : 'Local-test project created. No account sync was attempted.')
+    removeProjectCreateDraft(draftStorageKey)
     navigate(`/projects/${encodeURIComponent(project.id)}`)
   }
 
@@ -103,9 +151,18 @@ export function CreateProjectPage() {
                 data-testid="project-create-name-input"
                 disabled={starting}
                 onChange={(event) => {
-                  setProjectName(event.currentTarget.value)
+                  const nextProjectName = event.currentTarget.value
+                  const nextCreateIntentId = createProjectCreateIntentId()
+                  setProjectName(nextProjectName)
                   setNameError('')
-                  createIntentIdRef.current = createProjectCreateIntentId()
+                  setSubmitError('')
+                  createIntentIdRef.current = nextCreateIntentId
+                  persistProjectCreateDraft(draftStorageKey, {
+                    version: 1,
+                    projectName: nextProjectName,
+                    category,
+                    createIntentId: nextCreateIntentId,
+                  })
                 }}
                 placeholder="Example: Summer launch campaign"
                 required
@@ -123,8 +180,18 @@ export function CreateProjectPage() {
               <select
                 disabled={starting}
                 onChange={(event) => {
-                  setCategory(event.currentTarget.value as EditingCategory)
-                  createIntentIdRef.current = createProjectCreateIntentId()
+                  const nextCategory =
+                    event.currentTarget.value as EditingCategory
+                  const nextCreateIntentId = createProjectCreateIntentId()
+                  setCategory(nextCategory)
+                  setSubmitError('')
+                  createIntentIdRef.current = nextCreateIntentId
+                  persistProjectCreateDraft(draftStorageKey, {
+                    version: 1,
+                    projectName,
+                    category: nextCategory,
+                    createIntentId: nextCreateIntentId,
+                  })
                 }}
                 value={category}
               >
@@ -143,7 +210,13 @@ export function CreateProjectPage() {
               </Button>
               <Button disabled={starting} to="/projects" variant="ghost">Cancel</Button>
             </div>
-            <span aria-live="polite">{saveLabel}</span>
+            <span
+              aria-live="polite"
+              className={submitError ? 'project-create-submit-error' : undefined}
+              role={submitError ? 'alert' : undefined}
+            >
+              {submitError || saveLabel}
+            </span>
           </footer>
         </form>
 
@@ -166,4 +239,56 @@ export function CreateProjectPage() {
       </section>
     </AppShell>
   )
+}
+
+function readProjectCreateDraft(
+  storageKey: string,
+): ProjectCreateDraft | undefined {
+  if (typeof window === 'undefined') return
+  try {
+    const value: unknown = JSON.parse(window.sessionStorage.getItem(storageKey) ?? '')
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return
+    const draft = value as Record<string, unknown>
+    if (
+      draft.version !== 1
+      || typeof draft.projectName !== 'string'
+      || draft.projectName.length > 160
+      || !isEditingCategory(draft.category)
+      || typeof draft.createIntentId !== 'string'
+      || !normalizeProjectCreateIntentId(draft.createIntentId)
+    ) return
+    return {
+      version: 1,
+      projectName: draft.projectName,
+      category: draft.category,
+      createIntentId: draft.createIntentId,
+    }
+  } catch {
+    return
+  }
+}
+
+function persistProjectCreateDraft(
+  storageKey: string,
+  draft: ProjectCreateDraft,
+): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.sessionStorage.setItem(storageKey, JSON.stringify(draft))
+  } catch {
+    // The visible form state still preserves the draft for this mounted page.
+  }
+}
+
+function removeProjectCreateDraft(storageKey: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.sessionStorage.removeItem(storageKey)
+  } catch {
+    // A stale recovery draft is safe because project creation is idempotent.
+  }
+}
+
+function isEditingCategory(value: unknown): value is EditingCategory {
+  return launchEditingCategories.some((category) => category.value === value)
 }

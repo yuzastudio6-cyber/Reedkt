@@ -1,8 +1,11 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page, type TestInfo } from '@playwright/test'
 import { createHash } from 'node:crypto'
 import { readFile, stat } from 'node:fs/promises'
 import { extname, resolve } from 'node:path'
 
+import {
+  REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES,
+} from '../../src/types/large-media'
 import { setViewport } from './helpers/layout'
 import { clickWhenReady } from './helpers/routes'
 import {
@@ -22,6 +25,14 @@ const localStorageRoot =
 const externalFixturePath =
   process.env.PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_FIXTURE_PATH?.trim()
 const fixturePath = externalFixturePath ? resolve(externalFixturePath) : ''
+const fullSourcePrivateReviewExpected =
+  process.env.PLAYWRIGHT_FULL_SOURCE_PRIVATE_REVIEW_EXPECTED === 'true'
+const privatePreparationTimeoutMs = fullSourcePrivateReviewExpected
+  ? 30 * 60_000
+  : 15 * 60_000
+const completeJourneyTimeoutMs = fullSourcePrivateReviewExpected
+  ? 60 * 60_000
+  : 20 * 60_000
 
 let fixtureReady = false
 let fixtureSkipReason = 'Real video fixture path was not provided.'
@@ -55,7 +66,7 @@ test.describe('Active signed-in private review through the canonical local API',
   test('executes only the approved package and accepts the private review', async ({
     page,
   }, testInfo) => {
-    test.setTimeout(20 * 60_000)
+    test.setTimeout(completeJourneyTimeoutMs)
     test.skip(!fixtureReady, fixtureSkipReason)
     await expectLocalApiHealth(apiBaseUrl)
     await setViewport(page, 1440)
@@ -103,7 +114,7 @@ test.describe('Active signed-in private review through the canonical local API',
       'canonical-private-edit-preparation-blocked',
     )
     await expect(privateReviewReady.or(preparationBlocked)).toBeVisible({
-      timeout: 15 * 60_000,
+      timeout: privatePreparationTimeoutMs,
     })
     if (await preparationBlocked.isVisible()) {
       throw new Error(
@@ -113,9 +124,11 @@ test.describe('Active signed-in private review through the canonical local API',
       )
     }
 
-    await clickWhenReady(page.getByTestId('canonical-private-review-load'))
-    const player = page.getByTestId('canonical-private-review-player')
-    await expect(player).toBeVisible({ timeout: 60_000 })
+    const player = await loadAndVerifyPrivateReview(
+      page,
+      testInfo,
+      'initial-private-review-media-response.json',
+    )
     const source = await player
       .locator('video')
       .evaluate((video) => (video as HTMLVideoElement).currentSrc)
@@ -219,7 +232,7 @@ test.describe('Active signed-in private review through the canonical local API',
     )
     await expect(
       revisedPrivateReviewReady.or(revisedPreparationBlocked),
-    ).toBeVisible({ timeout: 15 * 60_000 })
+    ).toBeVisible({ timeout: privatePreparationTimeoutMs })
     if (await revisedPreparationBlocked.isVisible()) {
       throw new Error(
         `Revised canonical private preparation failed closed: ${
@@ -230,10 +243,11 @@ test.describe('Active signed-in private review through the canonical local API',
       )
     }
 
-    await clickWhenReady(page.getByTestId('canonical-private-review-load'))
-    await expect(page.getByTestId('canonical-private-review-player')).toBeVisible({
-      timeout: 60_000,
-    })
+    await loadAndVerifyPrivateReview(
+      page,
+      testInfo,
+      'revised-private-review-media-response.json',
+    )
     const [revisedDownload] = await Promise.all([
       page.waitForEvent('download'),
       clickWhenReady(page.getByRole('button', { name: /Download review/i })),
@@ -333,4 +347,60 @@ function asRecord(value: unknown): Record<string, unknown> {
     Boolean(value) && typeof value === 'object' && !Array.isArray(value),
   ).toBe(true)
   return value as Record<string, unknown>
+}
+
+async function loadAndVerifyPrivateReview(
+  page: Page,
+  testInfo: TestInfo,
+  attachmentName: string,
+) {
+  const mediaResponsePromise = page.waitForResponse(
+    (response) => {
+      if (response.request().method() !== 'GET') return false
+      const url = new URL(response.url())
+      return (
+        url.pathname.startsWith(
+          '/v1/edit-executions/private-review-assemblies/',
+        ) && url.pathname.endsWith('/media')
+      )
+    },
+    { timeout: 120_000 },
+  )
+  await clickWhenReady(page.getByTestId('canonical-private-review-load'))
+  const response = await mediaResponsePromise
+  const headers = response.headers()
+  const rawContentLength = headers['content-length']
+  const declaredByteLength = Number(rawContentLength)
+  const evidence = {
+    status: response.status(),
+    contentType: headers['content-type'] ?? null,
+    contentLength: rawContentLength ?? null,
+    artifactSha256: headers['x-reeditpro-artifact-sha256'] ?? null,
+    reviewAssemblyId: headers['x-reeditpro-review-assembly-id'] ?? null,
+    manifestSha256:
+      headers['x-reeditpro-review-manifest-sha256'] ?? null,
+    cacheControl: headers['cache-control'] ?? null,
+  }
+  await testInfo.attach(attachmentName, {
+    body: Buffer.from(JSON.stringify(evidence, null, 2), 'utf8'),
+    contentType: 'application/json',
+  })
+  expect(response.status(), JSON.stringify(evidence)).toBe(200)
+  expect(evidence.contentType).toMatch(/^video\/mp4\b/i)
+  expect(evidence.cacheControl).toMatch(/\bprivate\b/i)
+  expect(evidence.cacheControl).toMatch(/\bno-store\b/i)
+  expect(evidence.artifactSha256).toMatch(/^[a-f0-9]{64}$/)
+  expect(evidence.reviewAssemblyId).toMatch(
+    /^[A-Za-z0-9][A-Za-z0-9._:-]*$/,
+  )
+  expect(evidence.manifestSha256).toMatch(/^[a-f0-9]{64}$/)
+  expect(Number.isSafeInteger(declaredByteLength)).toBe(true)
+  expect(declaredByteLength).toBeGreaterThan(0)
+  expect(declaredByteLength).toBeLessThanOrEqual(
+    REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES,
+  )
+
+  const player = page.getByTestId('canonical-private-review-player')
+  await expect(player).toBeVisible({ timeout: 120_000 })
+  return player
 }

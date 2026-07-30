@@ -31,6 +31,8 @@ interface UploadTargetView {
   uploadProtocol?: TemporaryUploadProtocol
   supportsResume?: boolean
   recommendedChunkSizeBytes?: number
+  uploadStatusUrl?: string
+  retryFromVerifiedOffset?: boolean
 }
 
 interface CreateUploadIntentData {

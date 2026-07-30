@@ -13,6 +13,7 @@ import {
   CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
   CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_CHUNKS,
   CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_FRAMES,
+  isCanonicalPrivateMeteredSourceSliceChunkProfileId,
 } from '../../src/types/canonical-private-composition-capacity'
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../../src/types/large-media'
 import {
@@ -1109,8 +1110,9 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
   responseHash: sha,
   testOnly: z.literal(true),
 }).strict().superRefine((value, context) => {
-  const costRequired = value.chunkAuthority.profileId ===
-    CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
+  const costRequired = isCanonicalPrivateMeteredSourceSliceChunkProfileId(
+    value.chunkAuthority.profileId,
+  )
   const cost = value.attemptCost?.evidence
   const sequenceProfile = value.tool.compositionProfileId ===
     'approved_source_sequence_caption_track_final_v1'

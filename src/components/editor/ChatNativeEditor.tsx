@@ -5491,6 +5491,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             planningPublication={canonicalPlanningBackendConnected ? canonicalPlanningPublication : undefined}
             planningContextBlockedReason={planningContextApprovalBlockedReason}
             planningContextReady={planningContextReadyForApproval}
+            replacementPlanPresentationVerified={Boolean(
+              sourceLedCaptionRevisionPresentedPlan,
+            )}
             visibleEstimateCredits={visiblePlanEstimateCredits}
           />
         )
@@ -6101,6 +6104,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
               planningPublication={canonicalPlanningBackendConnected ? canonicalPlanningPublication : undefined}
               planningContextBlockedReason={planningContextApprovalBlockedReason}
               planningContextReady={planningContextReadyForApproval}
+              replacementPlanPresentationVerified={Boolean(
+                sourceLedCaptionRevisionPresentedPlan,
+              )}
               visibleEstimateCredits={visiblePlanEstimateCredits}
             />
             {shouldShowAdvancedPlanningDetails && (

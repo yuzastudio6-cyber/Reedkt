@@ -6,10 +6,22 @@ import type { PlannerInput } from '../../src/types/reeditpro'
 import {
   compileCanonicalSourceLedPlan,
 } from '../services/canonical-source-led-plan-compiler'
+import {
+  createCanonicalToolPayloadAuthority,
+} from '../edit-architecture/canonical-tool-payload-authority'
+import {
+  isExactCanonicalPrivateSourceSliceChunkPayload,
+} from '../services/canonical-private-long-form-merge-execution-service'
 import type {
   EditBriefMarkerRecord,
   EditBriefRecord,
 } from '../services/private-edit-brief-authority-store'
+import {
+  validateOfflineRemotionFinalCompositionPlanningPayload,
+} from '../tool-execution/remotion-render-execution'
+import {
+  validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload,
+} from '../tool-execution/media-binary-execution'
 
 const sha = (character: string) => character.repeat(64).slice(0, 64)
 const timestamp = '2026-07-28T15:00:00.000Z'
@@ -23,7 +35,7 @@ const plannerInput: PlannerInput = {
   frameTemplateType: 'youtube_side_panel',
   editingCategory: 'business_brand',
   workflowType: 'simple_clean_edit',
-  editLevel: 'basic',
+  editLevel: 'premium',
   structurePreference: 'preserve_source_order',
   moodStyle: 'clean',
   visualPreference: 'no_extra_visuals',
@@ -59,7 +71,7 @@ const plannerInput: PlannerInput = {
   preferenceSnapshotId: 'source-led-preference-snapshot',
   preferencePersistenceSource: 'authenticated_private_internal_backend',
   currentEditPreferenceAuthorityValues: {
-    editLevel: 'basic',
+    editLevel: 'premium',
     workflowType: 'simple_clean_edit',
     cleanupPreference: 'preserve_natural',
     visualPreference: 'no_extra_visuals',
@@ -177,11 +189,315 @@ const compiled = compileCanonicalSourceLedPlan({
   confirmedCaptionMarkers: [captionMarker],
 })
 
+const fractionalDurationSeconds = 65.632233
+const fractionalDurationFrames = Math.round(fractionalDurationSeconds * 30)
+const fractionalPlannerInput: PlannerInput = {
+  ...plannerInput,
+  customInstructions:
+    'Keep the speaker visible and natural, and preserve the full verified source.',
+  clips: [{
+    ...plannerInput.clips[0]!,
+    fileName: 'visible-speaker-source.mp4',
+    detectedType: 'Verified uploaded video with a speaker visible on camera',
+    notes: 'Preserve the person and keep skin tones natural.',
+    sourceRole: 'speaker',
+    duration: String(fractionalDurationSeconds),
+  }],
+  sourceSequenceMode: 'single_complete_video',
+}
+const fractionalSourceMediaAssets = [{
+  ...sourceMediaAssets[0]!,
+  sourceMetadata: {
+    ...sourceMediaAssets[0]!.sourceMetadata!,
+    durationSeconds: fractionalDurationSeconds,
+  },
+}]
+const fractionalCaptionMarker: EditBriefMarkerRecord = {
+  ...captionMarker,
+  timingStatus: 'display_seconds_only',
+  startFrame: undefined,
+  endFrame: undefined,
+  frameRate: undefined,
+  endSeconds: fractionalDurationSeconds,
+}
+const fractionalCompiled = compileCanonicalSourceLedPlan({
+  plannerInput: fractionalPlannerInput,
+  sourceMediaAssets: fractionalSourceMediaAssets,
+  editBrief,
+  confirmedCaptionMarkers: [fractionalCaptionMarker],
+})
+const gappedCaptionMarkers: EditBriefMarkerRecord[] = [{
+  ...captionMarker,
+  id: 'source-led-caption-marker-opening',
+  note: 'Verified opening',
+  startFrame: 0,
+  endFrame: 30,
+  startSeconds: 0,
+  endSeconds: 1,
+}, {
+  ...captionMarker,
+  id: 'source-led-caption-marker-closing',
+  note: 'Verified closing',
+  startFrame: fractionalDurationFrames - 30,
+  endFrame: fractionalDurationFrames,
+  startSeconds: (fractionalDurationFrames - 30) / 30,
+  endSeconds: fractionalDurationFrames / 30,
+}]
+const gappedCaptionCompiled = compileCanonicalSourceLedPlan({
+  plannerInput: fractionalPlannerInput,
+  sourceMediaAssets: fractionalSourceMediaAssets,
+  editBrief,
+  confirmedCaptionMarkers: gappedCaptionMarkers,
+})
+
 assert.equal(compiled.evidence.browserPlanAccepted, false)
 assert.equal(compiled.evidence.browserTimingAccepted, false)
 assert.equal(compiled.evidence.sourceCount, 2)
 assert.equal(compiled.evidence.totalFrames, 60)
 assert.equal(compiled.evidence.captionCueCount, 1)
+assert.equal(fractionalCompiled.evidence.totalFrames, fractionalDurationFrames)
+assert.deepEqual(
+  fractionalCompiled.plan.masterTimingPlan?.captionTimingItems.map((caption) => [
+    caption.timeRange.startFrame,
+    caption.timeRange.endFrame,
+  ]),
+  [[0, fractionalDurationFrames]],
+)
+const fractionalCanonicalPlan =
+  fractionalCompiled.canonicalDraft.publication?.canonicalPlan
+assert.ok(fractionalCanonicalPlan)
+const fractionalColorItems = fractionalCanonicalPlan.workItems.filter((item) =>
+  item.executionInput.operation ===
+    'process_approved_source_professional_color_delivery')
+const fractionalChunkItems = fractionalCanonicalPlan.workItems.filter((item) =>
+  item.executionInput.operation === 'render_approved_4k_composition_chunk')
+assert.equal(fractionalColorItems.length, 9)
+assert.equal(fractionalChunkItems.length, 9)
+let expectedFractionalSourceStartFrame = 0
+fractionalChunkItems.forEach((chunkItem, index) => {
+  const chunkIndex = index + 1
+  const expectedDurationFrames = chunkIndex <= 7 ? 219 : 218
+  const expectedSourceEndFrameExclusive =
+    expectedFractionalSourceStartFrame + expectedDurationFrames
+  const expectedColorWorkItemKey =
+    `color-delivery-1-slice-${chunkIndex}-of-9`
+  const colorItem = fractionalColorItems[index]!
+  const colorPayload = colorItem.executionInput
+    .structuredPayload as Record<string, unknown>
+  const chunkPayload = chunkItem.executionInput
+    .structuredPayload as Record<string, unknown>
+  const chunkAuthority = chunkItem.executionInput
+    .chunkAuthority as Record<string, unknown>
+  const voiceTracks = chunkPayload.voiceTracks as Array<Record<string, unknown>>
+  assert.equal(colorItem.workItemKey, expectedColorWorkItemKey)
+  assert.equal(
+    colorItem.expectedOutputs[0]?.outputKey,
+    `${expectedColorWorkItemKey}-mkv`,
+  )
+  assert.equal(
+    colorPayload.recipeProfileId,
+    'approved_source_color_delivery_matroska_v2',
+  )
+  assert.equal(
+    colorPayload.trimStartFrame,
+    expectedFractionalSourceStartFrame,
+  )
+  assert.equal(
+    colorPayload.trimEndFrameExclusive,
+    expectedSourceEndFrameExclusive,
+  )
+  assert.equal(
+    chunkAuthority.profileId,
+    'canonical_private_4k_source_slice_mezzanine_finalize_3840_frames_v3',
+  )
+  assert.equal(chunkAuthority.chunkIndex, chunkIndex)
+  assert.equal(chunkAuthority.chunkCount, 9)
+  assert.equal(
+    chunkAuthority.sourceStartFrame,
+    expectedFractionalSourceStartFrame,
+  )
+  assert.equal(
+    chunkAuthority.sourceEndFrameExclusive,
+    expectedSourceEndFrameExclusive,
+  )
+  assert.equal(chunkPayload.sourceStartFrame, 0)
+  assert.equal(chunkPayload.sourceEndFrameExclusive, expectedDurationFrames)
+  assert.equal(chunkPayload.durationFrames, expectedDurationFrames)
+  assert.deepEqual(
+    chunkItem.dependencyKeys.filter((key) =>
+      key.startsWith('color-delivery-')),
+    [expectedColorWorkItemKey],
+  )
+  assert.deepEqual(
+    chunkItem.dependencyKeys.filter((key) =>
+      key.startsWith('voice-delivery-')),
+    ['voice-delivery-1'],
+  )
+  assert.equal(voiceTracks.length, 1)
+  assert.equal(voiceTracks[0]?.durationFrames, fractionalDurationFrames)
+  assert.equal(
+    voiceTracks[0]?.sourceStartFrame,
+    expectedFractionalSourceStartFrame,
+  )
+  assert.equal(
+    voiceTracks[0]?.sourceEndFrameExclusive,
+    expectedSourceEndFrameExclusive,
+  )
+  expectedFractionalSourceStartFrame = expectedSourceEndFrameExclusive
+})
+assert.equal(expectedFractionalSourceStartFrame, fractionalDurationFrames)
+const gappedCaptionChunkItems =
+  gappedCaptionCompiled.canonicalDraft.publication?.canonicalPlan.workItems
+    .filter((item) =>
+      item.executionInput.operation ===
+        'render_approved_4k_composition_chunk') ?? []
+assert.equal(gappedCaptionChunkItems.length, 9)
+assert.equal(
+  gappedCaptionChunkItems.filter((item) => {
+    const payload = item.executionInput.structuredPayload as Record<string, unknown>
+    return Array.isArray(payload.captionOverlayCues) &&
+      payload.captionOverlayCues.length === 0
+  }).length,
+  7,
+)
+const fractionalFinalItem = fractionalCanonicalPlan.workItems.find((item) =>
+  item.workItemKey === 'final-export')
+assert.equal(
+  fractionalFinalItem?.executionInput.operation,
+  'finalize_approved_4k_mezzanine_chunks',
+)
+const fractionalFinalPayload = fractionalFinalItem?.executionInput
+  .structuredPayload as Record<string, unknown>
+assert.equal(
+  fractionalFinalPayload.videoFinalizationPolicy,
+  'compatible_h264_stream_copy_v1',
+)
+assert.equal(
+  fractionalFinalPayload.audioFinalizationPolicy,
+  'single_approved_voice_delivery_audio_encode_v2',
+)
+assert.equal(
+  fractionalFinalPayload.approvedVoiceOutputKey,
+  'voice-delivery-1-wav',
+)
+assert.deepEqual(
+  fractionalFinalItem?.dependencyKeys,
+  [
+    'source-trim-validation',
+    'voice-delivery-1',
+    ...Array.from({ length: 9 }, (_, index) =>
+      `composition-chunk-${index + 1}`),
+  ],
+)
+const validatedFractionalFinalization =
+  validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload(
+    fractionalFinalPayload,
+  )
+const fractionalToolPayloadAuthority = createCanonicalToolPayloadAuthority({
+  workItems: fractionalCanonicalPlan.workItems,
+})
+assert.equal(
+  fractionalToolPayloadAuthority.validatedWorkItems.some((item) =>
+    item.workItemKey === 'final-export' &&
+    item.canonicalToolId === 'ffmpeg' &&
+    item.operationId === 'tool.ffmpeg.execute_approved_media_recipe.v1' &&
+    item.validatorFamily === 'media_ffmpeg'),
+  true,
+)
+const fractionalCleanupDecision =
+  fractionalCanonicalPlan.components.sourceCleanupPlan.decisions[0]
+const fractionalVoiceWorkItem = fractionalCanonicalPlan.workItems.find((item) =>
+  item.executionInput.operation === 'process_approved_source_voice_delivery')
+assert.ok(fractionalCleanupDecision)
+assert.ok(fractionalVoiceWorkItem?.expectedOutputs[0])
+fractionalChunkItems.forEach((chunkItem, index) => {
+  const payload = validateOfflineRemotionFinalCompositionPlanningPayload(
+    chunkItem.executionInput.structuredPayload,
+  )
+  const finalizedChunk = validatedFractionalFinalization.chunks[index]!
+  const planned = {
+    ...finalizedChunk,
+    sourceSequenceItemIds: chunkItem.sourceSequenceItemIds,
+    sourceCleanupDecisionIds: chunkItem.sourceCleanupDecisionIds,
+  }
+  const colorOutputKey = fractionalColorItems[index]?.expectedOutputs[0]?.outputKey
+  assert.ok(colorOutputKey)
+  assert.equal(
+    isExactCanonicalPrivateSourceSliceChunkPayload({
+      payload,
+      planned,
+      cleanupDecision: fractionalCleanupDecision,
+      approvedVoiceOutputKeys: [
+        fractionalVoiceWorkItem.expectedOutputs[0]!.outputKey,
+      ],
+      approvedColorOutputKeys: [colorOutputKey],
+    }),
+    true,
+  )
+  if (index !== 0) return
+  assert.equal(
+    isExactCanonicalPrivateSourceSliceChunkPayload({
+      payload,
+      planned,
+      cleanupDecision: fractionalCleanupDecision,
+      approvedVoiceOutputKeys: ['substituted-voice-output'],
+      approvedColorOutputKeys: [colorOutputKey],
+    }),
+    false,
+  )
+  assert.equal(
+    isExactCanonicalPrivateSourceSliceChunkPayload({
+      payload,
+      planned,
+      cleanupDecision: fractionalCleanupDecision,
+      approvedVoiceOutputKeys: [
+        fractionalVoiceWorkItem.expectedOutputs[0]!.outputKey,
+      ],
+      approvedColorOutputKeys: [],
+    }),
+    false,
+  )
+  const shiftedColorPayload = validateOfflineRemotionFinalCompositionPlanningPayload({
+    ...payload,
+    sourceStartFrame: 1,
+    sourceEndFrameExclusive: payload.durationFrames + 1,
+  })
+  assert.equal(
+    isExactCanonicalPrivateSourceSliceChunkPayload({
+      payload: shiftedColorPayload,
+      planned,
+      cleanupDecision: fractionalCleanupDecision,
+      approvedVoiceOutputKeys: [
+        fractionalVoiceWorkItem.expectedOutputs[0]!.outputKey,
+      ],
+      approvedColorOutputKeys: [colorOutputKey],
+    }),
+    false,
+  )
+  const preserveSourcePayloadInput = structuredClone(
+    chunkItem.executionInput.structuredPayload,
+  ) as Record<string, unknown>
+  delete preserveSourcePayloadInput.sourceMediaPolicy
+  delete preserveSourcePayloadInput.voiceTracks
+  preserveSourcePayloadInput.audioPolicy = 'preserve_source'
+  preserveSourcePayloadInput.sourceStartFrame = planned.sourceStartFrame
+  preserveSourcePayloadInput.sourceEndFrameExclusive =
+    planned.sourceEndFrameExclusive
+  const preserveSourcePayload =
+    validateOfflineRemotionFinalCompositionPlanningPayload(
+      preserveSourcePayloadInput,
+    )
+  assert.equal(
+    isExactCanonicalPrivateSourceSliceChunkPayload({
+      payload: preserveSourcePayload,
+      planned,
+      cleanupDecision: fractionalCleanupDecision,
+      approvedVoiceOutputKeys: [],
+      approvedColorOutputKeys: [],
+    }),
+    true,
+  )
+})
 assert.deepEqual(
   compiled.plan.sourceCleanupPlan?.decisions.map((decision) => ({
     clipId: decision.clipId,
@@ -304,6 +620,18 @@ assert.throws(
   }),
   /single confirmed caption must cover/i,
 )
+assert.throws(
+  () => compileCanonicalSourceLedPlan({
+    plannerInput: fractionalPlannerInput,
+    sourceMediaAssets: fractionalSourceMediaAssets,
+    editBrief,
+    confirmedCaptionMarkers: [{
+      ...fractionalCaptionMarker,
+      endSeconds: Math.floor(fractionalDurationSeconds * 30) / 30,
+    }],
+  }),
+  /single confirmed caption must cover/i,
+)
 
 console.log(JSON.stringify({
   ok: true,
@@ -312,5 +640,6 @@ console.log(JSON.stringify({
   captionCueCount: compiled.evidence.captionCueCount,
   publicationWorkItemCount:
     compiled.canonicalDraft.publication?.canonicalPlan.workItems.length,
-  adversarialAssertions: 5,
+  fractionalDurationFrames,
+  adversarialAssertions: 6,
 }, null, 2))

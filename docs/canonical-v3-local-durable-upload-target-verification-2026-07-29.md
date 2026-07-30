@@ -18,6 +18,14 @@ gap with an envelope-encrypted Postgres escrow. The controlled target still
 uses the non-routable `storage.invalid` host, and no live GCS resumable session
 is created.
 
+A forward-only local migration now admits
+`resumable_content_range_v1` alongside the existing single-request and GCS
+protocols. Large authenticated local uploads retain the fixed 16 MiB
+per-request parser ceiling by sending 8 MiB checksummed chunks, querying only a
+tenant-authorized status route, and resuming from the server-verified offset.
+The same committed upload-target identity, encrypted credential, and exact
+replay transaction survive a fresh API process.
+
 ## Durable database surface
 
 Migration `202607210021_canonical_durable_upload_target_rpc.sql` adds three
@@ -51,7 +59,10 @@ The real loopback Postgres/PostgREST smoke verified:
   replay with the same transaction identity;
 - intent commit occurs before the controlled target-creation side effect;
 - the issued state survives a new adapter/process boundary and recovers the
-  exact target from the separate escrow without creating another target;
+  exact resumable upload and status routes from the separate escrow without
+  creating another target;
+- the local database records `resumable_content_range_v1` with resume support
+  while excluding both relative target routes from canonical plaintext state;
 - a different authenticated tenant cannot read the intent;
 - an uncertain external target-creation outcome is recorded as
   `target_issue_unknown`, survives restart, and blocks a second side effect;
@@ -76,6 +87,7 @@ tenant-isolation, expiry-scrub, and deletion evidence.
 npm run typecheck:server
 npm run smoke:canonical-durable-upload-target-authority
 npm run smoke:canonical-durable-upload-target-local-postgres
+npm run smoke:local-resumable-source-upload
 database/canonical-v3-local/run-local-verification.sh
 ```
 
@@ -86,6 +98,7 @@ unsets `SUPABASE_ACCESS_TOKEN`, refuses any database URL outside local port
 ## Gates that remain closed
 
 - live GCS resumable-session issuance;
+- deployed multi-replica chunk storage and recovery;
 - Cloud-KMS-backed credential escrow durable across multiple replicas;
 - multi-replica read-after-write evidence;
 - staging or production Supabase deployment and RLS evidence;

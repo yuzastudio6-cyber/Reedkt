@@ -19,6 +19,11 @@ type CanonicalPlanReviewControllerProps = Omit<
   approvalChecking?: boolean
   planApproval?: CanonicalPlanApprovalHookResult
   planningPublication?: CanonicalPlanningSaveStatusSource
+  /**
+   * Display-only proof from the separate, verified replacement-plan presenter.
+   * Approval remains governed by approvalAuthorityReady and its exact lineage checks.
+   */
+  replacementPlanPresentationVerified?: boolean
   statusSupplement?: ReactNode
 }
 
@@ -33,12 +38,14 @@ export function CanonicalPlanReviewController({
   approvalChecking = false,
   planApproval,
   planningPublication,
+  replacementPlanPresentationVerified = false,
   statusSupplement,
   ...card
 }: CanonicalPlanReviewControllerProps) {
   const canonicalPlanPublished =
     planningPublication?.result?.status ===
-    'plan_published_waiting_for_approval'
+      'plan_published_waiting_for_approval' ||
+    replacementPlanPresentationVerified
   if (planningPublication && !canonicalPlanPublished) {
     return (
       <section

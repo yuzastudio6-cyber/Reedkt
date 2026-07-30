@@ -87,6 +87,31 @@ const matchSourceAuthority = {
 }
 assert.notEqual(matchSourceAuthority.sourceSha256, sourceAuthority.sourceSha256)
 
+const fractionalFrameFixturePath = join(
+  '/tmp',
+  `reeditpro-offline-ffmpeg-fractional-frame-${process.pid}.mp4`,
+)
+const generatedFractionalFrameFixture = spawnSync('ffmpeg', [
+  '-hide_banner', '-loglevel', 'error',
+  '-f', 'lavfi', '-i', 'color=c=0x204060:s=96x54:r=30000/1001:d=36.5',
+  '-map', '0:v:0', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+  '-movflags', '+faststart', '-threads', '1', '-y',
+  fractionalFrameFixturePath,
+], { encoding: 'utf8' })
+assert.equal(
+  generatedFractionalFrameFixture.status,
+  0,
+  generatedFractionalFrameFixture.stderr,
+)
+const fractionalFrameSourceBytes = await readFile(fractionalFrameFixturePath)
+await rm(fractionalFrameFixturePath, { force: true })
+const fractionalFrameSourceAuthority = {
+  mimeType: 'video/mp4' as const,
+  sourceByteLength: fractionalFrameSourceBytes.byteLength,
+  sourceSha256: hashBytes(fractionalFrameSourceBytes),
+  sourceBytesBase64: fractionalFrameSourceBytes.toString('base64'),
+}
+
 const runtime = await activatePrivateOfflineMediaBinaryRuntime()
 const foreignCheckoutScope = deriveOfflineMediaBinaryRuntimeStorageScope(
   'file:///Volumes/REeditproWork/foreign-checkout/server/tool-execution/media-binary-execution/offline-media-binary-runtime.ts',
@@ -172,6 +197,10 @@ assert.equal(ffmpegResult.evidence.semanticEvidence.outputVideoCodec, 'ffv1')
 assert.equal(ffmpegResult.evidence.semanticEvidence.outputProbeVerified, true)
 assert.equal(ffmpegResult.evidence.confinement.serverOwnedEntrypoint,
   '/opt/reeditpro-ffmpeg/bin/ffmpeg')
+assert.equal(
+  ffmpegResult.evidence.confinement.serverOwnedReadOnlyInputMount,
+  undefined,
+)
 assertMediaAttemptResourceObservation(
   ffmpegResult.evidence.resourceObservation,
   ffmpegResult.evidence.confinement.memoryLimitBytes,
@@ -329,6 +358,23 @@ assert.equal(voiceDeliveryResult.evidence.semanticEvidence.highpassApplied, true
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.gentleCompressionApplied, true)
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.loudnessNormalizationApplied, true)
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.truePeakLimiterApplied, true)
+assert.equal(
+  voiceDeliveryResult.evidence.semanticEvidence.pictureLockEndPaddingBounded,
+  true,
+)
+assert.equal(
+  voiceDeliveryResult.evidence.semanticEvidence.exactPictureLockSampleCount,
+  48_000,
+)
+assert.deepEqual(
+  voiceDeliveryResult.evidence.confinement.serverOwnedReadOnlyInputMount,
+  {
+    destination: '/private-input/source.media',
+    readOnly: true,
+    byteLength: sourceBytes.byteLength,
+    sha256: sourceAuthority.sourceSha256,
+  },
+)
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.outputLoudnessMeasured, true)
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.outputLoudnessQaPassed, true)
 assert.equal(
@@ -412,6 +458,15 @@ assert.equal(
 assert.equal(
   streamedVoiceDelivery.evidence.semanticEvidence.outputWholeBufferAvoided,
   true,
+)
+assert.deepEqual(
+  streamedVoiceDelivery.evidence.confinement.serverOwnedReadOnlyInputMount,
+  {
+    destination: '/private-input/source.media',
+    readOnly: true,
+    byteLength: sourceBytes.byteLength,
+    sha256: sourceAuthority.sourceSha256,
+  },
 )
 const shortFormFixturePath = join(
   '/tmp',
@@ -579,7 +634,7 @@ const colorDeliveryRequest = {
   toolId: 'ffmpeg' as const,
   operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
   payload: {
-    recipeProfileId: 'approved_source_color_delivery_matroska_v1' as const,
+    recipeProfileId: 'approved_source_color_delivery_matroska_v2' as const,
     timestampPolicy: 'normalize_from_zero' as const,
     overwriteExistingArtifact: false as const,
     allowUnreviewedCodec: false as const,
@@ -621,10 +676,15 @@ assert.deepEqual(
   [...colorDeliveryResult.resultArtifact.bytes.subarray(0, 4)],
   [0x1a, 0x45, 0xdf, 0xa3],
 )
-assert.equal(colorEvidence.recipeProfileId, 'approved_source_color_delivery_matroska_v1')
+assert.equal(colorEvidence.recipeProfileId, 'approved_source_color_delivery_matroska_v2')
 assert.equal(colorEvidence.outputFrameCount, 48)
 assert.equal(colorEvidence.outputContainer, 'matroska')
-assert.equal(colorEvidence.outputVideoCodec, 'vp9')
+assert.equal(colorEvidence.outputVideoCodec, 'vp9_cq12')
+assert.equal(
+  colorEvidence.professionalColorIntermediateEncodingProfile,
+  'libvpx_vp9_cq12_v1',
+)
+assert.equal(colorEvidence.boundedStreamingCapacityProfileApplied, true)
 assert.equal(colorEvidence.outputColorSpace, 'bt709')
 assert.equal(colorEvidence.outputPixelFormat, 'yuv420p')
 assert.equal(colorEvidence.sourcePixelAnalysisExecuted, true)
@@ -635,9 +695,20 @@ assert.equal(colorEvidence.plannedLookApplied, true)
 assert.equal(colorEvidence.lgplColorChannelMixerApplied, true)
 assert.equal(colorEvidence.lgplColorLevelsApplied, true)
 assert.equal(colorEvidence.lgplClarityFilterApplied, true)
+assert.equal(colorEvidence.highBitDepthSourceSafeWorkingFormatApplied, true)
+assert.equal(colorEvidence.colorWorkingPixelFormat, 'gbrp16le')
 assert.equal(colorEvidence.clippingProtectionVerified, true)
 assert.equal(colorEvidence.histogramQaPassed, true)
 assert.equal(colorEvidence.outputProbeVerified, true)
+assert.deepEqual(
+  colorDeliveryResult.evidence.confinement.serverOwnedReadOnlyInputMount,
+  {
+    destination: '/private-input/source.media',
+    readOnly: true,
+    byteLength: sourceBytes.byteLength,
+    sha256: sourceAuthority.sourceSha256,
+  },
+)
 assert.deepEqual(colorEvidence.approvedColorOperationIds,
   colorDeliveryRequest.payload.approvedColorOperationIds)
 assert.deepEqual(colorEvidence.approvedColorOperationKinds,
@@ -669,6 +740,75 @@ assert.equal(
 )
 assert.equal(
   frameRateNormalizedColor.evidence.semanticEvidence.outputProbeVerified,
+  true,
+)
+const fractionalBoundaryColor = await runtime.execute({
+  ...colorDeliveryRequest,
+  payload: {
+    ...colorDeliveryRequest.payload,
+    trimStartFrame: 876,
+    trimEndFrameExclusive: 1095,
+    frameRate: 30 as const,
+    ...fractionalFrameSourceAuthority,
+  },
+})
+assert.equal(
+  fractionalBoundaryColor.evidence.semanticEvidence.outputFrameCount,
+  219,
+)
+assert.equal(
+  (fractionalBoundaryColor.evidence.semanticEvidence.sourcePixelAnalysis as {
+    sampledFrameCount: number
+  }).sampledFrameCount,
+  3,
+)
+assert.equal(
+  (fractionalBoundaryColor.evidence.semanticEvidence.outputPixelAnalysis as {
+    sampledFrameCount: number
+  }).sampledFrameCount,
+  3,
+)
+assert.equal(
+  fractionalBoundaryColor.evidence.semanticEvidence.outputProbeVerified,
+  true,
+)
+const approvedPictureLockPastVideoTail = await runtime.execute({
+  ...colorDeliveryRequest,
+  payload: {
+    ...colorDeliveryRequest.payload,
+    trimStartFrame: 876,
+    trimEndFrameExclusive: 1100,
+    frameRate: 30 as const,
+    ...fractionalFrameSourceAuthority,
+  },
+})
+assert.equal(
+  approvedPictureLockPastVideoTail.evidence.semanticEvidence.outputFrameCount,
+  224,
+)
+assert.equal(
+  approvedPictureLockPastVideoTail.evidence.semanticEvidence
+    .timelineTailFrameHoldPolicy,
+  'clone_last_decoded_frame_to_approved_picture_lock_v1',
+)
+assert.equal(
+  approvedPictureLockPastVideoTail.evidence.semanticEvidence
+    .timelineTailFrameHoldBoundedByApprovedRange,
+  true,
+)
+assert.equal(
+  (approvedPictureLockPastVideoTail.evidence.semanticEvidence
+    .sourcePixelAnalysis as { sampledFrameCount: number }).sampledFrameCount,
+  3,
+)
+assert.equal(
+  (approvedPictureLockPastVideoTail.evidence.semanticEvidence
+    .outputPixelAnalysis as { sampledFrameCount: number }).sampledFrameCount,
+  3,
+)
+assert.equal(
+  approvedPictureLockPastVideoTail.evidence.semanticEvidence
+    .outputProbeVerified,
   true,
 )
 const independentlyProbedNormalizedColor = spawnSync('ffprobe', [
@@ -704,7 +844,7 @@ const colorMatchRequest = {
   toolId: 'ffmpeg' as const,
   operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
   payload: {
-    recipeProfileId: 'approved_source_color_match_delivery_matroska_v1' as const,
+    recipeProfileId: 'approved_source_color_match_delivery_matroska_v2' as const,
     timestampPolicy: 'normalize_from_zero' as const,
     overwriteExistingArtifact: false as const,
     allowUnreviewedCodec: false as const,
@@ -815,6 +955,26 @@ const generatedMezzanineSource = spawnSync('ffmpeg', [
 assert.equal(generatedMezzanineSource.status, 0, generatedMezzanineSource.stderr)
 const mezzanineSourceBytes = await readFile(mezzanineSourcePath)
 await rm(mezzanineSourcePath, { force: true })
+const mezzanineVoicePath = join(
+  '/tmp',
+  `reeditpro-mezzanine-voice-${process.pid}.wav`,
+)
+const exactMezzanineVoiceSampleCount =
+  mezzanineDurationFrames * (48_000 / mezzanineFrameRate)
+const generatedMezzanineVoice = spawnSync('ffmpeg', [
+  '-hide_banner', '-loglevel', 'error',
+  '-f', 'lavfi', '-i',
+  `sine=frequency=880:sample_rate=48000:duration=${(
+    mezzanineDurationSeconds + 1
+  ).toFixed(9)}`,
+  '-af',
+  `atrim=end_sample=${exactMezzanineVoiceSampleCount},asetpts=PTS-STARTPTS`,
+  '-ar', '48000', '-ac', '2', '-c:a', 'pcm_s16le',
+  '-threads', '1', '-y', mezzanineVoicePath,
+], { encoding: 'utf8' })
+assert.equal(generatedMezzanineVoice.status, 0, generatedMezzanineVoice.stderr)
+const mezzanineVoiceBytes = await readFile(mezzanineVoicePath)
+await rm(mezzanineVoicePath, { force: true })
 const mezzaninePlanningPayload = {
   recipeProfileId: OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_RECIPE,
   capacityProfileId: CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
@@ -968,6 +1128,64 @@ assert.equal(Number(independentMezzanineVideo?.nb_read_frames), mezzanineDuratio
 assert.equal(independentMezzanineAudio?.codec_name, 'aac')
 assert.equal(Number(independentMezzanineAudio?.sample_rate), 48_000)
 assert.equal(Number(independentMezzanineAudio?.channels), 2)
+const mezzanineVoicePlanningPayload = {
+  ...mezzaninePlanningPayload,
+  audioFinalizationPolicy:
+    'single_approved_voice_delivery_audio_encode_v2' as const,
+  approvedVoiceOutputKey: 'approved-mezzanine-voice-wav',
+}
+const mezzanineVoiceRequest =
+  buildOfflineMediaBinaryMezzanineFinalizationRequest({
+    planningPayload: mezzanineVoicePlanningPayload,
+    chunks: mezzanineRequest.inputs.chunks,
+    source: {
+      inputId: 'mezzanine-voice-input',
+      sourceSequenceItemId: 'mezzanine-source-fixture',
+      mimeType: 'audio/wav' as const,
+      byteLength: mezzanineVoiceBytes.byteLength,
+      sha256: hashBytes(mezzanineVoiceBytes),
+      outputKey: 'approved-mezzanine-voice-wav',
+      durationFrames: mezzanineDurationFrames,
+    },
+  })
+let mezzanineVoiceOutputBytes = Buffer.alloc(0)
+const mezzanineVoiceResult =
+  await runtime.executeMezzanineFinalizationServerInjected(
+    mezzanineVoiceRequest,
+    {
+      chunks: mezzanineChunkBytes.map(privateStreamInput),
+      source: privateStreamInput(mezzanineVoiceBytes),
+    },
+    createMezzanineOutputSink((bytes) => {
+      mezzanineVoiceOutputBytes = bytes
+    }),
+  )
+assert.equal(
+  mezzanineVoiceResult.evidence.semanticEvidence
+    .approvedVoiceDeliveryBytesVerified,
+  true,
+)
+assert.equal(
+  mezzanineVoiceResult.evidence.semanticEvidence
+    .approvedVoiceDeliveryAudioDecodedAndEncodedOnce,
+  true,
+)
+assert.equal(
+  mezzanineVoiceResult.evidence.semanticEvidence.sourceAudioDecodedAndEncodedOnce,
+  false,
+)
+assert.equal(
+  mezzanineVoiceResult.resultArtifact.sha256,
+  hashBytes(mezzanineVoiceOutputBytes),
+)
+assert.throws(() => buildOfflineMediaBinaryMezzanineFinalizationRequest({
+  planningPayload: mezzanineVoicePlanningPayload,
+  chunks: mezzanineRequest.inputs.chunks,
+  source: {
+    ...mezzanineVoiceRequest.inputs.source,
+    outputKey: 'substituted-voice-output',
+  },
+}))
 let replayMezzanineOutput: Buffer = Buffer.alloc(0)
 const mezzanineReplay = await runtime.executeMezzanineFinalizationServerInjected(
   mezzanineRequest,
@@ -1174,7 +1392,9 @@ console.log(JSON.stringify({
     'storytelling_speech_exact_provider_and_alignment_authority_bound',
     'storytelling_speech_cgroup_v2_resource_observation',
     'storytelling_speech_mime_and_authority_tamper_rejected',
-    'actual_ffmpeg_approved_source_color_delivery_lossless_vp9_matroska',
+    'actual_ffmpeg_approved_source_color_delivery_vp9_cq12_matroska',
+    'fractional_source_rate_is_normalized_before_exact_frame_slice_selection',
+    'approved_picture_lock_tail_holds_last_decoded_frame_to_exact_end',
     'actual_three_frame_rgb_pixel_analysis_before_and_after_color_processing',
     'bounded_professional_exposure_white_balance_contrast_saturation_and_clarity_chain',
     'approved_color_operation_ids_and_kinds_preserved_in_execution_evidence',

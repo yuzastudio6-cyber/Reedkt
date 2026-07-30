@@ -51,6 +51,12 @@ export interface OfflineMediaBinaryConfinementEvidence {
   callerBindsPresent: false
   callerMountsPresent: false
   callerEnvironmentPresent: false
+  serverOwnedReadOnlyInputMount?: {
+    destination: '/private-input/source.media'
+    readOnly: true
+    byteLength: number
+    sha256: string
+  }
   serverOwnedEntrypoint:
     | '/opt/reeditpro-ffmpeg/bin/ffprobe'
     | '/opt/reeditpro-ffmpeg/bin/ffmpeg'

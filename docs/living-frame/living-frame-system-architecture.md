@@ -421,6 +421,25 @@ The v1 component records only abstract asset intent. It does not contain an
 A missing future operation requires explicit admission to the canonical work
 schema rather than a generic bypass.
 
+## Rigging direction and advanced deformation
+
+Component Rigging now has a source-contract extension for professional route
+selection. The Head Intelligence emits
+`living-frame-rigging-direction-v1`, a structured, non-executable decision
+covering narrative purpose, focal action, motion arc, required capabilities,
+craft, risk, performance, and fallback. The deterministic
+`living-frame-rigging-plan-v2` compiler validates rigid parts, mechanical
+linkages, bone hierarchies, joints, controls, constraints, IK, deformable
+meshes, skin/rigidity maps, stacking, and secondary motion.
+
+Simple motion stays native. Flat 2D mesh deformation may use the OpenToonz
+Plastic evaluation candidate, while advanced armature/IK/skinning/2.5D may use
+the Blender headless evaluation candidate. Both external routes materialize
+only through fixed, reviewed adapter candidates. The Head Intelligence cannot
+provide a script, command, path, environment, plugin, or arbitrary node graph,
+and neither tool may own the final canvas. See
+`docs/living-frame/living-frame-rigging-director-and-adapter-candidates.md`.
+
 ## Motion and attention
 
 Living Frame follows a semantic performance arc:

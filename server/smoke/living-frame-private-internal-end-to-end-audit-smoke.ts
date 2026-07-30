@@ -48,6 +48,30 @@ const cases: readonly AuditCase[] = [
       'server/smoke/living-frame-subject-neutral-capability-matrix-smoke.ts',
   },
   {
+    id: 'professional_rigging_direction_and_fixed_adapter_candidates',
+    relativePath:
+      'server/smoke/living-frame-rigging-v2-smoke.ts',
+    validate(receipt) {
+      assert.equal(
+        receipt.professionalDirectionVersion,
+        'living-frame-rigging-direction-v1',
+      )
+      assert.deepEqual(receipt.routeFixtures, {
+        nativeMechanical: 'reeditpro_native_remotion',
+        flat2d: 'opentoonz_plastic_candidate',
+        advanced2_5d: 'blender_headless_candidate',
+      })
+      assert.equal(
+        receipt.exactHeadIntelligenceDecisionBinding,
+        true,
+      )
+      assert.equal(receipt.fixedReviewedAdapterBoundary, true)
+      assert.equal(receipt.callerOrModelGeneratedCodeAllowed, false)
+      assert.equal(receipt.externalRuntimeExecutionAuthorized, false)
+      assert.equal(receipt.remotionOwnsFinalCanvas, true)
+    },
+  },
+  {
     id: 'selected_scene_private_prompt_materialization',
     relativePath:
       'server/smoke/living-frame-controlled-image-selected-scene-private-prompt-materialization-smoke.ts',
@@ -555,6 +579,7 @@ const receipt = {
   cases: results,
   verifiedCoverage: [
     'composite_parent_and_mini_skill_contract',
+    'head_intelligence_rigging_direction_native_opentoonz_blender_routing_and_fixed_non_executable_adapter_candidates',
     'selected_scene_lineage_and_private_prompt_materialization',
     'selected_scene_private_operation_and_canonical_comfyui_candidate_input_reconciliation',
     'partial_independent_canonical_offline_image_vulnerability_evidence_and_fail_closed_disposition',
@@ -591,6 +616,12 @@ const receipt = {
         'advanced_temporal_living_a_roll_subject_mask',
       reason:
         'canonical_ffmpeg_to_sam2_work_admission_is_frozen_at_576ca54b_and_fixed_runner_router_plus_exact_private_checkpoint_read_only_mount_hard_cuda_refusal_and_the_official_torch_2_6_torchvision_0_21_cuda_12_4_core_candidate_matrix_are_frozen_but_the_complete_offline_closure_versioned_hardened_runtime_contract_checkpoint_regression_and_real_l4_inference_private_output_resource_and_mask_qa_evidence_remain_required',
+    },
+    {
+      gate:
+        'advanced_rigging_external_tool_runtime',
+      reason:
+        'head_intelligence_rigging_direction_rigging_v2_relational_validation_native_opentoonz_blender_route_selection_and_fixed_non_executable_adapter_materialization_are_verified_but_pinned_scanned_blender_and_opentoonz_runtime_images_reviewed_adapter_source_real_scene_benchmarks_transparent_component_outputs_private_persistence_qa_review_canonical_work_admission_and_fallback_evidence_remain_required',
     },
   ],
   internalEndToEndReadyForOwnerReview: false,

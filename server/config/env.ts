@@ -11,6 +11,7 @@ export type StorageMode = 'local' | 'gcs_disabled' | 'gcs'
 export type LargeMediaFinalizationMode = 'disabled' | 'private_local' | 'distributed'
 export type WorkerRuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
 export type BrowserApiTransportMode = 'direct' | 'google_api_gateway'
+export type KimiRuntimeMode = 'disabled' | 'internal_test' | 'cloud_run'
 
 export interface RuntimeEnv {
   nodeEnv: string
@@ -53,6 +54,7 @@ export interface RuntimeEnv {
   toolAdapterPythonBin: string
   toolAdapterPythonBinConfigured: boolean
   playwrightBin: string
+  kimiRuntimeMode: KimiRuntimeMode
   providerSecretReferenceNames: Record<string, string | undefined>
   hasSupabaseAdmin: boolean
   hasSupabasePublic: boolean
@@ -104,7 +106,13 @@ const envSchema = z.object({
   PYTHON_BIN: z.string().default('python'),
   TOOL_ADAPTER_PYTHON_BIN: z.string().optional(),
   PLAYWRIGHT_BIN: z.string().default('npx playwright'),
+  REEDITPRO_KIMI_RUNTIME_MODE: z.enum([
+    'disabled',
+    'internal_test',
+    'cloud_run',
+  ]).default('disabled'),
   GOOGLE_SECRET_OPENAI_API_KEY_NAME: z.string().optional(),
+  GOOGLE_SECRET_KIMI_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_WAN_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_HAILUO_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_VEO_VERTEX_CONFIG_NAME: z.string().optional(),
@@ -205,8 +213,10 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     toolAdapterPythonBin,
     toolAdapterPythonBinConfigured: Boolean(clean(parsed.TOOL_ADAPTER_PYTHON_BIN)),
     playwrightBin: parsed.PLAYWRIGHT_BIN,
+    kimiRuntimeMode: parsed.REEDITPRO_KIMI_RUNTIME_MODE,
     providerSecretReferenceNames: {
       openai: clean(parsed.GOOGLE_SECRET_OPENAI_API_KEY_NAME),
+      kimi: clean(parsed.GOOGLE_SECRET_KIMI_API_KEY_NAME),
       wan: clean(parsed.GOOGLE_SECRET_WAN_API_KEY_NAME),
       hailuo: clean(parsed.GOOGLE_SECRET_HAILUO_API_KEY_NAME),
       veo: clean(parsed.GOOGLE_SECRET_VEO_VERTEX_CONFIG_NAME),
@@ -283,6 +293,38 @@ export function assertRuntimeCanStart(env: RuntimeEnv): void {
       throw new Error('Google API Gateway browser transport requires at least one exact API_ALLOWED_CORS_ORIGINS entry.')
     }
   }
+
+  if (env.kimiRuntimeMode !== 'disabled') {
+    const secretReference = env.providerSecretReferenceNames.kimi
+    if (
+      !secretReference
+      || !/^projects\/(?:[a-z][a-z0-9-]{4,28}[a-z0-9]|[0-9]{6,20})\/secrets\/[A-Za-z0-9_-]{1,255}\/versions\/[1-9][0-9]*$/u.test(
+        secretReference,
+      )
+    ) {
+      throw new Error(
+        'Kimi runtime requires GOOGLE_SECRET_KIMI_API_KEY_NAME as an explicitly pinned Secret Manager version.',
+      )
+    }
+  }
+
+  if (
+    env.nodeEnv === 'production'
+    && env.kimiRuntimeMode === 'internal_test'
+  ) {
+    throw new Error(
+      'REEDITPRO_KIMI_RUNTIME_MODE=internal_test is forbidden in production.',
+    )
+  }
+
+  if (
+    env.kimiRuntimeMode === 'cloud_run'
+    && env.mode !== 'cloud_run'
+  ) {
+    throw new Error(
+      'REEDITPRO_KIMI_RUNTIME_MODE=cloud_run requires E2E_RUNTIME_MODE=cloud_run.',
+    )
+  }
 }
 
 export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknown> {
@@ -327,6 +369,14 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
       pythonBinConfigured: Boolean(env.pythonBin),
       toolAdapterPythonBinConfigured: env.toolAdapterPythonBinConfigured,
       playwrightBinConfigured: Boolean(env.playwrightBin),
+    },
+    kimiRuntime: {
+      mode: env.kimiRuntimeMode,
+      pinnedSecretReferenceConfigured: Boolean(
+        env.providerSecretReferenceNames.kimi,
+      ),
+      endpoint: 'https://api.moonshot.ai/v1/chat/completions',
+      model: 'kimi-k3',
     },
     providerSecretReferenceNamesConfigured: Object.fromEntries(
       Object.entries(env.providerSecretReferenceNames).map(([key, value]) => [key, Boolean(value)]),

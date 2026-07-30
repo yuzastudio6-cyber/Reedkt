@@ -43,6 +43,9 @@ import type { EditReferenceExactEditApplyRuntimePort } from './services/edit-ref
 import type { EditReferenceApplicationPreparationRuntimePort } from './services/edit-reference-application-preparation-runtime-port'
 import type { CanonicalCloudDispatchHttpReceiverPort } from
   './services/canonical-cloud-dispatch-http-receiver-port'
+import {
+  createKimiK3SourceLedChatAssistantPort,
+} from './services/kimi-k3-source-led-chat-assistant'
 import type { StorageAdapter } from './storage/storage-types'
 import type { RuntimeClients, RuntimeRequest, RuntimeState } from './types'
 
@@ -81,6 +84,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['editReferenceTargetUnderstandingPackageRuntimePortFactory']
   editBriefPrivateWorkspaceRuntimePort?:
     RuntimeState['editBriefPrivateWorkspaceRuntimePort']
+  kimiK3SourceLedChatAssistantPort?:
+    RuntimeState['kimiK3SourceLedChatAssistantPort']
   canonicalCloudDispatchHttpReceiverPort?:
     CanonicalCloudDispatchHttpReceiverPort
 }
@@ -94,6 +99,11 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
     options.canonicalMotionStudioStorytellingProductionAuthorityReaderPort ??
     (isExplicitLocalInternalTestRuntime(env) && clients.admin
       ? createControlledLocalStorytellingProductionAuthorityReader(clients.admin)
+      : undefined)
+  const kimiK3SourceLedChatAssistantPort =
+    options.kimiK3SourceLedChatAssistantPort ??
+    (env.kimiRuntimeMode !== 'disabled'
+      ? createKimiK3SourceLedChatAssistantPort({ env })
       : undefined)
   const runtime: RuntimeState = {
     env,
@@ -202,6 +212,9 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
           editBriefPrivateWorkspaceRuntimePort:
             options.editBriefPrivateWorkspaceRuntimePort,
         }
+      : {}),
+    ...(kimiK3SourceLedChatAssistantPort
+      ? { kimiK3SourceLedChatAssistantPort }
       : {}),
     clients,
   }

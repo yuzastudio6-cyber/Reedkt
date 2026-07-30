@@ -6,6 +6,7 @@ import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createCanonicalEditJourneyService } from '../services/canonical-edit-journey-service'
 import { createCanonicalPlanPresentationCoordinatorService } from '../services/canonical-plan-presentation-coordinator-service'
 import { createCanonicalSourceLedPlanPresentationService } from '../services/canonical-source-led-plan-presentation-service'
+import { createCanonicalSourceLedChatDirectionService } from '../services/canonical-source-led-chat-direction-service'
 import { createCanonicalSourceLedRevisionPlanPresentationService } from '../services/canonical-source-led-revision-plan-presentation-service'
 import { createCanonicalRevisionPlanPresentationCoordinatorService } from '../services/canonical-revision-plan-presentation-coordinator-service'
 import { createCanonicalPlanApprovalCoordinatorService } from '../services/canonical-plan-approval-coordinator-service'
@@ -26,6 +27,10 @@ import { canonicalEditJourneyQuerySchema } from '../validation/canonical-edit-jo
 import { approvePresentedCanonicalPlanSchema } from '../validation/canonical-plan-approval-schemas'
 import { presentCanonicalRevisionPlanSchema } from '../validation/canonical-revision-plan-presentation-schemas'
 import { presentCanonicalSourceLedPlanSchema } from '../validation/canonical-source-led-plan-presentation-schemas'
+import {
+  appendCanonicalSourceLedChatDirectionSchema,
+  canonicalSourceLedChatQuerySchema,
+} from '../validation/canonical-source-led-chat-schemas'
 import { presentCanonicalSourceLedCaptionRevisionSchema } from '../validation/canonical-source-led-revision-plan-presentation-schemas'
 import {
   approveCanonicalEditPlanSchema,
@@ -42,6 +47,64 @@ import {
 
 export function createEditPlanningAuthorityRoutes(): Router {
   const router = Router()
+
+  router.get(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/source-led-chat',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(
+        canonicalSourceLedChatQuerySchema,
+        request.query,
+      )
+      const thread = await createCanonicalSourceLedChatDirectionService(
+        getServiceContext(request),
+      ).read({
+        workspaceId: query.workspaceId,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+      })
+      sendOk(response, { canonicalSourceLedChat: thread }, [
+        'This tenant-scoped read returns persisted user and server acknowledgement text only; it grants no plan, execution, provider, render, or credit authority.',
+      ])
+    }),
+  )
+
+  router.post(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/source-led-chat',
+    requireAuth,
+    requireSensitiveIdempotencyKey,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(
+        appendCanonicalSourceLedChatDirectionSchema,
+        request.body,
+      )
+      const result = await createCanonicalSourceLedChatDirectionService(
+        getServiceContext(request),
+      ).append({
+        ...body,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+        idempotencyKey: getIdempotencyKey(request),
+      })
+      sendOk(response, {
+        canonicalSourceLedChat: result.thread,
+        exchange: result.exchange,
+        replayed: result.replayed,
+      }, [
+        result.exchange.effect.activeForPlanning
+          ? 'The message was persisted and is an input to the next server-derived plan.'
+          : result.exchange.effect.status === 'waiting_for_ai_response'
+            ? 'The message was persisted but remains fail-closed until a verified AI response is available.'
+            : 'The message was persisted but remains fail-closed until its required setup is confirmed.',
+        result.exchange.assistantRuntime?.status === 'completed'
+          ? 'Kimi K3 produced the persisted assistant reply through the private server runtime.'
+          : result.exchange.assistantRuntime
+            ? 'The private AI response was not verified; planning remains blocked for this message.'
+            : 'The private AI runtime is disabled; the persisted reply is a deterministic server acknowledgement.',
+        'No plan approval, credit action, worker, render, or editing operation started.',
+      ], result.replayed ? 200 : 201)
+    }),
+  )
 
   router.get(
     '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-journey',

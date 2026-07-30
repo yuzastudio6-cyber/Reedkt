@@ -38,6 +38,9 @@ import type {
 import type {
   EditBriefPrivateWorkspaceRuntimePort,
 } from './services/edit-brief-private-workspace-runtime-port'
+import type {
+  KimiK3SourceLedChatAssistantPort,
+} from './services/kimi-k3-source-led-chat-assistant'
 
 export interface AuthContext {
   userId: string
@@ -116,6 +119,7 @@ export interface RuntimeState {
   editReferenceTargetUnderstandingPackageRuntimePortFactory?:
     EditReferenceTargetUnderstandingPackageRuntimePortFactory
   editBriefPrivateWorkspaceRuntimePort?: EditBriefPrivateWorkspaceRuntimePort
+  kimiK3SourceLedChatAssistantPort?: KimiK3SourceLedChatAssistantPort
 }
 
 export type RuntimeRequest = Request & {
@@ -168,4 +172,5 @@ export interface ServiceContext {
   editReferenceTargetUnderstandingPackageRuntimePortFactory?:
     EditReferenceTargetUnderstandingPackageRuntimePortFactory
   editBriefPrivateWorkspaceRuntimePort?: EditBriefPrivateWorkspaceRuntimePort
+  kimiK3SourceLedChatAssistantPort?: KimiK3SourceLedChatAssistantPort
 }

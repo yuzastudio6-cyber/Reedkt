@@ -54,3 +54,12 @@ does not mount model weights, dispatch a GPU operation, create an asset or
 cost receipt, approve QA, bill a customer, deliver publicly, or enable
 production. A frozen source-build receipt and complete vulnerability/SBOM/
 license evidence for the resulting digest are required next.
+
+The pruned source build also removes the inherited out-of-scope `sam-2`
+direct-VCS distribution rather than relying on import denial alone. The fixed
+argument-free removal helper requires build-root, verifies the exact
+`2b90b9f5ceec907a1c18123530e92e794ad901a4` revision, Apache 2.0 metadata,
+114-file inventory, and frozen file-list digest before deleting only the
+known `sam2`, `training`, and `sam_2-1.0.dist-info` trees. The final verifier
+requires the distribution and both top-level modules to be absent while
+retaining the runner's `sam2` meta-path guard as defense in depth.

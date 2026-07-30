@@ -133,9 +133,11 @@ These source files do not authorize:
 
 The image still requires a clean pinned build, vulnerability scan, signature,
 L4 startup and generation benchmarks, exact model compatibility checks,
-license review—including disposition of the inherited direct-VCS
-distribution—official resource-cost evidence, and canonical private end-to-end
-review.
+license review, official resource-cost evidence, and canonical private
+end-to-end review. The pruned source-build candidate now removes the exact
+inherited direct-VCS `sam-2` distribution at build time after validating its
+revision and complete installed file set; the resulting digest and removal
+still require independent scan/evidence before canonical admission.
 
 The internal compatibility wrapper also currently needs bounded stop
 escalation under Apple-host CPU emulation. Its receipt preserves that finding

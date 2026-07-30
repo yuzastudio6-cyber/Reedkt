@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.metadata
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -20,10 +21,16 @@ EXPECTED_GID = 65_532
 RUNTIME_ROOT = Path("/opt/reeditpro/gpu-operations/comfyui")
 BASE_VERIFIER = RUNTIME_ROOT / "verify-hardened-runtime.py"
 PRUNE_SCRIPT = RUNTIME_ROOT / "prune-hardened-runtime-offline.sh"
+SAM2_REMOVAL_SCRIPT = (
+    RUNTIME_ROOT / "remove-inherited-sam2-distribution.py"
+)
 VENV_ROOT = RUNTIME_ROOT / "venv"
 VENV_SITE_PACKAGES = VENV_ROOT / "lib/python3.10/site-packages"
 EXPECTED_BASE_VERIFIER_SHA256 = (
     "692f9829a3c32c1cc82cd26c6c7076ad32280692e3959e89b1ea4c5bd1f31ffc"
+)
+EXPECTED_SAM2_REMOVAL_SCRIPT_SHA256 = (
+    "d7728338ebdc04c9a647882b9d0e16328e317f8863287dd7f4d9f6d7cf861440"
 )
 FORBIDDEN_PACKAGES = (
     "apt",
@@ -147,8 +154,32 @@ def main() -> None:
 
     if not PRUNE_SCRIPT.is_file() or not os.access(PRUNE_SCRIPT, os.X_OK):
         raise RuntimeError("Fixed runtime-prune contract is unavailable.")
+    if (
+        not SAM2_REMOVAL_SCRIPT.is_file()
+        or not os.access(SAM2_REMOVAL_SCRIPT, os.X_OK)
+        or sha256(SAM2_REMOVAL_SCRIPT)
+        != EXPECTED_SAM2_REMOVAL_SCRIPT_SHA256
+    ):
+        raise RuntimeError(
+            "Fixed inherited SAM-2 removal contract is unavailable."
+        )
     if Path("/etc/ssl/certs/ca-certificates.crt").exists():
         raise RuntimeError("Network trust store remains in offline runtime.")
+
+    try:
+        importlib.metadata.distribution("sam-2")
+    except importlib.metadata.PackageNotFoundError:
+        pass
+    else:
+        raise RuntimeError(
+            "Out-of-scope inherited SAM-2 distribution remains."
+        )
+    if importlib.util.find_spec("sam2") is not None:
+        raise RuntimeError("Out-of-scope inherited sam2 module remains.")
+    if importlib.util.find_spec("training") is not None:
+        raise RuntimeError(
+            "Out-of-scope inherited SAM-2 training module remains."
+        )
 
     try:
         importlib.metadata.distribution("pip")
@@ -177,6 +208,9 @@ def main() -> None:
                 "transformers": base_receipt["transformers"],
                 "huggingfaceHub": base_receipt["huggingfaceHub"],
                 "sam2ImportDenied": base_receipt["sam2ImportDenied"],
+                "inheritedSam2DistributionPresent": False,
+                "inheritedSam2ModuleImportable": False,
+                "inheritedSam2TrainingModuleImportable": False,
                 "operationVenvInstallerMetadataPresent": False,
                 "buildToolchainPresent": False,
                 "networkTrustStorePresent": False,

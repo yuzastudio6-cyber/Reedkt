@@ -9,6 +9,10 @@ const dockerfile = read(
 const pruner = read(
   "docker/prod/gpu-worker/comfyui/" + "prune-hardened-runtime-offline.sh",
 );
+const sam2Remover = read(
+  "docker/prod/gpu-worker/comfyui/" +
+    "remove-inherited-sam2-distribution.py",
+);
 const verifier = read(
   "docker/prod/gpu-worker/comfyui/" + "verify-hardened-runtime-pruned.py",
 );
@@ -29,6 +33,10 @@ assert.match(
 assert.match(dockerfile, /USER 65532:65532/u);
 assert.match(dockerfile, /operation-venv-installer-metadata-present="false"/u);
 assert.match(dockerfile, /build-toolchain-present="false"/u);
+assert.match(
+  dockerfile,
+  /inherited-sam2-distribution-present="false"/u,
+);
 assert.match(dockerfile, /operation-registered="false"/u);
 assert.match(dockerfile, /runtime-executed="false"/u);
 assert.match(dockerfile, /production-qualified="false"/u);
@@ -41,6 +49,7 @@ for (const required of [
   "accepts no arguments",
   "requires build-root",
   "-m pip uninstall --yes pip setuptools",
+  "remove-inherited-sam2-distribution.py",
   "apt-get purge",
   "--no-download",
   "linux-libc-dev",
@@ -65,13 +74,39 @@ assert.doesNotMatch(
 );
 
 for (const required of [
+  "EXPECTED_REVISION = \"2b90b9f5ceec907a1c18123530e92e794ad901a4\"",
+  "EXPECTED_FILE_COUNT = 114",
+  "e0056305b664ab9f54cf1b4a7f5886a6bcacb389195fe8f1c07aee3547b8e468",
+  "not relative_path.startswith(ALLOWED_PREFIXES)",
+  "shutil.rmtree(root)",
+  "distributionPresentAfterRemoval",
+  "sam2ModuleImportableAfterRemoval",
+  "runtimeAuthority",
+  "productionReady",
+] as const) {
+  assert.equal(
+    sam2Remover.includes(required),
+    true,
+    `Missing inherited SAM-2 removal requirement: ${required}`,
+  );
+}
+assert.doesNotMatch(
+  sam2Remover,
+  /\b(?:requests|urllib|socket|subprocess|curl|wget)\b/u,
+);
+
+for (const required of [
   "EXPECTED_UID = 65_532",
   "EXPECTED_GID = 65_532",
   "Base hardened runtime verifier lineage changed.",
+  "d7728338ebdc04c9a647882b9d0e16328e317f8863287dd7f4d9f6d7cf861440",
   "Operation-local installer metadata remains after pruning.",
   "Build-only OS packages remain installed.",
   "Network trust store remains in offline runtime.",
   '"sam2ImportDenied": base_receipt["sam2ImportDenied"]',
+  '"inheritedSam2DistributionPresent": False',
+  '"inheritedSam2ModuleImportable": False',
+  '"inheritedSam2TrainingModuleImportable": False',
   '"modelWeightsLoaded": False',
   '"graphExecuted": False',
   '"runtimeAuthority": False',
@@ -96,6 +131,7 @@ process.stdout.write(
     exactParentDigestBound: true,
     offlineWheelInstallPreserved: true,
     operationVenvInstallerMetadataRemoved: true,
+    inheritedSam2DistributionRemoved: true,
     buildToolchainPruned: true,
     defaultUid: 65_532,
     defaultGid: 65_532,

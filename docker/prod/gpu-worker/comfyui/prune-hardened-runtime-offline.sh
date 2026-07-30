@@ -26,6 +26,10 @@ VENV_ROOT="${RUNTIME_ROOT}/venv"
 VENV_SITE_PACKAGES="${VENV_ROOT}/lib/python3.10/site-packages"
 
 "${VENV_ROOT}/bin/python" -m pip uninstall --yes pip setuptools
+/usr/bin/python3 \
+  -I \
+  -B \
+  "${RUNTIME_ROOT}/remove-inherited-sam2-distribution.py"
 
 if find "${VENV_SITE_PACKAGES}" -mindepth 1 -maxdepth 1 \
   \( -name 'pip-*.dist-info' -o -name 'setuptools-*.dist-info' \) \

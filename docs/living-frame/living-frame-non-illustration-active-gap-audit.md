@@ -61,7 +61,13 @@ The active scope already has verified source contracts for:
   feature-branch Living Frame definition and the ordered seven-gate owner
   delta without mutating the shared registry. Canonical selection,
   publication, approved-snapshot propagation, and the complete
-  registry/planner regression remain a later one-writer task.
+  registry/planner regression remain a later one-writer task; and
+- a namespaced supplemental chat-plan presentation descriptor that binds the
+  exact Professional Skill plan/component, selection decision, owner scope,
+  active policy, confirmed frame, MasterTiming, plan version, and approved or
+  pending snapshot state. It covers guided, detailed, and opaque developer
+  views plus exact reload and revision invalidation without mutating the shared
+  chat-card or browser-rehydration owners.
 
 Recorded private fixtures cover all five modes, confirmed portrait/custom
 frames, a safe-space A-roll fallback, deterministic diagram reveal, archive
@@ -85,31 +91,35 @@ called professionally accepted.
    and approved snapshots, and run the complete canonical registry/planner
    regression. The feature branch's observed 110-definition count is a drift
    fingerprint, not a cap or the canonical backend count.
-3. Reconcile canonical motion v3 at the backend one-writer boundary and bind
+3. Reconcile the namespaced Living Frame chat-plan descriptor into the one
+   canonical source-led presentation/read model. Persist and reload it from
+   canonical state, prove approved-snapshot digest matching and invalidation
+   for aspect/timing/scope/policy revisions, and keep one approval CTA.
+4. Reconcile canonical motion v3 at the backend one-writer boundary and bind
    its digest through admitted work, manifest, renderer, QA, and review. The
    feature source and active A-roll regression are green; shared canonical
    consumption is not yet complete.
-4. Have the canonical SoundSync owner consume the new versioned semantic cue
+5. Have the canonical SoundSync owner consume the new versioned semantic cue
    request and return exact start/hit/end frames, envelope, asset provenance,
    gain/pan/spatial treatment, narration protection, snapshot, work, renderer,
    audio-QA, and private-review lineage. The preferred hit is a candidate only.
-5. Close advanced temporal Living A-Roll masking through the hardened SAM2
+6. Close advanced temporal Living A-Roll masking through the hardened SAM2
    contract, real L4 evidence, create-only persistence, and measured edge,
    temporal, coverage, and contact-object QA. Keep safe-space fallback active.
-6. Reconcile procedural-timeline artifacts into the canonical generic scene
+7. Reconcile procedural-timeline artifacts into the canonical generic scene
    evidence and private-review owners.
-7. Reconcile the source-bound map/route, archive-document, exact diagram, and
+8. Reconcile the source-bound map/route, archive-document, exact diagram, and
    non-character hybrid structural binding at the canonical owner boundary;
    reread the immutable sources and complete snapshot → work → asset → timing
    → renderer → QA → review execution and fixture lineage.
-8. Reconcile the already-frozen Caption Direction public adapter at the
+9. Reconcile the already-frozen Caption Direction public adapter at the
    canonical one-writer boundary while preserving separate ownership.
-9. Compile and execute a runtime aggregate from the new 12-case active
+10. Compile and execute a runtime aggregate from the new 12-case active
    non-illustration manifest. It must fail if any paused evidence is counted
    and must not import the historical 39/40-case runner. The canonical
    one-writer must consume the evidence-admission candidate as supplemental QA
    evidence rather than creating a second readiness or private-review owner.
-10. Render representative non-illustration scenes, inspect every complete clip
+11. Render representative non-illustration scenes, inspect every complete clip
    at playback speed plus required sampled frames, and repair or reject every
    result that misses the professional bar.
 
@@ -131,8 +141,8 @@ constraints, hidden geometry, or a rig.
 
 ## Implementation Order
 
-1. Canonical Professional Skill policy reconciliation and postrender
-   visual-inspection/Head QA integration.
+1. Canonical Professional Skill policy and chat-plan presentation
+   reconciliation, plus postrender visual-inspection/Head QA integration.
 2. Canonical renderer and SoundSync reconciliation for the versioned
    attention/Semantic Scale/camera/SoundSync handoff while the canonical owner
    reconciles motion v3.

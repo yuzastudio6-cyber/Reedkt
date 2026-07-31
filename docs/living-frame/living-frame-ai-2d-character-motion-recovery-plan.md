@@ -25,7 +25,9 @@ Meaningful illustrated-character pose changes use complete key poses:
 ```text
 structured narrative action
   -> complete source-character reference
-  -> controlled start / action-apex / settle poses
+  -> action-mechanics choreography
+  -> only the required complete key poses
+  -> StoryTiming-owned non-generic frame placement
   -> visual acceptance of every complete pose
   -> bounded 2D interpolation candidate
   -> rendered-clip visual acceptance
@@ -82,14 +84,17 @@ https://opentoonz.readthedocs.io/en/latest/create_animations_using_plastic_tool.
 
 ## Complete-key-pose contract
 
-The first feasibility scene uses three complete character poses:
+Key poses are selected from the mechanics and meaning of the particular action,
+not from a generic `start / middle / end` template. A prop interaction may need
+`start / anticipation / contact / settle`; a body turn may need
+`start / passing / action_apex / settle`; an impact may require anticipation,
+contact, follow-through, and recovery. The bounded feasibility route currently
+admits three or four complete poses only. When Head Intelligence determines that
+the action cannot be expressed professionally within that count, the route must
+decline or select a different animation strategy rather than compressing or
+omitting necessary mechanics.
 
-1. `start` — intact source identity and resting action;
-2. `action_apex` — the complete character performs the narrative action; and
-3. `settle` — the complete character resolves the action without identity or
-   costume drift.
-
-A large pose change may use one additional transition pose. Each pose must:
+Each pose must:
 
 - contain one complete coherent character;
 - preserve the same face, body proportions, clothing, prop, lighting, and
@@ -172,12 +177,14 @@ Head Intelligence visual decisions after complete keyposes, after interpolated
 motion, and after final Remotion composition. No downstream stage may treat a
 failed or missing visual decision as success.
 
-The companion `living-frame-complete-character-keypose-plan-v1` compiles one
-unit per exact approved complete keypose. Three-pose scenes use `start`,
-`action_apex`, and `settle`; four-pose scenes add `anticipation`. Every unit is
-a complete 1024-square character candidate, binds exact source/style/pose/work
-lineage, and keeps interpolation, RIFE, and Remotion blocked until professional
-visual acceptance exists for every pose.
+The companion `living-frame-complete-character-keypose-plan-v2` compiles one
+unit per exact action-directed complete keypose. It does not prescribe a generic
+middle pose: the action choreography supplies the required phase role, semantic
+reason, body mechanics, prop constraint, StoryTiming frame, and minimum hold.
+Every unit is a complete 1024-square character candidate, binds exact
+source/style/pose/work/choreography/timing lineage, and keeps interpolation,
+RIFE, and Remotion blocked until professional visual acceptance exists for every
+pose.
 
 Source-only regressions:
 
@@ -185,6 +192,7 @@ Source-only regressions:
 npm run smoke:living-frame-ai-2d-character-motion
 npm run smoke:living-frame-professional-visual-review
 npm run smoke:living-frame-complete-character-keypose-plan
+npm run smoke:living-frame-character-action-choreography
 npm run smoke:living-frame-character-motion-tool-policy
 npm run smoke:living-frame-ai-2d-feasibility-sprint
 npm run smoke:living-frame-ai-2d-interpolation-qualification
@@ -224,6 +232,20 @@ not eligible for ReeditPro execution. Both require fixed offline adapters and
 separate model, license, image, hardware, resource, private-output, and visual
 qualification. Source pinning is complete; runtime qualification is not.
 
+`living-frame-character-action-choreography-v1` prevents generic
+start/middle/end pose selection and default evenly spaced timing from entering
+the character route. Head Intelligence must classify the action, identify its
+actual mechanics, select only the narratively and physically necessary phases,
+and explain why each complete-character keypose exists. Prop actions require
+explicit contact and hand/prop continuity; anticipation, contact, and
+follow-through phases become mandatory when the action mechanics require them.
+Exact keypose frames come only from a content-addressed StoryTiming artifact.
+Every transition must fall inside its action-specific frame range and motion
+curve. Uniform spacing is rejected unless the action has an explicit mechanics-
+based justification. Technical timing validation cannot approve professional
+motion; the finished motion and final composite still require actual visual
+inspection.
+
 The still-image gate is `living-frame-complete-character-keypose-review-v1`.
 It binds the actual decoded private PNG to its exact keypose plan and unit,
 approved work item, planned manifest entry, output key, object identity, and
@@ -236,7 +258,7 @@ Decode, exact 1024-square dimensions, and crop checks must all pass before
 visual acceptance is even eligible; those technical checks still cannot unlock
 interpolation without the eight Head Intelligence visual checks.
 
-`living-frame-complete-character-interpolation-admission-v1` consumes one
+`living-frame-complete-character-interpolation-admission-v2` consumes one
 exact all-accepted keypose review set, its exact feasibility fixture, the
 source-reviewed ToonCrafter qualification record, and a StoryTiming-owned
 keypose-frame artifact whose exact frame list is content-addressed and bound to

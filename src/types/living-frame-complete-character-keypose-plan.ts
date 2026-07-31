@@ -1,18 +1,20 @@
 import type {
   LivingFrameAi2dCharacterMotionStrategyRecord,
 } from './living-frame-ai-2d-character-motion'
+import type {
+  LivingFrameCharacterActionChoreographyInput,
+  LivingFrameCharacterActionPhaseRole,
+  LivingFrameCharacterActionPropConstraint,
+} from './living-frame-character-action-choreography'
 
 export const LIVING_FRAME_COMPLETE_CHARACTER_KEYPOSE_PLAN_VERSION =
-  'living-frame-complete-character-keypose-plan-v1' as const
+  'living-frame-complete-character-keypose-plan-v2' as const
 
 export const LIVING_FRAME_COMPLETE_CHARACTER_KEYPOSE_PLAN_CLASS =
   'server_derived_non_executable_complete_character_keypose_plan' as const
 
 export type LivingFrameCompleteCharacterKeyposeRole =
-  | 'start'
-  | 'anticipation'
-  | 'action_apex'
-  | 'settle'
+  LivingFrameCharacterActionPhaseRole
 
 export interface LivingFrameCompleteCharacterKeyposeInput {
   readonly order: number
@@ -23,7 +25,6 @@ export interface LivingFrameCompleteCharacterKeyposeInput {
   readonly approvedWorkItemId: string
   readonly plannedAssetManifestEntryId: string
   readonly outputKey: string
-  readonly actionDescription: string
 }
 
 export interface LivingFrameCompleteCharacterKeyposeUnit {
@@ -39,7 +40,15 @@ export interface LivingFrameCompleteCharacterKeyposeUnit {
   readonly approvedWorkItemId: string
   readonly plannedAssetManifestEntryId: string
   readonly outputKey: string
+  readonly actionPhaseId: string
   readonly actionDescription: string
+  readonly keyposeSelectionReason:
+    string
+  readonly bodyMechanicIntent: string
+  readonly propConstraint:
+    LivingFrameCharacterActionPropConstraint
+  readonly storyTimingFrame: number
+  readonly minimumHoldFrames: number
   readonly generationRoute: {
     readonly optionalDesignOrRepairProviderRoute:
       'gpt_image_2'
@@ -117,6 +126,14 @@ export interface LivingFrameCompleteCharacterKeyposePlanDraft {
       typeof import('./living-frame-ai-2d-character-motion').LIVING_FRAME_AI_2D_CHARACTER_MOTION_STRATEGY_VERSION
     readonly motionStrategyDigestSha256:
       string
+    readonly actionChoreographyVersion:
+      'living-frame-character-action-choreography-v1'
+    readonly actionChoreographyDigestSha256:
+      string
+    readonly authoritativeActionTimingArtifactId:
+      string
+    readonly authoritativeActionTimingDigestSha256:
+      string
     readonly approvedSnapshotId: string
     readonly approvedSnapshotHashSha256: string
     readonly selectedSceneBindingDigestSha256:
@@ -148,6 +165,14 @@ export interface LivingFrameCompleteCharacterKeyposePlanDraft {
     readonly everyPoseRequiresProfessionalVisualAcceptance:
       true
     readonly interpolationBlockedUntilEveryPoseAccepted:
+      true
+    readonly actionSpecificKeyposeSelectionRequired:
+      true
+    readonly genericStartMiddleEndPlanningForbidden:
+      true
+    readonly storyTimingOwnsExactKeyposeFrames:
+      true
+    readonly evenlySpacedDefaultTimingForbidden:
       true
     readonly independentPerFrameGenerationForbidden:
       true
@@ -199,4 +224,9 @@ export interface LivingFrameCompleteCharacterKeyposePlanDraft {
 export interface LivingFrameCompleteCharacterKeyposePlan
   extends LivingFrameCompleteCharacterKeyposePlanDraft {
   readonly planDigestSha256: string
+}
+
+export interface LivingFrameCompleteCharacterKeyposeChoreographyBinding {
+  readonly actionChoreographyInput:
+    LivingFrameCharacterActionChoreographyInput
 }

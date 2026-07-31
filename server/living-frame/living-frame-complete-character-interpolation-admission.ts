@@ -30,6 +30,9 @@ import {
   type CompileLivingFrameCompleteCharacterKeyposeReviewSetInput,
   verifyLivingFrameCompleteCharacterKeyposeReviewSet,
 } from './living-frame-complete-character-keypose-review'
+import {
+  compileLivingFrameCharacterActionChoreography,
+} from './living-frame-character-action-choreography'
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const SAFE_GENERATED_ID_BASE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u
@@ -113,6 +116,14 @@ export function compileLivingFrameCompleteCharacterInterpolationAdmission(
         keyposePlanDigestSha256:
           input.reviewSet
             .keyposePlanRef.digestSha256,
+        actionChoreographyDigestSha256:
+          input.reviewSetInput.keyposePlan
+            .sourceBindings
+            .actionChoreographyDigestSha256,
+        authoritativeActionTimingDigestSha256:
+          input.reviewSetInput.keyposePlan
+            .sourceBindings
+            .authoritativeActionTimingDigestSha256,
         keyposeReviewSetId:
           input.reviewSet.setId,
         keyposeReviewSetDigestSha256:
@@ -144,6 +155,12 @@ export function compileLivingFrameCompleteCharacterInterpolationAdmission(
       transitionUnits,
       sequencingPolicy: {
         everyInputKeyposeProfessionallyAccepted:
+          true,
+        actionSpecificKeyposeSelectionRevalidated:
+          true,
+        authoritativeActionTimingRevalidated:
+          true,
+        genericOrEvenlySpacedDefaultTimingForbidden:
           true,
         transitionCountEqualsKeyposeCountMinusOne:
           true,
@@ -295,6 +312,8 @@ function assertInput(
       input.reviewSetInput.keyposePlan
         .keyposeUnits,
       fixture.masterTimingRef,
+      input.reviewSetInput.keyposePlan
+        .sourceBindings,
     )
   ) fail()
 }
@@ -303,6 +322,13 @@ function compileTransitionUnits(
   input:
     CompileLivingFrameCompleteCharacterInterpolationAdmissionInput,
 ): readonly LivingFrameCompleteCharacterInterpolationTransitionUnit[] {
+  const keyposePlan =
+    input.reviewSetInput.keyposePlan
+  const choreography =
+    compileLivingFrameCharacterActionChoreography(
+      input.reviewSetInput.keyposePlanInput
+        .actionChoreographyInput,
+    )
   return input.reviewSet.reviews.slice(0, -1).map(
     (fromReview, order) => {
       const toReview = input.reviewSet.reviews[order + 1]!
@@ -310,6 +336,12 @@ function compileTransitionUnits(
         .keyposes[order]!
       const toTiming = input.authoritativeKeyposeTimingRef
         .keyposes[order + 1]!
+      const fromUnit =
+        keyposePlan.keyposeUnits[order]!
+      const toUnit =
+        keyposePlan.keyposeUnits[order + 1]!
+      const actionTransition =
+        choreography.transitionDirectives[order]!
       const draft = {
         order,
         transitionUnitId:
@@ -324,6 +356,25 @@ function compileTransitionUnits(
         ),
         requestedMotionSpanFrames:
           toTiming.frame - fromTiming.frame,
+        actionTransitionBinding: {
+          fromActionPhaseId:
+            fromUnit.actionPhaseId,
+          toActionPhaseId:
+            toUnit.actionPhaseId,
+          fromBodyMechanicIntent:
+            fromUnit.bodyMechanicIntent,
+          toBodyMechanicIntent:
+            toUnit.bodyMechanicIntent,
+          fromPropConstraint:
+            fromUnit.propConstraint,
+          toPropConstraint:
+            toUnit.propConstraint,
+          motionCurve:
+            actionTransition.motionCurve,
+          choreographyTransitionDigestSha256:
+            actionTransition
+              .transitionDigestSha256,
+        },
         route: {
           proposedToolId:
             'tooncrafter' as const,
@@ -393,6 +444,7 @@ function isValidTimingRef(
   units: readonly {
     readonly keyposeUnitId: string
     readonly role: string
+    readonly storyTimingFrame: number
   }[],
   masterTimingRef: {
     readonly planId: string
@@ -401,6 +453,12 @@ function isValidTimingRef(
     readonly endFrameExclusive: number
     readonly digestSha256: string
   },
+  actionTimingBinding: {
+    readonly authoritativeActionTimingArtifactId:
+      string
+    readonly authoritativeActionTimingDigestSha256:
+      string
+  },
 ): value is LivingFrameAuthoritativeKeyposeTimingRef {
   if (
     !hasExactKeys(value, [
@@ -408,6 +466,8 @@ function isValidTimingRef(
       'artifactId',
       'version',
       'digestSha256',
+      'sourceActionTimingArtifactId',
+      'sourceActionTimingDigestSha256',
       'masterTimingPlanId',
       'masterTimingDigestSha256',
       'segmentId',
@@ -420,6 +480,12 @@ function isValidTimingRef(
     || Number(value.version) < 1
     || typeof value.digestSha256 !== 'string'
     || !SHA256.test(value.digestSha256)
+    || value.sourceActionTimingArtifactId !==
+      actionTimingBinding
+        .authoritativeActionTimingArtifactId
+    || value.sourceActionTimingDigestSha256 !==
+      actionTimingBinding
+        .authoritativeActionTimingDigestSha256
     || value.masterTimingPlanId !==
       masterTimingRef.planId
     || value.masterTimingDigestSha256 !==
@@ -452,6 +518,8 @@ function isValidTimingRef(
         || entry.keyposeUnitId !==
           unit.keyposeUnitId
         || entry.role !== unit.role
+        || entry.frame !==
+          unit.storyTimingFrame
         || !Number.isSafeInteger(
           entry.frame,
         )

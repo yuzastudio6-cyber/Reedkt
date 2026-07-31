@@ -410,6 +410,54 @@ function isValidFixture(
   ) return false
   const frame =
     candidate.confirmedOutputFrameRef
+  const actionTiming =
+    candidate.keyposePlanInput
+      .actionChoreographyInput
+      .authoritativeTimingRef
+  const actionDirection =
+    candidate.keyposePlanInput
+      .actionChoreographyInput
+      .actionDirection
+  if (
+    actionDirection.actionSummary !==
+      candidate.expectedActionSummary
+    || actionTiming.masterTimingPlanId !==
+      candidate.masterTimingRef.planId
+    || actionTiming.masterTimingDigestSha256 !==
+      candidate.masterTimingRef.digestSha256
+    || actionTiming.segmentId !==
+      candidate.masterTimingRef.segmentId
+    || actionTiming.actionStartFrame <
+      candidate.masterTimingRef.startFrame
+    || actionTiming.actionEndFrameExclusive >
+      candidate.masterTimingRef.endFrameExclusive
+    || candidate.keyposePlan.keyposeUnits.some(
+      (unit) =>
+        unit.storyTimingFrame <
+          candidate.masterTimingRef.startFrame
+        || unit.storyTimingFrame >=
+      candidate.masterTimingRef.endFrameExclusive,
+    )
+  ) return false
+  if (
+    candidate.scenario ===
+      'complete_character_prop_interaction'
+    && (
+      actionDirection.actionKind !==
+        'prop_interaction'
+      || !actionDirection
+        .propInteractionRequired
+      || !actionDirection
+        .handPropContinuityRequired
+      || !candidate.keyposePlan
+        .keyposeUnits.some(
+          (unit) =>
+            unit.role === 'contact'
+            && unit.propConstraint !==
+              'none',
+        )
+    )
+  ) return false
   const expectedHeight =
     frame.widthPixels
     * frame.aspectDenominator

@@ -45,7 +45,7 @@ export interface LivingFrameCompleteCharacterKeyposeReviewRequest {
   readonly keyposePlanRef: {
     readonly planId: string
     readonly version:
-      'living-frame-complete-character-keypose-plan-v1'
+      'living-frame-complete-character-keypose-plan-v2'
     readonly digestSha256: string
   }
   readonly keyposeUnitRef: {

@@ -23,6 +23,9 @@ import {
 import {
   compileLivingFrameCompleteCharacterKeyposePlan,
 } from '../living-frame/living-frame-complete-character-keypose-plan'
+import {
+  actionChoreographyTestInput,
+} from './living-frame-character-action-choreography-test-fixture'
 
 const toolPolicy =
   compileLivingFrameCharacterMotionToolPolicy()
@@ -34,7 +37,7 @@ const fixtures = [
     slug: 'navigator-spyglass',
     action:
       'The complete navigator raises and settles a spyglass while both hands and the prop remain attached.',
-    keyposeCount: 3,
+    keyposeCount: 4,
     widthPixels: 1920,
     heightPixels: 1080,
     aspectNumerator: 16,
@@ -107,9 +110,53 @@ assert.deepEqual(
         .maximumTotalKeyposeAttempts,
   ),
   [
-    9,
+    12,
     12,
     9,
+  ],
+)
+assert.equal(
+  fixtures[0].keyposePlanInput
+    .actionChoreographyInput
+    .actionDirection.actionKind,
+  'prop_interaction',
+)
+assert.deepEqual(
+  fixtures[0].keyposePlan.keyposeUnits.map(
+    (unit) => unit.role,
+  ),
+  [
+    'start',
+    'anticipation',
+    'contact',
+    'settle',
+  ],
+)
+assert.deepEqual(
+  fixtures.map(
+    (entry) =>
+      entry.keyposePlan.keyposeUnits.map(
+        (unit) => unit.storyTimingFrame,
+      ),
+  ),
+  [
+    [
+      0,
+      5,
+      12,
+      26,
+    ],
+    [
+      120,
+      124,
+      135,
+      147,
+    ],
+    [
+      240,
+      246,
+      258,
+    ],
   ],
 )
 assert.equal(
@@ -254,6 +301,21 @@ console.log(JSON.stringify({
         entry.attemptPolicy
           .maximumTotalKeyposeAttempts,
     ),
+  actionSpecificKeyposeRoles:
+    sprint.fixturePlans.map(
+      (_, order) =>
+        fixtures[order]!.keyposePlan
+          .keyposeUnits.map(
+            (unit) => unit.role,
+          ),
+    ),
+  storyTimingFrames:
+    fixtures.map(
+      (entry) =>
+        entry.keyposePlan.keyposeUnits.map(
+          (unit) => unit.storyTimingFrame,
+        ),
+    ),
   currentCharacterAnimationDisposition:
     sprint.keepOrDropPolicy
       .currentCharacterAnimationDisposition,
@@ -326,10 +388,62 @@ function fixture(input: {
       styleReferenceDigestSha256:
         digestCharacter(input.order, 'f'),
     },
+    actionChoreographyInput:
+      actionChoreographyTestInput({
+        slug: input.slug,
+        strategy,
+        canonicalScope: {
+          workspaceId:
+            'workspace.internal.living-frame',
+          projectId:
+            'project.internal.ai-2d-feasibility',
+          editSessionId:
+            `edit.internal.${input.slug}`,
+          sceneId: evidence.sceneId,
+          componentId:
+            evidence.componentId,
+        },
+        masterTimingDigestSha256:
+          digestCharacter(input.order, '7'),
+        masterTimingPlanId:
+          `timing.${input.slug}.v1`,
+        segmentId:
+          `segment.${input.slug}.v1`,
+        actionStartFrame:
+          input.order * 120,
+        actionKind:
+          input.scenario ===
+            'complete_character_prop_interaction'
+            ? 'prop_interaction'
+            : 'directed_gesture',
+        relativeFrames:
+          input.scenario ===
+            'complete_character_prop_interaction'
+            ? [
+              0,
+              5,
+              12,
+              26,
+            ]
+            : input.scenario ===
+                'complete_character_meaningful_pose_change'
+              ? [
+                0,
+                4,
+                15,
+                27,
+              ]
+              : [
+                0,
+                6,
+                18,
+              ],
+      }),
     keyposes:
       keyposes(
         input.slug,
         input.keyposeCount,
+        input.scenario,
       ),
     }
   const keyposePlan =
@@ -446,17 +560,29 @@ function strategyEvidence(input: {
 function keyposes(
   slug: string,
   count: 3 | 4,
+  scenario:
+    LivingFrameAi2dFeasibilityScenario,
 ): readonly LivingFrameCompleteCharacterKeyposeInput[] {
+  const propInteraction = scenario ===
+    'complete_character_prop_interaction'
   const roles = count === 3
-    ? [
-      'start',
-      'action_apex',
-      'settle',
-    ] as const
+    ? propInteraction
+      ? [
+        'start',
+        'contact',
+        'settle',
+      ] as const
+      : [
+        'start',
+        'action_apex',
+        'settle',
+      ] as const
     : [
       'start',
       'anticipation',
-      'action_apex',
+      propInteraction
+        ? 'contact'
+        : 'action_apex',
       'settle',
     ] as const
   return roles.map(
@@ -478,8 +604,6 @@ function keyposes(
         `asset.${slug}.pose.${role}.v1`,
       outputKey:
         `output.${slug}.pose.${role}.v1`,
-      actionDescription:
-        `Render the complete coherent ${slug} character in the ${role} pose with stable anatomy identity costume and attachments.`,
     }),
   )
 }

@@ -14,6 +14,9 @@ import {
   type CreateLivingFrameCompleteCharacterKeyposePlanInput,
   verifyLivingFrameCompleteCharacterKeyposePlan,
 } from '../living-frame/living-frame-complete-character-keypose-plan'
+import {
+  actionChoreographyTestInput,
+} from './living-frame-character-action-choreography-test-fixture'
 
 const strategy =
   compileLivingFrameAi2dCharacterMotionStrategy(
@@ -21,7 +24,7 @@ const strategy =
   )
 const input = planInput(
   strategy,
-  keyposes(3),
+  keyposes(4),
 )
 const plan =
   compileLivingFrameCompleteCharacterKeyposePlan(
@@ -34,7 +37,7 @@ assert.equal(
 )
 assert.equal(
   plan.keyposeUnits.length,
-  3,
+  4,
 )
 assert.deepEqual(
   plan.keyposeUnits.map(
@@ -42,9 +45,30 @@ assert.deepEqual(
   ),
   [
     'start',
-    'action_apex',
+    'anticipation',
+    'contact',
     'settle',
   ],
+)
+assert.deepEqual(
+  plan.keyposeUnits.map(
+    (unit) => unit.storyTimingFrame,
+  ),
+  [
+    0,
+    5,
+    12,
+    26,
+  ],
+)
+assert.equal(
+  plan.keyposeUnits[2]?.propConstraint,
+  'maintain_prop_contact',
+)
+assert.match(
+  plan.sourceBindings
+    .actionChoreographyDigestSha256,
+  /^[a-f0-9]{64}$/u,
 )
 assert.equal(
   plan.keyposeUnits.every(
@@ -71,6 +95,26 @@ assert.equal(
 assert.equal(
   plan.sequencePolicy
     .interpolationBlockedUntilEveryPoseAccepted,
+  true,
+)
+assert.equal(
+  plan.sequencePolicy
+    .actionSpecificKeyposeSelectionRequired,
+  true,
+)
+assert.equal(
+  plan.sequencePolicy
+    .genericStartMiddleEndPlanningForbidden,
+  true,
+)
+assert.equal(
+  plan.sequencePolicy
+    .storyTimingOwnsExactKeyposeFrames,
+  true,
+)
+assert.equal(
+  plan.sequencePolicy
+    .evenlySpacedDefaultTimingForbidden,
   true,
 )
 assert.equal(
@@ -127,6 +171,7 @@ assert.throws(
           role: 'settle',
         },
         input.keyposes[2]!,
+        input.keyposes[3]!,
       ],
     }),
   /order or role is invalid/,
@@ -147,19 +192,23 @@ assert.throws(
   () =>
     compileLivingFrameCompleteCharacterKeyposePlan({
       ...input,
-      keyposes:
-        input.keyposes.map(
-          (keypose, index) =>
-            index === 1
-              ? {
-                ...keypose,
-                actionDescription:
-                  'Load https://untrusted.example/pose',
-              }
-              : keypose,
-        ),
+      actionChoreographyInput: {
+        ...input.actionChoreographyInput,
+        phases:
+          input.actionChoreographyInput
+            .phases.map(
+              (phase, index) =>
+                index === 1
+                  ? {
+                    ...phase,
+                    semanticPurpose:
+                      'Load https://untrusted.example/pose',
+                  }
+                  : phase,
+            ),
+      },
     }),
-  /input is invalid/,
+  /choreography input is invalid/,
 )
 
 console.log(JSON.stringify({
@@ -172,6 +221,19 @@ console.log(JSON.stringify({
     plan.keyposeUnits.map(
       (unit) => unit.role,
     ),
+  keyposeFrames:
+    plan.keyposeUnits.map(
+      (unit) => unit.storyTimingFrame,
+    ),
+  actionChoreographyBound:
+    plan.sequencePolicy
+      .actionSpecificKeyposeSelectionRequired,
+  genericStartMiddleEndForbidden:
+    plan.sequencePolicy
+      .genericStartMiddleEndPlanningForbidden,
+  evenlySpacedDefaultTimingForbidden:
+    plan.sequencePolicy
+      .evenlySpacedDefaultTimingForbidden,
   everyPoseCompleteCharacter:
     plan.sequencePolicy
       .everyPoseIsCompleteCharacter,
@@ -202,23 +264,24 @@ function planInput(
   resolvedKeyposes:
     readonly LivingFrameCompleteCharacterKeyposeInput[],
 ): CreateLivingFrameCompleteCharacterKeyposePlanInput {
+  const canonicalScope = {
+    workspaceId:
+      'workspace.internal.living-frame',
+    projectId:
+      'project.internal.ai-2d-feasibility',
+    editSessionId:
+      'edit.internal.airship-keyposes',
+    sceneId:
+      resolvedStrategy.evidence.sceneId,
+    componentId:
+      resolvedStrategy.evidence
+        .componentId,
+  }
   return {
     planId:
       'plan.airship.complete-keyposes.v1',
     strategy: resolvedStrategy,
-    canonicalScope: {
-      workspaceId:
-        'workspace.internal.living-frame',
-      projectId:
-        'project.internal.ai-2d-feasibility',
-      editSessionId:
-        'edit.internal.airship-keyposes',
-      sceneId:
-        resolvedStrategy.evidence.sceneId,
-      componentId:
-        resolvedStrategy.evidence
-          .componentId,
-    },
+    canonicalScope,
     sourceBindings: {
       approvedSnapshotId:
         'approved-snapshot.internal.airship-keyposes.v1',
@@ -240,6 +303,15 @@ function planInput(
       styleReferenceDigestSha256:
         '6'.repeat(64),
     },
+    actionChoreographyInput:
+      actionChoreographyTestInput({
+        slug: 'airship-keypose-plan',
+        strategy: resolvedStrategy,
+        canonicalScope,
+        masterTimingDigestSha256:
+          '3'.repeat(64),
+        actionKind: 'prop_interaction',
+      }),
     keyposes: resolvedKeyposes,
   }
 }
@@ -250,13 +322,13 @@ function keyposes(
   const roles = count === 3
     ? [
       'start',
-      'action_apex',
+      'contact',
       'settle',
     ] as const
     : [
       'start',
       'anticipation',
-      'action_apex',
+      'contact',
       'settle',
     ] as const
   return roles.map(
@@ -278,8 +350,6 @@ function keyposes(
         `asset-plan.airship.complete-keypose.${role}.v1`,
       outputKey:
         `output.airship.complete-keypose.${role}.v1`,
-      actionDescription:
-        `Render one coherent complete character in the ${role} pose while preserving identity clothing anatomy hands and spyglass attachment.`,
     }),
   )
 }
@@ -298,7 +368,7 @@ LivingFrameAi2dCharacterMotionEvidence {
     illustrativeNotArchivalEvidence:
       true,
     requestedMotionMagnitude:
-      'moderate_pose_change',
+      'large_pose_change',
     requestedActionSummary:
       'Raise the spyglass while preserving one coherent illustrated character.',
     completeCharacterReferenceAvailable:

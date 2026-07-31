@@ -21,6 +21,9 @@ import {
   verifyLivingFrameCompleteCharacterKeyposeReview,
   verifyLivingFrameCompleteCharacterKeyposeReviewSet,
 } from '../living-frame/living-frame-complete-character-keypose-review'
+import {
+  actionChoreographyTestInput,
+} from './living-frame-character-action-choreography-test-fixture'
 
 const strategy =
   compileLivingFrameAi2dCharacterMotionStrategy({
@@ -74,6 +77,21 @@ CreateLivingFrameCompleteCharacterKeyposePlanInput = {
     styleReferenceArtifactId: 'artifact.navigator.style.v1',
     styleReferenceDigestSha256: '6'.repeat(64),
   },
+  actionChoreographyInput:
+    actionChoreographyTestInput({
+      slug: 'navigator-keypose-review',
+      strategy,
+      canonicalScope: {
+        workspaceId: 'workspace.internal.living-frame',
+        projectId: 'project.internal.ai-2d-feasibility',
+        editSessionId: 'edit.internal.navigator-keypose-review',
+        sceneId: strategy.evidence.sceneId,
+        componentId:
+          strategy.evidence.componentId,
+      },
+      masterTimingDigestSha256:
+        '3'.repeat(64),
+    }),
   keyposes: keyposes(),
 }
 const plan =
@@ -431,8 +449,6 @@ readonly LivingFrameCompleteCharacterKeyposeInput[] {
     approvedWorkItemId: `work.navigator.pose.${role}.v1`,
     plannedAssetManifestEntryId: `asset.navigator.pose.${role}.v1`,
     outputKey: `output.navigator.pose.${role}.v1`,
-    actionDescription:
-      `Render one complete coherent navigator in the ${role} pose with stable anatomy identity clothing hands and spyglass.`,
   }))
 }
 

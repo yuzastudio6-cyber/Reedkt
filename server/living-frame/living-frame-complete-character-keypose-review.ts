@@ -13,6 +13,9 @@ import type {
   LivingFrameCompleteCharacterKeyposePlan,
 } from '../../src/types/living-frame-complete-character-keypose-plan'
 import {
+  LIVING_FRAME_CHARACTER_ACTION_PHASE_ROLES,
+} from '../../src/types/living-frame-character-action-choreography'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
@@ -23,12 +26,6 @@ import {
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const SHA256 = /^[a-f0-9]{64}$/u
-const KEYPOSE_ROLES = [
-  'start',
-  'anticipation',
-  'action_apex',
-  'settle',
-] as const
 const UNSAFE_TEXT =
   /(?:https?:\/\/|file:\/\/|\/{2,}|\\|\.{2}\/|[<>`]|\b(?:curl|wget|bash|sh|python|node|powershell|sudo)\b)/iu
 
@@ -244,7 +241,7 @@ function assertRequest(
       request.keyposePlanRef.planId,
     )
     || request.keyposePlanRef.version !==
-      'living-frame-complete-character-keypose-plan-v1'
+      'living-frame-complete-character-keypose-plan-v2'
     || !SHA256.test(
       request.keyposePlanRef
         .digestSha256,
@@ -260,7 +257,7 @@ function assertRequest(
       request.keyposeUnitRef.order,
     )
     || request.keyposeUnitRef.order < 0
-    || !KEYPOSE_ROLES.includes(
+    || !LIVING_FRAME_CHARACTER_ACTION_PHASE_ROLES.includes(
       request.keyposeUnitRef.role,
     )
     || !SAFE_ID.test(

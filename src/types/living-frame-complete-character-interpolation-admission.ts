@@ -1,9 +1,13 @@
 import type {
   LivingFrameCompleteCharacterKeyposeRole,
 } from './living-frame-complete-character-keypose-plan'
+import type {
+  LivingFrameCharacterActionMotionCurve,
+  LivingFrameCharacterActionPropConstraint,
+} from './living-frame-character-action-choreography'
 
 export const LIVING_FRAME_COMPLETE_CHARACTER_INTERPOLATION_ADMISSION_VERSION =
-  'living-frame-complete-character-interpolation-admission-v1' as const
+  'living-frame-complete-character-interpolation-admission-v2' as const
 
 export const LIVING_FRAME_COMPLETE_CHARACTER_INTERPOLATION_ADMISSION_CLASS =
   'server_derived_non_executable_accepted_keypose_interpolation_admission_candidate' as const
@@ -13,6 +17,10 @@ export interface LivingFrameAuthoritativeKeyposeTimingRef {
   readonly artifactId: string
   readonly version: number
   readonly digestSha256: string
+  readonly sourceActionTimingArtifactId:
+    string
+  readonly sourceActionTimingDigestSha256:
+    string
   readonly masterTimingPlanId: string
   readonly masterTimingDigestSha256:
     string
@@ -56,6 +64,20 @@ export interface LivingFrameCompleteCharacterInterpolationTransitionUnit {
   }
   readonly requestedMotionSpanFrames:
     number
+  readonly actionTransitionBinding: {
+    readonly fromActionPhaseId: string
+    readonly toActionPhaseId: string
+    readonly fromBodyMechanicIntent: string
+    readonly toBodyMechanicIntent: string
+    readonly fromPropConstraint:
+      LivingFrameCharacterActionPropConstraint
+    readonly toPropConstraint:
+      LivingFrameCharacterActionPropConstraint
+    readonly motionCurve:
+      LivingFrameCharacterActionMotionCurve
+    readonly choreographyTransitionDigestSha256:
+      string
+  }
   readonly route: {
     readonly proposedToolId: 'tooncrafter'
     readonly proposedOperationId:
@@ -118,6 +140,10 @@ export interface LivingFrameCompleteCharacterInterpolationAdmissionDraft {
     readonly keyposePlanId: string
     readonly keyposePlanDigestSha256:
       string
+    readonly actionChoreographyDigestSha256:
+      string
+    readonly authoritativeActionTimingDigestSha256:
+      string
     readonly keyposeReviewSetId: string
     readonly keyposeReviewSetDigestSha256:
       string
@@ -140,6 +166,12 @@ export interface LivingFrameCompleteCharacterInterpolationAdmissionDraft {
     readonly LivingFrameCompleteCharacterInterpolationTransitionUnit[]
   readonly sequencingPolicy: {
     readonly everyInputKeyposeProfessionallyAccepted:
+      true
+    readonly actionSpecificKeyposeSelectionRevalidated:
+      true
+    readonly authoritativeActionTimingRevalidated:
+      true
+    readonly genericOrEvenlySpacedDefaultTimingForbidden:
       true
     readonly transitionCountEqualsKeyposeCountMinusOne:
       true

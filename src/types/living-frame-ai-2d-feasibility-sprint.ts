@@ -60,7 +60,7 @@ export interface LivingFrameAi2dFeasibilityFixturePlan {
   readonly keyposePlanRef: {
     readonly planId: string
     readonly version:
-      'living-frame-complete-character-keypose-plan-v1'
+      'living-frame-complete-character-keypose-plan-v2'
     readonly digestSha256: string
     readonly keyposeCount: 3 | 4
   }

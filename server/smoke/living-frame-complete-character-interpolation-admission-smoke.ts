@@ -34,6 +34,9 @@ import {
   compileLivingFrameCompleteCharacterKeyposePlan,
 } from '../living-frame/living-frame-complete-character-keypose-plan'
 import {
+  actionChoreographyTestInput,
+} from './living-frame-character-action-choreography-test-fixture'
+import {
   compileLivingFrameCompleteCharacterKeyposeReview,
   compileLivingFrameCompleteCharacterKeyposeReviewSet,
 } from '../living-frame/living-frame-complete-character-keypose-review'
@@ -49,7 +52,7 @@ const fixtures = [
     slug: 'navigator-spyglass-admission',
     action:
       'The complete navigator raises and settles a spyglass while both hands and the prop remain attached.',
-    keyposeCount: 3,
+    keyposeCount: 4,
     widthPixels: 1920,
     heightPixels: 1080,
     aspectNumerator: 16,
@@ -122,6 +125,12 @@ const timingRefDraft = {
   artifactId:
     'timing-artifact.navigator.accepted-keyposes.v1',
   version: 1,
+  sourceActionTimingArtifactId:
+    keyposePlan.sourceBindings
+      .authoritativeActionTimingArtifactId,
+  sourceActionTimingDigestSha256:
+    keyposePlan.sourceBindings
+      .authoritativeActionTimingDigestSha256,
   masterTimingPlanId:
     fixtures[0].masterTimingRef.planId,
   masterTimingDigestSha256:
@@ -131,15 +140,11 @@ const timingRefDraft = {
     fixtures[0].masterTimingRef.segmentId,
   keyposes:
     keyposePlan.keyposeUnits.map(
-      (unit, order) => ({
+      (unit) => ({
         keyposeUnitId:
           unit.keyposeUnitId,
         role: unit.role,
-        frame: [
-          0,
-          8,
-          16,
-        ][order]!,
+        frame: unit.storyTimingFrame,
       }),
     ),
 }
@@ -175,6 +180,25 @@ assert.equal(
   true,
 )
 assert.equal(
+  verifyLivingFrameCompleteCharacterInterpolationAdmission({
+    ...admission,
+    transitionUnits:
+      admission.transitionUnits.map(
+        (unit, order) => order === 0
+          ? {
+            ...unit,
+            actionTransitionBinding: {
+              ...unit.actionTransitionBinding,
+              motionCurve:
+                'constant_only_when_explicitly_justified' as const,
+            },
+          }
+          : unit,
+      ),
+  }, admissionInput),
+  false,
+)
+assert.equal(
   admission.transitionUnits.length,
   keyposePlan.keyposeUnits.length - 1,
 )
@@ -184,9 +208,60 @@ assert.deepEqual(
       unit.requestedMotionSpanFrames,
   ),
   [
-    8,
-    8,
+    5,
+    7,
+    14,
   ],
+)
+assert.deepEqual(
+  admission.transitionUnits.map(
+    (unit) => ({
+      from: unit.fromKeypose.role,
+      to: unit.toKeypose.role,
+      curve:
+        unit.actionTransitionBinding
+          .motionCurve,
+      fromProp:
+        unit.actionTransitionBinding
+          .fromPropConstraint,
+      toProp:
+        unit.actionTransitionBinding
+          .toPropConstraint,
+    }),
+  ),
+  [
+    {
+      from: 'start',
+      to: 'anticipation',
+      curve: 'restrained_ease',
+      fromProp: 'maintain_prop_contact',
+      toProp: 'maintain_prop_contact',
+    },
+    {
+      from: 'anticipation',
+      to: 'contact',
+      curve: 'accelerate_to_contact',
+      fromProp: 'maintain_prop_contact',
+      toProp: 'maintain_prop_contact',
+    },
+    {
+      from: 'contact',
+      to: 'settle',
+      curve: 'decelerate_into_hold',
+      fromProp: 'maintain_prop_contact',
+      toProp: 'maintain_prop_contact',
+    },
+  ],
+)
+assert.equal(
+  admission.transitionUnits.every(
+    (unit) =>
+      /^[a-f0-9]{64}$/u.test(
+        unit.actionTransitionBinding
+          .choreographyTransitionDigestSha256,
+      ),
+  ),
+  true,
 )
 assert.equal(
   admission.transitionUnits.every(
@@ -222,6 +297,16 @@ assert.equal(
   true,
 )
 assert.equal(
+  admission.sequencingPolicy
+    .actionSpecificKeyposeSelectionRevalidated,
+  true,
+)
+assert.equal(
+  admission.sequencingPolicy
+    .authoritativeActionTimingRevalidated,
+  true,
+)
+assert.equal(
   admission.admissionState,
   'source_only_candidate_blocked_pending_tooncrafter_release_and_private_runtime',
 )
@@ -239,13 +324,13 @@ assert.equal(
 const repairReview =
   compileLivingFrameCompleteCharacterKeyposeReview({
     ...reviewRequest(
-      keyposePlan.keyposeUnits[1]!,
+      keyposePlan.keyposeUnits[2]!,
       allPassChecks(
-        keyposePlan.keyposeUnits[1]!.role,
+        keyposePlan.keyposeUnits[2]!.role,
       ),
     ),
     checks: checksWithFailure(
-      keyposePlan.keyposeUnits[1]!.role,
+      keyposePlan.keyposeUnits[2]!.role,
       'hand_and_prop_attachment',
     ),
   })
@@ -255,8 +340,9 @@ const repairSetInput = {
     'review-set.navigator.repair.interpolation-admission.v1',
   reviews: [
     acceptedReviews[0]!,
+    acceptedReviews[1]!,
     repairReview,
-    acceptedReviews[2]!,
+    acceptedReviews[3]!,
   ],
 }
 const repairSet =
@@ -315,8 +401,9 @@ assert.throws(
               ...entry,
               frame: [
                 0,
-                16,
-                8,
+                12,
+                5,
+                26,
               ][order]!,
             }),
           ),
@@ -383,6 +470,12 @@ console.log(JSON.stringify({
     admission.transitionUnits.map(
       (unit) =>
         unit.requestedMotionSpanFrames,
+    ),
+  actionTransitionCurves:
+    admission.transitionUnits.map(
+      (unit) =>
+        unit.actionTransitionBinding
+          .motionCurve,
     ),
   everyInputKeyposeProfessionallyAccepted:
     admission.sequencingPolicy
@@ -452,10 +545,61 @@ function fixture(input: {
       styleReferenceDigestSha256:
         digestCharacter(input.order, 'f'),
     },
+    actionChoreographyInput:
+      actionChoreographyTestInput({
+        slug: input.slug,
+        strategy,
+        canonicalScope: {
+          workspaceId:
+            'workspace.internal.living-frame',
+          projectId:
+            'project.internal.ai-2d-interpolation-admission',
+          editSessionId:
+            `edit.internal.${input.slug}`,
+          sceneId: evidence.sceneId,
+          componentId: evidence.componentId,
+        },
+        masterTimingDigestSha256:
+          digestCharacter(input.order, '7'),
+        masterTimingPlanId:
+          `timing.${input.slug}.v1`,
+        segmentId:
+          `segment.${input.slug}.v1`,
+        actionStartFrame:
+          input.order * 120,
+        actionKind:
+          input.scenario ===
+            'complete_character_prop_interaction'
+            ? 'prop_interaction'
+            : 'directed_gesture',
+        relativeFrames:
+          input.scenario ===
+            'complete_character_prop_interaction'
+            ? [
+              0,
+              5,
+              12,
+              26,
+            ]
+            : input.scenario ===
+                'complete_character_meaningful_pose_change'
+              ? [
+                0,
+                4,
+                15,
+                27,
+              ]
+              : [
+                0,
+                6,
+                18,
+              ],
+      }),
     keyposes:
       keyposes(
         input.slug,
         input.keyposeCount,
+        input.scenario,
       ),
   }
   const keyposePlan =
@@ -565,17 +709,29 @@ function strategyEvidence(input: {
 function keyposes(
   slug: string,
   count: 3 | 4,
+  scenario:
+    LivingFrameAi2dFeasibilityScenario,
 ): readonly LivingFrameCompleteCharacterKeyposeInput[] {
+  const propInteraction = scenario ===
+    'complete_character_prop_interaction'
   const roles = count === 3
-    ? [
-      'start',
-      'action_apex',
-      'settle',
-    ] as const
+    ? propInteraction
+      ? [
+        'start',
+        'contact',
+        'settle',
+      ] as const
+      : [
+        'start',
+        'action_apex',
+        'settle',
+      ] as const
     : [
       'start',
       'anticipation',
-      'action_apex',
+      propInteraction
+        ? 'contact'
+        : 'action_apex',
       'settle',
     ] as const
   return roles.map(
@@ -597,8 +753,6 @@ function keyposes(
         `asset.${slug}.pose.${role}.v1`,
       outputKey:
         `output.${slug}.pose.${role}.v1`,
-      actionDescription:
-        `Render the complete coherent ${slug} character in the ${role} pose with stable anatomy identity costume and attachments.`,
     }),
   )
 }
@@ -721,9 +875,9 @@ function reviewDigest(
   first: '7' | 'a' | 'd',
 ): string {
   const rows = {
-    '7': ['7', '8', '9'],
-    a: ['a', 'b', 'c'],
-    d: ['d', 'e', 'f'],
+    '7': ['7', '8', '9', 'a'],
+    a: ['a', 'b', 'c', 'd'],
+    d: ['d', 'e', 'f', '1'],
   } as const
   return rows[first][order]!.repeat(64)
 }

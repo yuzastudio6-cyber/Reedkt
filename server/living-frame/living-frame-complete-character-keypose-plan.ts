@@ -4,7 +4,6 @@ import {
   type LivingFrameCompleteCharacterKeyposeInput,
   type LivingFrameCompleteCharacterKeyposePlan,
   type LivingFrameCompleteCharacterKeyposePlanDraft,
-  type LivingFrameCompleteCharacterKeyposeRole,
   type LivingFrameCompleteCharacterKeyposeUnit,
 } from '../../src/types/living-frame-complete-character-keypose-plan'
 import type {
@@ -17,12 +16,13 @@ import {
 import {
   verifyLivingFrameAi2dCharacterMotionStrategy,
 } from './living-frame-ai-2d-character-motion'
+import {
+  compileLivingFrameCharacterActionChoreography,
+  verifyLivingFrameCharacterActionChoreography,
+} from './living-frame-character-action-choreography'
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const SHA256 = /^[a-f0-9]{64}$/u
-const UNSAFE_TEXT =
-  /(?:https?:\/\/|file:\/\/|\/{2,}|\\|\.{2}\/|[<>`]|\b(?:curl|wget|bash|sh|python|node|powershell|sudo)\b)/iu
-
 export interface CreateLivingFrameCompleteCharacterKeyposePlanInput {
   readonly planId: string
   readonly strategy:
@@ -39,7 +39,13 @@ export interface CreateLivingFrameCompleteCharacterKeyposePlanInput {
       LivingFrameCompleteCharacterKeyposePlanDraft['sourceBindings'],
       | 'motionStrategyVersion'
       | 'motionStrategyDigestSha256'
+      | 'actionChoreographyVersion'
+      | 'actionChoreographyDigestSha256'
+      | 'authoritativeActionTimingArtifactId'
+      | 'authoritativeActionTimingDigestSha256'
     >
+  readonly actionChoreographyInput:
+    import('../../src/types/living-frame-character-action-choreography').LivingFrameCharacterActionChoreographyInput
   readonly keyposes:
     readonly LivingFrameCompleteCharacterKeyposeInput[]
 }
@@ -49,6 +55,10 @@ export function compileLivingFrameCompleteCharacterKeyposePlan(
     CreateLivingFrameCompleteCharacterKeyposePlanInput,
 ): LivingFrameCompleteCharacterKeyposePlan {
   assertInput(input)
+  const actionChoreography =
+    compileLivingFrameCharacterActionChoreography(
+      input.actionChoreographyInput,
+    )
   if (
     !verifyLivingFrameAi2dCharacterMotionStrategy(
       input.strategy,
@@ -59,9 +69,15 @@ export function compileLivingFrameCompleteCharacterKeyposePlan(
     || input.strategy.decision
       .strategyState !==
         'source_only_ai_2d_feasibility_candidate'
-    || input.strategy.decision
-      .completeKeyposeCount !==
-        input.keyposes.length
+    || !verifyLivingFrameCharacterActionChoreography(
+      actionChoreography,
+      input.actionChoreographyInput,
+    )
+    || input.actionChoreographyInput
+      .strategy.strategyDigestSha256 !==
+        input.strategy.strategyDigestSha256
+    || actionChoreography.phaseDirectives.length !==
+      input.keyposes.length
     || input.strategy.evidence.sceneId !==
       input.canonicalScope.sceneId
     || input.strategy.evidence.componentId !==
@@ -69,20 +85,28 @@ export function compileLivingFrameCompleteCharacterKeyposePlan(
     || input.strategy.evidence.sourceArtifactId !==
       input.sourceBindings
         .completeCharacterSourceArtifactId
+    || stableAuthorityStringify(
+      actionChoreography.canonicalScope,
+    ) !== stableAuthorityStringify(
+      input.canonicalScope,
+    )
+    || actionChoreography.sourceBindings
+      .masterTimingDigestSha256 !==
+        input.sourceBindings
+          .currentMasterTimingDigestSha256
   ) {
     throw new Error(
       'Living Frame complete-character keypose strategy lineage is invalid.',
     )
   }
-  const roles = expectedRoles(
-    input.keyposes.length,
-  )
   const keyposeUnits =
     input.keyposes.map(
       (keypose, order) => {
         if (
           keypose.order !== order
-          || keypose.role !== roles[order]
+          || keypose.role !==
+            actionChoreography
+              .phaseDirectives[order]?.role
         ) {
           throw new Error(
             'Living Frame complete-character keypose order or role is invalid.',
@@ -91,6 +115,8 @@ export function compileLivingFrameCompleteCharacterKeyposePlan(
         return compileUnit(
           input,
           keypose,
+          actionChoreography
+            .phaseDirectives[order]!,
         )
       },
     )
@@ -113,6 +139,17 @@ export function compileLivingFrameCompleteCharacterKeyposePlan(
         motionStrategyDigestSha256:
           input.strategy
             .strategyDigestSha256,
+        actionChoreographyVersion:
+          actionChoreography.contractVersion,
+        actionChoreographyDigestSha256:
+          actionChoreography
+            .choreographyDigestSha256,
+        authoritativeActionTimingArtifactId:
+          actionChoreography.sourceBindings
+            .storyTimingArtifactId,
+        authoritativeActionTimingDigestSha256:
+          actionChoreography.sourceBindings
+            .storyTimingArtifactDigestSha256,
         ...structuredClone(
           input.sourceBindings,
         ),
@@ -128,6 +165,14 @@ export function compileLivingFrameCompleteCharacterKeyposePlan(
         everyPoseRequiresProfessionalVisualAcceptance:
           true,
         interpolationBlockedUntilEveryPoseAccepted:
+          true,
+        actionSpecificKeyposeSelectionRequired:
+          true,
+        genericStartMiddleEndPlanningForbidden:
+          true,
+        storyTimingOwnsExactKeyposeFrames:
+          true,
+        evenlySpacedDefaultTimingForbidden:
           true,
         independentPerFrameGenerationForbidden:
           true,
@@ -220,6 +265,8 @@ function compileUnit(
     CreateLivingFrameCompleteCharacterKeyposePlanInput,
   keypose:
     LivingFrameCompleteCharacterKeyposeInput,
+  actionPhase:
+    ReturnType<typeof compileLivingFrameCharacterActionChoreography>['phaseDirectives'][number],
 ): LivingFrameCompleteCharacterKeyposeUnit {
   const draft = {
     order: keypose.order,
@@ -242,8 +289,20 @@ function compileUnit(
       keypose
         .plannedAssetManifestEntryId,
     outputKey: keypose.outputKey,
+    actionPhaseId:
+      actionPhase.phaseId,
     actionDescription:
-      keypose.actionDescription,
+      actionPhase.semanticPurpose,
+    keyposeSelectionReason:
+      actionPhase.keyposeSelectionReason,
+    bodyMechanicIntent:
+      actionPhase.bodyMechanicIntent,
+    propConstraint:
+      actionPhase.propConstraint,
+    storyTimingFrame:
+      actionPhase.storyTimingFrame,
+    minimumHoldFrames:
+      actionPhase.minimumHoldFrames,
     generationRoute: {
       optionalDesignOrRepairProviderRoute:
         'gpt_image_2' as const,
@@ -383,44 +442,12 @@ function assertInput(
         || !SAFE_ID.test(
           keypose.outputKey,
         )
-        || typeof keypose
-          .actionDescription !== 'string'
-        || keypose.actionDescription
-          .length < 8
-        || keypose.actionDescription
-          .length > 320
-        || UNSAFE_TEXT.test(
-          keypose.actionDescription,
-        ),
     )
   ) {
     throw new Error(
       'Living Frame complete-character keypose plan input is invalid.',
     )
   }
-}
-
-function expectedRoles(
-  count: number,
-): readonly LivingFrameCompleteCharacterKeyposeRole[] {
-  if (count === 3) {
-    return [
-      'start',
-      'action_apex',
-      'settle',
-    ]
-  }
-  if (count === 4) {
-    return [
-      'start',
-      'anticipation',
-      'action_apex',
-      'settle',
-    ]
-  }
-  throw new Error(
-    'Living Frame complete-character keypose count is invalid.',
-  )
 }
 
 function isRecord(

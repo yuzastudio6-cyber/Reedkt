@@ -223,6 +223,7 @@
     "smoke:living-frame-internal-review-export": "tsx server/smoke/living-frame-internal-review-export-smoke.ts",
     "smoke:living-frame-representative-visual-fixture": "tsx server/smoke/living-frame-representative-visual-fixture-smoke.ts",
     "smoke:living-frame-representative-media-source-candidates": "tsx server/smoke/living-frame-representative-media-source-candidates-smoke.ts",
+    "smoke:living-frame-representative-private-source-binding": "tsx server/smoke/living-frame-representative-private-source-binding-smoke.ts",
     "smoke:living-frame-active-non-illustration-evidence-admission": "tsx server/smoke/living-frame-active-non-illustration-evidence-admission-smoke.ts",
     "smoke:living-frame-active-professional-skill-policy-projection": "tsx server/smoke/living-frame-active-professional-skill-policy-projection-smoke.ts",
     "smoke:living-frame-chat-plan-presentation": "tsx server/smoke/living-frame-chat-plan-presentation-smoke.ts",

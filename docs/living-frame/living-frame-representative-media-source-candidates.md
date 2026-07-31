@@ -49,3 +49,26 @@ Before representative rendering, the canonical source/asset owners must:
 The candidate set contains only byte-free source reference IDs and digests. It
 contains no external URL, path, credential, prompt, command, environment, or
 media byte in an executable payload and creates no parallel source owner.
+
+## Finalized private-source binding
+
+`living-frame-representative-private-source-binding-v1` is the source-only
+adapter for the next stage. It accepts the repository's existing strict
+`private-upload-media-authority-v1` media/storage records and binds one exact
+source candidate to one of three bounded selection forms:
+
+- a transcript-backed video segment with opaque
+  `canonical-source-led-content-analysis-evidence-v1` lineage;
+- an in-bounds still crop that preserves claim context; or
+- exact structured-data row and citation references after a current reread.
+
+The adapter revalidates tenant/project/upload/media/storage identity, exact
+MIME type, size, SHA-256, source-media purpose, server-computed integrity, all
+required evidence reviews, and exact canonical snapshot/scene/MasterTiming/
+confirmed-frame/work/manifest-entry versions. The emitted binding hashes the
+private storage identity but never serializes its bucket or object path.
+
+This milestone is not canonical ingest evidence. The focused smoke uses strict
+synthetic authority records to prove the boundary and adversarial rejection;
+real selected source bytes, canonical rereads, work admission, asset creation,
+runtime, provider, cost, customer delivery, and production all remain pending.

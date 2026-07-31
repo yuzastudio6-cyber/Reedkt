@@ -13,12 +13,13 @@ OpenToonz character-rig, or mechanical-rig aggregate cases.
 
 ## Exact run set
 
-The runner executes twelve unique child regressions:
+The runner executes thirteen unique child regressions:
 
-- eight source-contract regressions for baseline fallback routing, exact
+- nine source-contract regressions for baseline fallback routing, exact
   non-character source lineage, semantic SoundSync timing, professional-review
   policy, postrender visual-inspection policy, evidence admission, the
-  representative-media source candidate set, and its acceptance plan; and
+  representative-media source candidate set, its byte-free private finalized
+  source/selection binding, and its acceptance plan; and
 - four actual private engineering media runtimes for all five modes, confirmed
   output frames, motion-v3/deep-multiplane behavior, and the selected-scene
   environmental-particle composition.
@@ -61,6 +62,13 @@ frame and MasterTiming lineage, the exact 13-check review, full playback,
 complete-time Qwen evidence, separate audio evidence, Head QA, and N+1
 reinspection after repair. That plan is source-only until those representative
 assets and outputs actually run.
+
+The private source binding consumes the existing finalized private-upload
+media and storage record schemas plus opaque canonical source-analysis,
+snapshot, scene, timing, frame, work, and manifest-entry references. It emits
+only digests, IDs, media metadata, and selection geometry. It never serializes
+the storage bucket/path or source bytes and creates no new upload, source
+analysis, timing, work, asset, renderer, QA, or review owner.
 
 The process-private copies exist so the operating agent can watch every full
 video and inspect representative frames before reporting the milestone. They

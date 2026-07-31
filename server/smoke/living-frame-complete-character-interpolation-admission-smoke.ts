@@ -28,6 +28,7 @@ import {
 } from '../living-frame/living-frame-character-motion-tool-policy'
 import {
   compileLivingFrameCompleteCharacterInterpolationAdmission,
+  verifyLivingFrameCompleteCharacterInterpolationAdmissionArtifact,
   verifyLivingFrameCompleteCharacterInterpolationAdmission,
 } from '../living-frame/living-frame-complete-character-interpolation-admission'
 import {
@@ -180,6 +181,12 @@ assert.equal(
   true,
 )
 assert.equal(
+  verifyLivingFrameCompleteCharacterInterpolationAdmissionArtifact(
+    admission,
+  ),
+  true,
+)
+assert.equal(
   verifyLivingFrameCompleteCharacterInterpolationAdmission({
     ...admission,
     transitionUnits:
@@ -196,6 +203,13 @@ assert.equal(
           : unit,
       ),
   }, admissionInput),
+  false,
+)
+assert.equal(
+  verifyLivingFrameCompleteCharacterInterpolationAdmissionArtifact({
+    ...admission,
+    operationRegistered: true,
+  }),
   false,
 )
 assert.equal(

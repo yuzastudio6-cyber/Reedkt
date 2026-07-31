@@ -238,6 +238,132 @@ export function verifyLivingFrameCompleteCharacterInterpolationAdmission(
   }
 }
 
+export function verifyLivingFrameCompleteCharacterInterpolationAdmissionArtifact(
+  value: unknown,
+): value is LivingFrameCompleteCharacterInterpolationAdmission {
+  if (
+    !isRecord(value)
+    || value.contractVersion !==
+      LIVING_FRAME_COMPLETE_CHARACTER_INTERPOLATION_ADMISSION_VERSION
+    || value.resultClass !==
+      LIVING_FRAME_COMPLETE_CHARACTER_INTERPOLATION_ADMISSION_CLASS
+    || value.admissionState !==
+      'source_only_candidate_blocked_pending_tooncrafter_release_and_private_runtime'
+    || typeof value.admissionDigestSha256 !==
+      'string'
+    || !SHA256.test(
+      value.admissionDigestSha256,
+    )
+    || value.operationRegistered !== false
+    || value.dispatchGranted !== false
+    || value.runtimeExecuted !== false
+    || value.assetCreated !== false
+    || value.canonicalQaApproved !== false
+    || value.customerCharged !== false
+    || value.publicDeliveryReady !== false
+    || value.productionReady !== false
+  ) return false
+  try {
+    const candidate = value as unknown as
+      LivingFrameCompleteCharacterInterpolationAdmission
+    if (
+    !isRecord(candidate.canonicalScope)
+    || Object.values(
+      candidate.canonicalScope,
+    ).some(
+      (entry) =>
+        typeof entry !== 'string'
+        || !SAFE_ID.test(entry),
+    )
+    || !isRecord(candidate.sourceBindings)
+    || ![
+      candidate.sourceBindings
+        .approvedSnapshotHashSha256,
+      candidate.sourceBindings
+        .feasibilitySprintDigestSha256,
+      candidate.sourceBindings
+        .fixtureDigestSha256,
+      candidate.sourceBindings
+        .keyposePlanDigestSha256,
+      candidate.sourceBindings
+        .actionChoreographyDigestSha256,
+      candidate.sourceBindings
+        .authoritativeActionTimingDigestSha256,
+      candidate.sourceBindings
+        .keyposeReviewSetDigestSha256,
+      candidate.sourceBindings
+        .interpolationQualificationDigestSha256,
+      candidate.sourceBindings
+        .authoritativeKeyposeTimingDigestSha256,
+      candidate.sourceBindings
+        .confirmedOutputFrameDigestSha256,
+      candidate.sourceBindings
+        .styleProfileDigestSha256,
+    ].every((digest) => SHA256.test(digest))
+    || !Array.isArray(
+      candidate.transitionUnits,
+    )
+    || candidate.transitionUnits.length < 1
+    || candidate.transitionUnits.some(
+      (unit, order) =>
+        unit.order !== order
+        || unit.toKeypose.frame <=
+          unit.fromKeypose.frame
+        || unit.requestedMotionSpanFrames !==
+          unit.toKeypose.frame
+          - unit.fromKeypose.frame
+        || !SHA256.test(
+          unit.actionTransitionBinding
+            .choreographyTransitionDigestSha256,
+        )
+        || !unit.route
+          .acceptedCompleteKeyposeInputsOnly
+        || !unit.route.serverOwnedSeedRequired
+        || !unit.route
+          .serverDerivedMotionPromptRequired
+        || unit.route
+          .callerSeedPromptModelDimensionsPathsUrlsBytesCredentialsCommandsOrEnvironmentAllowed
+        || unit.outputPolicy
+          .anatomyIdentityOrAttachmentRepairClaimAllowed
+        || unit.outputPolicy.finalCanvasClaimAllowed
+        || !unit.outputPolicy.remotionOwnsFinalCanvas
+        || !validTransitionUnitDigest(unit),
+    )
+    || !candidate.sequencingPolicy
+      .everyInputKeyposeProfessionallyAccepted
+    || !candidate.sequencingPolicy
+      .actionSpecificKeyposeSelectionRevalidated
+    || !candidate.sequencingPolicy
+      .authoritativeActionTimingRevalidated
+    || !candidate.sequencingPolicy
+      .genericOrEvenlySpacedDefaultTimingForbidden
+    ) return false
+    const {
+      admissionDigestSha256,
+      ...draft
+    } = candidate
+    return sha256AuthorityValue(draft) ===
+      admissionDigestSha256
+  } catch {
+    return false
+  }
+}
+
+function validTransitionUnitDigest(
+  unit:
+    LivingFrameCompleteCharacterInterpolationAdmission['transitionUnits'][number],
+): boolean {
+  const {
+    transitionUnitDigestSha256,
+    ...draft
+  } = unit
+  return SHA256.test(
+    transitionUnitDigestSha256,
+  )
+    && sha256AuthorityValue(draft) ===
+      transitionUnitDigestSha256
+}
+
 function assertInput(
   input:
     CompileLivingFrameCompleteCharacterInterpolationAdmissionInput,

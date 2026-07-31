@@ -197,6 +197,7 @@ npm run smoke:living-frame-character-motion-tool-policy
 npm run smoke:living-frame-ai-2d-feasibility-sprint
 npm run smoke:living-frame-ai-2d-interpolation-qualification
 npm run smoke:living-frame-ai-2d-interpolation-source-audit
+npm run smoke:living-frame-ai-2d-interpolation-readiness
 npm run smoke:living-frame-complete-character-keypose-review
 npm run smoke:living-frame-complete-character-interpolation-admission
 ```
@@ -231,6 +232,17 @@ dependencies, and unresolved external model archive. Those upstream paths are
 not eligible for ReeditPro execution. Both require fixed offline adapters and
 separate model, license, image, hardware, resource, private-output, and visual
 qualification. Source pinning is complete; runtime qualification is not.
+
+`living-frame-ai-2d-interpolation-readiness-v1` reconciles the exact accepted-
+keypose interpolation admission with the qualification and pinned-source audit.
+It resolves only the source-commit/archive gate and keeps the remaining thirteen
+release gates open for both ToonCrafter and RIFE. It explicitly refuses to
+assume that one L4 is sufficient for ToonCrafter while upstream reports an
+approximately 24–27G memory range. The only eligible next investigations are a
+memory-reduced route that passes the same professional visual bar without a
+quality regression, or an owner-approved larger-GPU route. No runtime route is
+selected by this source-only record. RIFE remains blocked until the underlying
+motion is professionally accepted.
 
 `living-frame-character-action-choreography-v1` prevents generic
 start/middle/end pose selection and default evenly spaced timing from entering

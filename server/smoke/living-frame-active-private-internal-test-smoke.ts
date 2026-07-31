@@ -167,6 +167,25 @@ const runDefinitions = [
     },
   ),
   run(
+    'representative_media_source_candidate_set',
+    'server/smoke/living-frame-representative-media-source-candidates-smoke.ts',
+    'source_contract_regression',
+    'passed_source_only',
+    0,
+    (receipt) => {
+      assert.equal(receipt.sourceCandidateCount, 7)
+      assert.equal(receipt.caseBindingCount, 12)
+      assert.equal(receipt.localFixtureDigestAndByteLengthVerified, true)
+      assert.equal(receipt.externalSourceBytesPresentInRepository, false)
+      assert.equal(receipt.externalNetworkFetchMade, false)
+      assert.equal(receipt.canonicalIngestPending, true)
+      assert.equal(receipt.legalLicensePublicityReviewComplete, false)
+      assert.equal(receipt.geometryProbeReusedAsRepresentativeMedia, false)
+      assert.equal(receipt.representativeMediaRuntimeExecuted, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  ),
+  run(
     'representative_visual_fixture_plan',
     'server/smoke/living-frame-representative-visual-fixture-smoke.ts',
     'source_contract_regression',
@@ -310,8 +329,8 @@ const draft: LivingFrameActivePrivateInternalTestReportDraft = {
     'living-frame-active-baseline-route-binding-v1',
   activeCaseCount: 12,
   pausedScopeCount: 7,
-  runCount: 11,
-  sourceContractRunCount: 7,
+  runCount: 12,
+  sourceContractRunCount: 8,
   privateEngineeringMediaRuntimeRunCount: 4,
   privateReviewExportRunCount: 4,
   privateReviewExportCount: 5,
@@ -500,6 +519,7 @@ function caseBinding(
     activeScope,
     requiredRunIds: [
       ...requiredRunIds,
+      'representative_media_source_candidate_set' as const,
       'representative_visual_fixture_plan' as const,
     ],
   }

@@ -58,7 +58,7 @@ The active scope already has verified source contracts for:
   enter a future baseline internal run while explicitly refusing to count
   either fallback as advanced temporal-mask evidence. The SAM2 route remains
   open and canonical reread/admission remains pending; and
-- a source-ready executable active private-test runner that maps eleven unique
+- a source-ready executable active private-test runner that maps twelve unique
   child regressions to all twelve owner-approved cases, executes four actual
   private engineering media paths, includes a bounded literal map/data
   geometry scene in the five-mode Remotion path, imports no historical
@@ -74,6 +74,13 @@ The active scope already has verified source contracts for:
   Head QA. It explicitly refuses to treat colored rectangles, synthetic
   geometry, placeholders, caller assertions, or technical metrics as
   professional acceptance evidence; and
+- a bounded representative-media source candidate set for all twelve active
+  cases. It identifies one private internal-test A-roll candidate, public-domain
+  satellite/archive/diagram candidates, an official factual-data source, and
+  two committed original static fixtures. It rereads the local fixture hashes
+  while leaving all external bytes, transcript/crop selection, legal/license/
+  publicity review, documentary fact safety, canonical ingest, and runtime
+  pending; and
 - a source-only evidence-admission candidate that binds every case to exact
   canonical package/work/output/final-artifact lineage and to deterministic,
   complete-time visual, separate-audio, Head-QA, N+1 repair, reconciliation,

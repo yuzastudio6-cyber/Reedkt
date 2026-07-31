@@ -13,12 +13,12 @@ OpenToonz character-rig, or mechanical-rig aggregate cases.
 
 ## Exact run set
 
-The runner executes eleven unique child regressions:
+The runner executes twelve unique child regressions:
 
-- seven source-contract regressions for baseline fallback routing, exact
+- eight source-contract regressions for baseline fallback routing, exact
   non-character source lineage, semantic SoundSync timing, professional-review
-  policy, postrender visual-inspection policy, evidence admission, and the
-  representative-media acceptance plan; and
+  policy, postrender visual-inspection policy, evidence admission, the
+  representative-media source candidate set, and its acceptance plan; and
 - four actual private engineering media runtimes for all five modes, confirmed
   output frames, motion-v3/deep-multiplane behavior, and the selected-scene
   environmental-particle composition.
@@ -38,7 +38,7 @@ an existing review copy, or turn a review copy into a canonical asset.
 
 The report deliberately remains
 `engineering_runtime_executed_professional_canonical_evidence_incomplete`.
-Even when all eleven child runs succeed, it records:
+Even when all twelve child runs succeed, it records:
 
 - no provider-backed Qwen postrender inspection;
 - no separate canonical full-duration audio evidence;

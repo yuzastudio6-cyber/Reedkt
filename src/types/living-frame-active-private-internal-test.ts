@@ -19,6 +19,7 @@ export const LIVING_FRAME_ACTIVE_PRIVATE_INTERNAL_RUN_IDS = [
   'non_character_content_lineage',
   'selected_scene_environmental_particle',
   'semantic_sound_timing_reconciliation',
+  'representative_media_source_candidate_set',
   'representative_visual_fixture_plan',
   'non_character_professional_review_contract',
   'postrender_visual_inspection_contract',
@@ -35,6 +36,7 @@ export const LIVING_FRAME_ACTIVE_PRIVATE_INTERNAL_OPEN_GATE_IDS = [
   'postrender_qwen_provider_and_complete_time_runtime_pending',
   'head_qa_recommendation_and_private_review_pending',
   'advanced_sam2_temporal_mask_runtime_pending',
+  'representative_media_source_ingest_and_selection_pending',
   'representative_source_media_runtime_pending',
   'representative_visual_repair_and_reinspection_pending',
   'caption_cap11_canonical_reconciliation_pending',
@@ -94,8 +96,8 @@ export interface LivingFrameActivePrivateInternalTestReportDraft {
     'living-frame-active-baseline-route-binding-v1'
   readonly activeCaseCount: 12
   readonly pausedScopeCount: 7
-  readonly runCount: 11
-  readonly sourceContractRunCount: 7
+  readonly runCount: 12
+  readonly sourceContractRunCount: 8
   readonly privateEngineeringMediaRuntimeRunCount: 4
   readonly privateReviewExportRunCount: 4
   readonly privateReviewExportCount: 5

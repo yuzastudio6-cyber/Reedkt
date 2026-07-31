@@ -582,8 +582,11 @@ reject((candidate) => {
 assert.equal(adversarialChecks, 23)
 
 console.log(JSON.stringify({
+  smoke: 'living_frame_non_character_content_lineage',
+  status: 'passed_source_only',
   contractVersion: binding.contractVersion,
   bindingDigestSha256: binding.bindingDigestSha256,
+  caseCount: binding.cases.length,
   caseIds: binding.cases.map((item) => item.caseId),
   sourceRecordCounts: binding.cases.map((item) => item.sourceTruth.sourceRecordCount),
   adversarialChecks,

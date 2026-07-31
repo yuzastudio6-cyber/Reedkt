@@ -58,6 +58,13 @@ The active scope already has verified source contracts for:
   enter a future baseline internal run while explicitly refusing to count
   either fallback as advanced temporal-mask evidence. The SAM2 route remains
   open and canonical reread/admission remains pending; and
+- a source-ready executable active private-test runner that maps ten unique
+  child regressions to all twelve owner-approved cases, executes four actual
+  private engineering media paths, imports no historical character/rigging
+  aggregate case, and still reports every case incomplete until canonical
+  Qwen, separate audio, Head QA, repair, reconciliation, and private-review
+  evidence exists. Its media execution is deferred until the canonical backend
+  releases the shared runtime window; and
 - a source-only evidence-admission candidate that binds every case to exact
   canonical package/work/output/final-artifact lineage and to deterministic,
   complete-time visual, separate-audio, Head-QA, N+1 repair, reconciliation,
@@ -125,11 +132,12 @@ called professionally accepted.
    → renderer → QA → review execution and fixture lineage.
 9. Reconcile the already-frozen Caption Direction public adapter at the
    canonical one-writer boundary while preserving separate ownership.
-10. Compile and execute a runtime aggregate from the new 12-case active
-   non-illustration manifest. It must fail if any paused evidence is counted
-   and must not import the historical 39/40-case runner. The canonical
-   one-writer must consume the evidence-admission candidate as supplemental QA
-   evidence rather than creating a second readiness or private-review owner.
+10. Execute the source-ready runtime aggregate from the new 12-case active
+   non-illustration manifest during an explicit clean runtime window. It fails
+   if any paused evidence is counted, imports none of the historical 39/40-case
+   runner, and leaves every case incomplete until the canonical one-writer
+   consumes the evidence-admission candidate as supplemental QA evidence
+   rather than creating a second readiness or private-review owner.
 11. Render representative non-illustration scenes, inspect every complete clip
    at playback speed plus required sampled frames, and repair or reject every
    result that misses the professional bar.

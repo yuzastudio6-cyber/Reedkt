@@ -215,7 +215,8 @@ assert.throws(() => {
 }, /aggregate identity/u)
 
 console.log(JSON.stringify({
-  suite: 'living_frame_active_baseline_route_binding',
+  smoke: 'living_frame_active_baseline_route_binding',
+  status: 'passed_source_only',
   checks: 31,
   activeCaseCount: binding.activeCaseCount,
   primaryRouteCaseCount: binding.primaryRouteCaseCount,

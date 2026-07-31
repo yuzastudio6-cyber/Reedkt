@@ -180,6 +180,8 @@
     "smoke:living-frame-animation-aware-illustration-private-composite-internal-test": "tsx server/smoke/living-frame-animation-aware-illustration-private-composite-internal-test-smoke.ts",
     "smoke:living-frame-style-depth-breadth-private-render-internal-test": "tsx server/smoke/living-frame-style-depth-breadth-private-render-internal-test-smoke.ts",
     "smoke:living-frame-rigging-v2": "tsx server/smoke/living-frame-rigging-v2-smoke.ts",
+    "smoke:living-frame-rig-action": "tsx server/smoke/living-frame-rig-action-smoke.ts",
+    "smoke:living-frame-blender-fixed-adapter-private-internal-test": "tsx server/smoke/living-frame-blender-fixed-adapter-private-internal-test-smoke.ts",
     "smoke:living-frame-temporal-mask-work-admission-candidate": "tsx server/smoke/living-frame-temporal-mask-work-admission-candidate-smoke.ts",
     "smoke:living-frame-temporal-mask-private-output-contract-internal-test": "tsx server/smoke/living-frame-temporal-mask-private-output-contract-internal-test-smoke.ts",
     "smoke:living-frame-private-internal-end-to-end-audit": "tsx server/smoke/living-frame-private-internal-end-to-end-audit-smoke.ts",

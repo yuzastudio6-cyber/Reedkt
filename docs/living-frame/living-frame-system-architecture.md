@@ -431,14 +431,23 @@ craft, risk, performance, and fallback. The deterministic
 `living-frame-rigging-plan-v2` compiler validates rigid parts, mechanical
 linkages, bone hierarchies, joints, controls, constraints, IK, deformable
 meshes, skin/rigidity maps, stacking, and secondary motion.
+`living-frame-rig-action-plan-v1` separately binds the approved pose/action
+tracks to the existing MasterTiming-derived frame range. Rig definition,
+animation intent, and exact timing therefore remain explicit instead of being
+invented by an external tool.
 
 Simple motion stays native. Flat 2D mesh deformation may use the OpenToonz
 Plastic evaluation candidate, while advanced armature/IK/skinning/2.5D may use
 the Blender headless evaluation candidate. Both external routes materialize
 only through fixed, reviewed adapter candidates. The Head Intelligence cannot
 provide a script, command, path, environment, plugin, or arbitrary node graph,
-and neither tool may own the final canvas. See
-`docs/living-frame/living-frame-rigging-director-and-adapter-candidates.md`.
+and neither tool may own the final canvas. One fixed reviewed Blender adapter
+now has bounded private native-host evidence for armature, joint limits, IK,
+skinning, RGBA, mask, and depth output. It remains unregistered and
+non-authoritative; OpenToonz remains fail-closed pending a supported controlled
+runtime. See
+`docs/living-frame/living-frame-rigging-director-and-adapter-candidates.md` and
+`docs/living-frame/living-frame-blender-fixed-adapter-private-internal-test.md`.
 
 ## Motion and attention
 

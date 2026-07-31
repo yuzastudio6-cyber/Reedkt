@@ -3,12 +3,13 @@
 Status date: 2026-07-30
 
 Status:
-`verified_source_contract_external_tool_runtime_qualification_open`
+`verified_source_contract_blender_private_native_host_partial_qualification`
 
 This document defines the professional rigging decision and fixed-adapter
-boundary for Living Frame. It does not register Blender or OpenToonz, dispatch
-a worker, run either application, create an asset, approve QA, change cost, or
-grant production authority.
+boundary for Living Frame. One fixed Blender adapter now has bounded private
+native-host runtime evidence. This does not register Blender or OpenToonz,
+dispatch a canonical worker, persist a canonical asset, approve QA, change
+cost, or grant production authority.
 
 ## Product requirement
 
@@ -104,6 +105,13 @@ runtime promotion, and final-canvas claims. The verifier repeats relational
 checks after digest validation so a malformed artifact does not become valid
 merely because its digest was recomputed.
 
+Rig definition is intentionally separate from rig action.
+`living-frame-rig-action-plan-v1` binds exact control, bone, or mechanical
+action keyframes to the MasterTiming-derived rig range. It requires one primary
+action, ordered values, valid targets, and an explicit final-pose policy. This
+prevents Blender, OpenToonz, or a worker from inventing poses or timing merely
+because a rig exists.
+
 ## Professional route selection
 
 The Head Intelligence must consider the simplest route that can deliver the
@@ -196,7 +204,7 @@ The OpenToonz knowledge profile covers:
 - fixed scene materialization; and
 - batch transparent component rendering.
 
-Before either candidate may execute even in a private canonical worker, the
+Before either candidate may execute in a private canonical worker, the
 following evidence remains required:
 
 - pinned source and license disposition;
@@ -214,6 +222,25 @@ If OpenToonz cannot provide a sufficiently controlled and repeatable
 scene/materialization path during qualification, it remains evaluation-only.
 The approved fallback resolver chooses a simpler treatment or a newly approved
 route; the worker does not improvise.
+
+## Current external-runtime qualification
+
+The fixed reviewed Blender `bpy` adapter now passes one bounded native ARM64
+private test with Blender 4.5.11 LTS. It builds a two-bone skinned armature,
+applies joint limits and IK, renders a 10-sample blocking preview, then renders
+all 60 frames at 1920×1080. Independent QA observes transparent RGBA, gray mask,
+32-bit OpenEXR depth, meaningful pose change, and exact final-pose restoration.
+The representative full run takes about 34.5 seconds and peaks near 637 MB;
+the sampled preview takes about 3.6 seconds and peaks near 331 MB.
+
+This is partial qualification only. Zero-network confinement, an offline
+non-root worker image, canonical work admission, private persistence/reread,
+resource/cost ownership, broader fixtures, and private review remain open.
+
+The inspected OpenToonz 1.8.0 macOS package is unsigned and x86_64-only. It
+cannot execute on the current ARM64 host without Rosetta, so it remains
+fail-closed and evaluation-only. Details and exact package receipts are in
+`docs/living-frame/living-frame-blender-fixed-adapter-private-internal-test.md`.
 
 ## Final-canvas and authority boundary
 
@@ -242,20 +269,29 @@ Public contracts:
 - `src/types/living-frame-rigging-direction.ts`
 - `src/types/living-frame-rigging-v2.ts`
 - `src/types/living-frame-rigging-adapter-candidate.ts`
+- `src/types/living-frame-rig-action.ts`
+- `src/types/living-frame-blender-fixed-adapter-internal-test.ts`
 
 Server compilers:
 
 - `server/living-frame/living-frame-rigging-direction.ts`
 - `server/living-frame/living-frame-rigging-v2.ts`
 - `server/living-frame/living-frame-rigging-adapter-candidate.ts`
+- `server/living-frame/living-frame-rig-action.ts`
+- `server/living-frame/living-frame-blender-fixed-adapter-internal-test.ts`
+- `server/living-frame/runtime/living-frame-blender-fixed-adapter.py`
 
 Regression:
 
 ```text
 npm run smoke:living-frame-rigging-v2
+npm run smoke:living-frame-rig-action
+npm run smoke:living-frame-blender-fixed-adapter-private-internal-test
 ```
 
 The regression covers native mechanical, OpenToonz flat-2D, and Blender
 advanced-2.5D routing, deterministic replay, fixed-adapter materialization, and
 adversarial authority, lineage, code-injection, rig-relationship, route, and
-final-canvas substitutions.
+final-canvas substitutions. The private Blender regression additionally
+executes the real fixed adapter and measures full-frame RGBA, mask, depth,
+timing, action, memory, and performance evidence.

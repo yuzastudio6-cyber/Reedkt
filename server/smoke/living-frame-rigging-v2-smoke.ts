@@ -181,7 +181,7 @@ const unsafeDirectionInput = structuredClone(directionInput(
   'blender_headless_candidate',
   'demonstrate_articulated_action',
   'reach',
-)) as Mutable<CompileLivingFrameRiggingDirectionInput>
+)) as Writable<CompileLivingFrameRiggingDirectionInput>
 unsafeDirectionInput.narrativeDecision.directedMotionSummary =
   'Run https://unsafe.example and execute code'
 assert.throws(
@@ -220,7 +220,7 @@ assert.throws(
   /Head Intelligence direction is inconsistent/,
 )
 
-const lowConfidence = structuredClone(mechanicalInput) as Mutable<
+const lowConfidence = structuredClone(mechanicalInput) as Writable<
   CompileLivingFrameRiggingV2Input
 >
 lowConfidence.partBindings[1]!.partProposalConfidence = 0.5
@@ -230,7 +230,7 @@ assert.throws(
   /uncertain or reconstructed parts require review/,
 )
 
-const cyclic = structuredClone(advancedInput) as Mutable<
+const cyclic = structuredClone(advancedInput) as Writable<
   CompileLivingFrameRiggingV2Input
 >
 cyclic.bones[0]!.parentBoneId = cyclic.bones[1]!.boneId
@@ -239,7 +239,7 @@ assert.throws(
   /bone hierarchy is cyclic/,
 )
 
-const wrongLength = structuredClone(advancedInput) as Mutable<
+const wrongLength = structuredClone(advancedInput) as Writable<
   CompileLivingFrameRiggingV2Input
 >
 wrongLength.bones[0]!.restLengthNormalized = 0.99
@@ -248,7 +248,7 @@ assert.throws(
   /bone rest length is inconsistent/,
 )
 
-const wrongIkLength = structuredClone(advancedInput) as Mutable<
+const wrongIkLength = structuredClone(advancedInput) as Writable<
   CompileLivingFrameRiggingV2Input
 >
 wrongIkLength.ikChains[0]!.chainLength = 1
@@ -257,7 +257,7 @@ assert.throws(
   /IK chain is invalid/,
 )
 
-const missingWeightMap = structuredClone(advancedInput) as Mutable<
+const missingWeightMap = structuredClone(advancedInput) as Writable<
   CompileLivingFrameRiggingV2Input
 >
 missingWeightMap.meshBindings[0]!.weightMapArtifactRef = null
@@ -266,7 +266,7 @@ assert.throws(
   /mesh binding is invalid/,
 )
 
-const missingPart = structuredClone(advancedInput) as Mutable<
+const missingPart = structuredClone(advancedInput) as Writable<
   CompileLivingFrameRiggingV2Input
 >
 missingPart.partBindings.pop()
@@ -275,7 +275,7 @@ assert.throws(
   /parts must cover each visual component once/,
 )
 
-const zeroMechanicalRatio = structuredClone(mechanicalInput) as Mutable<
+const zeroMechanicalRatio = structuredClone(mechanicalInput) as Writable<
   CompileLivingFrameRiggingV2Input
 >
 zeroMechanicalRatio.mechanicalLinkages[0]!.ratio = 0
@@ -1088,6 +1088,12 @@ type Mutable<T> =
           : T extends object
             ? { -readonly [Key in keyof T]: Mutable<T[Key]> }
             : T
+
+type Writable<T> =
+  T extends readonly (infer Item)[] ? Writable<Item>[]
+    : T extends object
+      ? { -readonly [Key in keyof T]: Writable<T[Key]> }
+      : T
 
 function mutablePlan(
   value: LivingFrameRiggingV2Plan,

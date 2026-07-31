@@ -72,6 +72,53 @@ const cases: readonly AuditCase[] = [
     },
   },
   {
+    id: 'master_timing_bound_rig_action_contract',
+    relativePath:
+      'server/smoke/living-frame-rig-action-smoke.ts',
+    expectedJsonStatus: 'passed',
+    validate(receipt) {
+      assert.equal(
+        receipt.contractVersion,
+        'living-frame-rig-action-plan-v1',
+      )
+      assert.equal(receipt.exactMasterTimingLineage, true)
+      assert.equal(receipt.deterministicCompilation, true)
+      assert.equal(receipt.runtimeExecutionAuthority, false)
+      assert.equal(receipt.finalCanvasAuthority, false)
+      assert.equal(receipt.productionAuthority, false)
+    },
+  },
+  {
+    id: 'blender_fixed_adapter_private_native_host_runtime',
+    relativePath:
+      'server/smoke/living-frame-blender-fixed-adapter-private-internal-test-smoke.ts',
+    validate(receipt) {
+      assert.equal(
+        receipt.status,
+        'passed_private_native_host_partial_qualification',
+      )
+      assert.equal(
+        (receipt.preview as Record<string, unknown>).frameCount,
+        10,
+      )
+      assert.equal(
+        (receipt.full as Record<string, unknown>).frameCount,
+        60,
+      )
+      assert.equal(
+        (receipt.full as Record<string, unknown>).widthPixels,
+        1_920,
+      )
+      assert.equal(
+        (receipt.full as Record<string, unknown>).heightPixels,
+        1_080,
+      )
+      assert.equal(receipt.externalOperationRegistered, false)
+      assert.equal(receipt.networkIsolationStillRequired, true)
+      assert.equal(receipt.remotionOwnsFinalCanvas, true)
+    },
+  },
+  {
     id: 'selected_scene_private_prompt_materialization',
     relativePath:
       'server/smoke/living-frame-controlled-image-selected-scene-private-prompt-materialization-smoke.ts',
@@ -549,6 +596,7 @@ const cases: readonly AuditCase[] = [
 
 const results = cases.map(runCase)
 const runtimeCaseIds = [
+  'blender_fixed_adapter_private_native_host_runtime',
   'five_modes_depth_attention_captions_sound_and_fallbacks',
   'confirmed_non_square_output_frames',
   'selected_scene_environmental_particle_slice',
@@ -580,6 +628,8 @@ const receipt = {
   verifiedCoverage: [
     'composite_parent_and_mini_skill_contract',
     'head_intelligence_rigging_direction_native_opentoonz_blender_routing_and_fixed_non_executable_adapter_candidates',
+    'master_timing_bound_non_executable_rig_action_with_deep_adversarial_verification',
+    'fixed_reviewed_blender_bpy_armature_ik_skinning_transparent_rgba_mask_depth_private_native_host_runtime',
     'selected_scene_lineage_and_private_prompt_materialization',
     'selected_scene_private_operation_and_canonical_comfyui_candidate_input_reconciliation',
     'partial_independent_canonical_offline_image_vulnerability_evidence_and_fail_closed_disposition',
@@ -621,7 +671,7 @@ const receipt = {
       gate:
         'advanced_rigging_external_tool_runtime',
       reason:
-        'head_intelligence_rigging_direction_rigging_v2_relational_validation_native_opentoonz_blender_route_selection_and_fixed_non_executable_adapter_materialization_are_verified_but_pinned_scanned_blender_and_opentoonz_runtime_images_reviewed_adapter_source_real_scene_benchmarks_transparent_component_outputs_private_persistence_qa_review_canonical_work_admission_and_fallback_evidence_remain_required',
+        'head_intelligence_rigging_direction_rigging_v2_relational_validation_native_opentoonz_blender_route_selection_fixed_non_executable_adapter_materialization_and_one_signed_notarized_native_arm64_blender_4_5_11_fixed_bpy_armature_ik_skinning_rgba_mask_depth_runtime_are_verified_but_blender_network_isolation_offline_non_root_worker_image_private_persistence_reread_resource_cost_canonical_work_admission_review_and_broader_fixture_evidence_remain_required_while_the_unsigned_x86_64_opentoonz_1_8_0_macos_package_is_fail_closed_and_still_requires_a_qualified_runtime_or_professional_fallback',
     },
   ],
   internalEndToEndReadyForOwnerReview: false,

@@ -39,3 +39,18 @@ serialized.
 asset, billing, delivery, and production authority remain false. The smoke is
 contract evidence only; it is not evidence that representative source bytes
 have been ingested or approved.
+
+## Per-case admission
+
+`living-frame-representative-case-source-admission-v1` consumes the exact
+private-source bindings required by one of the twelve active representative
+cases. It preserves their shared workspace, project, snapshot, selected scene,
+MasterTiming, and confirmed-frame lineage while requiring a unique approved
+work and manifest-entry reference per source.
+
+The candidate order and count come from the frozen seven-source case map.
+Missing, extra, duplicate, reordered, cross-case, or stale common-lineage
+sources are rejected. The output records which required visual asset roles the
+source set can support and which caption, SoundSync, mask, final-artifact, or
+other non-source dependencies must still be supplied by their canonical
+owners. It does not perform that asset-role reconciliation itself.

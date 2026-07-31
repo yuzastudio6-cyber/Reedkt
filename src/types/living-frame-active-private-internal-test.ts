@@ -21,6 +21,7 @@ export const LIVING_FRAME_ACTIVE_PRIVATE_INTERNAL_RUN_IDS = [
   'semantic_sound_timing_reconciliation',
   'representative_media_source_candidate_set',
   'representative_private_source_binding',
+  'representative_case_source_admission',
   'representative_visual_fixture_plan',
   'non_character_professional_review_contract',
   'postrender_visual_inspection_contract',
@@ -97,8 +98,8 @@ export interface LivingFrameActivePrivateInternalTestReportDraft {
     'living-frame-active-baseline-route-binding-v1'
   readonly activeCaseCount: 12
   readonly pausedScopeCount: 7
-  readonly runCount: 13
-  readonly sourceContractRunCount: 9
+  readonly runCount: 14
+  readonly sourceContractRunCount: 10
   readonly privateEngineeringMediaRuntimeRunCount: 4
   readonly privateReviewExportRunCount: 4
   readonly privateReviewExportCount: 5

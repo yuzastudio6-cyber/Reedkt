@@ -21,17 +21,17 @@ assert.equal(
   ),
   true,
 )
-assert.equal(audit.metrics.requirementCount, 16)
+assert.equal(audit.metrics.requirementCount, 17)
 assert.equal(audit.metrics.verifiedSourceContractCount, 4)
 assert.equal(audit.metrics.recordedPrivateFixtureCount, 1)
 assert.equal(audit.metrics.openInternalImplementationCount, 4)
 assert.equal(
   audit.metrics.canonicalOwnerReconciliationPendingCount,
-  4,
+  5,
 )
 assert.equal(audit.metrics.deferredByOwnerCount, 2)
 assert.equal(audit.metrics.notRequiredForActiveScopeCount, 1)
-assert.equal(audit.metrics.activeBlockingRequirementCount, 8)
+assert.equal(audit.metrics.activeBlockingRequirementCount, 9)
 assert.equal(audit.activePrivateInternalReady, false)
 assert.equal(
   audit.sourceBindings
@@ -72,7 +72,7 @@ assert.equal(
 )
 assert.equal(
   audit.nextRequiredMilestone,
-  'canonical_attention_renderer_and_soundsync_owner_reconciliation',
+  'canonical_postrender_visual_inspection_and_head_qa_integration',
 )
 assert.equal(audit.operationRegistered, false)
 assert.equal(audit.dispatchGranted, false)

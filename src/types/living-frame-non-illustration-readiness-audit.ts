@@ -1,5 +1,5 @@
 export const LIVING_FRAME_NON_ILLUSTRATION_READINESS_AUDIT_VERSION =
-  'living-frame-non-illustration-readiness-audit-v4' as const
+  'living-frame-non-illustration-readiness-audit-v5' as const
 
 export const LIVING_FRAME_NON_ILLUSTRATION_READINESS_AUDIT_CLASS =
   'server_derived_source_only_non_illustration_end_to_end_gap_audit' as const
@@ -18,6 +18,7 @@ export type LivingFrameNonIllustrationReadinessRequirementId =
   | 'confirmed_frame_master_timing_and_selected_scene_lineage'
   | 'five_mode_private_render_record'
   | 'general_non_character_professional_visual_review'
+  | 'automatic_ai_postrender_visual_inspection_and_head_qa'
   | 'component_role_activation_selective_motion_derivation'
   | 'semantic_soundsync_exact_timing_and_mix_lineage'
   | 'advanced_temporal_living_a_roll_mask'
@@ -86,7 +87,7 @@ export interface LivingFrameNonIllustrationReadinessAuditDraft {
   }
   readonly activePrivateInternalReady: false
   readonly nextRequiredMilestone:
-    'canonical_attention_renderer_and_soundsync_owner_reconciliation'
+    'canonical_postrender_visual_inspection_and_head_qa_integration'
   readonly pausedIllustrationAnimationCanResumeWithoutNewOwnerSpecification:
     false
   readonly pausedMechanicalRiggingCanResumeWithoutNewOwnerSpecification:

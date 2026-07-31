@@ -21,6 +21,13 @@ It does not admit character animation or mechanical rigging.
 An approved static illustration may remain in the composition, but this review
 cannot use animated-character evidence to approve it.
 
+Version 1 is the professional decision schema; by itself it does not prove that
+an AI actually watched the render. Its inspection booleans are not trusted
+runtime evidence. `living-frame-postrender-visual-inspection-request-v1`
+provides the additive request/result checklist that must be admitted, executed,
+persisted, QA-checked, and reconciled by the canonical backend before a future
+professional-review adapter may populate this decision from model evidence.
+
 ## Required Review Areas
 
 The review checks:
@@ -55,6 +62,12 @@ Rejected and repair-required outputs cannot proceed to canonical
 reconciliation. Technical metrics, pixel counts, digest checks, successful
 encoding, or a green renderer process can never approve visual quality by
 themselves.
+
+Likewise, a caller-supplied statement that Head Intelligence inspected a clip
+cannot approve it. The accepted path requires exact Qwen postrender visual
+evidence, separate verified deterministic and audio evidence, and a Kimi-led
+recommendation from the immutable evidence package. That recommendation still
+cannot replace canonical QA, owner approval, or private review.
 
 The review is private evidence only. It creates no selection, layout,
 MasterTiming, SoundSync, approved-snapshot, work-graph, asset, renderer, cost,

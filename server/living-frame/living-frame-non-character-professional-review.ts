@@ -340,6 +340,15 @@ function validChecks(
   request: LivingFrameNonCharacterProfessionalReviewRequest,
 ): boolean {
   if (!Array.isArray(request.checks)) return false
+  const validCheckIds = new Set<string>(
+    LIVING_FRAME_NON_CHARACTER_PROFESSIONAL_CHECK_IDS,
+  )
+  const validOutcomes = new Set<string>([
+    'pass',
+    'repairable_failure',
+    'blocking_failure',
+    'not_applicable',
+  ])
   const byId = new Map(
     request.checks.map((check) => [check.checkId, check]),
   )
@@ -358,16 +367,11 @@ function validChecks(
         'observationSummary',
         'evidenceRefIds',
       ])
-      || !LIVING_FRAME_NON_CHARACTER_PROFESSIONAL_CHECK_IDS.includes(
-        check.checkId,
-      )
+      || typeof check.checkId !== 'string'
+      || !validCheckIds.has(check.checkId)
       || typeof check.applicable !== 'boolean'
-      || ![
-        'pass',
-        'repairable_failure',
-        'blocking_failure',
-        'not_applicable',
-      ].includes(check.outcome)
+      || typeof check.outcome !== 'string'
+      || !validOutcomes.has(check.outcome)
       || (check.applicable && check.outcome === 'not_applicable')
       || (!check.applicable && check.outcome !== 'not_applicable')
       || typeof check.observationSummary !== 'string'

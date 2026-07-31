@@ -71,6 +71,25 @@ const REQUIREMENTS = [
   }),
   requirement({
     requirementId:
+      'automatic_ai_postrender_visual_inspection_and_head_qa',
+    status: 'canonical_owner_reconciliation_pending',
+    evidenceRefs: [
+      'private-gcp-qwen25vl-visual-understanding-v1',
+      'living-frame-postrender-visual-inspection-request-v1',
+      'living-frame-postrender-visual-inspection-result-v1',
+      'living-frame-postrender-visual-inspection-checklist-v1',
+    ],
+    remainingWork: [
+      'project_separate_postrender_provider_work_item_after_remotion_and_ffprobe',
+      'extend_qwen_adapter_from_eight_stills_to_exact_private_postrender_complete_time_coverage',
+      'persist_qa_and_reconcile_structured_visual_evidence_create_only',
+      'bind_separate_verified_audio_evidence_and_kimi_terra_head_qa_recommendation',
+      'require_visual_evidence_in_canonical_private_review_assembly',
+    ],
+    blocks: true,
+  }),
+  requirement({
+    requirementId:
       'component_role_activation_selective_motion_derivation',
     status: 'canonical_owner_reconciliation_pending',
     evidenceRefs: [
@@ -301,7 +320,7 @@ export function compileLivingFrameNonIllustrationReadinessAudit(
       },
       activePrivateInternalReady: false,
       nextRequiredMilestone:
-        'canonical_attention_renderer_and_soundsync_owner_reconciliation',
+        'canonical_postrender_visual_inspection_and_head_qa_integration',
       pausedIllustrationAnimationCanResumeWithoutNewOwnerSpecification:
         false,
       pausedMechanicalRiggingCanResumeWithoutNewOwnerSpecification:

@@ -64,16 +64,10 @@ const REQUIREMENTS = [
   requirement({
     requirementId:
       'general_non_character_professional_visual_review',
-    status: 'open_internal_implementation',
+    status: 'verified_source_contract',
     evidenceRefs: [
-      'living-frame-professional-visual-review-v1-character_specific',
+      'living-frame-non-character-professional-review-v1',
     ],
-    remainingWork: [
-      'add_scene_level_non_character_review_checks',
-      'require_head_intelligence_full_playback_and_sampled_frame_inspection',
-      'block_downstream_reconciliation_on_reject_or_repair',
-    ],
-    blocks: true,
   }),
   requirement({
     requirementId:
@@ -305,7 +299,7 @@ export function compileLivingFrameNonIllustrationReadinessAudit(
       },
       activePrivateInternalReady: false,
       nextRequiredMilestone:
-        'general_non_character_professional_visual_review',
+        'component_role_activation_selective_motion_derivation',
       pausedIllustrationAnimationCanResumeWithoutNewOwnerSpecification:
         false,
       pausedMechanicalRiggingCanResumeWithoutNewOwnerSpecification:

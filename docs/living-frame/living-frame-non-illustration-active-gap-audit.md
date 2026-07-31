@@ -51,7 +51,12 @@ The active scope already has verified source contracts for:
   of the 12 owner-approved active scopes. It binds fixed evidence-packet
   identities, requires postrender AI inspection for every case, rejects all
   seven paused scopes, imports none of the historical 39/40-case aggregate,
-  and grants no runtime or completion authority.
+  and grants no runtime or completion authority; and
+- a source-only evidence-admission candidate that binds every case to exact
+  canonical package/work/output/final-artifact lineage and to deterministic,
+  complete-time visual, separate-audio, Head-QA, N+1 repair, reconciliation,
+  and private-review dependencies. It remains opaque until canonical reread
+  and is not a direct private-review adapter.
 
 Recorded private fixtures cover all five modes, confirmed portrait/custom
 frames, a safe-space A-roll fallback, deterministic diagram reveal, archive
@@ -90,7 +95,9 @@ called professionally accepted.
    canonical one-writer boundary while preserving separate ownership.
 8. Compile and execute a runtime aggregate from the new 12-case active
    non-illustration manifest. It must fail if any paused evidence is counted
-   and must not import the historical 39/40-case runner.
+   and must not import the historical 39/40-case runner. The canonical
+   one-writer must consume the evidence-admission candidate as supplemental QA
+   evidence rather than creating a second readiness or private-review owner.
 9. Render representative non-illustration scenes, inspect every complete clip
    at playback speed plus required sampled frames, and repair or reject every
    result that misses the professional bar.

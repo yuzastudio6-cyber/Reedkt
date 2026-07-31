@@ -60,6 +60,15 @@ factory settings and auto-execution disabled. It writes into a private,
 create-only temporary root and returns only validated output plus digest,
 count, byte, timing, and memory evidence.
 
+An additive
+`living-frame-blender-fixed-textured-adapter-internal-request-v2` now binds one
+exact approved RGBA PNG to the same fixed adapter. The server computes the
+texture commitment, keeps bytes out of the serialized payload, writes one
+fixed create-only private input, and Blender independently rehashes,
+revalidates, decodes, and maps it through approved UVs. The v1 flat-color
+request remains backward compatible. See
+`docs/living-frame/living-frame-blender-fixed-textured-adapter-private-internal-test.md`.
+
 ## Qualified Blender package
 
 The bounded native-host test used:
@@ -206,6 +215,7 @@ and
 ```text
 npm run smoke:living-frame-rig-action
 npm run smoke:living-frame-blender-fixed-adapter-private-internal-test
+npm run smoke:living-frame-blender-fixed-textured-adapter-private-internal-test
 npm run smoke:living-frame-blender-selected-scene-private-persistence-internal-test
 npm run smoke:living-frame-blender-selected-scene-private-review-internal-test
 ```

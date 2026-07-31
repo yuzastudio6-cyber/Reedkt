@@ -120,6 +120,51 @@ const cases: readonly AuditCase[] = [
   },
   {
     id:
+      'blender_fixed_textured_adapter_private_native_host_runtime',
+    relativePath:
+      'server/smoke/living-frame-blender-fixed-textured-adapter-private-internal-test-smoke.ts',
+    validate(receipt) {
+      assert.equal(receipt.status, 'passed')
+      assert.equal(
+        receipt.requestVersion,
+        'living-frame-blender-fixed-textured-adapter-internal-request-v2',
+      )
+      assert.equal(
+        receipt.textureArtifactId,
+        'lf.style-depth.astronomer-flat-editorial.v1',
+      )
+      assert.equal(receipt.outputFrameCount, 60)
+      assert.equal(
+        Number(receipt.firstNonTransparentPixels)
+          > 150_000,
+        true,
+      )
+      assert.equal(
+        Number(receipt.firstDistinctOpaqueColorBuckets)
+          > 24,
+        true,
+      )
+      assert.equal(
+        Number(receipt.middleMotionPixelDelta)
+          > 100_000,
+        true,
+      )
+      assert.equal(receipt.finalReturnPixelDelta, 0)
+      assert.equal(
+        receipt.actualBlenderEntrypointExecuted,
+        true,
+      )
+      assert.equal(receipt.remotionOwnsFinalCanvas, true)
+      assert.equal(receipt.runtimeDispatchAuthority, false)
+      assert.equal(receipt.assetPersistenceAuthority, false)
+      assert.equal(receipt.qaApprovalAuthority, false)
+      assert.equal(receipt.customerBillingAuthority, false)
+      assert.equal(receipt.publicDeliveryAuthority, false)
+      assert.equal(receipt.productionAuthority, false)
+    },
+  },
+  {
+    id:
       'blender_selected_scene_full_sequence_private_persistence',
     relativePath:
       'server/smoke/living-frame-blender-selected-scene-private-persistence-internal-test-smoke.ts',
@@ -702,6 +747,7 @@ const cases: readonly AuditCase[] = [
 const results = cases.map(runCase)
 const runtimeCaseIds = [
   'blender_fixed_adapter_private_native_host_runtime',
+  'blender_fixed_textured_adapter_private_native_host_runtime',
   'blender_selected_scene_full_sequence_private_persistence',
   'blender_selected_scene_component_qa_and_private_remotion_review',
   'five_modes_depth_attention_captions_sound_and_fallbacks',
@@ -737,6 +783,7 @@ const receipt = {
     'head_intelligence_rigging_direction_native_opentoonz_blender_routing_and_fixed_non_executable_adapter_candidates',
     'master_timing_bound_non_executable_rig_action_with_deep_adversarial_verification',
     'fixed_reviewed_blender_bpy_armature_ik_skinning_transparent_rgba_mask_depth_private_native_host_runtime',
+    'fixed_reviewed_blender_digest_bound_rgba_texture_uv_armature_skinning_transparent_rgba_mask_depth_private_native_host_runtime',
     'selected_musashi_scene_exact_approved_snapshot_master_timing_work_item_and_confirmed_frame_blender_binding_with_full_rgba_mask_depth_create_only_private_persistence_and_reread',
     'selected_musashi_scene_independent_persisted_component_alpha_mask_depth_motion_restoration_qa_and_actual_private_remotion_review',
     'selected_scene_lineage_and_private_prompt_materialization',
@@ -780,7 +827,7 @@ const receipt = {
       gate:
         'advanced_rigging_external_tool_runtime',
       reason:
-        'head_intelligence_rigging_direction_rigging_v2_relational_validation_native_opentoonz_blender_route_selection_fixed_non_executable_adapter_materialization_one_signed_notarized_native_arm64_blender_4_5_11_fixed_bpy_armature_ik_skinning_rgba_mask_depth_runtime_one_exact_selected_musashi_scene_full_sequence_create_only_private_persistence_reread_independent_component_qa_four_actual_remotion_review_renders_and_create_only_private_review_persistence_are_verified_but_blender_network_isolation_offline_non_root_worker_image_canonical_estimate_work_asset_admission_manifest_reconciliation_qa_private_review_approval_actual_cost_and_broader_fixture_evidence_remain_required_while_the_unsigned_x86_64_opentoonz_1_8_0_macos_package_is_fail_closed_and_still_requires_a_qualified_runtime_or_professional_fallback',
+        'head_intelligence_rigging_direction_rigging_v2_relational_validation_native_opentoonz_blender_route_selection_fixed_non_executable_adapter_materialization_one_signed_notarized_native_arm64_blender_4_5_11_fixed_bpy_armature_ik_skinning_rgba_mask_depth_runtime_one_digest_bound_real_rgba_illustration_texture_uv_deformation_and_exact_restoration_runtime_one_exact_selected_musashi_scene_full_sequence_create_only_private_persistence_reread_independent_component_qa_four_actual_remotion_review_renders_and_create_only_private_review_persistence_are_verified_but_selected_scene_texture_snapshot_work_lineage_textured_private_review_blender_network_isolation_offline_non_root_worker_image_canonical_estimate_work_asset_admission_manifest_reconciliation_qa_private_review_approval_actual_cost_and_broader_fixture_evidence_remain_required_while_the_unsigned_x86_64_opentoonz_1_8_0_macos_package_is_fail_closed_and_still_requires_a_qualified_runtime_or_professional_fallback',
     },
   ],
   internalEndToEndReadyForOwnerReview: false,

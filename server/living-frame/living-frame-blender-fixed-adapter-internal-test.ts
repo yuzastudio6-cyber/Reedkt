@@ -39,6 +39,17 @@ import {
   LIVING_FRAME_BLENDER_FIXED_ADAPTER_RESULT_VERSION,
 } from '../../src/types/living-frame-blender-fixed-adapter-internal-test'
 import type {
+  LivingFrameBlenderFixedTexturedAdapterEnvelope,
+  LivingFrameBlenderFixedTexturedAdapterMaterial,
+  LivingFrameBlenderFixedTexturedAdapterRequestDraft,
+} from '../../src/types/living-frame-blender-fixed-textured-adapter-internal-test'
+import {
+  LIVING_FRAME_BLENDER_FIXED_TEXTURE_RELATIVE_PATH,
+  LIVING_FRAME_BLENDER_FIXED_TEXTURED_ADAPTER_ENVELOPE_VERSION,
+  LIVING_FRAME_BLENDER_FIXED_TEXTURED_ADAPTER_INTERNAL_REQUEST_CLASS,
+  LIVING_FRAME_BLENDER_FIXED_TEXTURED_ADAPTER_INTERNAL_REQUEST_VERSION,
+} from '../../src/types/living-frame-blender-fixed-textured-adapter-internal-test'
+import type {
   LivingFrameRigActionPlan,
 } from '../../src/types/living-frame-rig-action'
 import type {
@@ -65,6 +76,7 @@ const ADAPTER_SOURCE = resolve(
 )
 const JOB_PREFIX = 'reeditpro-living-frame-blender-fixed-adapter-'
 const MAX_CAPTURE_BYTES = 2 * 1024 * 1024
+const MAX_TEXTURE_BYTES = 16 * 1024 * 1024
 
 const meshSchema = z.object({
   meshId: z.string().regex(SAFE_ID),
@@ -98,6 +110,24 @@ const materialSchema = z.object({
     z.number().finite().min(0).max(1),
   ]),
   roughness: z.number().finite().min(0).max(1),
+}).strict()
+
+const textureCommitmentSchema = z.object({
+  artifactId: z.string().regex(SAFE_ID),
+  contentType: z.literal('image/png'),
+  widthPixels: z.number().int().min(1).max(4_096),
+  heightPixels: z.number().int().min(1).max(4_096),
+  byteLength: z.number().int().positive().max(MAX_TEXTURE_BYTES),
+  sha256: z.string().regex(SHA256),
+  fixedRelativePath: z.literal(
+    LIVING_FRAME_BLENDER_FIXED_TEXTURE_RELATIVE_PATH,
+  ),
+  alphaMode: z.literal('straight'),
+  colorSpace: z.literal('srgb'),
+}).strict()
+
+const texturedMaterialSchema = materialSchema.extend({
+  texture: textureCommitmentSchema,
 }).strict()
 
 const resultSchema = z.object({
@@ -163,6 +193,21 @@ const privateBlenderOutputByLease =
     PrivateBlenderOutputLeaseBinding
   >()
 
+interface PrivateBlenderTextureBinding {
+  readonly artifactId: string
+  readonly pngBytes: Buffer
+  readonly widthPixels: number
+  readonly heightPixels: number
+  readonly byteLength: number
+  readonly sha256: string
+}
+
+const privateBlenderTextureByCompiledRequest =
+  new WeakMap<
+    CompiledLivingFrameBlenderFixedTexturedAdapterInternalRequest,
+    PrivateBlenderTextureBinding
+  >()
+
 export interface CompileLivingFrameBlenderFixedAdapterInternalInput {
   readonly candidateRequest:
     LivingFrameRiggingAdapterCandidateRequest
@@ -178,6 +223,32 @@ export interface CompiledLivingFrameBlenderFixedAdapterInternalRequest {
   readonly payload: LivingFrameBlenderFixedAdapterRequestDraft
   readonly envelope: LivingFrameBlenderFixedAdapterEnvelope
 }
+
+export interface CompileLivingFrameBlenderFixedTexturedAdapterInternalInput
+  extends Omit<
+    CompileLivingFrameBlenderFixedAdapterInternalInput,
+    'material'
+  > {
+  readonly material: Omit<
+    LivingFrameBlenderFixedTexturedAdapterMaterial,
+    'texture'
+  >
+  readonly texture: {
+    readonly artifactId: string
+    readonly pngBytes: Buffer
+  }
+}
+
+export interface CompiledLivingFrameBlenderFixedTexturedAdapterInternalRequest {
+  readonly payload:
+    LivingFrameBlenderFixedTexturedAdapterRequestDraft
+  readonly envelope:
+    LivingFrameBlenderFixedTexturedAdapterEnvelope
+}
+
+type CompiledLivingFrameBlenderAdapterInternalRequest =
+  | CompiledLivingFrameBlenderFixedAdapterInternalRequest
+  | CompiledLivingFrameBlenderFixedTexturedAdapterInternalRequest
 
 export interface LivingFrameBlenderFixedAdapterInternalRun {
   readonly result: LivingFrameBlenderFixedAdapterResult
@@ -335,10 +406,102 @@ export function compileLivingFrameBlenderFixedAdapterInternalRequest(
   return { payload, envelope }
 }
 
+export function compileLivingFrameBlenderFixedTexturedAdapterInternalRequest(
+  rawInput:
+    CompileLivingFrameBlenderFixedTexturedAdapterInternalInput,
+):
+CompiledLivingFrameBlenderFixedTexturedAdapterInternalRequest {
+  const textureBytes = Buffer.from(rawInput.texture.pngBytes)
+  const textureInspection =
+    inspectStraightAlphaRgbaPng(textureBytes)
+  const base = compileLivingFrameBlenderFixedAdapterInternalRequest({
+    candidateRequest: rawInput.candidateRequest,
+    actionPlan: rawInput.actionPlan,
+    componentId: rawInput.componentId,
+    mesh: rawInput.mesh,
+    material: rawInput.material,
+    fps: rawInput.fps,
+    renderProfile: rawInput.renderProfile,
+  })
+  const texture = textureCommitmentSchema.parse({
+    artifactId: z.string()
+      .regex(SAFE_ID)
+      .parse(rawInput.texture.artifactId),
+    contentType: 'image/png',
+    widthPixels: textureInspection.widthPixels,
+    heightPixels: textureInspection.heightPixels,
+    byteLength: textureBytes.byteLength,
+    sha256: sha256Bytes(textureBytes),
+    fixedRelativePath:
+      LIVING_FRAME_BLENDER_FIXED_TEXTURE_RELATIVE_PATH,
+    alphaMode: 'straight',
+    colorSpace: 'srgb',
+  })
+  const {
+    payloadDigestBindingSha256:
+      discardedFlatPayloadDigest,
+    ...baseWithoutBinding
+  } = base.payload
+  void discardedFlatPayloadDigest
+  const completeWithoutBinding = {
+    ...baseWithoutBinding,
+    contractVersion:
+      LIVING_FRAME_BLENDER_FIXED_TEXTURED_ADAPTER_INTERNAL_REQUEST_VERSION,
+    requestClass:
+      LIVING_FRAME_BLENDER_FIXED_TEXTURED_ADAPTER_INTERNAL_REQUEST_CLASS,
+    material: texturedMaterialSchema.parse({
+      ...base.payload.material,
+      texture,
+    }),
+  }
+  const payload:
+    LivingFrameBlenderFixedTexturedAdapterRequestDraft = {
+      ...completeWithoutBinding,
+      payloadDigestBindingSha256:
+        sha256AuthorityValue(completeWithoutBinding),
+    }
+  const payloadCanonicalJson =
+    stableAuthorityStringify(payload)
+  const envelope:
+    LivingFrameBlenderFixedTexturedAdapterEnvelope = {
+      envelopeVersion:
+        LIVING_FRAME_BLENDER_FIXED_TEXTURED_ADAPTER_ENVELOPE_VERSION,
+      payloadCanonicalJson,
+      payloadDigestSha256:
+        sha256Text(payloadCanonicalJson),
+    }
+  const compiled = { payload, envelope }
+  privateBlenderTextureByCompiledRequest.set(
+    compiled,
+    Object.freeze({
+      artifactId: texture.artifactId,
+      pngBytes: textureBytes,
+      widthPixels: texture.widthPixels,
+      heightPixels: texture.heightPixels,
+      byteLength: texture.byteLength,
+      sha256: texture.sha256,
+    }),
+  )
+  return compiled
+}
+
 export function runLivingFrameBlenderFixedAdapterInternal(
   compiled: CompiledLivingFrameBlenderFixedAdapterInternalRequest,
 ): LivingFrameBlenderFixedAdapterInternalRun {
-  assertCompiledRequestIntegrity(compiled)
+  return runLivingFrameBlenderAdapterInternal(compiled)
+}
+
+export function runLivingFrameBlenderFixedTexturedAdapterInternal(
+  compiled:
+    CompiledLivingFrameBlenderFixedTexturedAdapterInternalRequest,
+): LivingFrameBlenderFixedAdapterInternalRun {
+  return runLivingFrameBlenderAdapterInternal(compiled)
+}
+
+function runLivingFrameBlenderAdapterInternal(
+  compiled: CompiledLivingFrameBlenderAdapterInternalRequest,
+): LivingFrameBlenderFixedAdapterInternalRun {
+  assertAnyCompiledRequestIntegrity(compiled)
   const executable = realpathSync(EXPECTED_BLENDER_EXECUTABLE)
   if (executable !== EXPECTED_BLENDER_EXECUTABLE) {
     throw new Error('The pinned Blender executable is unavailable.')
@@ -357,6 +520,10 @@ export function runLivingFrameBlenderFixedAdapterInternal(
   writePrivateCreateOnly(
     requestFile,
     Buffer.from(JSON.stringify(compiled.envelope), 'utf8'),
+  )
+  stagePrivateBlenderTextureIfRequired(
+    compiled,
+    requestRoot,
   )
   const started = performance.now()
   const process = spawnSync('/usr/bin/time', [
@@ -419,8 +586,25 @@ export function runLivingFrameBlenderFixedAdapterInternal(
 export function runLivingFrameBlenderFixedAdapterInternalWithOutputLease(
   compiled: CompiledLivingFrameBlenderFixedAdapterInternalRequest,
 ): LivingFrameBlenderFixedAdapterInternalRunWithOutputLease {
+  return runLivingFrameBlenderAdapterInternalWithOutputLease(
+    compiled,
+  )
+}
+
+export function runLivingFrameBlenderFixedTexturedAdapterInternalWithOutputLease(
+  compiled:
+    CompiledLivingFrameBlenderFixedTexturedAdapterInternalRequest,
+): LivingFrameBlenderFixedAdapterInternalRunWithOutputLease {
+  return runLivingFrameBlenderAdapterInternalWithOutputLease(
+    compiled,
+  )
+}
+
+function runLivingFrameBlenderAdapterInternalWithOutputLease(
+  compiled: CompiledLivingFrameBlenderAdapterInternalRequest,
+): LivingFrameBlenderFixedAdapterInternalRunWithOutputLease {
   const run =
-    runLivingFrameBlenderFixedAdapterInternal(compiled)
+    runLivingFrameBlenderAdapterInternal(compiled)
   try {
     const files =
       buildOutputFileCommitments(run.outputRoot)
@@ -614,6 +798,135 @@ function assertCompiledRequestIntegrity(
   }
 }
 
+function assertAnyCompiledRequestIntegrity(
+  compiled: CompiledLivingFrameBlenderAdapterInternalRequest,
+): void {
+  if (
+    compiled.payload.contractVersion
+      === LIVING_FRAME_BLENDER_FIXED_ADAPTER_INTERNAL_REQUEST_VERSION
+  ) {
+    assertCompiledRequestIntegrity(
+      compiled as
+        CompiledLivingFrameBlenderFixedAdapterInternalRequest,
+    )
+    if (
+      privateBlenderTextureByCompiledRequest.has(
+        compiled as
+          CompiledLivingFrameBlenderFixedTexturedAdapterInternalRequest,
+      )
+    ) {
+      throw new Error(
+        'Flat-color Blender request unexpectedly carries a private texture.',
+      )
+    }
+    return
+  }
+  assertTexturedCompiledRequestIntegrity(
+    compiled as
+      CompiledLivingFrameBlenderFixedTexturedAdapterInternalRequest,
+  )
+}
+
+function assertTexturedCompiledRequestIntegrity(
+  compiled:
+    CompiledLivingFrameBlenderFixedTexturedAdapterInternalRequest,
+): void {
+  const payload = compiled.payload
+  const envelope = compiled.envelope
+  const textureBinding =
+    privateBlenderTextureByCompiledRequest.get(compiled)
+  const {
+    payloadDigestBindingSha256,
+    ...payloadDraft
+  } = payload
+  const texture = textureCommitmentSchema.parse(
+    payload.material.texture,
+  )
+  if (
+    Object.keys(compiled).sort().join(':')
+      !== 'envelope:payload'
+    || Object.keys(envelope).sort().join(':')
+      !== 'envelopeVersion:payloadCanonicalJson:payloadDigestSha256'
+    || payload.contractVersion
+      !== LIVING_FRAME_BLENDER_FIXED_TEXTURED_ADAPTER_INTERNAL_REQUEST_VERSION
+    || payload.requestClass
+      !== LIVING_FRAME_BLENDER_FIXED_TEXTURED_ADAPTER_INTERNAL_REQUEST_CLASS
+    || envelope.envelopeVersion
+      !== LIVING_FRAME_BLENDER_FIXED_TEXTURED_ADAPTER_ENVELOPE_VERSION
+    || envelope.payloadCanonicalJson
+      !== stableAuthorityStringify(payload)
+    || envelope.payloadDigestSha256
+      !== sha256Text(envelope.payloadCanonicalJson)
+    || payloadDigestBindingSha256
+      !== sha256AuthorityValue(payloadDraft)
+    || textureBinding == null
+    || textureBinding.artifactId
+      !== texture.artifactId
+    || textureBinding.widthPixels
+      !== texture.widthPixels
+    || textureBinding.heightPixels
+      !== texture.heightPixels
+    || textureBinding.byteLength
+      !== texture.byteLength
+    || textureBinding.sha256
+      !== texture.sha256
+    || textureBinding.pngBytes.byteLength
+      !== texture.byteLength
+    || sha256Bytes(textureBinding.pngBytes)
+      !== texture.sha256
+  ) {
+    throw new Error(
+      'Blender fixed-textured-adapter compiled request integrity is invalid.',
+    )
+  }
+  inspectStraightAlphaRgbaPng(
+    textureBinding.pngBytes,
+    {
+      widthPixels: texture.widthPixels,
+      heightPixels: texture.heightPixels,
+    },
+  )
+}
+
+function stagePrivateBlenderTextureIfRequired(
+  compiled:
+    CompiledLivingFrameBlenderAdapterInternalRequest,
+  requestRoot: string,
+): void {
+  if (
+    compiled.payload.contractVersion
+      === LIVING_FRAME_BLENDER_FIXED_ADAPTER_INTERNAL_REQUEST_VERSION
+  ) return
+  const textured =
+    compiled as
+      CompiledLivingFrameBlenderFixedTexturedAdapterInternalRequest
+  const binding =
+    privateBlenderTextureByCompiledRequest.get(textured)
+  if (binding == null) {
+    throw new Error(
+      'Blender fixed-textured-adapter private texture is unavailable.',
+    )
+  }
+  const inputRoot = join(requestRoot, 'input')
+  mkdirSync(inputRoot, { mode: 0o700 })
+  const texturePath = join(
+    requestRoot,
+    LIVING_FRAME_BLENDER_FIXED_TEXTURE_RELATIVE_PATH,
+  )
+  if (
+    dirname(texturePath) !== inputRoot
+    || basename(texturePath) !== 'component-texture.png'
+  ) {
+    throw new Error(
+      'Blender fixed-textured-adapter texture path is invalid.',
+    )
+  }
+  writePrivateCreateOnly(
+    texturePath,
+    binding.pngBytes,
+  )
+}
+
 export function fixedBlenderAdapterSourceDigestSha256(): string {
   return createHash('sha256')
     .update(readFileSync(ADAPTER_SOURCE))
@@ -670,7 +983,7 @@ function assertMesh(
 }
 
 function assertResult(
-  compiled: CompiledLivingFrameBlenderFixedAdapterInternalRequest,
+  compiled: CompiledLivingFrameBlenderAdapterInternalRequest,
   result: LivingFrameBlenderFixedAdapterResult,
 ): void {
   const payload = compiled.payload
@@ -828,7 +1141,69 @@ function cleanupJobRoot(jobRoot: string): void {
   rmSync(resolved, { recursive: true })
 }
 
+function inspectStraightAlphaRgbaPng(
+  bytes: Buffer,
+  expected?: {
+    readonly widthPixels: number
+    readonly heightPixels: number
+  },
+): {
+  readonly widthPixels: number
+  readonly heightPixels: number
+} {
+  const pngSignature =
+    '89504e470d0a1a0a'
+  if (
+    bytes.byteLength < 33
+    || bytes.byteLength > MAX_TEXTURE_BYTES
+    || bytes.subarray(0, 8).toString('hex')
+      !== pngSignature
+    || bytes.readUInt32BE(8) !== 13
+    || bytes.subarray(12, 16).toString('ascii')
+      !== 'IHDR'
+  ) {
+    throw new Error(
+      'Blender fixed-textured-adapter texture is not an approved PNG.',
+    )
+  }
+  const widthPixels = bytes.readUInt32BE(16)
+  const heightPixels = bytes.readUInt32BE(20)
+  const bitDepth = bytes[24]
+  const colorType = bytes[25]
+  const compression = bytes[26]
+  const filter = bytes[27]
+  const interlace = bytes[28]
+  if (
+    widthPixels < 1
+    || widthPixels > 4_096
+    || heightPixels < 1
+    || heightPixels > 4_096
+    || widthPixels * heightPixels > 8_294_400
+    || bitDepth !== 8
+    || colorType !== 6
+    || compression !== 0
+    || filter !== 0
+    || interlace !== 0
+    || (
+      expected != null
+      && (
+        widthPixels !== expected.widthPixels
+        || heightPixels !== expected.heightPixels
+      )
+    )
+  ) {
+    throw new Error(
+      'Blender fixed-textured-adapter RGBA texture profile is invalid.',
+    )
+  }
+  return { widthPixels, heightPixels }
+}
+
 function sha256Text(value: string): string {
+  return createHash('sha256').update(value).digest('hex')
+}
+
+function sha256Bytes(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex')
 }
 

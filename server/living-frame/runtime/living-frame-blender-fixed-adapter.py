@@ -25,14 +25,20 @@ import bpy
 ENVELOPE_FILE = Path(".reeditpro-rigging/request-envelope.json")
 OUTPUT_ROOT = Path(".reeditpro-rigging/output")
 RESULT_FILE = Path(".reeditpro-rigging/result.json")
+TEXTURE_FILE = Path(".reeditpro-rigging/input/component-texture.png")
 SAFE_ID = re.compile(r"^[a-z0-9][a-z0-9._:-]{0,127}$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
-CONTRACT_VERSION = "living-frame-blender-fixed-adapter-internal-request-v1"
-ENVELOPE_VERSION = "living-frame-fixed-adapter-envelope-v1"
+FLAT_CONTRACT_VERSION = "living-frame-blender-fixed-adapter-internal-request-v1"
+TEXTURED_CONTRACT_VERSION = (
+    "living-frame-blender-fixed-textured-adapter-internal-request-v2"
+)
+FLAT_ENVELOPE_VERSION = "living-frame-fixed-adapter-envelope-v1"
+TEXTURED_ENVELOPE_VERSION = "living-frame-fixed-textured-adapter-envelope-v2"
 MAX_FRAMES = 240
 MAX_VERTICES = 4096
 MAX_TRIANGLES = 8192
 MAX_BONES = 64
+MAX_TEXTURE_BYTES = 16 * 1024 * 1024
 
 
 class AdapterFailure(RuntimeError):
@@ -112,7 +118,11 @@ def read_request() -> dict[str, Any]:
         {"envelopeVersion", "payloadCanonicalJson", "payloadDigestSha256"},
         "request envelope",
     )
-    if envelope["envelopeVersion"] != ENVELOPE_VERSION:
+    envelope_version = envelope["envelopeVersion"]
+    if envelope_version not in (
+        FLAT_ENVELOPE_VERSION,
+        TEXTURED_ENVELOPE_VERSION,
+    ):
         fail("request envelope version is invalid")
     canonical = require_string(
         envelope["payloadCanonicalJson"],
@@ -126,6 +136,13 @@ def read_request() -> dict[str, Any]:
     if hashlib.sha256(canonical.encode("utf-8")).hexdigest() != digest:
         fail("request payload digest is invalid")
     payload = require_dict(json.loads(canonical), "request payload")
+    expected_envelope_version = (
+        TEXTURED_ENVELOPE_VERSION
+        if payload.get("contractVersion") == TEXTURED_CONTRACT_VERSION
+        else FLAT_ENVELOPE_VERSION
+    )
+    if envelope_version != expected_envelope_version:
+        fail("request envelope and contract versions do not match")
     validate_payload(payload, digest)
     return payload
 
@@ -152,9 +169,18 @@ def validate_payload(payload: dict[str, Any], payload_digest: str) -> None:
         },
         "request payload",
     )
-    if payload["contractVersion"] != CONTRACT_VERSION:
+    contract_version = payload["contractVersion"]
+    if contract_version not in (
+        FLAT_CONTRACT_VERSION,
+        TEXTURED_CONTRACT_VERSION,
+    ):
         fail("request contract version is invalid")
-    if payload["requestClass"] != "private_internal_fixed_blender_adapter_request":
+    expected_request_class = (
+        "private_internal_fixed_blender_textured_adapter_request"
+        if contract_version == TEXTURED_CONTRACT_VERSION
+        else "private_internal_fixed_blender_adapter_request"
+    )
+    if payload["requestClass"] != expected_request_class:
         fail("request class is invalid")
     require_string(payload["candidateRequestDigestSha256"], "candidate digest", SHA256)
     require_string(payload["riggingPlanDigestSha256"], "rigging plan digest", SHA256)
@@ -187,7 +213,10 @@ def validate_payload(payload: dict[str, Any], payload_digest: str) -> None:
         require_dict(payload["animation"], "animation"),
         payload["output"],
     )
-    validate_material(require_dict(payload["material"], "material"))
+    validate_material(
+        require_dict(payload["material"], "material"),
+        contract_version == TEXTURED_CONTRACT_VERSION,
+    )
     authority = require_dict(payload["authorityBoundary"], "authority boundary")
     exact_keys(
         authority,
@@ -475,14 +504,103 @@ def validate_animation(animation: dict[str, Any], output_value: Any) -> None:
         fail("animation frame range is too short")
 
 
-def validate_material(material: dict[str, Any]) -> None:
-    exact_keys(material, {"baseColorRgba", "roughness"}, "material")
+def validate_material(
+    material: dict[str, Any],
+    textured: bool,
+) -> None:
+    expected_keys = {"baseColorRgba", "roughness"}
+    if textured:
+        expected_keys.add("texture")
+    exact_keys(material, expected_keys, "material")
     color = require_list(material["baseColorRgba"], "material color")
     if len(color) != 4:
         fail("material color is invalid")
     for index, item in enumerate(color):
         require_number(item, 0.0, 1.0, f"material color {index}")
     require_number(material["roughness"], 0.0, 1.0, "material roughness")
+    if not textured:
+        return
+    texture = require_dict(material["texture"], "material texture")
+    exact_keys(
+        texture,
+        {
+            "artifactId",
+            "contentType",
+            "widthPixels",
+            "heightPixels",
+            "byteLength",
+            "sha256",
+            "fixedRelativePath",
+            "alphaMode",
+            "colorSpace",
+        },
+        "material texture",
+    )
+    require_string(texture["artifactId"], "texture artifact id", SAFE_ID)
+    if (
+        texture["contentType"] != "image/png"
+        or texture["fixedRelativePath"] != "input/component-texture.png"
+        or texture["alphaMode"] != "straight"
+        or texture["colorSpace"] != "srgb"
+    ):
+        fail("material texture profile is invalid")
+    width = require_int(
+        texture["widthPixels"],
+        1,
+        4096,
+        "texture width",
+    )
+    height = require_int(
+        texture["heightPixels"],
+        1,
+        4096,
+        "texture height",
+    )
+    if width * height > 8_294_400:
+        fail("material texture pixel count is invalid")
+    byte_length = require_int(
+        texture["byteLength"],
+        1,
+        MAX_TEXTURE_BYTES,
+        "texture byte length",
+    )
+    expected_digest = require_string(
+        texture["sha256"],
+        "texture digest",
+        SHA256,
+    )
+    texture_path = (Path.cwd() / TEXTURE_FILE).resolve()
+    job_root = Path.cwd().resolve()
+    if (
+        job_root not in texture_path.parents
+        or not texture_path.exists()
+        or texture_path.is_symlink()
+    ):
+        fail("material texture is unavailable")
+    texture_stat = texture_path.stat()
+    if (
+        not stat.S_ISREG(texture_stat.st_mode)
+        or texture_stat.st_size != byte_length
+        or texture_stat.st_size > MAX_TEXTURE_BYTES
+    ):
+        fail("material texture file is invalid")
+    content = texture_path.read_bytes()
+    if (
+        len(content) != byte_length
+        or hashlib.sha256(content).hexdigest() != expected_digest
+        or len(content) < 33
+        or content[0:8] != b"\x89PNG\r\n\x1a\n"
+        or int.from_bytes(content[8:12], "big") != 13
+        or content[12:16] != b"IHDR"
+        or int.from_bytes(content[16:20], "big") != width
+        or int.from_bytes(content[20:24], "big") != height
+        or content[24] != 8
+        or content[25] != 6
+        or content[26] != 0
+        or content[27] != 0
+        or content[28] != 0
+    ):
+        fail("material texture content is invalid")
 
 
 def point_to_world(point: dict[str, Any], aspect: float) -> tuple[float, float, float]:
@@ -534,6 +652,40 @@ def create_material(payload: dict[str, Any]) -> bpy.types.Material:
     if "Emission Color" in principled.inputs:
         principled.inputs["Emission Color"].default_value = color
         principled.inputs["Emission Strength"].default_value = 0.25
+    if payload["contractVersion"] == TEXTURED_CONTRACT_VERSION:
+        texture_spec = material_spec["texture"]
+        texture_path = (Path.cwd() / TEXTURE_FILE).resolve()
+        image = bpy.data.images.load(
+            str(texture_path),
+            check_existing=False,
+        )
+        if (
+            int(image.size[0]) != int(texture_spec["widthPixels"])
+            or int(image.size[1]) != int(texture_spec["heightPixels"])
+            or image.channels != 4
+        ):
+            fail("Blender decoded texture dimensions or channels changed")
+        image.colorspace_settings.name = "sRGB"
+        image.alpha_mode = "STRAIGHT"
+        texture_node = material.node_tree.nodes.new("ShaderNodeTexImage")
+        texture_node.name = "LF_Component_Texture"
+        texture_node.image = image
+        texture_node.interpolation = "Linear"
+        texture_node.extension = "CLIP"
+        links = material.node_tree.links
+        links.new(
+            texture_node.outputs["Color"],
+            principled.inputs["Base Color"],
+        )
+        links.new(
+            texture_node.outputs["Alpha"],
+            principled.inputs["Alpha"],
+        )
+        if "Emission Color" in principled.inputs:
+            links.new(
+                texture_node.outputs["Color"],
+                principled.inputs["Emission Color"],
+            )
     return material
 
 

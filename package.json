@@ -182,6 +182,7 @@
     "smoke:living-frame-rigging-v2": "tsx server/smoke/living-frame-rigging-v2-smoke.ts",
     "smoke:living-frame-rig-action": "tsx server/smoke/living-frame-rig-action-smoke.ts",
     "smoke:living-frame-blender-fixed-adapter-private-internal-test": "tsx server/smoke/living-frame-blender-fixed-adapter-private-internal-test-smoke.ts",
+    "smoke:living-frame-blender-fixed-textured-adapter-private-internal-test": "tsx server/smoke/living-frame-blender-fixed-textured-adapter-private-internal-test-smoke.ts",
     "smoke:living-frame-blender-selected-scene-private-persistence-internal-test": "tsx server/smoke/living-frame-blender-selected-scene-private-persistence-internal-test-smoke.ts",
     "smoke:living-frame-blender-selected-scene-private-review-internal-test": "tsx server/smoke/living-frame-blender-selected-scene-private-review-internal-test-smoke.ts",
     "smoke:living-frame-temporal-mask-work-admission-candidate": "tsx server/smoke/living-frame-temporal-mask-work-admission-candidate-smoke.ts",

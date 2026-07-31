@@ -169,6 +169,40 @@ export interface LivingFrameBlenderFixedAdapterResult {
   readonly productionAuthority: false
 }
 
+export interface LivingFrameBlenderFixedAdapterOutputFileCommitment {
+  readonly pass: 'rgba' | 'mask' | 'depth'
+  readonly frame: number
+  readonly fileName: string
+  readonly contentType: 'image/png' | 'image/x-exr'
+  readonly byteLength: number
+  readonly sha256: string
+}
+
+export interface LivingFrameBlenderFixedAdapterOutputLease {
+  readonly leaseClass:
+    'process_bound_single_use_living_frame_blender_output_lease_v1'
+  readonly leaseId: string
+  readonly resultDigestSha256: string
+  readonly candidateRequestDigestSha256: string
+  readonly riggingPlanDigestSha256: string
+  readonly actionPlanDigestSha256: string
+  readonly payloadDigestSha256: string
+  readonly artifactSetDigestSha256: string
+  readonly fileCount: number
+  readonly totalByteLength: number
+  readonly files:
+    readonly LivingFrameBlenderFixedAdapterOutputFileCommitment[]
+  readonly callerSerializable: false
+  readonly runtimeDispatchAuthority: false
+  readonly assetPersistenceAuthority: false
+  readonly assetManifestAuthority: false
+  readonly qaApprovalAuthority: false
+  readonly privateReviewAuthority: false
+  readonly billingAuthority: false
+  readonly publicDeliveryAuthority: false
+  readonly productionAuthority: false
+}
+
 export interface LivingFrameBlenderFixedAdapterRuntimeEvidence {
   readonly evidenceVersion:
     typeof LIVING_FRAME_BLENDER_FIXED_ADAPTER_RUNTIME_EVIDENCE_VERSION

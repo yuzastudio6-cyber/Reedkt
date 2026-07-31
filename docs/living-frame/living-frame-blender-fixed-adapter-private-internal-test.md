@@ -173,9 +173,7 @@ remain required:
 
 - pinned offline non-root worker image and complete scan/license disposition;
 - demonstrated zero-network confinement;
-- canonical snapshot reread and exact work-item admission;
-- process-bound single-use lease and idempotency;
-- create-only private persistence and exact reread;
+- canonical work-item admission and idempotent worker reconciliation;
 - independent rig, deformation, alpha, mask, depth, temporal, and destination
   QA;
 - resource/cost receipt;
@@ -189,11 +187,21 @@ or must remain evaluation-only.
 Customer billing, public delivery, deployment, and production release are not
 part of this internal milestone.
 
+The follow-on selected-scene internal milestone now proves exact approved
+snapshot, selected Musashi scene, confirmed-frame, MasterTiming, and planned
+work lineage; a process-bound single-use adapter output lease; the complete
+60-frame RGBA/mask/depth sequence; create-only private persistence; exact
+reread; and a second single-use persisted-artifact lease. It deliberately
+does not mutate the canonical asset manifest or grant canonical QA, review,
+cost, dispatch, or production authority. See
+`docs/living-frame/living-frame-blender-selected-scene-private-persistence-internal-test.md`.
+
 ## Regression
 
 ```text
 npm run smoke:living-frame-rig-action
 npm run smoke:living-frame-blender-fixed-adapter-private-internal-test
+npm run smoke:living-frame-blender-selected-scene-private-persistence-internal-test
 ```
 
 The aggregate private Living Frame audit includes this real runtime case but

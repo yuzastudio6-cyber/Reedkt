@@ -3,6 +3,7 @@ import {
   chmodSync,
   closeSync,
   constants,
+  createReadStream,
   lstatSync,
   mkdirSync,
   mkdtempSync,
@@ -15,7 +16,8 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
+import type { Readable } from 'node:stream'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
 
@@ -25,6 +27,8 @@ import type {
   LivingFrameBlenderFixedAdapterEnvelope,
   LivingFrameBlenderFixedAdapterMaterial,
   LivingFrameBlenderFixedAdapterMesh,
+  LivingFrameBlenderFixedAdapterOutputFileCommitment,
+  LivingFrameBlenderFixedAdapterOutputLease,
   LivingFrameBlenderFixedAdapterRequestDraft,
   LivingFrameBlenderFixedAdapterResult,
 } from '../../src/types/living-frame-blender-fixed-adapter-internal-test'
@@ -140,6 +144,25 @@ const AUTHORITY_BOUNDARY = Object.freeze({
   remotionOwnsFinalCanvas: true,
 } as const)
 
+interface PrivateBlenderOutputLeaseBinding {
+  readonly outputRoot: string
+  readonly result: LivingFrameBlenderFixedAdapterResult
+  readonly resultDigestSha256: string
+  readonly artifactSetDigestSha256: string
+  readonly files: readonly {
+    readonly path: string
+    readonly commitment:
+      LivingFrameBlenderFixedAdapterOutputFileCommitment
+  }[]
+  readonly cleanup: () => void
+}
+
+const privateBlenderOutputByLease =
+  new WeakMap<
+    LivingFrameBlenderFixedAdapterOutputLease,
+    PrivateBlenderOutputLeaseBinding
+  >()
+
 export interface CompileLivingFrameBlenderFixedAdapterInternalInput {
   readonly candidateRequest:
     LivingFrameRiggingAdapterCandidateRequest
@@ -163,6 +186,27 @@ export interface LivingFrameBlenderFixedAdapterInternalRun {
   readonly totalDurationMs: number
   readonly maximumResidentBytes: number
   readonly outputRoot: string
+  readonly cleanup: () => void
+}
+
+export interface LivingFrameBlenderFixedAdapterInternalRunWithOutputLease {
+  readonly result: LivingFrameBlenderFixedAdapterResult
+  readonly stdout: string
+  readonly stderr: string
+  readonly totalDurationMs: number
+  readonly maximumResidentBytes: number
+  readonly outputLease: LivingFrameBlenderFixedAdapterOutputLease
+}
+
+export interface LivingFrameBlenderFixedAdapterConsumedOutput {
+  readonly result: LivingFrameBlenderFixedAdapterResult
+  readonly resultDigestSha256: string
+  readonly artifactSetDigestSha256: string
+  readonly files: readonly {
+    readonly commitment:
+      LivingFrameBlenderFixedAdapterOutputFileCommitment
+    readonly openStream: () => Readable
+  }[]
   readonly cleanup: () => void
 }
 
@@ -369,6 +413,181 @@ export function runLivingFrameBlenderFixedAdapterInternal(
   } catch (error) {
     cleanupJobRoot(jobRoot)
     throw error
+  }
+}
+
+export function runLivingFrameBlenderFixedAdapterInternalWithOutputLease(
+  compiled: CompiledLivingFrameBlenderFixedAdapterInternalRequest,
+): LivingFrameBlenderFixedAdapterInternalRunWithOutputLease {
+  const run =
+    runLivingFrameBlenderFixedAdapterInternal(compiled)
+  try {
+    const files =
+      buildOutputFileCommitments(run.outputRoot)
+    const resultDigestSha256 =
+      sha256AuthorityValue(run.result)
+    const artifactSetDigestSha256 =
+      sha256AuthorityValue({
+        contract:
+          'living_frame_blender_output_artifact_set_v1',
+        resultDigestSha256,
+        files: files.map((file) => file.commitment),
+      })
+    const lease =
+      deepFreeze({
+        leaseClass:
+          'process_bound_single_use_living_frame_blender_output_lease_v1' as const,
+        leaseId:
+          `lf-blender-output.${sha256AuthorityValue({
+            artifactSetDigestSha256,
+            payloadDigestSha256:
+              run.result.payloadDigestSha256,
+          }).slice(0, 40)}`,
+        resultDigestSha256,
+        candidateRequestDigestSha256:
+          run.result.candidateRequestDigestSha256,
+        riggingPlanDigestSha256:
+          run.result.riggingPlanDigestSha256,
+        actionPlanDigestSha256:
+          run.result.actionPlanDigestSha256,
+        payloadDigestSha256:
+          run.result.payloadDigestSha256,
+        artifactSetDigestSha256,
+        fileCount: files.length,
+        totalByteLength: files.reduce(
+          (sum, file) =>
+            sum + file.commitment.byteLength,
+          0,
+        ),
+        files: files.map((file) => file.commitment),
+        callerSerializable: false as const,
+        runtimeDispatchAuthority: false as const,
+        assetPersistenceAuthority: false as const,
+        assetManifestAuthority: false as const,
+        qaApprovalAuthority: false as const,
+        privateReviewAuthority: false as const,
+        billingAuthority: false as const,
+        publicDeliveryAuthority: false as const,
+        productionAuthority: false as const,
+      })
+    privateBlenderOutputByLease.set(
+      lease,
+      Object.freeze({
+        outputRoot: run.outputRoot,
+        result: run.result,
+        resultDigestSha256,
+        artifactSetDigestSha256,
+        files,
+        cleanup: run.cleanup,
+      }),
+    )
+    return {
+      result: run.result,
+      stdout: run.stdout,
+      stderr: run.stderr,
+      totalDurationMs: run.totalDurationMs,
+      maximumResidentBytes:
+        run.maximumResidentBytes,
+      outputLease: lease,
+    }
+  } catch (error) {
+    run.cleanup()
+    throw error
+  }
+}
+
+export function consumeLivingFrameBlenderFixedAdapterOutputLease(
+  lease: LivingFrameBlenderFixedAdapterOutputLease,
+): LivingFrameBlenderFixedAdapterConsumedOutput {
+  const binding =
+    privateBlenderOutputByLease.get(lease)
+  if (
+    binding == null
+    || lease.leaseClass !==
+      'process_bound_single_use_living_frame_blender_output_lease_v1'
+    || lease.callerSerializable !== false
+    || lease.runtimeDispatchAuthority !== false
+    || lease.assetPersistenceAuthority !== false
+    || lease.assetManifestAuthority !== false
+    || lease.qaApprovalAuthority !== false
+    || lease.privateReviewAuthority !== false
+    || lease.billingAuthority !== false
+    || lease.publicDeliveryAuthority !== false
+    || lease.productionAuthority !== false
+    || lease.resultDigestSha256 !==
+      binding.resultDigestSha256
+    || lease.artifactSetDigestSha256 !==
+      binding.artifactSetDigestSha256
+    || lease.fileCount !== binding.files.length
+    || lease.totalByteLength !==
+      binding.files.reduce(
+        (sum, file) =>
+          sum + file.commitment.byteLength,
+        0,
+      )
+    || stableAuthorityStringify(lease.files)
+      !== stableAuthorityStringify(
+        binding.files.map((file) =>
+          file.commitment),
+      )
+  ) {
+    throw new Error(
+      'Blender fixed-adapter output lease is invalid, unknown, or already consumed.',
+    )
+  }
+  privateBlenderOutputByLease.delete(lease)
+  for (const file of binding.files) {
+    const bytes =
+      readPrivateRegularBytes(
+        file.path,
+        64 * 1024 * 1024,
+      )
+    if (
+      bytes.byteLength !==
+        file.commitment.byteLength
+      || createHash('sha256')
+        .update(bytes)
+        .digest('hex') !==
+        file.commitment.sha256
+    ) {
+      binding.cleanup()
+      throw new Error(
+        'Blender fixed-adapter output changed before lease consumption.',
+      )
+    }
+  }
+  let cleaned = false
+  const cleanup = () => {
+    if (cleaned) return
+    cleaned = true
+    binding.cleanup()
+  }
+  return {
+    result: binding.result,
+    resultDigestSha256:
+      binding.resultDigestSha256,
+    artifactSetDigestSha256:
+      binding.artifactSetDigestSha256,
+    files: binding.files.map((file) => ({
+      commitment: file.commitment,
+      openStream: () => {
+        if (cleaned) {
+          throw new Error(
+            'Blender fixed-adapter output was already cleaned up.',
+          )
+        }
+        const descriptor = openSync(
+          file.path,
+          constants.O_RDONLY
+            | (constants.O_NOFOLLOW ?? 0),
+        )
+        return createReadStream(file.path, {
+          fd: descriptor,
+          autoClose: true,
+        })
+      },
+    })),
+    cleanup,
   }
 }
 
@@ -627,6 +846,82 @@ export function inspectLivingFrameBlenderOutputFiles(
   }
 }
 
+function buildOutputFileCommitments(
+  outputRoot: string,
+): readonly {
+  readonly path: string
+  readonly commitment:
+    LivingFrameBlenderFixedAdapterOutputFileCommitment
+}[] {
+  const outputs =
+    inspectLivingFrameBlenderOutputFiles(outputRoot)
+  const groups = [
+    {
+      pass: 'rgba' as const,
+      contentType: 'image/png' as const,
+      files: outputs.rgbaFiles,
+      extension: 'png',
+    },
+    {
+      pass: 'mask' as const,
+      contentType: 'image/png' as const,
+      files: outputs.maskFiles,
+      extension: 'png',
+    },
+    {
+      pass: 'depth' as const,
+      contentType: 'image/x-exr' as const,
+      files: outputs.depthFiles,
+      extension: 'exr',
+    },
+  ]
+  const commitments: {
+    readonly path: string
+    readonly commitment:
+      LivingFrameBlenderFixedAdapterOutputFileCommitment
+  }[] = []
+  for (const group of groups) {
+    for (const path of group.files) {
+      const fileName = basename(path)
+      const match = fileName.match(
+        new RegExp(
+          `^frame_(\\d+)\\.${group.extension}$`,
+          'u',
+        ),
+      )
+      const frame = Number(match?.[1])
+      if (
+        !match
+        || !Number.isSafeInteger(frame)
+        || frame < 0
+      ) {
+        throw new Error(
+          'Blender fixed-adapter output commitment frame is invalid.',
+        )
+      }
+      const bytes =
+        readPrivateRegularBytes(
+          path,
+          64 * 1024 * 1024,
+        )
+      commitments.push({
+        path,
+        commitment: {
+          pass: group.pass,
+          frame,
+          fileName,
+          contentType: group.contentType,
+          byteLength: bytes.byteLength,
+          sha256: createHash('sha256')
+            .update(bytes)
+            .digest('hex'),
+        },
+      })
+    }
+  }
+  return commitments
+}
+
 function listOutputFiles(outputRoot: string, directory: string): string[] {
   const root = realpathSync(outputRoot)
   const child = realpathSync(join(root, directory))
@@ -641,4 +936,50 @@ function listOutputFiles(outputRoot: string, directory: string): string[] {
     }
     return path
   })
+}
+
+function readPrivateRegularBytes(
+  path: string,
+  maxBytes: number,
+): Buffer {
+  const file = lstatSync(path)
+  if (
+    !file.isFile()
+    || file.isSymbolicLink()
+    || file.size <= 0
+    || file.size > maxBytes
+  ) {
+    throw new Error(
+      'Blender fixed-adapter output commitment file is invalid.',
+    )
+  }
+  const descriptor = openSync(
+    path,
+    constants.O_RDONLY
+      | (constants.O_NOFOLLOW ?? 0),
+  )
+  try {
+    const bytes = readFileSync(descriptor)
+    if (bytes.byteLength !== file.size) {
+      throw new Error(
+        'Blender fixed-adapter output commitment changed during read.',
+      )
+    }
+    return bytes
+  } finally {
+    closeSync(descriptor)
+  }
+}
+
+function deepFreeze<T>(value: T): T {
+  if (
+    value == null
+    || typeof value !== 'object'
+    || Object.isFrozen(value)
+  ) return value
+  Object.freeze(value)
+  for (const nested of Object.values(
+    value as Record<string, unknown>,
+  )) deepFreeze(nested)
+  return value
 }

@@ -119,6 +119,43 @@ const cases: readonly AuditCase[] = [
     },
   },
   {
+    id:
+      'blender_selected_scene_full_sequence_private_persistence',
+    relativePath:
+      'server/smoke/living-frame-blender-selected-scene-private-persistence-internal-test-smoke.ts',
+    validate(receipt) {
+      assert.equal(
+        receipt.status,
+        'passed_private_internal_selected_scene_full_sequence_persistence',
+      )
+      assert.equal(receipt.sceneId, 'scene.musashi-strike')
+      assert.equal(receipt.componentId, 'musashi.body')
+      assert.equal(
+        receipt.rigMode,
+        'armature_2_5d_character',
+      )
+      assert.equal(receipt.fileCount, 180)
+      assert.equal(
+        receipt.createOnlyPersistenceAndReadbackVerified,
+        true,
+      )
+      assert.equal(
+        receipt.outputLeaseConsumedExactlyOnce,
+        true,
+      )
+      assert.equal(
+        receipt.persistedArtifactSetLeaseConsumedExactlyOnce,
+        true,
+      )
+      assert.equal(receipt.canonicalAssetManifestMutated, false)
+      assert.equal(receipt.canonicalQaApproved, false)
+      assert.equal(receipt.privateReviewApproved, false)
+      assert.equal(receipt.actualCostCreated, false)
+      assert.equal(receipt.remotionRemainsFinalCanvas, true)
+      assert.equal(receipt.productionReady, false)
+    },
+  },
+  {
     id: 'selected_scene_private_prompt_materialization',
     relativePath:
       'server/smoke/living-frame-controlled-image-selected-scene-private-prompt-materialization-smoke.ts',
@@ -597,6 +634,7 @@ const cases: readonly AuditCase[] = [
 const results = cases.map(runCase)
 const runtimeCaseIds = [
   'blender_fixed_adapter_private_native_host_runtime',
+  'blender_selected_scene_full_sequence_private_persistence',
   'five_modes_depth_attention_captions_sound_and_fallbacks',
   'confirmed_non_square_output_frames',
   'selected_scene_environmental_particle_slice',
@@ -630,6 +668,7 @@ const receipt = {
     'head_intelligence_rigging_direction_native_opentoonz_blender_routing_and_fixed_non_executable_adapter_candidates',
     'master_timing_bound_non_executable_rig_action_with_deep_adversarial_verification',
     'fixed_reviewed_blender_bpy_armature_ik_skinning_transparent_rgba_mask_depth_private_native_host_runtime',
+    'selected_musashi_scene_exact_approved_snapshot_master_timing_work_item_and_confirmed_frame_blender_binding_with_full_rgba_mask_depth_create_only_private_persistence_and_reread',
     'selected_scene_lineage_and_private_prompt_materialization',
     'selected_scene_private_operation_and_canonical_comfyui_candidate_input_reconciliation',
     'partial_independent_canonical_offline_image_vulnerability_evidence_and_fail_closed_disposition',
@@ -671,7 +710,7 @@ const receipt = {
       gate:
         'advanced_rigging_external_tool_runtime',
       reason:
-        'head_intelligence_rigging_direction_rigging_v2_relational_validation_native_opentoonz_blender_route_selection_fixed_non_executable_adapter_materialization_and_one_signed_notarized_native_arm64_blender_4_5_11_fixed_bpy_armature_ik_skinning_rgba_mask_depth_runtime_are_verified_but_blender_network_isolation_offline_non_root_worker_image_private_persistence_reread_resource_cost_canonical_work_admission_review_and_broader_fixture_evidence_remain_required_while_the_unsigned_x86_64_opentoonz_1_8_0_macos_package_is_fail_closed_and_still_requires_a_qualified_runtime_or_professional_fallback',
+        'head_intelligence_rigging_direction_rigging_v2_relational_validation_native_opentoonz_blender_route_selection_fixed_non_executable_adapter_materialization_one_signed_notarized_native_arm64_blender_4_5_11_fixed_bpy_armature_ik_skinning_rgba_mask_depth_runtime_and_one_exact_selected_musashi_scene_full_sequence_create_only_private_persistence_reread_and_resource_observation_are_verified_but_blender_network_isolation_offline_non_root_worker_image_canonical_estimate_work_asset_admission_component_qa_private_remotion_review_actual_cost_and_broader_fixture_evidence_remain_required_while_the_unsigned_x86_64_opentoonz_1_8_0_macos_package_is_fail_closed_and_still_requires_a_qualified_runtime_or_professional_fallback',
     },
   ],
   internalEndToEndReadyForOwnerReview: false,

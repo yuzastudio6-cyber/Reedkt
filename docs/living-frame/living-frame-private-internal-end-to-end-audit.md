@@ -30,49 +30,61 @@ The aggregate audit executes:
 1. canonical planning evidence and closed runtime authorities;
 2. parent and reusable mini-skill contracts;
 3. the subject-neutral capability matrix;
-4. selected-scene private ComfyUI prompt materialization without dispatch;
-5. selected-scene private operation-request compilation plus exact
+4. professional Head Intelligence rigging direction, Rigging v2, and fixed
+   native/OpenToonz/Blender adapter-candidate routing;
+5. the MasterTiming-bound typed rig-action plan;
+6. the fixed reviewed Blender adapter through a real native ARM64 armature,
+   IK, skinning, RGBA, mask, and depth render;
+7. the real selected Musashi scene and `musashi.body` component through exact
+   approved-snapshot, confirmed-frame, MasterTiming, planned-work, rig/action,
+   full 60-frame Blender output, process-bound leases, create-only private
+   persistence, and exact reread;
+8. selected-scene private ComfyUI prompt materialization without dispatch;
+9. selected-scene private operation-request compilation plus exact
    reconciliation into the canonical ComfyUI candidate-input shape without
    invoking the canonical compiler or dispatch;
-6. exact partial vulnerability evidence for the canonical-offline ComfyUI
+10. exact partial vulnerability evidence for the canonical-offline ComfyUI
    image, including the fail-closed critical/high finding disposition and
    explicit absence of full-image or OS coverage;
-7. the exact official Torch `2.6.0` / TorchVision `0.21.0` / Triton `3.2.0`
+11. the exact official Torch `2.6.0` / TorchVision `0.21.0` / Triton `3.2.0`
    / cuSPARSELt `0.6.2` shared-parent hardening candidate and current-parent
    dependency delta, without package download or build admission;
-8. the sanitized local hardened derivative through strict non-root,
+12. the sanitized local hardened derivative through strict non-root,
    read-only-root, zero-network verification, with its incomplete full-image
    scan and release denial preserved;
-9. the exact digest-bound `docker save` archive-input scan attempt, its
+13. the exact digest-bound `docker save` archive-input scan attempt, its
    no-report timeout, and complete temporary artifact cleanup;
-10. the source-defined pruned hardened image build, strict non-root
+14. the source-defined pruned hardened image build, strict non-root
     verification, complete OS/Python vulnerability scan with zero
     critical/high findings, SPDX SBOM, and complete full-file license scan,
     while manual vulnerability/license and every execution authority remain
     closed;
-11. a real Remotion render covering all five Living Frame modes, deliberate
+15. the second source-defined pruned image proving exact inherited
+    direct-VCS SAM2 removal, retained runner import denial, and repeated
+    complete vulnerability/SBOM/license coverage;
+16. a real Remotion render covering all five Living Frame modes, deliberate
    non-use, multiple depth styles, attention, caption priority, sound, and
    fallbacks;
-12. real portrait and custom non-square confirmed-frame renders without square
+17. real portrait and custom non-square confirmed-frame renders without square
    substitution;
-13. the complete selected-scene PixiJS environmental-particle slice through
+18. the complete selected-scene PixiJS environmental-particle slice through
    Remotion, create-only persistence, media QA, and private-review evidence;
-14. the real Musashi illustration through alpha, exact destination composite,
+19. the real Musashi illustration through alpha, exact destination composite,
    base/sword-arm/hair/robe decomposition, deterministic bounded shoulder-plate
    reconstruction, a synchronized articulated strike, Remotion, captions,
    sound, media QA, and retained review frames;
-15. real generated flat-editorial and paper-collage alpha fixtures through
+20. real generated flat-editorial and paper-collage alpha fixtures through
    adaptive flat and shallow-2.5D Remotion scenes, measured spatial behavior,
    caption priority, create-only persistence, and retained review frames;
-16. semantic sound timing reconciliation;
-17. canonical private-review lineage;
-18. the exact selected-scene source-video → normalized subject prompt → SAM2
+21. semantic sound timing reconciliation;
+22. canonical private-review lineage;
+23. the exact selected-scene source-video → normalized subject prompt → SAM2
     temporal-mask work-admission candidate;
-19. the exact SAM2 runtime/parent/Torch vulnerability admission gate, including
+24. the exact SAM2 runtime/parent/Torch vulnerability admission gate, including
     the required versioned hardened source/runtime replacement;
-20. a real gray8 FFV1 temporal-mask output through decode, stability
+25. a real gray8 FFV1 temporal-mask output through decode, stability
     measurement, create-only persistence, and review frames; and
-21. the exact temporal-mask work-graph conflict.
+26. the exact temporal-mask work-graph conflict.
 
 Every subprocess is bounded, uses the pinned workspace `tsx` executable, and
 returns only an output digest plus structured status to the aggregate receipt.
@@ -204,7 +216,7 @@ required before any real L4 attempt.
 
 Passing this audit proves that the currently executable private Living Frame
 pipeline works together across its selected-scene and renderer boundaries. A
-pass must still report two open internal runtime gates:
+pass must still report three open internal runtime gates:
 
 1. exact ComfyUI controlled generation needs independent image disposition
    and real L4 execution evidence. Exact private-local five-model byte
@@ -232,10 +244,21 @@ pass must still report two open internal runtime gates:
    hardened parent plus compatible Torch/TorchVision/CUDA contract must be
    released and revalidated before model inference. It then still needs a real
    L4/CUDA run, private output persistence, a resource receipt, and measured
-   mask QA.
+   mask QA; and
+3. advanced external rigging now has professional route selection, Rigging v2,
+   a MasterTiming-bound rig-action plan, and a fixed reviewed Blender adapter.
+   The selected Musashi scene has also completed a real 60-frame 1920×1080
+   RGBA/mask/depth render, process-bound single-use output handling,
+   create-only private persistence, exact reread, and resource observation.
+   The remaining internal gates are a pinned offline non-root/zero-network
+   worker, canonical estimate/work/asset reconciliation, independent component
+   QA, private Remotion review, actual tool-cost evidence, and broader
+   topology/failure fixtures. OpenToonz remains fail-closed until a supported,
+   signed/scanned controlled runtime exists.
 
 These are genuine internal execution dependencies. They are not waived merely
-because customer release is out of scope. Until both exist, the audit status is
+because customer release is out of scope. Until all three are resolved, the
+audit status is
 `passed_with_explicit_blocked_model_runtimes` and
 `internalEndToEndReadyForOwnerReview` remains false.
 

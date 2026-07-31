@@ -444,10 +444,18 @@ provide a script, command, path, environment, plugin, or arbitrary node graph,
 and neither tool may own the final canvas. One fixed reviewed Blender adapter
 now has bounded private native-host evidence for armature, joint limits, IK,
 skinning, RGBA, mask, and depth output. It remains unregistered and
-non-authoritative; OpenToonz remains fail-closed pending a supported controlled
-runtime. See
+non-authoritative. A follow-on selected-scene test binds the exact Musashi
+scene/component, approved snapshot, confirmed 1920×1080 frame, MasterTiming
+visual range, planned rig work, rig plan, and rig action to the fixed adapter.
+It renders the complete 60-frame RGBA/mask/depth sequence, consumes the output
+through a one-time private lease, and verifies create-only persistence plus
+exact reread without mutating the canonical asset manifest or granting QA,
+review, cost, dispatch, or production authority. OpenToonz remains fail-closed
+pending a supported controlled runtime. See
 `docs/living-frame/living-frame-rigging-director-and-adapter-candidates.md` and
-`docs/living-frame/living-frame-blender-fixed-adapter-private-internal-test.md`.
+`docs/living-frame/living-frame-blender-fixed-adapter-private-internal-test.md`
+and
+`docs/living-frame/living-frame-blender-selected-scene-private-persistence-internal-test.md`.
 
 ## Motion and attention
 

@@ -2,6 +2,9 @@ import type {
   LivingFrameBlenderFixedAdapterMesh,
 } from '../../src/types/living-frame-blender-fixed-adapter-internal-test'
 import type {
+  LivingFrameComponentGeometryBundle,
+} from '../../src/types/living-frame-component-geometry'
+import type {
   LivingFrameRigActionPlan,
 } from '../../src/types/living-frame-rig-action'
 import type {
@@ -39,16 +42,54 @@ export interface LivingFrameBlenderFixedAdapterPrivateFixture {
   readonly candidateRequest:
     LivingFrameRiggingAdapterCandidateRequest
   readonly actionPlan: LivingFrameRigActionPlan
+  readonly componentGeometryBundle:
+    LivingFrameComponentGeometryBundle
   readonly mesh: LivingFrameBlenderFixedAdapterMesh
 }
 
-export function buildLivingFrameBlenderFixedAdapterPrivateFixture():
+export interface LivingFrameBlenderFixedAdapterPrivateFixtureOptions {
+  readonly sceneId?: string
+  readonly backgroundComponentId?: string
+  readonly primaryComponentId?: string
+  readonly virtualCameraComponentId?: string
+  readonly outputFrameId?: string
+  readonly outputFrameDigestSha256?: string
+  readonly masterTimingPlanId?: string
+  readonly masterTimingPlanDigestSha256?: string
+  readonly approvedSnapshotRef?: {
+    readonly refId: string
+    readonly digestSha256: string
+  }
+  readonly selectedSceneRef?: {
+    readonly refId: string
+    readonly digestSha256: string
+  }
+  readonly plannedWorkItemRef?: {
+    readonly refId: string
+    readonly digestSha256: string
+  }
+}
+
+export function buildLivingFrameBlenderFixedAdapterPrivateFixture(
+  options: LivingFrameBlenderFixedAdapterPrivateFixtureOptions = {},
+):
 LivingFrameBlenderFixedAdapterPrivateFixture {
-  const sceneId = 'scene.rigging.blender.private-fixture'
-  const outputFrameId = 'output-frame.rigging.blender.private-fixture'
-  const outputFrameDigestSha256 = digest(outputFrameId)
-  const masterTimingPlanId = 'master-timing.rigging.blender.private-fixture'
-  const masterTimingPlanDigestSha256 = digest(masterTimingPlanId)
+  const sceneId =
+    options.sceneId ?? 'scene.rigging.blender.private-fixture'
+  const backgroundComponentId =
+    options.backgroundComponentId ?? 'component.background'
+  const primaryComponentId =
+    options.primaryComponentId ?? 'component.primary'
+  const virtualCameraComponentId =
+    options.virtualCameraComponentId ?? 'component.virtual-camera'
+  const outputFrameId =
+    options.outputFrameId ?? 'output-frame.rigging.blender.private-fixture'
+  const outputFrameDigestSha256 =
+    options.outputFrameDigestSha256 ?? digest(outputFrameId)
+  const masterTimingPlanId =
+    options.masterTimingPlanId ?? 'master-timing.rigging.blender.private-fixture'
+  const masterTimingPlanDigestSha256 =
+    options.masterTimingPlanDigestSha256 ?? digest(masterTimingPlanId)
   const motionBundle = compileLivingFrameDeterministicMotion({
     timingExpectation: {
       masterTimingPlanId,
@@ -67,7 +108,7 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
         trackId: 'track.primary.rotation',
         order: 0,
         motionGroupId: 'motion.primary',
-        componentId: 'component.primary',
+        componentId: primaryComponentId,
         property: 'rotation_degrees',
         role: 'primary',
         restorationExpectation: 'required_return_to_initial',
@@ -81,7 +122,7 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
         trackId: 'track.camera.scale',
         order: 1,
         motionGroupId: 'motion.camera',
-        componentId: 'component.virtual-camera',
+        componentId: virtualCameraComponentId,
         property: 'scale_uniform',
         role: 'camera',
         restorationExpectation: 'not_applicable',
@@ -106,7 +147,7 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
     safeRegions: [],
     components: [
       {
-        componentId: 'component.background',
+        componentId: backgroundComponentId,
         order: 0,
         kind: 'visual_component',
         role: 'opaque_background_plate',
@@ -123,7 +164,7 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
         maskExpectation: 'opaque',
       },
       {
-        componentId: 'component.primary',
+        componentId: primaryComponentId,
         order: 1,
         kind: 'visual_component',
         role: 'primary_subject',
@@ -131,8 +172,8 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
         depthBand: 'subject_plane',
         rect: { x: 0.2, y: 0.2, width: 0.6, height: 0.6 },
         pivot: { x: 0.35, y: 0.5 },
-        parentComponentId: 'component.background',
-        anchorComponentId: 'component.background',
+        parentComponentId: backgroundComponentId,
+        anchorComponentId: backgroundComponentId,
         anchorPoint: { x: 0.5, y: 0.5 },
         collisionPolicy: 'avoid_all_protected_regions',
         transparencyExpectation: 'still_alpha_required',
@@ -140,7 +181,7 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
         maskExpectation: 'still_alpha_artifact_required',
       },
       {
-        componentId: 'component.virtual-camera',
+        componentId: virtualCameraComponentId,
         order: 2,
         kind: 'virtual_camera',
         role: 'virtual_camera',
@@ -161,8 +202,8 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
       relationId: 'occlusion.primary-over-background',
       order: 0,
       kind: 'in_front_of',
-      foregroundComponentId: 'component.primary',
-      backgroundComponentId: 'component.background',
+      foregroundComponentId: primaryComponentId,
+      backgroundComponentId: backgroundComponentId,
       downstreamDepthTransitionCompilationRequired: false,
     }],
   })
@@ -207,7 +248,7 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
         'Direct one articulated reach and restore the component to its approved initial pose',
       importance: 'important',
       attentionPriority: 'shared',
-      primaryFocalComponentId: 'component.primary',
+      primaryFocalComponentId: primaryComponentId,
       animateMeaningNotVocabulary: true,
       onePrimaryMotionAtATime: true,
     },
@@ -249,14 +290,14 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
     riggingDirection: direction,
     rigMode: 'armature_2_5d_character',
     partBindings: [
-      part(0, 'part.background', 'component.background', 'static_anchor', false),
-      part(1, 'part.primary', 'component.primary', 'deformable_part', true),
+      part(0, 'part.background', backgroundComponentId, 'static_anchor', false),
+      part(1, 'part.primary', primaryComponentId, 'deformable_part', true),
     ],
     bones: [
       {
         order: 0,
         boneId: 'bone.upper',
-        componentId: 'component.primary',
+        componentId: primaryComponentId,
         parentBoneId: null,
         head: { x: 0.28, y: 0.5 },
         tail: { x: 0.5, y: 0.5 },
@@ -267,7 +308,7 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
       {
         order: 1,
         boneId: 'bone.lower',
-        componentId: 'component.primary',
+        componentId: primaryComponentId,
         parentBoneId: 'bone.upper',
         head: { x: 0.5, y: 0.5 },
         tail: { x: 0.72, y: 0.5 },
@@ -352,7 +393,7 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
     meshBindings: [{
       order: 0,
       meshId: 'mesh.primary.blender-private',
-      componentId: 'component.primary',
+      componentId: primaryComponentId,
       topology: 'skinned_plane_2_5d',
       topologyArtifactRef: artifact('mesh.primary.blender-private.topology'),
       vertexCount: 256,
@@ -365,9 +406,21 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
     secondaryMotionGroups: [],
   })
   const candidateRequest = compileLivingFrameRiggingAdapterCandidate({
-    approvedSnapshotRef: expectation('approved-snapshot.rigging.blender'),
-    selectedSceneRef: expectation('selected-scene.rigging.blender'),
-    plannedWorkItemRef: expectation('planned-work.rigging.blender'),
+    approvedSnapshotRef: expectation(
+      options.approvedSnapshotRef?.refId
+        ?? 'approved-snapshot.rigging.blender',
+      options.approvedSnapshotRef?.digestSha256,
+    ),
+    selectedSceneRef: expectation(
+      options.selectedSceneRef?.refId
+        ?? 'selected-scene.rigging.blender',
+      options.selectedSceneRef?.digestSha256,
+    ),
+    plannedWorkItemRef: expectation(
+      options.plannedWorkItemRef?.refId
+        ?? 'planned-work.rigging.blender',
+      options.plannedWorkItemRef?.digestSha256,
+    ),
     riggingDirection: direction,
     riggingPlan,
   })
@@ -411,6 +464,7 @@ LivingFrameBlenderFixedAdapterPrivateFixture {
   return {
     candidateRequest,
     actionPlan,
+    componentGeometryBundle: geometryBundle,
     mesh: buildSkinnedGridMesh(),
   }
 }
@@ -505,11 +559,11 @@ function part(
   }
 }
 
-function expectation(id: string) {
+function expectation(id: string, expectedDigestSha256?: string) {
   return {
     refId: id,
     version: 'v1',
-    digestSha256: digest(id),
+    digestSha256: expectedDigestSha256 ?? digest(id),
     currentAuthorityRevalidationRequired: true as const,
   }
 }

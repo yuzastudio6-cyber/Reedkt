@@ -145,6 +145,11 @@ already-known released-image/real-L4 path: exact gray8 mask staging,
 atomic five-model load, one-output execution, resource receipt, create-only
 persistence, and the QA set above. The node-schema gate itself is now closed by
 `living-frame-character-masked-inpaint-comfyui-node-schema-evidence-v1`.
+The feature-owned
+`living-frame-character-controlled-preparation-private-output-v1` consumer
+boundary is also ready to verify and lease one exact future v2 opaque plate,
+but its controlled 1920×1080 fixture is not model, worker, persistence, QA, or
+render evidence.
 
 ## Regression
 
@@ -153,6 +158,7 @@ npm run smoke:living-frame-character-controlled-preparation
 npm run smoke:living-frame-character-masked-inpaint-comfyui-node-schema-evidence
 npm run smoke:living-frame-character-controlled-preparation-private-prompt
 npm run smoke:living-frame-character-controlled-preparation-canonical-comfyui-reconciliation
+npm run smoke:living-frame-character-controlled-preparation-private-output
 npm run smoke:living-frame-character-animation-route-suitability
 npm run smoke:living-frame-private-internal-end-to-end-audit
 ```

@@ -521,6 +521,48 @@ const cases: readonly AuditCase[] = [
   },
   {
     id:
+      'character_controlled_preparation_private_output',
+    relativePath:
+      'server/smoke/living-frame-character-controlled-preparation-private-output-smoke.ts',
+    validate(receipt) {
+      assert.equal(receipt.status, 'passed')
+      assert.equal(
+        receipt.evidenceClass,
+        'controlled_source_fixture',
+      )
+      assert.deepEqual(
+        receipt.dimensions,
+        [1920, 1080],
+      )
+      assert.equal(
+        receipt.exactMaskLoader,
+        'LoadImageMask',
+      )
+      assert.equal(
+        receipt.exactMaskChannel,
+        'red',
+      )
+      assert.equal(
+        receipt.exactMaskOutputIndex,
+        0,
+      )
+      assert.equal(
+        receipt.routeRecompileAfterQa,
+        true,
+      )
+      assert.equal(
+        receipt.remotionOwnsFinalCanvas,
+        true,
+      )
+      assert.equal(receipt.adversarialAssertions, 20)
+      assert.equal(receipt.artifactPersisted, false)
+      assert.equal(receipt.qaApproved, false)
+      assert.equal(receipt.runtimeExecuted, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  },
+  {
+    id:
       'character_pixijs_remotion_private_composite',
     relativePath:
       'server/smoke/living-frame-character-pixijs-remotion-composite-internal-test-smoke.ts',
@@ -1094,6 +1136,7 @@ const receipt = {
     'character_masked_inpaint_pinned_image_source_schema_proves_plain_load_image_returns_zero_for_opaque_gray8_and_qualifies_load_image_mask_red_output_zero_for_vae_inpaint',
     'character_private_prompt_materialization_uses_load_image_mask_red_and_vae_encode_for_inpaint_rejects_empty_latent_or_plain_load_image_mask_substitution_and_creates_two_single_use_non_dispatched_leases',
     'character_canonical_comfyui_reconciliation_proves_the_1024_component_is_exactly_v1_compatible_and_blocks_the_confirmed_ratio_masked_plate_until_the_same_operation_has_a_versioned_load_image_mask_red_vae_inpaint_source_and_mask_envelope',
+    'character_private_output_preverification_accepts_only_one_exact_lineage_bound_opaque_1920x1080_masked_plate_from_the_future_canonical_v2_boundary_recomputes_alpha_and_releases_one_process_bound_private_lease_while_the_existing_selected_scene_output_observer_v2_adapter_persistence_qa_route_recompile_and_remotion_remain_pending',
     'selected_scene_lineage_and_private_prompt_materialization',
     'selected_scene_private_operation_and_canonical_comfyui_candidate_input_reconciliation',
     'partial_independent_canonical_offline_image_vulnerability_evidence_and_fail_closed_disposition',
@@ -1123,7 +1166,7 @@ const receipt = {
       gate:
         'exact_comfyui_controlled_generation_runtime',
       reason:
-        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_selected_scene_candidate_input_reconciliation_character_masked_inpaint_and_component_prompt_topology_pinned_private_image_load_image_load_image_mask_and_vae_encode_for_inpaint_schema_source_defined_pruned_hardened_build_exact_inherited_direct_vcs_sam2_removal_strict_non_root_verification_zero_critical_high_complete_os_python_vulnerability_scan_spdx_sbom_and_full_file_license_scan_are_verified_but_canonical_v2_gray8_mask_staging_manual_medium_low_license_signature_canonical_ingest_distributed_mount_real_l4_generation_resource_persistence_and_character_plate_alpha_continuity_face_clearance_qa_evidence_remain_required',
+        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_selected_scene_candidate_input_reconciliation_character_masked_inpaint_and_component_prompt_topology_pinned_private_image_load_image_load_image_mask_and_vae_encode_for_inpaint_schema_source_defined_pruned_hardened_build_exact_inherited_direct_vcs_sam2_removal_strict_non_root_verification_zero_critical_high_complete_os_python_vulnerability_scan_spdx_sbom_full_file_license_scan_and_a_future_v2_exact_lineage_opaque_1920x1080_private_output_preverification_fixture_are_verified_but_canonical_v2_release_the_existing_selected_scene_private_output_observer_v2_adapter_gray8_mask_staging_manual_medium_low_license_signature_canonical_ingest_distributed_mount_real_l4_generation_resource_receipt_create_only_persistence_exact_reread_character_plate_continuity_face_clearance_fact_destination_qa_route_recompile_manifest_reconciliation_private_review_and_final_remotion_evidence_remain_required',
     },
     {
       gate:

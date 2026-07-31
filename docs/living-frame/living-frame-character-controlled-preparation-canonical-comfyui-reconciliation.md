@@ -146,6 +146,13 @@ v1-compatible component candidate lease. The canonical backend owner retains:
 
 All of those authorities remain false in this receipt.
 
+The adjacent
+`living-frame-character-controlled-preparation-private-output-v1` boundary
+does not change this ownership. It only validates the exact future-v2 result
+lineage and one process-private opaque PNG lease before the existing
+persistence, QA, route-recompilation, manifest, review, and Remotion owners
+act.
+
 ## Regression
 
 ```text
@@ -153,5 +160,6 @@ npm run smoke:living-frame-character-controlled-preparation
 npm run smoke:living-frame-character-masked-inpaint-comfyui-node-schema-evidence
 npm run smoke:living-frame-character-controlled-preparation-private-prompt
 npm run smoke:living-frame-character-controlled-preparation-canonical-comfyui-reconciliation
+npm run smoke:living-frame-character-controlled-preparation-private-output
 npm run smoke:living-frame-private-internal-end-to-end-audit
 ```

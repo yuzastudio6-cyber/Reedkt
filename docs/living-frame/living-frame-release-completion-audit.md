@@ -438,6 +438,15 @@ Passed:
   `denoise=0.55` to the same `comfyui` identity and
   `tool.comfyui.generate_controlled_image.v1` operation, with no dispatch,
   runtime, cost, asset, QA, final-canvas, or production authority;
+- feature-owned future-v2 character-preparation output preverification that
+  does not replace the existing selected-scene output-observation owner, binds
+  one opaque 1920×1080 controlled fixture to the exact
+  snapshot/work/timing/frame/unit/prompt/topology/output lineage, verifies
+  encoded and decoded digests, recomputes alpha, and releases one
+  process-bound private lease; the fixture does not prove canonical v2
+  release, the selected-scene observer v2 adapter, L4 execution, resource
+  cost, persistence, QA, route recompilation, manifest reconciliation,
+  private review, or final Remotion composition;
 - selected-scene private animation-aware conditioning with exact semantic,
   component, Visual Continuity Pack, scene-design, depth, source-truth,
   output-frame, work/output, and planned-asset lineage; process-bound

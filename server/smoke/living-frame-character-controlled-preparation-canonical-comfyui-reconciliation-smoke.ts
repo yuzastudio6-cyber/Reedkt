@@ -48,6 +48,14 @@ const result =
     input,
   )
 
+export const
+livingFrameCharacterControlledPreparationPrivatePromptSmokeReceipt =
+  promptMaterialization.receipt
+
+export const
+livingFrameCharacterControlledPreparationCanonicalComfyUiReconciliationSmokeReceipt =
+  result.receipt
+
 assert.equal(
   verifyLivingFrameCharacterControlledPreparationCanonicalComfyUiReconciliation(
     result.receipt,

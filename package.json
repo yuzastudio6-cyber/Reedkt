@@ -190,6 +190,7 @@
     "smoke:living-frame-character-masked-inpaint-comfyui-node-schema-evidence": "tsx server/smoke/living-frame-character-masked-inpaint-comfyui-node-schema-evidence-smoke.ts",
     "smoke:living-frame-character-controlled-preparation-canonical-comfyui-reconciliation": "tsx server/smoke/living-frame-character-controlled-preparation-canonical-comfyui-reconciliation-smoke.ts",
     "smoke:living-frame-character-controlled-preparation-private-prompt": "tsx server/smoke/living-frame-character-controlled-preparation-private-prompt-smoke.ts",
+    "smoke:living-frame-character-controlled-preparation-private-output": "tsx server/smoke/living-frame-character-controlled-preparation-private-output-smoke.ts",
     "smoke:living-frame-character-pixijs-internal-runtime": "tsx server/smoke/living-frame-character-pixijs-internal-runtime-smoke.ts",
     "smoke:living-frame-character-pixijs-remotion-composite-internal-test": "tsx server/smoke/living-frame-character-pixijs-remotion-composite-internal-test-smoke.ts",
     "smoke:living-frame-temporal-mask-work-admission-candidate": "tsx server/smoke/living-frame-temporal-mask-work-admission-candidate-smoke.ts",

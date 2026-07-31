@@ -217,6 +217,7 @@
     "smoke:living-frame-character-pixijs-remotion-composite-internal-test": "tsx server/smoke/living-frame-character-pixijs-remotion-composite-internal-test-smoke.ts",
     "smoke:living-frame-temporal-mask-work-admission-candidate": "tsx server/smoke/living-frame-temporal-mask-work-admission-candidate-smoke.ts",
     "smoke:living-frame-temporal-mask-private-output-contract-internal-test": "tsx server/smoke/living-frame-temporal-mask-private-output-contract-internal-test-smoke.ts",
+    "smoke:living-frame-active-non-illustration-aggregate": "tsx server/smoke/living-frame-active-non-illustration-aggregate-smoke.ts",
     "smoke:living-frame-private-internal-end-to-end-audit": "tsx server/smoke/living-frame-private-internal-end-to-end-audit-smoke.ts",
     "smoke:living-frame-comfyui-container-sbom": "tsx server/smoke/living-frame-comfyui-container-sbom-evidence-smoke.ts",
     "smoke:living-frame-comfyui-local-confinement-internal-test": "tsx server/smoke/living-frame-comfyui-local-confinement-internal-test-smoke.ts",

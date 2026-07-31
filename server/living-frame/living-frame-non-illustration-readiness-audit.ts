@@ -182,12 +182,14 @@ const REQUIREMENTS = [
     requirementId: 'active_scope_private_internal_aggregate',
     status: 'open_internal_implementation',
     evidenceRefs: [
+      'living-frame-active-non-illustration-aggregate-v1',
       'living-frame-private-internal-end-to-end-audit-historical',
     ],
     remainingWork: [
-      'create_non_illustration_aggregate',
+      'compile_runtime_aggregate_from_the_active_non_illustration_manifest',
       'exclude_all_paused_character_animation_and_rigging_cases',
       'fail_closed_on_any_paused_evidence_counted_as_active_completion',
+      'bind_every_runtime_result_to_qwen_head_qa_and_canonical_private_review',
     ],
     blocks: true,
   }),

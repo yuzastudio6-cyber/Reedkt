@@ -8,7 +8,7 @@ interpolation, and rigging cases that the owner has paused. Those cases remain
 research evidence but cannot make the amended goal green.
 
 The machine-readable audit is
-`living-frame-non-illustration-readiness-audit-v6`.
+`living-frame-non-illustration-readiness-audit-v7`.
 
 ## Current Strengths
 
@@ -46,7 +46,12 @@ The active scope already has verified source contracts for:
   approved-work, selected-scene, MasterTiming, renderer, scene-evidence, and
   postrender visual-inspection owners. It hashes source records but never
   copies coordinates, values, document excerpts, or claims into a parallel
-  authority.
+  authority; and
+- an active non-illustration aggregate manifest with exactly one case for each
+  of the 12 owner-approved active scopes. It binds fixed evidence-packet
+  identities, requires postrender AI inspection for every case, rejects all
+  seven paused scopes, imports none of the historical 39/40-case aggregate,
+  and grants no runtime or completion authority.
 
 Recorded private fixtures cover all five modes, confirmed portrait/custom
 frames, a safe-space A-roll fallback, deterministic diagram reveal, archive
@@ -83,8 +88,9 @@ called professionally accepted.
    → renderer → QA → review execution and fixture lineage.
 7. Reconcile the already-frozen Caption Direction public adapter at the
    canonical one-writer boundary while preserving separate ownership.
-8. Replace the historical 39/40-case completion signal with an active
-   non-illustration aggregate that fails if any paused evidence is counted.
+8. Compile and execute a runtime aggregate from the new 12-case active
+   non-illustration manifest. It must fail if any paused evidence is counted
+   and must not import the historical 39/40-case runner.
 9. Render representative non-illustration scenes, inspect every complete clip
    at playback speed plus required sampled frames, and repair or reject every
    result that misses the professional bar.

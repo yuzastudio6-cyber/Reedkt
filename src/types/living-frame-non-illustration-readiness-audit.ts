@@ -1,5 +1,5 @@
 export const LIVING_FRAME_NON_ILLUSTRATION_READINESS_AUDIT_VERSION =
-  'living-frame-non-illustration-readiness-audit-v6' as const
+  'living-frame-non-illustration-readiness-audit-v7' as const
 
 export const LIVING_FRAME_NON_ILLUSTRATION_READINESS_AUDIT_CLASS =
   'server_derived_source_only_non_illustration_end_to_end_gap_audit' as const

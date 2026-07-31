@@ -34,7 +34,16 @@ assert.equal(audit.metrics.notRequiredForActiveScopeCount, 1)
 assert.equal(audit.metrics.activeBlockingRequirementCount, 9)
 assert.equal(audit.activePrivateInternalReady, false)
 assert.equal(audit.contractVersion,
-  'living-frame-non-illustration-readiness-audit-v6')
+  'living-frame-non-illustration-readiness-audit-v7')
+assert.equal(
+  audit.requirements.find(
+    (entry) => entry.requirementId ===
+      'active_scope_private_internal_aggregate',
+  )?.evidenceRefs.includes(
+    'living-frame-active-non-illustration-aggregate-v1',
+  ),
+  true,
+)
 assert.equal(
   audit.requirements.find(
     (entry) => entry.requirementId ===

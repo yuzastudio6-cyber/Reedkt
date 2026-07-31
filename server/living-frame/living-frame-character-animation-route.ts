@@ -37,6 +37,12 @@ export function compileLivingFrameCharacterAnimationRouteDecision(
           true,
         controlledGenerationCreatesAnchorKeyposesNotEveryFrame:
           true,
+        rigidMotionRequiresReviewedExposedSourcePlate:
+          true,
+        extractedComponentBoundaryRequiresReview:
+          true,
+        selectedSceneCompositeRequiresPostRenderSemanticReview:
+          true,
         identityContinuityQaRequiredForGeneratedKeyposes:
           true,
         protectedFacePathAndAttachmentQaRequired:
@@ -122,6 +128,10 @@ function decideRoute(
     && evidence.handSeparated
     && evidence.exactJointPivotsReviewed
     && evidence.hiddenJointArtworkReconstructed
+    && evidence
+      .exposedSourcePlateReconstructedAndReviewed
+    && evidence
+      .componentBoundaryDecontaminatedAndReviewed
     && evidence.deformableMeshTopologyReviewed
     && evidence.skinWeightMapReviewed
     && evidence.protectedFaceMotionPathReviewed
@@ -161,8 +171,78 @@ function decideRoute(
         false,
       openToonzAdmissionAllowed:
         false,
+      controlledComponentPreparationRequired:
+        false,
       controlledKeyposeGenerationRequired:
         true,
+      downstreamRouteAfterPreparation:
+        null,
+      realMotionFallbackRequired:
+        false,
+      generateEveryFrameIndependently:
+        false,
+      remotionOwnsFinalCanvas: true,
+    }
+  }
+  if (
+    (
+      mergedPaintedCutout
+      || evidence.componentTopology
+        === 'single_rigid_cutout'
+    )
+    && evidence
+      .componentMotionExposesHiddenSourcePixels
+    && (
+      !evidence
+        .exposedSourcePlateReconstructedAndReviewed
+      || !evidence
+        .componentBoundaryDecontaminatedAndReviewed
+    )
+    && evidence.illustrativeNotArchivalEvidence
+    && evidence.referenceIdentityAvailable
+    && evidence.poseControlAvailable
+    && evidence.deterministicRigidPivotAvailable
+    && evidence.protectedFaceMotionPathReviewed
+    && evidence
+      .componentAttachmentContinuityReviewed
+    && (
+      evidence.requestedMotionMagnitude
+        === 'ambient'
+      || evidence.requestedMotionMagnitude
+        === 'restrained'
+    )
+    && !evidence.desiredPoseRequiresNewPixels
+  ) {
+    return {
+      selectedRoute:
+        'comfyui_controlled_component_preparation',
+      routeState:
+        'blocked_pending_controlled_component_preparation_runtime',
+      selectedToolId: 'comfyui',
+      selectedOperationId:
+        'tool.comfyui.generate_controlled_image.v1',
+      reasonCodes: [
+        'rigid_motion_exposes_unreviewed_source_plate',
+        'component_boundary_requires_controlled_preparation',
+        ...(
+          evidence.motionPathClearsProtectedFace
+            ? []
+            : [
+              'current_motion_path_intersects_protected_face_and_requires_redesign',
+            ]
+        ),
+        'prepare_hidden_plate_and_clean_component_then_use_pixijs',
+      ],
+      blenderAdmissionAllowed:
+        false,
+      openToonzAdmissionAllowed:
+        false,
+      controlledComponentPreparationRequired:
+        true,
+      controlledKeyposeGenerationRequired:
+        false,
+      downstreamRouteAfterPreparation:
+        'pixijs_rigid_cutout',
       realMotionFallbackRequired:
         false,
       generateEveryFrameIndependently:
@@ -180,6 +260,14 @@ function decideRoute(
     && evidence.protectedFaceMotionPathReviewed
     && evidence.motionPathClearsProtectedFace
     && evidence.componentAttachmentContinuityReviewed
+    && evidence
+      .componentBoundaryDecontaminatedAndReviewed
+    && (
+      !evidence
+        .componentMotionExposesHiddenSourcePixels
+      || evidence
+        .exposedSourcePlateReconstructedAndReviewed
+    )
     && (
       evidence.requestedMotionMagnitude
         === 'ambient'
@@ -206,8 +294,12 @@ function decideRoute(
         false,
       openToonzAdmissionAllowed:
         false,
+      controlledComponentPreparationRequired:
+        false,
       controlledKeyposeGenerationRequired:
         false,
+      downstreamRouteAfterPreparation:
+        null,
       realMotionFallbackRequired:
         false,
       generateEveryFrameIndependently:
@@ -233,8 +325,12 @@ function decideRoute(
         true,
       openToonzAdmissionAllowed:
         false,
+      controlledComponentPreparationRequired:
+        false,
       controlledKeyposeGenerationRequired:
         false,
+      downstreamRouteAfterPreparation:
+        null,
       realMotionFallbackRequired:
         false,
       generateEveryFrameIndependently:
@@ -248,6 +344,10 @@ function decideRoute(
     && evidence.flatMeshDeformationSufficient
     && evidence.exactJointPivotsReviewed
     && evidence.hiddenJointArtworkReconstructed
+    && evidence
+      .exposedSourcePlateReconstructedAndReviewed
+    && evidence
+      .componentBoundaryDecontaminatedAndReviewed
     && evidence.deformableMeshTopologyReviewed
     && evidence.protectedFaceMotionPathReviewed
     && evidence.motionPathClearsProtectedFace
@@ -269,8 +369,12 @@ function decideRoute(
         false,
       openToonzAdmissionAllowed:
         true,
+      controlledComponentPreparationRequired:
+        false,
       controlledKeyposeGenerationRequired:
         false,
+      downstreamRouteAfterPreparation:
+        null,
       realMotionFallbackRequired:
         false,
       generateEveryFrameIndependently:
@@ -296,8 +400,12 @@ function decideRoute(
         false,
       openToonzAdmissionAllowed:
         false,
+      controlledComponentPreparationRequired:
+        false,
       controlledKeyposeGenerationRequired:
         false,
+      downstreamRouteAfterPreparation:
+        null,
       realMotionFallbackRequired:
         true,
       generateEveryFrameIndependently:
@@ -322,8 +430,12 @@ function noAnimation(
     reasonCodes: [reasonCode],
     blenderAdmissionAllowed: false,
     openToonzAdmissionAllowed: false,
+    controlledComponentPreparationRequired:
+      false,
     controlledKeyposeGenerationRequired:
       false,
+    downstreamRouteAfterPreparation:
+      null,
     realMotionFallbackRequired:
       false,
     generateEveryFrameIndependently:
@@ -344,6 +456,15 @@ function assertEvidence(
     || !SAFE_ID.test(
       evidence.sourceArtifactId,
     )
+    || typeof evidence
+      .componentMotionExposesHiddenSourcePixels
+      !== 'boolean'
+    || typeof evidence
+      .exposedSourcePlateReconstructedAndReviewed
+      !== 'boolean'
+    || typeof evidence
+      .componentBoundaryDecontaminatedAndReviewed
+      !== 'boolean'
     || evidence
       .rawChatPromptPathUrlModelCodeOrBytesIncluded
       !== false

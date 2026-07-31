@@ -33,6 +33,16 @@ export interface LivingFrameMusashiBlenderTexturePrivateFixture {
   readonly sourceArtifactId:
     'lf.animation-aware-illustration.musashi.v1'
   readonly sourceAlphaSha256: string
+  readonly wholeCharacterComponent: {
+    readonly artifactId:
+      'lf.animation-aware-illustration.musashi.whole-character.v1'
+    readonly contentType: 'image/png'
+    readonly widthPixels: typeof WIDTH
+    readonly heightPixels: typeof HEIGHT
+    readonly byteLength: number
+    readonly sha256: string
+    readonly pngBytes: Buffer
+  }
   readonly baseComponent: {
     readonly artifactId:
       'lf.animation-aware-illustration.musashi.base.v1'
@@ -174,17 +184,23 @@ Promise<LivingFrameMusashiBlenderTexturePrivateFixture> {
       captionPath,
     )
     const [
+      wholeCharacterPng,
       basePng,
       swordArmPng,
       basePlatePng,
       captionPng,
     ] =
       await Promise.all([
+        readFile(landscapePath),
         readFile(basePath),
         readFile(swordArmPath),
         readFile(basePlatePath),
         readFile(captionPath),
       ])
+    assertRgbaPng(
+      wholeCharacterPng,
+      'whole character',
+    )
     assertRgbaPng(basePng, 'base')
     assertRgbaPng(
       swordArmPng,
@@ -215,6 +231,19 @@ Promise<LivingFrameMusashiBlenderTexturePrivateFixture> {
       sourceAlphaSha256:
         alphaReceipt.decontamination
           .cleanedAlphaPngSha256,
+      wholeCharacterComponent: {
+        artifactId:
+          'lf.animation-aware-illustration.musashi.whole-character.v1',
+        contentType: 'image/png',
+        widthPixels: WIDTH,
+        heightPixels: HEIGHT,
+        byteLength:
+          wholeCharacterPng.byteLength,
+        sha256: sha256(
+          wholeCharacterPng,
+        ),
+        pngBytes: wholeCharacterPng,
+      },
       baseComponent: {
         artifactId:
           'lf.animation-aware-illustration.musashi.base.v1',

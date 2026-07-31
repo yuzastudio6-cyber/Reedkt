@@ -16,14 +16,15 @@ The output passed basic alpha, mask, depth, motion, and restoration checks, but
 the painted component bent and crossed the face unnaturally. Pixel motion was
 not professional character animation.
 
-`living-frame-character-animation-route-decision-v1` prevents that class of
+`living-frame-character-animation-route-decision-v2` prevents that class of
 false positive.
 
 ## Professional route policy
 
 | Asset and action evidence | Route |
 | --- | --- |
-| Rigid cutout, known pivot, ambient or restrained action, no new pixels required | PixiJS rigid cutout rendered as a component below the Remotion final canvas |
+| Rigid cutout, known pivot, reviewed component boundary and exposed source plate, ambient or restrained action, no new pixels required | PixiJS rigid cutout rendered as a component below the Remotion final canvas |
+| Rigid cutout whose movement exposes an unreviewed plate or contaminated component edge | Controlled component preparation, then the simplest qualified deterministic route |
 | Separated flat parts with reviewed pivots, hidden artwork, and safe mesh topology | OpenToonz Plastic evaluation candidate |
 | Separated upper arm, forearm, hand, and prop with reviewed joints, hidden artwork, mesh, and skin weights | Blender articulated 2.5D evaluation candidate |
 | Merged painted cutout plus a large pose change or newly revealed anatomy | ComfyUI controlled key poses |
@@ -37,10 +38,22 @@ disconnects it from the body.
 
 For the current Musashi artwork:
 
-- the restrained strike routes to the PixiJS rigid-pivot component path, with
-  Remotion retaining final-canvas ownership;
+- restrained whole-character drift routes to the PixiJS rigid-cutout path,
+  with Remotion retaining final-canvas ownership;
+- the extracted arm/sleeve/hand/sword component does **not** route directly to
+  PixiJS because its movement exposes an unreviewed source plate, its extracted
+  boundary is not professionally prepared, and the tested path crosses the
+  protected face;
+- that articulated sword action routes first to controlled component
+  preparation and may return to PixiJS only after plate, boundary, path, and
+  composite review pass;
 - a large new pose routes to controlled ComfyUI key-pose generation; and
 - generic Blender deformation is rejected.
+
+This distinction is important: PixiJS can animate a prepared cutout correctly,
+but it cannot repair a cutout that contains the wrong pixels or reconstruct the
+pixels behind a removed limb. Tool execution and source preparation are
+separate quality gates.
 
 ## What ComfyUI does
 
@@ -77,10 +90,31 @@ particles, masks, filters, and parent-child cutouts. It animates prepared
 pixels; it does not invent hidden anatomy or new pose artwork. Remotion remains
 the final layout, caption, audio, and export compositor.
 
+The private `living-frame-character-pixijs-internal-runtime-v2` evidence now
+executes the real pinned PixiJS `Application.init` entrypoint in a fixed
+offline browser container and renders 120 transparent whole-character frames.
+It proves only restrained rigid-cutout mechanics. It does not approve the
+articulated sword action, register the operation, dispatch a worker, persist a
+canonical asset, approve QA, charge a customer, or grant production authority.
+
+The adjacent
+`living-frame-character-pixijs-remotion-composite-internal-test-v1` consumes
+that process-bound PNG sequence once, supplies every exact PixiJS PNG as a
+server-injected private input to the pinned Remotion runtime, renders eight
+bounded chunks, retains exactly 120 intended frames, packages them through
+FFmpeg, verifies the final H.264 dimensions/rate/frame count with FFprobe,
+persists the MP4 create-only, and reopens it by exact digest and length. Visual
+review of the first, middle, final, and every chunk-boundary neighborhood shows
+a complete character with no missing torso pixels, no detached limb, no face
+crossing, stable captions above the Living Frame plane, restrained whole-body
+drift, and a return to the source pose.
+
 ## Regression
 
 ```text
 npm run smoke:living-frame-character-animation-route-suitability
+npm run smoke:living-frame-character-pixijs-internal-runtime
+npm run smoke:living-frame-character-pixijs-remotion-composite-internal-test
 npm run smoke:living-frame-animation-aware-illustration-private-composite-internal-test
 npm run smoke:living-frame-rigging-v2
 ```

@@ -280,6 +280,10 @@ const cases: readonly AuditCase[] = [
       )
       assert.equal(
         receipt.restrainedMusashiRoute,
+        'comfyui_controlled_component_preparation',
+      )
+      assert.equal(
+        receipt.cleanRigidComponentRoute,
         'pixijs_rigid_cutout',
       )
       assert.equal(
@@ -303,12 +307,68 @@ const cases: readonly AuditCase[] = [
         true,
       )
       assert.equal(
+        receipt.unreconstructedMusashiPlateRejectedFromPixi,
+        true,
+      )
+      assert.equal(
         receipt.generatedKeyposePolicy,
         'controlled_anchor_keyposes_not_every_frame',
       )
       assert.equal(
         receipt.remotionOwnsFinalCanvas,
         true,
+      )
+      assert.equal(
+        receipt.productionReady,
+        false,
+      )
+    },
+  },
+  {
+    id:
+      'character_pixijs_remotion_private_composite',
+    relativePath:
+      'server/smoke/living-frame-character-pixijs-remotion-composite-internal-test-smoke.ts',
+    validate(receipt) {
+      assert.equal(
+        receipt.contractVersion,
+        'living-frame-character-pixijs-remotion-composite-internal-test-v1',
+      )
+      assert.equal(
+        receipt.pixiJsToolId,
+        'pixijs',
+      )
+      assert.equal(
+        receipt.remotionToolId,
+        'remotion',
+      )
+      assert.equal(
+        receipt.finalFrameCount,
+        120,
+      )
+      assert.equal(
+        receipt.remotionRenderCount,
+        8,
+      )
+      assert.equal(
+        receipt.swordActionRoute,
+        'comfyui_controlled_component_preparation',
+      )
+      assert.equal(
+        receipt.independentPerFrameGenerationAllowed,
+        false,
+      )
+      assert.equal(
+        receipt.operationRegistered,
+        false,
+      )
+      assert.equal(
+        receipt.canonicalDispatchIntegrated,
+        false,
+      )
+      assert.equal(
+        receipt.canonicalAssetManifestMutated,
+        false,
       )
       assert.equal(
         receipt.productionReady,
@@ -834,7 +894,7 @@ const receipt = {
     'fixed_reviewed_blender_digest_bound_rgba_texture_uv_armature_skinning_transparent_rgba_mask_depth_private_native_host_runtime',
     'selected_musashi_scene_exact_approved_snapshot_master_timing_work_item_and_confirmed_frame_blender_binding_with_full_rgba_mask_depth_create_only_private_persistence_and_reread',
     'selected_musashi_scene_independent_persisted_component_alpha_mask_depth_motion_restoration_qa_and_actual_private_remotion_review',
-    'character_animation_route_suitability_rejects_merged_musashi_blender_deformation_and_routes_restrained_motion_to_pixijs',
+    'character_animation_route_suitability_rejects_merged_musashi_blender_and_direct_pixijs_deformation_routes_that_action_to_controlled_component_preparation_and_proves_a_separate_complete_character_through_real_pixijs_and_remotion',
     'selected_scene_lineage_and_private_prompt_materialization',
     'selected_scene_private_operation_and_canonical_comfyui_candidate_input_reconciliation',
     'partial_independent_canonical_offline_image_vulnerability_evidence_and_fail_closed_disposition',
@@ -876,7 +936,7 @@ const receipt = {
       gate:
         'advanced_rigging_external_tool_runtime',
       reason:
-        'head_intelligence_rigging_direction_rigging_v2_relational_validation_pixijs_opentoonz_blender_and_comfyui_route_selection_fixed_blender_adapter_materialization_one_signed_notarized_native_arm64_blender_4_5_11_armature_ik_skinning_rgba_mask_depth_fixture_and_one_digest_bound_texture_fixture_are_verified_but_the_real_musashi_merged_arm_sleeve_hand_sword_cutout_is_explicitly_rejected_for_generic_blender_deformation_and_routes_to_pixijs_for_restrained_motion_or_controlled_comfyui_anchor_keyposes_for_large_pose_change_blender_network_isolation_offline_non_root_worker_image_canonical_estimate_work_asset_admission_manifest_reconciliation_qa_private_review_approval_actual_cost_and_broader_properly_separated_character_fixture_evidence_remain_required_while_the_unsigned_x86_64_opentoonz_1_8_0_macos_package_is_fail_closed_and_still_requires_a_qualified_runtime_or_professional_fallback',
+        'head_intelligence_rigging_direction_rigging_v2_relational_validation_pixijs_opentoonz_blender_and_comfyui_route_selection_fixed_blender_adapter_materialization_one_signed_notarized_native_arm64_blender_4_5_11_armature_ik_skinning_rgba_mask_depth_fixture_and_one_digest_bound_texture_fixture_are_verified_the_real_musashi_merged_arm_sleeve_hand_sword_cutout_is_explicitly_rejected_for_generic_blender_deformation_and_direct_pixijs_animation_then_routes_to_controlled_comfyui_component_preparation_or_controlled_anchor_keyposes_while_a_separate_complete_character_cutout_passes_real_pinned_pixijs_and_remotion_private_composite_evidence_blender_network_isolation_offline_non_root_worker_image_canonical_estimate_work_asset_admission_manifest_reconciliation_qa_private_review_approval_actual_cost_and_broader_properly_separated_character_fixture_evidence_remain_required_while_the_unsigned_x86_64_opentoonz_1_8_0_macos_package_is_fail_closed_and_still_requires_a_qualified_runtime_or_professional_fallback',
     },
   ],
   internalEndToEndReadyForOwnerReview: false,

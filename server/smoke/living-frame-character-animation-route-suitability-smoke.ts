@@ -31,12 +31,22 @@ const musashiRestrained =
 assert.equal(
   musashiRestrained.decision
     .selectedRoute,
-  'pixijs_rigid_cutout',
+  'comfyui_controlled_component_preparation',
 )
 assert.equal(
   musashiRestrained.decision
     .selectedOperationId,
-  'tool.pixijs.render_pixi_scene.v1',
+  'tool.comfyui.generate_controlled_image.v1',
+)
+assert.equal(
+  musashiRestrained.decision
+    .controlledComponentPreparationRequired,
+  true,
+)
+assert.equal(
+  musashiRestrained.decision
+    .downstreamRouteAfterPreparation,
+  'pixijs_rigid_cutout',
 )
 assert.equal(
   musashiRestrained.decision
@@ -112,11 +122,51 @@ const unsafeRigidPath =
   })
 assert.equal(
   unsafeRigidPath.decision.selectedRoute,
-  'no_animation',
+  'comfyui_controlled_component_preparation',
 )
 assert.equal(
   unsafeRigidPath.decision.routeState,
-  'deliberate_non_use',
+  'blocked_pending_controlled_component_preparation_runtime',
+)
+assert.equal(
+  unsafeRigidPath.decision.reasonCodes.includes(
+    'current_motion_path_intersects_protected_face_and_requires_redesign',
+  ),
+  true,
+)
+
+const cleanRigidComponent =
+  compileLivingFrameCharacterAnimationRouteDecision({
+    ...musashiRestrained.evidence,
+    evidenceId:
+      'evidence.character.clean-rigid-component',
+    sourceArtifactId:
+      'artifact.character.clean-rigid-component.v1',
+    componentTopology:
+      'single_rigid_cutout',
+    sourcePoseOccludesProtectedFace:
+      false,
+    componentMotionExposesHiddenSourcePixels:
+      false,
+    exposedSourcePlateReconstructedAndReviewed:
+      true,
+    componentBoundaryDecontaminatedAndReviewed:
+      true,
+  })
+assert.equal(
+  cleanRigidComponent.decision
+    .selectedRoute,
+  'pixijs_rigid_cutout',
+)
+assert.equal(
+  cleanRigidComponent.decision
+    .selectedOperationId,
+  'tool.pixijs.render_pixi_scene.v1',
+)
+assert.equal(
+  cleanRigidComponent.decision
+    .controlledComponentPreparationRequired,
+  false,
 )
 
 const articulated =
@@ -141,6 +191,12 @@ const articulated =
     propSeparated: true,
     exactJointPivotsReviewed: true,
     hiddenJointArtworkReconstructed:
+      true,
+    componentMotionExposesHiddenSourcePixels:
+      true,
+    exposedSourcePlateReconstructedAndReviewed:
+      true,
+    componentBoundaryDecontaminatedAndReviewed:
       true,
     deformableMeshTopologyReviewed:
       true,
@@ -218,6 +274,9 @@ console.log(JSON.stringify({
   restrainedMusashiRoute:
     musashiRestrained.decision
       .selectedRoute,
+  cleanRigidComponentRoute:
+    cleanRigidComponent.decision
+      .selectedRoute,
   largePoseMusashiRoute:
     musashiLargePose.decision
       .selectedRoute,
@@ -230,6 +289,8 @@ console.log(JSON.stringify({
   musashiBlenderAdmissionRejected:
     true,
   unsafePixiFaceCrossingRejected:
+    true,
+  unreconstructedMusashiPlateRejectedFromPixi:
     true,
   generatedKeyposePolicy:
     'controlled_anchor_keyposes_not_every_frame',
@@ -248,6 +309,7 @@ function musashiEvidence(input: {
   readonly evidenceId: string
   readonly requestedMotionMagnitude:
     'restrained'
+    | 'moderate'
     | 'large_pose_change'
   readonly desiredPoseRequiresNewPixels:
     boolean
@@ -283,6 +345,12 @@ LivingFrameCharacterAnimationSuitabilityEvidence {
     poseControlAvailable: true,
     deterministicRigidPivotAvailable:
       true,
+    componentMotionExposesHiddenSourcePixels:
+      true,
+    exposedSourcePlateReconstructedAndReviewed:
+      false,
+    componentBoundaryDecontaminatedAndReviewed:
+      false,
     protectedFaceMotionPathReviewed:
       true,
     motionPathClearsProtectedFace:

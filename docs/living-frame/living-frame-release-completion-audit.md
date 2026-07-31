@@ -59,6 +59,27 @@ authority.
 
 ## Requirement-by-requirement audit
 
+### Character-animation route correction
+
+The current character evidence supersedes the earlier assumption that the
+extracted Musashi arm/sleeve/hand/sword cutout was ready for direct PixiJS
+animation. That component exposes an unreviewed source plate, has an
+unreviewed extraction boundary, and crosses the protected face in the tested
+path. It now routes to controlled ComfyUI component preparation before any
+deterministic downstream animation. Large pose changes route to controlled
+anchor key poses; independently generated per-frame animation remains
+forbidden.
+
+A separate complete-character cutout does pass the narrow deterministic route:
+the real pinned PixiJS runtime renders 120 transparent rigid-cutout frames, the
+pinned Remotion runtime composites those exact frames below captions in eight
+bounded chunks, FFmpeg packages exactly 120 H.264 frames, FFprobe verifies the
+media identity, and the result is persisted create-only and reopened by exact
+digest and length. This is private internal evidence only. It does not register
+the operation, dispatch work, mutate the canonical manifest, approve QA or
+private review, create cost, bill a customer, deliver publicly, or grant
+production authority.
+
 | Requirement | Current status | Authoritative evidence | Remaining work |
 | --- | --- | --- | --- |
 | Composite parent skill and deliberate non-use | `verified_source_contract` | `src/lib/professional-skills/professional-skill-registry.ts`, `src/lib/living-frame/living-frame-selection-policy.ts`, `src/types/living-frame.ts` | Backend must preserve the selected/non-use decision when integrating the frozen component. |

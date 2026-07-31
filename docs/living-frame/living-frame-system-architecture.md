@@ -469,11 +469,16 @@ as a rejected visual-suitability fixture. Its merged arm, sleeve, hand, and
 sword pixels passed alpha, mask, depth, motion, persistence, and render checks,
 but generic mesh deformation bent the painted component across the face and
 failed professional anatomy/composition review. It is not accepted Living
-Frame output. `living-frame-character-animation-route-decision-v1` now blocks
-that source topology from the Blender route. Restrained motion routes to the
-existing PixiJS rigid-cutout operation below the Remotion final canvas; a large
-pose that reveals hidden anatomy routes to a few controlled ComfyUI anchor
-key poses, never independently generated frames. Blender is reserved for
+Frame output. `living-frame-character-animation-route-decision-v2` now blocks
+that source topology from the Blender route. The current extracted sword-arm
+also cannot route directly to PixiJS because moving it exposes an unreviewed
+source plate, its boundary is not professionally prepared, and its tested path
+crosses the face. That action routes first to controlled ComfyUI component
+preparation, then may return to PixiJS after plate, boundary, path, and
+composite review. A complete clean rigid character can use restrained PixiJS
+drift below the Remotion final canvas. A large pose that reveals hidden anatomy
+routes to a few controlled ComfyUI anchor key poses, never independently
+generated frames. Blender is reserved for
 separated articulated parts with reviewed joints, reconstructed hidden
 artwork, mesh topology, and skin weights. OpenToonz is reserved for reviewed
 flat-mesh deformation and remains fail-closed pending a supported controlled

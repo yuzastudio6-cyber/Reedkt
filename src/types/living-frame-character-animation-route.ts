@@ -1,5 +1,5 @@
 export const LIVING_FRAME_CHARACTER_ANIMATION_ROUTE_DECISION_VERSION =
-  'living-frame-character-animation-route-decision-v1' as const
+  'living-frame-character-animation-route-decision-v2' as const
 
 export const LIVING_FRAME_CHARACTER_ANIMATION_ROUTE_DECISION_CLASS =
   'server_derived_character_animation_route_suitability_decision' as const
@@ -8,6 +8,7 @@ export type LivingFrameCharacterAnimationRoute =
   | 'pixijs_rigid_cutout'
   | 'opentoonz_flat_mesh'
   | 'blender_articulated_2_5d'
+  | 'comfyui_controlled_component_preparation'
   | 'comfyui_controlled_keyposes'
   | 'real_motion_video_fallback'
   | 'no_animation'
@@ -42,6 +43,12 @@ export interface LivingFrameCharacterAnimationSuitabilityEvidence {
   readonly referenceIdentityAvailable: boolean
   readonly poseControlAvailable: boolean
   readonly deterministicRigidPivotAvailable: boolean
+  readonly componentMotionExposesHiddenSourcePixels:
+    boolean
+  readonly exposedSourcePlateReconstructedAndReviewed:
+    boolean
+  readonly componentBoundaryDecontaminatedAndReviewed:
+    boolean
   readonly protectedFaceMotionPathReviewed: boolean
   readonly motionPathClearsProtectedFace: boolean
   readonly componentAttachmentContinuityReviewed: boolean
@@ -63,6 +70,7 @@ export interface LivingFrameCharacterAnimationRouteDecisionDraft {
     readonly routeState:
       | 'qualified_private_pixijs_route'
       | 'evaluation_candidate_only'
+      | 'blocked_pending_controlled_component_preparation_runtime'
       | 'blocked_pending_controlled_generation_runtime'
       | 'blocked_pending_real_motion_runtime'
       | 'deliberate_non_use'
@@ -81,7 +89,14 @@ export interface LivingFrameCharacterAnimationRouteDecisionDraft {
     readonly reasonCodes: readonly string[]
     readonly blenderAdmissionAllowed: boolean
     readonly openToonzAdmissionAllowed: boolean
+    readonly controlledComponentPreparationRequired:
+      boolean
     readonly controlledKeyposeGenerationRequired: boolean
+    readonly downstreamRouteAfterPreparation:
+      | 'pixijs_rigid_cutout'
+      | 'opentoonz_flat_mesh'
+      | 'blender_articulated_2_5d'
+      | null
     readonly realMotionFallbackRequired: boolean
     readonly generateEveryFrameIndependently: false
     readonly remotionOwnsFinalCanvas: true
@@ -93,6 +108,12 @@ export interface LivingFrameCharacterAnimationRouteDecisionDraft {
     readonly largePoseChangeRequiresNewPixelRouteWhenAnatomyIsHidden:
       true
     readonly controlledGenerationCreatesAnchorKeyposesNotEveryFrame:
+      true
+    readonly rigidMotionRequiresReviewedExposedSourcePlate:
+      true
+    readonly extractedComponentBoundaryRequiresReview:
+      true
+    readonly selectedSceneCompositeRequiresPostRenderSemanticReview:
       true
     readonly identityContinuityQaRequiredForGeneratedKeyposes:
       true

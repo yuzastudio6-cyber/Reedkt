@@ -84,6 +84,16 @@ const runDefinitions = [
           .negativeSpaceVisualRenderedAndMeasured,
         true,
       )
+      const exactMapData =
+        receipt.exactMapData as Record<string, unknown>
+      assert.equal(
+        exactMapData.exactSourceBoundGeometryRenderedAndMeasured,
+        true,
+      )
+      assert.equal(exactMapData.literalScalePreserved, true)
+      assert.equal(exactMapData.generatedVideoFallbackUsed, false)
+      assert.equal(exactMapData.mapOrDataToolRuntimeClaimed, false)
+      assert.equal(exactMapData.canonicalSourceRereadPending, true)
       assert.equal(receipt.productionAuthority, false)
     },
   ),
@@ -239,7 +249,7 @@ const CASE_RUN_BINDINGS = [
     'non_character_content_lineage',
   ]),
   caseBinding('maps_routes_and_data_graphics_case', 'maps_routes_and_data_graphics', [
-    'non_character_content_lineage',
+    'five_mode_private_render', 'non_character_content_lineage',
   ]),
   caseBinding('attention_focus_and_semantic_scale_case', 'attention_focus_and_semantic_scale', [
     'five_mode_private_render', 'motion_v3_private_render',

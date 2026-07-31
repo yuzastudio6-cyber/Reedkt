@@ -26,8 +26,9 @@ Shared child evidence may support several active cases, but every case keeps
 its own ordered mapping and evidence digest.
 
 The four media runs export five create-only process-private review copies:
-one five-mode video, two confirmed-frame videos, one motion-v3 video, and one
-selected-scene particle video. The runner creates the export root itself under
+one five-mode video (including the bounded exact map/data geometry scene), two
+confirmed-frame videos, one motion-v3 video, and one selected-scene particle
+video. The runner creates the export root itself under
 the fixed temporary-directory prefix and emits its local path outside the
 content-addressed report. Child processes may not choose another root, replace
 an existing review copy, or turn a review copy into a canonical asset.
@@ -43,7 +44,8 @@ Even when all ten child runs succeed, it records:
 - no Kimi-primary/Terra-fallback Head QA recommendation;
 - no canonical private-review approval;
 - no released advanced SAM2 temporal-mask evidence;
-- no exact canonical map/route/data runtime fixture; and
+- no canonical map/route/data tool execution or immutable-source reread beyond
+  the bounded literal-geometry Remotion fixture; and
 - no canonical one-writer consumption of the feature contracts.
 
 Consequently, no case may count toward active completion yet. Technical pixel,

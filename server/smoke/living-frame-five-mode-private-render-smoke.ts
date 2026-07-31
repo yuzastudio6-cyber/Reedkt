@@ -45,7 +45,7 @@ const width = 640
 const height = 360
 const fps = 30
 const sceneFrameCount = 30
-const durationFrames = sceneFrameCount * 8
+const durationFrames = sceneFrameCount * 9
 
 const sceneRanges = {
   livingARoll: range(0),
@@ -56,6 +56,7 @@ const sceneRanges = {
   deliberateNonUse: range(5),
   staticCardFallback: range(6),
   safeSpaceFallback: range(7),
+  exactMapData: range(8),
 } as const
 
 const fixtureRoot = await mkdtemp(
@@ -88,6 +89,10 @@ const fixturePaths = {
   safeSpaceFallback: join(
     fixtureRoot,
     'safe-space-fallback.png',
+  ),
+  exactMapData: join(
+    fixtureRoot,
+    'exact-map-data.png',
   ),
 } as const
 
@@ -219,6 +224,22 @@ try {
       'drawbox=x=430:y=82:w=150:h=24:color=0x00E5FF@1:t=fill:replace=1',
       'drawbox=x=430:y=124:w=110:h=24:color=0x00E5FF@1:t=fill:replace=1',
       'drawbox=x=430:y=166:w=132:h=24:color=0x00E5FF@1:t=fill:replace=1',
+    ],
+  )
+  makeTransparentOverlay(
+    fixturePaths.exactMapData,
+    [
+      'drawbox=x=42:y=78:w=310:h=188:color=0x0F172A@0.94:t=fill:replace=1',
+      'drawbox=x=72:y=116:w=176:h=12:color=0x00E5FF@1:t=fill:replace=1',
+      'drawbox=x=236:y=116:w=12:h=76:color=0x00E5FF@1:t=fill:replace=1',
+      'drawbox=x=236:y=180:w=78:h=12:color=0x00E5FF@1:t=fill:replace=1',
+      'drawbox=x=64:y=106:w=28:h=28:color=0xF59E0B@1:t=fill:replace=1',
+      'drawbox=x=302:y=172:w=28:h=28:color=0xF59E0B@1:t=fill:replace=1',
+      'drawbox=x=396:y=72:w=190:h=206:color=0x0F172A@0.94:t=fill:replace=1',
+      'drawbox=x=420:y=238:w=28:h=42:color=0x57E389@1:t=fill:replace=1',
+      'drawbox=x=478:y=211:w=28:h=69:color=0x57E389@1:t=fill:replace=1',
+      'drawbox=x=536:y=187:w=28:h=93:color=0x57E389@1:t=fill:replace=1',
+      'drawbox=x=412:y=280:w=160:h=5:color=0xCBD5E1@1:t=fill:replace=1',
     ],
   )
 
@@ -576,6 +597,42 @@ try {
         ],
       }),
     }),
+    layer({
+      sceneId: 'living-frame-exact-map-data',
+      layerId: 'lf-mode-90-exact-map-data',
+      componentOutputKey:
+        'lf-mode-exact-map-data',
+      manifestOutputKey:
+        'lf-mode-exact-map-data-manifest',
+      fixtureKey: 'exactMapData',
+      timeRange: sceneRanges.exactMapData,
+      motionSpec: motionSpec({
+        sceneId: 'living-frame-exact-map-data',
+        componentId: 'lf-mode-exact-map-data',
+        timeRange: sceneRanges.exactMapData,
+        visualVerb: 'reveal',
+        depthStyle: 'flat',
+        depthBand: 'in_front_of_subject',
+        parallaxFactor: 0,
+        tracks: [
+          track(
+            'exact-map-data-reveal',
+            0,
+            'layer',
+            'opacity',
+            'primary',
+            [
+              [0, 0, 'ease_out_quad'],
+              [12, 1, 'settle_out'],
+              [29, 1, 'hold'],
+            ],
+          ),
+        ],
+        semanticScaleRequestIds: [
+          'semantic-scale-exact-data-literal',
+        ],
+      }),
+    }),
   ] as const
 
   await prepareOfflineRemotionDockerRuntime()
@@ -795,6 +852,7 @@ try {
     165,
     195,
     225,
+    240, 252, 269,
   ] as const
   const sampledFrames = extractFrames(
     renderedPath,
@@ -1025,6 +1083,47 @@ try {
   assert.ok(safeSpaceCyan > 5_000)
   assert.ok(safeSpaceSubjectCollision < 25)
 
+  const exactMapDataEarly = frame(240)
+  const exactMapDataSettled = frame(269)
+  assert.ok(
+    colorStats(exactMapDataEarly, colorMatchers.cyan).count < 50,
+  )
+  const exactRouteCyan = colorStats(
+    exactMapDataSettled,
+    colorMatchers.cyan,
+    {
+      xStart: 42,
+      xEndExclusive: 352,
+      yStart: 78,
+      yEndExclusive: 266,
+    },
+  )
+  assert.ok(exactRouteCyan.count > 3_000)
+  const exactBarHeights = [
+    colorStats(
+      exactMapDataSettled,
+      colorMatchers.green,
+      { xStart: 418, xEndExclusive: 452 },
+    ).height,
+    colorStats(
+      exactMapDataSettled,
+      colorMatchers.green,
+      { xStart: 476, xEndExclusive: 510 },
+    ).height,
+    colorStats(
+      exactMapDataSettled,
+      colorMatchers.green,
+      { xStart: 534, xEndExclusive: 568 },
+    ).height,
+  ] as const
+  assert.deepEqual(exactBarHeights, [42, 69, 93])
+  assert.ok(
+    Math.abs(exactBarHeights[0] / 14 - 3) < 0.01
+    && Math.abs(exactBarHeights[1] / 23 - 3) < 0.01
+    && Math.abs(exactBarHeights[2] / 31 - 3) < 0.01,
+  )
+  assertCaptionAboveLivingFrame(frame(269))
+
   const probe = probeRenderedVideo(renderedPath)
   assert.equal(probe.width, width)
   assert.equal(probe.height, height)
@@ -1135,6 +1234,15 @@ try {
     livingDiagram: {
       deterministicGraphicRevealRenderedAndMeasured: true,
       exactVisualRouteUsed: true,
+    },
+    exactMapData: {
+      exactSourceBoundGeometryRenderedAndMeasured: true,
+      literalDataValues: [14, 23, 31],
+      measuredBarHeights: exactBarHeights,
+      literalScalePreserved: true,
+      generatedVideoFallbackUsed: false,
+      mapOrDataToolRuntimeClaimed: false,
+      canonicalSourceRereadPending: true,
     },
     hybridExpansion: {
       expansionRenderedAndMeasured: true,

@@ -29,7 +29,7 @@ export type LivingFrameActivePrivateInternalRunId =
 
 export const LIVING_FRAME_ACTIVE_PRIVATE_INTERNAL_OPEN_GATE_IDS = [
   'canonical_one_writer_adoption_pending',
-  'exact_map_route_data_runtime_fixture_pending',
+  'canonical_map_route_data_tool_and_source_reread_pending',
   'canonical_archive_document_and_hybrid_reread_pending',
   'postrender_qwen_provider_and_complete_time_runtime_pending',
   'head_qa_recommendation_and_private_review_pending',

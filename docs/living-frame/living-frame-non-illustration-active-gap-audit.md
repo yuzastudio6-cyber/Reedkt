@@ -60,8 +60,10 @@ The active scope already has verified source contracts for:
   open and canonical reread/admission remains pending; and
 - a source-ready executable active private-test runner that maps ten unique
   child regressions to all twelve owner-approved cases, executes four actual
-  private engineering media paths, imports no historical character/rigging
-  aggregate case, and still reports every case incomplete until canonical
+  private engineering media paths, includes a bounded literal map/data
+  geometry scene in the five-mode Remotion path, imports no historical
+  character/rigging aggregate case, and still reports every case incomplete
+  until canonical
   Qwen, separate audio, Head QA, repair, reconciliation, and private-review
   evidence exists. Its media execution is deferred until the canonical backend
   releases the shared runtime window; and
@@ -128,8 +130,10 @@ called professionally accepted.
    evidence and private-review owners.
 8. Reconcile the source-bound map/route, archive-document, exact diagram, and
    non-character hybrid structural binding at the canonical owner boundary;
-   reread the immutable sources and complete snapshot → work → asset → timing
-   → renderer → QA → review execution and fixture lineage.
+   reread the immutable sources, execute the approved map/data tool route, and
+   complete snapshot → work → asset → timing → renderer → QA → review
+   execution and fixture lineage. The bounded literal-geometry Remotion scene
+   is renderer evidence, not canonical map/data tool evidence.
 9. Reconcile the already-frozen Caption Direction public adapter at the
    canonical one-writer boundary while preserving separate ownership.
 10. Execute the source-ready runtime aggregate from the new 12-case active

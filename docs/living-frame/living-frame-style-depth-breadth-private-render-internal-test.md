@@ -1,5 +1,11 @@
 # Living Frame style-depth breadth private render
 
+> Historical engineering evidence only. The owner has paused all illustrated
+> or living-subject animation and all mechanical rigging/part animation. The
+> astronomer may now be used only as a static illustration; the locomotive may
+> use environmental/editorial motion around a static object, but its wheel/rod
+> animation cannot enter active admission or count toward completion.
+
 ## Purpose
 
 Run:

@@ -13,6 +13,13 @@ evidence that must never be confused:
 The current five-mode private renderer uses colored shapes deliberately. It is
 useful regression evidence, but it is not a product-quality visual target.
 
+The companion
+`living-frame-representative-direction-acceptance-v1` also requires each case
+to use its own semantic action, five-phase relative timing, visual treatment,
+depth strategy, motion budget, camera character, stillness policy, semantic
+scale guard, and restrained sound palette. This prevents a green geometry or
+runtime check from being mistaken for creative direction.
+
 ## Exact active coverage
 
 The manifest defines one representative-media requirement for each of the

@@ -22,6 +22,7 @@ export const LIVING_FRAME_ACTIVE_PRIVATE_INTERNAL_RUN_IDS = [
   'representative_media_source_candidate_set',
   'representative_private_source_binding',
   'representative_case_source_admission',
+  'representative_direction_acceptance',
   'representative_visual_fixture_plan',
   'non_character_professional_review_contract',
   'postrender_visual_inspection_contract',
@@ -98,8 +99,8 @@ export interface LivingFrameActivePrivateInternalTestReportDraft {
     'living-frame-active-baseline-route-binding-v1'
   readonly activeCaseCount: 12
   readonly pausedScopeCount: 7
-  readonly runCount: 14
-  readonly sourceContractRunCount: 10
+  readonly runCount: 15
+  readonly sourceContractRunCount: 11
   readonly privateEngineeringMediaRuntimeRunCount: 4
   readonly privateReviewExportRunCount: 4
   readonly privateReviewExportCount: 5

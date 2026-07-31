@@ -13,14 +13,14 @@ OpenToonz character-rig, or mechanical-rig aggregate cases.
 
 ## Exact run set
 
-The runner executes fourteen unique child regressions:
+The runner executes fifteen unique child regressions:
 
-- ten source-contract regressions for baseline fallback routing, exact
+- eleven source-contract regressions for baseline fallback routing, exact
   non-character source lineage, semantic SoundSync timing, professional-review
   policy, postrender visual-inspection policy, evidence admission, the
   representative-media source candidate set, its byte-free private finalized
-  source/selection binding, exact per-case source admission, and its acceptance
-  plan; and
+  source/selection binding, exact per-case source admission, action-specific
+  Head-direction acceptance, and its visual acceptance plan; and
 - four actual private engineering media runtimes for all five modes, confirmed
   output frames, motion-v3/deep-multiplane behavior, and the selected-scene
   environmental-particle composition.
@@ -76,6 +76,14 @@ active case. Missing, extra, duplicated, reordered, cross-case, cross-snapshot,
 cross-scene, cross-timing, cross-frame, reused-work, and reused-manifest-entry
 bindings fail closed. This remains contract evidence: canonical asset-role
 reconciliation and actual immutable rereads are still pending.
+
+The direction acceptance profile prevents the runtime from treating every
+scene as the same pan, zoom, blur, or 2.5D preset. Every active case has its own
+five-phase relative action timing, demonstration action, style/depth strategy,
+motion budget, semantic-scale rule, and stillness policy. Head Intelligence
+must still choose, refine, simplify, or refuse the scene; the profile does not
+replace the canonical semantic planner, StoryTiming, MasterTiming, or
+SoundSync.
 
 The process-private copies exist so the operating agent can watch every full
 video and inspect representative frames before reporting the milestone. They

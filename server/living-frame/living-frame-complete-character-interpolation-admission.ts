@@ -333,6 +333,8 @@ function compileTransitionUnits(
             true as const,
           serverOwnedSeedRequired:
             true as const,
+          serverDerivedMotionPromptRequired:
+            true as const,
           callerSeedPromptModelDimensionsPathsUrlsBytesCredentialsCommandsOrEnvironmentAllowed:
             false as const,
           oneAttemptOnePrivateCandidateOutput:

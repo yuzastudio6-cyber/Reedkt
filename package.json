@@ -193,6 +193,7 @@
     "smoke:living-frame-character-motion-tool-policy": "tsx server/smoke/living-frame-character-motion-tool-policy-smoke.ts",
     "smoke:living-frame-ai-2d-feasibility-sprint": "tsx server/smoke/living-frame-ai-2d-feasibility-sprint-smoke.ts",
     "smoke:living-frame-ai-2d-interpolation-qualification": "tsx server/smoke/living-frame-ai-2d-interpolation-qualification-smoke.ts",
+    "smoke:living-frame-ai-2d-interpolation-source-audit": "tsx server/smoke/living-frame-ai-2d-interpolation-source-audit-smoke.ts",
     "smoke:living-frame-complete-character-keypose-review": "tsx server/smoke/living-frame-complete-character-keypose-review-smoke.ts",
     "smoke:living-frame-complete-character-interpolation-admission": "tsx server/smoke/living-frame-complete-character-interpolation-admission-smoke.ts",
     "smoke:living-frame-character-controlled-preparation": "tsx server/smoke/living-frame-character-controlled-preparation-smoke.ts",

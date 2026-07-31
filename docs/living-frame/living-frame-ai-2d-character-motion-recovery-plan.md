@@ -188,6 +188,7 @@ npm run smoke:living-frame-complete-character-keypose-plan
 npm run smoke:living-frame-character-motion-tool-policy
 npm run smoke:living-frame-ai-2d-feasibility-sprint
 npm run smoke:living-frame-ai-2d-interpolation-qualification
+npm run smoke:living-frame-ai-2d-interpolation-source-audit
 npm run smoke:living-frame-complete-character-keypose-review
 npm run smoke:living-frame-complete-character-interpolation-admission
 ```
@@ -209,6 +210,19 @@ source archive, independent source and model-weight license disposition,
 offline non-root runtime, fixed request adapter, supported-hardware evidence,
 private inference, resource/cost evidence, persistence/reread, and professional
 visual QA. Neither candidate currently creates a registry identity or operation.
+
+`living-frame-ai-2d-interpolation-source-audit-v1` pins the official source
+commits and independently repeated GitHub commit-archive bytes for both
+candidates. It records archive inventories, exact license and dependency-file
+digests, and static risks without checking source archives into the repository.
+The ToonCrafter audit records its runtime Hugging Face download path, unpinned
+dependencies, large pickle checkpoint, and official approximately 24–27G
+memory report;
+the RIFE audit records its upstream shell-based FFmpeg path, unpinned
+dependencies, and unresolved external model archive. Those upstream paths are
+not eligible for ReeditPro execution. Both require fixed offline adapters and
+separate model, license, image, hardware, resource, private-output, and visual
+qualification. Source pinning is complete; runtime qualification is not.
 
 The still-image gate is `living-frame-complete-character-keypose-review-v1`.
 It binds the actual decoded private PNG to its exact keypose plan and unit,
@@ -232,6 +246,9 @@ and style lineage remain frozen. It produces one non-executable transition
 candidate per adjacent accepted pose pair. It does not derive a parallel clock
 or a model request. Caller seed, prompt, model, dimensions, paths, URLs, bytes,
 credentials, commands, and environment are absent and rejected as extra input.
+Any eventual ToonCrafter motion prompt must be deterministically derived by the
+server from the accepted keypose and semantic-motion plan; it is not caller
+supplied.
 The candidate stays blocked until ToonCrafter source/model/runtime qualification
 is released; its eventual outputs still require private persistence, technical
 QA, actual rendered-motion inspection, temporal masking when isolation is

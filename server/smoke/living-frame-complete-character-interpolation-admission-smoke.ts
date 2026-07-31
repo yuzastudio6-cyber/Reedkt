@@ -137,8 +137,8 @@ const timingRefDraft = {
         role: unit.role,
         frame: [
           0,
-          18,
-          36,
+          8,
+          16,
         ][order]!,
       }),
     ),
@@ -184,8 +184,8 @@ assert.deepEqual(
       unit.requestedMotionSpanFrames,
   ),
   [
-    18,
-    18,
+    8,
+    8,
   ],
 )
 assert.equal(
@@ -196,6 +196,8 @@ assert.equal(
       && unit.route
         .acceptedCompleteKeyposeInputsOnly
       && unit.route.serverOwnedSeedRequired
+      && unit.route
+        .serverDerivedMotionPromptRequired
       && !unit.route
         .callerSeedPromptModelDimensionsPathsUrlsBytesCredentialsCommandsOrEnvironmentAllowed
       && !unit.outputPolicy
@@ -313,8 +315,8 @@ assert.throws(
               ...entry,
               frame: [
                 0,
-                36,
-                18,
+                16,
+                8,
               ][order]!,
             }),
           ),

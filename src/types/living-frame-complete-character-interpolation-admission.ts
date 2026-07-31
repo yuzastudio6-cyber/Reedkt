@@ -64,6 +64,8 @@ export interface LivingFrameCompleteCharacterInterpolationTransitionUnit {
       true
     readonly serverOwnedSeedRequired:
       true
+    readonly serverDerivedMotionPromptRequired:
+      true
     readonly callerSeedPromptModelDimensionsPathsUrlsBytesCredentialsCommandsOrEnvironmentAllowed:
       false
     readonly oneAttemptOnePrivateCandidateOutput:

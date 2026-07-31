@@ -91,9 +91,14 @@ The aggregate audit executes:
    exact two-artifact requirements, the fixed offline request/private
    embedding/no-face-review protocol, measurement-only cosine continuity with
    no identity or threshold authority, and the controlled non-promotable CPU
-   runtime boundary. The real 277,617,978-byte ONNX pair, atomic read-only
-   mount, detector/landmark/embedding inference, privacy/fairness/threshold
-   review, resource evidence, and canonical private review remain required;
+   runtime boundary. When the three exact private input environment variables
+   are injected, the audit also requires canonical repository ingest of the
+   277,617,978-byte ONNX pair, one atomic read-only mount session, real
+   detector/landmark/embedding inference, before/after object verification,
+   and post-inference tamper refusal. Canonical operation/work dispatch,
+   resource/cost evidence, project-calibrated continuity QA,
+   privacy/fairness/threshold review, and canonical private review remain
+   required;
 22. a real Remotion render covering all five Living Frame modes, deliberate
    non-use, multiple depth styles, attention, caption priority, sound, and
    fallbacks;
@@ -120,10 +125,14 @@ The aggregate audit executes:
     measurement, create-only persistence, and review frames; and
 32. the exact temporal-mask work-graph conflict.
 
-These 32 coverage categories currently compile to 39 executable aggregate
-cases. Ten cases execute actual media/runtime work. The AuraFace cases exercise
-the complete non-model contract and controlled CPU boundary but do not count as
-real model inference.
+These 32 coverage categories compile to 39 executable aggregate cases and ten
+actual media/runtime cases when private AuraFace inputs are absent. When all
+three exact private AuraFace inputs are injected, the same aggregate compiles
+to 40 cases and eleven actual media/runtime cases. It then fails closed unless
+the real canonical-repository ingest, atomic read-only mount, detector,
+landmark alignment, 512-dimensional embedding inference, before/after
+verification, and post-inference tamper refusal all pass. A structured skip is
+never accepted as inference evidence.
 
 Every subprocess is bounded, uses the pinned workspace `tsx` executable, and
 returns only an output digest plus structured status to the aggregate receipt.
@@ -323,11 +332,17 @@ pass must still report four open internal runtime gates:
 4. optional AuraFace CPU continuity QA now has exact two-artifact requirements,
    a fixed offline request/private embedding/no-face-review protocol,
    measurement-only deterministic cosine evidence, and a separately metered
-   controlled non-promotable CPU attempt. It still requires the exact
-   277,617,978-byte ONNX pair, a signed/scanned non-root offline image, atomic
-   read-only mounts, real detector/landmark-alignment/embedding inference,
-   private input and output handling, resource/cost evidence,
-   privacy/fairness/threshold owner review, and canonical private review.
+   controlled non-promotable CPU attempt. A prior host-specific proof completed
+   real inference, but its private inputs are intentionally outside Git. With
+   those inputs absent, the aggregate records that fresh reexecution was not
+   admitted. With them injected, it must re-prove the exact 277,617,978-byte
+   ONNX pair, canonical repository ingest, atomic read-only mounts, real
+   detector/landmark-alignment/embedding inference, before/after verification,
+   and tamper refusal. In both states, signed/scanned non-root image admission,
+   canonical operation/work dispatch, private input handling, resource/cost
+   evidence, project-calibrated continuity QA,
+   privacy/fairness/threshold owner review, and canonical private review remain
+   open.
 
 These are genuine internal execution dependencies. They are not waived merely
 because customer release is out of scope. Until all four are resolved, the

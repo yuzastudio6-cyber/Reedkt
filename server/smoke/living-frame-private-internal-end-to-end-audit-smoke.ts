@@ -24,6 +24,18 @@ assert.equal(
   'Private Living Frame audit requires the pinned workspace tsx entrypoint.',
 )
 
+const privateAuraFaceRuntimeEnvironmentVariables = [
+  'REEDITPRO_AURAFACE_EMBEDDING_MODEL_SOURCE',
+  'REEDITPRO_AURAFACE_DETECTOR_MODEL_SOURCE',
+  'REEDITPRO_AURAFACE_FICTIONAL_PORTRAIT_SOURCE',
+] as const
+const privateAuraFaceRuntimeInjected =
+  privateAuraFaceRuntimeEnvironmentVariables.every(
+    (environmentVariable) =>
+      typeof process.env[environmentVariable] === 'string'
+      && process.env[environmentVariable]!.trim().length > 0,
+  )
+
 const cases: readonly AuditCase[] = [
   {
     id: 'parent_skill_and_planning_evidence',
@@ -844,6 +856,56 @@ const cases: readonly AuditCase[] = [
     relativePath:
       'server/smoke/living-frame-auraface-cpu-runtime-smoke.ts',
   },
+  ...(privateAuraFaceRuntimeInjected
+    ? [{
+        id:
+          'auraface_exact_private_model_atomic_mount_and_inference',
+        relativePath:
+          'server/smoke/living-frame-auraface-canonical-mount-host-session-smoke.ts',
+        expectedJsonStatus: 'passed' as const,
+        validate(receipt: Record<string, unknown>) {
+          assert.equal(receipt.modelArtifactCount, 2)
+          assert.equal(
+            receipt.aggregateModelByteLength,
+            277_617_978,
+          )
+          assert.equal(
+            receipt.exactCanonicalRepositoryIngestExecuted,
+            true,
+          )
+          assert.equal(
+            receipt.atomicReadOnlyMountAndInferenceCompleted,
+            true,
+          )
+          assert.equal(
+            receipt.everyObjectVerifiedBeforeAndAfterInference,
+            true,
+          )
+          assert.equal(
+            receipt.faceOutcome,
+            'exactly_one_face_each',
+          )
+          assert.equal(receipt.detectorInferenceExecuted, true)
+          assert.equal(receipt.embeddingInferenceExecuted, true)
+          assert.equal(receipt.referenceEmbeddingDimension, 512)
+          assert.equal(receipt.candidateEmbeddingDimension, 512)
+          assert.equal(receipt.rawPortraitIncluded, false)
+          assert.equal(receipt.embeddingValuesIncluded, false)
+          assert.equal(receipt.callerThresholdAccepted, false)
+          assert.equal(receipt.identityOrLikenessApproved, false)
+          assert.equal(receipt.externalNetworkPerformed, false)
+          assert.equal(receipt.runtimeDownloadPerformed, false)
+          assert.equal(
+            receipt.postInferenceTamperRefusalObserved,
+            true,
+          )
+          assert.equal(receipt.actualCostEvidenceCreated, false)
+          assert.equal(receipt.customerChargeCreated, false)
+          assert.equal(receipt.publicDeliveryCreated, false)
+          assert.equal(receipt.productionReady, false)
+        },
+      }]
+    : []),
   {
     id: 'five_modes_depth_attention_captions_sound_and_fallbacks',
     relativePath:
@@ -1125,6 +1187,11 @@ const runtimeCaseIds = [
   'animation_aware_illustration_component_rig',
   'style_adaptive_flat_and_shallow_2_5d_render',
   'temporal_mask_byte_output_and_measurement',
+  ...(privateAuraFaceRuntimeInjected
+    ? [
+        'auraface_exact_private_model_atomic_mount_and_inference',
+      ]
+    : []),
 ] as const
 for (const runtimeCaseId of runtimeCaseIds) {
   assert.equal(
@@ -1146,6 +1213,9 @@ const receipt = {
     results.filter((result) =>
       result.exitStatus === 0).length,
   actualMediaRuntimeCaseCount: runtimeCaseIds.length,
+  privateAuraFaceRuntimeInjected,
+  privateAuraFaceRuntimeEnvironmentVariableNames:
+    privateAuraFaceRuntimeEnvironmentVariables,
   cases: results,
   verifiedCoverage: [
     'composite_parent_and_mini_skill_contract',
@@ -1173,6 +1243,11 @@ const receipt = {
     'auraface_fixed_offline_request_private_embedding_no_face_review_and_no_identity_decision_protocol',
     'auraface_measurement_only_cosine_continuity_contract_with_no_threshold_or_identity_authority',
     'auraface_separately_metered_controlled_cpu_attempt_user_review_outcome_and_fail_closed_authority_boundary',
+    ...(privateAuraFaceRuntimeInjected
+      ? [
+          'auraface_exact_private_onnx_pair_canonical_repository_ingest_atomic_read_only_mount_real_detector_landmark_alignment_and_embedding_inference_before_after_verification_and_post_inference_tamper_refusal',
+        ]
+      : []),
     'all_five_modes_and_deliberate_non_use',
     'flat_shallow_and_deep_2_5d',
     'focus_handoff_attention_restoration_and_low_risk_occlusion',
@@ -1210,9 +1285,13 @@ const receipt = {
     },
     {
       gate:
-        'auraface_real_cpu_continuity_qa_runtime',
+        privateAuraFaceRuntimeInjected
+          ? 'auraface_canonical_private_continuity_qa_integration'
+          : 'auraface_exact_private_runtime_reexecution_and_canonical_integration',
       reason:
-        'exact_two_artifact_requirements_fixed_offline_runner_protocol_measurement_only_cosine_contract_and_a_separately_metered_controlled_non_promotable_cpu_attempt_are_verified_but_the_exact_277617978_byte_onnx_pair_signed_scanned_nonroot_offline_image_atomic_read_only_mount_real_detector_landmark_alignment_and_embedding_inference_private_input_persistence_resource_cost_receipt_fairness_privacy_threshold_owner_review_and_canonical_private_review_remain_required',
+        privateAuraFaceRuntimeInjected
+          ? 'the_exact_277617978_byte_onnx_pair_canonical_repository_ingest_atomic_read_only_mount_real_detector_landmark_alignment_and_embedding_inference_before_after_verification_and_post_inference_tamper_refusal_are_verified_in_this_run_but_signed_scanned_nonroot_image_admission_canonical_operation_and_work_dispatch_private_reference_candidate_reading_resource_cost_recording_project_calibrated_continuity_qa_privacy_fairness_threshold_owner_review_and_canonical_private_review_remain_required'
+          : 'exact_two_artifact_requirements_fixed_offline_runner_protocol_measurement_only_cosine_contract_and_a_separately_metered_controlled_non_promotable_cpu_attempt_are_verified_and_prior_host_specific_real_inference_is_documented_but_this_aggregate_run_did_not_receive_the_exact_private_277617978_byte_onnx_pair_and_synthetic_portrait_so_fresh_atomic_read_only_mount_real_detector_landmark_alignment_embedding_inference_and_the_remaining_canonical_operation_work_resource_cost_qa_privacy_fairness_threshold_and_private_review_integration_are_not_admitted_by_this_receipt',
     },
   ],
   internalEndToEndReadyForOwnerReview: false,

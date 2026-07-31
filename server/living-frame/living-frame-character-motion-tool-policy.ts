@@ -132,7 +132,7 @@ const RESPONSIBILITIES = [
   {
     owner: 'opentoonz',
     responsibility:
-      'Animate only a deliberately authored clean 2D mesh or cutout with reviewed pivots, hidden artwork, rigidity, stacking, and pose range.',
+      'Animate only a deliberately authored nonliving mechanical 2D object rig with reviewed pivots, hidden artwork, rigidity, stacking, and motion range.',
     permittedInputs: [
       'professionally_authored_2d_rig',
       'fixed_server_owned_scene_adapter',
@@ -142,6 +142,7 @@ const RESPONSIBILITIES = [
     ],
     forbiddenClaims: [
       'automatic_rescue_of_arbitrary_merged_still',
+      'living_or_organic_subject_rigging',
       'new_hidden_anatomy_generation',
       'final_canvas',
     ],
@@ -153,7 +154,7 @@ const RESPONSIBILITIES = [
   {
     owner: 'pixijs',
     responsibility:
-      'Animate rigid editorial components, mechanical parts, particles, atmosphere, routes, masks, and restrained support motion.',
+      'Animate rigid editorial components, vehicle and machine parts, wheels, doors, rotors, particles, atmosphere, routes, masks, and restrained support motion.',
     permittedInputs: [
       'approved_prepared_component',
       'approved_motion_track',
@@ -164,6 +165,7 @@ const RESPONSIBILITIES = [
     ],
     forbiddenClaims: [
       'complex_character_anatomy_deformation',
+      'living_or_organic_subject_rigging',
       'hidden_pixel_invention',
       'final_canvas',
     ],
@@ -175,7 +177,7 @@ const RESPONSIBILITIES = [
   {
     owner: 'blender',
     responsibility:
-      'Animate professionally authored rigs, 3D objects, cameras, environments, or selected non-character 2.5D assets.',
+      'Animate professionally authored nonliving mechanical object rigs, 3D objects, cameras, environments, or selected non-character 2.5D assets.',
     permittedInputs: [
       'professionally_authored_rig_or_scene',
       'fixed_reviewed_adapter',
@@ -185,6 +187,7 @@ const RESPONSIBILITIES = [
     ],
     forbiddenClaims: [
       'generic_still_character_animation',
+      'living_or_organic_subject_rigging',
       'professional_acceptance_of_rejected_airship_puppet',
       'final_canvas',
     ],
@@ -242,6 +245,14 @@ LivingFrameCharacterMotionToolPolicy {
           true,
         independentAiFrameGenerationForbidden:
           true,
+        livingOrOrganicSubjectRiggingForbidden:
+          true,
+        livingOrOrganicSubjectUsesCompleteFramePoseAnimation:
+          true,
+        mechanicalObjectRiggingMayBePlannedOnlyAfterOwnerSpecification:
+          true,
+        unknownSubjectClassificationBlocksRigging:
+          true,
         remotionOwnsFinalCanvas: true,
         masterTimingRemainsCanonical:
           true,
@@ -262,9 +273,13 @@ LivingFrameCharacterMotionToolPolicy {
       ],
       authoredRigAlternatives: {
         openToonz:
-          'only_professionally_authored_2d_mesh_or_cutout',
+          'only_professionally_authored_nonliving_mechanical_2d_object_rig',
         blender:
-          'only_professionally_authored_character_rig_or_non_character_2_5d',
+          'only_professionally_authored_nonliving_mechanical_object_3d_or_2_5d',
+        livingOrOrganicSubject:
+          'rigging_forbidden_use_complete_frame_pose_animation',
+        mechanicalRigSpecification:
+          'pending_explicit_owner_direction',
         arbitraryStillCharacterRigging:
           'forbidden',
       },

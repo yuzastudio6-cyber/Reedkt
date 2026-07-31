@@ -15,6 +15,11 @@ import type {
   LivingFrameCompleteCharacterKeyposeControlledImageBinding,
 } from '../../src/types/living-frame-complete-character-keypose-controlled-image-binding'
 import {
+  LIVING_FRAME_COMPLETE_CHARACTER_KEYPOSE_ACTION_PROMPT_MERGE_EVIDENCE_VERSION,
+  type LivingFrameCompleteCharacterKeyposeActionPromptMergeEvidence,
+  type LivingFrameCompleteCharacterKeyposeActionPromptMergeEvidenceUnit,
+} from '../../src/types/living-frame-complete-character-keypose-action-prompt-binding'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
@@ -80,6 +85,7 @@ interface PrivateActionDirective {
 
 const leases = new WeakSet<object>()
 const consumedLeases = new WeakSet<object>()
+const processBoundMergeEvidence = new WeakSet<object>()
 const privateDirectives = new WeakMap<
   object,
   PrivateActionDirective
@@ -279,8 +285,31 @@ export function createLivingFrameCompleteCharacterKeyposeActionConditionedPrivat
       LivingFrameControlledImageSelectedScenePrivatePromptReaderPort
   },
 ): LivingFrameControlledImageSelectedScenePrivatePromptReaderPort {
+  return createLivingFrameCompleteCharacterKeyposeActionConditionedPrivatePromptReaderWithEvidence(
+    input,
+  ).reader
+}
+
+export function createLivingFrameCompleteCharacterKeyposeActionConditionedPrivatePromptReaderWithEvidence(
+  input: {
+    readonly actionConditioning:
+      LivingFrameCompleteCharacterKeyposePrivateActionConditioning
+    readonly privateActionConditioningLeases:
+      readonly LivingFrameCompleteCharacterKeyposePrivateActionConditioningLease[]
+    readonly baseSelectedSceneReader:
+      LivingFrameControlledImageSelectedScenePrivatePromptReaderPort
+  },
+): {
+  readonly reader:
+    LivingFrameControlledImageSelectedScenePrivatePromptReaderPort
+  readonly readMergeEvidence:
+    () => LivingFrameCompleteCharacterKeyposeActionPromptMergeEvidence
+} {
   assertReaderInput(input)
-  return createLivingFrameControlledImageSelectedScenePrivatePromptReader(
+  let evidence:
+    LivingFrameCompleteCharacterKeyposeActionPromptMergeEvidence | null = null
+  let evidenceRead = false
+  const reader = createLivingFrameControlledImageSelectedScenePrivatePromptReader(
     async (locatorId) => {
       let raw: unknown
       try {
@@ -289,13 +318,38 @@ export function createLivingFrameCompleteCharacterKeyposeActionConditionedPrivat
       } catch {
         throw invalid('reader_failed', '$.baseSelectedSceneReader')
       }
-      return mergeActionConditioning({
+      const merged = mergeActionConditioning({
         raw,
+        locatorId,
         actionConditioning: input.actionConditioning,
         privateActionConditioningLeases:
           input.privateActionConditioningLeases,
       })
+      evidence = merged.evidence
+      return merged.packet
     },
+  )
+  return Object.freeze({
+    reader,
+    readMergeEvidence: () => {
+      if (!evidence || evidenceRead) throw invalid(
+        evidenceRead ? 'reader_failed' : 'reader_invalid',
+        '$.mergeEvidence',
+      )
+      evidenceRead = true
+      return evidence
+    },
+  })
+}
+
+export function isLivingFrameCompleteCharacterKeyposeActionPromptMergeEvidenceProcessBound(
+  value: unknown,
+): value is LivingFrameCompleteCharacterKeyposeActionPromptMergeEvidence {
+  return Boolean(
+    value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && processBoundMergeEvidence.has(value),
   )
 }
 
@@ -460,11 +514,17 @@ function compileUnit(
 
 function mergeActionConditioning(input: {
   readonly raw: unknown
+  readonly locatorId: string
   readonly actionConditioning:
     LivingFrameCompleteCharacterKeyposePrivateActionConditioning
   readonly privateActionConditioningLeases:
     readonly LivingFrameCompleteCharacterKeyposePrivateActionConditioningLease[]
-}): LivingFrameControlledImageSelectedScenePrivatePromptPacket {
+}): {
+  readonly packet:
+    LivingFrameControlledImageSelectedScenePrivatePromptPacket
+  readonly evidence:
+    LivingFrameCompleteCharacterKeyposeActionPromptMergeEvidence
+} {
   const packet = assertPacket(input.raw)
   const conditioning = input.actionConditioning
   if (
@@ -504,6 +564,8 @@ function mergeActionConditioning(input: {
     throw invalid('unit_set_mismatch', '$.conditioningUnits')
   }
   let matched = 0
+  const evidenceUnits:
+    LivingFrameCompleteCharacterKeyposeActionPromptMergeEvidenceUnit[] = []
   const units = packet.units.map((packetUnit, order) => {
     const conditioningUnit =
       unitByRequestId.get(packetUnit.requestUnitId)
@@ -545,25 +607,66 @@ function mergeActionConditioning(input: {
       'conditioning_slot_invalid',
       `$.baseSelectedScenePacket.units.${order}.resolvedSlots`,
     )
+    const positiveSlot = conditioningSlots.find((slot) =>
+      slot.slotKind === 'positive_conditioning_text')!
+    const negativeSlot = conditioningSlots.find((slot) =>
+      slot.slotKind === 'negative_conditioning_text')!
+    const mergedPositive = mergeText(
+      positiveSlot.value,
+      directive.positiveDirective,
+    )
+    const mergedNegative = mergeText(
+      negativeSlot.value,
+      directive.negativeDirective,
+    )
+    evidenceUnits.push({
+      order: conditioningUnit.order,
+      conditioningUnitId:
+        conditioningUnit.conditioningUnitId,
+      conditioningUnitDigestSha256:
+        conditioningUnit.conditioningUnitDigestSha256,
+      selectedSceneRequestUnitId:
+        conditioningUnit.selectedSceneRequestUnitId,
+      selectedSceneRequestUnitDigestSha256:
+        conditioningUnit.selectedSceneRequestUnitDigestSha256,
+      approvedWorkItemId:
+        conditioningUnit.approvedWorkItemId,
+      approvedWorkItemKey:
+        conditioningUnit.approvedWorkItemKey,
+      approvedPlannedAssetManifestEntryId:
+        conditioningUnit.approvedPlannedAssetManifestEntryId,
+      outputKey: conditioningUnit.outputKey,
+      basePositiveConditioningDigestSha256:
+        sha256AuthorityValue(positiveSlot.value),
+      positiveActionDirectiveDigestSha256:
+        conditioningUnit.privateConditioningReceipt
+          .positiveActionDirectiveDigestSha256,
+      mergedPositiveConditioningDigestSha256:
+        sha256AuthorityValue(mergedPositive),
+      baseNegativeConditioningDigestSha256:
+        sha256AuthorityValue(negativeSlot.value),
+      negativeActionDirectiveDigestSha256:
+        conditioningUnit.privateConditioningReceipt
+          .negativeActionDirectiveDigestSha256,
+      mergedNegativeConditioningDigestSha256:
+        sha256AuthorityValue(mergedNegative),
+      rawBaseConditioningIncluded: false,
+      rawActionDirectiveIncluded: false,
+      rawMergedConditioningIncluded: false,
+    })
     return {
       ...packetUnit,
       resolvedSlots: packetUnit.resolvedSlots.map((slot) => {
         if (slot.slotKind === 'positive_conditioning_text') {
           return {
             ...slot,
-            value: mergeText(
-              slot.value,
-              directive.positiveDirective,
-            ),
+            value: mergedPositive,
           }
         }
         if (slot.slotKind === 'negative_conditioning_text') {
           return {
             ...slot,
-            value: mergeText(
-              slot.value,
-              directive.negativeDirective,
-            ),
+            value: mergedNegative,
           }
         }
         return { ...slot }
@@ -573,9 +676,63 @@ function mergeActionConditioning(input: {
   if (matched !== conditioning.conditioningUnits.length) {
     throw invalid('unit_set_mismatch', '$.baseSelectedScenePacket.units')
   }
+  const evidenceDraft = {
+    contractVersion:
+      LIVING_FRAME_COMPLETE_CHARACTER_KEYPOSE_ACTION_PROMPT_MERGE_EVIDENCE_VERSION,
+    evidenceClass:
+      'process_bound_byte_free_action_conditioning_prompt_merge_evidence',
+    mergeState:
+      'exact_private_action_conditioning_merged_into_selected_scene_packet',
+    mergeEvidenceId:
+      `lf-keypose-merge.${sha256AuthorityValue({
+        conditioningDigestSha256:
+          conditioning.conditioningDigestSha256,
+        locatorId: input.locatorId,
+      }).slice(0, 40)}`,
+    serverOwnedLocatorDigestSha256:
+      sha256AuthorityValue(input.locatorId),
+    sourceBindings: {
+      actionConditioningVersion:
+        conditioning.contractVersion,
+      actionConditioningId:
+        conditioning.conditioningId,
+      actionConditioningDigestSha256:
+        conditioning.conditioningDigestSha256,
+      selectedSceneRequestBindingDigestSha256:
+        conditioning.sourceBindings
+          .selectedSceneRequestBindingDigestSha256,
+      approvedSnapshotId:
+        conditioning.sourceBindings.approvedSnapshotId,
+      approvedSnapshotHashSha256:
+        conditioning.sourceBindings
+          .approvedSnapshotHashSha256,
+    },
+    units: evidenceUnits,
+    keyposeUnitCount:
+      evidenceUnits.length as 3 | 4,
+    nonKeyposeSelectedSceneUnitCount:
+      packet.units.length - evidenceUnits.length,
+    everyActionLeaseConsumedExactlyOnce: true,
+    nonKeyposeSelectedSceneUnitsUnchanged: true,
+    rawPromptConditioningAliasImageModelPathUrlBytesCredentialCommandOrEnvironmentIncluded:
+      false,
+    operationRegistered: false,
+    dispatchGranted: false,
+    runtimeExecuted: false,
+    productionReady: false,
+  } as const
+  const evidence = deepFreeze({
+    ...evidenceDraft,
+    mergeEvidenceDigestSha256:
+      sha256AuthorityValue(evidenceDraft),
+  })
+  processBoundMergeEvidence.add(evidence)
   return {
-    ...packet,
-    units,
+    packet: {
+      ...packet,
+      units,
+    },
+    evidence,
   }
 }
 

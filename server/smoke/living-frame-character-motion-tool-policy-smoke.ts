@@ -75,6 +75,45 @@ assert.equal(
   true,
 )
 assert.equal(
+  policy.governingRules
+    .livingOrOrganicSubjectRiggingForbidden,
+  true,
+)
+assert.equal(
+  policy.governingRules
+    .livingOrOrganicSubjectUsesCompleteFramePoseAnimation,
+  true,
+)
+assert.equal(
+  policy.governingRules
+    .mechanicalObjectRiggingMayBePlannedOnlyAfterOwnerSpecification,
+  true,
+)
+assert.equal(
+  policy.authoredRigAlternatives.livingOrOrganicSubject,
+  'rigging_forbidden_use_complete_frame_pose_animation',
+)
+assert.equal(
+  policy.authoredRigAlternatives.mechanicalRigSpecification,
+  'pending_explicit_owner_direction',
+)
+assert.equal(
+  policy.responsibilities.find(
+    (entry) => entry.owner === 'blender',
+  )?.forbiddenClaims.includes(
+    'living_or_organic_subject_rigging',
+  ),
+  true,
+)
+assert.equal(
+  policy.responsibilities.find(
+    (entry) => entry.owner === 'opentoonz',
+  )?.forbiddenClaims.includes(
+    'living_or_organic_subject_rigging',
+  ),
+  true,
+)
+assert.equal(
   policy.ai2dSequence[3],
   'head_intelligence_complete_keypose_visual_acceptance',
 )
@@ -151,6 +190,11 @@ console.log(JSON.stringify({
         entry.owner === 'rife',
     )?.qualificationState,
   visualReviewCount: 3,
+  livingOrOrganicSubjectRiggingForbidden: true,
+  livingSubjectMotionRoute:
+    'complete_frame_pose_animation',
+  mechanicalObjectRiggingSpecification:
+    'pending_owner_direction',
   remotionFinalCanvas: true,
   operationRegistered: false,
   dispatchGranted: false,

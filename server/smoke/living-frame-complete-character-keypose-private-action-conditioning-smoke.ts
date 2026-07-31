@@ -6,9 +6,19 @@ import type {
 import type {
   LivingFrameCompleteCharacterKeyposePrivateActionConditioning,
 } from '../../src/types/living-frame-complete-character-keypose-private-action-conditioning'
+import type {
+  LivingFrameCompleteCharacterKeyposeActionPromptMergeEvidence,
+} from '../../src/types/living-frame-complete-character-keypose-action-prompt-binding'
+import {
+  compileLivingFrameCompleteCharacterKeyposeActionPromptBinding,
+  LivingFrameCompleteCharacterKeyposeActionPromptBindingError,
+  type CreateLivingFrameCompleteCharacterKeyposeActionPromptBindingInput,
+  verifyLivingFrameCompleteCharacterKeyposeActionPromptBinding,
+  verifyLivingFrameCompleteCharacterKeyposeActionPromptMergeEvidence,
+} from '../living-frame/living-frame-complete-character-keypose-action-prompt-binding'
 import {
   compileLivingFrameCompleteCharacterKeyposePrivateActionConditioning,
-  createLivingFrameCompleteCharacterKeyposeActionConditionedPrivatePromptReader,
+  createLivingFrameCompleteCharacterKeyposeActionConditionedPrivatePromptReaderWithEvidence,
   LivingFrameCompleteCharacterKeyposePrivateActionConditioningError,
   type CreateLivingFrameCompleteCharacterKeyposePrivateActionConditioningInput,
   verifyLivingFrameCompleteCharacterKeyposePrivateActionConditioning,
@@ -92,8 +102,8 @@ const baseReader =
       return structuredClone(packet)
     },
   )
-const actionReader =
-  createLivingFrameCompleteCharacterKeyposeActionConditionedPrivatePromptReader({
+const actionReaderWithEvidence =
+  createLivingFrameCompleteCharacterKeyposeActionConditionedPrivatePromptReaderWithEvidence({
     actionConditioning: actionConditioning.receipt,
     privateActionConditioningLeases:
       actionConditioning.privateActionConditioningLeases,
@@ -110,8 +120,68 @@ const materialization =
     fullFrameRatioExtension,
     fullFrameRatioExtensionInput,
     admissionCandidate,
-    reader: actionReader,
+    reader: actionReaderWithEvidence.reader,
   })
+const promptMergeEvidence =
+  actionReaderWithEvidence.readMergeEvidence()
+
+assert.equal(
+  verifyLivingFrameCompleteCharacterKeyposeActionPromptMergeEvidence(
+    promptMergeEvidence,
+  ),
+  true,
+)
+assert.equal(promptMergeEvidence.units.length, 4)
+assert.equal(promptMergeEvidence.nonKeyposeSelectedSceneUnitCount, 1)
+assert.equal(
+  JSON.stringify(promptMergeEvidence).includes(
+    'Action phase role:',
+  ),
+  false,
+)
+
+const promptBindingInput = {
+  promptBindingId:
+    'binding.character-action-keypose-prompts.v1',
+  actionConditioning: actionConditioning.receipt,
+  actionConditioningInput: input,
+  promptMergeEvidence,
+  promptMaterialization: materialization.receipt,
+} as const
+const promptBinding =
+  await compileLivingFrameCompleteCharacterKeyposeActionPromptBinding(
+    promptBindingInput,
+  )
+
+assert.equal(
+  await verifyLivingFrameCompleteCharacterKeyposeActionPromptBinding(
+    promptBinding,
+    promptBindingInput,
+  ),
+  true,
+)
+assert.equal(promptBinding.promptBindingUnits.length, 4)
+assert.equal(
+  promptBinding.metrics.exactPositiveDigestMatchCount,
+  4,
+)
+assert.equal(
+  promptBinding.metrics.exactNegativeDigestMatchCount,
+  4,
+)
+assert.equal(promptBinding.metrics.controlNetUnitCount, 4)
+assert.equal(promptBinding.metrics.genericIpAdapterUnitCount, 4)
+assert.equal(
+  promptBinding.promptBindingUnits.every((unit) =>
+    unit.generationCanvas.widthPixels === 1_024
+    && unit.generationCanvas.heightPixels === 1_024
+    && unit.generationCanvas.finalCanvasCreatedByComfyUi === false),
+  true,
+)
+assert.equal(
+  JSON.stringify(promptBinding).includes('Body mechanics:'),
+  false,
+)
 
 assert.equal(
   materialization.receipt.materializationUnits.length,
@@ -231,7 +301,7 @@ assert.equal(
 )
 
 await assert.rejects(
-  createLivingFrameCompleteCharacterKeyposeActionConditionedPrivatePromptReader({
+  createLivingFrameCompleteCharacterKeyposeActionConditionedPrivatePromptReaderWithEvidence({
       actionConditioning:
         actionConditioning.receipt,
       privateActionConditioningLeases:
@@ -240,10 +310,43 @@ await assert.rejects(
         createLivingFrameControlledImageSelectedScenePrivatePromptReader(
           async () => createPacket(),
         ),
-    }).readCurrentByServerOwnedLocator(
+    }).reader.readCurrentByServerOwnedLocator(
     'locator.character-action-keyposes.v1',
   ),
 )
+
+const forgedMergeEvidence = resignMergeEvidence(
+  promptMergeEvidence,
+  (draft) => {
+    const units = draft.units as Array<Record<string, unknown>>
+    units[0]!.mergedPositiveConditioningDigestSha256 =
+      'f'.repeat(64)
+  },
+)
+assert.equal(
+  verifyLivingFrameCompleteCharacterKeyposeActionPromptMergeEvidence(
+    forgedMergeEvidence,
+  ),
+  true,
+)
+await assertPromptBindingRejectsWith({
+  ...promptBindingInput,
+  promptMergeEvidence: forgedMergeEvidence,
+}, 'prompt_merge_evidence_invalid')
+
+const crossOutputMergeEvidence = resignMergeEvidence(
+  promptMergeEvidence,
+  (draft) => {
+    const units = draft.units as Array<Record<string, unknown>>
+    const firstOutput = units[0]!.outputKey
+    units[0]!.outputKey = units[1]!.outputKey
+    units[1]!.outputKey = firstOutput
+  },
+)
+await assertPromptBindingRejectsWith({
+  ...promptBindingInput,
+  promptMergeEvidence: crossOutputMergeEvidence,
+}, 'prompt_merge_evidence_invalid')
 
 console.log(JSON.stringify({
   smoke:
@@ -262,6 +365,9 @@ console.log(JSON.stringify({
     ),
   privateActionTextExcludedFromReceipt: true,
   actionTextPresentOnlyInPrivatePrompt: true,
+  exactPositivePromptDigestMatches: 4,
+  exactNegativePromptDigestMatches: 4,
+  actionPromptLineageReconciled: true,
   nonKeyposePlateUnchanged: true,
   oneImagePerKeyposeAttempt: true,
   independentPerFrameGeneration: false,
@@ -272,7 +378,7 @@ console.log(JSON.stringify({
   runtimeExecuted: false,
   assetCreated: false,
   productionReady: false,
-  adversarialAssertions: 3,
+  adversarialAssertions: 5,
 }))
 
 function createPacket():
@@ -412,4 +518,41 @@ function resign(
     conditioningDigestSha256:
       sha256AuthorityValue(draft),
   }
+}
+
+function resignMergeEvidence(
+  value:
+    LivingFrameCompleteCharacterKeyposeActionPromptMergeEvidence,
+  mutate: (draft: Record<string, unknown>) => void,
+): LivingFrameCompleteCharacterKeyposeActionPromptMergeEvidence {
+  const draft = structuredClone(value) as unknown as
+    Record<string, unknown>
+  delete draft.mergeEvidenceDigestSha256
+  mutate(draft)
+  return {
+    ...draft,
+    mergeEvidenceDigestSha256:
+      sha256AuthorityValue(draft),
+  } as unknown as
+    LivingFrameCompleteCharacterKeyposeActionPromptMergeEvidence
+}
+
+async function assertPromptBindingRejectsWith(
+  candidate:
+    CreateLivingFrameCompleteCharacterKeyposeActionPromptBindingInput,
+  code: string,
+): Promise<void> {
+  let caught: unknown
+  try {
+    await compileLivingFrameCompleteCharacterKeyposeActionPromptBinding(
+      candidate,
+    )
+  } catch (error) {
+    caught = error
+  }
+  assert.ok(
+    caught instanceof
+      LivingFrameCompleteCharacterKeyposeActionPromptBindingError,
+  )
+  assert.equal(caught.issues[0]?.code, code)
 }

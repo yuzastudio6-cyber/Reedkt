@@ -1,5 +1,5 @@
 export const LIVING_FRAME_CHARACTER_MOTION_TOOL_POLICY_VERSION =
-  'living-frame-character-motion-tool-policy-v1' as const
+  'living-frame-character-motion-tool-policy-v2' as const
 
 export const LIVING_FRAME_CHARACTER_MOTION_TOOL_POLICY_CLASS =
   'server_derived_non_executable_character_motion_tool_policy' as const
@@ -48,6 +48,12 @@ export interface LivingFrameCharacterMotionToolPolicyDraft {
     readonly failedVisualReviewBlocksEveryDownstreamStage: true
     readonly silentToolSubstitutionForbidden: true
     readonly independentAiFrameGenerationForbidden: true
+    readonly livingOrOrganicSubjectRiggingForbidden: true
+    readonly livingOrOrganicSubjectUsesCompleteFramePoseAnimation:
+      true
+    readonly mechanicalObjectRiggingMayBePlannedOnlyAfterOwnerSpecification:
+      true
+    readonly unknownSubjectClassificationBlocksRigging: true
     readonly remotionOwnsFinalCanvas: true
     readonly masterTimingRemainsCanonical: true
   }
@@ -67,9 +73,13 @@ export interface LivingFrameCharacterMotionToolPolicyDraft {
   ]
   readonly authoredRigAlternatives: {
     readonly openToonz:
-      'only_professionally_authored_2d_mesh_or_cutout'
+      'only_professionally_authored_nonliving_mechanical_2d_object_rig'
     readonly blender:
-      'only_professionally_authored_character_rig_or_non_character_2_5d'
+      'only_professionally_authored_nonliving_mechanical_object_3d_or_2_5d'
+    readonly livingOrOrganicSubject:
+      'rigging_forbidden_use_complete_frame_pose_animation'
+    readonly mechanicalRigSpecification:
+      'pending_explicit_owner_direction'
     readonly arbitraryStillCharacterRigging:
       'forbidden'
   }

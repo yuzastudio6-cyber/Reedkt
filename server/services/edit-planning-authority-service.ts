@@ -293,6 +293,7 @@ export function canonicalPlanningHandoffPublicationRequestHash(input: {
   handoffId: string
   handoffHash: string
   body: PublishCanonicalEditPlanBody
+  professionalLongFormSeedDraft?: unknown
 }): string {
   return sha256AuthorityValue({
     operation: 'publish_canonical_plan_from_persisted_handoff',
@@ -301,6 +302,12 @@ export function canonicalPlanningHandoffPublicationRequestHash(input: {
     editSessionId: input.editSessionId,
     handoffId: input.handoffId,
     handoffHash: input.handoffHash,
+    ...(input.professionalLongFormSeedDraft === undefined
+      ? {}
+      : {
+          professionalLongFormSeedDraft:
+            input.professionalLongFormSeedDraft,
+        }),
     planningRequestId: input.body.planningRequestId,
     revisionAuthority: input.body.revisionAuthority,
     canonicalPlan: input.body.canonicalPlan,
@@ -518,6 +525,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           handoffId: planningHandoffBinding.handoffId,
           handoffHash: planningHandoffBinding.handoffHash,
           body,
+          professionalLongFormSeedDraft:
+            input.professionalLongFormSeedDraft,
         }) ||
         planningHandoffBinding.idempotencyKeyHash !==
           canonicalPlanningHandoffIdempotencyKeyHash(idempotencyKey)

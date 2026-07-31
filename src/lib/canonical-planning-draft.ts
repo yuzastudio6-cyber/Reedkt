@@ -472,6 +472,8 @@ export type CanonicalPlanDraft = {
 export type CanonicalPlanningDraft = {
   orderedSourceItems: CanonicalSourceAuthorityItem[]
   components: CanonicalPlanComponentsDraft
+  planningRequestIdSeed: string
+  estimate?: CanonicalPlanDraft['estimate']
   publication?: {
     canonicalPlan: CanonicalPlanDraft
     planningRequestIdSeed: string
@@ -991,6 +993,12 @@ export function buildCanonicalPlanningDraft(input: {
   }
   const canonicalEstimate = buildEstimate(plan)
   if (!canonicalEstimate.ok) publicationBlockers.push(canonicalEstimate.blocker)
+  const planningRequestIdSeed = safeKey(
+    plan.planningInputTrace?.fingerprint ??
+      plan.planningContextTrace?.planningContextId ??
+      'named-edit-plan',
+    'named-edit-plan',
+  )
   const publication = publicationBlockers.length === 0 && canonicalEstimate.ok
     ? {
         canonicalPlan: ideaFirstStorytelling
@@ -1018,7 +1026,7 @@ export function buildCanonicalPlanningDraft(input: {
               },
               controlledDataVizOverlay: controlledDataViz.overlay,
             }),
-        planningRequestIdSeed: safeKey(plan.planningInputTrace?.fingerprint ?? plan.planningContextTrace?.planningContextId ?? 'named-edit-plan', 'named-edit-plan'),
+        planningRequestIdSeed,
       }
     : undefined
 
@@ -1027,6 +1035,10 @@ export function buildCanonicalPlanningDraft(input: {
     draft: {
       orderedSourceItems,
       components,
+      planningRequestIdSeed,
+      ...(canonicalEstimate.ok
+        ? { estimate: structuredClone(canonicalEstimate.estimate) }
+        : {}),
       publication,
       publicationBlockers,
       warnings: publicationBlockers.length > 0

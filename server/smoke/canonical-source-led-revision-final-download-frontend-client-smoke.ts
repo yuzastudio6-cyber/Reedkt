@@ -3,6 +3,10 @@ import { createHash } from 'node:crypto'
 import { createServer } from 'node:http'
 
 import type { CanonicalEditJourney } from '../../src/lib/canonical-edit-journey'
+import {
+  canonicalPlanApprovalReadyForPresentedPlan,
+  recoverCanonicalPresentedPlanIdentity,
+} from '../../src/lib/canonical-plan-approval-readiness'
 import type { ProjectPersistenceScope } from '../../src/lib/project-persistence-scope'
 
 const identity = {
@@ -76,6 +80,25 @@ const acceptedJourney: CanonicalEditJourney = {
     decision: 'accept_private_internal_review',
     decisionStatus: 'private_internal_review_accepted',
   },
+}
+const presentedJourney: CanonicalEditJourney = {
+  identity,
+  stage: 'plan_approval_required',
+  approvalAuthority: {
+    planId: 'plan-exact-review-lifecycle-client-v1',
+    estimateId: 'estimate-exact-review-lifecycle-client-v1',
+    expectedPlanHash: '6'.repeat(64),
+    expectedEstimateHash: '8'.repeat(64),
+  },
+  plan: {
+    version: 1,
+    status: 'presented',
+    estimateStatus: 'presented',
+    maximumCredits: 24,
+    workItemCount: 5,
+  },
+  inspectionOnly: true,
+  testOnly: true,
 }
 
 const originalMode = process.env.VITE_REEDITPRO_API_MODE
@@ -223,6 +246,34 @@ try {
   assert.equal(initialPlan.receipt?.sourceCount, 2)
   assert.equal(initialPlan.receipt?.totalFrames, 480)
   assert.equal(initialPlan.receipt?.captionCueCount, 1)
+  assert.equal(
+    initialPlan.receipt?.publicationProfile,
+    'bounded_private_composition',
+  )
+  const recoveredPresentedPlan =
+    recoverCanonicalPresentedPlanIdentity(presentedJourney)
+  assert.deepEqual(recoveredPresentedPlan, {
+    planId: 'plan-exact-review-lifecycle-client-v1',
+    planVersion: 1,
+    planHash: '6'.repeat(64),
+  })
+  assert.equal(
+    canonicalPlanApprovalReadyForPresentedPlan({
+      backendConnected: true,
+      journey: presentedJourney,
+      publicationStatus: 'plan_published_waiting_for_approval',
+      presentedPlan: recoveredPresentedPlan,
+      visibleMaximumCredits: 24,
+    }),
+    true,
+  )
+  assert.equal(
+    recoverCanonicalPresentedPlanIdentity({
+      ...presentedJourney,
+      stage: 'approved_snapshot_available',
+    }),
+    undefined,
+  )
   assert.equal(requests.length, 1)
   assert.equal(requests[0]?.method, 'POST')
   assert.equal(
@@ -428,6 +479,7 @@ function sourceLedPlanPresentationFixture(): Record<string, unknown> {
       browserPlanAccepted: false,
       browserTimingAccepted: false,
       sourceRangePolicy: 'preserve_every_verified_source_frame',
+      publicationProfile: 'bounded_private_composition',
       confirmedAspectRatio: '16:9',
       sourceCount: 2,
       totalFrames: 480,

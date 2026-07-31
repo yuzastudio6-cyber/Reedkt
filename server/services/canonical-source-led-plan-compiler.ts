@@ -1,7 +1,10 @@
 import type { ApprovedEditExecutionUploadedMediaSourceAssetClientInput } from '../../src/lib/approved-edit-execution-package-client'
 import {
   buildCanonicalPlanningDraft,
+  CANONICAL_PRIVATE_PLAN_SCHEMA_VERSION,
+  type CanonicalPlanDraft,
   type CanonicalPlanningDraft,
+  type CanonicalWorkItemDraft,
 } from '../../src/lib/canonical-planning-draft'
 import { createGuidedEditPlan } from '../../src/lib/guided-edit-planner'
 import type {
@@ -14,6 +17,10 @@ import type {
 } from '../../src/types/reeditpro'
 import { createAudioPipelinePlan } from '../../src/lib/audio-pipeline-planner'
 import { createColorPipelinePlan } from '../../src/lib/color-pipeline-planner'
+import {
+  PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS,
+  PROFESSIONAL_LONG_FORM_MINIMUM_SECONDS,
+} from '../edit-architecture/professional-long-form-object-execution-plan'
 import type {
   EditBriefMarkerRecord,
   EditBriefRecord,
@@ -26,6 +33,11 @@ export interface CanonicalSourceLedPlanCompilation {
   plannerInput: PlannerInput
   plan: EditPlan
   canonicalDraft: CanonicalPlanningDraft
+  professionalLongFormPublication?: {
+    canonicalPlan: CanonicalPlanDraft
+    planningRequestIdSeed: string
+    replacedCapacityBlockers: string[]
+  }
   evidence: {
     sourceMetadataAuthority: 'server_reverified_finalized_upload_ffprobe'
     editDirectionAuthority: 'server_reverified_chat_preferences_and_optional_edit_brief'
@@ -37,6 +49,9 @@ export interface CanonicalSourceLedPlanCompilation {
     totalFrames: number
     fps: typeof SOURCE_LED_FPS
     captionCueCount: number
+    publicationProfile:
+      | 'bounded_private_composition'
+      | 'professional_long_form_object_controller'
   }
 }
 
@@ -208,7 +223,16 @@ export function compileCanonicalSourceLedPlan(input: {
       `Server-owned source-led plan compilation failed: ${canonical.errors.join(' | ')}`,
     )
   }
-  if (!canonical.draft.publication) {
+  const professionalLongFormPublication =
+    canonical.draft.publication
+      ? undefined
+      : buildProfessionalLongFormPublicationCandidate({
+          draft: canonical.draft,
+          sourceCount: input.sourceMediaAssets.length,
+          totalFrames,
+          fps: SOURCE_LED_FPS,
+        })
+  if (!canonical.draft.publication && !professionalLongFormPublication) {
     throw new Error(
       `Server-owned source-led plan is not publishable: ${canonical.draft.publicationBlockers.join(' | ')}`,
     )
@@ -224,6 +248,9 @@ export function compileCanonicalSourceLedPlan(input: {
     },
     plan,
     canonicalDraft: canonical.draft,
+    ...(professionalLongFormPublication
+      ? { professionalLongFormPublication }
+      : {}),
     evidence: {
       sourceMetadataAuthority: 'server_reverified_finalized_upload_ffprobe',
       editDirectionAuthority:
@@ -236,7 +263,125 @@ export function compileCanonicalSourceLedPlan(input: {
       totalFrames,
       fps: SOURCE_LED_FPS,
       captionCueCount: captions.length,
+      publicationProfile: professionalLongFormPublication
+        ? 'professional_long_form_object_controller'
+        : 'bounded_private_composition',
     },
+  }
+}
+
+function buildProfessionalLongFormPublicationCandidate(input: {
+  draft: CanonicalPlanningDraft
+  sourceCount: number
+  totalFrames: number
+  fps: typeof SOURCE_LED_FPS
+}): CanonicalSourceLedPlanCompilation['professionalLongFormPublication'] {
+  const durationSeconds = input.totalFrames / input.fps
+  if (
+    input.sourceCount < 2 ||
+    durationSeconds < PROFESSIONAL_LONG_FORM_MINIMUM_SECONDS ||
+    durationSeconds > PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS ||
+    !input.draft.estimate ||
+    input.draft.publicationBlockers.length === 0 ||
+    !input.draft.publicationBlockers.every(
+      isProfessionalLongFormCapacityBlocker,
+    )
+  ) {
+    return undefined
+  }
+
+  const sourceSequenceItemIds = input.draft.components.sourceSequence.map(
+    (source) => source.sourceSequenceItemId,
+  )
+  const sourceCleanupDecisionIds =
+    input.draft.components.sourceCleanupPlan.decisions.map(
+      (decision) => decision.decisionId,
+    )
+  return {
+    canonicalPlan: {
+      schemaVersion: CANONICAL_PRIVATE_PLAN_SCHEMA_VERSION,
+      components: structuredClone(input.draft.components),
+      estimate: structuredClone(input.draft.estimate),
+      workItems: [
+        professionalLongFormAuthorityPreflight({
+          workItemKey: 'long-form-snapshot-preflight',
+          workItemType: 'validate_approved_snapshot',
+          operation: 'validate_long_form_snapshot_seed_manifest',
+          outputKey: 'long-form-snapshot-preflight-evidence',
+          sourceSequenceItemIds: [],
+          sourceCleanupDecisionIds: [],
+        }),
+        professionalLongFormAuthorityPreflight({
+          workItemKey: 'long-form-source-authority-preflight',
+          workItemType: 'custom',
+          operation: 'validate_long_form_source_range_authority',
+          outputKey: 'long-form-source-authority-preflight-evidence',
+          sourceSequenceItemIds,
+          sourceCleanupDecisionIds,
+        }),
+        professionalLongFormAuthorityPreflight({
+          workItemKey: 'long-form-estimate-frame-preflight',
+          workItemType: 'custom',
+          operation: 'validate_long_form_4k_estimate_and_frame_authority',
+          outputKey: 'long-form-estimate-frame-preflight-evidence',
+          sourceSequenceItemIds: [],
+          sourceCleanupDecisionIds: [],
+        }),
+      ],
+    },
+    planningRequestIdSeed: input.draft.planningRequestIdSeed,
+    replacedCapacityBlockers: [...input.draft.publicationBlockers],
+  }
+}
+
+function isProfessionalLongFormCapacityBlocker(blocker: string): boolean {
+  return blocker ===
+      'The first private long-form profile supports at most 1,920 approved frames; a larger profile requires source-slice and distributed merge evidence.' ||
+    /^The approved range for source [1-8] exceeds the current 240-frame source-operation ceiling and requires chunk render, QA, and merge evidence\.$/u
+      .test(blocker)
+}
+
+function professionalLongFormAuthorityPreflight(input: {
+  workItemKey: string
+  workItemType: 'validate_approved_snapshot' | 'custom'
+  operation: string
+  outputKey: string
+  sourceSequenceItemIds: string[]
+  sourceCleanupDecisionIds: string[]
+}): CanonicalWorkItemDraft {
+  return {
+    workItemKey: input.workItemKey,
+    workItemType: input.workItemType,
+    workerClass: 'authority_worker',
+    executionInput: {
+      operation: input.operation,
+      executionAuthorized: false,
+    },
+    sourceSequenceItemIds: input.sourceSequenceItemIds,
+    sourceCleanupDecisionIds: input.sourceCleanupDecisionIds,
+    expectedOutputs: [{
+      outputKey: input.outputKey,
+      artifactType: 'authority_validation_evidence',
+      assetRole: 'qa',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: 'application/json',
+      segmentIds: [],
+      timingIds: [],
+      rendererLayerIds: [],
+    }],
+    dependencyKeys: [],
+    approvedToolIds: [],
+    providerExecutionMode: 'none',
+    fallbackPolicy: {
+      policy: 'block_before_long_form_child_derivation',
+      automaticFallbackAuthorized: false,
+    },
+    maxAttempts: 1,
+    attemptTimeoutSeconds: 300,
+    scheduledDelaySeconds: 0,
+    maximumCreditBudget: 0,
+    required: true,
   }
 }
 

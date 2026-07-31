@@ -179,7 +179,10 @@ import { ChatMessageList } from './ChatMessageList'
 import { ChatThread } from './ChatThread'
 import { CanonicalJourneyStatusCard } from './CanonicalJourneyStatusCard'
 import { CanonicalPlanReviewController } from './CanonicalPlanReviewController'
-import { canonicalPlanApprovalReadyForPresentedPlan } from '../../lib/canonical-plan-approval-readiness'
+import {
+  canonicalPlanApprovalReadyForPresentedPlan,
+  recoverCanonicalPresentedPlanIdentity,
+} from '../../lib/canonical-plan-approval-readiness'
 import {
   CleanupSetup,
   FrameSetup,
@@ -2247,7 +2250,8 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const planningContextApprovalBlockedReason = contextAwarePlanResult?.planningContext.status === 'blocked'
     ? 'Resolve blocking Planning Context issues before approving credits or starting the review edit.'
     : ''
-  const planningContextReadyForApproval = Boolean(contextAwarePlanResult) && !planningContextApprovalBlockedReason
+  const localPlanningContextReadyForApproval =
+    Boolean(contextAwarePlanResult) && !planningContextApprovalBlockedReason
   const sourceLedCaptionRevisionPresentedPlan =
     canonicalSourceLedCaptionRevision.result?.status === 'ready'
       ? {
@@ -2264,14 +2268,26 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       : undefined
   const canonicalPresentedPlan =
     canonicalPlanningPublication.result?.presentedPlan ??
-    sourceLedCaptionRevisionPresentedPlan
+    sourceLedCaptionRevisionPresentedPlan ??
+    recoverCanonicalPresentedPlanIdentity(canonicalJourneyValue)
   const canonicalPublicationStatus =
     canonicalPlanningPublication.result?.status ??
     (
       sourceLedCaptionRevisionPresentedPlan
         ? 'plan_published_waiting_for_approval'
-        : undefined
+        : canonicalPresentedPlan
+          ? 'plan_published_waiting_for_approval'
+          : undefined
     )
+  const recoveredCanonicalPlanPresentation =
+    canonicalPlanningBackendConnected &&
+    !canonicalPlanningPublication.result?.presentedPlan &&
+    !sourceLedCaptionRevisionPresentedPlan &&
+    Boolean(recoverCanonicalPresentedPlanIdentity(canonicalJourneyValue))
+  const planningContextReadyForApproval =
+    canonicalPlanningBackendConnected
+      ? Boolean(canonicalPresentedPlan)
+      : localPlanningContextReadyForApproval
   const visiblePlanEstimateCredits =
     canonicalPlanningBackendConnected &&
     canonicalJourneyValue?.plan
@@ -5488,7 +5504,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             onReviseSetup={handleReviseSetupFromPlanReview}
             planApproval={canonicalPlanningBackendConnected ? canonicalPlanApproval : undefined}
             plan={plan}
-            planningPublication={canonicalPlanningBackendConnected ? canonicalPlanningPublication : undefined}
+            planningPublication={
+              canonicalPlanningBackendConnected &&
+              !recoveredCanonicalPlanPresentation
+                ? canonicalPlanningPublication
+                : undefined
+            }
             planningContextBlockedReason={planningContextApprovalBlockedReason}
             planningContextReady={planningContextReadyForApproval}
             replacementPlanPresentationVerified={Boolean(
@@ -6101,7 +6122,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
               onReviseSetup={handleReviseSetupFromPlanReview}
               planApproval={canonicalPlanningBackendConnected ? canonicalPlanApproval : undefined}
               plan={plan}
-              planningPublication={canonicalPlanningBackendConnected ? canonicalPlanningPublication : undefined}
+              planningPublication={
+                canonicalPlanningBackendConnected &&
+                !recoveredCanonicalPlanPresentation
+                  ? canonicalPlanningPublication
+                  : undefined
+              }
               planningContextBlockedReason={planningContextApprovalBlockedReason}
               planningContextReady={planningContextReadyForApproval}
               replacementPlanPresentationVerified={Boolean(

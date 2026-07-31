@@ -477,6 +477,8 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
           handoffId: handoff.handoffId,
           handoffHash: handoff.handoffHash,
           body: canonicalPublishBody,
+          professionalLongFormSeedDraft:
+            body.professionalLongFormSeedDraft,
         })
         const idempotencyKeyHash = canonicalPlanningHandoffIdempotencyKeyHash(
           normalizedIdempotencyKey,
@@ -515,6 +517,8 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
           idempotencyKey: normalizedIdempotencyKey,
           requestPath,
           livingFrameSelectedScenePublication,
+          professionalLongFormSeedDraft:
+            body.professionalLongFormSeedDraft,
           planningHandoffBinding: {
             schemaVersion: 'canonical-planning-handoff-publication-binding-v1',
             handoffId: handoff.handoffId,

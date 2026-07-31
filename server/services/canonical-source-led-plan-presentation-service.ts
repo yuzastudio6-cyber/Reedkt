@@ -21,6 +21,9 @@ import { createCanonicalPlanningHandoffService } from './canonical-planning-hand
 import {
   compileCanonicalSourceLedPlan,
 } from './canonical-source-led-plan-compiler'
+import {
+  buildCanonicalSourceLedProfessionalLongFormSeedDraft,
+} from './canonical-source-led-professional-long-form-publication'
 import { createProjectService } from './project-service'
 import {
   readPlanningExactEditPreferenceAuthority,
@@ -256,7 +259,9 @@ export function createCanonicalSourceLedPlanPresentationService(
           { cause: error },
         )
       }
-      const publication = compiled.canonicalDraft.publication
+      const publication =
+        compiled.canonicalDraft.publication ??
+        compiled.professionalLongFormPublication
       if (!publication) {
         throw new ApiError(
           'JOB_DEPENDENCY_NOT_READY',
@@ -281,13 +286,14 @@ export function createCanonicalSourceLedPlanPresentationService(
       publication.canonicalPlan.components.compiledIntent =
         structuredClone(compiledIntentWithChatAuthority)
 
+      const canonicalPlanComponents = canonicalPlanComponentsSchema.parse(
+        compiled.canonicalDraft.components,
+      )
       const handoff = await createCanonicalPlanningHandoffService(context).prepare({
         workspaceId: access.workspaceId,
         purpose: 'prepare_canonical_planning_handoff',
         orderedSourceItems: compiled.canonicalDraft.orderedSourceItems,
-        canonicalPlanComponents: canonicalPlanComponentsSchema.parse(
-          compiled.canonicalDraft.components,
-        ),
+        canonicalPlanComponents,
         projectId,
         editSessionId,
       })
@@ -295,6 +301,27 @@ export function createCanonicalSourceLedPlanPresentationService(
         publishCanonicalEditPlanSchema.shape.canonicalPlan.parse(
           publication.canonicalPlan,
         )
+      const professionalLongFormSeedDraft =
+        compiled.professionalLongFormPublication
+          ? buildCanonicalSourceLedProfessionalLongFormSeedDraft({
+              workspaceId: access.workspaceId,
+              projectId,
+              editSessionId,
+              planningRequestId: publication.planningRequestIdSeed,
+              components: canonicalPlanComponents,
+              sourceObjects: selectedSources.map(
+                ({ mediaAsset, storageObject }) => ({
+                  sourceSequenceItemId: mediaAsset.id,
+                  mediaAssetId: mediaAsset.id,
+                  storageProvider: storageObject.storageProvider,
+                  generation: storageObject.generation,
+                  region: storageObject.region,
+                  sizeBytes: storageObject.sizeBytes,
+                  checksumSha256: storageObject.checksumSha256,
+                }),
+              ),
+            })
+          : undefined
       const presentation =
         await createCanonicalPlanPresentationCoordinatorService(context).present({
           workspaceId: access.workspaceId,
@@ -304,6 +331,9 @@ export function createCanonicalSourceLedPlanPresentationService(
           projectId,
           editSessionId,
           handoffId: handoff.handoffId,
+          ...(professionalLongFormSeedDraft
+            ? { professionalLongFormSeedDraft }
+            : {}),
         })
 
       return {
@@ -349,7 +379,9 @@ export function createCanonicalSourceLedPlanPresentationService(
         warnings: [
           ...compiled.canonicalDraft.warnings,
           ...presentation.warnings,
-          'This bounded server planner preserves every verified source frame and supports only exact confirmed captions.',
+          compiled.professionalLongFormPublication
+            ? 'This professional long-form source-led plan preserves every verified source frame and delegates chunk derivation, QA, and merge authority to the existing post-approval controller.'
+            : 'This bounded server planner preserves every verified source frame and supports only exact confirmed captions.',
         ],
         testOnly: true as const,
       }

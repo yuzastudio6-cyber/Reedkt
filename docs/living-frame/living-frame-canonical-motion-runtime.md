@@ -19,7 +19,7 @@ The canonical bridge is:
 selected Living Frame scene
 → exact five-phase MasterTiming binding
 → terminal approved component lineage
-→ canonical-living-frame-motion-spec-v2
+→ canonical-living-frame-motion-spec-v3
 → existing prepare_remotion_layer work item
 → tool-free layer-manifest artifact
 → existing final Remotion overlay binding
@@ -97,7 +97,7 @@ MasterTiming retains two related ranges with different responsibilities:
 - the Living Frame layer exists only for the shorter visual range spanning
   `activate → demonstrate → resolve`.
 
-The v2 motion spec does not collapse those authorities into one range. It
+The v3 motion spec does not collapse those authorities into one range. It
 requires `prepare.end` to equal visual start, `activate` to equal the reveal
 interval, `demonstrate` to equal the hold interval, `resolve` to equal the exit
 interval, and `settle.start` to equal visual end.
@@ -108,6 +108,26 @@ and the final included visual frame. The canonical 30 FPS integration fixture
 therefore keeps the full segment at `0..150`, the visual layer at `12..72`,
 and emits absolute keyframes `[12, 16, 20, 64, 68, 71]`. Remotion never expands
 the layer into the prepare or settle padding.
+
+## Component-selective derivation
+
+The v3 compiler does not broadcast a scene verb to every layer. It combines
+the selected component's role, focal role, linked active mini skills, Semantic
+Scale guard, and visual verb:
+
+- source A-roll, background plates, static anchors, masks/occluders,
+  atmosphere, contact shadows, and environmental-effect holders do not receive
+  generic layer transforms;
+- Focus Handoff source blur is emitted only by the source A-roll component;
+- virtual-camera tracks are emitted once from the focal-primary component;
+- literal map/data scale remains fixed;
+- position and scale require a matching linked motion activation; and
+- rotation requires the exact eligible role and activation, never only a scene
+  verb.
+
+Environmental particles remain a separate typed primitive/fallback path.
+Mechanical rigging is owner-paused and cannot be admitted from the generic
+scalar compiler.
 
 ## Rendering behavior
 

@@ -72,7 +72,7 @@ assert.equal(
 )
 assert.equal(
   audit.nextRequiredMilestone,
-  'component_role_activation_selective_motion_derivation',
+  'attention_semantic_scale_camera_and_soundsync_integration',
 )
 assert.equal(audit.operationRegistered, false)
 assert.equal(audit.dispatchGranted, false)

@@ -157,9 +157,9 @@ assert.equal(
 )
 assert.deepEqual(canonicalMotionSpecs, canonicalMotionBefore)
 assert.equal(reconciliation.metrics.unitCount, 5)
-assert.equal(reconciliation.metrics.exactMatchCount, 2)
-assert.equal(reconciliation.metrics.blockedCount, 3)
-assert.equal(reconciliation.metrics.rotationTrackCount, 5)
+assert.equal(reconciliation.metrics.exactMatchCount, 4)
+assert.equal(reconciliation.metrics.blockedCount, 1)
+assert.equal(reconciliation.metrics.rotationTrackCount, 2)
 assert.equal(
   reconciliation.metrics
     .expectedMechanicalRotationComponentCount,
@@ -167,7 +167,7 @@ assert.equal(
 )
 assert.equal(
   reconciliation.metrics.unexpectedRotationComponentCount,
-  3,
+  0,
 )
 assert.equal(
   reconciliation.metrics
@@ -185,11 +185,11 @@ assert.equal(
 assert.equal(
   reconciliation
     .canonicalSceneVerbBroadcastConflictObserved,
-  true,
+  false,
 )
 assert.equal(
   reconciliation.staticAnchorRotationConflictObserved,
-  true,
+  false,
 )
 assert.equal(
   reconciliation.environmentalMotionRuntimeGapObserved,
@@ -230,18 +230,18 @@ assert.equal(
 )
 assert.equal(
   background.reconciliationStatus,
-  'blocked_unselected_component_rotation',
+  'exact_role_activation_match',
 )
 assert.equal(
   background.observationCodes.includes(
     'static_anchor_receives_mechanical_rotation',
   ),
-  true,
+  false,
 )
 assert.equal(
   background.requiredCanonicalCorrection
     .removeMechanicalRotation,
-  true,
+  false,
 )
 assert.equal(
   background.requiredCanonicalCorrection
@@ -257,11 +257,11 @@ assert.equal(
 )
 assert.equal(
   body.reconciliationStatus,
-  'blocked_unselected_component_rotation',
+  'exact_role_activation_match',
 )
 assert.equal(
   body.requiredCanonicalCorrection.removeMechanicalRotation,
-  true,
+  false,
 )
 
 for (
@@ -313,7 +313,7 @@ assert.equal(
 )
 assert.equal(
   downwash.reconciliationStatus,
-  'blocked_environmental_component_receives_mechanical_rotation',
+  'blocked_environmental_motion_runtime_unsupported',
 )
 assert.equal(
   downwash.observationCodes.includes(
@@ -324,6 +324,145 @@ assert.equal(
 assert.equal(
   downwash.requiredCanonicalCorrection
     .requireEnvironmentalPrimitiveOrApprovedFallback,
+  true,
+)
+
+const activeARoll = fixtures.hormuzLivingARoll
+const activeScene = activeARoll.scenePlans[0]!
+const activeMasterTimingPlan = {
+  id: 'master-timing.active-a-roll-selective-motion',
+}
+const activeMasterTimingDigestSha256 =
+  sha256AuthorityValue(activeMasterTimingPlan)
+const activeBindingDigestSha256 = sha256AuthorityValue({
+  selectedComponent: activeARoll.contractDigestSha256,
+  sceneId: activeScene.sceneId,
+})
+const activePublication = {
+  binding: {
+    identity: {
+      workspaceId: 'workspace.active-a-roll-motion',
+      projectId: 'project.active-a-roll-motion',
+      editSessionId: 'edit.active-a-roll-motion',
+    },
+    sourceBindings: {
+      confirmedOutputFrameDigestSha256:
+        activeARoll.inputBindings.outputFrame
+          .expectedDigestSha256,
+      currentMasterTimingDigestSha256:
+        activeMasterTimingDigestSha256,
+    },
+    selectedComponent: activeARoll,
+    bindingDigestSha256: activeBindingDigestSha256,
+  },
+  admission: {},
+  semanticPlanProjection: {},
+} as unknown as CanonicalLivingFrameSelectedScenePublication
+const activeTimingDraft = {
+  sourceBindings: {
+    selectedSceneBindingDigestSha256:
+      activeBindingDigestSha256,
+    currentMasterTimingDigestSha256:
+      activeMasterTimingDigestSha256,
+    confirmedOutputFrameDigestSha256:
+      sha256AuthorityValue(outputFrame),
+  },
+  fps: 30,
+  scenes: [{
+    sceneId: activeScene.sceneId,
+    segmentFrameRange: {
+      startFrame: 0,
+      endFrameExclusive: 150,
+      durationFrames: 150,
+    },
+    semanticPhaseBindings: [
+      phase('prepare', 0, 15),
+      phase('activate', 15, 30),
+      phase('demonstrate', 30, 105),
+      phase('resolve', 105, 135),
+      phase('settle', 135, 150),
+    ],
+    visualTiming: {
+      frameRange: {
+        startFrame: 15,
+        endFrameExclusive: 135,
+        durationFrames: 120,
+      },
+      revealFrames: 15,
+      holdFrames: 75,
+      exitFrames: 30,
+    },
+  }],
+}
+const activeTimingBinding = {
+  ...activeTimingDraft,
+  timingBindingDigestSha256:
+    sha256AuthorityValue(activeTimingDraft),
+} as unknown as CanonicalLivingFrameTimingBinding
+const activeComponents = {
+  masterTimingPlan: activeMasterTimingPlan,
+  confirmedSettings: components.confirmedSettings,
+} as unknown as CanonicalPlanComponentsInput
+const activeMotionSpecs = activeScene.components.map(
+  (component) => compileCanonicalLivingFrameMotionSpec({
+    publication: activePublication,
+    timingBinding: activeTimingBinding,
+    components: activeComponents,
+    sceneId: activeScene.sceneId,
+    componentId: component.componentId,
+  }),
+)
+assert.equal(
+  activeMotionSpecs.flatMap((spec) => spec.tracks)
+    .filter((track) =>
+      track.property === 'rotation_degrees').length,
+  0,
+)
+const sourceARollSpec = activeSpec('hormuz.a-roll')
+assert.deepEqual(
+  sourceARollSpec.tracks
+    .filter((track) => track.target === 'layer')
+    .map((track) => track.property),
+  ['opacity'],
+)
+assert.equal(
+  sourceARollSpec.tracks.filter((track) =>
+    track.target === 'source'
+    && track.property === 'blur_pixels').length,
+  1,
+)
+assert.equal(
+  sourceARollSpec.tracks.find((track) =>
+    track.target === 'layer'
+    && track.property === 'opacity')
+    ?.keyframes.every((keyframe) => keyframe.value === 1),
+  true,
+)
+const exactMapSpec = activeSpec('hormuz.map')
+assert.equal(
+  exactMapSpec.tracks.find((track) =>
+    track.target === 'layer'
+    && track.property === 'scale_uniform')
+    ?.keyframes.every((keyframe) => keyframe.value === 1),
+  true,
+)
+assert.equal(
+  exactMapSpec.tracks.some((track) =>
+    track.target === 'layer'
+    && track.property === 'position_x_normalized'),
+  true,
+)
+const subjectMaskSpec = activeSpec('hormuz.subject-mask')
+assert.deepEqual(
+  subjectMaskSpec.tracks
+    .filter((track) => track.target === 'layer')
+    .map((track) => track.property),
+  ['opacity'],
+)
+assert.equal(
+  subjectMaskSpec.tracks[0]?.keyframes.every(
+    (keyframe) => keyframe.value === 1,
+  ),
   true,
 )
 
@@ -421,7 +560,7 @@ const forgedUnitRoot = forgedUnit as unknown as {
   }>
 }
 forgedUnitRoot.units[0]!.requiredCanonicalCorrection
-  .removeMechanicalRotation = false
+  .removeMechanicalRotation = true
 assert.equal(
   await verifyLivingFrameSelectedSceneSelectiveMotionReconciliation(
     forgedUnit,
@@ -472,6 +611,10 @@ process.stdout.write(
         .unexpectedRotationComponentCount,
     environmentalRuntimeGapCount:
       reconciliation.metrics.environmentalRuntimeGapCount,
+    activeARollComponentCount: activeMotionSpecs.length,
+    activeARollRotationTrackCount: 0,
+    staticSourceAndMaskTransformsProtected: true,
+    exactMapLiteralScalePreserved: true,
     canonicalMotionMutated:
       reconciliation
         .canonicalSelectedSceneOrMotionInterfaceMutated,
@@ -484,6 +627,14 @@ function unit(componentId: string) {
   const match = reconciliation.units.find(
     (candidate) =>
       candidate.componentId === componentId,
+  )
+  assert(match)
+  return match
+}
+
+function activeSpec(componentId: string) {
+  const match = activeMotionSpecs.find(
+    (candidate) => candidate.componentId === componentId,
   )
   assert(match)
   return match

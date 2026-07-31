@@ -10,10 +10,10 @@ import type {
 } from './living-frame-deterministic-motion'
 
 export const CANONICAL_LIVING_FRAME_MOTION_SPEC_VERSION =
-  'canonical-living-frame-motion-spec-v2' as const
+  'canonical-living-frame-motion-spec-v3' as const
 
 export const CANONICAL_LIVING_FRAME_MOTION_PROFILE =
-  'approved_visual_interval_scalar_keyframe_choreography_v2' as const
+  'component_role_activation_selective_visual_interval_choreography_v3' as const
 
 export const CANONICAL_LIVING_FRAME_DEPTH_STYLES = [
   'flat',

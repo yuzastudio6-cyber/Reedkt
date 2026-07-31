@@ -1365,8 +1365,8 @@ function validateCanonicalLivingFrameMotionSpec(value) {
     'Living Frame motion sceneEndFrameExclusive',
   )
   if (
-    spec.schemaVersion !== 'canonical-living-frame-motion-spec-v2' ||
-    spec.motionProfileId !== 'approved_visual_interval_scalar_keyframe_choreography_v2' ||
+    spec.schemaVersion !== 'canonical-living-frame-motion-spec-v3' ||
+    spec.motionProfileId !== 'component_role_activation_selective_visual_interval_choreography_v3' ||
     sceneEndFrameExclusive <= sceneStartFrame ||
     sceneEndFrameExclusive - sceneStartFrame > 18_000 ||
     ![

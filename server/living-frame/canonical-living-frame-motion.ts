@@ -1,5 +1,6 @@
 import type {
   LivingFrameComponentPlan,
+  LivingFrameMiniSkillKey,
   LivingFrameScenePlan,
   LivingFrameTimingPhase,
   LivingFrameVisualVerb,
@@ -641,6 +642,18 @@ function deriveTrackIntents(input: {
     (typeof CANONICAL_LIVING_FRAME_DEPTH_STYLES)[number]
 }): MotionTrackIntent[] {
   const { scene, component } = input
+  const linkedMiniSkillKeys = new Set(
+    scene.skillActivations
+      .filter((activation) =>
+        activation.decision !== 'do_not_use'
+        && activation.linkedComponentIds.includes(
+          component.componentId,
+        ))
+      .map((activation) => activation.miniSkillKey),
+  )
+  const hasLinkedMiniSkill = (
+    ...keys: readonly LivingFrameMiniSkillKey[]
+  ) => keys.some((key) => linkedMiniSkillKeys.has(key))
   const subtle = scene.decision === 'use_subtle'
     || scene.importance === 'support'
   const semanticScale =
@@ -651,29 +664,67 @@ function deriveTrackIntents(input: {
     || semanticScale?.mode === 'data_proportional'
     || component.role === 'exact_map_component'
     || component.role === 'exact_data_component'
+    || component.capabilityKeys.includes('exact_map_rendering')
+    || component.capabilityKeys.includes('exact_data_graphics')
+  const transformProtected =
+    component.focalRole === 'static_anchor'
+    || component.role === 'source_a_roll'
+    || component.role === 'opaque_background_plate'
+    || component.role === 'reconstructed_background_plate'
+    || component.role === 'foreground_occluder'
+    || component.role === 'contact_shadow'
+    || component.role === 'atmosphere'
+    || component.role === 'environmental_effect'
+  const layerLifecycleMotionSelected =
+    !transformProtected
+    && hasLinkedMiniSkill(
+      'narrative_illustration',
+      'editorial_motion',
+      'path_motion',
+      'state_change_motion',
+      'visual_orbit',
+      'semantic_scale',
+      'mechanical_part_motion',
+    )
+  const scaleMotionSelected =
+    !transformProtected
+    && (
+      semanticScale != null
+      || hasLinkedMiniSkill(
+        'editorial_motion',
+        'state_change_motion',
+        'path_motion',
+        'visual_orbit',
+      )
+    )
+  const positionMotionSelected =
+    !transformProtected
+    && hasLinkedMiniSkill(
+      'editorial_motion',
+      'path_motion',
+      'state_change_motion',
+      'visual_orbit',
+    )
+  const mechanicalRotationSelected =
+    scene.visualVerb === 'rotate'
+    && component.role === 'mechanical_component'
+    && hasLinkedMiniSkill('mechanical_part_motion')
   const scale = preserveLiteralScale
     ? [1, 1, 1, 1, 1, 1] as const
     : scaleValues(scene.visualVerb, subtle)
-  const x = horizontalValues(scene.visualVerb, subtle)
-  const y = verticalValues(scene.visualVerb, subtle)
+  const x = positionMotionSelected
+    ? horizontalValues(scene.visualVerb, subtle)
+    : [0, 0, 0, 0, 0, 0] as const
+  const y = positionMotionSelected
+    ? verticalValues(scene.visualVerb, subtle)
+    : [0, 0, 0, 0, 0, 0] as const
   const tracks: MotionTrackIntent[] = [{
     target: 'layer',
     property: 'opacity',
     role: 'primary',
-    values: [0, 0.18, 1, 1, 0.76, 0],
-    easings: [
-      'ease_out_quad',
-      'ease_in_out_cubic',
-      'hold',
-      'settle_out',
-      'ease_in_out_cubic',
-      'hold',
-    ],
-  }, {
-    target: 'layer',
-    property: 'scale_uniform',
-    role: 'primary',
-    values: scale,
+    values: layerLifecycleMotionSelected
+      ? [0, 0.18, 1, 1, 0.76, 0]
+      : [1, 1, 1, 1, 1, 1],
     easings: [
       'ease_out_quad',
       'ease_in_out_cubic',
@@ -683,6 +734,22 @@ function deriveTrackIntents(input: {
       'hold',
     ],
   }]
+  if (scaleMotionSelected) {
+    tracks.push({
+      target: 'layer',
+      property: 'scale_uniform',
+      role: 'primary',
+      values: scale,
+      easings: [
+        'ease_out_quad',
+        'ease_in_out_cubic',
+        'hold',
+        'settle_out',
+        'ease_in_out_cubic',
+        'hold',
+      ],
+    })
+  }
   if (x.some((value) => value !== 0)) {
     tracks.push({
       target: 'layer',
@@ -701,7 +768,7 @@ function deriveTrackIntents(input: {
       easings: standardEasings(),
     })
   }
-  if (scene.visualVerb === 'rotate') {
+  if (mechanicalRotationSelected) {
     tracks.push({
       target: 'layer',
       property: 'rotation_degrees',
@@ -724,7 +791,7 @@ function deriveTrackIntents(input: {
       ],
     })
   }
-  if (input.depthStyle !== 'flat') {
+  if (input.depthStyle !== 'flat' && !transformProtected) {
     tracks.push({
       target: 'layer',
       property: 'shadow_opacity',
@@ -742,6 +809,7 @@ function deriveTrackIntents(input: {
         || method === 'local_contrast_expectation'))
   if (
     focusHandoff
+    && component.role === 'source_a_roll'
     && (
       scene.mode === 'living_a_roll'
       || scene.mode === 'hybrid_expansion'
@@ -763,7 +831,11 @@ function deriveTrackIntents(input: {
       event.methods.includes(
         'light_emphasis_expectation',
       ))
-  if (lightEmphasis) {
+  if (
+    lightEmphasis
+    && component.componentId ===
+      scene.focalPrimaryComponentId
+  ) {
     tracks.push({
       target: 'layer',
       property: 'light_intensity',
@@ -774,6 +846,8 @@ function deriveTrackIntents(input: {
   }
   const cameraRequested =
     input.depthStyle !== 'flat'
+    && component.componentId ===
+      scene.focalPrimaryComponentId
     && (
       scene.skillActivations.some((activation) =>
         activation.miniSkillKey ===

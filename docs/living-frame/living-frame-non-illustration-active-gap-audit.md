@@ -8,7 +8,7 @@ interpolation, and rigging cases that the owner has paused. Those cases remain
 research evidence but cannot make the amended goal green.
 
 The machine-readable audit is
-`living-frame-non-illustration-readiness-audit-v2`.
+`living-frame-non-illustration-readiness-audit-v3`.
 
 ## Current Strengths
 
@@ -25,6 +25,9 @@ The active scope already has verified source contracts for:
 - a general non-character professional-review gate that separates technical
   execution from visual acceptance, requires full playback and sampled-frame
   inspection, and blocks downstream use until repair/reinspection succeeds.
+- canonical motion v3 source derivation that assigns layer/source/camera tracks
+  by component role and linked activation, protects static/source/mask layers,
+  and preserves literal map/data scale.
 
 Recorded private fixtures cover all five modes, confirmed portrait/custom
 frames, a safe-space A-roll fallback, deterministic diagram reveal, archive
@@ -35,9 +38,10 @@ called professionally accepted.
 
 ## Active Blocking Gaps
 
-1. Correct canonical motion derivation so component role and mini-skill
-   activation choose tracks. A scene-level `rotate` verb must not rotate every
-   component, static anchor, or environmental layer.
+1. Reconcile canonical motion v3 at the backend one-writer boundary and bind
+   its digest through admitted work, manifest, renderer, QA, and review. The
+   feature source and active A-roll regression are green; shared canonical
+   consumption is not yet complete.
 2. Bind semantic sound triggers into canonical StoryTiming and SoundSync with
    exact attention identity, motion lineage, hit, envelope, asset, mix,
    narration protection, snapshot, work, and review evidence.
@@ -75,13 +79,13 @@ constraints, hidden geometry, or a rig.
 
 ## Implementation Order
 
-1. Component-selective motion correction and regression.
-2. Attention, Semantic Scale, camera, and exact SoundSync integration.
-3. Temporal A-roll masking plus fallback parity.
-4. Exact map/archive/diagram/hybrid work and artifact lineage.
-5. Caption boundary reconciliation.
-6. Active-scope aggregate.
-7. Representative renders, Head Intelligence inspection, local repair, and
+1. Attention, Semantic Scale, camera, and exact SoundSync integration while the
+   canonical owner reconciles motion v3.
+2. Temporal A-roll masking plus fallback parity.
+3. Exact map/archive/diagram/hybrid work and artifact lineage.
+4. Caption boundary reconciliation.
+5. Active-scope aggregate.
+6. Representative renders, Head Intelligence inspection, local repair, and
    final private internal review.
 
 No step grants provider, dispatch, billing, public-delivery, or production

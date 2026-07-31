@@ -8,13 +8,13 @@ import type {
 } from './living-frame-canonical-motion'
 
 export const LIVING_FRAME_SELECTED_SCENE_SELECTIVE_MOTION_RECONCILIATION_VERSION =
-  'living-frame-selected-scene-selective-motion-reconciliation-v1' as const
+  'living-frame-selected-scene-selective-motion-reconciliation-v2' as const
 
 export const LIVING_FRAME_SELECTED_SCENE_SELECTIVE_MOTION_RECONCILIATION_CLASS =
   'server_derived_read_only_component_role_activation_motion_reconciliation_candidate' as const
 
 export const LIVING_FRAME_SELECTED_SCENE_SELECTIVE_MOTION_RECONCILIATION_STATE =
-  'canonical_scene_verb_broadcast_observed_component_selective_motion_integration_pending' as const
+  'component_role_activation_selective_motion_derived_environmental_and_downstream_integration_pending' as const
 
 export const LIVING_FRAME_SELECTED_SCENE_SELECTIVE_MOTION_RECONCILIATION_STATUSES = [
   'exact_role_activation_match',
@@ -28,8 +28,6 @@ export type LivingFrameSelectedSceneSelectiveMotionReconciliationStatus =
   (typeof LIVING_FRAME_SELECTED_SCENE_SELECTIVE_MOTION_RECONCILIATION_STATUSES)[number]
 
 export const LIVING_FRAME_SELECTED_SCENE_SELECTIVE_MOTION_RECONCILIATION_OPEN_GATES = [
-  'canonical_motion_derivation_must_be_component_role_and_activation_aware',
-  'canonical_static_anchor_rotation_broadcast_must_be_removed',
   'canonical_environmental_motion_primitive_or_approved_fallback_required',
   'canonical_component_rig_pivot_binding_required_before_rotation_render',
   'canonical_work_graph_motion_admission_binding_required',
@@ -115,7 +113,8 @@ export interface LivingFrameSelectedSceneSelectiveMotionReconciliationUnit {
       readonly CanonicalLivingFrameRenderableMotionProperty[]
     readonly currentRotationTrackCount: number
     readonly currentParticleEmissionTrackCount: 0
-    readonly sceneVisualVerbAppliedAtComponentCompiler: true
+    readonly componentRoleAndLinkedActivationAppliedAtCompiler: true
+    readonly sceneVisualVerbAppliedOnlyWhenRoleActivationEligible: true
   }
   readonly observationCodes:
     readonly LivingFrameSelectedSceneSelectiveMotionObservation[]

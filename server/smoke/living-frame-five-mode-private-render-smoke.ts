@@ -1257,9 +1257,9 @@ function motionSpec(input: {
   const draft:
     CanonicalLivingFrameMotionSpecDraft = {
       schemaVersion:
-        'canonical-living-frame-motion-spec-v2',
+        'canonical-living-frame-motion-spec-v3',
       motionProfileId:
-        'approved_visual_interval_scalar_keyframe_choreography_v2',
+        'component_role_activation_selective_visual_interval_choreography_v3',
       sceneId: input.sceneId,
       componentId: input.componentId,
       sceneStartFrame:

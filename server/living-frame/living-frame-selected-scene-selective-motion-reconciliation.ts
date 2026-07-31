@@ -418,7 +418,10 @@ function compileUnit(input: {
           track.property),
       currentRotationTrackCount: rotationTracks.length,
       currentParticleEmissionTrackCount: 0 as const,
-      sceneVisualVerbAppliedAtComponentCompiler: true as const,
+      componentRoleAndLinkedActivationAppliedAtCompiler:
+        true as const,
+      sceneVisualVerbAppliedOnlyWhenRoleActivationEligible:
+        true as const,
     },
     observationCodes,
     reconciliationStatus,

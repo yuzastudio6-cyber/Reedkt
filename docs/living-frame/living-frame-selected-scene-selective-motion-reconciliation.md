@@ -11,24 +11,17 @@ Living Frame animates meaningful components, not every object in a scene. A
 scene-level visual verb is narrative direction; it is not permission to apply
 that transform to every component.
 
-The current canonical scalar motion compiler receives one component at a time
-but derives rotation from the scene-level `visualVerb`. In a scene whose verb
-is `rotate`, the current compiler therefore creates a rotation track for:
-
-- static background anchors;
-- stable primary subjects;
-- mechanical components that should rotate; and
-- environmental effects that require particles or another environmental
-  treatment.
-
-That behavior contradicts the approved component roles and mini-skill
-activations.
+The canonical v3 scalar motion compiler now receives one component at a time
+and derives its tracks from that component's role, focal role, exact linked
+mini-skill activations, factual scale guard, and scene visual verb. A scene verb
+can influence only a component whose role and activation make that motion
+eligible.
 
 ## Reconciliation rule
 
-`living-frame-selected-scene-selective-motion-reconciliation-v1` independently
-recompiles every current canonical component motion spec and compares it with
-the selected scene's component role and linked mini-skill activations.
+`living-frame-selected-scene-selective-motion-reconciliation-v2` independently
+recompiles every canonical v3 component motion spec and compares it with the
+selected scene's component role and linked mini-skill activations.
 
 Mechanical rotation is allowed only when:
 
@@ -47,22 +40,27 @@ The reconciliation does not choose exact rotational speed, direction,
 acceleration, blur, particle density, or fallback. Those remain canonical
 motion/style decisions bound to MasterTiming, the component rig, and review.
 
-## Representative finding
+## Representative regression
 
-The five-component selective mechanical-motion fixture currently produces:
+The historical five-component mechanical-motion fixture now produces:
 
 | Component role | Current rotation | Required disposition |
 | --- | ---: | --- |
-| Static background anchor | yes | remove rotation |
-| Stable primary subject | yes | remove rotation |
+| Static background anchor | no | correct |
+| Stable primary subject | no | correct |
 | Mechanical component A | yes | retain, subject to rig pivot |
 | Mechanical component B | yes | retain, subject to rig pivot |
-| Environmental effect | yes | remove rotation; add qualified environmental primitive or fallback |
+| Environmental effect | no | qualified environmental primitive or fallback still required |
 
-The reconciliation observes five rotation tracks, while only two components
-are eligible for mechanical rotation. It therefore blocks downstream
-selective-motion admission for the three divergent components without
-modifying the current specs.
+The reconciliation now observes exactly two rotation tracks, both on the two
+eligible components. It detects no scene-verb broadcast or static-anchor
+rotation. The environmental component remains blocked only because its
+qualified procedural primitive/fallback is a separate downstream contract.
+
+An active non-character Living A-Roll regression also proves that the source
+plate and temporal subject-mask geometry remain transform-stable, exact map
+scale remains literal, and no component receives a rotation track merely from
+the scene-level visual direction.
 
 ## Component-rig boundary
 
@@ -115,18 +113,19 @@ This candidate:
 
 ## Canonical-owner continuation
 
-At the canonical motion boundary:
+At the remaining canonical boundaries:
 
-1. derive per-component tracks from component role plus linked activation;
-2. remove mechanical rotation from unselected and static components;
-3. retain required mechanical rotation only for explicitly activated
-   mechanical components;
-4. bind those rotations to approved component-rig pivots before rendering;
-5. route environmental motion to a qualified primitive or approved fallback;
-6. preserve the five semantic MasterTiming phases;
-7. preserve SoundSync and Caption Direction ownership; and
-8. add private-review evidence proving the intended component moves while
-   the anchors remain stable.
+1. keep the v3 role/activation-selective scalar compiler and regression;
+2. route environmental motion to its qualified primitive or approved fallback;
+3. preserve the five semantic MasterTiming phases;
+4. preserve SoundSync and Caption Direction ownership;
+5. bind the v3 motion digest into admitted work/manifest/renderer lineage; and
+6. add active non-character private-review evidence proving that only intended
+   components move while anchors and protected geometry remain stable.
+
+Mechanical rigging is paused by the owner. The historical mechanical portion
+of this regression remains negative/compatibility evidence and cannot authorize
+active work or count toward active Living Frame completion.
 
 ## Files
 

@@ -465,9 +465,9 @@ CanonicalLivingFrameMotionSpec {
   const draft:
     CanonicalLivingFrameMotionSpecDraft = {
       schemaVersion:
-        'canonical-living-frame-motion-spec-v2',
+        'canonical-living-frame-motion-spec-v3',
       motionProfileId:
-        'approved_visual_interval_scalar_keyframe_choreography_v2',
+        'component_role_activation_selective_visual_interval_choreography_v3',
       sceneId:
         'living-frame-scene-subject-neutral',
       componentId:
@@ -577,9 +577,9 @@ function createDeepMultiplaneMotionSpec(
   const draft:
     CanonicalLivingFrameMotionSpecDraft = {
       schemaVersion:
-        'canonical-living-frame-motion-spec-v2',
+        'canonical-living-frame-motion-spec-v3',
       motionProfileId:
-        'approved_visual_interval_scalar_keyframe_choreography_v2',
+        'component_role_activation_selective_visual_interval_choreography_v3',
       sceneId:
         'living-frame-scene-deep-multiplane',
       componentId: options.componentId,

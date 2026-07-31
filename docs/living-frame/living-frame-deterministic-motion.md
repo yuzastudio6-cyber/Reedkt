@@ -48,7 +48,7 @@ authority remains false.
 
 The canonical work-graph adapter now rereads the selected scene,
 MasterTimingPlan, output frame, and terminal component lineage before compiling
-the narrower `canonical-living-frame-motion-spec-v2` admitted by the private
+the narrower `canonical-living-frame-motion-spec-v3` admitted by the private
 Remotion runtime. This generic bundle remains non-promotable on its own. Stale
 or caller-authored frame values fail closed at the canonical adapter.
 

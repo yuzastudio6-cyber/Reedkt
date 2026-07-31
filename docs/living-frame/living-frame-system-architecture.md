@@ -1433,7 +1433,7 @@ plan authority and the existing private Remotion service remains the only
 future execution boundary.
 
 This broad profile candidate remains non-executable on its own. The narrower
-`canonical-living-frame-motion-spec-v2` now admits a closed scalar subset after
+`canonical-living-frame-motion-spec-v3` now admits a closed scalar subset after
 canonical planning freezes selected scene, component, output-frame, and exact
 MasterTiming lineage. The existing offline Remotion protocol executes that
 subset only with committed RGBA artifacts and the existing private review
@@ -2043,7 +2043,7 @@ reconciliation algorithm.
 The earlier `living-frame-remotion-motion-sample-binding-v1` remains a
 non-executable planning/reconciliation primitive. The canonical work graph now
 adds the narrower executable bridge that was previously missing:
-`canonical-living-frame-motion-spec-v2`.
+`canonical-living-frame-motion-spec-v3`.
 
 For every admitted Living Frame layer, the server rereads the selected scene,
 the exact five MasterTiming semantic phases, the confirmed output frame, and
@@ -3199,11 +3199,11 @@ existing rembg and Sharp items. Remotion remains the final canvas.
 ### Per-component selective-motion reconciliation
 
 The scene visual verb expresses narrative direction; it is not a blanket
-component transform. The current canonical scalar compiler applies
-`rotation_degrees` whenever the scene verb is `rotate`, including for
-components that are not linked to `mechanical_part_motion`.
+component transform. Canonical motion v3 derives transforms from component
+role, focal role, linked active mini skills, factual scale guards, and the
+scene verb together.
 
-`living-frame-selected-scene-selective-motion-reconciliation-v1` now
+`living-frame-selected-scene-selective-motion-reconciliation-v2` now
 independently recompiles every current component spec and compares it with the
 selected component role and linked mini-skill activations. Mechanical rotation
 is eligible only for an explicitly activated `mechanical_component`. Static
@@ -3212,11 +3212,12 @@ Environmental effects linked to `environmental_motion` require a qualified
 environmental primitive or approved fallback and may not inherit mechanical
 rotation.
 
-The representative five-component scene currently yields five rotation
-tracks, but only two components meet the role/activation rule. The
-reconciliation freezes that exact shared-owner conflict without changing the
-selected scene or canonical motion. Retained rotations still require approved
-component-rig pivots and pivot-physics QA before renderer admission.
+The representative five-component regression now yields exactly two rotation
+tracks, both on the eligible components. Static anchors, stable subjects, and
+environmental effects receive no scene-verb rotation. Environmental motion
+remains separately gated on a qualified primitive or approved fallback.
+Mechanical rigging remains owner-paused and this compatibility evidence cannot
+authorize it.
 
 ### Selected-scene environmental particle admission
 

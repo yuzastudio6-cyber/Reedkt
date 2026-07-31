@@ -74,12 +74,13 @@ const REQUIREMENTS = [
       'component_role_activation_selective_motion_derivation',
     status: 'canonical_owner_reconciliation_pending',
     evidenceRefs: [
-      'living-frame-selected-scene-selective-motion-reconciliation-v1',
+      'living-frame-selected-scene-selective-motion-reconciliation-v2',
+      'canonical-living-frame-motion-spec-v3',
     ],
     remainingWork: [
-      'derive_tracks_from_component_role_and_linked_activation',
-      'remove_scene_verb_rotation_broadcast',
-      'preserve_static_anchors_and_environmental_component_semantics',
+      'reconcile_motion_v3_at_canonical_backend_one_writer_boundary',
+      'bind_motion_v3_digest_through_work_manifest_renderer_and_review',
+      'retain_environmental_primitive_as_separate_typed_artifact_path',
     ],
     blocks: true,
   }),
@@ -299,7 +300,7 @@ export function compileLivingFrameNonIllustrationReadinessAudit(
       },
       activePrivateInternalReady: false,
       nextRequiredMilestone:
-        'component_role_activation_selective_motion_derivation',
+        'attention_semantic_scale_camera_and_soundsync_integration',
       pausedIllustrationAnimationCanResumeWithoutNewOwnerSpecification:
         false,
       pausedMechanicalRiggingCanResumeWithoutNewOwnerSpecification:

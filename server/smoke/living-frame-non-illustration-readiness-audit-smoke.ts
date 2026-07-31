@@ -72,7 +72,7 @@ assert.equal(
 )
 assert.equal(
   audit.nextRequiredMilestone,
-  'attention_semantic_scale_camera_and_soundsync_integration',
+  'canonical_attention_renderer_and_soundsync_owner_reconciliation',
 )
 assert.equal(audit.operationRegistered, false)
 assert.equal(audit.dispatchGranted, false)

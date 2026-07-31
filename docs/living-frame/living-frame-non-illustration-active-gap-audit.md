@@ -8,7 +8,7 @@ interpolation, and rigging cases that the owner has paused. Those cases remain
 research evidence but cannot make the amended goal green.
 
 The machine-readable audit is
-`living-frame-non-illustration-readiness-audit-v3`.
+`living-frame-non-illustration-readiness-audit-v4`.
 
 ## Current Strengths
 
@@ -28,6 +28,12 @@ The active scope already has verified source contracts for:
 - canonical motion v3 source derivation that assigns layer/source/camera tracks
   by component role and linked activation, protects static/source/mask layers,
   and preserves literal map/data scale.
+- an exact attention/SoundSync handoff candidate that maps attention events to
+  canonical semantic-phase ranges, resolves focus and motion emphasis through
+  motion-v3 lineage, preserves literal/data scale, requests local contrast from
+  the canonical renderer without silently substituting blur, and gives
+  SoundSync semantic trigger and motion lineage without claiming exact cue or
+  mix authority.
 
 Recorded private fixtures cover all five modes, confirmed portrait/custom
 frames, a safe-space A-roll fallback, deterministic diagram reveal, archive
@@ -42,9 +48,10 @@ called professionally accepted.
    its digest through admitted work, manifest, renderer, QA, and review. The
    feature source and active A-roll regression are green; shared canonical
    consumption is not yet complete.
-2. Bind semantic sound triggers into canonical StoryTiming and SoundSync with
-   exact attention identity, motion lineage, hit, envelope, asset, mix,
-   narration protection, snapshot, work, and review evidence.
+2. Have the canonical SoundSync owner consume the new versioned semantic cue
+   request and return exact start/hit/end frames, envelope, asset provenance,
+   gain/pan/spatial treatment, narration protection, snapshot, work, renderer,
+   audio-QA, and private-review lineage. The preferred hit is a candidate only.
 3. Close advanced temporal Living A-Roll masking through the hardened SAM2
    contract, real L4 evidence, create-only persistence, and measured edge,
    temporal, coverage, and contact-object QA. Keep safe-space fallback active.
@@ -79,8 +86,9 @@ constraints, hidden geometry, or a rig.
 
 ## Implementation Order
 
-1. Attention, Semantic Scale, camera, and exact SoundSync integration while the
-   canonical owner reconciles motion v3.
+1. Canonical renderer and SoundSync reconciliation for the versioned
+   attention/Semantic Scale/camera/SoundSync handoff while the canonical owner
+   reconciles motion v3.
 2. Temporal A-roll masking plus fallback parity.
 3. Exact map/archive/diagram/hybrid work and artifact lineage.
 4. Caption boundary reconciliation.

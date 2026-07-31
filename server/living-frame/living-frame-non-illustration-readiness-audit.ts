@@ -90,11 +90,12 @@ const REQUIREMENTS = [
     status: 'canonical_owner_reconciliation_pending',
     evidenceRefs: [
       'living-frame-semantic-sound-timing-reconciliation-v1',
+      'living-frame-attention-soundsync-integration-v1',
     ],
     remainingWork: [
-      'carry_semantic_trigger_identity_and_motion_lineage',
-      'resolve_exact_hit_envelope_asset_mix_and_narration_protection',
-      'persist_storytiming_soundsync_snapshot_and_work_lineage',
+      'canonical_soundsync_owner_consume_semantic_request',
+      'return_exact_start_hit_end_envelope_asset_mix_and_narration_protection',
+      'persist_storytiming_snapshot_work_asset_renderer_qa_and_review_lineage',
     ],
     blocks: true,
   }),
@@ -300,7 +301,7 @@ export function compileLivingFrameNonIllustrationReadinessAudit(
       },
       activePrivateInternalReady: false,
       nextRequiredMilestone:
-        'attention_semantic_scale_camera_and_soundsync_integration',
+        'canonical_attention_renderer_and_soundsync_owner_reconciliation',
       pausedIllustrationAnimationCanResumeWithoutNewOwnerSpecification:
         false,
       pausedMechanicalRiggingCanResumeWithoutNewOwnerSpecification:

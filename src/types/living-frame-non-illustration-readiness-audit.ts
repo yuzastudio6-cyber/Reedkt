@@ -1,5 +1,5 @@
 export const LIVING_FRAME_NON_ILLUSTRATION_READINESS_AUDIT_VERSION =
-  'living-frame-non-illustration-readiness-audit-v3' as const
+  'living-frame-non-illustration-readiness-audit-v4' as const
 
 export const LIVING_FRAME_NON_ILLUSTRATION_READINESS_AUDIT_CLASS =
   'server_derived_source_only_non_illustration_end_to_end_gap_audit' as const
@@ -86,7 +86,7 @@ export interface LivingFrameNonIllustrationReadinessAuditDraft {
   }
   readonly activePrivateInternalReady: false
   readonly nextRequiredMilestone:
-    'attention_semantic_scale_camera_and_soundsync_integration'
+    'canonical_attention_renderer_and_soundsync_owner_reconciliation'
   readonly pausedIllustrationAnimationCanResumeWithoutNewOwnerSpecification:
     false
   readonly pausedMechanicalRiggingCanResumeWithoutNewOwnerSpecification:

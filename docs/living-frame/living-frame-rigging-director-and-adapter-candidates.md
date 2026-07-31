@@ -233,9 +233,13 @@ all 60 frames at 1920×1080. Independent QA observes transparent RGBA, gray mask
 The representative full run takes about 34.5 seconds and peaks near 637 MB;
 the sampled preview takes about 3.6 seconds and peaks near 331 MB.
 
-This is partial qualification only. Zero-network confinement, an offline
-non-root worker image, canonical work admission, private persistence/reread,
-resource/cost ownership, broader fixtures, and private review remain open.
+This is partial qualification only. The exact selected Musashi scene now also
+has create-only persistence/reread, independent sampled alpha/mask/depth and
+rig-motion QA, four real bounded Remotion review renders, exact 60-frame
+packaging, and create-only private review persistence/reread. Canonical work
+admission, manifest reconciliation, QA/review approval, zero-network offline
+non-root worker evidence, resource/cost ownership, and broader fixtures remain
+open.
 
 The inspected OpenToonz 1.8.0 macOS package is unsigned and x86_64-only. It
 cannot execute on the current ARM64 host without Rosetta, so it remains
@@ -271,6 +275,8 @@ Public contracts:
 - `src/types/living-frame-rigging-adapter-candidate.ts`
 - `src/types/living-frame-rig-action.ts`
 - `src/types/living-frame-blender-fixed-adapter-internal-test.ts`
+- `src/types/living-frame-blender-rig-component-qa-internal-test.ts`
+- `src/types/living-frame-blender-selected-scene-remotion-review-internal-test.ts`
 
 Server compilers:
 
@@ -279,7 +285,10 @@ Server compilers:
 - `server/living-frame/living-frame-rigging-adapter-candidate.ts`
 - `server/living-frame/living-frame-rig-action.ts`
 - `server/living-frame/living-frame-blender-fixed-adapter-internal-test.ts`
+- `server/living-frame/living-frame-blender-rig-component-qa-internal-test.ts`
+- `server/living-frame/living-frame-blender-selected-scene-remotion-review-internal-test.ts`
 - `server/living-frame/runtime/living-frame-blender-fixed-adapter.py`
+- `server/living-frame/runtime/living-frame-blender-exr-qa.py`
 
 Regression:
 
@@ -287,11 +296,14 @@ Regression:
 npm run smoke:living-frame-rigging-v2
 npm run smoke:living-frame-rig-action
 npm run smoke:living-frame-blender-fixed-adapter-private-internal-test
+npm run smoke:living-frame-blender-selected-scene-private-persistence-internal-test
+npm run smoke:living-frame-blender-selected-scene-private-review-internal-test
 ```
 
 The regression covers native mechanical, OpenToonz flat-2D, and Blender
 advanced-2.5D routing, deterministic replay, fixed-adapter materialization, and
 adversarial authority, lineage, code-injection, rig-relationship, route, and
 final-canvas substitutions. The private Blender regression additionally
-executes the real fixed adapter and measures full-frame RGBA, mask, depth,
-timing, action, memory, and performance evidence.
+executes the real fixed adapter, reopens the persisted component files, and
+measures full-frame RGBA, mask, depth, timing, action, memory, motion,
+restoration, destination composition, and private-review evidence.

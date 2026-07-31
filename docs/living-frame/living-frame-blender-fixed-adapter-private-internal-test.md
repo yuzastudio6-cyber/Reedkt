@@ -191,10 +191,15 @@ The follow-on selected-scene internal milestone now proves exact approved
 snapshot, selected Musashi scene, confirmed-frame, MasterTiming, and planned
 work lineage; a process-bound single-use adapter output lease; the complete
 60-frame RGBA/mask/depth sequence; create-only private persistence; exact
-reread; and a second single-use persisted-artifact lease. It deliberately
-does not mutate the canonical asset manifest or grant canonical QA, review,
-cost, dispatch, or production authority. See
-`docs/living-frame/living-frame-blender-selected-scene-private-persistence-internal-test.md`.
+reread; a second single-use persisted-artifact lease; independent sampled
+alpha/mask/depth and rig-motion QA; a third single-use RGBA-sequence lease;
+four real bounded Remotion compositions; exact 60-frame FFmpeg packaging; and
+create-only private review persistence/reread. It deliberately does not mutate
+the canonical asset manifest or grant canonical QA, review, cost, dispatch, or
+production authority. See
+`docs/living-frame/living-frame-blender-selected-scene-private-persistence-internal-test.md`
+and
+`docs/living-frame/living-frame-blender-selected-scene-private-review-internal-test.md`.
 
 ## Regression
 
@@ -202,6 +207,7 @@ cost, dispatch, or production authority. See
 npm run smoke:living-frame-rig-action
 npm run smoke:living-frame-blender-fixed-adapter-private-internal-test
 npm run smoke:living-frame-blender-selected-scene-private-persistence-internal-test
+npm run smoke:living-frame-blender-selected-scene-private-review-internal-test
 ```
 
 The aggregate private Living Frame audit includes this real runtime case but

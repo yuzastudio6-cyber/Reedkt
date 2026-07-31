@@ -118,8 +118,10 @@ The internal chain still requires canonical-owner reconciliation for:
 - estimate, work-graph, and asset-manifest projection;
 - a pinned offline non-root, zero-network worker image;
 - canonical work admission and idempotent worker execution;
-- rig, deformation, alpha, mask, depth, temporal, and destination QA;
-- private Remotion review;
+- canonical rig, deformation, alpha, mask, depth, temporal, and destination QA
+  approval;
+- canonical reconciliation of the now-passing private component QA and
+  Remotion review evidence;
 - canonical resource and actual tool-cost receipts; and
 - broader character, topology, mechanical-object, and failure fixtures.
 
@@ -130,5 +132,9 @@ out of scope.
 
 ```text
 npm run smoke:living-frame-blender-selected-scene-private-persistence-internal-test
+npm run smoke:living-frame-blender-selected-scene-private-review-internal-test
 npm run smoke:living-frame-private-internal-end-to-end-audit
 ```
+
+The next measured stage is documented in
+`docs/living-frame/living-frame-blender-selected-scene-private-review-internal-test.md`.

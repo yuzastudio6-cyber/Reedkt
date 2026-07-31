@@ -449,13 +449,20 @@ scene/component, approved snapshot, confirmed 1920×1080 frame, MasterTiming
 visual range, planned rig work, rig plan, and rig action to the fixed adapter.
 It renders the complete 60-frame RGBA/mask/depth sequence, consumes the output
 through a one-time private lease, and verifies create-only persistence plus
-exact reread without mutating the canonical asset manifest or granting QA,
-review, cost, dispatch, or production authority. OpenToonz remains fail-closed
-pending a supported controlled runtime. See
+exact reread. A further bounded stage reopens all persisted files, runs
+independent sampled alpha/mask/depth and rig-motion QA, consumes the verified
+RGBA sequence through another single-use lease, executes four real private
+Remotion compositions, packages the exact 60 selected frames, and verifies a
+create-only private review artifact. Neither stage mutates the canonical asset
+manifest or grants canonical QA, review, cost, dispatch, or production
+authority. OpenToonz remains fail-closed pending a supported controlled
+runtime. See
 `docs/living-frame/living-frame-rigging-director-and-adapter-candidates.md` and
 `docs/living-frame/living-frame-blender-fixed-adapter-private-internal-test.md`
 and
-`docs/living-frame/living-frame-blender-selected-scene-private-persistence-internal-test.md`.
+`docs/living-frame/living-frame-blender-selected-scene-private-persistence-internal-test.md`
+and
+`docs/living-frame/living-frame-blender-selected-scene-private-review-internal-test.md`.
 
 ## Motion and attention
 

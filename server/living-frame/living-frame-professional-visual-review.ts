@@ -242,8 +242,7 @@ function assertRequest(
       .join('|') !== sortedExpected
     || request.checks.some(
       (check) =>
-        !isRecord(check)
-        || !LIVING_FRAME_PROFESSIONAL_VISUAL_CHECK_IDS
+        !LIVING_FRAME_PROFESSIONAL_VISUAL_CHECK_IDS
           .includes(
             check.checkId as
               LivingFrameProfessionalVisualCheckId,
@@ -267,7 +266,7 @@ function assertRequest(
         )
         || check.evidenceRefIds.length < 1
         || check.evidenceRefIds.some(
-          (reference) =>
+          (reference: string) =>
             typeof reference !== 'string'
             || !SAFE_ID.test(reference),
         ),

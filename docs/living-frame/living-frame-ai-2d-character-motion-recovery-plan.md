@@ -186,4 +186,37 @@ npm run smoke:living-frame-ai-2d-character-motion
 npm run smoke:living-frame-professional-visual-review
 npm run smoke:living-frame-complete-character-keypose-plan
 npm run smoke:living-frame-character-motion-tool-policy
+npm run smoke:living-frame-ai-2d-feasibility-sprint
+npm run smoke:living-frame-ai-2d-interpolation-qualification
+npm run smoke:living-frame-complete-character-keypose-review
 ```
+
+`living-frame-ai-2d-feasibility-sprint-v1` freezes the three non-waivable
+fixtures before any runtime begins. It requires exact coverage of prop
+interaction, meaningful pose change, and A-roll/documentary integration. A
+three-pose fixture has at most nine controlled keypose attempts and a four-pose
+fixture has at most twelve. Rejected attempts cannot become fallback assets,
+fixture results cannot be averaged, and automated character animation remains
+disabled until all three final composites pass actual visual inspection.
+
+`living-frame-ai-2d-interpolation-qualification-v1` separately records
+ToonCrafter and RIFE as source-reviewed but blocked evaluation candidates. The
+upstream repositories declare Apache-2.0 and MIT source licenses respectively,
+but that observation is not a release decision for their model weights,
+dependencies, or runtime. Each candidate still requires a pinned and scanned
+source archive, independent source and model-weight license disposition,
+offline non-root runtime, fixed request adapter, supported-hardware evidence,
+private inference, resource/cost evidence, persistence/reread, and professional
+visual QA. Neither candidate currently creates a registry identity or operation.
+
+The still-image gate is `living-frame-complete-character-keypose-review-v1`.
+It binds the actual decoded private PNG to its exact keypose plan and unit,
+approved work item, planned manifest entry, output key, object identity, and
+technical-image QA. It requires Head Intelligence inspection across eight
+visual checks and derives only `accepted`, `repair_required`, or `rejected`.
+A companion review-set contract requires exactly one matching review for every
+planned pose in canonical order and rejects cross-pose artifact reuse.
+ToonCrafter admission may be materialized only when every pose is accepted.
+Decode, exact 1024-square dimensions, and crop checks must all pass before
+visual acceptance is even eligible; those technical checks still cannot unlock
+interpolation without the eight Head Intelligence visual checks.

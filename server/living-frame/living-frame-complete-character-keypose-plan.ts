@@ -364,8 +364,7 @@ function assertInput(
     )
     || input.keyposes.some(
       (keypose) =>
-        !isRecord(keypose)
-        || !Number.isSafeInteger(
+        !Number.isSafeInteger(
           keypose.order,
         )
         || !SAFE_ID.test(

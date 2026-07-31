@@ -167,6 +167,30 @@ const runDefinitions = [
     },
   ),
   run(
+    'representative_visual_fixture_plan',
+    'server/smoke/living-frame-representative-visual-fixture-smoke.ts',
+    'source_contract_regression',
+    'passed_source_only',
+    0,
+    (receipt) => {
+      assert.equal(receipt.activeCaseCount, 12)
+      assert.equal(receipt.professionalCheckCount, 13)
+      assert.equal(receipt.representativeMediaRequiredForEveryCase, true)
+      assert.equal(
+        receipt.geometryOnlyProbeMayApproveProfessionalQuality,
+        false,
+      )
+      assert.equal(
+        receipt.syntheticRectanglesMayApproveProfessionalQuality,
+        false,
+      )
+      assert.equal(receipt.representativeMediaRuntimeExecuted, false)
+      assert.equal(receipt.canonicalConsumptionPending, true)
+      assert.equal(receipt.runtimeExecuted, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  ),
+  run(
     'non_character_professional_review_contract',
     'server/smoke/living-frame-non-character-professional-review-smoke.ts',
     'source_contract_regression',
@@ -286,8 +310,8 @@ const draft: LivingFrameActivePrivateInternalTestReportDraft = {
     'living-frame-active-baseline-route-binding-v1',
   activeCaseCount: 12,
   pausedScopeCount: 7,
-  runCount: 10,
-  sourceContractRunCount: 6,
+  runCount: 11,
+  sourceContractRunCount: 7,
   privateEngineeringMediaRuntimeRunCount: 4,
   privateReviewExportRunCount: 4,
   privateReviewExportCount: 5,
@@ -471,7 +495,14 @@ function caseBinding(
   activeScope: LivingFrameActivePrivateInternalCaseResult['activeScope'],
   requiredRunIds: readonly LivingFrameActivePrivateInternalRunId[],
 ) {
-  return { caseId, activeScope, requiredRunIds }
+  return {
+    caseId,
+    activeScope,
+    requiredRunIds: [
+      ...requiredRunIds,
+      'representative_visual_fixture_plan' as const,
+    ],
+  }
 }
 
 function validateReviewExports(
@@ -479,8 +510,10 @@ function validateReviewExports(
   expectedRunId: LivingFrameActivePrivateInternalRunId,
   expectedCount: number,
 ): readonly Record<string, unknown>[] {
-  const exports = value == null ? [] : value
-  assert.equal(Array.isArray(exports), true)
+  if (value != null && !Array.isArray(value)) {
+    assert.fail('Living Frame internal review exports must be an array.')
+  }
+  const exports: readonly unknown[] = value == null ? [] : value
   assert.equal(exports.length, expectedCount)
   const fileNames = new Set<string>()
   for (const entry of exports) {

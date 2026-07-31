@@ -58,7 +58,7 @@ The active scope already has verified source contracts for:
   enter a future baseline internal run while explicitly refusing to count
   either fallback as advanced temporal-mask evidence. The SAM2 route remains
   open and canonical reread/admission remains pending; and
-- a source-ready executable active private-test runner that maps ten unique
+- a source-ready executable active private-test runner that maps eleven unique
   child regressions to all twelve owner-approved cases, executes four actual
   private engineering media paths, includes a bounded literal map/data
   geometry scene in the five-mode Remotion path, imports no historical
@@ -67,6 +67,13 @@ The active scope already has verified source contracts for:
   Qwen, separate audio, Head QA, repair, reconciliation, and private-review
   evidence exists. Its media execution is deferred until the canonical backend
   releases the shared runtime window; and
+- a separate source-only representative-media fixture plan for all twelve
+  active cases. It requires real or source-verified assets, immutable source
+  rereads, exact narrative/style/frame/timing refs, full playback, the ordered
+  13-check review, complete-time Qwen evidence, separate audio evidence, and
+  Head QA. It explicitly refuses to treat colored rectangles, synthetic
+  geometry, placeholders, caller assertions, or technical metrics as
+  professional acceptance evidence; and
 - a source-only evidence-admission candidate that binds every case to exact
   canonical package/work/output/final-artifact lineage and to deterministic,
   complete-time visual, separate-audio, Head-QA, N+1 repair, reconciliation,
@@ -142,7 +149,10 @@ called professionally accepted.
    runner, and leaves every case incomplete until the canonical one-writer
    consumes the evidence-admission candidate as supplemental QA evidence
    rather than creating a second readiness or private-review owner.
-11. Render representative non-illustration scenes, inspect every complete clip
+11. Materialize the representative-media fixture plan with real or
+   source-verified inputs; the current geometry-only engineering aggregate is
+   not a professional visual target.
+12. Render representative non-illustration scenes, inspect every complete clip
    at playback speed plus required sampled frames, and repair or reject every
    result that misses the professional bar.
 

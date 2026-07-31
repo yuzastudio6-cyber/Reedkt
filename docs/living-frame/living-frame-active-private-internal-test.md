@@ -13,11 +13,12 @@ OpenToonz character-rig, or mechanical-rig aggregate cases.
 
 ## Exact run set
 
-The runner executes ten unique child regressions:
+The runner executes eleven unique child regressions:
 
-- six source-contract regressions for baseline fallback routing, exact
+- seven source-contract regressions for baseline fallback routing, exact
   non-character source lineage, semantic SoundSync timing, professional-review
-  policy, postrender visual-inspection policy, and evidence admission; and
+  policy, postrender visual-inspection policy, evidence admission, and the
+  representative-media acceptance plan; and
 - four actual private engineering media runtimes for all five modes, confirmed
   output frames, motion-v3/deep-multiplane behavior, and the selected-scene
   environmental-particle composition.
@@ -37,7 +38,7 @@ an existing review copy, or turn a review copy into a canonical asset.
 
 The report deliberately remains
 `engineering_runtime_executed_professional_canonical_evidence_incomplete`.
-Even when all ten child runs succeed, it records:
+Even when all eleven child runs succeed, it records:
 
 - no provider-backed Qwen postrender inspection;
 - no separate canonical full-duration audio evidence;
@@ -51,6 +52,15 @@ Even when all ten child runs succeed, it records:
 Consequently, no case may count toward active completion yet. Technical pixel,
 motion, FFprobe, and runtime metrics are engineering evidence only and cannot
 approve professional visual quality.
+
+The representative-media plan also blocks a second false-positive path: the
+colored rectangles and literal geometry used by the engineering renderer may
+never stand in for a professionally composed scene. Every active case requires
+real or source-verified representative media, immutable provenance, confirmed
+frame and MasterTiming lineage, the exact 13-check review, full playback,
+complete-time Qwen evidence, separate audio evidence, Head QA, and N+1
+reinspection after repair. That plan is source-only until those representative
+assets and outputs actually run.
 
 The process-private copies exist so the operating agent can watch every full
 video and inspect representative frames before reporting the milestone. They

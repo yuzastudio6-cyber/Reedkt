@@ -326,6 +326,92 @@ const cases: readonly AuditCase[] = [
   },
   {
     id:
+      'character_controlled_preparation',
+    relativePath:
+      'server/smoke/living-frame-character-controlled-preparation-smoke.ts',
+    validate(receipt) {
+      assert.equal(receipt.status, 'passed')
+      assert.equal(
+        receipt.selectedRoute,
+        'comfyui_controlled_component_preparation',
+      )
+      assert.equal(receipt.preparationUnitCount, 2)
+      assert.equal(receipt.maskedInpaintUnitCount, 1)
+      assert.equal(receipt.isolatedComponentUnitCount, 1)
+      assert.deepEqual(
+        receipt.plateDimensions,
+        [1920, 1080],
+      )
+      assert.deepEqual(
+        receipt.componentDimensions,
+        [1024, 1024],
+      )
+      assert.equal(
+        receipt
+          .existingGenericGraphMaySubstituteForMaskedInpaint,
+        false,
+      )
+      assert.equal(
+        receipt.independentPerFrameGeneration,
+        false,
+      )
+      assert.equal(
+        receipt.remotionOwnsFinalCanvas,
+        true,
+      )
+      assert.equal(receipt.operationRegistered, false)
+      assert.equal(receipt.dispatchGranted, false)
+      assert.equal(receipt.runtimeExecuted, false)
+      assert.equal(receipt.assetCreated, false)
+      assert.equal(receipt.qaApproved, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  },
+  {
+    id:
+      'character_controlled_preparation_private_prompt',
+    relativePath:
+      'server/smoke/living-frame-character-controlled-preparation-private-prompt-smoke.ts',
+    validate(receipt) {
+      assert.equal(receipt.status, 'passed')
+      assert.equal(
+        receipt.contractVersion,
+        'living-frame-character-controlled-preparation-private-prompt-v1',
+      )
+      assert.equal(receipt.promptUnitCount, 2)
+      assert.equal(receipt.privateLeaseCount, 2)
+      assert.equal(receipt.maskedInpaintPromptCount, 1)
+      assert.equal(receipt.isolatedComponentPromptCount, 1)
+      assert.deepEqual(
+        receipt.plateDimensions,
+        [1920, 1080],
+      )
+      assert.deepEqual(
+        receipt.componentDimensions,
+        [1024, 1024],
+      )
+      assert.equal(
+        receipt.privateSourceAndMaskExcludedFromReceipt,
+        true,
+      )
+      assert.equal(
+        receipt.independentPerFrameGeneration,
+        false,
+      )
+      assert.equal(
+        receipt.remotionOwnsFinalCanvas,
+        true,
+      )
+      assert.equal(receipt.operationRegistered, false)
+      assert.equal(receipt.dispatchGranted, false)
+      assert.equal(receipt.runtimeExecuted, false)
+      assert.equal(receipt.assetCreated, false)
+      assert.equal(receipt.qaApproved, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  },
+  {
+    id:
       'character_pixijs_remotion_private_composite',
     relativePath:
       'server/smoke/living-frame-character-pixijs-remotion-composite-internal-test-smoke.ts',
@@ -895,6 +981,8 @@ const receipt = {
     'selected_musashi_scene_exact_approved_snapshot_master_timing_work_item_and_confirmed_frame_blender_binding_with_full_rgba_mask_depth_create_only_private_persistence_and_reread',
     'selected_musashi_scene_independent_persisted_component_alpha_mask_depth_motion_restoration_qa_and_actual_private_remotion_review',
     'character_animation_route_suitability_rejects_merged_musashi_blender_and_direct_pixijs_deformation_routes_that_action_to_controlled_component_preparation_and_proves_a_separate_complete_character_through_real_pixijs_and_remotion',
+    'character_controlled_preparation_binds_one_confirmed_ratio_masked_inpaint_plate_and_one_1024_square_alpha_component_to_exact_approved_outputs',
+    'character_private_prompt_materialization_uses_vae_encode_for_inpaint_rejects_empty_latent_plate_substitution_and_creates_two_single_use_non_dispatched_leases',
     'selected_scene_lineage_and_private_prompt_materialization',
     'selected_scene_private_operation_and_canonical_comfyui_candidate_input_reconciliation',
     'partial_independent_canonical_offline_image_vulnerability_evidence_and_fail_closed_disposition',
@@ -924,7 +1012,7 @@ const receipt = {
       gate:
         'exact_comfyui_controlled_generation_runtime',
       reason:
-        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_selected_scene_candidate_input_reconciliation_source_defined_pruned_hardened_build_exact_inherited_direct_vcs_sam2_removal_strict_non_root_verification_zero_critical_high_complete_os_python_vulnerability_scan_spdx_sbom_and_full_file_license_scan_are_verified_but_manual_medium_low_license_signature_canonical_ingest_distributed_mount_real_l4_generation_resource_persistence_and_qa_evidence_remain_required',
+        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_selected_scene_candidate_input_reconciliation_character_masked_inpaint_and_component_prompt_topology_source_defined_pruned_hardened_build_exact_inherited_direct_vcs_sam2_removal_strict_non_root_verification_zero_critical_high_complete_os_python_vulnerability_scan_spdx_sbom_and_full_file_license_scan_are_verified_but_current_node_schema_manual_medium_low_license_signature_canonical_ingest_distributed_mount_real_l4_generation_resource_persistence_and_character_plate_alpha_continuity_face_clearance_qa_evidence_remain_required',
     },
     {
       gate:

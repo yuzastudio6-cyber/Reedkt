@@ -73,6 +73,15 @@ The current ComfyUI operation remains evaluation-only and blocked pending its
 released internal runtime evidence. This gate plans the correct route but does
 not claim that generation ran.
 
+The adjacent
+`living-frame-character-controlled-preparation-v1` contract now proves the
+specific correction needed for the rejected component. It binds one exact
+confirmed-ratio source-plate reconstruction and one exact 1024-square isolated
+component output to approved selected-scene work. Its private materializer
+uses `VAEEncodeForInpaint` for the masked plate rather than mislabeling the
+existing `EmptyLatentImage` graph as inpainting. It creates single-use private
+prompt leases only; real L4 generation and output QA remain open.
+
 ## What rigging remains for
 
 Blender and OpenToonz remain useful when the source has appropriate topology:
@@ -113,6 +122,8 @@ drift, and a return to the source pose.
 
 ```text
 npm run smoke:living-frame-character-animation-route-suitability
+npm run smoke:living-frame-character-controlled-preparation
+npm run smoke:living-frame-character-controlled-preparation-private-prompt
 npm run smoke:living-frame-character-pixijs-internal-runtime
 npm run smoke:living-frame-character-pixijs-remotion-composite-internal-test
 npm run smoke:living-frame-animation-aware-illustration-private-composite-internal-test

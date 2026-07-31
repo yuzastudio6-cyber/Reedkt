@@ -52,6 +52,12 @@ The active scope already has verified source contracts for:
   identities, requires postrender AI inspection for every case, rejects all
   seven paused scopes, imports none of the historical 39/40-case aggregate,
   and grants no runtime or completion authority; and
+- an active baseline-route binding that preserves ten primary case routes and
+  selects the first safe approved fallback for the two temporal-mask-dependent
+  cases. It allows a safe-space A-Roll and a qualified simplified-depth case to
+  enter a future baseline internal run while explicitly refusing to count
+  either fallback as advanced temporal-mask evidence. The SAM2 route remains
+  open and canonical reread/admission remains pending; and
 - a source-only evidence-admission candidate that binds every case to exact
   canonical package/work/output/final-artifact lineage and to deterministic,
   complete-time visual, separate-audio, Head-QA, N+1 repair, reconciliation,

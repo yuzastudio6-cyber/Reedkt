@@ -235,8 +235,10 @@ export interface LivingFrameCharacterControlledPreparationCanonicalComfyUiReconc
     readonly sameCanonicalToolId: 'comfyui'
     readonly sameCanonicalOperationId:
       'tool.comfyui.generate_controlled_image.v1'
-    readonly additionalNodeClass:
-      'VAEEncodeForInpaint'
+    readonly additionalNodeClasses: readonly [
+      'LoadImageMask',
+      'VAEEncodeForInpaint',
+    ]
     readonly additionalInputSlotKinds: readonly [
       'source_plate_image_artifact',
       'source_plate_inpaint_mask_artifact',
@@ -245,6 +247,15 @@ export interface LivingFrameCharacterControlledPreparationCanonicalComfyUiReconc
       'source-plate.png'
     readonly sourcePlateMaskFileName:
       'source-plate-mask.png'
+    readonly sourcePlateMaskEncodingProfile:
+      'gray8_mask_png_v1'
+    readonly sourcePlateMaskLoaderNode:
+      'LoadImageMask'
+    readonly sourcePlateMaskLoaderChannel: 'red'
+    readonly sourcePlateMaskOutputIndex: 0
+    readonly sourcePlateMaskPolarity:
+      'white_one_means_inpaint'
+    readonly plainLoadImageMaskOutputAllowed: false
     readonly growMaskBy: 6
     readonly samplerDenoise: 0.55
     readonly emptyLatentSubstitutionAllowed: false

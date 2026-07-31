@@ -116,6 +116,12 @@ assert.equal(
 )
 assert.equal(
   plateReceipt.graphProfile.nodeClasses.includes(
+    'LoadImageMask',
+  ),
+  true,
+)
+assert.equal(
+  plateReceipt.graphProfile.nodeClasses.includes(
     'EmptyLatentImage',
   ),
   false,
@@ -184,8 +190,14 @@ const plateNodes =
   Object.values(plateRequest.prompt)
 const inpaint = plateNodes.find((node) =>
   node.class_type === 'VAEEncodeForInpaint')!
+const maskLoader = plateNodes.find((node) =>
+  node.class_type === 'LoadImageMask')!
+assert.deepEqual(maskLoader.inputs, {
+  image: 'private-inpaint-mask.png',
+  channel: 'red',
+})
 assert.equal(inpaint.inputs.grow_mask_by, 6)
-assert.deepEqual(inpaint.inputs.mask, ['5', 1])
+assert.deepEqual(inpaint.inputs.mask, ['5', 0])
 const plateSampler = plateNodes.find((node) =>
   node.class_type === 'KSampler')!
 assert.equal(plateSampler.inputs.denoise, 0.55)

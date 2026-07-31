@@ -74,6 +74,7 @@ export type LivingFrameCharacterControlledPreparationGraphNodeClass =
   | 'CLIPTextEncode'
   | 'ControlNetLoader'
   | 'LoadImage'
+  | 'LoadImageMask'
   | 'ControlNetApplyAdvanced'
   | 'EmptyLatentImage'
   | 'VAEEncodeForInpaint'
@@ -252,8 +253,16 @@ export interface LivingFrameCharacterControlledPreparationDraft {
       false
     readonly maskedInpaintRequiresVersionedNamespacedExtension:
       true
-    readonly maskedInpaintRequiredNode:
-      'VAEEncodeForInpaint'
+    readonly maskedInpaintRequiredNodes: readonly [
+      'LoadImageMask',
+      'VAEEncodeForInpaint',
+    ]
+    readonly sourcePlateMaskEncodingProfile:
+      'gray8_mask_png_v1'
+    readonly sourcePlateMaskChannel: 'red'
+    readonly sourcePlateMaskPolarity:
+      'white_one_means_inpaint'
+    readonly plainLoadImageMaskOutputAllowed: false
     readonly sourceAndMaskInputsPreparedOutsideComfyUi:
       true
     readonly oneComfyUiHostIdentityAndOperation: true

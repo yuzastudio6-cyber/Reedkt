@@ -225,8 +225,16 @@ compileLivingFrameCharacterControlledPreparation(
           false,
         maskedInpaintRequiresVersionedNamespacedExtension:
           true,
-        maskedInpaintRequiredNode:
+        maskedInpaintRequiredNodes: [
+          'LoadImageMask',
           'VAEEncodeForInpaint',
+        ],
+        sourcePlateMaskEncodingProfile:
+          'gray8_mask_png_v1',
+        sourcePlateMaskChannel: 'red',
+        sourcePlateMaskPolarity:
+          'white_one_means_inpaint',
+        plainLoadImageMaskOutputAllowed: false,
         sourceAndMaskInputsPreparedOutsideComfyUi:
           true,
         oneComfyUiHostIdentityAndOperation:
@@ -432,6 +440,7 @@ function compileMaskedPlateUnit(input: {
   )
   if (
     !nodeClasses.includes('VAEEncodeForInpaint')
+    || !nodeClasses.includes('LoadImageMask')
     || nodeClasses.includes('EmptyLatentImage')
   ) throw invalid(
     'masked_inpaint_graph_invalid',
@@ -648,7 +657,7 @@ function maskedInpaintNodeClasses(
     'CLIPTextEncode',
     'CLIPTextEncode',
     'LoadImage',
-    'LoadImage',
+    'LoadImageMask',
   )
   if (unit.controlPolicy.structureConditioningRequired) {
     nodes.push(
@@ -814,6 +823,9 @@ function assertProjection(
         'controlled_sdxl_masked_inpaint_v1'
       || !unit.graphProfile.nodeClasses.includes(
         'VAEEncodeForInpaint',
+      )
+      || !unit.graphProfile.nodeClasses.includes(
+        'LoadImageMask',
       )
       || unit.graphProfile.nodeClasses.includes(
         'EmptyLatentImage',

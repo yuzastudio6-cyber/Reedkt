@@ -101,9 +101,25 @@ assert.equal(
     .existingSelectedSceneGraphMaySubstituteForMaskedInpaint,
   false,
 )
+assert.deepEqual(
+  result.graphBoundary.maskedInpaintRequiredNodes,
+  ['LoadImageMask', 'VAEEncodeForInpaint'],
+)
 assert.equal(
-  result.graphBoundary.maskedInpaintRequiredNode,
-  'VAEEncodeForInpaint',
+  result.graphBoundary.sourcePlateMaskEncodingProfile,
+  'gray8_mask_png_v1',
+)
+assert.equal(
+  result.graphBoundary.sourcePlateMaskChannel,
+  'red',
+)
+assert.equal(
+  result.graphBoundary.sourcePlateMaskPolarity,
+  'white_one_means_inpaint',
+)
+assert.equal(
+  result.graphBoundary.plainLoadImageMaskOutputAllowed,
+  false,
 )
 
 const plate = result.preparationUnits.find((unit) =>
@@ -119,6 +135,12 @@ assert.equal(
 assert.equal(
   plate.graphProfile.nodeClasses.includes(
     'VAEEncodeForInpaint',
+  ),
+  true,
+)
+assert.equal(
+  plate.graphProfile.nodeClasses.includes(
+    'LoadImageMask',
   ),
   true,
 )

@@ -118,10 +118,40 @@ assert.equal(
     .sameCanonicalOperationId,
   'tool.comfyui.generate_controlled_image.v1',
 )
+assert.deepEqual(
+  plateUnit.maskedInpaintExtensionRequirement
+    .additionalNodeClasses,
+  ['LoadImageMask', 'VAEEncodeForInpaint'],
+)
 assert.equal(
   plateUnit.maskedInpaintExtensionRequirement
-    .additionalNodeClass,
-  'VAEEncodeForInpaint',
+    .sourcePlateMaskEncodingProfile,
+  'gray8_mask_png_v1',
+)
+assert.equal(
+  plateUnit.maskedInpaintExtensionRequirement
+    .sourcePlateMaskLoaderNode,
+  'LoadImageMask',
+)
+assert.equal(
+  plateUnit.maskedInpaintExtensionRequirement
+    .sourcePlateMaskLoaderChannel,
+  'red',
+)
+assert.equal(
+  plateUnit.maskedInpaintExtensionRequirement
+    .sourcePlateMaskOutputIndex,
+  0,
+)
+assert.equal(
+  plateUnit.maskedInpaintExtensionRequirement
+    .sourcePlateMaskPolarity,
+  'white_one_means_inpaint',
+)
+assert.equal(
+  plateUnit.maskedInpaintExtensionRequirement
+    .plainLoadImageMaskOutputAllowed,
+  false,
 )
 assert.equal(
   plateUnit.maskedInpaintExtensionRequirement
@@ -326,6 +356,23 @@ assert.equal(
         draft.observedCanonicalV1 as
           Record<string, unknown>
       observed.maskedInpaintNodeAllowed = true
+    }),
+  ),
+  false,
+)
+assert.equal(
+  verifyLivingFrameCharacterControlledPreparationCanonicalComfyUiReconciliation(
+    resign(result.receipt, (draft) => {
+      const units = draft.reconciliationUnits as
+        Array<Record<string, unknown>>
+      const plate = units.find((unit) =>
+        unit.purpose ===
+          'reconstruct_exposed_source_plate')!
+      const requirement =
+        plate.maskedInpaintExtensionRequirement as
+          Record<string, unknown>
+      requirement.sourcePlateMaskLoaderChannel =
+        'alpha'
     }),
   ),
   false,

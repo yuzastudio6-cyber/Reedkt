@@ -776,8 +776,10 @@ function createUnit(input: {
       sameCanonicalToolId: 'comfyui',
       sameCanonicalOperationId:
         'tool.comfyui.generate_controlled_image.v1',
-      additionalNodeClass:
+      additionalNodeClasses: [
+        'LoadImageMask',
         'VAEEncodeForInpaint',
+      ] as const,
       additionalInputSlotKinds: [
         'source_plate_image_artifact',
         'source_plate_inpaint_mask_artifact',
@@ -786,6 +788,15 @@ function createUnit(input: {
         'source-plate.png',
       sourcePlateMaskFileName:
         'source-plate-mask.png',
+      sourcePlateMaskEncodingProfile:
+        'gray8_mask_png_v1',
+      sourcePlateMaskLoaderNode:
+        'LoadImageMask',
+      sourcePlateMaskLoaderChannel: 'red',
+      sourcePlateMaskOutputIndex: 0,
+      sourcePlateMaskPolarity:
+        'white_one_means_inpaint',
+      plainLoadImageMaskOutputAllowed: false,
       growMaskBy: 6,
       samplerDenoise: 0.55,
       emptyLatentSubstitutionAllowed: false,
@@ -1240,8 +1251,11 @@ function assertMaskedInpaintExtension(input: {
     node.class_type === 'LoadImage'
     && node.inputs.image === 'source-plate.png')
   const maskEntry = entries.find(([, node]) =>
-    node.class_type === 'LoadImage'
-    && node.inputs.image === 'source-plate-mask.png')
+    node.class_type === 'LoadImageMask'
+    && stable(node.inputs) === stable({
+      image: 'source-plate-mask.png',
+      channel: 'red',
+    }))
   const baseEntry = entries.find(([, node]) =>
     node.class_type === 'CheckpointLoaderSimple')
   const inpaint = nodes.find((node) =>
@@ -1264,7 +1278,7 @@ function assertMaskedInpaintExtension(input: {
     || stable(inpaint.inputs) !== stable({
       pixels: [sourceEntry[0], 0],
       vae: [baseEntry[0], 2],
-      mask: [maskEntry[0], 1],
+      mask: [maskEntry[0], 0],
       grow_mask_by: 6,
     })
     || sampler?.inputs.denoise !== 0.55
@@ -1306,7 +1320,8 @@ function assertPromptImageAliases(
     }
   }
   const expected = Object.values(graph).filter((node) =>
-    node.class_type === 'LoadImage').length
+    node.class_type === 'LoadImage'
+    || node.class_type === 'LoadImageMask').length
   if (expected !== inputImages.length) throw invalid(
     'input_image_binding_invalid',
     '$.inputImages',
@@ -1768,9 +1783,13 @@ function validReconciliationUnit(
     && unit.maskedInpaintExtensionRequirement
       .sameCanonicalOperationId ===
         'tool.comfyui.generate_controlled_image.v1'
-    && unit.maskedInpaintExtensionRequirement
-      .additionalNodeClass ===
-        'VAEEncodeForInpaint'
+    && stable(
+      unit.maskedInpaintExtensionRequirement
+        .additionalNodeClasses,
+    ) === stable([
+      'LoadImageMask',
+      'VAEEncodeForInpaint',
+    ])
     && stable(
       unit.maskedInpaintExtensionRequirement
         .additionalInputSlotKinds,
@@ -1784,6 +1803,21 @@ function validReconciliationUnit(
     && unit.maskedInpaintExtensionRequirement
       .sourcePlateMaskFileName ===
         'source-plate-mask.png'
+    && unit.maskedInpaintExtensionRequirement
+      .sourcePlateMaskEncodingProfile ===
+        'gray8_mask_png_v1'
+    && unit.maskedInpaintExtensionRequirement
+      .sourcePlateMaskLoaderNode ===
+        'LoadImageMask'
+    && unit.maskedInpaintExtensionRequirement
+      .sourcePlateMaskLoaderChannel === 'red'
+    && unit.maskedInpaintExtensionRequirement
+      .sourcePlateMaskOutputIndex === 0
+    && unit.maskedInpaintExtensionRequirement
+      .sourcePlateMaskPolarity ===
+        'white_one_means_inpaint'
+    && unit.maskedInpaintExtensionRequirement
+      .plainLoadImageMaskOutputAllowed === false
     && unit.maskedInpaintExtensionRequirement
       .growMaskBy === 6
     && unit.maskedInpaintExtensionRequirement

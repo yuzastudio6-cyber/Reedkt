@@ -187,6 +187,7 @@
     "smoke:living-frame-blender-selected-scene-private-review-internal-test": "tsx server/smoke/living-frame-blender-selected-scene-private-review-internal-test-smoke.ts",
     "smoke:living-frame-character-animation-route-suitability": "tsx server/smoke/living-frame-character-animation-route-suitability-smoke.ts",
     "smoke:living-frame-character-controlled-preparation": "tsx server/smoke/living-frame-character-controlled-preparation-smoke.ts",
+    "smoke:living-frame-character-masked-inpaint-comfyui-node-schema-evidence": "tsx server/smoke/living-frame-character-masked-inpaint-comfyui-node-schema-evidence-smoke.ts",
     "smoke:living-frame-character-controlled-preparation-canonical-comfyui-reconciliation": "tsx server/smoke/living-frame-character-controlled-preparation-canonical-comfyui-reconciliation-smoke.ts",
     "smoke:living-frame-character-controlled-preparation-private-prompt": "tsx server/smoke/living-frame-character-controlled-preparation-private-prompt-smoke.ts",
     "smoke:living-frame-character-pixijs-internal-runtime": "tsx server/smoke/living-frame-character-pixijs-internal-runtime-smoke.ts",

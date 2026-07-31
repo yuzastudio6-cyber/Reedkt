@@ -43,7 +43,8 @@ The new namespaced plate graph instead requires:
 approved source plate
 + approved private inpaint mask
 + approved conditioning/control inputs
-→ LoadImage
+→ source plate through LoadImage
+→ opaque gray8 mask through LoadImageMask(channel=red)
 → VAEEncodeForInpaint
 → KSampler
 → VAEDecode
@@ -113,10 +114,12 @@ does not authorize use of the broken cutout.
 
 ## Current evidence and remaining gate
 
-The source contract and private prompt topology are locally green. The fixture
+The source contract, exact pinned-image node-schema qualification, and private
+prompt topology are locally green. The fixture
 materializes:
 
-- one 12-node 1920×1080 masked-inpaint graph;
+- one 12-node 1920×1080 masked-inpaint graph whose gray8 mask uses
+  `LoadImageMask(channel=red)` output `0`;
 - one 15-node 1024×1024 controlled component graph;
 - two process-bound single-use leases; and
 - byte-free lineage receipts.
@@ -131,19 +134,23 @@ The canonical reconciliation is now also explicit:
   slots; and
 - the plate instead records one narrowly versioned
   `canonical-comfyui-gpu-runtime-request-candidate-v2` owner requirement for
-  `VAEEncodeForInpaint`, exact source/mask slots, `grow_mask_by=6`, and
-  `denoise=0.55`, while retaining the same `comfyui` identity and operation.
+  `LoadImageMask`, `VAEEncodeForInpaint`, exact source/mask slots,
+  `gray8_mask_png_v1`, white/one inpaint polarity, red-channel mask loading,
+  `grow_mask_by=6`, and `denoise=0.55`, while retaining the same `comfyui`
+  identity and operation.
 
 No model was loaded and no image was generated. The remaining internal gate is
 the canonical owner-side v2 request/runtime extension followed by the
-already-known released-image/real-L4 path: exact node-schema qualification,
+already-known released-image/real-L4 path: exact gray8 mask staging,
 atomic five-model load, one-output execution, resource receipt, create-only
-persistence, and the QA set above.
+persistence, and the QA set above. The node-schema gate itself is now closed by
+`living-frame-character-masked-inpaint-comfyui-node-schema-evidence-v1`.
 
 ## Regression
 
 ```text
 npm run smoke:living-frame-character-controlled-preparation
+npm run smoke:living-frame-character-masked-inpaint-comfyui-node-schema-evidence
 npm run smoke:living-frame-character-controlled-preparation-private-prompt
 npm run smoke:living-frame-character-controlled-preparation-canonical-comfyui-reconciliation
 npm run smoke:living-frame-character-animation-route-suitability

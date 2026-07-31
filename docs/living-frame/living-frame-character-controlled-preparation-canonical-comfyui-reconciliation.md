@@ -76,7 +76,8 @@ comfyui
 same operation:
 tool.comfyui.generate_controlled_image.v1
 
-additional node:
+additional nodes:
+LoadImageMask
 VAEEncodeForInpaint
 
 additional exact private input slots:
@@ -84,6 +85,9 @@ source_plate_image_artifact       → source-plate.png
 source_plate_inpaint_mask_artifact → source-plate-mask.png
 
 exact inpaint settings:
+mask encoding = gray8_mask_png_v1
+mask polarity = white_one_means_inpaint
+mask loader = LoadImageMask(channel=red), output 0
 grow_mask_by = 6
 KSampler.denoise = 0.55
 ```
@@ -92,7 +96,9 @@ For this graph family:
 
 - the source plate and mask must match the confirmed output dimensions;
 - `EmptyLatentImage` is forbidden;
-- the source image, mask, VAE, and sampler edges are exact;
+- the source image, red-channel gray8 mask, VAE, and sampler edges are exact;
+- plain `LoadImage` mask output is forbidden because an opaque grayscale PNG
+  without alpha would produce a zero mask in the pinned source;
 - arbitrary node or input-slot expansion remains forbidden;
 - caller seed, dimensions, prompt, models, paths, URLs, bytes, credentials,
   commands, and environment remain forbidden;
@@ -144,6 +150,7 @@ All of those authorities remain false in this receipt.
 
 ```text
 npm run smoke:living-frame-character-controlled-preparation
+npm run smoke:living-frame-character-masked-inpaint-comfyui-node-schema-evidence
 npm run smoke:living-frame-character-controlled-preparation-private-prompt
 npm run smoke:living-frame-character-controlled-preparation-canonical-comfyui-reconciliation
 npm run smoke:living-frame-private-internal-end-to-end-audit

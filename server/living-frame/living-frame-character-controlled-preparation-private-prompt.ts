@@ -733,11 +733,12 @@ function compilePrompt(
         'source_plate_image_artifact',
       ),
     })
-    maskImage = append('LoadImage', {
+    maskImage = append('LoadImageMask', {
       image: requireSlot(
         values,
         'source_plate_inpaint_mask_artifact',
       ),
+      channel: 'red',
     })
   }
   if (values.has('controlnet_checkpoint_artifact')) {
@@ -826,7 +827,7 @@ function compilePrompt(
     latent = append('VAEEncodeForInpaint', {
       pixels: [sourceImage!, 0],
       vae: [base, 2],
-      mask: [maskImage!, 1],
+      mask: [maskImage!, 0],
       grow_mask_by: 6,
     })
   }
@@ -891,11 +892,45 @@ function assertCompiledPrompt(
     inpaint !== classes.includes(
       'VAEEncodeForInpaint',
     )
+    || inpaint !== classes.includes(
+      'LoadImageMask',
+    )
     || (
       inpaint
       && classes.includes('EmptyLatentImage')
     )
   ) throw invalid('graph_invalid', '$.prompt')
+  if (inpaint) {
+    const entries = Object.entries(nodes)
+    const sourceImage = entries.find(([, node]) =>
+      node.class_type === 'LoadImage'
+      && typeof node.inputs.image === 'string')
+    const maskImage = entries.find(([, node]) =>
+      node.class_type === 'LoadImageMask')
+    const base = entries.find(([, node]) =>
+      node.class_type === 'CheckpointLoaderSimple')
+    const encode = entries.find(([, node]) =>
+      node.class_type === 'VAEEncodeForInpaint')
+    if (
+      !sourceImage
+      || !maskImage
+      || !base
+      || !encode
+      || Object.keys(maskImage[1].inputs)
+        .sort().join('|') !== 'channel|image'
+      || maskImage[1].inputs.channel !== 'red'
+      || JSON.stringify(encode[1].inputs) !==
+        JSON.stringify({
+          pixels: [sourceImage[0], 0],
+          vae: [base[0], 2],
+          mask: [maskImage[0], 0],
+          grow_mask_by: 6,
+        })
+    ) throw invalid(
+      'graph_invalid',
+      '$.prompt.maskedInpaint',
+    )
+  }
 }
 
 function assertInput(

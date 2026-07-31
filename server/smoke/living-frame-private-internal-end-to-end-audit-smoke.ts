@@ -369,6 +369,55 @@ const cases: readonly AuditCase[] = [
   },
   {
     id:
+      'character_masked_inpaint_comfyui_node_schema_evidence',
+    relativePath:
+      'server/smoke/living-frame-character-masked-inpaint-comfyui-node-schema-evidence-smoke.ts',
+    validate(receipt) {
+      assert.equal(receipt.status, 'passed')
+      assert.equal(
+        receipt.contractVersion,
+        'living-frame-character-masked-inpaint-comfyui-node-schema-evidence-v1',
+      )
+      assert.equal(
+        receipt.imageDigestSha256,
+        '51e854b0a83392f031d7bb70247a71f195bba367f70818b6407138f343c8ec0e',
+      )
+      assert.equal(
+        receipt.sourceRevision,
+        '093d571b83e7a79833200e199b46b9f5a62217f9',
+      )
+      assert.equal(
+        receipt.loadImageGray8MaskRejected,
+        true,
+      )
+      assert.equal(
+        receipt.loadImageMaskRedChannelQualified,
+        true,
+      )
+      assert.equal(
+        receipt.vaeEncodeForInpaintQualified,
+        true,
+      )
+      assert.equal(
+        receipt.correctedMaskLoaderClass,
+        'LoadImageMask',
+      )
+      assert.equal(
+        receipt.correctedMaskLoaderChannel,
+        'red',
+      )
+      assert.equal(
+        receipt.correctedMaskOutputIndex,
+        0,
+      )
+      assert.equal(receipt.imageExecuted, false)
+      assert.equal(receipt.graphExecuted, false)
+      assert.equal(receipt.runtimeExecuted, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  },
+  {
+    id:
       'character_controlled_preparation_private_prompt',
     relativePath:
       'server/smoke/living-frame-character-controlled-preparation-private-prompt-smoke.ts',
@@ -1042,8 +1091,9 @@ const receipt = {
     'selected_musashi_scene_independent_persisted_component_alpha_mask_depth_motion_restoration_qa_and_actual_private_remotion_review',
     'character_animation_route_suitability_rejects_merged_musashi_blender_and_direct_pixijs_deformation_routes_that_action_to_controlled_component_preparation_and_proves_a_separate_complete_character_through_real_pixijs_and_remotion',
     'character_controlled_preparation_binds_one_confirmed_ratio_masked_inpaint_plate_and_one_1024_square_alpha_component_to_exact_approved_outputs',
-    'character_private_prompt_materialization_uses_vae_encode_for_inpaint_rejects_empty_latent_plate_substitution_and_creates_two_single_use_non_dispatched_leases',
-    'character_canonical_comfyui_reconciliation_proves_the_1024_component_is_exactly_v1_compatible_and_blocks_the_confirmed_ratio_masked_plate_until_the_same_operation_has_a_versioned_vae_inpaint_source_and_mask_envelope',
+    'character_masked_inpaint_pinned_image_source_schema_proves_plain_load_image_returns_zero_for_opaque_gray8_and_qualifies_load_image_mask_red_output_zero_for_vae_inpaint',
+    'character_private_prompt_materialization_uses_load_image_mask_red_and_vae_encode_for_inpaint_rejects_empty_latent_or_plain_load_image_mask_substitution_and_creates_two_single_use_non_dispatched_leases',
+    'character_canonical_comfyui_reconciliation_proves_the_1024_component_is_exactly_v1_compatible_and_blocks_the_confirmed_ratio_masked_plate_until_the_same_operation_has_a_versioned_load_image_mask_red_vae_inpaint_source_and_mask_envelope',
     'selected_scene_lineage_and_private_prompt_materialization',
     'selected_scene_private_operation_and_canonical_comfyui_candidate_input_reconciliation',
     'partial_independent_canonical_offline_image_vulnerability_evidence_and_fail_closed_disposition',
@@ -1073,7 +1123,7 @@ const receipt = {
       gate:
         'exact_comfyui_controlled_generation_runtime',
       reason:
-        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_selected_scene_candidate_input_reconciliation_character_masked_inpaint_and_component_prompt_topology_source_defined_pruned_hardened_build_exact_inherited_direct_vcs_sam2_removal_strict_non_root_verification_zero_critical_high_complete_os_python_vulnerability_scan_spdx_sbom_and_full_file_license_scan_are_verified_but_current_node_schema_manual_medium_low_license_signature_canonical_ingest_distributed_mount_real_l4_generation_resource_persistence_and_character_plate_alpha_continuity_face_clearance_qa_evidence_remain_required',
+        'exact_private_bundle_atomic_read_only_mount_canonical_full_frame_runtime_source_router_bridge_selected_scene_candidate_input_reconciliation_character_masked_inpaint_and_component_prompt_topology_pinned_private_image_load_image_load_image_mask_and_vae_encode_for_inpaint_schema_source_defined_pruned_hardened_build_exact_inherited_direct_vcs_sam2_removal_strict_non_root_verification_zero_critical_high_complete_os_python_vulnerability_scan_spdx_sbom_and_full_file_license_scan_are_verified_but_canonical_v2_gray8_mask_staging_manual_medium_low_license_signature_canonical_ingest_distributed_mount_real_l4_generation_resource_persistence_and_character_plate_alpha_continuity_face_clearance_qa_evidence_remain_required',
     },
     {
       gate:

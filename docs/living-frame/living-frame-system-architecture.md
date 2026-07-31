@@ -423,6 +423,13 @@ schema rather than a generic bypass.
 
 ## Rigging direction and advanced deformation
 
+Current owner boundary: living or organic subjects cannot use this rigging
+path. They require complete-frame pose animation. The rigging contracts below
+remain historical/source infrastructure for future nonliving rigid or
+mechanical objects only, and no mechanical route may be admitted until the
+owner-defined mechanical-rig specification is attached through the subject
+class gate.
+
 Component Rigging now has a source-contract extension for professional route
 selection. The Head Intelligence emits
 `living-frame-rigging-direction-v1`, a structured, non-executable decision

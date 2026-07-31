@@ -253,6 +253,8 @@ LivingFrameCharacterMotionToolPolicy {
           true,
         unknownSubjectClassificationBlocksRigging:
           true,
+        everyCharacterMotionRouteRequiresSubjectClassGate:
+          true,
         remotionOwnsFinalCanvas: true,
         masterTimingRemainsCanonical:
           true,

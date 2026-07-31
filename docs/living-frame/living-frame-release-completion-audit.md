@@ -11,6 +11,15 @@ tracked by the clean branch head and exact backend handoff hash
 Overall status:
 `private_internal_e2e_in_progress_customer_release_deferred`
 
+Owner correction on 2026-07-31: all living or organic subjects are excluded
+from part-based rigging. Historical Blender, OpenToonz, and whole-character
+PixiJS fixtures remain engineering evidence only and cannot count as an
+admissible character-animation route. Living subjects require complete-frame
+pose animation. Rigging is reserved for nonliving mechanical objects and is
+blocked until the owner-defined mechanical-rig specification is added. Where
+older rows below describe character-rig evidence, this correction supersedes
+their route or readiness interpretation.
+
 This audit measures the current repository against the complete Living Frame
 product direction. It does not redefine success around the latest renderer
 slice and it does not treat a passing private fixture as production release.

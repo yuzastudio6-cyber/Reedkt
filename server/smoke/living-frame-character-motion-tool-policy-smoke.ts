@@ -90,6 +90,11 @@ assert.equal(
   true,
 )
 assert.equal(
+  policy.governingRules
+    .everyCharacterMotionRouteRequiresSubjectClassGate,
+  true,
+)
+assert.equal(
   policy.authoredRigAlternatives.livingOrOrganicSubject,
   'rigging_forbidden_use_complete_frame_pose_animation',
 )

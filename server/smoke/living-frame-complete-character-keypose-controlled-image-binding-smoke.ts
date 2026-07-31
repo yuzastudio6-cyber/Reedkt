@@ -25,6 +25,9 @@ import {
   compileLivingFrameCharacterAnimationRouteDecision,
 } from '../living-frame/living-frame-character-animation-route'
 import {
+  compileLivingFrameCharacterMotionToolPolicy,
+} from '../living-frame/living-frame-character-motion-tool-policy'
+import {
   compileLivingFrameCharacterControlledPreparation,
 } from '../living-frame/living-frame-character-controlled-preparation'
 import {
@@ -37,6 +40,9 @@ import {
   compileLivingFrameCompleteCharacterKeyposePlan,
   type CreateLivingFrameCompleteCharacterKeyposePlanInput,
 } from '../living-frame/living-frame-complete-character-keypose-plan'
+import {
+  compileLivingFrameMotionSubjectClassGate,
+} from '../living-frame/living-frame-motion-subject-class-gate'
 import {
   createLivingFrameComfyUiOperationAdmissionCandidate,
 } from '../living-frame/living-frame-comfyui-operation-admission-candidate'
@@ -231,6 +237,41 @@ assert.equal(
   routeDecision.decision.selectedRoute,
   'comfyui_controlled_keyposes',
 )
+const motionToolPolicy =
+  compileLivingFrameCharacterMotionToolPolicy()
+const motionSubjectClassGateInput = {
+  gateId:
+    'gate.character-action-controlled-keyposes.v1',
+  classification: {
+    classificationId:
+      'classification.character-action-controlled-keyposes.v1',
+    sceneId: source.sceneId,
+    componentId: primaryComponent.componentId,
+    subjectClass:
+      'living_or_organic_subject',
+    evidenceSource:
+      'video_understanding_structured_visual_evidence',
+    evidenceDigestSha256: '9'.repeat(64),
+    confidenceBasisPoints: 9_800,
+    humanAnimalPlantOrOtherLivingIndicatorsPresent:
+      true,
+    vehicleMachineToolOrRigidMechanismIndicatorsPresent:
+      false,
+    ownerMechanicalRigSpecificationVersion: null,
+    rawChatPromptPathUrlModelCodeOrBytesIncluded:
+      false,
+  },
+  motionToolPolicy,
+  routeDecision,
+} as const
+const motionSubjectClassGate =
+  compileLivingFrameMotionSubjectClassGate(
+    motionSubjectClassGateInput,
+  )
+assert.equal(
+  motionSubjectClassGate.routeEvaluation.disposition,
+  'accepted_complete_frame_living_motion',
+)
 const controlledPreparationInput = {
   candidateId:
     'living-frame.character-action-keyposes.001',
@@ -369,6 +410,8 @@ const input = {
   keyposePlanInput,
   controlledPreparation,
   controlledPreparationInput,
+  motionSubjectClassGate,
+  motionSubjectClassGateInput,
 } as const
 const binding =
   await compileLivingFrameCompleteCharacterKeyposeControlledImageBinding(
@@ -417,6 +460,8 @@ assert.equal(
       .privatePromptMaterializationMayProceedBeforeActionConditioningReconciled
     && unit.outputPolicy
       .professionalVisualAcceptanceRequiredBeforeInterpolation
+    && unit.outputPolicy.completeFramePoseCandidateRequired
+    && !unit.outputPolicy.partBasedLivingSubjectRiggingAllowed
     && !unit.outputPolicy
       .independentAnimationFrameGenerationAllowed
     && unit.outputPolicy.remotionOwnsFinalCanvas),
@@ -427,6 +472,7 @@ assert.equal(
   false,
 )
 assert.equal(binding.privatePromptMaterialized, false)
+assert.equal(binding.motionSubjectClassGateRevalidated, true)
 assert.equal(binding.operationRegistered, false)
 assert.equal(binding.dispatchGranted, false)
 assert.equal(binding.runtimeExecuted, false)
@@ -505,6 +551,33 @@ assert.equal(
   false,
 )
 
+const mechanicalSubjectClassGateInput = {
+  ...motionSubjectClassGateInput,
+  gateId:
+    'gate.character-action-mechanical-blocked.v1',
+  classification: {
+    ...motionSubjectClassGateInput.classification,
+    classificationId:
+      'classification.character-action-mechanical-blocked.v1',
+    subjectClass: 'rigid_mechanical_object',
+    humanAnimalPlantOrOtherLivingIndicatorsPresent:
+      false,
+    vehicleMachineToolOrRigidMechanismIndicatorsPresent:
+      true,
+  },
+} as const
+const mechanicalSubjectClassGate =
+  compileLivingFrameMotionSubjectClassGate(
+    mechanicalSubjectClassGateInput,
+  )
+await assertRejectsWith({
+  ...input,
+  motionSubjectClassGate:
+    mechanicalSubjectClassGate,
+  motionSubjectClassGateInput:
+    mechanicalSubjectClassGateInput,
+}, 'source_lineage_mismatch')
+
 console.log(JSON.stringify({
   smoke:
     'living_frame_complete_character_keypose_controlled_image_binding',
@@ -520,6 +593,11 @@ console.log(JSON.stringify({
   exactModelRoleCount: 5,
   actionConditioningReconciled:
     binding.privateActionConditioningReconciled,
+  motionSubjectClassGateRevalidated:
+    binding.motionSubjectClassGateRevalidated,
+  livingSubjectCompleteFrameAnimationOnly:
+    true,
+  livingSubjectRiggingAllowed: false,
   privatePromptMaterialized:
     binding.privatePromptMaterialized,
   professionalVisualAcceptanceRequired:
@@ -529,7 +607,7 @@ console.log(JSON.stringify({
   runtimeExecuted: binding.runtimeExecuted,
   assetCreated: binding.assetCreated,
   productionReady: binding.productionReady,
-  adversarialAssertions: 4,
+  adversarialAssertions: 5,
 }))
 
 function routeEvidence(

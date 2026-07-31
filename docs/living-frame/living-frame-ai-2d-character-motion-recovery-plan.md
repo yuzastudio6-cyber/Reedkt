@@ -18,6 +18,14 @@ motion, camera/parallax, spatial overlays, speaker occlusion, attention
 handoffs, semantic scale, captions, sound, and Remotion composition continue
 to use their existing routes.
 
+The owner has now made the subject boundary explicit: living or organic
+subjects use complete-frame animation and never part-based rigging. Rigging is
+reserved for nonliving mechanical objects, and its detailed contract remains
+pending owner direction. The source-only
+`living-frame-motion-subject-class-gate-v1` blocks legacy character-rig
+decisions, blocks mechanical rigging until that future specification exists,
+and refuses to treat an unknown subject as mechanical by default.
+
 ## Correct motion model
 
 Meaningful illustrated-character pose changes use complete key poses:
@@ -37,8 +45,10 @@ structured narrative action
 ```
 
 The system must never create a character animation by independently generating
-every frame. It must never promote detached limb pieces, exposed puppet joints,
-or an unreviewed rigid-puppet result merely because the file rendered.
+unrelated frames. Every accepted key pose and in-between must be a coherent
+complete-character frame linked to the same action and identity. It must never
+promote detached limb pieces, exposed puppet joints, or an unreviewed
+rigid-puppet result merely because the file rendered.
 
 ## Tool responsibilities
 
@@ -49,9 +59,9 @@ or an unreviewed rigid-puppet result merely because the file rendered.
 | ComfyUI | Host one controlled pose/depth/reference workflow using approved ControlNet, generic IP-Adapter, and optional LoRA inputs | Does not generate every frame independently and does not own the final canvas |
 | ToonCrafter candidate | Evaluation-only generative cartoon interpolation between already accepted complete key poses | Not registered, dispatched, billed, or considered qualified yet |
 | RIFE candidate | Evaluation-only cadence smoothing after motion and anatomy already pass | Cannot invent action, anatomy, hands, identity, or attachments |
-| OpenToonz | Animate an illustration deliberately authored as a clean 2D mesh/cutout asset | Cannot rescue an unsuitable arbitrary merged still |
-| PixiJS | Animate rigid editorial elements, particles, smoke, glows, routes, masks, and other support motion | Cannot deform complex character anatomy |
-| Blender | Professionally authored rigs, 3D objects, cameras, environments, and selected non-character 2.5D work | Never the generic still-character route |
+| OpenToonz | Candidate for a professionally authored nonliving mechanical 2D object rig after the owner specification exists | Cannot rig a living or organic subject |
+| PixiJS | Animate nonliving rigid editorial/mechanical elements, particles, smoke, glows, routes, masks, and other support motion | Cannot rig or deform living anatomy |
+| Blender | Candidate for professionally authored nonliving mechanical objects, 3D objects, cameras, environments, and selected non-character 2.5D work | Cannot rig a living or organic subject |
 | Remotion | Own final canvas, layer ordering, layout, depth, captions, audio, timing projection, and composition | Cannot reinterpret rejected motion as accepted |
 
 ComfyUI remains one supervised workflow-host attempt. ControlNet, IP-Adapter,

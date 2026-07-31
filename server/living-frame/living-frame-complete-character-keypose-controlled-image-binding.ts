@@ -15,6 +15,9 @@ import type {
 import type {
   LivingFrameCompleteCharacterKeyposePlan,
 } from '../../src/types/living-frame-complete-character-keypose-plan'
+import type {
+  LivingFrameMotionSubjectClassGate,
+} from '../../src/types/living-frame-motion-subject-class-gate'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -27,6 +30,10 @@ import {
   type CreateLivingFrameCompleteCharacterKeyposePlanInput,
   verifyLivingFrameCompleteCharacterKeyposePlan,
 } from './living-frame-complete-character-keypose-plan'
+import {
+  type CreateLivingFrameMotionSubjectClassGateInput,
+  verifyLivingFrameMotionSubjectClassGate,
+} from './living-frame-motion-subject-class-gate'
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const SHA256 = /^[a-f0-9]{64}$/u
@@ -68,6 +75,10 @@ export interface CreateLivingFrameCompleteCharacterKeyposeControlledImageBinding
     LivingFrameCharacterControlledPreparation
   readonly controlledPreparationInput:
     CreateLivingFrameCharacterControlledPreparationInput
+  readonly motionSubjectClassGate:
+    LivingFrameMotionSubjectClassGate
+  readonly motionSubjectClassGateInput:
+    CreateLivingFrameMotionSubjectClassGateInput
 }
 
 export class LivingFrameCompleteCharacterKeyposeControlledImageBindingError
@@ -106,6 +117,13 @@ export async function compileLivingFrameCompleteCharacterKeyposeControlledImageB
   )) throw invalid(
     'controlled_preparation_invalid',
     '$.controlledPreparation',
+  )
+  if (!verifyLivingFrameMotionSubjectClassGate(
+    input.motionSubjectClassGate,
+    input.motionSubjectClassGateInput,
+  )) throw invalid(
+    'subject_class_gate_invalid',
+    '$.motionSubjectClassGate',
   )
   assertSourceLineage(input)
   const units = compileUnits(input)
@@ -146,6 +164,12 @@ export async function compileLivingFrameCompleteCharacterKeyposeControlledImageB
         characterRouteDecisionDigestSha256:
           input.controlledPreparation.sourceBindings
             .characterRouteDecisionDigestSha256,
+        motionSubjectClassGateVersion:
+          input.motionSubjectClassGate.contractVersion,
+        motionSubjectClassGateId:
+          input.motionSubjectClassGate.gateId,
+        motionSubjectClassGateDigestSha256:
+          input.motionSubjectClassGate.gateDigestSha256,
         selectedSceneRequestBindingDigestSha256:
           input.controlledPreparation.sourceBindings
             .selectedSceneRequestBindingDigestSha256,
@@ -187,10 +211,15 @@ export async function compileLivingFrameCompleteCharacterKeyposeControlledImageB
         sceneLevelConditioningMayReplaceActionConditioning:
           false,
         independentPerFrameGenerationAllowed: false,
+        livingOrOrganicSubjectCompleteFrameAnimationOnly:
+          true,
+        livingOrOrganicSubjectPartBasedRiggingAllowed:
+          false,
       },
       authorityBoundary: AUTHORITY_BOUNDARY,
       keyposePlanRevalidated: true,
       controlledPreparationRevalidated: true,
+      motionSubjectClassGateRevalidated: true,
       selectedSceneRequestRevalidatedThroughPreparation:
         true,
       privateActionConditioningReconciled: false,
@@ -490,6 +519,9 @@ function compileUnit(input: {
     outputPolicy: {
       contentType: 'image/png',
       completeCharacterRequired: true,
+      completeFramePoseCandidateRequired: true,
+      partBasedLivingSubjectRiggingAllowed:
+        false,
       detachedLimbOrVisiblePuppetJointAllowed:
         false,
       independentAnimationFrameGenerationAllowed:
@@ -519,11 +551,25 @@ function assertSourceLineage(
   const preparation = input.controlledPreparation
   const preparationInput =
     input.controlledPreparationInput
+  const subjectGate = input.motionSubjectClassGate
   if (
     preparation.selectedRoute !==
       'comfyui_controlled_keyposes'
     || preparationInput.routeDecision.decision.selectedRoute !==
       'comfyui_controlled_keyposes'
+    || !subjectGate.routeAdmissionGranted
+    || subjectGate.classification.subjectClass !==
+      'living_or_organic_subject'
+    || subjectGate.routeEvaluation.disposition !==
+      'accepted_complete_frame_living_motion'
+    || subjectGate.routeEvaluation.selectedRoute !==
+      'comfyui_controlled_keyposes'
+    || subjectGate.sourceBindings.routeDecisionDigestSha256 !==
+      preparationInput.routeDecision.decisionDigestSha256
+    || subjectGate.classification.sceneId !==
+      preparation.canonicalScope.sceneId
+    || subjectGate.classification.componentId !==
+      preparation.canonicalScope.componentId
     || plan.canonicalScope.workspaceId !==
       preparation.canonicalScope.workspaceId
     || plan.canonicalScope.projectId !==
@@ -577,6 +623,11 @@ function assertProjection(
       draft.metrics.keyposeUnitCount
     || draft.metrics.pendingPrivateActionConditioningUnitCount !==
       draft.metrics.keyposeUnitCount
+    || !draft.motionSubjectClassGateRevalidated
+    || !draft.sequencingPolicy
+      .livingOrOrganicSubjectCompleteFrameAnimationOnly
+    || draft.sequencingPolicy
+      .livingOrOrganicSubjectPartBasedRiggingAllowed
     || draft.privateActionConditioningReconciled
     || draft.privatePromptMaterialized
     || draft.bindingUnits.some((unit) =>
@@ -591,6 +642,10 @@ function assertProjection(
         .privatePromptMaterializationMayProceedBeforeActionConditioningReconciled
       || unit.outputPolicy
         .independentAnimationFrameGenerationAllowed
+      || !unit.outputPolicy
+        .completeFramePoseCandidateRequired
+      || unit.outputPolicy
+        .partBasedLivingSubjectRiggingAllowed
       || unit.generationCanvas
         .finalCanvasCreatedByComfyUi)
     || draft.operationRegistered
@@ -620,6 +675,8 @@ function assertInput(
       'controlledPreparationInput',
       'keyposePlan',
       'keyposePlanInput',
+      'motionSubjectClassGate',
+      'motionSubjectClassGateInput',
     ].sort().join('|')
     || typeof input.bindingId !== 'string'
     || !SAFE_ID.test(input.bindingId)

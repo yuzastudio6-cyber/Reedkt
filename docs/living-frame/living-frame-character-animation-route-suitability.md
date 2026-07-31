@@ -3,6 +3,28 @@
 Status: source contract and private internal fixture evidence. No provider,
 worker, operation, billing, public-delivery, or production authority.
 
+## Superseding owner rule: living subjects are never rigged
+
+As of 2026-07-31, humans, animals, plants, and any other living or organic
+subject must use complete-frame pose animation. Part-based puppet deformation,
+character armatures, Plastic meshes, and rigid whole-character cutout motion
+cannot be admitted for those subjects. Existing Blender, OpenToonz, and PixiJS
+character-route artifacts remain historical engineering evidence only; they
+cannot authorize new Living Frame execution.
+
+"Complete-frame" means that each key pose and accepted in-between is a coherent
+whole-character frame. It does not mean independently asking an image model to
+invent every unrelated frame. Action-specific complete key poses are still
+selected by Head Intelligence, placed by StoryTiming, visually accepted, and
+only then passed to a qualified complete-frame interpolation route.
+
+Rigging is reserved for nonliving rigid or mechanical objects such as cars,
+trains, bicycles, wheels, doors, rotors, gears, and related mechanisms. The
+mechanical-rig contract remains blocked until the owner supplies its detailed
+design. The source-only `living-frame-motion-subject-class-gate-v1` enforces
+this distinction and rejects unknown classification instead of defaulting it
+to a mechanical route.
+
 ## Why this gate exists
 
 A painted character cannot be sent to a rig merely because a foreground
@@ -16,44 +38,35 @@ The output passed basic alpha, mask, depth, motion, and restoration checks, but
 the painted component bent and crossed the face unnaturally. Pixel motion was
 not professional character animation.
 
-`living-frame-character-animation-route-decision-v2` prevents that class of
-false positive.
+`living-frame-character-animation-route-decision-v2` records the earlier route
+evidence. It is no longer sufficient by itself. Every current route must also
+pass `living-frame-motion-subject-class-gate-v1`.
 
 ## Professional route policy
 
 | Asset and action evidence | Route |
 | --- | --- |
-| Rigid cutout, known pivot, reviewed component boundary and exposed source plate, ambient or restrained action, no new pixels required | PixiJS rigid cutout rendered as a component below the Remotion final canvas |
-| Rigid cutout whose movement exposes an unreviewed plate or contaminated component edge | Controlled component preparation, then the simplest qualified deterministic route |
-| Separated flat parts with reviewed pivots, hidden artwork, and safe mesh topology | OpenToonz Plastic evaluation candidate |
-| Separated upper arm, forearm, hand, and prop with reviewed joints, hidden artwork, mesh, and skin weights | Blender articulated 2.5D evaluation candidate |
-| Merged painted cutout plus a large pose change or newly revealed anatomy | ComfyUI controlled key poses |
-| Continuous natural motion beyond controlled key poses and deterministic rigs | Real Motion fallback |
-| Insufficient evidence | Deliberate no-animation decision |
+| Living or organic subject with an admissible illustrated action | Controlled complete-character key poses, accepted complete-frame in-betweens, and Remotion final composition |
+| Living or organic subject requiring continuous natural motion beyond the bounded complete-frame route | Real Motion fallback or deliberate no animation |
+| Nonliving rigid/editorial support element | Qualified PixiJS support motion below the Remotion final canvas |
+| Vehicle, machine, or other rigid mechanical object | Blocked until the owner-defined mechanical-rig specification is attached |
+| Unknown or conflicting subject classification | Deliberate no-animation decision until classification is resolved |
 
 Every accepted character-motion route must also carry a reviewed protected-face
 path and attachment-continuity decision. A technically valid pivot or mesh is
 rejected when it moves the component across the face improperly or visually
 disconnects it from the body.
 
-For the current Musashi artwork:
+For the current Musashi artwork, all Blender, OpenToonz, and PixiJS body-rig
+routes are rejected because the subject is living. A meaningful sword action
+may proceed only through accepted complete-character key poses and accepted
+complete-frame in-betweens. If that route cannot meet the professional visual
+bar, character motion is disabled for the scene. Remotion retains final-canvas
+ownership in either case.
 
-- restrained whole-character drift routes to the PixiJS rigid-cutout path,
-  with Remotion retaining final-canvas ownership;
-- the extracted arm/sleeve/hand/sword component does **not** route directly to
-  PixiJS because its movement exposes an unreviewed source plate, its extracted
-  boundary is not professionally prepared, and the tested path crosses the
-  protected face;
-- that articulated sword action routes first to controlled component
-  preparation and may return to PixiJS only after plate, boundary, path, and
-  composite review pass;
-- a large new pose routes to controlled ComfyUI key-pose generation; and
-- generic Blender deformation is rejected.
-
-This distinction is important: PixiJS can animate a prepared cutout correctly,
-but it cannot repair a cutout that contains the wrong pixels or reconstruct the
-pixels behind a removed limb. Tool execution and source preparation are
-separate quality gates.
+This distinction is important: PixiJS can animate an approved nonliving rigid
+or mechanical component, but it cannot repair or animate living anatomy. Tool
+execution, subject classification, and source preparation are separate gates.
 
 The later airship-navigator experiment demonstrated that separated parts are
 still insufficient. Its real Blender and Remotion paths technically rendered
@@ -100,14 +113,16 @@ prompt leases only; real L4 generation and output QA remain open.
 
 ## What rigging remains for
 
-Blender and OpenToonz remain useful only when the source is professionally
-authored for the selected system and has appropriate topology:
+Blender, OpenToonz, and PixiJS rigging remain candidates only for professionally
+authored nonliving mechanical objects after the owner-defined mechanical-rig
+specification is complete. Likely evidence will include:
 
-- separated articulated limbs;
+- separated rigid or mechanical parts;
 - visible and reviewed pivots;
-- reconstructed joint and hidden-surface artwork;
-- reviewed mesh topology and skin/rigidity weights;
-- bounded motion that does not require inventing new anatomy; and
+- reconstructed hidden-surface artwork;
+- reviewed constraints, parent-child relationships, mesh topology, and
+  rigidity weights where applicable;
+- physically meaningful mechanical motion; and
 - exact component output below the Remotion final-canvas layer.
 
 PixiJS is also the preferred lightweight route for many mechanical parts and
@@ -116,12 +131,12 @@ particles, masks, filters, and parent-child cutouts. It animates prepared
 pixels; it does not invent hidden anatomy or new pose artwork. Remotion remains
 the final layout, caption, audio, and export compositor.
 
-The private `living-frame-character-pixijs-internal-runtime-v2` evidence now
-executes the real pinned PixiJS `Application.init` entrypoint in a fixed
-offline browser container and renders 120 transparent whole-character frames.
-It proves only restrained rigid-cutout mechanics. It does not approve the
-articulated sword action, register the operation, dispatch a worker, persist a
-canonical asset, approve QA, charge a customer, or grant production authority.
+The private `living-frame-character-pixijs-internal-runtime-v2` evidence is now
+historical engineering-only evidence. It proves that a pinned PixiJS entrypoint
+can render a rigid cutout, but the subject-class gate prevents that result from
+admitting whole-character motion for a living subject. It does not register the
+operation, dispatch a worker, persist a canonical asset, approve QA, charge a
+customer, or grant production authority.
 
 The adjacent
 `living-frame-character-pixijs-remotion-composite-internal-test-v1` consumes
@@ -130,15 +145,15 @@ server-injected private input to the pinned Remotion runtime, renders eight
 bounded chunks, retains exactly 120 intended frames, packages them through
 FFmpeg, verifies the final H.264 dimensions/rate/frame count with FFprobe,
 persists the MP4 create-only, and reopens it by exact digest and length. Visual
-review of the first, middle, final, and every chunk-boundary neighborhood shows
-a complete character with no missing torso pixels, no detached limb, no face
-crossing, stable captions above the Living Frame plane, restrained whole-body
-drift, and a return to the source pose.
+review of the first, middle, final, and every chunk-boundary neighborhood is
+retained only as historical renderer evidence; it cannot override the current
+living-subject no-rig rule.
 
 ## Regression
 
 ```text
 npm run smoke:living-frame-character-animation-route-suitability
+npm run smoke:living-frame-motion-subject-class-gate
 npm run smoke:living-frame-character-controlled-preparation
 npm run smoke:living-frame-character-controlled-preparation-private-prompt
 npm run smoke:living-frame-character-pixijs-internal-runtime

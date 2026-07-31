@@ -54,6 +54,7 @@ export interface LivingFrameCharacterMotionToolPolicyDraft {
     readonly mechanicalObjectRiggingMayBePlannedOnlyAfterOwnerSpecification:
       true
     readonly unknownSubjectClassificationBlocksRigging: true
+    readonly everyCharacterMotionRouteRequiresSubjectClassGate: true
     readonly remotionOwnsFinalCanvas: true
     readonly masterTimingRemainsCanonical: true
   }

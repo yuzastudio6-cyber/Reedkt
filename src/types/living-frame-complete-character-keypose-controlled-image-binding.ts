@@ -4,7 +4,7 @@ import type {
 } from './living-frame-character-action-choreography'
 
 export const LIVING_FRAME_COMPLETE_CHARACTER_KEYPOSE_CONTROLLED_IMAGE_BINDING_VERSION =
-  'living-frame-complete-character-keypose-controlled-image-binding-v1' as const
+  'living-frame-complete-character-keypose-controlled-image-binding-v2' as const
 
 export const LIVING_FRAME_COMPLETE_CHARACTER_KEYPOSE_CONTROLLED_IMAGE_BINDING_CLASS =
   'server_derived_non_executable_action_keypose_to_selected_scene_controlled_image_binding' as const
@@ -16,6 +16,7 @@ export const LIVING_FRAME_COMPLETE_CHARACTER_KEYPOSE_CONTROLLED_IMAGE_BINDING_IS
   'input_invalid',
   'keypose_plan_invalid',
   'controlled_preparation_invalid',
+  'subject_class_gate_invalid',
   'source_lineage_mismatch',
   'unit_set_mismatch',
   'cross_keypose_work_item_or_output_substitution',
@@ -135,6 +136,8 @@ export interface LivingFrameCompleteCharacterKeyposeControlledImageBindingUnit {
   readonly outputPolicy: {
     readonly contentType: 'image/png'
     readonly completeCharacterRequired: true
+    readonly completeFramePoseCandidateRequired: true
+    readonly partBasedLivingSubjectRiggingAllowed: false
     readonly detachedLimbOrVisiblePuppetJointAllowed: false
     readonly independentAnimationFrameGenerationAllowed: false
     readonly professionalVisualAcceptanceRequiredBeforeInterpolation:
@@ -176,6 +179,10 @@ export interface LivingFrameCompleteCharacterKeyposeControlledImageBindingDraft 
       'living-frame-character-controlled-preparation-v1'
     readonly characterPreparationDigestSha256: string
     readonly characterRouteDecisionDigestSha256: string
+    readonly motionSubjectClassGateVersion:
+      'living-frame-motion-subject-class-gate-v1'
+    readonly motionSubjectClassGateId: string
+    readonly motionSubjectClassGateDigestSha256: string
     readonly selectedSceneRequestBindingDigestSha256: string
     readonly approvedSnapshotId: string
     readonly approvedSnapshotHashSha256: string
@@ -203,11 +210,16 @@ export interface LivingFrameCompleteCharacterKeyposeControlledImageBindingDraft 
     readonly genericStartMiddleEndSubstitutionAllowed: false
     readonly sceneLevelConditioningMayReplaceActionConditioning: false
     readonly independentPerFrameGenerationAllowed: false
+    readonly livingOrOrganicSubjectCompleteFrameAnimationOnly:
+      true
+    readonly livingOrOrganicSubjectPartBasedRiggingAllowed:
+      false
   }
   readonly authorityBoundary:
     LivingFrameCompleteCharacterKeyposeControlledImageBindingAuthority
   readonly keyposePlanRevalidated: true
   readonly controlledPreparationRevalidated: true
+  readonly motionSubjectClassGateRevalidated: true
   readonly selectedSceneRequestRevalidatedThroughPreparation: true
   readonly privateActionConditioningReconciled: false
   readonly privatePromptMaterialized: false

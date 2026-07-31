@@ -11,6 +11,14 @@ native-host runtime evidence. This does not register Blender or OpenToonz,
 dispatch a canonical worker, persist a canonical asset, approve QA, change
 cost, or grant production authority.
 
+Owner correction on 2026-07-31: this rigging system is no longer a candidate
+for humans, animals, plants, or any other living or organic subject. Those use
+complete-frame pose animation. The existing character-like Blender/OpenToonz
+fixtures are retained only as negative or engineering evidence. Future rigging
+is reserved for cars, trains, bicycles, wheels, doors, rotors, gears, and other
+nonliving rigid/mechanical objects, and remains blocked until the owner supplies
+the detailed mechanical-rig specification.
+
 ## Product requirement
 
 Living Frame cannot treat rigging as a generic effect or ask a model to invent

@@ -157,7 +157,7 @@ export interface LivingFrameCompleteCharacterKeyposePrivateActionConditioningDra
   }
   readonly sourceBindings: {
     readonly controlledImageBindingVersion:
-      'living-frame-complete-character-keypose-controlled-image-binding-v1'
+      'living-frame-complete-character-keypose-controlled-image-binding-v2'
     readonly controlledImageBindingId: string
     readonly controlledImageBindingDigestSha256: string
     readonly keyposePlanId: string

@@ -25,6 +25,13 @@ The runner executes ten unique child regressions:
 Shared child evidence may support several active cases, but every case keeps
 its own ordered mapping and evidence digest.
 
+The four media runs export five create-only process-private review copies:
+one five-mode video, two confirmed-frame videos, one motion-v3 video, and one
+selected-scene particle video. The runner creates the export root itself under
+the fixed temporary-directory prefix and emits its local path outside the
+content-addressed report. Child processes may not choose another root, replace
+an existing review copy, or turn a review copy into a canonical asset.
+
 ## Honest evidence boundary
 
 The report deliberately remains
@@ -42,6 +49,10 @@ Even when all ten child runs succeed, it records:
 Consequently, no case may count toward active completion yet. Technical pixel,
 motion, FFprobe, and runtime metrics are engineering evidence only and cannot
 approve professional visual quality.
+
+The process-private copies exist so the operating agent can watch every full
+video and inspect representative frames before reporting the milestone. They
+are not Qwen evidence, canonical private-review artifacts, or approval.
 
 ## Run discipline
 

@@ -34,6 +34,10 @@ import {
   type PrivateOfflineRemotionRenderRuntime,
   type OfflineRemotionServerInjectedInput,
 } from '../tool-execution/remotion-render-execution'
+import {
+  exportLivingFrameInternalReviewFile,
+  type LivingFrameInternalReviewExportReceipt,
+} from './living-frame-internal-review-export'
 
 const fps = 30
 const durationFrames = 30
@@ -82,6 +86,8 @@ process.stdout.write(`${JSON.stringify({
   status: 'passed',
   privateInternalOnly: true,
   confirmedFrameScenarios: results,
+  reviewExports: results.flatMap((result) =>
+    result.reviewExport == null ? [] : [result.reviewExport]),
   exactConfirmedRatioPreserved: true,
   squareSubstitutionApplied: false,
   remotionFinalCanvasOwnerPreserved: true,
@@ -108,6 +114,8 @@ async function runScenario(
   privateArtifactPersistedAndReopened: true
   squareSubstitutionApplied: false
   confirmedFrameDigestSha256: string
+  reviewExport:
+    LivingFrameInternalReviewExportReceipt | null
 }> {
   const fixtureRoot = await mkdtemp(
     join(
@@ -326,6 +334,14 @@ async function runScenario(
         .digest('hex'),
       result.artifact.sha256,
     )
+    const reviewExport =
+      await exportLivingFrameInternalReviewFile({
+        runId: 'confirmed_frame_private_render',
+        fileName: `${scenario.scenarioId}.mp4`,
+        sourcePath: renderedPath,
+        expectedByteLength: result.artifact.byteLength,
+        expectedSha256: result.artifact.sha256,
+      })
     return {
       scenarioId: scenario.scenarioId,
       aspectRatio: scenario.aspectRatio,
@@ -339,6 +355,7 @@ async function runScenario(
       privateArtifactPersistedAndReopened: true,
       squareSubstitutionApplied: false,
       confirmedFrameDigestSha256: frameDigest,
+      reviewExport,
     }
   } finally {
     await rm(fixtureRoot, {

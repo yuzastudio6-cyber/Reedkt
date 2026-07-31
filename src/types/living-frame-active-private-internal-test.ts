@@ -54,6 +54,8 @@ export interface LivingFrameActivePrivateInternalRunResult {
   readonly observedStatus: 'passed' | 'passed_source_only'
   readonly outputDigestSha256: string
   readonly receiptDigestSha256: string
+  readonly reviewExportCount: number
+  readonly reviewExportReceiptSetDigestSha256: string
   readonly canonicalRuntimeEvidenceClaimed: false
 }
 
@@ -93,6 +95,8 @@ export interface LivingFrameActivePrivateInternalTestReportDraft {
   readonly runCount: 10
   readonly sourceContractRunCount: 6
   readonly privateEngineeringMediaRuntimeRunCount: 4
+  readonly privateReviewExportRunCount: 4
+  readonly privateReviewExportCount: 5
   readonly runs: readonly LivingFrameActivePrivateInternalRunResult[]
   readonly cases: readonly LivingFrameActivePrivateInternalCaseResult[]
   readonly openGateIds:
@@ -106,6 +110,9 @@ export interface LivingFrameActivePrivateInternalTestReportDraft {
   readonly headQaRecommendationMade: false
   readonly canonicalPrivateReviewApproved: false
   readonly internalEngineeringRuntimeExecuted: true
+  readonly processPrivateReviewCopiesPreserved: true
+  readonly reviewCopiesCreateCanonicalArtifacts: false
+  readonly reviewCopiesMayApproveProfessionalQuality: false
   readonly activePrivateInternalReady: false
   readonly createsCanonicalPlannerWorkAssetTimingRendererQaOrReviewOwner:
     false

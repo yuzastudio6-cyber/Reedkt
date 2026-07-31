@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { existsSync } from 'node:fs'
+import { mkdtemp } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import {
@@ -21,6 +23,9 @@ import {
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
+import {
+  LIVING_FRAME_INTERNAL_REVIEW_EXPORT_ROOT_ENV,
+} from './living-frame-internal-review-export'
 
 interface RunDefinition {
   readonly runId: LivingFrameActivePrivateInternalRunId
@@ -29,6 +34,7 @@ interface RunDefinition {
     | 'source_contract_regression'
     | 'private_engineering_media_runtime'
   readonly expectedStatus: 'passed' | 'passed_source_only'
+  readonly expectedReviewExportCount: number
   readonly validate: (receipt: Record<string, unknown>) => void
 }
 
@@ -39,6 +45,9 @@ assert.equal(
   true,
   'Active Living Frame internal test requires the pinned workspace tsx entrypoint.',
 )
+const reviewExportRoot = await mkdtemp(
+  join(tmpdir(), 'reeditpro-lf-active-review-v1-'),
+)
 
 const runDefinitions = [
   run(
@@ -46,6 +55,7 @@ const runDefinitions = [
     'server/smoke/living-frame-active-baseline-route-binding-smoke.ts',
     'source_contract_regression',
     'passed_source_only',
+    0,
     (receipt) => {
       assert.equal(receipt.activeCaseCount, 12)
       assert.equal(receipt.approvedFallbackCaseCount, 2)
@@ -59,6 +69,7 @@ const runDefinitions = [
     'server/smoke/living-frame-five-mode-private-render-smoke.ts',
     'private_engineering_media_runtime',
     'passed',
+    1,
     (receipt) => {
       assert.equal(receipt.actualRemotionRuntimeExecuted, true)
       assert.equal(receipt.actualFfprobeRuntimeExecuted, true)
@@ -81,6 +92,7 @@ const runDefinitions = [
     'server/smoke/living-frame-confirmed-ratio-private-render-smoke.ts',
     'private_engineering_media_runtime',
     'passed',
+    2,
     (receipt) => {
       assert.equal(receipt.exactConfirmedRatioPreserved, true)
       assert.equal(receipt.squareSubstitutionApplied, false)
@@ -94,6 +106,7 @@ const runDefinitions = [
     'server/smoke/offline-remotion-living-frame-motion-smoke.ts',
     'private_engineering_media_runtime',
     'passed',
+    1,
     (receipt) => {
       assert.equal(receipt.deterministicMotionObserved, true)
       assert.equal(receipt.deepMultiplaneRenderedAndMeasured, true)
@@ -107,6 +120,7 @@ const runDefinitions = [
     'server/smoke/living-frame-non-character-content-lineage-smoke.ts',
     'source_contract_regression',
     'passed_source_only',
+    0,
     (receipt) => {
       assert.equal(receipt.caseCount, 4)
       assert.equal(receipt.runtimeExecuted, false)
@@ -118,6 +132,7 @@ const runDefinitions = [
     'server/smoke/living-frame-selected-scene-environmental-particle-internal-test-smoke.ts',
     'private_engineering_media_runtime',
     'passed',
+    1,
     (receipt) => {
       assert.equal(receipt.actualPackageEntrypointExecuted, true)
       assert.equal(receipt.everyParticleFrameTimeSampled, true)
@@ -135,6 +150,7 @@ const runDefinitions = [
     'server/smoke/living-frame-semantic-sound-timing-reconciliation-smoke.ts',
     'source_contract_regression',
     'passed',
+    0,
     (receipt) => {
       assert.equal(receipt.professionalSemanticSoundTimingReady, false)
       assert.equal(receipt.controlledCases, 2)
@@ -145,6 +161,7 @@ const runDefinitions = [
     'server/smoke/living-frame-non-character-professional-review-smoke.ts',
     'source_contract_regression',
     'passed_source_only',
+    0,
     (receipt) => {
       assert.equal(receipt.headIntelligenceInspectionRequired, true)
       assert.equal(receipt.technicalMetricsAloneCanApproveVisualQuality, false)
@@ -157,6 +174,7 @@ const runDefinitions = [
     'server/smoke/living-frame-postrender-visual-inspection-smoke.ts',
     'source_contract_regression',
     'passed_source_only',
+    0,
     (receipt) => {
       assert.equal(receipt.qwenVisualEvidenceOnly, true)
       assert.equal(receipt.separateAudioEvidenceRequired, true)
@@ -170,6 +188,7 @@ const runDefinitions = [
     'server/smoke/living-frame-active-non-illustration-evidence-admission-smoke.ts',
     'source_contract_regression',
     'passed_source_only',
+    0,
     (receipt) => {
       assert.equal(receipt.activeCaseCount, 12)
       assert.equal(receipt.completeTimeVisualEvidenceRequired, true)
@@ -189,6 +208,14 @@ assert.equal(
   runDefinitions.filter((definition) =>
     definition.evidenceClass === 'private_engineering_media_runtime').length,
   4,
+)
+assert.equal(
+  runDefinitions.reduce(
+    (count, definition) =>
+      count + definition.expectedReviewExportCount,
+    0,
+  ),
+  5,
 )
 
 const CASE_RUN_BINDINGS = [
@@ -252,6 +279,8 @@ const draft: LivingFrameActivePrivateInternalTestReportDraft = {
   runCount: 10,
   sourceContractRunCount: 6,
   privateEngineeringMediaRuntimeRunCount: 4,
+  privateReviewExportRunCount: 4,
+  privateReviewExportCount: 5,
   runs: runResults,
   cases,
   openGateIds: LIVING_FRAME_ACTIVE_PRIVATE_INTERNAL_OPEN_GATE_IDS,
@@ -264,6 +293,9 @@ const draft: LivingFrameActivePrivateInternalTestReportDraft = {
   headQaRecommendationMade: false,
   canonicalPrivateReviewApproved: false,
   internalEngineeringRuntimeExecuted: true,
+  processPrivateReviewCopiesPreserved: true,
+  reviewCopiesCreateCanonicalArtifacts: false,
+  reviewCopiesMayApproveProfessionalQuality: false,
   activePrivateInternalReady: false,
   createsCanonicalPlannerWorkAssetTimingRendererQaOrReviewOwner: false,
   customerCharged: false,
@@ -284,6 +316,20 @@ const report: LivingFrameActivePrivateInternalTestReport = deepFreeze({
 
 assert.equal(report.cases.length, 12)
 assert.equal(
+  report.runs.reduce(
+    (count, runResult) => count + runResult.reviewExportCount,
+    0,
+  ),
+  5,
+)
+assert.equal(
+  report.runs.every((runResult) =>
+    runResult.evidenceClass === 'private_engineering_media_runtime'
+      ? runResult.reviewExportCount > 0
+      : runResult.reviewExportCount === 0),
+  true,
+)
+assert.equal(
   report.cases.every((entry) =>
     !entry.canCountTowardActiveCompletion
     && !entry.professionalAiVisualInspectionObserved
@@ -297,6 +343,7 @@ assert.equal(report.productionReady, false)
 process.stdout.write(`${JSON.stringify({
   smoke: 'living_frame_active_private_internal_test',
   ...report,
+  internalReviewExportRoot: reviewExportRoot,
 })}\n`)
 
 function run(
@@ -304,9 +351,17 @@ function run(
   relativePath: string,
   evidenceClass: RunDefinition['evidenceClass'],
   expectedStatus: RunDefinition['expectedStatus'],
+  expectedReviewExportCount: number,
   validate: RunDefinition['validate'],
 ): RunDefinition {
-  return { runId, relativePath, evidenceClass, expectedStatus, validate }
+  return {
+    runId,
+    relativePath,
+    evidenceClass,
+    expectedStatus,
+    expectedReviewExportCount,
+    validate,
+  }
 }
 
 function runDefinition(
@@ -322,7 +377,11 @@ function runDefinition(
   const execution = spawnSync(tsxEntrypoint, [absolutePath], {
     cwd: repositoryRoot,
     encoding: 'utf8',
-    env: process.env,
+    env: {
+      ...process.env,
+      [LIVING_FRAME_INTERNAL_REVIEW_EXPORT_ROOT_ENV]:
+        reviewExportRoot,
+    },
     maxBuffer: 8 * 1024 * 1024,
     timeout: 20 * 60 * 1_000,
   })
@@ -338,6 +397,12 @@ function runDefinition(
   )
   assert.equal(receipt.status, definition.expectedStatus)
   definition.validate(receipt)
+  const reviewExports =
+    validateReviewExports(
+      receipt.reviewExports,
+      definition.runId,
+      definition.expectedReviewExportCount,
+    )
   return deepFreeze({
     runId: definition.runId,
     order,
@@ -350,6 +415,9 @@ function runDefinition(
       .update(execution.stdout)
       .digest('hex'),
     receiptDigestSha256: sha256AuthorityValue(receipt),
+    reviewExportCount: reviewExports.length,
+    reviewExportReceiptSetDigestSha256:
+      sha256AuthorityValue(reviewExports),
     canonicalRuntimeEvidenceClaimed: false as const,
   })
 }
@@ -394,6 +462,54 @@ function caseBinding(
   requiredRunIds: readonly LivingFrameActivePrivateInternalRunId[],
 ) {
   return { caseId, activeScope, requiredRunIds }
+}
+
+function validateReviewExports(
+  value: unknown,
+  expectedRunId: LivingFrameActivePrivateInternalRunId,
+  expectedCount: number,
+): readonly Record<string, unknown>[] {
+  const exports = value == null ? [] : value
+  assert.equal(Array.isArray(exports), true)
+  assert.equal(exports.length, expectedCount)
+  const fileNames = new Set<string>()
+  for (const entry of exports) {
+    assert.equal(
+      entry != null && typeof entry === 'object' && !Array.isArray(entry),
+      true,
+    )
+    const receipt = entry as Record<string, unknown>
+    assert.equal(
+      receipt.exportClass,
+      'process_private_non_authoritative_visual_review_copy',
+    )
+    assert.equal(receipt.runId, expectedRunId)
+    assert.equal(
+      typeof receipt.fileName === 'string'
+      && /^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$/u.test(receipt.fileName),
+      true,
+    )
+    assert.equal(fileNames.has(receipt.fileName as string), false)
+    fileNames.add(receipt.fileName as string)
+    assert.equal(
+      typeof receipt.byteLength === 'number'
+      && Number.isSafeInteger(receipt.byteLength)
+      && receipt.byteLength > 0,
+      true,
+    )
+    assert.equal(
+      typeof receipt.sha256 === 'string'
+      && /^[a-f0-9]{64}$/u.test(receipt.sha256),
+      true,
+    )
+    assert.equal(receipt.createOnlyCopyUsed, true)
+    assert.equal(receipt.canonicalArtifactCreated, false)
+    assert.equal(receipt.qaApprovalGranted, false)
+    assert.equal(receipt.privateReviewApproved, false)
+    assert.equal(receipt.publicDeliveryReady, false)
+    assert.equal(receipt.productionReady, false)
+  }
+  return exports as readonly Record<string, unknown>[]
 }
 
 function parseLastJsonObject(output: string): Record<string, unknown> | null {

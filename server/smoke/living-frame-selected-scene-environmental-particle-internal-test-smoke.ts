@@ -71,9 +71,15 @@ import {
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
+import {
+  inspectCanonicalPrivateRemotionArtifact,
+} from '../services/canonical-private-remotion-artifact-storage'
 import type {
   CanonicalPlanComponentsInput,
 } from '../validation/edit-planning-authority-schemas'
+import {
+  exportLivingFrameInternalReviewStream,
+} from './living-frame-internal-review-export'
 
 const contractFixtures =
   await createLivingFrameContractFixtures()
@@ -627,6 +633,7 @@ const {
   persistenceReport,
   sceneQaReport,
   privateReviewReport,
+  reviewExport,
   sceneQaAdversarialAssertions,
 } = await (async () => {
   const localStorageRoot =
@@ -646,7 +653,30 @@ const {
       privateReviewOutputLease:
         fullTimelineExecution
           .privateReviewOutputLease,
-    })
+      })
+    const persistedForReview =
+      await inspectCanonicalPrivateRemotionArtifact({
+        localStorageRoot,
+        privateObjectIdentityHash:
+          persistenceExecution.report
+            .persistedArtifact
+            .privateObjectIdentityHash,
+      })
+    assert.ok(persistedForReview)
+    const reviewExport =
+      await exportLivingFrameInternalReviewStream({
+        runId:
+          'selected_scene_environmental_particle',
+        fileName:
+          'selected-scene-environmental-particle.mp4',
+        stream: await persistedForReview.openStream(),
+        expectedByteLength:
+          persistenceExecution.report
+            .persistedArtifact.byteLength,
+        expectedSha256:
+          persistenceExecution.report
+            .persistedArtifact.sha256,
+      })
     await assert.rejects(
       executeLivingFrameSelectedSceneEnvironmentalParticleSceneQaInternalTest({
         qualificationId:
@@ -729,6 +759,7 @@ const {
       sceneQaReport:
         sceneQaExecution.report,
       privateReviewReport,
+      reviewExport,
       sceneQaAdversarialAssertions: 4,
     }
   } finally {
@@ -1195,6 +1226,8 @@ process.stdout.write(`${JSON.stringify({
   privateInternalParticleSliceEndToEndPassed:
     privateReviewReport
       .privateInternalParticleSliceEndToEndPassed,
+  reviewExports:
+    reviewExport == null ? [] : [reviewExport],
   canonicalPrivateReviewProceduralTimelineExtensionPending:
     !privateReviewReport.canonicalReviewDisposition
       .canonicalCompilerSupportsProceduralTimelineWorkChain,

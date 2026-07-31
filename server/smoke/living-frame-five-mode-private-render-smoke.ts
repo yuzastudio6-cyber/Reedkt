@@ -37,6 +37,9 @@ import {
   prepareOfflineRemotionDockerRuntime,
   type OfflineRemotionServerInjectedInput,
 } from '../tool-execution/remotion-render-execution'
+import {
+  exportLivingFrameInternalReviewFile,
+} from './living-frame-internal-review-export'
 
 const width = 640
 const height = 360
@@ -1083,6 +1086,14 @@ try {
     createHash('sha256').update(rendered).digest('hex'),
     result.artifact.sha256,
   )
+  const reviewExport =
+    await exportLivingFrameInternalReviewFile({
+      runId: 'five_mode_private_render',
+      fileName: 'five-mode-private-render.mp4',
+      sourcePath: renderedPath,
+      expectedByteLength: result.artifact.byteLength,
+      expectedSha256: result.artifact.sha256,
+    })
 
   process.stdout.write(`${JSON.stringify({
     smoke:
@@ -1154,6 +1165,8 @@ try {
     },
     captionPlaneObservedAboveEveryMode: true,
     persistedPrivateArtifactReopenedAndVerified: true,
+    reviewExports:
+      reviewExport == null ? [] : [reviewExport],
     actualRemotionRuntimeExecuted: true,
     actualFfprobeRuntimeExecuted: true,
     output: probe,

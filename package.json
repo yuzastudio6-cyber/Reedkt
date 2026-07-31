@@ -196,6 +196,7 @@
     "smoke:living-frame-character-action-choreography": "tsx server/smoke/living-frame-character-action-choreography-smoke.ts",
     "smoke:living-frame-character-motion-tool-policy": "tsx server/smoke/living-frame-character-motion-tool-policy-smoke.ts",
     "smoke:living-frame-motion-subject-class-gate": "tsx server/smoke/living-frame-motion-subject-class-gate-smoke.ts",
+    "smoke:living-frame-owner-scope-amendment": "tsx server/smoke/living-frame-owner-scope-amendment-smoke.ts",
     "smoke:living-frame-ai-2d-feasibility-sprint": "tsx server/smoke/living-frame-ai-2d-feasibility-sprint-smoke.ts",
     "smoke:living-frame-ai-2d-interpolation-qualification": "tsx server/smoke/living-frame-ai-2d-interpolation-qualification-smoke.ts",
     "smoke:living-frame-ai-2d-interpolation-source-audit": "tsx server/smoke/living-frame-ai-2d-interpolation-source-audit-smoke.ts",

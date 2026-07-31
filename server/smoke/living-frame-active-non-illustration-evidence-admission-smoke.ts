@@ -490,6 +490,7 @@ console.log(JSON.stringify({
   smoke: 'living_frame_active_non_illustration_evidence_admission',
   status: 'passed_source_only',
   contractVersion: admission.contractVersion,
+  admissionDigestSha256: admission.admissionDigestSha256,
   activeCaseCount: admission.activeCaseCount,
   repairedCaseCount: admission.cases.filter(
     (entry) => entry.repairLineage.repairState

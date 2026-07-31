@@ -218,6 +218,7 @@ console.log(JSON.stringify({
   smoke: 'living_frame_active_non_illustration_aggregate',
   status: 'passed_source_only',
   contractVersion: aggregate.contractVersion,
+  aggregateDigestSha256: aggregate.aggregateDigestSha256,
   activeCaseCount: aggregate.activeCaseCount,
   activeScopeCount: aggregate.activeScopeCount,
   pausedScopeCount: aggregate.pausedScopeCount,

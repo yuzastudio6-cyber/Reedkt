@@ -221,6 +221,7 @@
     "smoke:living-frame-active-non-illustration-evidence-admission": "tsx server/smoke/living-frame-active-non-illustration-evidence-admission-smoke.ts",
     "smoke:living-frame-active-professional-skill-policy-projection": "tsx server/smoke/living-frame-active-professional-skill-policy-projection-smoke.ts",
     "smoke:living-frame-chat-plan-presentation": "tsx server/smoke/living-frame-chat-plan-presentation-smoke.ts",
+    "smoke:living-frame-canonical-integration-supplement": "tsx server/smoke/living-frame-canonical-integration-supplement-smoke.ts",
     "smoke:living-frame-private-internal-end-to-end-audit": "tsx server/smoke/living-frame-private-internal-end-to-end-audit-smoke.ts",
     "smoke:living-frame-comfyui-container-sbom": "tsx server/smoke/living-frame-comfyui-container-sbom-evidence-smoke.ts",
     "smoke:living-frame-comfyui-local-confinement-internal-test": "tsx server/smoke/living-frame-comfyui-local-confinement-internal-test-smoke.ts",

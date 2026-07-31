@@ -67,7 +67,12 @@ The active scope already has verified source contracts for:
   active policy, confirmed frame, MasterTiming, plan version, and approved or
   pending snapshot state. It covers guided, detailed, and opaque developer
   views plus exact reload and revision invalidation without mutating the shared
-  chat-card or browser-rehydration owners.
+  chat-card or browser-rehydration owners; and
+- a source-only canonical integration supplement that digest-binds the active
+  policy and representative source regressions, enumerates 15 exact canonical
+  consumption points, preserves the one-host controlled-generation identity
+  model, and records all 12 remaining shared-interface blockers without
+  becoming a second readiness, approval, work, renderer, or review owner.
 
 Recorded private fixtures cover all five modes, confirmed portrait/custom
 frames, a safe-space A-roll fallback, deterministic diagram reveal, archive

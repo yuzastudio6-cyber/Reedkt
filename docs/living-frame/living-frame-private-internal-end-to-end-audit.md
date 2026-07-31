@@ -47,53 +47,58 @@ The aggregate audit executes:
     prompt topology, including `VAEEncodeForInpaint`, source/mask privacy,
     server-derived seeds, and explicit rejection of generic empty-latent
     substitution;
-11. selected-scene private operation-request compilation plus exact
+11. character-preparation canonical reconciliation proving that the
+    1024-square component maps exactly into canonical ComfyUI v1 while the
+    confirmed-ratio masked plate is blocked until the canonical owner adds the
+    narrowly versioned `VAEEncodeForInpaint` source/mask envelope to the same
+    operation;
+12. selected-scene private operation-request compilation plus exact
    reconciliation into the canonical ComfyUI candidate-input shape without
    invoking the canonical compiler or dispatch;
-12. exact partial vulnerability evidence for the canonical-offline ComfyUI
+13. exact partial vulnerability evidence for the canonical-offline ComfyUI
    image, including the fail-closed critical/high finding disposition and
    explicit absence of full-image or OS coverage;
-13. the exact official Torch `2.6.0` / TorchVision `0.21.0` / Triton `3.2.0`
+14. the exact official Torch `2.6.0` / TorchVision `0.21.0` / Triton `3.2.0`
    / cuSPARSELt `0.6.2` shared-parent hardening candidate and current-parent
    dependency delta, without package download or build admission;
-14. the sanitized local hardened derivative through strict non-root,
+15. the sanitized local hardened derivative through strict non-root,
    read-only-root, zero-network verification, with its incomplete full-image
    scan and release denial preserved;
-15. the exact digest-bound `docker save` archive-input scan attempt, its
+16. the exact digest-bound `docker save` archive-input scan attempt, its
    no-report timeout, and complete temporary artifact cleanup;
-16. the source-defined pruned hardened image build, strict non-root
+17. the source-defined pruned hardened image build, strict non-root
     verification, complete OS/Python vulnerability scan with zero
     critical/high findings, SPDX SBOM, and complete full-file license scan,
     while manual vulnerability/license and every execution authority remain
     closed;
-17. the second source-defined pruned image proving exact inherited
+18. the second source-defined pruned image proving exact inherited
     direct-VCS SAM2 removal, retained runner import denial, and repeated
     complete vulnerability/SBOM/license coverage;
-18. a real Remotion render covering all five Living Frame modes, deliberate
+19. a real Remotion render covering all five Living Frame modes, deliberate
    non-use, multiple depth styles, attention, caption priority, sound, and
    fallbacks;
-19. real portrait and custom non-square confirmed-frame renders without square
+20. real portrait and custom non-square confirmed-frame renders without square
    substitution;
-20. the complete selected-scene PixiJS environmental-particle slice through
+21. the complete selected-scene PixiJS environmental-particle slice through
    Remotion, create-only persistence, media QA, and private-review evidence;
-21. the real Musashi illustration through alpha, exact destination composite,
+22. the real Musashi illustration through alpha, exact destination composite,
    base/sword-arm/hair/robe decomposition, deterministic bounded shoulder-plate
    reconstruction, a restrained PixiJS-compatible rigid-pivot strike,
    Remotion, captions, sound, media QA, and retained review frames, plus a
    fail-closed route-suitability regression that rejects generic Blender
    deformation of the merged arm/sleeve/hand/sword cutout;
-22. real generated flat-editorial and paper-collage alpha fixtures through
+23. real generated flat-editorial and paper-collage alpha fixtures through
    adaptive flat and shallow-2.5D Remotion scenes, measured spatial behavior,
    caption priority, create-only persistence, and retained review frames;
-23. semantic sound timing reconciliation;
-24. canonical private-review lineage;
-25. the exact selected-scene source-video → normalized subject prompt → SAM2
+24. semantic sound timing reconciliation;
+25. canonical private-review lineage;
+26. the exact selected-scene source-video → normalized subject prompt → SAM2
     temporal-mask work-admission candidate;
-26. the exact SAM2 runtime/parent/Torch vulnerability admission gate, including
+27. the exact SAM2 runtime/parent/Torch vulnerability admission gate, including
     the required versioned hardened source/runtime replacement;
-27. a real gray8 FFV1 temporal-mask output through decode, stability
+28. a real gray8 FFV1 temporal-mask output through decode, stability
     measurement, create-only persistence, and review frames; and
-28. the exact temporal-mask work-graph conflict.
+29. the exact temporal-mask work-graph conflict.
 
 Every subprocess is bounded, uses the pinned workspace `tsx` executable, and
 returns only an output digest plus structured status to the aggregate receipt.
@@ -237,7 +242,12 @@ pass must still report three open internal runtime gates:
    pending dispatch/attempt lineage into an exact process-private
    `canonical-comfyui-gpu-runtime-request-candidate-v1` input lease without
    invoking or duplicating the canonical compiler. The exact offline package
-   now builds into a fixed non-root private image.
+   now builds into a fixed non-root private image. Character preparation now
+   additionally proves that the 1024-square component is v1 compatible and
+   fails closed on the confirmed-ratio plate because v1 has no
+   `VAEEncodeForInpaint` node or source/mask slots. The exact shared-interface
+   dependency is a canonical v2 request envelope for the same tool/operation,
+   not another ComfyUI identity.
    A checksum-verified partial metadata scan found one unique critical and 16
    unique high Python findings; full-image and OS coverage are still absent.
    The image is therefore blocked pending a hardened rebuild, complete

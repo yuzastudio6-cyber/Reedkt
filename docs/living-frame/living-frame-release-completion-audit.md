@@ -429,6 +429,14 @@ Passed:
   process-bound single-use delivery, full-frame and isolated canvas support,
   and no canonical compiler, dispatch, runtime, cost, asset, or production
   authority;
+- character controlled-preparation canonical ComfyUI reconciliation proving
+  that the clean 1024-square component is structurally compatible with the
+  existing canonical v1 request candidate while the confirmed-ratio masked
+  plate is correctly denied a v1 candidate lease; the recorded canonical v2
+  owner requirement adds only exact `VAEEncodeForInpaint` source/mask slots,
+  `grow_mask_by=6`, and `denoise=0.55` to the same `comfyui` identity and
+  `tool.comfyui.generate_controlled_image.v1` operation, with no dispatch,
+  runtime, cost, asset, QA, final-canvas, or production authority;
 - selected-scene private animation-aware conditioning with exact semantic,
   component, Visual Continuity Pack, scene-design, depth, source-truth,
   output-frame, work/output, and planned-asset lineage; process-bound

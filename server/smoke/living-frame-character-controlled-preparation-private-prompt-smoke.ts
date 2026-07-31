@@ -201,6 +201,22 @@ const componentSampler =
   componentNodes.find((node) =>
     node.class_type === 'KSampler')!
 assert.equal(componentSampler.inputs.denoise, 1)
+const componentControlNet =
+  componentNodes.find((node) =>
+    node.class_type ===
+      'ControlNetApplyAdvanced')!
+assert.equal(
+  componentControlNet.inputs.strength,
+  0.75,
+)
+assert.equal(
+  componentControlNet.inputs.start_percent,
+  0.1,
+)
+assert.equal(
+  componentControlNet.inputs.end_percent,
+  1,
+)
 assert.equal(
   componentNodes.some((node) =>
     node.class_type === 'VAEEncodeForInpaint'),

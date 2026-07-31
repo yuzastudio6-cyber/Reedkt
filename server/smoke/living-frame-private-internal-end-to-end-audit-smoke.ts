@@ -412,6 +412,66 @@ const cases: readonly AuditCase[] = [
   },
   {
     id:
+      'character_controlled_preparation_canonical_comfyui_reconciliation',
+    relativePath:
+      'server/smoke/living-frame-character-controlled-preparation-canonical-comfyui-reconciliation-smoke.ts',
+    validate(receipt) {
+      assert.equal(receipt.status, 'passed')
+      assert.equal(
+        receipt.contractVersion,
+        'living-frame-character-controlled-preparation-canonical-comfyui-reconciliation-v1',
+      )
+      assert.equal(
+        receipt.observedCanonicalBackendCommit,
+        'b6eb48277cbd',
+      )
+      assert.equal(
+        receipt.observedCanonicalTarget,
+        'canonical-comfyui-gpu-runtime-request-candidate-v1',
+      )
+      assert.equal(receipt.preparationUnitCount, 2)
+      assert.equal(
+        receipt.canonicalV1CompatibleUnitCount,
+        1,
+      )
+      assert.equal(
+        receipt.canonicalV1CandidateInputLeaseCount,
+        1,
+      )
+      assert.equal(
+        receipt.maskedInpaintExtensionBlockedUnitCount,
+        1,
+      )
+      assert.equal(
+        receipt.requestedMaskedInpaintTarget,
+        'canonical-comfyui-gpu-runtime-request-candidate-v2',
+      )
+      assert.deepEqual(
+        receipt.componentCandidateDimensions,
+        [1024, 1024],
+      )
+      assert.equal(
+        receipt.oneCanonicalComfyUiIdentity,
+        true,
+      )
+      assert.equal(
+        receipt.independentPerFrameGeneration,
+        false,
+      )
+      assert.equal(
+        receipt.remotionOwnsFinalCanvas,
+        true,
+      )
+      assert.equal(receipt.operationRegistered, false)
+      assert.equal(receipt.dispatchGranted, false)
+      assert.equal(receipt.runtimeExecuted, false)
+      assert.equal(receipt.assetCreated, false)
+      assert.equal(receipt.qaApproved, false)
+      assert.equal(receipt.productionReady, false)
+    },
+  },
+  {
+    id:
       'character_pixijs_remotion_private_composite',
     relativePath:
       'server/smoke/living-frame-character-pixijs-remotion-composite-internal-test-smoke.ts',
@@ -983,6 +1043,7 @@ const receipt = {
     'character_animation_route_suitability_rejects_merged_musashi_blender_and_direct_pixijs_deformation_routes_that_action_to_controlled_component_preparation_and_proves_a_separate_complete_character_through_real_pixijs_and_remotion',
     'character_controlled_preparation_binds_one_confirmed_ratio_masked_inpaint_plate_and_one_1024_square_alpha_component_to_exact_approved_outputs',
     'character_private_prompt_materialization_uses_vae_encode_for_inpaint_rejects_empty_latent_plate_substitution_and_creates_two_single_use_non_dispatched_leases',
+    'character_canonical_comfyui_reconciliation_proves_the_1024_component_is_exactly_v1_compatible_and_blocks_the_confirmed_ratio_masked_plate_until_the_same_operation_has_a_versioned_vae_inpaint_source_and_mask_envelope',
     'selected_scene_lineage_and_private_prompt_materialization',
     'selected_scene_private_operation_and_canonical_comfyui_candidate_input_reconciliation',
     'partial_independent_canonical_offline_image_vulnerability_evidence_and_fail_closed_disposition',

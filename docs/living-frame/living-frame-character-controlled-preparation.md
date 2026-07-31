@@ -121,16 +121,31 @@ materializes:
 - two process-bound single-use leases; and
 - byte-free lineage receipts.
 
+The canonical reconciliation is now also explicit:
+
+- the clean 1024×1024 component produces one exact
+  `canonical-comfyui-gpu-runtime-request-candidate-v1`-compatible,
+  process-bound candidate-input lease;
+- the 1920×1080 masked plate does not produce a v1 lease because canonical v1
+  requires `EmptyLatentImage`, `denoise=1`, and only ControlNet/reference input
+  slots; and
+- the plate instead records one narrowly versioned
+  `canonical-comfyui-gpu-runtime-request-candidate-v2` owner requirement for
+  `VAEEncodeForInpaint`, exact source/mask slots, `grow_mask_by=6`, and
+  `denoise=0.55`, while retaining the same `comfyui` identity and operation.
+
 No model was loaded and no image was generated. The remaining internal gate is
-the already-known released-image/real-L4 path: exact node-schema
-qualification, atomic five-model load, one-output execution, resource receipt,
-create-only persistence, and the QA set above.
+the canonical owner-side v2 request/runtime extension followed by the
+already-known released-image/real-L4 path: exact node-schema qualification,
+atomic five-model load, one-output execution, resource receipt, create-only
+persistence, and the QA set above.
 
 ## Regression
 
 ```text
 npm run smoke:living-frame-character-controlled-preparation
 npm run smoke:living-frame-character-controlled-preparation-private-prompt
+npm run smoke:living-frame-character-controlled-preparation-canonical-comfyui-reconciliation
 npm run smoke:living-frame-character-animation-route-suitability
 npm run smoke:living-frame-private-internal-end-to-end-audit
 ```

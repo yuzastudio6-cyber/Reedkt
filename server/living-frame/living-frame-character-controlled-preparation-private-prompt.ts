@@ -758,9 +758,23 @@ function compilePrompt(
       negative: [negative, 0],
       control_net: [controlNet, 0],
       image: [controlImage, 0],
-      strength: isInpaint ? 0.7 : 0.8,
-      start_percent: 0,
-      end_percent: 0.9,
+      strength: isInpaint
+        ? 0.7
+        : usesLora
+          ? 0.75
+          : 0.85,
+      start_percent:
+        isInpaint
+          ? 0
+          : usesLora
+            ? 0.1
+            : 0,
+      end_percent:
+        isInpaint
+          ? 0.9
+          : usesLora
+            ? 1
+            : 0.9,
     })
     positiveSource = apply
     negativeSource = apply

@@ -1,5 +1,5 @@
 export const LIVING_FRAME_NON_ILLUSTRATION_READINESS_AUDIT_VERSION =
-  'living-frame-non-illustration-readiness-audit-v5' as const
+  'living-frame-non-illustration-readiness-audit-v6' as const
 
 export const LIVING_FRAME_NON_ILLUSTRATION_READINESS_AUDIT_CLASS =
   'server_derived_source_only_non_illustration_end_to_end_gap_audit' as const
@@ -65,11 +65,11 @@ export interface LivingFrameNonIllustrationReadinessAuditDraft {
     readonly livingStill:
       'non_character_private_fixture_recorded_reinspection_required'
     readonly livingArchive:
-      'private_fixture_recorded_reinspection_required'
+      'source_lineage_bound_canonical_reread_and_fixture_open'
     readonly livingDiagram:
-      'deterministic_private_fixture_recorded_exact_route_breadth_open'
+      'exact_source_lineage_bound_canonical_reread_and_fixture_open'
     readonly hybridExpansion:
-      'non_character_private_fixture_recorded_reinspection_required'
+      'source_and_timing_lineage_bound_canonical_reread_and_fixture_open'
     readonly deliberateNonUse:
       'private_fixture_recorded'
   }

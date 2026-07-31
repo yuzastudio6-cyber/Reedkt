@@ -150,15 +150,16 @@ const REQUIREMENTS = [
   requirement({
     requirementId:
       'exact_map_diagram_archive_and_hybrid_lineage',
-    status: 'open_internal_implementation',
+    status: 'canonical_owner_reconciliation_pending',
     evidenceRefs: [
-      'living-frame-five-mode-private-render-internal-test',
+      'living-frame-non-character-content-lineage-v1',
       'canonical-map-dataviz-remotion-ownership',
     ],
     remainingWork: [
-      'add_exact_source_bound_map_or_route_fixture',
-      'add_readable_archive_document_and_exact_diagram_fixture',
-      'bind_each_to_snapshot_work_asset_timing_renderer_qa_and_review',
+      'canonical_owner_reread_exact_approved_map_dataviz_document_and_fact_sources',
+      'admit_exact_work_output_timing_and_asset_manifest_dependencies',
+      'render_and_inspect_representative_map_archive_diagram_and_hybrid_scenes',
+      'bind_each_to_canonical_qa_repair_and_private_review',
     ],
     blocks: true,
   }),
@@ -293,11 +294,11 @@ export function compileLivingFrameNonIllustrationReadinessAudit(
         livingStill:
           'non_character_private_fixture_recorded_reinspection_required',
         livingArchive:
-          'private_fixture_recorded_reinspection_required',
+          'source_lineage_bound_canonical_reread_and_fixture_open',
         livingDiagram:
-          'deterministic_private_fixture_recorded_exact_route_breadth_open',
+          'exact_source_lineage_bound_canonical_reread_and_fixture_open',
         hybridExpansion:
-          'non_character_private_fixture_recorded_reinspection_required',
+          'source_and_timing_lineage_bound_canonical_reread_and_fixture_open',
         deliberateNonUse:
           'private_fixture_recorded',
       },

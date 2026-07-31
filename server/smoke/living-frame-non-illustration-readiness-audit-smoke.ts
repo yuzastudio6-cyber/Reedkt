@@ -24,15 +24,24 @@ assert.equal(
 assert.equal(audit.metrics.requirementCount, 17)
 assert.equal(audit.metrics.verifiedSourceContractCount, 4)
 assert.equal(audit.metrics.recordedPrivateFixtureCount, 1)
-assert.equal(audit.metrics.openInternalImplementationCount, 4)
+assert.equal(audit.metrics.openInternalImplementationCount, 3)
 assert.equal(
   audit.metrics.canonicalOwnerReconciliationPendingCount,
-  5,
+  6,
 )
 assert.equal(audit.metrics.deferredByOwnerCount, 2)
 assert.equal(audit.metrics.notRequiredForActiveScopeCount, 1)
 assert.equal(audit.metrics.activeBlockingRequirementCount, 9)
 assert.equal(audit.activePrivateInternalReady, false)
+assert.equal(audit.contractVersion,
+  'living-frame-non-illustration-readiness-audit-v6')
+assert.equal(
+  audit.requirements.find(
+    (entry) => entry.requirementId ===
+      'exact_map_diagram_archive_and_hybrid_lineage',
+  )?.status,
+  'canonical_owner_reconciliation_pending',
+)
 assert.equal(
   audit.sourceBindings
     .historicalAggregateCaseCountMayDefineActiveCompletion,

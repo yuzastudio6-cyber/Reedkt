@@ -201,6 +201,7 @@
     "smoke:living-frame-non-illustration-readiness-audit": "tsx server/smoke/living-frame-non-illustration-readiness-audit-smoke.ts",
     "smoke:living-frame-non-character-professional-review": "tsx server/smoke/living-frame-non-character-professional-review-smoke.ts",
     "smoke:living-frame-postrender-visual-inspection": "tsx server/smoke/living-frame-postrender-visual-inspection-smoke.ts",
+    "smoke:living-frame-non-character-content-lineage": "tsx server/smoke/living-frame-non-character-content-lineage-smoke.ts",
     "smoke:living-frame-ai-2d-feasibility-sprint": "tsx server/smoke/living-frame-ai-2d-feasibility-sprint-smoke.ts",
     "smoke:living-frame-ai-2d-interpolation-qualification": "tsx server/smoke/living-frame-ai-2d-interpolation-qualification-smoke.ts",
     "smoke:living-frame-ai-2d-interpolation-source-audit": "tsx server/smoke/living-frame-ai-2d-interpolation-source-audit-smoke.ts",

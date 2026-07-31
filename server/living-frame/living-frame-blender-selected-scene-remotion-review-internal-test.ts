@@ -19,6 +19,23 @@ import {
 import { Readable } from 'node:stream'
 
 import type {
+  LivingFrameBlenderFixedAdapterOutputFileCommitment,
+  LivingFrameBlenderFixedAdapterResult,
+} from '../../src/types/living-frame-blender-fixed-adapter-internal-test'
+import {
+  LIVING_FRAME_ARTICULATED_PUPPET_REMOTION_REVIEW_INTERNAL_TEST_CLASS,
+  LIVING_FRAME_ARTICULATED_PUPPET_REMOTION_REVIEW_INTERNAL_TEST_OPEN_GATES,
+  LIVING_FRAME_ARTICULATED_PUPPET_REMOTION_REVIEW_INTERNAL_TEST_STATE,
+  LIVING_FRAME_ARTICULATED_PUPPET_REMOTION_REVIEW_INTERNAL_TEST_VERSION,
+  type LivingFrameArticulatedPuppetPrivatePlaybackLease,
+  type LivingFrameArticulatedPuppetRemotionReviewInternalTestExecution,
+  type LivingFrameArticulatedPuppetRemotionReviewInternalTestReport,
+  type LivingFrameArticulatedPuppetRemotionReviewInternalTestReportDraft,
+} from '../../src/types/living-frame-articulated-puppet-remotion-review-internal-test'
+import type {
+  LivingFrameArticulatedPuppetSheetReceipt,
+} from '../../src/types/living-frame-articulated-puppet-sheet-internal-test'
+import type {
   CanonicalLivingFrameMotionSpec,
   CanonicalLivingFrameMotionSpecDraft,
 } from '../../src/types/living-frame-canonical-motion'
@@ -66,10 +83,28 @@ import {
 import {
   deriveCanonicalLivingFrameCompiledSampleDigestSha256,
 } from './canonical-living-frame-motion'
+import type {
+  CompiledLivingFrameBlenderFixedTexturedAdapterInternalRequest,
+} from './living-frame-blender-fixed-adapter-internal-test'
 import {
   consumeLivingFrameBlenderRigPrivateRemotionSequenceLease,
   type LivingFrameBlenderRigPrivateRemotionSequence,
 } from './living-frame-blender-rig-component-qa-internal-test'
+import {
+  verifyLivingFrameArticulatedPuppetSheetReceipt,
+} from './living-frame-airship-navigator-articulated-puppet-sheet-internal-test'
+import type {
+  LivingFrameAirshipNavigatorArticulatedBlenderPrivateFixture,
+} from './living-frame-airship-navigator-articulated-blender-private-fixture'
+import {
+  verifyLivingFrameCharacterAnimationRouteDecision,
+} from './living-frame-character-animation-route'
+import {
+  verifyLivingFrameRigActionPlan,
+} from './living-frame-rig-action'
+import {
+  verifyLivingFrameRiggingAdapterCandidate,
+} from './living-frame-rigging-adapter-candidate'
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const SHA256 = /^[a-f0-9]{64}$/u
@@ -84,6 +119,38 @@ const MAXIMUM_OVERLAYS_PER_CHUNK = 16 as const
 const CHUNK_RENDER_FRAMES = 24 as const
 const MAXIMUM_RENDERED_BYTES = 256 * 1024 * 1024
 const SAMPLE_REVIEW_FRAMES = [0, 30, 59] as const
+
+interface LivingFrameBlenderRemotionRenderableSequence {
+  readonly selectedSceneBindingDigestSha256:
+    string
+  readonly currentMasterTimingDigestSha256:
+    string
+  readonly artifactSetDigestSha256: string
+  readonly widthPixels: 1920
+  readonly heightPixels: 1080
+  readonly fps: 30
+  readonly startFrame: 12
+  readonly endFrameExclusive: 72
+  readonly rgbaFrames: readonly {
+    readonly commitment:
+      LivingFrameBlenderFixedAdapterOutputFileCommitment
+    readonly bytes: Buffer
+  }[]
+}
+
+interface ArticulatedPuppetPrivatePlaybackBinding {
+  readonly reportDigestSha256: string
+  readonly privateObjectIdentityHash: string
+  readonly byteLength: number
+  readonly sha256: string
+  readonly bytes: Buffer
+}
+
+const articulatedPuppetPrivatePlaybackByLease =
+  new WeakMap<
+    LivingFrameArticulatedPuppetPrivatePlaybackLease,
+    ArticulatedPuppetPrivatePlaybackBinding
+  >()
 
 export interface ExecuteLivingFrameBlenderSelectedSceneRemotionReviewInternalTestInput {
   readonly qualificationId: string
@@ -263,6 +330,578 @@ Promise<LivingFrameBlenderSelectedSceneIllustratedRemotionReviewInternalTestRepo
     reportDigestSha256:
       sha256AuthorityValue(draft),
   })
+}
+
+export interface ExecuteLivingFrameAirshipNavigatorArticulatedRemotionReviewInternalTestInput {
+  readonly qualificationId: string
+  readonly localStorageRoot: string
+  readonly sheetReceipt:
+    LivingFrameArticulatedPuppetSheetReceipt
+  readonly preparedAlphaAtlas: {
+    readonly artifactId: string
+    readonly contentType: 'image/png'
+    readonly widthPixels: 1536
+    readonly heightPixels: 1024
+    readonly byteLength: number
+    readonly sha256: string
+  }
+  readonly fixture:
+    LivingFrameAirshipNavigatorArticulatedBlenderPrivateFixture
+  readonly compiledRequest:
+    CompiledLivingFrameBlenderFixedTexturedAdapterInternalRequest
+  readonly blenderResult:
+    LivingFrameBlenderFixedAdapterResult
+  readonly rgbaFrames: readonly {
+    readonly commitment:
+      LivingFrameBlenderFixedAdapterOutputFileCommitment
+    readonly bytes: Buffer
+  }[]
+}
+
+export async function executeLivingFrameAirshipNavigatorArticulatedRemotionReviewInternalTest(
+  input:
+    ExecuteLivingFrameAirshipNavigatorArticulatedRemotionReviewInternalTestInput,
+):
+Promise<LivingFrameArticulatedPuppetRemotionReviewInternalTestExecution> {
+  assertAirshipNavigatorArticulatedReviewInput(
+    input,
+  )
+  const rgbaSequenceDigestSha256 =
+    sha256AuthorityValue(
+      input.rgbaFrames.map((frame) =>
+        frame.commitment),
+    )
+  const sequence:
+    LivingFrameBlenderRemotionRenderableSequence = {
+      selectedSceneBindingDigestSha256:
+        input.fixture.candidateRequest
+          .sourceBindings.selectedSceneRef
+          .digestSha256,
+      currentMasterTimingDigestSha256:
+        input.fixture.candidateRequest
+          .sourceBindings
+          .masterTimingPlanDigestSha256,
+      artifactSetDigestSha256:
+        rgbaSequenceDigestSha256,
+      widthPixels: SOURCE_WIDTH,
+      heightPixels: SOURCE_HEIGHT,
+      fps: FPS,
+      startFrame: START_FRAME,
+      endFrameExclusive:
+        END_FRAME_EXCLUSIVE,
+      rgbaFrames:
+        input.rgbaFrames.map(
+          (frame) => ({
+            commitment:
+              structuredClone(
+                frame.commitment,
+              ),
+            bytes:
+              Buffer.from(frame.bytes),
+          }),
+        ),
+    }
+  const sourceBytes =
+    createSourceVideo(
+      CHUNK_RENDER_FRAMES,
+    )
+  const captionBytes =
+    createCaptionOverlay()
+  const runtime =
+    await activateOrPrepareRemotionRuntime()
+  const chunks =
+    chunkFrames(
+      sequence.rgbaFrames,
+      MAXIMUM_OVERLAYS_PER_CHUNK,
+    )
+  if (chunks.length !== 4) {
+    throw new Error(
+      'Airship navigator articulated Remotion review chunk count changed.',
+    )
+  }
+  const renderedChunks: Buffer[] = []
+  const chunkReceipts:
+    Array<
+      LivingFrameArticulatedPuppetRemotionReviewInternalTestReportDraft['chunkReceipts'][number]
+    > =
+      []
+  for (
+    const [order, frames] of
+      chunks.entries()
+  ) {
+    const rendered =
+      await renderChunk({
+        order,
+        frames,
+        sourceBytes,
+        captionBytes,
+        runtime,
+        sequence,
+        sceneId:
+          input.fixture.sceneId,
+      })
+    renderedChunks.push(
+      rendered.bytes,
+    )
+    chunkReceipts.push(
+      rendered.receipt,
+    )
+  }
+  const packagedBytes =
+    await packageChunks({
+      chunks: renderedChunks,
+      frameCounts:
+        chunks.map(
+          (chunk) =>
+            chunk.length,
+        ),
+    })
+  const finalPackagedReviewDigestSha256 =
+    digestBytes(packagedBytes)
+  const blenderResultDigestSha256 =
+    sha256AuthorityValue(
+      input.blenderResult,
+    )
+  const privateObjectIdentityHash =
+    sha256AuthorityValue({
+      contractVersion:
+        LIVING_FRAME_ARTICULATED_PUPPET_REMOTION_REVIEW_INTERNAL_TEST_VERSION,
+      sceneId:
+        input.fixture.sceneId,
+      componentId:
+        input.fixture.componentId,
+      puppetSheetReceiptDigestSha256:
+        input.sheetReceipt
+          .receiptDigestSha256,
+      blenderResultDigestSha256,
+      rgbaSequenceDigestSha256,
+      finalPackagedReviewDigestSha256,
+    })
+  const persisted =
+    await persistCanonicalPrivateRemotionArtifactStream({
+      localStorageRoot:
+        input.localStorageRoot,
+      privateObjectIdentityHash,
+      stream:
+        Readable.from([
+          packagedBytes,
+        ]),
+      expectedByteLength:
+        packagedBytes.byteLength,
+      expectedSha256:
+        finalPackagedReviewDigestSha256,
+    })
+  if (persisted.replayed) {
+    throw new Error(
+      'Airship navigator articulated private Remotion review replayed unexpectedly.',
+    )
+  }
+  const reopened =
+    await inspectCanonicalPrivateRemotionArtifact({
+      localStorageRoot:
+        input.localStorageRoot,
+      privateObjectIdentityHash,
+    })
+  if (
+    reopened == null
+    || reopened.byteLength !==
+      packagedBytes.byteLength
+    || reopened.sha256 !==
+      finalPackagedReviewDigestSha256
+  ) {
+    throw new Error(
+      'Airship navigator articulated private Remotion review changed after create-only persistence.',
+    )
+  }
+  const reread =
+    await readExactStream({
+      stream:
+        await reopened.openStream(),
+      expectedByteLength:
+        packagedBytes.byteLength,
+      expectedSha256:
+        finalPackagedReviewDigestSha256,
+    })
+  if (
+    !reread.equals(
+      packagedBytes,
+    )
+  ) {
+    throw new Error(
+      'Airship navigator articulated private Remotion review failed exact reread.',
+    )
+  }
+  const mediaQa =
+    inspectRenderedMedia(
+      packagedBytes,
+      60,
+    )
+  const visualQa =
+    measureRenderedVisuals(
+      extractRenderedFrames(
+        packagedBytes,
+        SAMPLE_REVIEW_FRAMES,
+      ),
+      'grid',
+    )
+  const fixture = input.fixture
+  const candidate =
+    fixture.candidateRequest
+  const draft:
+    LivingFrameArticulatedPuppetRemotionReviewInternalTestReportDraft = {
+      contractVersion:
+        LIVING_FRAME_ARTICULATED_PUPPET_REMOTION_REVIEW_INTERNAL_TEST_VERSION,
+      resultClass:
+        LIVING_FRAME_ARTICULATED_PUPPET_REMOTION_REVIEW_INTERNAL_TEST_CLASS,
+      runtimeState:
+        LIVING_FRAME_ARTICULATED_PUPPET_REMOTION_REVIEW_INTERNAL_TEST_STATE,
+      qualificationId:
+        input.qualificationId,
+      fixtureIdentity: {
+        sceneId: fixture.sceneId,
+        componentId:
+          fixture.componentId,
+        sourceSheetSha256:
+          input.sheetReceipt
+            .sourceArtifact.sha256,
+        preparedAlphaAtlasSha256:
+          input.preparedAlphaAtlas
+            .sha256,
+        reviewedPartCount:
+          fixture.reviewedTopology
+            .atlasPartCount,
+        disconnectedMeshIslandCount:
+          fixture.reviewedTopology
+            .disconnectedMeshIslandCount,
+        rigidWeightedVertexCount:
+          fixture.reviewedTopology
+            .rigidWeightedVertexCount,
+        articulatedBoneCount:
+          8,
+        armIkChainLength:
+          3,
+        genericWholeImageDeformationUsed:
+          false,
+        controlledGenerationUsedForIntermediateFrames:
+          false,
+      },
+      sourceBindings: {
+        puppetSheetReceiptDigestSha256:
+          input.sheetReceipt
+            .receiptDigestSha256,
+        characterAnimationRouteDecisionDigestSha256:
+          fixture
+            .characterAnimationRouteDecision
+            .decisionDigestSha256,
+        riggingAdapterCandidateRequestDigestSha256:
+          candidate
+            .requestDigestSha256,
+        rigActionPlanDigestSha256:
+          fixture.actionPlan
+            .actionDigestSha256,
+        blenderPayloadDigestSha256:
+          input.compiledRequest
+            .envelope.payloadDigestSha256,
+        blenderResultDigestSha256,
+        rgbaSequenceDigestSha256,
+        selectedSceneBindingDigestSha256:
+          sequence
+            .selectedSceneBindingDigestSha256,
+        currentMasterTimingDigestSha256:
+          sequence
+            .currentMasterTimingDigestSha256,
+        confirmedOutputFrameDigestSha256:
+          candidate.sourceBindings
+            .outputFrameDigestSha256,
+        finalPackagedReviewDigestSha256,
+      },
+      compositionIdentity: {
+        styleProfile:
+          'cinematic_airship_navigation_2_5d_internal_review_v1',
+        sourceComponentWidthPixels:
+          SOURCE_WIDTH,
+        sourceComponentHeightPixels:
+          SOURCE_HEIGHT,
+        sourceComponentAspectRatio:
+          '16:9',
+        internalReviewWidthPixels:
+          REVIEW_WIDTH,
+        internalReviewHeightPixels:
+          REVIEW_HEIGHT,
+        internalReviewIsBoundedProxy:
+          true,
+        exactConfirmedAspectRatioPreserved:
+          true,
+        internalReviewIsFinalCustomerCanvas:
+          false,
+        fps: FPS,
+        selectedStartFrame:
+          START_FRAME,
+        selectedEndFrameExclusive:
+          END_FRAME_EXCLUSIVE,
+        selectedDurationFrames: 60,
+        finalReviewDurationFrames:
+          60,
+        frameImageCount: 60,
+        remotionChunkCount: 4,
+        maximumOverlaysPerChunk:
+          MAXIMUM_OVERLAYS_PER_CHUNK,
+        localMinimumRenderDurationFrames:
+          CHUNK_RENDER_FRAMES,
+        overlayAdapter:
+          'bounded_remotion_chunks_with_exact_frame_packaging_v1',
+        packagingTool: 'ffmpeg',
+        packagingOnly: true,
+        sourcePlateRole:
+          'internal_navigation_grid_context',
+        captionPlaneRole:
+          'internal_review_title_bar',
+        everyFinalReviewFrameCompositedByRemotion:
+          true,
+        captionsRemainAboveLivingFrame:
+          true,
+        remotionRemainsFinalCanvas:
+          true,
+      },
+      chunkReceipts,
+      persistedPrivateReviewArtifact: {
+        persistenceOwner:
+          'canonical_private_remotion_artifact_storage',
+        contentType: 'video/mp4',
+        privateObjectIdentityHash,
+        byteLength:
+          packagedBytes.byteLength,
+        sha256:
+          finalPackagedReviewDigestSha256,
+        createOnlyPersistenceUsed:
+          true,
+        replayed: false,
+        exactPrivateReadbackVerified:
+          true,
+        privatePlaybackLeaseIssued:
+          true,
+        rawBytesIncluded: false,
+        storagePathIncluded: false,
+      },
+      persistedMediaQa: {
+        probeToolId: 'ffprobe',
+        probeOperation:
+          'tool.ffprobe.inspect_approved_media.v1',
+        actualRuntimeExecuted: true,
+        codecName: 'h264',
+        widthPixels: REVIEW_WIDTH,
+        heightPixels:
+          REVIEW_HEIGHT,
+        fps: FPS,
+        readFrameCount: 60,
+        pixelFormat:
+          mediaQa.pixelFormat,
+        probeEvidenceDigestSha256:
+          mediaQa
+            .probeEvidenceDigestSha256,
+      },
+      renderedVisualQa: {
+        sampleFrames:
+          SAMPLE_REVIEW_FRAMES,
+        firstPoseSubjectPixelCount:
+          visualQa
+            .subjectPixelCounts[0]!,
+        middlePoseSubjectPixelCount:
+          visualQa
+            .subjectPixelCounts[1]!,
+        finalPoseSubjectPixelCount:
+          visualQa
+            .subjectPixelCounts[2]!,
+        middlePoseDifferentPixelCount:
+          visualQa
+            .middlePoseDifferentPixelCount,
+        firstFinalMeanAbsoluteDifference:
+          visualQa
+            .firstFinalMeanAbsoluteDifference,
+        primaryMotionVisible: true,
+        requiredReturnToInitialPoseVisible:
+          true,
+        sourcePlateVisibleAcrossSamples:
+          true,
+        captionPlaneVisibleAcrossSamples:
+          true,
+        livingFrameRemainsBelowCaptionPlane:
+          true,
+        exactSelectedFrameOrderPreserved:
+          true,
+        automatedCompositionMetricsPassed:
+          true,
+        headVisualReviewPerformed:
+          true,
+        professionalVisualAcceptancePassed:
+          false,
+        visualReviewDisposition:
+          'rejected',
+        rejectionReasonCodes: [
+          'visible_joint_socket_artwork',
+          'articulated_limb_reads_as_disconnected_segments',
+          'limb_extension_exceeds_believable_anatomy',
+          'hand_prop_attachment_is_unclear',
+          'detached_coat_flap_reads_as_floating',
+        ],
+      },
+      runtimeIdentity: {
+        blenderToolId: 'blender',
+        blenderOperationId:
+          'tool.blender.render_living_frame_component_rig.v1',
+        remotionToolId: 'remotion',
+        remotionOperationId:
+          'tool.remotion.render_approved_composition.v1',
+        remotionPackageName:
+          'remotion+@remotion/renderer',
+        remotionPackageVersion:
+          '4.0.487',
+        actualRemotionRenderCount:
+          4,
+        ffmpegPackagingExecuted:
+          true,
+        sharedRuntimeSourceMutated:
+          false,
+        existingCanonicalRemotionRuntimeReused:
+          true,
+      },
+      authorityBoundary: {
+        privateInternalRemotionReviewEvidenceAuthority:
+          true,
+        fixturePlaybackLeaseAuthority:
+          true,
+        selectedSceneAuthority: false,
+        approvedSnapshotAuthority:
+          false,
+        masterTimingAuthority: false,
+        workGraphAuthority: false,
+        dispatchAuthority: false,
+        canonicalArtifactAuthority:
+          false,
+        assetManifestAuthority:
+          false,
+        finalRendererAuthority: false,
+        canonicalQaApprovalAuthority:
+          false,
+        privateReviewApprovalAuthority:
+          false,
+        costAuthority: false,
+        billingAuthority: false,
+        publicDeliveryAuthority:
+          false,
+        productionAuthority: false,
+      },
+      openGateCodes:
+        LIVING_FRAME_ARTICULATED_PUPPET_REMOTION_REVIEW_INTERNAL_TEST_OPEN_GATES,
+      exactEightPartBlenderSequenceRevalidated:
+        true,
+      exactSelectedSceneSequenceComposited:
+        true,
+      privateInternalTechnicalExecutionPassed:
+        true,
+      privateInternalReviewEvidencePassed:
+        false,
+      canonicalAssetManifestMutated:
+        false,
+      canonicalQaApproved: false,
+      privateReviewApproved: false,
+      furtherRenderAuthorized: false,
+      actualCostCreated: false,
+      customerCharged: false,
+      containsSourceSequenceOrRenderedVideoBytes:
+        false,
+      containsStoragePathUrlCredentialCommandOrEnvironment:
+        false,
+      publicDeliveryReady: false,
+      productionReady: false,
+    }
+  const report:
+    LivingFrameArticulatedPuppetRemotionReviewInternalTestReport =
+      deepFreeze({
+        ...draft,
+        reportDigestSha256:
+          sha256AuthorityValue(
+            draft,
+          ),
+      })
+  const privatePlaybackLease =
+    createArticulatedPuppetPrivatePlaybackLease({
+      report,
+      privateObjectIdentityHash,
+      bytes: packagedBytes,
+    })
+  return {
+    report,
+    privatePlaybackLease,
+  }
+}
+
+export function consumeLivingFrameArticulatedPuppetPrivatePlaybackLease(
+  lease:
+    LivingFrameArticulatedPuppetPrivatePlaybackLease,
+): {
+  readonly contentType: 'video/mp4'
+  readonly byteLength: number
+  readonly sha256: string
+  readonly bytes: Buffer
+} {
+  const binding =
+    articulatedPuppetPrivatePlaybackByLease.get(
+      lease,
+    )
+  if (
+    binding == null
+    || lease.leaseClass !==
+      'process_bound_single_use_living_frame_articulated_puppet_private_playback_lease_v1'
+    || lease.callerSerializable !==
+      false
+    || lease.reportDigestSha256 !==
+      binding.reportDigestSha256
+    || lease.privateObjectIdentityHash !==
+      binding.privateObjectIdentityHash
+    || lease.byteLength !==
+      binding.byteLength
+    || lease.sha256 !==
+      binding.sha256
+    || lease.canonicalArtifactAuthority
+      !== false
+    || lease.assetManifestAuthority
+      !== false
+    || lease.canonicalQaApprovalAuthority
+      !== false
+    || lease.privateReviewApprovalAuthority
+      !== false
+    || lease.billingAuthority !== false
+    || lease.publicDeliveryAuthority
+      !== false
+    || lease.productionAuthority !==
+      false
+  ) {
+    throw new Error(
+      'Articulated-puppet private playback lease is invalid, unknown, or already consumed.',
+    )
+  }
+  articulatedPuppetPrivatePlaybackByLease.delete(
+    lease,
+  )
+  if (
+    binding.bytes.byteLength !==
+      binding.byteLength
+    || digestBytes(binding.bytes) !==
+      binding.sha256
+  ) {
+    throw new Error(
+      'Articulated-puppet private playback bytes changed before lease consumption.',
+    )
+  }
+  return {
+    contentType: 'video/mp4',
+    byteLength:
+      binding.byteLength,
+    sha256: binding.sha256,
+    bytes:
+      Buffer.from(binding.bytes),
+  }
 }
 
 async function executeLivingFrameBlenderSelectedSceneRemotionReviewInternal(
@@ -636,7 +1275,7 @@ async function executeLivingFrameBlenderSelectedSceneRemotionReviewInternal(
 async function renderChunk(input: {
   readonly order: number
   readonly frames:
-    LivingFrameBlenderRigPrivateRemotionSequence['rgbaFrames']
+    LivingFrameBlenderRemotionRenderableSequence['rgbaFrames']
   readonly sourceBytes: Buffer
   readonly captionBytes: Buffer
   readonly runtime: Awaited<
@@ -645,7 +1284,7 @@ async function renderChunk(input: {
     >
   >
   readonly sequence:
-    LivingFrameBlenderRigPrivateRemotionSequence
+    LivingFrameBlenderRemotionRenderableSequence
   readonly componentOffset?: {
     readonly xNormalized: number
     readonly yNormalized: number
@@ -2075,6 +2714,354 @@ function assertSequenceLineage(
       'Living Frame Blender private Remotion sequence lineage is invalid.',
     )
   }
+}
+
+function assertAirshipNavigatorArticulatedReviewInput(
+  input:
+    ExecuteLivingFrameAirshipNavigatorArticulatedRemotionReviewInternalTestInput,
+): void {
+  if (
+    !isRecord(input)
+    || Object.keys(input).sort().join('|') !== [
+      'qualificationId',
+      'localStorageRoot',
+      'sheetReceipt',
+      'preparedAlphaAtlas',
+      'fixture',
+      'compiledRequest',
+      'blenderResult',
+      'rgbaFrames',
+    ].sort().join('|')
+    || typeof input.qualificationId !==
+      'string'
+    || !SAFE_ID.test(
+      input.qualificationId,
+    )
+    || typeof input.localStorageRoot !==
+      'string'
+    || !verifyLivingFrameArticulatedPuppetSheetReceipt(
+      input.sheetReceipt,
+    )
+    || !verifyLivingFrameCharacterAnimationRouteDecision(
+      input.fixture
+        .characterAnimationRouteDecision,
+    )
+    || !verifyLivingFrameRiggingAdapterCandidate(
+      input.fixture
+        .candidateRequest,
+    )
+    || !verifyLivingFrameRigActionPlan(
+      input.fixture.actionPlan,
+      input.fixture
+        .candidateRequest.riggingPlan,
+    )
+  ) {
+    throw new Error(
+      'Airship navigator articulated Remotion review input is invalid.',
+    )
+  }
+  assertPrivateReviewStorageRoot(
+    input.localStorageRoot,
+  )
+  const fixture = input.fixture
+  const candidate =
+    fixture.candidateRequest
+  const compiled =
+    input.compiledRequest
+  const result =
+    input.blenderResult
+  const texture =
+    compiled.payload.material.texture
+  if (
+    fixture.sceneId !==
+      'scene.airship-navigator.spyglass-survey'
+    || fixture.componentId !==
+      'airship.navigator.character'
+    || fixture
+      .characterAnimationRouteDecision
+      .decision.selectedRoute !==
+        'blender_articulated_2_5d'
+    || !fixture
+      .characterAnimationRouteDecision
+      .decision.blenderAdmissionAllowed
+    || fixture.reviewedTopology
+      .atlasPartCount !== 8
+    || fixture.reviewedTopology
+      .disconnectedMeshIslandCount !==
+        8
+    || fixture.reviewedTopology
+      .rigidWeightedVertexCount !==
+        32
+    || fixture.reviewedTopology
+      .triangleCount !== 16
+    || fixture.reviewedTopology
+      .genericWholeImageDeformationUsed
+    || input.sheetReceipt
+      .sourceArtifact.sha256 !==
+        '0a6d52335e32614d57a79ea4f93da81a3a325363aea319d21895cfcddde90b37'
+    || input.sheetReceipt
+      .expectedPartCount !== 8
+    || input.preparedAlphaAtlas
+      .artifactId !==
+        texture.artifactId
+    || input.preparedAlphaAtlas
+      .contentType !== 'image/png'
+    || input.preparedAlphaAtlas
+      .widthPixels !== 1536
+    || input.preparedAlphaAtlas
+      .heightPixels !== 1024
+    || input.preparedAlphaAtlas
+      .byteLength !==
+        texture.byteLength
+    || input.preparedAlphaAtlas
+      .sha256 !== texture.sha256
+    || compiled.payload
+      .candidateRequestDigestSha256 !==
+        candidate.requestDigestSha256
+    || compiled.payload
+      .riggingPlanDigestSha256 !==
+        candidate.riggingPlan
+          .planDigestSha256
+    || compiled.payload
+      .actionPlanDigestSha256 !==
+        fixture.actionPlan
+          .actionDigestSha256
+    || compiled.payload.componentId !==
+      fixture.componentId
+    || compiled.payload.output
+      .widthPixels !== SOURCE_WIDTH
+    || compiled.payload.output
+      .heightPixels !== SOURCE_HEIGHT
+    || compiled.payload.output.fps !==
+      FPS
+    || compiled.payload.output
+      .startFrame !== START_FRAME
+    || compiled.payload.output
+      .endFrameExclusive !==
+        END_FRAME_EXCLUSIVE
+    || compiled.payload.output
+      .frameStep !== 1
+    || compiled.payload.mesh
+      .vertices.length !== 32
+    || compiled.payload.mesh
+      .triangles.length !== 16
+    || compiled.payload.bones.length !==
+      8
+    || compiled.payload.ik
+      .chainLength !== 3
+    || compiled.payload.animation
+      .secondaryMotionEnabled
+    || stableAuthorityStringify(
+      compiled.payload,
+    ) !==
+      compiled.envelope
+        .payloadCanonicalJson
+    || digestBytes(
+      Buffer.from(
+        compiled.envelope
+          .payloadCanonicalJson,
+        'utf8',
+      ),
+    ) !==
+      compiled.envelope
+        .payloadDigestSha256
+    || result.componentId !==
+      fixture.componentId
+    || result
+      .candidateRequestDigestSha256 !==
+        candidate.requestDigestSha256
+    || result.riggingPlanDigestSha256 !==
+      candidate.riggingPlan
+        .planDigestSha256
+    || result.actionPlanDigestSha256 !==
+      fixture.actionPlan
+        .actionDigestSha256
+    || result.payloadDigestSha256 !==
+      compiled.payload
+        .payloadDigestBindingSha256
+    || result.frameCount !== 60
+    || !result.transparentRgbaProduced
+    || !result.maskPassProduced
+    || !result.depthPassProduced
+    || !result.remotionOwnsFinalCanvas
+    || result.runtimeDispatchAuthority
+    || result.assetPersistenceAuthority
+    || result.qaApprovalAuthority
+    || result.billingAuthority
+    || result.publicDeliveryAuthority
+    || result.productionAuthority
+    || candidate.sourceBindings
+      .outputFrameDigestSha256 !==
+        fixture.actionPlan
+          .sourceBindings
+          .outputFrameDigestSha256
+    || candidate.sourceBindings
+      .masterTimingPlanDigestSha256 !==
+        fixture.actionPlan
+          .sourceBindings
+          .masterTimingPlanDigestSha256
+  ) {
+    throw new Error(
+      'Airship navigator articulated Remotion review lineage is invalid.',
+    )
+  }
+  if (
+    input.rgbaFrames.length !==
+      60
+    || input.rgbaFrames.some(
+      (frame, order) => {
+        const commitment =
+          frame.commitment
+        return commitment.pass !==
+          'rgba'
+          || commitment.frame !==
+            START_FRAME + order
+          || commitment.contentType !==
+            'image/png'
+          || !/^frame_\d+\.png$/u.test(
+            commitment.fileName,
+          )
+          || frame.bytes.byteLength !==
+            commitment.byteLength
+          || digestBytes(
+            frame.bytes,
+          ) !== commitment.sha256
+          || !isExactRgbaPng(
+            frame.bytes,
+            SOURCE_WIDTH,
+            SOURCE_HEIGHT,
+          )
+      },
+    )
+    || input.rgbaFrames.reduce(
+      (sum, frame) =>
+        sum
+        + frame.bytes.byteLength,
+      0,
+    ) !== result.rgbaBytes
+    || aggregateFrameDigest(
+      input.rgbaFrames,
+    ) !==
+      result.rgbaAggregateDigestSha256
+  ) {
+    throw new Error(
+      'Airship navigator articulated RGBA sequence commitments are invalid.',
+    )
+  }
+}
+
+function aggregateFrameDigest(
+  frames: readonly {
+    readonly bytes: Buffer
+  }[],
+): string {
+  const digest = createHash('sha256')
+  for (
+    const [index, frame] of
+      frames.entries()
+  ) {
+    digest.update(
+      String(index),
+      'ascii',
+    )
+    digest.update(
+      createHash('sha256')
+        .update(frame.bytes)
+        .digest(),
+    )
+  }
+  return digest.digest('hex')
+}
+
+function isExactRgbaPng(
+  bytes: Buffer,
+  width: number,
+  height: number,
+): boolean {
+  return bytes.byteLength >= 33
+    && bytes.subarray(
+      0,
+      8,
+    ).toString('hex') ===
+      '89504e470d0a1a0a'
+    && bytes.subarray(
+      12,
+      16,
+    ).toString('ascii') ===
+      'IHDR'
+    && bytes.readUInt32BE(16) ===
+      width
+    && bytes.readUInt32BE(20) ===
+      height
+    && bytes[24] === 8
+    && bytes[25] === 6
+    && bytes[28] === 0
+}
+
+function createArticulatedPuppetPrivatePlaybackLease(
+  input: {
+    readonly report:
+      LivingFrameArticulatedPuppetRemotionReviewInternalTestReport
+    readonly privateObjectIdentityHash:
+      string
+    readonly bytes: Buffer
+  },
+): LivingFrameArticulatedPuppetPrivatePlaybackLease {
+  const lease =
+    deepFreeze({
+      leaseClass:
+        'process_bound_single_use_living_frame_articulated_puppet_private_playback_lease_v1' as const,
+      leaseId:
+        `lf-articulated-puppet-playback.${sha256AuthorityValue({
+          reportDigestSha256:
+            input.report
+              .reportDigestSha256,
+          privateObjectIdentityHash:
+            input.privateObjectIdentityHash,
+        }).slice(0, 40)}`,
+      reportDigestSha256:
+        input.report
+          .reportDigestSha256,
+      privateObjectIdentityHash:
+        input.privateObjectIdentityHash,
+      contentType:
+        'video/mp4' as const,
+      byteLength:
+        input.bytes.byteLength,
+      sha256:
+        digestBytes(input.bytes),
+      callerSerializable:
+        false as const,
+      canonicalArtifactAuthority:
+        false as const,
+      assetManifestAuthority:
+        false as const,
+      canonicalQaApprovalAuthority:
+        false as const,
+      privateReviewApprovalAuthority:
+        false as const,
+      billingAuthority:
+        false as const,
+      publicDeliveryAuthority:
+        false as const,
+      productionAuthority:
+        false as const,
+    })
+  articulatedPuppetPrivatePlaybackByLease.set(
+    lease,
+    {
+      reportDigestSha256:
+        lease.reportDigestSha256,
+      privateObjectIdentityHash:
+        lease.privateObjectIdentityHash,
+      byteLength:
+        lease.byteLength,
+      sha256: lease.sha256,
+      bytes:
+        Buffer.from(input.bytes),
+    },
+  )
+  return lease
 }
 
 function chunkFrames<T>(

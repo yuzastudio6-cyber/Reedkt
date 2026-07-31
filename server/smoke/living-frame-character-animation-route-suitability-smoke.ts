@@ -4,6 +4,9 @@ import type {
   LivingFrameCharacterAnimationSuitabilityEvidence,
 } from '../../src/types/living-frame-character-animation-route'
 import {
+  buildLivingFrameAirshipNavigatorArticulatedBlenderPrivateFixture,
+} from '../living-frame/living-frame-airship-navigator-articulated-blender-private-fixture'
+import {
   compileLivingFrameBlenderSelectedSceneTextureBindingInternalTest,
 } from '../living-frame/living-frame-blender-selected-scene-texture-binding-internal-test'
 import {
@@ -169,41 +172,11 @@ assert.equal(
   false,
 )
 
+const articulatedFixture =
+  buildLivingFrameAirshipNavigatorArticulatedBlenderPrivateFixture()
 const articulated =
-  compileLivingFrameCharacterAnimationRouteDecision({
-    ...musashiEvidence({
-      evidenceId:
-        'evidence.character.separated-articulated',
-      requestedMotionMagnitude:
-        'moderate',
-      desiredPoseRequiresNewPixels:
-        false,
-    }),
-    sourceArtifactId:
-      'artifact.character.separated-parts.v1',
-    componentTopology:
-      'separated_articulated_limb_parts',
-    sourcePoseOccludesProtectedFace:
-      false,
-    upperArmSeparated: true,
-    forearmSeparated: true,
-    handSeparated: true,
-    propSeparated: true,
-    exactJointPivotsReviewed: true,
-    hiddenJointArtworkReconstructed:
-      true,
-    componentMotionExposesHiddenSourcePixels:
-      true,
-    exposedSourcePlateReconstructedAndReviewed:
-      true,
-    componentBoundaryDecontaminatedAndReviewed:
-      true,
-    deformableMeshTopologyReviewed:
-      true,
-    skinWeightMapReviewed: true,
-    deterministicRigidPivotAvailable:
-      false,
-  })
+  articulatedFixture
+    .characterAnimationRouteDecision
 assert.equal(
   articulated.decision
     .selectedRoute,
@@ -283,6 +256,14 @@ console.log(JSON.stringify({
   properlySeparatedCharacterRoute:
     articulated.decision
       .selectedRoute,
+  properlySeparatedCharacterPartCount:
+    articulatedFixture
+      .reviewedTopology
+      .atlasPartCount,
+  properlySeparatedCharacterMeshIslands:
+    articulatedFixture
+      .reviewedTopology
+      .disconnectedMeshIslandCount,
   flatMeshCharacterRoute:
     flatMesh.decision
       .selectedRoute,

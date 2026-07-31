@@ -241,6 +241,19 @@ admission, manifest reconciliation, QA/review approval, zero-network offline
 non-root worker evidence, resource/cost ownership, and broader fixtures remain
 open.
 
+A broader fictional articulated-puppet fixture was evaluated specifically to
+test the merged-cutout weakness. Its source contains eight independently
+painted pieces with overlap sockets. The Blender mesh uses eight disconnected
+rigid-weighted islands rather than one deforming whole-image rectangle. The
+source contract, topology, route decision, fixed-adapter request, actual
+60-frame Blender render, Remotion composition, and media checks executed
+successfully. Mandatory inspection of the actual MP4 nevertheless rejected the
+visual result. The socket artwork remained visible, the arm read as detached
+and implausibly long segments, the hand-to-spyglass attachment was unclear,
+and the coat flap floated. This is negative engineering evidence, not a green
+visual-QA result or an accepted character route. See
+`docs/living-frame/living-frame-articulated-puppet-blender-private-internal-test.md`.
+
 The inspected OpenToonz 1.8.0 macOS package is unsigned and x86_64-only. It
 cannot execute on the current ARM64 host without Rosetta, so it remains
 fail-closed and evaluation-only. Details and exact package receipts are in
@@ -277,6 +290,8 @@ Public contracts:
 - `src/types/living-frame-blender-fixed-adapter-internal-test.ts`
 - `src/types/living-frame-blender-rig-component-qa-internal-test.ts`
 - `src/types/living-frame-blender-selected-scene-remotion-review-internal-test.ts`
+- `src/types/living-frame-articulated-puppet-sheet-internal-test.ts`
+- `src/types/living-frame-articulated-puppet-remotion-review-internal-test.ts`
 
 Server compilers:
 
@@ -287,6 +302,8 @@ Server compilers:
 - `server/living-frame/living-frame-blender-fixed-adapter-internal-test.ts`
 - `server/living-frame/living-frame-blender-rig-component-qa-internal-test.ts`
 - `server/living-frame/living-frame-blender-selected-scene-remotion-review-internal-test.ts`
+- `server/living-frame/living-frame-airship-navigator-articulated-puppet-sheet-internal-test.ts`
+- `server/living-frame/living-frame-airship-navigator-articulated-blender-private-fixture.ts`
 - `server/living-frame/runtime/living-frame-blender-fixed-adapter.py`
 - `server/living-frame/runtime/living-frame-blender-exr-qa.py`
 
@@ -296,6 +313,7 @@ Regression:
 npm run smoke:living-frame-rigging-v2
 npm run smoke:living-frame-rig-action
 npm run smoke:living-frame-blender-fixed-adapter-private-internal-test
+npm run smoke:living-frame-airship-navigator-articulated-blender-private-internal-test
 npm run smoke:living-frame-blender-selected-scene-private-persistence-internal-test
 npm run smoke:living-frame-blender-selected-scene-private-review-internal-test
 ```

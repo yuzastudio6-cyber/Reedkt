@@ -55,6 +55,22 @@ but it cannot repair a cutout that contains the wrong pixels or reconstruct the
 pixels behind a removed limb. Tool execution and source preparation are
 separate quality gates.
 
+The later airship-navigator experiment demonstrated that separated parts are
+still insufficient. Its real Blender and Remotion paths technically rendered
+eight rigid islands, preserved the protected face, and returned to the source
+pose. Mandatory inspection of the actual clip nevertheless rejected the
+result: visible socket joints, disconnected and elongated arm anatomy, unclear
+hand-to-prop attachment, and a floating coat flap made the sequence
+unprofessional. The artifact is engineering-only negative evidence. It is not
+an accepted Blender character route or visual-QA pass.
+
+`living-frame-ai-2d-character-motion-strategy-v1` is the replacement planning
+boundary. Meaningful illustrated-character pose changes now prefer complete,
+controlled AI-generated key poses. Blender is never the generic still-image
+character route and OpenToonz or Blender may be considered only for assets
+professionally authored for those systems. Technical render metrics cannot
+approve visual quality.
+
 ## What ComfyUI does
 
 ComfyUI is a supervised workflow host, not a rigging application. For this
@@ -84,7 +100,8 @@ prompt leases only; real L4 generation and output QA remain open.
 
 ## What rigging remains for
 
-Blender and OpenToonz remain useful when the source has appropriate topology:
+Blender and OpenToonz remain useful only when the source is professionally
+authored for the selected system and has appropriate topology:
 
 - separated articulated limbs;
 - visible and reviewed pivots;
@@ -126,6 +143,7 @@ npm run smoke:living-frame-character-controlled-preparation
 npm run smoke:living-frame-character-controlled-preparation-private-prompt
 npm run smoke:living-frame-character-pixijs-internal-runtime
 npm run smoke:living-frame-character-pixijs-remotion-composite-internal-test
+npm run smoke:living-frame-airship-navigator-articulated-blender-private-internal-test
 npm run smoke:living-frame-animation-aware-illustration-private-composite-internal-test
 npm run smoke:living-frame-rigging-v2
 ```

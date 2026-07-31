@@ -288,7 +288,7 @@ const cases: readonly AuditCase[] = [
     validate(receipt) {
       assert.equal(
         receipt.status,
-        'passed',
+        'technical_pass_professional_visual_rejected',
       )
       assert.equal(
         receipt.restrainedMusashiRoute,
@@ -329,6 +329,148 @@ const cases: readonly AuditCase[] = [
       assert.equal(
         receipt.remotionOwnsFinalCanvas,
         true,
+      )
+      assert.equal(
+        receipt.productionReady,
+        false,
+      )
+    },
+  },
+  {
+    id:
+      'airship_navigator_eight_part_blender_and_remotion_review',
+    relativePath:
+      'server/smoke/living-frame-airship-navigator-articulated-blender-private-internal-test-smoke.ts',
+    validate(receipt) {
+      assert.equal(
+        receipt.status,
+        'technical_pass_professional_visual_rejected',
+      )
+      assert.equal(
+        receipt.reviewedPartCount,
+        8,
+      )
+      assert.equal(
+        receipt.disconnectedMeshIslandCount,
+        8,
+      )
+      assert.equal(
+        receipt.rigidWeightedVertexCount,
+        32,
+      )
+      assert.equal(
+        receipt.articulatedBoneCount,
+        8,
+      )
+      assert.equal(
+        receipt.armIkChainLength,
+        3,
+      )
+      assert.equal(
+        Number(
+          receipt
+            .demonstrationMotionPixelDelta,
+        ) > 40_000,
+        true,
+      )
+      assert.equal(
+        Number(
+          receipt
+            .protectedFacePixelDelta,
+        ) < 50,
+        true,
+      )
+      assert.equal(
+        Number(
+          receipt
+            .finalReturnPixelDelta,
+        ) < 2_500,
+        true,
+      )
+      assert.equal(
+        receipt
+          .genericWholeImageDeformationUsed,
+        false,
+      )
+      assert.equal(
+        receipt.controlledGenerationUsed,
+        false,
+      )
+      assert.equal(
+        receipt.actualBlenderEntrypointExecuted,
+        true,
+      )
+      assert.equal(
+        receipt.actualRemotionRenderCount,
+        4,
+      )
+      assert.equal(
+        receipt.remotionReviewFrame,
+        '640x360',
+      )
+      assert.equal(
+        receipt.remotionReviewFrameCount,
+        60,
+      )
+      assert.equal(
+        receipt
+          .remotionReviewAdversarialAssertions,
+        4,
+      )
+      assert.equal(
+        receipt
+          .automatedCompositionMetricsPassed,
+        true,
+      )
+      assert.equal(
+        receipt
+          .professionalVisualAcceptancePassed,
+        false,
+      )
+      assert.equal(
+        receipt
+          .visualReviewDisposition,
+        'rejected',
+      )
+      assert.deepEqual(
+        receipt
+          .visualRejectionReasonCodes,
+        [
+          'visible_joint_socket_artwork',
+          'articulated_limb_reads_as_disconnected_segments',
+          'limb_extension_exceeds_believable_anatomy',
+          'hand_prop_attachment_is_unclear',
+          'detached_coat_flap_reads_as_floating',
+        ],
+      )
+      assert.equal(
+        receipt.remotionOwnsFinalCanvas,
+        true,
+      )
+      assert.equal(
+        receipt.operationRegistered,
+        false,
+      )
+      assert.equal(
+        receipt.dispatchGranted,
+        false,
+      )
+      assert.equal(
+        receipt
+          .assetPersistenceAuthority,
+        false,
+      )
+      assert.equal(
+        receipt.canonicalQaApproved,
+        false,
+      )
+      assert.equal(
+        receipt.customerCharged,
+        false,
+      )
+      assert.equal(
+        receipt.publicDeliveryReady,
+        false,
       )
       assert.equal(
         receipt.productionReady,
@@ -1181,6 +1323,7 @@ const runtimeCaseIds = [
   'blender_fixed_textured_adapter_private_native_host_runtime',
   'blender_selected_scene_full_sequence_private_persistence',
   'blender_selected_scene_component_qa_and_private_remotion_review',
+  'airship_navigator_eight_part_blender_and_remotion_review',
   'five_modes_depth_attention_captions_sound_and_fallbacks',
   'confirmed_non_square_output_frames',
   'selected_scene_environmental_particle_slice',
@@ -1225,6 +1368,7 @@ const receipt = {
     'fixed_reviewed_blender_digest_bound_rgba_texture_uv_armature_skinning_transparent_rgba_mask_depth_private_native_host_runtime',
     'selected_musashi_scene_exact_approved_snapshot_master_timing_work_item_and_confirmed_frame_blender_binding_with_full_rgba_mask_depth_create_only_private_persistence_and_reread',
     'selected_musashi_scene_independent_persisted_component_alpha_mask_depth_motion_restoration_qa_and_actual_private_remotion_review',
+    'fictional_airship_navigator_exact_eight_part_rigid_island_armature_ik_blender_sequence_and_remotion_owned_technical_review_rejected_for_visible_joints_disconnected_anatomy_unclear_prop_attachment_and_floating_secondary_part',
     'character_animation_route_suitability_rejects_merged_musashi_blender_and_direct_pixijs_deformation_routes_that_action_to_controlled_component_preparation_and_proves_a_separate_complete_character_through_real_pixijs_and_remotion',
     'character_controlled_preparation_binds_one_confirmed_ratio_masked_inpaint_plate_and_one_1024_square_alpha_component_to_exact_approved_outputs',
     'character_masked_inpaint_pinned_image_source_schema_proves_plain_load_image_returns_zero_for_opaque_gray8_and_qualifies_load_image_mask_red_output_zero_for_vae_inpaint',

@@ -30,6 +30,13 @@ import type {
   LivingFrameBlenderRigPrivatePersistenceReport,
 } from '../../src/types/living-frame-blender-rig-private-persistence-internal-test'
 import {
+  LIVING_FRAME_BLENDER_SELECTED_SCENE_ILLUSTRATED_REMOTION_REVIEW_INTERNAL_TEST_CLASS,
+  LIVING_FRAME_BLENDER_SELECTED_SCENE_ILLUSTRATED_REMOTION_REVIEW_INTERNAL_TEST_STATE,
+  LIVING_FRAME_BLENDER_SELECTED_SCENE_ILLUSTRATED_REMOTION_REVIEW_INTERNAL_TEST_VERSION,
+  type LivingFrameBlenderSelectedSceneIllustratedRemotionReviewInternalTestReport,
+  type LivingFrameBlenderSelectedSceneIllustratedRemotionReviewInternalTestReportDraft,
+} from '../../src/types/living-frame-blender-selected-scene-illustrated-remotion-review-internal-test'
+import {
   LIVING_FRAME_BLENDER_SELECTED_SCENE_REMOTION_REVIEW_INTERNAL_TEST_CLASS,
   LIVING_FRAME_BLENDER_SELECTED_SCENE_REMOTION_REVIEW_INTERNAL_TEST_OPEN_GATES,
   LIVING_FRAME_BLENDER_SELECTED_SCENE_REMOTION_REVIEW_INTERNAL_TEST_STATE,
@@ -38,6 +45,9 @@ import {
   type LivingFrameBlenderSelectedSceneRemotionReviewInternalTestReport,
   type LivingFrameBlenderSelectedSceneRemotionReviewInternalTestReportDraft,
 } from '../../src/types/living-frame-blender-selected-scene-remotion-review-internal-test'
+import type {
+  LivingFrameBlenderSelectedSceneTextureBindingInternalTest,
+} from '../../src/types/living-frame-blender-selected-scene-texture-binding-internal-test'
 import {
   inspectCanonicalPrivateRemotionArtifact,
   persistCanonicalPrivateRemotionArtifactStream,
@@ -90,6 +100,182 @@ export async function executeLivingFrameBlenderSelectedSceneRemotionReviewIntern
   input:
     ExecuteLivingFrameBlenderSelectedSceneRemotionReviewInternalTestInput,
 ): Promise<LivingFrameBlenderSelectedSceneRemotionReviewInternalTestReport> {
+  return executeLivingFrameBlenderSelectedSceneRemotionReviewInternal({
+    input,
+  })
+}
+
+export interface ExecuteLivingFrameBlenderSelectedSceneIllustratedRemotionReviewInternalTestInput
+  extends ExecuteLivingFrameBlenderSelectedSceneRemotionReviewInternalTestInput {
+  readonly textureBinding:
+    LivingFrameBlenderSelectedSceneTextureBindingInternalTest
+  readonly basePlatePngBytes: Buffer
+  readonly captionPngBytes: Buffer
+}
+
+export async function executeLivingFrameBlenderSelectedSceneIllustratedRemotionReviewInternalTest(
+  input:
+    ExecuteLivingFrameBlenderSelectedSceneIllustratedRemotionReviewInternalTestInput,
+):
+Promise<LivingFrameBlenderSelectedSceneIllustratedRemotionReviewInternalTestReport> {
+  assertIllustratedInput(input)
+  const baseReview =
+    await executeLivingFrameBlenderSelectedSceneRemotionReviewInternal({
+      input: {
+        qualificationId:
+          input.qualificationId,
+        localStorageRoot:
+          input.localStorageRoot,
+        componentQaReport:
+          input.componentQaReport,
+        persistenceReport:
+          input.persistenceReport,
+        privateRemotionSequenceLease:
+          input.privateRemotionSequenceLease,
+      },
+      illustratedAssets: {
+        basePlatePngBytes:
+          Buffer.from(
+            input.basePlatePngBytes,
+          ),
+        captionPngBytes:
+          Buffer.from(
+            input.captionPngBytes,
+          ),
+      },
+    })
+  const binding =
+    input.textureBinding
+  const draft:
+    LivingFrameBlenderSelectedSceneIllustratedRemotionReviewInternalTestReportDraft = {
+      contractVersion:
+        LIVING_FRAME_BLENDER_SELECTED_SCENE_ILLUSTRATED_REMOTION_REVIEW_INTERNAL_TEST_VERSION,
+      resultClass:
+        LIVING_FRAME_BLENDER_SELECTED_SCENE_ILLUSTRATED_REMOTION_REVIEW_INTERNAL_TEST_CLASS,
+      runtimeState:
+        LIVING_FRAME_BLENDER_SELECTED_SCENE_ILLUSTRATED_REMOTION_REVIEW_INTERNAL_TEST_STATE,
+      qualificationId:
+        input.qualificationId,
+      canonicalScope: {
+        ...input.componentQaReport
+          .canonicalScope,
+      },
+      sourceBindings: {
+        selectedSceneTextureBindingDigestSha256:
+          binding.bindingDigestSha256,
+        selectedSceneAdmissionDigestSha256:
+          input.componentQaReport
+            .sourceBindings
+            .admissionDigestSha256,
+        componentQaReportDigestSha256:
+          input.componentQaReport
+            .reportDigestSha256,
+        persistenceReportDigestSha256:
+          input.persistenceReport
+            .reportDigestSha256,
+        baseReviewReportDigestSha256:
+          baseReview.reportDigestSha256,
+        basePlateArtifactId:
+          binding
+            .finalCompositionArtifacts
+            .basePlate.artifactId,
+        basePlateSha256:
+          binding
+            .finalCompositionArtifacts
+            .basePlate.sha256,
+        captionArtifactId:
+          binding
+            .finalCompositionArtifacts
+            .captionOverlay.artifactId,
+        captionSha256:
+          binding
+            .finalCompositionArtifacts
+            .captionOverlay.sha256,
+        texturedBlenderPayloadDigestSha256:
+          input.persistenceReport
+            .sourceBindings
+            .adapterPayloadDigestSha256,
+      },
+      compositionIdentity: {
+        styleProfile:
+          'illustrated_musashi_deep_2_5d_v1',
+        basePlateContainsReconstructedCharacterAndStaticSecondaryParts:
+          true,
+        blenderSequenceContainsApprovedTexturedSwordArmComponent:
+          true,
+        captionPlaneAboveLivingFrame:
+          true,
+        exactConfirmedAspectRatioPreserved:
+          true,
+        everyFinalReviewFrameCompositedByRemotion:
+          true,
+        remotionRemainsFinalCanvas: true,
+      },
+      baseReview,
+      qaEvidence: {
+        exactBasePlateBytesRevalidated:
+          true,
+        exactCaptionBytesRevalidated:
+          true,
+        selectedSceneTextureBindingRevalidated:
+          true,
+        texturedBlenderComponentQaPassed:
+          true,
+        illustratedSourcePlateVisible:
+          true,
+        texturedSwordArmMotionVisible:
+          true,
+        initialPoseRestored: true,
+        privateReviewArtifactPersistedAndReread:
+          true,
+      },
+      authorityBoundary: {
+        privateInternalIllustratedReviewEvidenceAuthority:
+          true,
+        selectedSceneAuthority: false,
+        approvedSnapshotAuthority: false,
+        masterTimingAuthority: false,
+        workGraphAuthority: false,
+        dispatchAuthority: false,
+        runtimeAuthority: false,
+        canonicalArtifactAuthority:
+          false,
+        assetManifestAuthority: false,
+        canonicalQaApprovalAuthority:
+          false,
+        privateReviewApprovalAuthority:
+          false,
+        costAuthority: false,
+        billingAuthority: false,
+        publicDeliveryAuthority: false,
+        productionAuthority: false,
+      },
+      canonicalAssetManifestMutated: false,
+      canonicalQaApproved: false,
+      privateReviewApproved: false,
+      actualCostCreated: false,
+      customerCharged: false,
+      publicDeliveryReady: false,
+      productionReady: false,
+    }
+  return deepFreeze({
+    ...draft,
+    reportDigestSha256:
+      sha256AuthorityValue(draft),
+  })
+}
+
+async function executeLivingFrameBlenderSelectedSceneRemotionReviewInternal(
+  options: {
+    readonly input:
+      ExecuteLivingFrameBlenderSelectedSceneRemotionReviewInternalTestInput
+    readonly illustratedAssets?: {
+      readonly basePlatePngBytes: Buffer
+      readonly captionPngBytes: Buffer
+    }
+  },
+): Promise<LivingFrameBlenderSelectedSceneRemotionReviewInternalTestReport> {
+  const input = options.input
   assertInput(input)
   assertLineage(
     input.componentQaReport,
@@ -106,11 +292,20 @@ export async function executeLivingFrameBlenderSelectedSceneRemotionReviewIntern
   )
 
   const sourceBytes =
-    createSourceVideo(
-      CHUNK_RENDER_FRAMES,
-    )
+    options.illustratedAssets == null
+      ? createSourceVideo(
+        CHUNK_RENDER_FRAMES,
+      )
+      : createIllustratedSourceVideo(
+        CHUNK_RENDER_FRAMES,
+        options.illustratedAssets
+          .basePlatePngBytes,
+      )
   const captionBytes =
-    createCaptionOverlay()
+    options.illustratedAssets == null
+      ? createCaptionOverlay()
+      : options.illustratedAssets
+        .captionPngBytes
   const runtime =
     await activateOrPrepareRemotionRuntime()
   const chunks =
@@ -139,6 +334,15 @@ export async function executeLivingFrameBlenderSelectedSceneRemotionReviewIntern
         captionBytes,
         runtime,
         sequence,
+        componentOffset:
+          options.illustratedAssets == null
+            ? undefined
+            : {
+              xNormalized:
+                0.109375,
+              yNormalized:
+                -0.211111,
+            },
         sceneId:
           input.componentQaReport
             .canonicalScope.sceneId,
@@ -227,7 +431,12 @@ export async function executeLivingFrameBlenderSelectedSceneRemotionReviewIntern
       SAMPLE_REVIEW_FRAMES,
     )
   const visualQa =
-    measureRenderedVisuals(sampledFrames)
+    measureRenderedVisuals(
+      sampledFrames,
+      options.illustratedAssets == null
+        ? 'grid'
+        : 'illustrated_musashi',
+    )
 
   const qa = input.componentQaReport
   const persistence =
@@ -437,6 +646,10 @@ async function renderChunk(input: {
   >
   readonly sequence:
     LivingFrameBlenderRigPrivateRemotionSequence
+  readonly componentOffset?: {
+    readonly xNormalized: number
+    readonly yNormalized: number
+  }
   readonly sceneId: string
 }): Promise<{
   readonly bytes: Buffer
@@ -487,6 +700,8 @@ async function renderChunk(input: {
               deterministicMotionBundleDigestSha256:
                 input.sequence
                   .artifactSetDigestSha256,
+              componentOffset:
+                input.componentOffset,
             }),
         }
       },
@@ -814,6 +1029,10 @@ function createFrameGateMotionSpec(input: {
   readonly selectedSceneBindingDigestSha256: string
   readonly timingBindingDigestSha256: string
   readonly deterministicMotionBundleDigestSha256: string
+  readonly componentOffset?: {
+    readonly xNormalized: number
+    readonly yNormalized: number
+  }
 }): CanonicalLivingFrameMotionSpec {
   const keyframes = [{
     frameOffset: 0,
@@ -824,7 +1043,7 @@ function createFrameGateMotionSpec(input: {
     value: 0,
     easingToNext: 'hold' as const,
   }]
-  const track = {
+  const opacityTrack = {
     trackId:
       `lf-blender-frame-gate-${String(input.startFrame).padStart(4, '0')}`,
     order: 0,
@@ -839,6 +1058,36 @@ function createFrameGateMotionSpec(input: {
         sceneFrameCount: 2,
       }),
   }
+  const positionTracks:
+    CanonicalLivingFrameMotionSpecDraft['tracks'] =
+      input.componentOffset == null
+        ? []
+        : [
+          constantTrack({
+            trackId:
+              `lf-blender-frame-position-x-${String(input.startFrame).padStart(4, '0')}`,
+            order: 1,
+            property:
+              'position_x_normalized',
+            value:
+              input.componentOffset
+                .xNormalized,
+          }),
+          constantTrack({
+            trackId:
+              `lf-blender-frame-position-y-${String(input.startFrame).padStart(4, '0')}`,
+            order: 2,
+            property:
+              'position_y_normalized',
+            value:
+              input.componentOffset
+                .yNormalized,
+          }),
+        ]
+  const tracks = [
+    opacityTrack,
+    ...positionTracks,
+  ]
   const draft:
     CanonicalLivingFrameMotionSpecDraft = {
       schemaVersion:
@@ -867,13 +1116,16 @@ function createFrameGateMotionSpec(input: {
       },
       attentionEventIds: [],
       semanticScaleRequestIds: [],
-      tracks: [track],
+      tracks,
       metrics: {
-        layerTrackCount: 1,
+        layerTrackCount:
+          tracks.length,
         cameraTrackCount: 0,
         sourceTrackCount: 0,
-        keyframeCount: 2,
-        compiledSampleCount: 2,
+        keyframeCount:
+          tracks.length * 2,
+        compiledSampleCount:
+          tracks.length * 2,
       },
       authorityBoundary: {
         serverDerivedFromSelectedSceneAndMasterTiming:
@@ -901,6 +1153,39 @@ function createFrameGateMotionSpec(input: {
     ...draft,
     motionSpecDigestSha256:
       sha256AuthorityValue(draft),
+  }
+}
+
+function constantTrack(input: {
+  readonly trackId: string
+  readonly order: number
+  readonly property:
+    'position_x_normalized'
+    | 'position_y_normalized'
+  readonly value: number
+}): CanonicalLivingFrameMotionSpecDraft['tracks'][number] {
+  const keyframes = [{
+    frameOffset: 0,
+    value: input.value,
+    easingToNext: 'hold' as const,
+  }, {
+    frameOffset: 1,
+    value: input.value,
+    easingToNext: 'hold' as const,
+  }]
+  return {
+    trackId: input.trackId,
+    order: input.order,
+    target: 'layer',
+    property: input.property,
+    role: 'secondary',
+    keyframes,
+    compiledSampleCount: 2,
+    compiledSampleDigestSha256:
+      deriveCanonicalLivingFrameCompiledSampleDigestSha256({
+        keyframes,
+        sceneFrameCount: 2,
+      }),
   }
 }
 
@@ -973,6 +1258,73 @@ function createSourceVideo(
   ) {
     throw new Error(
       'Living Frame Blender private source review fixture generation failed.',
+    )
+  }
+  return Buffer.from(result.stdout)
+}
+
+function createIllustratedSourceVideo(
+  durationFrames: number,
+  basePlatePngBytes: Buffer,
+): Buffer {
+  const durationSeconds =
+    durationFrames / FPS
+  const result = spawnSync(
+    'ffmpeg',
+    [
+      '-hide_banner',
+      '-loglevel',
+      'error',
+      '-loop',
+      '1',
+      '-framerate',
+      String(FPS),
+      '-i',
+      'pipe:0',
+      '-f',
+      'lavfi',
+      '-i',
+      `anullsrc=channel_layout=stereo:sample_rate=48000:d=${durationSeconds}`,
+      '-frames:v',
+      String(durationFrames),
+      '-c:v',
+      'libx264',
+      '-preset',
+      'veryfast',
+      '-crf',
+      '18',
+      '-pix_fmt',
+      'yuv420p',
+      '-c:a',
+      'aac',
+      '-b:a',
+      '96k',
+      '-shortest',
+      '-movflags',
+      'frag_keyframe+empty_moov',
+      '-f',
+      'mp4',
+      '-threads',
+      '1',
+      'pipe:1',
+    ],
+    {
+      input: basePlatePngBytes,
+      encoding: null,
+      maxBuffer: 32 * 1024 * 1024,
+    },
+  )
+  if (
+    result.status !== 0
+    || result.stdout.byteLength <
+      1_024
+    || result.stdout.subarray(
+      4,
+      8,
+    ).toString('ascii') !== 'ftyp'
+  ) {
+    throw new Error(
+      'Living Frame Blender illustrated source review fixture generation failed.',
     )
   }
   return Buffer.from(result.stdout)
@@ -1180,6 +1532,7 @@ function extractRenderedFrames(
 
 function measureRenderedVisuals(
   frames: readonly Buffer[],
+  profile: 'grid' | 'illustrated_musashi',
 ): {
   readonly subjectPixelCounts:
     readonly number[]
@@ -1196,9 +1549,14 @@ function measureRenderedVisuals(
   const subjectPixelCounts =
     frames.map(subjectPixelCount)
   const captionCounts =
-    frames.map(captionPixelCount)
+    frames.map((frame) =>
+      captionPixelCount(frame, profile))
   const sourceCounts =
-    frames.map(sourcePlatePixelCount)
+    frames.map((frame) =>
+      sourcePlatePixelCount(
+        frame,
+        profile,
+      ))
   const middlePoseDifferentPixelCount =
     differentRgbPixelCount(
       frames[0]!,
@@ -1215,7 +1573,12 @@ function measureRenderedVisuals(
       (count) => count < 1_000,
     )
     || captionCounts.some(
-      (count) => count < 8_000,
+      (count) =>
+        count < (
+          profile === 'grid'
+            ? 8_000
+            : 500
+        ),
     )
     || sourceCounts.some(
       (count) => count < 5_000,
@@ -1226,7 +1589,7 @@ function measureRenderedVisuals(
       3
   ) {
     throw new Error(
-      'Living Frame Blender rendered motion, restoration, source plate, or caption-plane QA failed.',
+      `Living Frame Blender rendered motion, restoration, source plate, or caption-plane QA failed: profile=${profile}, subject=${subjectPixelCounts.join(',')}, caption=${captionCounts.join(',')}, source=${sourceCounts.join(',')}, motion=${middlePoseDifferentPixelCount}, restore=${firstFinalMeanAbsoluteDifference}.`,
     )
   }
   return {
@@ -1267,6 +1630,7 @@ function subjectPixelCount(
 
 function captionPixelCount(
   frame: Buffer,
+  profile: 'grid' | 'illustrated_musashi',
 ): number {
   let count = 0
   for (
@@ -1286,10 +1650,24 @@ function captionPixelCount(
         frame[offset + 1]!
       const blue =
         frame[offset + 2]!
-      if (
-        red > 150
-        && green < 100
-        && blue > 70
+      if (profile === 'grid') {
+        if (
+          red > 150
+          && green < 100
+          && blue > 70
+        ) count += 1
+      } else if (
+        (
+          red > 180
+          && green > 55
+          && green < 180
+          && blue < 120
+        )
+        || (
+          red > 180
+          && green > 170
+          && blue > 145
+        )
       ) count += 1
     }
   }
@@ -1298,8 +1676,39 @@ function captionPixelCount(
 
 function sourcePlatePixelCount(
   frame: Buffer,
+  profile: 'grid' | 'illustrated_musashi',
 ): number {
   let count = 0
+  if (
+    profile ===
+      'illustrated_musashi'
+  ) {
+    for (
+      let y = 18;
+      y < 286;
+      y += 1
+    ) {
+      for (
+        let x = 180;
+        x < 632;
+        x += 1
+      ) {
+        const offset =
+          (y * REVIEW_WIDTH + x) * 3
+        const red = frame[offset]!
+        const green =
+          frame[offset + 1]!
+        const blue =
+          frame[offset + 2]!
+        if (
+          red > 55
+          && green > 35
+          && red > blue * 1.15
+        ) count += 1
+      }
+    }
+    return count
+  }
   for (
     let y = 8;
     y < 90;
@@ -1320,6 +1729,89 @@ function sourcePlatePixelCount(
     }
   }
   return count
+}
+
+function assertIllustratedInput(
+  input:
+    ExecuteLivingFrameBlenderSelectedSceneIllustratedRemotionReviewInternalTestInput,
+): void {
+  if (
+    !isRecord(input)
+    || !isRecord(input.textureBinding)
+    || !Buffer.isBuffer(
+      input.basePlatePngBytes,
+    )
+    || !Buffer.isBuffer(
+      input.captionPngBytes,
+    )
+  ) {
+    throw new Error(
+      'Living Frame Blender illustrated Remotion review input is invalid.',
+    )
+  }
+  const binding =
+    input.textureBinding
+  const {
+    bindingDigestSha256,
+    ...bindingDraft
+  } = binding
+  const basePlate =
+    binding.finalCompositionArtifacts
+      .basePlate
+  const caption =
+    binding.finalCompositionArtifacts
+      .captionOverlay
+  if (
+    !SHA256.test(
+      bindingDigestSha256,
+    )
+    || bindingDigestSha256
+      !== sha256AuthorityValue(
+        bindingDraft,
+      )
+    || !sameScope(
+      binding.canonicalScope,
+      input.componentQaReport
+        .canonicalScope,
+    )
+    || binding.sourceBindings
+      .admissionDigestSha256 !==
+      input.componentQaReport
+        .sourceBindings
+        .admissionDigestSha256
+    || basePlate.byteLength
+      !== input.basePlatePngBytes
+        .byteLength
+    || basePlate.sha256
+      !== digestBytes(
+        input.basePlatePngBytes,
+      )
+    || caption.byteLength
+      !== input.captionPngBytes
+        .byteLength
+    || caption.sha256
+      !== digestBytes(
+        input.captionPngBytes,
+      )
+    || input.persistenceReport
+      .sourceBindings
+      .adapterPayloadDigestSha256
+      .length !== 64
+    || binding.authorityBoundary
+      .privateInternalBindingEvidenceAuthority
+      !== true
+    || binding
+      .finalCompositionArtifacts
+      .remotionOwnsFinalCanvas !==
+      true
+    || binding.canonicalQaApproved
+    || binding.privateReviewApproved
+    || binding.productionReady
+  ) {
+    throw new Error(
+      'Living Frame Blender illustrated Remotion review lineage is invalid.',
+    )
+  }
 }
 
 function differentRgbPixelCount(

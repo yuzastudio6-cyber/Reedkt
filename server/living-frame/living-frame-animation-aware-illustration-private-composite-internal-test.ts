@@ -249,8 +249,12 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
       flag: 'wx',
       mode: 0o600,
     })
-    scaleCharacterToLandscape(sourceAlphaPath, characterPath)
-    const decomposition = await decomposeCharacter({
+    scaleLivingFrameMusashiCharacterToLandscapePrivateFixture(
+      sourceAlphaPath,
+      characterPath,
+    )
+    const decomposition =
+      await decomposeLivingFrameMusashiCharacterPrivateFixture({
       sourcePath: characterPath,
       basePath: characterBasePath,
       swordArmPath,
@@ -264,7 +268,9 @@ Promise<LivingFrameAnimationAwareIllustrationPrivateCompositeInternalTestReceipt
       'drawbox=x=548:y=44:w=12:h=250:color=0xF59E0B@0.22:t=fill:replace=1',
     ])
     await makeSlash(slashPath)
-    await makeCaption(captionPath)
+    await makeLivingFrameMusashiCaptionPrivateFixture(
+      captionPath,
+    )
     makeSource(sourcePath)
     makeSwordCue(swordCuePath)
 
@@ -1376,7 +1382,7 @@ async function overlayCommitment(
   }
 }
 
-function scaleCharacterToLandscape(
+export function scaleLivingFrameMusashiCharacterToLandscapePrivateFixture(
   sourcePath: string,
   outputPath: string,
 ): void {
@@ -1393,13 +1399,15 @@ function scaleCharacterToLandscape(
   ])
 }
 
-async function decomposeCharacter(input: {
+export async function decomposeLivingFrameMusashiCharacterPrivateFixture(
+  input: {
   readonly sourcePath: string
   readonly basePath: string
   readonly swordArmPath: string
   readonly hairPath: string
   readonly robePath: string
-}): Promise<{
+  },
+): Promise<{
   readonly baseComponentSha256: string
   readonly swordArmComponentSha256: string
   readonly hairComponentSha256: string
@@ -1870,7 +1878,9 @@ function makeSwordCue(path: string): void {
   ])
 }
 
-async function makeCaption(path: string): Promise<void> {
+export async function makeLivingFrameMusashiCaptionPrivateFixture(
+  path: string,
+): Promise<void> {
   await renderSvgOverlay(
     path,
     [

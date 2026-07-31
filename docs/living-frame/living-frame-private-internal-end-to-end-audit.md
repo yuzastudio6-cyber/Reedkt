@@ -71,8 +71,10 @@ The aggregate audit executes:
    Remotion, create-only persistence, media QA, and private-review evidence;
 19. the real Musashi illustration through alpha, exact destination composite,
    base/sword-arm/hair/robe decomposition, deterministic bounded shoulder-plate
-   reconstruction, a synchronized articulated strike, Remotion, captions,
-   sound, media QA, and retained review frames;
+   reconstruction, a restrained PixiJS-compatible rigid-pivot strike,
+   Remotion, captions, sound, media QA, and retained review frames, plus a
+   fail-closed route-suitability regression that rejects generic Blender
+   deformation of the merged arm/sleeve/hand/sword cutout;
 20. real generated flat-editorial and paper-collage alpha fixtures through
    adaptive flat and shallow-2.5D Remotion scenes, measured spatial behavior,
    caption priority, create-only persistence, and retained review frames;
@@ -247,14 +249,19 @@ pass must still report three open internal runtime gates:
    mask QA; and
 3. advanced external rigging now has professional route selection, Rigging v2,
    a MasterTiming-bound rig-action plan, and a fixed reviewed Blender adapter.
-   The selected Musashi scene has also completed a real 60-frame 1920×1080
+   The selected Musashi scene has completed both the flat validation route and
+   an exact real-illustration texture route through a 60-frame 1920×1080
    RGBA/mask/depth render, process-bound single-use output handling,
-   create-only private persistence, exact reread, and resource observation.
+   create-only private persistence, exact reread, independent component QA,
+   four actual Remotion renders, and one create-only illustrated private
+   review MP4. The texture route is bound to the selected scene,
+   approved-snapshot candidate, MasterTiming, planned work, Rigging v2, and a
+   scene-specific restrained sword action.
    The remaining internal gates are a pinned offline non-root/zero-network
-   worker, canonical estimate/work/asset reconciliation, independent component
-   QA, private Remotion review, actual tool-cost evidence, and broader
-   topology/failure fixtures. OpenToonz remains fail-closed until a supported,
-   signed/scanned controlled runtime exists.
+   worker, canonical estimate/work/asset reconciliation, canonical QA and
+   private-review approval, actual tool-cost evidence, and broader
+   topology/failure fixtures. OpenToonz remains fail-closed until a
+   supported, signed/scanned controlled runtime exists.
 
 These are genuine internal execution dependencies. They are not waived merely
 because customer release is out of scope. Until all three are resolved, the

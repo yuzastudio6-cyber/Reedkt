@@ -462,10 +462,23 @@ exact reread. A further bounded stage reopens all persisted files, runs
 independent sampled alpha/mask/depth and rig-motion QA, consumes the verified
 RGBA sequence through another single-use lease, executes four real private
 Remotion compositions, packages the exact 60 selected frames, and verifies a
-create-only private review artifact. Neither stage mutates the canonical asset
-manifest or grants canonical QA, review, cost, dispatch, or production
-authority. OpenToonz remains fail-closed pending a supported controlled
-runtime. See
+create-only private review artifact for the synthetic reviewed rig fixture.
+
+The attempted follow-on use of the real Musashi sword-arm texture is retained
+as a rejected visual-suitability fixture. Its merged arm, sleeve, hand, and
+sword pixels passed alpha, mask, depth, motion, persistence, and render checks,
+but generic mesh deformation bent the painted component across the face and
+failed professional anatomy/composition review. It is not accepted Living
+Frame output. `living-frame-character-animation-route-decision-v1` now blocks
+that source topology from the Blender route. Restrained motion routes to the
+existing PixiJS rigid-cutout operation below the Remotion final canvas; a large
+pose that reveals hidden anatomy routes to a few controlled ComfyUI anchor
+key poses, never independently generated frames. Blender is reserved for
+separated articulated parts with reviewed joints, reconstructed hidden
+artwork, mesh topology, and skin weights. OpenToonz is reserved for reviewed
+flat-mesh deformation and remains fail-closed pending a supported controlled
+runtime. None of these planning decisions mutates the canonical asset manifest
+or grants canonical QA, review, cost, dispatch, or production authority. See
 `docs/living-frame/living-frame-rigging-director-and-adapter-candidates.md` and
 `docs/living-frame/living-frame-blender-fixed-adapter-private-internal-test.md`
 and
@@ -473,7 +486,9 @@ and
 and
 `docs/living-frame/living-frame-blender-selected-scene-private-persistence-internal-test.md`
 and
-`docs/living-frame/living-frame-blender-selected-scene-private-review-internal-test.md`.
+`docs/living-frame/living-frame-blender-selected-scene-private-review-internal-test.md`
+and
+`docs/living-frame/living-frame-character-animation-route-suitability.md`.
 
 ## Motion and attention
 

@@ -87,31 +87,43 @@ The aggregate audit executes:
 20. the second source-defined pruned image proving exact inherited
     direct-VCS SAM2 removal, retained runner import denial, and repeated
     complete vulnerability/SBOM/license coverage;
-21. a real Remotion render covering all five Living Frame modes, deliberate
+21. AuraFace as the optional, separately metered CPU continuity-QA tool:
+   exact two-artifact requirements, the fixed offline request/private
+   embedding/no-face-review protocol, measurement-only cosine continuity with
+   no identity or threshold authority, and the controlled non-promotable CPU
+   runtime boundary. The real 277,617,978-byte ONNX pair, atomic read-only
+   mount, detector/landmark/embedding inference, privacy/fairness/threshold
+   review, resource evidence, and canonical private review remain required;
+22. a real Remotion render covering all five Living Frame modes, deliberate
    non-use, multiple depth styles, attention, caption priority, sound, and
    fallbacks;
-22. real portrait and custom non-square confirmed-frame renders without square
+23. real portrait and custom non-square confirmed-frame renders without square
    substitution;
-23. the complete selected-scene PixiJS environmental-particle slice through
+24. the complete selected-scene PixiJS environmental-particle slice through
    Remotion, create-only persistence, media QA, and private-review evidence;
-24. the real Musashi illustration through alpha, exact destination composite,
+25. the real Musashi illustration through alpha, exact destination composite,
    base/sword-arm/hair/robe decomposition, deterministic bounded shoulder-plate
    reconstruction, a restrained PixiJS-compatible rigid-pivot strike,
    Remotion, captions, sound, media QA, and retained review frames, plus a
    fail-closed route-suitability regression that rejects generic Blender
    deformation of the merged arm/sleeve/hand/sword cutout;
-25. real generated flat-editorial and paper-collage alpha fixtures through
+26. real generated flat-editorial and paper-collage alpha fixtures through
    adaptive flat and shallow-2.5D Remotion scenes, measured spatial behavior,
    caption priority, create-only persistence, and retained review frames;
-26. semantic sound timing reconciliation;
-27. canonical private-review lineage;
-28. the exact selected-scene source-video → normalized subject prompt → SAM2
+27. semantic sound timing reconciliation;
+28. canonical private-review lineage;
+29. the exact selected-scene source-video → normalized subject prompt → SAM2
     temporal-mask work-admission candidate;
-29. the exact SAM2 runtime/parent/Torch vulnerability admission gate, including
+30. the exact SAM2 runtime/parent/Torch vulnerability admission gate, including
     the required versioned hardened source/runtime replacement;
-30. a real gray8 FFV1 temporal-mask output through decode, stability
+31. a real gray8 FFV1 temporal-mask output through decode, stability
     measurement, create-only persistence, and review frames; and
-31. the exact temporal-mask work-graph conflict.
+32. the exact temporal-mask work-graph conflict.
+
+These 32 coverage categories currently compile to 39 executable aggregate
+cases. Ten cases execute actual media/runtime work. The AuraFace cases exercise
+the complete non-model contract and controlled CPU boundary but do not count as
+real model inference.
 
 Every subprocess is bounded, uses the pinned workspace `tsx` executable, and
 returns only an output digest plus structured status to the aggregate receipt.
@@ -243,7 +255,7 @@ required before any real L4 attempt.
 
 Passing this audit proves that the currently executable private Living Frame
 pipeline works together across its selected-scene and renderer boundaries. A
-pass must still report three open internal runtime gates:
+pass must still report four open internal runtime gates:
 
 1. exact ComfyUI controlled generation needs independent image disposition
    and real L4 execution evidence. Exact private-local five-model byte
@@ -307,10 +319,18 @@ pass must still report three open internal runtime gates:
    worker, canonical estimate/work/asset reconciliation, canonical QA and
    private-review approval, actual tool-cost evidence, and broader
    topology/failure fixtures. OpenToonz remains fail-closed until a
-   supported, signed/scanned controlled runtime exists.
+   supported, signed/scanned controlled runtime exists; and
+4. optional AuraFace CPU continuity QA now has exact two-artifact requirements,
+   a fixed offline request/private embedding/no-face-review protocol,
+   measurement-only deterministic cosine evidence, and a separately metered
+   controlled non-promotable CPU attempt. It still requires the exact
+   277,617,978-byte ONNX pair, a signed/scanned non-root offline image, atomic
+   read-only mounts, real detector/landmark-alignment/embedding inference,
+   private input and output handling, resource/cost evidence,
+   privacy/fairness/threshold owner review, and canonical private review.
 
 These are genuine internal execution dependencies. They are not waived merely
-because customer release is out of scope. Until all three are resolved, the
+because customer release is out of scope. Until all four are resolved, the
 audit status is
 `passed_with_explicit_blocked_model_runtimes` and
 `internalEndToEndReadyForOwnerReview` remains false.

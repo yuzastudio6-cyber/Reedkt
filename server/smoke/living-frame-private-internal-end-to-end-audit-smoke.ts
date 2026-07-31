@@ -821,6 +821,30 @@ const cases: readonly AuditCase[] = [
     },
   },
   {
+    id:
+      'auraface_exact_artifact_requirements',
+    relativePath:
+      'server/smoke/living-frame-auraface-artifact-requirements-smoke.ts',
+  },
+  {
+    id:
+      'auraface_fixed_offline_runner_protocol',
+    relativePath:
+      'server/smoke/living-frame-auraface-offline-runner-protocol-smoke.ts',
+  },
+  {
+    id:
+      'auraface_measurement_only_continuity_contract',
+    relativePath:
+      'server/smoke/living-frame-auraface-continuity-measurement-smoke.ts',
+  },
+  {
+    id:
+      'auraface_controlled_cpu_runtime_boundary',
+    relativePath:
+      'server/smoke/living-frame-auraface-cpu-runtime-smoke.ts',
+  },
+  {
     id: 'five_modes_depth_attention_captions_sound_and_fallbacks',
     relativePath:
       'server/smoke/living-frame-five-mode-private-render-smoke.ts',
@@ -1145,6 +1169,10 @@ const receipt = {
     'digest_bound_archive_scan_attempt_and_complete_temporary_artifact_cleanup',
     'source_defined_pruned_image_build_complete_os_python_vulnerability_scan_spdx_sbom_and_full_file_license_scan',
     'source_defined_pruned_image_exact_inherited_direct_vcs_sam2_removal_repeat_complete_scan_and_retained_runner_import_denial',
+    'auraface_exact_two_artifact_requirements_and_no_runtime_download_policy',
+    'auraface_fixed_offline_request_private_embedding_no_face_review_and_no_identity_decision_protocol',
+    'auraface_measurement_only_cosine_continuity_contract_with_no_threshold_or_identity_authority',
+    'auraface_separately_metered_controlled_cpu_attempt_user_review_outcome_and_fail_closed_authority_boundary',
     'all_five_modes_and_deliberate_non_use',
     'flat_shallow_and_deep_2_5d',
     'focus_handoff_attention_restoration_and_low_risk_occlusion',
@@ -1179,6 +1207,12 @@ const receipt = {
         'advanced_rigging_external_tool_runtime',
       reason:
         'head_intelligence_rigging_direction_rigging_v2_relational_validation_pixijs_opentoonz_blender_and_comfyui_route_selection_fixed_blender_adapter_materialization_one_signed_notarized_native_arm64_blender_4_5_11_armature_ik_skinning_rgba_mask_depth_fixture_and_one_digest_bound_texture_fixture_are_verified_the_real_musashi_merged_arm_sleeve_hand_sword_cutout_is_explicitly_rejected_for_generic_blender_deformation_and_direct_pixijs_animation_then_routes_to_controlled_comfyui_component_preparation_or_controlled_anchor_keyposes_while_a_separate_complete_character_cutout_passes_real_pinned_pixijs_and_remotion_private_composite_evidence_blender_network_isolation_offline_non_root_worker_image_canonical_estimate_work_asset_admission_manifest_reconciliation_qa_private_review_approval_actual_cost_and_broader_properly_separated_character_fixture_evidence_remain_required_while_the_unsigned_x86_64_opentoonz_1_8_0_macos_package_is_fail_closed_and_still_requires_a_qualified_runtime_or_professional_fallback',
+    },
+    {
+      gate:
+        'auraface_real_cpu_continuity_qa_runtime',
+      reason:
+        'exact_two_artifact_requirements_fixed_offline_runner_protocol_measurement_only_cosine_contract_and_a_separately_metered_controlled_non_promotable_cpu_attempt_are_verified_but_the_exact_277617978_byte_onnx_pair_signed_scanned_nonroot_offline_image_atomic_read_only_mount_real_detector_landmark_alignment_and_embedding_inference_private_input_persistence_resource_cost_receipt_fairness_privacy_threshold_owner_review_and_canonical_private_review_remain_required',
     },
   ],
   internalEndToEndReadyForOwnerReview: false,

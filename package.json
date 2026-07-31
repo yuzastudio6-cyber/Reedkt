@@ -191,6 +191,7 @@
     "smoke:living-frame-professional-visual-review": "tsx server/smoke/living-frame-professional-visual-review-smoke.ts",
     "smoke:living-frame-complete-character-keypose-plan": "tsx server/smoke/living-frame-complete-character-keypose-plan-smoke.ts",
     "smoke:living-frame-complete-character-keypose-controlled-image-binding": "tsx server/smoke/living-frame-complete-character-keypose-controlled-image-binding-smoke.ts",
+    "smoke:living-frame-complete-character-keypose-private-action-conditioning": "tsx server/smoke/living-frame-complete-character-keypose-private-action-conditioning-smoke.ts",
     "smoke:living-frame-character-action-choreography": "tsx server/smoke/living-frame-character-action-choreography-smoke.ts",
     "smoke:living-frame-character-motion-tool-policy": "tsx server/smoke/living-frame-character-motion-tool-policy-smoke.ts",
     "smoke:living-frame-ai-2d-feasibility-sprint": "tsx server/smoke/living-frame-ai-2d-feasibility-sprint-smoke.ts",

@@ -375,6 +375,16 @@ const binding =
     input,
   )
 
+export {
+  admissionCandidate as livingFrameCompleteCharacterKeyposeAdmissionCandidate,
+  binding as livingFrameCompleteCharacterKeyposeControlledImageBinding,
+  input as livingFrameCompleteCharacterKeyposeControlledImageBindingInput,
+  fullFrameRatioExtension as livingFrameCompleteCharacterKeyposeFullFrameRatioExtension,
+  fullFrameRatioExtensionInput as livingFrameCompleteCharacterKeyposeFullFrameRatioExtensionInput,
+  selectedSceneRequest as livingFrameCompleteCharacterKeyposeSelectedSceneRequest,
+  selectedSceneRequestInput as livingFrameCompleteCharacterKeyposeSelectedSceneRequestInput,
+}
+
 assert.equal(
   await verifyLivingFrameCompleteCharacterKeyposeControlledImageBinding(
     binding,

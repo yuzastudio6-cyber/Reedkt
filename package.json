@@ -194,6 +194,7 @@
     "smoke:living-frame-ai-2d-feasibility-sprint": "tsx server/smoke/living-frame-ai-2d-feasibility-sprint-smoke.ts",
     "smoke:living-frame-ai-2d-interpolation-qualification": "tsx server/smoke/living-frame-ai-2d-interpolation-qualification-smoke.ts",
     "smoke:living-frame-complete-character-keypose-review": "tsx server/smoke/living-frame-complete-character-keypose-review-smoke.ts",
+    "smoke:living-frame-complete-character-interpolation-admission": "tsx server/smoke/living-frame-complete-character-interpolation-admission-smoke.ts",
     "smoke:living-frame-character-controlled-preparation": "tsx server/smoke/living-frame-character-controlled-preparation-smoke.ts",
     "smoke:living-frame-character-masked-inpaint-comfyui-node-schema-evidence": "tsx server/smoke/living-frame-character-masked-inpaint-comfyui-node-schema-evidence-smoke.ts",
     "smoke:living-frame-character-controlled-preparation-canonical-comfyui-reconciliation": "tsx server/smoke/living-frame-character-controlled-preparation-canonical-comfyui-reconciliation-smoke.ts",

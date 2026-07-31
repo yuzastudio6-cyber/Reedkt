@@ -189,6 +189,7 @@ npm run smoke:living-frame-character-motion-tool-policy
 npm run smoke:living-frame-ai-2d-feasibility-sprint
 npm run smoke:living-frame-ai-2d-interpolation-qualification
 npm run smoke:living-frame-complete-character-keypose-review
+npm run smoke:living-frame-complete-character-interpolation-admission
 ```
 
 `living-frame-ai-2d-feasibility-sprint-v1` freezes the three non-waivable
@@ -220,3 +221,20 @@ ToonCrafter admission may be materialized only when every pose is accepted.
 Decode, exact 1024-square dimensions, and crop checks must all pass before
 visual acceptance is even eligible; those technical checks still cannot unlock
 interpolation without the eight Head Intelligence visual checks.
+
+`living-frame-complete-character-interpolation-admission-v1` consumes one
+exact all-accepted keypose review set, its exact feasibility fixture, the
+source-reviewed ToonCrafter qualification record, and a StoryTiming-owned
+keypose-frame artifact whose exact frame list is content-addressed and bound to
+the fixture MasterTiming digest. Workspace, project, edit session, approved
+snapshot, selected scene, component, keypose plan, review set, confirmed frame,
+and style lineage remain frozen. It produces one non-executable transition
+candidate per adjacent accepted pose pair. It does not derive a parallel clock
+or a model request. Caller seed, prompt, model, dimensions, paths, URLs, bytes,
+credentials, commands, and environment are absent and rejected as extra input.
+The candidate stays blocked until ToonCrafter source/model/runtime qualification
+is released; its eventual outputs still require private persistence, technical
+QA, actual rendered-motion inspection, temporal masking when isolation is
+needed, and Remotion final composition and visual inspection. Runtime remains
+blocked until the canonical work-graph and asset-manifest owners add an exact
+approved interpolation work item and planned output entry.

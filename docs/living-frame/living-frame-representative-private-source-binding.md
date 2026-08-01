@@ -152,3 +152,32 @@ V1 fixture cases stay blocked. The v2 candidate does not mutate the shared
 canonical fixture, and every case still requires an exact case-source admission
 v2 digest plus canonical content-analysis reread before runtime. All execution,
 asset, cost, QA approval, public, and production authorities remain false.
+
+## Source-role reconciliation v1
+
+`living-frame-representative-source-role-reconciliation-v1` proves the
+source-side consequence of the visual-fixture v2 correction without claiming
+that canonical admission has occurred. It consumes the exact visual-fixture v2
+manifest and one ordered, digest-bound case-source-admission v2 reference for
+each of the twelve active cases.
+
+The projection maps only approved source candidates to source-derived fixture
+roles. Caption, SoundSync, temporal masks, renderer outputs, and final artifacts
+remain non-source dependencies owned by their existing canonical systems. The
+compiler fails closed on a missing, extra, reordered, stale-version, invalid-
+digest, or cross-case admission reference.
+
+The focused proof establishes:
+
+- all twelve active cases have every required source-derived role covered;
+- the Hybrid Expansion and Attention cases use the approved topic-matched
+  B-roll role directly;
+- no automatic derived still is introduced;
+- optional freeze-frame extraction remains a separate future Head Intelligence
+  decision with its own work, hash, QA, and manifest lineage; and
+- all case-source-admission rereads and canonical consumption remain pending.
+
+This reconciliation is byte-free and source-only. It does not create or admit a
+work item, asset, clock, renderer layer, QA result, private-review decision, cost
+event, or production operation. Runtime, dispatch, customer charge, public
+delivery, and production readiness remain false.

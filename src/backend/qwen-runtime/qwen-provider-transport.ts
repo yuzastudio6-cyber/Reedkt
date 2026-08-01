@@ -126,7 +126,6 @@ export async function sendQwenProviderTransportRequest(input: {
         body,
         signal: controller.signal,
       })
-      clearTimeout(timeout)
       const text = await response.text()
       const redacted = redactQwenRuntimeLogPayload(text)
       if (response.status === 429 && attempt < attempts - 1) continue
@@ -173,21 +172,24 @@ export async function sendQwenProviderTransportRequest(input: {
         })
       }
     } catch (error) {
-      clearTimeout(timeout)
       const message = error instanceof Error ? error.message : String(error)
-      if (/abort/i.test(message)) {
-        if (attempt < attempts - 1) continue
+      if (controller.signal.aborted || /abort/i.test(message)) {
         return safeResult({
-          status: 'timeout',
-          warnings: ['Qwen provider request timed out; deterministic fallback should be used.'],
+          status: 'outcome_unknown',
+          warnings: [
+            'Qwen provider request timed out after submission began; its outcome is unknown.',
+            'The request was not automatically resubmitted. Reconciliation is required before another provider attempt.',
+          ],
         })
       }
       const redacted = redactQwenRuntimeLogPayload(message)
       return safeResult({
         status: 'failed',
         redactedRawPreview: redacted.redactedText.slice(0, 500),
-        warnings: ['Qwen provider request failed with redacted error; deterministic fallback should be used.'],
+          warnings: ['Qwen provider request failed with redacted error; deterministic fallback should be used.'],
       })
+    } finally {
+      clearTimeout(timeout)
     }
   }
 

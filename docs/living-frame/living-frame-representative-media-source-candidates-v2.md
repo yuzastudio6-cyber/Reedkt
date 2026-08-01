@@ -35,3 +35,30 @@ review was created. Character animation and mechanical rigging remain paused.
 `canonicalConsumptionPending:true`; operation registration, dispatch, runtime,
 asset creation, customer charge, public delivery, and production readiness are
 all false.
+
+## Non-video read admission candidate
+
+The canonical source-owner audit confirmed that there is no released
+finalized-upload reader for the six non-video records. The existing dependency
+artifact reader can read those MIME types only after they are already canonical
+artifacts; it cannot be repurposed to bypass upload, approved-source-manifest,
+or source-reader authority.
+
+`living-frame-representative-still-data-source-read-admission-candidate-v1`
+therefore records the required future closed source-kind union:
+
+```text
+video | raster | svg | structured_json
+```
+
+For the four raster, one SVG, and one structured-JSON source it requires exact
+finalized media/storage reread, generation/ETag/SHA/length verification,
+approved snapshot/work/source-manifest binding, and kind-specific decode,
+signature, active-content, external-reference, closed-schema, and citation
+validation. Its per-kind buffer ceilings are proposals only and cannot act as
+canonical authority.
+
+The candidate contains no URL, path, bytes, or storage identity in a worker
+payload. It grants no read lease or admission and explicitly keeps the
+dependency-artifact reader dependency-only. The shared manifest and reader
+remain untouched for later canonical one-writer versioning.

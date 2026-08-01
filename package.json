@@ -224,6 +224,7 @@
     "smoke:living-frame-representative-visual-fixture": "tsx server/smoke/living-frame-representative-visual-fixture-smoke.ts",
     "smoke:living-frame-representative-media-source-candidates": "tsx server/smoke/living-frame-representative-media-source-candidates-smoke.ts",
     "smoke:living-frame-representative-media-source-candidates-v2": "tsx server/smoke/living-frame-representative-media-source-candidates-v2-smoke.ts",
+    "smoke:living-frame-representative-still-data-source-read-admission-candidate": "tsx server/smoke/living-frame-representative-still-data-source-read-admission-candidate-smoke.ts",
     "smoke:living-frame-representative-source-provenance-audit": "tsx server/smoke/living-frame-representative-source-provenance-audit-smoke.ts",
     "smoke:living-frame-representative-semantic-source-routing": "tsx server/smoke/living-frame-representative-semantic-source-routing-smoke.ts",
     "smoke:living-frame-representative-private-source-binding": "tsx server/smoke/living-frame-representative-private-source-binding-smoke.ts",

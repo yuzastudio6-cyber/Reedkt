@@ -125,3 +125,30 @@ The focused source-only proof compiles all twelve corrected routes and 26 v2
 private bindings, including four cases that use the topic-matched NASA B-roll.
 It creates no work item or asset and grants no runtime, QA, cost, delivery, or
 production authority.
+
+## Visual-fixture v2 source-role correction
+
+The canonical product disposition is to let Hybrid Expansion and Attention use
+the exact approved topic-matched B-roll range directly. The system must not
+manufacture a still merely to satisfy the old v1 fixture schema.
+
+`living-frame-representative-visual-fixture-v2` is the namespaced source-only
+candidate for that later owner reconciliation. For the two affected cases it
+removes `approved_non_character_still` and requires
+`approved_topic_matched_source_broll_video` instead:
+
+- Hybrid Expansion requires a content-analysis-verified non-character source
+  segment because the active scope is explicitly non-character.
+- Attention requires an exact topic-matched source segment and may preserve its
+  original approved source motion.
+
+Neither case may generate living-subject motion, rig a living or mechanical
+subject, or automatically substitute a derived still. Head Intelligence may
+choose a deliberate freeze/hold later, but that requires separate frame
+extraction, immutable bytes, work, manifest, deterministic QA, and private
+review lineage.
+
+V1 fixture cases stay blocked. The v2 candidate does not mutate the shared
+canonical fixture, and every case still requires an exact case-source admission
+v2 digest plus canonical content-analysis reread before runtime. All execution,
+asset, cost, QA approval, public, and production authorities remain false.

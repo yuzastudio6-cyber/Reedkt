@@ -229,6 +229,7 @@
     "smoke:living-frame-representative-private-source-binding-v2": "tsx server/smoke/living-frame-representative-private-source-binding-v2-smoke.ts",
     "smoke:living-frame-representative-case-source-admission": "tsx server/smoke/living-frame-representative-case-source-admission-smoke.ts",
     "smoke:living-frame-representative-case-source-admission-v2": "tsx server/smoke/living-frame-representative-case-source-admission-v2-smoke.ts",
+    "smoke:living-frame-representative-visual-fixture-v2": "tsx server/smoke/living-frame-representative-visual-fixture-v2-smoke.ts",
     "smoke:living-frame-representative-direction-acceptance": "tsx server/smoke/living-frame-representative-direction-acceptance-smoke.ts",
     "smoke:living-frame-active-non-illustration-evidence-admission": "tsx server/smoke/living-frame-active-non-illustration-evidence-admission-smoke.ts",
     "smoke:living-frame-active-professional-skill-policy-projection": "tsx server/smoke/living-frame-active-professional-skill-policy-projection-smoke.ts",

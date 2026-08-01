@@ -1,12 +1,12 @@
 # Living Frame Release Completion Audit
 
-Status date: 2026-07-31
+Status date: 2026-08-01
 
 Feature branch:
 `codex/living-frame-gpu-operation-preflight-v1`
 
-Latest frozen feature state:
-tracked by the clean branch head and exact backend handoff hash
+Latest frozen implementation checkpoint referenced by this audit:
+`ca802d37543a5b7675d2fe3fa255325c2d0aae18`
 
 Overall status:
 `private_internal_e2e_in_progress_customer_release_deferred`
@@ -19,6 +19,65 @@ pose animation. Rigging is reserved for nonliving mechanical objects and is
 blocked until the owner-defined mechanical-rig specification is added. Where
 older rows below describe character-rig evidence, this correction supersedes
 their route or readiness interpretation.
+
+## Active completion basis — 2026-08-01
+
+Only the owner-approved non-character scope may count toward current Living
+Frame completion. The active aggregate contains exactly twelve cases spanning
+Living A-Roll, static illustration without character animation, non-character
+Living Still, Living Archive, Living Diagram, non-character Hybrid Expansion,
+maps/routes/data, attention and semantic scale, camera/depth/occlusion/masks,
+environmental/editorial/preapproved rigid-support motion, Caption/SoundSync/
+StoryTiming coordination, and final Remotion/QA/private review.
+
+Seven scopes are paused or excluded from active completion:
+
+- living or organic character animation;
+- complete-character keyposes;
+- ToonCrafter/RIFE character interpolation;
+- living-subject rigging;
+- mechanical rigging or part animation;
+- historical character-rig evidence as current admission evidence; and
+- any automatic fallback from unknown subject class to mechanical treatment.
+
+Static illustration remains allowed only as a static subject. Original motion
+from an approved non-character source segment may be preserved. Simple,
+preapproved whole-component rigid transforms remain distinct from mechanical
+part inference.
+
+The current fifteen-run aggregate is engineering evidence only. Direct
+inspection rejected its placeholder geometry, weak particles, takeover-title
+clipping, and motion/caption collision. A green technical smoke or historical
+pixel metric cannot override that rejection, and no current aggregate output
+counts as professional Living Frame acceptance.
+
+The corrected representative-media chain is now frozen source-side:
+
+- `b6301d7963e823aa491bd00e1025fa3947a5b29c` — source provenance;
+- `1638b087e8189411d3a9160546d46d1fa356ac90` — semantic source routing;
+- `43bb67277ca77c6f2d68f06a0d432ba74b0d5004` — exact probe and rational
+  frame mapping;
+- `983f313479ca3d1148c140a35862e22c70ec2f35` — coherent v2 case-source
+  admission candidate;
+- `8c97fa452df577eb6c8b8439bdbd5c5f288d9e71` — direct topic-matched B-roll
+  roles without square/still substitution;
+- `943c1e28a8d1100457980e53506610874c9bc275` — all twelve v2 source-derived
+  roles reconciled; and
+- `ca802d37543a5b7675d2fe3fa255325c2d0aae18` — v2 source-bound professional
+  action/style/depth/motion-budget/five-phase profiles.
+
+These commits do not prove source ingest, canonical admission, Head decisions,
+exact StoryTiming phase frames, rendering, automatic visual inspection, or
+professional acceptance. Every operation/dispatch/runtime/asset/cost/QA-
+approval/public/production authority remains false in this chain.
+
+The next active internal milestone is actual canonical private ingest/probe of
+the approved representative sources, followed by source-bound compositions.
+Every completed clip must then pass deterministic QA, direct agent inspection,
+complete-time Qwen visual evidence, separate verified audio evidence, Kimi-
+primary/Terra-fallback Head QA, N+1 repair when needed, reconciliation, and
+canonical private review. Historical character or rigging artifacts cannot
+satisfy any of those gates.
 
 This audit measures the current repository against the complete Living Frame
 product direction. It does not redefine success around the latest renderer
@@ -46,8 +105,10 @@ assembles the minimum coherent mini-skill set. Its five modes remain:
 
 Flat, shallow 2.5D, and deep multiplane treatments are scene decisions.
 Illustration style remains a versioned continuity/style decision. A character
-scene may be cinematic anime, ink, graphic novel, archival, photographic, or
-another approved language without changing Living Frame's parent contract.
+scene may eventually be cinematic anime, ink, graphic novel, archival,
+photographic, or another approved language without changing Living Frame's
+parent contract, but no character-animation route is admissible until the
+owner supplies and approves the future animation specification.
 
 Named design examples are regression fixtures only. No named person, vehicle,
 location, war, genre, or topic may change routing, cost, timing, or release
@@ -68,16 +129,17 @@ authority.
 
 ## Requirement-by-requirement audit
 
-### Character-animation route correction
+### Historical character-animation evidence — non-admissible
 
 The current character evidence supersedes the earlier assumption that the
 extracted Musashi arm/sleeve/hand/sword cutout was ready for direct PixiJS
 animation. That component exposes an unreviewed source plate, has an
 unreviewed extraction boundary, and crosses the protected face in the tested
-path. It now routes to controlled ComfyUI component preparation before any
-deterministic downstream animation. Large pose changes route to controlled
-anchor key poses; independently generated per-frame animation remains
-forbidden.
+path. An earlier design routed it to controlled ComfyUI component preparation
+before deterministic downstream animation. Under the current owner pause, that
+route is disabled: controlled character preparation, complete-character
+keyposes, ToonCrafter/RIFE interpolation, and every living-subject rig remain
+research evidence only.
 
 A separate complete-character cutout does pass the narrow deterministic route:
 the real pinned PixiJS runtime renders 120 transparent rigid-cutout frames, the
@@ -88,6 +150,12 @@ digest and length. This is private internal evidence only. It does not register
 the operation, dispatch work, mutate the canonical manifest, approve QA or
 private review, create cost, bill a customer, deliver publicly, or grant
 production authority.
+
+The requirement table below is retained as a historical capability inventory.
+Any row involving character animation, living-subject rigging, or mechanical
+rigging has no active completion value regardless of its older status label.
+The active-completion basis and representative-media chain above are the
+current interpretation authority.
 
 | Requirement | Current status | Authoritative evidence | Remaining work |
 | --- | --- | --- | --- |

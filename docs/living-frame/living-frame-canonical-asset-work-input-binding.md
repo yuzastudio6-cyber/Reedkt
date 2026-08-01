@@ -51,6 +51,8 @@ and the one existing approved work graph, asset manifest, QA plan, private
 review, captions/SoundSync, Remotion composition, and final export pipeline
 remain authoritative.
 
-The binding adds no tool identity and reuses the exact 50-tool registry.
-GPU-heavy mask inference remains Google Cloud Run GPU-only with no CPU
-fallback.
+The binding adds no tool identity and reuses the current canonical production
+tool registry. The registry's observed identity count is not a product cap;
+future distinct executable identities may be released through their existing
+security, cost, QA, fallback, and evidence gates. GPU-heavy mask inference
+remains Google Cloud Run GPU-only with no CPU fallback.

@@ -27,6 +27,16 @@ import {
   inspectCanonicalPrivateRemotionArtifact,
   persistCanonicalPrivateRemotionArtifactStream,
 } from '../services/canonical-private-remotion-artifact-storage'
+import {
+  sha256AuthorityValue,
+} from '../services/private-edit-authority-store'
+import {
+  deriveCanonicalLivingFrameCompiledSampleDigestSha256,
+} from '../living-frame/canonical-living-frame-motion'
+import type {
+  CanonicalLivingFrameMotionSpec,
+  CanonicalLivingFrameMotionSpecDraft,
+} from '../../src/types/living-frame-canonical-motion'
 
 const LEGACY_OUTPUT_BOUNDARY_BYTES = 16 * 1024 * 1024
 const fixtureRoot = await mkdtemp(join(tmpdir(), 'reeditpro-remotion-stream-output-fixture-'))
@@ -35,6 +45,8 @@ const sourcePath = join(fixtureRoot, 'high-detail-4k-source.mp4')
 const livingFrameOverlayPath = join(fixtureRoot, 'approved-living-frame-overlay.png')
 const captionPath = join(fixtureRoot, 'approved-caption-overlay.png')
 const supplementalAudioPath = join(fixtureRoot, 'approved-edit-brief-music.wav')
+const livingFrameMotionSpec =
+  subjectNeutralMotionSpec(12, 36)
 
 try {
   generateHighDetailFourKSource(sourcePath)
@@ -93,6 +105,7 @@ try {
         endFrameExclusive: 36,
         fit: 'fill',
         opacity: 1,
+        motionSpec: livingFrameMotionSpec,
       }],
     },
     source: {
@@ -177,6 +190,115 @@ try {
       }],
     },
   }), /diverges from the approved Edit Brief timeline/u)
+  const unsupportedMotionProperty =
+    structuredClone(request)
+  ;(
+    unsupportedMotionProperty.payload
+      .livingFrameOverlayLayers![0]!
+      .motionSpec.tracks[0] as {
+        property: string
+      }
+  ).property = 'path_reveal'
+  assert.throws(
+    () => validateOfflineRemotionStreamingRenderRequest(
+      unsupportedMotionProperty,
+    ),
+    /motion|unsupported|invalid|Living Frame overlays/u,
+  )
+  const resignedCompiledSampleForgery =
+    structuredClone(request)
+  const forgedSampleSpec =
+    resignedCompiledSampleForgery.payload
+      .livingFrameOverlayLayers![0]!.motionSpec
+  const {
+    motionSpecDigestSha256: _forgedMotionDigest,
+    ...forgedSampleDraft
+  } = forgedSampleSpec
+  void _forgedMotionDigest
+  ;(
+    forgedSampleSpec.tracks[0] as {
+      compiledSampleDigestSha256: string
+    }
+  ).compiledSampleDigestSha256 = 'd'.repeat(64)
+  ;(
+    forgedSampleSpec as {
+      motionSpecDigestSha256: string
+    }
+  ).motionSpecDigestSha256 =
+    sha256AuthorityValue(forgedSampleDraft)
+  assert.throws(
+    () => validateOfflineRemotionStreamingRenderRequest(
+      resignedCompiledSampleForgery,
+    ),
+    /motion|compiled samples|Living Frame overlays/u,
+  )
+  const sharedSceneMultiplane =
+    structuredClone(request)
+  const foregroundMotionSpec =
+    subjectNeutralMotionSpec(12, 36, {
+      componentId:
+        'living-frame-component-subject-neutral',
+      depthStyle: 'deep_multiplane',
+      depthBand: 'foreground',
+      parallaxFactor: 0.32,
+    })
+  const backgroundMotionSpec =
+    subjectNeutralMotionSpec(12, 36, {
+      componentId:
+        'living-frame-component-subject-neutral-background',
+      depthStyle: 'deep_multiplane',
+      depthBand: 'background',
+      parallaxFactor: -0.22,
+    })
+  sharedSceneMultiplane.payload
+    .livingFrameOverlayLayers = [{
+      ...sharedSceneMultiplane.payload
+        .livingFrameOverlayLayers![0]!,
+      motionSpec: foregroundMotionSpec,
+    }, {
+      ...sharedSceneMultiplane.payload
+        .livingFrameOverlayLayers![0]!,
+      layerId: 'living-frame-layer-2',
+      manifestOutputKey:
+        'living-frame-layer-manifest-2',
+      componentOutputKey:
+        'living-frame-component-2',
+      motionSpec: backgroundMotionSpec,
+    }]
+  sharedSceneMultiplane.inputs
+    .livingFrameOverlays = [{
+      ...sharedSceneMultiplane.inputs
+        .livingFrameOverlays[0]!,
+    }, {
+      ...sharedSceneMultiplane.inputs
+        .livingFrameOverlays[0]!,
+      inputId:
+        'approved-living-frame-overlay-2',
+      outputKey:
+        'living-frame-component-2',
+    }]
+  assert.doesNotThrow(
+    () => validateOfflineRemotionStreamingRenderRequest(
+      sharedSceneMultiplane,
+    ),
+  )
+  const executableMotionPayload =
+    structuredClone(request) as unknown as {
+      payload: {
+        livingFrameOverlayLayers: Array<{
+          motionSpec: Record<string, unknown>
+        }>
+      }
+    }
+  executableMotionPayload.payload
+    .livingFrameOverlayLayers[0]!.motionSpec
+    .rendererCode = 'caller supplied code'
+  assert.throws(
+    () => validateOfflineRemotionStreamingRenderRequest(
+      executableMotionPayload,
+    ),
+    /unsupported fields|motion|Living Frame overlays/u,
+  )
   await assertRejectedStreamLeavesNoCommittedTarget()
   const inputs: OfflineRemotionServerInjectedInput[] = [
     privateFileInput('high-detail-approved-source', 'video/mp4', sourcePath, source),
@@ -254,6 +376,21 @@ try {
   )
   assert.equal(
     result.evidence.semanticEvidence.approvedLivingFrameOverlayBelowCaptionsApplied,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .approvedLivingFrameDeterministicMotionApplied,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .approvedLivingFrameAdaptiveDepthStyleApplied,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .approvedLivingFrameCameraOrSourceAttentionApplied,
     true,
   )
   assert.equal(result.readiness.serverInjectedStreamingReady, true)
@@ -343,6 +480,9 @@ try {
       'bounded_json_manifest_contains_no_media_base64_paths_urls_or_commands',
       'server_injected_source_living_frame_caption_and_audio_streams_rehashed_on_host_and_in_container',
       'approved_living_frame_rgba_overlay_rendered_at_exact_frames_above_source_and_below_captions',
+      'approved_living_frame_scalar_keyframes_camera_depth_and_source_attention_executed_deterministically',
+      'approved_living_frame_compiled_sample_digests_independently_recomputed_and_forgery_rejected',
+      'same_scene_deep_multiplane_component_layers_admitted_with_unique_layer_and_component_lineage',
       'approved_edit_brief_music_wav_stream_rehashed_looped_and_mixed_at_exact_frames',
       'network_none_read_only_non_root_no_mount_confinement_preserved',
       'actual_4k_h264_high_quality_remotion_render_exceeds_legacy_16mib_output_ceiling',
@@ -357,6 +497,176 @@ try {
 } finally {
   await rm(fixtureRoot, { recursive: true, force: true })
   await rm(storageRoot, { recursive: true, force: true })
+}
+
+function subjectNeutralMotionSpec(
+  sceneStartFrame: number,
+  sceneEndFrameExclusive: number,
+  options: {
+    readonly componentId?: string
+    readonly depthStyle?:
+      CanonicalLivingFrameMotionSpecDraft['depthStyle']
+    readonly depthBand?:
+      CanonicalLivingFrameMotionSpecDraft['depthBand']
+    readonly parallaxFactor?: number
+  } = {},
+): CanonicalLivingFrameMotionSpec {
+  const duration =
+    sceneEndFrameExclusive - sceneStartFrame
+  const layerKeyframes = [
+    {
+      frameOffset: 0,
+      value: -0.08,
+      easingToNext: 'ease_in_out_cubic',
+    },
+    {
+      frameOffset: duration - 1,
+      value: 0.08,
+      easingToNext: 'hold',
+    },
+  ] as const
+  const cameraKeyframes = [
+    {
+      frameOffset: 0,
+      value: 1,
+      easingToNext: 'ease_in_out_cubic',
+    },
+    {
+      frameOffset: Math.floor(duration / 2),
+      value: 1.04,
+      easingToNext: 'settle_out',
+    },
+    {
+      frameOffset: duration - 1,
+      value: 1,
+      easingToNext: 'hold',
+    },
+  ] as const
+  const sourceKeyframes = [
+    {
+      frameOffset: 0,
+      value: 0,
+      easingToNext: 'ease_in_out_cubic',
+    },
+    {
+      frameOffset: Math.floor(duration / 2),
+      value: 2,
+      easingToNext: 'settle_out',
+    },
+    {
+      frameOffset: duration - 1,
+      value: 0,
+      easingToNext: 'hold',
+    },
+  ] as const
+  const tracks: CanonicalLivingFrameMotionSpecDraft['tracks'] = [
+    {
+      trackId: 'lf.track.subject-neutral-layer-x',
+      order: 0,
+      target: 'layer',
+      property: 'position_x_normalized',
+      role: 'primary',
+      keyframes: layerKeyframes,
+      compiledSampleCount: duration,
+      compiledSampleDigestSha256:
+        deriveCanonicalLivingFrameCompiledSampleDigestSha256({
+          keyframes: layerKeyframes,
+          sceneFrameCount: duration,
+        }),
+    },
+    {
+      trackId:
+        'lf.track.subject-neutral-camera-scale',
+      order: 1,
+      target: 'virtual_camera',
+      property: 'scale_uniform',
+      role: 'camera',
+      keyframes: cameraKeyframes,
+      compiledSampleCount: duration,
+      compiledSampleDigestSha256:
+        deriveCanonicalLivingFrameCompiledSampleDigestSha256({
+          keyframes: cameraKeyframes,
+          sceneFrameCount: duration,
+        }),
+    },
+    {
+      trackId:
+        'lf.track.subject-neutral-source-blur',
+      order: 2,
+      target: 'source',
+      property: 'blur_pixels',
+      role: 'secondary',
+      keyframes: sourceKeyframes,
+      compiledSampleCount: duration,
+      compiledSampleDigestSha256:
+        deriveCanonicalLivingFrameCompiledSampleDigestSha256({
+          keyframes: sourceKeyframes,
+          sceneFrameCount: duration,
+        }),
+    },
+  ]
+  const draft: CanonicalLivingFrameMotionSpecDraft = {
+    schemaVersion:
+      'canonical-living-frame-motion-spec-v3',
+    motionProfileId:
+      'component_role_activation_selective_visual_interval_choreography_v3',
+    sceneId: 'living-frame-scene-1',
+    componentId:
+      options.componentId ??
+        'living-frame-component-subject-neutral',
+    sceneStartFrame,
+    sceneEndFrameExclusive,
+    visualVerb: 'approach',
+    importance: 'important',
+    depthStyle:
+      options.depthStyle ?? 'shallow_2_5d',
+    depthBand:
+      options.depthBand ?? 'in_front_of_subject',
+    parallaxFactor:
+      options.parallaxFactor ?? 0.18,
+    sourceBindings: {
+      selectedSceneBindingDigestSha256:
+        'a'.repeat(64),
+      timingBindingDigestSha256:
+        'b'.repeat(64),
+      deterministicMotionBundleDigestSha256:
+        'c'.repeat(64),
+    },
+    attentionEventIds: [
+      'attention-subject-neutral',
+    ],
+    semanticScaleRequestIds: [],
+    tracks,
+    metrics: {
+      layerTrackCount: 1,
+      cameraTrackCount: 1,
+      sourceTrackCount: 1,
+      keyframeCount: 8,
+      compiledSampleCount: duration * 3,
+    },
+    authorityBoundary: {
+      serverDerivedFromSelectedSceneAndMasterTiming:
+        true,
+      exactFrameAuthority: false,
+      masterTimingMutationAuthority: false,
+      soundSyncAuthority: false,
+      approvalAuthority: false,
+      workGraphAuthority: false,
+      rendererCodeAuthority: false,
+      providerAuthority: false,
+      queueAuthority: false,
+      productionAuthority: false,
+    },
+    exactFramesRemainOwnedByMasterTiming: true,
+    captionsRemainAboveLivingFrame: true,
+    containsExecutableOrOperationalPayload: false,
+    subjectSpecificRouting: false,
+  }
+  return {
+    ...draft,
+    motionSpecDigestSha256:
+      sha256AuthorityValue(draft),
+  }
 }
 
 function generateHighDetailFourKSource(outputPath: string): void {

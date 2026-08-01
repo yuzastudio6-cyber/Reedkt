@@ -175,7 +175,7 @@ assert.deepEqual(
   LIVING_FRAME_CONTROLLED_ILLUSTRATION_CANDIDATE_KEYS,
 )
 assert.equal(packet.candidateObservations.length, 6)
-assert.equal(packet.observedOnDate, '2026-07-26')
+assert.equal(packet.observedOnDate, '2026-07-28')
 assert.equal(
   JSON.stringify(packet).includes('://'),
   false,
@@ -204,8 +204,8 @@ assert.equal(
   '43907e6f44d079bf1a9102d9a6e56aef7a219bae',
 )
 assert.equal(
-  revisionByLocator.get('hf_black_forest_labs_flux_1_dev'),
-  '3de623fc3c33e44ffbe2bad470d0f45bccf2eb21',
+  revisionByLocator.get('hf_fal_auraface_v1'),
+  'af6d057c9b0ec4071d4c49c80e3539258798b609',
 )
 
 const faceId = packet.candidateObservations
@@ -217,13 +217,16 @@ assert.equal(
   faceId.declaredDocumentObservations[0]!.declaredLabelObservation,
   'research_only_noncommercial_model_card_statement',
 )
-const pulid = packet.candidateObservations.find(
-  (candidate) => candidate.candidateKey === 'pulid',
+const auraFace = packet.candidateObservations.find(
+  (candidate) => candidate.candidateKey === 'auraface',
 )!
-assert.equal(pulid.disposition, 'noncommercial_route_blocked')
-assert.ok(pulid.sourceObservations.some(
+assert.equal(
+  auraFace.disposition,
+  'continuity_measurement_only_unqualified',
+)
+assert.ok(auraFace.sourceObservations.some(
   (source) =>
-    source.sourceLocatorCode === 'hf_black_forest_labs_flux_1_dev',
+    source.sourceLocatorCode === 'hf_fal_auraface_v1',
 ))
 const peft = packet.candidateObservations.find(
   (candidate) => candidate.candidateKey === 'peft_lora',

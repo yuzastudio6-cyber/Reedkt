@@ -237,6 +237,7 @@ for (const candidateName of [
   'controlnet',
   'ip-adapter',
   'ip_adapter',
+  'auraface',
   'pulid',
   'peft',
   'lora',

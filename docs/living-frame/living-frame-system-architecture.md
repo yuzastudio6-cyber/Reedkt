@@ -1,8 +1,10 @@
 # Living Frame Storytelling System Architecture
 
-Status: controlled semantic request v2, proposal binding v1, and visual
-continuity contract v1
-Runtime readiness: planning expectations only, not executable
+Status: controlled semantic request v2, selected-scene/canonical work
+projection, and private deterministic render evidence
+Runtime readiness: private internal E2E in progress; all five modes have actual
+private-render evidence; controlled-illustration GPU execution remains open
+and customer production release is deferred
 Component contract: `living-frame-professional-skill-component-v1`
 Evidence contract: `living-frame-planning-evidence-binding-v1`
 Visual continuity contract: `living-frame-visual-continuity-pack-v1`
@@ -10,9 +12,12 @@ Semantic request contract: `living-frame-semantic-reasoning-request-v2`
 Semantic proposal binding:
 `living-frame-semantic-scene-proposal-binding-v1`
 Controlled-illustration qualification requirements:
-`living-frame-controlled-illustration-qualification-v1`
+`living-frame-controlled-illustration-qualification-v2`
 Controlled-illustration upstream observation:
-`living-frame-controlled-illustration-source-observation-v1`
+`living-frame-controlled-illustration-source-observation-v2`
+
+Current completion audit:
+`docs/living-frame/living-frame-release-completion-audit.md`
 
 ## Purpose
 
@@ -27,15 +32,21 @@ The central creative rule is:
 
 Living Frame is not a new Signature System, planner, timeline, approval flow,
 queue, provider, tool registry, cost ledger, QA gate, or renderer. It is a
-professional skill component. The current canonical integration may construct
-only one deferred expectation component and attach it to the existing
-`ProfessionalSkillPlan`.
+professional skill component. The current canonical integration can publish a
+selected skill component, bind exact timing, project approved work and asset
+lineage, prepare RGBA layers, compile bounded deterministic choreography, and
+render privately through the existing Remotion authority.
 
-The contracts and canonical bindings remain planning-only and cannot prove
-that any live provider, tool, worker, asset, estimate, approval, render, or QA
-result exists. Slice 3A can project a source-bound private visual evidence
-package only after the existing verifier passes; that projection still grants
-none of those authorities.
+Those source/private runtime slices do not release the controlled-illustration
+GPU operation, distributed model mounts, provider generation, public delivery,
+customer charging, or production execution. The existing approval, snapshot,
+work graph, asset manifest, StoryTiming, SoundSync, Remotion, private-review,
+and commercial authorities remain the only owners of their domains.
+
+The current completion target is complete private internal testing. Customer
+production readiness, public delivery, live billing, and external deployment
+are deliberately later gates and do not block internal render, artifact, QA,
+fallback, or private-review evidence.
 
 ## Product meaning
 
@@ -146,6 +157,15 @@ contracts through the normal one-writer review boundary.
   native alpha only after its capability and output pass the same QA.
 - Documentary truth, generated-illustration disclosure, likeness safety,
   semantic-scale truth, and exact-geography/data verification are mandatory.
+- Selected controlled-illustration prompts must consume a process-private,
+  immutable approved documentary fact-safety projection when the scene carries
+  claim or exact-fact requirements. The current read-only binding validates the
+  exact snapshot, scene, expectation references, claim IDs, source-truth
+  disposition, and resolved-source state; it then adds status-derived safety
+  constraints without copying raw claim text, safe wording, source labels, or
+  the fact-safety plan into its receipt or image-model input. It never verifies
+  facts or replaces deterministic map, data, document, label, attribution,
+  approval, QA, or private-review owners.
 - Rollout begins with Living Still and deterministic scenes, then clean Living
   A-Roll, then advanced temporal depth after masking benchmarks pass.
 - No provider, controlled tool, generation, worker, or rendering activity may
@@ -214,7 +234,9 @@ assumption:
   semantic-scale, and sound thresholds block delivery?
 - What is the measured internal and customer estimate impact per approved,
   revision-ready, reusable scene?
-- When, if ever, should advanced 2.5D or 3D scene construction be admitted?
+- What production-footage benchmarks and review thresholds are required before
+  bounded deep multiplane work is released, or before deformation, particles,
+  perspective warps, and true 3D scene construction are admitted?
 - Which future exact image model/operation, if any, should be qualified for
   native alpha after passing the same destination-composite QA as the opaque
   GPT Image 2 fallback route?
@@ -398,6 +420,87 @@ The v1 component records only abstract asset intent. It does not contain an
 `EditWorkItem`, a `custom` work item, a job ID, or an executable work graph.
 A missing future operation requires explicit admission to the canonical work
 schema rather than a generic bypass.
+
+## Rigging direction and advanced deformation
+
+Current owner boundary: living or organic subjects cannot use this rigging
+path. They require complete-frame pose animation. The rigging contracts below
+remain historical/source infrastructure for future nonliving rigid or
+mechanical objects only, and no mechanical route may be admitted until the
+owner-defined mechanical-rig specification is attached through the subject
+class gate.
+
+Component Rigging now has a source-contract extension for professional route
+selection. The Head Intelligence emits
+`living-frame-rigging-direction-v1`, a structured, non-executable decision
+covering narrative purpose, focal action, motion arc, required capabilities,
+craft, risk, performance, and fallback. The deterministic
+`living-frame-rigging-plan-v2` compiler validates rigid parts, mechanical
+linkages, bone hierarchies, joints, controls, constraints, IK, deformable
+meshes, skin/rigidity maps, stacking, and secondary motion.
+`living-frame-rig-action-plan-v1` separately binds the approved pose/action
+tracks to the existing MasterTiming-derived frame range. Rig definition,
+animation intent, and exact timing therefore remain explicit instead of being
+invented by an external tool.
+
+Simple motion stays native. Flat 2D mesh deformation may use the OpenToonz
+Plastic evaluation candidate, while advanced armature/IK/skinning/2.5D may use
+the Blender headless evaluation candidate. Both external routes materialize
+only through fixed, reviewed adapter candidates. The Head Intelligence cannot
+provide a script, command, path, environment, plugin, or arbitrary node graph,
+and neither tool may own the final canvas. One fixed reviewed Blender adapter
+now has bounded private native-host evidence for armature, joint limits, IK,
+skinning, RGBA, mask, and depth output. It remains unregistered and
+non-authoritative. An additive v2 request now also binds one exact approved
+RGBA texture by artifact ID, byte length, SHA-256, dimensions, alpha mode,
+color space, and a fixed server-owned relative filename. The server keeps the
+bytes process-bound, stages them create-only inside the isolated job, and
+Blender independently rehashes and revalidates the PNG before mapping it
+through approved UVs. A real 1024×1536 illustration completed the 60-frame
+1920×1080 armature/IK/skinning path with 102 decoded color buckets, 684,293
+changed pixels at the demonstration pose, and an exact source-pose return.
+This proves textured artwork motion, not selected-scene admission or final
+review. A follow-on selected-scene test binds the exact Musashi
+scene/component, approved snapshot, confirmed 1920×1080 frame, MasterTiming
+visual range, planned rig work, rig plan, and rig action to the fixed adapter.
+It renders the complete 60-frame RGBA/mask/depth sequence, consumes the output
+through a one-time private lease, and verifies create-only persistence plus
+exact reread. A further bounded stage reopens all persisted files, runs
+independent sampled alpha/mask/depth and rig-motion QA, consumes the verified
+RGBA sequence through another single-use lease, executes four real private
+Remotion compositions, packages the exact 60 selected frames, and verifies a
+create-only private review artifact for the synthetic reviewed rig fixture.
+
+The attempted follow-on use of the real Musashi sword-arm texture is retained
+as a rejected visual-suitability fixture. Its merged arm, sleeve, hand, and
+sword pixels passed alpha, mask, depth, motion, persistence, and render checks,
+but generic mesh deformation bent the painted component across the face and
+failed professional anatomy/composition review. It is not accepted Living
+Frame output. `living-frame-character-animation-route-decision-v2` now blocks
+that source topology from the Blender route. The current extracted sword-arm
+also cannot route directly to PixiJS because moving it exposes an unreviewed
+source plate, its boundary is not professionally prepared, and its tested path
+crosses the face. That action routes first to controlled ComfyUI component
+preparation, then may return to PixiJS after plate, boundary, path, and
+composite review. A complete clean rigid character can use restrained PixiJS
+drift below the Remotion final canvas. A large pose that reveals hidden anatomy
+routes to a few controlled ComfyUI anchor key poses, never independently
+generated frames. Blender is reserved for
+separated articulated parts with reviewed joints, reconstructed hidden
+artwork, mesh topology, and skin weights. OpenToonz is reserved for reviewed
+flat-mesh deformation and remains fail-closed pending a supported controlled
+runtime. None of these planning decisions mutates the canonical asset manifest
+or grants canonical QA, review, cost, dispatch, or production authority. See
+`docs/living-frame/living-frame-rigging-director-and-adapter-candidates.md` and
+`docs/living-frame/living-frame-blender-fixed-adapter-private-internal-test.md`
+and
+`docs/living-frame/living-frame-blender-fixed-textured-adapter-private-internal-test.md`
+and
+`docs/living-frame/living-frame-blender-selected-scene-private-persistence-internal-test.md`
+and
+`docs/living-frame/living-frame-blender-selected-scene-private-review-internal-test.md`
+and
+`docs/living-frame/living-frame-character-animation-route-suitability.md`.
 
 ## Motion and attention
 
@@ -1107,12 +1210,13 @@ Remotion layer preparation, but no reconstructed background plate.
 
 A seventh content-addressed
 `livingFrameEstimateWorkAssetProjection` record consumes that exact input
-binding. It binds every refined named work type to one existing exact-50 tool
-cost owner, a conservative mock-safe cost range, explicit resource placement,
-deterministic dependency ordering, exact asset-intent inputs/outputs, and one
-expected output for the existing approved asset manifest. The current mask
-requirement is GPU-only on Google Cloud Run with no CPU fallback. Neither
-record adds a tool identity.
+binding. It binds every refined named work type to one existing registered
+tool cost owner, a conservative mock-safe cost range, explicit resource
+placement, deterministic dependency ordering, exact asset-intent
+inputs/outputs, and one expected output for the existing approved asset
+manifest. The current mask requirement is GPU-only on Google Cloud Run with
+no CPU fallback. Neither record adds a tool identity. The observed registry
+count is not a product cap.
 
 The server now derives an eighth content-addressed
 `livingFrameCanonicalWorkGraphProjection` record after recalculating the
@@ -1328,12 +1432,13 @@ manifest. It does not add a renderer. `RendererCompositionPlan` remains the
 plan authority and the existing private Remotion service remains the only
 future execution boundary.
 
-This profile remains non-executable until canonical planning freezes selected
-Living Frame scene, renderer, and choreography component references; exact
-motion samples and committed artifacts are projected from the approved
-snapshot; artifact QA passes; the existing offline Remotion protocol admits
-the profile; and the existing private review flow approves its rendered
-artifact. All execution and production authority flags remain false.
+This broad profile candidate remains non-executable on its own. The narrower
+`canonical-living-frame-motion-spec-v3` now admits a closed scalar subset after
+canonical planning freezes selected scene, component, output-frame, and exact
+MasterTiming lineage. The existing offline Remotion protocol executes that
+subset only with committed RGBA artifacts and the existing private review
+flow. True 3D, arbitrary profile tracks, provider motion, public execution, and
+production authority remain closed.
 
 ### Slice 6: qualified controlled illustration
 
@@ -1450,7 +1555,7 @@ The v1 source contract classifies exactly six evaluation candidates:
 | `comfyui_controlnet_aux` | preprocessing bundle |
 | ControlNet | model/adapter/checkpoint capability |
 | IP-Adapter | model/adapter/checkpoint capability |
-| PuLID | identity adapter/checkpoint capability |
+| AuraFace | identity-continuity measurement capability |
 | PEFT/LoRA | training/loading mechanism |
 
 This is not a list of six production tool identities. The packet records the
@@ -1467,9 +1572,11 @@ The contract keeps these distinctions fail-closed:
   base model;
 - generic IP-Adapter cannot promote the official FaceID variant, whose model
   card describes it as research-only and non-commercial due to InsightFace;
-- PuLID adapter terms cannot override FLUX.1-dev's non-commercial base-model
-  restriction;
-- PuLID and every other identity-conditioned route also require consent,
+- AuraFace is measurement-only: it cannot generate a likeness, condition an
+  image model, select a scene, or approve identity continuity;
+- AuraFace model-card and license labels do not prove training-data rights,
+  consent, fairness, privacy compliance, or production suitability;
+- AuraFace and every other identity-related route still require consent,
   likeness/deepfake, minor, retention, and documentary-fact-safety review; and
 - PEFT/LoRA framework or mechanism terms cannot qualify a loaded adapter,
   training data, or base model.
@@ -1486,6 +1593,147 @@ gpt-image-2 opaque separable source
 
 It does not call the provider, select a model route, create a mask, or approve
 an asset.
+
+PuLID is a superseded proposal and is not part of the v2 candidate set.
+Generic IP-Adapter plus the approved Visual Continuity Pack provide reference
+conditioning. AuraFace supplies only a separately qualified continuity
+measurement signal.
+
+### Exact AuraFace artifact expectation
+
+`living-frame-auraface-artifact-requirements-v1` gives the sixth capability a
+concrete but non-promotable artifact boundary. It binds the pinned controlled
+source observation and records exactly two ONNX identities: the
+`glintr100` embedding model and `scrfd_10g_bnkps` detector/alignment model.
+The gender/age model and identity-generation adapters are excluded.
+
+The files are not downloaded or mounted. Publisher license/model-card labels
+remain observations rather than legal or training-data-rights approval. The
+contract keeps AuraFace measurement-only, prevents embedding/reference
+persistence, requires project-calibrated thresholds and review for no-face or
+multiple-face cases, and preserves consent, minor, impersonation, retention,
+fairness, public-figure, and documentary-safety gates.
+
+Future execution must reuse the shared model-artifact repository and
+read-only mount authority on a bounded private CPU attempt. AuraFace remains
+outside the shared ComfyUI L4 attempt and is costed separately only when it
+actually runs. No operation, work, dispatch, cost receipt, QA approval, or
+runtime authority is opened. See
+`docs/living-frame/living-frame-auraface-artifact-requirements.md`.
+
+The source-side private route now composes those two canonical model leases
+with the fixed CPU host as one atomic session. Both exact source callbacks
+remain active across inference, each artifact is verified before and after
+the runner consumes it, and the session returns no canonical host path or
+mount alias. The legacy separately bound model/host route remains a
+controlled-fixture compatibility seam; private runtime cannot mix the two
+routes. This closes the source-level time-of-check/time-of-use gap without
+claiming that a production backend mount adapter, operation admission, or
+released worker exists.
+
+### Offline AuraFace CPU package candidate
+
+The source tree now contains a fixed private Linux AMD64 package candidate at
+`docker/prod/cpu-worker/auraface/` and a strict server protocol at
+`server/living-frame/living-frame-auraface-offline-runner-protocol.ts`.
+The image pins Python 3.13.11 by base digest and 23 wheel artifacts by version
+and SHA-256. It installs the InsightFace Python code but does not bake any
+face model, detector, reference image, threshold, or identity decision into
+the image.
+
+The runner accepts only two committed private image packets plus bounded
+lineage digests. It verifies the exact two AuraFace artifact sizes and hashes,
+requires CPU ONNX Runtime, rejects runtime download/network behavior, protects
+decoded-pixel and EXIF-orientation boundaries, requires exactly one face in
+each input, and returns private L2-normalized 512-component embeddings. The
+serializable Living Frame receipt still excludes the embeddings and raw
+images.
+
+The preferred atomic-mount v2 runner protocol binds the image request to the
+canonical mount-session digest rather than a model-binding packet produced
+before inference. Request and response protocol versions must match. Each
+registered atomic session is single-use and can invoke only a registered
+process-bound mounted-runner port; caller commands, paths, locators, URLs,
+endpoints, credentials, thresholds, runtime downloads, external network
+behavior, and cross-protocol responses fail closed.
+
+A controlled local observation dated 2026-07-29 built the Linux AMD64 image
+and completed the fixed detector/alignment/embedding path under
+`--network=none` with a generated fictional adult portrait. The reference and
+candidate inference-output digests matched when the same image was supplied
+twice. That observation proves only source-package compatibility. It does not
+qualify latency, fairness, consent, training-data rights, production safety,
+artifact distribution, shared operation dispatch, customer billing, or
+release.
+
+A second controlled observation on the same date exercised that image through
+the local canonical model-artifact repository and the atomic mount/host
+session. The two exact ONNX objects were verified before and after real,
+network-isolated, non-root container inference. A deliberate model mutation
+after the runner returned caused the enclosing canonical session to reject
+the result, demonstrating that a successful inference cannot bypass
+after-consumer verification. This remains non-promotable local evidence, not
+production model-mount, latency, security, or release qualification.
+
+The existing customer-cost design remains unchanged. The first five
+controlled-illustration capabilities share one ComfyUI L4 attempt; optional
+AuraFace continuity measurement is one separately attributable CPU attempt.
+Internal attempt costs aggregate before the existing estimate converts to
+credits, and the existing settlement policy applies the ReeditPro service fee
+once.
+
+### Controlled AuraFace continuity measurement
+
+`living-frame-auraface-continuity-measurement-v1` implements the deterministic
+comparison primitive without pretending that AuraFace inference is live. A
+process-bound, single-use server reader supplies two controlled 512-component
+`Float32` embedding fixtures. The contract validates exact artifact,
+continuity-entry, preprocessing, and inference-output digests; requires
+exactly one detected face in each input; rejects shared buffers, wrong vector
+shapes, non-finite values, and zero norms; and returns integer-scaled cosine
+similarity.
+
+The score remains private sensitive evidence. Embeddings are never copied
+into the serializable result, and the result itself has no browser-sharing or
+persistence authority. It accepts no caller threshold, applies no universal
+threshold, and cannot approve identity, likeness, scene selection, QA, or
+historical truth. Project calibration, fairness review, consent, public-figure
+and documentary safety, minor protection, impersonation safeguards, and user
+review remain mandatory.
+
+AuraFace still represents one optional CPU measurement attempt outside the
+shared ComfyUI L4 attempt. The measurement primitive contains no attempt
+amount, customer price, credit, or service fee. Existing tool-cost evidence
+owns actual failed/completed/unknown attempt cost; the canonical estimate
+aggregates and rounds customer credits once and applies the service fee once.
+See
+`docs/living-frame/living-frame-auraface-continuity-measurement.md`.
+
+## Controlled-illustration operation preflight
+
+The non-executable operation preflight fixes how the six capabilities enter
+the existing backend spine:
+
+```text
+approved Living Frame lineage
+  -> selected component asset intent
+  -> one future ComfyUI generate-image operation
+  -> one bounded L4 GPU host lifetime
+  -> conditional ControlNet / IP-Adapter / LoRA capabilities
+  -> external control-image preparation when needed
+  -> separate AuraFace CPU continuity measurement when needed
+  -> canonical component asset QA and actual-cost evidence
+```
+
+It expects the existing `generate_image_asset` work type and one future
+server-owned `tool.comfyui.generate_controlled_image.v1` operation. It does
+not add six production tool IDs, mutate the current canonical registry, create
+a work item, dispatch a worker, mount a model, mint an attempt-cost receipt,
+or grant runtime authority. Registry expansion remains permitted for genuinely
+distinct released executable identities, but model weights, adapters,
+libraries, and capabilities inside one supervised attempt do not become fake
+tool identities. See
+`living-frame-controlled-illustration-operation-preflight.md`.
 
 ## Closed gates after controlled-illustration qualification requirements
 
@@ -1790,36 +2038,59 @@ geographic explanations, and the other named examples remain regression
 fixtures only; no subject name, topic, genre, or category may alter the
 reconciliation algorithm.
 
-## Remotion motion-sample binding
+## Canonical Remotion motion admission
 
-The existing Living Frame Remotion profile records layer and camera motion
-track IDs, but a renderer cannot execute IDs alone. The
-`living-frame-remotion-motion-sample-binding-v1` compiler rereads the exact
-non-executable profile and deterministic motion bundle, proves their scene,
-output-frame, and MasterTiming lineage agree, and binds every referenced track
-to its complete frame-sampled scalar values.
+The earlier `living-frame-remotion-motion-sample-binding-v1` remains a
+non-executable planning/reconciliation primitive. The canonical work graph now
+adds the narrower executable bridge that was previously missing:
+`canonical-living-frame-motion-spec-v3`.
 
-For each layer or virtual camera, the binding retains:
+For every admitted Living Frame layer, the server rereads the selected scene,
+the exact five MasterTiming semantic phases, the confirmed output frame, and
+the terminal component lineage. It compiles a bounded scalar-keyframe
+performance and freezes that performance in:
 
-- the ordered source-profile track IDs;
-- the exact compiled track owner, property, role, easing, source keyframes,
-  frame range, restoration expectation, and per-frame samples;
-- the source profile's expected sample count;
-- the independently derived compiled sample count; and
-- closed blockers for missing tracks, owner mismatch, or count mismatch.
+- the existing `prepare_remotion_layer` structured payload;
+- the tool-free Living Frame layer-manifest artifact;
+- the existing final Remotion overlay binding;
+- the offline Remotion planning/streaming manifest; and
+- the existing canonical private-review evidence.
 
-This closes only the abstract motion-sample projection gap. It does not admit
-the payload to the offline Remotion protocol. Current profile reread,
-MasterTiming and output-frame revalidation, committed artifact bytes, mask
-artifacts, artifact QA, protocol-profile admission, private execution, and
-private review remain mandatory downstream gates.
+The closed renderable property set is normalized position, rotation, uniform
+scale, opacity, blur, light intensity, and shadow opacity. Targets are the
+component layer, virtual camera, or source plane. Caller code, CSS, commands,
+paths, URLs, provider routes, arbitrary properties, duplicate target/property
+tracks, stale frames, and changed digests are rejected. The renderer supports
+flat, shallow 2.5D, and deep multiplane depth styles; 2.5D is adaptive scene
+direction, not a universal Living Frame look.
 
-The binding contains no media bytes, paths, commands, tool or provider route,
-job, queue, cost, or commercial data. It cannot create artifacts, work items,
-manifest entries, approvals, snapshots, or renderer execution. The existing
-MasterTimingPlan and non-executable Living Frame Remotion profile remain the
-only authorities. Matching is component- and track-based, never
-subject-specific; named scenes remain regression fixtures only.
+The runtime samples the approved keyframes at the current Remotion frame with
+the same closed easing definitions used by the deterministic compiler. It
+applies:
+
+- component position, rotation, scale, opacity, light, blur, and shadow;
+- virtual-camera translation and scale;
+- depth-dependent parallax;
+- source-plane camera movement and focus/contrast treatment when approved; and
+- Living Frame layers above source media but below the existing caption plane.
+
+Multiple layers may share one scene identity so a later approved scene can use
+true multiplane composition. Layer, manifest, and component identities remain
+unique and canonically ordered.
+
+This admission does not create a second timing, renderer, work graph, asset
+manifest, review, approval, or billing authority. MasterTiming owns exact
+frames; SoundSync owns sound; the approved snapshot/work graph owns execution;
+Remotion remains the final deterministic compositor. The original generic
+motion bundle is still non-promotable on its own.
+
+Subject-neutral rendered validation now proves actual shallow-layer pixel
+displacement, same-scene deep foreground/background differential parallax,
+camera/source attention execution, and caption-plane priority at 640×360. The
+existing server-injected 4K streaming fixture also renders the same motion
+contract through the private H.264/AAC export path. Both remain private
+internal evidence, not public-delivery or production authorization. See
+`docs/living-frame/living-frame-canonical-motion-runtime.md`.
 
 ## Canonical preapproval reasoning preparation
 
@@ -1992,3 +2263,1337 @@ production authority exists. GPU-heavy inference remains restricted to
 qualified Google Cloud Run GPU workers; this projection performs no inference
 and adds no CPU fallback. See
 `docs/canonical-living-frame-preapproval-kimi-output-budget-projection.md`.
+
+## Controlled-illustration actual-cost attribution
+
+### Dated Cloud Run L4 estimate-rate correction
+
+The Living Frame controlled-illustration GPU estimate now uses a namespaced,
+dated 2026-07-29 observation of the default public list prices for Cloud Run
+CPU, memory, non-zonally-redundant NVIDIA L4 time, Cloud Run ephemeral disk,
+and `europe-west1` Regional Standard Cloud Storage. It also accounts for one
+Class A output write per generated asset.
+
+The calculator applies Cloud Run's 60-second instance-based minimum and
+100-millisecond rounding separately to every planned attempt. It holds the
+public prices in integer USD nanos, aggregates the SKU contributions, and
+rounds to USD micros once. It adds no synthetic renderer charge. At the
+current controlled 8-vCPU, 32-GiB, one-L4, 90-second assumption, one generated
+asset attempt is 35,598 expected internal USD micros including two GiB of
+temporary disk and one approximately 100-MiB output retained for 24 hours.
+
+ComfyUI, external preprocessing, ControlNet, generic IP-Adapter, and loaded
+PEFT/LoRA continue to share that one host-attempt cost. Normal, Premium, and
+Ultra Premium plan one, two, and three attempts per generated asset. AuraFace
+remains a separately attributed optional CPU continuity measurement and
+retains the generic placeholder estimate until its production placement is
+qualified.
+
+This is not a production rate card. Free-tier and account discounts are not
+applied, and current Cloud Billing Pricing API reread, billing-account rate
+binding, actual worker usage, invoice reconciliation, customer billability,
+one-time credit rounding, the single Reeditpro service fee, approval,
+reservation, wallet, and settlement remain owned by the existing canonical
+authorities. See
+`docs/living-frame/living-frame-cloud-run-l4-pricing.md`.
+
+Living Frame now has a controlled, non-promotable bridge from the existing
+private worker resource-usage evidence into capability-level cost
+attribution. One observed ComfyUI GPU attempt owns the combined
+ComfyUI/preprocessor/ControlNet/IP-Adapter/PEFT-LoRA cost; those capability
+labels never become five independent charges. AuraFace remains a separately
+measured optional CPU continuity check.
+
+Completed, failed, and unknown attempts retain incurred internal cost. Exact
+approved-asset reuse adds zero new attempt cost without deleting the original
+attempt lineage. The bridge contains no customer price or credits: the
+existing canonical settlement authority must first decide the billable
+subset, perform canonical aggregate rounding, add the one approved service
+fee, apply refund/overage policy, and enforce the reservation ceiling.
+
+This is controlled fixture evidence only. Released observed-usage transport,
+official cloud rates, invoice reconciliation, distributed attempt-cost
+durability, canonical settlement-event projection, and customer billability
+remain closed. See
+`docs/living-frame/living-frame-controlled-illustration-actual-cost-attribution.md`.
+
+## Controlled-illustration settlement contribution
+
+The controlled actual-cost attribution now compiles into a non-promotable
+settlement contribution that aggregates the completed-attempt subset in USD
+micros before converting it to integer credits. Credits are then assigned to
+completed attempts by deterministic largest-remainder allocation. This
+prevents five capabilities inside one ComfyUI host from being rounded into
+five separate charges and prevents optional AuraFace measurement from causing
+per-event rounding inflation.
+
+Failed and unknown attempts remain recorded as incurred internal cost but are
+excluded from the customer-billable candidate total. Exact approved-asset
+reuse creates no new settlement event. The adapter contains no service-fee
+line or final charge. Current-evidence reread, official rates and invoices,
+durable events, canonical billability, reservation reconciliation, one
+service-fee calculation, overage/refund policy, wallet settlement, and export
+unlock remain owned by the existing canonical settlement authority. See
+`docs/living-frame/living-frame-controlled-illustration-settlement-contribution.md`.
+
+## Controlled-illustration host catalog boundary
+
+The server capability catalog retains exactly one non-E2E `comfyui`
+execution-host identity for Living Frame qualification work. This does not
+change the canonical private production-tool registry and does not make
+ComfyUI selectable, dispatchable, installed, approved, or customer-visible.
+The registry's current observed count is not a product cap. Its future count
+is derived from the distinct executable identities that independently pass
+release.
+
+The remaining controlled-illustration pieces are deliberately not modeled as
+five additional production tools. `comfyui_controlnet_aux` is an optional
+external preprocessing bundle; ControlNet, IP-Adapter, and PEFT/LoRA are
+model/adapter capabilities governed by a future operation's exact artifact
+manifest; AuraFace is a separate post-generation continuity-QA capability.
+One future ComfyUI GPU attempt therefore composes the first five capabilities
+and is priced once, while optional AuraFace measurement is accounted for
+separately. AuraFace may later receive a distinct CPU-QA identity only if its
+independent runtime, security, cost, QA, fallback, and released evidence
+justify one. This semantic policy prevents capability labels from becoming
+duplicate customer charges without imposing an arbitrary registry-size cap.
+
+The capability profile remains fail-closed on exact model/checkpoint and
+adapter licenses, compatibility, dependency closure, signed GPU image, SBOM,
+read-only content-addressed mounts, graph allowlists, private dispatch, output
+QA, and observed attempt-cost receipts. Admission to `ProductionToolId` can
+occur only after the existing canonical private end-to-end and job-adapter
+evidence requirements are satisfied.
+
+## Controlled stock ComfyUI graph expectation
+
+Living Frame now has a source-bound, subject-neutral graph compiler for the
+pinned stock ComfyUI node surface. It emits deterministic non-executable
+`base_txt2img`, `lora_txt2img`, `controlnet_txt2img`, and
+`controlnet_lora_txt2img` expectations. The graphs contain only closed
+built-in node classes and opaque digest bindings; they cannot contain raw
+prompts, filenames, paths, URLs, caller-selected providers/tools, custom
+nodes, jobs, queues, `LoadImage`, or `SaveImage`.
+
+ControlNet profiles accept only an externally prepared content-addressed
+control-image expectation. This prevents `comfyui_controlnet_aux` or any
+unreviewed annotator from entering the graph implicitly. LoRA uses the stock
+loader but remains blocked on an exact approved adapter artifact. IP-Adapter
+does not exist in the observed stock node set and therefore remains behind a
+separately qualified extension/runtime binding. AuraFace stays outside the
+generation graph as continuity measurement and QA.
+
+The graph digest proves structure, ordering, closed input contracts, and
+source-observation lineage only. It grants no installation, model artifact,
+prompt, operation, dispatch, work, asset, estimate, approval, timing,
+SoundSync, QA approval, render, runtime, or production authority. See
+`docs/living-frame/living-frame-controlled-comfyui-workflow.md`.
+
+## Generic IP-Adapter extension boundary
+
+Because the observed stock ComfyUI revision has no IP-Adapter node, generic
+reference conditioning is isolated behind a source-bound extension
+evaluation. The narrow structural boundary admits only
+`IPAdapterModelLoader` and `IPAdapterAdvanced`; unified loaders, FaceID,
+InsightFace, embed file I/O, runtime downloads, caller filenames, and all
+other arbitrary plugin nodes remain prohibited.
+
+The evaluated extension source, its GPL deployment boundary, exact dependency
+lock, ComfyUI compatibility, generic IP-Adapter and CLIP Vision weights, base
+model compatibility, reference-image artifact, security confinement, and
+quality/identity benchmarks all remain separately gated. AuraFace is not
+injected as an adapter and cannot convert a FaceID workflow into an approved
+generic route. The source evaluation proves only that a generic route can be
+represented; it grants no package, artifact, tool, operation, dispatch, work,
+cost, approval, QA, render, runtime, or production authority. See
+`docs/living-frame/living-frame-ipadapter-extension-evaluation.md`.
+
+The corresponding generic workflow-extension contract connects a validated
+stock ComfyUI graph to exactly three additional nodes:
+`CLIPVisionLoader`, `IPAdapterModelLoader`, and `IPAdapterAdvanced`. It
+supersedes the direct stock model-to-sampler edge with a digest-bound
+reference-conditioning path. The IP-Adapter model, CLIP Vision model, and
+reference image remain unresolved content-addressed expectations; no bytes,
+filenames, paths, URLs, runtime selection, or executable prompt enters the
+contract. See
+`docs/living-frame/living-frame-ipadapter-workflow-extension.md`.
+
+The merged-workflow compiler revalidates both parent contracts and
+materializes one effective acyclic graph. It preserves every stock node,
+adds the three reviewed generic IP-Adapter nodes, removes exactly the direct
+stock model-to-sampler edge, inserts the reference-conditioning path, and
+combines stock and extension binding expectations without duplicate or
+dangling identifiers. The result is still non-executable and contains only
+graph metadata and digests. See
+`docs/living-frame/living-frame-ipadapter-merged-workflow.md`.
+
+## Deterministic external ControlNet images
+
+ControlNet does not depend on an unqualified in-graph
+`comfyui_controlnet_aux` node. Living Frame has deterministic reference-pixel
+contracts for three externally prepared control-image kinds:
+
+- Canny: a fixed grayscale, blur, Sobel, non-maximum-suppression, and
+  hysteresis pipeline over bounded RGBA input;
+- depth: a fixed big-endian uint16 depth-sample packet normalized into a
+  measured grayscale RGBA image; and
+- pose: a deterministic COCO-17-style skeleton rasterizer over an already
+  source-bound landmark packet.
+
+These processors do not detect poses, estimate depth, choose the semantic
+control mode, or claim source truth. They transform already admitted inputs
+into deterministic bytes and reports. The control-image workflow binding
+revalidates the matching report, exact output bytes, frame dimensions, and
+the target stock ControlNet graph before replacing its unresolved
+control-image expectation with content-addressed lineage.
+
+No generated artifact is committed by these contracts, and no source
+analysis, model weight, work, asset manifest, tool, dispatch, timing,
+estimate, approval, QA approval, render, runtime, or production authority is
+created. See `docs/living-frame/living-frame-control-image-canny.md`,
+`docs/living-frame/living-frame-control-image-depth.md`,
+`docs/living-frame/living-frame-control-image-pose.md`, and
+`docs/living-frame/living-frame-control-image-workflow-binding.md`.
+
+## Controlled ComfyUI dependency closure
+
+The candidate ComfyUI host now has controlled, non-promotable dependency-lock
+evidence for a Linux amd64 Ubuntu 22.04 / Python 3.10.12 / CUDA 12.4-family
+worker image. The evidence binds 35 exact wheel artifacts by ordered name,
+version, filename, byte length, and SHA-256, plus immutable source archives
+for the ComfyUI host, the generic IP-Adapter extension, and the auxiliary
+preprocessor bundle. The offline rebuild used no package index, no dependency
+resolution, and no network.
+
+A confined CPU-emulation probe verified the measured node schemas and repeated
+five small deterministic stock/preprocessor graphs. This proves only the
+observed dependency closure and deterministic bounded host behavior. The
+candidate image is not canonical, scanned, signed, deployed, or approved; no
+model generation or GPU execution occurred.
+
+Canonical wheel/source repository admission, signed-image rebuild, exact
+read-only model mounts, node allow/deny enforcement, GPU generation and
+quality benchmarks, selected-scene snapshot binding, dispatch, work, asset
+QA, cost evidence, and private review remain mandatory. See
+`docs/living-frame/living-frame-comfyui-dependency-lock-evidence.md`.
+
+## Controlled model-family coherence
+
+The controlled generation graph now has one fail-closed model-family
+coherence binding across the stock ComfyUI graph, deterministic ControlNet
+input binding, LoRA slot, and optional merged generic IP-Adapter graph. It
+derives the ordered artifact slots and their exact binding digests from the
+already validated parents and rejects missing, extra, cross-family, or
+wrong-CLIP-Vision declarations.
+
+This is not a model manifest and cannot qualify an artifact from a caller
+label. Current artifact metadata remains absent and exact compatibility
+remains unproven until the workflow-neutral canonical model-artifact
+repository, protected mounts, independent metadata verification, legal
+review, and offline compatibility benchmarks exist. AuraFace remains
+separate continuity QA; FaceID, InsightFace, and AuraFace generation
+conditioning remain prohibited. See
+`docs/living-frame/living-frame-controlled-model-family-binding.md`.
+
+## Exact unresolved ComfyUI model-artifact requirements
+
+The validated model-family binding now projects an ordered, subject-neutral
+requirement set for the actual generation graph. A full controlled route
+contains five GPU-required roles: base diffusion checkpoint, matching
+ControlNet checkpoint, matching LoRA adapter, matching generic IP-Adapter
+checkpoint, and matching CLIP Vision checkpoint. Each role retains its
+original graph-binding digest, family expectation, CUDA placement, no-CPU
+fallback, and no-download/no-network policy.
+
+The projection also revalidates the controlled dependency-lock observation
+and binds its exact digest. It is still unresolved: it contains no locator,
+manifest, bytes, filename, path, URL, tool/provider route, work item, cost
+event, approval, mount, or runtime authority. Resolution must use the shared
+canonical model-artifact repository, then separately prove exact bundle
+compatibility, licensing, signed-image construction, read-only mounts,
+dispatch, output QA, observed cost, and private review. See
+`docs/living-frame/living-frame-comfyui-model-artifact-requirements.md`.
+
+## Canonical ComfyUI model-artifact binding
+
+The unresolved five-role requirement set can now be bound to the existing
+workflow-neutral canonical model-artifact repository through a process-bound
+server resolver. For each role, the adapter forces a fresh full-object
+checksum verification and matches the exact role, model family,
+`safetensors` format, `comfyui.private-inference` consumer scope, byte length,
+revision, GPU target, CUDA requirement, and no-CPU/no-download/no-network
+policy.
+
+The output contains repository locators and verification digests but no host
+path, mount alias, credential, filename, or model bytes. It projects the
+existing canonical GPU-bundle requirement shape rather than creating a
+Living Frame bundle authority. Repository verification is not compatibility,
+license approval, mounting, dispatch, inference, output QA, cost evidence, or
+production readiness. Those remain separately fail-closed. See
+`docs/living-frame/living-frame-comfyui-canonical-model-artifact-binding.md`.
+
+## Single-use read-only model source presentation
+
+The canonical repository binding can now be consumed through the existing
+single-use read-only model-artifact lease. Each of the five ordered model
+roles is verified before and after presentation to one process-bound
+`comfyui.private-inference` consumer. The consumer receives a server-derived
+alias only inside its callback; the returned evidence contains identities and
+digests, never host paths, aliases, URLs, credentials, filenames, or bytes.
+
+This proves local canonical source presentation, not a distributed Cloud Run
+mount and not inference. Bundle compatibility, paid-use approval, a canonical
+operation artifact set, signed GPU image, private distribution, selected
+scene/snapshot/work dispatch, output QA, actual attempt-cost evidence, and
+private review remain closed. See
+`docs/living-frame/living-frame-comfyui-read-only-model-mount.md`.
+
+## Exact controlled SDXL artifact candidates
+
+The five unresolved ComfyUI model roles now have one exact, subject-neutral
+SDXL candidate set rather than family labels alone. The server-only contract
+binds immutable, dated upstream metadata for the SDXL 1.0 base checkpoint,
+matching SDXL canny ControlNet, SDXL example LoRA, generic non-FaceID SDXL
+IP-Adapter, and its OpenCLIP ViT-bigG-14 image encoder.
+
+This is deliberately weaker than repository admission. The candidate packet
+records upstream-reported revisions, sizes, LFS SHA-256 values, model-card
+digests, and declared license labels, while stating that ReeditPro has not
+yet independently read and hashed every full artifact, inspected every
+`safetensors` schema, proven bundle behavior, or approved paid production
+use. It cannot satisfy the canonical artifact repository, read-only lease,
+GPU operation, selected-scene, snapshot, dispatch, cost, QA, or private-
+review gates by itself.
+
+The exact candidate definition prevents an SD1.5 ControlNet, FaceID route,
+InsightFace dependency, AuraFace generation route, or mismatched CLIP Vision
+checkpoint from silently entering the SDXL graph. AuraFace remains a
+separate continuity-measurement capability only. See
+`docs/living-frame/living-frame-controlled-sdxl-artifact-candidate-set.md`.
+
+## Exact SDXL LoRA byte observation
+
+The first candidate role has a reusable full-stream verifier and strict
+`safetensors` inspector. It checks the exact byte length and SHA-256, parses
+the bounded header, verifies every tensor span against shape and dtype,
+requires contiguous non-overlapping offsets, and proves that the tensor
+payload exactly accounts for the data section. It returns only measurement
+digests and counts, never model bytes or a filesystem location.
+
+The retained controlled observation also exposes a material compatibility
+warning: the selected LoRA metadata names `sdxl_base_v0-9` even though the
+candidate is hosted at the pinned SDXL 1.0 repository revision. Therefore
+the full bundle remains unqualified until an exact load and behavior
+benchmark resolves that difference. The smoke only claims a new byte
+verification when the exact server-owned artifact path is injected; a
+missing artifact produces an explicit skip rather than a fabricated pass.
+See
+`docs/living-frame/living-frame-controlled-sdxl-lora-byte-observation.md`.
+
+## Complete five-role SDXL byte-verification chain
+
+Equivalent process-bound, single-use full-stream verifiers now exist for the
+remaining ControlNet, generic IP-Adapter, CLIP Vision, and SDXL base roles.
+Each verifier depends on the prior role observations, so a later role cannot
+claim completion while an earlier artifact is missing or tampered. The
+shared bounded `safetensors` inspector checks full SHA-256, tensor accounting,
+dtype and shape spans, namespace summaries, selected compatibility shapes,
+metadata digests, and exact end-of-data coverage.
+
+The source-only smokes are intentionally conditional. When the canonical
+server-owned artifact paths are not injected, each reports
+`skipped_exact_server_owned_artifact_paths_not_injected`; it does not count
+that as a controlled fixture or production proof. When all five exact
+artifacts are supplied, the base smoke replays the entire dependency chain
+and produces the complete-bundle byte observation. Compatibility, quality,
+license, paid-use, GPU execution, output QA, cost, and private review remain
+separate gates.
+
+See:
+
+- `docs/living-frame/living-frame-controlled-sdxl-controlnet-byte-observation.md`;
+- `docs/living-frame/living-frame-controlled-sdxl-ipadapter-byte-observation.md`;
+- `docs/living-frame/living-frame-controlled-sdxl-clip-vision-byte-observation.md`; and
+- `docs/living-frame/living-frame-controlled-sdxl-base-byte-observation.md`.
+
+## Exact SDXL candidate-to-repository binding
+
+The complete five-role byte-observation chain can now be cross-validated
+against the existing workflow-neutral canonical model-artifact repository.
+The server adapter revalidates both parents and requires exact semantic order,
+role, binding kind, artifact ID, immutable revision, model family, byte
+length, SHA-256, repository admission, review state, and canonical GPU-bundle
+slot identity for every object. The canonical repository performs another
+full checksum verification rather than trusting the candidate packet.
+
+This binding runs only when the five exact server-owned artifacts are
+available; its smoke reports a fail-closed skip otherwise. Repository
+identity still does not prove that the base, ControlNet, LoRA, IP-Adapter, and
+CLIP Vision artifacts load or behave correctly together. Compatibility,
+license, paid-use, signed-image, distributed read-only mount, selected scene,
+snapshot, dispatch, cost, output QA, and private review remain closed. See
+`docs/living-frame/living-frame-controlled-sdxl-canonical-artifact-binding.md`.
+
+### Subject-neutral SDXL compatibility benchmark specification
+
+The controlled illustration route now has a current-parent compatibility
+benchmark specification:
+`living-frame-controlled-sdxl-compatibility-benchmark-spec-v2`.
+
+The specification consumes the five-role candidate set, the exact unresolved
+artifact requirements, the current stock ControlNet/LoRA plus generic
+IP-Adapter merged graph, the model-family coherence binding, and the pinned
+offline dependency lock. It deliberately does not revive the superseded
+Living Frame-specific preflight-package or runtime-evidence authorities.
+
+Seven ordered GPU probes cover exact bundle loading, a base-only baseline,
+isolated LoRA, ControlNet, and generic IP-Adapter effects, a full combined
+generation, and a same-seed replay. The fixed measurements cover load
+integrity, network-off confinement, output validity, effect strength,
+determinism, peak memory, and load/generation duration.
+
+This is a non-executable, subject-neutral specification. It contains no
+Musashi, helicopter, Hormuz, or other content-specific routing. Exact
+canonical repository identities, read-only mounts, GPU admission, measured
+results, legal review, dispatch, assets, QA, selection, approval, and
+production remain false. See
+`docs/living-frame/living-frame-controlled-sdxl-compatibility-benchmark-spec.md`.
+
+The companion
+`living-frame-controlled-sdxl-benchmark-admission-audit-v2` reads the current
+server tool catalog and operation registry directly. It confirms that
+ComfyUI is an evaluation-only, non-E2E GPU capability candidate, not yet a
+production tool or registered operation. The audit can later revalidate an
+exact five-artifact canonical binding and its single-use read-only
+presentation, but it still cannot treat that local presentation as a
+distributed Cloud Run GPU mount. See
+`docs/living-frame/living-frame-controlled-sdxl-benchmark-admission-audit.md`.
+
+### Subject-neutral benchmark request blueprint
+
+The next source boundary projects the seven compatibility cases into a
+content-free request blueprint. Each case declares only its ordered,
+server-owned binding slots: the exact model roles, positive and negative
+conditioning, and control/reference image fixtures where applicable. Every
+slot remains unresolved and contains no value.
+
+The blueprint independently revalidates the benchmark specification and
+current admission audit, binds their exact lineage, and preserves the current
+`not_registered` operation state. It does not repeat or mint a ComfyUI tool or
+operation identity, emit executable node JSON, materialize prompt text or
+image bytes, create work, dispatch a GPU, or generate cost evidence. A future
+private materializer must consume the canonical operation registry, exact
+artifact mounts, signed GPU image, server fixtures, and current node-schema
+evidence before an executable request can exist.
+
+The seven cases contain 41 ordered unresolved slots across six distinct slot
+sets. They are derived solely from capability composition, never from a
+person, place, vehicle, historical topic, or example. See
+`docs/living-frame/living-frame-controlled-sdxl-benchmark-request-blueprint.md`.
+
+### Subject-neutral benchmark graph blueprint
+
+`living-frame-controlled-sdxl-benchmark-graph-blueprint-v1` converts the
+seven request recipes into exact, non-executable ComfyUI graph topologies.
+It independently revalidates the request blueprint, stock
+`controlnet_lora_txt2img` expectation, reviewed generic IP-Adapter extension,
+and merged graph before it emits any topology.
+
+The load-only case has no graph. The six generation cases contain
+7, 8, 10, 11, 15, and 15 nodes respectively, for 66 total nodes and 36
+external slot references. Base, LoRA, ControlNet, generic IP-Adapter, and
+full-combined cases are rewired independently so a disabled capability cannot
+remain connected by accident. The combined primary and deterministic replay
+use the same graph policy.
+
+Only the closed node allowlist is represented. FaceID, InsightFace,
+unified/embedding loaders, in-graph preprocessors, arbitrary preview/save
+nodes, and AuraFace generation conditioning remain forbidden. Control and
+reference images are unresolved server-owned slots, and the sole output is a
+`SaveImageWebsocket` bridge node.
+
+The graph blueprint still contains no prompt text, image pixels, model alias,
+filename, path, URL, credential, executable API-format prompt, tool or
+operation identity, dispatch, work, cost, asset, or selected-scene authority.
+Private slot materialization, current runtime node-schema evidence, a
+registered canonical ComfyUI operation, exact read-only model mounts, signed
+GPU image, attempt/cost receipts, metrics, QA, and private review remain
+required. See
+`docs/living-frame/living-frame-controlled-sdxl-benchmark-graph-blueprint.md`.
+
+### Server-private ComfyUI prompt materialization
+
+`living-frame-controlled-sdxl-private-prompt-materialization-v1` converts one
+current generation-case graph into exact ComfyUI API-format prompt JSON. The
+caller provides only a server-owned locator; a process-bound reader supplies
+the current graph recipe and its private model, conditioning, control-image,
+and reference-image slots.
+
+The compiler preserves the closed node allowlist, topological edges, frozen
+literal parameters, exact slot set, and websocket-only output. It stores the
+raw prompt only in a process-bound single-use lease. The serializable receipt
+contains digests, byte lengths, node counts, slot classes, and lineage, never
+prompt text, model or image aliases, paths, URLs, credentials, or bytes.
+
+This closes the graph-to-private-request source gap without registering a tool
+or operation or dispatching a GPU. One future consumed lease maps to one
+shared ComfyUI GPU attempt; ControlNet Aux, ControlNet, IP-Adapter, and LoRA
+loading remain capabilities inside that attempt, while AuraFace remains
+separate post-generation CPU QA. Pricing and actual-cost evidence continue to
+come only from the canonical estimate and worker-resource cost authorities.
+
+Current GPU node schemas, a signed dependency-locked image, distributed
+read-only mounts, canonical operation registration, released attempt/cost
+receipts, metric attestation, license review, selected-scene lineage, work,
+asset QA, and private review remain closed. See
+`docs/living-frame/living-frame-controlled-sdxl-private-prompt-materialization.md`.
+
+### Private ComfyUI GPU request and cost lineage
+
+`living-frame-controlled-sdxl-gpu-runtime-protocol-v1` now binds one verified
+prompt-materialization receipt and its single-use process lease to one
+server-read current artifact packet. It requires exact materialization,
+output-frame, artifact-set, slot, alias-digest, content-hash, byte-length, and
+read-only-source lineage before it can compile a private ComfyUI worker
+request.
+
+The raw prompt and private aliases remain behind a second process-bound,
+single-use request lease. The serialized receipt contains only hashes,
+counts, stable record identities, closed worker expectations, and explicit
+non-authority flags. It contains no prompt text, model or image aliases,
+paths, URLs, credentials, commands, artifact bytes, price, credits,
+service-fee amount, reservation, wallet, or ledger data.
+
+The request makes the pricing unit explicit: one wire request represents one
+future shared GPU-host attempt. ComfyUI, the externally prepared control
+image/preprocessing capability, ControlNet, generic IP-Adapter, and loaded
+PEFT/LoRA are capability attributions inside that attempt, not five
+independently rounded GPU charges. The benchmark receives the preprocessing
+output as a server-owned artifact rather than admitting a custom
+preprocessor node. AuraFace continuity measurement stays outside the request
+as an optional CPU QA attempt. Exact reuse adds no attempt; failed and
+unknown attempt cost must remain attributable; customer credits round once
+after bundle aggregation; and the canonical service fee applies once
+downstream.
+
+This does not register `comfyui`, register
+`tool.comfyui.generate_controlled_image.v1`, dispatch a Cloud Run worker,
+mint a GPU attempt or cost receipt, create an asset, or open production.
+Canonical operation identity, signed image, distributed mounts, dispatch,
+released attempt/completion and resource-cost evidence, estimate/settlement
+reconciliation, license review, approved scene/snapshot/work lineage, QA, and
+private review remain required. See
+`docs/living-frame/living-frame-controlled-sdxl-gpu-runtime-protocol.md`.
+
+### Fixed ComfyUI host process and loopback transport
+
+The private host adapter now has a server-owned process supervisor. The
+supervisor fixes the Python executable, pinned ComfyUI source root, loopback
+address and port, private input/model/runtime locations, CUDA device, FP16
+policy, no-preview/no-cache behavior, API-node disablement, and the exact two
+reviewed custom-node directories allowed after all custom nodes are disabled.
+It does not merge caller environment variables or accept a caller command,
+argument, path, URL, endpoint, credential, listen address, or download policy.
+Python isolated mode remains enabled; a fixed bootstrap adds only the pinned
+ComfyUI source root before running the pinned `main.py`, because isolated mode
+correctly excludes an unpacked source tree from ambient module search.
+
+One accepted attempt starts one process, waits at most 60 seconds for the fixed
+loopback readiness endpoint, runs the existing single-prompt host adapter, and
+always terminates the process. Stdout and stderr are bounded and represented
+only by byte counts and hashes. The process lifecycle receipt cannot create
+actual-cost, customer-charge, artifact-persistence, dispatch, runtime, or
+production authority.
+
+The source supervisor is real but remains unreachable and unqualified. The
+shared GPU image still needs the exact offline ComfyUI source/wheel closure,
+the reviewed generic IP-Adapter and ControlNet auxiliary sources, fixed model
+path configuration, image scan/signature, and L4 benchmark evidence. Canonical
+tool/operation admission, model mounts, dispatch, output persistence, cost,
+QA, and private review remain owned by their existing authorities. See
+`docs/living-frame/living-frame-controlled-sdxl-comfyui-runtime.md`.
+
+The private route now also closes the model-mount lifetime gap. A serialized
+read-only mount-preparation receipt is not execution authority because its
+five callbacks would have ended before ComfyUI loaded the models. The
+executable source boundary is one atomic canonical mount/host session: it
+revalidates the five-entry binding and private wire-request artifact lineage,
+nests all five checksum-protected read-only source callbacks, keeps them open
+while one mounted runner starts the supervised process, executes the prompt,
+captures the terminal host result, and stops the process, then lets every
+callback perform its post-inference verification.
+
+The standalone private loopback port is rejected by the outer runtime. A
+controlled unmounted port remains only for non-promotable protocol fixtures.
+Private runtime receipts record only the atomic session, model-binding-packet,
+and process-lifecycle digests plus the five-object before/after-verification
+fact; canonical paths, mount aliases, model bytes, prompt text, and private
+prompt identifiers stay process-bound. Reuse and post-inference canonical
+object changes fail closed. The distributed backend mount adapter, exact
+11.7 GB compatibility benchmark, L4 attempt, signed image, licenses, actual
+resource cost, persistence, QA, and release remain open.
+
+The exact local candidate image now also has a bounded image-derived SPDX 2.3
+package inventory under
+`living-frame-comfyui-container-sbom-evidence-v2`. The process-bound reader
+observes the immutable Linux/AMD64 image twice with no network, a read-only
+root filesystem, and explicit UID/GID `65532:65532`; it verifies 590 Debian
+packages, 168 Python distributions, and three pinned source archives, for 761
+package records. This exposed that the image defaults to root/unspecified and
+that its inherited Python environment includes one out-of-scope direct-VCS
+`sam-2` distribution. Those are release-policy failures, not permissions to
+promote the image. Canonical repository admission, independent SBOM
+validation, inherited-scope and license review, vulnerability disposition,
+signature, provenance, default-user policy, direct-VCS disposition, and L4
+operation release remain closed. See
+`docs/living-frame/living-frame-comfyui-container-sbom-evidence.md`.
+
+The v2 evidence further proves that `sam-2` is importable under Python
+isolated mode while a digest-bound scan of 1,582 relevant ComfyUI and
+whitelisted-extension source files finds zero static references. It records
+the package's installed `Apache 2.0` metadata without treating that metadata
+as legal approval. Static absence is not dynamic runtime non-use, so the
+contract explicitly rejects a re-signed claim that runtime non-use is proven
+or disposition is unnecessary.
+
+The fixed controlled-ComfyUI bootstrap now further narrows that reachable
+surface through an operation-scoped Python meta-path guard. It denies `sam2`
+and all `sam2.*` imports before loading ComfyUI, is included in the fixed
+launch-spec and offline-package source digests, and rejects an empty or
+relaxed denied-import set. A controlled network-off candidate-container probe
+confirms the exact guard blocks the otherwise reachable package while normal
+standard-library imports succeed. This does not alter the separately governed
+SAM 2 tracking operation, remove the package from the image, establish legal
+approval, or prove released-L4 enforcement.
+
+The later canonical-offline image at digest
+`84358d2b8272998bb3258ca18c46fad4de80118da24528aae98be39ae25bcc1b`
+corrects the default-user problem and adds only the exact offline
+35-wheel/three-source operation closure atop the measured inherited base.
+Independent full-image export still did not
+complete on Docker Desktop. A checksum-verified Trivy `v0.72.0` scan of 185
+extracted Python metadata files produced a partial 186-package SPDX 2.3
+projection and found 40 unique Python findings: one critical, 16 high, 17
+medium, and six low. OS and full-filesystem coverage remain false. The
+canonical-offline image is therefore blocked pending a hardened rebuild,
+complete Linux-host scan, finding/license/VCS disposition, signature, and
+explicit private-internal L4 authorization. See
+`docs/living-frame/living-frame-comfyui-canonical-offline-image-vulnerability-evidence.md`.
+
+The corresponding canonical operation-admission candidate is deliberately
+non-executable. It requests one shared `comfyui` identity and
+`tool.comfyui.generate_controlled_image.v1`, never six capability identities
+or five GPU charges. It binds the current offline package and launch digests,
+records the current registry count as an observation rather than a product
+cap, and defines the post-admission count as whatever number of genuinely
+distinct executable identities have independently passed release. It also
+makes two integration gaps explicit: the generic entrypoint
+union does not yet express the fixed supervised Python process, and the
+benchmark GPU request cannot substitute for a selected-scene generation
+request. Exact model bytes resolve through the model manifest and read-only
+mounts rather than ordinary per-request input bindings.
+
+The existing canonical Living Frame estimate/work/asset projection still has
+a temporary exact-count compatibility guard. That guard is not product policy.
+The backend one-writer must replace it with semantic uniqueness/readiness
+validation before registry expansion; the namespaced admission and ratio
+contracts record the gate without mutating the shared projection.
+
+The selected-scene controlled-image request projection now closes the
+benchmark-versus-production planning ambiguity. It rereads approved snapshot
+lineage and the current canonical pending work graph, then creates one
+non-executable request unit per generated component output. Each unit binds
+scene, component, asset intent, output key, semantic/component/continuity
+digests, exact control/reference/LoRA slot requirements, final-frame
+expectation, and downstream alpha/QA/manifest/Remotion policy. It contains no
+raw conditioning text, executable ComfyUI graph, model or image bytes, paths,
+URLs, credentials, or caller model choice.
+
+The current qualified `1024 × 1024` operation remains bounded to isolated
+component sources. The namespaced full-frame ratio extension now projects
+source-still and background-plate requests at the exact confirmed `16:9`,
+`9:16`, or custom output-frame dimensions for controlled qualification. It
+rejects unconfirmed or mismatched frames, caller-selected dimensions, square
+substitution, final-canvas claims, raw prompt/path/model leakage, and
+cross-scene/work substitution. It does not register an operation, dispatch a
+worker, create an asset, or authorize production. ComfyUI still never owns
+the final canvas.
+
+The server-private selected-scene materializer now closes the next source
+boundary without reusing the benchmark prompt path. It revalidates the
+selected-scene request, Visual Continuity Pack, approved snapshot,
+MasterTiming, work graph, exact planned asset/output lineage, cost/work
+binding, confirmed-frame digest, ratio extension, and admission candidate.
+It then compiles only the qualified base/optional-LoRA/optional-external-
+ControlNet/optional-generic-IP-Adapter graph family.
+
+Each approved generated output becomes one materialization unit and one
+process-bound single-use prompt-request lease. Isolated components remain
+exactly `1024 × 1024`; source stills and background plates use their exact
+confirmed ratio-extension dimensions. The seed is server-derived, private
+slot values stay process-bound, and the serializable receipt contains only
+digests, counts, policy, and lineage. FaceID, InsightFace, in-graph
+preprocessors, arbitrary preview/save nodes, benchmark substitution,
+caller-selected request values, square substitution, and final-canvas claims
+fail closed.
+
+This is prompt materialization authority only. It does not register
+`comfyui`, bind an approved operation, dispatch, mint a canonical worker
+lease, execute the GPU, meter actual cost, persist an asset, mutate the asset
+manifest, approve QA, open private review, render, bill, or promote
+production. See
+`docs/living-frame/living-frame-controlled-image-selected-scene-private-prompt-materialization.md`.
+
+The atomic mounted-runner source boundary now also freezes the compatible
+release path rather than leaving the root finding as prose. Its canonical
+session digest includes
+`living-frame-comfyui-runtime-confinement-requirement-v1`: exact UID/GID
+`65532:65532` from either the released image default or an exact
+platform-enforced override, non-root execution, read-only root, all
+capabilities dropped, no-new-privileges, no external network or runtime
+downloads, read-only model mounts, and ephemeral-only writable operation
+roots. A controlled runner reporting root fails closed. This is an admission
+contract, not a released-platform observation; the backend/L4 evidence gate
+remains open.
+
+The source-controlled package closure is now explicit under
+`docker/prod/gpu-worker/comfyui/`. Its 35 hash-pinned wheel declarations and
+three exact source-archive identities are revalidated against the existing
+dependency-lock evidence by a server-only source contract. The closure does
+not include the 486 MB wheelhouse or source archives in Git, does not download
+them at runtime, and does not mutate the shared GPU image or operation router.
+Those files are build inputs for the later canonical, scan-and-sign-qualified
+image slice—not evidence that the image was built or that a GPU attempt ran.
+
+The closure now also contains a no-argument offline installer and a fixed
+model-mount map. It verifies the 35-wheel count and total bytes, lets pip
+verify every locked wheel hash without an index or dependency resolution,
+verifies the three pinned source archives, and materializes the exact
+`/opt/reeditpro/gpu-operations/comfyui` venv, source, custom-node, runtime, and
+configuration paths used by the process supervisor. Verified model artifacts
+remain external and read-only under the existing canonical authority, then
+must be projected by the future fixed operation consumer into role-separated
+paths below `/mnt/reeditpro/model-artifacts`.
+
+The installer invokes a fixed installed-layout verifier as its final build
+step. That verifier accepts no arguments and checks the exact
+source/custom-node and empty runtime layout, pinned interpreter/package
+versions, copied lock identities, read-only extracted trees, empty private
+input, and absence of model weights in the image. Source verification proves
+the gate is wired; it deliberately does not claim that a particular image
+digest passed, was scanned, signed, mounted with artifacts, or qualified on
+L4.
+
+The measured local candidate image remains controlled evidence only. Its
+`/opt/ComfyUI` entrypoint/layout does not meet the fixed production layout, so
+the architecture rejects direct promotion even though its source revisions
+and dependency image digest are pinned.
+
+The follow-on source-defined pruned image checkpoint resolves the previous
+non-reproducible local-derivative and incomplete-scan uncertainty for private
+internal testing. Commit
+`b871bfee33837f00eac297a1f05e866246e9abb0` builds the exact hardened runtime
+from the digest-bound parent with network disabled for install and pruning.
+The resulting Linux AMD64 image is `12,657,934,444` bytes, defaults to
+UID/GID `65532:65532`, retains the fixed runner and `sam2` denial, contains 33
+runtime distributions, and contains no model weights.
+
+Pinned Trivy `0.72.0` completed OS/Python vulnerability scanning with zero
+critical or high findings, emitted a 691-package SPDX 2.3 SBOM, and completed
+a 6,718-observation full-file license scan. This passes the critical/high
+image gate for the next private L4 review. It does not grant full
+vulnerability clearance or license approval: 745 medium and 132 low
+vulnerability observations plus restricted, reciprocal, unknown, and
+`NOASSERTION` license evidence still require explicit disposition. Canonical
+image ingestion, five-model distribution/mount, signed provenance, real L4
+execution/resource evidence, private output persistence/QA/review, operation
+registration, dispatch, billing, public delivery, and production remain
+false. See
+`docs/living-frame/living-frame-comfyui-pruned-source-build-evidence.md`.
+
+The subsequent no-SAM2 rebuild supersedes that image for private L4
+selection. It validates the exact inherited direct-VCS `sam-2` identity and
+114-file inventory, removes only its three owned package roots, preserves the
+runner's `sam2` import denial, and repeats strict image verification plus every
+complete scan. The resulting 12,657,937,701-byte image contains no inherited
+`sam-2` package or importable module. Its vulnerability findings remain
+877/zero critical/zero high; its SPDX inventory is 690 packages with zero
+exact `sam-2` identities; and its 6,716-observation license report contains
+zero findings owned by the removed distribution. This closes only that
+private-image direct-VCS disposition. All manual whole-image, signature,
+canonical ingest, L4, persistence, QA, dispatch, billing, public, and
+production gates remain closed. See
+`docs/living-frame/living-frame-comfyui-pruned-no-sam2-source-build-evidence.md`.
+
+A bounded no-network CPU-emulation startup on 2026-07-29 verified that the
+fixed isolated bootstrap and fixed layout can reach ComfyUI's loopback
+readiness endpoint while loading only the two whitelisted extension folders.
+It used no model weights and performed no generation. The observation closes
+the source-import/startup bug; it does not substitute for running the exact
+offline installer or for an L4 generation, security, cost, or quality gate.
+
+### Private GPU output observation and opaque-source boundary
+
+`living-frame-controlled-sdxl-gpu-output-observation-v1` adds the next
+server-private boundary after the controlled ComfyUI request. A process-bound,
+single-use reader returns the exact PNG associated with the verified request,
+and a second process-bound consumer receives verified bytes out of band.
+The serializable observation retains only request/output hashes, dimensions,
+alpha measurements, cost lineage, and closed gates.
+
+The fixed decoder accepts only a bounded 1024-by-1024, 8-bit,
+non-interlaced RGB PNG. It validates chunk CRCs, critical-chunk policy,
+bounded decompression, scanline filters, and exact decoded-byte accounting,
+then reruns the existing alpha-measurement primitive. Every source pixel must
+be opaque.
+
+Opaque output is deliberately **not** promoted to a transparent component.
+It must continue through qualified segmentation or matting, alpha-edge
+decontamination, true-alpha artifact commit, multi-background and
+destination-composite QA, continuity and documentary-safety QA, and the
+existing canonical artifact authority. A source PNG with alpha is rejected
+by this route, and an opaque checkerboard remains opaque content.
+
+The observation preserves one-output/one-GPU-attempt lineage without minting
+an amount. ComfyUI, external preprocessing, ControlNet, generic IP-Adapter,
+and loaded PEFT/LoRA share that attempt; AuraFace remains separate optional
+CPU QA. Actual cost still requires canonical worker-resource evidence.
+Bundle aggregation, one-time credit rounding, the single downstream service
+fee, approval, reservation, and settlement remain owned by the existing
+commercial pipeline.
+
+This contract does not prove dispatch, completion, actual cost, artifact
+commit, transparency, QA approval, rendering, or production. See
+`docs/living-frame/living-frame-controlled-sdxl-gpu-output-observation.md`.
+
+### Opaque output to canonical rembg input
+
+`living-frame-controlled-sdxl-rembg-input-binding-v1` adds a process-bound,
+single-use handoff from the exact opaque GPU-output observation toward the
+existing canonical rembg operation. It rereads the PNG and decoded RGBA bytes,
+recomputes both hashes, enforces the fixed 1024-by-1024 shape, and confirms
+that every source alpha byte is 255. Bytes remain out of serializable planning
+state and are delivered only to a process-bound consumer.
+
+The current canonical rembg admission is bound specifically to FFmpeg-extracted
+source-video frames. A generated Living Frame still is not that source type.
+The binding therefore records that a later shared-authority extension must add
+a strict `living_frame_generated_opaque_still` branch alongside the unchanged
+`canonical_source_frame` branch. It does not relabel the generated image,
+create a rembg request, dispatch a worker, or commit a mask.
+
+The intended continuation reuses the existing `rembg` L4 mask operation,
+existing Sharp straight-alpha component composition, canonical asset
+manifest, alpha/continuity/fact QA, and Remotion compositor. The ComfyUI GPU
+generation attempt is not charged again; rembg remains one separate canonical
+tool attempt whose amount is owned by the existing tool-cost authority.
+Customer credits still aggregate and round once, and the service fee remains
+single and downstream. See
+`docs/living-frame/living-frame-controlled-sdxl-rembg-input-binding.md`.
+
+### Generated-still rembg and true-alpha execution evidence
+
+The namespaced
+`living-frame-controlled-sdxl-rembg-gpu-runtime-v1` now binds a verified
+opaque generated-still input to an already consumed canonical `rembg`
+dispatch, the fixed CUDA/L4 `u2netp` runtime contract, an exact process-bound
+model-mount observation, and a strict 1024x1024 gray8 mask verifier. It
+preserves failed and outcome-unknown attempt cost lineage and cannot charge
+the shared ComfyUI generation attempt again.
+
+The subsequent
+`living-frame-controlled-sdxl-rembg-alpha-bridge-v1` consumes the verified
+source and mask through single-use leases, consumes the matching canonical
+Sharp dispatch, executes the existing confined Sharp `0.35.3`
+`approved_living_frame_alpha_component_v1` recipe, and measures the resulting
+straight-alpha raster with the existing Living Frame alpha-measurement
+primitive.
+
+This is real private package-execution evidence, but not production
+promotion. The shared canonical rembg and Sharp services still need an
+explicit generated-still dependency/source variant, followed by artifact
+commit, asset-manifest reconciliation, alpha QA, continuity/fact QA, private
+review, and Remotion consumption. No source frame is relabeled, no tool ID is
+added, and no second cost or credit authority is created. See
+`docs/living-frame/living-frame-controlled-sdxl-rembg-gpu-runtime.md`.
+
+### Controlled benchmark result and threshold binding
+
+The source-only result binding accepts benchmark observations only through a
+process-bound server reader. It reads the observation twice, rejects
+instability, validates all seven ordered case observations and eleven ordered
+metric observations, cross-checks load/output/memory/duration aggregates, and
+evaluates the fixed specification thresholds.
+
+Passing controlled thresholds remains deliberately weaker than a released GPU
+attempt or compatibility approval. The binding cannot attest an operation,
+mint actual cost, resolve the LoRA/base mismatch, select a scene, or open
+runtime. Its passing and failing fixtures are controlled and non-promotable.
+See
+`docs/living-frame/living-frame-controlled-sdxl-benchmark-result-binding.md`.
+
+### Controlled-illustration estimate-to-work admission
+
+The canonical customer estimate now has an exact, content-addressed bridge to
+the one existing edit work graph for Living Frame generated stills. The
+bridge binds every generated opaque-still asset-intent ID to one shared
+controlled-illustration GPU cost line and one named
+`generate_image_asset` batch work item. If identity-continuity measurement is
+required, its separate AuraFace CPU cost line binds to one dependent
+`run_asset_qa` item.
+
+The five controlled-generation capabilities—ComfyUI execution, externally
+prepared control preprocessing, ControlNet, generic IP-Adapter, and loaded
+PEFT/LoRA—remain attribution inside one GPU attempt. They do not become five
+charges or five new ProductionToolIds. AuraFace remains a sixth, optional
+post-generation CPU measurement. Exact reuse adds no generation attempt.
+Internal micro-cost is aggregated before customer-credit rounding, and the
+single downstream ReeditPro service fee remains unchanged.
+
+Generated anchors now resolve as pending outputs of named work rather than as
+untracked provider artifacts. The work graph keeps generation and AuraFace
+items operation-pending: approved operation IDs, provider routes, executable
+payloads, runtime leases, dispatch, and production authority are all absent.
+Downstream mask, RGBA, and Remotion work remains dependency-bound and blocked
+until the generated source operation and generated-source rembg variant are
+qualified. This preserves one timing authority, one estimate and approval
+path, one immutable snapshot lineage, one work graph, and one asset manifest.
+
+### Canonical generated-still alpha dependency admission
+
+`canonical-living-frame-work-graph-projection-v10` admits the generated-still
+dependency shape without relabeling it as source media. The existing rembg
+mask work input now has a closed discriminated source union:
+
+- `canonical_source_frame` retains the exact FFmpeg frame, source-sequence,
+  cleanup-decision, frame-index, and frame-rate lineage; or
+- `living_frame_generated_opaque_still` binds exactly one generated opaque
+  PNG output, its named `generate_image_asset` work item, output key, and
+  asset-intent ID.
+
+The branches are mutually exclusive. Generated inputs have no source-sequence
+or cleanup IDs, and a caller cannot mix those IDs into the generated branch.
+The current generated branch admits only one source output for one mask and
+one RGBA component. A multi-output parent generation item remains blocked
+until the work projection can admit one exact output selector and create
+independently priced and independently QA-bound per-component mask operations.
+
+The namespaced
+`living-frame-controlled-image-selected-scene-exact-output-alpha-source-handoff-v1`
+candidate closes the private-source selection side of that interface without
+mutating the canonical graph. It binds one unique parent output index, output
+key, generated asset-intent ID, selected component, approved work item,
+planned asset-manifest entry, renderer layer, observation, snapshot,
+MasterTiming, confirmed frame, work graph, and cost/work lineage. It rereads
+and rehashes the exact opaque PNG and decoded RGBA bytes, enforces a 1024 by
+1024 fully opaque source, and emits one byte-free receipt plus one
+process-bound single-use private source lease. Full-frame outputs, duplicate
+matches, copied/reused readers or leases, cross-output/work/scene
+substitution, and authority promotion fail closed.
+
+The handoff is not a work item, worker lease, rembg request, Sharp request,
+artifact, manifest entry, QA result, or renderer payload. The canonical
+work-graph owner must still consume the exact selector when it admits the
+existing rembg and Sharp items. Remotion remains the final canvas.
+
+### Per-component selective-motion reconciliation
+
+The scene visual verb expresses narrative direction; it is not a blanket
+component transform. Canonical motion v3 derives transforms from component
+role, focal role, linked active mini skills, factual scale guards, and the
+scene verb together.
+
+`living-frame-selected-scene-selective-motion-reconciliation-v2` now
+independently recompiles every current component spec and compares it with the
+selected component role and linked mini-skill activations. Mechanical rotation
+is eligible only for an explicitly activated `mechanical_component`. Static
+anchors and stable non-mechanical subjects must remain unrotated.
+Environmental effects linked to `environmental_motion` require a qualified
+environmental primitive or approved fallback and may not inherit mechanical
+rotation.
+
+The representative five-component regression now yields exactly two rotation
+tracks, both on the eligible components. Static anchors, stable subjects, and
+environmental effects receive no scene-verb rotation. Environmental motion
+remains separately gated on a qualified primitive or approved fallback.
+Mechanical rigging remains owner-paused and this compatibility evidence cannot
+authorize it.
+
+### Selected-scene environmental particle admission
+
+`living-frame-selected-scene-environmental-particle-admission-v1` now binds
+the selected environmental component to its exact selected-scene,
+MasterTiming, confirmed-frame, geometry, activation, capability, and
+selective-motion lineage. It derives a server-owned deterministic seed digest
+and the exact active frame range without accepting caller particle settings,
+dimensions, seed, prompt, paths, URLs, bytes, credentials, commands, or
+environment.
+
+The candidate does not infer dust, smoke, fog, rain, or another physical
+treatment from a component ID or human-readable summary. The current selected
+scene contract has no immutable typed environmental-effect profile, so exact
+physics and appearance remain blocked on a canonical profile reference.
+
+An adjacent namespaced candidate,
+`living-frame-environmental-particle-kernel-v1`, now supplies a subject-neutral
+seven-profile catalog and deterministic frame-state sampler. It validates and
+binds the Visual Continuity Pack's style, palette, lighting, depth, motion
+density, and camera language; caps particle counts by motion density; and
+preserves exact confirmed-frame and MasterTiming digests. It accepts no caller
+seed, settings, dimensions, prompt, model, path, URL, bytes, command, or
+authority flag. The same server-derived seed produces the same one-shot
+sequence digest, and every particle begins and settles at zero opacity.
+
+The kernel is not yet attached to the selected scene. It has no profile-
+selection, timing, geometry, operation, work, runtime, artifact, renderer, QA,
+cost, billing, or production authority. Canonical integration is also blocked
+by an observed phase-domain conflict: selected-scene MasterTiming exposes a
+narrower visual range, while the current motion compiler requires all five
+semantic phases to exactly partition that visual range even though the phases
+currently span the full segment. Neither owner is changed here.
+
+The namespaced
+`living-frame-environmental-particle-operation-materialization-v1` candidate
+now defines the next private boundary without changing those owners. It
+revalidates the kernel and creates a process-bound single-use lease for one
+closed, server-derived PixiJS request. The private request preserves the exact
+confirmed canvas and frame range, approved style/depth/profile, deterministic
+state tracks, fixed `pixi.js@8.19.0` `Application.init` entrypoint, zero
+network/caller code, and one transparent PNG sample per bound frame. The
+public receipt contains only digests, counts, classifications, and false
+authority flags.
+
+The candidate does not register or dispatch the operation, execute PixiJS,
+persist an artifact, mutate the work graph or manifest, create a cost, or
+change Remotion. The sequence remains an input to a future qualified
+time-sampled overlay adapter; Remotion remains the final canvas.
+
+An additional namespaced candidate,
+`living-frame-environmental-particle-sequence-observation-v1`, now defines the
+process-private byte and alpha measurement boundary for that future output.
+Its controlled non-promotable fixture encodes and decodes an exact
+eight-frame 3840×2160 RGBA PNG sequence, verifies chunk CRCs, inflation,
+frame/digest lineage, settled endpoints, temporal variation, and
+alpha-centroid movement, then emits a byte-free report. The evidence source
+explicitly does not prove the PixiJS entrypoint, qualified browser runtime,
+artifact persistence, canonical QA, private review, cost, billing, or
+production release.
+
+The namespaced
+`living-frame-environmental-particle-pixijs-internal-runtime-v1`
+qualification now executes the actual `pixi.js@8.19.0`
+`Application.init` entrypoint for the same closed materialized request. Its
+derived qualification image inherits the inspected private browser runtime
+without modifying the shared runtime. One non-root, read-only,
+network-disabled container returns eight real 3840×2160 RGBA PNG frames; the
+host independently verifies exact dimensions, transparent endpoints, six
+active frames, seven distinct frame digests, and alpha-centroid movement.
+This makes the isolated particle renderer internal-test ready while keeping
+selected-scene/timing binding, operation registration, canonical dispatch,
+artifact/manifest persistence, Remotion adaptation, QA/private review, cost,
+billing, external beta, and production false.
+
+The adjacent
+`living-frame-selected-scene-environmental-particle-internal-test-v1`
+qualification now moves beyond that isolated eight-frame proof. It revalidates
+the actual selected `helicopter.downwash` component, the canonical timing
+binding, confirmed frame, component geometry, selective-motion result, and a
+lineage-compatible Visual Continuity Pack. A server-owned internal-test
+profile binding supplies the otherwise missing typed profile without parsing
+the component ID, summary, subject, or genre. One real PixiJS attempt then
+emits all 105 exact 1920×1080 RGBA frames for the selected frame 30–135
+environmental window. The report is byte-free and the exact PNG sequence
+remains behind a process-bound single-use lease for full-duration Remotion
+testing. This proves selected-scene and canonical-timing binding for internal
+testing while keeping both authorities, plus operation registration, shared
+dispatch, persistence, QA/review, cost, billing, external beta, and production
+false.
+
+The adjacent
+`living-frame-selected-scene-environmental-particle-remotion-full-timeline-internal-test-v1`
+qualification now consumes that exact process-bound 105-frame lease. It uses
+seven bounded real Remotion renders to preserve the existing sixteen-overlay
+request limit, packages only the already composited retained frames, and
+independently decodes all 105 final review frames. Pixel QA proves exact
+duration, materially visible particle motion, source-plate preservation,
+caption-plane priority, temporal variation, and alpha-centroid motion.
+Sub-perceptual fade frames remain consumed and digest-bound but are not
+misreported as missing overlays after review-scale reduction. Shared
+operation, work graph, asset manifest, QA, review, cost, billing, external
+beta, and production authorities remain false.
+
+PixiJS remains the existing tool identity. No separate particle tool identity
+is created. Its current operation renders one opaque 640×360 static review
+card PNG, while Living Frame requires a time-sampled transparent procedural
+primitive. The current Remotion Living Frame input also accepts one static PNG
+per overlay. The candidate therefore records one exact shared-interface
+conflict spanning the typed profile, the bounded PixiJS operation extension,
+and the Remotion time-sampled overlay adapter. It does not register an
+operation, dispatch work, create an asset or cost, mutate either shared
+runtime, or claim private/production readiness.
+
+See
+`docs/living-frame/living-frame-environmental-particle-kernel.md` and
+`docs/living-frame/living-frame-environmental-particle-operation-materialization.md`,
+plus
+`docs/living-frame/living-frame-environmental-particle-sequence-observation.md`.
+The real internal runtime evidence is specified in
+`docs/living-frame/living-frame-environmental-particle-pixijs-internal-runtime.md`.
+The selected-scene full-range evidence is specified in
+`docs/living-frame/living-frame-selected-scene-environmental-particle-internal-test.md`.
+The full-timeline Remotion evidence is specified in
+`docs/living-frame/living-frame-selected-scene-environmental-particle-remotion-full-timeline-internal-test.md`.
+
+The adjacent
+`living-frame-selected-scene-environmental-particle-private-persistence-internal-test-v1`
+qualification consumes a separate process-bound single-use lease for the
+exact final 105-frame MP4. It invokes the existing canonical private Remotion
+artifact-storage owner, proves create-only persistence plus exact digest/length
+readback, and returns only a byte/path-free receipt. It does not mutate the
+canonical asset manifest or infer QA, private-review, cost, billing, external
+beta, or production authority. This closes the private render-to-artifact
+boundary for internal testing; exact scene-evidence QA and private review
+remain next.
+
+The private-persistence evidence is specified in
+`docs/living-frame/living-frame-selected-scene-environmental-particle-private-persistence-internal-test.md`.
+
+The adjacent
+`living-frame-selected-scene-environmental-particle-scene-qa-internal-test-v1`
+qualification consumes a process-bound persisted-artifact lease and re-opens
+the exact review through the existing private media runtime. Real FFprobe
+execution verifies H.264, 640×360, 30 FPS, and 105 frames; the report also
+revalidates all-frame procedural-alpha, temporal, source-plane, caption-plane,
+ratio, and MasterTiming evidence. It marks private internal scene QA green
+without claiming canonical QA or review approval.
+
+This qualification exposes one exact shared-interface conflict:
+`living-frame-scene-evidence-package-v1` stores a primitive-QA expectation but
+has no field or downstream discharge for actual time-sampled procedural QA.
+The namespaced report records that conflict without mutating the shared
+package or creating a parallel owner. Private-review evidence compilation and
+canonical procedural-QA discharge reconciliation remain next.
+
+The scene-QA evidence is specified in
+`docs/living-frame/living-frame-selected-scene-environmental-particle-scene-qa-internal-test.md`.
+
+The adjacent
+`living-frame-selected-scene-environmental-particle-private-review-internal-test-v1`
+qualification consumes a third process-bound lease, re-opens and re-hashes the
+complete persisted MP4, and compiles a byte-free private-review receipt. It
+binds selected-scene, MasterTiming, confirmed-frame, persisted-media,
+procedural-alpha, destination-composite, caption-plane, and Remotion evidence.
+This makes the selected environmental-particle slice privately end-to-end
+green.
+
+The generic canonical private-review compiler currently requires the static
+Sharp RGBA component plus static layer-manifest route. It has no
+procedural-timeline artifact contract. The namespaced evidence records this
+exact conflict while preserving the canonical review owner and keeping review
+approval, manifest mutation, cost, billing, public delivery, external beta,
+and production false.
+
+The private-review evidence is specified in
+`docs/living-frame/living-frame-selected-scene-environmental-particle-private-review-internal-test.md`.
+
+The downstream Sharp alpha-component authority accepts exactly one approved
+source-frame PNG **or** one generated opaque-still PNG plus exactly one rembg
+mask PNG. It continues to use the existing straight-alpha recipe and canonical
+dependency-artifact reader. The generated source, mask, RGBA derivative, and
+Remotion layer remain expected outputs of the one canonical work graph and
+therefore flow into the existing approved asset manifest when that graph is
+approved; no Living Frame manifest or worker lane is created.
+
+Cost lineage remains unchanged:
+
+- the generated opaque PNG belongs to the single shared controlled-
+  illustration GPU attempt;
+- rembg is one separate canonical GPU tool attempt;
+- Sharp and Remotion use their existing deterministic cost owners;
+- failed or outcome-unknown attempts remain internal retained cost evidence;
+- only completed attempts may become customer-billable candidates;
+- infrastructure micro-cost is aggregated before credit rounding; and
+- the ReeditPro service fee is applied once by the downstream customer
+  estimate authority.
+
+The specialized rembg resource placement remains execution-blocked until the
+exact L4 runtime, immutable model artifact, operation adapter, and artifact QA
+evidence are qualified. Contract admission does not authorize dispatch,
+provider calls, runtime downloads, customer charging, rendering, or
+production.
+
+### Canonical private-review trace
+
+The existing canonical private-review assembly remains the sole review
+authority. When its approved final Remotion work item contains Living Frame
+overlays, it now derives one optional, checksum-protected Living Frame
+composition evidence block from the immutable approved work graph and the
+server-selected artifact/QA aggregate.
+
+Each reviewed overlay must resolve to exactly one approved tool-free layer
+manifest and one approved Sharp RGBA component. Both artifacts must have
+passed canonical private QA and reconciliation, the manifest must depend on
+that component, the final work item must depend on both, the final renderer
+layer must remain below captions, the exact canonical motion-spec digest and
+adaptive depth style must match between the layer manifest and final
+composition binding, and the final MP4 must retain its verified Remotion runner
+and render-preflight evidence hashes. Any missing, ambiguous, placeholder,
+failed, unreconciled, reordered, or motion-divergent dependency fails closed.
+
+This closes the trace from selected scene through generated asset, alpha
+processing, renderer-layer manifest, final Remotion composition, and private
+review without creating another snapshot, manifest, QA gate, review system,
+or timing authority. It does not open public delivery, further rendering,
+customer charging, or production.
+
+### Subject-neutral capability coverage
+
+Musashi, a helicopter, and the Strait of Hormuz are controlled examples, not
+product routes or a closed list of supported subjects. Living Frame decisions
+are expressed through modes, narrative purposes, visual verbs, component
+roles, mini-skill activations, capability requirements, truth constraints,
+attention behavior, and fallback order. No canonical work operation contains
+those example subjects.
+
+The subject-neutral regression matrix exercises all five modes across
+scientific process diagrams, financial relationship graphics, archival
+chronologies, product mechanisms, conceptual speaker explanations, geographic
+hybrid expansions, and deliberate non-use for emotionally sensitive delivery.
+It also proves that exact map or data truth remains deterministic, controlled
+illustration is optional rather than universal, every active scene has one
+focal primary, every fallback can resolve to no extra visual, and non-use
+creates no animation capabilities.
+
+The six controlled-illustration capability identifiers are similarly
+subject-neutral. Five describe capabilities inside one shared GPU-host attempt;
+AuraFace is a separate conditional CPU continuity measurement. They do not
+create six tool-registry entries or six independent charges.
+
+The representative connected trace now goes beyond that metadata matrix. One
+subject-neutral generated-still scene preserves its exact estimate and work
+lineage through the generated opaque source, generated-source rembg mask, Sharp
+RGBA component, exact MasterTiming-derived scalar choreography, adaptive
+flat/shallow-2.5D/deep-multiplane depth treatment, Remotion layer manifest,
+existing final Remotion composition, caption-plane ordering, private artifact
+QA/reconciliation, and the existing canonical private-review composition
+evidence. Separate subject-neutral rendered fixtures prove actual motion,
+shallow and deep differential parallax, source/camera attention, caption
+priority, and the 4K private streaming/export path. The trace remains
+controlled and non-promotable: it proves source integration and fail-closed
+lineage, not a released GPU attempt, public export, customer charge, or
+production runtime.
+See
+`docs/living-frame/living-frame-representative-end-to-end-validation.md`.
+
+### Selected-scene animation-aware private conditioning
+
+The namespaced
+`living-frame-controlled-image-selected-scene-private-conditioning-binding-v1`
+binds the exact approved generated output to its validated semantic scene,
+semantic component, Visual Continuity Pack, scene design sheet, linked
+character/object/environment sheets, motion language, alpha rules, source
+truth, and confirmed frame.
+
+It deterministically produces a private still-illustration brief designed for
+later selective animation: readable silhouettes, independently isolatable
+moving parts, foreground/background separation, no baked motion blur or text,
+and explicit downstream ownership for matting, rigging, motion, camera, sound,
+and Remotion final composition. The approved depth style remains adaptive:
+flat stays flat, while shallow 2.5D, deep multiplane, and dimensional scenes
+receive their selected depth language.
+
+That decision now compiles to one explicit private preparation class:
+`flat_layer_animation`, `shallow_2_5d_parallax`,
+`deep_multiplane_parallax`, or `dimensional_spatial_composition`. Only shallow
+and deep-multiplane preparations count as 2.5D-directed. Dimensional
+composition remains separate, and flat scenes explicitly prohibit parallax,
+fake extrusion, and perspective-camera staging.
+
+Asset treatment also compiles to a concrete preparation grammar rather than
+an enum label alone. The grammar covers photographic, archival, editorial
+cutout, vector, paper collage, technical, cinematic realistic, cinematic
+anime, sumi-e ink, and graphic-novel source language while keeping named-artist
+imitation and false archival-evidence claims prohibited.
+
+Each private brief remains behind a process-bound single-use lease. The public
+receipt contains only lineage digests and byte lengths. A server-owned adapter
+merges the brief into an alias-only private packet whose conditioning slots
+were fixed pending sentinels, then hands it to the existing selected-scene
+prompt materializer. The integration fixture verifies exact conditioning
+digest equality without accepting caller text, benchmark prompt substitution,
+or model/path/runtime data.
+
+Isolated components remain 1024-square opaque sources for the existing
+matting path. Full-frame source/background candidates use the confirmed frame
+exactly and never become the final video canvas. Documentary, geographic, and
+data truth remains blocked behind canonical fact owners, and controlled
+reference expectations never become artifacts by implication. See
+`docs/living-frame/living-frame-controlled-image-selected-scene-private-conditioning-binding.md`.
+
+### Selected-scene motion-style reconciliation
+
+The animation-aware conditioning path preserves the Visual Continuity Pack's
+approved `flat`, `shallow_2_5d`, `deep_multiplane`, or `dimensional` scene
+depth. The existing canonical motion compiler supports only the first three
+and currently infers its depth from component and motion signals rather than
+consuming the exact approved scene-design value.
+
+The namespaced
+`living-frame-selected-scene-motion-style-reconciliation-v1` makes that
+shared-interface conflict explicit without changing either owner. It
+re-verifies the exact private conditioning binding and lineage, independently
+recompiles every supplied canonical motion spec, and compares one approved
+generated output intent with one canonical motion observation.
+
+Exact supported matches are recorded as evidence only. Supported-style
+divergence blocks the affected canonical motion admission. `dimensional`
+always blocks under the current runtime because silently relabeling it as
+2.5D would violate the approved style. A new approved plan is required for any
+downgrade.
+
+The candidate grants no selected-scene, planning, timing, work-graph,
+renderer, runtime, artifact, QA, private-review, cost, billing, or production
+authority. Canonical integration must either consume the exact approved depth
+or add a qualified dimensional motion/renderer contract. See
+`docs/living-frame/living-frame-selected-scene-motion-style-reconciliation.md`.
+
+### Semantic sound-trigger completeness
+
+`living-frame-choreography-binding-v2` closes an upstream sound-direction gap.
+Every Living Frame sound request must now appear in exactly one approved
+attention event. A motion-dependent component-linked request must share at
+least one motion track with that exact component. Environmental presence may
+remain attention-bound without forcing a static environment to move. The
+binding preserves the trigger attention event, event type, motion-track
+lineage, and component-motion policy while keeping exact frames and mix unset.
+
+This prevents a route sound, blade accent, mechanical bed, environmental
+texture, or focus-handoff cue from being attached to an unrelated visual
+merely because both occur in the same scene. It also preserves the rule that
+sound confirms meaningful motion rather than announcing every element with a
+template whoosh.
+
+The canonical timing v1 implementation currently distributes requested sound
+cues evenly by request order. That produces bounded frames but does not prove
+semantic synchronization. The canonical SoundSync owner must consume the new
+one-to-one trigger lineage and assign exact attention/motion-aligned frames,
+gain, panning, attack/release, voice ducking, asset provenance, QA, and
+private-review evidence. Living Frame does not create a second audio system.
+
+The read-only
+`living-frame-semantic-sound-timing-reconciliation-v1` now makes this
+distinction executable. It independently revalidates the choreography,
+selected-scene publication, canonical execution requirements, current
+MasterTiming/SoundSync binding, and output-frame lineage. It maps the approved
+attention lifecycle to the existing semantic phases and checks whether each
+current exact cue range falls wholly inside the required phase.
+
+The controlled evidence proves that a single `handoff` cue may happen to land
+inside `activate`, while a single `hold` cue can still be placed in `activate`
+even though its approved semantic phase is `demonstrate`. That second result
+is a real order-spacing conflict, not a hypothetical warning. Neither result
+is promoted to professional sound readiness because canonical v1 carries no
+attention-event identity, motion-track lineage, exact transient/hit frame, or
+mix envelope. The reconciliation mutates neither timing nor sound and grants
+no approval, work, asset, runtime, cost, or production authority. See
+`docs/living-frame/living-frame-semantic-sound-timing-reconciliation.md`.

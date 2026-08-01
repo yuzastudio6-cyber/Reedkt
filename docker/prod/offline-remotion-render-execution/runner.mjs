@@ -1335,6 +1335,381 @@ function validateStreamingSupplementalAudioPlans(value, durationFrames) {
   })
 }
 
+function validateCanonicalLivingFrameMotionSpec(value) {
+  const spec = exactObject(value, [
+    'attentionEventIds', 'authorityBoundary',
+    'captionsRemainAboveLivingFrame', 'componentId',
+    'containsExecutableOrOperationalPayload',
+    'depthBand', 'depthStyle',
+    'exactFramesRemainOwnedByMasterTiming', 'importance',
+    'metrics', 'motionProfileId', 'motionSpecDigestSha256',
+    'parallaxFactor', 'sceneEndFrameExclusive', 'sceneId',
+    'sceneStartFrame', 'schemaVersion', 'semanticScaleRequestIds',
+    'sourceBindings', 'subjectSpecificRouting', 'tracks', 'visualVerb',
+  ], 'canonical Living Frame motion spec')
+  const sceneId = safeIdentity(spec.sceneId, 'Living Frame motion sceneId')
+  const componentId = safeIdentity(
+    spec.componentId,
+    'Living Frame motion componentId',
+  )
+  const sceneStartFrame = integer(
+    spec.sceneStartFrame,
+    0,
+    17_999,
+    'Living Frame motion sceneStartFrame',
+  )
+  const sceneEndFrameExclusive = integer(
+    spec.sceneEndFrameExclusive,
+    1,
+    18_000,
+    'Living Frame motion sceneEndFrameExclusive',
+  )
+  if (
+    spec.schemaVersion !== 'canonical-living-frame-motion-spec-v3' ||
+    spec.motionProfileId !== 'component_role_activation_selective_visual_interval_choreography_v3' ||
+    sceneEndFrameExclusive <= sceneStartFrame ||
+    sceneEndFrameExclusive - sceneStartFrame > 18_000 ||
+    ![
+      'reveal', 'converge', 'restrict', 'surround', 'expand',
+      'contract', 'connect', 'separate', 'rotate', 'approach',
+      'retreat', 'transform', 'hold',
+    ].includes(spec.visualVerb) ||
+    !['support', 'important', 'hero'].includes(spec.importance) ||
+    !['flat', 'shallow_2_5d', 'deep_multiplane'].includes(spec.depthStyle) ||
+    ![
+      'far_background', 'background', 'behind_subject',
+      'subject_plane', 'in_front_of_subject', 'foreground',
+    ].includes(spec.depthBand) ||
+    !Number.isFinite(spec.parallaxFactor) ||
+    spec.parallaxFactor < -1 ||
+    spec.parallaxFactor > 1 ||
+    spec.exactFramesRemainOwnedByMasterTiming !== true ||
+    spec.captionsRemainAboveLivingFrame !== true ||
+    spec.containsExecutableOrOperationalPayload !== false ||
+    spec.subjectSpecificRouting !== false
+  ) throw new Error('canonical Living Frame motion identity is unsupported')
+  const sourceBindings = exactObject(spec.sourceBindings, [
+    'deterministicMotionBundleDigestSha256',
+    'selectedSceneBindingDigestSha256',
+    'timingBindingDigestSha256',
+  ], 'canonical Living Frame motion source bindings')
+  if (
+    ![
+      sourceBindings.deterministicMotionBundleDigestSha256,
+      sourceBindings.selectedSceneBindingDigestSha256,
+      sourceBindings.timingBindingDigestSha256,
+    ].every((digest) =>
+      typeof digest === 'string' && /^[a-f0-9]{64}$/.test(digest))
+  ) throw new Error('canonical Living Frame motion lineage is invalid')
+  const safeIdList = (candidate, label) => {
+    if (
+      !Array.isArray(candidate) ||
+      candidate.length > 64 ||
+      !candidate.every((item) => {
+        try {
+          safeIdentity(item, label)
+          return true
+        } catch {
+          return false
+        }
+      }) ||
+      new Set(candidate).size !== candidate.length
+    ) throw new Error(`${label} list is invalid`)
+    return candidate
+  }
+  const attentionEventIds = safeIdList(
+    spec.attentionEventIds,
+    'Living Frame attentionEventId',
+  )
+  const semanticScaleRequestIds = safeIdList(
+    spec.semanticScaleRequestIds,
+    'Living Frame semanticScaleRequestId',
+  )
+  const propertyRanges = {
+    position_x_normalized: [-2, 2],
+    position_y_normalized: [-2, 2],
+    rotation_degrees: [-100_000, 100_000],
+    scale_uniform: [0.01, 20],
+    opacity: [0, 1],
+    blur_pixels: [0, 100],
+    light_intensity: [0, 4],
+    shadow_opacity: [0, 1],
+  }
+  const targets = ['layer', 'virtual_camera', 'source']
+  const roles = ['primary', 'secondary', 'ambient', 'camera']
+  const easings = [
+    'linear', 'hold', 'ease_in_quad', 'ease_out_quad',
+    'ease_in_out_cubic', 'mechanical_accelerate',
+    'strike_accelerate', 'settle_out',
+  ]
+  if (
+    !Array.isArray(spec.tracks) ||
+    spec.tracks.length < 1 ||
+    spec.tracks.length > 32
+  ) throw new Error('canonical Living Frame motion tracks are invalid')
+  const trackIds = new Set()
+  const targetProperties = new Set()
+  const durationFrames = sceneEndFrameExclusive - sceneStartFrame
+  const tracks = spec.tracks.map((candidate, order) => {
+    const track = exactObject(candidate, [
+      'compiledSampleCount', 'compiledSampleDigestSha256',
+      'keyframes', 'order', 'property', 'role', 'target', 'trackId',
+    ], `canonical Living Frame motion track ${order + 1}`)
+    const trackId = safeIdentity(
+      track.trackId,
+      'Living Frame motion trackId',
+    )
+    const range = propertyRanges[track.property]
+    const targetProperty = `${track.target}:${track.property}`
+    const targetPropertyAllowed =
+      track.target === 'layer' ||
+      (
+        track.target === 'virtual_camera' &&
+        [
+          'position_x_normalized',
+          'position_y_normalized',
+          'scale_uniform',
+        ].includes(track.property)
+      ) ||
+      (
+        track.target === 'source' &&
+        [
+          'position_x_normalized',
+          'position_y_normalized',
+          'scale_uniform',
+          'opacity',
+          'blur_pixels',
+          'light_intensity',
+        ].includes(track.property)
+      )
+    if (
+      trackIds.has(trackId) ||
+      targetProperties.has(targetProperty) ||
+      track.order !== order ||
+      !targets.includes(track.target) ||
+      !roles.includes(track.role) ||
+      !targetPropertyAllowed ||
+      !range ||
+      track.compiledSampleCount !== durationFrames ||
+      typeof track.compiledSampleDigestSha256 !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(track.compiledSampleDigestSha256) ||
+      !Array.isArray(track.keyframes) ||
+      track.keyframes.length < 2 ||
+      track.keyframes.length > 16
+    ) throw new Error('canonical Living Frame motion track is unsupported')
+    trackIds.add(trackId)
+    targetProperties.add(targetProperty)
+    let previousFrameOffset = -1
+    const keyframes = track.keyframes.map((candidateKeyframe, index) => {
+      const keyframe = exactObject(candidateKeyframe, [
+        'easingToNext', 'frameOffset', 'value',
+      ], `canonical Living Frame motion keyframe ${index + 1}`)
+      const frameOffset = integer(
+        keyframe.frameOffset,
+        0,
+        durationFrames - 1,
+        'Living Frame motion frameOffset',
+      )
+      if (
+        frameOffset <= previousFrameOffset ||
+        (index === 0 && frameOffset !== 0) ||
+        (
+          index === track.keyframes.length - 1 &&
+          frameOffset !== durationFrames - 1
+        ) ||
+        !Number.isFinite(keyframe.value) ||
+        keyframe.value < range[0] ||
+        keyframe.value > range[1] ||
+        !easings.includes(keyframe.easingToNext)
+      ) throw new Error('canonical Living Frame motion keyframe is invalid')
+      previousFrameOffset = frameOffset
+      return {
+        frameOffset,
+        value: keyframe.value,
+        easingToNext: keyframe.easingToNext,
+      }
+    })
+    if (
+      track.compiledSampleDigestSha256 !==
+        canonicalLivingFrameCompiledSampleDigestSha256(
+          keyframes,
+          durationFrames,
+        )
+    ) {
+      throw new Error(
+        'canonical Living Frame compiled samples diverged from approved keyframes',
+      )
+    }
+    return {
+      trackId,
+      order,
+      target: track.target,
+      property: track.property,
+      role: track.role,
+      keyframes,
+      compiledSampleCount: track.compiledSampleCount,
+      compiledSampleDigestSha256: track.compiledSampleDigestSha256,
+    }
+  })
+  const metrics = exactObject(spec.metrics, [
+    'cameraTrackCount', 'compiledSampleCount', 'keyframeCount',
+    'layerTrackCount', 'sourceTrackCount',
+  ], 'canonical Living Frame motion metrics')
+  const count = (target) =>
+    tracks.filter((track) => track.target === target).length
+  if (
+    metrics.layerTrackCount !== count('layer') ||
+    metrics.cameraTrackCount !== count('virtual_camera') ||
+    metrics.sourceTrackCount !== count('source') ||
+    metrics.keyframeCount !== tracks.reduce(
+      (total, track) => total + track.keyframes.length,
+      0,
+    ) ||
+    metrics.compiledSampleCount !== tracks.reduce(
+      (total, track) => total + track.compiledSampleCount,
+      0,
+    )
+  ) throw new Error('canonical Living Frame motion metrics diverged')
+  const authorityBoundary = exactObject(spec.authorityBoundary, [
+    'approvalAuthority', 'exactFrameAuthority',
+    'masterTimingMutationAuthority', 'productionAuthority',
+    'providerAuthority', 'queueAuthority', 'rendererCodeAuthority',
+    'serverDerivedFromSelectedSceneAndMasterTiming',
+    'soundSyncAuthority', 'workGraphAuthority',
+  ], 'canonical Living Frame motion authority boundary')
+  if (
+    authorityBoundary.serverDerivedFromSelectedSceneAndMasterTiming !== true ||
+    [
+      'approvalAuthority', 'exactFrameAuthority',
+      'masterTimingMutationAuthority', 'productionAuthority',
+      'providerAuthority', 'queueAuthority', 'rendererCodeAuthority',
+      'soundSyncAuthority', 'workGraphAuthority',
+    ].some((key) => authorityBoundary[key] !== false)
+  ) throw new Error('canonical Living Frame motion authority expanded')
+  if (
+    typeof spec.motionSpecDigestSha256 !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(spec.motionSpecDigestSha256)
+  ) throw new Error('canonical Living Frame motion digest is invalid')
+  const {
+    motionSpecDigestSha256,
+    ...digestInput
+  } = spec
+  if (
+    motionSpecDigestSha256 !==
+      sha256(stableJsonStringify(digestInput))
+  ) throw new Error('canonical Living Frame motion digest changed')
+  return {
+    ...spec,
+    sceneId,
+    componentId,
+    sceneStartFrame,
+    sceneEndFrameExclusive,
+    sourceBindings,
+    attentionEventIds,
+    semanticScaleRequestIds,
+    tracks,
+    metrics,
+    authorityBoundary,
+  }
+}
+
+function canonicalLivingFrameCompiledSampleDigestSha256(
+  keyframes,
+  durationFrames,
+) {
+  return sha256(stableJsonStringify(
+    Array.from(
+      { length: durationFrames },
+      (_, frameOffset) => ({
+        frameOffset,
+        value: sampleCanonicalLivingFrameKeyframes(
+          keyframes,
+          frameOffset,
+        ),
+      }),
+    ),
+  ))
+}
+
+function sampleCanonicalLivingFrameKeyframes(
+  keyframes,
+  frameOffset,
+) {
+  const final = keyframes[keyframes.length - 1]
+  if (frameOffset >= final.frameOffset) {
+    return roundedLivingFrameMotionValue(final.value)
+  }
+  for (
+    let index = 0;
+    index < keyframes.length - 1;
+    index += 1
+  ) {
+    const from = keyframes[index]
+    const to = keyframes[index + 1]
+    if (
+      frameOffset < from.frameOffset ||
+      frameOffset > to.frameOffset
+    ) continue
+    const progress =
+      (frameOffset - from.frameOffset) /
+      (to.frameOffset - from.frameOffset)
+    const eased = applyCanonicalLivingFrameEasing(
+      from.easingToNext,
+      progress,
+    )
+    return roundedLivingFrameMotionValue(
+      from.value + (to.value - from.value) * eased,
+    )
+  }
+  return roundedLivingFrameMotionValue(keyframes[0].value)
+}
+
+function applyCanonicalLivingFrameEasing(easing, progress) {
+  switch (easing) {
+    case 'linear':
+      return progress
+    case 'hold':
+      return progress < 1 ? 0 : 1
+    case 'ease_in_quad':
+    case 'mechanical_accelerate':
+      return progress ** 2
+    case 'ease_out_quad':
+      return 1 - (1 - progress) ** 2
+    case 'ease_in_out_cubic':
+      return progress < 0.5
+        ? 4 * progress ** 3
+        : 1 - (-2 * progress + 2) ** 3 / 2
+    case 'strike_accelerate':
+      return progress ** 5
+    case 'settle_out':
+      return 1 - (1 - progress) ** 3
+    default:
+      throw new Error(
+        'canonical Living Frame motion easing is unsupported',
+      )
+  }
+}
+
+function roundedLivingFrameMotionValue(value) {
+  return Math.round(value * 1_000_000) / 1_000_000
+}
+
+function stableJsonStringify(value) {
+  const normalize = (candidate) => {
+    if (Array.isArray(candidate)) return candidate.map(normalize)
+    if (candidate && typeof candidate === 'object') {
+      return Object.fromEntries(
+        Object.entries(candidate)
+          .filter(([, nested]) => nested !== undefined)
+          .sort(([left], [right]) => left.localeCompare(right))
+          .map(([key, nested]) => [key, normalize(nested)]),
+      )
+    }
+    return candidate
+  }
+  return JSON.stringify(normalize(value))
+}
+
 function validateStreamingLivingFrameOverlayPlans(policy, value, durationFrames) {
   if (
     policy !== 'approved_rgba_over_source_below_captions_v1' ||
@@ -1344,7 +1719,6 @@ function validateStreamingLivingFrameOverlayPlans(policy, value, durationFrames)
   ) {
     throw new Error('streaming Living Frame overlays are unsupported')
   }
-  const sceneIds = new Set()
   const layerIds = new Set()
   const manifestOutputKeys = new Set()
   const componentOutputKeys = new Set()
@@ -1353,7 +1727,7 @@ function validateStreamingLivingFrameOverlayPlans(policy, value, durationFrames)
   return value.map((candidate, index) => {
     const layer = exactObject(candidate, [
       'sceneId', 'layerId', 'manifestOutputKey', 'componentOutputKey',
-      'startFrame', 'endFrameExclusive', 'fit', 'opacity',
+      'startFrame', 'endFrameExclusive', 'fit', 'opacity', 'motionSpec',
     ], `streaming Living Frame overlay ${index + 1}`)
     const sceneId = safeIdentity(layer.sceneId, 'Living Frame sceneId')
     const layerId = safeIdentity(layer.layerId, 'Living Frame layerId')
@@ -1377,11 +1751,12 @@ function validateStreamingLivingFrameOverlayPlans(policy, value, durationFrames)
       durationFrames,
       'Living Frame endFrameExclusive',
     )
+    const motionSpec =
+      validateCanonicalLivingFrameMotionSpec(layer.motionSpec)
     if (
       endFrameExclusive <= startFrame ||
       layer.fit !== 'fill' ||
       layer.opacity !== 1 ||
-      sceneIds.has(sceneId) ||
       layerIds.has(layerId) ||
       manifestOutputKeys.has(manifestOutputKey) ||
       componentOutputKeys.has(componentOutputKey) ||
@@ -1389,13 +1764,15 @@ function validateStreamingLivingFrameOverlayPlans(policy, value, durationFrames)
       (
         startFrame === previousStartFrame &&
         layerId.localeCompare(previousLayerId) <= 0
-      )
+      ) ||
+      motionSpec.sceneId !== sceneId ||
+      motionSpec.sceneStartFrame !== startFrame ||
+      motionSpec.sceneEndFrameExclusive !== endFrameExclusive
     ) {
       throw new Error(
         'streaming Living Frame overlays must be exact, unique, and canonically ordered',
       )
     }
-    sceneIds.add(sceneId)
     layerIds.add(layerId)
     manifestOutputKeys.add(manifestOutputKey)
     componentOutputKeys.add(componentOutputKey)
@@ -1410,6 +1787,7 @@ function validateStreamingLivingFrameOverlayPlans(policy, value, durationFrames)
       endFrameExclusive,
       fit: 'fill',
       opacity: 1,
+      motionSpec,
     }
   })
 }
@@ -3552,6 +3930,20 @@ function semanticEvidence(request, streaming) {
                 approvedLivingFrameOverlayBytesVerified: true,
                 approvedLivingFrameOverlayTimelineApplied: true,
                 approvedLivingFrameOverlayBelowCaptionsApplied: true,
+                approvedLivingFrameDeterministicMotionApplied: true,
+                approvedLivingFrameAdaptiveDepthStyleApplied: true,
+                ...(request.payload.livingFrameOverlayLayers.some(
+                  (layer) => layer.motionSpec.tracks.some(
+                    (track) =>
+                      track.target === 'virtual_camera' ||
+                      track.target === 'source',
+                  ),
+                )
+                  ? {
+                      approvedLivingFrameCameraOrSourceAttentionApplied:
+                        true,
+                    }
+                  : {}),
               }
             : {}),
           ...(isCaptionTrackProfile(request.payload.compositionProfileId)
@@ -3597,6 +3989,20 @@ function semanticEvidence(request, streaming) {
                   approvedLivingFrameOverlayBytesVerified: true,
                   approvedLivingFrameOverlayTimelineApplied: true,
                   approvedLivingFrameOverlayBelowCaptionsApplied: true,
+                  approvedLivingFrameDeterministicMotionApplied: true,
+                  approvedLivingFrameAdaptiveDepthStyleApplied: true,
+                  ...(request.payload.livingFrameOverlayLayers.some(
+                    (layer) => layer.motionSpec.tracks.some(
+                      (track) =>
+                        track.target === 'virtual_camera' ||
+                        track.target === 'source',
+                    ),
+                  )
+                    ? {
+                        approvedLivingFrameCameraOrSourceAttentionApplied:
+                          true,
+                      }
+                    : {}),
                 }
               : {}),
             ...(isCaptionTrackProfile(request.payload.compositionProfileId)

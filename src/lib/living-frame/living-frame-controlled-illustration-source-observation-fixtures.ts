@@ -4,6 +4,7 @@ import {
   type LivingFrameControlledIllustrationQualification,
 } from '../../types/living-frame-controlled-illustration-qualification'
 import {
+  LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_VERSION,
   type LivingFrameControlledIllustrationCandidateSourceObservation,
   type LivingFrameControlledIllustrationDeclaredLabelObservation,
   type LivingFrameControlledIllustrationDependencyScopeRule,
@@ -25,7 +26,7 @@ import {
   createLivingFrameControlledIllustrationSourceObservation,
 } from './living-frame-controlled-illustration-source-observation-contract'
 
-const OBSERVED_ON_DATE = '2026-07-26'
+const OBSERVED_ON_DATE = '2026-07-28'
 const APACHE_LICENSE_SHA256 =
   'c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4'
 
@@ -123,42 +124,15 @@ const SOURCES = {
       'research_only_noncommercial_model_card_statement',
     ),
   ],
-  pulid: [
+  auraface: [
     sourceFixture(
-      'github_to_the_beginning_pulid',
-      'source_repository',
-      '1aa2fc7df4bf51080df39f355f9abdc1cbfefbaa',
-      'source_license',
-      'license_file',
-      APACHE_LICENSE_SHA256,
-      'apache_2_0_source_label',
-    ),
-    sourceFixture(
-      'hf_guozinan_pulid',
+      'hf_fal_auraface_v1',
       'model_repository',
-      '492b1451255dc9d9bc3c857259690b5f8b998d4a',
+      'af6d057c9b0ec4071d4c49c80e3539258798b609',
       'model_card',
       'readme_model_card',
-      'c122aa2d5af79d1bfea201a8cda87e760427413bed08f800b6e5f927a1b7ff02',
+      '106272348689716d3c159ff16ec42e5f36aafebca591b3678b375f8aa2d12cde',
       'apache_2_0_source_label',
-    ),
-    sourceFixture(
-      'hf_black_forest_labs_flux_1_dev',
-      'model_repository',
-      '3de623fc3c33e44ffbe2bad470d0f45bccf2eb21',
-      'model_card',
-      'readme_model_card',
-      'efaf627d78af42f5ff92ec6c05551237c6939dbc1a8ee83910b9b5c7340d34cf',
-      'gated_other_license_model_card',
-    ),
-    sourceFixture(
-      'github_deepinsight_insightface',
-      'source_repository',
-      '1456819742fd09bc4ad5293856a143a3e807c78e',
-      'model_card',
-      'readme_model_card',
-      '8c2adcb8169704139d3a85c9585cd2ed660fdcfd3da56a5cc1d0f24d4fc67638',
-      'research_only_noncommercial_model_card_statement',
     ),
   ],
   peft_lora: [
@@ -184,7 +158,7 @@ const DISPOSITIONS = {
   comfyui_controlnet_aux: 'dependency_scope_unresolved',
   controlnet: 'dependency_scope_unresolved',
   ip_adapter: 'dependency_scope_unresolved',
-  pulid: 'noncommercial_route_blocked',
+  auraface: 'continuity_measurement_only_unqualified',
   peft_lora: 'mechanism_only_no_loaded_artifact',
 } as const satisfies Readonly<
   Record<
@@ -244,7 +218,7 @@ export async function createLivingFrameControlledIllustrationSourceObservationFi
     qualification: resolvedQualification,
     draft: {
       contractVersion:
-        'living-frame-controlled-illustration-source-observation-v1',
+        LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_VERSION,
       contractSource:
         'living_frame_controlled_illustration_upstream_observation_only',
       status: 'controlled_source_observation',
@@ -316,7 +290,7 @@ export function createLivingFrameControlledIllustrationSourceObservationAdversar
   wrongDisposition.candidateObservations[4]!.disposition =
     'candidate_source_only'
   add(
-    'pulid_blocked_disposition_removed',
+    'auraface_measurement_disposition_promoted',
     wrongDisposition,
     'candidate_disposition_invalid',
   )
@@ -383,7 +357,7 @@ export function createLivingFrameControlledIllustrationSourceObservationAdversar
     gateScope.candidateObservations[4]!.requiredReviewGateCodes.filter(
       (code) => code !== 'likeness_and_deepfake_review',
     )
-  add('pulid_identity_gate_removed', gateScope, 'review_gate_scope_invalid')
+  add('auraface_identity_gate_removed', gateScope, 'review_gate_scope_invalid')
 
   const missingRule = cloneJson(draft)
   missingRule.dependencyScopeRules =
@@ -399,17 +373,17 @@ export function createLivingFrameControlledIllustrationSourceObservationAdversar
   faceIdRule.relatedSourceLocatorCodes = ['hf_h94_ip_adapter']
   add('faceid_scope_promoted', faceIdPromotion, 'faceid_promotion_forbidden')
 
-  const pulidPromotion = cloneJson(draft)
-  const pulidRule = pulidPromotion.dependencyScopeRules.find(
+  const auraFacePromotion = cloneJson(draft)
+  const auraFaceRule = auraFacePromotion.dependencyScopeRules.find(
     (rule) =>
       rule.ruleCode ===
-        'pulid_adapter_does_not_promote_flux_base_model',
+        'auraface_measurement_does_not_authorize_identity_generation',
   )!
-  pulidRule.relatedSourceLocatorCodes = ['hf_guozinan_pulid']
+  auraFaceRule.affectedCandidateKeys = ['ip_adapter']
   add(
-    'pulid_flux_scope_promoted',
-    pulidPromotion,
-    'pulid_flux_promotion_forbidden',
+    'auraface_identity_generation_scope_promoted',
+    auraFacePromotion,
+    'auraface_promotion_forbidden',
   )
 
   const peftPromotion = cloneJson(draft)
@@ -622,14 +596,14 @@ function dependencyScopeRules(
       ],
     ),
     dependencyRule(
-      'pulid_adapter_does_not_promote_flux_base_model',
-      ['pulid'],
-      ['hf_guozinan_pulid', 'hf_black_forest_labs_flux_1_dev'],
+      'auraface_model_card_does_not_prove_training_data_rights',
+      ['auraface'],
+      ['hf_fal_auraface_v1'],
     ),
     dependencyRule(
-      'pulid_insightface_identity_dependency_is_unresolved',
-      ['pulid'],
-      ['hf_guozinan_pulid', 'github_deepinsight_insightface'],
+      'auraface_measurement_does_not_authorize_identity_generation',
+      ['auraface'],
+      ['hf_fal_auraface_v1'],
     ),
     dependencyRule(
       'peft_does_not_qualify_loaded_adapter_data_or_base_model',

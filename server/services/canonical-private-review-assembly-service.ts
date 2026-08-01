@@ -17,6 +17,9 @@ import {
   type PrivateInternalAttemptCostProfileId,
 } from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import { TOOL_COST_RATE_CARD_VERSION } from '../tool-cost-metering/rate-card'
+import {
+  compileCanonicalLivingFramePrivateReviewEvidence,
+} from '../living-frame/canonical-living-frame-private-review-evidence'
 import type { ServiceContext } from '../types'
 import {
   assembleCanonicalPrivateReviewSchema,
@@ -368,6 +371,13 @@ export function createCanonicalPrivateReviewAssemblyService(context: ServiceCont
             storedFinalQa.document,
             finalExpectation,
           )
+          const livingFrameCompositionEvidence =
+            compileCanonicalLivingFramePrivateReviewEvidence({
+              finalWorkItem,
+              requiredWorkItems,
+              requiredSelections,
+              finalSelection,
+            })
 
           const finalLease = leaseAggregate.leases.find((lease) =>
             lease.jobId === finalJob.id && lease.executionFence.state === 'completed' &&
@@ -417,6 +427,9 @@ export function createCanonicalPrivateReviewAssemblyService(context: ServiceCont
             finalArtifact,
             finalQaArtifact,
             finalQaReportSha256: normalizedFinalQa.reportSha256,
+            ...(livingFrameCompositionEvidence
+              ? { livingFrameCompositionEvidence }
+              : {}),
             internalAttemptCostEvidence,
             chain,
             assembledAt,
@@ -464,6 +477,9 @@ export function createCanonicalPrivateReviewAssemblyService(context: ServiceCont
               finalQaGatesPassed: true as const,
               finalQaReportSha256: normalizedFinalQa.reportSha256,
             },
+            ...(livingFrameCompositionEvidence
+              ? { livingFrameCompositionEvidence }
+              : {}),
             internalAttemptCostEvidence,
             chain,
             manifest: {
@@ -670,6 +686,11 @@ async function verifyPersistedManifest(
   if (
     manifestSha256 !== response.manifest.manifestSha256 ||
     record.manifestId !== response.manifest.manifestId ||
+    stableAuthorityStringify(
+      record.livingFrameCompositionEvidence ?? null,
+    ) !== stableAuthorityStringify(
+      response.livingFrameCompositionEvidence ?? null,
+    ) ||
     manifestSha256 !== sha256AuthorityValue(withoutHash)
   ) throw blocked('Private-review manifest integrity failed during replay.')
 }

@@ -116,6 +116,13 @@ const approvedLivingFrameOverlaysSchema = z.array(z.object({
     .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES - 1),
   endFrameExclusive: z.number().int().positive()
     .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES),
+  motionSpecDigestSha256: sha,
+  depthStyle: z.enum([
+    'flat',
+    'shallow_2_5d',
+    'deep_multiplane',
+  ]),
+  cameraOrSourceAttentionApplied: z.boolean(),
   manifestArtifactId: identity,
   manifestSha256: sha,
   manifestByteLength: z.number().int().positive().max(1024 * 1024),
@@ -457,6 +464,9 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     approvedLivingFrameOverlayDependencyRead: z.boolean(),
     approvedLivingFrameOverlayTimelineApplied: z.boolean(),
     approvedLivingFrameOverlayBelowCaptionsApplied: z.boolean(),
+    approvedLivingFrameDeterministicMotionApplied: z.boolean(),
+    approvedLivingFrameAdaptiveDepthStyleApplied: z.boolean(),
+    approvedLivingFrameCameraOrSourceAttentionApplied: z.boolean(),
     approvedColorDependencyRead: z.boolean(),
     approvedColorDependencyInputMode: z.enum([
       'not_applicable',
@@ -591,6 +601,17 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
       livingFrameEnabled ||
     value.tool.approvedLivingFrameOverlayBelowCaptionsApplied !==
       livingFrameEnabled ||
+    value.tool.approvedLivingFrameDeterministicMotionApplied !==
+      livingFrameEnabled ||
+    value.tool.approvedLivingFrameAdaptiveDepthStyleApplied !==
+      livingFrameEnabled ||
+    value.tool.approvedLivingFrameCameraOrSourceAttentionApplied !==
+      Boolean(
+        livingFrameOverlays?.some(
+          (overlay) =>
+            overlay.cameraOrSourceAttentionApplied,
+        ),
+      ) ||
     livingFrameOverlays?.some((overlay) =>
       overlay.endFrameExclusive > value.qa.frameCount)
   ) {
@@ -934,6 +955,9 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
     approvedLivingFrameOverlayDependencyRead: z.boolean(),
     approvedLivingFrameOverlayTimelineApplied: z.boolean(),
     approvedLivingFrameOverlayBelowCaptionsApplied: z.boolean(),
+    approvedLivingFrameDeterministicMotionApplied: z.boolean(),
+    approvedLivingFrameAdaptiveDepthStyleApplied: z.boolean(),
+    approvedLivingFrameCameraOrSourceAttentionApplied: z.boolean(),
     approvedColorDependencyRead: z.boolean(),
     approvedColorDependencyInputMode: z.enum([
       'not_applicable',
@@ -1045,7 +1069,10 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
     !value.tool.approvedLivingFrameLayerManifestDependencyRead &&
     !value.tool.approvedLivingFrameOverlayDependencyRead &&
     !value.tool.approvedLivingFrameOverlayTimelineApplied &&
-    !value.tool.approvedLivingFrameOverlayBelowCaptionsApplied
+    !value.tool.approvedLivingFrameOverlayBelowCaptionsApplied &&
+    !value.tool.approvedLivingFrameDeterministicMotionApplied &&
+    !value.tool.approvedLivingFrameAdaptiveDepthStyleApplied &&
+    !value.tool.approvedLivingFrameCameraOrSourceAttentionApplied
   if (
     value.chunkAuthority.globalEndFrameExclusive - value.chunkAuthority.globalStartFrame !==
       value.chunkAuthority.durationFrames ||

@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import {
   CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
+  CANONICAL_LIVING_FRAME_GENERATED_OPAQUE_STILL_OUTPUT_ROLE,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_INPUT_VERSION,
@@ -69,30 +70,52 @@ const rembgGpuMaskWorkItemSchema = z.object({
       workRequirementDigestSha256: digestSchema,
       inputAssetIntentIds: uniqueSafeKeysSchema,
       outputAssetIntentIds: uniqueSafeKeysSchema,
-      sourceFrameDependency: z.object({
-        workItemKey: safeKeySchema,
-        outputKey: safeKeySchema,
-        artifactType: z.literal(
-          CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
-        ),
-        sourceSequenceItemId: safeKeySchema,
-        sourceCleanupDecisionId: safeKeySchema,
-        masterFrameIndex: z.number().int().nonnegative(),
-        sourceFrameIndex: z.number().int().nonnegative(),
-        frameRate: z.union([
-          z.literal(24),
-          z.literal(25),
-          z.literal(30),
-          z.literal(50),
-          z.literal(60),
-        ]),
-        frameSelectionPolicy: z.literal(
-          'approved_source_frame_ordinal_v1',
-        ),
-        sourceFrameSelectionDigestSha256:
-          digestSchema,
-        contentType: z.literal('image/png'),
-      }).strict(),
+      sourceDependency: z.discriminatedUnion(
+        'sourceVariant',
+        [
+          z.object({
+            sourceVariant: z.literal(
+              'canonical_source_frame',
+            ),
+            workItemKey: safeKeySchema,
+            outputKey: safeKeySchema,
+            artifactType: z.literal(
+              CANONICAL_EXACT_SOURCE_FRAME_PNG_OUTPUT_ROLE,
+            ),
+            sourceSequenceItemId: safeKeySchema,
+            sourceCleanupDecisionId: safeKeySchema,
+            masterFrameIndex:
+              z.number().int().nonnegative(),
+            sourceFrameIndex:
+              z.number().int().nonnegative(),
+            frameRate: z.union([
+              z.literal(24),
+              z.literal(25),
+              z.literal(30),
+              z.literal(50),
+              z.literal(60),
+            ]),
+            frameSelectionPolicy: z.literal(
+              'approved_source_frame_ordinal_v1',
+            ),
+            sourceFrameSelectionDigestSha256:
+              digestSchema,
+            contentType: z.literal('image/png'),
+          }).strict(),
+          z.object({
+            sourceVariant: z.literal(
+              'living_frame_generated_opaque_still',
+            ),
+            workItemKey: safeKeySchema,
+            outputKey: safeKeySchema,
+            artifactType: z.literal(
+              CANONICAL_LIVING_FRAME_GENERATED_OPAQUE_STILL_OUTPUT_ROLE,
+            ),
+            assetIntentId: safeKeySchema,
+            contentType: z.literal('image/png'),
+          }).strict(),
+        ],
+      ),
       runtimePolicy: z.object({
         executionTarget: z.literal(
           'google_cloud_run_gpu',
@@ -125,8 +148,14 @@ const rembgGpuMaskWorkItemSchema = z.object({
       artifactQaPassRequired: z.literal(true),
     }).strict(),
   }).strict(),
-  sourceSequenceItemIds: z.tuple([safeKeySchema]),
-  sourceCleanupDecisionIds: z.tuple([safeKeySchema]),
+  sourceSequenceItemIds: z.union([
+    z.tuple([safeKeySchema]),
+    z.tuple([]),
+  ]),
+  sourceCleanupDecisionIds: z.union([
+    z.tuple([safeKeySchema]),
+    z.tuple([]),
+  ]),
   expectedOutputs: z.tuple([expectedOutputSchema]),
   dependencyKeys: z.array(safeKeySchema)
     .min(1)
@@ -165,7 +194,7 @@ export function assertCanonicalLivingFrameRembgGpuMaskWorkItem(
   const workItem = parsed.data
   const payload =
     workItem.executionInput.structuredPayload
-  const source = payload.sourceFrameDependency
+  const source = payload.sourceDependency
   const output = workItem.expectedOutputs[0]
   const profile = getProductionToolProfile('rembg')
   const operation =
@@ -187,18 +216,46 @@ export function assertCanonicalLivingFrameRembgGpuMaskWorkItem(
     || !workItem.dependencyKeys.includes(
       source.workItemKey,
     )
-    || !source.workItemKey.endsWith(
-      '-exact-source-frame-png',
-    )
-    || workItem.sourceSequenceItemIds[0] !==
-      source.sourceSequenceItemId
-    || workItem.sourceCleanupDecisionIds[0] !==
-      source.sourceCleanupDecisionId
     || workItem.executionInput
       .expectedOutputKeys[0] !== output.outputKey
+    || payload.inputAssetIntentIds.length !== 1
+    || payload.outputAssetIntentIds.length !== 1
   ) {
     throw invalid(
       'Living Frame rembg work item lost its exact tool, CUDA-only placement, source dependency, or output authority.',
+    )
+  }
+  if (
+    source.sourceVariant === 'canonical_source_frame'
+  ) {
+    if (
+      !source.workItemKey.endsWith(
+        '-exact-source-frame-png',
+      )
+      || workItem.sourceSequenceItemIds.length !== 1
+      || workItem.sourceCleanupDecisionIds.length !== 1
+      || workItem.sourceSequenceItemIds[0] !==
+        source.sourceSequenceItemId
+      || workItem.sourceCleanupDecisionIds[0] !==
+        source.sourceCleanupDecisionId
+    ) {
+      throw invalid(
+        'Living Frame rembg source-frame branch lost its exact source and cleanup lineage.',
+      )
+    }
+  } else if (
+    workItem.sourceSequenceItemIds.length !== 0
+    || workItem.sourceCleanupDecisionIds.length !== 0
+    || !source.workItemKey.endsWith(
+      '-generate-image-asset',
+    )
+    || source.outputKey !==
+      `${source.workItemKey}-output-001`
+    || payload.inputAssetIntentIds[0] !==
+      source.assetIntentId
+  ) {
+    throw invalid(
+      'Living Frame rembg generated-still branch lost its exact generated output lineage or was relabeled as source media.',
     )
   }
 }

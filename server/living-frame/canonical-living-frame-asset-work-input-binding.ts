@@ -898,7 +898,9 @@ function resolveInputState(
   if (
     intent.stage === 'source_or_generated_anchor'
   ) {
-    return 'pending_provider_asset_artifact'
+    return intent.expectedNamedWorkItemTypes.length > 0
+      ? 'pending_named_work_output'
+      : 'pending_provider_asset_artifact'
   }
   return 'pending_named_work_output'
 }

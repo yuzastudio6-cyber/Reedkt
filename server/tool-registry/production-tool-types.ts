@@ -94,6 +94,7 @@ export const NON_E2E_TOOL_CAPABILITY_IDS = [
   'cesium_js',
   'torch_torchvision',
   'transformers',
+  'comfyui',
   'revideo',
 ] as const
 

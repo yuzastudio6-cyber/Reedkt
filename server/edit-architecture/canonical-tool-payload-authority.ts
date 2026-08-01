@@ -47,6 +47,7 @@ import {
 import {
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORK_ITEM_OPERATION,
   CANONICAL_LIVING_FRAME_SHARP_COMPONENT_WORK_ITEM_OPERATION,
+  type CanonicalLivingFrameRembgGpuMaskWorkItem,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import {
   assertCanonicalVisualCalibrationObjectiveQaWorkItem,
@@ -400,9 +401,12 @@ function validateByRunnerFamily(
       assertCanonicalLivingFrameSharpComponentWorkItem(
         workItem,
       )
+      const generatedSourceBranch =
+        workItem.sourceSequenceItemIds.length === 0
+        && workItem.sourceCleanupDecisionIds.length === 0
       requireBinding(workItem, {
-        source: 1,
-        cleanup: 1,
+        source: generatedSourceBranch ? 0 : 1,
+        cleanup: generatedSourceBranch ? 0 : 1,
         dependencies: 2,
       })
       return 'sharp_living_frame_alpha_component'
@@ -717,9 +721,17 @@ function validateByRunnerFamily(
       assertCanonicalLivingFrameRembgGpuMaskWorkItem(
         workItem,
       )
+      const sourceDependency =
+        (workItem as unknown as
+          CanonicalLivingFrameRembgGpuMaskWorkItem)
+          .executionInput.structuredPayload
+          .sourceDependency
+      const generatedSourceBranch =
+        sourceDependency.sourceVariant ===
+          'living_frame_generated_opaque_still'
       requireBinding(workItem, {
-        source: 1,
-        cleanup: 1,
+        source: generatedSourceBranch ? 0 : 1,
+        cleanup: generatedSourceBranch ? 0 : 1,
         dependencies: 1,
       })
       return 'rembg_gpu_mask_planning'

@@ -1,0 +1,596 @@
+import {
+  bindLivingFrameCanonicalPlanning,
+  createLivingFrameSemanticReasoningRequest,
+  createLivingFrameSemanticSceneProposalBinding,
+  createLivingFrameSemanticSceneProposalFixtureInputs,
+  createLivingFrameVisualContinuityPack,
+  livingFrameOutputFrameDigestProjection,
+  type LivingFrameSemanticReasoningRequest,
+  type LivingFrameVisualContinuityPack,
+  type LivingFrameVisualContinuityPackDraft,
+} from '../../../src/lib/living-frame'
+import {
+  createProfessionalSkillPlan,
+} from '../../../src/lib/professional-skills'
+import {
+  buildProfessionalExportCreditCoverage,
+} from '../../../src/lib/professional-export-policy'
+import type {
+  PlannerInput,
+} from '../../../src/types/reeditpro'
+import type {
+  LivingFrameSelectedSceneAuthorityExpectation,
+} from '../../../src/types/living-frame-selected-scene-admission'
+import {
+  canonicalPlanComponentsSchema,
+  type CanonicalPlanComponentsInput,
+} from '../../validation/edit-planning-authority-schemas'
+import {
+  sha256AuthorityValue,
+} from '../../services/private-edit-authority-store'
+import {
+  compileCanonicalLivingFrameSelectedSceneBinding,
+} from '../../living-frame/canonical-living-frame-selected-scene-binding'
+import {
+  compileLivingFrameSelectedSceneAdmission,
+} from '../../living-frame/living-frame-selected-scene-admission'
+import {
+  compileLivingFrameSemanticPlanProjection,
+} from '../../living-frame/living-frame-semantic-plan-projection'
+import type {
+  CreateLivingFrameControlledImageSelectedSceneVisualContinuityPackBindingInput,
+} from '../../living-frame/living-frame-controlled-image-selected-scene-visual-continuity-pack-binding'
+
+let sequence = 0
+
+export type LivingFrameSelectedSceneConditioningStyleFixtureProfile =
+  | 'cinematic_anime_deep_multiplane'
+  | 'editorial_cutout_flat'
+  | 'paper_collage_shallow_2_5d'
+  | 'graphic_novel_dimensional'
+
+export type LivingFrameSelectedSceneFixtureScenario =
+  | 'musashi'
+  | 'hormuz'
+
+export async function createLivingFrameSelectedSceneVisualContinuityPackBindingSmokeFixture(
+  options?: {
+    readonly includeGeneratedBackgroundPlate?: boolean
+    readonly conditioningStyleProfile?:
+      LivingFrameSelectedSceneConditioningStyleFixtureProfile
+    readonly scenario?:
+      LivingFrameSelectedSceneFixtureScenario
+  },
+): Promise<{
+  readonly input:
+    CreateLivingFrameControlledImageSelectedSceneVisualContinuityPackBindingInput
+}> {
+  const suffix = nextId()
+  const baseComponents = createCanonicalComponents(suffix)
+  const professionalSkillPlan = createProfessionalSkillPlan({
+    plannerInput: createPlannerInput(suffix),
+  })
+  const deferred = await bindLivingFrameCanonicalPlanning({
+    professionalSkillPlan,
+    components: baseComponents,
+  })
+  if (!deferred.livingFrame) {
+    throw new Error('Missing deferred Living Frame fixture component.')
+  }
+  const components = canonicalPlanComponentsSchema.parse({
+    ...baseComponents,
+    livingFrame: deferred.livingFrame,
+  })
+  const canonicalScope = {
+    workspaceId: `workspace.lf.pack-binding.${suffix}`,
+    projectId: `project.lf.pack-binding.${suffix}`,
+    editSessionId: `edit.lf.pack-binding.${suffix}`,
+    handoffId: `handoff.lf.pack-binding.${suffix}`,
+  } as const
+  const handoffHash = hash(`handoff-hash-${suffix}`)
+  const planningEvidenceDigest = hash(`planning-evidence-${suffix}`)
+  const fixtureInputs =
+    await createLivingFrameSemanticSceneProposalFixtureInputs()
+  const scenario = options?.scenario ?? 'musashi'
+  const scenarioFixture = fixtureInputs[scenario]
+  const sourceRequest =
+    scenarioFixture.request as LivingFrameSemanticReasoningRequest
+  const alignedRequest = await alignRequest({
+    request: sourceRequest,
+    canonicalScope,
+    planningEvidenceDigest,
+  })
+  const sourcePack =
+    scenarioFixture.continuityPack as
+      | LivingFrameVisualContinuityPack
+      | null
+  if (!sourcePack) {
+    throw new Error('Missing visual continuity pack fixture.')
+  }
+  const alignedPack = await alignPack({
+    pack: sourcePack,
+    components,
+    deferredComponentDigestSha256:
+      deferred.livingFrame.contractDigestSha256,
+    canonicalScope,
+    planningEvidenceDigest,
+    alignedRequestDigestSha256:
+      alignedRequest.contractDigestSha256,
+    conditioningStyleProfile:
+      options?.conditioningStyleProfile,
+  })
+  const semanticProposalBinding =
+    await createLivingFrameSemanticSceneProposalBinding({
+      request: alignedRequest,
+      result: options?.includeGeneratedBackgroundPlate
+        ? withGeneratedBackgroundPlate(
+          scenarioFixture.result,
+          scenario,
+        )
+        : scenarioFixture.result,
+      continuityPack: alignedPack,
+    })
+  const semanticPlanProjection =
+    await compileLivingFrameSemanticPlanProjection({
+      deferredComponent: deferred.livingFrame,
+      semanticProposalBinding,
+    })
+  const selectedSceneAdmission =
+    await compileLivingFrameSelectedSceneAdmission({
+      canonicalScope,
+      semanticPlanProjection,
+      authorityExpectations: [
+        expectation('canonical_planning_handoff', handoffHash),
+        expectation('planning_evidence', planningEvidenceDigest),
+        expectation(
+          'source_speech_evidence',
+          hash(`source-speech-not-required-${suffix}`),
+        ),
+        expectation(
+          'route_data_assurance',
+          hash(`controlled-route-assurance-${suffix}`),
+        ),
+        expectation(
+          'released_reasoning_result',
+          semanticProposalBinding.contractDigestSha256,
+        ),
+        expectation(
+          'visual_continuity_pack',
+          alignedPack.contractDigestSha256,
+        ),
+        expectation(
+          'confirmed_output_frame',
+          semanticPlanProjection.projectedComponent.inputBindings
+            .outputFrame.expectedDigestSha256,
+        ),
+        expectation(
+          'current_master_timing',
+          semanticPlanProjection.projectedComponent.inputBindings
+            .masterTiming.expectedDigestSha256,
+        ),
+      ],
+    })
+  const selectedSceneBinding =
+    await compileCanonicalLivingFrameSelectedSceneBinding({
+      identity: {
+        ...canonicalScope,
+        handoffHash,
+        canonicalPlanComponentsHash:
+          sha256AuthorityValue(components),
+      },
+      components,
+      semanticPlanProjection,
+      admission: selectedSceneAdmission,
+      decision: {
+        decision: 'selected_scenes',
+        selectedScenes:
+          selectedSceneAdmission.candidateScenes.map((scene) => ({
+            sceneId: scene.sceneId,
+            treatment: 'use_full',
+          })),
+        reasonCode: 'selective_motion_improves_comprehension',
+      },
+    })
+  return {
+    input: {
+      bindingId: `living-frame.pack-binding.${suffix}`,
+      components,
+      semanticProposalBinding,
+      semanticPlanProjection,
+      selectedSceneAdmission,
+      selectedSceneBinding,
+    },
+  }
+}
+
+function withGeneratedBackgroundPlate<T>(
+  result: T,
+  scenario: LivingFrameSelectedSceneFixtureScenario,
+): T {
+  const clone = structuredClone(result) as T
+  const root = clone as {
+    sceneProposals: Array<{
+      components: Array<Record<string, unknown>>
+    }>
+  }
+  const scene = root.sceneProposals[0]
+  if (!scene) {
+    throw new Error('Missing selected Living Frame scene proposal fixture.')
+  }
+  if (scenario === 'musashi') {
+    const sword = scene.components.find(
+      (component) =>
+        component.componentKey === 'component.sword',
+    )
+    if (!sword || !Array.isArray(sword.capabilityKeys)) {
+      throw new Error('Missing Musashi sword component fixture.')
+    }
+    if (!sword.capabilityKeys.includes(
+      'still_image_generation_or_edit',
+    )) {
+      sword.capabilityKeys.push(
+        'still_image_generation_or_edit',
+      )
+    }
+  }
+  const componentPrefix =
+    scenario === 'musashi'
+      ? 'component.musashi'
+      : 'component.hormuz'
+  const evidenceRefId =
+    scenario === 'musashi'
+      ? 'evidence.musashi.visual'
+      : 'evidence.hormuz.visual'
+  scene.components.push({
+    componentKey: `${componentPrefix}.background`,
+    order: scene.components.length,
+    role: 'opaque_background_plate',
+    focalRole: 'static_anchor',
+    derivedSummary: scenario === 'musashi'
+      ? 'A full-frame illustrated duel-clearing plate preserves negative space and deep multiplane separation behind the isolated character.'
+      : 'A restrained full-frame regional atmosphere plate preserves negative space behind the exact deterministic map and route layers.',
+    parentComponentKey: null,
+    anchorComponentKey: null,
+    depthBand: 'background',
+    transparencyExpectation: 'opaque_plate',
+    alphaSourceExpectation: 'opaque_plate',
+    provenanceExpectation: 'generated_illustration_expectation',
+    capabilityKeys: [
+      'still_image_generation_or_edit',
+    ],
+    evidenceCitations: [{ evidenceRefId }],
+  })
+  return clone
+}
+
+async function alignRequest(input: {
+  readonly request: LivingFrameSemanticReasoningRequest
+  readonly canonicalScope: {
+    readonly workspaceId: string
+    readonly projectId: string
+    readonly editSessionId: string
+    readonly handoffId: string
+  }
+  readonly planningEvidenceDigest: string
+}): Promise<LivingFrameSemanticReasoningRequest> {
+  const {
+    semanticPayloadDigestSha256: omittedSemanticPayloadDigest,
+    contractDigestSha256: omittedRequestDigest,
+    outputContract,
+    ...requestBase
+  } = input.request
+  const {
+    outputJsonSchemaDigestSha256: omittedOutputSchemaDigest,
+    ...outputContractDraft
+  } = outputContract
+  void omittedSemanticPayloadDigest
+  void omittedRequestDigest
+  void omittedOutputSchemaDigest
+  return createLivingFrameSemanticReasoningRequest({
+    ...requestBase,
+    canonicalBindings: {
+      ...requestBase.canonicalBindings,
+      ...input.canonicalScope,
+      preapprovalInputAuthorityDigestSha256:
+        hash(`preapproval-${input.canonicalScope.handoffId}`),
+      visualEvidenceBindingDigestSha256:
+        input.planningEvidenceDigest,
+    },
+    semanticPayload: {
+      ...requestBase.semanticPayload,
+      evidence: {
+        ...requestBase.semanticPayload.evidence,
+        visualEvidenceBindingDigestSha256:
+          input.planningEvidenceDigest,
+      },
+    },
+    outputContract: outputContractDraft,
+  })
+}
+
+async function alignPack(input: {
+  readonly pack: LivingFrameVisualContinuityPack
+  readonly components: CanonicalPlanComponentsInput
+  readonly deferredComponentDigestSha256: string
+  readonly canonicalScope: {
+    readonly workspaceId: string
+    readonly projectId: string
+    readonly editSessionId: string
+    readonly handoffId: string
+  }
+  readonly planningEvidenceDigest: string
+  readonly alignedRequestDigestSha256: string
+  readonly conditioningStyleProfile?:
+    LivingFrameSelectedSceneConditioningStyleFixtureProfile
+}): Promise<LivingFrameVisualContinuityPack> {
+  const {
+    contractDigestSha256: omittedPackDigest,
+    ...packDraft
+  } = input.pack
+  void omittedPackDigest
+  const styledPackDraft = applyConditioningStyleProfile(
+    packDraft,
+    input.conditioningStyleProfile,
+  )
+  return createLivingFrameVisualContinuityPack({
+    ...styledPackDraft,
+    canonicalBindings: {
+      ...styledPackDraft.canonicalBindings,
+      ...input.canonicalScope,
+      deferredLivingFrameComponentDigestSha256:
+        input.deferredComponentDigestSha256,
+      planningEvidenceBindingDigestSha256:
+        input.planningEvidenceDigest,
+      preapprovalReasoningResultBindingDigestSha256:
+        input.alignedRequestDigestSha256,
+      compiledIntentDigestSha256:
+        sha256AuthorityValue(input.components.compiledIntent),
+      sourceSequenceDigestSha256:
+        sha256AuthorityValue(input.components.sourceSequence),
+      outputFrameDigestSha256: sha256AuthorityValue(
+        livingFrameOutputFrameDigestProjection(input.components),
+      ),
+    },
+  })
+}
+
+function applyConditioningStyleProfile(
+  packDraft: LivingFrameVisualContinuityPackDraft,
+  profile:
+    LivingFrameSelectedSceneConditioningStyleFixtureProfile
+    | undefined,
+): LivingFrameVisualContinuityPackDraft {
+  if (
+    !profile
+    || profile === 'cinematic_anime_deep_multiplane'
+  ) return packDraft
+  const style = conditioningStyleProfile(profile)
+  return {
+    ...packDraft,
+    styleBible: {
+      ...packDraft.styleBible,
+      summary: style.summary,
+      assetTreatment: style.assetTreatment,
+      lineLanguage: style.lineLanguage,
+      lightingCharacter: style.lightingCharacter,
+      edgeTreatment: style.edgeTreatment,
+      textureTreatment: style.textureTreatment,
+      detailDensity: style.detailDensity,
+    },
+    environmentSheets: packDraft.environmentSheets.map(
+      (sheet) => ({
+        ...sheet,
+        depthStyle: style.depthStyle,
+      }),
+    ),
+    sceneDesignSheets: packDraft.sceneDesignSheets.map(
+      (sheet) => ({
+        ...sheet,
+        depthStyle: style.depthStyle,
+      }),
+    ),
+    motionLanguageSheet: {
+      ...packDraft.motionLanguageSheet,
+      cameraCharacter: style.cameraCharacter,
+    },
+  }
+}
+
+function conditioningStyleProfile(
+  profile:
+    Exclude<
+      LivingFrameSelectedSceneConditioningStyleFixtureProfile,
+      'cinematic_anime_deep_multiplane'
+    >,
+) {
+  switch (profile) {
+    case 'editorial_cutout_flat':
+      return {
+        summary:
+          'Flat premium editorial cutout language with bold silhouettes, restrained ink, and deliberate negative space.',
+        assetTreatment: 'editorial_cutout' as const,
+        lineLanguage: 'bold_silhouette' as const,
+        lightingCharacter: 'graphic' as const,
+        edgeTreatment: 'clean' as const,
+        textureTreatment: 'clean_digital' as const,
+        detailDensity: 'sparse' as const,
+        depthStyle: 'flat' as const,
+        cameraCharacter: 'locked' as const,
+      }
+    case 'paper_collage_shallow_2_5d':
+      return {
+        summary:
+          'Premium paper-collage illustration with controlled material edges and restrained shallow depth.',
+        assetTreatment: 'paper_collage' as const,
+        lineLanguage: 'mixed_weight_ink' as const,
+        lightingCharacter: 'graphic' as const,
+        edgeTreatment: 'torn_paper' as const,
+        textureTreatment: 'paper' as const,
+        detailDensity: 'balanced' as const,
+        depthStyle: 'shallow_2_5d' as const,
+        cameraCharacter: 'restrained_documentary' as const,
+      }
+    case 'graphic_novel_dimensional':
+      return {
+        summary:
+          'Dimensional premium graphic-novel language with disciplined ink, coherent volume, and controlled spatial drama.',
+        assetTreatment: 'graphic_novel' as const,
+        lineLanguage: 'mixed_weight_ink' as const,
+        lightingCharacter: 'hard_side' as const,
+        edgeTreatment: 'inked' as const,
+        textureTreatment: 'ink_bleed' as const,
+        detailDensity: 'rich' as const,
+        depthStyle: 'dimensional' as const,
+        cameraCharacter: 'controlled_orbit' as const,
+      }
+  }
+}
+
+function expectation(
+  authorityKind:
+    LivingFrameSelectedSceneAuthorityExpectation['authorityKind'],
+  authorityDigestSha256: string,
+): LivingFrameSelectedSceneAuthorityExpectation {
+  return {
+    authorityKind,
+    expectationState: 'controlled_current_match',
+    authorityDigestSha256,
+  }
+}
+
+function createPlannerInput(suffix: string): PlannerInput {
+  return {
+    projectName: `Living Frame continuity-pack binding ${suffix}`,
+    targetPlatform: 'youtube',
+    aspectRatio: '16:9',
+    aspectRatioConfirmed: true,
+    frameTemplateType: 'horizontal_wide_frame',
+    editingCategory: 'education_explainer',
+    workflowType: 'education_explainer',
+    editLevel: 'pro',
+    structurePreference: 'improve_if_needed',
+    moodStyle: 'premium',
+    visualPreference: 'balanced_visual_mix',
+    referenceUrl: '',
+    customInstructions:
+      'Use Living Frame selectively for the central explanation.',
+    creditPreference: 'balanced',
+    clips: [{
+      id: `living-frame-source-${suffix}`,
+      uploadedOrder: 1,
+      fileName: 'source-one.mp4',
+      duration: '0:05',
+      detectedType: 'talking_head',
+      sourceOrderLocked: true,
+    }],
+  }
+}
+
+function createCanonicalComponents(
+  suffix: string,
+): CanonicalPlanComponentsInput {
+  const professionalExportCoverage = buildProfessionalExportCreditCoverage({
+    durationSeconds: 5,
+    outputFps: 30,
+    approvedAspectRatio: '16:9',
+  })
+  return canonicalPlanComponentsSchema.parse({
+    compiledIntent: {
+      goalSummary:
+        'Explain one concept with a deferred Living Frame direction.',
+    },
+    professionalEditingDirective: {
+      mustFollowRules: ['Preserve source meaning.'],
+    },
+    confirmedSettings: {
+      aspectRatio: '16:9',
+      outputFrame: { width: 3840, height: 2160, fps: 30 },
+      outputFramePurpose: 'private_canonical_4k_master_review',
+      professionalExportCoverage,
+      outputFrameConfirmed: true,
+      sourceOrderConfirmed: true,
+      sourceCleanupConfirmed: true,
+      editLevel: 'pro',
+      targetPlatform: 'youtube',
+      preferenceSnapshotId: `living-frame-preference-${suffix}`,
+      preferenceRevision: 1,
+      preferencePlanningInputRevision: 1,
+      preferenceFingerprintSha256: hash(`preference-${suffix}`),
+    },
+    sourceSequence: [{
+      sourceSequenceItemId: `source-${suffix}`,
+      mediaAssetId: `media-asset-${suffix}`,
+      uploadedOrder: 1,
+      checksumSha256: hash(`source-checksum-${suffix}`),
+      required: true,
+    }],
+    sourceCleanupSummary: {
+      status: 'confirmed',
+      cleanupPreference: 'balanced_cleanup',
+      trimValidationStatus: 'passed',
+      meaningValidationStatus: 'passed',
+      userReviewRequired: false,
+    },
+    sourceCleanupPlan: {
+      status: 'confirmed',
+      decisions: [{
+        decisionId: `cleanup-${suffix}`,
+        sourceSequenceItemId: `source-${suffix}`,
+        action: 'preserve',
+        startFrame: 0,
+        endFrameExclusive: 150,
+        reason: 'Preserve the complete approved source meaning.',
+        confidence: 1,
+        meaningPreservationStatus: 'passed',
+        userReviewStatus: 'not_required',
+      }],
+    },
+    masterTimingPlan: {
+      id: `master-timing-${suffix}`,
+      status: 'ready',
+      timingBase: { fps: 30, totalFrames: 150 },
+      totalFrames: 150,
+    },
+    captionVisualCueTimingPlan: { status: 'synced' },
+    soundSyncTransitionTimingPlan: {
+      status: 'ready_mock',
+      speechPriority: true,
+    },
+    timingValidationPlan: {
+      overallStatus: 'passed',
+      approvalBlocked: false,
+    },
+    timingSummary: {
+      validationStatus: 'passed',
+      approvalBlocked: false,
+      fps: 30,
+      totalFrames: 150,
+    },
+    segments: [{
+      segmentId: `segment-${suffix}`,
+      startFrame: 0,
+      endFrameExclusive: 150,
+      operationIds: [`operation-${suffix}`],
+    }],
+    visualAssetPlan: { status: 'not_needed' },
+    colorPipelinePlan: { status: 'not_provided' },
+    rendererPlan: {
+      renderer: 'remotion',
+      frameOwnedByRenderer: true,
+    },
+    toolStrategyPlan: { toolIds: [] },
+    qaPlan: { checks: [] },
+    qaSummary: { status: 'passed', approvalBlocked: false },
+    providerPolicy: { veoPolicy: 'forbidden', approvedRoutes: [] },
+    fallbackPolicy: { unapprovedFallbackAllowed: false },
+  })
+}
+
+function hash(value: string): string {
+  return sha256AuthorityValue(value)
+}
+
+function nextId(): string {
+  sequence += 1
+  return String(sequence).padStart(3, '0')
+}

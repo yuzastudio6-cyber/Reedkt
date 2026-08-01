@@ -31,6 +31,28 @@ Only after those checks pass does the service persist a create-only, credential-
 
 The final artifact remains available only through the existing authenticated private download route. The assembly response contains no filesystem path, public URL, signed URL, dispatch credential, or provider secret.
 
+### Living Frame composition evidence
+
+When the approved final Remotion composition contains Living Frame overlays,
+the same private-review assembly now emits one optional
+`livingFrameCompositionEvidence` block. It is derived only from the immutable
+approved work graph and the server-selected private artifact/QA aggregate. For
+every overlay it binds:
+
+- the approved scene and renderer-layer identity;
+- the exact frame range below the caption plane;
+- the tool-free approved layer-manifest artifact;
+- the approved Sharp RGBA component artifact;
+- their QA-passed and private-reconciled records; and
+- the final Remotion artifact's runner and render-preflight evidence hashes.
+
+Missing, duplicate, stale, placeholder, failed-QA, unreconciled, or
+caption-above-overlay lineage blocks assembly. Ordinary edits remain unchanged
+and omit the optional block. This is additional traceability inside the
+existing private-review authority; it does not create a Living Frame review
+system or authorize further rendering, public delivery, customer charging, or
+production.
+
 ## Current executable evidence
 
 The prior aggregate baseline publishes and funds a five-job single-caption plan and completes this graph:

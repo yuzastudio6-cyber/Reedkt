@@ -50,3 +50,18 @@ canonical read-only mount authority. The candidate still needs a clean
 Linux/amd64 image build, immutable digest inspection, L4 CUDA/model-load
 benchmark, live service-identity/IAM proof, private input/output transport,
 artifact QA/reconciliation, and attempt-cost evidence.
+
+## Local SAM2 runtime-confinement observation
+
+`sam2/Dockerfile.local-runtime-confinement-candidate` is an adjacent,
+host-local internal probe. When the exact
+`reeditpro/ai-graphics-gpu-worker:proof-local` parent image exists, it derives
+a fixed-entrypoint non-root wrapper and verifies the pinned SAM2 source,
+selected native config, license, native video-predictor builder, Torch,
+TorchVision, and CUDA build under network-disabled Linux/amd64 CPU emulation.
+
+It accepts no model mount, checkpoint, prompt, media, output path, caller
+arguments, or root override. It loads no checkpoint and runs no inference.
+Therefore it is source/config/runtime packaging evidence only, not an admitted
+SAM2 image, L4 execution result, mask artifact, cost receipt, dispatch, or
+production proof.

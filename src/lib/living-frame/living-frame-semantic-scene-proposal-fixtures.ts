@@ -674,6 +674,24 @@ function musashiResult(): LivingFrameSemanticSceneProposalResult {
         provenanceExpectation: 'deterministic_draw_expectation',
         capabilityKeys: [
           'deterministic_vector_drawing',
+        ],
+        evidenceCitations: [{
+          evidenceRefId: 'evidence.musashi.visual',
+        }],
+      }, {
+        componentKey: 'component.dust',
+        order: 3,
+        role: 'environmental_effect',
+        focalRole: 'ambient',
+        derivedSummary:
+          'Sparse procedural dust follows the strike and settles without becoming evidence.',
+        parentComponentKey: null,
+        anchorComponentKey: 'component.musashi',
+        depthBand: 'foreground',
+        transparencyExpectation: 'procedural_alpha',
+        alphaSourceExpectation: 'procedural_alpha_requires_qa',
+        provenanceExpectation: 'deterministic_draw_expectation',
+        capabilityKeys: [
           'deterministic_particle_effects',
         ],
         evidenceCitations: [{
@@ -686,6 +704,10 @@ function musashiResult(): LivingFrameSemanticSceneProposalResult {
         kind: 'anchored_to',
       }, {
         componentKey: 'component.ink',
+        dependsOnComponentKey: 'component.sword',
+        kind: 'depends_on',
+      }, {
+        componentKey: 'component.dust',
         dependsOnComponentKey: 'component.sword',
         kind: 'depends_on',
       }],
@@ -714,6 +736,20 @@ function musashiResult(): LivingFrameSemanticSceneProposalResult {
         derivedSummary:
           'Reveal a restrained procedural ink trail after the sword action.',
         linkedComponentKeys: ['component.ink'],
+        linkedTimingConstraintKeys: ['timing.musashi.demonstrate'],
+        dependsOnActivationKeys: ['activation.musashi.sword'],
+        conflictsWithActivationKeys: [],
+      }, {
+        activationKey: 'activation.musashi.environment',
+        order: 2,
+        miniSkillKey: 'environmental_motion',
+        role: 'supporting',
+        decision: 'use_subtle',
+        intensity: 'subtle',
+        reasonCode: 'selective_motion_improves_comprehension',
+        derivedSummary:
+          'Use sparse foreground dust as a restrained secondary response to the strike.',
+        linkedComponentKeys: ['component.dust'],
         linkedTimingConstraintKeys: ['timing.musashi.demonstrate'],
         dependsOnActivationKeys: ['activation.musashi.sword'],
         conflictsWithActivationKeys: [],

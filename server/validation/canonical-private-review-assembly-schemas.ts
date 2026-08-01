@@ -29,6 +29,108 @@ const artifactAuthority = z.object({
   privateObjectIdentityHash: sha,
 }).strict()
 
+const livingFrameReviewArtifactEvidenceSchema =
+  z.object({
+    approvedWorkItemId: identity,
+    expectedAssetId: identity,
+    artifactId: identity,
+    sha256: sha,
+    qaEvaluationId: identity,
+    reconciliationId: identity,
+  }).strict()
+
+const livingFrameCompositionEvidenceSchema =
+  z.object({
+    evidenceClass: z.literal(
+      'canonical_private_review_living_frame_composition_evidence_v1',
+    ),
+    overlayPolicy: z.literal(
+      'approved_rgba_over_source_below_captions_v1',
+    ),
+    overlayCount:
+      z.number().int().positive().max(128),
+    overlays: z.array(z.object({
+      order: z.number().int().nonnegative().max(127),
+      sceneId: identity,
+      layerId: identity,
+      startFrame: z.number().int().nonnegative(),
+      endFrameExclusive:
+        z.number().int().positive(),
+      motion: z.object({
+        motionSpecDigestSha256: sha,
+        depthStyle: z.enum([
+          'flat',
+          'shallow_2_5d',
+          'deep_multiplane',
+        ]),
+        layerTrackCount:
+          z.number().int().positive().max(32),
+        cameraTrackCount:
+          z.number().int().nonnegative().max(32),
+        sourceTrackCount:
+          z.number().int().nonnegative().max(32),
+      }).strict(),
+      layerManifest:
+        livingFrameReviewArtifactEvidenceSchema,
+      rgbaComponent:
+        livingFrameReviewArtifactEvidenceSchema,
+    }).strict()).min(1).max(128),
+    finalComposition: z.object({
+      approvedWorkItemId: identity,
+      expectedAssetId: identity,
+      artifactId: identity,
+      sha256: sha,
+      runnerEvidenceHash: sha,
+      renderPreflightEvidenceHash: sha,
+    }).strict(),
+    allLayerManifestsQaPassed: z.literal(true),
+    allRgbaComponentsQaPassed: z.literal(true),
+    allArtifactsPrivateReconciled:
+      z.literal(true),
+    captionPlaneRemainsAboveLivingFrame:
+      z.literal(true),
+    allDeterministicMotionSpecsVerified:
+      z.literal(true),
+    adaptiveDepthStyleEvidenceIncluded:
+      z.literal(true),
+    existingPrivateReviewAuthorityRemainsSoleAuthority:
+      z.literal(true),
+    customerPriceOrCreditAuthority:
+      z.literal(false),
+    furtherRenderAuthority: z.literal(false),
+    publicDeliveryAuthority: z.literal(false),
+    productionAuthority: z.literal(false),
+  }).strict().superRefine((value, context) => {
+    if (
+      value.overlayCount !== value.overlays.length
+      || value.overlays.some(
+        (overlay, index) =>
+          overlay.order !== index
+          || overlay.endFrameExclusive <=
+            overlay.startFrame,
+      )
+      || new Set(
+        value.overlays.map((overlay) =>
+          overlay.layerId),
+      ).size !== value.overlays.length
+      || new Set(
+        value.overlays.map((overlay) =>
+          overlay.layerManifest.expectedAssetId),
+      ).size !== value.overlays.length
+      || new Set(
+        value.overlays.map((overlay) =>
+          overlay.rgbaComponent.expectedAssetId),
+      ).size !== value.overlays.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['overlays'],
+        message:
+          'Living Frame private-review overlays are inconsistent.',
+      })
+    }
+  })
+
 export const canonicalPrivateReviewAssemblyResponseSchema = z.object({
   schemaVersion: z.literal('canonical-private-review-assembly-response-v1'),
   source: z.literal('canonical_private_review_assembly_service'),
@@ -63,6 +165,8 @@ export const canonicalPrivateReviewAssemblyResponseSchema = z.object({
     finalQaGatesPassed: z.literal(true),
     finalQaReportSha256: sha,
   }).strict(),
+  livingFrameCompositionEvidence:
+    livingFrameCompositionEvidenceSchema.optional(),
   internalAttemptCostEvidence: z.object({
     boundary: z.literal('internal_production_cost_only'),
     evidenceClassification: z.literal('provisional_local_metered'),
@@ -129,6 +233,31 @@ export const canonicalPrivateReviewAssemblyResponseSchema = z.object({
   responseHash: sha,
   testOnly: z.literal(true),
 }).strict().superRefine((value, context) => {
+  const livingFrame =
+    value.livingFrameCompositionEvidence
+  if (
+    livingFrame
+    && (
+      livingFrame.finalComposition.approvedWorkItemId
+        !== value.finalArtifact.approvedWorkItemId
+      || livingFrame.finalComposition.expectedAssetId
+        !== value.finalArtifact.expectedAssetId
+      || livingFrame.finalComposition.artifactId
+        !== value.finalArtifact.artifactId
+      || livingFrame.finalComposition.sha256
+        !== value.finalArtifact.sha256
+    )
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: [
+        'livingFrameCompositionEvidence',
+        'finalComposition',
+      ],
+      message:
+        'Living Frame final composition must match the canonical private-review final artifact.',
+    })
+  }
   const cost = value.internalAttemptCostEvidence
   if (!cost) return
   if (

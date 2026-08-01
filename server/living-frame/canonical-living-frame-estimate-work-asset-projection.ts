@@ -191,7 +191,11 @@ export function compileCanonicalLivingFrameEstimateWorkAssetProjection(
         ]),
       )
       const workRequirements =
-        assetWorkScene.namedWorkInputs.map((workInput) =>
+        assetWorkScene.namedWorkInputs
+        .filter((workInput) =>
+          workInput.workItemType !==
+            'generate_image_asset')
+        .map((workInput) =>
           compileWorkRequirement({
             scene,
             timingScene,
@@ -401,6 +405,8 @@ function compileInfrastructureEstimateLineItem(input: {
       input.costComponent.componentId,
     activeControlledIllustrationCapabilityIds:
       input.costComponent.activeCapabilityIds,
+    generatedAssetIntentIds:
+      input.costComponent.generatedAssetIntentIds,
     generationUnitCount:
       input.costComponent.generationUnitCount,
     attemptOrComparisonCount:

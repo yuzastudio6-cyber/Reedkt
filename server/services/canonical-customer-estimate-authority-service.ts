@@ -364,6 +364,8 @@ function compileLivingFrameEstimateLines(
         ...(item.costOwnerClass ===
           'shared_controlled_illustration_runtime'
           ? {
+              generatedAssetIntentIds:
+                item.generatedAssetIntentIds,
               generationUnitCount:
                 item.generationUnitCount,
               attemptOrComparisonCount:

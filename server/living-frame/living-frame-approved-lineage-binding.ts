@@ -657,7 +657,7 @@ function validateLayerLineage(value: unknown): value is
     || value.length > MAX_LAYER_COUNT
   ) return false
   const rendererIds = new Set<string>()
-  const componentIds = new Set<string>()
+  const workOutputSlots = new Set<string>()
   for (const [index, entry] of value.entries()) {
     if (
       !isRecord(entry)
@@ -679,7 +679,6 @@ function validateLayerLineage(value: unknown): value is
       || !SAFE_ID.test(String(entry.projectedComponentId))
       || !SAFE_ID.test(String(entry.rendererLayerId))
       || rendererIds.has(String(entry.rendererLayerId))
-      || componentIds.has(String(entry.projectedComponentId))
       || ![
         'covered_by_exact_approved_work_output_and_planned_asset',
         'missing_approved_work_output',
@@ -708,8 +707,18 @@ function validateLayerLineage(value: unknown): value is
         'covered_by_exact_approved_work_output_and_planned_asset'
       && nullableIds.some((item) => item === null)
     ) return false
+    const workOutputSlot =
+      `${String(entry.approvedWorkItemId)}\u0000${String(entry.outputKey)}`
+    if (
+      entry.approvedWorkItemId !== null
+      && entry.outputKey !== null
+      && workOutputSlots.has(workOutputSlot)
+    ) return false
     rendererIds.add(String(entry.rendererLayerId))
-    componentIds.add(String(entry.projectedComponentId))
+    if (
+      entry.approvedWorkItemId !== null
+      && entry.outputKey !== null
+    ) workOutputSlots.add(workOutputSlot)
   }
   return true
 }

@@ -159,24 +159,28 @@ export function createCanonicalPrivateSharpExecutionService(context: ServiceCont
             }
             return assets[0]!
           })
-        const sourceAsset = dependencyAssets.find(
+        const sourceAssets = dependencyAssets.filter(
           (candidate) =>
             candidate.artifactType ===
-              'approved_exact_source_frame_png',
+              'approved_exact_source_frame_png'
+            || candidate.artifactType ===
+              'living_frame_generated_opaque_still_png',
         )
+        const sourceAsset = sourceAssets[0]
         const maskAsset = dependencyAssets.find(
           (candidate) =>
             candidate.artifactType ===
               'living_frame_alpha_mask_png',
         )
         if (
+          sourceAssets.length !== 1 ||
           !sourceAsset ||
           !maskAsset ||
           sourceAsset.contentType !== 'image/png' ||
           maskAsset.contentType !== 'image/png'
         ) {
           throw denied(
-            'Sharp alpha-component requires one exact source-frame PNG and one rembg mask PNG.',
+            'Sharp alpha-component requires one approved source-frame or generated opaque-still PNG and one rembg mask PNG.',
           )
         }
         const sourceIndex = begun.lease

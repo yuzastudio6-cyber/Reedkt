@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "living-frame-animation-aware-illustration-fixture-provenance-v1",
+  "artifactId": "lf.animation-aware-illustration.musashi.v1",
+  "createdFor": "private_internal_living_frame_animation_aware_illustration_testing",
+  "generationChannel": "codex_image_gen",
+  "depictionStatus": "modern_illustrative_depiction_not_archival_evidence",
+  "subjectUse": "historical-character-style-regression-fixture_only",
+  "animationAwareDirection": [
+    "readable full-body silhouette",
+    "separable sword",
+    "flowing robe panels",
+    "visible hair locks",
+    "clean foreground-background separation",
+    "no text or watermark"
+  ],
+  "sourceStyle": [
+    "cinematic_anime",
+    "sumi_e_ink",
+    "graphic_novel"
+  ],
+  "originalGeneration": {
+    "widthPixels": 1024,
+    "heightPixels": 1536,
+    "contentSha256": "ab33f7f7b99877ef8a28c4047fef0a08cd7c8e714d36839fda0e4434c1ffb73a"
+  },
+  "normalizedFixture": {
+    "fileName": "living-frame-musashi-animation-aware-illustration-v1.png",
+    "widthPixels": 1024,
+    "heightPixels": 1024,
+    "contentSha256": "15dae1bc8cbd6549fea2b0cf389a38e5dd5b6750745650fe91b22eb398171a1e",
+    "byteLength": 925492,
+    "opaqueRgbPng": true,
+    "normalization": "pad_to_square_with_approved_warm_neutral_then_lanczos_downscale"
+  },
+  "prohibitedClaims": [
+    "authentic_archival_evidence",
+    "verified_historical_likeness",
+    "documented_event_reconstruction",
+    "customer_ready_output"
+  ]
+}

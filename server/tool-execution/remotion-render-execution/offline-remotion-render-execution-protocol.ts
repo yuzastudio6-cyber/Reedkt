@@ -6,7 +6,13 @@ import {
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS,
 } from '../../../src/types/canonical-private-composition-capacity'
+import type {
+  CanonicalLivingFrameMotionSpec,
+} from '../../../src/types/living-frame-canonical-motion'
 import { ApiError } from '../../errors/api-error'
+import {
+  verifyCanonicalLivingFrameMotionSpec,
+} from '../../living-frame/canonical-living-frame-motion'
 
 export const OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL =
   'offline-remotion-render-execution-v1' as const
@@ -69,6 +75,7 @@ export interface OfflineRemotionLivingFrameOverlayPlanningPayload {
   endFrameExclusive: number
   fit: 'fill'
   opacity: 1
+  motionSpec: CanonicalLivingFrameMotionSpec
 }
 
 interface OfflineRemotionLivingFrameOverlayAuthority {
@@ -1791,7 +1798,6 @@ function livingFrameOverlayPlanningPayloads(
       'Living Frame composition requires one to sixteen approved RGBA overlays.',
     )
   }
-  const sceneIds = new Set<string>()
   const layerIds = new Set<string>()
   const manifestOutputKeys = new Set<string>()
   const componentOutputKeys = new Set<string>()
@@ -1809,6 +1815,7 @@ function livingFrameOverlayPlanningPayloads(
         'endFrameExclusive',
         'fit',
         'opacity',
+        'motionSpec',
       ],
       `Living Frame overlay ${index + 1}`,
     )
@@ -1840,11 +1847,11 @@ function livingFrameOverlayPlanningPayloads(
       durationFrames,
       'Living Frame endFrameExclusive',
     )
+    const motionSpec = layer.motionSpec
     if (
       endFrameExclusive <= startFrame
       || layer.fit !== 'fill'
       || layer.opacity !== 1
-      || sceneIds.has(sceneId)
       || layerIds.has(layerId)
       || manifestOutputKeys.has(manifestOutputKey)
       || componentOutputKeys.has(componentOutputKey)
@@ -1853,12 +1860,16 @@ function livingFrameOverlayPlanningPayloads(
         startFrame === previousStartFrame
         && layerId.localeCompare(previousLayerId) <= 0
       )
+      || !verifyCanonicalLivingFrameMotionSpec(motionSpec)
+      || motionSpec.sceneId !== sceneId
+      || motionSpec.sceneStartFrame !== startFrame
+      || motionSpec.sceneEndFrameExclusive !==
+        endFrameExclusive
     ) {
       throw validationFailure(
         'Living Frame overlays must be unique, ordered, in bounds, full-frame, and below captions.',
       )
     }
-    sceneIds.add(sceneId)
     layerIds.add(layerId)
     manifestOutputKeys.add(manifestOutputKey)
     componentOutputKeys.add(componentOutputKey)
@@ -1873,6 +1884,7 @@ function livingFrameOverlayPlanningPayloads(
       endFrameExclusive,
       fit: 'fill',
       opacity: 1,
+      motionSpec,
     }
   })
 }

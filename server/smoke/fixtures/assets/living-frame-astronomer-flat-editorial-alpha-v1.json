@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "living-frame-style-depth-fixture-provenance-v1",
+  "artifactId": "lf.style-depth.astronomer-flat-editorial.v1",
+  "createdFor": "private_internal_living_frame_style_depth_runtime_testing",
+  "generationChannel": "codex_image_gen_builtin",
+  "depictionStatus": "original_fictional_illustration_not_historical_or_archival_evidence",
+  "subjectUse": "style_and_selective_motion_regression_fixture_only",
+  "animationAwareDirection": [
+    "strong flat editorial silhouette",
+    "separable astrolabe contour",
+    "separable loose robe panel",
+    "no faux dimensional lighting",
+    "no text or watermark"
+  ],
+  "sourceStyle": [
+    "flat_editorial_cutout",
+    "two_tone_screen_print",
+    "clean_ink_edges"
+  ],
+  "originalGeneration": {
+    "widthPixels": 1024,
+    "heightPixels": 1536,
+    "contentSha256": "de5e7dff273a2352179aa93434dd446405415e5694a4aca3336c44cdcf1322d1",
+    "byteLength": 1950740,
+    "background": "flat_chroma_green"
+  },
+  "normalizedFixture": {
+    "fileName": "living-frame-astronomer-flat-editorial-alpha-v1.png",
+    "widthPixels": 1024,
+    "heightPixels": 1536,
+    "contentSha256": "b87db6ca3fb2300f361a2e44adae44821507e25a5cdd3832ad37f49d5871c340",
+    "byteLength": 1342199,
+    "rgbaPng": true,
+    "transparentCorners": true,
+    "subjectCoverage": 0.361376,
+    "normalization": "builtin_image_generation_then_skill_chroma_key_soft_matte_and_despill"
+  },
+  "prohibitedClaims": [
+    "real_historical_person",
+    "authentic_archival_evidence",
+    "verified_historical_likeness",
+    "documented_event_reconstruction",
+    "customer_ready_output"
+  ]
+}

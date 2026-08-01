@@ -12,6 +12,64 @@ import {
   useVideoConfig,
 } from 'remotion'
 
+type ApprovedLivingFrameMotionTarget =
+  | 'layer'
+  | 'virtual_camera'
+  | 'source'
+
+type ApprovedLivingFrameMotionProperty =
+  | 'position_x_normalized'
+  | 'position_y_normalized'
+  | 'rotation_degrees'
+  | 'scale_uniform'
+  | 'opacity'
+  | 'blur_pixels'
+  | 'light_intensity'
+  | 'shadow_opacity'
+
+type ApprovedLivingFrameMotionEasing =
+  | 'linear'
+  | 'hold'
+  | 'ease_in_quad'
+  | 'ease_out_quad'
+  | 'ease_in_out_cubic'
+  | 'mechanical_accelerate'
+  | 'strike_accelerate'
+  | 'settle_out'
+
+interface ApprovedLivingFrameMotionSpec {
+  schemaVersion: 'canonical-living-frame-motion-spec-v3'
+  motionProfileId: 'component_role_activation_selective_visual_interval_choreography_v3'
+  sceneId: string
+  componentId: string
+  sceneStartFrame: number
+  sceneEndFrameExclusive: number
+  depthStyle: 'flat' | 'shallow_2_5d' | 'deep_multiplane'
+  depthBand:
+    | 'far_background'
+    | 'background'
+    | 'behind_subject'
+    | 'subject_plane'
+    | 'in_front_of_subject'
+    | 'foreground'
+  parallaxFactor: number
+  motionSpecDigestSha256: string
+  tracks: Array<{
+    trackId: string
+    order: number
+    target: ApprovedLivingFrameMotionTarget
+    property: ApprovedLivingFrameMotionProperty
+    role: 'primary' | 'secondary' | 'ambient' | 'camera'
+    keyframes: Array<{
+      frameOffset: number
+      value: number
+      easingToNext: ApprovedLivingFrameMotionEasing
+    }>
+    compiledSampleCount: number
+    compiledSampleDigestSha256: string
+  }>
+}
+
 export interface ApprovedCompositionProps {
   width: number
   height: number
@@ -72,6 +130,7 @@ export interface ApprovedCompositionProps {
     endFrameExclusive: number
     fit: 'fill'
     opacity: 1
+    motionSpec: ApprovedLivingFrameMotionSpec
     livingFrameOverlayInternalUrl: string
   }>
   sourceSegments?: Array<{
@@ -733,23 +792,25 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
   const replaceVoice = props.audioPolicy === 'replace_with_approved_voice_tracks'
   return (
     <AbsoluteFill style={{ backgroundColor: props.panelBackground, overflow: 'hidden' }}>
-      {props.deliveryProfileId === 'uhd_2160'
-        ? <Html5Video
-            src={props.sourceInternalUrl!}
-            startFrom={props.sourceStartFrame!}
-            endAt={props.sourceEndFrameExclusive!}
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            volume={replaceVoice ? 0 : 1}
-            delayRenderTimeoutInMilliseconds={180_000}
-            delayRenderRetries={1}
-          />
-        : <OffthreadVideo
-            src={props.sourceInternalUrl!}
-            startFrom={props.sourceStartFrame!}
-            endAt={props.sourceEndFrameExclusive!}
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            volume={replaceVoice ? 0 : 1}
-          />}
+      <ApprovedLivingFrameSourceMotion props={props}>
+        {props.deliveryProfileId === 'uhd_2160'
+          ? <Html5Video
+              src={props.sourceInternalUrl!}
+              startFrom={props.sourceStartFrame!}
+              endAt={props.sourceEndFrameExclusive!}
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              volume={replaceVoice ? 0 : 1}
+              delayRenderTimeoutInMilliseconds={180_000}
+              delayRenderRetries={1}
+            />
+          : <OffthreadVideo
+              src={props.sourceInternalUrl!}
+              startFrom={props.sourceStartFrame!}
+              endAt={props.sourceEndFrameExclusive!}
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              volume={replaceVoice ? 0 : 1}
+            />}
+      </ApprovedLivingFrameSourceMotion>
       {replaceVoice && <Audio src={props.voiceTrackInternalUrls![0]!.voiceTrackInternalUrl} />}
       <ApprovedSupplementalAudioTracks {...props} />
       <ApprovedLivingFrameOverlays {...props} />
@@ -799,7 +860,11 @@ const ApprovedSourceSequenceVisual: React.FC<{
     objectFit: 'contain',
   }
   return (
-    <div style={{ position: 'absolute', inset: 0, opacity }}>
+    <ApprovedLivingFrameSourceMotion
+      props={props}
+      globalFrame={globalFrame}
+      outerOpacity={opacity}
+    >
       {props.deliveryProfileId === 'uhd_2160'
         ? <Html5Video
             src={sourceInternalUrl}
@@ -817,7 +882,7 @@ const ApprovedSourceSequenceVisual: React.FC<{
             style={videoStyle}
             volume={replaceVoice ? 0 : 1}
           />}
-    </div>
+    </ApprovedLivingFrameSourceMotion>
   )
 }
 
@@ -885,6 +950,256 @@ const captionOverlayStyle: React.CSSProperties = {
   objectFit: 'fill',
 }
 
+type ApprovedLivingFrameOverlay =
+  NonNullable<ApprovedCompositionProps['livingFrameOverlays']>[number]
+
+interface ApprovedLivingFrameMotionValues {
+  positionXNormalized: number
+  positionYNormalized: number
+  rotationDegrees: number
+  scaleUniform: number
+  opacity: number
+  blurPixels: number
+  lightIntensity: number
+  shadowOpacity: number
+}
+
+const defaultLivingFrameMotionValues = (target: ApprovedLivingFrameMotionTarget):
+ApprovedLivingFrameMotionValues => ({
+  positionXNormalized: 0,
+  positionYNormalized: 0,
+  rotationDegrees: 0,
+  scaleUniform: 1,
+  opacity: 1,
+  blurPixels: 0,
+  lightIntensity: 1,
+  shadowOpacity: target === 'layer' ? 0 : 0,
+})
+
+const applyLivingFrameEasing = (
+  easing: ApprovedLivingFrameMotionEasing,
+  progress: number,
+): number => {
+  switch (easing) {
+    case 'linear':
+      return progress
+    case 'hold':
+      return progress < 1 ? 0 : 1
+    case 'ease_in_quad':
+    case 'mechanical_accelerate':
+      return progress ** 2
+    case 'ease_out_quad':
+      return 1 - (1 - progress) ** 2
+    case 'ease_in_out_cubic':
+      return progress < 0.5
+        ? 4 * progress ** 3
+        : 1 - (-2 * progress + 2) ** 3 / 2
+    case 'strike_accelerate':
+      return progress ** 5
+    case 'settle_out':
+      return 1 - (1 - progress) ** 3
+  }
+}
+
+const sampleLivingFrameTrack = (
+  track: ApprovedLivingFrameMotionSpec['tracks'][number],
+  frameOffset: number,
+): number => {
+  const final = track.keyframes[track.keyframes.length - 1]!
+  if (frameOffset >= final.frameOffset) return final.value
+  for (let index = 0; index < track.keyframes.length - 1; index += 1) {
+    const from = track.keyframes[index]!
+    const to = track.keyframes[index + 1]!
+    if (
+      frameOffset < from.frameOffset ||
+      frameOffset > to.frameOffset
+    ) continue
+    const progress =
+      (frameOffset - from.frameOffset) /
+      (to.frameOffset - from.frameOffset)
+    const eased = applyLivingFrameEasing(
+      from.easingToNext,
+      progress,
+    )
+    return from.value + (to.value - from.value) * eased
+  }
+  return track.keyframes[0]!.value
+}
+
+const livingFrameMotionValues = (
+  spec: ApprovedLivingFrameMotionSpec,
+  target: ApprovedLivingFrameMotionTarget,
+  frameOffset: number,
+): ApprovedLivingFrameMotionValues => {
+  const values = defaultLivingFrameMotionValues(target)
+  for (const track of spec.tracks) {
+    if (track.target !== target) continue
+    const value = sampleLivingFrameTrack(track, frameOffset)
+    switch (track.property) {
+      case 'position_x_normalized':
+        values.positionXNormalized = value
+        break
+      case 'position_y_normalized':
+        values.positionYNormalized = value
+        break
+      case 'rotation_degrees':
+        values.rotationDegrees = value
+        break
+      case 'scale_uniform':
+        values.scaleUniform = value
+        break
+      case 'opacity':
+        values.opacity = value
+        break
+      case 'blur_pixels':
+        values.blurPixels = value
+        break
+      case 'light_intensity':
+        values.lightIntensity = value
+        break
+      case 'shadow_opacity':
+        values.shadowOpacity = value
+        break
+    }
+  }
+  return values
+}
+
+const activeLivingFrameOverlay = (
+  props: ApprovedCompositionProps,
+  globalFrame: number,
+): ApprovedLivingFrameOverlay | undefined =>
+  (props.livingFrameOverlays ?? []).find((overlay) =>
+    globalFrame >= overlay.startFrame &&
+    globalFrame < overlay.endFrameExclusive)
+
+const ApprovedLivingFrameSourceMotion: React.FC<{
+  props: ApprovedCompositionProps
+  globalFrame?: number
+  outerOpacity?: number
+  children: React.ReactNode
+}> = ({
+  props,
+  globalFrame: providedGlobalFrame,
+  outerOpacity = 1,
+  children,
+}) => {
+  const currentFrame = useCurrentFrame()
+  const globalFrame = providedGlobalFrame ?? currentFrame
+  const active = activeLivingFrameOverlay(props, globalFrame)
+  if (!active) {
+    return (
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        overflow: 'hidden',
+        opacity: outerOpacity,
+      }}>
+        {children}
+      </div>
+    )
+  }
+  const frameOffset = globalFrame - active.startFrame
+  const source = livingFrameMotionValues(
+    active.motionSpec,
+    'source',
+    frameOffset,
+  )
+  const camera = livingFrameMotionValues(
+    active.motionSpec,
+    'virtual_camera',
+    frameOffset,
+  )
+  const translateX = (
+    source.positionXNormalized -
+    camera.positionXNormalized
+  ) * props.width
+  const translateY = (
+    source.positionYNormalized -
+    camera.positionYNormalized
+  ) * props.height
+  return (
+    <div style={{
+      position: 'absolute',
+      inset: 0,
+      overflow: 'hidden',
+      opacity: outerOpacity * source.opacity,
+      filter: [
+        `blur(${source.blurPixels}px)`,
+        `brightness(${source.lightIntensity})`,
+      ].join(' '),
+      transform: [
+        `translate3d(${translateX}px, ${translateY}px, 0)`,
+        `scale(${source.scaleUniform * camera.scaleUniform})`,
+      ].join(' '),
+      transformOrigin: '50% 50%',
+      willChange: 'transform, filter, opacity',
+    }}>
+      {children}
+    </div>
+  )
+}
+
+const ApprovedLivingFrameOverlayLayer: React.FC<{
+  overlay: ApprovedLivingFrameOverlay
+  width: number
+  height: number
+}> = ({ overlay, width, height }) => {
+  const frameOffset = useCurrentFrame()
+  const layer = livingFrameMotionValues(
+    overlay.motionSpec,
+    'layer',
+    frameOffset,
+  )
+  const camera = livingFrameMotionValues(
+    overlay.motionSpec,
+    'virtual_camera',
+    frameOffset,
+  )
+  const depthFactor = 1 + overlay.motionSpec.parallaxFactor
+  const translateX = (
+    layer.positionXNormalized -
+    camera.positionXNormalized * depthFactor
+  ) * width
+  const translateY = (
+    layer.positionYNormalized -
+    camera.positionYNormalized * depthFactor
+  ) * height
+  const cameraDepthScale =
+    1 + (camera.scaleUniform - 1) * depthFactor
+  const shadowDistance =
+    overlay.motionSpec.depthStyle === 'deep_multiplane'
+      ? Math.max(3, height * 0.012)
+      : Math.max(2, height * 0.006)
+  return (
+    <Img
+      src={overlay.livingFrameOverlayInternalUrl}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        objectFit: overlay.fit,
+        opacity: overlay.opacity * layer.opacity,
+        filter: [
+          `blur(${layer.blurPixels}px)`,
+          `brightness(${layer.lightIntensity})`,
+          `drop-shadow(0 ${shadowDistance}px ${
+            shadowDistance * 1.8
+          }px rgba(0, 0, 0, ${layer.shadowOpacity}))`,
+        ].join(' '),
+        transform: [
+          `translate3d(${translateX}px, ${translateY}px, 0)`,
+          `rotate(${layer.rotationDegrees}deg)`,
+          `scale(${layer.scaleUniform * cameraDepthScale})`,
+        ].join(' '),
+        transformOrigin: '50% 50%',
+        willChange: 'transform, filter, opacity',
+      }}
+    />
+  )
+}
+
 const ApprovedLivingFrameOverlays: React.FC<ApprovedCompositionProps> = (props) => (
   <>
     {(props.livingFrameOverlays ?? []).map((overlay) => (
@@ -894,16 +1209,10 @@ const ApprovedLivingFrameOverlays: React.FC<ApprovedCompositionProps> = (props) 
         durationInFrames={overlay.endFrameExclusive - overlay.startFrame}
         name={`Approved Living Frame ${overlay.sceneId} ${overlay.layerId}`}
       >
-        <Img
-          src={overlay.livingFrameOverlayInternalUrl}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: overlay.fit,
-            opacity: overlay.opacity,
-          }}
+        <ApprovedLivingFrameOverlayLayer
+          overlay={overlay}
+          width={props.width}
+          height={props.height}
         />
       </Sequence>
     ))}
@@ -945,7 +1254,6 @@ function hasApprovedLivingFrameInput(props: ApprovedCompositionProps): boolean {
     overlays.length < 1 ||
     overlays.length > 16
   ) return false
-  const sceneIds = new Set<string>()
   const layerIds = new Set<string>()
   const manifestOutputKeys = new Set<string>()
   const componentOutputKeys = new Set<string>()
@@ -966,17 +1274,80 @@ function hasApprovedLivingFrameInput(props: ApprovedCompositionProps): boolean {
       /^http:\/\/127\.0\.0\.1:\d+\/living-frame\/\d+\.png$/.test(
         overlay.livingFrameOverlayInternalUrl,
       ) &&
-      !sceneIds.has(overlay.sceneId) &&
+      hasRenderableLivingFrameMotionSpec(
+        overlay.motionSpec,
+        overlay.sceneId,
+        overlay.startFrame,
+        overlay.endFrameExclusive,
+      ) &&
       !layerIds.has(overlay.layerId) &&
       !manifestOutputKeys.has(overlay.manifestOutputKey) &&
       !componentOutputKeys.has(overlay.componentOutputKey)
     previousStartFrame = overlay.startFrame
     previousLayerId = overlay.layerId
-    sceneIds.add(overlay.sceneId)
     layerIds.add(overlay.layerId)
     manifestOutputKeys.add(overlay.manifestOutputKey)
     componentOutputKeys.add(overlay.componentOutputKey)
     return valid
+  })
+}
+
+function hasRenderableLivingFrameMotionSpec(
+  spec: ApprovedLivingFrameMotionSpec,
+  sceneId: string,
+  startFrame: number,
+  endFrameExclusive: number,
+): boolean {
+  if (
+    !spec ||
+    spec.schemaVersion !==
+      'canonical-living-frame-motion-spec-v3' ||
+    spec.motionProfileId !==
+      'component_role_activation_selective_visual_interval_choreography_v3' ||
+    spec.sceneId !== sceneId ||
+    spec.sceneStartFrame !== startFrame ||
+    spec.sceneEndFrameExclusive !== endFrameExclusive ||
+    !['flat', 'shallow_2_5d', 'deep_multiplane']
+      .includes(spec.depthStyle) ||
+    !Number.isFinite(spec.parallaxFactor) ||
+    spec.parallaxFactor < -1 ||
+    spec.parallaxFactor > 1 ||
+    !/^[a-f0-9]{64}$/.test(spec.motionSpecDigestSha256) ||
+    !Array.isArray(spec.tracks) ||
+    spec.tracks.length < 1 ||
+    spec.tracks.length > 32
+  ) return false
+  const duration = endFrameExclusive - startFrame
+  const trackIds = new Set<string>()
+  const targetProperties = new Set<string>()
+  return spec.tracks.every((track, order) => {
+    const targetProperty = `${track.target}:${track.property}`
+    if (
+      track.order !== order ||
+      trackIds.has(track.trackId) ||
+      targetProperties.has(targetProperty) ||
+      !['layer', 'virtual_camera', 'source']
+        .includes(track.target) ||
+      !Array.isArray(track.keyframes) ||
+      track.keyframes.length < 2 ||
+      track.keyframes[0]?.frameOffset !== 0 ||
+      track.keyframes[track.keyframes.length - 1]
+        ?.frameOffset !== duration - 1 ||
+      track.compiledSampleCount !== duration
+    ) return false
+    trackIds.add(track.trackId)
+    targetProperties.add(targetProperty)
+    let previous = -1
+    return track.keyframes.every((keyframe) => {
+      const valid =
+        Number.isSafeInteger(keyframe.frameOffset) &&
+        keyframe.frameOffset > previous &&
+        keyframe.frameOffset >= 0 &&
+        keyframe.frameOffset < duration &&
+        Number.isFinite(keyframe.value)
+      previous = keyframe.frameOffset
+      return valid
+    })
   })
 }
 

@@ -1,0 +1,4 @@
+df2c24502fd76ebafe7457dbc4716b2fec071aabaed4fb7691a201cde03704d9  nvidia_cusparselt_cu12-0.6.2-py3-none-manylinux2014_x86_64.whl
+7f2ba7f7c0459320a521696f6b5bccc187f59890b23c9dfb6c49b0b87c6bfc97  torch-2.6.0+cu124-cp310-cp310-linux_x86_64.whl
+3d3e74018eaa7837c73e3764dad3b7792b7544401c25a42977e9744303731bd3  torchvision-0.21.0+cu124-cp310-cp310-linux_x86_64.whl
+b3e54983cd51875855da7c68ec05c05cf8bb08df361b1d5b69e05e40b0c9bd62  triton-3.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl

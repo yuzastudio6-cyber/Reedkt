@@ -1,12 +1,21 @@
 # Canonical Post-render Qwen Visual-QA Shared Lifecycle Contract
 
-Status: `public_result_shape_frozen_execution_lifecycle_pending`
+Status: `work_request_and_public_result_shapes_frozen_execution_lifecycle_pending`
 
 This source-only boundary freezes one frontend-safe shared result shape for
 `qwen2_5_vl_visual_understanding` / `postrender_private_visual_qa` /
 `postrender-private-visual-qa-v1`. Caption, Living Frame, and the main edit QA
 pipeline may consume the same canonical lifecycle result instead of creating
 feature-specific provider dispatchers.
+
+The preceding `canonical-postrender-visual-qa-work-request-v1` admission shape
+binds the exact private render, deterministic QA, approved snapshot/work,
+reservation and estimate, persisted RGB24 sample collection, server-owned
+inspection profile, and replay policy. It deliberately grants no dispatch.
+Its coverage record distinguishes `complete` from `bounded_representative`,
+counts sampled and unsampled canonical segments, and states that the model may
+claim inspection only for the provided sample artifacts. Representative
+sampling therefore cannot be promoted into a whole-video inspection claim.
 
 The result binds the exact approved snapshot and work item, queue/lease,
 provider grant/attempt/run, estimate and internal-cost lineage, persisted

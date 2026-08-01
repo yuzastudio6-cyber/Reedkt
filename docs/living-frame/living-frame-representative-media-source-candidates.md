@@ -64,6 +64,35 @@ media bytes. `canonicalConsumptionPending:true`, canonical license/fact/
 publicity reread remains pending, and all runtime/customer/production authority
 is false.
 
+## Semantic routing correction
+
+The original seven-source case map was useful for dependency coverage, but it
+is not semantically safe enough to drive representative rendering. In
+particular, it could combine the NASA Earth Day interview with unrelated
+Hormuz/EIA material or force the scientific-method diagram to consume unrelated
+oil-flow data.
+
+`living-frame-representative-semantic-source-routing-v1` fails those old case
+admissions closed and proposes one topic-matched extension: NASA's 1920×1080,
+5:31 cut B-roll from the same SVS 14327 package. The corrected internal fixture
+uses:
+
+- the NASA interview plus its own Earth-observation B-roll for A-roll,
+  attention, depth, hybrid, and caption/sound demonstrations;
+- the NASA Hormuz photograph, historical map, and EIA rows only for the
+  separate Hormuz map/data chapter;
+- the scientific-method SVG by itself for the process-diagram chapter;
+- the fictional astronomer and locomotive only in their declared static or
+  non-character chapters; and
+- all sources only as separate chapters in the final multi-chapter review.
+
+The B-roll source page reports no audio; SoundSync and narration remain separate
+canonical owners. Source footage may retain its original motion, but this does
+not admit generated living-subject animation. Because this correction changes
+the effective source set, a canonical v2 candidate set, private binding, and
+case admission are required before representative runtime. V1 case admissions
+cannot be reused.
+
 ## Required admission steps
 
 Before representative rendering, the canonical source/asset owners must:

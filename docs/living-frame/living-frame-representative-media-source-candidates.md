@@ -93,6 +93,32 @@ the effective source set, a canonical v2 candidate set, private binding, and
 case admission are required before representative runtime. V1 case admissions
 cannot be reused.
 
+## Canonical-reader-compatible source variants v2
+
+The source audit found a concrete execution mismatch before any bytes were
+ingested: both NASA video candidates were recorded as `video/webm`, while the
+current canonical approved-source stream reader accepts only `video/mp4`.
+NASA SVS 14327 publishes official 1920×1080 MP4 variants for both exact source
+roles:
+
+- the 6:13 Lesley Ott interview;
+- the 5:31 no-audio Earth Day B-roll reel.
+
+`living-frame-representative-media-source-candidates-v2` therefore selects the
+two official MP4 records and forbids WebM substitution or a caller-selected
+variant. It does not create a WebM conversion lane. Exact byte length, SHA-256,
+codec, frame rate, time base, decoded frame count, and private storage identity
+remain pending the canonical ingest and FFprobe reread.
+
+The same contract makes the remaining shared-interface gap explicit instead of
+pretending it is solved: the approved source manifest can describe JPEG, PNG,
+SVG, and JSON records, but the current executable source-object reader is
+MP4-only. Raster/SVG source reread and the cited structured-data snapshot still
+require a later canonical one-writer extension or an already-released owner.
+The v2 candidate creates neither one. It remains byte-free, source-only, and
+non-executable with `canonicalConsumptionPending:true` and every runtime,
+asset, QA, cost, delivery, and production authority false.
+
 ## Required admission steps
 
 Before representative rendering, the canonical source/asset owners must:

@@ -44,7 +44,9 @@ import {
 const width = 640
 const height = 360
 const fps = 30
-const sceneFrameCount = 30
+const sceneFrameCount = 26
+const sceneMidFrameOffset = Math.floor((sceneFrameCount - 1) / 2)
+const sceneLastFrameOffset = sceneFrameCount - 1
 const durationFrames = sceneFrameCount * 9
 
 const sceneRanges = {
@@ -280,18 +282,18 @@ try {
         tracks: [
           track('a-roll-enter', 0, 'layer', 'position_x_normalized', 'primary', [
             [0, 0.2, 'ease_out_quad'],
-            [14, 0, 'settle_out'],
-            [29, 0, 'hold'],
+            [sceneMidFrameOffset, 0, 'settle_out'],
+            [sceneLastFrameOffset, 0, 'hold'],
           ]),
           track('a-roll-focus', 1, 'source', 'blur_pixels', 'secondary', [
             [0, 0, 'ease_in_out_cubic'],
-            [14, 6, 'settle_out'],
-            [29, 0, 'hold'],
+            [sceneMidFrameOffset, 6, 'settle_out'],
+            [sceneLastFrameOffset, 0, 'hold'],
           ]),
           track('a-roll-light', 2, 'source', 'light_intensity', 'secondary', [
             [0, 1, 'ease_in_out_cubic'],
-            [14, 0.74, 'settle_out'],
-            [29, 1, 'hold'],
+            [sceneMidFrameOffset, 0.74, 'settle_out'],
+            [sceneLastFrameOffset, 1, 'hold'],
           ]),
         ],
         attentionEventIds: ['attention-a-roll-focus-handoff'],
@@ -325,8 +327,8 @@ try {
             'secondary',
             [
               [0, 0, 'ease_in_out_cubic'],
-              [14, 6, 'settle_out'],
-              [29, 0, 'hold'],
+              [sceneMidFrameOffset, 6, 'settle_out'],
+              [sceneLastFrameOffset, 0, 'hold'],
             ],
           ),
           track(
@@ -337,8 +339,8 @@ try {
             'secondary',
             [
               [0, 1, 'ease_in_out_cubic'],
-              [14, 0.74, 'settle_out'],
-              [29, 1, 'hold'],
+              [sceneMidFrameOffset, 0.74, 'settle_out'],
+              [sceneLastFrameOffset, 1, 'hold'],
             ],
           ),
         ],
@@ -365,13 +367,13 @@ try {
         tracks: [
           track('still-body-drift', 0, 'layer', 'position_y_normalized', 'ambient', [
             [0, 0.01, 'ease_in_out_cubic'],
-            [14, -0.01, 'settle_out'],
-            [29, 0.01, 'hold'],
+            [sceneMidFrameOffset, -0.01, 'settle_out'],
+            [sceneLastFrameOffset, 0.01, 'hold'],
           ]),
           track('still-camera', 1, 'virtual_camera', 'scale_uniform', 'camera', [
             [0, 1, 'ease_in_out_cubic'],
-            [14, 1.035, 'settle_out'],
-            [29, 1, 'hold'],
+            [sceneMidFrameOffset, 1.035, 'settle_out'],
+            [sceneLastFrameOffset, 1, 'hold'],
           ]),
         ],
       }),
@@ -394,12 +396,12 @@ try {
         tracks: [
           track('still-rotor-rotation', 0, 'layer', 'rotation_degrees', 'primary', [
             [0, 0, 'mechanical_accelerate'],
-            [29, 90, 'hold'],
+            [sceneLastFrameOffset, 90, 'hold'],
           ]),
           track('still-rotor-shadow', 1, 'layer', 'shadow_opacity', 'secondary', [
             [0, 0.08, 'ease_in_out_cubic'],
-            [14, 0.24, 'settle_out'],
-            [29, 0.12, 'hold'],
+            [sceneMidFrameOffset, 0.24, 'settle_out'],
+            [sceneLastFrameOffset, 0.12, 'hold'],
           ]),
         ],
       }),
@@ -422,11 +424,11 @@ try {
         tracks: [
           track('archive-far-camera', 0, 'virtual_camera', 'position_x_normalized', 'camera', [
             [0, 0, 'ease_in_out_cubic'],
-            [29, 0.1, 'hold'],
+            [sceneLastFrameOffset, 0.1, 'hold'],
           ]),
           track('archive-far-shadow', 1, 'layer', 'shadow_opacity', 'secondary', [
             [0, 0.08, 'hold'],
-            [29, 0.08, 'hold'],
+            [sceneLastFrameOffset, 0.08, 'hold'],
           ]),
         ],
       }),
@@ -449,11 +451,11 @@ try {
         tracks: [
           track('archive-near-camera', 0, 'virtual_camera', 'position_x_normalized', 'camera', [
             [0, 0, 'ease_in_out_cubic'],
-            [29, 0.1, 'hold'],
+            [sceneLastFrameOffset, 0.1, 'hold'],
           ]),
           track('archive-near-shadow', 1, 'layer', 'shadow_opacity', 'secondary', [
             [0, 0.12, 'hold'],
-            [29, 0.2, 'hold'],
+            [sceneLastFrameOffset, 0.2, 'hold'],
           ]),
         ],
       }),
@@ -477,12 +479,12 @@ try {
           track('diagram-reveal', 0, 'layer', 'opacity', 'primary', [
             [0, 0.06, 'ease_out_quad'],
             [18, 1, 'settle_out'],
-            [29, 1, 'hold'],
+            [sceneLastFrameOffset, 1, 'hold'],
           ]),
           track('diagram-enter', 1, 'layer', 'position_x_normalized', 'secondary', [
             [0, -0.1, 'ease_out_quad'],
             [18, 0, 'settle_out'],
-            [29, 0, 'hold'],
+            [sceneLastFrameOffset, 0, 'hold'],
           ]),
         ],
       }),
@@ -505,18 +507,18 @@ try {
         tracks: [
           track('hybrid-expand-return', 0, 'layer', 'scale_uniform', 'primary', [
             [0, 0.42, 'ease_in_out_cubic'],
-            [14, 1.6, 'settle_out'],
-            [29, 0.42, 'hold'],
+            [sceneMidFrameOffset, 1.6, 'settle_out'],
+            [sceneLastFrameOffset, 0.42, 'hold'],
           ]),
           track('hybrid-focus', 1, 'source', 'blur_pixels', 'secondary', [
             [0, 0, 'ease_in_out_cubic'],
-            [14, 6, 'settle_out'],
-            [29, 0, 'hold'],
+            [sceneMidFrameOffset, 6, 'settle_out'],
+            [sceneLastFrameOffset, 0, 'hold'],
           ]),
           track('hybrid-source-light', 2, 'source', 'light_intensity', 'secondary', [
             [0, 1, 'ease_in_out_cubic'],
-            [14, 0.65, 'settle_out'],
-            [29, 1, 'hold'],
+            [sceneMidFrameOffset, 0.65, 'settle_out'],
+            [sceneLastFrameOffset, 1, 'hold'],
           ]),
         ],
         attentionEventIds: [
@@ -556,7 +558,7 @@ try {
             'primary',
             [
               [0, 1, 'hold'],
-              [29, 1, 'hold'],
+              [sceneLastFrameOffset, 1, 'hold'],
             ],
           ),
         ],
@@ -590,8 +592,8 @@ try {
             'primary',
             [
               [0, 0.12, 'ease_out_quad'],
-              [14, 0, 'settle_out'],
-              [29, 0, 'hold'],
+              [sceneMidFrameOffset, 0, 'settle_out'],
+              [sceneLastFrameOffset, 0, 'hold'],
             ],
           ),
         ],
@@ -624,7 +626,7 @@ try {
             [
               [0, 0, 'ease_out_quad'],
               [12, 1, 'settle_out'],
-              [29, 1, 'hold'],
+              [sceneLastFrameOffset, 1, 'hold'],
             ],
           ),
         ],
@@ -844,15 +846,15 @@ try {
   )
 
   const sampledFrameNumbers = [
-    0, 14, 29,
-    30, 59,
-    60, 89,
-    90, 108, 119,
-    120, 134, 149,
-    165,
-    195,
-    225,
-    240, 252, 269,
+    sceneStartFrame(0), sceneMidFrame(0), sceneEndFrame(0),
+    sceneStartFrame(1), sceneEndFrame(1),
+    sceneStartFrame(2), sceneEndFrame(2),
+    sceneStartFrame(3), sceneStartFrame(3) + 18, sceneEndFrame(3),
+    sceneStartFrame(4), sceneMidFrame(4), sceneEndFrame(4),
+    sceneMidFrame(5),
+    sceneMidFrame(6),
+    sceneMidFrame(7),
+    sceneStartFrame(8), sceneStartFrame(8) + 12, sceneEndFrame(8),
   ] as const
   const sampledFrames = extractFrames(
     renderedPath,
@@ -871,9 +873,9 @@ try {
   }
 
   const aRollEarly =
-    colorStats(frame(0), colorMatchers.cyan)
+    colorStats(frame(sceneStartFrame(0)), colorMatchers.cyan)
   const aRollLate =
-    colorStats(frame(29), colorMatchers.cyan)
+    colorStats(frame(sceneEndFrame(0)), colorMatchers.cyan)
   assert.ok(aRollEarly.count > 900)
   assert.ok(
     aRollLate.count > aRollEarly.count * 1.15,
@@ -884,11 +886,11 @@ try {
       width * 0.08,
   )
   const aRollEarlyEdgeEnergy =
-    sourceEdgeEnergy(frame(0))
+    sourceEdgeEnergy(frame(sceneStartFrame(0)))
   const aRollFocusEdgeEnergy =
-    sourceEdgeEnergy(frame(14))
+    sourceEdgeEnergy(frame(sceneMidFrame(0)))
   const aRollRestoredEdgeEnergy =
-    sourceEdgeEnergy(frame(29))
+    sourceEdgeEnergy(frame(sceneEndFrame(0)))
   assert.ok(
     aRollFocusEdgeEnergy <
       aRollEarlyEdgeEnergy * 0.72,
@@ -897,7 +899,7 @@ try {
     aRollRestoredEdgeEnergy >
       aRollFocusEdgeEnergy * 1.25,
   )
-  const aRollOcclusionFrame = frame(29)
+  const aRollOcclusionFrame = frame(sceneEndFrame(0))
   const routeBeforeSubject = colorCountInRegion(
     aRollOcclusionFrame,
     colorMatchers.cyan,
@@ -967,13 +969,13 @@ try {
 
   const rotorEarly =
     colorStats(
-      frame(30),
+      frame(sceneStartFrame(1)),
       colorMatchers.yellow,
       { xStart: 250, xEndExclusive: 390 },
     )
   const rotorLate =
     colorStats(
-      frame(59),
+      frame(sceneEndFrame(1)),
       colorMatchers.yellow,
       { xStart: 250, xEndExclusive: 390 },
     )
@@ -987,13 +989,13 @@ try {
   )
 
   const archiveFarEarly =
-    colorStats(frame(60), colorMatchers.yellow)
+    colorStats(frame(sceneStartFrame(2)), colorMatchers.yellow)
   const archiveFarLate =
-    colorStats(frame(89), colorMatchers.yellow)
+    colorStats(frame(sceneEndFrame(2)), colorMatchers.yellow)
   const archiveNearEarly =
-    colorStats(frame(60), colorMatchers.red)
+    colorStats(frame(sceneStartFrame(2)), colorMatchers.red)
   const archiveNearLate =
-    colorStats(frame(89), colorMatchers.red)
+    colorStats(frame(sceneEndFrame(2)), colorMatchers.red)
   const archiveFarDisplacement =
     archiveFarEarly.centroidX -
     archiveFarLate.centroidX
@@ -1007,18 +1009,18 @@ try {
   )
 
   const diagramEarlyCount =
-    colorStats(frame(90), colorMatchers.green).count
+    colorStats(frame(sceneStartFrame(3)), colorMatchers.green).count
   const diagramLateCount =
-    colorStats(frame(119), colorMatchers.green).count
+    colorStats(frame(sceneEndFrame(3)), colorMatchers.green).count
   assert.ok(diagramEarlyCount < 200)
   assert.ok(diagramLateCount > 8_000)
 
   const hybridEarlyCount =
-    colorStats(frame(120), colorMatchers.purple).count
+    colorStats(frame(sceneStartFrame(4)), colorMatchers.purple).count
   const hybridExpandedCount =
-    colorStats(frame(134), colorMatchers.purple).count
+    colorStats(frame(sceneMidFrame(4)), colorMatchers.purple).count
   const hybridReturnedCount =
-    colorStats(frame(149), colorMatchers.purple).count
+    colorStats(frame(sceneEndFrame(4)), colorMatchers.purple).count
   assert.ok(
     hybridExpandedCount > hybridEarlyCount * 4,
   )
@@ -1032,15 +1034,15 @@ try {
     ) < hybridEarlyCount * 0.2,
   )
 
-  assertCaptionAboveLivingFrame(frame(29))
-  assertCaptionAboveLivingFrame(frame(59))
-  assertCaptionAboveLivingFrame(frame(89))
-  assertCaptionAboveLivingFrame(frame(119))
-  assertCaptionAboveLivingFrame(frame(134))
-  assertCaptionAboveLivingFrame(frame(165))
-  assertCaptionAboveLivingFrame(frame(225))
+  assertCaptionAboveLivingFrame(frame(sceneEndFrame(0)))
+  assertCaptionAboveLivingFrame(frame(sceneEndFrame(1)))
+  assertCaptionAboveLivingFrame(frame(sceneEndFrame(2)))
+  assertCaptionAboveLivingFrame(frame(sceneEndFrame(3)))
+  assertCaptionAboveLivingFrame(frame(sceneMidFrame(4)))
+  assertCaptionAboveLivingFrame(frame(sceneMidFrame(5)))
+  assertCaptionAboveLivingFrame(frame(sceneMidFrame(7)))
 
-  const nonUseFrame = frame(165)
+  const nonUseFrame = frame(sceneMidFrame(5))
   assert.ok(
     colorStats(nonUseFrame, colorMatchers.cyan).count <
       25,
@@ -1055,12 +1057,12 @@ try {
   )
 
   const staticFallbackWhite =
-    colorStats(frame(195), colorMatchers.white).count
+    colorStats(frame(sceneMidFrame(6)), colorMatchers.white).count
   assert.ok(staticFallbackWhite > 45_000)
-  assertCaptionAboveLivingFrame(frame(195))
+  assertCaptionAboveLivingFrame(frame(sceneMidFrame(6)))
 
   const safeSpaceCyan = colorCountInRegion(
-    frame(225),
+    frame(sceneMidFrame(7)),
     colorMatchers.cyan,
     {
       xStart: 420,
@@ -1071,7 +1073,7 @@ try {
   )
   const safeSpaceSubjectCollision =
     colorCountInRegion(
-      frame(225),
+      frame(sceneMidFrame(7)),
       colorMatchers.cyan,
       {
         xStart: 68,
@@ -1083,8 +1085,8 @@ try {
   assert.ok(safeSpaceCyan > 5_000)
   assert.ok(safeSpaceSubjectCollision < 25)
 
-  const exactMapDataEarly = frame(240)
-  const exactMapDataSettled = frame(269)
+  const exactMapDataEarly = frame(sceneStartFrame(8))
+  const exactMapDataSettled = frame(sceneEndFrame(8))
   assert.ok(
     colorStats(exactMapDataEarly, colorMatchers.cyan).count < 50,
   )
@@ -1122,7 +1124,7 @@ try {
     && Math.abs(exactBarHeights[1] / 23 - 3) < 0.01
     && Math.abs(exactBarHeights[2] / 31 - 3) < 0.01,
   )
-  assertCaptionAboveLivingFrame(frame(269))
+  assertCaptionAboveLivingFrame(frame(sceneEndFrame(8)))
 
   const probe = probeRenderedVideo(renderedPath)
   assert.equal(probe.width, width)
@@ -1135,34 +1137,36 @@ try {
     48_000,
   )
   const samplesPerSecond = 48_000
+  const samplesPerFrame = samplesPerSecond / fps
+  const bytesPerSample = 2
   const sourceToneBefore = toneMagnitude(
     decodedAudio.subarray(
-      0,
-      samplesPerSecond * 2,
+      sceneStartFrame(0) * samplesPerFrame * bytesPerSample,
+      (sceneEndFrame(0) + 1) * samplesPerFrame * bytesPerSample,
     ),
     330,
     samplesPerSecond,
   )
   const sourceToneDuring = toneMagnitude(
     decodedAudio.subarray(
-      samplesPerSecond * 2,
-      samplesPerSecond * 4,
+      sceneStartFrame(1) * samplesPerFrame * bytesPerSample,
+      (sceneEndFrame(1) + 1) * samplesPerFrame * bytesPerSample,
     ),
     330,
     samplesPerSecond,
   )
   const sfxToneBefore = toneMagnitude(
     decodedAudio.subarray(
-      0,
-      samplesPerSecond * 2,
+      sceneStartFrame(0) * samplesPerFrame * bytesPerSample,
+      (sceneEndFrame(0) + 1) * samplesPerFrame * bytesPerSample,
     ),
     880,
     samplesPerSecond,
   )
   const sfxToneDuring = toneMagnitude(
     decodedAudio.subarray(
-      samplesPerSecond * 2,
-      samplesPerSecond * 4,
+      sceneStartFrame(1) * samplesPerFrame * bytesPerSample,
+      (sceneEndFrame(1) + 1) * samplesPerFrame * bytesPerSample,
     ),
     880,
     samplesPerSecond,
@@ -1302,6 +1306,18 @@ function range(index: number): {
     endFrameExclusive:
       (index + 1) * sceneFrameCount,
   }
+}
+
+function sceneStartFrame(index: number): number {
+  return index * sceneFrameCount
+}
+
+function sceneMidFrame(index: number): number {
+  return sceneStartFrame(index) + sceneMidFrameOffset
+}
+
+function sceneEndFrame(index: number): number {
+  return sceneStartFrame(index) + sceneLastFrameOffset
 }
 
 function layer(input: {

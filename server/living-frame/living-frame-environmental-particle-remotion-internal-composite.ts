@@ -65,7 +65,8 @@ const MAXIMUM_SEQUENCE_FRAMES = 16
 const FULL_TIMELINE_MAXIMUM_FRAMES = 600
 const FULL_TIMELINE_CHUNK_RENDER_FRAMES = 24 as const
 const MAXIMUM_RENDERED_BYTES = 256 * 1024 * 1024
-const MINIMUM_REVIEW_ALPHA_WEIGHTED_PIXEL_COUNT = 8
+const MINIMUM_REVIEW_ALPHA_WEIGHTED_PIXEL_COUNT = 24
+const MINIMUM_REVIEW_DIFFERENCE_PIXEL_COUNT = 24
 const MINIMUM_SOURCE_MAXIMUM_ALPHA_FOR_REVIEW_VISIBILITY = 64
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const SHA256 = /^[a-f0-9]{64}$/u
@@ -1678,9 +1679,8 @@ function measureRenderedFrames(input: {
       && projectedAlphaWeightedPixelCount >=
         MINIMUM_REVIEW_ALPHA_WEIGHTED_PIXEL_COUNT
     const particleVisible =
-      expectedPerceptiblyVisible
-        ? difference.count > 0
-        : difference.count > 5
+      difference.count >=
+        MINIMUM_REVIEW_DIFFERENCE_PIXEL_COUNT
     const expectedCentroid =
       source.alphaWeightedCentroid
     const centroidErrorNormalized =

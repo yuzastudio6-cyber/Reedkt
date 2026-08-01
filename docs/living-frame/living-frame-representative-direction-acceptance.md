@@ -55,3 +55,32 @@ Geometry, runtime success, or numeric metrics cannot approve professional
 quality. `canonicalConsumptionPending:true`; the profile grants no planner,
 timing, sound, work, asset, renderer, QA, review, dispatch, billing, public, or
 production authority.
+
+## V2 source-lineage reconciliation
+
+V1 direction profiles predate the semantic source correction and still point to
+the v1 visual fixture and v1 case-source admissions. They remain useful as the
+frozen action-, style-, depth-, motion-budget-, and relative-phase design
+profiles, but they cannot drive representative rendering.
+
+`living-frame-representative-direction-acceptance-v2` is an additive,
+source-only reconciliation candidate. It revalidates the exact v1 professional
+profile, visual-fixture v2, and source-role-reconciliation v1, then preserves
+each case's creative direction while replacing only its source lineage with:
+
+- exact semantically routed v2 source candidate IDs;
+- the exact visual-fixture v2 case and route digests;
+- the exact source-role-reconciliation case digest; and
+- one ordered case-source-admission v2 digest reference that still requires a
+  canonical reread.
+
+The Hybrid Expansion and Attention directions now refer directly to approved
+topic-matched B-roll. They do not manufacture stills, generate living-subject
+motion, or admit character or mechanical rigging. All five relative phase
+profiles are preserved, but exact phase frames remain pending decisions of Head
+Intelligence and the canonical StoryTiming owner.
+
+V2 explicitly keeps every case non-admissible for runtime. It creates no Head
+decision, clock, cue, work item, asset, renderer layer, QA approval, review,
+cost event, delivery, or production authority. Canonical consumption and all
+case-source-admission rereads remain pending.

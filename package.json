@@ -232,6 +232,7 @@
     "smoke:living-frame-representative-visual-fixture-v2": "tsx server/smoke/living-frame-representative-visual-fixture-v2-smoke.ts",
     "smoke:living-frame-representative-source-role-reconciliation": "tsx server/smoke/living-frame-representative-source-role-reconciliation-smoke.ts",
     "smoke:living-frame-representative-direction-acceptance": "tsx server/smoke/living-frame-representative-direction-acceptance-smoke.ts",
+    "smoke:living-frame-representative-direction-acceptance-v2": "tsx server/smoke/living-frame-representative-direction-acceptance-v2-smoke.ts",
     "smoke:living-frame-active-non-illustration-evidence-admission": "tsx server/smoke/living-frame-active-non-illustration-evidence-admission-smoke.ts",
     "smoke:living-frame-active-professional-skill-policy-projection": "tsx server/smoke/living-frame-active-professional-skill-policy-projection-smoke.ts",
     "smoke:living-frame-chat-plan-presentation": "tsx server/smoke/living-frame-chat-plan-presentation-smoke.ts",

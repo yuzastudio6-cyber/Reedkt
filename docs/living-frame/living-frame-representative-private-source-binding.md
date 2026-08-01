@@ -90,3 +90,38 @@ The v2 result retains `canonicalConsumptionPending:true`. It does not probe,
 download, ingest, select, render, dispatch, persist an asset, approve QA, charge
 a customer, or authorize public/production use. Its focused smoke includes an
 exact `30000/1001` source-rate case only to prove contract math and refusals.
+
+## Semantic-route case admission v2
+
+`living-frame-representative-case-source-admission-v2` consumes only exact v2
+private bindings. For each of the twelve active cases it derives the required
+ordered source IDs from the semantic-routing correction, not from the retired
+v1 seven-source case map. It revalidates every binding and requires:
+
+- the exact case and semantic topic on every source;
+- the exact route, provenance, visual-fixture, and source-binding digests;
+- identical workspace, project, approved snapshot, selected scene,
+  MasterTiming, and confirmed-frame lineage across the case;
+- a unique approved work ref and asset-manifest ref for every source;
+- exact source-probe or structured-snapshot evidence per assignment; and
+- the owner pause on character animation and mechanical rigging.
+
+The admission distinguishes primary A-roll from topic-matched supporting
+B-roll and preserves archive, map, diagram, data, static-illustration, and
+non-character-still source uses. Missing, extra, reordered, duplicated,
+cross-case, cross-topic, cross-snapshot, or v1 bindings fail closed. Source
+coverage is reported separately from caption, SoundSync, temporal-mask,
+renderer, and final-review dependencies, which remain with their canonical
+owners.
+
+The current v1 visual fixture still asks the Hybrid Expansion and Attention
+cases for an `approved_non_character_still`, while the corrected semantic route
+supplies topic-matched source B-roll. V2 admission reports that role as pending;
+it does not pretend that a video segment is already an approved still. A later
+versioned visual-fixture/derived-frame decision must reconcile that mismatch
+before either case can render.
+
+The focused source-only proof compiles all twelve corrected routes and 26 v2
+private bindings, including four cases that use the topic-matched NASA B-roll.
+It creates no work item or asset and grants no runtime, QA, cost, delivery, or
+production authority.

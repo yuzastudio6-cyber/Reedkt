@@ -54,3 +54,39 @@ sources are rejected. The output records which required visual asset roles the
 source set can support and which caption, SoundSync, mask, final-artifact, or
 other non-source dependencies must still be supplied by their canonical
 owners. It does not perform that asset-role reconciliation itself.
+
+## Exact probe and frame binding v2
+
+The later semantic-routing audit invalidated v1 representative admissions. It
+also exposed a separate timing defect: the v1 video selection literally stores
+`fps: 30`, even when the exact source may use `30000/1001`, another constant
+rate, or variable timing. V1 remains readable as historical contract evidence,
+but it cannot drive representative rendering.
+
+`living-frame-representative-private-source-binding-v2` is the additive,
+source-only replacement candidate. It binds one source to one exact corrected
+semantic route and requires:
+
+- immutable private media ID, byte length, and server-computed SHA-256;
+- an exact canonical FFprobe or still-probe evidence reference;
+- exact video dimensions, codec, pixel format, decoded frame count, rational
+  frame rate, rational time base, and duration in time-base ticks;
+- a constant-frame-rate source or a later canonical normalization step;
+- exact inclusive/exclusive source-frame selection;
+- exact rational MasterTiming rate and destination frame range;
+- either identical-frame mapping or deterministic duration-preserving CFR
+  resampling with 1:1 playback speed and half-up frame-duration rounding;
+- exact still orientation/dimensions before crop geometry; or
+- exact structured-data media identity, selected rows, and citation lineage.
+
+The compiler rejects substituted 30-fps metadata, variable frame rate,
+probe/source-byte mismatch, selection beyond decoded frames, source-duration
+mismatch, destination-duration drift, caller-selected speed changes, semantic
+cross-topic substitution, extra URL/path fields, stale reviews, and stale
+canonical lineage. It consumes the existing FFprobe and Sharp identities; it
+does not create a probe tool, timing owner, or source registry.
+
+The v2 result retains `canonicalConsumptionPending:true`. It does not probe,
+download, ingest, select, render, dispatch, persist an asset, approve QA, charge
+a customer, or authorize public/production use. Its focused smoke includes an
+exact `30000/1001` source-rate case only to prove contract math and refusals.

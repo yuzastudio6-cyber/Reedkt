@@ -32,6 +32,38 @@ The committed local candidates are:
 The source smoke rereads the exact committed PNG byte lengths and SHA-256
 digests. External media bytes are intentionally absent.
 
+## Source-page provenance audit
+
+`living-frame-representative-source-provenance-audit-v1` freezes a byte-free
+research snapshot for the seven candidates without pretending that research is
+canonical legal or fact approval. It records exact Wikimedia revision IDs for
+the four Commons sources, the official NASA SVS credit page and current NASA
+reuse-policy reference, and the official EIA analysis/source notes plus EIA
+reuse-policy reference. Every reference must be reread by the canonical owner
+at admission time.
+
+The audit preserves several restrictions that the older candidate list alone
+could not express precisely:
+
+- NASA-created media is listed as U.S. public domain, but NASA marks and implied
+  endorsement remain restricted; identifiable-person use still requires the
+  publicity/person review.
+- The 1892 map is historical evidence and cannot be used as modern geography.
+- The scientific-method SVG is author-released public domain, but translated or
+  relabeled use still needs semantic review.
+- The EIA source page is HTML research evidence, not the executable data asset.
+  The future admitted asset must be a separately frozen structured-data
+  snapshot with exact selected rows, publication/data period, citations, and
+  third-party-input reuse disposition.
+- The generated astronomer and locomotive remain internal fictional fixtures.
+  The illustrated subject stays unanimated and mechanical part animation stays
+  paused.
+
+This source-only audit performed page/policy research but fetched no external
+media bytes. `canonicalConsumptionPending:true`, canonical license/fact/
+publicity reread remains pending, and all runtime/customer/production authority
+is false.
+
 ## Required admission steps
 
 Before representative rendering, the canonical source/asset owners must:

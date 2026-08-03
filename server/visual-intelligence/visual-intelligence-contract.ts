@@ -27,6 +27,7 @@ import {
   type VisualIntelligenceEvidenceRef,
   type VisualIntelligenceOperation,
   type VisualIntelligencePlanningOperationInput,
+  type VisualIntelligencePreparedEvidence,
   type VisualIntelligenceProfile,
   type VisualIntelligenceProviderNormalizedResult,
   type VisualIntelligenceQualityPolicy,
@@ -45,6 +46,7 @@ const SHA256 = /^sha256:[a-f0-9]{64}$/u
 const RAW_SHA256 = /^[a-f0-9]{64}$/u
 const SAFE_VERSION = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u
 const MIME_TYPE = /^(?:video\/(?:mp4|quicktime|webm)|image\/(?:png|jpeg))$/u
+const GCS_URI = /^gs:\/\/[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]\/[^?#\\]+$/u
 const UNSAFE_SERIALIZED_TEXT =
   /(?:https?:\/\/|file:|data:|blob:|javascript:|\/Users\/|\/Volumes\/|\/tmp\/|\\|x-goog-|api[_ -]?key|password|credential|secret|access[_ -]?token|refresh[_ -]?token|\bsk-[A-Za-z0-9_-]{8,}|-----BEGIN [A-Z ]+PRIVATE KEY-----)/iu
 const EXECUTABLE_TEXT =
@@ -376,6 +378,40 @@ const coverageSchema = z.object({
     context.addIssue({ code: 'custom', message: 'Coverage completeness is inconsistent.' })
   }
 })
+
+const privateMediaInputSchema = z.object({
+  artifactId: safeIdSchema,
+  gcsUri: z.string().regex(GCS_URI).max(2_048),
+  contentType: z.string().regex(MIME_TYPE),
+  checksumSha256: rawShaSchema,
+  exactGenerationRereadVerified: z.literal(true),
+}).strict().superRefine((value, context) => {
+  if (
+    containsAsciiControlCharacter(value.gcsUri)
+    || value.gcsUri.includes('/../')
+    || value.gcsUri.includes('/./')
+  ) context.addIssue({
+    code: 'custom',
+    message: 'Private Visual Intelligence media coordinate is invalid.',
+  })
+})
+
+function containsAsciiControlCharacter(value: string): boolean {
+  return [...value].some((character) => {
+    const codePoint = character.codePointAt(0) ?? 0
+    return codePoint <= 31 || codePoint === 127
+  })
+}
+
+const preparedEvidenceSchema = z.object({
+  deterministicEvidence: z.array(evidenceSchema).min(1).max(20_000),
+  coveragePlan: coverageSchema,
+  privateMediaInputs: z.array(privateMediaInputSchema).min(1).max(64),
+  transcriptVersion: versionSchema.nullable(),
+  ocrVersion: versionSchema.nullable(),
+  toolExecutionEvidence: z.array(toolExecutionEvidenceSchema).min(1).max(64),
+  preparedEvidenceRef: evidenceRefSchema,
+}).strict()
 
 const sourcePlanningObservationSchema = z.object({
   sourceFunction: z.enum([
@@ -752,6 +788,12 @@ export function parseVisualIntelligenceCoverage(
   value: unknown,
 ): VisualIntelligenceCoverage {
   return deepFreeze(coverageSchema.parse(clonePlainJson(value)))
+}
+
+export function parseVisualIntelligencePreparedEvidence(
+  value: unknown,
+): VisualIntelligencePreparedEvidence {
+  return deepFreeze(preparedEvidenceSchema.parse(clonePlainJson(value)))
 }
 
 export function createVisualInspectionRequirement(

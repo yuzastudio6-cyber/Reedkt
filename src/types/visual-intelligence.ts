@@ -442,6 +442,28 @@ export interface VisualIntelligenceCoverage {
 }
 
 /**
+ * Server-owned deterministic evidence package prepared before a semantic
+ * provider call. GCS coordinates remain private control-plane data and never
+ * appear in Orchestra jobs, browser requests, or persisted public reports.
+ */
+export interface VisualIntelligencePreparedEvidence {
+  readonly deterministicEvidence: VisualIntelligenceEvidence[]
+  readonly coveragePlan: VisualIntelligenceCoverage
+  readonly privateMediaInputs: Array<{
+    artifactId: string
+    gcsUri: string
+    contentType: string
+    checksumSha256: string
+    exactGenerationRereadVerified: true
+  }>
+  readonly transcriptVersion: string | null
+  readonly ocrVersion: string | null
+  readonly toolExecutionEvidence:
+    readonly VisualIntelligenceToolExecutionEvidence[]
+  readonly preparedEvidenceRef: VisualIntelligenceEvidenceRef
+}
+
+/**
  * Source-cleanup classifications emitted only by the source-edit-planning
  * profile. Keeping these fields separate from generic action labels prevents
  * downstream planning from guessing that a descriptive label is a cut.

@@ -31,6 +31,9 @@ not call cloud-mutating scripts.
 10. `.example.sh` Cloud Run service/job templates in later deployment milestones
 11. `15-retire-legacy-visual-runtimes.sh` only for the explicitly authorized
     Visual Intelligence cutover
+12. `16-audit-visual-intelligence-live-prerequisites.sh` at any later safe
+    boundary; it is read-only and never accesses secret payloads or starts a
+    workload
 
 Milestone 3 does not deploy Cloud Run, build images, run media tools, call providers, create real secret values, or process customer media.
 

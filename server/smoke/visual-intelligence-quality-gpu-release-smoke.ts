@@ -44,6 +44,8 @@ const requiredCoreQualificationSmokes = [
   'visual-intelligence-durable-authorities-smoke.ts',
   'visual-intelligence-inspection-coordinator-smoke.ts',
   'visual-intelligence-source-gpu-evidence-smoke.ts',
+  'visual-intelligence-live-prerequisites-audit-smoke.ts',
+  'gcp-foundation-config-smoke.ts',
   'canonical-source-led-content-analysis-reasoner-smoke.ts',
   'canonical-planning-visual-intelligence-operation-owner-smoke.ts',
 ] as const

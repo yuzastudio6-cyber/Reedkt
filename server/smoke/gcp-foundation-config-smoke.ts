@@ -68,6 +68,7 @@ const expectedApis = [
   'cloudbuild.googleapis.com',
   'cloudkms.googleapis.com',
   'containeranalysis.googleapis.com',
+  'containerscanning.googleapis.com',
   'binaryauthorization.googleapis.com',
   'logging.googleapis.com',
   'monitoring.googleapis.com',
@@ -80,6 +81,24 @@ const expectedApis = [
 for (const api of expectedApis) {
   check(GCP_PRODUCTION_REQUIRED_APIS.includes(api as (typeof GCP_PRODUCTION_REQUIRED_APIS)[number]), `Missing required API ${api}`)
 }
+
+const gcloudCommon = readRepoFile('scripts/gcp/prod/lib/gcloud-common.sh')
+for (const api of expectedApis) {
+  check(gcloudCommon.includes(api), `GCP setup scripts cannot enable required API ${api}`)
+}
+for (const secretName of [
+  'MODEL_WEIGHT_ACCESS_TOKEN',
+  'HUGGINGFACE_TOKEN',
+]) {
+  check(
+    gcloudCommon.includes(secretName),
+    `GCP setup scripts cannot create required model-artifact placeholder ${secretName}`,
+  )
+}
+check(
+  !gcloudCommon.includes('secrets versions access'),
+  'GCP setup helpers must never read secret payloads.',
+)
 
 const expectedServiceAccounts = [
   'reeditpro-api-sa',
@@ -266,7 +285,7 @@ for (const workerScriptPath of [
   check(!/--max-retries=[1-9]/u.test(workerScript), `${workerScriptPath} must not configure hidden Cloud Run retries.`)
 }
 
-const allScriptText = scriptPaths.map(readRepoFile).join('\n')
+const allScriptText = [...scriptPaths.map(readRepoFile), gcloudCommon].join('\n')
 check(!/signed_url/i.test(allScriptText), 'Scripts must not persist signed_url fields.')
 check(!/SECRET_VALUE|REAL_SECRET|paste secret/i.test(allScriptText), 'Scripts must not include secret payload prompts or values.')
 

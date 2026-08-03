@@ -18,6 +18,8 @@ const smokes = [
   'server/smoke/visual-intelligence-route-contract-smoke.ts',
   'server/smoke/visual-intelligence-qwen-retirement-smoke.ts',
   'server/smoke/visual-intelligence-cloud-runtime-retirement-smoke.ts',
+  'server/smoke/visual-intelligence-live-prerequisites-audit-smoke.ts',
+  'server/smoke/gcp-foundation-config-smoke.ts',
   'server/smoke/source-led-visual-intelligence-content-analysis-smoke.ts',
   'server/smoke/canonical-source-led-content-analysis-reasoner-smoke.ts',
   'server/smoke/canonical-planning-visual-intelligence-operation-owner-smoke.ts',

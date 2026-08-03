@@ -66,10 +66,19 @@ fresh dispatch authority and preserve prior audit evidence.
   zero.
 - The project has L4 Compute quota, but neither SAM 3.1 route is admitted until
   the same immutable image independently passes A100 and L4 qualification.
-- Artifact Registry vulnerability scanning is not enabled, so a SAM 3.1 image
-  cannot pass the frozen supply-chain release gate yet.
+- Container Analysis and Container Scanning are now enabled alongside Artifact
+  Registry. This closes the API foundation only; the future immutable image
+  must still produce a clean digest-bound scan, SBOM, signature, and
+  attestation before either GPU route may use it.
 - No SAM 3.1 image, GPU job, provider call, model download, customer charge, or
   production promotion occurred.
+
+The read-only operator command
+`npm run audit:visual-intelligence-live-prerequisites` reports A100/L4 quota,
+enabled checkpoint-secret version counts (never payloads), required API state,
+legacy visual-runtime absence, and immutable SAM 3.1 image presence. A blocked
+audit is expected until the external checkpoint and A100 gates close; it does
+not weaken or self-authorize a build or runtime.
 
 ## Current disposition
 

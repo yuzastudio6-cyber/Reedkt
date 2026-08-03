@@ -20,6 +20,8 @@ import { SFX_API_ROUTES } from './routes/sfx-api-routes'
 import { STORAGE_API_ROUTES } from './routes/storage-api-routes'
 import { STORYTIMING_API_ROUTES } from './routes/storytiming-api-routes'
 import { STRIPE_API_ROUTES } from './routes/stripe-api-routes'
+import { VISUAL_INTELLIGENCE_API_ROUTES } from
+  './routes/visual-intelligence-api-routes'
 
 export interface ApiRouteMapSummary {
   totalRoutes: number
@@ -45,6 +47,7 @@ export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...CREDIT_API_ROUTES,
   ...JOB_API_ROUTES,
   ...GENERATION_API_ROUTES,
+  ...VISUAL_INTELLIGENCE_API_ROUTES,
   ...RENDER_API_ROUTES,
   ...MUSIC_API_ROUTES,
   ...SFX_API_ROUTES,
@@ -64,6 +67,7 @@ const API_DOMAINS: ApiDomain[] = [
   'credits',
   'jobs',
   'generation',
+  'visual_intelligence',
   'render',
   'music',
   'sfx',
@@ -136,6 +140,7 @@ function createEmptyDomainSummary(): Record<ApiDomain, number> {
     credits: 0,
     jobs: 0,
     generation: 0,
+    visual_intelligence: 0,
     render: 0,
     music: 0,
     sfx: 0,

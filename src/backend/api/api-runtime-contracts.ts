@@ -33,6 +33,7 @@ export type ApiDomain =
   | 'credits'
   | 'jobs'
   | 'generation'
+  | 'visual_intelligence'
   | 'render'
   | 'music'
   | 'sfx'

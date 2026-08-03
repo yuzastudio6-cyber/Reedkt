@@ -36,6 +36,8 @@ import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
 import { createRenderRoutes } from './routes/render-routes'
 import { createToolCostRoutes } from './routes/tool-cost-routes'
 import { createUploadRoutes } from './routes/upload-routes'
+import { createVisualIntelligenceRoutes } from
+  './routes/visual-intelligence-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
 import type { EditReferenceStudyChatRuntimePort } from './services/edit-reference-study-chat-runtime-port'
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
@@ -77,6 +79,14 @@ export interface ReeditProApiAppOptions {
     RuntimeState['canonicalVisualCalibrationReferenceFrameReaderPort']
   canonicalProviderAttemptRuntimeRecordSourcePort?:
     RuntimeState['canonicalProviderAttemptRuntimeRecordSourcePort']
+  visualIntelligenceLifecyclePort?:
+    RuntimeState['visualIntelligenceLifecyclePort']
+  visualIntelligenceReportRepository?:
+    RuntimeState['visualIntelligenceReportRepository']
+  visualIntelligenceInspectionCoordinatorPort?:
+    RuntimeState['visualIntelligenceInspectionCoordinatorPort']
+  visualIntelligencePlanningOperationRequestOwnerPort?:
+    RuntimeState['visualIntelligencePlanningOperationRequestOwnerPort']
   motionStudioCommandRepositoryRuntimePort?:
     RuntimeState['motionStudioCommandRepositoryRuntimePort']
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
@@ -177,6 +187,30 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           canonicalProviderAttemptRuntimeRecordSourcePort:
             options.canonicalProviderAttemptRuntimeRecordSourcePort,
+        }
+      : {}),
+    ...(options.visualIntelligenceLifecyclePort
+      ? {
+          visualIntelligenceLifecyclePort:
+            options.visualIntelligenceLifecyclePort,
+        }
+      : {}),
+    ...(options.visualIntelligenceReportRepository
+      ? {
+          visualIntelligenceReportRepository:
+            options.visualIntelligenceReportRepository,
+        }
+      : {}),
+    ...(options.visualIntelligenceInspectionCoordinatorPort
+      ? {
+          visualIntelligenceInspectionCoordinatorPort:
+            options.visualIntelligenceInspectionCoordinatorPort,
+        }
+      : {}),
+    ...(options.visualIntelligencePlanningOperationRequestOwnerPort
+      ? {
+          visualIntelligencePlanningOperationRequestOwnerPort:
+            options.visualIntelligencePlanningOperationRequestOwnerPort,
         }
       : {}),
     ...(options.motionStudioCommandRepositoryRuntimePort
@@ -322,6 +356,7 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
   app.use(createJobRoutes())
   app.use(createWorkerRoutes())
   app.use(createRenderRoutes())
+  app.use(createVisualIntelligenceRoutes())
   app.use(createProviderGatewayRoutes())
 
   app.use(errorHandlerMiddleware)

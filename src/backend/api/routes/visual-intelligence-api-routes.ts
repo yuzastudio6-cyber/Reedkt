@@ -1,0 +1,98 @@
+import {
+  VISUAL_INTELLIGENCE_AUTHENTICATED_READ_ROUTE,
+  VISUAL_INTELLIGENCE_AUTHENTICATED_READ_ROUTE_ID,
+  VISUAL_INTELLIGENCE_EXECUTION_ROUTE,
+  VISUAL_INTELLIGENCE_EXECUTION_ROUTE_ID,
+  VISUAL_INTELLIGENCE_INSPECTION_ROUTE,
+  VISUAL_INTELLIGENCE_INSPECTION_ROUTE_ID,
+  VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE,
+  VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE_ID,
+} from '../../../types/visual-intelligence'
+import type { ApiRouteDefinition } from '../api-runtime-contracts'
+
+export const VISUAL_INTELLIGENCE_API_ROUTES: ApiRouteDefinition[] = [
+  {
+    id: VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE_ID,
+    domain: 'visual_intelligence',
+    method: 'POST',
+    path: VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE,
+    description:
+      'Reread admitted planning evidence and execute one bounded analyze, query, or comparison operation through Visual Intelligence.',
+    securityLevel: 'backend_service_role',
+    runtimeMode: 'cloud_run',
+    status: 'backend_required',
+    requiresSupabase: false,
+    requiresServiceRole: true,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'executeVisualIntelligencePlanningOperation',
+    notes: [
+      'The backend owner independently rereads each immutable upstream request, artifact authority, evidence package, allowance, and account-effective pricing authority.',
+      'Callers select only a registered operation/profile and, for query_range, one bounded question; arbitrary provider prompts, admissions, costs, paths, URLs, media bytes, credentials, tools, and model choices are forbidden.',
+      'The result is immutable planning evidence only and cannot mutate the edit, dispatch editing work, render, approve QA, export, deliver, or grant production authority.',
+    ],
+  },
+  {
+    id: VISUAL_INTELLIGENCE_EXECUTION_ROUTE_ID,
+    domain: 'visual_intelligence',
+    method: 'POST',
+    path: VISUAL_INTELLIGENCE_EXECUTION_ROUTE,
+    description:
+      'Execute one owner-admitted provider-neutral Visual Intelligence request through the exact Gemini Pro High lifecycle.',
+    securityLevel: 'backend_service_role',
+    runtimeMode: 'cloud_run',
+    status: 'backend_required',
+    requiresSupabase: false,
+    requiresServiceRole: true,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'executeVisualIntelligenceRequest',
+    notes: [
+      'The request is byte-free and must already be admitted by its canonical source or approved-edit owner.',
+      'Google Application Default Credentials remain backend-only; caller-selected models, prompts, tools, credentials, URLs, and Qwen fallback are forbidden.',
+      'Execution may persist immutable private evidence and settle the exact account-effective model cost, but it cannot mutate the edit, approve QA, export, deliver, or grant production authority.',
+    ],
+  },
+  {
+    id: VISUAL_INTELLIGENCE_INSPECTION_ROUTE_ID,
+    domain: 'visual_intelligence',
+    method: 'POST',
+    path: VISUAL_INTELLIGENCE_INSPECTION_ROUTE,
+    description:
+      'Execute one approved-snapshot Visual Intelligence inspection through the canonical owner and repair coordinator.',
+    securityLevel: 'backend_service_role',
+    runtimeMode: 'cloud_run',
+    status: 'backend_required',
+    requiresSupabase: false,
+    requiresServiceRole: true,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'executeApprovedVisualIntelligenceInspection',
+    notes: [
+      'The backend rereads the exact approved snapshot, private preview, confirmed output frame, work graph, timeline, estimate, reservation, and expected-outcome lineage before provider execution.',
+      'Deterministic evidence must use the admitted GPU release; sampled Gemini evidence remains separate from complete-time deterministic QA and canonical private review.',
+      'Findings route to the owning skill for at most two approved repair cycles. The route cannot mutate the timeline, approve QA, export, deliver, or grant production authority.',
+    ],
+  },
+  {
+    id: VISUAL_INTELLIGENCE_AUTHENTICATED_READ_ROUTE_ID,
+    domain: 'visual_intelligence',
+    method: 'POST',
+    path: VISUAL_INTELLIGENCE_AUTHENTICATED_READ_ROUTE,
+    description:
+      'Authenticated reread of one exact immutable provider-neutral Visual Intelligence report.',
+    securityLevel: 'workspace_member',
+    runtimeMode: 'frontend_safe',
+    status: 'frontend_safe_ready',
+    requiresSupabase: false,
+    requiresServiceRole: false,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'readVisualIntelligenceReport',
+    notes: [
+      'Success uses { ok:true, data:{ authenticatedRead }, warnings }.',
+      'The route recomputes request/result digests, rereads the exact immutable report, and rejects cross-workspace, cross-edit, cross-snapshot, or browser-promoted completion.',
+      'Historical Qwen records remain separately readable under their exact historical schema and can never satisfy this route.',
+    ],
+  },
+]

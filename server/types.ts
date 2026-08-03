@@ -21,6 +21,16 @@ import type { CanonicalMotionStudioAudioSelectionTransitionPort } from './motion
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
 import type { CanonicalVisualCalibrationReferenceFrameReaderPort } from './services/canonical-visual-calibration-reference-frame-reader-port'
 import type { CanonicalProviderAttemptRuntimeRecordSourcePort } from './services/canonical-provider-attempt-runtime-record-port'
+import type {
+  VisualIntelligenceLifecycleService,
+  VisualIntelligenceReportRepository,
+} from './visual-intelligence/visual-intelligence-lifecycle-service'
+import type {
+  VisualIntelligenceInspectionCoordinator,
+} from './visual-intelligence/visual-intelligence-inspection-coordinator'
+import type {
+  VisualIntelligencePlanningOperationRequestOwner,
+} from './services/canonical-planning-visual-intelligence-operation-owner-service'
 import type { PlanningExactEditPreferenceAuthorityPort } from './services/planning-exact-edit-preference-authority-port'
 import type {
   CanonicalDurableUploadTargetTransactionAdapter,
@@ -107,6 +117,11 @@ export interface RuntimeState {
     CanonicalVisualCalibrationReferenceFrameReaderPort
   canonicalProviderAttemptRuntimeRecordSourcePort?:
     CanonicalProviderAttemptRuntimeRecordSourcePort
+  visualIntelligenceLifecyclePort?: VisualIntelligenceLifecycleService
+  visualIntelligenceReportRepository?: VisualIntelligenceReportRepository
+  visualIntelligenceInspectionCoordinatorPort?:
+    VisualIntelligenceInspectionCoordinator
+  visualIntelligencePlanningOperationRequestOwnerPort?: VisualIntelligencePlanningOperationRequestOwner
   motionStudioCommandRepositoryRuntimePort?:
     MotionStudioCommandRepositoryRuntimePort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
@@ -160,6 +175,11 @@ export interface ServiceContext {
     CanonicalVisualCalibrationReferenceFrameReaderPort
   canonicalProviderAttemptRuntimeRecordSourcePort?:
     CanonicalProviderAttemptRuntimeRecordSourcePort
+  visualIntelligenceLifecyclePort?: VisualIntelligenceLifecycleService
+  visualIntelligenceReportRepository?: VisualIntelligenceReportRepository
+  visualIntelligenceInspectionCoordinatorPort?:
+    VisualIntelligenceInspectionCoordinator
+  visualIntelligencePlanningOperationRequestOwnerPort?: VisualIntelligencePlanningOperationRequestOwner
   motionStudioCommandRepositoryRuntimePort?:
     MotionStudioCommandRepositoryRuntimePort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort

@@ -35,6 +35,18 @@ const retirementScript = readFileSync(
   'scripts/gcp/prod/15-retire-legacy-visual-runtimes.sh',
   'utf8',
 )
+const qualificationRunner = readFileSync(
+  'scripts/verify-visual-intelligence-quality-gpu-release.mjs',
+  'utf8',
+)
+const requiredCoreQualificationSmokes = [
+  'visual-intelligence-lifecycle-smoke.ts',
+  'visual-intelligence-durable-authorities-smoke.ts',
+  'visual-intelligence-inspection-coordinator-smoke.ts',
+  'visual-intelligence-source-gpu-evidence-smoke.ts',
+  'canonical-source-led-content-analysis-reasoner-smoke.ts',
+  'canonical-planning-visual-intelligence-operation-owner-smoke.ts',
+] as const
 
 assert.equal(VISUAL_INTELLIGENCE_CAPABILITY_ID, 'visual_intelligence')
 assert.deepEqual(VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS, [
@@ -146,6 +158,12 @@ assert.equal(
 assert.match(retirementScript, /LEGACY_VISUAL_JOBS/u)
 assert.match(retirementScript, /Orchestra -> visual_intelligence/u)
 assert.doesNotMatch(retirementScript, /artifacts docker images delete/u)
+for (const smoke of requiredCoreQualificationSmokes) {
+  assert.equal(
+    qualificationRunner.includes(`'server/smoke/${smoke}'`),
+    true,
+  )
+}
 
 console.log(JSON.stringify({
   smoke: 'visual-intelligence-quality-gpu-release',
@@ -165,6 +183,7 @@ console.log(JSON.stringify({
   sam31SourceCandidateComplete: true,
   sam31CloudInstallQualified: false,
   liveGeminiReleaseQualified: false,
+  sourceGateContainsCoreLifecycleEvidence: true,
   sourceReleaseGatesFailClosed: true,
   productionReady: false,
 }, null, 2))

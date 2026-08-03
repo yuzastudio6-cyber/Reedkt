@@ -757,10 +757,12 @@ billing, wallet, Supabase, or production mutation occurred.
 
 ## M12 — closeout reconciliation and base synchronization
 
-Status: completed locally; push evidence is recorded by the following
-bookkeeping commit.
+Status: completed and pushed.
 
-Implementation commit: this merge commit.
+Implementation commit: `d9e220f048ec6127e6a1927c8276bc660fe4d2fd`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after push.
 
 Reconciled the existing B-roll head
 `cb6e55518d7ac4cda9e9325b38cb53bea5076080` and draft PR #2498 against the
@@ -829,4 +831,4 @@ evidence, and M23 will issue the final source-tree-bound qualification.
 | M9 | `c8268a9d7` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M10 | `f2b799d2f` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M11 | `4a74687ca` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
-| M12 | this merge commit | following bookkeeping commit | pending push | `internal_execution_qualified` |
+| M12 | `d9e220f04` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

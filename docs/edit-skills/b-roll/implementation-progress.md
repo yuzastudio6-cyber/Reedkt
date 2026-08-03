@@ -99,8 +99,12 @@ Qualification after M1: `implementation_pending`.
 
 ## M2 — canonical B-roll manifest and qualification plan
 
-Status: completed locally; commit and push recorded by the follow-up progress
-commit.
+Status: completed and pushed.
+
+Implementation commit: `a1a73b0ca7b9efc4007c8c0c17777e69984142a2`.
+
+Remote confirmation: the branch advanced to the implementation commit after
+push.
 
 Registered the only global B-roll identity as `b_roll@1.0.0` with contract
 `b_roll.skill_contract.v1`. The deep-frozen manifest declares 13 implemented
@@ -141,4 +145,4 @@ explicitly disabled until M3 evidence passes.
 | --- | --- | --- | --- | --- |
 | M0 | `ca25f01035590ba86f62fb2273c8299924610dcc` | this bookkeeping commit | confirmed | `implementation_pending` |
 | M1 | `ac8fcc6f3b1be4f584f2bed804a769f3e340b667` | this bookkeeping commit | confirmed | `implementation_pending` |
-| M2 | pending | pending | pending | `implementation_pending` |
+| M2 | `a1a73b0ca7b9efc4007c8c0c17777e69984142a2` | this bookkeeping commit | confirmed | `implementation_pending` |

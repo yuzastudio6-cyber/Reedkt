@@ -220,6 +220,96 @@ export interface AuthorityReservationEvent {
   createdAt: string
 }
 
+export interface AuthorityGpuAttemptCreditSettlementRecord {
+  schemaVersion: 'canonical-professional-gpu-attempt-credit-settlement-v1'
+  id: string
+  terminalBindingId: string
+  terminalBindingHash: string
+  prelaunchRecordId: string
+  prelaunchRecordHash: string
+  fundedDispatchAdmissionId: string
+  fundedDispatchAdmissionHash: string
+  attemptCostReceiptId: string
+  attemptCostReceiptHash: string
+  executionAttemptId: string
+  snapshotId: string
+  approvalId: string
+  reservationId: string
+  approvedWorkItemId: string
+  terminalOutcome:
+    | 'completed'
+    | 'reeditpro_failed'
+    | 'unknown_requires_reconciliation'
+  settlementDisposition:
+    | 'charged_eligible_cost_to_shared_plan_reservation'
+    | 'no_charge_weeditpro_absorbed_failure'
+    | 'held_without_charge_pending_reconciliation'
+  approvedToolCeilingCredits: number
+  customerChargedCredits: number
+  weeditproAbsorbedInfrastructureCostUsdNanos: number
+  unusedToolCeilingCreditsRetainedInSharedPlanReservation: number
+  creditsHeldPendingReconciliation: number
+  creditsReleasedOrRefundedAtAttemptSettlement: 0
+  reservationSpendApplied: boolean
+  exactTerminalAndAttemptCostReceiptReread: true
+  serviceFeeSettledHere: false
+  finalPlanSettlementStillRequired: true
+  publicBillingAuthorityGranted: false
+  productionAuthorityGranted: false
+  idempotencyKey: string
+  createdAt: string
+  settlementHash: string
+}
+
+export interface AuthorityGpuPlanFinalCreditSettlementWorkBinding {
+  workItemKey: string
+  approvedWorkItemId: string
+  approvedToolCeilingCredits: number
+  completedAttemptSettlementId: string
+  attemptSettlementIds: string[]
+  attemptSettlementHashes: string[]
+  customerChargedToolCredits: number
+}
+
+export interface AuthorityGpuPlanFinalCreditSettlementRecord {
+  schemaVersion: 'canonical-professional-gpu-plan-final-credit-settlement-v1'
+  id: string
+  pricingAuthorityBundleId: string
+  pricingAuthorityBundleHash: string
+  finalReadinessObservationId: string
+  finalReadinessObservationHash: string
+  snapshotId: string
+  approvalId: string
+  reservationId: string
+  planId: string
+  estimateId: string
+  workBindings: AuthorityGpuPlanFinalCreditSettlementWorkBinding[]
+  actualBillableGpuToolCostCredits: number
+  calculatedServiceFeeCredits: number
+  grossFinalChargeCredits: number
+  approvedMaximumCredits: number
+  customerCreditsSpentBeforeFinalSettlement: number
+  customerServiceFeeCreditsChargedAtFinalSettlement: number
+  customerTotalChargedCredits: number
+  weeditproAbsorbedOverageCredits: number
+  unusedReservationCreditsReleased: number
+  unknownGpuAttemptOutcomeCount: 0
+  allPricedGpuWorkCompletedExactlyOnce: true
+  exactApprovedEstimateAndServiceFeePolicyReread: true
+  exactAttemptSettlementSetReread: true
+  exactPrivateCompletionReadinessReread: true
+  activeGpuInstancesAtFinalSettlement: 0
+  reservationFinalized: true
+  privateInternalWalletMutated: true
+  externalCustomerWalletMutated: false
+  publicBillingAuthorityGranted: false
+  publicDeliveryAuthorityGranted: false
+  productionAuthorityGranted: false
+  idempotencyKey: string
+  createdAt: string
+  settlementHash: string
+}
+
 export interface AuthorityDerivedJobRecord {
   id: string
   snapshotId: string
@@ -334,6 +424,8 @@ export interface PrivateEditAuthorityAggregate {
   reservations: AuthorityCreditReservationRecord[]
   ledgerEntries: AuthorityLedgerEntry[]
   reservationEvents: AuthorityReservationEvent[]
+  gpuAttemptCreditSettlements: AuthorityGpuAttemptCreditSettlementRecord[]
+  gpuPlanFinalCreditSettlements: AuthorityGpuPlanFinalCreditSettlementRecord[]
   jobs: AuthorityDerivedJobRecord[]
   executionPackages: AuthorityExecutionPackageRecord[]
   idempotencyRecords: AuthorityIdempotencyRecord[]
@@ -556,6 +648,8 @@ function createPrivateEditAuthorityAggregate(scope: AuthorityScope, now: string)
       createdAt: now,
     }],
     reservationEvents: [],
+    gpuAttemptCreditSettlements: [],
+    gpuPlanFinalCreditSettlements: [],
     jobs: [],
     executionPackages: [],
     idempotencyRecords: [],
@@ -581,6 +675,12 @@ function parseAggregateRecord(content: string, scope: AuthorityScope): PrivateEd
   }
   if (!Array.isArray(parsed.aggregate.executionPackages)) {
     parsed.aggregate.executionPackages = []
+  }
+  if (!Array.isArray(parsed.aggregate.gpuAttemptCreditSettlements)) {
+    parsed.aggregate.gpuAttemptCreditSettlements = []
+  }
+  if (!Array.isArray(parsed.aggregate.gpuPlanFinalCreditSettlements)) {
+    parsed.aggregate.gpuPlanFinalCreditSettlements = []
   }
   assertAuthorityAggregateValid(parsed.aggregate, scope)
   return parsed.aggregate
@@ -638,12 +738,145 @@ function assertAuthorityAggregateValid(aggregate: PrivateEditAuthorityAggregate,
     aggregate.reservations.map((record) => record.id),
     aggregate.ledgerEntries.map((record) => record.id),
     aggregate.reservationEvents.map((record) => record.id),
+    aggregate.gpuAttemptCreditSettlements.map((record) => record.id),
+    aggregate.gpuPlanFinalCreditSettlements.map((record) => record.id),
     aggregate.jobs.map((record) => record.id),
     aggregate.executionPackages.map((record) => record.id),
     aggregate.auditEvents.map((record) => record.id),
   ]) {
     if (new Set(ids).size !== ids.length) {
       throw new ApiError('VALIDATION_FAILED', 'Private edit authority aggregate contains duplicate record IDs.', 409)
+    }
+  }
+  for (const settlement of aggregate.gpuAttemptCreditSettlements) {
+    const reservation = aggregate.reservations.find((record) =>
+      record.id === settlement.reservationId)
+    const snapshot = aggregate.snapshots.find((record) =>
+      record.snapshotId === settlement.snapshotId)
+    const approvedWorkItem = aggregate.approvedWorkItems.find((record) =>
+      record.id === settlement.approvedWorkItemId)
+    const { settlementHash, ...payload } = settlement
+    const matchingLedgerEntries = aggregate.ledgerEntries.filter((record) =>
+      record.sourceType ===
+        'canonical_professional_gpu_attempt_credit_settlement'
+      && record.sourceId === settlement.id)
+    const matchingReservationEvents = aggregate.reservationEvents.filter(
+      (record) => record.reservationId === settlement.reservationId
+        && record.idempotencyKey === settlement.idempotencyKey
+        && record.eventType === 'spent',
+    )
+    const exactSpendEvidence = settlement.reservationSpendApplied
+      ? matchingLedgerEntries.length === 1
+        && matchingLedgerEntries[0]!.entryType === 'spend'
+        && matchingLedgerEntries[0]!.availableDelta === 0
+        && matchingLedgerEntries[0]!.reservedDelta ===
+          -settlement.customerChargedCredits
+        && matchingLedgerEntries[0]!.spentDelta ===
+          settlement.customerChargedCredits
+        && matchingLedgerEntries[0]!.idempotencyKey ===
+          settlement.idempotencyKey
+        && matchingReservationEvents.length === 1
+        && matchingReservationEvents[0]!.credits ===
+          settlement.customerChargedCredits
+      : matchingLedgerEntries.length === 0
+        && matchingReservationEvents.length === 0
+    const validDisposition = settlement.terminalOutcome ===
+      'unknown_requires_reconciliation'
+      ? settlement.settlementDisposition ===
+          'held_without_charge_pending_reconciliation'
+        && settlement.customerChargedCredits === 0
+        && settlement.reservationSpendApplied === false
+        && settlement.creditsHeldPendingReconciliation ===
+          settlement.approvedToolCeilingCredits
+        && settlement.unusedToolCeilingCreditsRetainedInSharedPlanReservation
+          === 0
+      : settlement.terminalOutcome === 'completed'
+        ? settlement.settlementDisposition ===
+            'charged_eligible_cost_to_shared_plan_reservation'
+          && settlement.reservationSpendApplied ===
+            (settlement.customerChargedCredits > 0)
+          && settlement.creditsHeldPendingReconciliation === 0
+          && settlement.customerChargedCredits
+            + settlement
+              .unusedToolCeilingCreditsRetainedInSharedPlanReservation
+            === settlement.approvedToolCeilingCredits
+        : settlement.terminalOutcome === 'reeditpro_failed'
+          && settlement.settlementDisposition ===
+            'no_charge_weeditpro_absorbed_failure'
+          && settlement.customerChargedCredits === 0
+          && settlement.reservationSpendApplied === false
+          && settlement.creditsHeldPendingReconciliation === 0
+          && settlement.unusedToolCeilingCreditsRetainedInSharedPlanReservation
+            === settlement.approvedToolCeilingCredits
+    if (
+      settlement.schemaVersion !==
+        'canonical-professional-gpu-attempt-credit-settlement-v1'
+      || !reservation || !snapshot || !approvedWorkItem
+      || snapshot.reservationId !== reservation.id
+      || snapshot.approvalId !== settlement.approvalId
+      || approvedWorkItem.snapshotId !== snapshot.snapshotId
+      || !validDisposition
+      || !exactSpendEvidence
+      || settlement.creditsReleasedOrRefundedAtAttemptSettlement !== 0
+      || settlement.exactTerminalAndAttemptCostReceiptReread !== true
+      || settlement.serviceFeeSettledHere !== false
+      || settlement.finalPlanSettlementStillRequired !== true
+      || settlement.publicBillingAuthorityGranted !== false
+      || settlement.productionAuthorityGranted !== false
+      || [
+        settlement.approvedToolCeilingCredits,
+        settlement.customerChargedCredits,
+        settlement.weeditproAbsorbedInfrastructureCostUsdNanos,
+        settlement.unusedToolCeilingCreditsRetainedInSharedPlanReservation,
+        settlement.creditsHeldPendingReconciliation,
+      ].some((value) => !Number.isInteger(value) || value < 0)
+      || settlement.approvedToolCeilingCredits <= 0
+      || !/^[a-f0-9]{64}$/u.test(settlement.terminalBindingHash)
+      || !/^[a-f0-9]{64}$/u.test(settlement.prelaunchRecordHash)
+      || !/^[a-f0-9]{64}$/u.test(settlement.fundedDispatchAdmissionHash)
+      || !/^[a-f0-9]{64}$/u.test(settlement.attemptCostReceiptHash)
+      || settlementHash !== sha256Text(stableStringify(payload))
+    ) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Private edit authority GPU attempt settlement is invalid.',
+        409,
+      )
+    }
+  }
+  for (const identities of [
+    aggregate.gpuAttemptCreditSettlements.map((record) =>
+      record.attemptCostReceiptId),
+    aggregate.gpuAttemptCreditSettlements.map((record) =>
+      record.executionAttemptId),
+    aggregate.gpuAttemptCreditSettlements.map((record) =>
+      record.idempotencyKey),
+  ]) {
+    if (new Set(identities).size !== identities.length) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Private edit authority GPU attempt settlement is duplicated.',
+        409,
+      )
+    }
+  }
+  for (const settlement of aggregate.gpuPlanFinalCreditSettlements) {
+    assertGpuPlanFinalCreditSettlementValid(aggregate, settlement)
+  }
+  for (const identities of [
+    aggregate.gpuPlanFinalCreditSettlements.map((record) =>
+      record.snapshotId),
+    aggregate.gpuPlanFinalCreditSettlements.map((record) =>
+      record.reservationId),
+    aggregate.gpuPlanFinalCreditSettlements.map((record) =>
+      record.idempotencyKey),
+  ]) {
+    if (new Set(identities).size !== identities.length) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Private edit authority GPU final plan settlement is duplicated.',
+        409,
+      )
     }
   }
   if (new Set(aggregate.executionPackages.map((record) => record.snapshotId)).size !== aggregate.executionPackages.length) {
@@ -771,6 +1004,192 @@ function assertExpectedOutputContract(
       throw new ApiError('VALIDATION_FAILED', 'Canonical expected output metadata is invalid.', 409)
     }
   }
+}
+
+function assertGpuPlanFinalCreditSettlementValid(
+  aggregate: PrivateEditAuthorityAggregate,
+  settlement: AuthorityGpuPlanFinalCreditSettlementRecord,
+): void {
+  const reservation = aggregate.reservations.find((record) =>
+    record.id === settlement.reservationId)
+  const snapshot = aggregate.snapshots.find((record) =>
+    record.snapshotId === settlement.snapshotId)
+  const plan = aggregate.plans.find((record) =>
+    record.id === settlement.planId)
+  const estimate = aggregate.estimates.find((record) =>
+    record.id === settlement.estimateId)
+  const approval = aggregate.approvals.find((record) =>
+    record.id === settlement.approvalId)
+  const { settlementHash, ...payload } = settlement
+  const workKeys = settlement.workBindings.map((binding) =>
+    binding.workItemKey)
+  const workIds = settlement.workBindings.map((binding) =>
+    binding.approvedWorkItemId)
+  const completedAttemptIds = settlement.workBindings.map((binding) =>
+    binding.completedAttemptSettlementId)
+  const allAttemptIds = settlement.workBindings.flatMap((binding) =>
+    binding.attemptSettlementIds)
+  const allAttemptHashes = settlement.workBindings.flatMap((binding) =>
+    binding.attemptSettlementHashes)
+  const bindingsValid = settlement.workBindings.length > 0
+    && new Set(workKeys).size === workKeys.length
+    && workKeys.every((key, index) => index === 0
+      || workKeys[index - 1]! < key)
+    && new Set(workIds).size === workIds.length
+    && new Set(completedAttemptIds).size === completedAttemptIds.length
+    && new Set(allAttemptIds).size === allAttemptIds.length
+    && allAttemptIds.length === allAttemptHashes.length
+    && settlement.workBindings.every((binding) => {
+      const approvedWork = aggregate.approvedWorkItems.find((record) =>
+        record.id === binding.approvedWorkItemId)
+      const attempts = binding.attemptSettlementIds.map((id) =>
+        aggregate.gpuAttemptCreditSettlements.find((record) =>
+          record.id === id))
+      const completed = attempts.filter((attempt) =>
+        attempt?.terminalOutcome === 'completed')
+      return Boolean(
+        approvedWork
+        && approvedWork.snapshotId === settlement.snapshotId
+        && approvedWork.workItemKey === binding.workItemKey
+        && binding.approvedToolCeilingCredits ===
+          approvedWork.maximumCreditBudget
+        && binding.attemptSettlementIds.length > 0
+        && binding.attemptSettlementIds.length ===
+          binding.attemptSettlementHashes.length
+        && binding.attemptSettlementIds.every((id, index) => index === 0
+          || binding.attemptSettlementIds[index - 1]! < id)
+        && attempts.every((attempt, index) => attempt
+          && attempt.settlementHash === binding.attemptSettlementHashes[index]
+          && attempt.snapshotId === settlement.snapshotId
+          && attempt.reservationId === settlement.reservationId
+          && attempt.approvedWorkItemId === binding.approvedWorkItemId
+          && attempt.terminalOutcome !== 'unknown_requires_reconciliation')
+        && completed.length === 1
+        && completed[0]!.id === binding.completedAttemptSettlementId
+        && binding.customerChargedToolCredits === attempts.reduce(
+          (total, attempt) => total + attempt!.customerChargedCredits,
+          0,
+        )
+      )
+    })
+  const actualToolCredits = settlement.workBindings.reduce(
+    (total, binding) => total + binding.customerChargedToolCredits,
+    0,
+  )
+  const grossFinalCharge = settlement.actualBillableGpuToolCostCredits
+    + settlement.calculatedServiceFeeCredits
+  const finalCustomerCharge = Math.min(
+    grossFinalCharge,
+    settlement.approvedMaximumCredits,
+  )
+  const expectedIncrementalSpend = finalCustomerCharge
+    - settlement.customerCreditsSpentBeforeFinalSettlement
+  const expectedRelease = settlement.approvedMaximumCredits
+    - finalCustomerCharge
+  const serviceFeeLedger = aggregate.ledgerEntries.filter((record) =>
+    record.sourceType ===
+      'canonical_professional_gpu_plan_final_credit_settlement'
+    && record.sourceId === settlement.id
+    && record.idempotencyKey === `${settlement.idempotencyKey}:service-fee`)
+  const serviceFeeEvents = aggregate.reservationEvents.filter((record) =>
+    record.reservationId === settlement.reservationId
+    && record.idempotencyKey ===
+      `${settlement.idempotencyKey}:service-fee`
+    && record.eventType === 'spent')
+  const releaseLedger = aggregate.ledgerEntries.filter((record) =>
+    record.sourceType ===
+      'canonical_professional_gpu_plan_final_credit_settlement'
+    && record.sourceId === settlement.id
+    && record.idempotencyKey === `${settlement.idempotencyKey}:release`)
+  const releaseEvents = aggregate.reservationEvents.filter((record) =>
+    record.reservationId === settlement.reservationId
+    && record.idempotencyKey === `${settlement.idempotencyKey}:release`
+    && record.eventType === 'released')
+  const spendEvidenceValid = expectedIncrementalSpend > 0
+    ? serviceFeeLedger.length === 1
+      && serviceFeeLedger[0]!.entryType === 'spend'
+      && serviceFeeLedger[0]!.availableDelta === 0
+      && serviceFeeLedger[0]!.reservedDelta === -expectedIncrementalSpend
+      && serviceFeeLedger[0]!.spentDelta === expectedIncrementalSpend
+      && serviceFeeEvents.length === 1
+      && serviceFeeEvents[0]!.credits === expectedIncrementalSpend
+    : serviceFeeLedger.length === 0 && serviceFeeEvents.length === 0
+  const releaseEvidenceValid = expectedRelease > 0
+    ? releaseLedger.length === 1
+      && releaseLedger[0]!.entryType === 'release'
+      && releaseLedger[0]!.availableDelta === expectedRelease
+      && releaseLedger[0]!.reservedDelta === -expectedRelease
+      && releaseLedger[0]!.spentDelta === 0
+      && releaseEvents.length === 1
+      && releaseEvents[0]!.credits === expectedRelease
+    : releaseLedger.length === 0 && releaseEvents.length === 0
+  if (
+    settlement.schemaVersion !==
+      'canonical-professional-gpu-plan-final-credit-settlement-v1'
+    || !reservation || !snapshot || !plan || !estimate || !approval
+    || snapshot.planId !== plan.id
+    || snapshot.estimateId !== estimate.id
+    || snapshot.approvalId !== approval.id
+    || snapshot.reservationId !== reservation.id
+    || approval.planId !== plan.id
+    || approval.estimateId !== estimate.id
+    || approval.snapshotId !== snapshot.snapshotId
+    || approval.reservationId !== reservation.id
+    || reservation.planId !== plan.id
+    || reservation.estimateId !== estimate.id
+    || reservation.snapshotId !== snapshot.snapshotId
+    || reservation.approvalId !== approval.id
+    || reservation.reservedCredits !== settlement.approvedMaximumCredits
+    || reservation.spentCredits !== settlement.customerTotalChargedCredits
+    || reservation.releasedCredits !==
+      settlement.unusedReservationCreditsReleased
+    || reservation.refundedCredits !== 0
+    || reservation.status !== (expectedRelease > 0 ? 'released' : 'spent')
+    || !bindingsValid
+    || actualToolCredits !== settlement.actualBillableGpuToolCostCredits
+    || grossFinalCharge !== settlement.grossFinalChargeCredits
+    || settlement.customerCreditsSpentBeforeFinalSettlement !==
+      settlement.actualBillableGpuToolCostCredits
+    || expectedIncrementalSpend < 0
+    || settlement.customerServiceFeeCreditsChargedAtFinalSettlement !==
+      expectedIncrementalSpend
+    || settlement.customerTotalChargedCredits !== finalCustomerCharge
+    || settlement.weeditproAbsorbedOverageCredits !==
+      grossFinalCharge - finalCustomerCharge
+    || settlement.unusedReservationCreditsReleased !== expectedRelease
+    || settlement.unknownGpuAttemptOutcomeCount !== 0
+    || settlement.allPricedGpuWorkCompletedExactlyOnce !== true
+    || settlement.exactApprovedEstimateAndServiceFeePolicyReread !== true
+    || settlement.exactAttemptSettlementSetReread !== true
+    || settlement.exactPrivateCompletionReadinessReread !== true
+    || settlement.activeGpuInstancesAtFinalSettlement !== 0
+    || settlement.reservationFinalized !== true
+    || settlement.privateInternalWalletMutated !== true
+    || settlement.externalCustomerWalletMutated !== false
+    || settlement.publicBillingAuthorityGranted !== false
+    || settlement.publicDeliveryAuthorityGranted !== false
+    || settlement.productionAuthorityGranted !== false
+    || !spendEvidenceValid
+    || !releaseEvidenceValid
+    || [
+      settlement.actualBillableGpuToolCostCredits,
+      settlement.calculatedServiceFeeCredits,
+      settlement.grossFinalChargeCredits,
+      settlement.approvedMaximumCredits,
+      settlement.customerCreditsSpentBeforeFinalSettlement,
+      settlement.customerServiceFeeCreditsChargedAtFinalSettlement,
+      settlement.customerTotalChargedCredits,
+      settlement.weeditproAbsorbedOverageCredits,
+      settlement.unusedReservationCreditsReleased,
+    ].some((value) => !Number.isInteger(value) || value < 0)
+    || !/^[a-f0-9]{64}$/u.test(settlement.pricingAuthorityBundleHash)
+    || !/^[a-f0-9]{64}$/u.test(settlement.finalReadinessObservationHash)
+    || settlementHash !== sha256Text(stableStringify(payload))
+  ) throw new ApiError(
+    'VALIDATION_FAILED',
+    'Private edit authority GPU final plan settlement is invalid.',
+    409,
+  )
 }
 
 function authorityAggregatePath(ownerUserId: string, workspaceId: string): string {

@@ -299,6 +299,79 @@ execution fixture suite, provider lifecycle, QA/refinement, and Remotion
 integration evidence pass. No provider, paid API, billing, wallet, cloud,
 Supabase, final composition, or final export action occurred.
 
+## M6 — Gemini Omni B-roll V5 authority
+
+Status: completed and pushed.
+
+Implementation commit: `b641e6f98`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after push.
+
+Added a clean forward-only provider module for
+`provider.google.generate_b_roll_candidate.v1` without modifying the historical
+V1-V4 authority file. V5 centralizes the preview model alias
+`gemini-omni-flash-preview`, distinguishes the configured alias from the absent
+immutable provider revision, and keeps live transport and production
+qualification disabled. The strict server-owned request package binds the
+manifest, assignment, plan, exact frame range, source reference, supported
+task mode, one continuous shot, crop-safe aspect ratio, 720p/24fps duration,
+full shot specification, avoid rules, and caller-input prohibitions.
+
+The V5 lifecycle policy and authorization bind the exact approved snapshot,
+execution package, reservation, B-roll component ref, work graph, provider work
+item, expected raw MP4 output, request-package hash, injected rate authority,
+cost ceilings, and idempotency identity. The injected lifecycle implements a
+bounded worker lease, consumed one-use dispatch credential hash, create-only
+private MP4 output, checksum readback, provider/infrastructure cost separation,
+failed/unknown cost retention, exact replay, no retry or fallback, unknown
+outcome reconciliation without a second submission, and a source-verified
+consumer receipt that forbids automatic selection and timeline mutation. Its
+accounting distinguishes zero actual provider requests from injected simulated
+request history.
+
+The canonical shot contract now includes framing, camera motion, lens/depth,
+lighting, color mood, exact frame/second duration, aspect ratio, audio intent,
+continuity, crop-safe subject area, and transformation class. The provider work
+item now owns the distinct raw `provider_b_roll_candidate_video_mp4` artifact;
+later FFmpeg normalization continues to own `b_roll_candidate_version_v1`.
+The manifest and generated projection advanced to hash
+`cac07f070ba3b9e485339625d12a19c77b1f809c78c96858433defb490f51539`.
+
+Tests:
+
+- `npm run smoke:b-roll-provider-authority` — passed V5 registry, lifecycle
+  policy, request/authorization lineage, create-only private output, zero actual
+  provider requests, internal-cost separation, exact replay, one-use dispatch,
+  unknown reconciliation, stale rate, caller raw-input, route/model/request,
+  cross-workspace substitution, consumer receipt, and historical registry hash
+  assertions.
+- Historical registry hashes remained exactly V1 `17928478…`, V2 `6fbfdef5…`,
+  V3 `284b456d…`, and V4 `91ea2d40…`.
+- `npm run generate:b-roll-capability-manifest` — passed.
+- `npm run validate:skill-capability-manifests` — passed with one manifest.
+- `npm run test:b-roll-capability-manifest` — passed: 41 fixtures, 13 jobs,
+  and 42 QA policies.
+- `npm run test:b-roll-planning` — passed.
+- `npm run test:b-roll-canonical-integration` — passed.
+- `npm run smoke:b-roll-existing-source` — passed real FFprobe/FFmpeg execution
+  with zero provider requests.
+- `npm run typecheck:server` — passed.
+- `npm run lint` — passed.
+- `npm run build` — passed; existing Vite chunk-size and dynamic-import
+  warnings only.
+- `git diff --check` — passed.
+
+Known pre-existing unrelated failures: none. One initially attempted local
+script name (`check:types`) did not exist; the repository's applicable
+`typecheck:server` command was run and passed.
+
+Qualification after M6: `planning_qualified`. The V5 authority and injected
+private lifecycle are proved, but the preview alias has no immutable accepted
+revision, transport is inactive, provider account/rate/secret evidence is not
+qualified, and no paid provider, billing, wallet, cloud, Supabase, public
+delivery, timeline mutation, or production action occurred.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -309,3 +382,4 @@ Supabase, final composition, or final export action occurred.
 | M3 | `e13e2907acebf65e383c5cd1e01262ff87a799ab` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M4 | `78d0a6e07` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M5 | `ff76daff6` | this bookkeeping commit | confirmed | `planning_qualified` |
+| M6 | `b641e6f98` | this bookkeeping commit | confirmed | `planning_qualified` |

@@ -443,6 +443,81 @@ revision and provider account/rate/real usage evidence is absent. No paid
 provider, billing, wallet, Supabase, public delivery, automatic selection,
 customer timeline, or production action occurred.
 
+## M8 — candidate QA and controlled refinement
+
+Status: completed and pushed.
+
+Implementation commit: `e218a4d57df412a8d0dd093820f339b0cba89d93`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after push.
+
+Implemented exact provider-attempt adaptation, private immutable candidate
+versioning, output-QA reports, deterministic verdicts, source/no-action
+fallbacks, and one bounded refinement. Every candidate remains bound to the
+manifest, assignment, plan, concept, authorized range, provider request,
+attempt, private MP4 checksum, separate provider/infrastructure cost evidence,
+and automatic-selection/timeline-mutation prohibitions. Version 1 is the only
+initial candidate, version 2 is the only refinement, and create-only replay
+rejects media or QA substitution.
+
+The exact private 720p/24fps MP4 now runs through pinned, network-disabled
+FFprobe/FFmpeg 8.1.2 for container/stream/frame/duration/resolution inspection,
+exact first/last-frame extraction, full decoded-frame black/freeze/motion QA,
+and deterministic exact-duration FFV1/NUT normalization with audio removed.
+The strict objective-QA protocol recognizes the canonical B-roll provider
+operation/output pair while continuing to reject cross-pair substitutions.
+
+Hashed internal visual observations cover semantic alignment, generated visual
+integrity, subject/object consistency, plausible motion, camera intent, crop
+safety, proof safety, content safety, and user-confirmation need. They are
+explicitly internal injected evidence and do not claim a qualified production
+visual-intelligence worker. Generated media is never proof, never
+automatically selected, and its audio never silently enters the final mix.
+
+The refinement authority binds prior candidate and QA refs/hashes, interaction
+digest, route/model, concept, aspect ratio, duration, exact range, and provider
+and infrastructure cost ceilings. It requires a new attempt and cost record;
+permits one submission; rejects a second refinement, changed route/concept/range,
+raw interaction substitution, retry, and alternate-provider fallback; and
+builds the official `previous_interaction_id` request. The private injected
+refinement path made zero provider requests.
+
+Tests:
+
+- `npm run smoke:b-roll-candidate-qa` — passed a real 720p decoded-media path:
+  version 1 `needs_refinement`, version 2
+  `accepted_after_normalization`, immutable replay, refinement cost ceiling,
+  second-refinement rejection, forged semantic pass rejection, concept
+  substitution rejection, source/no-action fallback, Sound handoff, and zero
+  actual provider calls.
+- `npm run smoke:offline-media-binary-visual-calibration-objective-qa` — passed
+  moving media and rejected frozen media with full decoded-frame evidence.
+- `npm run smoke:b-roll-provider-lifecycle` — passed unchanged.
+- `npm run smoke:b-roll-provider-authority` — passed; historical V1-V4 hashes
+  remained exact.
+- `npm run test:b-roll-planning` — passed.
+- `npm run test:b-roll-canonical-integration` — passed.
+- `npm run smoke:b-roll-existing-source` — passed.
+- `npm run validate:skill-capability-manifests` — passed with manifest hash
+  `cac07f070ba3b9e485339625d12a19c77b1f809c78c96858433defb490f51539`.
+- `npm run test:b-roll-capability-manifest` — passed.
+- `npm run typecheck:server` — passed.
+- `npm run lint` — passed.
+- `npm run check:frontend-boundary` — passed for 1,044 files.
+- `npm run build` — passed; existing Vite chunk-size and dynamic-import
+  warnings only.
+- `git diff --check` — passed.
+
+Known pre-existing unrelated failures: none.
+
+Qualification after M8: `planning_qualified`. The candidate QA/refinement path
+is internally proved with real local media work and injected semantic/provider
+evidence, but promotion waits for M9 Remotion/integration QA and M11 aggregate
+qualification. The real provider canary remains externally blocked, the model
+alias remains preview/unpinned, and no paid provider, public delivery, final
+composition/export, billing, wallet, Supabase, or production action occurred.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -455,3 +530,4 @@ customer timeline, or production action occurred.
 | M5 | `ff76daff6` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M6 | `b641e6f98` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M7 | `751ed2055` | this bookkeeping commit | confirmed | `planning_qualified` |
+| M8 | `e218a4d57` | this bookkeeping commit | confirmed | `planning_qualified` |

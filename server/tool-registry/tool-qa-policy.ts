@@ -78,6 +78,15 @@ Record<ProfessionalToolCatalogId, ProductionQAProfile> = {
     requiredBeforeFinalExport: ['render_asset_integrity', 'enhancement_artifacts'],
     notes: ['Generated opaque PNG integrity only; Living Frame alpha, continuity, fact, destination, manifest, and private-review gates remain downstream.'],
   },
+  stable_audio_3_small_sfx: {
+    ...empty,
+    gateTypes: ['audio_naturalness', 'audio_loudness', 'audio_sync'],
+    requiredBeforePreview: ['audio_naturalness', 'audio_loudness', 'audio_sync'],
+    requiredBeforeFinalExport: ['audio_naturalness', 'audio_loudness', 'audio_sync'],
+    notes: [
+      'Generated SFX must pass prompt-fit, artifact, clipping, transient, frame-anchor, speech-safety, and voice-first mix review before use.',
+    ],
+  },
   transparent_background: { ...empty, gateTypes: ['mask_edge_quality', 'mask_subject_coverage'], requiredBeforePreview: ['mask_edge_quality'] },
   rembg: { ...empty, gateTypes: ['mask_edge_quality', 'mask_subject_coverage'], requiredBeforePreview: ['mask_edge_quality'] },
   opencolorio: { ...empty, gateTypes: ['color_exposure', 'color_skin_tone', 'color_export_space', 'color_shot_match'], requiredBeforePreview: ['color_exposure'], requiredBeforeFinalExport: ['color_exposure', 'color_skin_tone', 'color_export_space', 'color_shot_match'] },

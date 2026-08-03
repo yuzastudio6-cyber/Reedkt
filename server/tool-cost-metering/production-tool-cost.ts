@@ -192,6 +192,7 @@ export type ProductionToolCostResult<TData> =
 const usageCategoryByProductionCategory: Record<ProductionToolCategory, ToolCostUsageCategory> = {
   audio_analysis: 'soundsync',
   audio_cleanup: 'soundsync',
+  audio_generation: 'soundsync',
   background_removal: 'media_analysis',
   browser_capture: 'graphic_design',
   captions: 'captions',
@@ -396,7 +397,7 @@ export function emitProductionToolCostEvent(
   if (input.billableToUser === true && isNonBillableFailureCategory(failureCategory)) {
     return failProductionToolCost(
       'invalid_context',
-      `Tool-cost event failure category ${failureCategory} is absorbed by ReEditPro and cannot be billed to the user.`,
+      `Tool-cost event failure category ${failureCategory} is absorbed by WeEditPro and cannot be billed to the user.`,
       'invalid_context',
       'failureCategory',
       estimate.data.warnings,
@@ -723,7 +724,7 @@ function buildEstimateWarnings(
     warnings.push('Estimated high cost exceeds approved reservation; a revised estimate is required before paid work.')
   }
   warnings.push('Mock-safe estimate only; no wallet, reservation, ledger, settlement, provider, render, or worker side effect occurred.')
-  warnings.push('ReEditPro service fee is excluded from production tool-cost estimates and events.')
+  warnings.push('WeEditPro service fee is excluded from production tool-cost estimates and events.')
   return Array.from(new Set(warnings))
 }
 

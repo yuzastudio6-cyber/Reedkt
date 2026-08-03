@@ -83,6 +83,7 @@ export const NON_E2E_TOOL_CAPABILITY_IDS = [
   'sam3_1',
   'sam2',
   'comfyui',
+  'stable_audio_3_small_sfx',
   'transparent_background',
   'demucs',
   'soundtouch',
@@ -144,6 +145,7 @@ export type ProductionToolCategory =
   | 'image_processing'
   | 'audio_cleanup'
   | 'audio_analysis'
+  | 'audio_generation'
   | 'music_midi'
   | 'music_separation'
   | 'enhancement'

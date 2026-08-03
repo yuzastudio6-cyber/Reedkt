@@ -13,6 +13,7 @@ import {
   VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS,
   VISUAL_INTELLIGENCE_MODEL_ID,
   type VisualIntelligenceEvidence,
+  type VisualIntelligenceFrameRange,
   type VisualIntelligenceProviderNormalizedResult,
   type VisualIntelligenceProviderRequest,
 } from '../../src/types/visual-intelligence'
@@ -175,6 +176,107 @@ const providerInput: VisualIntelligenceProviderRequest = {
   }],
   promptVersion: VISUAL_INTELLIGENCE_PROMPT_VERSION,
   responseSchemaVersion: VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,
+}
+
+function buildTransportProviderInput(input: {
+  mediaKind: 'video' | 'image'
+  frameRate: { numerator: number, denominator: number }
+  durationFrames: number
+  requestedRanges: VisualIntelligenceFrameRange[]
+}): VisualIntelligenceProviderRequest {
+  if (request.admission.mode !== 'planning_evidence') {
+    throw new Error('Expected the shared planning admission fixture.')
+  }
+  const artifactId = `transport-${input.mediaKind}`
+  const contentType = input.mediaKind === 'video' ? 'video/mp4' : 'image/png'
+  const checksumSha256 = input.mediaKind === 'video' ? sha('7') : sha('8')
+  const finalizedMediaAuthorityRef = ref(`${artifactId}-finalized`)
+  const storageAuthorityRef = ref(`${artifactId}-storage`)
+  const mediaProbeEvidenceRef = ref(`${artifactId}-probe`)
+  const transportRequest = createVisualIntelligenceRequest({
+    requestId: `${artifactId}-request`,
+    idempotencyKey: `${artifactId}-idempotency`,
+    scope: request.scope,
+    operation: 'query_range',
+    profile: 'inspect_visual_defect',
+    sourceArtifacts: [{
+      artifactId,
+      mediaKind: input.mediaKind,
+      contentType,
+      checksumSha256,
+      byteLength: 1_000_000,
+      width: 1920,
+      height: 1080,
+      durationFrames: input.durationFrames,
+      frameRate: input.frameRate,
+      finalizedMediaAuthorityRef,
+      immutableStorageObjectAuthorityRef: storageAuthorityRef,
+      mediaProbeEvidenceRef,
+      privateArtifact: true,
+      exactGenerationRereadRequiredAtDispatch: true,
+    }],
+    comparisonArtifacts: [],
+    requestedRanges: input.requestedRanges,
+    requiredEvidenceRefs: [mediaProbeEvidenceRef],
+    expectedOutcomeRefs: [],
+    outputFrame: null,
+    protectedZones: [],
+    qualityPolicy: createProfessionalHighVisualIntelligenceQualityPolicy(),
+    admission: {
+      ...request.admission,
+      finalizedSourceAuthorityRefs: [finalizedMediaAuthorityRef],
+    },
+    callerQuestion: 'Inspect only the authorized range for visual defects.',
+    byteFreeRequest: true,
+    callerPromptAccepted: false,
+    providerCredentialIncluded: false,
+    publicMediaUrlIncluded: false,
+    signedUrlIsSourceTruth: false,
+    shellCommandIncluded: false,
+    providerToolDefinitionIncluded: false,
+  })
+  const transportEvidence: VisualIntelligenceEvidence[] = [{
+    evidenceId: `${artifactId}-probe`,
+    evidenceRef: mediaProbeEvidenceRef,
+    artifactId,
+    range: null,
+    authority: 'media_probe',
+    producingTool: 'ffprobe',
+    toolVersion: 'ffprobe-8.0',
+    summary: 'Canonical transport fixture media probe.',
+    privateEvidence: true,
+    providerInstructionAccepted: false,
+  }]
+  return {
+    request: transportRequest,
+    deterministicEvidence: transportEvidence,
+    coveragePlan: {
+      requestedRanges: input.requestedRanges,
+      analyzedRanges: input.requestedRanges,
+      incompleteRanges: [],
+      sceneBoundaryRefs: [],
+      samplingPolicies: input.requestedRanges.map((range, index) => ({
+        ...coveragePlan.samplingPolicies[0],
+        policyId: `${artifactId}-policy-${index + 1}`,
+        requestedRange: range,
+        analyzedRange: range,
+      })),
+      targetedFollowupRanges: [],
+      completeRequestedRangeCoverage: true,
+      everyTimelineFrameInspected: false,
+      completeTimePixelInspectionClaimAllowed: false,
+    },
+    privateMediaInputs: [{
+      artifactId,
+      gcsUri: `gs://weeditpro-private-source/${artifactId}.${
+        input.mediaKind === 'video' ? 'mp4' : 'png'}`,
+      contentType,
+      checksumSha256,
+      exactGenerationRereadVerified: true,
+    }],
+    promptVersion: VISUAL_INTELLIGENCE_PROMPT_VERSION,
+    responseSchemaVersion: VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,
+  }
 }
 
 const normalizedResult: VisualIntelligenceProviderNormalizedResult = {
@@ -342,10 +444,146 @@ async function main() {
   assert.equal(dispatch.legacySamplingOverridesEnabled, false)
   assert.equal(dispatch.geminiThreeDefaultSamplingPreserved, true)
   assert.equal(dispatch.orderedPrivateArtifactIds.length, 1)
+  assert.equal(dispatch.orderedMediaRangeBindings.length, 1)
+  assert.equal(dispatch.unboundedVideoInputAllowed, false)
+  assert.equal(dispatch.exactAuthorizedFrameRangesBound, true)
+  assert.equal(dispatch.providerPreprocessingIsExactFrameInspection, false)
   const mediaPart = dispatch.contents[0]?.parts?.[0]
   assert.equal(mediaPart?.fileData?.fileUri?.startsWith('gs://'), true)
   assert.equal(mediaPart?.mediaResolution?.level,
     PartMediaResolutionLevel.MEDIA_RESOLUTION_HIGH)
+  assert.deepEqual(mediaPart?.videoMetadata, {
+    startOffset: '0s',
+    endOffset: '10s',
+    fps: 24,
+  })
+  assert.deepEqual(dispatch.orderedMediaRangeBindings[0], {
+    mediaPartOrdinal: 0,
+    artifactId: 'source-video-1',
+    mediaKind: 'video',
+    requestedRangeOrdinal: 0,
+    requestedRange: fullRange,
+    providerStartOffset: '0s',
+    providerEndOffset: '10s',
+    providerFramesPerSecond: 24,
+    transportMode: 'vertex_gcs_video_clipped_range',
+  })
+
+  const boundedRanges: VisualIntelligenceFrameRange[] = [
+    { startFrame: 24, endFrameExclusive: 48, frameRate },
+    { startFrame: 72, endFrameExclusive: 96, frameRate },
+  ]
+  const boundedDispatch = compileVertexGeminiProVisualIntelligenceDispatch(
+    buildTransportProviderInput({
+      mediaKind: 'video',
+      frameRate,
+      durationFrames: 240,
+      requestedRanges: boundedRanges,
+    }),
+  )
+  assert.equal(boundedDispatch.contents[0]?.parts?.length, 3)
+  assert.deepEqual(
+    boundedDispatch.contents[0]?.parts?.slice(0, 2).map(
+      (part) => part.videoMetadata,
+    ),
+    [
+      { startOffset: '1s', endOffset: '2s', fps: 24 },
+      { startOffset: '3s', endOffset: '4s', fps: 24 },
+    ],
+  )
+  assert.deepEqual(
+    boundedDispatch.orderedMediaRangeBindings.map((binding) => ({
+      artifactId: binding.artifactId,
+      requestedRangeOrdinal: binding.requestedRangeOrdinal,
+      requestedRange: binding.requestedRange,
+      mediaPartOrdinal: binding.mediaPartOrdinal,
+    })),
+    [
+      {
+        artifactId: 'transport-video',
+        requestedRangeOrdinal: 0,
+        requestedRange: boundedRanges[0],
+        mediaPartOrdinal: 0,
+      },
+      {
+        artifactId: 'transport-video',
+        requestedRangeOrdinal: 1,
+        requestedRange: boundedRanges[1],
+        mediaPartOrdinal: 1,
+      },
+    ],
+  )
+  assert.equal(
+    boundedDispatch.contents[0]?.parts?.slice(0, 2).every(
+      (part) => part.fileData && part.videoMetadata,
+    ),
+    true,
+  )
+
+  const ntscFrameRate = { numerator: 30_000, denominator: 1_001 }
+  const rationalDispatch = compileVertexGeminiProVisualIntelligenceDispatch(
+    buildTransportProviderInput({
+      mediaKind: 'video',
+      frameRate: ntscFrameRate,
+      durationFrames: 300,
+      requestedRanges: [{
+        startFrame: 1,
+        endFrameExclusive: 2,
+        frameRate: ntscFrameRate,
+      }],
+    }),
+  )
+  assert.deepEqual(rationalDispatch.contents[0]?.parts?.[0]?.videoMetadata, {
+    startOffset: '0.033366666s',
+    endOffset: '0.066733334s',
+    fps: 24,
+  })
+  const imageRange = {
+    startFrame: 0,
+    endFrameExclusive: 1,
+    frameRate: { numerator: 1, denominator: 1 },
+  }
+  const imageDispatch = compileVertexGeminiProVisualIntelligenceDispatch(
+    buildTransportProviderInput({
+      mediaKind: 'image',
+      frameRate: imageRange.frameRate,
+      durationFrames: 1,
+      requestedRanges: [imageRange],
+    }),
+  )
+  assert.equal(imageDispatch.contents[0]?.parts?.length, 2)
+  assert.equal(imageDispatch.contents[0]?.parts?.[0]?.videoMetadata, undefined)
+  assert.equal(
+    imageDispatch.orderedMediaRangeBindings[0]?.transportMode,
+    'vertex_gcs_image',
+  )
+  assert.throws(() => compileVertexGeminiProVisualIntelligenceDispatch(
+    buildTransportProviderInput({
+      mediaKind: 'image',
+      frameRate: imageRange.frameRate,
+      durationFrames: 1,
+      requestedRanges: [imageRange, imageRange],
+    }),
+  ), /not ready/iu)
+  assert.throws(() => compileVertexGeminiProVisualIntelligenceDispatch({
+    ...providerInput,
+    coveragePlan: {
+      ...coveragePlan,
+      requestedRanges: [{ ...fullRange, startFrame: 1 }],
+    },
+  }), /not ready/iu)
+  assert.throws(() => compileVertexGeminiProVisualIntelligenceDispatch(
+    buildTransportProviderInput({
+      mediaKind: 'video',
+      frameRate,
+      durationFrames: 240,
+      requestedRanges: Array.from({ length: 65 }, (_, index) => ({
+        startFrame: index,
+        endFrameExclusive: index + 1,
+        frameRate,
+      })),
+    }),
+  ), /not ready/iu)
   assert.equal(visualIntelligenceDigest(VISUAL_INTELLIGENCE_PROVIDER_RESPONSE_JSON_SCHEMA),
     visualIntelligenceDigest(dispatch.config.responseJsonSchema))
 
@@ -452,6 +690,13 @@ async function main() {
     mediaResolution: dispatch.config.mediaResolution,
     providerCallCount: calls.length,
     costSettlementCount: settlementCalls.length,
+    exactAuthorizedVideoRangePartCount:
+      boundedDispatch.orderedMediaRangeBindings.length,
+    rationalFrameBoundaryTransportPassed: true,
+    unboundedVideoInputAllowed: dispatch.unboundedVideoInputAllowed,
+    imageTransportHasVideoMetadata: Boolean(
+      imageDispatch.contents[0]?.parts?.[0]?.videoMetadata,
+    ),
     invalidProviderEvidenceSettledCostCount: rejectedSettlementCalls.length,
     isolatedProductionGeminiSdkImporterCount:
       providerIsolation.sdkImportFiles.length,

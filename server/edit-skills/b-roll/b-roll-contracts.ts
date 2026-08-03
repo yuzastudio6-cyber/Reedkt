@@ -134,8 +134,23 @@ export interface BrollShotSpecification {
   subject: string
   action: string
   environment: string
+  framing: string
+  cameraMovement: string
+  lensDepthIntent: string
+  lighting: string
+  colorMood: string
   cameraIntent: string
   visualStyle: string
+  durationFrames: number
+  durationSeconds: number
+  aspectRatio: string
+  audioIntent: 'silent_visual_candidate'
+  continuityRequirements: readonly string[]
+  cropSafeSubjectArea: string
+  allowedTransformationClass:
+    | 'illustrative_generation'
+    | 'contextual_generation'
+    | 'approved_source_edit'
   proofClassification: 'source_verified' | 'illustrative' | 'contextual' | 'atmospheric' | 'symbolic'
   avoid: readonly string[]
 }

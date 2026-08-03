@@ -31,6 +31,7 @@ export const BROLL_PRODUCED_ARTIFACT_TYPES = [
   'b_roll_provider_request_specification_v1',
   'b_roll_candidate_manifest_v1',
   'b_roll_candidate_version_v1',
+  'provider_b_roll_candidate_video_mp4',
   'b_roll_qa_report_v1',
   'b_roll_remotion_layer_manifest_v1',
   'b_roll_sound_handoff_v1',

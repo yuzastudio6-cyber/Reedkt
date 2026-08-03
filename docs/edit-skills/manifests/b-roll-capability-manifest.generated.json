@@ -252,7 +252,7 @@
       "routeKind": "no_action"
     }
   ],
-  "manifestHash": "df52bf911e5d55cd9f373331e30d15965ee64cf192bfa1a44281f13d47f72b65",
+  "manifestHash": "cac07f070ba3b9e485339625d12a19c77b1f809c78c96858433defb490f51539",
   "mayOverlapWith": [
     "captions",
     "color",
@@ -505,6 +505,7 @@
     "b_roll_provider_request_specification_v1",
     "b_roll_candidate_manifest_v1",
     "b_roll_candidate_version_v1",
+    "provider_b_roll_candidate_video_mp4",
     "b_roll_qa_report_v1",
     "b_roll_remotion_layer_manifest_v1",
     "b_roll_sound_handoff_v1",

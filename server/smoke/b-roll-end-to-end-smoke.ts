@@ -12,14 +12,14 @@ import {
   compileBrollPlan,
   createBrollAssignment,
   createBrollPlanningContext,
-  createBrollSemanticVisualObservation,
   createInitialInjectedBrollCandidateAttemptEvidence,
-  directBrollCandidateRefinement,
   executeBrollCandidateQa,
   executeBrollRemotionIntegration,
   executePrivateInjectedBrollCandidateRefinement,
   projectBrollCanonicalWorkItems,
 } from '../edit-skills/b-roll'
+import { createBrollSemanticVisualObservation } from '../edit-skills/b-roll/mini-skills/candidate-qa-director'
+import { directBrollCandidateRefinement } from '../edit-skills/b-roll/mini-skills/refinement-director'
 import {
   BROLL_INTERNAL_EXECUTION_QUALIFICATION_FIXTURE_KEYS,
   BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS,

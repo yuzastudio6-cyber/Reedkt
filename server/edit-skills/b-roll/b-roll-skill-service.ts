@@ -7,8 +7,8 @@ import type { BrollPlanArtifact, BrollPlanningContext, BrollSkillAssignment } fr
 import { brollPlanningContextSchema, brollSkillAssignmentSchema } from './b-roll-schemas'
 import { compileBrollPlan } from './b-roll-plan-compiler'
 
-export const BROLL_IMPLEMENTATION_PENDING_MESSAGE =
-  'B-roll orchestra invocation is disabled until planning qualification passes.'
+export const BROLL_ORCHESTRA_INTEGRATION_STATUS_MESSAGE =
+  'B-roll exposes a qualified public plugin boundary; future orchestra integration remains pending.'
 
 export class BrollSkillService implements EditSkillHandler {
   readonly #artifacts: EditSkillArtifactStore

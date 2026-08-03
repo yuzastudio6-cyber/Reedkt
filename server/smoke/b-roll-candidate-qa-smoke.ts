@@ -7,19 +7,21 @@ import { join } from 'node:path'
 
 import {
   BROLL_CAPABILITY_MANIFEST,
-  brollSemanticVisualObservationSchema,
   compileBrollCanonicalWorkGraph,
   compileBrollPlan,
   createBrollAssignment,
   createBrollPlanningContext,
-  createBrollSemanticVisualObservation,
   createInitialInjectedBrollCandidateAttemptEvidence,
-  directBrollCandidateQa,
-  directBrollCandidateRefinement,
   executeBrollCandidateQa,
   executePrivateInjectedBrollCandidateRefinement,
   projectBrollCanonicalWorkItems,
 } from '../edit-skills/b-roll'
+import {
+  brollSemanticVisualObservationSchema,
+  createBrollSemanticVisualObservation,
+  directBrollCandidateQa,
+} from '../edit-skills/b-roll/mini-skills/candidate-qa-director'
+import { directBrollCandidateRefinement } from '../edit-skills/b-roll/mini-skills/refinement-director'
 import {
   hashSkillValue,
   skillManifestReference,

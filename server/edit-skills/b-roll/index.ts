@@ -2,6 +2,7 @@ import type {
   EditSkillArtifactSchemaRegistry,
   EditSkillArtifactStore,
 } from '../core/edit-skill-artifact-store'
+import type { EditSkillPluginRegistry } from '../core/edit-skill-plugin-registry'
 import type { SkillCapabilityRegistry } from '../core/skill-capability-registry'
 import type { SkillReferenceCatalog } from '../core/skill-capability-validator'
 import type { SkillEstimatorRegistry } from '../core/skill-estimator-registry'
@@ -19,6 +20,7 @@ import {
 } from './b-roll-capability-manifest'
 import { registerBrollQaPolicies } from './b-roll-qa-policy'
 import { createBrollInternalExecutionQualificationReceipt } from './b-roll-qualification'
+import { BrollEditSkillPlugin } from './b-roll-edit-skill-plugin'
 import { BrollSkillService } from './b-roll-skill-service'
 
 export * from './b-roll-artifact-types'
@@ -33,11 +35,11 @@ export * from './b-roll-candidate-attempt'
 export * from './b-roll-candidate-qa'
 export * from './b-roll-candidate-refinement'
 export * from './b-roll-existing-source-execution'
+export * from './b-roll-edit-skill-plugin'
 export * from './b-roll-remotion-integration'
 export * from './b-roll-plan-compiler'
 export * from './b-roll-schemas'
 export * from './b-roll-work-graph-compiler'
-export * from './mini-skills/index'
 
 export function registerBrollSkill(input: {
   capabilities: SkillCapabilityRegistry
@@ -45,6 +47,7 @@ export function registerBrollSkill(input: {
   qa: SkillQaRegistry
   artifacts: EditSkillArtifactSchemaRegistry
   artifactStore: EditSkillArtifactStore
+  plugins: EditSkillPluginRegistry
   qualifications: SkillQualificationRegistry
   catalog: SkillReferenceCatalog
 }): void {
@@ -79,15 +82,21 @@ export function registerBrollSkill(input: {
   for (const value of BROLL_NO_ACTION_OPERATIONS) input.catalog.noActionOperations.add(value)
   for (const value of BROLL_PHASES) input.catalog.phases.add(value)
   input.capabilities.registerManifest(BROLL_CAPABILITY_MANIFEST)
+  const service = new BrollSkillService({
+    artifacts: input.artifactStore,
+    estimators: input.estimators,
+    qa: input.qa,
+  })
   input.capabilities.registerHandler({
     skillKey: 'b_roll',
     skillVersion: '1.0.0',
-    handler: new BrollSkillService({
-      artifacts: input.artifactStore,
-      estimators: input.estimators,
-      qa: input.qa,
-    }),
+    handler: service,
   })
+  input.plugins.register(new BrollEditSkillPlugin({
+    artifacts: input.artifactStore,
+    estimators: input.estimators,
+    qa: input.qa,
+  }))
   const receipt = createBrollInternalExecutionQualificationReceipt(BROLL_CAPABILITY_MANIFEST)
   input.qualifications.register(receipt)
   input.qualifications.assertClaim(

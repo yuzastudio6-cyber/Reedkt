@@ -1,15 +1,34 @@
 import { createReeditProApiApp } from './app'
 import { assertRuntimeCanStart, loadRuntimeEnv } from './config/env'
+import {
+  createVisualIntelligenceProductionRuntime,
+} from './visual-intelligence/visual-intelligence-production-runtime'
 
 const env = loadRuntimeEnv()
 assertRuntimeCanStart(env)
+const visualIntelligenceRuntime =
+  await createVisualIntelligenceProductionRuntime(env)
 
-const app = createReeditProApiApp(env)
+const app = createReeditProApiApp(env, visualIntelligenceRuntime
+  ? {
+      visualIntelligenceLifecyclePort:
+        visualIntelligenceRuntime.lifecyclePort,
+      visualIntelligenceReportRepository:
+        visualIntelligenceRuntime.reportRepository,
+      visualIntelligenceInspectionCoordinatorPort:
+        visualIntelligenceRuntime.inspectionCoordinatorPort,
+      visualIntelligencePlanningOperationRequestOwnerPort:
+        visualIntelligenceRuntime.planningOperationRequestOwnerPort,
+    }
+  : {})
 const server = app.listen(env.apiPort, () => {
   console.log(JSON.stringify({
     event: 'api_server_listening',
     port: env.apiPort,
     runtimeMode: env.mode,
+    visualIntelligenceRuntimeMode: env.visualIntelligenceRuntimeMode,
+    visualIntelligenceSemanticEngine: visualIntelligenceRuntime
+      ?.semanticEngine ?? null,
   }))
 })
 

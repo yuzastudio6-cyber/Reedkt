@@ -265,6 +265,10 @@ function assertOwnerSemantics(input: {
     if (
       input.inspectionRequirement !== null
       || input.request.operation !== 'analyze_media'
+      || (
+        input.request.profile !== 'source_edit_planning'
+        && input.request.profile !== 'reference_preference_dna'
+      )
       || input.request.admission.mode !== 'planning_evidence'
       || input.request.scope.approvedSnapshotId !== null
     ) throw notReady('visual_intelligence_planning_package_owner_mismatch')

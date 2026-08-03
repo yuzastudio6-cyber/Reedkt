@@ -10,8 +10,8 @@ import {
 
 import {
   VISUAL_INTELLIGENCE_CAPABILITY_ID,
+  VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS,
   VISUAL_INTELLIGENCE_MODEL_ID,
-  VISUAL_INTELLIGENCE_SKILL_IDS,
   type VisualIntelligenceEvidence,
   type VisualIntelligenceProviderNormalizedResult,
   type VisualIntelligenceProviderRequest,
@@ -268,7 +268,7 @@ const costSettlementPort: VisualIntelligenceProviderCostSettlementPort = {
 
 async function main() {
   assert.equal(VISUAL_INTELLIGENCE_CAPABILITY_ID, 'visual_intelligence')
-  assert.deepEqual(VISUAL_INTELLIGENCE_SKILL_IDS, [
+  assert.deepEqual(VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS, [
     'visual_intelligence.analyze_media',
     'visual_intelligence.inspect_edit',
     'visual_intelligence.query_range',
@@ -444,7 +444,8 @@ async function main() {
   console.log(JSON.stringify({
     status: 'visual_intelligence_contract_and_provider_smoke_passed',
     capabilityId: VISUAL_INTELLIGENCE_CAPABILITY_ID,
-    skillCount: VISUAL_INTELLIGENCE_SKILL_IDS.length,
+    topLevelSkillCount: 1,
+    internalOperationCount: VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS.length,
     profileCount: profiles.length,
     exactModelId: VISUAL_INTELLIGENCE_MODEL_ID,
     thinkingLevel: dispatch.config.thinkingConfig?.thinkingLevel,

@@ -42,6 +42,7 @@ const PREFIXED_SHA256 = /^sha256:[a-f0-9]{64}$/u
 export type VisualIntelligenceCanonicalRequestPackageOwnerClass =
   | 'canonical_source_or_reference_owner'
   | 'canonical_approved_edit_inspection_owner'
+  | 'canonical_orchestra_dispatch_owner'
 
 export interface VisualIntelligenceCanonicalRequestPackageStore
 extends VisualIntelligenceAdmissionVerificationPort,
@@ -274,6 +275,38 @@ function assertOwnerSemantics(input: {
     ) throw notReady('visual_intelligence_planning_package_owner_mismatch')
     return
   }
+  if (input.ownerClass === 'canonical_orchestra_dispatch_owner') {
+    if (input.request.operation !== 'inspect_edit') {
+      if (input.inspectionRequirement !== null) throw notReady(
+        'visual_intelligence_orchestra_package_inspection_mismatch',
+      )
+      return
+    }
+    const requirement = input.inspectionRequirement
+    const admission = input.request.admission
+    if (
+      !requirement
+      || input.request.profile !== requirement.profile
+      || admission.mode !== 'approved_edit_inspection'
+      || input.request.scope.approvedSnapshotId === null
+      || admission.approvedPlanSnapshotRef.id
+        !== input.request.scope.approvedSnapshotId
+      || input.request.sourceArtifacts.length !== 1
+      || input.request.comparisonArtifacts.length !== 0
+      || input.request.outputFrame === null
+      || !same(input.request.requestedRanges, requirement.requestedRanges)
+      || !same(input.request.expectedOutcomeRefs,
+        requirement.expectedOutcomeRefs)
+      || !same(admission.expectedOutcomeRefs,
+        requirement.expectedOutcomeRefs)
+      || !admission.workNodeRefs.some(
+        (reference) => reference.id === requirement.owningWorkNodeId,
+      )
+    ) throw notReady(
+      'visual_intelligence_orchestra_package_inspection_mismatch',
+    )
+    return
+  }
   const requirement = input.inspectionRequirement
   const admission = input.request.admission
   if (
@@ -324,7 +357,8 @@ function parseRecord(
       VISUAL_INTELLIGENCE_CANONICAL_REQUEST_PACKAGE_STORE_VERSION
     || (value.ownerClass !== 'canonical_source_or_reference_owner'
       && value.ownerClass !==
-        'canonical_approved_edit_inspection_owner')
+        'canonical_approved_edit_inspection_owner'
+      && value.ownerClass !== 'canonical_orchestra_dispatch_owner')
     || value.exactOwnerScopeRereadRequired !== true
     || value.exactArtifactGenerationRereadRequired !== true
     || value.exactCostPreflightRereadRequired !== true

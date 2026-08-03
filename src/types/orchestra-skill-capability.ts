@@ -8,6 +8,10 @@ export const ORCHESTRA_SKILL_CALL_VERSION =
   'orchestra-skill-call-v1' as const
 export const ORCHESTRA_SKILL_JOB_RESULT_VERSION =
   'orchestra-skill-job-result-v1' as const
+export const ORCHESTRA_VISUAL_INTELLIGENCE_JOB_ROUTE_ID =
+  'orchestra.visualIntelligence.job.execute' as const
+export const ORCHESTRA_VISUAL_INTELLIGENCE_JOB_ROUTE =
+  '/internal/v1/workspaces/:workspaceId/orchestra/skill-jobs/visual-intelligence' as const
 
 export interface OrchestraEvidenceRef {
   id: string

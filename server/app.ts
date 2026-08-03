@@ -38,6 +38,8 @@ import { createToolCostRoutes } from './routes/tool-cost-routes'
 import { createUploadRoutes } from './routes/upload-routes'
 import { createVisualIntelligenceRoutes } from
   './routes/visual-intelligence-routes'
+import { createVisualIntelligenceOrchestraRoutes } from
+  './routes/visual-intelligence-orchestra-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
 import type { EditReferenceStudyChatRuntimePort } from './services/edit-reference-study-chat-runtime-port'
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
@@ -87,6 +89,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['visualIntelligenceInspectionCoordinatorPort']
   visualIntelligencePlanningOperationRequestOwnerPort?:
     RuntimeState['visualIntelligencePlanningOperationRequestOwnerPort']
+  visualIntelligenceOrchestraJobRuntimePort?:
+    RuntimeState['visualIntelligenceOrchestraJobRuntimePort']
   motionStudioCommandRepositoryRuntimePort?:
     RuntimeState['motionStudioCommandRepositoryRuntimePort']
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
@@ -211,6 +215,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           visualIntelligencePlanningOperationRequestOwnerPort:
             options.visualIntelligencePlanningOperationRequestOwnerPort,
+        }
+      : {}),
+    ...(options.visualIntelligenceOrchestraJobRuntimePort
+      ? {
+          visualIntelligenceOrchestraJobRuntimePort:
+            options.visualIntelligenceOrchestraJobRuntimePort,
         }
       : {}),
     ...(options.motionStudioCommandRepositoryRuntimePort
@@ -356,6 +366,7 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
   app.use(createJobRoutes())
   app.use(createWorkerRoutes())
   app.use(createRenderRoutes())
+  app.use(createVisualIntelligenceOrchestraRoutes())
   app.use(createVisualIntelligenceRoutes())
   app.use(createProviderGatewayRoutes())
 

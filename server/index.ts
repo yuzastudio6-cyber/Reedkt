@@ -11,14 +11,10 @@ const visualIntelligenceRuntime =
 
 const app = createReeditProApiApp(env, visualIntelligenceRuntime
   ? {
-      visualIntelligenceLifecyclePort:
-        visualIntelligenceRuntime.lifecyclePort,
       visualIntelligenceReportRepository:
         visualIntelligenceRuntime.reportRepository,
-      visualIntelligenceInspectionCoordinatorPort:
-        visualIntelligenceRuntime.inspectionCoordinatorPort,
-      visualIntelligencePlanningOperationRequestOwnerPort:
-        visualIntelligenceRuntime.planningOperationRequestOwnerPort,
+      visualIntelligenceOrchestraJobRuntimePort:
+        visualIntelligenceRuntime.orchestraJobRuntimePort,
     }
   : {})
 const server = app.listen(env.apiPort, () => {

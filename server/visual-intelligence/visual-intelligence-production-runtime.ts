@@ -45,6 +45,18 @@ import {
   type VisualIntelligenceLifecycleService,
 } from './visual-intelligence-lifecycle-service'
 import {
+  createVisualIntelligenceOrchestraDispatchPackageStore,
+  type VisualIntelligenceOrchestraDispatchPackageStore,
+} from './visual-intelligence-orchestra-dispatch-package-store'
+import {
+  createVisualIntelligenceOrchestraJobResultStore,
+  type VisualIntelligenceOrchestraJobResultStore,
+} from './visual-intelligence-orchestra-job-result-store'
+import {
+  createVisualIntelligenceOrchestraJobRuntime,
+  type VisualIntelligenceOrchestraJobRuntime,
+} from './visual-intelligence-orchestra-job-runtime'
+import {
   createVisualIntelligenceGcsPrivateObjectReadPort,
   type VisualIntelligencePrivateObjectReadPort,
 } from './visual-intelligence-private-object-read-port'
@@ -70,6 +82,11 @@ export interface VisualIntelligenceProductionRuntime {
     VisualIntelligencePlanningOperationRequestOwner
   readonly canonicalRequestPackageStore:
     VisualIntelligenceCanonicalRequestPackageStore
+  readonly orchestraDispatchPackageStore:
+    VisualIntelligenceOrchestraDispatchPackageStore
+  readonly orchestraJobResultStore:
+    VisualIntelligenceOrchestraJobResultStore
+  readonly orchestraJobRuntimePort: VisualIntelligenceOrchestraJobRuntime
   readonly costOwner: VisualIntelligenceAccountEffectiveCostOwner
   readonly providerCapabilityId: 'visual_intelligence'
   readonly semanticEngine: 'gemini-3.1-pro-preview'
@@ -162,6 +179,13 @@ export async function createVisualIntelligenceProductionRuntime(
       objectPort,
       runtimeRelease,
     })
+  const orchestraDispatchPackageStore =
+    createVisualIntelligenceOrchestraDispatchPackageStore({
+      objectPort,
+      canonicalRequestPackageStore,
+    })
+  const orchestraJobResultStore =
+    createVisualIntelligenceOrchestraJobResultStore({ objectPort })
   const planningOwner =
     createCanonicalPlanningVisualIntelligenceOperationOwner({
       upstreamAdmissionVerificationPort: canonicalRequestPackageStore,
@@ -196,6 +220,20 @@ export async function createVisualIntelligenceProductionRuntime(
     reportRepository: durableStore,
     concurrencyPort,
   })
+  const orchestraLifecyclePort = createVisualIntelligenceLifecycleService({
+    provider,
+    admissionPort: canonicalRequestPackageStore,
+    evidencePreparationPort: canonicalRequestPackageStore,
+    attemptStore: durableStore,
+    reportRepository: durableStore,
+    concurrencyPort,
+  })
+  const orchestraJobRuntimePort =
+    createVisualIntelligenceOrchestraJobRuntime({
+      dispatchPackageStore: orchestraDispatchPackageStore,
+      lifecycle: orchestraLifecyclePort,
+      resultStore: orchestraJobResultStore,
+    })
   const inspectionCoordinatorPort =
     createVisualIntelligenceInspectionCoordinator({
       requestOwner: canonicalRequestPackageStore,
@@ -209,6 +247,9 @@ export async function createVisualIntelligenceProductionRuntime(
     inspectionCoordinatorPort,
     planningOperationRequestOwnerPort: planningOwner.requestOwner,
     canonicalRequestPackageStore,
+    orchestraDispatchPackageStore,
+    orchestraJobResultStore,
+    orchestraJobRuntimePort,
     costOwner,
     providerCapabilityId: 'visual_intelligence',
     semanticEngine: 'gemini-3.1-pro-preview',

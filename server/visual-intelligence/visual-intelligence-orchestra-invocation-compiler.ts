@@ -139,6 +139,44 @@ export interface VisualIntelligenceOrchestraInvocationCompiler {
   }): Promise<CompiledVisualIntelligenceOrchestraRequest>
 }
 
+/**
+ * Validates an immutable compiler input before an Orchestra dispatch package
+ * is persisted. This prevents a malformed internal producer from poisoning a
+ * create-only call slot that a later valid dispatch could not replace.
+ */
+export function parseVisualIntelligenceOrchestraCompilationEvidence(input: {
+  readonly call: unknown
+  readonly manifest: unknown
+  readonly qualificationSnapshot: unknown
+  readonly admissionMode: unknown
+  readonly evidence: unknown
+}): VisualIntelligenceOrchestraCompilationEvidence {
+  const call = parseOrchestraSkillCall(input.call)
+  const qualificationSnapshot = parseSkillQualificationSnapshot(
+    input.qualificationSnapshot,
+  )
+  const manifest = parseSkillCapabilityManifest({
+    value: input.manifest,
+    qualificationSnapshot,
+  })
+  if (
+    input.admissionMode !== 'planning_evidence'
+    && input.admissionMode !== 'approved_edit_inspection'
+  ) throw new TypeError(
+    'Visual Intelligence Orchestra admission mode is invalid.',
+  )
+  const evidence = input.evidence as
+    VisualIntelligenceOrchestraCompilationEvidence
+  assertCompilationEvidence({
+    call,
+    manifest,
+    qualificationSnapshot,
+    admissionMode: input.admissionMode,
+    evidence,
+  })
+  return deepFreeze(evidence)
+}
+
 export function createVisualIntelligenceOrchestraInvocationCompiler(input: {
   readonly authorityRegistryPort:
     VisualIntelligenceOrchestraAuthorityRegistryPort
@@ -340,6 +378,73 @@ export function createVisualIntelligenceOrchestraJobResult(input: {
     estimatedAdditionalTimeRef: input.followupEstimate?.timeRef ?? null,
     estimatedAdditionalCreditsRef:
       input.followupEstimate?.creditRef ?? null,
+    resultReturnsToOrchestra: true,
+    directTimelineMutationPerformed: false,
+    directArtifactMutationPerformed: false,
+    scopeExpandedWithoutOrchestra: false,
+    providerAuthorityGrantedToCaller: false,
+    finalQaApprovalGranted: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  })
+}
+
+/**
+ * Returns an unresolved job to Orchestra when semantic evidence proposes a
+ * wider targeted pass but the Orchestra-owned time/credit estimator has not
+ * authorized it. Visual Intelligence never converts that proposal into work.
+ */
+export function createVisualIntelligenceOrchestraFollowupBlockedJobResult(
+  input: {
+    readonly compiled: CompiledVisualIntelligenceOrchestraRequest
+    readonly report: unknown
+  },
+): OrchestraSkillJobResult {
+  const compiled = assertCompiled(input.compiled)
+  const report = parseVisualIntelligenceReport(input.report)
+  assertReportMatchesCompiled(report, compiled)
+  if (
+    report.disposition === 'blocked'
+    || report.coverage.targetedFollowupRanges.length === 0
+  ) throw new TypeError(
+    'A follow-up-estimate blocker requires a non-blocked targeted proposal.',
+  )
+  const reportRef = orchestraEvidenceRef(
+    report.reportId,
+    report.reportDigestSha256,
+  )
+  const blockerRef = orchestraEvidenceRef(
+    `vi-followup-estimate-blocked-${compiled.callRef.contentHash.slice(7, 39)}`,
+    orchestraDigest({
+      blockerCode: 'orchestra_followup_time_and_credit_estimate_missing',
+      callRef: compiled.callRef,
+      reportRef,
+      targetedFollowupRanges: report.coverage.targetedFollowupRanges,
+      newOrchestraCallRequired: true,
+      visualIntelligenceScopeExpansionAllowed: false,
+    }),
+  )
+  return createOrchestraSkillJobResult({
+    schemaVersion: ORCHESTRA_SKILL_JOB_RESULT_VERSION,
+    resultId: `${compiled.request.requestId}-orchestra-result`,
+    callRef: compiled.callRef,
+    manifestRef: compiled.manifestRef,
+    qualificationSnapshotRef: compiled.qualificationSnapshotRef,
+    targetSkillKey: 'visual_intelligence',
+    jobType: compiled.jobType,
+    phase: compiled.phase,
+    scope: compiled.scope,
+    disposition: 'blocked',
+    producedArtifactRefs: [reportRef],
+    evidenceRefs: uniqueRefs([
+      ...report.evidence.map((item) => item.evidenceRef),
+      ...report.deterministicToolExecutions.map((item) => item.releaseRef),
+      blockerRef,
+    ]),
+    proposedFollowupRanges: [],
+    followupReasonCode: null,
+    estimatedAdditionalTimeRef: null,
+    estimatedAdditionalCreditsRef: null,
     resultReturnsToOrchestra: true,
     directTimelineMutationPerformed: false,
     directArtifactMutationPerformed: false,
@@ -646,6 +751,19 @@ function assertCompiled(
     'Compiled Visual Intelligence Orchestra request is invalid.',
   )
   return value
+}
+
+/**
+ * Public server-side reread validator for a compiled Visual Intelligence job.
+ * The Orchestra dispatch store and runtime use this instead of trusting a
+ * caller-authored cast or duplicating the compiler's exact scope checks.
+ */
+export function parseCompiledVisualIntelligenceOrchestraRequest(
+  value: unknown,
+): CompiledVisualIntelligenceOrchestraRequest {
+  return deepFreeze(assertCompiled(
+    value as CompiledVisualIntelligenceOrchestraRequest,
+  ))
 }
 
 function assertReportMatchesCompiled(

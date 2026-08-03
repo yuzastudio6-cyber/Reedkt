@@ -2,9 +2,21 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 
 import type {
+  OrchestraSkillCall,
+  OrchestraSkillScope,
+  SkillCapabilityManifest,
+  SkillQualificationSnapshot,
+} from '../../src/types/orchestra-skill-capability'
+import {
+  ORCHESTRA_SKILL_CALL_VERSION,
+  ORCHESTRA_SKILL_QUALIFICATION_SNAPSHOT_VERSION,
+} from '../../src/types/orchestra-skill-capability'
+import type {
   VisualIntelligenceEvidence,
   VisualIntelligenceEvidenceRef,
+  VisualIntelligenceCostPreflight,
   VisualIntelligencePreparedEvidence,
+  VisualIntelligenceRequest,
 } from '../../src/types/visual-intelligence'
 import {
   VISUAL_INTELLIGENCE_MODEL_ID,
@@ -13,9 +25,17 @@ import {
   assertRuntimeCanStart,
   loadRuntimeEnv,
 } from '../config/env'
+import { ApiError } from '../errors/api-error'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
+import {
+  createOrchestraSkillCall,
+  createSkillQualificationSnapshot,
+  orchestraDigest,
+  orchestraEvidenceRef,
+  parseOrchestraSkillJobResult,
+} from '../orchestra/orchestra-skill-capability-contract'
 import {
   createProfessionalHighVisualIntelligenceQualityPolicy,
   createVisualIntelligenceEvidenceRef,
@@ -31,6 +51,14 @@ import type {
 import {
   createVisualIntelligenceProductionRuntime,
 } from '../visual-intelligence/visual-intelligence-production-runtime'
+import {
+  createVisualIntelligenceOrchestraCapabilityManifest,
+  createVisualIntelligenceOrchestraCapabilityManifestForQualification,
+  createVisualIntelligenceOrchestraQualificationSnapshot,
+} from '../visual-intelligence/visual-intelligence-orchestra-capability-manifest'
+import type {
+  VisualIntelligenceOrchestraCompilationEvidence,
+} from '../visual-intelligence/visual-intelligence-orchestra-invocation-compiler'
 import {
   createControlledVisualIntelligenceAccountEffectiveRateAuthority,
   rateAuthorityRef,
@@ -424,6 +452,222 @@ assert.equal(providerCalls, 1)
 assert.equal(acquired, 1)
 assert.equal(released, 1)
 
+const baselineOrchestraQualification =
+  createVisualIntelligenceOrchestraQualificationSnapshot()
+const baselineOrchestraManifest =
+  createVisualIntelligenceOrchestraCapabilityManifest()
+const orchestraQualification = createQualifiedOrchestraSnapshot({
+  baselineQualification: baselineOrchestraQualification,
+  baselineManifest: baselineOrchestraManifest,
+  qualifiedJobTypes: [
+    'scene_primary_subject_identification',
+    'source_video_understanding',
+  ],
+})
+const orchestraManifest =
+  createVisualIntelligenceOrchestraCapabilityManifestForQualification(
+    orchestraQualification,
+  )
+const orchestraScope: OrchestraSkillScope = {
+  scopeType: 'video',
+  sourceArtifactRef: finalizedRef,
+  authorizedRanges: [fullRange],
+  completeSourceCoverageRequired: true,
+  outputId: null,
+}
+const orchestraCall = createPlanningOrchestraCall({
+  manifest: orchestraManifest,
+  qualification: orchestraQualification,
+  scope: orchestraScope,
+  jobType: 'source_video_understanding',
+  suffix: 'production-runtime',
+})
+const orchestraCostPreflight = await runtime.costOwner.createPreflight({
+  requestId: orchestraCall.callId,
+  maximumInputTokenCount: 100_000,
+  maximumOutputAndThinkingTokenCount: 20_000,
+  estimatedInputTokenCount: 10_000,
+  estimatedOutputAndThinkingTokenCount: 4_000,
+})
+const orchestraCompilationEvidence = createOrchestraCompilationEvidence({
+  call: orchestraCall,
+  sourceRequest,
+  costPreflight: orchestraCostPreflight,
+})
+const orchestraDispatchInput = {
+  call: orchestraCall,
+  supportRequest: null,
+  manifest: orchestraManifest,
+  qualificationSnapshot: orchestraQualification,
+  compilationEvidence: orchestraCompilationEvidence,
+  preparedEvidence: preparedEvidence(
+    orchestraCall.callDigestSha256,
+    probeRef,
+  ),
+  inspectionRequirement: null,
+  orchestraDispatchAuthorityRef: orchestraCall.orchestraJobRef,
+} as const
+await assert.rejects(
+  runtime.orchestraDispatchPackageStore.persistCreateOnly({
+    ...orchestraDispatchInput,
+    orchestraDispatchAuthorityRef: ref('caller-invented-dispatch-authority'),
+  }),
+)
+await assert.rejects(
+  runtime.orchestraDispatchPackageStore.persistCreateOnly({
+    ...orchestraDispatchInput,
+    compilationEvidence: {
+      ...orchestraCompilationEvidence,
+      exactOrchestraPlanAndJobReread: false,
+    } as unknown as VisualIntelligenceOrchestraCompilationEvidence,
+  }),
+)
+await assert.rejects(
+  runtime.orchestraDispatchPackageStore.persistCreateOnly({
+    ...orchestraDispatchInput,
+    preparedEvidence: {
+      ...orchestraDispatchInput.preparedEvidence,
+      toolExecutionEvidence: [],
+    },
+  }),
+)
+const persistedDispatch = await runtime.orchestraDispatchPackageStore
+  .persistCreateOnly(orchestraDispatchInput)
+assert.equal(persistedDispatch.disposition, 'created')
+const replayedDispatch = await runtime.orchestraDispatchPackageStore
+  .persistCreateOnly(orchestraDispatchInput)
+assert.equal(replayedDispatch.disposition, 'identical_replay')
+providerPayload = {
+  ...(providerPayload as Record<string, unknown>),
+  requestId: orchestraCall.callId,
+}
+const orchestraExecution = await runtime.orchestraJobRuntimePort.execute({
+  call: orchestraCall,
+  supportRequest: null,
+  authenticatedOwnerUserId: 'user-1',
+  expectedWorkspaceId: 'workspace-1',
+})
+assert.equal(orchestraExecution.status, 'completed')
+assert.equal(
+  parseOrchestraSkillJobResult(orchestraExecution.result).disposition,
+  'completed',
+)
+assert.equal(orchestraExecution.resultReturnsToOrchestra, true)
+assert.equal(
+  orchestraExecution.directTimelineOrArtifactMutationPerformed,
+  false,
+)
+assert.equal(orchestraExecution.finalQaApprovalGranted, false)
+assert.equal(orchestraExecution.publicDeliveryGranted, false)
+assert.equal(orchestraExecution.productionAuthorityGranted, false)
+assert.equal(providerCalls, 2)
+assert.equal(acquired, 2)
+assert.equal(released, 2)
+const orchestraReplay = await runtime.orchestraJobRuntimePort.execute({
+  call: orchestraCall,
+  supportRequest: null,
+  authenticatedOwnerUserId: 'user-1',
+  expectedWorkspaceId: 'workspace-1',
+})
+assert.equal(orchestraReplay.status, 'cache_replay')
+assert.equal(orchestraReplay.providerCallMadeDuringInvocation, false)
+assert.equal(orchestraReplay.costSettledDuringInvocation, false)
+assert.equal(orchestraReplay.duplicateProviderCallAvoided, true)
+assert.equal(orchestraReplay.duplicateCostSettlementAvoided, true)
+assert.equal(providerCalls, 2)
+await assert.rejects(
+  runtime.orchestraJobRuntimePort.execute({
+    call: createPlanningOrchestraCall({
+      manifest: orchestraManifest,
+      qualification: orchestraQualification,
+      scope: orchestraScope,
+      jobType: 'source_video_understanding',
+      suffix: 'not-persisted',
+    }),
+    supportRequest: null,
+    authenticatedOwnerUserId: 'user-1',
+    expectedWorkspaceId: 'workspace-1',
+  }),
+  (error: unknown) => error instanceof ApiError
+    && error.code === 'TOOL_NOT_READY',
+)
+const followupScope: OrchestraSkillScope = {
+  scopeType: 'scene',
+  sourceArtifactRef: finalizedRef,
+  sceneId: 'scene-followup',
+  outputId: 'output-vertical',
+  authorizedRange: fullRange,
+  selectedSceneBindingRef: ref('selected-scene-followup'),
+  completeSceneCoverageRequired: true,
+}
+const followupCall = createPlanningOrchestraCall({
+  manifest: orchestraManifest,
+  qualification: orchestraQualification,
+  scope: followupScope,
+  jobType: 'scene_primary_subject_identification',
+  suffix: 'followup-without-orchestra-estimate',
+})
+const followupCostPreflight = await runtime.costOwner.createPreflight({
+  requestId: followupCall.callId,
+  maximumInputTokenCount: 100_000,
+  maximumOutputAndThinkingTokenCount: 20_000,
+  estimatedInputTokenCount: 10_000,
+  estimatedOutputAndThinkingTokenCount: 4_000,
+})
+await runtime.orchestraDispatchPackageStore.persistCreateOnly({
+  call: followupCall,
+  supportRequest: null,
+  manifest: orchestraManifest,
+  qualificationSnapshot: orchestraQualification,
+  compilationEvidence: createOrchestraCompilationEvidence({
+    call: followupCall,
+    sourceRequest,
+    costPreflight: followupCostPreflight,
+  }),
+  preparedEvidence: preparedEvidence(followupCall.callDigestSha256, probeRef),
+  inspectionRequirement: null,
+  orchestraDispatchAuthorityRef: followupCall.orchestraJobRef,
+})
+providerPayload = {
+  ...(providerPayload as Record<string, unknown>),
+  requestId: followupCall.callId,
+  segments: [{
+    ...((providerPayload as { segments: Array<Record<string, unknown>> })
+      .segments[0]!),
+    sourcePlanning: null,
+  }],
+  targetedFollowupRanges: [{
+    startFrame: 0,
+    endFrameExclusive: 24,
+    frameRate,
+  }],
+}
+const blockedFollowup = await runtime.orchestraJobRuntimePort.execute({
+  call: followupCall,
+  supportRequest: null,
+  authenticatedOwnerUserId: 'user-1',
+  expectedWorkspaceId: 'workspace-1',
+})
+assert.equal(blockedFollowup.result.disposition, 'blocked')
+assert.deepEqual(blockedFollowup.result.proposedFollowupRanges, [])
+assert.equal(blockedFollowup.result.estimatedAdditionalTimeRef, null)
+assert.equal(blockedFollowup.result.estimatedAdditionalCreditsRef, null)
+assert.equal(blockedFollowup.result.scopeExpandedWithoutOrchestra, false)
+assert.ok(blockedFollowup.result.evidenceRefs.some((reference) =>
+  reference.id.startsWith('vi-followup-estimate-blocked-')))
+assert.equal(providerCalls, 3)
+assert.equal(acquired, 3)
+assert.equal(released, 3)
+const blockedFollowupReplay = await runtime.orchestraJobRuntimePort.execute({
+  call: followupCall,
+  supportRequest: null,
+  authenticatedOwnerUserId: 'user-1',
+  expectedWorkspaceId: 'workspace-1',
+})
+assert.equal(blockedFollowupReplay.status, 'cache_replay')
+assert.equal(blockedFollowupReplay.result.disposition, 'blocked')
+assert.equal(providerCalls, 3)
+
 const disabled = await createVisualIntelligenceProductionRuntime(
   loadRuntimeEnv({
     NODE_ENV: 'test',
@@ -453,6 +697,11 @@ console.log(JSON.stringify({
   exactRuntimeReleaseReread: true,
   exactAccountEffectiveRateReread: true,
   canonicalRequestPackageConsumed: true,
+  orchestraDispatchPackageConsumed: true,
+  orchestraResultReturnedAndPersisted: true,
+  orchestraReplayAvoidedDuplicateProviderAndCost: true,
+  unpersistedDirectCallRefused: true,
+  followupWithoutOrchestraEstimateBlocked: true,
   providerCallCount: providerCalls,
   immutableCacheReplay: true,
   applicationDefaultCredentialsRequired: true,
@@ -462,6 +711,164 @@ console.log(JSON.stringify({
   disabledRuntimeStartedProvider: false,
   tamperedReleaseCoordinateRefused: true,
 }))
+
+function createQualifiedOrchestraSnapshot(input: {
+  baselineQualification: SkillQualificationSnapshot
+  baselineManifest: SkillCapabilityManifest
+  qualifiedJobTypes: readonly string[]
+}): SkillQualificationSnapshot {
+  const qualified = new Set(input.qualifiedJobTypes)
+  return createSkillQualificationSnapshot({
+    schemaVersion: ORCHESTRA_SKILL_QUALIFICATION_SNAPSHOT_VERSION,
+    snapshotId: 'visual-intelligence-production-runtime-qualification',
+    skillKey: input.baselineQualification.skillKey,
+    skillVersion: input.baselineQualification.skillVersion,
+    contractVersion: input.baselineQualification.contractVersion,
+    capabilityDefinitionDigestSha256:
+      input.baselineManifest.capabilityDefinitionDigestSha256,
+    observedReleaseRef: ref('visual-intelligence-production-release'),
+    observedAt: now.toISOString(),
+    overall: 'partially_qualified',
+    jobQualifications: input.baselineQualification.jobQualifications.map(
+      (item) => qualified.has(item.jobType)
+        ? {
+            jobType: item.jobType,
+            status: 'qualified' as const,
+            blockerCodes: [],
+            qualifiedRouteIds: input.baselineManifest.toolRoutes
+              .filter((route) => route.jobTypes.includes(item.jobType))
+              .map((route) => route.routeId)
+              .sort(compare),
+            qualificationEvidenceRefs: [ref(
+              `qualification-${item.jobType}`,
+            )],
+          }
+        : item,
+    ),
+    callerCanSelfQualify: false,
+    qualificationOwner: 'canonical_skill_qualification_registry',
+    dispatchAuthorityGranted: false,
+    providerAuthorityGranted: false,
+    billingAuthorityGranted: false,
+    publicDeliveryAuthorityGranted: false,
+    productionAuthorityGranted: false,
+  })
+}
+
+function createPlanningOrchestraCall(input: {
+  manifest: SkillCapabilityManifest
+  qualification: SkillQualificationSnapshot
+  scope: OrchestraSkillScope
+  jobType: 'scene_primary_subject_identification'
+    | 'source_video_understanding'
+  suffix: string
+}): OrchestraSkillCall {
+  return createOrchestraSkillCall({
+    schemaVersion: ORCHESTRA_SKILL_CALL_VERSION,
+    callId: `orchestra-source-understanding-${input.suffix}`,
+    orchestraPlanRef: ref('orchestra-production-plan'),
+    orchestraJobRef: ref(`orchestra-production-job-${input.suffix}`),
+    parentJobRef: null,
+    requestedBy: { kind: 'orchestra' },
+    targetSkillKey: 'visual_intelligence',
+    jobType: input.jobType,
+    phase: 'planning',
+    scope: input.scope,
+    sceneContextSnapshotRef: input.scope.scopeType === 'video'
+      ? null
+      : ref(`scene-context-${input.suffix}`),
+    sourceArtifactRefs: [input.scope.sourceArtifactRef],
+    comparisonArtifactRefs: [],
+    expectedOutcomeRefs: [],
+    requiredEvidenceRefs: [probeRef],
+    manifestRef: orchestraEvidenceRef(
+      input.manifest.manifestId,
+      input.manifest.manifestDigestSha256,
+    ),
+    qualificationSnapshotRef: orchestraEvidenceRef(
+      input.qualification.snapshotId,
+      input.qualification.snapshotDigestSha256,
+    ),
+    timeBudgetRef: ref(`time-budget-${input.suffix}`),
+    creditBudgetRef: ref(`credit-budget-${input.suffix}`),
+    attemptEnvelopeRef: ref(`attempt-envelope-${input.suffix}`),
+    approvedSnapshotRef: null,
+    idempotencyKey: `orchestra-${input.jobType}-${input.suffix}`,
+    orchestraDispatchAuthorized: true,
+    directProviderCallAllowed: false,
+    directTimelineMutationAllowed: false,
+    directArtifactMutationAllowed: false,
+    scopeExpansionAllowed: false,
+    peerSkillExecutionAuthorityAccepted: false,
+  })
+}
+
+function createOrchestraCompilationEvidence(input: {
+  call: OrchestraSkillCall
+  sourceRequest: VisualIntelligenceRequest
+  costPreflight: VisualIntelligenceCostPreflight
+}): VisualIntelligenceOrchestraCompilationEvidence {
+  if (input.sourceRequest.admission.mode !== 'planning_evidence') {
+    throw new TypeError('Production smoke source request must be planning evidence.')
+  }
+  const callRef = orchestraEvidenceRef(
+    input.call.callId,
+    input.call.callDigestSha256,
+  )
+  const admission = {
+    ...input.sourceRequest.admission,
+    costPreflight: input.costPreflight,
+  }
+  return {
+    schemaVersion: 'visual-intelligence-orchestra-compilation-evidence-v1',
+    callRef,
+    manifestRef: input.call.manifestRef,
+    qualificationSnapshotRef: input.call.qualificationSnapshotRef,
+    timeBudgetRef: input.call.timeBudgetRef,
+    creditBudgetRef: input.call.creditBudgetRef,
+    attemptEnvelopeRef: input.call.attemptEnvelopeRef,
+    requestScope: input.sourceRequest.scope,
+    sourceArtifacts: input.sourceRequest.sourceArtifacts,
+    comparisonArtifacts: [],
+    requiredEvidenceRefs: input.call.requiredEvidenceRefs,
+    expectedOutcomeRefs: [],
+    outputFrame: input.call.scope.outputId === null
+      ? null
+      : {
+          outputId: input.call.scope.outputId,
+          aspectRatioLabel: '9:16',
+          aspectRatioNumerator: 9,
+          aspectRatioDenominator: 16,
+          width: 1080,
+          height: 1920,
+          frameRate,
+          confirmedOutputFrameRef: ref('confirmed-output-frame'),
+          confirmedByUser: true,
+        },
+    protectedZones: [],
+    admission,
+    budgetBindingDigestSha256: orchestraDigest({
+      callRef,
+      timeBudgetRef: input.call.timeBudgetRef,
+      creditBudgetRef: input.call.creditBudgetRef,
+      attemptEnvelopeRef: input.call.attemptEnvelopeRef,
+      costPreflight: input.costPreflight,
+    }),
+    exactOrchestraPlanAndJobReread: true,
+    exactManifestAndQualificationReread: true,
+    exactMediaAuthoritiesReread: true,
+    exactSceneContextReread: true,
+    exactTimeAndCreditBudgetsReread: true,
+    exactAttemptEnvelopeReread: true,
+    callerPromptAccepted: false,
+    directProviderCallMade: false,
+    directTimelineMutationPerformed: false,
+  }
+}
+
+function compare(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0
+}
 
 function productionEnv() {
   return loadRuntimeEnv(productionEnvironmentSource())

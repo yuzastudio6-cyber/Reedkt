@@ -19,6 +19,9 @@ export * from './tool-license-policy'
 export * from './model-weight-policy'
 export * from './tool-fallback-policy'
 export * from './tool-qa-policy'
+export * from './tool-capability-manifest-types'
+export * from './tool-capability-manifest-registry'
+export * from './tool-runtime-status-registry'
 
 export function isProductionToolId(toolId: string): toolId is ProductionToolId {
   return PRODUCTION_TOOL_IDS.includes(toolId as ProductionToolId)

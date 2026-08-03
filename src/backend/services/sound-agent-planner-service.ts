@@ -961,6 +961,11 @@ function buildHandoffMetadata(
   }
 }
 
+/**
+ * @deprecated Compatibility-fixture planner for pre-canonical records and
+ * regression scenarios. It is not a production owner, must not schedule tools,
+ * and must not plan Music on behalf of the canonical Sound skill.
+ */
 export function planSoundMusicAudio(input: SoundAgentPlannerInput): SoundAgentPlannerResult {
   const seed = input.deterministicIdSeed ?? `${input.workspaceId}:${input.projectId}:${input.editPlanId}:${input.requestedOutputMode}:${input.executionMode}`
   const plannedCues = buildPlannedCues(input, seed)

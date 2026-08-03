@@ -220,7 +220,16 @@
     "check:frontend-boundary": "node scripts/check-frontend-server-boundary.mjs",
     "smoke:supabase-command-safety": "tsx server/smoke/supabase-command-safety-smoke.ts",
     "check:supabase-command-safety": "node scripts/check-supabase-command-safety.mjs",
-    "smoke:scoped-blocker-policy": "node scripts/validation/scoped-blocker-policy-smoke.mjs"
+    "smoke:scoped-blocker-policy": "node scripts/validation/scoped-blocker-policy-smoke.mjs",
+    "smoke:sound-capability-manifest": "tsx server/smoke/sound-capability-manifest-smoke.ts",
+    "smoke:sound-tool-capability-registry": "tsx server/smoke/sound-tool-capability-registry-smoke.ts",
+    "smoke:canonical-sound": "tsx server/smoke/canonical-sound-skill-smoke.ts",
+    "smoke:canonical-sound-local-audio": "tsx server/smoke/canonical-sound-local-audio-smoke.ts",
+    "smoke:canonical-sound-mirelo": "tsx server/smoke/canonical-sound-mirelo-smoke.ts",
+    "smoke:canonical-sound-legacy-retirement": "tsx server/smoke/canonical-sound-legacy-retirement-smoke.ts",
+    "smoke:canonical-sound-e2e": "tsx server/smoke/canonical-sound-e2e-smoke.ts",
+    "smoke:sound": "npm run smoke:sound-capability-manifest && npm run smoke:sound-tool-capability-registry && npm run smoke:canonical-sound && npm run smoke:canonical-sound-local-audio && npm run smoke:canonical-sound-mirelo && npm run smoke:canonical-sound-legacy-retirement && npm run smoke:canonical-sound-e2e",
+    "canary:sound-mirelo-private": "tsx server/cli/sound-mirelo-private-canary.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

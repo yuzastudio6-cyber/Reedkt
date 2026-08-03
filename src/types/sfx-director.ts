@@ -39,6 +39,8 @@ export type SFXProvider =
   | 'mmaudio_v2'
   // Legacy alias for records created before MMAudio V2 was selected as the launch model.
   | 'mmaudio_v'
+  | 'mirelo_sfx_v1_6'
+  // Deprecated compatibility alias. Canonical Sound routes use Mirelo SFX 1.6.
   | 'mirelo_sfx_v1_5'
   | 'no_sfx'
   | 'manual_upload'

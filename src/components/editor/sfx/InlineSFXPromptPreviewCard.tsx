@@ -8,6 +8,7 @@ type InlineSFXPromptPreviewCardProps = {
 
 export function InlineSFXPromptPreviewCard({ promptPlan }: InlineSFXPromptPreviewCardProps) {
   const isMMAudioPrompt = promptPlan.provider === 'mmaudio_v2' || promptPlan.provider === 'mmaudio_v'
+  const isMireloRoute = promptPlan.provider === 'mirelo_sfx_v1_6' || promptPlan.provider === 'mirelo_sfx_v1_5'
 
   return (
     <section className="inline-chat-card sfx-inline-card sfx-prompt-preview-card">
@@ -19,12 +20,12 @@ export function InlineSFXPromptPreviewCard({ promptPlan }: InlineSFXPromptPrevie
         <Badge accent="cyan">{formatSFXLabel(promptPlan.promptStyle)}</Badge>
       </div>
 
-      <p className="sfx-muted-note">Prompt preview only. ReeditPro has not called Mirelo or MMAudio.</p>
+      <p className="sfx-muted-note">Audio asset brief only. ReeditPro has not called an SFX asset service.</p>
       {isMMAudioPrompt && <p className="sfx-muted-note">MMAudio V2 prompts are short because the model is expected to use video context.</p>}
-      {promptPlan.provider === 'mirelo_sfx_v1_5' && <p className="sfx-muted-note">Mirelo prompts are production-style and more controlled.</p>}
+      {isMireloRoute && <p className="sfx-muted-note">This route is fixture-qualified for controlled planning and remains blocked for production execution.</p>}
 
       <div className="sfx-score-grid">
-        <span><strong>Model</strong>{promptPlan.modelName}</span>
+        <span><strong>Route status</strong>Gated until approval</span>
         <span><strong>Needed duration</strong>{formatSFXSeconds(promptPlan.durationNeededSeconds)}</span>
         <span><strong>Generate duration</strong>{formatSFXSeconds(promptPlan.durationToGenerateSeconds)}</span>
         <span><strong>Duration policy</strong>{formatSFXLabel(promptPlan.generatedDurationPolicy)}</span>

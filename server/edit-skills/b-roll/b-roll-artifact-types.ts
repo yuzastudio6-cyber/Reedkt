@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import type { EditSkillArtifactSchemaRegistry } from '../core/edit-skill-artifact-store'
 import { skillManifestReferenceSchema, skillSha256Schema } from '../core/skill-capability-manifest-schema'
+import { brollPlanningQaReportSchema } from './b-roll-planning-qa'
 import {
   brollPlanArtifactSchema,
   brollPlanningContextSchema,
@@ -27,6 +28,7 @@ export const BROLL_ACCEPTED_ARTIFACT_TYPES = [
 
 export const BROLL_PRODUCED_ARTIFACT_TYPES = [
   'b_roll_plan_v1',
+  'b_roll_planning_qa_report_v1',
   'b_roll_restraint_result_v1',
   'b_roll_provider_request_specification_v1',
   'b_roll_candidate_manifest_v1',
@@ -79,6 +81,8 @@ export function registerBrollArtifactSchemas(registry: EditSkillArtifactSchemaRe
             ? brollPlanningContextSchema
             : artifactType === 'b_roll_plan_v1'
               ? brollPlanArtifactSchema
+              : artifactType === 'b_roll_planning_qa_report_v1'
+                ? brollPlanningQaReportSchema
         : scopedArtifactEnvelopeSchema.extend({ schemaVersion: z.literal(artifactType) }).strict(),
     )
   }

@@ -6,6 +6,10 @@ import {
 } from '../edit-skills/b-roll/b-roll-canonical-plan-component'
 import type { BrollPlanningContext, BrollPlanArtifact, BrollSkillAssignment } from '../edit-skills/b-roll/b-roll-contracts'
 import {
+  brollPlanningQaReportSchema,
+  type BrollPlanningQaReport,
+} from '../edit-skills/b-roll/b-roll-planning-qa'
+import {
   assertBrollCanonicalWorkGraph,
   projectBrollCanonicalWorkItems,
   type BrollCanonicalWorkGraph,
@@ -38,6 +42,7 @@ export async function persistCanonicalBrollPlanComponent(input: {
   assignment: BrollSkillAssignment
   context: BrollPlanningContext
   plan: BrollPlanArtifact
+  planningQaReport: BrollPlanningQaReport
   workGraph: BrollCanonicalWorkGraph
   qualificationReceipt: SkillQualificationReceipt
 }): Promise<{
@@ -59,6 +64,11 @@ export async function persistCanonicalBrollPlanComponent(input: {
     'planHash',
     'plan',
   ) as unknown as BrollPlanArtifact
+  const planningQaReport = assertHashedArtifact(
+    brollPlanningQaReportSchema.parse(input.planningQaReport) as unknown as Record<string, unknown>,
+    'reportHash',
+    'planning QA report',
+  ) as unknown as BrollPlanningQaReport
   const workGraph = assertBrollCanonicalWorkGraph(input.workGraph)
   const qualificationReceipt = assertSkillQualificationReceipt(input.qualificationReceipt)
   const persist = (value: Record<string, unknown>) => putPrivateAuthorityJsonBlob({
@@ -69,17 +79,22 @@ export async function persistCanonicalBrollPlanComponent(input: {
   const assignmentArtifactRef = await persist(assignment as unknown as Record<string, unknown>)
   const contextArtifactRef = await persist(context as unknown as Record<string, unknown>)
   const planArtifactRef = await persist(plan as unknown as Record<string, unknown>)
+  const planningQaReportArtifactRef = await persist(
+    planningQaReport as unknown as Record<string, unknown>,
+  )
   const workGraphArtifactRef = await persist(workGraph as unknown as Record<string, unknown>)
   const qualificationReceiptArtifactRef = await persist(qualificationReceipt as unknown as Record<string, unknown>)
   const component = createCanonicalBrollSkillPlanComponent({
     assignment,
     context,
     plan,
+    planningQaReport,
     workGraph,
     qualificationReceipt,
     assignmentArtifactRef,
     contextArtifactRef,
     planArtifactRef,
+    planningQaReportArtifactRef,
     workGraphArtifactRef,
     qualificationReceiptArtifactRef,
   })
@@ -152,6 +167,7 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
   assignment?: BrollSkillAssignment
   context?: BrollPlanningContext
   plan?: BrollPlanArtifact
+  planningQaReport?: BrollPlanningQaReport
   workGraph?: BrollCanonicalWorkGraph
   qualificationReceipt?: SkillQualificationReceipt
 }> {
@@ -169,11 +185,19 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
     localStorageRoot: input.localStorageRoot,
     ref,
   })
-  const [rawAssignment, rawContext, rawPlan, rawWorkGraph, rawQualificationReceipt] =
+  const [
+    rawAssignment,
+    rawContext,
+    rawPlan,
+    rawPlanningQaReport,
+    rawWorkGraph,
+    rawQualificationReceipt,
+  ] =
     await Promise.all([
       read(component.assignmentArtifactRef),
       read(component.contextArtifactRef),
       read(component.planArtifactRef),
+      read(component.planningQaReportArtifactRef),
       read(component.workGraphArtifactRef),
       read(component.qualificationReceiptArtifactRef),
     ])
@@ -192,6 +216,11 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
     'planHash',
     'plan',
   ) as unknown as BrollPlanArtifact
+  const planningQaReport = assertHashedArtifact(
+    brollPlanningQaReportSchema.parse(rawPlanningQaReport) as unknown as Record<string, unknown>,
+    'reportHash',
+    'planning QA report',
+  ) as unknown as BrollPlanningQaReport
   const workGraph = assertBrollCanonicalWorkGraph(rawWorkGraph as BrollCanonicalWorkGraph)
   const qualificationReceipt = assertSkillQualificationReceipt(
     rawQualificationReceipt as SkillQualificationReceipt,
@@ -200,11 +229,13 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
     assignment,
     context,
     plan,
+    planningQaReport,
     workGraph,
     qualificationReceipt,
     assignmentArtifactRef: component.assignmentArtifactRef,
     contextArtifactRef: component.contextArtifactRef,
     planArtifactRef: component.planArtifactRef,
+    planningQaReportArtifactRef: component.planningQaReportArtifactRef,
     workGraphArtifactRef: component.workGraphArtifactRef,
     qualificationReceiptArtifactRef: component.qualificationReceiptArtifactRef,
   })
@@ -215,5 +246,5 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
   if (stableAuthorityStringify(expectedItems) !== stableAuthorityStringify(projectedItems)) {
     throw new Error('Canonical B-roll work items no longer match the immutable skill work graph.')
   }
-  return { assignment, context, plan, workGraph, qualificationReceipt }
+  return { assignment, context, plan, planningQaReport, workGraph, qualificationReceipt }
 }

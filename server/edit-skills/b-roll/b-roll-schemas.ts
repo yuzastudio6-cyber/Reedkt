@@ -164,6 +164,9 @@ const brollPlanCoreSchema = z.object({
   }).strict().optional(),
   timeEstimateSeconds: z.number().int().nonnegative(), creditEstimate: z.number().int().nonnegative(),
   lowerCostDecision: z.enum(['use_existing_project_clip', 'use_no_broll']),
+  planningQaPlanEvidenceHash: skillSha256Schema,
+  planningQaReportArtifactType: z.literal('b_roll_planning_qa_report_v1'),
+  planningQaReportHash: skillSha256Schema,
   planningQaPassed: z.boolean(), outsideAuthorizedRangeModified: z.literal(false),
 }).strict().superRefine((value, context) => {
   const providerDecisions = [
@@ -194,6 +197,9 @@ const brollPlanCoreSchema = z.object({
   ]
   const dependencyFieldCount = dependencyFields.filter(Boolean).length
 
+  if (!value.planningQaPassed) {
+    context.addIssue({ code: 'custom', message: 'Executable B-roll plan artifacts require a passed evidence-derived planning QA report.' })
+  }
   if (value.providerRequestPlanned !== provider) {
     context.addIssue({ code: 'custom', message: 'B-roll provider request authority contradicts the final decision.' })
   }

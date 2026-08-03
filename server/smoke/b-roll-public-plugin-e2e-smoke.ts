@@ -124,6 +124,8 @@ const plan = await plugin.planAssignment({ assignment: fixture.assignment })
 assert.equal(plan.envelope.disposition, 'use_no_action')
 assert.equal(plan.dependencyRequests.length, 0)
 assert.equal(plan.payloadRef.artifactType, 'b_roll_plan_v1')
+assert.equal(plan.evidenceRefs.length, 1)
+assert.equal(plan.evidenceRefs[0]?.artifactType, 'b_roll_planning_qa_report_v1')
 
 const approval = createEditSkillPlanApproval({
   schemaVersion: 'edit-skill-plan-approval-v1',

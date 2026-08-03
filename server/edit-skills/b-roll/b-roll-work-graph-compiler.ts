@@ -37,6 +37,7 @@ const workGraphCoreSchema = z.object({
   assignmentHash: skillSha256Schema,
   manifestRef: skillManifestReferenceSchema,
   authorizedRange: skillFrameRangeSchema,
+  planningQaReportHash: skillSha256Schema,
   route: z.enum(['no_action', 'existing_source', 'approved_user_asset', 'gemini_omni']),
   workItems: z.array(workItemSchema).min(1).max(32),
   outsideAuthorizedRangeModified: z.literal(false),
@@ -72,7 +73,7 @@ export const BROLL_CANONICAL_WORK_DEFINITIONS: readonly BrollCanonicalWorkDefini
   },
   {
     jobType: 'validate_b_roll_range_authority', operationId: 'b_roll.internal.validate_range.v1',
-    workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_assignment_v1', 'b_roll_plan_v1'],
+    workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_assignment_v1', 'b_roll_plan_v1', 'b_roll_planning_qa_report_v1'],
     output: 'b_roll_plan_v1', allowedPhase: 'plan_validation', toolOrProviderCredits: 0,
     qa: ['b_roll.integration.exact_authorized_range'],
   },
@@ -138,7 +139,7 @@ export const BROLL_CANONICAL_WORK_DEFINITIONS: readonly BrollCanonicalWorkDefini
   },
   {
     jobType: 'project_b_roll_result_receipt', operationId: 'b_roll.internal.project_result.v1',
-    workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_plan_v1', 'b_roll_qa_report_v1', 'b_roll_remotion_layer_manifest_v1'],
+    workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_plan_v1', 'b_roll_planning_qa_report_v1', 'b_roll_qa_report_v1', 'b_roll_remotion_layer_manifest_v1'],
     output: 'b_roll_result_receipt_v1', allowedPhase: 'result_projection', toolOrProviderCredits: 0,
     qa: ['b_roll.integration.result_lineage'],
   },
@@ -211,6 +212,9 @@ export function assertBrollWorkGraphDecisionInvariants(input: {
   plan: BrollPlanArtifact
   workGraph: BrollCanonicalWorkGraph
 }): void {
+  if (input.workGraph.planningQaReportHash !== input.plan.planningQaReportHash) {
+    throw new Error('B-roll work graph lost its planning QA report lineage.')
+  }
   const providerItems = input.workGraph.workItems.filter((item) =>
     item.operationId === 'provider.google.generate_b_roll_candidate.v1')
   const mediaItems = input.workGraph.workItems.filter((item) =>
@@ -299,6 +303,7 @@ export function compileBrollCanonicalWorkGraph(input: {
     assignmentHash: input.assignment.assignmentHash,
     manifestRef: input.assignment.manifestRef,
     authorizedRange: input.assignment.writeRangeAuthority.authorizedRange,
+    planningQaReportHash: input.plan.planningQaReportHash,
     route,
     workItems,
     outsideAuthorizedRangeModified: false,
@@ -397,6 +402,7 @@ export function projectBrollCanonicalWorkItems(input: {
           authorizedRange: item.authorizedRange,
           workItemHash: item.workItemHash,
           qaLineageKeys: item.qaLineageKeys,
+          planningQaReportHash: input.workGraph.planningQaReportHash,
           callerSelectedExecutableAllowed: false,
           outsideAuthorizedRangeModified: false,
         },

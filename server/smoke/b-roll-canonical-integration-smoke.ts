@@ -220,6 +220,7 @@ try {
     assignment: generatedAssignment,
     context: generatedContext,
     plan: generated.plan,
+    planningQaReport: generated.planningQaReport,
     workGraph: generated.workGraph,
     qualificationReceipt,
   })
@@ -230,6 +231,14 @@ try {
     canonicalWorkItems: generated.canonicalWorkItems,
   })
   assert.equal(revalidated.workGraph?.workGraphHash, generated.workGraph.workGraphHash)
+  assert.equal(
+    revalidated.planningQaReport?.reportHash,
+    generated.planningQaReport.reportHash,
+  )
+  assert.equal(
+    persisted.component.planningQaReportHash,
+    generated.plan.planningQaReportHash,
+  )
 
   const brollRef = persisted.componentRefs.bRollSkill
   assertCanonicalBrollComponentRefPropagation({

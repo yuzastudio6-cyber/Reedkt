@@ -104,6 +104,7 @@ try {
     assignment,
     context,
     plan: compiled.plan,
+    planningQaReport: compiled.planningQaReport,
     workGraph,
     qualificationReceipt: createBrollPlanningQualificationReceipt(BROLL_CAPABILITY_MANIFEST),
   })
@@ -360,6 +361,7 @@ try {
     assignment: editAssignment,
     context: editContext,
     plan: editCompiled.plan,
+    planningQaReport: editCompiled.planningQaReport,
     workGraph: editWorkGraph,
     qualificationReceipt: createBrollPlanningQualificationReceipt(BROLL_CAPABILITY_MANIFEST),
   })

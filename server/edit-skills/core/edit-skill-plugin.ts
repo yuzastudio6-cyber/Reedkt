@@ -23,6 +23,7 @@ const editSkillPublicPlanCoreSchema = z.object({
   schemaVersion: z.literal('edit-skill-public-plan-v1'),
   envelope: skillPlanEnvelopeSchema,
   payloadRef: editSkillArtifactReferenceSchema,
+  evidenceRefs: z.array(editSkillArtifactReferenceSchema).max(100).default([]),
   dependencyRequests: z.array(editSkillDependencyRequestSchema).max(100),
 }).strict().superRefine((value, context) => {
   if (
@@ -42,6 +43,11 @@ const editSkillPublicPlanCoreSchema = z.object({
     value.dependencyRequests.length !== 0
   ) {
     context.addIssue({ code: 'custom', message: 'Only needs_other_skill plans may carry blocking dependency requests.' })
+  }
+  const evidenceKeys = value.evidenceRefs.map((ref) =>
+    `${ref.artifactType}:${ref.sha256}:${ref.ownerUserId}:${ref.workspaceId}:${ref.projectId}`)
+  if (new Set(evidenceKeys).size !== evidenceKeys.length) {
+    context.addIssue({ code: 'custom', message: 'Public skill plan contains duplicate evidence artifacts.' })
   }
 })
 

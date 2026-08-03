@@ -3,8 +3,14 @@ import type { SkillQaRegistry } from '../core/skill-qa-registry'
 import { hashSkillValue } from '../core/skill-capability-manifest-hash'
 import type { SkillCapabilityManifest } from '../core/skill-capability-manifest-types'
 import type { BrollPlanArtifact, BrollPlanningContext, BrollSkillAssignment } from './b-roll-contracts'
+import {
+  assertBrollPlanningQaReport,
+  createBrollPlanningQaPlanEvidence,
+  createBrollPlanningQaReport,
+  type BrollPlanningQaPlanEvidence,
+  type BrollPlanningQaReport,
+} from './b-roll-planning-qa'
 import { brollPlanArtifactSchema, brollPlanCoreSchema } from './b-roll-schemas'
-import { BROLL_PLANNING_QA_KEYS } from './b-roll-qa-policy'
 import {
   buildBrollShotSpecification,
   coordinateBrollSkills,
@@ -21,6 +27,8 @@ import {
 export interface CompileBrollPlanResult {
   plan: BrollPlanArtifact
   omniRequestPlan: ReturnType<typeof planBrollOmniRequest>
+  planningQaPlanEvidence: BrollPlanningQaPlanEvidence
+  planningQaReport: BrollPlanningQaReport
   planningQaEvidenceHash: string
 }
 
@@ -49,7 +57,10 @@ export function assertBrollPlanRuntimeInvariants(input: {
   assignment: BrollSkillAssignment
   plan: BrollPlanArtifact
   omniRequestPlan?: ReturnType<typeof planBrollOmniRequest>
+  planningQaReport?: BrollPlanningQaReport
+  planningContextHash?: string
   requireExactProviderRequestPackage?: boolean
+  requireExactPlanningQaReport?: boolean
 }): void {
   const plan = brollPlanArtifactSchema.parse(input.plan)
   const provider = isProviderDecision(plan.decision)
@@ -82,6 +93,25 @@ export function assertBrollPlanRuntimeInvariants(input: {
   ) throw new Error('B-roll provider request package is stale or exceeds attempt authority.')
   if (!provider && input.omniRequestPlan) {
     throw new Error('A non-provider B-roll plan cannot carry a provider request package.')
+  }
+  if (input.requireExactPlanningQaReport && !input.planningQaReport) {
+    throw new Error('B-roll plan lacks its exact evidence-derived planning QA report.')
+  }
+  if (input.planningQaReport) {
+    if (!input.planningContextHash) {
+      throw new Error('B-roll planning QA validation requires the exact planning context hash.')
+    }
+    const report = assertBrollPlanningQaReport({
+      report: input.planningQaReport,
+      assignment: input.assignment,
+      contextHash: input.planningContextHash,
+      planEvidenceHash: plan.planningQaPlanEvidenceHash,
+    })
+    if (
+      hashSkillValue(report) !== plan.planningQaReportHash ||
+      report.schemaVersion !== plan.planningQaReportArtifactType ||
+      !report.planningQaPassed
+    ) throw new Error('B-roll plan carries stale or failed planning QA lineage.')
   }
   if (plan.sourceArtifactRef && (
     plan.sourceArtifactRef.ownerUserId !== input.assignment.ownerUserId ||
@@ -172,13 +202,69 @@ export function compileBrollPlan(input: {
   }
   const timeEstimate = input.estimators.estimateTime(input.manifest.timeEstimator, finalEstimateInput)
   const creditEstimate = input.estimators.estimateCredit(input.manifest.creditEstimator, finalEstimateInput)
-
-  const qaInputs: Record<string, unknown> = { evidenceHashes: [assignment.assignmentHash, context.contextHash] }
-  for (const qaKey of BROLL_PLANNING_QA_KEYS) qaInputs[qaKey] = true
-  const findings = BROLL_PLANNING_QA_KEYS.map((qaKey) => input.qa.evaluate(qaKey, qaInputs))
-  const planningQaPassed = findings.every((finding) => finding.disposition === 'pass')
-  if (!planningQaPassed) throw new Error('B-roll planning QA failed.')
-  const planningQaEvidenceHash = hashSkillValue(findings)
+  const providerRequestPackageHash = omniRequestPlan
+    ? hashSkillValue(omniRequestPlan)
+    : undefined
+  const providerCreditEstimate = providerRequestPlanned ? creditEstimate.expectedCredits : 0
+  const lowerCostDecision = context.sourceCandidates.some((candidate) =>
+    candidate.sourceType === 'existing_project_clip')
+    ? 'use_existing_project_clip' as const
+    : 'use_no_broll' as const
+  const planEvidence = createBrollPlanningQaPlanEvidence({
+    schemaVersion: 'b_roll_planning_qa_plan_evidence_v1',
+    assignmentId: assignment.assignmentId,
+    assignmentHash: assignment.assignmentHash,
+    manifestRef: assignment.manifestRef,
+    authorizedRange: timing.authorizedRange,
+    decision: sourceStrategy.decision,
+    editorialRole,
+    reason: sourceStrategy.reason,
+    ...(sourceStrategy.selected ? {
+      sourceCandidateId: sourceStrategy.selected.candidate.sourceId,
+      sourceArtifactHash: sourceStrategy.selected.candidate.artifactRef.sha256,
+      sourceScore: sourceStrategy.selected.score,
+    } : {}),
+    ...(timing.sourceTrim ? { sourceTrim: timing.sourceTrim } : {}),
+    ...(shotSpecification ? { shotSpecification } : {}),
+    displayTreatment: timing.displayTreatment,
+    ...(timing.cropSafeProviderAspectRatio
+      ? { cropSafeProviderAspectRatio: timing.cropSafeProviderAspectRatio }
+      : {}),
+    speakerVisibilityIntent: timing.speakerVisibilityIntent,
+    captionSafeBehavior: timing.captionSafeBehavior,
+    audioDisposition,
+    entryIntent: timing.entryIntent,
+    exitIntent: timing.exitIntent,
+    coordination: {
+      ...coordination,
+      finalOwners: [...coordination.finalOwners],
+    },
+    providerRequestPlanned,
+    ...(providerRequestPackageHash ? { providerRequestPackageHash } : {}),
+    providerCreditEstimate,
+    ...(sourceStrategy.decision === 'needs_other_skill' ? {
+      dependencySkillKey: sourceStrategy.dependencySkillKey,
+      requiredDependencyArtifactType: 'track_graph_v1',
+      requiredForPhase: 'skill_execution',
+    } : {}),
+    timeEstimateSeconds: timeEstimate.expectedSeconds,
+    creditEstimate: creditEstimate.expectedCredits,
+    lowerCostDecision,
+    outsideAuthorizedRangeModified: false,
+  })
+  const planningQaReport = createBrollPlanningQaReport({
+    assignment,
+    context,
+    planEvidence,
+    qa: input.qa,
+  })
+  const planningQaPassed = planningQaReport.planningQaPassed
+  if (!planningQaPassed) {
+    throw new Error(
+      `B-roll planning QA failed: ${planningQaReport.blockingFindingKeys.join(', ')}`,
+    )
+  }
+  const planningQaEvidenceHash = hashSkillValue(planningQaReport)
 
   const core = brollPlanCoreSchema.parse({
     schemaVersion: 'b_roll_plan_v1',
@@ -206,8 +292,8 @@ export function compileBrollPlan(input: {
     exitIntent: timing.exitIntent,
     coordination,
     providerRequestPlanned,
-    ...(omniRequestPlan ? { providerRequestPackageHash: hashSkillValue(omniRequestPlan) } : {}),
-    providerCreditEstimate: providerRequestPlanned ? creditEstimate.expectedCredits : 0,
+    ...(providerRequestPackageHash ? { providerRequestPackageHash } : {}),
+    providerCreditEstimate,
     ...(sourceStrategy.decision === 'needs_other_skill' ? {
       dependencySkillKey: sourceStrategy.dependencySkillKey,
       requiredDependencyArtifactType: 'track_graph_v1',
@@ -215,8 +301,10 @@ export function compileBrollPlan(input: {
     } : {}),
     timeEstimateSeconds: timeEstimate.expectedSeconds,
     creditEstimate: creditEstimate.expectedCredits,
-    lowerCostDecision: context.sourceCandidates.some((candidate) => candidate.sourceType === 'existing_project_clip')
-      ? 'use_existing_project_clip' : 'use_no_broll',
+    lowerCostDecision,
+    planningQaPlanEvidenceHash: planEvidence.planEvidenceHash,
+    planningQaReportArtifactType: 'b_roll_planning_qa_report_v1',
+    planningQaReportHash: planningQaEvidenceHash,
     planningQaPassed,
     outsideAuthorizedRangeModified: false,
   })
@@ -225,7 +313,16 @@ export function compileBrollPlan(input: {
     assignment,
     plan,
     omniRequestPlan,
+    planningQaReport,
+    planningContextHash: context.contextHash,
     requireExactProviderRequestPackage: true,
+    requireExactPlanningQaReport: true,
   })
-  return { plan, omniRequestPlan, planningQaEvidenceHash }
+  return {
+    plan,
+    omniRequestPlan,
+    planningQaPlanEvidence: planEvidence,
+    planningQaReport,
+    planningQaEvidenceHash,
+  }
 }

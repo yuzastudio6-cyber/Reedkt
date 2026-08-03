@@ -17,6 +17,7 @@ import {
   createSkillCapabilityManifest,
   createSkillJobRuntimeBinding,
   createSkillPlanEnvelope,
+  createSkillQaFinding,
   createSkillQualificationReceipt,
   createSkillResultEnvelope,
   generateSkillManifestProjection,
@@ -105,7 +106,14 @@ estimators.registerTime('fixture_time', () => ({ minimumSeconds: 1, expectedSeco
 estimators.registerCredit('fixture_credit', () => ({ minimumCredits: 1, expectedCredits: 2, maximumCredits: 3, internalToolCostOnly: true, evidence: [] }))
 const qa = new SkillQaRegistry()
 for (const qaKey of ['fixture_planning_qa', 'fixture_output_qa', 'fixture_integration_qa']) {
-  qa.register(qaKey, () => ({ qaKey, disposition: 'pass', summary: 'Passed.', evidenceHashes: [SHA] }))
+  qa.register(qaKey, () => createSkillQaFinding({
+    qaKey,
+    validatorVersion: `${qaKey}.v1`,
+    disposition: 'pass',
+    summary: 'Passed.',
+    evidenceHashes: [SHA],
+    observations: { fixture: true },
+  }))
 }
 
 const registry = new SkillCapabilityRegistry()

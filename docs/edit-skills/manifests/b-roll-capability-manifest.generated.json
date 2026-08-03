@@ -252,7 +252,7 @@
       "routeKind": "no_action"
     }
   ],
-  "manifestHash": "c916e4d29dc91b71e2c16ac8f64fe55fa416e3dd10784e620d9d49d9ef254d6c",
+  "manifestHash": "a0e5ae901f47cd00b07eeb814059c7631012c5e424c072b10f1ebf1cd43c083d",
   "mayOverlapWith": [
     "captions",
     "color",
@@ -439,8 +439,8 @@
       "severity": "blocking"
     },
     {
-      "description": "B-roll restraint considered validation.",
-      "qaKey": "b_roll.planning.restraint_considered",
+      "description": "B-roll professional restraint validation.",
+      "qaKey": "b_roll.planning.professional_restraint",
       "severity": "blocking"
     },
     {
@@ -454,13 +454,18 @@
       "severity": "blocking"
     },
     {
+      "description": "B-roll privacy validation.",
+      "qaKey": "b_roll.planning.privacy",
+      "severity": "blocking"
+    },
+    {
       "description": "B-roll proof safety validation.",
       "qaKey": "b_roll.planning.proof_safety",
       "severity": "blocking"
     },
     {
-      "description": "B-roll visual density validation.",
-      "qaKey": "b_roll.planning.visual_density",
+      "description": "B-roll visual density budget validation.",
+      "qaKey": "b_roll.planning.visual_density_budget",
       "severity": "blocking"
     },
     {
@@ -484,8 +489,13 @@
       "severity": "blocking"
     },
     {
-      "description": "B-roll approval credit readiness validation.",
-      "qaKey": "b_roll.planning.approval_credit_readiness",
+      "description": "B-roll approval readiness validation.",
+      "qaKey": "b_roll.planning.approval_readiness",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll credit ceiling validation.",
+      "qaKey": "b_roll.planning.credit_ceiling",
       "severity": "blocking"
     },
     {
@@ -494,13 +504,24 @@
       "severity": "blocking"
     },
     {
-      "description": "B-roll lower cost route validation.",
-      "qaKey": "b_roll.planning.lower_cost_route",
+      "description": "B-roll lower cost route evaluation validation.",
+      "qaKey": "b_roll.planning.lower_cost_route_evaluation",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll region eligibility validation.",
+      "qaKey": "b_roll.planning.region_eligibility",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll generated media classification validation.",
+      "qaKey": "b_roll.planning.generated_media_classification",
       "severity": "blocking"
     }
   ],
   "producedArtifactTypes": [
     "b_roll_plan_v1",
+    "b_roll_planning_qa_report_v1",
     "b_roll_restraint_result_v1",
     "b_roll_provider_request_specification_v1",
     "b_roll_candidate_manifest_v1",

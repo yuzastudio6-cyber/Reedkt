@@ -34,6 +34,10 @@ import type { BrollPlanArtifact, BrollPlanningContext, BrollSkillAssignment } fr
 import { assertBrollAssignment, assertBrollPlanningContext } from './b-roll-context-loader'
 import { compileBrollPlan } from './b-roll-plan-compiler'
 import {
+  assertBrollPlanningQaReport,
+  brollPlanningQaReportSchema,
+} from './b-roll-planning-qa'
+import {
   brollPlanArtifactSchema,
   brollPlanningContextSchema,
   brollSkillAssignmentSchema,
@@ -138,13 +142,22 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
   async planAssignment(input: { assignment: SkillAssignment }): Promise<EditSkillPublicPlan> {
     const assignment = this.#assertAssignment(input.assignment)
     const authority = await this.#loadBrollAuthority(assignment)
-    const plan = compileBrollPlan({
+    const compiled = compileBrollPlan({
       assignment: authority.assignment,
       context: authority.context,
       manifest: this.manifest,
       estimators: this.#estimators,
       qa: this.#qa,
-    }).plan
+    })
+    const plan = compiled.plan
+    const planningQaReportRef = await this.#artifacts.putJson({
+      artifactType: 'b_roll_planning_qa_report_v1',
+      value: compiled.planningQaReport,
+      ...scopeFor(assignment),
+    })
+    if (planningQaReportRef.sha256 !== plan.planningQaReportHash) {
+      throw new Error('B-roll planning QA artifact store returned stale report lineage.')
+    }
     const planRef = await this.#artifacts.putJson({
       artifactType: 'b_roll_plan_v1',
       value: plan,
@@ -185,6 +198,7 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       schemaVersion: 'edit-skill-public-plan-v1',
       envelope,
       payloadRef: planRef,
+      evidenceRefs: [planningQaReportRef],
       dependencyRequests,
     })
   }
@@ -368,8 +382,10 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
     if (!finalItem || !finalResult || !resultArtifact) {
       throw new Error('B-roll final work result artifact is missing.')
     }
-    const qaEvidenceHashes = [...new Set(results.flatMap((value) =>
-      value.qaEvidenceArtifactRefs.map((ref) => ref.sha256)))]
+    const qaEvidenceHashes = [...new Set([
+      ...input.plan.evidenceRefs.map((ref) => ref.sha256),
+      ...results.flatMap((value) => value.qaEvidenceArtifactRefs.map((ref) => ref.sha256)),
+    ])]
     const mutationRanges = results.flatMap((value) => value.mutationRanges)
     const envelope = createSkillResultEnvelope({
       schemaVersion: 'edit-skill-result-envelope-v1',
@@ -460,6 +476,7 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
   ): Promise<BrollPlanArtifact> {
     const publicPlan = editSkillPublicPlanSchema.parse(input)
     assertArtifactScope(assignment, publicPlan.payloadRef)
+    for (const ref of publicPlan.evidenceRefs) assertArtifactScope(assignment, ref)
     if (
       publicPlan.envelope.assignmentId !== assignment.assignmentId ||
       publicPlan.envelope.assignmentHash !== assignment.assignmentHash ||
@@ -473,16 +490,38 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
         !sameValue(request.manifestRef, assignment.manifestRef) ||
         !sameValue(request.authorizedRange, assignment.authorizedRange))
     ) throw new Error('B-roll public plan is stale or belongs to another assignment.')
+    const authority = await this.#loadBrollAuthority(assignment)
     const plan = brollPlanArtifactSchema.parse(await this.#artifacts.readJson({
       reference: publicPlan.payloadRef,
       ...scopeFor(assignment),
     }))
+    const planningQaReportRef = publicPlan.evidenceRefs.find((ref) =>
+      ref.artifactType === plan.planningQaReportArtifactType &&
+      ref.sha256 === plan.planningQaReportHash)
+    if (publicPlan.evidenceRefs.length !== 1 || !planningQaReportRef) {
+      throw new Error('B-roll public plan lacks its exact planning QA report artifact.')
+    }
+    const planningQaReport = brollPlanningQaReportSchema.parse(
+      await this.#artifacts.readJson({
+        reference: planningQaReportRef,
+        ...scopeFor(assignment),
+      }),
+    )
+    assertBrollPlanningQaReport({
+      report: planningQaReport,
+      assignment: authority.assignment,
+      contextHash: authority.context.contextHash,
+      planEvidenceHash: plan.planningQaPlanEvidenceHash,
+    })
+    if (!planningQaReport.planningQaPassed || hashSkillValue(planningQaReport) !== plan.planningQaReportHash) {
+      throw new Error('B-roll public plan carries failed or stale planning QA evidence.')
+    }
     const { planHash, ...planCore } = plan
     if (
       hashSkillValue(planCore) !== planHash ||
       plan.planId !== publicPlan.envelope.planId ||
       plan.assignmentId !== assignment.assignmentId ||
-      plan.assignmentHash !== (await this.#loadBrollAuthority(assignment)).assignment.assignmentHash ||
+      plan.assignmentHash !== authority.assignment.assignmentHash ||
       hashSkillValue(plan) !== publicPlan.payloadRef.sha256 ||
       !sameValue(plan.manifestRef, assignment.manifestRef) ||
       !sameValue(plan.authorizedRange, assignment.authorizedRange)

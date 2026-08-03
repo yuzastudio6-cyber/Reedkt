@@ -193,6 +193,7 @@ try {
     assignment,
     context,
     plan: compiled.plan,
+    planningQaReport: compiled.planningQaReport,
     workGraph,
     qualificationReceipt,
   })

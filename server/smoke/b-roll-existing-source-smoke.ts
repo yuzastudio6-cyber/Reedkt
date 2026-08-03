@@ -139,6 +139,7 @@ try {
     assignment,
     context,
     plan: compiled.plan,
+    planningQaReport: compiled.planningQaReport,
     workGraph,
     qualificationReceipt: createBrollPlanningQualificationReceipt(BROLL_CAPABILITY_MANIFEST),
   })

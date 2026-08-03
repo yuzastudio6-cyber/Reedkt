@@ -3,9 +3,9 @@ import type { EditSkillHandler, EditSkillInvocationContext } from '../core/skill
 import { createSkillPlanEnvelope, type SkillPlanEnvelope } from '../core/skill-plan-envelope'
 import type { SkillEstimatorRegistry } from '../core/skill-estimator-registry'
 import type { SkillQaRegistry } from '../core/skill-qa-registry'
-import type { BrollPlanArtifact, BrollPlanningContext, BrollSkillAssignment } from './b-roll-contracts'
+import type { BrollPlanningContext, BrollSkillAssignment } from './b-roll-contracts'
 import { brollPlanningContextSchema, brollSkillAssignmentSchema } from './b-roll-schemas'
-import { compileBrollPlan } from './b-roll-plan-compiler'
+import { compileBrollPlan, type CompileBrollPlanResult } from './b-roll-plan-compiler'
 
 export const BROLL_ORCHESTRA_INTEGRATION_STATUS_MESSAGE =
   'B-roll exposes a qualified public plugin boundary; future orchestra integration remains pending.'
@@ -29,12 +29,12 @@ export class BrollSkillService implements EditSkillHandler {
     assignment: BrollSkillAssignment
     context: BrollPlanningContext
     manifest: EditSkillInvocationContext['manifest']
-  }): BrollPlanArtifact {
+  }): CompileBrollPlanResult {
     return compileBrollPlan({
       ...input,
       estimators: this.#estimators,
       qa: this.#qa,
-    }).plan
+    })
   }
 
   async plan(invocation: EditSkillInvocationContext): Promise<SkillPlanEnvelope> {
@@ -48,7 +48,13 @@ export class BrollSkillService implements EditSkillHandler {
     }
     const assignment = brollSkillAssignmentSchema.parse(await this.#artifacts.readJson({ reference: assignmentRef, ...scope }))
     const context = brollPlanningContextSchema.parse(await this.#artifacts.readJson({ reference: contextRef, ...scope }))
-    const plan = this.compilePlanning({ assignment, context, manifest: invocation.manifest })
+    const compiled = this.compilePlanning({ assignment, context, manifest: invocation.manifest })
+    const plan = compiled.plan
+    await this.#artifacts.putJson({
+      artifactType: 'b_roll_planning_qa_report_v1',
+      value: compiled.planningQaReport,
+      ...scope,
+    })
     await this.#artifacts.putJson({ artifactType: 'b_roll_plan_v1', value: plan, ...scope })
     const disposition = plan.decision === 'use_no_broll'
       ? 'use_no_action' as const

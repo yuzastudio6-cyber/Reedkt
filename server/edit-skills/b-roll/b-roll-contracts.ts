@@ -207,6 +207,9 @@ export interface BrollPlanArtifact {
   timeEstimateSeconds: number
   creditEstimate: number
   lowerCostDecision: 'use_existing_project_clip' | 'use_no_broll'
+  planningQaPlanEvidenceHash: string
+  planningQaReportArtifactType: 'b_roll_planning_qa_report_v1'
+  planningQaReportHash: string
   planningQaPassed: boolean
   outsideAuthorizedRangeModified: false
   planHash: string

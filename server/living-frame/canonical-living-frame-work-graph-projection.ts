@@ -24,7 +24,7 @@ import {
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION,
   CANONICAL_EXACT_SOURCE_FRAME_PNG_WORKER_CLASS,
   type CanonicalLivingFrameExactSourceFramePngWorkItem,
-  type CanonicalLivingFrameSam2TemporalMaskRequirement,
+  type CanonicalLivingFrameSam31TemporalMaskRequirement,
   type CanonicalLivingFrameTemporalSourcePreparationRequirement,
   CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE,
   CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION,
@@ -65,8 +65,10 @@ import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
 } from '../tool-execution/media-binary-execution'
 import {
-  getCanonicalSam2ModelArtifactRequirementSet,
-} from '../model-artifacts/canonical-sam2-model-artifact-requirements'
+  CANONICAL_SAM3_1_OPERATION_ID,
+  CANONICAL_SAM3_1_SOURCE_RUNTIME_CANDIDATE_VERSION,
+  createCanonicalSam31SourceRuntimeCandidate,
+} from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -84,7 +86,7 @@ const AUTHORITY_BOUNDARY:
       serverDerivedRembgGpuMaskOperationAuthority: true,
       serverDerivedSharpComponentOperationAuthority: true,
       serverDerivedRemotionLayerManifestAuthority: true,
-      serverDerivedTemporalSourceAndSam2AdmissionAuthority:
+      serverDerivedTemporalSourceAndSam31AdmissionAuthority:
         true,
       serverDerivedFinalCompositionDependencyAuthority: true,
       callerWorkGraphMutationAuthority: false,
@@ -107,8 +109,8 @@ const BLOCKER_CODES = Object.freeze([
 const TEMPORAL_MASK_BLOCKER_CODES = Object.freeze([
   ...BLOCKER_CODES,
   'temporal_source_recipe_and_private_metadata_required',
-  'sam2_checkpoint_runtime_and_cost_admission_required',
-  'sam2_inference_and_temporal_qa_required',
+  'sam3_1_checkpoint_runtime_and_cost_admission_required',
+  'sam3_1_inference_and_temporal_qa_required',
 ] as const)
 
 export function compileCanonicalLivingFrameWorkGraphProjection(
@@ -201,7 +203,7 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         )
         || ![
           'blocked_until_real_dependency_input_operation_is_admitted',
-          'blocked_until_temporal_source_recipe_and_sam2_model_runtime_are_admitted',
+          'blocked_until_temporal_source_recipe_and_sam3_1_model_runtime_are_admitted',
         ].includes(
           workRequirement.currentRuntimeAdmission,
         )
@@ -517,9 +519,9 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
         temporalSourcePreparationRequirement:
           temporalAdmissionRequirements
             .temporalSourcePreparationRequirement,
-        sam2TemporalMaskRequirement:
+        sam3_1TemporalMaskRequirement:
           temporalAdmissionRequirements
-            .sam2TemporalMaskRequirement,
+            .sam3_1TemporalMaskRequirement,
         exactDependencyInputOperationAdmitted:
           false as const,
         executableStructuredPayloadPresent:
@@ -640,7 +642,7 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       && item.executionInput.pendingOperationAuthority
         .operationClass ===
         'prepare_temporal_source_video')
-  const pendingSam2TemporalMaskWorkItems =
+  const pendingSam31TemporalMaskWorkItems =
     workItems.filter((item) =>
       item.workerClass ===
         CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
@@ -743,7 +745,7 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       },
       readiness: selectedSceneCount === 0
         ? 'ready_without_living_frame_work_items'
-        : pendingSam2TemporalMaskWorkItems.length > 0
+        : pendingSam31TemporalMaskWorkItems.length > 0
           ? 'canonical_work_items_projected_temporal_mask_admission_pending'
         : workItems.some((item) =>
             item.workerClass ===
@@ -767,7 +769,7 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       finalCompositionBinding,
       blockerCodes: selectedSceneCount === 0
         ? []
-        : pendingSam2TemporalMaskWorkItems.length > 0
+        : pendingSam31TemporalMaskWorkItems.length > 0
           ? TEMPORAL_MASK_BLOCKER_CODES
           : BLOCKER_CODES,
       metrics: {
@@ -792,8 +794,8 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
           remotionLayerWorkItems.length,
         pendingTemporalSourceVideoWorkItemCount:
           pendingTemporalSourceVideoWorkItems.length,
-        pendingSam2TemporalMaskWorkItemCount:
-          pendingSam2TemporalMaskWorkItems.length,
+        pendingSam31TemporalMaskWorkItemCount:
+          pendingSam31TemporalMaskWorkItems.length,
         finalCompositionBindingCount:
           finalCompositionBinding === null ? 0 : 1,
         executableWorkItemCount:
@@ -873,9 +875,9 @@ export function compileCanonicalLivingFrameWorkGraphProjection(
       containsRembgGpuOperationPayload: true,
       containsSharpComponentOperationPayload: true,
       containsRemotionLayerManifestPayload: true,
-      containsTemporalSourceAndSam2PendingAuthority:
+      containsTemporalSourceAndSam31PendingAuthority:
         pendingTemporalSourceVideoWorkItems.length > 0
-        || pendingSam2TemporalMaskWorkItems.length > 0,
+        || pendingSam31TemporalMaskWorkItems.length > 0,
       containsFinalCompositionDependencyBinding: true,
       expandsExactFiftyToolRegistry: false,
       subjectSpecificRouting: false,
@@ -1237,7 +1239,7 @@ function assertProjectedWorkGraph(
         'living_frame_temporal_source_video_mp4'
     ) {
       throw conflict(
-        'Canonical Living Frame SAM2 temporal mask must depend on the exact pending FFmpeg temporal source-video work item.',
+        'Canonical Living Frame SAM 3.1 temporal mask must depend on the exact pending FFmpeg temporal source-video work item.',
       )
     }
   }
@@ -1584,8 +1586,8 @@ function compileSharpComponentWorkItem(input: {
     || input.workRequirement.costOwnerOperationId !==
       CANONICAL_LIVING_FRAME_SHARP_COMPONENT_TOOL_OPERATION
     || input.workRequirement.executionPlacement !==
-      'private_render_worker'
-    || !input.workRequirement.cpuFallbackAllowed
+      'google_cloud_run_gpu'
+    || input.workRequirement.cpuFallbackAllowed
     || input.workRequirement.sourceFrameInputs.length !== 1
     || !sourceFrame
     || input.expectedOutput.artifactType !==
@@ -1726,8 +1728,8 @@ function compileRemotionLayerWorkItem(input: {
     || input.workRequirement.costOwnerToolId !==
       'remotion'
     || input.workRequirement.executionPlacement !==
-      'private_render_worker'
-    || !input.workRequirement.cpuFallbackAllowed
+      'google_cloud_run_gpu'
+    || input.workRequirement.cpuFallbackAllowed
     || input.workRequirement.sourceFrameInputs.length !== 0
     || input.expectedOutput.artifactType !==
       'living_frame_remotion_layer_manifest'
@@ -2015,11 +2017,14 @@ function validPendingOperationClass(
       && authority.sourceFrameInputs.length === 1
       && source !== undefined
       && requirement !== null
-      && authority.sam2TemporalMaskRequirement === null
+      && authority.sam3_1TemporalMaskRequirement === null
       && requirement.operation ===
         'prepare_approved_living_frame_temporal_source_video'
       && requirement.transcodeProfile ===
-        'approved_sam2_source_proxy_high_quality_v1'
+        'approved_sam3_1_gpu_source_proxy_lossless_mapping_v1'
+      && authority.executionPlacement ===
+        'google_cloud_run_gpu'
+      && !authority.cpuFallbackAllowed
       && requirement.selectedMasterFrameRange
             .startFrame === source.masterFrameIndex
       && requirement.selectedMasterFrameRange
@@ -2061,12 +2066,12 @@ function validPendingOperationClass(
       'temporal_video_subject_segmentation_and_tracking'
   ) {
     const requirement =
-      authority.sam2TemporalMaskRequirement
+      authority.sam3_1TemporalMaskRequirement
     return (
       item.workItemType === 'generate_mask_asset'
-      && authority.requestedToolId === 'sam2'
+      && authority.requestedToolId === 'sam3_1'
       && authority.requestedToolOperationId ===
-        'tool.sam2.segment_and_track_subject.v1'
+        CANONICAL_SAM3_1_OPERATION_ID
       && stableAuthorityStringify(
         authority.outputAssetKinds,
       ) === stableAuthorityStringify([
@@ -2076,29 +2081,51 @@ function validPendingOperationClass(
       && authority.temporalSourcePreparationRequirement ===
         null
       && requirement !== null
+      && requirement.sourceCandidateVersion ===
+        CANONICAL_SAM3_1_SOURCE_RUNTIME_CANDIDATE_VERSION
+      && /^[a-f0-9]{64}$/u.test(
+        requirement.sourceCandidateHash,
+      )
+      && requirement.operationId ===
+        CANONICAL_SAM3_1_OPERATION_ID
       && requirement.checkpointSlotId ===
-        'sam2_checkpoint'
-      && requirement.checkpointArtifactId ===
-        'meta-sam2.1-hiera-small-checkpoint'
-      && requirement.checkpointModelFamily ===
-        'sam2.1-hiera-small'
-      && requirement.checkpointByteLength ===
-        184_416_285
-      && requirement.executionTarget ===
+        'sam3_1_checkpoint'
+      && requirement.checkpointRepositoryRevision ===
+        'daa63191845a41281374e725f4c9e51c7a824460'
+      && requirement.checkpointFileName ===
+        'sam3.1_multiplex.pt'
+      && requirement.checkpointExactByteLengthAndSha256State ===
+        'pending_authorized_private_ingest'
+      && requirement.primaryExecutionTarget ===
+        'google_cloud_batch_a2_ultra_job'
+      && requirement.primaryAccelerator ===
+        'nvidia_a100_80gb'
+      && requirement.fallbackExecutionTarget ===
+        'google_cloud_run_l4_job'
+      && requirement.fallbackAccelerator === 'nvidia_l4'
+      && requirement.costProfileId ===
+        'sam3_1_multiplex_video_segmentation_v1'
+      && requirement.modelAccelerator === 'cuda_12_8'
+      && !requirement.cpuOnlySubstantiveExecutionAllowed
+      && authority.executionPlacement ===
         'google_cloud_run_gpu'
-      && requirement.accelerator === 'nvidia_l4'
-      && requirement.modelAccelerator === 'cuda'
-      && !requirement.cpuFallbackAllowed
+      && !authority.cpuFallbackAllowed
       && !requirement.runtimeDownloadAllowed
       && !requirement.networkFetchAllowed
-      && requirement.maximumSubjects === 1
+      && requirement.maximumSubjects === 16
+      && requirement.gpuDecodeRequired
+      && requirement.gpuDecodeBackend ===
+        'torchcodec_0_10_cuda_nvdec'
+      && !requirement.cpuOpenCvOrPillowDecodeAllowed
       && requirement.preserveContactObjects
+      && requirement.subjectPromptBindingState ===
+        'pending_server_compiled_approved_text_subject'
       && stableAuthorityStringify(
         requirement.outputEncodingProfiles,
       ) === stableAuthorityStringify([
-        'gray8_ffv1_matroska_mask_sequence_v1',
-        'sam2_tracking_analysis_report_json_v1',
-        'sam2_mask_qa_measurement_report_json_v1',
+        'lossless_grayscale_png_mask_sequence_v1',
+        'sam3_1_tracking_analysis_report_json_v1',
+        'sam3_1_mask_qa_measurement_report_json_v1',
       ])
       && stableAuthorityStringify(
         requirement.requiredQaGates,
@@ -2106,15 +2133,25 @@ function validPendingOperationClass(
         'mask_edge_quality',
         'mask_temporal_stability',
         'mask_subject_coverage',
+        'mask_contact_object_preservation',
+        'complete_selected_interval_inspection',
       ])
+      && !requirement.authorizedTermsAndLicenseApproved
       && !requirement.checkpointIngested
       && !requirement.readOnlyMountVerified
+      && !requirement.sourceCheckpointCompatibilityQualified
+      && !requirement.immutableA100ImageQualified
+      && !requirement.immutableL4ImageQualified
+      && !requirement.a100RuntimeQualified
       && !requirement.l4RuntimeQualified
+      && !requirement.primaryAndFallbackRateAuthoritiesReread
+      && !requirement.customerEstimateAndFundedReservationComplete
       && !requirement.operationRegistered
       && !requirement.dispatchAuthorized
       && !requirement.modelInferenceAuthorized
       && !requirement.runtimeCostAdmissionComplete
       && !requirement.temporalQaComplete
+      && !requirement.privateReviewComplete
       && item.dependencyKeys.length === 1
       && item.expectedOutputs.length === 3
       && item.expectedOutputs[0]?.artifactType ===
@@ -2132,7 +2169,7 @@ function validPendingOperationClass(
   }
   return (
     authority.temporalSourcePreparationRequirement === null
-    && authority.sam2TemporalMaskRequirement === null
+    && authority.sam3_1TemporalMaskRequirement === null
   )
 }
 
@@ -2149,8 +2186,8 @@ function compileTemporalAdmissionRequirements(input: {
 }): {
   readonly temporalSourcePreparationRequirement:
     CanonicalLivingFrameTemporalSourcePreparationRequirement | null
-  readonly sam2TemporalMaskRequirement:
-    CanonicalLivingFrameSam2TemporalMaskRequirement | null
+  readonly sam3_1TemporalMaskRequirement:
+    CanonicalLivingFrameSam31TemporalMaskRequirement | null
 } {
   if (
     input.workRequirement.operationClass ===
@@ -2191,7 +2228,7 @@ function compileTemporalAdmissionRequirements(input: {
         operation:
           'prepare_approved_living_frame_temporal_source_video',
         transcodeProfile:
-          'approved_sam2_source_proxy_high_quality_v1',
+          'approved_sam3_1_gpu_source_proxy_lossless_mapping_v1',
         selectedMasterFrameRange: {
           startFrame:
             input.projectedScene.startFrame,
@@ -2237,97 +2274,112 @@ function compileTemporalAdmissionRequirements(input: {
         recipeOperationRegistered: false,
         dispatchAuthorized: false,
       },
-      sam2TemporalMaskRequirement: null,
+      sam3_1TemporalMaskRequirement: null,
     }
   }
   if (
     input.workRequirement.operationClass ===
       'temporal_video_subject_segmentation_and_tracking'
   ) {
-    const requirementSet =
-      getCanonicalSam2ModelArtifactRequirementSet()
-    const checkpoint = requirementSet.artifacts[0]
+    const candidate =
+      createCanonicalSam31SourceRuntimeCandidate()
     if (
-      requirementSet.artifacts.length !== 1
-      || !checkpoint
-      || requirementSet.approvedToolId !== 'sam2'
-      || requirementSet.approvedOperationId !==
-        'tool.sam2.segment_and_track_subject.v1'
-      || checkpoint.slotId !== 'sam2_checkpoint'
-      || checkpoint.artifactId !==
-        'meta-sam2.1-hiera-small-checkpoint'
-      || checkpoint.modelFamily !==
-        'sam2.1-hiera-small'
-      || checkpoint.byteLength !== 184_416_285
-      || !requirementSet.summary.googleCloudRunGpuRequired
-      || !requirementSet.summary.cudaRequired
-      || requirementSet.summary.cpuFallbackAllowed
-      || requirementSet.summary.runtimeDownloadAllowed
-      || requirementSet.summary.networkFetchAllowed
-      || requirementSet.boundaries.modelArtifactIngested
-      || requirementSet.boundaries
-        .cloudRunReadOnlyMountVerified
-      || requirementSet.boundaries
-        .cloudRunL4CudaBenchmarkVerified
-      || requirementSet.boundaries.cloudDispatchAuthorized
-      || requirementSet.boundaries.modelInferenceAuthority
-      || requirementSet.boundaries.customerCostAuthority
-      || requirementSet.boundaries.temporalMaskQaVerified
-      || requirementSet.boundaries.productionReady
+      candidate.schemaVersion !==
+        CANONICAL_SAM3_1_SOURCE_RUNTIME_CANDIDATE_VERSION
+      || candidate.operationId !== CANONICAL_SAM3_1_OPERATION_ID
+      || candidate.registryIdentity.canonicalToolId !== 'sam3_1'
+      || candidate.replacement.supersedesForNewPlans !== 'sam2'
+      || candidate.replacement
+        .sam2MayAuthorizeNewPlanWorkFallbackOrRepair
+      || !candidate.registryIdentity.gpuRequired
+      || candidate.registryIdentity.cpuAllowed
+      || candidate.officialCheckpoint.repositoryRevision !==
+        'daa63191845a41281374e725f4c9e51c7a824460'
+      || candidate.officialCheckpoint.fileName !==
+        'sam3.1_multiplex.pt'
+      || candidate.cost.costProfileId !==
+        'sam3_1_multiplex_video_segmentation_v1'
+      || !candidate.cost.primaryAndFallbackRateAuthoritiesRequired
+      || candidate.authority.termsAccepted
+      || candidate.authority.checkpointIngested
+      || candidate.authority.imageBuiltOrPushed
+      || candidate.authority.runtimeExecuted
+      || candidate.authority.workDispatched
+      || candidate.authority.productionReady
     ) {
       throw conflict(
-        'Canonical Living Frame SAM2 temporal masking lost its exact unreleased checkpoint and L4 admission boundary.',
+        'Canonical Living Frame SAM 3.1 temporal masking lost its exact replacement, gated checkpoint, GPU, or cost boundary.',
       )
     }
     return {
       temporalSourcePreparationRequirement: null,
-      sam2TemporalMaskRequirement: {
+      sam3_1TemporalMaskRequirement: {
         requirementVersion:
-          'canonical-living-frame-sam2-temporal-mask-requirement-v1',
-        requirementSetDigestSha256:
-          requirementSet.requirementSetDigestSha256,
-        checkpointSlotId: 'sam2_checkpoint',
-        checkpointArtifactId:
-          'meta-sam2.1-hiera-small-checkpoint',
-        checkpointModelFamily:
-          'sam2.1-hiera-small',
-        checkpointByteLength: 184_416_285,
-        checkpointContentSha256:
-          checkpoint.contentSha256,
-        executionTarget: 'google_cloud_run_gpu',
-        accelerator: 'nvidia_l4',
-        modelAccelerator: 'cuda',
-        cpuFallbackAllowed: false,
+          'canonical-living-frame-sam3_1-temporal-mask-requirement-v1',
+        sourceCandidateVersion:
+          CANONICAL_SAM3_1_SOURCE_RUNTIME_CANDIDATE_VERSION,
+        sourceCandidateHash: candidate.candidateHash,
+        operationId: CANONICAL_SAM3_1_OPERATION_ID,
+        checkpointSlotId: 'sam3_1_checkpoint',
+        checkpointRepositoryRevision:
+          'daa63191845a41281374e725f4c9e51c7a824460',
+        checkpointFileName: 'sam3.1_multiplex.pt',
+        checkpointExactByteLengthAndSha256State:
+          'pending_authorized_private_ingest',
+        primaryExecutionTarget:
+          'google_cloud_batch_a2_ultra_job',
+        primaryAccelerator: 'nvidia_a100_80gb',
+        fallbackExecutionTarget:
+          'google_cloud_run_l4_job',
+        fallbackAccelerator: 'nvidia_l4',
+        costProfileId:
+          'sam3_1_multiplex_video_segmentation_v1',
+        modelAccelerator: 'cuda_12_8',
+        cpuOnlySubstantiveExecutionAllowed: false,
         runtimeDownloadAllowed: false,
         networkFetchAllowed: false,
-        maximumSubjects: 1,
+        maximumSubjects: 16,
+        gpuDecodeRequired: true,
+        gpuDecodeBackend:
+          'torchcodec_0_10_cuda_nvdec',
+        cpuOpenCvOrPillowDecodeAllowed: false,
         preserveContactObjects: true,
         subjectPromptBindingState:
-          'pending_server_owned_normalized_box',
+          'pending_server_compiled_approved_text_subject',
         outputEncodingProfiles: [
-          'gray8_ffv1_matroska_mask_sequence_v1',
-          'sam2_tracking_analysis_report_json_v1',
-          'sam2_mask_qa_measurement_report_json_v1',
+          'lossless_grayscale_png_mask_sequence_v1',
+          'sam3_1_tracking_analysis_report_json_v1',
+          'sam3_1_mask_qa_measurement_report_json_v1',
         ],
         requiredQaGates: [
           'mask_edge_quality',
           'mask_temporal_stability',
           'mask_subject_coverage',
+          'mask_contact_object_preservation',
+          'complete_selected_interval_inspection',
         ],
+        authorizedTermsAndLicenseApproved: false,
         checkpointIngested: false,
         readOnlyMountVerified: false,
+        sourceCheckpointCompatibilityQualified: false,
+        immutableA100ImageQualified: false,
+        immutableL4ImageQualified: false,
+        a100RuntimeQualified: false,
         l4RuntimeQualified: false,
+        primaryAndFallbackRateAuthoritiesReread: false,
+        customerEstimateAndFundedReservationComplete: false,
         operationRegistered: false,
         dispatchAuthorized: false,
         modelInferenceAuthorized: false,
         runtimeCostAdmissionComplete: false,
         temporalQaComplete: false,
+        privateReviewComplete: false,
       },
     }
   }
   return {
     temporalSourcePreparationRequirement: null,
-    sam2TemporalMaskRequirement: null,
+    sam3_1TemporalMaskRequirement: null,
   }
 }
 

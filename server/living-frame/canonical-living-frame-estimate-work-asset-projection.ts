@@ -49,8 +49,9 @@ import {
   resolveCompleteProfessionalToolOperationSpec,
 } from '../tool-execution/core-registry-operations/core-registry-operation-specs'
 import {
-  getCanonicalSam2ModelArtifactRequirementSet,
-} from '../model-artifacts/canonical-sam2-model-artifact-requirements'
+  CANONICAL_SAM3_1_OPERATION_ID,
+  createCanonicalSam31SourceRuntimeCandidate,
+} from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 import type {
   CanonicalPlanComponentsInput,
 } from '../validation/edit-planning-authority-schemas'
@@ -121,8 +122,8 @@ const WORK_PROJECTION_PROFILES: Readonly<
       'tool.ffmpeg.execute_approved_media_recipe.v1',
     costAdmission: 'registered_production_tool',
     label: 'Living Frame temporal source-video preparation',
-    executionPlacement: 'private_cpu_worker',
-    cpuFallbackAllowed: true,
+    executionPlacement: 'google_cloud_run_gpu',
+    cpuFallbackAllowed: false,
     expectedOutputs: [{
       outputSuffix: 'output',
       artifactType:
@@ -134,9 +135,8 @@ const WORK_PROJECTION_PROFILES: Readonly<
   temporal_video_subject_segmentation_and_tracking: {
     operationClass:
       'temporal_video_subject_segmentation_and_tracking',
-    toolId: 'sam2',
-    operationId:
-      'tool.sam2.segment_and_track_subject.v1',
+    toolId: 'sam3_1',
+    operationId: CANONICAL_SAM3_1_OPERATION_ID,
     costAdmission: 'unreleased_canonical_tool_candidate',
     label: 'Living Frame temporal subject mask tracking',
     executionPlacement: 'google_cloud_run_gpu',
@@ -168,8 +168,8 @@ const WORK_PROJECTION_PROFILES: Readonly<
       'tool.sharp.prepare_approved_image_asset.v1',
     costAdmission: 'registered_production_tool',
     label: 'Living Frame component image preparation',
-    executionPlacement: 'private_render_worker',
-    cpuFallbackAllowed: true,
+    executionPlacement: 'google_cloud_run_gpu',
+    cpuFallbackAllowed: false,
     expectedOutputs: [{
       outputSuffix: 'output',
       artifactType: 'living_frame_component_rgba_png',
@@ -184,8 +184,8 @@ const WORK_PROJECTION_PROFILES: Readonly<
       'tool.openimageio.process_image_sequence.v1',
     costAdmission: 'registered_production_tool',
     label: 'Living Frame background plate reconstruction',
-    executionPlacement: 'private_cpu_worker',
-    cpuFallbackAllowed: true,
+    executionPlacement: 'google_cloud_run_gpu',
+    cpuFallbackAllowed: false,
     expectedOutputs: [{
       outputSuffix: 'output',
       artifactType: 'living_frame_background_plate_png',
@@ -200,8 +200,8 @@ const WORK_PROJECTION_PROFILES: Readonly<
       'tool.remotion.render_approved_composition.v1',
     costAdmission: 'registered_production_tool',
     label: 'Living Frame Remotion layer preparation',
-    executionPlacement: 'private_render_worker',
-    cpuFallbackAllowed: true,
+    executionPlacement: 'google_cloud_run_gpu',
+    cpuFallbackAllowed: false,
     expectedOutputs: [{
       outputSuffix: 'output',
       artifactType: 'living_frame_remotion_layer_manifest',
@@ -682,7 +682,7 @@ function compileWorkRequirement(input: {
           'prepare_temporal_source_video'
         || profile.operationClass ===
           'temporal_video_subject_segmentation_and_tracking'
-        ? 'blocked_until_temporal_source_recipe_and_sam2_model_runtime_are_admitted'
+        ? 'blocked_until_temporal_source_recipe_and_sam3_1_model_runtime_are_admitted'
         : 'blocked_until_real_dependency_input_operation_is_admitted',
     workGraphMutationAuthorized: false,
     executablePayloadPresent: false,
@@ -841,15 +841,15 @@ function compileUnreleasedToolEstimateLineItem(input: {
   readonly profile: WorkProjectionProfile
 }): CanonicalLivingFrameProjectedUnreleasedToolEstimateLineItem {
   if (
-    input.profile.toolId !== 'sam2'
+    input.profile.toolId !== 'sam3_1'
     || input.profile.operationId !==
-      'tool.sam2.segment_and_track_subject.v1'
-    || input.workRequirement.costOwnerToolId !== 'sam2'
+      CANONICAL_SAM3_1_OPERATION_ID
+    || input.workRequirement.costOwnerToolId !== 'sam3_1'
     || input.workRequirement.costOwnerOperationId !==
-      'tool.sam2.segment_and_track_subject.v1'
+      CANONICAL_SAM3_1_OPERATION_ID
   ) {
     throw conflict(
-      'Canonical Living Frame unreleased cost admission is limited to the exact SAM2 temporal operation.',
+      'Canonical Living Frame unreleased cost admission is limited to the exact SAM 3.1 temporal operation.',
     )
   }
   return {
@@ -863,9 +863,8 @@ function compileUnreleasedToolEstimateLineItem(input: {
     costOwnerClass:
       'canonical_unreleased_tool_candidate',
     workItemType: input.workRequirement.workItemType,
-    costOwnerToolId: 'sam2',
-    costOwnerOperationId:
-      'tool.sam2.segment_and_track_subject.v1',
+    costOwnerToolId: 'sam3_1',
+    costOwnerOperationId: CANONICAL_SAM3_1_OPERATION_ID,
     controlledIllustrationCostComponentId: null,
     activeControlledIllustrationCapabilityIds: [],
     executionPlacement:
@@ -880,7 +879,7 @@ function compileUnreleasedToolEstimateLineItem(input: {
       highInternalCostMicros: 0,
       riskLevel: 'high',
       rateCardVersion:
-        'unreleased-sam2-runtime-cost-admission-pending',
+        'account-effective-sam3_1-a100-primary-l4-fallback-rate-admission-pending',
       serviceFeeIncluded: false,
     },
     exactFiftyToolRegistryMember: false,
@@ -1039,21 +1038,27 @@ function assertExactToolOperation(
     profile.costAdmission ===
       'unreleased_canonical_tool_candidate'
   ) {
-    const requirement =
-      getCanonicalSam2ModelArtifactRequirementSet()
+    const candidate =
+      createCanonicalSam31SourceRuntimeCandidate()
     if (
       profile.operationClass !==
         'temporal_video_subject_segmentation_and_tracking'
-      || profile.toolId !== requirement.approvedToolId
-      || profile.operationId !==
-        requirement.approvedOperationId
-      || requirement.boundaries.runtimeAuthority
-      || requirement.boundaries.productionReady
-      || !requirement.summary.googleCloudRunGpuRequired
-      || requirement.summary.cpuFallbackAllowed
+      || profile.toolId !== candidate.registryIdentity.canonicalToolId
+      || profile.operationId !== candidate.operationId
+      || profile.operationId !== CANONICAL_SAM3_1_OPERATION_ID
+      || candidate.registryIdentity.productionStatus !==
+        'needs_license_review'
+      || !candidate.registryIdentity.gpuRequired
+      || candidate.registryIdentity.cpuAllowed
+      || !candidate.cost.primaryAndFallbackRateAuthoritiesRequired
+      || !candidate.cost.estimateBeforeApprovalRequired
+      || !candidate.cost.exactPerAttemptUsageReceiptRequired
+      || candidate.authority.runtimeExecuted
+      || candidate.authority.workDispatched
+      || candidate.authority.productionReady
     ) {
       throw conflict(
-        'Canonical Living Frame SAM2 projection lost its exact non-executable model-artifact requirement.',
+        'Canonical Living Frame SAM 3.1 projection lost its exact non-executable source, GPU, or cost authority.',
       )
     }
     return

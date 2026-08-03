@@ -12,7 +12,7 @@ import type {
 } from './living-frame-component-asset-intent'
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_VERSION =
-  'canonical-living-frame-work-graph-projection-v8' as const
+  'canonical-living-frame-work-graph-projection-v9' as const
 
 export const CANONICAL_LIVING_FRAME_WORK_GRAPH_PROJECTION_SOURCE =
   'canonical_living_frame_work_graph_projection_compiler' as const
@@ -27,7 +27,7 @@ export const CANONICAL_LIVING_FRAME_PENDING_OPERATION =
   'await_exact_living_frame_dependency_input_operation_admission' as const
 
 export const CANONICAL_LIVING_FRAME_PENDING_OPERATION_AUTHORITY_VERSION =
-  'canonical-living-frame-pending-operation-authority-v6' as const
+  'canonical-living-frame-pending-operation-authority-v7' as const
 
 export const CANONICAL_EXACT_SOURCE_FRAME_PNG_WORK_ITEM_OPERATION =
   'extract_approved_exact_source_frame_png' as const
@@ -89,7 +89,7 @@ export interface CanonicalLivingFrameTemporalSourcePreparationRequirement {
   readonly operation:
     'prepare_approved_living_frame_temporal_source_video'
   readonly transcodeProfile:
-    'approved_sam2_source_proxy_high_quality_v1'
+    'approved_sam3_1_gpu_source_proxy_lossless_mapping_v1'
   readonly selectedMasterFrameRange: {
     readonly startFrame: number
     readonly endFrameExclusive: number
@@ -130,44 +130,67 @@ export interface CanonicalLivingFrameTemporalSourcePreparationRequirement {
   readonly dispatchAuthorized: false
 }
 
-export interface CanonicalLivingFrameSam2TemporalMaskRequirement {
+export interface CanonicalLivingFrameSam31TemporalMaskRequirement {
   readonly requirementVersion:
-    'canonical-living-frame-sam2-temporal-mask-requirement-v1'
-  readonly requirementSetDigestSha256: string
-  readonly checkpointSlotId: 'sam2_checkpoint'
-  readonly checkpointArtifactId:
-    'meta-sam2.1-hiera-small-checkpoint'
-  readonly checkpointModelFamily: 'sam2.1-hiera-small'
-  readonly checkpointByteLength: 184_416_285
-  readonly checkpointContentSha256: string
-  readonly executionTarget: 'google_cloud_run_gpu'
-  readonly accelerator: 'nvidia_l4'
-  readonly modelAccelerator: 'cuda'
-  readonly cpuFallbackAllowed: false
+    'canonical-living-frame-sam3_1-temporal-mask-requirement-v1'
+  readonly sourceCandidateVersion:
+    'canonical-sam3_1-source-runtime-candidate-v3'
+  readonly sourceCandidateHash: string
+  readonly operationId:
+    'tool.sam3_1.segment_and_track_subject.v1'
+  readonly checkpointSlotId: 'sam3_1_checkpoint'
+  readonly checkpointRepositoryRevision:
+    'daa63191845a41281374e725f4c9e51c7a824460'
+  readonly checkpointFileName: 'sam3.1_multiplex.pt'
+  readonly checkpointExactByteLengthAndSha256State:
+    'pending_authorized_private_ingest'
+  readonly primaryExecutionTarget:
+    'google_cloud_batch_a2_ultra_job'
+  readonly primaryAccelerator: 'nvidia_a100_80gb'
+  readonly fallbackExecutionTarget:
+    'google_cloud_run_l4_job'
+  readonly fallbackAccelerator: 'nvidia_l4'
+  readonly costProfileId:
+    'sam3_1_multiplex_video_segmentation_v1'
+  readonly modelAccelerator: 'cuda_12_8'
+  readonly cpuOnlySubstantiveExecutionAllowed: false
   readonly runtimeDownloadAllowed: false
   readonly networkFetchAllowed: false
-  readonly maximumSubjects: 1
+  readonly maximumSubjects: 16
+  readonly gpuDecodeRequired: true
+  readonly gpuDecodeBackend: 'torchcodec_0_10_cuda_nvdec'
+  readonly cpuOpenCvOrPillowDecodeAllowed: false
   readonly preserveContactObjects: true
   readonly subjectPromptBindingState:
-    'pending_server_owned_normalized_box'
+    'pending_server_compiled_approved_text_subject'
   readonly outputEncodingProfiles: readonly [
-    'gray8_ffv1_matroska_mask_sequence_v1',
-    'sam2_tracking_analysis_report_json_v1',
-    'sam2_mask_qa_measurement_report_json_v1',
+    'lossless_grayscale_png_mask_sequence_v1',
+    'sam3_1_tracking_analysis_report_json_v1',
+    'sam3_1_mask_qa_measurement_report_json_v1',
   ]
   readonly requiredQaGates: readonly [
     'mask_edge_quality',
     'mask_temporal_stability',
     'mask_subject_coverage',
+    'mask_contact_object_preservation',
+    'complete_selected_interval_inspection',
   ]
+  readonly authorizedTermsAndLicenseApproved: false
   readonly checkpointIngested: false
   readonly readOnlyMountVerified: false
+  readonly sourceCheckpointCompatibilityQualified: false
+  readonly immutableA100ImageQualified: false
+  readonly immutableL4ImageQualified: false
+  readonly a100RuntimeQualified: false
   readonly l4RuntimeQualified: false
+  readonly primaryAndFallbackRateAuthoritiesReread: false
+  readonly customerEstimateAndFundedReservationComplete: false
   readonly operationRegistered: false
   readonly dispatchAuthorized: false
   readonly modelInferenceAuthorized: false
   readonly runtimeCostAdmissionComplete: false
   readonly temporalQaComplete: false
+  readonly privateReviewComplete: false
 }
 
 export interface CanonicalLivingFramePendingOperationAuthority {
@@ -199,8 +222,8 @@ export interface CanonicalLivingFramePendingOperationAuthority {
   readonly cpuFallbackAllowed: boolean
   readonly temporalSourcePreparationRequirement:
     CanonicalLivingFrameTemporalSourcePreparationRequirement | null
-  readonly sam2TemporalMaskRequirement:
-    CanonicalLivingFrameSam2TemporalMaskRequirement | null
+  readonly sam3_1TemporalMaskRequirement:
+    CanonicalLivingFrameSam31TemporalMaskRequirement | null
   readonly exactDependencyInputOperationAdmitted: boolean
   readonly executableStructuredPayloadPresent: false
 }
@@ -598,7 +621,7 @@ export interface CanonicalLivingFrameWorkGraphProjectionAuthorityBoundary {
   readonly serverDerivedRembgGpuMaskOperationAuthority: true
   readonly serverDerivedSharpComponentOperationAuthority: true
   readonly serverDerivedRemotionLayerManifestAuthority: true
-  readonly serverDerivedTemporalSourceAndSam2AdmissionAuthority:
+  readonly serverDerivedTemporalSourceAndSam31AdmissionAuthority:
     true
   readonly serverDerivedFinalCompositionDependencyAuthority: true
   readonly callerWorkGraphMutationAuthority: false
@@ -651,8 +674,8 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
     'artifact_qa_work_items_required',
     'private_review_required',
     'temporal_source_recipe_and_private_metadata_required',
-    'sam2_checkpoint_runtime_and_cost_admission_required',
-    'sam2_inference_and_temporal_qa_required',
+    'sam3_1_checkpoint_runtime_and_cost_admission_required',
+    'sam3_1_inference_and_temporal_qa_required',
   ] | readonly []
   readonly metrics: {
     readonly selectedSceneCount: number
@@ -662,7 +685,7 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
     readonly admittedSharpComponentWorkItemCount: number
     readonly admittedRemotionLayerWorkItemCount: number
     readonly pendingTemporalSourceVideoWorkItemCount: number
-    readonly pendingSam2TemporalMaskWorkItemCount: number
+    readonly pendingSam31TemporalMaskWorkItemCount: number
     readonly finalCompositionBindingCount: number
     readonly executableWorkItemCount: number
     readonly requiredExpectedOutputCount: number
@@ -687,7 +710,7 @@ export interface CanonicalLivingFrameWorkGraphProjectionDraft {
   readonly containsRembgGpuOperationPayload: true
   readonly containsSharpComponentOperationPayload: true
   readonly containsRemotionLayerManifestPayload: true
-  readonly containsTemporalSourceAndSam2PendingAuthority:
+  readonly containsTemporalSourceAndSam31PendingAuthority:
     boolean
   readonly containsFinalCompositionDependencyBinding: true
   readonly expandsExactFiftyToolRegistry: false

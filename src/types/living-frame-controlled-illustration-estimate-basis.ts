@@ -3,10 +3,10 @@ import type {
 } from './edit-level'
 
 export const CANONICAL_LIVING_FRAME_CONTROLLED_ILLUSTRATION_ESTIMATE_BASIS_VERSION =
-  'canonical-living-frame-controlled-illustration-estimate-basis-v1' as const
+  'canonical-living-frame-controlled-illustration-estimate-basis-v2' as const
 
 export const CANONICAL_LIVING_FRAME_CONTROLLED_ILLUSTRATION_ESTIMATE_POLICY_VERSION =
-  'living-frame-controlled-illustration-shared-host-estimate-policy-v1' as const
+  'living-frame-controlled-illustration-gpu-only-shared-host-estimate-policy-v2' as const
 
 export const CANONICAL_LIVING_FRAME_CONTROLLED_ILLUSTRATION_CAPABILITY_IDS = [
   'comfyui_execution_host',
@@ -22,7 +22,7 @@ export type CanonicalLivingFrameControlledIllustrationCapabilityId =
 
 export type CanonicalLivingFrameControlledIllustrationCostComponentId =
   | 'shared_controlled_illustration_gpu_host'
-  | 'auraface_cpu_continuity_measurement'
+  | 'auraface_l4_gpu_continuity_measurement'
 
 export interface CanonicalLivingFrameControlledIllustrationCostRange {
   readonly lowInternalCostMicros: number
@@ -38,10 +38,8 @@ export interface CanonicalLivingFrameControlledIllustrationCostComponent {
     CanonicalLivingFrameControlledIllustrationCostComponentId
   readonly label: string
   readonly sourceKind: 'infrastructure_runtime'
-  readonly executionPlacement:
-    | 'google_cloud_run_gpu'
-    | 'private_cpu_worker'
-  readonly cpuFallbackAllowed: boolean
+  readonly executionPlacement: 'google_cloud_run_gpu'
+  readonly cpuFallbackAllowed: false
   readonly activeCapabilityIds:
     readonly CanonicalLivingFrameControlledIllustrationCapabilityId[]
   readonly generatedAssetIntentIds: readonly string[]
@@ -50,7 +48,7 @@ export interface CanonicalLivingFrameControlledIllustrationCostComponent {
   readonly billableMilliseconds: number
   readonly allocatedVcpuCount: number
   readonly allocatedMemoryGib: number
-  readonly gpuCount: 0 | 1
+  readonly gpuCount: 1
   readonly tempStorageGibHours: number
   readonly outputStorageGibHours: number
   readonly networkEgressMib: 0

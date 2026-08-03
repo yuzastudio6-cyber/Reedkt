@@ -14,7 +14,7 @@ import type {
 } from './living-frame-controlled-illustration-estimate-basis'
 
 export const CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_VERSION =
-  'canonical-living-frame-estimate-work-asset-projection-v6' as const
+  'canonical-living-frame-estimate-work-asset-projection-v7' as const
 
 export const CANONICAL_LIVING_FRAME_ESTIMATE_WORK_ASSET_PROJECTION_SOURCE =
   'canonical_living_frame_estimate_work_asset_projection_compiler' as const
@@ -27,7 +27,7 @@ export const CANONICAL_LIVING_FRAME_PROJECTED_TOOL_IDS = [
   'openimageio',
   'rembg',
   'remotion',
-  'sam2',
+  'sam3_1',
   'sharp',
 ] as const
 
@@ -40,9 +40,7 @@ export type CanonicalLivingFrameProjectedWorkItemType = Exclude<
 >
 
 export type CanonicalLivingFrameProjectedExecutionPlacement =
-  | 'google_cloud_run_gpu'
-  | 'private_cpu_worker'
-  | 'private_render_worker'
+  'google_cloud_run_gpu'
 
 export type CanonicalLivingFrameEstimateWorkAssetProjectionReadiness =
   | 'ready_without_living_frame_projection'
@@ -99,9 +97,9 @@ export interface CanonicalLivingFrameProjectedUnreleasedToolEstimateLineItem
     'canonical_unreleased_tool_candidate'
   readonly workItemType:
     CanonicalLivingFrameProjectedWorkItemType
-  readonly costOwnerToolId: 'sam2'
+  readonly costOwnerToolId: 'sam3_1'
   readonly costOwnerOperationId:
-    'tool.sam2.segment_and_track_subject.v1'
+    'tool.sam3_1.segment_and_track_subject.v1'
   readonly controlledIllustrationCostComponentId: null
   readonly activeControlledIllustrationCapabilityIds:
     readonly []
@@ -181,7 +179,7 @@ export interface CanonicalLivingFrameProjectedWorkRequirement {
     readonly CanonicalLivingFrameProjectedExpectedOutput[]
   readonly currentRuntimeAdmission:
     | 'blocked_until_real_dependency_input_operation_is_admitted'
-    | 'blocked_until_temporal_source_recipe_and_sam2_model_runtime_are_admitted'
+    | 'blocked_until_temporal_source_recipe_and_sam3_1_model_runtime_are_admitted'
   readonly workGraphMutationAuthorized: false
   readonly executablePayloadPresent: false
 }

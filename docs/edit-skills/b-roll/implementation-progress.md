@@ -590,6 +590,68 @@ receipt. The provider canary remains externally blocked and no paid provider,
 public delivery, final export, billing, wallet, Supabase, or production action
 occurred.
 
+## M10 — active-route retirement and cleanup
+
+Status: completed and pushed.
+
+Implementation commit: `f2b799d2fd13409333b690a31182194c0a7075ed`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after push.
+
+Completed the active-route inventory and established one orchestra-callable
+B-roll implementation: `b_roll@1.0.0` from
+`server/edit-skills/b-roll/b-roll-capability-manifest.ts`. The only B-roll
+provider operation is the forward-only Gemini Omni V5 operation. Existing
+Wan, Hailuo, Veo, Kling, stock-library, generic provider-gateway, and alternate
+provider routes remain absent from the active B-roll manifest and fallback
+graph. No Track All implementation or tracking model is imported.
+
+The reconciled repository contained no provider-specific B-roll runtime,
+cache, downloader, installer, external-agent wrapper, environment variable,
+or package script to delete. M10 therefore preserved history and unrelated
+general visual-generation providers while superseding the remaining
+active-looking compatibility surfaces. The old Creative Skill
+`b_roll_planning` row is now `superseded`, `not_routed`, and `docs_only`; all
+nine B-roll family rows in the 140-skill seed remain runtime-disabled. The old
+B-roll planning contract/checklist and broader historical handoff now point to
+the canonical architecture.
+
+Added repository-wide executable retirement enforcement. It scans active
+B-roll imports/environment keys, package scripts, production registrations,
+historical metadata, supersession markers, and repository filenames; requires
+one manifest registration and zero alternate provider fallbacks; and injects
+Wan, Hailuo, Veo, Kling, and stock route fixtures that must be rejected.
+
+Tests:
+
+- `npm run smoke:b-roll-retirement` — passed across 6,046 repository files and
+  40 active B-roll source files: one runtime registration, zero alternate
+  provider fallbacks, five retired provider fixtures rejected, eleven B-roll
+  package scripts canonical, nine historical metadata skills runtime-disabled,
+  and no Track All implementation import.
+- `npm run test:b-roll-capability-manifest`,
+  `npm run test:b-roll-planning`, and
+  `npm run test:b-roll-canonical-integration` — passed with manifest hash
+  `cac07f07…` unchanged.
+- `npm run smoke:b-roll-provider-authority` — passed; V1-V4 registry hashes,
+  B-roll V5 registry hash, and lifecycle policy hash remained exact.
+- `npm run build`, `npm run typecheck:server`, `npm run lint`,
+  `npm run check:frontend-boundary`, and `git diff --check` — passed. Build
+  emitted only the existing Vite chunk-size and dynamic-import warnings.
+
+Known pre-existing unrelated failure:
+`npm run smoke:professional-skill-planner` remains blocked because that legacy
+planner requests the separately retired Qwen2.5-VL visual-understanding model
+role (`source.review_sequence_and_structure.qwen_visual_understanding`). None
+of the M10 files is in that planner's dependency path; the failure is recorded
+without expanding B-roll scope or reactivating retired Qwen authority.
+
+Qualification after M10: `planning_qualified`. Retirement and one-runtime
+enforcement are proved. Aggregate promotion remains reserved for M11 E2E
+evidence. No provider canary, paid request, public delivery, final export,
+billing, wallet, Supabase, or production action occurred.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -604,3 +666,4 @@ occurred.
 | M7 | `751ed2055` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M8 | `e218a4d57` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M9 | `c8268a9d7` | this bookkeeping commit | confirmed | `planning_qualified` |
+| M10 | `f2b799d2f` | this bookkeeping commit | confirmed | `planning_qualified` |

@@ -26,7 +26,7 @@ assert.equal(validation.manifestHashes[0], BROLL_CAPABILITY_MANIFEST.manifestHas
 assert.equal(BROLL_CAPABILITY_MANIFEST.skillKey, 'b_roll')
 assert.equal(BROLL_CAPABILITY_MANIFEST.skillVersion, '1.0.0')
 assert.equal(BROLL_CAPABILITY_MANIFEST.contractVersion, 'b_roll.skill_contract.v1')
-assert.equal(BROLL_CAPABILITY_MANIFEST.qualificationStatus, 'planning_qualified')
+assert.equal(BROLL_CAPABILITY_MANIFEST.qualificationStatus, 'internal_execution_qualified')
 assert.equal(BROLL_CAPABILITY_MANIFEST.attemptPolicy.maximumInitialAttempts, 1)
 assert.equal(BROLL_CAPABILITY_MANIFEST.attemptPolicy.maximumRefinements, 1)
 assert.equal(BROLL_CAPABILITY_MANIFEST.attemptPolicy.automaticRetryAllowed, false)
@@ -50,12 +50,12 @@ const projection = await readFile(
 assert.equal(projection, generateSkillManifestProjection(BROLL_CAPABILITY_MANIFEST))
 editSkillQualificationRegistry.assertClaim(
   editSkillCapabilityRegistry.referenceFor('b_roll'),
-  'planning_qualified',
+  'internal_execution_qualified',
 )
 assert.throws(
   () => editSkillQualificationRegistry.assertClaim(
     editSkillCapabilityRegistry.referenceFor('b_roll'),
-    'internal_execution_qualified',
+    'production_qualified',
   ),
   /exceeds/,
 )
@@ -66,4 +66,5 @@ console.log(JSON.stringify({
   qualificationFixtureCount: BROLL_QUALIFICATION_FIXTURES.length,
   supportedJobCount: BROLL_CAPABILITY_MANIFEST.supportedJobTypes.length,
   qaCount: BROLL_CAPABILITY_MANIFEST.planningQa.length + BROLL_CAPABILITY_MANIFEST.outputQa.length + BROLL_CAPABILITY_MANIFEST.integrationQa.length,
+  qualificationStatus: BROLL_CAPABILITY_MANIFEST.qualificationStatus,
 }, null, 2))

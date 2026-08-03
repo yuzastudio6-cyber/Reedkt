@@ -162,7 +162,8 @@ assert.equal(invocationPlan.disposition, 'use_skill')
 assert.match(invocationPlan.payloadHash, /^[a-f0-9]{64}$/u)
 
 editSkillQualificationRegistry.assertClaim(manifestRef, 'planning_qualified')
-assert.throws(() => editSkillQualificationRegistry.assertClaim(manifestRef, 'internal_execution_qualified'), /exceeds/)
+editSkillQualificationRegistry.assertClaim(manifestRef, 'internal_execution_qualified')
+assert.throws(() => editSkillQualificationRegistry.assertClaim(manifestRef, 'production_qualified'), /exceeds/)
 
 console.log(JSON.stringify({
   status: 'ok',
@@ -172,5 +173,5 @@ console.log(JSON.stringify({
   providerRequestsForExistingSource: 0,
   generatedDecision: generated.plan.decision,
   trackingMissingDecision: trackingMissing.plan.decision,
-  planningQualification: 'planning_qualified',
+  planningQualification: 'internal_execution_qualified',
 }, null, 2))

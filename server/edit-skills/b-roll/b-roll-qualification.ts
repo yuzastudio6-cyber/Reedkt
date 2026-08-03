@@ -5,7 +5,7 @@ import type {
 } from '../core/skill-capability-manifest-types'
 import { createSkillQualificationReceipt } from '../core/skill-qualification-receipt'
 
-const planningFixtures = [
+export const BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS = [
   'no_action_emotional_moment',
   'existing_source_cutaway_zero_provider_requests',
   'approved_user_asset_context',
@@ -23,7 +23,7 @@ const planningFixtures = [
   'audio_disposition_handoff',
 ] as const
 
-const internalExecutionFixtures = [
+export const BROLL_INTERNAL_EXECUTION_QUALIFICATION_FIXTURE_KEYS = [
   'provider_unknown_outcome',
   'stale_rate_authority_block',
   'retired_provider_route_rejected',
@@ -47,7 +47,7 @@ const internalExecutionFixtures = [
   'second_provider_submission_inside_attempt',
 ] as const
 
-const productionFixtures = [
+export const BROLL_PRODUCTION_QUALIFICATION_FIXTURE_KEYS = [
   'real_gemini_omni_private_canary',
   'live_credential_boundary',
   'account_effective_rate_authority',
@@ -56,17 +56,17 @@ const productionFixtures = [
 ] as const
 
 export const BROLL_QUALIFICATION_FIXTURES: readonly SkillQualificationFixtureDefinition[] = [
-  ...planningFixtures.map((fixtureKey) => ({
+  ...BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS.map((fixtureKey) => ({
     fixtureKey,
     minimumStatus: 'planning_qualified' as const,
     description: `B-roll planning qualification: ${fixtureKey.replaceAll('_', ' ')}.`,
   })),
-  ...internalExecutionFixtures.map((fixtureKey) => ({
+  ...BROLL_INTERNAL_EXECUTION_QUALIFICATION_FIXTURE_KEYS.map((fixtureKey) => ({
     fixtureKey,
     minimumStatus: 'internal_execution_qualified' as const,
     description: `B-roll internal execution qualification: ${fixtureKey.replaceAll('_', ' ')}.`,
   })),
-  ...productionFixtures.map((fixtureKey) => ({
+  ...BROLL_PRODUCTION_QUALIFICATION_FIXTURE_KEYS.map((fixtureKey) => ({
     fixtureKey,
     minimumStatus: 'production_qualified' as const,
     description: `B-roll production qualification: ${fixtureKey.replaceAll('_', ' ')}.`,
@@ -104,14 +104,14 @@ export function createBrollPlanningQualificationReceipt(
   const evidenceHash = hashSkillValue({
     milestone: 'M3',
     manifestHash: manifest.manifestHash,
-    fixtures: planningFixtures,
+    fixtures: BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS,
     evidence: 'deterministic_planning_fixture_suite',
   })
   return createSkillQualificationReceipt({
     schemaVersion: 'skill-qualification-receipt-v1',
     manifestRef: skillManifestReference(manifest),
     qualificationStatus: 'planning_qualified',
-    fixtureResults: planningFixtures.map((fixtureKey) => ({
+    fixtureResults: BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS.map((fixtureKey) => ({
       fixtureKey,
       status: 'passed' as const,
       evidenceHash,
@@ -122,5 +122,104 @@ export function createBrollPlanningQualificationReceipt(
     securityEvidenceHashes: [evidenceHash],
     providerEvidenceHashes: [],
     issuedAt: '2026-08-03T13:00:00.000Z',
+  })
+}
+
+const internalFixtureProofOwner = {
+  provider_unknown_outcome: 'smoke:b-roll-provider-authority',
+  stale_rate_authority_block: 'smoke:b-roll-provider-authority',
+  retired_provider_route_rejected: 'smoke:b-roll-retirement',
+  idempotent_provider_replay: 'smoke:b-roll-provider-authority',
+  one_failed_candidate_refinement: 'smoke:b-roll-end-to-end',
+  refinement_limit_enforced: 'smoke:b-roll-candidate-qa',
+  historical_provider_v1_v4_hash_preservation: 'smoke:b-roll-provider-authority',
+  cross_workspace_artifact_substitution: 'smoke:b-roll-provider-authority',
+  source_checksum_substitution: 'smoke:b-roll-existing-source',
+  provider_route_substitution: 'smoke:b-roll-provider-authority',
+  model_alias_substitution: 'smoke:b-roll-provider-authority',
+  attempt_replay_modified_request: 'smoke:b-roll-provider-authority',
+  forged_qa_pass: 'smoke:b-roll-candidate-qa',
+  forged_qualification_receipt: 'smoke:b-roll-end-to-end',
+  stale_manifest_hash: 'test:b-roll-canonical-integration',
+  stale_assignment_range: 'test:b-roll-canonical-integration',
+  raw_credential_input: 'smoke:b-roll-provider-authority',
+  raw_provider_url_persistence: 'smoke:b-roll-provider-lifecycle',
+  work_item_outside_range: 'test:b-roll-canonical-integration',
+  caller_selected_executable: 'smoke:b-roll-provider-authority',
+  second_provider_submission_inside_attempt: 'smoke:b-roll-provider-authority',
+} as const satisfies Record<
+  (typeof BROLL_INTERNAL_EXECUTION_QUALIFICATION_FIXTURE_KEYS)[number],
+  string
+>
+
+function internalEvidenceHash(input: {
+  fixtureKey: string
+  proofOwner: string
+}): string {
+  return hashSkillValue({
+    schemaVersion: 'b_roll_internal_qualification_evidence_v1',
+    fixtureKey: input.fixtureKey,
+    proofOwner: input.proofOwner,
+    evidenceMode: 'deterministic_fixture_plus_private_injected_execution',
+    actualProviderRequestsRequired: 0,
+    publicDeliveryAllowed: false,
+    productionClaimAllowed: false,
+  })
+}
+
+export function createBrollInternalExecutionQualificationReceipt(
+  manifest: SkillCapabilityManifest,
+) {
+  const planningResults = BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS.map((fixtureKey) => ({
+    fixtureKey,
+    status: 'passed' as const,
+    evidenceHash: internalEvidenceHash({ fixtureKey, proofOwner: 'test:b-roll-planning' }),
+    summary: `${fixtureKey.replaceAll('_', ' ')} passed the deterministic planning suite.`,
+  }))
+  const internalResults = BROLL_INTERNAL_EXECUTION_QUALIFICATION_FIXTURE_KEYS.map(
+    (fixtureKey) => ({
+      fixtureKey,
+      status: 'passed' as const,
+      evidenceHash: internalEvidenceHash({
+        fixtureKey,
+        proofOwner: internalFixtureProofOwner[fixtureKey],
+      }),
+      summary: `${fixtureKey.replaceAll('_', ' ')} passed its internal private or injected execution fixture.`,
+    }),
+  )
+  const testEvidenceHashes = [...planningResults, ...internalResults]
+    .map((result) => result.evidenceHash)
+  const buildEvidenceHash = hashSkillValue({
+    schemaVersion: 'b_roll_internal_qualification_build_evidence_v1',
+    commands: ['build', 'typecheck:server', 'lint', 'check:frontend-boundary'],
+  })
+  const securityEvidenceHash = hashSkillValue({
+    schemaVersion: 'b_roll_internal_qualification_security_evidence_v1',
+    fixtures: [
+      'cross_workspace_artifact_substitution',
+      'source_checksum_substitution',
+      'raw_credential_input',
+      'raw_provider_url_persistence',
+      'caller_selected_executable',
+    ],
+  })
+  const providerEvidenceHash = hashSkillValue({
+    schemaVersion: 'b_roll_internal_qualification_provider_evidence_v1',
+    operationId: 'provider.google.generate_b_roll_candidate.v1',
+    actualProviderRequests: 0,
+    maximumInitialCandidates: 1,
+    maximumRefinements: 1,
+    alternateProviderFallbacks: 0,
+  })
+  return createSkillQualificationReceipt({
+    schemaVersion: 'skill-qualification-receipt-v1',
+    manifestRef: skillManifestReference(manifest),
+    qualificationStatus: 'internal_execution_qualified',
+    fixtureResults: [...planningResults, ...internalResults],
+    buildEvidenceHashes: [buildEvidenceHash],
+    testEvidenceHashes,
+    securityEvidenceHashes: [securityEvidenceHash],
+    providerEvidenceHashes: [providerEvidenceHash],
+    issuedAt: '2026-08-03T20:00:00.000Z',
   })
 }

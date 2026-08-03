@@ -18,7 +18,7 @@ import {
   BROLL_TOOL_OPERATIONS,
 } from './b-roll-capability-manifest'
 import { registerBrollQaPolicies } from './b-roll-qa-policy'
-import { createBrollPlanningQualificationReceipt } from './b-roll-qualification'
+import { createBrollInternalExecutionQualificationReceipt } from './b-roll-qualification'
 import { BrollSkillService } from './b-roll-skill-service'
 
 export * from './b-roll-artifact-types'
@@ -88,7 +88,7 @@ export function registerBrollSkill(input: {
       qa: input.qa,
     }),
   })
-  const receipt = createBrollPlanningQualificationReceipt(BROLL_CAPABILITY_MANIFEST)
+  const receipt = createBrollInternalExecutionQualificationReceipt(BROLL_CAPABILITY_MANIFEST)
   input.qualifications.register(receipt)
   input.qualifications.assertClaim(
     input.capabilities.referenceFor('b_roll'),

@@ -1,6 +1,6 @@
 # B-roll skill architecture
 
-Status: implementation in progress
+Status: internally execution-qualified; production and public delivery blocked
 
 Canonical runtime identity: `b_roll`
 
@@ -102,6 +102,14 @@ Qualification is evidence-driven: `declared`, `implementation_pending`,
 exceed its validated qualification receipt. Compilation is not production
 qualification. A real paid canary is optional and runs only behind an explicit
 operator confirmation and credential/readiness gate.
+
+The current manifest and its 36-fixture receipt claim only
+`internal_execution_qualified`. Real local FFmpeg/FFprobe and Remotion work plus
+injected provider lifecycle/refinement are proved with zero actual provider
+requests. All five live production fixtures remain outside the receipt. The
+operational procedure and evidence matrix are recorded in
+[`runbook.md`](./runbook.md) and
+[`qualification-and-test-evidence.md`](./qualification-and-test-evidence.md).
 
 ## Persistence and execution boundaries
 

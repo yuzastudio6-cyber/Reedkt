@@ -32,6 +32,7 @@
     "smoke:b-roll-candidate-qa": "tsx server/smoke/b-roll-candidate-qa-smoke.ts",
     "smoke:b-roll-remotion-integration": "tsx server/smoke/b-roll-remotion-integration-smoke.ts",
     "smoke:b-roll-retirement": "tsx server/cli/validate-b-roll-active-route-retirement.ts",
+    "smoke:b-roll-end-to-end": "tsx server/smoke/b-roll-end-to-end-smoke.ts",
     "canary:gemini-omni-b-roll": "tsx server/cli/gemini-omni-b-roll-canary.ts",
     "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
     "build:server": "npm run typecheck:server && vite build --config vite.server.config.ts",

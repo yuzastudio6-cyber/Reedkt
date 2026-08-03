@@ -252,7 +252,7 @@
       "routeKind": "no_action"
     }
   ],
-  "manifestHash": "cac07f070ba3b9e485339625d12a19c77b1f809c78c96858433defb490f51539",
+  "manifestHash": "c916e4d29dc91b71e2c16ac8f64fe55fa416e3dd10784e620d9d49d9ef254d6c",
   "mayOverlapWith": [
     "captions",
     "color",
@@ -721,7 +721,7 @@
       "minimumStatus": "production_qualified"
     }
   ],
-  "qualificationStatus": "planning_qualified",
+  "qualificationStatus": "internal_execution_qualified",
   "requiredInputs": [
     {
       "artifactType": "b_roll_assignment_v1",

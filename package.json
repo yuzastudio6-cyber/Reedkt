@@ -362,6 +362,7 @@
   "dependencies": {
     "@babylonjs/core": "^9.15.0",
     "@google-cloud/storage": "^7.21.0",
+    "@google/genai": "2.15.0",
     "@supabase/supabase-js": "^2.106.1",
     "@svgdotjs/svg.js": "^3.2.5",
     "@viz-js/viz": "^3.28.0",

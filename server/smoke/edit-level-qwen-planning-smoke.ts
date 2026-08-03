@@ -80,7 +80,6 @@ const requiredFiles = [
   'src/components/edit-level/EditLevelQwenFallbackNotice.tsx',
   'src/components/edit-level/EditLevelQwenUsageEstimateNotice.tsx',
   'server/smoke/edit-level-qwen-planning-smoke.ts',
-  'tests/e2e/edit-level-qwen-planning.spec.ts',
   'docs/edit-level-qwen-planning-profile.md',
   'docs/edit-level-qwen-prompt-policy.md',
   'docs/edit-level-qwen-structured-output-policy.md',
@@ -162,13 +161,16 @@ assert.equal(modelRoleValidation.ok, true)
 assert.equal(modelRoleAllowsUserReasoning('kimi_k3_main_edit_agent'), true)
 assert.equal(modelRoleAllowsToolCode('kimi_k3_main_edit_agent'), true)
 assert.equal(modelRoleAllowsUserReasoning('qwen_3_7_main_edit_agent'), true)
-assert.equal(modelRoleAllowsToolCode('qwen_3_7_main_edit_agent'), true)
+assert.equal(modelRoleAllowsToolCode('qwen_3_7_main_edit_agent'), false)
 assert.equal(modelRoleAllowsUserReasoning('deepseek_v4_tool_code_agent'), true)
 assert.equal(modelRoleAllowsToolCode('deepseek_v4_tool_code_agent'), true)
 assert.equal(getReEditProModelRoleContract('kimi_k3_main_edit_agent').role, 'main_edit_reasoning_agent')
 assert.equal(getReEditProModelRoleContract('kimi_k3_main_edit_agent').canonicalProviderModel, 'kimi-k3')
-assert.equal(getReEditProModelRoleContract('qwen_3_7_main_edit_agent').role, 'fallback_edit_reasoning_agent')
+assert.equal(getReEditProModelRoleContract('qwen_3_7_main_edit_agent').role, 'marker_reference_reasoning_specialist')
 assert.equal(getReEditProModelRoleContract('qwen_3_7_main_edit_agent').canonicalProviderModel, 'qwen3.7-max-2026-06-08')
+assert.equal(getReEditProModelRoleContract('visual_intelligence_gemini_pro_high').canonicalProviderModel, 'gemini-3.1-pro-preview')
+assert.equal(getReEditProModelRoleContract('qwen_3_7_api_visual_understanding').canonicalProviderModel, 'qwen3.7-plus-2026-05-26')
+assert.equal(getReEditProModelRoleContract('qwen_3_7_api_visual_understanding').executionStatus, 'retired_historical_read_only')
 assert.equal(getReEditProModelRoleContract('qwen2_5_vl_visual_understanding').canonicalProviderModel, 'qwen2.5-vl-7b-instruct')
 assert.equal(getReEditProModelRoleContract('deepseek_v4_tool_code_agent').role, 'fallback_edit_reasoning_agent')
 assert.equal(getReEditProModelRoleContract('deepseek_v4_tool_code_agent').canonicalProviderModel, 'deepseek-v4-pro')
@@ -177,7 +179,7 @@ assert.equal(validateBackendExportedReEditProModelRoleUse({
   providerRoute: 'qwen_3_7_provider_boundary',
   providerModel: 'qwen3.7-max-2026-06-08',
   requestedUse: 'edit_planning',
-}).ok, true)
+}).ok, false)
 assert.equal(validateBackendExportedReEditProModelRoleUse({
   modelRoleId: 'qwen_3_7_main_edit_agent',
   providerRoute: 'qwen_3_7_provider_boundary',
@@ -295,7 +297,6 @@ for (const filePath of [
   'src/components/edit-level/EditLevelQwenFallbackNotice.tsx',
   'src/components/edit-level/EditLevelQwenUsageEstimateNotice.tsx',
   'src/pages/CreateProjectPage.tsx',
-  'src/components/editor/InlineEditLevelCard.tsx',
   'src/components/editor/InlinePlanningContextCard.tsx',
   'src/components/editor/edit-brief/EditBriefSummaryCard.tsx',
 ]) {

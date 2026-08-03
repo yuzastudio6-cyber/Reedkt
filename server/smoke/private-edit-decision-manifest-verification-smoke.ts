@@ -156,12 +156,12 @@ const validManifest: ProfessionalEditDecisionManifestClientModel = {
           ],
         },
         {
-          intentId: 'intent.private_manifest.qwen_visual_understanding',
+          intentId: 'intent.private_manifest.visual_intelligence',
           intentKind: 'model_role',
           executionBoundary: 'backend_approved_after_snapshot',
-          providerRoute: 'qwen2_5_vl_7b_instruct_provider_boundary',
-          providerModel: 'Qwen2.5-VL-7B-Instruct',
-          modelRoleId: 'qwen2_5_vl_visual_understanding',
+          providerRoute: 'vertex_gemini_pro_visual_intelligence_boundary',
+          providerModel: 'gemini-3.1-pro-preview',
+          modelRoleId: 'visual_intelligence_gemini_pro_high',
           requestedModelUse: 'visual_understanding',
           hiddenAdapterToolCount: 0,
           requiredApprovalGates: [
@@ -190,10 +190,10 @@ const validManifest: ProfessionalEditDecisionManifestClientModel = {
       ],
       modelRoleTrace: {
         source: 'reeditpro_model_role_contract',
-        contractVersion: 'reeditpro-model-role-routing-v2-kimi-primary',
+        contractVersion: 'reeditpro-model-role-routing-v5-visual-intelligence-gemini-pro-high',
         ok: true,
         blocked: false,
-        checkedContractCount: 4,
+        checkedContractCount: 7,
         modelRoleIntentCount: 4,
         roles: [
           {
@@ -231,11 +231,11 @@ const validManifest: ProfessionalEditDecisionManifestClientModel = {
             remotionDraftAllowed: true,
           },
           {
-            modelRoleId: 'qwen2_5_vl_visual_understanding',
-            providerBoundary: 'qwen2_5_vl_7b_instruct_provider_boundary',
-            canonicalProviderModel: 'qwen2.5-vl-7b-instruct',
+            modelRoleId: 'visual_intelligence_gemini_pro_high',
+            providerBoundary: 'vertex_gemini_pro_visual_intelligence_boundary',
+            canonicalProviderModel: 'gemini-3.1-pro-preview',
             requestedUses: ['visual_understanding'],
-            intentIds: ['intent.private_manifest.qwen_visual_understanding'],
+            intentIds: ['intent.private_manifest.visual_intelligence'],
             reasoningRouteRole: 'specialist',
             reasoningRoutePriority: null,
             fallbackOnly: false,
@@ -486,8 +486,8 @@ if (validResult.ok) {
   )
   assert.ok(
     validResult.verification.approvedEditContext.professionalSkillTrace?.backendIntents?.some((intent) =>
-      intent.providerRoute === 'qwen2_5_vl_7b_instruct_provider_boundary' &&
-      intent.modelRoleId === 'qwen2_5_vl_visual_understanding' &&
+      intent.providerRoute === 'vertex_gemini_pro_visual_intelligence_boundary' &&
+      intent.modelRoleId === 'visual_intelligence_gemini_pro_high' &&
       intent.requestedModelUse === 'visual_understanding',
     ),
     'Private manifest verification must preserve the visual-understanding backend intent.',
@@ -540,9 +540,9 @@ if (validResult.ok) {
   )
   assert.ok(
     validResult.verification.approvedEditContext.professionalSkillTrace?.modelRoleTrace?.roles.some((role) =>
-      role.modelRoleId === 'qwen2_5_vl_visual_understanding' &&
-      role.providerBoundary === 'qwen2_5_vl_7b_instruct_provider_boundary' &&
-      role.canonicalProviderModel === 'qwen2.5-vl-7b-instruct' &&
+      role.modelRoleId === 'visual_intelligence_gemini_pro_high' &&
+      role.providerBoundary === 'vertex_gemini_pro_visual_intelligence_boundary' &&
+      role.canonicalProviderModel === 'gemini-3.1-pro-preview' &&
       role.requestedUses.includes('visual_understanding') &&
       role.reasoningRouteRole === 'specialist' &&
       role.reasoningRoutePriority === null &&
@@ -553,7 +553,7 @@ if (validResult.ok) {
       !role.creativeStrategyAllowed &&
       !role.editQaReasoningAllowed
     ),
-    'Private manifest verification must preserve Qwen2.5-VL as visual-understanding only.',
+    'Private manifest verification must preserve Visual Intelligence as visual-understanding only.',
   )
   assert.ok(
     validResult.verification.approvedEditContext.professionalSkillTrace?.modelRoleTrace?.roles.some((role) =>
@@ -806,7 +806,7 @@ const missingBackendIntentProviderModelResult = verifyPrivateEditDecisionManifes
       professionalSkillTrace: {
         ...validProfessionalSkillTrace,
         backendIntents: validBackendIntents.map((intent) =>
-          intent.intentId === 'intent.private_manifest.qwen_visual_understanding'
+          intent.intentId === 'intent.private_manifest.visual_intelligence'
             ? {
                 ...intent,
                 providerModel: undefined,

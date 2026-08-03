@@ -676,12 +676,14 @@ function validateApprovedEditModelRoleTrace(
     return { ok: false, message: 'Private edit manifest model-role trace does not preserve GPT-5.6 Terra as the first full-capability fallback.' }
   }
 
-  const visualRole = roles.find((role) => role.modelRoleId === 'qwen2_5_vl_visual_understanding')
+  const visualRole = roles.find((role) =>
+    role.modelRoleId === 'visual_intelligence_gemini_pro_high')
   if (
     !visualRole ||
     !visualRole.requestedUses.includes('visual_understanding') ||
-    visualRole.providerBoundary !== 'qwen2_5_vl_7b_instruct_provider_boundary' ||
-    visualRole.canonicalProviderModel !== 'qwen2.5-vl-7b-instruct' ||
+    visualRole.providerBoundary !==
+      'vertex_gemini_pro_visual_intelligence_boundary' ||
+    visualRole.canonicalProviderModel !== 'gemini-3.1-pro-preview' ||
     visualRole.reasoningRouteRole !== 'specialist' ||
     visualRole.reasoningRoutePriority !== null ||
     visualRole.fallbackOnly !== false ||
@@ -692,7 +694,7 @@ function validateApprovedEditModelRoleTrace(
     visualRole.visualUnderstandingAllowed !== true ||
     visualRole.toolCodeAllowed !== false
   ) {
-    return { ok: false, message: 'Private edit manifest model-role trace does not preserve Qwen2.5-VL as visual-understanding only.' }
+    return { ok: false, message: 'Private edit manifest model-role trace does not preserve Visual Intelligence as visual-understanding only.' }
   }
 
   const deepSeekFallbackRole = roles.find((role) => role.modelRoleId === 'deepseek_v4_tool_code_agent')

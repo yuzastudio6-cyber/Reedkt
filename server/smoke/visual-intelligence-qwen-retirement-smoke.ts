@@ -226,6 +226,31 @@ assert.doesNotMatch(
   /node:fs|node:child_process|createRequire|GoogleAuth|authenticatedCloudRunPost|QWEN_VISUAL_RUNTIME|Qwen\/Qwen2\.5-VL-7B-Instruct[\s\S]*authenticatedPost\(/,
 )
 
+for (const activeSourcePath of [
+  'server/edit-architecture/approved-edit-execution-package.ts',
+  'src/backend/edit-level-tool-router/mock-edit-level-tool-router-scenarios.ts',
+  'src/lib/edit-level-tool-router-rules.ts',
+  'src/lib/edit-level-tool-router-summaries.ts',
+  'src/lib/edit-level-tool-router-ui-adapter.ts',
+  'src/lib/intelligence-orchestration-contract.ts',
+  'src/lib/private-edit-decision-manifest-verification.ts',
+  'src/lib/professional-skills/professional-skill-planner.ts',
+  'src/lib/professional-skills/professional-skill-registry.ts',
+  'src/types/edit-level-tool-router.ts',
+]) {
+  const activeSource = readFileSync(activeSourcePath, 'utf8')
+  assert.match(
+    activeSource,
+    /visual_intelligence(?:_gemini_pro_high)?/u,
+    `${activeSourcePath} must route fresh visual work through Visual Intelligence.`,
+  )
+  assert.doesNotMatch(
+    activeSource,
+    /qwen2_5_vl_visual_understanding|qwen25vl_visual_understanding|qwen_3_7_api_visual_understanding/u,
+    `${activeSourcePath} must not retain an active Qwen visual route.`,
+  )
+}
+
 console.log(JSON.stringify({
   smoke: 'visual-intelligence-qwen-retirement',
   visualIntelligenceRoleRegistered: true,
@@ -236,6 +261,7 @@ console.log(JSON.stringify({
   qwenSecretReferenceRemoved: true,
   privateGcpQwenFreshPlanRejectedBeforeInputRead: true,
   localQwenMlxRejectedBeforeFilesystemOrProcessAccess: true,
+  activePlanningAndPolicyRoutesUseVisualIntelligence: true,
   historicalEvidenceSchemasPreserved: true,
 }, null, 2))
 

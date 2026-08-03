@@ -19,6 +19,7 @@ import type {
 } from '../../types/intelligence-orchestration'
 import type { PlannerInput } from '../../types/reeditpro'
 import {
+  isVisualIntelligenceOwnedProviderRoute,
   PROVIDER_ROUTES,
   validateProviderGatewayRequest,
   type ProviderGenerationType,
@@ -145,6 +146,24 @@ export function validateProfessionalSkillBackendIntent(intent: ProfessionalSkill
 
   if (errors.length > 0) return { ok: false, errors }
 
+  if (isVisualIntelligenceOwnedProviderRoute(intent.providerRoute)) {
+    const visualIntelligenceContract = getReEditProModelRoleContract(
+      'visual_intelligence_gemini_pro_high',
+    )
+    if (
+      intent.intentKind !== 'model_role'
+      || intent.modelRoleId !== visualIntelligenceContract.modelRoleId
+      || intent.providerRoute !== visualIntelligenceContract.providerBoundary
+      || intent.providerModel !== visualIntelligenceContract.canonicalProviderModel
+      || intent.requestedModelUse !== 'visual_understanding'
+    ) {
+      errors.push(
+        `${intent.intentId} must bind the exact lifecycle-owned Visual Intelligence role, provider boundary, Gemini model, and visual-understanding use.`,
+      )
+    }
+    return { ok: errors.length === 0, errors }
+  }
+
   const gatewayValidation = validateProviderGatewayRequest({
     generationRequestId: `${intent.intentId}.generation`,
     jobId: `${intent.intentId}.job`,
@@ -215,8 +234,8 @@ function createModelRoleTrace(backendIntents: ProfessionalSkillBackendIntent[]):
     errors.push('Professional skill planning must carry the DeepSeek V4 Pro final-fallback role intent.')
   }
 
-  if (!roleIntentMap.has('qwen2_5_vl_visual_understanding')) {
-    errors.push('Professional skill planning must carry the Qwen2.5-VL visual-understanding role intent.')
+  if (!roleIntentMap.has('visual_intelligence_gemini_pro_high')) {
+    errors.push('Professional skill planning must carry the provider-neutral Visual Intelligence role intent.')
   }
 
   const roles = Array.from(roleIntentMap.entries()).map(([modelRoleId, intents]) => {
@@ -272,7 +291,7 @@ function createIntelligenceResponsibilityPlan(input: {
     'creative_blueprint',
     'tool_graph_compilation',
   ]
-  if (availableModelRoleIds.includes('qwen2_5_vl_visual_understanding')) {
+  if (availableModelRoleIds.includes('visual_intelligence_gemini_pro_high')) {
     requestedTasks.push('source_visual_analysis')
   }
   if (input.selectedSkills.some((skill) => skill.family === 'qa_review')) {

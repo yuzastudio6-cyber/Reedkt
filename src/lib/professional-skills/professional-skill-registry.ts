@@ -133,11 +133,11 @@ const coreProfessionalSkillDefinitions: ProfessionalSkillDefinition[] = [
     hiddenAdapterToolNames: [],
     backendIntents: [
       modelRoleIntent({
-        intentId: 'source.review_sequence_and_structure.qwen_visual_understanding',
+        intentId: 'source.review_sequence_and_structure.visual_intelligence',
         userFacingActivity: 'Prepare source order, structure, and story flow for planning',
-        providerRoute: 'qwen2_5_vl_7b_instruct_provider_boundary',
-        providerModel: 'Qwen2.5-VL-7B-Instruct',
-        modelRoleId: 'qwen2_5_vl_visual_understanding',
+        providerRoute: 'vertex_gemini_pro_visual_intelligence_boundary',
+        providerModel: 'gemini-3.1-pro-preview',
+        modelRoleId: 'visual_intelligence_gemini_pro_high',
         requestedModelUse: 'visual_understanding',
       }),
     ],

@@ -8,6 +8,7 @@ import {
   resolveApprovedSnapshotInternalTestAdapterToolNames,
   validateProfessionalSkillBackendIntent,
 } from '../../src/lib/professional-skills'
+import { REEDITPRO_MODEL_ROLE_CONTRACT_VERSION } from '../../src/lib/model-role-routing-contract'
 import {
   createProfessionalToolAdapterBoundedExecutionGate,
   createProfessionalToolAdapterOrchestrationPlan,
@@ -245,6 +246,8 @@ function professionalSkillModelRoleTraceIsPackageReady(
   if (
     !trace ||
     trace.source !== 'reeditpro_model_role_contract' ||
+    trace.contractVersion !== REEDITPRO_MODEL_ROLE_CONTRACT_VERSION ||
+    trace.checkedContractCount !== 7 ||
     trace.ok !== true ||
     trace.blocked !== false ||
     trace.mockOnly !== true ||
@@ -295,11 +298,13 @@ function professionalSkillModelRoleTraceIsPackageReady(
     return false
   }
 
-  const visualRole = trace.roles.find((role) => role.modelRoleId === 'qwen2_5_vl_visual_understanding')
+  const visualRole = trace.roles.find((role) =>
+    role.modelRoleId === 'visual_intelligence_gemini_pro_high')
   if (
     !visualRole ||
-    visualRole.providerBoundary !== 'qwen2_5_vl_7b_instruct_provider_boundary' ||
-    visualRole.canonicalProviderModel !== 'qwen2.5-vl-7b-instruct' ||
+    visualRole.providerBoundary !==
+      'vertex_gemini_pro_visual_intelligence_boundary' ||
+    visualRole.canonicalProviderModel !== 'gemini-3.1-pro-preview' ||
     !visualRole.requestedUses.includes('visual_understanding') ||
     visualRole.reasoningRouteRole !== 'specialist' ||
     visualRole.reasoningRoutePriority !== null ||

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 
 import {
   validateProviderGatewayRequest,
@@ -45,6 +45,14 @@ import {
   createQwenVisualUnderstandingProvider,
   QWEN_VISUAL_UNDERSTANDING_RETIREMENT,
 } from '../services/qwen-visual-understanding-provider'
+import {
+  CANONICAL_SAM2_GPU_RUNTIME_RETIREMENT,
+  assertCanonicalSam2GpuRuntimeContract,
+  getCanonicalSam2GpuRuntimeContract,
+} from '../model-artifacts/canonical-sam2-gpu-runtime-contract'
+import {
+  createCanonicalGpuWorkerSam2SubprocessRuntimePort,
+} from '../model-artifacts/canonical-gpu-worker-sam2-subprocess-runtime'
 
 const modelRoleValidation = validateReEditProModelRoleContracts()
 assert.equal(modelRoleValidation.ok, true)
@@ -158,6 +166,61 @@ assert.equal(
   false,
 )
 
+assert.equal(
+  CANONICAL_SAM2_GPU_RUNTIME_RETIREMENT.replacementToolId,
+  'sam3_1',
+)
+assert.equal(
+  CANONICAL_SAM2_GPU_RUNTIME_RETIREMENT.freshContractCompilationAllowed,
+  false,
+)
+for (const compile of [
+  () => getCanonicalSam2GpuRuntimeContract(),
+  () => assertCanonicalSam2GpuRuntimeContract(new Proxy({}, {
+    get() {
+      throw new Error('Retired SAM2 input must not be read.')
+    },
+  })),
+]) {
+  await assert.rejects(
+    compile,
+    /sam2_historical_only_new_dispatch_blocked/u,
+  )
+}
+assert.throws(
+  () => createCanonicalGpuWorkerSam2SubprocessRuntimePort(),
+  /sam2_historical_only_new_dispatch_blocked/u,
+)
+
+for (const removedPath of [
+  'docker/prod/gpu-worker/sam2/Dockerfile.runtime-candidate',
+  'docker/prod/gpu-worker/sam2/runner.py',
+  'docker/prod/gpu-worker/sam2/source-provenance.lock',
+  'server/workers/masks/sam2-execution-runner.ts',
+]) assert.equal(existsSync(removedPath), false, `${removedPath} must be absent`)
+
+const sam2RuntimeTombstoneSource = readFileSync(
+  'server/model-artifacts/canonical-sam2-gpu-runtime-contract.ts',
+  'utf8',
+)
+assert.doesNotMatch(
+  sam2RuntimeTombstoneSource,
+  /node:fs|node:path|node:url|child_process|docker\/prod\/gpu-worker\/sam2|build_sam2|python3/u,
+)
+
+const activeEditReferenceServiceSource = readFileSync(
+  'server/services/edit-reference-service.ts',
+  'utf8',
+)
+assert.doesNotMatch(
+  activeEditReferenceServiceSource,
+  /createQwenVisualUnderstandingProvider/u,
+)
+assert.match(
+  activeEditReferenceServiceSource,
+  /createUnavailableOrchestraVisualIntelligenceBridge/u,
+)
+
 assert.throws(
   () => createPrivateGcpVisualUnderstandingPlan(new Proxy({} as never, {
     get() {
@@ -228,6 +291,7 @@ assert.doesNotMatch(
 
 for (const activeSourcePath of [
   'server/edit-architecture/approved-edit-execution-package.ts',
+  'server/services/approved-edit-execution-package-service.ts',
   'src/backend/edit-level-tool-router/mock-edit-level-tool-router-scenarios.ts',
   'src/lib/edit-level-tool-router-rules.ts',
   'src/lib/edit-level-tool-router-summaries.ts',
@@ -236,6 +300,7 @@ for (const activeSourcePath of [
   'src/lib/private-edit-decision-manifest-verification.ts',
   'src/lib/professional-skills/professional-skill-planner.ts',
   'src/lib/professional-skills/professional-skill-registry.ts',
+  'src/backend/api/mock-api-router.ts',
   'src/types/edit-level-tool-router.ts',
 ]) {
   const activeSource = readFileSync(activeSourcePath, 'utf8')
@@ -262,6 +327,10 @@ console.log(JSON.stringify({
   privateGcpQwenFreshPlanRejectedBeforeInputRead: true,
   localQwenMlxRejectedBeforeFilesystemOrProcessAccess: true,
   activePlanningAndPolicyRoutesUseVisualIntelligence: true,
+  activeEditReferenceDefaultUsesOrchestraBridge: true,
+  sam2ExecutableImageSourceRemoved: true,
+  sam2RuntimeCompilerAndSubprocessBlockedBeforeInputRead: true,
+  sam31IsOnlyFreshSegmentationReplacement: true,
   historicalEvidenceSchemasPreserved: true,
 }, null, 2))
 

@@ -259,9 +259,9 @@ import {
 } from './edit-reference-production-long-form-runtime-port'
 import { instrumentEditReferenceService } from './edit-reference-observability-service'
 import type { EditReferenceObservabilitySink } from '../edit-references/edit-reference-observability-contract'
-import {
-  createQwenVisualUnderstandingProvider,
-  type QwenVisualUnderstandingProvider,
+import type {
+  QwenVisualUnderstandingProvider,
+  QwenVisualUnderstandingResult,
 } from './qwen-visual-understanding-provider'
 import {
   createQwenStoryEditorialReasoningProvider,
@@ -428,6 +428,43 @@ export interface EditReferenceService {
   clearPreferenceApplication(applicationId: string, input: ClearPreferenceApplicationRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
 }
 
+function createUnavailableOrchestraVisualIntelligenceBridge():
+QwenVisualUnderstandingProvider {
+  return Object.freeze({
+    async analyze(): Promise<QwenVisualUnderstandingResult> {
+      return {
+        status: 'blocked',
+        visibleSubjects: [],
+        visibleObjects: [],
+        screenTextRegions: [],
+        compositionRisks: [],
+        brollOpportunities: [],
+        captionObservations: [],
+        styleObservations: [],
+        frameEvidence: [],
+        visualLanguageObservations: [],
+        colorTreatmentObservations: [],
+        graphicsMotionObservations: [],
+        captionDesignObservations: [],
+        evidenceArtifactIds: [],
+        blockers: [
+          'orchestra_visual_intelligence_dispatch_package_required',
+        ],
+        warnings: [
+          'Edit Reference visual analysis must be dispatched by Orchestra through the provider-neutral visual_intelligence skill. The retired Qwen path cannot execute.',
+        ],
+        execution: {
+          boundedPrivateFramesRead: false,
+          providerCallMade: false,
+          modelCallMade: false,
+          workerJobCreated: false,
+          remoteMutationMade: false,
+        },
+      }
+    },
+  })
+}
+
 export function createEditReferenceService(
   context: ServiceContext,
   repositoryOverride?: EditReferenceRepository,
@@ -505,7 +542,7 @@ export function createEditReferenceService(
     ...(replayed === undefined ? {} : { replayed }),
   })
   const visualLanguageProvider = runtimeOptions.visualLanguageProvider
-    ?? createQwenVisualUnderstandingProvider()
+    ?? createUnavailableOrchestraVisualIntelligenceBridge()
   const storyEditorialProvider = runtimeOptions.storyEditorialProvider
     ?? createQwenStoryEditorialReasoningProvider()
   const speechPacingProvider = runtimeOptions.speechPacingProvider

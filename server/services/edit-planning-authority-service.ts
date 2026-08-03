@@ -13,6 +13,11 @@ import {
   type CanonicalToolPayloadWorkItem,
 } from '../edit-architecture/canonical-tool-payload-authority'
 import { compileCanonicalWorkItems } from '../edit-architecture/canonical-work-item-compiler'
+import {
+  CANONICAL_BROLL_SKILL_COMPONENT_KEY,
+  assertCanonicalBrollComponentRefPropagation,
+  assertCanonicalBrollSkillComponentScope,
+} from '../edit-skills/b-roll/b-roll-canonical-plan-component'
 import { assertCanonicalMotionStudioRemotionPlanAuthority } from '../edit-architecture/canonical-motion-studio-remotion-preview-authority'
 import {
   CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION,
@@ -65,6 +70,10 @@ import {
 } from '../validation/edit-planning-authority-schemas'
 import { getRequiredAuthUserId, nowIso } from './service-helpers'
 import { createCanonicalPrivateReviewDecisionService } from './canonical-private-review-decision-service'
+import {
+  revalidateCanonicalBrollPlanAuthority,
+  type CanonicalBrollComparableWorkItem,
+} from './canonical-broll-plan-component-service'
 import {
   buildEditBriefAuthorityPublicationBinding,
   createEditBriefAuthorityService,
@@ -263,6 +272,7 @@ const PLAN_COMPONENT_NAMES = [
 const OPTIONAL_PLAN_COMPONENT_NAMES = [
   'exactEditPreferenceInstruction',
   'editBriefAudioPlanning',
+  CANONICAL_BROLL_SKILL_COMPONENT_KEY,
   CANONICAL_LIVING_FRAME_COMPONENT_KEY,
   CANONICAL_STORYTELLING_STYLE_AUTHORITY_COMPONENT_KEY,
   CANONICAL_MOTION_STUDIO_STORYTELLING_PRODUCTION_AUTHORITY_COMPONENT_KEY,
@@ -356,6 +366,15 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           editSessionId: input.editSessionId,
         },
       )
+      assertCanonicalBrollSkillComponentScope({
+        component: body.canonicalPlan.components.bRollSkill,
+        expected: {
+          ownerUserId: access.userId,
+          workspaceId: access.workspaceId,
+          projectId: input.projectId,
+          editSessionId: input.editSessionId,
+        },
+      })
       const storytellingProductionAuthority =
         await revalidateCanonicalMotionStudioStorytellingProductionAuthority({
           context,
@@ -483,6 +502,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         estimate: customerEstimateCompilation.estimate,
         workItems: workItemCompilation.workItems,
       }
+      await revalidateCanonicalBrollPlanAuthority({
+        localStorageRoot: context.env.localStorageRoot,
+        component: canonicalPlan.components.bRollSkill,
+        canonicalWorkItems: canonicalPlan.workItems,
+      })
       validateCanonicalPlanDraft(
         canonicalPlan.components,
         canonicalPlan.workItems,
@@ -967,6 +991,15 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           editSessionId: targetPlan.editSessionId,
         },
       )
+      assertCanonicalBrollSkillComponentScope({
+        component: approvalComponents.bRollSkill,
+        expected: {
+          ownerUserId: access.userId,
+          workspaceId: access.workspaceId,
+          projectId: targetPlan.projectId,
+          editSessionId: targetPlan.editSessionId,
+        },
+      })
       const approvalStorytellingProductionAuthority =
         await revalidateCanonicalMotionStudioStorytellingProductionAuthority({
           context,
@@ -985,6 +1018,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         aggregateBefore!,
         targetPlan,
       )
+      await revalidateCanonicalBrollPlanAuthority({
+        localStorageRoot: context.env.localStorageRoot,
+        component: approvalComponents.bRollSkill,
+        canonicalWorkItems: approvalToolWorkItems,
+      })
       await loadCanonicalToolPayloadAuthority({
         context,
         componentRefs: targetPlan.componentRefs,
@@ -1662,6 +1700,10 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             ...manifestWithoutHash,
             snapshotHash: sha256AuthorityValue(manifestWithoutHash),
           }
+          assertCanonicalBrollComponentRefPropagation({
+            planComponentRefs: plan.componentRefs,
+            snapshotComponentRefs: snapshot.componentRefs,
+          })
           const jobIdsByKey = new Map(sourceWorkItems.map((workItem) => [workItem.workItemKey, `authority_job_${randomUUID()}`]))
           const jobs: AuthorityDerivedJobRecord[] = approvedWorkItems.map((workItem) => ({
             id: jobIdsByKey.get(workItem.workItemKey)!,
@@ -2038,6 +2080,15 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           editSessionId: snapshot.editSessionId,
         },
       )
+      assertCanonicalBrollSkillComponentScope({
+        component: approvedComponents.bRollSkill,
+        expected: {
+          ownerUserId: access.userId,
+          workspaceId: access.workspaceId,
+          projectId: snapshot.projectId,
+          editSessionId: snapshot.editSessionId,
+        },
+      })
       const approvedStorytellingProductionAuthority =
         await revalidateCanonicalMotionStudioStorytellingProductionAuthority({
           context,
@@ -2220,6 +2271,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         }
         return { ...workItem, executionInput, fallbackPolicy }
       }))
+      await revalidateCanonicalBrollPlanAuthority({
+        localStorageRoot: context.env.localStorageRoot,
+        component: approvedComponents.bRollSkill,
+        canonicalWorkItems: workItems,
+      })
       const toolExecutionAuthority = await loadCanonicalToolExecutionAuthority({
         context,
         componentRefs: snapshot.componentRefs,
@@ -3199,7 +3255,7 @@ async function loadPlanToolAuthorityWorkItems(
   context: ServiceContext,
   aggregate: PrivateEditAuthorityAggregate,
   plan: AuthorityPlanRecord,
-): Promise<Array<CanonicalToolAuthorityWorkItem & CanonicalToolPayloadWorkItem>> {
+): Promise<CanonicalBrollComparableWorkItem[]> {
   return Promise.all(plan.workItemIds.map(async (workItemId) => {
     const workItem = aggregate.planWorkItems.find((candidate) =>
       candidate.id === workItemId && candidate.planId === plan.id)
@@ -3243,6 +3299,9 @@ async function loadPlanToolAuthorityWorkItems(
       sourceCleanupDecisionIds: [...workItem.sourceCleanupDecisionIds],
       dependencyKeys: [...workItem.dependencyKeys],
       approvedToolIds: [...workItem.approvedToolIds],
+      ...(workItem.approvedProviderRoute
+        ? { approvedProviderRoute: workItem.approvedProviderRoute }
+        : {}),
       providerExecutionMode: workItem.providerExecutionMode,
       fallbackPolicy,
       maxAttempts: workItem.maxAttempts,

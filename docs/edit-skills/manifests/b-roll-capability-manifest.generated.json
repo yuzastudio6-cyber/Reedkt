@@ -252,7 +252,7 @@
       "routeKind": "no_action"
     }
   ],
-  "manifestHash": "8ae1688bb9779be10f59e17553b86281cdaccaf52600c367bea1cbf496369b11",
+  "manifestHash": "df52bf911e5d55cd9f373331e30d15965ee64cf192bfa1a44281f13d47f72b65",
   "mayOverlapWith": [
     "captions",
     "color",
@@ -861,7 +861,7 @@
   "toolRoutes": [
     {
       "description": "Inspect the exact private candidate.",
-      "operationRef": "tool.ffprobe.inspect_media.v1",
+      "operationRef": "tool.ffprobe.inspect_approved_media.v1",
       "priority": 10,
       "requiresApproval": true,
       "routeKey": "inspect_candidate",
@@ -877,7 +877,7 @@
     },
     {
       "description": "Render the range-bounded private preview.",
-      "operationRef": "tool.remotion.render_private_preview.v1",
+      "operationRef": "tool.remotion.render_approved_composition.v1",
       "priority": 30,
       "requiresApproval": true,
       "routeKey": "render_private_preview",

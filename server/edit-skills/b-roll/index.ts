@@ -23,6 +23,7 @@ import { BrollSkillService } from './b-roll-skill-service'
 
 export * from './b-roll-artifact-types'
 export * from './b-roll-capability-manifest'
+export * from './b-roll-canonical-plan-component'
 export * from './b-roll-qa-policy'
 export * from './b-roll-qualification'
 export * from './b-roll-skill-service'
@@ -30,6 +31,7 @@ export * from './b-roll-context-loader'
 export * from './b-roll-contracts'
 export * from './b-roll-plan-compiler'
 export * from './b-roll-schemas'
+export * from './b-roll-work-graph-compiler'
 export * from './mini-skills/index'
 
 export function registerBrollSkill(input: {

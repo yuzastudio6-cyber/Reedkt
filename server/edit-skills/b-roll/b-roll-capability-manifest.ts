@@ -40,9 +40,9 @@ export const BROLL_PHASES = [
 ] as const
 
 export const BROLL_TOOL_OPERATIONS = [
-  'tool.ffprobe.inspect_media.v1',
+  'tool.ffprobe.inspect_approved_media.v1',
   'tool.ffmpeg.execute_approved_media_recipe.v1',
-  'tool.remotion.render_private_preview.v1',
+  'tool.remotion.render_approved_composition.v1',
 ] as const
 
 export const BROLL_PROVIDER_OPERATIONS = [
@@ -151,9 +151,9 @@ export const BROLL_CAPABILITY_MANIFEST = createSkillCapabilityManifest({
     unknownOutcomeRequiresReconciliation: true,
   },
   toolRoutes: [
-    { routeKey: 'inspect_candidate', routeKind: 'tool', operationRef: 'tool.ffprobe.inspect_media.v1', priority: 10, requiresApproval: true, description: 'Inspect the exact private candidate.' },
+    { routeKey: 'inspect_candidate', routeKind: 'tool', operationRef: 'tool.ffprobe.inspect_approved_media.v1', priority: 10, requiresApproval: true, description: 'Inspect the exact private candidate.' },
     { routeKey: 'normalize_candidate', routeKind: 'tool', operationRef: 'tool.ffmpeg.execute_approved_media_recipe.v1', priority: 20, requiresApproval: true, description: 'Normalize an approved bounded candidate.' },
-    { routeKey: 'render_private_preview', routeKind: 'tool', operationRef: 'tool.remotion.render_private_preview.v1', priority: 30, requiresApproval: true, description: 'Render the range-bounded private preview.' },
+    { routeKey: 'render_private_preview', routeKind: 'tool', operationRef: 'tool.remotion.render_approved_composition.v1', priority: 30, requiresApproval: true, description: 'Render the range-bounded private preview.' },
     { routeKey: 'existing_project_source', routeKind: 'source', operationRef: 'b_roll.source.existing_project_clip.v1', priority: 2, requiresApproval: true, description: 'Use meaning-matched project source.' },
     { routeKey: 'approved_user_asset', routeKind: 'source', operationRef: 'b_roll.source.approved_user_asset.v1', priority: 3, requiresApproval: true, description: 'Use a rights/privacy-approved user asset.' },
     { routeKey: 'gemini_omni_edit', routeKind: 'provider', operationRef: 'provider.google.generate_b_roll_candidate.v1', priority: 4, requiresApproval: true, description: 'Edit one approved bounded video source where eligible.' },

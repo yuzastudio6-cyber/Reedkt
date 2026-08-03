@@ -479,7 +479,7 @@ export const CANONICAL_EDIT_WORK_ITEM_TYPES = [
   'custom',
 ] as const
 
-const canonicalWorkItemSchema = z.object({
+export const canonicalWorkItemSchema = z.object({
   workItemKey: safeKeySchema,
   workItemType: z.enum(CANONICAL_EDIT_WORK_ITEM_TYPES),
   workerClass: safeKeySchema,

@@ -246,6 +246,59 @@ Qualification after M4: `planning_qualified`. Canonical execution authority is
 now persisted and immutable, but no provider request, media execution, render,
 billing, wallet, cloud, or production operation was executed.
 
+## M5 — existing-source execution route
+
+Status: completed and pushed.
+
+Implementation commit: `ff76daff6`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after push.
+
+Implemented a private internal existing-source executor that revalidates the
+exact content-addressed B-roll component, plan/snapshot/package component ref,
+assignment, context, source selection, provenance, rights, privacy, proof
+safety, user approval, source checksum, source trim, timeline duration, work
+graph, reservation state, and authorized range before media work. The executor
+has no provider request port; a read-only request counter is asserted unchanged
+across execution and persisted as zero in QA and result evidence.
+
+The source is inspected with the repository's pinned network-disabled FFprobe
+8.1.2 runtime and trimmed/normalized with its fixed
+`approved_trim_transcode_v1` FFmpeg recipe. The exact 72-frame FFV1/NUT private
+candidate is create-only and content-addressed. Source inspection, source QA,
+B-roll layer, private source-trim preview, and final result receipts are strict
+hashed JSON artifacts. The preview is an isolated private playback window over
+the approved MP4 source; composite Remotion preview remains explicitly required
+for M9. Same-idempotency replay returns the exact committed result without new
+media or provider work.
+
+Tests:
+
+- `npm run smoke:b-roll-existing-source` — passed real FFprobe and FFmpeg
+  execution, 72-frame normalization, private artifact persistence, source QA,
+  layer/preview/result lineage, deterministic replay, source-byte substitution,
+  cross-workspace substitution, and exactly zero provider requests.
+- `npm run test:b-roll-canonical-integration` — passed.
+- `npm run test:b-roll-planning` — passed.
+- `npm run smoke:canonical-source-led-plan-compiler` — passed unchanged.
+- `npm run validate:skill-capability-manifests` — passed.
+- `npm run test:b-roll-capability-manifest` — passed.
+- `npm run typecheck:server` — passed.
+- `npm run lint` — passed.
+- `npm run check:frontend-boundary` — passed for 1,044 files.
+- `npm run build` — passed; existing Vite chunk-size and dynamic-import
+  warnings only.
+- `git diff --check` — passed.
+
+Known pre-existing unrelated failures: none.
+
+Qualification after M5: `planning_qualified`. The existing-source execution
+fixture is proved, but the manifest is not promoted until the complete internal
+execution fixture suite, provider lifecycle, QA/refinement, and Remotion
+integration evidence pass. No provider, paid API, billing, wallet, cloud,
+Supabase, final composition, or final export action occurred.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -255,3 +308,4 @@ billing, wallet, cloud, or production operation was executed.
 | M2 | `a1a73b0ca7b9efc4007c8c0c17777e69984142a2` | this bookkeeping commit | confirmed | `implementation_pending` |
 | M3 | `e13e2907acebf65e383c5cd1e01262ff87a799ab` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M4 | `78d0a6e07` | this bookkeeping commit | confirmed | `planning_qualified` |
+| M5 | `ff76daff6` | this bookkeeping commit | confirmed | `planning_qualified` |

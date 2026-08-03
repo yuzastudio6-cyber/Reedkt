@@ -141,8 +141,12 @@ explicitly disabled until M3 evidence passes.
 
 ## M3 — B-roll contracts and deterministic planning mini-skills
 
-Status: completed locally; commit and push recorded by the follow-up progress
-commit.
+Status: completed and pushed.
+
+Implementation commit: `e13e2907acebf65e383c5cd1e01262ff87a799ab`.
+
+Remote confirmation: the branch advanced to the implementation commit after
+push.
 
 Implemented immutable B-roll assignment and separate whole-video read-context
 versus exact write-range authority; tenant/project and master-timing checks;
@@ -190,4 +194,4 @@ render, billing, wallet, cloud, or production operation was executed.
 | M0 | `ca25f01035590ba86f62fb2273c8299924610dcc` | this bookkeeping commit | confirmed | `implementation_pending` |
 | M1 | `ac8fcc6f3b1be4f584f2bed804a769f3e340b667` | this bookkeeping commit | confirmed | `implementation_pending` |
 | M2 | `a1a73b0ca7b9efc4007c8c0c17777e69984142a2` | this bookkeeping commit | confirmed | `implementation_pending` |
-| M3 | pending | pending | pending | `planning_qualified` |
+| M3 | `e13e2907acebf65e383c5cd1e01262ff87a799ab` | this bookkeeping commit | confirmed | `planning_qualified` |

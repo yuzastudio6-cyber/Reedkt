@@ -8,12 +8,14 @@ import {
   InMemoryCreateOnlyEditSkillArtifactStore,
   SkillCapabilityRegistry,
   SkillEstimatorRegistry,
+  SkillJobRuntimeBindingRegistry,
   SkillQaRegistry,
   SkillQualificationRegistry,
   assertSkillAssignmentFresh,
   canonicalSkillJson,
   createSkillAssignment,
   createSkillCapabilityManifest,
+  createSkillJobRuntimeBinding,
   createSkillPlanEnvelope,
   createSkillQualificationReceipt,
   createSkillResultEnvelope,
@@ -108,6 +110,48 @@ for (const qaKey of ['fixture_planning_qa', 'fixture_output_qa', 'fixture_integr
 
 const registry = new SkillCapabilityRegistry()
 registry.registerManifest(manifest)
+const runtimeBindings = new SkillJobRuntimeBindingRegistry()
+runtimeBindings.register(createSkillJobRuntimeBinding({
+  definition: {
+    schemaVersion: 'edit-skill-runtime-binding-v1',
+    skillKey: manifest.skillKey,
+    skillVersion: manifest.skillVersion,
+    contractVersion: manifest.contractVersion,
+    manifestHash: manifest.manifestHash,
+    jobType: 'fixture_job',
+    operationId: 'tool.fixture.v1',
+    operationKind: 'tool',
+    workerClass: 'fixture_worker',
+    inputArtifactTypes: ['fixture_input'],
+    outputArtifactTypes: ['fixture_output'],
+    allowedPhases: ['execute'],
+    qualificationRequirement: 'implementation_pending',
+    runtimeAdapterId: 'fixture.runtime.v1',
+    bindingKind: 'executable',
+    approvalRequired: true,
+    qualificationRequired: true,
+    callerSelectedExecutableAllowed: false,
+    mutatesOnlyAssignmentRange: true,
+    createsMedia: false,
+  },
+  handler: async () => ({
+    status: 'succeeded',
+    outputArtifactTypes: ['fixture_output'],
+    evidenceHashes: [SHA],
+    providerRequestCount: 0,
+    publicArtifactCount: 0,
+    productionMutationCount: 0,
+  }),
+}))
+const workGraphJobs = [{
+  skillKey: manifest.skillKey,
+  skillVersion: manifest.skillVersion,
+  contractVersion: manifest.contractVersion,
+  jobType: 'fixture_job',
+  operationId: 'tool.fixture.v1',
+  workerClass: 'fixture_worker',
+  expectedOutputType: 'fixture_output',
+}] as const
 const manifestRef = skillManifestReference(manifest)
 const assignment = createSkillAssignment({
   schemaVersion: 'edit-skill-assignment-v1',
@@ -147,8 +191,11 @@ const validation = validateSkillCapabilityManifests({
   registry, estimators, qa, artifacts,
   catalog: {
     jobTypes: new Set(['fixture_job']), toolOperations: new Set(['tool.fixture.v1']), providerOperations: new Set(),
-    sourceOperations: new Set(), noActionOperations: new Set(['no_action.fixture.v1']), phases: new Set(['plan', 'execute', 'integrate']),
+    sourceOperations: new Set(), noActionOperations: new Set(['no_action.fixture.v1']),
+    providerOperationQualifications: new Map(), phases: new Set(['plan', 'execute', 'integrate']),
   },
+  runtimeBindings,
+  workGraphJobs,
 })
 assert.equal(validation.manifestCount, 1)
 const invocation = new EditSkillInvocationService(registry)
@@ -179,9 +226,13 @@ assert.throws(
     registry: cycleRegistry, estimators, qa, artifacts,
     catalog: {
       jobTypes: new Set(['fixture_job']), toolOperations: new Set(['tool.fixture.v1']), providerOperations: new Set(),
-      sourceOperations: new Set(), noActionOperations: new Set(['no_action.fixture.v1']), phases: new Set(['plan', 'execute', 'integrate']),
+      sourceOperations: new Set(), noActionOperations: new Set(['no_action.fixture.v1']),
+      providerOperationQualifications: new Map(), phases: new Set(['plan', 'execute', 'integrate']),
     },
+    runtimeBindings,
+    workGraphJobs,
     requireRuntimeHandlers: false,
+    requireRuntimeBindings: false,
   }),
   /Cyclic/,
 )
@@ -193,9 +244,13 @@ assert.throws(
     registry: unknownJobRegistry, estimators, qa, artifacts,
     catalog: {
       jobTypes: new Set(['fixture_job']), toolOperations: new Set(['tool.fixture.v1']), providerOperations: new Set(),
-      sourceOperations: new Set(), noActionOperations: new Set(['no_action.fixture.v1']), phases: new Set(['plan', 'execute', 'integrate']),
+      sourceOperations: new Set(), noActionOperations: new Set(['no_action.fixture.v1']),
+      providerOperationQualifications: new Map(), phases: new Set(['plan', 'execute', 'integrate']),
     },
+    runtimeBindings,
+    workGraphJobs,
     requireRuntimeHandlers: false,
+    requireRuntimeBindings: false,
   }),
   /unimplemented job type/,
 )

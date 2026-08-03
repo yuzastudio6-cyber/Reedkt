@@ -1,9 +1,14 @@
 import type { EditSkillArtifactSchemaRegistry } from './edit-skill-artifact-store'
+import type {
+  SkillJobRuntimeBindingRegistry,
+  SkillWorkGraphJobDefinition,
+} from './edit-skill-runtime-binding'
 import type { SkillCapabilityRegistry } from './skill-capability-registry'
 import { assertSkillManifestHash } from './skill-capability-manifest-hash'
 import type { SkillCapabilityManifest } from './skill-capability-manifest-types'
 import type { SkillEstimatorRegistry } from './skill-estimator-registry'
 import type { SkillQaRegistry } from './skill-qa-registry'
+import type { SkillQualificationStatus } from './edit-skill-ids'
 
 export interface SkillReferenceCatalog {
   jobTypes: Set<string>
@@ -11,6 +16,7 @@ export interface SkillReferenceCatalog {
   providerOperations: Set<string>
   sourceOperations: Set<string>
   noActionOperations: Set<string>
+  providerOperationQualifications: Map<string, SkillQualificationStatus>
   phases: Set<string>
 }
 
@@ -72,7 +78,10 @@ export function validateSkillCapabilityManifests(input: {
   qa: SkillQaRegistry
   artifacts: EditSkillArtifactSchemaRegistry
   catalog: SkillReferenceCatalog
+  runtimeBindings: SkillJobRuntimeBindingRegistry
+  workGraphJobs: readonly SkillWorkGraphJobDefinition[]
   requireRuntimeHandlers?: boolean
+  requireRuntimeBindings?: boolean
 }): { manifestCount: number; manifestHashes: readonly string[] } {
   const manifests = input.registry.listManifests()
   const versionKeys = manifests.map((manifest) => `${manifest.skillKey}@${manifest.skillVersion}`)
@@ -97,6 +106,14 @@ export function validateSkillCapabilityManifests(input: {
       if (skillKey === manifest.skillKey) throw new Error(`Skill ${manifest.skillKey} cannot conflict or overlap with itself.`)
     }
     assertKnownRoutes(manifest, input.catalog)
+    if (input.requireRuntimeBindings !== false) {
+      input.runtimeBindings.validateManifest({
+        manifest,
+        artifacts: input.artifacts,
+        operations: input.catalog,
+        workGraphJobs: input.workGraphJobs,
+      })
+    }
   }
   assertPhaseGraph(manifests, input.catalog)
   if (input.requireRuntimeHandlers !== false) input.registry.assertRuntimeBindings()

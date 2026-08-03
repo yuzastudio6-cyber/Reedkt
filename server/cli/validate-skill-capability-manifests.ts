@@ -4,6 +4,8 @@ import {
   editSkillEstimatorRegistry,
   editSkillQaRegistry,
   editSkillReferenceCatalog,
+  editSkillRuntimeBindingRegistry,
+  editSkillWorkGraphJobDefinitions,
 } from '../edit-skills/registry'
 import { validateSkillCapabilityManifests } from '../edit-skills/core/skill-capability-validator'
 
@@ -13,6 +15,8 @@ const result = validateSkillCapabilityManifests({
   qa: editSkillQaRegistry,
   artifacts: editSkillArtifactSchemaRegistry,
   catalog: editSkillReferenceCatalog,
+  runtimeBindings: editSkillRuntimeBindingRegistry,
+  workGraphJobs: editSkillWorkGraphJobDefinitions,
 })
 
 console.log(JSON.stringify({

@@ -3,6 +3,10 @@ import type {
   EditSkillArtifactStore,
 } from '../core/edit-skill-artifact-store'
 import type { EditSkillPluginRegistry } from '../core/edit-skill-plugin-registry'
+import type {
+  SkillJobRuntimeBindingRegistry,
+  SkillWorkGraphJobDefinition,
+} from '../core/edit-skill-runtime-binding'
 import type { SkillCapabilityRegistry } from '../core/skill-capability-registry'
 import type { SkillReferenceCatalog } from '../core/skill-capability-validator'
 import type { SkillEstimatorRegistry } from '../core/skill-estimator-registry'
@@ -19,6 +23,10 @@ import {
   BROLL_TOOL_OPERATIONS,
 } from './b-roll-capability-manifest'
 import { registerBrollQaPolicies } from './b-roll-qa-policy'
+import {
+  BROLL_WORK_GRAPH_JOB_DEFINITIONS,
+  registerBrollRuntimeBindings,
+} from './b-roll-runtime-bindings'
 import { createBrollInternalExecutionQualificationReceipt } from './b-roll-qualification'
 import { BrollEditSkillPlugin } from './b-roll-edit-skill-plugin'
 import { BrollSkillService } from './b-roll-skill-service'
@@ -48,6 +56,8 @@ export function registerBrollSkill(input: {
   artifacts: EditSkillArtifactSchemaRegistry
   artifactStore: EditSkillArtifactStore
   plugins: EditSkillPluginRegistry
+  runtimeBindings: SkillJobRuntimeBindingRegistry
+  workGraphJobs: SkillWorkGraphJobDefinition[]
   qualifications: SkillQualificationRegistry
   catalog: SkillReferenceCatalog
 }): void {
@@ -78,10 +88,15 @@ export function registerBrollSkill(input: {
   for (const value of BROLL_JOB_TYPES) input.catalog.jobTypes.add(value)
   for (const value of BROLL_TOOL_OPERATIONS) input.catalog.toolOperations.add(value)
   for (const value of BROLL_PROVIDER_OPERATIONS) input.catalog.providerOperations.add(value)
+  for (const value of BROLL_PROVIDER_OPERATIONS) {
+    input.catalog.providerOperationQualifications.set(value, 'internal_execution_qualified')
+  }
   for (const value of BROLL_SOURCE_OPERATIONS) input.catalog.sourceOperations.add(value)
   for (const value of BROLL_NO_ACTION_OPERATIONS) input.catalog.noActionOperations.add(value)
   for (const value of BROLL_PHASES) input.catalog.phases.add(value)
   input.capabilities.registerManifest(BROLL_CAPABILITY_MANIFEST)
+  registerBrollRuntimeBindings(input.runtimeBindings)
+  input.workGraphJobs.push(...BROLL_WORK_GRAPH_JOB_DEFINITIONS)
   const service = new BrollSkillService({
     artifacts: input.artifactStore,
     estimators: input.estimators,

@@ -8,6 +8,8 @@ import {
   editSkillQaRegistry,
   editSkillQualificationRegistry,
   editSkillReferenceCatalog,
+  editSkillRuntimeBindingRegistry,
+  editSkillWorkGraphJobDefinitions,
 } from '../edit-skills/registry'
 import { validateSkillCapabilityManifests } from '../edit-skills/core/skill-capability-validator'
 import { generateSkillManifestProjection } from '../edit-skills/core/skill-manifest-projection'
@@ -20,6 +22,8 @@ const validation = validateSkillCapabilityManifests({
   qa: editSkillQaRegistry,
   artifacts: editSkillArtifactSchemaRegistry,
   catalog: editSkillReferenceCatalog,
+  runtimeBindings: editSkillRuntimeBindingRegistry,
+  workGraphJobs: editSkillWorkGraphJobDefinitions,
 })
 assert.equal(validation.manifestCount, 1)
 assert.equal(validation.manifestHashes[0], BROLL_CAPABILITY_MANIFEST.manifestHash)

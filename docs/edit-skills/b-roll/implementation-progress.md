@@ -815,6 +815,73 @@ Qualification after M12 remains the existing
 M17 will replace its synthetic startup receipt with actual generated run
 evidence, and M23 will issue the final source-tree-bound qualification.
 
+## M13 — public skill plugin boundary
+
+Status: completed and pushed.
+
+Implementation commit: `a9dd9d8acca74e4ed0334dfa4a3b19ed7cbdbb2e`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after `git push -u origin HEAD`.
+
+Added the generic, version-bound public edit-skill plugin contract and registry
+with typed public plans, exact plan approvals, approved work graphs, dependency
+requests and acceptances, work results, and final skill result receipts. Every
+public authority object is strict, content-addressed, and bound to the exact
+manifest, assignment, plan, tenant/project scope, authorized frame range,
+approved graph, work item, output artifact, and QA lineage.
+
+Registered B-roll through that public boundary. The plugin now supports the
+complete independent lifecycle required by a future orchestra:
+
+- resolve `b_roll@1.0.0` by its exact manifest reference;
+- submit a generic `SkillAssignment` and receive a typed public `SkillPlan`;
+- require an exact immutable approval before compiling the canonical work
+  graph;
+- return and accept a typed model-neutral Track All dependency request;
+- reject stale manifests, stale private/public assignment pairings,
+  cross-workspace artifacts, out-of-range mutations, caller-selected
+  executables, unsupported work, altered graphs, missing work results, and
+  missing QA lineage; and
+- finalize only one exact successful result per approved work item into a
+  content-addressed `SkillResultReceipt`.
+
+The public B-roll barrel no longer exports private mini-skills. Existing private
+candidate-QA and aggregate fixtures now import those internals from their
+private module paths. The new public-boundary E2E imports neither B-roll
+mini-skills nor private plan/compiler/provider internals and proves planning,
+approved graph compilation, dependency intake, work-result validation, and
+finalization through the generic plugin registry.
+
+Validation:
+
+- `npm run test:b-roll-public-plugin` — passed public no-action lifecycle,
+  three manifest-supported work items, exact approval/QA lineage, result
+  finalization, typed `track_graph_v1` acceptance, stale-manifest rejection,
+  cross-workspace rejection, out-of-range rejection, missing-result rejection,
+  zero provider work, and zero private mini-skill imports.
+- `npm run test:edit-skill-capability-kernel`,
+  `npm run test:b-roll-capability-manifest`, `npm run test:b-roll-planning`, and
+  `npm run test:b-roll-canonical-integration` — passed. The canonical manifest
+  remains unchanged at
+  `c916e4d29dc91b71e2c16ac8f64fe55fa416e3dd10784e620d9d49d9ef254d6c`.
+- `npm run smoke:b-roll-candidate-qa` — passed one-refinement technical and
+  injected semantic QA with zero provider requests.
+- `npm run smoke:b-roll-end-to-end` — passed the complete private injected
+  lifecycle and real local Remotion preview with zero provider requests.
+- `npm run smoke:b-roll-retirement` — passed across 6,103 repository files and
+  41 active B-roll source files with one active runtime, zero alternate
+  provider fallbacks, and no Track All implementation import.
+- `npm run build`, `npm run typecheck:server`, `npm run lint`,
+  `npm run check:frontend-boundary`, and `git diff --check` — passed. Build
+  emitted only the existing Vite chunk-size and dynamic-import warnings.
+
+Qualification after M13 remains the existing
+`internal_execution_qualified` claim pending M17 replacement of the synthetic
+receipt. This milestone did not implement or invoke the orchestra, Track All,
+Visual Intelligence, provider generation, public delivery, final export,
+billing, wallet mutation, Supabase, or production resources.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -832,3 +899,4 @@ evidence, and M23 will issue the final source-tree-bound qualification.
 | M10 | `f2b799d2f` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M11 | `4a74687ca` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M12 | `d9e220f04` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M13 | `a9dd9d8ac` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

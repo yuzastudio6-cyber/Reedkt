@@ -4,6 +4,7 @@ import type { SkillReferenceCatalog } from './core/skill-capability-validator'
 import { SkillEstimatorRegistry } from './core/skill-estimator-registry'
 import { SkillQaRegistry } from './core/skill-qa-registry'
 import { SkillQualificationRegistry } from './core/skill-qualification-registry'
+import { registerBrollSkill } from './b-roll'
 
 export const editSkillCapabilityRegistry = new SkillCapabilityRegistry()
 export const editSkillEstimatorRegistry = new SkillEstimatorRegistry()
@@ -19,3 +20,12 @@ export const editSkillReferenceCatalog: SkillReferenceCatalog = {
   noActionOperations: new Set(),
   phases: new Set(),
 }
+
+registerBrollSkill({
+  capabilities: editSkillCapabilityRegistry,
+  estimators: editSkillEstimatorRegistry,
+  qa: editSkillQaRegistry,
+  artifacts: editSkillArtifactSchemaRegistry,
+  qualifications: editSkillQualificationRegistry,
+  catalog: editSkillReferenceCatalog,
+})

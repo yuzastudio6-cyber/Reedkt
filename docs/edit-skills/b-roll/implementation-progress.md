@@ -97,9 +97,48 @@ Known pre-existing unrelated failures: none in the affected checks.
 
 Qualification after M1: `implementation_pending`.
 
+## M2 — canonical B-roll manifest and qualification plan
+
+Status: completed locally; commit and push recorded by the follow-up progress
+commit.
+
+Registered the only global B-roll identity as `b_roll@1.0.0` with contract
+`b_roll.skill_contract.v1`. The deep-frozen manifest declares 13 implemented
+job identities, 14 accepted and 12 produced artifact contracts, 42 planning,
+output, and integration QA policies, exact execution phases and ownership
+rules, source/provider/tool/no-action routes, one-initial/one-refinement attempt
+limits, invalidation and revision rules, 41 qualification fixtures, and known
+Gemini Omni, proof, frame, regional, tracking, provider, and ownership
+limitations.
+
+The runtime registry now resolves the exact manifest, schemas, estimator keys,
+QA keys, job/operation/phase identities, disabled pre-qualification handler,
+and an evidence-bound `implementation_pending` qualification receipt. The
+read-only JSON documentation projection is generated from TypeScript and its
+bytes are tested against the canonical projection. Retired Wan, Hailuo, Veo,
+Kling, and stock routes are absent from active B-roll routing.
+
+Tests:
+
+- `npm run generate:b-roll-capability-manifest` — passed; manifest hash
+  `5ae77ec86950f70aee64424c370e2eb646e68675d1a9a2f9283cea4f51ae09c3`.
+- `npm run validate:skill-capability-manifests` — passed with one manifest.
+- `npm run test:b-roll-capability-manifest` — passed: 41 qualification
+  fixtures, 13 jobs, 42 QA policies.
+- `npm run test:edit-skill-capability-kernel` — passed.
+- `npm run typecheck:server` — passed.
+- `npm run lint` — passed.
+- `npm run check:frontend-boundary` — passed for 1,044 files.
+
+Known pre-existing unrelated failures: none in the affected checks.
+
+Qualification after M2: `implementation_pending`; planning invocation remains
+explicitly disabled until M3 evidence passes.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
 | --- | --- | --- | --- | --- |
 | M0 | `ca25f01035590ba86f62fb2273c8299924610dcc` | this bookkeeping commit | confirmed | `implementation_pending` |
 | M1 | `ac8fcc6f3b1be4f584f2bed804a769f3e340b667` | this bookkeeping commit | confirmed | `implementation_pending` |
+| M2 | pending | pending | pending | `implementation_pending` |

@@ -6,12 +6,12 @@ import type { SkillEstimatorRegistry } from './skill-estimator-registry'
 import type { SkillQaRegistry } from './skill-qa-registry'
 
 export interface SkillReferenceCatalog {
-  jobTypes: ReadonlySet<string>
-  toolOperations: ReadonlySet<string>
-  providerOperations: ReadonlySet<string>
-  sourceOperations: ReadonlySet<string>
-  noActionOperations: ReadonlySet<string>
-  phases: ReadonlySet<string>
+  jobTypes: Set<string>
+  toolOperations: Set<string>
+  providerOperations: Set<string>
+  sourceOperations: Set<string>
+  noActionOperations: Set<string>
+  phases: Set<string>
 }
 
 function assertUnique(values: readonly string[], label: string): void {

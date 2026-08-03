@@ -1,0 +1,952 @@
+{
+  "acceptedArtifactTypes": [
+    "b_roll_assignment_v1",
+    "b_roll_context_manifest_v1",
+    "source_inventory_v1",
+    "master_timing_plan_v1",
+    "visual_ownership_manifest_v1",
+    "transcript_evidence_v1",
+    "visual_intelligence_report_v1",
+    "edit_preference_snapshot_v1",
+    "reference_dna_v1",
+    "caption_reserved_zones_v1",
+    "track_graph_v1",
+    "prior_b_roll_result_v1",
+    "approved_user_asset_v1",
+    "source_media_artifact_v1"
+  ],
+  "allowedExecutionPhases": [
+    "plan_validation",
+    "provider_generation",
+    "media_inspection",
+    "media_normalization",
+    "skill_output_qa",
+    "layer_preparation",
+    "private_preview_render",
+    "integration_qa",
+    "result_projection"
+  ],
+  "attemptPolicy": {
+    "alternateProviderFallbackAllowed": false,
+    "automaticRetryAllowed": false,
+    "maximumInitialAttempts": 1,
+    "maximumRefinements": 1,
+    "unknownOutcomeRequiresReconciliation": true
+  },
+  "canActAsSupport": true,
+  "canOperateAtBoundaryLevel": "coordination_only",
+  "canOperateAtSceneLevel": "bounded_plan_and_execution",
+  "canOperateAtVideoLevel": "context_read_only",
+  "canOwnPrimaryVisual": true,
+  "conflictsWith": [],
+  "contractVersion": "b_roll.skill_contract.v1",
+  "coordinationCritical": true,
+  "creditEstimator": "b_roll.credit.v1",
+  "fallbackRoutes": [
+    {
+      "description": "Fallback to an eligible existing source without provider work.",
+      "operationRef": "b_roll.source.existing_project_clip.v1",
+      "priority": 100,
+      "requiresApproval": true,
+      "routeKey": "fallback_existing_source",
+      "routeKind": "source"
+    },
+    {
+      "description": "Keep the base footage when no professional candidate remains.",
+      "operationRef": "b_roll.no_action.v1",
+      "priority": 101,
+      "requiresApproval": false,
+      "routeKey": "fallback_no_action",
+      "routeKind": "no_action"
+    }
+  ],
+  "integrationQa": [
+    {
+      "description": "B-roll exact authorized range validation.",
+      "qaKey": "b_roll.integration.exact_authorized_range",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll no outside range modification validation.",
+      "qaKey": "b_roll.integration.no_outside_range_modification",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll primary ownership validation.",
+      "qaKey": "b_roll.integration.primary_ownership",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll caption collision validation.",
+      "qaKey": "b_roll.integration.caption_collision",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll transition boundary validation.",
+      "qaKey": "b_roll.integration.transition_boundary",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll color handoff validation.",
+      "qaKey": "b_roll.integration.color_handoff",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll sound handoff validation.",
+      "qaKey": "b_roll.integration.sound_handoff",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll layer order validation.",
+      "qaKey": "b_roll.integration.layer_order",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll visual density validation.",
+      "qaKey": "b_roll.integration.visual_density",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll preview integrity validation.",
+      "qaKey": "b_roll.integration.preview_integrity",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll result lineage validation.",
+      "qaKey": "b_roll.integration.result_lineage",
+      "severity": "blocking"
+    }
+  ],
+  "invalidationRules": [
+    {
+      "invalidates": [
+        "assignment",
+        "plan",
+        "approval",
+        "execution"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "manifest_changed",
+      "trigger": "manifest_hash_changed"
+    },
+    {
+      "invalidates": [
+        "plan",
+        "estimate",
+        "approval",
+        "preview",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "range_changed",
+      "trigger": "authorized_range_changed"
+    },
+    {
+      "invalidates": [
+        "assignment",
+        "plan",
+        "estimate",
+        "approval",
+        "work_graph"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "master_timing_changed",
+      "trigger": "master_timing_hash_changed"
+    },
+    {
+      "invalidates": [
+        "source_selection",
+        "plan",
+        "qa",
+        "preview",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "source_changed",
+      "trigger": "source_identity_or_checksum_changed"
+    },
+    {
+      "invalidates": [
+        "plan",
+        "crop",
+        "estimate",
+        "approval",
+        "layer",
+        "preview"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "aspect_ratio_changed",
+      "trigger": "confirmed_output_frame_changed"
+    },
+    {
+      "invalidates": [
+        "coordination",
+        "plan",
+        "approval",
+        "layer"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "ownership_changed",
+      "trigger": "visual_ownership_changed"
+    },
+    {
+      "invalidates": [
+        "composition",
+        "integration_qa",
+        "preview"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "caption_zones_changed",
+      "trigger": "caption_reserved_zones_changed"
+    },
+    {
+      "invalidates": [
+        "attempt",
+        "candidate",
+        "qa",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "provider_request_changed",
+      "trigger": "provider_request_specification_changed"
+    },
+    {
+      "invalidates": [
+        "source_selection",
+        "plan",
+        "qa",
+        "approval"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "proof_status_changed",
+      "trigger": "proof_or_rights_status_changed"
+    }
+  ],
+  "knownLimitations": [
+    "Gemini Omni is a public preview model and production qualification requires a real private canary plus current account evidence.",
+    "Native Gemini Omni output aspect ratios are limited to 16:9 and 9:16; other confirmed frames require a crop-safe deterministic composition plan.",
+    "Uploaded-video editing is unavailable in EEA, Switzerland, and the United Kingdom and must fail closed when region eligibility is absent.",
+    "Reference-video inputs are not an active dependable route because preview documentation does not establish correct processing.",
+    "Multiple video inputs, video extension, video interpolation, voice editing, YouTube sources, and uploaded audio references are unsupported.",
+    "Only one initial provider submission and one eligible refinement are allowed; there is no automatic retry or alternate provider fallback.",
+    "Generated candidates are illustrative, contextual, atmospheric, or symbolic and can never be verified proof.",
+    "B-roll does not own final captions, sound mix, color grade, specialized transitions, tracking, final render composition, or export.",
+    "Tracking requires a separately produced model-neutral track_graph_v1 artifact.",
+    "No stock-library runtime route is qualified."
+  ],
+  "lowerCostRoutes": [
+    {
+      "description": "Prefer existing source with no provider request.",
+      "operationRef": "b_roll.source.existing_project_clip.v1",
+      "priority": 1,
+      "requiresApproval": true,
+      "routeKey": "lower_cost_existing_source",
+      "routeKind": "source"
+    },
+    {
+      "description": "Use no B-roll when the base scene is stronger.",
+      "operationRef": "b_roll.no_action.v1",
+      "priority": 0,
+      "requiresApproval": false,
+      "routeKey": "lower_cost_no_action",
+      "routeKind": "no_action"
+    }
+  ],
+  "manifestHash": "5ae77ec86950f70aee64424c370e2eb646e68675d1a9a2f9283cea4f51ae09c3",
+  "mayOverlapWith": [
+    "captions",
+    "color",
+    "render",
+    "sound",
+    "track_all",
+    "transition"
+  ],
+  "mustRunAfter": [
+    "orchestra_assignment"
+  ],
+  "mustRunBefore": [
+    "final_composition"
+  ],
+  "optionalInputs": [
+    {
+      "artifactType": "transcript_evidence_v1",
+      "description": "Meaning and phrase anchors.",
+      "key": "transcript",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "visual_intelligence_report_v1",
+      "description": "Validated semantic visual context.",
+      "key": "visual_intelligence",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "edit_preference_snapshot_v1",
+      "description": "Exact edit preference authority.",
+      "key": "edit_preference",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "reference_dna_v1",
+      "description": "Style influence with do-not-copy constraints.",
+      "key": "reference_dna",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "caption_reserved_zones_v1",
+      "description": "Caption ownership and reserved layout windows.",
+      "key": "caption_zones",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "track_graph_v1",
+      "description": "Model-neutral tracking dependency only.",
+      "key": "track_graph",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "prior_b_roll_result_v1",
+      "description": "Prior concept and repetition evidence.",
+      "key": "prior_b_roll",
+      "maximumCount": 100,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "approved_user_asset_v1",
+      "description": "User-approved source with rights/privacy evidence.",
+      "key": "approved_user_asset",
+      "maximumCount": 100,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "source_media_artifact_v1",
+      "description": "Private immutable source bytes by reference.",
+      "key": "source_media",
+      "maximumCount": 100,
+      "minimumCount": 0
+    }
+  ],
+  "outputQa": [
+    {
+      "description": "B-roll valid mp4 validation.",
+      "qaKey": "b_roll.output.valid_mp4",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll decodable streams validation.",
+      "qaKey": "b_roll.output.decodable_streams",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll duration validation.",
+      "qaKey": "b_roll.output.duration",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll frame rate validation.",
+      "qaKey": "b_roll.output.frame_rate",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll resolution validation.",
+      "qaKey": "b_roll.output.resolution",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll not truncated validation.",
+      "qaKey": "b_roll.output.not_truncated",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll not frozen or black validation.",
+      "qaKey": "b_roll.output.not_frozen_or_black",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll semantic alignment validation.",
+      "qaKey": "b_roll.output.semantic_alignment",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll generated visual integrity validation.",
+      "qaKey": "b_roll.output.generated_visual_integrity",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll subject object consistency validation.",
+      "qaKey": "b_roll.output.subject_object_consistency",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll plausible motion validation.",
+      "qaKey": "b_roll.output.plausible_motion",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll camera intent validation.",
+      "qaKey": "b_roll.output.camera_intent",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll crop safety validation.",
+      "qaKey": "b_roll.output.crop_safety",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll no proof misrepresentation validation.",
+      "qaKey": "b_roll.output.no_proof_misrepresentation",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll content safety validation.",
+      "qaKey": "b_roll.output.content_safety",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll audio disposition validation.",
+      "qaKey": "b_roll.output.audio_disposition",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll private artifact integrity validation.",
+      "qaKey": "b_roll.output.private_artifact_integrity",
+      "severity": "blocking"
+    }
+  ],
+  "ownershipRequirements": [
+    "one_exclusive_primary_visual_owner_per_frame",
+    "support_overlap_requires_density_budget",
+    "caption_reserved_zones_remain_caption_owned",
+    "write_range_must_be_subset_of_assignment",
+    "whole_video_context_is_read_only"
+  ],
+  "planningPhase": "skill_planning",
+  "planningQa": [
+    {
+      "description": "B-roll range authority validation.",
+      "qaKey": "b_roll.planning.range_authority",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll editorial purpose validation.",
+      "qaKey": "b_roll.planning.editorial_purpose",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll restraint considered validation.",
+      "qaKey": "b_roll.planning.restraint_considered",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll source safety validation.",
+      "qaKey": "b_roll.planning.source_safety",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll provenance rights validation.",
+      "qaKey": "b_roll.planning.provenance_rights",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll proof safety validation.",
+      "qaKey": "b_roll.planning.proof_safety",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll visual density validation.",
+      "qaKey": "b_roll.planning.visual_density",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll repetition validation.",
+      "qaKey": "b_roll.planning.repetition",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll primary visual ownership validation.",
+      "qaKey": "b_roll.planning.primary_visual_ownership",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll caption space validation.",
+      "qaKey": "b_roll.planning.caption_space",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll dependency completeness validation.",
+      "qaKey": "b_roll.planning.dependency_completeness",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll approval credit readiness validation.",
+      "qaKey": "b_roll.planning.approval_credit_readiness",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll provider eligibility validation.",
+      "qaKey": "b_roll.planning.provider_eligibility",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll lower cost route validation.",
+      "qaKey": "b_roll.planning.lower_cost_route",
+      "severity": "blocking"
+    }
+  ],
+  "producedArtifactTypes": [
+    "b_roll_plan_v1",
+    "b_roll_restraint_result_v1",
+    "b_roll_provider_request_specification_v1",
+    "b_roll_candidate_manifest_v1",
+    "b_roll_candidate_version_v1",
+    "b_roll_qa_report_v1",
+    "b_roll_remotion_layer_manifest_v1",
+    "b_roll_sound_handoff_v1",
+    "b_roll_color_handoff_v1",
+    "b_roll_transition_handoff_v1",
+    "b_roll_result_receipt_v1",
+    "skill_qualification_receipt_v1"
+  ],
+  "qualificationFixtures": [
+    {
+      "description": "B-roll planning qualification: no action emotional moment.",
+      "fixtureKey": "no_action_emotional_moment",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: existing source cutaway zero provider requests.",
+      "fixtureKey": "existing_source_cutaway_zero_provider_requests",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: approved user asset context.",
+      "fixtureKey": "approved_user_asset_context",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: generated context candidate planning.",
+      "fixtureKey": "generated_context_candidate_planning",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: generated proof rejected.",
+      "fixtureKey": "generated_proof_rejected",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: outside range mutation rejected.",
+      "fixtureKey": "outside_range_mutation_rejected",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: whole video context read only.",
+      "fixtureKey": "whole_video_context_read_only",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: primary visual conflict.",
+      "fixtureKey": "primary_visual_conflict",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: caption collision repair.",
+      "fixtureKey": "caption_collision_repair",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: tracking dependency present.",
+      "fixtureKey": "tracking_dependency_present",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: tracking dependency missing.",
+      "fixtureKey": "tracking_dependency_missing",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: repeated concept rejected.",
+      "fixtureKey": "repeated_concept_rejected",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: region ineligible uploaded video edit.",
+      "fixtureKey": "region_ineligible_uploaded_video_edit",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: unsupported aspect ratio crop safe plan.",
+      "fixtureKey": "unsupported_aspect_ratio_crop_safe_plan",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll planning qualification: audio disposition handoff.",
+      "fixtureKey": "audio_disposition_handoff",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: provider unknown outcome.",
+      "fixtureKey": "provider_unknown_outcome",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: stale rate authority block.",
+      "fixtureKey": "stale_rate_authority_block",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: retired provider route rejected.",
+      "fixtureKey": "retired_provider_route_rejected",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: idempotent provider replay.",
+      "fixtureKey": "idempotent_provider_replay",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: one failed candidate refinement.",
+      "fixtureKey": "one_failed_candidate_refinement",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: refinement limit enforced.",
+      "fixtureKey": "refinement_limit_enforced",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: historical provider v1 v4 hash preservation.",
+      "fixtureKey": "historical_provider_v1_v4_hash_preservation",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: cross workspace artifact substitution.",
+      "fixtureKey": "cross_workspace_artifact_substitution",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: source checksum substitution.",
+      "fixtureKey": "source_checksum_substitution",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: provider route substitution.",
+      "fixtureKey": "provider_route_substitution",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: model alias substitution.",
+      "fixtureKey": "model_alias_substitution",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: attempt replay modified request.",
+      "fixtureKey": "attempt_replay_modified_request",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: forged qa pass.",
+      "fixtureKey": "forged_qa_pass",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: forged qualification receipt.",
+      "fixtureKey": "forged_qualification_receipt",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: stale manifest hash.",
+      "fixtureKey": "stale_manifest_hash",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: stale assignment range.",
+      "fixtureKey": "stale_assignment_range",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: raw credential input.",
+      "fixtureKey": "raw_credential_input",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: raw provider url persistence.",
+      "fixtureKey": "raw_provider_url_persistence",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: work item outside range.",
+      "fixtureKey": "work_item_outside_range",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: caller selected executable.",
+      "fixtureKey": "caller_selected_executable",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll internal execution qualification: second provider submission inside attempt.",
+      "fixtureKey": "second_provider_submission_inside_attempt",
+      "minimumStatus": "internal_execution_qualified"
+    },
+    {
+      "description": "B-roll production qualification: real gemini omni private canary.",
+      "fixtureKey": "real_gemini_omni_private_canary",
+      "minimumStatus": "production_qualified"
+    },
+    {
+      "description": "B-roll production qualification: live credential boundary.",
+      "fixtureKey": "live_credential_boundary",
+      "minimumStatus": "production_qualified"
+    },
+    {
+      "description": "B-roll production qualification: account effective rate authority.",
+      "fixtureKey": "account_effective_rate_authority",
+      "minimumStatus": "production_qualified"
+    },
+    {
+      "description": "B-roll production qualification: live private output ingest.",
+      "fixtureKey": "live_private_output_ingest",
+      "minimumStatus": "production_qualified"
+    },
+    {
+      "description": "B-roll production qualification: live security privacy release review.",
+      "fixtureKey": "live_security_privacy_release_review",
+      "minimumStatus": "production_qualified"
+    }
+  ],
+  "qualificationStatus": "implementation_pending",
+  "requiredInputs": [
+    {
+      "artifactType": "b_roll_assignment_v1",
+      "description": "Immutable orchestra assignment and write-range authority.",
+      "key": "assignment",
+      "maximumCount": 1,
+      "minimumCount": 1
+    },
+    {
+      "artifactType": "b_roll_context_manifest_v1",
+      "description": "Read-only whole-video and adjacent-scene context.",
+      "key": "context",
+      "maximumCount": 1,
+      "minimumCount": 1
+    },
+    {
+      "artifactType": "source_inventory_v1",
+      "description": "Checksum-bound eligible project sources.",
+      "key": "source_inventory",
+      "maximumCount": 1,
+      "minimumCount": 1
+    },
+    {
+      "artifactType": "master_timing_plan_v1",
+      "description": "Frame-exact approved planning timing authority.",
+      "key": "master_timing",
+      "maximumCount": 1,
+      "minimumCount": 1
+    },
+    {
+      "artifactType": "visual_ownership_manifest_v1",
+      "description": "Exclusive primary and support-layer ownership windows.",
+      "key": "visual_ownership",
+      "maximumCount": 1,
+      "minimumCount": 1
+    }
+  ],
+  "requiredSceneContext": [
+    {
+      "description": "Exact mutable scene range.",
+      "key": "authorized_scene",
+      "readScope": "assignment_range",
+      "required": true
+    },
+    {
+      "description": "Read-only entry and exit context.",
+      "key": "adjacent_story_continuity",
+      "readScope": "adjacent_scenes",
+      "required": true
+    },
+    {
+      "description": "Read-only story, repetition, and prior B-roll context.",
+      "key": "whole_video_story",
+      "readScope": "whole_video_read_only",
+      "required": true
+    }
+  ],
+  "requiredSourceEvidence": [
+    "immutable_source_identity",
+    "source_sha256",
+    "source_generation_or_create_only_identity",
+    "rights_status",
+    "privacy_status",
+    "proof_classification",
+    "crop_feasibility"
+  ],
+  "revisionRules": [
+    {
+      "changeClass": "scope_reducing",
+      "description": "Remove B-roll and publish a new restraint result.",
+      "requiresNewApproval": true,
+      "requiresReestimate": true,
+      "ruleKey": "remove_b_roll"
+    },
+    {
+      "changeClass": "material",
+      "description": "Select and QA a different exact source.",
+      "requiresNewApproval": true,
+      "requiresReestimate": true,
+      "ruleKey": "change_source"
+    },
+    {
+      "changeClass": "material",
+      "description": "Recompile exact timing and all dependent work.",
+      "requiresNewApproval": true,
+      "requiresReestimate": true,
+      "ruleKey": "change_timing"
+    },
+    {
+      "changeClass": "material",
+      "description": "Replan layout, captions, ownership, and integration.",
+      "requiresNewApproval": true,
+      "requiresReestimate": true,
+      "ruleKey": "change_treatment"
+    },
+    {
+      "changeClass": "material",
+      "description": "Add a provider candidate only through new approval.",
+      "requiresNewApproval": true,
+      "requiresReestimate": true,
+      "ruleKey": "add_generation"
+    },
+    {
+      "changeClass": "material",
+      "description": "Use the one pre-approved refinement ceiling after eligible QA rejection.",
+      "requiresNewApproval": false,
+      "requiresReestimate": false,
+      "ruleKey": "refine_candidate"
+    },
+    {
+      "changeClass": "non_material",
+      "description": "Apply the exact approved deterministic normalization recipe.",
+      "requiresNewApproval": false,
+      "requiresReestimate": false,
+      "ruleKey": "normalize_candidate"
+    }
+  ],
+  "schemaVersion": "skill-capability-manifest-v1",
+  "skillClass": "creative_visual_asset_skill",
+  "skillKey": "b_roll",
+  "skillVersion": "1.0.0",
+  "supportedJobTypes": [
+    "validate_b_roll_assignment",
+    "validate_b_roll_range_authority",
+    "validate_b_roll_source",
+    "prepare_b_roll_source",
+    "generate_b_roll_candidate",
+    "inspect_b_roll_candidate_with_ffprobe",
+    "normalize_b_roll_candidate_with_ffmpeg",
+    "run_b_roll_technical_qa",
+    "run_b_roll_semantic_visual_qa",
+    "prepare_b_roll_remotion_layer",
+    "render_b_roll_preview",
+    "run_b_roll_preview_qa",
+    "project_b_roll_result_receipt"
+  ],
+  "timeEstimator": "b_roll.time.v1",
+  "toolRoutes": [
+    {
+      "description": "Inspect the exact private candidate.",
+      "operationRef": "tool.ffprobe.inspect_media.v1",
+      "priority": 10,
+      "requiresApproval": true,
+      "routeKey": "inspect_candidate",
+      "routeKind": "tool"
+    },
+    {
+      "description": "Normalize an approved bounded candidate.",
+      "operationRef": "tool.ffmpeg.execute_approved_media_recipe.v1",
+      "priority": 20,
+      "requiresApproval": true,
+      "routeKey": "normalize_candidate",
+      "routeKind": "tool"
+    },
+    {
+      "description": "Render the range-bounded private preview.",
+      "operationRef": "tool.remotion.render_private_preview.v1",
+      "priority": 30,
+      "requiresApproval": true,
+      "routeKey": "render_private_preview",
+      "routeKind": "tool"
+    },
+    {
+      "description": "Use meaning-matched project source.",
+      "operationRef": "b_roll.source.existing_project_clip.v1",
+      "priority": 2,
+      "requiresApproval": true,
+      "routeKey": "existing_project_source",
+      "routeKind": "source"
+    },
+    {
+      "description": "Use a rights/privacy-approved user asset.",
+      "operationRef": "b_roll.source.approved_user_asset.v1",
+      "priority": 3,
+      "requiresApproval": true,
+      "routeKey": "approved_user_asset",
+      "routeKind": "source"
+    },
+    {
+      "description": "Edit one approved bounded video source where eligible.",
+      "operationRef": "provider.google.generate_b_roll_candidate.v1",
+      "priority": 4,
+      "requiresApproval": true,
+      "routeKey": "gemini_omni_edit",
+      "routeKind": "provider"
+    },
+    {
+      "description": "Create an illustrative candidate from approved images.",
+      "operationRef": "provider.google.generate_b_roll_candidate.v1",
+      "priority": 5,
+      "requiresApproval": true,
+      "routeKey": "gemini_omni_image_to_video",
+      "routeKind": "provider"
+    },
+    {
+      "description": "Create an illustrative candidate from the approved shot specification.",
+      "operationRef": "provider.google.generate_b_roll_candidate.v1",
+      "priority": 6,
+      "requiresApproval": true,
+      "routeKey": "gemini_omni_text_to_video",
+      "routeKind": "provider"
+    }
+  ],
+  "trackingRequirements": [
+    "consume_track_graph_v1_only",
+    "never_import_tracking_implementation",
+    "return_needs_other_skill_when_required_graph_missing"
+  ],
+  "unsupportedJobTypes": [
+    "generate_verified_proof",
+    "mutate_outside_authorized_range",
+    "author_final_captions",
+    "mix_final_audio",
+    "grade_final_color",
+    "execute_specialized_transition",
+    "perform_object_tracking",
+    "render_final_export",
+    "search_unqualified_stock_library",
+    "select_caller_provider_route",
+    "execute_caller_command"
+  ],
+  "visualIntelligenceRequirements": [
+    "semantic_relevance",
+    "speaker_action_protection",
+    "scene_continuity",
+    "candidate_semantic_alignment",
+    "candidate_visual_integrity"
+  ]
+}

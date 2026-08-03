@@ -55,6 +55,19 @@ const OBSERVATION_CATEGORIES = new Set([
   'color_or_lighting',
 ])
 
+export const PRIVATE_GCP_QWEN_VISUAL_RETIREMENT = Object.freeze({
+  schemaVersion: 'private-gcp-qwen-visual-retirement-v1' as const,
+  status: 'retired_historical_read_only' as const,
+  replacementCapability: 'visual_intelligence' as const,
+  freshPlanConstructionAllowed: false as const,
+  freshEvidenceConstructionAllowed: false as const,
+  historicalVerificationAllowed: true as const,
+})
+
+interface HistoricalPrivateGcpVisualConstructionOptions {
+  readonly historicalReadOnly?: true
+}
+
 const COVERAGE_PROFILE_BY_LEVEL: Record<
   ReEditProCanonicalEditLevel,
   PrivateGcpVisualCoverageProfileId
@@ -84,7 +97,13 @@ export function calculatePrivateGcpVisualCoverageDigest(
 
 export function createPrivateGcpVisualUnderstandingPlan(
   input: PrivateGcpVisualUnderstandingPlanInput,
+  options: HistoricalPrivateGcpVisualConstructionOptions = {},
 ): PrivateGcpVisualUnderstandingPlan {
+  if (options.historicalReadOnly !== true) {
+    throw new Error(
+      'private_gcp_qwen_visual_retired_use_visual_intelligence',
+    )
+  }
   const errors = validateInput(input)
   const blockers = readinessBlockers(input.serverReadiness)
   const cacheKeySha256 = sha256(stableStringify({
@@ -158,7 +177,13 @@ export function finalizePrivateGcpVisualEvidencePackage(input: {
   unsupportedClaimCount: number
   deterministicQaPassed: boolean
   audioOrTranscriptAuthorityClaimed?: boolean
-}): PrivateGcpVisualEvidencePackage {
+}, options: HistoricalPrivateGcpVisualConstructionOptions = {}):
+  PrivateGcpVisualEvidencePackage {
+  if (options.historicalReadOnly !== true) {
+    throw new Error(
+      'private_gcp_qwen_visual_retired_use_visual_intelligence',
+    )
+  }
   const withoutHash = {
     schemaVersion: 'private-gcp-qwen25vl-evidence-package-v1' as const,
     analysisRunId: input.plan.analysisRunId,

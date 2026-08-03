@@ -29,6 +29,9 @@ import type {
   QwenVisualUnderstandingProvider,
   QwenVisualUnderstandingResult,
 } from '../services/qwen-visual-understanding-provider'
+import {
+  QWEN_VISUAL_UNDERSTANDING_RETIREMENT,
+} from '../services/qwen-visual-understanding-provider'
 
 export const EDIT_REFERENCE_QWEN_CAPTION_DESIGN_ADAPTER_ID =
   'edit_reference_qwen_caption_design_adapter' as const
@@ -116,6 +119,11 @@ const FONT_OR_BRAND_CATEGORIES = new Set(['font_character'])
 export function createEditReferenceQwenCaptionDesignAdapter(
   options: EditReferenceQwenCaptionDesignAdapterOptions,
 ): EditReferenceCaptionDesignStudyAdapter {
+  if (!QWEN_VISUAL_UNDERSTANDING_RETIREMENT.freshExecutionAllowed) {
+    throw new Error(
+      'edit_reference_qwen_caption_design_adapter_retired_use_visual_intelligence',
+    )
+  }
   return {
     adapterId: EDIT_REFERENCE_QWEN_CAPTION_DESIGN_ADAPTER_ID,
     adapterVersion: EDIT_REFERENCE_QWEN_CAPTION_DESIGN_ADAPTER_VERSION,

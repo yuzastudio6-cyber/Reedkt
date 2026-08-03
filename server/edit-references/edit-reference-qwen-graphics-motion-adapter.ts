@@ -10,6 +10,9 @@ import type {
   QwenVisualUnderstandingResult,
 } from '../services/qwen-visual-understanding-provider'
 import {
+  QWEN_VISUAL_UNDERSTANDING_RETIREMENT,
+} from '../services/qwen-visual-understanding-provider'
+import {
   EDIT_REFERENCE_GRAPHICS_MOTION_STUDY_RESULT_VERSION,
   assertEditReferenceGraphicsMotionStudyRequest,
   assertEditReferenceGraphicsMotionStudyResult,
@@ -111,6 +114,11 @@ const MONEY_MICROS = /^(?:0|[1-9][0-9]{0,15})$/
 export function createEditReferenceQwenGraphicsMotionAdapter(
   options: EditReferenceQwenGraphicsMotionAdapterOptions,
 ): EditReferenceGraphicsMotionStudyAdapter {
+  if (!QWEN_VISUAL_UNDERSTANDING_RETIREMENT.freshExecutionAllowed) {
+    throw new Error(
+      'edit_reference_qwen_graphics_motion_adapter_retired_use_visual_intelligence',
+    )
+  }
   return {
     adapterId: EDIT_REFERENCE_QWEN_GRAPHICS_MOTION_ADAPTER_ID,
     adapterVersion: EDIT_REFERENCE_QWEN_GRAPHICS_MOTION_ADAPTER_VERSION,

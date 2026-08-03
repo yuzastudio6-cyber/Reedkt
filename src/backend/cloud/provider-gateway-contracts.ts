@@ -19,6 +19,8 @@ export const PROVIDER_ROUTES = [
   'kimi_k3_provider_boundary',
   'gpt_5_6_terra_provider_boundary',
   'qwen_3_7_provider_boundary',
+  'vertex_gemini_pro_visual_intelligence_boundary',
+  'qwen_model_studio_visual_understanding_api_boundary',
   'qwen2_5_vl_7b_instruct_provider_boundary',
   'deepseek_v4_pro_tool_code_boundary',
   'mirelo_sfx_v1_5',
@@ -35,8 +37,17 @@ export const MODEL_ROLE_PROVIDER_ROUTES = [
   'kimi_k3_provider_boundary',
   'gpt_5_6_terra_provider_boundary',
   'qwen_3_7_provider_boundary',
-  'qwen2_5_vl_7b_instruct_provider_boundary',
+  'vertex_gemini_pro_visual_intelligence_boundary',
   'deepseek_v4_pro_tool_code_boundary',
+] as const satisfies readonly ProviderRoute[]
+
+export const HISTORICAL_VISUAL_PROVIDER_ROUTES = [
+  'qwen_model_studio_visual_understanding_api_boundary',
+  'qwen2_5_vl_7b_instruct_provider_boundary',
+] as const satisfies readonly ProviderRoute[]
+
+export const VISUAL_INTELLIGENCE_OWNED_PROVIDER_ROUTES = [
+  'vertex_gemini_pro_visual_intelligence_boundary',
 ] as const satisfies readonly ProviderRoute[]
 
 export const GENERATED_ASSET_PROVIDER_ROUTES = [
@@ -147,7 +158,8 @@ export const PROVIDER_GATEWAY_POLICY: string[] = [
   'Kimi K3 is the primary edit reasoning, planning, creativity, and coding route.',
   'GPT-5.6 Terra is the first full-capability edit reasoning fallback.',
   'Qwen 3.7 is a bounded Marker Chat and Edit Reference specialist, not a head-reasoning fallback.',
-  'Qwen2.5-VL is visual-understanding only.',
+  'Provider-neutral Visual Intelligence through the exact qualified Gemini Pro High Vertex boundary is the active visual-understanding route.',
+  'Qwen3.7 Plus visual and Qwen2.5-VL are retired and readable only for immutable historical evidence.',
   'DeepSeek V4 Pro is the final bounded edit reasoning/coding fallback.',
   'Mirelo SFX V1.5 and MMAudio V2 are generated audio/SFX routes.',
   'Remotion/SVG/Lottie are deterministic/compositor routes.',
@@ -186,6 +198,21 @@ export function isModelRoleProviderRoute(route: ProviderRoute): boolean {
   return providerRouteIncluded(MODEL_ROLE_PROVIDER_ROUTES, route)
 }
 
+export function isHistoricalVisualProviderRoute(
+  route: ProviderRoute,
+): boolean {
+  return providerRouteIncluded(HISTORICAL_VISUAL_PROVIDER_ROUTES, route)
+}
+
+export function isVisualIntelligenceOwnedProviderRoute(
+  route: ProviderRoute,
+): boolean {
+  return providerRouteIncluded(
+    VISUAL_INTELLIGENCE_OWNED_PROVIDER_ROUTES,
+    route,
+  )
+}
+
 export function isGeneratedAssetProviderRoute(route: ProviderRoute): boolean {
   return providerRouteIncluded(GENERATED_ASSET_PROVIDER_ROUTES, route)
 }
@@ -208,6 +235,18 @@ function providerRouteIncluded(
 export function validateProviderGatewayRequest(request: ProviderGatewayRequest): CloudValidationResult {
   const errors: string[] = []
   const warnings: string[] = []
+
+  if (isHistoricalVisualProviderRoute(request.providerRoute)) {
+    errors.push(
+      `${request.providerRoute} is retained only for exact immutable historical visual-evidence reread; every fresh visual request must use visual_intelligence through vertex_gemini_pro_visual_intelligence_boundary.`,
+    )
+  }
+
+  if (isVisualIntelligenceOwnedProviderRoute(request.providerRoute)) {
+    errors.push(
+      `${request.providerRoute} is owned exclusively by the admitted visual_intelligence lifecycle and cannot be invoked through the generic provider gateway.`,
+    )
+  }
 
   if (!hasNonEmptyString(request.generationRequestId)) {
     errors.push('Provider gateway request must include generationRequestId.')

@@ -5,14 +5,15 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import { z } from 'zod'
+import {
+  QWEN_VISUAL_UNDERSTANDING_RETIREMENT,
+  type QwenColorTreatmentObservation,
+  type QwenGraphicsMotionObservation,
+} from '../services/qwen-visual-understanding-provider'
 import type {
   PreferenceTechnicalColorSignalEvidence,
   PreferenceTechnicalMotionSignalEvidence,
 } from '../../src/types/edit-reference'
-import type {
-  QwenColorTreatmentObservation,
-  QwenGraphicsMotionObservation,
-} from '../services/qwen-visual-understanding-provider'
 import {
   assertEditReferenceColorTreatmentStudyRequest,
   assertEditReferenceColorTreatmentStudyResult,
@@ -145,6 +146,11 @@ export interface CreateEditReferenceReviewedLocalQwen25VlMlxGraphicsAdapterInput
 export function createEditReferenceReviewedLocalQwen25VlMlxColorAdapter(
   input: CreateEditReferenceReviewedLocalQwen25VlMlxColorAdapterInput,
 ): EditReferenceColorTreatmentStudyAdapter {
+  if (!QWEN_VISUAL_UNDERSTANDING_RETIREMENT.freshExecutionAllowed) {
+    throw new Error(
+      'reviewed_local_qwen25vl_mlx_retired_use_visual_intelligence',
+    )
+  }
   const runnerScriptPath = input.runnerScriptPath ?? DEFAULT_RUNNER_SCRIPT_PATH
   const timeoutMs = boundedTimeout(input.timeoutMs)
   return {
@@ -237,6 +243,11 @@ export function createEditReferenceReviewedLocalQwen25VlMlxColorAdapter(
 export function createEditReferenceReviewedLocalQwen25VlMlxGraphicsAdapter(
   input: CreateEditReferenceReviewedLocalQwen25VlMlxGraphicsAdapterInput,
 ): EditReferenceGraphicsMotionStudyAdapter {
+  if (!QWEN_VISUAL_UNDERSTANDING_RETIREMENT.freshExecutionAllowed) {
+    throw new Error(
+      'reviewed_local_qwen25vl_mlx_retired_use_visual_intelligence',
+    )
+  }
   const runnerScriptPath = input.runnerScriptPath ?? DEFAULT_RUNNER_SCRIPT_PATH
   const timeoutMs = boundedTimeout(input.timeoutMs)
   return {

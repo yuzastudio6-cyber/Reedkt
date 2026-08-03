@@ -157,7 +157,6 @@ export const REEDITPRO_LIVE_GCP_RESOURCE_MAP: ReeditProLiveGcpResourceMap = {
     kimi_k3_provider_boundary: 'reeditpro-prod-kimi-api-key',
     gpt_5_6_terra_provider_boundary: 'reeditpro-prod-openai-api-key',
     qwen_3_7_provider_boundary: 'reeditpro-prod-qwen-api-key',
-    qwen2_5_vl_7b_instruct_provider_boundary: 'reeditpro-prod-qwen-api-key',
     deepseek_v4_pro_tool_code_boundary: 'reeditpro-prod-deepseek-api-key',
     wan: 'reeditpro-prod-wan-api-key',
     hailuo: 'reeditpro-prod-hailuo-api-key',

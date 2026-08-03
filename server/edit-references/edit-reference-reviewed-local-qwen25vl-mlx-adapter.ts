@@ -6,6 +6,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import { z } from 'zod'
+import { QWEN_VISUAL_UNDERSTANDING_RETIREMENT } from
+  '../services/qwen-visual-understanding-provider'
 import {
   EDIT_REFERENCE_VISUAL_LANGUAGE_STUDY_RESULT_VERSION,
   createBlockedEditReferenceVisualLanguageStudyResult,
@@ -92,6 +94,11 @@ export interface CreateEditReferenceReviewedLocalQwen25VlMlxAdapterInput {
 export function createEditReferenceReviewedLocalQwen25VlMlxAdapter(
   input: CreateEditReferenceReviewedLocalQwen25VlMlxAdapterInput,
 ): EditReferenceVisualLanguageStudyAdapter {
+  if (!QWEN_VISUAL_UNDERSTANDING_RETIREMENT.freshExecutionAllowed) {
+    throw new Error(
+      'reviewed_local_qwen25vl_mlx_retired_use_visual_intelligence',
+    )
+  }
   const runnerScriptPath = input.runnerScriptPath ?? DEFAULT_RUNNER_SCRIPT_PATH
   const timeoutMs = Math.min(45 * 60 * 1_000, Math.max(30_000, input.timeoutMs ?? 20 * 60 * 1_000))
   return {

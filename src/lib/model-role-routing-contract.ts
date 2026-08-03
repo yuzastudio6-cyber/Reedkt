@@ -7,7 +7,7 @@ import type {
 } from '../types'
 
 export const REEDITPRO_MODEL_ROLE_CONTRACT_VERSION =
-  'reeditpro-model-role-routing-v3-kimi-terra-deepseek'
+  'reeditpro-model-role-routing-v5-visual-intelligence-gemini-pro-high'
 
 export const REEDITPRO_MODEL_ROLE_CONTRACTS: ReEditProModelRoleContract[] = [
   {
@@ -28,7 +28,7 @@ export const REEDITPRO_MODEL_ROLE_CONTRACTS: ReEditProModelRoleContract[] = [
     toolCodeAllowed: true,
     remotionDraftAllowed: true,
     providerBoundary: 'kimi_k3_provider_boundary',
-    purpose: 'Primary reasoning, planning, creative edit strategy, structured tool-use, coding, Remotion draft, and edit-QA reasoning agent for ReEditPro.',
+    purpose: 'Primary reasoning, planning, creative edit strategy, structured tool-use, coding, Remotion draft, and edit-QA reasoning agent for WeEditPro.',
     allowedResponsibilities: [
       'compile user intent into structured editing direction',
       'reason about edit goals, story, pacing, style, markers, creative restraint, and QA explanations',
@@ -65,7 +65,7 @@ export const REEDITPRO_MODEL_ROLE_CONTRACTS: ReEditProModelRoleContract[] = [
     toolCodeAllowed: true,
     remotionDraftAllowed: true,
     providerBoundary: 'gpt_5_6_terra_provider_boundary',
-    purpose: 'First full-capability fallback for ReEditPro reasoning, planning, creative edit strategy, coding, Remotion drafts, and edit-QA reasoning after a classified Kimi K3 attempt failure.',
+    purpose: 'First full-capability fallback for WeEditPro reasoning, planning, creative edit strategy, coding, Remotion drafts, and edit-QA reasoning after a classified Kimi K3 attempt failure.',
     allowedResponsibilities: [
       'continue the exact approved reasoning task after an allowed Kimi K3 failure',
       'reason from the same immutable prompt package and source-bound evidence authority',
@@ -116,10 +116,16 @@ export const REEDITPRO_MODEL_ROLE_CONTRACTS: ReEditProModelRoleContract[] = [
     mockOnly: true,
   },
   {
-    modelRoleId: 'qwen2_5_vl_visual_understanding',
-    displayName: 'Qwen2.5-VL visual understanding',
-    aliases: ['Qwen2.5-VL', 'Qwen2.5-VL-7B-Instruct', 'qwen2.5-vl-7b-instruct', 'qwen25vl_visual_understanding'],
-    canonicalProviderModel: 'qwen2.5-vl-7b-instruct',
+    modelRoleId: 'visual_intelligence_gemini_pro_high',
+    displayName: 'WeEditPro Visual Intelligence',
+    aliases: [
+      'Visual Intelligence',
+      'visual_intelligence',
+      'visual_intelligence_gemini_pro_high',
+      'Gemini 3.1 Pro visual intelligence',
+      'gemini-3.1-pro-preview',
+    ],
+    canonicalProviderModel: 'gemini-3.1-pro-preview',
     role: 'visual_understanding_specialist',
     reasoningRouteRole: 'specialist',
     reasoningRoutePriority: null,
@@ -132,20 +138,90 @@ export const REEDITPRO_MODEL_ROLE_CONTRACTS: ReEditProModelRoleContract[] = [
     visualUnderstandingAllowed: true,
     toolCodeAllowed: false,
     remotionDraftAllowed: false,
-    providerBoundary: 'qwen2_5_vl_7b_instruct_provider_boundary',
-    purpose: 'Visual/video understanding specialist for visible objects, actions, layout, scene summaries, marker windows, visual continuity, and B-roll opportunities.',
+    providerBoundary: 'vertex_gemini_pro_visual_intelligence_boundary',
+    purpose: 'Provider-neutral Visual Intelligence for whole-media source understanding, edit inspection, bounded range queries, and media comparison using deterministic evidence plus the exact qualified Gemini Pro High adapter.',
     allowedResponsibilities: [
-      'summarize visible context for the main edit agent',
-      'inspect marker windows, scene layout, visible text, continuity, and B-roll opportunities after backend approval',
-      'produce bounded visual summaries rather than final edit plans',
+      'analyze complete source and reference media from an approved private evidence package',
+      'inspect approved private edits using output-bound deterministic evidence and profile-specific criteria',
+      'answer bounded visual range queries and compare approved media without becoming edit-planning authority',
+    ],
+    forbiddenResponsibilities: [
+      'act as the main user-facing reasoning or edit-planning agent',
+      'accept caller-selected models, endpoints, prompts, credentials, tools, or media locations',
+      'execute provider, worker, render, storage, billing, or delivery operations from frontend or mock planning',
+      'silently downgrade to Flash, a cheaper model, Qwen, or another visual provider',
+      'replace deterministic complete-time QA, audio QA, owning-skill repair, or private review',
+    ],
+    fallbackPolicy: 'If the exact qualified Gemini Pro High route is unavailable, uncertain, or outside its cost authority, block visual evidence and reconcile the attempt. No silent model fallback is allowed.',
+    mockOnly: true,
+  },
+  {
+    modelRoleId: 'qwen_3_7_api_visual_understanding',
+    displayName: 'Historical Qwen3.7 Plus API visual understanding',
+    aliases: [
+      'Qwen3.7 Plus visual',
+      'qwen3.7-plus-2026-05-26',
+      'qwen_3_7_api_visual_understanding',
+    ],
+    canonicalProviderModel: 'qwen3.7-plus-2026-05-26',
+    role: 'visual_understanding_specialist',
+    reasoningRouteRole: 'specialist',
+    reasoningRoutePriority: null,
+    fallbackOnly: false,
+    executionStatus: 'retired_historical_read_only',
+    userReasoningAllowed: false,
+    editPlanningAllowed: false,
+    creativeStrategyAllowed: false,
+    editQaReasoningAllowed: false,
+    visualUnderstandingAllowed: true,
+    toolCodeAllowed: false,
+    remotionDraftAllowed: false,
+    providerBoundary: 'qwen_model_studio_visual_understanding_api_boundary',
+    purpose: 'Immutable historical Qwen3.7 Plus visual-understanding identity retained only to reread and audit already-created evidence during the Visual Intelligence migration.',
+    allowedResponsibilities: [
+      'reread and verify immutable historical Qwen3.7 Plus visual evidence',
+      'preserve historical provider, operation, cost, and artifact lineage without relabeling',
+    ],
+    forbiddenResponsibilities: [
+      'act as the main user-facing reasoning or edit-planning agent',
+      'accept new plan, dispatch, retry, fallback, or production work',
+      'execute provider, tool, worker, render, storage, billing, or delivery operations',
+      'satisfy a newly approved Visual Intelligence plan',
+    ],
+    fallbackPolicy: 'No fallback or new execution is allowed. Historical evidence remains readable only under exact historical version matching.',
+    mockOnly: true,
+  },
+  {
+    modelRoleId: 'qwen2_5_vl_visual_understanding',
+    displayName: 'Historical Qwen2.5-VL visual understanding',
+    aliases: ['Qwen2.5-VL', 'Qwen2.5-VL-7B-Instruct', 'qwen2.5-vl-7b-instruct', 'qwen25vl_visual_understanding'],
+    canonicalProviderModel: 'qwen2.5-vl-7b-instruct',
+    role: 'visual_understanding_specialist',
+    reasoningRouteRole: 'specialist',
+    reasoningRoutePriority: null,
+    fallbackOnly: false,
+    executionStatus: 'retired_historical_read_only',
+    userReasoningAllowed: false,
+    editPlanningAllowed: false,
+    creativeStrategyAllowed: false,
+    editQaReasoningAllowed: false,
+    visualUnderstandingAllowed: true,
+    toolCodeAllowed: false,
+    remotionDraftAllowed: false,
+    providerBoundary: 'qwen2_5_vl_7b_instruct_provider_boundary',
+    purpose: 'Immutable historical visual-understanding identity retained only to reread and audit already-created Qwen2.5-VL evidence.',
+    allowedResponsibilities: [
+      'reread and verify immutable historical Qwen2.5-VL evidence',
+      'preserve historical model, operation, cost, and artifact lineage without relabeling',
     ],
     forbiddenResponsibilities: [
       'act as the main user-facing reasoning agent',
       'create approved edit plans independently',
       'draft production code or Remotion implementation details',
-      'execute provider calls before backend provider gates exist',
+      'execute provider, tool, worker, render, storage, billing, or delivery operations',
+      'accept new plan, dispatch, retry, fallback, or production work',
     ],
-    fallbackPolicy: 'Use lower-depth source summaries or ask for clarification; do not claim visual understanding ran.',
+    fallbackPolicy: 'No fallback or new execution is allowed. Historical evidence remains readable but cannot satisfy a newly approved API-primary plan.',
     mockOnly: true,
   },
   {
@@ -175,7 +251,7 @@ export const REEDITPRO_MODEL_ROLE_CONTRACTS: ReEditProModelRoleContract[] = [
     forbiddenResponsibilities: [
       'act as the primary/default edit reasoning route',
       'skip the GPT-5.6 Terra fallback without a separately approved route-policy exception',
-      'replace Qwen2.5-VL visual understanding',
+      'replace the Visual Intelligence specialist',
       'run provider/tool/worker/render/storage/billing calls from frontend or mock planning',
     ],
     fallbackPolicy: 'This is the final model fallback. If it fails, block for deterministic recovery or user review instead of silently selecting another model.',
@@ -193,7 +269,7 @@ export function getReEditProModelRoleContract(
   const contract = REEDITPRO_MODEL_ROLE_CONTRACTS.find((item) => item.modelRoleId === modelRoleId)
 
   if (!contract) {
-    throw new Error(`Missing ReEditPro model role contract: ${modelRoleId}`)
+    throw new Error(`Missing WeEditPro model role contract: ${modelRoleId}`)
   }
 
   return { ...contract }
@@ -224,7 +300,15 @@ export function validateReEditProModelRoleContracts(
     contract.modelRoleId === 'gpt_5_6_terra_fallback_edit_agent'
   )
   const qwen = contracts.find((contract) => contract.modelRoleId === 'qwen_3_7_main_edit_agent')
-  const visual = contracts.find((contract) => contract.modelRoleId === 'qwen2_5_vl_visual_understanding')
+  const visual = contracts.find((contract) =>
+    contract.modelRoleId === 'visual_intelligence_gemini_pro_high'
+  )
+  const historicalQwen37Visual = contracts.find((contract) =>
+    contract.modelRoleId === 'qwen_3_7_api_visual_understanding'
+  )
+  const historicalVisual = contracts.find((contract) =>
+    contract.modelRoleId === 'qwen2_5_vl_visual_understanding'
+  )
   const deepseek = contracts.find((contract) => contract.modelRoleId === 'deepseek_v4_tool_code_agent')
 
   if (
@@ -261,7 +345,26 @@ export function validateReEditProModelRoleContracts(
     visual.creativeStrategyAllowed || visual.editQaReasoningAllowed || visual.toolCodeAllowed ||
     visual.reasoningRouteRole !== 'specialist' || visual.reasoningRoutePriority !== null || visual.fallbackOnly
   ) {
-    errors.push('Qwen2.5-VL must remain visual-understanding only and must not become the main edit planner.')
+    errors.push('Visual Intelligence must remain visual-understanding only and must not become the main edit planner.')
+  }
+
+  if (
+    historicalQwen37Visual?.executionStatus !== 'retired_historical_read_only' ||
+    !historicalQwen37Visual.visualUnderstandingAllowed ||
+    historicalQwen37Visual.userReasoningAllowed ||
+    historicalQwen37Visual.editPlanningAllowed ||
+    historicalQwen37Visual.reasoningRouteRole !== 'specialist'
+  ) {
+    errors.push('Qwen3.7 Plus visual understanding must remain a retired historical visual-evidence identity.')
+  }
+
+  if (
+    historicalVisual?.executionStatus !== 'retired_historical_read_only' ||
+    !historicalVisual.visualUnderstandingAllowed ||
+    historicalVisual.userReasoningAllowed || historicalVisual.editPlanningAllowed ||
+    historicalVisual.reasoningRouteRole !== 'specialist'
+  ) {
+    errors.push('Qwen2.5-VL must remain a retired historical visual-evidence identity.')
   }
 
   if (
@@ -317,6 +420,7 @@ export function validateReEditProModelRoleUse(input: {
   providerRoute?: string | null
   providerModel?: string | null
   requestedUse?: ReEditProRequestedModelUse | null
+  historicalReadOnly?: boolean
 }): ReEditProModelRoleUseValidation {
   const explicitContract = input.modelRoleId
     ? getReEditProModelRoleContract(input.modelRoleId)
@@ -371,9 +475,15 @@ export function validateReEditProModelRoleUse(input: {
   })
 
   if (!input.requestedUse) {
-    errors.push(`${contract.displayName} matched a ReEditPro model role and requires an explicit requested model use.`)
+    errors.push(`${contract.displayName} matched a WeEditPro model role and requires an explicit requested model use.`)
   } else if (!modelRoleAllowsRequestedUse(contract, input.requestedUse)) {
     errors.push(`${contract.displayName} is not allowed for requested use ${input.requestedUse}.`)
+  }
+  if (
+    contract.executionStatus === 'retired_historical_read_only' &&
+    input.historicalReadOnly !== true
+  ) {
+    errors.push(`${contract.displayName} is retired and cannot accept new model work.`)
   }
 
   return {
@@ -424,7 +534,7 @@ function pushModelRoleMismatchError(input: {
   if (input.leftContract.modelRoleId === input.rightContract.modelRoleId) return
 
   input.errors.push(
-    `ReEditPro model role metadata mismatch: ${input.leftSource} resolved to ${input.leftContract.displayName}, but ${input.rightSource} resolved to ${input.rightContract.displayName}.`,
+    `WeEditPro model role metadata mismatch: ${input.leftSource} resolved to ${input.leftContract.displayName}, but ${input.rightSource} resolved to ${input.rightContract.displayName}.`,
   )
 }
 

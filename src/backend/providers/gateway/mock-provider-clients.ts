@@ -4,6 +4,8 @@ import { resolveReEditProModelRoleContract, validateReEditProModelRoleUse } from
 import {
   isAudioProviderRoute,
   isGeneratedAssetProviderRoute,
+  isHistoricalVisualProviderRoute,
+  isVisualIntelligenceOwnedProviderRoute,
   type ProviderGatewayRequest,
   type ProviderRoute,
 } from '../../cloud/provider-gateway-contracts'
@@ -96,8 +98,12 @@ function outputAssetType(providerRoute: ProviderRoute): string {
       return 'edit_planning_fallback_result'
     case 'qwen_3_7_provider_boundary':
       return 'marker_or_reference_specialist_result'
+    case 'vertex_gemini_pro_visual_intelligence_boundary':
+      return 'visual_intelligence_evidence_report'
+    case 'qwen_model_studio_visual_understanding_api_boundary':
+      return 'historical_visual_understanding_result'
     case 'qwen2_5_vl_7b_instruct_provider_boundary':
-      return 'visual_understanding_result'
+      return 'historical_visual_understanding_result'
     case 'deepseek_v4_pro_tool_code_boundary':
       return 'edit_planning_or_tool_code_fallback_result'
     default:
@@ -215,6 +221,14 @@ export class MockProviderGatewayClient implements ProviderGatewayClient {
   }
 
   prepareRequest(request: ProviderGatewayRequest): ProviderGatewayNormalizedResponse {
+    const historicalVisualRoute = isHistoricalVisualProviderRoute(
+      request.providerRoute,
+    )
+    const visualIntelligenceOwnedRoute =
+      isVisualIntelligenceOwnedProviderRoute(request.providerRoute)
+    const blockedRoute = request.providerRoute === 'none'
+      || historicalVisualRoute
+      || visualIntelligenceOwnedRoute
     const secretReference = getProviderSecretReference(request.providerRoute)
     const usageEstimate = createUsageEstimate(request)
     const generatedAssetDraft = createGeneratedAssetDraft(request)
@@ -231,11 +245,21 @@ export class MockProviderGatewayClient implements ProviderGatewayClient {
       modelRoleProviderBoundary: modelRoleValidation.resolvedProviderBoundary,
       canonicalProviderModel: modelRoleValidation.resolvedCanonicalProviderModel,
       requestedModelUse: request.requestedModelUse,
-      status: request.providerRoute === 'none' ? 'blocked_by_policy' : 'accepted_mock',
+      status: blockedRoute ? 'blocked_by_policy' : 'accepted_mock',
       executionMode: this.executionMode,
-      errorCategory: request.providerRoute === 'none' ? 'unsupported_route' : 'none',
-      errorMessage: request.providerRoute === 'none' ? 'No provider route selected.' : undefined,
-      secretReferenceName: secretReference?.secretName,
+      errorCategory: historicalVisualRoute || visualIntelligenceOwnedRoute
+        ? 'policy_blocked'
+        : request.providerRoute === 'none'
+          ? 'unsupported_route'
+          : 'none',
+      errorMessage: historicalVisualRoute
+        ? `${request.providerRoute} is historical-read-only and cannot accept new visual work; use visual_intelligence.`
+        : visualIntelligenceOwnedRoute
+          ? `${request.providerRoute} is owned by the admitted visual_intelligence lifecycle and cannot be invoked through the generic mock provider gateway.`
+          : request.providerRoute === 'none'
+            ? 'No provider route selected.'
+            : undefined,
+      secretReferenceName: blockedRoute ? undefined : secretReference?.secretName,
       usageEstimate,
       generatedAssetDraft,
       providerEventPayload: {

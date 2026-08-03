@@ -10,6 +10,9 @@ import type {
   QwenVisualUnderstandingResult,
 } from '../services/qwen-visual-understanding-provider'
 import {
+  QWEN_VISUAL_UNDERSTANDING_RETIREMENT,
+} from '../services/qwen-visual-understanding-provider'
+import {
   EDIT_REFERENCE_COLOR_TREATMENT_STUDY_RESULT_VERSION,
   assertEditReferenceColorTreatmentStudyRequest,
   assertEditReferenceColorTreatmentStudyResult,
@@ -119,6 +122,11 @@ const MONEY_MICROS = /^(?:0|[1-9][0-9]{0,15})$/
 export function createEditReferenceQwenColorTreatmentAdapter(
   options: EditReferenceQwenColorTreatmentAdapterOptions,
 ): EditReferenceColorTreatmentStudyAdapter {
+  if (!QWEN_VISUAL_UNDERSTANDING_RETIREMENT.freshExecutionAllowed) {
+    throw new Error(
+      'edit_reference_qwen_color_treatment_adapter_retired_use_visual_intelligence',
+    )
+  }
   return {
     adapterId: EDIT_REFERENCE_QWEN_COLOR_TREATMENT_ADAPTER_ID,
     adapterVersion: EDIT_REFERENCE_QWEN_COLOR_TREATMENT_ADAPTER_VERSION,

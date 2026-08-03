@@ -5,6 +5,8 @@ import { lstat, readFile, readdir, realpath, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { promisify } from 'node:util'
 import { z } from 'zod'
+import { QWEN_VISUAL_UNDERSTANDING_RETIREMENT } from
+  '../services/qwen-visual-understanding-provider'
 import {
   assertNoPathTraversal,
   assertNoSignedUrlOrRawUrl,
@@ -174,6 +176,7 @@ const runValidationStates = new WeakMap<object, RunValidationState>()
 export async function createEditReferenceReviewedLocalQwen25VlMlxRunValidationAuthority(
   input: CreateEditReferenceReviewedLocalQwen25VlMlxRunValidationAuthorityInput,
 ): Promise<EditReferenceReviewedLocalQwen25VlMlxRunValidationAuthority> {
+  assertReviewedLocalQwenRuntimeRetired()
   if (!SAFE_RUN_ID_PATTERN.test(input.runId)) throw new Error('Reviewed local Qwen run-validation ID is invalid.')
   const snapshotBeforeValidation = await captureRuntimeBindingSnapshot(input)
   const receipt = freezeRuntimeReceipt(await validateEditReferenceReviewedLocalQwen25VlMlxRuntime(input))
@@ -220,6 +223,7 @@ export async function resolveEditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt
     readonly runValidation?: EditReferenceReviewedLocalQwen25VlMlxRunValidationBinding
   },
 ): Promise<EditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt> {
+  assertReviewedLocalQwenRuntimeRetired()
   if (!input.runValidation) return validateEditReferenceReviewedLocalQwen25VlMlxRuntime(input)
   const { authority, runId } = input.runValidation
   const state = runValidationStates.get(authority)
@@ -268,6 +272,7 @@ export function inspectEditReferenceReviewedLocalQwen25VlMlxRunValidationAuthori
 export async function validateEditReferenceReviewedLocalQwen25VlMlxRuntime(
   input: ValidateEditReferenceReviewedLocalQwen25VlMlxRuntimeInput,
 ): Promise<EditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt> {
+  assertReviewedLocalQwenRuntimeRetired()
   assertAbsoluteLocalPath(input.manifestPath, 'Reviewed local Qwen manifest path')
   assertAbsoluteLocalPath(input.modelPath, 'Reviewed local Qwen model path')
   assertAbsoluteLocalPath(input.pythonCommand, 'Reviewed local Qwen Python command')
@@ -323,6 +328,14 @@ export async function validateEditReferenceReviewedLocalQwen25VlMlxRuntime(
     externalUrlFetched: false,
     localPathsPersisted: false,
     productionReady: false,
+  }
+}
+
+function assertReviewedLocalQwenRuntimeRetired(): void {
+  if (!QWEN_VISUAL_UNDERSTANDING_RETIREMENT.freshExecutionAllowed) {
+    throw new Error(
+      'reviewed_local_qwen25vl_mlx_retired_use_visual_intelligence',
+    )
   }
 }
 

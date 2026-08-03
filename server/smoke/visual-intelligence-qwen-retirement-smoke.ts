@@ -1,0 +1,267 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+
+import {
+  validateProviderGatewayRequest,
+  type ProviderGatewayRequest,
+} from '../../src/backend/cloud/provider-gateway-contracts'
+import {
+  REEDITPRO_MODEL_ROLE_CONTRACTS,
+  validateReEditProModelRoleContracts,
+  validateReEditProModelRoleUse,
+} from '../../src/lib/model-role-routing-contract'
+import { createPrivateGcpVisualUnderstandingPlan } from
+  '../../src/lib/private-gcp-visual-understanding-contract'
+import { createMockProviderGatewayClient } from
+  '../../src/backend/providers/gateway/mock-provider-clients'
+import { getProviderSecretReference } from
+  '../../src/backend/providers/gateway/provider-secret-boundary'
+import { createEditReferenceQwenCaptionDesignAdapter } from
+  '../edit-references/edit-reference-qwen-caption-design-adapter'
+import { createEditReferenceQwenColorTreatmentAdapter } from
+  '../edit-references/edit-reference-qwen-color-treatment-adapter'
+import { createEditReferenceQwenGraphicsMotionAdapter } from
+  '../edit-references/edit-reference-qwen-graphics-motion-adapter'
+import { createEditReferenceQwenVisualLanguageAdapter } from
+  '../edit-references/edit-reference-qwen-visual-language-adapter'
+import { createEditReferenceReviewedLocalQwen25VlMlxAdapter } from
+  '../edit-references/edit-reference-reviewed-local-qwen25vl-mlx-adapter'
+import { createEditReferenceReviewedLocalQwen25VlMlxCaptionDesignAdapter } from
+  '../edit-references/edit-reference-reviewed-local-qwen25vl-mlx-caption-design-adapter'
+import {
+  createEditReferenceReviewedLocalQwen25VlMlxRunValidationAuthority,
+  resolveEditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt,
+  validateEditReferenceReviewedLocalQwen25VlMlxRuntime,
+} from '../edit-references/edit-reference-reviewed-local-qwen25vl-mlx-runtime'
+import { createEditReferenceReviewedLocalQwen25VlMlxSpeechPacingProvider } from
+  '../edit-references/edit-reference-reviewed-local-qwen25vl-mlx-speech-pacing-provider'
+import { createEditReferenceReviewedLocalQwen25VlMlxStoryEditorialProvider } from
+  '../edit-references/edit-reference-reviewed-local-qwen25vl-mlx-story-editorial-provider'
+import {
+  createEditReferenceReviewedLocalQwen25VlMlxColorAdapter,
+  createEditReferenceReviewedLocalQwen25VlMlxGraphicsAdapter,
+} from '../edit-references/edit-reference-reviewed-local-qwen25vl-mlx-style-adapters'
+import {
+  createQwenVisualUnderstandingProvider,
+  QWEN_VISUAL_UNDERSTANDING_RETIREMENT,
+} from '../services/qwen-visual-understanding-provider'
+
+const modelRoleValidation = validateReEditProModelRoleContracts()
+assert.equal(modelRoleValidation.ok, true)
+assert.deepEqual(modelRoleValidation.errors, [])
+
+const visualIntelligenceRole = REEDITPRO_MODEL_ROLE_CONTRACTS.find(
+  (role) => role.modelRoleId === 'visual_intelligence_gemini_pro_high',
+)
+assert.equal(
+  visualIntelligenceRole?.canonicalProviderModel,
+  'gemini-3.1-pro-preview',
+)
+assert.equal(
+  visualIntelligenceRole?.providerBoundary,
+  'vertex_gemini_pro_visual_intelligence_boundary',
+)
+assert.equal(visualIntelligenceRole?.visualUnderstandingAllowed, true)
+assert.equal(visualIntelligenceRole?.editPlanningAllowed, false)
+
+for (const modelRoleId of [
+  'qwen_3_7_api_visual_understanding',
+  'qwen2_5_vl_visual_understanding',
+] as const) {
+  const role = REEDITPRO_MODEL_ROLE_CONTRACTS.find(
+    (item) => item.modelRoleId === modelRoleId,
+  )
+  assert.equal(role?.executionStatus, 'retired_historical_read_only')
+  assert.equal(validateReEditProModelRoleUse({
+    modelRoleId,
+    providerRoute: role?.providerBoundary,
+    providerModel: role?.canonicalProviderModel,
+    requestedUse: 'visual_understanding',
+  }).ok, false)
+  assert.equal(validateReEditProModelRoleUse({
+    modelRoleId,
+    providerRoute: role?.providerBoundary,
+    providerModel: role?.canonicalProviderModel,
+    requestedUse: 'visual_understanding',
+    historicalReadOnly: true,
+  }).ok, true)
+}
+
+const historicalRequest = providerRequest({
+  providerRoute: 'qwen_model_studio_visual_understanding_api_boundary',
+  providerModel: 'qwen3.7-plus-2026-05-26',
+  modelRoleId: 'qwen_3_7_api_visual_understanding',
+})
+assert.equal(validateProviderGatewayRequest(historicalRequest).ok, false)
+assert.equal(
+  createMockProviderGatewayClient(historicalRequest.providerRoute)
+    .prepareRequest(historicalRequest).status,
+  'blocked_by_policy',
+)
+
+const directGeminiRequest = providerRequest({
+  providerRoute: 'vertex_gemini_pro_visual_intelligence_boundary',
+  providerModel: 'gemini-3.1-pro-preview',
+  modelRoleId: 'visual_intelligence_gemini_pro_high',
+})
+const directGeminiValidation =
+  validateProviderGatewayRequest(directGeminiRequest)
+assert.equal(directGeminiValidation.ok, false)
+assert.ok(directGeminiValidation.errors.some((error) =>
+  error.includes('owned exclusively by the admitted visual_intelligence')))
+assert.equal(
+  createMockProviderGatewayClient(directGeminiRequest.providerRoute)
+    .prepareRequest(directGeminiRequest).status,
+  'blocked_by_policy',
+)
+
+assert.equal(
+  getProviderSecretReference(
+    'qwen2_5_vl_7b_instruct_provider_boundary',
+  ),
+  undefined,
+)
+assert.equal(
+  getProviderSecretReference(
+    'qwen_model_studio_visual_understanding_api_boundary',
+  ),
+  undefined,
+)
+
+let transportCalls = 0
+const historicalProvider = createQwenVisualUnderstandingProvider({
+  env: new Proxy({}, {
+    get() {
+      throw new Error('Retired Qwen environment must not be read.')
+    },
+  }),
+  authenticatedPost: async () => {
+    transportCalls += 1
+    throw new Error('Retired Qwen transport must not be called.')
+  },
+})
+const blockedResult = await historicalProvider.analyze(new Proxy({} as never, {
+  get() {
+    throw new Error('Retired Qwen request must not be read.')
+  },
+}))
+assert.equal(blockedResult.status, 'blocked')
+assert.deepEqual(blockedResult.blockers, [
+  'qwen_visual_runtime_retired_historical_read_only',
+])
+assert.equal(blockedResult.execution.boundedPrivateFramesRead, false)
+assert.equal(blockedResult.execution.providerCallMade, false)
+assert.equal(blockedResult.execution.modelCallMade, false)
+assert.equal(transportCalls, 0)
+assert.equal(
+  QWEN_VISUAL_UNDERSTANDING_RETIREMENT.networkOrProviderCallAllowed,
+  false,
+)
+
+assert.throws(
+  () => createPrivateGcpVisualUnderstandingPlan(new Proxy({} as never, {
+    get() {
+      throw new Error('Retired Qwen plan input must not be read.')
+    },
+  })),
+  /private_gcp_qwen_visual_retired_use_visual_intelligence/u,
+)
+
+for (const construct of [
+  () => createEditReferenceQwenVisualLanguageAdapter({} as never),
+  () => createEditReferenceQwenColorTreatmentAdapter({} as never),
+  () => createEditReferenceQwenGraphicsMotionAdapter({} as never),
+  () => createEditReferenceQwenCaptionDesignAdapter({} as never),
+  () => createEditReferenceReviewedLocalQwen25VlMlxAdapter({} as never),
+  () => createEditReferenceReviewedLocalQwen25VlMlxCaptionDesignAdapter(
+    {} as never,
+  ),
+  () => createEditReferenceReviewedLocalQwen25VlMlxSpeechPacingProvider(
+    {} as never,
+  ),
+  () => createEditReferenceReviewedLocalQwen25VlMlxStoryEditorialProvider(
+    {} as never,
+  ),
+  () => createEditReferenceReviewedLocalQwen25VlMlxColorAdapter(
+    {} as never,
+  ),
+  () => createEditReferenceReviewedLocalQwen25VlMlxGraphicsAdapter(
+    {} as never,
+  ),
+]) {
+  assert.throws(construct, /retired_use_visual_intelligence/u)
+}
+
+const retiredRuntimeInput = {
+  manifestPath: '/path-must-not-be-read/manifest.json',
+  modelPath: '/path-must-not-be-read/model',
+  pythonCommand: '/path-must-not-be-run/python',
+}
+await assert.rejects(
+  () => validateEditReferenceReviewedLocalQwen25VlMlxRuntime(
+    retiredRuntimeInput,
+  ),
+  /retired_use_visual_intelligence/u,
+)
+await assert.rejects(
+  () => resolveEditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt(
+    retiredRuntimeInput,
+  ),
+  /retired_use_visual_intelligence/u,
+)
+await assert.rejects(
+  () => createEditReferenceReviewedLocalQwen25VlMlxRunValidationAuthority({
+    ...retiredRuntimeInput,
+    runId: 'retired-qwen-runtime-must-not-start',
+  }),
+  /retired_use_visual_intelligence/u,
+)
+
+const retiredProviderSource = readFileSync(
+  'server/services/qwen-visual-understanding-provider.ts',
+  'utf8',
+)
+assert.doesNotMatch(
+  retiredProviderSource,
+  /node:fs|node:child_process|createRequire|GoogleAuth|authenticatedCloudRunPost|QWEN_VISUAL_RUNTIME|Qwen\/Qwen2\.5-VL-7B-Instruct[\s\S]*authenticatedPost\(/,
+)
+
+console.log(JSON.stringify({
+  smoke: 'visual-intelligence-qwen-retirement',
+  visualIntelligenceRoleRegistered: true,
+  genericGeminiProviderGatewayBypassRejected: true,
+  qwen37VisualHistoricalReadOnly: true,
+  qwen25VisualHistoricalReadOnly: true,
+  qwenProviderTransportRemoved: true,
+  qwenSecretReferenceRemoved: true,
+  privateGcpQwenFreshPlanRejectedBeforeInputRead: true,
+  localQwenMlxRejectedBeforeFilesystemOrProcessAccess: true,
+  historicalEvidenceSchemasPreserved: true,
+}, null, 2))
+
+function providerRequest(input: Pick<
+  ProviderGatewayRequest,
+  'providerRoute' | 'providerModel' | 'modelRoleId'
+>): ProviderGatewayRequest {
+  return {
+    generationRequestId: `retired-${input.modelRoleId}`,
+    jobId: `job-${input.modelRoleId}`,
+    workspaceId: 'workspace-visual-cutover',
+    projectId: 'project-visual-cutover',
+    approvedPlanSnapshotId: 'snapshot-visual-cutover',
+    editPlanId: 'plan-visual-cutover',
+    creditReservationId: 'reservation-visual-cutover',
+    providerRoute: input.providerRoute,
+    providerModel: input.providerModel,
+    modelRoleId: input.modelRoleId,
+    requestedModelUse: 'visual_understanding',
+    signatureSystem: 'visual-intelligence-cutover',
+    generationType: 'none',
+    qualityLevel: 'high',
+    modelTier: 'premium',
+    inputAssetIds: [],
+    outputRequirements: { outputAssetType: 'visual_evidence' },
+    safetyConstraints: { routeRole: 'primary' },
+    idempotencyKey: `retired-${input.modelRoleId}`,
+  }
+}

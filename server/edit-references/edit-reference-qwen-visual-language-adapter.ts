@@ -8,6 +8,9 @@ import type {
   QwenVisualUnderstandingResult,
 } from '../services/qwen-visual-understanding-provider'
 import {
+  QWEN_VISUAL_UNDERSTANDING_RETIREMENT,
+} from '../services/qwen-visual-understanding-provider'
+import {
   EDIT_REFERENCE_VISUAL_LANGUAGE_STUDY_RESULT_VERSION,
   createBlockedEditReferenceVisualLanguageStudyResult,
   hashEditReferenceVisualLanguageStudyRequest,
@@ -108,6 +111,11 @@ const MONEY_MICROS = /^(?:0|[1-9][0-9]{0,15})$/
 export function createEditReferenceQwenVisualLanguageAdapter(
   options: EditReferenceQwenVisualLanguageAdapterOptions,
 ): EditReferenceVisualLanguageStudyAdapter {
+  if (!QWEN_VISUAL_UNDERSTANDING_RETIREMENT.freshExecutionAllowed) {
+    throw new Error(
+      'edit_reference_qwen_visual_language_adapter_retired_use_visual_intelligence',
+    )
+  }
   return {
     adapterId: EDIT_REFERENCE_QWEN_VISUAL_LANGUAGE_ADAPTER_ID,
     adapterVersion: EDIT_REFERENCE_QWEN_VISUAL_LANGUAGE_ADAPTER_VERSION,

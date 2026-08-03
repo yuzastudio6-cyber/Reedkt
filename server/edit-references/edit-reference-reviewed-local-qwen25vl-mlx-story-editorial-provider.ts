@@ -4,6 +4,8 @@ import { lstat, readFile, realpath } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { z } from 'zod'
+import { QWEN_VISUAL_UNDERSTANDING_RETIREMENT } from
+  '../services/qwen-visual-understanding-provider'
 import {
   resolveEditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt,
   type EditReferenceReviewedLocalQwen25VlMlxRunValidationBinding,
@@ -95,6 +97,11 @@ interface ReviewedRuntimeAuthority {
 export function createEditReferenceReviewedLocalQwen25VlMlxStoryEditorialProvider(
   input: CreateEditReferenceReviewedLocalQwen25VlMlxStoryEditorialProviderInput,
 ): QwenStoryEditorialReasoningProvider {
+  if (!QWEN_VISUAL_UNDERSTANDING_RETIREMENT.freshExecutionAllowed) {
+    throw new Error(
+      'reviewed_local_qwen25vl_mlx_retired_use_visual_intelligence',
+    )
+  }
   const timeoutMs = boundedTimeout(input.timeoutMs)
   const runnerScriptPath = input.runnerScriptPath ?? DEFAULT_RUNNER_SCRIPT_PATH
   let runtimePromise: Promise<ReviewedRuntimeAuthority> | undefined

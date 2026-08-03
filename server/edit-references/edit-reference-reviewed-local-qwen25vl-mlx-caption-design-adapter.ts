@@ -15,7 +15,10 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import { z } from 'zod'
-import type { QwenCaptionDesignObservation } from '../services/qwen-visual-understanding-provider'
+import {
+  QWEN_VISUAL_UNDERSTANDING_RETIREMENT,
+  type QwenCaptionDesignObservation,
+} from '../services/qwen-visual-understanding-provider'
 import {
   createBlockedEditReferenceCaptionDesignStudyResult,
   validateEditReferenceCaptionDesignStudyRequest,
@@ -218,6 +221,11 @@ export interface CreateEditReferenceReviewedLocalQwen25VlMlxCaptionDesignAdapter
 export function createEditReferenceReviewedLocalQwen25VlMlxCaptionDesignAdapter(
   input: CreateEditReferenceReviewedLocalQwen25VlMlxCaptionDesignAdapterInput,
 ): EditReferenceCaptionDesignStudyAdapter {
+  if (!QWEN_VISUAL_UNDERSTANDING_RETIREMENT.freshExecutionAllowed) {
+    throw new Error(
+      'reviewed_local_qwen25vl_mlx_retired_use_visual_intelligence',
+    )
+  }
   const runnerScriptPath = input.runnerScriptPath ?? DEFAULT_RUNNER_SCRIPT_PATH
   const timeoutMs = Math.min(45 * 60 * 1_000, Math.max(30_000, input.timeoutMs ?? 20 * 60 * 1_000))
   return {

@@ -20,4 +20,3 @@ console.log(JSON.stringify({
   manifestCount: result.manifestCount,
   manifestHashes: result.manifestHashes,
 }, null, 2))
-

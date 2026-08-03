@@ -113,4 +113,3 @@ export interface SkillCapabilityManifestCore {
 export interface SkillCapabilityManifest extends SkillCapabilityManifestCore {
   manifestHash: string
 }
-

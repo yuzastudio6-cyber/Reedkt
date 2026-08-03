@@ -19,4 +19,3 @@ export const skillContextManifestSchema = z.object({
 }).strict()
 
 export type SkillContextManifest = z.infer<typeof skillContextManifestSchema>
-

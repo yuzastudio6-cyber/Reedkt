@@ -48,4 +48,3 @@ export const skillAssignmentSchema = skillAssignmentCoreSchema.extend({
 export type SkillAssignmentInput = z.input<typeof skillAssignmentCoreSchema>
 
 export { skillAssignmentCoreSchema }
-

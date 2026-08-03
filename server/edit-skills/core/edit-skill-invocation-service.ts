@@ -45,4 +45,3 @@ export class EditSkillInvocationService {
     return result
   }
 }
-

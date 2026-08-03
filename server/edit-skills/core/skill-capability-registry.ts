@@ -81,4 +81,3 @@ export class SkillCapabilityRegistry {
     return skillManifestReference(this.resolveLatest(skillKey))
   }
 }
-

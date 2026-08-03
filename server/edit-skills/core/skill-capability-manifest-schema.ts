@@ -130,4 +130,3 @@ export const skillCapabilityManifestCoreSchema = z.object({
 export const skillCapabilityManifestSchema = skillCapabilityManifestCoreSchema.extend({
   manifestHash: skillSha256Schema,
 }).strict()
-

@@ -21,4 +21,3 @@ export const skillDependencyManifestSchema = z.object({
 }).strict()
 
 export type SkillDependencyManifest = z.infer<typeof skillDependencyManifestSchema>
-

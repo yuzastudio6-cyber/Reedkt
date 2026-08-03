@@ -42,4 +42,3 @@ export function assertSkillAssignmentFresh(input: {
     throw new Error('Skill assignment range is stale.')
   }
 }
-

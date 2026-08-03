@@ -27,4 +27,3 @@ export class SkillQaRegistry {
     return finding
   }
 }
-

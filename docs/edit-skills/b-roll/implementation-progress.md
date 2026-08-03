@@ -61,8 +61,12 @@ Qualification after M0: `implementation_pending`.
 
 ## M1 — generic edit-skill capability kernel
 
-Status: completed locally; commit and push recorded by the follow-up progress
-commit.
+Status: completed and pushed.
+
+Implementation commit: `ac8fcc6f3b1be4f584f2bed804a769f3e340b667`.
+
+Remote confirmation: the branch advanced to the implementation commit after
+push.
 
 Implemented strict manifest, manifest-reference, assignment, range,
 context/dependency, plan/result envelope, qualification receipt, estimator,
@@ -98,4 +102,4 @@ Qualification after M1: `implementation_pending`.
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
 | --- | --- | --- | --- | --- |
 | M0 | `ca25f01035590ba86f62fb2273c8299924610dcc` | this bookkeeping commit | confirmed | `implementation_pending` |
-| M1 | pending | pending | pending | `implementation_pending` |
+| M1 | `ac8fcc6f3b1be4f584f2bed804a769f3e340b667` | this bookkeeping commit | confirmed | `implementation_pending` |

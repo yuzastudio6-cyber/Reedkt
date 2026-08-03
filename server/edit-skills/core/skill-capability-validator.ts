@@ -102,4 +102,3 @@ export function validateSkillCapabilityManifests(input: {
   if (input.requireRuntimeHandlers !== false) input.registry.assertRuntimeBindings()
   return { manifestCount: manifests.length, manifestHashes: manifests.map((manifest) => manifest.manifestHash) }
 }
-

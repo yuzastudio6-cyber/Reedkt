@@ -71,4 +71,3 @@ export function assertQualificationSupportsClaim(input: {
     throw new Error('Skill qualification claim exceeds its receipt evidence.')
   }
 }
-

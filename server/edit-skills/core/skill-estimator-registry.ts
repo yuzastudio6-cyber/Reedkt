@@ -45,4 +45,3 @@ export class SkillEstimatorRegistry {
     return estimator(input)
   }
 }
-

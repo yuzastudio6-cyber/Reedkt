@@ -7,4 +7,3 @@ export function generateSkillManifestProjection(
   const validated = assertSkillManifestHash(manifest)
   return `${JSON.stringify(JSON.parse(canonicalSkillJson(validated)), null, 2)}\n`
 }
-

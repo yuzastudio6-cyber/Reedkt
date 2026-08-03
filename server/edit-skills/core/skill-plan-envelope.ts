@@ -33,4 +33,3 @@ export function createSkillPlanEnvelope(
   const core = skillPlanEnvelopeCoreSchema.parse(input)
   return skillPlanEnvelopeSchema.parse({ ...core, planHash: hashSkillValue(core) })
 }
-

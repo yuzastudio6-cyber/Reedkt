@@ -39,4 +39,3 @@ export const ACTIVE_QUALIFICATION_RANK: Readonly<
 
 export const SKILL_MANIFEST_REFERENCE_VERSION =
   'edit-skill-manifest-reference-v1' as const
-

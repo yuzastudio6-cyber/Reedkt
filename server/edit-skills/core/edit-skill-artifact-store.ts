@@ -103,4 +103,3 @@ export class InMemoryCreateOnlyEditSkillArtifactStore implements EditSkillArtifa
     return this.#schemas.parse(input.reference.artifactType, record.value)
   }
 }
-

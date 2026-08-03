@@ -19,4 +19,3 @@ export const editSkillReferenceCatalog: SkillReferenceCatalog = {
   noActionOperations: new Set(),
   phases: new Set(),
 }
-

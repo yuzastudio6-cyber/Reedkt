@@ -27,4 +27,3 @@ export interface SkillAssignment {
   requestedBySkill: EditSkillKey | 'orchestra'
   assignmentHash: string
 }
-

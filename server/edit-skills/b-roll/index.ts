@@ -1,4 +1,7 @@
-import type { EditSkillArtifactSchemaRegistry } from '../core/edit-skill-artifact-store'
+import type {
+  EditSkillArtifactSchemaRegistry,
+  EditSkillArtifactStore,
+} from '../core/edit-skill-artifact-store'
 import type { SkillCapabilityRegistry } from '../core/skill-capability-registry'
 import type { SkillReferenceCatalog } from '../core/skill-capability-validator'
 import type { SkillEstimatorRegistry } from '../core/skill-estimator-registry'
@@ -15,7 +18,7 @@ import {
   BROLL_TOOL_OPERATIONS,
 } from './b-roll-capability-manifest'
 import { registerBrollQaPolicies } from './b-roll-qa-policy'
-import { createBrollImplementationPendingQualificationReceipt } from './b-roll-qualification'
+import { createBrollPlanningQualificationReceipt } from './b-roll-qualification'
 import { BrollSkillService } from './b-roll-skill-service'
 
 export * from './b-roll-artifact-types'
@@ -23,12 +26,18 @@ export * from './b-roll-capability-manifest'
 export * from './b-roll-qa-policy'
 export * from './b-roll-qualification'
 export * from './b-roll-skill-service'
+export * from './b-roll-context-loader'
+export * from './b-roll-contracts'
+export * from './b-roll-plan-compiler'
+export * from './b-roll-schemas'
+export * from './mini-skills/index'
 
 export function registerBrollSkill(input: {
   capabilities: SkillCapabilityRegistry
   estimators: SkillEstimatorRegistry
   qa: SkillQaRegistry
   artifacts: EditSkillArtifactSchemaRegistry
+  artifactStore: EditSkillArtifactStore
   qualifications: SkillQualificationRegistry
   catalog: SkillReferenceCatalog
 }): void {
@@ -66,9 +75,13 @@ export function registerBrollSkill(input: {
   input.capabilities.registerHandler({
     skillKey: 'b_roll',
     skillVersion: '1.0.0',
-    handler: new BrollSkillService(),
+    handler: new BrollSkillService({
+      artifacts: input.artifactStore,
+      estimators: input.estimators,
+      qa: input.qa,
+    }),
   })
-  const receipt = createBrollImplementationPendingQualificationReceipt(BROLL_CAPABILITY_MANIFEST)
+  const receipt = createBrollPlanningQualificationReceipt(BROLL_CAPABILITY_MANIFEST)
   input.qualifications.register(receipt)
   input.qualifications.assertClaim(
     input.capabilities.referenceFor('b_roll'),

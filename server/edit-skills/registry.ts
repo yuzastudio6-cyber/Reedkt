@@ -1,4 +1,7 @@
-import { EditSkillArtifactSchemaRegistry } from './core/edit-skill-artifact-store'
+import {
+  EditSkillArtifactSchemaRegistry,
+  InMemoryCreateOnlyEditSkillArtifactStore,
+} from './core/edit-skill-artifact-store'
 import { SkillCapabilityRegistry } from './core/skill-capability-registry'
 import type { SkillReferenceCatalog } from './core/skill-capability-validator'
 import { SkillEstimatorRegistry } from './core/skill-estimator-registry'
@@ -11,6 +14,9 @@ export const editSkillEstimatorRegistry = new SkillEstimatorRegistry()
 export const editSkillQaRegistry = new SkillQaRegistry()
 export const editSkillArtifactSchemaRegistry = new EditSkillArtifactSchemaRegistry()
 export const editSkillQualificationRegistry = new SkillQualificationRegistry()
+export const editSkillArtifactStore = new InMemoryCreateOnlyEditSkillArtifactStore(
+  editSkillArtifactSchemaRegistry,
+)
 
 export const editSkillReferenceCatalog: SkillReferenceCatalog = {
   jobTypes: new Set(),
@@ -26,6 +32,7 @@ registerBrollSkill({
   estimators: editSkillEstimatorRegistry,
   qa: editSkillQaRegistry,
   artifacts: editSkillArtifactSchemaRegistry,
+  artifactStore: editSkillArtifactStore,
   qualifications: editSkillQualificationRegistry,
   catalog: editSkillReferenceCatalog,
 })

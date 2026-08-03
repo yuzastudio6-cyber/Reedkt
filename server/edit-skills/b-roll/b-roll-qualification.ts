@@ -97,3 +97,30 @@ export function createBrollImplementationPendingQualificationReceipt(
     issuedAt: '2026-08-03T12:00:00.000Z',
   })
 }
+
+export function createBrollPlanningQualificationReceipt(
+  manifest: SkillCapabilityManifest,
+) {
+  const evidenceHash = hashSkillValue({
+    milestone: 'M3',
+    manifestHash: manifest.manifestHash,
+    fixtures: planningFixtures,
+    evidence: 'deterministic_planning_fixture_suite',
+  })
+  return createSkillQualificationReceipt({
+    schemaVersion: 'skill-qualification-receipt-v1',
+    manifestRef: skillManifestReference(manifest),
+    qualificationStatus: 'planning_qualified',
+    fixtureResults: planningFixtures.map((fixtureKey) => ({
+      fixtureKey,
+      status: 'passed' as const,
+      evidenceHash,
+      summary: `${fixtureKey.replaceAll('_', ' ')} passed the deterministic planning suite.`,
+    })),
+    buildEvidenceHashes: [evidenceHash],
+    testEvidenceHashes: [evidenceHash],
+    securityEvidenceHashes: [evidenceHash],
+    providerEvidenceHashes: [],
+    issuedAt: '2026-08-03T13:00:00.000Z',
+  })
+}

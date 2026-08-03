@@ -68,7 +68,7 @@ export const BROLL_CAPABILITY_MANIFEST = createSkillCapabilityManifest({
   skillKey: 'b_roll',
   skillVersion: '1.0.0',
   contractVersion: 'b_roll.skill_contract.v1',
-  qualificationStatus: 'implementation_pending',
+  qualificationStatus: 'planning_qualified',
   skillClass: 'creative_visual_asset_skill',
   coordinationCritical: true,
   canOwnPrimaryVisual: true,

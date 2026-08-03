@@ -139,6 +139,50 @@ Known pre-existing unrelated failures: none in the affected checks.
 Qualification after M2: `implementation_pending`; planning invocation remains
 explicitly disabled until M3 evidence passes.
 
+## M3 — B-roll contracts and deterministic planning mini-skills
+
+Status: completed locally; commit and push recorded by the follow-up progress
+commit.
+
+Implemented immutable B-roll assignment and separate whole-video read-context
+versus exact write-range authority; tenant/project and master-timing checks;
+strict planning context, source candidate, shot specification, coordination,
+and plan contracts; and independently testable assignment guard, context
+reader, restraint, editorial role, source scoring/routing, concept, shot,
+timing/composition, cross-skill, and Omni request-planning mini-skills.
+
+The planner now returns professional no-action, existing project source,
+approved user asset, Gemini Omni generation/edit planning, Track All
+dependency, user-confirmation, and blocked dispositions. It prefers source and
+no-action routes, prevents generated proof, rejects repeated concepts, handles
+regional edit ineligibility and non-native aspect ratios conservatively,
+preserves caption and cross-skill ownership, produces exact range-bounded
+plans, and can run through the generic manifest-gated invocation service with
+content-addressed assignment/context/plan artifacts.
+
+Planning qualification fixtures pass for emotional no-action, zero-provider
+existing source, approved user asset, generated context, generated-proof
+rejection, range overreach, whole-video read-only context, primary visual
+conflict, caption-safe behavior, tracking present/missing, concept repetition,
+regional eligibility, crop-safe non-native frames, and audio handoff. The
+manifest and generated projection advanced to hash
+`8ae1688bb9779be10f59e17553b86281cdaccaf52600c367bea1cbf496369b11`.
+
+Tests:
+
+- `npm run test:b-roll-planning` — passed all planning qualification fixtures.
+- `npm run validate:skill-capability-manifests` — passed with one manifest.
+- `npm run test:b-roll-capability-manifest` — passed.
+- `npm run test:edit-skill-capability-kernel` — passed.
+- `npm run typecheck:server` — passed.
+- `npm run lint` — passed.
+- `npm run check:frontend-boundary` — passed for 1,044 files.
+
+Known pre-existing unrelated failures: none in the affected checks.
+
+Qualification after M3: `planning_qualified`. No provider, media worker,
+render, billing, wallet, cloud, or production operation was executed.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -146,3 +190,4 @@ explicitly disabled until M3 evidence passes.
 | M0 | `ca25f01035590ba86f62fb2273c8299924610dcc` | this bookkeeping commit | confirmed | `implementation_pending` |
 | M1 | `ac8fcc6f3b1be4f584f2bed804a769f3e340b667` | this bookkeeping commit | confirmed | `implementation_pending` |
 | M2 | `a1a73b0ca7b9efc4007c8c0c17777e69984142a2` | this bookkeeping commit | confirmed | `implementation_pending` |
+| M3 | pending | pending | pending | `planning_qualified` |

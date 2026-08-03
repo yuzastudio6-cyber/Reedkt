@@ -2,6 +2,11 @@ import { z } from 'zod'
 
 import type { EditSkillArtifactSchemaRegistry } from '../core/edit-skill-artifact-store'
 import { skillManifestReferenceSchema, skillSha256Schema } from '../core/skill-capability-manifest-schema'
+import {
+  brollPlanArtifactSchema,
+  brollPlanningContextSchema,
+  brollSkillAssignmentSchema,
+} from './b-roll-schemas'
 
 export const BROLL_ACCEPTED_ARTIFACT_TYPES = [
   'b_roll_assignment_v1',
@@ -67,6 +72,12 @@ export function registerBrollArtifactSchemas(registry: EditSkillArtifactSchemaRe
       artifactType,
       artifactType === 'track_graph_v1'
         ? trackGraphV1Schema
+        : artifactType === 'b_roll_assignment_v1'
+          ? brollSkillAssignmentSchema
+          : artifactType === 'b_roll_context_manifest_v1'
+            ? brollPlanningContextSchema
+            : artifactType === 'b_roll_plan_v1'
+              ? brollPlanArtifactSchema
         : scopedArtifactEnvelopeSchema.extend({ schemaVersion: z.literal(artifactType) }).strict(),
     )
   }

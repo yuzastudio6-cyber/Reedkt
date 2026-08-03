@@ -29,6 +29,11 @@ import { runFinalRenderExecutionPipeline } from '../final-render'
 import type { FinalRenderEngine, FinalRenderExecutionMode, FinalRenderMode } from '../final-render'
 
 export async function routeProductionWorkerJob(payload: ProductionWorkerJobPayload): Promise<ProductionWorkerRouteOutput> {
+  if (payload.executionMode === 'production_ready') {
+    throw new Error(
+      'legacy_mock_worker_production_retired_canonical_a100_l4_gpu_continuation_required',
+    )
+  }
   switch (payload.workerType) {
     case 'cpu_analysis_worker':
       if (hasMediaFoundationRequest(payload)) {
@@ -208,7 +213,7 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
       }
 
       return {
-        summary: 'Dry-run only: future GPU AI worker will run faster-whisper, BiRefNet, SAM2, DeepFilterNet, Demucs, Real-ESRGAN, FILM, and heavy CV recipes after approval.',
+        summary: 'Dry-run only: future GPU AI worker will run faster-whisper, BiRefNet, canonical SAM 3.1, DeepFilterNet, Demucs, Real-ESRGAN, FILM, and heavy CV recipes after approval.',
         workerType: payload.workerType,
         executionMode: payload.executionMode,
         mockOnly: true,
@@ -738,10 +743,10 @@ function buildMaskCompositionInput(
     subjectSelection: parseMaskSubjectSelection(request.subjectSelection),
     selectedPrimaryTool: isMaskToolId(request.selectedPrimaryTool) ? request.selectedPrimaryTool : undefined,
     fallbackTools: Array.isArray(request.fallbackTools) ? request.fallbackTools.filter(isMaskToolId) : undefined,
+    legacySam2InputRejected: request.sam2CheckpointLocalPath !== undefined,
     modelWeightManifestIds: Array.isArray(request.modelWeightManifestIds) ? request.modelWeightManifestIds.filter(isStringValue) : undefined,
     modelLocalPaths: Array.isArray(request.modelLocalPaths) ? request.modelLocalPaths.filter(isStringValue) : undefined,
     birefnetModelLocalPath: stringValue(request.birefnetModelLocalPath),
-    sam2CheckpointLocalPath: stringValue(request.sam2CheckpointLocalPath),
     maskConfidenceHint: numberValue(request.maskConfidenceHint),
     motionRequiresTracking: request.motionRequiresTracking === true,
     frameSamplingMaxFrames: numberValue(request.frameSamplingMaxFrames),
@@ -807,6 +812,7 @@ function isMaskIntent(value: unknown): value is MaskIntent {
 
 function isMaskToolId(value: unknown): value is MaskToolId {
   return value === 'birefnet' ||
+    value === 'sam3_1' ||
     value === 'sam2' ||
     value === 'transparent_background' ||
     value === 'rembg' ||

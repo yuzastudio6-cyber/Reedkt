@@ -8,7 +8,7 @@ import {
   getCanonicalSam2ModelArtifactRequirementSet,
   projectCanonicalSam2GpuBundleRequirements,
   type CanonicalModelArtifactLocator,
-} from '../model-artifacts'
+} from '../model-artifacts/historical-sam2'
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'

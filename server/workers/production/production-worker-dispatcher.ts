@@ -123,6 +123,39 @@ export async function dispatchProductionWorkerJob(input: {
     })
   }
 
+  if (payload.executionMode === 'production_ready') {
+    events.push(pushEvent(
+      state,
+      payload,
+      'job_blocked',
+      'The legacy mock worker cannot execute production work. Approved work must use the canonical funded A100/L4 GPU continuation.',
+      100,
+      {
+        requiredGate:
+          'canonical_professional_gpu_approved_plan_continuation',
+        cpuOnlySubstantiveExecutionAllowed: false,
+      },
+    ))
+    return createProductionWorkerResult({
+      payload,
+      status: 'blocked',
+      gateChecks,
+      events,
+      toolCostMetadata: preWorkToolCostMetadata,
+      warnings: [
+        ...collectGateWarnings(gateChecks),
+        'Legacy mock production routing is historical test support only; it cannot spend, execute media, or stand in for WeEditPro cloud GPU work.',
+      ],
+      error: {
+        code: 'LEGACY_MOCK_WORKER_PRODUCTION_RETIRED',
+        message:
+          'Production-ready work requires the canonical funded A100/L4 GPU continuation and cannot run through the legacy mock worker.',
+        failureCategory: 'policy_blocked',
+      },
+      startedAt,
+    })
+  }
+
   const lease = createWorkerLease(state, payload, input.workerInstanceId)
   events.push(pushEvent(state, payload, 'job_claimed', 'Production worker job lease claimed.', 25, {
     leaseId: lease.leaseId,

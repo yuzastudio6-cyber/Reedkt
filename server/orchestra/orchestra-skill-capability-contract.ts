@@ -583,6 +583,7 @@ const manifestWithoutDigestsSchema = z.object({
   const blocked = new Set(
     manifest.qualificationStatus.blockedJobTypes.map((item) => item.jobType),
   )
+  const qualificationJobTypes = [...qualified, ...blocked].sort(utf16Compare)
   if (
     !unique(jobTypes)
     || !ordered(jobTypes)
@@ -590,6 +591,7 @@ const manifestWithoutDigestsSchema = z.object({
     || jobTypes.some((jobType) => manifest.unsupportedJobTypes.includes(jobType))
     || [...qualified].some((jobType) => blocked.has(jobType))
     || [...qualified, ...blocked].some((jobType) => !jobTypes.includes(jobType))
+    || canonicalJson(qualificationJobTypes) !== canonicalJson(jobTypes)
     || manifest.ownershipRequirements.skillOwnsPrimaryVisual
       !== manifest.canOwnPrimaryVisual
   ) context.addIssue({

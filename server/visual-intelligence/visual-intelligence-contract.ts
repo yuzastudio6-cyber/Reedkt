@@ -952,39 +952,47 @@ function validateRequestSemantics(
   if (value.operation !== 'query_range' && value.callerQuestion !== null) {
     context.addIssue({ code: 'custom', message: 'Caller question is range-query only.' })
   }
-  if (value.operation === 'inspect_edit') {
-    if (value.admission.mode !== 'approved_edit_inspection') {
-      context.addIssue({ code: 'custom', message: 'Inspection needs approved admission.' })
-    }
+  const approvedAdmission = value.admission.mode
+    === 'approved_edit_inspection'
+  if (value.operation === 'analyze_media' && approvedAdmission) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Whole-media analysis is planning evidence only.',
+    })
+  }
+  if (value.operation === 'inspect_edit' && !approvedAdmission) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Edit inspection needs approved admission.',
+    })
+  }
+  if (value.admission.mode === 'approved_edit_inspection') {
     if (
       value.scope.approvedSnapshotId === null
-      || value.expectedOutcomeRefs.length === 0
+      || value.admission.approvedPlanSnapshotRef.id
+        !== value.scope.approvedSnapshotId
       || value.outputFrame === null
-    ) {
-      context.addIssue({
-        code: 'custom',
-        message: 'Inspection needs snapshot, output-frame, and expected-outcome authority.',
-      })
-    }
-    if (
-      value.admission.mode === 'approved_edit_inspection'
-      && !sameOrderedRefs(
+      || !sameOrderedRefs(
         value.expectedOutcomeRefs,
         value.admission.expectedOutcomeRefs,
       )
-    ) {
-      context.addIssue({
-        code: 'custom',
-        message: 'Inspection outcome authority is inconsistent.',
-      })
-    }
-  } else if (value.admission.mode !== 'planning_evidence') {
-    context.addIssue({ code: 'custom', message: 'Preplanning operation needs planning admission.' })
+    ) context.addIssue({
+      code: 'custom',
+      message: 'Approved Visual Intelligence evidence lost snapshot, frame, or outcome authority.',
+    })
+    if (
+      value.operation === 'inspect_edit'
+      && value.expectedOutcomeRefs.length === 0
+    ) context.addIssue({
+      code: 'custom',
+      message: 'Edit inspection needs expected-outcome authority.',
+    })
+  } else if (value.scope.approvedSnapshotId !== null) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Planning evidence is preapproval.',
+    })
   }
-  if (
-    value.admission.mode === 'planning_evidence'
-    && value.scope.approvedSnapshotId !== null
-  ) context.addIssue({ code: 'custom', message: 'Planning evidence is preapproval.' })
   const allowedRangeByArtifact = new Map<string, number>([
     ...value.sourceArtifacts,
     ...value.comparisonArtifacts,

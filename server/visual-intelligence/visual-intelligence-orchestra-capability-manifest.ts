@@ -69,7 +69,7 @@ const SCENE_JOBS = [
     ['identify_primary_subject'], ['planning', 'approved_execution']),
   route('scene_safe_zone_analysis', 'find_and_verify_scene_safe_zones',
     ['scene'], 'query_range',
-    ['find_available_graphic_space', 'verify_safe_zone'],
+    ['verify_safe_zone'],
     ['planning', 'approved_execution']),
   route('scene_screen_text_analysis', 'verify_scene_visible_text', ['scene'],
     'query_range', ['verify_screen_text'], ['planning', 'approved_execution']),
@@ -567,6 +567,14 @@ export function createVisualIntelligenceOrchestraCapabilityManifest():
 SkillCapabilityManifest {
   const qualificationSnapshot =
     createVisualIntelligenceOrchestraQualificationSnapshot()
+  return createVisualIntelligenceOrchestraCapabilityManifestForQualification(
+    qualificationSnapshot,
+  )
+}
+
+export function createVisualIntelligenceOrchestraCapabilityManifestForQualification(
+  qualificationSnapshot: SkillQualificationSnapshot,
+): SkillCapabilityManifest {
   return parseSkillCapabilityManifest({
     value: createSkillCapabilityManifest({
       definition: DEFINITION,

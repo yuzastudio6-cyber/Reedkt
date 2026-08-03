@@ -420,7 +420,7 @@ const adversarial: Array<() => unknown> = [
   }),
   () => {
     let invoked = false
-    const accessor = structuredClone(call) as Record<string, unknown>
+    const accessor = structuredClone(call) as unknown as Record<string, unknown>
     Object.defineProperty(accessor, 'targetSkillKey', {
       enumerable: true,
       get() {

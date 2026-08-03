@@ -141,9 +141,9 @@ export interface OrchestraSkillCall {
 export interface SkillJobCapability {
   jobType: string
   purposeCode: string
-  supportedScopeTypes: Array<OrchestraSkillScope['scopeType']>
+  supportedScopeTypes: readonly OrchestraSkillScope['scopeType'][]
   internalOperationId: string
-  requiredProfileIds: string[]
+  requiredProfileIds: readonly string[]
   partialResultAllowed: boolean
 }
 

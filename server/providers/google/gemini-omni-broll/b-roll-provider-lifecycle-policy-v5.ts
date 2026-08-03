@@ -40,8 +40,10 @@ const lifecyclePolicyCoreSchema = z.object({
   temporaryDownloadUrlPersistenceAllowed: z.literal(false),
   rawRequestPersistenceAllowed: z.literal(false),
   rawResponsePersistenceAllowed: z.literal(false),
+  privateOwnerConfirmedCanaryTransportImplemented: z.literal(true),
+  providerCancellationSupported: z.literal(false),
   transportActivated: z.literal(false),
-  qualificationStatus: z.literal('internal_injected_only'),
+  qualificationStatus: z.literal('internal_transport_qualified_live_canary_blocked'),
 }).strict()
 
 export const brollProviderLifecyclePolicyV5Schema = lifecyclePolicyCoreSchema.extend({
@@ -86,8 +88,10 @@ export function createBrollProviderLifecyclePolicyV5(): BrollProviderLifecyclePo
     temporaryDownloadUrlPersistenceAllowed: false,
     rawRequestPersistenceAllowed: false,
     rawResponsePersistenceAllowed: false,
+    privateOwnerConfirmedCanaryTransportImplemented: true,
+    providerCancellationSupported: false,
     transportActivated: false,
-    qualificationStatus: 'internal_injected_only',
+    qualificationStatus: 'internal_transport_qualified_live_canary_blocked',
   })
   return brollProviderLifecyclePolicyV5Schema.parse({
     ...core,

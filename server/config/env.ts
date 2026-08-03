@@ -119,6 +119,7 @@ const envSchema = z.object({
     'cloud_run',
   ]).default('disabled'),
   GOOGLE_SECRET_OPENAI_API_KEY_NAME: z.string().optional(),
+  GOOGLE_SECRET_GEMINI_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_KIMI_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_WAN_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_HAILUO_API_KEY_NAME: z.string().optional(),
@@ -224,6 +225,7 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     openAiRuntimeMode: parsed.REEDITPRO_OPENAI_RUNTIME_MODE,
     providerSecretReferenceNames: {
       openai: clean(parsed.GOOGLE_SECRET_OPENAI_API_KEY_NAME),
+      gemini: clean(parsed.GOOGLE_SECRET_GEMINI_API_KEY_NAME),
       kimi: clean(parsed.GOOGLE_SECRET_KIMI_API_KEY_NAME),
       wan: clean(parsed.GOOGLE_SECRET_WAN_API_KEY_NAME),
       hailuo: clean(parsed.GOOGLE_SECRET_HAILUO_API_KEY_NAME),

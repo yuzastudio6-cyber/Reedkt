@@ -28,6 +28,8 @@
     "test:b-roll-canonical-integration": "tsx server/smoke/b-roll-canonical-integration-smoke.ts",
     "smoke:b-roll-existing-source": "tsx server/smoke/b-roll-existing-source-smoke.ts",
     "smoke:b-roll-provider-authority": "tsx server/smoke/b-roll-provider-authority-smoke.ts",
+    "smoke:b-roll-provider-lifecycle": "tsx server/smoke/b-roll-gemini-transport-smoke.ts",
+    "canary:gemini-omni-b-roll": "tsx server/cli/gemini-omni-b-roll-canary.ts",
     "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
     "build:server": "npm run typecheck:server && vite build --config vite.server.config.ts",
     "build:container-readiness-host-verifier": "npm run typecheck:server && vite build --config vite.container-readiness-host-verifier.config.ts",

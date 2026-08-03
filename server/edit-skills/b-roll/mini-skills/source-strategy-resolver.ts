@@ -46,6 +46,17 @@ export function resolveBrollSourceStrategy(input: {
     permitted(input.assignment, 'edit_uploaded_video_with_gemini_omni')
   ) return { decision: 'edit_uploaded_video_with_gemini_omni', selected: uploadedVideo, reason: 'The approved bounded source is eligible for Gemini Omni editing.' }
 
+  const referenceImage = ranked.find((item) =>
+    item.eligible && item.candidate.sourceType === 'reference_image')
+  if (
+    referenceImage && input.assignment.providerPermission === 'approved_within_ceiling' &&
+    permitted(input.assignment, 'generate_with_gemini_omni')
+  ) return {
+    decision: 'generate_with_gemini_omni',
+    selected: referenceImage,
+    reason: 'The approved reference image can guide one bounded Gemini Omni image-to-video candidate.',
+  }
+
   if (input.context.claimSensitivity === 'verified_proof_required' || input.context.generatedMediaWouldMislead) {
     return { decision: 'needs_user_confirmation', reason: 'Generated media cannot satisfy a verified-proof or claim-sensitive need.' }
   }

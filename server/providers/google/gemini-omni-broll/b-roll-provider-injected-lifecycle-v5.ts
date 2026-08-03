@@ -220,6 +220,10 @@ export async function executePrivateInjectedBrollProviderLifecycleV5(input: {
     value: input.authorization,
     requestPackage: input.requestPackage,
   })
+  if (authorization.authorityClass !== 'private_injected_nonprovider_test' ||
+    authorization.liveProviderCallAuthorized || !authorization.injectedOutputOnly) {
+    throw new Error('Injected B-roll lifecycle requires non-provider test authority.')
+  }
   assertExecutionInput(input, authorization)
   const policy = createBrollProviderLifecyclePolicyV5()
   const authorizationRequestHash = brollProviderAuthorizationRequestHashV5(authorization)
@@ -343,6 +347,10 @@ export async function reconcilePrivateInjectedBrollProviderUnknownV5(input: {
     value: input.authorization,
     requestPackage: input.requestPackage,
   })
+  if (authorization.authorityClass !== 'private_injected_nonprovider_test' ||
+    authorization.liveProviderCallAuthorized || !authorization.injectedOutputOnly) {
+    throw new Error('Injected B-roll reconciliation requires non-provider test authority.')
+  }
   const policy = createBrollProviderLifecyclePolicyV5()
   const authorizationRequestHash = brollProviderAuthorizationRequestHashV5(authorization)
   const attemptId = hashSkillValue({
@@ -423,6 +431,10 @@ export async function readBrollProviderConsumerReceiptV5(input: {
     value: input.authorization,
     requestPackage: input.requestPackage,
   })
+  if (authorization.authorityClass !== 'private_injected_nonprovider_test' ||
+    authorization.liveProviderCallAuthorized || !authorization.injectedOutputOnly) {
+    throw new Error('Injected B-roll receipt requires non-provider test authority.')
+  }
   const attemptId = hashSkillValue({
     domain: 'reeditpro:b-roll-provider-attempt:v5',
     authorizationRequestHash: brollProviderAuthorizationRequestHashV5(authorization),

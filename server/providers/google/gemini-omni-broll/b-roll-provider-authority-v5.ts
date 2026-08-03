@@ -72,7 +72,7 @@ const profileCoreSchema = z.object({
   acceptedRuntimeModel: z.null(),
   immutableProviderRevision: z.null(),
   providerRevisionStatus: z.literal('preview_alias_unpinned'),
-  qualificationStatus: z.literal('internal_injected_only'),
+  qualificationStatus: z.literal('internal_transport_qualified_live_canary_blocked'),
   expectedWorkItemType: z.literal('custom'),
   expectedWorkerClass: z.literal('provider_worker'),
   expectedOutput: expectedOutputSchema,
@@ -99,6 +99,7 @@ const profileCoreSchema = z.object({
     callerExecutableAllowed: z.literal(false),
   }).strict(),
   liveProviderCallAuthorized: z.literal(false),
+  privateOwnerConfirmedCanarySupported: z.literal(true),
   providerTransportActivated: z.literal(false),
   productionReady: z.literal(false),
 }).strict()
@@ -127,7 +128,7 @@ export function createBrollProviderOperationRegistryV5(): readonly [BrollProvide
     acceptedRuntimeModel: null,
     immutableProviderRevision: null,
     providerRevisionStatus: 'preview_alias_unpinned',
-    qualificationStatus: 'internal_injected_only',
+    qualificationStatus: 'internal_transport_qualified_live_canary_blocked',
     expectedWorkItemType: 'custom',
     expectedWorkerClass: 'provider_worker',
     expectedOutput: {
@@ -165,6 +166,7 @@ export function createBrollProviderOperationRegistryV5(): readonly [BrollProvide
       callerExecutableAllowed: false,
     },
     liveProviderCallAuthorized: false,
+    privateOwnerConfirmedCanarySupported: true,
     providerTransportActivated: false,
     productionReady: false,
   })
@@ -276,6 +278,9 @@ export function buildBrollProviderRequestPackageV5(input: {
     `Lighting: ${shot.lighting}`,
     `Color mood: ${shot.colorMood}`,
     `Visual style: ${shot.visualStyle}`,
+    `Duration: exactly ${shot.durationSeconds} seconds at 24 frames per second.`,
+    `Aspect ratio: ${input.plan.cropSafeProviderAspectRatio} with a 720p output.`,
+    'Audio: no dialogue, no music, and no added sound effects; final audio ownership remains outside B-roll.',
     `Continuity: ${shot.continuityRequirements.join(' ')}`,
     `Crop-safe subject area: ${shot.cropSafeSubjectArea}`,
     `Transformation class: ${shot.allowedTransformationClass}`,
@@ -369,7 +374,10 @@ const rateAuthoritySchema = z.object({
   schemaVersion: z.literal('b_roll_provider_rate_authority_v1'),
   snapshotId: identity,
   snapshotDigest: skillSha256Schema,
-  evidenceClass: z.literal('injected_test_rate_unqualified'),
+  evidenceClass: z.enum([
+    'injected_test_rate_unqualified',
+    'owner_confirmed_canary_ceiling_unqualified',
+  ]),
   currency: z.literal('USD'),
   costMicrosPerGeneratedSecond: z.number().int().nonnegative().max(100_000_000),
   effectiveAt: timestamp,
@@ -422,8 +430,12 @@ const authorizationCoreSchema = z.object({
   maximumRetries: z.literal(0),
   maximumFallbacks: z.literal(0),
   alternateProviderFallbackAllowed: z.literal(false),
-  liveProviderCallAuthorized: z.literal(false),
-  injectedOutputOnly: z.literal(true),
+  authorityClass: z.enum([
+    'private_injected_nonprovider_test',
+    'private_owner_confirmed_canary',
+  ]),
+  liveProviderCallAuthorized: z.boolean(),
+  injectedOutputOnly: z.boolean(),
   privateOutputRequired: z.literal(true),
   productionReady: z.literal(false),
 }).strict()
@@ -439,7 +451,13 @@ export const brollProviderWorkAuthorizationV5Schema = authorizationCoreSchema.ex
       authorization.maximumAuthorizedTotalInternalCostMicros ||
     Date.parse(authorization.authorizedAt) >= Date.parse(authorization.expiresAt) ||
     Date.parse(authorization.providerRateAuthority.effectiveAt) > Date.parse(authorization.authorizedAt) ||
-    Date.parse(authorization.providerRateAuthority.expiresAt) < Date.parse(authorization.expiresAt)
+    Date.parse(authorization.providerRateAuthority.expiresAt) < Date.parse(authorization.expiresAt) ||
+    (authorization.authorityClass === 'private_injected_nonprovider_test' &&
+      (authorization.liveProviderCallAuthorized || !authorization.injectedOutputOnly ||
+        authorization.providerRateAuthority.evidenceClass !== 'injected_test_rate_unqualified')) ||
+    (authorization.authorityClass === 'private_owner_confirmed_canary' &&
+      (!authorization.liveProviderCallAuthorized || authorization.injectedOutputOnly ||
+        authorization.providerRateAuthority.evidenceClass !== 'owner_confirmed_canary_ceiling_unqualified'))
   ) context.addIssue({ code: 'custom', message: 'B-roll provider V5 authorization policy is invalid.' })
 })
 
@@ -453,6 +471,7 @@ export function createBrollProviderWorkAuthorizationV5(input: {
   component: CanonicalBrollSkillPlanComponent
   componentRef: AuthorityJsonBlobRef
   assignment: BrollSkillAssignment
+  context: BrollPlanningContext
   plan: BrollPlanArtifact
   workGraph: BrollCanonicalWorkGraph
   requestPackage: BrollProviderRequestPackageV5
@@ -462,10 +481,16 @@ export function createBrollProviderWorkAuthorizationV5(input: {
   idempotencyKey: string
   authorizedAt: string
   expiresAt: string
+  authorityClass?: 'private_injected_nonprovider_test' | 'private_owner_confirmed_canary'
 }): BrollProviderWorkAuthorizationV5 {
   const profile = resolveBrollProviderOperationV5(BROLL_PROVIDER_OPERATION_ID)
   const executionPackage = brollProviderExecutionPackageV5Schema.parse(input.executionPackage)
   const requestPackage = brollProviderRequestPackageV5Schema.parse(input.requestPackage)
+  const canonicalRequestPackage = buildBrollProviderRequestPackageV5({
+    assignment: input.assignment,
+    context: input.context,
+    plan: input.plan,
+  })
   const providerWorkItems = input.workGraph.workItems.filter((item) =>
     item.operationId === BROLL_PROVIDER_OPERATION_ID)
   const packageWorkItems = executionPackage.approvedWorkItems.filter((item) =>
@@ -489,6 +514,7 @@ export function createBrollProviderWorkAuthorizationV5(input: {
     requestPackage.assignmentHash !== input.assignment.assignmentHash ||
     requestPackage.planHash !== input.plan.planHash ||
     hashSkillValue(requestPackage.manifestRef) !== hashSkillValue(input.assignment.manifestRef) ||
+    requestPackage.requestPackageHash !== canonicalRequestPackage.requestPackageHash ||
     workItem.workItemKey !== providerWorkItems[0]!.workItemKey ||
     workItem.expectedOutputs[0]!.outputKey.length < 1 ||
     executionPackage.remainingReservedCredits < workItem.maximumCreditBudget
@@ -496,6 +522,7 @@ export function createBrollProviderWorkAuthorizationV5(input: {
   const rate = rateAuthoritySchema.parse(input.providerRateAuthority)
   const maximumAuthorizedTotalInternalCostMicros =
     input.maximumAuthorizedProviderCostMicros + input.maximumAuthorizedInfrastructureCostMicros
+  const authorityClass = input.authorityClass ?? 'private_injected_nonprovider_test'
   const core = authorizationCoreSchema.parse({
     schemaVersion: BROLL_PROVIDER_WORK_AUTHORIZATION_V5_VERSION,
     operationId: BROLL_PROVIDER_OPERATION_ID,
@@ -540,8 +567,9 @@ export function createBrollProviderWorkAuthorizationV5(input: {
     maximumRetries: 0,
     maximumFallbacks: 0,
     alternateProviderFallbackAllowed: false,
-    liveProviderCallAuthorized: false,
-    injectedOutputOnly: true,
+    authorityClass,
+    liveProviderCallAuthorized: authorityClass === 'private_owner_confirmed_canary',
+    injectedOutputOnly: authorityClass === 'private_injected_nonprovider_test',
     privateOutputRequired: true,
     productionReady: false,
   })

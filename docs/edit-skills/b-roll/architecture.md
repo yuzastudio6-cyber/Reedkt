@@ -116,4 +116,3 @@ No frontend surface can authorize provider work, choose a provider route,
 provide an executable command, supply a storage path, or inject credentials.
 No production database migration or production resource mutation belongs to
 this implementation.
-

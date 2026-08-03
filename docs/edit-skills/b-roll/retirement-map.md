@@ -41,4 +41,3 @@ No remote branch, migration, provider attempt, accepted evidence hash, or
 historical artifact identity is deleted or rewritten. Retirement means that a
 path cannot be selected for new B-roll planning or execution. It does not
 reinterpret old records.
-

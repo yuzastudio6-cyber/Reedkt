@@ -11,8 +11,12 @@ level.
 
 ## M0 — repository reconciliation and baseline
 
-Status: completed locally; commit and remote confirmation recorded by the
-follow-up bookkeeping commit because a Git commit cannot contain its own hash.
+Status: completed and pushed.
+
+Implementation commit: `ca25f01035590ba86f62fb2273c8299924610dcc`
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after push.
 
 ### Reconciliation
 
@@ -59,5 +63,4 @@ Qualification after M0: `implementation_pending`.
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
 | --- | --- | --- | --- | --- |
-| M0 | pending | pending | pending | `implementation_pending` |
-
+| M0 | `ca25f01035590ba86f62fb2273c8299924610dcc` | this bookkeeping commit | confirmed | `implementation_pending` |

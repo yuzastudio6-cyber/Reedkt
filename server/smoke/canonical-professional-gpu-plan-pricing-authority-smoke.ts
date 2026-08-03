@@ -19,12 +19,24 @@ import {
   createCanonicalProfessionalGpuPlanUsageQuote,
   type CanonicalProfessionalGpuPlanPricingBasis,
 } from '../services/canonical-professional-gpu-plan-preapproval-authority-service'
+import {
+  canonicalPlanRequiresProfessionalGpuPricingAuthority,
+  createCanonicalProfessionalGpuPlanApprovalPricingAuthority,
+  verifyCanonicalProfessionalGpuPlanApprovalPricingAuthority,
+} from '../services/canonical-professional-gpu-plan-approval-pricing-authority'
+import {
+  createCanonicalConfirmedOutputFrameAuthority,
+} from '../services/canonical-confirmed-output-frame-authority'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import type {
   CanonicalEstimateInput,
   CanonicalPlanComponentsInput,
   CanonicalWorkItemInput,
 } from '../validation/edit-planning-authority-schemas'
+import {
+  resolvedPlanningInputAuthorityBindingSchema,
+  type ResolvedPlanningInputAuthorityBinding,
+} from '../validation/planning-input-authority-binding-schemas'
 
 const observedAt = '2026-08-03T14:00:00.000Z'
 const createdAt = '2026-08-03T14:10:00.000Z'
@@ -35,6 +47,16 @@ const rates = {
   l4_heavy_fallback: await observeRate('l4_heavy_fallback'),
   l4_standard_primary: await observeRate('l4_standard_primary'),
 }
+const planComponents = components()
+const planningAuthority = planningInputAuthority()
+const confirmedOutputFrameAuthority =
+  createCanonicalConfirmedOutputFrameAuthority({
+    workspaceId: 'workspace-1',
+    projectId: 'project-1',
+    editSessionId: 'edit-session-1',
+    planningInputAuthority: planningAuthority,
+    components: planComponents,
+  })
 
 const ffmpegWork = [toolWorkItem({
   workItemKey: 'ffmpeg-master',
@@ -43,9 +65,11 @@ const ffmpegWork = [toolWorkItem({
 })]
 const ffmpegBasis = createCanonicalProfessionalGpuPlanPricingBasis({
   scope: scope('ffmpeg'),
-  components: components(),
+  components: planComponents,
   workItems: ffmpegWork,
-  confirmedOutputFrameRef: ref('confirmed-output-frame', 'a'),
+  confirmedOutputFrameRef:
+    confirmedOutputFrameAuthority.confirmedOutputBinding
+      .confirmedOutputFrameRef,
   workloads: [{
     workItemKey: 'ffmpeg-master',
     exactToolOrModelReleaseRef: ref('ffmpeg-release', 'b'),
@@ -63,9 +87,11 @@ const changedCallerBudget = structuredClone(ffmpegWork)
 changedCallerBudget[0]!.maximumCreditBudget = 9_999_999
 const budgetIndependentBasis = createCanonicalProfessionalGpuPlanPricingBasis({
   scope: scope('ffmpeg'),
-  components: components(),
+  components: planComponents,
   workItems: changedCallerBudget,
-  confirmedOutputFrameRef: ref('confirmed-output-frame', 'a'),
+  confirmedOutputFrameRef:
+    confirmedOutputFrameAuthority.confirmedOutputBinding
+      .confirmedOutputFrameRef,
   workloads: [{
     workItemKey: 'ffmpeg-master',
     exactToolOrModelReleaseRef: ref('ffmpeg-release', 'b'),
@@ -169,6 +195,108 @@ assert.throws(() => createCanonicalProfessionalGpuPlanPublicationBinding({
   boundAt: createdAt,
 }), /exact estimate/u)
 
+const approvalPricingAuthority =
+  createCanonicalProfessionalGpuPlanApprovalPricingAuthority({
+    authorityId: 'ffmpeg-plan-approval-pricing-authority',
+    workspaceId: ffmpegBasis.scope.workspaceId,
+    editPlanId: binding.publishedPlanRef.id,
+    pricingBasis: ffmpegBasis,
+    preapprovalManifest: ffmpegManifest,
+    publicationBinding: binding,
+    sealedAt: createdAt,
+  })
+assert.equal(
+  canonicalPlanRequiresProfessionalGpuPricingAuthority(ffmpegWork),
+  true,
+)
+assert.equal(verifyCanonicalProfessionalGpuPlanApprovalPricingAuthority({
+  value: structuredClone(approvalPricingAuthority),
+  ownerUserId: ffmpegBasis.scope.ownerUserId,
+  workspaceId: ffmpegBasis.scope.workspaceId,
+  projectId: ffmpegBasis.scope.projectId,
+  editSessionId: ffmpegBasis.scope.editSessionId,
+  planningRequestId: ffmpegBasis.scope.planningRequestId,
+  editPlanId: binding.publishedPlanRef.id,
+  editPlanVersion: binding.publishedPlanRef.version,
+  editPlanHash: binding.publishedPlanRef.contentHash.slice(7),
+  estimateId: binding.publishedCustomerEstimateRef.id,
+  estimateVersion: binding.publishedCustomerEstimateRef.version,
+  estimateHash: binding.publishedCustomerEstimateRef.contentHash.slice(7),
+  components: planComponents,
+  workItems: applied.workItems,
+  customerEstimate: applied.estimate,
+  confirmedOutputFrameAuthority,
+  at: createdAt,
+}).authorityHash, approvalPricingAuthority.authorityHash)
+
+const tamperedFrameAuthority = structuredClone(confirmedOutputFrameAuthority)
+tamperedFrameAuthority.authorityDigestSha256 = hash('9')
+assert.throws(() => verifyCanonicalProfessionalGpuPlanApprovalPricingAuthority({
+  value: approvalPricingAuthority,
+  ownerUserId: ffmpegBasis.scope.ownerUserId,
+  workspaceId: ffmpegBasis.scope.workspaceId,
+  projectId: ffmpegBasis.scope.projectId,
+  editSessionId: ffmpegBasis.scope.editSessionId,
+  planningRequestId: ffmpegBasis.scope.planningRequestId,
+  editPlanId: binding.publishedPlanRef.id,
+  editPlanVersion: binding.publishedPlanRef.version,
+  editPlanHash: binding.publishedPlanRef.contentHash.slice(7),
+  estimateId: binding.publishedCustomerEstimateRef.id,
+  estimateVersion: binding.publishedCustomerEstimateRef.version,
+  estimateHash: binding.publishedCustomerEstimateRef.contentHash.slice(7),
+  components: planComponents,
+  workItems: applied.workItems,
+  customerEstimate: applied.estimate,
+  confirmedOutputFrameAuthority: tamperedFrameAuthority,
+  at: createdAt,
+}), /confirmed-output authority digest/u)
+
+const estimateWithoutGpuLine = structuredClone(applied.estimate)
+estimateWithoutGpuLine.lineItems = estimateWithoutGpuLine.lineItems.filter(
+  (line) => line.category !== 'gpu_tool_infrastructure',
+)
+assert.throws(() => verifyCanonicalProfessionalGpuPlanApprovalPricingAuthority({
+  value: approvalPricingAuthority,
+  ownerUserId: ffmpegBasis.scope.ownerUserId,
+  workspaceId: ffmpegBasis.scope.workspaceId,
+  projectId: ffmpegBasis.scope.projectId,
+  editSessionId: ffmpegBasis.scope.editSessionId,
+  planningRequestId: ffmpegBasis.scope.planningRequestId,
+  editPlanId: binding.publishedPlanRef.id,
+  editPlanVersion: binding.publishedPlanRef.version,
+  editPlanHash: binding.publishedPlanRef.contentHash.slice(7),
+  estimateId: binding.publishedCustomerEstimateRef.id,
+  estimateVersion: binding.publishedCustomerEstimateRef.version,
+  estimateHash: binding.publishedCustomerEstimateRef.contentHash.slice(7),
+  components: planComponents,
+  workItems: applied.workItems,
+  customerEstimate: estimateWithoutGpuLine,
+  confirmedOutputFrameAuthority,
+  at: createdAt,
+}), /immutable plan/u)
+
+let approvalAccessorInvoked = false
+const accessorApprovalInput: Record<string, unknown> = {
+  authorityId: 'accessor-approval-pricing',
+  workspaceId: ffmpegBasis.scope.workspaceId,
+  editPlanId: binding.publishedPlanRef.id,
+  preapprovalManifest: ffmpegManifest,
+  publicationBinding: binding,
+  sealedAt: createdAt,
+}
+Object.defineProperty(accessorApprovalInput, 'pricingBasis', {
+  enumerable: true,
+  get() {
+    approvalAccessorInvoked = true
+    return ffmpegBasis
+  },
+})
+assert.throws(() =>
+  createCanonicalProfessionalGpuPlanApprovalPricingAuthority(
+    accessorApprovalInput as never,
+  ), /enumerable data properties/u)
+assert.equal(approvalAccessorInvoked, false)
+
 const dispatchSet = createCanonicalProfessionalGpuPlanDispatchEstimateSet({
   estimateSetId: 'ffmpeg-plan-dispatch-estimates',
   pricingBasis: ffmpegBasis,
@@ -223,9 +351,11 @@ const samWork = [toolWorkItem({
 })]
 const samBasis = createCanonicalProfessionalGpuPlanPricingBasis({
   scope: scope('sam31'),
-  components: components(),
+  components: planComponents,
   workItems: samWork,
-  confirmedOutputFrameRef: ref('confirmed-output-frame', 'a'),
+  confirmedOutputFrameRef:
+    confirmedOutputFrameAuthority.confirmedOutputBinding
+      .confirmedOutputFrameRef,
   workloads: [{
     workItemKey: 'sam31-mask',
     exactToolOrModelReleaseRef: ref('sam31-model-release', '1'),
@@ -276,7 +406,7 @@ assert.throws(() => applyCanonicalProfessionalGpuPlanPricing({
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-gpu-plan-pricing-authority',
-  checks: 46,
+  checks: 58,
   sourceFixtureOnly: true,
   liveCloudRateRead: false,
   liveGpuRuntimeExecuted: false,
@@ -289,8 +419,11 @@ console.log(JSON.stringify({
     samManifest.entries[0]?.costCalculation.fallback?.routeId,
   sam31ApprovalBlockedUntilQualifiedAndPromoted: true,
   exactCustomerEstimateRefBinding: true,
+  exactConfirmedOutputFrameAuthorityBinding: true,
+  approvalPricingAuthorityRereadVerified: true,
+  missingGpuEstimateLineRejected: true,
   nestedDispatchEstimateHashVerified: true,
-  hostileAccessorInvoked: accessorInvoked,
+  hostileAccessorInvoked: accessorInvoked || approvalAccessorInvoked,
   callerPriceAccepted: false,
   customerCreditsMutated: false,
   approvalGranted: false,
@@ -299,8 +432,73 @@ console.log(JSON.stringify({
   pricingBasisHash: ffmpegBasis.pricingBasisHash,
   manifestHash: ffmpegManifest.manifestHash,
   publicationBindingHash: binding.bindingHash,
+  approvalPricingAuthorityHash: approvalPricingAuthority.authorityHash,
   dispatchEstimateSetHash: dispatchSet.estimateSetHash,
 }))
+
+function planningInputAuthority(): ResolvedPlanningInputAuthorityBinding {
+  const values = {
+    editLevel: 'pro' as const,
+    workflowType: 'talking_head_personal_brand' as const,
+    cleanupPreference: 'balanced_cleanup' as const,
+    visualPreference: 'balanced_visual_mix' as const,
+    moodStyle: 'clean' as const,
+    creditPreference: 'premium_best_result' as const,
+    targetPlatform: 'client_review' as const,
+  }
+  const withoutHash = {
+    schemaVersion: 'canonical-planning-input-authority-binding-v1' as const,
+    workspaceId: 'workspace-1',
+    projectId: 'project-1',
+    editSessionId: 'edit-session-1',
+    exactEditPreference: {
+      recordRevision: 1,
+      preferenceRevision: 1,
+      planningInputRevision: 1,
+      preferenceFingerprintSha256: hash('2'),
+      values,
+      effectiveValues: values,
+      instructionSource: 'current_edit_preferences' as const,
+      explicitChatOverrideKeys: [],
+      explicitChatOverrides: {},
+      instructionHash: hash('7'),
+      baseline: {
+        preferenceSnapshotId: 'gpu-plan-pricing-preferences-v1',
+        persistenceSource: 'authenticated_private_internal_backend' as const,
+        provenance: 'saved_edit_preferences' as const,
+      },
+      sourcePreparationEvidenceHash: hash('8'),
+      sourceCandidateHash: null,
+      frameConfirmationId: 'confirmed-output-frame',
+      confirmedAspectRatio: '9:16' as const,
+      lifecyclePhase: 'planning' as const,
+      locked: false,
+    },
+    preferenceApplication: {
+      status: 'not_selected' as const,
+      applicationVersion: 0 as const,
+      applicationHash: hash('a'),
+    },
+    editBrief: {
+      status: 'not_used' as const,
+      deterministicHash: hash('b'),
+    },
+    instructionPriority: [
+      'explicit_user_request',
+      'confirmed_edit_preferences',
+      'approved_edit_brief',
+      'professional_editing_rules',
+      'workflow_defaults',
+      'tier_policy',
+      'safe_fallbacks',
+    ],
+    noRuntimeSideEffects: true as const,
+  }
+  return resolvedPlanningInputAuthorityBindingSchema.parse({
+    ...withoutHash,
+    bindingHash: sha256AuthorityValue(withoutHash),
+  })
+}
 
 function components(): CanonicalPlanComponentsInput {
   const totalFrames = 14_400
@@ -440,7 +638,8 @@ function scope(suffix: string) {
     projectId: 'project-1',
     editSessionId: 'edit-session-1',
     planningRequestId: `planning-${suffix}`,
-    outputId: 'output-9x16',
+    outputId:
+      confirmedOutputFrameAuthority.confirmedOutputBinding.outputId,
   }
 }
 

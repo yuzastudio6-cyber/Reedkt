@@ -77,7 +77,7 @@ const generatedDefinitions: readonly WorkDefinition[] = [
 const existingDefinitions: readonly WorkDefinition[] = [
   generatedDefinitions[0], generatedDefinitions[1],
   { jobType: 'validate_b_roll_source', operationId: 'b_roll.internal.validate_source.v1', workerClass: 'control_plane_worker', output: 'source_media_artifact_v1', toolOrProviderCredits: 0, qa: ['b_roll.planning.source_safety'] },
-  { jobType: 'prepare_b_roll_source', operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1', workerClass: 'media_processing_worker', output: 'b_roll_candidate_version_v1', toolOrProviderCredits: 1, qa: ['b_roll.output.private_artifact_integrity'] },
+  { jobType: 'prepare_b_roll_source', operationId: 'b_roll.internal.prepare_source.v1', workerClass: 'control_plane_worker', output: 'b_roll_candidate_version_v1', toolOrProviderCredits: 0, qa: ['b_roll.output.private_artifact_integrity'] },
   ...generatedDefinitions.slice(3),
 ]
 

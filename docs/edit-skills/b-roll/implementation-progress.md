@@ -59,8 +59,43 @@ delivery, production billing, or real provider execution evidence.
 
 Qualification after M0: `implementation_pending`.
 
+## M1 — generic edit-skill capability kernel
+
+Status: completed locally; commit and push recorded by the follow-up progress
+commit.
+
+Implemented strict manifest, manifest-reference, assignment, range,
+context/dependency, plan/result envelope, qualification receipt, estimator,
+QA, artifact-schema, runtime-handler, invocation, and static-validator
+contracts under `server/edit-skills/core/`. Manifests are plain-data only,
+canonically serialized, SHA-256 addressed, recursively frozen, and exact-ref
+resolved. The validator rejects duplicate skill/version and route identities,
+unknown registries, missing job/artifact implementations, missing handlers,
+and cyclic phase authority.
+
+Added the repository-wide
+`validate:skill-capability-manifests` command, manifest documentation projection
+support, and a kernel smoke covering deterministic hashes, function rejection,
+deep freezing, tenant-scoped artifact reads, stale range rejection, bounded
+invocation, duplicate registration, unimplemented jobs, phase cycles, and
+forged/overclaimed qualification evidence.
+
+Tests:
+
+- `npm run test:edit-skill-capability-kernel` — passed.
+- `npm run validate:skill-capability-manifests` — passed (zero production
+  manifests until M2 registration).
+- `npm run typecheck:server` — passed.
+- `npm run lint` — passed.
+- `npm run check:frontend-boundary` — passed for 1,044 files.
+
+Known pre-existing unrelated failures: none in the affected checks.
+
+Qualification after M1: `implementation_pending`.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
 | --- | --- | --- | --- | --- |
 | M0 | `ca25f01035590ba86f62fb2273c8299924610dcc` | this bookkeeping commit | confirmed | `implementation_pending` |
+| M1 | pending | pending | pending | `implementation_pending` |

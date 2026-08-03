@@ -372,6 +372,77 @@ revision, transport is inactive, provider account/rate/secret evidence is not
 qualified, and no paid provider, billing, wallet, cloud, Supabase, public
 delivery, timeline mutation, or production action occurred.
 
+## M7 — real Gemini Omni transport
+
+Status: completed and pushed; live canary blocked only by external gates.
+
+Implementation commit: `751ed2055`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after push.
+
+Implemented the official server-side Gemini Omni Flash Interactions and Files
+API transport behind exact private owner-confirmed canary authority. The
+transport supports text-to-video, approved reference-image-to-video, and
+region-eligible checksum-bound uploaded-video editing; inline and URI output;
+official resumable upload; bounded source/result file status, interaction
+status, and binary download; a one-read pinned numeric Secret Manager boundary;
+sanitized failure classification; provider-usage hashing; separate unqualified
+canary provider-rate and infrastructure-cost evidence; private create-only MP4
+ingest and checksum readback; exact request counters; idempotent replay; and
+bounded unknown-outcome reconciliation without a second generation submission.
+
+Model, endpoint, credential, raw body, upload path, provider URL, temporary
+download URL, polling limits, retry count, fallback route, and executable
+remain server-owned. Redirects, automatic retries, and alternate-provider
+fallbacks are zero. Raw secrets, headers, request bodies, responses, and URLs
+are not persisted. The active cloud route/resource map now recognizes
+`gemini_omni_flash` and the approved Gemini Secret Manager identity. The
+preview alias remains unpinned and neither the canary rate nor transport is
+production-qualified.
+
+The explicitly gated `canary:gemini-omni-b-roll` command owns a built-in safe
+three-second fixture and requires exact execution confirmation, fixture ID,
+pinned secret reference, rate, cost ceiling, and absolute private destination.
+In this environment it reported `blocked_external_prerequisites` for all six
+gates, executed zero provider requests, and did not fake success. Transport and
+canary architecture are recorded in
+`docs/edit-skills/b-roll/gemini-omni-transport.md` against Google's current
+official Omni and Files documentation.
+
+Tests:
+
+- `npm run smoke:b-roll-provider-lifecycle` — passed official request building,
+  inline output, URI metadata/download, approved reference-image input and
+  source substitution rejection, resumable uploaded-video edit and ACTIVE
+  polling, single secret read, one generation submission, private readback,
+  exact rate cost, sanitized persistence, replay, unknown manual disposition,
+  and successful status reconciliation without resubmission.
+- `npm run smoke:b-roll-provider-authority` — passed; historical V1-V4 hashes
+  remained exact. Current B-roll V5 registry hash is `0d480ebe…`; lifecycle
+  policy hash is `e5dbcc30…`.
+- `npm run canary:gemini-omni-b-roll` — safely blocked with zero requests because
+  the explicit confirmation, safe fixture, secret, private-root, cost, and rate
+  gates are absent.
+- `npm run test:b-roll-planning` — passed, including conservative source and
+  tracking behavior after approved reference-image routing was enabled.
+- `npm run test:b-roll-canonical-integration` — passed.
+- `npm run check:frontend-boundary` — passed for 1,044 files.
+- `npm run typecheck:server` — passed.
+- `npm run lint` — passed.
+- `npm run build` — passed; existing Vite chunk-size and dynamic-import
+  warnings only.
+- `git diff --check` — passed.
+
+Known pre-existing unrelated failures: none.
+
+Qualification after M7: `planning_qualified`. Non-paid transport behavior is
+internally qualified, but the live provider canary is blocked by explicitly
+missing external prerequisites; the configured preview alias has no immutable
+revision and provider account/rate/real usage evidence is absent. No paid
+provider, billing, wallet, Supabase, public delivery, automatic selection,
+customer timeline, or production action occurred.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -383,3 +454,4 @@ delivery, timeline mutation, or production action occurred.
 | M4 | `78d0a6e07` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M5 | `ff76daff6` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M6 | `b641e6f98` | this bookkeeping commit | confirmed | `planning_qualified` |
+| M7 | `751ed2055` | this bookkeeping commit | confirmed | `planning_qualified` |

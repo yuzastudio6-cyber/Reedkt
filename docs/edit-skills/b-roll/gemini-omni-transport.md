@@ -36,8 +36,10 @@ permits one generation submission per fresh approved attempt.
 - `edit_uploaded_video` with one exact checksum-bound approved MP4, the
   official resumable Files API, bounded `PROCESSING` reads, and an allowlisted
   file URI. Regional eligibility is decided before the transport.
-- A later approved refinement uses `previous_interaction_id`; M8 owns its
-  one-turn policy and immutable candidate versioning.
+- One approved refinement uses `previous_interaction_id`; the M8 refinement
+  authority binds the prior immutable candidate and QA report, while rejecting
+  a second refinement, route/concept/range substitution, automatic retry, and
+  alternate-provider fallback.
 
 The request asks for video output at the confirmed 16:9 or 9:16 crop-safe
 frame, includes the official task value, stores the interaction for the one

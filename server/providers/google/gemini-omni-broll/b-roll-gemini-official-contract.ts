@@ -3,6 +3,10 @@ import { z } from 'zod'
 
 import { hashSkillValue } from '../../../edit-skills/core/skill-capability-manifest-hash'
 import {
+  brollCandidateRefinementAuthoritySchema,
+  type BrollCandidateRefinementAuthority,
+} from '../../../edit-skills/b-roll/mini-skills/refinement-director'
+import {
   BROLL_PROVIDER_CONFIGURED_MODEL_ALIAS,
   type BrollProviderRequestPackageV5,
   brollProviderRequestPackageV5Schema,
@@ -116,6 +120,55 @@ export function buildBrollGeminiOfficialInteractionRequest(input: {
     bodyByteLength: bodyBytes.byteLength,
     bodySha256: sha256Bytes(bodyBytes),
     sourceMediaSha256: source?.artifactRef.sha256 ?? null,
+    safeToPersistRawBody: false,
+    callerSuppliedEndpoint: false,
+    callerSuppliedModel: false,
+    callerSuppliedCredential: false,
+    automaticRetryAllowed: false,
+    redirectsAllowed: false,
+  }
+}
+
+export function buildBrollGeminiOfficialRefinementRequest(input: {
+  authority: BrollCandidateRefinementAuthority
+  previousInteractionId: string
+  delivery?: 'inline' | 'uri'
+}): BrollGeminiOfficialRequest {
+  const authority = brollCandidateRefinementAuthoritySchema.parse(input.authority)
+  const interactionId = stableProviderId(
+    input.previousInteractionId,
+    'Gemini prior interaction ID',
+  )
+  if (sha256Text(interactionId) !== authority.previousInteractionIdDigest) {
+    throw new Error('Gemini refinement interaction ID does not match its private digest authority.')
+  }
+  const body: Record<string, unknown> = {
+    model: BROLL_PROVIDER_CONFIGURED_MODEL_ALIAS,
+    previous_interaction_id: interactionId,
+    input: authority.refinementInstruction,
+    response_format: {
+      type: 'video',
+      aspect_ratio: authority.nativeAspectRatio,
+      ...(input.delivery === 'uri' ? { delivery: 'uri' } : {}),
+    },
+    generation_config: { video_config: { task: 'edit' } },
+    background: false,
+    stream: false,
+    store: true,
+  }
+  const bodyBytes = Buffer.from(JSON.stringify(body), 'utf8')
+  if (bodyBytes.byteLength < 1 || bodyBytes.byteLength > 64 * 1024) {
+    throw new Error('Gemini B-roll refinement request exceeds its server-owned ceiling.')
+  }
+  return {
+    schemaVersion: BROLL_GEMINI_OFFICIAL_CONTRACT_VERSION,
+    endpoint: BROLL_GEMINI_INTERACTIONS_ENDPOINT,
+    method: 'POST',
+    fixedHeaders: { 'content-type': 'application/json' },
+    body,
+    bodyByteLength: bodyBytes.byteLength,
+    bodySha256: sha256Bytes(bodyBytes),
+    sourceMediaSha256: null,
     safeToPersistRawBody: false,
     callerSuppliedEndpoint: false,
     callerSuppliedModel: false,

@@ -518,6 +518,78 @@ qualification. The real provider canary remains externally blocked, the model
 alias remains preview/unpinned, and no paid provider, public delivery, final
 composition/export, billing, wallet, Supabase, or production action occurred.
 
+## M9 — Remotion and cross-skill integration
+
+Status: completed and pushed.
+
+Implementation commit: `c8268a9d79fbbf7bbacdc315eddf244f703f1805`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after push.
+
+Implemented strict, hashed `BrollRemotionLayerManifest`, integration QA, and
+result receipt contracts for accepted generated candidates and passed
+existing-source selections. The executor revalidates assignment/plan hashes,
+content-addressed artifact refs, exact write range, selected artifact bytes,
+output QA lineage, caption dependency, and the optional model-neutral
+`track_graph_v1`. Missing required tracking fails as a typed Track All
+dependency; B-roll has no SAM2 or SAM 3.1 dependency.
+
+The QA-normalized FFV1/NUT artifact is the editorial source of truth. A fixed
+pinned, network-disabled FFmpeg recipe creates only the VP9 Matroska technical
+proxy needed by Chromium, strips audio/metadata, preserves exact timing and
+BT.709 intent, and forbids a creative color transform. Remotion validates and
+actually applies fixed geometry for full-frame takeover, short cutaway, inset,
+picture-in-picture, split-screen, partial overlay, and background treatments.
+The real private preview is persisted create-only and rehashed on replay.
+
+Sound, Color, Transition, Captions, Track All, and Render retain final
+ownership. Content-addressed Sound/Color/Transition handoffs, eleven exact
+integration QA checks, attempt history, candidate/integration cost separation,
+private preview lineage, manifest hash, automatic-selection prohibition,
+generated-proof prohibition, generated-audio final-mix prohibition, and
+`outsideAuthorizedRangeModified: false` are frozen in the result receipt.
+
+Tests:
+
+- `npm run smoke:b-roll-remotion-integration` — passed real 72-frame FFmpeg and
+  Docker-confined Remotion execution at 640x360/24fps, all seven treatment
+  mappings, eleven integration QA checks, required Track All dependency,
+  tamper rejection, immutable replay, all final-owner handoffs, and zero
+  provider requests.
+- `npm run smoke:offline-remotion-render-execution` — passed real shared
+  Remotion regression. An initial concurrent Docker run collided during
+  container creation; the isolated rerun passed with all assertions.
+- `npm run smoke:offline-remotion-streaming-output` — passed the shared
+  streamed-input/output regression after matching the B-roll layer boundary.
+- `npm run smoke:offline-media-binary-execution` — passed the pinned FFmpeg and
+  FFprobe runtime regression.
+- `npm run smoke:b-roll-candidate-qa` — passed one-refinement QA and zero
+  provider requests.
+- `npm run smoke:b-roll-existing-source` — passed zero-provider source
+  execution and replay.
+- `npm run smoke:b-roll-provider-authority` and
+  `npm run smoke:b-roll-provider-lifecycle` — passed; historical V1-V4 hashes
+  remained exact.
+- `npm run test:b-roll-planning`,
+  `npm run test:b-roll-canonical-integration`,
+  `npm run validate:skill-capability-manifests`, and
+  `npm run test:b-roll-capability-manifest` — passed.
+- `npm run typecheck:server`, `npm run lint`, `npm run build`,
+  `npm run check:frontend-boundary`, and `git diff --check` — passed. Build
+  emitted only the existing Vite chunk-size and dynamic-import warnings.
+
+Known pre-existing unrelated failures: none. The one concurrent Docker
+container-creation collision was environmental and passed immediately when the
+shared Remotion smoke ran alone.
+
+Qualification after M9: `planning_qualified`. Real private local media and
+Remotion execution plus integration QA are proved, but aggregate promotion is
+reserved for the complete M11 generated-route E2E fixture and qualification
+receipt. The provider canary remains externally blocked and no paid provider,
+public delivery, final export, billing, wallet, Supabase, or production action
+occurred.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -531,3 +603,4 @@ composition/export, billing, wallet, Supabase, or production action occurred.
 | M6 | `b641e6f98` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M7 | `751ed2055` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M8 | `e218a4d57` | this bookkeeping commit | confirmed | `planning_qualified` |
+| M9 | `c8268a9d7` | this bookkeeping commit | confirmed | `planning_qualified` |

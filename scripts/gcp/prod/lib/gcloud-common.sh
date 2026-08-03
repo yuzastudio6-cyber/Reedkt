@@ -21,6 +21,7 @@ iam.googleapis.com
 cloudbuild.googleapis.com
 cloudkms.googleapis.com
 containeranalysis.googleapis.com
+containerscanning.googleapis.com
 binaryauthorization.googleapis.com
 logging.googleapis.com
 monitoring.googleapis.com
@@ -82,6 +83,8 @@ ${REEDITPRO_SECRET_PREFIX}-mirelo-api-key
 ${REEDITPRO_SECRET_PREFIX}-mmaudio-api-key
 ${REEDITPRO_SECRET_PREFIX}-provider-webhook-signing-secret
 ${REEDITPRO_SECRET_PREFIX}-stripe-webhook-secret
+MODEL_WEIGHT_ACCESS_TOKEN
+HUGGINGFACE_TOKEN
 EOF
 }
 

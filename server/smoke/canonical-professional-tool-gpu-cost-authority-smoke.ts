@@ -26,6 +26,15 @@ const ref = (id: string, character: string) => ({
 const a100 = await observe('a100_80gb_heavy_primary')
 const l4Fallback = await observe('l4_heavy_fallback')
 const l4Standard = await observe('l4_standard_primary')
+const l4FallbackOtherBillingAccount = await observe(
+  'l4_heavy_fallback',
+  '6',
+)
+const l4FallbackOtherReader = await observe(
+  'l4_heavy_fallback',
+  '8',
+  '5',
+)
 
 const heavyEstimate = createCanonicalProfessionalToolGpuCostEstimate({
   estimateId: 'estimate-sam3-1-v1',
@@ -71,6 +80,26 @@ assert.throws(() => createCanonicalProfessionalToolGpuCostEstimate({
   scope: scope('duckdb'),
   primaryRateAuthority: l4Standard,
   primaryUsageRange: range('l4', 1_000, 2_000, 3_000),
+  createdAt: startedAt,
+}))
+assert.throws(() => createCanonicalProfessionalToolGpuCostEstimate({
+  estimateId: 'estimate-cross-billing-account-invalid',
+  scope: scope('sam3_1'),
+  primaryRateAuthority: a100,
+  primaryUsageRange: range('a100', 60_000, 120_000, 240_000),
+  fallbackRateAuthority: l4FallbackOtherBillingAccount,
+  fallbackUsageRange: range('l4', 120_000, 240_000, 420_000),
+  primaryPreInferenceFailureHighUsage: usage('a100', 0),
+  createdAt: startedAt,
+}))
+assert.throws(() => createCanonicalProfessionalToolGpuCostEstimate({
+  estimateId: 'estimate-cross-pricing-reader-invalid',
+  scope: scope('sam3_1'),
+  primaryRateAuthority: a100,
+  primaryUsageRange: range('a100', 60_000, 120_000, 240_000),
+  fallbackRateAuthority: l4FallbackOtherReader,
+  fallbackUsageRange: range('l4', 120_000, 240_000, 420_000),
+  primaryPreInferenceFailureHighUsage: usage('a100', 0),
   createdAt: startedAt,
 }))
 assert.throws(() => createCanonicalProfessionalToolGpuCostEstimate({
@@ -210,7 +239,7 @@ assert.throws(() => assertCanonicalProfessionalToolGpuAttemptCostReceipt(
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-tool-gpu-cost-authority',
-  checks: 35,
+  checks: 37,
   heavyToolId: heavyEstimate.scope.toolId,
   standardToolId: standardEstimate.scope.toolId,
   heavyPrimaryRoute: heavyEstimate.primary.routeId,
@@ -304,6 +333,8 @@ async function observe(
     | 'a100_80gb_heavy_primary'
     | 'l4_heavy_fallback'
     | 'l4_standard_primary',
+  billingAccountCharacter = '8',
+  readerCharacter = '7',
 ) {
   return observeCanonicalCurrentGoogleCloudGpuRateAuthority({
     rateAuthorityId: `current-rate-${routeId}-v1`,
@@ -312,7 +343,11 @@ async function observe(
     region: 'us-central1',
     readPort: {
       async readCurrentRouteRate() {
-        return rawObservation(routeId)
+        return rawObservation(
+          routeId,
+          billingAccountCharacter,
+          readerCharacter,
+        )
       },
     },
   })
@@ -323,6 +358,8 @@ function rawObservation(
     | 'a100_80gb_heavy_primary'
     | 'l4_heavy_fallback'
     | 'l4_standard_primary',
+  billingAccountCharacter = '8',
+  readerCharacter = '7',
 ): CanonicalGoogleCloudGpuRateRawObservation {
   const components = routeId === 'a100_80gb_heavy_primary'
     ? [
@@ -342,9 +379,9 @@ function rawObservation(
   const base = {
     sourceClass: 'billing_account_effective_pricing_api' as const,
     billingAccountPricingScopeRef:
-      ref('billing-account-pricing-scope', '8'),
+      ref('billing-account-pricing-scope', billingAccountCharacter),
     pricingReaderConfigurationRef:
-      ref('gpu-rate-reader-configuration', '7'),
+      ref('gpu-rate-reader-configuration', readerCharacter),
     routeId,
     region: 'us-central1' as const,
     currency: 'USD' as const,

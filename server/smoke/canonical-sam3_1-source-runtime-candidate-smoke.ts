@@ -207,6 +207,22 @@ const activeGpuDockerfile = readFileSync(resolve(
 ), 'utf8')
 assert(!activeGpuDockerfile.includes('/opt/reeditpro/model-weights/sam2'))
 
+for (const relativePath of [
+  'server/routes/edit-execution-routes.ts',
+  'src/backend/api/mock-api-router.ts',
+]) {
+  const source = readFileSync(resolve(process.cwd(), relativePath), 'utf8')
+  const imageCleanupAliases = source.match(
+    /id:\s*'image_cleanup',\s*aliases:\s*\[([\s\S]*?)\]/u,
+  )?.[1]
+  assert.ok(
+    imageCleanupAliases,
+    `${relativePath} must declare the active image-cleanup adapter aliases.`,
+  )
+  assert.match(imageCleanupAliases, /'sam3_1'/u)
+  assert.doesNotMatch(imageCleanupAliases, /'sam2'/u)
+}
+
 const sourceLock = readFileSync(resolve(
   process.cwd(),
   'docker/prod/gpu-worker/sam3_1/source-provenance.lock',

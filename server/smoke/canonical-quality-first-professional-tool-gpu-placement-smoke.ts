@@ -5,8 +5,12 @@ import {
   createCanonicalQualityFirstProfessionalToolGpuPlacement,
   resolveCanonicalQualityFirstProfessionalToolGpuPlacementEntry,
 } from '../edit-architecture/canonical-quality-first-professional-tool-gpu-placement'
-import { ALL_PROFESSIONAL_TOOL_CATALOG_IDS } from '../tool-registry'
+import {
+  ALL_PROFESSIONAL_TOOL_CATALOG_IDS,
+  getKnownProfessionalToolCatalogProfile,
+} from '../tool-registry'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
+import { modelFrameworkSettings } from '../../src/lib/tool-settings-catalog'
 
 const policy = createCanonicalQualityFirstProfessionalToolGpuPlacement()
 assert.equal(
@@ -27,6 +31,27 @@ assert.equal(policy.summary.cpuOnlySubstantiveExecutionAllowedCount, 0)
 assert.equal(policy.summary.newPlanRuntimeAdmissibleCount, 0)
 assert.equal(policy.entries.every((entry) =>
   !entry.cpuOnlySubstantiveExecutionAllowed), true)
+assert.equal(
+  getKnownProfessionalToolCatalogProfile('whisper_cpp')?.cpuAllowed,
+  false,
+)
+assert.equal(
+  getKnownProfessionalToolCatalogProfile('deepfilternet')?.cpuAllowed,
+  false,
+)
+assert.deepEqual(
+  modelFrameworkSettings.find((setting) =>
+    setting.id === 'devicePolicy'),
+  {
+    id: 'devicePolicy',
+    label: 'Device policy',
+    type: 'select',
+    description: 'GPU worker device policy.',
+    required: false,
+    defaultValue: 'gpu_required',
+    options: ['gpu_required'],
+  },
+)
 
 const sam31 = entry('sam3_1')
 assert.equal(sam31.placementClass,

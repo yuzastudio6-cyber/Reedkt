@@ -31,6 +31,9 @@ import type {
 import type {
   VisualIntelligencePlanningOperationRequestOwner,
 } from './services/canonical-planning-visual-intelligence-operation-owner-service'
+import type {
+  VisualIntelligenceOrchestraJobRuntime,
+} from './visual-intelligence/visual-intelligence-orchestra-job-runtime'
 import type { PlanningExactEditPreferenceAuthorityPort } from './services/planning-exact-edit-preference-authority-port'
 import type {
   CanonicalDurableUploadTargetTransactionAdapter,
@@ -122,6 +125,8 @@ export interface RuntimeState {
   visualIntelligenceInspectionCoordinatorPort?:
     VisualIntelligenceInspectionCoordinator
   visualIntelligencePlanningOperationRequestOwnerPort?: VisualIntelligencePlanningOperationRequestOwner
+  visualIntelligenceOrchestraJobRuntimePort?:
+    VisualIntelligenceOrchestraJobRuntime
   motionStudioCommandRepositoryRuntimePort?:
     MotionStudioCommandRepositoryRuntimePort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
@@ -180,6 +185,8 @@ export interface ServiceContext {
   visualIntelligenceInspectionCoordinatorPort?:
     VisualIntelligenceInspectionCoordinator
   visualIntelligencePlanningOperationRequestOwnerPort?: VisualIntelligencePlanningOperationRequestOwner
+  visualIntelligenceOrchestraJobRuntimePort?:
+    VisualIntelligenceOrchestraJobRuntime
   motionStudioCommandRepositoryRuntimePort?:
     MotionStudioCommandRepositoryRuntimePort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort

@@ -401,7 +401,7 @@ const estimateLineItemSchema = z.object({
   metadata: jsonObjectSchema.default({}),
 }).strict()
 
-const canonicalEstimateSchema = z.object({
+export const canonicalEstimateSchema = z.object({
   lineItems: z.array(estimateLineItemSchema).min(1).max(512),
   fallbackAllowanceCredits: z.number().int().nonnegative().max(10_000_000).default(0),
   validForSeconds: z.number().int().min(300).max(86_400).default(3_600),
@@ -481,7 +481,7 @@ export const CANONICAL_EDIT_WORK_ITEM_TYPES = [
   'custom',
 ] as const
 
-const canonicalWorkItemSchema = z.object({
+export const canonicalWorkItemSchema = z.object({
   workItemKey: safeKeySchema,
   workItemType: z.enum(CANONICAL_EDIT_WORK_ITEM_TYPES),
   workerClass: safeKeySchema,

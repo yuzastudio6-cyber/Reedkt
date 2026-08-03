@@ -37,15 +37,23 @@ export const VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE =
 export const VISUAL_INTELLIGENCE_CAPABILITY_ID =
   'visual_intelligence' as const
 
-export const VISUAL_INTELLIGENCE_SKILL_IDS = [
+export const VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS = [
   'visual_intelligence.analyze_media',
   'visual_intelligence.inspect_edit',
   'visual_intelligence.query_range',
   'visual_intelligence.compare_media',
 ] as const
 
+/** @deprecated These are internal operations, not top-level skill IDs. */
+export const VISUAL_INTELLIGENCE_SKILL_IDS =
+  VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS
+
+export type VisualIntelligenceInternalOperationId =
+  typeof VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS[number]
+
+/** @deprecated Use VisualIntelligenceInternalOperationId. */
 export type VisualIntelligenceSkillId =
-  typeof VISUAL_INTELLIGENCE_SKILL_IDS[number]
+  VisualIntelligenceInternalOperationId
 
 export const VISUAL_INTELLIGENCE_OPERATIONS = [
   'analyze_media',
@@ -431,6 +439,28 @@ export interface VisualIntelligenceCoverage {
   completeRequestedRangeCoverage: boolean
   everyTimelineFrameInspected: false
   completeTimePixelInspectionClaimAllowed: false
+}
+
+/**
+ * Server-owned deterministic evidence package prepared before a semantic
+ * provider call. GCS coordinates remain private control-plane data and never
+ * appear in Orchestra jobs, browser requests, or persisted public reports.
+ */
+export interface VisualIntelligencePreparedEvidence {
+  readonly deterministicEvidence: VisualIntelligenceEvidence[]
+  readonly coveragePlan: VisualIntelligenceCoverage
+  readonly privateMediaInputs: Array<{
+    artifactId: string
+    gcsUri: string
+    contentType: string
+    checksumSha256: string
+    exactGenerationRereadVerified: true
+  }>
+  readonly transcriptVersion: string | null
+  readonly ocrVersion: string | null
+  readonly toolExecutionEvidence:
+    readonly VisualIntelligenceToolExecutionEvidence[]
+  readonly preparedEvidenceRef: VisualIntelligenceEvidenceRef
 }
 
 /**

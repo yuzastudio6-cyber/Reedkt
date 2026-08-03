@@ -3,6 +3,10 @@ import { once } from 'node:events'
 import { createServer } from 'node:http'
 
 import {
+  ORCHESTRA_SKILL_CALL_VERSION,
+  ORCHESTRA_VISUAL_INTELLIGENCE_JOB_ROUTE_ID,
+} from '../../src/types/orchestra-skill-capability'
+import {
   VISUAL_INTELLIGENCE_AUTHENTICATED_READ_ROUTE_ID,
   VISUAL_INTELLIGENCE_EXECUTION_ROUTE_ID,
   VISUAL_INTELLIGENCE_INSPECTION_ROUTE_ID,
@@ -13,6 +17,9 @@ import { getApiRouteById } from '../../src/backend/api/api-route-registry'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
 import { ApiError } from '../errors/api-error'
+import {
+  createOrchestraSkillCall,
+} from '../orchestra/orchestra-skill-capability-contract'
 import {
   createProfessionalHighVisualIntelligenceQualityPolicy,
   createVisualInspectionRequirement,
@@ -79,6 +86,7 @@ const planningInput = createVisualIntelligencePlanningOperationInput({
 const lifecycleCalls: string[] = []
 const planningCalls: unknown[] = []
 const inspectionCalls: unknown[] = []
+const orchestraCalls: unknown[] = []
 const app = createReeditProApiApp(loadRuntimeEnv({
   NODE_ENV: 'test',
   E2E_RUNTIME_MODE: 'mock',
@@ -96,6 +104,13 @@ const app = createReeditProApiApp(loadRuntimeEnv({
     async preparePlanningOperationRequest(input: unknown) {
       planningCalls.push(input)
       return queryRequest
+    },
+  }),
+  visualIntelligenceOrchestraJobRuntimePort: Object.freeze({
+    schemaVersion: 'visual-intelligence-orchestra-job-runtime-v1',
+    async execute(input: unknown) {
+      orchestraCalls.push(input)
+      throw stopped('controlled_no_orchestra_visual_provider_call')
     },
   }),
   visualIntelligenceInspectionCoordinatorPort: Object.freeze({
@@ -130,8 +145,8 @@ try {
       'x-reeditpro-internal-token': token,
     },
   )
-  assert.equal(execution.status, 503)
-  assert.deepEqual(lifecycleCalls, [sourceRequest.requestId])
+  assert.equal(execution.status, 404)
+  assert.deepEqual(lifecycleCalls, [])
 
   const planning = await post(
     `/v1/workspaces/${scope.workspaceId}/visual-intelligence/planning-operations`,
@@ -142,12 +157,79 @@ try {
       'x-reeditpro-internal-token': token,
     },
   )
-  assert.equal(planning.status, 503)
-  assert.equal(planningCalls.length, 1)
-  assert.deepEqual(lifecycleCalls, [
-    sourceRequest.requestId,
-    queryRequest.requestId,
-  ])
+  assert.equal(planning.status, 404)
+  assert.equal(planningCalls.length, 0)
+
+  const orchestraCall = createOrchestraSkillCall({
+    schemaVersion: ORCHESTRA_SKILL_CALL_VERSION,
+    callId: 'vi-route-orchestra-call-1',
+    orchestraPlanRef: ref('vi-route-orchestra-plan'),
+    orchestraJobRef: ref('vi-route-orchestra-job'),
+    parentJobRef: null,
+    requestedBy: { kind: 'orchestra' },
+    targetSkillKey: 'visual_intelligence',
+    jobType: 'source_video_understanding',
+    phase: 'planning',
+    scope: {
+      scopeType: 'video',
+      sourceArtifactRef: ref('finalized-source'),
+      authorizedRanges: [fullRange],
+      completeSourceCoverageRequired: true,
+      outputId: null,
+    },
+    sceneContextSnapshotRef: null,
+    sourceArtifactRefs: [ref('finalized-source')],
+    comparisonArtifactRefs: [],
+    expectedOutcomeRefs: [],
+    requiredEvidenceRefs: [ref('orchestra-route-probe')],
+    manifestRef: ref('orchestra-visual-manifest'),
+    qualificationSnapshotRef: ref('orchestra-visual-qualification'),
+    timeBudgetRef: ref('orchestra-time-budget'),
+    creditBudgetRef: ref('orchestra-credit-budget'),
+    attemptEnvelopeRef: ref('orchestra-attempt-envelope'),
+    approvedSnapshotRef: null,
+    idempotencyKey: 'vi-route-orchestra-idempotency-1',
+    orchestraDispatchAuthorized: true,
+    directProviderCallAllowed: false,
+    directTimelineMutationAllowed: false,
+    directArtifactMutationAllowed: false,
+    scopeExpansionAllowed: false,
+    peerSkillExecutionAuthorityAccepted: false,
+  })
+  const orchestraExecution = await post(
+    `/internal/v1/workspaces/${scope.workspaceId}/orchestra/skill-jobs/visual-intelligence`,
+    { call: orchestraCall, supportRequest: null },
+    {
+      'idempotency-key': orchestraCall.idempotencyKey,
+      'x-request-id': orchestraCall.callId,
+      'x-reeditpro-internal-token': token,
+    },
+  )
+  assert.equal(orchestraExecution.status, 503)
+  assert.equal(orchestraCalls.length, 1)
+  const invalidOrchestraToken = await post(
+    `/internal/v1/workspaces/${scope.workspaceId}/orchestra/skill-jobs/visual-intelligence`,
+    { call: orchestraCall, supportRequest: null },
+    {
+      'idempotency-key': orchestraCall.idempotencyKey,
+      'x-request-id': orchestraCall.callId,
+      'x-reeditpro-internal-token': 'wrong-token',
+    },
+  )
+  assert.equal(invalidOrchestraToken.status, 403)
+  assert.equal(orchestraCalls.length, 1)
+  const wrongOrchestraIdempotency = await post(
+    `/internal/v1/workspaces/${scope.workspaceId}/orchestra/skill-jobs/visual-intelligence`,
+    { call: orchestraCall, supportRequest: null },
+    {
+      'idempotency-key': 'wrong-idempotency',
+      'x-request-id': orchestraCall.callId,
+      'x-reeditpro-internal-token': token,
+    },
+  )
+  assert.equal(wrongOrchestraIdempotency.status, 409)
+  assert.equal(orchestraCalls.length, 1)
+  assert.deepEqual(lifecycleCalls, [])
 
   const crossWorkspacePlanning = await post(
     '/v1/workspaces/foreign-workspace/visual-intelligence/planning-operations',
@@ -158,8 +240,8 @@ try {
       'x-reeditpro-internal-token': token,
     },
   )
-  assert.equal(crossWorkspacePlanning.status, 403)
-  assert.equal(planningCalls.length, 1)
+  assert.equal(crossWorkspacePlanning.status, 404)
+  assert.equal(planningCalls.length, 0)
 
   const requirement = createVisualInspectionRequirement({
     inspectionId: 'vi-route-inspection-1',
@@ -187,8 +269,8 @@ try {
       'x-reeditpro-internal-token': token,
     },
   )
-  assert.equal(inspection.status, 503)
-  assert.equal(inspectionCalls.length, 1)
+  assert.equal(inspection.status, 404)
+  assert.equal(inspectionCalls.length, 0)
 
   const readRequest = createVisualIntelligenceAuthenticatedReadRequest({
     requestId: 'vi-route-read-1',
@@ -209,27 +291,34 @@ try {
 
   assert.equal(
     getApiRouteById(VISUAL_INTELLIGENCE_EXECUTION_ROUTE_ID)?.status,
-    'backend_required',
+    'disabled',
   )
   assert.equal(
     getApiRouteById(VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE_ID)?.status,
-    'backend_required',
+    'disabled',
   )
   assert.equal(
     getApiRouteById(VISUAL_INTELLIGENCE_INSPECTION_ROUTE_ID)?.status,
-    'backend_required',
+    'disabled',
   )
   assert.equal(
     getApiRouteById(VISUAL_INTELLIGENCE_AUTHENTICATED_READ_ROUTE_ID)?.status,
     'frontend_safe_ready',
   )
+  assert.equal(
+    getApiRouteById(ORCHESTRA_VISUAL_INTELLIGENCE_JOB_ROUTE_ID)
+      ?.securityLevel,
+    'backend_service_role',
+  )
 
   console.log(JSON.stringify({
     smoke: 'visual-intelligence-route-contract',
-    executionRouteReachedWithoutProviderCall: true,
-    planningOwnerRereadBoundaryReachedWithoutProviderCall: true,
-    crossWorkspacePlanningRejectedBeforeOwnerCall: true,
-    inspectionOwnerBoundaryReachedWithoutProviderCall: true,
+    directExecutionRouteRetired: true,
+    directPlanningOperationRouteRetired: true,
+    orchestraOnlyRouteReachedWithoutProviderCall: true,
+    invalidOrchestraServiceTokenRejected: true,
+    wrongOrchestraIdempotencyRejected: true,
+    directInspectionRouteRetired: true,
     authenticatedNotFoundReadAccepted: true,
     browserLocalCompletionAccepted: false,
   }))

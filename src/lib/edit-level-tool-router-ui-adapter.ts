@@ -33,7 +33,7 @@ export function createEditLevelToolCapabilitySummaryModel(
     level,
     displayName: routingPackage.displayName,
     reasoningDepth: routeSummary(routingPackage, 'qwen_3_reasoning'),
-    visualUnderstandingDepth: routeSummary(routingPackage, 'qwen25vl_visual_understanding'),
+    visualUnderstandingDepth: routeSummary(routingPackage, 'visual_intelligence'),
     transcriptAudioGraphicsDepth: createEditLevelTranscriptAudioGraphicSummary(level),
     editBriefGuidance: routeSummary(routingPackage, 'edit_brief'),
     qaStrictness: `${routingPackage.qaProfile} QA profile from the selected Edit Level.`,

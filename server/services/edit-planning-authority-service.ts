@@ -2724,6 +2724,14 @@ function assertLivingFrameExecutionAuthorityReady(
     }
     return
   }
+  const projectedRembgGpuMaskWorkItemCount =
+    estimateWorkAssetProjection.scenes.reduce(
+      (count, scene) => count + scene.workRequirements.filter(
+        (work) => work.operationClass ===
+          'remove_still_image_background',
+      ).length,
+      0,
+    )
   if (
     requirements.readiness !==
       'blocked_until_canonical_execution_projection'
@@ -2774,12 +2782,10 @@ function assertLivingFrameExecutionAuthorityReady(
           .admittedExactSourceFrameWorkItemCount
     || workGraphProjection.metrics
       .admittedExactSourceFrameWorkItemCount !==
-      estimateWorkAssetProjection.metrics
-        .projectedGpuWorkItemCount
+      projectedRembgGpuMaskWorkItemCount
     || workGraphProjection.metrics
       .admittedRembgGpuMaskWorkItemCount !==
-      estimateWorkAssetProjection.metrics
-        .projectedGpuWorkItemCount
+      projectedRembgGpuMaskWorkItemCount
     || workGraphProjection.metrics
       .admittedSharpComponentWorkItemCount !==
       publication.binding.selectedSceneCount

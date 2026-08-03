@@ -1,0 +1,1031 @@
+import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
+
+import type {
+  OrchestraSkillCall,
+  OrchestraSkillScope,
+  SkillCapabilityManifest,
+  SkillQualificationSnapshot,
+} from '../../src/types/orchestra-skill-capability'
+import {
+  ORCHESTRA_SKILL_CALL_VERSION,
+  ORCHESTRA_SKILL_QUALIFICATION_SNAPSHOT_VERSION,
+} from '../../src/types/orchestra-skill-capability'
+import type {
+  VisualIntelligenceEvidence,
+  VisualIntelligenceEvidenceRef,
+  VisualIntelligenceCostPreflight,
+  VisualIntelligencePreparedEvidence,
+  VisualIntelligenceRequest,
+} from '../../src/types/visual-intelligence'
+import {
+  VISUAL_INTELLIGENCE_MODEL_ID,
+} from '../../src/types/visual-intelligence'
+import {
+  assertRuntimeCanStart,
+  loadRuntimeEnv,
+} from '../config/env'
+import { ApiError } from '../errors/api-error'
+import type {
+  CanonicalCreateOnlyJsonObjectPort,
+} from '../services/canonical-gcs-source-analysis-lifecycle-store'
+import {
+  createOrchestraSkillCall,
+  createSkillQualificationSnapshot,
+  orchestraDigest,
+  orchestraEvidenceRef,
+  parseOrchestraSkillJobResult,
+} from '../orchestra/orchestra-skill-capability-contract'
+import {
+  createProfessionalHighVisualIntelligenceQualityPolicy,
+  createVisualIntelligenceEvidenceRef,
+  createVisualIntelligenceRequest,
+  visualIntelligenceCanonicalJson,
+} from '../visual-intelligence/visual-intelligence-contract'
+import type {
+  VisualIntelligenceConcurrencyPort,
+} from '../visual-intelligence/visual-intelligence-lifecycle-service'
+import type {
+  VisualIntelligencePrivateObjectReadPort,
+} from '../visual-intelligence/visual-intelligence-private-object-read-port'
+import {
+  createVisualIntelligenceProductionRuntime,
+} from '../visual-intelligence/visual-intelligence-production-runtime'
+import {
+  createVisualIntelligenceOrchestraCapabilityManifest,
+  createVisualIntelligenceOrchestraCapabilityManifestForQualification,
+  createVisualIntelligenceOrchestraQualificationSnapshot,
+} from '../visual-intelligence/visual-intelligence-orchestra-capability-manifest'
+import type {
+  VisualIntelligenceOrchestraCompilationEvidence,
+} from '../visual-intelligence/visual-intelligence-orchestra-invocation-compiler'
+import {
+  createControlledVisualIntelligenceAccountEffectiveRateAuthority,
+  rateAuthorityRef,
+} from '../visual-intelligence/visual-intelligence-account-effective-cost-owner'
+import {
+  VISUAL_INTELLIGENCE_DETERMINISTIC_EVIDENCE_VERSION,
+  VISUAL_INTELLIGENCE_PROMPT_VERSION,
+  VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,
+} from '../visual-intelligence/visual-intelligence-profile-registry'
+import {
+  createControlledVisualIntelligenceRuntimeRelease,
+  visualIntelligenceRuntimeReleaseRef,
+} from '../visual-intelligence/visual-intelligence-runtime-release'
+import type {
+  VisualIntelligenceGeminiGeneratePort,
+} from '../visual-intelligence/vertex-gemini-pro-visual-intelligence-adapter'
+
+const rawSha = (value: string | Buffer) => createHash('sha256')
+  .update(value).digest('hex')
+const ref = (id: string, value: unknown = { id }) =>
+  createVisualIntelligenceEvidenceRef(id, value)
+const now = new Date('2026-08-03T12:00:00.000Z')
+const frameRate = { numerator: 24, denominator: 1 } as const
+const fullRange = {
+  startFrame: 0,
+  endFrameExclusive: 240,
+  frameRate,
+} as const
+const releaseObject =
+  'private/visual-intelligence/releases/gemini-pro-high/v1/release.json'
+const rateObject =
+  'private/visual-intelligence/pricing/account-effective/v2/rate.json'
+const releaseGeneration = '101'
+const rateGeneration = '102'
+const releaseEtag = 'release-etag-101'
+const rateEtag = 'rate-etag-102'
+const controlPlaneBucket = 'reeditpro-control-plane'
+
+const accountRate = createControlledVisualIntelligenceAccountEffectiveRateAuthority({
+  schemaVersion: 'visual-intelligence-account-effective-rate-authority-v2',
+  evidenceClass: 'billing_account_effective_pricing_api_reread',
+  billingAccountPricingScopeRef: ref('billing-account-pricing-scope'),
+  pricingReaderConfigurationRef: ref('gemini-price-reader-configuration'),
+  pricingApiObservationRef: ref('gemini-account-price-observation'),
+  exactModelBillingSkuCompatibilityQualificationRef:
+    ref('gemini-3-1-pro-billing-sku-qualification'),
+  exactModelId: VISUAL_INTELLIGENCE_MODEL_ID,
+  providerServiceId: 'services/C7E2-9256-1C43',
+  billingSkuFamily: 'gemini_3_0_pro_shared_billing_family',
+  billingSkuCatalogVersion:
+    'weeditpro-gemini-3_1-pro-standard-global-sku-catalog-v1',
+  throughputClass: 'standard',
+  contextThresholdInputTokens: 200_000,
+  wholeRequestLongContextRatesRequired: true,
+  currency: 'USD',
+  rateUnit: 'usd_nanos_per_million_tokens',
+  accountEffectiveSkuPriceTerms: controlledRateTerms(),
+  priceReadStartedAtIso: '2026-08-03T00:00:00.000Z',
+  priceReadFinishedAtIso: '2026-08-03T00:00:01.000Z',
+  effectiveAtIso: '2026-08-03T00:00:01.000Z',
+  expiresAtIso: '2026-08-03T23:59:59.000Z',
+  exactSkuMetadataAndAccountPriceReread: true,
+  billingAccountEffectiveRateUsed: true,
+  publicListPriceUsed: false,
+  customerPriceOrServiceFeeAuthorityGranted: false,
+  walletMutationAuthorityGranted: false,
+})
+
+function controlledRateTerms() {
+  const terms = [
+    ['standard_uncached_input', 'standard_le_200k', 'uncached_input',
+      'EAC4-305F-1249', 'Gemini 3.0 Pro Text Input - Predictions',
+      2_000_000_000],
+    ['standard_cached_input', 'standard_le_200k', 'cached_input',
+      '8308-9CED-8950', 'Gemini 3.0 Pro Text Input Caching', 200_000_000],
+    ['standard_output_and_thinking', 'standard_le_200k',
+      'output_and_thinking', '2737-2D33-D986',
+      'Gemini 3.0 Pro Text Output - Predictions', 12_000_000_000],
+    ['long_uncached_input', 'long_gt_200k', 'uncached_input',
+      'E0A5-FB5D-79F4', 'Gemini 3.0 Pro Text Input (Long) - Predictions',
+      4_000_000_000],
+    ['long_cached_input', 'long_gt_200k', 'cached_input',
+      '8A47-3936-DC92', 'Gemini 3.0 Pro Text Input Caching (Long)',
+      400_000_000],
+    ['long_output_and_thinking', 'long_gt_200k', 'output_and_thinking',
+      '3CE8-93F8-3C8F', 'Gemini 3.0 Pro Text Output (Long) - Predictions',
+      18_000_000_000],
+  ] as const
+  return terms.map(([rateClass, contextClass, tokenClass, skuId,
+    skuDisplayName, contractPriceUsdNanosPerMillionTokens]) => ({
+    rateClass,
+    contextClass,
+    tokenClass,
+    cloudServiceId: 'services/C7E2-9256-1C43' as const,
+    skuId,
+    skuDisplayName,
+    consumptionModel: 'consumptionModels/7754-699E-0EBF' as const,
+    apiUnit: 'count' as const,
+    apiUnitQuantity: '1000000' as const,
+    contractPriceUsdNanosPerMillionTokens,
+    skuMetadataRef: ref(`sku-metadata-${skuId}`),
+    billingAccountPriceRef: ref(`account-price-${skuId}`),
+    accountEffectiveContractPriceUsed: true as const,
+    publicListPriceUsed: false as const,
+  }))
+}
+const accountRateRef = rateAuthorityRef(accountRate)
+const release = createControlledVisualIntelligenceRuntimeRelease({
+  schemaVersion: 'visual-intelligence-runtime-release-v1',
+  evidenceClass:
+    'canonical_immutable_visual_intelligence_gemini_pro_high_release_reread',
+  projectId: 'reeditpro',
+  vertexLocation: 'global',
+  lifecycleBucketName: controlPlaneBucket,
+  runtimeReleaseIdentityRef: ref('visual-intelligence-runtime-release'),
+  lifecycleRepositoryReleaseRef: ref('visual-intelligence-lifecycle-release'),
+  concurrencyOwnerReleaseRef: ref('visual-intelligence-concurrency-release'),
+  sourceEvidencePreparationReleaseRef: ref('visual-intelligence-evidence-release'),
+  providerModelAccessQualificationRef: ref('gemini-model-access-qualification'),
+  providerTransportQualificationRef: ref('gemini-transport-qualification'),
+  providerPrivacyRetentionReviewRef: ref('gemini-privacy-review'),
+  promptInjectionSafetyQualificationRef: ref('gemini-injection-safety'),
+  structuredOutputQualificationRef: ref('gemini-structured-output'),
+  professionalHighQualityBenchmarkRef: ref('gemini-professional-high-benchmark'),
+  accountEffectivePricingAuthorityRef: accountRateRef,
+  accountEffectiveCostSettlementOwnerRef: ref('gemini-cost-owner-release'),
+  capabilityId: 'visual_intelligence',
+  providerAdapterId: 'vertex_gemini_pro',
+  providerId: 'google_vertex_ai',
+  exactModelId: 'gemini-3.1-pro-preview',
+  qualityProfile: 'professional_high',
+  thinkingLevel: 'high',
+  mediaResolution: 'high',
+  providerAuthentication: 'vertex_application_default_credentials',
+  providerSdkPackage: '@google/genai',
+  providerSdkVersion: '2.15.0',
+  providerApiVersion: 'v1alpha',
+  providerAdapterVersion: 'vertex-gemini-pro-visual-intelligence-adapter-v2',
+  profileRegistryVersion: 'visual-intelligence-profile-registry-v1',
+  promptVersion: VISUAL_INTELLIGENCE_PROMPT_VERSION,
+  responseSchemaVersion: VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,
+  deterministicEvidenceVersion:
+    VISUAL_INTELLIGENCE_DETERMINISTIC_EVIDENCE_VERSION,
+  exactModelAccessQualified: true,
+  vertexAdcAndServiceAccountIamQualified: true,
+  professionalHighThinkingAndMediaResolutionQualified: true,
+  completeSourceNativeVideoTransportQualified: true,
+  strictStructuredOutputQualified: true,
+  promptInjectionSafetyQualified: true,
+  privateMediaPrivacyAndRetentionQualified: true,
+  lifecycleRepositoryCreateOnlyAndRereadQualified: true,
+  durableAttemptConsumptionQualified: true,
+  distributedConcurrencyQualified: true,
+  deterministicGpuEvidencePreparationQualified: true,
+  accountEffectivePricingAuthorityQualified: true,
+  accountEffectiveCostSettlementQualified: true,
+  authenticatedUserTriggerRequired: true,
+  automaticProviderRetryAllowed: false,
+  uncertainProviderOutcomeRetryAllowed: false,
+  apiKeyAuthenticationAllowed: false,
+  providerToolsAllowed: false,
+  searchGroundingAllowed: false,
+  urlContextAllowed: false,
+  codeExecutionAllowed: false,
+  flashFallbackAllowed: false,
+  cheaperModelFallbackAllowed: false,
+  qwenVisualFallbackAllowed: false,
+  selfHostedVisualModelFallbackAllowed: false,
+  publicListPriceSettlementAllowed: false,
+  callerReleaseObservationAccepted: false,
+  directTimelineMutationAllowed: false,
+  finalQaApprovalGranted: false,
+  publicDeliveryGranted: false,
+  productionAuthorityGranted: false,
+})
+const releaseBody = Buffer.from(
+  visualIntelligenceCanonicalJson(release),
+  'utf8',
+)
+const rateBody = Buffer.from(
+  visualIntelligenceCanonicalJson(accountRate),
+  'utf8',
+)
+const privateObjects = new Map<string, {
+  body: Buffer
+  generation: string
+  etag: string
+  contentType: string
+}>([
+  [releaseObject, {
+    body: releaseBody,
+    generation: releaseGeneration,
+    etag: releaseEtag,
+    contentType: 'application/json',
+  }],
+  [rateObject, {
+    body: rateBody,
+    generation: rateGeneration,
+    etag: rateEtag,
+    contentType: 'application/json',
+  }],
+])
+const privateObjectReadPort: VisualIntelligencePrivateObjectReadPort = {
+  async readExact(input) {
+    assert.equal(input.bucketName, controlPlaneBucket)
+    const stored = privateObjects.get(input.objectName)
+    if (!stored) return null
+    if (
+      input.generation && input.generation !== stored.generation
+      || input.etag && input.etag !== stored.etag
+    ) return null
+    return {
+      ...stored,
+      body: Buffer.from(stored.body),
+    }
+  },
+}
+
+class MemoryObjectPort implements CanonicalCreateOnlyJsonObjectPort {
+  readonly values = new Map<string, Buffer>()
+
+  async createOnly(input: {
+    objectPath: string
+    body: Buffer
+    contentSha256: string
+  }): Promise<'created' | 'already_exists'> {
+    assert.equal(rawSha(input.body), input.contentSha256)
+    if (this.values.has(input.objectPath)) return 'already_exists'
+    this.values.set(input.objectPath, Buffer.from(input.body))
+    return 'created'
+  }
+
+  async readExact(objectPath: string): Promise<Buffer | null> {
+    const value = this.values.get(objectPath)
+    return value ? Buffer.from(value) : null
+  }
+}
+
+let acquired = 0
+let released = 0
+const concurrencyPort: VisualIntelligenceConcurrencyPort = {
+  async acquire(input) {
+    acquired += 1
+    return {
+      status: 'acquired',
+      leaseRef: ref(`runtime-lease-${input.requestId}`),
+    }
+  },
+  async release() { released += 1 },
+}
+let providerPayload: unknown = null
+let providerCalls = 0
+const generatePort: VisualIntelligenceGeminiGeneratePort = {
+  async generate(input) {
+    providerCalls += 1
+    assert.equal(input.model, VISUAL_INTELLIGENCE_MODEL_ID)
+    assert.ok(providerPayload)
+    return {
+      responseId: 'gemini-production-composition-smoke-response',
+      modelVersion: VISUAL_INTELLIGENCE_MODEL_ID,
+      text: JSON.stringify(providerPayload),
+      finishReason: 'STOP',
+      candidateCount: 1,
+      promptTokenCount: 5_000,
+      candidateTokenCount: 1_000,
+      thinkingTokenCount: 1_500,
+      cachedTokenCount: 0,
+      totalTokenCount: 7_500,
+      groundingMetadataPresent: false,
+      urlContextMetadataPresent: false,
+      functionCallPresent: false,
+      executableCodePresent: false,
+    }
+  },
+}
+
+const env = productionEnv()
+assertRuntimeCanStart(env)
+const objectPort = new MemoryObjectPort()
+const runtime = await createVisualIntelligenceProductionRuntime(env, {
+  privateObjectReadPort,
+  objectPort,
+  concurrencyPort,
+  generatePort,
+  now: () => now,
+})
+assert.ok(runtime)
+assert.equal(runtime.providerCapabilityId, 'visual_intelligence')
+assert.equal(runtime.semanticEngine, 'gemini-3.1-pro-preview')
+assert.equal(runtime.thinkingLevel, 'high')
+assert.equal(runtime.mediaResolution, 'high')
+assert.equal(runtime.applicationDefaultCredentialsUsed, true)
+assert.equal(runtime.apiKeyUsed, false)
+assert.equal(runtime.qwenFallbackAllowed, false)
+assert.equal(runtime.selfHostedVisualModelFallbackAllowed, false)
+assert.equal(runtime.substantiveCpuMediaProcessingAllowed, false)
+
+const costPreflight = await runtime.costOwner.createPreflight({
+  requestId: 'visual-production-source-request-1',
+  maximumInputTokenCount: 100_000,
+  maximumOutputAndThinkingTokenCount: 20_000,
+  estimatedInputTokenCount: 10_000,
+  estimatedOutputAndThinkingTokenCount: 4_000,
+})
+const finalizedRef = ref('source-finalized')
+const probeRef = ref('source-probe')
+const sourceRequest = createVisualIntelligenceRequest({
+  requestId: 'visual-production-source-request-1',
+  idempotencyKey: 'visual-production-source-idempotency-1',
+  scope: {
+    ownerUserId: 'user-1',
+    workspaceId: 'workspace-1',
+    projectId: 'project-1',
+    editSessionId: 'edit-1',
+    approvedSnapshotId: null,
+  },
+  operation: 'analyze_media',
+  profile: 'source_edit_planning',
+  sourceArtifacts: [{
+    artifactId: 'source-video-1',
+    mediaKind: 'video',
+    contentType: 'video/mp4',
+    checksumSha256: rawSha('source-video-1'),
+    byteLength: 1_000_000,
+    width: 1920,
+    height: 1080,
+    durationFrames: 240,
+    frameRate,
+    finalizedMediaAuthorityRef: finalizedRef,
+    immutableStorageObjectAuthorityRef: ref('source-storage'),
+    mediaProbeEvidenceRef: probeRef,
+    privateArtifact: true,
+    exactGenerationRereadRequiredAtDispatch: true,
+  }],
+  comparisonArtifacts: [],
+  requestedRanges: [fullRange],
+  requiredEvidenceRefs: [probeRef],
+  expectedOutcomeRefs: [],
+  outputFrame: null,
+  protectedZones: [],
+  qualityPolicy: createProfessionalHighVisualIntelligenceQualityPolicy(),
+  admission: {
+    mode: 'planning_evidence',
+    authenticatedPrincipalRef: ref('principal'),
+    workspaceAuthorizationRef: ref('workspace-authorization'),
+    finalizedSourceAuthorityRefs: [finalizedRef],
+    sourceChecksumSetRef: ref('source-checksum-set'),
+    analysisAllowanceRef: ref('analysis-allowance'),
+    costPreflight,
+    retentionPolicyRef: ref('retention-policy'),
+    privacyPolicyRef: ref('privacy-policy'),
+    providerReleaseRef: visualIntelligenceRuntimeReleaseRef(
+      runtime.runtimeRelease,
+    ),
+    globalKillSwitchOpen: false,
+    providerKillSwitchOpen: false,
+    reportPersistenceAllowed: true,
+    timelineMutationAllowed: false,
+    editingWorkerExecutionAllowed: false,
+    generationAllowed: false,
+    renderAllowed: false,
+    exportAllowed: false,
+    deliveryAllowed: false,
+  },
+  callerQuestion: null,
+  byteFreeRequest: true,
+  callerPromptAccepted: false,
+  providerCredentialIncluded: false,
+  publicMediaUrlIncluded: false,
+  signedUrlIsSourceTruth: false,
+  shellCommandIncluded: false,
+  providerToolDefinitionIncluded: false,
+})
+const prepared = preparedEvidence(sourceRequest.requestDigestSha256, probeRef)
+await runtime.canonicalRequestPackageStore.persistCreateOnly({
+  ownerClass: 'canonical_source_or_reference_owner',
+  ownerAuthorityRef: ref('canonical-source-owner'),
+  request: sourceRequest,
+  preparedEvidence: prepared,
+  inspectionRequirement: null,
+})
+providerPayload = {
+  schemaVersion: 'visual-intelligence-provider-result-v1',
+  requestId: sourceRequest.requestId,
+  semanticSummary:
+    'The full source contains one complete basketball instruction sequence.',
+  segments: [{
+    segmentId: 'segment-1',
+    artifactId: 'source-video-1',
+    range: fullRange,
+    sceneId: 'scene-1',
+    summary: 'The presenter explains and demonstrates the complete action.',
+    subjectIds: ['presenter-1'],
+    objectIds: ['basketball-1'],
+    actionLabels: ['instruction', 'demonstration'],
+    visibleTextEvidenceRefs: [],
+    transcriptEvidenceRefs: [],
+    evidenceRefs: [probeRef],
+    confidenceBasisPoints: 9_000,
+    uncertainty: null,
+    sourcePlanning: {
+      sourceFunction: 'active_action',
+      actionIntensity: 'medium',
+      editUsability: 'strong',
+      cameraStability: 'stable',
+      continuity: 'continuous',
+    },
+  }],
+  findings: [{
+    findingId: 'preserve-instruction-1',
+    artifactId: 'source-video-1',
+    range: fullRange,
+    category: 'meaning_preservation',
+    severity: 'info',
+    summary: 'Preserve the instruction before proposing cleanup cuts.',
+    evidenceRefs: [probeRef],
+    expectedOutcomeRefs: [],
+    confidenceBasisPoints: 9_000,
+    uncertainty: null,
+    recommendedOwner: 'planning',
+    reinspectionRequired: false,
+    directTimelineMutationAllowed: false,
+    providerInstructionAccepted: false,
+  }],
+  targetedFollowupRanges: [],
+  warnings: [],
+  mediaContentTreatedAsUntrusted: true,
+  providerInstructionsFollowedFromMedia: false,
+  editingOrRenderingClaimed: false,
+}
+const completed = await runtime.lifecyclePort.execute(sourceRequest)
+assert.equal(completed.status, 'completed')
+assert.equal(completed.providerCallMadeDuringInvocation, true)
+assert.equal(completed.costSettledDuringInvocation, true)
+assert.equal(completed.directTimelineMutationPerformed, false)
+const replay = await runtime.lifecyclePort.execute(sourceRequest)
+assert.equal(replay.status, 'cache_replay')
+assert.equal(replay.providerCallMadeDuringInvocation, false)
+assert.equal(replay.costSettledDuringInvocation, false)
+assert.equal(providerCalls, 1)
+assert.equal(acquired, 1)
+assert.equal(released, 1)
+
+const baselineOrchestraQualification =
+  createVisualIntelligenceOrchestraQualificationSnapshot()
+const baselineOrchestraManifest =
+  createVisualIntelligenceOrchestraCapabilityManifest()
+const orchestraQualification = createQualifiedOrchestraSnapshot({
+  baselineQualification: baselineOrchestraQualification,
+  baselineManifest: baselineOrchestraManifest,
+  qualifiedJobTypes: [
+    'scene_primary_subject_identification',
+    'source_video_understanding',
+  ],
+})
+const orchestraManifest =
+  createVisualIntelligenceOrchestraCapabilityManifestForQualification(
+    orchestraQualification,
+  )
+const orchestraScope: OrchestraSkillScope = {
+  scopeType: 'video',
+  sourceArtifactRef: finalizedRef,
+  authorizedRanges: [fullRange],
+  completeSourceCoverageRequired: true,
+  outputId: null,
+}
+const orchestraCall = createPlanningOrchestraCall({
+  manifest: orchestraManifest,
+  qualification: orchestraQualification,
+  scope: orchestraScope,
+  jobType: 'source_video_understanding',
+  suffix: 'production-runtime',
+})
+const orchestraCostPreflight = await runtime.costOwner.createPreflight({
+  requestId: orchestraCall.callId,
+  maximumInputTokenCount: 100_000,
+  maximumOutputAndThinkingTokenCount: 20_000,
+  estimatedInputTokenCount: 10_000,
+  estimatedOutputAndThinkingTokenCount: 4_000,
+})
+const orchestraCompilationEvidence = createOrchestraCompilationEvidence({
+  call: orchestraCall,
+  sourceRequest,
+  costPreflight: orchestraCostPreflight,
+})
+const orchestraDispatchInput = {
+  call: orchestraCall,
+  supportRequest: null,
+  manifest: orchestraManifest,
+  qualificationSnapshot: orchestraQualification,
+  compilationEvidence: orchestraCompilationEvidence,
+  preparedEvidence: preparedEvidence(
+    orchestraCall.callDigestSha256,
+    probeRef,
+  ),
+  inspectionRequirement: null,
+  orchestraDispatchAuthorityRef: orchestraCall.orchestraJobRef,
+} as const
+await assert.rejects(
+  runtime.orchestraDispatchPackageStore.persistCreateOnly({
+    ...orchestraDispatchInput,
+    orchestraDispatchAuthorityRef: ref('caller-invented-dispatch-authority'),
+  }),
+)
+await assert.rejects(
+  runtime.orchestraDispatchPackageStore.persistCreateOnly({
+    ...orchestraDispatchInput,
+    compilationEvidence: {
+      ...orchestraCompilationEvidence,
+      exactOrchestraPlanAndJobReread: false,
+    } as unknown as VisualIntelligenceOrchestraCompilationEvidence,
+  }),
+)
+await assert.rejects(
+  runtime.orchestraDispatchPackageStore.persistCreateOnly({
+    ...orchestraDispatchInput,
+    preparedEvidence: {
+      ...orchestraDispatchInput.preparedEvidence,
+      toolExecutionEvidence: [],
+    },
+  }),
+)
+const persistedDispatch = await runtime.orchestraDispatchPackageStore
+  .persistCreateOnly(orchestraDispatchInput)
+assert.equal(persistedDispatch.disposition, 'created')
+const replayedDispatch = await runtime.orchestraDispatchPackageStore
+  .persistCreateOnly(orchestraDispatchInput)
+assert.equal(replayedDispatch.disposition, 'identical_replay')
+providerPayload = {
+  ...(providerPayload as Record<string, unknown>),
+  requestId: orchestraCall.callId,
+}
+const orchestraExecution = await runtime.orchestraJobRuntimePort.execute({
+  call: orchestraCall,
+  supportRequest: null,
+  authenticatedOwnerUserId: 'user-1',
+  expectedWorkspaceId: 'workspace-1',
+})
+assert.equal(orchestraExecution.status, 'completed')
+assert.equal(
+  parseOrchestraSkillJobResult(orchestraExecution.result).disposition,
+  'completed',
+)
+assert.equal(orchestraExecution.resultReturnsToOrchestra, true)
+assert.equal(
+  orchestraExecution.directTimelineOrArtifactMutationPerformed,
+  false,
+)
+assert.equal(orchestraExecution.finalQaApprovalGranted, false)
+assert.equal(orchestraExecution.publicDeliveryGranted, false)
+assert.equal(orchestraExecution.productionAuthorityGranted, false)
+assert.equal(providerCalls, 2)
+assert.equal(acquired, 2)
+assert.equal(released, 2)
+const orchestraReplay = await runtime.orchestraJobRuntimePort.execute({
+  call: orchestraCall,
+  supportRequest: null,
+  authenticatedOwnerUserId: 'user-1',
+  expectedWorkspaceId: 'workspace-1',
+})
+assert.equal(orchestraReplay.status, 'cache_replay')
+assert.equal(orchestraReplay.providerCallMadeDuringInvocation, false)
+assert.equal(orchestraReplay.costSettledDuringInvocation, false)
+assert.equal(orchestraReplay.duplicateProviderCallAvoided, true)
+assert.equal(orchestraReplay.duplicateCostSettlementAvoided, true)
+assert.equal(providerCalls, 2)
+await assert.rejects(
+  runtime.orchestraJobRuntimePort.execute({
+    call: createPlanningOrchestraCall({
+      manifest: orchestraManifest,
+      qualification: orchestraQualification,
+      scope: orchestraScope,
+      jobType: 'source_video_understanding',
+      suffix: 'not-persisted',
+    }),
+    supportRequest: null,
+    authenticatedOwnerUserId: 'user-1',
+    expectedWorkspaceId: 'workspace-1',
+  }),
+  (error: unknown) => error instanceof ApiError
+    && error.code === 'TOOL_NOT_READY',
+)
+const followupScope: OrchestraSkillScope = {
+  scopeType: 'scene',
+  sourceArtifactRef: finalizedRef,
+  sceneId: 'scene-followup',
+  outputId: 'output-vertical',
+  authorizedRange: fullRange,
+  selectedSceneBindingRef: ref('selected-scene-followup'),
+  completeSceneCoverageRequired: true,
+}
+const followupCall = createPlanningOrchestraCall({
+  manifest: orchestraManifest,
+  qualification: orchestraQualification,
+  scope: followupScope,
+  jobType: 'scene_primary_subject_identification',
+  suffix: 'followup-without-orchestra-estimate',
+})
+const followupCostPreflight = await runtime.costOwner.createPreflight({
+  requestId: followupCall.callId,
+  maximumInputTokenCount: 100_000,
+  maximumOutputAndThinkingTokenCount: 20_000,
+  estimatedInputTokenCount: 10_000,
+  estimatedOutputAndThinkingTokenCount: 4_000,
+})
+await runtime.orchestraDispatchPackageStore.persistCreateOnly({
+  call: followupCall,
+  supportRequest: null,
+  manifest: orchestraManifest,
+  qualificationSnapshot: orchestraQualification,
+  compilationEvidence: createOrchestraCompilationEvidence({
+    call: followupCall,
+    sourceRequest,
+    costPreflight: followupCostPreflight,
+  }),
+  preparedEvidence: preparedEvidence(followupCall.callDigestSha256, probeRef),
+  inspectionRequirement: null,
+  orchestraDispatchAuthorityRef: followupCall.orchestraJobRef,
+})
+providerPayload = {
+  ...(providerPayload as Record<string, unknown>),
+  requestId: followupCall.callId,
+  segments: [{
+    ...((providerPayload as { segments: Array<Record<string, unknown>> })
+      .segments[0]!),
+    sourcePlanning: null,
+  }],
+  targetedFollowupRanges: [{
+    startFrame: 0,
+    endFrameExclusive: 24,
+    frameRate,
+  }],
+}
+const blockedFollowup = await runtime.orchestraJobRuntimePort.execute({
+  call: followupCall,
+  supportRequest: null,
+  authenticatedOwnerUserId: 'user-1',
+  expectedWorkspaceId: 'workspace-1',
+})
+assert.equal(blockedFollowup.result.disposition, 'blocked')
+assert.deepEqual(blockedFollowup.result.proposedFollowupRanges, [])
+assert.equal(blockedFollowup.result.estimatedAdditionalTimeRef, null)
+assert.equal(blockedFollowup.result.estimatedAdditionalCreditsRef, null)
+assert.equal(blockedFollowup.result.scopeExpandedWithoutOrchestra, false)
+assert.ok(blockedFollowup.result.evidenceRefs.some((reference) =>
+  reference.id.startsWith('vi-followup-estimate-blocked-')))
+assert.equal(providerCalls, 3)
+assert.equal(acquired, 3)
+assert.equal(released, 3)
+const blockedFollowupReplay = await runtime.orchestraJobRuntimePort.execute({
+  call: followupCall,
+  supportRequest: null,
+  authenticatedOwnerUserId: 'user-1',
+  expectedWorkspaceId: 'workspace-1',
+})
+assert.equal(blockedFollowupReplay.status, 'cache_replay')
+assert.equal(blockedFollowupReplay.result.disposition, 'blocked')
+assert.equal(providerCalls, 3)
+
+const disabled = await createVisualIntelligenceProductionRuntime(
+  loadRuntimeEnv({
+    NODE_ENV: 'test',
+    E2E_RUNTIME_MODE: 'local',
+    STORAGE_MODE: 'local',
+    WORKER_RUNTIME_MODE: 'local',
+    API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
+  }),
+)
+assert.equal(disabled, undefined)
+await assert.rejects(() => createVisualIntelligenceProductionRuntime(
+  loadRuntimeEnv({
+    ...productionEnvironmentSource(),
+    REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_SHA256: rawSha('wrong-release'),
+  }),
+  {
+    privateObjectReadPort,
+    objectPort: new MemoryObjectPort(),
+    concurrencyPort,
+    generatePort,
+    now: () => now,
+  },
+))
+
+console.log(JSON.stringify({
+  status: 'visual_intelligence_production_runtime_smoke_passed',
+  exactRuntimeReleaseReread: true,
+  exactAccountEffectiveRateReread: true,
+  canonicalRequestPackageConsumed: true,
+  orchestraDispatchPackageConsumed: true,
+  orchestraResultReturnedAndPersisted: true,
+  orchestraReplayAvoidedDuplicateProviderAndCost: true,
+  unpersistedDirectCallRefused: true,
+  followupWithoutOrchestraEstimateBlocked: true,
+  providerCallCount: providerCalls,
+  immutableCacheReplay: true,
+  applicationDefaultCredentialsRequired: true,
+  apiKeyAllowed: false,
+  qwenFallbackAllowed: false,
+  substantiveCpuMediaProcessingAllowed: false,
+  disabledRuntimeStartedProvider: false,
+  tamperedReleaseCoordinateRefused: true,
+}))
+
+function createQualifiedOrchestraSnapshot(input: {
+  baselineQualification: SkillQualificationSnapshot
+  baselineManifest: SkillCapabilityManifest
+  qualifiedJobTypes: readonly string[]
+}): SkillQualificationSnapshot {
+  const qualified = new Set(input.qualifiedJobTypes)
+  return createSkillQualificationSnapshot({
+    schemaVersion: ORCHESTRA_SKILL_QUALIFICATION_SNAPSHOT_VERSION,
+    snapshotId: 'visual-intelligence-production-runtime-qualification',
+    skillKey: input.baselineQualification.skillKey,
+    skillVersion: input.baselineQualification.skillVersion,
+    contractVersion: input.baselineQualification.contractVersion,
+    capabilityDefinitionDigestSha256:
+      input.baselineManifest.capabilityDefinitionDigestSha256,
+    observedReleaseRef: ref('visual-intelligence-production-release'),
+    observedAt: now.toISOString(),
+    overall: 'partially_qualified',
+    jobQualifications: input.baselineQualification.jobQualifications.map(
+      (item) => qualified.has(item.jobType)
+        ? {
+            jobType: item.jobType,
+            status: 'qualified' as const,
+            blockerCodes: [],
+            qualifiedRouteIds: input.baselineManifest.toolRoutes
+              .filter((route) => route.jobTypes.includes(item.jobType))
+              .map((route) => route.routeId)
+              .sort(compare),
+            qualificationEvidenceRefs: [ref(
+              `qualification-${item.jobType}`,
+            )],
+          }
+        : item,
+    ),
+    callerCanSelfQualify: false,
+    qualificationOwner: 'canonical_skill_qualification_registry',
+    dispatchAuthorityGranted: false,
+    providerAuthorityGranted: false,
+    billingAuthorityGranted: false,
+    publicDeliveryAuthorityGranted: false,
+    productionAuthorityGranted: false,
+  })
+}
+
+function createPlanningOrchestraCall(input: {
+  manifest: SkillCapabilityManifest
+  qualification: SkillQualificationSnapshot
+  scope: OrchestraSkillScope
+  jobType: 'scene_primary_subject_identification'
+    | 'source_video_understanding'
+  suffix: string
+}): OrchestraSkillCall {
+  return createOrchestraSkillCall({
+    schemaVersion: ORCHESTRA_SKILL_CALL_VERSION,
+    callId: `orchestra-source-understanding-${input.suffix}`,
+    orchestraPlanRef: ref('orchestra-production-plan'),
+    orchestraJobRef: ref(`orchestra-production-job-${input.suffix}`),
+    parentJobRef: null,
+    requestedBy: { kind: 'orchestra' },
+    targetSkillKey: 'visual_intelligence',
+    jobType: input.jobType,
+    phase: 'planning',
+    scope: input.scope,
+    sceneContextSnapshotRef: input.scope.scopeType === 'video'
+      ? null
+      : ref(`scene-context-${input.suffix}`),
+    sourceArtifactRefs: [input.scope.sourceArtifactRef],
+    comparisonArtifactRefs: [],
+    expectedOutcomeRefs: [],
+    requiredEvidenceRefs: [probeRef],
+    manifestRef: orchestraEvidenceRef(
+      input.manifest.manifestId,
+      input.manifest.manifestDigestSha256,
+    ),
+    qualificationSnapshotRef: orchestraEvidenceRef(
+      input.qualification.snapshotId,
+      input.qualification.snapshotDigestSha256,
+    ),
+    timeBudgetRef: ref(`time-budget-${input.suffix}`),
+    creditBudgetRef: ref(`credit-budget-${input.suffix}`),
+    attemptEnvelopeRef: ref(`attempt-envelope-${input.suffix}`),
+    approvedSnapshotRef: null,
+    idempotencyKey: `orchestra-${input.jobType}-${input.suffix}`,
+    orchestraDispatchAuthorized: true,
+    directProviderCallAllowed: false,
+    directTimelineMutationAllowed: false,
+    directArtifactMutationAllowed: false,
+    scopeExpansionAllowed: false,
+    peerSkillExecutionAuthorityAccepted: false,
+  })
+}
+
+function createOrchestraCompilationEvidence(input: {
+  call: OrchestraSkillCall
+  sourceRequest: VisualIntelligenceRequest
+  costPreflight: VisualIntelligenceCostPreflight
+}): VisualIntelligenceOrchestraCompilationEvidence {
+  if (input.sourceRequest.admission.mode !== 'planning_evidence') {
+    throw new TypeError('Production smoke source request must be planning evidence.')
+  }
+  const callRef = orchestraEvidenceRef(
+    input.call.callId,
+    input.call.callDigestSha256,
+  )
+  const admission = {
+    ...input.sourceRequest.admission,
+    costPreflight: input.costPreflight,
+  }
+  return {
+    schemaVersion: 'visual-intelligence-orchestra-compilation-evidence-v1',
+    callRef,
+    manifestRef: input.call.manifestRef,
+    qualificationSnapshotRef: input.call.qualificationSnapshotRef,
+    timeBudgetRef: input.call.timeBudgetRef,
+    creditBudgetRef: input.call.creditBudgetRef,
+    attemptEnvelopeRef: input.call.attemptEnvelopeRef,
+    requestScope: input.sourceRequest.scope,
+    sourceArtifacts: input.sourceRequest.sourceArtifacts,
+    comparisonArtifacts: [],
+    requiredEvidenceRefs: input.call.requiredEvidenceRefs,
+    expectedOutcomeRefs: [],
+    outputFrame: input.call.scope.outputId === null
+      ? null
+      : {
+          outputId: input.call.scope.outputId,
+          aspectRatioLabel: '9:16',
+          aspectRatioNumerator: 9,
+          aspectRatioDenominator: 16,
+          width: 1080,
+          height: 1920,
+          frameRate,
+          confirmedOutputFrameRef: ref('confirmed-output-frame'),
+          confirmedByUser: true,
+        },
+    protectedZones: [],
+    admission,
+    budgetBindingDigestSha256: orchestraDigest({
+      callRef,
+      timeBudgetRef: input.call.timeBudgetRef,
+      creditBudgetRef: input.call.creditBudgetRef,
+      attemptEnvelopeRef: input.call.attemptEnvelopeRef,
+      costPreflight: input.costPreflight,
+    }),
+    exactOrchestraPlanAndJobReread: true,
+    exactManifestAndQualificationReread: true,
+    exactMediaAuthoritiesReread: true,
+    exactSceneContextReread: true,
+    exactTimeAndCreditBudgetsReread: true,
+    exactAttemptEnvelopeReread: true,
+    callerPromptAccepted: false,
+    directProviderCallMade: false,
+    directTimelineMutationPerformed: false,
+  }
+}
+
+function compare(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0
+}
+
+function productionEnv() {
+  return loadRuntimeEnv(productionEnvironmentSource())
+}
+
+function productionEnvironmentSource(): NodeJS.ProcessEnv {
+  return {
+    NODE_ENV: 'production',
+    E2E_RUNTIME_MODE: 'cloud_run',
+    STORAGE_MODE: 'gcs',
+    REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE: 'disabled',
+    WORKER_RUNTIME_MODE: 'cloud_run',
+    REEDITPRO_INTERNAL_SERVICE_TOKEN: 'controlled-internal-service-token',
+    API_ALLOWED_CORS_ORIGINS: 'https://app.weeditpro.example',
+    SUPABASE_URL: 'https://weeditpro.supabase.co',
+    SUPABASE_ANON_KEY: 'controlled-anon-key',
+    SUPABASE_SERVICE_ROLE_KEY: 'controlled-service-role-key',
+    GOOGLE_CLOUD_PROJECT_ID: 'reeditpro',
+    GOOGLE_CLOUD_REGION: 'us-central1',
+    GCS_SOURCE_MEDIA_BUCKET: 'reeditpro-source-media',
+    GCS_GENERATED_ASSETS_BUCKET: 'reeditpro-generated-assets',
+    GCS_PROCESSED_MEDIA_BUCKET: 'reeditpro-processed-media',
+    GCS_PREVIEWS_BUCKET: 'reeditpro-previews',
+    GCS_EXPORTS_BUCKET: 'reeditpro-exports',
+    GCS_THUMBNAILS_BUCKET: 'reeditpro-thumbnails',
+    GCS_QA_ARTIFACTS_BUCKET: 'reeditpro-qa-artifacts',
+    GCS_WORKER_TEMP_BUCKET: 'reeditpro-worker-temp',
+    GCS_CONTROL_PLANE_STATE_BUCKET: controlPlaneBucket,
+    REEDITPRO_VISUAL_INTELLIGENCE_RUNTIME_MODE: 'cloud_run',
+    REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_OBJECT: releaseObject,
+    REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_GENERATION: releaseGeneration,
+    REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_ETAG: releaseEtag,
+    REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_SHA256: rawSha(releaseBody),
+    REEDITPRO_VISUAL_INTELLIGENCE_RATE_OBJECT: rateObject,
+    REEDITPRO_VISUAL_INTELLIGENCE_RATE_GENERATION: rateGeneration,
+    REEDITPRO_VISUAL_INTELLIGENCE_RATE_ETAG: rateEtag,
+    REEDITPRO_VISUAL_INTELLIGENCE_RATE_SHA256: rawSha(rateBody),
+  }
+}
+
+function preparedEvidence(
+  requestDigestSha256: string,
+  probeRef: VisualIntelligenceEvidenceRef,
+): VisualIntelligencePreparedEvidence {
+  const deterministicEvidence: VisualIntelligenceEvidence[] = [{
+    evidenceId: probeRef.id,
+    evidenceRef: probeRef,
+    artifactId: 'source-video-1',
+    range: null,
+    authority: 'media_probe',
+    producingTool: 'ffprobe',
+    toolVersion: 'ffprobe-8.0',
+    summary: 'Canonical source dimensions and rational timing were reread.',
+    privateEvidence: true,
+    providerInstructionAccepted: false,
+  }]
+  return {
+    deterministicEvidence,
+    coveragePlan: {
+      requestedRanges: [fullRange],
+      analyzedRanges: [fullRange],
+      incompleteRanges: [],
+      sceneBoundaryRefs: [ref('source-scene-boundaries')],
+      samplingPolicies: [{
+        policyId: 'complete-source-scene-aware',
+        policyVersion: 'complete-source-scene-aware-v1',
+        mode: 'scene_aware_complete_coverage',
+        targetFramesPerSecondNumerator: 2,
+        targetFramesPerSecondDenominator: 1,
+        sceneAware: true,
+        highDetail: true,
+        requestedRange: fullRange,
+        analyzedRange: fullRange,
+        samplingPolicyRef: ref('source-sampling-policy'),
+      }],
+      targetedFollowupRanges: [],
+      completeRequestedRangeCoverage: true,
+      everyTimelineFrameInspected: false,
+      completeTimePixelInspectionClaimAllowed: false,
+    },
+    privateMediaInputs: [{
+      artifactId: 'source-video-1',
+      gcsUri: 'gs://reeditpro-source-media/source-video-1.mp4',
+      contentType: 'video/mp4',
+      checksumSha256: rawSha('source-video-1'),
+      exactGenerationRereadVerified: true,
+    }],
+    transcriptVersion: 'faster-whisper-large-v3-authority-v1',
+    ocrVersion: 'paddleocr-exact-visible-text-v1',
+    toolExecutionEvidence: [
+      'ffprobe',
+      'ffmpeg',
+      'pyscenedetect',
+      'opencv',
+    ].map((tool) => ({
+      tool: tool as 'ffprobe' | 'ffmpeg' | 'pyscenedetect' | 'opencv',
+      requirement: 'required' as const,
+      executionClass: 'l4_gpu_standard' as const,
+      releaseRef: ref(`${tool}-qualified-release`),
+      executionRef: ref(`${tool}-source-execution`),
+      substantiveCpuExecutionUsed: false as const,
+      sourceArtifactChecksumBound: true as const,
+    })),
+    preparedEvidenceRef: ref('source-prepared-evidence', {
+      requestDigestSha256,
+      l4GpuEvidencePrepared: true,
+      substantiveCpuMediaProcessingUsed: false,
+    }),
+  }
+}

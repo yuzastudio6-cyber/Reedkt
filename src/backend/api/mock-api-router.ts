@@ -176,7 +176,7 @@ const mockPrivateInternalAdapterActivityGroups: Array<{ id: string; aliases: str
   },
   {
     id: 'image_cleanup',
-    aliases: ['sam2', 'birefnet', 'rembg', 'transparent_background', 'real_esrgan', 'kornia'],
+    aliases: ['sam3_1', 'birefnet', 'rembg', 'transparent_background', 'real_esrgan', 'kornia'],
   },
   {
     id: 'model_foundation',
@@ -1390,11 +1390,14 @@ function mockProfessionalSkillModelRoleTraceIsPackageReady(
     return false
   }
 
-  const visualRole = trace.roles.find((role) => role.modelRoleId === 'qwen2_5_vl_visual_understanding')
+  const visualRole = trace.roles.find(
+    (role) => role.modelRoleId === 'visual_intelligence_gemini_pro_high',
+  )
   if (
     !visualRole ||
-    visualRole.providerBoundary !== 'qwen2_5_vl_7b_instruct_provider_boundary' ||
-    visualRole.canonicalProviderModel !== 'qwen2.5-vl-7b-instruct' ||
+    visualRole.providerBoundary !==
+      'vertex_gemini_pro_visual_intelligence_boundary' ||
+    visualRole.canonicalProviderModel !== 'gemini-3.1-pro-preview' ||
     !visualRole.requestedUses.includes('visual_understanding') ||
     visualRole.reasoningRouteRole !== 'specialist' ||
     visualRole.reasoningRoutePriority !== null ||

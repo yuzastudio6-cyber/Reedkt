@@ -20,7 +20,7 @@ import {
 } from './reasoning-model-routing-contract'
 
 export const REEDITPRO_INTELLIGENCE_RESPONSIBILITY_CONTRACT_VERSION =
-  'reeditpro-intelligence-responsibility-v1'
+  'reeditpro-intelligence-responsibility-v2-visual-intelligence'
 
 const canonicalReasoningRouteModelRoles: ReEditProModelRoleId[] = [
   'kimi_k3_main_edit_agent',
@@ -34,8 +34,8 @@ export const REEDITPRO_INTELLIGENCE_RESPONSIBILITY_BINDINGS:
       roleId: 'visual_analyst',
       displayName: 'Visual evidence analyst',
       authorityKind: 'canonical_visual_specialist',
-      authorityId: 'qwen2_5_vl_visual_understanding',
-      modelRoleIds: ['qwen2_5_vl_visual_understanding'],
+      authorityId: 'visual_intelligence',
+      modelRoleIds: ['visual_intelligence_gemini_pro_high'],
       allowedRequestedUses: ['visual_understanding'],
       taskTypes: ['source_visual_analysis', 'technical_visual_qa'],
       activationMode: 'only_when_visual_evidence_is_required',
@@ -177,7 +177,7 @@ export function getReEditProIntelligenceResponsibilityBinding(
   const binding = REEDITPRO_INTELLIGENCE_RESPONSIBILITY_BINDINGS.find(
     (candidate) => candidate.roleId === roleId,
   )
-  if (!binding) throw new Error(`Missing ReEditPro intelligence role: ${roleId}`)
+  if (!binding) throw new Error(`Missing WeEditPro intelligence role: ${roleId}`)
   return listReEditProIntelligenceResponsibilityBindings()
     .find((candidate) => candidate.roleId === roleId)!
 }
@@ -221,9 +221,10 @@ export function validateReEditProIntelligenceResponsibilityArchitecture(): {
 
   const visual = getReEditProIntelligenceResponsibilityBinding('visual_analyst')
   if (
-    visual.modelRoleIds.join(',') !== 'qwen2_5_vl_visual_understanding'
+    visual.authorityId !== 'visual_intelligence'
+    || visual.modelRoleIds.join(',') !== 'visual_intelligence_gemini_pro_high'
     || visual.allowedRequestedUses.join(',') !== 'visual_understanding'
-  ) blockers.push('Visual Analyst must remain bound only to the Qwen visual specialist role.')
+  ) blockers.push('Visual Analyst must remain bound only to provider-neutral Visual Intelligence.')
 
   const creative = getReEditProIntelligenceResponsibilityBinding('creative_director')
   if (

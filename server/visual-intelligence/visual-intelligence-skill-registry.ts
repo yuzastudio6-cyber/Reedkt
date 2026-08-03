@@ -2,96 +2,95 @@ import {
   VISUAL_INTELLIGENCE_ANALYZE_PROFILES,
   VISUAL_INTELLIGENCE_CAPABILITY_ID,
   VISUAL_INTELLIGENCE_COMPARISON_PROFILES,
-  VISUAL_INTELLIGENCE_EXECUTION_ROUTE,
-  VISUAL_INTELLIGENCE_EXECUTION_ROUTE_ID,
+  VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS,
   VISUAL_INTELLIGENCE_INSPECTION_PROFILES,
-  VISUAL_INTELLIGENCE_INSPECTION_ROUTE,
-  VISUAL_INTELLIGENCE_INSPECTION_ROUTE_ID,
-  VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE,
-  VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE_ID,
   VISUAL_INTELLIGENCE_QUERY_PROFILES,
-  VISUAL_INTELLIGENCE_SKILL_IDS,
+  type VisualIntelligenceInternalOperationId,
   type VisualIntelligenceOperation,
   type VisualIntelligenceProfile,
   type VisualIntelligenceRequest,
-  type VisualIntelligenceSkillId,
 } from '../../src/types/visual-intelligence'
 import { visualIntelligenceDigest } from './visual-intelligence-contract'
 
 export const VISUAL_INTELLIGENCE_SKILL_REGISTRY_VERSION =
-  'visual-intelligence-skill-registry-v1' as const
+  'visual-intelligence-internal-operation-registry-v2' as const
 
-export interface VisualIntelligenceSkillDefinition {
+export interface VisualIntelligenceInternalOperationDefinition {
   readonly registryVersion: typeof VISUAL_INTELLIGENCE_SKILL_REGISTRY_VERSION
-  readonly capabilityId: typeof VISUAL_INTELLIGENCE_CAPABILITY_ID
-  readonly skillId: VisualIntelligenceSkillId
+  readonly topLevelSkillKey: typeof VISUAL_INTELLIGENCE_CAPABILITY_ID
+  readonly operationId: VisualIntelligenceInternalOperationId
   readonly operation: VisualIntelligenceOperation
   readonly profiles: readonly VisualIntelligenceProfile[]
-  readonly admissionMode:
+  readonly allowedAdmissionModes: readonly (
     | 'planning_evidence'
     | 'approved_edit_inspection'
-  readonly executionRouteId:
-    | typeof VISUAL_INTELLIGENCE_EXECUTION_ROUTE_ID
-    | typeof VISUAL_INTELLIGENCE_INSPECTION_ROUTE_ID
-    | typeof VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE_ID
-  readonly executionRoute:
-    | typeof VISUAL_INTELLIGENCE_EXECUTION_ROUTE
-    | typeof VISUAL_INTELLIGENCE_INSPECTION_ROUTE
-    | typeof VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE
+  )[]
+  readonly topLevelSkillManifestRequired: true
+  readonly internalOperationOnly: true
+  readonly legacyRouteInvocationAuthoritative: false
   readonly providerPromptOwnedByVisualIntelligence: true
   readonly callerPromptPolicy: 'forbidden' | 'bounded_question_only'
   readonly providerNeutralConsumerContract: true
+  readonly directUserInvocationAllowed: false
+  readonly directPeerSkillInvocationAllowed: false
   readonly directProviderInvocationAllowed: false
   readonly timelineMutationAuthority: false
-  readonly skillDigestSha256: string
+  readonly operationDigestSha256: string
 }
 
+/** @deprecated Use VisualIntelligenceInternalOperationDefinition. */
+export type VisualIntelligenceSkillDefinition =
+  VisualIntelligenceInternalOperationDefinition
+
 type DefinitionInput = Omit<
-  VisualIntelligenceSkillDefinition,
+  VisualIntelligenceInternalOperationDefinition,
   | 'registryVersion'
-  | 'capabilityId'
+  | 'topLevelSkillKey'
+  | 'topLevelSkillManifestRequired'
+  | 'internalOperationOnly'
+  | 'legacyRouteInvocationAuthoritative'
   | 'providerPromptOwnedByVisualIntelligence'
   | 'providerNeutralConsumerContract'
+  | 'directUserInvocationAllowed'
+  | 'directPeerSkillInvocationAllowed'
   | 'directProviderInvocationAllowed'
   | 'timelineMutationAuthority'
-  | 'skillDigestSha256'
+  | 'operationDigestSha256'
 >
 
 const definitions = Object.freeze([
   definition({
-    skillId: VISUAL_INTELLIGENCE_SKILL_IDS[0],
+    operationId: VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS[0],
     operation: 'analyze_media',
     profiles: VISUAL_INTELLIGENCE_ANALYZE_PROFILES,
-    admissionMode: 'planning_evidence',
-    executionRouteId: VISUAL_INTELLIGENCE_EXECUTION_ROUTE_ID,
-    executionRoute: VISUAL_INTELLIGENCE_EXECUTION_ROUTE,
+    allowedAdmissionModes: ['planning_evidence'],
     callerPromptPolicy: 'forbidden',
   }),
   definition({
-    skillId: VISUAL_INTELLIGENCE_SKILL_IDS[1],
+    operationId: VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS[1],
     operation: 'inspect_edit',
     profiles: VISUAL_INTELLIGENCE_INSPECTION_PROFILES,
-    admissionMode: 'approved_edit_inspection',
-    executionRouteId: VISUAL_INTELLIGENCE_INSPECTION_ROUTE_ID,
-    executionRoute: VISUAL_INTELLIGENCE_INSPECTION_ROUTE,
+    allowedAdmissionModes: ['approved_edit_inspection'],
     callerPromptPolicy: 'forbidden',
   }),
   definition({
-    skillId: VISUAL_INTELLIGENCE_SKILL_IDS[2],
+    operationId: VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS[2],
     operation: 'query_range',
     profiles: VISUAL_INTELLIGENCE_QUERY_PROFILES,
-    admissionMode: 'planning_evidence',
-    executionRouteId: VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE_ID,
-    executionRoute: VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE,
+    allowedAdmissionModes: [
+      'planning_evidence',
+      'approved_edit_inspection',
+    ],
     callerPromptPolicy: 'bounded_question_only',
   }),
   definition({
-    skillId: VISUAL_INTELLIGENCE_SKILL_IDS[3],
+    operationId: VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS[3],
     operation: 'compare_media',
     profiles: VISUAL_INTELLIGENCE_COMPARISON_PROFILES,
-    admissionMode: 'planning_evidence',
-    executionRouteId: VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE_ID,
-    executionRoute: VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE,
+    allowedAdmissionModes: [
+      'planning_evidence',
+      'approved_edit_inspection',
+    ],
     callerPromptPolicy: 'forbidden',
   }),
 ])
@@ -103,13 +102,13 @@ const definitionByOperation = new Map(
 assertCompleteRegistry()
 
 export function listVisualIntelligenceSkillDefinitions():
-readonly VisualIntelligenceSkillDefinition[] {
+readonly VisualIntelligenceInternalOperationDefinition[] {
   return definitions
 }
 
 export function getVisualIntelligenceSkillDefinition(
   operation: VisualIntelligenceOperation,
-): VisualIntelligenceSkillDefinition {
+): VisualIntelligenceInternalOperationDefinition {
   const result = definitionByOperation.get(operation)
   if (!result) throw new Error('Visual Intelligence skill is not registered.')
   return result
@@ -117,11 +116,11 @@ export function getVisualIntelligenceSkillDefinition(
 
 export function getVisualIntelligenceSkillDefinitionForRequest(
   request: VisualIntelligenceRequest,
-): VisualIntelligenceSkillDefinition {
+): VisualIntelligenceInternalOperationDefinition {
   const result = getVisualIntelligenceSkillDefinition(request.operation)
   if (
     !result.profiles.includes(request.profile)
-    || result.admissionMode !== request.admission.mode
+    || !result.allowedAdmissionModes.includes(request.admission.mode)
     || (result.callerPromptPolicy === 'forbidden'
       && request.callerQuestion !== null)
     || (result.callerPromptPolicy === 'bounded_question_only'
@@ -130,32 +129,41 @@ export function getVisualIntelligenceSkillDefinitionForRequest(
   return result
 }
 
-function definition(input: DefinitionInput): VisualIntelligenceSkillDefinition {
+function definition(
+  input: DefinitionInput,
+): VisualIntelligenceInternalOperationDefinition {
   const withoutDigest = {
     registryVersion: VISUAL_INTELLIGENCE_SKILL_REGISTRY_VERSION,
-    capabilityId: VISUAL_INTELLIGENCE_CAPABILITY_ID,
+    topLevelSkillKey: VISUAL_INTELLIGENCE_CAPABILITY_ID,
     ...input,
     profiles: Object.freeze([...input.profiles]),
+    allowedAdmissionModes: Object.freeze([...input.allowedAdmissionModes]),
+    topLevelSkillManifestRequired: true as const,
+    internalOperationOnly: true as const,
+    legacyRouteInvocationAuthoritative: false as const,
     providerPromptOwnedByVisualIntelligence: true as const,
     providerNeutralConsumerContract: true as const,
+    directUserInvocationAllowed: false as const,
+    directPeerSkillInvocationAllowed: false as const,
     directProviderInvocationAllowed: false as const,
     timelineMutationAuthority: false as const,
   }
   return deepFreeze({
     ...withoutDigest,
-    skillDigestSha256: visualIntelligenceDigest(withoutDigest),
+    operationDigestSha256: visualIntelligenceDigest(withoutDigest),
   })
 }
 
 function assertCompleteRegistry(): void {
   if (
-    definitions.length !== VISUAL_INTELLIGENCE_SKILL_IDS.length
+    definitions.length !== VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS.length
     || definitions.some(
-      (item, index) => item.skillId !== VISUAL_INTELLIGENCE_SKILL_IDS[index],
+      (item, index) =>
+        item.operationId !== VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS[index],
     )
     || new Set(definitions.map((item) => item.operation)).size
       !== definitions.length
-    || new Set(definitions.map((item) => item.skillId)).size
+    || new Set(definitions.map((item) => item.operationId)).size
       !== definitions.length
   ) throw new Error('Visual Intelligence skill registry is incomplete.')
   const registeredProfiles = definitions.flatMap((item) => item.profiles)

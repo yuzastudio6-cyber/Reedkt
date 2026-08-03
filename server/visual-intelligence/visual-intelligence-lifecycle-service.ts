@@ -7,15 +7,19 @@ import {
   type VisualIntelligenceEvidence,
   type VisualIntelligenceEvidenceRef,
   type VisualIntelligenceProvider,
+  type VisualIntelligencePreparedEvidence,
   type VisualIntelligenceProviderRequest,
   type VisualIntelligenceReport,
   type VisualIntelligenceRequest,
-  type VisualIntelligenceToolExecutionEvidence,
+} from '../../src/types/visual-intelligence'
+export type {
+  VisualIntelligencePreparedEvidence,
 } from '../../src/types/visual-intelligence'
 import { ApiError } from '../errors/api-error'
 import {
   createVisualIntelligenceEvidenceRef,
   createVisualIntelligenceReport,
+  parseVisualIntelligencePreparedEvidence,
   parseVisualIntelligenceProviderNormalizedResult,
   parseVisualIntelligenceReport,
   visualIntelligenceSourcePlanningSegmentsAreComplete,
@@ -44,16 +48,6 @@ export interface VisualIntelligenceAdmissionVerificationPort {
     readonly killSwitchesVerifiedClosed?: true
     readonly retentionPrivacyVerified?: true
   }>
-}
-
-export interface VisualIntelligencePreparedEvidence {
-  readonly deterministicEvidence: VisualIntelligenceEvidence[]
-  readonly coveragePlan: VisualIntelligenceProviderRequest['coveragePlan']
-  readonly privateMediaInputs: VisualIntelligenceProviderRequest['privateMediaInputs']
-  readonly transcriptVersion: string | null
-  readonly ocrVersion: string | null
-  readonly toolExecutionEvidence: readonly VisualIntelligenceToolExecutionEvidence[]
-  readonly preparedEvidenceRef: VisualIntelligenceEvidenceRef
 }
 
 export interface VisualIntelligenceEvidencePreparationPort {
@@ -179,11 +173,13 @@ export function createVisualIntelligenceLifecycleService(input: {
       ) throw notReady(admission.blockerCode
         ?? 'visual_intelligence_admission_not_current')
 
-      const prepared = await input.evidencePreparationPort.prepare({
+      const prepared = assertVisualIntelligencePreparedEvidenceForRequest(
         request,
-        admissionRef: admission.admissionRef,
-      })
-      validatePreparedEvidence(request, prepared)
+        await input.evidencePreparationPort.prepare({
+          request,
+          admissionRef: admission.admissionRef,
+        }),
+      )
       const profile = getVisualIntelligenceProfileDefinition(
         request.operation,
         request.profile,
@@ -587,6 +583,16 @@ function requireArtifactSemanticRef(
   const ref = refs.get(artifactId)
   if (!ref) throw notReady('visual_intelligence_artifact_semantic_evidence_missing')
   return ref
+}
+
+export function assertVisualIntelligencePreparedEvidenceForRequest(
+  untrustedRequest: unknown,
+  untrustedPrepared: unknown,
+): VisualIntelligencePreparedEvidence {
+  const request = parseVisualIntelligenceRequest(untrustedRequest)
+  const prepared = parseVisualIntelligencePreparedEvidence(untrustedPrepared)
+  validatePreparedEvidence(request, prepared)
+  return prepared
 }
 
 function validatePreparedEvidence(

@@ -755,6 +755,64 @@ security/privacy release review, and the preview model alias lacking an
 immutable accepted revision. No paid provider, public delivery, final export,
 billing, wallet, Supabase, or production mutation occurred.
 
+## M12 — closeout reconciliation and base synchronization
+
+Status: completed locally; push evidence is recorded by the following
+bookkeeping commit.
+
+Implementation commit: this merge commit.
+
+Reconciled the existing B-roll head
+`cb6e55518d7ac4cda9e9325b38cb53bea5076080` and draft PR #2498 against the
+current integration-base tip
+`6423f12c1e62a252fc860ce5184888770411c62d`. The prior linked worktree used
+the read-only preservation repository's shared Git object store and emitted
+AppleDouble pack-index errors after fetch, so the closeout continued from a
+clean standalone clone at
+`/Users/macuser/Documents/REeditpro-b-roll-skill-closeout` on the same remote
+branch. The preservation checkout and its unrelated work were not changed.
+
+The integration base was 28 commits ahead and contained separately owned
+Visual Intelligence, GPU authority, and orchestra capability work. A normal
+`--no-ff` merge completed without conflicts. This milestone preserved that
+work but did not implement or use the orchestra, Visual Intelligence, Track
+All, SAM2, or SAM 3.1 as B-roll completion evidence.
+
+Baseline GitHub Actions evidence for B-roll head `cb6e55518`:
+
+- UI QA run `30847558149` passed secrets checks, install, frontend boundary,
+  production dependency audit, Chromium install, lint, typecheck, and build.
+- Browser E2E passed 114 tests, skipped 7, and failed 17 because every affected
+  fixture received `spawn ffmpeg ENOENT`.
+- The media-runtime, server-typecheck, security, and authenticated private
+  pipeline steps were consequently skipped. M22 owns the workflow correction.
+
+Post-merge validation:
+
+- `npm run build` — passed; existing Vite chunk-size and dynamic-import
+  warnings only.
+- `npm run typecheck:server`, `npm run lint`, and
+  `npm run check:frontend-boundary` — passed; boundary covered 1,045 files.
+- `npm run test:b-roll-capability-manifest`,
+  `npm run test:b-roll-planning`, and
+  `npm run test:b-roll-canonical-integration` — passed with manifest hash
+  `c916e4d2…`.
+- `npm run smoke:b-roll-retirement` — passed across 6,097 repository files,
+  one active B-roll runtime, zero alternate provider fallbacks, five rejected
+  retired routes, and no Track All implementation import.
+- `npm run smoke:professional-skill-planner` — passed after synchronization;
+  the prior retired-Qwen blocker is no longer present in the current base.
+- `npm run smoke:orchestra-skill-capability` — passed the separately owned base
+  contract regression. It was not used as B-roll qualification evidence.
+- One attempted local command used the non-existent name
+  `smoke:orchestra-skill-capability-contract`; the correct package script above
+  was immediately identified and passed.
+
+Qualification after M12 remains the existing
+`internal_execution_qualified` claim while the closeout audit is in progress.
+M17 will replace its synthetic startup receipt with actual generated run
+evidence, and M23 will issue the final source-tree-bound qualification.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -771,3 +829,4 @@ billing, wallet, Supabase, or production mutation occurred.
 | M9 | `c8268a9d7` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M10 | `f2b799d2f` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M11 | `4a74687ca` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M12 | this merge commit | following bookkeeping commit | pending push | `internal_execution_qualified` |

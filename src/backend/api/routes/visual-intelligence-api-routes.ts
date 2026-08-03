@@ -8,16 +8,20 @@ import {
   VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE,
   VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE_ID,
 } from '../../../types/visual-intelligence'
+import {
+  ORCHESTRA_VISUAL_INTELLIGENCE_JOB_ROUTE,
+  ORCHESTRA_VISUAL_INTELLIGENCE_JOB_ROUTE_ID,
+} from '../../../types/orchestra-skill-capability'
 import type { ApiRouteDefinition } from '../api-runtime-contracts'
 
 export const VISUAL_INTELLIGENCE_API_ROUTES: ApiRouteDefinition[] = [
   {
-    id: VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE_ID,
+    id: ORCHESTRA_VISUAL_INTELLIGENCE_JOB_ROUTE_ID,
     domain: 'visual_intelligence',
     method: 'POST',
-    path: VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE,
+    path: ORCHESTRA_VISUAL_INTELLIGENCE_JOB_ROUTE,
     description:
-      'Reread admitted planning evidence and execute one bounded analyze, query, or comparison operation through Visual Intelligence.',
+      'Execute one immutable Orchestra-dispatched Visual Intelligence skill job and return its result only to Orchestra.',
     securityLevel: 'backend_service_role',
     runtimeMode: 'cloud_run',
     status: 'backend_required',
@@ -25,8 +29,30 @@ export const VISUAL_INTELLIGENCE_API_ROUTES: ApiRouteDefinition[] = [
     requiresServiceRole: true,
     requiresProviderSecret: false,
     requiresStripeSecret: false,
+    futureHandlerName: 'executeOrchestraVisualIntelligenceJob',
+    notes: [
+      'The exact call, manifest, qualification, budgets, media evidence, and compilation evidence must already exist in the create-only Orchestra dispatch store.',
+      'Peer skills may request support only through Orchestra; browsers, users, and skills cannot invoke this route directly or supply prompts, provider credentials, paths, URLs, or media bytes.',
+      'The immutable result returns to Orchestra and cannot mutate timeline or artifacts, expand scope, approve QA, deliver publicly, or grant production authority.',
+    ],
+  },
+  {
+    id: VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE_ID,
+    domain: 'visual_intelligence',
+    method: 'POST',
+    path: VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE,
+    description:
+      'Retired direct planning-operation entrypoint; Orchestra now owns every Visual Intelligence invocation.',
+    securityLevel: 'backend_service_role',
+    runtimeMode: 'cloud_run',
+    status: 'disabled',
+    requiresSupabase: false,
+    requiresServiceRole: true,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
     futureHandlerName: 'executeVisualIntelligencePlanningOperation',
     notes: [
+      'This path is deliberately not mounted. New work must use the exact immutable Orchestra skill-job route.',
       'The backend owner independently rereads each immutable upstream request, artifact authority, evidence package, allowance, and account-effective pricing authority.',
       'Callers select only a registered operation/profile and, for query_range, one bounded question; arbitrary provider prompts, admissions, costs, paths, URLs, media bytes, credentials, tools, and model choices are forbidden.',
       'The result is immutable planning evidence only and cannot mutate the edit, dispatch editing work, render, approve QA, export, deliver, or grant production authority.',
@@ -38,16 +64,17 @@ export const VISUAL_INTELLIGENCE_API_ROUTES: ApiRouteDefinition[] = [
     method: 'POST',
     path: VISUAL_INTELLIGENCE_EXECUTION_ROUTE,
     description:
-      'Execute one owner-admitted provider-neutral Visual Intelligence request through the exact Gemini Pro High lifecycle.',
+      'Retired raw Visual Intelligence request entrypoint; Orchestra now owns every active dispatch.',
     securityLevel: 'backend_service_role',
     runtimeMode: 'cloud_run',
-    status: 'backend_required',
+    status: 'disabled',
     requiresSupabase: false,
     requiresServiceRole: true,
     requiresProviderSecret: false,
     requiresStripeSecret: false,
     futureHandlerName: 'executeVisualIntelligenceRequest',
     notes: [
+      'This path is deliberately not mounted. Possessing a request record is not Orchestra dispatch authority.',
       'The request is byte-free and must already be admitted by its canonical source or approved-edit owner.',
       'Google Application Default Credentials remain backend-only; caller-selected models, prompts, tools, credentials, URLs, and Qwen fallback are forbidden.',
       'Execution may persist immutable private evidence and settle the exact account-effective model cost, but it cannot mutate the edit, approve QA, export, deliver, or grant production authority.',
@@ -59,16 +86,17 @@ export const VISUAL_INTELLIGENCE_API_ROUTES: ApiRouteDefinition[] = [
     method: 'POST',
     path: VISUAL_INTELLIGENCE_INSPECTION_ROUTE,
     description:
-      'Execute one approved-snapshot Visual Intelligence inspection through the canonical owner and repair coordinator.',
+      'Retired direct inspection entrypoint; approved inspections now run only as exact Orchestra skill jobs.',
     securityLevel: 'backend_service_role',
     runtimeMode: 'cloud_run',
-    status: 'backend_required',
+    status: 'disabled',
     requiresSupabase: false,
     requiresServiceRole: true,
     requiresProviderSecret: false,
     requiresStripeSecret: false,
     futureHandlerName: 'executeApprovedVisualIntelligenceInspection',
     notes: [
+      'This path is deliberately not mounted. An owning skill returns a support request to Orchestra instead of dispatching Visual Intelligence.',
       'The backend rereads the exact approved snapshot, private preview, confirmed output frame, work graph, timeline, estimate, reservation, and expected-outcome lineage before provider execution.',
       'Deterministic evidence must use the admitted GPU release; sampled Gemini evidence remains separate from complete-time deterministic QA and canonical private review.',
       'Findings route to the owning skill for at most two approved repair cycles. The route cannot mutate the timeline, approve QA, export, deliver, or grant production authority.',

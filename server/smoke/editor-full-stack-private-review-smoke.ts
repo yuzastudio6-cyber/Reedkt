@@ -1725,25 +1725,25 @@ try {
   const verifiedModelRoleTrace = verifiedHandoffs[0]?.privateReview?.editDecisionManifestVerification?.approvedEditContext?.professionalSkillTrace?.modelRoleTrace
   assert.ok(
     (verifiedModelRoleTrace?.roles ?? []).some((role) =>
-      role.modelRoleId === 'qwen_3_7_main_edit_agent' &&
-      role.canonicalProviderModel === 'qwen-3.7-max' &&
+      role.modelRoleId === 'kimi_k3_main_edit_agent' &&
+      role.canonicalProviderModel === 'kimi-k3' &&
       (role.requestedUses ?? []).includes('edit_planning') &&
       role.userReasoningAllowed &&
       role.editPlanningAllowed &&
-      !role.toolCodeAllowed
+      role.toolCodeAllowed
     ),
-    'Verified private review should preserve Qwen 3.7 as the main edit planning role.',
+    'Verified private review should preserve Kimi K3 as the main edit planning role.',
   )
   assert.ok(
     (verifiedModelRoleTrace?.roles ?? []).some((role) =>
-      role.modelRoleId === 'qwen2_5_vl_visual_understanding' &&
-      role.canonicalProviderModel === 'qwen2.5-vl-7b-instruct' &&
+      role.modelRoleId === 'visual_intelligence_gemini_pro_high' &&
+      role.canonicalProviderModel === 'gemini-3.1-pro-preview' &&
       (role.requestedUses ?? []).includes('visual_understanding') &&
       role.visualUnderstandingAllowed &&
       !role.userReasoningAllowed &&
       !role.editPlanningAllowed
     ),
-    'Verified private review should preserve Qwen2.5-VL as visual-understanding only.',
+    'Verified private review should preserve Visual Intelligence as visual-understanding only.',
   )
   assert.ok(
     Array.isArray(verifiedHandoffs[0]?.privateReview?.editDecisionManifestVerification?.approvedEditContext?.professionalSkillTrace?.warnings),

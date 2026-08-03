@@ -510,8 +510,22 @@ export function calculateCanonicalProfessionalToolGpuCost(input: {
       || !input.primaryPreInferenceFailureHighUsage))) {
     throw new Error('GPU estimate fallback inputs do not match tool placement.')
   }
-  if (fallbackRate && fallbackRate.region !== primaryRate.region) {
-    throw new Error('Heavy primary and fallback rates must use one region.')
+  if (fallbackRate && (
+    fallbackRate.region !== primaryRate.region
+    || stableAuthorityStringify(
+      fallbackRate.billingAccountPricingScopeRef,
+    ) !== stableAuthorityStringify(
+      primaryRate.billingAccountPricingScopeRef,
+    )
+    || stableAuthorityStringify(
+      fallbackRate.pricingReaderConfigurationRef,
+    ) !== stableAuthorityStringify(
+      primaryRate.pricingReaderConfigurationRef,
+    )
+  )) {
+    throw new Error(
+      'Heavy primary and fallback rates must use one billing account, reader, and region.',
+    )
   }
   const primary = createRouteEstimate(
     primaryRate,

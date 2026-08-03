@@ -33,8 +33,8 @@ import type {
 
 const FFMPEG_OPERATION =
   'tool.ffmpeg.execute_approved_media_recipe.v1'
-const SAM2_OPERATION =
-  'tool.sam2.segment_and_track_subject.v1'
+const SAM31_OPERATION =
+  'tool.sam3_1.segment_and_track_subject.v1'
 const REMBG_OPERATION =
   'tool.rembg.remove_image_background.v1'
 const sceneId = 'scene.temporal-mask-admission'
@@ -281,12 +281,12 @@ const temporalSourceRequirement =
   workRequirements.find((work) =>
     work.operationClass ===
       'prepare_temporal_source_video')
-const sam2Requirement =
+const sam31Requirement =
   workRequirements.find((work) =>
     work.operationClass ===
       'temporal_video_subject_segmentation_and_tracking')
 assert.ok(temporalSourceRequirement)
-assert.ok(sam2Requirement)
+assert.ok(sam31Requirement)
 assert.equal(
   temporalSourceRequirement.costOwnerToolId,
   'ffmpeg',
@@ -300,27 +300,35 @@ assert.deepEqual(
   ['prepared_temporal_source_video'],
 )
 assert.equal(
+  temporalSourceRequirement.executionPlacement,
+  'google_cloud_run_gpu',
+)
+assert.equal(
+  temporalSourceRequirement.cpuFallbackAllowed,
+  false,
+)
+assert.equal(
   temporalSourceRequirement.expectedOutputs[0]?.artifactType,
   'living_frame_temporal_source_video_mp4',
 )
 assert.equal(
-  sam2Requirement.costOwnerToolId,
-  'sam2',
+  sam31Requirement.costOwnerToolId,
+  'sam3_1',
 )
 assert.equal(
-  sam2Requirement.costOwnerOperationId,
-  SAM2_OPERATION,
+  sam31Requirement.costOwnerOperationId,
+  SAM31_OPERATION,
 )
 assert.deepEqual(
-  sam2Requirement.dependencyWorkInputKeys,
+  sam31Requirement.dependencyWorkInputKeys,
   [sourceWorkInputKey],
 )
 assert.deepEqual(
-  sam2Requirement.dependencyWorkItemKeys,
+  sam31Requirement.dependencyWorkItemKeys,
   [temporalSourceRequirement.workItemKey],
 )
 assert.deepEqual(
-  sam2Requirement.expectedOutputs.map((output) => [
+  sam31Requirement.expectedOutputs.map((output) => [
     output.artifactType,
     output.contentType,
   ]),
@@ -339,22 +347,26 @@ assert.deepEqual(
     ],
   ],
 )
-const sam2EstimateLine =
+const sam31EstimateLine =
   estimateProjection.scenes[0]?.estimateLineItems
-    .find((line) => line.costOwnerToolId === 'sam2')
-assert.ok(sam2EstimateLine)
+    .find((line) => line.costOwnerToolId === 'sam3_1')
+assert.ok(sam31EstimateLine)
 assert.equal(
-  sam2EstimateLine.costOwnerClass,
+  sam31EstimateLine.costOwnerClass,
   'canonical_unreleased_tool_candidate',
 )
-assert.equal(sam2EstimateLine.estimatedCredits, 0)
+assert.equal(sam31EstimateLine.estimatedCredits, 0)
 assert.equal(
-  sam2EstimateLine.operationContractObserved,
+  sam31EstimateLine.operationContractObserved,
   false,
 )
 assert.equal(
-  sam2EstimateLine.actualAttemptCostEvidenceRequired,
+  sam31EstimateLine.actualAttemptCostEvidenceRequired,
   true,
+)
+assert.equal(
+  sam31EstimateLine.costRange.rateCardVersion,
+  'account-effective-sam3_1-a100-primary-l4-fallback-rate-admission-pending',
 )
 
 const customerEstimate =
@@ -388,8 +400,8 @@ assert.deepEqual(workGraph.blockerCodes, [
   'artifact_qa_work_items_required',
   'private_review_required',
   'temporal_source_recipe_and_private_metadata_required',
-  'sam2_checkpoint_runtime_and_cost_admission_required',
-  'sam2_inference_and_temporal_qa_required',
+  'sam3_1_checkpoint_runtime_and_cost_admission_required',
+  'sam3_1_inference_and_temporal_qa_required',
 ])
 assert.equal(workGraph.workItems.length, 2)
 const temporalSourceWork = workGraph.workItems.find(
@@ -400,7 +412,7 @@ const temporalSourceWork = workGraph.workItems.find(
       .operationClass ===
         'prepare_temporal_source_video',
 )
-const sam2Work = workGraph.workItems.find(
+const sam31Work = workGraph.workItems.find(
   (work): work is CanonicalLivingFramePendingWorkItem =>
     work.workerClass ===
       'living_frame_operation_admission_pending_worker'
@@ -409,23 +421,23 @@ const sam2Work = workGraph.workItems.find(
         'temporal_video_subject_segmentation_and_tracking',
 )
 assert.ok(temporalSourceWork)
-assert.ok(sam2Work)
+assert.ok(sam31Work)
 assert.deepEqual(
-  sam2Work.dependencyKeys,
+  sam31Work.dependencyKeys,
   [temporalSourceWork.workItemKey],
 )
 assert.deepEqual(
   temporalSourceWork.approvedToolIds,
   [],
 )
-assert.deepEqual(sam2Work.approvedToolIds, [])
+assert.deepEqual(sam31Work.approvedToolIds, [])
 assert.deepEqual(
   temporalSourceWork.executionInput
     .approvedToolOperationIds,
   [],
 )
 assert.deepEqual(
-  sam2Work.executionInput.approvedToolOperationIds,
+  sam31Work.executionInput.approvedToolOperationIds,
   [],
 )
 assert.equal(
@@ -471,38 +483,58 @@ assert.equal(
   false,
 )
 assert.equal(
-  sam2Work.executionInput.pendingOperationAuthority
+  sam31Work.executionInput.pendingOperationAuthority
     .requestedToolOperationId,
-  SAM2_OPERATION,
+  SAM31_OPERATION,
 )
-const sam2Admission =
-  sam2Work.executionInput.pendingOperationAuthority
-    .sam2TemporalMaskRequirement
-assert.ok(sam2Admission)
+const sam31Admission =
+  sam31Work.executionInput.pendingOperationAuthority
+    .sam3_1TemporalMaskRequirement
+assert.ok(sam31Admission)
 assert.equal(
-  sam2Admission.checkpointSlotId,
-  'sam2_checkpoint',
-)
-assert.equal(
-  sam2Admission.checkpointArtifactId,
-  'meta-sam2.1-hiera-small-checkpoint',
+  sam31Admission.checkpointSlotId,
+  'sam3_1_checkpoint',
 )
 assert.equal(
-  sam2Admission.checkpointByteLength,
-  184_416_285,
+  sam31Admission.checkpointRepositoryRevision,
+  'daa63191845a41281374e725f4c9e51c7a824460',
 )
-assert.deepEqual(sam2Admission.requiredQaGates, [
+assert.equal(
+  sam31Admission.checkpointExactByteLengthAndSha256State,
+  'pending_authorized_private_ingest',
+)
+assert.equal(
+  sam31Admission.primaryAccelerator,
+  'nvidia_a100_80gb',
+)
+assert.equal(
+  sam31Admission.fallbackAccelerator,
+  'nvidia_l4',
+)
+assert.equal(sam31Admission.gpuDecodeRequired, true)
+assert.equal(
+  sam31Admission.cpuOnlySubstantiveExecutionAllowed,
+  false,
+)
+assert.deepEqual(sam31Admission.requiredQaGates, [
   'mask_edge_quality',
   'mask_temporal_stability',
   'mask_subject_coverage',
+  'mask_contact_object_preservation',
+  'complete_selected_interval_inspection',
 ])
-assert.equal(sam2Admission.checkpointIngested, false)
-assert.equal(sam2Admission.l4RuntimeQualified, false)
-assert.equal(sam2Admission.operationRegistered, false)
-assert.equal(sam2Admission.dispatchAuthorized, false)
-assert.equal(sam2Admission.modelInferenceAuthorized, false)
+assert.equal(sam31Admission.checkpointIngested, false)
+assert.equal(sam31Admission.a100RuntimeQualified, false)
+assert.equal(sam31Admission.l4RuntimeQualified, false)
 assert.equal(
-  sam2Admission.runtimeCostAdmissionComplete,
+  sam31Admission.primaryAndFallbackRateAuthoritiesReread,
+  false,
+)
+assert.equal(sam31Admission.operationRegistered, false)
+assert.equal(sam31Admission.dispatchAuthorized, false)
+assert.equal(sam31Admission.modelInferenceAuthorized, false)
+assert.equal(
+  sam31Admission.runtimeCostAdmissionComplete,
   false,
 )
 assert.equal(
@@ -516,7 +548,7 @@ assert.equal(
 )
 assert.equal(
   workGraph.metrics
-    .pendingSam2TemporalMaskWorkItemCount,
+    .pendingSam31TemporalMaskWorkItemCount,
   1,
 )
 assert.equal(
@@ -539,7 +571,8 @@ console.log(JSON.stringify({
   selectedMode: 'living_a_roll',
   projectedWorkItems: 2,
   temporalSourceDependencyPreserved: true,
-  sam2OperationPreserved: true,
+  sam31OperationRequiredForNewWork: true,
+  sam2HistoricalRouteMayAuthorizeNewWork: false,
   rembgStillMaskSubstitutionAllowed: false,
   canonicalDispatchAuthority: false,
   runtimeAuthority: false,

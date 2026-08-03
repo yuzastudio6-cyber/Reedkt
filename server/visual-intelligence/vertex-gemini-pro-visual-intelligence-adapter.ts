@@ -15,6 +15,7 @@ import {
   VISUAL_INTELLIGENCE_PROVIDER_ID,
   VISUAL_INTELLIGENCE_THINKING_LEVEL,
   type VisualIntelligenceEvidenceRef,
+  type VisualIntelligenceFrameRange,
   type VisualIntelligenceProvider,
   type VisualIntelligenceProviderExecutionResult,
   type VisualIntelligenceProviderRequest,
@@ -40,6 +41,7 @@ export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION =
 const DEFAULT_TIMEOUT_MS = 600_000
 const MAX_TIMEOUT_MS = 900_000
 const MAX_PROVIDER_RESPONSE_BYTES = 8 * 1024 * 1024
+const MAX_PROVIDER_MEDIA_PARTS = 64
 const GCS_URI = /^gs:\/\/[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]\/[^?#\\]+$/u
 
 export interface VisualIntelligenceGeminiGenerateInput {
@@ -112,6 +114,19 @@ export interface CompiledVertexGeminiProVisualIntelligenceDispatch {
   readonly config: GenerateContentConfig
   readonly requestConfigurationDigestSha256: string
   readonly orderedPrivateArtifactIds: string[]
+  readonly orderedMediaRangeBindings: Array<{
+    readonly mediaPartOrdinal: number
+    readonly artifactId: string
+    readonly mediaKind: 'video' | 'image'
+    readonly requestedRangeOrdinal: number
+    readonly requestedRange: VisualIntelligenceFrameRange
+    readonly providerStartOffset: string | null
+    readonly providerEndOffset: string | null
+    readonly providerFramesPerSecond: number | null
+    readonly transportMode:
+      | 'vertex_gcs_video_clipped_range'
+      | 'vertex_gcs_image'
+  }>
   readonly applicationDefaultCredentialsRequired: true
   readonly apiKeyAccepted: false
   readonly providerToolsEnabled: false
@@ -124,6 +139,9 @@ export interface CompiledVertexGeminiProVisualIntelligenceDispatch {
   readonly callerPromptAccepted: false
   readonly publicMediaUrlAccepted: false
   readonly signedUrlIsSourceTruth: false
+  readonly unboundedVideoInputAllowed: false
+  readonly exactAuthorizedFrameRangesBound: true
+  readonly providerPreprocessingIsExactFrameInspection: false
   readonly rawRequestMayBePersisted: false
 }
 
@@ -310,15 +328,7 @@ export function compileVertexGeminiProVisualIntelligenceDispatch(
   const instruction = compileVisualIntelligenceProviderInstruction(
     validated.request,
   )
-  const mediaParts = validated.privateMediaInputs.map((media) => ({
-    fileData: {
-      fileUri: media.gcsUri,
-      mimeType: media.contentType,
-    },
-    mediaResolution: {
-      level: PartMediaResolutionLevel.MEDIA_RESOLUTION_HIGH,
-    },
-  }))
+  const compiledMedia = compileAuthorizedMediaRangeParts(validated)
   const evidencePayload = {
     schemaVersion: 'visual-intelligence-provider-evidence-envelope-v1',
     requestId: validated.request.requestId,
@@ -349,7 +359,7 @@ export function compileVertexGeminiProVisualIntelligenceDispatch(
   const contents: Content[] = [{
     role: 'user',
     parts: [
-      ...mediaParts,
+      ...compiledMedia.parts,
       { text: visualIntelligenceCanonicalJson(evidencePayload) },
     ],
   }]
@@ -388,6 +398,7 @@ export function compileVertexGeminiProVisualIntelligenceDispatch(
       visualIntelligenceDigest(dispatchIdentity),
     orderedPrivateArtifactIds:
       validated.privateMediaInputs.map((item) => item.artifactId),
+    orderedMediaRangeBindings: compiledMedia.bindings,
     applicationDefaultCredentialsRequired: true,
     apiKeyAccepted: false,
     providerToolsEnabled: false,
@@ -400,8 +411,157 @@ export function compileVertexGeminiProVisualIntelligenceDispatch(
     callerPromptAccepted: false,
     publicMediaUrlAccepted: false,
     signedUrlIsSourceTruth: false,
+    unboundedVideoInputAllowed: false,
+    exactAuthorizedFrameRangesBound: true,
+    providerPreprocessingIsExactFrameInspection: false,
     rawRequestMayBePersisted: false,
   })
+}
+
+function compileAuthorizedMediaRangeParts(
+  input: VisualIntelligenceProviderRequest,
+): {
+  readonly parts: NonNullable<Content['parts']>
+  readonly bindings:
+    CompiledVertexGeminiProVisualIntelligenceDispatch['orderedMediaRangeBindings']
+} {
+  const artifacts = [
+    ...input.request.sourceArtifacts,
+    ...input.request.comparisonArtifacts,
+  ]
+  const parts: NonNullable<Content['parts']> = []
+  const bindings: Array<
+    CompiledVertexGeminiProVisualIntelligenceDispatch[
+      'orderedMediaRangeBindings'
+    ][number]
+  > = []
+  const expectedPartCount = artifacts.reduce(
+    (count, artifact) => count + (
+      artifact.mediaKind === 'video' ? input.request.requestedRanges.length : 1
+    ),
+    0,
+  )
+  if (expectedPartCount > MAX_PROVIDER_MEDIA_PARTS) {
+    throw notReady('visual_intelligence_media_transport_requires_chunking')
+  }
+  for (let artifactOrdinal = 0; artifactOrdinal < artifacts.length;
+    artifactOrdinal += 1) {
+    const artifact = artifacts[artifactOrdinal]
+    const media = input.privateMediaInputs[artifactOrdinal]
+    if (!artifact || !media || artifact.artifactId !== media.artifactId) {
+      throw notReady('visual_intelligence_media_transport_binding_invalid')
+    }
+    if (artifact.mediaKind === 'image') {
+      if (
+        input.request.requestedRanges.length !== 1
+        || input.request.requestedRanges[0]?.startFrame !== 0
+        || input.request.requestedRanges[0]?.endFrameExclusive !== 1
+      ) throw notReady('visual_intelligence_image_transport_range_invalid')
+      parts.push({
+        fileData: {
+          fileUri: media.gcsUri,
+          mimeType: media.contentType,
+        },
+        mediaResolution: {
+          level: PartMediaResolutionLevel.MEDIA_RESOLUTION_HIGH,
+        },
+      })
+      bindings.push({
+        mediaPartOrdinal: parts.length - 1,
+        artifactId: artifact.artifactId,
+        mediaKind: 'image',
+        requestedRangeOrdinal: 0,
+        requestedRange: input.request.requestedRanges[0],
+        providerStartOffset: null,
+        providerEndOffset: null,
+        providerFramesPerSecond: null,
+        transportMode: 'vertex_gcs_image',
+      })
+      continue
+    }
+    for (let rangeOrdinal = 0;
+      rangeOrdinal < input.request.requestedRanges.length;
+      rangeOrdinal += 1) {
+      const range = input.request.requestedRanges[rangeOrdinal]
+      if (!range) {
+        throw notReady('visual_intelligence_video_transport_range_missing')
+      }
+      const startOffset = frameBoundaryToProtobufDuration(
+        range.startFrame,
+        range.frameRate,
+        'floor',
+      )
+      const endOffset = frameBoundaryToProtobufDuration(
+        range.endFrameExclusive,
+        range.frameRate,
+        'ceil',
+      )
+      const providerFramesPerSecond = Math.min(
+        range.frameRate.numerator / range.frameRate.denominator,
+        24,
+      )
+      if (
+        !Number.isFinite(providerFramesPerSecond)
+        || providerFramesPerSecond <= 0
+      ) throw notReady('visual_intelligence_video_transport_fps_invalid')
+      parts.push({
+        fileData: {
+          fileUri: media.gcsUri,
+          mimeType: media.contentType,
+        },
+        videoMetadata: {
+          startOffset,
+          endOffset,
+          fps: providerFramesPerSecond,
+        },
+        mediaResolution: {
+          level: PartMediaResolutionLevel.MEDIA_RESOLUTION_HIGH,
+        },
+      })
+      bindings.push({
+        mediaPartOrdinal: parts.length - 1,
+        artifactId: artifact.artifactId,
+        mediaKind: 'video',
+        requestedRangeOrdinal: rangeOrdinal,
+        requestedRange: range,
+        providerStartOffset: startOffset,
+        providerEndOffset: endOffset,
+        providerFramesPerSecond,
+        transportMode: 'vertex_gcs_video_clipped_range',
+      })
+    }
+  }
+  if (parts.length === 0 || parts.length !== bindings.length) {
+    throw notReady('visual_intelligence_media_transport_empty')
+  }
+  return deepFreeze({ parts, bindings })
+}
+
+/**
+ * Vertex video clipping accepts protobuf Duration strings with nanosecond
+ * precision. The frame range remains the canonical authority; these offsets
+ * form a conservative transport envelope that cannot include a complete
+ * adjacent frame when a rational frame boundary is not nanosecond-exact.
+ */
+function frameBoundaryToProtobufDuration(
+  frame: number,
+  frameRate: VisualIntelligenceFrameRange['frameRate'],
+  rounding: 'floor' | 'ceil',
+): string {
+  if (!Number.isSafeInteger(frame) || frame < 0) {
+    throw notReady('visual_intelligence_video_transport_frame_invalid')
+  }
+  const numerator = BigInt(frame) * BigInt(frameRate.denominator)
+    * 1_000_000_000n
+  const denominator = BigInt(frameRate.numerator)
+  let nanoseconds = numerator / denominator
+  if (rounding === 'ceil' && numerator % denominator !== 0n) nanoseconds += 1n
+  const seconds = nanoseconds / 1_000_000_000n
+  const fractionalNanoseconds = nanoseconds % 1_000_000_000n
+  if (fractionalNanoseconds === 0n) return `${seconds}s`
+  const fraction = fractionalNanoseconds.toString().padStart(9, '0')
+    .replace(/0+$/u, '')
+  return `${seconds}.${fraction}s`
 }
 
 function createGoogleGenAiVertexGeneratePort(input: {
@@ -497,7 +657,11 @@ function validateProviderRequest(
   if (request.requiredEvidenceRefs.some(
     (requiredRef) => !deterministicRefs.has(refKey(requiredRef)),
   )) throw notReady('visual_intelligence_required_evidence_missing')
-  if (input.coveragePlan.requestedRanges.length !== request.requestedRanges.length) {
+  if (
+    input.coveragePlan.requestedRanges.length !== request.requestedRanges.length
+    || input.coveragePlan.requestedRanges.some((range, index) =>
+      !sameFrameRange(range, request.requestedRanges[index]))
+  ) {
     throw notReady('visual_intelligence_coverage_plan_request_mismatch')
   }
   return Object.freeze({ ...input, request })
@@ -616,6 +780,17 @@ function containsRange(
     && outer.frameRate.denominator === inner.frameRate.denominator
     && outer.startFrame <= inner.startFrame
     && outer.endFrameExclusive >= inner.endFrameExclusive
+}
+
+function sameFrameRange(
+  left: VisualIntelligenceFrameRange,
+  right: VisualIntelligenceFrameRange | undefined,
+): boolean {
+  return Boolean(right)
+    && left.startFrame === right?.startFrame
+    && left.endFrameExclusive === right?.endFrameExclusive
+    && left.frameRate.numerator === right?.frameRate.numerator
+    && left.frameRate.denominator === right?.frameRate.denominator
 }
 
 function evidenceRefJsonSchema() {

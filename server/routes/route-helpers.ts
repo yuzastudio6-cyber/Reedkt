@@ -58,6 +58,8 @@ export function getServiceContext(request: Request): ServiceContext {
     visualIntelligencePlanningOperationRequestOwnerPort:
       runtimeRequest.runtime
         .visualIntelligencePlanningOperationRequestOwnerPort,
+    visualIntelligenceOrchestraJobRuntimePort:
+      runtimeRequest.runtime.visualIntelligenceOrchestraJobRuntimePort,
     motionStudioCommandRepositoryRuntimePort:
       runtimeRequest.runtime.motionStudioCommandRepositoryRuntimePort,
     editReferenceExactEditApplyRuntimePort:

@@ -133,6 +133,7 @@ export const GCP_PRODUCTION_REQUIRED_APIS = [
   'cloudbuild.googleapis.com',
   'cloudkms.googleapis.com',
   'containeranalysis.googleapis.com',
+  'containerscanning.googleapis.com',
   'binaryauthorization.googleapis.com',
   'logging.googleapis.com',
   'monitoring.googleapis.com',

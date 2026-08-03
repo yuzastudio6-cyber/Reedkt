@@ -13,6 +13,7 @@ export type WorkerRuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
 export type BrowserApiTransportMode = 'direct' | 'google_api_gateway'
 export type KimiRuntimeMode = 'disabled' | 'internal_test' | 'cloud_run'
 export type OpenAiRuntimeMode = 'disabled' | 'internal_test' | 'cloud_run'
+export type VisualIntelligenceRuntimeMode = 'disabled' | 'cloud_run'
 
 export interface RuntimeEnv {
   nodeEnv: string
@@ -42,6 +43,7 @@ export interface RuntimeEnv {
   gcsThumbnailsBucket?: string
   gcsQaArtifactsBucket?: string
   gcsWorkerTempBucket?: string
+  gcsControlPlaneStateBucket?: string
   workerRuntimeMode: WorkerRuntimeMode
   workerInstanceId: string
   workerHeartbeatIntervalSeconds: number
@@ -57,6 +59,15 @@ export interface RuntimeEnv {
   playwrightBin: string
   kimiRuntimeMode: KimiRuntimeMode
   openAiRuntimeMode: OpenAiRuntimeMode
+  visualIntelligenceRuntimeMode: VisualIntelligenceRuntimeMode
+  visualIntelligenceReleaseObjectName?: string
+  visualIntelligenceReleaseGeneration?: string
+  visualIntelligenceReleaseEtag?: string
+  visualIntelligenceReleaseContentSha256?: string
+  visualIntelligenceRateObjectName?: string
+  visualIntelligenceRateGeneration?: string
+  visualIntelligenceRateEtag?: string
+  visualIntelligenceRateContentSha256?: string
   providerSecretReferenceNames: Record<string, string | undefined>
   hasSupabaseAdmin: boolean
   hasSupabasePublic: boolean
@@ -96,6 +107,7 @@ const envSchema = z.object({
   GCS_THUMBNAILS_BUCKET: z.string().optional(),
   GCS_QA_ARTIFACTS_BUCKET: z.string().optional(),
   GCS_WORKER_TEMP_BUCKET: z.string().optional(),
+  GCS_CONTROL_PLANE_STATE_BUCKET: z.string().optional(),
   WORKER_RUNTIME_MODE: z.enum(['local', 'mock', 'cloud_run', 'disabled']).default('local'),
   WORKER_INSTANCE_ID: z.string().default('local-worker-1'),
   WORKER_HEARTBEAT_INTERVAL_SECONDS: z.coerce.number().int().positive().max(3600).default(30),
@@ -118,6 +130,18 @@ const envSchema = z.object({
     'internal_test',
     'cloud_run',
   ]).default('disabled'),
+  REEDITPRO_VISUAL_INTELLIGENCE_RUNTIME_MODE: z.enum([
+    'disabled',
+    'cloud_run',
+  ]).default('disabled'),
+  REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_OBJECT: z.string().optional(),
+  REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_GENERATION: z.string().optional(),
+  REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_ETAG: z.string().optional(),
+  REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_SHA256: z.string().optional(),
+  REEDITPRO_VISUAL_INTELLIGENCE_RATE_OBJECT: z.string().optional(),
+  REEDITPRO_VISUAL_INTELLIGENCE_RATE_GENERATION: z.string().optional(),
+  REEDITPRO_VISUAL_INTELLIGENCE_RATE_ETAG: z.string().optional(),
+  REEDITPRO_VISUAL_INTELLIGENCE_RATE_SHA256: z.string().optional(),
   GOOGLE_SECRET_OPENAI_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_GEMINI_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_KIMI_API_KEY_NAME: z.string().optional(),
@@ -180,6 +204,13 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     warnings.push('STORAGE_MODE=gcs is configured without all required GCS bucket names; storage adapter should fail closed.')
   }
 
+  if (
+    parsed.REEDITPRO_VISUAL_INTELLIGENCE_RUNTIME_MODE !== 'disabled'
+    && !hasVisualIntelligenceCoordinates(parsed)
+  ) warnings.push(
+    'Visual Intelligence runtime is selected without every immutable release and account-effective pricing coordinate; startup will fail closed.',
+  )
+
   return {
     nodeEnv: parsed.NODE_ENV,
     mode: parsed.E2E_RUNTIME_MODE,
@@ -208,6 +239,8 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     gcsThumbnailsBucket: clean(parsed.GCS_THUMBNAILS_BUCKET),
     gcsQaArtifactsBucket: clean(parsed.GCS_QA_ARTIFACTS_BUCKET),
     gcsWorkerTempBucket: clean(parsed.GCS_WORKER_TEMP_BUCKET),
+    gcsControlPlaneStateBucket:
+      clean(parsed.GCS_CONTROL_PLANE_STATE_BUCKET),
     workerRuntimeMode: parsed.WORKER_RUNTIME_MODE,
     workerInstanceId: parsed.WORKER_INSTANCE_ID,
     workerHeartbeatIntervalSeconds: parsed.WORKER_HEARTBEAT_INTERVAL_SECONDS,
@@ -223,6 +256,24 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     playwrightBin: parsed.PLAYWRIGHT_BIN,
     kimiRuntimeMode: parsed.REEDITPRO_KIMI_RUNTIME_MODE,
     openAiRuntimeMode: parsed.REEDITPRO_OPENAI_RUNTIME_MODE,
+    visualIntelligenceRuntimeMode:
+      parsed.REEDITPRO_VISUAL_INTELLIGENCE_RUNTIME_MODE,
+    visualIntelligenceReleaseObjectName:
+      clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_OBJECT),
+    visualIntelligenceReleaseGeneration:
+      clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_GENERATION),
+    visualIntelligenceReleaseEtag:
+      clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_ETAG),
+    visualIntelligenceReleaseContentSha256:
+      clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_SHA256),
+    visualIntelligenceRateObjectName:
+      clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RATE_OBJECT),
+    visualIntelligenceRateGeneration:
+      clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RATE_GENERATION),
+    visualIntelligenceRateEtag:
+      clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RATE_ETAG),
+    visualIntelligenceRateContentSha256:
+      clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RATE_SHA256),
     providerSecretReferenceNames: {
       openai: clean(parsed.GOOGLE_SECRET_OPENAI_API_KEY_NAME),
       gemini: clean(parsed.GOOGLE_SECRET_GEMINI_API_KEY_NAME),
@@ -372,6 +423,10 @@ export function assertRuntimeCanStart(env: RuntimeEnv): void {
       'REEDITPRO_OPENAI_RUNTIME_MODE=cloud_run requires E2E_RUNTIME_MODE=cloud_run.',
     )
   }
+
+  if (env.visualIntelligenceRuntimeMode === 'cloud_run') {
+    assertVisualIntelligenceRuntimeConfigured(env)
+  }
 }
 
 export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknown> {
@@ -402,6 +457,7 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
       thumbnails: Boolean(env.gcsThumbnailsBucket),
       qaArtifacts: Boolean(env.gcsQaArtifactsBucket),
       workerTemp: Boolean(env.gcsWorkerTempBucket),
+      controlPlaneState: Boolean(env.gcsControlPlaneStateBucket),
     },
     workerRuntime: {
       mode: env.workerRuntimeMode,
@@ -433,6 +489,28 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
       endpoint: 'https://api.openai.com/v1/responses',
       model: 'gpt-5.6-terra',
       role: 'kimi_fallback',
+    },
+    visualIntelligenceRuntime: {
+      mode: env.visualIntelligenceRuntimeMode,
+      capabilityId: 'visual_intelligence',
+      semanticEngine: 'gemini-3.1-pro-preview',
+      thinkingLevel: 'high',
+      mediaResolution: 'high',
+      immutableReleaseCoordinateConfigured: Boolean(
+        env.visualIntelligenceReleaseObjectName
+        && env.visualIntelligenceReleaseGeneration
+        && env.visualIntelligenceReleaseEtag
+        && env.visualIntelligenceReleaseContentSha256,
+      ),
+      accountEffectiveRateCoordinateConfigured: Boolean(
+        env.visualIntelligenceRateObjectName
+        && env.visualIntelligenceRateGeneration
+        && env.visualIntelligenceRateEtag
+        && env.visualIntelligenceRateContentSha256,
+      ),
+      apiKeyConfiguredOrRequired: false,
+      qwenFallbackAllowed: false,
+      cpuSubstantiveMediaProcessingAllowed: false,
     },
     providerSecretReferenceNamesConfigured: Object.fromEntries(
       Object.entries(env.providerSecretReferenceNames).map(([key, value]) => [key, Boolean(value)]),
@@ -493,6 +571,71 @@ function hasRequiredGcsBuckets(parsed: z.infer<typeof envSchema>): boolean {
     clean(parsed.GCS_THUMBNAILS_BUCKET) &&
     clean(parsed.GCS_QA_ARTIFACTS_BUCKET) &&
     clean(parsed.GCS_WORKER_TEMP_BUCKET),
+  )
+}
+
+function hasVisualIntelligenceCoordinates(
+  parsed: z.infer<typeof envSchema>,
+): boolean {
+  return Boolean(
+    clean(parsed.GCS_CONTROL_PLANE_STATE_BUCKET)
+    && clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_OBJECT)
+    && clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_GENERATION)
+    && clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_ETAG)
+    && clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_SHA256)
+    && clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RATE_OBJECT)
+    && clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RATE_GENERATION)
+    && clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RATE_ETAG)
+    && clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RATE_SHA256),
+  )
+}
+
+function assertVisualIntelligenceRuntimeConfigured(env: RuntimeEnv): void {
+  if (
+    env.mode !== 'cloud_run'
+    || env.storageMode !== 'gcs'
+    || env.googleCloudProjectId !== 'reeditpro'
+    || !env.internalServiceToken
+    || !env.gcsControlPlaneStateBucket
+  ) throw new Error(
+    'Visual Intelligence cloud runtime requires Cloud Run mode, private GCS, the immutable reeditpro cloud project coordinate, internal-service authentication, and a control-plane bucket.',
+  )
+  const values = [
+    env.visualIntelligenceReleaseObjectName,
+    env.visualIntelligenceReleaseGeneration,
+    env.visualIntelligenceReleaseEtag,
+    env.visualIntelligenceReleaseContentSha256,
+    env.visualIntelligenceRateObjectName,
+    env.visualIntelligenceRateGeneration,
+    env.visualIntelligenceRateEtag,
+    env.visualIntelligenceRateContentSha256,
+  ]
+  if (values.some((value) => !value)) throw new Error(
+    'Visual Intelligence cloud runtime requires every exact immutable runtime-release and billing-account-effective rate coordinate.',
+  )
+  if (
+    !env.visualIntelligenceReleaseObjectName!.startsWith(
+      'private/visual-intelligence/releases/gemini-pro-high/v1/',
+    )
+    || !env.visualIntelligenceReleaseObjectName!.endsWith('.json')
+    || !env.visualIntelligenceRateObjectName!.startsWith(
+      'private/visual-intelligence/pricing/account-effective/v2/',
+    )
+    || !env.visualIntelligenceRateObjectName!.endsWith('.json')
+    || !/^[1-9][0-9]{0,30}$/u.test(
+      env.visualIntelligenceReleaseGeneration!,
+    )
+    || !/^[1-9][0-9]{0,30}$/u.test(
+      env.visualIntelligenceRateGeneration!,
+    )
+    || !/^[a-f0-9]{64}$/u.test(
+      env.visualIntelligenceReleaseContentSha256!,
+    )
+    || !/^[a-f0-9]{64}$/u.test(
+      env.visualIntelligenceRateContentSha256!,
+    )
+  ) throw new Error(
+    'Visual Intelligence runtime-release or rate coordinates are malformed.',
   )
 }
 

@@ -652,6 +652,109 @@ enforcement are proved. Aggregate promotion remains reserved for M11 E2E
 evidence. No provider canary, paid request, public delivery, final export,
 billing, wallet, Supabase, or production action occurred.
 
+## M11 — full qualification and end-to-end acceptance
+
+Status: completed and pushed.
+
+Implementation commit: `4a74687ca4586892e8af1ac803563363c87c17eb`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after push.
+
+Promoted the canonical `b_roll@1.0.0` manifest only to
+`internal_execution_qualified`. Its content-addressed qualification receipt
+contains passed evidence for all 15 planning and 21 internal-execution
+fixtures, plus separate build, test, security, and provider evidence hashes.
+The five production fixtures remain explicitly excluded. The final manifest
+hash is `c916e4d29dc91b71e2c16ac8f64fe55fa416e3dd10784e620d9d49d9ef254d6c`;
+the qualification receipt hash is
+`9b10ed12a838f70f0ff7c97c76695838acc219565634b34bdf8f2825200ec3bf`.
+
+Added the aggregate private E2E route. It binds the exact manifest reference
+through assignment, plan, canonical component, approved snapshot and
+execution package authority; authorizes the forward-only Gemini Omni V5
+operation; injects candidate bytes with zero provider requests; produces a
+version-1 `needs_refinement` decision; executes the single allowed injected
+refinement; accepts and normalizes version 2; reopens the exact private
+FFV1/NUT artifact; renders a real 72-frame private Remotion preview; passes all
+eleven integration QA checks; freezes Sound, Color, Transition, Caption,
+Track All, and Render ownership; and proves immutable replay. The final run
+recorded result hash
+`0bbf044eaf3b8d02132208d28cc32cfe2893264c7c8df39306a7a5b69e5c49de`,
+acceptance hash
+`198782abe1404d5fe78fbddfd976cad76ae4500d10d2caf02bb97e3c66404aa4`,
+329500 internal cost micros, and zero outside-range mutation.
+
+Completed the architecture status, internal operator runbook, qualification
+matrix, canary procedure, incident response, production exclusions, and
+retirement cross-references. No direct SAM2 or SAM 3.1 dependency was added;
+required tracking still accepts only `track_graph_v1` or returns the typed
+Track All dependency.
+
+Final validation:
+
+- `npm run validate:skill-capability-manifests`,
+  `npm run test:edit-skill-capability-kernel`,
+  `npm run test:b-roll-capability-manifest`,
+  `npm run test:b-roll-planning`, and
+  `npm run test:b-roll-canonical-integration` — passed with the final manifest
+  hash and 36-fixture internal qualification receipt.
+- `npm run smoke:b-roll-existing-source` — passed real FFmpeg/FFprobe source
+  preparation, exact 72-frame normalization, immutable replay, and zero
+  provider requests.
+- `npm run smoke:b-roll-provider-authority` and
+  `npm run smoke:b-roll-provider-lifecycle` — passed; V1-V4 registry hashes,
+  B-roll V5 registry hash, one-submission lifecycle, unknown reconciliation,
+  private ingest, cost evidence, and zero alternate fallback remained exact.
+- `npm run smoke:b-roll-candidate-qa` — passed one refinement, real technical
+  QA/normalization, forged evidence rejection, source/no-action fallback, and
+  zero provider requests.
+- `npm run smoke:b-roll-remotion-integration` — passed the real private
+  640x360, 24fps, 72-frame render, seven treatment mappings, eleven QA checks,
+  all final-owner handoffs, range containment, Track All boundary, and replay.
+- `npm run smoke:b-roll-retirement` — passed across 6,049 repository files and
+  40 active B-roll source files: one active runtime, zero alternate provider
+  fallbacks, five retired routes rejected, nine metadata skills disabled, and
+  no Track All implementation import.
+- `npm run smoke:b-roll-end-to-end` — passed the complete generated route with
+  36 qualified fixtures, five production fixtures excluded, two candidate
+  versions, one refinement, eleven QA checks, a real private Remotion preview,
+  immutable replay, and zero actual provider requests.
+- `npm run smoke:canonical-source-led-plan-compiler`,
+  `npm run smoke:approved-snapshot`,
+  `npm run smoke:canonical-private-provider-work-lifecycle`, and
+  `npm run smoke:canonical-provider-attempt-runtime-record` — passed.
+- `npm run smoke:private-artifact-qa-authority`,
+  `npm run smoke:private-local-persistence`,
+  `npm run smoke:offline-media-binary-execution`, and
+  `npm run smoke:offline-remotion-render-execution` — passed the shared private
+  artifact, actual pinned media, and actual confined Remotion regressions.
+- `npm run smoke:runtime-api-security`,
+  `npm run smoke:edit-execution-security-boundary`, and
+  `npm run smoke:idempotency-boundary` — passed fail-closed runtime, execution,
+  and replay boundaries.
+- `npm run build`, `npm run typecheck:server`, `npm run lint`,
+  `npm run check:frontend-boundary`, and `git diff --check` — passed. Build
+  emitted only the existing Vite chunk-size and dynamic-import warnings.
+- `npm run canary:gemini-omni-b-roll` — safely returned
+  `blocked_external_prerequisites` with all six operator-owned gates absent,
+  no execution, and zero provider requests.
+
+Known pre-existing unrelated failure: the M10-recorded
+`npm run smoke:professional-skill-planner` blocker remains unchanged. That
+legacy planner requests the separately retired Qwen2.5-VL
+`source.review_sequence_and_structure.qwen_visual_understanding` role; no M11
+file is in that dependency path.
+
+Qualification after M11: `internal_execution_qualified`. Code completeness,
+planning qualification, injected/private internal execution, artifact QA,
+Remotion integration, retirement, and documentation are complete. Production
+qualification remains blocked by the real Gemini Omni canary, live credential
+boundary, account-effective rate authority, live private output ingest, live
+security/privacy release review, and the preview model alias lacking an
+immutable accepted revision. No paid provider, public delivery, final export,
+billing, wallet, Supabase, or production mutation occurred.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -667,3 +770,4 @@ billing, wallet, Supabase, or production action occurred.
 | M8 | `e218a4d57` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M9 | `c8268a9d7` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M10 | `f2b799d2f` | this bookkeeping commit | confirmed | `planning_qualified` |
+| M11 | `4a74687ca` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

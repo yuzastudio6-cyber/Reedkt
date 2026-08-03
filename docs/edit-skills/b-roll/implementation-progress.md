@@ -882,6 +882,68 @@ receipt. This milestone did not implement or invoke the orchestra, Track All,
 Visual Intelligence, provider generation, public delivery, final export,
 billing, wallet mutation, Supabase, or production resources.
 
+## M14 — manifest job-to-runtime bindings
+
+Status: completed and pushed.
+
+Implementation commit: `5e4f1dc0d8c535947f2a39c7b7b6c076a3d13ebc`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after `git push -u origin HEAD`.
+
+Replaced the prior string-set-only job claim with a generic runtime binding
+registry and dispatcher. Every `b_roll@1.0.0` supported job now has exactly one
+content-addressed `edit-skill-runtime-binding-v1` definition binding the exact
+manifest hash, contract version, job type, operation ID, operation kind,
+worker class, input/output artifact schemas, allowed phase, minimum
+qualification, adapter identity, approval requirement, assignment-range-only
+mutation authority, caller-executable prohibition, and media-creation
+classification to an actual adapter function.
+
+The canonical work-graph definitions are now one shared 13-job catalog used by
+both route compilation and static runtime validation. This removes the prior
+possibility that the manifest, graph, and runtime could silently maintain
+different copies of a job's operation, worker, output, or phase.
+
+The capability-manifest validator now proves manifest job -> runtime binding ->
+canonical work-graph job -> operation/worker -> registered artifact schemas ->
+allowed phase -> qualification -> executable adapter. Provider bindings also
+require an operation-specific qualification at or above the binding's minimum;
+tool/source/no-action operations must exist in their matching operation
+catalogs.
+
+Validation:
+
+- `npm run test:b-roll-runtime-bindings` — passed 13/13 unique bindings and
+  executed all 13 adapters through the generic dispatcher, producing 13 unique
+  content-addressed receipts with zero provider requests, public artifacts, or
+  production mutations.
+- The binding adversarial suite rejects a missing manifest binding, an extra
+  binding without a manifest job, duplicate binding, worker drift, output
+  drift, unknown input schema, under-qualified provider route, unknown tool
+  operation, caller-selected executable, outside-assignment mutation
+  authority, approval bypass, qualification bypass, no-action media creation,
+  missing adapter, and unknown dispatch job.
+- `npm run validate:skill-capability-manifests` — passed with one manifest and
+  complete runtime-binding proof.
+- `npm run test:edit-skill-capability-kernel`,
+  `npm run test:b-roll-capability-manifest`, `npm run test:b-roll-planning`,
+  `npm run test:b-roll-public-plugin`, and
+  `npm run test:b-roll-canonical-integration` — passed.
+- `npm run smoke:b-roll-retirement` — passed across 6,107 repository files and
+  42 active B-roll source files with one active runtime, zero alternate
+  provider fallbacks, and no Track All implementation import.
+- `npm run build`, `npm run typecheck:server`, `npm run lint`,
+  `npm run check:frontend-boundary`, and `git diff --check` — passed. Build
+  emitted only the existing Vite chunk-size and dynamic-import warnings.
+
+Qualification after M14 remains the existing
+`internal_execution_qualified` claim pending M17 actual-run receipt issuance.
+Runtime binding fixtures are execution-contract tests, not synthetic
+qualification promotion. No orchestra, Track All, Visual Intelligence,
+provider call, public artifact, production mutation, final export, or billing
+work was performed.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -900,3 +962,4 @@ billing, wallet mutation, Supabase, or production resources.
 | M11 | `4a74687ca` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M12 | `d9e220f04` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M13 | `a9dd9d8ac` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M14 | `5e4f1dc0d` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

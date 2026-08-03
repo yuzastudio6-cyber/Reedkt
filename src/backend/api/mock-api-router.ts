@@ -176,7 +176,7 @@ const mockPrivateInternalAdapterActivityGroups: Array<{ id: string; aliases: str
   },
   {
     id: 'image_cleanup',
-    aliases: ['sam2', 'birefnet', 'rembg', 'transparent_background', 'real_esrgan', 'kornia'],
+    aliases: ['sam3_1', 'birefnet', 'rembg', 'transparent_background', 'real_esrgan', 'kornia'],
   },
   {
     id: 'model_foundation',

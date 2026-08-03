@@ -184,7 +184,7 @@ const privateInternalAdapterActivityGroups: Array<{
   {
     id: 'image_cleanup',
     aliases: [
-      'sam2',
+      'sam3_1',
       'birefnet',
       'rembg',
       'transparent_background',

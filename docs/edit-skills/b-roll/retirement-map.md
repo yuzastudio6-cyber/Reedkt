@@ -1,6 +1,13 @@
 # B-roll active-route retirement map
 
-Status: audited at M0; retirement enforcement is completed in M10.
+Status: M10 active-route retirement completed and statically enforced.
+
+Canonical orchestra runtime: `server/edit-skills/b-roll/b-roll-capability-manifest.ts`
+
+Canonical provider operation: `provider.google.generate_b_roll_candidate.v1`
+
+Historical doctrine and compatibility vocabulary do not confer runtime
+authority.
 
 ## Keep as canonical owners
 
@@ -41,3 +48,53 @@ No remote branch, migration, provider attempt, accepted evidence hash, or
 historical artifact identity is deleted or rewritten. Retirement means that a
 path cannot be selected for new B-roll planning or execution. It does not
 reinterpret old records.
+
+## M10 final inventory
+
+| Relevant surface | Final classification | Enforced result |
+| --- | --- | --- |
+| `server/edit-skills/b-roll/**` | Keep canonical | The only `b_roll@1.0.0` manifest and handler registration. |
+| `server/providers/google/gemini-omni-broll/**` | Keep canonical | The only B-roll provider route is `gemini_omni_flash` through the V5 operation. |
+| `server/services/canonical-broll-plan-component-service.ts` | Keep canonical integration | Content-addressed plan/snapshot/execution-package bridge only. |
+| `server/tool-execution/**` B-roll operation allowances | Keep shared adapters | Exact FFmpeg/FFprobe/Remotion and objective-QA operation pairs, not route selectors. |
+| `src/lib/edit-operation-planner.ts` `b_roll` operation | Keep as internal edit-operation vocabulary | It is not registered as an orchestra skill and cannot select the canonical B-roll provider. |
+| `src/lib/professional-editing-ontology.ts` B-roll policies | Keep as intent vocabulary | Meaning, restraint, and source-first guidance only; no B-roll runtime authority. General non-B-roll AI-video tier policy remains untouched. |
+| `src/lib/professional-integration/**` and B-roll UI cards | Keep as local/mock presentation | They remain non-executable display/planning surfaces and do not register a skill or provider. |
+| `src/lib/mock-creative-skill-records.ts` `b_roll_planning` | Supersede | Explicitly `superseded`, `not_routed`, and `docs_only`; retained only as compatibility vocabulary. |
+| 140-skill Creative Skill canonical seed B-roll rows | Archive/historical metadata | All nine `b_roll` family rows keep `metadata_json.runtime_enabled = false`. |
+| `docs/creative-skills/b-roll-planning-contract*.md` | Supersede as runtime source; keep doctrine | Each file points to the canonical architecture and is marked historical. |
+| `docs/creative-skills/implementation-handoff.md` | Archive/historical | Its earlier docs-only statements are explicitly time-scoped and point to the canonical runtime. |
+| `docs/creative-skills/README.md` B-roll rows | Refactor | The index identifies the old contract/checklist as historical compatibility material. |
+| Motion Studio/general visual-generation Wan/Hailuo/Veo routes | Keep unrelated ownership | They are not B-roll skill routes and were not changed. Static validation prevents the canonical B-roll runtime from importing them. |
+| Historical V1-V4 provider registries and hashes | Keep immutable | Existing authority smoke continues to require the exact historical hashes. |
+| Historical migrations, attempts, artifacts, and evidence | Keep immutable | No history or accepted evidence was rewritten or deleted. |
+
+## Absence and cleanup findings
+
+The reconciled integration base contains no provider-specific B-roll file whose
+name combines B-roll with Wan, Hailuo, Veo, Kling, SAM, or stock-library
+runtime markers. It also contains no active B-roll package script, environment
+variable, model cache, downloader, installer, external-agent wrapper, or
+provider selector for those retired routes. Consequently M10 did not delete a
+historical branch or fabricate a replacement tombstone; it superseded the
+remaining active-looking metadata and documentation claims in place.
+
+The repository-wide validator walks active B-roll source boundaries, package
+scripts, production registrations, historical metadata, documentation
+markers, and repository filenames. It rejects:
+
+- Wan, Hailuo, Veo, Kling, stock-library, provider-gateway, or generic
+  generated-video B-roll route identities;
+- retired provider or tracking-implementation imports;
+- retired B-roll environment-variable authority;
+- provider-specific B-roll runtime/cache/script filenames;
+- a second orchestra-callable `b_roll` registration;
+- any active provider operation other than the canonical Gemini Omni V5
+  operation;
+- an alternate provider fallback;
+- Creative Skill B-roll metadata becoming runtime-enabled; and
+- historical B-roll docs losing their canonical supersession marker.
+
+Injected retirement fixtures prove that Wan, Hailuo, Veo, Kling, and stock
+routes fail the validator. The validator intentionally does not alter valid
+non-B-roll provider systems or any Track All implementation.

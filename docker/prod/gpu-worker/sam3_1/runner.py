@@ -1101,7 +1101,7 @@ def read_artifact_build_binding(
         or value["status"] != "private_artifacts_admitted"
         or value["operationId"] != OPERATION_ID
         or ingest_ref["schemaVersion"]
-        != "canonical-sam3_1-private-artifact-ingest-receipt-v2"
+        != "canonical-sam3_1-private-artifact-ingest-receipt-v3"
         or ingest_ref["contentHash"]
         != f"sha256:{expected_ingest_receipt_hash}"
     ):

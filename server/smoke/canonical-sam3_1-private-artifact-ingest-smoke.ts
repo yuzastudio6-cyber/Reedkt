@@ -85,6 +85,11 @@ const baseInput = {
   evidenceClass: 'synthetic_contract_fixture' as const,
   candidate: createCanonicalSam31SourceRuntimeCandidate(),
   termsAcceptance: terms,
+  officialArtifactPublicationRef: {
+    ...ref('sam31-official-artifact-publication'),
+    schemaVersion:
+      'canonical-sam3_1-official-artifact-publication-receipt-v1' as const,
+  },
   sourceArchiveCoordinate: sourceCoordinate,
   sourceArchiveArtifactRef: contentRef('sam31-source-archive', sourceSha),
   sourceLicenseRef: ref('sam31-source-license'),
@@ -228,7 +233,7 @@ function digest(bytes: Buffer): string {
 function ref(id: string) {
   return {
     id,
-    version: 1,
+    version: 1 as const,
     contentHash: `sha256:${digest(Buffer.from(id))}`,
   }
 }

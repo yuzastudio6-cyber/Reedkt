@@ -1,5 +1,6 @@
 candidate_schema=canonical-sam3_1-source-runtime-candidate-v3
-private_artifact_ingest_schema=canonical-sam3_1-private-artifact-ingest-receipt-v2
+official_artifact_publication_schema=canonical-sam3_1-official-artifact-publication-receipt-v1
+private_artifact_ingest_schema=canonical-sam3_1-private-artifact-ingest-receipt-v3
 image_build_artifact_binding_schema=canonical-sam3_1-image-build-artifact-binding-v1
 private_image_build_capsule_manifest_schema=canonical-sam3_1-private-image-build-capsule-manifest-v1
 cloud_image_build_authority_schema=canonical-sam3_1-cloud-image-build-authority-v1
@@ -61,6 +62,8 @@ checkpoint_terms_accepted=false
 checkpoint_license_approved=false
 checkpoint_malware_scan_passed=false
 checkpoint_private_artifact_ingested=false
+checkpoint_cloud_only_official_publication_operator_implemented=true
+checkpoint_official_publication_receipt_observed=false
 python_minimum=3.12
 torch_minimum=2.7
 cuda_minimum=12.6

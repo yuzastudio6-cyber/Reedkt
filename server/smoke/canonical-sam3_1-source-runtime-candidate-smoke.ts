@@ -231,7 +231,7 @@ assert(sourceLock.includes(
   `official_source_revision=${candidate.officialSource.sourceRevision}`,
 ))
 assert(sourceLock.includes(
-  'private_artifact_ingest_schema=canonical-sam3_1-private-artifact-ingest-receipt-v2',
+  'private_artifact_ingest_schema=canonical-sam3_1-private-artifact-ingest-receipt-v3',
 ))
 assert(sourceLock.includes(
   'cloud_image_build_authority_schema=canonical-sam3_1-cloud-image-build-authority-v1',

@@ -15,7 +15,7 @@ import {
 export const CANONICAL_SAM3_1_AUTHORIZED_TERMS_ACCEPTANCE_VERSION =
   'canonical-sam3_1-authorized-terms-acceptance-v1' as const
 export const CANONICAL_SAM3_1_PRIVATE_ARTIFACT_INGEST_VERSION =
-  'canonical-sam3_1-private-artifact-ingest-receipt-v2' as const
+  'canonical-sam3_1-private-artifact-ingest-receipt-v3' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const MODEL_ARTIFACT_BUCKET =
@@ -110,6 +110,14 @@ const ingestWithoutHashSchema = z.object({
       CANONICAL_SAM3_1_SOURCE_RUNTIME_CANDIDATE_VERSION,
     ),
     candidateHash: rawSha256,
+  }).strict(),
+  officialArtifactPublicationRef: z.object({
+    id: safeId,
+    version: z.literal(1),
+    schemaVersion: z.literal(
+      'canonical-sam3_1-official-artifact-publication-receipt-v1',
+    ),
+    contentHash: prefixedSha256,
   }).strict(),
   operationId: z.literal(CANONICAL_SAM3_1_OPERATION_ID),
   termsAcceptanceRef: evidenceRefSchema,
@@ -259,6 +267,13 @@ export async function prepareCanonicalSam31PrivateArtifactIngestReceipt(
       | 'canonical_private_reread'
     readonly candidate: CanonicalSam31SourceRuntimeCandidate
     readonly termsAcceptance: CanonicalSam31AuthorizedTermsAcceptance
+    readonly officialArtifactPublicationRef: {
+      readonly id: string
+      readonly version: 1
+      readonly schemaVersion:
+        'canonical-sam3_1-official-artifact-publication-receipt-v1'
+      readonly contentHash: string
+    }
     readonly sourceArchiveCoordinate: z.infer<typeof objectCoordinateSchema>
     readonly sourceArchiveArtifactRef: z.input<typeof evidenceRefSchema>
     readonly sourceLicenseRef: z.input<typeof evidenceRefSchema>
@@ -314,6 +329,7 @@ export async function prepareCanonicalSam31PrivateArtifactIngestReceipt(
       schemaVersion: candidate.schemaVersion,
       candidateHash: candidate.candidateHash,
     },
+    officialArtifactPublicationRef: input.officialArtifactPublicationRef,
     operationId: candidate.operationId,
     termsAcceptanceRef: {
       id: terms.acceptanceRecordId,

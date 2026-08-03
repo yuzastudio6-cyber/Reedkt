@@ -73,6 +73,11 @@ const ingest = await prepareCanonicalSam31PrivateArtifactIngestReceipt({
   evidenceClass: 'synthetic_contract_fixture',
   candidate,
   termsAcceptance: terms,
+  officialArtifactPublicationRef: {
+    ...ref('sam31-release-official-artifact-publication'),
+    schemaVersion:
+      'canonical-sam3_1-official-artifact-publication-receipt-v1' as const,
+  },
   sourceArchiveCoordinate: sourceCoordinate,
   sourceArchiveArtifactRef:
     contentRef('sam31-release-source', sourceCoordinate.sha256),
@@ -313,7 +318,7 @@ function digest(value: string | Buffer): string {
 }
 
 function ref(id: string) {
-  return { id, version: 1, contentHash: `sha256:${digest(id)}` }
+  return { id, version: 1 as const, contentHash: `sha256:${digest(id)}` }
 }
 
 function contentRef(id: string, contentSha256: string) {

@@ -739,6 +739,11 @@ async function createSyntheticIngest() {
     evidenceClass: 'synthetic_contract_fixture',
     candidate,
     termsAcceptance: terms,
+    officialArtifactPublicationRef: {
+      ...ref('sam31-official-artifact-publication'),
+      schemaVersion:
+        'canonical-sam3_1-official-artifact-publication-receipt-v1' as const,
+    },
     sourceArchiveCoordinate: sourceCoordinate,
     sourceArchiveArtifactRef: contentRef('source', sourceCoordinate.sha256),
     sourceLicenseRef: ref('source-license'),
@@ -1136,13 +1141,13 @@ async function* chunked(bytes: Buffer) {
 function ref(id: string) {
   return {
     id,
-    version: 1,
+    version: 1 as const,
     contentHash: `sha256:${sha(Buffer.from(id))}`,
   }
 }
 
 function contentRef(id: string, digest: string) {
-  return { id, version: 1, contentHash: `sha256:${digest}` }
+  return { id, version: 1 as const, contentHash: `sha256:${digest}` }
 }
 
 function sha(value: Buffer): string {

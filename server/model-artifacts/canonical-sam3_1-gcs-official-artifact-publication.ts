@@ -1,0 +1,238 @@
+import { createHash } from 'node:crypto'
+import { Readable } from 'node:stream'
+import { pipeline } from 'node:stream/promises'
+
+import { Storage } from '@google-cloud/storage'
+
+import {
+  canonicalSam31PrivateArtifactObjectCoordinateSchema,
+  type CanonicalSam31PrivateArtifactPublicationPort,
+} from './canonical-sam3_1-official-artifact-publication'
+
+export const CANONICAL_SAM3_1_GCS_OFFICIAL_ARTIFACT_PUBLICATION_PORT_VERSION =
+  'canonical-sam3_1-gcs-official-artifact-publication-port-v1' as const
+
+const PROJECT_ID = 'reeditpro' as const
+const MODEL_ARTIFACT_BUCKET =
+  'reeditpro-production-reeditpro-model-artifacts' as const
+
+/**
+ * Cloud-only streaming object publisher for the one-time SAM 3.1 source and
+ * checkpoint ingest. A pre-existing object is never accepted implicitly:
+ * uncertain outcomes require a separate exact reconciliation before a new
+ * attempt ID may be used.
+ */
+export function createCanonicalSam31GcsOfficialArtifactPublicationPort(input: {
+  readonly projectId: typeof PROJECT_ID
+  readonly bucketName: typeof MODEL_ARTIFACT_BUCKET
+  readonly storage?: Storage
+}): CanonicalSam31PrivateArtifactPublicationPort & {
+  readonly schemaVersion:
+    typeof CANONICAL_SAM3_1_GCS_OFFICIAL_ARTIFACT_PUBLICATION_PORT_VERSION
+} {
+  if (
+    input.projectId !== PROJECT_ID
+    || input.bucketName !== MODEL_ARTIFACT_BUCKET
+  ) throw new Error('SAM 3.1 GCS publication coordinate is not canonical.')
+  const storage = input.storage ?? new Storage({ projectId: input.projectId })
+  return Object.freeze({
+    schemaVersion:
+      CANONICAL_SAM3_1_GCS_OFFICIAL_ARTIFACT_PUBLICATION_PORT_VERSION,
+    async publishCreateOnlyAndReread(
+      value: Parameters<
+        CanonicalSam31PrivateArtifactPublicationPort[
+          'publishCreateOnlyAndReread'
+        ]
+      >[0],
+    ) {
+      assertPublicationInput(value)
+      const bucket = storage.bucket(value.bucketName)
+      const liveFile = bucket.file(value.objectName)
+      const measurement = {
+        byteLength: 0,
+        digest: createHash('sha256'),
+      }
+      try {
+        await pipeline(
+          Readable.from(measureAndBound(value.body, value, measurement)),
+          liveFile.createWriteStream({
+            resumable: true,
+            validation: 'crc32c',
+            preconditionOpts: { ifGenerationMatch: 0 },
+            metadata: {
+              contentType: value.contentType,
+              cacheControl: 'private, no-store',
+              metadata: {
+                'weeditpro-artifact-kind': value.contentType
+                  === 'application/x-tar'
+                  ? 'sam31-official-source-archive'
+                  : 'sam31-official-gated-checkpoint',
+                'weeditpro-create-only': 'true',
+              },
+            },
+          }),
+        )
+      } catch (error) {
+        if (cloudErrorCode(error) === 412) throw new Error(
+          'SAM 3.1 artifact object already exists; exact reconciliation is required.',
+          { cause: error },
+        )
+        throw new Error('SAM 3.1 private artifact streaming publication failed.', {
+          cause: error,
+        })
+      }
+      const publishedSha256 = measurement.digest.digest('hex')
+      assertExpectedMeasurement(value, measurement.byteLength, publishedSha256)
+      const [metadata] = await liveFile.getMetadata()
+      const generation = String(metadata.generation ?? '')
+      const etag = String(metadata.etag ?? '')
+      const contentType = String(metadata.contentType ?? '')
+      const metadataByteLength = Number(metadata.size ?? -1)
+      if (
+        !/^[1-9][0-9]{0,30}$/u.test(generation)
+        || !etag
+        || contentType !== value.contentType
+        || metadataByteLength !== measurement.byteLength
+      ) throw new Error('SAM 3.1 published artifact metadata is invalid.')
+      const exactFile = bucket.file(value.objectName, { generation })
+      const reread = await hashBoundedStream(
+        exactFile.createReadStream({
+          decompress: false,
+          validation: 'crc32c',
+        }),
+        value.maximumByteLength,
+      )
+      const [stableMetadata] = await exactFile.getMetadata()
+      if (
+        reread.byteLength !== measurement.byteLength
+        || reread.sha256 !== publishedSha256
+        || String(stableMetadata.generation ?? '') !== generation
+        || String(stableMetadata.etag ?? '') !== etag
+        || String(stableMetadata.contentType ?? '') !== value.contentType
+        || Number(stableMetadata.size ?? -1) !== measurement.byteLength
+      ) throw new Error(
+        'SAM 3.1 private artifact exact-generation reread failed.',
+      )
+      return canonicalSam31PrivateArtifactObjectCoordinateSchema.parse({
+        projectId: value.projectId,
+        bucketName: value.bucketName,
+        objectName: value.objectName,
+        generation,
+        etag,
+        byteLength: reread.byteLength,
+        sha256: reread.sha256,
+      })
+    },
+  })
+}
+
+function assertPublicationInput(input: {
+  readonly projectId: string
+  readonly bucketName: string
+  readonly objectName: string
+  readonly contentType: string
+  readonly body: AsyncIterable<Uint8Array>
+  readonly minimumByteLength: number
+  readonly maximumByteLength: number
+  readonly expectedByteLength?: number
+  readonly expectedSha256?: string
+}): void {
+  if (
+    input.projectId !== PROJECT_ID
+    || input.bucketName !== MODEL_ARTIFACT_BUCKET
+    || !input.objectName.startsWith('private/model-artifacts/sam3_1/')
+    || input.objectName.includes('..')
+    || input.objectName.includes('\\')
+    || input.objectName.includes('//')
+    || (input.contentType !== 'application/x-tar'
+      && input.contentType !== 'application/octet-stream')
+    || !input.body
+    || typeof input.body[Symbol.asyncIterator] !== 'function'
+    || !Number.isSafeInteger(input.minimumByteLength)
+    || !Number.isSafeInteger(input.maximumByteLength)
+    || input.minimumByteLength < 1
+    || input.maximumByteLength < input.minimumByteLength
+    || (input.expectedByteLength !== undefined
+      && (!Number.isSafeInteger(input.expectedByteLength)
+        || input.expectedByteLength < input.minimumByteLength
+        || input.expectedByteLength > input.maximumByteLength))
+    || (input.expectedSha256 !== undefined
+      && !/^[a-f0-9]{64}$/u.test(input.expectedSha256))
+  ) throw new Error('SAM 3.1 private artifact publication input is invalid.')
+}
+
+async function* measureAndBound(
+  body: AsyncIterable<Uint8Array>,
+  bounds: {
+    readonly minimumByteLength: number
+    readonly maximumByteLength: number
+    readonly expectedByteLength?: number
+    readonly expectedSha256?: string
+  },
+  measurement: {
+    byteLength: number
+    readonly digest: ReturnType<typeof createHash>
+  },
+): AsyncIterable<Uint8Array> {
+  for await (const chunk of body) {
+    if (!(chunk instanceof Uint8Array) || chunk.byteLength === 0) {
+      throw new Error('SAM 3.1 official artifact stream is invalid.')
+    }
+    measurement.byteLength += chunk.byteLength
+    if (
+      !Number.isSafeInteger(measurement.byteLength)
+      || measurement.byteLength > bounds.maximumByteLength
+    ) throw new Error('SAM 3.1 official artifact exceeds its byte bound.')
+    measurement.digest.update(chunk)
+    yield chunk
+  }
+  if (measurement.byteLength < bounds.minimumByteLength) {
+    throw new Error('SAM 3.1 official artifact is below its byte bound.')
+  }
+  assertExpectedMeasurement(
+    bounds,
+    measurement.byteLength,
+    measurement.digest.copy().digest('hex'),
+  )
+}
+
+function assertExpectedMeasurement(
+  input: { readonly expectedByteLength?: number; readonly expectedSha256?: string },
+  byteLength: number,
+  sha256: string,
+): void {
+  if (
+    (input.expectedByteLength !== undefined
+      && input.expectedByteLength !== byteLength)
+    || (input.expectedSha256 !== undefined
+      && input.expectedSha256 !== sha256)
+  ) throw new Error('SAM 3.1 official artifact identity is not approved.')
+}
+
+async function hashBoundedStream(
+  stream: AsyncIterable<Uint8Array>,
+  maximumByteLength: number,
+): Promise<{ readonly byteLength: number; readonly sha256: string }> {
+  const digest = createHash('sha256')
+  let byteLength = 0
+  for await (const chunk of stream) {
+    if (!(chunk instanceof Uint8Array) || chunk.byteLength === 0) {
+      throw new Error('SAM 3.1 artifact reread stream is invalid.')
+    }
+    byteLength += chunk.byteLength
+    if (!Number.isSafeInteger(byteLength) || byteLength > maximumByteLength) {
+      throw new Error('SAM 3.1 artifact reread exceeds its byte bound.')
+    }
+    digest.update(chunk)
+  }
+  return { byteLength, sha256: digest.digest('hex') }
+}
+
+function cloudErrorCode(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') return
+  const code = Reflect.get(error, 'code')
+  if (typeof code === 'number') return code
+  if (typeof code === 'string' && /^[0-9]{3}$/u.test(code)) {
+    return Number.parseInt(code, 10)
+  }
+}

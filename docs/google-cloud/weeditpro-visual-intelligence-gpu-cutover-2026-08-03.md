@@ -55,6 +55,27 @@ fresh dispatch authority and preserve prior audit evidence.
   contracts, private input staging, immutable output contract, and build/
   supply-chain authorities exist in source and remain non-admissible until
   checkpoint, dependency, scan, signature, and real-GPU evidence pass.
+- The canonical official-artifact publisher now exists. It can run only as
+  Cloud Run Job `weeditpro-sam31-official-artifact-ingest`, archives the exact
+  pinned Git source in ephemeral job storage, reads one exact versioned
+  Secret Manager token after an exact human terms-acceptance reread, and
+  streams the official gated checkpoint into the private model-artifact
+  bucket. The credential is removed before any approved signed-storage
+  redirect and is never returned or persisted.
+- Source and checkpoint objects are create-only. Every completed write is
+  reread by exact GCS generation, ETag, byte length, and SHA-256. An existing
+  object or uncertain transport outcome requires separate reconciliation;
+  there is no automatic download or spend retry.
+- `canonical-sam3_1-private-artifact-ingest-receipt-v3` now retains the exact
+  official-publication receipt ref. Security/malware scan, license approval,
+  strict source/checkpoint compatibility, image build, GPU runtime, credits,
+  and production all remain false after publication.
+- The guarded operator command is
+  `npm run publish:sam3_1-official-artifacts`. It refuses developer-machine
+  execution and requires the exact dedicated job identity, an explicit
+  one-time confirmation, a pinned terms object generation/ETag/hash/length,
+  and a pinned Secret Manager version. It has not been run because the human
+  terms/access record and token version do not exist.
 
 ## GPU account state
 

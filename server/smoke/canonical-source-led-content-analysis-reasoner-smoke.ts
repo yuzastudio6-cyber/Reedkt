@@ -9,9 +9,12 @@ import {
   type CanonicalSourceLedContentReasoningAttempt,
   type CanonicalSourceLedContentReasoningPort,
   type CanonicalSourceLedContentReasoningRequest,
+  type CanonicalSourceLedContentReasoningSelection,
 } from '../services/canonical-source-led-content-analysis-reasoner'
-import type {
-  CanonicalSourceLedContentAnalysisSourceInput,
+import {
+  canonicalSourceLedVisualIntelligenceEvidenceSchema,
+  createCanonicalSourceLedSourceFrameAuthority,
+  type CanonicalSourceLedContentAnalysisSourceInput,
 } from '../services/canonical-source-led-content-analysis-evidence'
 
 const sha256 = (value: string) =>
@@ -24,12 +27,58 @@ const stableStringify = (value: unknown): string => {
   if (value && typeof value === 'object') {
     return `{${Object.entries(value as Record<string, unknown>)
       .filter(([, item]) => item !== undefined)
-      .sort(([left], [right]) => left.localeCompare(right))
+      .sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)
       .map(([key, item]) =>
         `${JSON.stringify(key)}:${stableStringify(item)}`)
       .join(',')}}`
   }
   return JSON.stringify(value)
+}
+
+const transcriptCoverage = (durationFrames: number) => {
+  const withoutDigest = {
+    schemaVersion:
+      'canonical-source-audio-complete-timeline-coverage-v1' as const,
+    coveredStartFrame: 0 as const,
+    coveredEndFrameExclusive: durationFrames,
+    completeAudioTimelineProcessed: true as const,
+    speechSegmentsMayOmitSilence: true as const,
+    embeddedInstructionDetectionRequired: true as const,
+  }
+  return {
+    ...withoutDigest,
+    coverageDigestSha256: sha256(stableStringify(withoutDigest)),
+  }
+}
+
+const visualCoverage = (
+  durationFrames: number,
+  observations: ReadonlyArray<{ startFrame: number; endFrameExclusive: number }>,
+) => {
+  const withoutDigest = {
+    schemaVersion:
+      'canonical-source-visual-intelligence-semantic-coverage-v4' as const,
+    profileId:
+      'visual_intelligence_source_edit_planning_professional_high_v1' as const,
+    coveredStartFrame: 0 as const,
+    coveredEndFrameExclusive: durationFrames,
+    maximumWindowFrames: 240 as const,
+    windowCount: observations.length,
+    gapCount: 0 as const,
+    completeSourceRangeRequested: true as const,
+    completeRequestedRangeSemanticCoverage: true as const,
+    orderedGaplessObservationPartition: true as const,
+    deterministicGpuEvidenceUsed: true as const,
+    providerVisualPreprocessingExpected: true as const,
+    everyTimelineFrameInspected: false as const,
+    completeTimePixelInspectionClaimAllowed: false as const,
+    providerAudioUnderstandingClaimAllowed: false as const,
+    completeAudioTranscriptSuppliedToHeadReasonerSeparately: true as const,
+  }
+  return {
+    ...withoutDigest,
+    coverageDigestSha256: sha256(stableStringify(withoutDigest)),
+  }
 }
 
 const transcriptOne = [{
@@ -105,7 +154,14 @@ const visualOne = [{
   cameraStability: 'stable' as const,
   continuity: 'continuous' as const,
   confidenceBasisPoints: 8_600,
-}]
+}].map((observation, index) => ({
+  ...observation,
+  windowIndex: index + 1,
+  evidenceRefs: [evidenceRef(`${observation.observationId}-evidence`)],
+  providerObservationScope:
+    'complete_source_range_semantic_partition' as const,
+  exactProviderSampleFramesKnown: false as const,
+}))
 const visualTwo = [{
   observationId: 'visual-2-setup',
   startFrame: 0,
@@ -136,7 +192,145 @@ const visualTwo = [{
   cameraStability: 'stable' as const,
   continuity: 'continuous' as const,
   confidenceBasisPoints: 8_400,
-}]
+}].map((observation, index) => ({
+  ...observation,
+  windowIndex: index + 1,
+  evidenceRefs: [evidenceRef(`${observation.observationId}-evidence`)],
+  providerObservationScope:
+    'complete_source_range_semantic_partition' as const,
+  exactProviderSampleFramesKnown: false as const,
+}))
+
+function evidenceRef(id: string) {
+  return {
+    id,
+    version: 1,
+    contentHash: `sha256:${sha256(id)}`,
+  }
+}
+
+function visualIntelligenceEvidence(
+  sourceId: string,
+  durationFrames: number,
+  observations: ReadonlyArray<{
+    startFrame: number
+    endFrameExclusive: number
+  } & Record<string, unknown>>,
+) {
+  return canonicalSourceLedVisualIntelligenceEvidenceSchema.parse({
+    status: 'completed',
+    evidenceMode: 'visual_intelligence_gemini_pro_high_v1',
+    providerCapabilityId: 'visual_intelligence',
+    providerSkillId: 'visual_intelligence.analyze_media',
+    operation: 'analyze_media',
+    profile: 'source_edit_planning',
+    providerAdapterId: 'vertex_gemini_pro',
+    providerId: 'google_vertex_ai',
+    providerModel: 'gemini-3.1-pro-preview',
+    qualityProfile: 'professional_high',
+    thinkingLevel: 'high',
+    mediaResolution: 'high',
+    requestRef: evidenceRef(`${sourceId}-visual-request`),
+    reportRef: evidenceRef(`${sourceId}-visual-report`),
+    admissionRef: evidenceRef(`${sourceId}-visual-admission`),
+    providerReleaseRef: evidenceRef(`${sourceId}-provider-release`),
+    costEvidenceRef: evidenceRef(`${sourceId}-cost-evidence`),
+    observationDigestSha256: sha256(stableStringify(observations)),
+    observations,
+    coverage: visualCoverage(durationFrames, observations),
+    lifecycleInvocationDisposition: 'completed',
+    providerCallMadeDuringInvocation: true,
+    costSettledDuringInvocation: true,
+    exactImmutableReportRereadVerified: true,
+    applicationDefaultCredentialsUsed: true,
+    accountEffectiveBillingRateUsed: true,
+    publicListPriceUsedAsSettlementAuthority: false,
+    providerVisualPreprocessingExpected: true,
+    completeTimePixelInspectionClaimAllowed: false,
+    selfHostedQwenRuntimeUsed: false,
+    managedQwenApiUsed: false,
+    localQwen25VlRuntimeUsed: false,
+    signedReadUrlPersisted: false,
+    signedReadUrlReturned: false,
+    rawModelOutputPersisted: false,
+  })
+}
+
+function historicalQwenVisualEvidence(
+  durationFrames: number,
+  observations: ReadonlyArray<{
+    observationId: string
+    startFrame: number
+    endFrameExclusive: number
+    sourceFunction: 'hook' | 'active_action' | 'setup' | 'dialogue' |
+      'reaction' | 'detail' | 'transition' | 'idle' | 'unusable' | 'uncertain'
+    actionIntensity: 'none' | 'low' | 'medium' | 'high'
+    editUsability: 'strong' | 'usable' | 'weak' | 'reject'
+    cameraStability: 'stable' | 'usable_motion' | 'unstable' | 'uncertain'
+    continuity: 'continuous' | 'discontinuous' | 'uncertain'
+    confidenceBasisPoints: number
+  }>,
+): CanonicalSourceLedContentAnalysisSourceInput['visual'] {
+  const historicalObservations = observations.map((observation) => ({
+    observationId: observation.observationId,
+    startFrame: observation.startFrame,
+    endFrameExclusive: observation.endFrameExclusive,
+    sourceFunction: observation.sourceFunction,
+    actionIntensity: observation.actionIntensity,
+    editUsability: observation.editUsability,
+    cameraStability: observation.cameraStability,
+    continuity: observation.continuity,
+    confidenceBasisPoints: observation.confidenceBasisPoints,
+    sampledFrameNumbers: sampleFrames(
+      observation.startFrame,
+      observation.endFrameExclusive,
+    ),
+  }))
+  const coverageWithoutDigest = {
+    schemaVersion:
+      'canonical-source-visual-complete-timeline-window-coverage-v1' as const,
+    profileId:
+      'approved_source_cleanup_complete_timeline_windows_v1' as const,
+    coveredStartFrame: 0 as const,
+    coveredEndFrameExclusive: durationFrames,
+    maximumWindowFrames: 240 as const,
+    targetSamplesPerWindow: 4 as const,
+    windowCount: historicalObservations.length,
+    sampledFrameCount: historicalObservations.reduce(
+      (sum, observation) => sum + observation.sampledFrameNumbers.length,
+      0,
+    ),
+    gapCount: 0 as const,
+    completeTimelineWindowCoverage: true as const,
+    everyTimelineFrameInspected: false as const,
+    modelInspectsOnlySampledFrames: true as const,
+    unsampledContentInspectionClaimAllowed: false as const,
+  }
+  return {
+    status: 'completed',
+    modelId: 'qwen2.5-vl-7b-instruct-4bit',
+    modelDigestSha256: sha256('historical-qwen'),
+    runtimeVersion: 'mlx-vlm-0.6.5',
+    observationDigestSha256: sha256(stableStringify(historicalObservations)),
+    observations: historicalObservations,
+    coverage: {
+      ...coverageWithoutDigest,
+      coverageDigestSha256: sha256(stableStringify(coverageWithoutDigest)),
+    },
+    rawFramesPersisted: false,
+    rawModelOutputPersisted: false,
+    modelDownloadPerformed: false,
+    networkAttempted: false,
+  }
+}
+
+function sampleFrames(startFrame: number, endFrameExclusive: number) {
+  const frameCount = endFrameExclusive - startFrame
+  const count = Math.min(4, frameCount)
+  return Array.from({ length: count }, (_, index) => count === 1
+    ? startFrame
+    : startFrame + Math.round(index * (frameCount - 1) / (count - 1)))
+}
 
 const sources: CanonicalSourceLedContentAnalysisSourceInput[] = [{
   sourceSequenceItemId: 'source-sequence-1',
@@ -145,6 +339,13 @@ const sources: CanonicalSourceLedContentAnalysisSourceInput[] = [{
   checksumSha256: sha256('source-1'),
   byteLength: 1_000,
   durationFrames: 300,
+  sourceFrameAuthority: createCanonicalSourceLedSourceFrameAuthority({
+    fpsNumerator: 24,
+    fpsDenominator: 1,
+    frameCount: 300,
+    timeBaseNumerator: 1,
+    timeBaseDenominator: 24,
+  }),
   transcript: {
     status: 'completed',
     modelId: 'faster-whisper-small',
@@ -152,22 +353,12 @@ const sources: CanonicalSourceLedContentAnalysisSourceInput[] = [{
     runtimeVersion: 'faster-whisper-1.2.1',
     transcriptDigestSha256: sha256(stableStringify(transcriptOne)),
     segments: transcriptOne,
+    coverage: transcriptCoverage(300),
     rawAudioPersisted: false,
     modelDownloadPerformed: false,
     networkAttempted: false,
   },
-  visual: {
-    status: 'completed',
-    modelId: 'qwen2.5-vl-7b-instruct-4bit',
-    modelDigestSha256: sha256('qwen'),
-    runtimeVersion: 'mlx-vlm-0.6.5',
-    observationDigestSha256: sha256(stableStringify(visualOne)),
-    observations: visualOne,
-    rawFramesPersisted: false,
-    rawModelOutputPersisted: false,
-    modelDownloadPerformed: false,
-    networkAttempted: false,
-  },
+  visual: visualIntelligenceEvidence('source-1', 300, visualOne),
 }, {
   sourceSequenceItemId: 'source-sequence-2',
   mediaAssetId: 'media-asset-2',
@@ -175,6 +366,13 @@ const sources: CanonicalSourceLedContentAnalysisSourceInput[] = [{
   checksumSha256: sha256('source-2'),
   byteLength: 2_000,
   durationFrames: 360,
+  sourceFrameAuthority: createCanonicalSourceLedSourceFrameAuthority({
+    fpsNumerator: 24,
+    fpsDenominator: 1,
+    frameCount: 360,
+    timeBaseNumerator: 1,
+    timeBaseDenominator: 24,
+  }),
   transcript: {
     status: 'completed',
     modelId: 'faster-whisper-small',
@@ -182,25 +380,15 @@ const sources: CanonicalSourceLedContentAnalysisSourceInput[] = [{
     runtimeVersion: 'faster-whisper-1.2.1',
     transcriptDigestSha256: sha256(stableStringify(transcriptTwo)),
     segments: transcriptTwo,
+    coverage: transcriptCoverage(360),
     rawAudioPersisted: false,
     modelDownloadPerformed: false,
     networkAttempted: false,
   },
-  visual: {
-    status: 'completed',
-    modelId: 'qwen2.5-vl-7b-instruct-4bit',
-    modelDigestSha256: sha256('qwen'),
-    runtimeVersion: 'mlx-vlm-0.6.5',
-    observationDigestSha256: sha256(stableStringify(visualTwo)),
-    observations: visualTwo,
-    rawFramesPersisted: false,
-    rawModelOutputPersisted: false,
-    modelDownloadPerformed: false,
-    networkAttempted: false,
-  },
+  visual: visualIntelligenceEvidence('source-2', 360, visualTwo),
 }]
 
-const selection = {
+const selection: CanonicalSourceLedContentReasoningSelection = {
   sources: [{
     sourceSequenceItemId: 'source-sequence-1',
     mediaAssetId: 'media-asset-1',
@@ -218,6 +406,9 @@ const selection = {
       evidenceIds: ['transcript-1-hook', 'visual-1-hook'],
       keepReasonCodes: ['strong_hook' as const, 'clear_explanation' as const],
       removedContextCodes: ['setup_cleanup' as const],
+      decisionBasis: 'content_understanding' as const,
+      instructionIds: [],
+      timeOnlyDecision: false as const,
     }, {
       rangeId: 'range-1-action',
       startFrame: 180,
@@ -231,7 +422,54 @@ const selection = {
       evidenceIds: ['transcript-1-action', 'visual-1-action'],
       keepReasonCodes: ['good_visual_moment' as const, 'key_story_beat' as const],
       removedContextCodes: ['dead_space' as const, 'pacing_drag' as const],
+      decisionBasis: 'content_understanding' as const,
+      instructionIds: [],
+      timeOnlyDecision: false as const,
     }],
+    removedRanges: [{
+      rangeId: 'remove-1-setup',
+      startFrame: 0,
+      endFrameExclusive: 30,
+      reason: 'Remove the visually verified setup before the opening.',
+      confidenceBasisPoints: 8_500,
+      phraseBoundaryAligned: true as const,
+      preservesSourceMeaning: true as const,
+      userReviewRequired: false as const,
+      evidenceIds: ['visual-1-setup'],
+      reasonCodes: ['setup_cleanup' as const],
+      decisionBasis: 'content_understanding' as const,
+      instructionIds: [],
+      timeOnlyDecision: false as const,
+    }, {
+      rangeId: 'remove-1-idle',
+      startFrame: 100,
+      endFrameExclusive: 180,
+      reason: 'Remove the visually verified idle interval.',
+      confidenceBasisPoints: 8_800,
+      phraseBoundaryAligned: true as const,
+      preservesSourceMeaning: true as const,
+      userReviewRequired: false as const,
+      evidenceIds: ['visual-1-idle'],
+      reasonCodes: ['dead_space' as const, 'pacing_drag' as const],
+      decisionBasis: 'content_understanding' as const,
+      instructionIds: [],
+      timeOnlyDecision: false as const,
+    }, {
+      rangeId: 'remove-1-tail',
+      startFrame: 240,
+      endFrameExclusive: 300,
+      reason: 'Remove the visually verified idle tail.',
+      confidenceBasisPoints: 8_600,
+      phraseBoundaryAligned: true as const,
+      preservesSourceMeaning: true as const,
+      userReviewRequired: false as const,
+      evidenceIds: ['visual-1-tail'],
+      reasonCodes: ['dead_space' as const],
+      decisionBasis: 'content_understanding' as const,
+      instructionIds: [],
+      timeOnlyDecision: false as const,
+    }],
+    embeddedEditInstructions: [],
   }, {
     sourceSequenceItemId: 'source-sequence-2',
     mediaAssetId: 'media-asset-2',
@@ -249,11 +487,49 @@ const selection = {
       evidenceIds: ['transcript-2-close', 'visual-2-close'],
       keepReasonCodes: ['clear_explanation' as const, 'cta' as const],
       removedContextCodes: ['setup_cleanup' as const],
+      decisionBasis: 'content_understanding' as const,
+      instructionIds: [],
+      timeOnlyDecision: false as const,
     }],
+    removedRanges: [{
+      rangeId: 'remove-2-setup',
+      startFrame: 0,
+      endFrameExclusive: 120,
+      reason: 'Remove the visually verified setup before the conclusion.',
+      confidenceBasisPoints: 8_500,
+      phraseBoundaryAligned: true as const,
+      preservesSourceMeaning: true as const,
+      userReviewRequired: false as const,
+      evidenceIds: ['visual-2-setup'],
+      reasonCodes: ['setup_cleanup' as const],
+      decisionBasis: 'content_understanding' as const,
+      instructionIds: [],
+      timeOnlyDecision: false as const,
+    }, {
+      rangeId: 'remove-2-tail',
+      startFrame: 330,
+      endFrameExclusive: 360,
+      reason: 'Remove the visually verified idle tail.',
+      confidenceBasisPoints: 8_400,
+      phraseBoundaryAligned: true as const,
+      preservesSourceMeaning: true as const,
+      userReviewRequired: false as const,
+      evidenceIds: ['visual-2-tail'],
+      reasonCodes: ['dead_space' as const],
+      decisionBasis: 'content_understanding' as const,
+      instructionIds: [],
+      timeOnlyDecision: false as const,
+    }],
+    embeddedEditInstructions: [],
   }],
   sourceOrderPreserved: true as const,
+  completeSourceCoverageVerified: true as const,
+  allTimelineIntervalsReviewed: true as const,
+  embeddedInstructionsEvaluated: true as const,
+  timeOnlyCutDecisionCount: 0 as const,
   meaningPreservationPassed: true as const,
   userReviewRequired: false as const,
+  reviewReasons: [],
 }
 
 const planningDirection =
@@ -389,6 +665,130 @@ assert.equal(outcomeUnknown.blocker, 'outcome_unknown')
 assert.equal(outcomeUnknown.fallbackUsed, false)
 assert.equal(terraCalls, 1)
 
+const resolvedInstructionSelection = mutateSelection((draft) => {
+  const source = draft.sources[0]!
+  source.selectedRanges = [source.selectedRanges[0]!]
+  source.removedRanges = [{
+    ...source.removedRanges[0]!,
+  }, {
+    rangeId: 'remove-1-instruction-target',
+    startFrame: 100,
+    endFrameExclusive: 180,
+    reason: 'Remove the exact prior idle part targeted by the resolved spoken instruction.',
+    confidenceBasisPoints: 9_100,
+    phraseBoundaryAligned: true,
+    preservesSourceMeaning: true,
+    userReviewRequired: false,
+    evidenceIds: ['visual-1-idle', 'transcript-1-action'],
+    reasonCodes: ['resolved_embedded_instruction'],
+    decisionBasis: 'resolved_embedded_instruction',
+    instructionIds: ['instruction-delete-that-part'],
+    timeOnlyDecision: false,
+  }, {
+    rangeId: 'remove-1-editor-remark',
+    startFrame: 180,
+    endFrameExclusive: 240,
+    reason: 'Remove the editor-directed spoken instruction from the viewer-facing program.',
+    confidenceBasisPoints: 9_100,
+    phraseBoundaryAligned: true,
+    preservesSourceMeaning: true,
+    userReviewRequired: false,
+    evidenceIds: ['transcript-1-action', 'visual-1-action'],
+    reasonCodes: ['resolved_embedded_instruction'],
+    decisionBasis: 'resolved_embedded_instruction',
+    instructionIds: ['instruction-delete-that-part'],
+    timeOnlyDecision: false,
+  }, {
+    ...source.removedRanges[2]!,
+  }]
+  source.embeddedEditInstructions = [{
+    instructionId: 'instruction-delete-that-part',
+    instructionType: 'delete_previous_part',
+    targetRelation: 'previous_context',
+    transcriptSegmentId: 'transcript-1-action',
+    spokenStartFrame: 180,
+    spokenEndFrameExclusive: 240,
+    targetStartFrame: 100,
+    targetEndFrameExclusive: 180,
+    reason: 'The surrounding context clearly binds delete that part to the immediately preceding idle interval.',
+    confidenceBasisPoints: 9_100,
+    evidenceIds: ['transcript-1-action', 'visual-1-idle', 'visual-1-action'],
+    appliedDecisionIds: [
+      'remove-1-instruction-target',
+      'remove-1-editor-remark',
+    ],
+    spokenRemarkRemovalDecisionId: 'remove-1-editor-remark',
+    classifiedAsEditorDirected: true,
+    interpretationStatus: 'resolved',
+    userReviewRequired: false,
+  }]
+})
+const resolvedInstruction = await createCanonicalSourceLedContentAnalysisReasoner({
+  kimi: fixedAttemptPort(completedAttempt(resolvedInstructionSelection)),
+  terra,
+}).reason(request)
+assert.equal(resolvedInstruction.status, 'completed')
+assert.equal(
+  resolvedInstruction.evidence?.summary.embeddedInstructionCount,
+  1,
+)
+assert.equal(
+  resolvedInstruction.evidence?.sources[0]?.removedRanges[1]?.decisionBasis,
+  'resolved_embedded_instruction',
+)
+
+const ambiguousInstructionSelection = mutateSelection((draft) => {
+  const source = draft.sources[0]!
+  source.selectedRanges = [{
+    rangeId: 'preserve-source-1-pending-review',
+    startFrame: 0,
+    endFrameExclusive: 300,
+    role: 'main_story',
+    reason: 'Preserve the complete source until the ambiguous editor-directed instruction is resolved.',
+    confidenceBasisPoints: 9_000,
+    phraseBoundaryAligned: true,
+    preservesSourceMeaning: true,
+    userReviewRequired: false,
+    evidenceIds: visualOne.map((observation) => observation.observationId),
+    keepReasonCodes: ['source_context_required'],
+    removedContextCodes: [],
+    decisionBasis: 'content_understanding',
+    instructionIds: [],
+    timeOnlyDecision: false,
+  }]
+  source.removedRanges = []
+  source.embeddedEditInstructions = [{
+    instructionId: 'instruction-ambiguous-delete-that',
+    instructionType: 'uncertain',
+    targetRelation: 'uncertain',
+    transcriptSegmentId: 'transcript-1-action',
+    spokenStartFrame: 180,
+    spokenEndFrameExclusive: 240,
+    targetStartFrame: null,
+    targetEndFrameExclusive: null,
+    reason: 'Delete that part does not identify a safely provable target from the available context.',
+    confidenceBasisPoints: 6_500,
+    evidenceIds: ['transcript-1-action', 'visual-1-action'],
+    appliedDecisionIds: [],
+    spokenRemarkRemovalDecisionId: null,
+    classifiedAsEditorDirected: true,
+    interpretationStatus: 'user_review_required',
+    userReviewRequired: true,
+  }]
+  draft.userReviewRequired = true
+  draft.reviewReasons = [
+    'The target of instruction-ambiguous-delete-that requires user confirmation.',
+  ]
+})
+const ambiguousInstruction = await createCanonicalSourceLedContentAnalysisReasoner({
+  kimi: fixedAttemptPort(completedAttempt(ambiguousInstructionSelection)),
+  terra,
+}).reason(request)
+assert.equal(ambiguousInstruction.status, 'blocked')
+assert.equal(ambiguousInstruction.blocker, 'user_review_required')
+assert.equal(ambiguousInstruction.evidence, undefined)
+assert.equal(ambiguousInstruction.reviewRequiredInstructions?.length, 1)
+
 const invalidSelections = [
   {
     label: 'overlapping ranges',
@@ -406,6 +806,14 @@ const invalidSelections = [
     label: 'unverified evidence',
     value: mutateSelection((draft) => {
       draft.sources[1]!.selectedRanges[0]!.evidenceIds = ['invented-evidence']
+    }),
+  },
+  {
+    label: 'time-only cut decision',
+    value: mutateSelection((draft) => {
+      ;(draft.sources[0]!.removedRanges[0] as {
+        timeOnlyDecision: boolean
+      }).timeOnlyDecision = true
     }),
   },
 ]
@@ -469,6 +877,25 @@ await assert.rejects(
   /specialist evidence 1 is invalid/iu,
 )
 
+let historicalQwenProviderCalls = 0
+const historicalQwenSources = structuredClone(sources)
+historicalQwenSources[0]!.visual = historicalQwenVisualEvidence(
+  300,
+  visualOne,
+)
+await assert.rejects(
+  createCanonicalSourceLedContentAnalysisReasoner({
+    kimi: {
+      async select() {
+        historicalQwenProviderCalls += 1
+        return completedAttempt(selection)
+      },
+    },
+  }).reason({ ...request, sources: historicalQwenSources }),
+  /Visual Intelligence evidence before any reasoning provider call/iu,
+)
+assert.equal(historicalQwenProviderCalls, 0)
+
 console.log(JSON.stringify({
   smoke: 'canonical-source-led-content-analysis-reasoner',
   primaryModel: primary.evidence?.reasoning.providerModel,
@@ -477,7 +904,8 @@ console.log(JSON.stringify({
   selectedRanges: primary.evidence?.summary.selectedRangeCount,
   unknownOutcomeSecondProviderCalls: 0,
   responseBodyTimeoutFailClosed: responseBodyTimeout.blocker,
-  adversarialAssertions: invalidSelections.length + 4,
+  historicalQwenProviderCalls,
+  adversarialAssertions: invalidSelections.length + 5,
 }))
 
 function fixedCredential(version: number): {

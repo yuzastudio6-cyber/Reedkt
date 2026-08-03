@@ -16,12 +16,17 @@ import {
 } from './gpt-5-6-terra-source-led-chat-assistant'
 import {
   canonicalSourceLedContentAnalysisSourceInputSchema,
+  createCanonicalSourceLedSourceFrameAuthority,
   createCanonicalSourceLedContentAnalysisEvidence,
+  digestCanonicalSourceLedStructuredSelection,
   type CanonicalSourceLedContentAnalysisEvidence,
   type CanonicalSourceLedContentAnalysisSourceInput,
 } from './canonical-source-led-content-analysis-evidence'
+import {
+  mapCanonicalSourceFrameRangeToMasterTiming,
+} from './canonical-rational-source-frame-mapping'
 
-const MAXIMUM_REASONING_OUTPUT_TOKENS = 8_192
+const MAXIMUM_REASONING_OUTPUT_TOKENS = 16_384
 const SOURCE_SELECTION_PROVIDER_TIMEOUT_MS = 180_000
 const sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u)
 const safeIdSchema = z.string().trim().min(1).max(240)
@@ -74,7 +79,109 @@ const selectedRangeSchema = z.object({
     'setup_cleanup',
     'pacing_drag',
   ])).max(16),
+  decisionBasis: z.enum([
+    'content_understanding',
+    'resolved_embedded_instruction',
+  ]),
+  instructionIds: z.array(safeIdSchema).max(32),
+  timeOnlyDecision: z.literal(false),
 }).strict()
+
+const removedRangeSchema = z.object({
+  rangeId: safeIdSchema,
+  startFrame: z.number().int().nonnegative(),
+  endFrameExclusive: z.number().int().positive(),
+  reason: safeReasonSchema,
+  confidenceBasisPoints: z.number().int().min(6_000).max(10_000),
+  phraseBoundaryAligned: z.literal(true),
+  preservesSourceMeaning: z.literal(true),
+  userReviewRequired: z.literal(false),
+  evidenceIds: z.array(safeIdSchema).min(1).max(128),
+  reasonCodes: z.array(z.enum([
+    'dead_space',
+    'long_silence',
+    'filler_words',
+    'false_start',
+    'repeated_take',
+    'duplicate_point',
+    'mistake',
+    'off_topic',
+    'weak_explanation',
+    'bad_audio',
+    'bad_visual',
+    'shaky_or_blurry',
+    'setup_cleanup',
+    'pacing_drag',
+    'resolved_embedded_instruction',
+  ])).min(1).max(16),
+  decisionBasis: z.enum([
+    'content_understanding',
+    'resolved_embedded_instruction',
+  ]),
+  instructionIds: z.array(safeIdSchema).max(32),
+  timeOnlyDecision: z.literal(false),
+}).strict()
+
+const embeddedInstructionSchema = z.object({
+  instructionId: safeIdSchema,
+  instructionType: z.enum([
+    'delete_previous_part',
+    'delete_current_take',
+    'restart_from_here',
+    'use_later_take',
+    'keep_part',
+    'remove_part',
+    'custom_edit_direction',
+    'uncertain',
+  ]),
+  targetRelation: z.enum([
+    'previous_context',
+    'current_take',
+    'following_take',
+    'whole_source',
+    'custom',
+    'uncertain',
+  ]),
+  transcriptSegmentId: safeIdSchema,
+  spokenStartFrame: z.number().int().nonnegative(),
+  spokenEndFrameExclusive: z.number().int().positive(),
+  targetStartFrame: z.number().int().nonnegative().nullable(),
+  targetEndFrameExclusive: z.number().int().positive().nullable(),
+  reason: safeReasonSchema,
+  confidenceBasisPoints: z.number().int().min(0).max(10_000),
+  evidenceIds: z.array(safeIdSchema).min(1).max(128),
+  appliedDecisionIds: z.array(safeIdSchema).max(128),
+  spokenRemarkRemovalDecisionId: safeIdSchema.nullable(),
+  classifiedAsEditorDirected: z.literal(true),
+  interpretationStatus: z.enum(['resolved', 'user_review_required']),
+  userReviewRequired: z.boolean(),
+}).strict().superRefine((instruction, context) => {
+  const resolved = instruction.interpretationStatus === 'resolved'
+  if (
+    instruction.spokenEndFrameExclusive <= instruction.spokenStartFrame
+    || !instruction.evidenceIds.includes(instruction.transcriptSegmentId)
+    || (resolved !== !instruction.userReviewRequired)
+    || (resolved && (
+      instruction.instructionType === 'uncertain'
+      || instruction.targetRelation === 'uncertain'
+      || instruction.targetStartFrame === null
+      || instruction.targetEndFrameExclusive === null
+      || instruction.targetEndFrameExclusive <= instruction.targetStartFrame
+      || instruction.confidenceBasisPoints < 7_000
+      || instruction.appliedDecisionIds.length < 1
+      || instruction.spokenRemarkRemovalDecisionId === null
+    ))
+    || (!resolved && (
+      instruction.appliedDecisionIds.length !== 0
+      || instruction.spokenRemarkRemovalDecisionId !== null
+    ))
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Embedded edit-instruction interpretation is internally inconsistent.',
+    })
+  }
+})
 
 const structuredSelectionSchema = z.object({
   sources: z.array(z.object({
@@ -82,11 +189,33 @@ const structuredSelectionSchema = z.object({
     mediaAssetId: safeIdSchema,
     uploadedOrder: z.number().int().min(1).max(8),
     selectedRanges: z.array(selectedRangeSchema).min(1).max(128),
+    removedRanges: z.array(removedRangeSchema).max(129),
+    embeddedEditInstructions: z.array(embeddedInstructionSchema).max(128),
   }).strict()).min(1).max(8),
   sourceOrderPreserved: z.literal(true),
+  completeSourceCoverageVerified: z.literal(true),
+  allTimelineIntervalsReviewed: z.literal(true),
+  embeddedInstructionsEvaluated: z.literal(true),
+  timeOnlyCutDecisionCount: z.literal(0),
   meaningPreservationPassed: z.literal(true),
-  userReviewRequired: z.literal(false),
-}).strict()
+  userReviewRequired: z.boolean(),
+  reviewReasons: z.array(safeReasonSchema).max(32),
+}).strict().superRefine((selection, context) => {
+  const instructionReviewRequired = selection.sources.some((source) =>
+    source.embeddedEditInstructions.some((instruction) =>
+      instruction.userReviewRequired))
+  if (
+    selection.userReviewRequired !== instructionReviewRequired
+    || (selection.userReviewRequired
+      ? selection.reviewReasons.length < 1
+      : selection.reviewReasons.length !== 0)
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Source selection review status must match unresolved embedded instructions.',
+    })
+  }
+})
 
 const usageSchema = z.object({
   promptTokens: z.number().int().nonnegative(),
@@ -103,6 +232,7 @@ const usageSchema = z.object({
 
 export type CanonicalSourceLedContentReasoningStatus =
   | 'completed'
+  | 'user_review_required'
   | 'credential_unavailable'
   | 'credential_rejected'
   | 'model_unavailable'
@@ -134,6 +264,10 @@ export interface CanonicalSourceLedContentReasoningAttempt {
   readonly usage?: z.infer<typeof usageSchema>
 }
 
+export type CanonicalSourceLedContentReasoningSelection = z.infer<
+  typeof structuredSelectionSchema
+>
+
 export interface CanonicalSourceLedContentReasoningPort {
   select(
     input: CanonicalSourceLedContentReasoningRequest,
@@ -147,6 +281,19 @@ export interface CanonicalSourceLedContentReasoningResult {
   readonly finalAttempt: CanonicalSourceLedContentReasoningAttempt
   readonly fallbackUsed: boolean
   readonly blocker?: CanonicalSourceLedContentReasoningStatus
+  readonly reviewRequiredInstructions?: readonly {
+    readonly sourceSequenceItemId: string
+    readonly instructionId: string
+    readonly instructionType: z.infer<
+      typeof embeddedInstructionSchema
+    >['instructionType']
+    readonly targetRelation: z.infer<
+      typeof embeddedInstructionSchema
+    >['targetRelation']
+    readonly spokenStartFrame: number
+    readonly spokenEndFrameExclusive: number
+    readonly reason: string
+  }[]
 }
 
 export function createCanonicalSourceLedContentAnalysisReasoner(input: {
@@ -392,7 +539,29 @@ function completedResult(
   ) {
     throw new Error('Completed source reasoning lost its exact provider result.')
   }
-  const selections = verifySelection(request, finalAttempt.selection)
+  const selection = verifySelection(request, finalAttempt.selection)
+  if (selection.userReviewRequired) {
+    return {
+      status: 'blocked',
+      primaryAttempt,
+      finalAttempt,
+      fallbackUsed: primaryAttempt !== finalAttempt,
+      blocker: 'user_review_required',
+      reviewRequiredInstructions: selection.sources.flatMap((source) =>
+        source.embeddedEditInstructions
+          .filter((instruction) => instruction.userReviewRequired)
+          .map((instruction) => ({
+            sourceSequenceItemId: source.sourceSequenceItemId,
+            instructionId: instruction.instructionId,
+            instructionType: instruction.instructionType,
+            targetRelation: instruction.targetRelation,
+            spokenStartFrame: instruction.spokenStartFrame,
+            spokenEndFrameExclusive: instruction.spokenEndFrameExclusive,
+            reason: instruction.reason,
+          }))),
+    }
+  }
+  const selections = selection.sources
   const selectedRangeCount = selections.reduce(
     (sum, source) => sum + source.selectedRanges.length,
     0,
@@ -409,8 +578,34 @@ function completedResult(
     (sum, source) => sum + source.durationFrames,
     0,
   )
+  const visualIntelligenceV1 = request.sources.every((source) =>
+    'evidenceMode' in source.visual
+    && source.visual.evidenceMode ===
+      'visual_intelligence_gemini_pro_high_v1')
+  if (!visualIntelligenceV1) {
+    throw new Error(
+      'Fresh source reasoning requires WeEditPro Visual Intelligence evidence.',
+    )
+  }
+  const originalTotalTimelineFrames = request.sources.reduce(
+    (sum, source) => sum +
+      mapSourceRangeToMasterFrames(source, 0, source.durationFrames),
+    0,
+  )
+  const selectedTotalTimelineFrames = request.sources.reduce(
+    (sum, source, sourceIndex) => sum +
+      selections[sourceIndex]!.selectedRanges.reduce(
+        (sourceSum, range) => sourceSum + mapSourceRangeToMasterFrames(
+          source,
+          range.startFrame,
+          range.endFrameExclusive,
+        ),
+        0,
+      ),
+    0,
+  )
   const evidence = createCanonicalSourceLedContentAnalysisEvidence({
-    schemaVersion: 'canonical-source-led-content-analysis-evidence-v1',
+    schemaVersion: 'canonical-source-led-content-analysis-evidence-v5',
     source: 'server_private_source_understanding_pipeline',
     identity: {
       workspaceId: request.workspaceId,
@@ -423,6 +618,34 @@ function completedResult(
     sources: request.sources.map((source, index) => ({
       ...source,
       selectedRanges: selections[index]!.selectedRanges,
+      removedRanges: selections[index]!.removedRanges,
+      embeddedEditInstructions:
+        selections[index]!.embeddedEditInstructions.map((instruction) => {
+          if (
+            instruction.interpretationStatus !== 'resolved'
+            || instruction.userReviewRequired
+            || instruction.instructionType === 'uncertain'
+            || instruction.targetRelation === 'uncertain'
+            || instruction.targetStartFrame === null
+            || instruction.targetEndFrameExclusive === null
+            || instruction.spokenRemarkRemovalDecisionId === null
+          ) {
+            throw new Error(
+              'Completed source understanding retained an unresolved embedded instruction.',
+            )
+          }
+          return {
+            ...instruction,
+            instructionType: instruction.instructionType,
+            targetRelation: instruction.targetRelation,
+            targetStartFrame: instruction.targetStartFrame,
+            targetEndFrameExclusive: instruction.targetEndFrameExclusive,
+            spokenRemarkRemovalDecisionId:
+              instruction.spokenRemarkRemovalDecisionId,
+            interpretationStatus: 'resolved' as const,
+            userReviewRequired: false as const,
+          }
+        }),
     })),
     reasoning: {
       status: 'completed',
@@ -433,7 +656,12 @@ function completedResult(
       providerCallMade: true,
       modelCallMade: true,
       attemptDigestSha256: finalAttempt.attemptDigestSha256,
-      structuredResultDigestSha256: sha256(stableStringify(selections)),
+      structuredResultDigestSha256:
+        digestCanonicalSourceLedStructuredSelection(selection),
+      completeSourceCoverageConfirmed: true,
+      allTimelineIntervalsReviewed: true,
+      embeddedInstructionsEvaluated: true,
+      timeOnlyCutDecisionsAllowed: false,
       ...(finalAttempt.routeId === 'gpt_5_6_terra_fallback'
         ? {
             fallbackFromAttemptDigestSha256:
@@ -447,8 +675,21 @@ function completedResult(
       selectedRangeCount,
       selectedTotalFrames,
       originalTotalFrames,
+      originalTotalTimelineFrames,
+      selectedTotalTimelineFrames,
+      rationalSourceFrameMappingVerified: true,
       sourceOrderPreserved: true,
       everySelectionEvidenceBound: true,
+      everyRemovalEvidenceBound: true,
+      completeSourceCoverageVerified: true,
+      allTimelineIntervalsReviewed: true,
+      embeddedInstructionsEvaluated: true,
+      embeddedInstructionCount: selections.reduce(
+        (sum, source) => sum + source.embeddedEditInstructions.length,
+        0,
+      ),
+      unresolvedEmbeddedInstructionCount: 0,
+      timeOnlyCutDecisionCount: 0,
       meaningPreservationPassed: true,
       userReviewRequired: false,
     },
@@ -500,6 +741,18 @@ function verifyReasoningRequest(
     const source = canonicalSourceLedContentAnalysisSourceInputSchema.parse(
       rawSource,
     )
+    const transcriptCoverage = { ...source.transcript.coverage }
+    Reflect.deleteProperty(transcriptCoverage, 'coverageDigestSha256')
+    const visualCoverage = { ...source.visual.coverage }
+    Reflect.deleteProperty(visualCoverage, 'coverageDigestSha256')
+    const evidenceMode = 'evidenceMode' in source.visual
+      ? source.visual.evidenceMode
+      : undefined
+    if (evidenceMode !== 'visual_intelligence_gemini_pro_high_v1') {
+      throw new Error(
+        'Fresh source reasoning requires WeEditPro Visual Intelligence evidence before any reasoning provider call.',
+      )
+    }
     if (
       source.uploadedOrder !== index + 1 ||
       sourceIds.has(source.sourceSequenceItemId) ||
@@ -508,6 +761,35 @@ function verifyReasoningRequest(
         sha256(stableStringify(source.transcript.segments)) ||
       source.visual.observationDigestSha256 !==
         sha256(stableStringify(source.visual.observations))
+      || source.transcript.coverage.coverageDigestSha256 !==
+        sha256(stableStringify(transcriptCoverage))
+      || source.visual.coverage.coverageDigestSha256 !==
+        sha256(stableStringify(visualCoverage))
+      || source.transcript.coverage.coveredEndFrameExclusive !==
+        source.durationFrames
+      || source.visual.coverage.coveredEndFrameExclusive !==
+        source.durationFrames
+      || source.visual.coverage.windowCount !==
+        source.visual.observations.length
+      || (
+        'sampledFrameCount' in source.visual.coverage
+        && source.visual.coverage.sampledFrameCount !==
+          source.visual.observations.reduce(
+            (sum, observation) =>
+              sum + ('sampledFrameNumbers' in observation
+                ? observation.sampledFrameNumbers.length
+                : 0),
+            0,
+          )
+      )
+      || (
+        'evidenceMode' in source.visual
+        && source.visual.observations.some(
+          (observation, observationIndex) =>
+            observation.windowIndex !== observationIndex + 1,
+        )
+      )
+      || !exactSourceFrameAuthority(source)
     ) {
       throw new Error(`Source reasoning specialist evidence ${index + 1} is invalid.`)
     }
@@ -521,6 +803,11 @@ function verifyReasoningRequest(
       source.durationFrames,
       `visual evidence ${index + 1}`,
     )
+    assertCompleteVisualCoverage(
+      source.visual.observations,
+      source.durationFrames,
+      `visual evidence ${index + 1}`,
+    )
     sourceIds.add(source.sourceSequenceItemId)
     mediaIds.add(source.mediaAssetId)
   })
@@ -530,19 +817,32 @@ function verifyReasoningRequest(
 function verifySelection(
   request: CanonicalSourceLedContentReasoningRequest,
   rawSelection: z.infer<typeof structuredSelectionSchema>,
-): z.infer<typeof structuredSelectionSchema>['sources'] {
+): z.infer<typeof structuredSelectionSchema> {
   const selection = structuredSelectionSchema.parse(rawSelection)
   if (selection.sources.length !== request.sources.length) {
     throw new Error('Source reasoning must return one exact selection per source.')
   }
   selection.sources.forEach((selected, index) => {
     const source = request.sources[index]!
-    const evidenceIds = new Set([
-      ...source.transcript.segments.map((segment) => segment.segmentId),
-      ...source.visual.observations.map((item) => item.observationId),
+    const evidenceRanges = new Map<string, {
+      startFrame: number
+      endFrameExclusive: number
+    }>([
+      ...source.transcript.segments.map((segment) => [
+        segment.segmentId,
+        {
+          startFrame: segment.startFrame,
+          endFrameExclusive: segment.endFrameExclusive,
+        },
+      ] as const),
+      ...source.visual.observations.map((item) => [
+        item.observationId,
+        {
+          startFrame: item.startFrame,
+          endFrameExclusive: item.endFrameExclusive,
+        },
+      ] as const),
     ])
-    let previousEnd = -1
-    const rangeIds = new Set<string>()
     if (
       selected.sourceSequenceItemId !== source.sourceSequenceItemId ||
       selected.mediaAssetId !== source.mediaAssetId ||
@@ -550,20 +850,132 @@ function verifySelection(
     ) {
       throw new Error(`Source reasoning selection ${index + 1} crossed source authority.`)
     }
-    selected.selectedRanges.forEach((range) => {
+    const decisions = [
+      ...selected.selectedRanges.map((range) => ({
+        ...range,
+        action: 'keep' as const,
+      })),
+      ...selected.removedRanges.map((range) => ({
+        ...range,
+        action: 'remove' as const,
+      })),
+    ]
+    const decisionsById = new Map(decisions.map((decision) => [
+      decision.rangeId,
+      decision,
+    ]))
+    const instructionsById = new Map(
+      selected.embeddedEditInstructions.map((instruction) => [
+        instruction.instructionId,
+        instruction,
+      ]),
+    )
+    if (
+      decisionsById.size !== decisions.length
+      || instructionsById.size !== selected.embeddedEditInstructions.length
+    ) {
+      throw new Error(`Source reasoning selection ${index + 1} has duplicate decision or instruction IDs.`)
+    }
+    let cursor = 0
+    for (const range of [...decisions].sort(
+      (left, right) => left.startFrame - right.startFrame,
+    )) {
+      const evidence = range.evidenceIds.map((evidenceId) =>
+        evidenceRanges.get(evidenceId))
       if (
-        rangeIds.has(range.rangeId) ||
-        range.startFrame < previousEnd ||
-        range.endFrameExclusive > source.durationFrames ||
-        range.evidenceIds.some((evidenceId) => !evidenceIds.has(evidenceId))
+        range.startFrame !== cursor
+        || range.endFrameExclusive <= range.startFrame
+        || range.endFrameExclusive > source.durationFrames
+        || evidence.some((item) => !item)
+        || new Set(range.evidenceIds).size !== range.evidenceIds.length
+        || new Set(range.instructionIds).size !== range.instructionIds.length
+        || (range.decisionBasis === 'content_understanding'
+          ? range.instructionIds.length !== 0
+            || !evidence.some((item) => item && rangesOverlap(
+              range.startFrame,
+              range.endFrameExclusive,
+              item.startFrame,
+              item.endFrameExclusive,
+            ))
+          : range.instructionIds.length === 0)
       ) {
         throw new Error(`Source reasoning selection ${index + 1} is not evidence-bound and frame-safe.`)
       }
-      rangeIds.add(range.rangeId)
-      previousEnd = range.endFrameExclusive
-    })
+      cursor = range.endFrameExclusive
+    }
+    if (cursor !== source.durationFrames) {
+      throw new Error(`Source reasoning selection ${index + 1} does not partition the complete source timeline.`)
+    }
+    const hasUnresolvedInstruction = selected.embeddedEditInstructions.some(
+      (instruction) => instruction.userReviewRequired,
+    )
+    if (
+      hasUnresolvedInstruction
+      && (
+        selected.selectedRanges.length !== 1
+        || selected.selectedRanges[0]!.startFrame !== 0
+        || selected.selectedRanges[0]!.endFrameExclusive !==
+          source.durationFrames
+        || selected.removedRanges.length !== 0
+        || selected.selectedRanges[0]!.decisionBasis !==
+          'content_understanding'
+      )
+    ) {
+      throw new Error(
+        `Source reasoning selection ${index + 1} must conservatively preserve the complete source while an embedded instruction requires review.`,
+      )
+    }
+    for (const instruction of selected.embeddedEditInstructions) {
+      const transcript = source.transcript.segments.find(
+        (segment) => segment.segmentId === instruction.transcriptSegmentId,
+      )
+      if (
+        !transcript
+        || transcript.startFrame !== instruction.spokenStartFrame
+        || transcript.endFrameExclusive !== instruction.spokenEndFrameExclusive
+        || instruction.evidenceIds.some((evidenceId) =>
+          !evidenceRanges.has(evidenceId))
+      ) {
+        throw new Error(`Source reasoning instruction ${instruction.instructionId} is not transcript-bound.`)
+      }
+      if (instruction.interpretationStatus !== 'resolved') continue
+      const targetStart = instruction.targetStartFrame!
+      const targetEnd = instruction.targetEndFrameExclusive!
+      const spokenRemoval = decisionsById.get(
+        instruction.spokenRemarkRemovalDecisionId!,
+      )
+      if (
+        targetEnd > source.durationFrames
+        || instruction.appliedDecisionIds.some((decisionId) => {
+          const decision = decisionsById.get(decisionId)
+          return !decision
+            || !decision.instructionIds.includes(instruction.instructionId)
+            || !(
+              rangesOverlap(
+                decision.startFrame,
+                decision.endFrameExclusive,
+                targetStart,
+                targetEnd,
+              )
+              || (
+                instruction.spokenRemarkRemovalDecisionId === decisionId
+                && decision.startFrame <= instruction.spokenStartFrame
+                && decision.endFrameExclusive >=
+                  instruction.spokenEndFrameExclusive
+              )
+            )
+        })
+        || !spokenRemoval
+        || spokenRemoval.action !== 'remove'
+        || spokenRemoval.startFrame > instruction.spokenStartFrame
+        || spokenRemoval.endFrameExclusive < instruction.spokenEndFrameExclusive
+        || !spokenRemoval.instructionIds.includes(instruction.instructionId)
+      ) {
+        throw new Error(`Source reasoning instruction ${instruction.instructionId} lost target or spoken-remark removal lineage.`)
+      }
+    }
   })
-  return selection.sources
+  return selection
 }
 
 function providerContext(
@@ -577,7 +989,24 @@ function providerContext(
       media_asset_id: source.mediaAssetId,
       uploaded_order: source.uploadedOrder,
       duration_frames: source.durationFrames,
+      source_frame_domain: source.sourceFrameAuthority
+        ? {
+            frame_domain: source.sourceFrameAuthority.frameDomain,
+            fps_numerator: source.sourceFrameAuthority.fpsNumerator,
+            fps_denominator: source.sourceFrameAuthority.fpsDenominator,
+            frame_count: source.sourceFrameAuthority.frameCount,
+            time_base_numerator: source.sourceFrameAuthority.timeBaseNumerator,
+            time_base_denominator: source.sourceFrameAuthority.timeBaseDenominator,
+            master_timing_mapping:
+              source.sourceFrameAuthority.masterTimingMapping,
+          }
+        : {
+            frame_domain: 'historical_30fps_source_frame_compatibility',
+            fps_numerator: request.fps,
+            fps_denominator: 1,
+          },
       transcript_status: source.transcript.status,
+      transcript_complete_timeline_coverage: source.transcript.coverage,
       transcript_segments: source.transcript.segments.map((segment) => ({
         segment_id: segment.segmentId,
         start_frame: segment.startFrame,
@@ -596,20 +1025,36 @@ function providerContext(
         camera_stability: observation.cameraStability,
         continuity: observation.continuity,
         confidence_basis_points: observation.confidenceBasisPoints,
+        ...('sampledFrameNumbers' in observation
+          ? { sampled_frame_numbers: observation.sampledFrameNumbers }
+          : {
+              provider_observation_scope:
+                observation.providerObservationScope,
+              exact_provider_sample_frames_known:
+                observation.exactProviderSampleFramesKnown,
+            }),
       })),
+      visual_complete_timeline_window_coverage: source.visual.coverage,
     })),
   })
 }
 
 function systemInstructions(): string {
   return [
-    'You are ReeditPro Head Intelligence selecting source ranges for a professional edit plan.',
-    'Use only the supplied verified transcript segments, visual observations, source order, and planning direction.',
-    'Return one or more exact retained frame ranges for every source, in confirmed source order and non-overlapping within each source.',
-    'Remove only evidence-supported dead setup, false starts, explicit delete/restart material, mistakes, duplicate takes, off-topic material, and pacing drag.',
+    'You are WeEditPro Head Intelligence selecting source ranges for a professional edit plan.',
+    'Before making any keep or remove decision, review every supplied transcript segment and every ordered visual complete-timeline window for every source from frame zero through duration.',
+    'The transcript comes from complete audio-timeline processing. Visual evidence either lists exact sampled frames for historical evidence or records complete requested-range semantic coverage from the provider-neutral Visual Intelligence capability. Never claim every raw frame, unsampled pixels, provider-internal exact pixels, or provider audio understanding.',
+    'Use only the supplied verified transcript segments, visual observations, coverage records, source order, and planning direction.',
+    'Return explicit selectedRanges and removedRanges that together partition every source frame exactly once, in confirmed source order and with no gap or overlap.',
+    'Treat every range boundary as an exact source-frame index in that source’s declared rational frame-rate domain. Never relabel 30000/1001 source frames as 30/1 MasterTiming frames or derive a cut by multiplying seconds by 30.',
+    'Never keep or remove material merely because of elapsed time, duration, silence length, or a pacing formula. Every decision must cite overlapping transcript or visual evidence, or one exact resolved embedded edit instruction.',
+    'Detect speech addressed to the editor, including phrases such as delete that part, cut this, start over, use the next take, keep that, or remove that. Distinguish it from viewer-facing program speech using surrounding transcript and visual context.',
+    'For each editor-directed remark, emit one embeddedEditInstruction. Resolve its exact target only when the evidence is clear, bind every applied decision, and remove the editor-directed spoken remark itself from the viewer-facing program.',
+    'If an instruction target, reference, intent, or phrase-safe boundary is ambiguous, set that instruction and the whole result to user_review_required, conservatively preserve the full source, and do not guess or claim completed selection.',
+    'Remove only evidence-supported dead setup, false starts, resolved explicit delete/restart material, mistakes, duplicate takes, off-topic material, and pacing drag.',
     'Preserve narrative meaning, necessary context, successful action, the clearest delivery of each point, and a coherent opening-to-closing story.',
     'Never choose a range because of a file name, hidden path, or unstated assumption.',
-    'Every retained range must cite exact transcript or visual evidence IDs. Every cut boundary must be phrase-safe; otherwise do not return a completed selection.',
+    'Every retained and removed range must cite exact transcript or visual evidence IDs. Every cut boundary must be phrase-safe; otherwise require user review.',
     'Use the fewest coherent retained ranges that preserve the story. Merge adjacent compatible evidence, prefer no more than 12 ranges per source, and keep each reason to one concise sentence.',
     'Do not invent transcript, visuals, people, products, claims, ranges, provider execution, approval, credits, or completed editing.',
     'This output is a proposed plan input only. It cannot execute workers or edit video.',
@@ -699,12 +1144,112 @@ function jsonSchemaEnvelope(name: string): {
           'shaky_or_blurry', 'setup_cleanup', 'pacing_drag',
         ] },
       },
+      decisionBasis: {
+        type: 'string',
+        enum: ['content_understanding', 'resolved_embedded_instruction'],
+      },
+      instructionIds: {
+        type: 'array', maxItems: 32,
+        items: { type: 'string', minLength: 1, maxLength: 240 },
+      },
+      timeOnlyDecision: { type: 'boolean', enum: [false] },
     },
     required: [
       'rangeId', 'startFrame', 'endFrameExclusive', 'role', 'reason',
       'confidenceBasisPoints', 'phraseBoundaryAligned',
       'preservesSourceMeaning', 'userReviewRequired', 'evidenceIds',
       'keepReasonCodes', 'removedContextCodes',
+      'decisionBasis', 'instructionIds', 'timeOnlyDecision',
+    ],
+    additionalProperties: false,
+  }
+  const removedRange = {
+    type: 'object',
+    properties: {
+      rangeId: { type: 'string', minLength: 1, maxLength: 240 },
+      startFrame: { type: 'integer', minimum: 0 },
+      endFrameExclusive: { type: 'integer', minimum: 1 },
+      reason: { type: 'string', minLength: 1, maxLength: 1_000 },
+      confidenceBasisPoints: { type: 'integer', minimum: 6_000, maximum: 10_000 },
+      phraseBoundaryAligned: { type: 'boolean', enum: [true] },
+      preservesSourceMeaning: { type: 'boolean', enum: [true] },
+      userReviewRequired: { type: 'boolean', enum: [false] },
+      evidenceIds: {
+        type: 'array', minItems: 1, maxItems: 128,
+        items: { type: 'string', minLength: 1, maxLength: 240 },
+      },
+      reasonCodes: {
+        type: 'array', minItems: 1, maxItems: 16,
+        items: { type: 'string', enum: [
+          'dead_space', 'long_silence', 'filler_words', 'false_start',
+          'repeated_take', 'duplicate_point', 'mistake', 'off_topic',
+          'weak_explanation', 'bad_audio', 'bad_visual',
+          'shaky_or_blurry', 'setup_cleanup', 'pacing_drag',
+          'resolved_embedded_instruction',
+        ] },
+      },
+      decisionBasis: {
+        type: 'string',
+        enum: ['content_understanding', 'resolved_embedded_instruction'],
+      },
+      instructionIds: {
+        type: 'array', maxItems: 32,
+        items: { type: 'string', minLength: 1, maxLength: 240 },
+      },
+      timeOnlyDecision: { type: 'boolean', enum: [false] },
+    },
+    required: [
+      'rangeId', 'startFrame', 'endFrameExclusive', 'reason',
+      'confidenceBasisPoints', 'phraseBoundaryAligned',
+      'preservesSourceMeaning', 'userReviewRequired', 'evidenceIds',
+      'reasonCodes', 'decisionBasis', 'instructionIds', 'timeOnlyDecision',
+    ],
+    additionalProperties: false,
+  }
+  const embeddedInstruction = {
+    type: 'object',
+    properties: {
+      instructionId: { type: 'string', minLength: 1, maxLength: 240 },
+      instructionType: { type: 'string', enum: [
+        'delete_previous_part', 'delete_current_take', 'restart_from_here',
+        'use_later_take', 'keep_part', 'remove_part',
+        'custom_edit_direction', 'uncertain',
+      ] },
+      targetRelation: { type: 'string', enum: [
+        'previous_context', 'current_take', 'following_take',
+        'whole_source', 'custom', 'uncertain',
+      ] },
+      transcriptSegmentId: { type: 'string', minLength: 1, maxLength: 240 },
+      spokenStartFrame: { type: 'integer', minimum: 0 },
+      spokenEndFrameExclusive: { type: 'integer', minimum: 1 },
+      targetStartFrame: { type: ['integer', 'null'], minimum: 0 },
+      targetEndFrameExclusive: { type: ['integer', 'null'], minimum: 1 },
+      reason: { type: 'string', minLength: 1, maxLength: 1_000 },
+      confidenceBasisPoints: { type: 'integer', minimum: 0, maximum: 10_000 },
+      evidenceIds: {
+        type: 'array', minItems: 1, maxItems: 128,
+        items: { type: 'string', minLength: 1, maxLength: 240 },
+      },
+      appliedDecisionIds: {
+        type: 'array', maxItems: 128,
+        items: { type: 'string', minLength: 1, maxLength: 240 },
+      },
+      spokenRemarkRemovalDecisionId: {
+        type: ['string', 'null'], minLength: 1, maxLength: 240,
+      },
+      classifiedAsEditorDirected: { type: 'boolean', enum: [true] },
+      interpretationStatus: {
+        type: 'string', enum: ['resolved', 'user_review_required'],
+      },
+      userReviewRequired: { type: 'boolean' },
+    },
+    required: [
+      'instructionId', 'instructionType', 'targetRelation',
+      'transcriptSegmentId', 'spokenStartFrame', 'spokenEndFrameExclusive',
+      'targetStartFrame', 'targetEndFrameExclusive', 'reason',
+      'confidenceBasisPoints', 'evidenceIds', 'appliedDecisionIds',
+      'spokenRemarkRemovalDecisionId', 'classifiedAsEditorDirected',
+      'interpretationStatus', 'userReviewRequired',
     ],
     additionalProperties: false,
   }
@@ -727,21 +1272,38 @@ function jsonSchemaEnvelope(name: string): {
                 selectedRanges: {
                   type: 'array', minItems: 1, maxItems: 128, items: range,
                 },
+                removedRanges: {
+                  type: 'array', maxItems: 129, items: removedRange,
+                },
+                embeddedEditInstructions: {
+                  type: 'array', maxItems: 128, items: embeddedInstruction,
+                },
               },
               required: [
                 'sourceSequenceItemId', 'mediaAssetId', 'uploadedOrder',
-                'selectedRanges',
+                'selectedRanges', 'removedRanges',
+                'embeddedEditInstructions',
               ],
               additionalProperties: false,
             },
           },
           sourceOrderPreserved: { type: 'boolean', enum: [true] },
+          completeSourceCoverageVerified: { type: 'boolean', enum: [true] },
+          allTimelineIntervalsReviewed: { type: 'boolean', enum: [true] },
+          embeddedInstructionsEvaluated: { type: 'boolean', enum: [true] },
+          timeOnlyCutDecisionCount: { type: 'integer', enum: [0] },
           meaningPreservationPassed: { type: 'boolean', enum: [true] },
-          userReviewRequired: { type: 'boolean', enum: [false] },
+          userReviewRequired: { type: 'boolean' },
+          reviewReasons: {
+            type: 'array', maxItems: 32,
+            items: { type: 'string', minLength: 1, maxLength: 1_000 },
+          },
         },
         required: [
           'sources', 'sourceOrderPreserved', 'meaningPreservationPassed',
-          'userReviewRequired',
+          'completeSourceCoverageVerified', 'allTimelineIntervalsReviewed',
+          'embeddedInstructionsEvaluated', 'timeOnlyCutDecisionCount',
+          'userReviewRequired', 'reviewReasons',
         ],
         additionalProperties: false,
       },
@@ -851,9 +1413,58 @@ function specialistEvidenceDigest(
     checksumSha256: source.checksumSha256,
     byteLength: source.byteLength,
     durationFrames: source.durationFrames,
+    sourceFrameAuthorityDigestSha256:
+      source.sourceFrameAuthority?.sourceFrameAuthorityDigestSha256,
     transcriptDigestSha256: source.transcript.transcriptDigestSha256,
+    transcriptCoverageDigestSha256:
+      source.transcript.coverage.coverageDigestSha256,
     visualObservationDigestSha256: source.visual.observationDigestSha256,
+    visualCoverageDigestSha256: source.visual.coverage.coverageDigestSha256,
   }))))
+}
+
+function exactSourceFrameAuthority(
+  source: CanonicalSourceLedContentAnalysisSourceInput,
+): boolean {
+  const authority = source.sourceFrameAuthority
+  if (!authority || authority.frameCount !== source.durationFrames) return false
+  try {
+    const expected = createCanonicalSourceLedSourceFrameAuthority({
+      fpsNumerator: authority.fpsNumerator,
+      fpsDenominator: authority.fpsDenominator,
+      frameCount: authority.frameCount,
+      timeBaseNumerator: authority.timeBaseNumerator,
+      timeBaseDenominator: authority.timeBaseDenominator,
+    })
+    return stableStringify(expected) === stableStringify(authority)
+  } catch {
+    return false
+  }
+}
+
+function mapSourceRangeToMasterFrames(
+  source: CanonicalSourceLedContentAnalysisSourceInput,
+  startFrame: number,
+  endFrameExclusive: number,
+): number {
+  if (!source.sourceFrameAuthority) {
+    throw new Error(
+      'Managed v2 source reasoning cannot map frames without exact rational source authority.',
+    )
+  }
+  return mapCanonicalSourceFrameRangeToMasterTiming({
+    sourceStartFrame: startFrame,
+    sourceEndFrameExclusive: endFrameExclusive,
+    source: {
+      fpsNumerator: source.sourceFrameAuthority.fpsNumerator,
+      fpsDenominator: source.sourceFrameAuthority.fpsDenominator,
+      frameCount: source.sourceFrameAuthority.frameCount,
+      timeBaseNumerator: source.sourceFrameAuthority.timeBaseNumerator,
+      timeBaseDenominator: source.sourceFrameAuthority.timeBaseDenominator,
+      constantFrameRate: true,
+    },
+    master: { fpsNumerator: 30, fpsDenominator: 1 },
+  }).masterDurationFrames
 }
 
 function assertEvidenceRanges(
@@ -870,6 +1481,50 @@ function assertEvidenceRanges(
     ) throw new Error(`Source reasoning ${label} is unordered or out of range.`)
     previousStart = range.startFrame
   })
+}
+
+function assertCompleteVisualCoverage(
+  ranges: readonly {
+    startFrame: number
+    endFrameExclusive: number
+    sampledFrameNumbers?: readonly number[]
+    windowIndex?: number
+    exactProviderSampleFramesKnown?: false
+  }[],
+  durationFrames: number,
+  label: string,
+): void {
+  let cursor = 0
+  for (const range of ranges) {
+    if (
+      range.startFrame !== cursor
+      || range.endFrameExclusive - range.startFrame > 240
+      || (range.sampledFrameNumbers
+        ? range.sampledFrameNumbers.length < 1
+          || range.sampledFrameNumbers.length > 4
+          || range.sampledFrameNumbers.some((frame, index) =>
+            frame < range.startFrame
+            || frame >= range.endFrameExclusive
+            || (index > 0 && frame <= range.sampledFrameNumbers![index - 1]!))
+        : range.windowIndex === undefined
+          || range.exactProviderSampleFramesKnown !== false)
+    ) {
+      throw new Error(`Source reasoning ${label} is not exact complete-time window coverage.`)
+    }
+    cursor = range.endFrameExclusive
+  }
+  if (cursor !== durationFrames) {
+    throw new Error(`Source reasoning ${label} does not reach the source end.`)
+  }
+}
+
+function rangesOverlap(
+  leftStart: number,
+  leftEnd: number,
+  rightStart: number,
+  rightEnd: number,
+): boolean {
+  return leftStart < rightEnd && rightStart < leftEnd
 }
 
 async function discardResponseBody(response: Response): Promise<void> {
@@ -898,7 +1553,7 @@ function stableJsonValue(value: unknown): unknown {
   return Object.fromEntries(
     Object.entries(value as Record<string, unknown>)
       .filter(([, item]) => item !== undefined)
-      .sort(([left], [right]) => left.localeCompare(right))
+      .sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)
       .map(([key, item]) => [key, stableJsonValue(item)]),
   )
 }

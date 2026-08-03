@@ -12,6 +12,9 @@ import {
   type CanonicalGoogleCloudGpuRateRawObservation,
 } from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
 import {
+  createCanonicalProfessionalToolGpuAttemptCostReceipt,
+} from '../tool-cost-metering/canonical-professional-tool-gpu-cost-authority'
+import {
   applyCanonicalProfessionalGpuPlanPricing,
   assertCanonicalProfessionalGpuPlanDispatchEstimateSet,
   assertCanonicalProfessionalGpuPlanPricingBasis,
@@ -40,6 +43,18 @@ import {
   createCanonicalProfessionalGpuPricingAuthorityStore,
   createCanonicalProfessionalGpuPricingRepositoryRecordRef,
 } from '../services/canonical-professional-gpu-pricing-authority-store'
+import {
+  assertCanonicalProfessionalGpuFundedTerminalBinding,
+  createCanonicalProfessionalGpuFundedLifecycleIdentity,
+  recordCanonicalProfessionalGpuPlanFundedTerminal,
+  startCanonicalProfessionalGpuPlanFundedJob,
+} from '../services/canonical-professional-gpu-plan-funded-job-lifecycle-service'
+import {
+  createCanonicalProfessionalGpuRuntimeLaunchTarget,
+} from '../services/canonical-professional-gpu-job-lifecycle-service'
+import {
+  createCanonicalProfessionalGpuDurableLifecycleStore,
+} from '../services/canonical-professional-gpu-durable-lifecycle-store'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -569,6 +584,307 @@ assert.equal(fundedAdmission.customerCreditsMutated, false)
 assert.equal(fundedAdmission.toolDispatchAdmission.routeId,
   'l4_standard_primary')
 
+const lifecycleObjects = new Map<string, Buffer>()
+const durableLifecycleStore =
+  createCanonicalProfessionalGpuDurableLifecycleStore({
+    objectPort: {
+      async createOnly({ objectPath, body }) {
+        const existing = lifecycleObjects.get(objectPath)
+        if (existing) {
+          if (!existing.equals(body)) {
+            throw new Error('GPU lifecycle create-only collision.')
+          }
+          return 'already_exists'
+        }
+        lifecycleObjects.set(objectPath, Buffer.from(body))
+        return 'created'
+      },
+      async readExact(objectPath) {
+        const body = lifecycleObjects.get(objectPath)
+        return body ? Buffer.from(body) : null
+      },
+    },
+    prefix: 'private/weeditpro/gpu-funded-lifecycle-v1',
+  })
+const lifecycleStore = durableLifecycleStore
+const fundedLifecycleStore = durableLifecycleStore
+
+const launchTarget = createCanonicalProfessionalGpuRuntimeLaunchTarget({
+  runtimeRelease: runtimeRelease(),
+  fixedServerTaskContractRef: ref('ffmpeg-fixed-task-contract', '7'),
+  at: createdAt,
+})
+const fundedLifecycleIdentity =
+  createCanonicalProfessionalGpuFundedLifecycleIdentity({
+    attemptStartAuthority: attemptStart,
+  })
+let fundedCloudLaunchCount = 0
+const fundedJobStartInput: Parameters<
+  typeof startCanonicalProfessionalGpuPlanFundedJob
+>[0] = {
+  fundedAdmissionId: fundedLifecycleIdentity.fundedAdmissionId,
+  prelaunchAuthorizationId:
+    fundedLifecycleIdentity.prelaunchAuthorizationId,
+  launchRecordId: fundedLifecycleIdentity.launchRecordId,
+  launchBindingId: fundedLifecycleIdentity.launchBindingId,
+  workspaceId: approvedFunding.scope.workspaceId,
+  snapshotId: approvedFunding.approvedSnapshotRef.id,
+  workItemKey: approvedFunding.approvedWorkItem.workItemKey,
+  pricingAuthorityReadPort: pricingStore,
+  approvedFundingReadPort: {
+    async rereadApprovedFunding() {
+      return structuredClone(approvedFunding)
+    },
+  },
+  attemptStartReadPort: {
+    async rereadCreateOnlyAttemptStart() {
+      return structuredClone(attemptStart)
+    },
+  },
+  runtimeContextReadPort: {
+    async rereadQualifiedRuntimeRelease() {
+      runtimeReleaseReads += 1
+      return runtimeRelease()
+    },
+    async rereadApprovedCurrentRate() {
+      dispatchRateReads += 1
+      return structuredClone(rates.l4_standard_primary)
+    },
+  },
+  releaseReadPort: {
+    async rereadPrivateLaunchTarget() {
+      return structuredClone(launchTarget)
+    },
+  },
+  launchPort: {
+    async startOneShotJob(input) {
+      fundedCloudLaunchCount += 1
+      assert.ok(await durableLifecycleStore.rereadPrelaunchAuthorization({
+        prelaunchAuthorizationId:
+          fundedLifecycleIdentity.prelaunchAuthorizationId,
+      }))
+      assert.ok(await durableLifecycleStore.rereadAdmissionConsumption({
+        admissionId: input.admission.admissionId,
+      }))
+      assert.ok(await durableLifecycleStore.rereadExecutionEnvelope({
+        envelopeId: input.executionEnvelopeRef.id,
+      }))
+      return {
+        disposition: 'accepted' as const,
+        cloudJobExecutionRef: ref('ffmpeg-cloud-job', '8'),
+        cloudJobCreateRequestRef: ref('ffmpeg-cloud-create', '9'),
+        providerRequestIdDigestSha256: sha256AuthorityValue(
+          'ffmpeg-cloud-provider-request',
+        ),
+        observedAt: '2026-08-03T14:12:01.000Z',
+        providerInferenceOrSubstantiveWorkKnownExecuted:
+          'not_executed' as const,
+      }
+    },
+  },
+  lifecycleStore,
+  fundedLifecycleStore,
+  admittedAt: '2026-08-03T14:11:00.000Z',
+  admissionExpiresAt: '2026-08-03T14:15:00.000Z',
+  startedAt: '2026-08-03T14:12:00.000Z',
+}
+const fundedJob = await startCanonicalProfessionalGpuPlanFundedJob(
+  fundedJobStartInput,
+)
+assert.equal(runtimeReleaseReads, 2)
+assert.equal(dispatchRateReads, 2)
+assert.equal(fundedCloudLaunchCount, 1)
+assert.ok(await durableLifecycleStore.rereadPrelaunchAuthorization({
+  prelaunchAuthorizationId: fundedLifecycleIdentity.prelaunchAuthorizationId,
+}))
+assert.ok(await durableLifecycleStore.rereadAdmissionConsumption({
+  admissionId: fundedJob.prelaunchAuthorization
+    .fundedDispatchAdmission.toolDispatchAdmission.admissionId,
+}))
+assert.ok(await durableLifecycleStore.rereadExecutionEnvelope({
+  envelopeId: fundedJob.prelaunchAuthorization.fundedDispatchAdmission
+    .toolDispatchAdmission.admissionId + '.execution-envelope',
+}))
+assert.ok(await durableLifecycleStore.rereadLaunchRecord({
+  launchRecordId: fundedLifecycleIdentity.launchRecordId,
+}))
+assert.equal(fundedJob.launch.accelerator, 'nvidia_l4')
+assert.equal(fundedJob.launch.launchDisposition, 'job_created')
+assert.equal(fundedJob.launch.minimumIdleInstances, 0)
+assert.equal(
+  fundedJob.launchBinding.fundedPrelaunchRereadBeforeCloudJobCreation,
+  true,
+)
+assert.equal(fundedJob.launchBinding.userTriggeredScaleFromZero, true)
+assert.equal(
+  fundedJob.launchBinding.retryAllowedWithoutCanonicalReconciliation,
+  false,
+)
+assert.equal(fundedJob.launchBinding.unknownLaunchOutcomeBlocksRetry, false)
+assert.equal(fundedJob.launchBinding.customerCreditsMutated, false)
+
+await assert.rejects(() => startCanonicalProfessionalGpuPlanFundedJob({
+  ...fundedJobStartInput,
+  fundedAdmissionId: 'caller-changed-funded-admission-id',
+}), /IDs differ from the authenticated attempt identity/u)
+assert.equal(lifecycleObjects.size, 5)
+assert.equal(fundedCloudLaunchCount, 1)
+await assert.rejects(() => startCanonicalProfessionalGpuPlanFundedJob(
+  fundedJobStartInput,
+), /prelaunch authorization already exists/u)
+assert.equal(fundedCloudLaunchCount, 1)
+
+const attemptCostReceipt =
+  createCanonicalProfessionalToolGpuAttemptCostReceipt({
+    receiptId: 'ffmpeg-funded-attempt-cost',
+    estimate: dispatchSet.entries[0]!.estimate,
+    approvedSnapshotRef: approvedFunding.approvedSnapshotRef,
+    approvalRecordRef: approvedFunding.userApprovalRecordRef,
+    fundedReservationRef: approvedFunding.fundedReservationRef,
+    executionAttemptId: attemptStart.executionAttemptRef.id,
+    routeId: 'l4_standard_primary',
+    rateAuthority: rates.l4_standard_primary,
+    workerUsageEvidenceRef: ref('ffmpeg-worker-usage', 'a'),
+    platformUsageRereadRef: ref('ffmpeg-platform-usage', 'b'),
+    providerOrModelInferenceOutcome: 'executed',
+    actualUsage: usage('l4', 40_000),
+    terminalOutcome: 'completed',
+    attemptStartedAt: fundedJob.launch.launchedAt,
+    recordedAt: '2026-08-03T14:12:59.000Z',
+  })
+assert.equal(attemptCostReceipt.customerEligibleToolCostCredits > 0, true)
+assert.equal(
+  attemptCostReceipt.rateAuthorityRef.contentHash,
+  `sha256:${rates.l4_standard_primary.rateAuthorityHash}`,
+)
+
+const terminalObservationPayload = {
+  schemaVersion: 'canonical-professional-gpu-terminal-observation-v1' as const,
+  source: 'canonical_server_cloud_terminal_usage_and_cost_owner' as const,
+  evidenceClass: 'canonical_private_reread' as const,
+  launchRef: ref(
+    fundedJob.launch.launchRecordId,
+    fundedJob.launch.launchHash,
+  ),
+  cloudJobExecutionRef: fundedJob.launch.cloudJobExecutionRef,
+  cloudTerminalObservationRef: ref('ffmpeg-cloud-terminal', 'c'),
+  cloudCapacityTeardownObservationRef: ref('ffmpeg-cloud-stop', 'd'),
+  workerUsageEvidenceRef: attemptCostReceipt.workerUsageEvidenceRef,
+  currentAccountPriceAuthorityRef: ref(
+    rates.l4_standard_primary.rateAuthorityId,
+    rates.l4_standard_primary.rateAuthorityHash,
+    rates.l4_standard_primary.rateAuthorityVersion,
+  ),
+  attemptCostReceiptRef: ref(
+    attemptCostReceipt.receiptId,
+    attemptCostReceipt.receiptHash,
+  ),
+  terminalOutcome: 'completed' as const,
+  providerInferenceOrSubstantiveWorkOutcome: 'executed' as const,
+  cloudJobTerminalStateReread: true as const,
+  workerStoppedVerified: true as const,
+  activeGpuInstancesAfterTerminalObservation: 0 as const,
+  exactPlatformUsageAndAccountPriceReread: true as const,
+  costReceiptPersistedBeforeSettlement: true as const,
+  systemFailureOrUnknownCostChargedToCustomer: false as const,
+  unapprovedOverageChargedToCustomer: false as const,
+  customerWalletOrLedgerMutated: false as const,
+  callerOrPlanTerminalClaimAccepted: false as const,
+  observedAt: '2026-08-03T14:13:00.000Z',
+}
+const fundedTerminal =
+  await recordCanonicalProfessionalGpuPlanFundedTerminal({
+    terminalRecordId: fundedLifecycleIdentity.terminalRecordId,
+    terminalBindingId: fundedLifecycleIdentity.terminalBindingId,
+    launch: fundedJob.launch,
+    launchBindingId: fundedJob.launchBinding.launchBindingId,
+    terminalObservationPort: {
+      async rereadTerminalUsagePriceAndCost() {
+        return {
+          ...terminalObservationPayload,
+          observationHash: sha256AuthorityValue(terminalObservationPayload),
+        }
+      },
+    },
+    lifecycleStore,
+    fundedLifecycleStore,
+  })
+assert.equal(fundedTerminal.terminal.workerStoppedVerified, true)
+assert.equal(
+  fundedTerminal.terminal.activeGpuInstancesAfterTerminalObservation,
+  0,
+)
+assert.equal(
+  fundedTerminal.terminalBinding.retryAllowedWithoutCanonicalReconciliation,
+  false,
+)
+assert.equal(fundedTerminal.terminalBinding.unknownOutcomeBlocksRetry, false)
+assert.deepEqual(
+  fundedTerminal.terminalBinding.attemptCostReceiptRef,
+  terminalObservationPayload.attemptCostReceiptRef,
+)
+assert.equal(
+  fundedTerminal.terminalBinding.customerWalletOrLedgerMutated,
+  false,
+)
+assert.ok(await durableLifecycleStore.rereadTerminalRecord({
+  terminalRecordId: fundedLifecycleIdentity.terminalRecordId,
+}))
+assert.ok(await durableLifecycleStore.rereadTerminalBinding({
+  terminalBindingId: fundedLifecycleIdentity.terminalBindingId,
+}))
+
+const unknownTerminalBindingPayload = {
+  ...fundedTerminal.terminalBinding,
+  providerInferenceOrSubstantiveWorkOutcome: 'unknown' as const,
+  unknownOutcomeBlocksRetry: true,
+}
+Reflect.deleteProperty(unknownTerminalBindingPayload, 'terminalBindingHash')
+const unknownTerminalBinding = {
+  ...unknownTerminalBindingPayload,
+  terminalBindingHash: sha256AuthorityValue(unknownTerminalBindingPayload),
+}
+assert.equal(
+  assertCanonicalProfessionalGpuFundedTerminalBinding(
+    unknownTerminalBinding,
+  ).unknownOutcomeBlocksRetry,
+  true,
+)
+const unsafeUnknownTerminalBindingPayload = {
+  ...unknownTerminalBindingPayload,
+  unknownOutcomeBlocksRetry: false,
+}
+assert.throws(() => assertCanonicalProfessionalGpuFundedTerminalBinding({
+  ...unsafeUnknownTerminalBindingPayload,
+  terminalBindingHash: sha256AuthorityValue(
+    unsafeUnknownTerminalBindingPayload,
+  ),
+}), /unknown-outcome retry truth/u)
+
+let fundedTerminalAccessorInvoked = false
+const accessorTerminalBinding = structuredClone(
+  fundedTerminal.terminalBinding,
+) as Record<string, unknown>
+Object.defineProperty(accessorTerminalBinding, 'terminalBindingHash', {
+  enumerable: true,
+  get() {
+    fundedTerminalAccessorInvoked = true
+    return fundedTerminal.terminalBinding.terminalBindingHash
+  },
+})
+assert.throws(() => assertCanonicalProfessionalGpuFundedTerminalBinding(
+  accessorTerminalBinding,
+), /accessor/u)
+assert.equal(fundedTerminalAccessorInvoked, false)
+const symbolTerminalBinding = structuredClone(fundedTerminal.terminalBinding)
+Object.defineProperty(symbolTerminalBinding, Symbol('hidden-authority'), {
+  enumerable: true,
+  value: true,
+})
+assert.throws(() => assertCanonicalProfessionalGpuFundedTerminalBinding(
+  symbolTerminalBinding,
+), /symbol key/u)
+
 await assert.rejects(() => admitCanonicalProfessionalGpuPlanFundedDispatch({
   fundedAdmissionId: 'hostile-funding-admission',
   workspaceId: approvedFunding.scope.workspaceId,
@@ -684,7 +1000,7 @@ assert.throws(() => applyCanonicalProfessionalGpuPlanPricing({
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-gpu-plan-pricing-authority',
-  checks: 82,
+  checks: 117,
   sourceFixtureOnly: true,
   liveCloudRateRead: false,
   liveGpuRuntimeExecuted: false,
@@ -704,6 +1020,17 @@ console.log(JSON.stringify({
   userTriggeredAttemptAuthorityRequired: true,
   unsafeHeavyFallbackRejected: true,
   fundedDispatchAdmissionCreatedCloudJob: fundedAdmission.cloudJobCreated,
+  fundedLifecycleCloudLaunchCount: fundedCloudLaunchCount,
+  fundedLifecycleScaleToZero:
+    fundedTerminal.terminal.activeGpuInstancesAfterTerminalObservation === 0,
+  fundedLifecycleRetryWithoutReconciliationAllowed:
+    fundedTerminal.terminalBinding
+      .retryAllowedWithoutCanonicalReconciliation,
+  fundedLifecycleUnknownOutcomeBlocksRetry:
+    unknownTerminalBinding.unknownOutcomeBlocksRetry,
+  fundedLifecycleAccountRateReceiptBound: true,
+  fundedLifecycleCustomerCreditsMutated:
+    fundedTerminal.terminalBinding.customerWalletOrLedgerMutated,
   missingGpuEstimateLineRejected: true,
   nestedDispatchEstimateHashVerified: true,
   hostileAccessorInvoked: accessorInvoked || approvalAccessorInvoked,

@@ -42,6 +42,7 @@ const qualificationRunner = readFileSync(
 const requiredCoreQualificationSmokes = [
   'visual-intelligence-lifecycle-smoke.ts',
   'visual-intelligence-durable-authorities-smoke.ts',
+  'visual-intelligence-account-effective-rate-read-port-smoke.ts',
   'visual-intelligence-inspection-coordinator-smoke.ts',
   'visual-intelligence-source-gpu-evidence-smoke.ts',
   'visual-intelligence-live-prerequisites-audit-smoke.ts',

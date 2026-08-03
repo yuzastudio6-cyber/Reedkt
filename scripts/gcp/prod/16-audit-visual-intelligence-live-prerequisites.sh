@@ -45,6 +45,7 @@ required_services=(
   'artifactregistry.googleapis.com'
   'batch.googleapis.com'
   'cloudbuild.googleapis.com'
+  'cloudbilling.googleapis.com'
   'compute.googleapis.com'
   'containeranalysis.googleapis.com'
   'containerscanning.googleapis.com'
@@ -58,6 +59,15 @@ enabled_services="$(
   gcloud services list --enabled \
     --project="${PROJECT_ID}" \
     --format='value(config.name)'
+)"
+
+billing_account_resource="$(
+  gcloud billing projects describe "${PROJECT_ID}" \
+    --format='value(billingAccountName)' 2>/dev/null || true
+)"
+account_pricing_json="$(
+  WEEDITPRO_BILLING_ACCOUNT_RESOURCE_NAME="${billing_account_resource}" \
+    node scripts/gcp/prod/read-visual-intelligence-account-price-readiness.mjs
 )"
 missing_services=()
 for service in "${required_services[@]}"; do
@@ -110,6 +120,7 @@ jq -n \
   --argjson legacyVisualJobs "${legacy_jobs}" \
   --argjson legacyVisualServices "${legacy_services}" \
   --argjson sam31ImageCount "${sam31_image_count}" \
+  --argjson accountPricing "${account_pricing_json}" \
   '{
     audit: $audit,
     projectId: $projectId,
@@ -134,6 +145,7 @@ jq -n \
       clean: ($legacyVisualJobs == 0 and $legacyVisualServices == 0)
     },
     immutableSam31ImagesObserved: $sam31ImageCount,
+    accountEffectiveGeminiPricing: $accountPricing,
     sourceCheckpointCompatibilityReceiptObserved: false,
     liveGeminiQualificationObserved: false,
     liveGpuQualificationObserved: false,

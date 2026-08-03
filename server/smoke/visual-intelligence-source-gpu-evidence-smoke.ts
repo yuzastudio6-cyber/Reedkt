@@ -423,23 +423,73 @@ assert.equal(costObservationCount, 1)
 
 const sourceOwnerObjectPort = new MemorySourceOwnerObjectPort()
 const geminiRate = createControlledVisualIntelligenceAccountEffectiveRateAuthority({
-  schemaVersion: 'visual-intelligence-account-effective-rate-authority-v1',
+  schemaVersion: 'visual-intelligence-account-effective-rate-authority-v2',
   evidenceClass: 'billing_account_effective_pricing_api_reread',
   billingAccountPricingScopeRef: ref('gemini-billing-pricing-scope'),
+  pricingReaderConfigurationRef: ref('gemini-price-reader-configuration'),
   pricingApiObservationRef: ref('gemini-pricing-observation'),
+  exactModelBillingSkuCompatibilityQualificationRef:
+    ref('gemini-3-1-pro-billing-sku-qualification'),
   exactModelId: 'gemini-3.1-pro-preview',
+  providerServiceId: 'services/C7E2-9256-1C43',
+  billingSkuFamily: 'gemini_3_0_pro_shared_billing_family',
+  billingSkuCatalogVersion:
+    'weeditpro-gemini-3_1-pro-standard-global-sku-catalog-v1',
+  throughputClass: 'standard',
+  contextThresholdInputTokens: 200_000,
+  wholeRequestLongContextRatesRequired: true,
   currency: 'USD',
   rateUnit: 'usd_nanos_per_million_tokens',
-  uncachedInputUsdNanosPerMillionTokens: 1_000_000_000,
-  cachedInputUsdNanosPerMillionTokens: 250_000_000,
-  outputAndThinkingUsdNanosPerMillionTokens: 3_000_000_000,
-  effectiveAtIso: '2026-08-03T00:00:00.000Z',
+  accountEffectiveSkuPriceTerms: controlledGeminiRateTerms(),
+  priceReadStartedAtIso: '2026-08-03T00:00:00.000Z',
+  priceReadFinishedAtIso: '2026-08-03T00:00:01.000Z',
+  effectiveAtIso: '2026-08-03T00:00:01.000Z',
   expiresAtIso: '2026-08-03T23:59:59.000Z',
+  exactSkuMetadataAndAccountPriceReread: true,
   billingAccountEffectiveRateUsed: true,
   publicListPriceUsed: false,
   customerPriceOrServiceFeeAuthorityGranted: false,
   walletMutationAuthorityGranted: false,
 })
+
+function controlledGeminiRateTerms() {
+  const terms = [
+    ['standard_uncached_input', 'standard_le_200k', 'uncached_input',
+      'EAC4-305F-1249', 'Gemini 3.0 Pro Text Input - Predictions',
+      2_000_000_000],
+    ['standard_cached_input', 'standard_le_200k', 'cached_input',
+      '8308-9CED-8950', 'Gemini 3.0 Pro Text Input Caching', 200_000_000],
+    ['standard_output_and_thinking', 'standard_le_200k',
+      'output_and_thinking', '2737-2D33-D986',
+      'Gemini 3.0 Pro Text Output - Predictions', 12_000_000_000],
+    ['long_uncached_input', 'long_gt_200k', 'uncached_input',
+      'E0A5-FB5D-79F4', 'Gemini 3.0 Pro Text Input (Long) - Predictions',
+      4_000_000_000],
+    ['long_cached_input', 'long_gt_200k', 'cached_input',
+      '8A47-3936-DC92', 'Gemini 3.0 Pro Text Input Caching (Long)',
+      400_000_000],
+    ['long_output_and_thinking', 'long_gt_200k', 'output_and_thinking',
+      '3CE8-93F8-3C8F', 'Gemini 3.0 Pro Text Output (Long) - Predictions',
+      18_000_000_000],
+  ] as const
+  return terms.map(([rateClass, contextClass, tokenClass, skuId,
+    skuDisplayName, contractPriceUsdNanosPerMillionTokens]) => ({
+    rateClass,
+    contextClass,
+    tokenClass,
+    cloudServiceId: 'services/C7E2-9256-1C43' as const,
+    skuId,
+    skuDisplayName,
+    consumptionModel: 'consumptionModels/7754-699E-0EBF' as const,
+    apiUnit: 'count' as const,
+    apiUnitQuantity: '1000000' as const,
+    contractPriceUsdNanosPerMillionTokens,
+    skuMetadataRef: ref(`sku-metadata-${skuId}`),
+    billingAccountPriceRef: ref(`account-price-${skuId}`),
+    accountEffectiveContractPriceUsed: true as const,
+    publicListPriceUsed: false as const,
+  }))
+}
 const geminiRateRef = rateAuthorityRef(geminiRate)
 const geminiCostOwner = createVisualIntelligenceAccountEffectiveCostOwner({
   rateAuthorityRef: geminiRateRef,

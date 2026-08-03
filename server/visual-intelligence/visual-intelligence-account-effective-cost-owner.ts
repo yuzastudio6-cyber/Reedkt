@@ -23,16 +23,20 @@ import {
 } from './visual-intelligence-contract'
 
 export const VISUAL_INTELLIGENCE_ACCOUNT_EFFECTIVE_RATE_VERSION =
-  'visual-intelligence-account-effective-rate-authority-v1' as const
+  'visual-intelligence-account-effective-rate-authority-v2' as const
 export const VISUAL_INTELLIGENCE_COST_OWNER_VERSION =
-  'visual-intelligence-account-effective-cost-owner-v1' as const
+  'visual-intelligence-account-effective-cost-owner-v2' as const
+export const VISUAL_INTELLIGENCE_STANDARD_CONTEXT_MAX_INPUT_TOKENS =
+  200_000 as const
+export const VISUAL_INTELLIGENCE_GEMINI_BILLING_SKU_CATALOG_VERSION =
+  'weeditpro-gemini-3_1-pro-standard-global-sku-catalog-v1' as const
 
 const MAX_RATE_AGE_MS = 24 * 60 * 60 * 1_000
 const PREFIXED_SHA256 = /^sha256:[a-f0-9]{64}$/u
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const DEFAULT_PREFIX = 'private/visual-intelligence/v1/provider-cost'
 const RATE_OBJECT_PREFIX =
-  'private/visual-intelligence/pricing/account-effective/v1/'
+  'private/visual-intelligence/pricing/account-effective/v2/'
 
 const evidenceRefSchema = z.object({
   id: z.string().regex(SAFE_ID),
@@ -40,20 +44,68 @@ const evidenceRefSchema = z.object({
   contentHash: z.string().regex(PREFIXED_SHA256),
 }).strict()
 
+export const VISUAL_INTELLIGENCE_ACCOUNT_EFFECTIVE_RATE_CLASSES = [
+  'standard_uncached_input',
+  'standard_cached_input',
+  'standard_output_and_thinking',
+  'long_uncached_input',
+  'long_cached_input',
+  'long_output_and_thinking',
+] as const
+
+const rateClassSchema = z.enum(
+  VISUAL_INTELLIGENCE_ACCOUNT_EFFECTIVE_RATE_CLASSES,
+)
+
+const accountEffectiveSkuPriceTermSchema = z.object({
+  rateClass: rateClassSchema,
+  contextClass: z.enum(['standard_le_200k', 'long_gt_200k']),
+  tokenClass: z.enum([
+    'uncached_input',
+    'cached_input',
+    'output_and_thinking',
+  ]),
+  cloudServiceId: z.literal('services/C7E2-9256-1C43'),
+  skuId: z.string().regex(/^[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}$/u),
+  skuDisplayName: z.string().trim().min(1).max(240),
+  consumptionModel: z.literal('consumptionModels/7754-699E-0EBF'),
+  apiUnit: z.literal('count'),
+  apiUnitQuantity: z.literal('1000000'),
+  contractPriceUsdNanosPerMillionTokens:
+    z.number().int().nonnegative().safe(),
+  skuMetadataRef: evidenceRefSchema,
+  billingAccountPriceRef: evidenceRefSchema,
+  accountEffectiveContractPriceUsed: z.literal(true),
+  publicListPriceUsed: z.literal(false),
+}).strict()
+
 const rateWithoutDigestSchema = z.object({
   schemaVersion: z.literal(VISUAL_INTELLIGENCE_ACCOUNT_EFFECTIVE_RATE_VERSION),
   evidenceClass: z.literal('billing_account_effective_pricing_api_reread'),
   billingAccountPricingScopeRef: evidenceRefSchema,
+  pricingReaderConfigurationRef: evidenceRefSchema,
   pricingApiObservationRef: evidenceRefSchema,
+  exactModelBillingSkuCompatibilityQualificationRef: evidenceRefSchema,
   exactModelId: z.literal(VISUAL_INTELLIGENCE_MODEL_ID),
+  providerServiceId: z.literal('services/C7E2-9256-1C43'),
+  billingSkuFamily: z.literal('gemini_3_0_pro_shared_billing_family'),
+  billingSkuCatalogVersion: z.literal(
+    VISUAL_INTELLIGENCE_GEMINI_BILLING_SKU_CATALOG_VERSION,
+  ),
+  throughputClass: z.literal('standard'),
+  contextThresholdInputTokens: z.literal(
+    VISUAL_INTELLIGENCE_STANDARD_CONTEXT_MAX_INPUT_TOKENS,
+  ),
+  wholeRequestLongContextRatesRequired: z.literal(true),
   currency: z.literal('USD'),
   rateUnit: z.literal('usd_nanos_per_million_tokens'),
-  uncachedInputUsdNanosPerMillionTokens: z.number().int().nonnegative().safe(),
-  cachedInputUsdNanosPerMillionTokens: z.number().int().nonnegative().safe(),
-  outputAndThinkingUsdNanosPerMillionTokens:
-    z.number().int().nonnegative().safe(),
+  accountEffectiveSkuPriceTerms:
+    z.array(accountEffectiveSkuPriceTermSchema).length(6),
+  priceReadStartedAtIso: z.string().datetime({ offset: true }),
+  priceReadFinishedAtIso: z.string().datetime({ offset: true }),
   effectiveAtIso: z.string().datetime({ offset: true }),
   expiresAtIso: z.string().datetime({ offset: true }),
+  exactSkuMetadataAndAccountPriceReread: z.literal(true),
   billingAccountEffectiveRateUsed: z.literal(true),
   publicListPriceUsed: z.literal(false),
   customerPriceOrServiceFeeAuthorityGranted: z.literal(false),
@@ -61,13 +113,47 @@ const rateWithoutDigestSchema = z.object({
 }).strict().superRefine((value, context) => {
   const effective = Date.parse(value.effectiveAtIso)
   const expires = Date.parse(value.expiresAtIso)
+  const readStarted = Date.parse(value.priceReadStartedAtIso)
+  const readFinished = Date.parse(value.priceReadFinishedAtIso)
+  const classes = value.accountEffectiveSkuPriceTerms.map((term) =>
+    term.rateClass)
+  const expectedClasses = [...VISUAL_INTELLIGENCE_ACCOUNT_EFFECTIVE_RATE_CLASSES]
+  const refs = value.accountEffectiveSkuPriceTerms.flatMap((term) => [
+    `${term.skuMetadataRef.id}:${term.skuMetadataRef.version}:${term.skuMetadataRef.contentHash}`,
+    `${term.billingAccountPriceRef.id}:${term.billingAccountPriceRef.version}:${term.billingAccountPriceRef.contentHash}`,
+  ])
+  const standardUncached = priceForClass(
+    value.accountEffectiveSkuPriceTerms,
+    'standard_uncached_input',
+  )
+  const standardCached = priceForClass(
+    value.accountEffectiveSkuPriceTerms,
+    'standard_cached_input',
+  )
+  const longUncached = priceForClass(
+    value.accountEffectiveSkuPriceTerms,
+    'long_uncached_input',
+  )
+  const longCached = priceForClass(
+    value.accountEffectiveSkuPriceTerms,
+    'long_cached_input',
+  )
   if (
     !Number.isFinite(effective)
     || !Number.isFinite(expires)
     || expires <= effective
     || expires - effective > MAX_RATE_AGE_MS
-    || value.cachedInputUsdNanosPerMillionTokens
-      > value.uncachedInputUsdNanosPerMillionTokens
+    || readFinished < readStarted
+    || readFinished - readStarted > 60_000
+    || effective !== readFinished
+    || classes.some((rateClass, index) => rateClass !== expectedClasses[index])
+    || new Set(classes).size !== classes.length
+    || new Set(value.accountEffectiveSkuPriceTerms.map((term) => term.skuId))
+      .size !== value.accountEffectiveSkuPriceTerms.length
+    || new Set(refs).size !== refs.length
+    || standardCached > standardUncached
+    || longCached > longUncached
+    || !priceTermsMatchTheirClasses(value.accountEffectiveSkuPriceTerms)
   ) context.addIssue({
     code: 'custom',
     message: 'Account-effective Visual Intelligence rate window is invalid.',
@@ -100,8 +186,6 @@ extends VisualIntelligenceProviderCostSettlementPort {
   }): Promise<VisualIntelligenceCostPreflight>
 }
 
-const admittedRates = new WeakSet<object>()
-
 /** Test-only constructor. Production must use an authenticated pricing reader. */
 export function createControlledVisualIntelligenceAccountEffectiveRateAuthority(
   input: z.input<typeof rateWithoutDigestSchema>,
@@ -111,8 +195,22 @@ export function createControlledVisualIntelligenceAccountEffectiveRateAuthority(
     ...payload,
     rateAuthorityDigestSha256: digest(payload),
   }))
-  admittedRates.add(authority)
   return authority
+}
+
+/**
+ * Production constructor for the isolated authenticated Pricing API reader.
+ * The reader must supply the exact six SKU observations and all source refs;
+ * this function only closes and digest-binds that already-verified evidence.
+ */
+export function createVisualIntelligenceAccountEffectiveRateAuthorityFromPricingObservation(
+  input: z.input<typeof rateWithoutDigestSchema>,
+): VisualIntelligenceAccountEffectiveRateAuthority {
+  const payload = rateWithoutDigestSchema.parse(input)
+  return Object.freeze(rateSchema.parse({
+    ...payload,
+    rateAuthorityDigestSha256: digest(payload),
+  }))
 }
 
 export function parseVisualIntelligenceAccountEffectiveRateAuthority(
@@ -357,18 +455,59 @@ function costMicros(
   },
 ): number {
   const uncached = Math.max(0, usage.promptTokenCount - usage.cachedTokenCount)
+  const longContext = usage.promptTokenCount
+    > authority.contextThresholdInputTokens
+  const prefix = longContext ? 'long' : 'standard'
+  const uncachedRate = priceForClass(
+    authority.accountEffectiveSkuPriceTerms,
+    `${prefix}_uncached_input`,
+  )
+  const cachedRate = priceForClass(
+    authority.accountEffectiveSkuPriceTerms,
+    `${prefix}_cached_input`,
+  )
+  const outputRate = priceForClass(
+    authority.accountEffectiveSkuPriceTerms,
+    `${prefix}_output_and_thinking`,
+  )
   const numerator = BigInt(uncached)
-    * BigInt(authority.uncachedInputUsdNanosPerMillionTokens)
+    * BigInt(uncachedRate)
     + BigInt(usage.cachedTokenCount)
-      * BigInt(authority.cachedInputUsdNanosPerMillionTokens)
+      * BigInt(cachedRate)
     + BigInt(usage.outputAndThinkingTokenCount)
-      * BigInt(authority.outputAndThinkingUsdNanosPerMillionTokens)
+      * BigInt(outputRate)
   const usdNanos = ceilDivide(numerator, 1_000_000n)
   const micros = ceilDivide(usdNanos, 1_000n)
   if (micros > BigInt(Number.MAX_SAFE_INTEGER)) {
     throw notReady('visual_intelligence_provider_cost_overflow')
   }
   return Number(micros)
+}
+
+function priceForClass(
+  terms: readonly z.infer<typeof accountEffectiveSkuPriceTermSchema>[],
+  rateClass: string,
+): number {
+  const term = terms.find((candidate) => candidate.rateClass === rateClass)
+  return term?.contractPriceUsdNanosPerMillionTokens
+    ?? Number.MAX_SAFE_INTEGER
+}
+
+function priceTermsMatchTheirClasses(
+  terms: readonly z.infer<typeof accountEffectiveSkuPriceTermSchema>[],
+): boolean {
+  return terms.every((term) => {
+    const expectedContext = term.rateClass.startsWith('long_')
+      ? 'long_gt_200k'
+      : 'standard_le_200k'
+    const expectedTokenClass = term.rateClass.endsWith('uncached_input')
+      ? 'uncached_input'
+      : term.rateClass.endsWith('cached_input')
+        ? 'cached_input'
+        : 'output_and_thinking'
+    return term.contextClass === expectedContext
+      && term.tokenClass === expectedTokenClass
+  })
 }
 
 function validateTokenBounds(value: {

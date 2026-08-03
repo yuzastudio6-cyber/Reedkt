@@ -617,7 +617,7 @@ function assertVisualIntelligenceRuntimeConfigured(env: RuntimeEnv): void {
     )
     || !env.visualIntelligenceReleaseObjectName!.endsWith('.json')
     || !env.visualIntelligenceRateObjectName!.startsWith(
-      'private/visual-intelligence/pricing/account-effective/v1/',
+      'private/visual-intelligence/pricing/account-effective/v2/',
     )
     || !env.visualIntelligenceRateObjectName!.endsWith('.json')
     || !/^[1-9][0-9]{0,30}$/u.test(

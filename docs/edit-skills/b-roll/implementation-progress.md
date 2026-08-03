@@ -187,6 +187,65 @@ Known pre-existing unrelated failures: none in the affected checks.
 Qualification after M3: `planning_qualified`. No provider, media worker,
 render, billing, wallet, cloud, or production operation was executed.
 
+## M4 — orchestra and canonical-plan integration
+
+Status: completed and pushed.
+
+Implementation commit: `78d0a6e07`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after push.
+
+Added the separate manifest-gated B-roll publication path without changing the
+conservative source-only compiler. Exact assignment, context, plan, work graph,
+qualification, manifest, scope, and frame-range authority are stored as private
+content-addressed artifacts behind a typed `bRollSkill` canonical-plan
+component. The component reference is create-only and is asserted unchanged
+when copied from plan to approved snapshot and execution package.
+
+The B-roll compiler now produces exact atomic canonical work items with one
+operation and output per item, explicit dependencies, approved tool/provider
+identity, cost and attempt ceilings, QA lineage, caller-executable prohibition,
+and the assignment's exact authorized range. Generated plans produce the
+11-step graph; existing-source and approved-user-asset plans omit provider
+generation; no-action, blocked, dependency-missing, and confirmation-required
+plans produce a three-item restraint graph with no media/provider authority.
+Publication, approval, and execution-package loading re-read and revalidate the
+content-addressed component and reject stale hashes, altered work items,
+cross-scope components, dropped refs, and range overreach.
+
+The manifest and generated projection advanced to hash
+`df52bf911e5d55cd9f373331e30d15965ee64cf192bfa1a44281f13d47f72b65`
+after reconciling its FFprobe and Remotion routes with the repository's exact
+canonical operation identities.
+
+Tests:
+
+- `npm run test:b-roll-canonical-integration` — passed generated, existing,
+  no-action, confirmation-required, tamper, range, persistence, and exact
+  plan/snapshot/package ref-propagation assertions.
+- `npm run test:b-roll-planning` — passed.
+- `npm run smoke:canonical-source-led-plan-compiler` — passed unchanged with
+  9 publication work items and 6 adversarial assertions.
+- `npm run generate:b-roll-capability-manifest` — passed.
+- `npm run validate:skill-capability-manifests` — passed with one manifest.
+- `npm run test:b-roll-capability-manifest` — passed.
+- `npm run test:edit-skill-capability-kernel` — passed.
+- `npm run typecheck:server` — passed.
+- `npm run build` — passed; existing Vite chunk-size and dynamic-import
+  warnings only.
+- `npm run lint` — passed.
+- `npm run check:frontend-boundary` — passed for 1,044 files.
+- `git diff --check` — passed.
+
+Known pre-existing unrelated failures: none. One initially mistyped local test
+command (`test:edit-skill-kernel`) did not exist; the repository's correct
+`test:edit-skill-capability-kernel` command was then run and passed.
+
+Qualification after M4: `planning_qualified`. Canonical execution authority is
+now persisted and immutable, but no provider request, media execution, render,
+billing, wallet, cloud, or production operation was executed.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -195,3 +254,4 @@ render, billing, wallet, cloud, or production operation was executed.
 | M1 | `ac8fcc6f3b1be4f584f2bed804a769f3e340b667` | this bookkeeping commit | confirmed | `implementation_pending` |
 | M2 | `a1a73b0ca7b9efc4007c8c0c17777e69984142a2` | this bookkeeping commit | confirmed | `implementation_pending` |
 | M3 | `e13e2907acebf65e383c5cd1e01262ff87a799ab` | this bookkeeping commit | confirmed | `planning_qualified` |
+| M4 | `78d0a6e07` | this bookkeeping commit | confirmed | `planning_qualified` |

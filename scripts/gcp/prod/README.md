@@ -1,4 +1,4 @@
-# ReeditPro Production GCP Foundation Scripts
+# WeEditPro Production GCP Foundation Scripts
 
 These scripts are human-run templates for Milestone 3. Codex must not run them, and npm scripts must not call them.
 
@@ -15,12 +15,13 @@ These scripts are human-run templates for Milestone 3. Codex must not run them, 
 1. `00-print-config.sh`
 2. `01-enable-apis.sh`
 3. `02-create-artifact-registry.sh`
-4. `03-create-gcs-buckets.sh`
-5. `04-create-service-accounts.sh`
-6. `05-create-secret-placeholders.sh`
-7. `06-configure-iam.sh`
-8. `07-build-image-commands.sh` in a later image milestone
-9. `.example.sh` Cloud Run service/job templates in later deployment milestones
+4. `02-create-image-signing-key.sh`
+5. `03-create-gcs-buckets.sh`
+6. `04-create-service-accounts.sh`
+7. `05-create-secret-placeholders.sh`
+8. `06-configure-iam.sh`
+9. `07-build-image-commands.sh` in a later image milestone
+10. `.example.sh` Cloud Run service/job templates in later deployment milestones
 
 Milestone 3 does not deploy Cloud Run, build images, run media tools, call providers, create real secret values, or process customer media.
 

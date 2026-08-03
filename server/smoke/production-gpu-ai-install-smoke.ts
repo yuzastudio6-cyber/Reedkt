@@ -1,7 +1,8 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import {
-  GCP_PRODUCTION_CLOUD_RUN_JOBS,
+  GCP_PRODUCTION_LEGACY_CLOUD_RUN_JOB_TEMPLATES,
   GCP_PRODUCTION_PREMIUM_GPU_OPTION,
+  GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES,
 } from '../config/gcp-production-config'
 import {
   GPU_MODEL_WEIGHT_MANIFEST_TEMPLATES,
@@ -71,7 +72,7 @@ check(
 )
 check(!/\brevideo\b/i.test(gpuDocker), 'GPU Dockerfile must not install Revideo.')
 check(/nvidia\/cuda/i.test(gpuDocker), 'GPU Dockerfile must reference a CUDA-compatible base image policy.')
-check(/nvidia-l4/i.test(gpuDocker), 'GPU Dockerfile must document NVIDIA L4 first.')
+check(/NVIDIA L4/i.test(gpuDocker), 'Shared GPU Dockerfile must document the L4 standard-primary route.')
 check(
   gpuDocker.includes(
     'nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu22.04@sha256:fa44193567d1908f7ca1f3abf8623ce9c63bc8cba7bcfdb32702eb04d326f7a8',
@@ -185,7 +186,7 @@ for (const expectedPath of [
   '/opt/reeditpro/model-weights/rembg',
   '/opt/reeditpro/model-weights/faster-whisper',
   '/opt/reeditpro/model-weights/birefnet',
-  '/opt/reeditpro/model-weights/sam2',
+  '/opt/reeditpro/model-weights/sam3_1',
   '/opt/reeditpro/model-weights/deepfilternet',
   '/opt/reeditpro/model-weights/demucs',
   '/opt/reeditpro/model-weights/real-esrgan',
@@ -212,12 +213,14 @@ for (const planned of ['paddleocr', 'paddlepaddle-gpu']) {
   check(gpuRequirements.includes(`optional_planned: ${planned}`), `GPU requirements must document ${planned} as optional/planned.`)
 }
 
-for (const pending of ['BiRefNet', 'SAM2', 'Real-ESRGAN', 'FILM']) {
+for (const pending of ['BiRefNet', 'Real-ESRGAN', 'FILM']) {
   check(gpuRequirements.includes(`pending_source_install_review: ${pending}`), `GPU requirements must mark ${pending} pending source install review.`)
 }
+check(!gpuRequirements.includes('pending_source_install_review: SAM2'), 'The active GPU image must not advertise a SAM2 source-install path.')
 
 check(gpuVersionPolicy.includes('pending source install review'), 'GPU version policy must document source install review.')
-check(gpuReadme.includes('RTX PRO 6000') && gpuReadme.includes('20 CPU') && gpuReadme.includes('80Gi'), 'GPU README must keep RTX PRO 6000 future/premium/evaluation with requirements.')
+check(gpuReadme.includes('A100 80 GB') && gpuReadme.includes('L4'), 'GPU README must describe the exact A100/L4 topology.')
+check(gpuReadme.includes('no RTX PRO 6000 route'), 'GPU README must exclude RTX PRO 6000 from the active policy.')
 
 const templates = listGpuModelWeightManifestTemplates()
 const templateIds = new Set(templates.map((template) => template.id))
@@ -225,7 +228,7 @@ for (const required of [
   'rembg_u2netp_model',
   'faster_whisper_model',
   'birefnet_model',
-  'sam2_checkpoint',
+  'sam3_1_checkpoint',
   'deepfilternet_model',
   'demucs_model',
   'torch_torchvision_model',
@@ -311,13 +314,27 @@ for (const toolId of M11_GPU_MODEL_WEIGHT_TOOL_IDS) {
 check(getProductionToolProfile('revideo') === undefined, 'Revideo must not resolve as a production tool.')
 check(getProductionReadinessSpec('revideo') === undefined, 'Revideo must not have a production readiness spec.')
 
-const gpuJob = GCP_PRODUCTION_CLOUD_RUN_JOBS.find((job) => job.name === 'reeditpro-gpu-ai-worker')
-check(gpuJob?.gpuType === 'nvidia-l4', 'Cloud Run GPU template must use nvidia-l4 first.')
-check(gpuJob?.gpuCount === 1, 'Cloud Run GPU template must use one GPU.')
-check(gpuJob?.cpu === 4 && gpuJob.memory === '16Gi', 'Cloud Run L4 template must document 4 CPU and 16Gi.')
-check(gpuJob?.noGpuZonalRedundancy === true, 'Cloud Run GPU template must include no-gpu-zonal-redundancy.')
-check(GCP_PRODUCTION_PREMIUM_GPU_OPTION.status === 'future_premium_evaluation_only', 'RTX PRO 6000 must remain future/premium/evaluation only.')
-check(GCP_PRODUCTION_PREMIUM_GPU_OPTION.minimumCpu === 20 && GCP_PRODUCTION_PREMIUM_GPU_OPTION.minimumMemory === '80Gi', 'RTX PRO 6000 requirements must stay 20 CPU and 80Gi.')
+const a100 = GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES.find((runtime) =>
+  runtime.routeId === 'a100_80gb_heavy_primary')
+const l4Fallback = GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES.find((runtime) =>
+  runtime.routeId === 'l4_heavy_fallback')
+const l4Standard = GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES.find((runtime) =>
+  runtime.routeId === 'l4_standard_primary')
+check(a100?.accelerator === 'nvidia_a100_80gb' && a100.gpuMemoryGiB === 80, 'Heavy primary must use A100 80 GB.')
+check(a100?.runtimeKind === 'google_cloud_batch_job', 'Heavy A100 primary must use a one-shot Batch job.')
+check(l4Fallback?.routeRole === 'heavy_fallback' && l4Fallback.accelerator === 'nvidia_l4', 'Heavy L4 must remain fallback-only.')
+check(l4Standard?.routeRole === 'standard_primary' && l4Standard.accelerator === 'nvidia_l4', 'Normal media must use L4 as standard primary.')
+check([l4Fallback, l4Standard].every((runtime) =>
+  runtime?.gpuCount === 1 && runtime.cpu === 8 && runtime.memoryGiB === 32), 'Both L4 routes must use one GPU, 8 vCPU, and 32 GiB.')
+check(GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES.every((runtime) =>
+  runtime.minimumIdleInstances === 0
+  && runtime.maximumConcurrentAttemptsPerInstance === 1
+  && runtime.maximumTaskRetries === 0
+  && !runtime.cpuOnlySubstantiveExecutionAllowed), 'Every active GPU route must scale from zero and forbid substantive CPU fallback.')
+check(GCP_PRODUCTION_LEGACY_CLOUD_RUN_JOB_TEMPLATES.historicalReadbackOnly, 'Legacy L4-first templates must remain historical.')
+check(!GCP_PRODUCTION_LEGACY_CLOUD_RUN_JOB_TEMPLATES.mayAuthorizeNewWork, 'Legacy L4-first templates must not authorize new work.')
+check(GCP_PRODUCTION_PREMIUM_GPU_OPTION.status === 'retired_not_in_current_quality_first_policy', 'RTX PRO 6000 must be outside the current policy.')
+check(!GCP_PRODUCTION_PREMIUM_GPU_OPTION.mayAuthorizeNewWork, 'RTX PRO 6000 must not authorize new work.')
 
 const gpuDocs = [
   'docs/google-cloud/production-gpu-worker-plan.md',
@@ -326,8 +343,9 @@ const gpuDocs = [
 ].map(requireRead).join('\n')
 check(/nvidia-l4/i.test(gpuDocs), 'GPU docs/templates must mention nvidia-l4.')
 check(/no-gpu-zonal-redundancy/i.test(gpuDocs), 'GPU docs/templates must mention no-gpu-zonal-redundancy.')
-check(/4 CPU|--cpu=4/i.test(gpuDocs) && /16Gi/i.test(gpuDocs), 'GPU docs/templates must document L4 CPU/memory minimum.')
-check(/20 CPU/i.test(gpuDocs) && /80Gi/i.test(gpuDocs), 'GPU docs/templates must document RTX PRO 6000 requirements.')
+check(/A100 80 GB|a2-ultragpu-1g/i.test(gpuDocs), 'GPU docs must document the A100 heavy-primary route.')
+check(/8 vCPU|--cpu=8/i.test(gpuDocs) && /32Gi|32 GiB/i.test(gpuDocs), 'GPU docs/templates must document the L4 envelope.')
+check(/minimum idle count of zero|scale from zero|zero idle/i.test(gpuDocs), 'GPU docs/templates must preserve scale from zero.')
 
 const gpuWorkerFiles = readdirSync(new URL('../../docker/prod/gpu-worker/', import.meta.url))
 check(!gpuWorkerFiles.some((file) => /\.(bin|pt|pth|safetensors|ckpt|onnx)$/i.test(file)), 'No model weight files may be committed under docker/prod/gpu-worker.')
@@ -347,12 +365,10 @@ console.log(JSON.stringify({
   pendingSourceInstallReview: GPU_PENDING_SOURCE_INSTALL_REVIEW.length,
   modelWeightBlockedProductionTools: dryGpu.report.modelWeightBlockedTools,
   runtimeChecks: dryGpu.runtimeChecks.length,
-  gpuJob: {
-    gpuType: gpuJob?.gpuType,
-    gpuCount: gpuJob?.gpuCount,
-    cpu: gpuJob?.cpu,
-    memory: gpuJob?.memory,
-    noGpuZonalRedundancy: gpuJob?.noGpuZonalRedundancy,
-  },
+  activeGpuRoutes: GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES.map((runtime) => ({
+    routeId: runtime.routeId,
+    accelerator: runtime.accelerator,
+    minimumIdleInstances: runtime.minimumIdleInstances,
+  })),
   localGpuImportsExecuted: false,
 }, null, 2))

@@ -70,6 +70,7 @@ Record<ProfessionalToolCatalogId, ProductionQAProfile> = {
   kornia: { ...empty, gateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'enhancement_artifacts'], requiredBeforePreview: ['mask_edge_quality'] },
   birefnet: { ...empty, gateTypes: ['mask_edge_quality', 'mask_subject_coverage'], requiredBeforePreview: ['mask_edge_quality'], requiredBeforeFinalExport: ['mask_edge_quality', 'mask_subject_coverage'] },
   sam2: { ...empty, gateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'], requiredBeforePreview: ['mask_temporal_stability'], requiredBeforeFinalExport: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'] },
+  sam3_1: { ...empty, gateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'], requiredBeforePreview: ['mask_temporal_stability'], requiredBeforeFinalExport: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'], notes: ['SAM 3.1 remains blocked until exact gated checkpoint, A100/L4 runtime, and temporal-quality qualification are released.'] },
   comfyui: {
     ...empty,
     gateTypes: ['render_asset_integrity', 'enhancement_artifacts'],

@@ -1,0 +1,193 @@
+# Source-complete SAM 3.1 A100/L4 image candidate. This Dockerfile has no
+# network install path. It can be built only from the private, canonical
+# Cloud Build capsule documented in README.md. The capsule contains this
+# frozen repository slice plus `sam31_private_build_input`; it never contains
+# the gated checkpoint or a provider token.
+# A resulting image is not dispatch-admissible until the separate A100 and L4
+# runtime-release qualifications are persisted and reread.
+
+FROM pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca
+
+ARG SAM31_DEPENDENCY_LOCK_SHA256
+ARG SAM31_DEPENDENCY_CLOSURE_RECEIPT_SHA256
+ARG SAM31_PATCH_APPLICATION_RECEIPT_SHA256
+ARG SAM31_PRIVATE_ARTIFACT_BUILD_BINDING_FILE_SHA256
+ARG SAM31_SOURCE_CHECKPOINT_COMPATIBILITY_RECEIPT_SHA256
+ARG SAM31_CUDA_FORWARD_COMPAT_INGEST_RECEIPT_SHA256
+
+LABEL io.weeditpro.operation.id="tool.sam3_1.segment_and_track_subject.v1" \
+  io.weeditpro.product="WeEditPro" \
+  io.weeditpro.runtime.qualification="candidate-only" \
+  io.reeditpro.compatibility="legacy" \
+  io.reeditpro.operation.id="tool.sam3_1.segment_and_track_subject.v1" \
+  io.reeditpro.source.revision="96914d2425f90a64f45ca977c2b5165418099543" \
+  io.reeditpro.source.archive.sha256="5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a" \
+  io.reeditpro.source.patch.sha256="daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca" \
+  io.reeditpro.source.patched-tree="f3a58b95a0e460d76e1cf38abff0382a7307f67d" \
+  io.reeditpro.source.patched-archive.sha256="b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb" \
+  io.reeditpro.checkpoint.revision="daa63191845a41281374e725f4c9e51c7a824460" \
+  io.reeditpro.runtime.network="none" \
+  io.reeditpro.runtime.gpu.routes="nvidia-a100-80gb-primary,nvidia-l4-fallback" \
+  io.reeditpro.runtime.cpu.substantive="forbidden" \
+  io.reeditpro.runtime.qualification="candidate-only"
+
+ENV HF_HUB_OFFLINE=1 \
+  TRANSFORMERS_OFFLINE=1 \
+  PIP_DISABLE_PIP_VERSION_CHECK=1 \
+  PIP_NO_INDEX=1 \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  CUDA_MODULE_LOADING=LAZY \
+  NVIDIA_VISIBLE_DEVICES=all \
+  NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
+
+WORKDIR /opt/reeditpro
+
+COPY sam31_private_build_input/source/sam3-96914d2425f90a64f45ca977c2b5165418099543.tar \
+  /tmp/sam3-source.tar
+COPY sam31_private_build_input/source/sam3-96914d2425f90a64f45ca977c2b5165418099543-reeditpro-gpu-decode.tar \
+  /tmp/sam3-patched-source.tar
+COPY sam31_private_build_input/source/source-patch-application-receipt.json \
+  /opt/reeditpro/sam3_1/source-patch-application-receipt.json
+COPY sam31_private_build_input/dependency-closure/requirements.lock.txt \
+  /tmp/sam31-requirements.lock.txt
+COPY sam31_private_build_input/dependency-closure/wheelhouse/ \
+  /tmp/sam31-wheelhouse/
+COPY sam31_private_build_input/dependency-closure/dependency-closure-receipt.json \
+  /opt/reeditpro/sam3_1/dependency-closure-receipt.json
+COPY sam31_private_build_input/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb \
+  /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb
+COPY sam31_private_build_input/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json \
+  /opt/reeditpro/sam3_1/cuda-forward-compat-ingest-receipt.json
+COPY sam31_private_build_input/release-receipts/private-artifact-build-binding.json \
+  /opt/reeditpro/sam3_1/private-artifact-build-binding.json
+COPY sam31_private_build_input/release-receipts/source-checkpoint-compatibility-receipt.json \
+  /opt/reeditpro/sam3_1/source-checkpoint-compatibility-receipt.json
+
+COPY docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch \
+  /tmp/0001-reeditpro-gpu-decode.patch
+COPY docker/prod/gpu-worker/sam3_1/runner.py \
+  /opt/reeditpro/sam3_1/runner.py
+COPY docker/prod/gpu-worker/sam3_1/entrypoint.sh \
+  /opt/reeditpro/sam3_1/entrypoint.sh
+COPY docker/prod/gpu-worker/sam3_1/source-provenance.lock \
+  /opt/reeditpro/sam3_1/source-provenance.lock
+
+RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
+  && test "${SAM31_DEPENDENCY_CLOSURE_RECEIPT_SHA256}" != "" \
+  && test "${SAM31_PATCH_APPLICATION_RECEIPT_SHA256}" != "" \
+  && test "${SAM31_PRIVATE_ARTIFACT_BUILD_BINDING_FILE_SHA256}" != "" \
+  && test "${SAM31_SOURCE_CHECKPOINT_COMPATIBILITY_RECEIPT_SHA256}" != "" \
+  && test "${SAM31_CUDA_FORWARD_COMPAT_INGEST_RECEIPT_SHA256}" != "" \
+  && printf '%s  %s\n' \
+    '5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a' \
+    '/tmp/sam3-source.tar' | sha256sum --check --strict \
+  && test "$(stat --format='%s' /tmp/sam3-source.tar)" = '73605120' \
+  && printf '%s  %s\n' \
+    'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca' \
+    '/tmp/0001-reeditpro-gpu-decode.patch' | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    'b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb' \
+    '/tmp/sam3-patched-source.tar' | sha256sum --check --strict \
+  && test "$(stat --format='%s' /tmp/sam3-patched-source.tar)" = '73605120' \
+  && printf '%s  %s\n' \
+    "${SAM31_PATCH_APPLICATION_RECEIPT_SHA256}" \
+    '/opt/reeditpro/sam3_1/source-patch-application-receipt.json' \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    "${SAM31_DEPENDENCY_LOCK_SHA256}" \
+    '/tmp/sam31-requirements.lock.txt' | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    "${SAM31_DEPENDENCY_CLOSURE_RECEIPT_SHA256}" \
+    '/opt/reeditpro/sam3_1/dependency-closure-receipt.json' \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    "${SAM31_PRIVATE_ARTIFACT_BUILD_BINDING_FILE_SHA256}" \
+    '/opt/reeditpro/sam3_1/private-artifact-build-binding.json' \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    "${SAM31_SOURCE_CHECKPOINT_COMPATIBILITY_RECEIPT_SHA256}" \
+    '/opt/reeditpro/sam3_1/source-checkpoint-compatibility-receipt.json' \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893' \
+    '/tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb' \
+    | sha256sum --check --strict \
+  && test "$(stat --format='%s' \
+    /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb)" = '37945232' \
+  && test "$(dpkg-deb --field \
+    /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb Package)" \
+    = 'cuda-compat-12-8' \
+  && test "$(dpkg-deb --field \
+    /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb Version)" \
+    = '570.211.01-0ubuntu1' \
+  && test "$(dpkg-deb --field \
+    /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb Architecture)" \
+    = 'amd64' \
+  && printf '%s  %s\n' \
+    "${SAM31_CUDA_FORWARD_COMPAT_INGEST_RECEIPT_SHA256}" \
+    '/opt/reeditpro/sam3_1/cuda-forward-compat-ingest-receipt.json' \
+    | sha256sum --check --strict \
+  && dpkg-deb --extract \
+    /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb / \
+  && test -r /usr/local/cuda-12.8/compat/libcuda.so.1 \
+  && test -r /usr/local/cuda-12.8/compat/libnvidia-nvvm.so.4 \
+  && test -r /usr/local/cuda-12.8/compat/libnvidia-ptxjitcompiler.so.1 \
+  && mkdir --mode=0755 /opt/reeditpro/sam3-source \
+  && tar \
+    --extract \
+    --file /tmp/sam3-patched-source.tar \
+    --directory /opt/reeditpro/sam3-source \
+    --strip-components=1 \
+    --no-same-owner \
+    --no-same-permissions \
+  && python -m pip install \
+    --no-index \
+    --no-cache-dir \
+    --require-hashes \
+    --find-links=/tmp/sam31-wheelhouse \
+    --requirement=/tmp/sam31-requirements.lock.txt \
+  && python -m pip install \
+    --no-index \
+    --no-cache-dir \
+    --no-deps \
+    --no-build-isolation \
+    /opt/reeditpro/sam3-source \
+  && python -I -B -c \
+    "import importlib.metadata as m; import sys; import torch; import torchvision; import torchcodec; import sam3; assert sys.version_info[:2] == (3, 12); assert torch.__version__ == '2.10.0+cu128'; assert torchvision.__version__ == '0.25.0'; assert m.version('torchcodec') == '0.10.0'; assert torch.version.cuda == '12.8'" \
+  && python -m py_compile /opt/reeditpro/sam3_1/runner.py \
+  && test -x /bin/sh \
+  && chmod 0555 /opt/reeditpro/sam3_1/runner.py \
+  && chmod 0555 /opt/reeditpro/sam3_1/entrypoint.sh \
+  && chmod 0444 \
+    /opt/reeditpro/sam3_1/source-provenance.lock \
+    /opt/reeditpro/sam3_1/source-patch-application-receipt.json \
+    /opt/reeditpro/sam3_1/dependency-closure-receipt.json \
+    /opt/reeditpro/sam3_1/cuda-forward-compat-ingest-receipt.json \
+    /opt/reeditpro/sam3_1/private-artifact-build-binding.json \
+    /opt/reeditpro/sam3_1/source-checkpoint-compatibility-receipt.json \
+  && find /opt/reeditpro/sam3-source \
+    -type d -exec chmod 0555 '{}' + \
+  && find /opt/reeditpro/sam3-source \
+    -type f -exec chmod 0444 '{}' + \
+  && rm -rf \
+    /tmp/sam3-source.tar \
+    /tmp/sam3-patched-source.tar \
+    /tmp/0001-reeditpro-gpu-decode.patch \
+    /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb \
+    /tmp/sam31-requirements.lock.txt \
+    /tmp/sam31-wheelhouse
+
+RUN groupadd --gid 65532 reeditpro \
+  && useradd \
+    --uid 65532 \
+    --gid 65532 \
+    --no-create-home \
+    --home-dir /nonexistent \
+    --shell /usr/sbin/nologin \
+    reeditpro
+
+USER 65532:65532
+WORKDIR /nonexistent
+
+ENTRYPOINT ["/opt/reeditpro/sam3_1/entrypoint.sh"]

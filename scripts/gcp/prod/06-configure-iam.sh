@@ -40,8 +40,66 @@ grant_secret_access() {
     --quiet
 }
 
+grant_service_account_user() {
+  local target_account_id="$1"
+  local member_account_id="$2"
+  run_gcloud iam service-accounts add-iam-policy-binding \
+    "$(service_account_email "${target_account_id}")" \
+    --project="${GCP_PROJECT_ID}" \
+    --member="serviceAccount:$(service_account_email "${member_account_id}")" \
+    --role="roles/iam.serviceAccountUser" \
+    --condition=None \
+    --quiet
+}
+
+grant_artifact_repository_role() {
+  local account_id="$1"
+  local role="$2"
+  run_gcloud artifacts repositories add-iam-policy-binding \
+    "${REEDITPRO_ARTIFACT_REPOSITORY}" \
+    --project="${GCP_PROJECT_ID}" \
+    --location="${GCP_ARTIFACT_REGION}" \
+    --member="serviceAccount:$(service_account_email "${account_id}")" \
+    --role="${role}" \
+    --condition=None \
+    --quiet
+}
+
+grant_cloud_build_service_agent_token_creator() {
+  local target_account_id="$1"
+  local project_number
+  project_number="$(gcloud projects describe "${GCP_PROJECT_ID}" --format='value(projectNumber)')"
+  if [[ ! "${project_number}" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: unable to resolve the Cloud Build project number." >&2
+    exit 1
+  fi
+  run_gcloud iam service-accounts add-iam-policy-binding \
+    "$(service_account_email "${target_account_id}")" \
+    --project="${GCP_PROJECT_ID}" \
+    --member="serviceAccount:service-${project_number}@gcp-sa-cloudbuild.iam.gserviceaccount.com" \
+    --role="roles/iam.serviceAccountTokenCreator" \
+    --condition=None \
+    --quiet
+}
+
+grant_image_signing_key_role() {
+  local account_id="$1"
+  local role="$2"
+  run_gcloud kms keys add-iam-policy-binding \
+    "${REEDITPRO_IMAGE_SIGNING_KEY}" \
+    --project="${GCP_PROJECT_ID}" \
+    --location="${GCP_ARTIFACT_REGION}" \
+    --keyring="${REEDITPRO_IMAGE_SIGNING_KEY_RING}" \
+    --member="serviceAccount:$(service_account_email "${account_id}")" \
+    --role="${role}" \
+    --condition=None \
+    --quiet
+}
+
 for account_id in \
   "${REEDITPRO_API_SERVICE_ACCOUNT}" \
+  "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" \
+  "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" \
   "${REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT}" \
   "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" \
   "${REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT}" \
@@ -52,6 +110,21 @@ for account_id in \
 done
 
 grant_project_role "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/run.invoker
+grant_project_role "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/batch.jobsEditor
+grant_project_role "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/cloudbuild.builds.editor
+grant_project_role "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/containeranalysis.occurrences.viewer
+grant_project_role "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/aiplatform.user
+grant_service_account_user \
+  "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" \
+  "${REEDITPRO_API_SERVICE_ACCOUNT}"
+grant_service_account_user \
+  "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" \
+  "${REEDITPRO_API_SERVICE_ACCOUNT}"
+grant_cloud_build_service_agent_token_creator \
+  "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}"
+grant_service_account_user \
+  "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" \
+  "${REEDITPRO_API_SERVICE_ACCOUNT}"
 
 for secret_name in \
   "${REEDITPRO_SECRET_PREFIX}-supabase-url" \
@@ -64,6 +137,16 @@ done
 grant_bucket_role source-media "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role previews "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role final-exports "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
+grant_bucket_role control-plane-state "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator
+grant_bucket_role control-plane-state "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
+
+grant_bucket_role image-build-inputs "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectViewer
+grant_artifact_repository_role "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/artifactregistry.writer
+grant_artifact_repository_role "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/artifactregistry.reader
+grant_artifact_repository_role "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/artifactregistry.reader
+grant_image_signing_key_role \
+  "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" \
+  roles/cloudkms.signerVerifier
 
 for purpose in source-media proxy-media; do
   grant_bucket_role "${purpose}" "${REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT}" roles/storage.objectViewer
@@ -72,7 +155,7 @@ for purpose in proxy-media analysis-artifacts transcripts worker-temp; do
   grant_bucket_role "${purpose}" "${REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT}" roles/storage.objectCreator
 done
 
-for purpose in source-media proxy-media worker-temp; do
+for purpose in source-media proxy-media worker-temp model-artifacts; do
   grant_bucket_role "${purpose}" "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" roles/storage.objectViewer
 done
 for purpose in transcripts masks generated-assets analysis-artifacts worker-temp; do

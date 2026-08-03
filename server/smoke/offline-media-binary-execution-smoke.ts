@@ -1157,7 +1157,7 @@ const mezzanineVoiceResult =
       source: privateStreamInput(mezzanineVoiceBytes),
     },
     createMezzanineOutputSink((bytes) => {
-      mezzanineVoiceOutputBytes = bytes
+      mezzanineVoiceOutputBytes = Buffer.from(bytes)
     }),
   )
 assert.equal(

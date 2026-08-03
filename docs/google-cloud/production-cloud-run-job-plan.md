@@ -1,5 +1,12 @@
 # Production Cloud Run Service And Job Plan
 
+> **Current WeEditPro authority:** the historical CPU/L4-first job list in
+> older milestones cannot authorize new work. Heavy processing uses one-shot
+> A100 80 GB Google Cloud Batch jobs. Normal substantive media work uses the
+> L4 standard-primary Cloud Run Job, and eligible heavy work may use the
+> separately qualified L4 fallback only after an allowed A100 failure. All
+> accelerator routes start from zero and return to zero.
+
 ## Backend API Service
 
 - Runtime: Cloud Run Service.
@@ -15,10 +22,10 @@
 
 | Job | Runtime | Service account | GPU | Notes |
 | --- | --- | --- | --- | --- |
-| `reeditpro-cpu-analysis-worker` | Cloud Run Job | `reeditpro-cpu-worker-sa` | No | CPU/media analysis command placeholder. |
-| `reeditpro-gpu-ai-worker` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | First GPU test template only. |
-| `reeditpro-render-worker` | Cloud Run Job | `reeditpro-render-worker-sa` | No by default | Core render stack template: Hyperframe, Remotion, FFmpeg, libass, OpenTimelineIO. |
-| `reeditpro-qa-worker` | Cloud Run Job | `reeditpro-qa-worker-sa` | No by default | GPU only if a later heavy CV QA milestone approves it. |
+| Per-attempt A100 heavy primary | Google Cloud Batch | `reeditpro-gpu-worker-sa` | A100 80 GB, 1 GPU | `a2-ultragpu-1g`; created only after exact approved/funded admission and deleted at terminal state. |
+| `reeditpro-professional-l4` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | Standard-primary normal media/render/encode/inspection/QA route; 8 vCPU, 32 GiB. |
+| `reeditpro-sam31-l4-fallback` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | Independently qualified SAM 3.1 heavy fallback only; 8 vCPU, 32 GiB. |
+| Legacy CPU/render/QA jobs | Historical Cloud Run Job templates | Legacy identities | None | Readback/migration only; cannot execute fresh substantive media/model work. |
 | `reeditpro-tool-readiness-worker` | Cloud Run Job | `reeditpro-tool-readiness-sa` | No | No source media access by default. |
 
 Every job template uses task count `1`, parallelism `1`, and Cloud Run internal
@@ -36,7 +43,8 @@ approved package queue entry
   -> regional Cloud Tasks queue
   -> private authenticated dispatch controller
   -> Cloud Run Jobs run API
-  -> one exact CPU, GPU, render, QA, or readiness job execution
+  -> one exact lightweight-control, A100-heavy, L4-standard,
+     L4-heavy-fallback, or readiness job execution
 ```
 
 Cloud Tasks carries only an opaque dispatch-intent ID, package/job identity,
@@ -85,10 +93,10 @@ Google token/key-rotation and IAM proof using the source-implemented
 auth-library adapter, multi-replica coordination, deployment, and live worker
 completion flow are still required.
 
-The existing `us-central1` foundation defaults and coarse service-account
-templates must be reconciled with the canonical `us-east1`/`europe-west1`
-resource map before any human-run deployment. Target existence and IAM remain
-false until that reconciliation and live inspection pass.
+The active private-media cohort and primary runtime region are `us-central1`.
+A route may not move private media cross-region to chase capacity or price.
+Target existence, quota, IAM, image, model, price, and release evidence remain
+false until exact live inspection passes.
 
 The shared GPU worker now also has a source-implemented, one-shot
 process-bound operation router for the candidate-only Faster Whisper CUDA
@@ -135,9 +143,16 @@ The image templates live under `docker/prod/`, and the human-run build/push comm
 
 ## Milestone 11 GPU Image Handoff
 
-The GPU worker image will be produced later from the M11 GPU Dockerfile after human build approval. The Cloud Run GPU job remains `nvidia-l4`, 1 GPU, at least 4 CPU and 16Gi memory, and `--no-gpu-zonal-redundancy`.
+The historical generic GPU image did not establish current placement. Active
+images are `reeditpro-sam31-gpu` for the separately qualified A100/L4 SAM 3.1
+routes and `reeditpro-l4-media-worker` for the L4 standard route. Both L4 jobs
+use one `nvidia-l4`, 8 vCPU, 32 GiB, parallelism 1, retries 0, and
+`--no-gpu-zonal-redundancy`.
 
-M11 does not execute the GPU job, build/push the image, download model weights, run inference, or deploy Cloud Run resources. RTX PRO 6000 remains future/premium/evaluation only with 20 CPU and 80Gi minimum requirements.
+RTX PRO 6000 is not part of the current A100/L4 policy. SAM 3.1 weights are
+never installed on a developer Mac or downloaded at runtime; they are ingested
+once from the official gated repository into the private artifact owner and
+mounted read-only by exact generation.
 ## Milestone 12 Readiness Requirement
 
 Cloud Run Jobs should not be deployed until the unified production readiness report has been reviewed. M12 does not run `gcloud`, deploy jobs, execute GPU inference, process media, or download model weights.

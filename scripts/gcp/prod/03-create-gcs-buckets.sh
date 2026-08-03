@@ -25,5 +25,5 @@ while IFS= read -r purpose; do
     --project="${GCP_PROJECT_ID}" \
     --uniform-bucket-level-access \
     --public-access-prevention=enforced \
-    --update-labels="app=reeditpro,env=${REEDITPRO_ENV}"
+    --update-labels="app=weeditpro,env=${REEDITPRO_ENV}"
 done < <(bucket_purposes)

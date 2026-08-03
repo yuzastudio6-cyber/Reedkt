@@ -5,6 +5,7 @@ export type GpuModelWeightTemplateId =
   | 'rembg_u2netp_model'
   | 'faster_whisper_model'
   | 'birefnet_model'
+  | 'sam3_1_checkpoint'
   | 'sam2_checkpoint'
   | 'deepfilternet_model'
   | 'demucs_model'

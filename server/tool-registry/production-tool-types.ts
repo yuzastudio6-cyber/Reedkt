@@ -80,6 +80,7 @@ export const NON_E2E_TOOL_CAPABILITY_IDS = [
   'paddleocr',
   'mediapipe',
   'birefnet',
+  'sam3_1',
   'sam2',
   'comfyui',
   'transparent_background',

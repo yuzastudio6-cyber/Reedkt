@@ -64,6 +64,14 @@ export function registerBrollSkill(input: {
   registerBrollArtifactSchemas(input.artifacts)
   registerBrollQaPolicies(input.qa)
   input.estimators.registerTime('b_roll.time.v1', (estimateInput) => {
+    if (estimateInput.noAction === true) {
+      return {
+        minimumSeconds: 0,
+        expectedSeconds: 0,
+        maximumSeconds: 0,
+        evidence: ['validation_and_no_action_only'],
+      }
+    }
     const durationFrames = typeof estimateInput.durationFrames === 'number' ? estimateInput.durationFrames : 0
     const provider = estimateInput.providerRequired === true
     const expectedSeconds = Math.max(1, Math.ceil(durationFrames / 24)) + (provider ? 120 : 15)

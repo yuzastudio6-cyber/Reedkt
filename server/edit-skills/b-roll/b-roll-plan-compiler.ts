@@ -24,6 +24,72 @@ export interface CompileBrollPlanResult {
   planningQaEvidenceHash: string
 }
 
+const PROVIDER_DECISIONS = [
+  'generate_with_gemini_omni',
+  'edit_uploaded_video_with_gemini_omni',
+  'refine_generated_omni_candidate',
+] as const
+
+const INERT_DECISIONS = [
+  'use_no_broll',
+  'needs_other_skill',
+  'needs_user_confirmation',
+  'blocked',
+] as const
+
+function isProviderDecision(decision: BrollPlanArtifact['decision']): boolean {
+  return PROVIDER_DECISIONS.includes(decision as (typeof PROVIDER_DECISIONS)[number])
+}
+
+function isInertDecision(decision: BrollPlanArtifact['decision']): boolean {
+  return INERT_DECISIONS.includes(decision as (typeof INERT_DECISIONS)[number])
+}
+
+export function assertBrollPlanRuntimeInvariants(input: {
+  assignment: BrollSkillAssignment
+  plan: BrollPlanArtifact
+  omniRequestPlan?: ReturnType<typeof planBrollOmniRequest>
+  requireExactProviderRequestPackage?: boolean
+}): void {
+  const plan = brollPlanArtifactSchema.parse(input.plan)
+  const provider = isProviderDecision(plan.decision)
+  if (
+    plan.assignmentId !== input.assignment.assignmentId ||
+    plan.assignmentHash !== input.assignment.assignmentHash ||
+    hashSkillValue(plan.manifestRef) !== hashSkillValue(input.assignment.manifestRef) ||
+    hashSkillValue(plan.authorizedRange) !==
+      hashSkillValue(input.assignment.writeRangeAuthority.authorizedRange)
+  ) throw new Error('B-roll plan is stale or belongs to another assignment authority.')
+  if (provider && (
+    input.assignment.providerPermission !== 'approved_within_ceiling' ||
+    !input.assignment.permittedSourceRoutes.includes(plan.decision)
+  )) throw new Error('B-roll provider plan lacks exact assignment provider authority.')
+  if (provider && input.requireExactProviderRequestPackage && !input.omniRequestPlan) {
+    throw new Error('B-roll provider plan lacks its exact request package.')
+  }
+  if (
+    input.omniRequestPlan && (
+      !provider ||
+      plan.providerRequestPackageHash !== hashSkillValue(input.omniRequestPlan) ||
+      input.omniRequestPlan.approvedRange.startFrameInclusive !== plan.authorizedRange.startFrameInclusive ||
+      input.omniRequestPlan.approvedRange.endFrameExclusive !== plan.authorizedRange.endFrameExclusive ||
+      input.omniRequestPlan.approvedRange.fps !== plan.authorizedRange.fps ||
+      input.omniRequestPlan.maximumInitialSubmissions !== 1 ||
+      input.omniRequestPlan.maximumRefinements !== 1 ||
+      input.omniRequestPlan.automaticRetryAllowed !== false ||
+      input.omniRequestPlan.alternateProviderFallbackAllowed !== false
+    )
+  ) throw new Error('B-roll provider request package is stale or exceeds attempt authority.')
+  if (!provider && input.omniRequestPlan) {
+    throw new Error('A non-provider B-roll plan cannot carry a provider request package.')
+  }
+  if (plan.sourceArtifactRef && (
+    plan.sourceArtifactRef.ownerUserId !== input.assignment.ownerUserId ||
+    plan.sourceArtifactRef.workspaceId !== input.assignment.workspaceId ||
+    plan.sourceArtifactRef.projectId !== input.assignment.projectId
+  )) throw new Error('B-roll plan selected a cross-workspace source artifact.')
+}
+
 export function compileBrollPlan(input: {
   assignment: BrollSkillAssignment
   context: BrollPlanningContext
@@ -36,35 +102,76 @@ export function compileBrollPlan(input: {
   const restraint = directBrollRestraint({ assignment, context })
   const editorialRole = directBrollEditorialRole(assignment)
   let sourceStrategy = resolveBrollSourceStrategy({ assignment, context, restraint })
-  const concept = directBrollConcept({ assignment, context, role: editorialRole, sourceStrategy })
-  if (concept.rejectedAsRepeated) {
+  const initialConcept = directBrollConcept({ assignment, context, role: editorialRole, sourceStrategy })
+  if (initialConcept.rejectedAsRepeated) {
     sourceStrategy = { decision: 'use_no_broll', reason: 'The proposed concept repeats an earlier B-roll treatment; keep the base scene.' }
   }
-  const shotSpecification = buildBrollShotSpecification({
-    assignment, context, role: editorialRole, concept, sourceStrategy,
+  const durationFrames = assignment.writeRangeAuthority.authorizedRange.endFrameExclusive -
+    assignment.writeRangeAuthority.authorizedRange.startFrameInclusive
+  const provisionalProvider = isProviderDecision(sourceStrategy.decision)
+  const provisionalInert = isInertDecision(sourceStrategy.decision)
+  const provisionalEstimateInput = {
+    durationFrames,
+    providerRequired: provisionalProvider,
+    noAction: provisionalInert,
+  }
+  const provisionalTimeEstimate = input.estimators.estimateTime(
+    input.manifest.timeEstimator,
+    provisionalEstimateInput,
+  )
+  const provisionalCreditEstimate = input.estimators.estimateCredit(
+    input.manifest.creditEstimator,
+    provisionalEstimateInput,
+  )
+  if (
+    !provisionalInert && (
+      provisionalTimeEstimate.maximumSeconds > assignment.maximumTimeSeconds ||
+      provisionalCreditEstimate.maximumCredits > assignment.maximumCredits
+    )
+  ) {
+    sourceStrategy = { decision: 'use_no_broll', reason: 'The planned route exceeds the approved time or credit ceiling.' }
+  }
+
+  const concept = directBrollConcept({ assignment, context, role: editorialRole, sourceStrategy })
+  const inert = isInertDecision(sourceStrategy.decision)
+  const shotSpecification = inert
+    ? undefined
+    : buildBrollShotSpecification({
+      assignment, context, role: editorialRole, concept, sourceStrategy,
+    })
+  const timing = planBrollTimingAndComposition({
+    assignment,
+    context,
+    role: editorialRole,
+    strategy: sourceStrategy,
   })
-  const timing = planBrollTimingAndComposition({ assignment, context, role: editorialRole, strategy: sourceStrategy })
-  const providerRequestPlanned = ['generate_with_gemini_omni', 'edit_uploaded_video_with_gemini_omni', 'refine_generated_omni_candidate']
-    .includes(sourceStrategy.decision)
+  const providerRequestPlanned = isProviderDecision(sourceStrategy.decision)
   const audioDisposition = providerRequestPlanned
     ? 'discard' as const
-    : sourceStrategy.decision === 'use_existing_project_clip' ? 'retain_source_audio' as const : 'discard' as const
-  const coordination = coordinateBrollSkills({ assignment, context, audioReviewNeeded: audioDisposition !== 'discard' })
-  const omniRequestPlan = planBrollOmniRequest({ assignment, strategy: sourceStrategy, shotSpecification, timing })
+    : sourceStrategy.decision === 'use_existing_project_clip'
+      ? 'retain_source_audio' as const
+      : 'discard' as const
+  const coordination = coordinateBrollSkills({
+    assignment,
+    context,
+    audioReviewNeeded: audioDisposition !== 'discard',
+  })
+  const omniRequestPlan = planBrollOmniRequest({
+    assignment,
+    strategy: sourceStrategy,
+    shotSpecification,
+    timing,
+  })
   if (providerRequestPlanned !== Boolean(omniRequestPlan)) {
     throw new Error('B-roll provider route lacks an exact Omni request plan.')
   }
-  const durationFrames = timing.authorizedRange.endFrameExclusive - timing.authorizedRange.startFrameInclusive
-  const estimateInput = {
+  const finalEstimateInput = {
     durationFrames,
     providerRequired: providerRequestPlanned,
-    noAction: sourceStrategy.decision === 'use_no_broll',
+    noAction: inert,
   }
-  const timeEstimate = input.estimators.estimateTime(input.manifest.timeEstimator, estimateInput)
-  const creditEstimate = input.estimators.estimateCredit(input.manifest.creditEstimator, estimateInput)
-  if (timeEstimate.maximumSeconds > assignment.maximumTimeSeconds || creditEstimate.maximumCredits > assignment.maximumCredits) {
-    sourceStrategy = { decision: 'use_no_broll', reason: 'The planned route exceeds the approved time or credit ceiling.' }
-  }
+  const timeEstimate = input.estimators.estimateTime(input.manifest.timeEstimator, finalEstimateInput)
+  const creditEstimate = input.estimators.estimateCredit(input.manifest.creditEstimator, finalEstimateInput)
 
   const qaInputs: Record<string, unknown> = { evidenceHashes: [assignment.assignmentHash, context.contextHash] }
   for (const qaKey of BROLL_PLANNING_QA_KEYS) qaInputs[qaKey] = true
@@ -99,6 +206,13 @@ export function compileBrollPlan(input: {
     exitIntent: timing.exitIntent,
     coordination,
     providerRequestPlanned,
+    ...(omniRequestPlan ? { providerRequestPackageHash: hashSkillValue(omniRequestPlan) } : {}),
+    providerCreditEstimate: providerRequestPlanned ? creditEstimate.expectedCredits : 0,
+    ...(sourceStrategy.decision === 'needs_other_skill' ? {
+      dependencySkillKey: sourceStrategy.dependencySkillKey,
+      requiredDependencyArtifactType: 'track_graph_v1',
+      requiredForPhase: 'skill_execution',
+    } : {}),
     timeEstimateSeconds: timeEstimate.expectedSeconds,
     creditEstimate: creditEstimate.expectedCredits,
     lowerCostDecision: context.sourceCandidates.some((candidate) => candidate.sourceType === 'existing_project_clip')
@@ -107,5 +221,11 @@ export function compileBrollPlan(input: {
     outsideAuthorizedRangeModified: false,
   })
   const plan = brollPlanArtifactSchema.parse({ ...core, planHash: hashSkillValue(core) })
+  assertBrollPlanRuntimeInvariants({
+    assignment,
+    plan,
+    omniRequestPlan,
+    requireExactProviderRequestPackage: true,
+  })
   return { plan, omniRequestPlan, planningQaEvidenceHash }
 }

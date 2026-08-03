@@ -27,6 +27,7 @@
     "test:b-roll-planning": "tsx server/smoke/b-roll-planning-smoke.ts",
     "test:b-roll-public-plugin": "tsx server/smoke/b-roll-public-plugin-e2e-smoke.ts",
     "test:b-roll-runtime-bindings": "tsx server/smoke/b-roll-runtime-bindings-smoke.ts",
+    "test:b-roll-plan-invariants": "tsx server/smoke/b-roll-plan-invariants-smoke.ts",
     "test:b-roll-canonical-integration": "tsx server/smoke/b-roll-canonical-integration-smoke.ts",
     "smoke:b-roll-existing-source": "tsx server/smoke/b-roll-existing-source-smoke.ts",
     "smoke:b-roll-provider-authority": "tsx server/smoke/b-roll-provider-authority-smoke.ts",

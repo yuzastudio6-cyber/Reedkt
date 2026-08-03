@@ -6,6 +6,7 @@ import { skillFrameRangeSchema } from '../core/skill-assignment-schema'
 import { skillManifestReferenceSchema, skillSha256Schema } from '../core/skill-capability-manifest-schema'
 import { isFrameRangeContained } from '../core/skill-range-authority'
 import type { BrollPlanArtifact, BrollSkillAssignment } from './b-roll-contracts'
+import { assertBrollPlanRuntimeInvariants } from './b-roll-plan-compiler'
 
 const workItemSchema = z.object({
   workItemKey: z.string().trim().min(1).max(180),
@@ -199,10 +200,58 @@ function routeFor(plan: BrollPlanArtifact): BrollCanonicalWorkGraph['route'] {
   return 'no_action'
 }
 
+const MEDIA_CREATING_JOB_TYPES = new Set([
+  'prepare_b_roll_source',
+  'generate_b_roll_candidate',
+  'normalize_b_roll_candidate_with_ffmpeg',
+  'render_b_roll_preview',
+])
+
+export function assertBrollWorkGraphDecisionInvariants(input: {
+  plan: BrollPlanArtifact
+  workGraph: BrollCanonicalWorkGraph
+}): void {
+  const providerItems = input.workGraph.workItems.filter((item) =>
+    item.operationId === 'provider.google.generate_b_roll_candidate.v1')
+  const mediaItems = input.workGraph.workItems.filter((item) =>
+    MEDIA_CREATING_JOB_TYPES.has(item.jobType))
+  const inert = [
+    'use_no_broll',
+    'needs_other_skill',
+    'needs_user_confirmation',
+    'blocked',
+  ].includes(input.plan.decision)
+  const source = [
+    'use_existing_project_clip',
+    'use_uploaded_user_asset',
+  ].includes(input.plan.decision)
+  const provider = [
+    'generate_with_gemini_omni',
+    'edit_uploaded_video_with_gemini_omni',
+    'refine_generated_omni_candidate',
+  ].includes(input.plan.decision)
+  if (inert && (
+    input.workGraph.route !== 'no_action' ||
+    providerItems.length !== 0 ||
+    mediaItems.length !== 0 ||
+    input.workGraph.workItems.some((item) => item.maximumCreditBudget !== 0)
+  )) throw new Error('Non-executable B-roll plan emitted media, provider, or credit-bearing work.')
+  if (source && (
+    !['existing_source', 'approved_user_asset'].includes(input.workGraph.route) ||
+    providerItems.length !== 0
+  )) throw new Error('Existing-source B-roll plan emitted provider work.')
+  if (provider && (
+    input.workGraph.route !== 'gemini_omni' ||
+    providerItems.length !== 1 ||
+    providerItems[0]?.providerRouteId !== 'gemini_omni_flash'
+  )) throw new Error('Gemini Omni B-roll plan must emit exactly one qualified provider job.')
+}
+
 export function compileBrollCanonicalWorkGraph(input: {
   assignment: BrollSkillAssignment
   plan: BrollPlanArtifact
 }): BrollCanonicalWorkGraph {
+  assertBrollPlanRuntimeInvariants({ assignment: input.assignment, plan: input.plan })
   if (
     input.plan.assignmentId !== input.assignment.assignmentId ||
     input.plan.assignmentHash !== input.assignment.assignmentHash ||
@@ -254,7 +303,12 @@ export function compileBrollCanonicalWorkGraph(input: {
     workItems,
     outsideAuthorizedRangeModified: false,
   })
-  return brollCanonicalWorkGraphSchema.parse({ ...core, workGraphHash: hashSkillValue(core) })
+  const workGraph = brollCanonicalWorkGraphSchema.parse({
+    ...core,
+    workGraphHash: hashSkillValue(core),
+  })
+  assertBrollWorkGraphDecisionInvariants({ plan: input.plan, workGraph })
+  return workGraph
 }
 
 export function assertBrollCanonicalWorkGraph(

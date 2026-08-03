@@ -161,7 +161,7 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       disposition,
       payloadArtifactType: planRef.artifactType,
       payloadHash: planRef.sha256,
-      ...(disposition === 'needs_other_skill' ? { dependencySkillKey: 'track_all' } : {}),
+      ...(disposition === 'needs_other_skill' ? { dependencySkillKey: plan.dependencySkillKey } : {}),
     })
     const dependencyRequests = disposition === 'needs_other_skill'
       ? [createEditSkillDependencyRequest({
@@ -173,9 +173,9 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
         planHash: envelope.planHash,
         manifestRef: assignment.manifestRef,
         authorizedRange: assignment.authorizedRange,
-        dependencySkillKey: 'track_all',
-        requiredArtifactType: 'track_graph_v1',
-        requiredForPhase: 'skill_execution',
+        dependencySkillKey: plan.dependencySkillKey!,
+        requiredArtifactType: plan.requiredDependencyArtifactType!,
+        requiredForPhase: plan.requiredForPhase!,
         minimumQualificationStatus: 'internal_execution_qualified',
         reason: 'The approved B-roll treatment requires a model-neutral track graph for the exact assignment range.',
         required: true,

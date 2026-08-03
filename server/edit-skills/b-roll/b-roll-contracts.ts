@@ -191,6 +191,19 @@ export interface BrollPlanArtifact {
   exitIntent: string
   coordination: BrollCoordinationPlan
   providerRequestPlanned: boolean
+  providerRequestPackageHash?: string
+  providerCreditEstimate: number
+  dependencySkillKey?: string
+  requiredDependencyArtifactType?: string
+  requiredForPhase?: string
+  refinementAuthority?: {
+    previousCandidateVersionId: string
+    previousCandidateVersionHash: string
+    priorQaReportHash: string
+    requestedCandidateVersion: 2
+    refinementCount: 1
+    maximumRefinements: 1
+  }
   timeEstimateSeconds: number
   creditEstimate: number
   lowerCostDecision: 'use_existing_project_clip' | 'use_no_broll'

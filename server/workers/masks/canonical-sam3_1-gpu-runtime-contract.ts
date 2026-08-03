@@ -173,7 +173,12 @@ const modelArtifactsSchema = z.object({
   checkpointFileName: z.literal('sam3.1_multiplex.pt'),
   checkpointByteLength: positiveInteger,
   checkpointSha256: sha256,
-  sourceCheckpointCompatibilityQualificationRef: evidenceRefSchema,
+  sourceCheckpointCompatibilityQualificationRef: evidenceRefSchema.extend({
+    version: z.literal(1),
+    schemaVersion: z.literal(
+      'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
+    ),
+  }).strict(),
   immutableImageReleaseRef: evidenceRefSchema,
   immutableImageDigest: prefixedSha256,
   humanTermsAcceptanceAndLegalReviewReread: z.literal(true),

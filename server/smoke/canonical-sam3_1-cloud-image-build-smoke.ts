@@ -8,6 +8,7 @@ import {
   assertCanonicalSam31PrivateArtifactIngestReceipt,
   createCanonicalSam31AuthorizedTermsAcceptance,
   prepareCanonicalSam31PrivateArtifactIngestReceipt,
+  type CanonicalSam31PrivateArtifactIngestReceipt,
 } from '../model-artifacts/canonical-sam3_1-private-artifact-ingest'
 import {
   assertCanonicalSam31CloudImageBuildAuthority,
@@ -23,24 +24,43 @@ import {
   createCanonicalSam31SourceRuntimeCandidate,
 } from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 import {
+  compileCanonicalSam31SourceCheckpointQualification,
+  type CanonicalSam31SourceCheckpointQualificationObservation,
+} from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification'
+import {
   assertCanonicalSam31CloudImageBuildSubmission,
   assertCanonicalSam31CloudImageBuildTerminalObservation,
   compileCanonicalSam31CloudBuildRequestBody,
   createCanonicalSam31CloudImageBuildService,
   type CanonicalSam31CloudImageBuildStatePort,
 } from '../services/canonical-sam3_1-cloud-image-build-service'
-import { sha256AuthorityValue } from '../services/private-edit-authority-store'
+import {
+  sha256AuthorityValue,
+  stableAuthorityStringify,
+} from '../services/private-edit-authority-store'
 
 const candidate = createCanonicalSam31SourceRuntimeCandidate()
 const syntheticIngest = await createSyntheticIngest()
 const canonicalIngest = canonicalizeIngest(syntheticIngest)
+const syntheticQualification = createQualification(
+  syntheticIngest,
+  'synthetic_contract_fixture',
+  false,
+)
+const canonicalQualification = createQualification(
+  canonicalIngest,
+  'canonical_private_reread',
+  true,
+)
 const artifactBinding = createCanonicalSam31ImageBuildArtifactBinding({
   candidate,
   ingestReceipt: canonicalIngest,
+  sourceCheckpointQualification: canonicalQualification,
 })
 const syntheticBinding = createCanonicalSam31ImageBuildArtifactBinding({
   candidate,
   ingestReceipt: syntheticIngest,
+  sourceCheckpointQualification: syntheticQualification,
 })
 const { bindingHash: syntheticBindingHash, ...syntheticBindingPayload } =
   syntheticBinding
@@ -49,7 +69,14 @@ assert.equal(
   canonicalJsonDigest(syntheticBindingPayload),
 )
 const bindingFileBytes = Buffer.from(JSON.stringify(syntheticBinding))
-const capsuleFiles = createCapsuleFiles(bindingFileBytes)
+const qualificationFileBytes = Buffer.from(
+  stableAuthorityStringify(syntheticQualification),
+  'utf8',
+)
+const capsuleFiles = createCapsuleFiles(
+  bindingFileBytes,
+  qualificationFileBytes,
+)
 const capsuleArchiveEntries = capsuleFiles.map(([path, bytes]) => ({
   path,
   byteLength: bytes.byteLength,
@@ -139,6 +166,8 @@ const capsuleManifest = createCanonicalSam31PrivateImageBuildCapsuleManifest({
     ),
     artifactBuildBindingRecordHash: syntheticBinding.bindingHash,
     artifactBuildBindingFileSha256: sha(bindingFileBytes),
+    sourceCheckpointQualificationRecordHash:
+      syntheticQualification.qualificationHash,
     sourceCheckpointCompatibilityReceiptSha256: entrySha(
       capsuleArchiveEntries,
       'sam31_private_build_input/release-receipts/source-checkpoint-compatibility-receipt.json',
@@ -206,6 +235,7 @@ const contractAuthority = await prepareCanonicalSam31CloudImageBuildAuthority({
   authorityId: 'sam31-cloud-image-build-authority-1',
   candidate,
   ingestReceipt: syntheticIngest,
+  sourceCheckpointQualification: syntheticQualification,
   artifactBinding: syntheticBinding,
   capsuleManifest,
   privateCapsuleReadPort: {
@@ -231,6 +261,7 @@ await assert.rejects(() => prepareCanonicalSam31CloudImageBuildAuthority({
   authorityId: 'sam31-corrupt-capsule-authority',
   candidate,
   ingestReceipt: syntheticIngest,
+  sourceCheckpointQualification: syntheticQualification,
   artifactBinding: syntheticBinding,
   capsuleManifest,
   privateCapsuleReadPort: capsuleReadPort(
@@ -267,6 +298,7 @@ await assert.rejects(() => prepareCanonicalSam31CloudImageBuildAuthority({
   authorityId: 'sam31-non-regular-capsule-authority',
   candidate,
   ingestReceipt: syntheticIngest,
+  sourceCheckpointQualification: syntheticQualification,
   artifactBinding: syntheticBinding,
   capsuleManifest: nonRegularManifest,
   privateCapsuleReadPort: capsuleReadPort(
@@ -295,6 +327,9 @@ assert(!serializedBuildBody.includes('availableSecrets'))
 assert(serializedBuildBody.includes('--network=none'))
 assert(serializedBuildBody.includes(
   'SAM31_PRIVATE_ARTIFACT_BUILD_BINDING_FILE_SHA256=',
+))
+assert(serializedBuildBody.includes(
+  'SAM31_SOURCE_CHECKPOINT_QUALIFICATION_HASH=',
 ))
 assert(serializedBuildBody.includes(capsuleCoordinate.generation))
 assert(serializedBuildBody.includes(
@@ -686,6 +721,115 @@ console.log(JSON.stringify({
   terminalObservationHash: terminal.observationHash,
 }))
 
+function createQualification(
+  ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt,
+  evidenceClass:
+    | 'synthetic_contract_fixture'
+    | 'canonical_private_reread',
+  admitted: boolean,
+) {
+  const keySetHash = sha(Buffer.from('sam31-build-key-set'))
+  const observation: CanonicalSam31SourceCheckpointQualificationObservation = {
+    evidenceClass,
+    qualificationId: `sam31-build-qualification-${evidenceClass}`,
+    qualificationVersion: 1,
+    qualificationJobRef: ref('sam31-build-qualification-job'),
+    qualificationAttemptRef: ref('sam31-build-qualification-attempt'),
+    qualificationResultRuntimeRef: ref('sam31-build-qualification-result'),
+    qualificationLogRef: ref('sam31-build-qualification-log'),
+    internalCostReceiptRef: ref('sam31-build-qualification-cost'),
+    dependencyClosureRef: ref('sam31-build-dependency-closure'),
+    dependencyLockSha256: sha(Buffer.from('sam31-build-dependency-lock')),
+    dependencyClosureReceiptSha256:
+      sha(Buffer.from('sam31-build-dependency-receipt')),
+    dependencyWheelManifestSha256:
+      sha(Buffer.from('sam31-build-wheel-manifest')),
+    patchApplicationReceiptRef: ref('sam31-build-patch-receipt'),
+    patchedSourceArchiveRef: contentRef(
+      'sam31-build-patched-source',
+      'b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb',
+    ),
+    patchedSourceArchiveSha256:
+      'b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb',
+    sourceCodeSecurityReviewRef: ref('sam31-build-source-review'),
+    checkpointWeightsOnlyInspectionRef:
+      ref('sam31-build-checkpoint-inspection'),
+    deterministicProbeFixtureRef: ref('sam31-build-probe-fixture'),
+    deterministicProbeResultRef: ref('sam31-build-probe-result'),
+    securityAndCompliance: {
+      sourceLicenseReviewedForApprovedUse: admitted,
+      checkpointLicenseReviewedForApprovedUse: admitted,
+      privacyReviewApprovedForPrivateQualification: admitted,
+      tradeControlsReviewApprovedForPrivateQualification: admitted,
+      sourceMalwareScanPassed: admitted,
+      checkpointMalwareScanPassed: admitted,
+      sourceStaticSecurityReviewPassed: admitted,
+      checkpointWeightsOnlyLoadPassed: admitted,
+      checkpointTensorAndMetadataAllowlistPassed: admitted,
+      executablePickleTrustGranted: false,
+      checkpointRedistributionAuthorized: false,
+    },
+    qualificationRuntime: {
+      executionTarget: 'google_cloud_batch_a2_ultra_job',
+      machineType: 'a2-ultragpu-1g',
+      accelerator: 'nvidia_a100_80gb',
+      allocatedGpuCount: 1,
+      baseImageDigest:
+        'sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca',
+      pythonVersion: '3.12',
+      torchVersion: '2.10.0',
+      torchvisionVersion: '0.25.0',
+      torchcodecVersion: '0.10.0',
+      cudaVersion: '12.8',
+      fixedBuilder: 'build_sam3_multiplex_video_predictor',
+      networkEgressAllowed: false,
+      developerMachineExecutionAllowed: false,
+      callerCommandModuleClassModelOrCheckpointAccepted: false,
+      sourceCheckpointAndDependencyMountsReadOnly: true,
+      automaticRetryAfterUnknownOutcomeAllowed: false,
+    },
+    compatibilityProbe: {
+      exactSourceArchiveReread: admitted,
+      exactPatchedSourceArchiveReread: admitted,
+      exactCheckpointRereadBeforeAndAfter: admitted,
+      exactDependencyWheelAndNativeClosureReread: admitted,
+      sourcePatchApplicationReceiptReread: admitted,
+      weightsOnlyCheckpointInspectionExecuted: admitted,
+      fixedBuilderImportedFromPinnedSource: admitted,
+      fixedBuilderCalledExactlyOnce: admitted,
+      checkpointLoadedExactlyOnce: admitted,
+      strictCheckpointLoadRequested: admitted,
+      missingCheckpointKeyCount: 0,
+      unexpectedCheckpointKeyCount: 0,
+      checkpointKeyCount: admitted ? 257 : 0,
+      modelStateKeyCount: admitted ? 257 : 0,
+      checkpointKeySetSha256: admitted ? keySetHash : '0'.repeat(64),
+      modelStateKeySetSha256: admitted ? keySetHash : '0'.repeat(64),
+      checkpointAndModelKeySetsExact: admitted,
+      startSessionAddPromptPropagateAndCloseExecuted: admitted,
+      actualCudaModelInferenceExecuted: admitted,
+      bfloat16AutocastExecuted: admitted,
+      outputMaskShapeMatchedProbeFrames: admitted,
+      outputObjectIdsMatchedProbePrompt: admitted,
+      outputMasksWereCudaTensorsBeforeSerialization: admitted,
+      deterministicRepeatedProbeRunCount: admitted ? 3 : 0,
+      deterministicOutputDigestSha256: admitted
+        ? sha(Buffer.from('sam31-build-deterministic-probe-output'))
+        : '0'.repeat(64),
+      deterministicOutputDigestMatchedEveryRun: admitted,
+      cpuOnlyModelExecutionObserved: false,
+      quantizationOrResolutionReductionUsed: false,
+      providerInferenceExecuted: false,
+    },
+    qualifiedAt: '2026-08-03T12:45:00.000Z',
+  }
+  return compileCanonicalSam31SourceCheckpointQualification({
+    candidate,
+    ingestReceipt,
+    observation,
+  })
+}
+
 async function createSyntheticIngest() {
   const sourceBytes = Buffer.from('synthetic SAM 3.1 source')
   const checkpointBytes = Buffer.from('synthetic SAM 3.1 checkpoint')
@@ -830,6 +974,7 @@ function canonicalizeBuildAuthority(
     authority: {
       privateArtifactBindingReread: boolean
       privateCapsuleReread: boolean
+      sourceCheckpointQualificationReread: boolean
       cloudImageBuildAuthorized: boolean
     }
     authorityHash?: string
@@ -839,6 +984,7 @@ function canonicalizeBuildAuthority(
   clone.status = 'authorized_for_private_cloud_build'
   clone.authority.privateArtifactBindingReread = true
   clone.authority.privateCapsuleReread = true
+  clone.authority.sourceCheckpointQualificationReread = true
   clone.authority.cloudImageBuildAuthorized = true
   return assertCanonicalSam31CloudImageBuildAuthority({
     ...clone,
@@ -956,7 +1102,10 @@ function createStatePort() {
   return { port, consumed, submissions, terminals }
 }
 
-function createCapsuleFiles(bindingFileBytes: Buffer): Array<
+function createCapsuleFiles(
+  bindingFileBytes: Buffer,
+  qualificationFileBytes: Buffer,
+): Array<
   readonly [string, Buffer]
 > {
   const repositoryFile = (path: string): readonly [string, Buffer] => [
@@ -1005,7 +1154,7 @@ function createCapsuleFiles(bindingFileBytes: Buffer): Array<
     ],
     [
       'sam31_private_build_input/release-receipts/source-checkpoint-compatibility-receipt.json',
-      Buffer.from('{"fixture":"source-checkpoint-compatibility"}'),
+      qualificationFileBytes,
     ],
     [
       'sam31_private_build_input/source/sam3-96914d2425f90a64f45ca977c2b5165418099543-reeditpro-gpu-decode.tar',

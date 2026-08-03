@@ -273,6 +273,13 @@ function createAuthority() {
       schemaVersion: CANONICAL_SAM3_1_PRIVATE_ARTIFACT_INGEST_VERSION,
       contentHash: `sha256:${'3'.repeat(64)}` as const,
     },
+    sourceCheckpointQualificationRef: {
+      id: 'sam31-source-checkpoint-runtime-smoke',
+      version: 1 as const,
+      schemaVersion:
+        'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1' as const,
+      contentHash: `sha256:${'0'.repeat(64)}` as const,
+    },
     artifactBindingRef: ref('sam31-build-binding-runtime-smoke', '4'.repeat(64)),
     capsuleManifestRef: ref('sam31-capsule-manifest-runtime-smoke', '5'.repeat(64)),
     capsuleCoordinate: {
@@ -309,6 +316,7 @@ function createAuthority() {
       patchApplicationReceiptSha256: 'c'.repeat(64),
       artifactBuildBindingRecordHash: '4'.repeat(64),
       artifactBuildBindingFileSha256: 'd'.repeat(64),
+      sourceCheckpointQualificationRecordHash: '0'.repeat(64),
       sourceCheckpointCompatibilityReceiptSha256: 'e'.repeat(64),
       cudaForwardCompatIngestReceiptSha256: 'f'.repeat(64),
     },
@@ -337,6 +345,7 @@ function createAuthority() {
     authority: {
       privateArtifactBindingReread: true,
       privateCapsuleReread: true,
+      sourceCheckpointQualificationReread: true,
       cloudImageBuildAuthorized: true,
       durableSingleUseConsumptionRequiredBeforeCloudCall: true as const,
       browserOrCallerMaySubmitBuild: false as const,

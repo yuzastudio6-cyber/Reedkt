@@ -942,10 +942,22 @@ def validate_model_artifacts(value: Any) -> None:
         "privateArtifactIngestReceiptRef",
         "sourceArchiveRef",
         "checkpointRef",
-        "sourceCheckpointCompatibilityQualificationRef",
         "immutableImageReleaseRef",
     ):
         exact_ref(artifacts[key], f"model {key}")
+    compatibility_ref = exact_keys(
+        artifacts["sourceCheckpointCompatibilityQualificationRef"],
+        {"id", "version", "schemaVersion", "contentHash"},
+        "model source checkpoint qualification ref",
+    )
+    exact_ref(
+        {
+            "id": compatibility_ref["id"],
+            "version": compatibility_ref["version"],
+            "contentHash": compatibility_ref["contentHash"],
+        },
+        "model source checkpoint qualification ref",
+    )
     if (
         artifacts["sourceRevision"] != SOURCE_REVISION
         or artifacts["sourceArchiveByteLength"] != SOURCE_ARCHIVE_BYTE_LENGTH
@@ -959,6 +971,9 @@ def validate_model_artifacts(value: Any) -> None:
         != f"sha256:{artifacts['checkpointSha256']}"
         or artifacts["immutableImageReleaseRef"]["contentHash"]
         != artifacts["immutableImageDigest"]
+        or compatibility_ref["version"] != 1
+        or compatibility_ref["schemaVersion"]
+        != "canonical-sam3_1-source-checkpoint-compatibility-qualification-v1"
         or artifacts["humanTermsAcceptanceAndLegalReviewReread"] is not True
         or artifacts["sourceAndCheckpointMalwareScanReread"] is not True
         or artifacts["runtimeDownloadAllowed"] is not False
@@ -1039,8 +1054,73 @@ def read_closed_receipt(path: Path, expected_hash: str) -> dict[str, Any]:
     )
     if contents is None:
         raise ValueError("baked release receipt is missing")
-    value = json.loads(contents.decode("utf-8"))
-    if sha256_bytes(stable_json_bytes(value)) != expected_hash:
+    value = exact_keys(
+        json.loads(contents.decode("utf-8")),
+        {
+            "schemaVersion",
+            "source",
+            "evidenceClass",
+            "status",
+            "qualificationId",
+            "qualificationVersion",
+            "operationId",
+            "candidateRef",
+            "officialArtifactPublicationRef",
+            "ingestReceiptRef",
+            "termsAcceptanceRef",
+            "sourceArchive",
+            "checkpoint",
+            "controlledObservation",
+            "authority",
+            "qualifiedAt",
+            "qualificationHash",
+        },
+        "source checkpoint qualification receipt",
+    )
+    qualification_hash = exact_raw_sha(
+        value["qualificationHash"], "source checkpoint qualification hash"
+    )
+    payload = dict(value)
+    del payload["qualificationHash"]
+    authority = exact_keys(
+        value["authority"],
+        {
+            "qualificationEvidenceOnly",
+            "securityLicenseAndCompatibilityQualified",
+            "privateImageBuildReviewEligible",
+            "imageBuildStarted",
+            "runtimeDispatchAuthorized",
+            "customerCreditsMutated",
+            "customerBillingAuthorityGranted",
+            "qaApproved",
+            "publicDeliveryAuthorized",
+            "productionReady",
+        },
+        "source checkpoint qualification authority",
+    )
+    if (
+        value["schemaVersion"]
+        != "canonical-sam3_1-source-checkpoint-compatibility-qualification-v1"
+        or value["source"]
+        != "canonical_sam3_1_source_checkpoint_qualification_owner"
+        or value["evidenceClass"] != "canonical_private_reread"
+        or value["status"] != "qualified_for_private_image_build"
+        or value["operationId"] != OPERATION_ID
+        or authority != {
+            "qualificationEvidenceOnly": True,
+            "securityLicenseAndCompatibilityQualified": True,
+            "privateImageBuildReviewEligible": True,
+            "imageBuildStarted": False,
+            "runtimeDispatchAuthorized": False,
+            "customerCreditsMutated": False,
+            "customerBillingAuthorityGranted": False,
+            "qaApproved": False,
+            "publicDeliveryAuthorized": False,
+            "productionReady": False,
+        }
+        or sha256_bytes(stable_json_bytes(payload)) != qualification_hash
+        or qualification_hash != expected_hash
+    ):
         raise ValueError("baked release receipt digest changed")
     return value
 
@@ -1048,6 +1128,7 @@ def read_closed_receipt(path: Path, expected_hash: str) -> dict[str, Any]:
 def read_artifact_build_binding(
     path: Path,
     expected_ingest_receipt_hash: str,
+    expected_qualification_hash: str,
 ) -> dict[str, Any]:
     _byte_length, _digest, contents = read_bounded_regular_file(
         path,
@@ -1066,6 +1147,7 @@ def read_artifact_build_binding(
             "operationId",
             "candidateRef",
             "ingestReceiptRef",
+            "sourceCheckpointQualificationRef",
             "termsAcceptanceRef",
             "sourceArchive",
             "checkpoint",
@@ -1093,9 +1175,22 @@ def read_artifact_build_binding(
         },
         "artifact ingest receipt ref",
     )
+    qualification_ref = exact_keys(
+        value["sourceCheckpointQualificationRef"],
+        {"id", "version", "schemaVersion", "contentHash"},
+        "source checkpoint qualification ref",
+    )
+    exact_ref(
+        {
+            "id": qualification_ref["id"],
+            "version": qualification_ref["version"],
+            "contentHash": qualification_ref["contentHash"],
+        },
+        "source checkpoint qualification ref",
+    )
     if (
         value["schemaVersion"]
-        != "canonical-sam3_1-image-build-artifact-binding-v1"
+        != "canonical-sam3_1-image-build-artifact-binding-v2"
         or value["source"] != "canonical_sam3_1_image_build_artifact_owner"
         or value["evidenceClass"] != "canonical_private_reread"
         or value["status"] != "private_artifacts_admitted"
@@ -1104,6 +1199,10 @@ def read_artifact_build_binding(
         != "canonical-sam3_1-private-artifact-ingest-receipt-v3"
         or ingest_ref["contentHash"]
         != f"sha256:{expected_ingest_receipt_hash}"
+        or qualification_ref["schemaVersion"]
+        != "canonical-sam3_1-source-checkpoint-compatibility-qualification-v1"
+        or qualification_ref["contentHash"]
+        != f"sha256:{expected_qualification_hash}"
     ):
         raise ValueError("artifact build binding identity changed")
     checkpoint = exact_keys(
@@ -1141,6 +1240,7 @@ def read_artifact_build_binding(
         {
             "sanitizedBuildBindingOnly",
             "privateArtifactIngestReread",
+            "sourceCheckpointQualificationReread",
             "imageBuildAuthorized",
             "imageBuildStarted",
             "runtimeAuthorized",
@@ -1167,6 +1267,7 @@ def read_artifact_build_binding(
         or authority != {
             "sanitizedBuildBindingOnly": True,
             "privateArtifactIngestReread": True,
+            "sourceCheckpointQualificationReread": True,
             "imageBuildAuthorized": False,
             "imageBuildStarted": False,
             "runtimeAuthorized": False,
@@ -1538,6 +1639,7 @@ def execute_inside_bfloat16_autocast(
     read_artifact_build_binding(
         ARTIFACT_BUILD_BINDING_PATH,
         ingest_receipt_hash,
+        compatibility_hash,
     )
     read_closed_receipt(COMPATIBILITY_RECEIPT_PATH, compatibility_hash)
 

@@ -15,14 +15,20 @@ import {
   assertCanonicalSam31SourceRuntimeCandidate,
   type CanonicalSam31SourceRuntimeCandidate,
 } from './canonical-sam3_1-source-runtime-candidate'
+import {
+  CANONICAL_SAM3_1_SOURCE_CHECKPOINT_QUALIFICATION_VERSION,
+  assertCanonicalSam31SourceCheckpointQualification,
+  canonicalSam31SourceCheckpointQualificationRef,
+  type CanonicalSam31SourceCheckpointQualification,
+} from './canonical-sam3_1-source-checkpoint-qualification'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_IMAGE_BUILD_ARTIFACT_BINDING_VERSION =
-  'canonical-sam3_1-image-build-artifact-binding-v1' as const
+  'canonical-sam3_1-image-build-artifact-binding-v2' as const
 export const CANONICAL_SAM3_1_PRIVATE_IMAGE_BUILD_CAPSULE_MANIFEST_VERSION =
-  'canonical-sam3_1-private-image-build-capsule-manifest-v1' as const
+  'canonical-sam3_1-private-image-build-capsule-manifest-v2' as const
 export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION =
-  'canonical-sam3_1-cloud-image-build-authority-v1' as const
+  'canonical-sam3_1-cloud-image-build-authority-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const REGION = 'us-central1' as const
@@ -97,6 +103,14 @@ const artifactBindingWithoutHashSchema = z.object({
     ),
     contentHash: prefixedSha256,
   }).strict(),
+  sourceCheckpointQualificationRef: z.object({
+    id: safeId,
+    version: z.literal(1),
+    schemaVersion: z.literal(
+      CANONICAL_SAM3_1_SOURCE_CHECKPOINT_QUALIFICATION_VERSION,
+    ),
+    contentHash: prefixedSha256,
+  }).strict(),
   termsAcceptanceRef: evidenceRefSchema,
   sourceArchive: z.object({
     repository: z.literal('https://github.com/facebookresearch/sam3.git'),
@@ -133,6 +147,7 @@ const artifactBindingWithoutHashSchema = z.object({
   authority: z.object({
     sanitizedBuildBindingOnly: z.literal(true),
     privateArtifactIngestReread: z.boolean(),
+    sourceCheckpointQualificationReread: z.boolean(),
     imageBuildAuthorized: z.literal(false),
     imageBuildStarted: z.literal(false),
     runtimeAuthorized: z.literal(false),
@@ -146,6 +161,7 @@ const artifactBindingWithoutHashSchema = z.object({
     canonical
       ? value.status !== 'private_artifacts_admitted'
         || !value.authority.privateArtifactIngestReread
+        || !value.authority.sourceCheckpointQualificationReread
         || value.sourceArchive.byteLength !== 73_605_120
         || value.sourceArchive.sha256 !==
           '5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a'
@@ -153,6 +169,7 @@ const artifactBindingWithoutHashSchema = z.object({
         || value.checkpoint.byteLength > 5_000_000_000
       : value.status !== 'contract_only'
         || value.authority.privateArtifactIngestReread
+        || value.authority.sourceCheckpointQualificationReread
   ) context.addIssue({
     code: 'custom',
     message: 'SAM 3.1 build binding lost canonical artifact admission.',
@@ -219,6 +236,7 @@ const capsuleManifestWithoutHashSchema = z.object({
     cudaForwardCompatIngestReceiptSha256: sha256,
     artifactBuildBindingRecordHash: sha256,
     artifactBuildBindingFileSha256: sha256,
+    sourceCheckpointQualificationRecordHash: sha256,
     sourceCheckpointCompatibilityReceiptSha256: sha256,
   }).strict(),
   capsule: z.object({
@@ -305,6 +323,14 @@ const buildAuthorityWithoutHashSchema = z.object({
     ),
     contentHash: prefixedSha256,
   }).strict(),
+  sourceCheckpointQualificationRef: z.object({
+    id: safeId,
+    version: z.literal(1),
+    schemaVersion: z.literal(
+      CANONICAL_SAM3_1_SOURCE_CHECKPOINT_QUALIFICATION_VERSION,
+    ),
+    contentHash: prefixedSha256,
+  }).strict(),
   artifactBindingRef: evidenceRefSchema,
   capsuleManifestRef: evidenceRefSchema,
   capsuleCoordinate: privateObjectCoordinateSchema,
@@ -330,6 +356,7 @@ const buildAuthorityWithoutHashSchema = z.object({
     patchApplicationReceiptSha256: sha256,
     artifactBuildBindingRecordHash: sha256,
     artifactBuildBindingFileSha256: sha256,
+    sourceCheckpointQualificationRecordHash: sha256,
     sourceCheckpointCompatibilityReceiptSha256: sha256,
     cudaForwardCompatIngestReceiptSha256: sha256,
   }).strict(),
@@ -363,6 +390,7 @@ const buildAuthorityWithoutHashSchema = z.object({
   authority: z.object({
     privateArtifactBindingReread: z.boolean(),
     privateCapsuleReread: z.boolean(),
+    sourceCheckpointQualificationReread: z.boolean(),
     cloudImageBuildAuthorized: z.boolean(),
     durableSingleUseConsumptionRequiredBeforeCloudCall: z.literal(true),
     browserOrCallerMaySubmitBuild: z.literal(false),
@@ -385,10 +413,15 @@ const buildAuthorityWithoutHashSchema = z.object({
       `${IMAGE_REPOSITORY}/${IMAGE_NAME}:${expectedTag}`
     || value.buildClosure.artifactBuildBindingRecordHash !==
       value.artifactBindingRef.contentHash.slice('sha256:'.length)
+    || value.buildClosure.sourceCheckpointQualificationRecordHash !==
+      value.sourceCheckpointQualificationRef.contentHash.slice(
+        'sha256:'.length,
+      )
     || (canonical
       ? value.status !== 'authorized_for_private_cloud_build'
         || !value.authority.privateArtifactBindingReread
         || !value.authority.privateCapsuleReread
+        || !value.authority.sourceCheckpointQualificationReread
         || !value.authority.cloudImageBuildAuthorized
       : value.status !== 'contract_only'
         || value.authority.cloudImageBuildAuthorized)
@@ -420,15 +453,29 @@ export interface CanonicalSam31PrivateBuildCapsuleReadPort {
 export function createCanonicalSam31ImageBuildArtifactBinding(input: {
   readonly candidate: CanonicalSam31SourceRuntimeCandidate
   readonly ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt
+  readonly sourceCheckpointQualification:
+    CanonicalSam31SourceCheckpointQualification
 }): CanonicalSam31ImageBuildArtifactBinding {
   const candidate = assertCanonicalSam31SourceRuntimeCandidate(input.candidate)
   const ingest = assertCanonicalSam31PrivateArtifactIngestReceipt(
     input.ingestReceipt,
   )
+  const qualification = assertCanonicalSam31SourceCheckpointQualification(
+    input.sourceCheckpointQualification,
+  )
   if (
     ingest.candidateRef.schemaVersion !== candidate.schemaVersion
     || ingest.candidateRef.candidateHash !== candidate.candidateHash
     || ingest.operationId !== candidate.operationId
+    || qualification.candidateRef.candidateHash !== candidate.candidateHash
+    || qualification.ingestReceiptRef.contentHash !==
+      `sha256:${ingest.ingestReceiptHash}`
+    || qualification.evidenceClass !== ingest.evidenceClass
+    || (ingest.evidenceClass === 'canonical_private_reread'
+      && (qualification.status !== 'qualified_for_private_image_build'
+        || !qualification.authority
+          .securityLicenseAndCompatibilityQualified
+        || !qualification.authority.privateImageBuildReviewEligible))
   ) throw new Error('SAM 3.1 build binding crossed candidate or ingest.')
   const canonical = ingest.evidenceClass === 'canonical_private_reread'
   const payload = artifactBindingWithoutHashSchema.parse({
@@ -444,6 +491,8 @@ export function createCanonicalSam31ImageBuildArtifactBinding(input: {
       schemaVersion: ingest.schemaVersion,
       contentHash: `sha256:${ingest.ingestReceiptHash}`,
     },
+    sourceCheckpointQualificationRef:
+      canonicalSam31SourceCheckpointQualificationRef(qualification),
     termsAcceptanceRef: ingest.termsAcceptanceRef,
     sourceArchive: {
       repository: ingest.sourceArchive.repository,
@@ -480,6 +529,7 @@ export function createCanonicalSam31ImageBuildArtifactBinding(input: {
     authority: {
       sanitizedBuildBindingOnly: true,
       privateArtifactIngestReread: canonical,
+      sourceCheckpointQualificationReread: canonical,
       imageBuildAuthorized: false,
       imageBuildStarted: false,
       runtimeAuthorized: false,
@@ -517,6 +567,8 @@ export async function prepareCanonicalSam31CloudImageBuildAuthority(input: {
   readonly authorityId: string
   readonly candidate: CanonicalSam31SourceRuntimeCandidate
   readonly ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt
+  readonly sourceCheckpointQualification:
+    CanonicalSam31SourceCheckpointQualification
   readonly artifactBinding: CanonicalSam31ImageBuildArtifactBinding
   readonly capsuleManifest: CanonicalSam31PrivateImageBuildCapsuleManifest
   readonly privateCapsuleReadPort: CanonicalSam31PrivateBuildCapsuleReadPort
@@ -526,13 +578,22 @@ export async function prepareCanonicalSam31CloudImageBuildAuthority(input: {
   const ingest = assertCanonicalSam31PrivateArtifactIngestReceipt(
     input.ingestReceipt,
   )
+  const qualification = assertCanonicalSam31SourceCheckpointQualification(
+    input.sourceCheckpointQualification,
+  )
   const binding = assertCanonicalSam31ImageBuildArtifactBinding(
     input.artifactBinding,
   )
   const capsule = assertCanonicalSam31PrivateImageBuildCapsuleManifest(
     input.capsuleManifest,
   )
-  assertMatchingBuildInputs({ candidate, ingest, binding, capsule })
+  assertMatchingBuildInputs({
+    candidate,
+    ingest,
+    qualification,
+    binding,
+    capsule,
+  })
   const canonical = ingest.evidenceClass === 'canonical_private_reread'
   const capsuleInspection = await verifyExactPrivateCapsule(
     capsule.capsule.coordinate,
@@ -559,6 +620,8 @@ export async function prepareCanonicalSam31CloudImageBuildAuthority(input: {
     operationId: candidate.operationId,
     candidateRef: ingest.candidateRef,
     ingestReceiptRef: binding.ingestReceiptRef,
+    sourceCheckpointQualificationRef:
+      binding.sourceCheckpointQualificationRef,
     artifactBindingRef: {
       id: `sam31-build-binding-${binding.bindingHash.slice(0, 24)}`,
       version: 1,
@@ -595,6 +658,8 @@ export async function prepareCanonicalSam31CloudImageBuildAuthority(input: {
         capsule.privateInput.artifactBuildBindingRecordHash,
       artifactBuildBindingFileSha256:
         capsule.privateInput.artifactBuildBindingFileSha256,
+      sourceCheckpointQualificationRecordHash:
+        capsule.privateInput.sourceCheckpointQualificationRecordHash,
       sourceCheckpointCompatibilityReceiptSha256:
         capsule.privateInput.sourceCheckpointCompatibilityReceiptSha256,
       cudaForwardCompatIngestReceiptSha256:
@@ -625,6 +690,7 @@ export async function prepareCanonicalSam31CloudImageBuildAuthority(input: {
     authority: {
       privateArtifactBindingReread: canonical,
       privateCapsuleReread: canonical,
+      sourceCheckpointQualificationReread: canonical,
       cloudImageBuildAuthorized: canonical,
       durableSingleUseConsumptionRequiredBeforeCloudCall: true,
       browserOrCallerMaySubmitBuild: false,
@@ -686,20 +752,31 @@ export function assertCanonicalSam31CloudImageBuildAuthority(
 function assertMatchingBuildInputs(input: {
   candidate: CanonicalSam31SourceRuntimeCandidate
   ingest: CanonicalSam31PrivateArtifactIngestReceipt
+  qualification: CanonicalSam31SourceCheckpointQualification
   binding: CanonicalSam31ImageBuildArtifactBinding
   capsule: CanonicalSam31PrivateImageBuildCapsuleManifest
 }): void {
-  const { candidate, ingest, binding, capsule } = input
+  const { candidate, ingest, qualification, binding, capsule } = input
+  const qualificationRef = canonicalSam31SourceCheckpointQualificationRef(
+    qualification,
+  )
   if (
     ingest.candidateRef.candidateHash !== candidate.candidateHash
     || binding.candidateRef.candidateHash !== candidate.candidateHash
     || capsule.candidateRef.candidateHash !== candidate.candidateHash
     || binding.ingestReceiptRef.contentHash !==
       `sha256:${ingest.ingestReceiptHash}`
+    || binding.sourceCheckpointQualificationRef.contentHash !==
+      qualificationRef.contentHash
+    || capsule.privateInput.sourceCheckpointQualificationRecordHash !==
+      qualification.qualificationHash
+    || capsule.privateInput.sourceCheckpointCompatibilityReceiptSha256 !==
+      sha256AuthorityValue(qualification)
     || capsule.artifactBindingRef.contentHash !==
       `sha256:${binding.bindingHash}`
     || capsule.evidenceClass !== ingest.evidenceClass
     || binding.evidenceClass !== ingest.evidenceClass
+    || qualification.evidenceClass !== ingest.evidenceClass
   ) throw new Error('SAM 3.1 cloud build inputs crossed authority.')
 }
 

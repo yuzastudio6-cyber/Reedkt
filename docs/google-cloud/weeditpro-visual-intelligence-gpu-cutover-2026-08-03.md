@@ -70,6 +70,19 @@ fresh dispatch authority and preserve prior audit evidence.
   official-publication receipt ref. Security/malware scan, license approval,
   strict source/checkpoint compatibility, image build, GPU runtime, credits,
   and production all remain false after publication.
+- `canonical-sam3_1-source-checkpoint-compatibility-qualification-v1` is now
+  the mandatory gate before private image-build eligibility. Canonical
+  evidence must come from a dedicated network-none A100 80 GB qualification
+  attempt and bind the exact source, patch, dependency closure, gated
+  checkpoint, terms, license/privacy/trade reviews, source/checkpoint scans,
+  weights-only inspection, zero-missing/zero-unexpected strict key load, real
+  CUDA/bfloat16 probe output, and at least three identical deterministic probe
+  runs. Contract fixtures cannot grant build authority.
+- Image-build binding/capsule/authority have advanced to v2. The qualification
+  record hash and serialized receipt hash are independently bound into the
+  offline capsule and build arguments; the fixed runner revalidates the baked
+  receipt against the exact versioned runtime-release ref. This gate still
+  authorizes neither a cloud build nor a customer GPU attempt by itself.
 - The guarded operator command is
   `npm run publish:sam3_1-official-artifacts`. It refuses developer-machine
   execution and requires the exact dedicated job identity, an explicit

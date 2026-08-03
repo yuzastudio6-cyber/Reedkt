@@ -10,6 +10,11 @@ import {
   createCanonicalSam31SourceRuntimeCandidate,
 } from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 import {
+  canonicalSam31SourceCheckpointQualificationRef,
+  compileCanonicalSam31SourceCheckpointQualification,
+  type CanonicalSam31SourceCheckpointQualificationObservation,
+} from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification'
+import {
   assertCanonicalSam31GpuRuntimeReleaseObservation,
   compileCanonicalSam31GpuRuntimeRelease,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-release'
@@ -96,6 +101,12 @@ const ingest = await prepareCanonicalSam31PrivateArtifactIngestReceipt({
   privateObjectReadPort: readPort,
   preparedAt: '2026-08-02T13:05:00.000Z',
 })
+const sourceCheckpointQualification =
+  compileCanonicalSam31SourceCheckpointQualification({
+    candidate,
+    ingestReceipt: ingest,
+    observation: qualificationObservation(),
+  })
 
 const releaseInput = {
   evidenceClass: 'synthetic_contract_fixture' as const,
@@ -124,7 +135,9 @@ const releaseInput = {
     ref('sam31-a100-private-transport'),
   qualification: {
     sourceCheckpointCompatibilityQualificationRef:
-      ref('sam31-a100-source-checkpoint-qualification'),
+      canonicalSam31SourceCheckpointQualificationRef(
+        sourceCheckpointQualification,
+      ),
     cudaDriverRuntimeQualificationRef:
       ref('sam31-a100-cuda-qualification'),
     observedNvidiaDriverVersion: '570.211.01',
@@ -167,6 +180,7 @@ const releaseInput = {
 const a100 = compileCanonicalSam31GpuRuntimeRelease({
   candidate,
   ingestReceipt: ingest,
+  sourceCheckpointQualification,
   release: releaseInput,
 })
 assert.equal(a100.observation.status, 'contract_only')
@@ -192,6 +206,7 @@ assert.equal(
 const l4 = compileCanonicalSam31GpuRuntimeRelease({
   candidate,
   ingestReceipt: ingest,
+  sourceCheckpointQualification,
   release: {
     ...releaseInput,
     releaseId: 'sam31-l4-release-contract-fixture',
@@ -234,6 +249,7 @@ assert.notEqual(l4.runtimeRelease.releaseHash, a100.runtimeRelease.releaseHash)
 assert.throws(() => compileCanonicalSam31GpuRuntimeRelease({
   candidate,
   ingestReceipt: ingest,
+  sourceCheckpointQualification,
   release: {
     ...releaseInput,
     evidenceClass: 'canonical_private_reread',
@@ -242,6 +258,7 @@ assert.throws(() => compileCanonicalSam31GpuRuntimeRelease({
 assert.throws(() => compileCanonicalSam31GpuRuntimeRelease({
   candidate,
   ingestReceipt: ingest,
+  sourceCheckpointQualification,
   release: {
     ...releaseInput,
     qualification: {
@@ -253,6 +270,7 @@ assert.throws(() => compileCanonicalSam31GpuRuntimeRelease({
 assert.throws(() => compileCanonicalSam31GpuRuntimeRelease({
   candidate,
   ingestReceipt: ingest,
+  sourceCheckpointQualification,
   release: {
     ...releaseInput,
     qualification: {
@@ -264,6 +282,7 @@ assert.throws(() => compileCanonicalSam31GpuRuntimeRelease({
 assert.throws(() => compileCanonicalSam31GpuRuntimeRelease({
   candidate,
   ingestReceipt: ingest,
+  sourceCheckpointQualification,
   release: {
     ...releaseInput,
     immutableImageDigest: ref('different-image').contentHash,
@@ -284,6 +303,112 @@ console.log(JSON.stringify({
   runtimeExecuted: false,
   productionQualified: false,
 }))
+
+function qualificationObservation():
+CanonicalSam31SourceCheckpointQualificationObservation {
+  return {
+    evidenceClass: 'synthetic_contract_fixture',
+    qualificationId: 'sam31-runtime-release-source-checkpoint-contract',
+    qualificationVersion: 1,
+    qualificationJobRef: ref('sam31-runtime-release-qualification-job'),
+    qualificationAttemptRef:
+      ref('sam31-runtime-release-qualification-attempt'),
+    qualificationResultRuntimeRef:
+      ref('sam31-runtime-release-qualification-result'),
+    qualificationLogRef: ref('sam31-runtime-release-qualification-log'),
+    internalCostReceiptRef:
+      ref('sam31-runtime-release-qualification-cost'),
+    dependencyClosureRef:
+      ref('sam31-runtime-release-dependency-closure'),
+    dependencyLockSha256: digest('sam31-runtime-release-lock'),
+    dependencyClosureReceiptSha256:
+      digest('sam31-runtime-release-dependency-receipt'),
+    dependencyWheelManifestSha256:
+      digest('sam31-runtime-release-wheel-manifest'),
+    patchApplicationReceiptRef:
+      ref('sam31-runtime-release-patch-receipt'),
+    patchedSourceArchiveRef: {
+      id: 'sam31-runtime-release-patched-source',
+      version: 1,
+      contentHash:
+        'sha256:b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb',
+    },
+    patchedSourceArchiveSha256:
+      'b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb',
+    sourceCodeSecurityReviewRef:
+      ref('sam31-runtime-release-source-security'),
+    checkpointWeightsOnlyInspectionRef:
+      ref('sam31-runtime-release-weights-only'),
+    deterministicProbeFixtureRef:
+      ref('sam31-runtime-release-probe-fixture'),
+    deterministicProbeResultRef:
+      ref('sam31-runtime-release-probe-result'),
+    securityAndCompliance: {
+      sourceLicenseReviewedForApprovedUse: false,
+      checkpointLicenseReviewedForApprovedUse: false,
+      privacyReviewApprovedForPrivateQualification: false,
+      tradeControlsReviewApprovedForPrivateQualification: false,
+      sourceMalwareScanPassed: false,
+      checkpointMalwareScanPassed: false,
+      sourceStaticSecurityReviewPassed: false,
+      checkpointWeightsOnlyLoadPassed: false,
+      checkpointTensorAndMetadataAllowlistPassed: false,
+      executablePickleTrustGranted: false,
+      checkpointRedistributionAuthorized: false,
+    },
+    qualificationRuntime: {
+      executionTarget: 'google_cloud_batch_a2_ultra_job',
+      machineType: 'a2-ultragpu-1g',
+      accelerator: 'nvidia_a100_80gb',
+      allocatedGpuCount: 1,
+      baseImageDigest:
+        'sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca',
+      pythonVersion: '3.12',
+      torchVersion: '2.10.0',
+      torchvisionVersion: '0.25.0',
+      torchcodecVersion: '0.10.0',
+      cudaVersion: '12.8',
+      fixedBuilder: 'build_sam3_multiplex_video_predictor',
+      networkEgressAllowed: false,
+      developerMachineExecutionAllowed: false,
+      callerCommandModuleClassModelOrCheckpointAccepted: false,
+      sourceCheckpointAndDependencyMountsReadOnly: true,
+      automaticRetryAfterUnknownOutcomeAllowed: false,
+    },
+    compatibilityProbe: {
+      exactSourceArchiveReread: false,
+      exactPatchedSourceArchiveReread: false,
+      exactCheckpointRereadBeforeAndAfter: false,
+      exactDependencyWheelAndNativeClosureReread: false,
+      sourcePatchApplicationReceiptReread: false,
+      weightsOnlyCheckpointInspectionExecuted: false,
+      fixedBuilderImportedFromPinnedSource: false,
+      fixedBuilderCalledExactlyOnce: false,
+      checkpointLoadedExactlyOnce: false,
+      strictCheckpointLoadRequested: false,
+      missingCheckpointKeyCount: 0,
+      unexpectedCheckpointKeyCount: 0,
+      checkpointKeyCount: 0,
+      modelStateKeyCount: 0,
+      checkpointKeySetSha256: '0'.repeat(64),
+      modelStateKeySetSha256: '0'.repeat(64),
+      checkpointAndModelKeySetsExact: false,
+      startSessionAddPromptPropagateAndCloseExecuted: false,
+      actualCudaModelInferenceExecuted: false,
+      bfloat16AutocastExecuted: false,
+      outputMaskShapeMatchedProbeFrames: false,
+      outputObjectIdsMatchedProbePrompt: false,
+      outputMasksWereCudaTensorsBeforeSerialization: false,
+      deterministicRepeatedProbeRunCount: 0,
+      deterministicOutputDigestSha256: '0'.repeat(64),
+      deterministicOutputDigestMatchedEveryRun: false,
+      cpuOnlyModelExecutionObserved: false,
+      quantizationOrResolutionReductionUsed: false,
+      providerInferenceExecuted: false,
+    },
+    qualifiedAt: '2026-08-02T13:07:00.000Z',
+  }
+}
 
 function coordinate(objectName: string, generation: string, body: Buffer) {
   return {

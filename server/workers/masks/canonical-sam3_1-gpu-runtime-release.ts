@@ -22,6 +22,11 @@ import {
   type CanonicalSam31CloudImageSupplyChainRelease,
 } from '../../model-artifacts/canonical-sam3_1-cloud-image-supply-chain-release'
 import {
+  assertCanonicalSam31SourceCheckpointQualification,
+  canonicalSam31SourceCheckpointQualificationRef,
+  type CanonicalSam31SourceCheckpointQualification,
+} from '../../model-artifacts/canonical-sam3_1-source-checkpoint-qualification'
+import {
   sha256AuthorityValue,
 } from '../../services/private-edit-authority-store'
 
@@ -85,7 +90,12 @@ const routeSchema = z.object({
 })
 
 const qualificationSchema = z.object({
-  sourceCheckpointCompatibilityQualificationRef: evidenceRefSchema,
+  sourceCheckpointCompatibilityQualificationRef: evidenceRefSchema.extend({
+    version: z.literal(1),
+    schemaVersion: z.literal(
+      'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
+    ),
+  }).strict(),
   cudaDriverRuntimeQualificationRef: evidenceRefSchema,
   observedNvidiaDriverVersion: z.string().regex(
     /^[0-9]+(?:\.[0-9]+){1,3}$/u,
@@ -324,6 +334,8 @@ export type CanonicalSam31GpuRuntimeReleaseObservation = z.infer<
 export function compileCanonicalSam31GpuRuntimeRelease(input: {
   readonly candidate: CanonicalSam31SourceRuntimeCandidate
   readonly ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt
+  readonly sourceCheckpointQualification:
+    CanonicalSam31SourceCheckpointQualification
   readonly imageSupplyChainRelease?:
     CanonicalSam31CloudImageSupplyChainRelease
   readonly release: z.input<typeof releaseInputSchema>
@@ -335,6 +347,10 @@ export function compileCanonicalSam31GpuRuntimeRelease(input: {
   const ingest = assertCanonicalSam31PrivateArtifactIngestReceipt(
     input.ingestReceipt,
   )
+  const sourceCheckpointQualification =
+    assertCanonicalSam31SourceCheckpointQualification(
+      input.sourceCheckpointQualification,
+    )
   const release = releaseInputSchema.parse(input.release)
   const imageSupplyChain = input.imageSupplyChainRelease
     ? assertCanonicalSam31CloudImageSupplyChainRelease(
@@ -346,6 +362,17 @@ export function compileCanonicalSam31GpuRuntimeRelease(input: {
     || ingest.candidateRef.schemaVersion !== candidate.schemaVersion
     || ingest.operationId !== candidate.operationId
     || ingest.evidenceClass !== release.evidenceClass
+    || sourceCheckpointQualification.candidateRef.candidateHash !==
+      candidate.candidateHash
+    || sourceCheckpointQualification.ingestReceiptRef.contentHash !==
+      `sha256:${ingest.ingestReceiptHash}`
+    || sourceCheckpointQualification.evidenceClass !== release.evidenceClass
+    || !sameEvidenceRef(
+      release.qualification.sourceCheckpointCompatibilityQualificationRef,
+      canonicalSam31SourceCheckpointQualificationRef(
+        sourceCheckpointQualification,
+      ),
+    )
   ) throw new Error('SAM 3.1 candidate, ingest, and release differ.')
 
   const canonical = release.evidenceClass === 'canonical_private_reread'
@@ -358,7 +385,13 @@ export function compileCanonicalSam31GpuRuntimeRelease(input: {
     : null
   if (canonical) {
     if (
-      !imageSupplyChain
+      sourceCheckpointQualification.status !==
+        'qualified_for_private_image_build'
+      || !sourceCheckpointQualification.authority
+        .securityLicenseAndCompatibilityQualified
+      || !sourceCheckpointQualification.authority
+        .privateImageBuildReviewEligible
+      || !imageSupplyChain
       || imageSupplyChain.evidenceClass !== 'canonical_private_reread'
       || imageSupplyChain.status !== 'image_supply_chain_qualified'
       || !imageSupplyChain.authority.imageSupplyChainQualified
@@ -381,8 +414,12 @@ export function compileCanonicalSam31GpuRuntimeRelease(input: {
       )
     ) throw new Error('SAM 3.1 release lacks qualified image supply chain.')
   } else if (
-    imageSupplyChain
-    && imageSupplyChain.evidenceClass !== 'synthetic_contract_fixture'
+    sourceCheckpointQualification.status !== 'contract_only'
+    || sourceCheckpointQualification.authority
+      .securityLicenseAndCompatibilityQualified
+    || sourceCheckpointQualification.authority.privateImageBuildReviewEligible
+    || (imageSupplyChain
+      && imageSupplyChain.evidenceClass !== 'synthetic_contract_fixture')
   ) {
     throw new Error('SAM 3.1 contract fixture crossed supply-chain evidence.')
   }

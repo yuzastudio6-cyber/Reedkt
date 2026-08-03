@@ -118,8 +118,12 @@ const request = buildCanonicalSam31GpuRuntimeRequest({
     checkpointFileName: candidate.officialCheckpoint.fileName,
     checkpointByteLength: 3_500_000_000,
     checkpointSha256: checkpointSha,
-    sourceCheckpointCompatibilityQualificationRef:
-      ref('sam31-source-checkpoint-qualification-1'),
+    sourceCheckpointCompatibilityQualificationRef: {
+      ...ref('sam31-source-checkpoint-qualification-1'),
+      version: 1 as const,
+      schemaVersion:
+        'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1' as const,
+    },
     immutableImageReleaseRef: {
       id: 'sam31-image-release-1',
       version: 1,

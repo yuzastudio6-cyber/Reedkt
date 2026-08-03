@@ -93,6 +93,32 @@ Runtime rules once qualified:
   authorize new work, fallback, or repair, and its direct subprocess factory
   throws before spawning a child.
 
+## Source/checkpoint qualification boundary
+
+`canonical-sam3_1-source-checkpoint-compatibility-qualification-v1` is the
+mandatory gate between private artifact ingest and image-build eligibility.
+It can become canonical only from a dedicated, network-none A100 80 GB
+qualification attempt using the pinned base image, exact offline dependency
+closure, exact source and patch, and the exact private gated checkpoint. The
+gate requires approved source/checkpoint license, privacy, trade-control,
+static-security, malware, and weights-only inspection evidence. It then
+requires a strict checkpoint load with zero missing or unexpected keys, one
+checkpoint read, one fixed builder call, the complete session/prompt/
+propagation/close lifecycle, CUDA/bfloat16 output tensors, correct mask and
+object shapes, and the same deterministic probe digest across at least three
+runs. The receipt binds both the exact patched source artifact hash and the
+nonempty deterministic probe-output digest. CPU-only execution, network
+egress, automatic retry after an unknown
+outcome, unreviewed key rewriting, quantization, resolution reduction, or a
+developer-machine run cannot satisfy the gate.
+
+The receipt authorizes only private image-build review. It does not authorize
+Cloud Build, an A100/L4 customer job, billing, QA approval, public delivery,
+or production. The current repository contains the contract and refusal
+tests only; a canonical receipt remains absent until official gated access,
+the private artifact scans/reviews, and an A100 qualification allocation are
+available.
+
 ## Offline immutable image build boundary
 
 `Dockerfile.candidate` is built only by the canonical private Cloud Build
@@ -162,7 +188,7 @@ serialized file-byte digest are separate and both remain bound through the
 build closure.
 
 The one-writer build authority is
-`canonical-sam3_1-cloud-image-build-authority-v1`. It binds the exact capsule
+`canonical-sam3_1-cloud-image-build-authority-v2`. It binds the exact capsule
 bucket/object/generation/ETag/length/SHA-256, source commit/tree and closure
 hashes, fixed regional Cloud Build endpoint, pinned Docker builder digest,
 user-specified least-privilege image-builder identity, network-none build,

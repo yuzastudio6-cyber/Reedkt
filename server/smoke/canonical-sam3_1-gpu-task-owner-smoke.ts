@@ -774,8 +774,12 @@ function buildSpecializedRelease(input: {
     privateNetworkAndArtifactTransportRef:
       input.target.privateNetworkAndArtifactTransportRef,
     qualification: {
-      sourceCheckpointCompatibilityQualificationRef:
-        ref('sam31-source-checkpoint-compatibility'),
+      sourceCheckpointCompatibilityQualificationRef: {
+        ...ref('sam31-source-checkpoint-compatibility'),
+        version: 1 as const,
+        schemaVersion:
+          'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1' as const,
+      },
       cudaDriverRuntimeQualificationRef: ref(`${input.routeId}-cuda`),
       observedNvidiaDriverVersion: primary ? '570.211.01' : '535.216.03',
       cudaDriverLibraryMode: primary

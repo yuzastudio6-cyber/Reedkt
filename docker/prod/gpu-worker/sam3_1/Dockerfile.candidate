@@ -12,6 +12,7 @@ ARG SAM31_DEPENDENCY_LOCK_SHA256
 ARG SAM31_DEPENDENCY_CLOSURE_RECEIPT_SHA256
 ARG SAM31_PATCH_APPLICATION_RECEIPT_SHA256
 ARG SAM31_PRIVATE_ARTIFACT_BUILD_BINDING_FILE_SHA256
+ARG SAM31_SOURCE_CHECKPOINT_QUALIFICATION_HASH
 ARG SAM31_SOURCE_CHECKPOINT_COMPATIBILITY_RECEIPT_SHA256
 ARG SAM31_CUDA_FORWARD_COMPAT_INGEST_RECEIPT_SHA256
 
@@ -77,6 +78,7 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
   && test "${SAM31_DEPENDENCY_CLOSURE_RECEIPT_SHA256}" != "" \
   && test "${SAM31_PATCH_APPLICATION_RECEIPT_SHA256}" != "" \
   && test "${SAM31_PRIVATE_ARTIFACT_BUILD_BINDING_FILE_SHA256}" != "" \
+  && test "${SAM31_SOURCE_CHECKPOINT_QUALIFICATION_HASH}" != "" \
   && test "${SAM31_SOURCE_CHECKPOINT_COMPATIBILITY_RECEIPT_SHA256}" != "" \
   && test "${SAM31_CUDA_FORWARD_COMPAT_INGEST_RECEIPT_SHA256}" != "" \
   && printf '%s  %s\n' \
@@ -109,6 +111,8 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     "${SAM31_SOURCE_CHECKPOINT_COMPATIBILITY_RECEIPT_SHA256}" \
     '/opt/reeditpro/sam3_1/source-checkpoint-compatibility-receipt.json' \
     | sha256sum --check --strict \
+  && python -I -B -c \
+    "import hashlib,json; p='/opt/reeditpro/sam3_1/source-checkpoint-compatibility-receipt.json'; v=json.load(open(p,encoding='utf-8')); h=v.pop('qualificationHash'); assert h == '${SAM31_SOURCE_CHECKPOINT_QUALIFICATION_HASH}'; assert hashlib.sha256(json.dumps(v,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest() == h" \
   && printf '%s  %s\n' \
     'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893' \
     '/tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb' \

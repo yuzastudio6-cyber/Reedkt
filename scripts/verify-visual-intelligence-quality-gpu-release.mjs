@@ -28,6 +28,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-source-runtime-candidate-smoke.ts',
   'server/smoke/canonical-sam3_1-private-artifact-ingest-smoke.ts',
   'server/smoke/canonical-sam3_1-official-artifact-publication-smoke.ts',
+  'server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts',
   'server/smoke/canonical-sam3_1-cloud-image-build-smoke.ts',
   'server/smoke/canonical-sam3_1-cloud-image-build-runtime-smoke.ts',
   'server/smoke/canonical-sam3_1-cloud-image-build-operator-smoke.ts',

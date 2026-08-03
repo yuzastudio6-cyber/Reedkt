@@ -529,6 +529,7 @@ function compileCloudBuildBody(
     `SAM31_DEPENDENCY_CLOSURE_RECEIPT_SHA256=${authority.buildClosure.dependencyClosureReceiptSha256}`,
     `SAM31_PATCH_APPLICATION_RECEIPT_SHA256=${authority.buildClosure.patchApplicationReceiptSha256}`,
     `SAM31_PRIVATE_ARTIFACT_BUILD_BINDING_FILE_SHA256=${authority.buildClosure.artifactBuildBindingFileSha256}`,
+    `SAM31_SOURCE_CHECKPOINT_QUALIFICATION_HASH=${authority.buildClosure.sourceCheckpointQualificationRecordHash}`,
     `SAM31_SOURCE_CHECKPOINT_COMPATIBILITY_RECEIPT_SHA256=${authority.buildClosure.sourceCheckpointCompatibilityReceiptSha256}`,
     `SAM31_CUDA_FORWARD_COMPAT_INGEST_RECEIPT_SHA256=${authority.buildClosure.cudaForwardCompatIngestReceiptSha256}`,
   ]

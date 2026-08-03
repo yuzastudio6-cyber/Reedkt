@@ -2,6 +2,9 @@ import assert from 'node:assert/strict'
 
 import { buildProfessionalExportCreditCoverage } from '../../src/lib/professional-export-policy'
 import {
+  canonicalProfessionalToolGpuRuntimeReleaseSchema,
+} from '../edit-architecture/canonical-professional-tool-gpu-dispatch-admission'
+import {
   resolveCompleteProfessionalToolOperationSpec,
 } from '../tool-execution/core-registry-operations/core-registry-operation-specs'
 import {
@@ -27,7 +30,23 @@ import {
 import {
   createCanonicalConfirmedOutputFrameAuthority,
 } from '../services/canonical-confirmed-output-frame-authority'
-import { sha256AuthorityValue } from '../services/private-edit-authority-store'
+import {
+  admitCanonicalProfessionalGpuPlanFundedDispatch,
+  canonicalProfessionalGpuApprovedFundingObservationSchema,
+  createCanonicalProfessionalGpuAttemptStartAuthority,
+  createCanonicalProfessionalGpuPlanPricingAuthorityBundle,
+} from '../services/canonical-professional-gpu-plan-funded-dispatch-service'
+import {
+  createCanonicalProfessionalGpuPricingAuthorityStore,
+  createCanonicalProfessionalGpuPricingRepositoryRecordRef,
+} from '../services/canonical-professional-gpu-pricing-authority-store'
+import type {
+  CanonicalCreateOnlyJsonObjectPort,
+} from '../services/canonical-gcs-source-analysis-lifecycle-store'
+import {
+  sha256AuthorityValue,
+  stableAuthorityStringify,
+} from '../services/private-edit-authority-store'
 import type {
   CanonicalEstimateInput,
   CanonicalPlanComponentsInput,
@@ -323,6 +342,265 @@ assert.throws(() => assertCanonicalProfessionalGpuPlanDispatchEstimateSet(
   forgedNestedEstimate,
 ), /estimate hash/u)
 
+const approvedMaximumCredits = applied.estimate.lineItems.reduce(
+  (total, line) => total + line.estimatedCredits,
+  applied.estimate.fallbackAllowanceCredits,
+)
+const approvedSnapshotRef = ref('approved-snapshot-ffmpeg', '1')
+const userApprovalRecordRef = ref('approval-ffmpeg', '2')
+const fundedReservationRef = ref('reservation-ffmpeg', '3')
+const approvedWorkItemRef = dispatchSet.entries[0]!.approvedWorkItemRef
+const fundingPayload = {
+  schemaVersion:
+    'canonical-professional-gpu-approved-funding-observation-v1' as const,
+  source: 'canonical_edit_planning_authority_reread' as const,
+  evidenceClass: 'canonical_private_reread' as const,
+  observationId: 'ffmpeg-approved-funding-observation',
+  scope: {
+    ...ffmpegBasis.scope,
+    editPlanId: binding.publishedPlanRef.id,
+    editPlanVersion: binding.publishedPlanRef.version,
+  },
+  publishedPlanRef: binding.publishedPlanRef,
+  publishedCustomerEstimateRef: binding.publishedCustomerEstimateRef,
+  approvedSnapshotRef,
+  userApprovalRecordRef,
+  fundedReservationRef,
+  confirmedOutputFrame: {
+    outputFrameRef:
+      confirmedOutputFrameAuthority.confirmedOutputBinding
+        .confirmedOutputFrameRef,
+    outputId: confirmedOutputFrameAuthority.confirmedOutputBinding.outputId,
+    aspectRatio:
+      confirmedOutputFrameAuthority.confirmedOutputBinding.aspectRatioLabel,
+    width: confirmedOutputFrameAuthority.confirmedOutputBinding.width,
+    height: confirmedOutputFrameAuthority.confirmedOutputBinding.height,
+    fpsNumerator:
+      confirmedOutputFrameAuthority.confirmedOutputBinding.fpsNumerator,
+    fpsDenominator:
+      confirmedOutputFrameAuthority.confirmedOutputBinding.fpsDenominator,
+    confirmedByUser: true as const,
+    confirmationRecordId:
+      confirmedOutputFrameAuthority.confirmedOutputBinding
+        .confirmationRecordId,
+  },
+  masterTimingRef: ref(
+    'master-timing-plan',
+    ffmpegBasis.masterTimingDigestSha256,
+  ),
+  approvedWorkItem: {
+    workItemKey: 'ffmpeg-master',
+    approvedWorkItemRef,
+    canonicalWorkItemDigestSha256: sha256AuthorityValue(applied.workItems[0]),
+    pricingStructureDigestSha256:
+      ffmpegBasis.pricingUnits[0]!.workItemPricingStructureDigestSha256,
+    workItemType: applied.workItems[0]!.workItemType,
+    workerClass: applied.workItems[0]!.workerClass,
+    approvedToolIds: applied.workItems[0]!.approvedToolIds,
+    maximumCreditBudget: applied.workItems[0]!.maximumCreditBudget,
+    required: applied.workItems[0]!.required,
+  },
+  canonicalWorkGraphDigestSha256:
+    binding.publishedCanonicalWorkGraphDigestSha256,
+  canonicalWorkGraphPricingStructureDigestSha256:
+    ffmpegBasis.canonicalWorkGraphPricingStructureDigestSha256,
+  canonicalCustomerEstimateDigestSha256:
+    binding.publishedCustomerEstimateDigestSha256,
+  canonicalGpuEstimateLineSetDigestSha256: sha256AuthorityValue(
+    ffmpegManifest.entries.map((entry) => entry.customerEstimateLine),
+  ),
+  canonicalGpuEstimateLineCount: ffmpegManifest.entries.length,
+  approvedMaximumCredits,
+  reservationStatus: 'reserved' as const,
+  originallyReservedCredits: approvedMaximumCredits,
+  remainingReservedCredits: approvedMaximumCredits,
+  reservationExpiresAt: '2026-08-04T14:10:00.000Z',
+  immutableSnapshotAndApprovalReread: true as const,
+  exactCustomerEstimateReread: true as const,
+  exactApprovedWorkAndFrameReread: true as const,
+  activeFundedReservationReread: true as const,
+  callerApprovalEstimateOrReservationAccepted: false as const,
+  observedAt: createdAt,
+}
+const approvedFunding =
+  canonicalProfessionalGpuApprovedFundingObservationSchema.parse({
+    ...fundingPayload,
+    observationHash: sha256AuthorityValue(fundingPayload),
+  })
+const pricingRepositoryRecordRef =
+  createCanonicalProfessionalGpuPricingRepositoryRecordRef({
+    workspaceId: approvedFunding.scope.workspaceId,
+    snapshotId: approvedFunding.approvedSnapshotRef.id,
+    workItemKey: approvedFunding.approvedWorkItem.workItemKey,
+    publishedPlanRef: approvedFunding.publishedPlanRef,
+    approvedWorkItemRef: approvedFunding.approvedWorkItem.approvedWorkItemRef,
+  })
+const pricingBundle = createCanonicalProfessionalGpuPlanPricingAuthorityBundle({
+  bundleId: 'ffmpeg-plan-pricing-authority-bundle',
+  repositoryRecordRef: pricingRepositoryRecordRef,
+  pricingBasis: ffmpegBasis,
+  preapprovalManifest: ffmpegManifest,
+  publicationBinding: binding,
+  dispatchEstimateSet: dispatchSet,
+  persistedAt: createdAt,
+})
+const privatePricingObjects = new Map<string, Buffer>()
+const pricingObjectPort: CanonicalCreateOnlyJsonObjectPort = {
+  async createOnly({ objectPath, body }) {
+    const existing = privatePricingObjects.get(objectPath)
+    if (existing) {
+      if (!existing.equals(body)) {
+        throw new Error('GPU pricing create-only collision.')
+      }
+      return 'already_exists'
+    }
+    privatePricingObjects.set(objectPath, Buffer.from(body))
+    return 'created'
+  },
+  async readExact(objectPath) {
+    const body = privatePricingObjects.get(objectPath)
+    return body ? Buffer.from(body) : null
+  },
+}
+const pricingStore = createCanonicalProfessionalGpuPricingAuthorityStore({
+  objectPort: pricingObjectPort,
+})
+await pricingStore.persistPlanApprovalPricingAuthority({
+  authority: approvalPricingAuthority,
+})
+assert.equal(stableAuthorityStringify(
+  await pricingStore.rereadPublishedPlanPricingAuthority({
+    workspaceId: ffmpegBasis.scope.workspaceId,
+    editPlanId: binding.publishedPlanRef.id,
+    at: createdAt,
+  }),
+), stableAuthorityStringify(approvalPricingAuthority))
+const pricingLookup = await pricingStore.persistPricingAuthority({
+  bundle: pricingBundle,
+  approvedFunding,
+  persistedAt: createdAt,
+})
+assert.equal(pricingLookup.repositoryRecordRef.contentHash,
+  pricingRepositoryRecordRef.contentHash)
+assert.equal(stableAuthorityStringify(
+  await pricingStore.rereadPrivatePricingAuthority({
+    workspaceId: approvedFunding.scope.workspaceId,
+    snapshotId: approvedFunding.approvedSnapshotRef.id,
+    workItemKey: approvedFunding.approvedWorkItem.workItemKey,
+    at: createdAt,
+  }),
+), stableAuthorityStringify(pricingBundle))
+assert.equal(await pricingStore.rereadPrivatePricingAuthority({
+  workspaceId: approvedFunding.scope.workspaceId,
+  snapshotId: 'unknown-snapshot',
+  workItemKey: approvedFunding.approvedWorkItem.workItemKey,
+  at: createdAt,
+}), null)
+
+const attemptStart = createCanonicalProfessionalGpuAttemptStartAuthority({
+  attemptAuthorityId: 'ffmpeg-attempt-start',
+  scope: approvedFunding.scope,
+  approvedSnapshotRef,
+  approvedWorkItemRef,
+  workerLeaseRef: ref('ffmpeg-worker-lease', '4'),
+  userTriggerRecordRef: ref('ffmpeg-user-trigger', '5'),
+  executionAttemptRef: ref('ffmpeg-execution-attempt', '6'),
+  idempotencyKey: 'ffmpeg-execution-attempt-1',
+  routeId: 'l4_standard_primary',
+  triggeredAt: createdAt,
+  expiresAt: '2026-08-03T14:20:00.000Z',
+})
+assert.throws(() => createCanonicalProfessionalGpuAttemptStartAuthority({
+  attemptAuthorityId: 'unsafe-fallback-attempt',
+  scope: approvedFunding.scope,
+  approvedSnapshotRef,
+  approvedWorkItemRef,
+  workerLeaseRef: ref('fallback-worker-lease', '7'),
+  userTriggerRecordRef: ref('fallback-user-trigger', '8'),
+  executionAttemptRef: ref('fallback-execution-attempt', '9'),
+  idempotencyKey: 'unsafe-fallback-attempt-2',
+  routeId: 'l4_heavy_fallback',
+  priorPrimaryTerminalReceiptRef: ref('primary-terminal', 'a'),
+  priorPrimaryFailureClass:
+    'a100_capacity_unavailable_before_attempt_start',
+  priorPrimaryOutcomeKnownNotExecuted: false,
+  triggeredAt: createdAt,
+  expiresAt: '2026-08-03T14:20:00.000Z',
+}), /safe trigger or fallback truth/u)
+
+let runtimeReleaseReads = 0
+let dispatchRateReads = 0
+const fundedAdmission = await admitCanonicalProfessionalGpuPlanFundedDispatch({
+  fundedAdmissionId: 'ffmpeg-funded-dispatch-admission',
+  workspaceId: approvedFunding.scope.workspaceId,
+  snapshotId: approvedFunding.approvedSnapshotRef.id,
+  workItemKey: approvedFunding.approvedWorkItem.workItemKey,
+  pricingAuthorityReadPort: pricingStore,
+  approvedFundingReadPort: {
+    async rereadApprovedFunding() {
+      return structuredClone(approvedFunding)
+    },
+  },
+  attemptStartReadPort: {
+    async rereadCreateOnlyAttemptStart() {
+      return structuredClone(attemptStart)
+    },
+  },
+  runtimeContextReadPort: {
+    async rereadQualifiedRuntimeRelease() {
+      runtimeReleaseReads += 1
+      return runtimeRelease()
+    },
+    async rereadApprovedCurrentRate() {
+      dispatchRateReads += 1
+      return structuredClone(rates.l4_standard_primary)
+    },
+  },
+  admittedAt: createdAt,
+  expiresAt: '2026-08-03T14:15:00.000Z',
+})
+assert.equal(runtimeReleaseReads, 1)
+assert.equal(dispatchRateReads, 1)
+assert.equal(fundedAdmission.fullCustomerEstimateFundedBeforeDispatch, true)
+assert.equal(fundedAdmission.currentWorkCeilingStillCovered, true)
+assert.equal(fundedAdmission.authenticatedUserTriggeredScaleFromZero, true)
+assert.equal(fundedAdmission.cloudJobCreated, false)
+assert.equal(fundedAdmission.customerCreditsMutated, false)
+assert.equal(fundedAdmission.toolDispatchAdmission.routeId,
+  'l4_standard_primary')
+
+await assert.rejects(() => admitCanonicalProfessionalGpuPlanFundedDispatch({
+  fundedAdmissionId: 'hostile-funding-admission',
+  workspaceId: approvedFunding.scope.workspaceId,
+  snapshotId: approvedFunding.approvedSnapshotRef.id,
+  workItemKey: approvedFunding.approvedWorkItem.workItemKey,
+  pricingAuthorityReadPort: pricingStore,
+  approvedFundingReadPort: {
+    async rereadApprovedFunding() {
+      return new Proxy({}, {
+        ownKeys() {
+          throw new Error('hostile funding read')
+        },
+      })
+    },
+  },
+  attemptStartReadPort: {
+    async rereadCreateOnlyAttemptStart() {
+      return structuredClone(attemptStart)
+    },
+  },
+  runtimeContextReadPort: {
+    async rereadQualifiedRuntimeRelease() {
+      throw new Error('must not read runtime after hostile funding')
+    },
+    async rereadApprovedCurrentRate() {
+      throw new Error('must not read rates after hostile funding')
+    },
+  },
+  admittedAt: createdAt,
+  expiresAt: '2026-08-03T14:15:00.000Z',
+}), /cannot be inspected/u)
+
 let accessorInvoked = false
 const accessorBasis: Record<string, unknown> = {}
 Object.defineProperty(accessorBasis, 'schemaVersion', {
@@ -406,7 +684,7 @@ assert.throws(() => applyCanonicalProfessionalGpuPlanPricing({
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-gpu-plan-pricing-authority',
-  checks: 58,
+  checks: 82,
   sourceFixtureOnly: true,
   liveCloudRateRead: false,
   liveGpuRuntimeExecuted: false,
@@ -421,6 +699,11 @@ console.log(JSON.stringify({
   exactCustomerEstimateRefBinding: true,
   exactConfirmedOutputFrameAuthorityBinding: true,
   approvalPricingAuthorityRereadVerified: true,
+  createOnlyPricingAuthorityPersistenceVerified: true,
+  fundedReservationRereadBeforeDispatch: true,
+  userTriggeredAttemptAuthorityRequired: true,
+  unsafeHeavyFallbackRejected: true,
+  fundedDispatchAdmissionCreatedCloudJob: fundedAdmission.cloudJobCreated,
   missingGpuEstimateLineRejected: true,
   nestedDispatchEstimateHashVerified: true,
   hostileAccessorInvoked: accessorInvoked || approvalAccessorInvoked,
@@ -434,6 +717,8 @@ console.log(JSON.stringify({
   publicationBindingHash: binding.bindingHash,
   approvalPricingAuthorityHash: approvalPricingAuthority.authorityHash,
   dispatchEstimateSetHash: dispatchSet.estimateSetHash,
+  pricingBundleHash: pricingBundle.bundleHash,
+  fundedAdmissionHash: fundedAdmission.fundedAdmissionHash,
 }))
 
 function planningInputAuthority(): ResolvedPlanningInputAuthorityBinding {
@@ -747,6 +1032,76 @@ function usage(route: 'a100' | 'l4', activeGpuMilliseconds: number) {
     classAOperationCount: 4,
     classBOperationCount: 8,
   }
+}
+
+function runtimeRelease() {
+  const exactToolOrModelReleaseRef =
+    ffmpegBasis.pricingUnits[0]!.exactToolOrModelReleaseRef
+  const immutableImageRef = ref('ffmpeg-l4-qualified-image', 'b')
+  const payload = {
+    schemaVersion:
+      'canonical-professional-tool-gpu-runtime-release-observation-v2' as const,
+    source: 'canonical_server_gpu_runtime_release_registry' as const,
+    evidenceClass: 'canonical_private_reread' as const,
+    releaseId: 'ffmpeg-l4-private-runtime-release',
+    releaseVersion: 1,
+    status: 'private_internal_qualified' as const,
+    toolId: 'ffmpeg' as const,
+    gpuExecutionOwnerBindingMode: 'native_gpu_implementation' as const,
+    gpuExecutionOwnerToolId: 'ffmpeg' as const,
+    legacyToolSubstantiveExecutionObserved: false as const,
+    operationId: exactOperation('ffmpeg'),
+    toolCostProfileId: 'gpu-tool-ffmpeg-v1',
+    modelOrOperationCostProfileId:
+      'l4_standard_media_render_and_qa_v1' as const,
+    routeId: 'l4_standard_primary' as const,
+    runtimeRegion: 'us-central1' as const,
+    executionTarget: 'google_cloud_run_l4_job' as const,
+    machineType: 'cloud_run_nvidia_l4' as const,
+    accelerator: 'nvidia_l4' as const,
+    allocatedGpuCount: 1 as const,
+    allocatedVcpuCount: 8,
+    allocatedMemoryGiB: 32,
+    allocatedLocalScratchGiB: 0,
+    serviceIdentityRef: ref('ffmpeg-l4-service-identity', 'c'),
+    immutableImageRef,
+    immutableImageDigest: immutableImageRef.contentHash,
+    sourceAndDependencyClosureRef: ref('ffmpeg-l4-source-closure', 'd'),
+    toolOrModelArtifactReleaseRef: exactToolOrModelReleaseRef,
+    sbomRef: ref('ffmpeg-l4-sbom', 'e'),
+    imageScanAndSignatureRef: ref('ffmpeg-l4-scan-signature', 'f'),
+    cudaDriverRuntimeQualificationRef: ref('ffmpeg-l4-cuda', '1'),
+    substantiveGpuExecutionQualificationRef:
+      ref('ffmpeg-l4-substantive-gpu', '2'),
+    scaleToZeroConfigurationRef: ref('ffmpeg-l4-scale-zero', '3'),
+    privateNetworkAndArtifactTransportRef:
+      ref('ffmpeg-l4-private-transport', '4'),
+    substantiveGpuEvidenceClass:
+      'nvenc_nvdec_hardware_codec_execution' as const,
+    exactToolOrModelVersionReread: true as const,
+    exactCudaAndNativeDependencyClosureReread: true as const,
+    actualGpuKernelModelRenderOrHardwareCodecMeasured: true as const,
+    cpuOnlySubstantiveExecutionObserved: false as const,
+    gpuHostCpuOnlyExecutionMaySatisfyQualification: false as const,
+    runtimeNetworkDownloadAllowed: false as const,
+    callerImageModelToolOrCommandSelectionAllowed: false as const,
+    minimumIdleInstances: 0 as const,
+    maximumConcurrentAttemptsPerInstance: 1 as const,
+    prewarmingKeepaliveOrAlwaysOnPoolAllowed: false as const,
+    startsOnlyFromCreateOnlyApprovedUserAttempt: true as const,
+    stopsAtTerminalAttempt: true as const,
+    qualificationRunCount: 30,
+    qualifiedAt: '2026-08-03T13:00:00.000Z',
+    expiresAt: '2026-09-03T13:00:00.000Z',
+    privateInternalQualified: true as const,
+    customerBillingAuthorityGranted: false as const,
+    publicDeliveryAuthorized: false as const,
+    productionQualified: false as const,
+  }
+  return canonicalProfessionalToolGpuRuntimeReleaseSchema.parse({
+    ...payload,
+    releaseHash: sha256AuthorityValue(payload),
+  })
 }
 
 function exactOperation(toolId: string): string {

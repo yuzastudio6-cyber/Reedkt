@@ -944,6 +944,62 @@ qualification promotion. No orchestra, Track All, Visual Intelligence,
 provider call, public artifact, production mutation, final export, or billing
 work was performed.
 
+## M15 — coherent plan fallbacks and strict execution invariants
+
+Status: completed and pushed.
+
+Implementation commit: `588193497eb92b3eb308e4ff5732f4e2a5d96e07`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after `git push -u origin HEAD`.
+
+The planner now resolves eligibility, time, and credit ceilings before
+freezing route-dependent state. When a provisional route exceeds either
+ceiling, it recompiles the concept, shot, timing, audio, coordination,
+provider-request authority, and estimates as one coherent zero-cost
+`use_no_broll` plan. Provider decisions bind the exact request-package hash,
+permission, route, native aspect ratio, shot specification, attempt limits,
+and provider credit estimate; source decisions bind one exact tenant-scoped,
+checksum-addressed source and cannot emit provider work.
+
+Strict schema and runtime assertions now reject contradictory no-action,
+blocked, confirmation, dependency, source, provider, uploaded-video-edit, and
+refinement state. Inert decisions require `no_display`, zero provider and
+total credits, no selected source, no shot or provider package, and a graph
+containing no media-creating work. `needs_other_skill` carries the exact
+model-neutral `track_all` / `track_graph_v1` requirement. Refinement is bound
+to the prior candidate and QA authority and can only produce candidate version
+two with exactly one allowed refinement.
+
+Validation:
+
+- `npm run test:b-roll-plan-invariants` — passed time- and credit-ceiling
+  fallbacks, zero-cost no-action work, source/provider separation, exact
+  provider authority and one provider job, inert dependency/blocked/review
+  graphs, eleven contradictory plans rejected, and the version-two refinement
+  ceiling.
+- `npm run test:b-roll-planning`, `npm run test:b-roll-public-plugin`, and
+  `npm run test:b-roll-canonical-integration` — passed.
+- `npm run smoke:b-roll-existing-source`,
+  `npm run smoke:b-roll-provider-authority`,
+  `npm run smoke:b-roll-provider-lifecycle`,
+  `npm run smoke:b-roll-candidate-qa`,
+  `npm run smoke:b-roll-remotion-integration`, and
+  `npm run smoke:b-roll-end-to-end` — passed. Provider authority retained the
+  exact historical V1-V4 hashes and the active V5/lifecycle hashes.
+- `npm run smoke:b-roll-retirement` — passed across 6,108 repository files
+  with one active B-roll runtime, zero alternate provider fallbacks, five
+  retired routes rejected, and no Track All implementation import.
+- `npm run build`, `npm run typecheck:server`, `npm run lint`,
+  `npm run check:frontend-boundary`, and `git diff --check` — passed. Build
+  emitted only the existing Vite chunk-size and dynamic-import warnings.
+
+Qualification after M15 remains the existing
+`internal_execution_qualified` claim pending M17 actual-run receipt issuance.
+The milestone emitted no provider request, public media, production mutation,
+or billing activity and did not implement the orchestra, Track All, or Visual
+Intelligence.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -963,3 +1019,4 @@ work was performed.
 | M12 | `d9e220f04` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M13 | `a9dd9d8ac` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M14 | `5e4f1dc0d` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M15 | `588193497` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

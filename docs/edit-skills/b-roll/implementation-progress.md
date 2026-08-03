@@ -1000,6 +1000,77 @@ The milestone emitted no provider request, public media, production mutation,
 or billing activity and did not implement the orchestra, Track All, or Visual
 Intelligence.
 
+## M16 — independently derived planning QA evidence
+
+Status: completed and pushed.
+
+Implementation commit: `4eb0371e680fbdad9a92254deb264f58790d97ce`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after `git push -u origin HEAD`.
+
+Removed the planner's `qaInputs[qaKey] = true` self-attestation loop. Planning
+now emits strict, hash-verified `b_roll_planning_qa_plan_evidence_v1`, runs 18
+independent versioned validators through the generic QA registry, and derives
+the verdict from their findings. Every finding carries its validator version,
+derived observations, exact evidence hashes, disposition, summary, and its own
+content hash. Raw caller booleans cannot satisfy any planning validator.
+
+The validator set covers exact range authority, editorial purpose,
+professional restraint, source safety, provenance and rights, privacy, proof
+safety, visual-density budget, repetition, primary ownership, caption space,
+dependency completeness, approval readiness, time/credit ceilings, provider
+eligibility, lower-cost route evaluation, region eligibility, and generated
+media classification.
+
+The resulting `b_roll_planning_qa_report_v1` is content-addressed and bound to
+the plan evidence, assignment, context, manifest, and exact range. Its artifact
+hash is carried by the B-roll plan and canonical work graph, stored as public
+plugin evidence, propagated into atomic execution authority, included in final
+public result QA evidence, and persisted and revalidated as an immutable
+canonical component artifact. Stale or forged reports, findings, plan evidence,
+manifest/range lineage, and cross-context substitutions fail closed.
+
+Validation:
+
+- `npm run test:b-roll-planning-qa` — passed 18 validators; report hash
+  `2eea7e489d33a14eb1001f4842e21aecc538d1b64f9af3deae8e2daa17ae9485`
+  and content-addressed artifact hash
+  `4cd7a1b580e27fa0da0ce23741456dea81e73b45e828e088d17a121dc9e04f40`.
+  The suite rejected raw booleans, forged findings, stale reports and plan
+  evidence, and independently blocked range, proof, rights, privacy,
+  ownership, caption, dependency, credit, provider, and region contradictions.
+- `npm run test:b-roll-planning`, `npm run test:b-roll-plan-invariants`,
+  `npm run test:b-roll-public-plugin`, `npm run test:b-roll-runtime-bindings`,
+  and `npm run test:b-roll-canonical-integration` — passed with exact planning
+  QA report persistence and public evidence lineage.
+- `npm run test:edit-skill-capability-kernel`,
+  `npm run validate:skill-capability-manifests`, and
+  `npm run test:b-roll-capability-manifest` — passed. The generated manifest
+  projection is exact at
+  `a0e5ae901f47cd00b07eeb814059c7631012c5e424c072b10f1ebf1cd43c083d`
+  with 46 QA policies.
+- `npm run smoke:b-roll-existing-source`,
+  `npm run smoke:b-roll-provider-authority`,
+  `npm run smoke:b-roll-provider-lifecycle`,
+  `npm run smoke:b-roll-candidate-qa`,
+  `npm run smoke:b-roll-remotion-integration`,
+  `npm run smoke:b-roll-end-to-end`, and
+  `npm run smoke:b-roll-retirement` — passed. The aggregate lifecycle retained
+  zero actual provider requests and the retirement check retained zero Track
+  All implementation imports.
+- `npm run build`, `npm run typecheck:server`, `npm run lint`,
+  `npm run check:frontend-boundary`, and `git diff --check` — passed. Build
+  emitted only the existing Vite chunk-size and dynamic-import warnings.
+
+Qualification after M16 remains the existing
+`internal_execution_qualified` claim pending M17 replacement of synthetic
+startup qualification with actual command evidence. M16's planning QA report
+is actual derived planning evidence, but it is not itself a qualification
+receipt and does not promote production status. No orchestra, Track All,
+Visual Intelligence, paid provider, public delivery, production mutation, or
+billing work was performed.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1020,3 +1091,4 @@ Intelligence.
 | M13 | `a9dd9d8ac` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M14 | `5e4f1dc0d` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M15 | `588193497` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M16 | `4eb0371e6` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

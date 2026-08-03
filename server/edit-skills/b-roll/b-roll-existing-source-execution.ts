@@ -105,7 +105,7 @@ const resultCoreSchema = z.object({
   executionCompletedAt: z.string().datetime({ offset: true }),
 }).strict()
 
-const resultReceiptSchema = resultCoreSchema.extend({
+export const brollExistingSourceExecutionReceiptSchema = resultCoreSchema.extend({
   resultHash: skillSha256Schema,
 }).strict().superRefine((result, context) => {
   const { resultHash, ...core } = result
@@ -115,11 +115,13 @@ const resultReceiptSchema = resultCoreSchema.extend({
 })
 
 const executionResultSchema = z.object({
-  receipt: resultReceiptSchema,
+  receipt: brollExistingSourceExecutionReceiptSchema,
   receiptRef: blobRefSchema,
 }).strict()
 
-export type BrollExistingSourceExecutionReceipt = z.infer<typeof resultReceiptSchema>
+export type BrollExistingSourceExecutionReceipt = z.infer<
+  typeof brollExistingSourceExecutionReceiptSchema
+>
 
 export interface BrollProviderRequestObserver {
   getRequestCount(): number
@@ -370,7 +372,7 @@ export async function executeBrollExistingSource(
         outsideAuthorizedRangeModified: false,
         executionCompletedAt: (input.now ?? (() => new Date().toISOString()))(),
       })
-      const receipt = resultReceiptSchema.parse({
+      const receipt = brollExistingSourceExecutionReceiptSchema.parse({
         ...core,
         resultHash: hashSkillValue(core),
       })
@@ -509,7 +511,7 @@ async function readExistingResult(
     localStorageRoot,
     ref: stored.receiptRef,
   })
-  const receipt = resultReceiptSchema.parse(persisted)
+  const receipt = brollExistingSourceExecutionReceiptSchema.parse(persisted)
   if (stableAuthorityStringify(receipt) !== stableAuthorityStringify(stored.receipt)) {
     throw new Error('B-roll existing-source replay index changed after commit.')
   }

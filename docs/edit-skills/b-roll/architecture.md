@@ -116,3 +116,21 @@ No frontend surface can authorize provider work, choose a provider route,
 provide an executable command, supply a storage path, or inject credentials.
 No production database migration or production resource mutation belongs to
 this implementation.
+
+## Remotion and cross-skill integration
+
+Remotion receives only the exact QA-normalized B-roll artifact selected by the
+approved plan. A fixed network-disabled FFmpeg recipe may create a technical
+VP9 Matroska proxy for Chromium, but it may not make creative, timing, color,
+sound, transition, or ownership decisions. The strict B-roll layer manifest
+supports full-frame takeover, short cutaway, inset, picture-in-picture,
+split-screen, partial overlay, and background treatments with validated fixed
+geometry and exact range bounds.
+
+Private preview rendering produces a content-addressed layer manifest,
+integration QA report, and result receipt. Sound, Color, Transition, Captions,
+Track All, Render, and final export keep final ownership. Required tracking is
+accepted only as a model-neutral `track_graph_v1` dependency; the B-roll skill
+does not execute or select a tracking model. Full contract and qualification
+details are in
+[`remotion-and-cross-skill-integration.md`](./remotion-and-cross-skill-integration.md).

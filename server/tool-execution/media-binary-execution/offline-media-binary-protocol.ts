@@ -15,6 +15,8 @@ export const OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE =
   'approved_source_color_delivery_matroska_v2' as const
 export const OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE =
   'approved_source_color_match_delivery_matroska_v2' as const
+export const OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE =
+  'approved_b_roll_remotion_preview_proxy_matroska_v1' as const
 export const OFFLINE_MEDIA_BINARY_OPERATIONS = Object.freeze({
   ffmpeg: 'tool.ffmpeg.execute_approved_media_recipe.v1',
   ffprobe: 'tool.ffprobe.inspect_approved_media.v1',
@@ -111,6 +113,19 @@ interface OfflineFfmpegCommonPlanningPayload {
 
 export interface OfflineFfmpegTrimPlanningPayload extends OfflineFfmpegCommonPlanningPayload {
   recipeProfileId: 'approved_trim_transcode_v1'
+}
+
+export interface OfflineFfmpegBrollRemotionPreviewProxyPlanningPayload
+  extends OfflineFfmpegCommonPlanningPayload {
+  recipeProfileId: typeof OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE
+  outputContainer: 'matroska'
+  outputCodec: 'libvpx-vp9'
+  constantQuality: 12
+  outputPixelFormat: 'yuv420p'
+  preserveAudio: false
+  metadataPolicy: 'strip_all'
+  technicalProxyOnly: true
+  creativeColorTransformApplied: false
 }
 
 export interface OfflineFfmpegExactSourceFramePngPlanningPayload {
@@ -298,6 +313,7 @@ export function isColorMatchDeliveryPlanningPayload(
 
 export type OfflineFfmpegPlanningPayload =
   | OfflineFfmpegTrimPlanningPayload
+  | OfflineFfmpegBrollRemotionPreviewProxyPlanningPayload
   | OfflineFfmpegExactSourceFramePngPlanningPayload
   | OfflineFfmpegVoiceDeliveryPlanningPayload
   | OfflineFfmpegEditBriefAudioPlanningPayload
@@ -335,6 +351,7 @@ export interface OfflineFfprobeExecutionRequest {
 type OfflineFfmpegSourceCommitment = {
   mimeType:
     | 'video/mp4'
+    | 'video/x-nut'
     | 'audio/aac'
     | 'audio/mpeg'
     | 'audio/wav'
@@ -385,6 +402,8 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID
   const exactSourceFramePng = candidate?.recipeProfileId ===
     OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE
+  const brollPreviewProxy = candidate?.recipeProfileId ===
+    OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE
   if (exactSourceFramePng) {
     const frame = exactObject(value, [
       'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact',
@@ -537,6 +556,13 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
           'loudnessRangeLufs', 'stripMetadata',
         ]
       : []),
+    ...(brollPreviewProxy
+      ? [
+          'outputContainer', 'outputCodec', 'constantQuality',
+          'outputPixelFormat', 'preserveAudio', 'metadataPolicy',
+          'technicalProxyOnly', 'creativeColorTransformApplied',
+        ]
+      : []),
     ...(colorDelivery || colorMatchDelivery
       ? [
           'colorGradeStyle', 'intensity', 'approvedColorOperationIds',
@@ -554,6 +580,7 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
   if (
     ![
       'approved_trim_transcode_v1',
+      OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE,
       'approved_voice_delivery_wav_v1',
       OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
       OFFLINE_EDIT_BRIEF_SFX_PROFILE,
@@ -580,6 +607,30 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     trimEndFrameExclusive: Number(payload.trimEndFrameExclusive),
     frameRate: Number(payload.frameRate) as OfflineFfmpegPlanningPayload['frameRate'],
   } as const
+  if (brollPreviewProxy) {
+    if (
+      payload.outputContainer !== 'matroska' ||
+      payload.outputCodec !== 'libvpx-vp9' ||
+      payload.constantQuality !== 12 ||
+      payload.outputPixelFormat !== 'yuv420p' ||
+      payload.preserveAudio !== false ||
+      payload.metadataPolicy !== 'strip_all' ||
+      payload.technicalProxyOnly !== true ||
+      payload.creativeColorTransformApplied !== false
+    ) throw invalid()
+    return {
+      recipeProfileId: OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE,
+      ...common,
+      outputContainer: 'matroska',
+      outputCodec: 'libvpx-vp9',
+      constantQuality: 12,
+      outputPixelFormat: 'yuv420p',
+      preserveAudio: false,
+      metadataPolicy: 'strip_all',
+      technicalProxyOnly: true,
+      creativeColorTransformApplied: false,
+    }
+  }
   if (editBriefAudio) {
     const startFrame = Number(payload.startFrame)
     const endFrameExclusive = Number(payload.endFrameExclusive)
@@ -883,6 +934,8 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
   )
   const exactSourceFramePng = requestPayload?.recipeProfileId ===
     OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE
+  const brollPreviewProxy = requestPayload?.recipeProfileId ===
+    OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE
   const editBriefAudio = requestPayload?.recipeProfileId ===
     OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE ||
     requestPayload?.recipeProfileId === OFFLINE_EDIT_BRIEF_SFX_PROFILE
@@ -913,6 +966,13 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
           'placementDurationFrames', 'fillPolicy', 'mixProfileId',
           'sampleRate', 'channelMode', 'targetLufs', 'truePeakDbtp',
           'loudnessRangeLufs', 'stripMetadata',
+        ]
+      : []),
+    ...(brollPreviewProxy
+      ? [
+          'outputContainer', 'outputCodec', 'constantQuality',
+          'outputPixelFormat', 'preserveAudio', 'metadataPolicy',
+          'technicalProxyOnly', 'creativeColorTransformApplied',
         ]
       : []),
     ...(
@@ -997,6 +1057,19 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
           truePeakDbtp: payload.truePeakDbtp,
           loudnessRangeLufs: payload.loudnessRangeLufs,
           stripMetadata: payload.stripMetadata,
+        }
+      : {}),
+    ...(brollPreviewProxy
+      ? {
+          outputContainer: payload.outputContainer,
+          outputCodec: payload.outputCodec,
+          constantQuality: payload.constantQuality,
+          outputPixelFormat: payload.outputPixelFormat,
+          preserveAudio: payload.preserveAudio,
+          metadataPolicy: payload.metadataPolicy,
+          technicalProxyOnly: payload.technicalProxyOnly,
+          creativeColorTransformApplied:
+            payload.creativeColorTransformApplied,
         }
       : {}),
     ...(
@@ -1195,9 +1268,13 @@ function validateSource(
   const editBriefAudio = recipeProfileId ===
     OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE ||
     recipeProfileId === OFFLINE_EDIT_BRIEF_SFX_PROFILE
+  const brollPreviewProxy = recipeProfileId ===
+    OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE
   const allowedMimeTypes = editBriefAudio
     ? ['audio/aac', 'audio/mpeg', 'audio/wav', 'audio/x-wav']
-    : ['video/mp4']
+    : brollPreviewProxy
+      ? ['video/x-nut']
+      : ['video/mp4']
   if (
     !allowedMimeTypes.includes(String(payload.mimeType)) ||
     !Number.isSafeInteger(payload.sourceByteLength) ||
@@ -1212,6 +1289,10 @@ function validateSource(
   if (
     bytes.byteLength !== payload.sourceByteLength || bytes.toString('base64') !== payload.sourceBytesBase64 ||
     createHash('sha256').update(bytes).digest('hex') !== payload.sourceSha256 ||
+    (
+      payload.mimeType === 'video/x-nut' &&
+      !bytes.subarray(0, 25).toString('ascii').includes('nut/multimedia')
+    ) ||
     (
       (payload.mimeType === 'audio/wav' || payload.mimeType === 'audio/x-wav') &&
       (

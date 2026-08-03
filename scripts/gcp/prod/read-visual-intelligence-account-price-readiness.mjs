@@ -44,7 +44,7 @@ for (const skuId of exactSkuIds) {
     })
     exactSkuPriceReads += 1
   } catch (error) {
-    const httpStatus = Number(error?.response?.status ?? 0)
+    const httpStatus = Number(error?.response?.status ?? error?.code ?? 0)
     status = httpStatus === 401
       ? 'authentication_required'
       : httpStatus === 403

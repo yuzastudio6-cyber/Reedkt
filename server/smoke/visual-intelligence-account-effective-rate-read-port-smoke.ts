@@ -12,16 +12,69 @@ import {
 import {
   parseVisualIntelligenceAccountEffectiveRateAuthority,
 } from '../visual-intelligence/visual-intelligence-account-effective-cost-owner'
+import {
+  createVisualIntelligenceModelBillingSkuQualification,
+  visualIntelligenceModelBillingSkuQualificationRef,
+} from '../visual-intelligence/visual-intelligence-model-billing-sku-qualification'
 
 const billingAccountResourceName = 'billingAccounts/000000-AAAAAA-BBBBBB'
-const compatibilityRef = createVisualIntelligenceEvidenceRef(
-  'gemini-3-1-pro-billing-sku-compatibility-qualification',
-  { exactModelId: 'gemini-3.1-pro-preview', qualified: true },
-)
+const compatibilityQualification =
+  createVisualIntelligenceModelBillingSkuQualification({
+    schemaVersion: 'visual-intelligence-model-billing-sku-qualification-v1',
+    evidenceClass:
+      'live_isolated_vertex_usage_and_billing_export_reconciliation',
+    qualificationId:
+      'gemini-3-1-pro-billing-sku-compatibility-qualification',
+    qualificationVersion: 1,
+    exactModelId: 'gemini-3.1-pro-preview',
+    vertexLocation: 'global',
+    throughputClass: 'standard',
+    providerServiceId: 'services/C7E2-9256-1C43',
+    billingSkuFamily: 'gemini_3_0_pro_shared_billing_family',
+    billingSkuCatalogVersion:
+      'weeditpro-gemini-3_1-pro-standard-global-sku-catalog-v1',
+    contextThresholdInputTokens: 200_000,
+    wholeRequestLongContextRatesRequired: true,
+    qualifiedRateClasses:
+      WEEDITPRO_VISUAL_INTELLIGENCE_GEMINI_RATE_CATALOG.terms.map((term) =>
+        term.rateClass),
+    exactSkuIds:
+      WEEDITPRO_VISUAL_INTELLIGENCE_GEMINI_RATE_CATALOG.terms.map((term) =>
+        term.skuId),
+    standardContextProviderRequestRef: fixtureRef('standard-request'),
+    longContextProviderRequestRef: fixtureRef('long-request'),
+    standardContextProviderUsageRef: fixtureRef('standard-usage'),
+    longContextProviderUsageRef: fixtureRef('long-usage'),
+    detailedBillingExportRef: fixtureRef('billing-export'),
+    billingSkuMetadataSetRef: fixtureRef('sku-metadata-set'),
+    isolatedUsageReconciliationReportRef:
+      fixtureRef('usage-reconciliation'),
+    qualificationWindowStartedAtIso: '2026-08-03T15:00:00.000Z',
+    qualificationWindowFinishedAtIso: '2026-08-03T15:30:00.000Z',
+    billingExportFreshThroughIso: '2026-08-03T16:00:00.000Z',
+    liveGeminiStandardContextRequestExecuted: true,
+    liveGeminiLongContextRequestExecuted: true,
+    exactReturnedModelIdVerified: true,
+    exactProviderUsageMetadataReread: true,
+    isolatedBillingWindowVerified: true,
+    noOtherModelOrSkuTrafficInObservationWindow: true,
+    detailedBillingExportExactReread: true,
+    exactStandardAndLongSkuMappingVerified: true,
+    publicListPriceUsed: false,
+    providerDispatchAuthorityGranted: false,
+    customerPricingOrServiceFeeAuthorityGranted: false,
+    walletOrCreditMutationAuthorityGranted: false,
+    productionReleaseAuthorityGranted: false,
+  })
+const compatibilityRef =
+  visualIntelligenceModelBillingSkuQualificationRef(
+    compatibilityQualification,
+  )
 const configuration =
   createWeEditProVisualIntelligenceAccountEffectiveRateReaderConfiguration({
     billingAccountResourceName,
-    exactModelBillingSkuCompatibilityQualificationRef: compatibilityRef,
+    exactModelBillingSkuCompatibilityQualification:
+      compatibilityQualification,
   })
 
 assert.equal(configuration.exactModelId, 'gemini-3.1-pro-preview')
@@ -275,4 +328,11 @@ function fixedClock() {
   ]
   let index = 0
   return () => values[index++] ?? values.at(-1)!
+}
+
+function fixtureRef(id: string) {
+  return createVisualIntelligenceEvidenceRef(
+    `gemini-billing-${id}`,
+    { id },
+  )
 }

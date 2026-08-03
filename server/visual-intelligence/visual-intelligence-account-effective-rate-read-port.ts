@@ -3,7 +3,6 @@ import { z } from 'zod'
 
 import {
   VISUAL_INTELLIGENCE_MODEL_ID,
-  type VisualIntelligenceEvidenceRef,
 } from '../../src/types/visual-intelligence'
 import {
   createVisualIntelligenceAccountEffectiveRateAuthorityFromPricingObservation,
@@ -17,59 +16,19 @@ import {
   visualIntelligenceCanonicalJson,
   visualIntelligenceDigest,
 } from './visual-intelligence-contract'
+import {
+  WEEDITPRO_VISUAL_INTELLIGENCE_GEMINI_RATE_CATALOG,
+  parseVisualIntelligenceModelBillingSkuQualification,
+  visualIntelligenceModelBillingSkuQualificationRef,
+  type VisualIntelligenceModelBillingSkuQualification,
+} from './visual-intelligence-model-billing-sku-qualification'
+
+export {
+  WEEDITPRO_VISUAL_INTELLIGENCE_GEMINI_RATE_CATALOG,
+} from './visual-intelligence-model-billing-sku-qualification'
 
 export const VISUAL_INTELLIGENCE_ACCOUNT_EFFECTIVE_RATE_READER_CONFIGURATION_VERSION =
   'visual-intelligence-account-effective-rate-reader-configuration-v1' as const
-
-export const WEEDITPRO_VISUAL_INTELLIGENCE_GEMINI_RATE_CATALOG = {
-  providerServiceId: 'services/C7E2-9256-1C43',
-  billingSkuFamily: 'gemini_3_0_pro_shared_billing_family',
-  consumptionModel: 'consumptionModels/7754-699E-0EBF',
-  terms: [
-    {
-      rateClass: 'standard_uncached_input',
-      contextClass: 'standard_le_200k',
-      tokenClass: 'uncached_input',
-      skuId: 'EAC4-305F-1249',
-      expectedDisplayName: 'Gemini 3.0 Pro Text Input - Predictions',
-    },
-    {
-      rateClass: 'standard_cached_input',
-      contextClass: 'standard_le_200k',
-      tokenClass: 'cached_input',
-      skuId: '8308-9CED-8950',
-      expectedDisplayName: 'Gemini 3.0 Pro Text Input Caching',
-    },
-    {
-      rateClass: 'standard_output_and_thinking',
-      contextClass: 'standard_le_200k',
-      tokenClass: 'output_and_thinking',
-      skuId: '2737-2D33-D986',
-      expectedDisplayName: 'Gemini 3.0 Pro Text Output - Predictions',
-    },
-    {
-      rateClass: 'long_uncached_input',
-      contextClass: 'long_gt_200k',
-      tokenClass: 'uncached_input',
-      skuId: 'E0A5-FB5D-79F4',
-      expectedDisplayName: 'Gemini 3.0 Pro Text Input (Long) - Predictions',
-    },
-    {
-      rateClass: 'long_cached_input',
-      contextClass: 'long_gt_200k',
-      tokenClass: 'cached_input',
-      skuId: '8A47-3936-DC92',
-      expectedDisplayName: 'Gemini 3.0 Pro Text Input Caching (Long)',
-    },
-    {
-      rateClass: 'long_output_and_thinking',
-      contextClass: 'long_gt_200k',
-      tokenClass: 'output_and_thinking',
-      skuId: '3CE8-93F8-3C8F',
-      expectedDisplayName: 'Gemini 3.0 Pro Text Output (Long) - Predictions',
-    },
-  ],
-} as const
 
 const BILLING_API_ORIGIN = 'https://cloudbilling.googleapis.com'
 const BILLING_READ_SCOPE =
@@ -195,15 +154,19 @@ export interface VisualIntelligenceAccountEffectivePricingObservationPort {
 export function createWeEditProVisualIntelligenceAccountEffectiveRateReaderConfiguration(
   input: {
     readonly billingAccountResourceName: string
-    readonly exactModelBillingSkuCompatibilityQualificationRef:
-      VisualIntelligenceEvidenceRef
+    readonly exactModelBillingSkuCompatibilityQualification:
+      VisualIntelligenceModelBillingSkuQualification
   },
 ): VisualIntelligenceAccountEffectiveRateReaderConfiguration {
   const billingAccountResourceName = z.string()
     .regex(/^billingAccounts\/[A-Za-z0-9-]+$/u)
     .parse(input.billingAccountResourceName)
+  const qualification =
+    parseVisualIntelligenceModelBillingSkuQualification(
+      input.exactModelBillingSkuCompatibilityQualification,
+    )
   const qualificationRef = evidenceRefSchema.parse(
-    input.exactModelBillingSkuCompatibilityQualificationRef,
+    visualIntelligenceModelBillingSkuQualificationRef(qualification),
   )
   const billingAccountPricingScopeRef = createVisualIntelligenceEvidenceRef(
     'weeditpro-google-cloud-billing-account-pricing-scope',

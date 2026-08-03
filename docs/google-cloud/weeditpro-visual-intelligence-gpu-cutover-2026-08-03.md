@@ -80,10 +80,39 @@ legacy visual-runtime absence, and immutable SAM 3.1 image presence. A blocked
 audit is expected until the external checkpoint and A100 gates close; it does
 not weaken or self-authorize a build or runtime.
 
+## Gemini account-effective price authority
+
+- Visual Intelligence price authority is now v2 and distinguishes the exact
+  Standard request band at or below 200,000 input tokens from the whole-request
+  long-context band above 200,000 input tokens.
+- The server-owned reader binds six exact global Standard-throughput Cloud
+  Billing SKUs: uncached input, cached input, and output/reasoning for each
+  context band. It calls the billing-account-specific Pricing API; public list
+  price is never settlement authority.
+- A price reader cannot be configured from a caller-supplied evidence ref. It
+  requires the complete digest-valid live model/SKU compatibility
+  qualification, including isolated standard- and long-context Gemini 3.1 Pro
+  requests plus exact provider-usage and detailed-billing-export rereads.
+- The publisher writes one canonical JSON authority with a create-only GCS
+  precondition, then rereads and binds the exact generation, ETag, byte digest,
+  authority digest, model/SKU qualification, and reader configuration. It
+  grants no runtime release, provider dispatch, customer pricing, service-fee,
+  wallet, credit, public-delivery, or production authority.
+- The operator command is
+  `npm run publish:visual-intelligence-account-effective-rate`. It requires an
+  exact immutable private qualification coordinate and server-only billing
+  account resource. Those values never enter a browser or worker payload.
+- The current read-only cloud audit reports account-effective Gemini price
+  access as not ready for the active credential. No rate object exists and no
+  live model/SKU compatibility qualification has been observed. The runtime
+  therefore remains fail-closed even though source simulations cover both
+  context bands and immutable publication/replay behavior.
+
 ## Current disposition
 
 The source cutover is deterministic and fail-closed. Live SAM 3.1 installation
 remains blocked by Meta checkpoint access, the still-open official
 source/checkpoint compatibility issue, A100 80GB quota, and the required
-image/security/runtime qualification. The implementation must not weaken or
-silently bypass those gates.
+image/security/runtime qualification. Live Gemini pricing additionally remains
+blocked by billing-account price-read IAM and isolated model/SKU reconciliation.
+The implementation must not weaken or silently bypass those gates.

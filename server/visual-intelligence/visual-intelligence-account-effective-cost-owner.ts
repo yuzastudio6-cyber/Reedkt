@@ -21,15 +21,21 @@ import {
   createVisualIntelligenceEvidenceRef,
   visualIntelligenceCanonicalJson,
 } from './visual-intelligence-contract'
+import {
+  VISUAL_INTELLIGENCE_ACCOUNT_EFFECTIVE_RATE_CLASSES,
+  VISUAL_INTELLIGENCE_GEMINI_BILLING_SKU_CATALOG_VERSION,
+  VISUAL_INTELLIGENCE_STANDARD_CONTEXT_MAX_INPUT_TOKENS,
+} from './visual-intelligence-model-billing-sku-qualification'
 
 export const VISUAL_INTELLIGENCE_ACCOUNT_EFFECTIVE_RATE_VERSION =
   'visual-intelligence-account-effective-rate-authority-v2' as const
 export const VISUAL_INTELLIGENCE_COST_OWNER_VERSION =
   'visual-intelligence-account-effective-cost-owner-v2' as const
-export const VISUAL_INTELLIGENCE_STANDARD_CONTEXT_MAX_INPUT_TOKENS =
-  200_000 as const
-export const VISUAL_INTELLIGENCE_GEMINI_BILLING_SKU_CATALOG_VERSION =
-  'weeditpro-gemini-3_1-pro-standard-global-sku-catalog-v1' as const
+export {
+  VISUAL_INTELLIGENCE_ACCOUNT_EFFECTIVE_RATE_CLASSES,
+  VISUAL_INTELLIGENCE_GEMINI_BILLING_SKU_CATALOG_VERSION,
+  VISUAL_INTELLIGENCE_STANDARD_CONTEXT_MAX_INPUT_TOKENS,
+} from './visual-intelligence-model-billing-sku-qualification'
 
 const MAX_RATE_AGE_MS = 24 * 60 * 60 * 1_000
 const PREFIXED_SHA256 = /^sha256:[a-f0-9]{64}$/u
@@ -43,15 +49,6 @@ const evidenceRefSchema = z.object({
   version: z.number().int().positive().safe(),
   contentHash: z.string().regex(PREFIXED_SHA256),
 }).strict()
-
-export const VISUAL_INTELLIGENCE_ACCOUNT_EFFECTIVE_RATE_CLASSES = [
-  'standard_uncached_input',
-  'standard_cached_input',
-  'standard_output_and_thinking',
-  'long_uncached_input',
-  'long_cached_input',
-  'long_output_and_thinking',
-] as const
 
 const rateClassSchema = z.enum(
   VISUAL_INTELLIGENCE_ACCOUNT_EFFECTIVE_RATE_CLASSES,

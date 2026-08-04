@@ -192,6 +192,8 @@ export class EditSkillRuntimeDispatcher {
         artifactTypes.some((type, index) => type !== definition.outputArtifactTypes[index])
       ) throw new Error('Runtime adapter returned artifact values outside its exact binding.')
     }
+    const { outputArtifacts: _outputArtifacts, ...receiptAdapterResult } = adapterResult
+    void _outputArtifacts
     const core = runtimeDispatchReceiptCoreSchema.parse({
       schemaVersion: 'edit-skill-runtime-dispatch-receipt-v2',
       bindingHash: definition.bindingHash,
@@ -204,7 +206,7 @@ export class EditSkillRuntimeDispatcher {
       workItemKey: input.workItem.workItemKey,
       workItemHash: input.workItem.workItemHash,
       authorizedPhase: input.authorizedPhase,
-      ...adapterResult,
+      ...receiptAdapterResult,
     })
     const receipt = runtimeDispatchReceiptSchema.parse({
       ...core,

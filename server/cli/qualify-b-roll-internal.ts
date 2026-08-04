@@ -34,6 +34,7 @@ const PHASE_A_SCRIPTS = [
   'test:b-roll-public-plugin',
   'test:b-roll-runtime-bindings',
   'test:edit-skill-runtime-factory',
+  'test:ui-qa-media-runtime-workflow',
   'test:b-roll-capability-manifest',
   'validate:skill-capability-manifests',
   'test:edit-skill-capability-kernel',

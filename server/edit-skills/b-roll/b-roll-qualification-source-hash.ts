@@ -21,6 +21,7 @@ const RELEVANT_EXACT_FILES = [
   'server/edit-skills/registry.ts',
   'server/edit-skills/internal-fixture-runtime.ts',
   'server/smoke/edit-skill-runtime-factory-smoke.ts',
+  'server/smoke/ui-qa-media-runtime-workflow-smoke.ts',
   'server/services/canonical-broll-plan-component-service.ts',
 ] as const
 

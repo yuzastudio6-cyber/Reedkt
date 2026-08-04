@@ -9,6 +9,10 @@ import {
   skillSemverSchema,
 } from './skill-capability-manifest-schema'
 import type { SkillCapabilityManifest, SkillManifestReference } from './skill-capability-manifest-types'
+import {
+  manifestAllowedExecutionPhaseIds,
+  manifestSupportedJobTypeIds,
+} from './skill-capability-manifest-normalization'
 
 export interface SkillJobRuntimeInvocation {
   mode: 'internal_fixture'
@@ -189,7 +193,8 @@ export class SkillJobRuntimeBindingRegistry {
     const manifest = input.manifest
     const bindings = this.list().filter((binding) =>
       manifestKey(binding.definition) === manifestKey(manifest))
-    const manifestJobs = new Set(manifest.supportedJobTypes)
+    const manifestJobTypes = manifestSupportedJobTypeIds(manifest)
+    const manifestJobs = new Set(manifestJobTypes)
     const bindingJobs = new Set(bindings.map((binding) => binding.definition.jobType))
     if (bindings.length !== bindingJobs.size) {
       throw new Error(`Manifest ${manifest.skillKey} has duplicate runtime bindings.`)
@@ -216,7 +221,7 @@ export class SkillJobRuntimeBindingRegistry {
       ...manifest.acceptedArtifactTypes,
       ...manifest.producedArtifactTypes,
     ])
-    const allowedPhases = new Set(manifest.allowedExecutionPhases)
+    const allowedPhases = new Set(manifestAllowedExecutionPhaseIds(manifest))
     const manifestQualificationRank = ACTIVE_QUALIFICATION_RANK[manifest.qualificationStatus]
     if (manifestQualificationRank === undefined) {
       throw new Error(`Manifest ${manifest.skillKey} cannot expose runtime bindings at ${manifest.qualificationStatus}.`)
@@ -254,6 +259,20 @@ export class SkillJobRuntimeBindingRegistry {
       }
       if (definition.allowedPhases.some((phase) => !allowedPhases.has(phase))) {
         throw new Error(`Runtime binding ${definition.jobType} references a disallowed phase.`)
+      }
+      if (manifest.schemaVersion === 'skill-capability-manifest-v2') {
+        const jobCapability = manifest.supportedJobTypes.find((job) =>
+          job.jobType === definition.jobType)
+        if (
+          !jobCapability ||
+          !jobCapability.executionAllowed ||
+          !jobCapability.runtimeBindingRequired ||
+          hashSkillValue(jobCapability.requiredArtifactTypes) !== hashSkillValue(definition.inputArtifactTypes) ||
+          hashSkillValue(jobCapability.producedArtifactTypes) !== hashSkillValue(definition.outputArtifactTypes) ||
+          hashSkillValue(jobCapability.allowedPhases) !== hashSkillValue(definition.allowedPhases) ||
+          jobCapability.minimumQualificationStatus !== definition.qualificationRequirement ||
+          jobCapability.primaryVisualOwnershipPossible !== definition.createsMedia
+        ) throw new Error(`Runtime binding ${definition.jobType} differs from its manifest job capability.`)
       }
       const requiredRank = ACTIVE_QUALIFICATION_RANK[definition.qualificationRequirement]
       if (requiredRank === undefined || requiredRank > manifestQualificationRank) {

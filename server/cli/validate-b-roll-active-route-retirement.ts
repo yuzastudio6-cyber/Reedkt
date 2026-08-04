@@ -19,7 +19,7 @@ const brollFilePattern = /b[-_]?roll|broll/iu
 type RouteSurface = {
   routeKey: string
   routeKind: string
-  operationRef: string
+  operationIds: readonly string[]
 }
 
 function assertActiveRoutes(routes: readonly RouteSurface[]): void {
@@ -33,16 +33,18 @@ function assertActiveRoutes(routes: readonly RouteSurface[]): void {
     BROLL_PROVIDER_OPERATION_ID,
   ])
   for (const route of routes) {
-    assert.equal(
-      retiredRoutePattern.test(`${route.routeKey}/${route.operationRef}`),
-      false,
-      `Retired B-roll route returned: ${route.routeKey} -> ${route.operationRef}`,
-    )
-    assert.equal(
-      allowedOperations.has(route.operationRef),
-      true,
-      `Unknown B-roll active route returned: ${route.operationRef}`,
-    )
+    for (const operationId of route.operationIds) {
+      assert.equal(
+        retiredRoutePattern.test(`${route.routeKey}/${operationId}`),
+        false,
+        `Retired B-roll route returned: ${route.routeKey} -> ${operationId}`,
+      )
+      assert.equal(
+        allowedOperations.has(operationId),
+        true,
+        `Unknown B-roll active route returned: ${operationId}`,
+      )
+    }
   }
 }
 
@@ -213,7 +215,8 @@ assertActiveRoutes([
 assert.equal(
   BROLL_CAPABILITY_MANIFEST.toolRoutes
     .filter((route) => route.routeKind === 'provider')
-    .every((route) => route.operationRef === BROLL_PROVIDER_OPERATION_ID),
+    .every((route) =>
+      route.operationIds.length === 1 && route.operationIds[0] === BROLL_PROVIDER_OPERATION_ID),
   true,
 )
 
@@ -227,7 +230,7 @@ for (const retiredOperation of [
   assert.throws(() => assertActiveRoutes([{
     routeKey: `retired_${retiredOperation}`,
     routeKind: 'provider',
-    operationRef: retiredOperation,
+    operationIds: [retiredOperation],
   }]), /Retired B-roll route returned/u)
 }
 

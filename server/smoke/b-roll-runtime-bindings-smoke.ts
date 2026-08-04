@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
   EditSkillRuntimeDispatcher,
   SkillJobRuntimeBindingRegistry,
+  createSkillCapabilityManifest,
   createSkillJobRuntimeBinding,
   hashSkillValue,
   skillManifestReference,
@@ -89,9 +90,34 @@ function validate(registry: SkillJobRuntimeBindingRegistry, operations = editSki
 assert.equal(BROLL_RUNTIME_BINDINGS.length, BROLL_CAPABILITY_MANIFEST.supportedJobTypes.length)
 assert.deepEqual(
   new Set(BROLL_RUNTIME_BINDINGS.map((binding) => binding.definition.jobType)),
-  new Set(BROLL_CAPABILITY_MANIFEST.supportedJobTypes),
+  new Set(BROLL_CAPABILITY_MANIFEST.supportedJobTypes.map((job) => job.jobType)),
 )
 validate(editSkillRuntimeBindingRegistry)
+
+const { manifestHash: _manifestHash, ...manifestCore } = BROLL_CAPABILITY_MANIFEST
+assert.equal(_manifestHash, BROLL_CAPABILITY_MANIFEST.manifestHash)
+const driftManifest = createSkillCapabilityManifest({
+  ...manifestCore,
+  supportedJobTypes: manifestCore.supportedJobTypes.map((job, index) => index === 0
+    ? { ...job, requiredArtifactTypes: ['source_inventory_v1'] }
+    : job),
+})
+const driftRegistry = new SkillJobRuntimeBindingRegistry()
+for (const binding of BROLL_RUNTIME_BINDINGS) {
+  driftRegistry.register(createSkillJobRuntimeBinding({
+    definition: {
+      ...definitionCore(binding.definition),
+      manifestHash: driftManifest.manifestHash,
+    },
+    handler: binding.handler,
+  }))
+}
+assert.throws(() => driftRegistry.validateManifest({
+  manifest: driftManifest,
+  artifacts: editSkillArtifactSchemaRegistry,
+  operations: editSkillReferenceCatalog,
+  workGraphJobs: BROLL_WORK_GRAPH_JOB_DEFINITIONS,
+}), /differs from its manifest job capability/u)
 
 const dispatcher = new EditSkillRuntimeDispatcher(editSkillRuntimeBindingRegistry)
 const dispatchReceipts = []
@@ -265,5 +291,5 @@ console.log(JSON.stringify({
     typeof binding.handler === 'function').length,
   fixtureDispatchReceipts: dispatchReceipts.length,
   fixtureProviderRequests: 0,
-  adversarialCases: 13,
+  adversarialCases: 14,
 }, null, 2))

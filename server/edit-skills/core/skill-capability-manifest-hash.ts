@@ -62,15 +62,15 @@ export function deepFreezeSkillValue<T>(value: T, seen = new Set<object>()): Rea
   return Object.freeze(value)
 }
 
-export function createSkillCapabilityManifest(
-  input: SkillCapabilityManifestCore,
-): Readonly<SkillCapabilityManifest> {
+export function createSkillCapabilityManifest<T extends SkillCapabilityManifestCore>(
+  input: T,
+): Readonly<T & { manifestHash: string }> {
   const core = skillCapabilityManifestCoreSchema.parse(input)
   const manifest = {
     ...core,
     manifestHash: hashSkillValue(core),
   } satisfies SkillCapabilityManifest
-  return deepFreezeSkillValue(manifest)
+  return deepFreezeSkillValue(manifest) as unknown as Readonly<T & { manifestHash: string }>
 }
 
 export function skillManifestReference(

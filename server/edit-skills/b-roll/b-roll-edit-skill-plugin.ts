@@ -23,6 +23,7 @@ import {
 } from '../core/edit-skill-plugin'
 import { editSkillWorkResultSchema, type EditSkillWorkResult } from '../core/edit-skill-work-result'
 import { hashSkillValue } from '../core/skill-capability-manifest-hash'
+import { manifestSupportedJobTypeIds } from '../core/skill-capability-manifest-normalization'
 import type { SkillEstimatorRegistry } from '../core/skill-estimator-registry'
 import type { SkillQaRegistry } from '../core/skill-qa-registry'
 import { assertSkillAssignment, assertSkillRangeMutation, isFrameRangeContained } from '../core/skill-range-authority'
@@ -224,7 +225,8 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       assignment: authority.assignment,
       plan,
     }))
-    if (graph.workItems.some((item) => !this.manifest.supportedJobTypes.includes(item.jobType))) {
+    if (graph.workItems.some((item) =>
+      !manifestSupportedJobTypeIds(this.manifest).includes(item.jobType))) {
       throw new Error('B-roll canonical graph contains work not supported by its manifest.')
     }
     return createEditSkillApprovedWorkGraph({
@@ -561,7 +563,8 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       plan: privatePlan,
     }))
     if (
-      canonical.workItems.some((item) => !this.manifest.supportedJobTypes.includes(item.jobType)) ||
+      canonical.workItems.some((item) =>
+        !manifestSupportedJobTypeIds(this.manifest).includes(item.jobType)) ||
       graph.pluginWorkGraphType !== canonical.schemaVersion ||
       graph.pluginWorkGraphHash !== canonical.workGraphHash ||
       !sameValue(graph.workItems, projectPublicWorkItems(assignment, canonical.workItems)) ||

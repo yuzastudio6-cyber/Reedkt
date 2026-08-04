@@ -158,20 +158,23 @@ const operationWorkerRouteSpecs: Record<ToolCallingOperationId, WorkerRouteBridg
   'mask.generate': {
     operationId: 'mask.generate',
     allowedWorkerTypes: ['gpu_ai_worker'],
-    futureHandlers: { gpu_ai_worker: 'gpu_ai_worker_mask_composition_execution' },
+    futureHandlers: {
+      gpu_ai_worker: 'canonical_track_all_orchestra_sam3_1_dispatch_required',
+    },
   },
   'mask.refine': {
     operationId: 'mask.refine',
-    allowedWorkerTypes: ['gpu_ai_worker', 'cpu_analysis_worker'],
+    allowedWorkerTypes: ['gpu_ai_worker'],
     futureHandlers: {
-      gpu_ai_worker: 'gpu_ai_worker_mask_composition_execution',
-      cpu_analysis_worker: 'cpu_analysis_worker_mask_composition_dry_run',
+      gpu_ai_worker: 'canonical_track_all_orchestra_sam3_1_dispatch_required',
     },
   },
   'background.remove': {
     operationId: 'background.remove',
     allowedWorkerTypes: ['gpu_ai_worker'],
-    futureHandlers: { gpu_ai_worker: 'gpu_ai_worker_mask_composition_execution' },
+    futureHandlers: {
+      gpu_ai_worker: 'canonical_track_all_orchestra_sam3_1_dispatch_required',
+    },
   },
   'video.enhance': {
     operationId: 'video.enhance',

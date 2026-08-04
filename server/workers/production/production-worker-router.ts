@@ -19,8 +19,6 @@ import { runAudioExecutionPipeline } from '../audio-execution'
 import type { AudioExecutionMode } from '../audio-execution'
 import { runColorExecutionPipeline } from '../color-execution'
 import type { ColorExecutionMode, ColorGradeStyle } from '../color-execution'
-import { runMaskCompositionPipeline } from '../mask-composition'
-import type { MaskExecutionMode, MaskIntent, MaskToolId, MaskSubjectSelection } from '../mask-composition'
 import { runEnhancementSlowMotionPipeline } from '../enhancement-slowmotion'
 import type { EnhancementSlowMotionExecutionMode } from '../enhancement-slowmotion'
 import type { EnhancementIntent } from '../enhancement'
@@ -28,11 +26,17 @@ import type { SlowMotionInterpolationMode } from '../slow-motion'
 import { runFinalRenderExecutionPipeline } from '../final-render'
 import type { FinalRenderEngine, FinalRenderExecutionMode, FinalRenderMode } from '../final-render'
 
+export const LEGACY_MASK_WORKER_ROUTE_RETIRED_ERROR =
+  'legacy_mask_worker_route_retired_track_all_orchestra_sam3_1_required'
+
 export async function routeProductionWorkerJob(payload: ProductionWorkerJobPayload): Promise<ProductionWorkerRouteOutput> {
   if (payload.executionMode === 'production_ready') {
     throw new Error(
       'legacy_mock_worker_production_retired_canonical_a100_l4_gpu_continuation_required',
     )
+  }
+  if (hasRetiredLegacyMaskRouteRequest(payload)) {
+    throw new Error(LEGACY_MASK_WORKER_ROUTE_RETIRED_ERROR)
   }
   switch (payload.workerType) {
     case 'cpu_analysis_worker':
@@ -81,18 +85,6 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           mockOnly: true,
           futureHandler: 'cpu_analysis_worker_color_execution',
           colorExecutionResult,
-        }
-      }
-
-      if (hasCpuMaskCompositionRequest(payload)) {
-        const maskCompositionResult = await runMaskCompositionPipeline(buildMaskCompositionInput(payload))
-        return {
-          summary: 'Milestone 15C CPU analysis worker mask QA/refinement dry-run route completed in explicit maskComposition mode.',
-          workerType: payload.workerType,
-          executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'cpu_analysis_worker_mask_composition_dry_run',
-          maskCompositionResult,
         }
       }
 
@@ -149,18 +141,6 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           mockOnly: true,
           futureHandler: 'gpu_ai_worker_enhancement_slowmotion_execution',
           enhancementSlowMotionResult,
-        }
-      }
-
-      if (hasMaskCompositionRequest(payload)) {
-        const maskCompositionResult = await runMaskCompositionPipeline(buildMaskCompositionInput(payload))
-        return {
-          summary: 'Milestone 15C GPU AI worker mask/background execution route completed in explicit maskComposition mode.',
-          workerType: payload.workerType,
-          executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'gpu_ai_worker_mask_composition_execution',
-          maskCompositionResult,
         }
       }
 
@@ -229,18 +209,6 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           mockOnly: true,
           futureHandler: 'render_worker_final_render_export_execution',
           finalRenderExecutionResult,
-        }
-      }
-
-      if (hasRenderMaskCompositionRequest(payload)) {
-        const maskCompositionResult = await runMaskCompositionPipeline(buildMaskCompositionInput(payload, { renderPreviewOnly: true }))
-        return {
-          summary: 'Milestone 15C render worker mask/text-behind-subject preview planning route completed in explicit maskComposition mode.',
-          workerType: payload.workerType,
-          executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'render_worker_mask_composition_preview_planning',
-          maskCompositionResult,
         }
       }
 
@@ -333,18 +301,6 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           mockOnly: true,
           futureHandler: 'qa_worker_enhancement_slowmotion_qa',
           enhancementSlowMotionResult,
-        }
-      }
-
-      if (hasMaskCompositionQARequest(payload)) {
-        const maskCompositionResult = await runMaskCompositionPipeline(buildMaskCompositionInput(payload, { qaOnly: true }))
-        return {
-          summary: 'Milestone 15C QA worker mask/text QA route completed in explicit maskCompositionQA mode.',
-          workerType: payload.workerType,
-          executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'qa_worker_mask_composition_qa',
-          maskCompositionResult,
         }
       }
 
@@ -681,171 +637,17 @@ function parseResolution(value: unknown): { width: number; height: number } | un
   return width && height ? { width, height } : undefined
 }
 
-function hasMaskCompositionRequest(payload: ProductionWorkerJobPayload): boolean {
-  const request = payload.metadata?.maskComposition
-  if (!request || typeof request !== 'object') return false
-  const mode = (request as Record<string, unknown>).mode
-  return isMaskExecutionMode(mode)
-}
-
-function hasCpuMaskCompositionRequest(payload: ProductionWorkerJobPayload): boolean {
-  const request = payload.metadata?.maskComposition
-  if (!request || typeof request !== 'object') return false
-  const record = request as Record<string, unknown>
-  return record.mode === 'dry_run' && (record.qaOnly === true || record.refinementOnly === true)
-}
-
-function hasRenderMaskCompositionRequest(payload: ProductionWorkerJobPayload): boolean {
-  const request = payload.metadata?.maskComposition
-  if (!request || typeof request !== 'object') return false
-  const record = request as Record<string, unknown>
-  const mode = record.mode
-  return (mode === 'dry_run' || mode === 'local_dev' || mode === 'container_ready') &&
-    (record.enableMaskPreview === true || typeof record.textBehindSubject === 'object')
-}
-
-function hasMaskCompositionQARequest(payload: ProductionWorkerJobPayload): boolean {
-  const request = payload.metadata?.maskCompositionQA
-  if (!request || typeof request !== 'object') return false
-  const mode = (request as Record<string, unknown>).mode
-  return isMaskExecutionMode(mode)
-}
-
-function buildMaskCompositionInput(
+export function hasRetiredLegacyMaskRouteRequest(
   payload: ProductionWorkerJobPayload,
-  options: { qaOnly?: boolean; renderPreviewOnly?: boolean } = {},
-) {
-  const request = (options.qaOnly ? payload.metadata?.maskCompositionQA : payload.metadata?.maskComposition) as Record<string, unknown>
-  const mode = request.mode as MaskExecutionMode
-  const textBehindSubject = typeof request.textBehindSubject === 'object' && request.textBehindSubject
-    ? request.textBehindSubject as Record<string, unknown>
-    : undefined
-  return {
-    mode,
-    workspaceId: payload.workspaceId,
-    projectId: payload.projectId,
-    mediaAssetId: payload.mediaAssetId ?? 'media-asset-not-set',
-    approvedSnapshotId: payload.approvedSnapshotId,
-    toolExecutionPlanId: payload.toolExecutionPlanId,
-    idempotencyKey: payload.idempotencyKey,
-    workerPayload: payload,
-    mediaAnalysisReportId: payload.mediaAnalysisReportId,
-    sourceImageArtifactId: stringValue(request.sourceImageArtifactId),
-    sourceVideoArtifactId: stringValue(request.sourceVideoArtifactId) ?? payload.storageReferenceIds[0],
-    proxyVideoArtifactId: stringValue(request.proxyVideoArtifactId),
-    representativeFrameArtifactIds: Array.isArray(request.representativeFrameArtifactIds) ? request.representativeFrameArtifactIds.filter(isStringValue) : undefined,
-    sourceImageLocalPath: stringValue(request.sourceImageLocalPath),
-    sourceVideoLocalPath: stringValue(request.sourceVideoLocalPath),
-    proxyVideoLocalPath: stringValue(request.proxyVideoLocalPath),
-    representativeFrameLocalPaths: Array.isArray(request.representativeFrameLocalPaths) ? request.representativeFrameLocalPaths.filter(isStringValue) : undefined,
-    outputDirectory: stringValue(request.outputDirectory),
-    maskIntent: isMaskIntent(request.maskIntent) ? request.maskIntent : 'background_removal_image',
-    subjectSelection: parseMaskSubjectSelection(request.subjectSelection),
-    selectedPrimaryTool: isMaskToolId(request.selectedPrimaryTool) ? request.selectedPrimaryTool : undefined,
-    fallbackTools: Array.isArray(request.fallbackTools) ? request.fallbackTools.filter(isMaskToolId) : undefined,
-    legacySam2InputRejected: request.sam2CheckpointLocalPath !== undefined,
-    modelWeightManifestIds: Array.isArray(request.modelWeightManifestIds) ? request.modelWeightManifestIds.filter(isStringValue) : undefined,
-    modelLocalPaths: Array.isArray(request.modelLocalPaths) ? request.modelLocalPaths.filter(isStringValue) : undefined,
-    birefnetModelLocalPath: stringValue(request.birefnetModelLocalPath),
-    maskConfidenceHint: numberValue(request.maskConfidenceHint),
-    motionRequiresTracking: request.motionRequiresTracking === true,
-    frameSamplingMaxFrames: numberValue(request.frameSamplingMaxFrames),
-    textBehindSubject: textBehindSubject ? {
-      mode,
-      workspaceId: payload.workspaceId,
-      projectId: payload.projectId,
-      mediaAssetId: payload.mediaAssetId ?? 'media-asset-not-set',
-      approvedSnapshotId: payload.approvedSnapshotId,
-      toolExecutionPlanId: payload.toolExecutionPlanId,
-      idempotencyKey: payload.idempotencyKey,
-      foregroundMaskArtifactId: stringValue(textBehindSubject.foregroundMaskArtifactId),
-      maskSequenceArtifactId: stringValue(textBehindSubject.maskSequenceArtifactId),
-      sourceVideoArtifactId: stringValue(textBehindSubject.sourceVideoArtifactId) ?? stringValue(request.sourceVideoArtifactId),
-      proxyVideoArtifactId: stringValue(textBehindSubject.proxyVideoArtifactId) ?? stringValue(request.proxyVideoArtifactId),
-      textContent: stringValue(textBehindSubject.textContent) ?? '',
-      textStylePreset: isTextStylePreset(textBehindSubject.textStylePreset) ? textBehindSubject.textStylePreset : 'clean_title',
-      placementPolicy: isTextPlacementPolicy(textBehindSubject.placementPolicy) ? textBehindSubject.placementPolicy : 'behind_subject_center',
-      motionPolicy: isTextMotionPolicy(textBehindSubject.motionPolicy) ? textBehindSubject.motionPolicy : undefined,
-      durationSeconds: numberValue(textBehindSubject.durationSeconds),
-      safeZones: Array.isArray(textBehindSubject.safeZones) ? textBehindSubject.safeZones as never[] : undefined,
-      outputDirectory: stringValue(textBehindSubject.outputDirectory) ?? stringValue(request.outputDirectory),
-      maskConfidence: numberValue(textBehindSubject.maskConfidence) ?? numberValue(request.maskConfidenceHint),
-      enablePreview: options.renderPreviewOnly ? textBehindSubject.enablePreview === true : textBehindSubject.enablePreview === true,
-      allowFinalRender: textBehindSubject.allowFinalRender === true,
-      rawPrompt: textBehindSubject.rawPrompt,
-      signedUrl: textBehindSubject.signedUrl,
-    } : undefined,
-    enableModelMaskExecution: request.enableModelMaskExecution === true,
-    enableMaskPreview: options.renderPreviewOnly ? request.enableMaskPreview === true : request.enableMaskPreview === true,
-    allowModelDownload: request.allowModelDownload === true,
-    allowFinalRender: request.allowFinalRender === true,
-    timeoutMs: numberValue(request.timeoutMs),
-    readinessReport: typeof request.readinessReport === 'object' && request.readinessReport ? request.readinessReport as never : undefined,
-    rawPrompt: request.rawPrompt,
-    promptText: request.promptText,
-    rawUserChat: request.rawUserChat,
-    signedUrl: request.signedUrl,
-    serviceRoleKey: request.serviceRoleKey,
-    providerApiKey: request.providerApiKey,
-    secretValue: request.secretValue,
-    arbitraryModelArgs: Array.isArray(request.arbitraryModelArgs) ? request.arbitraryModelArgs.filter(isStringValue) : undefined,
-    arbitraryFfmpegArgs: Array.isArray(request.arbitraryFfmpegArgs) ? request.arbitraryFfmpegArgs.filter(isStringValue) : undefined,
-  }
-}
-
-function isMaskExecutionMode(value: unknown): value is MaskExecutionMode {
-  return value === 'dry_run' ||
-    value === 'local_dev' ||
-    value === 'container_ready' ||
-    value === 'production_blocked' ||
-    value === 'production_ready'
-}
-
-function isMaskIntent(value: unknown): value is MaskIntent {
-  return value === 'background_removal_image' ||
-    value === 'background_removal_video' ||
-    value === 'subject_cutout' ||
-    value === 'text_behind_subject' ||
-    value === 'blur_background' ||
-    value === 'custom'
-}
-
-function isMaskToolId(value: unknown): value is MaskToolId {
-  return value === 'birefnet' ||
-    value === 'sam3_1' ||
-    value === 'sam2' ||
-    value === 'transparent_background' ||
-    value === 'rembg' ||
-    value === 'opencv' ||
-    value === 'kornia' ||
-    value === 'none'
-}
-
-function parseMaskSubjectSelection(value: unknown): MaskSubjectSelection | undefined {
-  if (!value || typeof value !== 'object') return undefined
-  return value as MaskSubjectSelection
-}
-
-function isTextStylePreset(value: unknown): value is 'clean_title' | 'bold_social' | 'lower_third' | 'side_panel' | 'minimal_label' | 'custom' {
-  return value === 'clean_title' ||
-    value === 'bold_social' ||
-    value === 'lower_third' ||
-    value === 'side_panel' ||
-    value === 'minimal_label' ||
-    value === 'custom'
-}
-
-function isTextPlacementPolicy(value: unknown): value is 'behind_subject_center' | 'behind_subject_upper' | 'behind_subject_lower' | 'side_panel' | 'lower_third' | 'foreground_safe' {
-  return value === 'behind_subject_center' ||
-    value === 'behind_subject_upper' ||
-    value === 'behind_subject_lower' ||
-    value === 'side_panel' ||
-    value === 'lower_third' ||
-    value === 'foreground_safe'
-}
-
-function isTextMotionPolicy(value: unknown): value is 'static' | 'subtle_follow' | 'frame_locked' {
-  return value === 'static' || value === 'subtle_follow' || value === 'frame_locked'
+): boolean {
+  if (!payload.metadata) return false
+  return Object.prototype.hasOwnProperty.call(
+    payload.metadata,
+    'maskComposition',
+  ) || Object.prototype.hasOwnProperty.call(
+    payload.metadata,
+    'maskCompositionQA',
+  )
 }
 
 function hasColorExecutionRequest(payload: ProductionWorkerJobPayload): boolean {

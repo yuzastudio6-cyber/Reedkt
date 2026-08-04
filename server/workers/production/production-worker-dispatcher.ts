@@ -18,7 +18,11 @@ import {
   releaseWorkerLease,
 } from './production-worker-lease-manager'
 import { collectGateWarnings, createProductionWorkerResult } from './production-worker-result-writer'
-import { routeProductionWorkerJob } from './production-worker-router'
+import {
+  hasRetiredLegacyMaskRouteRequest,
+  LEGACY_MASK_WORKER_ROUTE_RETIRED_ERROR,
+  routeProductionWorkerJob,
+} from './production-worker-router'
 import type {
   ProductionWorkerExecutionResult,
   ProductionWorkerJobPayload,
@@ -79,6 +83,36 @@ export async function dispatchProductionWorkerJob(input: {
   }
 
   events.push(pushEvent(state, payload, 'gates_passed', 'Production worker gates passed.', 15))
+
+  if (hasRetiredLegacyMaskRouteRequest(payload)) {
+    events.push(pushEvent(
+      state,
+      payload,
+      'job_blocked',
+      'The legacy mask worker route is retired; exact Orchestra and Track All authority is required before canonical SAM 3.1 dispatch.',
+      100,
+      {
+        requiredGate: 'canonical_track_all_orchestra_sam3_1_dispatch',
+        cpuOnlySubstantiveExecutionAllowed: false,
+      },
+    ))
+    return createProductionWorkerResult({
+      payload,
+      status: 'blocked',
+      gateChecks,
+      events,
+      warnings: [
+        ...collectGateWarnings(gateChecks),
+        'No legacy CPU, generic GPU, render, or QA mask lease was created.',
+      ],
+      error: {
+        code: 'LEGACY_MASK_WORKER_ROUTE_RETIRED',
+        message: LEGACY_MASK_WORKER_ROUTE_RETIRED_ERROR,
+        failureCategory: 'policy_blocked',
+      },
+      startedAt,
+    })
+  }
 
   const duplicate = detectDuplicateToolRun(payload, state.idempotencyKeys)
   if (duplicate.duplicate && duplicate.existingJobId && duplicate.existingJobId !== payload.jobId) {

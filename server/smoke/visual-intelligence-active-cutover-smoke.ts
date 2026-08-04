@@ -36,6 +36,15 @@ const trackAllSam31Binding = source(
 const sam31TaskOwner = source(
   'server/workers/masks/canonical-sam3_1-gpu-task-owner-service.ts',
 )
+const legacyWorkerRouter = source(
+  'server/workers/production/production-worker-router.ts',
+)
+const legacyWorkerDispatcher = source(
+  'server/workers/production/production-worker-dispatcher.ts',
+)
+const workerRouteBridge = source(
+  'server/tool-calling/worker-route-bridge.ts',
+)
 
 assert.match(app, /createVisualIntelligenceOrchestraRoutes/u)
 assert.match(app, /createVisualIntelligenceRoutes/u)
@@ -126,6 +135,34 @@ assert.doesNotMatch(
   sam31TaskOwner,
   /createVisualIntelligenceOrchestraInvocationCompiler|visualIntelligenceMayDispatch/u,
 )
+assert.match(
+  legacyWorkerRouter,
+  /legacy_mask_worker_route_retired_track_all_orchestra_sam3_1_required/u,
+)
+assert.doesNotMatch(
+  legacyWorkerRouter,
+  /runMaskCompositionPipeline|gpu_ai_worker_mask_composition_execution|cpu_analysis_worker_mask_composition_dry_run/u,
+)
+assert.match(
+  legacyWorkerDispatcher,
+  /hasRetiredLegacyMaskRouteRequest/u,
+)
+assert.match(
+  legacyWorkerDispatcher,
+  /LEGACY_MASK_WORKER_ROUTE_RETIRED/u,
+)
+assert.match(
+  legacyWorkerDispatcher,
+  /No legacy CPU, generic GPU, render, or QA mask lease was created/u,
+)
+assert.match(
+  workerRouteBridge,
+  /canonical_track_all_orchestra_sam3_1_dispatch_required/u,
+)
+assert.doesNotMatch(
+  workerRouteBridge,
+  /gpu_ai_worker_mask_composition_execution|cpu_analysis_worker_mask_composition_dry_run/u,
+)
 
 for (const removedExecutablePath of [
   'docker/prod/gpu-worker/sam2/Dockerfile.runtime-candidate',
@@ -148,6 +185,7 @@ console.log(JSON.stringify({
   canonicalL4ProbeCostAuthoritySeparatedFromDispatch: true,
   sourceAnalysisReturnsThroughOrchestra: true,
   sam31RequiresExactTrackAllOrchestraBinding: true,
+  legacyDirectMaskWorkerRoutesRetired: true,
   visualIntelligenceMayInspectButNotOwnSam31Artifacts: true,
   activeQwenVisualRuntimeMounted: false,
   activeSam2ExecutableRuntimePresent: false,

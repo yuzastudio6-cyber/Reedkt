@@ -1,5 +1,7 @@
 import {
   buildWorkerIdempotencyKey,
+  createProductionWorkerRuntimeState,
+  routeProductionWorkerJob,
   runProductionWorkerRuntime,
 } from '../workers/production'
 import type { ProductionWorkerJobPayload } from '../workers/production'
@@ -34,12 +36,22 @@ function check(condition: boolean, message: string): void {
   if (!condition) throw new Error(message)
 }
 
-async function expectRejects(fn: () => unknown | Promise<unknown>, message: string): Promise<void> {
+async function expectRejects(
+  fn: () => unknown | Promise<unknown>,
+  message: string,
+  expectedMessage?: RegExp,
+): Promise<void> {
   let rejected = false
   try {
     await fn()
-  } catch {
+  } catch (error) {
     rejected = true
+    if (expectedMessage) {
+      check(
+        error instanceof Error && expectedMessage.test(error.message),
+        `${message} Received ${String(error)}.`,
+      )
+    }
   }
   check(rejected, message)
 }
@@ -279,23 +291,37 @@ try {
   })
   check(productionReady.status === 'blocked', 'production_ready must remain blocked when readiness/model-weight blockers exist.')
 
-  const routed = await runProductionWorkerRuntime({
-    payload: buildPayload('gpu_ai_worker', {
-      maskComposition: {
-        mode: 'dry_run',
-        maskIntent: 'background_removal_image',
-        sourceImageArtifactId: baseInput.sourceImageArtifactId,
-        representativeFrameArtifactIds: baseInput.representativeFrameArtifactIds,
-        subjectSelection: baseInput.subjectSelection,
-        maskConfidenceHint: 0.86,
-      },
-    }),
+  const retiredMaskPayload = buildPayload('gpu_ai_worker', {
+    maskComposition: {
+      mode: 'dry_run',
+      maskIntent: 'background_removal_image',
+      sourceImageArtifactId: baseInput.sourceImageArtifactId,
+      representativeFrameArtifactIds: baseInput.representativeFrameArtifactIds,
+      subjectSelection: baseInput.subjectSelection,
+      maskConfidenceHint: 0.86,
+    },
   })
-  check(routed.status === 'completed', 'Explicit maskComposition worker route must complete in dry-run.')
-  check(routed.output?.futureHandler === 'gpu_ai_worker_mask_composition_execution', 'Worker router must use explicit M15C GPU mask route.')
-  check(Boolean(routed.output?.maskCompositionResult), 'Worker router output must include maskCompositionResult.')
+  const retiredMaskRuntimeState = createProductionWorkerRuntimeState()
+  const retiredMaskResult = await runProductionWorkerRuntime({
+    payload: retiredMaskPayload,
+    state: retiredMaskRuntimeState,
+  })
+  check(
+    retiredMaskResult.status === 'blocked' &&
+      retiredMaskResult.error?.code === 'LEGACY_MASK_WORKER_ROUTE_RETIRED',
+    'The dispatcher must block the legacy mask route before execution.',
+  )
+  check(
+    retiredMaskRuntimeState.leases.length === 0,
+    'The retired mask route must not create a worker lease.',
+  )
+  await expectRejects(
+    () => routeProductionWorkerJob(retiredMaskPayload),
+    'The legacy router must retain a defense-in-depth direct-call rejection.',
+    /legacy_mask_worker_route_retired_track_all_orchestra_sam3_1_required/u,
+  )
 
-  const combinedOutput = JSON.stringify({ dryRun, localDev, productionReady, routed }).toLowerCase()
+  const combinedOutput = JSON.stringify({ dryRun, localDev, productionReady, retiredMaskResult }).toLowerCase()
   check(!combinedOutput.includes('revideo') || combinedOutput.includes('"revideoUsed":false'.toLowerCase()), 'M15C must not use Revideo.')
 
   console.log(JSON.stringify({
@@ -313,7 +339,8 @@ try {
       'dry_run_pipeline',
       'mask_qa_gates',
       'production_blockers',
-      'worker_route',
+      'legacy_worker_route_retired_before_lease',
+      'legacy_router_direct_call_defense',
       'no_revideo_runtime',
     ],
     artifacts: dryRun.maskArtifacts.length,

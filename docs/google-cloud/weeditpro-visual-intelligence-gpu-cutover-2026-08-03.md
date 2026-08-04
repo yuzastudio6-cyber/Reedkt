@@ -192,6 +192,12 @@ idempotent rerun then observed all five disabled and emitted
   inspect those artifacts but cannot create, mutate, or directly dispatch SAM
   3.1. This source boundary does not self-qualify a future Track All manifest or
   any live GPU route.
+- The legacy production-worker router no longer accepts direct mask,
+  background-removal, refinement, preview, or mask-QA metadata on CPU, generic
+  GPU, render, or QA workers. Those requests fail closed with the exact Track
+  All/Orchestra/SAM 3.1 requirement. Historical M15C planners remain test-only
+  compatibility evidence and cannot create fresh dispatch or artifact
+  authority.
 - This is a source and persistence boundary, not live GPU evidence. The
   repository grants no job dispatch, customer-credit mutation, QA approval,
   delivery, or production authority. A100 and L4 remain blocked until those

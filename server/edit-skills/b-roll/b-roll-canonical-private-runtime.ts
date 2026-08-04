@@ -437,13 +437,19 @@ implements BrollCanonicalPrivateWorkExecutor {
           throw new Error('Source validation cannot run for a non-source B-roll route.')
         }
         const source = this.#input.source
+        const mediaManifest = sourceMediaArtifactV1Schema.parse(source.mediaManifest)
         if (
           this.#input.plan.sourceCandidateId !== source.sourceId ||
           hashSkillValue(this.#input.plan.sourceArtifactRef) !== hashSkillValue(source.artifactRef) ||
-          source.bytes.byteLength !== source.artifactRef.byteLength ||
-          createHash('sha256').update(source.bytes).digest('hex') !== source.artifactRef.sha256
+          source.artifactRef.sha256 !== hashSkillValue(mediaManifest) ||
+          source.bytes.byteLength !== mediaManifest.byteLength ||
+          createHash('sha256').update(source.bytes).digest('hex') !== mediaManifest.objectSha256
         ) throw new Error('Canonical private B-roll source selection is stale.')
-        return [source.artifactRef.sha256, hashSkillValue({ sourceId: source.sourceId })]
+        return [
+          source.artifactRef.sha256,
+          mediaManifest.objectSha256,
+          hashSkillValue({ sourceId: source.sourceId }),
+        ]
       }
       case 'prepare_b_roll_source': {
         const execution = await this.#ensureExistingSource()

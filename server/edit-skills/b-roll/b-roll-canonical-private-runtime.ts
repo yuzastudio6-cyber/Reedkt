@@ -234,7 +234,7 @@ implements BrollCanonicalPrivateWorkExecutor {
         publicGraph.approvedWorkGraphHash !== input.approvedWorkGraphHash ||
         publicGraph.pluginWorkGraphHash !== input.workGraph.workGraphHash ||
         publicGraph.assignmentId !== input.assignment.assignmentId ||
-        publicGraph.planHash !== input.plan.planHash ||
+        publicGraph.planId !== input.plan.planId ||
         hashSkillValue(publicGraph.manifestRef) !== hashSkillValue(input.assignment.manifestRef) ||
         publicGraph.workItems.length !== input.workGraph.workItems.length ||
         publicGraph.workItems.some((publicItem, index) => {
@@ -303,7 +303,7 @@ implements BrollCanonicalPrivateWorkExecutor {
     if (
       acceptance.assignmentId !== this.#input.assignment.assignmentId ||
       acceptance.assignmentHash !== this.#publicAssignmentHash() ||
-      acceptance.planHash !== this.#input.plan.planHash ||
+      acceptance.planHash !== this.#publicPlanHash() ||
       hashSkillValue(acceptance.manifestRef) !== hashSkillValue(this.#input.assignment.manifestRef) ||
       acceptance.acceptedForPhase !== 'skill_output_qa'
     ) throw new Error('Canonical private B-roll dependency acceptance is stale or out of phase.')
@@ -316,7 +316,7 @@ implements BrollCanonicalPrivateWorkExecutor {
         artifact.assignmentId !== this.#input.assignment.assignmentId ||
         artifact.assignmentHash !== this.#publicAssignmentHash() ||
         artifact.planId !== this.#input.plan.planId ||
-        artifact.planHash !== this.#input.plan.planHash ||
+        artifact.planHash !== this.#publicPlanHash() ||
         artifact.candidateArtifact.sha256 !== hashSkillValue(candidate) ||
         hashSkillValue(artifact.authorizedRange) !==
           hashSkillValue(this.#input.assignment.writeRangeAuthority.authorizedRange) ||
@@ -396,6 +396,10 @@ implements BrollCanonicalPrivateWorkExecutor {
   #publicAssignmentHash(): string {
     return this.#input.approvedPublicWorkGraph?.assignmentHash ??
       this.#input.assignment.assignmentHash
+  }
+
+  #publicPlanHash(): string {
+    return this.#input.approvedPublicWorkGraph?.planHash ?? this.#input.plan.planHash
   }
 
   #publicWorkItemHash(workItemKey: string): string | undefined {
@@ -546,7 +550,7 @@ implements BrollCanonicalPrivateWorkExecutor {
     }
     const work = {
       planId: this.#input.plan.planId,
-      planHash: this.#input.plan.planHash,
+      planHash: this.#publicPlanHash(),
       workItemKey: invocation.workItemKey,
       workItemHash: invocation.workItemHash,
     }
@@ -1155,7 +1159,7 @@ implements BrollCanonicalPrivateWorkExecutor {
       assignmentId: this.#input.assignment.assignmentId,
       assignmentHash: this.#publicAssignmentHash(),
       planId: this.#input.plan.planId,
-      planHash: this.#input.plan.planHash,
+      planHash: this.#publicPlanHash(),
       planningQaReportHash: this.#input.planningQaReport.reportHash,
       workGraphHash: this.#input.approvedWorkGraphHash,
       exactTiming: this.#input.assignment.writeRangeAuthority.authorizedRange,

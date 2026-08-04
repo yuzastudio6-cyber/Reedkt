@@ -2,10 +2,14 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 
 import type {
+  ApprovedEditExecutionUploadedMediaSourceAssetClientInput,
+} from '../../src/lib/approved-edit-execution-package-client'
+import type {
   VisualIntelligenceEvidence,
   VisualIntelligenceEvidenceRef,
   VisualIntelligenceRequest,
 } from '../../src/types/visual-intelligence'
+import type { PlannerInput } from '../../src/types/reeditpro'
 import {
   createCanonicalQualityFirstUserTriggeredGpuPolicy,
 } from '../edit-architecture/canonical-quality-first-user-triggered-gpu-policy'
@@ -24,6 +28,9 @@ import {
   createCanonicalSourceCleanupVisualIntelligenceBinding,
   verifyCanonicalSourceCleanupVisualIntelligenceBinding,
 } from '../services/canonical-source-cleanup-visual-intelligence-binding'
+import {
+  compileCanonicalSourceLedPlan,
+} from '../services/canonical-source-led-plan-compiler'
 import type {
   CanonicalSourceLedContentReasoningSelection,
 } from '../services/canonical-source-led-content-analysis-reasoner'
@@ -163,6 +170,84 @@ const request: CanonicalSourceLedProfessionalContentAnalysisInput = {
     },
   }],
 }
+
+const plannerInput: PlannerInput = {
+  projectName: 'Whole-video source cleanup compiler smoke',
+  targetPlatform: 'youtube',
+  aspectRatio: '16:9',
+  aspectRatioConfirmed: true,
+  aspectRatioSource: 'user_selected',
+  frameTemplateType: 'youtube_side_panel',
+  editingCategory: 'education_explainer',
+  workflowType: 'simple_clean_edit',
+  editLevel: 'premium',
+  structurePreference: 'preserve_source_order',
+  moodStyle: 'clean',
+  visualPreference: 'no_extra_visuals',
+  referenceUrl: '',
+  customInstructions: request.planningDirection,
+  userInstructionHistory: [request.planningDirection],
+  creditPreference: 'balanced',
+  clips: [{
+    id: 'uploaded-clip-1',
+    uploadedOrder: 1,
+    fileName: 'source.mp4',
+    duration: '20',
+    detectedType: 'Verified uploaded video',
+    sourceRole: 'main_story',
+    isImportant: true,
+  }],
+  sourceSequenceMode: 'single_complete_video',
+  sourceOrderConfirmed: true,
+  cleanupPreference: 'balanced_cleanup',
+  cleanupPreferenceConfirmed: true,
+  preferenceDefaultsApplied: true,
+  preferenceSnapshotId: 'source-cleanup-preference-snapshot',
+  preferencePersistenceSource: 'authenticated_private_internal_backend',
+  currentEditPreferenceAuthorityValues: {
+    editLevel: 'premium',
+    workflowType: 'simple_clean_edit',
+    cleanupPreference: 'balanced_cleanup',
+    visualPreference: 'no_extra_visuals',
+    moodStyle: 'clean',
+    creditPreference: 'balanced',
+    targetPlatform: 'youtube',
+  },
+  currentEditPreferenceRecordRevision: 1,
+  currentEditPreferenceRevision: 1,
+  currentEditPreferencePlanningInputRevision: 1,
+  currentEditPreferenceFingerprintSha256: sha('source-cleanup-preferences'),
+}
+
+const sourceMediaAssets:
+  ApprovedEditExecutionUploadedMediaSourceAssetClientInput[] = [{
+    mediaAssetId: 'media-asset-1',
+    storageObjectRecordId: 'storage-object-1',
+    sourceSequenceItemId: 'source-item-1',
+    uploadedClipId: 'uploaded-clip-1',
+    uploadedOrder: 1,
+    storageProvider: 'google_cloud_storage',
+    storageBucket: 'private-source-bucket',
+    storagePath: 'workspace-1/source.mp4',
+    fileName: 'source.mp4',
+    mimeType: 'video/mp4',
+    byteSize: 10_000_000,
+    checksumSha256: sourceChecksum,
+    sourceMetadata: {
+      probeStatus: 'probed',
+      source: 'gcs_ffprobe',
+      durationSeconds: 20,
+      width: 1_920,
+      height: 1_080,
+      videoCodec: 'h264',
+      audioCodec: 'aac',
+      hasVideo: true,
+      hasAudio: true,
+    },
+    privateArtifact: true,
+    publicUrl: null,
+    signedUrl: null,
+  }]
 
 const planningAdmission = {
   mode: 'planning_evidence' as const,
@@ -690,6 +775,293 @@ assert.equal(cleanupBinding.authority.callerTimestampsAcceptedAsCutAuthority,
   false)
 assert.equal(cleanupBinding.permissions.timelineMutated, false)
 assert.equal(cleanupBinding.permissions.customerCreditMutated, false)
+
+const compiledCleanup = compileCanonicalSourceLedPlan({
+  plannerInput,
+  sourceMediaAssets,
+  confirmedCaptionMarkers: [],
+  sourceCleanupAuthority: {
+    binding: cleanupBinding,
+    evidence: result,
+    expectedScope: {
+      workspaceId: request.workspaceId,
+      projectId: request.projectId,
+      editSessionId: request.editSessionId,
+      userInstructionDigestSha256: request.userInstructionDigestSha256,
+    },
+  },
+})
+assert.equal(
+  compiledCleanup.evidence.sourceRangePolicy,
+  'head_intelligence_verified_visual_intelligence_cleanup',
+)
+assert.deepEqual(
+  compiledCleanup.evidence.sourceAnalysisEvidenceRef,
+  cleanupBinding.sourceAnalysisEvidenceRef,
+)
+assert.equal(
+  compiledCleanup.evidence.sourceCleanupBindingDigestSha256,
+  cleanupBinding.bindingDigestSha256,
+)
+assert.equal(compiledCleanup.evidence.totalFrames, 375)
+assert.deepEqual(
+  compiledCleanup.plan.sourceCleanupPlan?.decisions.map((decision) => {
+    const selectedRange = (decision as unknown as {
+      selectedRange: { startFrame: number; endFrame: number }
+    }).selectedRange
+    return {
+      decisionId: decision.id,
+      action: decision.decision,
+      sourceRange: [
+        decision.sourceRange.startFrame,
+        decision.sourceRange.endFrame,
+      ],
+      selectedRange: [selectedRange.startFrame, selectedRange.endFrame],
+    }
+  }),
+  [{
+    decisionId: 'keep-better-take',
+    action: 'tighten',
+    sourceRange: [0, 600],
+    selectedRange: [225, 600],
+  }],
+)
+assert.deepEqual(
+  compiledCleanup.plan.sourceCleanupPlan?.cutRanges.map((decision) => [
+    decision.id,
+    decision.sourceRange.startFrame,
+    decision.sourceRange.endFrame,
+  ]),
+  [
+    ['remove-first-take', 0, 150],
+    ['remove-editor-remark', 150, 225],
+  ],
+)
+assert.deepEqual(
+  compiledCleanup.plan.masterTimingPlan?.sourceTimingItems.map((item) => ({
+    decisionId: item.trimDecisionItemId,
+    sourceRange: [item.sourceRange.startFrame, item.sourceRange.endFrame],
+    selectedRange: [
+      item.selectedRange.startFrame,
+      item.selectedRange.endFrame,
+    ],
+  })),
+  [{
+    decisionId: 'keep-better-take',
+    sourceRange: [0, 600],
+    selectedRange: [225, 600],
+  }],
+)
+assert.deepEqual(
+  compiledCleanup.plan.masterTimingPlan?.finalTimelineSegments.map(
+    (segment) => [segment.finalRange.startFrame, segment.finalRange.endFrame],
+  ),
+  [[0, 375]],
+)
+const compiledCanonicalPlan =
+  compiledCleanup.canonicalDraft.publication?.canonicalPlan ??
+  compiledCleanup.professionalLongFormPublication?.canonicalPlan
+assert.ok(compiledCanonicalPlan)
+assert.deepEqual(
+  compiledCanonicalPlan.components.sourceCleanupPlan.decisions.map(
+    (decision) => ({
+      decisionId: decision.decisionId,
+      action: decision.action,
+      range: [decision.startFrame, decision.endFrameExclusive],
+    }),
+  ),
+  [{
+    decisionId: 'keep-better-take',
+    action: 'tighten',
+    range: [225, 600],
+  }],
+)
+const compiledIntent = compiledCanonicalPlan.components.compiledIntent
+assert.equal(
+  (compiledIntent.compilerNotes as string[]).some((note) =>
+    note.includes(cleanupBinding.bindingDigestSha256)),
+  true,
+)
+const colorTrimPayloads = compiledCanonicalPlan.workItems
+  .filter((item) => item.executionInput.operation ===
+    'process_approved_source_professional_color_delivery')
+  .map((item) => item.executionInput.structuredPayload as {
+    trimStartFrame: number
+    trimEndFrameExclusive: number
+  })
+assert.ok(colorTrimPayloads.length > 0)
+assert.equal(colorTrimPayloads[0]!.trimStartFrame, 225)
+assert.equal(
+  colorTrimPayloads[colorTrimPayloads.length - 1]!.trimEndFrameExclusive,
+  600,
+)
+colorTrimPayloads.slice(1).forEach((payload, index) => {
+  assert.equal(
+    payload.trimStartFrame,
+    colorTrimPayloads[index]!.trimEndFrameExclusive,
+  )
+})
+assert.throws(() => compileCanonicalSourceLedPlan({
+  plannerInput,
+  sourceMediaAssets,
+  confirmedCaptionMarkers: [],
+  sourceCleanupAuthority: {
+    binding: cleanupBinding,
+    evidence: result,
+    expectedScope: {
+      workspaceId: request.workspaceId,
+      projectId: request.projectId,
+      editSessionId: 'stale-edit-session',
+      userInstructionDigestSha256: request.userInstructionDigestSha256,
+    },
+  },
+}), /cleanup authority is stale/u)
+assert.throws(() => compileCanonicalSourceLedPlan({
+  plannerInput,
+  sourceMediaAssets: [{
+    ...sourceMediaAssets[0]!,
+    checksumSha256: sha('substituted-source'),
+  }],
+  confirmedCaptionMarkers: [],
+  sourceCleanupAuthority: {
+    binding: cleanupBinding,
+    evidence: result,
+    expectedScope: {
+      workspaceId: request.workspaceId,
+      projectId: request.projectId,
+      editSessionId: request.editSessionId,
+      userInstructionDigestSha256: request.userInstructionDigestSha256,
+    },
+  },
+}), /lost exact source identity/u)
+
+const multiRangeSelection = {
+  sources: [{
+    sourceSequenceItemId: 'source-item-1',
+    mediaAssetId: 'media-asset-1',
+    uploadedOrder: 1,
+    selectedRanges: [{
+      rangeId: 'keep-first-take-for-context',
+      startFrame: 0,
+      endFrameExclusive: 120,
+      role: 'opening',
+      reason: 'Keep the opening context for this multi-range rejection case.',
+      confidenceBasisPoints: 9_100,
+      phraseBoundaryAligned: true,
+      preservesSourceMeaning: true,
+      userReviewRequired: false,
+      evidenceIds: ['transcript-first-take', 'visual-window-1'],
+      keepReasonCodes: ['source_context_required'],
+      removedContextCodes: [],
+      decisionBasis: 'content_understanding',
+      instructionIds: [],
+      timeOnlyDecision: false,
+    }, {
+      rangeId: 'keep-better-take-after-gap',
+      startFrame: 180,
+      endFrameExclusive: 480,
+      role: 'main_story',
+      reason: 'Keep the complete explanation after the removed remark.',
+      confidenceBasisPoints: 9_400,
+      phraseBoundaryAligned: true,
+      preservesSourceMeaning: true,
+      userReviewRequired: false,
+      evidenceIds: ['transcript-better-take', 'visual-window-2'],
+      keepReasonCodes: ['clear_explanation', 'key_story_beat'],
+      removedContextCodes: [],
+      decisionBasis: 'content_understanding',
+      instructionIds: [],
+      timeOnlyDecision: false,
+    }],
+    removedRanges: [{
+      rangeId: 'remove-middle-remark',
+      startFrame: 120,
+      endFrameExclusive: 180,
+      reason: 'Remove the non-program middle remark.',
+      confidenceBasisPoints: 9_200,
+      phraseBoundaryAligned: true,
+      preservesSourceMeaning: true,
+      userReviewRequired: false,
+      evidenceIds: ['transcript-delete-instruction', 'visual-window-1'],
+      reasonCodes: ['filler_words'],
+      decisionBasis: 'content_understanding',
+      instructionIds: [],
+      timeOnlyDecision: false,
+    }],
+    embeddedEditInstructions: [],
+  }],
+  sourceOrderPreserved: true,
+  completeSourceCoverageVerified: true,
+  allTimelineIntervalsReviewed: true,
+  embeddedInstructionsEvaluated: true,
+  timeOnlyCutDecisionCount: 0,
+  meaningPreservationPassed: true,
+  userReviewRequired: false,
+  reviewReasons: [],
+} as const satisfies CanonicalSourceLedContentReasoningSelection
+const multiRangeEvidence = createCanonicalSourceLedContentAnalysisEvidence({
+  schemaVersion: 'canonical-source-led-content-analysis-evidence-v5',
+  source: 'server_private_source_understanding_pipeline',
+  identity: {
+    ...result.identity,
+    analysisRunId: 'analysis-multi-range-rejection',
+  },
+  sources: [{
+    ...result.sources[0]!,
+    ...multiRangeSelection.sources[0],
+  }],
+  reasoning: {
+    ...result.reasoning,
+    attemptDigestSha256: sha('multi-range-head-reasoning-attempt'),
+    structuredResultDigestSha256:
+      digestCanonicalSourceLedStructuredSelection(multiRangeSelection),
+  },
+  summary: {
+    selectedSourceCount: 1,
+    selectedRangeCount: 2,
+    selectedTotalFrames: 420,
+    originalTotalFrames: 480,
+    originalTotalTimelineFrames: 600,
+    selectedTotalTimelineFrames: 525,
+    rationalSourceFrameMappingVerified: true,
+    sourceOrderPreserved: true,
+    everySelectionEvidenceBound: true,
+    everyRemovalEvidenceBound: true,
+    completeSourceCoverageVerified: true,
+    allTimelineIntervalsReviewed: true,
+    embeddedInstructionsEvaluated: true,
+    embeddedInstructionCount: 0,
+    unresolvedEmbeddedInstructionCount: 0,
+    timeOnlyCutDecisionCount: 0,
+    meaningPreservationPassed: true,
+    userReviewRequired: false,
+  },
+  boundaries: result.boundaries,
+})
+const multiRangeBinding = createCanonicalSourceCleanupVisualIntelligenceBinding({
+  evidence: multiRangeEvidence,
+  expectedScope: {
+    workspaceId: request.workspaceId,
+    projectId: request.projectId,
+    editSessionId: request.editSessionId,
+    userInstructionDigestSha256: request.userInstructionDigestSha256,
+  },
+})
+assert.throws(() => compileCanonicalSourceLedPlan({
+  plannerInput,
+  sourceMediaAssets,
+  confirmedCaptionMarkers: [],
+  sourceCleanupAuthority: {
+    binding: multiRangeBinding,
+    evidence: multiRangeEvidence,
+    expectedScope: {
+      workspaceId: request.workspaceId,
+      projectId: request.projectId,
+      editSessionId: request.editSessionId,
+      userInstructionDigestSha256: request.userInstructionDigestSha256,
+    },
+  },
+}), /exactly one retained range.*multi-range execution remains fail-closed/u)
 await assert.rejects(async () => createCanonicalSourceCleanupVisualIntelligenceBinding({
   evidence: result,
   expectedScope: {
@@ -741,6 +1113,11 @@ console.log(JSON.stringify({
   selectedFrames: result.summary.selectedTotalFrames,
   selectedMasterTimelineFrames:
     cleanupBinding.totals.selectedMasterTimelineFrames,
+  compiledMasterTimelineFrames: compiledCleanup.evidence.totalFrames,
+  compiledSelectedSourceRange: [225, 600],
+  exactRenderTrimPayloadsVerified: true,
+  staleScopeAndSourceSubstitutionRejected: true,
+  unsupportedMultiRangeExecutionRejected: true,
   embeddedInstructionDetected: true,
   embeddedInstructionTreatedAsUntrustedEvidence:
     cleanupBinding.authority

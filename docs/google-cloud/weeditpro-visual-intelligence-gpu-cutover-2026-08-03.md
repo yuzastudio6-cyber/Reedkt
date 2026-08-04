@@ -218,6 +218,16 @@ idempotent rerun then observed all five disabled and emitted
   compilation factory joins that repository with the existing final route-
   qualification repository and the compilation-authority store, so an
   in-memory object cannot satisfy the production release path.
+- Driver/CUDA component evidence now has a canonical route-specific owner.
+  It rereads the immutable SAM 3.1 task, professional GPU launch, admitted
+  runtime result, and create-only worker response from their durable stores;
+  exact-matches the invocation, request, launch, A100/L4 route, accelerator,
+  image digest, scale-to-zero terminal proof, and account-effective attempt
+  cost; and derives the driver version and loaded CUDA-library digest only from
+  the validated runtime response. It then persists and exactly rereads the
+  content-addressed component record. Missing, crossed, caller-promoted, or
+  digest-tampered evidence fails closed, and this owner cannot start a GPU job
+  or mutate credits, assets, QA, delivery, or production authority.
 - Every fresh fixed SAM 3.1 task context now requires an exact, digest-bound
   `track_all` Orchestra call for one complete approved scene interval. The
   binding cross-checks the approved snapshot, output, scene, source artifact,

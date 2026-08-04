@@ -62,6 +62,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-gpu-runtime-qualification-compilation-authority-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-qualification-component-evidence-repository-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-task-owner-smoke.ts',
+  'server/smoke/canonical-sam3_1-gpu-runtime-driver-qualification-owner-smoke.ts',
   'server/smoke/canonical-quality-first-professional-tool-gpu-placement-smoke.ts',
   'server/smoke/canonical-quality-first-approved-work-graph-gpu-placement-authority-smoke.ts',
   'server/smoke/canonical-professional-tool-gpu-dispatch-admission-smoke.ts',

@@ -95,6 +95,15 @@ const qualityComponentWithoutHashSchema = componentBaseSchema.extend({
   componentKind: z.literal('independent_temporal_quality'),
   payload: canonicalSam31GpuRuntimeQualityEvidenceSchema,
 }).strict()
+const componentEvidenceWithoutHashSchema = z.discriminatedUnion(
+  'componentKind',
+  [
+    driverComponentWithoutHashSchema,
+    deterministicComponentWithoutHashSchema,
+    performanceComponentWithoutHashSchema,
+    qualityComponentWithoutHashSchema,
+  ],
+)
 const componentEvidenceSchema = z.discriminatedUnion('componentKind', [
   driverComponentWithoutHashSchema.extend({ componentHash: sha256 }).strict(),
   deterministicComponentWithoutHashSchema
@@ -106,6 +115,17 @@ const componentEvidenceSchema = z.discriminatedUnion('componentKind', [
 export type CanonicalSam31GpuRuntimeQualificationComponentEvidence = z.infer<
   typeof componentEvidenceSchema
 >
+
+export function buildCanonicalSam31GpuRuntimeQualificationComponentEvidence(
+  value: unknown,
+): CanonicalSam31GpuRuntimeQualificationComponentEvidence {
+  assertPlainSerializedData(value, 'sam31_gpu_qualification_component_build')
+  const payload = componentEvidenceWithoutHashSchema.parse(value)
+  return assertCanonicalSam31GpuRuntimeQualificationComponentEvidence({
+    ...payload,
+    componentHash: sha256AuthorityValue(payload),
+  })
+}
 
 const authorityWithoutHashSchema = z.object({
   schemaVersion: z.literal(

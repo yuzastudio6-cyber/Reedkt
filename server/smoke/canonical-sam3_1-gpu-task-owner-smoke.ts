@@ -587,6 +587,13 @@ await assert.rejects(() => admitCanonicalSam31GpuRuntimeResult({
   admittedAt: '2026-08-02T18:08:00.000Z',
 }))
 
+export {
+  task as canonicalSam31A100TaskFixture,
+  runtimeResponse as canonicalSam31A100RuntimeResponseFixture,
+  launch as canonicalSam31A100LaunchFixture,
+  result as canonicalSam31A100ResultAdmissionFixture,
+}
+
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-task-owner',
   checks: 60,

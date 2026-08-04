@@ -240,6 +240,11 @@ const DEFINITION: SkillCapabilityManifestDefinitionInput = {
   requiredSourceEvidence: [
     evidence('deterministic_media_evidence', 'deterministic_media_evidence',
       ALL_JOB_TYPES),
+    evidence(
+      'edit_reference_consumer_result_binding',
+      'edit_reference_visual_intelligence_orchestra_binding_request_v1',
+      ids('reference_preference_analysis'),
+    ),
     evidence('exact_media_probe', 'canonical_media_probe', ALL_JOB_TYPES),
     evidence('finalized_private_media', 'finalized_private_media_authority',
       ALL_JOB_TYPES),

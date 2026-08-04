@@ -8,6 +8,9 @@ import type { VisualIntelligenceReportRepository } from
   '../visual-intelligence/visual-intelligence-lifecycle-service'
 import type { VisualIntelligenceOrchestraJobResultStore } from
   '../visual-intelligence/visual-intelligence-orchestra-job-result-store'
+import type {
+  VisualIntelligenceOrchestraConsumerBindingPort,
+} from '../visual-intelligence/visual-intelligence-orchestra-job-runtime'
 import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
@@ -27,13 +30,16 @@ import {
 export const EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_VERSION =
   'edit-reference-visual-intelligence-orchestra-binding-v1' as const
 export const EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_STORE_VERSION =
-  'edit-reference-visual-intelligence-orchestra-binding-store-v1' as const
+  'edit-reference-visual-intelligence-orchestra-binding-store-v2' as const
 export const EDIT_REFERENCE_VISUAL_INTELLIGENCE_READ_PORT_VERSION =
   'edit-reference-visual-intelligence-orchestra-read-port-v1' as const
+export const EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_REQUEST_VERSION =
+  'edit-reference-visual-intelligence-orchestra-binding-request-v1' as const
 
 const DEFAULT_PREFIX =
-  'private/orchestra/v1/consumer-bindings/edit-reference-visual-intelligence'
+  'private/orchestra/v2/consumer-bindings/edit-reference-visual-intelligence'
 const MAX_BINDING_BYTES = 64 * 1024
+const MAX_CALL_INDEX_BYTES = 8 * 1024
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const DIGEST = /^sha256:[a-f0-9]{64}$/u
 
@@ -70,6 +76,19 @@ export interface EditReferenceVisualIntelligenceOrchestraBinding {
   readonly productionAuthorityGranted: false
 }
 
+export interface EditReferenceVisualIntelligenceOrchestraBindingRequest {
+  readonly schemaVersion:
+    typeof EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_REQUEST_VERSION
+  readonly requestId: string
+  readonly requestDigestSha256: string
+  readonly scope: EditReferenceVisualIntelligenceBindingScope
+  readonly orchestraCallRef: OrchestraEvidenceRef
+  readonly byteFreeRequest: true
+  readonly callerProviderDispatchAuthorityAccepted: false
+  readonly callerCreditAuthorityAccepted: false
+  readonly consumerMutationAuthorityAccepted: false
+}
+
 export interface EditReferenceVisualIntelligenceBindingStore {
   readonly schemaVersion:
     typeof EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_STORE_VERSION
@@ -89,6 +108,46 @@ export interface EditReferenceVisualIntelligenceOrchestraReadPort {
   readCompletedReferenceAnalysis(
     scope: EditReferenceVisualIntelligenceBindingScope,
   ): Promise<EditReferenceVisualIntelligenceStudy | null>
+}
+
+interface EditReferenceVisualIntelligenceCallIndex {
+  readonly schemaVersion:
+    'edit-reference-visual-intelligence-orchestra-call-index-v1'
+  readonly callRef: OrchestraEvidenceRef
+  readonly consumerScopeDigestSha256: string
+  readonly bindingId: string
+  readonly indexDigestSha256: string
+}
+
+export function createEditReferenceVisualIntelligenceOrchestraBindingRequest(
+  input: {
+    readonly requestId: string
+    readonly scope: EditReferenceVisualIntelligenceBindingScope
+    readonly orchestraCallRef: OrchestraEvidenceRef
+  },
+): EditReferenceVisualIntelligenceOrchestraBindingRequest {
+  if (!SAFE_ID.test(input.requestId)) throw conflict(
+    'edit_reference_vi_binding_request_id_invalid',
+  )
+  assertScope(input.scope)
+  if (!exactRef(input.orchestraCallRef)) throw conflict(
+    'edit_reference_vi_binding_request_call_ref_invalid',
+  )
+  const withoutDigest = {
+    schemaVersion:
+      EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_REQUEST_VERSION,
+    requestId: input.requestId,
+    scope: structuredClone(input.scope),
+    orchestraCallRef: structuredClone(input.orchestraCallRef),
+    byteFreeRequest: true as const,
+    callerProviderDispatchAuthorityAccepted: false as const,
+    callerCreditAuthorityAccepted: false as const,
+    consumerMutationAuthorityAccepted: false as const,
+  }
+  return freeze({
+    ...withoutDigest,
+    requestDigestSha256: orchestraDigest(withoutDigest),
+  })
 }
 
 /**
@@ -148,7 +207,24 @@ export function createEditReferenceVisualIntelligenceBindingStore(input: {
     assertScope(scopeValue)
     const body = await input.objectPort.readExact(bindingPath(prefix, scopeValue))
     if (!body) return null
-    return parseBinding(parseJson(body), scopeValue)
+    const binding = parseBinding(parseJson(body), scopeValue)
+    const indexBody = await input.objectPort.readExact(callIndexPath(
+      prefix,
+      binding.orchestraCallRef,
+    ))
+    if (!indexBody) throw conflict(
+      'edit_reference_vi_binding_call_index_missing',
+    )
+    const index = parseCallIndex(parseJson(
+      indexBody,
+      MAX_CALL_INDEX_BYTES,
+    ))
+    if (
+      !sameRef(index.callRef, binding.orchestraCallRef)
+      || index.consumerScopeDigestSha256 !== orchestraDigest(binding.scope)
+      || index.bindingId !== binding.bindingId
+    ) throw conflict('edit_reference_vi_binding_call_index_mismatch')
+    return binding
   }
   return Object.freeze({
     schemaVersion: EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_STORE_VERSION,
@@ -159,6 +235,46 @@ export function createEditReferenceVisualIntelligenceBindingStore(input: {
       if (body.byteLength < 2 || body.byteLength > MAX_BINDING_BYTES) {
         throw conflict('edit_reference_vi_binding_size_invalid')
       }
+      const existingBinding = await readExact(binding.scope)
+      if (existingBinding) {
+        if (
+          visualIntelligenceCanonicalJson(existingBinding)
+            !== visualIntelligenceCanonicalJson(binding)
+        ) throw conflict('edit_reference_vi_binding_scope_conflict')
+        return Object.freeze({
+          disposition: 'identical_replay' as const,
+          binding: existingBinding,
+          bindingRef: orchestraEvidenceRef(
+            existingBinding.bindingId,
+            existingBinding.bindingDigestSha256,
+          ),
+        })
+      }
+      const callIndex = createCallIndex(binding)
+      const callIndexBody = Buffer.from(
+        visualIntelligenceCanonicalJson(callIndex),
+        'utf8',
+      )
+      if (
+        callIndexBody.byteLength < 2
+        || callIndexBody.byteLength > MAX_CALL_INDEX_BYTES
+      ) throw conflict('edit_reference_vi_binding_call_index_size_invalid')
+      await input.objectPort.createOnly({
+        objectPath: callIndexPath(prefix, binding.orchestraCallRef),
+        body: callIndexBody,
+        contentSha256: rawSha256(callIndexBody),
+      })
+      const callIndexReread = await input.objectPort.readExact(callIndexPath(
+        prefix,
+        binding.orchestraCallRef,
+      ))
+      if (
+        !callIndexReread
+        || visualIntelligenceCanonicalJson(parseCallIndex(parseJson(
+          callIndexReread,
+          MAX_CALL_INDEX_BYTES,
+        ))) !== visualIntelligenceCanonicalJson(callIndex)
+      ) throw conflict('edit_reference_vi_binding_call_index_conflict')
       const disposition = await input.objectPort.createOnly({
         objectPath: bindingPath(prefix, binding.scope),
         body,
@@ -242,6 +358,76 @@ export function createEditReferenceVisualIntelligenceOrchestraReadPort(input: {
   })
 }
 
+export function createEditReferenceVisualIntelligenceConsumerBindingPort(
+  input: {
+    readonly bindingStore: Pick<EditReferenceVisualIntelligenceBindingStore,
+      'persistCreateOnly' | 'readExact'>
+    readonly now?: () => Date
+  },
+): VisualIntelligenceOrchestraConsumerBindingPort {
+  if (
+    !input.bindingStore
+    || typeof input.bindingStore.persistCreateOnly !== 'function'
+    || typeof input.bindingStore.readExact !== 'function'
+    || (input.now !== undefined && typeof input.now !== 'function')
+  ) throw conflict('edit_reference_vi_binding_port_dependencies_invalid')
+  const now = input.now ?? (() => new Date())
+  return Object.freeze({
+    async bindBeforeProviderExecution(
+      value: Parameters<
+        VisualIntelligenceOrchestraConsumerBindingPort[
+          'bindBeforeProviderExecution'
+        ]
+      >[0],
+    ) {
+      const call = parseOrchestraSkillCall(value.call)
+      if (value.compiled.jobType !== 'reference_preference_analysis') {
+        if (
+          value.consumerBindingRequest !== null
+          && value.consumerBindingRequest !== undefined
+        ) throw conflict('unexpected_edit_reference_vi_binding_request')
+        return null
+      }
+      const request = parseBindingRequest(value.consumerBindingRequest)
+      if (
+        value.compiled.phase !== 'planning'
+        || value.compiled.scope.scopeType !== 'video'
+        || value.compiled.request.scope.ownerUserId
+          !== value.authenticatedOwnerUserId
+        || value.compiled.request.scope.workspaceId
+          !== value.expectedWorkspaceId
+        || request.scope.ownerUserId !== value.authenticatedOwnerUserId
+        || request.scope.workspaceId !== value.expectedWorkspaceId
+        || request.scope.editReferenceId
+          !== value.compiled.request.scope.projectId
+        || request.scope.studySessionId
+          !== value.compiled.request.scope.editSessionId
+        || value.compiled.request.scope.approvedSnapshotId !== null
+        || !sameRef(request.orchestraCallRef, value.compiled.callRef)
+        || !sameRef(request.orchestraCallRef, callRef(call))
+      ) throw conflict('edit_reference_vi_binding_compiled_scope_mismatch')
+      const existing = await input.bindingStore.readExact(request.scope)
+      if (existing) {
+        if (!sameRef(existing.orchestraCallRef, request.orchestraCallRef)) {
+          throw conflict('edit_reference_vi_binding_replay_call_mismatch')
+        }
+        return orchestraEvidenceRef(
+          existing.bindingId,
+          existing.bindingDigestSha256,
+        )
+      }
+      const persisted = await input.bindingStore.persistCreateOnly(
+        createEditReferenceVisualIntelligenceOrchestraBinding({
+          scope: request.scope,
+          orchestraCall: call,
+          createdAt: now().toISOString(),
+        }),
+      )
+      return persisted.bindingRef
+    },
+  })
+}
+
 function assertReferencePreferenceCall(
   call: OrchestraSkillCall,
   scope: EditReferenceVisualIntelligenceBindingScope,
@@ -258,8 +444,6 @@ function assertReferencePreferenceCall(
     || !sameRef(call.sourceArtifactRefs[0]!, scope.sourceArtifactRef)
     || call.comparisonArtifactRefs.length !== 0
     || call.expectedOutcomeRefs.length === 0
-    || !hasRef(call.requiredEvidenceRefs, scope.sourceEvidenceRef)
-    || !hasRef(call.requiredEvidenceRefs, scope.studyAuthorityRef)
     || call.approvedSnapshotRef !== null
     || call.orchestraDispatchAuthorized !== true
     || call.directProviderCallAllowed !== false
@@ -332,6 +516,89 @@ function parseBinding(
   return freeze(structuredClone(binding))
 }
 
+function parseBindingRequest(
+  value: unknown,
+): EditReferenceVisualIntelligenceOrchestraBindingRequest {
+  if (!plainRecord(value)) throw conflict(
+    'edit_reference_vi_binding_request_invalid',
+  )
+  const keys = [
+    'schemaVersion', 'requestId', 'requestDigestSha256', 'scope',
+    'orchestraCallRef', 'byteFreeRequest',
+    'callerProviderDispatchAuthorityAccepted',
+    'callerCreditAuthorityAccepted', 'consumerMutationAuthorityAccepted',
+  ]
+  const descriptors = Object.getOwnPropertyDescriptors(value)
+  if (
+    Reflect.ownKeys(value).length !== keys.length
+    || keys.some((key) => !Object.hasOwn(value, key))
+    || Object.values(descriptors).some(
+      (descriptor) => 'get' in descriptor || 'set' in descriptor,
+    )
+  ) throw conflict('edit_reference_vi_binding_request_shape_invalid')
+  const request = value as unknown as
+    EditReferenceVisualIntelligenceOrchestraBindingRequest
+  const { requestDigestSha256, ...withoutDigest } = request
+  assertScope(request.scope)
+  if (
+    request.schemaVersion
+      !== EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_REQUEST_VERSION
+    || !SAFE_ID.test(request.requestId)
+    || !DIGEST.test(requestDigestSha256)
+    || orchestraDigest(withoutDigest) !== requestDigestSha256
+    || !exactRef(request.orchestraCallRef)
+    || request.byteFreeRequest !== true
+    || request.callerProviderDispatchAuthorityAccepted !== false
+    || request.callerCreditAuthorityAccepted !== false
+    || request.consumerMutationAuthorityAccepted !== false
+  ) throw conflict('edit_reference_vi_binding_request_contract_invalid')
+  return freeze(structuredClone(request))
+}
+
+function createCallIndex(
+  binding: EditReferenceVisualIntelligenceOrchestraBinding,
+): EditReferenceVisualIntelligenceCallIndex {
+  const withoutDigest = {
+    schemaVersion:
+      'edit-reference-visual-intelligence-orchestra-call-index-v1' as const,
+    callRef: structuredClone(binding.orchestraCallRef),
+    consumerScopeDigestSha256: orchestraDigest(binding.scope),
+    bindingId: binding.bindingId,
+  }
+  return freeze({
+    ...withoutDigest,
+    indexDigestSha256: orchestraDigest(withoutDigest),
+  })
+}
+
+function parseCallIndex(
+  value: unknown,
+): EditReferenceVisualIntelligenceCallIndex {
+  if (!plainRecord(value)) throw conflict(
+    'edit_reference_vi_binding_call_index_invalid',
+  )
+  const keys = [
+    'schemaVersion', 'callRef', 'consumerScopeDigestSha256', 'bindingId',
+    'indexDigestSha256',
+  ]
+  if (
+    Reflect.ownKeys(value).length !== keys.length
+    || keys.some((key) => !Object.hasOwn(value, key))
+  ) throw conflict('edit_reference_vi_binding_call_index_shape_invalid')
+  const index = value as unknown as EditReferenceVisualIntelligenceCallIndex
+  const { indexDigestSha256, ...withoutDigest } = index
+  if (
+    index.schemaVersion
+      !== 'edit-reference-visual-intelligence-orchestra-call-index-v1'
+    || !exactRef(index.callRef)
+    || !DIGEST.test(index.consumerScopeDigestSha256)
+    || !SAFE_ID.test(index.bindingId)
+    || !DIGEST.test(indexDigestSha256)
+    || orchestraDigest(withoutDigest) !== indexDigestSha256
+  ) throw conflict('edit_reference_vi_binding_call_index_contract_invalid')
+  return freeze(structuredClone(index))
+}
+
 function assertScope(scope: EditReferenceVisualIntelligenceBindingScope): void {
   if (!plainRecord(scope)) throw conflict('edit_reference_vi_scope_invalid')
   const keys = [
@@ -363,7 +630,14 @@ function bindingPath(
   prefix: string,
   scope: EditReferenceVisualIntelligenceBindingScope,
 ): string {
-  return `${prefix}/${orchestraDigest(scope).slice(7)}.json`
+  return `${prefix}/by-consumer/${orchestraDigest(scope).slice(7)}.json`
+}
+
+function callIndexPath(
+  prefix: string,
+  callReference: OrchestraEvidenceRef,
+): string {
+  return `${prefix}/by-call/${orchestraDigest(callReference).slice(7)}.json`
 }
 
 function normalizePrefix(value: string): string {
@@ -398,13 +672,6 @@ function sameRef(
   return refKey(left) === refKey(right)
 }
 
-function hasRef(
-  values: readonly OrchestraEvidenceRef[],
-  expected: OrchestraEvidenceRef,
-): boolean {
-  return values.some((value) => sameRef(value, expected))
-}
-
 function refKey(value: OrchestraEvidenceRef): string {
   return `${value.id}:${value.version}:${value.contentHash}`
 }
@@ -418,8 +685,11 @@ function requireIso(value: string): string {
   return value
 }
 
-function parseJson(body: Buffer): unknown {
-  if (body.byteLength < 2 || body.byteLength > MAX_BINDING_BYTES) {
+function parseJson(
+  body: Buffer,
+  maximumBytes = MAX_BINDING_BYTES,
+): unknown {
+  if (body.byteLength < 2 || body.byteLength > maximumBytes) {
     throw conflict('edit_reference_vi_binding_size_invalid')
   }
   try {

@@ -32,6 +32,7 @@ export const VISUAL_INTELLIGENCE_API_ROUTES: ApiRouteDefinition[] = [
     futureHandlerName: 'executeOrchestraVisualIntelligenceJob',
     notes: [
       'The exact call, manifest, qualification, budgets, media evidence, and compilation evidence must already exist in the create-only Orchestra dispatch store.',
+      'The closed request always carries consumerBindingRequest. It is null for ordinary jobs; reference_preference_analysis requires the exact digest-bound Edit Reference scope so the consumer result binding is persisted after dispatch-package validation and before any provider execution.',
       'Peer skills may request support only through Orchestra; browsers, users, and skills cannot invoke this route directly or supply prompts, provider credentials, paths, URLs, or media bytes.',
       'The immutable result returns to Orchestra and cannot mutate timeline or artifacts, expand scope, approve QA, deliver publicly, or grant production authority.',
     ],

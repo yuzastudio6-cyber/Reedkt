@@ -196,9 +196,24 @@ try {
     scopeExpansionAllowed: false,
     peerSkillExecutionAuthorityAccepted: false,
   })
-  const orchestraExecution = await post(
+  const missingConsumerBindingField = await post(
     `/internal/v1/workspaces/${scope.workspaceId}/orchestra/skill-jobs/visual-intelligence`,
     { call: orchestraCall, supportRequest: null },
+    {
+      'idempotency-key': 'missing-consumer-binding-field',
+      'x-request-id': orchestraCall.callId,
+      'x-reeditpro-internal-token': token,
+    },
+  )
+  assert.equal(missingConsumerBindingField.status, 400)
+  assert.equal(orchestraCalls.length, 0)
+  const orchestraExecution = await post(
+    `/internal/v1/workspaces/${scope.workspaceId}/orchestra/skill-jobs/visual-intelligence`,
+    {
+      call: orchestraCall,
+      supportRequest: null,
+      consumerBindingRequest: null,
+    },
     {
       'idempotency-key': orchestraCall.idempotencyKey,
       'x-request-id': orchestraCall.callId,
@@ -209,7 +224,11 @@ try {
   assert.equal(orchestraCalls.length, 1)
   const invalidOrchestraToken = await post(
     `/internal/v1/workspaces/${scope.workspaceId}/orchestra/skill-jobs/visual-intelligence`,
-    { call: orchestraCall, supportRequest: null },
+    {
+      call: orchestraCall,
+      supportRequest: null,
+      consumerBindingRequest: null,
+    },
     {
       'idempotency-key': orchestraCall.idempotencyKey,
       'x-request-id': orchestraCall.callId,
@@ -220,7 +239,11 @@ try {
   assert.equal(orchestraCalls.length, 1)
   const wrongOrchestraIdempotency = await post(
     `/internal/v1/workspaces/${scope.workspaceId}/orchestra/skill-jobs/visual-intelligence`,
-    { call: orchestraCall, supportRequest: null },
+    {
+      call: orchestraCall,
+      supportRequest: null,
+      consumerBindingRequest: null,
+    },
     {
       'idempotency-key': 'wrong-idempotency',
       'x-request-id': orchestraCall.callId,
@@ -316,6 +339,7 @@ try {
     directExecutionRouteRetired: true,
     directPlanningOperationRouteRetired: true,
     orchestraOnlyRouteReachedWithoutProviderCall: true,
+    closedConsumerBindingRequestFieldRequired: true,
     invalidOrchestraServiceTokenRejected: true,
     wrongOrchestraIdempotencyRejected: true,
     directInspectionRouteRetired: true,

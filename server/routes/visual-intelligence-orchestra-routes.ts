@@ -35,7 +35,11 @@ export function createVisualIntelligenceOrchestraRoutes(): Router {
     requireStrictInternalServiceAuth,
     requireIdempotency,
     asyncRoute(async (request, response) => {
-      const body = exactRecord(request.body, ['call', 'supportRequest'])
+      const body = exactRecord(request.body, [
+        'call',
+        'supportRequest',
+        'consumerBindingRequest',
+      ])
       const call = parseOrchestraSkillCall(body.call)
       const supportRequest = body.supportRequest === null
         ? null
@@ -65,6 +69,7 @@ export function createVisualIntelligenceOrchestraRoutes(): Router {
         supportRequest,
         authenticatedOwnerUserId: context.auth.userId,
         expectedWorkspaceId: getRouteParam(request, 'workspaceId'),
+        consumerBindingRequest: body.consumerBindingRequest,
       })
       sendOk(response, { execution }, [
         execution.status === 'cache_replay'

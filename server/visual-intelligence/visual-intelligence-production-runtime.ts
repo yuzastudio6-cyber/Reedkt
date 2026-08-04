@@ -6,6 +6,7 @@ import type {
 } from '../../src/types/visual-intelligence'
 import type { RuntimeEnv } from '../config/env'
 import {
+  createEditReferenceVisualIntelligenceConsumerBindingPort,
   createEditReferenceVisualIntelligenceBindingStore,
   createEditReferenceVisualIntelligenceOrchestraReadPort,
   type EditReferenceVisualIntelligenceBindingStore,
@@ -204,6 +205,11 @@ export async function createVisualIntelligenceProductionRuntime(
       resultStore: orchestraJobResultStore,
       reportRepository: durableStore,
     })
+  const orchestraConsumerBindingPort =
+    createEditReferenceVisualIntelligenceConsumerBindingPort({
+      bindingStore: editReferenceBindingStore,
+      now: dependencies.now,
+    })
   const planningOwner =
     createCanonicalPlanningVisualIntelligenceOperationOwner({
       upstreamAdmissionVerificationPort: canonicalRequestPackageStore,
@@ -251,6 +257,7 @@ export async function createVisualIntelligenceProductionRuntime(
       dispatchPackageStore: orchestraDispatchPackageStore,
       lifecycle: orchestraLifecyclePort,
       resultStore: orchestraJobResultStore,
+      consumerBindingPort: orchestraConsumerBindingPort,
     })
   const inspectionCoordinatorPort =
     createVisualIntelligenceInspectionCoordinator({

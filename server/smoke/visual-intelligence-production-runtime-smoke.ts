@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 
 import type {
+  OrchestraEvidenceRef,
   OrchestraSkillCall,
   OrchestraSkillScope,
   SkillCapabilityManifest,
@@ -29,6 +30,9 @@ import { ApiError } from '../errors/api-error'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
+import {
+  createEditReferenceVisualIntelligenceOrchestraBindingRequest,
+} from '../edit-references/edit-reference-visual-intelligence-result-bridge'
 import {
   createOrchestraSkillCall,
   createSkillQualificationSnapshot,
@@ -357,7 +361,7 @@ assert.equal(runtime.selfHostedVisualModelFallbackAllowed, false)
 assert.equal(runtime.substantiveCpuMediaProcessingAllowed, false)
 assert.equal(
   runtime.editReferenceBindingStore.schemaVersion,
-  'edit-reference-visual-intelligence-orchestra-binding-store-v1',
+  'edit-reference-visual-intelligence-orchestra-binding-store-v2',
 )
 assert.equal(
   runtime.editReferenceReadPort.schemaVersion,
@@ -520,6 +524,7 @@ const orchestraQualification = createQualifiedOrchestraSnapshot({
   qualifiedJobTypes: [
     'scene_primary_subject_identification',
     'source_video_understanding',
+    'reference_preference_analysis',
   ],
 })
 const orchestraManifest =
@@ -618,6 +623,7 @@ assert.equal(
 assert.equal(orchestraExecution.finalQaApprovalGranted, false)
 assert.equal(orchestraExecution.publicDeliveryGranted, false)
 assert.equal(orchestraExecution.productionAuthorityGranted, false)
+assert.equal(orchestraExecution.consumerBindingRef, null)
 assert.equal(providerCalls, 2)
 assert.equal(acquired, 2)
 assert.equal(released, 2)
@@ -726,6 +732,165 @@ assert.equal(blockedFollowupReplay.status, 'cache_replay')
 assert.equal(blockedFollowupReplay.result.disposition, 'blocked')
 assert.equal(providerCalls, 3)
 
+const referenceSourceRef = orchestraEvidenceRef(
+  'source-video-1',
+  `sha256:${rawSha('source-video-1')}`,
+)
+const referenceEvidenceRef = ref('reference-source-evidence')
+const referenceStudyRef = ref('study-1')
+const referenceScope: OrchestraSkillScope = {
+  scopeType: 'video',
+  sourceArtifactRef: referenceSourceRef,
+  authorizedRanges: [fullRange],
+  completeSourceCoverageRequired: true,
+  outputId: null,
+}
+const referenceCall = createPlanningOrchestraCall({
+  manifest: orchestraManifest,
+  qualification: orchestraQualification,
+  scope: referenceScope,
+  jobType: 'reference_preference_analysis',
+  suffix: 'reference-preference-analysis',
+  requiredEvidenceRefs: [probeRef],
+  expectedOutcomeRefs: [ref('reference-preference-outcome')],
+})
+const referenceCostPreflight = await runtime.costOwner.createPreflight({
+  requestId: referenceCall.callId,
+  maximumInputTokenCount: 100_000,
+  maximumOutputAndThinkingTokenCount: 20_000,
+  estimatedInputTokenCount: 10_000,
+  estimatedOutputAndThinkingTokenCount: 4_000,
+})
+const sourceArtifact = sourceRequest.sourceArtifacts[0]!
+if (sourceRequest.admission.mode !== 'planning_evidence') {
+  throw new TypeError('Reference preference smoke requires planning admission.')
+}
+const sourcePlanningAdmission = sourceRequest.admission
+const referenceRequest = createVisualIntelligenceRequest({
+  requestId: referenceCall.callId,
+  idempotencyKey: referenceCall.idempotencyKey,
+  scope: {
+    ownerUserId: 'user-1',
+    workspaceId: 'workspace-1',
+    projectId: 'reference-1',
+    editSessionId: 'study-1',
+    approvedSnapshotId: null,
+  },
+  operation: 'analyze_media',
+  profile: 'reference_preference_dna',
+  sourceArtifacts: [{
+    ...sourceArtifact,
+    finalizedMediaAuthorityRef: referenceSourceRef,
+  }],
+  comparisonArtifacts: [],
+  requestedRanges: [fullRange],
+  requiredEvidenceRefs: [probeRef],
+  expectedOutcomeRefs: [ref('reference-preference-outcome')],
+  outputFrame: null,
+  protectedZones: [],
+  qualityPolicy: sourceRequest.qualityPolicy,
+  admission: {
+    ...sourcePlanningAdmission,
+    finalizedSourceAuthorityRefs: [referenceSourceRef],
+    costPreflight: referenceCostPreflight,
+  },
+  callerQuestion: null,
+  byteFreeRequest: true,
+  callerPromptAccepted: false,
+  providerCredentialIncluded: false,
+  publicMediaUrlIncluded: false,
+  signedUrlIsSourceTruth: false,
+  shellCommandIncluded: false,
+  providerToolDefinitionIncluded: false,
+})
+await runtime.orchestraDispatchPackageStore.persistCreateOnly({
+  call: referenceCall,
+  supportRequest: null,
+  manifest: orchestraManifest,
+  qualificationSnapshot: orchestraQualification,
+  compilationEvidence: createOrchestraCompilationEvidence({
+    call: referenceCall,
+    sourceRequest: referenceRequest,
+    costPreflight: referenceCostPreflight,
+  }),
+  preparedEvidence: preparedEvidence(
+    referenceRequest.requestDigestSha256,
+    probeRef,
+  ),
+  inspectionRequirement: null,
+  orchestraDispatchAuthorityRef: referenceCall.orchestraJobRef,
+})
+const referenceBindingScope = {
+  ownerUserId: 'user-1',
+  workspaceId: 'workspace-1',
+  editReferenceId: 'reference-1',
+  studySessionId: 'study-1',
+  sourceArtifactRef: referenceSourceRef,
+  sourceEvidenceId: referenceEvidenceRef.id,
+  privateAssetId: referenceSourceRef.id,
+  sourceEvidenceRef: referenceEvidenceRef,
+  studyAuthorityRef: referenceStudyRef,
+}
+const referenceBindingRequest =
+  createEditReferenceVisualIntelligenceOrchestraBindingRequest({
+    requestId: 'reference-preference-binding-request',
+    scope: referenceBindingScope,
+    orchestraCallRef: orchestraEvidenceRef(
+      referenceCall.callId,
+      referenceCall.callDigestSha256,
+    ),
+  })
+await assert.rejects(runtime.orchestraJobRuntimePort.execute({
+  call: referenceCall,
+  supportRequest: null,
+  consumerBindingRequest: null,
+  authenticatedOwnerUserId: 'user-1',
+  expectedWorkspaceId: 'workspace-1',
+}))
+assert.equal(providerCalls, 3)
+assert.equal(
+  await runtime.editReferenceBindingStore.readExact(referenceBindingScope),
+  null,
+)
+providerPayload = {
+  ...(providerPayload as Record<string, unknown>),
+  requestId: referenceCall.callId,
+  targetedFollowupRanges: [],
+  segments: [{
+    ...((providerPayload as { segments: Array<Record<string, unknown>> })
+      .segments[0]!),
+    sourcePlanning: null,
+  }],
+}
+const referenceExecution = await runtime.orchestraJobRuntimePort.execute({
+  call: referenceCall,
+  supportRequest: null,
+  consumerBindingRequest: referenceBindingRequest,
+  authenticatedOwnerUserId: 'user-1',
+  expectedWorkspaceId: 'workspace-1',
+})
+assert.equal(referenceExecution.status, 'completed')
+assert.ok(referenceExecution.consumerBindingRef)
+assert.equal(providerCalls, 4)
+assert.ok(await runtime.editReferenceBindingStore.readExact(
+  referenceBindingScope,
+))
+const referenceStudy = await runtime.editReferenceReadPort
+  .readCompletedReferenceAnalysis(referenceBindingScope)
+assert.equal(referenceStudy?.providerModel, 'gemini-3.1-pro-preview')
+assert.equal(referenceStudy?.thinkingLevel, 'high')
+assert.equal(referenceStudy?.mediaResolution, 'high')
+const referenceReplay = await runtime.orchestraJobRuntimePort.execute({
+  call: referenceCall,
+  supportRequest: null,
+  consumerBindingRequest: referenceBindingRequest,
+  authenticatedOwnerUserId: 'user-1',
+  expectedWorkspaceId: 'workspace-1',
+})
+assert.equal(referenceReplay.status, 'cache_replay')
+assert.equal(referenceReplay.providerCallMadeDuringInvocation, false)
+assert.equal(providerCalls, 4)
+
 const disabled = await createVisualIntelligenceProductionRuntime(
   loadRuntimeEnv({
     NODE_ENV: 'test',
@@ -759,6 +924,9 @@ console.log(JSON.stringify({
   orchestraResultReturnedAndPersisted: true,
   editReferenceOrchestraBindingStoreMounted: true,
   editReferenceOrchestraReadPortMounted: true,
+  editReferenceBindingPersistedBeforeProviderExecution: true,
+  editReferenceBindingRequiredForReferenceJob: true,
+  editReferenceResultRereadThroughConsumerPort: true,
   orchestraReplayAvoidedDuplicateProviderAndCost: true,
   unpersistedDirectCallRefused: true,
   followupWithoutOrchestraEstimateBlocked: true,
@@ -821,7 +989,10 @@ function createPlanningOrchestraCall(input: {
   scope: OrchestraSkillScope
   jobType: 'scene_primary_subject_identification'
     | 'source_video_understanding'
+    | 'reference_preference_analysis'
   suffix: string
+  requiredEvidenceRefs?: readonly OrchestraEvidenceRef[]
+  expectedOutcomeRefs?: readonly OrchestraEvidenceRef[]
 }): OrchestraSkillCall {
   return createOrchestraSkillCall({
     schemaVersion: ORCHESTRA_SKILL_CALL_VERSION,
@@ -839,8 +1010,8 @@ function createPlanningOrchestraCall(input: {
       : ref(`scene-context-${input.suffix}`),
     sourceArtifactRefs: [input.scope.sourceArtifactRef],
     comparisonArtifactRefs: [],
-    expectedOutcomeRefs: [],
-    requiredEvidenceRefs: [probeRef],
+    expectedOutcomeRefs: [...(input.expectedOutcomeRefs ?? [])],
+    requiredEvidenceRefs: [...(input.requiredEvidenceRefs ?? [probeRef])],
     manifestRef: orchestraEvidenceRef(
       input.manifest.manifestId,
       input.manifest.manifestDigestSha256,
@@ -891,7 +1062,7 @@ function createOrchestraCompilationEvidence(input: {
     sourceArtifacts: input.sourceRequest.sourceArtifacts,
     comparisonArtifacts: [],
     requiredEvidenceRefs: input.call.requiredEvidenceRefs,
-    expectedOutcomeRefs: [],
+    expectedOutcomeRefs: input.call.expectedOutcomeRefs,
     outputFrame: input.call.scope.outputId === null
       ? null
       : {

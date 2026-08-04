@@ -151,6 +151,19 @@ assert.equal(
   manifest.attemptPolicy.scopeExpansionRequiresNewOrchestraCall,
   true,
 )
+assert.deepEqual(
+  manifest.requiredSourceEvidence.find((requirement) => (
+    requirement.requirementId
+      === 'edit_reference_consumer_result_binding'
+  )),
+  {
+    requirementId: 'edit_reference_consumer_result_binding',
+    evidenceType:
+      'edit_reference_visual_intelligence_orchestra_binding_request_v1',
+    requiredForJobTypes: ['reference_preference_analysis'],
+    exactRereadRequired: true,
+  },
+)
 
 assert.equal(manifest.trackingRequirements.length, 1)
 assert.equal(manifest.trackingRequirements[0]!.trackingSkillKey, 'track_all')
@@ -285,7 +298,7 @@ for (const refuse of adversarial) assert.throws(refuse)
 
 console.log(JSON.stringify({
   smoke: 'visual-intelligence-orchestra-capability-manifest',
-  checks: 79,
+  checks: 80,
   skillKey: manifest.skillKey,
   topLevelSkillCount: 1,
   internalOperationCount: 4,

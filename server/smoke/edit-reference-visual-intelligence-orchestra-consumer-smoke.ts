@@ -192,6 +192,22 @@ const bindingStore = createEditReferenceVisualIntelligenceBindingStore({
   },
 })
 const persistedBinding = await bindingStore.persistCreateOnly(binding)
+assert.equal(objectRecords.size, 2)
+assert.equal(
+  (await bindingStore.persistCreateOnly(binding)).disposition,
+  'identical_replay',
+)
+await assert.rejects(bindingStore.persistCreateOnly(
+  createEditReferenceVisualIntelligenceOrchestraBinding({
+    scope: {
+      ...bindingScope,
+      sourceEvidenceId: 'different-reference-evidence',
+      sourceEvidenceRef: ref('different-reference-evidence'),
+    },
+    orchestraCall,
+    createdAt: '2026-08-03T11:31:00.000Z',
+  }),
+))
 const boundResult = resultFixture(report, {
   callRef: persistedBinding.binding.orchestraCallRef,
   manifestRef: persistedBinding.binding.manifestRef,
@@ -298,6 +314,7 @@ console.log(JSON.stringify({
   qwenVisualEvidenceNotEmitted: true,
   privateRepositoryProjectionAccepted: true,
   durableOrchestraBindingAndRereadPassed: true,
+  oneCallCannotBindMultipleConsumerScopes: true,
   editReferenceServiceReadPortIntegrationPassed: true,
   retiredLocalVisualProviderNotCalled: true,
   adversarialRefusals,

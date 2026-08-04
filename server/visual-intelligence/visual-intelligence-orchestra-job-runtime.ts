@@ -62,6 +62,7 @@ export interface VisualIntelligenceOrchestraJobRuntimeOutcome {
   readonly resultRef: OrchestraEvidenceRef
   readonly dispatchPackageRef: OrchestraEvidenceRef
   readonly canonicalRequestPackageRef: OrchestraEvidenceRef
+  readonly consumerBindingRef: OrchestraEvidenceRef | null
   readonly providerCallMadeDuringInvocation: boolean
   readonly costSettledDuringInvocation: boolean
   readonly duplicateProviderCallAvoided: boolean
@@ -73,6 +74,16 @@ export interface VisualIntelligenceOrchestraJobRuntimeOutcome {
   readonly productionAuthorityGranted: false
 }
 
+export interface VisualIntelligenceOrchestraConsumerBindingPort {
+  bindBeforeProviderExecution(input: {
+    readonly call: unknown
+    readonly compiled: CompiledVisualIntelligenceOrchestraRequest
+    readonly consumerBindingRequest: unknown
+    readonly authenticatedOwnerUserId: string
+    readonly expectedWorkspaceId: string
+  }): Promise<OrchestraEvidenceRef | null>
+}
+
 export interface VisualIntelligenceOrchestraJobRuntime {
   readonly schemaVersion:
     typeof VISUAL_INTELLIGENCE_ORCHESTRA_JOB_RUNTIME_VERSION
@@ -81,6 +92,7 @@ export interface VisualIntelligenceOrchestraJobRuntime {
     readonly supportRequest?: unknown
     readonly authenticatedOwnerUserId: string
     readonly expectedWorkspaceId: string
+    readonly consumerBindingRequest?: unknown
   }): Promise<VisualIntelligenceOrchestraJobRuntimeOutcome>
 }
 
@@ -89,6 +101,8 @@ export function createVisualIntelligenceOrchestraJobRuntime(input: {
     VisualIntelligenceOrchestraDispatchPackageStore
   readonly lifecycle: VisualIntelligenceLifecycleService
   readonly resultStore: VisualIntelligenceOrchestraJobResultStore
+  readonly consumerBindingPort:
+    VisualIntelligenceOrchestraConsumerBindingPort
   readonly followupEstimatePort?:
     VisualIntelligenceOrchestraFollowupEstimatePort
 }): VisualIntelligenceOrchestraJobRuntime {
@@ -106,6 +120,7 @@ export function createVisualIntelligenceOrchestraJobRuntime(input: {
       readonly supportRequest?: unknown
       readonly authenticatedOwnerUserId: string
       readonly expectedWorkspaceId: string
+      readonly consumerBindingRequest?: unknown
     }) {
       const authenticatedOwnerUserId = safeId(
         untrusted.authenticatedOwnerUserId,
@@ -127,6 +142,14 @@ export function createVisualIntelligenceOrchestraJobRuntime(input: {
       )
       const materialized = await input.dispatchPackageStore
         .materializeCanonicalRequestPackage(compiled)
+      const consumerBindingRef = await input.consumerBindingPort
+        .bindBeforeProviderExecution({
+          call: untrusted.call,
+          compiled,
+          consumerBindingRequest: untrusted.consumerBindingRequest,
+          authenticatedOwnerUserId,
+          expectedWorkspaceId,
+        })
       const existing = await input.resultStore.readExact(compiled.callRef)
       if (existing) {
         assertResultMatchesCompiled(existing, compiled)
@@ -137,6 +160,7 @@ export function createVisualIntelligenceOrchestraJobRuntime(input: {
           dispatchPackageRef: materialized.dispatchPackageRef,
           canonicalRequestPackageRef:
             materialized.canonicalRequestPackageRef,
+          consumerBindingRef,
           providerCallMadeDuringInvocation: false,
           costSettledDuringInvocation: false,
           duplicateProviderCallAvoided: true,
@@ -170,6 +194,7 @@ export function createVisualIntelligenceOrchestraJobRuntime(input: {
         dispatchPackageRef: materialized.dispatchPackageRef,
         canonicalRequestPackageRef:
           materialized.canonicalRequestPackageRef,
+        consumerBindingRef,
         providerCallMadeDuringInvocation:
           execution.providerCallMadeDuringInvocation,
         costSettledDuringInvocation:
@@ -383,6 +408,7 @@ function assertDependencies(input: {
   dispatchPackageStore: VisualIntelligenceOrchestraDispatchPackageStore
   lifecycle: VisualIntelligenceLifecycleService
   resultStore: VisualIntelligenceOrchestraJobResultStore
+  consumerBindingPort: VisualIntelligenceOrchestraConsumerBindingPort
   followupEstimatePort?: VisualIntelligenceOrchestraFollowupEstimatePort
 }): void {
   if (
@@ -393,6 +419,8 @@ function assertDependencies(input: {
     || typeof input.lifecycle?.execute !== 'function'
     || typeof input.resultStore?.readExact !== 'function'
     || typeof input.resultStore?.persistCreateOnly !== 'function'
+    || typeof input.consumerBindingPort?.bindBeforeProviderExecution
+      !== 'function'
     || (input.followupEstimatePort !== undefined
       && typeof input.followupEstimatePort.estimateExact !== 'function')
   ) throw new TypeError(

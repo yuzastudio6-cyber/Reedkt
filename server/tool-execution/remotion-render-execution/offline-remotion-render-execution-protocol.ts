@@ -43,6 +43,29 @@ const DELIVERY_MASTER_AUTHORITY_KEYS = [
 ] as const
 
 export type OfflineRemotionSingleSourceMimeType = 'video/mp4' | 'video/x-matroska'
+export type OfflineRemotionSingleSourceMediaPolicy =
+  | 'approved_professional_color_intermediate_v1'
+  | 'approved_b_roll_qa_normalized_preview_proxy_v1'
+
+export interface OfflineRemotionBrollPreviewLayerPlanningPayload {
+  displayTreatment:
+    | 'full_frame_takeover'
+    | 'full_frame_cutaway'
+    | 'inset'
+    | 'picture_in_picture'
+    | 'split_screen'
+    | 'partial_overlay'
+    | 'background_layer'
+  position: 'absolute'
+  crop: 'contain'
+  xPercent: 0 | 50 | 55 | 60 | 65
+  yPercent: 0 | 6 | 8 | 45
+  widthPercent: 30 | 34 | 40 | 50 | 100
+  heightPercent: 30 | 34 | 45 | 100
+  scale: 1
+  opacity: 0.45 | 1
+  layerOrder: 0 | 10
+}
 
 interface CommonCompositionPayload {
   width: 360 | 480 | 640 | 2160 | 2880 | 3840
@@ -218,7 +241,8 @@ export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload exte
   sourceFit: 'contain'
   panelBackground: string
   audioPolicy: 'preserve_source' | 'replace_with_approved_voice_tracks'
-  sourceMediaPolicy?: 'approved_professional_color_intermediate_v1'
+  sourceMediaPolicy?: OfflineRemotionSingleSourceMediaPolicy
+  brollPreviewLayer?: OfflineRemotionBrollPreviewLayerPlanningPayload
   voiceTracks?: OfflineRemotionVoiceTrackPlanningPayload[]
   supplementalAudioPolicy?: 'approved_edit_brief_audio_tracks_v1'
   supplementalAudioTracks?: OfflineRemotionSupplementalAudioTrackPlanningPayload[]
@@ -259,7 +283,8 @@ export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanning
   sourceFit: 'contain'
   panelBackground: string
   audioPolicy: 'preserve_source' | 'replace_with_approved_voice_tracks'
-  sourceMediaPolicy?: 'approved_professional_color_intermediate_v1'
+  sourceMediaPolicy?: OfflineRemotionSingleSourceMediaPolicy
+  brollPreviewLayer?: OfflineRemotionBrollPreviewLayerPlanningPayload
   voiceTracks?: OfflineRemotionVoiceTrackPlanningPayload[]
   supplementalAudioPolicy?: 'approved_edit_brief_audio_tracks_v1'
   supplementalAudioTracks?: OfflineRemotionSupplementalAudioTrackPlanningPayload[]
@@ -907,6 +932,7 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
   const raw = record(value, 'final composition planning payload')
   const replaceVoice = raw.audioPolicy === 'replace_with_approved_voice_tracks'
   const sourceMediaPolicyProvided = Object.hasOwn(raw, 'sourceMediaPolicy')
+  const brollPreviewLayerProvided = Object.hasOwn(raw, 'brollPreviewLayer')
   const supplementalAudioProvided =
     Object.hasOwn(raw, 'supplementalAudioPolicy') ||
     Object.hasOwn(raw, 'supplementalAudioTracks')
@@ -936,6 +962,7 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
     'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
     ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
+    ...(brollPreviewLayerProvided ? ['brollPreviewLayer'] : []),
     ...(captionTrack ? ['captionOverlayCues'] : []),
     ...(replaceVoice ? ['voiceTracks'] : []),
     ...(supplementalAudioProvided
@@ -968,6 +995,13 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
   )
   const approvedColorIntermediate =
     payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+  const approvedBrollPreviewProxy =
+    payload.sourceMediaPolicy === 'approved_b_roll_qa_normalized_preview_proxy_v1'
+  const approvedMatroskaIntermediate =
+    approvedColorIntermediate || approvedBrollPreviewProxy
+  const brollPreviewLayer = approvedBrollPreviewProxy
+    ? brollPreviewLayerPayload(payload.brollPreviewLayer)
+    : undefined
   if (
     !['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1'].includes(
       String(payload.compositionProfileId),
@@ -978,7 +1012,8 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
       captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
     ) ||
     sourceEndFrameExclusive - sourceStartFrame !== common.durationFrames
-    || (sourceMediaPolicyProvided && !approvedColorIntermediate)
+    || (sourceMediaPolicyProvided && !approvedMatroskaIntermediate)
+    || brollPreviewLayerProvided !== approvedBrollPreviewProxy
     || (approvedColorIntermediate && (
       payload.audioPolicy !== 'replace_with_approved_voice_tracks'
     ))
@@ -990,9 +1025,10 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     sourceFit: 'contain',
     panelBackground: color(payload.panelBackground, 'panelBackground'),
     audioPolicy: payload.audioPolicy as 'preserve_source' | 'replace_with_approved_voice_tracks',
-    ...(approvedColorIntermediate
-      ? { sourceMediaPolicy: 'approved_professional_color_intermediate_v1' as const }
+    ...(approvedMatroskaIntermediate
+      ? { sourceMediaPolicy: payload.sourceMediaPolicy as OfflineRemotionSingleSourceMediaPolicy }
       : {}),
+    ...(brollPreviewLayer ? { brollPreviewLayer } : {}),
     ...(replaceVoice ? {
       voiceTracks: voiceTrackPlanningPayloads(payload.voiceTracks, [{
         sourceSequenceItemId: undefined,
@@ -1044,6 +1080,41 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     ...commonResult,
     compositionProfileId: 'approved_source_caption_final_v1',
     captionOverlayPolicy: 'approved_full_frame_rgba',
+  }
+}
+
+function brollPreviewLayerPayload(
+  value: unknown,
+): OfflineRemotionBrollPreviewLayerPlanningPayload {
+  const layer = exactRecord(value, [
+    'displayTreatment', 'position', 'crop', 'xPercent', 'yPercent',
+    'widthPercent', 'heightPercent', 'scale', 'opacity', 'layerOrder',
+  ], 'B-roll preview layer')
+  const treatment = String(layer.displayTreatment) as
+    OfflineRemotionBrollPreviewLayerPlanningPayload['displayTreatment']
+  const fixed = {
+    full_frame_takeover: [0, 0, 100, 100, 1, 10],
+    full_frame_cutaway: [0, 0, 100, 100, 1, 10],
+    inset: [60, 8, 34, 34, 1, 10],
+    picture_in_picture: [65, 6, 30, 30, 1, 10],
+    split_screen: [50, 0, 50, 100, 1, 10],
+    partial_overlay: [55, 45, 40, 45, 1, 10],
+    background_layer: [0, 0, 100, 100, 0.45, 0],
+  } as const
+  const expected = fixed[treatment]
+  if (
+    !expected || layer.position !== 'absolute' || layer.crop !== 'contain' ||
+    layer.xPercent !== expected[0] || layer.yPercent !== expected[1] ||
+    layer.widthPercent !== expected[2] || layer.heightPercent !== expected[3] ||
+    layer.scale !== 1 || layer.opacity !== expected[4] ||
+    layer.layerOrder !== expected[5]
+  ) throw validationFailure('B-roll preview layer geometry is outside its fixed treatment contract.')
+  return {
+    displayTreatment: treatment,
+    position: 'absolute', crop: 'contain',
+    xPercent: expected[0], yPercent: expected[1],
+    widthPercent: expected[2], heightPercent: expected[3],
+    scale: 1, opacity: expected[4], layerOrder: expected[5],
   }
 }
 
@@ -1100,8 +1171,7 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
       input.sources.some((source, index) =>
         source.sourceSequenceItemId !== planning.sourceSegments[index]?.sourceSequenceItemId)
     ) throw validationFailure('Source-sequence bytes do not match the approved segment order.')
-    const sourceMimeType = planning.sourceMediaPolicy ===
-      'approved_professional_color_intermediate_v1'
+    const sourceMimeType = planning.sourceMediaPolicy !== undefined
       ? 'video/x-matroska' as const
       : 'video/mp4' as const
     const sources = input.sources.map((candidate) => {
@@ -1142,8 +1212,7 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
   if (!input.source || input.sources !== undefined) {
     throw validationFailure('Single-source composition requires one exact approved source.')
   }
-  const sourceMimeType = planning.sourceMediaPolicy ===
-    'approved_professional_color_intermediate_v1'
+  const sourceMimeType = planning.sourceMediaPolicy !== undefined
     ? 'video/x-matroska' as const
     : 'video/mp4' as const
   const source = committedBytes(input.source, sourceMimeType, 64, 16 * 1024 * 1024, 'source')
@@ -1478,12 +1547,14 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     const captionTrack = payloadRecord.compositionProfileId === 'approved_source_caption_track_final_v1'
     const replaceVoice = payloadRecord.audioPolicy === 'replace_with_approved_voice_tracks'
     const sourceMediaPolicyProvided = Object.hasOwn(payloadRecord, 'sourceMediaPolicy')
+    const brollPreviewLayerProvided = Object.hasOwn(payloadRecord, 'brollPreviewLayer')
     const deliveryMasterAuthorityProvided = Object.hasOwn(payloadRecord, 'renderPurpose')
     const payload = exactRecord(payloadRecord, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
       'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
       ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
+      ...(brollPreviewLayerProvided ? ['brollPreviewLayer'] : []),
       'sourceMimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
       ...(captionTrack
         ? ['captionOverlayCues', 'captionOverlays']
@@ -1499,6 +1570,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       panelBackground: payload.panelBackground, audioPolicy: payload.audioPolicy,
       captionOverlayPolicy: payload.captionOverlayPolicy,
       ...(sourceMediaPolicyProvided ? { sourceMediaPolicy: payload.sourceMediaPolicy } : {}),
+      ...(brollPreviewLayerProvided ? { brollPreviewLayer: payload.brollPreviewLayer } : {}),
       ...(captionTrack ? { captionOverlayCues: payload.captionOverlayCues } : {}),
       ...(replaceVoice
         ? { voiceTracks: voiceTrackPlanningFromCommitments(payload.voiceTracks) }
@@ -1510,8 +1582,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     if (isSourceSequencePlanningPayload(planning)) {
       throw validationFailure('Single-source final composition profile changed during validation.')
     }
-    const sourceMimeType = planning.sourceMediaPolicy ===
-      'approved_professional_color_intermediate_v1'
+    const sourceMimeType = planning.sourceMediaPolicy !== undefined
       ? 'video/x-matroska' as const
       : 'video/mp4' as const
     const source = decodeCommittedBase64(
@@ -1687,6 +1758,7 @@ function validateSingleSourceCommitment(
     sourceEndFrameExclusive: number
     durationFrames: number
     audioPolicy: 'preserve_source' | 'replace_with_approved_voice_tracks'
+    sourceMediaPolicy?: OfflineRemotionSingleSourceMediaPolicy
   },
 ): void {
   if (mimeType === 'video/mp4') {
@@ -1699,13 +1771,15 @@ function validateSingleSourceCommitment(
     bytes.byteLength < 4 || bytes[0] !== 0x1a || bytes[1] !== 0x45 ||
     bytes[2] !== 0xdf || bytes[3] !== 0xa3
   ) throw validationFailure('Final composition Matroska source has an invalid signature.')
+  const brollPreviewProxy = planning.sourceMediaPolicy ===
+    'approved_b_roll_qa_normalized_preview_proxy_v1'
   if (
-    planning.audioPolicy !== 'replace_with_approved_voice_tracks' ||
+    (!brollPreviewProxy && planning.audioPolicy !== 'replace_with_approved_voice_tracks') ||
     planning.sourceStartFrame !== 0 ||
     planning.sourceEndFrameExclusive !== planning.durationFrames
   ) {
     throw validationFailure(
-      'A professional color intermediate requires normalized frames and approved replacement voice audio.',
+      'A Matroska intermediate requires normalized frames and its exact approved audio policy.',
     )
   }
 }

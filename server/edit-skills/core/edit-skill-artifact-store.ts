@@ -1,0 +1,139 @@
+import type { z } from 'zod'
+
+import { canonicalSkillJson, hashSkillValue } from './skill-capability-manifest-hash'
+
+export interface EditSkillArtifactReference {
+  artifactType: string
+  sha256: string
+  byteLength: number
+  ownerUserId: string
+  workspaceId: string
+  projectId: string
+}
+
+export interface EditSkillArtifactStore {
+  readonly storageClass: 'durable' | 'internal_in_memory'
+  putJson(input: {
+    artifactType: string
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+    value: unknown
+  }): Promise<EditSkillArtifactReference>
+  readJson(input: {
+    reference: EditSkillArtifactReference
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+  }): Promise<unknown>
+}
+
+export class EditSkillArtifactSchemaRegistry {
+  readonly #schemas = new Map<string, {
+    schema: z.ZodType
+    contractClass: 'strict_active' | 'legacy_read_only_generic'
+  }>()
+
+  register(
+    artifactType: string,
+    schema: z.ZodType,
+    options: {
+      contractClass?: 'strict_active' | 'legacy_read_only_generic'
+    } = {},
+  ): void {
+    if (this.#schemas.has(artifactType)) throw new Error(`Duplicate skill artifact schema ${artifactType}.`)
+    this.#schemas.set(artifactType, {
+      schema,
+      contractClass: options.contractClass ?? 'strict_active',
+    })
+  }
+
+  has(artifactType: string): boolean { return this.#schemas.has(artifactType) }
+
+  parse(artifactType: string, value: unknown): unknown {
+    const registration = this.#schemas.get(artifactType)
+    if (!registration) throw new Error(`Unknown skill artifact type ${artifactType}.`)
+    return registration.schema.parse(value)
+  }
+
+  assertStrictActive(artifactType: string): void {
+    const registration = this.#schemas.get(artifactType)
+    if (!registration) throw new Error(`Unknown skill artifact type ${artifactType}.`)
+    if (registration.contractClass !== 'strict_active') {
+      throw new Error(`Active skill artifact ${artifactType} resolves only to a legacy generic schema.`)
+    }
+  }
+}
+
+interface InMemoryArtifactRecord {
+  reference: EditSkillArtifactReference
+  value: unknown
+}
+
+export class InMemoryCreateOnlyEditSkillArtifactStore implements EditSkillArtifactStore {
+  readonly storageClass = 'internal_in_memory' as const
+  readonly #schemas: EditSkillArtifactSchemaRegistry
+  readonly #records = new Map<string, InMemoryArtifactRecord>()
+
+  constructor(schemas: EditSkillArtifactSchemaRegistry) {
+    this.#schemas = schemas
+  }
+
+  async putJson(input: {
+    artifactType: string
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+    value: unknown
+  }): Promise<EditSkillArtifactReference> {
+    const value = this.#schemas.parse(input.artifactType, input.value)
+    if (typeof value === 'object' && value !== null) {
+      const scoped = value as Record<string, unknown>
+      const declaredScope = [scoped.ownerUserId, scoped.workspaceId, scoped.projectId]
+      if (
+        declaredScope.some((entry) => entry !== undefined) &&
+        (
+          scoped.ownerUserId !== input.ownerUserId ||
+          scoped.workspaceId !== input.workspaceId ||
+          scoped.projectId !== input.projectId
+        )
+      ) throw new Error('Cross-tenant skill artifact content rejected at persistence.')
+    }
+    const serialized = canonicalSkillJson(value)
+    const reference: EditSkillArtifactReference = {
+      artifactType: input.artifactType,
+      sha256: hashSkillValue(value),
+      byteLength: Buffer.byteLength(serialized, 'utf8'),
+      ownerUserId: input.ownerUserId,
+      workspaceId: input.workspaceId,
+      projectId: input.projectId,
+    }
+    const key = canonicalSkillJson(reference)
+    const existing = this.#records.get(key)
+    if (existing && canonicalSkillJson(existing.value) !== serialized) {
+      throw new Error('Content-addressed skill artifact collision.')
+    }
+    this.#records.set(key, { reference, value })
+    return reference
+  }
+
+  async readJson(input: {
+    reference: EditSkillArtifactReference
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+  }): Promise<unknown> {
+    if (
+      input.reference.ownerUserId !== input.ownerUserId ||
+      input.reference.workspaceId !== input.workspaceId ||
+      input.reference.projectId !== input.projectId
+    ) throw new Error('Cross-tenant skill artifact substitution rejected.')
+    const record = this.#records.get(canonicalSkillJson(input.reference))
+    if (!record) throw new Error('Skill artifact was not found.')
+    if (
+      hashSkillValue(record.value) !== input.reference.sha256 ||
+      Buffer.byteLength(canonicalSkillJson(record.value), 'utf8') !== input.reference.byteLength
+    ) throw new Error('Skill artifact integrity verification failed.')
+    return this.#schemas.parse(input.reference.artifactType, record.value)
+  }
+}

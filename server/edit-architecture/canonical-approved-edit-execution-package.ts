@@ -18,6 +18,7 @@ import type {
   CanonicalApprovedExecutionAuthority,
   CanonicalApprovedExecutionWorkItem,
 } from '../services/edit-planning-authority-service'
+import { assertCanonicalBrollComponentRefPropagation } from '../edit-skills/b-roll/b-roll-canonical-plan-component'
 
 export const CANONICAL_APPROVED_EDIT_EXECUTION_PACKAGE_VERSION =
   'canonical-approved-edit-execution-package-v5' as const
@@ -273,7 +274,7 @@ export function createCanonicalApprovedEditExecutionPackage(input: {
     authority.reservation.spentCredits -
     authority.reservation.releasedCredits -
     authority.reservation.refundedCredits
-  return {
+  const executionPackage: CanonicalApprovedEditExecutionPackage = {
     schemaVersion: CANONICAL_APPROVED_EDIT_EXECUTION_PACKAGE_VERSION,
     packageRecordId: executionPackageRecord.id,
     source: 'canonical_edit_authority',
@@ -353,6 +354,12 @@ export function createCanonicalApprovedEditExecutionPackage(input: {
     createdAt: executionPackageRecord.createdAt,
     packageHash: executionPackageRecord.packageHash,
   }
+  assertCanonicalBrollComponentRefPropagation({
+    planComponentRefs: authority.plan.componentRefs,
+    snapshotComponentRefs: authority.snapshot.componentRefs,
+    executionPackageComponentRefs: executionPackage.componentRefs,
+  })
+  return executionPackage
 }
 
 export function assertCanonicalApprovedEditExecutionPackageMatchesAuthority(input: {

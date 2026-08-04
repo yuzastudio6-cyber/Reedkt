@@ -1,5 +1,12 @@
 # B-roll Planning Contract Checklist
 
+Status: historical doctrine; runtime superseded by
+[`docs/edit-skills/b-roll/architecture.md`](../edit-skills/b-roll/architecture.md).
+
+This checklist is retained for compatibility review. Runtime qualification and
+static validation use the canonical `b_roll@1.0.0` capability manifest and its
+evidence fixtures.
+
 This checklist is for future prompts that add, revise, or validate B-roll skill planning. It is documentation only. It does not authorize runtime code, TypeScript contracts, SQL, migrations, workers, providers, UI, browser/capture/media/generation execution, stock/search integrations, package changes, or app behavior changes.
 
 ## Required Checks

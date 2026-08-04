@@ -23,8 +23,8 @@ const ref = (id: string, character: string) => ({
   contentHash: `sha256:${hash(character)}`,
 })
 
-const a100 = await observe('a100_80gb_heavy_primary')
-const l4Fallback = await observe('l4_heavy_fallback')
+export const a100 = await observe('a100_80gb_heavy_primary')
+export const l4Fallback = await observe('l4_heavy_fallback')
 const l4Standard = await observe('l4_standard_primary')
 const l4FallbackOtherBillingAccount = await observe(
   'l4_heavy_fallback',

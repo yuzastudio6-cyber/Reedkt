@@ -53,6 +53,10 @@ import {
 import {
   canonicalSam31GpuRuntimeReleaseObservationSchema,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-release'
+import {
+  a100 as a100RateAuthority,
+  l4Fallback as l4FallbackRateAuthority,
+} from './canonical-professional-tool-gpu-cost-authority-smoke'
 
 const objects = new Map<string, Buffer>()
 const maskProxyBytes = Buffer.alloc(4_096, 0x31)
@@ -104,9 +108,17 @@ const privateInputStagingPort = createCanonicalSam31GpuPrivateInputStagingPort({
   binaryObjectPort: memoryPrivateBinaryObjectPort(stagedProxyObjects),
 })
 
-const primaryRateRef = ref('account-effective-a100-rate')
-const fallbackRateRef = ref('account-effective-l4-rate')
-const a100 = fixture('a100_80gb_heavy_primary')
+export const primaryRateRef = ref(
+  a100RateAuthority.rateAuthorityId,
+  a100RateAuthority.rateAuthorityHash,
+  a100RateAuthority.rateAuthorityVersion,
+)
+export const fallbackRateRef = ref(
+  l4FallbackRateAuthority.rateAuthorityId,
+  l4FallbackRateAuthority.rateAuthorityHash,
+  l4FallbackRateAuthority.rateAuthorityVersion,
+)
+export const a100 = fixture('a100_80gb_heavy_primary')
 let delegateCalls = 0
 const delegate: CanonicalProfessionalGpuCloudJobLaunchPort = {
   async startOneShotJob() {
@@ -799,7 +811,7 @@ function fixture(
     fallbackRateAuthorityRef: fallbackRateRef,
     privateTaskInputTransportRef: ref('sam31-private-task-input'),
     privateTaskOutputTransportRef: ref('sam31-private-task-output'),
-    preparedAt: '2026-08-02T17:59:00.000Z',
+    preparedAt: '2026-08-02T18:00:15.000Z',
   })
   return {
     admission,

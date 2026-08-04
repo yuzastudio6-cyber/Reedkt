@@ -728,7 +728,8 @@ function assertTaskContextMatches(input: {
       !trackAllCall.requiredEvidenceRefs.some((observed) =>
         sameRef(observed, required)))
     || !sameRef(selectedRate, admission.currentRateAuthorityRef)
-    || Date.parse(taskContext.preparedAt) > Date.parse(admission.admittedAt)
+    || Date.parse(taskContext.preparedAt) < Date.parse(admission.admittedAt)
+    || Date.parse(taskContext.preparedAt) >= Date.parse(admission.expiresAt)
   ) throw new Error(
     'SAM 3.1 task context differs from admission, release, frame, or rates.',
   )

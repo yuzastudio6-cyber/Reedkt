@@ -60,6 +60,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-gpu-runtime-contract-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-registry-smoke.ts',
+  'server/smoke/canonical-sam3_1-gpu-task-context-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-qualification-compilation-authority-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-qualification-component-evidence-repository-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-qualification-evidence-owner-smoke.ts',

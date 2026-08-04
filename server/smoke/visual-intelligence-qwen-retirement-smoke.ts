@@ -198,6 +198,8 @@ for (const removedPath of [
   'docker/prod/gpu-worker/sam2/source-provenance.lock',
   'server/workers/masks/sam2-execution-runner.ts',
   'server/services/canonical-source-led-visual-intelligence-content-analysis-port.ts',
+  'server/services/canonical-source-visual-intelligence-owner-service.ts',
+  'server/services/canonical-visual-intelligence-source-gpu-evidence-service.ts',
 ]) assert.equal(existsSync(removedPath), false, `${removedPath} must be absent`)
 
 const sam2RuntimeTombstoneSource = readFileSync(

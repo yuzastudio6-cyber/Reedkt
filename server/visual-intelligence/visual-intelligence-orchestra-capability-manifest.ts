@@ -9,6 +9,7 @@ import {
   ORCHESTRA_SKILL_CAPABILITY_MANIFEST_VERSION,
   ORCHESTRA_SKILL_JOB_RESULT_VERSION,
   ORCHESTRA_SKILL_QUALIFICATION_SNAPSHOT_VERSION,
+  ORCHESTRA_VISUAL_INTELLIGENCE_JOB_ROUTE_ID,
 } from '../../src/types/orchestra-skill-capability'
 import {
   VISUAL_INTELLIGENCE_CAPABILITY_ID,
@@ -173,7 +174,6 @@ const TRACKING_DEPENDENT_JOB_TYPES = ids(
 )
 
 const BLOCKERS = ids(
-  'canonical_orchestra_application_mount_not_observed',
   'exact_video_scene_boundary_media_transport_not_qualified',
   'live_gemini_3_1_pro_high_release_not_reread',
 )
@@ -545,12 +545,15 @@ SkillQualificationSnapshot {
     contractVersion: VISUAL_INTELLIGENCE_ORCHESTRA_CONTRACT_VERSION,
     capabilityDefinitionDigestSha256: DEFINITION_DIGEST,
     observedReleaseRef: orchestraEvidenceRef(
-      'visual-intelligence-orchestra-source-candidate-v1',
+      'visual-intelligence-orchestra-source-candidate-v2',
       orchestraDigest({
         sourceCandidateVersion:
-          'visual-intelligence-orchestra-source-candidate-v1',
+          'visual-intelligence-orchestra-source-candidate-v2',
         liveGeminiCallObserved: false,
-        orchestraApplicationMountObserved: false,
+        orchestraApplicationMountObserved: true,
+        orchestraApplicationRouteId:
+          ORCHESTRA_VISUAL_INTELLIGENCE_JOB_ROUTE_ID,
+        directVisualExecutionRoutesMounted: false,
         exactSceneTransportObserved: false,
       }),
     ),

@@ -33,9 +33,9 @@ import {
   type CanonicalSourceAnalysisProbeAuthorityScope,
 } from './canonical-source-analysis-preparation-owner'
 import {
-  assertVisualIntelligenceSourceGpuEvidenceUsageCost,
-  type VisualIntelligenceSourceGpuEvidenceUsageCost,
-} from './canonical-visual-intelligence-source-gpu-evidence-service'
+  assertCanonicalSourceAnalysisL4ProbeUsageCost,
+  type CanonicalSourceAnalysisL4ProbeUsageCost,
+} from './canonical-source-analysis-l4-probe-usage-cost'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -839,7 +839,7 @@ async function reconcileLaunch(input: {
     cloudJobStartState: 'known_started',
   })
   assertPlainSerializedData(costRaw, 'source_analysis_l4_probe_usage_cost')
-  const cost = assertVisualIntelligenceSourceGpuEvidenceUsageCost(costRaw)
+  const cost = assertCanonicalSourceAnalysisL4ProbeUsageCost(costRaw)
   assertCostMatches({
     cost,
     worker,
@@ -1118,7 +1118,7 @@ function assertWorkerMatches(input: {
 }
 
 function assertCostMatches(input: {
-  cost: VisualIntelligenceSourceGpuEvidenceUsageCost
+  cost: CanonicalSourceAnalysisL4ProbeUsageCost
   worker: CanonicalSourceAnalysisL4ProbeWorkerResult
   admission: CanonicalSourceAnalysisL4ProbeAdmission
   release: CanonicalProfessionalToolGpuRuntimeRelease

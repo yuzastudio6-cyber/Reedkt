@@ -12,7 +12,7 @@ const smokes = [
   'server/smoke/visual-intelligence-account-effective-rate-read-port-smoke.ts',
   'server/smoke/visual-intelligence-account-effective-rate-publisher-smoke.ts',
   'server/smoke/visual-intelligence-inspection-coordinator-smoke.ts',
-  'server/smoke/visual-intelligence-source-gpu-evidence-smoke.ts',
+  'server/smoke/visual-intelligence-active-cutover-smoke.ts',
   'server/smoke/visual-intelligence-production-runtime-smoke.ts',
   'server/smoke/visual-intelligence-gcs-private-object-read-port-smoke.ts',
   'server/smoke/visual-intelligence-orchestra-capability-manifest-smoke.ts',

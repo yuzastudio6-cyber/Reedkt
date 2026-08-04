@@ -81,14 +81,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['canonicalVisualCalibrationReferenceFrameReaderPort']
   canonicalProviderAttemptRuntimeRecordSourcePort?:
     RuntimeState['canonicalProviderAttemptRuntimeRecordSourcePort']
-  visualIntelligenceLifecyclePort?:
-    RuntimeState['visualIntelligenceLifecyclePort']
   visualIntelligenceReportRepository?:
     RuntimeState['visualIntelligenceReportRepository']
-  visualIntelligenceInspectionCoordinatorPort?:
-    RuntimeState['visualIntelligenceInspectionCoordinatorPort']
-  visualIntelligencePlanningOperationRequestOwnerPort?:
-    RuntimeState['visualIntelligencePlanningOperationRequestOwnerPort']
   visualIntelligenceOrchestraJobRuntimePort?:
     RuntimeState['visualIntelligenceOrchestraJobRuntimePort']
   editReferenceVisualIntelligenceBindingStore?:
@@ -203,28 +197,10 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
             options.canonicalProviderAttemptRuntimeRecordSourcePort,
         }
       : {}),
-    ...(options.visualIntelligenceLifecyclePort
-      ? {
-          visualIntelligenceLifecyclePort:
-            options.visualIntelligenceLifecyclePort,
-        }
-      : {}),
     ...(options.visualIntelligenceReportRepository
       ? {
           visualIntelligenceReportRepository:
             options.visualIntelligenceReportRepository,
-        }
-      : {}),
-    ...(options.visualIntelligenceInspectionCoordinatorPort
-      ? {
-          visualIntelligenceInspectionCoordinatorPort:
-            options.visualIntelligenceInspectionCoordinatorPort,
-        }
-      : {}),
-    ...(options.visualIntelligencePlanningOperationRequestOwnerPort
-      ? {
-          visualIntelligencePlanningOperationRequestOwnerPort:
-            options.visualIntelligencePlanningOperationRequestOwnerPort,
         }
       : {}),
     ...(options.visualIntelligenceOrchestraJobRuntimePort

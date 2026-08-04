@@ -45,7 +45,7 @@ const requiredCoreQualificationSmokes = [
   'visual-intelligence-account-effective-rate-read-port-smoke.ts',
   'visual-intelligence-account-effective-rate-publisher-smoke.ts',
   'visual-intelligence-inspection-coordinator-smoke.ts',
-  'visual-intelligence-source-gpu-evidence-smoke.ts',
+  'visual-intelligence-active-cutover-smoke.ts',
   'visual-intelligence-live-prerequisites-audit-smoke.ts',
   'gcp-foundation-config-smoke.ts',
   'source-led-visual-intelligence-content-analysis-smoke.ts',

@@ -1,9 +1,5 @@
 import { Storage } from '@google-cloud/storage'
 
-import type {
-  VisualIntelligenceEvidenceRef,
-  VisualIntelligenceRequest,
-} from '../../src/types/visual-intelligence'
 import type { RuntimeEnv } from '../config/env'
 import {
   createEditReferenceVisualIntelligenceConsumerBindingPort,
@@ -84,10 +80,6 @@ import {
   type CanonicalSourceVisualIntelligenceOrchestraReadPort,
 } from '../services/canonical-source-visual-intelligence-orchestra-result-bridge'
 import {
-  createCanonicalPlanningVisualIntelligenceOperationOwner,
-  type VisualIntelligencePlanningOperationRequestOwner,
-} from '../services/canonical-planning-visual-intelligence-operation-owner-service'
-import {
   createVisualIntelligenceAccountEffectiveCostOwner,
   createVisualIntelligenceGcsAccountEffectiveRateReadPort,
   type VisualIntelligenceAccountEffectiveCostOwner,
@@ -97,9 +89,6 @@ import {
   type VisualIntelligenceCanonicalRequestPackageStore,
 } from './visual-intelligence-canonical-request-package-store'
 import {
-  parseVisualIntelligenceRequest,
-} from './visual-intelligence-contract'
-import {
   createVisualIntelligenceGcsConcurrencyPort,
 } from './visual-intelligence-gcs-concurrency-port'
 import {
@@ -107,15 +96,8 @@ import {
   type VisualIntelligenceDurableLifecycleStore,
 } from './visual-intelligence-gcs-lifecycle-store'
 import {
-  createVisualIntelligenceInspectionCoordinator,
-  type VisualIntelligenceInspectionCoordinator,
-} from './visual-intelligence-inspection-coordinator'
-import {
   createVisualIntelligenceLifecycleService,
-  type VisualIntelligenceAdmissionVerificationPort,
   type VisualIntelligenceConcurrencyPort,
-  type VisualIntelligenceEvidencePreparationPort,
-  type VisualIntelligenceLifecycleService,
 } from './visual-intelligence-lifecycle-service'
 import {
   createVisualIntelligenceOrchestraDispatchPackageStore,
@@ -144,16 +126,12 @@ import {
 } from './vertex-gemini-pro-visual-intelligence-adapter'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v1' as const
+  'visual-intelligence-production-runtime-v2' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
   readonly runtimeRelease: VisualIntelligenceRuntimeRelease
-  readonly lifecyclePort: VisualIntelligenceLifecycleService
   readonly reportRepository: VisualIntelligenceDurableLifecycleStore
-  readonly inspectionCoordinatorPort: VisualIntelligenceInspectionCoordinator
-  readonly planningOperationRequestOwnerPort:
-    VisualIntelligencePlanningOperationRequestOwner
   readonly canonicalRequestPackageStore:
     VisualIntelligenceCanonicalRequestPackageStore
   readonly orchestraDispatchPackageStore:
@@ -481,18 +459,6 @@ export async function createVisualIntelligenceProductionRuntime(
     editReference: editReferenceConsumerBindingPort,
     sourceVideoUnderstanding: sourceVideoUnderstandingConsumerBindingPort,
   })
-  const planningOwner =
-    createCanonicalPlanningVisualIntelligenceOperationOwner({
-      upstreamAdmissionVerificationPort: canonicalRequestPackageStore,
-      upstreamEvidencePreparationPort: canonicalRequestPackageStore,
-      costOwner,
-      runtimeRelease,
-      objectPort,
-    })
-  const ownerPorts = createOwnerRoutingPorts({
-    canonicalRequestPackageStore,
-    planningOwner,
-  })
   const provider = createVertexGeminiProVisualIntelligenceAdapter({
     projectId: coordinates.projectId,
     location: runtimeRelease.vertexLocation,
@@ -507,14 +473,6 @@ export async function createVisualIntelligenceProductionRuntime(
       bucketName: coordinates.controlPlaneBucket,
       storage: requireStorage(),
     })
-  const lifecyclePort = createVisualIntelligenceLifecycleService({
-    provider,
-    admissionPort: ownerPorts.admission,
-    evidencePreparationPort: ownerPorts.evidence,
-    attemptStore: durableStore,
-    reportRepository: durableStore,
-    concurrencyPort,
-  })
   const orchestraLifecyclePort = createVisualIntelligenceLifecycleService({
     provider,
     admissionPort: canonicalRequestPackageStore,
@@ -530,18 +488,10 @@ export async function createVisualIntelligenceProductionRuntime(
       resultStore: orchestraJobResultStore,
       consumerBindingPort: orchestraConsumerBindingPort,
     })
-  const inspectionCoordinatorPort =
-    createVisualIntelligenceInspectionCoordinator({
-      requestOwner: canonicalRequestPackageStore,
-      lifecycle: lifecyclePort,
-    })
   return Object.freeze({
     schemaVersion: VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION,
     runtimeRelease,
-    lifecyclePort,
     reportRepository: durableStore,
-    inspectionCoordinatorPort,
-    planningOperationRequestOwnerPort: planningOwner.requestOwner,
     canonicalRequestPackageStore,
     orchestraDispatchPackageStore,
     orchestraJobResultStore,
@@ -604,55 +554,6 @@ function createOrchestraConsumerBindingRouter(input: {
       return null
     },
   })
-}
-
-function createOwnerRoutingPorts(input: {
-  canonicalRequestPackageStore:
-    VisualIntelligenceCanonicalRequestPackageStore
-  planningOwner: ReturnType<
-    typeof createCanonicalPlanningVisualIntelligenceOperationOwner
-  >
-}): {
-  admission: VisualIntelligenceAdmissionVerificationPort
-  evidence: VisualIntelligenceEvidencePreparationPort
-} {
-  const route = (untrustedRequest: unknown) => {
-    const request = parseVisualIntelligenceRequest(untrustedRequest)
-    const canonicalPackageOwner = request.operation === 'inspect_edit'
-      || request.profile === 'source_edit_planning'
-      || request.profile === 'reference_preference_dna'
-    return {
-      request,
-      admission: canonicalPackageOwner
-        ? input.canonicalRequestPackageStore
-        : input.planningOwner.admissionVerificationPort,
-      evidence: canonicalPackageOwner
-        ? input.canonicalRequestPackageStore
-        : input.planningOwner.evidencePreparationPort,
-    }
-  }
-  const admission: VisualIntelligenceAdmissionVerificationPort =
-    Object.freeze({
-      async verifyAndRereadExact(
-        untrustedRequest: VisualIntelligenceRequest,
-      ) {
-        const selected = route(untrustedRequest)
-        return selected.admission.verifyAndRereadExact(selected.request)
-      },
-    })
-  const evidence: VisualIntelligenceEvidencePreparationPort = Object.freeze({
-    async prepare({ request, admissionRef }: {
-      readonly request: VisualIntelligenceRequest
-      readonly admissionRef: VisualIntelligenceEvidenceRef
-    }) {
-      const selected = route(request)
-      return selected.evidence.prepare({
-        request: selected.request,
-        admissionRef,
-      })
-    },
-  })
-  return Object.freeze({ admission, evidence })
 }
 
 function requireCoordinates(env: RuntimeEnv): {

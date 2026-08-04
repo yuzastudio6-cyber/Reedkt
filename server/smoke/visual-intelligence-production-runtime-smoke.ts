@@ -582,19 +582,6 @@ providerPayload = {
   providerInstructionsFollowedFromMedia: false,
   editingOrRenderingClaimed: false,
 }
-const completed = await runtime.lifecyclePort.execute(sourceRequest)
-assert.equal(completed.status, 'completed')
-assert.equal(completed.providerCallMadeDuringInvocation, true)
-assert.equal(completed.costSettledDuringInvocation, true)
-assert.equal(completed.directTimelineMutationPerformed, false)
-const replay = await runtime.lifecyclePort.execute(sourceRequest)
-assert.equal(replay.status, 'cache_replay')
-assert.equal(replay.providerCallMadeDuringInvocation, false)
-assert.equal(replay.costSettledDuringInvocation, false)
-assert.equal(providerCalls, 1)
-assert.equal(acquired, 1)
-assert.equal(released, 1)
-
 const baselineOrchestraQualification =
   createVisualIntelligenceOrchestraQualificationSnapshot()
 const baselineOrchestraManifest =
@@ -741,7 +728,7 @@ await assert.rejects(
   (error: unknown) => error instanceof ApiError
     && error.code === 'IDEMPOTENCY_CONFLICT',
 )
-assert.equal(providerCalls, 1)
+assert.equal(providerCalls, 0)
 await assert.rejects(
   runtime.orchestraJobRuntimePort.execute({
     call: orchestraCall,
@@ -759,7 +746,7 @@ await assert.rejects(
   (error: unknown) => error instanceof ApiError
     && error.code === 'IDEMPOTENCY_CONFLICT',
 )
-assert.equal(providerCalls, 1)
+assert.equal(providerCalls, 0)
 const orchestraExecution = await runtime.orchestraJobRuntimePort.execute({
   call: orchestraCall,
   supportRequest: null,
@@ -781,9 +768,9 @@ assert.equal(orchestraExecution.finalQaApprovalGranted, false)
 assert.equal(orchestraExecution.publicDeliveryGranted, false)
 assert.equal(orchestraExecution.productionAuthorityGranted, false)
 assert.ok(orchestraExecution.consumerBindingRef)
-assert.equal(providerCalls, 2)
-assert.equal(acquired, 2)
-assert.equal(released, 2)
+assert.equal(providerCalls, 1)
+assert.equal(acquired, 1)
+assert.equal(released, 1)
 const sourceVisualEvidence = await runtime.sourceVideoUnderstandingReadPort
   .readCompletedSourceVideoUnderstanding(sourceBindingScope)
 assert.ok(sourceVisualEvidence)
@@ -820,7 +807,7 @@ assert.equal(orchestraReplay.providerCallMadeDuringInvocation, false)
 assert.equal(orchestraReplay.costSettledDuringInvocation, false)
 assert.equal(orchestraReplay.duplicateProviderCallAvoided, true)
 assert.equal(orchestraReplay.duplicateCostSettlementAvoided, true)
-assert.equal(providerCalls, 2)
+assert.equal(providerCalls, 1)
 await assert.rejects(
   runtime.orchestraJobRuntimePort.execute({
     call: createPlanningOrchestraCall({
@@ -901,9 +888,9 @@ assert.equal(blockedFollowup.result.estimatedAdditionalCreditsRef, null)
 assert.equal(blockedFollowup.result.scopeExpandedWithoutOrchestra, false)
 assert.ok(blockedFollowup.result.evidenceRefs.some((reference) =>
   reference.id.startsWith('vi-followup-estimate-blocked-')))
-assert.equal(providerCalls, 3)
-assert.equal(acquired, 3)
-assert.equal(released, 3)
+assert.equal(providerCalls, 2)
+assert.equal(acquired, 2)
+assert.equal(released, 2)
 const blockedFollowupReplay = await runtime.orchestraJobRuntimePort.execute({
   call: followupCall,
   supportRequest: null,
@@ -912,7 +899,7 @@ const blockedFollowupReplay = await runtime.orchestraJobRuntimePort.execute({
 })
 assert.equal(blockedFollowupReplay.status, 'cache_replay')
 assert.equal(blockedFollowupReplay.result.disposition, 'blocked')
-assert.equal(providerCalls, 3)
+assert.equal(providerCalls, 2)
 
 const referenceSourceRef = orchestraEvidenceRef(
   'source-video-1',
@@ -1029,7 +1016,7 @@ await assert.rejects(runtime.orchestraJobRuntimePort.execute({
   authenticatedOwnerUserId: 'user-1',
   expectedWorkspaceId: 'workspace-1',
 }))
-assert.equal(providerCalls, 3)
+assert.equal(providerCalls, 2)
 assert.equal(
   await runtime.editReferenceBindingStore.readExact(referenceBindingScope),
   null,
@@ -1053,7 +1040,7 @@ const referenceExecution = await runtime.orchestraJobRuntimePort.execute({
 })
 assert.equal(referenceExecution.status, 'completed')
 assert.ok(referenceExecution.consumerBindingRef)
-assert.equal(providerCalls, 4)
+assert.equal(providerCalls, 3)
 assert.ok(await runtime.editReferenceBindingStore.readExact(
   referenceBindingScope,
 ))
@@ -1071,7 +1058,7 @@ const referenceReplay = await runtime.orchestraJobRuntimePort.execute({
 })
 assert.equal(referenceReplay.status, 'cache_replay')
 assert.equal(referenceReplay.providerCallMadeDuringInvocation, false)
-assert.equal(providerCalls, 4)
+assert.equal(providerCalls, 3)
 
 const disabled = await createVisualIntelligenceProductionRuntime(
   loadRuntimeEnv({

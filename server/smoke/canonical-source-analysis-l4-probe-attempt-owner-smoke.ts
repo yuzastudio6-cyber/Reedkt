@@ -23,9 +23,9 @@ import type {
   CanonicalSourceAnalysisFinalizedAuthority,
 } from '../services/canonical-source-analysis-preparation-owner'
 import {
-  createVisualIntelligenceSourceGpuEvidenceUsageCost,
-  type VisualIntelligenceSourceGpuEvidenceUsageCost,
-} from '../services/canonical-visual-intelligence-source-gpu-evidence-service'
+  createCanonicalSourceAnalysisL4ProbeUsageCost,
+  type CanonicalSourceAnalysisL4ProbeUsageCost,
+} from '../services/canonical-source-analysis-l4-probe-usage-cost'
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
@@ -172,7 +172,7 @@ interface HarnessOptions {
   costReady?: boolean
   maximumCostUsdNanos?: number
   tamperWorker?: (value: CanonicalSourceAnalysisL4ProbeWorkerResult) => unknown
-  tamperCost?: (value: VisualIntelligenceSourceGpuEvidenceUsageCost) => unknown
+  tamperCost?: (value: CanonicalSourceAnalysisL4ProbeUsageCost) => unknown
   failLaunchWriteOnce?: boolean
 }
 
@@ -581,7 +581,7 @@ function usageCost(input: {
   envelopeHash: string
   cloudExecutionRef: VisualIntelligenceEvidenceRef
   cloudTerminalRef: VisualIntelligenceEvidenceRef
-}): VisualIntelligenceSourceGpuEvidenceUsageCost {
+}): CanonicalSourceAnalysisL4ProbeUsageCost {
   const actualUsage = {
     coldStartMilliseconds: 100,
     activeExecutionMilliseconds: 60_000,
@@ -628,7 +628,7 @@ function usageCost(input: {
   }
   const envelopeDigestSha256 = `sha256:${input.envelopeHash}`
   const workerUsageEvidenceRef: VisualIntelligenceEvidenceRef = Object.freeze({
-    id: `visual-intelligence-source-gpu-usage-${input.invocationId}`,
+    id: `source-analysis-l4-probe-usage-${input.invocationId}`,
     version: 1,
     contentHash: visualIntelligenceDigest({
       invocationId: input.invocationId,
@@ -639,7 +639,7 @@ function usageCost(input: {
     }),
   })
   const attemptCostReceiptRef: VisualIntelligenceEvidenceRef = Object.freeze({
-    id: `visual-intelligence-source-gpu-cost-${input.invocationId}`,
+    id: `source-analysis-l4-probe-cost-${input.invocationId}`,
     version: 1,
     contentHash: visualIntelligenceDigest({
       invocationId: input.invocationId,
@@ -648,8 +648,8 @@ function usageCost(input: {
       actualCost: exactActualCost,
     }),
   })
-  return createVisualIntelligenceSourceGpuEvidenceUsageCost({
-    schemaVersion: 'visual-intelligence-source-gpu-evidence-usage-cost-v1',
+  return createCanonicalSourceAnalysisL4ProbeUsageCost({
+    schemaVersion: 'canonical-source-analysis-l4-probe-usage-cost-v1',
     source:
       'canonical_google_cloud_usage_and_account_effective_pricing_reread',
     evidenceClass: 'canonical_private_reread',

@@ -22,15 +22,8 @@ import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } f
 import type { CanonicalVisualCalibrationReferenceFrameReaderPort } from './services/canonical-visual-calibration-reference-frame-reader-port'
 import type { CanonicalProviderAttemptRuntimeRecordSourcePort } from './services/canonical-provider-attempt-runtime-record-port'
 import type {
-  VisualIntelligenceLifecycleService,
   VisualIntelligenceReportRepository,
 } from './visual-intelligence/visual-intelligence-lifecycle-service'
-import type {
-  VisualIntelligenceInspectionCoordinator,
-} from './visual-intelligence/visual-intelligence-inspection-coordinator'
-import type {
-  VisualIntelligencePlanningOperationRequestOwner,
-} from './services/canonical-planning-visual-intelligence-operation-owner-service'
 import type {
   VisualIntelligenceOrchestraJobRuntime,
 } from './visual-intelligence/visual-intelligence-orchestra-job-runtime'
@@ -133,11 +126,7 @@ export interface RuntimeState {
     CanonicalVisualCalibrationReferenceFrameReaderPort
   canonicalProviderAttemptRuntimeRecordSourcePort?:
     CanonicalProviderAttemptRuntimeRecordSourcePort
-  visualIntelligenceLifecyclePort?: VisualIntelligenceLifecycleService
   visualIntelligenceReportRepository?: VisualIntelligenceReportRepository
-  visualIntelligenceInspectionCoordinatorPort?:
-    VisualIntelligenceInspectionCoordinator
-  visualIntelligencePlanningOperationRequestOwnerPort?: VisualIntelligencePlanningOperationRequestOwner
   visualIntelligenceOrchestraJobRuntimePort?:
     VisualIntelligenceOrchestraJobRuntime
   editReferenceVisualIntelligenceBindingStore?:
@@ -203,11 +192,7 @@ export interface ServiceContext {
     CanonicalVisualCalibrationReferenceFrameReaderPort
   canonicalProviderAttemptRuntimeRecordSourcePort?:
     CanonicalProviderAttemptRuntimeRecordSourcePort
-  visualIntelligenceLifecyclePort?: VisualIntelligenceLifecycleService
   visualIntelligenceReportRepository?: VisualIntelligenceReportRepository
-  visualIntelligenceInspectionCoordinatorPort?:
-    VisualIntelligenceInspectionCoordinator
-  visualIntelligencePlanningOperationRequestOwnerPort?: VisualIntelligencePlanningOperationRequestOwner
   visualIntelligenceOrchestraJobRuntimePort?:
     VisualIntelligenceOrchestraJobRuntime
   editReferenceVisualIntelligenceBindingStore?:

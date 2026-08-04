@@ -86,9 +86,6 @@ const planningInput = createVisualIntelligencePlanningOperationInput({
   providerCredentialIncluded: false,
 })
 
-const lifecycleCalls: string[] = []
-const planningCalls: unknown[] = []
-const inspectionCalls: unknown[] = []
 const orchestraCalls: unknown[] = []
 const app = createReeditProApiApp(loadRuntimeEnv({
   NODE_ENV: 'test',
@@ -97,29 +94,11 @@ const app = createReeditProApiApp(loadRuntimeEnv({
   STORAGE_MODE: 'local',
   REEDITPRO_INTERNAL_SERVICE_TOKEN: token,
 }), {
-  visualIntelligenceLifecyclePort: Object.freeze({
-    async execute(request: VisualIntelligenceRequest) {
-      lifecycleCalls.push(request.requestId)
-      throw stopped('controlled_no_visual_provider_call')
-    },
-  }),
-  visualIntelligencePlanningOperationRequestOwnerPort: Object.freeze({
-    async preparePlanningOperationRequest(input: unknown) {
-      planningCalls.push(input)
-      return queryRequest
-    },
-  }),
   visualIntelligenceOrchestraJobRuntimePort: Object.freeze({
     schemaVersion: 'visual-intelligence-orchestra-job-runtime-v1',
     async execute(input: unknown) {
       orchestraCalls.push(input)
       throw stopped('controlled_no_orchestra_visual_provider_call')
-    },
-  }),
-  visualIntelligenceInspectionCoordinatorPort: Object.freeze({
-    async inspect(requirement: unknown, expectedScope: unknown) {
-      inspectionCalls.push({ requirement, expectedScope })
-      throw stopped('controlled_no_visual_inspection_provider_call')
     },
   }),
   visualIntelligenceReportRepository: Object.freeze({
@@ -149,7 +128,6 @@ try {
     },
   )
   assert.equal(execution.status, 404)
-  assert.deepEqual(lifecycleCalls, [])
 
   const planning = await post(
     `/v1/workspaces/${scope.workspaceId}/visual-intelligence/planning-operations`,
@@ -161,7 +139,6 @@ try {
     },
   )
   assert.equal(planning.status, 404)
-  assert.equal(planningCalls.length, 0)
 
   const orchestraCall = createOrchestraSkillCall({
     schemaVersion: ORCHESTRA_SKILL_CALL_VERSION,
@@ -255,7 +232,6 @@ try {
   )
   assert.equal(wrongOrchestraIdempotency.status, 409)
   assert.equal(orchestraCalls.length, 1)
-  assert.deepEqual(lifecycleCalls, [])
 
   const bindingPreparationPath =
     EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_PREPARATION_ROUTE
@@ -288,7 +264,6 @@ try {
     },
   )
   assert.equal(crossWorkspacePlanning.status, 404)
-  assert.equal(planningCalls.length, 0)
 
   const requirement = createVisualInspectionRequirement({
     inspectionId: 'vi-route-inspection-1',
@@ -317,7 +292,6 @@ try {
     },
   )
   assert.equal(inspection.status, 404)
-  assert.equal(inspectionCalls.length, 0)
 
   const readRequest = createVisualIntelligenceAuthenticatedReadRequest({
     requestId: 'vi-route-read-1',

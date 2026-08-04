@@ -342,7 +342,7 @@ assert.equal(
 let rejectedRequestCount = 0
 const mismatchedReleasePayload = {
   ...a100Release,
-  operationId: 'tool.sam2.segment_and_track_subject.v1',
+  operationId: 'tool.ffmpeg.professional_media_processing.v1',
 }
 Reflect.deleteProperty(mismatchedReleasePayload, 'configurationHash')
 const mismatchedRelease = {

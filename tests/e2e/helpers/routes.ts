@@ -64,7 +64,7 @@ export const legacyRedirectRoutes = [
 ] as const
 
 const INTERNAL_TOOL_NAME_PATTERN =
-  /\blibrosa\b|\baudioread\b|\bpydub\b|\bscipy\b|\bresampy\b|\bpyloudnorm\b|\baudioflux\b|\bmusic21\b|\bpretty_midi\b|\bmido\b|\bnoisereduce\b|\bpedalboard\b|\bmir_eval\b|\bpydub_effects\b|\bebu_r128_pyloudnorm\b|\bd3\b|\becharts\b|\bvega_lite\b|\bvega\b|\bsatori\b|\bsvg_js\b|\bviz_js\b|\blottie_web\b|\banimejs\b|\bthree_js\b|\bbabylonjs\b|\bbabylon_js\b|\bpixi_js\b|\bpixijs\b|\bkonva\b|\btorch_torchvision\b|\btransformers\b|\bsam2\b|\bbirefnet\b|\brembg\b|\btransparent_background\b|\breal_esrgan\b|\bkornia\b|\bffmpeg\b|\bffprobe\b|\bgpac\b|\bmp4box\b|\bmkvtoolnix\b|\bgstreamer\b|\bstreamer_render_pipeline_support\b|\bmkvtoolnix_container_validation\b|\bgpac_mp4box_packaging_validation\b|\bopencolorio\b|\bopenimageio\b/i
+  /\blibrosa\b|\baudioread\b|\bpydub\b|\bscipy\b|\bresampy\b|\bpyloudnorm\b|\baudioflux\b|\bmusic21\b|\bpretty_midi\b|\bmido\b|\bnoisereduce\b|\bpedalboard\b|\bmir_eval\b|\bpydub_effects\b|\bebu_r128_pyloudnorm\b|\bd3\b|\becharts\b|\bvega_lite\b|\bvega\b|\bsatori\b|\bsvg_js\b|\bviz_js\b|\blottie_web\b|\banimejs\b|\bthree_js\b|\bbabylonjs\b|\bbabylon_js\b|\bpixi_js\b|\bpixijs\b|\bkonva\b|\btorch_torchvision\b|\btransformers\b|\bsam3_1\b|\bSAM 3\.1\b|\bsam2\b|\bbirefnet\b|\brembg\b|\btransparent_background\b|\breal_esrgan\b|\bkornia\b|\bffmpeg\b|\bffprobe\b|\bgpac\b|\bmp4box\b|\bmkvtoolnix\b|\bgstreamer\b|\bstreamer_render_pipeline_support\b|\bmkvtoolnix_container_validation\b|\bgpac_mp4box_packaging_validation\b|\bopencolorio\b|\bopenimageio\b/i
 
 export async function expectNoInternalToolNamesInEditor(page: Page) {
   await expect(page.getByTestId('editor-page')).not.toContainText(INTERNAL_TOOL_NAME_PATTERN)

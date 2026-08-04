@@ -657,14 +657,14 @@ await expectApiError(
       const sourceTrim = body.canonicalPlan.workItems.find((workItem) =>
         workItem.workItemKey === 'source-trim')
       assert.ok(sourceTrim)
-      sourceTrim.approvedToolIds = ['sam2']
+      sourceTrim.approvedToolIds = ['sam3_1']
       sourceTrim.executionInput.approvedToolOperationIds = [
-        'tool.sam2.segment_and_track_subject.v1',
+        'tool.sam3_1.segment_and_track_subject.v1',
       ]
       body.canonicalPlan.components.toolStrategyPlan = {
-        toolIds: ['sam2', 'ffprobe', 'libass', 'remotion'],
+        toolIds: ['sam3_1', 'ffprobe', 'libass', 'remotion'],
         exactOperationIds: [
-          'tool.sam2.segment_and_track_subject.v1',
+          'tool.sam3_1.segment_and_track_subject.v1',
           'tool.ffprobe.inspect_approved_media.v1',
           'tool.libass.render_approved_caption_track.v1',
           'tool.remotion.render_approved_composition.v1',

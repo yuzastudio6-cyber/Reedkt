@@ -169,8 +169,8 @@ try {
   )
   nonE2ECandidate.operation = {
     kind: 'registered_tool_operation',
-    canonicalToolId: 'sam2',
-    operationId: 'tool.sam2.segment_and_track_subject.v1',
+    canonicalToolId: 'sam3_1',
+    operationId: 'tool.sam3_1.segment_and_track_subject.v1',
   }
   await expectApiError(
     () => createPrivateWorkerResourceUsageCostEvidence(nonE2ECandidate),

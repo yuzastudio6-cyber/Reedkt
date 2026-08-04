@@ -253,7 +253,7 @@ check(
   'Blocker policy must flag non-commercial model weights.',
 )
 check(
-  classifyProductionReadinessBlocker({ kind: 'gpu_tool_on_non_gpu_worker', toolId: 'sam2', workerType: 'cpu_analysis_worker' }).severity === 'hard_blocker',
+  classifyProductionReadinessBlocker({ kind: 'gpu_tool_on_non_gpu_worker', toolId: 'sam3_1', workerType: 'cpu_analysis_worker' }).severity === 'hard_blocker',
   'Blocker policy must flag GPU tool assignment to CPU workers.',
 )
 check(

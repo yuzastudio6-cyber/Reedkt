@@ -59,6 +59,13 @@ const projectEditBriefBrowserOptions = source(
 const projectEditBriefVisualPanel = source(
   'src/components/projects/brief/ProjectEditBriefVisualContextPanel.tsx',
 )
+const currentGpuFixtureSources = [
+  source('server/smoke/canonical-professional-google-cloud-gpu-job-launch-port-smoke.ts'),
+  source('server/smoke/canonical-professional-gpu-job-lifecycle-smoke.ts'),
+  source('server/smoke/edit-planning-authority-smoke.ts'),
+  source('server/smoke/private-worker-resource-usage-cost-evidence-smoke.ts'),
+  source('server/smoke/production-readiness-validation-smoke.ts'),
+]
 
 assert.match(app, /createVisualIntelligenceOrchestraRoutes/u)
 assert.match(app, /createVisualIntelligenceRoutes/u)
@@ -226,6 +233,13 @@ for (const activeBrowserSource of [
 assert.match(projectEditBriefVisualPanel, /Awaiting Orchestra/u)
 assert.match(projectEditBriefVisualPanel, /Authenticated report/u)
 
+for (const currentGpuFixtureSource of currentGpuFixtureSources) {
+  assert.doesNotMatch(
+    currentGpuFixtureSource,
+    /(?:requestedToolNames|packageEvidence|toolId|canonicalToolId|approvedToolIds|toolIds|operationId)\s*(?:=|:)\s*(?:\[\s*)?['"](?:sam2|tool\.sam2)/u,
+  )
+}
+
 console.log(JSON.stringify({
   smoke: 'visual-intelligence-active-cutover',
   directExecutionHttpRoutesMounted: false,
@@ -239,6 +253,7 @@ console.log(JSON.stringify({
   legacyDirectMaskWorkerRoutesRetired: true,
   nonE2EToolStudyCardsExcludedFromSelection: true,
   browserSampledFrameQwenPathRetired: true,
+  currentGpuFixturesUseSam31InsteadOfSam2: true,
   visualIntelligenceMayInspectButNotOwnSam31Artifacts: true,
   activeQwenVisualRuntimeMounted: false,
   activeSam2ExecutableRuntimePresent: false,

@@ -302,7 +302,7 @@ await assert.rejects(() => startCanonicalProfessionalGpuJob({
       return {
         ...structuredClone(launchTarget),
         releaseRef: wrongTargetAdmission.runtimeReleaseRef,
-        operationId: 'tool.sam2.segment_and_track_subject.v1',
+        operationId: 'tool.ffmpeg.professional_media_processing.v1',
       }
     },
   },

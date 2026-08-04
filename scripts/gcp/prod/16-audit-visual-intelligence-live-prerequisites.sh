@@ -7,10 +7,23 @@ set -euo pipefail
 
 PROJECT_ID='reeditpro'
 REGION='us-central1'
+ARTIFACT_REPOSITORY='reeditpro-workers'
 IMAGE_URI='us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu'
+IMAGE_BUILDER_SERVICE_ACCOUNT='reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com'
+IMAGE_SIGNER_SERVICE_ACCOUNT='reeditpro-image-signer-sa@reeditpro.iam.gserviceaccount.com'
+GPU_WORKER_SERVICE_ACCOUNT='reeditpro-gpu-worker-sa@reeditpro.iam.gserviceaccount.com'
+API_SERVICE_ACCOUNT='reeditpro-api-sa@reeditpro.iam.gserviceaccount.com'
+IMAGE_SIGNING_KEY_RING='weeditpro-image-signing'
+IMAGE_SIGNING_KEY='sam31-image-signing'
+MODEL_ARTIFACT_BUCKET='reeditpro-production-reeditpro-model-artifacts'
+IMAGE_BUILD_INPUT_BUCKET='reeditpro-production-reeditpro-image-build-inputs'
+CONTROL_PLANE_STATE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
 
 command -v gcloud >/dev/null
 command -v jq >/dev/null
+
+PROJECT_NUMBER="$(gcloud projects describe "${PROJECT_ID}" --format='value(projectNumber)')"
+CLOUD_BUILD_SERVICE_AGENT="service-${PROJECT_NUMBER}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
 
 configured_project="$(gcloud config get-value project --quiet)"
 if [[ "${configured_project}" != "${PROJECT_ID}" ]]; then
@@ -18,6 +31,72 @@ if [[ "${configured_project}" != "${PROJECT_ID}" ]]; then
     "${PROJECT_ID}" "${configured_project}" >&2
   exit 2
 fi
+if [[ ! "${PROJECT_NUMBER}" =~ ^[0-9]+$ ]]; then
+  printf 'Could not resolve the numeric project identity for %s.\n' \
+    "${PROJECT_ID}" >&2
+  exit 2
+fi
+
+read_json_or_empty() {
+  if ! "$@" 2>/dev/null; then
+    printf '{}\n'
+  fi
+}
+
+policy_has_member_role() {
+  local policy_json="$1"
+  local role="$2"
+  local member="$3"
+  if jq -e \
+    --arg role "${role}" \
+    --arg member "${member}" \
+    'any(.bindings[]?; .role == $role and any(.members[]?; . == $member))' \
+    <<<"${policy_json}" >/dev/null; then
+    printf 'true\n'
+  else
+    printf 'false\n'
+  fi
+}
+
+service_account_observation() {
+  local email="$1"
+  local metadata
+  metadata="$(read_json_or_empty gcloud iam service-accounts describe \
+    "${email}" --project="${PROJECT_ID}" --format=json)"
+  jq -n \
+    --arg email "${email}" \
+    --argjson metadata "${metadata}" \
+    '{
+      email: $email,
+      exists: ($metadata.email == $email),
+      enabled: ($metadata.email == $email and (($metadata.disabled // false) == false)),
+      ready: ($metadata.email == $email and (($metadata.disabled // false) == false))
+    }'
+}
+
+bucket_observation() {
+  local bucket_name="$1"
+  local metadata
+  metadata="$(read_json_or_empty gcloud storage buckets describe \
+    "gs://${bucket_name}" --project="${PROJECT_ID}" --format=json)"
+  jq -n \
+    --arg bucketName "${bucket_name}" \
+    --arg expectedLocation "${REGION}" \
+    --argjson metadata "${metadata}" \
+    '{
+      bucketName: $bucketName,
+      exists: ($metadata.name == $bucketName),
+      location: ($metadata.location // null),
+      uniformBucketLevelAccess: ($metadata.uniform_bucket_level_access == true),
+      publicAccessPreventionEnforced: ($metadata.public_access_prevention == "enforced"),
+      ready: (
+        $metadata.name == $bucketName
+        and (($metadata.location // "") | ascii_downcase) == ($expectedLocation | ascii_downcase)
+        and $metadata.uniform_bucket_level_access == true
+        and $metadata.public_access_prevention == "enforced"
+      )
+    }'
+}
 
 quota_json="$(
   gcloud compute regions describe "${REGION}" \
@@ -44,15 +123,23 @@ required_services=(
   'aiplatform.googleapis.com'
   'artifactregistry.googleapis.com'
   'batch.googleapis.com'
-  'cloudbuild.googleapis.com'
+  'binaryauthorization.googleapis.com'
   'cloudbilling.googleapis.com'
+  'cloudbuild.googleapis.com'
+  'cloudkms.googleapis.com'
+  'cloudtasks.googleapis.com'
   'compute.googleapis.com'
   'containeranalysis.googleapis.com'
   'containerscanning.googleapis.com'
+  'eventarc.googleapis.com'
+  'iam.googleapis.com'
   'iamcredentials.googleapis.com'
+  'logging.googleapis.com'
+  'monitoring.googleapis.com'
+  'pubsub.googleapis.com'
   'run.googleapis.com'
   'secretmanager.googleapis.com'
-  'storage-api.googleapis.com'
+  'serviceusage.googleapis.com'
   'storage.googleapis.com'
 )
 enabled_services="$(
@@ -104,12 +191,142 @@ missing_services_json="$(
   if ((${#missing_services[@]} == 0)); then
     printf '[]\n'
   else
-    printf '%s\n' "${missing_services[@]}" | jq -Rsc 'split("\n") | map(select(length > 0))'
+    printf '%s\n' "${missing_services[@]}" \
+      | jq -Rsc 'split("\n") | map(select(length > 0))'
   fi
 )"
 
+image_builder_identity="$(service_account_observation "${IMAGE_BUILDER_SERVICE_ACCOUNT}")"
+image_signer_identity="$(service_account_observation "${IMAGE_SIGNER_SERVICE_ACCOUNT}")"
+gpu_worker_identity="$(service_account_observation "${GPU_WORKER_SERVICE_ACCOUNT}")"
+
+model_artifact_bucket="$(bucket_observation "${MODEL_ARTIFACT_BUCKET}")"
+image_build_input_bucket="$(bucket_observation "${IMAGE_BUILD_INPUT_BUCKET}")"
+control_plane_state_bucket="$(bucket_observation "${CONTROL_PLANE_STATE_BUCKET}")"
+
+repository_metadata="$(read_json_or_empty gcloud artifacts repositories describe \
+  "${ARTIFACT_REPOSITORY}" --project="${PROJECT_ID}" \
+  --location="${REGION}" --format=json)"
+repository_policy="$(read_json_or_empty gcloud artifacts repositories get-iam-policy \
+  "${ARTIFACT_REPOSITORY}" --project="${PROJECT_ID}" \
+  --location="${REGION}" --format=json)"
+image_builder_repository_writer="$(policy_has_member_role \
+  "${repository_policy}" 'roles/artifactregistry.writer' \
+  "serviceAccount:${IMAGE_BUILDER_SERVICE_ACCOUNT}")"
+image_signer_repository_writer="$(policy_has_member_role \
+  "${repository_policy}" 'roles/artifactregistry.writer' \
+  "serviceAccount:${IMAGE_SIGNER_SERVICE_ACCOUNT}")"
+api_repository_reader="$(policy_has_member_role \
+  "${repository_policy}" 'roles/artifactregistry.reader' \
+  "serviceAccount:${API_SERVICE_ACCOUNT}")"
+gpu_worker_repository_reader="$(policy_has_member_role \
+  "${repository_policy}" 'roles/artifactregistry.reader' \
+  "serviceAccount:${GPU_WORKER_SERVICE_ACCOUNT}")"
+
+model_artifact_bucket_policy="$(read_json_or_empty gcloud storage buckets get-iam-policy \
+  "gs://${MODEL_ARTIFACT_BUCKET}" --project="${PROJECT_ID}" --format=json)"
+image_build_input_bucket_policy="$(read_json_or_empty gcloud storage buckets get-iam-policy \
+  "gs://${IMAGE_BUILD_INPUT_BUCKET}" --project="${PROJECT_ID}" --format=json)"
+control_plane_state_bucket_policy="$(read_json_or_empty gcloud storage buckets get-iam-policy \
+  "gs://${CONTROL_PLANE_STATE_BUCKET}" --project="${PROJECT_ID}" --format=json)"
+gpu_worker_model_artifact_reader="$(policy_has_member_role \
+  "${model_artifact_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${GPU_WORKER_SERVICE_ACCOUNT}")"
+image_builder_build_input_reader="$(policy_has_member_role \
+  "${image_build_input_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${IMAGE_BUILDER_SERVICE_ACCOUNT}")"
+api_build_input_creator="$(policy_has_member_role \
+  "${image_build_input_bucket_policy}" 'roles/storage.objectCreator' \
+  "serviceAccount:${API_SERVICE_ACCOUNT}")"
+api_build_input_reader="$(policy_has_member_role \
+  "${image_build_input_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${API_SERVICE_ACCOUNT}")"
+api_control_plane_creator="$(policy_has_member_role \
+  "${control_plane_state_bucket_policy}" 'roles/storage.objectCreator' \
+  "serviceAccount:${API_SERVICE_ACCOUNT}")"
+api_control_plane_reader="$(policy_has_member_role \
+  "${control_plane_state_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${API_SERVICE_ACCOUNT}")"
+
+signing_key_metadata="$(read_json_or_empty gcloud kms keys describe \
+  "${IMAGE_SIGNING_KEY}" --project="${PROJECT_ID}" --location="${REGION}" \
+  --keyring="${IMAGE_SIGNING_KEY_RING}" --format=json)"
+signing_key_policy="$(read_json_or_empty gcloud kms keys get-iam-policy \
+  "${IMAGE_SIGNING_KEY}" --project="${PROJECT_ID}" --location="${REGION}" \
+  --keyring="${IMAGE_SIGNING_KEY_RING}" --format=json)"
+image_signer_key_access="$(policy_has_member_role \
+  "${signing_key_policy}" 'roles/cloudkms.signerVerifier' \
+  "serviceAccount:${IMAGE_SIGNER_SERVICE_ACCOUNT}")"
+
+image_builder_policy="$(read_json_or_empty gcloud iam service-accounts get-iam-policy \
+  "${IMAGE_BUILDER_SERVICE_ACCOUNT}" --project="${PROJECT_ID}" --format=json)"
+image_signer_policy="$(read_json_or_empty gcloud iam service-accounts get-iam-policy \
+  "${IMAGE_SIGNER_SERVICE_ACCOUNT}" --project="${PROJECT_ID}" --format=json)"
+cloud_build_can_use_builder="$(policy_has_member_role \
+  "${image_builder_policy}" 'roles/iam.serviceAccountTokenCreator' \
+  "serviceAccount:${CLOUD_BUILD_SERVICE_AGENT}")"
+cloud_build_can_use_signer="$(policy_has_member_role \
+  "${image_signer_policy}" 'roles/iam.serviceAccountTokenCreator' \
+  "serviceAccount:${CLOUD_BUILD_SERVICE_AGENT}")"
+
+artifact_repository="$(jq -n \
+  --arg expectedName "projects/${PROJECT_ID}/locations/${REGION}/repositories/${ARTIFACT_REPOSITORY}" \
+  --argjson metadata "${repository_metadata}" \
+  --argjson imageBuilderWriter "${image_builder_repository_writer}" \
+  --argjson imageSignerWriter "${image_signer_repository_writer}" \
+  --argjson apiReader "${api_repository_reader}" \
+  --argjson gpuReader "${gpu_worker_repository_reader}" \
+  '{
+    resourceName: ($metadata.name // null),
+    exists: ($metadata.name == $expectedName),
+    dockerStandardRepository: (
+      $metadata.format == "DOCKER"
+      and $metadata.mode == "STANDARD_REPOSITORY"
+    ),
+    vulnerabilityScanningActive: (
+      $metadata.vulnerabilityScanningConfig.enablementState == "SCANNING_ACTIVE"
+    ),
+    imageBuilderWriter: $imageBuilderWriter,
+    imageSignerWriter: $imageSignerWriter,
+    apiSupplyChainReader: $apiReader,
+    gpuWorkerImageReader: $gpuReader,
+    ready: (
+      $metadata.name == $expectedName
+      and $metadata.format == "DOCKER"
+      and $metadata.mode == "STANDARD_REPOSITORY"
+      and $metadata.vulnerabilityScanningConfig.enablementState == "SCANNING_ACTIVE"
+      and $imageBuilderWriter
+      and $imageSignerWriter
+      and $apiReader
+      and $gpuReader
+    )
+  }')"
+
+signing_key="$(jq -n \
+  --arg expectedName "projects/${PROJECT_ID}/locations/${REGION}/keyRings/${IMAGE_SIGNING_KEY_RING}/cryptoKeys/${IMAGE_SIGNING_KEY}" \
+  --argjson metadata "${signing_key_metadata}" \
+  --argjson signerAccess "${image_signer_key_access}" \
+  '{
+    resourceName: ($metadata.name // null),
+    exists: ($metadata.name == $expectedName),
+    purpose: ($metadata.purpose // null),
+    primaryVersionResource: ($metadata.primary.name // null),
+    primaryVersionState: ($metadata.primary.state // null),
+    primaryVersionAlgorithm: ($metadata.primary.algorithm // null),
+    primaryVersionProtectionLevel: ($metadata.primary.protectionLevel // null),
+    imageSignerCanSignAndVerify: $signerAccess,
+    ready: (
+      $metadata.name == $expectedName
+      and $metadata.purpose == "ASYMMETRIC_SIGN"
+      and $metadata.primary.state == "ENABLED"
+      and $metadata.primary.algorithm == "EC_SIGN_P256_SHA256"
+      and $metadata.primary.protectionLevel == "HSM"
+      and $signerAccess
+    )
+  }')"
+
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v1' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v2' \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
   --argjson a100Limit "${a100_limit}" \
@@ -121,6 +338,22 @@ jq -n \
   --argjson legacyVisualServices "${legacy_services}" \
   --argjson sam31ImageCount "${sam31_image_count}" \
   --argjson accountPricing "${account_pricing_json}" \
+  --argjson imageBuilderIdentity "${image_builder_identity}" \
+  --argjson imageSignerIdentity "${image_signer_identity}" \
+  --argjson gpuWorkerIdentity "${gpu_worker_identity}" \
+  --argjson modelArtifactBucket "${model_artifact_bucket}" \
+  --argjson imageBuildInputBucket "${image_build_input_bucket}" \
+  --argjson controlPlaneStateBucket "${control_plane_state_bucket}" \
+  --argjson gpuWorkerModelArtifactReader "${gpu_worker_model_artifact_reader}" \
+  --argjson imageBuilderBuildInputReader "${image_builder_build_input_reader}" \
+  --argjson apiBuildInputCreator "${api_build_input_creator}" \
+  --argjson apiBuildInputReader "${api_build_input_reader}" \
+  --argjson apiControlPlaneCreator "${api_control_plane_creator}" \
+  --argjson apiControlPlaneReader "${api_control_plane_reader}" \
+  --argjson artifactRepository "${artifact_repository}" \
+  --argjson signingKey "${signing_key}" \
+  --argjson cloudBuildCanUseBuilder "${cloud_build_can_use_builder}" \
+  --argjson cloudBuildCanUseSigner "${cloud_build_can_use_signer}" \
   '{
     audit: $audit,
     projectId: $projectId,
@@ -139,6 +372,46 @@ jq -n \
       missing: $missingServices,
       ready: ($missingServices | length == 0)
     },
+    serviceIdentities: {
+      imageBuilder: $imageBuilderIdentity,
+      imageSigner: $imageSignerIdentity,
+      gpuWorker: $gpuWorkerIdentity,
+      cloudBuildCanUseImageBuilder: $cloudBuildCanUseBuilder,
+      cloudBuildCanUseImageSigner: $cloudBuildCanUseSigner,
+      ready: (
+        $imageBuilderIdentity.ready
+        and $imageSignerIdentity.ready
+        and $gpuWorkerIdentity.ready
+        and $cloudBuildCanUseBuilder
+        and $cloudBuildCanUseSigner
+      )
+    },
+    privateBuckets: {
+      modelArtifacts: $modelArtifactBucket,
+      imageBuildInputs: $imageBuildInputBucket,
+      controlPlaneState: $controlPlaneStateBucket,
+      access: {
+        gpuWorkerModelArtifactReader: $gpuWorkerModelArtifactReader,
+        imageBuilderBuildInputReader: $imageBuilderBuildInputReader,
+        apiBuildInputCreator: $apiBuildInputCreator,
+        apiBuildInputReader: $apiBuildInputReader,
+        apiControlPlaneCreator: $apiControlPlaneCreator,
+        apiControlPlaneReader: $apiControlPlaneReader
+      },
+      ready: (
+        $modelArtifactBucket.ready
+        and $imageBuildInputBucket.ready
+        and $controlPlaneStateBucket.ready
+        and $gpuWorkerModelArtifactReader
+        and $imageBuilderBuildInputReader
+        and $apiBuildInputCreator
+        and $apiBuildInputReader
+        and $apiControlPlaneCreator
+        and $apiControlPlaneReader
+      )
+    },
+    artifactRepository: $artifactRepository,
+    imageSigningKey: $signingKey,
     retiredLegacyVisualRuntime: {
       matchingJobs: $legacyVisualJobs,
       matchingServices: $legacyVisualServices,
@@ -147,6 +420,7 @@ jq -n \
     immutableSam31ImagesObserved: $sam31ImageCount,
     accountEffectiveGeminiPricing: $accountPricing,
     sourceCheckpointCompatibilityReceiptObserved: false,
+    imageSupplyChainReleaseObserved: false,
     liveGeminiQualificationObserved: false,
     liveGpuQualificationObserved: false,
     customerCreditsMutated: false,

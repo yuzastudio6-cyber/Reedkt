@@ -249,13 +249,36 @@ check(envExample.includes('REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT=reeditpro-imag
 const iamScript = readRepoFile('scripts/gcp/prod/06-configure-iam.sh')
 check(iamScript.includes('roles/cloudbuild.builds.editor'), 'API orchestration must have the bounded Cloud Build create/read role.')
 check(iamScript.includes('roles/iam.serviceAccountTokenCreator'), 'Cloud Build service agent must be able to mint the user-specified build identity.')
-check(iamScript.includes('roles/artifactregistry.writer'), 'Image builder must write only the configured Artifact Registry repository.')
-check(iamScript.includes('roles/artifactregistry.reader'), 'Image signer and supply-chain reader must use repository-scoped reads.')
+check(
+  iamScript.includes('grant_artifact_repository_role "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/artifactregistry.writer'),
+  'Image builder must write only the configured Artifact Registry repository.',
+)
+check(
+  iamScript.includes('grant_artifact_repository_role "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/artifactregistry.writer'),
+  'Dedicated signer must be able to append cosign OCI referrers in only the configured repository.',
+)
+check(
+  iamScript.includes('grant_artifact_repository_role "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/artifactregistry.reader'),
+  'Supply-chain authority must use repository-scoped reads.',
+)
+check(
+  iamScript.includes('grant_artifact_repository_role "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" roles/artifactregistry.reader'),
+  'GPU worker must be able to pull only from the configured image repository.',
+)
+check(
+  /grant_cloud_build_service_agent_token_creator \\\n\s+"\$\{REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT\}"/u.test(iamScript),
+  'Cloud Build must be able to use the dedicated image-signing identity.',
+)
 check(iamScript.includes('roles/cloudkms.signerVerifier'), 'Image signer must use only the versioned Cloud KMS signing key.')
 check(iamScript.includes('roles/containeranalysis.occurrences.viewer'), 'Supply-chain owner must reread Artifact Analysis occurrences.')
 check(
   iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
   'Image builder must read only the checkpoint-free private build-input bucket.',
+)
+check(
+  iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator')
+    && iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
+  'API image-build owner must create and exact-reread private checkpoint-free build capsules.',
 )
 check(
   iamScript.includes('grant_bucket_role control-plane-state "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator')

@@ -35,6 +35,26 @@ not call cloud-mutating scripts.
     boundary; it is read-only and never accesses secret payloads or starts a
     workload
 
+The image signer is intentionally separate from the image builder. It receives
+only repository-scoped Artifact Registry writer access because cosign stores a
+signature and attestation as OCI referrers in that repository, plus
+`cloudkms.signerVerifier` on the single signing key. It receives no repository
+admin, delete, checkpoint-bucket, control-plane, provider, GPU, billing, or
+customer authority. Cloud Build may impersonate both dedicated build identities
+only through their own service-account bindings. The API may create and exact-
+reread checkpoint-free build capsules, while the GPU worker may read the private
+checkpoint bucket and pull the released image; neither receives the other's
+build, signing, or control-plane authority.
+
+The read-only prerequisite audit is fail-closed across the complete image
+foundation: required APIs (including Cloud KMS and Binary Authorization), A100
+80 GB and L4 quotas, checkpoint-secret version presence, dedicated build/signer/
+GPU identities, Cloud Build identity use, the three exact private buckets and
+their access protections, Docker repository scanning and scoped IAM, the HSM
+P-256 signing-key primary version, legacy-runtime absence, immutable image
+presence, and billing-account price-read readiness. It never converts resource
+existence into a source, image, GPU-runtime, credit, or production release.
+
 Milestone 3 does not deploy Cloud Run, build images, run media tools, call providers, create real secret values, or process customer media.
 
 ## API canary boundary

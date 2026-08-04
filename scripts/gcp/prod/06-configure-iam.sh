@@ -122,6 +122,8 @@ grant_service_account_user \
   "${REEDITPRO_API_SERVICE_ACCOUNT}"
 grant_cloud_build_service_agent_token_creator \
   "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}"
+grant_cloud_build_service_agent_token_creator \
+  "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}"
 grant_service_account_user \
   "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" \
   "${REEDITPRO_API_SERVICE_ACCOUNT}"
@@ -139,11 +141,19 @@ grant_bucket_role previews "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.obje
 grant_bucket_role final-exports "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role control-plane-state "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator
 grant_bucket_role control-plane-state "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
+grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator
+grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 
 grant_bucket_role image-build-inputs "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_artifact_repository_role "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/artifactregistry.writer
-grant_artifact_repository_role "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/artifactregistry.reader
+# The dedicated signer uploads only the digest-bound cosign OCI signature and
+# attestation referrers into this one repository. Artifact Registry has no
+# predefined append-only referrer role, so repository-scoped writer is the
+# narrowest predefined role that can perform signing without project admin or
+# artifact-removal policy authority.
+grant_artifact_repository_role "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/artifactregistry.writer
 grant_artifact_repository_role "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/artifactregistry.reader
+grant_artifact_repository_role "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" roles/artifactregistry.reader
 grant_image_signing_key_role \
   "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" \
   roles/cloudkms.signerVerifier

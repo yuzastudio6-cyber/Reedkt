@@ -109,10 +109,25 @@ fresh dispatch authority and preserve prior audit evidence.
 
 The read-only operator command
 `npm run audit:visual-intelligence-live-prerequisites` reports A100/L4 quota,
-enabled checkpoint-secret version counts (never payloads), required API state,
-legacy visual-runtime absence, and immutable SAM 3.1 image presence. A blocked
-audit is expected until the external checkpoint and A100 gates close; it does
-not weaken or self-authorize a build or runtime.
+enabled checkpoint-secret version counts (never payloads), the full required
+API set including Cloud KMS and Binary Authorization, dedicated builder/signer/
+GPU identities, Cloud Build identity-use bindings, exact protected private
+buckets, Artifact Registry scanning and repository-scoped IAM, the enabled HSM
+P-256 signing-key version, legacy visual-runtime absence, and immutable SAM 3.1
+image presence. The dedicated signer needs repository-scoped writer—not
+reader—because cosign persists digest-bound signatures and attestations as OCI
+referrers; it retains no admin/delete or model/runtime authority. A blocked
+audit is expected until every external checkpoint, identity, KMS, storage,
+image, and A100 gate closes; it does not weaken or self-authorize a build or
+runtime.
+
+The latest read-only account observation is correctly blocked: Cloud KMS is not
+enabled, the image-builder/image-signer/GPU-worker identities and the three
+fixed SAM 3.1 private buckets are absent, no signing key exists, and A100 80 GB
+quota remains zero. Artifact Registry is a standard Docker repository with
+vulnerability scanning active, but its required scoped build/sign/read bindings
+are not yet present. These are observed prerequisites, not permission to create
+resources or evidence that SAM 3.1 has been installed.
 
 ## Gemini account-effective price authority
 

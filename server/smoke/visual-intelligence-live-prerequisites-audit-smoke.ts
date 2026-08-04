@@ -18,13 +18,43 @@ assert.match(source, /gcloud secrets versions list/u)
 assert.match(source, /--filter='state=ENABLED'/u)
 assert.match(source, /containerscanning\.googleapis\.com/u)
 assert.match(source, /cloudbilling\.googleapis\.com/u)
+assert.match(source, /cloudkms\.googleapis\.com/u)
+assert.match(source, /binaryauthorization\.googleapis\.com/u)
 assert.match(source, /gcloud billing projects describe/u)
 assert.match(source,
   /read-visual-intelligence-account-price-readiness\.mjs/u)
 assert.match(source, /gcloud run jobs list/u)
 assert.match(source, /gcloud run services list/u)
 assert.match(source, /gcloud artifacts docker images list/u)
+assert.match(source, /gcloud artifacts repositories describe/u)
+assert.match(source, /vulnerabilityScanningConfig\.enablementState/u)
+assert.match(source, /SCANNING_ACTIVE/u)
+assert.match(source, /gcloud artifacts repositories get-iam-policy/u)
+assert.match(source, /roles\/artifactregistry\.writer/u)
+assert.match(source, /gcloud storage buckets describe/u)
+assert.match(source, /gcloud storage buckets get-iam-policy/u)
+assert.match(source, /uniform_bucket_level_access/u)
+assert.match(source, /public_access_prevention/u)
+assert.match(source, /gcloud iam service-accounts describe/u)
+assert.match(source, /gcloud iam service-accounts get-iam-policy/u)
+assert.match(source, /gcloud kms keys describe/u)
+assert.match(source, /gcloud kms keys get-iam-policy/u)
+assert.match(source, /roles\/cloudkms\.signerVerifier/u)
+assert.match(source, /EC_SIGN_P256_SHA256/u)
+assert.match(source, /primary\.protectionLevel == "HSM"/u)
+assert.match(source, /cloudBuildCanUseImageSigner/u)
+assert.match(source, /gpuWorkerImageReader/u)
+assert.match(source, /gpuWorkerModelArtifactReader/u)
+assert.match(source, /imageBuilderBuildInputReader/u)
+assert.match(source, /apiBuildInputCreator/u)
+assert.match(source, /apiBuildInputReader/u)
+assert.match(source, /apiControlPlaneCreator/u)
+assert.match(source, /apiControlPlaneReader/u)
+assert.match(source, /reeditpro-production-reeditpro-model-artifacts/u)
+assert.match(source, /reeditpro-production-reeditpro-image-build-inputs/u)
+assert.match(source, /reeditpro-production-reeditpro-control-plane-state/u)
 assert.match(source, /sourceCheckpointCompatibilityReceiptObserved: false/u)
+assert.match(source, /imageSupplyChainReleaseObserved: false/u)
 assert.match(source, /liveGeminiQualificationObserved: false/u)
 assert.match(source, /liveGpuQualificationObserved: false/u)
 assert.match(source, /customerCreditsMutated: false/u)
@@ -54,6 +84,11 @@ assert.doesNotMatch(accountPriceReadinessSource,
 for (const forbidden of [
   /secrets versions access/u,
   /gcloud services enable/u,
+  /gcloud iam service-accounts create/u,
+  /gcloud kms (?:keyrings|keys) create/u,
+  /gcloud storage buckets (?:create|update)/u,
+  /gcloud artifacts repositories add-iam-policy-binding/u,
+  /gcloud kms keys add-iam-policy-binding/u,
   /gcloud run jobs execute/u,
   /gcloud run jobs (?:create|deploy|delete|update)/u,
   /gcloud run services (?:create|deploy|delete|update)/u,

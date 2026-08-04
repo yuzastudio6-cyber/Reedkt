@@ -249,6 +249,22 @@ assert.match(
   sourcePreparedRequestRepositorySource,
   /persistCreateOnly/u,
 )
+const sourceAnalysisPreparationOwnerSource = readFileSync(
+  'server/services/canonical-source-analysis-preparation-owner.ts',
+  'utf8',
+)
+assert.doesNotMatch(
+  sourceAnalysisPreparationOwnerSource,
+  /VisualIntelligenceLifecycleService|createVisualIntelligenceRequest|CloudRun|Batch|fetch\(|child_process/u,
+)
+assert.match(
+  sourceAnalysisPreparationOwnerSource,
+  /approximateDurationToFrameInferenceAllowed: false/u,
+)
+assert.match(
+  sourceAnalysisPreparationOwnerSource,
+  /quality_l4_user_triggered_standard_media_job_v1/u,
+)
 const sourcePlanPresentationSource = readFileSync(
   'server/services/canonical-source-led-plan-presentation-service.ts',
   'utf8',
@@ -403,6 +419,8 @@ console.log(JSON.stringify({
   sourceCleanupRequiresOrchestraResultReread: true,
   sourcePlanningUsesPreparedRequestAndDurableCleanupReread: true,
   sourcePreparedRequestRepositoryCannotDispatch: true,
+  sourceAnalysisPreparationOwnerCannotDispatch: true,
+  sourceAnalysisPreparationRejectsApproximateFrameInference: true,
   sam2ExecutableImageSourceRemoved: true,
   sam2RuntimeCompilerAndSubprocessBlockedBeforeInputRead: true,
   sam31IsOnlyFreshSegmentationReplacement: true,

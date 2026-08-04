@@ -389,6 +389,31 @@ assert.equal(
   runtime.sourceAnalysisRequestAuthorityRepository.repositoryVersion,
   'canonical-source-analysis-request-authority-repository-v1',
 )
+const sourceAnalysisPreparationOwner =
+  runtime.createSourceAnalysisPreparationOwner({
+    finalizedAuthorityReadPort: {
+      schemaVersion:
+        'canonical-source-analysis-finalized-authority-read-port-v1',
+      async readExactFinalizedSource() {
+        return null
+      },
+    },
+    probeAuthorityReadPort: {
+      schemaVersion:
+        'canonical-source-analysis-probe-authority-read-port-v1',
+      async readCompletedExactProbe() {
+        return null
+      },
+    },
+  })
+assert.equal(
+  sourceAnalysisPreparationOwner.schemaVersion,
+  'canonical-source-analysis-preparation-owner-v1',
+)
+assert.equal(
+  sourceAnalysisPreparationOwner.approximateDurationToFrameInferenceAllowed,
+  false,
+)
 const missingSourceCleanupAuthority =
   await runtime.sourceCleanupAuthorityRepository.readForPlanning({
     ownerUserId: 'user-1',
@@ -1076,6 +1101,8 @@ console.log(JSON.stringify({
   sourceVideoUnderstandingOrchestraReadPortMounted: true,
   sourcePlanningReconciliationFactoryMounted: true,
   sourcePreparedRequestAuthorityRepositoryMounted: true,
+  sourceAnalysisPreparationOwnerFactoryMounted: true,
+  sourcePreparationRequiresExactL4ProbeAuthority: true,
   sourceBindingPersistedBeforeProviderExecution: true,
   sourceBindingRequiresProbeTranscriptAndPlanningContext: true,
   staleSavedChatAuthorityRefusedBeforeProviderExecution: true,

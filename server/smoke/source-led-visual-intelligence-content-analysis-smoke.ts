@@ -45,6 +45,13 @@ import {
 import {
   createCanonicalSourceAnalysisRequestAuthorityRepository,
 } from '../services/canonical-source-analysis-request-authority-repository'
+import {
+  CANONICAL_SOURCE_ANALYSIS_FINALIZED_AUTHORITY_READ_PORT_VERSION,
+  CANONICAL_SOURCE_ANALYSIS_PROBE_AUTHORITY_READ_PORT_VERSION,
+  createCanonicalSourceAnalysisPreparationOwner,
+  type CanonicalSourceAnalysisFinalizedAuthority,
+  type CanonicalSourceAnalysisProbeAuthority,
+} from '../services/canonical-source-analysis-preparation-owner'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -726,20 +733,147 @@ const requestAuthorityRepository =
       },
     },
   })
-const preparedRequestReceipt =
-  await requestAuthorityRepository.persistCreateOnly({
-    scope: planningScope,
-    request: {
-      ...request,
-      ignoredCallerField: 'must-not-persist',
-    } as CanonicalSourceLedProfessionalContentAnalysisInput,
+const sourceAuthority = request.sources[0]!.managedApiAuthority!
+const finalizedAuthority: CanonicalSourceAnalysisFinalizedAuthority = {
+  schemaVersion: 'canonical-source-analysis-finalized-authority-v1',
+  ownerUserId: sourceAuthority.ownerUserId,
+  workspaceId: request.workspaceId,
+  projectId: request.projectId,
+  editSessionId: request.editSessionId,
+  sourceSequenceItemId: request.sources[0]!.sourceSequenceItemId,
+  mediaAssetId: request.sources[0]!.mediaAssetId,
+  uploadedOrder: 1,
+  storageProvider: 'google_cloud_storage',
+  storageBucket: sourceAuthority.storageBucket,
+  storagePath: sourceAuthority.storagePath,
+  contentType: 'video/mp4',
+  checksumSha256: request.sources[0]!.checksumSha256,
+  byteLength: request.sources[0]!.byteLength,
+  storageGeneration: sourceAuthority.storageGeneration,
+  storageEtag: sourceAuthority.storageEtag,
+  finalizedMediaAuthorityRef: sourceAuthority.finalizedMediaAuthorityRef,
+  finalizedStorageObjectAuthorityRef:
+    sourceAuthority.finalizedStorageObjectAuthorityRef,
+  sourceBindingManifestCandidateRef:
+    sourceAuthority.sourceBindingManifestCandidateRef,
+  providerMediaReadAuthorityRef:
+    sourceAuthority.providerMediaReadAuthorityRef,
+  sourceAnalysisConsentRef: sourceAuthority.sourceAnalysisConsentRef,
+  platformAnalysisCostCapRef: sourceAuthority.platformAnalysisCostCapRef,
+  authenticatedPrincipalRereadVerified: true,
+  workspaceProjectAccessRereadVerified: true,
+  finalizedUploadRereadVerified: true,
+  exactGenerationEtagShaLengthRereadVerified: true,
+  sourceBindingManifestRereadVerified: true,
+  sourceAnalysisConsentRereadVerified: true,
+  platformAnalysisCostCapRereadVerified: true,
+  browserStorageAuthorityAccepted: false,
+  callerPathUrlBytesOrCommandAccepted: false,
+}
+const probeAuthority: CanonicalSourceAnalysisProbeAuthority = {
+  schemaVersion: 'canonical-source-analysis-probe-authority-v1',
+  ownerUserId: finalizedAuthority.ownerUserId,
+  workspaceId: finalizedAuthority.workspaceId,
+  projectId: finalizedAuthority.projectId,
+  editSessionId: finalizedAuthority.editSessionId,
+  sourceSequenceItemId: finalizedAuthority.sourceSequenceItemId,
+  mediaAssetId: finalizedAuthority.mediaAssetId,
+  uploadedOrder: finalizedAuthority.uploadedOrder,
+  checksumSha256: finalizedAuthority.checksumSha256,
+  byteLength: finalizedAuthority.byteLength,
+  storageGeneration: finalizedAuthority.storageGeneration,
+  storageEtag: finalizedAuthority.storageEtag,
+  width: sourceAuthority.width,
+  height: sourceAuthority.height,
+  hasAudio: sourceAuthority.hasAudio,
+  audioProbe: sourceAuthority.audioProbe,
+  fpsNumerator: sourceAuthority.fpsNumerator,
+  fpsDenominator: sourceAuthority.fpsDenominator,
+  frameCount: sourceAuthority.frameCount,
+  sourceTimeBaseNumerator: sourceAuthority.sourceTimeBaseNumerator!,
+  sourceTimeBaseDenominator: sourceAuthority.sourceTimeBaseDenominator!,
+  constantFrameRate: true,
+  sourceProbeAuthorityRef: sourceAuthority.sourceProbeAuthorityRef,
+  probeRuntimeReleaseRef: ref('source-probe-runtime-release'),
+  resultRuntimeRecordRef: ref('source-probe-runtime-result'),
+  usageCostEvidenceRef: ref('source-probe-usage-cost'),
+  operationId: 'internal.visual_intelligence.probe_source_timing.v1',
+  routeProfileId: 'quality_l4_user_triggered_standard_media_job_v1',
+  acceleratorClass: 'nvidia_l4',
+  userTriggeredOnly: true,
+  minimumIdleInstances: 0,
+  exactFinalizedSourceRereadVerified: true,
+  exactProbeResultRereadVerified: true,
+  ffprobeUsedForMetadataOnly: true,
+  gpuDecodeUsedForFrameCountVerification: true,
+  substantiveCpuMediaProcessingUsed: false,
+  runtimeNetworkDownloadPerformed: false,
+  customerCreditMutated: false,
+  systemFailureChargedToCustomer: false,
+  unapprovedOverageChargedToCustomer: false,
+  scaleBackToZeroVerified: true,
+  callerProbeFieldsAccepted: false,
+  callerPathUrlBytesOrCommandAccepted: false,
+  providerCalled: false,
+  publicDeliveryGranted: false,
+  productionAuthorityGranted: false,
+}
+let finalizedAuthorityAvailable = true
+let probeAuthorityAvailable = true
+let finalizedAuthorityRereads = 0
+let probeAuthorityRereads = 0
+const sourceAnalysisPreparationOwner =
+  createCanonicalSourceAnalysisPreparationOwner({
+    finalizedAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_FINALIZED_AUTHORITY_READ_PORT_VERSION,
+      async readExactFinalizedSource(scope) {
+        finalizedAuthorityRereads += 1
+        assert.deepEqual(scope, {
+          ownerUserId: planningScope.ownerUserId,
+          workspaceId: planningScope.workspaceId,
+          projectId: planningScope.projectId,
+          editSessionId: planningScope.editSessionId,
+          sourceSequenceItemId:
+            planningScope.sources[0]!.sourceSequenceItemId,
+          mediaAssetId: planningScope.sources[0]!.mediaAssetId,
+          uploadedOrder: 1,
+        })
+        return finalizedAuthorityAvailable ? finalizedAuthority : null
+      },
+    },
+    probeAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_PROBE_AUTHORITY_READ_PORT_VERSION,
+      async readCompletedExactProbe(scope) {
+        probeAuthorityRereads += 1
+        assert.equal(scope.storageGeneration, finalizedAuthority.storageGeneration)
+        assert.equal(scope.storageEtag, finalizedAuthority.storageEtag)
+        assert.deepEqual(
+          scope.finalizedMediaAuthorityRef,
+          finalizedAuthority.finalizedMediaAuthorityRef,
+        )
+        return probeAuthorityAvailable ? probeAuthority : null
+      },
+    },
+    requestAuthorityRepository,
   })
+assert.equal(sourceAnalysisPreparationOwner.userTriggeredOnly, true)
+assert.equal(
+  sourceAnalysisPreparationOwner.approximateDurationToFrameInferenceAllowed,
+  false,
+)
+const preparedRequestReceipt =
+  await sourceAnalysisPreparationOwner.prepareForOrchestra(planningScope)
+assert.equal(preparedRequestReceipt.status, 'ready')
 assert.equal(preparedRequestReceipt.disposition, 'created')
 assert.equal(preparedRequestReceipt.transcriptDispatched, false)
 assert.equal(preparedRequestReceipt.visualIntelligenceDispatched, false)
 assert.equal(preparedRequestReceipt.providerCalled, false)
 assert.equal(preparedRequestReceipt.gpuJobStarted, false)
 assert.equal(preparedRequestReceipt.customerCreditMutated, false)
+assert.equal(finalizedAuthorityRereads, 1)
+assert.equal(probeAuthorityRereads, 1)
 assert.equal(requestAuthorityObjects.size, 1)
 assert.deepEqual(
   await requestAuthorityRepository.readExactPreparedRequest(planningScope),
@@ -759,6 +893,78 @@ assert.equal(
     userInstructionDigestSha256: sha('different-saved-chat'),
   }),
   null,
+)
+probeAuthorityAvailable = false
+const missingProbePreparation =
+  await sourceAnalysisPreparationOwner.prepareForOrchestra({
+    ...planningScope,
+    userInstructionDigestSha256: sha('missing-probe-saved-chat'),
+  })
+assert.equal(missingProbePreparation.status, 'not_ready')
+assert.equal(
+  missingProbePreparation.blockerCode,
+  'canonical_l4_source_probe_authority_not_ready',
+)
+assert.equal(requestAuthorityObjects.size, 1)
+probeAuthorityAvailable = true
+finalizedAuthorityAvailable = false
+const missingFinalizedPreparation =
+  await sourceAnalysisPreparationOwner.prepareForOrchestra({
+    ...planningScope,
+    userInstructionDigestSha256: sha('missing-source-saved-chat'),
+  })
+assert.equal(missingFinalizedPreparation.status, 'not_ready')
+assert.equal(
+  missingFinalizedPreparation.blockerCode,
+  'canonical_finalized_source_authority_not_ready',
+)
+assert.equal(requestAuthorityObjects.size, 1)
+finalizedAuthorityAvailable = true
+await assert.rejects(
+  () => createCanonicalSourceAnalysisPreparationOwner({
+    finalizedAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_FINALIZED_AUTHORITY_READ_PORT_VERSION,
+      async readExactFinalizedSource() {
+        return {
+          ...finalizedAuthority,
+          storageEtag: 'stale-finalized-etag',
+        }
+      },
+    },
+    probeAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_PROBE_AUTHORITY_READ_PORT_VERSION,
+      async readCompletedExactProbe() {
+        return probeAuthority
+      },
+    },
+    requestAuthorityRepository,
+  }).prepareForOrchestra(planningScope),
+  /stale or invalid/u,
+)
+await assert.rejects(
+  () => createCanonicalSourceAnalysisPreparationOwner({
+    finalizedAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_FINALIZED_AUTHORITY_READ_PORT_VERSION,
+      async readExactFinalizedSource() {
+        return finalizedAuthority
+      },
+    },
+    probeAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_PROBE_AUTHORITY_READ_PORT_VERSION,
+      async readCompletedExactProbe() {
+        return {
+          ...probeAuthority,
+          constantFrameRate: false,
+        } as unknown as CanonicalSourceAnalysisProbeAuthority
+      },
+    },
+    requestAuthorityRepository,
+  }).prepareForOrchestra(planningScope),
+  /stale or invalid/u,
 )
 let preparedRequestRereads = 0
 const planningReconciliationPort =
@@ -1485,6 +1691,12 @@ console.log(JSON.stringify({
     && orchestraVisualRereads === 1
     && headReconciliationCalls === 1,
   authenticatedPlanningReconciliationBridgeVerified: true,
+  authenticatedPreparationOwnerVerified:
+    finalizedAuthorityRereads >= 3 && probeAuthorityRereads >= 2,
+  l4ExactRationalProbeAuthorityRequired: true,
+  approximateDurationFrameInferenceAllowed: false,
+  missingFinalizedOrProbeAuthorityFailsClosed: true,
+  variableFrameRateWithoutCanonicalMappingRejected: true,
   durablePreparedRequestCreateOnlyRereadVerified: true,
   preparedRequestUnknownFieldsStripped: true,
   tamperedPreparedRequestAuthorityRejected: true,

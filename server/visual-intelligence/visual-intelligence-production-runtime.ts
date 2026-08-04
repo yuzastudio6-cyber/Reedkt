@@ -22,6 +22,12 @@ import {
   type CanonicalSourceAnalysisRequestAuthorityRepository,
 } from '../services/canonical-source-analysis-request-authority-repository'
 import {
+  createCanonicalSourceAnalysisPreparationOwner,
+  type CanonicalSourceAnalysisFinalizedAuthorityReadPort,
+  type CanonicalSourceAnalysisPreparationOwner,
+  type CanonicalSourceAnalysisProbeAuthorityReadPort,
+} from '../services/canonical-source-analysis-preparation-owner'
+import {
   createCanonicalSourceCleanupAuthorityRepository,
   type CanonicalSourceCleanupAuthorityRepository,
 } from '../services/canonical-source-cleanup-authority-repository'
@@ -134,6 +140,12 @@ export interface VisualIntelligenceProductionRuntime {
     CanonicalSourceCleanupAuthorityRepository
   readonly sourceAnalysisRequestAuthorityRepository:
     CanonicalSourceAnalysisRequestAuthorityRepository
+  readonly createSourceAnalysisPreparationOwner: (input: {
+    readonly finalizedAuthorityReadPort:
+      CanonicalSourceAnalysisFinalizedAuthorityReadPort
+    readonly probeAuthorityReadPort:
+      CanonicalSourceAnalysisProbeAuthorityReadPort
+  }) => CanonicalSourceAnalysisPreparationOwner
   readonly createSourceLedOrchestraPlanningReconciliationPort: (
     input: {
       readonly transcriptReadPort: CanonicalSourceTranscriptOrchestraReadPort
@@ -282,6 +294,15 @@ export async function createVisualIntelligenceProductionRuntime(
         authorityRepository: sourceCleanupAuthorityRepository,
       }),
   })
+  const createSourceAnalysisPreparationOwnerFactory = (input: {
+    readonly finalizedAuthorityReadPort:
+      CanonicalSourceAnalysisFinalizedAuthorityReadPort
+    readonly probeAuthorityReadPort:
+      CanonicalSourceAnalysisProbeAuthorityReadPort
+  }) => createCanonicalSourceAnalysisPreparationOwner({
+    ...input,
+    requestAuthorityRepository: sourceAnalysisRequestAuthorityRepository,
+  })
   const sourceVideoUnderstandingConsumerBindingPort =
     createCanonicalSourceVisualIntelligenceOrchestraConsumerBindingPort({
       bindingStore: sourceVideoUnderstandingBindingStore,
@@ -363,6 +384,8 @@ export async function createVisualIntelligenceProductionRuntime(
     costOwner,
     sourceCleanupAuthorityRepository,
     sourceAnalysisRequestAuthorityRepository,
+    createSourceAnalysisPreparationOwner:
+      createSourceAnalysisPreparationOwnerFactory,
     createSourceLedOrchestraPlanningReconciliationPort,
     providerCapabilityId: 'visual_intelligence',
     semanticEngine: 'gemini-3.1-pro-preview',

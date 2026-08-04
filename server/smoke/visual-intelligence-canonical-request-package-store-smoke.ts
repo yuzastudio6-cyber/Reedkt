@@ -176,6 +176,47 @@ const rereadPrepared = await store.prepare({
 assert.deepEqual(rereadPrepared, sourcePrepared)
 assert.notEqual(rereadPrepared, sourcePrepared)
 
+const noAudioRequest = buildSourceRequest(
+  'visual-source-no-audio-idempotency-1',
+  'visual-source-no-audio-request-1',
+)
+const noAudioPreparedBase = preparedEvidence(noAudioRequest)
+const noAudioPrepared: VisualIntelligencePreparedEvidence = {
+  ...noAudioPreparedBase,
+  deterministicEvidence: noAudioPreparedBase.deterministicEvidence.filter(
+    (evidence) => evidence.producingTool !== 'faster_whisper',
+  ),
+  transcriptVersion: null,
+  conditionalToolDecisions: noAudioPreparedBase.conditionalToolDecisions.map(
+    (decision) => decision.tool === 'faster_whisper'
+      ? {
+        ...decision,
+        disposition: 'not_required_no_audio' as const,
+        decisionEvidenceRef:
+          noAudioRequest.sourceArtifacts[0]!.mediaProbeEvidenceRef,
+      }
+      : decision,
+  ),
+  toolExecutionEvidence: noAudioPreparedBase.toolExecutionEvidence.filter(
+    (execution) => execution.tool !== 'faster_whisper',
+  ),
+}
+const noAudioPackage = await store.persistCreateOnly({
+  ownerClass: 'canonical_source_or_reference_owner',
+  ownerAuthorityRef: sourceOwnerRef,
+  request: noAudioRequest,
+  preparedEvidence: noAudioPrepared,
+  inspectionRequirement: null,
+})
+assert.equal(noAudioPackage.disposition, 'created')
+assert.equal(noAudioPrepared.transcriptVersion, null)
+assert.equal(
+  noAudioPrepared.toolExecutionEvidence.some(
+    (execution) => execution.tool === 'faster_whisper',
+  ),
+  false,
+)
+
 const requirement = createVisualInspectionRequirement({
   inspectionId: 'caption-layout-inspection-1',
   owningWorkNodeId: 'caption-render-work-1',
@@ -227,6 +268,91 @@ await rejects(() => store.persistCreateOnly({
   ownerAuthorityRef: sourceOwnerRef,
   request: buildSourceRequest('visual-source-request-idempotency-changed'),
   preparedEvidence: sourcePrepared,
+  inspectionRequirement: null,
+}))
+await rejects(() => store.persistCreateOnly({
+  ownerClass: 'canonical_source_or_reference_owner',
+  ownerAuthorityRef: sourceOwnerRef,
+  request: sourceRequest,
+  preparedEvidence: {
+    ...sourcePrepared,
+    conditionalToolDecisions: [],
+  },
+  inspectionRequirement: null,
+}))
+await rejects(() => store.persistCreateOnly({
+  ownerClass: 'canonical_source_or_reference_owner',
+  ownerAuthorityRef: sourceOwnerRef,
+  request: sourceRequest,
+  preparedEvidence: {
+    ...sourcePrepared,
+    deterministicEvidence: sourcePrepared.deterministicEvidence.filter(
+      (evidence) => evidence.producingTool !== 'faster_whisper',
+    ),
+    toolExecutionEvidence: sourcePrepared.toolExecutionEvidence.filter(
+      (execution) => execution.tool !== 'faster_whisper',
+    ),
+  },
+  inspectionRequirement: null,
+}))
+await rejects(() => store.persistCreateOnly({
+  ownerClass: 'canonical_source_or_reference_owner',
+  ownerAuthorityRef: sourceOwnerRef,
+  request: sourceRequest,
+  preparedEvidence: {
+    ...sourcePrepared,
+    coveragePlan: {
+      ...sourcePrepared.coveragePlan,
+      sceneBoundaryRefs: [ref('caller-invented-scene-boundary')],
+    },
+  },
+  inspectionRequirement: null,
+}))
+await rejects(() => store.persistCreateOnly({
+  ownerClass: 'canonical_source_or_reference_owner',
+  ownerAuthorityRef: sourceOwnerRef,
+  request: sourceRequest,
+  preparedEvidence: {
+    ...sourcePrepared,
+    coveragePlan: {
+      ...sourcePrepared.coveragePlan,
+      samplingPolicies: sourcePrepared.coveragePlan.samplingPolicies.map(
+        (policy, index) => index === 0
+          ? { ...policy, samplingPolicyRef: ref('caller-invented-sampling') }
+          : policy,
+      ),
+    },
+  },
+  inspectionRequirement: null,
+}))
+await rejects(() => store.persistCreateOnly({
+  ownerClass: 'canonical_source_or_reference_owner',
+  ownerAuthorityRef: sourceOwnerRef,
+  request: sourceRequest,
+  preparedEvidence: {
+    ...sourcePrepared,
+    deterministicEvidence: [
+      ...sourcePrepared.deterministicEvidence,
+      sourcePrepared.deterministicEvidence[0]!,
+    ],
+  },
+  inspectionRequirement: null,
+}))
+await rejects(() => store.persistCreateOnly({
+  ownerClass: 'canonical_source_or_reference_owner',
+  ownerAuthorityRef: sourceOwnerRef,
+  request: sourceRequest,
+  preparedEvidence: {
+    ...sourcePrepared,
+    toolExecutionEvidence: sourcePrepared.toolExecutionEvidence.map(
+      (execution, index) => index === 1
+        ? {
+          ...execution,
+          executionRef: sourcePrepared.toolExecutionEvidence[0]!.executionRef,
+        }
+        : execution,
+    ),
+  },
   inspectionRequirement: null,
 }))
 await rejects(() => store.persistCreateOnly({
@@ -311,7 +437,7 @@ tamperedRecord.directTimelineMutationAllowed = true
 objectPort.values.set(sourcePath, Buffer.from(JSON.stringify(tamperedRecord)))
 await rejects(() => store.verifyAndRereadExact(sourceRequest))
 
-assert.equal(adversarialRefusals, 11)
+assert.equal(adversarialRefusals, 17)
 console.log(JSON.stringify({
   status: 'visual_intelligence_canonical_request_package_store_smoke_passed',
   sourceCreateOnlyPersisted: true,
@@ -319,6 +445,7 @@ console.log(JSON.stringify({
   exactRereadVerified: true,
   approvedInspectionOwnerVerified: true,
   privateGpuEvidenceOnly: true,
+  canonicalNoAudioBypassVerified: true,
   browserOrCallerPackageAccepted: false,
   directTimelineMutationAllowed: false,
   adversarialRefusals,
@@ -326,11 +453,12 @@ console.log(JSON.stringify({
 
 function buildSourceRequest(
   idempotencyKey = 'visual-source-request-idempotency-1',
+  requestId = 'visual-source-request-1',
 ): VisualIntelligenceRequest {
   const finalizedRef = ref('source-finalized')
   const probeRef = ref('source-probe')
   return createVisualIntelligenceRequest({
-    requestId: 'visual-source-request-1',
+    requestId,
     idempotencyKey,
     scope: {
       ownerUserId: 'user-1',
@@ -515,8 +643,14 @@ function preparedEvidence(
     request.profile,
   )
   const artifacts = [...request.sourceArtifacts, ...request.comparisonArtifacts]
-  const deterministicEvidence: VisualIntelligenceEvidence[] = artifacts.map(
-    (item) => ({
+  const transcriptRequired = profile.transcriptPolicy ===
+    'required_when_speech_bears_meaning'
+  const ocrRequired = profile.ocrPolicy === 'required_for_exact_visible_text'
+  const sceneRequired = profile.toolPolicies.some((policy) =>
+    policy.tool === 'pyscenedetect' && policy.requirement === 'required')
+  const deterministicEvidence: VisualIntelligenceEvidence[] = artifacts.flatMap(
+    (item) => {
+      const base: VisualIntelligenceEvidence[] = [{
       evidenceId: item.mediaProbeEvidenceRef.id,
       evidenceRef: item.mediaProbeEvidenceRef,
       artifactId: item.artifactId,
@@ -527,7 +661,46 @@ function preparedEvidence(
       summary: 'Canonical dimensions and rational frame timing were reread.',
       privateEvidence: true,
       providerInstructionAccepted: false,
-    }),
+      }]
+      const additions: Array<Readonly<[
+        string,
+        VisualIntelligenceEvidence['authority'],
+        VisualIntelligenceEvidence['producingTool'],
+        string,
+      ]>> = [
+        ['ffmpeg-evidence', 'media_transform', 'ffmpeg', 'ffmpeg-8.0'],
+        ['opencv-evidence', 'pixel_measurement', 'opencv', 'opencv-4.13'],
+        ['sampling-ref', 'media_transform', 'ffmpeg', 'ffmpeg-8.0'],
+        ...(sceneRequired ? [[
+          'scene-boundaries', 'scene_detection', 'pyscenedetect',
+          'pyscenedetect-0.7',
+        ] as const] : []),
+        ...(transcriptRequired ? [[
+          'transcript', 'canonical_transcript', 'faster_whisper',
+          'faster-whisper-large-v3-authority-v1',
+        ] as const] : []),
+        ...(ocrRequired ? [[
+          'ocr', 'exact_ocr', 'ocr', 'paddleocr-exact-visible-text-v1',
+        ] as const] : []),
+      ]
+      return [...base, ...additions.map(([
+        suffix, authority, producingTool, toolVersion,
+      ]) => {
+        const evidenceRef = ref(`${request.requestId}-${suffix}-${item.artifactId}`)
+        return {
+          evidenceId: evidenceRef.id,
+          evidenceRef,
+          artifactId: item.artifactId,
+          range: request.requestedRanges[0]!,
+          authority,
+          producingTool,
+          toolVersion,
+          summary: `Verified deterministic ${producingTool} evidence.`,
+          privateEvidence: true as const,
+          providerInstructionAccepted: false as const,
+        }
+      })]
+    },
   )
   return {
     deterministicEvidence,
@@ -535,7 +708,11 @@ function preparedEvidence(
       requestedRanges: request.requestedRanges,
       analyzedRanges: request.requestedRanges,
       incompleteRanges: [],
-      sceneBoundaryRefs: [ref(`${request.requestId}-scene-boundaries`)],
+      sceneBoundaryRefs: sceneRequired
+        ? artifacts.map((item) => ref(
+          `${request.requestId}-scene-boundaries-${item.artifactId}`,
+        ))
+        : [],
       samplingPolicies: request.requestedRanges.map((range, index) => ({
         policyId: `${request.requestId}-sampling-${index + 1}`,
         policyVersion: 'complete-scene-aware-v1',
@@ -546,7 +723,9 @@ function preparedEvidence(
         highDetail: true,
         requestedRange: range,
         analyzedRange: range,
-        samplingPolicyRef: ref(`${request.requestId}-sampling-ref-${index + 1}`),
+        samplingPolicyRef: ref(
+          `${request.requestId}-sampling-ref-${artifacts[0]!.artifactId}`,
+        ),
       })),
       targetedFollowupRanges: [],
       completeRequestedRangeCoverage: true,
@@ -560,18 +739,43 @@ function preparedEvidence(
       checksumSha256: item.checksumSha256,
       exactGenerationRereadVerified: true,
     })),
-    transcriptVersion: profile.transcriptPolicy ===
-      'required_when_speech_bears_meaning'
+    transcriptVersion: transcriptRequired
       ? 'faster-whisper-large-v3-authority-v1'
       : null,
-    ocrVersion: profile.ocrPolicy === 'required_for_exact_visible_text'
+    ocrVersion: ocrRequired
       ? 'paddleocr-exact-visible-text-v1'
       : null,
+    conditionalToolDecisions: artifacts.flatMap((item) => [
+      ...(transcriptRequired ? [{
+        artifactId: item.artifactId,
+        tool: 'faster_whisper' as const,
+        disposition: 'executed' as const,
+        decisionEvidenceRef: ref(
+          `${request.requestId}-transcript-${item.artifactId}`,
+        ),
+        exactCanonicalDecisionRereadVerified: true as const,
+        callerDecisionAccepted: false as const,
+      }] : []),
+      ...(ocrRequired ? [{
+        artifactId: item.artifactId,
+        tool: 'ocr' as const,
+        disposition: 'executed' as const,
+        decisionEvidenceRef: ref(
+          `${request.requestId}-ocr-${item.artifactId}`,
+        ),
+        exactCanonicalDecisionRereadVerified: true as const,
+        callerDecisionAccepted: false as const,
+      }] : []),
+    ]),
     toolExecutionEvidence: profile.toolPolicies
-      .filter((policy) => policy.requirement === 'required')
+      .filter((policy) => policy.requirement === 'required'
+        || (policy.tool === 'faster_whisper' && transcriptRequired)
+        || (policy.tool === 'ocr' && ocrRequired))
       .map((policy) => ({
         tool: policy.tool,
-        requirement: 'required' as const,
+        requirement: policy.requirement === 'required'
+          ? 'required' as const
+          : 'conditional' as const,
         executionClass: policy.executionClass === 'a100_80gb_gpu_heavy'
           ? 'a100_80gb_gpu_heavy' as const
           : 'l4_gpu_standard' as const,

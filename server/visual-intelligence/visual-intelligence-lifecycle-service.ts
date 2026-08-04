@@ -609,6 +609,19 @@ function validatePreparedEvidence(
     ...request.sourceArtifacts,
     ...request.comparisonArtifacts,
   ]
+  const artifactIds = new Set(artifacts.map((artifact) => artifact.artifactId))
+  const evidenceRefKeys = prepared.deterministicEvidence.map(
+    (evidence) => refKey(evidence.evidenceRef),
+  )
+  if (
+    new Set(evidenceRefKeys).size !== evidenceRefKeys.length
+    || new Set(prepared.deterministicEvidence.map(
+      (evidence) => evidence.evidenceId,
+    )).size !== prepared.deterministicEvidence.length
+    || new Set(prepared.toolExecutionEvidence.map(
+      (execution) => refKey(execution.executionRef),
+    )).size !== prepared.toolExecutionEvidence.length
+  ) throw notReady('visual_intelligence_evidence_identity_not_unique')
   for (const policy of requiredTools) {
     const execution = prepared.toolExecutionEvidence.find(
       (item) => item.tool === policy.tool,
@@ -621,6 +634,41 @@ function validatePreparedEvidence(
       || execution.sourceArtifactChecksumBound !== true
     ) throw notReady(`visual_intelligence_required_tool_${policy.tool}_not_ready`)
   }
+  for (const execution of prepared.toolExecutionEvidence) {
+    const policy = profile.toolPolicies.find(
+      (candidate) => candidate.tool === execution.tool,
+    )
+    if (
+      !policy
+      || policy.requirement === 'not_used'
+      || execution.requirement !== policy.requirement
+      || execution.executionClass !== policy.executionClass
+      || refKey(execution.releaseRef) === refKey(execution.executionRef)
+      || !prepared.deterministicEvidence.some(
+        (evidence) => evidence.producingTool === execution.tool,
+      )
+    ) throw notReady(
+      `visual_intelligence_tool_${execution.tool}_execution_unverified`,
+    )
+  }
+  validateConditionalToolEvidence({
+    artifacts: [...artifactIds],
+    profile,
+    prepared,
+  })
+  const deterministicRefKeys = new Set(evidenceRefKeys)
+  if (
+    prepared.coveragePlan.sceneBoundaryRefs.some(
+      (reference) => !prepared.deterministicEvidence.some(
+        (evidence) => refKey(evidence.evidenceRef) === refKey(reference)
+          && evidence.authority === 'scene_detection'
+          && evidence.producingTool === 'pyscenedetect',
+      ),
+    )
+    || prepared.coveragePlan.samplingPolicies.some(
+      (policy) => !deterministicRefKeys.has(refKey(policy.samplingPolicyRef)),
+    )
+  ) throw notReady('visual_intelligence_coverage_evidence_unverified')
   if (
     prepared.privateMediaInputs.length
       !== artifacts.length
@@ -659,14 +707,94 @@ function validatePreparedEvidence(
   if (request.requiredEvidenceRefs.some(
     (requiredRef) => !preparedEvidenceRefs.has(refKey(requiredRef)),
   )) throw notReady('visual_intelligence_required_evidence_missing')
+}
+
+function validateConditionalToolEvidence(input: {
+  artifacts: readonly string[]
+  profile: ReturnType<typeof getVisualIntelligenceProfileDefinition>
+  prepared: VisualIntelligencePreparedEvidence
+}): void {
+  const decisions = input.prepared.conditionalToolDecisions
+  const decisionKeys = decisions.map(
+    (decision) => `${decision.artifactId}:${decision.tool}`,
+  )
   if (
-    profile.transcriptPolicy === 'required_when_speech_bears_meaning'
-    && prepared.transcriptVersion === null
-  ) throw notReady('visual_intelligence_required_transcript_missing')
-  if (
-    profile.ocrPolicy === 'required_for_exact_visible_text'
-    && prepared.ocrVersion === null
-  ) throw notReady('visual_intelligence_required_ocr_missing')
+    new Set(decisionKeys).size !== decisionKeys.length
+    || decisions.some((decision) =>
+      !input.artifacts.includes(decision.artifactId))
+  ) throw notReady('visual_intelligence_conditional_tool_decision_invalid')
+
+  const validateTool = (
+    tool: 'faster_whisper' | 'ocr',
+    required: boolean,
+    version: string | null,
+  ) => {
+    const toolDecisions = decisions.filter((decision) =>
+      decision.tool === tool)
+    const execution = input.prepared.toolExecutionEvidence.find(
+      (candidate) => candidate.tool === tool,
+    )
+    const toolEvidence = input.prepared.deterministicEvidence.filter(
+      (evidence) => evidence.producingTool === tool,
+    )
+    if (!required) {
+      if (
+        toolDecisions.length !== 0
+        || execution
+        || toolEvidence.length !== 0
+        || version !== null
+      ) throw notReady(`visual_intelligence_unrequested_${tool}_evidence`)
+      return
+    }
+    if (
+      toolDecisions.length !== input.artifacts.length
+      || input.artifacts.some((artifactId) =>
+        !toolDecisions.some((decision) =>
+          decision.artifactId === artifactId))
+    ) throw notReady(
+      `visual_intelligence_${tool}_decision_coverage_incomplete`,
+    )
+    const executedDecisions = toolDecisions.filter(
+      (decision) => decision.disposition === 'executed',
+    )
+    if (executedDecisions.length === 0) {
+      if (tool !== 'faster_whisper' || execution || toolEvidence.length || version) {
+        throw notReady(`visual_intelligence_${tool}_bypass_invalid`)
+      }
+    } else if (!execution || !version) {
+      throw notReady(`visual_intelligence_${tool}_execution_missing`)
+    }
+    for (const decision of toolDecisions) {
+      const evidence = input.prepared.deterministicEvidence.find(
+        (candidate) => candidate.artifactId === decision.artifactId
+          && refKey(candidate.evidenceRef) ===
+            refKey(decision.decisionEvidenceRef),
+      )
+      const exact = decision.disposition === 'executed'
+        ? evidence?.producingTool === tool
+          && evidence.toolVersion === version
+          && evidence.authority === (
+            tool === 'ocr' ? 'exact_ocr' : 'canonical_transcript'
+          )
+        : tool === 'faster_whisper'
+          && evidence?.producingTool === 'ffprobe'
+          && evidence.authority === 'media_probe'
+      if (!exact) throw notReady(
+        `visual_intelligence_${tool}_decision_evidence_mismatch`,
+      )
+    }
+  }
+
+  validateTool(
+    'faster_whisper',
+    input.profile.transcriptPolicy === 'required_when_speech_bears_meaning',
+    input.prepared.transcriptVersion,
+  )
+  validateTool(
+    'ocr',
+    input.profile.ocrPolicy === 'required_for_exact_visible_text',
+    input.prepared.ocrVersion,
+  )
 }
 
 function createCacheIdentity(input: {

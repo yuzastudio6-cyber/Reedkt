@@ -757,7 +757,11 @@ function assertReportMatchesBinding(
     || report.usage.costEvidenceRef === null
     || report.deterministicToolExecutions.some((item) =>
       item.substantiveCpuExecutionUsed
-      || item.executionClass !== 'l4_gpu_standard')
+      || item.executionClass !== (
+        item.tool === 'faster_whisper'
+          ? 'a100_80gb_gpu_heavy'
+          : 'l4_gpu_standard'
+      ))
     || [...requiredTools].some((tool) => !observedTools.has(tool))
   ) throw conflict('source_vi_report_binding_mismatch')
 }

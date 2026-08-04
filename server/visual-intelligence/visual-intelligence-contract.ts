@@ -346,6 +346,22 @@ const toolExecutionEvidenceSchema = z.object({
   sourceArtifactChecksumBound: z.literal(true),
 }).strict()
 
+const conditionalToolDecisionSchema = z.object({
+  artifactId: safeIdSchema,
+  tool: z.enum(['faster_whisper', 'ocr']),
+  disposition: z.enum(['executed', 'not_required_no_audio']),
+  decisionEvidenceRef: evidenceRefSchema,
+  exactCanonicalDecisionRereadVerified: z.literal(true),
+  callerDecisionAccepted: z.literal(false),
+}).strict().superRefine((value, context) => {
+  if (value.tool === 'ocr' && value.disposition !== 'executed') {
+    context.addIssue({
+      code: 'custom',
+      message: 'OCR conditional evidence may not use the no-audio bypass.',
+    })
+  }
+})
+
 const samplingPolicySchema = z.object({
   policyId: safeIdSchema,
   policyVersion: versionSchema,
@@ -409,6 +425,7 @@ const preparedEvidenceSchema = z.object({
   privateMediaInputs: z.array(privateMediaInputSchema).min(1).max(64),
   transcriptVersion: versionSchema.nullable(),
   ocrVersion: versionSchema.nullable(),
+  conditionalToolDecisions: z.array(conditionalToolDecisionSchema).max(128),
   toolExecutionEvidence: z.array(toolExecutionEvidenceSchema).min(1).max(64),
   preparedEvidenceRef: evidenceRefSchema,
 }).strict()

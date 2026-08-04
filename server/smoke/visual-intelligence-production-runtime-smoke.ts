@@ -18,6 +18,7 @@ import type {
   VisualIntelligenceCostPreflight,
   VisualIntelligencePreparedEvidence,
   VisualIntelligenceRequest,
+  VisualIntelligenceToolExecutionEvidence,
 } from '../../src/types/visual-intelligence'
 import {
   VISUAL_INTELLIGENCE_MODEL_ID,
@@ -962,6 +963,8 @@ const followupPreparedRecord =
     preparedEvidence: preparedEvidence(
       followupCall.callDigestSha256,
       probeRef,
+      [],
+      'bounded_query',
     ),
   })
 await runtime.orchestraDispatchPackageStore.persistCreateOnly({
@@ -1488,8 +1491,17 @@ function preparedEvidence(
   requestDigestSha256: string,
   probeRef: VisualIntelligenceEvidenceRef,
   additionalEvidenceRefs: readonly VisualIntelligenceEvidenceRef[] = [],
+  profileMode: 'source_analysis' | 'bounded_query' = 'source_analysis',
 ): VisualIntelligencePreparedEvidence {
-  const deterministicEvidence: VisualIntelligenceEvidence[] = [
+  const transcriptRefs = additionalEvidenceRefs.length > 0
+    ? additionalEvidenceRefs
+    : [ref('source-transcript-default')]
+  const ffmpegEvidenceRef = ref('source-private-proxy-evidence')
+  const sceneEvidenceRef = ref('source-scene-boundaries')
+  const opencvEvidenceRef = ref('source-opencv-measurements')
+  const ocrEvidenceRef = ref('source-ocr-evidence')
+  const samplingPolicyRef = ref('source-sampling-policy')
+  const deterministicEvidence = ([
     {
       evidenceId: probeRef.id,
       evidenceRef: probeRef,
@@ -1502,7 +1514,67 @@ function preparedEvidence(
       privateEvidence: true,
       providerInstructionAccepted: false,
     },
-    ...additionalEvidenceRefs.map((evidenceRef) => ({
+    {
+      evidenceId: ffmpegEvidenceRef.id,
+      evidenceRef: ffmpegEvidenceRef,
+      artifactId: 'source-video-1',
+      range: fullRange,
+      authority: 'media_transform',
+      producingTool: 'ffmpeg',
+      toolVersion: 'ffmpeg-8.0',
+      summary: 'The exact private analysis proxy and sampling plan were verified.',
+      privateEvidence: true,
+      providerInstructionAccepted: false,
+    },
+    {
+      evidenceId: sceneEvidenceRef.id,
+      evidenceRef: sceneEvidenceRef,
+      artifactId: 'source-video-1',
+      range: fullRange,
+      authority: 'scene_detection',
+      producingTool: 'pyscenedetect',
+      toolVersion: 'pyscenedetect-0.7',
+      summary: 'Scene-aware complete-source boundaries were verified.',
+      privateEvidence: true,
+      providerInstructionAccepted: false,
+    },
+    {
+      evidenceId: opencvEvidenceRef.id,
+      evidenceRef: opencvEvidenceRef,
+      artifactId: 'source-video-1',
+      range: fullRange,
+      authority: 'pixel_measurement',
+      producingTool: 'opencv',
+      toolVersion: 'opencv-4.13',
+      summary: 'Deterministic full-range visual measurements were verified.',
+      privateEvidence: true,
+      providerInstructionAccepted: false,
+    },
+    {
+      evidenceId: ocrEvidenceRef.id,
+      evidenceRef: ocrEvidenceRef,
+      artifactId: 'source-video-1',
+      range: fullRange,
+      authority: 'exact_ocr',
+      producingTool: 'ocr',
+      toolVersion: 'paddleocr-exact-visible-text-v1',
+      summary: 'Exact visible-text evidence was verified.',
+      privateEvidence: true,
+      providerInstructionAccepted: false,
+    },
+    {
+      evidenceId: samplingPolicyRef.id,
+      evidenceRef: samplingPolicyRef,
+      artifactId: 'source-video-1',
+      range: fullRange,
+      authority: 'media_transform',
+      producingTool: 'ffmpeg',
+      toolVersion: 'ffmpeg-8.0',
+      summary: 'The complete scene-aware sampling policy was verified.',
+      privateEvidence: true,
+      providerInstructionAccepted: false,
+    },
+    ...transcriptRefs.map((evidenceRef) => ({
       evidenceId: evidenceRef.id,
       evidenceRef,
       artifactId: 'source-video-1',
@@ -1514,14 +1586,21 @@ function preparedEvidence(
       privateEvidence: true as const,
       providerInstructionAccepted: false as const,
     })),
-  ]
+  ] satisfies VisualIntelligenceEvidence[]).filter(
+    (evidence) => profileMode === 'source_analysis'
+    || !['pyscenedetect', 'faster_whisper', 'ocr'].includes(
+      evidence.producingTool,
+    ),
+  )
   return {
     deterministicEvidence,
     coveragePlan: {
       requestedRanges: [fullRange],
       analyzedRanges: [fullRange],
       incompleteRanges: [],
-      sceneBoundaryRefs: [ref('source-scene-boundaries')],
+      sceneBoundaryRefs: profileMode === 'source_analysis'
+        ? [sceneEvidenceRef]
+        : [],
       samplingPolicies: [{
         policyId: 'complete-source-scene-aware',
         policyVersion: 'complete-source-scene-aware-v1',
@@ -1532,7 +1611,7 @@ function preparedEvidence(
         highDetail: true,
         requestedRange: fullRange,
         analyzedRange: fullRange,
-        samplingPolicyRef: ref('source-sampling-policy'),
+        samplingPolicyRef,
       }],
       targetedFollowupRanges: [],
       completeRequestedRangeCoverage: true,
@@ -1546,17 +1625,48 @@ function preparedEvidence(
       checksumSha256: rawSha('source-video-1'),
       exactGenerationRereadVerified: true,
     }],
-    transcriptVersion: 'faster-whisper-large-v3-authority-v1',
-    ocrVersion: 'paddleocr-exact-visible-text-v1',
+    transcriptVersion: profileMode === 'source_analysis'
+      ? 'faster-whisper-large-v3-authority-v1'
+      : null,
+    ocrVersion: profileMode === 'source_analysis'
+      ? 'paddleocr-exact-visible-text-v1'
+      : null,
+    conditionalToolDecisions: profileMode === 'source_analysis' ? [{
+      artifactId: 'source-video-1',
+      tool: 'faster_whisper',
+      disposition: 'executed',
+      decisionEvidenceRef: transcriptRefs[0]!,
+      exactCanonicalDecisionRereadVerified: true,
+      callerDecisionAccepted: false,
+    }, {
+      artifactId: 'source-video-1',
+      tool: 'ocr',
+      disposition: 'executed',
+      decisionEvidenceRef: ocrEvidenceRef,
+      exactCanonicalDecisionRereadVerified: true,
+      callerDecisionAccepted: false,
+    }] : [],
     toolExecutionEvidence: [
       'ffprobe',
       'ffmpeg',
       'pyscenedetect',
       'opencv',
-    ].map((tool) => ({
-      tool: tool as 'ffprobe' | 'ffmpeg' | 'pyscenedetect' | 'opencv',
-      requirement: 'required' as const,
-      executionClass: 'l4_gpu_standard' as const,
+      'faster_whisper',
+      'ocr',
+    ].filter((tool) => profileMode === 'source_analysis'
+      || !['pyscenedetect', 'faster_whisper', 'ocr'].includes(tool))
+      .map((tool) => ({
+      tool: tool as VisualIntelligenceToolExecutionEvidence['tool'],
+      requirement: (
+        tool === 'faster_whisper' || tool === 'ocr'
+          ? 'conditional'
+          : 'required'
+      ) as VisualIntelligenceToolExecutionEvidence['requirement'],
+      executionClass: (
+        tool === 'faster_whisper'
+          ? 'a100_80gb_gpu_heavy'
+          : 'l4_gpu_standard'
+      ) as VisualIntelligenceToolExecutionEvidence['executionClass'],
       releaseRef: ref(`${tool}-qualified-release`),
       executionRef: ref(`${tool}-source-execution`),
       substantiveCpuExecutionUsed: false as const,

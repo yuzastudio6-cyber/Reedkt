@@ -28,6 +28,7 @@ import {
 import {
   VISUAL_INTELLIGENCE_PROMPT_VERSION,
   VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,
+  getVisualIntelligenceProfileDefinition,
 } from '../visual-intelligence/visual-intelligence-profile-registry'
 
 const rawSha = (digit: string) => digit.repeat(64)
@@ -156,42 +157,115 @@ VisualIntelligencePreparedEvidence {
     ...request.sourceArtifacts,
     ...request.comparisonArtifacts,
   ]
+  const profile = getVisualIntelligenceProfileDefinition(
+    request.operation,
+    request.profile,
+  )
+  const transcriptRequired = profile.transcriptPolicy ===
+    'required_when_speech_bears_meaning'
+  const ocrRequired = profile.ocrPolicy === 'required_for_exact_visible_text'
+  const sceneRequired = profile.toolPolicies.some((policy) =>
+    policy.tool === 'pyscenedetect' && policy.requirement === 'required')
   const deterministicEvidence: VisualIntelligenceEvidence[] =
-    allArtifacts.map((artifact) => ({
-      evidenceId: artifact.mediaProbeEvidenceRef.id,
-      evidenceRef: artifact.mediaProbeEvidenceRef,
-      artifactId: artifact.artifactId,
-      range: null,
-      authority: 'media_probe',
-      producingTool: 'ffprobe',
-      toolVersion: 'ffprobe-8.0',
-      summary: 'Canonical source dimensions and rational timing are verified.',
-      privateEvidence: true,
-      providerInstructionAccepted: false,
-    }))
-  const tools = [
-    ['ffprobe', 'l4_gpu_standard'],
-    ['ffmpeg', 'l4_gpu_standard'],
-    ['pyscenedetect', 'l4_gpu_standard'],
-    ['opencv', 'l4_gpu_standard'],
-  ] as const
+    allArtifacts.flatMap((artifact) => {
+      const items: VisualIntelligenceEvidence[] = [{
+        evidenceId: artifact.mediaProbeEvidenceRef.id,
+        evidenceRef: artifact.mediaProbeEvidenceRef,
+        artifactId: artifact.artifactId,
+        range: null,
+        authority: 'media_probe',
+        producingTool: 'ffprobe',
+        toolVersion: 'ffprobe-8.0',
+        summary: 'Canonical source dimensions and rational timing are verified.',
+        privateEvidence: true,
+        providerInstructionAccepted: false,
+      }]
+      const append = (
+        suffix: string,
+        authority: VisualIntelligenceEvidence['authority'],
+        producingTool: VisualIntelligenceEvidence['producingTool'],
+        toolVersion: string,
+        summary: string,
+      ) => {
+        const evidenceRef = ref(`${suffix}-${artifact.artifactId}`)
+        items.push({
+          evidenceId: evidenceRef.id,
+          evidenceRef,
+          artifactId: artifact.artifactId,
+          range: fullRange,
+          authority,
+          producingTool,
+          toolVersion,
+          summary,
+          privateEvidence: true,
+          providerInstructionAccepted: false,
+        })
+      }
+      append('ffmpeg-evidence', 'media_transform', 'ffmpeg', 'ffmpeg-8.0',
+        'The private analysis proxy was verified.')
+      append('opencv-evidence', 'pixel_measurement', 'opencv', 'opencv-4.13',
+        'Deterministic visual measurements were verified.')
+      append('sampling-policy', 'media_transform', 'ffmpeg', 'ffmpeg-8.0',
+        'The bounded sampling policy was verified.')
+      if (sceneRequired) append(
+        'scene-boundaries', 'scene_detection', 'pyscenedetect',
+        'pyscenedetect-0.7', 'Scene-aware boundaries were verified.',
+      )
+      if (transcriptRequired) append(
+        'transcript', 'canonical_transcript', 'faster_whisper',
+        'faster-whisper-large-v3-authority-v1',
+        'Canonical transcript and word timing were verified.',
+      )
+      if (ocrRequired) append(
+        'ocr', 'exact_ocr', 'ocr', 'paddleocr-exact-visible-text-v1',
+        'Exact visible characters and geometry were verified.',
+      )
+      return items
+    })
+  const tools = profile.toolPolicies.filter((policy) =>
+    policy.requirement === 'required'
+      || (policy.tool === 'faster_whisper' && transcriptRequired)
+      || (policy.tool === 'ocr' && ocrRequired))
   const toolExecutionEvidence: VisualIntelligenceToolExecutionEvidence[] =
-    tools.map(([tool, executionClass]) => ({
-    tool,
-    requirement: 'required',
-    executionClass,
-    releaseRef: ref(`${tool}-release`),
-    executionRef: ref(`${tool}-execution-${request.sourceArtifacts[0].checksumSha256[0]}`),
+    tools.map((policy) => ({
+    tool: policy.tool,
+    requirement: policy.requirement === 'required' ? 'required' : 'conditional',
+    executionClass: policy.executionClass === 'a100_80gb_gpu_heavy'
+      ? 'a100_80gb_gpu_heavy'
+      : 'l4_gpu_standard',
+    releaseRef: ref(`${policy.tool}-release`),
+    executionRef: ref(`${policy.tool}-execution-${request.sourceArtifacts[0].checksumSha256[0]}`),
     substantiveCpuExecutionUsed: false as const,
     sourceArtifactChecksumBound: true as const,
   }))
+  const conditionalToolDecisions = allArtifacts.flatMap((artifact) => [
+    ...(transcriptRequired ? [{
+      artifactId: artifact.artifactId,
+      tool: 'faster_whisper' as const,
+      disposition: 'executed' as const,
+      decisionEvidenceRef: ref(`transcript-${artifact.artifactId}`),
+      exactCanonicalDecisionRereadVerified: true as const,
+      callerDecisionAccepted: false as const,
+    }] : []),
+    ...(ocrRequired ? [{
+      artifactId: artifact.artifactId,
+      tool: 'ocr' as const,
+      disposition: 'executed' as const,
+      decisionEvidenceRef: ref(`ocr-${artifact.artifactId}`),
+      exactCanonicalDecisionRereadVerified: true as const,
+      callerDecisionAccepted: false as const,
+    }] : []),
+  ])
   return {
     deterministicEvidence,
     coveragePlan: {
       requestedRanges: [fullRange],
       analyzedRanges: [fullRange],
       incompleteRanges: [],
-      sceneBoundaryRefs: [ref('scene-boundaries')],
+      sceneBoundaryRefs: sceneRequired
+        ? allArtifacts.map((artifact) =>
+          ref(`scene-boundaries-${artifact.artifactId}`))
+        : [],
       samplingPolicies: [{
         policyId: 'complete-scene-aware',
         policyVersion: 'complete-scene-aware-v1',
@@ -202,7 +276,9 @@ VisualIntelligencePreparedEvidence {
         highDetail: true,
         requestedRange: fullRange,
         analyzedRange: fullRange,
-        samplingPolicyRef: ref('sampling-policy'),
+        samplingPolicyRef: ref(
+          `sampling-policy-${allArtifacts[0]!.artifactId}`,
+        ),
       }],
       targetedFollowupRanges: [],
       completeRequestedRangeCoverage: true,
@@ -216,8 +292,11 @@ VisualIntelligencePreparedEvidence {
       checksumSha256: artifact.checksumSha256,
       exactGenerationRereadVerified: true as const,
     })),
-    transcriptVersion: 'faster-whisper-large-v3-authority-v1',
-    ocrVersion: 'paddleocr-exact-visible-text-v1',
+    transcriptVersion: transcriptRequired
+      ? 'faster-whisper-large-v3-authority-v1'
+      : null,
+    ocrVersion: ocrRequired ? 'paddleocr-exact-visible-text-v1' : null,
+    conditionalToolDecisions,
     toolExecutionEvidence,
     preparedEvidenceRef: ref(
       `prepared-${request.sourceArtifacts[0].checksumSha256[0]}`,

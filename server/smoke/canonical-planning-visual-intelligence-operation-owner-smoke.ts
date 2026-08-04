@@ -493,6 +493,10 @@ function parentPrepared(
   request: VisualIntelligenceRequest,
 ): VisualIntelligencePreparedEvidence {
   const artifact = request.sourceArtifacts[0]!
+  const sceneRef = ref(`scenes-${artifact.artifactId}`)
+  const samplingRef = ref(`sampling-ref-${artifact.artifactId}`)
+  const transcriptRef = ref(`transcript-${artifact.artifactId}`)
+  const ocrRef = ref(`ocr-${artifact.artifactId}`)
   const evidence: VisualIntelligenceEvidence[] = [{
     evidenceId: artifact.mediaProbeEvidenceRef.id,
     evidenceRef: artifact.mediaProbeEvidenceRef,
@@ -504,15 +508,40 @@ function parentPrepared(
     summary: 'Canonical private media facts are verified.',
     privateEvidence: true,
     providerInstructionAccepted: false,
-  }]
+  }, ...([
+    ['ffmpeg', 'media_transform', 'ffmpeg-8.0',
+      ref(`ffmpeg-${artifact.artifactId}`)],
+    ['pyscenedetect', 'scene_detection', 'pyscenedetect-0.7', sceneRef],
+    ['opencv', 'pixel_measurement', 'opencv-4.13',
+      ref(`opencv-${artifact.artifactId}`)],
+    ['ffmpeg', 'media_transform', 'ffmpeg-8.0', samplingRef],
+    ['faster_whisper', 'canonical_transcript',
+      'faster-whisper-large-v3-authority-v1', transcriptRef],
+    ['ocr', 'exact_ocr', 'paddleocr-exact-text-v1', ocrRef],
+  ] as const).map(([producingTool, authority, toolVersion, evidenceRef]) => ({
+    evidenceId: evidenceRef.id,
+    evidenceRef,
+    artifactId: artifact.artifactId,
+    range: request.requestedRanges[0]!,
+    authority,
+    producingTool,
+    toolVersion,
+    summary: `Verified deterministic ${producingTool} evidence.`,
+    privateEvidence: true as const,
+    providerInstructionAccepted: false as const,
+  }))]
   const tools = [
-    'ffprobe', 'ffmpeg', 'pyscenedetect', 'opencv',
+    'ffprobe', 'ffmpeg', 'pyscenedetect', 'opencv', 'faster_whisper', 'ocr',
   ] as const
   const toolExecutionEvidence: VisualIntelligenceToolExecutionEvidence[] =
     tools.map((tool) => ({
       tool,
-      requirement: 'required',
-      executionClass: 'l4_gpu_standard',
+      requirement: tool === 'faster_whisper' || tool === 'ocr'
+        ? 'conditional'
+        : 'required',
+      executionClass: tool === 'faster_whisper'
+        ? 'a100_80gb_gpu_heavy'
+        : 'l4_gpu_standard',
       releaseRef: ref(`${tool}-release-${artifact.artifactId}`),
       executionRef: ref(`${tool}-execution-${artifact.artifactId}`),
       substantiveCpuExecutionUsed: false,
@@ -525,7 +554,7 @@ function parentPrepared(
       requestedRanges: [fullRange],
       analyzedRanges: [fullRange],
       incompleteRanges: [],
-      sceneBoundaryRefs: [ref(`scenes-${artifact.artifactId}`)],
+      sceneBoundaryRefs: [sceneRef],
       samplingPolicies: [{
         policyId: `sampling-${artifact.artifactId}`,
         policyVersion: 'sampling-v1',
@@ -536,7 +565,7 @@ function parentPrepared(
         highDetail: true,
         requestedRange: fullRange,
         analyzedRange: fullRange,
-        samplingPolicyRef: ref(`sampling-ref-${artifact.artifactId}`),
+        samplingPolicyRef: samplingRef,
       }],
       targetedFollowupRanges: [],
       completeRequestedRangeCoverage: true,
@@ -552,6 +581,21 @@ function parentPrepared(
     }],
     transcriptVersion: 'faster-whisper-large-v3-authority-v1',
     ocrVersion: 'paddleocr-exact-text-v1',
+    conditionalToolDecisions: [{
+      artifactId: artifact.artifactId,
+      tool: 'faster_whisper',
+      disposition: 'executed',
+      decisionEvidenceRef: transcriptRef,
+      exactCanonicalDecisionRereadVerified: true,
+      callerDecisionAccepted: false,
+    }, {
+      artifactId: artifact.artifactId,
+      tool: 'ocr',
+      disposition: 'executed',
+      decisionEvidenceRef: ocrRef,
+      exactCanonicalDecisionRereadVerified: true,
+      callerDecisionAccepted: false,
+    }],
     toolExecutionEvidence,
     preparedEvidenceRef: ref(`prepared-${artifact.artifactId}`),
   }

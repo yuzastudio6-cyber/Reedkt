@@ -482,6 +482,11 @@ function createPreparedEvidence(input: {
   const toolExecutionEvidence = uniqueToolExecutions(parents.flatMap(
     (parent) => [...parent.prepared.toolExecutionEvidence],
   ))
+  const conditionalToolDecisions = uniqueConditionalToolDecisions(
+    parents.flatMap(
+      (parent) => [...parent.prepared.conditionalToolDecisions],
+    ),
+  )
   const coveragePlan = createCoveragePlan(input.input, parents)
   const transcriptVersion = combinedVersion(
     'transcript',
@@ -503,6 +508,7 @@ function createPreparedEvidence(input: {
     coveragePlan,
     transcriptVersion,
     ocrVersion,
+    conditionalToolDecisions,
   }
   return deepClone({
     deterministicEvidence,
@@ -510,6 +516,7 @@ function createPreparedEvidence(input: {
     privateMediaInputs,
     transcriptVersion,
     ocrVersion,
+    conditionalToolDecisions,
     toolExecutionEvidence,
     preparedEvidenceRef: createVisualIntelligenceEvidenceRef(
       `vi-derived-prepared-${digestSuffix(preparedBinding)}`,
@@ -741,6 +748,21 @@ function uniqueToolExecutions(
     byRef.set(key, value)
   }
   return [...byRef.values()]
+}
+
+function uniqueConditionalToolDecisions(
+  values: VisualIntelligencePreparedEvidence['conditionalToolDecisions'],
+): VisualIntelligencePreparedEvidence['conditionalToolDecisions'] {
+  const byScope = new Map<string, typeof values[number]>()
+  for (const value of values) {
+    const key = `${value.artifactId}:${value.tool}`
+    const existing = byScope.get(key)
+    if (existing && !same(existing, value)) throw conflict(
+      'visual_intelligence_planning_operation_conditional_decision_collision',
+    )
+    byScope.set(key, value)
+  }
+  return [...byScope.values()]
 }
 
 function uniqueRefs(

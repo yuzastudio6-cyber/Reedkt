@@ -409,6 +409,17 @@ export interface VisualIntelligenceToolExecutionEvidence {
   sourceArtifactChecksumBound: true
 }
 
+export interface VisualIntelligenceConditionalToolDecision {
+  artifactId: string
+  tool: 'faster_whisper' | 'ocr'
+  disposition:
+    | 'executed'
+    | 'not_required_no_audio'
+  decisionEvidenceRef: VisualIntelligenceEvidenceRef
+  exactCanonicalDecisionRereadVerified: true
+  callerDecisionAccepted: false
+}
+
 export interface VisualIntelligenceSamplingPolicy {
   policyId: string
   policyVersion: string
@@ -458,6 +469,8 @@ export interface VisualIntelligencePreparedEvidence {
   }>
   readonly transcriptVersion: string | null
   readonly ocrVersion: string | null
+  readonly conditionalToolDecisions:
+    readonly VisualIntelligenceConditionalToolDecision[]
   readonly toolExecutionEvidence:
     readonly VisualIntelligenceToolExecutionEvidence[]
   readonly preparedEvidenceRef: VisualIntelligenceEvidenceRef

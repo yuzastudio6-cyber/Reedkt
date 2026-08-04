@@ -14,6 +14,12 @@ import {
 } from '../edit-references/edit-reference-visual-intelligence-result-bridge'
 import { ApiError } from '../errors/api-error'
 import {
+  createCanonicalSourceAnalysisOrchestraCoordinator,
+  type CanonicalSourceAnalysisOrchestraCoordinator,
+  type CanonicalSourceAnalysisOrchestraWorkReadPort,
+  type CanonicalSourceAnalysisPlanningScopeReadPort,
+} from '../orchestra/canonical-source-analysis-orchestra-coordinator'
+import {
   createGoogleBatchA100JobInvocationPort,
 } from '../services/canonical-a100-batch-job-invocation-service'
 import {
@@ -201,6 +207,31 @@ export interface VisualIntelligenceProductionRuntime {
     readonly finalizedAuthorityReadPort:
       CanonicalSourceAnalysisFinalizedAuthorityReadPort
   }) => CanonicalSourceAnalysisPreparationOwner
+  readonly createSourceAnalysisOrchestraCoordinator: (input: {
+    readonly planningScopeReadPort:
+      CanonicalSourceAnalysisPlanningScopeReadPort
+    readonly finalizedAuthorityReadPort:
+      CanonicalSourceAnalysisFinalizedAuthorityReadPort
+    readonly probeAdmissionReadPort:
+      CanonicalSourceAnalysisL4ProbeAdmissionReadPort
+    readonly probeRuntimeReleaseReadPort:
+      CanonicalSourceAnalysisL4ProbeRuntimeReleaseReadPort
+    readonly probeCloudRunPort: CanonicalSourceAnalysisL4ProbeCloudRunPort
+    readonly probeWorkerResultReadPort:
+      CanonicalSourceAnalysisL4ProbeWorkerResultReadPort
+    readonly probeUsageCostReadPort:
+      CanonicalSourceAnalysisL4ProbeUsageCostReadPort
+    readonly transcriptAdmissionReadPort:
+      CanonicalSourceTranscriptAdmissionReadPort
+    readonly transcriptReleaseReadPort:
+      CanonicalSourceTranscriptA100ReleaseReadPort
+    readonly transcriptWorkerResultReadPort:
+      CanonicalSourceTranscriptA100WorkerResultReadPort
+    readonly transcriptUsageCostReadPort:
+      CanonicalSourceTranscriptA100UsageCostReadPort
+    readonly orchestraWorkReadPort:
+      CanonicalSourceAnalysisOrchestraWorkReadPort
+  }) => CanonicalSourceAnalysisOrchestraCoordinator
   readonly providerCapabilityId: 'visual_intelligence'
   readonly semanticEngine: 'gemini-3.1-pro-preview'
   readonly thinkingLevel: 'high'
@@ -389,6 +420,58 @@ export async function createVisualIntelligenceProductionRuntime(
     lifecycleObjectPort: objectPort,
     ...(dependencies.now ? { now: dependencies.now } : {}),
   })
+  const createSourceAnalysisOrchestraCoordinatorFactory = (input: {
+    readonly planningScopeReadPort:
+      CanonicalSourceAnalysisPlanningScopeReadPort
+    readonly finalizedAuthorityReadPort:
+      CanonicalSourceAnalysisFinalizedAuthorityReadPort
+    readonly probeAdmissionReadPort:
+      CanonicalSourceAnalysisL4ProbeAdmissionReadPort
+    readonly probeRuntimeReleaseReadPort:
+      CanonicalSourceAnalysisL4ProbeRuntimeReleaseReadPort
+    readonly probeCloudRunPort: CanonicalSourceAnalysisL4ProbeCloudRunPort
+    readonly probeWorkerResultReadPort:
+      CanonicalSourceAnalysisL4ProbeWorkerResultReadPort
+    readonly probeUsageCostReadPort:
+      CanonicalSourceAnalysisL4ProbeUsageCostReadPort
+    readonly transcriptAdmissionReadPort:
+      CanonicalSourceTranscriptAdmissionReadPort
+    readonly transcriptReleaseReadPort:
+      CanonicalSourceTranscriptA100ReleaseReadPort
+    readonly transcriptWorkerResultReadPort:
+      CanonicalSourceTranscriptA100WorkerResultReadPort
+    readonly transcriptUsageCostReadPort:
+      CanonicalSourceTranscriptA100UsageCostReadPort
+    readonly orchestraWorkReadPort:
+      CanonicalSourceAnalysisOrchestraWorkReadPort
+  }) => createCanonicalSourceAnalysisOrchestraCoordinator({
+    planningScopeReadPort: input.planningScopeReadPort,
+    probeAttemptOwner: createSourceAnalysisL4ProbeAttemptOwnerFactory({
+      finalizedAuthorityReadPort: input.finalizedAuthorityReadPort,
+      admissionReadPort: input.probeAdmissionReadPort,
+      runtimeReleaseReadPort: input.probeRuntimeReleaseReadPort,
+      cloudRunPort: input.probeCloudRunPort,
+      workerResultReadPort: input.probeWorkerResultReadPort,
+      usageCostReadPort: input.probeUsageCostReadPort,
+    }),
+    preparationOwner: createSourceAnalysisPreparationOwnerFactory({
+      finalizedAuthorityReadPort: input.finalizedAuthorityReadPort,
+    }),
+    transcriptAttemptOwner: createSourceTranscriptA100AttemptOwnerFactory({
+      finalizedAuthorityReadPort: input.finalizedAuthorityReadPort,
+      admissionReadPort: input.transcriptAdmissionReadPort,
+      releaseReadPort: input.transcriptReleaseReadPort,
+      workerResultReadPort: input.transcriptWorkerResultReadPort,
+      usageCostReadPort: input.transcriptUsageCostReadPort,
+    }),
+    requestAuthorityReadPort: sourceAnalysisRequestAuthorityRepository,
+    transcriptReadPort: sourceTranscriptOrchestraRepository,
+    orchestraWorkReadPort: input.orchestraWorkReadPort,
+    orchestraRuntime: orchestraJobRuntimePort,
+    planningReconciliationPort:
+      sourceLedOrchestraPlanningReconciliationPort,
+    cleanupAuthorityReadPort: sourceCleanupAuthorityRepository,
+  })
   const sourceVideoUnderstandingConsumerBindingPort =
     createCanonicalSourceVisualIntelligenceOrchestraConsumerBindingPort({
       bindingStore: sourceVideoUnderstandingBindingStore,
@@ -479,6 +562,8 @@ export async function createVisualIntelligenceProductionRuntime(
       createSourceTranscriptA100AttemptOwnerFactory,
     createSourceAnalysisPreparationOwner:
       createSourceAnalysisPreparationOwnerFactory,
+    createSourceAnalysisOrchestraCoordinator:
+      createSourceAnalysisOrchestraCoordinatorFactory,
     providerCapabilityId: 'visual_intelligence',
     semanticEngine: 'gemini-3.1-pro-preview',
     thinkingLevel: 'high',

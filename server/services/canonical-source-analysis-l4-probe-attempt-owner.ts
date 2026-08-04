@@ -126,6 +126,22 @@ export type CanonicalSourceAnalysisL4ProbeTrigger = z.infer<
   typeof triggerSchema
 >
 
+export function createCanonicalSourceAnalysisL4ProbeTrigger(input: Omit<
+  CanonicalSourceAnalysisL4ProbeTrigger,
+  'schemaVersion' | 'source' | 'triggerHash'
+>): CanonicalSourceAnalysisL4ProbeTrigger {
+  assertPlainSerializedData(input, 'source_analysis_l4_probe_trigger_input')
+  const payload = triggerWithoutHashSchema.parse({
+    schemaVersion: CANONICAL_SOURCE_ANALYSIS_L4_PROBE_TRIGGER_VERSION,
+    source: 'authenticated_server_source_analysis_trigger',
+    ...input,
+  })
+  return Object.freeze(triggerSchema.parse({
+    ...payload,
+    triggerHash: sha256AuthorityValue(payload),
+  }))
+}
+
 const admissionWithoutHashSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_SOURCE_ANALYSIS_L4_PROBE_ADMISSION_VERSION,

@@ -1,7 +1,7 @@
-# Qwen2.5-VL Visual Context Boundary
+# Historical Qwen2.5-VL Marker Visual Context Boundary
 
-Allowed in RP-QWENVL-BETA-01: explicit user action, browser-local frame sampling, resized sampled frame images sent to the backend visual route, backend-only Qwen2.5-VL live or fake beta runtime, structured validation, deterministic fallback, and mock/local marker metadata persistence of the summary only.
+Status: retired from active execution.
 
-Not allowed: full-video upload, durable media storage, backend media byte reads, external URL fetches, FFmpeg/FFprobe, Whisper, SoundSync runtime, DeepSeek, Qwen 3.7 Max visual analysis, workers, render/export, planner execution, credit reservation/spend, Supabase CLI, migrations, or ChatNativeEditor changes.
+This document path remains only so historical milestone references do not disappear. The prior browser-sampled Qwen2.5-VL marker flow is no longer selectable or callable. Its frame sampler, Analyze button, browser configuration flag, readiness endpoint, and marker visual-context endpoint have been removed from active source.
 
-The route and UI must never expose provider headers, secret values, raw provider payloads, raw sampled frames after request completion, credentials, or chain-of-thought.
+Immutable historical marker metadata may be displayed with a `Historical only` label. It must never be cast into `visual_intelligence_authenticated_read`, used as current planning evidence, or treated as proof that Head Intelligence, Orchestra, Gemini 3.1 Pro High, deterministic evidence tools, QA, repair, billing, or delivery ran.

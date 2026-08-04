@@ -1,27 +1,15 @@
-import type {
-  ProjectEditBriefMarkerAIMode,
-  ProjectEditBriefMarkerTimeMode,
-  ProjectEditBriefMarkerType,
-} from './project-edit-brief'
-
 export type ProjectEditBriefVisualContextRuntimeSource =
+  | 'visual_intelligence_authenticated_read'
+  /** @deprecated Immutable compatibility only; never current authority. */
   | 'qwen25vl_live'
+  /** @deprecated Immutable compatibility only; never current authority. */
   | 'qwen25vl_fake'
   | 'deterministic_visual_fallback'
-  | 'blocked_missing_beta_config'
+  | 'blocked_missing_orchestra_report'
   | 'blocked_provider_error'
   | 'blocked_validation_error'
 
 export type ProjectEditBriefVisualContextConfidence = 'low' | 'medium' | 'high'
-
-export type ProjectEditBriefSampledFrameRole =
-  | 'point_before'
-  | 'point_marker'
-  | 'point_after'
-  | 'range_start'
-  | 'range_midpoint'
-  | 'range_end'
-  | 'context_extra'
 
 export interface ProjectEditBriefVisualContextTimeRange {
   startTimeSeconds: number
@@ -59,19 +47,6 @@ export interface ProjectEditBriefVisualContextSafetyFlags {
   migrationCreatedOrModified: false
 }
 
-export interface ProjectEditBriefSampledFrameReference extends ProjectEditBriefVisualContextSafetyFlags {
-  id: string
-  markerId?: string
-  sampledAtSeconds: number
-  role: ProjectEditBriefSampledFrameRole
-  dataUrl: string
-  mimeType: 'image/jpeg' | 'image/png'
-  width: number
-  height: number
-  approximateByteSize: number
-  noRawFramePersistence: true
-}
-
 export interface ProjectEditBriefVisualContext extends ProjectEditBriefVisualContextSafetyFlags {
   id: string
   projectId: string
@@ -95,53 +70,14 @@ export interface ProjectEditBriefVisualContext extends ProjectEditBriefVisualCon
   sampledFrameCount: number
   runtimeSource: ProjectEditBriefVisualContextRuntimeSource
   fallbackReason?: string
-  summaryForQwen3: string
+  summaryForOrchestra: string
+  /** @deprecated Immutable compatibility only; never fresh planning authority. */
+  summaryForQwen3?: string
+  /** @deprecated Immutable compatibility only; never current visual evidence. */
   visualSummaryFromQwen25VL?: string
   boundarySummary: string
   createdAt: string
   mockOnly: boolean
-}
-
-export interface ProjectEditBriefVisualContextMarkerInput {
-  projectId: string
-  editSessionId: string
-  briefId: string
-  markerId: string
-  markerType: ProjectEditBriefMarkerType
-  title: string
-  userNote: string
-  aiMode: ProjectEditBriefMarkerAIMode
-  timeMode: ProjectEditBriefMarkerTimeMode
-  startTimeSeconds: number
-  endTimeSeconds?: number
-  attachmentLabels: string[]
-}
-
-export interface ProjectEditBriefVisualContextRequest {
-  projectId: string
-  editSessionId: string
-  briefId: string
-  markerId: string
-  marker: ProjectEditBriefVisualContextMarkerInput
-  sourceVideoLabel?: string
-  sampledFrames: ProjectEditBriefSampledFrameReference[]
-  requestedAt: string
-  requestId?: string
-}
-
-export interface ProjectEditBriefVisualContextAnalysisResult extends ProjectEditBriefVisualContextSafetyFlags {
-  ok: boolean
-  visualContext: ProjectEditBriefVisualContext
-  runtimeSource: ProjectEditBriefVisualContextRuntimeSource
-  fallbackUsed: boolean
-  fallbackReason?: string
-  providerCallMade: boolean
-  modelCallMade: boolean
-  qwen25vlCallMade: boolean
-  secretValuePrinted: false
-  secretSentToFrontend: false
-  authorizationHeaderLogged: false
-  warnings: string[]
 }
 
 export const PROJECT_EDIT_BRIEF_VISUAL_CONTEXT_SAFETY_FLAGS: ProjectEditBriefVisualContextSafetyFlags = {
@@ -175,7 +111,7 @@ export const PROJECT_EDIT_BRIEF_VISUAL_CONTEXT_SAFETY_FLAGS: ProjectEditBriefVis
 }
 
 export const REEDITPRO_PROJECT_EDIT_BRIEF_VISUAL_CONTEXT_RULE =
-  'Marker Visual Context is structured marker-scoped visual metadata from sampled browser frames only; it is not durable source video upload, render, worker execution, or credit activity.'
+  'Marker Visual Context is a read-only projection of an authenticated immutable Visual Intelligence report produced through Orchestra; browser sampling and direct model execution are retired.'
 
 export const REEDITPRO_PROJECT_EDIT_BRIEF_VISUAL_CONTEXT_NO_RAW_MEDIA_RULE =
-  'Qwen2.5-VL visual context beta may receive sampled resized frames after explicit user action, but never full raw video/audio bytes, backend file reads, storage objects, fetched URLs, secrets, credentials, or provider headers.'
+  'The browser never samples, uploads, or sends visual media to a model. Canonical media analysis runs only through the authenticated Orchestra-owned Visual Intelligence workflow.'

@@ -9,8 +9,12 @@ function listText(values: string[]): string {
 }
 
 function runtimeLabel(context: ProjectEditBriefVisualContext): string {
-  if (context.runtimeSource === 'qwen25vl_live') return 'Qwen2.5-VL live'
-  if (context.runtimeSource === 'qwen25vl_fake') return 'Qwen2.5-VL fake beta'
+  if (context.runtimeSource === 'visual_intelligence_authenticated_read') {
+    return 'Visual Intelligence authenticated report'
+  }
+  if (context.runtimeSource === 'qwen25vl_live' || context.runtimeSource === 'qwen25vl_fake') {
+    return 'Historical Qwen visual metadata — non-authoritative'
+  }
   return context.runtimeSource.replace(/_/g, ' ')
 }
 
@@ -64,7 +68,7 @@ export function ProjectEditBriefVisualContextSummaryCard({
         <p><strong>Do not copy:</strong> {listText(context.doNotCopyNotes)}</p>
       </div>
       <p className="project-edit-brief-muted">
-        {context.sampledFrameCount} sampled frame(s), {context.timeRange.label}. Raw frames were not persisted.
+        {context.timeRange.label}. Current evidence is accepted only from the immutable authenticated report reread.
       </p>
     </div>
   )

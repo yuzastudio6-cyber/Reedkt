@@ -35,13 +35,6 @@ import type {
   ProjectEditSessionExportSettingsRecord,
 } from '../types/project-edit-brief'
 import type {
-  ProjectEditBriefVisualContext,
-  ProjectEditBriefVisualContextAnalysisResult,
-  ProjectEditBriefVisualContextRequest,
-  ProjectEditBriefVisualContextRuntimeSource,
-} from '../types/project-edit-brief-visual-context'
-import { PROJECT_EDIT_BRIEF_VISUAL_CONTEXT_SAFETY_FLAGS } from '../types/project-edit-brief-visual-context'
-import type {
   ReeditProApiClientOptions,
   ReeditProApiClientSafetySummary,
   ReeditProApiTransport,
@@ -96,39 +89,11 @@ export interface ProjectEditBriefQwenMarkerChatReadinessSummary {
   checkedAt: string
 }
 
-export interface ProjectEditBriefQwen25VLVisualContextRuntimeSummary {
-  mode: 'local_fallback' | 'backend_beta_route'
-  label: string
-  liveConfigured: boolean
-  summary: string
-  readiness: ProjectEditBriefQwen25VLReadinessSummary
-}
-
-export interface ProjectEditBriefQwen25VLReadinessSummary {
-  status: string
-  ready: boolean
-  label: string
-  summary: string
-  mockOnly: true
-  providerCallMade: false
-  modelCallMade: false
-  qwen25vlCallMade: false
-  secretValuePrinted: false
-  secretSentToFrontend: false
-  gcloudCommandRun: false
-  supabaseCommandRun: false
-  rawProviderPayloadExposed: false
-  sampledFramesPersisted: false
-  checkedAt: string
-}
-
 export interface ProjectEditBriefApiClient {
   transport: ReeditProApiTransport
   safety: ProjectEditBriefApiClientSafetySummary
   qwenMarkerChatRuntime: ProjectEditBriefQwenMarkerChatRuntimeSummary
-  qwen25VLVisualContextRuntime: ProjectEditBriefQwen25VLVisualContextRuntimeSummary
   loadQwenMarkerChatReadiness(): Promise<ProjectEditBriefQwenMarkerChatReadinessSummary>
-  loadQwen25VLVisualContextReadiness(): Promise<ProjectEditBriefQwen25VLReadinessSummary>
   createEnvelope<TPayload = unknown>(routeId: ProjectEditBriefApiRouteId, payload?: TPayload): ReeditProApiRequestEnvelope<TPayload>
   request<TPayload = unknown, TData = unknown>(
     routeId: ProjectEditBriefApiRouteId,
@@ -193,9 +158,6 @@ export interface ProjectEditBriefApiClient {
   drawer: {
     get<TData = unknown>(markerId: string): Promise<ReeditProApiResponseEnvelope<TData>>
   }
-  visualContext: {
-    analyze<TData = unknown>(input: ProjectEditBriefVisualContextRequest): Promise<ReeditProApiResponseEnvelope<TData>>
-  }
 }
 
 export interface MockProjectEditBriefApiClient extends ProjectEditBriefApiClient {
@@ -206,8 +168,6 @@ export interface MockProjectEditBriefApiClient extends ProjectEditBriefApiClient
 const DEFAULT_PROJECT_ID = 'mock-project-edit-chat-foundation'
 const QWEN_LIVE_MARKER_CHAT_PATH = '/v1/project-edit-brief/marker-messages'
 const QWEN_LIVE_READINESS_PATH = '/v1/qwen-beta/readiness'
-const QWEN25VL_VISUAL_CONTEXT_PATH = '/v1/project-edit-brief/marker-visual-context'
-const QWEN25VL_READINESS_PATH = '/v1/qwen25vl-beta/readiness'
 const mockProjectEditBriefStates = new Map<string, ProjectEditBriefFixtureBundle>()
 
 const NO_PRODUCTION_EFFECTS = {
@@ -327,71 +287,6 @@ function createUnavailableQwenMarkerChatReadinessSummary(reason: string): Projec
   })
 }
 
-function createQwen25VLReadinessSummary(input: {
-  status: string
-  ready: boolean
-  label: string
-  summary: string
-  checkedAt?: string
-}): ProjectEditBriefQwen25VLReadinessSummary {
-  return {
-    status: input.status,
-    ready: input.ready,
-    label: input.label,
-    summary: input.summary,
-    mockOnly: true,
-    providerCallMade: false,
-    modelCallMade: false,
-    qwen25vlCallMade: false,
-    secretValuePrinted: false,
-    secretSentToFrontend: false,
-    gcloudCommandRun: false,
-    supabaseCommandRun: false,
-    rawProviderPayloadExposed: false,
-    sampledFramesPersisted: false,
-    checkedAt: input.checkedAt ?? nowIso(),
-  }
-}
-
-function createLocalQwen25VLReadinessSummary(): ProjectEditBriefQwen25VLReadinessSummary {
-  return createQwen25VLReadinessSummary({
-    status: 'local_visual_fallback_active',
-    ready: false,
-    label: 'Qwen2.5-VL readiness: local fallback active',
-    summary: 'Backend Qwen2.5-VL visual route is not configured for this browser session; Visual Context uses deterministic local fallback with no provider call.',
-  })
-}
-
-function createLiveQwen25VLReadinessCheckingSummary(): ProjectEditBriefQwen25VLReadinessSummary {
-  return createQwen25VLReadinessSummary({
-    status: 'checking_backend_qwen25vl_readiness',
-    ready: false,
-    label: 'Qwen2.5-VL readiness: checking backend',
-    summary: 'The browser will ask the backend for a sanitized Qwen2.5-VL beta readiness report before live visual analysis can claim readiness.',
-  })
-}
-
-function qwen25VLReadinessLabel(status: string, ready: boolean): string {
-  if (ready && status === 'ready_qwen25vl_fake_beta') return 'Qwen2.5-VL fake beta ready'
-  if (ready) return 'Qwen2.5-VL beta ready'
-  return `Qwen2.5-VL beta blocked: ${status || 'unknown'}`
-}
-
-function qwen25VLReadinessSummary(status: string, ready: boolean): string {
-  return ready
-    ? 'Backend readiness gates are satisfied for Qwen2.5-VL visual context; every response still requires structured validation.'
-    : `Backend readiness returned ${status || 'unknown'}; Visual Context should keep using deterministic local fallback.`
-}
-
-function createUnavailableQwen25VLReadinessSummary(reason: string): ProjectEditBriefQwen25VLReadinessSummary {
-  return createQwen25VLReadinessSummary({
-    status: 'readiness_endpoint_unavailable',
-    ready: false,
-    label: 'Qwen2.5-VL beta readiness unavailable',
-    summary: `${reason} Visual Context should keep using deterministic local fallback.`,
-  })
-}
-
 async function requestLiveQwenMarkerChatReadiness(
   options: ReeditProApiClientOptions,
 ): Promise<ProjectEditBriefQwenMarkerChatReadinessSummary> {
@@ -426,38 +321,6 @@ async function requestLiveQwenMarkerChatReadiness(
   }
 }
 
-async function requestLiveQwen25VLReadiness(
-  options: ReeditProApiClientOptions,
-): Promise<ProjectEditBriefQwen25VLReadinessSummary> {
-  const baseUrl = liveApiBaseUrl(options)
-  if (!(options.liveQwen25VLVisualContext === true && options.mode === 'mock_backend_local' && baseUrl)) {
-    return createLocalQwen25VLReadinessSummary()
-  }
-
-  try {
-    const response = await fetch(`${baseUrl}${QWEN25VL_READINESS_PATH}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        ...(options.workspaceId ? { 'x-reeditpro-workspace-id': options.workspaceId } : {}),
-      },
-    })
-    const payload = await response.json().catch(() => undefined)
-    const data = asRecord(asRecord(payload).data)
-    const status = stringValue(data, 'status', response.ok ? 'ready_qwen25vl_live_beta' : 'blocked_unknown')
-    const ready = Boolean(data.ready)
-    return createQwen25VLReadinessSummary({
-      status,
-      ready,
-      label: qwen25VLReadinessLabel(status, ready),
-      summary: qwen25VLReadinessSummary(status, ready),
-      checkedAt: optionalString(data, 'generatedAt') ?? nowIso(),
-    })
-  } catch {
-    return createUnavailableQwen25VLReadinessSummary('The backend Qwen2.5-VL readiness endpoint could not be reached.')
-  }
-}
-
 function shouldUseLiveQwenMarkerChat(
   options: ReeditProApiClientOptions,
   envelope: ReeditProApiRequestEnvelope,
@@ -466,12 +329,6 @@ function shouldUseLiveQwenMarkerChat(
   return envelope.routeId === 'project.editBrief.markerMessages.append'
     && body.runtimeMode === 'qwen_beta'
     && options.liveQwenMarkerChat === true
-    && options.mode === 'mock_backend_local'
-    && Boolean(liveApiBaseUrl(options))
-}
-
-function shouldUseLiveQwen25VLVisualContext(options: ReeditProApiClientOptions): boolean {
-  return options.liveQwen25VLVisualContext === true
     && options.mode === 'mock_backend_local'
     && Boolean(liveApiBaseUrl(options))
 }
@@ -532,174 +389,6 @@ async function requestLiveQwenMarkerChat<TData = unknown>(
     mockOnly: true,
     ...NO_PRODUCTION_EFFECTS,
     respondedAt: payload.respondedAt ?? nowIso(),
-  }
-}
-
-function visualContextTimeLabel(request: ProjectEditBriefVisualContextRequest): string {
-  const marker = request.marker
-  if (marker.timeMode === 'range' && typeof marker.endTimeSeconds === 'number') {
-    return `${Math.round(marker.startTimeSeconds)}s-${Math.round(marker.endTimeSeconds)}s`
-  }
-  return `${Math.round(marker.startTimeSeconds)}s`
-}
-
-function localVisualContextFallback(
-  request: ProjectEditBriefVisualContextRequest,
-  runtimeSource: ProjectEditBriefVisualContextRuntimeSource,
-  reason: string,
-): ProjectEditBriefVisualContext {
-  const summary = `Visual context unavailable: local fallback only, no Qwen2.5-VL call. Marker "${request.marker.title}" at ${visualContextTimeLabel(request)}${request.sourceVideoLabel ? ` for ${request.sourceVideoLabel}` : ''}.`
-  return {
-    ...PROJECT_EDIT_BRIEF_VISUAL_CONTEXT_SAFETY_FLAGS,
-    id: `marker-visual-context-client-${request.markerId}-${Date.now().toString(36)}`,
-    projectId: request.projectId,
-    editSessionId: request.editSessionId,
-    briefId: request.briefId,
-    markerId: request.markerId,
-    sourceVideoLabel: request.sourceVideoLabel,
-    visualSummary: summary,
-    setting: 'Unavailable in browser local fallback.',
-    visibleObjects: ['Unavailable until Qwen2.5-VL visual analysis runs.'],
-    visiblePeople: ['Unavailable until Qwen2.5-VL visual analysis runs.'],
-    actions: [request.marker.userNote || `Marker type: ${request.marker.markerType}.`],
-    cameraMotion: 'Unavailable in browser local fallback.',
-    visibleText: ['Unavailable until sampled frames are analyzed.'],
-    layoutNotes: ['Browser client fallback stores structured marker metadata only.'],
-    brollOpportunities: ['Run Qwen2.5-VL beta analysis before using this as visual evidence.'],
-    visualRisks: ['Fallback is not model-seen video evidence.'],
-    doNotCopyNotes: ['Do not claim Qwen2.5-VL analyzed frames when fallback was used.'],
-    confidence: 'low',
-    timeRange: {
-      startTimeSeconds: request.marker.startTimeSeconds,
-      endTimeSeconds: request.marker.endTimeSeconds ?? request.marker.startTimeSeconds,
-      label: visualContextTimeLabel(request),
-    },
-    sampledFrameCount: request.sampledFrames.length,
-    runtimeSource,
-    fallbackReason: reason,
-    summaryForQwen3: `${summary} Reason: ${reason}.`,
-    boundarySummary: 'Browser local fallback only. No provider call, no frame persistence, no render/export, no workers, and no credits.',
-    createdAt: nowIso(),
-    mockOnly: true,
-  }
-}
-
-async function requestLiveQwen25VLVisualContext<TData = unknown>(
-  options: ReeditProApiClientOptions,
-  request: ProjectEditBriefVisualContextRequest,
-): Promise<ReeditProApiResponseEnvelope<TData>> {
-  const baseUrl = liveApiBaseUrl(options)
-  const requestId = createRequestId('project.editBrief.markerVisualContext.analyze')
-  if (!shouldUseLiveQwen25VLVisualContext(options)) {
-    const visualContext = localVisualContextFallback(request, 'deterministic_visual_fallback', 'browser_mock_transport')
-    return {
-      routeId: 'project.editBrief.markerVisualContext.analyze' as ProjectEditBriefApiRouteId,
-      requestId,
-      ok: true,
-      data: {
-        ok: true,
-        visualContext,
-        runtimeSource: visualContext.runtimeSource,
-        fallbackUsed: true,
-        fallbackReason: visualContext.fallbackReason,
-        providerCallMade: false,
-        modelCallMade: false,
-        qwen25vlCallMade: false,
-        secretValuePrinted: false,
-        secretSentToFrontend: false,
-        authorizationHeaderLogged: false,
-        warnings: ['Browser mock transport used deterministic visual fallback; no Qwen2.5-VL provider call was attempted.'],
-        ...PROJECT_EDIT_BRIEF_VISUAL_CONTEXT_SAFETY_FLAGS,
-      } satisfies ProjectEditBriefVisualContextAnalysisResult,
-      warnings: ['Project Edit Brief browser client kept Qwen2.5-VL visual context in deterministic fallback.'],
-      mockOnly: true,
-      ...NO_PRODUCTION_EFFECTS,
-      respondedAt: nowIso(),
-    } as ReeditProApiResponseEnvelope<TData>
-  }
-
-  try {
-    const response = await fetch(`${baseUrl}${QWEN25VL_VISUAL_CONTEXT_PATH}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-request-id': requestId,
-        'idempotency-key': requestId,
-        ...(options.workspaceId ? { 'x-reeditpro-workspace-id': options.workspaceId } : {}),
-      },
-      body: JSON.stringify({
-        ...request,
-        workspaceId: options.workspaceId,
-        userId: options.userId,
-        requestId,
-        idempotencyKey: requestId,
-      }),
-    })
-    const payload = await response.json().catch(() => undefined) as Partial<ReeditProApiResponseEnvelope<TData>> | undefined
-    if (!payload || typeof payload !== 'object') {
-      const visualContext = localVisualContextFallback(request, 'deterministic_visual_fallback', 'qwen25vl_bad_response')
-      return {
-        routeId: 'project.editBrief.markerVisualContext.analyze' as ProjectEditBriefApiRouteId,
-        requestId,
-        ok: true,
-        data: {
-          ok: true,
-          visualContext,
-          runtimeSource: visualContext.runtimeSource,
-          fallbackUsed: true,
-          fallbackReason: visualContext.fallbackReason,
-          providerCallMade: false,
-          modelCallMade: false,
-          qwen25vlCallMade: false,
-          secretValuePrinted: false,
-          secretSentToFrontend: false,
-          authorizationHeaderLogged: false,
-          warnings: ['Qwen2.5-VL visual route response was not JSON; local fallback was used.'],
-          ...PROJECT_EDIT_BRIEF_VISUAL_CONTEXT_SAFETY_FLAGS,
-        } satisfies ProjectEditBriefVisualContextAnalysisResult,
-        warnings: ['Qwen2.5-VL visual route failed safely before exposing provider details.'],
-        mockOnly: true,
-        ...NO_PRODUCTION_EFFECTS,
-        respondedAt: nowIso(),
-      } as ReeditProApiResponseEnvelope<TData>
-    }
-    return {
-      routeId: 'project.editBrief.markerVisualContext.analyze' as ProjectEditBriefApiRouteId,
-      requestId: payload.requestId ?? requestId,
-      ok: Boolean(payload.ok),
-      data: payload.data,
-      error: payload.error,
-      warnings: payload.warnings ?? ['Qwen2.5-VL visual context server route returned a sanitized response.'],
-      mockOnly: true,
-      ...NO_PRODUCTION_EFFECTS,
-      respondedAt: payload.respondedAt ?? nowIso(),
-    }
-  } catch {
-    const visualContext = localVisualContextFallback(request, 'deterministic_visual_fallback', 'qwen25vl_route_unreachable')
-    return {
-      routeId: 'project.editBrief.markerVisualContext.analyze' as ProjectEditBriefApiRouteId,
-      requestId,
-      ok: true,
-      data: {
-        ok: true,
-        visualContext,
-        runtimeSource: visualContext.runtimeSource,
-        fallbackUsed: true,
-        fallbackReason: visualContext.fallbackReason,
-        providerCallMade: false,
-        modelCallMade: false,
-        qwen25vlCallMade: false,
-        secretValuePrinted: false,
-        secretSentToFrontend: false,
-        authorizationHeaderLogged: false,
-        warnings: ['Qwen2.5-VL visual route could not be reached; local fallback was used.'],
-        ...PROJECT_EDIT_BRIEF_VISUAL_CONTEXT_SAFETY_FLAGS,
-      } satisfies ProjectEditBriefVisualContextAnalysisResult,
-      warnings: ['Qwen2.5-VL visual context route failed safely before exposing provider details.'],
-      mockOnly: true,
-      ...NO_PRODUCTION_EFFECTS,
-      respondedAt: nowIso(),
-    } as ReeditProApiResponseEnvelope<TData>
   }
 }
 
@@ -1283,9 +972,6 @@ export function createProjectEditBriefApiClient(options: ReeditProApiClientOptio
   const liveQwenMarkerChatConfigured = options.liveQwenMarkerChat === true
     && options.mode === 'mock_backend_local'
     && Boolean(liveApiBaseUrl(options))
-  const liveQwen25VLVisualContextConfigured = options.liveQwen25VLVisualContext === true
-    && options.mode === 'mock_backend_local'
-    && Boolean(liveApiBaseUrl(options))
   const qwenMarkerChatRuntime: ProjectEditBriefQwenMarkerChatRuntimeSummary = liveQwenMarkerChatConfigured
     ? {
       mode: 'backend_beta_route',
@@ -1301,22 +987,6 @@ export function createProjectEditBriefApiClient(options: ReeditProApiClientOptio
       summary: `Marker Chat is using deterministic local intent capture. No ${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} provider call is attempted from this browser session.`,
       readiness: createLocalQwenMarkerChatReadinessSummary(),
     }
-  const qwen25VLVisualContextRuntime: ProjectEditBriefQwen25VLVisualContextRuntimeSummary = liveQwen25VLVisualContextConfigured
-    ? {
-      mode: 'backend_beta_route',
-      label: 'Qwen2.5-VL beta route configured',
-      liveConfigured: true,
-      summary: 'Visual Context will request the backend-only Qwen2.5-VL beta route with sampled resized frames. Provider calls still depend on server runtime gates, Secret Manager, structured validation, and safe fallback.',
-      readiness: createLiveQwen25VLReadinessCheckingSummary(),
-    }
-    : {
-      mode: 'local_fallback',
-      label: 'Qwen2.5-VL local fallback active',
-      liveConfigured: false,
-      summary: 'Visual Context is using deterministic local fallback. No Qwen2.5-VL provider call is attempted from this browser session.',
-      readiness: createLocalQwen25VLReadinessSummary(),
-    }
-
   const transport: ReeditProApiTransport = {
     mode: options.mode ?? 'mock_browser',
     safety: PROJECT_EDIT_BRIEF_API_CLIENT_SAFETY,
@@ -1360,9 +1030,7 @@ export function createProjectEditBriefApiClient(options: ReeditProApiClientOptio
     transport,
     safety: PROJECT_EDIT_BRIEF_API_CLIENT_SAFETY,
     qwenMarkerChatRuntime,
-    qwen25VLVisualContextRuntime,
     loadQwenMarkerChatReadiness: () => requestLiveQwenMarkerChatReadiness(options),
-    loadQwen25VLVisualContextReadiness: () => requestLiveQwen25VLReadiness(options),
     createEnvelope,
     request,
     brief: {
@@ -1424,9 +1092,6 @@ export function createProjectEditBriefApiClient(options: ReeditProApiClientOptio
     drawer: {
       get: (markerId) => request('project.editBrief.markerDrawer.get', { markerId }),
     },
-    visualContext: {
-      analyze: (input) => requestLiveQwen25VLVisualContext(options, input),
-    },
     getMockState: () => state,
     resetMockState: () => {
       const next = createState()
@@ -1459,7 +1124,6 @@ export function createQwenLiveProjectEditBriefApiClient(
     mockOnly: true,
     mode: 'mock_backend_local',
     liveQwenMarkerChat: options.liveQwenMarkerChat ?? true,
-    liveQwen25VLVisualContext: options.liveQwen25VLVisualContext ?? false,
     projectId: DEFAULT_PROJECT_ID,
     ...options,
   })

@@ -133,10 +133,12 @@ export function ProjectEditBriefMarkerChatPanel({
       </div>
       <div className="project-edit-brief-marker-chat__visual-context" data-testid="project-edit-brief-marker-chat-visual-context">
         {visualContext
-          ? visualContext.runtimeSource === 'qwen25vl_live' || visualContext.runtimeSource === 'qwen25vl_fake'
-            ? `Visual context available: ${visualContext.visualSummary}`
-            : `Visual context fallback used: ${visualContext.fallbackReason ?? visualContext.runtimeSource}.`
-          : 'Visual context unavailable.'}
+          ? visualContext.runtimeSource === 'visual_intelligence_authenticated_read'
+            ? `Authenticated Visual Intelligence evidence: ${visualContext.visualSummary}`
+            : visualContext.runtimeSource === 'qwen25vl_live' || visualContext.runtimeSource === 'qwen25vl_fake'
+              ? 'Historical Qwen visual metadata is non-authoritative and cannot drive this edit.'
+              : `Visual Intelligence evidence unavailable: ${visualContext.fallbackReason ?? visualContext.runtimeSource}.`
+          : 'Authenticated Visual Intelligence evidence unavailable.'}
       </div>
       <ProjectEditBriefMarkerMessageList messages={model.messages} />
       <ProjectEditBriefMarkerChatInput

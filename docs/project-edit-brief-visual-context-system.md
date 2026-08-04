@@ -1,7 +1,7 @@
-# Project Edit Brief Visual Context System
+# Project Edit Brief Visual Intelligence Projection
 
-Marker Visual Context is a marker-scoped beta system in the Project Edit Brief drawer. It analyzes sampled frames around a saved marker and returns structured visual metadata for user review.
+The Project Edit Brief visual panel is a read-only consumer of WeEditPro Visual Intelligence evidence. New analysis is owned by Head Intelligence and dispatched by Orchestra through the provider-neutral `visual_intelligence` capability. The browser cannot select a provider, sample frames, upload visual bytes, call a model, or promote local state into evidence.
 
-The system stores `metadata.latestVisualContext` on the mock/local marker only. It does not persist raw frames, raw provider payloads, full video, storage objects, render jobs, worker jobs, or credit reservations.
+The former Qwen2.5-VL marker beta is retired. Its two browser-configurable endpoints, live-readiness option, frame sampler, Analyze button, and browser-to-model request path are absent from active source. Existing marker metadata with the historical Qwen runtime identities remains readable for audit only; it cannot drive planning, cuts, approval, QA, repair, cost, or delivery.
 
-Qwen2.5-VL is the visual/video specialist. Qwen 3.7 Max remains the Marker Chat reasoning brain and only sees visual availability in this milestone. RP-VIDEOCTX-04 owns full context-aware Marker Chat prompt integration.
+Browser-local marker metadata is never sufficient current authority, even if it claims `runtimeSource: visual_intelligence_authenticated_read`. The read-only marker adapter rejects that self-attestation. Until a separate request-matched authenticated report projection is wired from the canonical backend, the panel stays in `Awaiting Orchestra` state instead of inventing a report identity or falling back to a browser model call.

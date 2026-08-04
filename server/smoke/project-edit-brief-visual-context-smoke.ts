@@ -1,14 +1,20 @@
 import assert from 'node:assert/strict'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { ProjectEditBriefMarkerRecord } from '../../src/types'
-import { createDefaultMockProjectEditBriefApiClient } from '../../src/lib/project-edit-brief-api-client'
+import type {
+  ProjectEditBriefMarkerRecord,
+  ProjectEditBriefVisualContext,
+} from '../../src/types'
 import {
-  createProjectEditBriefVisualContextFallback,
+  PROJECT_EDIT_BRIEF_VISUAL_CONTEXT_SAFETY_FLAGS,
+} from '../../src/types/project-edit-brief-visual-context'
+import {
+  createProjectEditBriefVisualContextSummary,
+  isCurrentProjectEditBriefVisualContext,
+  isHistoricalProjectEditBriefVisualContext,
   readProjectEditBriefVisualContextFromMarker,
-  saveProjectEditBriefVisualContextToMarker,
 } from '../../src/lib/project-edit-brief-visual-context-ui-adapter'
-import { createProjectSourceVideoFrameSamplePlan, PROJECT_SOURCE_VIDEO_FRAME_SAMPLER_LIMITS } from '../../src/lib/project-source-video-frame-sampler'
+import { createDefaultMockProjectEditBriefApiClient } from '../../src/lib/project-edit-brief-api-client'
 
 const repoRoot = process.cwd()
 
@@ -22,119 +28,116 @@ function read(relativePath: string): string {
   return readFileSync(absolutePath, 'utf8')
 }
 
-const requiredFiles = [
+for (const retiredPath of [
   'src/lib/project-source-video-frame-sampler.ts',
-  'src/lib/project-edit-brief-visual-context-ui-adapter.ts',
-  'src/components/projects/brief/ProjectEditBriefVisualContextPanel.tsx',
   'src/components/projects/brief/ProjectEditBriefAnalyzeVisualContextButton.tsx',
-  'src/components/projects/brief/ProjectEditBriefVisualContextSummaryCard.tsx',
-  'src/components/projects/brief/ProjectEditBriefVisualContextBoundaryNotice.tsx',
-  'src/components/projects/brief/ProjectEditBriefMarkerDrawer.tsx',
-  'src/components/projects/brief/ProjectEditBriefMarkerChatPanel.tsx',
-  'src/components/projects/brief/ProjectEditBriefVideoShell.tsx',
   'tests/e2e/project-edit-brief-visual-context.spec.ts',
-  'docs/project-edit-brief-visual-context-system.md',
-  'docs/project-edit-brief-visual-context-ui.md',
-  'docs/qwen25vl-visual-context-boundary.md',
-]
-
-for (const relativePath of requiredFiles) read(relativePath)
-
-assert.equal(PROJECT_SOURCE_VIDEO_FRAME_SAMPLER_LIMITS.defaultMaxFrames, 5)
-assert.equal(PROJECT_SOURCE_VIDEO_FRAME_SAMPLER_LIMITS.absoluteMaxFrames, 9)
-assert.equal(PROJECT_SOURCE_VIDEO_FRAME_SAMPLER_LIMITS.maxTotalBytes, 850_000)
-
-const pointPlan = createProjectSourceVideoFrameSamplePlan({
-  marker: { timeMode: 'point', startTimeSeconds: 10 },
-  durationSeconds: 30,
-})
-assert.deepEqual(pointPlan.map((item) => item.role), ['point_before', 'point_marker', 'point_after'])
-assert.deepEqual(pointPlan.map((item) => item.sampledAtSeconds), [8, 10, 12])
-
-const rangePlan = createProjectSourceVideoFrameSamplePlan({
-  marker: { timeMode: 'range', startTimeSeconds: 5, endTimeSeconds: 11 },
-  durationSeconds: 30,
-})
-assert.deepEqual(rangePlan.map((item) => item.role), ['range_start', 'range_midpoint', 'range_end'])
-assert.deepEqual(rangePlan.map((item) => item.sampledAtSeconds), [5, 8, 11])
+] as const) {
+  assert.equal(existsSync(pathFor(retiredPath)), false, `${retiredPath} must remain retired.`)
+}
 
 const client = createDefaultMockProjectEditBriefApiClient({ preserveMockSession: false })
 const state = client.getMockState()
 const marker = state.markers.find((candidate) => candidate.status !== 'archived') ?? state.markers[0]
 assert.ok(marker)
 
-const fallback = createProjectEditBriefVisualContextFallback({
-  marker,
-  sourceVideoLabel: 'visual-context-smoke.mp4',
+const context: ProjectEditBriefVisualContext = {
+  ...PROJECT_EDIT_BRIEF_VISUAL_CONTEXT_SAFETY_FLAGS,
+  id: 'vi-marker-context-1',
+  projectId: marker.projectId,
+  editSessionId: marker.editSessionId,
+  briefId: marker.briefId,
+  markerId: marker.id,
+  visualSummary: 'The speaker demonstrates the ball-handling step.',
+  setting: 'Indoor basketball court',
+  visibleObjects: ['basketball'],
+  visiblePeople: ['speaker'],
+  actions: ['demonstrates a dribble'],
+  cameraMotion: 'stable handheld follow',
+  visibleText: [],
+  layoutNotes: ['speaker occupies center frame'],
+  brollOpportunities: [],
+  visualRisks: [],
+  doNotCopyNotes: [],
+  confidence: 'high',
+  timeRange: { startTimeSeconds: 8, endTimeSeconds: 12, label: '8s-12s' },
   sampledFrameCount: 0,
-  reason: 'smoke_missing_config',
-})
-assert.equal(fallback.sampledFramesPersisted, false)
-assert.match(fallback.visualSummary, /no Qwen2\.5-VL call/i)
-
-const updatedMarker = await saveProjectEditBriefVisualContextToMarker({
-  marker: marker as ProjectEditBriefMarkerRecord,
-  visualContext: fallback,
-  client,
-})
-assert.ok(updatedMarker)
-const stored = readProjectEditBriefVisualContextFromMarker(updatedMarker)
-assert.equal(stored?.id, fallback.id)
-assert.equal(stored?.sampledFramesPersisted, false)
-assert.equal(stored?.rawProviderPayloadStored, false)
-
-const visualPanel = read('src/components/projects/brief/ProjectEditBriefVisualContextPanel.tsx')
-assert.match(visualPanel, /sampleProjectSourceVideoFramesForMarker/)
-assert.match(visualPanel, /Select local source video first/)
-assert.doesNotMatch(visualPanel, /ChatNativeEditor/)
-
-const videoShell = read('src/components/projects/brief/ProjectEditBriefVideoShell.tsx')
-assert.match(videoShell, /onVideoElementReady/)
-
-const markerChatPanel = read('src/components/projects/brief/ProjectEditBriefMarkerChatPanel.tsx')
-assert.match(markerChatPanel, /Visual context unavailable/)
-assert.doesNotMatch(markerChatPanel, /summaryForQwen3.*messageText/s)
-
-const newSourceFiles = [
-  'src/lib/project-source-video-frame-sampler.ts',
-  'src/lib/project-edit-brief-visual-context-ui-adapter.ts',
-  'src/components/projects/brief/ProjectEditBriefVisualContextPanel.tsx',
-].map(read).join('\n')
-
-for (const unsafePattern of [
-  /from ['"]node:fs['"]/,
-  /readFile/,
-  /ffmpeg/i,
-  /ffprobe/i,
-  /whisper/i,
-  /createClient\(/,
-  /supabase\.(from|storage|functions)/i,
-  /renderJobCreated:\s*true/,
-  /workerJobCreated:\s*true/,
-  /creditReservedOrSpent:\s*true/,
-  /ChatNativeEditor/,
-]) {
-  assert.doesNotMatch(newSourceFiles, unsafePattern, `Visual context browser files must not match ${unsafePattern}`)
+  runtimeSource: 'visual_intelligence_authenticated_read',
+  summaryForOrchestra: 'Authenticated source-edit-planning observation.',
+  boundarySummary: 'Authenticated immutable report projection only.',
+  createdAt: '2026-08-03T00:00:00.000Z',
+  mockOnly: false,
 }
+const markerWithContext = {
+  ...marker,
+  metadata: { ...(marker.metadata ?? {}), latestVisualContext: context },
+} as ProjectEditBriefMarkerRecord
+const reread = readProjectEditBriefVisualContextFromMarker(markerWithContext)
+assert.equal(isCurrentProjectEditBriefVisualContext(context), true)
+assert.equal(reread, undefined)
+assert.match(createProjectEditBriefVisualContextSummary(reread), /Awaiting an authenticated Visual Intelligence report/u)
 
-const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
-assert.equal(packageJson.scripts?.['smoke:project-edit-brief-visual-context'], 'tsx server/smoke/project-edit-brief-visual-context-smoke.ts')
+const historical = {
+  ...context,
+  runtimeSource: 'qwen25vl_live' as const,
+  summaryForOrchestra: undefined,
+  summaryForQwen3: 'Historical summary retained for immutable audit.',
+}
+const historicalReread = readProjectEditBriefVisualContextFromMarker({
+  ...marker,
+  metadata: { ...(marker.metadata ?? {}), latestVisualContext: historical },
+} as ProjectEditBriefMarkerRecord)
+assert.equal(isHistoricalProjectEditBriefVisualContext(historicalReread), true)
+assert.equal(historicalReread?.summaryForOrchestra, historical.summaryForQwen3)
+assert.match(createProjectEditBriefVisualContextSummary(historicalReread), /Historical Qwen/u)
+
+let getterInvoked = false
+const hostile = Object.defineProperty({}, 'visualSummary', {
+  enumerable: true,
+  get() {
+    getterInvoked = true
+    throw new Error('must not run')
+  },
+})
+assert.equal(readProjectEditBriefVisualContextFromMarker({
+  ...marker,
+  metadata: { ...(marker.metadata ?? {}), latestVisualContext: hostile },
+} as ProjectEditBriefMarkerRecord), undefined)
+assert.equal(getterInvoked, false)
+
+const browserClient = read('src/lib/project-edit-brief-api-client.ts')
+const browserOptions = read('src/lib/reeditpro-api-client-types.ts')
+const visualPanel = read('src/components/projects/brief/ProjectEditBriefVisualContextPanel.tsx')
+const markerChatPanel = read('src/components/projects/brief/ProjectEditBriefMarkerChatPanel.tsx')
+const combinedActiveSource = [browserClient, browserOptions, visualPanel].join('\n')
+
+for (const retiredPattern of [
+  /liveQwen25VLVisualContext/u,
+  /qwen25VLVisualContextRuntime/u,
+  /loadQwen25VLVisualContextReadiness/u,
+  /project-edit-brief\/marker-visual-context/u,
+  /qwen25vl-beta\/readiness/u,
+  /sampleProjectSourceVideoFramesForMarker/u,
+  /ProjectEditBriefAnalyzeVisualContextButton/u,
+  /visualContext:\s*\{\s*analyze/su,
+]) assert.doesNotMatch(combinedActiveSource, retiredPattern)
+
+assert.match(visualPanel, /Authenticated report/u)
+assert.match(visualPanel, /Awaiting Orchestra/u)
+assert.match(markerChatPanel, /Authenticated Visual Intelligence evidence/u)
+assert.doesNotMatch(markerChatPanel, /summaryForQwen3.*messageText/su)
 
 const migrationCount = readdirSync(pathFor('supabase/migrations')).filter((name) => name.endsWith('.sql')).length
-assert.equal(migrationCount, 24, 'RP-QWENVL-BETA-01 must not change the existing 24 migration file baseline.')
+assert.equal(migrationCount, 24, 'Visual-context retirement must not change the migration baseline.')
 
 console.log(JSON.stringify({
   ok: true,
-  milestone: 'RP-QWENVL-BETA-01',
-  pointFramePlan: pointPlan.length,
-  rangeFramePlan: rangePlan.length,
-  visualContextStoredOnMarkerMetadata: true,
-  sampledFramesPersisted: false,
-  fullVideoUploaded: false,
-  backendFileBytesRead: false,
+  milestone: 'WEEDITPRO_VISUAL_INTELLIGENCE_BROWSER_QWEN_RETIREMENT_V1',
+  browserFrameSamplerPresent: false,
+  directBrowserQwenVisualRoutePresent: false,
+  browserLocalCurrentAuthorityRejected: true,
+  historicalQwenEvidenceReadOnly: true,
+  accessorBackedMetadataRejectedWithoutInvocation: true,
+  browserMayDispatchVisualIntelligence: false,
   migrationFileCount: migrationCount,
-  supabaseCommandRun: false,
-  workerJobCreated: false,
-  renderJobCreated: false,
-  creditReservedOrSpent: false,
 }, null, 2))

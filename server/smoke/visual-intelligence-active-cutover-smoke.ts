@@ -50,6 +50,15 @@ const workerRouteBridge = source(
 const toolCapabilityCardLoader = source(
   'server/tool-calling/tool-capability-card-loader.ts',
 )
+const projectEditBriefBrowserClient = source(
+  'src/lib/project-edit-brief-api-client.ts',
+)
+const projectEditBriefBrowserOptions = source(
+  'src/lib/reeditpro-api-client-types.ts',
+)
+const projectEditBriefVisualPanel = source(
+  'src/components/projects/brief/ProjectEditBriefVisualContextPanel.tsx',
+)
 
 assert.match(app, /createVisualIntelligenceOrchestraRoutes/u)
 assert.match(app, /createVisualIntelligenceRoutes/u)
@@ -197,11 +206,25 @@ for (const removedExecutablePath of [
   'docker/prod/gpu-worker/sam2/runner.py',
   'server/workers/masks/sam2-execution-runner.ts',
   'server/services/canonical-source-led-visual-intelligence-content-analysis-port.ts',
+  'src/lib/project-source-video-frame-sampler.ts',
+  'src/components/projects/brief/ProjectEditBriefAnalyzeVisualContextButton.tsx',
+  'tests/e2e/project-edit-brief-visual-context.spec.ts',
 ] as const) assert.equal(
   existsSync(removedExecutablePath),
   false,
   `${removedExecutablePath} must remain absent`,
 )
+
+for (const activeBrowserSource of [
+  projectEditBriefBrowserClient,
+  projectEditBriefBrowserOptions,
+  projectEditBriefVisualPanel,
+]) assert.doesNotMatch(
+  activeBrowserSource,
+  /liveQwen25VLVisualContext|qwen25VLVisualContextRuntime|loadQwen25VLVisualContextReadiness|\/v1\/project-edit-brief\/marker-visual-context|\/v1\/qwen25vl-beta\/readiness|sampleProjectSourceVideoFramesForMarker/u,
+)
+assert.match(projectEditBriefVisualPanel, /Awaiting Orchestra/u)
+assert.match(projectEditBriefVisualPanel, /Authenticated report/u)
 
 console.log(JSON.stringify({
   smoke: 'visual-intelligence-active-cutover',
@@ -215,6 +238,7 @@ console.log(JSON.stringify({
   sam31RequiresExactTrackAllOrchestraBinding: true,
   legacyDirectMaskWorkerRoutesRetired: true,
   nonE2EToolStudyCardsExcludedFromSelection: true,
+  browserSampledFrameQwenPathRetired: true,
   visualIntelligenceMayInspectButNotOwnSam31Artifacts: true,
   activeQwenVisualRuntimeMounted: false,
   activeSam2ExecutableRuntimePresent: false,

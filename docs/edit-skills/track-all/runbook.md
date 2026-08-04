@@ -9,6 +9,7 @@ npm run test:track-all-deterministic-geometry
 npm run test:track-all-privacy-redaction
 npm run test:track-all-focus-reframe
 npm run test:track-all-cross-skill-handoffs
+npm run test:track-all-independent-qa-repair
 ```
 
 The privacy command runs all four fixed treatments and one attempt through the

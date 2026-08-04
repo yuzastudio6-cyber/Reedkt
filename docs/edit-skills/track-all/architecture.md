@@ -114,6 +114,18 @@ The artifacts contain references and geometry policy only: private mask bytes
 remain private, peer skills retain final design ownership, and Track All does
 not dispatch any peer skill. See `cross-skill-handoffs.md`.
 
+## Independent QA and bounded repair
+
+TRACK-14 derives target, temporal, mask, chunk-seam, identity, camera/planar,
+privacy, and integration findings from strict measurement artifacts. Report
+schemas derive their aggregate disposition from the findings, so a raw boolean
+or inconsistent rehashed report cannot approve output.
+
+The repair director selects a bounded response from the failed evidence. One
+automatic repair is allowed, a second needs exact manual authority, and a
+third is rejected. Post-repair acceptance requires fresh independently passed
+QA. See `qa-and-repair.md`.
+
 ## Qualification boundary
 
 Passing planning smokes establishes tested planning behavior, not a frozen

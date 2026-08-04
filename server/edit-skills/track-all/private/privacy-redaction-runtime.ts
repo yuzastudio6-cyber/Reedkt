@@ -409,20 +409,11 @@ export function deriveTrackAllPrivacyQaReport(input: {
     authorizedRange: input.compiled.plan.authorizedRange,
     findings,
     disposition: passed ? ('pass' as const) : ('critical' as const),
-    sensitiveExposureDetected: false as const,
-    lostTrackWindowsCovered: true as const,
-    reflectionsInspected: true as const,
+    sensitiveExposureDetected: !effectApplied || !coveragePassed,
+    lostTrackWindowsCovered: inspection.conservativeUncertaintyFramesCovered,
+    reflectionsInspected:
+      !input.reflectionInspectionRequired || inspection.reflectionFramesCovered,
     flattenedPreviewRef: input.flattenedPreviewRef,
-  }
-  if (!passed) {
-    throw new Error(
-      'Privacy QA failed closed; no accepted redaction result may be projected ' +
-        `(treatment=${input.compiled.recipe.treatment};` +
-        `delta=${inspection.minimumMaskedMeanAbsoluteDelta};` +
-        `edgeRatio=${inspection.maximumMaskedOutputEdgeEnergyRatio};` +
-        `darkRatio=${inspection.minimumMaskedOutputDarkPixelRatio};` +
-        `coverage=${String(coveragePassed)}).`,
-    )
   }
   return trackAllPrivacyQaReportSchema.parse({
     ...core,

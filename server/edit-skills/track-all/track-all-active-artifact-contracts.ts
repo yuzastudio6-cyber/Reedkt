@@ -211,16 +211,32 @@ function qaReportSchema<const V extends string, T extends z.ZodRawShape>(schemaV
     findings: z.array(skillQaFindingSchema).min(1).max(1_000),
     disposition: z.enum(['pass', 'warning', 'needs_review', 'blocking', 'critical']),
     ...metrics,
-  }).strict())
+  }).strict()).superRefine((value, context) => {
+    const order = ['pass', 'warning', 'needs_review', 'blocking', 'critical'] as const
+    const record = value as Readonly<Record<string, unknown>>
+    const findings = record.findings as readonly z.infer<typeof skillQaFindingSchema>[]
+    const derived = findings.reduce<(typeof order)[number]>(
+      (current, finding) => order.indexOf(finding.disposition) > order.indexOf(current)
+        ? finding.disposition
+        : current,
+      'pass',
+    )
+    if (record.disposition !== derived) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Track All QA report disposition must be derived from its findings.',
+      })
+    }
+  })
 }
 
 export const trackAllTargetQaReportSchema = qaReportSchema('track_all_target_qa_report_v1', { correctTarget: z.boolean(), exclusionsPreserved: z.boolean(), expectedCountRespected: z.boolean() })
 export const trackAllTemporalQaReportSchema = qaReportSchema('track_all_temporal_qa_report_v1', { missingSpanCount: z.number().int().nonnegative(), jumpCount: z.number().int().nonnegative(), shotResetsValid: z.boolean() })
 export const trackAllMaskQaReportSchema = qaReportSchema('track_all_mask_qa_report_v1', { coverageMinimum: unit, leakageMaximum: unit, flickerMaximum: unit, motionBlurCovered: z.boolean() })
-export const trackAllPrivacyQaReportSchema = qaReportSchema('track_all_privacy_qa_report_v1', { sensitiveExposureDetected: z.literal(false), lostTrackWindowsCovered: z.literal(true), reflectionsInspected: z.literal(true), flattenedPreviewRef: editSkillArtifactReferenceSchema })
+export const trackAllPrivacyQaReportSchema = qaReportSchema('track_all_privacy_qa_report_v1', { sensitiveExposureDetected: z.boolean(), lostTrackWindowsCovered: z.boolean(), reflectionsInspected: z.boolean(), flattenedPreviewRef: editSkillArtifactReferenceSchema })
 export const trackAllChunkSeamQaReportSchema = qaReportSchema('track_all_chunk_seam_qa_report_v1', { seamCount: z.number().int().nonnegative(), uncertainSeamCount: z.number().int().nonnegative(), maximumSeamError: z.number().nonnegative() })
-export const trackAllIdentityQaReportSchema = qaReportSchema('track_all_identity_qa_report_v1', { silentIdentitySwitchDetected: z.literal(false), uncertainIdentityCount: z.number().int().nonnegative(), shotResetCount: z.number().int().nonnegative() })
-export const trackAllIntegrationQaReportSchema = qaReportSchema('track_all_integration_qa_report_v1', { outsideAuthorizedRangeModified: z.literal(false), sourceAndTimingExact: z.literal(true), privateOutput: z.literal(true), publicUrlPresent: z.literal(false), layerOrderValid: z.boolean() })
+export const trackAllIdentityQaReportSchema = qaReportSchema('track_all_identity_qa_report_v1', { silentIdentitySwitchDetected: z.boolean(), uncertainIdentityCount: z.number().int().nonnegative(), shotResetCount: z.number().int().nonnegative() })
+export const trackAllIntegrationQaReportSchema = qaReportSchema('track_all_integration_qa_report_v1', { outsideAuthorizedRangeModified: z.boolean(), sourceAndTimingExact: z.boolean(), privateOutput: z.boolean(), publicUrlPresent: z.boolean(), layerOrderValid: z.boolean() })
 
 export const trackAllRepairReceiptSchema = addressed(z.object({
   schemaVersion: z.literal('track_all_repair_receipt_v1'), ...lineageFields,

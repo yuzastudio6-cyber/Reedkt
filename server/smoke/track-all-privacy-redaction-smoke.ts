@@ -250,19 +250,26 @@ try {
         sourceSha256,
         outputSha256: hash('unchanged-output'),
       })
+      const unchangedMediaRef = ref(
+        'private_flattened_track_all_redaction_preview_v1',
+        unchangedInspection.outputSha256,
+        sourceFrames.byteLength,
+      )
+      const failedQa = deriveTrackAllPrivacyQaReport({
+        compiled,
+        inspection: unchangedInspection,
+        flattenedPreviewRef: unchangedMediaRef,
+        reflectionInspectionRequired: true,
+      })
+      assert.equal(failedQa.disposition, 'critical')
+      assert.equal(failedQa.sensitiveExposureDetected, true)
       assert.throws(
-        () =>
-          deriveTrackAllPrivacyQaReport({
-            compiled,
-            inspection: unchangedInspection,
-            flattenedPreviewRef: ref(
-              'private_flattened_track_all_redaction_preview_v1',
-              unchangedInspection.outputSha256,
-              sourceFrames.byteLength,
-            ),
-            reflectionInspectionRequired: true,
-          }),
-        /failed closed/iu,
+        () => finalizeTrackAllPrivacyRedaction({
+          compiled,
+          privateMediaRef: unchangedMediaRef,
+          privacyQaReport: failedQa,
+        }),
+        /requires the exact independently passed/iu,
       )
       unchangedPreviewRejected = true
     }

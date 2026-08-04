@@ -1465,6 +1465,80 @@ Production qualification remains false. No orchestra, Track All, Visual
 Intelligence, paid provider call, public delivery, final export, production
 mutation, durable storage implementation, or billing work was performed.
 
+## M22 — CI media-runtime correction
+
+Status: completed and pushed.
+
+Implementation commit: `c79d93e71c19e4bdc286a5385e76f5ebabdaca8b`.
+
+Generated qualification artifact commit:
+`a39b9feda86344acde9e7f3ca05c828ddd5f16f7`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to `a39b9feda86344acde9e7f3ca05c828ddd5f16f7` after
+`git push -u origin HEAD`.
+
+The UI QA workflow now installs the system FFmpeg package once, before browser
+E2E, and explicitly executes `ffmpeg -version` and `ffprobe -version`. The
+same installation remains available to the later authenticated private
+pipeline, so the previous duplicate post-browser installer was removed. The
+browser command and its failure semantics were not changed: it remains the
+exact required `npm run test:e2e` step with no skip, conditional suppression,
+`continue-on-error`, fake media, or ignored `ENOENT` path.
+
+`test:ui-qa-media-runtime-workflow` enforces the installation order, both
+version probes, one installation, the unweakened browser command, and the
+continued presence of server/security/private-pipeline stages. The check is
+part of internal B-roll qualification and its source participates in the
+relevant source-tree hash.
+
+GitHub Actions pull-request run
+`https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/30869147578`
+proved the media-runtime step, lint, typecheck, and build all passed. Browser
+E2E then ran the full 138-test main Playwright suite: 131 passed, seven were
+the repository's declared skips, and none failed. In particular, the log no
+longer contains `spawn ffmpeg ENOENT`.
+
+The subsequent five-test Current Edit Preferences atomic suite reported the
+same three pre-existing failures as a detached worktree at exact PR base
+`6423f12c1e62a252fc860ce5184888770411c62d`: stale plan clearing, requested
+`no_extra_visuals`, and untouched `editLevelConfirmed`. Both base and branch
+produced two passes and those identical three failures. The B-roll branch does
+not modify those test files, and M22 does not weaken or change their
+assertions. Consequently GitHub correctly remains red on an unrelated base
+regression even though the FFmpeg environment defect is resolved.
+
+The nine downstream security-boundary commands were run independently and all
+passed. `qa:internal-pipeline` was also invoked locally; it passed its first
+five stages and then failed at the unchanged canonical V3 local-database
+fixture because temporary upload-target escrow persistence returned
+`temporary_target_escrow_write_failed`. A clean isolated rerun reproduced that
+failure, and there is no branch diff against the PR base under
+`database/canonical-v3-local`, `server/upload-target-authority`, or the failing
+smoke. This is recorded as separate base/environment evidence, not a B-roll or
+FFmpeg success claim.
+
+Final evidence:
+
+- Manifest schema: `skill-capability-manifest-v2`.
+- Manifest hash:
+  `f76f07bd05a4e38ff61a04cdb4fa3d5784c41d1018f497f2d3d3c390c260d427`.
+- Tested commit:
+  `c79d93e71c19e4bdc286a5385e76f5ebabdaca8b`.
+- Relevant source-tree hash:
+  `728e4295235751484722887f588f00389727050a89c8c3650e3ed3c7c885db40`.
+- Qualification receipt hash:
+  `604fd71d06db678c51a8df95c68cb449057b8ecc90cae4865074cf1f57f7d90f`.
+- Generated qualification artifact hash:
+  `4f180d438fdf08da054f071f470319d19acf19cd65ce0e3e5187003fba3627d8`.
+- Aggregate qualification: all 26 actual commands and 36 required fixtures
+  passed with zero provider requests, public artifacts, and production
+  mutations.
+
+Production qualification remains false. No orchestra, Track All, Visual
+Intelligence, paid provider call, public delivery, final export, production
+mutation, or billing work was performed.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1491,3 +1565,4 @@ mutation, durable storage implementation, or billing work was performed.
 | M19 | `e13a99cd0` + `387e3b7f5` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M20 | `c34664df7` + `851702089` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M21 | `cc516c651` + `ae3dde206` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M22 | `c79d93e71` + `a39b9feda` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

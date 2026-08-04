@@ -218,28 +218,28 @@ assert.equal(
   null,
 )
 
-const canonicalEvidence = createCanonicalQualificationEvidence()
+export const canonicalEvidence = createCanonicalQualificationEvidence()
 const canonicalEvidenceRef =
   canonicalSam31GpuRuntimeQualificationEvidenceRef(canonicalEvidence)
-const canonicalDriver = component(
+export const canonicalDriver = component(
   'sam31-canonical-a100-driver-component',
   'driver_and_cuda',
   canonicalEvidence.driverEvidence,
   canonicalEvidence,
 )
-const canonicalDeterministic = component(
+export const canonicalDeterministic = component(
   'sam31-canonical-a100-deterministic-run-set',
   'deterministic_run_set',
   canonicalEvidence.deterministicRuns,
   canonicalEvidence,
 )
-const canonicalPerformance = component(
+export const canonicalPerformance = component(
   'sam31-canonical-a100-eight-minute-performance',
   'eight_minute_performance',
   canonicalEvidence.performanceEvidence,
   canonicalEvidence,
 )
-const canonicalQuality = component(
+export const canonicalQuality = component(
   'sam31-canonical-a100-independent-temporal-quality',
   'independent_temporal_quality',
   canonicalEvidence.qualityEvidence,

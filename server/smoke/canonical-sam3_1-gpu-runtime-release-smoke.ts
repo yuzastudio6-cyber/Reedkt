@@ -456,8 +456,25 @@ CanonicalSam31SourceCheckpointQualificationObservation {
     qualificationResultRuntimeRef:
       ref('sam31-runtime-release-qualification-result'),
     qualificationLogRef: ref('sam31-runtime-release-qualification-log'),
+    qualificationJobTerminalObservationRef:
+      ref('sam31-runtime-release-qualification-job-terminal'),
     internalCostReceiptRef:
       ref('sam31-runtime-release-qualification-cost'),
+    qualificationImageRef:
+      ref('sam31-runtime-release-qualification-image'),
+    qualificationImageSupplyChainReleaseRef:
+      ref('sam31-runtime-release-qualification-image-release'),
+    qualificationImageDigest:
+      `sha256:${digest('sam31-runtime-release-qualification-image')}`,
+    qualificationJobRuntimeImageDigest:
+      `sha256:${digest('sam31-runtime-release-qualification-image')}`,
+    qualificationJobSucceeded: false,
+    qualificationJobNetworkEgressDisabled: false,
+    qualificationJobAutomaticRetryCount: 0,
+    qualificationRequestObjectReread: false,
+    qualificationRequestCheckpointAndFixtureMountsReadOnly: false,
+    qualificationResultMountCreateOnly: false,
+    qualificationResultObjectCreateOnlyAndReread: false,
     dependencyClosureRef:
       ref('sam31-runtime-release-dependency-closure'),
     dependencyLockSha256: digest('sam31-runtime-release-lock'),

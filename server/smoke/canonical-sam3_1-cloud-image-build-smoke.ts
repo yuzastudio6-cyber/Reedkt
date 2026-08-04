@@ -25,8 +25,12 @@ import {
 } from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 import {
   compileCanonicalSam31SourceCheckpointQualification,
+  createCanonicalSam31SourceCheckpointQualificationObservation,
   type CanonicalSam31SourceCheckpointQualificationObservation,
 } from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification'
+import {
+  createCanonicalSam31QualificationWorkerEvidenceFixture,
+} from './fixtures/canonical-sam3_1-qualification-worker-fixture'
 import {
   assertCanonicalSam31CloudImageBuildSubmission,
   assertCanonicalSam31CloudImageBuildTerminalObservation,
@@ -737,7 +741,23 @@ function createQualification(
     qualificationAttemptRef: ref('sam31-build-qualification-attempt'),
     qualificationResultRuntimeRef: ref('sam31-build-qualification-result'),
     qualificationLogRef: ref('sam31-build-qualification-log'),
+    qualificationJobTerminalObservationRef:
+      ref('sam31-build-qualification-job-terminal'),
     internalCostReceiptRef: ref('sam31-build-qualification-cost'),
+    qualificationImageRef: ref('sam31-build-qualification-image'),
+    qualificationImageSupplyChainReleaseRef:
+      ref('sam31-build-qualification-image-release'),
+    qualificationImageDigest:
+      `sha256:${sha(Buffer.from('sam31-build-qualification-image'))}`,
+    qualificationJobRuntimeImageDigest:
+      `sha256:${sha(Buffer.from('sam31-build-qualification-image'))}`,
+    qualificationJobSucceeded: admitted,
+    qualificationJobNetworkEgressDisabled: admitted,
+    qualificationJobAutomaticRetryCount: 0,
+    qualificationRequestObjectReread: admitted,
+    qualificationRequestCheckpointAndFixtureMountsReadOnly: admitted,
+    qualificationResultMountCreateOnly: admitted,
+    qualificationResultObjectCreateOnlyAndReread: admitted,
     dependencyClosureRef: ref('sam31-build-dependency-closure'),
     dependencyLockSha256: sha(Buffer.from('sam31-build-dependency-lock')),
     dependencyClosureReceiptSha256:
@@ -822,6 +842,24 @@ function createQualification(
       providerInferenceExecuted: false,
     },
     qualifiedAt: '2026-08-03T12:45:00.000Z',
+  }
+  if (evidenceClass === 'canonical_private_reread') {
+    const workerEvidence =
+      createCanonicalSam31QualificationWorkerEvidenceFixture({
+        candidate,
+        ingestReceipt,
+        qualificationId: observation.qualificationId,
+        qualifiedAt: observation.qualifiedAt,
+      })
+    return compileCanonicalSam31SourceCheckpointQualification({
+      candidate,
+      ingestReceipt,
+      observation:
+        createCanonicalSam31SourceCheckpointQualificationObservation(
+          workerEvidence,
+        ),
+      workerEvidence,
+    })
   }
   return compileCanonicalSam31SourceCheckpointQualification({
     candidate,

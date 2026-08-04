@@ -97,6 +97,36 @@ Runtime rules once qualified:
 
 `canonical-sam3_1-source-checkpoint-compatibility-qualification-v1` is the
 mandatory gate between private artifact ingest and image-build eligibility.
+`Dockerfile.qualification.candidate`, `qualification_entrypoint.sh`, and
+`qualification_runner.py` are the separate fixed A100-only executor for that
+gate. This prevents the production image from needing to trust a qualification
+receipt that it would otherwise have to create itself. The qualification image
+contains the pinned patched source and offline dependency closure, but never
+the gated checkpoint. One exact checkpoint and one server-owned person probe
+MP4 are mounted read-only for one network-none Batch attempt; the worker writes
+one create-only byte-free result.
+
+The request also binds the exact immutable qualification-image digest, its
+scanned/signed supply-chain release, and the Dockerfile/entrypoint/runner
+source refs. Canonical admission requires the terminal Batch observation to
+reread that same image digest, prove network egress was disabled, prove zero
+automatic retries, reread the request, and reread the create-only result. A
+base-image digest or a worker-echoed image field cannot satisfy this boundary.
+The fixed image preserves the canonical dependency wheel-manifest digest and
+the worker rereads it alongside the lock and dependency-closure receipt.
+
+The server-created worker request is
+`canonical-sam3_1-source-checkpoint-qualification-worker-request-v1` and the
+fixed result is
+`canonical-sam3_1-source-checkpoint-qualification-worker-result-v1`. The
+worker instruments `torch.load` around the fixed Object Multiplex builder so
+the checkpoint is weights-only loaded exactly once, captures the normalized
+checkpoint key set, requires strict equality with the assembled model state,
+and runs three complete start/prompt/forward-propagate/close sessions. All
+three CUDA mask/box/object digests must be identical. A direct canonical
+qualification compiler call without this exact request-matched fixed-worker
+evidence now fails closed.
+
 It can become canonical only from a dedicated, network-none A100 80 GB
 qualification attempt using the pinned base image, exact offline dependency
 closure, exact source and patch, and the exact private gated checkpoint. The
@@ -115,8 +145,9 @@ developer-machine run cannot satisfy the gate.
 The receipt authorizes only private image-build review. It does not authorize
 Cloud Build, an A100/L4 customer job, billing, QA approval, public delivery,
 or production. The current repository contains the contract and refusal
-tests only; a canonical receipt remains absent until official gated access,
-the private artifact scans/reviews, and an A100 qualification allocation are
+tests plus the fixed cloud-only qualification executor; a canonical receipt
+remains absent until official gated access, the private artifact scans/reviews,
+an immutable qualified qualification-image digest, and an A100 allocation are
 available.
 
 ## Offline immutable image build boundary

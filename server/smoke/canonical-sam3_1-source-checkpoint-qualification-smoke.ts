@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 
 import {
   assertCanonicalSam31PrivateArtifactIngestReceipt,
@@ -8,9 +9,15 @@ import {
 } from '../model-artifacts/canonical-sam3_1-private-artifact-ingest'
 import {
   assertCanonicalSam31SourceCheckpointQualification,
+  assertCanonicalSam31SourceCheckpointQualificationWorkerRequest,
+  assertCanonicalSam31SourceCheckpointQualificationWorkerResult,
   canonicalSam31SourceCheckpointQualificationRef,
   compileCanonicalSam31SourceCheckpointQualification,
+  createCanonicalSam31SourceCheckpointQualificationObservation,
+  createCanonicalSam31SourceCheckpointQualificationWorkerRequest,
+  sealCanonicalSam31SourceCheckpointQualificationWorkerResult,
   type CanonicalSam31SourceCheckpointQualificationObservation,
+  type CanonicalSam31SourceCheckpointQualificationWorkerEvidence,
 } from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification'
 import {
   createCanonicalSam31SourceRuntimeCandidate,
@@ -20,6 +27,11 @@ import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 const candidate = createCanonicalSam31SourceRuntimeCandidate()
 const syntheticIngest = await createSyntheticIngest()
 const canonicalIngest = canonicalizeIngest(syntheticIngest)
+const canonicalWorkerEvidence = workerEvidence()
+const canonicalWorkerObservation =
+  createCanonicalSam31SourceCheckpointQualificationObservation(
+    canonicalWorkerEvidence,
+  )
 const synthetic = compileCanonicalSam31SourceCheckpointQualification({
   candidate,
   ingestReceipt: syntheticIngest,
@@ -38,7 +50,8 @@ assert.equal(synthetic.authority.customerCreditsMutated, false)
 const canonical = compileCanonicalSam31SourceCheckpointQualification({
   candidate,
   ingestReceipt: canonicalIngest,
-  observation: observation('canonical_private_reread', true),
+  observation: canonicalWorkerObservation,
+  workerEvidence: canonicalWorkerEvidence,
 })
 assert.equal(canonical.status, 'qualified_for_private_image_build')
 assert.equal(
@@ -93,10 +106,79 @@ assert.throws(() => assertCanonicalSam31SourceCheckpointQualification(
 ))
 
 assert.throws(() => compileCanonicalSam31SourceCheckpointQualification({
-    candidate,
-    ingestReceipt: syntheticIngest,
-    observation: observation('canonical_private_reread', true),
-  }))
+  candidate,
+  ingestReceipt: syntheticIngest,
+  observation: observation('canonical_private_reread', true),
+}))
+
+const wrongRuntimeImage = {
+  ...structuredClone(canonicalWorkerEvidence),
+  terminalJobObservation: {
+    ...canonicalWorkerEvidence.terminalJobObservation,
+    immutableImageDigest:
+      `sha256:${digest('wrong-qualification-image')}`,
+  },
+}
+assert.throws(() => createCanonicalSam31SourceCheckpointQualificationObservation(
+  wrongRuntimeImage,
+))
+
+const tamperedRequest = structuredClone(canonicalWorkerEvidence.request)
+tamperedRequest.qualificationImage.immutableImageDigest =
+  `sha256:${digest('tampered-qualification-image')}`
+assert.throws(() =>
+  assertCanonicalSam31SourceCheckpointQualificationWorkerRequest(
+    tamperedRequest,
+  ))
+
+const tamperedWorkerResult = structuredClone(canonicalWorkerEvidence.result)
+tamperedWorkerResult.strictLoad.checkpointLoadedExactlyOnce = false as never
+assert.throws(() =>
+  assertCanonicalSam31SourceCheckpointQualificationWorkerResult(
+    tamperedWorkerResult,
+  ))
+
+const shortWorkerResult = structuredClone(canonicalWorkerEvidence.result)
+shortWorkerResult.deterministicRuns.pop()
+assert.throws(() =>
+  assertCanonicalSam31SourceCheckpointQualificationWorkerResult(
+    shortWorkerResult,
+  ))
+
+const dockerfile = readFileSync(
+  new URL(
+    '../../docker/prod/gpu-worker/sam3_1/Dockerfile.qualification.candidate',
+    import.meta.url,
+  ),
+  'utf8',
+)
+const runner = readFileSync(
+  new URL(
+    '../../docker/prod/gpu-worker/sam3_1/qualification_runner.py',
+    import.meta.url,
+  ),
+  'utf8',
+)
+const entrypoint = readFileSync(
+  new URL(
+    '../../docker/prod/gpu-worker/sam3_1/qualification_entrypoint.sh',
+    import.meta.url,
+  ),
+  'utf8',
+)
+assert.match(dockerfile, /source-checkpoint-qualification-only/u)
+assert.match(dockerfile, /SAM31_DEPENDENCY_WHEEL_MANIFEST_SHA256/u)
+assert.doesNotMatch(
+  dockerfile,
+  /source-checkpoint-compatibility-receipt\.json/u,
+)
+assert.doesNotMatch(dockerfile, /sam3\.1_multiplex\.pt/u)
+assert.match(runner, /get_unsafe_globals_in_checkpoint/u)
+assert.match(runner, /strict_checkpoint_load=True/u)
+assert.match(runner, /for ordinal in range\(1, 4\)/u)
+assert.doesNotMatch(runner, /requests\.|urllib|huggingface_hub/u)
+assert.match(entrypoint, /nvidia_a100_80gb/u)
+assert.match(entrypoint, /exec python -I -B/u)
 
 for (const mutate of [
   (value: CanonicalSam31SourceCheckpointQualificationObservation) => {
@@ -124,18 +206,19 @@ for (const mutate of [
     value.compatibilityProbe.actualCudaModelInferenceExecuted = false
   },
 ] as const) {
-  const hostile = observation('canonical_private_reread', true)
+  const hostile = structuredClone(canonicalWorkerObservation)
   mutate(hostile)
   assert.throws(() => compileCanonicalSam31SourceCheckpointQualification({
     candidate,
     ingestReceipt: canonicalIngest,
     observation: hostile,
+    workerEvidence: canonicalWorkerEvidence,
   }))
 }
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification',
-  checks: 33,
+  checks: 56,
   syntheticStatus: synthetic.status,
   canonicalStatus: canonical.status,
   qualificationRuns:
@@ -144,6 +227,9 @@ console.log(JSON.stringify({
   a100QualificationOnly: true,
   networkEgressAllowed: false,
   strictCheckpointLoad: true,
+  fixedWorkerEvidenceRequired: true,
+  checkpointLoadedExactlyOnce: true,
+  deterministicProbeRuns: 3,
   missingCheckpointKeyCount: 0,
   unexpectedCheckpointKeyCount: 0,
   imageBuildStarted: canonical.authority.imageBuildStarted,
@@ -152,6 +238,189 @@ console.log(JSON.stringify({
   productionReady: canonical.authority.productionReady,
   qualificationHash: canonical.qualificationHash,
 }))
+
+function workerEvidence():
+CanonicalSam31SourceCheckpointQualificationWorkerEvidence {
+  const checkpointKeySetHash = digest('sam31-checkpoint-key-set')
+  const fixtureHash = digest('sam31-fixed-person-probe-mp4')
+  const qualificationImageDigest = digest('sam31-qualification-image')
+  const request = createCanonicalSam31SourceCheckpointQualificationWorkerRequest({
+    qualificationId: 'sam31-source-checkpoint-canonical-private-reread',
+    candidate,
+    ingestReceipt: canonicalIngest,
+    qualificationImage: {
+      artifactRef: contentRef(
+        'sam31-qualification-image', qualificationImageDigest,
+      ),
+      immutableImageDigest: `sha256:${qualificationImageDigest}`,
+      supplyChainReleaseRef: ref('sam31-qualification-image-release'),
+      dockerfileSourceRef: ref('sam31-qualification-dockerfile-source'),
+      entrypointSourceRef: ref('sam31-qualification-entrypoint-source'),
+      runnerSourceRef: ref('sam31-qualification-runner-source'),
+    },
+    patchedSourceArchiveRef: contentRef(
+      'sam31-patched-source',
+      'b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb',
+    ),
+    patchApplicationReceiptRef: ref('sam31-patch-application'),
+    checkpointWeightsOnlyInspectionRef:
+      ref('sam31-checkpoint-weights-only'),
+    dependencyClosureRef: ref('sam31-dependency-closure'),
+    dependencyLockSha256: digest('sam31-dependency-lock'),
+    dependencyClosureReceiptSha256: digest('sam31-dependency-receipt'),
+    dependencyWheelManifestSha256: digest('sam31-wheel-manifest'),
+    sourceCodeSecurityReviewRef: ref('sam31-source-code-security'),
+    deterministicProbeFixture: {
+      artifactRef: contentRef('sam31-probe-fixture', fixtureHash),
+      byteLength: 1_024,
+      sha256: fixtureHash,
+      width: 128,
+      height: 128,
+      frameCount: 3,
+    },
+    issuedAt: '2026-08-03T21:59:00.000Z',
+  })
+  const deterministicOutputDigest = digest('sam31-deterministic-probe-output')
+  const result = sealCanonicalSam31SourceCheckpointQualificationWorkerResult({
+    schemaVersion:
+      'canonical-sam3_1-source-checkpoint-qualification-worker-result-v1',
+    source: 'fixed_sam3_1_a100_source_checkpoint_qualification_worker',
+    evidenceClass: 'canonical_private_reread',
+    qualificationId: request.qualificationId,
+    qualificationVersion: 1,
+    operationId: request.operationId,
+    requestRef: {
+      id: request.qualificationId,
+      version: 1,
+      schemaVersion: request.schemaVersion,
+      contentHash: `sha256:${request.requestHash}`,
+    },
+    candidateRef: request.candidateRef,
+    ingestReceiptRef: request.ingestReceiptRef,
+    qualificationImage: {
+      artifactRef: request.qualificationImage.artifactRef,
+      immutableImageDigest:
+        request.qualificationImage.immutableImageDigest,
+      supplyChainReleaseRef:
+        request.qualificationImage.supplyChainReleaseRef,
+    },
+    artifactVerification: {
+      exactSourceArchiveReread: true,
+      exactPatchedSourceArchiveReread: true,
+      exactCheckpointRereadBeforeAndAfter: true,
+      exactDependencyWheelAndNativeClosureReread: true,
+      sourcePatchApplicationReceiptReread: true,
+      deterministicProbeFixtureReread: true,
+      weightsOnlyCheckpointInspectionExecuted: true,
+      unsafeCheckpointGlobalCount: 0,
+    },
+    runtime: {
+      executionTarget: 'google_cloud_batch_a2_ultra_job',
+      machineType: 'a2-ultragpu-1g',
+      accelerator: 'nvidia_a100_80gb',
+      allocatedGpuCount: 1,
+      observedGpuName: 'NVIDIA A100-SXM4-80GB',
+      observedGpuTotalMemoryBytes: 85_899_345_920,
+      baseImageDigest:
+        'sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca',
+      pythonVersion: '3.12',
+      torchVersion: '2.10.0+cu128',
+      torchvisionVersion: '0.25.0',
+      torchcodecVersion: '0.10.0',
+      cudaVersion: '12.8',
+      fixedBuilder: 'build_sam3_multiplex_video_predictor',
+      networkEgressObserved: false,
+      developerMachineExecutionObserved: false,
+      cpuOnlyModelExecutionObserved: false,
+      quantizationOrResolutionReductionUsed: false,
+      providerInferenceExecuted: false,
+      bfloat16AutocastExecuted: true,
+    },
+    strictLoad: {
+      fixedBuilderImportedFromPinnedSource: true,
+      fixedBuilderCalledExactlyOnce: true,
+      checkpointLoadedExactlyOnce: true,
+      strictCheckpointLoadRequested: true,
+      missingCheckpointKeyCount: 0,
+      unexpectedCheckpointKeyCount: 0,
+      checkpointKeyCount: 257,
+      modelStateKeyCount: 257,
+      checkpointKeySetSha256: checkpointKeySetHash,
+      modelStateKeySetSha256: checkpointKeySetHash,
+      checkpointAndModelKeySetsExact: true,
+    },
+    deterministicRuns: [1, 2, 3].map((runOrdinal) => ({
+      runOrdinal,
+      sessionStarted: true,
+      promptAdded: true,
+      completeForwardPropagationExecuted: true,
+      sessionClosed: true,
+      emittedFrameCount: 3,
+      emittedObjectCount: 1,
+      outputMaskShapeMatchedProbeFrames: true,
+      outputObjectIdsMatchedProbePrompt: true,
+      outputMasksWereCudaTensorsBeforeDigest: true,
+      outputDigestSha256: deterministicOutputDigest,
+      wallTimeMilliseconds: 1_000,
+      cudaInferenceMilliseconds: 900,
+    })) as never,
+    deterministicOutputDigestSha256: deterministicOutputDigest,
+    deterministicOutputDigestMatchedEveryRun: true,
+    actualCudaModelInferenceExecuted: true,
+    completedAt: '2026-08-03T22:00:00.000Z',
+    authority: {
+      qualificationEvidenceOnly: true,
+      imageBuildStarted: false,
+      productionRuntimeDispatchAuthorized: false,
+      customerCreditsMutated: false,
+      customerBillingAuthorityGranted: false,
+      qaApproved: false,
+      publicDeliveryAuthorized: false,
+      productionReady: false,
+    },
+  })
+  return {
+    request,
+    result,
+    qualificationJobRef: ref('sam31-qualification-job'),
+    qualificationAttemptRef: ref('sam31-qualification-attempt'),
+    qualificationResultRuntimeRef: contentRef(
+      'sam31-qualification-result', result.resultHash,
+    ),
+    qualificationLogRef: ref('sam31-qualification-log'),
+    qualificationJobTerminalObservationRef:
+      ref('sam31-qualification-job-terminal-observation'),
+    internalCostReceiptRef: ref('sam31-qualification-internal-cost'),
+    deterministicProbeResultRef: contentRef(
+      'sam31-probe-result', result.deterministicOutputDigestSha256,
+    ),
+    terminalJobObservation: {
+      immutableImageDigest:
+        request.qualificationImage.immutableImageDigest,
+      jobSucceeded: true,
+      networkEgressDisabled: true,
+      automaticRetryCount: 0,
+      requestObjectReread: true,
+      requestCheckpointAndFixtureMountsReadOnly: true,
+      resultMountCreateOnly: true,
+      resultObjectCreateOnlyAndReread: true,
+    },
+    securityAndCompliance: {
+      sourceLicenseReviewedForApprovedUse: true,
+      checkpointLicenseReviewedForApprovedUse: true,
+      privacyReviewApprovedForPrivateQualification: true,
+      tradeControlsReviewApprovedForPrivateQualification: true,
+      sourceMalwareScanPassed: true,
+      checkpointMalwareScanPassed: true,
+      sourceStaticSecurityReviewPassed: true,
+      checkpointWeightsOnlyLoadPassed: true,
+      checkpointTensorAndMetadataAllowlistPassed: true,
+      executablePickleTrustGranted: false,
+      checkpointRedistributionAuthorized: false,
+    },
+    qualifiedAt: '2026-08-03T22:00:00.000Z',
+  }
+}
 
 function observation(
   evidenceClass:
@@ -168,7 +437,23 @@ function observation(
     qualificationAttemptRef: ref('sam31-qualification-attempt'),
     qualificationResultRuntimeRef: ref('sam31-qualification-result'),
     qualificationLogRef: ref('sam31-qualification-log'),
+    qualificationJobTerminalObservationRef:
+      ref('sam31-qualification-job-terminal-observation'),
     internalCostReceiptRef: ref('sam31-qualification-internal-cost'),
+    qualificationImageRef: ref('sam31-qualification-image'),
+    qualificationImageSupplyChainReleaseRef:
+      ref('sam31-qualification-image-release'),
+    qualificationImageDigest:
+      `sha256:${digest('sam31-qualification-image')}`,
+    qualificationJobRuntimeImageDigest:
+      `sha256:${digest('sam31-qualification-image')}`,
+    qualificationJobSucceeded: admitted,
+    qualificationJobNetworkEgressDisabled: admitted,
+    qualificationJobAutomaticRetryCount: 0,
+    qualificationRequestObjectReread: admitted,
+    qualificationRequestCheckpointAndFixtureMountsReadOnly: admitted,
+    qualificationResultMountCreateOnly: admitted,
+    qualificationResultObjectCreateOnlyAndReread: admitted,
     dependencyClosureRef: ref('sam31-dependency-closure'),
     dependencyLockSha256: digest('sam31-dependency-lock'),
     dependencyClosureReceiptSha256: digest('sam31-dependency-receipt'),

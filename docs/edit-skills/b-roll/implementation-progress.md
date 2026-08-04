@@ -1324,6 +1324,80 @@ and a real Visual Intelligence producer were not run. This milestone did not
 implement the orchestra, Track All, Visual Intelligence, a paid provider call,
 public delivery, final export, production mutation, or billing.
 
+## M20 — Gemini Omni task capability reconciliation
+
+Status: completed and pushed.
+
+Implementation commit: `c34664df76bd91ffef8807a3aedee69de226acb3`.
+
+Generated qualification artifact commit:
+`85170208973c933e113d69675266f59d8ff9e71f`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to `85170208973c933e113d69675266f59d8ff9e71f` after
+`git push -u origin HEAD`.
+
+Reconciled the active preview provider profile against Google's current
+Gemini Omni guide, Interactions API, model card, and changelog on 2026-08-03.
+The request boundary now distinguishes text-to-video, one approved
+`<FIRST_FRAME>` image-to-video, one-to-six approved `<IMAGE_REF_N>`
+reference-images-to-video, region-gated uploaded-video editing, and the single
+approved conversational refinement through `previous_interaction_id`.
+
+Reference images are unique, checksum-bound, tenant-bound, and independently
+approved for provenance, rights, privacy, proof safety, and user use. The plan,
+planning QA evidence, Omni request plan, provider package, and ephemeral
+transport all bind the exact ordered source hashes. The six-image product
+ceiling is conservative and matches the largest current official documented
+example. One candidate, one eligible refinement, zero automatic retries, and
+zero alternate-provider fallbacks remain exact.
+
+Video references, uploaded audio references, multiple-video reasoning,
+extension, interpolation, voice editing, and YouTube media remain unsupported
+and fail closed. Output remains 3–10 seconds, 720p, 24 fps, and 16:9 or 9:16.
+Recognizable-person, minor-image, region, storage, and prior-interaction
+limitations are explicit in the profile, manifest, and provider runbook.
+
+The V5 profile remains explicitly `preview_alias_unpinned` with no accepted
+immutable provider revision; its changed hash is
+`9f8090f938f14225c480b6f39862cac00ca3b5f6e2fe332c0f98842a91698a9f`.
+Historical canonical provider registry hashes remained exact:
+
+- V1: `17928478279cc8fd292db235286ae883db2434d79d015e7a16bfadc1a4bde1bd`.
+- V2: `6fbfdef538e3bc9ecb944892586e7eac154f518bdf1df1d3f15bbe3a9fb32d18`.
+- V3: `284b456da2610af6280e080bc9cb24c10989f2ee3401bd2711619622544bfd2b`.
+- V4: `91ea2d40a33f5198f124d6322b61e447bb29ea037dabb808b2f39887cd432eeb`.
+
+Final evidence:
+
+- Manifest schema: `skill-capability-manifest-v2`.
+- Manifest hash:
+  `f76f07bd05a4e38ff61a04cdb4fa3d5784c41d1018f497f2d3d3c390c260d427`.
+- Tested commit:
+  `c34664df76bd91ffef8807a3aedee69de226acb3`.
+- Relevant source-tree hash:
+  `45ec8f725cafa1b87118411918c582bbbab05520e230e02081193dc6afe71d62`.
+- Qualification receipt hash:
+  `baa5338bb91f123d57f986edbdb23a5bd2bf4195f852581ba381665e43d54a77`.
+- Generated qualification artifact hash:
+  `2ca4fc4784928889f34348e996c0cb059338416a770c0de66ff04b817b1deb85`.
+- Aggregate qualification: all 24 actual commands and 36 required fixtures
+  passed with zero provider requests, public artifacts, and production
+  mutations.
+
+The aggregate qualifier covered planning, evidence-derived QA, plan
+invariants, public plugin lifecycle, runtime bindings, manifest validation,
+the shared capability kernel, build, server typecheck, lint, frontend-boundary
+enforcement, historical provider authority, request/response parsing for every
+supported task, fail-closed unsupported tasks, retirement, candidate QA,
+existing-source execution, injected lifecycle, canonical integration,
+FFmpeg/FFprobe and Remotion integration, and the three shared security suites.
+
+Production qualification remains false and the paid real-provider canary was
+not run because the explicit execution gates and credentials were not supplied.
+No orchestra, Track All, Visual Intelligence, public delivery, final export,
+production mutation, or billing work was performed.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1348,3 +1422,4 @@ public delivery, final export, production mutation, or billing.
 | M17 | `44bfb9198` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M18 | `18c2b4335` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M19 | `e13a99cd0` + `387e3b7f5` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M20 | `c34664df7` + `851702089` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

@@ -139,6 +139,10 @@ export interface CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository {
     CanonicalSourceAnalysisL4VisualEvidenceTerminalReadPort
   readonly cloudRunOperationAuthorityPort:
     CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationAuthorityPort
+  readExactAdmission(input: Readonly<{
+    triggerRef: VisualIntelligenceEvidenceRef
+    admissionRef: VisualIntelligenceEvidenceRef
+  }>): Promise<CanonicalSourceAnalysisL4VisualEvidenceAdmission | null>
   readExactRelease(
     releaseRef: VisualIntelligenceEvidenceRef,
   ): Promise<CanonicalSourceAnalysisL4VisualEvidenceRelease | null>
@@ -304,6 +308,28 @@ createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository(input: {
     releaseReadPort,
     terminalReadPort,
     cloudRunOperationAuthorityPort,
+    async readExactAdmission(untrusted: Readonly<{
+      triggerRef: VisualIntelligenceEvidenceRef
+      admissionRef: VisualIntelligenceEvidenceRef
+    }>) {
+      assertPlainSerializedData(
+        untrusted,
+        'source_visual_evidence_exact_admission_read_input',
+      )
+      const trigger = parseRef(untrusted.triggerRef)
+      const admission = parseRef(untrusted.admissionRef)
+      const record = await readRecord({
+        objectPort: input.objectPort,
+        path: admissionPath(prefix, trigger.id),
+        parse: parseAdmissionRecord,
+      })
+      if (!record) return null
+      if (
+        !sameRef(record.triggerRef, trigger)
+        || !sameRef(admissionReference(record.admission), admission)
+      ) throw conflict('source_visual_evidence_admission_record_mismatch')
+      return structuredClone(record.admission)
+    },
     async readExactRelease(
       untrustedReleaseRef: VisualIntelligenceEvidenceRef,
     ) {
@@ -920,6 +946,16 @@ function triggerRef(
     id: trigger.requestId,
     version: 1,
     contentHash: `sha256:${trigger.triggerHash}`,
+  })
+}
+
+function admissionReference(
+  admission: CanonicalSourceAnalysisL4VisualEvidenceAdmission,
+): VisualIntelligenceEvidenceRef {
+  return Object.freeze({
+    id: admission.admissionId,
+    version: 1,
+    contentHash: `sha256:${admission.admissionHash}`,
   })
 }
 

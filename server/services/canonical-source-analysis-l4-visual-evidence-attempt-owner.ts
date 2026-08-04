@@ -24,6 +24,7 @@ import {
   type CanonicalSourceAnalysisRequestAuthorityReadPort,
 } from './canonical-source-led-orchestra-planning-reconciliation'
 import {
+  canonicalSourceLedSourceFrameAuthoritySchema,
   createCanonicalSourceLedSourceFrameAuthority,
 } from './canonical-source-led-content-analysis-evidence'
 import type {
@@ -44,7 +45,7 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ATTEMPT_OWNER_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-attempt-owner-v2' as const
+  'canonical-source-analysis-l4-visual-evidence-attempt-owner-v3' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TRIGGER_VERSION =
   'canonical-source-analysis-l4-visual-evidence-trigger-v1' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ADMISSION_VERSION =
@@ -53,6 +54,11 @@ export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_RELEASE_VERSION =
   'canonical-source-analysis-l4-visual-evidence-release-v1' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_EXECUTION_PORT_VERSION =
   'canonical-source-analysis-l4-visual-evidence-execution-port-v2' as const
+export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ENVELOPE_VERSION =
+  'canonical-source-analysis-l4-visual-evidence-envelope-v2' as const
+export const
+CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_WORKER_ENVELOPE_READ_PORT_VERSION =
+  'canonical-source-analysis-l4-visual-evidence-worker-envelope-read-port-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const CLOUD_RUN_JOB_NAME = 'reeditpro-professional-l4' as const
@@ -86,6 +92,44 @@ const cloudRunJobResourceSchema = z.string().regex(
 const cloudRunOperationResourceSchema = z.string().regex(
   /^projects\/reeditpro\/locations\/(us-central1|europe-west4)\/operations\/[A-Za-z0-9._-]+$/u,
 )
+const storageBucketSchema = z.string().min(3).max(222)
+  .regex(/^[a-z0-9][a-z0-9._-]*[a-z0-9]$/u)
+const storagePathSchema = z.string().min(1).max(1_024)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._/:-]*$/u)
+  .refine((value) => !value.includes('..')
+    && !value.includes('//') && !value.endsWith('/'))
+const sourceObjectSchema = z.object({
+  storageProvider: z.literal('google_cloud_storage'),
+  storageBucket: storageBucketSchema,
+  storagePath: storagePathSchema,
+  storageGeneration: z.string().regex(/^[1-9][0-9]{0,30}$/u),
+  storageEtag: z.string().trim().min(1).max(1_024)
+    .refine((value) => !/[\0\r\n]/u.test(value)),
+  contentType: z.literal('video/mp4'),
+  width: positiveInteger.max(16_384),
+  height: positiveInteger.max(16_384),
+  checksumSha256: rawSha256,
+  byteLength: positiveInteger,
+  finalizedMediaAuthorityRef: evidenceRefSchema,
+  finalizedStorageObjectAuthorityRef: evidenceRefSchema,
+  exactGenerationEtagChecksumAndLengthRereadRequired: z.literal(true),
+}).strict()
+const resultScopeSchema = z.object({
+  ownerUserId: safeId,
+  workspaceId: safeId,
+  projectId: safeId,
+  editSessionId: safeId,
+  analysisRunId: safeId,
+  sourceSequenceItemId: safeId,
+  mediaAssetId: safeId,
+  uploadedOrder: positiveInteger.max(64),
+  checksumSha256: rawSha256,
+  byteLength: positiveInteger,
+  durationFrames: positiveInteger,
+  sourceFrameAuthority: canonicalSourceLedSourceFrameAuthoritySchema,
+  finalizedMediaAuthorityRef: evidenceRefSchema,
+  sourceProbeAuthorityRef: evidenceRefSchema,
+}).strict()
 
 const triggerWithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -258,7 +302,7 @@ export type CanonicalSourceAnalysisL4VisualEvidenceExecutionResult = z.infer<
 
 const envelopeWithoutHashSchema = z.object({
   schemaVersion: z.literal(
-    'canonical-source-analysis-l4-visual-evidence-envelope-v1',
+    CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ENVELOPE_VERSION,
   ),
   source: z.literal(
     'canonical_source_analysis_l4_visual_evidence_attempt_owner',
@@ -267,7 +311,8 @@ const envelopeWithoutHashSchema = z.object({
   triggerRef: evidenceRefSchema,
   admissionRef: evidenceRefSchema,
   releaseRef: evidenceRefSchema,
-  scope: z.unknown(),
+  scope: resultScopeSchema,
+  sourceObject: sourceObjectSchema,
   idempotencyKey: safeId,
   operationId: z.literal(OPERATION_ID),
   routeProfileId: z.literal(ROUTE_PROFILE_ID),
@@ -284,7 +329,11 @@ const envelopeWithoutHashSchema = z.object({
 const envelopeSchema = envelopeWithoutHashSchema.extend({
   envelopeHash: rawSha256,
 }).strict()
-type VisualEvidenceEnvelope = z.infer<typeof envelopeSchema>
+export type CanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelope = z.infer<
+  typeof envelopeSchema
+>
+type VisualEvidenceEnvelope =
+  CanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelope
 
 const consumptionWithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -306,7 +355,10 @@ const consumptionWithoutHashSchema = z.object({
 const consumptionSchema = consumptionWithoutHashSchema.extend({
   consumptionHash: rawSha256,
 }).strict()
-type VisualEvidenceConsumption = z.infer<typeof consumptionSchema>
+export type CanonicalSourceAnalysisL4VisualEvidenceWorkerConsumption =
+  z.infer<typeof consumptionSchema>
+type VisualEvidenceConsumption =
+  CanonicalSourceAnalysisL4VisualEvidenceWorkerConsumption
 
 const launchWithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -373,6 +425,22 @@ export interface CanonicalSourceAnalysisL4VisualEvidenceTerminalReadPort {
   }>): Promise<unknown | null>
 }
 
+export interface CanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort {
+  readonly schemaVersion:
+    typeof CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_WORKER_ENVELOPE_READ_PORT_VERSION
+  readExactConsumedEnvelope(invocationId: string): Promise<Readonly<{
+    envelope: CanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelope
+    consumption: CanonicalSourceAnalysisL4VisualEvidenceWorkerConsumption
+    envelopeRef: VisualIntelligenceEvidenceRef
+    consumptionRef: VisualIntelligenceEvidenceRef
+    exactCreateOnlyEnvelopeAndConsumptionRereadVerified: true
+    callerPathUrlBytesCommandOrEnvironmentAccepted: false
+    customerCreditMutated: false
+    publicDeliveryGranted: false
+    productionAuthorityGranted: false
+  }> | null>
+}
+
 export type CanonicalSourceAnalysisL4VisualEvidenceAttemptResult =
   | Readonly<{
       status: 'not_ready'
@@ -431,6 +499,62 @@ export interface CanonicalSourceAnalysisL4VisualEvidenceAttemptOwner {
   executeOneShot(
     trigger: CanonicalSourceAnalysisL4VisualEvidenceTrigger,
   ): Promise<CanonicalSourceAnalysisL4VisualEvidenceAttemptResult>
+}
+
+export function createCanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort(
+  input: Readonly<{
+    objectPort: CanonicalCreateOnlyJsonObjectPort
+    prefix?: string
+  }>,
+): CanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort {
+  if (typeof input.objectPort?.readExact !== 'function') {
+    throw new TypeError('L4 visual evidence worker object reader is invalid.')
+  }
+  const prefix = normalizePrefix(input.prefix ?? DEFAULT_PREFIX)
+  return Object.freeze({
+    schemaVersion:
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_WORKER_ENVELOPE_READ_PORT_VERSION,
+    async readExactConsumedEnvelope(untrustedInvocationId: string) {
+      const invocationId = safeId.parse(untrustedInvocationId)
+      const envelope = await readRecord({
+        port: input.objectPort,
+        path: recordPath(prefix, 'envelopes', invocationId),
+        parse: assertCanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelope,
+      })
+      if (!envelope) return null
+      const consumption = await readRecord({
+        port: input.objectPort,
+        path: recordPath(prefix, 'consumptions', invocationId),
+        parse: assertCanonicalSourceAnalysisL4VisualEvidenceWorkerConsumption,
+      })
+      if (!consumption) return null
+      const envelopeRef = ref(envelope.invocationId, envelope.envelopeHash)
+      if (
+        envelope.invocationId !== invocationId
+        || consumption.invocationId !== invocationId
+        || !sameRef(consumption.envelopeRef, envelopeRef)
+        || !sameRef(consumption.admissionRef, envelope.admissionRef)
+        || !consumption.consumedBeforeCloudRunCall
+        || consumption.maximumAttempts !== 1
+        || consumption.uncertainOutcomeRetryAllowed
+        || consumption.customerCreditsMutated
+      ) throw conflict('source_visual_evidence_worker_consumption_mismatch')
+      return Object.freeze({
+        envelope: structuredClone(envelope),
+        consumption: structuredClone(consumption),
+        envelopeRef,
+        consumptionRef: ref(
+          `${invocationId}.consumption`,
+          consumption.consumptionHash,
+        ),
+        exactCreateOnlyEnvelopeAndConsumptionRereadVerified: true as const,
+        callerPathUrlBytesCommandOrEnvironmentAccepted: false as const,
+        customerCreditMutated: false as const,
+        publicDeliveryGranted: false as const,
+        productionAuthorityGranted: false as const,
+      })
+    },
+  })
 }
 
 export function createCanonicalSourceAnalysisL4VisualEvidenceTrigger(
@@ -654,6 +778,7 @@ export function createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner(
         admission,
         release,
         scope,
+        source,
       })
       let consumptionDisposition: 'created' | 'already_exists'
       if (existingConsumption) {
@@ -1164,9 +1289,15 @@ function buildEnvelope(input: Readonly<{
   admission: CanonicalSourceAnalysisL4VisualEvidenceAdmission
   release: CanonicalSourceAnalysisL4VisualEvidenceRelease
   scope: CanonicalSourceTranscriptOrchestraReadScope
+  source: ReturnType<
+    typeof verifyCanonicalSourceAnalysisPreparedRequestForPlanning
+  >['request']['sources'][number]
 }>): VisualEvidenceEnvelope {
+  const authority = input.source.managedApiAuthority
+  if (!authority) throw conflict('source_visual_evidence_authority_missing')
   const payload = envelopeWithoutHashSchema.parse({
-    schemaVersion: 'canonical-source-analysis-l4-visual-evidence-envelope-v1',
+    schemaVersion:
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ENVELOPE_VERSION,
     source: 'canonical_source_analysis_l4_visual_evidence_attempt_owner',
     invocationId: input.invocationId,
     triggerRef: ref(input.trigger.requestId, input.trigger.triggerHash),
@@ -1174,6 +1305,22 @@ function buildEnvelope(input: Readonly<{
       input.admission.admissionHash),
     releaseRef: input.release.releaseRef,
     scope: input.scope,
+    sourceObject: {
+      storageProvider: input.source.storageProvider,
+      storageBucket: input.source.storageBucket,
+      storagePath: input.source.storagePath,
+      storageGeneration: authority.storageGeneration,
+      storageEtag: authority.storageEtag,
+      contentType: authority.contentType,
+      width: authority.width,
+      height: authority.height,
+      checksumSha256: input.source.checksumSha256,
+      byteLength: input.source.byteLength,
+      finalizedMediaAuthorityRef: authority.finalizedMediaAuthorityRef,
+      finalizedStorageObjectAuthorityRef:
+        authority.finalizedStorageObjectAuthorityRef,
+      exactGenerationEtagChecksumAndLengthRereadRequired: true,
+    },
     idempotencyKey: input.trigger.idempotencyKey,
     operationId: OPERATION_ID,
     routeProfileId: ROUTE_PROFILE_ID,
@@ -1253,17 +1400,32 @@ function buildLaunch(input: Readonly<{
   }))
 }
 
-function assertEnvelope(value: unknown): VisualEvidenceEnvelope {
+export function assertCanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelope(
+  value: unknown,
+): CanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelope {
   assertPlainSerializedData(value, 'source_visual_evidence_envelope')
   const parsed = envelopeSchema.parse(value)
+  const scope = resultScopeSchema.parse(parsed.scope)
   const { envelopeHash, ...payload } = parsed
-  if (envelopeHash !== sha256AuthorityValue(payload)) {
+  if (
+    envelopeHash !== sha256AuthorityValue(payload)
+    || parsed.invocationId.length > 240
+    || parsed.sourceObject.checksumSha256 !== scope.checksumSha256
+    || parsed.sourceObject.byteLength !== scope.byteLength
+    || !sameRef(parsed.sourceObject.finalizedMediaAuthorityRef,
+      scope.finalizedMediaAuthorityRef)
+  ) {
     throw conflict('source_visual_evidence_envelope_hash_invalid')
   }
-  return Object.freeze(parsed)
+  return Object.freeze({ ...parsed, scope })
 }
 
-function assertConsumption(value: unknown): VisualEvidenceConsumption {
+const assertEnvelope =
+  assertCanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelope
+
+export function assertCanonicalSourceAnalysisL4VisualEvidenceWorkerConsumption(
+  value: unknown,
+): CanonicalSourceAnalysisL4VisualEvidenceWorkerConsumption {
   assertPlainSerializedData(value, 'source_visual_evidence_consumption')
   const parsed = consumptionSchema.parse(value)
   const { consumptionHash, ...payload } = parsed
@@ -1272,6 +1434,9 @@ function assertConsumption(value: unknown): VisualEvidenceConsumption {
   }
   return Object.freeze(parsed)
 }
+
+const assertConsumption =
+  assertCanonicalSourceAnalysisL4VisualEvidenceWorkerConsumption
 
 function assertLaunch(value: unknown): VisualEvidenceLaunch {
   assertPlainSerializedData(value, 'source_visual_evidence_launch')

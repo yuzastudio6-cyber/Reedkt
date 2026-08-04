@@ -43,9 +43,13 @@ import {
   createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner,
   createCanonicalSourceAnalysisL4VisualEvidenceRelease,
   createCanonicalSourceAnalysisL4VisualEvidenceTrigger,
+  createCanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort,
   createGoogleCloudRunL4VisualEvidenceExecutionPort,
   type CanonicalSourceAnalysisL4VisualEvidenceExecutionResult,
 } from '../services/canonical-source-analysis-l4-visual-evidence-attempt-owner'
+import {
+  createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwner,
+} from '../services/canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner'
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
@@ -406,6 +410,23 @@ const invocationId = `source-visual-evidence-${sha256AuthorityValue({
   triggerHash: trigger.triggerHash,
   idempotencyKey: trigger.idempotencyKey,
 }).slice(0, 40)}`
+const workerOperationResource =
+  'projects/reeditpro/locations/us-central1/operations/op-worker-1'
+const workerOperationDigest = sha256AuthorityValue({
+  invocationId,
+  releaseRef: release.releaseRef,
+  cloudRunJobResource: release.cloudRunJobResource,
+  operationResource: workerOperationResource,
+})
+const workerOperationRef = ref(
+  `source-visual-cloud-operation-${workerOperationDigest.slice(0, 32)}`,
+  {
+    invocationId,
+    releaseRef: release.releaseRef,
+    cloudRunJobResource: release.cloudRunJobResource,
+    operationResource: workerOperationResource,
+  },
+)
 const terminalResult = createCanonicalSourceAnalysisL4VisualEvidenceResult({
   scope: evidenceScope,
   sourceObject: {
@@ -434,7 +455,7 @@ const terminalResult = createCanonicalSourceAnalysisL4VisualEvidenceResult({
     contentHash: `sha256:${admission.admissionHash}`,
   }),
   runtimeReleaseRef: release.releaseRef,
-  cloudRunExecutionRef: ref('cloud-operation'),
+  cloudRunExecutionRef: workerOperationRef,
   platformEstimateRef: admission.platformEstimateRef,
   accountEffectivePricingAuthorityRef:
     admission.currentAccountRateAuthorityRef,
@@ -604,12 +625,21 @@ const owner = createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
   executionPort: {
     schemaVersion:
       'canonical-source-analysis-l4-visual-evidence-execution-port-v2',
-    async runOnce() {
+    async runOnce({ release: exactRelease, invocationId: exactInvocationId }) {
       cloudCalls += 1
+      const persisted = await authorityRepository
+        .cloudRunOperationAuthorityPort.persistAcceptedOperationCreateOnly({
+          invocationId: exactInvocationId,
+          releaseRef: exactRelease.releaseRef,
+          cloudRunJobResource: exactRelease.cloudRunJobResource,
+          operationResource: workerOperationResource,
+          observedAt: '2026-08-04T12:00:02.000Z',
+        })
+      assert.deepEqual(persisted.cloudRunOperationRef, workerOperationRef)
       return {
         disposition: 'accepted',
         cloudJobCreateRequestRef: ref('cloud-create'),
-        cloudRunOperationRef: ref('cloud-operation'),
+        cloudRunOperationRef: persisted.cloudRunOperationRef,
         providerInferenceOrSubstantiveWorkOutcome: 'unknown',
         observedAt: '2026-08-04T12:00:02.000Z',
       }
@@ -642,6 +672,47 @@ assert.equal(result.scaleBackToZeroVerified, true)
 assert.equal(result.customerCreditMutated, false)
 assert.equal(cloudCalls, 1)
 assert.equal(terminalReads, 1)
+const workerEnvelopeReadPort =
+  createCanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort({
+    objectPort,
+  })
+const workerBootstrapOwner =
+  createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwner({
+    envelopeReadPort: workerEnvelopeReadPort,
+    authorityRepository,
+  })
+const workerBootstrap = await workerBootstrapOwner.bootstrap(invocationId)
+assert.equal(workerBootstrap.status, 'ready')
+if (workerBootstrap.status !== 'ready') {
+  throw new Error('L4 worker bootstrap failed.')
+}
+assert.equal(workerBootstrap.bootstrap.sourceObject.storageGeneration, '1001')
+assert.equal(workerBootstrap.bootstrap.sourceObject.storageEtag,
+  'source-etag-1')
+assert.equal(workerBootstrap.bootstrap.sourceBytesRead, false)
+assert.equal(workerBootstrap.bootstrap.toolExecutionStarted, false)
+assert.equal(workerBootstrap.substantiveWorkStarted, false)
+assert.equal(workerBootstrap.customerCreditMutated, false)
+assert.deepEqual(workerBootstrap.bootstrap.cloudRunOperationRef,
+  workerOperationRef)
+const detachedWorkerEnvelope = await workerEnvelopeReadPort
+  .readExactConsumedEnvelope(invocationId)
+assert.ok(detachedWorkerEnvelope)
+;(detachedWorkerEnvelope!.envelope.sourceObject as { storageEtag: string })
+  .storageEtag = 'mutated-copy'
+assert.equal((await workerEnvelopeReadPort.readExactConsumedEnvelope(
+  invocationId,
+))?.envelope.sourceObject.storageEtag, 'source-etag-1')
+assert.deepEqual(
+  await workerBootstrapOwner.bootstrap('source-visual-evidence-missing'),
+  {
+    status: 'not_ready',
+    blockerCode:
+      'canonical_source_visual_evidence_worker_envelope_not_ready',
+    substantiveWorkStarted: false,
+    customerCreditMutated: false,
+  },
+)
 const replay = await owner.executeOneShot(trigger)
 assert.equal(replay.status, 'ready')
 assert.equal(replay.status === 'ready' && replay.disposition,
@@ -730,12 +801,20 @@ const delayedOwner = createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
   executionPort: {
     schemaVersion:
       'canonical-source-analysis-l4-visual-evidence-execution-port-v2',
-    async runOnce() {
+    async runOnce({ release: exactRelease, invocationId: exactInvocationId }) {
       delayedCloudCalls += 1
+      const persisted = await delayedAuthorityRepository
+        .cloudRunOperationAuthorityPort.persistAcceptedOperationCreateOnly({
+          invocationId: exactInvocationId,
+          releaseRef: exactRelease.releaseRef,
+          cloudRunJobResource: exactRelease.cloudRunJobResource,
+          operationResource: workerOperationResource,
+          observedAt: '2026-08-04T12:00:02.000Z',
+        })
       return {
         disposition: 'accepted',
         cloudJobCreateRequestRef: ref('cloud-create'),
-        cloudRunOperationRef: ref('cloud-operation'),
+        cloudRunOperationRef: persisted.cloudRunOperationRef,
         providerInferenceOrSubstantiveWorkOutcome: 'unknown',
         observedAt: '2026-08-04T12:00:02.000Z',
       }
@@ -956,6 +1035,9 @@ console.log(JSON.stringify({
   googleCloudRunRequestCarriesInvocationIdOnly: true,
   cloudRunOperationResourcePersistedCreateOnlyAndReread: true,
   acceptedOperationWithoutDurableAuthorityBlockedAsUnknown: true,
+  workerRereadsConsumedEnvelopeAndExactPrivateAuthorities: true,
+  workerEnvironmentReceivesOnlyInvocationId: true,
+  workerSourceBytesOrToolsStartedDuringBootstrap: false,
   customerCreditsMutated: false,
 }))
 

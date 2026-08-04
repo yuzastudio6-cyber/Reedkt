@@ -32,6 +32,9 @@ const l4VisualEvidenceAttemptOwner = source(
 const l4VisualEvidenceAuthorityRepository = source(
   'server/services/canonical-source-analysis-l4-visual-evidence-authority-repository.ts',
 )
+const l4VisualEvidenceWorkerBootstrapOwner = source(
+  'server/services/canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner.ts',
+)
 const l4VisualEvidenceAdmissionOwner = source(
   'server/services/canonical-source-analysis-l4-visual-evidence-admission-owner.ts',
 )
@@ -94,7 +97,7 @@ assert.match(productionRuntime, /orchestraJobRuntimePort/u)
 assert.match(productionRuntime, /orchestraLifecyclePort/u)
 assert.match(
   productionRuntime,
-  /visual-intelligence-production-runtime-v10/u,
+  /visual-intelligence-production-runtime-v11/u,
 )
 assert.match(
   productionRuntime,
@@ -126,7 +129,31 @@ assert.match(
 )
 assert.match(
   productionRuntime,
+  /createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwner/u,
+)
+assert.match(
+  productionRuntime,
+  /createCanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort/u,
+)
+assert.match(
+  productionRuntime,
   /operationAuthorityPort:[\s\S]*cloudRunOperationAuthorityPort/u,
+)
+assert.match(
+  l4VisualEvidenceWorkerBootstrapOwner,
+  /exactCreateOnlyEnvelopeConsumptionAdmissionReleaseAndOperationReread/u,
+)
+assert.match(
+  l4VisualEvidenceWorkerBootstrapOwner,
+  /sourceBytesRead: false/u,
+)
+assert.match(
+  l4VisualEvidenceWorkerBootstrapOwner,
+  /toolExecutionStarted: false/u,
+)
+assert.doesNotMatch(
+  l4VisualEvidenceWorkerBootstrapOwner,
+  /qwen|sam2|child_process|execFile|spawn|shellCommand/u,
 )
 assert.doesNotMatch(
   productionRuntime,

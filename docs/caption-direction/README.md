@@ -1,7 +1,7 @@
-# Captions Specialist — CAP-09 Track All Checkpoint
+# Captions Specialist — CAP-10 Semantic Style Checkpoint
 
-Status: `cap_09_contract_complete_private_track_all_runtime_gated`
-Checkpoint: `CAP-09`
+Status: `cap_10_contract_complete_private_font_visual_render_gated`
+Checkpoint: `CAP-10`
 Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
@@ -82,6 +82,7 @@ The governing workflow invariant remains:
 - [CAP-07 picture lock and finish readiness report](cap-07-picture-lock-finish-readiness-report.md)
 - [CAP-08 Visual Intelligence support report](cap-08-visual-intelligence-support-report.md)
 - [CAP-09 Track All and SAM 3.1 report](cap-09-track-all-sam31-report.md)
+- [CAP-10 semantic and style system report](cap-10-semantic-style-system-report.md)
 
 ### Historical architecture retained and amended
 
@@ -173,7 +174,15 @@ mask/track/anchor artifacts, OpenCV/Kornia refinement evidence, temporal QA,
 cache identity/reuse, and a fixed safe fallback ladder. Contract fixtures
 cannot admit text-behind-subject or anchor execution.
 
-Implementation continues automatically into CAP-10 semantic and style
+CAP-10 adds semantic phrase/style plans with exact word lineage, protected
+token groups, Unicode-aware measured line selection, RTL/multi-font resolution,
+role-based optical size, semantic color with non-color counterparts, adaptive
+legibility, four output profiles, six calibration scenarios, and explicit
+adapters for all ten historical style presets. Contract fixtures cannot claim
+qualified shaping, authenticated visual evidence, rendered calibration media,
+or direct raster inspection.
+
+Implementation continues automatically into CAP-11 multi-track scene-graph
 resolution. Registry/workflow integration will consume
 these frozen public artifacts at its dependency-safe milestone; no Caption
 milestone manufactures a second planner or a false backend coverage claim.

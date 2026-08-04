@@ -7,6 +7,7 @@ import {
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS,
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
 } from '../../../src/types/canonical-private-composition-capacity'
+import type { CaptionRemotionLayer } from '../../../src/types/caption-remotion-scene-group'
 import { ApiError } from '../../errors/api-error'
 
 export const OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL =
@@ -209,6 +210,29 @@ export interface OfflineRemotionMotionStudioRouteDrawPayload extends OfflineRemo
   keyframeByteLength: number
   keyframeSha256: string
   keyframeBytesBase64: string
+}
+
+export interface OfflineRemotionCaptionCreativeSceneGroupPayload extends CommonCompositionPayload {
+  compositionProfileId: 'caption_direction_creative_scene_group_v1'
+  width: 640
+  height: 360
+  fps: 30
+  sceneGroupId: string
+  sceneGroupDigestSha256: string
+  motionLockDigestSha256: string
+  storyTimingResolutionDigestSha256: string
+  confirmedOutputWidth: number
+  confirmedOutputHeight: number
+  confirmedAspectRatioNumerator: number
+  confirmedAspectRatioDenominator: number
+  privateReviewScaleNumerator: 1
+  privateReviewScaleDenominator: 3
+  reducedMotion: boolean
+  subjectMaskFixturePolicy:
+    | 'none'
+    | 'deterministic_private_fixture_only_not_track_all_evidence'
+  backgroundStyle: 'editorial_night_sky_v1'
+  layers: CaptionRemotionLayer[]
 }
 
 export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority, OfflineRemotionLivingFrameOverlayAuthority, OfflineRemotionControlledVisualOverlayAuthority {
@@ -447,6 +471,7 @@ export type OfflineRemotionRenderRequest = {
   | { payload: OfflineRemotionMotionStudioLayeredPayload }
   | { payload: OfflineRemotionMotionStudioAnimaticPayload }
   | { payload: OfflineRemotionMotionStudioRouteDrawPayload }
+  | { payload: OfflineRemotionCaptionCreativeSceneGroupPayload }
 )
 
 export type OfflineRemotionRenderPlanningPayload = OfflineRemotionPreviewPlanningPayload
@@ -463,7 +488,8 @@ export function validateOfflineRemotionRenderPlanningPayload(value: unknown): Of
     isMotionStudioScenePreviewPayload(request.payload) ||
     isMotionStudioLayeredPayload(request.payload) ||
     isMotionStudioAnimaticPayload(request.payload) ||
-    isMotionStudioRouteDrawPayload(request.payload)
+    isMotionStudioRouteDrawPayload(request.payload) ||
+    isCaptionCreativeSceneGroupPayload(request.payload)
   ) {
     throw validationFailure('Preview planning cannot contain final-composition source bytes.')
   }
@@ -1184,6 +1210,262 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     request.operationId !== OFFLINE_REMOTION_RENDER_OPERATION
   ) throw validationFailure('Remotion request identity is unsupported.')
   const payloadRecord = record(request.payload, 'payload')
+  if (payloadRecord.compositionProfileId === 'caption_direction_creative_scene_group_v1') {
+    const payload = exactRecord(payloadRecord, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sceneGroupId', 'sceneGroupDigestSha256', 'motionLockDigestSha256',
+      'storyTimingResolutionDigestSha256', 'confirmedOutputWidth',
+      'confirmedOutputHeight', 'confirmedAspectRatioNumerator',
+      'confirmedAspectRatioDenominator', 'privateReviewScaleNumerator',
+      'privateReviewScaleDenominator', 'reducedMotion', 'subjectMaskFixturePolicy',
+      'backgroundStyle', 'layers',
+    ], 'Caption creative scene-group payload')
+    const common = commonPayload(payload, 24, 36_000)
+    if (
+      common.width !== 640 || common.height !== 360 || common.fps !== 30 ||
+      payload.confirmedOutputWidth !== 1_920 || payload.confirmedOutputHeight !== 1_080 ||
+      payload.confirmedAspectRatioNumerator !== 16 ||
+      payload.confirmedAspectRatioDenominator !== 9 ||
+      payload.privateReviewScaleNumerator !== 1 ||
+      payload.privateReviewScaleDenominator !== 3 ||
+      typeof payload.reducedMotion !== 'boolean' ||
+      !['none', 'deterministic_private_fixture_only_not_track_all_evidence']
+        .includes(String(payload.subjectMaskFixturePolicy)) ||
+      payload.backgroundStyle !== 'editorial_night_sky_v1'
+    ) throw validationFailure('Caption creative scene-group frame or fixture policy is unsupported.')
+    const digestFields = [
+      payload.sceneGroupDigestSha256, payload.motionLockDigestSha256,
+      payload.storyTimingResolutionDigestSha256,
+    ]
+    if (digestFields.some((digest) => typeof digest !== 'string' || !SHA256.test(digest))) {
+      throw validationFailure('Caption creative scene-group lineage digest is invalid.')
+    }
+    if (!Array.isArray(payload.layers) || payload.layers.length < 2 || payload.layers.length > 128) {
+      throw validationFailure('Caption creative scene group requires two to 128 layers.')
+    }
+    const seenLayers = new Set<string>()
+    const seenNodes = new Set<string>()
+    let previousStartFrame = -1
+    let previousZIndex = -1
+    let previousLayerId = ''
+    const layers: CaptionRemotionLayer[] = payload.layers.map((candidate, index): CaptionRemotionLayer => {
+      const layer = exactRecord(candidate, [
+        'layerId', 'nodeId', 'trackId', 'phraseId', 'trackRole',
+        'presentationKind', 'text', 'exactSourceWordIds', 'frameRange',
+        'stableReadRange', 'depthPlane', 'zIndex', 'layoutBasisPoints',
+        'typography', 'motion', 'reducedMotion', 'accessibilityCounterpartNodeId',
+        'maskSequenceRef', 'objectAnchorRef', 'trackManifestRef',
+        'dependencyDisposition',
+      ], `Caption creative layer ${index + 1}`)
+      const layerId = stableId(layer.layerId, 'Caption creative layerId')
+      const nodeId = stableId(layer.nodeId, 'Caption creative nodeId')
+      const trackId = stableId(layer.trackId, 'Caption creative trackId')
+      const phraseId = stableId(layer.phraseId, 'Caption creative phraseId')
+      const trackRole = oneOf(layer.trackRole, [
+        'verbatim_speech', 'semantic_phrase', 'active_word', 'hero_typography',
+        'persistent_topic_list', 'quote', 'speaker_attribution', 'caption_to_visual',
+        'accessible_sidecar', 'localized_accessible',
+      ] as const, 'Caption creative trackRole')
+      const presentationKind = oneOf(layer.presentationKind, [
+        'stable_accessible_caption', 'semantic_phrase_card', 'hero_typography',
+        'persistent_topic_list', 'environmental_label', 'object_anchor_label',
+        'caption_to_visual_bridge',
+      ] as const, 'Caption creative presentationKind')
+      if (!Array.isArray(layer.exactSourceWordIds)
+        || layer.exactSourceWordIds.length < 1 || layer.exactSourceWordIds.length > 256) {
+        throw validationFailure('Caption creative exact source-word lineage is invalid.')
+      }
+      const exactSourceWordIds = layer.exactSourceWordIds.map((wordId) =>
+        stableId(wordId, 'Caption creative sourceWordId'))
+      if (new Set(exactSourceWordIds).size !== exactSourceWordIds.length) {
+        throw validationFailure('Caption creative source-word lineage contains duplicates.')
+      }
+      const parseRange = (value: unknown, label: string) => {
+        const range = exactRecord(value, ['startFrame', 'endFrameExclusive'], label)
+        const startFrame = integer(range.startFrame, 0, common.durationFrames - 1, `${label} startFrame`)
+        const endFrameExclusive = integer(range.endFrameExclusive, 1, common.durationFrames, `${label} endFrameExclusive`)
+        if (endFrameExclusive <= startFrame) throw validationFailure(`${label} is empty.`)
+        return { startFrame, endFrameExclusive }
+      }
+      const frameRange = parseRange(layer.frameRange, 'Caption creative frameRange')
+      const stableReadRange = parseRange(layer.stableReadRange, 'Caption creative stableReadRange')
+      if (stableReadRange.startFrame < frameRange.startFrame
+        || stableReadRange.endFrameExclusive > frameRange.endFrameExclusive) {
+        throw validationFailure('Caption creative stable-read range exceeds its cue range.')
+      }
+      const depthPlane = oneOf(layer.depthPlane, [
+        'far_background', 'environmental_background', 'behind_subject',
+        'speaker_adjacent', 'object_attached', 'in_front_of_subject',
+        'foreground_hero', 'full_screen', 'safe_accessible',
+      ] as const, 'Caption creative depthPlane')
+      const zIndex = integer(layer.zIndex, 0, 2_000, 'Caption creative zIndex')
+      const layout = exactRecord(layer.layoutBasisPoints,
+        ['x', 'y', 'width', 'height'], 'Caption creative layout')
+      const layoutBasisPoints = {
+        x: integer(layout.x, 0, 9_999, 'Caption creative layout x'),
+        y: integer(layout.y, 0, 9_999, 'Caption creative layout y'),
+        width: integer(layout.width, 1, 10_000, 'Caption creative layout width'),
+        height: integer(layout.height, 1, 10_000, 'Caption creative layout height'),
+      }
+      if (layoutBasisPoints.x + layoutBasisPoints.width > 10_000
+        || layoutBasisPoints.y + layoutBasisPoints.height > 10_000) {
+        throw validationFailure('Caption creative layout exceeds the confirmed frame.')
+      }
+      const type = exactRecord(layer.typography, [
+        'fontFamilyToken', 'fontWeight', 'fontSizeBasisPointsOfFrameHeight',
+        'lineHeightMilli', 'textColor', 'accentColor', 'plateStyle', 'textAlign',
+      ], 'Caption creative typography')
+      const typography = {
+        fontFamilyToken: oneOf(type.fontFamilyToken,
+          ['approved_caption_sans_fixture_v1'] as const, 'Caption font token'),
+        fontWeight: oneOf(type.fontWeight, [600, 700, 800] as const, 'Caption font weight'),
+        fontSizeBasisPointsOfFrameHeight: integer(type.fontSizeBasisPointsOfFrameHeight,
+          400, 2_000, 'Caption font size'),
+        lineHeightMilli: integer(type.lineHeightMilli, 900, 1_600, 'Caption line height'),
+        textColor: oneOf(color(type.textColor, 'Caption text color'),
+          ['#F8FAFC', '#DFF7FF', '#09111F'] as const, 'Caption text color'),
+        accentColor: oneOf(color(type.accentColor, 'Caption accent color'),
+          ['#6EE7F9', '#A78BFA', '#FBBF24'] as const, 'Caption accent color'),
+        plateStyle: oneOf(type.plateStyle,
+          ['none', 'soft_dark', 'soft_light', 'outline_dark'] as const, 'Caption plate style'),
+        textAlign: oneOf(type.textAlign, ['left', 'center'] as const, 'Caption text alignment'),
+      }
+      const motionValue = exactRecord(layer.motion, [
+        'primitive', 'easing', 'travelBasisPoints', 'startScaleBasisPoints',
+        'endScaleBasisPoints', 'startOpacityBasisPoints', 'endOpacityBasisPoints',
+        'overshootBasisPoints', 'staggerFrames',
+      ], 'Caption creative motion')
+      const travel = exactRecord(motionValue.travelBasisPoints,
+        ['x', 'y'], 'Caption creative travel')
+      const motion = {
+        primitive: oneOf(motionValue.primitive, [
+          'reveal', 'fade', 'scale', 'slide', 'wipe', 'tracked_move',
+          'depth_transition', 'emphasis_pulse', 'brush_reveal', 'list_append',
+          'hero_expansion', 'handoff_morph', 'stable_hold', 'cut',
+        ] as const, 'Caption motion primitive'),
+        easing: oneOf(motionValue.easing,
+          ['linear', 'ease_in', 'ease_out', 'ease_in_out', 'spring_restrained'] as const,
+          'Caption motion easing'),
+        travelBasisPoints: {
+          x: integer(travel.x, -2_000, 2_000, 'Caption travel x'),
+          y: integer(travel.y, -2_000, 2_000, 'Caption travel y'),
+        },
+        startScaleBasisPoints: integer(motionValue.startScaleBasisPoints,
+          5_000, 15_000, 'Caption start scale'),
+        endScaleBasisPoints: integer(motionValue.endScaleBasisPoints,
+          5_000, 15_000, 'Caption end scale'),
+        startOpacityBasisPoints: integer(motionValue.startOpacityBasisPoints,
+          0, 10_000, 'Caption start opacity'),
+        endOpacityBasisPoints: integer(motionValue.endOpacityBasisPoints,
+          0, 10_000, 'Caption end opacity'),
+        overshootBasisPoints: integer(motionValue.overshootBasisPoints,
+          0, 2_000, 'Caption overshoot'),
+        staggerFrames: integer(motionValue.staggerFrames, 0, 120, 'Caption stagger'),
+      }
+      const reducedValue = exactRecord(layer.reducedMotion,
+        ['primitive', 'frameRange'], 'Caption reduced motion')
+      const reducedFrameRange = parseRange(reducedValue.frameRange,
+        'Caption reduced-motion frameRange')
+      if (reducedFrameRange.startFrame !== frameRange.startFrame
+        || reducedFrameRange.endFrameExclusive !== frameRange.endFrameExclusive) {
+        throw validationFailure('Caption reduced-motion range diverges from StoryTiming.')
+      }
+      const nullableRef = (value: unknown, label: string) => {
+        if (value === null) return null
+        const candidate = exactRecord(value, ['id', 'version', 'contentHash'], label)
+        if (typeof candidate.contentHash !== 'string' || !SHA256.test(candidate.contentHash)) {
+          throw validationFailure(`${label} digest is invalid.`)
+        }
+        return {
+          id: stableId(candidate.id, `${label} id`),
+          version: stableId(candidate.version, `${label} version`),
+          contentHash: candidate.contentHash,
+        }
+      }
+      const maskSequenceRef = nullableRef(layer.maskSequenceRef, 'Caption mask ref')
+      const objectAnchorRef = nullableRef(layer.objectAnchorRef, 'Caption anchor ref')
+      const trackManifestRef = nullableRef(layer.trackManifestRef, 'Caption track ref')
+      const dependencyDisposition = oneOf(layer.dependencyDisposition, [
+        'not_applicable', 'admitted_exact_private_evidence', 'declared_safe_fallback',
+      ] as const, 'Caption dependency disposition')
+      if (dependencyDisposition === 'admitted_exact_private_evidence'
+        && !(maskSequenceRef || objectAnchorRef || trackManifestRef)) {
+        throw validationFailure('Caption admitted dependency lacks exact evidence.')
+      }
+      if (presentationKind === 'stable_accessible_caption' && zIndex !== 1_000) {
+        throw validationFailure('Stable Caption layer must remain above all visual layers.')
+      }
+      if (seenLayers.has(layerId) || seenNodes.has(nodeId)
+        || frameRange.startFrame < previousStartFrame
+        || (frameRange.startFrame === previousStartFrame && zIndex < previousZIndex)
+        || (frameRange.startFrame === previousStartFrame && zIndex === previousZIndex
+          && layerId.localeCompare(previousLayerId) <= 0)) {
+        throw validationFailure('Caption creative layers are duplicated or not deterministically ordered.')
+      }
+      seenLayers.add(layerId)
+      seenNodes.add(nodeId)
+      previousStartFrame = frameRange.startFrame
+      previousZIndex = zIndex
+      previousLayerId = layerId
+      return {
+        layerId, nodeId, trackId, phraseId, trackRole, presentationKind,
+        text: safeText(layer.text, 320, 'Caption creative text'),
+        exactSourceWordIds, frameRange, stableReadRange, depthPlane, zIndex,
+        layoutBasisPoints, typography, motion,
+        reducedMotion: {
+          primitive: oneOf(reducedValue.primitive,
+            ['fade', 'stable_hold', 'cut'] as const, 'Caption reduced-motion primitive'),
+          frameRange: reducedFrameRange,
+        },
+        accessibilityCounterpartNodeId: layer.accessibilityCounterpartNodeId === null
+          ? null : stableId(layer.accessibilityCounterpartNodeId,
+            'Caption accessibility counterpart'),
+        maskSequenceRef, objectAnchorRef, trackManifestRef, dependencyDisposition,
+      }
+    })
+    const events = layers.flatMap((layer) => [
+      { frame: layer.frameRange.startFrame, delta: 1 },
+      { frame: layer.frameRange.endFrameExclusive, delta: -1 },
+    ]).sort((left, right) => left.frame - right.frame || left.delta - right.delta)
+    let active = 0
+    let maximum = 0
+    for (const event of events) {
+      active += event.delta
+      maximum = Math.max(maximum, active)
+    }
+    if (maximum < 2 || maximum > 4
+      || !layers.some((layer) => layer.presentationKind === 'stable_accessible_caption')
+      || !layers.some((layer) => layer.presentationKind !== 'stable_accessible_caption')) {
+      throw validationFailure('Caption creative scene group violates bounded multi-track policy.')
+    }
+    const normalizedPayload: OfflineRemotionCaptionCreativeSceneGroupPayload = {
+      compositionProfileId: 'caption_direction_creative_scene_group_v1',
+      width: 640, height: 360, fps: 30,
+      durationFrames: common.durationFrames,
+      sceneGroupId: stableId(payload.sceneGroupId, 'Caption sceneGroupId'),
+      sceneGroupDigestSha256: String(payload.sceneGroupDigestSha256),
+      motionLockDigestSha256: String(payload.motionLockDigestSha256),
+      storyTimingResolutionDigestSha256:
+        String(payload.storyTimingResolutionDigestSha256),
+      confirmedOutputWidth: 1_920,
+      confirmedOutputHeight: 1_080,
+      confirmedAspectRatioNumerator: 16,
+      confirmedAspectRatioDenominator: 9,
+      privateReviewScaleNumerator: 1,
+      privateReviewScaleDenominator: 3,
+      reducedMotion: payload.reducedMotion,
+      subjectMaskFixturePolicy: payload.subjectMaskFixturePolicy as
+        OfflineRemotionCaptionCreativeSceneGroupPayload['subjectMaskFixturePolicy'],
+      backgroundStyle: 'editorial_night_sky_v1',
+      layers,
+    }
+    return {
+      schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+      toolId: 'remotion',
+      operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+      payload: normalizedPayload,
+    }
+  }
   if (payloadRecord.compositionProfileId === 'motion_studio_deterministic_route_draw_v1') {
     const payload = exactRecord(payloadRecord, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
@@ -1608,6 +1890,13 @@ export function isMotionStudioRouteDrawPayload(
   payload: OfflineRemotionRenderRequest['payload'],
 ): payload is OfflineRemotionMotionStudioRouteDrawPayload {
   return 'compositionProfileId' in payload && payload.compositionProfileId === 'motion_studio_deterministic_route_draw_v1'
+}
+
+export function isCaptionCreativeSceneGroupPayload(
+  payload: OfflineRemotionRenderRequest['payload'],
+): payload is OfflineRemotionCaptionCreativeSceneGroupPayload {
+  return 'compositionProfileId' in payload
+    && payload.compositionProfileId === 'caption_direction_creative_scene_group_v1'
 }
 
 export function offlineRemotionRequestSha256(request: OfflineRemotionRenderRequest): string {

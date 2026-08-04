@@ -824,6 +824,7 @@ function build(overrides: Partial<Parameters<typeof createCaptionMultiTrackScene
 }
 
 export const CAP_11_SCENE_GRAPH_FIXTURE = build()
+export const CAP_11_SEMANTIC_STYLE_PLAN_FIXTURE = stylePlan
 export const CAP_11_MASTER_TIMING_REF = masterTimingRef
 export const CAP_11_CONFIRMED_FRAME_REF = confirmedFrameRef
 export const CAP_11_STYLE_PROFILE_REF: CaptionDomainRef = {

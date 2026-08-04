@@ -1,6 +1,6 @@
 # Captions Specialist Implementation Roadmap
 
-Status: `CAP-13 contract complete; authenticated Sound/final-mix gates tracked; CAP-14 next`
+Status: `CAP-14 private Remotion/golden-raster qualified; CAP-15 next`
 
 ## Dependency graph
 

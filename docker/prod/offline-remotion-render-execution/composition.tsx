@@ -34,6 +34,7 @@ export interface ApprovedCompositionProps {
     | 'motion_studio_native_layered_scene_v1'
     | 'motion_studio_prepared_script_animatic_v1'
     | 'motion_studio_deterministic_route_draw_v1'
+    | 'caption_direction_creative_scene_group_v1'
   deliveryProfileId?: 'uhd_2160'
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
@@ -230,6 +231,83 @@ export interface ApprovedCompositionProps {
   routeCoverColor?: '#081426'
   routeColor?: '#FFB23D'
   routeGlowColor?: '#FF7A1A'
+  sceneGroupId?: string
+  sceneGroupDigestSha256?: string
+  motionLockDigestSha256?: string
+  storyTimingResolutionDigestSha256?: string
+  confirmedOutputWidth?: number
+  confirmedOutputHeight?: number
+  confirmedAspectRatioNumerator?: number
+  confirmedAspectRatioDenominator?: number
+  privateReviewScaleNumerator?: 1
+  privateReviewScaleDenominator?: 3
+  reducedMotion?: boolean
+  subjectMaskFixturePolicy?:
+    | 'none'
+    | 'deterministic_private_fixture_only_not_track_all_evidence'
+  backgroundStyle?: 'editorial_night_sky_v1'
+  captionCreativeLayers?: Array<{
+    layerId: string
+    nodeId: string
+    trackId: string
+    phraseId: string
+    trackRole:
+      | 'verbatim_speech' | 'semantic_phrase' | 'active_word'
+      | 'hero_typography' | 'persistent_topic_list' | 'quote'
+      | 'speaker_attribution' | 'caption_to_visual'
+      | 'accessible_sidecar' | 'localized_accessible'
+    presentationKind:
+      | 'stable_accessible_caption' | 'semantic_phrase_card'
+      | 'hero_typography' | 'persistent_topic_list'
+      | 'environmental_label' | 'object_anchor_label'
+      | 'caption_to_visual_bridge'
+    text: string
+    exactSourceWordIds: string[]
+    frameRange: { startFrame: number; endFrameExclusive: number }
+    stableReadRange: { startFrame: number; endFrameExclusive: number }
+    depthPlane:
+      | 'far_background' | 'environmental_background' | 'behind_subject'
+      | 'speaker_adjacent' | 'object_attached' | 'in_front_of_subject'
+      | 'foreground_hero' | 'full_screen' | 'safe_accessible'
+    zIndex: number
+    layoutBasisPoints: { x: number; y: number; width: number; height: number }
+    typography: {
+      fontFamilyToken: 'approved_caption_sans_fixture_v1'
+      fontWeight: 600 | 700 | 800
+      fontSizeBasisPointsOfFrameHeight: number
+      lineHeightMilli: number
+      textColor: '#F8FAFC' | '#DFF7FF' | '#09111F'
+      accentColor: '#6EE7F9' | '#A78BFA' | '#FBBF24'
+      plateStyle: 'none' | 'soft_dark' | 'soft_light' | 'outline_dark'
+      textAlign: 'left' | 'center'
+    }
+    motion: {
+      primitive:
+        | 'reveal' | 'fade' | 'scale' | 'slide' | 'wipe' | 'tracked_move'
+        | 'depth_transition' | 'emphasis_pulse' | 'brush_reveal'
+        | 'list_append' | 'hero_expansion' | 'handoff_morph'
+        | 'stable_hold' | 'cut'
+      easing: 'linear' | 'ease_in' | 'ease_out' | 'ease_in_out' | 'spring_restrained'
+      travelBasisPoints: { x: number; y: number }
+      startScaleBasisPoints: number
+      endScaleBasisPoints: number
+      startOpacityBasisPoints: number
+      endOpacityBasisPoints: number
+      overshootBasisPoints: number
+      staggerFrames: number
+    }
+    reducedMotion: {
+      primitive: 'fade' | 'stable_hold' | 'cut'
+      frameRange: { startFrame: number; endFrameExclusive: number }
+    }
+    accessibilityCounterpartNodeId: string | null
+    maskSequenceRef: { id: string; version: string; contentHash: string } | null
+    objectAnchorRef: { id: string; version: string; contentHash: string } | null
+    trackManifestRef: { id: string; version: string; contentHash: string } | null
+    dependencyDisposition:
+      | 'not_applicable' | 'admitted_exact_private_evidence'
+      | 'declared_safe_fallback'
+  }>
 }
 
 export const defaultApprovedCompositionProps: ApprovedCompositionProps = {
@@ -301,6 +379,12 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
   ) {
     return <MotionStudioDeterministicRouteDrawComposition {...props} />
   }
+  if (
+    props.compositionProfileId === 'caption_direction_creative_scene_group_v1' &&
+    props.captionCreativeLayers && props.captionCreativeLayers.length >= 2
+  ) {
+    return <CaptionCreativeSceneGroupComposition {...props} />
+  }
   const entrance = spring({ frame, fps, config: { damping: 18, stiffness: 140, mass: 0.8 } })
   const exit = interpolate(
     frame,
@@ -368,6 +452,251 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
       >
         {props.caption}
       </div>
+    </AbsoluteFill>
+  )
+}
+
+type CaptionCreativeLayer = NonNullable<
+  ApprovedCompositionProps['captionCreativeLayers']
+>[number]
+
+const captionPlateStyle = (
+  layer: CaptionCreativeLayer,
+): React.CSSProperties => {
+  if (layer.typography.plateStyle === 'soft_dark') return {
+    background: 'rgba(3, 10, 22, 0.88)',
+    border: '1px solid rgba(255,255,255,0.14)',
+    boxShadow: '0 12px 32px rgba(0,0,0,0.34)',
+    backdropFilter: 'blur(8px)',
+  }
+  if (layer.typography.plateStyle === 'soft_light') return {
+    background: 'rgba(244, 248, 252, 0.94)',
+    border: '1px solid rgba(255,255,255,0.88)',
+    boxShadow: '0 14px 34px rgba(0,0,0,0.22)',
+  }
+  if (layer.typography.plateStyle === 'outline_dark') return {
+    background: 'rgba(6, 17, 32, 0.68)',
+    border: `1px solid ${layer.typography.accentColor}66`,
+    boxShadow: '0 12px 28px rgba(0,0,0,0.25)',
+    backdropFilter: 'blur(5px)',
+  }
+  return {}
+}
+
+const CaptionCreativeLayerView: React.FC<{
+  layer: CaptionCreativeLayer
+  globalFrame: number
+  reducedMotion: boolean
+}> = ({ layer, globalFrame, reducedMotion }) => {
+  const { width, height } = useVideoConfig()
+  if (
+    globalFrame < layer.frameRange.startFrame ||
+    globalFrame >= layer.frameRange.endFrameExclusive
+  ) return null
+  const localFrame = globalFrame - layer.frameRange.startFrame
+  const duration = layer.frameRange.endFrameExclusive - layer.frameRange.startFrame
+  const enterFrames = Math.min(7, Math.max(1, duration - 1))
+  const exitFrames = Math.min(5, Math.max(1, duration - enterFrames))
+  const enter = interpolate(localFrame, [0, enterFrames], [0, 1], {
+    extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
+  })
+  const exit = interpolate(
+    localFrame,
+    [Math.max(0, duration - exitFrames), Math.max(1, duration - 1)],
+    [1, 0],
+    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
+  )
+  const stableReduced = reducedMotion &&
+    ['stable_hold', 'cut'].includes(layer.reducedMotion.primitive)
+  const reducedFade = reducedMotion && layer.reducedMotion.primitive === 'fade'
+  const rawProgress = stableReduced ? 1 : enter
+  const easedProgress = layer.motion.easing === 'ease_in_out'
+    ? rawProgress * rawProgress * (3 - 2 * rawProgress)
+    : layer.motion.easing === 'ease_in'
+      ? rawProgress * rawProgress
+      : layer.motion.easing === 'ease_out'
+        ? 1 - (1 - rawProgress) * (1 - rawProgress)
+        : rawProgress
+  const travelX = reducedMotion ? 0
+    : layer.motion.travelBasisPoints.x / 10_000 * width * (1 - easedProgress)
+  const travelY = reducedMotion ? 0
+    : layer.motion.travelBasisPoints.y / 10_000 * height * (1 - easedProgress)
+  const startScale = layer.motion.startScaleBasisPoints / 10_000
+  const endScale = layer.motion.endScaleBasisPoints / 10_000
+  const scale = reducedMotion ? 1 : startScale + (endScale - startScale) * easedProgress
+  const startOpacity = layer.motion.startOpacityBasisPoints / 10_000
+  const endOpacity = layer.motion.endOpacityBasisPoints / 10_000
+  const motionOpacity = stableReduced ? 1
+    : reducedFade ? enter : startOpacity + (endOpacity - startOpacity) * easedProgress
+  const opacity = Math.max(0, Math.min(1, motionOpacity * exit))
+  const layout = layer.layoutBasisPoints
+  const isHero = layer.presentationKind === 'hero_typography'
+  const isList = layer.presentationKind === 'persistent_topic_list'
+  const isAccessible = layer.presentationKind === 'stable_accessible_caption'
+  const reviewScale = height / 360
+  const px = (value: number) => Math.max(1, Math.round(value * reviewScale))
+  const paddingY = isHero ? 0 : isAccessible ? px(10) : px(12)
+  const paddingX = isHero ? 0 : isAccessible ? px(18) : px(16)
+  const fontSize = Math.round(
+    height * layer.typography.fontSizeBasisPointsOfFrameHeight / 10_000,
+  )
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        zIndex: layer.zIndex,
+        left: `${layout.x / 100}%`,
+        top: `${layout.y / 100}%`,
+        width: `${layout.width / 100}%`,
+        height: `${layout.height / 100}%`,
+        boxSizing: 'border-box',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: layer.typography.textAlign === 'center' ? 'center' : 'flex-start',
+        opacity,
+        transform: `translate(${travelX}px, ${travelY}px) scale(${scale})`,
+        transformOrigin: layer.typography.textAlign === 'center'
+          ? 'center center' : 'left center',
+      }}
+    >
+      <div
+        style={{
+          ...captionPlateStyle(layer),
+          width: isAccessible ? '100%' : 'auto',
+          maxWidth: '100%',
+          borderRadius: isAccessible ? px(14) : isList ? px(18) : px(12),
+          padding: `${paddingY}px ${paddingX}px`,
+          color: layer.typography.textColor,
+          fontFamily: 'Arial, Helvetica, sans-serif',
+          fontSize,
+          fontWeight: layer.typography.fontWeight,
+          lineHeight: layer.typography.lineHeightMilli / 1_000,
+          letterSpacing: isHero ? '-0.045em' : '-0.018em',
+          textAlign: layer.typography.textAlign,
+          textShadow: layer.typography.plateStyle === 'none'
+            ? '0 3px 18px rgba(0,0,0,0.48)' : 'none',
+          overflowWrap: 'normal',
+          wordBreak: 'keep-all',
+          hyphens: 'none',
+        }}
+      >
+        {isList ? (
+          <div style={{ display: 'flex', gap: px(10), alignItems: 'flex-start' }}>
+            <span
+              style={{
+                flex: '0 0 auto', width: px(23), height: px(23), borderRadius: '50%',
+                display: 'grid', placeItems: 'center',
+                background: layer.typography.accentColor,
+                color: '#09111F', fontSize: px(11), fontWeight: 800,
+              }}
+            >01</span>
+            <span>{layer.text}</span>
+          </div>
+        ) : (
+          <>
+            {!isAccessible && !isHero ? (
+              <span
+                style={{
+                  display: 'block', width: px(34), height: px(4), borderRadius: 999,
+                  marginBottom: px(9), background: layer.typography.accentColor,
+                }}
+              />
+            ) : null}
+            {layer.text}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const CaptionCreativeSceneGroupComposition:
+React.FC<ApprovedCompositionProps> = (props) => {
+  const frame = useCurrentFrame()
+  const { width, height, durationInFrames } = useVideoConfig()
+  const progress = frame / Math.max(1, durationInFrames - 1)
+  const subjectX = interpolate(progress, [0, 1], [width * 0.58, width * 0.6])
+  const subjectY = interpolate(progress, [0, 1], [height * 0.1, height * 0.08])
+  return (
+    <AbsoluteFill
+      style={{
+        background: '#07111F',
+        color: '#F8FAFC',
+        fontFamily: 'Arial, Helvetica, sans-serif',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute', inset: 0,
+          background:
+            `radial-gradient(circle at ${20 + progress * 12}% 18%, rgba(25,115,144,0.42), transparent 38%), radial-gradient(circle at 78% 80%, rgba(95,63,168,0.25), transparent 38%), linear-gradient(145deg, #07111F 0%, #0B2136 54%, #091421 100%)`,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute', inset: 0, opacity: 0.2,
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.09) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+          transform: `translateY(${progress * -8}px)`,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute', zIndex: 400,
+          left: subjectX, top: subjectY,
+          width: width * 0.34, height: height * 0.88,
+          filter: 'drop-shadow(0 25px 35px rgba(0,0,0,0.38))',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute', left: '34%', top: '3%', width: '32%',
+            aspectRatio: '1', borderRadius: '50%',
+            background: 'linear-gradient(145deg, #294B63, #152C40)',
+            border: '1px solid rgba(255,255,255,0.12)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute', left: '9%', right: '9%', top: '27%', bottom: '0',
+            borderRadius: '48% 48% 18% 18% / 30% 30% 12% 12%',
+            background: 'linear-gradient(145deg, #24475F 0%, #10263A 68%, #0A1C2C 100%)',
+            border: '1px solid rgba(255,255,255,0.11)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute', left: '21%', right: '21%', top: '42%', height: 2,
+            background: 'linear-gradient(90deg, transparent, rgba(110,231,249,0.54), transparent)',
+          }}
+        />
+      </div>
+      <div
+        style={{
+          position: 'absolute', zIndex: 420, left: width * 0.64, top: height * 0.19,
+          width: width * 0.23, height: height * 0.55,
+          borderRadius: '48% 48% 18% 18% / 30% 30% 12% 12%',
+          boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.04)',
+          pointerEvents: 'none',
+        }}
+      />
+      {(props.captionCreativeLayers ?? []).map((layer) => (
+        <CaptionCreativeLayerView
+          key={layer.layerId}
+          layer={layer}
+          globalFrame={frame}
+          reducedMotion={props.reducedMotion === true}
+        />
+      ))}
+      <div
+        style={{
+          position: 'absolute', zIndex: 1_100,
+          left: 22, right: 22, top: 18, height: 1,
+          background: 'linear-gradient(90deg, rgba(110,231,249,0.65), rgba(167,139,250,0.15), transparent)',
+        }}
+      />
     </AbsoluteFill>
   )
 }

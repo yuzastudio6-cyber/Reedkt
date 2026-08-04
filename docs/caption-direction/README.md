@@ -1,8 +1,8 @@
-# Captions Specialist — CAP-13 Sound Support Checkpoint
+# Captions Specialist — CAP-14 Remotion Creative Renderer Checkpoint
 
-Status: `cap_13_contract_complete_authenticated_sound_runtime_and_final_mix_qa_gated`
-Checkpoint: `CAP-13`
-Media runtime changes: none
+Status: `cap_14_private_runtime_and_direct_golden_raster_qualified_external_owners_closed`
+Checkpoint: `CAP-14`
+Media runtime changes: additive private Remotion creative scene-group profile
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
 This package reconciles the historical Caption Direction architecture with the
@@ -86,6 +86,7 @@ The governing workflow invariant remains:
 - [CAP-11 multi-track scene graph report](cap-11-multi-track-scene-graph-report.md)
 - [CAP-12 StoryTiming, motion, camera, and handoffs report](cap-12-storytiming-motion-handoffs-report.md)
 - [CAP-13 Sound support report](cap-13-sound-support-report.md)
+- [CAP-14 Remotion creative renderer report](cap-14-remotion-creative-renderer-report.md)
 
 ### Historical architecture retained and amended
 
@@ -208,8 +209,17 @@ limit. SoundSync keeps asset, generation, trim, mix, loudness, and audio-QA
 ownership. Contract-only injected evidence cannot claim runtime or assets, and
 missing Sound support selects the safe silent fallback.
 
-Implementation continues automatically into CAP-14 deterministic Remotion
-creative rendering.
+CAP-14 adds the deterministic twelve-layer Caption Scene Group to the existing
+canonical Remotion operation, keeps the legacy transparent overlay fallback,
+binds exact StoryTiming and confirmed-frame lineage, renders full/reduced
+private proxy variants, and preserves whole-word, safe-margin, hierarchy, and
+settled-frame parity through direct inspection of sixteen golden rasters. The
+first visually defective word-wrap attempt was rejected and repaired before
+qualification. The proxy does not claim the final customer canvas, real Track
+All evidence, final QA approval, or delivery authority.
+
+Implementation continues automatically into CAP-15 stable/accessibility,
+localization, libass, and FFmpeg export support.
 Registry/workflow integration will consume
 these frozen public artifacts at its dependency-safe milestone; no Caption
 milestone manufactures a second planner or a false backend coverage claim.

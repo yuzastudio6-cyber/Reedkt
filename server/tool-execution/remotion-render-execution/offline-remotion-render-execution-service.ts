@@ -13,6 +13,7 @@ import {
   type OfflineRemotionContainerStreamingOutputSink,
 } from './offline-remotion-render-docker-runtime'
 import {
+  isCaptionCreativeSceneGroupPayload,
   isMotionStudioAnimaticPayload,
   isMotionStudioLayeredPayload,
   isMotionStudioRouteDrawPayload,
@@ -336,6 +337,14 @@ async function executeWithImage(image: OfflineRemotionImageEvidence, value: unkn
   const sha256 = createHash('sha256').update(bytes).digest('hex')
   const expectedFrames = isMotionStudioRouteDrawPayload(request.payload)
     ? [0, 45, 90, 135, 179]
+    : isCaptionCreativeSceneGroupPayload(request.payload)
+      ? [...new Set([
+          0,
+          ...request.payload.layers.map((layer) => Math.floor(
+            (layer.frameRange.startFrame + layer.frameRange.endFrameExclusive - 1) / 2,
+          )),
+          request.payload.durationFrames - 1,
+        ])].sort((left, right) => left - right)
     : isMotionStudioScenePreviewPayload(request.payload) ||
       isMotionStudioLayeredPayload(request.payload) || isMotionStudioAnimaticPayload(request.payload)
       ? [...new Set([0, Math.floor((request.payload.durationFrames - 1) / 2), request.payload.durationFrames - 1])]

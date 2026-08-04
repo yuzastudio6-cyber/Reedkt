@@ -110,6 +110,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['editBriefPrivateWorkspaceRuntimePort']
   kimiK3SourceLedChatAssistantPort?:
     RuntimeState['kimiK3SourceLedChatAssistantPort']
+  canonicalSourceCleanupAuthorityReadPort?:
+    RuntimeState['canonicalSourceCleanupAuthorityReadPort']
   canonicalCloudDispatchHttpReceiverPort?:
     CanonicalCloudDispatchHttpReceiverPort
 }
@@ -291,6 +293,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           kimiK3SourceLedChatAssistantPort:
             configuredSourceLedChatAssistantPort,
+        }
+      : {}),
+    ...(options.canonicalSourceCleanupAuthorityReadPort
+      ? {
+          canonicalSourceCleanupAuthorityReadPort:
+            options.canonicalSourceCleanupAuthorityReadPort,
         }
       : {}),
     clients,

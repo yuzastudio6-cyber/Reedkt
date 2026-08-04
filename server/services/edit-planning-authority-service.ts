@@ -75,6 +75,9 @@ import {
 import {
   revalidateCanonicalSourceLedChatPlanBinding,
 } from './canonical-source-led-chat-direction-service'
+import {
+  revalidateCanonicalSourceCleanupPlanAuthority,
+} from './canonical-source-cleanup-authority-repository'
 import { createProjectService } from './project-service'
 import {
   type AuthorityApprovedSnapshotManifest,
@@ -1284,6 +1287,15 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             compiledIntent: approvalComponents.compiledIntent,
             confirmedAspectRatio:
               approvalComponents.confirmedSettings.aspectRatio,
+          })
+          await revalidateCanonicalSourceCleanupPlanAuthority({
+            readPort: context.canonicalSourceCleanupAuthorityReadPort,
+            ownerUserId: access.userId,
+            workspaceId: access.workspaceId,
+            projectId: plan.projectId,
+            editSessionId: plan.editSessionId,
+            sourceSequence: approvalComponents.sourceSequence,
+            compiledIntent: approvalComponents.compiledIntent,
           })
           const lockedStorytellingProductionAuthority =
             await revalidateCanonicalMotionStudioStorytellingProductionAuthority({

@@ -18,6 +18,10 @@ import {
   type CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
+  createCanonicalSourceCleanupAuthorityRepository,
+  type CanonicalSourceCleanupAuthorityRepository,
+} from '../services/canonical-source-cleanup-authority-repository'
+import {
   createCanonicalPlanningVisualIntelligenceOperationOwner,
   type VisualIntelligencePlanningOperationRequestOwner,
 } from '../services/canonical-planning-visual-intelligence-operation-owner-service'
@@ -99,6 +103,8 @@ export interface VisualIntelligenceProductionRuntime {
     EditReferenceVisualIntelligenceOrchestraReadPort
   readonly orchestraJobRuntimePort: VisualIntelligenceOrchestraJobRuntime
   readonly costOwner: VisualIntelligenceAccountEffectiveCostOwner
+  readonly sourceCleanupAuthorityRepository:
+    CanonicalSourceCleanupAuthorityRepository
   readonly providerCapabilityId: 'visual_intelligence'
   readonly semanticEngine: 'gemini-3.1-pro-preview'
   readonly thinkingLevel: 'high'
@@ -185,6 +191,8 @@ export async function createVisualIntelligenceProductionRuntime(
   const durableStore = createVisualIntelligenceDurableLifecycleStore({
     objectPort,
   })
+  const sourceCleanupAuthorityRepository =
+    createCanonicalSourceCleanupAuthorityRepository({ objectPort })
   const canonicalRequestPackageStore =
     createVisualIntelligenceCanonicalRequestPackageStore({
       objectPort,
@@ -278,6 +286,7 @@ export async function createVisualIntelligenceProductionRuntime(
     editReferenceReadPort,
     orchestraJobRuntimePort,
     costOwner,
+    sourceCleanupAuthorityRepository,
     providerCapabilityId: 'visual_intelligence',
     semanticEngine: 'gemini-3.1-pro-preview',
     thinkingLevel: 'high',

@@ -58,6 +58,9 @@ import type {
 import type {
   SourceLedChatAssistantPort,
 } from './services/source-led-chat-assistant'
+import type {
+  CanonicalSourceCleanupAuthorityReadPort,
+} from './services/canonical-source-cleanup-authority-repository'
 
 export interface AuthContext {
   userId: string
@@ -148,6 +151,8 @@ export interface RuntimeState {
     EditReferenceTargetUnderstandingPackageRuntimePortFactory
   editBriefPrivateWorkspaceRuntimePort?: EditBriefPrivateWorkspaceRuntimePort
   kimiK3SourceLedChatAssistantPort?: SourceLedChatAssistantPort
+  canonicalSourceCleanupAuthorityReadPort?:
+    CanonicalSourceCleanupAuthorityReadPort
 }
 
 export type RuntimeRequest = Request & {
@@ -212,4 +217,6 @@ export interface ServiceContext {
     EditReferenceTargetUnderstandingPackageRuntimePortFactory
   editBriefPrivateWorkspaceRuntimePort?: EditBriefPrivateWorkspaceRuntimePort
   kimiK3SourceLedChatAssistantPort?: SourceLedChatAssistantPort
+  canonicalSourceCleanupAuthorityReadPort?:
+    CanonicalSourceCleanupAuthorityReadPort
 }

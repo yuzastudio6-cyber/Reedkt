@@ -29,6 +29,14 @@ import {
   verifyCanonicalSourceCleanupVisualIntelligenceBinding,
 } from '../services/canonical-source-cleanup-visual-intelligence-binding'
 import {
+  createCanonicalSourceCleanupAuthorityRepository,
+  revalidateCanonicalSourceCleanupPlanAuthority,
+  type CanonicalSourceCleanupAuthorityScope,
+} from '../services/canonical-source-cleanup-authority-repository'
+import type {
+  CanonicalCreateOnlyJsonObjectPort,
+} from '../services/canonical-gcs-source-analysis-lifecycle-store'
+import {
   compileCanonicalSourceLedPlan,
 } from '../services/canonical-source-led-plan-compiler'
 import type {
@@ -117,9 +125,10 @@ const request: CanonicalSourceLedProfessionalContentAnalysisInput = {
   projectId: 'project-1',
   editSessionId: 'edit-1',
   planningDirection: 'Remove failed takes, honor spoken edit instructions, and preserve the complete lesson.',
-  userInstructionDigestSha256: sha(
+  planningDirectionDigestSha256: sha(
     'Remove failed takes, honor spoken edit instructions, and preserve the complete lesson.',
   ),
+  userInstructionDigestSha256: sha('canonical-saved-chat-authority'),
   fps: 30,
   sources: [{
     sourceSequenceItemId: 'source-item-1',
@@ -708,6 +717,43 @@ const reasoner: CanonicalSourceLedProfessionalContentAnalysisReasoner = {
   },
 }
 
+const repositoryObjects = new Map<string, Buffer>()
+let repositoryCreateAttempts = 0
+const repositoryObjectPort: CanonicalCreateOnlyJsonObjectPort = {
+  async createOnly(input) {
+    repositoryCreateAttempts += 1
+    const existing = repositoryObjects.get(input.objectPath)
+    if (existing) {
+      assert.equal(sha(existing.toString('utf8')), input.contentSha256)
+      assert.deepEqual(existing, input.body)
+      return 'already_exists'
+    }
+    assert.equal(sha(input.body.toString('utf8')), input.contentSha256)
+    repositoryObjects.set(input.objectPath, Buffer.from(input.body))
+    return 'created'
+  },
+  async readExact(objectPath) {
+    const body = repositoryObjects.get(objectPath)
+    return body ? Buffer.from(body) : null
+  },
+}
+const cleanupAuthorityRepository =
+  createCanonicalSourceCleanupAuthorityRepository({
+    objectPort: repositoryObjectPort,
+  })
+const cleanupAuthorityScope: CanonicalSourceCleanupAuthorityScope = {
+  ownerUserId: 'user-1',
+  workspaceId: request.workspaceId,
+  projectId: request.projectId,
+  editSessionId: request.editSessionId,
+  userInstructionDigestSha256: request.userInstructionDigestSha256,
+  sources: request.sources.map((source) => ({
+    sourceSequenceItemId: source.sourceSequenceItemId,
+    mediaAssetId: source.mediaAssetId,
+    uploadedOrder: source.uploadedOrder,
+    checksumSha256: source.checksumSha256,
+  })),
+}
 const port = createVisualIntelligenceCanonicalSourceLedProfessionalContentAnalysisPort({
   transcriptPort: { async analyze() { return transcriptResult } },
   planningAdmissionPort: { async admit(input) {
@@ -718,6 +764,7 @@ const port = createVisualIntelligenceCanonicalSourceLedProfessionalContentAnalys
   } },
   visualIntelligenceLifecycle: lifecycle,
   reasoner,
+  authorityRepository: cleanupAuthorityRepository,
 })
 const result = await port.analyze(request)
 assert.equal(result.schemaVersion, 'canonical-source-led-content-analysis-evidence-v5')
@@ -776,20 +823,64 @@ assert.equal(cleanupBinding.authority.callerTimestampsAcceptedAsCutAuthority,
 assert.equal(cleanupBinding.permissions.timelineMutated, false)
 assert.equal(cleanupBinding.permissions.customerCreditMutated, false)
 
+const persistedCleanupAuthority =
+  await cleanupAuthorityRepository.readForPlanning(cleanupAuthorityScope)
+assert.equal(persistedCleanupAuthority.status, 'ready')
+const persistedCleanupBinding =
+  assertCanonicalSourceCleanupBindingMatchesEvidence({
+    binding: persistedCleanupAuthority.authority.binding,
+    evidence: persistedCleanupAuthority.authority.evidence,
+  })
+assert.equal(
+  persistedCleanupBinding.bindingDigestSha256,
+  cleanupBinding.bindingDigestSha256,
+)
+await cleanupAuthorityRepository.persist({
+  scope: cleanupAuthorityScope,
+  evidence: result,
+})
+assert.equal(repositoryCreateAttempts, 2)
+const rereadCleanupAuthority =
+  await cleanupAuthorityRepository.readForPlanning(cleanupAuthorityScope)
+assert.equal(rereadCleanupAuthority.status, 'ready')
+assert.deepEqual(
+  rereadCleanupAuthority.repositoryRecordRef,
+  persistedCleanupAuthority.repositoryRecordRef,
+)
+const staleInstructionRead = await cleanupAuthorityRepository.readForPlanning({
+  ...cleanupAuthorityScope,
+  userInstructionDigestSha256: sha('changed-user-instructions'),
+})
+assert.equal(staleInstructionRead.status, 'not_found')
+const substitutedSourceRead = await cleanupAuthorityRepository.readForPlanning({
+  ...cleanupAuthorityScope,
+  sources: cleanupAuthorityScope.sources.map((source) => ({
+    ...source,
+    checksumSha256: sha('substituted-source'),
+  })),
+})
+assert.equal(substitutedSourceRead.status, 'not_found')
+const [repositoryObjectPath, immutableRepositoryBody] =
+  [...repositoryObjects.entries()][0]!
+const tamperedRepositoryRecord = JSON.parse(
+  immutableRepositoryBody.toString('utf8'),
+) as { authority: { planPublished: boolean } }
+tamperedRepositoryRecord.authority.planPublished = true
+repositoryObjects.set(
+  repositoryObjectPath,
+  Buffer.from(JSON.stringify(tamperedRepositoryRecord), 'utf8'),
+)
+await assert.rejects(
+  () => cleanupAuthorityRepository.readForPlanning(cleanupAuthorityScope),
+  /failed exact immutable reread/u,
+)
+repositoryObjects.set(repositoryObjectPath, immutableRepositoryBody)
+
 const compiledCleanup = compileCanonicalSourceLedPlan({
   plannerInput,
   sourceMediaAssets,
   confirmedCaptionMarkers: [],
-  sourceCleanupAuthority: {
-    binding: cleanupBinding,
-    evidence: result,
-    expectedScope: {
-      workspaceId: request.workspaceId,
-      projectId: request.projectId,
-      editSessionId: request.editSessionId,
-      userInstructionDigestSha256: request.userInstructionDigestSha256,
-    },
-  },
+  sourceCleanupAuthority: rereadCleanupAuthority.authority,
 })
 assert.equal(
   compiledCleanup.evidence.sourceRangePolicy,
@@ -877,10 +968,40 @@ assert.deepEqual(
   }],
 )
 const compiledIntent = compiledCanonicalPlan.components.compiledIntent
+const compiledAuthorityBinding = compiledIntent
+  .canonicalSourceCleanupAuthority as Record<string, unknown>
+assert.equal(
+  compiledAuthorityBinding.schemaVersion,
+  'canonical-source-cleanup-plan-authority-binding-v1',
+)
+assert.deepEqual(
+  compiledAuthorityBinding.repositoryRecordRef,
+  rereadCleanupAuthority.repositoryRecordRef,
+)
 assert.equal(
   (compiledIntent.compilerNotes as string[]).some((note) =>
     note.includes(cleanupBinding.bindingDigestSha256)),
   true,
+)
+await revalidateCanonicalSourceCleanupPlanAuthority({
+  readPort: cleanupAuthorityRepository,
+  ownerUserId: cleanupAuthorityScope.ownerUserId,
+  workspaceId: cleanupAuthorityScope.workspaceId,
+  projectId: cleanupAuthorityScope.projectId,
+  editSessionId: cleanupAuthorityScope.editSessionId,
+  sourceSequence: compiledCanonicalPlan.components.sourceSequence,
+  compiledIntent,
+})
+await assert.rejects(
+  () => revalidateCanonicalSourceCleanupPlanAuthority({
+    ownerUserId: cleanupAuthorityScope.ownerUserId,
+    workspaceId: cleanupAuthorityScope.workspaceId,
+    projectId: cleanupAuthorityScope.projectId,
+    editSessionId: cleanupAuthorityScope.editSessionId,
+    sourceSequence: compiledCanonicalPlan.components.sourceSequence,
+    compiledIntent,
+  }),
+  /repository is unavailable/u,
 )
 const colorTrimPayloads = compiledCanonicalPlan.workItems
   .filter((item) => item.executionInput.operation ===
@@ -1103,6 +1224,14 @@ await assert.rejects(
   }),
   /visual_intelligence_source_1_invalid/u,
 )
+await assert.rejects(
+  async () => port.analyze({
+    ...request,
+    planningDirection:
+      'A changed direction cannot reuse the authenticated text digest.',
+  }),
+  /visual_intelligence_source_request_invalid/u,
+)
 
 console.log(JSON.stringify({
   status: 'source_led_visual_intelligence_content_analysis_smoke_passed',
@@ -1118,6 +1247,11 @@ console.log(JSON.stringify({
   exactRenderTrimPayloadsVerified: true,
   staleScopeAndSourceSubstitutionRejected: true,
   unsupportedMultiRangeExecutionRejected: true,
+  durableAuthorityCreateOnlyRereadVerified: true,
+  tamperedDurableAuthorityRejected: true,
+  approvalTimeAuthorityRereadVerified: true,
+  staleInstructionAndSourceRepositoryReadsRejected: true,
+  directionTextAndChatAuthorityDigestsSeparated: true,
   embeddedInstructionDetected: true,
   embeddedInstructionTreatedAsUntrustedEvidence:
     cleanupBinding.authority

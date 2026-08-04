@@ -237,6 +237,35 @@ export function createCanonicalSourceLedPlanPresentationService(
         editBriefAggregate,
         chatInstructionHistory: chatDirections.instructionHistory,
       })
+      const sourceCleanupAuthorityRead =
+        context.canonicalSourceCleanupAuthorityReadPort
+          ? await context.canonicalSourceCleanupAuthorityReadPort
+              .readForPlanning({
+                ownerUserId: actorUserId,
+                workspaceId: access.workspaceId,
+                projectId,
+                editSessionId,
+                userInstructionDigestSha256:
+                  chatDirections.authorityDigestSha256,
+                sources: selectedSources.map(({ mediaAsset }, index) => ({
+                  sourceSequenceItemId: mediaAsset.id,
+                  mediaAssetId: mediaAsset.id,
+                  uploadedOrder: index + 1,
+                  checksumSha256: mediaAsset.checksumSha256,
+                })),
+              })
+          : undefined
+      if (sourceCleanupAuthorityRead?.status === 'not_found') {
+        throw new ApiError(
+          'JOB_DEPENDENCY_NOT_READY',
+          'Whole-video Visual Intelligence cleanup evidence is not ready for these exact sources and instructions.',
+          409,
+          {
+            requiredGate:
+              'canonical_whole_video_visual_intelligence_cleanup_authority',
+          },
+        )
+      }
 
       let compiled: ReturnType<typeof compileCanonicalSourceLedPlan>
       try {
@@ -247,6 +276,9 @@ export function createCanonicalSourceLedPlanPresentationService(
           confirmedCaptionMarkers: confirmedMarkers.filter(
             (marker) => marker.markerType === 'caption',
           ),
+          ...(sourceCleanupAuthorityRead?.status === 'ready'
+            ? { sourceCleanupAuthority: sourceCleanupAuthorityRead.authority }
+            : {}),
         })
       } catch (error) {
         throw new ApiError(
@@ -379,9 +411,12 @@ export function createCanonicalSourceLedPlanPresentationService(
         warnings: [
           ...compiled.canonicalDraft.warnings,
           ...presentation.warnings,
-          compiled.professionalLongFormPublication
-            ? 'This professional long-form source-led plan preserves every verified source frame and delegates chunk derivation, QA, and merge authority to the existing post-approval controller.'
-            : 'This bounded server planner preserves every verified source frame and supports only exact confirmed captions.',
+          compiled.evidence.sourceRangePolicy ===
+            'head_intelligence_verified_visual_intelligence_cleanup'
+            ? 'This source-led plan uses only exact Head Intelligence keep/remove decisions bound to complete transcript and whole-video Visual Intelligence evidence.'
+            : compiled.professionalLongFormPublication
+              ? 'This professional long-form source-led plan preserves every verified source frame and delegates chunk derivation, QA, and merge authority to the existing post-approval controller.'
+              : 'This bounded server planner preserves every verified source frame and supports only exact confirmed captions.',
         ],
         testOnly: true as const,
       }

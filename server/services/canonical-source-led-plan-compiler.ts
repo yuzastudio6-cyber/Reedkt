@@ -65,6 +65,11 @@ interface CanonicalSourceLedRemovedRange {
 export interface CanonicalSourceLedCleanupAuthorityInput {
   binding: unknown
   evidence: unknown
+  repositoryRecordRef?: {
+    id: string
+    version: 1
+    contentHash: string
+  }
   expectedScope: {
     workspaceId: string
     projectId: string
@@ -340,6 +345,25 @@ export function compileCanonicalSourceLedPlan(input: {
     compiledIntent: cleanupAuthority && base.compiledIntent
       ? {
           ...base.compiledIntent,
+          ...(cleanupAuthority.repositoryRecordRef
+            ? {
+                canonicalSourceCleanupAuthority: {
+                  schemaVersion:
+                    'canonical-source-cleanup-plan-authority-binding-v1',
+                  repositoryRecordRef: {
+                    ...cleanupAuthority.repositoryRecordRef,
+                  },
+                  sourceAnalysisEvidenceRef: {
+                    ...cleanupAuthority.binding.sourceAnalysisEvidenceRef,
+                  },
+                  sourceCleanupBindingDigestSha256:
+                    cleanupAuthority.binding.bindingDigestSha256,
+                  userInstructionDigestSha256:
+                    input.sourceCleanupAuthority!
+                      .expectedScope.userInstructionDigestSha256,
+                },
+              }
+            : {}),
           compilerNotes: [
             ...base.compiledIntent.compilerNotes,
             `Canonical source analysis evidence ${cleanupAuthority.binding.sourceAnalysisEvidenceRef.id}@${cleanupAuthority.binding.sourceAnalysisEvidenceRef.version} (${cleanupAuthority.binding.sourceAnalysisEvidenceRef.contentHash}) was reread before compiling source ranges.`,
@@ -624,6 +648,11 @@ function resolveAnalyzedSourceCleanupAuthority(input: {
   fullSourceFrames: number[]
 }): {
   binding: CanonicalSourceCleanupVisualIntelligenceBinding
+  repositoryRecordRef?: {
+    id: string
+    version: 1
+    contentHash: string
+  }
   selectedRanges: CanonicalSourceLedSelectedRange[]
   removedRanges: CanonicalSourceLedRemovedRange[]
 } {
@@ -631,6 +660,18 @@ function resolveAnalyzedSourceCleanupAuthority(input: {
     binding: input.authority.binding,
     evidence: input.authority.evidence,
   })
+  const repositoryRecordRef = input.authority.repositoryRecordRef
+  if (
+    repositoryRecordRef !== undefined &&
+    (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u.test(
+      repositoryRecordRef.id,
+    ) || repositoryRecordRef.version !== 1 ||
+      !/^sha256:[a-f0-9]{64}$/u.test(repositoryRecordRef.contentHash))
+  ) {
+    throw new Error(
+      'Canonical source cleanup authority repository reference is invalid.',
+    )
+  }
   const expectedScope = input.authority.expectedScope
   if (
     binding.scope.workspaceId !== expectedScope.workspaceId ||
@@ -749,7 +790,12 @@ function resolveAnalyzedSourceCleanupAuthority(input: {
       'Canonical source cleanup authority totals do not match the executable selected ranges.',
     )
   }
-  return { binding, selectedRanges, removedRanges }
+  return {
+    binding,
+    ...(repositoryRecordRef ? { repositoryRecordRef } : {}),
+    selectedRanges,
+    removedRanges,
+  }
 }
 
 function buildPreservingSelectedRanges(input: {

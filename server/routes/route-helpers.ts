@@ -87,6 +87,8 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.editBriefPrivateWorkspaceRuntimePort,
     kimiK3SourceLedChatAssistantPort:
       runtimeRequest.runtime.kimiK3SourceLedChatAssistantPort,
+    canonicalSourceCleanupAuthorityReadPort:
+      runtimeRequest.runtime.canonicalSourceCleanupAuthorityReadPort,
   }
 }
 

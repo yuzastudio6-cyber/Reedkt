@@ -367,6 +367,21 @@ assert.equal(
   runtime.editReferenceReadPort.schemaVersion,
   'edit-reference-visual-intelligence-orchestra-read-port-v1',
 )
+const missingSourceCleanupAuthority =
+  await runtime.sourceCleanupAuthorityRepository.readForPlanning({
+    ownerUserId: 'user-1',
+    workspaceId: 'workspace-1',
+    projectId: 'project-1',
+    editSessionId: 'edit-1',
+    userInstructionDigestSha256: rawSha('source-instructions'),
+    sources: [{
+      sourceSequenceItemId: 'source-item-1',
+      mediaAssetId: 'source-video-1',
+      uploadedOrder: 1,
+      checksumSha256: rawSha('source-video-1'),
+    }],
+  })
+assert.equal(missingSourceCleanupAuthority.status, 'not_found')
 
 const costPreflight = await runtime.costOwner.createPreflight({
   requestId: 'visual-production-source-request-1',
@@ -919,6 +934,7 @@ console.log(JSON.stringify({
   status: 'visual_intelligence_production_runtime_smoke_passed',
   exactRuntimeReleaseReread: true,
   exactAccountEffectiveRateReread: true,
+  sourceCleanupAuthorityRepositoryMounted: true,
   canonicalRequestPackageConsumed: true,
   orchestraDispatchPackageConsumed: true,
   orchestraResultReturnedAndPersisted: true,

@@ -76,6 +76,8 @@ export interface CanonicalSourceLedProfessionalContentAnalysisInput {
   readonly projectId: string
   readonly editSessionId: string
   readonly planningDirection: string
+  readonly planningDirectionDigestSha256: string
+  /** Exact digest of the authenticated saved-chat revision and active set. */
   readonly userInstructionDigestSha256: string
   readonly fps: 30
   readonly sources:
@@ -101,6 +103,7 @@ export interface CanonicalSourceLedProfessionalContentAnalysisReasoner {
     readonly editSessionId: string
     readonly analysisRunId: string
     readonly planningDirection: string
+    readonly planningDirectionDigestSha256: string
     readonly userInstructionDigestSha256: string
     readonly fps: 30
     readonly sources:

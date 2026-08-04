@@ -33,6 +33,9 @@ import type {
   VisualIntelligenceExecutionOutcome,
   VisualIntelligenceLifecycleService,
 } from '../visual-intelligence/visual-intelligence-lifecycle-service'
+import type {
+  CanonicalSourceCleanupAuthorityRepository,
+} from './canonical-source-cleanup-authority-repository'
 
 export const CANONICAL_SOURCE_LED_VISUAL_INTELLIGENCE_PORT_VERSION =
   'canonical-source-led-visual-intelligence-content-analysis-port-v1' as const
@@ -128,6 +131,8 @@ export function createVisualIntelligenceCanonicalSourceLedProfessionalContentAna
       CanonicalSourceVisualIntelligencePlanningAdmissionPort
     readonly visualIntelligenceLifecycle: VisualIntelligenceLifecycleService
     readonly reasoner: CanonicalSourceLedProfessionalContentAnalysisReasoner
+    readonly authorityRepository:
+      CanonicalSourceCleanupAuthorityRepository
   },
 ): CanonicalSourceLedProfessionalContentAnalysisPort {
   const inFlight = new Map<
@@ -144,6 +149,8 @@ export function createVisualIntelligenceCanonicalSourceLedProfessionalContentAna
         workspaceId: request.workspaceId,
         projectId: request.projectId,
         editSessionId: request.editSessionId,
+        planningDirectionDigestSha256:
+          request.planningDirectionDigestSha256,
         userInstructionDigestSha256: request.userInstructionDigestSha256,
         fps: request.fps,
         sources: request.sources.map(sourceIdentity),
@@ -168,6 +175,7 @@ async function analyzeExactRequest(input: {
   planningAdmissionPort: CanonicalSourceVisualIntelligencePlanningAdmissionPort
   visualIntelligenceLifecycle: VisualIntelligenceLifecycleService
   reasoner: CanonicalSourceLedProfessionalContentAnalysisReasoner
+  authorityRepository: CanonicalSourceCleanupAuthorityRepository
 }): Promise<CanonicalSourceLedContentAnalysisEvidence> {
   const analysisRunId = `source_analysis_${input.requestDigest}`
   const transcripts = await Promise.all(input.request.sources.map(
@@ -218,6 +226,8 @@ async function analyzeExactRequest(input: {
     editSessionId: input.request.editSessionId,
     analysisRunId,
     planningDirection: input.request.planningDirection,
+    planningDirectionDigestSha256:
+      input.request.planningDirectionDigestSha256,
     userInstructionDigestSha256:
       input.request.userInstructionDigestSha256,
     fps: 30,
@@ -255,6 +265,24 @@ async function analyzeExactRequest(input: {
       409,
     )
   }
+  await input.authorityRepository.persist({
+    scope: {
+      ownerUserId:
+        input.request.sources[0]!.managedApiAuthority!.ownerUserId,
+      workspaceId: input.request.workspaceId,
+      projectId: input.request.projectId,
+      editSessionId: input.request.editSessionId,
+      userInstructionDigestSha256:
+        input.request.userInstructionDigestSha256,
+      sources: input.request.sources.map((source) => ({
+        sourceSequenceItemId: source.sourceSequenceItemId,
+        mediaAssetId: source.mediaAssetId,
+        uploadedOrder: source.uploadedOrder,
+        checksumSha256: source.checksumSha256,
+      })),
+    },
+    evidence,
+  })
   return evidence
 }
 
@@ -599,17 +627,19 @@ function verifyRequest(
     || !safeId(input.projectId)
     || !safeId(input.editSessionId)
     || input.fps !== 30
+    || !RAW_SHA256.test(input.planningDirectionDigestSha256)
     || !RAW_SHA256.test(input.userInstructionDigestSha256)
     || input.planningDirection !== input.planningDirection.trim()
     || input.planningDirection.length < 1
     || input.planningDirection.length > 8_000
     || rawDigestText(input.planningDirection) !==
-      input.userInstructionDigestSha256
+      input.planningDirectionDigestSha256
     || input.sources.length < 1
     || input.sources.length > 8
   ) throw invalid('visual_intelligence_source_request_invalid')
   const sourceIds = new Set<string>()
   const mediaIds = new Set<string>()
+  let ownerUserId: string | undefined
   input.sources.forEach((source, index) => {
     const authority = source.managedApiAuthority
     if (
@@ -625,6 +655,9 @@ function verifyRequest(
       || !Number.isSafeInteger(source.durationFrames)
       || source.durationFrames < 1
       || !authority
+      || !safeId(authority.ownerUserId)
+      || (ownerUserId !== undefined &&
+        authority.ownerUserId !== ownerUserId)
       || authority.storageBucket !== source.storageBucket
       || authority.storagePath !== source.storagePath
       || authority.contentType !== 'video/mp4'
@@ -645,6 +678,7 @@ function verifyRequest(
     ) throw invalid(`visual_intelligence_source_${index + 1}_invalid`)
     sourceIds.add(source.sourceSequenceItemId)
     mediaIds.add(source.mediaAssetId)
+    ownerUserId = authority.ownerUserId
   })
   return input
 }

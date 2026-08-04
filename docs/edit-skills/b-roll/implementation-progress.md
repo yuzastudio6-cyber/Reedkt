@@ -1904,6 +1904,60 @@ qualification run will execute the complete provider-authority smoke and issue
 the exact final receipt. No test was skipped or weakened, and no qualification
 status is newly claimed by M27 alone.
 
+## M28 — qualification dependency authorities
+
+Status: implementation complete, committed, pushed, and targeted-qualified.
+
+Implementation commit:
+`496cad74c932580a401e319dacd3947fe102348a`.
+
+Remote confirmation: `git push -u origin HEAD` advanced
+`origin/codex/reeditpro-b-roll-skill-end-to-end` to
+`496cad74c932580a401e319dacd3947fe102348a`; local and remote refs matched
+exactly after the push.
+
+Fixture evidence, command evidence, the generated qualification artifact, and
+the receipt-v2 authority now carry the same ordered 18-entry
+`dependencyAuthorityHashes` set. Each entry hashes a forward-only authority
+profile plus the minimal exact files for the canonical approved execution
+package, canonical B-roll component, planning publication/service contract,
+FFprobe profile, FFmpeg recipe profile, media execution protocol, Remotion
+operation/protocol/composition, Gemini Omni V5 profile and lifecycle,
+candidate QA, planning QA, public plugin, artifact registry, runtime binding,
+Visual Intelligence dependency, and model-neutral track-graph contract.
+
+Runtime registration recomputes this set along with the relevant source-tree
+hash and manifest reference before accepting the generated receipt. Missing,
+duplicate, reordered, unknown, forged, or independently changed authority
+values fail closed. Receipt-v2 now also separates actual provider, media, and
+Remotion evidence. Planning-only evidence leaves these execution categories
+empty; internal or production execution status requires all three to contain
+actual command evidence.
+
+Actual M28 evidence:
+
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-qualification-evidence`
+  — passed 36 fixture records, 16 command records, all 18 exact dependency
+  authorities, 18 independent changed-authority rejection cases, missing,
+  duplicate, unknown, stale-source, stale-manifest, failed-command, forged
+  artifact, and qualification-overclaim cases.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  and `npm run test:b-roll-active-artifact-contracts` — passed with the
+  receipt-v2 and strict artifact contract changes.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-runtime-factory`
+  — passed runtime construction and fail-closed dependency injection cases.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run validate:skill-capability-manifests`
+  — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run typecheck:server`,
+  `npm run lint`, and `git diff --check` — passed.
+
+The checked-in M23 receipt remains intentionally stale and was not rewritten.
+M30 will issue the new receipt only after the M29 public lifecycle source is
+committed, then prove the tested source commit is an ancestor of the evidence
+commit and that the final head recomputes identical source/dependency hashes.
+No external provider request, public artifact, production mutation, orchestra,
+Track All implementation, or Visual Intelligence implementation occurred.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1936,3 +1990,4 @@ status is newly claimed by M27 alone.
 | M25 | `27c41b84c` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
 | M26 | `89692e838` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
 | M27 | `397b6546a` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
+| M28 | `496cad74c` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |

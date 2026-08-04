@@ -1,6 +1,6 @@
 # CAP-00R Milestone Evidence Report
 
-Status: `passed_ready_for_checkpoint`
+Status: `passed_checkpoint_recorded`
 Milestone: `CAP-00R`
 Date: 2026-08-04
 
@@ -80,10 +80,15 @@ stop safe Caption implementation.
 
 ## Checkpoint
 
-Commit: pending
-Tree: pending
-Remote branch: pending
-PR: pending
+Content checkpoint commit:
+`fb5899f0524f9789bd7b9cf1f5e8c59266013146`
+
+Content checkpoint tree:
+`0ec6d4cd11e6bd6cbcfec5e350952766c5409ff7`
+
+Remote branch: `codex/captions-specialist-cap-00r-v1` (push pending)
+
+PR: pending receipt push
 
 ## Next milestone
 

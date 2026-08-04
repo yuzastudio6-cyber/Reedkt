@@ -27,6 +27,8 @@ Remote publication owner: `github-publish` →
 ## CAP-00R publication slot
 
 Branch: `codex/captions-specialist-cap-00r-v1`
-Commit: pending CAP-00R checks
-Tree: pending CAP-00R checks
-PR: create or update after the first pushed checkpoint
+Content checkpoint commit:
+`fb5899f0524f9789bd7b9cf1f5e8c59266013146`
+Content checkpoint tree:
+`0ec6d4cd11e6bd6cbcfec5e350952766c5409ff7`
+PR: create or update after the receipt commit is pushed

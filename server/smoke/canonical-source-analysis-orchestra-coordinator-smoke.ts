@@ -35,9 +35,14 @@ import {
   createCanonicalSourceAnalysisL4VisualEvidenceResult,
 } from '../services/canonical-source-analysis-l4-visual-evidence-repository'
 import {
+  createCanonicalSourceAnalysisL4VisualEvidenceAdmission,
   CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ATTEMPT_OWNER_VERSION,
   type CanonicalSourceAnalysisL4VisualEvidenceAttemptOwner,
 } from '../services/canonical-source-analysis-l4-visual-evidence-attempt-owner'
+import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ADMISSION_OWNER_VERSION,
+  type CanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner,
+} from '../services/canonical-source-analysis-l4-visual-evidence-admission-owner'
 import {
   CANONICAL_SOURCE_ANALYSIS_PREPARATION_OWNER_VERSION,
   type CanonicalSourceAnalysisPreparationOwner,
@@ -704,6 +709,83 @@ const l4VisualEvidenceReadPort = {
     return structuredClone(l4VisualEvidence)
   },
 } as const
+const l4VisualEvidenceAdmissionOwner:
+  CanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner = {
+  schemaVersion:
+    CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ADMISSION_OWNER_VERSION,
+  routeId: 'l4_standard_primary',
+  region: 'us-central1',
+  platformFundedPreapprovalAnalysis: true,
+  approvedEditSnapshotRequired: false,
+  customerCreditMutationAllowed: false,
+  callerRateReleaseOrCostCapAccepted: false,
+  async admitOneShot(trigger) {
+    sequence.push('l4_visual_evidence_admission')
+    const preparedRequestContentRef = Object.freeze({
+      id: `prepared-source-analysis-${identity.requestDigest.slice(0, 32)}`,
+      version: 1,
+      contentHash: `sha256:${identity.requestDigest}`,
+    })
+    const platformEstimateRef = ref('l4-platform-estimate')
+    const currentAccountRateAuthorityRef = ref('l4-current-rate')
+    const admission = createCanonicalSourceAnalysisL4VisualEvidenceAdmission({
+      admissionId: `admission-${trigger.triggerHash.slice(0, 32)}`,
+      triggerRef: {
+        id: trigger.requestId,
+        version: 1,
+        contentHash: `sha256:${trigger.triggerHash}`,
+      },
+      scopeDigestSha256: sha256AuthorityValue(l4VisualEvidence.scope),
+      preparedRequestContentRef,
+      finalizedMediaAuthorityRef: finalizedRef,
+      finalizedStorageObjectAuthorityRef: storageRef,
+      sourceProbeAuthorityRef: probeRef,
+      sourceAnalysisConsentRef:
+        request.sources[0]!.managedApiAuthority!.sourceAnalysisConsentRef,
+      platformAnalysisCostCapRef:
+        request.sources[0]!.managedApiAuthority!.platformAnalysisCostCapRef,
+      platformEstimateRef,
+      currentAccountRateAuthorityRef,
+      runtimeReleaseRef: ref('l4-visual-evidence-runtime-release'),
+      operationId:
+        'internal.visual_intelligence.prepare_source_visual_evidence.v1',
+      routeProfileId:
+        'quality_l4_user_triggered_standard_media_job_v1',
+      routeId: 'l4_standard_primary',
+      maximumAttempts: 1,
+      attemptOrdinal: 1,
+      uncertainOutcomeRetryAllowed: false,
+      createOnlyConsumptionRequiredBeforeCloudRunCall: true,
+      exactPreparedSourceProbeConsentCostRateAndReleaseReread: true,
+      userTriggeredScaleFromZero: true,
+      minimumIdleInstances: 0,
+      platformFundedPreapprovalAnalysis: true,
+      maximumPlatformInternalCostUsdNanos: 5_000_000_000,
+      customerCreditReservationRequired: false,
+      customerCreditsMutated: false,
+      systemFailureOrUnknownCostChargedToCustomer: false,
+      unapprovedOverageChargedToCustomer: false,
+      admittedAt: '2026-08-03T12:00:01.000Z',
+      expiresAt: '2026-08-03T12:10:01.000Z',
+    })
+    return {
+      status: 'ready',
+      disposition: 'created',
+      admission,
+      scope: l4VisualEvidence.scope,
+      platformEstimateRef,
+      currentAccountRateAuthorityRef,
+      maximumPlatformInternalCostUsdNanos: 5_000_000_000,
+      exactPreparedFinalizedProbeReleaseAndRateRereadVerified: true,
+      admissionPersistedAndReread: true,
+      platformFundedPreapprovalAnalysis: true,
+      gpuJobStarted: false,
+      customerCreditMutated: false,
+      publicDeliveryGranted: false,
+      productionAuthorityGranted: false,
+    }
+  },
+}
 const l4VisualEvidenceAttemptOwner:
   CanonicalSourceAnalysisL4VisualEvidenceAttemptOwner = {
   schemaVersion:
@@ -901,6 +983,7 @@ const coordinator = createCanonicalSourceAnalysisOrchestraCoordinator({
   planningScopeReadPort,
   probeAttemptOwner,
   preparationOwner,
+  l4VisualEvidenceAdmissionOwner,
   l4VisualEvidenceAttemptOwner,
   transcriptAttemptOwner,
   requestAuthorityReadPort,
@@ -949,6 +1032,7 @@ assert.deepEqual(sequence, [
   'l4_probe',
   'preparation',
   'prepared_request_reread',
+  'l4_visual_evidence_admission',
   'l4_visual_evidence',
   'l4_visual_evidence_reread',
   'a100_transcript',
@@ -1004,6 +1088,7 @@ const blockedCoordinator = createCanonicalSourceAnalysisOrchestraCoordinator({
       return preparationOwner.prepareForOrchestra(planningScope)
     },
   },
+  l4VisualEvidenceAdmissionOwner,
   l4VisualEvidenceAttemptOwner,
   transcriptAttemptOwner,
   requestAuthorityReadPort,
@@ -1029,6 +1114,53 @@ assert.deepEqual(blockedResult, {
 })
 assert.equal(probeBlockedDownstreamCalls, 0)
 
+let unadmittedL4AttemptCalls = 0
+const unadmittedL4Coordinator =
+  createCanonicalSourceAnalysisOrchestraCoordinator({
+    planningScopeReadPort,
+    probeAttemptOwner,
+    preparationOwner,
+    l4VisualEvidenceAdmissionOwner: {
+      ...l4VisualEvidenceAdmissionOwner,
+      async admitOneShot() {
+        return {
+          status: 'not_ready' as const,
+          blockerCode:
+            'canonical_source_visual_evidence_current_rate_not_ready' as const,
+          admissionPersisted: false as const,
+          gpuJobStarted: false as const,
+          customerCreditMutated: false as const,
+        }
+      },
+    },
+    l4VisualEvidenceAttemptOwner: {
+      ...l4VisualEvidenceAttemptOwner,
+      async executeOneShot(value) {
+        unadmittedL4AttemptCalls += 1
+        return l4VisualEvidenceAttemptOwner.executeOneShot(value)
+      },
+    },
+    transcriptAttemptOwner,
+    requestAuthorityReadPort,
+    transcriptReadPort,
+    l4VisualEvidenceReadPort,
+    orchestraWorkReadPort,
+    orchestraRuntime,
+    planningReconciliationPort,
+    cleanupAuthorityReadPort,
+  })
+const unadmittedL4Result = await unadmittedL4Coordinator.execute(trigger)
+assert.equal(unadmittedL4Result.status, 'blocked')
+if (unadmittedL4Result.status !== 'blocked') {
+  throw new Error('Missing L4 rate admission did not block.')
+}
+assert.equal(unadmittedL4Result.stage, 'l4_visual_evidence')
+assert.equal(
+  unadmittedL4Result.blockerCode,
+  'canonical_source_visual_evidence_current_rate_not_ready',
+)
+assert.equal(unadmittedL4AttemptCalls, 0)
+
 let uncertainL4Rereads = 0
 let uncertainL4TranscriptCalls = 0
 const uncertainL4Coordinator =
@@ -1036,6 +1168,7 @@ const uncertainL4Coordinator =
     planningScopeReadPort,
     probeAttemptOwner,
     preparationOwner,
+    l4VisualEvidenceAdmissionOwner,
     l4VisualEvidenceAttemptOwner: {
       ...l4VisualEvidenceAttemptOwner,
       async executeOneShot() {
@@ -1090,6 +1223,7 @@ const missingL4Coordinator =
     planningScopeReadPort,
     probeAttemptOwner,
     preparationOwner,
+    l4VisualEvidenceAdmissionOwner,
     l4VisualEvidenceAttemptOwner,
     transcriptAttemptOwner: {
       ...transcriptAttemptOwner,
@@ -1127,6 +1261,7 @@ const transcriptBlockedCoordinator =
     planningScopeReadPort,
     probeAttemptOwner,
     preparationOwner,
+    l4VisualEvidenceAdmissionOwner,
     l4VisualEvidenceAttemptOwner,
     transcriptAttemptOwner: {
       ...transcriptAttemptOwner,

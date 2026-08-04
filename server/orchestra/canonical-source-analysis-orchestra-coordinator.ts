@@ -33,6 +33,12 @@ import {
   createCanonicalSourceAnalysisL4VisualEvidenceTrigger,
 } from '../services/canonical-source-analysis-l4-visual-evidence-attempt-owner'
 import type {
+  CanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner,
+} from '../services/canonical-source-analysis-l4-visual-evidence-admission-owner'
+import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ADMISSION_OWNER_VERSION,
+} from '../services/canonical-source-analysis-l4-visual-evidence-admission-owner'
+import type {
   CanonicalSourceAnalysisPreparationOwner,
 } from '../services/canonical-source-analysis-preparation-owner'
 import {
@@ -94,7 +100,7 @@ import {
 } from '../visual-intelligence/visual-intelligence-orchestra-job-runtime'
 
 export const CANONICAL_SOURCE_ANALYSIS_ORCHESTRA_COORDINATOR_VERSION =
-  'canonical-source-analysis-orchestra-coordinator-v3' as const
+  'canonical-source-analysis-orchestra-coordinator-v4' as const
 export const CANONICAL_SOURCE_ANALYSIS_USER_TRIGGER_VERSION =
   'canonical-source-analysis-user-trigger-v1' as const
 export const CANONICAL_SOURCE_ANALYSIS_PLANNING_SCOPE_READ_PORT_VERSION =
@@ -366,6 +372,8 @@ export function createCanonicalSourceAnalysisOrchestraCoordinator(input: {
     CanonicalSourceAnalysisPlanningScopeReadPort
   readonly probeAttemptOwner: CanonicalSourceAnalysisL4ProbeAttemptOwner
   readonly preparationOwner: CanonicalSourceAnalysisPreparationOwner
+  readonly l4VisualEvidenceAdmissionOwner:
+    CanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner
   readonly l4VisualEvidenceAttemptOwner:
     CanonicalSourceAnalysisL4VisualEvidenceAttemptOwner
   readonly transcriptAttemptOwner: CanonicalSourceTranscriptA100AttemptOwner
@@ -476,7 +484,7 @@ export function createCanonicalSourceAnalysisOrchestraCoordinator(input: {
       const l4VisualEvidenceResults:
         CanonicalSourceAnalysisL4VisualEvidenceResult[] = []
       for (const [index, source] of prepared.request.sources.entries()) {
-        const attempt = await input.l4VisualEvidenceAttemptOwner.executeOneShot(
+        const visualEvidenceTrigger =
           createCanonicalSourceAnalysisL4VisualEvidenceTrigger({
             requestId: scopedId(
               trigger, 'l4-visual-evidence', source.uploadedOrder,
@@ -495,8 +503,14 @@ export function createCanonicalSourceAnalysisOrchestraCoordinator(input: {
             customerCreditMutationAuthorized: false,
             publicDeliveryAuthorized: false,
             productionAuthorityGranted: false,
-          }),
+          })
+        const admission = await input.l4VisualEvidenceAdmissionOwner
+          .admitOneShot(visualEvidenceTrigger)
+        if (admission.status !== 'ready') return blocked(
+          'l4_visual_evidence', index + 1, admission.blockerCode,
         )
+        const attempt = await input.l4VisualEvidenceAttemptOwner
+          .executeOneShot(visualEvidenceTrigger)
         if (attempt.status !== 'ready') return blocked(
           'l4_visual_evidence', index + 1,
           attempt.status === 'failed_before_creation'
@@ -664,6 +678,9 @@ function validateDependencies(input: Parameters<
     || input.preparationOwner?.schemaVersion !==
       CANONICAL_SOURCE_ANALYSIS_PREPARATION_OWNER_VERSION
     || typeof input.preparationOwner.prepareForOrchestra !== 'function'
+    || input.l4VisualEvidenceAdmissionOwner?.schemaVersion !==
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ADMISSION_OWNER_VERSION
+    || typeof input.l4VisualEvidenceAdmissionOwner.admitOneShot !== 'function'
     || input.l4VisualEvidenceAttemptOwner?.schemaVersion !==
       CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ATTEMPT_OWNER_VERSION
     || typeof input.l4VisualEvidenceAttemptOwner.executeOneShot !== 'function'

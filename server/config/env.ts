@@ -34,6 +34,7 @@ export interface RuntimeEnv {
   supabaseServiceRoleKey?: string
   googleCloudProjectId?: string
   googleCloudRegion?: string
+  googleCloudBillingAccountResourceName?: string
   gcsDefaultRegion: string
   gcsSourceMediaBucket?: string
   gcsGeneratedAssetsBucket?: string
@@ -98,6 +99,7 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
   GOOGLE_CLOUD_REGION: z.string().optional(),
+  WEEDITPRO_GOOGLE_CLOUD_BILLING_ACCOUNT_RESOURCE_NAME: z.string().optional(),
   GCS_DEFAULT_REGION: z.string().default('us-east1'),
   GCS_SOURCE_MEDIA_BUCKET: z.string().optional(),
   GCS_GENERATED_ASSETS_BUCKET: z.string().optional(),
@@ -229,6 +231,8 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     supabaseServiceRoleKey,
     googleCloudProjectId: clean(parsed.GOOGLE_CLOUD_PROJECT_ID),
     googleCloudRegion: clean(parsed.GOOGLE_CLOUD_REGION),
+    googleCloudBillingAccountResourceName:
+      clean(parsed.WEEDITPRO_GOOGLE_CLOUD_BILLING_ACCOUNT_RESOURCE_NAME),
     gcsDefaultRegion: clean(parsed.GCS_DEFAULT_REGION) ?? 'us-east1',
     gcsSourceMediaBucket: clean(parsed.GCS_SOURCE_MEDIA_BUCKET),
     gcsGeneratedAssetsBucket: clean(parsed.GCS_GENERATED_ASSETS_BUCKET),
@@ -506,6 +510,9 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
         && env.visualIntelligenceRateEtag
         && env.visualIntelligenceRateContentSha256,
       ),
+      gpuBillingAccountPricingConfigured: Boolean(
+        env.googleCloudBillingAccountResourceName,
+      ),
       apiKeyConfiguredOrRequired: false,
       qwenFallbackAllowed: false,
       cpuSubstantiveMediaProcessingAllowed: false,
@@ -577,6 +584,7 @@ function hasVisualIntelligenceCoordinates(
 ): boolean {
   return Boolean(
     clean(parsed.GCS_CONTROL_PLANE_STATE_BUCKET)
+    && clean(parsed.WEEDITPRO_GOOGLE_CLOUD_BILLING_ACCOUNT_RESOURCE_NAME)
     && clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_OBJECT)
     && clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_GENERATION)
     && clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RELEASE_ETAG)
@@ -595,6 +603,7 @@ function assertVisualIntelligenceRuntimeConfigured(env: RuntimeEnv): void {
     || env.googleCloudProjectId !== 'reeditpro'
     || !env.internalServiceToken
     || !env.gcsControlPlaneStateBucket
+    || !env.googleCloudBillingAccountResourceName
   ) throw new Error(
     'Visual Intelligence cloud runtime requires Cloud Run mode, private GCS, the immutable reeditpro cloud project coordinate, internal-service authentication, and a control-plane bucket.',
   )
@@ -612,6 +621,10 @@ function assertVisualIntelligenceRuntimeConfigured(env: RuntimeEnv): void {
     'Visual Intelligence cloud runtime requires every exact immutable runtime-release and billing-account-effective rate coordinate.',
   )
   if (
+    !/^billingAccounts\/[A-Za-z0-9-]+$/u.test(
+      env.googleCloudBillingAccountResourceName!,
+    )
+    ||
     !env.visualIntelligenceReleaseObjectName!.startsWith(
       'private/visual-intelligence/releases/gemini-pro-high/v1/',
     )

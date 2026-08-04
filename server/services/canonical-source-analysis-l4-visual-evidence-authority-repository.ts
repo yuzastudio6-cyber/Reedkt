@@ -87,6 +87,9 @@ export interface CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository {
     CanonicalSourceAnalysisL4VisualEvidenceReleaseReadPort
   readonly terminalReadPort:
     CanonicalSourceAnalysisL4VisualEvidenceTerminalReadPort
+  readExactRelease(
+    releaseRef: VisualIntelligenceEvidenceRef,
+  ): Promise<CanonicalSourceAnalysisL4VisualEvidenceRelease | null>
   persistAdmissionCreateOnly(input: Readonly<{
     trigger: CanonicalSourceAnalysisL4VisualEvidenceTrigger
     scope: CanonicalSourceTranscriptOrchestraReadScope
@@ -200,6 +203,21 @@ createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository(input: {
     admissionReadPort,
     releaseReadPort,
     terminalReadPort,
+    async readExactRelease(
+      untrustedReleaseRef: VisualIntelligenceEvidenceRef,
+    ) {
+      const releaseRef = parseRef(untrustedReleaseRef)
+      const record = await readRecord({
+        objectPort: input.objectPort,
+        path: releasePath(prefix, releaseRef),
+        parse: parseReleaseRecord,
+      })
+      if (!record) return null
+      if (!sameRef(record.release.releaseRef, releaseRef)) {
+        throw conflict('source_visual_evidence_release_record_mismatch')
+      }
+      return structuredClone(record.release)
+    },
     async persistAdmissionCreateOnly(
       untrusted: Parameters<
         CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository[

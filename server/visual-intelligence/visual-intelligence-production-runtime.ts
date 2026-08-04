@@ -43,6 +43,12 @@ import {
   type CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository,
 } from '../services/canonical-source-analysis-l4-visual-evidence-authority-repository'
 import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_CURRENT_RATE_READ_PORT_VERSION,
+  createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner,
+  type CanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner,
+  type CanonicalSourceAnalysisL4VisualEvidenceCurrentRateReadPort,
+} from '../services/canonical-source-analysis-l4-visual-evidence-admission-owner'
+import {
   createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner,
   createGoogleCloudRunL4VisualEvidenceExecutionPort,
   type CanonicalSourceAnalysisL4VisualEvidenceAttemptOwner,
@@ -144,9 +150,16 @@ import {
   createVertexGeminiProVisualIntelligenceAdapter,
   type VisualIntelligenceGeminiGeneratePort,
 } from './vertex-gemini-pro-visual-intelligence-adapter'
+import {
+  observeCanonicalCurrentGoogleCloudGpuRateAuthority,
+} from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
+import {
+  createGoogleCloudAccountEffectiveGpuRateReadPort,
+  createWeEditProGoogleCloudGpuRateReaderConfiguration,
+} from '../tool-cost-metering/google-cloud-account-effective-gpu-rate-read-port'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v8' as const
+  'visual-intelligence-production-runtime-v9' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -199,6 +212,11 @@ export interface VisualIntelligenceProductionRuntime {
   }) => CanonicalSourceAnalysisL4ProbeAttemptOwner
   readonly createSourceAnalysisL4VisualEvidenceAttemptOwner:
     () => CanonicalSourceAnalysisL4VisualEvidenceAttemptOwner
+  readonly createSourceAnalysisL4VisualEvidenceAdmissionOwner:
+    (input: {
+      readonly finalizedAuthorityReadPort:
+        CanonicalSourceAnalysisFinalizedAuthorityReadPort
+    }) => CanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner
   readonly createSourceTranscriptA100AttemptOwner: (input: {
     readonly finalizedAuthorityReadPort:
       CanonicalSourceAnalysisFinalizedAuthorityReadPort
@@ -255,6 +273,8 @@ export interface VisualIntelligenceProductionRuntimeDependencies {
   readonly objectPort?: CanonicalCreateOnlyJsonObjectPort
   readonly concurrencyPort?: VisualIntelligenceConcurrencyPort
   readonly generatePort?: VisualIntelligenceGeminiGeneratePort
+  readonly sourceAnalysisL4VisualEvidenceCurrentRateReadPort?:
+    CanonicalSourceAnalysisL4VisualEvidenceCurrentRateReadPort
   readonly now?: () => Date
 }
 
@@ -303,6 +323,13 @@ export async function createVisualIntelligenceProductionRuntime(
     contentSha256: coordinates.rate.contentSha256,
     objectPort: privateObjectReadPort,
   })
+  const sourceAnalysisL4VisualEvidenceCurrentRateReadPort =
+    dependencies.sourceAnalysisL4VisualEvidenceCurrentRateReadPort
+    ?? createProductionL4VisualEvidenceCurrentRateReadPort({
+      billingAccountResourceName:
+        coordinates.billingAccountResourceName,
+      ...(dependencies.now ? { now: dependencies.now } : {}),
+    })
   const costOwner = createVisualIntelligenceAccountEffectiveCostOwner({
     rateAuthorityRef: runtimeRelease.accountEffectivePricingAuthorityRef,
     rateReadPort,
@@ -452,6 +479,20 @@ export async function createVisualIntelligenceProductionRuntime(
     lifecycleObjectPort: objectPort,
     ...(dependencies.now ? { now: dependencies.now } : {}),
   })
+  const createSourceAnalysisL4VisualEvidenceAdmissionOwnerFactory = (input: {
+    readonly finalizedAuthorityReadPort:
+      CanonicalSourceAnalysisFinalizedAuthorityReadPort
+  }) => createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner({
+    requestAuthorityReadPort: sourceAnalysisRequestAuthorityRepository,
+    finalizedAuthorityReadPort: input.finalizedAuthorityReadPort,
+    probeAuthorityReadPort: sourceAnalysisProbeAuthorityRepository,
+    currentRateReadPort:
+      sourceAnalysisL4VisualEvidenceCurrentRateReadPort,
+    authorityRepository:
+      sourceAnalysisL4VisualEvidenceAuthorityRepository,
+    runtimeReleaseRef: runtimeRelease.sourceEvidencePreparationReleaseRef,
+    ...(dependencies.now ? { now: dependencies.now } : {}),
+  })
   const createSourceAnalysisOrchestraCoordinatorFactory = (input: {
     readonly planningScopeReadPort:
       CanonicalSourceAnalysisPlanningScopeReadPort
@@ -489,6 +530,10 @@ export async function createVisualIntelligenceProductionRuntime(
     preparationOwner: createSourceAnalysisPreparationOwnerFactory({
       finalizedAuthorityReadPort: input.finalizedAuthorityReadPort,
     }),
+    l4VisualEvidenceAdmissionOwner:
+      createSourceAnalysisL4VisualEvidenceAdmissionOwnerFactory({
+        finalizedAuthorityReadPort: input.finalizedAuthorityReadPort,
+      }),
     l4VisualEvidenceAttemptOwner:
       createSourceAnalysisL4VisualEvidenceAttemptOwnerFactory(),
     transcriptAttemptOwner: createSourceTranscriptA100AttemptOwnerFactory({
@@ -576,6 +621,8 @@ export async function createVisualIntelligenceProductionRuntime(
       createSourceAnalysisL4ProbeAttemptOwnerFactory,
     createSourceAnalysisL4VisualEvidenceAttemptOwner:
       createSourceAnalysisL4VisualEvidenceAttemptOwnerFactory,
+    createSourceAnalysisL4VisualEvidenceAdmissionOwner:
+      createSourceAnalysisL4VisualEvidenceAdmissionOwnerFactory,
     createSourceTranscriptA100AttemptOwner:
       createSourceTranscriptA100AttemptOwnerFactory,
     createSourceAnalysisPreparationOwner:
@@ -624,9 +671,48 @@ function createOrchestraConsumerBindingRouter(input: {
   })
 }
 
+function createProductionL4VisualEvidenceCurrentRateReadPort(input: {
+  readonly billingAccountResourceName: string
+  readonly now?: () => Date
+}): CanonicalSourceAnalysisL4VisualEvidenceCurrentRateReadPort {
+  const readPort = createGoogleCloudAccountEffectiveGpuRateReadPort({
+    configuration: createWeEditProGoogleCloudGpuRateReaderConfiguration({
+      billingAccountResourceName: input.billingAccountResourceName,
+    }),
+    ...(input.now ? { now: input.now } : {}),
+  })
+  return Object.freeze({
+    schemaVersion:
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_CURRENT_RATE_READ_PORT_VERSION,
+    async rereadCurrentL4StandardRate(
+      request: Parameters<
+        CanonicalSourceAnalysisL4VisualEvidenceCurrentRateReadPort[
+          'rereadCurrentL4StandardRate'
+        ]
+      >[0],
+    ) {
+      if (
+        request.routeId !== 'l4_standard_primary'
+        || request.region !== 'us-central1'
+        || request.currency !== 'USD'
+        || !Number.isFinite(Date.parse(request.at))
+      ) throw notReady('source_visual_evidence_gpu_rate_request_invalid')
+      return observeCanonicalCurrentGoogleCloudGpuRateAuthority({
+        rateAuthorityId:
+          'weeditpro-current-l4-standard-account-effective-rate',
+        rateAuthorityVersion: 1,
+        routeId: request.routeId,
+        region: request.region,
+        readPort,
+      })
+    },
+  })
+}
+
 function requireCoordinates(env: RuntimeEnv): {
   projectId: 'reeditpro'
   controlPlaneBucket: string
+  billingAccountResourceName: string
   release: ExactObjectCoordinate
   rate: ExactObjectCoordinate
 } {
@@ -637,10 +723,12 @@ function requireCoordinates(env: RuntimeEnv): {
     || env.googleCloudProjectId !== 'reeditpro'
     || !env.internalServiceToken
     || !env.gcsControlPlaneStateBucket
+    || !env.googleCloudBillingAccountResourceName
   ) throw notReady('visual_intelligence_production_runtime_not_authorized')
   return {
     projectId: env.googleCloudProjectId,
     controlPlaneBucket: env.gcsControlPlaneStateBucket,
+    billingAccountResourceName: env.googleCloudBillingAccountResourceName,
     release: exactCoordinate({
       objectName: env.visualIntelligenceReleaseObjectName,
       generation: env.visualIntelligenceReleaseGeneration,

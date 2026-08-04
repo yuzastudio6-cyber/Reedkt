@@ -360,7 +360,7 @@ const runtime = await createVisualIntelligenceProductionRuntime(env, {
   now: () => now,
 })
 assert.ok(runtime)
-assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v8')
+assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v9')
 assert.equal(runtime.providerCapabilityId, 'visual_intelligence')
 assert.equal(runtime.semanticEngine, 'gemini-3.1-pro-preview')
 assert.equal(runtime.thinkingLevel, 'high')
@@ -449,6 +449,10 @@ assert.equal(
 )
 assert.equal(
   typeof runtime.createSourceAnalysisL4VisualEvidenceAttemptOwner,
+  'function',
+)
+assert.equal(
+  typeof runtime.createSourceAnalysisL4VisualEvidenceAdmissionOwner,
   'function',
 )
 assert.equal(
@@ -1265,6 +1269,7 @@ console.log(JSON.stringify({
   sourceAnalysisProbeAuthorityRepositoryMounted: true,
   sourceTranscriptOrchestraRepositoryMounted: true,
   sourceAnalysisL4ProbeAttemptOwnerFactoryMounted: true,
+  sourceAnalysisL4VisualEvidenceAdmissionOwnerFactoryMounted: true,
   sourceAnalysisL4VisualEvidenceAttemptOwnerFactoryMounted: true,
   sourceAnalysisL4VisualEvidenceAuthorityRepositoryMounted: true,
   sourceAnalysisL4VisualEvidenceCallerPortInjectionAllowed: false,
@@ -1497,6 +1502,8 @@ function productionEnvironmentSource(): NodeJS.ProcessEnv {
     SUPABASE_SERVICE_ROLE_KEY: 'controlled-service-role-key',
     GOOGLE_CLOUD_PROJECT_ID: 'reeditpro',
     GOOGLE_CLOUD_REGION: 'us-central1',
+    WEEDITPRO_GOOGLE_CLOUD_BILLING_ACCOUNT_RESOURCE_NAME:
+      'billingAccounts/000000-000000-000000',
     GCS_SOURCE_MEDIA_BUCKET: 'reeditpro-source-media',
     GCS_GENERATED_ASSETS_BUCKET: 'reeditpro-generated-assets',
     GCS_PROCESSED_MEDIA_BUCKET: 'reeditpro-processed-media',

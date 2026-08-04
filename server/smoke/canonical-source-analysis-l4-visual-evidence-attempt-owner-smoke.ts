@@ -8,6 +8,12 @@ import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
+  CANONICAL_SOURCE_ANALYSIS_FINALIZED_AUTHORITY_READ_PORT_VERSION,
+  CANONICAL_SOURCE_ANALYSIS_PROBE_AUTHORITY_READ_PORT_VERSION,
+  type CanonicalSourceAnalysisFinalizedAuthority,
+  type CanonicalSourceAnalysisProbeAuthority,
+} from '../services/canonical-source-analysis-preparation-owner'
+import {
   CANONICAL_SOURCE_ANALYSIS_REQUEST_AUTHORITY_READ_PORT_VERSION,
   type CanonicalSourceAnalysisPlanningScope,
 } from '../services/canonical-source-led-orchestra-planning-reconciliation'
@@ -28,6 +34,11 @@ import {
   createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository,
 } from '../services/canonical-source-analysis-l4-visual-evidence-authority-repository'
 import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_CURRENT_RATE_READ_PORT_VERSION,
+  createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner,
+} from '../services/canonical-source-analysis-l4-visual-evidence-admission-owner'
+import {
+  assertCanonicalSourceAnalysisL4VisualEvidenceAdmission,
   createCanonicalSourceAnalysisL4VisualEvidenceAdmission,
   createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner,
   createCanonicalSourceAnalysisL4VisualEvidenceRelease,
@@ -38,6 +49,10 @@ import {
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
+import {
+  observeCanonicalCurrentGoogleCloudGpuRateAuthority,
+  type CanonicalGoogleCloudGpuRateRawObservation,
+} from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
 import {
   VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS,
 } from '../visual-intelligence/visual-intelligence-orchestra-capability-manifest'
@@ -289,6 +304,90 @@ const admission = createCanonicalSourceAnalysisL4VisualEvidenceAdmission({
   admittedAt: '2026-08-04T12:00:00.000Z',
   expiresAt: '2026-08-04T12:10:00.000Z',
 })
+const finalizedAuthority = Object.freeze({
+  schemaVersion: 'canonical-source-analysis-finalized-authority-v1' as const,
+  ownerUserId: 'user-1',
+  workspaceId: request.workspaceId,
+  projectId: request.projectId,
+  editSessionId: request.editSessionId,
+  sourceSequenceItemId: 'source-item-1',
+  mediaAssetId: 'media-asset-1',
+  uploadedOrder: 1,
+  storageProvider: 'google_cloud_storage' as const,
+  storageBucket: 'private-source-bucket',
+  storagePath: 'workspace-1/source.mp4',
+  contentType: 'video/mp4' as const,
+  checksumSha256: sourceChecksum,
+  byteLength: 4_096,
+  storageGeneration: '1001',
+  storageEtag: 'source-etag-1',
+  finalizedMediaAuthorityRef: finalizedRef,
+  finalizedStorageObjectAuthorityRef: storageRef,
+  sourceBindingManifestCandidateRef: ref('source-binding-manifest'),
+  providerMediaReadAuthorityRef: ref('provider-media-read'),
+  sourceAnalysisConsentRef: consentRef,
+  platformAnalysisCostCapRef: costCapRef,
+  authenticatedPrincipalRereadVerified: true,
+  workspaceProjectAccessRereadVerified: true,
+  finalizedUploadRereadVerified: true,
+  exactGenerationEtagShaLengthRereadVerified: true,
+  sourceBindingManifestRereadVerified: true,
+  sourceAnalysisConsentRereadVerified: true,
+  platformAnalysisCostCapRereadVerified: true,
+  browserStorageAuthorityAccepted: false,
+  callerPathUrlBytesOrCommandAccepted: false,
+}) satisfies CanonicalSourceAnalysisFinalizedAuthority
+const probeAuthority = Object.freeze({
+  schemaVersion: 'canonical-source-analysis-probe-authority-v2' as const,
+  ownerUserId: 'user-1',
+  workspaceId: request.workspaceId,
+  projectId: request.projectId,
+  editSessionId: request.editSessionId,
+  sourceSequenceItemId: 'source-item-1',
+  mediaAssetId: 'media-asset-1',
+  uploadedOrder: 1,
+  checksumSha256: sourceChecksum,
+  byteLength: 4_096,
+  storageGeneration: '1001',
+  storageEtag: 'source-etag-1',
+  width: 1_920,
+  height: 1_080,
+  hasAudio: true,
+  audioProbe: request.sources[0].managedApiAuthority.audioProbe,
+  fpsNumerator: 24,
+  fpsDenominator: 1,
+  frameCount: 240,
+  sourceTimeBaseNumerator: 1,
+  sourceTimeBaseDenominator: 24,
+  constantFrameRate: true,
+  finalizedMediaAuthorityRef: finalizedRef,
+  finalizedStorageObjectAuthorityRef: storageRef,
+  sourceProbeAuthorityRef: probeRef,
+  probeRuntimeReleaseRef: ref('probe-runtime-release'),
+  resultRuntimeRecordRef: ref('probe-runtime-result'),
+  usageCostEvidenceRef: ref('probe-usage-cost'),
+  operationId: 'internal.visual_intelligence.probe_source_timing.v1' as const,
+  routeProfileId:
+    'quality_l4_user_triggered_standard_media_job_v1' as const,
+  acceleratorClass: 'nvidia_l4' as const,
+  userTriggeredOnly: true,
+  minimumIdleInstances: 0,
+  exactFinalizedSourceRereadVerified: true,
+  exactProbeResultRereadVerified: true,
+  ffprobeUsedForMetadataOnly: true,
+  gpuDecodeUsedForFrameCountVerification: true,
+  substantiveCpuMediaProcessingUsed: false,
+  runtimeNetworkDownloadPerformed: false,
+  customerCreditMutated: false,
+  systemFailureChargedToCustomer: false,
+  unapprovedOverageChargedToCustomer: false,
+  scaleBackToZeroVerified: true,
+  callerProbeFieldsAccepted: false,
+  callerPathUrlBytesOrCommandAccepted: false,
+  providerCalled: false,
+  publicDeliveryGranted: false,
+  productionAuthorityGranted: false,
+}) satisfies CanonicalSourceAnalysisProbeAuthority
 const toolEvidence = [
   evidenceItem('media_probe', 'ffprobe',
     VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffprobe, 1, probeRef),
@@ -368,6 +467,103 @@ const terminalResult = createCanonicalSourceAnalysisL4VisualEvidenceResult({
   publicDeliveryGranted: false,
   productionAuthorityGranted: false,
 })
+
+const currentL4Rate = await observeCurrentL4Rate()
+const admissionOwnerObjectPort = new MemoryObjectPort()
+const admissionOwnerAuthorityRepository =
+  createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository({
+    objectPort: admissionOwnerObjectPort,
+  })
+await admissionOwnerAuthorityRepository.persistReleaseCreateOnly({ release })
+const admissionOwner = createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner({
+  ...admissionOwnerDependencies(),
+  authorityRepository: admissionOwnerAuthorityRepository,
+  runtimeReleaseRef: releaseRef,
+  now: () => new Date('2026-08-04T12:00:02.000Z'),
+})
+const ownedAdmissionResult = await admissionOwner.admitOneShot(trigger)
+assert.equal(ownedAdmissionResult.status, 'ready')
+if (ownedAdmissionResult.status !== 'ready') {
+  throw new Error('Canonical L4 visual evidence admission failed.')
+}
+assert.equal(ownedAdmissionResult.disposition, 'created')
+assert.equal(ownedAdmissionResult.maximumPlatformInternalCostUsdNanos > 0, true)
+assert.equal(ownedAdmissionResult.gpuJobStarted, false)
+assert.equal(ownedAdmissionResult.customerCreditMutated, false)
+const ownedAdmissionReplay = await admissionOwner.admitOneShot(trigger)
+assert.equal(ownedAdmissionReplay.status, 'ready')
+assert.equal(
+  ownedAdmissionReplay.status === 'ready'
+    && ownedAdmissionReplay.disposition,
+  'identical_replay',
+)
+const ownedAdmissionRereadRaw = await admissionOwnerAuthorityRepository
+  .admissionReadPort.rereadAdmittedExecution({
+    trigger,
+    scope: ownedAdmissionResult.scope,
+    preparedRequestContentRef:
+      ownedAdmissionResult.admission.preparedRequestContentRef,
+  })
+assert.ok(ownedAdmissionRereadRaw)
+const ownedAdmissionReread =
+  assertCanonicalSourceAnalysisL4VisualEvidenceAdmission(
+    ownedAdmissionRereadRaw,
+  )
+assert.equal(
+  ownedAdmissionReread.admissionHash,
+  ownedAdmissionResult.admission.admissionHash,
+)
+const missingReleaseRepository =
+  createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository({
+    objectPort: new MemoryObjectPort(),
+  })
+const missingReleaseOwner = createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner({
+  ...admissionOwnerDependencies(),
+  authorityRepository: missingReleaseRepository,
+  runtimeReleaseRef: releaseRef,
+  now: () => new Date('2026-08-04T12:00:02.000Z'),
+})
+assert.deepEqual(await missingReleaseOwner.admitOneShot(trigger), {
+  status: 'not_ready',
+  blockerCode: 'canonical_source_visual_evidence_release_not_ready',
+  admissionPersisted: false,
+  gpuJobStarted: false,
+  customerCreditMutated: false,
+})
+const missingRateOwner = createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner({
+  ...admissionOwnerDependencies(),
+  currentRateReadPort: {
+    schemaVersion:
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_CURRENT_RATE_READ_PORT_VERSION,
+    async rereadCurrentL4StandardRate() { return null },
+  },
+  authorityRepository: admissionOwnerAuthorityRepository,
+  runtimeReleaseRef: releaseRef,
+  now: () => new Date('2026-08-04T12:00:02.000Z'),
+})
+assert.deepEqual(await missingRateOwner.admitOneShot(trigger), {
+  status: 'not_ready',
+  blockerCode: 'canonical_source_visual_evidence_current_rate_not_ready',
+  admissionPersisted: false,
+  gpuJobStarted: false,
+  customerCreditMutated: false,
+})
+const staleTrigger = createCanonicalSourceAnalysisL4VisualEvidenceTrigger({
+  requestId: 'source-visual-evidence-trigger-stale',
+  planningScope: trigger.planningScope,
+  sourceSequenceItemId: trigger.sourceSequenceItemId,
+  mediaAssetId: trigger.mediaAssetId,
+  userTriggerRecordRef: trigger.userTriggerRecordRef,
+  idempotencyKey: 'source-visual-evidence-trigger-stale',
+  triggeredAt: '2026-08-02T12:00:00.000Z',
+  serverPreparedRequestRequired: true,
+  browserSourceOrEvidenceAuthorityAccepted: false,
+  callerPathUrlBytesCommandOrEnvironmentAccepted: false,
+  customerCreditMutationAuthorized: false,
+  publicDeliveryAuthorized: false,
+  productionAuthorityGranted: false,
+})
+await assert.rejects(admissionOwner.admitOneShot(staleTrigger))
 
 const objectPort = new MemoryObjectPort()
 const repository = createCanonicalSourceAnalysisL4VisualEvidenceRepository({
@@ -676,6 +872,139 @@ console.log(JSON.stringify({
   googleCloudRunRequestCarriesInvocationIdOnly: true,
   customerCreditsMutated: false,
 }))
+
+function admissionOwnerDependencies() {
+  return {
+    requestAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_REQUEST_AUTHORITY_READ_PORT_VERSION,
+      async readExactPreparedRequest() { return structuredClone(request) },
+    },
+    finalizedAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_FINALIZED_AUTHORITY_READ_PORT_VERSION,
+      async readExactFinalizedSource() {
+        return structuredClone(finalizedAuthority)
+      },
+    },
+    probeAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_PROBE_AUTHORITY_READ_PORT_VERSION,
+      async readCompletedExactProbe() {
+        return structuredClone(probeAuthority)
+      },
+    },
+    currentRateReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_CURRENT_RATE_READ_PORT_VERSION,
+      async rereadCurrentL4StandardRate() {
+        return structuredClone(currentL4Rate)
+      },
+    },
+  } as const
+}
+
+async function observeCurrentL4Rate() {
+  return observeCanonicalCurrentGoogleCloudGpuRateAuthority({
+    rateAuthorityId: 'current-rate-l4-standard-primary-v1',
+    rateAuthorityVersion: 1,
+    routeId: 'l4_standard_primary',
+    region: 'us-central1',
+    readPort: {
+      async readCurrentRouteRate() { return currentL4RawObservation() },
+    },
+  })
+}
+
+function currentL4RawObservation():
+CanonicalGoogleCloudGpuRateRawObservation {
+  const components = [
+    rateComponent('cloud_run_l4_gpu_second',
+      'gpu_second', 186_700, '1'),
+    rateComponent('cloud_run_vcpu_second',
+      'vcpu_second', 18_000, '2'),
+    rateComponent('cloud_run_memory_gib_second',
+      'gib_second', 2_000, '3'),
+    rateComponent('private_object_storage_gib_month',
+      'gib_month', 20_000_000, '4'),
+    rateComponent('network_egress_gib',
+      'gib', 120_000_000, '5'),
+    rateComponent('object_class_a_per_1000',
+      'per_1000_operations', 5_000_000, '6'),
+    rateComponent('object_class_b_per_1000',
+      'per_1000_operations', 400_000, '7'),
+  ]
+  const value = {
+    sourceClass: 'billing_account_effective_pricing_api' as const,
+    billingAccountPricingScopeRef: ref('billing-pricing-scope'),
+    pricingReaderConfigurationRef: ref('pricing-reader-configuration'),
+    routeId: 'l4_standard_primary' as const,
+    region: 'us-central1' as const,
+    currency: 'USD' as const,
+    components,
+    priceRecordSetRef: ref('price-record-set-l4-standard'),
+    pricingReadStartedAt: '2026-08-04T12:00:00.000Z',
+    pricingReadFinishedAt: '2026-08-04T12:00:01.000Z',
+  }
+  return {
+    ...value,
+    pricingReadDigestSha256: sha256AuthorityValue(value),
+  }
+}
+
+function rateComponent(
+  componentClass:
+    | 'cloud_run_l4_gpu_second'
+    | 'cloud_run_vcpu_second'
+    | 'cloud_run_memory_gib_second'
+    | 'private_object_storage_gib_month'
+    | 'network_egress_gib'
+    | 'object_class_a_per_1000'
+    | 'object_class_b_per_1000',
+  billingUnit:
+    | 'gpu_second'
+    | 'vcpu_second'
+    | 'gib_second'
+    | 'gib_month'
+    | 'gib'
+    | 'per_1000_operations',
+  usdNanosPerBillingUnit: number,
+  character: string,
+) {
+  const cloudServiceId = componentClass.startsWith('cloud_run')
+    ? 'service-cloud-run'
+    : 'service-cloud-storage'
+  const skuId = `sku-${componentClass}`
+  return {
+    componentClass,
+    cloudServiceName: componentClass.startsWith('cloud_run')
+      ? 'cloud-run'
+      : 'cloud-storage',
+    skuRateBindingId: `rate-binding-${componentClass}`,
+    skuPriceTerms: [{
+      cloudServiceId,
+      skuId,
+      quantityPerBillingUnit: 1,
+      consumptionModel: 'consumptionModels/default',
+      apiUnit: billingUnit,
+      apiUnitQuantity: '1',
+      contractPriceTiers: [{
+        startAmount: '0',
+        contractPriceUsdNanos: usdNanosPerBillingUnit,
+      }],
+      maximumContractPriceUsdNanos: usdNanosPerBillingUnit,
+      skuMetadataRef: ref(`sku-metadata-${componentClass}-${character}`),
+      billingAccountPriceRef:
+        ref(`account-price-${componentClass}-${character}`),
+    }],
+    skuDescriptionDigestSha256: character.repeat(64),
+    skuRegion: 'us-central1' as const,
+    billingUnit,
+    maximumUsdNanosPerBillingUnit: usdNanosPerBillingUnit,
+    currentPriceObservedAt: '2026-08-04T12:00:01.000Z',
+    skuRecordRef: ref(`sku-record-${componentClass}-${character}`),
+  }
+}
 
 function releaseItem(
   role: EvidenceRole,

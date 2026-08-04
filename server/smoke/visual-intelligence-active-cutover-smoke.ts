@@ -32,6 +32,9 @@ const l4VisualEvidenceAttemptOwner = source(
 const l4VisualEvidenceAuthorityRepository = source(
   'server/services/canonical-source-analysis-l4-visual-evidence-authority-repository.ts',
 )
+const l4VisualEvidenceAdmissionOwner = source(
+  'server/services/canonical-source-analysis-l4-visual-evidence-admission-owner.ts',
+)
 const l4CostAuthority = source(
   'server/services/canonical-source-analysis-l4-probe-usage-cost.ts',
 )
@@ -91,7 +94,7 @@ assert.match(productionRuntime, /orchestraJobRuntimePort/u)
 assert.match(productionRuntime, /orchestraLifecyclePort/u)
 assert.match(
   productionRuntime,
-  /visual-intelligence-production-runtime-v8/u,
+  /visual-intelligence-production-runtime-v9/u,
 )
 assert.match(
   productionRuntime,
@@ -116,6 +119,10 @@ assert.match(
 assert.match(
   productionRuntime,
   /createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository/u,
+)
+assert.match(
+  productionRuntime,
+  /createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner/u,
 )
 assert.doesNotMatch(
   productionRuntime,
@@ -176,6 +183,18 @@ assert.match(l4VisualEvidenceAuthorityRepository, /exactCreateOnlyRereadVerified
 assert.doesNotMatch(
   l4VisualEvidenceAuthorityRepository,
   /GoogleAuth|fetch\(|child_process|run\.googleapis\.com|jobs:run/u,
+)
+assert.match(
+  l4VisualEvidenceAdmissionOwner,
+  /billing_account_effective_pricing_api/u,
+)
+assert.match(
+  l4VisualEvidenceAdmissionOwner,
+  /exactPreparedFinalizedProbeReleaseAndRateRereadVerified/u,
+)
+assert.doesNotMatch(
+  l4VisualEvidenceAdmissionOwner,
+  /customerCreditMutated:\s*true|gpuJobStarted:\s*true|publicListPrice/u,
 )
 assert.doesNotMatch(
   l4VisualEvidenceAttemptOwner,

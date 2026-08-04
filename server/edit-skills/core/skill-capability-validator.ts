@@ -139,6 +139,7 @@ export function validateSkillCapabilityManifests(input: {
     }
     for (const artifactType of [...manifest.acceptedArtifactTypes, ...manifest.producedArtifactTypes]) {
       if (!input.artifacts.has(artifactType)) throw new Error(`Unknown artifact schema ${artifactType}.`)
+      input.artifacts.assertStrictActive(artifactType)
     }
     if (manifest.schemaVersion === 'skill-capability-manifest-v2') {
       const artifactTypes = new Set([

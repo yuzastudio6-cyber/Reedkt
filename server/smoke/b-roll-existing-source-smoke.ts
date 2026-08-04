@@ -27,7 +27,10 @@ import {
   skillManifestReference,
 } from '../edit-skills/core'
 import { GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT } from '../edit-skills/b-roll/generated/b-roll-internal-qualification.generated'
-import { assertSkillQualificationReceipt } from '../edit-skills/core/skill-qualification-receipt'
+import {
+  assertSkillQualificationReceipt,
+  skillQualificationReceiptSchema,
+} from '../edit-skills/core/skill-qualification-receipt'
 import {
   editSkillArtifactSchemaRegistry,
   editSkillEstimatorRegistry,
@@ -183,7 +186,9 @@ try {
     planningQaReport: compiled.planningQaReport,
     workGraph,
     qualificationReceipt: assertSkillQualificationReceipt(
-      (GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT as { receipt: unknown }).receipt,
+      skillQualificationReceiptSchema.parse(
+        (GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT as { receipt: unknown }).receipt,
+      ),
     ),
   })
   const componentRef = persisted.componentRefs.bRollSkill

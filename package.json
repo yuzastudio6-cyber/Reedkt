@@ -26,6 +26,7 @@
     "test:b-roll-capability-manifest": "tsx server/smoke/b-roll-capability-manifest-smoke.ts",
     "test:b-roll-planning": "tsx server/smoke/b-roll-planning-smoke.ts",
     "test:b-roll-public-plugin": "tsx server/smoke/b-roll-public-plugin-e2e-smoke.ts",
+    "test:b-roll-active-artifact-contracts": "tsx server/smoke/b-roll-active-artifact-contracts-smoke.ts",
     "test:b-roll-runtime-bindings": "tsx server/smoke/b-roll-runtime-bindings-smoke.ts",
     "test:b-roll-canonical-private-runtime": "tsx server/smoke/b-roll-canonical-private-runtime-smoke.ts",
     "test:edit-skill-runtime-factory": "tsx server/smoke/edit-skill-runtime-factory-smoke.ts",

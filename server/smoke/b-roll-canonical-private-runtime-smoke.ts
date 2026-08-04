@@ -27,7 +27,10 @@ import {
   skillManifestReference,
 } from '../edit-skills/core'
 import { GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT } from '../edit-skills/b-roll/generated/b-roll-internal-qualification.generated'
-import { assertSkillQualificationReceipt } from '../edit-skills/core/skill-qualification-receipt'
+import {
+  assertSkillQualificationReceipt,
+  skillQualificationReceiptSchema,
+} from '../edit-skills/core/skill-qualification-receipt'
 import {
   editSkillArtifactSchemaRegistry,
   editSkillEstimatorRegistry,
@@ -161,7 +164,9 @@ try {
     // The coordinator revalidates this immutable historical receipt as plan
     // lineage only. The aggregate qualifier replaces it for the current tree.
     qualificationReceipt: assertSkillQualificationReceipt(
-      (GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT as { receipt: unknown }).receipt,
+      skillQualificationReceiptSchema.parse(
+        (GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT as { receipt: unknown }).receipt,
+      ),
     ),
   })
   const componentRef = persisted.componentRefs.bRollSkill
@@ -468,7 +473,9 @@ try {
     planningQaReport: noActionCompiled.planningQaReport,
     workGraph: noActionGraph,
     qualificationReceipt: assertSkillQualificationReceipt(
-      (GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT as { receipt: unknown }).receipt,
+      skillQualificationReceiptSchema.parse(
+        (GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT as { receipt: unknown }).receipt,
+      ),
     ),
   })
   const noActionApproval = createEditSkillPlanApproval({

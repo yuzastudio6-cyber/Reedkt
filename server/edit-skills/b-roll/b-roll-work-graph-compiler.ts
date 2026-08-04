@@ -86,24 +86,24 @@ export const BROLL_CANONICAL_WORK_DEFINITIONS: readonly BrollCanonicalWorkDefini
   {
     jobType: 'prepare_b_roll_source', operationId: 'b_roll.internal.prepare_source.v1',
     workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_plan_v1', 'source_media_artifact_v1'],
-    output: 'b_roll_candidate_version_v1', allowedPhase: 'media_normalization', toolOrProviderCredits: 0,
+    output: 'b_roll_candidate_media_manifest_v1', allowedPhase: 'media_normalization', toolOrProviderCredits: 0,
     qa: ['b_roll.output.private_artifact_integrity'],
   },
   {
     jobType: 'generate_b_roll_candidate', operationId: 'provider.google.generate_b_roll_candidate.v1',
     workerClass: 'provider_worker', inputArtifactTypes: ['b_roll_plan_v1', 'b_roll_provider_request_specification_v1'],
-    output: 'provider_b_roll_candidate_video_mp4', allowedPhase: 'provider_generation', toolOrProviderCredits: 20,
+    output: 'b_roll_candidate_media_manifest_v1', allowedPhase: 'provider_generation', toolOrProviderCredits: 20,
     qa: ['b_roll.output.semantic_alignment'], provider: true,
   },
   {
     jobType: 'inspect_b_roll_candidate_with_ffprobe', operationId: 'tool.ffprobe.inspect_approved_media.v1',
-    workerClass: 'media_processing_worker', inputArtifactTypes: ['provider_b_roll_candidate_video_mp4', 'b_roll_candidate_version_v1'],
+    workerClass: 'media_processing_worker', inputArtifactTypes: ['b_roll_candidate_media_manifest_v1'],
     output: 'b_roll_candidate_manifest_v1', allowedPhase: 'media_inspection', toolOrProviderCredits: 1,
     qa: ['b_roll.output.valid_mp4', 'b_roll.output.decodable_streams'],
   },
   {
     jobType: 'normalize_b_roll_candidate_with_ffmpeg', operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
-    workerClass: 'media_processing_worker', inputArtifactTypes: ['provider_b_roll_candidate_video_mp4', 'b_roll_candidate_manifest_v1'],
+    workerClass: 'media_processing_worker', inputArtifactTypes: ['b_roll_candidate_media_manifest_v1', 'b_roll_candidate_manifest_v1'],
     output: 'b_roll_candidate_version_v1', allowedPhase: 'media_normalization', toolOrProviderCredits: 2,
     qa: ['b_roll.output.duration', 'b_roll.output.frame_rate', 'b_roll.output.resolution'],
   },
@@ -128,7 +128,7 @@ export const BROLL_CANONICAL_WORK_DEFINITIONS: readonly BrollCanonicalWorkDefini
   {
     jobType: 'render_b_roll_preview', operationId: 'tool.remotion.render_approved_composition.v1',
     workerClass: 'render_worker', inputArtifactTypes: ['b_roll_candidate_version_v1', 'b_roll_remotion_layer_manifest_v1'],
-    output: 'b_roll_candidate_version_v1', allowedPhase: 'private_preview_render', toolOrProviderCredits: 3,
+    output: 'b_roll_private_preview_media_manifest_v1', allowedPhase: 'private_preview_render', toolOrProviderCredits: 3,
     qa: ['b_roll.integration.preview_integrity'],
   },
   {
@@ -360,11 +360,7 @@ function canonicalAssetRole(item: BrollCanonicalWorkItem): CanonicalWorkItemInpu
 }
 
 function canonicalContentType(item: BrollCanonicalWorkItem): string {
-  if (
-    item.expectedOutputType === 'b_roll_candidate_version_v1' ||
-    item.expectedOutputType === 'provider_b_roll_candidate_video_mp4' ||
-    item.jobType === 'render_b_roll_preview'
-  ) return 'video/mp4'
+  void item
   return 'application/json'
 }
 

@@ -3,6 +3,9 @@ import assert from 'node:assert/strict'
 import {
   BROLL_CAPABILITY_MANIFEST,
   assertBrollVisualIntelligenceCandidateQa,
+  brollPlanArtifactSchema,
+  createBrollCandidateMediaManifest,
+  createBrollCanonicalNoActionResultReceipt,
   createBrollMasterTimingPlan,
   createBrollPublicContextManifest,
   createBrollSourceInventory,
@@ -400,20 +403,36 @@ assert.deepEqual(
 )
 assert.equal(workGraph.workItems.some((item) => item.workerClass === 'provider_worker'), false)
 
+const privateNoActionPlan = brollPlanArtifactSchema.parse(
+  await editSkillArtifactStore.readJson({
+    reference: plan.payloadRef,
+    ...scope,
+  }),
+)
+
 const projectedReceiptRef = await editSkillArtifactStore.putJson({
   artifactType: 'b_roll_result_receipt_v1',
   ...scope,
-  value: {
+  value: createBrollCanonicalNoActionResultReceipt({
     schemaVersion: 'b_roll_result_receipt_v1',
-    ...scope,
+    resultKind: 'professional_no_action',
     manifestRef,
     assignmentId: fixture.assignment.assignmentId,
-    payload: {
-      disposition: 'use_no_action',
-      planHash: plan.envelope.planHash,
-      approvedWorkGraphHash: workGraph.approvedWorkGraphHash,
-    },
-  },
+    assignmentHash: fixture.assignment.assignmentHash,
+    planId: plan.envelope.planId,
+    planHash: plan.envelope.planHash,
+    planningQaReportHash: privateNoActionPlan.planningQaReportHash,
+    workGraphHash: workGraph.approvedWorkGraphHash,
+    exactTiming: range,
+    decision: 'use_no_broll',
+    providerRequestCount: 0,
+    mediaArtifactCount: 0,
+    estimatedProviderCredits: 0,
+    selectedSource: null,
+    displayLayer: null,
+    outsideAuthorizedRangeModified: false,
+    privateInternalOnly: true,
+  }),
 })
 
 const outputFor = (expectedOutputType: string) => {
@@ -603,20 +622,59 @@ const generatedWorkGraph = await plugin.compileApprovedWorkGraph({
 const providerWorkItem = generatedWorkGraph.workItems.find((item) =>
   item.jobType === 'generate_b_roll_candidate')
 assert.ok(providerWorkItem)
+const candidateObjectSha256 = hashSkillValue({
+  bytes: 'private-injected-generated-candidate',
+  assignmentId: generatedFixture.assignment.assignmentId,
+})
+const candidateEvidenceRef = {
+  sha256: hashSkillValue({ evidence: 'injected-provider-cost-and-usage' }),
+  byteLength: 256,
+}
 const candidateArtifactRef = await editSkillArtifactStore.putJson({
-  artifactType: 'provider_b_roll_candidate_video_mp4',
+  artifactType: 'b_roll_candidate_media_manifest_v1',
   ...scope,
-  value: {
-    schemaVersion: 'provider_b_roll_candidate_video_mp4',
+  value: createBrollCandidateMediaManifest({
+    schemaVersion: 'b_roll_candidate_media_manifest_v1',
     ...scope,
+    editSessionId: generatedFixture.assignment.editSessionId,
     manifestRef,
     assignmentId: generatedFixture.assignment.assignmentId,
-    payload: {
-      candidateId: 'candidate-public-generated-v1',
-      privateInternalOnly: true,
-      providerRequestCount: 0,
-    },
-  },
+    assignmentHash: generatedFixture.assignment.assignmentHash,
+    planId: generatedPlan.envelope.planId,
+    planHash: generatedPlan.envelope.planHash,
+    approvedWorkGraphHash: generatedWorkGraph.approvedWorkGraphHash,
+    workItemKey: providerWorkItem.workItemKey,
+    workItemHash: providerWorkItem.workItemHash,
+    sourceClass: 'gemini_omni_generated',
+    providerOperationId: 'provider.google.generate_b_roll_candidate.v1',
+    providerAttemptId: hashSkillValue({ attempt: 'public-injected-candidate-v1' }),
+    providerRoute: 'gemini_omni_flash',
+    configuredModelAlias: 'gemini-omni-flash-preview',
+    acceptedRuntimeModel: 'injected-gemini-omni-v5-fixture',
+    candidateVersion: 1,
+    privateObjectIdentityHash: hashSkillValue({ object: candidateObjectSha256 }),
+    objectSha256: candidateObjectSha256,
+    byteLength: 4_096,
+    mimeType: 'video/mp4',
+    container: 'mp4',
+    durationSeconds: 3,
+    frameCount: 72,
+    fps: 24,
+    width: 1_280,
+    height: 720,
+    audioStreamPresent: false,
+    sourceArtifactHashes: [],
+    referenceArtifactHashes: [],
+    generationClassification: 'illustrative_generated',
+    proofSafetyClassification: 'illustrative_not_verified_proof',
+    costEvidenceRef: candidateEvidenceRef,
+    usageEvidenceRef: candidateEvidenceRef,
+    checksumReadbackVerified: true,
+    privateOnly: true,
+    publicDeliveryAllowed: false,
+    automaticSelectionAllowed: false,
+    timelineMutationAllowed: false,
+  }),
 })
 const providerWorkResult = createEditSkillWorkResult({
   schemaVersion: 'edit-skill-work-result-v1',

@@ -1,5 +1,4 @@
 import { createHash } from 'node:crypto'
-import { z } from 'zod'
 
 import {
   createInitialInjectedBrollCandidateAttemptEvidence,
@@ -49,11 +48,6 @@ import type {
   SkillJobRuntimeInvocation,
 } from '../core/edit-skill-runtime-binding'
 import { hashSkillValue } from '../core/skill-capability-manifest-hash'
-import { skillFrameRangeSchema } from '../core/skill-assignment-schema'
-import {
-  skillManifestReferenceSchema,
-  skillSha256Schema,
-} from '../core/skill-capability-manifest-schema'
 import type { EditSkillArtifactReference } from '../core/edit-skill-artifact-store'
 import type { CanonicalWorkItemInput } from '../../validation/edit-planning-authority-schemas'
 import type {
@@ -79,46 +73,10 @@ import {
 } from '../../services/canonical-broll-plan-component-service'
 import type { PrivateOfflineMediaBinaryRuntime } from '../../tool-execution/media-binary-execution'
 import type { PrivateOfflineRemotionRenderRuntime } from '../../tool-execution/remotion-render-execution'
-
-const noActionResultCoreSchema = z.object({
-  schemaVersion: z.literal('b_roll_result_receipt_v1'),
-  resultKind: z.literal('professional_no_action'),
-  manifestRef: skillManifestReferenceSchema,
-  assignmentId: z.string().trim().min(1).max(180),
-  assignmentHash: skillSha256Schema,
-  planId: z.string().trim().min(1).max(180),
-  planHash: skillSha256Schema,
-  planningQaReportHash: skillSha256Schema,
-  workGraphHash: skillSha256Schema,
-  exactTiming: skillFrameRangeSchema,
-  decision: z.enum([
-    'use_no_broll',
-    'needs_other_skill',
-    'needs_user_confirmation',
-    'blocked',
-  ]),
-  providerRequestCount: z.literal(0),
-  mediaArtifactCount: z.literal(0),
-  estimatedProviderCredits: z.literal(0),
-  selectedSource: z.null(),
-  displayLayer: z.null(),
-  outsideAuthorizedRangeModified: z.literal(false),
-  privateInternalOnly: z.literal(true),
-}).strict()
-
-export const brollCanonicalNoActionResultReceiptSchema =
-  noActionResultCoreSchema.extend({
-    resultHash: skillSha256Schema,
-  }).strict().superRefine((value, context) => {
-    const { resultHash, ...core } = value
-    if (hashSkillValue(core) !== resultHash) {
-      context.addIssue({ code: 'custom', message: 'B-roll no-action result hash is stale or forged.' })
-    }
-  })
-
-export type BrollCanonicalNoActionResultReceipt = z.infer<
-  typeof brollCanonicalNoActionResultReceiptSchema
->
+import {
+  createBrollCanonicalNoActionResultReceipt,
+  type BrollCanonicalNoActionResultReceipt,
+} from './b-roll-active-artifact-contracts'
 
 type FullMediaRuntime = Pick<
   PrivateOfflineMediaBinaryRuntime,
@@ -688,7 +646,7 @@ implements BrollCanonicalPrivateWorkExecutor {
           'normalize_b_roll_candidate_with_ffmpeg', 'render_b_roll_preview']
           .includes(item.jobType))
     ) throw new Error('Canonical private B-roll no-action result has executable media work.')
-    const core = noActionResultCoreSchema.parse({
+    const receipt = createBrollCanonicalNoActionResultReceipt({
       schemaVersion: 'b_roll_result_receipt_v1',
       resultKind: 'professional_no_action',
       manifestRef: this.#input.assignment.manifestRef,
@@ -699,7 +657,8 @@ implements BrollCanonicalPrivateWorkExecutor {
       planningQaReportHash: this.#input.planningQaReport.reportHash,
       workGraphHash: this.#input.workGraph.workGraphHash,
       exactTiming: this.#input.assignment.writeRangeAuthority.authorizedRange,
-      decision: this.#input.plan.decision,
+      decision: this.#input.plan.decision as
+        BrollCanonicalNoActionResultReceipt['decision'],
       providerRequestCount: 0,
       mediaArtifactCount: 0,
       estimatedProviderCredits: 0,
@@ -707,10 +666,6 @@ implements BrollCanonicalPrivateWorkExecutor {
       displayLayer: null,
       outsideAuthorizedRangeModified: false,
       privateInternalOnly: true,
-    })
-    const receipt = brollCanonicalNoActionResultReceiptSchema.parse({
-      ...core,
-      resultHash: hashSkillValue(core),
     })
     const receiptRef = await putPrivateAuthorityJsonBlob({
       localStorageRoot: this.#input.localStorageRoot,

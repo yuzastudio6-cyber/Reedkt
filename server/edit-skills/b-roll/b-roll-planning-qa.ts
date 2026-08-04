@@ -504,7 +504,7 @@ export function validateBrollApprovalReadiness(rawInput: unknown): SkillQaFindin
   const plan = input.planEvidence
   const executable = !INERT_DECISIONS.has(plan.decision)
   const outputDeclared = input.assignment.requiredOutputTypes.some((artifactType) =>
-    artifactType.startsWith('b_roll_') || artifactType === 'provider_b_roll_candidate_video_mp4')
+    artifactType.startsWith('b_roll_'))
   const passed = outputDeclared &&
     input.context.confirmedAspectRatio.length > 0 &&
     input.assignment.maximumInitialCandidates === 1 && input.assignment.maximumRefinements === 1 &&

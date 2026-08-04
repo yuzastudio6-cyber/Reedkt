@@ -32,6 +32,7 @@ const PHASE_A_SCRIPTS = [
   'test:b-roll-qualification-evidence',
   'test:b-roll-plan-invariants',
   'test:b-roll-public-plugin',
+  'test:b-roll-active-artifact-contracts',
   'test:b-roll-runtime-bindings',
   'test:edit-skill-runtime-factory',
   'test:ui-qa-media-runtime-workflow',

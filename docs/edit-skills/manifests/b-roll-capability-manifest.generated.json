@@ -521,7 +521,7 @@
       ]
     }
   ],
-  "manifestHash": "f76f07bd05a4e38ff61a04cdb4fa3d5784c41d1018f497f2d3d3c390c260d427",
+  "manifestHash": "40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0",
   "mayOverlapWith": [
     {
       "condition": "caption_safe_area_preserved",
@@ -877,16 +877,17 @@
     "b_roll_planning_qa_report_v1",
     "b_roll_restraint_result_v1",
     "b_roll_provider_request_specification_v1",
+    "b_roll_candidate_media_manifest_v1",
     "b_roll_candidate_manifest_v1",
     "b_roll_candidate_version_v1",
-    "provider_b_roll_candidate_video_mp4",
     "b_roll_qa_report_v1",
     "b_roll_remotion_layer_manifest_v1",
+    "b_roll_private_preview_media_manifest_v1",
     "b_roll_sound_handoff_v1",
     "b_roll_color_handoff_v1",
     "b_roll_transition_handoff_v1",
     "b_roll_result_receipt_v1",
-    "skill_qualification_receipt_v1"
+    "skill_qualification_receipt_v2"
   ],
   "qualificationFixtures": [
     {
@@ -1310,7 +1311,7 @@
       "planningAllowed": true,
       "primaryVisualOwnershipPossible": true,
       "producedArtifactTypes": [
-        "b_roll_candidate_version_v1"
+        "b_roll_candidate_media_manifest_v1"
       ],
       "requiredArtifactTypes": [
         "b_roll_plan_v1",
@@ -1328,7 +1329,7 @@
       "planningAllowed": true,
       "primaryVisualOwnershipPossible": true,
       "producedArtifactTypes": [
-        "provider_b_roll_candidate_video_mp4"
+        "b_roll_candidate_media_manifest_v1"
       ],
       "requiredArtifactTypes": [
         "b_roll_plan_v1",
@@ -1349,8 +1350,7 @@
         "b_roll_candidate_manifest_v1"
       ],
       "requiredArtifactTypes": [
-        "provider_b_roll_candidate_video_mp4",
-        "b_roll_candidate_version_v1"
+        "b_roll_candidate_media_manifest_v1"
       ],
       "runtimeBindingRequired": true
     },
@@ -1367,7 +1367,7 @@
         "b_roll_candidate_version_v1"
       ],
       "requiredArtifactTypes": [
-        "provider_b_roll_candidate_video_mp4",
+        "b_roll_candidate_media_manifest_v1",
         "b_roll_candidate_manifest_v1"
       ],
       "runtimeBindingRequired": true
@@ -1436,7 +1436,7 @@
       "planningAllowed": true,
       "primaryVisualOwnershipPossible": true,
       "producedArtifactTypes": [
-        "b_roll_candidate_version_v1"
+        "b_roll_private_preview_media_manifest_v1"
       ],
       "requiredArtifactTypes": [
         "b_roll_candidate_version_v1",
@@ -1489,15 +1489,14 @@
       "automaticAlternateProviderFallback": false,
       "automaticRetry": false,
       "callerSelectable": false,
-      "description": "Inspect the exact private candidate.",
+      "description": "Inspect the exact private candidate represented by its strict media manifest.",
       "minimumQualificationStatus": "internal_execution_qualified",
       "operationIds": [
         "tool.ffprobe.inspect_approved_media.v1"
       ],
       "priority": 10,
       "requiredArtifactTypes": [
-        "provider_b_roll_candidate_video_mp4",
-        "b_roll_candidate_version_v1"
+        "b_roll_candidate_media_manifest_v1"
       ],
       "requiresApproval": true,
       "routeKey": "inspect_candidate",
@@ -1510,14 +1509,14 @@
       "automaticAlternateProviderFallback": false,
       "automaticRetry": false,
       "callerSelectable": false,
-      "description": "Normalize an approved bounded candidate.",
+      "description": "Normalize an approved bounded candidate without exposing private bytes.",
       "minimumQualificationStatus": "internal_execution_qualified",
       "operationIds": [
         "tool.ffmpeg.execute_approved_media_recipe.v1"
       ],
       "priority": 20,
       "requiredArtifactTypes": [
-        "provider_b_roll_candidate_video_mp4",
+        "b_roll_candidate_media_manifest_v1",
         "b_roll_candidate_manifest_v1"
       ],
       "requiresApproval": true,

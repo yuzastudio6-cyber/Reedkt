@@ -353,7 +353,7 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       const item = input.workGraph.workItems.find((candidate) =>
         candidate.workItemKey === result.workItemKey)
       const candidateArtifact = result.outputArtifactRefs.find((ref) =>
-        ref.artifactType === 'provider_b_roll_candidate_video_mp4')
+        ref.artifactType === 'b_roll_candidate_media_manifest_v1')
       if (
         item?.jobType !== 'generate_b_roll_candidate' ||
         result.status !== 'succeeded' ||
@@ -470,7 +470,7 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
         result: providerResultInput,
       })
       const candidateArtifact = providerResult.outputArtifactRefs.find((ref) =>
-        ref.artifactType === 'provider_b_roll_candidate_video_mp4')
+        ref.artifactType === 'b_roll_candidate_media_manifest_v1')
       if (providerResult.status !== 'succeeded' || !candidateArtifact) {
         throw new Error('B-roll cannot request semantic QA for a failed or missing candidate.')
       }
@@ -532,7 +532,7 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       const providerResult = results.find((result) =>
         result.workItemKey === providerItem?.workItemKey)
       const candidateArtifact = providerResult?.outputArtifactRefs.find((ref) =>
-        ref.artifactType === 'provider_b_roll_candidate_video_mp4')
+        ref.artifactType === 'b_roll_candidate_media_manifest_v1')
       if (!acceptance || !candidateArtifact) {
         throw new Error('B-roll finalization lacks exact generated candidate semantic QA lineage.')
       }

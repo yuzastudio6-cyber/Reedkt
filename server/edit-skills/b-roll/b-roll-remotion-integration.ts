@@ -39,7 +39,7 @@ import {
   skillManifestReferenceSchema,
   skillSha256Schema,
 } from '../core/skill-capability-manifest-schema'
-import { trackGraphV1Schema } from './b-roll-artifact-types'
+import { trackGraphV1Schema } from './b-roll-track-all-dependency'
 import {
   brollCandidateAttemptEvidenceSchema,
   type BrollCandidateAttemptEvidence,

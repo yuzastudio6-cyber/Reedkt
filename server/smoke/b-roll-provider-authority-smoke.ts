@@ -138,8 +138,8 @@ try {
   const providerWorkItem = canonicalWorkItems.find((item) =>
     item.approvedProviderRoute === BROLL_PROVIDER_ROUTE_ID)
   assert.ok(providerWorkItem)
-  assert.equal(providerWorkItem.expectedOutputs[0]?.artifactType, 'provider_b_roll_candidate_video_mp4')
-  assert.equal(providerWorkItem.expectedOutputs[0]?.contentType, 'video/mp4')
+  assert.equal(providerWorkItem.expectedOutputs[0]?.artifactType, 'b_roll_candidate_media_manifest_v1')
+  assert.equal(providerWorkItem.expectedOutputs[0]?.contentType, 'application/json')
   const persisted = await persistCanonicalBrollPlanComponent({
     localStorageRoot,
     assignment,

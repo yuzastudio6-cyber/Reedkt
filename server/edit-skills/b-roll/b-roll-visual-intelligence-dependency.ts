@@ -95,7 +95,7 @@ const candidateQaCoreSchema = z.object({
 }).strict().superRefine((value, context) => {
   if (
     value.authorizedRangeHash !== hashSkillValue(value.authorizedRange) ||
-    value.candidateArtifact.artifactType !== 'provider_b_roll_candidate_video_mp4' ||
+    value.candidateArtifact.artifactType !== 'b_roll_candidate_media_manifest_v1' ||
     value.candidateArtifact.ownerUserId !== value.ownerUserId ||
     value.candidateArtifact.workspaceId !== value.workspaceId ||
     value.candidateArtifact.projectId !== value.projectId

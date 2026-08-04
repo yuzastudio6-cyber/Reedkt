@@ -77,7 +77,7 @@ Observed acceptance evidence:
 | Evidence area | Commands |
 | --- | --- |
 | Manifest/kernel | `validate:skill-capability-manifests`, `test:edit-skill-capability-kernel`, `test:b-roll-capability-manifest` |
-| Public boundary/runtime | `test:b-roll-public-plugin`, `test:b-roll-runtime-bindings`, `test:edit-skill-runtime-factory` |
+| Public boundary/runtime | `test:b-roll-public-plugin`, `test:b-roll-active-artifact-contracts`, `test:b-roll-runtime-bindings`, `test:edit-skill-runtime-factory` |
 | Planning/range/work graph | `test:b-roll-planning`, `test:b-roll-plan-invariants`, `test:b-roll-canonical-integration`, `smoke:canonical-source-led-plan-compiler`, `smoke:approved-snapshot` |
 | Planning QA/qualification | `test:b-roll-planning-qa`, `test:b-roll-qualification-evidence`, `qualify:b-roll:internal` |
 | Source/artifact | `smoke:b-roll-existing-source`, `smoke:private-artifact-qa-authority`, `smoke:private-local-persistence` |

@@ -92,7 +92,8 @@ B-roll adds a new forward-only V5 operation in a separate module:
 - boundary profile: `google_gemini_omni_flash_b_roll_provider_boundary`
 - provider route: `gemini_omni_flash`
 - model: `gemini-omni-flash-preview`
-- output role/type: `provider_b_roll_candidate_video_mp4`
+- private provider output role: `provider_b_roll_candidate_video_mp4`
+- active public work-result artifact: `b_roll_candidate_media_manifest_v1`
 - automatic selection: forbidden
 - timeline mutation: forbidden
 
@@ -114,9 +115,15 @@ the operation has no independent negative-prompt control.
 
 Provider URLs, raw responses, API keys, signed URLs, and media bytes are not
 canonical evidence. Output is downloaded once into private create-only,
-checksum-verified storage and represented by a sanitized content-addressed
-receipt. Stateful refinement stores only the minimum provider interaction
-identifier needed for the one authorized refinement.
+checksum-verified storage. The public plugin receives only the strict
+`b_roll_candidate_media_manifest_v1` reference, which binds the exact scope,
+assignment, plan, approved graph, work item, provider attempt, private object
+checksum, media facts, source/reference lineage, cost/usage evidence, and
+non-public/non-automatic-use declarations. Existing-source prepared media and
+normalized candidates use the same strict private-media principle; private
+preview output uses `b_roll_private_preview_media_manifest_v1`. Stateful
+refinement stores only the minimum provider interaction identifier needed for
+the one authorized refinement.
 
 ## Qualification
 
@@ -137,12 +144,14 @@ operational procedure and evidence matrix are recorded in
 
 ## Persistence and execution boundaries
 
-All manifests, assignments, plans, work items, candidate receipts, QA records,
-and qualification receipts are strict, canonically serialized, SHA-256
-addressed records. Runtime artifacts use the existing private create-only
-artifact patterns. Execution requires an immutable approved snapshot, funded
-reservation, idempotency identity, exact package/work item, lease, private
-artifact policy, and backend-only authority.
+All active manifest inputs and outputs resolve to strict, type-specific
+schemas; a legacy generic payload envelope cannot satisfy an active B-roll
+role. Manifests, assignments, plans, work items, media manifests, candidate
+receipts, QA records, and `skill_qualification_receipt_v2` are canonically
+serialized, SHA-256 addressed records. Raw media remains exclusively in the
+private create-only binary/object store. Execution requires an immutable
+approved snapshot, funded reservation, idempotency identity, exact
+package/work item, lease, private artifact policy, and backend-only authority.
 
 No frontend surface can authorize provider work, choose a provider route,
 provide an executable command, supply a storage path, or inject credentials.

@@ -40,6 +40,9 @@ import {
 export const
 CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_AUTHORITY_REPOSITORY_VERSION =
   'canonical-source-analysis-l4-visual-evidence-authority-repository-v1' as const
+export const
+CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_CLOUD_RUN_OPERATION_AUTHORITY_PORT_VERSION =
+  'canonical-source-analysis-l4-visual-evidence-cloud-run-operation-authority-port-v1' as const
 
 const DEFAULT_PREFIX =
   'private/orchestra/v1/source-analysis-l4-visual-evidence-authorities'
@@ -78,6 +81,53 @@ interface TerminalRecord {
   readonly recordDigestSha256: string
 }
 
+export interface CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationRecord {
+  readonly schemaVersion:
+    typeof CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_AUTHORITY_REPOSITORY_VERSION
+  readonly recordKind: 'cloud_run_operation'
+  readonly invocationId: string
+  readonly releaseRef: VisualIntelligenceEvidenceRef
+  readonly cloudRunJobResource: string
+  readonly operationResource: string
+  readonly cloudRunOperationRef: VisualIntelligenceEvidenceRef
+  readonly cloudRunRunRequestAccepted: true
+  readonly workerOutcomeAtAcceptance: 'unknown'
+  readonly providerInferenceOutcomeAtAcceptance: 'unknown'
+  readonly customerCreditMutated: false
+  readonly publicDeliveryGranted: false
+  readonly productionAuthorityGranted: false
+  readonly observedAt: string
+  readonly recordDigestSha256: string
+}
+
+export interface CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationAuthorityPort {
+  readonly schemaVersion:
+    typeof CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_CLOUD_RUN_OPERATION_AUTHORITY_PORT_VERSION
+  persistAcceptedOperationCreateOnly(input: Readonly<{
+    invocationId: string
+    releaseRef: VisualIntelligenceEvidenceRef
+    cloudRunJobResource: string
+    operationResource: string
+    observedAt: string
+  }>): Promise<Readonly<{
+    disposition: 'created' | 'identical_replay'
+    cloudRunOperationRef: VisualIntelligenceEvidenceRef
+    repositoryRecordRef: VisualIntelligenceEvidenceRef
+    exactCreateOnlyRereadVerified: true
+    cloudRunRunRequestAccepted: true
+    workerOutcomeAtAcceptance: 'unknown'
+    customerCreditMutated: false
+    publicDeliveryGranted: false
+    productionAuthorityGranted: false
+  }>>
+  readExactAcceptedOperation(input: Readonly<{
+    invocationId: string
+    releaseRef: VisualIntelligenceEvidenceRef
+  }>): Promise<
+    CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationRecord | null
+  >
+}
+
 export interface CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository {
   readonly repositoryVersion:
     typeof CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_AUTHORITY_REPOSITORY_VERSION
@@ -87,6 +137,8 @@ export interface CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository {
     CanonicalSourceAnalysisL4VisualEvidenceReleaseReadPort
   readonly terminalReadPort:
     CanonicalSourceAnalysisL4VisualEvidenceTerminalReadPort
+  readonly cloudRunOperationAuthorityPort:
+    CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationAuthorityPort
   readExactRelease(
     releaseRef: VisualIntelligenceEvidenceRef,
   ): Promise<CanonicalSourceAnalysisL4VisualEvidenceRelease | null>
@@ -196,6 +248,54 @@ createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository(input: {
       return structuredClone(record.result)
     },
   } satisfies CanonicalSourceAnalysisL4VisualEvidenceTerminalReadPort)
+  const cloudRunOperationAuthorityPort = Object.freeze({
+    schemaVersion:
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_CLOUD_RUN_OPERATION_AUTHORITY_PORT_VERSION,
+    async persistAcceptedOperationCreateOnly(untrusted) {
+      assertPlainSerializedData(
+        untrusted,
+        'source_visual_evidence_cloud_run_operation_persistence_input',
+      )
+      const binding = parseCloudRunOperationBinding(untrusted)
+      const record = cloudRunOperationRecord(binding)
+      const persistence = await persistAndReread({
+        objectPort: input.objectPort,
+        path: cloudRunOperationPath(prefix, binding.invocationId),
+        record,
+        parse: parseCloudRunOperationRecord,
+      })
+      return Object.freeze({
+        disposition: persistence.disposition,
+        cloudRunOperationRef: cloneRef(record.cloudRunOperationRef),
+        repositoryRecordRef: cloneRef(persistence.repositoryRecordRef),
+        exactCreateOnlyRereadVerified: true as const,
+        cloudRunRunRequestAccepted: true as const,
+        workerOutcomeAtAcceptance: 'unknown' as const,
+        customerCreditMutated: false as const,
+        publicDeliveryGranted: false as const,
+        productionAuthorityGranted: false as const,
+      })
+    },
+    async readExactAcceptedOperation(untrusted) {
+      assertPlainSerializedData(
+        untrusted,
+        'source_visual_evidence_cloud_run_operation_read_input',
+      )
+      const binding = parseCloudRunOperationReadBinding(untrusted)
+      const record = await readRecord({
+        objectPort: input.objectPort,
+        path: cloudRunOperationPath(prefix, binding.invocationId),
+        parse: parseCloudRunOperationRecord,
+      })
+      if (!record) return null
+      if (
+        record.invocationId !== binding.invocationId
+        || !sameRef(record.releaseRef, binding.releaseRef)
+      ) throw conflict('source_visual_evidence_cloud_run_operation_mismatch')
+      return structuredClone(record)
+    },
+  } satisfies
+    CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationAuthorityPort)
 
   return Object.freeze({
     repositoryVersion:
@@ -203,6 +303,7 @@ createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository(input: {
     admissionReadPort,
     releaseReadPort,
     terminalReadPort,
+    cloudRunOperationAuthorityPort,
     async readExactRelease(
       untrustedReleaseRef: VisualIntelligenceEvidenceRef,
     ) {
@@ -329,6 +430,44 @@ function terminalRecord(input: TerminalBinding): TerminalRecord {
   })
 }
 
+interface CloudRunOperationReadBinding {
+  invocationId: string
+  releaseRef: VisualIntelligenceEvidenceRef
+}
+
+interface CloudRunOperationBinding extends CloudRunOperationReadBinding {
+  cloudRunJobResource: string
+  operationResource: string
+  observedAt: string
+}
+
+function cloudRunOperationRecord(
+  input: CloudRunOperationBinding,
+): CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationRecord {
+  const cloudRunOperationRef = operationRef(input)
+  const payload = {
+    schemaVersion:
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_AUTHORITY_REPOSITORY_VERSION,
+    recordKind: 'cloud_run_operation' as const,
+    invocationId: input.invocationId,
+    releaseRef: cloneRef(input.releaseRef),
+    cloudRunJobResource: input.cloudRunJobResource,
+    operationResource: input.operationResource,
+    cloudRunOperationRef,
+    cloudRunRunRequestAccepted: true as const,
+    workerOutcomeAtAcceptance: 'unknown' as const,
+    providerInferenceOutcomeAtAcceptance: 'unknown' as const,
+    customerCreditMutated: false as const,
+    publicDeliveryGranted: false as const,
+    productionAuthorityGranted: false as const,
+    observedAt: input.observedAt,
+  }
+  return Object.freeze({
+    ...payload,
+    recordDigestSha256: sha256AuthorityValue(payload),
+  })
+}
+
 function parseAdmissionRecord(value: unknown): AdmissionRecord {
   const record = exactRecord(value, [
     'schemaVersion', 'recordKind', 'triggerRef', 'scopeDigestSha256',
@@ -400,6 +539,67 @@ function parseTerminalRecord(value: unknown): TerminalRecord {
   })
 }
 
+function parseCloudRunOperationRecord(
+  value: unknown,
+): CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationRecord {
+  const record = exactRecord(value, [
+    'schemaVersion', 'recordKind', 'invocationId', 'releaseRef',
+    'cloudRunJobResource', 'operationResource', 'cloudRunOperationRef',
+    'cloudRunRunRequestAccepted', 'workerOutcomeAtAcceptance',
+    'providerInferenceOutcomeAtAcceptance', 'customerCreditMutated',
+    'publicDeliveryGranted', 'productionAuthorityGranted', 'observedAt',
+    'recordDigestSha256',
+  ])
+  const binding = parseCloudRunOperationBinding({
+    invocationId: record.invocationId as string,
+    releaseRef: record.releaseRef as VisualIntelligenceEvidenceRef,
+    cloudRunJobResource: record.cloudRunJobResource as string,
+    operationResource: record.operationResource as string,
+    observedAt: record.observedAt as string,
+  })
+  const payload = {
+    schemaVersion:
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_AUTHORITY_REPOSITORY_VERSION,
+    recordKind: 'cloud_run_operation' as const,
+    invocationId: binding.invocationId,
+    releaseRef: binding.releaseRef,
+    cloudRunJobResource: binding.cloudRunJobResource,
+    operationResource: binding.operationResource,
+    cloudRunOperationRef: parseRef(record.cloudRunOperationRef),
+    cloudRunRunRequestAccepted: record.cloudRunRunRequestAccepted,
+    workerOutcomeAtAcceptance: record.workerOutcomeAtAcceptance,
+    providerInferenceOutcomeAtAcceptance:
+      record.providerInferenceOutcomeAtAcceptance,
+    customerCreditMutated: record.customerCreditMutated,
+    publicDeliveryGranted: record.publicDeliveryGranted,
+    productionAuthorityGranted: record.productionAuthorityGranted,
+    observedAt: binding.observedAt,
+  }
+  if (
+    record.schemaVersion !==
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_AUTHORITY_REPOSITORY_VERSION
+    || record.recordKind !== 'cloud_run_operation'
+    || record.cloudRunRunRequestAccepted !== true
+    || record.workerOutcomeAtAcceptance !== 'unknown'
+    || record.providerInferenceOutcomeAtAcceptance !== 'unknown'
+    || record.customerCreditMutated !== false
+    || record.publicDeliveryGranted !== false
+    || record.productionAuthorityGranted !== false
+    || !sameRef(payload.cloudRunOperationRef, operationRef(binding))
+  ) throw conflict('source_visual_evidence_cloud_run_operation_invalid')
+  assertRecordDigest(record, payload)
+  return Object.freeze({
+    ...payload,
+    cloudRunRunRequestAccepted: true,
+    workerOutcomeAtAcceptance: 'unknown',
+    providerInferenceOutcomeAtAcceptance: 'unknown',
+    customerCreditMutated: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+    recordDigestSha256: record.recordDigestSha256 as string,
+  })
+}
+
 interface AdmissionReadBinding {
   trigger: CanonicalSourceAnalysisL4VisualEvidenceTrigger
   scope: CanonicalSourceTranscriptOrchestraReadScope
@@ -464,6 +664,56 @@ function parseTerminalBinding(value: TerminalBinding): TerminalBinding {
     || !sameRef(result.runtimeReleaseRef, binding.releaseRef)
   ) throw conflict('source_visual_evidence_terminal_binding_invalid')
   return Object.freeze({ ...binding, result })
+}
+
+function parseCloudRunOperationReadBinding(
+  value: CloudRunOperationReadBinding,
+): CloudRunOperationReadBinding {
+  return Object.freeze({
+    invocationId: requireSafeId(value.invocationId),
+    releaseRef: parseRef(value.releaseRef),
+  })
+}
+
+function parseCloudRunOperationBinding(
+  value: CloudRunOperationBinding,
+): CloudRunOperationBinding {
+  const binding = parseCloudRunOperationReadBinding(value)
+  const cloudRunJobResource = requireCloudRunJobResource(
+    value.cloudRunJobResource,
+  )
+  const operationResource = requireCloudRunOperationResource(
+    value.operationResource,
+  )
+  if (
+    cloudRunJobResource.split('/')[3] !== operationResource.split('/')[3]
+  ) throw conflict('source_visual_evidence_cloud_run_region_mismatch')
+  if (
+    typeof value.observedAt !== 'string'
+    || !Number.isFinite(Date.parse(value.observedAt))
+  ) throw conflict('source_visual_evidence_cloud_run_time_invalid')
+  return Object.freeze({
+    ...binding,
+    cloudRunJobResource,
+    operationResource,
+    observedAt: value.observedAt,
+  })
+}
+
+function operationRef(
+  input: CloudRunOperationBinding,
+): VisualIntelligenceEvidenceRef {
+  const digest = sha256AuthorityValue({
+    invocationId: input.invocationId,
+    releaseRef: input.releaseRef,
+    cloudRunJobResource: input.cloudRunJobResource,
+    operationResource: input.operationResource,
+  })
+  return Object.freeze({
+    id: `source-visual-cloud-operation-${digest.slice(0, 32)}`,
+    version: 1,
+    contentHash: `sha256:${digest}`,
+  })
 }
 
 function assertAdmissionRecordMatches(
@@ -719,6 +969,30 @@ function releasePath(
 
 function terminalPath(prefix: string, invocationId: string): string {
   return `${prefix}/terminals/${requireSafeId(invocationId)}.json`
+}
+
+function cloudRunOperationPath(prefix: string, invocationId: string): string {
+  return `${prefix}/cloud-run-operations/${requireSafeId(invocationId)}.json`
+}
+
+function requireCloudRunJobResource(value: unknown): string {
+  if (
+    typeof value !== 'string'
+    || !/^projects\/reeditpro\/locations\/(us-central1|europe-west4)\/jobs\/reeditpro-professional-l4$/u.test(
+      value,
+    )
+  ) throw conflict('source_visual_evidence_cloud_run_job_invalid')
+  return value
+}
+
+function requireCloudRunOperationResource(value: unknown): string {
+  if (
+    typeof value !== 'string'
+    || !/^projects\/reeditpro\/locations\/(us-central1|europe-west4)\/operations\/[A-Za-z0-9._-]+$/u.test(
+      value,
+    )
+  ) throw conflict('source_visual_evidence_cloud_run_operation_invalid')
+  return value
 }
 
 function normalizePrefix(value: string): string {

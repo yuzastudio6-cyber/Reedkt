@@ -603,14 +603,14 @@ const owner = createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
   releaseReadPort: authorityRepository.releaseReadPort,
   executionPort: {
     schemaVersion:
-      'canonical-source-analysis-l4-visual-evidence-execution-port-v1',
+      'canonical-source-analysis-l4-visual-evidence-execution-port-v2',
     async runOnce() {
       cloudCalls += 1
       return {
         disposition: 'accepted',
         cloudJobCreateRequestRef: ref('cloud-create'),
         cloudRunOperationRef: ref('cloud-operation'),
-        providerInferenceOrSubstantiveWorkOutcome: 'not_executed',
+        providerInferenceOrSubstantiveWorkOutcome: 'unknown',
         observedAt: '2026-08-04T12:00:02.000Z',
       }
     },
@@ -729,14 +729,14 @@ const delayedOwner = createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
   releaseReadPort: delayedAuthorityRepository.releaseReadPort,
   executionPort: {
     schemaVersion:
-      'canonical-source-analysis-l4-visual-evidence-execution-port-v1',
+      'canonical-source-analysis-l4-visual-evidence-execution-port-v2',
     async runOnce() {
       delayedCloudCalls += 1
       return {
         disposition: 'accepted',
         cloudJobCreateRequestRef: ref('cloud-create'),
         cloudRunOperationRef: ref('cloud-operation'),
-        providerInferenceOrSubstantiveWorkOutcome: 'not_executed',
+        providerInferenceOrSubstantiveWorkOutcome: 'unknown',
         observedAt: '2026-08-04T12:00:02.000Z',
       }
     },
@@ -787,7 +787,7 @@ const missingAdmissionOwner = createCanonicalSourceAnalysisL4VisualEvidenceAttem
   releaseReadPort: missingAuthorityRepository.releaseReadPort,
   executionPort: {
     schemaVersion:
-      'canonical-source-analysis-l4-visual-evidence-execution-port-v1',
+      'canonical-source-analysis-l4-visual-evidence-execution-port-v2',
     async runOnce() { throw new Error('must not run') },
   },
   terminalReadPort: missingAuthorityRepository.terminalReadPort,
@@ -806,6 +806,8 @@ assert.deepEqual(await missingAdmissionOwner.executeOneShot(trigger), {
 
 let cloudRequest: Record<string, unknown> | null = null
 const googlePort = createGoogleCloudRunL4VisualEvidenceExecutionPort({
+  operationAuthorityPort:
+    authorityRepository.cloudRunOperationAuthorityPort,
   auth: {
     async request(value) {
       cloudRequest = value as Record<string, unknown>
@@ -823,6 +825,8 @@ const accepted = await googlePort.runOnce({
   invocationId: 'source-visual-evidence-google-port-1',
 }) as CanonicalSourceAnalysisL4VisualEvidenceExecutionResult
 assert.equal(accepted.disposition, 'accepted')
+assert.equal(accepted.providerInferenceOrSubstantiveWorkOutcome, 'unknown')
+assert.ok(accepted.cloudRunOperationRef)
 const observedCloudRequest = cloudRequest as Record<string, unknown> | null
 assert.ok(observedCloudRequest)
 assert.equal(observedCloudRequest.url,
@@ -843,8 +847,53 @@ assert.deepEqual(observedCloudRequest.data, {
 })
 assert.equal(JSON.stringify(observedCloudRequest).includes('/Users/'), false)
 assert.equal(JSON.stringify(observedCloudRequest).includes('source.mp4'), false)
+const durableCloudRunOperation = await authorityRepository
+  .cloudRunOperationAuthorityPort.readExactAcceptedOperation({
+    invocationId: 'source-visual-evidence-google-port-1',
+    releaseRef: release.releaseRef,
+  })
+assert.ok(durableCloudRunOperation)
+assert.equal(
+  durableCloudRunOperation.operationResource,
+  'projects/reeditpro/locations/us-central1/operations/op-1',
+)
+assert.deepEqual(
+  durableCloudRunOperation.cloudRunOperationRef,
+  accepted.cloudRunOperationRef,
+)
+;(durableCloudRunOperation as { operationResource: string })
+  .operationResource = 'mutated-copy'
+assert.equal((await authorityRepository.cloudRunOperationAuthorityPort
+  .readExactAcceptedOperation({
+    invocationId: 'source-visual-evidence-google-port-1',
+    releaseRef: release.releaseRef,
+  }))?.operationResource,
+'projects/reeditpro/locations/us-central1/operations/op-1')
+await assert.rejects(
+  authorityRepository.cloudRunOperationAuthorityPort
+    .persistAcceptedOperationCreateOnly({
+      invocationId: 'source-visual-evidence-google-port-1',
+      releaseRef: release.releaseRef,
+      cloudRunJobResource: release.cloudRunJobResource,
+      operationResource:
+        'projects/reeditpro/locations/us-central1/operations/op-collision',
+      observedAt: '2026-08-04T12:00:02.000Z',
+    }),
+)
+assert.equal((await authorityRepository.cloudRunOperationAuthorityPort
+  .persistAcceptedOperationCreateOnly({
+    invocationId: 'source-visual-evidence-google-port-1',
+    releaseRef: release.releaseRef,
+    cloudRunJobResource: release.cloudRunJobResource,
+    operationResource:
+      'projects/reeditpro/locations/us-central1/operations/op-1',
+    observedAt: '2026-08-04T12:00:02.000Z',
+  })).disposition,
+'identical_replay')
 
 const uncertainPort = createGoogleCloudRunL4VisualEvidenceExecutionPort({
+  operationAuthorityPort:
+    authorityRepository.cloudRunOperationAuthorityPort,
   auth: { async request() { throw new Error('network outcome unknown') } },
   now: () => '2026-08-04T12:00:02.000Z',
 })
@@ -853,6 +902,41 @@ assert.equal(((await uncertainPort.runOnce({
   invocationId: 'source-visual-evidence-google-port-unknown',
 })) as CanonicalSourceAnalysisL4VisualEvidenceExecutionResult).disposition,
 'outcome_unknown_requires_reconciliation')
+let persistenceFailureCloudCalls = 0
+const persistenceFailurePort =
+  createGoogleCloudRunL4VisualEvidenceExecutionPort({
+    operationAuthorityPort: {
+      schemaVersion:
+        'canonical-source-analysis-l4-visual-evidence-cloud-run-operation-authority-port-v1',
+      async persistAcceptedOperationCreateOnly() {
+        throw new Error('durable authority unavailable')
+      },
+      async readExactAcceptedOperation() { return null },
+    },
+    auth: {
+      async request() {
+        persistenceFailureCloudCalls += 1
+        return {
+          data: {
+            name:
+              'projects/reeditpro/locations/us-central1/operations/op-unpersisted',
+          },
+        } as never
+      },
+    },
+    now: () => '2026-08-04T12:00:02.000Z',
+  })
+const unpersistedAcceptedOperation =
+  await persistenceFailurePort.runOnce({
+    release,
+    invocationId: 'source-visual-evidence-google-port-unpersisted',
+  }) as CanonicalSourceAnalysisL4VisualEvidenceExecutionResult
+assert.equal(persistenceFailureCloudCalls, 1)
+assert.equal(
+  unpersistedAcceptedOperation.disposition,
+  'outcome_unknown_requires_reconciliation',
+)
+assert.equal(unpersistedAcceptedOperation.cloudRunOperationRef, null)
 
 console.log(JSON.stringify({
   ok: true,
@@ -870,6 +954,8 @@ console.log(JSON.stringify({
   uncertainCloudOutcomeBlockedRetry: true,
   admittedDispatchReconciledAfterAdmissionExpiry: true,
   googleCloudRunRequestCarriesInvocationIdOnly: true,
+  cloudRunOperationResourcePersistedCreateOnlyAndReread: true,
+  acceptedOperationWithoutDurableAuthorityBlockedAsUnknown: true,
   customerCreditsMutated: false,
 }))
 

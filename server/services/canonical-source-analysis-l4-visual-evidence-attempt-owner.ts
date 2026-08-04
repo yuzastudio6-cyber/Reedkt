@@ -34,13 +34,17 @@ import {
   type CanonicalSourceAnalysisL4VisualEvidenceRepository,
   type CanonicalSourceAnalysisL4VisualEvidenceResult,
 } from './canonical-source-analysis-l4-visual-evidence-repository'
+import type {
+  CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationAuthorityPort,
+  CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationRecord,
+} from './canonical-source-analysis-l4-visual-evidence-authority-repository'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ATTEMPT_OWNER_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-attempt-owner-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-attempt-owner-v2' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TRIGGER_VERSION =
   'canonical-source-analysis-l4-visual-evidence-trigger-v1' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ADMISSION_VERSION =
@@ -48,7 +52,7 @@ export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ADMISSION_VERSION =
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_RELEASE_VERSION =
   'canonical-source-analysis-l4-visual-evidence-release-v1' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_EXECUTION_PORT_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-execution-port-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-execution-port-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const CLOUD_RUN_JOB_NAME = 'reeditpro-professional-l4' as const
@@ -76,6 +80,12 @@ const evidenceRefSchema = z.object({
   contentHash: prefixedSha256,
 }).strict()
 const region = z.enum(['us-central1', 'europe-west4'])
+const cloudRunJobResourceSchema = z.string().regex(
+  /^projects\/reeditpro\/locations\/(us-central1|europe-west4)\/jobs\/reeditpro-professional-l4$/u,
+)
+const cloudRunOperationResourceSchema = z.string().regex(
+  /^projects\/reeditpro\/locations\/(us-central1|europe-west4)\/operations\/[A-Za-z0-9._-]+$/u,
+)
 
 const triggerWithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -231,7 +241,7 @@ const executionResultSchema = z.object({
 }).strict().superRefine((value, context) => {
   const valid = value.disposition === 'accepted'
     ? value.cloudRunOperationRef !== null
-      && value.providerInferenceOrSubstantiveWorkOutcome === 'not_executed'
+      && value.providerInferenceOrSubstantiveWorkOutcome === 'unknown'
     : value.disposition === 'rejected_before_creation'
       ? value.cloudRunOperationRef === null
         && value.providerInferenceOrSubstantiveWorkOutcome === 'not_executed'
@@ -756,13 +766,25 @@ export function createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner(
 }
 
 export function createGoogleCloudRunL4VisualEvidenceExecutionPort(input: {
+  readonly operationAuthorityPort:
+    CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationAuthorityPort
   readonly auth?: Pick<GoogleAuth, 'request'>
   readonly now?: () => string
   readonly requestTimeoutMilliseconds?: number
-} = {}): CanonicalSourceAnalysisL4VisualEvidenceExecutionPort {
+}): CanonicalSourceAnalysisL4VisualEvidenceExecutionPort {
   const auth = input.auth ?? new GoogleAuth({ scopes: [CLOUD_PLATFORM_SCOPE] })
   const now = input.now ?? (() => new Date().toISOString())
   const timeout = input.requestTimeoutMilliseconds ?? 15_000
+  if (
+    input.operationAuthorityPort?.schemaVersion !==
+      'canonical-source-analysis-l4-visual-evidence-cloud-run-operation-authority-port-v1'
+    || typeof input.operationAuthorityPort
+      .persistAcceptedOperationCreateOnly !== 'function'
+    || typeof input.operationAuthorityPort
+      .readExactAcceptedOperation !== 'function'
+  ) throw new TypeError(
+    'L4 visual evidence Cloud Run operation authority is invalid.',
+  )
   if (!Number.isInteger(timeout) || timeout < 1_000 || timeout > 30_000) {
     throw new TypeError('L4 visual evidence launch timeout is invalid.')
   }
@@ -806,19 +828,40 @@ export function createGoogleCloudRunL4VisualEvidenceExecutionPort(input: {
         })
         assertPlainSerializedData(response.data, 'l4_cloud_run_response')
         const operation = z.object({
-          name: z.string().regex(
-            /^projects\/reeditpro\/locations\/(us-central1|europe-west4)\/operations\/[A-Za-z0-9._-]+$/u,
-          ),
+          name: cloudRunOperationResourceSchema,
         }).passthrough().parse(response.data)
+        const observedAt = now()
+        const operationPersistence =
+          assertCloudRunOperationPersistenceResult(
+            await input.operationAuthorityPort
+              .persistAcceptedOperationCreateOnly({
+                invocationId,
+                releaseRef: exactRelease.releaseRef,
+                cloudRunJobResource: exactRelease.cloudRunJobResource,
+                operationResource: operation.name,
+                observedAt,
+              }),
+          )
+        const exactOperation = assertCloudRunOperationRecord(
+          await input.operationAuthorityPort.readExactAcceptedOperation({
+            invocationId,
+            releaseRef: exactRelease.releaseRef,
+          }),
+        )
+        assertCloudRunOperationMatches({
+          record: exactOperation,
+          invocationId,
+          release: exactRelease,
+          operationResource: operation.name,
+          operationRef: operationPersistence.cloudRunOperationRef,
+          observedAt,
+        })
         return executionResultSchema.parse({
           disposition: 'accepted',
           cloudJobCreateRequestRef: createRequestRef,
-          cloudRunOperationRef: opaqueRef(
-            `${invocationId}.cloud-operation`,
-            operation.name,
-          ),
-          providerInferenceOrSubstantiveWorkOutcome: 'not_executed',
-          observedAt: now(),
+          cloudRunOperationRef: operationPersistence.cloudRunOperationRef,
+          providerInferenceOrSubstantiveWorkOutcome: 'unknown',
+          observedAt,
         })
       } catch {
         return executionResultSchema.parse({
@@ -835,6 +878,88 @@ export function createGoogleCloudRunL4VisualEvidenceExecutionPort(input: {
       }
     },
   })
+}
+
+function assertCloudRunOperationPersistenceResult(value: unknown): Readonly<{
+  disposition: 'created' | 'identical_replay'
+  cloudRunOperationRef: VisualIntelligenceEvidenceRef
+  repositoryRecordRef: VisualIntelligenceEvidenceRef
+  exactCreateOnlyRereadVerified: true
+  cloudRunRunRequestAccepted: true
+  workerOutcomeAtAcceptance: 'unknown'
+  customerCreditMutated: false
+  publicDeliveryGranted: false
+  productionAuthorityGranted: false
+}> {
+  assertPlainSerializedData(
+    value,
+    'source_visual_evidence_cloud_run_operation_persistence_result',
+  )
+  return Object.freeze(z.object({
+    disposition: z.enum(['created', 'identical_replay']),
+    cloudRunOperationRef: evidenceRefSchema,
+    repositoryRecordRef: evidenceRefSchema,
+    exactCreateOnlyRereadVerified: z.literal(true),
+    cloudRunRunRequestAccepted: z.literal(true),
+    workerOutcomeAtAcceptance: z.literal('unknown'),
+    customerCreditMutated: z.literal(false),
+    publicDeliveryGranted: z.literal(false),
+    productionAuthorityGranted: z.literal(false),
+  }).strict().parse(value))
+}
+
+function assertCloudRunOperationRecord(
+  value: unknown,
+): CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationRecord {
+  assertPlainSerializedData(
+    value,
+    'source_visual_evidence_cloud_run_operation_record',
+  )
+  const parsed = z.object({
+    schemaVersion: z.literal(
+      'canonical-source-analysis-l4-visual-evidence-authority-repository-v1',
+    ),
+    recordKind: z.literal('cloud_run_operation'),
+    invocationId: safeId,
+    releaseRef: evidenceRefSchema,
+    cloudRunJobResource: cloudRunJobResourceSchema,
+    operationResource: cloudRunOperationResourceSchema,
+    cloudRunOperationRef: evidenceRefSchema,
+    cloudRunRunRequestAccepted: z.literal(true),
+    workerOutcomeAtAcceptance: z.literal('unknown'),
+    providerInferenceOutcomeAtAcceptance: z.literal('unknown'),
+    customerCreditMutated: z.literal(false),
+    publicDeliveryGranted: z.literal(false),
+    productionAuthorityGranted: z.literal(false),
+    observedAt: timestamp,
+    recordDigestSha256: rawSha256,
+  }).strict().parse(value)
+  const { recordDigestSha256, ...payload } = parsed
+  if (recordDigestSha256 !== sha256AuthorityValue(payload)) {
+    throw conflict('source_visual_evidence_cloud_run_operation_digest_invalid')
+  }
+  return Object.freeze(parsed)
+}
+
+function assertCloudRunOperationMatches(input: Readonly<{
+  record: CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationRecord
+  invocationId: string
+  release: CanonicalSourceAnalysisL4VisualEvidenceRelease
+  operationResource: string
+  operationRef: VisualIntelligenceEvidenceRef
+  observedAt: string
+}>): void {
+  const jobRegion = input.record.cloudRunJobResource.split('/')[3]
+  const operationRegion = input.record.operationResource.split('/')[3]
+  if (
+    input.record.invocationId !== input.invocationId
+    || !sameRef(input.record.releaseRef, input.release.releaseRef)
+    || input.record.cloudRunJobResource !== input.release.cloudRunJobResource
+    || input.record.operationResource !== input.operationResource
+    || !sameRef(input.record.cloudRunOperationRef, input.operationRef)
+    || input.record.observedAt !== input.observedAt
+    || jobRegion !== operationRegion
+  ) throw conflict('source_visual_evidence_cloud_run_operation_mismatch')
 }
 
 async function reconcileLaunch(input: Readonly<{

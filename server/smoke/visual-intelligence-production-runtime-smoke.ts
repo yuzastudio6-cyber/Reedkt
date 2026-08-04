@@ -360,7 +360,7 @@ const runtime = await createVisualIntelligenceProductionRuntime(env, {
   now: () => now,
 })
 assert.ok(runtime)
-assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v9')
+assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v10')
 assert.equal(runtime.providerCapabilityId, 'visual_intelligence')
 assert.equal(runtime.semanticEngine, 'gemini-3.1-pro-preview')
 assert.equal(runtime.thinkingLevel, 'high')
@@ -442,6 +442,11 @@ assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceAuthorityRepository
     .terminalReadPort.schemaVersion,
   'canonical-source-analysis-l4-visual-evidence-terminal-read-port-v1',
+)
+assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceAuthorityRepository
+    .cloudRunOperationAuthorityPort.schemaVersion,
+  'canonical-source-analysis-l4-visual-evidence-cloud-run-operation-authority-port-v1',
 )
 assert.equal(
   typeof runtime.createSourceAnalysisL4ProbeAttemptOwner,

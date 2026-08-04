@@ -94,7 +94,7 @@ assert.match(productionRuntime, /orchestraJobRuntimePort/u)
 assert.match(productionRuntime, /orchestraLifecyclePort/u)
 assert.match(
   productionRuntime,
-  /visual-intelligence-production-runtime-v9/u,
+  /visual-intelligence-production-runtime-v10/u,
 )
 assert.match(
   productionRuntime,
@@ -123,6 +123,10 @@ assert.match(
 assert.match(
   productionRuntime,
   /createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner/u,
+)
+assert.match(
+  productionRuntime,
+  /operationAuthorityPort:[\s\S]*cloudRunOperationAuthorityPort/u,
 )
 assert.doesNotMatch(
   productionRuntime,
@@ -179,7 +183,20 @@ assert.match(
 assert.match(l4VisualEvidenceAuthorityRepository, /persistAdmissionCreateOnly/u)
 assert.match(l4VisualEvidenceAuthorityRepository, /persistReleaseCreateOnly/u)
 assert.match(l4VisualEvidenceAuthorityRepository, /persistTerminalCreateOnly/u)
+assert.match(
+  l4VisualEvidenceAuthorityRepository,
+  /cloudRunOperationAuthorityPort/u,
+)
+assert.match(
+  l4VisualEvidenceAuthorityRepository,
+  /persistAcceptedOperationCreateOnly/u,
+)
+assert.match(
+  l4VisualEvidenceAuthorityRepository,
+  /readExactAcceptedOperation/u,
+)
 assert.match(l4VisualEvidenceAuthorityRepository, /exactCreateOnlyRereadVerified/u)
+assert.doesNotMatch(l4VisualEvidenceAuthorityRepository, /new Set\(/u)
 assert.doesNotMatch(
   l4VisualEvidenceAuthorityRepository,
   /GoogleAuth|fetch\(|child_process|run\.googleapis\.com|jobs:run/u,

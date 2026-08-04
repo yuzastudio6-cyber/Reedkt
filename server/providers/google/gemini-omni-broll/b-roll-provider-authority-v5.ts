@@ -48,6 +48,9 @@ const artifactRefSchema = z.object({
   workspaceId: identity,
   projectId: identity,
 }).strict()
+const providerSourceInputSchema = artifactRefSchema.extend({
+  inputRole: z.enum(['first_frame', 'reference_image', 'uploaded_video']),
+}).strict()
 
 const expectedOutputSchema = z.object({
   role: z.literal('provider_b_roll_candidate_video_mp4'),
@@ -82,6 +85,19 @@ const profileCoreSchema = z.object({
     supportedAspectRatios: z.tuple([z.literal('16:9'), z.literal('9:16')]),
     outputHeight: z.literal(720),
     frameRate: z.literal(24),
+  }).strict(),
+  taskCapabilities: z.object({
+    textToVideo: z.literal('supported'),
+    imageToVideoFirstFrame: z.literal('supported_one_image'),
+    referenceImagesToVideo: z.literal('supported_one_to_six_images'),
+    uploadedVideoEditing: z.literal('supported_region_gated_maximum_ten_seconds'),
+    conversationalRefinement: z.literal('supported_one_refinement_with_previous_interaction'),
+    videoReference: z.literal('unsupported_provider_processing_unreliable'),
+    audioReference: z.literal('unsupported_uploaded_audio'),
+    multipleVideoReasoning: z.literal('unsupported'),
+    extension: z.literal('unsupported'),
+    interpolation: z.literal('unsupported'),
+    voiceEditing: z.literal('unsupported'),
   }).strict(),
   requestPolicy: z.object({
     maximumInitialCandidates: z.literal(1),
@@ -150,6 +166,19 @@ export function createBrollProviderOperationRegistryV5(): readonly [BrollProvide
       outputHeight: 720,
       frameRate: 24,
     },
+    taskCapabilities: {
+      textToVideo: 'supported',
+      imageToVideoFirstFrame: 'supported_one_image',
+      referenceImagesToVideo: 'supported_one_to_six_images',
+      uploadedVideoEditing: 'supported_region_gated_maximum_ten_seconds',
+      conversationalRefinement: 'supported_one_refinement_with_previous_interaction',
+      videoReference: 'unsupported_provider_processing_unreliable',
+      audioReference: 'unsupported_uploaded_audio',
+      multipleVideoReasoning: 'unsupported',
+      extension: 'unsupported',
+      interpolation: 'unsupported',
+      voiceEditing: 'unsupported',
+    },
     requestPolicy: {
       maximumInitialCandidates: 1,
       maximumRefinements: 1,
@@ -198,7 +227,12 @@ export const brollProviderRequestPackageV5Schema = z.object({
   providerBoundaryProfileId: z.literal(BROLL_PROVIDER_BOUNDARY_PROFILE_ID),
   providerRouteId: z.literal(BROLL_PROVIDER_ROUTE_ID),
   configuredModelAlias: z.literal(BROLL_PROVIDER_CONFIGURED_MODEL_ALIAS),
-  taskMode: z.enum(['text_to_video', 'image_to_video', 'edit_uploaded_video']),
+  taskMode: z.enum([
+    'text_to_video',
+    'image_to_video',
+    'reference_to_video',
+    'edit_uploaded_video',
+  ]),
   manifestRef: skillManifestReferenceSchema,
   assignmentId: identity,
   assignmentHash: skillSha256Schema,
@@ -209,7 +243,7 @@ export const brollProviderRequestPackageV5Schema = z.object({
   providerStateRetention: z.literal('store_for_one_approved_refinement'),
   prompt: z.string().trim().min(1).max(16_000),
   avoidRequirements: z.array(z.string().trim().min(1).max(1_000)).min(1).max(100),
-  sourceInputs: z.array(artifactRefSchema).max(3),
+  sourceInputs: z.array(providerSourceInputSchema).max(6),
   output: z.object({
     aspectRatio: z.enum(['16:9', '9:16']),
     resolution: z.literal('720p'),
@@ -231,9 +265,16 @@ export const brollProviderRequestPackageV5Schema = z.object({
     context.addIssue({ code: 'custom', message: 'B-roll provider request package hash is invalid.' })
   }
   const sourceCount = request.sourceInputs.length
+  const roles = request.sourceInputs.map((source) => source.inputRole)
   if (
     (request.taskMode === 'text_to_video' && sourceCount !== 0) ||
-    (request.taskMode !== 'text_to_video' && sourceCount !== 1)
+    (request.taskMode === 'image_to_video' &&
+      (sourceCount !== 1 || roles[0] !== 'first_frame')) ||
+    (request.taskMode === 'reference_to_video' &&
+      (sourceCount < 1 || sourceCount > 6 || roles.some((role) => role !== 'reference_image'))) ||
+    (request.taskMode === 'edit_uploaded_video' &&
+      (sourceCount !== 1 || roles[0] !== 'uploaded_video')) ||
+    new Set(request.sourceInputs.map((source) => source.sha256)).size !== sourceCount
   ) context.addIssue({ code: 'custom', message: 'B-roll provider task/source combination is invalid.' })
 })
 
@@ -264,9 +305,32 @@ export function buildBrollProviderRequestPackageV5(input: {
   const taskMode = input.plan.decision === 'edit_uploaded_video_with_gemini_omni'
     ? 'edit_uploaded_video' as const
     : selected?.sourceType === 'reference_image'
-      ? 'image_to_video' as const
+      ? selected.providerImageRole === 'reference'
+        ? 'reference_to_video' as const
+        : 'image_to_video' as const
       : 'text_to_video' as const
-  const sourceInputs = selected ? [selected.artifactRef] : []
+  const sourceCandidates = taskMode === 'reference_to_video'
+    ? (input.plan.providerSourceArtifactRefs ?? []).map((reference) => {
+        const candidate = input.context.sourceCandidates.find((item) =>
+          item.sourceType === 'reference_image' && item.providerImageRole === 'reference' &&
+          item.artifactRef.sha256 === reference.sha256)
+        if (!candidate || !candidate.approvedByUser || !candidate.provenanceVerified ||
+          !candidate.rightsApproved || !candidate.privacyApproved || !candidate.proofSafe ||
+          hashSkillValue(candidate.artifactRef) !== hashSkillValue(reference)) {
+          throw new Error('B-roll reference-to-video source lacks exact approval, rights, privacy, proof, or checksum authority.')
+        }
+        return candidate
+      })
+    : selected ? [selected] : []
+  const inputRole = taskMode === 'image_to_video'
+    ? 'first_frame' as const
+    : taskMode === 'reference_to_video'
+      ? 'reference_image' as const
+      : 'uploaded_video' as const
+  const sourceInputs = sourceCandidates.map((candidate) => ({
+    ...candidate.artifactRef,
+    inputRole,
+  }))
   const prompt = [
     `Editorial purpose: ${shot.purpose}`,
     `Subject: ${shot.subject}`,

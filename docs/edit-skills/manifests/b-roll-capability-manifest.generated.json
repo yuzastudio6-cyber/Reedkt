@@ -385,17 +385,57 @@
       "affectedJobTypes": [
         "generate_b_roll_candidate"
       ],
-      "behavior": "fail_closed",
-      "limitationKey": "video_reference_not_active",
-      "reason": "Video-reference input is not an active dependable route."
+      "behavior": "bounded_support",
+      "limitationKey": "reference_image_ceiling",
+      "reason": "Reference-to-video accepts one to six exact approved images; the six-image ceiling is the bounded ReeditPro contract demonstrated by the current official provider guide."
     },
     {
       "affectedJobTypes": [
         "generate_b_roll_candidate"
       ],
       "behavior": "fail_closed",
-      "limitationKey": "unsupported_provider_inputs",
-      "reason": "Multiple video inputs, extension, interpolation, voice editing, YouTube sources, and uploaded audio references are unsupported."
+      "limitationKey": "video_reference_not_active",
+      "reason": "Provider schema admission does not prove useful processing: current official guidance says video references up to three seconds are accepted but not processed correctly."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "fail_closed",
+      "limitationKey": "uploaded_audio_reference_not_active",
+      "reason": "Current official guidance does not support uploaded audio references."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "fail_closed",
+      "limitationKey": "unsupported_provider_transformations",
+      "reason": "Multiple-video reasoning, video extension, frame interpolation, voice editing, and YouTube sources are unsupported."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "bounded_support",
+      "limitationKey": "provider_output_contract",
+      "reason": "Provider output is bounded to 3-10 seconds, 720p, 24 fps, and native 16:9 or 9:16."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "fail_closed",
+      "limitationKey": "provider_person_identity_safety",
+      "reason": "Recognizable-person and minor-image availability remains provider- and region-limited; B-roll rights, privacy, proof, and production qualification gates remain mandatory."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "bounded_support",
+      "limitationKey": "provider_interaction_retention",
+      "reason": "The initial interaction is stored only to authorize one conversational refinement; store-disabled or missing previous-interaction state cannot be refined."
     },
     {
       "affectedJobTypes": [
@@ -481,7 +521,7 @@
       ]
     }
   ],
-  "manifestHash": "2b67926842589aa75b2b530d36e998a1042afe7c3e8d2079631084d64d8bf97d",
+  "manifestHash": "f76f07bd05a4e38ff61a04cdb4fa3d5784c41d1018f497f2d3d3c390c260d427",
   "mayOverlapWith": [
     {
       "condition": "caption_safe_area_preserved",
@@ -1575,7 +1615,7 @@
       "automaticAlternateProviderFallback": false,
       "automaticRetry": false,
       "callerSelectable": false,
-      "description": "Create an illustrative candidate from approved images.",
+      "description": "Create one illustrative candidate from one approved checksum-bound first-frame image.",
       "minimumQualificationStatus": "internal_execution_qualified",
       "operationIds": [
         "provider.google.generate_b_roll_candidate.v1"
@@ -1597,12 +1637,34 @@
       "automaticAlternateProviderFallback": false,
       "automaticRetry": false,
       "callerSelectable": false,
-      "description": "Create an illustrative candidate from the approved shot specification.",
+      "description": "Create one illustrative candidate from one to six approved checksum-bound reference images.",
       "minimumQualificationStatus": "internal_execution_qualified",
       "operationIds": [
         "provider.google.generate_b_roll_candidate.v1"
       ],
       "priority": 6,
+      "requiredArtifactTypes": [
+        "b_roll_plan_v1",
+        "b_roll_provider_request_specification_v1",
+        "approved_user_asset_v1"
+      ],
+      "requiresApproval": true,
+      "routeKey": "gemini_omni_reference_to_video",
+      "routeKind": "provider",
+      "supportedJobTypes": [
+        "generate_b_roll_candidate"
+      ]
+    },
+    {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Create an illustrative candidate from the approved shot specification.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "provider.google.generate_b_roll_candidate.v1"
+      ],
+      "priority": 7,
       "requiredArtifactTypes": [
         "b_roll_plan_v1",
         "b_roll_provider_request_specification_v1"

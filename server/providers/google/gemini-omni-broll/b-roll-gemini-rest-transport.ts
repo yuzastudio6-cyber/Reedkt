@@ -161,6 +161,7 @@ export async function executeBrollGeminiRestTransport(input: {
   authorization: BrollProviderWorkAuthorizationV5
   requestPackage: BrollProviderRequestPackageV5
   sourceMedia?: BrollGeminiEphemeralSourceMedia
+  referenceImages?: readonly BrollGeminiEphemeralSourceMedia[]
   secretResolver: BrollGeminiSecretResolver
   fetchImplementation?: typeof fetch
   externalNetworkEnabled: true
@@ -256,6 +257,7 @@ export async function executeBrollGeminiRestTransport(input: {
         const official = buildBrollGeminiOfficialInteractionRequest({
           requestPackage: input.requestPackage,
           ...(input.sourceMedia ? { sourceMedia: input.sourceMedia } : {}),
+          ...(input.referenceImages ? { referenceImages: input.referenceImages } : {}),
           ...(uploadedVideoFileUri ? { uploadedVideoFileUri } : {}),
           delivery: input.delivery ?? 'inline',
         })

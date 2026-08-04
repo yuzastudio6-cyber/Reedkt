@@ -118,6 +118,13 @@ export function assertBrollPlanRuntimeInvariants(input: {
     plan.sourceArtifactRef.workspaceId !== input.assignment.workspaceId ||
     plan.sourceArtifactRef.projectId !== input.assignment.projectId
   )) throw new Error('B-roll plan selected a cross-workspace source artifact.')
+  for (const reference of plan.providerSourceArtifactRefs ?? []) {
+    if (
+      reference.ownerUserId !== input.assignment.ownerUserId ||
+      reference.workspaceId !== input.assignment.workspaceId ||
+      reference.projectId !== input.assignment.projectId
+    ) throw new Error('B-roll plan selected a cross-workspace provider image artifact.')
+  }
 }
 
 export function compileBrollPlan(input: {
@@ -210,6 +217,12 @@ export function compileBrollPlan(input: {
     candidate.sourceType === 'existing_project_clip')
     ? 'use_existing_project_clip' as const
     : 'use_no_broll' as const
+  const providerSourceArtifactRefs = sourceStrategy.providerReferenceImages?.map((item) =>
+    item.candidate.artifactRef) ?? (
+    sourceStrategy.selected?.candidate.sourceType === 'reference_image'
+      ? [sourceStrategy.selected.candidate.artifactRef]
+      : undefined
+  )
   const planEvidence = createBrollPlanningQaPlanEvidence({
     schemaVersion: 'b_roll_planning_qa_plan_evidence_v1',
     assignmentId: assignment.assignmentId,
@@ -223,6 +236,9 @@ export function compileBrollPlan(input: {
       sourceCandidateId: sourceStrategy.selected.candidate.sourceId,
       sourceArtifactHash: sourceStrategy.selected.candidate.artifactRef.sha256,
       sourceScore: sourceStrategy.selected.score,
+    } : {}),
+    ...(providerSourceArtifactRefs ? {
+      providerSourceArtifactHashes: providerSourceArtifactRefs.map((reference) => reference.sha256),
     } : {}),
     ...(timing.sourceTrim ? { sourceTrim: timing.sourceTrim } : {}),
     ...(shotSpecification ? { shotSpecification } : {}),
@@ -281,6 +297,7 @@ export function compileBrollPlan(input: {
       sourceArtifactRef: sourceStrategy.selected.candidate.artifactRef,
       sourceScore: sourceStrategy.selected.score,
     } : {}),
+    ...(providerSourceArtifactRefs ? { providerSourceArtifactRefs } : {}),
     ...(shotSpecification ? { shotSpecification } : {}),
     displayTreatment: timing.displayTreatment,
     ...(timing.sourceTrim ? { sourceTrim: timing.sourceTrim } : {}),

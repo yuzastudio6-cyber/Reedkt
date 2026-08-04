@@ -84,6 +84,7 @@ export interface BrollSkillAssignment {
 export interface BrollSourceCandidate {
   sourceId: string
   sourceType: 'existing_project_clip' | 'approved_user_asset' | 'uploaded_video_for_edit' | 'reference_image'
+  providerImageRole?: 'first_frame' | 'reference'
   artifactRef: EditSkillArtifactReference
   sourceRange?: SkillFrameRange
   semanticRelevance: number
@@ -180,6 +181,7 @@ export interface BrollPlanArtifact {
   sourceCandidateId?: string
   sourceArtifactRef?: EditSkillArtifactReference
   sourceScore?: number
+  providerSourceArtifactRefs?: readonly EditSkillArtifactReference[]
   shotSpecification?: BrollShotSpecification
   displayTreatment: BrollDisplayTreatment
   sourceTrim?: SkillFrameRange

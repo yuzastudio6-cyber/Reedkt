@@ -76,6 +76,7 @@ const brollPlanningQaPlanEvidenceCoreSchema = z.object({
   sourceCandidateId: z.string().trim().min(1).max(180).optional(),
   sourceArtifactHash: skillSha256Schema.optional(),
   sourceScore: z.number().min(0).max(100).optional(),
+  providerSourceArtifactHashes: z.array(skillSha256Schema).min(1).max(6).optional(),
   sourceTrim: skillFrameRangeSchema.optional(),
   shotSpecification: brollShotSpecificationSchema.optional(),
   displayTreatment: brollDisplayTreatmentSchema,
@@ -191,6 +192,12 @@ function parseInput(input: unknown): BrollPlanningQaValidatorInput {
 function selectedCandidate(input: BrollPlanningQaValidatorInput) {
   const id = input.planEvidence.sourceCandidateId
   return id ? input.context.sourceCandidates.find((candidate) => candidate.sourceId === id) : undefined
+}
+
+function exactProviderImageCandidates(input: BrollPlanningQaValidatorInput) {
+  const hashes = input.planEvidence.providerSourceArtifactHashes ?? []
+  return hashes.map((hash) => input.context.sourceCandidates.find((candidate) =>
+    candidate.sourceType === 'reference_image' && candidate.artifactRef.sha256 === hash))
 }
 
 function exactScope(input: BrollPlanningQaValidatorInput): boolean {
@@ -544,13 +551,26 @@ export function validateBrollProviderEligibility(rawInput: unknown): SkillQaFind
   const input = parseInput(rawInput)
   const plan = input.planEvidence
   const provider = PROVIDER_DECISIONS.has(plan.decision)
+  const providerImageCandidates = exactProviderImageCandidates(input)
+  const providerSourceArtifactHashes = plan.providerSourceArtifactHashes ?? []
+  const providerImageAuthorityPresent = providerSourceArtifactHashes.length > 0
+  const providerImageAuthorityValid = !providerImageAuthorityPresent || (
+    providerImageCandidates.length >= 1 && providerImageCandidates.length <= 6 &&
+    providerImageCandidates.every((candidate) => Boolean(
+      candidate?.approvedByUser && candidate.provenanceVerified && candidate.rightsApproved &&
+      candidate.privacyApproved && candidate.proofSafe && candidate.providerImageRole,
+    )) &&
+    new Set(providerSourceArtifactHashes).size === providerSourceArtifactHashes.length &&
+    providerSourceArtifactHashes[0] === plan.sourceArtifactHash
+  )
   const passed = !provider || (
     plan.providerRequestPlanned &&
     input.assignment.providerPermission === 'approved_within_ceiling' &&
     input.assignment.permittedSourceRoutes.includes(plan.decision) &&
     Boolean(plan.providerRequestPackageHash && plan.shotSpecification && plan.cropSafeProviderAspectRatio) &&
     input.assignment.maximumInitialCandidates === 1 &&
-    input.assignment.maximumRefinements === 1
+    input.assignment.maximumRefinements === 1 &&
+    providerImageAuthorityValid
   )
   return derivedFinding({
     qaKey: 'b_roll.planning.provider_eligibility', validatorInput: input, passed,
@@ -562,8 +582,13 @@ export function validateBrollProviderEligibility(rawInput: unknown): SkillQaFind
       providerPermission: input.assignment.providerPermission,
       routePermitted: input.assignment.permittedSourceRoutes.includes(plan.decision),
       requestPackagePresent: Boolean(plan.providerRequestPackageHash),
+      providerImageCount: plan.providerSourceArtifactHashes?.length ?? 0,
+      providerImageAuthorityValid,
     },
-    additionalEvidenceHashes: [plan.providerRequestPackageHash],
+    additionalEvidenceHashes: [
+      plan.providerRequestPackageHash,
+      ...(plan.providerSourceArtifactHashes ?? []),
+    ],
   })
 }
 

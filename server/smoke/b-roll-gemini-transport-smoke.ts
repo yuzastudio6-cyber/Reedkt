@@ -22,6 +22,7 @@ import {
   BROLL_PROVIDER_CONFIGURED_MODEL_ALIAS,
   BROLL_PROVIDER_ROUTE_ID,
   brollProviderExecutionPackageV5Schema,
+  brollProviderRequestPackageV5Schema,
   buildBrollGeminiOfficialInteractionRequest,
   buildBrollProviderRequestPackageV5,
   createBrollGeminiSecretResolver,
@@ -135,6 +136,7 @@ try {
     sourceCandidates: [{
       sourceId: 'approved-reference-image',
       sourceType: 'reference_image',
+      providerImageRole: 'first_frame',
       artifactRef: referenceImageRef,
       semanticRelevance: 0.98,
       visualQuality: 0.95,
@@ -180,6 +182,125 @@ try {
       bytes: Buffer.from('substituted-reference-image', 'utf8'),
     },
   }), /does not match request lineage/u)
+
+  const referenceImageFixtures = Array.from({ length: 6 }, (_, index) => {
+    const bytes = Buffer.from(`approved-reference-image-${index}`, 'utf8')
+    return {
+      bytes,
+      artifactRef: {
+        artifactType: 'approved_user_asset_v1',
+        sha256: createHash('sha256').update(bytes).digest('hex'),
+        byteLength: bytes.byteLength,
+        ownerUserId: assignment.ownerUserId,
+        workspaceId: assignment.workspaceId,
+        projectId: assignment.projectId,
+      },
+    }
+  })
+  const referenceToVideoContextInput: Partial<typeof context> = { ...context }
+  delete referenceToVideoContextInput.contextHash
+  const referenceToVideoContext = createBrollPlanningContext({
+    ...referenceToVideoContextInput as Omit<typeof context, 'contextHash'>,
+    sourceCandidates: referenceImageFixtures.map((fixture, index) => ({
+      sourceId: `approved-visual-reference-${index}`,
+      sourceType: 'reference_image' as const,
+      providerImageRole: 'reference' as const,
+      artifactRef: fixture.artifactRef,
+      semanticRelevance: 0.99 - index * 0.01,
+      visualQuality: 0.95,
+      temporalFit: 0.95,
+      storyContinuity: 0.95,
+      provenanceVerified: true,
+      rightsApproved: true,
+      privacyApproved: true,
+      proofSafe: true,
+      repetitionRisk: 0,
+      cropFeasibility: 0.95,
+      speakerActionProtection: 0.95,
+      audioUsefulness: 0,
+      costCredits: 1,
+      approvedByUser: true,
+    })),
+  })
+  const referenceToVideoCompiled = compileBrollPlan({
+    assignment,
+    context: referenceToVideoContext,
+    manifest: BROLL_CAPABILITY_MANIFEST,
+    estimators: editSkillEstimatorRegistry,
+    qa: editSkillQaRegistry,
+  })
+  assert.equal(referenceToVideoCompiled.omniRequestPlan?.mode, 'reference_to_video')
+  assert.equal(referenceToVideoCompiled.plan.providerSourceArtifactRefs?.length, 6)
+  const referenceToVideoPackage = buildBrollProviderRequestPackageV5({
+    assignment,
+    context: referenceToVideoContext,
+    plan: referenceToVideoCompiled.plan,
+  })
+  assert.equal(referenceToVideoPackage.taskMode, 'reference_to_video')
+  assert.equal(referenceToVideoPackage.sourceInputs.length, 6)
+  assert.ok(referenceToVideoPackage.sourceInputs.every((source) =>
+    source.inputRole === 'reference_image'))
+  const referenceToVideoRequest = buildBrollGeminiOfficialInteractionRequest({
+    requestPackage: referenceToVideoPackage,
+    referenceImages: referenceImageFixtures.map((fixture) => ({
+      artifactRef: fixture.artifactRef,
+      mimeType: 'image/png' as const,
+      bytes: fixture.bytes,
+    })),
+  })
+  assert.deepEqual(
+    referenceToVideoRequest.body.generation_config,
+    { video_config: { task: 'reference_to_video' } },
+  )
+  assert.equal(referenceToVideoRequest.sourceMediaSha256s.length, 6)
+  assert.match(
+    String((referenceToVideoRequest.body.input as Array<Record<string, unknown>>).at(-1)?.text),
+    /<IMAGE_REF_0>.*<IMAGE_REF_5>/u,
+  )
+  assert.throws(() => buildBrollGeminiOfficialInteractionRequest({
+    requestPackage: referenceToVideoPackage,
+    referenceImages: referenceImageFixtures.slice(0, 5).map((fixture) => ({
+      artifactRef: fixture.artifactRef,
+      mimeType: 'image/png' as const,
+      bytes: fixture.bytes,
+    })),
+  }), /source bytes are missing/u)
+  const unsupportedVideoReference = structuredClone(referenceToVideoPackage) as Record<string, unknown>
+  const unsupportedVideoSourceInputs = structuredClone(referenceToVideoPackage.sourceInputs)
+  unsupportedVideoSourceInputs[0] = { ...unsupportedVideoSourceInputs[0]!, inputRole: 'uploaded_video' }
+  unsupportedVideoReference.sourceInputs = unsupportedVideoSourceInputs
+  delete unsupportedVideoReference.requestPackageHash
+  unsupportedVideoReference.requestPackageHash = hashSkillValue(unsupportedVideoReference)
+  assert.equal(brollProviderRequestPackageV5Schema.safeParse(unsupportedVideoReference).success, false)
+  for (const unsupportedTaskMode of [
+    'video_reference_to_video',
+    'audio_reference_to_video',
+    'extend_video',
+    'interpolate_video',
+    'voice_edit',
+    'youtube_to_video',
+  ]) {
+    const unsupported = structuredClone(referenceToVideoPackage) as Record<string, unknown>
+    unsupported.taskMode = unsupportedTaskMode
+    delete unsupported.requestPackageHash
+    unsupported.requestPackageHash = hashSkillValue(unsupported)
+    assert.equal(
+      brollProviderRequestPackageV5Schema.safeParse(unsupported).success,
+      false,
+      `${unsupportedTaskMode} must fail closed.`,
+    )
+  }
+  const sevenReferences = structuredClone(referenceToVideoPackage) as Record<string, unknown>
+  sevenReferences.sourceInputs = [
+    ...referenceToVideoPackage.sourceInputs,
+    {
+      ...referenceToVideoPackage.sourceInputs[0]!,
+      sha256: '7'.repeat(64),
+    },
+  ]
+  delete sevenReferences.requestPackageHash
+  sevenReferences.requestPackageHash = hashSkillValue(sevenReferences)
+  assert.equal(brollProviderRequestPackageV5Schema.safeParse(sevenReferences).success, false)
 
   const executionPackage = brollProviderExecutionPackageV5Schema.parse({
     packageRecordId: 'package-m7',

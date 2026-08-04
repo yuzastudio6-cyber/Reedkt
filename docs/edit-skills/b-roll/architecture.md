@@ -62,6 +62,12 @@ historical authority. Their baseline registry hashes are:
 | V3 | `284b456da2610af6280e080bc9cb24c10989f2ee3401bd2711619622544bfd2b` |
 | V4 | `91ea2d40a33f5198f124d6322b61e447bb29ea037dabb808b2f39887cd432eeb` |
 
+The B-roll V5 profile remains explicitly `preview_alias_unpinned` with
+`immutableProviderRevision: null`; it is not an accepted immutable provider
+revision. M20 updates that active preview profile openly to match the current
+official task contract. No V1–V4 source or hash changes, and accepting a pinned
+provider revision later requires a new forward-only profile.
+
 B-roll adds a new forward-only V5 operation in a separate module:
 
 - operation: `provider.google.generate_b_roll_candidate.v1`
@@ -80,8 +86,8 @@ reconciliation before any new submission.
 ## Gemini Omni constraints
 
 The server-side transport uses the Gemini Interactions API. It supports text
-to video, image to video, reference-image video, and supported bounded video
-editing. It treats `16:9` and `9:16` as the only native output ratios and plans
+to video, one-first-frame image to video, one-to-six reference-images-to-video,
+and supported bounded uploaded-video editing. It treats `16:9` and `9:16` as the only native output ratios and plans
 a crop-safe handoff for other confirmed frames. Video-reference mode is not an
 active dependable route because the preview documentation does not establish
 reliable reference-video processing. Uploaded-video editing is blocked in

@@ -71,6 +71,7 @@ export { brollAssignmentCoreSchema }
 export const brollSourceCandidateSchema = z.object({
   sourceId: z.string().trim().min(1).max(180),
   sourceType: z.enum(['existing_project_clip', 'approved_user_asset', 'uploaded_video_for_edit', 'reference_image']),
+  providerImageRole: z.enum(['first_frame', 'reference']).optional(),
   artifactRef: editSkillArtifactReferenceSchema,
   sourceRange: skillFrameRangeSchema.optional(),
   semanticRelevance: z.number().min(0).max(1),
@@ -81,7 +82,14 @@ export const brollSourceCandidateSchema = z.object({
   repetitionRisk: z.number().min(0).max(1), cropFeasibility: z.number().min(0).max(1),
   speakerActionProtection: z.number().min(0).max(1), audioUsefulness: z.number().min(0).max(1),
   costCredits: z.number().int().nonnegative(), approvedByUser: z.boolean(),
-}).strict()
+}).strict().superRefine((value, context) => {
+  if ((value.sourceType === 'reference_image') !== Boolean(value.providerImageRole)) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Only reference-image candidates require an exact Gemini first-frame or reference role.',
+    })
+  }
+})
 
 const brollPlanningContextCoreSchema = z.object({
   schemaVersion: z.literal('b_roll_context_manifest_v1'),
@@ -143,6 +151,7 @@ const brollPlanCoreSchema = z.object({
   decision: brollDecisionSchema, editorialRole: brollEditorialRoleSchema,
   reason: z.string().trim().min(1).max(4_000), sourceCandidateId: z.string().trim().min(1).max(180).optional(),
   sourceArtifactRef: editSkillArtifactReferenceSchema.optional(), sourceScore: z.number().min(0).max(100).optional(),
+  providerSourceArtifactRefs: z.array(editSkillArtifactReferenceSchema).min(1).max(6).optional(),
   shotSpecification: brollShotSpecificationSchema.optional(), displayTreatment: brollDisplayTreatmentSchema,
   sourceTrim: skillFrameRangeSchema.optional(), cropSafeProviderAspectRatio: z.enum(['16:9', '9:16']).optional(),
   speakerVisibilityIntent: z.enum(['preserve', 'temporarily_hidden', 'not_applicable']),
@@ -219,17 +228,40 @@ const brollPlanCoreSchema = z.object({
   if (value.sourceTrim && !completeSelectedSource) {
     context.addIssue({ code: 'custom', message: 'B-roll source trim requires an exact selected source.' })
   }
+  if (value.providerSourceArtifactRefs) {
+    const hashes = value.providerSourceArtifactRefs.map((reference) => reference.sha256)
+    if (
+      !provider || !completeSelectedSource ||
+      hashes.length !== new Set(hashes).size ||
+      hashes[0] !== value.sourceArtifactRef?.sha256 ||
+      value.sourceArtifactRef?.artifactType !== 'approved_user_asset_v1' ||
+      value.providerSourceArtifactRefs.some((reference) =>
+        reference.artifactType !== 'approved_user_asset_v1')
+    ) context.addIssue({
+      code: 'custom',
+      message: 'Gemini provider image authority must contain one to six unique exact sources led by the selected source.',
+    })
+  }
+  if (
+    provider && value.sourceArtifactRef?.artifactType === 'approved_user_asset_v1' &&
+    !value.providerSourceArtifactRefs
+  ) context.addIssue({
+    code: 'custom',
+    message: 'Gemini image generation requires exact provider image source authority.',
+  })
   if (source && !completeSelectedSource) {
     context.addIssue({ code: 'custom', message: 'Existing-source and user-asset decisions require an exact checksum-bound source.' })
   }
   if (source && (
     value.providerRequestPlanned || value.providerRequestPackageHash ||
-    value.cropSafeProviderAspectRatio || value.providerCreditEstimate !== 0
+    value.cropSafeProviderAspectRatio || value.providerSourceArtifactRefs ||
+    value.providerCreditEstimate !== 0
   )) context.addIssue({ code: 'custom', message: 'Source decisions cannot carry provider execution authority.' })
   if (inert && (
     value.displayTreatment !== 'no_display' || completeSelectedSource || value.sourceTrim ||
     value.shotSpecification || value.cropSafeProviderAspectRatio || value.providerRequestPackageHash ||
-    value.providerRequestPlanned || value.providerCreditEstimate !== 0 || value.creditEstimate !== 0 ||
+    value.providerSourceArtifactRefs || value.providerRequestPlanned ||
+    value.providerCreditEstimate !== 0 || value.creditEstimate !== 0 ||
     value.speakerVisibilityIntent !== 'not_applicable' || value.audioDisposition !== 'discard'
   )) context.addIssue({ code: 'custom', message: 'Non-executable B-roll decisions must be a coherent zero-cost no-display plan.' })
   if (!inert && value.displayTreatment === 'no_display') {

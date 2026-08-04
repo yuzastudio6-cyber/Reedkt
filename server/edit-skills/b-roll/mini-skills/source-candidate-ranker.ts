@@ -15,7 +15,10 @@ export function scoreBrollSourceCandidate(candidate: BrollSourceCandidate): Rank
   if (!candidate.rightsApproved) rejectionReasons.push('rights_not_approved')
   if (!candidate.privacyApproved) rejectionReasons.push('privacy_not_approved')
   if (!candidate.proofSafe) rejectionReasons.push('proof_unsafe')
-  if (candidate.sourceType === 'approved_user_asset' && !candidate.approvedByUser) {
+  if (
+    ['approved_user_asset', 'reference_image'].includes(candidate.sourceType) &&
+    !candidate.approvedByUser
+  ) {
     rejectionReasons.push('user_asset_not_approved')
   }
   const score = clamp(

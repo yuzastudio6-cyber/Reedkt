@@ -4,8 +4,11 @@ Status: implemented behind private, owner-confirmed canary authority; not
 production-qualified.
 
 The provider source of truth is Google's current
-[Gemini Omni Flash guide](https://ai.google.dev/gemini-api/docs/omni) and
-[Files API reference](https://ai.google.dev/api/files). The configured model is
+[Gemini Omni Flash guide](https://ai.google.dev/gemini-api/docs/omni),
+[Interactions API reference](https://ai.google.dev/api/interactions-api),
+[model card](https://ai.google.dev/gemini-api/docs/models/gemini-omni-flash),
+and [Files API reference](https://ai.google.dev/api/files). This contract was
+reconciled against the official documentation on 2026-08-03. The configured model is
 the preview alias `gemini-omni-flash-preview`; no immutable provider revision
 has been accepted.
 
@@ -32,7 +35,13 @@ permits one generation submission per fresh approved attempt.
 
 - `text_to_video` with a server-owned text prompt.
 - `image_to_video` with one exact checksum-bound approved image encoded only
-  in the ephemeral request.
+  in the ephemeral request as `<FIRST_FRAME>`; an optional end frame is not
+  active because interpolation is not dependable in the current guide.
+- `reference_to_video` with one to six unique, checksum-bound, user-approved
+  images. Every image must independently pass provenance, rights, privacy, and
+  proof-safety gates. Six is the conservative ReeditPro ceiling demonstrated
+  by the official guide, even though the API schema itself does not publish a
+  higher dependable product limit.
 - `edit_uploaded_video` with one exact checksum-bound approved MP4, the
   official resumable Files API, bounded `PROCESSING` reads, and an allowlisted
   file URI. Regional eligibility is decided before the transport.
@@ -47,6 +56,28 @@ potential approved refinement, and puts all avoid instructions in the regular
 prompt because independent negative prompts and sampling controls are not
 supported. B-roll prompts explicitly request one unbroken continuous scene,
 no cuts, and no dialogue/music/SFX.
+
+## Capability reconciliation
+
+| Intended mode | B-roll classification | Enforced boundary |
+| --- | --- | --- |
+| Text to video | Supported internally | One 3–10 second, 720p, 24 fps candidate; 16:9 or 9:16 |
+| First-frame image to video | Supported internally | Exactly one approved image and `<FIRST_FRAME>` |
+| Reference images to video | Supported internally | Exactly 1–6 approved images and `<IMAGE_REF_0>` through `<IMAGE_REF_5>` |
+| Uploaded-video editing | Supported internally, region-gated | One approved MP4, at most 10 seconds, via Files API |
+| Conversational editing | Supported internally as refinement | Exactly one `previous_interaction_id` refinement after eligible QA rejection |
+| Video reference | Unsupported, fail-closed | The guide says short video references may be admitted but are not processed correctly |
+| Uploaded audio reference | Unsupported, fail-closed | The guide says uploaded audio references are unsupported |
+| Multiple-video reasoning | Unsupported, fail-closed | No dependable provider behavior |
+| Extension or interpolation | Unsupported, fail-closed | No active route or request field |
+| Voice editing | Unsupported, fail-closed | No active route or request field |
+| YouTube source | Unsupported, fail-closed | No active route or request field |
+
+`store: true` is server-owned because the single conversational refinement
+depends on prior interaction state. A missing, expired, or store-disabled prior
+interaction cannot be replaced with caller state. Recognizable-person and
+minor-image limits remain provider- and region-dependent; B-roll never treats
+provider admission as rights, privacy, identity, or production qualification.
 
 ## Persistence and accounting
 

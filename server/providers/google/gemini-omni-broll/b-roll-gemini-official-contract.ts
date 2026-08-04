@@ -46,6 +46,7 @@ export interface BrollGeminiOfficialRequest {
   bodyByteLength: number
   bodySha256: string
   sourceMediaSha256: string | null
+  sourceMediaSha256s: readonly string[]
   safeToPersistRawBody: false
   callerSuppliedEndpoint: false
   callerSuppliedModel: false
@@ -57,16 +58,18 @@ export interface BrollGeminiOfficialRequest {
 export function buildBrollGeminiOfficialInteractionRequest(input: {
   requestPackage: BrollProviderRequestPackageV5
   sourceMedia?: BrollGeminiEphemeralSourceMedia
+  referenceImages?: readonly BrollGeminiEphemeralSourceMedia[]
   uploadedVideoFileUri?: string
   delivery?: 'inline' | 'uri'
 }): BrollGeminiOfficialRequest {
   const request = brollProviderRequestPackageV5Schema.parse(input.requestPackage)
-  const source = validateSourceMedia(request, input.sourceMedia)
+  const sources = validateSourceMedia(request, input.sourceMedia, input.referenceImages)
   const task = request.taskMode === 'edit_uploaded_video'
     ? 'edit'
     : request.taskMode
   let officialInput: unknown = request.prompt
   if (request.taskMode === 'image_to_video') {
+    const source = sources[0]
     if (!source || !source.mimeType.startsWith('image/')) {
       throw new Error('Gemini image-to-video requires one exact approved image source.')
     }
@@ -78,11 +81,29 @@ export function buildBrollGeminiOfficialInteractionRequest(input: {
       },
       {
         type: 'text',
-        text: `<IMAGE_REF_0>\n${request.prompt}\nUse the given image only as an approved reference for the video generation.`,
+        text: `<FIRST_FRAME>\n${request.prompt}\nUse the given image only as the approved first frame.`,
+      },
+    ]
+  }
+  if (request.taskMode === 'reference_to_video') {
+    if (sources.length < 1 || sources.length > 6 ||
+      sources.some((source) => !source.mimeType.startsWith('image/'))) {
+      throw new Error('Gemini reference-to-video requires one to six exact approved image references.')
+    }
+    officialInput = [
+      ...sources.map((source) => ({
+        type: 'image',
+        data: source.bytes.toString('base64'),
+        mime_type: source.mimeType,
+      })),
+      {
+        type: 'text',
+        text: `${sources.map((_, index) => `<IMAGE_REF_${index}>`).join(' ')}\n${request.prompt}\nUse the tagged images only as approved visual references.`,
       },
     ]
   }
   if (request.taskMode === 'edit_uploaded_video') {
+    const source = sources[0]
     if (!source || source.mimeType !== 'video/mp4') {
       throw new Error('Gemini uploaded-video editing requires one exact approved MP4 source.')
     }
@@ -119,7 +140,8 @@ export function buildBrollGeminiOfficialInteractionRequest(input: {
     body,
     bodyByteLength: bodyBytes.byteLength,
     bodySha256: sha256Bytes(bodyBytes),
-    sourceMediaSha256: source?.artifactRef.sha256 ?? null,
+    sourceMediaSha256: sources[0]?.artifactRef.sha256 ?? null,
+    sourceMediaSha256s: sources.map((source) => source.artifactRef.sha256),
     safeToPersistRawBody: false,
     callerSuppliedEndpoint: false,
     callerSuppliedModel: false,
@@ -169,6 +191,7 @@ export function buildBrollGeminiOfficialRefinementRequest(input: {
     bodyByteLength: bodyBytes.byteLength,
     bodySha256: sha256Bytes(bodyBytes),
     sourceMediaSha256: null,
+    sourceMediaSha256s: [],
     safeToPersistRawBody: false,
     callerSuppliedEndpoint: false,
     callerSuppliedModel: false,
@@ -346,32 +369,42 @@ export function validateUploadedFileUri(value: string | undefined): string {
 function validateSourceMedia(
   request: BrollProviderRequestPackageV5,
   sourceInput: BrollGeminiEphemeralSourceMedia | undefined,
-): { artifactRef: z.infer<typeof artifactRefSchema>; mimeType: BrollGeminiEphemeralSourceMedia['mimeType']; bytes: Buffer } | undefined {
+  referenceImages: readonly BrollGeminiEphemeralSourceMedia[] | undefined,
+): readonly { artifactRef: z.infer<typeof artifactRefSchema>; mimeType: BrollGeminiEphemeralSourceMedia['mimeType']; bytes: Buffer }[] {
   if (request.taskMode === 'text_to_video') {
-    if (sourceInput) throw new Error('Gemini text-to-video does not accept caller source bytes.')
-    return undefined
+    if (sourceInput || referenceImages?.length) {
+      throw new Error('Gemini text-to-video does not accept caller source bytes.')
+    }
+    return []
   }
-  if (!sourceInput || request.sourceInputs.length !== 1) {
+  const supplied = request.taskMode === 'reference_to_video'
+    ? [...(referenceImages ?? [])]
+    : sourceInput ? [sourceInput] : []
+  if (
+    supplied.length !== request.sourceInputs.length ||
+    supplied.length === 0 ||
+    (request.taskMode !== 'reference_to_video' && referenceImages?.length)
+  ) {
     throw new Error('Gemini B-roll source bytes are missing for the authorized request.')
   }
-  const artifactRef = artifactRefSchema.parse(sourceInput.artifactRef)
-  const expected = request.sourceInputs[0]!
-  const bytes = Buffer.isBuffer(sourceInput.bytes)
-    ? sourceInput.bytes
-    : Buffer.from(sourceInput.bytes)
-  if (
-    artifactRef.sha256 !== expected.sha256 ||
-    artifactRef.byteLength !== expected.byteLength ||
-    artifactRef.ownerUserId !== expected.ownerUserId ||
-    artifactRef.workspaceId !== expected.workspaceId ||
-    artifactRef.projectId !== expected.projectId ||
-    artifactRef.byteLength !== bytes.byteLength ||
-    sha256Bytes(bytes) !== artifactRef.sha256
-  ) throw new Error('Gemini B-roll source media does not match request lineage.')
-  if (bytes.byteLength > 32 * 1024 * 1024) {
-    throw new Error('Gemini B-roll source media exceeds the transport ceiling.')
-  }
-  return { artifactRef, mimeType: sourceInput.mimeType, bytes }
+  return supplied.map((source, index) => {
+    const artifactRef = artifactRefSchema.parse(source.artifactRef)
+    const expected = request.sourceInputs[index]!
+    const bytes = Buffer.isBuffer(source.bytes) ? source.bytes : Buffer.from(source.bytes)
+    if (
+      artifactRef.sha256 !== expected.sha256 ||
+      artifactRef.byteLength !== expected.byteLength ||
+      artifactRef.ownerUserId !== expected.ownerUserId ||
+      artifactRef.workspaceId !== expected.workspaceId ||
+      artifactRef.projectId !== expected.projectId ||
+      artifactRef.byteLength !== bytes.byteLength ||
+      sha256Bytes(bytes) !== artifactRef.sha256
+    ) throw new Error('Gemini B-roll source media does not match request lineage.')
+    if (bytes.byteLength > 32 * 1024 * 1024) {
+      throw new Error('Gemini B-roll source media exceeds the transport ceiling.')
+    }
+    return { artifactRef, mimeType: source.mimeType, bytes }
+  })
 }
 
 function findVideoOutput(record: Record<string, unknown>): Record<string, unknown> | undefined {

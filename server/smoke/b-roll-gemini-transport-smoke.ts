@@ -27,6 +27,7 @@ import {
   buildBrollProviderRequestPackageV5,
   createBrollGeminiSecretResolver,
   createBrollProviderWorkAuthorizationV5,
+  projectCanonicalBrollWorkItemForImmutableGeminiOmniV5,
   executeBrollGeminiRestTransport,
   fileIdFromProviderUri,
   parseBrollGeminiFileStatus,
@@ -317,7 +318,10 @@ try {
     approvedMaximumCredits: 100,
     remainingReservedCredits: 100,
     approvedProviderRoutes: [BROLL_PROVIDER_ROUTE_ID],
-    approvedWorkItems: [{ id: 'provider-work-m7', ...providerWorkItem }],
+    approvedWorkItems: [{
+      id: 'provider-work-m7',
+      ...projectCanonicalBrollWorkItemForImmutableGeminiOmniV5(providerWorkItem),
+    }],
     status: 'canonical_authority_packaged_runtime_blocked',
   })
   const rateAuthority = {
@@ -502,7 +506,10 @@ try {
     reservationId: 'reservation-m7-edit',
     workGraphHash: editWorkGraph.workGraphHash,
     componentRefs: { bRollSkill: editComponentRef },
-    approvedWorkItems: [{ id: 'provider-work-m7-edit', ...editProviderWorkItem }],
+    approvedWorkItems: [{
+      id: 'provider-work-m7-edit',
+      ...projectCanonicalBrollWorkItemForImmutableGeminiOmniV5(editProviderWorkItem),
+    }],
   })
   const editAuthorization = createBrollProviderWorkAuthorizationV5({
     ownerUserId: editAssignment.ownerUserId,

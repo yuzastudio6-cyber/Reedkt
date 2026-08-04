@@ -57,6 +57,7 @@ import {
   brollProviderExecutionPackageV5Schema,
   buildBrollProviderRequestPackageV5,
   createBrollProviderWorkAuthorizationV5,
+  projectCanonicalBrollWorkItemForImmutableGeminiOmniV5,
 } from '../providers/google/gemini-omni-broll'
 import { persistCanonicalBrollPlanComponent } from '../services/canonical-broll-plan-component-service'
 import { activatePrivateOfflineMediaBinaryRuntime } from '../tool-execution/media-binary-execution'
@@ -666,7 +667,10 @@ try {
     approvedMaximumCredits: 100,
     remainingReservedCredits: 100,
     approvedProviderRoutes: [BROLL_PROVIDER_ROUTE_ID],
-    approvedWorkItems: [{ id: 'provider-public-canonical-generated', ...providerWorkItem }],
+    approvedWorkItems: [{
+      id: 'provider-public-canonical-generated',
+      ...projectCanonicalBrollWorkItemForImmutableGeminiOmniV5(providerWorkItem),
+    }],
     status: 'canonical_authority_packaged_runtime_blocked',
   })
   const authorization = createBrollProviderWorkAuthorizationV5({

@@ -38,6 +38,7 @@ import {
   createBrollProviderLifecyclePolicyV5,
   createBrollProviderOperationRegistryV5,
   createBrollProviderWorkAuthorizationV5,
+  projectCanonicalBrollWorkItemForImmutableGeminiOmniV5,
   executePrivateInjectedBrollProviderLifecycleV5,
   readBrollProviderConsumerReceiptV5,
   reconcilePrivateInjectedBrollProviderUnknownV5,
@@ -175,7 +176,10 @@ try {
     approvedMaximumCredits: 100,
     remainingReservedCredits: 100,
     approvedProviderRoutes: [BROLL_PROVIDER_ROUTE_ID],
-    approvedWorkItems: [{ id: 'provider-work-m6', ...providerWorkItem }],
+    approvedWorkItems: [{
+      id: 'provider-work-m6',
+      ...projectCanonicalBrollWorkItemForImmutableGeminiOmniV5(providerWorkItem),
+    }],
     status: 'canonical_authority_packaged_runtime_blocked',
   })
   const rateAuthority = {

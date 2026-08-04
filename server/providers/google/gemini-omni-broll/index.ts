@@ -1,4 +1,5 @@
 export * from './b-roll-provider-authority-v5'
+export * from './b-roll-provider-work-item-projection-v5'
 export * from './b-roll-provider-lifecycle-policy-v5'
 export * from './b-roll-provider-injected-lifecycle-v5'
 export * from './b-roll-gemini-secret-resolver'

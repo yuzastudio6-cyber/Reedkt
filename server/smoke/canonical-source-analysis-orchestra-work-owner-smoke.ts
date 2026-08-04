@@ -29,6 +29,12 @@ import {
   CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION,
 } from '../services/canonical-source-analysis-l4-visual-evidence-repository'
 import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOL_ARTIFACT_READ_PORT_VERSION,
+  createCanonicalSourceAnalysisL4VisualEvidenceToolArtifact,
+  getCanonicalSourceAnalysisL4VisualEvidenceToolArtifactRef,
+  type CanonicalSourceAnalysisL4VisualEvidenceToolArtifact,
+} from '../services/canonical-source-analysis-l4-visual-evidence-tool-artifact-owner'
+import {
   CANONICAL_SOURCE_ANALYSIS_ORCHESTRA_AUTHORITY_READ_PORT_VERSION,
   assertCanonicalSourceAnalysisOrchestraAuthority,
   createCanonicalSourceAnalysisOrchestraAuthority,
@@ -150,7 +156,7 @@ const scope: CanonicalSourceVisualIntelligenceOrchestraBindingScope = {
     }),
   ),
 }
-const l4ToolEvidence = [
+const l4ToolEvidenceDraft = [
   l4Item('media_probe', 'ffprobe',
     VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffprobe, 1,
     sourceProbeAuthorityRef),
@@ -165,23 +171,131 @@ const l4ToolEvidence = [
   l4Item('sampling_policy', 'ffmpeg',
     VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffmpeg, 6),
 ]
+const l4SourceObject = {
+  storageProvider: 'google_cloud_storage' as const,
+  storageBucket: 'private-source-bucket',
+  storagePath: 'workspace-1/source.mp4',
+  storageGeneration: '1001',
+  storageEtag: 'source-etag-1',
+  contentType: 'video/mp4' as const,
+  width: 1_920,
+  height: 1_080,
+  checksumSha256: scope.checksumSha256,
+  byteLength: scope.byteLength,
+  finalizedMediaAuthorityRef: sourceArtifactRef,
+  finalizedStorageObjectAuthorityRef: storageAuthorityRef,
+  exactGenerationEtagChecksumAndLengthRereadVerified: true as const,
+}
+const toolArtifactCommon = {
+  invocationId: 'l4-work-owner-invocation',
+  sourceObjectIdentityDigestSha256: sha256AuthorityValue(l4SourceObject),
+  sourceTimelineDigestSha256: sha256AuthorityValue(
+    sourceTimelineForArtifact(scope),
+  ),
+  sourceProbeAuthorityRef,
+  sourceDurationFrames: scope.durationFrames,
+  sourceWidth: l4SourceObject.width,
+  sourceHeight: l4SourceObject.height,
+  sourceFrameAuthorityDigestSha256: sha256AuthorityValue(sourceFrameAuthority),
+  acceleratorClass: 'nvidia_l4' as const,
+  allocatedGpuCount: 1 as const,
+  exactSourceChecksumBound: true as const,
+  exactCanonicalResultRereadVerified: true as const,
+  substantiveGpuExecutionVerified: true as const,
+  substantiveCpuMediaProcessingUsed: false as const,
+  runtimeNetworkDownloadPerformed: false as const,
+  callerPathUrlBytesCommandOrEnvironmentAccepted: false as const,
+  customerCreditMutated: false as const,
+  publicDeliveryGranted: false as const,
+  productionAuthorityGranted: false as const,
+}
+const toolArtifacts = [
+  createToolArtifact(l4ToolEvidenceDraft[1]!, {
+    kind: 'private_media_transform',
+    analysisRepresentationRef: ref('analysis-representation'),
+    outputWidth: 1_920,
+    outputHeight: 1_080,
+    decodedCanonicalFrameCount: 240,
+    frameMapDigestSha256: sha('frame-map'),
+    nvdecGpuDecodeUsed: true,
+    cpuVideoDecodeUsed: false,
+    missingCanonicalFrameCount: 0,
+  }),
+  createToolArtifact(l4ToolEvidenceDraft[2]!, {
+    kind: 'scene_detection',
+    sceneAnalysisProxyRef: ref('scene-analysis-proxy'),
+    scenes: [{
+      sceneId: 'scene-1', startFrame: 0, endFrameExclusive: 120,
+      boundaryConfidenceBasisPoints: 9_900,
+    }, {
+      sceneId: 'scene-2', startFrame: 120, endFrameExclusive: 240,
+      boundaryConfidenceBasisPoints: 9_700,
+    }],
+    completeTimelineCoverage: true,
+    gpuDecodedProxyUsed: true,
+    cpuVideoDecodeUsed: false,
+  }),
+  createToolArtifact(l4ToolEvidenceDraft[3]!, {
+    kind: 'pixel_measurement',
+    measurements: [{
+      sceneId: 'scene-1', sampledFrameCount: 4,
+      meanLumaBasisPoints: 5_200, motionBasisPoints: 1_100,
+      focusBasisPoints: 8_900,
+    }, {
+      sceneId: 'scene-2', sampledFrameCount: 4,
+      meanLumaBasisPoints: 4_800, motionBasisPoints: 2_600,
+      focusBasisPoints: 8_400,
+    }],
+    completeSceneSetMeasured: true,
+    gpuDecodedFramesUsed: true,
+    cpuVideoDecodeUsed: false,
+  }),
+  createToolArtifact(l4ToolEvidenceDraft[4]!, {
+    kind: 'exact_visible_text',
+    spans: [{
+      spanId: 'ocr-span-1', sceneId: 'scene-2', startFrame: 125,
+      endFrameExclusive: 150, text: 'Delete that part',
+      confidenceBasisPoints: 9_850,
+      editorDirectedInstructionCandidate: true,
+    }],
+    textContentIsUntrustedMediaEvidence: true,
+    instructionsFromTextAreNeverExecuted: true,
+    paddleGpuInferenceUsed: true,
+    cpuInferenceUsed: false,
+  }),
+  createToolArtifact(l4ToolEvidenceDraft[5]!, {
+    kind: 'sampling_policy',
+    samples: [{
+      sampleId: 'sample-1', sceneId: 'scene-1', frame: 0,
+      reason: 'scene_entry',
+    }, {
+      sampleId: 'sample-2', sceneId: 'scene-1', frame: 60,
+      reason: 'scene_midpoint',
+    }, {
+      sampleId: 'sample-3', sceneId: 'scene-2', frame: 120,
+      reason: 'scene_entry',
+    }, {
+      sampleId: 'sample-4', sceneId: 'scene-2', frame: 180,
+      reason: 'visible_text',
+    }],
+    completeSceneCoverage: true,
+    highDetail: true,
+    everyTimelineFrameInspected: false,
+    completeTimePixelInspectionClaimAllowed: false,
+  }),
+]
+const l4ToolEvidence = l4ToolEvidenceDraft.map((item) => {
+  const artifact = toolArtifacts.find((candidate) =>
+    candidate.role === item.role)
+  return artifact ? {
+    ...item,
+    evidenceRef:
+      getCanonicalSourceAnalysisL4VisualEvidenceToolArtifactRef(artifact),
+  } : item
+})
 const l4Result = createCanonicalSourceAnalysisL4VisualEvidenceResult({
   scope: toEvidenceScope(scope),
-  sourceObject: {
-    storageProvider: 'google_cloud_storage',
-    storageBucket: 'private-source-bucket',
-    storagePath: 'workspace-1/source.mp4',
-    storageGeneration: '1001',
-    storageEtag: 'source-etag-1',
-    contentType: 'video/mp4',
-    width: 1_920,
-    height: 1_080,
-    checksumSha256: scope.checksumSha256,
-    byteLength: scope.byteLength,
-    finalizedMediaAuthorityRef: sourceArtifactRef,
-    finalizedStorageObjectAuthorityRef: storageAuthorityRef,
-    exactGenerationEtagChecksumAndLengthRereadVerified: true,
-  },
+  sourceObject: l4SourceObject,
   operationId: 'internal.visual_intelligence.prepare_source_visual_evidence.v1',
   routeProfileId: 'quality_l4_user_triggered_standard_media_job_v1',
   acceleratorClass: 'nvidia_l4',
@@ -376,6 +490,15 @@ const preparedEvidenceStore: VisualIntelligenceCanonicalPreparedEvidenceStore = 
       input.request,
       input.preparedEvidence,
     )
+    const sceneSummary = input.preparedEvidence.deterministicEvidence.find(
+      (item) => item.authority === 'scene_detection',
+    )?.summary ?? ''
+    const ocrSummary = input.preparedEvidence.deterministicEvidence.find(
+      (item) => item.authority === 'exact_ocr',
+    )?.summary ?? ''
+    assert.match(sceneSummary, /scene-1/u)
+    assert.match(ocrSummary, /editorDirectedInstructionCandidate/u)
+    assert.doesNotMatch(ocrSummary, /Delete that part/u)
     return {
       disposition: preparedWrites === 1 ? 'created' : 'identical_replay',
       recordRef: ref('prepared-record', input.request),
@@ -437,6 +560,7 @@ const owner = createCanonicalSourceAnalysisOrchestraWorkOwner({
       CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION,
     async readCompleted() { return structuredClone(l4Result) },
   },
+  l4VisualEvidenceToolArtifactReadPort: ownerToolArtifactPort(toolArtifacts),
   transcriptReadPort: {
     schemaVersion: CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION,
     async readCompleted() { return structuredClone(transcriptResult) },
@@ -492,6 +616,7 @@ const missingL4Owner = createCanonicalSourceAnalysisOrchestraWorkOwner({
       CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION,
     async readCompleted() { return null },
   },
+  l4VisualEvidenceToolArtifactReadPort: ownerToolArtifactPort(toolArtifacts),
   transcriptReadPort: ownerTranscriptPort(transcriptResult),
   preparedEvidenceStore,
   dispatchPackageStore: dispatchStore,
@@ -507,12 +632,30 @@ const missingTranscriptOwner = createCanonicalSourceAnalysisOrchestraWorkOwner({
       CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION,
     async readCompleted() { return structuredClone(l4Result) },
   },
+  l4VisualEvidenceToolArtifactReadPort: ownerToolArtifactPort(toolArtifacts),
   transcriptReadPort: ownerTranscriptPort(null),
   preparedEvidenceStore,
   dispatchPackageStore: dispatchStore,
 })
 assert.equal(
   await missingTranscriptOwner.readExactSourceVideoUnderstandingWork(scope),
+  null,
+)
+const missingToolArtifactOwner = createCanonicalSourceAnalysisOrchestraWorkOwner({
+  authorityReadPort: ownerAuthorityPort(authority),
+  l4VisualEvidenceReadPort: {
+    schemaVersion:
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION,
+    async readCompleted() { return structuredClone(l4Result) },
+  },
+  l4VisualEvidenceToolArtifactReadPort:
+    ownerToolArtifactPort(toolArtifacts.slice(0, 4)),
+  transcriptReadPort: ownerTranscriptPort(transcriptResult),
+  preparedEvidenceStore,
+  dispatchPackageStore: dispatchStore,
+})
+assert.equal(
+  await missingToolArtifactOwner.readExactSourceVideoUnderstandingWork(scope),
   null,
 )
 const l4ResultInput = { ...l4Result }
@@ -531,6 +674,7 @@ const crossScopeL4Owner = createCanonicalSourceAnalysisOrchestraWorkOwner({
       CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION,
     async readCompleted() { return structuredClone(crossScopeL4Result) },
   },
+  l4VisualEvidenceToolArtifactReadPort: ownerToolArtifactPort(toolArtifacts),
   transcriptReadPort: ownerTranscriptPort(transcriptResult),
   preparedEvidenceStore,
   dispatchPackageStore: dispatchStore,
@@ -547,6 +691,7 @@ console.log(JSON.stringify({
   replayVerified: replay.workDigestSha256 === work.workDigestSha256,
   missingL4Rejected: true,
   missingTranscriptRejected: true,
+  missingToolArtifactRejected: true,
   crossScopeL4EvidenceRejected: true,
   crossScopeRejected: true,
   callerAuthorityEscalationRejected: true,
@@ -574,6 +719,41 @@ function l4Item(
   }
 }
 
+function createToolArtifact(
+  item: ReturnType<typeof l4Item>,
+  payload: Parameters<
+    typeof createCanonicalSourceAnalysisL4VisualEvidenceToolArtifact
+  >[0]['payload'],
+): CanonicalSourceAnalysisL4VisualEvidenceToolArtifact {
+  if (item.role === 'media_probe') throw new Error(
+    'Media probe is already owned by the canonical source probe authority.',
+  )
+  return createCanonicalSourceAnalysisL4VisualEvidenceToolArtifact({
+    ...toolArtifactCommon,
+    role: item.role,
+    tool: item.tool as 'ffmpeg' | 'pyscenedetect' | 'opencv' | 'ocr',
+    operationId: item.operationId,
+    toolVersion: item.toolVersion,
+    runtimeReleaseRef: item.runtimeReleaseRef,
+    executionRef: item.executionRef,
+    payload,
+  })
+}
+
+function ownerToolArtifactPort(
+  artifacts: readonly CanonicalSourceAnalysisL4VisualEvidenceToolArtifact[],
+) {
+  return {
+    schemaVersion:
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOL_ARTIFACT_READ_PORT_VERSION,
+    async readExact(invocationId: string, role: typeof artifacts[number]['role']) {
+      const artifact = artifacts.find((candidate) =>
+        candidate.invocationId === invocationId && candidate.role === role)
+      return artifact ? structuredClone(artifact) : null
+    },
+  } as const
+}
+
 function toEvidenceScope(
   value: CanonicalSourceVisualIntelligenceOrchestraBindingScope,
 ) {
@@ -591,6 +771,19 @@ function toEvidenceScope(
     durationFrames: value.durationFrames,
     sourceFrameAuthority: value.sourceFrameAuthority,
     finalizedMediaAuthorityRef: value.sourceArtifactRef,
+    sourceProbeAuthorityRef: value.sourceProbeAuthorityRef,
+  }
+}
+
+function sourceTimelineForArtifact(
+  value: CanonicalSourceVisualIntelligenceOrchestraBindingScope,
+) {
+  return {
+    sourceSequenceItemId: value.sourceSequenceItemId,
+    mediaAssetId: value.mediaAssetId,
+    uploadedOrder: value.uploadedOrder,
+    durationFrames: value.durationFrames,
+    sourceFrameAuthority: value.sourceFrameAuthority,
     sourceProbeAuthorityRef: value.sourceProbeAuthorityRef,
   }
 }

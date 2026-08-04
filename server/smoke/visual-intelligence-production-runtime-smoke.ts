@@ -360,7 +360,7 @@ const runtime = await createVisualIntelligenceProductionRuntime(env, {
   now: () => now,
 })
 assert.ok(runtime)
-assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v12')
+assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v13')
 assert.equal(runtime.providerCapabilityId, 'visual_intelligence')
 assert.equal(runtime.semanticEngine, 'gemini-3.1-pro-preview')
 assert.equal(runtime.thinkingLevel, 'high')
@@ -460,6 +460,14 @@ assert.equal(
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceWorkerEvidenceOwner.schemaVersion,
   'canonical-source-analysis-l4-visual-evidence-worker-evidence-owner-v1',
+)
+assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceToolArtifactOwner.schemaVersion,
+  'canonical-source-analysis-l4-visual-evidence-tool-artifact-read-port-v1',
+)
+assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceToolArtifactOwner.ownerVersion,
+  'canonical-source-analysis-l4-visual-evidence-tool-artifact-owner-v1',
 )
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceTerminalReconciliationOwner
@@ -1302,6 +1310,7 @@ console.log(JSON.stringify({
   sourceAnalysisL4VisualEvidenceAuthorityRepositoryMounted: true,
   sourceAnalysisL4VisualEvidenceWorkerBootstrapOwnerMounted: true,
   sourceAnalysisL4VisualEvidenceWorkerEvidenceOwnerMounted: true,
+  sourceAnalysisL4VisualEvidenceToolArtifactOwnerMounted: true,
   sourceAnalysisL4VisualEvidenceTerminalReconciliationOwnerMounted: true,
   sourceAnalysisL4VisualEvidenceWorkerReceivesInvocationIdOnly: true,
   sourceAnalysisL4VisualEvidenceCallerPortInjectionAllowed: false,

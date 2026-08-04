@@ -203,6 +203,7 @@
     "smoke:visual-intelligence-source-cleanup-binding": "tsx server/smoke/source-led-visual-intelligence-content-analysis-smoke.ts",
     "smoke:source-analysis-l4-probe-attempt": "tsx server/smoke/canonical-source-analysis-l4-probe-attempt-owner-smoke.ts",
     "smoke:source-analysis-l4-visual-evidence": "tsx server/smoke/canonical-source-analysis-l4-visual-evidence-repository-smoke.ts",
+    "smoke:source-analysis-l4-visual-evidence-tool-artifacts": "tsx server/smoke/canonical-source-analysis-l4-visual-evidence-tool-artifact-owner-smoke.ts",
     "smoke:source-analysis-l4-visual-evidence-attempt": "tsx server/smoke/canonical-source-analysis-l4-visual-evidence-attempt-owner-smoke.ts",
     "smoke:source-analysis-l4-visual-evidence-worker-entrypoint": "tsx server/smoke/canonical-source-analysis-l4-visual-evidence-worker-entrypoint-smoke.ts",
     "smoke:source-analysis-l4-visual-evidence-terminal": "tsx server/smoke/canonical-source-analysis-l4-visual-evidence-terminal-reconciliation-smoke.ts",

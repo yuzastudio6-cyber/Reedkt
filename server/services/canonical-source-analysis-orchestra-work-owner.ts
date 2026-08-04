@@ -34,6 +34,16 @@ import {
   assertCanonicalSourceAnalysisL4VisualEvidenceResult,
 } from './canonical-source-analysis-l4-visual-evidence-repository'
 import type {
+  CanonicalSourceAnalysisL4VisualEvidenceToolArtifact,
+  CanonicalSourceAnalysisL4VisualEvidenceToolArtifactReadPort,
+} from './canonical-source-analysis-l4-visual-evidence-tool-artifact-owner'
+import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOL_ARTIFACT_READ_PORT_VERSION,
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOL_ARTIFACT_ROLES,
+  assertCanonicalSourceAnalysisL4VisualEvidenceToolArtifactSet,
+  projectCanonicalSourceAnalysisL4VisualEvidenceToolArtifact,
+} from './canonical-source-analysis-l4-visual-evidence-tool-artifact-owner'
+import type {
   CanonicalSourceTranscriptOrchestraReadPort,
   CanonicalSourceTranscriptOrchestraReadScope,
 } from './canonical-source-led-orchestra-content-analysis-reconciliation'
@@ -84,7 +94,7 @@ export const CANONICAL_SOURCE_ANALYSIS_ORCHESTRA_AUTHORITY_VERSION =
 export const CANONICAL_SOURCE_ANALYSIS_ORCHESTRA_AUTHORITY_READ_PORT_VERSION =
   'canonical-source-analysis-orchestra-authority-read-port-v1' as const
 export const CANONICAL_SOURCE_ANALYSIS_ORCHESTRA_WORK_OWNER_VERSION =
-  'canonical-source-analysis-orchestra-work-owner-v1' as const
+  'canonical-source-analysis-orchestra-work-owner-v2' as const
 
 const AUTHORITY_KEYS = [
   'schemaVersion', 'source', 'scopeDigestSha256', 'call',
@@ -217,6 +227,8 @@ export function createCanonicalSourceAnalysisOrchestraWorkOwner(input: {
     CanonicalSourceAnalysisOrchestraAuthorityReadPort
   readonly l4VisualEvidenceReadPort:
     CanonicalSourceAnalysisL4VisualEvidenceReadPort
+  readonly l4VisualEvidenceToolArtifactReadPort:
+    CanonicalSourceAnalysisL4VisualEvidenceToolArtifactReadPort
   readonly transcriptReadPort: CanonicalSourceTranscriptOrchestraReadPort
   readonly preparedEvidenceStore:
     VisualIntelligenceCanonicalPreparedEvidenceStore
@@ -263,6 +275,20 @@ export function createCanonicalSourceAnalysisOrchestraWorkOwner(input: {
         l4VisualEvidence,
         transcriptResult,
       })
+      const rawToolArtifacts = await Promise.all(
+        CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOL_ARTIFACT_ROLES
+          .map((role) => input.l4VisualEvidenceToolArtifactReadPort.readExact(
+            l4VisualEvidence.invocationId,
+            role,
+          )),
+      )
+      if (rawToolArtifacts.some((artifact) => !artifact)) return null
+      const toolArtifacts =
+        assertCanonicalSourceAnalysisL4VisualEvidenceToolArtifactSet({
+          result: l4VisualEvidence,
+          artifacts: rawToolArtifacts as
+            CanonicalSourceAnalysisL4VisualEvidenceToolArtifact[],
+        })
       const manifest =
         createVisualIntelligenceOrchestraCapabilityManifestForQualification(
           authority.qualificationSnapshot,
@@ -302,12 +328,16 @@ export function createCanonicalSourceAnalysisOrchestraWorkOwner(input: {
         scope: untrustedScope,
         l4VisualEvidence,
         transcriptResult,
+        toolArtifacts,
       })
       const ownerAuthorityRef = createVisualIntelligenceEvidenceRef(
         `source-analysis-evidence-owner-${request.requestDigestSha256.slice(7, 39)}`,
         {
           l4ResultDigestSha256: l4VisualEvidence.resultDigestSha256,
           transcriptAuthorityRef: transcriptResult.transcriptAuthorityRef,
+          toolArtifactDigestsSha256: toolArtifacts.map(
+            (item) => item.artifactDigestSha256,
+          ),
           orchestraAuthorityDigestSha256: authority.authorityDigestSha256,
         },
       )
@@ -421,6 +451,7 @@ function createPreparedEvidence(input: {
   scope: CanonicalSourceVisualIntelligenceOrchestraBindingScope
   l4VisualEvidence: CanonicalSourceAnalysisL4VisualEvidenceResult
   transcriptResult: CanonicalVisualIntelligenceSourceTranscriptResult
+  toolArtifacts: readonly CanonicalSourceAnalysisL4VisualEvidenceToolArtifact[]
 }): VisualIntelligencePreparedEvidence {
   const range = fullRange(input.scope)
   const artifactId = input.scope.mediaAssetId
@@ -432,7 +463,12 @@ function createPreparedEvidence(input: {
     authority: evidenceAuthority(item.role),
     producingTool: item.tool,
     toolVersion: item.toolVersion,
-    summary: evidenceSummary(item.role),
+    summary: item.role === 'media_probe'
+      ? evidenceSummary(item.role)
+      : projectCanonicalSourceAnalysisL4VisualEvidenceToolArtifact(
+          input.toolArtifacts.find((artifact) =>
+            artifact.role === item.role)!,
+        ),
     privateEvidence: true as const,
     providerInstructionAccepted: false as const,
   } satisfies VisualIntelligenceEvidence))
@@ -664,6 +700,10 @@ function assertDependencies(input: Parameters<
     || input.l4VisualEvidenceReadPort?.schemaVersion !==
       CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION
     || typeof input.l4VisualEvidenceReadPort.readCompleted !== 'function'
+    || input.l4VisualEvidenceToolArtifactReadPort?.schemaVersion !==
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOL_ARTIFACT_READ_PORT_VERSION
+    || typeof input.l4VisualEvidenceToolArtifactReadPort.readExact !==
+      'function'
     || input.transcriptReadPort?.schemaVersion !==
       CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION
     || typeof input.transcriptReadPort.readCompleted !== 'function'

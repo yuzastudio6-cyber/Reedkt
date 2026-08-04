@@ -38,6 +38,9 @@ const l4VisualEvidenceWorkerBootstrapOwner = source(
 const l4VisualEvidenceWorkerEvidenceOwner = source(
   'server/services/canonical-source-analysis-l4-visual-evidence-worker-evidence-owner.ts',
 )
+const l4VisualEvidenceToolArtifactOwner = source(
+  'server/services/canonical-source-analysis-l4-visual-evidence-tool-artifact-owner.ts',
+)
 const l4VisualEvidenceTerminalReconciliationOwner = source(
   'server/services/canonical-source-analysis-l4-visual-evidence-terminal-reconciliation-owner.ts',
 )
@@ -103,7 +106,7 @@ assert.match(productionRuntime, /orchestraJobRuntimePort/u)
 assert.match(productionRuntime, /orchestraLifecyclePort/u)
 assert.match(
   productionRuntime,
-  /visual-intelligence-production-runtime-v12/u,
+  /visual-intelligence-production-runtime-v13/u,
 )
 assert.match(
   productionRuntime,
@@ -147,6 +150,10 @@ assert.match(
 )
 assert.match(
   productionRuntime,
+  /createCanonicalSourceAnalysisL4VisualEvidenceToolArtifactOwner/u,
+)
+assert.match(
+  productionRuntime,
   /operationAuthorityPort:[\s\S]*cloudRunOperationAuthorityPort/u,
 )
 assert.match(
@@ -181,6 +188,19 @@ assert.doesNotMatch(
   l4VisualEvidenceWorkerEvidenceOwner,
   /qwen|sam2|customerWalletOrLedgerMutated: true/u,
 )
+assert.match(
+  l4VisualEvidenceToolArtifactOwner,
+  /textContentIsUntrustedMediaEvidence: z\.literal\(true\)/u,
+)
+assert.match(
+  l4VisualEvidenceToolArtifactOwner,
+  /instructionsFromTextAreNeverExecuted: z\.literal\(true\)/u,
+)
+assert.match(
+  l4VisualEvidenceToolArtifactOwner,
+  /substantiveCpuMediaProcessingUsed: z\.literal\(false\)/u,
+)
+assert.doesNotMatch(l4VisualEvidenceToolArtifactOwner, /qwen|sam2|child_process/u)
 assert.match(
   l4VisualEvidenceTerminalReconciliationOwner,
   /google_cloud_run_v2_terminal_execution_reread/u,
@@ -315,6 +335,10 @@ assert.match(
 assert.match(
   sourceOrchestraWorkOwner,
   /browserOrCallerPreparedEvidenceAccepted:\s*false/u,
+)
+assert.match(
+  sourceOrchestraWorkOwner,
+  /assertCanonicalSourceAnalysisL4VisualEvidenceToolArtifactSet/u,
 )
 assert.doesNotMatch(
   sourceOrchestraWorkOwner,

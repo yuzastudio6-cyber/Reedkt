@@ -18,6 +18,10 @@ import {
   type CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
+  createCanonicalSourceAnalysisRequestAuthorityRepository,
+  type CanonicalSourceAnalysisRequestAuthorityRepository,
+} from '../services/canonical-source-analysis-request-authority-repository'
+import {
   createCanonicalSourceCleanupAuthorityRepository,
   type CanonicalSourceCleanupAuthorityRepository,
 } from '../services/canonical-source-cleanup-authority-repository'
@@ -27,7 +31,6 @@ import {
 } from '../services/canonical-source-led-orchestra-content-analysis-reconciliation'
 import {
   createCanonicalSourceLedOrchestraPlanningReconciliationPort,
-  type CanonicalSourceAnalysisRequestAuthorityReadPort,
   type CanonicalSourceLedOrchestraPlanningReconciliationPort,
 } from '../services/canonical-source-led-orchestra-planning-reconciliation'
 import type {
@@ -129,10 +132,10 @@ export interface VisualIntelligenceProductionRuntime {
   readonly costOwner: VisualIntelligenceAccountEffectiveCostOwner
   readonly sourceCleanupAuthorityRepository:
     CanonicalSourceCleanupAuthorityRepository
+  readonly sourceAnalysisRequestAuthorityRepository:
+    CanonicalSourceAnalysisRequestAuthorityRepository
   readonly createSourceLedOrchestraPlanningReconciliationPort: (
     input: {
-      readonly requestAuthorityReadPort:
-        CanonicalSourceAnalysisRequestAuthorityReadPort
       readonly transcriptReadPort: CanonicalSourceTranscriptOrchestraReadPort
       readonly reasoner:
         CanonicalSourceLedProfessionalContentAnalysisReasoner
@@ -226,6 +229,8 @@ export async function createVisualIntelligenceProductionRuntime(
   })
   const sourceCleanupAuthorityRepository =
     createCanonicalSourceCleanupAuthorityRepository({ objectPort })
+  const sourceAnalysisRequestAuthorityRepository =
+    createCanonicalSourceAnalysisRequestAuthorityRepository({ objectPort })
   const canonicalRequestPackageStore =
     createVisualIntelligenceCanonicalRequestPackageStore({
       objectPort,
@@ -263,14 +268,12 @@ export async function createVisualIntelligenceProductionRuntime(
     })
   const createSourceLedOrchestraPlanningReconciliationPort = (
     input: {
-      readonly requestAuthorityReadPort:
-        CanonicalSourceAnalysisRequestAuthorityReadPort
       readonly transcriptReadPort: CanonicalSourceTranscriptOrchestraReadPort
       readonly reasoner:
         CanonicalSourceLedProfessionalContentAnalysisReasoner
     },
   ) => createCanonicalSourceLedOrchestraPlanningReconciliationPort({
-    requestAuthorityReadPort: input.requestAuthorityReadPort,
+    requestAuthorityReadPort: sourceAnalysisRequestAuthorityRepository,
     reconciliationPort:
       createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort({
         transcriptReadPort: input.transcriptReadPort,
@@ -359,6 +362,7 @@ export async function createVisualIntelligenceProductionRuntime(
     orchestraJobRuntimePort,
     costOwner,
     sourceCleanupAuthorityRepository,
+    sourceAnalysisRequestAuthorityRepository,
     createSourceLedOrchestraPlanningReconciliationPort,
     providerCapabilityId: 'visual_intelligence',
     semanticEngine: 'gemini-3.1-pro-preview',

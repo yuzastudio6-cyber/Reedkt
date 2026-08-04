@@ -385,6 +385,10 @@ assert.equal(
   typeof runtime.createSourceLedOrchestraPlanningReconciliationPort,
   'function',
 )
+assert.equal(
+  runtime.sourceAnalysisRequestAuthorityRepository.repositoryVersion,
+  'canonical-source-analysis-request-authority-repository-v1',
+)
 const missingSourceCleanupAuthority =
   await runtime.sourceCleanupAuthorityRepository.readForPlanning({
     ownerUserId: 'user-1',
@@ -1071,6 +1075,7 @@ console.log(JSON.stringify({
   sourceVideoUnderstandingOrchestraBindingStoreMounted: true,
   sourceVideoUnderstandingOrchestraReadPortMounted: true,
   sourcePlanningReconciliationFactoryMounted: true,
+  sourcePreparedRequestAuthorityRepositoryMounted: true,
   sourceBindingPersistedBeforeProviderExecution: true,
   sourceBindingRequiresProbeTranscriptAndPlanningContext: true,
   staleSavedChatAuthorityRefusedBeforeProviderExecution: true,

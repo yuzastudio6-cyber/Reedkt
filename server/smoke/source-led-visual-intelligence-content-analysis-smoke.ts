@@ -42,6 +42,9 @@ import {
   revalidateCanonicalSourceCleanupPlanAuthority,
   type CanonicalSourceCleanupAuthorityScope,
 } from '../services/canonical-source-cleanup-authority-repository'
+import {
+  createCanonicalSourceAnalysisRequestAuthorityRepository,
+} from '../services/canonical-source-analysis-request-authority-repository'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -699,6 +702,64 @@ const planningScope: CanonicalSourceAnalysisPlanningScope = {
     storageEtag: source.managedApiAuthority!.storageEtag,
   })),
 }
+const requestAuthorityObjects = new Map<string, Buffer>()
+const requestAuthorityRepository =
+  createCanonicalSourceAnalysisRequestAuthorityRepository({
+    objectPort: {
+      async createOnly(input) {
+        const existing = requestAuthorityObjects.get(input.objectPath)
+        if (existing) {
+          assert.deepEqual(existing, input.body)
+          assert.equal(sha(existing.toString('utf8')), input.contentSha256)
+          return 'already_exists'
+        }
+        assert.equal(sha(input.body.toString('utf8')), input.contentSha256)
+        requestAuthorityObjects.set(
+          input.objectPath,
+          Buffer.from(input.body),
+        )
+        return 'created'
+      },
+      async readExact(objectPath) {
+        const body = requestAuthorityObjects.get(objectPath)
+        return body ? Buffer.from(body) : null
+      },
+    },
+  })
+const preparedRequestReceipt =
+  await requestAuthorityRepository.persistCreateOnly({
+    scope: planningScope,
+    request: {
+      ...request,
+      ignoredCallerField: 'must-not-persist',
+    } as CanonicalSourceLedProfessionalContentAnalysisInput,
+  })
+assert.equal(preparedRequestReceipt.disposition, 'created')
+assert.equal(preparedRequestReceipt.transcriptDispatched, false)
+assert.equal(preparedRequestReceipt.visualIntelligenceDispatched, false)
+assert.equal(preparedRequestReceipt.providerCalled, false)
+assert.equal(preparedRequestReceipt.gpuJobStarted, false)
+assert.equal(preparedRequestReceipt.customerCreditMutated, false)
+assert.equal(requestAuthorityObjects.size, 1)
+assert.deepEqual(
+  await requestAuthorityRepository.readExactPreparedRequest(planningScope),
+  request,
+)
+assert.equal(
+  (await requestAuthorityRepository.persistCreateOnly({
+    scope: planningScope,
+    request,
+  })).disposition,
+  'identical_replay',
+)
+assert.equal(requestAuthorityObjects.size, 1)
+assert.equal(
+  await requestAuthorityRepository.readExactPreparedRequest({
+    ...planningScope,
+    userInstructionDigestSha256: sha('different-saved-chat'),
+  }),
+  null,
+)
 let preparedRequestRereads = 0
 const planningReconciliationPort =
   createCanonicalSourceLedOrchestraPlanningReconciliationPort({
@@ -708,7 +769,7 @@ const planningReconciliationPort =
       async readExactPreparedRequest(scope) {
         preparedRequestRereads += 1
         assert.deepEqual(scope, planningScope)
-        return request
+        return requestAuthorityRepository.readExactPreparedRequest(scope)
       },
     },
     reconciliationPort,
@@ -862,11 +923,46 @@ await assert.rejects(
   /stale or inconsistent/u,
 )
 await assert.rejects(
+  () => requestAuthorityRepository.persistCreateOnly({
+    scope: planningScope,
+    request: {
+      ...request,
+      sources: [{
+        ...request.sources[0]!,
+        managedApiAuthority: {
+          ...request.sources[0]!.managedApiAuthority!,
+          storageEtag: 'substituted-prepared-request-etag',
+        },
+      }],
+    },
+  }),
+  /stale or inconsistent/u,
+)
+await assert.rejects(
   () => pendingPlanningReconciliation.reconcileForPlanning({
     ...planningScope,
     browserDurationFrames: 480,
   } as CanonicalSourceAnalysisPlanningScope),
   /stale or inconsistent/u,
+)
+const [requestAuthorityObjectPath, immutableRequestAuthorityBody] =
+  [...requestAuthorityObjects.entries()][0]!
+const tamperedRequestAuthorityRecord = JSON.parse(
+  immutableRequestAuthorityBody.toString('utf8'),
+) as { authority: { providerCalled: boolean } }
+tamperedRequestAuthorityRecord.authority.providerCalled = true
+requestAuthorityObjects.set(
+  requestAuthorityObjectPath,
+  Buffer.from(JSON.stringify(tamperedRequestAuthorityRecord), 'utf8'),
+)
+await assert.rejects(
+  () => requestAuthorityRepository
+    .readExactPreparedRequest(planningScope),
+  /failed exact immutable reread/u,
+)
+requestAuthorityObjects.set(
+  requestAuthorityObjectPath,
+  immutableRequestAuthorityBody,
 )
 const cleanupBinding = createCanonicalSourceCleanupVisualIntelligenceBinding({
   evidence: result,
@@ -1389,6 +1485,9 @@ console.log(JSON.stringify({
     && orchestraVisualRereads === 1
     && headReconciliationCalls === 1,
   authenticatedPlanningReconciliationBridgeVerified: true,
+  durablePreparedRequestCreateOnlyRereadVerified: true,
+  preparedRequestUnknownFieldsStripped: true,
+  tamperedPreparedRequestAuthorityRejected: true,
   missingPreparedRequestFailsClosedWithoutDispatch: true,
   stalePreparedRequestAndBrowserProbeFieldsRejected: true,
   planningReplayAvoidedDuplicateReconciliation:

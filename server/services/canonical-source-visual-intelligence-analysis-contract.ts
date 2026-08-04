@@ -286,7 +286,11 @@ export function verifyCanonicalSourceLedProfessionalContentAnalysisInput(
       || !validRefSet([
         authority.finalizedMediaAuthorityRef,
         authority.finalizedStorageObjectAuthorityRef,
+        authority.sourceBindingManifestCandidateRef,
         authority.sourceProbeAuthorityRef,
+        authority.providerMediaReadAuthorityRef,
+        authority.sourceAnalysisConsentRef,
+        authority.platformAnalysisCostCapRef,
       ])
     ) throw invalid(`visual_intelligence_source_${index + 1}_invalid`)
     sourceIds.add(source.sourceSequenceItemId)

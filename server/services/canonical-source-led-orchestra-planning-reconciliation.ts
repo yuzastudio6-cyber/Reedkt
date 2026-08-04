@@ -147,7 +147,9 @@ export function createCanonicalSourceLedOrchestraPlanningReconciliationPort(
     async reconcileForPlanning(
       untrustedScope: CanonicalSourceAnalysisPlanningScope,
     ) {
-      const scope = parsePlanningScope(untrustedScope)
+      const scope = verifyCanonicalSourceAnalysisPlanningScope(
+        untrustedScope,
+      )
       const prepared = await input.requestAuthorityReadPort
         .readExactPreparedRequest(scope)
       if (!prepared) return Object.freeze({
@@ -161,10 +163,10 @@ export function createCanonicalSourceLedOrchestraPlanningReconciliationPort(
         browserSourceAuthorityAccepted: false as const,
       })
       const identity =
-        createCanonicalSourceLedProfessionalContentAnalysisRequestIdentity(
-          prepared,
-        )
-      assertPreparedRequestMatchesPlanningScope(identity.request, scope)
+        verifyCanonicalSourceAnalysisPreparedRequestForPlanning({
+          request: prepared,
+          scope,
+        })
       const evidence = await input.reconciliationPort.analyze(
         identity.request,
       )
@@ -208,7 +210,9 @@ export async function readOrReconcileCanonicalSourceCleanupAuthority(input: {
   readonly planningScope: CanonicalSourceAnalysisPlanningScope
 }): Promise<CanonicalSourceCleanupAuthorityReadResult> {
   const cleanupScope = parseCleanupScope(input.cleanupScope)
-  const planningScope = parsePlanningScope(input.planningScope)
+  const planningScope = verifyCanonicalSourceAnalysisPlanningScope(
+    input.planningScope,
+  )
   assertCleanupAndPlanningScopesMatch(cleanupScope, planningScope)
   const existing = await input.readPort.readForPlanning(cleanupScope)
   if (existing.status === 'ready' || !input.reconciliationPort) return existing
@@ -221,6 +225,121 @@ export async function readOrReconcileCanonicalSourceCleanupAuthority(input: {
     throw conflict('source_planning_reconciliation_not_persisted')
   }
   return reread
+}
+
+export function verifyCanonicalSourceAnalysisPreparedRequestForPlanning(
+  input: {
+    readonly request: CanonicalSourceLedProfessionalContentAnalysisInput
+    readonly scope: CanonicalSourceAnalysisPlanningScope
+  },
+): ReturnType<
+  typeof createCanonicalSourceLedProfessionalContentAnalysisRequestIdentity
+> {
+  const scope = verifyCanonicalSourceAnalysisPlanningScope(input.scope)
+  const verified =
+    createCanonicalSourceLedProfessionalContentAnalysisRequestIdentity(
+      input.request,
+    )
+  const identity =
+    createCanonicalSourceLedProfessionalContentAnalysisRequestIdentity(
+      detachPreparedRequest(verified.request),
+    )
+  assertPreparedRequestMatchesPlanningScope(identity.request, scope)
+  return identity
+}
+
+function detachPreparedRequest(
+  request: CanonicalSourceLedProfessionalContentAnalysisInput,
+): CanonicalSourceLedProfessionalContentAnalysisInput {
+  return {
+    workspaceId: request.workspaceId,
+    projectId: request.projectId,
+    editSessionId: request.editSessionId,
+    planningDirection: request.planningDirection,
+    planningDirectionDigestSha256:
+      request.planningDirectionDigestSha256,
+    userInstructionDigestSha256: request.userInstructionDigestSha256,
+    fps: 30,
+    sources: request.sources.map((source) => {
+      const authority = source.managedApiAuthority!
+      const audioProbe = authority.audioProbe.disposition ===
+        'verified_no_audio_stream'
+        ? { disposition: 'verified_no_audio_stream' as const }
+        : {
+            disposition: 'verified_audio_stream' as const,
+            videoStreamIndex: authority.audioProbe.videoStreamIndex,
+            videoStartTimeBaseUnits:
+              authority.audioProbe.videoStartTimeBaseUnits,
+            videoTimeBaseNumerator:
+              authority.audioProbe.videoTimeBaseNumerator,
+            videoTimeBaseDenominator:
+              authority.audioProbe.videoTimeBaseDenominator,
+            audioStreamIndex: authority.audioProbe.audioStreamIndex,
+            audioStartTimeBaseUnits:
+              authority.audioProbe.audioStartTimeBaseUnits,
+            audioDurationTimeBaseUnits:
+              authority.audioProbe.audioDurationTimeBaseUnits,
+            audioTimeBaseNumerator:
+              authority.audioProbe.audioTimeBaseNumerator,
+            audioTimeBaseDenominator:
+              authority.audioProbe.audioTimeBaseDenominator,
+            audioSampleRateHertz:
+              authority.audioProbe.audioSampleRateHertz,
+            audioChannelCount: authority.audioProbe.audioChannelCount,
+          }
+      return {
+        sourceSequenceItemId: source.sourceSequenceItemId,
+        mediaAssetId: source.mediaAssetId,
+        uploadedOrder: source.uploadedOrder,
+        storageProvider: 'google_cloud_storage' as const,
+        storageBucket: source.storageBucket,
+        storagePath: source.storagePath,
+        checksumSha256: source.checksumSha256,
+        byteLength: source.byteLength,
+        durationFrames: source.durationFrames,
+        managedApiAuthority: {
+          ownerUserId: authority.ownerUserId,
+          storageBucket: authority.storageBucket,
+          storagePath: authority.storagePath,
+          contentType: 'video/mp4' as const,
+          storageGeneration: authority.storageGeneration,
+          storageEtag: authority.storageEtag,
+          width: authority.width,
+          height: authority.height,
+          hasAudio: authority.hasAudio,
+          audioProbe,
+          fpsNumerator: authority.fpsNumerator,
+          fpsDenominator: authority.fpsDenominator,
+          frameCount: authority.frameCount,
+          sourceTimeBaseNumerator:
+            authority.sourceTimeBaseNumerator,
+          sourceTimeBaseDenominator:
+            authority.sourceTimeBaseDenominator,
+          finalizedMediaAuthorityRef: {
+            ...authority.finalizedMediaAuthorityRef,
+          },
+          finalizedStorageObjectAuthorityRef: {
+            ...authority.finalizedStorageObjectAuthorityRef,
+          },
+          sourceBindingManifestCandidateRef: {
+            ...authority.sourceBindingManifestCandidateRef,
+          },
+          sourceProbeAuthorityRef: {
+            ...authority.sourceProbeAuthorityRef,
+          },
+          providerMediaReadAuthorityRef: {
+            ...authority.providerMediaReadAuthorityRef,
+          },
+          sourceAnalysisConsentRef: {
+            ...authority.sourceAnalysisConsentRef,
+          },
+          platformAnalysisCostCapRef: {
+            ...authority.platformAnalysisCostCapRef,
+          },
+        },
+      }
+    }),
+  }
 }
 
 function assertPreparedRequestMatchesPlanningScope(
@@ -284,7 +403,7 @@ function assertCleanupAndPlanningScopesMatch(
   ) throw conflict('source_cleanup_and_planning_scope_mismatch')
 }
 
-function parsePlanningScope(
+export function verifyCanonicalSourceAnalysisPlanningScope(
   untrusted: unknown,
 ): CanonicalSourceAnalysisPlanningScope {
   const record = exactRecord(untrusted, [

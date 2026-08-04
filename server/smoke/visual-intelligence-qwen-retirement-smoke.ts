@@ -237,6 +237,18 @@ assert.match(
   sourcePlanningReconciliationSource,
   /readOrReconcileCanonicalSourceCleanupAuthority/u,
 )
+const sourcePreparedRequestRepositorySource = readFileSync(
+  'server/services/canonical-source-analysis-request-authority-repository.ts',
+  'utf8',
+)
+assert.doesNotMatch(
+  sourcePreparedRequestRepositorySource,
+  /VisualIntelligenceLifecycleService|createVisualIntelligenceRequest|CloudRun|Batch|fetch\(|child_process/u,
+)
+assert.match(
+  sourcePreparedRequestRepositorySource,
+  /persistCreateOnly/u,
+)
 const sourcePlanPresentationSource = readFileSync(
   'server/services/canonical-source-led-plan-presentation-service.ts',
   'utf8',
@@ -390,6 +402,7 @@ console.log(JSON.stringify({
   directSourceVisualLifecycleFactoryRemoved: true,
   sourceCleanupRequiresOrchestraResultReread: true,
   sourcePlanningUsesPreparedRequestAndDurableCleanupReread: true,
+  sourcePreparedRequestRepositoryCannotDispatch: true,
   sam2ExecutableImageSourceRemoved: true,
   sam2RuntimeCompilerAndSubprocessBlockedBeforeInputRead: true,
   sam31IsOnlyFreshSegmentationReplacement: true,

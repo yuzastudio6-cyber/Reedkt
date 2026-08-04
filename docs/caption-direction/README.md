@@ -1,7 +1,7 @@
-# Captions Specialist — CAP-02 Composite Checkpoint
+# Captions Specialist — CAP-03 Domain Contract Checkpoint
 
-Status: `cap_02_complete`
-Checkpoint: `CAP-02`
+Status: `cap_03_complete`
+Checkpoint: `CAP-03`
 Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
@@ -75,6 +75,7 @@ The governing workflow invariant remains:
 
 - [CAP-01 manifest, qualification, and harness report](cap-01-specialist-manifest-harness-report.md)
 - [CAP-02 composite and mini-skill report](cap-02-composite-mini-skill-report.md)
+- [CAP-03 core domain contract report](cap-03-core-domain-contract-report.md)
 
 ### Historical architecture retained and amended
 
@@ -110,7 +111,7 @@ The governing workflow invariant remains:
 
 ## Progression
 
-CAP-00R through CAP-02 are complete on the clean specialist branch. CAP-01 adds the
+CAP-00R through CAP-03 are complete on the clean specialist branch. CAP-01 adds the
 neutral shared v2 manifest extension, per-job qualification snapshot,
 Orchestra-shaped call/support/result contracts, strict closed-data validation,
 the Caption manifest, and a bounded internal-only harness. It does not add the
@@ -121,8 +122,15 @@ versioned inverse relationships, the explicit `no_captions` conflict, complete
 legacy mappings, cycle validation, and deterministic scene-aware activation.
 It intentionally leaves registry mutation to CAP-03.
 
-Implementation continues automatically into CAP-03 core domain contracts and
-professional-skill registry integration.
+CAP-03 publishes 14 strict, versioned, digest-bound Caption domain artifacts
+covering strategy through repair. These artifacts retain exact composite,
+confirmed-frame, transcript, timing, approval, snapshot, and staleness lineage
+while all canonical execution authorities remain closed.
+
+Implementation continues automatically into CAP-04 transcript lineage and
+alignment. Registry/workflow integration will consume these frozen public
+artifacts at its dependency-safe milestone; CAP-03 does not manufacture a
+second planner or a false backend coverage claim.
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

@@ -32,6 +32,9 @@ const l4CostAuthority = source(
 const sourceCoordinator = source(
   'server/orchestra/canonical-source-analysis-orchestra-coordinator.ts',
 )
+const sourceOrchestraWorkOwner = source(
+  'server/services/canonical-source-analysis-orchestra-work-owner.ts',
+)
 const trackAllSam31Binding = source(
   'server/workers/masks/canonical-track-all-sam3_1-orchestra-binding.ts',
 )
@@ -82,7 +85,7 @@ assert.match(productionRuntime, /orchestraJobRuntimePort/u)
 assert.match(productionRuntime, /orchestraLifecyclePort/u)
 assert.match(
   productionRuntime,
-  /visual-intelligence-production-runtime-v5/u,
+  /visual-intelligence-production-runtime-v6/u,
 )
 assert.match(
   productionRuntime,
@@ -91,6 +94,14 @@ assert.match(
 assert.match(
   productionRuntime,
   /createSourceAnalysisOrchestraCoordinator/u,
+)
+assert.match(
+  productionRuntime,
+  /createCanonicalSourceAnalysisOrchestraWorkOwner/u,
+)
+assert.doesNotMatch(
+  productionRuntime,
+  /readonly orchestraWorkReadPort/u,
 )
 assert.doesNotMatch(
   productionRuntime,
@@ -137,6 +148,18 @@ assert.match(sourceCoordinator, /reconcileForPlanning/u)
 assert.doesNotMatch(
   sourceCoordinator,
   /createQwenVisualUnderstandingProvider|sam2|directTimelineMutationAllowed:\s*true/u,
+)
+assert.match(
+  sourceOrchestraWorkOwner,
+  /workBuiltOnlyFromCanonicalRereads:\s*true/u,
+)
+assert.match(
+  sourceOrchestraWorkOwner,
+  /browserOrCallerPreparedEvidenceAccepted:\s*false/u,
+)
+assert.doesNotMatch(
+  sourceOrchestraWorkOwner,
+  /createQwenVisualUnderstandingProvider|sam2|directProviderOrGpuDispatchAllowed:\s*true/u,
 )
 
 assert.match(trackAllSam31Binding, /targetSkillKey:\s*z\.literal\('track_all'\)/u)

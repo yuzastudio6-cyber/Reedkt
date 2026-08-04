@@ -12,7 +12,6 @@ import { ApiError } from '../errors/api-error'
 import {
   createCanonicalSourceAnalysisOrchestraCoordinator,
   type CanonicalSourceAnalysisOrchestraCoordinator,
-  type CanonicalSourceAnalysisOrchestraWorkReadPort,
   type CanonicalSourceAnalysisPlanningScopeReadPort,
 } from '../orchestra/canonical-source-analysis-orchestra-coordinator'
 import {
@@ -39,6 +38,10 @@ import {
   createCanonicalSourceAnalysisL4VisualEvidenceRepository,
   type CanonicalSourceAnalysisL4VisualEvidenceRepository,
 } from '../services/canonical-source-analysis-l4-visual-evidence-repository'
+import {
+  createCanonicalSourceAnalysisOrchestraWorkOwner,
+  type CanonicalSourceAnalysisOrchestraAuthorityReadPort,
+} from '../services/canonical-source-analysis-orchestra-work-owner'
 import {
   createCanonicalSourceAnalysisPreparationOwner,
   type CanonicalSourceAnalysisFinalizedAuthorityReadPort,
@@ -134,7 +137,7 @@ import {
 } from './vertex-gemini-pro-visual-intelligence-adapter'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v5' as const
+  'visual-intelligence-production-runtime-v6' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -219,8 +222,8 @@ export interface VisualIntelligenceProductionRuntime {
       CanonicalSourceTranscriptA100WorkerResultReadPort
     readonly transcriptUsageCostReadPort:
       CanonicalSourceTranscriptA100UsageCostReadPort
-    readonly orchestraWorkReadPort:
-      CanonicalSourceAnalysisOrchestraWorkReadPort
+    readonly orchestraAuthorityReadPort:
+      CanonicalSourceAnalysisOrchestraAuthorityReadPort
   }) => CanonicalSourceAnalysisOrchestraCoordinator
   readonly providerCapabilityId: 'visual_intelligence'
   readonly semanticEngine: 'gemini-3.1-pro-preview'
@@ -440,8 +443,8 @@ export async function createVisualIntelligenceProductionRuntime(
       CanonicalSourceTranscriptA100WorkerResultReadPort
     readonly transcriptUsageCostReadPort:
       CanonicalSourceTranscriptA100UsageCostReadPort
-    readonly orchestraWorkReadPort:
-      CanonicalSourceAnalysisOrchestraWorkReadPort
+    readonly orchestraAuthorityReadPort:
+      CanonicalSourceAnalysisOrchestraAuthorityReadPort
   }) => createCanonicalSourceAnalysisOrchestraCoordinator({
     planningScopeReadPort: input.planningScopeReadPort,
     probeAttemptOwner: createSourceAnalysisL4ProbeAttemptOwnerFactory({
@@ -465,7 +468,13 @@ export async function createVisualIntelligenceProductionRuntime(
     requestAuthorityReadPort: sourceAnalysisRequestAuthorityRepository,
     transcriptReadPort: sourceTranscriptOrchestraRepository,
     l4VisualEvidenceReadPort: sourceAnalysisL4VisualEvidenceRepository,
-    orchestraWorkReadPort: input.orchestraWorkReadPort,
+    orchestraWorkReadPort: createCanonicalSourceAnalysisOrchestraWorkOwner({
+      authorityReadPort: input.orchestraAuthorityReadPort,
+      l4VisualEvidenceReadPort: sourceAnalysisL4VisualEvidenceRepository,
+      transcriptReadPort: sourceTranscriptOrchestraRepository,
+      preparedEvidenceStore: canonicalPreparedEvidenceStore,
+      dispatchPackageStore: orchestraDispatchPackageStore,
+    }),
     orchestraRuntime: orchestraJobRuntimePort,
     planningReconciliationPort:
       sourceLedOrchestraPlanningReconciliationPort,

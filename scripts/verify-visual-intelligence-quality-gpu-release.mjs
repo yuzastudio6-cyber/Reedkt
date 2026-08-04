@@ -29,6 +29,7 @@ const smokes = [
   'server/smoke/source-led-visual-intelligence-content-analysis-smoke.ts',
   'server/smoke/canonical-source-analysis-l4-probe-attempt-owner-smoke.ts',
   'server/smoke/canonical-source-analysis-l4-visual-evidence-repository-smoke.ts',
+  'server/smoke/canonical-source-analysis-l4-visual-evidence-attempt-owner-smoke.ts',
   'server/smoke/canonical-source-transcript-orchestra-repository-smoke.ts',
   'server/smoke/canonical-source-transcript-a100-attempt-owner-smoke.ts',
   'server/smoke/canonical-source-analysis-orchestra-coordinator-smoke.ts',

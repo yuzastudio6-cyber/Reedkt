@@ -120,11 +120,24 @@ const validInput = {
   routeProfileId: 'quality_l4_user_triggered_standard_media_job_v1' as const,
   acceleratorClass: 'nvidia_l4' as const,
   cloudRunJobName: 'reeditpro-professional-l4' as const,
+  invocationId: 'l4-repository-invocation',
+  admissionRef: ref('l4-admission'),
+  runtimeReleaseRef: ref('l4-runtime-release'),
   cloudRunExecutionRef: ref('cloud-run-execution'),
+  platformEstimateRef: ref('l4-platform-estimate'),
+  accountEffectivePricingAuthorityRef: ref('l4-account-effective-rate'),
   attemptCostEvidenceRef: ref('account-effective-attempt-cost'),
+  maximumPlatformInternalCostUsdNanos: 5_000_000_000,
+  actualPlatformInternalCostUsdNanos: 1_250_000_000,
+  accountEffectivePricingRereadVerified: true as const,
+  publicListPriceUsedAsSettlementAuthority: false as const,
+  platformInternalCostWithinAdmittedCap: true as const,
   toolEvidence: exactToolEvidence,
   userTriggeredScaleFromZero: true as const,
   minimumIdleInstances: 0 as const,
+  terminalCloudRunExecutionObserved: true as const,
+  terminalWorkerStopped: true as const,
+  scaleBackToZeroVerified: true as const,
   maximumAttempts: 1 as const,
   uncertainOutcomeRetryAllowed: false as const,
   runtimeNetworkDownloadPerformed: false as const,
@@ -150,6 +163,11 @@ assert.equal(result.toolEvidence[0]?.operationId,
   VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffprobe)
 assert.equal(result.toolEvidence[5]?.operationId,
   VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffmpeg)
+assert.throws(() => createCanonicalSourceAnalysisL4VisualEvidenceResult({
+  ...validInput,
+  actualPlatformInternalCostUsdNanos:
+    validInput.maximumPlatformInternalCostUsdNanos + 1,
+}))
 
 const repository = createCanonicalSourceAnalysisL4VisualEvidenceRepository({
   objectPort: new MemoryObjectPort(),

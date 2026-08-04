@@ -35,6 +35,10 @@ import {
   createCanonicalSourceAnalysisL4VisualEvidenceResult,
 } from '../services/canonical-source-analysis-l4-visual-evidence-repository'
 import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ATTEMPT_OWNER_VERSION,
+  type CanonicalSourceAnalysisL4VisualEvidenceAttemptOwner,
+} from '../services/canonical-source-analysis-l4-visual-evidence-attempt-owner'
+import {
   CANONICAL_SOURCE_ANALYSIS_PREPARATION_OWNER_VERSION,
   type CanonicalSourceAnalysisPreparationOwner,
 } from '../services/canonical-source-analysis-preparation-owner'
@@ -329,11 +333,24 @@ const l4VisualEvidence = createCanonicalSourceAnalysisL4VisualEvidenceResult({
   routeProfileId: 'quality_l4_user_triggered_standard_media_job_v1',
   acceleratorClass: 'nvidia_l4',
   cloudRunJobName: 'reeditpro-professional-l4',
+  invocationId: 'l4-visual-evidence-invocation-1',
+  admissionRef: ref('l4-visual-evidence-admission'),
+  runtimeReleaseRef: ref('l4-visual-evidence-runtime-release'),
   cloudRunExecutionRef: ref('l4-visual-evidence-execution'),
+  platformEstimateRef: ref('l4-visual-evidence-platform-estimate'),
+  accountEffectivePricingAuthorityRef: ref('l4-account-effective-rate'),
   attemptCostEvidenceRef: ref('l4-visual-evidence-cost'),
+  maximumPlatformInternalCostUsdNanos: 5_000_000_000,
+  actualPlatformInternalCostUsdNanos: 1_250_000_000,
+  accountEffectivePricingRereadVerified: true,
+  publicListPriceUsedAsSettlementAuthority: false,
+  platformInternalCostWithinAdmittedCap: true,
   toolEvidence: l4ToolEvidence,
   userTriggeredScaleFromZero: true,
   minimumIdleInstances: 0,
+  terminalCloudRunExecutionObserved: true,
+  terminalWorkerStopped: true,
+  scaleBackToZeroVerified: true,
   maximumAttempts: 1,
   uncertainOutcomeRetryAllowed: false,
   runtimeNetworkDownloadPerformed: false,
@@ -687,6 +704,37 @@ const l4VisualEvidenceReadPort = {
     return structuredClone(l4VisualEvidence)
   },
 } as const
+const l4VisualEvidenceAttemptOwner:
+  CanonicalSourceAnalysisL4VisualEvidenceAttemptOwner = {
+  schemaVersion:
+    CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ATTEMPT_OWNER_VERSION,
+  operationId:
+    'internal.visual_intelligence.prepare_source_visual_evidence.v1',
+  routeProfileId: 'quality_l4_user_triggered_standard_media_job_v1',
+  acceleratorClass: 'nvidia_l4',
+  userTriggeredScaleFromZero: true,
+  minimumIdleInstances: 0,
+  maximumAttempts: 1,
+  automaticRetryAfterUncertainOutcomeAllowed: false,
+  platformFundedPreapprovalAnalysis: true,
+  customerCreditMutationAllowed: false,
+  async executeOneShot() {
+    sequence.push('l4_visual_evidence')
+    return {
+      status: 'ready',
+      disposition: 'created',
+      invocationId: 'l4-visual-evidence-invocation-1',
+      resultDigestSha256: l4VisualEvidence.resultDigestSha256,
+      attemptCostEvidenceRef: l4VisualEvidence.attemptCostEvidenceRef,
+      exactTerminalEvidencePersistedAndReread: true,
+      scaleBackToZeroVerified: true,
+      platformFundedPreapprovalAnalysis: true,
+      customerCreditMutated: false,
+      publicDeliveryGranted: false,
+      productionAuthorityGranted: false,
+    }
+  },
+}
 
 let callForResult: ReturnType<typeof createOrchestraSkillCall> | null = null
 const orchestraWorkReadPort = {
@@ -853,6 +901,7 @@ const coordinator = createCanonicalSourceAnalysisOrchestraCoordinator({
   planningScopeReadPort,
   probeAttemptOwner,
   preparationOwner,
+  l4VisualEvidenceAttemptOwner,
   transcriptAttemptOwner,
   requestAuthorityReadPort,
   transcriptReadPort,
@@ -885,6 +934,7 @@ assert.equal(result.analysisRunId, identity.analysisRunId)
 assert.equal(result.requestDigestSha256, identity.requestDigest)
 assert.equal(result.sourceCount, 1)
 assert.equal(result.l4ProbeScaleToZeroVerified, true)
+assert.equal(result.l4VisualEvidenceScaleToZeroVerified, true)
 assert.equal(result.allL4DeterministicVisualEvidenceReread, true)
 assert.equal(
   result.a100TranscriptScaleToZeroOrNoAudioBypassVerified,
@@ -899,6 +949,7 @@ assert.deepEqual(sequence, [
   'l4_probe',
   'preparation',
   'prepared_request_reread',
+  'l4_visual_evidence',
   'l4_visual_evidence_reread',
   'a100_transcript',
   'transcript_reread',
@@ -953,6 +1004,7 @@ const blockedCoordinator = createCanonicalSourceAnalysisOrchestraCoordinator({
       return preparationOwner.prepareForOrchestra(planningScope)
     },
   },
+  l4VisualEvidenceAttemptOwner,
   transcriptAttemptOwner,
   requestAuthorityReadPort,
   transcriptReadPort,
@@ -977,12 +1029,68 @@ assert.deepEqual(blockedResult, {
 })
 assert.equal(probeBlockedDownstreamCalls, 0)
 
+let uncertainL4Rereads = 0
+let uncertainL4TranscriptCalls = 0
+const uncertainL4Coordinator =
+  createCanonicalSourceAnalysisOrchestraCoordinator({
+    planningScopeReadPort,
+    probeAttemptOwner,
+    preparationOwner,
+    l4VisualEvidenceAttemptOwner: {
+      ...l4VisualEvidenceAttemptOwner,
+      async executeOneShot() {
+        return {
+          status: 'reconciliation_required' as const,
+          invocationId: 'l4-visual-evidence-unknown-1',
+          blockerCode: 'source_visual_evidence_cloud_outcome_unknown' as const,
+          cloudJobStartState: 'unknown' as const,
+          automaticRetryAllowed: false as const,
+          customerCreditMutated: false as const,
+        }
+      },
+    },
+    transcriptAttemptOwner: {
+      ...transcriptAttemptOwner,
+      async executeOneShot(value) {
+        uncertainL4TranscriptCalls += 1
+        return transcriptAttemptOwner.executeOneShot(value)
+      },
+    },
+    requestAuthorityReadPort,
+    transcriptReadPort,
+    l4VisualEvidenceReadPort: {
+      ...l4VisualEvidenceReadPort,
+      async readCompleted() {
+        uncertainL4Rereads += 1
+        return l4VisualEvidenceReadPort.readCompleted()
+      },
+    },
+    orchestraWorkReadPort,
+    orchestraRuntime,
+    planningReconciliationPort,
+    cleanupAuthorityReadPort,
+  })
+const uncertainL4Result = await uncertainL4Coordinator.execute(trigger)
+assert.equal(uncertainL4Result.status, 'blocked')
+if (uncertainL4Result.status !== 'blocked') {
+  throw new Error('Unknown L4 visual evidence outcome did not block.')
+}
+assert.equal(uncertainL4Result.stage, 'l4_visual_evidence')
+assert.equal(
+  uncertainL4Result.blockerCode,
+  'source_visual_evidence_cloud_outcome_unknown',
+)
+assert.equal(uncertainL4Result.automaticRetryStarted, false)
+assert.equal(uncertainL4Rereads, 0)
+assert.equal(uncertainL4TranscriptCalls, 0)
+
 let missingL4TranscriptCalls = 0
 const missingL4Coordinator =
   createCanonicalSourceAnalysisOrchestraCoordinator({
     planningScopeReadPort,
     probeAttemptOwner,
     preparationOwner,
+    l4VisualEvidenceAttemptOwner,
     transcriptAttemptOwner: {
       ...transcriptAttemptOwner,
       async executeOneShot(value) {
@@ -1019,6 +1127,7 @@ const transcriptBlockedCoordinator =
     planningScopeReadPort,
     probeAttemptOwner,
     preparationOwner,
+    l4VisualEvidenceAttemptOwner,
     transcriptAttemptOwner: {
       ...transcriptAttemptOwner,
       async executeOneShot() {
@@ -1069,10 +1178,12 @@ console.log(JSON.stringify({
   exactStageOrderVerified: true,
   userTriggeredOnly: coordinator.userTriggeredOnly,
   sourceProbeRoute: coordinator.sourceProbeRoute,
+  sourceVisualEvidenceRoute: coordinator.sourceVisualEvidenceRoute,
   heavyTranscriptRoute: coordinator.heavyTranscriptRoute,
   geminiReturnedThroughOrchestra: true,
   headCleanupAuthorityReread: true,
   uncertainProbeOutcomeStoppedPipeline: true,
+  uncertainL4VisualEvidenceOutcomeStoppedPipeline: true,
   missingL4EvidenceStoppedBeforeA100: true,
   uncertainTranscriptOutcomeStoppedPipeline: true,
   privateFixtureByteIdentityBound: privateFixtureIdentityBound,

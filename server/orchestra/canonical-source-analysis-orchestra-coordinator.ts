@@ -26,6 +26,13 @@ import {
   CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION,
 } from '../services/canonical-source-analysis-l4-visual-evidence-repository'
 import type {
+  CanonicalSourceAnalysisL4VisualEvidenceAttemptOwner,
+} from '../services/canonical-source-analysis-l4-visual-evidence-attempt-owner'
+import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ATTEMPT_OWNER_VERSION,
+  createCanonicalSourceAnalysisL4VisualEvidenceTrigger,
+} from '../services/canonical-source-analysis-l4-visual-evidence-attempt-owner'
+import type {
   CanonicalSourceAnalysisPreparationOwner,
 } from '../services/canonical-source-analysis-preparation-owner'
 import {
@@ -87,7 +94,7 @@ import {
 } from '../visual-intelligence/visual-intelligence-orchestra-job-runtime'
 
 export const CANONICAL_SOURCE_ANALYSIS_ORCHESTRA_COORDINATOR_VERSION =
-  'canonical-source-analysis-orchestra-coordinator-v2' as const
+  'canonical-source-analysis-orchestra-coordinator-v3' as const
 export const CANONICAL_SOURCE_ANALYSIS_USER_TRIGGER_VERSION =
   'canonical-source-analysis-user-trigger-v1' as const
 export const CANONICAL_SOURCE_ANALYSIS_PLANNING_SCOPE_READ_PORT_VERSION =
@@ -207,6 +214,7 @@ export type CanonicalSourceAnalysisOrchestraCoordinatorResult =
       allFinalizedSourceAndL4ProbeAuthoritiesReread: true
       allL4DeterministicVisualEvidenceReread: true
       l4ProbeScaleToZeroVerified: true
+      l4VisualEvidenceScaleToZeroVerified: true
       allTranscriptAuthoritiesReread: true
       a100TranscriptScaleToZeroOrNoAudioBypassVerified: true
       allVisualIntelligenceResultsReturnedThroughOrchestra: true
@@ -227,6 +235,7 @@ export interface CanonicalSourceAnalysisOrchestraCoordinator {
   readonly visualSkillKey: 'visual_intelligence'
   readonly userTriggeredOnly: true
   readonly sourceProbeRoute: 'l4_standard_primary'
+  readonly sourceVisualEvidenceRoute: 'l4_standard_primary'
   readonly heavyTranscriptRoute: 'a100_80gb_heavy_primary'
   readonly automaticHeavyFallbackAllowed: false
   readonly directCallerSkillOrProviderDispatchAllowed: false
@@ -357,6 +366,8 @@ export function createCanonicalSourceAnalysisOrchestraCoordinator(input: {
     CanonicalSourceAnalysisPlanningScopeReadPort
   readonly probeAttemptOwner: CanonicalSourceAnalysisL4ProbeAttemptOwner
   readonly preparationOwner: CanonicalSourceAnalysisPreparationOwner
+  readonly l4VisualEvidenceAttemptOwner:
+    CanonicalSourceAnalysisL4VisualEvidenceAttemptOwner
   readonly transcriptAttemptOwner: CanonicalSourceTranscriptA100AttemptOwner
   readonly requestAuthorityReadPort:
     CanonicalSourceAnalysisRequestAuthorityReadPort
@@ -377,6 +388,7 @@ export function createCanonicalSourceAnalysisOrchestraCoordinator(input: {
     visualSkillKey: 'visual_intelligence' as const,
     userTriggeredOnly: true as const,
     sourceProbeRoute: 'l4_standard_primary' as const,
+    sourceVisualEvidenceRoute: 'l4_standard_primary' as const,
     heavyTranscriptRoute: 'a100_80gb_heavy_primary' as const,
     automaticHeavyFallbackAllowed: false as const,
     directCallerSkillOrProviderDispatchAllowed: false as const,
@@ -464,6 +476,33 @@ export function createCanonicalSourceAnalysisOrchestraCoordinator(input: {
       const l4VisualEvidenceResults:
         CanonicalSourceAnalysisL4VisualEvidenceResult[] = []
       for (const [index, source] of prepared.request.sources.entries()) {
+        const attempt = await input.l4VisualEvidenceAttemptOwner.executeOneShot(
+          createCanonicalSourceAnalysisL4VisualEvidenceTrigger({
+            requestId: scopedId(
+              trigger, 'l4-visual-evidence', source.uploadedOrder,
+            ),
+            planningScope: scope,
+            sourceSequenceItemId: source.sourceSequenceItemId,
+            mediaAssetId: source.mediaAssetId,
+            userTriggerRecordRef: cloneRef(trigger.userTriggerRecordRef),
+            idempotencyKey: scopedId(
+              trigger, 'l4-visual-evidence-idempotency', source.uploadedOrder,
+            ),
+            triggeredAt: trigger.triggeredAt,
+            serverPreparedRequestRequired: true,
+            browserSourceOrEvidenceAuthorityAccepted: false,
+            callerPathUrlBytesCommandOrEnvironmentAccepted: false,
+            customerCreditMutationAuthorized: false,
+            publicDeliveryAuthorized: false,
+            productionAuthorityGranted: false,
+          }),
+        )
+        if (attempt.status !== 'ready') return blocked(
+          'l4_visual_evidence', index + 1,
+          attempt.status === 'failed_before_creation'
+            ? 'source_visual_evidence_failed_before_creation'
+            : attempt.blockerCode,
+        )
         const evidence = await input.l4VisualEvidenceReadPort.readCompleted(
           transcriptScope({
             request: prepared.request,
@@ -475,6 +514,9 @@ export function createCanonicalSourceAnalysisOrchestraCoordinator(input: {
           'l4_visual_evidence', index + 1,
           'canonical_source_l4_visual_evidence_not_ready',
         )
+        if (evidence.resultDigestSha256 !== attempt.resultDigestSha256) {
+          throw conflict('source_visual_evidence_attempt_reread_mismatch')
+        }
         l4VisualEvidenceResults.push(evidence)
       }
 
@@ -592,6 +634,7 @@ export function createCanonicalSourceAnalysisOrchestraCoordinator(input: {
         allFinalizedSourceAndL4ProbeAuthoritiesReread: true as const,
         allL4DeterministicVisualEvidenceReread: true as const,
         l4ProbeScaleToZeroVerified: true as const,
+        l4VisualEvidenceScaleToZeroVerified: true as const,
         allTranscriptAuthoritiesReread: true as const,
         a100TranscriptScaleToZeroOrNoAudioBypassVerified: true as const,
         allVisualIntelligenceResultsReturnedThroughOrchestra: true as const,
@@ -621,6 +664,9 @@ function validateDependencies(input: Parameters<
     || input.preparationOwner?.schemaVersion !==
       CANONICAL_SOURCE_ANALYSIS_PREPARATION_OWNER_VERSION
     || typeof input.preparationOwner.prepareForOrchestra !== 'function'
+    || input.l4VisualEvidenceAttemptOwner?.schemaVersion !==
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ATTEMPT_OWNER_VERSION
+    || typeof input.l4VisualEvidenceAttemptOwner.executeOneShot !== 'function'
     || input.transcriptAttemptOwner?.schemaVersion !==
       CANONICAL_SOURCE_TRANSCRIPT_A100_ATTEMPT_OWNER_VERSION
     || typeof input.transcriptAttemptOwner.executeOneShot !== 'function'

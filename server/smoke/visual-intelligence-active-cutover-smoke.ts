@@ -26,6 +26,9 @@ const orchestraRoutes = source(
 const l4AttemptOwner = source(
   'server/services/canonical-source-analysis-l4-probe-attempt-owner.ts',
 )
+const l4VisualEvidenceAttemptOwner = source(
+  'server/services/canonical-source-analysis-l4-visual-evidence-attempt-owner.ts',
+)
 const l4CostAuthority = source(
   'server/services/canonical-source-analysis-l4-probe-usage-cost.ts',
 )
@@ -85,7 +88,7 @@ assert.match(productionRuntime, /orchestraJobRuntimePort/u)
 assert.match(productionRuntime, /orchestraLifecyclePort/u)
 assert.match(
   productionRuntime,
-  /visual-intelligence-production-runtime-v6/u,
+  /visual-intelligence-production-runtime-v7/u,
 )
 assert.match(
   productionRuntime,
@@ -98,6 +101,14 @@ assert.match(
 assert.match(
   productionRuntime,
   /createCanonicalSourceAnalysisOrchestraWorkOwner/u,
+)
+assert.match(
+  productionRuntime,
+  /createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner/u,
+)
+assert.match(
+  productionRuntime,
+  /createGoogleCloudRunL4VisualEvidenceExecutionPort/u,
 )
 assert.doesNotMatch(
   productionRuntime,
@@ -130,6 +141,22 @@ assert.match(
 assert.doesNotMatch(
   l4AttemptOwner,
   /canonical-visual-intelligence-source-gpu-evidence-service/u,
+)
+assert.match(
+  l4VisualEvidenceAttemptOwner,
+  /internal\.visual_intelligence\.prepare_source_visual_evidence\.v1/u,
+)
+assert.match(
+  l4VisualEvidenceAttemptOwner,
+  /createGoogleCloudRunL4VisualEvidenceExecutionPort/u,
+)
+assert.match(
+  l4VisualEvidenceAttemptOwner,
+  /REEDITPRO_GPU_INVOCATION_ID/u,
+)
+assert.doesNotMatch(
+  l4VisualEvidenceAttemptOwner,
+  /WEEDITPRO_GPU_ACCELERATOR_CLASS|sam2|substantiveCpuMediaProcessingAllowed:\s*z\.literal\(true\)/u,
 )
 assert.match(
   l4CostAuthority,

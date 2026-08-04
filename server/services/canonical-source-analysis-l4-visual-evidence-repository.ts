@@ -27,11 +27,11 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_RESULT_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-result-v2' as const
+  'canonical-source-analysis-l4-visual-evidence-result-v3' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-read-port-v2' as const
+  'canonical-source-analysis-l4-visual-evidence-read-port-v3' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_REPOSITORY_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-repository-v2' as const
+  'canonical-source-analysis-l4-visual-evidence-repository-v3' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_OPERATION_ID =
   'internal.visual_intelligence.prepare_source_visual_evidence.v1' as const
 
@@ -49,6 +49,7 @@ const safeId = z.string().regex(SAFE_ID).refine((value) =>
 const rawSha256 = z.string().regex(RAW_SHA256)
 const prefixedSha256 = z.string().regex(PREFIXED_SHA256)
 const positiveInteger = z.number().int().positive().safe()
+const nonnegativeInteger = z.number().int().nonnegative().safe()
 const evidenceRefSchema = z.object({
   id: safeId,
   version: positiveInteger,
@@ -156,11 +157,24 @@ const resultWithoutDigestSchema = z.object({
   routeProfileId: z.literal('quality_l4_user_triggered_standard_media_job_v1'),
   acceleratorClass: z.literal('nvidia_l4'),
   cloudRunJobName: z.literal('reeditpro-professional-l4'),
+  invocationId: safeId,
+  admissionRef: evidenceRefSchema,
+  runtimeReleaseRef: evidenceRefSchema,
   cloudRunExecutionRef: evidenceRefSchema,
+  platformEstimateRef: evidenceRefSchema,
+  accountEffectivePricingAuthorityRef: evidenceRefSchema,
   attemptCostEvidenceRef: evidenceRefSchema,
+  maximumPlatformInternalCostUsdNanos: positiveInteger,
+  actualPlatformInternalCostUsdNanos: nonnegativeInteger,
+  accountEffectivePricingRereadVerified: z.literal(true),
+  publicListPriceUsedAsSettlementAuthority: z.literal(false),
+  platformInternalCostWithinAdmittedCap: z.literal(true),
   toolEvidence: z.array(toolItemSchema).length(roles.length),
   userTriggeredScaleFromZero: z.literal(true),
   minimumIdleInstances: z.literal(0),
+  terminalCloudRunExecutionObserved: z.literal(true),
+  terminalWorkerStopped: z.literal(true),
+  scaleBackToZeroVerified: z.literal(true),
   maximumAttempts: z.literal(1),
   uncertainOutcomeRetryAllowed: z.literal(false),
   runtimeNetworkDownloadPerformed: z.literal(false),
@@ -385,6 +399,8 @@ function assertResultSemantics(
     })
     || new Set(evidenceRefs).size !== evidenceRefs.length
     || new Set(executionRefs).size !== executionRefs.length
+    || result.actualPlatformInternalCostUsdNanos >
+      result.maximumPlatformInternalCostUsdNanos
     || result.sourceObject.checksumSha256 !== scope.checksumSha256
     || result.sourceObject.byteLength !== scope.byteLength
     || refKey(result.sourceObject.finalizedMediaAuthorityRef) !==

@@ -39,6 +39,14 @@ import {
   type CanonicalSourceAnalysisL4VisualEvidenceRepository,
 } from '../services/canonical-source-analysis-l4-visual-evidence-repository'
 import {
+  createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner,
+  createGoogleCloudRunL4VisualEvidenceExecutionPort,
+  type CanonicalSourceAnalysisL4VisualEvidenceAdmissionReadPort,
+  type CanonicalSourceAnalysisL4VisualEvidenceAttemptOwner,
+  type CanonicalSourceAnalysisL4VisualEvidenceReleaseReadPort,
+  type CanonicalSourceAnalysisL4VisualEvidenceTerminalReadPort,
+} from '../services/canonical-source-analysis-l4-visual-evidence-attempt-owner'
+import {
   createCanonicalSourceAnalysisOrchestraWorkOwner,
   type CanonicalSourceAnalysisOrchestraAuthorityReadPort,
 } from '../services/canonical-source-analysis-orchestra-work-owner'
@@ -137,7 +145,7 @@ import {
 } from './vertex-gemini-pro-visual-intelligence-adapter'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v6' as const
+  'visual-intelligence-production-runtime-v7' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -186,6 +194,14 @@ export interface VisualIntelligenceProductionRuntime {
     readonly usageCostReadPort:
       CanonicalSourceAnalysisL4ProbeUsageCostReadPort
   }) => CanonicalSourceAnalysisL4ProbeAttemptOwner
+  readonly createSourceAnalysisL4VisualEvidenceAttemptOwner: (input: {
+    readonly admissionReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceAdmissionReadPort
+    readonly releaseReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceReleaseReadPort
+    readonly terminalReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceTerminalReadPort
+  }) => CanonicalSourceAnalysisL4VisualEvidenceAttemptOwner
   readonly createSourceTranscriptA100AttemptOwner: (input: {
     readonly finalizedAuthorityReadPort:
       CanonicalSourceAnalysisFinalizedAuthorityReadPort
@@ -214,6 +230,12 @@ export interface VisualIntelligenceProductionRuntime {
       CanonicalSourceAnalysisL4ProbeWorkerResultReadPort
     readonly probeUsageCostReadPort:
       CanonicalSourceAnalysisL4ProbeUsageCostReadPort
+    readonly visualEvidenceAdmissionReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceAdmissionReadPort
+    readonly visualEvidenceReleaseReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceReleaseReadPort
+    readonly visualEvidenceTerminalReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceTerminalReadPort
     readonly transcriptAdmissionReadPort:
       CanonicalSourceTranscriptAdmissionReadPort
     readonly transcriptReleaseReadPort:
@@ -421,6 +443,23 @@ export async function createVisualIntelligenceProductionRuntime(
     lifecycleObjectPort: objectPort,
     ...(dependencies.now ? { now: dependencies.now } : {}),
   })
+  const createSourceAnalysisL4VisualEvidenceAttemptOwnerFactory = (input: {
+    readonly admissionReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceAdmissionReadPort
+    readonly releaseReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceReleaseReadPort
+    readonly terminalReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceTerminalReadPort
+  }) => createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
+    requestAuthorityReadPort: sourceAnalysisRequestAuthorityRepository,
+    admissionReadPort: input.admissionReadPort,
+    releaseReadPort: input.releaseReadPort,
+    executionPort: createGoogleCloudRunL4VisualEvidenceExecutionPort(),
+    terminalReadPort: input.terminalReadPort,
+    evidenceRepository: sourceAnalysisL4VisualEvidenceRepository,
+    lifecycleObjectPort: objectPort,
+    ...(dependencies.now ? { now: dependencies.now } : {}),
+  })
   const createSourceAnalysisOrchestraCoordinatorFactory = (input: {
     readonly planningScopeReadPort:
       CanonicalSourceAnalysisPlanningScopeReadPort
@@ -435,6 +474,12 @@ export async function createVisualIntelligenceProductionRuntime(
       CanonicalSourceAnalysisL4ProbeWorkerResultReadPort
     readonly probeUsageCostReadPort:
       CanonicalSourceAnalysisL4ProbeUsageCostReadPort
+    readonly visualEvidenceAdmissionReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceAdmissionReadPort
+    readonly visualEvidenceReleaseReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceReleaseReadPort
+    readonly visualEvidenceTerminalReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceTerminalReadPort
     readonly transcriptAdmissionReadPort:
       CanonicalSourceTranscriptAdmissionReadPort
     readonly transcriptReleaseReadPort:
@@ -458,6 +503,12 @@ export async function createVisualIntelligenceProductionRuntime(
     preparationOwner: createSourceAnalysisPreparationOwnerFactory({
       finalizedAuthorityReadPort: input.finalizedAuthorityReadPort,
     }),
+    l4VisualEvidenceAttemptOwner:
+      createSourceAnalysisL4VisualEvidenceAttemptOwnerFactory({
+        admissionReadPort: input.visualEvidenceAdmissionReadPort,
+        releaseReadPort: input.visualEvidenceReleaseReadPort,
+        terminalReadPort: input.visualEvidenceTerminalReadPort,
+      }),
     transcriptAttemptOwner: createSourceTranscriptA100AttemptOwnerFactory({
       finalizedAuthorityReadPort: input.finalizedAuthorityReadPort,
       admissionReadPort: input.transcriptAdmissionReadPort,
@@ -540,6 +591,8 @@ export async function createVisualIntelligenceProductionRuntime(
     sourceLedOrchestraPlanningReconciliationPort,
     createSourceAnalysisL4ProbeAttemptOwner:
       createSourceAnalysisL4ProbeAttemptOwnerFactory,
+    createSourceAnalysisL4VisualEvidenceAttemptOwner:
+      createSourceAnalysisL4VisualEvidenceAttemptOwnerFactory,
     createSourceTranscriptA100AttemptOwner:
       createSourceTranscriptA100AttemptOwnerFactory,
     createSourceAnalysisPreparationOwner:

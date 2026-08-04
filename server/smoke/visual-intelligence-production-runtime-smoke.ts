@@ -360,7 +360,7 @@ const runtime = await createVisualIntelligenceProductionRuntime(env, {
   now: () => now,
 })
 assert.ok(runtime)
-assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v6')
+assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v7')
 assert.equal(runtime.providerCapabilityId, 'visual_intelligence')
 assert.equal(runtime.semanticEngine, 'gemini-3.1-pro-preview')
 assert.equal(runtime.thinkingLevel, 'high')
@@ -422,10 +422,14 @@ assert.equal(
 )
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceRepository.repositoryVersion,
-  'canonical-source-analysis-l4-visual-evidence-repository-v2',
+  'canonical-source-analysis-l4-visual-evidence-repository-v3',
 )
 assert.equal(
   typeof runtime.createSourceAnalysisL4ProbeAttemptOwner,
+  'function',
+)
+assert.equal(
+  typeof runtime.createSourceAnalysisL4VisualEvidenceAttemptOwner,
   'function',
 )
 assert.equal(
@@ -1242,6 +1246,7 @@ console.log(JSON.stringify({
   sourceAnalysisProbeAuthorityRepositoryMounted: true,
   sourceTranscriptOrchestraRepositoryMounted: true,
   sourceAnalysisL4ProbeAttemptOwnerFactoryMounted: true,
+  sourceAnalysisL4VisualEvidenceAttemptOwnerFactoryMounted: true,
   sourceTranscriptA100AttemptOwnerFactoryMounted: true,
   sourceAnalysisOrchestraCoordinatorFactoryMounted: true,
   sourcePreparationRequiresExactL4ProbeAuthority: true,

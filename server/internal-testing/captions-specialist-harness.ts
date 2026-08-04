@@ -1,0 +1,241 @@
+import { createHash } from 'node:crypto'
+import {
+  CAPTIONS_SPECIALIST_SKILL_KEY,
+} from '../../src/types/captions-specialist'
+import {
+  ORCHESTRA_SKILL_CALL_VERSION,
+  type OrchestraSkillCall,
+  type OrchestraSkillJobResult,
+  type SkillArtifactRef,
+  type SkillContractRef,
+  type SkillSupportRequest,
+} from '../../src/types/orchestra-skill-contracts'
+import type {
+  SkillRequestedMode,
+  SkillScopeLevel,
+} from '../../src/types/skill-capability-manifest'
+import {
+  calculateSkillContractDigest,
+  parseOrchestraSkillCall,
+} from '../orchestra/orchestra-skill-contracts'
+import { CAPTIONS_SPECIALIST_MANIFEST } from '../captions-specialist/captions-specialist-manifest'
+import { CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT } from '../captions-specialist/captions-specialist-qualification'
+import {
+  CAPTIONS_CLOSED_AUTHORITY_BOUNDARY,
+  runCaptionsSpecialistJob,
+} from '../captions-specialist/captions-specialist-runtime'
+
+export const CAPTIONS_INTERNAL_HARNESS_VERSION =
+  'captions-specialist-internal-harness-v1' as const
+
+export interface CaptionsHarnessAuthorityState {
+  timelineMutations: number
+  providerCalls: number
+  runtimeExecutions: number
+  assetsCreated: number
+  creditMutations: number
+  billingMutations: number
+  qaApprovals: number
+  deliveries: number
+}
+
+export interface CaptionsHarnessRun {
+  harnessVersion: typeof CAPTIONS_INTERNAL_HARNESS_VERSION
+  initialCall: OrchestraSkillCall
+  initialResult: OrchestraSkillJobResult
+  resumedCall: OrchestraSkillCall | null
+  resumedResult: OrchestraSkillJobResult | null
+  capturedSupportRequests: SkillSupportRequest[]
+  authorityStateBefore: CaptionsHarnessAuthorityState
+  authorityStateAfter: CaptionsHarnessAuthorityState
+}
+
+const EMPTY_AUTHORITY_STATE: Readonly<CaptionsHarnessAuthorityState> =
+  Object.freeze({
+    timelineMutations: 0,
+    providerCalls: 0,
+    runtimeExecutions: 0,
+    assetsCreated: 0,
+    creditMutations: 0,
+    billingMutations: 0,
+    qaApprovals: 0,
+    deliveries: 0,
+  })
+
+function sha256(value: string): string {
+  return createHash('sha256').update(value, 'utf8').digest('hex')
+}
+
+function contractRef(
+  id: string,
+  version: string,
+  contentHash: string,
+): SkillContractRef {
+  return { id, version, contentHash }
+}
+
+export function createCaptionsHarnessArtifact(
+  artifactType: string,
+  producerSkillKey = 'canonical_owner',
+): SkillArtifactRef {
+  return {
+    id: `artifact.${artifactType}`,
+    version: `${artifactType}-v1`,
+    contentHash: sha256(`artifact:${artifactType}:canonical`),
+    artifactType,
+    producerSkillKey,
+    privateArtifact: true,
+    byteFreeRef: true,
+    sourceSupportRequestRef: null,
+  }
+}
+
+export function createCaptionsHarnessCall(input: {
+  callId: string
+  jobType: string
+  scopeLevel: SkillScopeLevel
+  requestedMode?: SkillRequestedMode
+  inputArtifactTypes?: string[]
+  outputId?: string | null
+  sceneId?: string | null
+  boundaryId?: string | null
+}): OrchestraSkillCall {
+  const callWithoutDigest: Omit<OrchestraSkillCall, 'callDigestSha256'> = {
+    schemaVersion: ORCHESTRA_SKILL_CALL_VERSION,
+    callId: input.callId,
+    idempotencyKey: `${input.callId}.idempotency`,
+    caller: {
+      callerKind: 'internal_test_harness',
+      callerId: 'captions.cap01.harness',
+    },
+    assigneeSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
+    job: {
+      jobId: `${input.callId}.job`,
+      jobType: input.jobType,
+      requestedMode: input.requestedMode ?? 'planning',
+      scopeLevel: input.scopeLevel,
+    },
+    canonicalScope: {
+      ownerUserId: 'owner.fixture',
+      workspaceId: 'workspace.fixture',
+      projectId: 'project.fixture',
+      editSessionId: 'edit.fixture',
+      approvedSnapshotRef: null,
+      outputId: input.outputId === undefined ? 'output.fixture' : input.outputId,
+      sceneId: input.sceneId === undefined
+        ? input.scopeLevel === 'scene' ? 'scene.fixture' : null
+        : input.sceneId,
+      boundaryId: input.boundaryId === undefined
+        ? input.scopeLevel === 'boundary' ? 'boundary.fixture' : null
+        : input.boundaryId,
+      authorizedFrameRanges: input.scopeLevel === 'video'
+        ? [{ startFrame: 0, endFrameExclusive: 900 }]
+        : [{ startFrame: 120, endFrameExclusive: 240 }],
+    },
+    manifestRef: contractRef(
+      CAPTIONS_SPECIALIST_MANIFEST.manifestId,
+      CAPTIONS_SPECIALIST_MANIFEST.manifestSchemaVersion,
+      CAPTIONS_SPECIALIST_MANIFEST.manifestHash,
+    ),
+    qualificationSnapshotRef: contractRef(
+      CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.snapshotId,
+      CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.schemaVersion,
+      CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.snapshotDigestSha256,
+    ),
+    inputArtifactRefs: (input.inputArtifactTypes ?? [
+      'canonical_transcript',
+      'confirmed_output_frame',
+      'master_timing_or_planning_timing',
+    ]).map((artifactType) => createCaptionsHarnessArtifact(artifactType)),
+    injectedSupportArtifactRefs: [],
+    resumeOfSupportRequestRef: null,
+    resumeOriginCallRef: null,
+    authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
+    privateArtifactPolicy: {
+      tenantScoped: true,
+      byteFreeCoordinationOnly: true,
+      rawChatAllowed: false,
+      mediaBytesAllowed: false,
+      urlOrPathAllowed: false,
+    },
+  }
+  return parseOrchestraSkillCall({
+    ...callWithoutDigest,
+    callDigestSha256: calculateSkillContractDigest(
+      { ...callWithoutDigest, callDigestSha256: '' },
+      'callDigestSha256',
+    ),
+  })
+}
+
+export function resumeCaptionsHarnessCall(
+  originalCall: OrchestraSkillCall,
+  request: SkillSupportRequest,
+): OrchestraSkillCall {
+  const requestRef = contractRef(
+    request.requestId,
+    request.schemaVersion,
+    request.requestDigestSha256,
+  )
+  const resumedWithoutDigest: Omit<OrchestraSkillCall, 'callDigestSha256'> = {
+    ...structuredClone(originalCall),
+    callId: `${originalCall.callId}.resume`,
+    idempotencyKey: originalCall.idempotencyKey,
+    job: {
+      ...structuredClone(originalCall.job),
+      jobId: `${originalCall.job.jobId}.resume`,
+    },
+    injectedSupportArtifactRefs: request.requestedArtifactTypes.map(
+      (artifactType) => ({
+        ...createCaptionsHarnessArtifact(artifactType, request.targetSkillKey),
+        id: `artifact.${artifactType}.support`,
+        contentHash: sha256(
+          `${request.requestDigestSha256}:${artifactType}:approved`,
+        ),
+        sourceSupportRequestRef: requestRef,
+      }),
+    ),
+    resumeOfSupportRequestRef: requestRef,
+    resumeOriginCallRef: request.originalCallRef,
+  }
+  return parseOrchestraSkillCall({
+    ...resumedWithoutDigest,
+    callDigestSha256: calculateSkillContractDigest(
+      { ...resumedWithoutDigest, callDigestSha256: '' },
+      'callDigestSha256',
+    ),
+  })
+}
+
+export function runCaptionsInternalHarness(input: {
+  call: OrchestraSkillCall
+  autoResumeSingleSupportRequest?: boolean
+}): CaptionsHarnessRun {
+  const authorityStateBefore = structuredClone(EMPTY_AUTHORITY_STATE)
+  const initialResult = runCaptionsSpecialistJob({ call: input.call })
+  const capturedSupportRequests = structuredClone(initialResult.supportRequests)
+  let resumedCall: OrchestraSkillCall | null = null
+  let resumedResult: OrchestraSkillJobResult | null = null
+  if (input.autoResumeSingleSupportRequest
+    && capturedSupportRequests.length === 1) {
+    resumedCall = resumeCaptionsHarnessCall(
+      input.call,
+      capturedSupportRequests[0],
+    )
+    resumedResult = runCaptionsSpecialistJob({
+      call: resumedCall,
+      resumeSupportRequest: capturedSupportRequests[0],
+    })
+  }
+  const authorityStateAfter = structuredClone(EMPTY_AUTHORITY_STATE)
+  return {
+    harnessVersion: CAPTIONS_INTERNAL_HARNESS_VERSION,
+    initialCall: structuredClone(input.call),
+    initialResult,
+    resumedCall,
+    resumedResult,
+    capturedSupportRequests,
+    authorityStateBefore,
+    authorityStateAfter,
+  }
+}

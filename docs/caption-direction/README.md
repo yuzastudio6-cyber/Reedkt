@@ -1,8 +1,8 @@
-# Captions Specialist — CAP-00R Reconciliation Checkpoint
+# Captions Specialist — CAP-01 Contract Harness Checkpoint
 
-Status: `cap_00r_in_progress`
-Checkpoint: `CAP-00R`
-Runtime changes: none
+Status: `cap_01_complete`
+Checkpoint: `CAP-01`
+Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
 This package reconciles the historical Caption Direction architecture with the
@@ -71,6 +71,10 @@ The governing workflow invariant remains:
 - [Migration and compatibility plan](cap-00r-migration-compatibility-plan.md)
 - [CAP-00R evidence report](cap-00r-report.md)
 
+### CAP-01 implementation evidence
+
+- [CAP-01 manifest, qualification, and harness report](cap-01-specialist-manifest-harness-report.md)
+
 ### Historical architecture retained and amended
 
 - [Conversation decision ledger](conversation-decision-ledger.md)
@@ -105,11 +109,14 @@ The governing workflow invariant remains:
 
 ## Progression
 
-CAP-00R is documentation and reconciliation only. After its evidence checks and
-checkpoint pass, implementation continues automatically into CAP-01. The
-missing neutral shared contracts are a scoped CAP-01 dependency gap, not
-permission to create Caption-owned duplicates and not a reason to stop safe
-Caption work.
+CAP-00R and CAP-01 are complete on the clean specialist branch. CAP-01 adds the
+neutral shared v2 manifest extension, per-job qualification snapshot,
+Orchestra-shaped call/support/result contracts, strict closed-data validation,
+the Caption manifest, and a bounded internal-only harness. It does not add the
+HQ reasoning loop, a global scheduler, or peer execution.
+
+Implementation continues automatically into CAP-02 component publication and
+CAP-03 specialist definition/registry wiring.
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

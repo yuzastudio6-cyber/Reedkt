@@ -252,13 +252,13 @@ const canonicalComponents = new Map([
   entry(canonicalQuality),
 ])
 const canonicalAuthorityStore = objectPort()
-const canonicalOwner = createOwner(
+export const canonicalOwner = createOwner(
   {},
   canonicalAuthorityStore.port,
   canonicalEvidence,
   canonicalComponents,
 )
-const canonicalAuthority = await canonicalOwner.compileAndPersist({
+export const canonicalAuthority = await canonicalOwner.compileAndPersist({
   authorityId: 'sam31-canonical-a100-runtime-qualification-compilation',
   qualificationEvidenceRef: canonicalEvidenceRef,
   componentEvidenceRefs: {
@@ -274,12 +274,12 @@ const canonicalAuthority = await canonicalOwner.compileAndPersist({
       canonicalSam31GpuRuntimeQualificationComponentRef(canonicalQuality),
   },
 })
-const canonicalAuthorityRef =
+export const canonicalAuthorityRef =
   canonicalSam31GpuRuntimeQualificationCompilationAuthorityRef(
     canonicalAuthority,
   )
 const qualificationStore = objectPort()
-const qualificationRepository =
+export const qualificationRepository =
   createCanonicalSam31GpuRuntimeQualificationEvidenceRepository({
     objectPort: qualificationStore.port,
     prefix: 'private/smoke/sam3_1/compiled-runtime-qualification/v1',
@@ -291,7 +291,7 @@ const imageSupplyChainReleaseRef = ref(
   qualifiedSupplyChain.releaseId,
   qualifiedSupplyChain.releaseHash,
 )
-const released = await prepareCanonicalSam31GpuRuntimeRelease({
+export const released = await prepareCanonicalSam31GpuRuntimeRelease({
   candidate: canonicalCandidate,
   ingestReceipt: canonicalIngest,
   sourceCheckpointQualification: canonicalQualification,

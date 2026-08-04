@@ -696,6 +696,10 @@ function assertTaskContextMatches(input: {
     || specialized.evidenceClass !== 'canonical_private_reread'
     || specialized.status !== 'private_internal_qualified'
     || !specialized.authority.privateInternalQualified
+    || specialized.releaseId !== admission.runtimeReleaseRef.id
+    || specialized.releaseVersion !== admission.runtimeReleaseRef.version
+    || Date.parse(admission.admittedAt) < Date.parse(specialized.qualifiedAt)
+    || Date.parse(admission.admittedAt) >= Date.parse(specialized.expiresAt)
     || specialized.route.routeId !== admission.routeId
     || specialized.route.accelerator !== target.accelerator
     || specialized.immutableImageDigest !== target.immutableImageDigest

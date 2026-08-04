@@ -281,6 +281,25 @@ const tampered = await preparingPort.startOneShotJob({
 assert.equal(tampered.disposition, 'rejected_before_creation')
 assert.equal(delegateCalls, 1)
 
+currentContext = rebindTaskContext({
+  base: a100.context,
+  binding: a100.trackAllOrchestraBinding,
+  taskContextId: 'crossed-specialized-release-task-context',
+  specializedRuntimeRelease: reissueSpecializedReleaseWithId(
+    a100.context.specializedRuntimeRelease,
+    'older-sam31-specialized-release',
+  ),
+})
+const crossedSpecializedRelease = await preparingPort.startOneShotJob({
+  ...a100Input,
+  executionEnvelopeRef: ref('crossed-specialized-release-envelope'),
+})
+assert.equal(
+  crossedSpecializedRelease.disposition,
+  'rejected_before_creation',
+)
+assert.equal(delegateCalls, 1)
+
 const l4Objects = new Map<string, Buffer>()
 const l4Store = createCanonicalSam31GpuTaskStoreFromObjectPort({
   objectPort: memoryObjectPort(l4Objects),
@@ -596,7 +615,7 @@ export {
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-task-owner',
-  checks: 60,
+  checks: 61,
   exactTrackAllOrchestraCallBoundBeforeSam31Task: true,
   exactTrackAllSubjectPromptAndFrameIntervalBound: true,
   crossSceneTrackAllReuseRejected: true,
@@ -608,6 +627,7 @@ console.log(JSON.stringify({
   duplicateLaunchBlocked: true,
   callerTaskContractRejected: true,
   cpuOrPathFallbackRejected: true,
+  specializedReleaseIdVersionAndValidityBoundToAdmission: true,
   exactApprovedMaskProxyStagedBeforeTask: true,
   createOnlyGenerationAndBytesReread: true,
   createOnlyRuntimeResponseReread: true,
@@ -884,7 +904,7 @@ function buildSpecializedRelease(input: {
     source: 'canonical_sam3_1_gpu_runtime_release_compiler' as const,
     evidenceClass: 'canonical_private_reread' as const,
     status: 'private_internal_qualified' as const,
-    releaseId: `${input.routeId}-specialized-release`,
+    releaseId: input.target.releaseRef.id,
     releaseVersion: 1,
     toolId: 'sam3_1' as const,
     operationId: 'tool.sam3_1.segment_and_track_subject.v1' as const,
@@ -1035,6 +1055,7 @@ function rebindTaskContext(input: {
   base: ReturnType<typeof buildCanonicalSam31GpuTaskContext>
   binding: unknown
   taskContextId: string
+  specializedRuntimeRelease?: unknown
 }) {
   const { base } = input
   return buildCanonicalSam31GpuTaskContext({
@@ -1048,12 +1069,24 @@ function rebindTaskContext(input: {
     sourceBindingRef: base.sourceBindingRef,
     sourceMedia: base.sourceMedia,
     approvedPrompt: base.approvedPrompt,
-    specializedRuntimeRelease: base.specializedRuntimeRelease,
+    specializedRuntimeRelease:
+      input.specializedRuntimeRelease ?? base.specializedRuntimeRelease,
     primaryRateAuthorityRef: base.primaryRateAuthorityRef,
     fallbackRateAuthorityRef: base.fallbackRateAuthorityRef,
     privateTaskInputTransportRef: base.privateTaskInputTransportRef,
     privateTaskOutputTransportRef: base.privateTaskOutputTransportRef,
     preparedAt: base.preparedAt,
+  })
+}
+
+function reissueSpecializedReleaseWithId(value: unknown, releaseId: string) {
+  const parsed = canonicalSam31GpuRuntimeReleaseObservationSchema.parse(value)
+  const { releaseObservationHash: _oldHash, ...priorPayload } = parsed
+  assert.ok(_oldHash)
+  const payload = { ...priorPayload, releaseId }
+  return canonicalSam31GpuRuntimeReleaseObservationSchema.parse({
+    ...payload,
+    releaseObservationHash: sha256AuthorityValue(payload),
   })
 }
 

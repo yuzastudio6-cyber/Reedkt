@@ -43,7 +43,15 @@ jobs:
         run: npm ci
 
       - name: Install approved local media runtime
-        run: sudo apt-get update && sudo apt-get install --yes ffmpeg
+        shell: bash
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo env DEBIAN_FRONTEND=noninteractive timeout 300s apt-get update \
+              -o Acquire::Retries=3 -o Acquire::http::Timeout=30
+            sudo env DEBIAN_FRONTEND=noninteractive timeout 300s apt-get install --yes ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
 
       - name: Check repository secrets
         run: npm run check:secrets

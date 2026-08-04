@@ -1,5 +1,5 @@
-export const SOUND_TIME_ESTIMATOR_KEY = 'sound.time.v3' as const
-export const SOUND_CREDIT_ESTIMATOR_KEY = 'sound.credit.v3' as const
+export const SOUND_TIME_ESTIMATOR_KEY = 'sound.time.v4' as const
+export const SOUND_CREDIT_ESTIMATOR_KEY = 'sound.credit.v4' as const
 
 export function estimateStandaloneSoundTime(input: {
   durationSeconds: number

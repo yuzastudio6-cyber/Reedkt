@@ -6,6 +6,7 @@ export {
   type CanonicalSoundQaRequest,
   type CanonicalSoundQaResult,
   type CanonicalSoundRevisionRequest,
+  type CanonicalSoundRevisionExecutionRequest,
   type CanonicalSoundSkillService,
   type LoadedCanonicalSoundContext,
   type PeerCapabilityViewRequest,
@@ -35,3 +36,9 @@ export {
   validateSoundOperationHandlerCoverage,
   type SoundOperationHandlerKind,
 } from './sound-operation-handler-registry'
+export {
+  resolveSoundCapabilityModeMatrixEntry,
+  validateSoundExecutionGraphMode,
+  type SoundCapabilityModeDisposition,
+  type SoundCapabilityModeMatrixEntry,
+} from './sound-capability-mode-matrix'

@@ -139,7 +139,7 @@ export function registerSoundSkill(input: {
   validateCanonicalSoundPublication()
   registerSoundArtifactSchemas(input.artifacts)
   registerSoundQaPolicies(input.qa)
-  input.estimators.registerTime('sound.time.v3', (estimateInput) => {
+  input.estimators.registerTime('sound.time.v4', (estimateInput) => {
     const durationFrames = typeof estimateInput.durationFrames === 'number' ? estimateInput.durationFrames : 0
     const expectedSeconds = Math.max(1, Math.ceil(durationFrames / 24)) +
       (estimateInput.providerRequired === true ? 120 : 10)
@@ -149,7 +149,7 @@ export function registerSoundSkill(input: {
       evidence: ['exact_range_duration', estimateInput.providerRequired === true ? 'provider_fixture_route' : 'local_route'],
     }
   })
-  input.estimators.registerCredit('sound.credit.v3', (estimateInput) => {
+  input.estimators.registerCredit('sound.credit.v4', (estimateInput) => {
     const provider = estimateInput.providerRequired === true
     const expectedCredits = provider ? 10 : estimateInput.noAction === true ? 0 : 1
     return {

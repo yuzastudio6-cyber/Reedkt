@@ -3,6 +3,16 @@ import type { SkillQualificationStatus } from '../core/edit-skill-ids'
 import type { CanonicalSoundRequest } from '../../sound/sound-contracts'
 import { soundSkillCapabilityManifest } from './sound-capability-manifest'
 
+const compositeExecutionJobs = new Set([
+  'design_scene_sound', 'design_boundary_sound', 'full_video_sound_pass',
+  'support_living_frame_sound', 'support_3d_sound', 'support_motion_design_sound',
+  'support_transition_sound', 'support_graphic_design_sound',
+])
+
+export function isCompositeSoundExecutionJob(jobType: string): boolean {
+  return compositeExecutionJobs.has(jobType)
+}
+
 export interface StandaloneSoundAssignmentPlan {
   ok: boolean
   status: 'eligible' | 'blocked'
@@ -41,6 +51,11 @@ export function qualificationSupportsSoundRequest(
   if (entry.qualificationStatus === 'blocked' || entry.qualificationStatus === 'retired' ||
     entry.qualificationStatus === 'implementation_pending' || entry.qualificationStatus === 'declared') return false
   if (mode === 'planning') return true
+  if (isCompositeSoundExecutionJob(entry.supportedJobTypes[0] ?? '')) {
+    // The parent capability plans and bounds work. Execution qualification is
+    // evaluated independently for every exact child route in the compiled graph.
+    return mode === 'fixture' || mode === 'private_internal'
+  }
   if (mode === 'fixture') return entry.evidenceLevel === 'fixture' || entry.evidenceLevel === 'internal_execution' || entry.evidenceLevel === 'production'
   if (mode === 'private_internal') return entry.qualificationStatus === 'internal_execution_qualified' ||
     entry.qualificationStatus === 'production_qualified'

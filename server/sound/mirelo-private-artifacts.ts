@@ -126,7 +126,7 @@ export class PrivateMireloCarrierAudioExtractor implements MireloCarrierAudioExt
         executionId: `carrier-extract.${attemptId}.${input.candidateIndex}`,
         binding: this.binding,
         operation: 'extract',
-        operationProfileKey: 'sound.extract.pcm.v1',
+        operationProfileKey: 'sound.extract.provider_carrier.v1',
         sources: [{
           artifact: {
             artifactId: `carrier.${attemptId}.${input.candidateIndex}`,

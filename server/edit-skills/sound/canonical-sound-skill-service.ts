@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import type { SkillCapabilityManifest } from '../core/skill-capability-manifest-types'
 import {
   applyLocalizedSoundRevision,
@@ -84,6 +85,14 @@ export interface CanonicalSoundRevisionRequest {
   replacementCues?: CanonicalSoundCue[]
 }
 
+export interface CanonicalSoundRevisionExecutionRequest extends CanonicalSoundRevisionRequest {
+  execution: {
+    packageId: string
+    approvedWorkItemId: string
+    selectedOptionalStepKeys: string[]
+  }
+}
+
 export interface CanonicalSoundQaRequest {
   executionPackage: ApprovedSoundExecutionPackage
 }
@@ -99,6 +108,8 @@ export interface CanonicalSoundSkillService {
   getPeerCapabilityView(request: PeerCapabilityViewRequest): PeerSoundCapabilityView
   plan(request: CanonicalSoundRequest): Promise<CanonicalSoundPlanResult>
   execute(executionPackage: ApprovedSoundExecutionPackage): Promise<CanonicalSoundResult>
+  planRevision(request: CanonicalSoundRevisionRequest): Promise<CanonicalSoundResult>
+  executeRevision(request: CanonicalSoundRevisionExecutionRequest): Promise<CanonicalSoundResult>
   revise(request: CanonicalSoundRevisionRequest): Promise<CanonicalSoundResult>
   qa(request: CanonicalSoundQaRequest): Promise<CanonicalSoundQaResult>
 }
@@ -177,7 +188,7 @@ export class StandaloneCanonicalSoundSkillService implements CanonicalSoundSkill
     return (await this.#executeWithEvidence(executionPackage)).result
   }
 
-  async revise(input: CanonicalSoundRevisionRequest): Promise<CanonicalSoundResult> {
+  async planRevision(input: CanonicalSoundRevisionRequest): Promise<CanonicalSoundResult> {
     const planned = await this.plan(input.request)
     const replacementCues = input.replacementCues ?? planned.controller.result.cueManifest.cues.filter((cue) =>
       input.invalidatedRanges.some((range) => cue.startFrame < range.endFrameExclusive && cue.endFrameExclusive > range.startFrame))
@@ -235,11 +246,105 @@ export class StandaloneCanonicalSoundSkillService implements CanonicalSoundSkill
         preservedArtifactIds: [...preservedArtifactIds],
         preservedExecutionUnitIds: [...preservedExecutionUnitIds],
         replacementCueIds: replacementCues.map((cue) => cue.cueId),
+        replacedUnitIds: planned.executionGraph.units.map((unit) => unit.unitId),
         unaffectedArtifactsReused: preservedArtifactIds.size > 0,
       },
       modifiedAudioRanges: [],
       actualExecutionEvidence: undefined,
       finalCompositionHandoff: undefined,
+      staleIfSourceChanges: true,
+    })
+  }
+
+  async revise(input: CanonicalSoundRevisionRequest): Promise<CanonicalSoundResult> {
+    return this.planRevision(input)
+  }
+
+  async executeRevision(input: CanonicalSoundRevisionExecutionRequest): Promise<CanonicalSoundResult> {
+    const plannedRevision = await this.planRevision(input)
+    const originalAuthority = input.request.assignmentScope.authorizedAudioWriteRanges
+    if (!input.invalidatedRanges.every((invalidated) => originalAuthority.some((authority) =>
+      invalidated.startFrame >= authority.startFrame &&
+      invalidated.endFrameExclusive <= authority.endFrameExclusive))) {
+      throw new Error('Executed Sound revision invalidation exceeds the original write authority.')
+    }
+    const revisionIdentity = createHash('sha256').update(JSON.stringify({
+      requestId: input.request.requestId,
+      invalidatedRanges: input.invalidatedRanges,
+      packageId: input.execution.packageId,
+    })).digest('hex').slice(0, 20)
+    const replacementRequest: CanonicalSoundRequest = structuredClone(input.request)
+    replacementRequest.requestId = `${input.request.requestId}.revision.${revisionIdentity}`
+    replacementRequest.idempotencyKey = `${input.request.idempotencyKey}.revision.${revisionIdentity}`
+    replacementRequest.attemptId = `${input.request.attemptId}.revision.${revisionIdentity}`
+    replacementRequest.assignmentScope.authorizedAudioWriteRanges = structuredClone(input.invalidatedRanges)
+    replacementRequest.assignmentScope.assignmentMode = input.invalidatedRanges.length > 1 ? 'multi_range' : 'range'
+    replacementRequest.eventAnchors = replacementRequest.eventAnchors.filter((event) =>
+      input.invalidatedRanges.some((range) =>
+        event.frame < range.endFrameExclusive &&
+        (event.endFrameExclusive ?? event.frame + 1) > range.startFrame))
+    const replacementPlan = await this.plan(replacementRequest)
+    const execution = await this.#executeWithEvidence({
+      schemaVersion: 'approved-sound-execution-package-v1',
+      packageId: input.execution.packageId,
+      approvedWorkItemId: input.execution.approvedWorkItemId,
+      request: replacementPlan.request,
+      plannedResult: replacementPlan.controller.result,
+      selectedRoute: replacementPlan.selectedRoute,
+      executionGraph: replacementPlan.executionGraph,
+      selectedOptionalStepKeys: input.execution.selectedOptionalStepKeys,
+      continuitySceneEvidence: replacementPlan.continuity.sceneEvidence,
+    })
+    const preservedArtifactIds = new Set(plannedRevision.revisionEvidence?.preservedArtifactIds ?? [])
+    const preservedSelected = plannedRevision.selectedAssetVersions.filter((artifact) =>
+      preservedArtifactIds.has(artifact.artifactId))
+    const preservedCandidates = plannedRevision.candidateAssetVersions.filter((artifact) =>
+      preservedArtifactIds.has(artifact.artifactId))
+    const preservedStems = plannedRevision.privateSoundStemArtifacts.filter((artifact) =>
+      preservedArtifactIds.has(artifact.artifactId))
+    const selectedAssetVersions = uniqueSoundArtifacts([
+      ...preservedSelected,
+      ...execution.result.selectedAssetVersions,
+    ])
+    const privateSoundStemArtifacts = uniqueSoundArtifacts([
+      ...preservedStems,
+      ...execution.result.privateSoundStemArtifacts,
+    ])
+    const finalSoundArtifactReferences = uniqueSoundArtifacts([
+      ...preservedSelected,
+      ...preservedStems,
+      ...(execution.result.finalCompositionHandoff?.finalSoundArtifactReferences ?? []),
+      ...execution.result.selectedAssetVersions,
+    ])
+    return parseCanonicalSoundResult({
+      ...execution.result,
+      cueManifest: plannedRevision.cueManifest,
+      mixAutomationManifest: plannedRevision.mixAutomationManifest,
+      candidateAssetVersions: uniqueSoundArtifacts([
+        ...preservedCandidates,
+        ...execution.result.candidateAssetVersions,
+      ]),
+      selectedAssetVersions,
+      privateSoundStemArtifacts,
+      executionUnits: [
+        ...(plannedRevision.executionUnits ?? []),
+        ...(execution.result.executionUnits ?? []),
+      ],
+      mutationReceipts: [
+        ...(plannedRevision.mutationReceipts ?? []),
+        ...(execution.result.mutationReceipts ?? []),
+      ],
+      revisionEvidence: {
+        ...plannedRevision.revisionEvidence!,
+        replacedUnitIds: replacementPlan.executionGraph.units.map((unit) => unit.unitId),
+      },
+      modifiedAudioRanges: execution.result.modifiedAudioRanges,
+      finalCompositionHandoff: execution.result.finalCompositionHandoff ? {
+        ...execution.result.finalCompositionHandoff,
+        soundArtifactIds: finalSoundArtifactReferences.map((artifact) => artifact.artifactId),
+        finalSoundArtifactReferences,
+        authorizedRanges: input.request.assignmentScope.authorizedAudioWriteRanges,
+      } : undefined,
       staleIfSourceChanges: true,
     })
   }
@@ -286,4 +391,10 @@ export class StructuredRequestSoundContextLoader implements CanonicalSoundContex
     })
     return { controllerContext: {}, continuitySceneEvidence }
   }
+}
+
+function uniqueSoundArtifacts<T extends { artifactId: string; version: number }>(artifacts: T[]): T[] {
+  return [...new Map(artifacts.map((artifact) => [
+    `${artifact.artifactId}:${artifact.version}`, artifact,
+  ])).values()]
 }

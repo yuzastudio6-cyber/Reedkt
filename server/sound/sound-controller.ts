@@ -141,6 +141,7 @@ function availableRouteInputs(
   return Array.from(new Set([
     ...artifactTypes(request),
     'bounded_authority', 'sound_design_context', 'bounded_operation_profile',
+    'approved_provider_request',
     'bounded_retime_profile', 'approved_timing_manifest', 'timing_manifest',
     ...(request.sourceAudioRefs.length > 0
       ? ['approved_source_audio', 'approved_sound_asset', 'approved_project_sound_resolution', 'approved_ambience_source_or_brief']
@@ -203,9 +204,12 @@ function acquisitionRouteForCue(cue: CanonicalSoundCue): {
   jobType: string
 } {
   if (cue.acquisitionDecision === 'internal_library') return {
-    routeKey: 'sound.route.acquire.internal_library.v1',
-    capabilityKey: 'sound.search_sound_library',
-    jobType: 'search_sound_library',
+    // Search/authorization is a planning decision. Once an exact project-owned
+    // library artifact is selected, execution uses the same qualified private
+    // extraction path as any other approved project Sound source.
+    routeKey: 'sound.route.acquire.project_source.v1',
+    capabilityKey: 'sound.extract_project_owned_sound',
+    jobType: 'extract_project_owned_sound',
   }
   if (cue.acquisitionDecision === 'generate_original') {
     const video = cue.miniSkillKey === 'video_conditioned_sfx'
@@ -493,6 +497,7 @@ export function runCanonicalSoundController(
       miniSkillKey: decision.miniSkillKey,
       layerRole: layerRole(event),
       storyReason: decision.reason,
+      selectedSourceArtifactId: decision.selectedArtifact?.artifactId,
       sourceVisualHash: visualHash,
       sourceVisualArtifactId: visualDependency?.artifact.artifactId,
       staleIfVisualChanges: Boolean(visualHash),

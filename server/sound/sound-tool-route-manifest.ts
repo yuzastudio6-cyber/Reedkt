@@ -254,6 +254,19 @@ export function publishSoundToolRouteManifest(
   input: UnpublishedSoundToolRouteManifest,
 ): Readonly<SoundToolRouteManifest> {
   const routeOutputs = new Set<string>()
+  const stepsByKey = new Map(input.orderedOrGraphSteps.map((step) => [step.stepKey, step]))
+  const ancestorOutputs = (step: SoundToolRouteStep, visiting = new Set<string>()): Set<string> => {
+    if (visiting.has(step.stepKey)) throw new Error(`Sound route ${input.routeKey} contains a dependency cycle.`)
+    const next = new Set(visiting).add(step.stepKey)
+    const outputs = new Set<string>()
+    for (const dependencyKey of step.orderOrDependencies) {
+      const dependency = stepsByKey.get(dependencyKey)
+      if (!dependency) throw new Error(`Sound route ${input.routeKey} references unknown step ${dependencyKey}.`)
+      dependency.outputBindings.forEach((output) => outputs.add(output))
+      ancestorOutputs(dependency, next).forEach((output) => outputs.add(output))
+    }
+    return outputs
+  }
   for (const step of input.orderedOrGraphSteps) {
     const resolved = getToolOperationCapability(
       step.toolKey,
@@ -276,6 +289,16 @@ export function publishSoundToolRouteManifest(
       throw new Error(
         `Sound route step ${step.stepKey} claims undeclared operation outputs: ${unsupportedOutputs.join(',')}.`,
       )
+    }
+    const availableInputs = new Set([...input.requiredInputs, ...ancestorOutputs(step)])
+    const unresolvedInputs = step.inputBindings.filter((binding) => !availableInputs.has(binding))
+    if (unresolvedInputs.length > 0) {
+      throw new Error(
+        `Sound route step ${step.stepKey} has inputs that are neither initial route inputs nor predecessor outputs: ${unresolvedInputs.join(',')}.`,
+      )
+    }
+    if (step.failureBehavior === 'use_declared_fallback' && input.fallbackPolicy.fallbackRouteRefs.length === 0) {
+      throw new Error(`Sound route step ${step.stepKey} requires a declared fallback but the route publishes none.`)
     }
     for (const output of step.outputBindings) routeOutputs.add(output)
   }

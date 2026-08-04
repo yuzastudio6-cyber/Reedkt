@@ -66,6 +66,20 @@ export function runCanonicalSoundExecutionQa(input: {
     measuredDialogueRmsDbfs?: number
     measuredSoundRmsDbfs?: number
     measuredDuckingDeltaDb?: number
+    measuredDuckingDb?: number
+    protectedRange?: { rangeId: string; startFrame: number; endFrameExclusive: number }
+    expectedPanDirection: 'left' | 'center' | 'right'
+    measuredChannelDeltaDb: number
+    gainEnvelopeMeasurements: Array<{
+      timeSeconds: number
+      expectedGainDb: number
+      measuredRmsDbfs: number
+    }>
+    fadeMeasurements: {
+      leadingRmsDbfs: number
+      centerRmsDbfs: number
+      trailingRmsDbfs: number
+    }
   }>
 }): CanonicalSoundExecutionQaReport {
   const planningQa: SoundQaFinding[] = [
@@ -231,20 +245,40 @@ export function runCanonicalSoundExecutionQa(input: {
           maximumTruePeakDbtp: input.request.qualityPolicy.maximumTruePeakDbtp,
         }),
       finding(`mix.measured_ducking.${measurement.unitId}`,
-        measurement.measuredDuckingDeltaDb === undefined ? 'needs_review' : 'pass',
-        'Dialogue and Sound inputs plus the mixed output were decoded to derive a measured balance delta.', {
+        measurement.protectedRange === undefined ? 'pass'
+          : measurement.measuredDuckingDb === undefined ? 'needs_review'
+            : measurement.measuredDuckingDb < 0 ? 'pass' : 'fail',
+        'Protected overlap windows were decoded and compared with unprotected output energy.', {
           measuredOutputRmsDbfs: measurement.measuredOutputRmsDbfs,
           measuredDialogueRmsDbfs: measurement.measuredDialogueRmsDbfs,
           measuredSoundRmsDbfs: measurement.measuredSoundRmsDbfs,
           measuredDuckingDeltaDb: measurement.measuredDuckingDeltaDb,
+          measuredDuckingDb: measurement.measuredDuckingDb,
+          protectedRange: measurement.protectedRange,
         }),
-      finding(`mix.measured_channel_energy.${measurement.unitId}`,
-        measurement.measuredOutputChannelRmsDbfs.every(Number.isFinite) ? 'pass' : 'fail',
-        'Decoded mixed output channel energy was measured for pan and channel-balance review.', {
+      finding(`mix.measured_pan.${measurement.unitId}`,
+        measurement.expectedPanDirection === 'center'
+          ? Math.abs(measurement.measuredChannelDeltaDb) <= 3 ? 'pass' : 'warning'
+          : measurement.expectedPanDirection === 'right'
+            ? measurement.measuredChannelDeltaDb > 0 ? 'pass' : 'fail'
+            : measurement.measuredChannelDeltaDb < 0 ? 'pass' : 'fail',
+        'Decoded channel energy direction was compared with the compiled pan direction.', {
           measuredOutputChannelRmsDbfs: measurement.measuredOutputChannelRmsDbfs,
-          channelEnergyDeltaDb: measurement.measuredOutputChannelRmsDbfs.length === 2
-            ? Number(Math.abs(measurement.measuredOutputChannelRmsDbfs[0]! -
-              measurement.measuredOutputChannelRmsDbfs[1]!).toFixed(3)) : 0,
+          expectedPanDirection: measurement.expectedPanDirection,
+          measuredChannelDeltaDb: measurement.measuredChannelDeltaDb,
+        }),
+      finding(`mix.measured_gain_envelope.${measurement.unitId}`,
+        measurement.gainEnvelopeMeasurements.every((point) => Number.isFinite(point.measuredRmsDbfs))
+          ? 'pass' : 'fail',
+        'Gain-envelope control points were sampled from decoded mixed output.', {
+          gainEnvelopeMeasurements: measurement.gainEnvelopeMeasurements,
+        }),
+      finding(`mix.measured_fades.${measurement.unitId}`,
+        measurement.fadeMeasurements.leadingRmsDbfs <= measurement.fadeMeasurements.centerRmsDbfs &&
+          measurement.fadeMeasurements.trailingRmsDbfs <= measurement.fadeMeasurements.centerRmsDbfs
+          ? 'pass' : 'warning',
+        'Leading, center, and trailing decoded windows were compared for applied fades.', {
+          fadeMeasurements: measurement.fadeMeasurements,
         }),
     )
   }

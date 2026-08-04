@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import {
   createFailClosedLiveMireloAdapter,
   InMemoryMireloAttemptStore,
@@ -75,6 +76,7 @@ async function main() {
     approvedWorkItemId: `work-${attemptId}`,
     privateOutputScopeId: outputScopeId,
     idempotencyKey: `local-${attemptId}`,
+    operationSpecHash: createHash('sha256').update(`carrier:${attemptId}`).digest('hex'),
     timelineRate,
     creditReservationId: reservationId,
     routeBinding: routeAdmission.binding,

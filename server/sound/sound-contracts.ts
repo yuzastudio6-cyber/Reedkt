@@ -10,6 +10,17 @@ import type {
 
 export type SoundRequestedMode = 'planning' | 'fixture' | 'private_internal' | 'production'
 
+export interface CompositeSoundExecutionPolicy {
+  schemaVersion: 'composite-sound-execution-policy-v1'
+  parentJobType: string
+  parentMayExecuteDirectly: false
+  childRoutesMustBeExactAndModeQualified: true
+  privateInternalExecution: 'admit_only_when_every_required_child_route_is_qualified'
+  fixtureExecution: 'admit_fixture_routes_and_internal_routes'
+  productionExecution: 'admit_only_production_qualified_child_routes'
+  completionPolicy: 'all_required_units_or_typed_partial_result'
+}
+
 export const CANONICAL_SOUND_REQUEST_SCHEMA_VERSION = 'canonical-sound-request-v1' as const
 export const CANONICAL_SOUND_RESULT_SCHEMA_VERSION = 'canonical-sound-result-v1' as const
 
@@ -345,6 +356,7 @@ const soundCue = z.object({
     'transition_accent', 'room_tone', 'repair_layer',
   ]),
   storyReason: boundedText,
+  selectedSourceArtifactId: safeId.optional(),
   sourceVisualHash: sha256.optional(),
   sourceVisualArtifactId: safeId.optional(),
   staleIfVisualChanges: z.boolean(),
@@ -379,6 +391,44 @@ const mixAutomation = z.object({
 }).strict()
 
 export type SoundMixAutomation = z.infer<typeof mixAutomation>
+
+const compiledSoundMixRenderSpecSchema = z.object({
+  schemaVersion: z.literal('compiled-sound-mix-render-spec-v1'),
+  renderSpecId: safeId,
+  cueId: safeId,
+  targetRange: soundFrameRangeSchema,
+  timelineRate: timelineRateSchema,
+  gainEnvelope: z.array(z.object({
+    frame: z.number().int().nonnegative(),
+    gainDb: z.number().min(-96).max(24),
+  }).strict()).min(2).max(512),
+  fadeInFrames: z.number().int().nonnegative(),
+  fadeOutFrames: z.number().int().nonnegative(),
+  protectedSpeechRanges: z.array(soundFrameRangeSchema).max(512),
+  dialogueDuckingDb: z.number().min(-48).max(0),
+  duckAttackFrames: z.number().int().nonnegative(),
+  duckReleaseFrames: z.number().int().nonnegative(),
+  eqProfile: z.enum(['neutral', 'speech_safe', 'distance_rolloff', 'impact_control', 'room_match']),
+  dynamicsProfile: z.enum(['none', 'gentle_compression', 'peak_limiter']),
+  perspectiveProfile: z.enum(['close', 'medium', 'distant']),
+  roomProfile: z.enum(['dry', 'source_room', 'small_room', 'large_room', 'exterior']),
+  pan: z.number().min(-1).max(1),
+  headroomDb: z.number().min(0.1).max(24),
+  sourceArtifactIds: z.array(safeId).min(1).max(128),
+  renderSpecHash: sha256,
+}).strict()
+
+export type CompiledSoundMixRenderSpec = z.infer<typeof compiledSoundMixRenderSpecSchema>
+
+export interface SoundStepOutputBundle {
+  schemaVersion: 'sound-step-output-bundle-v1'
+  unitId: string
+  stepKey: string
+  declaredOutputBindings: string[]
+  outputsByBinding: Record<string, unknown>
+  outputArtifactRefs: SoundArtifactRef[]
+  bundleHash: string
+}
 
 const soundToolOperationBindingSchema = z.object({
   toolKey: safeId,
@@ -477,8 +527,41 @@ export const canonicalSoundResultSchema = z.object({
     preservedArtifactIds: z.array(safeId).max(10_000),
     preservedExecutionUnitIds: z.array(safeId).max(10_000),
     replacementCueIds: z.array(safeId).max(10_000),
+    replacedUnitIds: z.array(safeId).max(10_000),
     unaffectedArtifactsReused: z.boolean(),
   }).strict().optional(),
+  candidateProcessingReceipts: z.array(z.object({
+    receiptId: safeId,
+    unitId: safeId,
+    candidateArtifactId: safeId,
+    processedArtifactIds: z.array(safeId).min(1).max(32),
+    studyEvidenceHash: sha256,
+    qaEvidenceHash: sha256,
+    eligibleForSelection: z.boolean(),
+    receiptHash: sha256,
+  }).strict()).max(512).optional(),
+  candidateSelectionRecord: z.object({
+    recordId: safeId,
+    unitId: safeId,
+    candidateArtifactIds: z.array(safeId).min(1).max(128),
+    selectedArtifactId: safeId,
+    selectionPolicyKey: safeId,
+    recordHash: sha256,
+  }).strict().optional(),
+  mixRenderSpecifications: z.array(compiledSoundMixRenderSpecSchema).max(10_000).optional(),
+  fallbackEvidence: z.array(z.object({
+    fallbackEvidenceId: safeId,
+    unitId: safeId,
+    failedRouteKey: safeId,
+    failedRouteVersion: safeId,
+    failureCode: safeId,
+    decision: z.enum(['blocked', 'use_declared_fallback', 'no_sound']),
+    selectedFallbackRouteKey: safeId.optional(),
+    selectedFallbackRouteVersion: safeId.optional(),
+    freshApprovalRequired: z.boolean(),
+    reconciliationCompleted: z.boolean(),
+    evidenceHash: sha256,
+  }).strict()).max(10_000).optional(),
   candidateAssetVersions: z.array(soundArtifactRefSchema).max(128),
   selectedAssetVersions: z.array(soundArtifactRefSchema).max(128),
   privateSoundStemArtifacts: z.array(soundArtifactRefSchema).max(128),
@@ -530,6 +613,15 @@ export const canonicalSoundResultSchema = z.object({
     providerAttemptIds: z.array(safeId).max(10_000).optional(),
     toolRuntimeEvidenceIds: z.array(safeId).max(128),
     outputArtifactHashes: z.array(sha256).max(128),
+    stepOutputBundles: z.array(z.object({
+      schemaVersion: z.literal('sound-step-output-bundle-v1'),
+      unitId: safeId,
+      stepKey: safeId,
+      declaredOutputBindings: z.array(safeId).max(128),
+      outputsByBinding: z.record(safeId, z.unknown()),
+      outputArtifactRefs: z.array(soundArtifactRefSchema).max(128),
+      bundleHash: sha256,
+    }).strict()).max(10_000),
     stepEvidence: z.array(z.object({
       stepKey: safeId,
       toolKey: safeId,
@@ -541,6 +633,7 @@ export const canonicalSoundResultSchema = z.object({
       elapsedMilliseconds: z.number().int().nonnegative(),
       outputArtifactIds: z.array(safeId).max(128),
       outputArtifactHashes: z.array(sha256).max(128),
+      outputBindingKeys: z.array(safeId).max(128),
       evidenceRefs: z.array(safeId).max(128),
       operationSpecHash: sha256,
       operationReceiptHash: sha256.optional(),
@@ -550,6 +643,9 @@ export const canonicalSoundResultSchema = z.object({
   finalCompositionHandoff: z.object({
     handoffId: safeId,
     soundArtifactIds: z.array(safeId).max(128),
+    finalSoundArtifactReferences: z.array(soundArtifactRefSchema).max(128),
+    intentionalNoSound: z.boolean(),
+    authorizedRanges: z.array(soundFrameRangeSchema).max(512),
     cueManifestId: safeId,
     mixManifestId: safeId,
     qaEvidenceHash: sha256,
@@ -557,7 +653,25 @@ export const canonicalSoundResultSchema = z.object({
     timelineRate: timelineRateSchema,
     finalRenderOwnedBySound: z.literal(false),
   }).strict().optional(),
-}).strict()
+}).strict().superRefine((result, context) => {
+  if (result.status === 'completed') {
+    if (!result.finalCompositionHandoff ||
+      result.finalCompositionHandoff.finalSoundArtifactReferences.length === 0 ||
+      result.finalCompositionHandoff.intentionalNoSound) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Completed Sound execution requires at least one exact final Sound artifact reference.',
+      })
+    }
+  }
+  if (result.status === 'no_sound' && result.finalCompositionHandoff &&
+    !result.finalCompositionHandoff.intentionalNoSound) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'No-Sound handoff must be explicitly intentional.',
+    })
+  }
+})
 
 export type CanonicalSoundResult = z.infer<typeof canonicalSoundResultSchema>
 

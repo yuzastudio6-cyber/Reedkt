@@ -57,6 +57,7 @@ export interface SoundLocalExecutionBinding {
   approvedWorkItemId: string
   privateOutputScopeId: string
   idempotencyKey: string
+  operationSpecHash: string
   timelineRate: TimelineRate
   creditReservationId?: string
   routeBinding: SoundToolRouteBinding
@@ -81,6 +82,13 @@ export interface SoundLocalOperationParameters {
   duckAttackSeconds?: number
   duckReleaseSeconds?: number
   outputLimiterLinear?: number
+  gainEnvelope?: Array<{ timeSeconds: number; gainDb: number }>
+  protectedSpeechWindows?: Array<{ startSeconds: number; endSeconds: number }>
+  pan?: number
+  eqProfile?: 'neutral' | 'speech_safe' | 'distance_rolloff' | 'impact_control' | 'room_match'
+  dynamicsProfile?: 'none' | 'gentle_compression' | 'peak_limiter'
+  perspectiveProfile?: 'close' | 'medium' | 'distant'
+  roomProfile?: 'dry' | 'source_room' | 'small_room' | 'large_room' | 'exterior'
   expectedHitSeconds?: number
   maximumSyncErrorSeconds?: number
   provenanceTag?: string
@@ -125,6 +133,28 @@ export interface SoundAudioStudyReport {
   }
 }
 
+export interface SoundMixOutputMeasurements {
+  protectedRangeMeasurements: Array<{
+    startSeconds: number
+    endSeconds: number
+    measuredRmsDbfs: number
+    referenceRmsDbfs: number
+    measuredDuckingDb: number
+  }>
+  expectedPanDirection: 'left' | 'center' | 'right'
+  measuredChannelDeltaDb: number
+  gainEnvelopeMeasurements: Array<{
+    timeSeconds: number
+    expectedGainDb: number
+    measuredRmsDbfs: number
+  }>
+  fadeMeasurements: {
+    leadingRmsDbfs: number
+    centerRmsDbfs: number
+    trailingRmsDbfs: number
+  }
+}
+
 export interface SoundLocalAudioExecutionResult {
   schemaVersion: 'sound-local-audio-execution-result-v1'
   executionId: string
@@ -164,13 +194,13 @@ const operationProfiles: Record<SoundLocalOperation, {
   maximumSources: number
 }> = {
   analyze: { profileKeys: ['sound.analyze.v1', 'sound.analyze.reference.v1', 'sound.analyze.provider_candidate.v1', 'sound.analyze.model_candidate.v1', 'sound.analyze.final.v1', 'sound.analyze.output.v1'], outputRequired: false, minimumSources: 1, maximumSources: 1 },
-  extract: { profileKeys: ['sound.extract.pcm.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  trim_fade_gain: { profileKeys: ['sound.trim-fade-gain.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  extract: { profileKeys: ['sound.extract.project_source.v1', 'sound.extract.provider_carrier.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  trim_fade_gain: { profileKeys: ['sound.trim-fade-gain.edit.v1', 'sound.trim-fade-gain.video_candidate.v1', 'sound.trim-fade-gain.text_candidate.v1', 'sound.trim-fade-gain.model_candidate.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
   normalize: { profileKeys: ['sound.normalize.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
   resample_channels: { profileKeys: ['sound.resample-channels.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  loop_crossfade: { profileKeys: ['sound.loop.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  loop_crossfade: { profileKeys: ['sound.loop.edit.v1', 'sound.loop.ambience.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
   stretch_pitch: { profileKeys: ['sound.stretch-pitch.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  mix_stem: { profileKeys: ['sound.mix-stem.v1'], outputRequired: true, minimumSources: 2, maximumSources: 16 },
+  mix_stem: { profileKeys: ['sound.mix-stem.scene.v1', 'sound.mix-stem.provider_candidate.v1'], outputRequired: true, minimumSources: 1, maximumSources: 16 },
   sync_qa: { profileKeys: ['sound.sync-qa.v1'], outputRequired: false, minimumSources: 1, maximumSources: 1 },
   cleanup_gentle: { profileKeys: ['sound.cleanup.gentle.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
 }
@@ -199,6 +229,8 @@ const parameterKeys = new Set([
   'loopCrossfadeSeconds', 'tempoRatio', 'pitchSemitones', 'inputGainDb',
   'dialogueInputIndex', 'dialogueDuckingDb', 'expectedHitSeconds',
   'duckAttackSeconds', 'duckReleaseSeconds', 'outputLimiterLinear',
+  'gainEnvelope', 'protectedSpeechWindows', 'pan', 'eqProfile', 'dynamicsProfile',
+  'perspectiveProfile', 'roomProfile',
   'maximumSyncErrorSeconds',
   'provenanceTag',
 ])
@@ -241,6 +273,7 @@ function validateParameters(operation: SoundLocalOperation, parameters: SoundLoc
   finiteInRange(parameters.duckAttackSeconds, 0.001, 2, 'duckAttackSeconds')
   finiteInRange(parameters.duckReleaseSeconds, 0.001, 5, 'duckReleaseSeconds')
   finiteInRange(parameters.outputLimiterLinear, 0.1, 0.99, 'outputLimiterLinear')
+  finiteInRange(parameters.pan, -1, 1, 'pan')
   finiteInRange(parameters.expectedHitSeconds, 0, 86_400, 'expectedHitSeconds')
   finiteInRange(parameters.maximumSyncErrorSeconds, 0.001, 2, 'maximumSyncErrorSeconds')
   if (parameters.sampleRate !== undefined && parameters.sampleRate !== 44_100 && parameters.sampleRate !== 48_000) {
@@ -251,6 +284,22 @@ function validateParameters(operation: SoundLocalOperation, parameters: SoundLoc
   }
   if (parameters.inputGainDb) {
     parameters.inputGainDb.forEach((gain, index) => finiteInRange(gain, -48, 18, `inputGainDb[${index}]`, true))
+  }
+  if (parameters.dialogueInputIndex !== undefined && (!Number.isInteger(parameters.dialogueInputIndex) ||
+    parameters.dialogueInputIndex < -1 || parameters.dialogueInputIndex >= 16)) {
+    throw new Error('dialogueInputIndex must be -1 or a bounded source index.')
+  }
+  for (const [index, point] of (parameters.gainEnvelope ?? []).entries()) {
+    finiteInRange(point.timeSeconds, 0, 86_400, `gainEnvelope[${index}].timeSeconds`, true)
+    finiteInRange(point.gainDb, -96, 24, `gainEnvelope[${index}].gainDb`, true)
+    if (index > 0 && point.timeSeconds < parameters.gainEnvelope![index - 1]!.timeSeconds) {
+      throw new Error('gainEnvelope points must be ordered by time.')
+    }
+  }
+  for (const [index, window] of (parameters.protectedSpeechWindows ?? []).entries()) {
+    finiteInRange(window.startSeconds, 0, 86_400, `protectedSpeechWindows[${index}].startSeconds`, true)
+    finiteInRange(window.endSeconds, 0, 86_400, `protectedSpeechWindows[${index}].endSeconds`, true)
+    if (window.endSeconds <= window.startSeconds) throw new Error('Protected speech windows must have positive duration.')
   }
   if (parameters.provenanceTag !== undefined &&
     !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,179}$/.test(parameters.provenanceTag)) {
@@ -480,6 +529,85 @@ async function decodeStudy(path: string): Promise<{
   }
 }
 
+export async function measureSoundMixOutput(input: {
+  absolutePath: string
+  protectedSpeechWindows: Array<{ startSeconds: number; endSeconds: number }>
+  gainEnvelope: Array<{ timeSeconds: number; gainDb: number }>
+  pan: number
+}): Promise<SoundMixOutputMeasurements> {
+  const sampleRate = 8_000
+  const decoded = await execFileAsync(FFMPEG, [
+    '-hide_banner', '-loglevel', 'error', '-nostdin', '-i', input.absolutePath,
+    '-t', '600', '-vn', '-ac', '2', '-ar', String(sampleRate), '-f', 'f32le', 'pipe:1',
+  ], { timeout: 120_000, maxBuffer: 64 * 1024 * 1024, encoding: 'buffer' } as Parameters<typeof execFileAsync>[2])
+  const bytes = Buffer.isBuffer(decoded.stdout) ? decoded.stdout : Buffer.from(decoded.stdout)
+  const frameCount = Math.floor(bytes.length / 8)
+  const db = (linear: number) => Number((20 * Math.log10(Math.max(linear, 1e-9))).toFixed(3))
+  const rms = (startFrame: number, endFrame: number, channel?: 0 | 1): number => {
+    const start = Math.max(0, Math.min(frameCount, startFrame))
+    const end = Math.max(start + 1, Math.min(frameCount, endFrame))
+    let squareSum = 0
+    let samples = 0
+    for (let frame = start; frame < end; frame += 1) {
+      const channels = channel === undefined ? [0, 1] as const : [channel]
+      for (const current of channels) {
+        const value = bytes.readFloatLE((frame * 2 + current) * 4)
+        squareSum += value * value
+        samples += 1
+      }
+    }
+    return db(Math.sqrt(squareSum / Math.max(1, samples)))
+  }
+  const protectedFrames = input.protectedSpeechWindows.map((window) => ({
+    start: Math.round(window.startSeconds * sampleRate),
+    end: Math.round(window.endSeconds * sampleRate),
+  }))
+  const unprotectedRms = (() => {
+    let squareSum = 0
+    let samples = 0
+    for (let frame = 0; frame < frameCount; frame += 1) {
+      if (protectedFrames.some((window) => frame >= window.start && frame < window.end)) continue
+      for (const channel of [0, 1] as const) {
+        const value = bytes.readFloatLE((frame * 2 + channel) * 4)
+        squareSum += value * value
+        samples += 1
+      }
+    }
+    return db(Math.sqrt(squareSum / Math.max(1, samples)))
+  })()
+  const protectedRangeMeasurements = input.protectedSpeechWindows.map((window, index) => {
+    const measuredRmsDbfs = rms(protectedFrames[index]!.start, protectedFrames[index]!.end)
+    return {
+      ...window,
+      measuredRmsDbfs,
+      referenceRmsDbfs: unprotectedRms,
+      measuredDuckingDb: Number((measuredRmsDbfs - unprotectedRms).toFixed(3)),
+    }
+  })
+  const gainEnvelopeMeasurements = input.gainEnvelope.map((point) => {
+    const center = Math.round(point.timeSeconds * sampleRate)
+    const radius = Math.max(1, Math.round(sampleRate * 0.025))
+    return {
+      timeSeconds: point.timeSeconds,
+      expectedGainDb: point.gainDb,
+      measuredRmsDbfs: rms(center - radius, center + radius),
+    }
+  })
+  const edgeFrames = Math.max(1, Math.min(Math.round(sampleRate * 0.1), Math.floor(frameCount / 3)))
+  const centerStart = Math.max(0, Math.floor((frameCount - edgeFrames) / 2))
+  return {
+    protectedRangeMeasurements,
+    expectedPanDirection: input.pan < -0.05 ? 'left' : input.pan > 0.05 ? 'right' : 'center',
+    measuredChannelDeltaDb: Number((rms(0, frameCount, 1) - rms(0, frameCount, 0)).toFixed(3)),
+    gainEnvelopeMeasurements,
+    fadeMeasurements: {
+      leadingRmsDbfs: rms(0, edgeFrames),
+      centerRmsDbfs: rms(centerStart, centerStart + edgeFrames),
+      trailingRmsDbfs: rms(Math.max(0, frameCount - edgeFrames), frameCount),
+    },
+  }
+}
+
 async function studyAudio(path: string): Promise<SoundAudioStudyReport> {
   const [probe, decoded, loudness] = await Promise.all([
     probeAudio(path),
@@ -607,27 +735,62 @@ function mixArguments(input: SoundLocalAudioExecutionPackage, temporaryPath: str
   const p = input.parameters
   const args = ['-hide_banner', '-loglevel', 'error', '-nostdin', '-y']
   for (const source of input.sources) args.push('-i', source.absolutePath)
-  const dialogueIndex = p.dialogueInputIndex ?? 0
-  if (!Number.isInteger(dialogueIndex) || dialogueIndex < 0 || dialogueIndex >= input.sources.length) {
+  const dialogueIndex = p.dialogueInputIndex ?? -1
+  if (!Number.isInteger(dialogueIndex) || dialogueIndex < -1 || dialogueIndex >= input.sources.length) {
     throw new Error('dialogueInputIndex is outside the approved source set.')
   }
   const gains = input.sources.map((_, index) => p.inputGainDb?.[index] ?? 0)
   const filters = gains.map((gain, index) => `[${index}:a]volume=${gain}dB[g${index}]`)
   const soundLabels = input.sources.map((_, index) => index).filter((index) => index !== dialogueIndex)
-  if (soundLabels.length === 0) throw new Error('Sound mix requires at least one non-dialogue layer.')
+  if (soundLabels.length === 0) throw new Error('Sound mix requires at least one Sound layer.')
+  const mixedSoundLabel = soundLabels.length === 1 ? `g${soundLabels[0]}` : 'sfxmix'
+  if (soundLabels.length > 1) {
+    filters.push(`${soundLabels.map((index) => `[g${index}]`).join('')}amix=inputs=${soundLabels.length}:normalize=0[sfxmix]`)
+  }
+  let processedSoundLabel = mixedSoundLabel
+  const soundFilters: string[] = []
+  for (let index = 0; index < (p.gainEnvelope?.length ?? 0) - 1; index += 1) {
+    const point = p.gainEnvelope![index]!
+    const next = p.gainEnvelope![index + 1]!
+    soundFilters.push(`volume=${point.gainDb}dB:enable='between(t,${point.timeSeconds},${next.timeSeconds})'`)
+  }
+  for (const window of p.protectedSpeechWindows ?? []) {
+    soundFilters.push(`volume=${p.dialogueDuckingDb ?? -9}dB:enable='between(t,${window.startSeconds},${window.endSeconds})'`)
+  }
+  if ((p.pan ?? 0) !== 0) {
+    const left = Number((1 - Math.max(0, p.pan ?? 0)).toFixed(6))
+    const right = Number((1 + Math.min(0, p.pan ?? 0)).toFixed(6))
+    soundFilters.push(`pan=stereo|c0=${left}*c0|c1=${right}*c1`)
+  }
+  if (p.eqProfile === 'speech_safe') soundFilters.push('equalizer=f=2500:t=q:w=1:g=-2')
+  if (p.eqProfile === 'distance_rolloff') soundFilters.push('lowpass=f=6500')
+  if (p.eqProfile === 'impact_control') soundFilters.push('highpass=f=45,equalizer=f=100:t=q:w=1:g=-2')
+  if (p.eqProfile === 'room_match') soundFilters.push('equalizer=f=500:t=q:w=1:g=-1')
+  if (p.perspectiveProfile === 'distant') soundFilters.push('lowpass=f=5000,volume=-3dB')
+  if (p.perspectiveProfile === 'close') soundFilters.push('highpass=f=35')
+  if (p.roomProfile === 'small_room') soundFilters.push('aecho=0.8:0.22:35:0.12')
+  if (p.roomProfile === 'large_room') soundFilters.push('aecho=0.8:0.18:90:0.16')
+  if (p.roomProfile === 'exterior') soundFilters.push('highpass=f=80')
+  if (p.dynamicsProfile === 'gentle_compression') soundFilters.push('acompressor=threshold=0.15:ratio=2:attack=20:release=180')
+  if (p.dynamicsProfile === 'peak_limiter') soundFilters.push(`alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled`)
+  if (soundFilters.length > 0) {
+    filters.push(`[${mixedSoundLabel}]${soundFilters.join(',')}[processed_sfx]`)
+    processedSoundLabel = 'processed_sfx'
+  }
   const attackMs = Math.round((p.duckAttackSeconds ?? 0.02) * 1_000)
   const releaseMs = Math.round((p.duckReleaseSeconds ?? 0.25) * 1_000)
   const ratio = Math.min(20, Math.max(1, Math.abs(p.dialogueDuckingDb ?? -9) * 1.25))
-  if (soundLabels.length === 1) {
-    filters.push(`[g${soundLabels[0]}][g${dialogueIndex}]sidechaincompress=threshold=0.02:ratio=${ratio}:attack=${attackMs}:release=${releaseMs}[ducked]`)
-  } else {
-    filters.push(`${soundLabels.map((index) => `[g${index}]`).join('')}amix=inputs=${soundLabels.length}:normalize=0[sfxmix]`)
-    filters.push(`[sfxmix][g${dialogueIndex}]sidechaincompress=threshold=0.02:ratio=${ratio}:attack=${attackMs}:release=${releaseMs}[ducked]`)
+  if (dialogueIndex >= 0) {
+    filters.push(`[${processedSoundLabel}][g${dialogueIndex}]sidechaincompress=threshold=0.02:ratio=${ratio}:attack=${attackMs}:release=${releaseMs}[ducked]`)
   }
   // FFmpeg's alimiter enables auto-level compensation by default, which raises the
   // post-limiter signal back toward full scale and defeats an approved true-peak
   // ceiling. Disable that compensation so `limit` remains the actual output cap.
-  filters.push(`[g${dialogueIndex}][ducked]amix=inputs=2:normalize=0,alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled[out]`)
+  if (dialogueIndex >= 0) {
+    filters.push(`[g${dialogueIndex}][ducked]amix=inputs=2:normalize=0,alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled[out]`)
+  } else {
+    filters.push(`[${processedSoundLabel}]alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled[out]`)
+  }
   args.push(
     '-filter_complex', filters.join(';'), '-map', '[out]',
     '-ar', String(p.sampleRate ?? 48_000), '-ac', String(p.channels ?? 2),
@@ -666,7 +829,62 @@ async function executeOutput(
       relativePath: outputRelativePath,
       content: bytes,
     })
-    const checksumSha256 = createHash('sha256').update(bytes).digest('hex')
+    const generatedChecksumSha256 = createHash('sha256').update(bytes).digest('hex')
+    const identityCore = {
+      schemaVersion: 'sound-local-output-provenance-v1',
+      outputRelativePath,
+      outputArtifactId: input.outputArtifactId,
+      outputArtifactType: input.outputArtifactType,
+      outputContentType: input.outputContentType,
+      operation: input.operation,
+      operationProfileKey: input.operationProfileKey,
+      operationSpecHash: input.binding.operationSpecHash,
+      routeKey: input.binding.routeBinding.routeKey,
+      routeVersion: input.binding.routeBinding.routeVersion,
+      routeHash: input.binding.routeBinding.routeHash,
+      timelineRate: input.binding.timelineRate,
+      sourceArtifacts: input.sources.map((source) => ({
+        artifactId: source.artifact.artifactId,
+        version: source.artifact.version,
+        checksumSha256: source.artifact.checksumSha256,
+      })),
+      parameters: input.parameters,
+    }
+    const identityHash = createHash('sha256').update(stableJson(identityCore)).digest('hex')
+    const provenanceRecord = {
+      ...identityCore,
+      identityHash,
+      outputChecksumSha256: generatedChecksumSha256,
+    }
+    const provenanceRelativePath = `${outputRelativePath}.provenance.json`
+    if (committed.created) {
+      const provenanceCommit = await writePrivateFileCreateOnlyWithinRoot({
+        rootPath: input.privateOutputRoot,
+        relativePath: provenanceRelativePath,
+        content: Buffer.from(stableJson(provenanceRecord)),
+      })
+      if (!provenanceCommit.created) {
+        const existing = JSON.parse(String(await readFile(provenanceCommit.absolutePath))) as typeof provenanceRecord
+        if (existing.identityHash !== identityHash || existing.outputChecksumSha256 !== generatedChecksumSha256) {
+          throw new Error('Sound idempotency collision: output provenance already belongs to another operation specification.')
+        }
+      }
+    } else {
+      let existing: typeof provenanceRecord
+      try {
+        existing = JSON.parse(String(await readFile(resolve(input.privateOutputRoot, provenanceRelativePath)))) as typeof provenanceRecord
+      } catch {
+        throw new Error('Sound idempotency collision: committed output has no valid immutable provenance binding.')
+      }
+      if (existing.identityHash !== identityHash || existing.operationSpecHash !== input.binding.operationSpecHash) {
+        throw new Error('Sound idempotency collision: replay operation specification does not match committed output.')
+      }
+    }
+    const committedBytes = await readFile(committed.absolutePath)
+    const checksumSha256 = createHash('sha256').update(committedBytes).digest('hex')
+    if (checksumSha256 !== generatedChecksumSha256) {
+      throw new Error('Sound idempotency collision: deterministic replay bytes differ from committed output.')
+    }
     return {
       replay: !committed.created,
       artifact: {
@@ -704,7 +922,7 @@ function validatePackage(input: SoundLocalAudioExecutionPackage): void {
   if (
     !input.binding.approvedPlanSnapshotId || !input.binding.approvedPlanSnapshotHash ||
     !input.binding.approvedWorkItemId || !input.binding.privateOutputScopeId ||
-    !input.binding.idempotencyKey
+    !input.binding.idempotencyKey || !/^[a-f0-9]{64}$/.test(input.binding.operationSpecHash)
   ) throw new Error('Sound local execution requires approved snapshot, work item, output scope, and idempotency bindings.')
   const invalidation = evaluateSoundRouteBindingInvalidation({ binding: input.binding.routeBinding })
   if (invalidation.stale) {
@@ -822,4 +1040,13 @@ export async function runSoundLocalAudioExecution(
 
 export function getSoundLocalOperationProfiles() {
   return structuredClone(operationProfiles)
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`
+  if (value && typeof value === 'object') return `{${Object.entries(value as Record<string, unknown>)
+    .filter(([, child]) => child !== undefined)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, child]) => `${JSON.stringify(key)}:${stableJson(child)}`).join(',')}}`
+  return JSON.stringify(value)
 }

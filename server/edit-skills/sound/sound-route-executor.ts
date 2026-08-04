@@ -6,11 +6,14 @@ import {
   parseCanonicalSoundResult,
   type CanonicalSoundRequest,
   type CanonicalSoundResult,
+  type CompiledSoundMixRenderSpec,
   type SoundArtifactRef,
   type SoundFrameRange,
+  type SoundStepOutputBundle,
 } from '../../sound/sound-contracts'
 import {
   runSoundLocalAudioExecution,
+  measureSoundMixOutput,
   validateSoundAudioFile,
   type SoundAudioStudyReport,
   type SoundLocalAudioExecutionResult,
@@ -51,6 +54,7 @@ import {
 } from '../../sound/sound-execution-qa'
 import {
   compileCanonicalSoundExecutionGraph,
+  topologicalSoundExecutionUnits,
   type SoundExecutionGraph,
   type SoundExecutionUnit,
 } from './sound-execution-graph'
@@ -94,6 +98,7 @@ export interface SoundRouteStepExecutionEvidence {
   elapsedMilliseconds: number
   outputArtifactIds: string[]
   outputArtifactHashes: string[]
+  outputBindingKeys: string[]
   evidenceRefs: string[]
   operationSpecHash: string
   operationReceiptHash?: string
@@ -144,6 +149,7 @@ interface UnitExecutionOutcome {
   failureCode?: string
   selectedArtifact?: SoundArtifactRef
   candidateArtifacts: SoundArtifactRef[]
+  consumedSourceArtifacts: SoundArtifactRef[]
   studyReports: SoundAudioStudyReport[]
   localResults: SoundLocalAudioExecutionResult[]
   providerAttempts: MireloProviderAttempt[]
@@ -152,6 +158,10 @@ interface UnitExecutionOutcome {
   placement?: SoundSynchronizationPlacement
   soundDna?: CanonicalSoundResult['soundDna']
   mutationReceipt?: SoundMutationReceipt
+  outputBundles: SoundStepOutputBundle[]
+  candidateProcessingReceipts: NonNullable<CanonicalSoundResult['candidateProcessingReceipts']>
+  candidateSelectionRecord?: CanonicalSoundResult['candidateSelectionRecord']
+  fallbackEvidence: NonNullable<CanonicalSoundResult['fallbackEvidence']>
   stepEvidence: SoundRouteStepExecutionEvidence[]
 }
 
@@ -164,10 +174,15 @@ interface StepState {
   proxy?: BoundedSoundVisualProxyResult
   placement?: SoundSynchronizationPlacement
   soundDna?: CanonicalSoundResult['soundDna']
+  namedOutputs: Map<string, unknown>
+  providerAttemptRecord?: Record<string, unknown>
+  candidateProcessingReceipts: NonNullable<CanonicalSoundResult['candidateProcessingReceipts']>
+  candidateSelectionRecord?: CanonicalSoundResult['candidateSelectionRecord']
 }
 
 interface StepInvocationResult {
   artifacts?: SoundArtifactRef[]
+  candidateArtifacts?: SoundArtifactRef[]
   evidenceRefs: string[]
   localResult?: SoundLocalAudioExecutionResult
   localResults?: SoundLocalAudioExecutionResult[]
@@ -175,6 +190,16 @@ interface StepInvocationResult {
   proxy?: BoundedSoundVisualProxyResult
   placement?: SoundSynchronizationPlacement
   soundDna?: CanonicalSoundResult['soundDna']
+  mediaInspection?: Record<string, unknown>
+  providerAttemptRecord?: Record<string, unknown>
+  perUnitQa?: Record<string, unknown>
+  callerReceiptOutput?: Record<string, unknown>
+  artifactCommitRecord?: Record<string, unknown>
+  provenanceRecord?: Record<string, unknown>
+  noSoundDecision?: Record<string, unknown>
+  explicitOutputs?: Record<string, unknown>
+  candidateProcessingReceipts?: NonNullable<CanonicalSoundResult['candidateProcessingReceipts']>
+  candidateSelectionRecord?: CanonicalSoundResult['candidateSelectionRecord']
 }
 
 interface StepInvocationInput {
@@ -184,6 +209,16 @@ interface StepInvocationInput {
   routeBinding: SoundToolRouteBinding
   step: SoundToolRouteStep
   state: StepState
+}
+
+class SoundCandidateSetExhaustedError extends Error {
+  readonly receipts: NonNullable<CanonicalSoundResult['candidateProcessingReceipts']>
+
+  constructor(stepKey: string, receipts: NonNullable<CanonicalSoundResult['candidateProcessingReceipts']>) {
+    super(`all_candidates_failed_${safeKey(stepKey)}`)
+    this.name = 'SoundCandidateSetExhaustedError'
+    this.receipts = receipts
+  }
 }
 
 export class CanonicalSoundRouteExecutor {
@@ -203,8 +238,25 @@ export class CanonicalSoundRouteExecutor {
     validateExecutionPackage(input)
     const graph = validateOrCompileGraph(input)
     const outcomes: UnitExecutionOutcome[] = []
-    for (const unit of graph.units) {
-      outcomes.push(await this.#executeUnit(input, unit))
+    const outcomeByUnit = new Map<string, UnitExecutionOutcome>()
+    const topologicalUnits = topologicalSoundExecutionUnits(graph)
+    for (const unit of topologicalUnits) {
+      const dependencies = unit.dependsOnUnitIds.map((unitId) => outcomeByUnit.get(unitId)!)
+      const blocked = dependencies.find((dependency) =>
+        dependency.status === 'failed' || dependency.status === 'blocked' || dependency.status === 'planning_only')
+      let outcome = blocked
+        ? blockedDependencyUnit(unit, blocked.unit.unitId)
+        : await this.#executeUnit(
+            input,
+            unit,
+            uniqueArtifacts(dependencies.flatMap((dependency) =>
+              dependency.selectedArtifact ? [dependency.selectedArtifact] : [])),
+          )
+      if (outcome.status === 'failed') {
+        outcome = await this.#applyDeclaredFallback(input, unit, outcome)
+      }
+      outcomes.push(outcome)
+      outcomeByUnit.set(unit.unitId, outcome)
     }
 
     const continuity = analyzeWholeVideoSoundContinuity({
@@ -215,6 +267,10 @@ export class CanonicalSoundRouteExecutor {
       maximumCueDensityPerMinute: input.request.userSoundPreferences.maximumCueDensityPerMinute,
     })
     const selected = outcomes.flatMap((item) => item.selectedArtifact ? [item.selectedArtifact] : [])
+    const terminalSelected = outcomes.flatMap((item) =>
+      item.selectedArtifact && (item.unit.unitKind === 'qa_handoff' ||
+        (!outcomes.some((candidate) => candidate.unit.dependsOnUnitIds.includes(item.unit.unitId))))
+        ? [item.selectedArtifact] : [])
     const studies = outcomes.flatMap((item) => item.studyReports)
     const localResults = outcomes.flatMap((item) => item.localResults)
     const providerAttempts = outcomes.flatMap((item) => item.providerAttempts)
@@ -250,6 +306,10 @@ export class CanonicalSoundRouteExecutor {
     const elapsedMilliseconds = Math.round(performance.now() - startedAt)
     const localCost = localResults.reduce((sum, item) => sum + item.runtimeEvidence.localComputeCostUsd, 0)
     const soundDna = outcomes.find((item) => item.soundDna)?.soundDna
+    const mixRenderSpecifications = outcomes
+      .filter((outcome) => outcome.unit.unitKind === 'mix_stem' &&
+        outcome.status === 'completed' && Boolean(outcome.selectedArtifact))
+      .map((outcome) => compileSoundMixRenderSpec(outcome, input.request))
     const unresolvedDependencies = [
       ...failures.map((item) => item.failureCode ?? `sound_unit_failed:${item.unit.unitId}`),
       ...(planningOnly ? ['sound_capability_planning_only'] : []),
@@ -261,14 +321,18 @@ export class CanonicalSoundRouteExecutor {
       status,
       studyReport: studies.length > 0 ? { reports: structuredClone(studies) } : input.plannedResult.studyReport,
       soundDna,
+      mixRenderSpecifications,
+      candidateProcessingReceipts: outcomes.flatMap((outcome) => outcome.candidateProcessingReceipts),
+      candidateSelectionRecord: outcomes.find((outcome) => outcome.candidateSelectionRecord)?.candidateSelectionRecord,
+      fallbackEvidence: outcomes.flatMap((outcome) => outcome.fallbackEvidence),
       synchronizationPlacements: placements,
       executionUnits: outcomes.map((outcome) => executionUnitReceipt(outcome)),
       mutationReceipts,
       qaReport: { ...qa, continuityReport: continuity },
       candidateAssetVersions: candidateArtifacts,
-      selectedAssetVersions: uniqueArtifacts(selected),
-      privateSoundStemArtifacts: ['mix_sound_layers', 'create_sound_stem'].includes(input.request.requestedJobType)
-        ? uniqueArtifacts(selected) : [],
+      selectedAssetVersions: uniqueArtifacts(terminalSelected.length > 0 ? terminalSelected : selected),
+      privateSoundStemArtifacts: uniqueArtifacts(outcomes.flatMap((outcome) =>
+        outcome.unit.unitKind === 'mix_stem' && outcome.selectedArtifact ? [outcome.selectedArtifact] : [])),
       modifiedAudioRanges: uniqueRanges(mutationReceipts.map((receipt) => receipt.range)),
       modifiedVisualRanges: [],
       unresolvedDependencies,
@@ -296,11 +360,15 @@ export class CanonicalSoundRouteExecutor {
         } : {}),
         toolRuntimeEvidenceIds: localResults.map((item) => `sound.runtime.${safeKey(item.executionId)}`),
         outputArtifactHashes: uniqueArtifacts([...selected, ...candidateArtifacts]).map((artifact) => artifact.checksumSha256),
+        stepOutputBundles: outcomes.flatMap((outcome) => outcome.outputBundles),
         stepEvidence,
       },
       finalCompositionHandoff: status === 'completed' || status === 'no_sound' ? {
         handoffId: `sound.handoff.${safeKey(input.packageId)}`,
-        soundArtifactIds: selected.map((artifact) => artifact.artifactId),
+        soundArtifactIds: uniqueArtifacts(terminalSelected).map((artifact) => artifact.artifactId),
+        finalSoundArtifactReferences: uniqueArtifacts(terminalSelected),
+        intentionalNoSound: noSound,
+        authorizedRanges: uniqueRanges(input.request.assignmentScope.authorizedAudioWriteRanges),
         cueManifestId: input.plannedResult.cueManifest.cueManifestId,
         mixManifestId: input.plannedResult.mixAutomationManifest.mixManifestId,
         qaEvidenceHash: qa.evidenceHash,
@@ -326,12 +394,13 @@ export class CanonicalSoundRouteExecutor {
   async #executeUnit(
     input: ApprovedSoundExecutionPackage,
     unit: SoundExecutionUnit,
+    inheritedArtifacts: SoundArtifactRef[] = [],
   ): Promise<UnitExecutionOutcome> {
     if (unit.unitKind === 'planning_only') {
       return {
         unit, status: 'planning_only', failureCode: 'planning_qualified_no_execution_route',
-        candidateArtifacts: [], studyReports: [], localResults: [], providerAttempts: [],
-        stepEvidence: [],
+        candidateArtifacts: [], consumedSourceArtifacts: [], studyReports: [], localResults: [], providerAttempts: [],
+        candidateProcessingReceipts: [], fallbackEvidence: [], outputBundles: [], stepEvidence: [],
       }
     }
     const route = getSoundToolRouteManifest(unit.route.routeKey, unit.route.routeVersion)
@@ -340,17 +409,27 @@ export class CanonicalSoundRouteExecutor {
     }
     let routeBinding: SoundToolRouteBinding
     try {
-      routeBinding = await this.#admitExecutionRoute(input, route)
+      routeBinding = await this.#admitExecutionRoute(input, route, unit)
     } catch {
       return failedUnit(unit, 'route_admission_failed')
     }
     const state: StepState = {
-      currentArtifacts: structuredClone(unit.sourceArtifacts), candidateArtifacts: [],
-      studies: [], localResults: [],
+      currentArtifacts: uniqueArtifacts([...structuredClone(unit.sourceArtifacts), ...inheritedArtifacts]),
+      candidateArtifacts: [], studies: [], localResults: [],
+      namedOutputs: new Map([...new Set([
+        ...approvedRouteInputKeys(input.request), ...route.requiredInputs,
+      ])].map((key) => [key, { approved: true }])),
+      candidateProcessingReceipts: [],
     }
+    const consumedSourceArtifacts = structuredClone(state.currentArtifacts)
     const evidence: SoundRouteStepExecutionEvidence[] = []
+    const outputBundles: SoundStepOutputBundle[] = []
     const statuses = new Map<string, SoundRouteStepExecutionEvidence['status']>()
     for (const step of topologicalSteps(route)) {
+      const missingInputs = step.inputBindings.filter((binding) => !state.namedOutputs.has(binding))
+      if (missingInputs.length > 0) {
+        throw new Error(`Sound step ${route.routeKey}:${step.stepKey} is missing named inputs ${missingInputs.join(',')}.`)
+      }
       const skippedOptional = !step.required && !input.selectedOptionalStepKeys.includes(step.stepKey)
       const skippedCondition = !skippedOptional && conditionIsFalse(step.executionCondition, input.request, unit, state)
       const blockedDependency = step.orderOrDependencies.some((dependency) => {
@@ -366,7 +445,7 @@ export class CanonicalSoundRouteExecutor {
           outputArtifactIds: [], evidenceRefs: [
             skippedOptional ? 'sound.optional_step_not_admitted'
               : skippedCondition ? 'sound.step_condition_false' : 'sound.step_dependency_failed',
-          ], outputArtifactHashes: [], operationSpecHash: unit.operationSpec.operationSpecHash,
+          ], outputArtifactHashes: [], outputBindingKeys: [], operationSpecHash: unit.operationSpec.operationSpecHash,
         })
         continue
       }
@@ -374,6 +453,9 @@ export class CanonicalSoundRouteExecutor {
       const started = performance.now()
       try {
         const invoked = await this.#invokeStep({ input, unit, route, routeBinding, step, state })
+        const outputBundle = createAndValidateStepOutputBundle({ unit, step, invoked, state })
+        outputBundles.push(outputBundle)
+        for (const [key, value] of Object.entries(outputBundle.outputsByBinding)) state.namedOutputs.set(key, value)
         const completedAt = new Date().toISOString()
         const elapsedMilliseconds = Math.round(performance.now() - started)
         if (invoked.artifacts?.length) state.currentArtifacts = uniqueArtifacts(invoked.artifacts)
@@ -391,16 +473,24 @@ export class CanonicalSoundRouteExecutor {
           state.candidateArtifacts.push(...invoked.provider.outputArtifacts)
           state.currentArtifacts = [...invoked.provider.outputArtifacts]
         }
+        if (invoked.candidateArtifacts) state.candidateArtifacts.push(...invoked.candidateArtifacts)
         if (invoked.proxy) state.proxy = invoked.proxy
         if (invoked.placement) state.placement = invoked.placement
         if (invoked.soundDna) state.soundDna = invoked.soundDna
+        if (invoked.providerAttemptRecord) state.providerAttemptRecord = invoked.providerAttemptRecord
+        if (invoked.candidateProcessingReceipts) state.candidateProcessingReceipts.push(...invoked.candidateProcessingReceipts)
+        if (invoked.candidateSelectionRecord) {
+          state.candidateSelectionRecord = invoked.candidateSelectionRecord
+          state.candidateArtifacts = uniqueArtifacts(invoked.candidateArtifacts ?? [])
+        }
         const receiptCore = {
           unitId: unit.unitId, stepKey: step.stepKey, toolKey: step.toolKey,
           operationKey: step.operationKey, operationProfileKey: step.operationProfileKey,
           operationSpecHash: unit.operationSpec.operationSpecHash,
           startedAt, completedAt, elapsedMilliseconds,
           outputArtifactHashes: (invoked.artifacts ?? []).map((artifact) => artifact.checksumSha256),
-          evidenceRefs: invoked.evidenceRefs,
+          outputBindingKeys: outputBundle.declaredOutputBindings,
+          evidenceRefs: [...invoked.evidenceRefs, outputBundle.bundleHash],
         }
         statuses.set(step.stepKey, 'completed')
         evidence.push({
@@ -409,12 +499,16 @@ export class CanonicalSoundRouteExecutor {
           elapsedMilliseconds,
           outputArtifactIds: (invoked.artifacts ?? []).map((artifact) => artifact.artifactId),
           outputArtifactHashes: (invoked.artifacts ?? []).map((artifact) => artifact.checksumSha256),
-          evidenceRefs: invoked.evidenceRefs,
+          outputBindingKeys: outputBundle.declaredOutputBindings,
+          evidenceRefs: [...invoked.evidenceRefs, outputBundle.bundleHash],
           operationSpecHash: unit.operationSpec.operationSpecHash,
           operationReceiptHash: hash(receiptCore),
         })
       } catch (error) {
         if (isFatalIntegrityError(error)) throw error
+        if (error instanceof SoundCandidateSetExhaustedError) {
+          state.candidateProcessingReceipts.push(...error.receipts)
+        }
         const completedAt = new Date().toISOString()
         const failureCode = safeFailureCode(error)
         statuses.set(step.stepKey, 'failed')
@@ -423,6 +517,7 @@ export class CanonicalSoundRouteExecutor {
           operationKey: step.operationKey, status: 'failed', startedAt, completedAt,
           elapsedMilliseconds: Math.round(performance.now() - started), outputArtifactIds: [],
           outputArtifactHashes: [], evidenceRefs: ['sound.operation_failed'], operationSpecHash: unit.operationSpec.operationSpecHash,
+          outputBindingKeys: [],
           failureCode,
         })
         if (step.failureBehavior !== 'continue_without_optional_step') {
@@ -430,29 +525,93 @@ export class CanonicalSoundRouteExecutor {
             unit, routeBinding, status: 'failed', failureCode,
             selectedArtifact: state.currentArtifacts.find((artifact) =>
               !unit.sourceArtifacts.some((source) => sameArtifact(source, artifact))),
-            candidateArtifacts: uniqueArtifacts(state.candidateArtifacts),
+            candidateArtifacts: uniqueArtifacts(state.candidateArtifacts), consumedSourceArtifacts,
             studyReports: state.studies, localResults: state.localResults,
             providerAttempts: state.provider ? [state.provider.attempt] : [],
             providerVisualRejected: state.provider?.providerVisualRejected,
             proxy: state.proxy, placement: state.placement, soundDna: state.soundDna,
-            stepEvidence: evidence,
+            candidateProcessingReceipts: state.candidateProcessingReceipts,
+            candidateSelectionRecord: state.candidateSelectionRecord,
+            fallbackEvidence: [], outputBundles, stepEvidence: evidence,
           }
         }
       }
     }
-    const selectedArtifact = state.currentArtifacts.find((artifact) =>
-      !unit.sourceArtifacts.some((source) => sameArtifact(source, artifact)))
+    const selectedArtifact = ['qa_handoff', 'analysis', 'synchronization'].includes(unit.unitKind)
+      ? state.currentArtifacts.at(-1)
+      : state.currentArtifacts.find((artifact) =>
+          !consumedSourceArtifacts.some((source) => sameArtifact(source, artifact)))
     const noSound = route.routeRole === 'no_sound'
     const mutationReceipt = selectedArtifact && ['audio_operation', 'provider_generation'].includes(unit.unitKind)
       ? createMutationReceipt(unit, selectedArtifact) : undefined
     return {
       unit, routeBinding, status: noSound ? 'no_sound' : 'completed',
-      selectedArtifact, candidateArtifacts: uniqueArtifacts(state.candidateArtifacts),
+      selectedArtifact, candidateArtifacts: uniqueArtifacts(state.candidateArtifacts), consumedSourceArtifacts,
       studyReports: state.studies, localResults: state.localResults,
       providerAttempts: state.provider ? [state.provider.attempt] : [],
       providerVisualRejected: state.provider?.providerVisualRejected,
       proxy: state.proxy, placement: state.placement, soundDna: state.soundDna,
-      mutationReceipt, stepEvidence: evidence,
+      mutationReceipt,
+      candidateProcessingReceipts: state.candidateProcessingReceipts,
+      candidateSelectionRecord: state.candidateSelectionRecord,
+      fallbackEvidence: [], outputBundles, stepEvidence: evidence,
+    }
+  }
+
+  async #applyDeclaredFallback(
+    input: ApprovedSoundExecutionPackage,
+    unit: SoundExecutionUnit,
+    failed: UnitExecutionOutcome,
+  ): Promise<UnitExecutionOutcome> {
+    const failedRoute = getSoundToolRouteManifest(unit.route.routeKey, unit.route.routeVersion)
+    const fallbackRef = failedRoute?.fallbackPolicy.fallbackRouteRefs[0]
+    const unknownOutcome = /unknown|timeout|reconcil/i.test(failed.failureCode ?? '')
+    const candidateSetExhausted = /all_candidates_failed/i.test(failed.failureCode ?? '')
+    const fallbackDecision = candidateSetExhausted || !failedRoute?.fallbackPolicy.automaticFallbackAllowed || !fallbackRef
+      ? 'blocked' as const
+      : unknownOutcome ? 'blocked' as const
+        : fallbackRef.routeKey === 'sound.route.no_sound.v1' ? 'no_sound' as const
+          : 'use_declared_fallback' as const
+    const evidenceCore = {
+      fallbackEvidenceId: `sound-fallback.${safeKey(unit.unitId)}.${safeKey(failed.failureCode ?? 'failed')}`,
+      unitId: unit.unitId,
+      failedRouteKey: unit.route.routeKey,
+      failedRouteVersion: unit.route.routeVersion,
+      failureCode: failed.failureCode ?? 'sound_unit_failed',
+      decision: fallbackDecision,
+      ...(fallbackDecision !== 'blocked' && fallbackRef ? {
+        selectedFallbackRouteKey: fallbackRef.routeKey,
+        selectedFallbackRouteVersion: fallbackRef.routeVersion,
+      } : {}),
+      freshApprovalRequired: fallbackDecision === 'use_declared_fallback',
+      reconciliationCompleted: !unknownOutcome,
+    }
+    const fallbackEvidence = { ...evidenceCore, evidenceHash: hash(evidenceCore) }
+    if (fallbackDecision === 'blocked' || !fallbackRef) {
+      return { ...failed, fallbackEvidence: [fallbackEvidence] }
+    }
+    if (fallbackDecision === 'use_declared_fallback') {
+      // A non-zero or materially different fallback requires a newly approved
+      // execution package. This standalone executor never expands approval.
+      return { ...failed, fallbackEvidence: [fallbackEvidence] }
+    }
+    const fallbackRoute = getSoundToolRouteManifest(fallbackRef.routeKey, fallbackRef.routeVersion)
+    if (!fallbackRoute) throw new Error('Declared Sound fallback route disappeared after publication.')
+    const fallbackUnit: SoundExecutionUnit = {
+      ...unit,
+      route: {
+        routeKey: fallbackRoute.routeKey,
+        routeVersion: fallbackRoute.routeVersion,
+        routeHash: fallbackRoute.routeHash,
+      },
+      unitKind: 'no_sound',
+    }
+    const fallback = await this.#executeUnit(input, fallbackUnit)
+    return {
+      ...fallback,
+      stepEvidence: [...failed.stepEvidence, ...fallback.stepEvidence],
+      outputBundles: [...failed.outputBundles, ...fallback.outputBundles],
+      fallbackEvidence: [fallbackEvidence, ...fallback.fallbackEvidence],
     }
   }
 
@@ -466,17 +625,76 @@ export class CanonicalSoundRouteExecutor {
     if (handler === 'synchronization') return this.#syncStep(input)
     if (handler === 'private_artifact') return this.#artifactStep(input)
     if (handler === 'provider_attempt') {
-      return { evidenceRefs: [`sound.provider_attempt_planned.${safeKey(input.unit.unitId)}`] }
+      const providerAttemptRecord = {
+        schemaVersion: 'sound-provider-attempt-record-v1',
+        attemptId: `${input.input.request.attemptId}.${safeKey(input.unit.unitId)}`,
+        unitId: input.unit.unitId,
+        routeKey: input.route.routeKey,
+        routeVersion: input.route.routeVersion,
+        idempotencyKeyHash: hash(`${input.input.request.idempotencyKey}.${input.unit.unitId}`),
+        lifecycleStatus: input.state.provider?.attempt.status ?? 'preflight_recorded',
+        reconciliationRequired: input.state.provider?.attempt.status === 'unknown',
+        blindResubmissionAllowed: false,
+        providerAttemptHash: hash({
+          attemptId: `${input.input.request.attemptId}.${safeKey(input.unit.unitId)}`,
+          routeHash: input.route.routeHash,
+          operationSpecHash: input.unit.operationSpec.operationSpecHash,
+        }),
+      }
+      return {
+        providerAttemptRecord,
+        evidenceRefs: [`sound.provider_attempt_record.${providerAttemptRecord.providerAttemptHash}`],
+      }
     }
     if (handler === 'output_qa') {
       if (input.state.currentArtifacts.length === 0 && input.unit.unitKind !== 'synchronization') {
         throw new Error('Sound QA handler received no real artifact evidence.')
       }
-      return { evidenceRefs: [`sound.qa.handler.${safeKey(input.unit.unitId)}.${safeKey(step.stepKey)}`] }
+      const latestStudy = input.state.studies.at(-1)
+      const perUnitQa = {
+        schemaVersion: 'sound-per-unit-qa-v1',
+        unitId: input.unit.unitId,
+        artifactIds: input.state.currentArtifacts.map((artifact) => artifact.artifactId),
+        decodedEvidenceHash: latestStudy ? hash(latestStudy) : undefined,
+        synchronizationPlacementHash: input.state.placement?.placementManifestHash,
+        technicalStatus: latestStudy || input.state.placement ? 'measured' : 'not_measured',
+        sourceAuthorityHash: input.input.request.assignmentScope.parentAuthorityHash,
+        qaReceiptHash: hash({
+          unitId: input.unit.unitId,
+          artifacts: input.state.currentArtifacts.map((artifact) => artifact.checksumSha256),
+          study: latestStudy ? hash(latestStudy) : undefined,
+          placement: input.state.placement?.placementManifestHash,
+        }),
+      }
+      const callerReceiptOutput = createCallerReceiptOutput(input)
+      return {
+        perUnitQa,
+        callerReceiptOutput,
+        evidenceRefs: [
+          `sound.per_unit_qa.${perUnitQa.qaReceiptHash}`,
+          `sound.caller_receipt.${callerReceiptOutput.receiptHash}`,
+        ],
+      }
     }
     if (handler === 'planning_receipt') return this.#planningStep(input)
     if (handler === 'no_sound_decision') {
-      return { evidenceRefs: [`sound.no_sound.decision.${safeKey(input.unit.unitId)}`] }
+      const noSoundDecision = {
+        schemaVersion: 'sound-no-sound-decision-v1',
+        unitId: input.unit.unitId,
+        authorizedRange: input.unit.targetRange,
+        intentional: true,
+        reason: input.unit.cue?.storyReason ?? 'No qualified or narratively justified Sound mutation is required.',
+        decisionHash: hash({ unitId: input.unit.unitId, range: input.unit.targetRange }),
+      }
+      const callerReceiptOutput = createCallerReceiptOutput(input)
+      return {
+        noSoundDecision,
+        callerReceiptOutput,
+        evidenceRefs: [
+          `sound.no_sound.decision.${noSoundDecision.decisionHash}`,
+          `sound.caller_receipt.${callerReceiptOutput.receiptHash}`,
+        ],
+      }
     }
     throw new Error(`No qualified Sound operation handler is registered for ${step.toolKey}:${step.operationKey}.`)
   }
@@ -486,17 +704,22 @@ export class CanonicalSoundRouteExecutor {
     if (!artifact) throw new Error('Sound inspection step has no approved artifact.')
     const resolved = await this.#artifacts.resolve(artifact)
     const media = await validateSoundAudioFile(resolved.absolutePath)
-    return { artifacts: [artifact], evidenceRefs: [`sound.ffprobe.${hash(media)}`] }
+    return {
+      artifacts: [artifact],
+      mediaInspection: { ...media, artifactId: artifact.artifactId, inspectionHash: hash(media) },
+      evidenceRefs: [`sound.ffprobe.${hash(media)}`],
+    }
   }
 
   async #localAudioStep(input: StepInvocationInput): Promise<StepInvocationResult> {
     const operation = localOperationFromStep(input.step.operationKey)
     if (!operation) throw new Error(`Unsupported FFmpeg Sound operation ${input.step.operationKey}.`)
-    if (operation === 'analyze' && input.state.currentArtifacts.length > 1) {
-      return this.#analyzeAndSelectCandidates(input)
+    const candidateSelectionPending = Boolean(input.state.provider) && !input.state.candidateSelectionRecord
+    if (operation !== 'mix_stem' && (input.state.currentArtifacts.length > 1 || candidateSelectionPending)) {
+      return this.#processCandidateBranches(input, operation)
     }
     const sourceArtifacts = operation === 'mix_stem'
-      ? input.unit.sourceArtifacts
+      ? input.state.currentArtifacts
       : [input.state.currentArtifacts.at(-1) ?? input.unit.sourceArtifacts[0]].filter(
         (artifact): artifact is SoundArtifactRef => Boolean(artifact),
       )
@@ -530,20 +753,65 @@ export class CanonicalSoundRouteExecutor {
     }
   }
 
-  async #analyzeAndSelectCandidates(input: StepInvocationInput): Promise<StepInvocationResult> {
+  async #processCandidateBranches(
+    input: StepInvocationInput,
+    operation: SoundLocalOperation,
+  ): Promise<StepInvocationResult> {
     const outputRoot = await this.#artifacts.privateOutputRoot(input.input.request.executionAuthority.privateOutputScopeId!)
     const results: SoundLocalAudioExecutionResult[] = []
+    const successfulArtifacts: SoundArtifactRef[] = []
+    const rejectedCandidates: NonNullable<CanonicalSoundResult['candidateProcessingReceipts']> = []
     for (const [index, artifact] of input.state.currentArtifacts.entries()) {
-      const source = await this.#artifacts.resolve(artifact)
-      results.push(await runSoundLocalAudioExecution({
-        schemaVersion: 'sound-local-audio-execution-v1',
-        executionId: `sound.candidate-study.${safeKey(input.unit.unitId)}.${index}`,
-        binding: localBinding(input.input, input.routeBinding, input.unit),
-        operation: 'analyze', operationProfileKey: input.step.operationProfileKey,
-        sources: [{ artifact, absolutePath: source.absolutePath }],
-        approvedInputRoot: source.approvedRoot, privateOutputRoot: outputRoot,
-        parameters: {},
-      }))
+      try {
+        const source = await this.#artifacts.resolve(artifact)
+        const result = await runSoundLocalAudioExecution({
+          schemaVersion: 'sound-local-audio-execution-v1',
+          executionId: `sound.candidate-process.${safeKey(input.unit.unitId)}.${safeKey(input.step.stepKey)}.${index}`,
+          binding: localBinding(input.input, input.routeBinding, input.unit),
+          operation, operationProfileKey: input.step.operationProfileKey,
+          sources: [{ artifact, absolutePath: source.absolutePath }],
+          approvedInputRoot: source.approvedRoot, privateOutputRoot: outputRoot,
+          ...(operation === 'analyze' || operation === 'sync_qa' ? {} : {
+            outputRelativePath: `sound/${safeKey(input.input.request.idempotencyKey)}/${safeKey(input.unit.unitId)}/${safeKey(input.step.stepKey)}-candidate-${index}.wav`,
+            outputArtifactId: `sound-output-${safeKey(input.unit.unitId)}-${safeKey(input.step.stepKey)}-${index}`,
+            outputArtifactType: outputArtifactType(input.step, operation),
+            outputContentType: 'audio/wav' as const,
+          }),
+          parameters: localParameters(input.input.request, input.unit, operation),
+        })
+        results.push(result)
+        successfulArtifacts.push(result.outputArtifact ?? artifact)
+      } catch (error) {
+        if (isFatalIntegrityError(error)) throw error
+        const failureCode = safeFailureCode(error)
+        const core = {
+          receiptId: `sound-candidate-processing.${safeKey(input.unit.unitId)}.${safeKey(input.step.stepKey)}.${index}.rejected`,
+          unitId: input.unit.unitId,
+          candidateArtifactId: artifact.artifactId,
+          processedArtifactIds: [artifact.artifactId],
+          studyEvidenceHash: hash({ status: 'decode_or_processing_failed', failureCode }),
+          qaEvidenceHash: hash({
+            status: 'rejected', failureCode, routeHash: input.route.routeHash,
+            stepKey: input.step.stepKey,
+          }),
+          eligibleForSelection: false,
+        }
+        rejectedCandidates.push({ ...core, receiptHash: hash(core) })
+      }
+    }
+    if (successfulArtifacts.length === 0) {
+      throw new SoundCandidateSetExhaustedError(input.step.stepKey, rejectedCandidates)
+    }
+    const processedArtifacts = operation === 'analyze' || operation === 'sync_qa'
+      ? successfulArtifacts
+      : successfulArtifacts
+    if (operation !== 'analyze') {
+      return {
+        artifacts: processedArtifacts,
+        localResults: results,
+        evidenceRefs: results.map((result) => `sound.candidate_branch.${safeKey(result.executionId)}`),
+        candidateProcessingReceipts: rejectedCandidates,
+      }
     }
     const ranked = results.map((result, index) => {
       const study = result.studyReport!
@@ -555,14 +823,63 @@ export class CanonicalSoundRouteExecutor {
       return { index, score: clippingPenalty + peakPenalty + loudnessPenalty - transientReward }
     }).sort((left, right) => left.score - right.score || left.index - right.index)
     const selectedIndex = ranked[0]!.index
-    const selected = input.state.currentArtifacts[selectedIndex]!
+    const selected = successfulArtifacts[selectedIndex]!
+    const finalCandidateAnalysis = /analyze_(?:trimmed_)?candidate|analyze_trimmed|analyze_output|analyze_ambience/.test(input.step.stepKey)
+    if (!finalCandidateAnalysis) {
+      return {
+        artifacts: successfulArtifacts,
+        localResults: results,
+        candidateProcessingReceipts: rejectedCandidates,
+        evidenceRefs: [hash({
+          policy: 'sound.candidate_parallel_analysis_v1',
+          candidates: successfulArtifacts.map((artifact) => artifact.artifactId),
+        })],
+      }
+    }
+    const candidateProcessingReceipts = successfulArtifacts.map((artifact, index) => {
+      const studyEvidenceHash = hash(results[index]!.studyReport)
+      const core = {
+        receiptId: `sound-candidate-processing.${safeKey(input.unit.unitId)}.${index}`,
+        unitId: input.unit.unitId,
+        candidateArtifactId: artifact.artifactId,
+        processedArtifactIds: [artifact.artifactId],
+        studyEvidenceHash,
+        qaEvidenceHash: hash({
+          clippingSampleCount: results[index]!.studyReport?.clippingSampleCount,
+          peakDbfs: results[index]!.studyReport?.peakDbfs,
+          routeHash: input.route.routeHash,
+        }),
+        eligibleForSelection: results[index]!.studyReport?.clippingSampleCount === 0,
+      }
+      return { ...core, receiptHash: hash(core) }
+    })
+    const selectionCore = {
+      recordId: `sound-candidate-selection.${safeKey(input.unit.unitId)}`,
+      unitId: input.unit.unitId,
+      candidateArtifactIds: uniqueStrings([
+        ...input.state.candidateProcessingReceipts.map((receipt) => receipt.candidateArtifactId),
+        ...rejectedCandidates.map((receipt) => receipt.candidateArtifactId),
+        ...successfulArtifacts.map((artifact) => artifact.artifactId),
+      ]),
+      selectedArtifactId: selected.artifactId,
+      selectionPolicyKey: 'sound.candidate_ranking.technical_v1',
+    }
+    const candidateSelectionRecord = { ...selectionCore, recordHash: hash(selectionCore) }
     return {
       artifacts: [selected], localResults: results,
+      candidateArtifacts: input.state.currentArtifacts,
+      candidateProcessingReceipts: [...rejectedCandidates, ...candidateProcessingReceipts],
+      candidateSelectionRecord,
       evidenceRefs: [hash({
         policy: 'sound.candidate_ranking.technical_v1',
-        candidates: input.state.currentArtifacts.map((artifact, index) => ({
+        candidates: successfulArtifacts.map((artifact, index) => ({
           artifactId: artifact.artifactId, score: ranked.find((item) => item.index === index)!.score,
         })),
+        rejectedCandidateIds: [
+          ...input.state.candidateProcessingReceipts.filter((receipt) => !receipt.eligibleForSelection)
+            .map((receipt) => receipt.candidateArtifactId),
+          ...rejectedCandidates.map((receipt) => receipt.candidateArtifactId),
+        ],
         selectedArtifactId: selected.artifactId,
       })],
     }
@@ -674,9 +991,30 @@ export class CanonicalSoundRouteExecutor {
   }
 
   async #syncStep(input: StepInvocationInput): Promise<StepInvocationResult> {
-    if (input.step.operationKey === 'create_speech_safe_mix_automation' ||
-      input.step.operationKey === 'create_timed_sound_cue') {
-      return { evidenceRefs: [`sound.automation.${hash(input.unit.automation ?? input.unit.targetRange)}`] }
+    if (input.step.operationKey === 'create_timed_sound_cue') {
+      const timedCue = input.unit.cue ?? {
+        cueId: `sound-cue.${safeKey(input.unit.unitId)}`,
+        startFrame: input.unit.targetRange.startFrame,
+        endFrameExclusive: input.unit.targetRange.endFrameExclusive,
+        timelineRate: input.input.request.timelineRate,
+        source: 'approved_target_range',
+      }
+      return {
+        explicitOutputs: { sound_cue_manifest: timedCue },
+        evidenceRefs: [`sound.timed_cue.${hash(timedCue)}`],
+      }
+    }
+    if (input.step.operationKey === 'create_speech_safe_mix_automation') {
+      const automation = input.unit.automation ?? {
+        unitId: input.unit.unitId,
+        targetRange: input.unit.targetRange,
+        timelineRate: input.input.request.timelineRate,
+        automationStatus: 'bounded_defaults_applied',
+      }
+      return {
+        explicitOutputs: { mix_automation_manifest: automation },
+        evidenceRefs: [`sound.automation.${hash(automation)}`],
+      }
     }
     const cue = input.unit.cue
     const study = input.state.studies.at(-1)
@@ -708,10 +1046,70 @@ export class CanonicalSoundRouteExecutor {
   async #artifactStep(input: StepInvocationInput): Promise<StepInvocationResult> {
     const artifacts = input.state.currentArtifacts
     if (artifacts.length === 0) throw new Error('Private Sound artifact handler received no output to verify.')
-    for (const artifact of artifacts) await this.#artifacts.resolve(artifact)
+    const candidateIngest = input.step.operationKey === 'ingest_untrusted_provider_output'
+    const resolved: ResolvedPrivateSoundArtifact[] = []
+    const rejectedCandidates: NonNullable<CanonicalSoundResult['candidateProcessingReceipts']> = []
+    for (const [index, artifact] of artifacts.entries()) {
+      try {
+        resolved.push(await this.#artifacts.resolve(artifact))
+      } catch (error) {
+        if (!candidateIngest || isFatalIntegrityError(error)) throw error
+        const failureCode = safeFailureCode(error)
+        const core = {
+          receiptId: `sound-candidate-processing.${safeKey(input.unit.unitId)}.${safeKey(input.step.stepKey)}.${index}.rejected`,
+          unitId: input.unit.unitId,
+          candidateArtifactId: artifact.artifactId,
+          processedArtifactIds: [artifact.artifactId],
+          studyEvidenceHash: hash({ status: 'provider_candidate_ingest_failed', failureCode }),
+          qaEvidenceHash: hash({
+            status: 'rejected', failureCode, routeHash: input.route.routeHash,
+            stepKey: input.step.stepKey,
+          }),
+          eligibleForSelection: false,
+        }
+        rejectedCandidates.push({ ...core, receiptHash: hash(core) })
+      }
+    }
+    if (resolved.length === 0) {
+      throw new SoundCandidateSetExhaustedError(input.step.stepKey, rejectedCandidates)
+    }
+    const verifiedArtifacts = resolved.map(({ artifact }) => artifact)
+    const artifactCommitRecord = {
+      schemaVersion: 'sound-artifact-commit-record-v1',
+      unitId: input.unit.unitId,
+      operationSpecHash: input.unit.operationSpec.operationSpecHash,
+      artifacts: resolved.map(({ artifact }) => ({
+        artifactId: artifact.artifactId, version: artifact.version,
+        checksumSha256: artifact.checksumSha256, storageObjectId: artifact.storageObjectId,
+        private: artifact.private,
+      })),
+      verifiedExistingOrCreated: true,
+      sourceOverwritePerformed: false,
+    }
+    const provenanceRecord = {
+      schemaVersion: 'sound-provenance-record-v1',
+      unitId: input.unit.unitId,
+      routeKey: input.route.routeKey,
+      routeVersion: input.route.routeVersion,
+      sourceArtifactIds: input.unit.sourceArtifacts.map((artifact) => artifact.artifactId),
+      outputArtifactIds: verifiedArtifacts.map((artifact) => artifact.artifactId),
+      providerAttemptId: input.state.provider?.attempt.attemptId,
+      durableProviderUrlStored: false,
+      provenanceHash: hash({
+        routeHash: input.route.routeHash,
+        operationSpecHash: input.unit.operationSpec.operationSpecHash,
+        outputHashes: verifiedArtifacts.map((artifact) => artifact.checksumSha256),
+      }),
+    }
     return {
-      artifacts,
-      evidenceRefs: artifacts.map((artifact) => `sound.private_artifact.${artifact.checksumSha256}`),
+      artifacts: verifiedArtifacts,
+      artifactCommitRecord,
+      provenanceRecord,
+      candidateProcessingReceipts: rejectedCandidates,
+      evidenceRefs: [
+        ...verifiedArtifacts.map((artifact) => `sound.private_artifact.${artifact.checksumSha256}`),
+        `sound.provenance.${provenanceRecord.provenanceHash}`,
+      ],
     }
   }
 
@@ -738,21 +1136,28 @@ export class CanonicalSoundRouteExecutor {
       const soundDna = { ...core, evidenceHash: hash(core) }
       return { soundDna, evidenceRefs: [soundDna.evidenceHash] }
     }
-    return { evidenceRefs: [`sound.planning_handler.${safeKey(input.step.operationKey)}.${safeKey(input.unit.unitId)}`] }
+    const callerReceiptOutput = createCallerReceiptOutput(input)
+    return {
+      callerReceiptOutput,
+      evidenceRefs: [`sound.caller_receipt.${callerReceiptOutput.receiptHash}`],
+    }
   }
 
   async #admitExecutionRoute(
     input: ApprovedSoundExecutionPackage,
     route: Readonly<SoundToolRouteManifest>,
+    unit: SoundExecutionUnit,
   ): Promise<SoundToolRouteBinding> {
     const runtimeStatuses = await executionRuntimeStatuses(Boolean(this.#mirelo))
     const admission = evaluateSoundToolRouteAdmission({
       routeKey: route.routeKey, routeVersion: route.routeVersion,
-      capabilityKey: input.plannedResult.capabilityEntryKey,
-      jobType: input.request.requestedJobType,
+      capabilityKey: unit.capabilityKey,
+      jobType: unit.routeJobType,
       mode: input.request.requiredQualificationMode === 'production' ? 'final_execution' : 'preview_execution',
-      scope: input.request.assignmentScope.assignmentMode === 'whole_video'
-        ? 'video' : input.request.assignmentScope.assignmentMode,
+      scope: input.executionGraph?.compositeExecutionPolicy
+        ? 'range'
+        : input.request.assignmentScope.assignmentMode === 'whole_video'
+          ? 'video' : input.request.assignmentScope.assignmentMode,
       availableInputKeys: approvedRouteInputKeys(input.request),
       availableQaKeys: [...route.stepQa, ...route.finalOutputQa, ...route.integrationQa],
       runtimeStatuses, budgetApproved: input.request.executionAuthority.creditStatus === 'reserved',
@@ -779,14 +1184,29 @@ export class CanonicalSoundRouteExecutor {
     measuredDialogueRmsDbfs?: number
     measuredSoundRmsDbfs?: number
     measuredDuckingDeltaDb?: number
+    measuredDuckingDb?: number
+    protectedRange?: SoundFrameRange
+    expectedPanDirection: 'left' | 'center' | 'right'
+    measuredChannelDeltaDb: number
+    gainEnvelopeMeasurements: Array<{
+      timeSeconds: number
+      expectedGainDb: number
+      measuredRmsDbfs: number
+    }>
+    fadeMeasurements: {
+      leadingRmsDbfs: number
+      centerRmsDbfs: number
+      trailingRmsDbfs: number
+    }
   }>> {
-    if (!['mix_sound_layers', 'create_sound_stem'].includes(input.request.requestedJobType)) return []
+    if (!outcomes.some((outcome) => outcome.unit.unitKind === 'mix_stem')) return []
     const measurements = []
     for (const outcome of outcomes) {
+      if (outcome.unit.unitKind !== 'mix_stem') continue
       const output = outcome.studyReports.at(-1)
       if (!output) continue
       const sourceStudies: SoundAudioStudyReport[] = []
-      for (const source of outcome.unit.sourceArtifacts) {
+      for (const source of outcome.consumedSourceArtifacts) {
         const resolvedSource = await this.#artifacts.resolve(source)
         const outputRoot = await this.#artifacts.privateOutputRoot(input.request.executionAuthority.privateOutputScopeId!)
         const analysis = await runSoundLocalAudioExecution({
@@ -802,6 +1222,30 @@ export class CanonicalSoundRouteExecutor {
       }
       const dialogue = sourceStudies[0]
       const sound = sourceStudies.slice(1).sort((left, right) => right.rmsDbfs - left.rmsDbfs)[0]
+      const automation = outcome.unit.automation
+      const selected = outcome.selectedArtifact
+      if (!selected) continue
+      const resolvedOutput = await this.#artifacts.resolve(selected)
+      const windowMeasurements = await measureSoundMixOutput({
+        absolutePath: resolvedOutput.absolutePath,
+        protectedSpeechWindows: (automation?.protectedSpeechRanges ?? []).map((range) => ({
+          startSeconds: framesToSeconds(
+            Math.max(0, range.startFrame - outcome.unit.targetRange.startFrame), input.request.timelineRate,
+          ),
+          endSeconds: framesToSeconds(
+            Math.max(0, Math.min(outcome.unit.targetRange.endFrameExclusive, range.endFrameExclusive) -
+              outcome.unit.targetRange.startFrame),
+            input.request.timelineRate,
+          ),
+        })).filter((window) => window.endSeconds > window.startSeconds),
+        gainEnvelope: (automation?.gainEnvelope ?? []).map((point) => ({
+          timeSeconds: framesToSeconds(
+            Math.max(0, point.frame - outcome.unit.targetRange.startFrame), input.request.timelineRate,
+          ),
+          gainDb: point.gainDb,
+        })),
+        pan: automation?.pan ?? 0,
+      })
       measurements.push({
         unitId: outcome.unit.unitId,
         measuredOutputPeakDbfs: output.peakDbfs,
@@ -810,6 +1254,12 @@ export class CanonicalSoundRouteExecutor {
         measuredDialogueRmsDbfs: dialogue?.rmsDbfs,
         measuredSoundRmsDbfs: sound?.rmsDbfs,
         measuredDuckingDeltaDb: sound ? Number((output.rmsDbfs - sound.rmsDbfs).toFixed(3)) : undefined,
+        measuredDuckingDb: windowMeasurements.protectedRangeMeasurements[0]?.measuredDuckingDb,
+        protectedRange: automation?.protectedSpeechRanges[0],
+        expectedPanDirection: windowMeasurements.expectedPanDirection,
+        measuredChannelDeltaDb: windowMeasurements.measuredChannelDeltaDb,
+        gainEnvelopeMeasurements: windowMeasurements.gainEnvelopeMeasurements,
+        fadeMeasurements: windowMeasurements.fadeMeasurements,
       })
     }
     return measurements
@@ -839,6 +1289,119 @@ function validateExecutionPackage(input: ApprovedSoundExecutionPackage): void {
   }
 }
 
+function createAndValidateStepOutputBundle(input: {
+  unit: SoundExecutionUnit
+  step: SoundToolRouteStep
+  invoked: StepInvocationResult
+  state: StepState
+}): SoundStepOutputBundle {
+  const outputsByBinding: Record<string, unknown> = {}
+  const artifacts = uniqueArtifacts(input.invoked.artifacts ?? [])
+  const latestStudy = input.invoked.localResult?.studyReport ??
+    input.invoked.localResults?.at(-1)?.studyReport ?? input.state.studies.at(-1)
+  const candidateArtifacts = input.invoked.provider?.outputArtifacts ?? artifacts
+  for (const outputBinding of input.step.outputBindings) {
+    const explicit = input.invoked.explicitOutputs?.[outputBinding]
+    const value = explicit ?? (() => {
+      if (outputBinding === 'validated_audio_metadata' || outputBinding === 'validated_provider_carrier') {
+        return input.invoked.mediaInspection
+      }
+      if (outputBinding === 'provider_attempt_evidence') {
+        return input.invoked.providerAttemptRecord ?? input.invoked.provider?.attempt ?? input.state.providerAttemptRecord
+      }
+      if (outputBinding === 'cost_evidence') return input.invoked.provider?.attempt.providerCostEvidence ??
+        input.invoked.providerAttemptRecord
+      if (outputBinding === 'sound_qa_report') return input.invoked.perUnitQa
+      if (outputBinding === 'caller_receipt') return input.invoked.callerReceiptOutput
+      if (outputBinding === 'provenance_report') return input.invoked.provenanceRecord
+      if (outputBinding === 'reference_sound_dna') return input.invoked.soundDna
+      if (outputBinding === 'no_sound_decision') return input.invoked.noSoundDecision
+      if (outputBinding === 'sound_cue_manifest') return input.invoked.placement ?? input.unit.cue
+      if (outputBinding === 'mix_automation_manifest') return input.unit.automation ?? {
+        unitId: input.unit.unitId,
+        targetRange: input.unit.targetRange,
+        automationStatus: 'bounded_defaults_applied',
+      }
+      if (outputBinding === 'final_composition_sound_handoff') return input.invoked.perUnitQa ? {
+        unitId: input.unit.unitId,
+        artifactReferences: artifacts.length > 0 ? artifacts : input.state.currentArtifacts,
+        qaReceipt: input.invoked.perUnitQa,
+        finalRenderOwnedBySound: false,
+      } : undefined
+      if (outputBinding === 'sound_study_report' || outputBinding === 'final_audio_metrics' ||
+        outputBinding === 'candidate_transient_report' || outputBinding === 'transient_timing_report') {
+        return latestStudy ?? input.invoked.placement
+      }
+      if (outputBinding === 'sound_design_plan' || outputBinding === 'visual_sound_event_study' ||
+        outputBinding === 'sound_library_search_decision') {
+        return input.invoked.callerReceiptOutput
+      }
+      if (outputBinding === 'bounded_private_visual_proxy') return input.invoked.proxy
+      if (/(?:asset|stem|candidate|audio)$/.test(outputBinding) ||
+        outputBinding.startsWith('private_') || outputBinding.startsWith('untrusted_') ||
+        outputBinding === 'edited_audio_asset_version' || outputBinding === 'cleaned_dialogue_asset_v2') {
+        return outputBinding.includes('candidate') ? candidateArtifacts : artifacts
+      }
+      return undefined
+    })()
+    if (value === undefined || (Array.isArray(value) && value.length === 0)) {
+      throw new Error(
+        `Sound handler ${input.step.toolKey}:${input.step.operationKey}:${input.step.operationProfileKey}@${input.step.operationProfileVersion} did not produce declared output ${outputBinding}.`,
+      )
+    }
+    outputsByBinding[outputBinding] = value
+  }
+  const core = {
+    schemaVersion: 'sound-step-output-bundle-v1' as const,
+    unitId: input.unit.unitId,
+    stepKey: input.step.stepKey,
+    declaredOutputBindings: [...input.step.outputBindings],
+    outputsByBinding,
+    outputArtifactRefs: artifacts,
+  }
+  const bundle: SoundStepOutputBundle = { ...core, bundleHash: hash(core) }
+  validateSoundStepOutputBindings(input.step, bundle)
+  return bundle
+}
+
+function createCallerReceiptOutput(input: StepInvocationInput) {
+  const core = {
+    schemaVersion: 'sound-caller-receipt-output-v1' as const,
+    receiptId: `sound-caller-receipt.${safeKey(input.unit.unitId)}`,
+    unitId: input.unit.unitId,
+    callerType: input.input.request.callerType,
+    callerSkillKey: input.input.request.callerSkillKey,
+    authorityHash: input.input.request.assignmentScope.parentAuthorityHash,
+    authorityEscalated: false as const,
+    finalRenderOwnedBySound: false as const,
+    musicCompositionPerformed: false as const,
+  }
+  return { ...core, receiptHash: hash({
+    ...core,
+    requestId: input.input.request.requestId,
+    operationSpecHash: input.unit.operationSpec.operationSpecHash,
+  }) }
+}
+
+function validateSoundStepOutputBindings(
+  step: SoundToolRouteStep,
+  bundle: SoundStepOutputBundle,
+): void {
+  const declared = [...step.outputBindings].sort()
+  const produced = Object.keys(bundle.outputsByBinding).sort()
+  if (JSON.stringify(declared) !== JSON.stringify(produced)) {
+    throw new Error(`Sound step output binding mismatch for ${step.stepKey}.`)
+  }
+  if (bundle.bundleHash !== hash({
+    schemaVersion: bundle.schemaVersion,
+    unitId: bundle.unitId,
+    stepKey: bundle.stepKey,
+    declaredOutputBindings: bundle.declaredOutputBindings,
+    outputsByBinding: bundle.outputsByBinding,
+    outputArtifactRefs: bundle.outputArtifactRefs,
+  })) throw new Error(`Sound step output bundle hash mismatch for ${step.stepKey}.`)
+}
+
 function validateOrCompileGraph(input: ApprovedSoundExecutionPackage): SoundExecutionGraph {
   const graph = input.executionGraph ?? compileCanonicalSoundExecutionGraph({
     request: input.request,
@@ -864,8 +1427,31 @@ function validateOrCompileGraph(input: ApprovedSoundExecutionPackage): SoundExec
 
 function failedUnit(unit: SoundExecutionUnit, failureCode: string): UnitExecutionOutcome {
   return {
-    unit, status: 'failed', failureCode, candidateArtifacts: [], studyReports: [],
-    localResults: [], providerAttempts: [], stepEvidence: [],
+    unit, status: 'failed', failureCode, candidateArtifacts: [], consumedSourceArtifacts: [],
+    studyReports: [], localResults: [], providerAttempts: [], candidateProcessingReceipts: [],
+    fallbackEvidence: [], outputBundles: [], stepEvidence: [],
+  }
+}
+
+function blockedDependencyUnit(unit: SoundExecutionUnit, prerequisiteUnitId: string): UnitExecutionOutcome {
+  return {
+    unit, status: 'blocked', failureCode: `blocked_dependency:${prerequisiteUnitId}`,
+    candidateArtifacts: [], consumedSourceArtifacts: [], studyReports: [], localResults: [],
+    providerAttempts: [], candidateProcessingReceipts: [], fallbackEvidence: [], outputBundles: [],
+    stepEvidence: [{
+      unitId: unit.unitId,
+      stepKey: 'cross_unit_dependency',
+      toolKey: 'sound_route_executor',
+      operationKey: 'enforce_cross_unit_dependency',
+      status: 'blocked_dependency',
+      elapsedMilliseconds: 0,
+      outputArtifactIds: [],
+      outputArtifactHashes: [],
+      outputBindingKeys: [],
+      evidenceRefs: [`sound.blocked_dependency.${safeKey(prerequisiteUnitId)}`],
+      operationSpecHash: unit.operationSpec.operationSpecHash,
+      failureCode: `blocked_dependency:${prerequisiteUnitId}`,
+    }],
   }
 }
 
@@ -894,6 +1480,39 @@ function createMutationReceipt(unit: SoundExecutionUnit, artifact: SoundArtifact
     outputHash: artifact.checksumSha256, sourceUnchanged: true as const,
   }
   return { ...core, receiptHash: hash(core) }
+}
+
+function compileSoundMixRenderSpec(
+  outcome: UnitExecutionOutcome,
+  request: CanonicalSoundRequest,
+): CompiledSoundMixRenderSpec {
+  const automation = outcome.unit.automation
+  const cueId = automation?.cueId ?? outcome.unit.cue?.cueId ?? `mix-${safeKey(outcome.unit.unitId)}`
+  const core = {
+    schemaVersion: 'compiled-sound-mix-render-spec-v1' as const,
+    renderSpecId: `sound-mix-render.${safeKey(outcome.unit.unitId)}`,
+    cueId,
+    targetRange: structuredClone(outcome.unit.targetRange),
+    timelineRate: structuredClone(request.timelineRate),
+    gainEnvelope: automation?.gainEnvelope ?? [
+      { frame: outcome.unit.targetRange.startFrame, gainDb: 0 },
+      { frame: outcome.unit.targetRange.endFrameExclusive - 1, gainDb: 0 },
+    ],
+    fadeInFrames: automation?.fadeInFrames ?? requiredParameterNumber(outcome.unit, 'fadeInFrames'),
+    fadeOutFrames: automation?.fadeOutFrames ?? requiredParameterNumber(outcome.unit, 'fadeOutFrames'),
+    protectedSpeechRanges: automation?.protectedSpeechRanges ?? [],
+    dialogueDuckingDb: automation?.dialogueDuckingDb ?? requiredParameterNumber(outcome.unit, 'dialogueDuckingDb'),
+    duckAttackFrames: automation?.duckAttackFrames ?? requiredParameterNumber(outcome.unit, 'duckAttackFrames'),
+    duckReleaseFrames: automation?.duckReleaseFrames ?? requiredParameterNumber(outcome.unit, 'duckReleaseFrames'),
+    eqProfile: automation?.eqProfile ?? 'neutral' as const,
+    dynamicsProfile: automation?.dynamicsProfile ?? 'peak_limiter' as const,
+    perspectiveProfile: automation?.distance ?? 'medium' as const,
+    roomProfile: automation?.roomMatch ?? 'dry' as const,
+    pan: automation?.pan ?? 0,
+    headroomDb: automation?.headroomDb ?? requiredParameterNumber(outcome.unit, 'headroomDb'),
+    sourceArtifactIds: outcome.consumedSourceArtifacts.map((artifact) => artifact.artifactId),
+  }
+  return { ...core, renderSpecHash: hash(core) }
 }
 
 function localOperationFromStep(operationKey: string): SoundLocalOperation | undefined {
@@ -957,12 +1576,35 @@ function localParameters(
     inputGainDb: unit.sourceArtifacts.map((artifact, index) =>
       parameterNumber(unit, `sourceGainDb:${artifact.artifactId}`) ??
       (index === 0 ? 0 : requiredParameterNumber(unit, 'gainDb'))),
-    dialogueInputIndex: Math.max(0, unit.sourceArtifacts.findIndex((artifact) =>
-      artifact.artifactId === parameterString(unit, 'dialogueSourceArtifactId'))),
+    dialogueInputIndex: unit.sourceArtifacts.findIndex((artifact) =>
+      artifact.artifactId === parameterString(unit, 'dialogueSourceArtifactId')),
     dialogueDuckingDb: requiredParameterNumber(unit, 'dialogueDuckingDb'),
     duckAttackSeconds: framesToSeconds(requiredParameterNumber(unit, 'duckAttackFrames'), request.timelineRate),
     duckReleaseSeconds: framesToSeconds(requiredParameterNumber(unit, 'duckReleaseFrames'), request.timelineRate),
     outputLimiterLinear: Number((10 ** (-requiredParameterNumber(unit, 'headroomDb') / 20)).toFixed(6)),
+    gainEnvelope: unit.automation?.gainEnvelope.map((point) => ({
+      timeSeconds: framesToSeconds(
+        Math.max(0, point.frame - unit.targetRange.startFrame), request.timelineRate,
+      ),
+      gainDb: point.gainDb,
+    })),
+    protectedSpeechWindows: unit.automation?.protectedSpeechRanges
+      .filter((range) => range.startFrame < unit.targetRange.endFrameExclusive &&
+        range.endFrameExclusive > unit.targetRange.startFrame)
+      .map((range) => ({
+        startSeconds: framesToSeconds(
+          Math.max(0, range.startFrame - unit.targetRange.startFrame), request.timelineRate,
+        ),
+        endSeconds: framesToSeconds(
+          Math.min(unit.targetRange.endFrameExclusive, range.endFrameExclusive) - unit.targetRange.startFrame,
+          request.timelineRate,
+        ),
+      })),
+    pan: unit.automation?.pan ?? 0,
+    eqProfile: unit.automation?.eqProfile ?? 'neutral',
+    dynamicsProfile: unit.automation?.dynamicsProfile ?? 'peak_limiter',
+    perspectiveProfile: unit.automation?.distance ?? 'medium',
+    roomProfile: unit.automation?.roomMatch ?? 'dry',
   }
   if (operation === 'sync_qa') return {}
   return format
@@ -998,6 +1640,7 @@ function localBinding(
     approvedWorkItemId: input.approvedWorkItemId,
     privateOutputScopeId: input.request.executionAuthority.privateOutputScopeId!,
     idempotencyKey: `${input.request.idempotencyKey}.${safeKey(unit.unitId)}`,
+    operationSpecHash: unit.operationSpec.operationSpecHash,
     timelineRate: input.request.timelineRate,
     ...(input.request.executionAuthority.creditReservationId
       ? { creditReservationId: input.request.executionAuthority.creditReservationId } : {}),
@@ -1008,7 +1651,8 @@ function localBinding(
 function approvedRouteInputKeys(request: CanonicalSoundRequest): string[] {
   return [...new Set([
     'bounded_authority', 'bounded_operation_profile', 'bounded_retime_profile',
-    'sound_design_context', 'dialogue_context', 'approved_timing_manifest', 'timing_manifest',
+    'sound_design_context', 'dialogue_context', 'approved_provider_request',
+    'approved_timing_manifest', 'timing_manifest',
     ...(request.sourceAudioRefs.length > 0 ? [
       'approved_source_audio', 'approved_sound_asset', 'approved_sound_layers',
       'approved_project_sound_resolution', 'approved_ambience_source_or_brief',
@@ -1122,6 +1766,10 @@ function sameArtifact(left: SoundArtifactRef, right: SoundArtifactRef): boolean 
 
 function uniqueArtifacts(artifacts: SoundArtifactRef[]): SoundArtifactRef[] {
   return [...new Map(artifacts.map((artifact) => [`${artifact.artifactId}:${artifact.version}`, artifact])).values()]
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)]
 }
 
 function uniqueRanges(ranges: SoundFrameRange[]): SoundFrameRange[] {

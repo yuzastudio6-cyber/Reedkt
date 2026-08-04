@@ -1958,6 +1958,145 @@ commit and that the final head recomputes identical source/dependency hashes.
 No external provider request, public artifact, production mutation, orchestra,
 Track All implementation, or Visual Intelligence implementation occurred.
 
+## M29 — full public canonical lifecycle qualification
+
+Status: implementation complete, committed, pushed, and included in the M30
+aggregate qualification.
+
+Implementation and correction commits:
+
+- `afa3905e9055b3a0340c6199158c216ff378a10e` — generic dispatcher artifact
+  values, strict source/object manifests, public/private graph bridge, and the
+  full public canonical lifecycle smoke.
+- `3b0b7c1` — explicit immutable Gemini Omni V5 private raw-output projection;
+  the retired raw MP4 role remains provider-private and is not an active
+  public artifact.
+- `92039bc` — renamed the model-neutral dependency module to the Track graph
+  contract so B-roll imports no Track All implementation surface.
+- `56a4a89` — kept strict runtime artifact values outside hash-only dispatch
+  receipts.
+- `01168f5` — projected only the fields allowed by each exact artifact schema.
+- `657e9e9` — preserved distinct public plan-envelope and private payload-plan
+  hashes through the bridge.
+- `14f734a` — validated source-manifest identity separately from nested source
+  object bytes/checksum.
+- `950fa403856b4f2ce6dcb9f09d017db18a27b75a` — made both lifecycle MP4
+  fixtures stdin-streamable for the unchanged confined media runtime. This is
+  the exact commit tested by the final qualification receipt.
+
+Every listed commit was pushed with `git push -u origin HEAD`; after the final
+M29 correction, local and remote branch refs both resolved to
+`950fa403856b4f2ce6dcb9f09d017db18a27b75a` before qualification began.
+
+The generic runtime dispatcher can now return strict artifact values, persist
+them through the injected public artifact store, and form exact public work
+results without exposing artifact values in its content-addressed receipt.
+The canonical private executor accepts the exact public approved graph only
+when its `pluginWorkGraphHash` matches the separately revalidated private
+B-roll graph. Public assignment/plan/work hashes and private B-roll
+assignment/plan/work hashes remain distinct, explicit authorities.
+
+The full lifecycle smoke imports B-roll only through its top-level package and
+imports no mini-skill. It resolves `b_roll` from the generic plugin registry,
+uses real required-manifest input resolution, plans and approves through the
+public plugin, dispatches real canonical bindings through the generic
+dispatcher, persists every strict output artifact, validates every public
+work result, and finalizes through the public plugin.
+
+The same smoke proves:
+
+- professional no-action completes three exact validation/result work items
+  with zero media, source, display, provider requests, and provider credits;
+- an existing source is a tenant/project-bound immutable source manifest plus
+  a separate private object checksum, then passes real confined FFprobe,
+  confined FFmpeg/FFV1 normalization, technical QA, private Remotion preview,
+  and final public receipt with no provider work;
+- one injected Gemini Omni V5 candidate is emitted as the strict candidate
+  media manifest and public finalization returns `needs_other_skill` until the
+  exact model-neutral Visual Intelligence artifact is accepted; the accepted
+  findings then drive internal semantic QA, Remotion, and finalization;
+- `track_graph_v1` is accepted as the only tracking boundary and a direct
+  model-specific field is rejected;
+- the separate injected Gemini transport command covers every supported task
+  contract and all explicit fail-closed unsupported modes.
+
+Actual M29 evidence is the final M30 aggregate command evidence for
+`npm.test:b-roll-public-canonical-lifecycle` plus the independent provider,
+candidate-QA, existing-source, canonical integration, and Remotion commands
+listed below. The public lifecycle command passed with 13 registered canonical
+bindings, 3 no-action work items, 12 existing-source work items, 11 generated
+work items, exactly one injected provider lifecycle submission, one exact
+Visual Intelligence acceptance, and zero real provider requests, public
+artifacts, or production mutations.
+
+No orchestra, Track All implementation, Visual Intelligence implementation,
+production worker, public delivery, customer export, or billing mutation was
+added.
+
+## M30 — final evidence-backed closeout qualification
+
+Status: complete, committed, pushed, and internally execution qualified.
+
+Qualification evidence commit:
+`4fd8b9dcddb529e1627d03f134514df9458fd524`.
+
+Remote confirmation: `git push -u origin HEAD` advanced
+`origin/codex/reeditpro-b-roll-skill-end-to-end` to
+`4fd8b9dcddb529e1627d03f134514df9458fd524` immediately after the generated
+receipt commit.
+
+`npm run qualify:b-roll:internal` started from a clean tree and tested exact
+commit `950fa403856b4f2ce6dcb9f09d017db18a27b75a`. It recomputed relevant source
+tree hash
+`3849c87be8dfd78f4da8e1f594815e035e4466fd3e98357cde695c9973ceddbe`,
+the ordered 18-authority set hash
+`15e8803248c2aa5db6715918bcb39f820bc9f312999d4021bb1578b5c69bd87a`,
+and manifest hash
+`40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0`.
+It emitted 36 fixture evidence records and 29 actual command records, then
+issued qualification receipt hash
+`dca9bca8f88e62d4ce62abf3ead07cf2c392adda54eefd38633b5923a0d057ea`
+and generated artifact hash
+`3c84dfdccdb5865787eb8a043f1d0797c23da4950559696c1704ce109b66e9d1`.
+
+Every aggregate command passed:
+
+- `npm run test:b-roll-planning`
+- `npm run test:b-roll-planning-qa`
+- `npm run test:b-roll-qualification-evidence`
+- `npm run test:b-roll-plan-invariants`
+- `npm run test:b-roll-public-plugin`
+- `npm run test:b-roll-active-artifact-contracts`
+- `npm run test:b-roll-runtime-bindings`
+- `npm run test:edit-skill-runtime-factory`
+- `npm run test:ui-qa-media-runtime-workflow`
+- `npm run test:b-roll-capability-manifest`
+- `npm run validate:skill-capability-manifests`
+- `npm run test:edit-skill-capability-kernel`
+- `npm run build`
+- `npm run typecheck:server`
+- `npm run lint`
+- `npm run check:frontend-boundary`
+- `npm run smoke:b-roll-provider-authority`
+- `npm run smoke:b-roll-retirement`
+- `npm run smoke:b-roll-end-to-end`
+- `npm run test:b-roll-canonical-private-runtime`
+- `npm run test:b-roll-public-canonical-lifecycle`
+- `npm run smoke:b-roll-candidate-qa`
+- `npm run smoke:b-roll-existing-source`
+- `npm run smoke:b-roll-provider-lifecycle`
+- `npm run test:b-roll-canonical-integration`
+- `npm run smoke:b-roll-remotion-integration`
+- `npm run smoke:runtime-api-security`
+- `npm run smoke:edit-execution-security-boundary`
+- `npm run smoke:idempotency-boundary`
+
+The status is `internal_execution_qualified`, not production qualified. The
+five real production fixtures, real paid Gemini canary, durable production
+artifact-store adapter, production worker adapter, public delivery, final
+customer export, and orchestra integration remain intentionally blocked or
+out of scope.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1991,3 +2130,5 @@ Track All implementation, or Visual Intelligence implementation occurred.
 | M26 | `89692e838` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
 | M27 | `397b6546a` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
 | M28 | `496cad74c` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
+| M29 | `afa3905e9` + `3b0b7c1` + `92039bc` + `56a4a89` + `01168f5` + `657e9e9` + `14f734a` + `950fa40` | this bookkeeping commit | confirmed | included in final actual receipt |
+| M30 | tested `950fa403856b4f2ce6dcb9f09d017db18a27b75a`; evidence `4fd8b9dcddb529e1627d03f134514df9458fd524` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

@@ -171,8 +171,11 @@ public, or production action occurred.
 
 ## TRACK-03 — assignment, target, and input authorities
 
-Status: implementation and local verification complete; the milestone commit
-and exact remote confirmation are recorded by the following ledger update.
+Status: complete and pushed.
+
+- implementation commit: `5336fa2baba8adf025e305f5baf95062baac06e9`
+- remote confirmation: `git ls-remote --heads origin codex/track-all-skill-end-to-end`
+  returned the same exact SHA after `git push -u origin HEAD`.
 
 Implemented:
 

@@ -358,7 +358,8 @@
     "qa:screenshots": "playwright test tests/e2e/screenshots.spec.ts",
     "qa:zoom": "playwright test tests/e2e/zoom.spec.ts",
     "qa:internal-pipeline": "tsx server/cli/canonical-private-pipeline-verification.ts --full",
-    "smoke:captions-specialist-cap-01": "tsx server/smoke/captions-specialist-cap-01-smoke.ts"
+    "smoke:captions-specialist-cap-01": "tsx server/smoke/captions-specialist-cap-01-smoke.ts",
+    "smoke:captions-specialist-cap-02": "tsx server/smoke/captions-specialist-cap-02-smoke.ts"
   },
   "dependencies": {
     "@babylonjs/core": "^9.15.0",

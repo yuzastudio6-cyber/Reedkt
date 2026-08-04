@@ -1,7 +1,7 @@
-# Captions Specialist — CAP-01 Contract Harness Checkpoint
+# Captions Specialist — CAP-02 Composite Checkpoint
 
-Status: `cap_01_complete`
-Checkpoint: `CAP-01`
+Status: `cap_02_complete`
+Checkpoint: `CAP-02`
 Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
@@ -74,6 +74,7 @@ The governing workflow invariant remains:
 ### CAP-01 implementation evidence
 
 - [CAP-01 manifest, qualification, and harness report](cap-01-specialist-manifest-harness-report.md)
+- [CAP-02 composite and mini-skill report](cap-02-composite-mini-skill-report.md)
 
 ### Historical architecture retained and amended
 
@@ -109,14 +110,19 @@ The governing workflow invariant remains:
 
 ## Progression
 
-CAP-00R and CAP-01 are complete on the clean specialist branch. CAP-01 adds the
+CAP-00R through CAP-02 are complete on the clean specialist branch. CAP-01 adds the
 neutral shared v2 manifest extension, per-job qualification snapshot,
 Orchestra-shaped call/support/result contracts, strict closed-data validation,
 the Caption manifest, and a bounded internal-only harness. It does not add the
 HQ reasoning loop, a global scheduler, or peer execution.
 
-Implementation continues automatically into CAP-02 component publication and
-CAP-03 specialist definition/registry wiring.
+CAP-02 adds the `caption_design` internal composite, 55 reusable mini skills,
+versioned inverse relationships, the explicit `no_captions` conflict, complete
+legacy mappings, cycle validation, and deterministic scene-aware activation.
+It intentionally leaves registry mutation to CAP-03.
+
+Implementation continues automatically into CAP-03 core domain contracts and
+professional-skill registry integration.
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

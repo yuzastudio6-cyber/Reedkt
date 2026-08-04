@@ -1,6 +1,6 @@
 # Captions Specialist Amendment
 
-Status: `cap_01_complete`
+Status: `cap_02_complete`
 Applies to: all historical files in `docs/caption-direction/`
 
 This amendment supersedes only the historical identity, intelligence-routing,

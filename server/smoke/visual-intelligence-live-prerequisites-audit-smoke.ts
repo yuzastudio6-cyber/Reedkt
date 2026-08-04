@@ -11,7 +11,7 @@ const accountPriceReadinessSource = readFileSync(
 )
 
 assert.match(source, /PROJECT_ID='reeditpro'/u)
-assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v4/u)
+assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v5/u)
 assert.match(source, /REGION='us-central1'/u)
 assert.match(source, /NVIDIA_A100_80GB_GPUS/u)
 assert.match(source, /NVIDIA_L4_GPUS/u)
@@ -26,6 +26,9 @@ assert.match(source,
   /read-visual-intelligence-account-price-readiness\.mjs/u)
 assert.match(source, /gcloud run jobs list/u)
 assert.match(source, /gcloud run services list/u)
+assert.match(source, /retiredLegacyCpuMediaRuntime/u)
+assert.match(source, /fixedAllowlistCount: 15/u)
+assert.match(source, /legacyCpuMediaRuntimeJobs/u)
 assert.match(source, /gcloud artifacts docker images list/u)
 assert.match(source, /gcloud artifacts repositories describe/u)
 assert.match(source, /vulnerabilityScanningConfig\.enablementState/u)

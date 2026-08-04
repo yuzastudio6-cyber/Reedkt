@@ -164,13 +164,39 @@ for service in "${required_services[@]}"; do
   fi
 done
 
-legacy_jobs="$(
+active_run_job_names="$(
   gcloud run jobs list \
     --project="${PROJECT_ID}" \
     --region="${REGION}" \
-    --format='value(metadata.name)' \
-    | awk 'BEGIN { IGNORECASE=1 } /qwen|sam2|phase39c/ { count += 1 } END { print count + 0 }'
+    --format='value(metadata.name)'
 )"
+legacy_jobs="$(
+  awk 'BEGIN { IGNORECASE=1 } /qwen|sam2|phase39c/ { count += 1 } END { print count + 0 }' \
+    <<<"${active_run_job_names}"
+)"
+readonly -a legacy_cpu_runtime_job_names=(
+  'reeditpro-sound-audio-metadata-worker'
+  'reeditpro-sound-cpu-analysis-worker'
+  'reeditpro-staging-cpu-analysis-job'
+  'reeditpro-staging-deepfilternet-runtime-job'
+  'reeditpro-staging-film-runtime-job'
+  'reeditpro-staging-final-render-hardening-job'
+  'reeditpro-staging-libass-burnin-validation-job'
+  'reeditpro-staging-pro-color-image-runtime-job'
+  'reeditpro-staging-qa-job'
+  'reeditpro-staging-remotion-render-validation-job'
+  'reeditpro-staging-render-job'
+  'reeditpro-staging-speech-runtime-job'
+  'reeditpro-staging-tool-readiness-job'
+  'reeditpro-stg-deepfilternet-runtime-phase36h'
+  'reeditpro-stg-signalsmith-controlled-runtime-phase36j'
+)
+legacy_cpu_runtime_jobs=0
+for job_name in "${legacy_cpu_runtime_job_names[@]}"; do
+  if grep -Fxq "${job_name}" <<<"${active_run_job_names}"; then
+    legacy_cpu_runtime_jobs=$((legacy_cpu_runtime_jobs + 1))
+  fi
+done
 legacy_services="$(
   gcloud run services list \
     --project="${PROJECT_ID}" \
@@ -346,7 +372,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v4' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v5' \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
   --argjson a100Limit "${a100_limit}" \
@@ -356,6 +382,7 @@ jq -n \
   --argjson missingServices "${missing_services_json}" \
   --argjson legacyVisualJobs "${legacy_jobs}" \
   --argjson legacyVisualServices "${legacy_services}" \
+  --argjson legacyCpuMediaRuntimeJobs "${legacy_cpu_runtime_jobs}" \
   --argjson sam31ImageCount "${sam31_image_count}" \
   --argjson accountPricing "${account_pricing_json}" \
   --argjson imageBuilderIdentity "${image_builder_identity}" \
@@ -445,6 +472,11 @@ jq -n \
       matchingJobs: $legacyVisualJobs,
       matchingServices: $legacyVisualServices,
       clean: ($legacyVisualJobs == 0 and $legacyVisualServices == 0)
+    },
+    retiredLegacyCpuMediaRuntime: {
+      fixedAllowlistCount: 15,
+      matchingJobs: $legacyCpuMediaRuntimeJobs,
+      clean: ($legacyCpuMediaRuntimeJobs == 0)
     },
     immutableSam31ImagesObserved: $sam31ImageCount,
     accountEffectiveGeminiPricing: $accountPricing,

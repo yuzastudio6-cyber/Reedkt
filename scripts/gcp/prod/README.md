@@ -11,10 +11,14 @@ not call cloud-mutating scripts.
 - Mutating scripts require `REEDITPRO_CONFIRM_PROD_SETUP=true`.
 - Scripts print the project, region, Artifact Registry region, bucket location, environment, repository, and image tag before doing cloud-mutating work.
 - Foundation scripts avoid deletes, avoid owner/editor roles, and create
-  placeholders only. `15-retire-legacy-visual-runtimes.sh` is the sole narrow
-  deletion exception: it uses a fixed legacy SAM2/Qwen allowlist, rejects any
-  unfinished execution, preserves immutable image digests, and requires a
-  second exact retirement confirmation.
+  placeholders only. The two narrow deletion exceptions are
+  `15-retire-legacy-visual-runtimes.sh` for SAM2/Qwen and
+  `19-retire-legacy-cpu-media-runtimes.sh` for the frozen CPU-only processing
+  job definitions. Both use fixed allowlists, reject unfinished executions,
+  preserve immutable image digests, and require a second exact retirement
+  confirmation. Script 19 additionally exact-matches each job image, service
+  identity, CPU/memory envelope, and absence of a GPU before deletion; a
+  changed or GPU-enabled job fails closed.
 - Secret scripts create Secret Manager names only. They do not add secret versions or payloads.
 
 ## Human Execution Order
@@ -34,6 +38,9 @@ not call cloud-mutating scripts.
 12. `16-audit-visual-intelligence-live-prerequisites.sh` at any later safe
     boundary; it is read-only and never accesses secret payloads or starts a
     workload
+13. `19-retire-legacy-cpu-media-runtimes.sh` only after the GPU-first source
+    authority is frozen and the exact CPU-only job allowlist is independently
+    observed with no unfinished execution
 
 The image signer is intentionally separate from the image builder. It receives
 only repository-scoped Artifact Registry writer access because cosign stores a

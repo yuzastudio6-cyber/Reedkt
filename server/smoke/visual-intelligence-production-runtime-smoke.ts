@@ -360,7 +360,7 @@ const runtime = await createVisualIntelligenceProductionRuntime(env, {
   now: () => now,
 })
 assert.ok(runtime)
-assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v11')
+assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v12')
 assert.equal(runtime.providerCapabilityId, 'visual_intelligence')
 assert.equal(runtime.semanticEngine, 'gemini-3.1-pro-preview')
 assert.equal(runtime.thinkingLevel, 'high')
@@ -422,7 +422,7 @@ assert.equal(
 )
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceRepository.repositoryVersion,
-  'canonical-source-analysis-l4-visual-evidence-repository-v3',
+  'canonical-source-analysis-l4-visual-evidence-repository-v4',
 )
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceAuthorityRepository.repositoryVersion,
@@ -456,6 +456,20 @@ assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceWorkerBootstrapOwner
     .cloudRunEnvironmentMayContainOnlyInvocationId,
   true,
+)
+assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceWorkerEvidenceOwner.schemaVersion,
+  'canonical-source-analysis-l4-visual-evidence-worker-evidence-owner-v1',
+)
+assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceTerminalReconciliationOwner
+    .schemaVersion,
+  'canonical-source-analysis-l4-visual-evidence-terminal-reconciliation-owner-v1',
+)
+assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceTerminalReconciliationOwner
+    .workerMayClaimTerminalOrScaleToZero,
+  false,
 )
 assert.equal(
   typeof runtime.createSourceAnalysisL4ProbeAttemptOwner,
@@ -1287,6 +1301,8 @@ console.log(JSON.stringify({
   sourceAnalysisL4VisualEvidenceAttemptOwnerFactoryMounted: true,
   sourceAnalysisL4VisualEvidenceAuthorityRepositoryMounted: true,
   sourceAnalysisL4VisualEvidenceWorkerBootstrapOwnerMounted: true,
+  sourceAnalysisL4VisualEvidenceWorkerEvidenceOwnerMounted: true,
+  sourceAnalysisL4VisualEvidenceTerminalReconciliationOwnerMounted: true,
   sourceAnalysisL4VisualEvidenceWorkerReceivesInvocationIdOnly: true,
   sourceAnalysisL4VisualEvidenceCallerPortInjectionAllowed: false,
   sourceTranscriptA100AttemptOwnerFactoryMounted: true,

@@ -59,6 +59,16 @@ import {
   type CanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwner,
 } from '../services/canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner'
 import {
+  createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidenceOwner,
+  type CanonicalSourceAnalysisL4VisualEvidenceWorkerEvidenceOwner,
+} from '../services/canonical-source-analysis-l4-visual-evidence-worker-evidence-owner'
+import {
+  createCanonicalSourceAnalysisL4VisualEvidenceTerminalReconciliationOwner,
+  createGoogleCloudRunL4VisualEvidenceTerminalObservationPort,
+  type CanonicalSourceAnalysisL4VisualEvidenceTerminalObservationPort,
+  type CanonicalSourceAnalysisL4VisualEvidenceTerminalReconciliationOwner,
+} from '../services/canonical-source-analysis-l4-visual-evidence-terminal-reconciliation-owner'
+import {
   createCanonicalSourceAnalysisOrchestraWorkOwner,
   type CanonicalSourceAnalysisOrchestraAuthorityReadPort,
 } from '../services/canonical-source-analysis-orchestra-work-owner'
@@ -164,7 +174,7 @@ import {
 } from '../tool-cost-metering/google-cloud-account-effective-gpu-rate-read-port'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v11' as const
+  'visual-intelligence-production-runtime-v12' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -200,6 +210,10 @@ export interface VisualIntelligenceProductionRuntime {
     CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository
   readonly sourceAnalysisL4VisualEvidenceWorkerBootstrapOwner:
     CanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwner
+  readonly sourceAnalysisL4VisualEvidenceWorkerEvidenceOwner:
+    CanonicalSourceAnalysisL4VisualEvidenceWorkerEvidenceOwner
+  readonly sourceAnalysisL4VisualEvidenceTerminalReconciliationOwner:
+    CanonicalSourceAnalysisL4VisualEvidenceTerminalReconciliationOwner
   readonly sourceTranscriptOrchestraRepository:
     CanonicalSourceTranscriptOrchestraRepository
   readonly sourceLedOrchestraPlanningReconciliationPort:
@@ -282,6 +296,8 @@ export interface VisualIntelligenceProductionRuntimeDependencies {
   readonly generatePort?: VisualIntelligenceGeminiGeneratePort
   readonly sourceAnalysisL4VisualEvidenceCurrentRateReadPort?:
     CanonicalSourceAnalysisL4VisualEvidenceCurrentRateReadPort
+  readonly sourceAnalysisL4VisualEvidenceTerminalObservationPort?:
+    CanonicalSourceAnalysisL4VisualEvidenceTerminalObservationPort
   readonly now?: () => Date
 }
 
@@ -370,14 +386,35 @@ export async function createVisualIntelligenceProductionRuntime(
     createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository({
       objectPort,
     })
+  const sourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort =
+    createCanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort({
+      objectPort,
+    })
   const sourceAnalysisL4VisualEvidenceWorkerBootstrapOwner =
     createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwner({
       envelopeReadPort:
-        createCanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort({
-          objectPort,
-        }),
+        sourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort,
       authorityRepository:
         sourceAnalysisL4VisualEvidenceAuthorityRepository,
+    })
+  const sourceAnalysisL4VisualEvidenceWorkerEvidenceOwner =
+    createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidenceOwner({
+      objectPort,
+    })
+  const sourceAnalysisL4VisualEvidenceTerminalReconciliationOwner =
+    createCanonicalSourceAnalysisL4VisualEvidenceTerminalReconciliationOwner({
+      workerEnvelopeReadPort:
+        sourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort,
+      authorityRepository:
+        sourceAnalysisL4VisualEvidenceAuthorityRepository,
+      workerEvidenceOwner:
+        sourceAnalysisL4VisualEvidenceWorkerEvidenceOwner,
+      terminalObservationPort:
+        dependencies.sourceAnalysisL4VisualEvidenceTerminalObservationPort
+        ?? createGoogleCloudRunL4VisualEvidenceTerminalObservationPort(),
+      currentRateReadPort:
+        sourceAnalysisL4VisualEvidenceCurrentRateReadPort,
+      objectPort,
     })
   const sourceTranscriptOrchestraRepository =
     createCanonicalSourceTranscriptOrchestraRepository({ objectPort })
@@ -636,6 +673,8 @@ export async function createVisualIntelligenceProductionRuntime(
     sourceAnalysisL4VisualEvidenceRepository,
     sourceAnalysisL4VisualEvidenceAuthorityRepository,
     sourceAnalysisL4VisualEvidenceWorkerBootstrapOwner,
+    sourceAnalysisL4VisualEvidenceWorkerEvidenceOwner,
+    sourceAnalysisL4VisualEvidenceTerminalReconciliationOwner,
     sourceTranscriptOrchestraRepository,
     sourceLedOrchestraPlanningReconciliationPort,
     createSourceAnalysisL4ProbeAttemptOwner:

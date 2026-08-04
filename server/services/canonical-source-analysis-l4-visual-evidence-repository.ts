@@ -27,16 +27,16 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_RESULT_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-result-v3' as const
+  'canonical-source-analysis-l4-visual-evidence-result-v4' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-read-port-v3' as const
+  'canonical-source-analysis-l4-visual-evidence-read-port-v4' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_REPOSITORY_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-repository-v3' as const
+  'canonical-source-analysis-l4-visual-evidence-repository-v4' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_OPERATION_ID =
   'internal.visual_intelligence.prepare_source_visual_evidence.v1' as const
 
 const DEFAULT_PREFIX =
-  'private/orchestra/v2/source-analysis-l4-visual-evidence'
+  'private/orchestra/v3/source-analysis-l4-visual-evidence'
 const MAXIMUM_RECORD_BYTES = 16 * 1024 * 1024
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const RAW_SHA256 = /^[a-f0-9]{64}$/u
@@ -162,7 +162,8 @@ const resultWithoutDigestSchema = z.object({
   runtimeReleaseRef: evidenceRefSchema,
   cloudRunExecutionRef: evidenceRefSchema,
   platformEstimateRef: evidenceRefSchema,
-  accountEffectivePricingAuthorityRef: evidenceRefSchema,
+  admissionAccountEffectivePricingAuthorityRef: evidenceRefSchema,
+  terminalAccountEffectivePricingAuthorityRef: evidenceRefSchema,
   attemptCostEvidenceRef: evidenceRefSchema,
   maximumPlatformInternalCostUsdNanos: positiveInteger,
   actualPlatformInternalCostUsdNanos: nonnegativeInteger,

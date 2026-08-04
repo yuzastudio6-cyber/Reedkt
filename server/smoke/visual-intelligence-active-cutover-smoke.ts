@@ -38,6 +38,9 @@ const l4VisualEvidenceWorkerBootstrapOwner = source(
 const l4VisualEvidenceWorkerEvidenceOwner = source(
   'server/services/canonical-source-analysis-l4-visual-evidence-worker-evidence-owner.ts',
 )
+const l4VisualEvidenceTerminalReconciliationOwner = source(
+  'server/services/canonical-source-analysis-l4-visual-evidence-terminal-reconciliation-owner.ts',
+)
 const l4VisualEvidenceAdmissionOwner = source(
   'server/services/canonical-source-analysis-l4-visual-evidence-admission-owner.ts',
 )
@@ -100,7 +103,7 @@ assert.match(productionRuntime, /orchestraJobRuntimePort/u)
 assert.match(productionRuntime, /orchestraLifecyclePort/u)
 assert.match(
   productionRuntime,
-  /visual-intelligence-production-runtime-v11/u,
+  /visual-intelligence-production-runtime-v12/u,
 )
 assert.match(
   productionRuntime,
@@ -140,6 +143,10 @@ assert.match(
 )
 assert.match(
   productionRuntime,
+  /createCanonicalSourceAnalysisL4VisualEvidenceTerminalReconciliationOwner/u,
+)
+assert.match(
+  productionRuntime,
   /operationAuthorityPort:[\s\S]*cloudRunOperationAuthorityPort/u,
 )
 assert.match(
@@ -173,6 +180,26 @@ assert.match(
 assert.doesNotMatch(
   l4VisualEvidenceWorkerEvidenceOwner,
   /qwen|sam2|customerWalletOrLedgerMutated: true/u,
+)
+assert.match(
+  l4VisualEvidenceTerminalReconciliationOwner,
+  /google_cloud_run_v2_terminal_execution_reread/u,
+)
+assert.match(
+  l4VisualEvidenceTerminalReconciliationOwner,
+  /billing_account_effective_pricing_api|accountEffectivePricingRereadVerified/u,
+)
+assert.match(
+  l4VisualEvidenceTerminalReconciliationOwner,
+  /publicListPriceUsedAsSettlementAuthority: z\.literal\(false\)/u,
+)
+assert.match(
+  l4VisualEvidenceTerminalReconciliationOwner,
+  /terminalGpuInstanceCount: z\.literal\(0\)/u,
+)
+assert.doesNotMatch(
+  l4VisualEvidenceTerminalReconciliationOwner,
+  /qwen|sam2|customerCreditsMutated: z\.literal\(true\)|walletOrLedgerMutationPerformed: true/u,
 )
 assert.doesNotMatch(
   productionRuntime,

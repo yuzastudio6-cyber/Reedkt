@@ -191,7 +191,10 @@ const l4Result = createCanonicalSourceAnalysisL4VisualEvidenceResult({
   runtimeReleaseRef: ref('l4-runtime-release'),
   cloudRunExecutionRef: ref('l4-execution'),
   platformEstimateRef: ref('l4-platform-estimate'),
-  accountEffectivePricingAuthorityRef: ref('l4-account-effective-rate'),
+  admissionAccountEffectivePricingAuthorityRef:
+    ref('l4-admission-account-effective-rate'),
+  terminalAccountEffectivePricingAuthorityRef:
+    ref('l4-terminal-account-effective-rate'),
   attemptCostEvidenceRef: ref('l4-cost'),
   maximumPlatformInternalCostUsdNanos: 5_000_000_000,
   actualPlatformInternalCostUsdNanos: 1_250_000_000,

@@ -462,7 +462,9 @@ const terminalResult = createCanonicalSourceAnalysisL4VisualEvidenceResult({
   runtimeReleaseRef: release.releaseRef,
   cloudRunExecutionRef: workerOperationRef,
   platformEstimateRef: admission.platformEstimateRef,
-  accountEffectivePricingAuthorityRef:
+  admissionAccountEffectivePricingAuthorityRef:
+    admission.currentAccountRateAuthorityRef,
+  terminalAccountEffectivePricingAuthorityRef:
     admission.currentAccountRateAuthorityRef,
   attemptCostEvidenceRef: ref('l4-terminal-account-effective-cost'),
   maximumPlatformInternalCostUsdNanos:

@@ -1238,7 +1238,7 @@ function assertTerminalMatches(
     || !sameRef(result.runtimeReleaseRef, input.release.releaseRef)
     || !sameRef(result.platformEstimateRef,
       input.admission.platformEstimateRef)
-    || !sameRef(result.accountEffectivePricingAuthorityRef,
+    || !sameRef(result.admissionAccountEffectivePricingAuthorityRef,
       input.admission.currentAccountRateAuthorityRef)
     || result.maximumPlatformInternalCostUsdNanos !==
       input.admission.maximumPlatformInternalCostUsdNanos

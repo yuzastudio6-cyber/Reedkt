@@ -125,7 +125,10 @@ const validInput = {
   runtimeReleaseRef: ref('l4-runtime-release'),
   cloudRunExecutionRef: ref('cloud-run-execution'),
   platformEstimateRef: ref('l4-platform-estimate'),
-  accountEffectivePricingAuthorityRef: ref('l4-account-effective-rate'),
+  admissionAccountEffectivePricingAuthorityRef:
+    ref('l4-admission-account-effective-rate'),
+  terminalAccountEffectivePricingAuthorityRef:
+    ref('l4-terminal-account-effective-rate'),
   attemptCostEvidenceRef: ref('account-effective-attempt-cost'),
   maximumPlatformInternalCostUsdNanos: 5_000_000_000,
   actualPlatformInternalCostUsdNanos: 1_250_000_000,

@@ -26,7 +26,12 @@
 | `reeditpro-professional-l4` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | Standard-primary normal media/render/encode/inspection/QA route; 8 vCPU, 32 GiB. |
 | `reeditpro-sam31-l4-fallback` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | Independently qualified SAM 3.1 heavy fallback only; 8 vCPU, 32 GiB. |
 | Legacy CPU/render/QA jobs | Historical Cloud Run Job templates | Legacy identities | None | Readback/migration only; cannot execute fresh substantive media/model work. |
-| `reeditpro-tool-readiness-worker` | Cloud Run Job | `reeditpro-tool-readiness-sa` | No | No source media access by default. |
+| Legacy tool-readiness job | Historical Cloud Run Job template | Retired identity | None | Cannot qualify fresh work; readiness must be measured inside the exact immutable A100/L4 qualification attempt. |
+
+The bounded private SearXNG Cloud Run service is not a worker job. It is a
+zero-idle, one-CPU search/control-plane service using the dedicated
+`reeditpro-private-search-sa` identity. It cannot decode media, render, encode,
+load a model, run inference, or satisfy any GPU qualification gate.
 
 Every job template uses task count `1`, parallelism `1`, and Cloud Run internal
 maximum retries `0`. The approved package queue is the sole authority for a
@@ -120,7 +125,11 @@ Revideo is not deployed. It remains evaluation-only and future optional.
 
 ## Milestone 3 Boundary
 
-All deploy/run files are `.example.sh` templates. They require `REEDITPRO_CONFIRM_PROD_SETUP=true` if a human runs them later, but Codex must not run them.
+The L4 definition template requires `REEDITPRO_CONFIRM_PROD_SETUP=true`, a
+second exact confirmation, and two immutable image digests. It creates no
+execution. Historical CPU/render/QA/readiness scripts and the manual GPU-smoke
+script exit fail-closed; canonical qualification or funded dispatch is the
+only execution owner.
 
 ## Milestone 4 Worker Runtime Handoff
 
@@ -133,11 +142,11 @@ Cloud Run Jobs are still not deployed in Milestone 4, and the production worker 
 Milestone 5 adds production image template names that future Cloud Run services/jobs can reference after human build/push approval:
 
 - `reeditpro-api`
-- `reeditpro-cpu-worker`
 - `reeditpro-gpu-worker`
-- `reeditpro-render-worker`
-- `reeditpro-qa-worker`
-- `reeditpro-tool-readiness-worker`
+
+The earlier CPU/render/QA/tool-readiness image names are retained only in
+historical evidence. Active image release is now route-specific and digest
+pinned.
 
 The image templates live under `docker/prod/`, and the human-run build/push command templates live under `scripts/docker/prod/`. They do not deploy Cloud Run resources, and Codex does not build or push them in Milestone 5.
 

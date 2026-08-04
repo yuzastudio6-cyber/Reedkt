@@ -19,6 +19,16 @@ MODEL_ARTIFACT_BUCKET='reeditpro-production-reeditpro-model-artifacts'
 IMAGE_BUILD_INPUT_BUCKET='reeditpro-production-reeditpro-image-build-inputs'
 IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET='reeditpro-production-reeditpro-image-supply-chain-evidence'
 CONTROL_PLANE_STATE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
+PRIVATE_SEARCH_SERVICE='reeditpro-staging-private-searxng'
+PRIVATE_SEARCH_IDENTITY='reeditpro-private-search-sa@reeditpro.iam.gserviceaccount.com'
+PRIVATE_SEARCH_IMAGE='us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-private-searxng@sha256:7f56a77c442601d249389e4cb4101da2046fd62c04818c69eabf8caa7f6957ee'
+readonly -a LEGACY_CPU_PROCESSING_IDENTITIES=(
+  'reeditpro-cpu-worker-sa@reeditpro.iam.gserviceaccount.com'
+  'reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com'
+  'reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com'
+  'reeditpro-stg-qa-sa@reeditpro.iam.gserviceaccount.com'
+  'reeditpro-stg-tool-ready-sa@reeditpro.iam.gserviceaccount.com'
+)
 
 command -v gcloud >/dev/null
 command -v jq >/dev/null
@@ -72,6 +82,22 @@ service_account_observation() {
       exists: ($metadata.email == $email),
       enabled: ($metadata.email == $email and (($metadata.disabled // false) == false)),
       ready: ($metadata.email == $email and (($metadata.disabled // false) == false))
+    }'
+}
+
+retired_service_account_observation() {
+  local email="$1"
+  local metadata
+  metadata="$(read_json_or_empty gcloud iam service-accounts describe \
+    "${email}" --project="${PROJECT_ID}" --format=json)"
+  jq -n \
+    --arg email "${email}" \
+    --argjson metadata "${metadata}" \
+    '{
+      email: $email,
+      exists: ($metadata.email == $email),
+      disabled: ($metadata.email == $email and (($metadata.disabled // false) == true)),
+      retired: ($metadata.email != $email or (($metadata.disabled // false) == true))
     }'
 }
 
@@ -197,6 +223,67 @@ for job_name in "${legacy_cpu_runtime_job_names[@]}"; do
     legacy_cpu_runtime_jobs=$((legacy_cpu_runtime_jobs + 1))
   fi
 done
+
+private_search_service_metadata="$(read_json_or_empty gcloud run services describe \
+  "${PRIVATE_SEARCH_SERVICE}" --project="${PROJECT_ID}" --region="${REGION}" \
+  --format=json)"
+private_search_service_policy="$(read_json_or_empty gcloud run services get-iam-policy \
+  "${PRIVATE_SEARCH_SERVICE}" --project="${PROJECT_ID}" --region="${REGION}" \
+  --format=json)"
+private_search_identity="$(service_account_observation "${PRIVATE_SEARCH_IDENTITY}")"
+if jq -e 'any(.bindings[]?.members[]?;
+  . == "allUsers" or . == "allAuthenticatedUsers")' \
+  <<<"${private_search_service_policy}" >/dev/null; then
+  private_search_public_invoker=true
+else
+  private_search_public_invoker=false
+fi
+private_search_control_plane="$(jq -n \
+  --arg serviceName "${PRIVATE_SEARCH_SERVICE}" \
+  --arg serviceIdentity "${PRIVATE_SEARCH_IDENTITY}" \
+  --arg image "${PRIVATE_SEARCH_IMAGE}" \
+  --argjson metadata "${private_search_service_metadata}" \
+  --argjson identity "${private_search_identity}" \
+  --argjson publicInvoker "${private_search_public_invoker}" \
+  '{
+    serviceName: $serviceName,
+    exists: ($metadata.metadata.name == $serviceName),
+    serviceIdentity: ($metadata.spec.template.spec.serviceAccountName // null),
+    expectedServiceIdentity: $serviceIdentity,
+    identity: $identity,
+    immutableImage: ($metadata.spec.template.spec.containers[0].image // null),
+    exactImageRetained: ($metadata.spec.template.spec.containers[0].image == $image),
+    cpu: ($metadata.spec.template.spec.containers[0].resources.limits.cpu // null),
+    memory: ($metadata.spec.template.spec.containers[0].resources.limits.memory // null),
+    gpu: ($metadata.spec.template.spec.containers[0].resources.limits["nvidia.com/gpu"] // "0"),
+    minimumInstances: ($metadata.spec.template.metadata.annotations["autoscaling.knative.dev/minScale"] // "0"),
+    maximumInstances: ($metadata.spec.template.metadata.annotations["autoscaling.knative.dev/maxScale"] // null),
+    publicInvoker: $publicInvoker,
+    substantiveMediaOrModelProcessingAllowed: false,
+    ready: (
+      $metadata.metadata.name == $serviceName
+      and $metadata.spec.template.spec.serviceAccountName == $serviceIdentity
+      and $identity.ready
+      and $metadata.spec.template.spec.containers[0].image == $image
+      and $metadata.spec.template.spec.containers[0].resources.limits.cpu == "1"
+      and $metadata.spec.template.spec.containers[0].resources.limits.memory == "1Gi"
+      and (($metadata.spec.template.spec.containers[0].resources.limits["nvidia.com/gpu"] // "0") == "0")
+      and (($metadata.spec.template.metadata.annotations["autoscaling.knative.dev/minScale"] // "0") == "0")
+      and $metadata.spec.template.metadata.annotations["autoscaling.knative.dev/maxScale"] == "1"
+      and ($publicInvoker | not)
+    )
+  }')"
+legacy_cpu_identity_observations='[]'
+for identity in "${LEGACY_CPU_PROCESSING_IDENTITIES[@]}"; do
+  observation="$(retired_service_account_observation "${identity}")"
+  legacy_cpu_identity_observations="$(jq -n \
+    --argjson observations "${legacy_cpu_identity_observations}" \
+    --argjson observation "${observation}" \
+    '$observations + [$observation]')"
+done
+legacy_cpu_identities_retired="$(jq -r \
+  'length == 5 and all(.[]; .retired)' \
+  <<<"${legacy_cpu_identity_observations}")"
 legacy_services="$(
   gcloud run services list \
     --project="${PROJECT_ID}" \
@@ -372,7 +459,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v5' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v6' \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
   --argjson a100Limit "${a100_limit}" \
@@ -383,6 +470,9 @@ jq -n \
   --argjson legacyVisualJobs "${legacy_jobs}" \
   --argjson legacyVisualServices "${legacy_services}" \
   --argjson legacyCpuMediaRuntimeJobs "${legacy_cpu_runtime_jobs}" \
+  --argjson privateSearchControlPlane "${private_search_control_plane}" \
+  --argjson legacyCpuIdentityObservations "${legacy_cpu_identity_observations}" \
+  --argjson legacyCpuIdentitiesRetired "${legacy_cpu_identities_retired}" \
   --argjson sam31ImageCount "${sam31_image_count}" \
   --argjson accountPricing "${account_pricing_json}" \
   --argjson imageBuilderIdentity "${image_builder_identity}" \
@@ -477,6 +567,13 @@ jq -n \
       fixedAllowlistCount: 15,
       matchingJobs: $legacyCpuMediaRuntimeJobs,
       clean: ($legacyCpuMediaRuntimeJobs == 0)
+    },
+    privateSearchControlPlaneIdentityIsolation: {
+      privateSearch: $privateSearchControlPlane,
+      legacyIdentityAllowlistCount: 5,
+      legacyIdentities: $legacyCpuIdentityObservations,
+      legacyIdentitiesRetired: $legacyCpuIdentitiesRetired,
+      clean: ($privateSearchControlPlane.ready and $legacyCpuIdentitiesRetired)
     },
     immutableSam31ImagesObserved: $sam31ImageCount,
     accountEffectiveGeminiPricing: $accountPricing,

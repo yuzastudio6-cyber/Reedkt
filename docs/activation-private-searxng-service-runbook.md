@@ -1,9 +1,9 @@
 # Phase 49F Private SearXNG Service Runbook
 
-Phase 49F validates a ReeditPro-controlled private SearXNG Cloud Run service and one bounded authenticated query.
+Phase 49F validates a WeEditPro-controlled private SearXNG Cloud Run service and one bounded authenticated query.
 
 Default report and IAM-plan commands are static. Execution requires `GCP_PROJECT_ID=reeditpro`, `GCP_REGION=us-central1`, `REEDITPRO_ENV=staging`, and `REEDITPRO_CONFIRM_PRIVATE_SEARXNG_SERVICE_VALIDATION=true`.
 
-Execution builds the dedicated CPU-only SearXNG image, deploys `reeditpro-staging-private-searxng` without unauthenticated access, grants only narrow authenticated invoker access if needed, runs the approved query `ReeditPro open source video editing planning`, normalizes at most five results, and uploads private JSON artifacts.
+Execution builds the dedicated lightweight control-plane SearXNG image, deploys `reeditpro-staging-private-searxng` with `reeditpro-private-search-sa` and without unauthenticated access, grants only narrow authenticated invoker access if needed, runs the approved bounded query, normalizes at most five results, and uploads private JSON artifacts. This CPU control plane cannot perform media decoding, rendering, model loading, inference, or any other substantive processing; those routes remain GPU-only.
 
 Do not use public SearXNG instances, paid providers, Playwright, screenshots, Readability extraction, browser capture, public artifacts, signed URLs, production, external beta, paid production, or broad media in this phase.

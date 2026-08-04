@@ -61,11 +61,7 @@ service_accounts() {
 ${REEDITPRO_API_SERVICE_ACCOUNT}:WeEditPro production API service
 ${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}:WeEditPro private immutable image builder
 ${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}:WeEditPro immutable image signer
-${REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT}:WeEditPro legacy analysis service identity
 ${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}:WeEditPro production A100 and L4 GPU worker
-${REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT}:WeEditPro legacy render service identity
-${REEDITPRO_QA_WORKER_SERVICE_ACCOUNT}:WeEditPro legacy QA service identity
-${REEDITPRO_TOOL_READINESS_SERVICE_ACCOUNT}:WeEditPro production tool readiness worker
 EOF
 }
 

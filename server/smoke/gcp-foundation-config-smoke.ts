@@ -5,6 +5,7 @@ import {
   GCP_PRODUCTION_CLOUD_RUN_JOBS,
   GCP_PRODUCTION_DEFAULTS,
   GCP_PRODUCTION_LEGACY_CLOUD_RUN_JOB_TEMPLATES,
+  GCP_PRODUCTION_LEGACY_SERVICE_ACCOUNTS,
   GCP_PRODUCTION_NON_DEPLOYED_TOOLS,
   GCP_PRODUCTION_PREMIUM_GPU_OPTION,
   GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES,
@@ -105,11 +106,7 @@ const expectedServiceAccounts = [
   'reeditpro-api-sa',
   'reeditpro-image-builder-sa',
   'reeditpro-image-signer-sa',
-  'reeditpro-cpu-worker-sa',
   'reeditpro-gpu-worker-sa',
-  'reeditpro-render-worker-sa',
-  'reeditpro-qa-worker-sa',
-  'reeditpro-tool-readiness-sa',
 ]
 
 for (const accountId of expectedServiceAccounts) {
@@ -117,6 +114,25 @@ for (const accountId of expectedServiceAccounts) {
     GCP_PRODUCTION_SERVICE_ACCOUNTS.some((account) => account.accountId === accountId),
     `Missing service account ${accountId}`,
   )
+}
+check(GCP_PRODUCTION_SERVICE_ACCOUNTS.length === 4,
+  'Only API, image-build/sign, and GPU identities may remain active.')
+check(GCP_PRODUCTION_LEGACY_SERVICE_ACCOUNTS.historicalReadbackOnly,
+  'Retired worker identities must remain historical readback only.')
+check(!GCP_PRODUCTION_LEGACY_SERVICE_ACCOUNTS.mayAuthorizeNewWork,
+  'Retired worker identities must not authorize new work.')
+for (const accountId of [
+  'reeditpro-cpu-worker-sa',
+  'reeditpro-render-worker-sa',
+  'reeditpro-qa-worker-sa',
+  'reeditpro-tool-readiness-sa',
+] as const) {
+  check(!GCP_PRODUCTION_SERVICE_ACCOUNTS.some((account) =>
+    account.accountId === accountId),
+  `${accountId} must not be an active foundation identity.`)
+  check(GCP_PRODUCTION_LEGACY_SERVICE_ACCOUNTS.entries.some((account) =>
+    account.accountId === accountId),
+  `${accountId} historical readback coordinate is missing.`)
 }
 
 const expectedSecrets = [
@@ -215,13 +231,15 @@ const scriptPaths = [
 
 for (const scriptPath of scriptPaths) {
   const script = readRepoFile(scriptPath)
-  const retiredCpuDeployment = [
+  const retiredOrManualBypass = [
     'scripts/gcp/prod/09-deploy-cpu-worker-job.example.sh',
     'scripts/gcp/prod/11-deploy-render-worker-job.example.sh',
     'scripts/gcp/prod/12-deploy-qa-worker-job.example.sh',
+    'scripts/gcp/prod/13-run-tool-readiness-job.example.sh',
+    'scripts/gcp/prod/14-run-gpu-smoke-job.example.sh',
   ].includes(scriptPath)
-  if (retiredCpuDeployment) {
-    check(script.includes('historical'), `${scriptPath} must identify the retired CPU deployment.`)
+  if (retiredOrManualBypass) {
+    check(script.includes('Blocked:'), `${scriptPath} must identify the blocked legacy or manual path.`)
     check(script.includes('exit 2'), `${scriptPath} must fail closed.`)
     check(!script.includes('run_gcloud'), `${scriptPath} must not create a cloud job.`)
   } else {
@@ -243,9 +261,26 @@ check((gpuScript.match(/--memory=32Gi/gu) ?? []).length === 2, 'Both L4 jobs mus
 check((gpuScript.match(/--parallelism=1/gu) ?? []).length === 2, 'Both L4 jobs must use parallelism 1.')
 check(!gpuScript.includes('--min-instances=1'), 'L4 jobs must not configure a warm instance.')
 check(gpuScript.includes('REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT'), 'GPU deploy example must use the GPU worker service account env var.')
+check(gpuScript.includes('WEEDITPRO_L4_MEDIA_IMAGE_DIGEST'),
+  'L4 standard definition must require an immutable image digest.')
+check(gpuScript.includes('WEEDITPRO_SAM31_IMAGE_DIGEST'),
+  'SAM 3.1 L4 fallback definition must require an immutable image digest.')
+check(gpuScript.includes('deploy-weeditpro-qualified-l4-job-definitions-v1'),
+  'L4 definition deployment must require a second exact confirmation.')
+check(!gpuScript.includes('artifact_image reeditpro-l4-media-worker'),
+  'L4 definitions must not use mutable image tags.')
+check(!gpuScript.includes('run jobs execute'),
+  'Definition deployment must not start a GPU execution.')
 check(envExample.includes('REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT=reeditpro-gpu-worker-sa'), 'Env example must map GPU worker service account to reeditpro-gpu-worker-sa.')
 check(envExample.includes('REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT=reeditpro-image-builder-sa'), 'Env example must map the private image-builder service account.')
 check(envExample.includes('REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT=reeditpro-image-signer-sa'), 'Env example must map the immutable image-signer service account.')
+for (const retiredEnv of [
+  'REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT=',
+  'REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT=',
+  'REEDITPRO_QA_WORKER_SERVICE_ACCOUNT=',
+  'REEDITPRO_TOOL_READINESS_SERVICE_ACCOUNT=',
+] as const) check(!envExample.includes(retiredEnv),
+  `${retiredEnv} must not remain an active foundation input.`)
 
 const iamScript = readRepoFile('scripts/gcp/prod/06-configure-iam.sh')
 check(iamScript.includes('roles/cloudbuild.builds.editor'), 'API orchestration must have the bounded Cloud Build create/read role.')
@@ -312,10 +347,20 @@ check(
   iamScript.includes('worker-temp model-artifacts'),
   'GPU runtime must read the private model-artifact bucket.',
 )
+for (const retiredEnv of [
+  'REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT',
+  'REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT',
+  'REEDITPRO_QA_WORKER_SERVICE_ACCOUNT',
+  'REEDITPRO_TOOL_READINESS_SERVICE_ACCOUNT',
+] as const) check(!iamScript.includes(retiredEnv),
+  `${retiredEnv} must not receive fresh IAM grants.`)
+check(iamScript.includes('worker-temp previews final-exports qa-artifacts'),
+  'The shared GPU identity must own render and QA output creation.')
+check(iamScript.includes('analysis-artifacts previews final-exports qa-artifacts'),
+  'The shared GPU identity must exact-reread render and QA artifacts.')
 
 for (const workerScriptPath of [
   'scripts/gcp/prod/10-deploy-gpu-worker-job.example.sh',
-  'scripts/gcp/prod/13-run-tool-readiness-job.example.sh',
 ]) {
   const workerScript = readRepoFile(workerScriptPath)
   check(workerScript.includes('--max-retries=0'), `${workerScriptPath} must leave retries to the canonical package queue.`)

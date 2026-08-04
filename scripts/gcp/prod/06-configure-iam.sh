@@ -100,11 +100,7 @@ for account_id in \
   "${REEDITPRO_API_SERVICE_ACCOUNT}" \
   "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" \
   "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" \
-  "${REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT}" \
-  "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" \
-  "${REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT}" \
-  "${REEDITPRO_QA_WORKER_SERVICE_ACCOUNT}" \
-  "${REEDITPRO_TOOL_READINESS_SERVICE_ACCOUNT}"; do
+  "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}"; do
   grant_project_role "${account_id}" roles/logging.logWriter
   grant_project_role "${account_id}" roles/monitoring.metricWriter
 done
@@ -160,30 +156,13 @@ grant_image_signing_key_role \
   "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" \
   roles/cloudkms.signerVerifier
 
-for purpose in source-media proxy-media; do
-  grant_bucket_role "${purpose}" "${REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT}" roles/storage.objectViewer
-done
-for purpose in proxy-media analysis-artifacts transcripts worker-temp; do
-  grant_bucket_role "${purpose}" "${REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT}" roles/storage.objectCreator
-done
-
-for purpose in source-media proxy-media worker-temp model-artifacts; do
+for purpose in \
+  source-media proxy-media worker-temp model-artifacts generated-assets masks \
+  transcripts analysis-artifacts previews final-exports qa-artifacts; do
   grant_bucket_role "${purpose}" "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" roles/storage.objectViewer
 done
-for purpose in transcripts masks generated-assets analysis-artifacts worker-temp; do
+for purpose in \
+  proxy-media transcripts masks generated-assets analysis-artifacts \
+  worker-temp previews final-exports qa-artifacts; do
   grant_bucket_role "${purpose}" "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" roles/storage.objectCreator
 done
-
-for purpose in source-media proxy-media generated-assets masks transcripts analysis-artifacts worker-temp; do
-  grant_bucket_role "${purpose}" "${REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT}" roles/storage.objectViewer
-done
-for purpose in previews final-exports qa-artifacts worker-temp; do
-  grant_bucket_role "${purpose}" "${REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT}" roles/storage.objectCreator
-done
-
-for purpose in analysis-artifacts previews final-exports masks transcripts generated-assets; do
-  grant_bucket_role "${purpose}" "${REEDITPRO_QA_WORKER_SERVICE_ACCOUNT}" roles/storage.objectViewer
-done
-grant_bucket_role qa-artifacts "${REEDITPRO_QA_WORKER_SERVICE_ACCOUNT}" roles/storage.objectCreator
-
-grant_bucket_role qa-artifacts "${REEDITPRO_TOOL_READINESS_SERVICE_ACCOUNT}" roles/storage.objectCreator

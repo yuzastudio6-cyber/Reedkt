@@ -32,7 +32,9 @@ not call cloud-mutating scripts.
 7. `05-create-secret-placeholders.sh`
 8. `06-configure-iam.sh`
 9. `07-build-image-commands.sh` in a later image milestone
-10. `.example.sh` Cloud Run service/job templates in later deployment milestones
+10. `10-deploy-gpu-worker-job.example.sh` may define the two zero-idle L4
+    jobs only from exact immutable image digests and a second exact
+    confirmation. Definition creation grants no execution authority.
 11. `15-retire-legacy-visual-runtimes.sh` only for the explicitly authorized
     Visual Intelligence cutover
 12. `16-audit-visual-intelligence-live-prerequisites.sh` at any later safe
@@ -41,6 +43,26 @@ not call cloud-mutating scripts.
 13. `19-retire-legacy-cpu-media-runtimes.sh` only after the GPU-first source
     authority is frozen and the exact CPU-only job allowlist is independently
     observed with no unfinished execution
+14. `20-isolate-private-search-and-disable-legacy-cpu-identities.sh` only after
+    the CPU job retirement. It moves the bounded private-search control plane
+    onto its dedicated zero-idle identity, verifies Cloud Run, Batch, and active
+    build detachment, then disables—not deletes—the five fixed historical CPU
+    processing identities.
+
+The historical CPU/render/QA/tool-readiness deployment scripts and the manual
+GPU-smoke execution script fail closed. Fresh execution must enter through the
+canonical qualification or funded GPU attempt owner so immutable release,
+approved user trigger, account-effective price, reservation, idempotency,
+terminal usage, refund/release, and scale-down evidence cannot be bypassed.
+The active foundation creates and grants only API, image-builder,
+image-signer, and shared A100/L4 GPU-worker identities. Retired identity names
+remain type-level readback coordinates and are not foundation inputs.
+
+The private SearXNG service is a lightweight search/control-plane exception,
+not a media or model worker. It may use one CPU with zero idle instances only
+under `reeditpro-private-search-sa`; all substantive decode, analysis,
+segmentation, rendering, encoding, and model inference routes remain A100/L4
+GPU-only.
 
 The image signer is intentionally separate from the image builder. It receives
 only repository-scoped Artifact Registry writer access because cosign stores a

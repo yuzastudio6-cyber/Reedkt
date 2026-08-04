@@ -32,8 +32,7 @@ echo "Artifact images:"
 for image in \
   reeditpro-api \
   reeditpro-sam31-gpu \
-  reeditpro-l4-media-worker \
-  reeditpro-tool-readiness-worker; do
+  reeditpro-l4-media-worker; do
   echo "  - $(artifact_image "${image}")"
 done
 

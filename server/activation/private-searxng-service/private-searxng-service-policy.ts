@@ -30,7 +30,7 @@ export const privateSearxngServiceConfig: PrivateSearxngServiceConfig = {
   externalBetaAllowed: defaultActivationLaunchPermissions.externalBetaAllowed,
   paidProductionAllowed: defaultActivationLaunchPermissions.paidProductionAllowed,
   broadMediaAllowed: false,
-  serviceAccountEmail: 'reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com',
+  serviceAccountEmail: 'reeditpro-private-search-sa@reeditpro.iam.gserviceaccount.com',
   generatedAssetsBucket: 'reeditpro-staging-reeditpro-generated-assets',
   qaBucket: 'reeditpro-staging-reeditpro-qa-artifacts',
   artifactPrefixBase: 'activation-web-search/phase49f',

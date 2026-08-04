@@ -371,44 +371,50 @@ export const GCP_PRODUCTION_SERVICE_ACCOUNTS: GcpProductionServiceAccountTemplat
     ],
   },
   {
-    key: 'cpu_analysis_worker',
-    envVar: 'REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT',
-    accountId: 'reeditpro-cpu-worker-sa',
-    displayName: 'WeEditPro legacy analysis service identity',
-    notes: [
-      'Compatibility identity only. It cannot authorize fresh substantive media processing or model inference.',
-      'New analysis media work is placed on the qualified L4 standard route; heavy work uses A100 primary.',
-    ],
-  },
-  {
     key: 'gpu_ai_worker',
     envVar: 'REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT',
     accountId: 'reeditpro-gpu-worker-sa',
     displayName: 'WeEditPro production GPU AI worker',
     notes: ['Future GPU AI recipes only; no frontend access and no unapproved provider secrets.'],
   },
-  {
-    key: 'render_worker',
-    envVar: 'REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT',
-    accountId: 'reeditpro-render-worker-sa',
-    displayName: 'WeEditPro production render worker',
-    notes: ['Reads approved assets and writes previews, final exports, and render QA artifacts.'],
-  },
-  {
-    key: 'qa_worker',
-    envVar: 'REEDITPRO_QA_WORKER_SERVICE_ACCOUNT',
-    accountId: 'reeditpro-qa-worker-sa',
-    displayName: 'WeEditPro production QA worker',
-    notes: ['Reads analysis/previews/final exports and writes QA artifacts.'],
-  },
-  {
-    key: 'tool_readiness_worker',
-    envVar: 'REEDITPRO_TOOL_READINESS_SERVICE_ACCOUNT',
-    accountId: 'reeditpro-tool-readiness-sa',
-    displayName: 'WeEditPro production tool readiness worker',
-    notes: ['Minimal storage/logging access; no source media access by default.'],
-  },
 ]
+
+/** Immutable readback coordinates only. Foundation scripts must not create,
+ * enable, grant, deploy, or execute these retired CPU processing identities. */
+export const GCP_PRODUCTION_LEGACY_SERVICE_ACCOUNTS = Object.freeze({
+  historicalReadbackOnly: true,
+  mayAuthorizeNewWork: false,
+  entries: [
+    {
+      key: 'cpu_analysis_worker',
+      envVar: 'REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT',
+      accountId: 'reeditpro-cpu-worker-sa',
+      displayName: 'WeEditPro retired analysis service identity',
+      notes: ['Historical plan and evidence readback only.'],
+    },
+    {
+      key: 'render_worker',
+      envVar: 'REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT',
+      accountId: 'reeditpro-render-worker-sa',
+      displayName: 'WeEditPro retired render service identity',
+      notes: ['Historical plan and evidence readback only.'],
+    },
+    {
+      key: 'qa_worker',
+      envVar: 'REEDITPRO_QA_WORKER_SERVICE_ACCOUNT',
+      accountId: 'reeditpro-qa-worker-sa',
+      displayName: 'WeEditPro retired QA service identity',
+      notes: ['Historical plan and evidence readback only.'],
+    },
+    {
+      key: 'tool_readiness_worker',
+      envVar: 'REEDITPRO_TOOL_READINESS_SERVICE_ACCOUNT',
+      accountId: 'reeditpro-tool-readiness-sa',
+      displayName: 'WeEditPro retired tool-readiness service identity',
+      notes: ['Historical plan and evidence readback only.'],
+    },
+  ] satisfies GcpProductionServiceAccountTemplate[],
+})
 
 export const GCP_PRODUCTION_SECRET_PLACEHOLDERS: GcpProductionSecretPlaceholder[] = [
   { name: 'SUPABASE_URL', requiredNow: true, notes: ['Backend runtime Supabase URL placeholder only.'] },
@@ -564,6 +570,8 @@ export function getGcpProductionServiceAccountEmail(
   projectId: string,
 ): string {
   const serviceAccount = GCP_PRODUCTION_SERVICE_ACCOUNTS.find((item) => item.key === key)
+    ?? GCP_PRODUCTION_LEGACY_SERVICE_ACCOUNTS.entries.find((item) =>
+      item.key === key)
   if (!serviceAccount) {
     throw new Error(`Unknown GCP production service account key: ${key}`)
   }

@@ -121,8 +121,11 @@ Qualification state remains `implementation_pending`; documentation and contract
 
 ## TRACK-02 — capability manifest and public plugin
 
-Status: implementation and local verification complete; the milestone commit
-and remote confirmation are recorded by the following evidence-ledger update.
+Status: complete and pushed.
+
+- implementation commit: `dee982caf8feb54df945cd0293b6da111dc7c85e`
+- remote confirmation: `git ls-remote --heads origin codex/track-all-skill-end-to-end`
+  returned the same exact SHA after `git push -u origin HEAD`.
 
 Implemented:
 

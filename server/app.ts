@@ -114,6 +114,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['canonicalSourceCleanupAuthorityReadPort']
   canonicalSourceVisualIntelligenceOrchestraReadPort?:
     RuntimeState['canonicalSourceVisualIntelligenceOrchestraReadPort']
+  canonicalSourceLedOrchestraPlanningReconciliationPort?:
+    RuntimeState['canonicalSourceLedOrchestraPlanningReconciliationPort']
   canonicalCloudDispatchHttpReceiverPort?:
     CanonicalCloudDispatchHttpReceiverPort
 }
@@ -307,6 +309,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           canonicalSourceVisualIntelligenceOrchestraReadPort:
             options.canonicalSourceVisualIntelligenceOrchestraReadPort,
+        }
+      : {}),
+    ...(options.canonicalSourceLedOrchestraPlanningReconciliationPort
+      ? {
+          canonicalSourceLedOrchestraPlanningReconciliationPort:
+            options.canonicalSourceLedOrchestraPlanningReconciliationPort,
         }
       : {}),
     clients,

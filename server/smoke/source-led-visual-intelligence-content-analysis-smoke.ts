@@ -16,6 +16,7 @@ import {
   canonicalSourceLedTranscriptEvidenceSchema,
   createCanonicalSourceLedContentAnalysisEvidence,
   digestCanonicalSourceLedStructuredSelection,
+  verifyCanonicalSourceLedContentAnalysisEvidence,
 } from '../services/canonical-source-led-content-analysis-evidence'
 import {
   createCanonicalSourceLedProfessionalContentAnalysisRequestIdentity,
@@ -25,6 +26,12 @@ import {
   CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION,
   createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort,
 } from '../services/canonical-source-led-orchestra-content-analysis-reconciliation'
+import {
+  CANONICAL_SOURCE_ANALYSIS_REQUEST_AUTHORITY_READ_PORT_VERSION,
+  createCanonicalSourceLedOrchestraPlanningReconciliationPort,
+  readOrReconcileCanonicalSourceCleanupAuthority,
+  type CanonicalSourceAnalysisPlanningScope,
+} from '../services/canonical-source-led-orchestra-planning-reconciliation'
 import {
   assertCanonicalSourceCleanupBindingMatchesEvidence,
   createCanonicalSourceCleanupVisualIntelligenceBinding,
@@ -670,7 +677,55 @@ const reconciliationPort =
     },
     authorityRepository: cleanupAuthorityRepository,
   })
-const result = await reconciliationPort.analyze(request)
+const planningScope: CanonicalSourceAnalysisPlanningScope = {
+  ownerUserId: 'user-1',
+  workspaceId: request.workspaceId,
+  projectId: request.projectId,
+  editSessionId: request.editSessionId,
+  planningDirection: request.planningDirection,
+  planningDirectionDigestSha256: request.planningDirectionDigestSha256,
+  userInstructionDigestSha256: request.userInstructionDigestSha256,
+  sources: request.sources.map((source) => ({
+    sourceSequenceItemId: source.sourceSequenceItemId,
+    mediaAssetId: source.mediaAssetId,
+    uploadedOrder: source.uploadedOrder,
+    storageProvider: 'google_cloud_storage' as const,
+    storageBucket: source.storageBucket,
+    storagePath: source.storagePath,
+    contentType: 'video/mp4' as const,
+    checksumSha256: source.checksumSha256,
+    byteLength: source.byteLength,
+    storageGeneration: source.managedApiAuthority!.storageGeneration,
+    storageEtag: source.managedApiAuthority!.storageEtag,
+  })),
+}
+let preparedRequestRereads = 0
+const planningReconciliationPort =
+  createCanonicalSourceLedOrchestraPlanningReconciliationPort({
+    requestAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_REQUEST_AUTHORITY_READ_PORT_VERSION,
+      async readExactPreparedRequest(scope) {
+        preparedRequestRereads += 1
+        assert.deepEqual(scope, planningScope)
+        return request
+      },
+    },
+    reconciliationPort,
+  })
+const initiallyMissingCleanup = await cleanupAuthorityRepository
+  .readForPlanning(cleanupAuthorityScope)
+assert.equal(initiallyMissingCleanup.status, 'not_found')
+const planningAuthority = await readOrReconcileCanonicalSourceCleanupAuthority({
+  readPort: cleanupAuthorityRepository,
+  reconciliationPort: planningReconciliationPort,
+  cleanupScope: cleanupAuthorityScope,
+  planningScope,
+})
+assert.equal(planningAuthority.status, 'ready')
+const result = verifyCanonicalSourceLedContentAnalysisEvidence(
+  planningAuthority.authority.evidence,
+)
 assert.equal(result.schemaVersion, 'canonical-source-led-content-analysis-evidence-v5')
 assert.equal(
   'orchestraLineage' in result.sources[0]!.visual
@@ -682,7 +737,18 @@ assert.equal(
 assert.equal(transcriptRereads, 1)
 assert.equal(orchestraVisualRereads, 1)
 assert.equal(headReconciliationCalls, 1)
-const reconciledReplay = await reconciliationPort.analyze(request)
+assert.equal(preparedRequestRereads, 1)
+const replayedPlanningAuthority =
+  await readOrReconcileCanonicalSourceCleanupAuthority({
+    readPort: cleanupAuthorityRepository,
+    reconciliationPort: planningReconciliationPort,
+    cleanupScope: cleanupAuthorityScope,
+    planningScope,
+  })
+assert.equal(replayedPlanningAuthority.status, 'ready')
+const reconciledReplay = verifyCanonicalSourceLedContentAnalysisEvidence(
+  replayedPlanningAuthority.authority.evidence,
+)
 assert.equal(
   reconciledReplay.evidenceDigestSha256,
   result.evidenceDigestSha256,
@@ -690,6 +756,7 @@ assert.equal(
 assert.equal(transcriptRereads, 1)
 assert.equal(orchestraVisualRereads, 1)
 assert.equal(headReconciliationCalls, 1)
+assert.equal(preparedRequestRereads, 1)
 let blockedHeadCalls = 0
 const missingVisualReconciliationPort =
   createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort({
@@ -743,6 +810,64 @@ await assert.rejects(
   /source_orchestra_visual_evidence_scope_mismatch/u,
 )
 assert.equal(blockedHeadCalls, 0)
+const pendingCleanupRepository =
+  createCanonicalSourceCleanupAuthorityRepository({
+    objectPort: repositoryObjectPort,
+    prefix: 'private/test/source-planning-request-pending',
+  })
+const pendingPlanningReconciliation =
+  createCanonicalSourceLedOrchestraPlanningReconciliationPort({
+    requestAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_REQUEST_AUTHORITY_READ_PORT_VERSION,
+      async readExactPreparedRequest() { return null },
+    },
+    reconciliationPort,
+  })
+const pendingPlanningAuthority =
+  await readOrReconcileCanonicalSourceCleanupAuthority({
+    readPort: pendingCleanupRepository,
+    reconciliationPort: pendingPlanningReconciliation,
+    cleanupScope: cleanupAuthorityScope,
+    planningScope,
+  })
+assert.equal(pendingPlanningAuthority.status, 'not_found')
+assert.equal(transcriptRereads, 1)
+assert.equal(orchestraVisualRereads, 1)
+assert.equal(headReconciliationCalls, 1)
+
+const stalePreparedRequestPlanningReconciliation =
+  createCanonicalSourceLedOrchestraPlanningReconciliationPort({
+    requestAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_REQUEST_AUTHORITY_READ_PORT_VERSION,
+      async readExactPreparedRequest() {
+        return {
+          ...request,
+          sources: [{
+            ...request.sources[0]!,
+            managedApiAuthority: {
+              ...request.sources[0]!.managedApiAuthority!,
+              storageEtag: 'stale-etag',
+            },
+          }],
+        }
+      },
+    },
+    reconciliationPort,
+  })
+await assert.rejects(
+  () => stalePreparedRequestPlanningReconciliation
+    .reconcileForPlanning(planningScope),
+  /stale or inconsistent/u,
+)
+await assert.rejects(
+  () => pendingPlanningReconciliation.reconcileForPlanning({
+    ...planningScope,
+    browserDurationFrames: 480,
+  } as CanonicalSourceAnalysisPlanningScope),
+  /stale or inconsistent/u,
+)
 const cleanupBinding = createCanonicalSourceCleanupVisualIntelligenceBinding({
   evidence: result,
   expectedScope: {
@@ -1263,6 +1388,11 @@ console.log(JSON.stringify({
     transcriptRereads === 1
     && orchestraVisualRereads === 1
     && headReconciliationCalls === 1,
+  authenticatedPlanningReconciliationBridgeVerified: true,
+  missingPreparedRequestFailsClosedWithoutDispatch: true,
+  stalePreparedRequestAndBrowserProbeFieldsRejected: true,
+  planningReplayAvoidedDuplicateReconciliation:
+    preparedRequestRereads === 1,
   directVisualLifecycleCallsDuringReconciliation: 0,
   directionTextAndChatAuthorityDigestsSeparated: true,
   embeddedInstructionDetected: true,

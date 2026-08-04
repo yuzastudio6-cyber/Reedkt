@@ -381,6 +381,10 @@ assert.equal(
   runtime.sourceVideoUnderstandingReadPort.schemaVersion,
   'canonical-source-visual-intelligence-orchestra-read-port-v1',
 )
+assert.equal(
+  typeof runtime.createSourceLedOrchestraPlanningReconciliationPort,
+  'function',
+)
 const missingSourceCleanupAuthority =
   await runtime.sourceCleanupAuthorityRepository.readForPlanning({
     ownerUserId: 'user-1',
@@ -1066,6 +1070,7 @@ console.log(JSON.stringify({
   editReferenceResultRereadThroughConsumerPort: true,
   sourceVideoUnderstandingOrchestraBindingStoreMounted: true,
   sourceVideoUnderstandingOrchestraReadPortMounted: true,
+  sourcePlanningReconciliationFactoryMounted: true,
   sourceBindingPersistedBeforeProviderExecution: true,
   sourceBindingRequiresProbeTranscriptAndPlanningContext: true,
   staleSavedChatAuthorityRefusedBeforeProviderExecution: true,

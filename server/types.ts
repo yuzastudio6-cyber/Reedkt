@@ -64,6 +64,9 @@ import type {
 import type {
   CanonicalSourceVisualIntelligenceOrchestraReadPort,
 } from './services/canonical-source-visual-intelligence-orchestra-result-bridge'
+import type {
+  CanonicalSourceLedOrchestraPlanningReconciliationPort,
+} from './services/canonical-source-led-orchestra-planning-reconciliation'
 
 export interface AuthContext {
   userId: string
@@ -158,6 +161,8 @@ export interface RuntimeState {
     CanonicalSourceCleanupAuthorityReadPort
   canonicalSourceVisualIntelligenceOrchestraReadPort?:
     CanonicalSourceVisualIntelligenceOrchestraReadPort
+  canonicalSourceLedOrchestraPlanningReconciliationPort?:
+    CanonicalSourceLedOrchestraPlanningReconciliationPort
 }
 
 export type RuntimeRequest = Request & {
@@ -226,4 +231,6 @@ export interface ServiceContext {
     CanonicalSourceCleanupAuthorityReadPort
   canonicalSourceVisualIntelligenceOrchestraReadPort?:
     CanonicalSourceVisualIntelligenceOrchestraReadPort
+  canonicalSourceLedOrchestraPlanningReconciliationPort?:
+    CanonicalSourceLedOrchestraPlanningReconciliationPort
 }

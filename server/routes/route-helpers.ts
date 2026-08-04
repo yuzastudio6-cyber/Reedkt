@@ -92,6 +92,9 @@ export function getServiceContext(request: Request): ServiceContext {
     canonicalSourceVisualIntelligenceOrchestraReadPort:
       runtimeRequest.runtime
         .canonicalSourceVisualIntelligenceOrchestraReadPort,
+    canonicalSourceLedOrchestraPlanningReconciliationPort:
+      runtimeRequest.runtime
+        .canonicalSourceLedOrchestraPlanningReconciliationPort,
   }
 }
 

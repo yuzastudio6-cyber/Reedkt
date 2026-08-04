@@ -221,6 +221,30 @@ assert.match(
   sourceCleanupReconciliationSource,
   /readCompletedSourceVideoUnderstanding/u,
 )
+const sourcePlanningReconciliationSource = readFileSync(
+  'server/services/canonical-source-led-orchestra-planning-reconciliation.ts',
+  'utf8',
+)
+assert.doesNotMatch(
+  sourcePlanningReconciliationSource,
+  /VisualIntelligenceLifecycleService|createVisualIntelligenceRequest|planningAdmissionPort|CloudRun|Batch|fetch\(|child_process/u,
+)
+assert.match(
+  sourcePlanningReconciliationSource,
+  /readExactPreparedRequest/u,
+)
+assert.match(
+  sourcePlanningReconciliationSource,
+  /readOrReconcileCanonicalSourceCleanupAuthority/u,
+)
+const sourcePlanPresentationSource = readFileSync(
+  'server/services/canonical-source-led-plan-presentation-service.ts',
+  'utf8',
+)
+assert.match(
+  sourcePlanPresentationSource,
+  /readOrReconcileCanonicalSourceCleanupAuthority/u,
+)
 
 const activeEditReferenceServiceSource = readFileSync(
   'server/services/edit-reference-service.ts',
@@ -365,6 +389,7 @@ console.log(JSON.stringify({
   activeEditReferenceRecordsUseProviderNeutralSkillIdentity: true,
   directSourceVisualLifecycleFactoryRemoved: true,
   sourceCleanupRequiresOrchestraResultReread: true,
+  sourcePlanningUsesPreparedRequestAndDurableCleanupReread: true,
   sam2ExecutableImageSourceRemoved: true,
   sam2RuntimeCompilerAndSubprocessBlockedBeforeInputRead: true,
   sam31IsOnlyFreshSegmentationReplacement: true,

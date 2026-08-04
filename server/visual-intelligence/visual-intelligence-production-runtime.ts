@@ -22,6 +22,18 @@ import {
   type CanonicalSourceCleanupAuthorityRepository,
 } from '../services/canonical-source-cleanup-authority-repository'
 import {
+  createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort,
+  type CanonicalSourceTranscriptOrchestraReadPort,
+} from '../services/canonical-source-led-orchestra-content-analysis-reconciliation'
+import {
+  createCanonicalSourceLedOrchestraPlanningReconciliationPort,
+  type CanonicalSourceAnalysisRequestAuthorityReadPort,
+  type CanonicalSourceLedOrchestraPlanningReconciliationPort,
+} from '../services/canonical-source-led-orchestra-planning-reconciliation'
+import type {
+  CanonicalSourceLedProfessionalContentAnalysisReasoner,
+} from '../services/canonical-source-led-professional-content-analysis-port'
+import {
   createCanonicalSourceVisualIntelligenceOrchestraBindingStore,
   createCanonicalSourceVisualIntelligenceOrchestraConsumerBindingPort,
   createCanonicalSourceVisualIntelligenceOrchestraReadPort,
@@ -117,6 +129,15 @@ export interface VisualIntelligenceProductionRuntime {
   readonly costOwner: VisualIntelligenceAccountEffectiveCostOwner
   readonly sourceCleanupAuthorityRepository:
     CanonicalSourceCleanupAuthorityRepository
+  readonly createSourceLedOrchestraPlanningReconciliationPort: (
+    input: {
+      readonly requestAuthorityReadPort:
+        CanonicalSourceAnalysisRequestAuthorityReadPort
+      readonly transcriptReadPort: CanonicalSourceTranscriptOrchestraReadPort
+      readonly reasoner:
+        CanonicalSourceLedProfessionalContentAnalysisReasoner
+    },
+  ) => CanonicalSourceLedOrchestraPlanningReconciliationPort
   readonly providerCapabilityId: 'visual_intelligence'
   readonly semanticEngine: 'gemini-3.1-pro-preview'
   readonly thinkingLevel: 'high'
@@ -240,6 +261,24 @@ export async function createVisualIntelligenceProductionRuntime(
       resultStore: orchestraJobResultStore,
       reportRepository: durableStore,
     })
+  const createSourceLedOrchestraPlanningReconciliationPort = (
+    input: {
+      readonly requestAuthorityReadPort:
+        CanonicalSourceAnalysisRequestAuthorityReadPort
+      readonly transcriptReadPort: CanonicalSourceTranscriptOrchestraReadPort
+      readonly reasoner:
+        CanonicalSourceLedProfessionalContentAnalysisReasoner
+    },
+  ) => createCanonicalSourceLedOrchestraPlanningReconciliationPort({
+    requestAuthorityReadPort: input.requestAuthorityReadPort,
+    reconciliationPort:
+      createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort({
+        transcriptReadPort: input.transcriptReadPort,
+        visualIntelligenceReadPort: sourceVideoUnderstandingReadPort,
+        reasoner: input.reasoner,
+        authorityRepository: sourceCleanupAuthorityRepository,
+      }),
+  })
   const sourceVideoUnderstandingConsumerBindingPort =
     createCanonicalSourceVisualIntelligenceOrchestraConsumerBindingPort({
       bindingStore: sourceVideoUnderstandingBindingStore,
@@ -320,6 +359,7 @@ export async function createVisualIntelligenceProductionRuntime(
     orchestraJobRuntimePort,
     costOwner,
     sourceCleanupAuthorityRepository,
+    createSourceLedOrchestraPlanningReconciliationPort,
     providerCapabilityId: 'visual_intelligence',
     semanticEngine: 'gemini-3.1-pro-preview',
     thinkingLevel: 'high',

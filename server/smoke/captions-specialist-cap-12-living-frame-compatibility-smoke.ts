@@ -24,6 +24,9 @@ import {
   bindLivingFrameCaptionResponseV2ToV1,
 } from '../captions-specialist/caption-living-frame-compatibility'
 import {
+  parseLivingFrameCaptionResponseV2,
+} from '../captions-specialist/caption-living-frame-boundary'
+import {
   calculateSkillContractDigest,
 } from '../orchestra/orchestra-skill-contracts'
 
@@ -257,6 +260,8 @@ function createV1Response(
   assert.ok(v2.selectedScene.bindingRef)
   assert.ok(v2.timing.livingFrameTimingBindingRef)
   assert.ok(v2.estimateProjectionRef)
+  assert.ok(v2.livingFrameComponentRef)
+  assert.ok(v2.semanticProjectionRef)
   const base: LivingFrameCaptionDirectionResponse = {
     schemaVersion: LIVING_FRAME_CAPTION_RESPONSE_VERSION,
     responseId: 'living-frame-caption-v1-cap12-compatibility',
@@ -614,6 +619,19 @@ export function runCaptionLivingFrameCompatibilitySmoke(input: {
     check(forward.selectedSceneIds.length === 0
       && reverse.bindingDigestSha256 === forward.bindingDigestSha256,
     `Non-supported fixture ${index + 1} must preserve zero scenes and bidirectional lineage.`)
+    const ownershipOverclaim = structuredClone(pair.v2Response)
+    ownershipOverclaim.informationOwnerHandoff.state = index === 0 ? 'requested' : 'accepted'
+    ownershipOverclaim.informationOwnerHandoff.attentionEventIds = index === 0
+      ? [] : ['attention-invalid-handoff', 'attention-invalid-restore']
+    ownershipOverclaim.captionRetainsOrRegainsInformationOwnership = false
+    ownershipOverclaim.responseDigestSha256 = calculateSkillContractDigest(
+      ownershipOverclaim as unknown as Record<string, unknown>,
+      'responseDigestSha256',
+    )
+    expectThrow(() => parseLivingFrameCaptionResponseV2(
+      ownershipOverclaim,
+      input.v2Request,
+    ))
   }
 
   const badV1Digest = structuredClone(v1Request)

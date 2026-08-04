@@ -336,8 +336,12 @@ export function parseLivingFrameCaptionResponseV2(
     || (selected.deliberateNonUse !== (selected.selectedSceneIds.length === 0))
     || (supported && (selected.selectedSceneIds.length === 0
       || response.livingFrameComponentRef === null
-      || response.semanticProjectionRef === null))
-    || (!supported && selected.selectedSceneIds.length > 0)
+      || response.semanticProjectionRef === null
+      || !['requested', 'accepted'].includes(response.informationOwnerHandoff.state)))
+    || (!supported && (selected.selectedSceneIds.length > 0
+      || !response.captionRetainsOrRegainsInformationOwnership
+      || !['retained_by_caption', 'restored_to_caption']
+        .includes(response.informationOwnerHandoff.state)))
     || (response.informationOwnerHandoff.state === 'accepted'
       && !response.captionRetainsOrRegainsInformationOwnership
       && response.informationOwnerHandoff.attentionEventIds.length < 2)) {

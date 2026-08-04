@@ -98,7 +98,7 @@ fixture exercises only a non-character diagram/archive response.
 
 ## Verification
 
-`smoke:captions-specialist-cap-12` passes 41 CAP-12 assertions after consuming
+`smoke:captions-specialist-cap-12` passes 43 CAP-12 assertions after consuming
 the exported CAP-11 graph fixture. It covers twelve node registrations and
 resolutions, semantic event coverage, authorized-range enforcement, stable-read
 math, twelve typed primitives and reduced-motion counterparts, all three
@@ -112,7 +112,7 @@ Adversarial checks reject out-of-scope StoryTiming frames, inadequate effective
 read time despite a long cue, silently substituted output aspect ratio,
 stale V1 digests, V2 frame substitution, stale compatibility receipts,
 collapsed multi-scene lineage, mismatched or stale Living Frame results,
-lowered stable-read requirements,
+declined/blocked ownership overclaims, lowered stable-read requirements,
 swapped handoff lineage, receiver/kind mismatch, missing transfer morph, direct
 peer dispatch, camera authority overclaim, and inherited public-contract data.
 

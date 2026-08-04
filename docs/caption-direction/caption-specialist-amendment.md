@@ -1,6 +1,6 @@
 # Captions Specialist Amendment
 
-Status: `cap_05_contract_complete_internal_runtime_gated`
+Status: `cap_06_complete`
 Applies to: all historical files in `docs/caption-direction/`
 
 This amendment supersedes only the historical identity, intelligence-routing,

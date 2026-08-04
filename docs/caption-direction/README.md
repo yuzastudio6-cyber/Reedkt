@@ -1,7 +1,7 @@
-# Captions Specialist — CAP-05 Font/Unicode Contract Checkpoint
+# Captions Specialist — CAP-06 Early Strategy Checkpoint
 
-Status: `cap_05_contract_complete_internal_runtime_gated`
-Checkpoint: `CAP-05`
+Status: `cap_06_complete`
+Checkpoint: `CAP-06`
 Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
@@ -78,6 +78,7 @@ The governing workflow invariant remains:
 - [CAP-03 core domain contract report](cap-03-core-domain-contract-report.md)
 - [CAP-04 transcript, lineage, and alignment report](cap-04-transcript-lineage-alignment-report.md)
 - [CAP-05 font and Unicode runtime report](cap-05-font-unicode-runtime-report.md)
+- [CAP-06 early strategy and reservation report](cap-06-early-strategy-reservation-report.md)
 
 ### Historical architecture retained and amended
 
@@ -113,7 +114,7 @@ The governing workflow invariant remains:
 
 ## Progression
 
-CAP-00R through CAP-04 are complete on the clean specialist branch. CAP-05's
+CAP-00R through CAP-04 and CAP-06 are complete on the clean specialist branch. CAP-05's
 contracts and fail-closed resolver are complete, with its actual private font
 runtime qualification gates carried explicitly. CAP-01 adds the
 neutral shared v2 manifest extension, per-job qualification snapshot,
@@ -142,10 +143,16 @@ empty because FontTools/OTS operations, actual multilingual shaping, and exact
 preview/final parity have not yet been privately qualified. Contract fixtures
 cannot open rendering.
 
-Implementation continues automatically into CAP-06 early strategy and
-reservation. Registry/workflow integration will consume these frozen public
-artifacts at its dependency-safe milestone; no Caption milestone manufactures
-a second planner or a false backend coverage claim.
+CAP-06 adds the early strategy bundle with the correct four integration
+classes, exact Visual Intelligence reservation evidence, non-renderable
+blocking metadata, approval/estimate inputs, and owner-bound `no_captions`.
+All ten historical treatment labels remain readable through an explicit v2
+classification adapter.
+
+Implementation continues automatically into CAP-07 picture lock, finish
+readiness, and local staleness. Registry/workflow integration will consume
+these frozen public artifacts at its dependency-safe milestone; no Caption
+milestone manufactures a second planner or a false backend coverage claim.
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

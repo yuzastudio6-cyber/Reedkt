@@ -1765,6 +1765,81 @@ this milestone; those real adapters are M26. No production binding, provider
 request, public artifact, production mutation, orchestra, Track All
 implementation, or Visual Intelligence implementation was added.
 
+## M26 — real canonical internal execution adapters
+
+Status: implementation complete, committed, pushed, and targeted-qualified.
+
+Implementation commit:
+`89692e8382e3c955946c1bc8c5b6fe19ac1602d8`.
+
+Remote confirmation: `git push -u origin HEAD` advanced
+`origin/codex/reeditpro-b-roll-skill-end-to-end` to
+`89692e8382e3c955946c1bc8c5b6fe19ac1602d8`; local and remote refs matched
+exactly after the push.
+
+The B-roll binding factory now exposes one complete 13-job
+`canonical_private_execution_adapter` set in the `canonical_private`
+environment while retaining the separate 13-job internal-fixture set. The
+generic runtime factory accepts explicitly injected additional bindings, the
+dispatcher is pinned to its configured environment, and neither surface
+registers a production worker binding.
+
+`BrollCanonicalPrivateExecutionCoordinator` owns the private implementation
+details behind those generic bindings. It revalidates the immutable canonical
+component and projected work graph, the real assignment/manifest/context/range
+contracts, exact approval, dependency order, and visual ownership before work
+executes. Existing-source work uses the existing checksum-bound selector,
+actual FFprobe, actual FFmpeg trim/FFV1 normalization, create-only private
+media storage, and source technical QA. Generated internal work uses the
+injected Gemini Omni V5 lifecycle, executes and verifies an exact replay,
+records zero real provider requests, preserves attempt/cost evidence, runs
+actual FFprobe/FFmpeg/objective candidate QA, and keeps injected semantic
+evidence explicitly test-only and non-production-qualified.
+
+Both media routes enter the existing private Remotion integration. The
+qualification smokes render actual private MP4 previews and verify exact
+timing, layer order, crop, caption reservation, handoffs, QA lineage, private
+integrity, and `outsideAuthorizedRangeModified: false`. Professional no-action
+work produces a strict content-addressed private receipt with no media,
+provider request, source selection, display layer, or estimated provider
+credit.
+
+Actual M26 evidence:
+
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-canonical-private-runtime`
+  — passed 13 canonical binding registrations, 11 dispatcher-driven generated
+  jobs, the real injected V5 execution/replay path, actual candidate QA, an
+  actual private Remotion preview, and three dispatcher-driven professional
+  no-action jobs; zero real provider requests and zero production/public
+  mutations were recorded.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run smoke:b-roll-existing-source`
+  — passed 12 dispatcher-driven existing-source jobs with real FFprobe,
+  FFmpeg, private normalized media, source QA, and a private Remotion preview;
+  provider request count remained zero.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-runtime-bindings`
+  — passed all existing 13 fixture dispatches and 27 adversarial cases.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-runtime-factory`
+  — passed canonical-private dependency injection, 26-class registration,
+  wrong-environment rejection, production in-memory rejection, and the
+  existing fail-closed construction cases.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  and `npm run test:edit-skill-capability-kernel` — passed.
+- `npm run typecheck:server`, `npm run lint`, and `git diff --check` — passed.
+
+Remotion media smokes are run serially because two simultaneous confined
+Docker render fixtures compete for the same local runtime resources. One
+parallel-only container creation failure was reproduced as environmental;
+each exact smoke passed immediately when run in isolation. No test was
+skipped, weakened, or ignored.
+
+The aggregate qualifier now includes
+`test:b-roll-canonical-private-runtime` in its actual Phase B command evidence.
+The M23 receipt remains intentionally stale; M30 will issue the new receipt
+only after all M24-M29 source and authority changes are frozen. No production
+worker binding, paid provider call, public delivery, production mutation,
+orchestra, Track All implementation, or Visual Intelligence implementation
+was added.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1795,3 +1870,4 @@ implementation, or Visual Intelligence implementation was added.
 | M23 | `c8995159c` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M24 | `070f4dccf` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
 | M25 | `27c41b84c` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
+| M26 | `89692e838` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |

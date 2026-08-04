@@ -53,9 +53,10 @@ const observedEvidenceSchema = z.object({
       /^us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/reeditpro-sam31-gpu@sha256:[a-f0-9]{64}$/u,
     ),
     immutableImageDigest: prefixedSha256,
-    ociManifestMediaType: z.literal(
+    containerManifestMediaType: z.enum([
       'application/vnd.oci.image.manifest.v1+json',
-    ),
+      'application/vnd.docker.distribution.manifest.v2+json',
+    ]),
     exactDigestReread: z.boolean(),
     mutableTagUsedAsAuthority: z.literal(false),
   }).strict(),

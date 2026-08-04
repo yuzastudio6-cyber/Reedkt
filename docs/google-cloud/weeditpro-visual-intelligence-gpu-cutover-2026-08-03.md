@@ -104,6 +104,25 @@ fresh dispatch authority and preserve prior audit evidence.
   content hashes, SPDX structure, registry signature, Artifact Analysis
   occurrences, security approval, and original Cloud Build SLSA provenance
   remain mandatory exact-reread gates.
+- The release-side evidence reader now implements those rereads. It accepts
+  only the exact original image-build and signer-build lineage; rereads the
+  immutable Artifact Registry digest; rereads the Cloud Build artifact
+  manifest and all three GCS objects by generation; verifies the Cloud Build
+  MD5 upload bindings and independently computes SHA-256; validates the pinned
+  Syft SPDX 2.3 document and the pinned Cosign bundle/verification result; and
+  rejects a changed, missing, duplicated, or cross-image artifact. Both OCI
+  image manifests and Docker distribution v2 image manifests are recognized
+  explicitly rather than assuming the Docker builder always emits OCI media.
+- Artifact Analysis discovery, vulnerability, and SLSA-v1 build occurrences
+  are fetched through a fixed read-only allowlist with complete bounded
+  pagination and no partial-result acceptance. Severity is recomputed from
+  occurrence/package evidence. Any critical, high, or unknown severity blocks
+  release, and even a clean automated scan requires a separate exact
+  scan-bound server security-review record. The SLSA envelope and decoded
+  statement must both bind the same image digest, Google hosted builder, and
+  original Cloud Build invocation. This evidence can qualify the immutable
+  image supply chain only; A100/L4 qualification, runtime dispatch, credits,
+  public delivery, and production remain false.
 - The guarded operator command is
   `npm run publish:sam3_1-official-artifacts`. It refuses developer-machine
   execution and requires the exact dedicated job identity, an explicit

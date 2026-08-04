@@ -1,9 +1,14 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 
 import {
   CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION,
   assertCanonicalSam31CloudImageBuildAuthority,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
+import {
+  assertCanonicalSam31CloudImageSupplyChainRelease,
+  prepareCanonicalSam31CloudImageSupplyChainRelease,
+} from '../model-artifacts/canonical-sam3_1-cloud-image-supply-chain-release'
 import { CANONICAL_SAM3_1_PRIVATE_ARTIFACT_INGEST_VERSION } from
   '../model-artifacts/canonical-sam3_1-private-artifact-ingest'
 import { CANONICAL_SAM3_1_SOURCE_RUNTIME_CANDIDATE_VERSION } from
@@ -13,6 +18,7 @@ import {
   CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_TERMINAL_OBSERVATION_VERSION,
   assertCanonicalSam31CloudImageBuildSubmission,
   assertCanonicalSam31CloudImageBuildTerminalObservation,
+  compileCanonicalSam31CloudBuildRequestBody,
 } from '../services/canonical-sam3_1-cloud-image-build-service'
 import {
   assertCanonicalSam31ImageSupplyChainBuildAdmission,
@@ -24,8 +30,16 @@ import {
   imageSupplyChainBuildAdmissionReference,
   type CanonicalSam31ImageSupplyChainBuildStatePort,
 } from '../services/canonical-sam3_1-cloud-image-supply-chain-build-service'
+import {
+  assertCanonicalSam31ImageSupplyChainGoogleReadUrl,
+  assertCanonicalSam31ImageSecurityReview,
+  createCanonicalSam31ImageSecurityReview,
+  createCanonicalSam31ImageSupplyChainEvidenceReadPort,
+} from '../services/canonical-sam3_1-cloud-image-supply-chain-evidence-read-service'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
+import type { VisualIntelligencePrivateObjectReadPort } from
+  '../visual-intelligence/visual-intelligence-private-object-read-port'
 
 const authority = createAuthority()
 const imageBuildSubmission = createImageBuildSubmission(authority)
@@ -190,6 +204,222 @@ assert.equal(
   observation.observationHash,
 )
 
+const imageDigest = imageBuildTerminal.immutableImageDigest
+const imageUri = imageBuildTerminal.immutableImageUri
+assert(imageDigest)
+assert(imageUri)
+const evidenceObjects = createEvidenceObjects({
+  admission,
+  observation,
+  imageDigest,
+})
+const evidenceReadRequests: string[] = []
+let securityReviewReads = 0
+const evidenceReadPort =
+  createCanonicalSam31ImageSupplyChainEvidenceReadPort({
+    imageBuildAuthority: authority,
+    imageBuildSubmission,
+    imageBuildTerminalObservation: imageBuildTerminal,
+    supplyChainBuildAdmission: admission,
+    supplyChainBuildSubmission: submission,
+    supplyChainBuildObservation: observation,
+    privateObjectReadPort: evidenceObjects.port,
+    googleReadTransport: {
+      async getJson(url) {
+        evidenceReadRequests.push(url)
+        return googleEvidenceResponse({
+          url,
+          authority,
+          imageBuildTerminal,
+          supplyChainBuildBody: body,
+          admission,
+          observation,
+        })
+      },
+    },
+    securityReviewReadPort: {
+      async rereadApprovedReview(request) {
+        securityReviewReads += 1
+        return createCanonicalSam31ImageSecurityReview({
+          reviewId: 'sam31-image-security-review-smoke',
+          immutableImageDigest: request.immutableImageDigest,
+          vulnerabilityScanRef: request.vulnerabilityScanRef,
+          scanCompletedAt: request.scanCompletedAt,
+          occurrenceSnapshotUpdatedAt:
+            request.occurrenceSnapshotUpdatedAt,
+          severityCounts: request.severityCounts,
+          reviewerAuthorityRef: ref('sam31-security-reviewer-authority'),
+          reviewedAt: '2026-08-03T20:05:00.000Z',
+        })
+      },
+    },
+  })
+
+const qualifiedSupplyChain =
+  await prepareCanonicalSam31CloudImageSupplyChainRelease({
+    releaseId: 'sam31-image-supply-chain-release-smoke',
+    authority,
+    submission: imageBuildSubmission,
+    terminalObservation: imageBuildTerminal,
+    evidenceReadPort,
+    qualifiedAt: '2026-08-03T20:06:00.000Z',
+  })
+assert.equal(qualifiedSupplyChain.status, 'image_supply_chain_qualified')
+assert.equal(qualifiedSupplyChain.evidenceClass, 'canonical_private_reread')
+assert.equal(qualifiedSupplyChain.immutableImageDigest, imageDigest)
+assert.equal(qualifiedSupplyChain.sbom.format, 'spdx_2_3_json')
+assert.equal(qualifiedSupplyChain.sbom.exactArtifactReread, true)
+assert.equal(qualifiedSupplyChain.vulnerabilityScan.criticalCount, 0)
+assert.equal(qualifiedSupplyChain.vulnerabilityScan.highCount, 0)
+assert.equal(qualifiedSupplyChain.vulnerabilityScan.mediumCount, 1)
+assert.equal(qualifiedSupplyChain.vulnerabilityScan.lowCount, 1)
+assert.equal(qualifiedSupplyChain.vulnerabilityScan.unknownSeverityCount, 0)
+assert.equal(
+  qualifiedSupplyChain.vulnerabilityScan
+    .securityReviewApprovedForPrivateGpuQualification,
+  true,
+)
+assert.equal(
+  qualifiedSupplyChain.signature.exactSignatureVerificationPassed,
+  true,
+)
+assert.equal(
+  qualifiedSupplyChain.provenance.exactAttestationRereadAndVerified,
+  true,
+)
+assert.equal(qualifiedSupplyChain.authority.imageSupplyChainQualified, true)
+assert.equal(qualifiedSupplyChain.authority.a100RuntimeQualified, false)
+assert.equal(qualifiedSupplyChain.authority.l4RuntimeQualified, false)
+assert.equal(qualifiedSupplyChain.authority.runtimeReleaseGranted, false)
+assert.equal(qualifiedSupplyChain.authority.customerCreditMutationAllowed, false)
+assert.equal(qualifiedSupplyChain.authority.productionReady, false)
+assert.equal(securityReviewReads, 1)
+assert.equal(evidenceObjects.reads.length, 4)
+assert.equal(evidenceReadRequests.length, 6)
+assert(evidenceReadRequests.some((url) =>
+  url.startsWith('https://artifactregistry.googleapis.com/v1/')))
+assert.equal(evidenceReadRequests.filter((url) =>
+  url.startsWith('https://cloudbuild.googleapis.com/v1/')).length, 2)
+assert.equal(evidenceReadRequests.filter((url) =>
+  url.startsWith('https://containeranalysis.googleapis.com/v1/')).length, 3)
+for (const url of evidenceReadRequests) {
+  assert.doesNotThrow(() =>
+    assertCanonicalSam31ImageSupplyChainGoogleReadUrl(url))
+}
+assert.throws(() => assertCanonicalSam31ImageSupplyChainGoogleReadUrl(
+  'https://example.com/v1/projects/reeditpro/occurrences',
+))
+assert.throws(() => assertCanonicalSam31ImageSupplyChainGoogleReadUrl(
+  'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/'
+    + 'us-central1/builds/11111111-1111-4111-8111-111111111111?view=FULL',
+))
+assert.throws(() => assertCanonicalSam31ImageSupplyChainGoogleReadUrl(
+  'https://artifactregistry.googleapis.com/v1/projects/reeditpro/locations/'
+    + 'us-central1/repositories/reeditpro-workers/dockerImages/'
+    + `reeditpro-sam31-gpu%40${imageDigest}?pageToken=caller`,
+))
+assert.equal(
+  assertCanonicalSam31CloudImageSupplyChainRelease(qualifiedSupplyChain)
+    .releaseHash,
+  qualifiedSupplyChain.releaseHash,
+)
+
+const securityReview = createCanonicalSam31ImageSecurityReview({
+  reviewId: 'sam31-image-security-review-direct-smoke',
+  immutableImageDigest: imageDigest,
+  vulnerabilityScanRef: ref('sam31-vulnerability-scan-direct'),
+  scanCompletedAt: '2026-08-03T20:02:00.000Z',
+  occurrenceSnapshotUpdatedAt: '2026-08-03T20:03:00.000Z',
+  severityCounts: {
+    criticalCount: 0,
+    highCount: 0,
+    mediumCount: 1,
+    lowCount: 1,
+    unknownSeverityCount: 0,
+  },
+  reviewerAuthorityRef: ref('sam31-security-reviewer-direct'),
+  reviewedAt: '2026-08-03T20:04:00.000Z',
+})
+assert.equal(
+  assertCanonicalSam31ImageSecurityReview(securityReview).reviewHash,
+  securityReview.reviewHash,
+)
+assert.throws(() => createCanonicalSam31ImageSecurityReview({
+  reviewId: 'sam31-image-security-review-high-severity-smoke',
+  immutableImageDigest: imageDigest,
+  vulnerabilityScanRef: ref('sam31-vulnerability-scan-high-severity'),
+  scanCompletedAt: '2026-08-03T20:02:00.000Z',
+  occurrenceSnapshotUpdatedAt: '2026-08-03T20:03:00.000Z',
+  severityCounts: {
+    criticalCount: 0,
+    highCount: 1,
+    mediumCount: 0,
+    lowCount: 0,
+    unknownSeverityCount: 0,
+  },
+  reviewerAuthorityRef: ref('sam31-security-reviewer-high-severity'),
+  reviewedAt: '2026-08-03T20:04:00.000Z',
+}))
+assert.throws(() => createCanonicalSam31ImageSecurityReview({
+  reviewId: 'sam31-image-security-review-unknown-field-smoke',
+  immutableImageDigest: imageDigest,
+  vulnerabilityScanRef: ref('sam31-vulnerability-scan-unknown-field'),
+  scanCompletedAt: '2026-08-03T20:02:00.000Z',
+  occurrenceSnapshotUpdatedAt: '2026-08-03T20:03:00.000Z',
+  severityCounts: {
+    criticalCount: 0,
+    highCount: 0,
+    mediumCount: 1,
+    lowCount: 1,
+    unknownSeverityCount: 0,
+  },
+  reviewerAuthorityRef: ref('sam31-security-reviewer-unknown-field'),
+  reviewedAt: '2026-08-03T20:04:00.000Z',
+  callerApproval: true,
+}))
+
+const tamperedEvidenceObjects = createEvidenceObjects({
+  admission,
+  observation,
+  imageDigest,
+  tamperArtifactPath: 'sam31.spdx.json',
+})
+const tamperedEvidencePort =
+  createCanonicalSam31ImageSupplyChainEvidenceReadPort({
+    imageBuildAuthority: authority,
+    imageBuildSubmission,
+    imageBuildTerminalObservation: imageBuildTerminal,
+    supplyChainBuildAdmission: admission,
+    supplyChainBuildSubmission: submission,
+    supplyChainBuildObservation: observation,
+    privateObjectReadPort: tamperedEvidenceObjects.port,
+    googleReadTransport: {
+      async getJson(url) {
+        return googleEvidenceResponse({
+          url,
+          authority,
+          imageBuildTerminal,
+          supplyChainBuildBody: body,
+          admission,
+          observation,
+        })
+      },
+    },
+    securityReviewReadPort: {
+      async rereadApprovedReview() {
+        throw new Error('security review must not run after artifact tamper')
+      },
+    },
+  })
+await assert.rejects(() => prepareCanonicalSam31CloudImageSupplyChainRelease({
+  releaseId: 'sam31-tampered-evidence-release-smoke',
+  authority,
+  submission: imageBuildSubmission,
+  terminalObservation: imageBuildTerminal,
+  evidenceReadPort: tamperedEvidencePort,
+  qualifiedAt: '2026-08-03T20:06:00.000Z',
+}))
+
 assert.throws(() => createCanonicalSam31ImageSupplyChainBuildAdmission({
   admissionId: 'sam31-invalid-primary-key-admission',
   authority,
@@ -294,7 +524,7 @@ assert.equal(unknownCalls, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-cloud-image-supply-chain-build',
-  checks: 58,
+  checks: 96,
   exactImmutableImageDigestBound: true,
   exactNumericHsmKeyVersionBound: true,
   pinnedSbomAndSignatureToolImages: true,
@@ -302,8 +532,18 @@ console.log(JSON.stringify({
   signatureCreatedAndVerifiedInDedicatedBuild: true,
   durableSingleUseConsumption: true,
   automaticRetryAllowed: false,
-  exactEvidenceArtifactsReread: observation.evidenceArtifactsExactReread,
-  imageSupplyChainReleaseGranted: observation.imageSupplyChainReleaseGranted,
+  exactEvidenceArtifactsReread:
+    qualifiedSupplyChain.authority.exactSbomReread,
+  exactArtifactRegistryDigestReread:
+    qualifiedSupplyChain.authority.exactImmutableImageReread,
+  vulnerabilityOccurrencesAndSecurityReviewPassed:
+    qualifiedSupplyChain.authority.vulnerabilityScanPassed,
+  exactKmsSignatureVerificationPassed:
+    qualifiedSupplyChain.authority.imageSignatureVerified,
+  exactSlsaV1ProvenanceVerified:
+    qualifiedSupplyChain.authority.buildProvenanceVerified,
+  imageSupplyChainReleaseGranted:
+    qualifiedSupplyChain.authority.imageSupplyChainQualified,
   gpuRuntimeAuthorized: observation.gpuRuntimeAuthorized,
   developerMachineModelInstallAllowed: false,
   providerBuildExecuted: false,
@@ -436,7 +676,9 @@ function createImageBuildSubmission(value: ReturnType<typeof createAuthority>) {
     version: value.authorityVersion,
     contentHash: `sha256:${value.authorityHash}` as const,
   }
-  const buildRequestHash = '6'.repeat(64)
+  const buildRequestHash = sha256AuthorityValue(
+    compileCanonicalSam31CloudBuildRequestBody(value),
+  )
   const buildId = '11111111-1111-4111-8111-111111111111'
   const payload = {
     schemaVersion: CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_SUBMISSION_VERSION,
@@ -560,6 +802,365 @@ function successfulSupplyChainBuild(
         `gs://${buildAdmission.evidenceBucket}/${buildAdmission.evidencePrefix}/artifacts-${id}.json#4101`,
       numArtifacts: '3',
     },
+  }
+}
+
+function createEvidenceObjects(input: {
+  admission: typeof admission
+  observation: typeof observation
+  imageDigest: string
+  tamperArtifactPath?:
+    | 'sam31.spdx.json'
+    | 'cosign-signature.bundle.json'
+    | 'cosign-verification.json'
+}) {
+  const spdx = Buffer.from(JSON.stringify({
+    spdxVersion: 'SPDX-2.3',
+    SPDXID: 'SPDXRef-DOCUMENT',
+    dataLicense: 'CC0-1.0',
+    name: `sam31-image-${input.imageDigest.slice(-12)}`,
+    documentNamespace:
+      `https://weeditpro.invalid/sbom/${input.imageDigest.slice(7)}`,
+    creationInfo: {
+      created: '2026-08-03T20:01:00Z',
+      creators: ['Tool: syft-1.44.0'],
+    },
+    documentDescribes: ['SPDXRef-Package-sam31-runtime'],
+    packages: [{
+      SPDXID: 'SPDXRef-Package-sam31-runtime',
+      name: 'sam31-runtime',
+      versionInfo: '96914d2425f90a64f45ca977c2b5165418099543',
+    }],
+    relationships: [{
+      spdxElementId: 'SPDXRef-DOCUMENT',
+      relationshipType: 'DESCRIBES',
+      relatedSpdxElement: 'SPDXRef-Package-sam31-runtime',
+    }],
+  }))
+  const bundle = Buffer.from(JSON.stringify({
+    mediaType: 'application/vnd.dev.sigstore.bundle.v0.3+json',
+    verificationMaterial: {
+      publicKey: { hint: 'weeditpro-sam31-image-signing-key-version-7' },
+    },
+    messageSignature: {
+      messageDigest: {
+        algorithm: 'SHA2_256',
+        digest: Buffer.from(input.imageDigest.slice(7), 'hex')
+          .toString('base64'),
+      },
+      signature: Buffer.alloc(64, 7).toString('base64'),
+    },
+  }))
+  const verification = Buffer.from(JSON.stringify([{
+    critical: {
+      identity: {
+        'docker-reference':
+          'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu',
+      },
+      image: { 'docker-manifest-digest': input.imageDigest },
+      type: 'cosign container image signature',
+    },
+    optional: null,
+  }]))
+  const bodies = new Map<string, Buffer>([
+    ['sam31.spdx.json', spdx],
+    ['cosign-signature.bundle.json', bundle],
+    ['cosign-verification.json', verification],
+  ])
+  const generations = new Map<string, string>([
+    ['sam31.spdx.json', '4201'],
+    ['cosign-signature.bundle.json', '4202'],
+    ['cosign-verification.json', '4203'],
+  ])
+  const manifestEntries = [...bodies.entries()].map(([path, value]) => ({
+    location:
+      `gs://${input.admission.evidenceBucket}/`
+        + `${input.admission.evidencePrefix}/${path}#${generations.get(path)}`,
+    file_hash: [{
+      type: 2,
+      value: createHash('md5').update(value).digest('base64'),
+    }],
+  }))
+  const manifestBody = Buffer.from(JSON.stringify(manifestEntries))
+  if (input.tamperArtifactPath) {
+    const current = bodies.get(input.tamperArtifactPath)
+    assert(current)
+    bodies.set(
+      input.tamperArtifactPath,
+      Buffer.concat([current, Buffer.from('\n')]),
+    )
+  }
+  const manifestUri = input.observation.evidenceArtifactManifestUri
+  assert(manifestUri)
+  const manifestName = manifestUri
+    .replace(`gs://${input.admission.evidenceBucket}/`, '')
+    .replace(/#[1-9][0-9]*$/u, '')
+  const reads: string[] = []
+  const port: VisualIntelligencePrivateObjectReadPort = {
+    async readExact(request) {
+      reads.push(
+        `${request.bucketName}/${request.objectName}#${request.generation ?? ''}`,
+      )
+      if (
+        request.bucketName !== input.admission.evidenceBucket
+        || !request.generation
+      ) return null
+      if (request.objectName === manifestName && request.generation === '4101') {
+        return {
+          body: Buffer.from(manifestBody),
+          generation: '4101',
+          etag: 'sam31-artifact-manifest-etag',
+          contentType: 'application/json',
+        }
+      }
+      const prefix = `${input.admission.evidencePrefix}/`
+      if (!request.objectName.startsWith(prefix)) return null
+      const path = request.objectName.slice(prefix.length)
+      const body = bodies.get(path)
+      const generation = generations.get(path)
+      if (!body || request.generation !== generation) return null
+      return {
+        body: Buffer.from(body),
+        generation,
+        etag: `sam31-${path}-etag`,
+        contentType: 'application/json',
+      }
+    },
+  }
+  return { port, reads }
+}
+
+function googleEvidenceResponse(input: {
+  url: string
+  authority: typeof authority
+  imageBuildTerminal: typeof imageBuildTerminal
+  supplyChainBuildBody: Readonly<Record<string, unknown>>
+  admission: typeof admission
+  observation: typeof observation
+}) {
+  const url = new URL(input.url)
+  const imageDigest = input.imageBuildTerminal.immutableImageDigest
+  const imageUri = input.imageBuildTerminal.immutableImageUri
+  assert(imageDigest)
+  assert(imageUri)
+  if (url.origin === 'https://artifactregistry.googleapis.com') return {
+    status: 200,
+    json: {
+      name:
+        'projects/reeditpro/locations/us-central1/repositories/'
+          + `reeditpro-workers/dockerImages/reeditpro-sam31-gpu@${imageDigest}`,
+      uri: imageUri,
+      tags: [input.authority.imageDestination.taggedUri],
+      imageSizeBytes: '5368709120',
+      uploadTime: '2026-08-03T19:59:30Z',
+      mediaType: 'application/vnd.docker.distribution.manifest.v2+json',
+      buildTime: '2026-08-03T19:59:00Z',
+      updateTime: '2026-08-03T19:59:30Z',
+    },
+  }
+  if (url.origin === 'https://cloudbuild.googleapis.com') {
+    if (url.pathname.endsWith(`/${input.imageBuildTerminal.cloudBuildId}`)) {
+      return {
+        status: 200,
+        json: successfulImageBuild(
+          input.authority,
+          input.imageBuildTerminal,
+        ),
+      }
+    }
+    if (url.pathname.endsWith(`/${input.observation.cloudBuildId}`)) return {
+      status: 200,
+      json: successfulSupplyChainBuild(
+        input.observation.cloudBuildId,
+        input.supplyChainBuildBody,
+        input.admission,
+      ),
+    }
+  }
+  if (url.origin === 'https://containeranalysis.googleapis.com') {
+    const filter = url.searchParams.get('filter') ?? ''
+    if (filter.includes('kind="DISCOVERY"')) return {
+      status: 200,
+      json: { occurrences: [discoveryOccurrence(imageUri)] },
+    }
+    if (filter.includes('kind="VULNERABILITY"')) return {
+      status: 200,
+      json: { occurrences: vulnerabilityOccurrences(imageUri) },
+    }
+    if (filter.includes('kind="BUILD"')) return {
+      status: 200,
+      json: {
+        occurrences: [buildProvenanceOccurrence(
+          imageUri,
+          imageDigest,
+          input.imageBuildTerminal.cloudBuildResource,
+        )],
+      },
+    }
+  }
+  return { status: 404, json: { error: { code: 404 } } }
+}
+
+function successfulImageBuild(
+  value: typeof authority,
+  terminal: typeof imageBuildTerminal,
+) {
+  const expected = compileCanonicalSam31CloudBuildRequestBody(value)
+  const source = structuredClone(expected.source) as {
+    storageSource: Record<string, unknown>
+  }
+  return {
+    id: terminal.cloudBuildId,
+    name: terminal.cloudBuildResource,
+    projectId: 'reeditpro',
+    status: 'SUCCESS',
+    warnings: [],
+    source,
+    steps: structuredClone(expected.steps),
+    images: structuredClone(expected.images),
+    timeout: expected.timeout,
+    queueTtl: expected.queueTtl,
+    options: structuredClone(expected.options),
+    serviceAccount: expected.serviceAccount,
+    tags: structuredClone(expected.tags),
+    sourceProvenance: {
+      resolvedStorageSource: structuredClone(source.storageSource),
+      fileHashes: {
+        [value.capsuleCoordinate.objectName]: {
+          fileHash: [{
+            type: 'SHA256',
+            value: Buffer.from(value.capsuleCoordinate.sha256, 'hex')
+              .toString('base64'),
+          }],
+        },
+      },
+    },
+    results: {
+      images: [{
+        name: value.imageDestination.taggedUri,
+        digest: terminal.immutableImageDigest,
+        artifactRegistryPackage: terminal.artifactRegistryPackage,
+      }],
+    },
+  }
+}
+
+function discoveryOccurrence(imageUri: string) {
+  return {
+    name: 'projects/reeditpro/occurrences/31111111-1111-4111-8111-111111111111',
+    resourceUri: `https://${imageUri}`,
+    noteName: 'projects/goog-analysis/notes/discovery-sam31-smoke',
+    kind: 'DISCOVERY',
+    createTime: '2026-08-03T20:01:00Z',
+    updateTime: '2026-08-03T20:02:00Z',
+    discovery: {
+      analysisStatus: 'FINISHED_SUCCESS',
+      continuousAnalysis: 'ACTIVE',
+      analysisCompleted: {
+        analysisType: ['OS_VULNERABILITY', 'PACKAGE_VULNERABILITY'],
+      },
+    },
+  }
+}
+
+function vulnerabilityOccurrences(imageUri: string) {
+  return [
+    vulnerabilityOccurrence({
+      id: '32222222-2222-4222-8222-222222222222',
+      imageUri,
+      severity: 'MEDIUM',
+      updatedAt: '2026-08-03T20:03:00Z',
+    }),
+    vulnerabilityOccurrence({
+      id: '33333333-3333-4333-8333-333333333333',
+      imageUri,
+      severity: 'LOW',
+      updatedAt: '2026-08-03T20:03:10Z',
+    }),
+  ]
+}
+
+function vulnerabilityOccurrence(input: {
+  id: string
+  imageUri: string
+  severity: 'LOW' | 'MEDIUM'
+  updatedAt: string
+}) {
+  return {
+    name: `projects/reeditpro/occurrences/${input.id}`,
+    resourceUri: `https://${input.imageUri}`,
+    noteName: `projects/goog-vulnz/notes/CVE-SAM31-${input.id.slice(0, 8)}`,
+    kind: 'VULNERABILITY',
+    createTime: input.updatedAt,
+    updateTime: input.updatedAt,
+    vulnerability: {
+      severity: input.severity,
+      effectiveSeverity: input.severity,
+      packageIssue: [{
+        affectedPackage: 'sam31-runtime-package',
+        effectiveSeverity: input.severity,
+      }],
+    },
+  }
+}
+
+function buildProvenanceOccurrence(
+  imageUri: string,
+  imageDigest: string,
+  cloudBuildResource: string,
+) {
+  const repository = imageUri.replace(/@sha256:[a-f0-9]{64}$/u, '')
+  const statement = {
+    _type: 'https://in-toto.io/Statement/v1',
+    predicateType: 'https://slsa.dev/provenance/v1',
+    subject: [{
+      name: `https://${repository}`,
+      digest: { sha256: imageDigest.slice(7) },
+    }],
+    predicate: {
+      buildDefinition: {
+        buildType:
+          'https://cloud.google.com/build/gcb-buildtypes/google-worker/v1',
+      },
+      runDetails: {
+        builder: {
+          id: 'https://cloudbuild.googleapis.com/GoogleHostedWorker',
+        },
+        metadata: {
+          invocationId:
+            `https://cloudbuild.googleapis.com/v1/${cloudBuildResource}`,
+          startedOn: '2026-08-03T19:58:30Z',
+          finishedOn: '2026-08-03T19:59:30Z',
+        },
+      },
+    },
+  }
+  return {
+    name: 'projects/reeditpro/occurrences/34444444-4444-4444-8444-444444444444',
+    resourceUri: `https://${imageUri}`,
+    noteName: 'projects/verified-builder/notes/slsa-v1-sam31-smoke',
+    kind: 'BUILD',
+    createTime: '2026-08-03T19:59:31Z',
+    updateTime: '2026-08-03T19:59:31Z',
+    build: { inTotoSlsaProvenanceV1: statement },
+    envelope: {
+      payloadType: 'application/vnd.in-toto+json',
+      payload: Buffer.from(JSON.stringify(statement)).toString('base64'),
+      signatures: [{
+        keyid:
+          'projects/verified-builder/locations/global/keyRings/attestor/'
+            + 'cryptoKeys/google-hosted-worker/cryptoKeyVersions/1',
+        sig: Buffer.alloc(64, 9).toString('base64'),
+      }],
+    },
+  }
+}
+
+function ref(id: string, hash = '1'.repeat(64)) {
+  return {
+    id,
+    version: 1 as const,
+    contentHash: `sha256:${hash}` as const,
   }
 }
 

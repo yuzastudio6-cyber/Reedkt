@@ -460,7 +460,7 @@ const contractSupplyChain =
             packageResource: contractTerminal.artifactRegistryPackage,
             immutableImageUri: contractTerminal.immutableImageUri,
             immutableImageDigest: imageDigest,
-            ociManifestMediaType:
+            containerManifestMediaType:
               'application/vnd.oci.image.manifest.v1+json',
             exactDigestReread: false,
             mutableTagUsedAsAuthority: false,

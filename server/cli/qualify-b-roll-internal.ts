@@ -48,6 +48,7 @@ const PHASE_B_SCRIPTS = [
   'smoke:b-roll-provider-authority',
   'smoke:b-roll-retirement',
   'smoke:b-roll-end-to-end',
+  'test:b-roll-canonical-private-runtime',
   'smoke:b-roll-candidate-qa',
   'smoke:b-roll-existing-source',
   'smoke:b-roll-provider-lifecycle',

@@ -67,6 +67,12 @@ export function createEditSkillRuntime(
     qualifications: input.qualificationRegistry!,
     catalog: referenceCatalog,
   })
+  for (const binding of input.additionalRuntimeBindings ?? []) {
+    if (binding.definition.environmentClass !== input.environmentClass) {
+      throw new Error('Additional edit-skill runtime binding targets another environment.')
+    }
+    runtimeBindingRegistry.register(binding)
+  }
   pluginRegistry.assertManifestBindings(capabilityRegistry.listManifests())
   assertExternallyConfiguredOperations({
     catalog: referenceCatalog,
@@ -81,7 +87,10 @@ export function createEditSkillRuntime(
     capabilityRegistry,
     pluginRegistry,
     runtimeBindingRegistry,
-    runtimeDispatcher: new EditSkillRuntimeDispatcher(runtimeBindingRegistry),
+    runtimeDispatcher: new EditSkillRuntimeDispatcher(
+      runtimeBindingRegistry,
+      input.environmentClass,
+    ),
     workGraphJobDefinitions: Object.freeze([...workGraphJobDefinitions]),
     estimatorRegistry: input.estimatorRegistry!,
     qaRegistry: input.qaRegistry!,

@@ -11,6 +11,7 @@ import {
   BROLL_CANONICAL_WORK_DEFINITIONS,
   type BrollCanonicalWorkDefinition,
 } from './b-roll-work-graph-compiler'
+import type { BrollCanonicalPrivateWorkExecutor } from './b-roll-canonical-private-runtime'
 
 function operationKind(
   definition: BrollCanonicalWorkDefinition,
@@ -95,6 +96,43 @@ export const BROLL_RUNTIME_BINDINGS: readonly SkillJobRuntimeBinding[] =
     },
     handler: adapterFor(definition),
   }))
+
+export function createBrollCanonicalPrivateRuntimeBindings(
+  executor: BrollCanonicalPrivateWorkExecutor,
+): readonly SkillJobRuntimeBinding[] {
+  return BROLL_CANONICAL_WORK_DEFINITIONS.map((definition) =>
+    createSkillJobRuntimeBinding({
+      definition: {
+        schemaVersion: 'edit-skill-runtime-binding-v2',
+        skillKey: BROLL_CAPABILITY_MANIFEST.skillKey,
+        skillVersion: BROLL_CAPABILITY_MANIFEST.skillVersion,
+        contractVersion: BROLL_CAPABILITY_MANIFEST.contractVersion,
+        manifestHash: BROLL_CAPABILITY_MANIFEST.manifestHash,
+        jobType: definition.jobType,
+        operationId: definition.operationId,
+        operationKind: operationKind(definition),
+        workerClass: definition.workerClass,
+        inputArtifactTypes: [...definition.inputArtifactTypes],
+        outputArtifactTypes: [definition.output],
+        allowedPhases: [definition.allowedPhase],
+        requiredQualification: 'internal_execution_qualified',
+        adapterClass: 'canonical_private_execution_adapter',
+        environmentClass: 'canonical_private',
+        runtimeAdapterId: `b_roll.runtime.canonical_private.${definition.jobType}.v2`,
+        approvalRequired: true,
+        providerAuthorityRequired: Boolean(definition.provider),
+        toolAuthorityRequired: definition.operationId.startsWith('tool.'),
+        privateArtifactRequired: true,
+        callerSelectedExecutableAllowed: false,
+        automaticRetryAllowed: false,
+        alternateProviderFallbackAllowed: false,
+        mutatesOnlyAssignmentRange: true,
+        createsMedia: createsMedia(definition.jobType),
+        ...(definition.provider ? { providerRouteKey: 'gemini_omni_flash' } : {}),
+      },
+      handler: (invocation) => executor.execute(definition, invocation),
+    }))
+}
 
 export const BROLL_WORK_GRAPH_JOB_DEFINITIONS: readonly SkillWorkGraphJobDefinition[] =
   BROLL_CANONICAL_WORK_DEFINITIONS.map((definition) => ({

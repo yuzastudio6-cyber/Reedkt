@@ -61,9 +61,14 @@ export type RuntimeDispatchReceipt = z.infer<typeof runtimeDispatchReceiptSchema
 
 export class EditSkillRuntimeDispatcher {
   readonly #bindings: SkillJobRuntimeBindingRegistry
+  readonly #environmentClass: SkillJobRuntimeBindingDefinition['environmentClass']
 
-  constructor(bindings: SkillJobRuntimeBindingRegistry) {
+  constructor(
+    bindings: SkillJobRuntimeBindingRegistry,
+    environmentClass: SkillJobRuntimeBindingDefinition['environmentClass'],
+  ) {
     this.#bindings = bindings
+    this.#environmentClass = environmentClass
   }
 
   async dispatchApprovedWorkItem(input: {
@@ -80,6 +85,9 @@ export class EditSkillRuntimeDispatcher {
     providerAuthorityOperations: ReadonlySet<string>
     toolAuthorityOperations: ReadonlySet<string>
   }): Promise<RuntimeDispatchReceipt> {
+    if (input.environmentClass !== this.#environmentClass) {
+      throw new Error('Runtime dispatcher rejected work for another configured environment.')
+    }
     const approval = editSkillPlanApprovalSchema.parse(input.approval)
     const binding = this.#bindings.resolve({
       manifestRef: input.manifestRef,

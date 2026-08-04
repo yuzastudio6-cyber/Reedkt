@@ -5,6 +5,7 @@ import {
   BROLL_IMPLEMENTATION_STATUS,
   BROLL_PROVIDER_OPERATIONS,
   BROLL_TOOL_OPERATIONS,
+  createBrollCanonicalPrivateRuntimeBindings,
 } from '../edit-skills/b-roll'
 import {
   InMemoryCreateOnlyEditSkillArtifactStore,
@@ -109,6 +110,34 @@ assert.ok(
 assert.equal(productionRuntime.capabilityRegistry.listManifests().length, 1)
 assert.equal(productionRuntime.runtimeBindingRegistry.list().length, 13)
 
+const canonicalPrivateRuntime = createEditSkillRuntime({
+  environmentClass: 'canonical_private',
+  artifactStore: new ExplicitDurableFixtureArtifactStore(),
+  additionalRuntimeBindings: createBrollCanonicalPrivateRuntimeBindings({
+    execute: async () => {
+      throw new Error('Construction-only runtime executor must not be invoked.')
+    },
+  }),
+  ...dependencies(),
+})
+assert.equal(canonicalPrivateRuntime.environmentClass, 'canonical_private')
+assert.equal(canonicalPrivateRuntime.runtimeBindingRegistry.list().length, 26)
+assert.equal(canonicalPrivateRuntime.runtimeBindingRegistry.list().filter((binding) =>
+  binding.definition.adapterClass === 'canonical_private_execution_adapter').length, 13)
+const wrongEnvironmentDependencies = dependencies()
+assert.throws(() => createEditSkillRuntime({
+  environmentClass: 'internal_fixture',
+  artifactStore: new InMemoryCreateOnlyEditSkillArtifactStore(
+    wrongEnvironmentDependencies.artifactSchemaRegistry,
+  ),
+  additionalRuntimeBindings: createBrollCanonicalPrivateRuntimeBindings({
+    execute: async () => {
+      throw new Error('Wrong-environment runtime executor must not be invoked.')
+    },
+  }),
+  ...wrongEnvironmentDependencies,
+}), /targets another environment/u)
+
 const internalRuntime = createInternalFixtureEditSkillRuntime()
 assert.equal(internalRuntime.environmentClass, 'internal_fixture')
 assert.equal(
@@ -133,5 +162,6 @@ console.log(JSON.stringify({
   providerAuthorityInjected: true,
   toolRegistryInjected: true,
   internalFixtureRuntimeExplicit: true,
+  canonicalPrivateRuntimeDependencyInjected: true,
   staleImplementationPendingStatusAbsent: true,
 }, null, 2))

@@ -4,6 +4,7 @@ import type {
 } from './edit-skill-artifact-store'
 import type { EditSkillPluginRegistry } from './edit-skill-plugin-registry'
 import type {
+  SkillJobRuntimeBinding,
   SkillJobRuntimeBindingRegistry,
   SkillWorkGraphJobDefinition,
 } from './edit-skill-runtime-binding'
@@ -17,6 +18,7 @@ import type { SkillQualificationRegistry } from './skill-qualification-registry'
 
 export type EditSkillRuntimeEnvironmentClass =
   | 'production_server'
+  | 'canonical_private'
   | 'internal_fixture'
 
 export interface EditSkillProviderAuthority {
@@ -36,6 +38,7 @@ export interface EditSkillRuntimeDependencies {
   qualificationRegistry?: SkillQualificationRegistry
   estimatorRegistry?: SkillEstimatorRegistry
   artifactSchemaRegistry?: EditSkillArtifactSchemaRegistry
+  additionalRuntimeBindings?: readonly SkillJobRuntimeBinding[]
 }
 
 export interface EditSkillRuntime {

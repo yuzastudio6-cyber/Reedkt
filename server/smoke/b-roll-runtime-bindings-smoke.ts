@@ -125,7 +125,10 @@ assert.throws(() => driftRegistry.validateManifest({
   workGraphJobs: BROLL_WORK_GRAPH_JOB_DEFINITIONS,
 }), /differs from its manifest job capability/u)
 
-const dispatcher = new EditSkillRuntimeDispatcher(editSkillRuntimeBindingRegistry)
+const dispatcher = new EditSkillRuntimeDispatcher(
+  editSkillRuntimeBindingRegistry,
+  'internal_fixture',
+)
 const dispatchReceipts = []
 function workItemFor(definition: SkillJobRuntimeBindingDefinition) {
   const workItemCore = {
@@ -396,7 +399,7 @@ await assert.rejects(
     environmentClass: 'production_server',
     artifactStorageClass: 'internal_in_memory',
   }),
-  /unavailable or stale/iu,
+  /another configured environment/iu,
 )
 const providerDefinition = BROLL_RUNTIME_BINDINGS.find((binding) =>
   binding.definition.jobType === 'generate_b_roll_candidate')!.definition

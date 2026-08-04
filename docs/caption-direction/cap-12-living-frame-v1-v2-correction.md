@@ -51,11 +51,19 @@ then cross-checks their shared scope and lineage. It cannot synthesize one
 version from the other because each version intentionally carries fields the
 other does not.
 
+V2 component and semantic-projection refs are nullable for non-supported
+dispositions. Supported dispositions still require both refs and one or more
+selected scenes. This preserves frozen V1 declined/blocked responses that omit
+their optional component refs without weakening supported-response validation.
+
 ## Verification
 
-The CAP-12 smoke passes 37 checks. It covers independent V1 and V2 validation,
+The CAP-12 smoke passes 41 checks. It covers independent V1 and V2 validation,
 explicit request and response compatibility bindings, exact V1 support-envelope
 admission, two-scene selection preservation, and adversarial refusal of stale
 digests, cross-frame evidence, stale compatibility bindings, and collapsed
-multi-scene results. Runtime, dispatch, asset, QA approval, billing, public
+multi-scene results. It also covers `declined_not_applicable` and
+`blocked_stale_authority` in both directions with absent V1 component and
+semantic refs, zero selected scenes, restored Caption ownership, and closed
+authorities. Runtime, dispatch, asset, QA approval, billing, public
 delivery, and production authority remain false.

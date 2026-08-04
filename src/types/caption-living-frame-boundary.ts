@@ -138,8 +138,8 @@ export interface LivingFrameCaptionResponseV2 {
   disposition: CaptionLivingFrameDisposition
   reasonCode: string
   safeUserSummary: string
-  livingFrameComponentRef: CaptionDomainRef
-  semanticProjectionRef: CaptionDomainRef
+  livingFrameComponentRef: CaptionDomainRef | null
+  semanticProjectionRef: CaptionDomainRef | null
   selectedScene: {
     admissionRef: CaptionDomainRef | null
     bindingRef: CaptionDomainRef | null
@@ -183,7 +183,7 @@ export interface LivingFrameCaptionResponseV2 {
     confirmedFrameRef: CaptionDomainRef
     layoutOccupancyRef: CaptionDomainRef
     masterTimingRef: CaptionDomainRef
-    livingFrameComponentRef: CaptionDomainRef
+    livingFrameComponentRef: CaptionDomainRef | null
     selectedSceneBindingRef: CaptionDomainRef | null
     approvedSnapshotRef: CaptionDomainRef | null
   }

@@ -98,14 +98,15 @@ fixture exercises only a non-character diagram/archive response.
 
 ## Verification
 
-`smoke:captions-specialist-cap-12` passes 37 CAP-12 assertions after consuming
+`smoke:captions-specialist-cap-12` passes 41 CAP-12 assertions after consuming
 the exported CAP-11 graph fixture. It covers twelve node registrations and
 resolutions, semantic event coverage, authorized-range enforcement, stable-read
 math, twelve typed primitives and reduced-motion counterparts, all three
 handoff kinds, neutral mediation, camera-owner retention, fixture-only motion
 lock state, both exact Living Frame receiver identities, valid V1 and V2
 two-selected-scene responses, the V1/V2 compatibility binding, Caption
-ordering/restoration, and closed authorities.
+ordering/restoration, declined and stale-authority zero-scene responses without
+optional V1 component refs, and closed authorities.
 
 Adversarial checks reject out-of-scope StoryTiming frames, inadequate effective
 read time despite a long cue, silently substituted output aspect ratio,

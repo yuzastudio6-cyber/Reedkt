@@ -23,6 +23,9 @@ import {
   bindLivingFrameCaptionResponseV1ToV2,
   bindLivingFrameCaptionResponseV2ToV1,
 } from '../captions-specialist/caption-living-frame-compatibility'
+import {
+  calculateSkillContractDigest,
+} from '../orchestra/orchestra-skill-contracts'
 
 function prefixed(digest: string): string {
   return digest.startsWith('sha256:') ? digest : `sha256:${digest}`
@@ -427,6 +430,81 @@ function createV1Response(
   return base
 }
 
+function createNonSupportedResponsePair(input: {
+  disposition: 'declined_not_applicable' | 'blocked_stale_authority'
+  reasonCode: string
+  summary: string
+  v1Response: LivingFrameCaptionDirectionResponse
+  v2Response: LivingFrameCaptionResponseV2
+}): {
+  v1Response: LivingFrameCaptionDirectionResponse
+  v2Response: LivingFrameCaptionResponseV2
+} {
+  const v1Response = structuredClone(input.v1Response)
+  v1Response.responseId = `v1-${input.disposition}-cap12-compatibility`
+  v1Response.disposition = input.disposition
+  v1Response.reasonCode = input.reasonCode
+  v1Response.safeUserFacingSummary = input.summary
+  delete v1Response.professionalComponentRef
+  delete v1Response.semanticProjectionRef
+  delete v1Response.motionSpecRef
+  delete v1Response.selectedSceneResult.selectedSceneAdmissionRef
+  delete v1Response.selectedSceneResult.selectedSceneBindingRef
+  v1Response.selectedSceneResult.selectedSceneIds = []
+  v1Response.selectedSceneResult.selectedModes = []
+  v1Response.selectedSceneResult.selectedTreatments = []
+  v1Response.selectedSceneResult.deliberateNonUse = true
+  v1Response.requestedInformationOwnerHandoff = 'caption_retains_ownership'
+  v1Response.attentionEvents = []
+  delete v1Response.timingDependencies.canonicalTimingBindingRef
+  delete v1Response.estimateProjection.estimateProjectionRef
+  delete v1Response.workGraphProjectionRef
+  delete v1Response.rendererPlanBindingRef
+  delete v1Response.approvedLineageBindingRef
+  v1Response.fallbackResult = {
+    selectedTreatment: 'captions_only',
+    evaluatedLadder: ['captions_only'],
+    informationOwnerAfterDisposition: 'caption',
+    captionRetainsOrRegainsInformationOwnership: true,
+  }
+  v1Response.responseDigestSha256 = digestLivingFrameCaptionResponse(v1Response)
+
+  const v2Response = structuredClone(input.v2Response)
+  v2Response.responseId = `v2-${input.disposition}-cap12-compatibility`
+  v2Response.disposition = input.disposition
+  v2Response.reasonCode = input.reasonCode
+  v2Response.safeUserSummary = input.summary
+  v2Response.livingFrameComponentRef = null
+  v2Response.semanticProjectionRef = null
+  v2Response.selectedScene = {
+    admissionRef: null,
+    bindingRef: null,
+    selectedSceneIds: [],
+    selectedModes: [],
+    selectedTreatments: [],
+    deliberateNonUse: true,
+    executionClaimed: false,
+  }
+  v2Response.informationOwnerHandoff = {
+    state: 'retained_by_caption',
+    attentionEventIds: [],
+    semanticTimingRequestIds: [
+      `timing-${input.disposition}-restore-caption`,
+    ],
+  }
+  v2Response.timing.livingFrameTimingBindingRef = null
+  v2Response.estimateProjectionRef = null
+  v2Response.selectedFallbackCode = 'captions_only'
+  v2Response.captionRetainsOrRegainsInformationOwnership = true
+  v2Response.stalenessTuple.livingFrameComponentRef = null
+  v2Response.stalenessTuple.selectedSceneBindingRef = null
+  v2Response.responseDigestSha256 = calculateSkillContractDigest(
+    v2Response as unknown as Record<string, unknown>,
+    'responseDigestSha256',
+  )
+  return { v1Response, v2Response }
+}
+
 export interface CaptionLivingFrameCompatibilitySmokeReceipt {
   assertions: number
   v1Request: CaptionLivingFrameApprovedProjectionRequest
@@ -476,6 +554,22 @@ export function runCaptionLivingFrameCompatibilitySmoke(input: {
     v2Response: input.v2Response,
     v1Response,
   })
+  const nonSupportedPairs = [
+    createNonSupportedResponsePair({
+      disposition: 'declined_not_applicable',
+      reasonCode: 'visual_treatment_not_applicable',
+      summary: 'Caption remains the information owner because no Living Frame treatment applies.',
+      v1Response,
+      v2Response: input.v2Response,
+    }),
+    createNonSupportedResponsePair({
+      disposition: 'blocked_stale_authority',
+      reasonCode: 'canonical_authority_requires_refresh',
+      summary: 'Caption remains the information owner until canonical authority is refreshed.',
+      v1Response,
+      v2Response: input.v2Response,
+    }),
+  ]
 
   check(validateCaptionLivingFrameRequest(v1Request).ok,
     'The frozen V1 request must remain independently valid.')
@@ -494,6 +588,33 @@ export function runCaptionLivingFrameCompatibilitySmoke(input: {
   check(reverseResponseCompatibility.bindingDigestSha256
     === responseCompatibility.bindingDigestSha256,
   'V2-to-V1 response verification must produce the same exact compatibility binding.')
+  for (const [index, pair] of nonSupportedPairs.entries()) {
+    check(adaptLivingFrameCaptionResponse({
+      request: v1Request,
+      response: pair.v1Response,
+    }).ok && pair.v1Response.professionalComponentRef === undefined
+      && pair.v1Response.semanticProjectionRef === undefined,
+    `Non-supported V1 fixture ${index + 1} must remain valid without optional component refs.`)
+    const forward = bindLivingFrameCaptionResponseV1ToV2({
+      bindingId: `caption-lf-non-supported-${index + 1}-compatibility`,
+      requestCompatibilityBinding: requestCompatibility,
+      v1Request,
+      v2Request: input.v2Request,
+      v1Response: pair.v1Response,
+      v2Response: pair.v2Response,
+    })
+    const reverse = bindLivingFrameCaptionResponseV2ToV1({
+      bindingId: forward.bindingId,
+      requestCompatibilityBinding: requestCompatibility,
+      v2Request: input.v2Request,
+      v1Request,
+      v2Response: pair.v2Response,
+      v1Response: pair.v1Response,
+    })
+    check(forward.selectedSceneIds.length === 0
+      && reverse.bindingDigestSha256 === forward.bindingDigestSha256,
+    `Non-supported fixture ${index + 1} must preserve zero scenes and bidirectional lineage.`)
+  }
 
   const badV1Digest = structuredClone(v1Request)
   badV1Digest.requestDigestSha256 = `sha256:${'f'.repeat(64)}`

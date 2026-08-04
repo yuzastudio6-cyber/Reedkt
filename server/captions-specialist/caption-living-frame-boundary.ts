@@ -173,8 +173,8 @@ const responseSchema: z.ZodType<LivingFrameCaptionResponseV2> = z.object({
   ]),
   reasonCode: safeCode,
   safeUserSummary: safeSummary,
-  livingFrameComponentRef: refSchema,
-  semanticProjectionRef: refSchema,
+  livingFrameComponentRef: refSchema.nullable(),
+  semanticProjectionRef: refSchema.nullable(),
   selectedScene: z.object({
     admissionRef: refSchema.nullable(),
     bindingRef: refSchema.nullable(),
@@ -218,7 +218,7 @@ const responseSchema: z.ZodType<LivingFrameCaptionResponseV2> = z.object({
     confirmedFrameRef: refSchema,
     layoutOccupancyRef: refSchema,
     masterTimingRef: refSchema,
-    livingFrameComponentRef: refSchema,
+    livingFrameComponentRef: refSchema.nullable(),
     selectedSceneBindingRef: refSchema.nullable(),
     approvedSnapshotRef: refSchema.nullable(),
   }).strict(),
@@ -311,6 +311,7 @@ export function parseLivingFrameCaptionResponseV2(
   const request = parseCaptionLivingFrameRequestV2(requestValue)
   const response = responseSchema.parse(value)
   const selected = response.selectedScene
+  const supported = response.disposition.startsWith('supported_')
   if (scopeKey(response.canonicalScope) !== scopeKey(request.canonicalScope)
     || response.originalRequestRef.id !== request.requestId
     || response.originalRequestRef.version !== request.schemaVersion
@@ -325,16 +326,18 @@ export function parseLivingFrameCaptionResponseV2(
     || refKey(response.stalenessTuple.layoutOccupancyRef)
       !== refKey(request.dependencies.layoutOccupancyManifestRef)
     || refKey(response.stalenessTuple.masterTimingRef) !== refKey(request.timing.masterTimingRef)
-    || refKey(response.stalenessTuple.livingFrameComponentRef)
-      !== refKey(response.livingFrameComponentRef)
+    || !exactNullableRef(response.stalenessTuple.livingFrameComponentRef,
+      response.livingFrameComponentRef)
     || !exactNullableRef(response.stalenessTuple.approvedSnapshotRef,
       request.canonicalScope.approvedSnapshotRef)
     || selected.selectedSceneIds.length !== selected.selectedModes.length
     || selected.selectedSceneIds.length !== selected.selectedTreatments.length
     || !unique(selected.selectedSceneIds)
     || (selected.deliberateNonUse !== (selected.selectedSceneIds.length === 0))
-    || (response.disposition.startsWith('supported_') && selected.selectedSceneIds.length === 0)
-    || (!response.disposition.startsWith('supported_') && selected.selectedSceneIds.length > 0)
+    || (supported && (selected.selectedSceneIds.length === 0
+      || response.livingFrameComponentRef === null
+      || response.semanticProjectionRef === null))
+    || (!supported && selected.selectedSceneIds.length > 0)
     || (response.informationOwnerHandoff.state === 'accepted'
       && !response.captionRetainsOrRegainsInformationOwnership
       && response.informationOwnerHandoff.attentionEventIds.length < 2)) {

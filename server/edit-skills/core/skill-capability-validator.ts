@@ -32,6 +32,43 @@ function assertKnownRoutes(manifest: SkillCapabilityManifest, catalog: SkillRefe
     if (!registry.has(route.operationRef)) {
       throw new Error(`Unknown ${route.routeKind} operation ${route.operationRef} in ${manifest.skillKey}.`)
     }
+    const exactFields = [route.routeVersion, route.routeHash, route.supportedJobTypes, route.requiredInputs,
+      route.producedArtifactTypes, route.costClass]
+    if (exactFields.some((value) => value !== undefined) && exactFields.some((value) => value === undefined)) {
+      throw new Error(`Route ${route.routeKey} in ${manifest.skillKey} has a partial exact route identity.`)
+    }
+  }
+}
+
+function assertCapabilityEntries(manifest: SkillCapabilityManifest): void {
+  if (!manifest.capabilityEntries) return
+  assertUnique(manifest.capabilityEntries.map((entry) => entry.capabilityKey), `${manifest.skillKey} capability`)
+  const routes = new Map(
+    [...manifest.toolRoutes, ...manifest.fallbackRoutes, ...manifest.lowerCostRoutes]
+      .map((route) => [route.routeKey, route] as const),
+  )
+  for (const entry of manifest.capabilityEntries) {
+    for (const jobType of entry.supportedJobTypes) {
+      if (!manifest.supportedJobTypes.includes(jobType)) {
+        throw new Error(`Capability ${entry.capabilityKey} publishes unknown job ${jobType}.`)
+      }
+    }
+    for (const artifactType of [...entry.acceptedArtifactTypes, ...entry.producedArtifactTypes]) {
+      if (![...manifest.acceptedArtifactTypes, ...manifest.producedArtifactTypes].includes(artifactType)) {
+        throw new Error(`Capability ${entry.capabilityKey} publishes unknown artifact ${artifactType}.`)
+      }
+    }
+    for (const routeRef of [
+      ...entry.primaryRouteRefs, ...entry.fallbackRouteRefs, ...entry.lowerCostRouteRefs,
+    ]) {
+      const route = routes.get(routeRef.routeKey)
+      if (!route || route.routeVersion !== routeRef.routeVersion || route.routeHash !== routeRef.routeHash) {
+        throw new Error(`Capability ${entry.capabilityKey} references unknown or stale route ${routeRef.routeKey}.`)
+      }
+      if (route.supportedJobTypes && !entry.supportedJobTypes.some((job) => route.supportedJobTypes!.includes(job))) {
+        throw new Error(`Capability ${entry.capabilityKey} route ${routeRef.routeKey} supports none of its jobs.`)
+      }
+    }
   }
 }
 
@@ -97,6 +134,7 @@ export function validateSkillCapabilityManifests(input: {
       if (skillKey === manifest.skillKey) throw new Error(`Skill ${manifest.skillKey} cannot conflict or overlap with itself.`)
     }
     assertKnownRoutes(manifest, input.catalog)
+    assertCapabilityEntries(manifest)
   }
   assertPhaseGraph(manifests, input.catalog)
   if (input.requireRuntimeHandlers !== false) input.registry.assertRuntimeBindings()

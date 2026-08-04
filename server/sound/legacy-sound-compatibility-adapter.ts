@@ -102,7 +102,7 @@ export function adaptLegacySoundInputToCanonicalSeed(
     ],
     compatibilityNotices: [
       'This adapter produces planning data only and never executes a tool or provider.',
-      'The Head of Orchestra must resolve and admit the canonical Sound capability and tool route.',
+      'The canonical Sound service must resolve and admit the capability and tool route; the future Orchestra may call that service.',
       'Music ownership is removed from the legacy combined workstream.',
       'No legacy provider, tool, runtime, or pricing identifier is carried into the canonical request.',
     ],

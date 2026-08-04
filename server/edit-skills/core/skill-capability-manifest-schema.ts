@@ -53,6 +53,41 @@ const routeDefinitionSchema = z.object({
   priority: z.number().int().nonnegative().max(10_000),
   requiresApproval: z.boolean(),
   description: z.string().trim().min(1).max(1_000),
+  routeVersion: skillSemverSchema.optional(),
+  routeHash: skillSha256Schema.optional(),
+  supportedJobTypes: z.array(skillIdentitySchema).min(1).max(100).optional(),
+  requiredInputs: z.array(skillIdentitySchema).max(100).optional(),
+  producedArtifactTypes: z.array(skillIdentitySchema).max(200).optional(),
+  costClass: z.enum(['zero', 'local', 'provider', 'unavailable']).optional(),
+}).strict()
+
+const exactRouteReferenceSchema = z.object({
+  routeKey: skillIdentitySchema,
+  routeVersion: skillSemverSchema,
+  routeHash: skillSha256Schema,
+}).strict()
+
+const capabilityEntrySchema = z.object({
+  capabilityKey: skillIdentitySchema,
+  capabilityVersion: skillSemverSchema,
+  displayName: z.string().trim().min(1).max(200),
+  description: z.string().trim().min(1).max(1_000),
+  qualificationStatus: z.enum(SKILL_QUALIFICATION_STATUSES),
+  evidenceLevel: z.enum(['declared', 'planning', 'fixture', 'internal_execution', 'production', 'blocked', 'retired']),
+  supportedJobTypes: z.array(skillIdentitySchema).min(1).max(100),
+  supportedScopes: z.array(z.enum(['clip', 'range', 'multi_range', 'scene', 'boundary', 'sequence', 'video'])).min(1).max(7),
+  acceptedCallerTypes: z.array(skillIdentitySchema).min(1).max(50),
+  requiredInputs: z.array(skillIdentitySchema).max(100),
+  optionalInputs: z.array(skillIdentitySchema).max(100),
+  acceptedArtifactTypes: z.array(skillIdentitySchema).max(200),
+  producedArtifactTypes: z.array(skillIdentitySchema).max(200),
+  primaryRouteRefs: z.array(exactRouteReferenceSchema).max(100),
+  fallbackRouteRefs: z.array(exactRouteReferenceSchema).max(100),
+  lowerCostRouteRefs: z.array(exactRouteReferenceSchema).max(100),
+  planningQa: z.array(skillIdentitySchema).min(1).max(100),
+  outputQa: z.array(skillIdentitySchema).max(100),
+  integrationQa: z.array(skillIdentitySchema).max(100),
+  knownLimitations: z.array(z.string().trim().min(1).max(2_000)).max(100),
 }).strict()
 
 const invalidationRuleSchema = z.object({
@@ -125,6 +160,7 @@ export const skillCapabilityManifestCoreSchema = z.object({
   revisionRules: z.array(revisionRuleSchema).min(1).max(100),
   qualificationFixtures: z.array(qualificationFixtureSchema).min(1).max(200),
   knownLimitations: z.array(z.string().trim().min(1).max(2_000)).min(1).max(100),
+  capabilityEntries: z.array(capabilityEntrySchema).min(1).max(200).optional(),
 }).strict()
 
 export const skillCapabilityManifestSchema = skillCapabilityManifestCoreSchema.extend({

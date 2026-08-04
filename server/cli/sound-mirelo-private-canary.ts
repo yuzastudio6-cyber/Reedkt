@@ -21,6 +21,14 @@ function gate(name: string): void {
   if (process.env[name] !== '1') throw new Error(`${name}=1 is required; canary remains fail-closed.`)
 }
 
+function requiredPositiveInteger(name: string): number {
+  const value = Number(required(name))
+  if (!Number.isSafeInteger(value) || value <= 0) {
+    throw new Error(`${name} must be a positive safe integer for the exact canary timeline rate.`)
+  }
+  return value
+}
+
 async function main() {
   gate('SOUND_MIRELO_CANARY_APPROVED')
   gate('SOUND_MIRELO_PRIVACY_APPROVED')
@@ -33,6 +41,10 @@ async function main() {
   const snapshotHash = required('SOUND_MIRELO_APPROVED_SNAPSHOT_HASH')
   const reservationId = required('SOUND_MIRELO_CREDIT_RESERVATION_ID')
   const outputScopeId = required('SOUND_MIRELO_PRIVATE_OUTPUT_SCOPE_ID')
+  const timelineRate = {
+    numerator: requiredPositiveInteger('SOUND_MIRELO_TIMELINE_RATE_NUMERATOR'),
+    denominator: requiredPositiveInteger('SOUND_MIRELO_TIMELINE_RATE_DENOMINATOR'),
+  }
   const attemptId = `private-canary-${Date.now()}`
   const route = getSoundToolRouteManifest('sound.route.generate.text_sfx.v1')!
   const routeAdmission = admitSoundControllerRoute({
@@ -63,6 +75,7 @@ async function main() {
     approvedWorkItemId: `work-${attemptId}`,
     privateOutputScopeId: outputScopeId,
     idempotencyKey: `local-${attemptId}`,
+    timelineRate,
     creditReservationId: reservationId,
     routeBinding: routeAdmission.binding,
   }

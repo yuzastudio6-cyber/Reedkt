@@ -1,10 +1,4 @@
 import { createHash } from 'node:crypto'
-import type {
-  SkillActiveAssignment,
-  SkillJobDescriptor,
-  SkillManifestBinding,
-} from '../../src/types/skill-capability-manifest'
-import { planSkillAssignment } from '../orchestra/head-of-orchestra'
 import {
   CANONICAL_SOUND_RESULT_SCHEMA_VERSION,
   type CanonicalSoundCue,
@@ -25,6 +19,23 @@ import { resolveSoundAcquisition } from './sound-acquisition'
 import { SOUND_MIRELO_RATE_CARD_SNAPSHOT } from './sound-rate-card'
 import type { SoundToolRouteBinding } from './sound-tool-route-manifest'
 import { admitSoundControllerRoute } from './sound-tool-views'
+import {
+  framesToSeconds,
+  rationalSecondsToFrames,
+} from '../edit-skills/core/timeline-rate'
+import {
+  planStandaloneSoundAssignment,
+  type StandaloneSoundAssignmentPlan,
+} from '../edit-skills/sound/sound-admission'
+
+export interface SoundActiveAssignment {
+  assignmentId: string
+  skillKey: string
+  capabilityKey: string
+  audioWriteRanges: SoundFrameRange[]
+  visualWriteRanges: SoundFrameRange[]
+  readOnly: boolean
+}
 
 export interface SoundLibraryMatch {
   anchorId: string
@@ -47,14 +58,14 @@ export interface SoundControllerContext {
   projectExtractionMatches?: SoundSourceMatch[]
   protectedSpeechRanges?: SoundFrameRange[]
   emotionalSilenceRanges?: SoundFrameRange[]
-  activeAssignments?: SkillActiveAssignment[]
+  activeAssignments?: SoundActiveAssignment[]
   additionalEvidenceKeys?: string[]
   priorAcceptedCues?: CanonicalSoundCue[]
   revisionLineage?: string
 }
 
 export interface SoundControllerResponse {
-  assignment: ReturnType<typeof planSkillAssignment>
+  assignment: StandaloneSoundAssignmentPlan
   result: CanonicalSoundResult
   childWorkItems: Array<{
     workItemId: string
@@ -64,7 +75,7 @@ export interface SoundControllerResponse {
     manifestHash: string
     eventAnchorId?: string
     dependencyKeys: string[]
-    skillBinding: SkillManifestBinding
+    skillBinding: NonNullable<StandaloneSoundAssignmentPlan['binding']>
     routeBinding: SoundToolRouteBinding
   }>
 }
@@ -145,7 +156,8 @@ function availableRouteInputs(
     ...(context.internalLibraryMatches?.some((item) => item.projectAuthorized)
       ? ['project_asset_authority']
       : []),
-    ...((context.protectedSpeechRanges?.length ?? 0) > 0 ? ['speech_ranges', 'dialogue_context'] : ['dialogue_context']),
+    ...((context.protectedSpeechRanges?.length ?? 0) > 0 || request.transcriptSpeechEvidenceRef
+      ? ['speech_ranges', 'dialogue_context'] : ['dialogue_context']),
     ...(request.musicContext ? ['read_only_music_context'] : []),
     ...(request.completedSkillWork.some((item) => item.artifact.artifactType === 'private_sound_stem')
       ? ['private_sound_stem'] : []),
@@ -213,7 +225,7 @@ function acquisitionRouteForCue(cue: CanonicalSoundCue): {
   }
 }
 
-function planningScope(request: CanonicalSoundRequest): SkillJobDescriptor['scopeLevel'] {
+function planningScope(request: CanonicalSoundRequest): 'clip' | 'range' | 'multi_range' | 'scene' | 'boundary' | 'video' {
   if (request.requestedJobType === 'design_boundary_sound' ||
     request.requestedJobType === 'support_transition_sound') return 'boundary'
   if (request.assignmentScope.assignmentMode === 'whole_video') return 'video'
@@ -224,10 +236,7 @@ function planningScope(request: CanonicalSoundRequest): SkillJobDescriptor['scop
 export function createSoundJobDescriptor(
   request: CanonicalSoundRequest,
   context: SoundControllerContext = {},
-): SkillJobDescriptor {
-  const capability = soundSkillCapabilityManifest.capabilityEntries.find(
-    (entry) => entry.capabilityKey === request.requestedCapabilityKey,
-  )
+){
   const frames = durationFrames(request)
   const providerRequested = request.requestedOperations.some((operation) =>
     operation === 'generate_video_conditioned' || operation === 'generate_text_conditioned' ||
@@ -242,8 +251,8 @@ export function createSoundJobDescriptor(
     primaryVisualOwnershipRequested: false,
     inputArtifactTypes: artifactTypes(request),
     evidenceKeys: evidenceKeys(request, context),
-    planningPhase: capability?.planningPhase ?? 'scene_planning',
-    durationSeconds: frames / request.timelineFps,
+    planningPhase: soundSkillCapabilityManifest.planningPhase,
+    durationSeconds: framesToSeconds(frames, request.timelineRate),
     rangeCount: Math.max(1, request.assignmentScope.authorizedAudioWriteRanges.length),
     visualEventCount: request.eventAnchors.length,
     sourceAudioComplexity: request.sourceAudioRefs.length > 2 ? 'high' :
@@ -254,8 +263,13 @@ export function createSoundJobDescriptor(
     providerDurationSeconds: providerRequested
       ? request.eventAnchors.reduce((seconds, event) => seconds + Math.max(
         1,
-        ((event.endFrameExclusive ?? event.frame + request.timelineFps) - event.frame) /
-          request.timelineFps,
+        framesToSeconds(
+          (event.endFrameExclusive ?? event.frame + rationalSecondsToFrames({
+            secondsNumerator: 1, secondsDenominator: 1, rate: request.timelineRate,
+            rounding: 'nearest_half_up',
+          })) - event.frame,
+          request.timelineRate,
+        ),
       ), 0)
       : 0,
     localOperationCount: request.requestedOperations.filter((operation) => [
@@ -280,10 +294,16 @@ function rangeForEvent(
 ): { range?: SoundFrameRange; boundaryConflict: boolean } {
   const preferred: SoundFrameRange = {
     rangeId: `event.${event.anchorId}`,
-    startFrame: Math.max(0, event.frame - Math.round(request.timelineFps * 0.04)),
+    startFrame: Math.max(0, event.frame - rationalSecondsToFrames({
+      secondsNumerator: 1, secondsDenominator: 25, rate: request.timelineRate,
+      rounding: 'nearest_half_up',
+    })),
     endFrameExclusive: Math.max(
       event.frame + 1,
-      event.endFrameExclusive ?? event.frame + Math.round(request.timelineFps * 0.6),
+      event.endFrameExclusive ?? event.frame + rationalSecondsToFrames({
+        secondsNumerator: 3, secondsDenominator: 5, rate: request.timelineRate,
+        rounding: 'nearest_half_up',
+      }),
     ),
   }
   const directAuthority = request.assignmentScope.authorizedAudioWriteRanges.find(
@@ -406,9 +426,15 @@ export function runCanonicalSoundController(
     throw new Error(`Canonical Sound admission failed: ${admission.code}:${admission.errors.join(',')}`)
   }
   const request = admission.request
-  const assignment = planSkillAssignment('sound', createSoundJobDescriptor(request, context))
+  const descriptor = createSoundJobDescriptor(request, context)
+  const assignment = planStandaloneSoundAssignment({
+    request,
+    durationSeconds: descriptor.durationSeconds,
+    providerDurationSeconds: descriptor.providerDurationSeconds,
+    localOperationCount: descriptor.localOperationCount,
+  })
   if (!assignment.ok || !assignment.binding) {
-    throw new Error(`Orchestra Sound assignment blocked: ${assignment.blockCode}:${assignment.reasons.join(',')}`)
+    throw new Error(`Standalone Sound assignment blocked: ${assignment.blockCode}:${assignment.reasons.join(',')}`)
   }
 
   const rawCues: CanonicalSoundCue[] = []
@@ -483,7 +509,7 @@ export function runCanonicalSoundController(
   const automations = merged.cues.map((cue) => createSoundMixAutomation({
     cue,
     protectedSpeechRanges: context.protectedSpeechRanges ?? [],
-    fps: request.timelineFps,
+    timelineRate: request.timelineRate,
     musicContextPresent: Boolean(request.musicContext),
     approvedMusicAutomation: request.musicContext?.allowedAutomation ?? [],
   }))
@@ -493,7 +519,7 @@ export function runCanonicalSoundController(
     authorizedRanges: request.assignmentScope.authorizedAudioWriteRanges,
     durationFrames: durationFrames(request),
     maximumCueDensityPerMinute: request.userSoundPreferences.maximumCueDensityPerMinute,
-    fps: request.timelineFps,
+    timelineRate: request.timelineRate,
     provenanceReady: merged.cues.every((cue) =>
       cue.acquisitionDecision === 'preserve_project_source' ||
       cue.acquisitionDecision === 'internal_library' ||
@@ -537,7 +563,11 @@ export function runCanonicalSoundController(
         'generate_original', 'no_sound',
       ],
       cueDensityLimitPerMinute: request.userSoundPreferences.maximumCueDensityPerMinute,
-      wholeVideoContinuityConsidered: request.assignmentScope.inspectWholeVideo,
+      wholeVideoContinuity: {
+        required: request.assignmentScope.inspectWholeVideo,
+        evidenceStatus: request.assignmentScope.inspectWholeVideo
+          ? 'structured_report_required' : 'bounded_assignment_only',
+      },
       musicContextReadOnly: request.musicContext?.readOnly ?? true,
       finalRenderOwnedBySound: false,
     },
@@ -563,6 +593,7 @@ export function runCanonicalSoundController(
     sourceVisualHashes: Array.from(new Set(request.visualDependencies.map((item) => item.visualHash))),
     sourceAudioHashes: Array.from(new Set(request.sourceAudioRefs.map((item) => item.checksumSha256))),
     sourceTimingHash: request.timelineManifestHash,
+    timelineRate: request.timelineRate,
     callerReceipt: {
       receiptId: stableId('sound-receipt', request.requestId, request.assignmentScope.parentAuthorityHash),
       callerType: request.callerType,

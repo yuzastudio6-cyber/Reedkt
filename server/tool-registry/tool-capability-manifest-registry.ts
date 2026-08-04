@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { z } from 'zod'
-import type { SkillQualificationStatus } from '../../src/types/skill-capability-manifest'
+import type { SkillQualificationStatus } from '../edit-skills/core/edit-skill-ids'
 import {
   TOOL_CAPABILITY_MANIFEST_SCHEMA_VERSION,
   type ToolCapabilityManifest,
@@ -17,17 +17,20 @@ const hash = z.string().regex(/^[a-f0-9]{64}$/)
 const stringList = z.array(z.string().trim().min(1).max(2_000)).max(512)
 const keyList = z.array(safeKey).max(512)
 const qualification = z.enum([
-  'declared', 'planning_qualified', 'fixture_qualified',
-  'private_internal_qualified', 'production_qualified', 'blocked', 'deprecated',
+  'declared', 'implementation_pending', 'planning_qualified',
+  'internal_execution_qualified', 'production_qualified', 'blocked', 'retired',
+])
+const evidenceLevel = z.enum([
+  'declared', 'planning', 'fixture', 'internal_execution', 'production', 'blocked', 'retired',
 ])
 const scope = z.enum(['clip', 'range', 'multi_range', 'scene', 'boundary', 'sequence', 'video'])
 const qualificationRank: Record<SkillQualificationStatus, number> = {
   blocked: 0,
-  deprecated: 0,
+  retired: 0,
   declared: 1,
+  implementation_pending: 1,
   planning_qualified: 2,
-  fixture_qualified: 3,
-  private_internal_qualified: 4,
+  internal_execution_qualified: 4,
   production_qualified: 5,
 }
 
@@ -78,6 +81,7 @@ const operationSchema: z.ZodType<ToolOperationCapability> = z.object({
     preview_execution: qualification,
     final_execution: qualification,
   }).strict(),
+  qualificationEvidenceLevel: evidenceLevel,
   qualificationEvidenceRefs: keyList,
   timeEstimatorKey: safeKey,
   creditEstimatorKey: safeKey,
@@ -107,6 +111,7 @@ export const toolCapabilityManifestSchema: z.ZodType<ToolCapabilityManifest> = z
   ]),
   owningSystem: safeKey,
   qualificationStatus: qualification,
+  qualificationEvidenceLevel: evidenceLevel,
   qualificationEvidenceRefs: keyList,
   operations: z.array(operationSchema).min(1).max(256),
   privacyPolicy: z.object({
@@ -274,14 +279,12 @@ export function getToolOperationCapability(
 export function qualificationSupportsToolMode(
   status: SkillQualificationStatus,
   mode: ToolExecutionMode,
+  level?: ToolOperationCapability['qualificationEvidenceLevel'],
 ): boolean {
-  if (status === 'blocked' || status === 'deprecated' || status === 'declared') return false
-  if (mode === 'planning') return [
-    'planning_qualified', 'fixture_qualified', 'private_internal_qualified', 'production_qualified',
-  ].includes(status)
-  if (mode === 'preview_execution') return [
-    'fixture_qualified', 'private_internal_qualified', 'production_qualified',
-  ].includes(status)
+  if (status === 'blocked' || status === 'retired' || status === 'declared' || status === 'implementation_pending') return false
+  if (mode === 'planning') return true
+  if (mode === 'preview_execution') return status === 'internal_execution_qualified' ||
+    status === 'production_qualified' || (status === 'planning_qualified' && level === 'fixture')
   return status === 'production_qualified'
 }
 

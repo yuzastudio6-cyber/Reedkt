@@ -1,18 +1,24 @@
-export * from './legacy-sound-compatibility-adapter'
-export * from './mirelo-private-artifacts'
-export * from './mirelo-sfx-provider'
-export * from './sound-acquisition'
-export * from './sound-contracts'
-export * from './sound-controller'
-export * from './sound-estimators'
-export * from './sound-local-audio-processor'
-export * from './sound-manifest'
-export * from './sound-rate-card'
-export * from './sound-runtime-status'
-export * from './sound-scope-guard'
-export * from './sound-study'
-export * from './sound-sync-mix-qa'
-export * from './sound-tool-capability-manifests'
-export * from './sound-tool-route-manifest'
-export * from './sound-tool-routes'
-export * from './sound-tool-views'
+/**
+ * Compatibility-facing Sound barrel. Execution callers receive only the
+ * canonical service/contracts; provider, route-executor, worker, FFmpeg, and
+ * proxy primitives remain Sound-internal direct modules.
+ */
+export * from '../edit-skills/sound'
+export {
+  CANONICAL_SOUND_REQUEST_SCHEMA_VERSION,
+  CANONICAL_SOUND_RESULT_SCHEMA_VERSION,
+  canonicalSoundRequestSchema,
+  canonicalSoundResultSchema,
+  parseCanonicalSoundRequest,
+  parseCanonicalSoundResult,
+  type CanonicalSoundCue,
+  type CanonicalSoundRequest,
+  type CanonicalSoundResult,
+  type SoundArtifactRef,
+  type SoundFrameRange,
+} from './sound-contracts'
+export {
+  LEGACY_SOUND_COMPATIBILITY_ADAPTER_VERSION,
+  adaptLegacySoundInputToCanonicalSeed,
+  type CanonicalSoundRequestSeed,
+} from './legacy-sound-compatibility-adapter'

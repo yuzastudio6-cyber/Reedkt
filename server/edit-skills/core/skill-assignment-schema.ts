@@ -2,14 +2,19 @@ import { z } from 'zod'
 
 import { EDIT_SKILL_KEYS } from './edit-skill-ids'
 import { skillManifestReferenceSchema, skillSha256Schema } from './skill-capability-manifest-schema'
+import { timelineRateDisplayFps, timelineRateSchema } from './timeline-rate'
 
 export const skillFrameRangeSchema = z.object({
   startFrameInclusive: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
   endFrameExclusive: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
-  fps: z.number().int().min(1).max(120),
+  timelineRate: timelineRateSchema.optional(),
+  fps: z.number().positive().max(240),
 }).strict().superRefine((value, context) => {
   if (value.endFrameExclusive <= value.startFrameInclusive) {
     context.addIssue({ code: 'custom', message: 'Skill assignment range must have positive duration.' })
+  }
+  if (value.timelineRate && Math.abs(timelineRateDisplayFps(value.timelineRate) - value.fps) > 1e-9) {
+    context.addIssue({ code: 'custom', message: 'Legacy fps does not match the exact timeline rate.' })
   }
 })
 

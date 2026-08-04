@@ -20,6 +20,11 @@ import {
   getToolOperationCapability,
   qualificationSupportsToolMode,
 } from '../tool-registry'
+import {
+  decimalSecondsToFrames,
+  timelineRatesEqual,
+  type TimelineRate,
+} from '../edit-skills/core/timeline-rate'
 
 const execFileAsync = promisify(execFile)
 const FFMPEG = 'ffmpeg'
@@ -52,6 +57,7 @@ export interface SoundLocalExecutionBinding {
   approvedWorkItemId: string
   privateOutputScopeId: string
   idempotencyKey: string
+  timelineRate: TimelineRate
   creditReservationId?: string
   routeBinding: SoundToolRouteBinding
 }
@@ -141,21 +147,21 @@ export interface SoundLocalAudioExecutionResult {
 }
 
 const operationProfiles: Record<SoundLocalOperation, {
-  profileKey: string
+  profileKeys: readonly string[]
   outputRequired: boolean
   minimumSources: number
   maximumSources: number
 }> = {
-  analyze: { profileKey: 'sound.analyze.v1', outputRequired: false, minimumSources: 1, maximumSources: 1 },
-  extract: { profileKey: 'sound.extract.pcm.v1', outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  trim_fade_gain: { profileKey: 'sound.trim-fade-gain.v1', outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  normalize: { profileKey: 'sound.normalize.v1', outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  resample_channels: { profileKey: 'sound.resample-channels.v1', outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  loop_crossfade: { profileKey: 'sound.loop.v1', outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  stretch_pitch: { profileKey: 'sound.stretch-pitch.v1', outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  mix_stem: { profileKey: 'sound.mix-stem.v1', outputRequired: true, minimumSources: 2, maximumSources: 16 },
-  sync_qa: { profileKey: 'sound.sync-qa.v1', outputRequired: false, minimumSources: 1, maximumSources: 1 },
-  cleanup_gentle: { profileKey: 'sound.cleanup.gentle.v1', outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  analyze: { profileKeys: ['sound.analyze.v1', 'sound.analyze.reference.v1', 'sound.analyze.provider_candidate.v1', 'sound.analyze.model_candidate.v1', 'sound.analyze.final.v1', 'sound.analyze.output.v1'], outputRequired: false, minimumSources: 1, maximumSources: 1 },
+  extract: { profileKeys: ['sound.extract.pcm.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  trim_fade_gain: { profileKeys: ['sound.trim-fade-gain.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  normalize: { profileKeys: ['sound.normalize.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  resample_channels: { profileKeys: ['sound.resample-channels.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  loop_crossfade: { profileKeys: ['sound.loop.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  stretch_pitch: { profileKeys: ['sound.stretch-pitch.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  mix_stem: { profileKeys: ['sound.mix-stem.v1'], outputRequired: true, minimumSources: 2, maximumSources: 16 },
+  sync_qa: { profileKeys: ['sound.sync-qa.v1'], outputRequired: false, minimumSources: 1, maximumSources: 1 },
+  cleanup_gentle: { profileKeys: ['sound.cleanup.gentle.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
 }
 
 const toolOperationByLocalOperation: Record<SoundLocalOperation, string> = {
@@ -344,7 +350,10 @@ async function decodeStudy(path: string): Promise<{
   const sampleRate = 8_000
   const result = await execFileAsync(FFMPEG, [
     '-hide_banner', '-loglevel', 'error', '-nostdin', '-i', path,
-    '-t', '600', '-vn', '-ac', '1', '-ar', String(sampleRate),
+    // Decode both supported output channels independently. A mono downmix can sum
+    // correlated stereo channels and manufacture sample peaks that are not present
+    // in the artifact, producing false clipping failures.
+    '-t', '600', '-vn', '-ac', '2', '-ar', String(sampleRate),
     '-f', 'f32le', 'pipe:1',
   ], {
     timeout: 120_000,
@@ -352,51 +361,62 @@ async function decodeStudy(path: string): Promise<{
     encoding: 'buffer',
   } as Parameters<typeof execFileAsync>[2])
   const bytes = Buffer.isBuffer(result.stdout) ? result.stdout : Buffer.from(result.stdout)
+  const channelCount = 2
   const sampleCount = Math.floor(bytes.length / 4)
+  const frameCount = Math.floor(sampleCount / channelCount)
   let squareSum = 0
   let peak = 0
   let clipping = 0
-  let previous = 0
+  const previous = [0, 0]
   const transients: number[] = []
   const silenceRanges: Array<{ startSeconds: number; endSeconds: number }> = []
   let silenceStart: number | undefined
   const silenceThreshold = 10 ** (-45 / 20)
-  const transientThreshold = 0.35
+  // Provider candidates are deliberately gain-staged below dialogue. Detect their
+  // bounded onset without requiring near-full-scale samples.
+  const transientThreshold = 0.03
   const minimumSilenceSamples = Math.round(sampleRate * 0.2)
   const minimumTransientGap = Math.round(sampleRate * 0.04)
   let lastTransient = -minimumTransientGap
   let zeroCrossings = 0
 
-  for (let index = 0; index < sampleCount; index += 1) {
-    const value = bytes.readFloatLE(index * 4)
-    const absolute = Math.abs(value)
-    peak = Math.max(peak, absolute)
-    squareSum += value * value
-    if (absolute >= 0.999) clipping += 1
-    if (Math.abs(value - previous) >= transientThreshold && index - lastTransient >= minimumTransientGap) {
-      transients.push(Number((index / sampleRate).toFixed(4)))
-      lastTransient = index
+  for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
+    let framePeak = 0
+    let frameTransient = false
+    for (let channel = 0; channel < channelCount; channel += 1) {
+      const index = frameIndex * channelCount + channel
+      const value = bytes.readFloatLE(index * 4)
+      const absolute = Math.abs(value)
+      framePeak = Math.max(framePeak, absolute)
+      peak = Math.max(peak, absolute)
+      squareSum += value * value
+      if (absolute >= 0.999) clipping += 1
+      if (Math.abs(value - previous[channel]!) >= transientThreshold) frameTransient = true
+      if (frameIndex > 0 && ((value >= 0 && previous[channel]! < 0) || (value < 0 && previous[channel]! >= 0))) {
+        zeroCrossings += 1
+      }
+      previous[channel] = value
     }
-    if (index > 0 && ((value >= 0 && previous < 0) || (value < 0 && previous >= 0))) {
-      zeroCrossings += 1
+    if (frameTransient && frameIndex - lastTransient >= minimumTransientGap) {
+      transients.push(Number((frameIndex / sampleRate).toFixed(4)))
+      lastTransient = frameIndex
     }
-    if (absolute < silenceThreshold) {
-      silenceStart ??= index
+    if (framePeak < silenceThreshold) {
+      silenceStart ??= frameIndex
     } else if (silenceStart !== undefined) {
-      if (index - silenceStart >= minimumSilenceSamples) {
+      if (frameIndex - silenceStart >= minimumSilenceSamples) {
         silenceRanges.push({
           startSeconds: Number((silenceStart / sampleRate).toFixed(4)),
-          endSeconds: Number((index / sampleRate).toFixed(4)),
+          endSeconds: Number((frameIndex / sampleRate).toFixed(4)),
         })
       }
       silenceStart = undefined
     }
-    previous = value
   }
-  if (silenceStart !== undefined && sampleCount - silenceStart >= minimumSilenceSamples) {
+  if (silenceStart !== undefined && frameCount - silenceStart >= minimumSilenceSamples) {
     silenceRanges.push({
       startSeconds: Number((silenceStart / sampleRate).toFixed(4)),
-      endSeconds: Number((sampleCount / sampleRate).toFixed(4)),
+      endSeconds: Number((frameCount / sampleRate).toFixed(4)),
     })
   }
   const rms = sampleCount > 0 ? Math.sqrt(squareSum / sampleCount) : 0
@@ -408,7 +428,7 @@ async function decodeStudy(path: string): Promise<{
     transientTimesSeconds: transients.slice(0, 10_000),
     clippingSampleCount: clipping,
     decodedSampleCount: sampleCount,
-    zeroCrossingRate: Number((zeroCrossings / Math.max(1, sampleCount - 1)).toFixed(6)),
+    zeroCrossingRate: Number((zeroCrossings / Math.max(1, sampleCount - channelCount)).toFixed(6)),
   }
 }
 
@@ -463,7 +483,12 @@ function outputArguments(
     return ['-hide_banner', '-loglevel', 'error', '-nostdin', '-y', '-i', source, '-af', filter, ...finish]
   }
   if (input.operation === 'normalize') {
-    const filter = `loudnorm=I=${p.targetLoudnessLufs ?? -16}:TP=${p.maximumTruePeakDbtp ?? -1}:LRA=11`
+    const maximumTruePeakDbtp = p.maximumTruePeakDbtp ?? -1
+    const limiterLinear = Math.pow(10, maximumTruePeakDbtp / 20).toFixed(6)
+    // One-pass loudnorm can overshoot on short transient-heavy cues. Retain two dB of
+    // deterministic safety margin before the final hard ceiling; measured output QA
+    // remains authoritative and will block any artifact that still exceeds policy.
+    const filter = `loudnorm=I=${p.targetLoudnessLufs ?? -16}:TP=${maximumTruePeakDbtp}:LRA=11,volume=-2dB,alimiter=limit=${limiterLinear}:level=disabled`
     return ['-hide_banner', '-loglevel', 'error', '-nostdin', '-y', '-i', source, '-af', filter, ...finish]
   }
   if (input.operation === 'resample_channels') {
@@ -596,7 +621,12 @@ async function executeOutput(
         storageObjectId: outputRelativePath.replaceAll('/', ':'),
         private: true,
         contentType: input.outputContentType ?? 'audio/wav',
-        durationFrames: Math.round((await probeAudio(committed.absolutePath)).durationSeconds * 30),
+        durationFrames: decimalSecondsToFrames({
+          seconds: (await probeAudio(committed.absolutePath)).durationSeconds,
+          rate: input.binding.timelineRate,
+          rounding: 'nearest_half_up',
+        }),
+        timelineRate: input.binding.timelineRate,
       },
     }
   } finally {
@@ -611,6 +641,10 @@ function validatePackage(input: SoundLocalAudioExecutionPackage): void {
     input.binding.soundSkillVersion !== SOUND_SKILL_VERSION ||
     input.binding.soundManifestHash !== soundSkillCapabilityManifest.manifestHash
   ) throw new Error('Sound local execution manifest binding mismatch.')
+  if (input.sources.some((source) => source.artifact.timelineRate &&
+    !timelineRatesEqual(source.artifact.timelineRate, input.binding.timelineRate))) {
+    throw new Error('Sound local execution source timeline-rate binding mismatch.')
+  }
   if (
     !input.binding.approvedPlanSnapshotId || !input.binding.approvedPlanSnapshotHash ||
     !input.binding.approvedWorkItemId || !input.binding.privateOutputScopeId ||
@@ -621,7 +655,7 @@ function validatePackage(input: SoundLocalAudioExecutionPackage): void {
     throw new Error(`Sound local execution route binding is stale: ${invalidation.reasons.join(',')}`)
   }
   const profile = operationProfiles[input.operation]
-  if (!profile || profile.profileKey !== input.operationProfileKey) throw new Error('Unapproved Sound operation profile.')
+  if (!profile || !profile.profileKeys.includes(input.operationProfileKey)) throw new Error('Unapproved Sound operation profile.')
   const expectedOperationKey = toolOperationByLocalOperation[input.operation]
   const operationBinding = input.binding.routeBinding.toolOperations.find((binding) =>
     binding.toolKey === 'ffmpeg' &&

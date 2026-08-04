@@ -3,6 +3,11 @@ import type {
   SoundFrameRange,
   SoundMixAutomation,
 } from './sound-contracts'
+import {
+  framesToSeconds,
+  rationalSecondsToFrames,
+  type TimelineRate,
+} from '../edit-skills/core/timeline-rate'
 
 function overlaps(
   startFrame: number,
@@ -15,7 +20,7 @@ function overlaps(
 export function createSoundMixAutomation(input: {
   cue: CanonicalSoundCue
   protectedSpeechRanges: SoundFrameRange[]
-  fps: number
+  timelineRate: TimelineRate
   musicContextPresent: boolean
   approvedMusicAutomation: Array<'duck' | 'fade' | 'collision_avoidance'>
 }): SoundMixAutomation {
@@ -36,7 +41,10 @@ export function createSoundMixAutomation(input: {
     : input.cue.layerRole === 'hero_impact'
       ? 'close'
       : 'medium'
-  const fadeFrames = Math.max(1, Math.round(input.fps * 0.04))
+  const fadeFrames = Math.max(1, rationalSecondsToFrames({
+    secondsNumerator: 1, secondsDenominator: 25, rate: input.timelineRate,
+    rounding: 'nearest_half_up',
+  }))
   const baseGainDb = roleGain[input.cue.layerRole]
   const duckingDb = speechRanges.length > 0 ? -9 : 0
   const musicInteractionPolicy = input.musicContextPresent &&
@@ -56,8 +64,14 @@ export function createSoundMixAutomation(input: {
     fadeInFrames: fadeFrames,
     fadeOutFrames: fadeFrames,
     dialogueDuckingDb: duckingDb,
-    duckAttackFrames: Math.max(1, Math.round(input.fps * 0.03)),
-    duckReleaseFrames: Math.max(1, Math.round(input.fps * 0.16)),
+    duckAttackFrames: Math.max(1, rationalSecondsToFrames({
+      secondsNumerator: 3, secondsDenominator: 100, rate: input.timelineRate,
+      rounding: 'nearest_half_up',
+    })),
+    duckReleaseFrames: Math.max(1, rationalSecondsToFrames({
+      secondsNumerator: 4, secondsDenominator: 25, rate: input.timelineRate,
+      rounding: 'nearest_half_up',
+    })),
     protectedSpeechRanges: speechRanges,
     musicInteractionPolicy,
     eqProfile: distance === 'distant' ? 'distance_rolloff' :
@@ -87,7 +101,7 @@ export function runPlannedSoundQa(input: {
   authorizedRanges: SoundFrameRange[]
   durationFrames: number
   maximumCueDensityPerMinute: number
-  fps: number
+  timelineRate: TimelineRate
   provenanceReady: boolean
 }): SoundStructuredQaReport {
   const technical: string[] = []
@@ -108,7 +122,7 @@ export function runPlannedSoundQa(input: {
   if (input.automations.some((automation) =>
     automation.protectedSpeechRanges.length > 0 && automation.dialogueDuckingDb >= 0
   )) mix.push('speech_not_protected')
-  const minutes = Math.max(1 / 60, input.durationFrames / input.fps / 60)
+  const minutes = Math.max(1 / 60, framesToSeconds(input.durationFrames, input.timelineRate) / 60)
   if (input.cues.length / minutes > input.maximumCueDensityPerMinute) {
     perceptual.push('cue_density_exceeded')
   }

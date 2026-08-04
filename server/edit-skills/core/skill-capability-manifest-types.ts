@@ -1,5 +1,7 @@
 import type { EditSkillKey, SkillQualificationStatus } from './edit-skill-ids'
 
+export type SkillScopeLevel = 'clip' | 'range' | 'multi_range' | 'scene' | 'boundary' | 'sequence' | 'video'
+
 export interface SkillManifestReference {
   schemaVersion: 'edit-skill-manifest-reference-v1'
   skillKey: EditSkillKey
@@ -36,6 +38,42 @@ export interface SkillRouteDefinition {
   priority: number
   requiresApproval: boolean
   description: string
+  /** Exact route identity for departments that own a versioned route graph. */
+  routeVersion?: string
+  routeHash?: string
+  supportedJobTypes?: readonly string[]
+  requiredInputs?: readonly string[]
+  producedArtifactTypes?: readonly string[]
+  costClass?: 'zero' | 'local' | 'provider' | 'unavailable'
+}
+
+export interface SkillCapabilityEntryDefinition {
+  capabilityKey: string
+  capabilityVersion: string
+  displayName: string
+  description: string
+  qualificationStatus: SkillQualificationStatus
+  evidenceLevel: 'declared' | 'planning' | 'fixture' | 'internal_execution' | 'production' | 'blocked' | 'retired'
+  supportedJobTypes: readonly string[]
+  supportedScopes: readonly SkillScopeLevel[]
+  acceptedCallerTypes: readonly string[]
+  requiredInputs: readonly string[]
+  optionalInputs: readonly string[]
+  acceptedArtifactTypes: readonly string[]
+  producedArtifactTypes: readonly string[]
+  primaryRouteRefs: readonly SkillExactRouteReference[]
+  fallbackRouteRefs: readonly SkillExactRouteReference[]
+  lowerCostRouteRefs: readonly SkillExactRouteReference[]
+  planningQa: readonly string[]
+  outputQa: readonly string[]
+  integrationQa: readonly string[]
+  knownLimitations: readonly string[]
+}
+
+export interface SkillExactRouteReference {
+  routeKey: string
+  routeVersion: string
+  routeHash: string
 }
 
 export interface SkillInvalidationRule {
@@ -108,6 +146,8 @@ export interface SkillCapabilityManifestCore {
   revisionRules: readonly SkillRevisionRule[]
   qualificationFixtures: readonly SkillQualificationFixtureDefinition[]
   knownLimitations: readonly string[]
+  /** Optional operation-level projection used by coordination-critical skills. */
+  capabilityEntries?: readonly SkillCapabilityEntryDefinition[]
 }
 
 export interface SkillCapabilityManifest extends SkillCapabilityManifestCore {

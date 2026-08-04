@@ -1,9 +1,7 @@
 import { createHash } from 'node:crypto'
 import { z } from 'zod'
-import type {
-  SkillQualificationStatus,
-  SkillScopeLevel,
-} from '../../src/types/skill-capability-manifest'
+import type { SkillQualificationStatus } from '../edit-skills/core/edit-skill-ids'
+import type { SkillScopeLevel } from '../edit-skills/core/skill-capability-manifest-types'
 import {
   getToolOperationCapability,
   qualificationSupportsToolMode,
@@ -61,7 +59,7 @@ export interface SoundToolRouteManifest {
   creditEstimatorKey: string
   attemptPolicyKey: string
   fallbackPolicy: {
-    fallbackRouteKeys: string[]
+    fallbackRouteRefs: Array<{ routeKey: string; routeVersion: string }>
     automaticFallbackAllowed: boolean
     unknownOutcomeResubmissionAllowed: false
     freshApprovalRequiredForCostIncrease: true
@@ -94,8 +92,8 @@ const hash = z.string().regex(/^[a-f0-9]{64}$/)
 const keyList = z.array(safeKey).max(512)
 const stringList = z.array(z.string().trim().min(1).max(2_000)).max(512)
 const qualification = z.enum([
-  'declared', 'planning_qualified', 'fixture_qualified',
-  'private_internal_qualified', 'production_qualified', 'blocked', 'deprecated',
+  'declared', 'implementation_pending', 'planning_qualified',
+  'internal_execution_qualified', 'production_qualified', 'blocked', 'retired',
 ])
 const scope = z.enum(['clip', 'range', 'multi_range', 'scene', 'boundary', 'sequence', 'video'])
 
@@ -148,7 +146,10 @@ export const soundToolRouteManifestSchema: z.ZodType<SoundToolRouteManifest> = z
   creditEstimatorKey: safeKey,
   attemptPolicyKey: safeKey,
   fallbackPolicy: z.object({
-    fallbackRouteKeys: keyList,
+    fallbackRouteRefs: z.array(z.object({
+      routeKey: safeKey,
+      routeVersion: safeKey,
+    }).strict()).max(64),
     automaticFallbackAllowed: z.boolean(),
     unknownOutcomeResubmissionAllowed: z.literal(false),
     freshApprovalRequiredForCostIncrease: z.literal(true),
@@ -203,11 +204,11 @@ export function calculateSoundToolRouteHash(
 
 const qualificationRank: Record<SkillQualificationStatus, number> = {
   blocked: 0,
-  deprecated: 0,
+  retired: 0,
   declared: 1,
+  implementation_pending: 1,
   planning_qualified: 2,
-  fixture_qualified: 3,
-  private_internal_qualified: 4,
+  internal_execution_qualified: 4,
   production_qualified: 5,
 }
 
@@ -325,6 +326,28 @@ export function listSoundToolRouteManifests(): readonly Readonly<SoundToolRouteM
     `${left.routeKey}@${left.routeVersion}`.localeCompare(`${right.routeKey}@${right.routeVersion}`))
 }
 
+export function validateSoundToolRouteRegistry(): void {
+  for (const route of listSoundToolRouteManifests()) {
+    for (const fallbackRef of route.fallbackPolicy.fallbackRouteRefs) {
+      const fallback = getSoundToolRouteManifest(fallbackRef.routeKey, fallbackRef.routeVersion)
+      if (!fallback) {
+        throw new Error(`Sound route ${route.routeKey} references unknown fallback ${fallbackRef.routeKey}@${fallbackRef.routeVersion}.`)
+      }
+      if (!route.supportedJobTypes.some((job) => fallback.supportedJobTypes.includes(job))) {
+        throw new Error(`Sound fallback ${fallback.routeKey} supports none of ${route.routeKey}'s jobs.`)
+      }
+      const availableInputs = new Set([
+        ...route.requiredInputs,
+        ...route.orderedOrGraphSteps.flatMap((step) => step.outputBindings),
+      ])
+      const unavailable = fallback.requiredInputs.filter((input) => !availableInputs.has(input))
+      if (unavailable.length > 0) {
+        throw new Error(`Sound fallback ${fallback.routeKey} cannot accept route inputs: ${unavailable.join(',')}.`)
+      }
+    }
+  }
+}
+
 export interface SoundRouteAdmissionInput {
   routeKey: string
   routeVersion?: string
@@ -357,7 +380,10 @@ export function evaluateSoundToolRouteAdmission(
   if (!route.capabilityKeys.includes(input.capabilityKey)) reasons.push('capability_not_supported_by_route')
   if (!route.supportedJobTypes.includes(input.jobType)) reasons.push('job_not_supported_by_route')
   if (!route.supportedScopes.includes(input.scope)) reasons.push('scope_not_supported_by_route')
-  if (!qualificationSupportsToolMode(route.qualificationByMode[input.mode], input.mode)) {
+    const routeFixtureEvidence = route.qualificationEvidenceRefs.some((ref) => ref.includes('injected_transport'))
+    if (!qualificationSupportsToolMode(
+      route.qualificationByMode[input.mode], input.mode, routeFixtureEvidence ? 'fixture' : undefined,
+    )) {
     reasons.push(`route_not_${input.mode}_qualified`)
   }
   for (const required of route.requiredInputs) {
@@ -383,7 +409,7 @@ export function evaluateSoundToolRouteAdmission(
     if (!resolved.operation.supportedJobTypes.includes(input.jobType)) {
       reasons.push(`operation_job_not_supported:${step.toolKey}:${step.operationKey}:${input.jobType}`)
     }
-    if (!qualificationSupportsToolMode(operationStatus, input.mode)) {
+    if (!qualificationSupportsToolMode(operationStatus, input.mode, resolved.operation.qualificationEvidenceLevel)) {
       reasons.push(`operation_not_${input.mode}_qualified:${step.toolKey}:${step.operationKey}`)
     }
     const requirements = resolved.operation.executionRequirements

@@ -1,6 +1,8 @@
-import type { SkillCapabilityEntry } from '../../src/types/skill-capability-manifest'
-import { qualificationSupportsMode } from '../orchestra/skill-capability-manifest'
-import { resolveSkillCapabilityEntry } from '../orchestra/skill-capability-registry'
+import type { SkillCapabilityEntryDefinition } from '../edit-skills/core/skill-capability-manifest-types'
+import {
+  qualificationSupportsSoundRequest,
+  resolveSoundCapabilityEntry,
+} from '../edit-skills/sound/sound-admission'
 import {
   parseCanonicalSoundRequest,
   parseCanonicalSoundResult,
@@ -11,7 +13,6 @@ import {
 import {
   SOUND_SKILL_KEY,
   SOUND_SKILL_VERSION,
-  registerCanonicalSoundSkill,
   soundSkillCapabilityManifest,
 } from './sound-manifest'
 
@@ -34,7 +35,7 @@ export interface SoundScopeGuardResult {
   code?: SoundScopeGuardCode
   errors: string[]
   request?: CanonicalSoundRequest
-  capability?: SkillCapabilityEntry
+  capability?: SkillCapabilityEntryDefinition
 }
 
 function fail(code: SoundScopeGuardCode, errors: string[]): SoundScopeGuardResult {
@@ -113,7 +114,6 @@ export function evaluateSoundScopeGuard(input: unknown): SoundScopeGuardResult {
   } catch (error) {
     return fail('invalid_contract', [error instanceof Error ? error.message : String(error)])
   }
-  registerCanonicalSoundSkill()
   const manifest = soundSkillCapabilityManifest
   if (
     request.soundSkillKey !== SOUND_SKILL_KEY ||
@@ -123,29 +123,24 @@ export function evaluateSoundScopeGuard(input: unknown): SoundScopeGuardResult {
   ) {
     return fail('manifest_mismatch', ['sound_manifest_binding_mismatch'])
   }
-  const capability = resolveSkillCapabilityEntry(
-    SOUND_SKILL_KEY,
-    request.requestedJobType,
-    SOUND_SKILL_VERSION,
-  )
+  const capability = resolveSoundCapabilityEntry({
+    capabilityKey: request.requestedCapabilityKey,
+    jobType: request.requestedJobType,
+  })
   if (
     !capability ||
     capability.capabilityKey !== request.requestedCapabilityKey ||
-    capability.supportedJobType !== request.requestedJobType
+    !capability.supportedJobTypes.includes(request.requestedJobType)
   ) {
     return fail('capability_mismatch', ['sound_capability_binding_mismatch'])
   }
-  const requestedQualification = request.requiredQualificationMode === 'planning'
-    ? capability.qualificationByExecutionMode.planning
-    : request.requiredQualificationMode === 'production'
-      ? capability.qualificationByExecutionMode.final_execution
-      : capability.qualificationByExecutionMode.preview_execution
-  if (!qualificationSupportsMode(requestedQualification, request.requiredQualificationMode)) {
+  if (!qualificationSupportsSoundRequest(capability, request.requiredQualificationMode)) {
     return fail('qualification_blocked', [
-      `${capability.capabilityKey}:${requestedQualification}:${request.requiredQualificationMode}`,
+      `${capability.capabilityKey}:${capability.qualificationStatus}:${capability.evidenceLevel}:${request.requiredQualificationMode}`,
     ])
   }
-  if (!capability.acceptedCallerTypes.includes(request.callerType)) {
+  const caller = request.callerType === 'head_of_orchestra' ? 'orchestra' : request.callerType
+  if (!capability.acceptedCallerTypes.includes(caller)) {
     return fail('capability_mismatch', ['caller_not_accepted_by_capability'])
   }
   if (request.dependencyChain.includes(SOUND_SKILL_KEY) ||

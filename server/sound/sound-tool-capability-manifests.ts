@@ -1,7 +1,5 @@
-import type {
-  SkillQualificationStatus,
-  SkillScopeLevel,
-} from '../../src/types/skill-capability-manifest'
+import type { SkillQualificationStatus } from '../edit-skills/core/edit-skill-ids'
+import type { SkillScopeLevel } from '../edit-skills/core/skill-capability-manifest-types'
 import {
   publishToolCapabilityManifest,
   registerToolCapabilityManifest,
@@ -40,12 +38,12 @@ function qualification(preset: QualificationPreset): ToolOperationQualificationB
     planning: 'planning_qualified', preview_execution: 'blocked', final_execution: 'blocked',
   }
   if (preset === 'fixture') return {
-    planning: 'fixture_qualified', preview_execution: 'fixture_qualified', final_execution: 'fixture_qualified',
+    planning: 'planning_qualified', preview_execution: 'planning_qualified', final_execution: 'planning_qualified',
   }
   if (preset === 'private') return {
-    planning: 'private_internal_qualified',
-    preview_execution: 'private_internal_qualified',
-    final_execution: 'private_internal_qualified',
+    planning: 'internal_execution_qualified',
+    preview_execution: 'internal_execution_qualified',
+    final_execution: 'internal_execution_qualified',
   }
   if (preset === 'declared') return {
     planning: 'declared', preview_execution: 'blocked', final_execution: 'blocked',
@@ -120,6 +118,8 @@ function operation(seed: OperationSeed): ToolOperationCapability {
       callerSuppliedCredentialsAllowed: false,
     },
     qualificationByMode: qualification(seed.preset),
+    qualificationEvidenceLevel: seed.preset === 'fixture' ? 'fixture' :
+      seed.preset === 'private' ? 'internal_execution' : seed.preset,
     qualificationEvidenceRefs: seed.evidence,
     timeEstimatorKey: `sound.tool.time.${seed.operationKey}.v1`,
     creditEstimatorKey: `sound.tool.credit.${seed.operationKey}.v1`,
@@ -162,6 +162,13 @@ function tool(seed: ToolSeed): Readonly<ToolCapabilityManifest> {
     executionBoundary: seed.executionBoundary,
     owningSystem: 'sound',
     qualificationStatus: seed.status,
+    qualificationEvidenceLevel: seed.status === 'internal_execution_qualified'
+      ? 'internal_execution'
+      : seed.status === 'production_qualified'
+        ? 'production'
+        : seed.status === 'planning_qualified' && seed.operations.some((operation) => operation.preset === 'fixture')
+          ? 'fixture'
+          : seed.status === 'blocked' ? 'blocked' : seed.status === 'retired' ? 'retired' : 'planning',
     qualificationEvidenceRefs: seed.evidence,
     operations: seed.operations.map(operation),
     privacyPolicy: {
@@ -215,7 +222,7 @@ const qaServiceJobs = [
 const manifests = [
   tool({
     toolKey: 'mirelo_sfx', toolVersion: '1.6', toolClass: 'external_provider',
-    executionBoundary: 'server_provider_adapter', status: 'fixture_qualified',
+    executionBoundary: 'server_provider_adapter', status: 'planning_qualified',
     evidence: [EVIDENCE.mireloFixture, EVIDENCE.mireloOfficialProfile],
     licensePolicyRef: 'sound.license.mirelo_commercial_terms_pending.v1',
     rateCardRef: 'sound.rate.mirelo_sfx_credits_per_second.v1',
@@ -273,11 +280,11 @@ const manifests = [
   }),
   tool({
     toolKey: 'ffmpeg', toolVersion: '8.1.1-local', toolClass: 'system_binary',
-    executionBoundary: 'private_cpu_worker', status: 'private_internal_qualified', evidence: localEvidence,
+    executionBoundary: 'private_cpu_worker', status: 'internal_execution_qualified', evidence: localEvidence,
     licensePolicyRef: 'sound.license.ffmpeg_lgpl_build_required.v1', runtimeProbeKey: 'sound.runtime.ffmpeg.v1',
     limitations: ['Qualified only on a private local GPL-enabled Homebrew build; production requires a reviewed LGPL-safe deployment build.'],
     operations: [
-      ['analyze_audio_pcm', 'Analyze decoded audio', ['study_source_audio', 'study_reference_sound', 'create_sound_dna', 'qa_sound', 'handoff_sound_to_final_composition', ...generatedSoundJobs], ['sound_study_report', 'candidate_transient_report', 'final_audio_metrics']],
+      ['analyze_audio_pcm', 'Analyze decoded audio', [...new Set(['study_source_audio', 'study_reference_sound', 'create_sound_dna', 'extract_project_owned_sound', ...qaServiceJobs, ...deterministicEditJobs])], ['sound_study_report', 'candidate_transient_report', 'final_audio_metrics']],
       ['extract_audio_pcm', 'Extract approved audio', ['extract_project_owned_sound', 'generate_video_conditioned_sfx', 'generate_foley'], ['edited_audio_asset_version', 'extracted_provider_audio']],
       ['trim_fade_gain_audio', 'Trim, fade, and gain audio', [...deterministicEditJobs, 'generate_video_conditioned_sfx', 'generate_text_conditioned_sfx', 'generate_foley'], ['edited_audio_asset_version', 'trimmed_sound_candidate', 'validated_sound_candidate']],
       ['normalize_audio_loudness', 'Normalize audio loudness', deterministicEditJobs, ['edited_audio_asset_version']],
@@ -299,12 +306,12 @@ const manifests = [
   }),
   tool({
     toolKey: 'ffprobe', toolVersion: '8.1.1-local', toolClass: 'system_binary',
-    executionBoundary: 'private_cpu_worker', status: 'private_internal_qualified', evidence: localEvidence,
+    executionBoundary: 'private_cpu_worker', status: 'internal_execution_qualified', evidence: localEvidence,
     licensePolicyRef: 'sound.license.ffmpeg_lgpl_build_required.v1', runtimeProbeKey: 'sound.runtime.ffprobe.v1',
     limitations: ['Private-local qualification only; deployed build evidence is absent.'],
     operations: [{
       operationKey: 'inspect_validate_audio', displayName: 'Inspect and validate audio media',
-      jobs: ['study_source_audio', 'study_reference_sound', 'create_sound_dna', 'qa_sound', 'handoff_sound_to_final_composition', 'extract_project_owned_sound', ...generatedSoundJobs, ...deterministicEditJobs], preset: 'private',
+      jobs: [...new Set(['study_source_audio', 'study_reference_sound', 'create_sound_dna', 'extract_project_owned_sound', ...qaServiceJobs, ...deterministicEditJobs])], preset: 'private',
       evidence: localEvidence, mutation: 'read_only_analysis',
       produced: ['validated_audio_metadata', 'validated_provider_carrier'], license: true,
     }],
@@ -321,7 +328,7 @@ const manifests = [
     ['pedalboard', 'apply_approved_effect_chain', 'Apply approved effects', ['edit_audio', 'mix_sound_layers', 'generate_video_conditioned_sfx', 'generate_text_conditioned_sfx', 'generate_foley'], 'create_versioned_private_artifact', ['edited_audio_asset_version', 'tone_matched_sound_candidate']],
   ] as const).map(([toolKey, operationKey, displayName, jobs, mutation, produced]) => tool({
     toolKey, toolVersion: 'registry-current', toolClass: 'python_library',
-    executionBoundary: 'private_cpu_worker', status: 'private_internal_qualified', evidence: pythonEvidence,
+    executionBoundary: 'private_cpu_worker', status: 'internal_execution_qualified', evidence: pythonEvidence,
     licensePolicyRef: `sound.license.${toolKey}.registry_review.v1`, runtimeProbeKey: `sound.runtime.${toolKey}.v1`,
     limitations: ['Qualified only through the private structured runner evidence; no deployed worker-fleet evidence.'],
     operations: [{
@@ -331,7 +338,7 @@ const manifests = [
   })),
   tool({
     toolKey: 'rnnoise', toolVersion: 'registry-current', toolClass: 'open_source_model',
-    executionBoundary: 'private_cpu_worker', status: 'private_internal_qualified', evidence: pythonEvidence,
+    executionBoundary: 'private_cpu_worker', status: 'internal_execution_qualified', evidence: pythonEvidence,
     licensePolicyRef: 'sound.license.rnnoise.registry_review.v1', runtimeProbeKey: 'sound.runtime.rnnoise.v1',
     limitations: ['Bounded voice denoise only; unsupported for Music and complex ambience.'],
     operations: [{
@@ -353,7 +360,7 @@ const manifests = [
   }),
   tool({
     toolKey: 'signalsmith_stretch', toolVersion: 'registry-current', toolClass: 'system_binary',
-    executionBoundary: 'private_cpu_worker', status: 'private_internal_qualified',
+    executionBoundary: 'private_cpu_worker', status: 'internal_execution_qualified',
     evidence: [EVIDENCE.corePrivateRunner], licensePolicyRef: 'sound.license.signalsmith_mit_review.v1',
     runtimeProbeKey: 'sound.runtime.signalsmith_stretch.v1',
     limitations: ['Private runner evidence only; extreme ratios remain unsupported and Music ownership remains outside Sound.'],
@@ -365,7 +372,7 @@ const manifests = [
   }),
   tool({
     toolKey: 'sound_private_artifact_store', toolVersion: '1.0.0', toolClass: 'internal_service',
-    executionBoundary: 'private_artifact_service', status: 'fixture_qualified',
+    executionBoundary: 'private_artifact_service', status: 'planning_qualified',
     evidence: [EVIDENCE.privateArtifactRuntime, EVIDENCE.mireloFixture],
     licensePolicyRef: 'sound.license.internal_service.v1', runtimeProbeKey: 'sound.runtime.private_artifact_store.v1',
     limitations: ['Single-host private-local evidence is not deployed multi-tenant storage evidence.'],
@@ -398,7 +405,7 @@ const manifests = [
   }),
   tool({
     toolKey: 'sound_provider_attempt_service', toolVersion: '1.0.0', toolClass: 'internal_service',
-    executionBoundary: 'private_coordination_service', status: 'fixture_qualified',
+    executionBoundary: 'private_coordination_service', status: 'planning_qualified',
     evidence: [EVIDENCE.providerAttemptFixture], licensePolicyRef: 'sound.license.internal_service.v1',
     runtimeProbeKey: 'sound.runtime.provider_attempt_service.v1',
     limitations: ['Attempt and reconciliation evidence is fixture/in-memory; durable multi-worker authority is not activated.'],
@@ -476,7 +483,7 @@ const manifests = [
   }),
   tool({
     toolKey: 'sound_sync_service', toolVersion: '1.0.0', toolClass: 'internal_service',
-    executionBoundary: 'private_cpu_worker', status: 'private_internal_qualified', evidence: [EVIDENCE.soundSync],
+    executionBoundary: 'private_cpu_worker', status: 'internal_execution_qualified', evidence: [EVIDENCE.soundSync],
     licensePolicyRef: 'sound.license.internal_service.v1', runtimeProbeKey: 'sound.runtime.sync_service.v1',
     operations: [
       {
@@ -502,7 +509,7 @@ const manifests = [
   }),
   tool({
     toolKey: 'sound_qa_service', toolVersion: '1.0.0', toolClass: 'internal_service',
-    executionBoundary: 'private_cpu_worker', status: 'private_internal_qualified', evidence: [EVIDENCE.localSoundQa],
+    executionBoundary: 'private_cpu_worker', status: 'internal_execution_qualified', evidence: [EVIDENCE.localSoundQa],
     licensePolicyRef: 'sound.license.internal_service.v1', runtimeProbeKey: 'sound.runtime.qa_service.v1',
     operations: [{
       operationKey: 'evaluate_final_sound', displayName: 'Evaluate final Sound output and integration',
@@ -514,7 +521,7 @@ const manifests = [
   }),
   tool({
     toolKey: 'sound_no_sound_decision', toolVersion: '1.0.0', toolClass: 'decision_route',
-    executionBoundary: 'private_coordination_service', status: 'private_internal_qualified', evidence: [EVIDENCE.controller],
+    executionBoundary: 'private_coordination_service', status: 'internal_execution_qualified', evidence: [EVIDENCE.controller],
     licensePolicyRef: 'sound.license.internal_service.v1', runtimeProbeKey: 'sound.runtime.no_sound_decision.v1',
     operations: [{
       operationKey: 'decide_intentional_no_sound', displayName: 'Create intentional no-Sound decision',
@@ -524,6 +531,7 @@ const manifests = [
         'support_transition_sound', 'support_graphic_design_sound',
         'generate_video_conditioned_sfx', 'generate_text_conditioned_sfx',
         'generate_foley', 'generate_ambience', 'extend_ambience',
+        'search_sound_library', 'extract_project_owned_sound',
       ], preset: 'private',
       evidence: [EVIDENCE.controller], mutation: 'coordination_record_only', accepted: ['sound_design_context'],
       produced: ['no_sound_decision', 'caller_receipt'], contentTypes: [], runtime: false,

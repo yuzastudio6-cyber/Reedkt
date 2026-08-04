@@ -1,8 +1,14 @@
 import { z } from 'zod'
+import {
+  timelineRateDisplayFps,
+  timelineRatesEqual,
+  timelineRateSchema,
+} from '../edit-skills/core/timeline-rate'
 import type {
   SkillQualificationStatus,
-  SkillRequestedMode,
-} from '../../src/types/skill-capability-manifest'
+} from '../edit-skills/core/edit-skill-ids'
+
+export type SoundRequestedMode = 'planning' | 'fixture' | 'private_internal' | 'production'
 
 export const CANONICAL_SOUND_REQUEST_SCHEMA_VERSION = 'canonical-sound-request-v1' as const
 export const CANONICAL_SOUND_RESULT_SCHEMA_VERSION = 'canonical-sound-result-v1' as const
@@ -12,6 +18,9 @@ const safeId = z.string().trim().min(1).max(180)
   .refine((value) => !value.includes('..'), 'Unsafe identity sequence.')
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/)
 const boundedText = z.string().trim().min(1).max(2_000)
+const safeStorageId = z.string().trim().min(1).max(512)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
+  .refine((value) => !value.includes('..'), 'Unsafe storage identity sequence.')
 
 export const soundFrameRangeSchema = z.object({
   rangeId: safeId,
@@ -30,10 +39,11 @@ export const soundArtifactRefSchema = z.object({
   artifactType: safeId,
   version: z.number().int().positive(),
   checksumSha256: sha256,
-  storageObjectId: safeId,
+  storageObjectId: safeStorageId,
   private: z.literal(true),
   contentType: z.string().trim().min(1).max(120),
   durationFrames: z.number().int().positive().optional(),
+  timelineRate: timelineRateSchema.optional(),
 }).strict()
 
 export type SoundArtifactRef = z.infer<typeof soundArtifactRefSchema>
@@ -148,7 +158,9 @@ export const canonicalSoundRequestSchema = z.object({
   visualDependencies: z.array(soundVisualDependencySchema).max(2_000),
   timelineManifestRef: soundArtifactRefSchema,
   timelineManifestHash: sha256,
-  timelineFps: z.number().positive().max(240),
+  timelineRate: timelineRateSchema,
+  timelineManifestRate: timelineRateSchema,
+  timelineFps: z.number().positive().max(240).optional(),
   transcriptSpeechEvidenceRef: soundArtifactRefSchema.optional(),
   musicContext: z.object({
     artifact: soundArtifactRefSchema,
@@ -244,6 +256,17 @@ export const canonicalSoundRequestSchema = z.object({
   if (request.timelineManifestRef.checksumSha256 !== request.timelineManifestHash) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: 'Timeline manifest hash mismatch.' })
   }
+  if (!timelineRatesEqual(request.timelineRate, request.timelineManifestRate)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Timeline manifest rate mismatch.' })
+  }
+  if (request.timelineManifestRef.timelineRate &&
+    !timelineRatesEqual(request.timelineRate, request.timelineManifestRef.timelineRate)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Timeline artifact rate mismatch.' })
+  }
+  if (request.timelineFps !== undefined &&
+    Math.abs(request.timelineFps - timelineRateDisplayFps(request.timelineRate)) > 1e-9) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Display FPS does not match the exact timeline rate.' })
+  }
 })
 
 export type CanonicalSoundRequest = z.infer<typeof canonicalSoundRequestSchema>
@@ -334,8 +357,8 @@ export const canonicalSoundResultSchema = z.object({
   soundManifestHash: sha256,
   capabilityEntryKey: safeId,
   qualificationStatusUsed: z.enum([
-    'declared', 'planning_qualified', 'fixture_qualified',
-    'private_internal_qualified', 'production_qualified', 'blocked', 'deprecated',
+    'declared', 'implementation_pending', 'planning_qualified',
+    'internal_execution_qualified', 'production_qualified', 'blocked', 'retired',
   ]),
   toolRouteBindings: z.array(soundToolRouteBindingSchema).min(1).max(32),
   status: z.enum(['planned', 'completed', 'no_sound', 'blocked', 'needs_visual_revision', 'stale']),
@@ -367,6 +390,7 @@ export const canonicalSoundResultSchema = z.object({
   sourceVisualHashes: z.array(sha256).max(2_000),
   sourceAudioHashes: z.array(sha256).max(2_000),
   sourceTimingHash: sha256,
+  timelineRate: timelineRateSchema,
   callerReceipt: z.object({
     receiptId: safeId,
     callerType: safeId,
@@ -392,10 +416,34 @@ export const canonicalSoundResultSchema = z.object({
   qaStatus: z.enum(['not_run', 'planned', 'passed', 'warning', 'failed', 'blocked']),
   finalHandoffTargets: z.array(z.enum(['head_of_orchestra', 'final_composition'])).max(2),
   actualExecutionEvidence: z.object({
+    routeExecutionId: safeId,
     elapsedMilliseconds: z.number().int().nonnegative(),
     actualCreditsCharged: z.number().nonnegative(),
+    actualLocalInfrastructureCostUsd: z.number().nonnegative(),
     providerCostEvidenceId: safeId.optional(),
+    providerAttemptId: safeId.optional(),
+    providerAttemptStatus: safeId.optional(),
     toolRuntimeEvidenceIds: z.array(safeId).max(128),
+    outputArtifactHashes: z.array(sha256).max(128),
+    stepEvidence: z.array(z.object({
+      stepKey: safeId,
+      toolKey: safeId,
+      operationKey: safeId,
+      status: z.enum(['completed', 'skipped_optional', 'skipped_condition']),
+      elapsedMilliseconds: z.number().int().nonnegative(),
+      outputArtifactIds: z.array(safeId).max(128),
+      evidenceRefs: z.array(safeId).max(128),
+    }).strict()).max(128),
+  }).strict().optional(),
+  finalCompositionHandoff: z.object({
+    handoffId: safeId,
+    soundArtifactIds: z.array(safeId).max(128),
+    cueManifestId: safeId,
+    mixManifestId: safeId,
+    qaEvidenceHash: sha256,
+    timelineManifestHash: sha256,
+    timelineRate: timelineRateSchema,
+    finalRenderOwnedBySound: z.literal(false),
   }).strict().optional(),
 }).strict()
 
@@ -448,7 +496,7 @@ export function parseCanonicalSoundResult(input: unknown): CanonicalSoundResult 
   return canonicalSoundResultSchema.parse(input)
 }
 
-export function soundQualificationMode(request: CanonicalSoundRequest): SkillRequestedMode {
+export function soundQualificationMode(request: CanonicalSoundRequest): SoundRequestedMode {
   return request.requiredQualificationMode
 }
 

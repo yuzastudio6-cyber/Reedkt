@@ -44,7 +44,8 @@ export const MIRELO_SFX_PROVIDER_PROFILE = Object.freeze({
     verifiedAt: '2026-08-03',
     source: 'https://www.mirelo.ai/pricing',
   },
-  qualificationStatus: 'fixture_qualified',
+  qualificationStatus: 'planning_qualified',
+  qualificationEvidenceLevel: 'fixture',
   commercialTerms: {
     paidPlanCommercialUseRequiresAccountApproval: true,
     outputRightsAssignedSubjectToTerms: true,
@@ -236,6 +237,7 @@ export interface MireloVideoGenerationRequest extends MireloBaseGenerationReques
     bytes: Uint8Array
     contentType: 'video/mp4' | 'video/webm'
     visualHash: string
+    sourceVisualHash: string
     artifactId: string
     artifactVersion: number
     startOffsetMs: number
@@ -368,7 +370,11 @@ function validateGenerationRequest(request: MireloGenerationRequest): void {
   if (!currentOperation ||
     currentOperation.manifest.toolManifestHash !== operationBinding.toolManifestHash ||
     currentOperation.operation.operationVersion !== operationBinding.operationVersion ||
-    !qualificationSupportsToolMode(currentOperation.operation.qualificationByMode.preview_execution, 'preview_execution')) {
+    !qualificationSupportsToolMode(
+      currentOperation.operation.qualificationByMode.preview_execution,
+      'preview_execution',
+      currentOperation.operation.qualificationEvidenceLevel,
+    )) {
     throw new Error('Mirelo operation is not fixture-qualified under the bound tool manifest.')
   }
   if (!Number.isInteger(request.candidateCount) || request.candidateCount < 1 ||
@@ -791,7 +797,7 @@ export class MireloSfxProviderAdapter {
         contentType,
         providerProfileKey: MIRELO_SFX_PROVIDER_PROFILE.profileKey,
         sourceVisualHash: request.operation === 'video_to_sfx'
-          ? request.privateVisualProxy.visualHash
+          ? request.privateVisualProxy.sourceVisualHash
           : undefined,
         providerVisualRejected,
       }))

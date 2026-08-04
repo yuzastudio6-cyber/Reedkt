@@ -1,6 +1,7 @@
 import { hashSkillValue } from './skill-capability-manifest-hash'
 import { skillAssignmentCoreSchema, skillAssignmentSchema, type SkillAssignmentInput } from './skill-assignment-schema'
 import type { SkillAssignment, SkillFrameRange } from './skill-assignment-types'
+import { timelineRatesEqual } from './timeline-rate'
 
 export function createSkillAssignment(input: SkillAssignmentInput): SkillAssignment {
   const core = skillAssignmentCoreSchema.parse(input)
@@ -18,7 +19,10 @@ export function isFrameRangeContained(
   candidate: SkillFrameRange,
   authority: SkillFrameRange,
 ): boolean {
-  return candidate.fps === authority.fps &&
+  const sameRate = candidate.timelineRate && authority.timelineRate
+    ? timelineRatesEqual(candidate.timelineRate, authority.timelineRate)
+    : !candidate.timelineRate && !authority.timelineRate && candidate.fps === authority.fps
+  return sameRate &&
     candidate.startFrameInclusive >= authority.startFrameInclusive &&
     candidate.endFrameExclusive <= authority.endFrameExclusive
 }

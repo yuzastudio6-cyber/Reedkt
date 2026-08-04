@@ -1,7 +1,5 @@
-import type {
-  SkillQualificationStatus,
-  SkillScopeLevel,
-} from '../../src/types/skill-capability-manifest'
+import type { SkillQualificationStatus } from '../edit-skills/core/edit-skill-ids'
+import type { SkillScopeLevel } from '../edit-skills/core/skill-capability-manifest-types'
 
 export const TOOL_CAPABILITY_MANIFEST_SCHEMA_VERSION =
   'tool-capability-manifest-v1' as const
@@ -40,6 +38,9 @@ export interface ToolOperationQualificationByMode {
   preview_execution: SkillQualificationStatus
   final_execution: SkillQualificationStatus
 }
+
+export type ToolQualificationEvidenceLevel =
+  | 'declared' | 'planning' | 'fixture' | 'internal_execution' | 'production' | 'blocked' | 'retired'
 
 export interface ToolMediaConstraints {
   acceptedContentTypes: string[]
@@ -90,6 +91,7 @@ export interface ToolOperationCapability {
   determinism: 'deterministic' | 'bounded_nondeterministic' | 'decision_deterministic'
   executionRequirements: ToolExecutionRequirements
   qualificationByMode: ToolOperationQualificationByMode
+  qualificationEvidenceLevel: ToolQualificationEvidenceLevel
   qualificationEvidenceRefs: string[]
   timeEstimatorKey: string
   creditEstimatorKey: string
@@ -136,6 +138,7 @@ export interface ToolCapabilityManifest {
   executionBoundary: ToolExecutionBoundary
   owningSystem: string
   qualificationStatus: SkillQualificationStatus
+  qualificationEvidenceLevel: ToolQualificationEvidenceLevel
   qualificationEvidenceRefs: string[]
   operations: ToolOperationCapability[]
   privacyPolicy: ToolPrivacyPolicy

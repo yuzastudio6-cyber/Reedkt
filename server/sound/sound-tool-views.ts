@@ -1,17 +1,7 @@
-import type {
-  SkillAssignmentEvaluation,
-  SkillCallerType,
-  SkillJobDescriptor,
-  SkillManifestBinding,
-  SkillTimeRange,
-} from '../../src/types/skill-capability-manifest'
 import {
   getToolCapabilityManifest,
   type ToolOperationBinding,
-  type ToolRuntimeStatus,
 } from '../tool-registry'
-import { planSkillAssignment } from '../orchestra/head-of-orchestra'
-import { soundSkillCapabilityManifest } from './sound-manifest'
 import {
   evaluateSoundToolRouteAdmission,
   getSoundToolRouteManifest,
@@ -20,118 +10,7 @@ import {
   type SoundToolRouteBinding,
 } from './sound-tool-route-manifest'
 import { registerCanonicalSoundToolRoutes } from './sound-tool-routes'
-
-export function createHeadOfOrchestraSoundView(input: {
-  job: SkillJobDescriptor
-  runtimeStatuses: ToolRuntimeStatus[]
-}) {
-  registerCanonicalSoundToolRoutes()
-  const assignment = planSkillAssignment('sound', input.job)
-  const capability = assignment.binding
-    ? soundSkillCapabilityManifest.capabilityEntries.find((entry) =>
-        entry.capabilityKey === assignment.binding?.capabilityKey)
-    : undefined
-  const routeKeys = new Set([
-    ...(capability?.primaryToolRoutes ?? []),
-    ...(capability?.fallbackRoutes ?? []),
-    ...(capability?.lowerCostRoutes ?? []),
-  ])
-  const routes = listSoundToolRouteManifests()
-    .filter((route) => route.capabilityKeys.includes(capability?.capabilityKey ?? '') || routeKeys.has(route.routeKey))
-    .map((route) => ({
-      routeKey: route.routeKey,
-      routeVersion: route.routeVersion,
-      routeHash: route.routeHash,
-      routeRole: route.routeRole,
-      qualificationStatus: route.qualificationStatus,
-      qualificationByMode: { ...route.qualificationByMode },
-      supportedScopes: [...route.supportedScopes],
-      dependencies: route.orderedOrGraphSteps.map((step) => ({
-        stepKey: step.stepKey,
-        dependencies: [...step.orderOrDependencies],
-      })),
-      fallbackRouteKeys: [...route.fallbackPolicy.fallbackRouteKeys],
-      attemptPolicyKey: route.attemptPolicyKey,
-      qa: {
-        planning: [...route.planningQa],
-        output: [...route.finalOutputQa],
-        integration: [...route.integrationQa],
-      },
-      limitations: [...route.knownLimitations],
-      runtimeAvailability: route.orderedOrGraphSteps.map((step) => {
-        const status = input.runtimeStatuses.find((candidate) =>
-          candidate.toolKey === step.toolKey && candidate.toolVersion === step.toolVersionConstraint)
-        return {
-          stepKey: step.stepKey,
-          toolKey: step.toolKey,
-          availabilityStatus: status?.availabilityStatus ?? 'unknown',
-          blockingReasons: [...(status?.blockingReasons ?? ['runtime_status_missing'])],
-        }
-      }),
-    }))
-  return {
-    skillKey: 'sound' as const,
-    skillVersion: soundSkillCapabilityManifest.skillVersion,
-    manifestHash: soundSkillCapabilityManifest.manifestHash,
-    supportedJobs: [...soundSkillCapabilityManifest.supportedJobTypes],
-    unsupportedJobs: [...soundSkillCapabilityManifest.unsupportedJobTypes],
-    scopeSupport: {
-      video: soundSkillCapabilityManifest.canOperateAtVideoLevel,
-      scene: soundSkillCapabilityManifest.canOperateAtSceneLevel,
-      boundary: soundSkillCapabilityManifest.canOperateAtBoundaryLevel,
-    },
-    ownership: [...soundSkillCapabilityManifest.ownershipRequirements],
-    dependencies: assignment.dependencies,
-    phaseOrdering: assignment.ordering,
-    conflicts: assignment.conflicts,
-    estimates: { time: assignment.timeEstimate, credits: assignment.creditEstimate },
-    attemptPolicy: assignment.attemptPolicy,
-    routes,
-    assignment,
-  }
-}
-
-export function createPeerSoundCapabilityView(input: {
-  callerType: Exclude<SkillCallerType, 'head_of_orchestra'>
-  callerSkillKey: string
-  job: SkillJobDescriptor
-  runtimeStatuses: ToolRuntimeStatus[]
-}) {
-  const assignment = planSkillAssignment('sound', input.job)
-  const capability = assignment.binding
-    ? soundSkillCapabilityManifest.capabilityEntries.find((entry) =>
-        entry.capabilityKey === assignment.binding?.capabilityKey)
-    : undefined
-  return {
-    skillKey: 'sound' as const,
-    callableCapability: capability?.capabilityKey,
-    acceptedCaller: capability?.acceptedCallerTypes.includes(input.callerType) ?? false,
-    requiredInputs: [...(capability?.requiredInputs ?? [])],
-    optionalInputs: [...(capability?.optionalInputs ?? [])],
-    supportedScopes: [...(capability?.supportedScopeLevels ?? [])],
-    producedArtifacts: [...(capability?.producedArtifactTypes ?? [])],
-    supportByMode: {
-      planning: capability ? capability.qualificationByExecutionMode.planning !== 'blocked' : false,
-      preview: capability ? ['fixture_qualified', 'private_internal_qualified', 'production_qualified']
-        .includes(capability.qualificationByExecutionMode.preview_execution) : false,
-      final: capability?.qualificationByExecutionMode.final_execution === 'production_qualified',
-    },
-    requiredVisualStability: capability?.visualIntelligenceRequirements ?? [],
-    expectedTime: assignment.timeEstimate,
-    expectedCredits: assignment.creditEstimate,
-    currentAdmissionStatus: assignment.status,
-    admissionReasons: [...assignment.reasons],
-    knownLimitations: [...(capability?.knownLimitations ?? [])],
-    requestBoundary: {
-      peerMayCallSoundCapability: true as const,
-      peerMayInvokeSoundToolsDirectly: false as const,
-      peerMaySupplyProviderPayload: false as const,
-      peerMaySupplyCredentials: false as const,
-      peerMaySelectExecutableOrArguments: false as const,
-      peerMayDispatchWorkers: false as const,
-    },
-  }
-}
+import type { SkillQualificationStatus } from '../edit-skills/core/edit-skill-ids'
 
 export function createSoundControllerToolView() {
   registerCanonicalSoundToolRoutes()
@@ -141,15 +20,17 @@ export function createSoundControllerToolView() {
       const manifest = getToolCapabilityManifest(step.toolKey, step.toolVersionConstraint)
       const operation = manifest?.operations.find((candidate) => candidate.operationKey === step.operationKey)
       if (!manifest || !operation) throw new Error(`Controller route operation is missing: ${step.stepKey}.`)
-      return { manifest, operation, operationProfileKey: step.operationProfileKey,
-        operationProfileVersion: step.operationProfileVersion }
+      return {
+        manifest,
+        operation,
+        operationProfileKey: step.operationProfileKey,
+        operationProfileVersion: step.operationProfileVersion,
+      }
     }),
   }))
 }
 
-export function admitSoundControllerRoute(
-  input: SoundRouteAdmissionInput,
-) {
+export function admitSoundControllerRoute(input: SoundRouteAdmissionInput) {
   registerCanonicalSoundToolRoutes()
   return evaluateSoundToolRouteAdmission(input)
 }
@@ -162,9 +43,24 @@ export interface SoundWorkerArtifactBinding {
   access: 'read_only' | 'create_new_version'
 }
 
+export interface SoundWorkerSkillBinding {
+  skillKey: 'sound'
+  skillVersion: string
+  manifestSchemaVersion: string
+  manifestHash: string
+  capabilityKey: string
+  capabilityVersion: string
+  qualificationStatus: SkillQualificationStatus
+}
+
+export interface SoundWorkerFrameRange {
+  startFrame: number
+  endFrameExclusive: number
+}
+
 export interface SoundWorkerOperationPackage {
-  schemaVersion: 'sound-worker-operation-package-v1'
-  skillBinding: SkillManifestBinding
+  schemaVersion: 'sound-worker-operation-package-v2'
+  skillBinding: SoundWorkerSkillBinding
   routeBinding: Omit<SoundToolRouteBinding, 'toolOperations'> & {
     toolOperations: [ToolOperationBinding]
   }
@@ -175,14 +71,11 @@ export interface SoundWorkerOperationPackage {
   }
   artifactBindings: SoundWorkerArtifactBinding[]
   rangeAuthority: {
-    inspectRanges: SkillTimeRange[]
-    audioWriteRanges: SkillTimeRange[]
-    visualWriteRanges: SkillTimeRange[]
+    inspectRanges: SoundWorkerFrameRange[]
+    audioWriteRanges: SoundWorkerFrameRange[]
+    visualWriteRanges: SoundWorkerFrameRange[]
   }
-  attemptIdentity: {
-    attemptId: string
-    idempotencyKey: string
-  }
+  attemptIdentity: { attemptId: string; idempotencyKey: string }
   outputContract: {
     artifactTypes: string[]
     privateOnly: true
@@ -192,13 +85,13 @@ export interface SoundWorkerOperationPackage {
 }
 
 export function createSoundWorkerOperationPackage(input: {
-  skillBinding: SkillManifestBinding
+  skillBinding: SoundWorkerSkillBinding
   routeBinding: SoundToolRouteBinding
   stepKey: string
   artifactBindings: SoundWorkerArtifactBinding[]
-  inspectRanges: SkillTimeRange[]
-  audioWriteRanges: SkillTimeRange[]
-  visualWriteRanges: SkillTimeRange[]
+  inspectRanges: SoundWorkerFrameRange[]
+  audioWriteRanges: SoundWorkerFrameRange[]
+  visualWriteRanges: SoundWorkerFrameRange[]
   attemptId: string
   idempotencyKey: string
 }): SoundWorkerOperationPackage {
@@ -207,12 +100,12 @@ export function createSoundWorkerOperationPackage(input: {
   const step = route.orderedOrGraphSteps.find((candidate) => candidate.stepKey === input.stepKey)
   if (!step) throw new Error('Sound worker step is not part of the bound route.')
   const operationBinding = input.routeBinding.toolOperations.find((candidate) =>
-    candidate.toolKey === step.toolKey &&
-    candidate.operationKey === step.operationKey &&
-    candidate.operationProfileKey === step.operationProfileKey)
+    candidate.toolKey === step.toolKey && candidate.operationKey === step.operationKey &&
+    candidate.operationProfileKey === step.operationProfileKey &&
+    candidate.operationProfileVersion === step.operationProfileVersion)
   if (!operationBinding) throw new Error('Sound worker step lacks an exact qualified operation binding.')
   return {
-    schemaVersion: 'sound-worker-operation-package-v1',
+    schemaVersion: 'sound-worker-operation-package-v2',
     skillBinding: structuredClone(input.skillBinding),
     routeBinding: {
       routeKey: input.routeBinding.routeKey,
@@ -234,16 +127,8 @@ export function createSoundWorkerOperationPackage(input: {
     },
     attemptIdentity: { attemptId: input.attemptId, idempotencyKey: input.idempotencyKey },
     outputContract: {
-      artifactTypes: [...step.outputBindings],
-      privateOnly: true,
-      sourceOverwriteAllowed: false,
-      providerVisualMayReplaceApprovedVisual: false,
+      artifactTypes: [...step.outputBindings], privateOnly: true,
+      sourceOverwriteAllowed: false, providerVisualMayReplaceApprovedVisual: false,
     },
   }
-}
-
-export function assignmentHasSoundToolAuthority(
-  assignment: SkillAssignmentEvaluation,
-): assignment is SkillAssignmentEvaluation & { binding: SkillManifestBinding } {
-  return assignment.ok && assignment.binding?.skillKey === 'sound'
 }

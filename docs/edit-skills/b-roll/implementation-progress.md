@@ -1840,6 +1840,70 @@ worker binding, paid provider call, public delivery, production mutation,
 orchestra, Track All implementation, or Visual Intelligence implementation
 was added.
 
+## M27 — strict active artifact contracts
+
+Status: implementation complete, committed, pushed, and targeted-qualified.
+
+Implementation commit:
+`397b6546a06c2179b98baca9e506802324dff8eb`.
+
+Remote confirmation: `git push -u origin HEAD` advanced
+`origin/codex/reeditpro-b-roll-skill-end-to-end` to
+`397b6546a06c2179b98baca9e506802324dff8eb`; local and remote refs matched
+exactly after the push.
+
+Every active accepted and produced B-roll artifact now resolves to one of 29
+strict type-specific schemas. The static manifest validator rejects an active
+role backed only by a `legacy_read_only_generic` envelope. The obsolete active
+`skill_qualification_receipt_v1` declaration is replaced by
+`skill_qualification_receipt_v2` and the current receipt-v2 schema.
+
+Raw MP4/NUT bytes remain in the canonical private binary/object store. Public
+work results now carry the strict, content-addressed
+`b_roll_candidate_media_manifest_v1` reference for Gemini output, normalized
+candidate media, and prepared existing-source media. The manifest binds exact
+tenant/edit/assignment/plan/graph/work-item lineage, provider attempt and
+route when applicable, private object identity/checksum, bounded media facts,
+source/reference hashes, proof classification, cost/usage evidence, and
+explicit private-only/no-public-delivery/no-automatic-selection/no-timeline-
+mutation policy. Private Remotion output uses the corresponding strict
+`b_roll_private_preview_media_manifest_v1` contract. The internal
+`provider_b_roll_candidate_video_mp4` identity remains only as the private
+provider/QA role and cannot satisfy an active public artifact slot.
+
+The create-only JSON artifact store now rejects structured artifact content
+whose declared owner/workspace/project differs from the persistence scope.
+The public plugin E2E uses strict no-action and generated-media values and
+still imports zero private mini-skills. The generated manifest documentation
+was regenerated from the canonical TypeScript manifest; final manifest hash
+for this milestone is
+`40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0`.
+
+Actual M27 evidence:
+
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-active-artifact-contracts`
+  — passed 29 active strict contracts, provider/source/preview media manifests,
+  stale-hash, raw-byte, provider-URL, public-delivery, automatic-selection,
+  timeline-mutation, cross-scope, legacy-generic, and stale-receipt-type cases.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  — passed the strict public plan, graph, dependency, work-result, no-action,
+  and generated-candidate lifecycle with zero private mini-skill imports.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-runtime-bindings`
+  — passed all 13 exact bindings and 27 adversarial cases against the new
+  artifact roles.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-capability-manifest`,
+  `npm run validate:skill-capability-manifests`, and
+  `npm run test:edit-skill-capability-kernel` — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run typecheck:server`,
+  `npm run lint`, and `git diff --check` — passed.
+
+The provider-authority smoke reached the expected stale generated-receipt
+gate after validating its updated JSON media-manifest output contract. That
+receipt is intentionally not regenerated mid-closeout; the clean M30 aggregate
+qualification run will execute the complete provider-authority smoke and issue
+the exact final receipt. No test was skipped or weakened, and no qualification
+status is newly claimed by M27 alone.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1871,3 +1935,4 @@ was added.
 | M24 | `070f4dccf` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
 | M25 | `27c41b84c` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
 | M26 | `89692e838` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
+| M27 | `397b6546a` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |

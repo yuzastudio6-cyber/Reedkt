@@ -8,6 +8,7 @@ import {
 } from './b-roll-qa-policy'
 import { BROLL_QUALIFICATION_FIXTURES } from './b-roll-qualification'
 import { BROLL_CANONICAL_WORK_DEFINITIONS } from './b-roll-work-graph-compiler'
+import { BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE } from './b-roll-visual-intelligence-dependency'
 
 export const BROLL_JOB_TYPES = [
   'validate_b_roll_assignment',
@@ -146,7 +147,7 @@ export const BROLL_CAPABILITY_MANIFEST = createSkillCapabilityManifest({
   ],
   optionalInputs: [
     { key: 'transcript', artifactType: 'transcript_evidence_v1', description: 'Meaning and phrase anchors.', minimumCount: 0, maximumCount: 1 },
-    { key: 'visual_intelligence', artifactType: 'visual_intelligence_report_v1', description: 'Validated semantic visual context.', minimumCount: 0, maximumCount: 1 },
+    { key: 'visual_intelligence_candidate_qa', artifactType: BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE, description: 'Model-neutral semantic QA for an exact generated or provider-edited candidate.', minimumCount: 0, maximumCount: 1 },
     { key: 'edit_preference', artifactType: 'edit_preference_snapshot_v1', description: 'Exact edit preference authority.', minimumCount: 0, maximumCount: 1 },
     { key: 'reference_dna', artifactType: 'reference_dna_v1', description: 'Style influence with do-not-copy constraints.', minimumCount: 0, maximumCount: 1 },
     { key: 'caption_zones', artifactType: 'caption_reserved_zones_v1', description: 'Caption ownership and reserved layout windows.', minimumCount: 0, maximumCount: 1 },
@@ -164,12 +165,12 @@ export const BROLL_CAPABILITY_MANIFEST = createSkillCapabilityManifest({
     { requirementKey: 'immutable_source_identity', acceptedArtifactTypes: ['source_inventory_v1', 'source_media_artifact_v1'], condition: 'source_route_selected', missingBehavior: 'block' },
     { requirementKey: 'source_checksum', acceptedArtifactTypes: ['source_media_artifact_v1', 'approved_user_asset_v1'], condition: 'source_or_reference_asset_selected', missingBehavior: 'block' },
     { requirementKey: 'rights_privacy_and_proof', acceptedArtifactTypes: ['source_inventory_v1', 'approved_user_asset_v1'], condition: 'non_project_or_generated_input_selected', missingBehavior: 'needs_user_confirmation' },
-    { requirementKey: 'crop_feasibility', acceptedArtifactTypes: ['visual_intelligence_report_v1', 'source_inventory_v1'], condition: 'source_or_candidate_selected', missingBehavior: 'use_no_action' },
+    { requirementKey: 'crop_feasibility', acceptedArtifactTypes: ['source_inventory_v1'], condition: 'existing_source_selected', missingBehavior: 'use_no_action' },
   ],
   visualIntelligenceRequirements: [
     {
       requirementKey: 'candidate_semantic_acceptance',
-      requiredArtifactType: 'visual_intelligence_report_v1',
+      requiredArtifactType: BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE,
       requiredForPhase: 'skill_output_qa',
       condition: 'generated_or_provider_edited_candidate',
       semanticQaRequirement: 'required_for_generated_or_provider_edited',

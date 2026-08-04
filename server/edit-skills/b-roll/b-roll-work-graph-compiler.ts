@@ -115,7 +115,7 @@ export const BROLL_CANONICAL_WORK_DEFINITIONS: readonly BrollCanonicalWorkDefini
   },
   {
     jobType: 'run_b_roll_semantic_visual_qa', operationId: 'b_roll.internal.run_semantic_visual_qa.v1',
-    workerClass: 'qa_worker', inputArtifactTypes: ['b_roll_candidate_version_v1', 'visual_intelligence_report_v1'],
+    workerClass: 'qa_worker', inputArtifactTypes: ['b_roll_candidate_version_v1', 'visual_intelligence_candidate_qa_v1'],
     output: 'b_roll_qa_report_v1', allowedPhase: 'skill_output_qa', toolOrProviderCredits: 2,
     qa: ['b_roll.output.semantic_alignment', 'b_roll.output.no_proof_misrepresentation'],
   },

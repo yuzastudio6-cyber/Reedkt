@@ -486,7 +486,7 @@ function observation(input: {
   cameraIntent: boolean
   evidenceLabel: string
 }) {
-  return createBrollSemanticVisualObservation({
+  const value = createBrollSemanticVisualObservation({
     schemaVersion: 'b_roll_semantic_visual_observation_v1',
     candidateSha256: input.candidateSha256,
     assignmentHash: input.assignmentHash,
@@ -494,6 +494,7 @@ function observation(input: {
     conceptKey: input.conceptKey,
     authorizedRangeHash: input.authorizedRangeHash,
     observationSource: 'internal_injected_visual_observation_v1',
+    testOnly: true,
     evidenceArtifactHash: hashSkillValue({ evidence: input.evidenceLabel }),
     confidenceMillionths: 950_000,
     checks: {
@@ -511,6 +512,9 @@ function observation(input: {
     automaticSelectionAllowed: false,
     productionQualified: false,
   })
+  assert.equal(value.testOnly, true)
+  assert.equal(value.productionQualified, false)
+  return value
 }
 
 function shaText(value: string): string {

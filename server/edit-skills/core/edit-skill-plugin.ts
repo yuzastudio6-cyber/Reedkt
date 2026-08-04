@@ -39,10 +39,16 @@ const editSkillPublicPlanCoreSchema = z.object({
     context.addIssue({ code: 'custom', message: 'A needs_other_skill plan must carry a typed dependency request.' })
   }
   if (
-    value.envelope.disposition !== 'needs_other_skill' &&
+    !['needs_other_skill', 'use_skill'].includes(value.envelope.disposition) &&
     value.dependencyRequests.length !== 0
   ) {
-    context.addIssue({ code: 'custom', message: 'Only needs_other_skill plans may carry blocking dependency requests.' })
+    context.addIssue({ code: 'custom', message: 'Only active or needs_other_skill plans may carry typed dependency requests.' })
+  }
+  if (
+    value.envelope.disposition === 'use_skill' &&
+    value.dependencyRequests.some((request) => request.requiredForPhase === 'skill_planning')
+  ) {
+    context.addIssue({ code: 'custom', message: 'An active plan cannot defer a planning-phase dependency.' })
   }
   const evidenceKeys = value.evidenceRefs.map((ref) =>
     `${ref.artifactType}:${ref.sha256}:${ref.ownerUserId}:${ref.workspaceId}:${ref.projectId}`)
@@ -212,6 +218,8 @@ export interface EditSkillPlugin {
     plan: EditSkillPublicPlan
     request: EditSkillDependencyRequest
     artifactRef: EditSkillArtifactReference
+    workGraph?: EditSkillApprovedWorkGraph
+    relatedWorkItemResult?: EditSkillWorkResult
   }): Promise<EditSkillDependencyAcceptance>
 
   validateWorkItemResult(input: {

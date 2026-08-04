@@ -48,6 +48,11 @@ import {
   compileBrollCanonicalWorkGraph,
 } from './b-roll-work-graph-compiler'
 import { trackGraphV1Schema } from './b-roll-artifact-types'
+import {
+  BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE,
+  assertBrollVisualIntelligenceCandidateQa,
+  brollVisualIntelligenceCandidateQaSchema,
+} from './b-roll-visual-intelligence-dependency'
 
 interface LoadedBrollAuthority {
   assignment: BrollSkillAssignment
@@ -177,8 +182,9 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       payloadHash: planRef.sha256,
       ...(disposition === 'needs_other_skill' ? { dependencySkillKey: plan.dependencySkillKey } : {}),
     })
-    const dependencyRequests = disposition === 'needs_other_skill'
-      ? [createEditSkillDependencyRequest({
+    const dependencyRequests: EditSkillDependencyRequest[] = []
+    if (disposition === 'needs_other_skill') {
+      dependencyRequests.push(createEditSkillDependencyRequest({
         schemaVersion: 'edit-skill-dependency-request-v1',
         requestId: `b-roll-${plan.planHash.slice(0, 20)}-track-graph`,
         assignmentId: assignment.assignmentId,
@@ -193,8 +199,25 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
         minimumQualificationStatus: 'internal_execution_qualified',
         reason: 'The approved B-roll treatment requires a model-neutral track graph for the exact assignment range.',
         required: true,
-      })]
-      : []
+      }))
+    } else if (disposition === 'use_skill' && plan.providerRequestPlanned) {
+      dependencyRequests.push(createEditSkillDependencyRequest({
+        schemaVersion: 'edit-skill-dependency-request-v1',
+        requestId: `b-roll-${plan.planHash.slice(0, 20)}-visual-intelligence-qa`,
+        assignmentId: assignment.assignmentId,
+        assignmentHash: assignment.assignmentHash,
+        planId: envelope.planId,
+        planHash: envelope.planHash,
+        manifestRef: assignment.manifestRef,
+        authorizedRange: assignment.authorizedRange,
+        dependencySkillKey: 'visual_intelligence',
+        requiredArtifactType: BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE,
+        requiredForPhase: 'skill_output_qa',
+        minimumQualificationStatus: 'internal_execution_qualified',
+        reason: 'A generated or provider-edited candidate requires model-neutral semantic Visual Intelligence QA before B-roll acceptance.',
+        required: true,
+      }))
+    }
     return createEditSkillPublicPlan({
       schemaVersion: 'edit-skill-public-plan-v1',
       envelope,
@@ -251,6 +274,8 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
     plan: EditSkillPublicPlan
     request: EditSkillDependencyRequest
     artifactRef: SkillAssignment['dependencyArtifactRefs'][number]
+    workGraph?: EditSkillApprovedWorkGraph
+    relatedWorkItemResult?: EditSkillWorkResult
   }): Promise<EditSkillDependencyAcceptance> {
     const assignment = this.#assertAssignment(input.assignment)
     await this.#assertPlan(assignment, input.plan)
@@ -272,16 +297,51 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       reference: input.artifactRef,
       ...scopeFor(assignment),
     })
-    if (request.requiredArtifactType !== 'track_graph_v1') {
+    let productionQualified = false
+    if (request.requiredArtifactType === 'track_graph_v1') {
+      const graph = trackGraphV1Schema.parse(value)
+      if (
+        graph.ownerUserId !== assignment.ownerUserId ||
+        graph.workspaceId !== assignment.workspaceId ||
+        graph.projectId !== assignment.projectId ||
+        graph.assignmentId !== assignment.assignmentId ||
+        graph.assignmentHash !== assignment.assignmentHash ||
+        hashSkillValue(graph.authorizedRange) !== hashSkillValue(assignment.authorizedRange) ||
+        hashSkillValue(graph) !== input.artifactRef.sha256
+      ) throw new Error('B-roll rejected a forged, cross-workspace, or range-incompatible Track All artifact.')
+    } else if (
+      request.requiredArtifactType === BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE
+    ) {
+      if (!input.workGraph || !input.relatedWorkItemResult) {
+        throw new Error('B-roll Visual Intelligence QA acceptance requires its exact generated candidate work result.')
+      }
+      const result = await this.validateWorkItemResult({
+        assignment,
+        plan: input.plan,
+        workGraph: input.workGraph,
+        result: input.relatedWorkItemResult,
+      })
+      const item = input.workGraph.workItems.find((candidate) =>
+        candidate.workItemKey === result.workItemKey)
+      const candidateArtifact = result.outputArtifactRefs.find((ref) =>
+        ref.artifactType === 'provider_b_roll_candidate_video_mp4')
+      if (
+        item?.jobType !== 'generate_b_roll_candidate' ||
+        result.status !== 'succeeded' ||
+        !candidateArtifact
+      ) throw new Error('B-roll Visual Intelligence QA is not bound to the generated candidate work item.')
+      const artifact = assertBrollVisualIntelligenceCandidateQa({
+        artifact: value,
+        assignment,
+        plan: input.plan,
+        request,
+        candidateArtifact,
+        requireProduction: false,
+      })
+      productionQualified = artifact.productionQualificationStatus === 'production_qualified'
+    } else {
       throw new Error(`B-roll does not accept dependency artifact ${request.requiredArtifactType}.`)
     }
-    const graph = trackGraphV1Schema.parse(value)
-    if (
-      graph.ownerUserId !== assignment.ownerUserId ||
-      graph.workspaceId !== assignment.workspaceId ||
-      graph.projectId !== assignment.projectId ||
-      hashSkillValue(graph) !== input.artifactRef.sha256
-    ) throw new Error('B-roll rejected a forged or cross-workspace Track All artifact.')
     return createEditSkillDependencyAcceptance({
       schemaVersion: 'edit-skill-dependency-acceptance-v1',
       requestHash: request.requestHash,
@@ -292,7 +352,7 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       artifactRef: input.artifactRef,
       validatedArtifactHash: input.artifactRef.sha256,
       acceptedForPhase: request.requiredForPhase,
-      productionQualified: false,
+      productionQualified,
     })
   }
 
@@ -353,9 +413,8 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
     const acceptedRequestHashes = new Set(acceptances.map((value) => value.requestHash))
     if (
       acceptances.length !== acceptedRequestHashes.size ||
-      requiredRequestHashes.size !== acceptedRequestHashes.size ||
-      [...requiredRequestHashes].some((hash) => !acceptedRequestHashes.has(hash))
-    ) throw new Error('B-roll finalization requires the exact dependency acceptance set.')
+      [...acceptedRequestHashes].some((hash) => !requiredRequestHashes.has(hash))
+    ) throw new Error('B-roll finalization rejected a duplicate or unknown dependency acceptance.')
     for (const acceptance of acceptances) {
       if (
         acceptance.assignmentId !== assignment.assignmentId ||
@@ -364,6 +423,64 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
         !sameValue(acceptance.manifestRef, assignment.manifestRef)
       ) throw new Error('B-roll dependency acceptance is stale or cross-assignment.')
     }
+    const visualIntelligenceRequest = input.plan.dependencyRequests.find((request) =>
+      request.requiredArtifactType === BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE)
+    if (
+      visualIntelligenceRequest &&
+      !acceptedRequestHashes.has(visualIntelligenceRequest.requestHash)
+    ) {
+      const providerItem = input.workGraph.workItems.find((item) =>
+        item.jobType === 'generate_b_roll_candidate')
+      const providerResultInput = input.workItemResults.find((result) =>
+        result.workItemKey === providerItem?.workItemKey)
+      if (!providerItem || !providerResultInput) {
+        throw new Error('B-roll cannot request candidate semantic QA before candidate generation succeeds.')
+      }
+      const providerResult = await this.validateWorkItemResult({
+        ...input,
+        result: providerResultInput,
+      })
+      const candidateArtifact = providerResult.outputArtifactRefs.find((ref) =>
+        ref.artifactType === 'provider_b_roll_candidate_video_mp4')
+      if (providerResult.status !== 'succeeded' || !candidateArtifact) {
+        throw new Error('B-roll cannot request semantic QA for a failed or missing candidate.')
+      }
+      const envelope = createSkillResultEnvelope({
+        schemaVersion: 'edit-skill-result-envelope-v1',
+        resultId: hashSkillValue({
+          domain: 'reeditpro:public-edit-skill-needs-visual-intelligence:v1',
+          assignmentHash: assignment.assignmentHash,
+          planHash: input.plan.envelope.planHash,
+          candidateArtifactHash: candidateArtifact.sha256,
+          dependencyRequestHash: visualIntelligenceRequest.requestHash,
+        }),
+        planId: input.plan.envelope.planId,
+        planHash: input.plan.envelope.planHash,
+        assignmentId: assignment.assignmentId,
+        assignmentHash: assignment.assignmentHash,
+        manifestRef: assignment.manifestRef,
+        authorizedRange: assignment.authorizedRange,
+        disposition: 'needs_other_skill',
+        resultArtifactType: candidateArtifact.artifactType,
+        resultArtifactHash: candidateArtifact.sha256,
+        qaEvidenceHashes: [
+          ...input.plan.evidenceRefs.map((ref) => ref.sha256),
+          ...providerResult.qaEvidenceArtifactRefs.map((ref) => ref.sha256),
+        ],
+        mutationRanges: providerResult.mutationRanges,
+      })
+      return createEditSkillResultReceipt({
+        schemaVersion: 'edit-skill-result-receipt-v1',
+        envelope,
+        approvedWorkGraphHash: input.workGraph.approvedWorkGraphHash,
+        workItemResultHashes: [providerResult.workResultHash],
+        dependencyAcceptanceHashes: acceptances.map((value) => value.acceptanceHash),
+      })
+    }
+    if (
+      requiredRequestHashes.size !== acceptedRequestHashes.size ||
+      [...requiredRequestHashes].some((hash) => !acceptedRequestHashes.has(hash))
+    ) throw new Error('B-roll finalization requires the exact dependency acceptance set.')
     const resultKeys = new Set(input.workItemResults.map((value) => value.workItemKey))
     if (
       resultKeys.size !== input.workItemResults.length ||
@@ -377,6 +494,37 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
         throw new Error('B-roll cannot finalize while approved work has failed.')
       }
       results.push(validated)
+    }
+    if (visualIntelligenceRequest) {
+      const acceptance = acceptances.find((value) =>
+        value.requestHash === visualIntelligenceRequest.requestHash)
+      const providerItem = input.workGraph.workItems.find((item) =>
+        item.jobType === 'generate_b_roll_candidate')
+      const providerResult = results.find((result) =>
+        result.workItemKey === providerItem?.workItemKey)
+      const candidateArtifact = providerResult?.outputArtifactRefs.find((ref) =>
+        ref.artifactType === 'provider_b_roll_candidate_video_mp4')
+      if (!acceptance || !candidateArtifact) {
+        throw new Error('B-roll finalization lacks exact generated candidate semantic QA lineage.')
+      }
+      const artifact = brollVisualIntelligenceCandidateQaSchema.parse(
+        await this.#artifacts.readJson({
+          reference: acceptance.artifactRef,
+          ...scopeFor(assignment),
+        }),
+      )
+      assertBrollVisualIntelligenceCandidateQa({
+        artifact,
+        assignment,
+        plan: input.plan,
+        request: visualIntelligenceRequest,
+        candidateArtifact,
+        requireProduction: acceptance.productionQualified,
+      })
+      if (
+        acceptance.productionQualified !==
+        (artifact.productionQualificationStatus === 'production_qualified')
+      ) throw new Error('B-roll dependency acceptance overclaims Visual Intelligence qualification.')
     }
     const finalItem = input.workGraph.workItems.at(-1)
     const finalResult = results.find((value) => value.workItemKey === finalItem?.workItemKey)

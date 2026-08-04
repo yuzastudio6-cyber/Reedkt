@@ -546,6 +546,7 @@ function observation(input: {
     conceptKey: input.conceptKey,
     authorizedRangeHash: input.authorizedRangeHash,
     observationSource: 'internal_injected_visual_observation_v1',
+    testOnly: true,
     evidenceArtifactHash: hashSkillValue({ evidence: input.label }),
     confidenceMillionths: 950_000,
     checks: {

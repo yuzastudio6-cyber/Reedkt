@@ -6,7 +6,7 @@
     "master_timing_plan_v1",
     "visual_ownership_manifest_v1",
     "transcript_evidence_v1",
-    "visual_intelligence_report_v1",
+    "visual_intelligence_candidate_qa_v1",
     "edit_preference_snapshot_v1",
     "reference_dna_v1",
     "caption_reserved_zones_v1",
@@ -481,7 +481,7 @@
       ]
     }
   ],
-  "manifestHash": "2286d154c68eca75120d5d652ca4c78e4d572bfc250052a727db7b56d26da19b",
+  "manifestHash": "2b67926842589aa75b2b530d36e998a1042afe7c3e8d2079631084d64d8bf97d",
   "mayOverlapWith": [
     {
       "condition": "caption_safe_area_preserved",
@@ -559,9 +559,9 @@
       "minimumCount": 0
     },
     {
-      "artifactType": "visual_intelligence_report_v1",
-      "description": "Validated semantic visual context.",
-      "key": "visual_intelligence",
+      "artifactType": "visual_intelligence_candidate_qa_v1",
+      "description": "Model-neutral semantic QA for an exact generated or provider-edited candidate.",
+      "key": "visual_intelligence_candidate_qa",
       "maximumCount": 1,
       "minimumCount": 0
     },
@@ -1143,10 +1143,9 @@
     },
     {
       "acceptedArtifactTypes": [
-        "visual_intelligence_report_v1",
         "source_inventory_v1"
       ],
-      "condition": "source_or_candidate_selected",
+      "condition": "existing_source_selected",
       "missingBehavior": "use_no_action",
       "requirementKey": "crop_feasibility"
     }
@@ -1364,7 +1363,7 @@
       ],
       "requiredArtifactTypes": [
         "b_roll_candidate_version_v1",
-        "visual_intelligence_report_v1"
+        "visual_intelligence_candidate_qa_v1"
       ],
       "runtimeBindingRequired": true
     },
@@ -1695,7 +1694,7 @@
       "condition": "generated_or_provider_edited_candidate",
       "injectedTestOnlyBehavior": "reject_for_production",
       "productionAcceptanceRequirement": "production_qualified_producer",
-      "requiredArtifactType": "visual_intelligence_report_v1",
+      "requiredArtifactType": "visual_intelligence_candidate_qa_v1",
       "requiredForPhase": "skill_output_qa",
       "requirementKey": "candidate_semantic_acceptance",
       "semanticQaRequirement": "required_for_generated_or_provider_edited",

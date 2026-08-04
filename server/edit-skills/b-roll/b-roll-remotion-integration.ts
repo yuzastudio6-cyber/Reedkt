@@ -885,6 +885,10 @@ function validateTrackGraph(
     graph.ownerUserId !== assignment.ownerUserId ||
     graph.workspaceId !== assignment.workspaceId ||
     graph.projectId !== assignment.projectId ||
+    graph.assignmentId !== assignment.assignmentId ||
+    graph.assignmentHash !== assignment.assignmentHash ||
+    hashSkillValue(graph.authorizedRange) !==
+      hashSkillValue(assignment.writeRangeAuthority.authorizedRange) ||
     hashSkillValue(graph) !== reference.sha256 ||
     Buffer.byteLength(canonicalSkillJson(graph), 'utf8') !== reference.byteLength ||
     stableAuthorityStringify(reference) !==

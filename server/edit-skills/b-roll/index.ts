@@ -52,6 +52,7 @@ export * from './b-roll-remotion-integration'
 export * from './b-roll-plan-compiler'
 export * from './b-roll-schemas'
 export * from './b-roll-work-graph-compiler'
+export * from './b-roll-visual-intelligence-dependency'
 
 export function registerBrollSkill(input: {
   capabilities: SkillCapabilityRegistry

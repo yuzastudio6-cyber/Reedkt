@@ -1071,6 +1071,96 @@ receipt and does not promote production status. No orchestra, Track All,
 Visual Intelligence, paid provider, public delivery, production mutation, or
 billing work was performed.
 
+## M17 — evidence-backed internal qualification
+
+Status: completed and pushed.
+
+Qualification implementation commit:
+`a106dafd32c8937ba60bdbd768eaf1c71ae590d6`.
+
+Retirement-guard correction commit:
+`5ae78d139f63a720de994fcfd8ad502b6cbc0530`.
+
+Generated qualification artifact commit:
+`44bfb91982cd6c92b06f582ec810094019a64ce1`.
+
+Removed all B-roll startup factories that declared planning or internal
+qualification from fixture names. Qualification receipt V2 and fixture
+evidence V1 now bind the exact manifest, tested commit, relevant source-tree
+hash, command, start/completion times, actual exit status, stdout/stderr
+digests, produced evidence hashes, environment class, and zero external/public/
+production-mutation counters. The runtime loads the frozen generated artifact,
+recomputes the relevant source-tree hash, validates every content hash and
+fixture-to-command edge, and fails closed when the artifact is missing, stale,
+forged, planning-only, or below the manifest claim.
+
+`npm run qualify:b-roll:internal` now runs a two-phase bootstrap from a clean
+Git tree. Phase A captures actual planning, contract, build, typecheck, lint,
+and boundary evidence and temporarily installs only a planning-qualified
+receipt. Phase B runs the provider-authority, retirement, candidate, source,
+lifecycle, canonical, Remotion, and security suites through that receipt. Only
+after all 36 required fixtures pass does it install the final
+`internal_execution_qualified` artifact. Raw logs, credentials, provider
+responses, media, caches, public artifacts, and production mutations are not
+stored.
+
+The first aggregate attempt correctly failed because the retirement allowlist
+had not yet classified the new canonical qualification CLI. It emitted no
+internal receipt and restored the fail-closed placeholder. Commit
+`5ae78d139f63a720de994fcfd8ad502b6cbc0530` corrected that guard without
+weakening retirement checks; the clean rerun then passed.
+
+Final evidence:
+
+- Tested commit:
+  `5ae78d139f63a720de994fcfd8ad502b6cbc0530`.
+- Relevant source-tree hash:
+  `b6abaa4a02e1e6335b0db6e10fc84aa01dd4c9faa19bef6ec2f10d8367377f60`.
+- Manifest hash:
+  `a0e5ae901f47cd00b07eeb814059c7631012c5e424c072b10f1ebf1cd43c083d`.
+- Qualification receipt hash:
+  `25032b7e9499895e0dd9beecfef0a4644455bb5a35f84a765971fa7619978e31`.
+- Generated artifact hash:
+  `2755e41c7e7b14570fa1fd5cf532a80b912524a42aaecc9b9ac7a0785e10689e`.
+- Evidence counts: 24 actual command records and 36 required fixture records;
+  all passed, with zero provider requests, public artifacts, or production
+  mutations.
+
+Commands captured by the aggregate qualifier:
+
+- `npm run test:b-roll-planning`
+- `npm run test:b-roll-planning-qa`
+- `npm run test:b-roll-qualification-evidence`
+- `npm run test:b-roll-plan-invariants`
+- `npm run test:b-roll-public-plugin`
+- `npm run test:b-roll-runtime-bindings`
+- `npm run test:b-roll-capability-manifest`
+- `npm run validate:skill-capability-manifests`
+- `npm run test:edit-skill-capability-kernel`
+- `npm run build`
+- `npm run typecheck:server`
+- `npm run lint`
+- `npm run check:frontend-boundary`
+- `npm run smoke:b-roll-provider-authority`
+- `npm run smoke:b-roll-retirement`
+- `npm run smoke:b-roll-end-to-end`
+- `npm run smoke:b-roll-candidate-qa`
+- `npm run smoke:b-roll-existing-source`
+- `npm run smoke:b-roll-provider-lifecycle`
+- `npm run test:b-roll-canonical-integration`
+- `npm run smoke:b-roll-remotion-integration`
+- `npm run smoke:runtime-api-security`
+- `npm run smoke:edit-execution-security-boundary`
+- `npm run smoke:idempotency-boundary`
+
+Normal-runtime verification of the frozen receipt also passed
+`test:b-roll-qualification-evidence`, `test:b-roll-capability-manifest`,
+`test:b-roll-planning`, `smoke:b-roll-end-to-end`, and
+`test:b-roll-canonical-integration`. Production qualification remains false;
+none of the five production fixtures ran. No orchestra, Track All, Visual
+Intelligence, paid provider call, public delivery, final export, production
+mutation, or billing work was performed.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1092,3 +1182,4 @@ billing work was performed.
 | M14 | `5e4f1dc0d` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M15 | `588193497` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M16 | `4eb0371e6` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M17 | `44bfb9198` | this bookkeeping commit | pending | `internal_execution_qualified` |

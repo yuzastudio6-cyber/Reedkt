@@ -45,7 +45,6 @@ import {
 } from '../services/canonical-source-cleanup-authority-repository'
 import {
   createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort,
-  type CanonicalSourceTranscriptOrchestraReadPort,
 } from '../services/canonical-source-led-orchestra-content-analysis-reconciliation'
 import {
   createCanonicalSourceLedOrchestraPlanningReconciliationPort,
@@ -54,6 +53,10 @@ import {
 import type {
   CanonicalSourceLedProfessionalContentAnalysisReasoner,
 } from '../services/canonical-source-led-professional-content-analysis-port'
+import {
+  createCanonicalSourceTranscriptOrchestraRepository,
+  type CanonicalSourceTranscriptOrchestraRepository,
+} from '../services/canonical-source-transcript-orchestra-repository'
 import {
   createCanonicalSourceVisualIntelligenceOrchestraBindingStore,
   createCanonicalSourceVisualIntelligenceOrchestraConsumerBindingPort,
@@ -154,6 +157,8 @@ export interface VisualIntelligenceProductionRuntime {
     CanonicalSourceAnalysisRequestAuthorityRepository
   readonly sourceAnalysisProbeAuthorityRepository:
     CanonicalSourceAnalysisProbeAuthorityRepository
+  readonly sourceTranscriptOrchestraRepository:
+    CanonicalSourceTranscriptOrchestraRepository
   readonly createSourceAnalysisL4ProbeAttemptOwner: (input: {
     readonly finalizedAuthorityReadPort:
       CanonicalSourceAnalysisFinalizedAuthorityReadPort
@@ -173,7 +178,6 @@ export interface VisualIntelligenceProductionRuntime {
   }) => CanonicalSourceAnalysisPreparationOwner
   readonly createSourceLedOrchestraPlanningReconciliationPort: (
     input: {
-      readonly transcriptReadPort: CanonicalSourceTranscriptOrchestraReadPort
       readonly reasoner:
         CanonicalSourceLedProfessionalContentAnalysisReasoner
     },
@@ -270,6 +274,8 @@ export async function createVisualIntelligenceProductionRuntime(
     createCanonicalSourceAnalysisRequestAuthorityRepository({ objectPort })
   const sourceAnalysisProbeAuthorityRepository =
     createCanonicalSourceAnalysisProbeAuthorityRepository({ objectPort })
+  const sourceTranscriptOrchestraRepository =
+    createCanonicalSourceTranscriptOrchestraRepository({ objectPort })
   const canonicalRequestPackageStore =
     createVisualIntelligenceCanonicalRequestPackageStore({
       objectPort,
@@ -307,7 +313,6 @@ export async function createVisualIntelligenceProductionRuntime(
     })
   const createSourceLedOrchestraPlanningReconciliationPort = (
     input: {
-      readonly transcriptReadPort: CanonicalSourceTranscriptOrchestraReadPort
       readonly reasoner:
         CanonicalSourceLedProfessionalContentAnalysisReasoner
     },
@@ -315,7 +320,7 @@ export async function createVisualIntelligenceProductionRuntime(
     requestAuthorityReadPort: sourceAnalysisRequestAuthorityRepository,
     reconciliationPort:
       createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort({
-        transcriptReadPort: input.transcriptReadPort,
+        transcriptReadPort: sourceTranscriptOrchestraRepository,
         visualIntelligenceReadPort: sourceVideoUnderstandingReadPort,
         reasoner: input.reasoner,
         authorityRepository: sourceCleanupAuthorityRepository,
@@ -429,6 +434,7 @@ export async function createVisualIntelligenceProductionRuntime(
     sourceCleanupAuthorityRepository,
     sourceAnalysisRequestAuthorityRepository,
     sourceAnalysisProbeAuthorityRepository,
+    sourceTranscriptOrchestraRepository,
     createSourceAnalysisL4ProbeAttemptOwner:
       createSourceAnalysisL4ProbeAttemptOwnerFactory,
     createSourceAnalysisPreparationOwner:

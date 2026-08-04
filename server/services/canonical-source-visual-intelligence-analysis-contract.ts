@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto'
 
+import { z } from 'zod'
+
 import type {
   VisualIntelligenceEvidenceRef,
   VisualIntelligencePlanningEvidenceAdmission,
@@ -8,6 +10,8 @@ import {
   createCanonicalQualityFirstUserTriggeredGpuPolicy,
 } from '../edit-architecture/canonical-quality-first-user-triggered-gpu-policy'
 import { ApiError } from '../errors/api-error'
+import { assertPlainSerializedData } from
+  './canonical-professional-gpu-job-lifecycle-service'
 import {
   canonicalSourceLedTranscriptEvidenceSchema,
   type CanonicalSourceLedContentAnalysisEvidence,
@@ -25,6 +29,66 @@ const PREFIXED_SHA256 = /^sha256:[a-f0-9]{64}$/u
 type TranscriptEvidence = CanonicalSourceLedContentAnalysisSourceInput[
   'transcript'
 ]
+
+const evidenceRefSchema = z.object({
+  id: z.string().regex(SAFE_ID),
+  version: z.number().int().positive().safe(),
+  contentHash: z.string().regex(PREFIXED_SHA256),
+}).strict()
+
+const sourceTranscriptResultSchema = z.object({
+  schemaVersion: z.literal(
+    'canonical-visual-intelligence-source-transcript-result-v1',
+  ),
+  transcriptAuthorityRef: evidenceRefSchema,
+  transcript: canonicalSourceLedTranscriptEvidenceSchema,
+  execution: z.object({
+    executionOwner: z.literal(
+      'canonical_quality_first_source_transcript_router',
+    ),
+    sourceAudioDisposition: z.enum([
+      'transcribed_on_nvidia_a100_80gb_primary',
+      'transcribed_on_nvidia_l4_classified_fallback',
+      'verified_no_audio_stream',
+    ]),
+    routeProfileId: z.enum([
+      'quality_a100_80gb_user_triggered_heavy_job_v1',
+      'quality_l4_user_triggered_heavy_fallback_job_v1',
+    ]).nullable(),
+    acceleratorClass: z.enum([
+      'nvidia_a100_80gb',
+      'nvidia_l4',
+    ]).nullable(),
+    primaryAttemptOutcome: z.enum([
+      'completed',
+      'not_started_terminal',
+      'not_required_no_audio',
+    ]),
+    fallbackAttemptOutcome: z.enum(['not_attempted', 'completed']),
+    primaryAttemptTerminalFailureClass: z.enum([
+      'a100_capacity_unavailable_before_attempt_start',
+      'a100_job_boot_failed_before_private_media_read',
+      'a100_runtime_qualification_blocked_before_dispatch',
+      'a100_driver_or_cuda_incompatible_before_model_load',
+    ]).nullable(),
+    primaryAttemptReceiptRef: evidenceRefSchema.nullable(),
+    completedAttemptReceiptRef: evidenceRefSchema.nullable(),
+    completedRuntimeReleaseRef: evidenceRefSchema.nullable(),
+    fallbackAdmissionRef: evidenceRefSchema.nullable(),
+    attemptCostEvidenceRefs: z.array(evidenceRefSchema).max(2),
+    routePolicyDigestSha256: z.string().regex(PREFIXED_SHA256),
+    gpuAccelerationUsed: z.boolean(),
+    cpuInferenceFallbackUsed: z.literal(false),
+    completeAudioTimelineProcessed: z.literal(true),
+    modelBytesPinnedBeforeExecution: z.boolean(),
+    runtimeDownloadPerformed: z.literal(false),
+    rawAudioPersisted: z.literal(false),
+    transcriptRereadVerified: z.literal(true),
+    customerCreditMutated: z.literal(false),
+    systemFailureChargedToCustomer: z.literal(false),
+    unapprovedOverageChargedToCustomer: z.literal(false),
+  }).strict(),
+}).strict()
 
 export interface CanonicalVisualIntelligenceSourceTranscriptResult {
   readonly schemaVersion:
@@ -124,11 +188,12 @@ export function createCanonicalSourceLedProfessionalContentAnalysisRequestIdenti
 
 export function verifyCanonicalVisualIntelligenceSourceTranscriptResult(
   source: CanonicalSourceLedProfessionalContentAnalysisSource,
-  raw: CanonicalVisualIntelligenceSourceTranscriptResult,
+  untrusted: unknown,
 ): CanonicalVisualIntelligenceSourceTranscriptResult {
-  const transcript = canonicalSourceLedTranscriptEvidenceSchema.parse(
-    raw.transcript,
+  const raw = assertCanonicalVisualIntelligenceSourceTranscriptResult(
+    untrusted,
   )
+  const transcript = raw.transcript
   const authority = source.managedApiAuthority!
   const execution = raw.execution
   const policy = createCanonicalQualityFirstUserTriggeredGpuPolicy()
@@ -148,12 +213,14 @@ export function verifyCanonicalVisualIntelligenceSourceTranscriptResult(
     && execution.primaryAttemptTerminalFailureClass === null
     && execution.primaryAttemptReceiptRef !== null
     && execution.completedAttemptReceiptRef !== null
+    && execution.completedRuntimeReleaseRef !== null
     && refKey(execution.completedAttemptReceiptRef) ===
       refKey(execution.primaryAttemptReceiptRef)
     && execution.fallbackAdmissionRef === null
     && execution.attemptCostEvidenceRefs.length === 1
     && execution.gpuAccelerationUsed
     && execution.modelBytesPinnedBeforeExecution
+    && transcript.modelId === 'faster-whisper-large-v3'
   const validFallback = fallback
     && authority.hasAudio
     && execution.routeProfileId ===
@@ -167,12 +234,14 @@ export function verifyCanonicalVisualIntelligenceSourceTranscriptResult(
     )
     && execution.primaryAttemptReceiptRef !== null
     && execution.completedAttemptReceiptRef !== null
+    && execution.completedRuntimeReleaseRef !== null
     && refKey(execution.completedAttemptReceiptRef) !==
       refKey(execution.primaryAttemptReceiptRef)
     && execution.fallbackAdmissionRef !== null
     && execution.attemptCostEvidenceRefs.length === 2
     && execution.gpuAccelerationUsed
     && execution.modelBytesPinnedBeforeExecution
+    && transcript.modelId === 'faster-whisper-large-v3'
   const validNoAudio = noAudio
     && !authority.hasAudio
     && execution.routeProfileId === null
@@ -182,47 +251,16 @@ export function verifyCanonicalVisualIntelligenceSourceTranscriptResult(
     && execution.primaryAttemptTerminalFailureClass === null
     && execution.primaryAttemptReceiptRef === null
     && execution.completedAttemptReceiptRef === null
+    && execution.completedRuntimeReleaseRef === null
     && execution.fallbackAdmissionRef === null
     && execution.attemptCostEvidenceRefs.length === 0
     && !execution.gpuAccelerationUsed
     && !execution.modelBytesPinnedBeforeExecution
     && transcript.status === 'no_speech'
     && transcript.segments.length === 0
-  const transcriptCoverage = { ...transcript.coverage }
-  Reflect.deleteProperty(transcriptCoverage, 'coverageDigestSha256')
-  const refs = [
-    execution.primaryAttemptReceiptRef,
-    execution.completedAttemptReceiptRef,
-    execution.fallbackAdmissionRef,
-    ...execution.attemptCostEvidenceRefs,
-  ].filter((value): value is VisualIntelligenceEvidenceRef => value !== null)
   if (
-    raw.schemaVersion !==
-      'canonical-visual-intelligence-source-transcript-result-v1'
-    || !validRef(raw.transcriptAuthorityRef)
-    || raw.transcriptAuthorityRef.contentHash !==
-      `sha256:${transcript.transcriptDigestSha256}`
-    || execution.executionOwner !==
-      'canonical_quality_first_source_transcript_router'
-    || (!validPrimary && !validFallback && !validNoAudio)
-    || execution.routePolicyDigestSha256 !== `sha256:${policy.policyHash}`
-    || refs.some((ref) => !validRef(ref))
-    || new Set(execution.attemptCostEvidenceRefs.map(refKey)).size !==
-      execution.attemptCostEvidenceRefs.length
-    || execution.cpuInferenceFallbackUsed
-    || !execution.completeAudioTimelineProcessed
-    || execution.runtimeDownloadPerformed
-    || execution.rawAudioPersisted
-    || !execution.transcriptRereadVerified
-    || execution.customerCreditMutated
-    || execution.systemFailureChargedToCustomer
-    || execution.unapprovedOverageChargedToCustomer
+    (!validPrimary && !validFallback && !validNoAudio)
     || transcript.coverage.coveredEndFrameExclusive !== source.durationFrames
-    || transcript.transcriptDigestSha256 !== rawDigest(transcript.segments)
-    || transcript.coverage.coverageDigestSha256 !==
-      rawDigest(transcriptCoverage)
-    || (transcript.status === 'completed') !==
-      (transcript.segments.length > 0)
   ) {
     throw new ApiError(
       'VALIDATION_FAILED',
@@ -230,7 +268,41 @@ export function verifyCanonicalVisualIntelligenceSourceTranscriptResult(
       409,
     )
   }
-  return { ...raw, transcript }
+  return raw
+}
+
+export function assertCanonicalVisualIntelligenceSourceTranscriptResult(
+  value: unknown,
+): CanonicalVisualIntelligenceSourceTranscriptResult {
+  assertPlainSerializedData(value, 'source_transcript_result')
+  const result = sourceTranscriptResultSchema.parse(value)
+  const transcript = result.transcript
+  const execution = result.execution
+  const policy = createCanonicalQualityFirstUserTriggeredGpuPolicy()
+  const transcriptCoverage = { ...transcript.coverage }
+  Reflect.deleteProperty(transcriptCoverage, 'coverageDigestSha256')
+  const refs = [
+    execution.primaryAttemptReceiptRef,
+    execution.completedAttemptReceiptRef,
+    execution.completedRuntimeReleaseRef,
+    execution.fallbackAdmissionRef,
+    ...execution.attemptCostEvidenceRefs,
+  ].filter((candidate): candidate is VisualIntelligenceEvidenceRef =>
+    candidate !== null)
+  if (
+    result.transcriptAuthorityRef.contentHash !==
+      `sha256:${transcript.transcriptDigestSha256}`
+    || execution.routePolicyDigestSha256 !== `sha256:${policy.policyHash}`
+    || refs.some((candidate) => !validRef(candidate))
+    || new Set(execution.attemptCostEvidenceRefs.map(refKey)).size !==
+      execution.attemptCostEvidenceRefs.length
+    || transcript.transcriptDigestSha256 !== rawDigest(transcript.segments)
+    || transcript.coverage.coverageDigestSha256 !==
+      rawDigest(transcriptCoverage)
+    || (transcript.status === 'completed') !==
+      (transcript.segments.length > 0)
+  ) throw invalid('source_transcript_result_invalid')
+  return Object.freeze(structuredClone(result))
 }
 
 export function verifyCanonicalSourceLedProfessionalContentAnalysisInput(

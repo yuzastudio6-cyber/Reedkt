@@ -412,6 +412,10 @@ assert.equal(
   'canonical-source-analysis-probe-authority-repository-v1',
 )
 assert.equal(
+  runtime.sourceTranscriptOrchestraRepository.repositoryVersion,
+  'canonical-source-transcript-orchestra-repository-v1',
+)
+assert.equal(
   typeof runtime.createSourceAnalysisL4ProbeAttemptOwner,
   'function',
 )
@@ -1104,6 +1108,7 @@ console.log(JSON.stringify({
   sourcePreparedRequestAuthorityRepositoryMounted: true,
   sourceAnalysisPreparationOwnerFactoryMounted: true,
   sourceAnalysisProbeAuthorityRepositoryMounted: true,
+  sourceTranscriptOrchestraRepositoryMounted: true,
   sourceAnalysisL4ProbeAttemptOwnerFactoryMounted: true,
   sourcePreparationRequiresExactL4ProbeAuthority: true,
   sourceBindingPersistedBeforeProviderExecution: true,

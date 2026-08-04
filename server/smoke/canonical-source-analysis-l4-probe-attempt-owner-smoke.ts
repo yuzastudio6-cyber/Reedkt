@@ -394,7 +394,8 @@ await assert.rejects(
 await assert.rejects(
   harness({
     tamperWorker: (value) => {
-      const { workerResultHash: _workerResultHash, ...payload } = value
+      const { workerResultHash, ...payload } = value
+      assert.match(workerResultHash, /^[a-f0-9]{64}$/u)
       const variableFrameRate = { ...payload, constantFrameRate: false }
       return {
         ...variableFrameRate,

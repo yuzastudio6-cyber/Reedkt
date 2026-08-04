@@ -1707,6 +1707,64 @@ M24-M29 source changes are committed. No provider request, public artifact,
 production mutation, orchestra, Track All implementation, or Visual
 Intelligence implementation occurred.
 
+## M25 — runtime binding classes
+
+Status: implementation complete, committed, pushed, and targeted-qualified.
+
+Implementation commit:
+`27c41b84cf0b2eb99decce125f10dfe0e2b32e8e`.
+
+Remote confirmation: `git push -u origin HEAD` advanced the B-roll branch and
+both local and remote refs resolved exactly to
+`27c41b84cf0b2eb99decce125f10dfe0e2b32e8e` after the push.
+
+The generic runtime binding contract is now
+`edit-skill-runtime-binding-v2`. It distinguishes
+`internal_qualification_adapter`, `canonical_private_execution_adapter`, and
+`production_worker_adapter`, binds each to its exact environment, and records
+approval, qualification, provider/tool authority, private-artifact authority,
+range mutation, retry, alternate-provider fallback, and binding-hash policy.
+Registry identity is now exact by skill/version/contract/job/adapter
+class/environment, while each registered class/environment must cover the
+complete manifest job set.
+
+`dispatchApprovedWorkItem` replaces the fixture-named dispatch surface. It
+selects the exact binding class/environment and verifies manifest, work item,
+approved plan authority, phase, exact input artifact types, qualification,
+provider/tool authority, private durable storage requirements, and the
+caller-selected executable prohibition before invoking an adapter. The
+receipt records the exact binding, adapter class/environment, and approval
+hash.
+
+All 13 current B-roll bindings are truthfully classified as
+`internal_qualification_adapter` in `internal_fixture`; they execute zero
+provider requests and create zero public artifacts or production mutations.
+No `production_worker_adapter` is registered. Production adapters require
+production qualification and durable private-artifact authority, and the
+existing runtime factory still rejects an in-memory production store.
+
+Actual M25 evidence:
+
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-runtime-bindings`
+  — passed 13 exact fixture dispatches and 27 adversarial binding/dispatch
+  cases; provider request count remained zero and production binding count was
+  zero.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-capability-kernel`
+  — passed on runtime binding v2.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run validate:skill-capability-manifests`
+  — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-runtime-factory`
+  — passed, including production in-memory rejection.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  — passed unchanged.
+- `npm run typecheck:server`, `npm run lint`, and `git diff --check` — passed.
+
+The generated M23 qualification receipt remains intentionally stale until the
+final M30 aggregate qualification. No canonical-private adapter is claimed by
+this milestone; those real adapters are M26. No production binding, provider
+request, public artifact, production mutation, orchestra, Track All
+implementation, or Visual Intelligence implementation was added.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1736,3 +1794,4 @@ Intelligence implementation occurred.
 | M22 | `c79d93e71` + `a39b9feda` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M23 | `c8995159c` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M24 | `070f4dccf` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
+| M25 | `27c41b84c` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |

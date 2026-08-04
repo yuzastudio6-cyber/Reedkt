@@ -29,6 +29,12 @@ import {
 import {
   sha256AuthorityValue,
 } from '../../services/private-edit-authority-store'
+import {
+  assertCanonicalSam31GpuRuntimeQualificationEvidence,
+  canonicalSam31GpuRuntimeQualificationEvidenceRef,
+  qualificationReleaseFields,
+  type CanonicalSam31GpuRuntimeQualificationEvidenceReadPort,
+} from './canonical-sam3_1-gpu-runtime-qualification-evidence'
 
 export const CANONICAL_SAM3_1_GPU_RUNTIME_RELEASE_VERSION =
   'canonical-sam3_1-gpu-runtime-release-v1' as const
@@ -45,6 +51,9 @@ const evidenceRefSchema = z.object({
   id: safeId,
   version: positiveInteger,
   contentHash: prefixedSha256,
+}).strict()
+const versionOneEvidenceRefSchema = evidenceRefSchema.extend({
+  version: z.literal(1),
 }).strict()
 
 const routeSchema = z.object({
@@ -89,7 +98,7 @@ const routeSchema = z.object({
   })
 })
 
-const qualificationSchema = z.object({
+export const canonicalSam31GpuRuntimeQualificationSchema = z.object({
   sourceCheckpointCompatibilityQualificationRef: evidenceRefSchema.extend({
     version: z.literal(1),
     schemaVersion: z.literal(
@@ -164,10 +173,25 @@ const releaseInputSchema = z.object({
   imageScanAndSignatureRef: evidenceRefSchema,
   scaleToZeroConfigurationRef: evidenceRefSchema,
   privateNetworkAndArtifactTransportRef: evidenceRefSchema,
-  qualification: qualificationSchema,
+  qualification: canonicalSam31GpuRuntimeQualificationSchema,
   qualifiedAt: timestamp,
   expiresAt: timestamp,
 }).strict()
+
+const canonicalReleaseInputWithoutQualificationSchema = releaseInputSchema
+  .omit({ qualification: true })
+  .extend({
+    evidenceClass: z.literal('canonical_private_reread'),
+    serviceIdentityRef: versionOneEvidenceRefSchema,
+    immutableImageRef: versionOneEvidenceRefSchema,
+    scaleToZeroConfigurationRef: versionOneEvidenceRefSchema,
+    privateNetworkAndArtifactTransportRef: versionOneEvidenceRefSchema,
+  })
+  .strict()
+type Sam31GpuRuntimeReleaseInput = z.input<typeof releaseInputSchema>
+type CanonicalSam31GpuRuntimeReleaseInputWithoutQualification = z.input<
+  typeof canonicalReleaseInputWithoutQualificationSchema
+>
 
 const releaseObservationWithoutHashSchema = z.object({
   schemaVersion: z.literal(CANONICAL_SAM3_1_GPU_RUNTIME_RELEASE_VERSION),
@@ -243,7 +267,7 @@ const releaseObservationWithoutHashSchema = z.object({
   imageScanAndSignatureRef: evidenceRefSchema,
   scaleToZeroConfigurationRef: evidenceRefSchema,
   privateNetworkAndArtifactTransportRef: evidenceRefSchema,
-  qualification: qualificationSchema,
+  qualification: canonicalSam31GpuRuntimeQualificationSchema,
   scaleToZero: z.object({
     minimumIdleInstances: z.literal(0),
     maximumConcurrentAttemptsPerInstance: z.literal(1),
@@ -338,8 +362,143 @@ export function compileCanonicalSam31GpuRuntimeRelease(input: {
     CanonicalSam31SourceCheckpointQualification
   readonly imageSupplyChainRelease?:
     CanonicalSam31CloudImageSupplyChainRelease
-  readonly release: z.input<typeof releaseInputSchema>
+  readonly release: Sam31GpuRuntimeReleaseInput
 }): {
+  readonly observation: CanonicalSam31GpuRuntimeReleaseObservation
+  readonly runtimeRelease: CanonicalProfessionalToolGpuRuntimeRelease
+} {
+  return compileCanonicalSam31GpuRuntimeReleaseInternal(input, false)
+}
+
+export async function prepareCanonicalSam31GpuRuntimeRelease(input: {
+  readonly candidate: CanonicalSam31SourceRuntimeCandidate
+  readonly ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt
+  readonly sourceCheckpointQualification:
+    CanonicalSam31SourceCheckpointQualification
+  readonly imageSupplyChainRelease:
+    CanonicalSam31CloudImageSupplyChainRelease
+  readonly release: CanonicalSam31GpuRuntimeReleaseInputWithoutQualification
+  readonly qualificationEvidenceRef: ReturnType<
+    typeof canonicalSam31GpuRuntimeQualificationEvidenceRef
+  >
+  readonly qualificationEvidenceReadPort:
+    CanonicalSam31GpuRuntimeQualificationEvidenceReadPort
+}): Promise<{
+  readonly observation: CanonicalSam31GpuRuntimeReleaseObservation
+  readonly runtimeRelease: CanonicalProfessionalToolGpuRuntimeRelease
+}> {
+  const candidate = assertCanonicalSam31SourceRuntimeCandidate(input.candidate)
+  const ingest = assertCanonicalSam31PrivateArtifactIngestReceipt(
+    input.ingestReceipt,
+  )
+  const sourceCheckpointQualification =
+    assertCanonicalSam31SourceCheckpointQualification(
+      input.sourceCheckpointQualification,
+    )
+  const imageSupplyChain = assertCanonicalSam31CloudImageSupplyChainRelease(
+    input.imageSupplyChainRelease,
+  )
+  const release = canonicalReleaseInputWithoutQualificationSchema.parse(
+    input.release,
+  )
+  const privateArtifactIngestReceiptRef = {
+    id: ingest.ingestReceiptId,
+    version: ingest.ingestReceiptVersion,
+    contentHash: `sha256:${ingest.ingestReceiptHash}` as const,
+  }
+  const sourceCheckpointCompatibilityQualificationRef =
+    canonicalSam31SourceCheckpointQualificationRef(
+      sourceCheckpointQualification,
+    )
+  const imageSupplyChainReleaseRef = {
+    id: imageSupplyChain.releaseId,
+    version: imageSupplyChain.releaseVersion,
+    contentHash: `sha256:${imageSupplyChain.releaseHash}` as const,
+  }
+  const qualificationRoute = qualificationRouteFromRelease(release.route)
+  const untrustedEvidence = await input.qualificationEvidenceReadPort
+    .rereadExact({
+      qualificationEvidenceRef: input.qualificationEvidenceRef,
+      candidateRef: {
+        schemaVersion: candidate.schemaVersion,
+        candidateHash: candidate.candidateHash,
+      },
+      privateArtifactIngestReceiptRef,
+      sourceCheckpointCompatibilityQualificationRef,
+      imageSupplyChainReleaseRef,
+      serviceIdentityRef: release.serviceIdentityRef,
+      immutableImageRef: release.immutableImageRef,
+      immutableImageDigest: release.immutableImageDigest,
+      scaleToZeroConfigurationRef: release.scaleToZeroConfigurationRef,
+      privateNetworkAndArtifactTransportRef:
+        release.privateNetworkAndArtifactTransportRef,
+      route: qualificationRoute,
+    })
+  if (!untrustedEvidence) {
+    throw new Error('SAM 3.1 runtime qualification evidence is unavailable.')
+  }
+  const evidence = assertCanonicalSam31GpuRuntimeQualificationEvidence(
+    untrustedEvidence,
+  )
+  if (
+    !sameEvidenceRef(
+      canonicalSam31GpuRuntimeQualificationEvidenceRef(evidence),
+      input.qualificationEvidenceRef,
+    )
+    || evidence.candidateRef.candidateHash !== candidate.candidateHash
+    || evidence.candidateRef.schemaVersion !== candidate.schemaVersion
+    || !sameEvidenceRef(
+      evidence.privateArtifactIngestReceiptRef,
+      privateArtifactIngestReceiptRef,
+    )
+    || !sameEvidenceRef(
+      evidence.sourceCheckpointCompatibilityQualificationRef,
+      sourceCheckpointCompatibilityQualificationRef,
+    )
+    || !sameEvidenceRef(
+      evidence.imageSupplyChainReleaseRef,
+      imageSupplyChainReleaseRef,
+    )
+    || !sameEvidenceRef(evidence.serviceIdentityRef, release.serviceIdentityRef)
+    || !sameEvidenceRef(evidence.immutableImageRef, release.immutableImageRef)
+    || evidence.immutableImageDigest !== release.immutableImageDigest
+    || !sameEvidenceRef(
+      evidence.scaleToZeroConfigurationRef,
+      release.scaleToZeroConfigurationRef,
+    )
+    || !sameEvidenceRef(
+      evidence.privateNetworkAndArtifactTransportRef,
+      release.privateNetworkAndArtifactTransportRef,
+    )
+    || !sameQualificationRoute(evidence.route, qualificationRoute)
+    || evidence.qualifiedAt !== release.qualifiedAt
+  ) throw new Error('SAM 3.1 runtime qualification evidence is stale.')
+  await assertApprovedA100BaselineEvidence({
+    evidence,
+    readPort: input.qualificationEvidenceReadPort,
+  })
+
+  return compileCanonicalSam31GpuRuntimeReleaseInternal({
+    candidate,
+    ingestReceipt: ingest,
+    sourceCheckpointQualification,
+    imageSupplyChainRelease: imageSupplyChain,
+    release: {
+      ...release,
+      qualification: qualificationReleaseFields(evidence),
+    },
+  }, true)
+}
+
+function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
+  readonly candidate: CanonicalSam31SourceRuntimeCandidate
+  readonly ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt
+  readonly sourceCheckpointQualification:
+    CanonicalSam31SourceCheckpointQualification
+  readonly imageSupplyChainRelease?:
+    CanonicalSam31CloudImageSupplyChainRelease
+  readonly release: Sam31GpuRuntimeReleaseInput
+}, canonicalQualificationEvidenceVerified: boolean): {
   readonly observation: CanonicalSam31GpuRuntimeReleaseObservation
   readonly runtimeRelease: CanonicalProfessionalToolGpuRuntimeRelease
 } {
@@ -352,6 +511,14 @@ export function compileCanonicalSam31GpuRuntimeRelease(input: {
       input.sourceCheckpointQualification,
     )
   const release = releaseInputSchema.parse(input.release)
+  if (
+    release.evidenceClass === 'canonical_private_reread'
+    && !canonicalQualificationEvidenceVerified
+  ) {
+    throw new Error(
+      'Canonical SAM 3.1 runtime release requires exact qualification reread.',
+    )
+  }
   const imageSupplyChain = input.imageSupplyChainRelease
     ? assertCanonicalSam31CloudImageSupplyChainRelease(
       input.imageSupplyChainRelease,
@@ -612,4 +779,89 @@ function sameEvidenceRef(
   return left.id === right.id
     && left.version === right.version
     && left.contentHash === right.contentHash
+}
+
+type Sam31RuntimeQualificationRoute = Parameters<
+  CanonicalSam31GpuRuntimeQualificationEvidenceReadPort['rereadExact']
+>[0]['route']
+
+function qualificationRouteFromRelease(
+  route: z.infer<typeof routeSchema>,
+): Sam31RuntimeQualificationRoute {
+  return Object.freeze({
+    routeId: route.routeId,
+    gpuProfileId: route.gpuProfileId,
+    runtimeRegion: route.runtimeRegion,
+    executionTarget: route.executionTarget,
+    machineType: route.machineType,
+    accelerator: route.accelerator,
+  })
+}
+
+function sameQualificationRoute(
+  left: Sam31RuntimeQualificationRoute,
+  right: Sam31RuntimeQualificationRoute,
+): boolean {
+  return left.routeId === right.routeId
+    && left.gpuProfileId === right.gpuProfileId
+    && left.runtimeRegion === right.runtimeRegion
+    && left.executionTarget === right.executionTarget
+    && left.machineType === right.machineType
+    && left.accelerator === right.accelerator
+}
+
+async function assertApprovedA100BaselineEvidence(input: {
+  readonly evidence: ReturnType<
+    typeof assertCanonicalSam31GpuRuntimeQualificationEvidence
+  >
+  readonly readPort: CanonicalSam31GpuRuntimeQualificationEvidenceReadPort
+}): Promise<void> {
+  if (input.evidence.route.routeId === 'a100_80gb_heavy_primary') return
+  const expectedRef = input.evidence.qualityEvidence
+    .approvedA100BaselineRuntimeQualificationEvidenceRef
+  if (!expectedRef) {
+    throw new Error('SAM 3.1 L4 release has no approved A100 baseline.')
+  }
+  const untrustedBaseline = await input.readPort.rereadEvidenceRefExact({
+    qualificationEvidenceRef: expectedRef,
+  })
+  if (!untrustedBaseline) {
+    throw new Error('SAM 3.1 A100 baseline evidence is unavailable.')
+  }
+  const baseline = assertCanonicalSam31GpuRuntimeQualificationEvidence(
+    untrustedBaseline,
+  )
+  if (
+    !sameEvidenceRef(
+      canonicalSam31GpuRuntimeQualificationEvidenceRef(baseline),
+      expectedRef,
+    )
+    || baseline.route.routeId !== 'a100_80gb_heavy_primary'
+    || baseline.route.accelerator !== 'nvidia_a100_80gb'
+    || baseline.qualityEvidence.qualityRole !== 'approved_a100_baseline'
+    || baseline.candidateRef.candidateHash !==
+      input.evidence.candidateRef.candidateHash
+    || !sameEvidenceRef(
+      baseline.privateArtifactIngestReceiptRef,
+      input.evidence.privateArtifactIngestReceiptRef,
+    )
+    || !sameEvidenceRef(
+      baseline.sourceCheckpointCompatibilityQualificationRef,
+      input.evidence.sourceCheckpointCompatibilityQualificationRef,
+    )
+    || !sameEvidenceRef(
+      baseline.imageSupplyChainReleaseRef,
+      input.evidence.imageSupplyChainReleaseRef,
+    )
+    || !sameEvidenceRef(
+      baseline.immutableImageRef,
+      input.evidence.immutableImageRef,
+    )
+    || baseline.immutableImageDigest !== input.evidence.immutableImageDigest
+    || !sameEvidenceRef(
+      baseline.qualityEvidence.temporalMaskQualityQualificationRef,
+      input.evidence.qualityEvidence.approvedA100BaselineRef,
+    )
+    || Date.parse(baseline.qualifiedAt) > Date.parse(input.evidence.qualifiedAt)
+  ) throw new Error('SAM 3.1 L4 evidence crossed its A100 baseline.')
 }

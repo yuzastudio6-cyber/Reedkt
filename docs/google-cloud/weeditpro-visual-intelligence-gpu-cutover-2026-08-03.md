@@ -132,6 +132,31 @@ fresh dispatch authority and preserve prior audit evidence.
   route. Missing, changed, noncanonical, cross-scan, contract-fixture, or
   caller-promoted records fail closed. This repository grants no scan-review,
   runtime, GPU-job, credit, QA, delivery, or production authority by itself.
+- A canonical A100 or L4 runtime release can no longer be compiled from a
+  caller-supplied collection of qualification booleans. Canonical release now
+  requires an exact expected qualification-evidence ref and a request-bound
+  reread through the dedicated qualification repository. The stored evidence
+  is create-only canonical JSON and binds the candidate, ingest receipt,
+  source/checkpoint qualification, image supply-chain release, immutable image,
+  service identity, scale-to-zero configuration, private transport, and exact
+  route. A missing, changed, cross-route, cross-image, or noncanonical record
+  fails closed.
+- Each route's qualification evidence requires exactly 30 unique
+  attempt/result/request/response/output/cost lineages over one deterministic
+  probe fixture, identical mask-set digests, actual CUDA model inference,
+  NVDEC, CUDA-resident decoded frames, bfloat16, strict checkpoint loading,
+  exact dependency reread, and verified stop-to-zero behavior. It separately
+  requires five to thirty complete eight-minute executions with a recomputed
+  nearest-rank p95 no greater than eight minutes, exact source geometry/frame
+  duration, independent temporal-mask measurements, and direct complete-
+  interval private review. L4 must bind and equal or exceed the separately
+  approved A100 quality baseline; it cannot reuse the A100 qualification as a
+  generic fallback claim.
+- This is a source and persistence boundary, not live GPU evidence. The
+  repository grants no job dispatch, customer-credit mutation, QA approval,
+  delivery, or production authority. A100 and L4 remain blocked until those
+  exact independent evidence sets are produced on the immutable image by the
+  real cloud routes.
 - The guarded operator command is
   `npm run publish:sam3_1-official-artifacts`. It refuses developer-machine
   execution and requires the exact dedicated job identity, an explicit

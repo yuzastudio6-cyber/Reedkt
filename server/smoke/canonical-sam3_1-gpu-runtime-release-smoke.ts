@@ -15,6 +15,15 @@ import {
   type CanonicalSam31SourceCheckpointQualificationObservation,
 } from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification'
 import {
+  assertCanonicalSam31GpuRuntimeQualificationEvidence,
+  canonicalSam31GpuRuntimeQualificationEvidenceDigest,
+  canonicalSam31GpuRuntimeQualificationEvidenceRef,
+  qualificationReleaseFields,
+} from '../workers/masks/canonical-sam3_1-gpu-runtime-qualification-evidence'
+import {
+  createCanonicalSam31GpuRuntimeQualificationEvidenceRepository,
+} from '../services/canonical-sam3_1-gpu-runtime-qualification-evidence-repository'
+import {
   assertCanonicalSam31GpuRuntimeReleaseObservation,
   compileCanonicalSam31GpuRuntimeRelease,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-release'
@@ -288,18 +297,149 @@ assert.throws(() => compileCanonicalSam31GpuRuntimeRelease({
     immutableImageDigest: ref('different-image').contentHash,
   },
 }))
+
+const qualificationEvidencePayload = canonicalQualificationEvidencePayload()
+const qualificationEvidence =
+  assertCanonicalSam31GpuRuntimeQualificationEvidence({
+    ...qualificationEvidencePayload,
+    evidenceHash: canonicalSam31GpuRuntimeQualificationEvidenceDigest(
+      qualificationEvidencePayload,
+    ),
+  })
+const derivedQualification = qualificationReleaseFields(
+  qualificationEvidence,
+)
+assert.equal(derivedQualification.qualificationRunCount, 30)
+assert.equal(
+  derivedQualification.eightMinuteSourceP95WallTimeMilliseconds,
+  460_000,
+)
+assert.equal(derivedQualification.actualCudaModelInferenceMeasured, true)
+assert.equal(derivedQualification.actualNvdecDecodeMeasured, true)
+assert.equal(derivedQualification.cpuOnlyInferenceObserved, false)
+
+const qualificationRecords = new Map<string, Buffer>()
+const qualificationRepository =
+  createCanonicalSam31GpuRuntimeQualificationEvidenceRepository({
+    objectPort: {
+      async createOnly({ objectPath, body }) {
+        if (qualificationRecords.has(objectPath)) return 'already_exists' as const
+        qualificationRecords.set(objectPath, Buffer.from(body))
+        return 'created' as const
+      },
+      async readExact(objectPath) {
+        const body = qualificationRecords.get(objectPath)
+        return body ? Buffer.from(body) : null
+      },
+    },
+    prefix: 'private/smoke/sam3_1/runtime-qualification/v1',
+  })
+const qualificationEvidenceRef =
+  canonicalSam31GpuRuntimeQualificationEvidenceRef(qualificationEvidence)
+assert.deepEqual(
+  await qualificationRepository.persistQualifiedEvidenceCreateOnly({
+    evidence: qualificationEvidence,
+  }),
+  qualificationEvidenceRef,
+)
+await qualificationRepository.persistQualifiedEvidenceCreateOnly({
+  evidence: qualificationEvidence,
+})
+const exactQualificationReadRequest = {
+  qualificationEvidenceRef,
+  candidateRef: qualificationEvidence.candidateRef,
+  privateArtifactIngestReceiptRef:
+    qualificationEvidence.privateArtifactIngestReceiptRef,
+  sourceCheckpointCompatibilityQualificationRef:
+    qualificationEvidence.sourceCheckpointCompatibilityQualificationRef,
+  imageSupplyChainReleaseRef:
+    qualificationEvidence.imageSupplyChainReleaseRef,
+  serviceIdentityRef: qualificationEvidence.serviceIdentityRef,
+  immutableImageRef: qualificationEvidence.immutableImageRef,
+  immutableImageDigest: qualificationEvidence.immutableImageDigest,
+  scaleToZeroConfigurationRef:
+    qualificationEvidence.scaleToZeroConfigurationRef,
+  privateNetworkAndArtifactTransportRef:
+    qualificationEvidence.privateNetworkAndArtifactTransportRef,
+  route: qualificationEvidence.route,
+}
+assert.equal(
+  (await qualificationRepository.rereadExact(
+    exactQualificationReadRequest,
+  ))?.evidenceHash,
+  qualificationEvidence.evidenceHash,
+)
+assert.equal(
+  (await qualificationRepository.rereadEvidenceRefExact({
+    qualificationEvidenceRef,
+  }))?.evidenceHash,
+  qualificationEvidence.evidenceHash,
+)
+await assert.rejects(() => qualificationRepository.rereadExact({
+  ...exactQualificationReadRequest,
+  serviceIdentityRef: ref('wrong-service-identity'),
+}))
+
+for (const mutate of [
+  (value: ReturnType<typeof canonicalQualificationEvidencePayload>) => {
+    value.deterministicRuns[1].outputMaskSetDigestSha256 = digest('different')
+  },
+  (value: ReturnType<typeof canonicalQualificationEvidencePayload>) => {
+    value.deterministicRuns[1].qualificationAttemptRef =
+      value.deterministicRuns[0].qualificationAttemptRef
+  },
+  (value: ReturnType<typeof canonicalQualificationEvidencePayload>) => {
+    value.deterministicRuns[1].deterministicProbeFixtureRef =
+      ref('different-probe-fixture')
+  },
+  (value: ReturnType<typeof canonicalQualificationEvidencePayload>) => {
+    value.deterministicRuns.reverse()
+  },
+  (value: ReturnType<typeof canonicalQualificationEvidencePayload>) => {
+    value.performanceEvidence.measurements[1].fullSourceExecutionRef =
+      value.performanceEvidence.measurements[0].fullSourceExecutionRef
+  },
+  (value: ReturnType<typeof canonicalQualificationEvidencePayload>) => {
+    value.performanceEvidence.p95WallTimeMilliseconds = 459_999
+  },
+  (value: ReturnType<typeof canonicalQualificationEvidencePayload>) => {
+    value.qualityEvidence.qualityRole =
+      'l4_fallback_compared_to_approved_a100_baseline'
+  },
+]) {
+  const invalid = structuredClone(qualificationEvidencePayload)
+  mutate(invalid)
+  assert.throws(() => assertCanonicalSam31GpuRuntimeQualificationEvidence({
+    ...invalid,
+    evidenceHash: canonicalSam31GpuRuntimeQualificationEvidenceDigest(
+      invalid,
+    ),
+  }))
+}
+assert.throws(() => assertCanonicalSam31GpuRuntimeQualificationEvidence({
+  ...qualificationEvidence,
+  evidenceHash: digest('tampered-evidence-hash'),
+}))
+const [qualificationRecordPath] = qualificationRecords.keys()
+assert.ok(qualificationRecordPath)
+qualificationRecords.set(qualificationRecordPath, Buffer.from('{}'))
+await assert.rejects(() => qualificationRepository.rereadQualifiedEvidence({
+  qualificationEvidenceRef,
+}))
 const tampered = structuredClone(a100.observation)
 tampered.authority.privateInternalQualified = true as never
 assert.throws(() => assertCanonicalSam31GpuRuntimeReleaseObservation(tampered))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-release',
-  checks: 23,
+  checks: 42,
   sourceCandidateHash: candidate.candidateHash,
   ingestReceiptHash: ingest.ingestReceiptHash,
   a100ReleaseObservationHash: a100.observation.releaseObservationHash,
   l4ReleaseObservationHash: l4.observation.releaseObservationHash,
   privateInternalQualified: false,
+  canonicalQualificationEvidenceFixtureOnly: true,
+  canonicalQualificationReleaseRequiresExactReadPort: true,
   runtimeExecuted: false,
   productionQualified: false,
 }))
@@ -407,6 +547,186 @@ CanonicalSam31SourceCheckpointQualificationObservation {
       providerInferenceExecuted: false,
     },
     qualifiedAt: '2026-08-02T13:07:00.000Z',
+  }
+}
+
+type QualificationEvidencePayload = Parameters<
+  typeof canonicalSam31GpuRuntimeQualificationEvidenceDigest
+>[0]
+
+function canonicalQualificationEvidencePayload():
+QualificationEvidencePayload {
+  const deterministicProbeFixtureRef = ref(
+    'sam31-runtime-qualification-probe-fixture',
+  )
+  const temporalMaskQualityQualificationRef = ref(
+    'sam31-runtime-qualification-a100-mask-quality',
+  )
+  const wallTimes = [420_000, 430_000, 440_000, 450_000, 460_000]
+  return {
+    schemaVersion:
+      'canonical-sam3_1-gpu-runtime-qualification-evidence-v1',
+    source: 'canonical_server_sam3_1_gpu_runtime_qualification_owner',
+    evidenceClass: 'canonical_private_reread',
+    status: 'private_runtime_qualification_evidence_ready',
+    qualificationId: 'sam31-a100-runtime-qualification-fixture',
+    qualificationVersion: 1,
+    candidateRef: {
+      schemaVersion: candidate.schemaVersion,
+      candidateHash: candidate.candidateHash,
+    },
+    privateArtifactIngestReceiptRef: {
+      id: ingest.ingestReceiptId,
+      version: ingest.ingestReceiptVersion,
+      contentHash: `sha256:${ingest.ingestReceiptHash}`,
+    },
+    sourceCheckpointCompatibilityQualificationRef:
+      canonicalSam31SourceCheckpointQualificationRef(
+        sourceCheckpointQualification,
+      ),
+    imageSupplyChainReleaseRef:
+      ref('sam31-runtime-qualification-image-supply-chain'),
+    serviceIdentityRef: releaseInput.serviceIdentityRef,
+    immutableImageRef: releaseInput.immutableImageRef,
+    immutableImageDigest: releaseInput.immutableImageDigest,
+    scaleToZeroConfigurationRef: releaseInput.scaleToZeroConfigurationRef,
+    privateNetworkAndArtifactTransportRef:
+      releaseInput.privateNetworkAndArtifactTransportRef,
+    route: {
+      routeId: releaseInput.route.routeId,
+      gpuProfileId: releaseInput.route.gpuProfileId,
+      runtimeRegion: releaseInput.route.runtimeRegion,
+      executionTarget: releaseInput.route.executionTarget,
+      machineType: releaseInput.route.machineType,
+      accelerator: releaseInput.route.accelerator,
+    },
+    driverEvidence: {
+      cudaDriverRuntimeQualificationRef:
+        ref('sam31-runtime-qualification-driver'),
+      observedNvidiaDriverVersion: '570.211.01',
+      cudaDriverLibraryMode: 'host_driver',
+      loadedCudaDriverLibraryPathDigestSha256:
+        digest('/usr/local/nvidia/lib64/libcuda.so.570.211.01'),
+      cudaForwardCompatibilityPackageSha256:
+        'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
+      cudaForwardCompatibilityLibraryLoaded: false,
+      hostCudaDriverLibraryLoaded: true,
+      exactDriverVersionAndLoadedLibraryPathReread: true,
+    },
+    deterministicRuns: Array.from({ length: 30 }, (_, index) => {
+      const ordinal = index + 1
+      return {
+        runOrdinal: ordinal,
+        qualificationAttemptRef:
+          ref(`sam31-runtime-qualification-attempt-${ordinal}`),
+        resultAdmissionRef:
+          ref(`sam31-runtime-qualification-admission-${ordinal}`),
+        runtimeRequestRef:
+          ref(`sam31-runtime-qualification-request-${ordinal}`),
+        runtimeResponseObjectRef:
+          ref(`sam31-runtime-qualification-response-${ordinal}`),
+        privateOutputRereadEvidenceRef:
+          ref(`sam31-runtime-qualification-output-${ordinal}`),
+        attemptCostReceiptRef:
+          ref(`sam31-runtime-qualification-cost-${ordinal}`),
+        immutableImageDigest: releaseInput.immutableImageDigest,
+        routeId: releaseInput.route.routeId,
+        accelerator: releaseInput.route.accelerator,
+        deterministicProbeFixtureRef,
+        outputMaskSetDigestSha256:
+          digest('sam31-runtime-qualification-mask-output'),
+        exactResultRequestResponseOutputAndCostReread: true,
+        exactToolModelAndCheckpointReread: true,
+        exactPythonTorchCudaWheelAndNativeClosureReread: true,
+        strictCheckpointLoadWithNoMissingOrUnexpectedKeys: true,
+        actualCudaModelInferenceMeasured: true,
+        actualNvdecDecodeMeasured: true,
+        decodedFramesRemainedCudaResident: true,
+        bfloat16AutocastMeasured: true,
+        cpuOnlyInferenceObserved: false,
+        quantizationOrResolutionReductionUsed: false,
+        sourceResolutionAndFrameRangePreserved: true,
+        terminalWorkerStoppedAndScaleBackToZeroVerified: true,
+        customerCreditsMutated: false,
+        qaApprovalGranted: false,
+        publicDeliveryAuthorized: false,
+        productionAuthorityGranted: false,
+      }
+    }),
+    performanceEvidence: {
+      eightMinuteSourcePerformanceQualificationRef:
+        ref('sam31-runtime-qualification-eight-minute-performance'),
+      exactEightMinuteSourceRef:
+        ref('sam31-runtime-qualification-eight-minute-source'),
+      sourceDurationMilliseconds: 480_000,
+      sourceWidth: 3840,
+      sourceHeight: 2160,
+      sourceFrameCount: 11_520,
+      fpsNumerator: 24,
+      fpsDenominator: 1,
+      measurements: wallTimes.map((wallTimeMilliseconds, index) => {
+        const ordinal = index + 1
+        return {
+          runOrdinal: ordinal,
+          fullSourceExecutionRef:
+            ref(`sam31-runtime-qualification-full-source-${ordinal}`),
+          completeChunkResultSetRef:
+            ref(`sam31-runtime-qualification-chunks-${ordinal}`),
+          terminalUsageAndCostReceiptSetRef:
+            ref(`sam31-runtime-qualification-terminal-cost-${ordinal}`),
+          wallTimeMilliseconds,
+          coldStartAndImagePullMilliseconds: 40_000,
+          modelLoadMilliseconds: 70_000,
+          decodePromptPropagationAndStitchMilliseconds: 290_000,
+          outputPersistenceAndExactRereadMilliseconds: 20_000,
+          sourceResolutionAndCompleteFrameRangePreserved: true,
+          everyChunkResultAndTerminalCostReread: true,
+          allGpuCapacityStoppedAfterTerminal: true,
+          customerCreditsMutated: false,
+        }
+      }),
+      p95WallTimeMilliseconds: 460_000,
+      targetWallTimeMilliseconds: 480_000,
+      completeSourceIntervalCovered: true,
+      automaticQualityReductionAllowed: false,
+    },
+    qualityEvidence: {
+      temporalMaskQualityQualificationRef,
+      independentTemporalMeasurementSetRef:
+        ref('sam31-runtime-qualification-temporal-measurements'),
+      directPrivateCompleteIntervalReviewRef:
+        ref('sam31-runtime-qualification-direct-review'),
+      reviewedSequenceCount: 30,
+      temporalMaskFindingCount: 0,
+      allMaskFramesMatchedSourceGeometry: true,
+      everyExpectedFrameAndObjectReviewed: true,
+      temporalStabilityThresholdsPassed: true,
+      directPrivateCompleteIntervalReviewPassed: true,
+      qualityRole: 'approved_a100_baseline',
+      approvedA100BaselineRuntimeQualificationEvidenceRef: null,
+      approvedA100BaselineRef: temporalMaskQualityQualificationRef,
+      qualityEqualToOrBetterThanApprovedA100Baseline: true,
+      reviewerIndependentFromRuntimeWorker: true,
+      qaApprovalGranted: false,
+      assetManifestMutated: false,
+      renderAuthorized: false,
+      publicDeliveryAuthorized: false,
+      productionAuthorityGranted: false,
+    },
+    qualifiedAt: releaseInput.qualifiedAt,
+    authority: {
+      exactThirtyRunSetReread: true,
+      exactEightMinutePerformanceSetReread: true,
+      exactDriverAndCudaEvidenceReread: true,
+      independentTemporalMaskQaReread: true,
+      directCompleteIntervalReviewReread: true,
+      privateRuntimeQualificationEvidenceReady: true,
+      gpuJobDispatchAuthorized: false,
+      customerCreditsMutated: false,
+      qaApprovalGranted: false,
+      publicDeliveryAuthorized: false,
+      productionAuthorityGranted: false,
+    },
   }
 }
 

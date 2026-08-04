@@ -92,6 +92,9 @@ export function evaluateMusicScopeGuard(input: unknown): MusicScopeGuardResult {
     return fail('circular_dependency', ['music_dependency_cycle_detected'])
   }
   if (request.caller.callerType !== 'head_of_orchestra') {
+    if (request.caller.authorityRef !== request.scopeAuthority.parentAuthorityRef) {
+      return fail('peer_authority_escalation', ['peer_parent_authority_reference_mismatch'])
+    }
     if (!request.caller.callerOwnedRanges || !musicRangesAreSubset(
       request.scopeAuthority.authorizedMusicWriteRanges,
       request.caller.callerOwnedRanges,

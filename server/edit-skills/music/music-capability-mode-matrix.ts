@@ -14,6 +14,9 @@ export interface MusicCapabilityModeMatrixEntry {
   routeKeys: string[]
   expectedOutputs: string[]
   acceptanceTestKey: string
+  fixtureExecutionTestKey?: string
+  privateInternalExecutionTestKey?: string
+  productionExecutionTestKey?: string
   limitations: string[]
 }
 
@@ -35,19 +38,36 @@ export const MUSIC_CAPABILITY_MODE_MATRIX: readonly MusicCapabilityModeMatrixEnt
     const refs = [...capability.primaryRouteRefs, ...capability.fallbackRouteRefs, ...capability.lowerCostRouteRefs]
     const routes = refs.map((ref) => getMusicToolRouteManifest(ref.routeKey, ref.routeVersion))
       .filter((route): route is NonNullable<typeof route> => Boolean(route))
+    const fixtureExecutionQualification: SkillQualificationStatus = isCompositeMusicJob(jobType)
+      ? 'internal_execution_qualified'
+      : capability.evidenceLevel === 'fixture' ? 'planning_qualified'
+        : capability.qualificationStatus === 'internal_execution_qualified' ||
+            capability.qualificationStatus === 'production_qualified'
+          ? capability.qualificationStatus : 'blocked'
+    const privateInternalQualification: SkillQualificationStatus = isCompositeMusicJob(jobType)
+      ? 'internal_execution_qualified'
+      : capability.qualificationStatus === 'internal_execution_qualified' ||
+          capability.qualificationStatus === 'production_qualified'
+        ? capability.qualificationStatus : 'blocked'
+    const productionQualification: SkillQualificationStatus = capability.qualificationStatus === 'production_qualified'
+      ? 'production_qualified' : 'blocked'
     return {
       capabilityKey: capability.capabilityKey,
       jobType,
       planningQualification: best(routes.map((route) => route.qualificationByMode.planning)),
-      fixtureExecutionQualification: best(routes.map((route) => route.qualificationByMode.fixtureExecution)),
-      privateInternalQualification: isCompositeMusicJob(jobType)
-        ? 'internal_execution_qualified'
-        : best(routes.map((route) => route.qualificationByMode.privateInternalExecution)),
-      productionQualification: best(routes.map((route) => route.qualificationByMode.productionExecution)),
+      fixtureExecutionQualification,
+      privateInternalQualification,
+      productionQualification,
       requiredInputs: [...capability.requiredInputs],
       routeKeys: routes.map((route) => route.routeKey),
       expectedOutputs: [...capability.producedArtifactTypes],
       acceptanceTestKey: `music.acceptance.${jobType}.v1`,
+      ...(fixtureExecutionQualification !== 'blocked'
+        ? { fixtureExecutionTestKey: `music.acceptance.fixture.${jobType}.v1` } : {}),
+      ...(privateInternalQualification !== 'blocked'
+        ? { privateInternalExecutionTestKey: `music.acceptance.private.${jobType}.v1` } : {}),
+      ...(productionQualification !== 'blocked'
+        ? { productionExecutionTestKey: `music.acceptance.production.${jobType}.v1` } : {}),
       limitations: [...capability.knownLimitations],
     }
   }),
@@ -78,5 +98,14 @@ export function validateMusicCapabilityModeMatrix(): void {
   for (const entry of MUSIC_CAPABILITY_MODE_MATRIX) {
     if (entry.routeKeys.length === 0) throw new Error(`Music matrix entry ${entry.jobType} has no exact route.`)
     if (entry.acceptanceTestKey.length === 0) throw new Error(`Music matrix entry ${entry.jobType} has no acceptance fixture.`)
+    if (entry.fixtureExecutionQualification !== 'blocked' && !entry.fixtureExecutionTestKey) {
+      throw new Error(`Music matrix entry ${entry.jobType} lacks fixture-execution evidence.`)
+    }
+    if (entry.privateInternalQualification !== 'blocked' && !entry.privateInternalExecutionTestKey) {
+      throw new Error(`Music matrix entry ${entry.jobType} lacks private-execution evidence.`)
+    }
+    if (entry.productionQualification !== 'blocked' && !entry.productionExecutionTestKey) {
+      throw new Error(`Music matrix entry ${entry.jobType} lacks production-execution evidence.`)
+    }
   }
 }

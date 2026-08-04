@@ -122,12 +122,16 @@ export function runCanonicalMusicQa(input: {
   }
   for (const cue of input.request.proposedCues) {
     const receipt = input.soundReceipts.find((candidate) => candidate.cueId === cue.cueId)
+    const route = input.routes.find((candidate) => candidate.cueId === cue.cueId)
+    const noMusicUnderSpeech = route?.acquisitionDecision === 'no_music' ||
+      route?.acquisitionDecision === 'intentional_silence' || route?.acquisitionDecision === 'ambience_only'
     findings.push(finding({
       qaClass: 'speech_safety',
-      status: cue.protectedSpeechRanges.length === 0 ? 'pass'
+      status: cue.protectedSpeechRanges.length === 0 || noMusicUnderSpeech ? 'pass'
         : receipt && receipt.mixQaRefs.length > 0 ? 'pass' : 'blocking',
       code: `speech.${cue.cueId}`,
       summary: cue.protectedSpeechRanges.length === 0 ? 'No protected speech overlap for this cue.'
+        : noMusicUnderSpeech ? 'Protected speech is safe because Music is intentionally absent or ambience-only.'
         : receipt ? 'Measured Sound mix QA receipt covers the protected cue.' : 'Protected speech lacks a Sound processing receipt.',
       evidenceRefs: receipt ? [receipt.soundResultHash, ...receipt.mixQaRefs] : [],
     }))

@@ -175,7 +175,33 @@ export class CanonicalMusicRouteExecutor {
     if (input.request.requestedExecutionMode === 'planning') throw new Error('Planning-only Music requests cannot execute.')
     if (input.executionGraph.requestId !== input.request.requestId) throw new Error('Music graph/request binding mismatch.')
     const state: ExecutionState = {
-      artifacts: [input.context, input.need, input.arc, input.cueSheet], providerAttempts: [],
+      artifacts: [
+        input.context, input.need, input.arc, input.cueSheet,
+        artifactFromPayload({ request: input.request, artifactType: 'music_motif_plan_v1',
+          artifactId: `music.motif.${input.request.requestId}`, payload: {
+            motifCues: input.request.proposedCues.filter((cue) => cue.motifRole !== 'none')
+              .map((cue) => ({ cueId: cue.cueId, role: cue.motifRole })),
+            noMotifRanges: input.request.proposedCues.filter((cue) => cue.motifRole === 'none')
+              .map((cue) => cue.exactRange),
+          }, evidence: ['cue_specific_motif_roles', 'no_motif_is_valid'] }),
+        artifactFromPayload({ request: input.request, artifactType: 'music_continuity_plan_v1',
+          artifactId: `music.continuity-plan.${input.request.requestId}`, payload: {
+            cueFamilies: input.routeBindings.map((binding) => ({ cueId: binding.cueId, acquisitionDecision: binding.acquisitionDecision })),
+            silenceRanges: input.request.proposedCues.flatMap((cue) => cue.intentionalNoMusicRanges),
+            speechPriority: true, ambiencePriority: input.request.userMusicPolicy.preserveNaturalSound,
+          }, evidence: ['whole_video_read_bounded_write', 'cue_family_continuity_planned'] }),
+        artifactFromPayload({ request: input.request, artifactType: 'music_acquisition_plan_v1',
+          artifactId: `music.acquisition.${input.request.requestId}`, payload: input.routeBindings,
+          evidence: ['one_exact_route_decision_per_cue', 'professional_acquisition_order'] }),
+        ...(input.need.payload.decision === 'intentional_silence' ? [artifactFromPayload({ request: input.request,
+          artifactType: 'intentional_silence_decision_v1', artifactId: `music.silence.${input.request.requestId}`,
+          payload: { ranges: input.request.proposedCues.flatMap((cue) => cue.intentionalNoMusicRanges),
+            reason: input.need.payload.narrativeReason, protectedNaturalSound: input.request.userMusicPolicy.preserveNaturalSound },
+          evidence: ['structured_story_and_speech_evidence', 'silence_is_a_professional_decision'] })] : []),
+        ...input.routeBindings.map((binding) => artifactFromPayload({ request: input.request,
+          artifactType: 'music_cue_route_decision_v1', artifactId: `music.route-decision.${input.request.requestId}.${binding.cueId}`,
+          cueId: binding.cueId, payload: binding, evidence: [binding.routeHash, 'exact_versioned_route_identity'] })),
+      ], providerAttempts: [],
       candidatesByCue: new Map(), analysesByCue: new Map(), selectionsByCue: new Map(), selectedByCue: new Map(),
       beatMaps: [], editorials: [], placements: [], soundReceipts: [], unitReceipts: [], failedUnits: new Set(),
     }
@@ -231,7 +257,22 @@ export class CanonicalMusicRouteExecutor {
       return { outputHashes: [input.unit.operationSpec.operationSpecHash], runtimeEvidence: ['deterministic_supervision_artifact'] }
     }
     if (input.unit.unitKind === 'no_music') {
-      return { outputHashes: [hashMusicValue({ cueId, route: input.unit.route })], runtimeEvidence: ['typed_no_music_or_ambience_handoff'] }
+      const binding = input.package.routeBindings.find((item) => item.cueId === cueId)
+      const ambienceOnly = binding?.acquisitionDecision === 'ambience_only'
+      const artifact = artifactFromPayload({ request,
+        artifactType: ambienceOnly ? 'music_ambience_only_handoff_v1' : 'intentional_no_music_handoff_v1',
+        artifactId: `${ambienceOnly ? 'music.ambience-only' : 'music.no-music'}.${request.requestId}.${cueId}`,
+        ...(cueId ? { cueId } : {}), payload: {
+          exactRange: input.unit.targetRange, intentionalNoMusic: !ambienceOnly, ambienceOnly,
+          reason: ambienceOnly ? 'Preserve natural Sound; Music does not generate non-musical ambience.'
+            : 'Music is intentionally absent for this authorized range.',
+          soundSupportRequirement: ambienceOnly ? {
+            requestedFromSkill: 'sound', requestedOutcome: 'preserve_or_support_non_musical_ambience',
+            musicMayGenerateAmbience: false,
+          } : undefined,
+        }, evidence: ['typed_professional_no_action', 'no_music_artifact_bytes_fabricated'] })
+      input.state.artifacts.push(artifact)
+      return { outputHashes: [artifact.artifactHash], runtimeEvidence: ['typed_no_music_or_ambience_handoff'] }
     }
     if (!cueId) {
       if (input.unit.unitKind === 'continuity_qa') {
@@ -242,8 +283,11 @@ export class CanonicalMusicRouteExecutor {
         })
         const artifact = artifactFromPayload({ request, artifactType: 'music_qa_report_v1', artifactId: `music.qa.${request.requestId}`,
           payload: input.state.qa, evidence: ['actual_audio_and_sound_receipts'] })
-        input.state.artifacts.push(artifact)
-        return { outputHashes: [artifact.artifactHash], qaEvidence: [input.state.qa.reportHash] }
+        const continuityArtifact = artifactFromPayload({ request, artifactType: 'music_continuity_report_v1',
+          artifactId: `music.continuity.${request.requestId}`, payload: input.state.qa.continuity,
+          evidence: ['whole_video_structured_continuity', 'subjective_boundaries_review_aware'] })
+        input.state.artifacts.push(artifact, continuityArtifact)
+        return { outputHashes: [artifact.artifactHash, continuityArtifact.artifactHash], qaEvidence: [input.state.qa.reportHash] }
       }
       if (input.unit.unitKind === 'handoff') return { outputHashes: [hashMusicValue(input.state.placements)] }
       return { outputHashes: [input.unit.operationSpec.operationSpecHash] }
@@ -258,6 +302,12 @@ export class CanonicalMusicRouteExecutor {
     }
     if (input.unit.unitKind === 'provider_attempt') {
       if (!this.#provider) throw new Error('Canonical Lyria 3 provider adapter was not injected.')
+      const variationSources = input.unit.jobType === 'generate_music_variation'
+        ? request.inputAssetRefs.filter((asset) => request.rightsAndProvenanceRefs.some((rights) =>
+          rights.assetId === asset.artifactId && rights.commercialUse === 'allowed' && rights.editingPermission === 'allowed')) : []
+      if (input.unit.jobType === 'generate_music_variation' && variationSources.length !== 1) {
+        throw new Error('Music variation requires one exact rights-bound original cue artifact.')
+      }
       const brief = createMusicCompositionBrief({
         briefId: `music.brief.${request.requestId}.${cueId}`, briefVersion: '1.0.0', cueId,
         exactRange: cue.exactRange, timelineRate: request.timelineBinding.rationalTimelineRate,
@@ -278,7 +328,10 @@ export class CanonicalMusicRouteExecutor {
         styleConstraints: request.userMusicPolicy.customDirectives,
         doNotCopyConstraints: ['no_melody_copy', 'no_lyric_copy', 'no_hook_copy', 'no_artist_imitation', 'no_recognizable_arrangement_copy'],
         qualityRequirements: ['clean_output', 'speech_safe', 'editorially_usable_ending'],
-        sourceEvidenceRefs: request.contextEvidence.map((item) => item.evidenceHash),
+        sourceEvidenceRefs: [
+          ...request.contextEvidence.map((item) => item.evidenceHash),
+          ...variationSources.map((asset) => asset.checksumSha256),
+        ],
         approvalRef: request.approvedSnapshotRef.snapshotId,
       })
       const attempt = await this.#provider.execute({
@@ -291,7 +344,10 @@ export class CanonicalMusicRouteExecutor {
       input.state.candidatesByCue.set(cueId, attempt.candidateArtifacts)
       const briefArtifact = artifactFromPayload({ request, artifactType: 'music_composition_brief_v1', artifactId: brief.briefId,
         cueId, payload: brief, evidence: ['provider_neutral_brief'] })
-      input.state.artifacts.push(briefArtifact)
+      const attemptArtifact = artifactFromPayload({ request, artifactType: 'music_provider_attempt_v1',
+        artifactId: attempt.attemptId, cueId, payload: attempt,
+        evidence: ['cue_specific_attempt', 'idempotent_provider_lifecycle', 'unknown_outcome_requires_reconciliation'] })
+      input.state.artifacts.push(briefArtifact, attemptArtifact)
       return {
         outputArtifacts: attempt.candidateArtifacts, outputHashes: [brief.briefHash],
         runtimeEvidence: ['lyria3_injected_transport_same_route_graph', 'private_output_ingest', 'store_false'],
@@ -312,6 +368,37 @@ export class CanonicalMusicRouteExecutor {
         }))
       }
       input.state.analysesByCue.set(cueId, analyses)
+      const jobArtifacts: Array<{ type: string; payload: unknown; evidence: string[] }> = []
+      if (request.jobType === 'study_existing_music') jobArtifacts.push({
+        type: 'music_existing_study_v1',
+        payload: { analyses, decisionOptions: ['preserve', 'lower', 'remove', 'reuse', 'replace', 'trim', 'reference_only'] },
+        evidence: ['actual_audio_bytes', 'timeline_usage_requires_structured_evidence'],
+      })
+      if (request.jobType === 'study_user_provided_music') jobArtifacts.push({
+        type: 'music_user_intake_v1', payload: { analyses, rights: request.rightsAndProvenanceRefs,
+          userProvidedMedia: true, reeditproOwned: false, automaticLibraryPromotionAllowed: false },
+        evidence: ['actual_audio_bytes', 'user_declaration', 'project_scope_only'],
+      })
+      if (request.jobType === 'study_reference_music' || request.jobType === 'create_music_reference_dna') {
+        jobArtifacts.push({ type: 'music_reference_study_v1',
+          payload: { analyses, usePolicy: 'study_only', sourceReuseAllowed: false },
+          evidence: ['actual_reference_audio', 'study_only'] })
+        jobArtifacts.push({ type: 'music_reference_dna_v1', payload: {
+          measured: analyses.map((analysis) => ({ tempoBpm: analysis.measuredTempoBpm,
+            beatFrames: analysis.beatFrames, phraseBoundaryFrames: analysis.phraseBoundaryFrames,
+            sectionBoundaryFrames: analysis.sectionBoundaryFrames, energyContour: analysis.energyContour,
+            loudnessLufs: analysis.integratedLoudnessLufs })),
+          inferred: [{ field: 'instrumentation', value: 'requires_review', confidence: 0 }],
+          declared: request.userMusicPolicy.customDirectives,
+          adaptationRules: ['adapt structural restraint and energy contour only'],
+          doNotCopyRules: ['no_melody_copy', 'no_lyric_copy', 'no_hook_copy', 'no_artist_imitation',
+            'no_recognizable_arrangement_copy', 'no_exact_reference_timing_copy', 'no_source_reuse'],
+          automaticCopyrightClearanceClaimed: false,
+        }, evidence: ['measured_inferred_declared_separated', 'copy_risk_is_not_legal_clearance'] })
+      }
+      for (const artifact of jobArtifacts) input.state.artifacts.push(artifactFromPayload({ request,
+        artifactType: artifact.type, artifactId: `${artifact.type}.${request.requestId}.${cueId}`, cueId,
+        payload: artifact.payload, evidence: artifact.evidence }))
       return { inputArtifacts: candidates, outputHashes: analyses.map((analysis) => hashMusicValue(analysis)),
         runtimeEvidence: ['every_candidate_independently_decoded_and_measured'] }
     }
@@ -349,6 +436,13 @@ export class CanonicalMusicRouteExecutor {
         ['music_placement_manifest_v1', sync.placement, sync.placement.placementId],
       ] as const) input.state.artifacts.push(artifactFromPayload({ request, artifactType: type, artifactId: id, cueId,
         payload: value, evidence: ['exact_rational_frame_sample_binding'] }))
+      input.state.artifacts.push(artifactFromPayload({ request, artifactType: 'music_mix_intent_manifest_v1',
+        artifactId: `music.mix-intent.${request.requestId}.${cueId}`, cueId, payload: {
+          role: cue.cueRole, dialoguePriority: true, ambiencePriority: request.userMusicPolicy.preserveNaturalSound,
+          musicPresence: cue.arrangementDensity, cueEnergy: cue.energyArc,
+          protectedSpeechRanges: cue.protectedSpeechRanges, noMusicRanges: cue.intentionalNoMusicRanges,
+          sfxCollisionPolicy: 'speech_and_story_first', desiredTechnicalOutputs: cue.soundProcessingIntent,
+        }, evidence: ['creative_intent_not_execution_proof'] }))
       return { outputHashes: [sync.beatMap.mapHash, sync.editorial.planHash, sync.placement.placementHash],
         runtimeEvidence: ['frame_accurate_music_sync', 'no_forced_cut_to_beat', 'no_visual_mutation'] }
     }
@@ -359,7 +453,7 @@ export class CanonicalMusicRouteExecutor {
       if (!selected || !editorial) throw new Error(`Sound support lacks selected Music/editorial plan for ${cueId}.`)
       const supportRequest = createMusicSoundSupportRequest({
         request, cueId, delegatedRange: cue.exactRange, selectedMusicArtifact: selected,
-        requiredOperations: editorial.technicalOperations.filter((item): item is Parameters<typeof createMusicSoundSupportRequest>[0]['requiredOperations'][number] => [
+        requiredOperations: cue.soundProcessingIntent.filter((item): item is Parameters<typeof createMusicSoundSupportRequest>[0]['requiredOperations'][number] => [
           'trim', 'cut', 'fade', 'crossfade', 'gain', 'normalize', 'loop', 'resample', 'channel_conversion',
           'time_stretch', 'pitch_shift', 'place', 'dialogue_ducking', 'eq', 'dynamics', 'pan', 'stem_rendering', 'technical_qa',
         ].includes(item)),
@@ -403,7 +497,10 @@ export class CanonicalMusicRouteExecutor {
     const stems = input.state.soundReceipts.flatMap((receipt) => receipt.musicStemAssets)
     const mutationRanges = input.state.soundReceipts.flatMap((receipt) => receipt.mutationRanges)
     const successfulCueCount = input.package.routeBindings.filter((binding) =>
-      noMusicBindings.includes(binding) || ambienceBindings.includes(binding) || input.state.soundReceipts.some((receipt) => receipt.cueId === binding.cueId)).length
+      noMusicBindings.includes(binding) || ambienceBindings.includes(binding) ||
+      input.state.soundReceipts.some((receipt) => receipt.cueId === binding.cueId) ||
+      input.state.selectedByCue.has(binding.cueId) && request.proposedCues.find((cue) => cue.cueId === binding.cueId)?.soundProcessingIntent.length === 0
+    ).length
     const failed = input.state.failedUnits.size > 0
     const allNoMusic = input.package.routeBindings.length > 0 && noMusicBindings.length === input.package.routeBindings.length
     const allAmbience = input.package.routeBindings.length > 0 && ambienceBindings.length === input.package.routeBindings.length
@@ -429,7 +526,7 @@ export class CanonicalMusicRouteExecutor {
       cueSheetRef: input.package.cueSheet.artifactId,
       placementManifestRefs: input.state.placements.map((item) => item.placementHash),
       beatAndPhraseMapRefs: input.state.beatMaps.map((item) => item.mapHash),
-      mixIntentManifestRef: input.state.editorials.length > 0 ? `music.mix-intent.${request.requestId}` : undefined,
+      mixIntentManifestRef: input.state.artifacts.find((artifact) => artifact.artifactType === 'music_mix_intent_manifest_v1')?.artifactHash,
       soundSupportReceiptRefs: input.state.soundReceipts.map((item) => item.soundResultHash),
       cueQaRefs: input.state.soundReceipts.flatMap((item) => item.technicalQaRefs),
       continuityQaRef: qa.reportHash,
@@ -444,6 +541,11 @@ export class CanonicalMusicRouteExecutor {
       createdAt: new Date().toISOString(),
     })
     if (status === 'completed' && handoff.selectedMusicAssets.length === 0) throw new Error('Music handoff cannot complete without a real selected artifact.')
+    input.state.artifacts.push(artifactFromPayload({ request,
+      artifactType: handoff.intentionalNoMusic ? 'intentional_no_music_handoff_v1'
+        : handoff.ambienceOnly ? 'music_ambience_only_handoff_v1' : 'music_final_composition_handoff_v1',
+      artifactId: handoff.handoffId, payload: handoff,
+      evidence: ['actual_execution_aggregate', 'final_mux_render_export_outside_music'] }))
     const actualMusicCredits = input.state.providerAttempts.reduce((sum, attempt) => sum + attempt.actualCostUsd / 0.1, 0)
     const nestedSoundCredits = input.state.soundReceipts.reduce((sum, item) => sum + item.nestedActualCredits, 0)
     const callerReceiptBase = {
@@ -471,7 +573,7 @@ export class CanonicalMusicRouteExecutor {
       selectionDecisionRefs: [...input.state.selectionsByCue.values()].map((item) => item.evidenceHash),
       beatAndPhraseMapRefs: input.state.beatMaps.map((item) => item.mapHash),
       placementManifestRefs: input.state.placements.map((item) => item.placementHash),
-      musicMixIntentManifestRef: input.state.editorials.length > 0 ? `music.mix-intent.${request.requestId}` : undefined,
+      musicMixIntentManifestRef: input.state.artifacts.find((artifact) => artifact.artifactType === 'music_mix_intent_manifest_v1')?.artifactHash,
       soundSupportReceipts: input.state.soundReceipts,
       selectedMusicAssetRefs: selected,
       processedMusicAssetRefs: processed,

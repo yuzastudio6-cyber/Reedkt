@@ -1,6 +1,7 @@
 import type { SkillCapabilityManifest } from '../core/skill-capability-manifest-types'
 import {
   createMusicArtifact,
+  createMusicFinalHandoff,
   hashMusicValue,
   parseCanonicalMusicRequest,
   type CanonicalMusicSkillRequest,
@@ -265,13 +266,33 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
     }
     const replacement = await this.execute(revisionRequest)
     const preservedArtifacts = input.previousResult.artifacts.filter((artifact) =>
-      !artifact.cueId || revisionPlan.preservedCueIds.includes(artifact.cueId))
+      !artifact.cueId && !['music_qa_report_v1', 'music_continuity_report_v1', 'music_final_composition_handoff_v1']
+        .includes(artifact.artifactType) || Boolean(artifact.cueId && revisionPlan.preservedCueIds.includes(artifact.cueId)))
+    const replacementArtifacts = replacement.artifacts.filter((artifact) =>
+      Boolean(artifact.cueId && revisionPlan.replacementCueIds.includes(artifact.cueId)) ||
+      ['music_qa_report_v1', 'music_continuity_report_v1'].includes(artifact.artifactType))
     const preservedSound = input.previousResult.soundSupportReceipts.filter((receipt) =>
       revisionPlan.preservedCueIds.includes(receipt.cueId))
-    const preservedSelected = input.previousResult.selectedMusicAssetRefs.filter((asset) =>
-      revisionPlan.preservedCueIds.some((cueId) => asset.artifactId.includes(cueId)))
-    const preservedProcessed = input.previousResult.processedMusicAssetRefs.filter((asset) =>
-      revisionPlan.preservedCueIds.some((cueId) => asset.artifactId.includes(cueId)))
+    const preservedOutputIds = new Set(input.previousResult.unitReceipts.filter((receipt) =>
+      receipt.cueId && revisionPlan.preservedCueIds.includes(receipt.cueId)).flatMap((receipt) => receipt.outputArtifactIds))
+    const preservedSelected = input.previousResult.selectedMusicAssetRefs.filter((asset) => preservedOutputIds.has(asset.artifactId))
+    const preservedProcessed = input.previousResult.processedMusicAssetRefs.filter((asset) => preservedOutputIds.has(asset.artifactId))
+    const preservedStems = input.previousResult.musicStemAssetRefs.filter((asset) => preservedOutputIds.has(asset.artifactId))
+    const uniqueAssets = <T extends { artifactId: string; checksumSha256: string }>(assets: T[]): T[] =>
+      [...new Map(assets.map((asset) => [`${asset.artifactId}:${asset.checksumSha256}`, asset])).values()]
+    const selectedMusicAssetRefs = uniqueAssets([...preservedSelected, ...replacement.selectedMusicAssetRefs])
+    const processedMusicAssetRefs = uniqueAssets([...preservedProcessed, ...replacement.processedMusicAssetRefs])
+    const musicStemAssetRefs = uniqueAssets([...preservedStems, ...replacement.musicStemAssetRefs])
+    const candidateArtifactRefs = uniqueAssets([
+      ...input.previousResult.candidateArtifactRefs.filter((asset) => preservedOutputIds.has(asset.artifactId)),
+      ...replacement.candidateArtifactRefs,
+    ])
+    const soundSupportReceipts = [...preservedSound, ...replacement.soundSupportReceipts]
+    const actualMusicMutationRanges = [
+      ...input.previousResult.actualMusicMutationRanges.filter((range) =>
+        !input.invalidatedRanges.some((invalidated) => musicRangesOverlap(range, invalidated))),
+      ...replacement.actualMusicMutationRanges,
+    ]
     const revisionArtifact = createMusicArtifact({
       artifactId: `music.revision.${input.request.requestId}.${input.revisionIdempotencyKey}`,
       artifactVersion: 1, schemaVersion: 'music_revision_receipt_v1.schema.v1', artifactType: 'music_revision_receipt_v1',
@@ -283,23 +304,91 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       createdAt: new Date().toISOString(), invalidationKeys: [], revisionLineage: [input.previousResult.requestId],
       payload: { revisionPlan, replacementResultHash: replacement.callerReceipt.resultHash },
     })
+    const artifacts = [...new Map([...preservedArtifacts, ...replacementArtifacts, revisionArtifact]
+      .map((artifact) => [`${artifact.artifactId}:${artifact.artifactHash}`, artifact])).values()]
+    const artifactPayloadHash = (artifactType: string, payloadKey: string): string[] => artifacts
+      .filter((artifact) => artifact.artifactType === artifactType && artifact.cueId)
+      .map((artifact) => {
+        const payload = artifact.payload as Record<string, unknown>
+        return typeof payload[payloadKey] === 'string' ? String(payload[payloadKey]) : artifact.artifactHash
+      })
+    const continuityQaRef = replacement.continuityQaRef ?? input.previousResult.continuityQaRef
+    const finalCompositionHandoff = createMusicFinalHandoff({
+      handoffId: `music.handoff.${input.request.requestId}.revision.${input.revisionIdempotencyKey}`,
+      requestId: input.request.requestId, approvedSnapshotRef: input.request.approvedSnapshotRef,
+      timelineBinding: input.request.timelineBinding, selectedMusicAssets: selectedMusicAssetRefs,
+      processedMusicAssets: processedMusicAssetRefs, musicStemAssets: musicStemAssetRefs,
+      musicNarrativeArcRef: input.previousResult.musicNarrativeArcRef, cueSheetRef: input.previousResult.cueSheetRef,
+      placementManifestRefs: artifactPayloadHash('music_placement_manifest_v1', 'placementHash'),
+      beatAndPhraseMapRefs: artifactPayloadHash('music_beat_phrase_map_v1', 'mapHash'),
+      mixIntentManifestRef: artifacts.find((artifact) => artifact.artifactType === 'music_mix_intent_manifest_v1')?.artifactHash,
+      soundSupportReceiptRefs: soundSupportReceipts.map((receipt) => receipt.soundResultHash),
+      cueQaRefs: soundSupportReceipts.flatMap((receipt) => receipt.technicalQaRefs),
+      continuityQaRef, provenanceRefs: input.request.rightsAndProvenanceRefs.map((rights) => rights.rightsId),
+      usagePolicyRefs: selectedMusicAssetRefs.map(() => 'music.usage.project_only.v1'),
+      actualMusicMutationRanges, intentionalNoMusicRanges: input.previousResult.intentionalNoMusicRanges,
+      unresolvedReviewItems: [...new Set([...input.previousResult.reviewRequiredItems, ...replacement.reviewRequiredItems])],
+      intentionalNoMusic: false, ambienceOnly: false, createdAt: new Date().toISOString(),
+    })
+    const handoffArtifact = createMusicArtifact({
+      artifactId: finalCompositionHandoff.handoffId, artifactVersion: 1,
+      schemaVersion: 'music_final_composition_handoff_v1.schema.v1', artifactType: 'music_final_composition_handoff_v1',
+      requestId: input.request.requestId, sourceArtifactHashes: artifacts.map((artifact) => artifact.artifactHash),
+      timelineHash: input.request.timelineBinding.timelineManifestHash,
+      timelineRate: input.request.timelineBinding.rationalTimelineRate,
+      qualificationEvidence: ['localized_revision_aggregate', 'final_mux_render_export_outside_music'],
+      createdAt: new Date().toISOString(), invalidationKeys: ['timeline_hash', 'cue_selection', 'sound_result'],
+      revisionLineage: [input.previousResult.finalCompositionHandoff?.handoffHash ?? input.previousResult.requestId],
+      payload: finalCompositionHandoff,
+    })
+    artifacts.push(handoffArtifact)
     const merged: CanonicalMusicSkillResult = {
       ...replacement,
       requestId: input.request.requestId,
       status: replacement.status === 'blocked' ? 'partial' : replacement.status,
-      soundSupportReceipts: [...preservedSound, ...replacement.soundSupportReceipts],
-      selectedMusicAssetRefs: [...preservedSelected, ...replacement.selectedMusicAssetRefs],
-      processedMusicAssetRefs: [...preservedProcessed, ...replacement.processedMusicAssetRefs],
-      musicStemAssetRefs: [
-        ...input.previousResult.musicStemAssetRefs.filter((asset) => revisionPlan.preservedCueIds.some((cueId) => asset.artifactId.includes(cueId))),
-        ...replacement.musicStemAssetRefs,
+      providerAttemptRefs: [...new Set([
+        ...input.previousResult.unitReceipts.filter((receipt) => receipt.cueId && revisionPlan.preservedCueIds.includes(receipt.cueId))
+          .map((receipt) => receipt.providerAttemptId).filter((value): value is string => Boolean(value)),
+        ...replacement.providerAttemptRefs,
+      ])],
+      soundSupportReceipts, selectedMusicAssetRefs, processedMusicAssetRefs, musicStemAssetRefs,
+      candidateArtifactRefs,
+      candidateAnalysisRefs: artifacts.filter((artifact) => artifact.artifactType === 'music_candidate_analysis_v1')
+        .map((artifact) => hashMusicValue(artifact.payload)),
+      selectionDecisionRefs: artifacts.filter((artifact) => artifact.artifactType === 'music_candidate_selection_decision_v1')
+        .map((artifact) => {
+          const payload = artifact.payload as { evidenceHash?: unknown }
+          return typeof payload.evidenceHash === 'string' ? payload.evidenceHash : artifact.artifactHash
+        }),
+      beatAndPhraseMapRefs: finalCompositionHandoff.beatAndPhraseMapRefs,
+      placementManifestRefs: finalCompositionHandoff.placementManifestRefs,
+      musicMixIntentManifestRef: finalCompositionHandoff.mixIntentManifestRef,
+      cueQaRefs: finalCompositionHandoff.cueQaRefs,
+      continuityQaRef, actualMusicMutationRanges,
+      finalCompositionHandoff, artifacts,
+      unitReceipts: [
+        ...input.previousResult.unitReceipts.filter((receipt) => receipt.cueId && revisionPlan.preservedCueIds.includes(receipt.cueId)),
+        ...replacement.unitReceipts,
       ],
-      actualMusicMutationRanges: [
-        ...input.previousResult.actualMusicMutationRanges.filter((range) => !input.invalidatedRanges.some((invalidated) => musicRangesOverlap(range, invalidated))),
-        ...replacement.actualMusicMutationRanges,
+      routeReceipts: [
+        ...input.previousResult.unitReceipts.filter((receipt) => receipt.cueId && revisionPlan.preservedCueIds.includes(receipt.cueId))
+          .map((receipt) => hashMusicValue(receipt)), ...replacement.routeReceipts,
       ],
-      artifacts: [...preservedArtifacts, ...replacement.artifacts, revisionArtifact],
+      costEvidence: {
+        estimatedCredits: replacement.costEvidence.estimatedCredits,
+        actualMusicCredits: replacement.costEvidence.actualMusicCredits +
+          input.previousResult.unitReceipts.filter((receipt) => receipt.cueId && revisionPlan.preservedCueIds.includes(receipt.cueId))
+            .reduce((sum, receipt) => sum + receipt.costEvidence.providerCostUsd / 0.1, 0),
+        nestedSoundCredits: soundSupportReceipts.reduce((sum, receipt) => sum + receipt.nestedActualCredits, 0),
+        totalActualCredits: replacement.costEvidence.actualMusicCredits +
+          input.previousResult.unitReceipts.filter((receipt) => receipt.cueId && revisionPlan.preservedCueIds.includes(receipt.cueId))
+            .reduce((sum, receipt) => sum + receipt.costEvidence.providerCostUsd / 0.1, 0) +
+          soundSupportReceipts.reduce((sum, receipt) => sum + receipt.nestedActualCredits, 0),
+      },
+      elapsedTimeEvidence: { actualMilliseconds: input.previousResult.elapsedTimeEvidence.actualMilliseconds +
+        replacement.elapsedTimeEvidence.actualMilliseconds },
       revisionEvidenceRef: revisionArtifact.artifactHash,
+      callerReceipt: { ...replacement.callerReceipt, resultHash: '' },
     }
     merged.callerReceipt.resultHash = hashMusicValue({ ...merged, callerReceipt: { ...merged.callerReceipt, resultHash: '' } })
     const authority = validateMusicResultAuthority({ request: input.request, result: merged })
@@ -311,8 +400,14 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
     const qaArtifact = input.result.artifacts.find((artifact) => artifact.artifactType === 'music_qa_report_v1')
     const errors: string[] = []
     if (!input.result.continuityQaRef) errors.push('music_continuity_qa_missing')
-    if (input.result.status === 'completed' && input.result.processedMusicAssetRefs.length === 0) errors.push('processed_music_output_missing')
-    if (input.result.status === 'completed' && input.result.soundSupportReceipts.length === 0) errors.push('sound_support_receipt_missing')
+    const synchronizationOnly = input.result.status === 'completed' && input.result.selectedMusicAssetRefs.length > 0 &&
+      input.result.actualMusicMutationRanges.length === 0
+    if (input.result.status === 'completed' && input.result.processedMusicAssetRefs.length === 0 && !synchronizationOnly) {
+      errors.push('processed_music_output_missing')
+    }
+    if (input.result.status === 'completed' && input.result.soundSupportReceipts.length === 0 && !synchronizationOnly) {
+      errors.push('sound_support_receipt_missing')
+    }
     const reportStatus = qaArtifact && typeof qaArtifact.payload === 'object' && qaArtifact.payload && 'status' in qaArtifact.payload
       ? String((qaArtifact.payload as { status: unknown }).status) : undefined
     return {

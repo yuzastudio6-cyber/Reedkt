@@ -270,7 +270,8 @@ export function decideCueRoutes(input: {
       }
       decision = direct[cue.acquisitionPreference] ?? decision
     }
-    const routeKey = decisionToRoute[decision]
+    const routeKey = input.request.jobType === 'generate_music_variation' && decision === 'generate_original_music'
+      ? 'music.route.generate.variation.lyria.v1' : decisionToRoute[decision]
     const route = MUSIC_TOOL_ROUTE_MANIFESTS.find((item) => item.routeKey === routeKey)
     if (!route) throw new Error(`Music cue ${cue.cueId} route ${routeKey} is not registered.`)
     const sourceBindings = input.request.inputAssetRefs.filter((asset) =>

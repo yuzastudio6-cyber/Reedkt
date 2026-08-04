@@ -106,13 +106,14 @@ function unit(input: Omit<MusicExecutionUnit, 'operationSpec'> & {
   }
 }
 
-function acquisitionJobType(decision: MusicRouteBinding['acquisitionDecision']): string {
+function acquisitionJobType(decision: MusicRouteBinding['acquisitionDecision'], routeKey?: string): string {
   if (decision === 'preserve_source_music') return 'fit_music_to_edit'
   if (decision === 'user_provided_music') return 'select_user_provided_music'
   if (decision === 'project_music') return 'search_project_music'
   if (decision === 'workspace_music') return 'search_workspace_music'
   if (decision === 'internal_music') return 'search_authorized_music_library'
-  if (decision === 'generate_original_music') return 'generate_original_music'
+  if (decision === 'generate_original_music') return routeKey?.includes('.variation.')
+    ? 'generate_music_variation' : 'generate_original_music'
   return 'decide_music_need'
 }
 
@@ -165,8 +166,8 @@ export function compileCanonicalMusicExecutionGraph(input: {
     add(unit({
       unitId: acquireId, cueId: binding.cueId, unitKind: noAction ? 'no_music' :
         binding.acquisitionDecision === 'generate_original_music' ? 'provider_attempt' : 'acquisition',
-      targetRange, jobType: acquisitionJobType(binding.acquisitionDecision),
-      capabilityKey: `music.${acquisitionJobType(binding.acquisitionDecision)}`,
+      targetRange, jobType: acquisitionJobType(binding.acquisitionDecision, binding.routeKey),
+      capabilityKey: `music.${acquisitionJobType(binding.acquisitionDecision, binding.routeKey)}`,
       route: { routeKey: binding.routeKey, routeVersion: binding.routeVersion, routeHash: binding.routeHash },
       inputArtifactIds: binding.sourceBindings, inputArtifactHashes: request.inputAssetRefs.filter((asset) =>
         binding.sourceBindings.includes(asset.artifactId)).map((asset) => asset.checksumSha256),
@@ -180,6 +181,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
       terminalCueUnits.push(acquireId)
       continue
     }
+    if (!cue) throw new Error(`Executable Music route lacks canonical cue ${binding.cueId}.`)
     const analyzeId = `music-unit-${request.requestId}-${binding.cueId}-analyze`
     add(unit({
       unitId: analyzeId, cueId: binding.cueId, unitKind: 'candidate_analysis', targetRange,
@@ -208,6 +210,10 @@ export function compileCanonicalMusicExecutionGraph(input: {
       attemptPolicyKey: 'music.attempt.local_idempotent.v1', required: true, failurePolicy: 'preserve_partial_success',
       namedInputs: ['music_candidate_analysis_v1', 'music_cue_sheet_v1'], operations: ['compile_frame_accurate_music_placement'],
     }))
+    if (cue.soundProcessingIntent.length === 0) {
+      terminalCueUnits.push(syncId)
+      continue
+    }
     const soundId = `music-unit-${request.requestId}-${binding.cueId}-sound`
     add(unit({
       unitId: soundId, cueId: binding.cueId, unitKind: 'sound_support', targetRange,

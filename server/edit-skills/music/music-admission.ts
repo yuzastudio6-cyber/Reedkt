@@ -19,7 +19,8 @@ export function qualificationSupportsMusicRequest(
   if (mode === 'planning') return capability.qualificationStatus === 'planning_qualified' ||
     capability.qualificationStatus === 'internal_execution_qualified' ||
     capability.qualificationStatus === 'production_qualified'
-  if (mode === 'fixture') return capability.evidenceLevel === 'fixture' ||
+  if (mode === 'fixture') return isCompositeMusicJob(capability.supportedJobTypes[0] ?? '') ||
+    capability.evidenceLevel === 'fixture' ||
     capability.qualificationStatus === 'internal_execution_qualified' ||
     capability.qualificationStatus === 'production_qualified'
   if (mode === 'private_internal') return capability.qualificationStatus === 'internal_execution_qualified' ||

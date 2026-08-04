@@ -255,7 +255,7 @@ export class CanonicalLyria3ProviderAdapter {
   }): Promise<MusicProviderAttempt> {
     const replay = await this.#attempts.getByIdempotencyKey(`${input.request.idempotencyKey}:${input.cueId}`)
     if (replay) {
-      if (replay.status === 'unknown_outcome') return this.#reconcile(replay)
+      if (replay.status === 'unknown_outcome') return this.#reconcile(replay, input.request)
       return replay
     }
     if (input.mode === 'production') {
@@ -320,7 +320,7 @@ export class CanonicalLyria3ProviderAdapter {
     return attempt
   }
 
-  async #reconcile(attempt: MusicProviderAttempt): Promise<MusicProviderAttempt> {
+  async #reconcile(attempt: MusicProviderAttempt, request: CanonicalMusicSkillRequest): Promise<MusicProviderAttempt> {
     if (!attempt.providerRequestId || !this.#transport.reconcile) {
       return { ...attempt, status: 'blocked', reconciliationState: 'blocked' }
     }
@@ -331,6 +331,13 @@ export class CanonicalLyria3ProviderAdapter {
     attempt.status = response.status
     attempt.actualCostUsd = response.actualCostUsd
     attempt.reconciliationState = response.status === 'unknown_outcome' ? 'required' : 'resolved'
+    if (response.status === 'succeeded') {
+      if (response.candidates.length !== attempt.candidateCount) {
+        throw new Error('Reconciled Lyria candidate count does not match the approved attempt.')
+      }
+      attempt.candidateArtifacts = await Promise.all(response.candidates.map((candidate, index) =>
+        this.#ingestCandidate({ request, cueId: attempt.cueId, candidate, index })))
+    }
     await this.#attempts.put(attempt)
     return attempt
   }

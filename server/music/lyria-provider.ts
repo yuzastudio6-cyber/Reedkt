@@ -1,7 +1,11 @@
 import { createHash } from 'node:crypto'
-import { chmod, mkdir, readFile, realpath, writeFile } from 'node:fs/promises'
-import { basename, join, resolve, sep } from 'node:path'
+import { realpath } from 'node:fs/promises'
+import { basename, join, relative, resolve, sep } from 'node:path'
 import type { TimelineRate } from '../edit-skills/core/timeline-rate'
+import {
+  readPrivateFileIfExistsWithinRoot,
+  writePrivateFileCreateOnlyWithinRoot,
+} from '../security/private-local-persistence'
 import type { CanonicalMusicArtifactResolver } from './music-analysis'
 import type { CanonicalMusicSkillRequest, MusicArtifactRef, MusicFrameRange } from './music-contracts'
 
@@ -251,7 +255,7 @@ export class CanonicalLyria3ProviderAdapter {
     route: { routeKey: string; routeVersion: string; routeHash: string }
     brief: MusicCompositionBrief
     candidateCount: number
-    mode: 'fixture' | 'production'
+    mode: 'fixture' | 'private_canary' | 'production'
   }): Promise<MusicProviderAttempt> {
     const replay = await this.#attempts.getByIdempotencyKey(`${input.request.idempotencyKey}:${input.cueId}`)
     if (replay) {
@@ -262,10 +266,18 @@ export class CanonicalLyria3ProviderAdapter {
       const activation = this.liveActivationStatus()
       if (!activation.active) throw new Error(`Live Lyria 3 is fail-closed: ${activation.blockingReasons.join(',')}`)
     }
+    if (input.mode === 'private_canary') {
+      const activation = this.liveActivationStatus()
+      const blockers = activation.blockingReasons.filter((reason) => reason !== 'privateCanaryPassed')
+      if (blockers.length > 0) throw new Error(`Private Lyria 3 canary is fail-closed: ${blockers.join(',')}`)
+    }
     const reservation = input.request.approvalAndBudget.reservationRef
     if (!reservation) throw new Error('Lyria execution requires an approved credit reservation.')
     if (input.candidateCount < 1 || input.candidateCount > input.request.approvalAndBudget.maximumCandidates) {
       throw new Error('Lyria candidate count exceeds approved Music policy.')
+    }
+    if (input.mode !== 'fixture' && input.candidateCount !== LYRIA_3_PROVIDER_PROFILE.maximumClipsPerPrompt) {
+      throw new Error('Live Lyria 3 requests are limited to the official one-output interaction contract.')
     }
     const compiled = compileLyria3InteractionRequest({ brief: input.brief })
     const attempt: MusicProviderAttempt = {
@@ -301,7 +313,7 @@ export class CanonicalLyria3ProviderAdapter {
         idempotencyKey: attempt.idempotencyKey,
         timeoutMilliseconds: attempt.timeoutMilliseconds,
       })
-    } catch (error) {
+    } catch {
       attempt.status = 'unknown_outcome'
       attempt.reconciliationState = 'required'
       await this.#attempts.put(attempt)
@@ -349,22 +361,25 @@ export class CanonicalLyria3ProviderAdapter {
     index: number
   }): Promise<MusicArtifactRef> {
     const root = await realpath(await this.#artifacts.privateOutputRoot(input.request.privateOutputScopeId!))
-    const directory = resolve(root, 'music', input.request.requestId, input.cueId)
-    if (!within(directory, root)) throw new Error('Music provider output escaped private root.')
-    await mkdir(directory, { recursive: true, mode: 0o700 })
     const extension = input.candidate.contentType === 'audio/mpeg' ? 'mp3' : 'wav'
     const filename = safeOutputName(`candidate-${input.index + 1}.${extension}`)
-    const path = join(directory, filename)
-    await writeFile(path, input.candidate.bytes, { flag: 'wx', mode: 0o600 })
-    await chmod(path, 0o600)
-    const bytes = await readFile(path)
+    const relativePath = join('music', input.request.requestId, input.cueId, filename)
+    const path = resolve(root, relativePath)
+    if (!within(path, root)) throw new Error('Music provider output escaped private root.')
+    const write = await writePrivateFileCreateOnlyWithinRoot({
+      rootPath: root,
+      relativePath,
+      content: input.candidate.bytes,
+    })
+    const bytes = await readPrivateFileIfExistsWithinRoot({ rootPath: root, relativePath })
+    if (!bytes) throw new Error('Music provider candidate was not readable after private create-only ingest.')
     const checksumSha256 = createHash('sha256').update(bytes).digest('hex')
     return {
       artifactId: `music-candidate-${input.request.requestId}-${input.cueId}-${input.index + 1}`,
       artifactType: 'untrusted_music_candidate',
       version: 1,
       checksumSha256,
-      storageObjectId: `music:${input.request.requestId}:${input.cueId}:${filename}`,
+      storageObjectId: relative(root, write.absolutePath).split(sep).join(':'),
       private: true,
       contentType: input.candidate.contentType,
       byteSize: bytes.byteLength,

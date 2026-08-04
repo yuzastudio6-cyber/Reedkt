@@ -5491,32 +5491,49 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         return null
       case 'plan_review':
         return (
-          <CanonicalPlanReviewController
-            approved={approvalRecordedForPresentation}
-            approvalAuthorityBlockedLabel={canonicalApprovalBlockedLabel}
-            approvalAuthorityReady={canonicalApprovalAuthorityReady}
-            approvalChecking={approvalChecking}
-            canonicalEvidence={canonicalPlanReviewEvidence}
-            onApprove={handleApprove}
-            onAskQuestion={handleAskPlanQuestion}
-            onLowerCost={handleLowerCost}
-            onRemoveRealMotion={handleSimplifyMotion}
-            onReviseSetup={handleReviseSetupFromPlanReview}
-            planApproval={canonicalPlanningBackendConnected ? canonicalPlanApproval : undefined}
-            plan={plan}
-            planningPublication={
-              canonicalPlanningBackendConnected &&
-              !recoveredCanonicalPlanPresentation
-                ? canonicalPlanningPublication
-                : undefined
-            }
-            planningContextBlockedReason={planningContextApprovalBlockedReason}
-            planningContextReady={planningContextReadyForApproval}
-            replacementPlanPresentationVerified={Boolean(
-              sourceLedCaptionRevisionPresentedPlan,
-            )}
-            visibleEstimateCredits={visiblePlanEstimateCredits}
-          />
+          <>
+            <CanonicalPlanReviewController
+              approved={approvalRecordedForPresentation}
+              approvalAuthorityBlockedLabel={canonicalApprovalBlockedLabel}
+              approvalAuthorityReady={canonicalApprovalAuthorityReady}
+              approvalChecking={approvalChecking}
+              canonicalEvidence={canonicalPlanReviewEvidence}
+              onApprove={handleApprove}
+              onAskQuestion={handleAskPlanQuestion}
+              onLowerCost={handleLowerCost}
+              onRemoveRealMotion={handleSimplifyMotion}
+              onReviseSetup={handleReviseSetupFromPlanReview}
+              planApproval={canonicalPlanningBackendConnected ? canonicalPlanApproval : undefined}
+              plan={plan}
+              planningPublication={
+                canonicalPlanningBackendConnected &&
+                !recoveredCanonicalPlanPresentation
+                  ? canonicalPlanningPublication
+                  : undefined
+              }
+              planningContextBlockedReason={planningContextApprovalBlockedReason}
+              planningContextReady={planningContextReadyForApproval}
+              replacementPlanPresentationVerified={Boolean(
+                sourceLedCaptionRevisionPresentedPlan,
+              )}
+              visibleEstimateCredits={visiblePlanEstimateCredits}
+            />
+            <div className="music-plan-entry-card">
+              <div>
+                <span className="section-eyebrow">Music</span>
+                <strong>Review the Music department</strong>
+                <p>Music need, cue strategy, evidence, cost, and QA appear only from canonical Music artifacts.</p>
+              </div>
+              <Button onClick={() => setShowMusicPlan(true)} variant={showMusicPlan ? 'secondary' : 'primary'}>
+                {showMusicPlan ? 'Music plan opened' : 'Plan music'}
+              </Button>
+            </div>
+            {showMusicPlan ? (
+              <Suspense fallback={<AdvancedCardFallback label="Loading Music department..." />}>
+                <MusicPlanChatFlow />
+              </Suspense>
+            ) : null}
+          </>
         )
       case 'processing':
         return (

@@ -1,11 +1,15 @@
 import assert from 'node:assert/strict'
+import { access, readFile } from 'node:fs/promises'
 import { StandaloneCanonicalMusicSkillService } from '../edit-skills/music/canonical-music-skill-service'
 import { MUSIC_CAPABILITY_MODE_MATRIX, validateMusicCapabilityModeMatrix } from '../edit-skills/music/music-capability-mode-matrix'
+import { MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY, resolveMusicAcceptanceEvidence,
+  validateMusicAcceptanceEvidenceRegistry } from '../edit-skills/music/music-acceptance-evidence-registry'
 import { MUSIC_JOB_TYPES } from '../music/music-contracts'
 import { evaluateMusicScopeGuard } from '../music/music-scope-guard'
 import { makeCanonicalMusicRequest, makeMusicCue } from './canonical-music-test-fixtures'
 
 validateMusicCapabilityModeMatrix()
+validateMusicAcceptanceEvidenceRegistry()
 const service = new StandaloneCanonicalMusicSkillService({
   artifacts: { async resolve() { throw new Error('planning matrix') }, async privateOutputRoot() { throw new Error('planning matrix') } },
 })
@@ -25,31 +29,25 @@ for (const jobType of MUSIC_JOB_TYPES) {
 }
 assert.deepEqual(new Set(planningResults), new Set(MUSIC_JOB_TYPES))
 
-const evidenceSuites = new Set([
-  'canonical-music-foundation-smoke', 'canonical-music-professional-scenarios-smoke',
-  'canonical-music-source-sound-e2e-smoke', 'canonical-music-lyria-e2e-smoke',
-  'canonical-music-rational-timing-smoke', 'canonical-music-localized-revision-smoke',
-  'canonical-music-provider-reconciliation-smoke',
-])
-function evidenceSuite(jobType: string): string {
-  if (jobType.includes('generate_music')) return 'canonical-music-lyria-e2e-smoke'
-  if (jobType === 'revise_music') return 'canonical-music-localized-revision-smoke'
-  if (jobType.includes('sync') || jobType.includes('fit_music')) return 'canonical-music-rational-timing-smoke'
-  if (jobType.includes('sound') || jobType.includes('stem') || jobType.includes('mix')) return 'canonical-music-source-sound-e2e-smoke'
-  if (jobType.includes('study') || jobType.includes('reference') || jobType.includes('search') || jobType.includes('select')) {
-    return 'canonical-music-professional-scenarios-smoke'
-  }
-  return 'canonical-music-professional-scenarios-smoke'
+const packageJson = JSON.parse(await readFile('package.json', 'utf8')) as { scripts: Record<string, string> }
+const aggregateCommand = packageJson.scripts['smoke:music'] ?? ''
+for (const evidence of MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY) {
+  await access(evidence.sourceFile)
+  const scriptStem = evidence.sourceFile.split('/').at(-1)!.replace(/-smoke\.ts$/, '')
+  assert.ok(aggregateCommand.includes(scriptStem.replace('canonical-music-', 'music-')) ||
+    Object.values(packageJson.scripts).some((command) => command.includes(evidence.sourceFile)),
+  `${evidence.evidenceKey} must be executed by an aggregate Music acceptance script`)
 }
 for (const entry of MUSIC_CAPABILITY_MODE_MATRIX) {
-  assert.ok(entry.acceptanceTestKey)
+  assert.equal(resolveMusicAcceptanceEvidence({ jobType: entry.jobType, mode: 'planning' })[0]?.evidenceKey,
+    entry.acceptanceTestKey)
   if (entry.fixtureExecutionQualification !== 'blocked') {
-    assert.ok(entry.fixtureExecutionTestKey)
-    assert.ok(evidenceSuites.has(evidenceSuite(entry.jobType)))
+    assert.equal(resolveMusicAcceptanceEvidence({ jobType: entry.jobType, mode: 'fixture' })[0]?.evidenceKey,
+      entry.fixtureExecutionTestKey)
   }
   if (entry.privateInternalQualification !== 'blocked') {
-    assert.ok(entry.privateInternalExecutionTestKey)
-    assert.ok(evidenceSuites.has(evidenceSuite(entry.jobType)))
+    assert.equal(resolveMusicAcceptanceEvidence({ jobType: entry.jobType, mode: 'private_internal' })[0]?.evidenceKey,
+      entry.privateInternalExecutionTestKey)
   }
   assert.equal(entry.productionQualification, 'blocked')
   assert.equal(entry.productionExecutionTestKey, undefined)

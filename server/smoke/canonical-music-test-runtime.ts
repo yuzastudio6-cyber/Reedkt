@@ -50,6 +50,16 @@ class TestPrivateArtifactResolver implements CanonicalMusicArtifactResolver, Can
   async resolve(artifact: SharedArtifactRef): Promise<ResolvedPrivateMusicArtifact | ResolvedPrivateSoundArtifact> {
     let path = this.#paths.get(artifact.storageObjectId) ?? this.#paths.get(artifact.artifactId)
     if (!path) {
+      const objectPath = resolve(this.#root, ...artifact.storageObjectId.split(':'))
+      if (objectPath.startsWith(`${resolve(this.#root)}${sep}`)) {
+        try {
+          if (await sha256(objectPath) === artifact.checksumSha256) path = objectPath
+        } catch {
+          // The canonical scan below remains the safe test fallback for legacy object IDs.
+        }
+      }
+    }
+    if (!path) {
       const candidates = await walkFiles(this.#root)
       for (const candidate of candidates) {
         if (await sha256(candidate) === artifact.checksumSha256) { path = candidate; break }
@@ -62,7 +72,8 @@ class TestPrivateArtifactResolver implements CanonicalMusicArtifactResolver, Can
     return { artifact, absolutePath, approvedRoot: root }
   }
 
-  async privateOutputRoot(_privateOutputScopeId: string): Promise<string> {
+  async privateOutputRoot(privateOutputScopeId: string): Promise<string> {
+    void privateOutputScopeId
     return realpath(this.#root)
   }
 }

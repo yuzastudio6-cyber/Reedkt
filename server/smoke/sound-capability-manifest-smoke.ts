@@ -28,7 +28,7 @@ const validation = validateSkillCapabilityManifests({
   artifacts: editSkillArtifactSchemaRegistry,
   catalog: editSkillReferenceCatalog,
 })
-assert.equal(validation.manifestCount, 2)
+assert.equal(validation.manifestCount, 3)
 assert.equal(SOUND_SKILL_VERSION, '4.0.0')
 assert.equal(soundSkillCapabilityManifest.contractVersion, 'sound.skill_contract.v4')
 assert.equal(soundSkillCapabilityManifest.qualificationStatus, 'planning_qualified')
@@ -36,6 +36,7 @@ assert.equal(Object.isFrozen(soundSkillCapabilityManifest), true)
 assert.equal(soundSkillCapabilityManifest.capabilityEntries?.length, 39)
 assert.equal(editSkillCapabilityRegistry.resolveLatest('sound').manifestHash, soundSkillCapabilityManifest.manifestHash)
 assert.equal(editSkillCapabilityRegistry.resolveLatest('b_roll').skillKey, 'b_roll')
+assert.equal(editSkillCapabilityRegistry.resolveLatest('music').skillKey, 'music')
 
 assert.equal(resolveSoundCapabilityModeMatrixEntry({
   jobType: 'design_scene_sound', mode: 'planning',

@@ -1,0 +1,183 @@
+import { createHash } from 'node:crypto'
+import { mkdtemp, realpath } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { GoogleAuth } from 'google-auth-library'
+import type { CanonicalMusicArtifactResolver, ResolvedPrivateMusicArtifact } from '../music/music-analysis'
+import {
+  createMusicCompositionBrief,
+  CanonicalLyria3ProviderAdapter,
+  LYRIA_3_PROVIDER_PROFILE,
+} from '../music/lyria-provider'
+import { GoogleLyria3InteractionsTransport } from '../music/lyria-live-transport'
+import {
+  hashMusicValue,
+  parseCanonicalMusicRequest,
+  type MusicArtifactRef,
+  type MusicFrameRange,
+} from '../music/music-contracts'
+import { getMusicToolRouteManifest } from '../music/music-tool-routes'
+
+const REQUIRED_EVIDENCE = [
+  'MUSIC_LYRIA_ACCOUNT_APPROVED',
+  'MUSIC_LYRIA_PRIVACY_APPROVED',
+  'MUSIC_LYRIA_RETENTION_APPROVED',
+  'MUSIC_LYRIA_COMMERCIAL_APPROVED',
+  'MUSIC_LYRIA_RATE_APPROVED',
+  'MUSIC_LYRIA_DEPLOYED_RUNTIME',
+] as const
+
+function sha(value: string): string {
+  return createHash('sha256').update(value).digest('hex')
+}
+
+function missingCanaryAuthority(): string[] {
+  const missing = REQUIRED_EVIDENCE.filter((key) => process.env[key] !== 'true')
+  if (!/^[a-z][a-z0-9-]{4,62}[a-z0-9]$/u.test(process.env.GOOGLE_CLOUD_PROJECT ?? '')) {
+    missing.push('GOOGLE_CLOUD_PROJECT' as (typeof REQUIRED_EVIDENCE)[number])
+  }
+  if (process.env.MUSIC_LYRIA_CANARY_CONFIRM !== 'RUN_PRIVATE_CANARY') {
+    missing.push('MUSIC_LYRIA_CANARY_CONFIRM' as (typeof REQUIRED_EVIDENCE)[number])
+  }
+  return [...new Set(missing)]
+}
+
+class CanaryArtifactResolver implements CanonicalMusicArtifactResolver {
+  readonly #root: string
+  constructor(root: string) { this.#root = root }
+  async privateOutputRoot(): Promise<string> { return realpath(this.#root) }
+  async resolve(artifact: MusicArtifactRef): Promise<ResolvedPrivateMusicArtifact> {
+    void artifact
+    throw new Error('The provider canary does not resolve caller-supplied artifacts.')
+  }
+}
+
+async function accessToken(): Promise<string> {
+  const auth = new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/cloud-platform'] })
+  const client = await auth.getClient()
+  const response = await client.getAccessToken()
+  const token = typeof response === 'string' ? response : response.token
+  if (!token) throw new Error('Application Default Credentials did not return a Google access token.')
+  return token
+}
+
+const verifyOnly = process.argv.includes('--verify-fail-closed')
+const blockers = missingCanaryAuthority()
+if (verifyOnly) {
+  if (blockers.length === 0) throw new Error('Fail-closed verification requires at least one absent external authority gate.')
+  console.log(JSON.stringify({
+    status: 'blocked_as_required',
+    providerProfile: LYRIA_3_PROVIDER_PROFILE.profileKey,
+    blockingGateNames: blockers,
+    providerCallMade: false,
+    credentialRead: false,
+  }, null, 2))
+  process.exit(0)
+}
+if (blockers.length > 0) {
+  throw new Error(`Private Lyria canary is fail-closed: ${blockers.join(',')}`)
+}
+
+const root = await mkdtemp(join(tmpdir(), 'reeditpro-private-lyria-canary-'))
+const projectId = process.env.GOOGLE_CLOUD_PROJECT!
+const range: MusicFrameRange = { rangeId: 'private-canary-range', startFrame: 0, endFrameExclusive: 720 }
+const timelineRate = { numerator: 24, denominator: 1 }
+const timelineHash = sha('private-lyria-canary-timeline-v1')
+const request = parseCanonicalMusicRequest({
+  schemaVersion: 'canonical-music-request-v1', requestId: 'music-private-lyria-canary', requestVersion: '1.0.0',
+  caller: {
+    callerType: 'head_of_orchestra', callerSkillKey: 'head_of_orchestra', callerSkillVersion: 'future-contract-v1',
+    parentWorkItemId: 'music-private-canary-work-item', authorityRef: 'music-private-canary-authority', ancestorSkillKeys: [],
+  },
+  jobType: 'generate_original_music', requestedExecutionMode: 'fixture',
+  requestedDeliverables: ['private_music_provider_canary_receipt'],
+  approvedSnapshotRef: { snapshotId: 'music-private-canary-snapshot', snapshotVersion: 1, snapshotHash: sha('private-canary-snapshot') },
+  timelineBinding: {
+    timelineManifestId: 'music-private-canary-timeline', timelineManifestVersion: 1,
+    timelineManifestHash: timelineHash, rationalTimelineRate: timelineRate, displayFps: 24,
+  },
+  scopeAuthority: {
+    assignmentMode: 'range', authorizedInspectRanges: [range], authorizedMusicWriteRanges: [range],
+    authorizedMusicTrackIds: ['music-private-canary-track'], authorizedSourceMusicAssetIds: [],
+    mayStudyWholeVideo: false, mayCreateMusicTrack: true, mayReplaceExistingMusic: false,
+    mayUseUserProvidedMusic: false, mayUseLibraryMusic: false, mayGenerateMusic: true,
+    lockedMusicTrackIds: [], lockedRanges: [], contextHandleFrames: 0,
+    approvedTimelineRef: {
+      artifactId: 'music-private-canary-timeline', artifactType: 'approved_timeline_manifest', version: 1,
+      checksumSha256: timelineHash, storageObjectId: 'private-canary-timeline.json', private: true,
+      contentType: 'application/json', timelineRate,
+    },
+    timelineRate, parentAuthorityRef: 'music-private-canary-authority', parentAuthorityHash: sha('private-canary-authority'),
+  },
+  contextRefs: {},
+  contextEvidence: [{
+    evidenceId: 'music-private-canary-synthetic-evidence', evidenceType: 'synthetic_provider_canary', version: 1,
+    evidenceHash: sha('music-private-canary-synthetic-evidence'), evidenceLevel: 'structured',
+  }],
+  userMusicPolicy: {
+    musicEnabled: true, preserveSourceMusic: true, preserveNaturalSound: true, protectEmotionalSilence: true,
+    allowGeneration: true, instrumentalUnderImportantSpeech: true, maximumCueCount: 1,
+    maximumCueChangesPerMinute: 2, customDirectives: ['Synthetic instrumental provider canary; no customer media or personal data.'],
+  },
+  inputAssetRefs: [], referenceMusicRefs: [], rightsAndProvenanceRefs: [],
+  proposedCues: [{
+    cueId: 'music-private-canary-cue', exactRange: range, sceneIds: ['synthetic-canary-scene'], boundaryIds: [],
+    narrativeFunction: 'hold_continuity', currentStoryState: 'synthetic neutral', targetStoryState: 'synthetic neutral',
+    cueRole: 'bed', motifRole: 'none', energyArc: 'flat_low', tempoRangeBpm: { minimum: 80, maximum: 100 },
+    harmonicDirection: 'neutral unresolved', instrumentation: ['soft percussion', 'warm tonal layer'],
+    arrangementDensity: 'sparse', rhythmProfile: 'restrained pulse', vocalPolicy: 'instrumental_only',
+    lyricPolicy: 'no_lyrics', languagePolicy: 'not_applicable', protectedSpeechRanges: [], intentionalNoMusicRanges: [],
+    syncAnchorFrames: [0], entryHandleFrames: 0, exitHandleFrames: 0, fadeInFrames: 12, fadeOutFrames: 12,
+    roundingPolicy: 'nearest_half_up', acquisitionPreference: 'generate_original',
+    soundProcessingIntent: ['technical_qa'],
+  }],
+  approvalAndBudget: {
+    estimateRef: 'music-private-canary-estimate', reservationRef: 'music-private-canary-reservation',
+    approvalStatus: 'approved', maximumCandidates: 1, maximumAttempts: 1, maximumCredits: 1,
+  },
+  privateOutputScopeId: 'music-private-lyria-canary-output', idempotencyKey: `music-private-canary-${Date.now()}`,
+})
+const cue = request.proposedCues[0]
+const briefBase = {
+  briefId: 'music-private-canary-brief', briefVersion: '1.0.0' as const, cueId: cue.cueId,
+  exactRange: cue.exactRange, timelineRate, narrativeFunction: cue.narrativeFunction,
+  viewerEmotionTarget: cue.targetStoryState, cueRole: cue.cueRole, motifRole: cue.motifRole,
+  durationFrames: cue.exactRange.endFrameExclusive - cue.exactRange.startFrame, tempoRange: cue.tempoRangeBpm,
+  harmonicDirection: cue.harmonicDirection, energyArc: cue.energyArc, instrumentation: cue.instrumentation,
+  arrangementDensity: cue.arrangementDensity, rhythmProfile: cue.rhythmProfile, performanceFeel: 'restrained and natural',
+  vocalPolicy: cue.vocalPolicy, lyricPolicy: cue.lyricPolicy, languagePolicy: cue.languagePolicy,
+  speechSafety: 'instrumental synthetic canary with no speech input', introBehavior: 'clean bounded entrance',
+  developmentBehavior: 'one restrained development', transitionBehavior: 'no visual timing ownership',
+  endingBehavior: 'clean resolved ending', loopPolicy: 'not_required', ambienceRelationship: 'no source ambience supplied',
+  sfxRelationship: 'no SFX supplied', styleConstraints: ['original', 'synthetic canary'],
+  doNotCopyConstraints: ['no artist imitation', 'no melody or hook copying'],
+  qualityRequirements: ['decodeable audio/mpeg', 'private ingest'], sourceEvidenceRefs: request.contextEvidence.map((item) => item.evidenceHash),
+  approvalRef: request.approvedSnapshotRef.snapshotId,
+}
+const brief = createMusicCompositionBrief(briefBase)
+const route = getMusicToolRouteManifest('music.route.generate.original.lyria.v1', '1.0.0')
+if (!route) throw new Error('Canonical Lyria route is unavailable.')
+const provider = new CanonicalLyria3ProviderAdapter({
+  transport: new GoogleLyria3InteractionsTransport({ getAccessToken: accessToken }),
+  artifacts: new CanaryArtifactResolver(root), projectId,
+  liveEvidence: {
+    accountApproved: true, privacyApproved: true, retentionApproved: true,
+    commercialApproved: true, rateApproved: true, deployedRuntime: true, privateCanaryPassed: false,
+  },
+})
+const attempt = await provider.execute({
+  request, cueId: cue.cueId,
+  route: { routeKey: route.routeKey, routeVersion: route.routeVersion, routeHash: route.routeHash },
+  brief, candidateCount: 1, mode: 'private_canary',
+})
+if (attempt.status !== 'succeeded' || attempt.candidateArtifacts.length !== 1) {
+  throw new Error(`Private Lyria canary did not succeed: ${attempt.status}`)
+}
+console.log(JSON.stringify({
+  status: 'private_canary_succeeded', providerProfile: attempt.providerProfileKey,
+  providerRequestIdPresent: Boolean(attempt.providerRequestId), candidateChecksum: attempt.candidateArtifacts[0].checksumSha256,
+  candidateByteSize: attempt.candidateArtifacts[0].byteSize, actualCostUsd: attempt.actualCostUsd,
+  store: false, customerMediaUsed: false, productionQualificationPromoted: false,
+  evidenceHash: hashMusicValue({ attemptId: attempt.attemptId, providerRequestId: attempt.providerRequestId,
+    candidateChecksum: attempt.candidateArtifacts[0].checksumSha256, actualCostUsd: attempt.actualCostUsd }),
+}, null, 2))

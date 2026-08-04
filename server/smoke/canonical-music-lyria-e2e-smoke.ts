@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { lstat, stat } from 'node:fs/promises'
 import { LYRIA_3_PROVIDER_PROFILE } from '../music/lyria-provider'
 import { createCanonicalMusicTestRuntime } from './canonical-music-test-runtime'
 import { makeCanonicalMusicRequest, makeMusicCue } from './canonical-music-test-fixtures'
@@ -28,6 +29,14 @@ assert.equal(result.qualificationStatusUsed, 'planning_qualified')
 assert.equal(LYRIA_3_PROVIDER_PROFILE.requestStore, false)
 assert.equal(LYRIA_3_PROVIDER_PROFILE.liveQualification, 'blocked_pending_external_evidence')
 assert.equal(result.finalCompositionHandoff?.selectedMusicAssets.length, 1)
+for (const candidate of result.candidateArtifactRefs) {
+  const resolved = await runtime.resolver.resolve(candidate)
+  const file = await lstat(resolved.absolutePath)
+  assert.equal(file.isSymbolicLink(), false)
+  assert.equal((await stat(resolved.absolutePath)).mode & 0o777, 0o600)
+}
+const replay = await runtime.music.execute(request)
+assert.deepEqual(replay, result)
 
 const variationRuntime = await createCanonicalMusicTestRuntime()
 const original = await variationRuntime.makeWav({ id: 'variation-original', durationSeconds: 4, frequency: 215, volume: 0.1 })

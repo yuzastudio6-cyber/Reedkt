@@ -85,18 +85,30 @@ assert.ok(dna)
 assert.equal((dna.payload as { automaticCopyrightClearanceClaimed: boolean }).automaticCopyrightClearanceClaimed, false)
 assert.ok((dna.payload as { doNotCopyRules: string[] }).doNotCopyRules.includes('no_artist_imitation'))
 
-const peerRuntime = await createCanonicalMusicTestRuntime()
-const peerRange = { rangeId: 'peer-range', startFrame: 100, endFrameExclusive: 196 }
-const peerCue = makeMusicCue({ cueId: 'peer-cue', range: peerRange, acquisitionPreference: 'no_music' })
-const peerRequest = makeCanonicalMusicRequest({ requestId: 'music-peer-support', mode: 'private_internal',
-  jobType: 'support_motion_studio_music', assignmentMode: 'range', cues: [peerCue], caller: {
-    callerType: 'motion_studio', callerSkillKey: 'motion_studio', callerSkillVersion: '1.0.0',
-    callerManifestHash: testHash('motion-studio-manifest'), parentWorkItemId: 'motion-work-1',
-    authorityRef: 'authority-music-peer-support', ancestorSkillKeys: [], callerOwnedRanges: [peerRange],
-  } })
-const peerResult = await peerRuntime.music.execute(peerRequest)
-assert.equal(peerResult.status, 'no_music')
-assert.equal(peerResult.callerReceipt.callerSkillKey, 'motion_studio')
+const peerCases = [
+  ['support_motion_studio_music', 'motion_studio'],
+  ['support_living_frame_music', 'living_frame'],
+  ['support_3d_music', 'three_d'],
+  ['support_transition_music', 'transitions'],
+  ['support_graphic_design_music', 'graphic_design'],
+] as const
+const peerResults = []
+for (const [jobType, callerType] of peerCases) {
+  const peerRuntime = await createCanonicalMusicTestRuntime()
+  const peerRange = { rangeId: `peer-range-${callerType}`, startFrame: 100, endFrameExclusive: 196 }
+  const peerCue = makeMusicCue({ cueId: `peer-cue-${callerType}`, range: peerRange, acquisitionPreference: 'no_music' })
+  const peerRequest = makeCanonicalMusicRequest({ requestId: `music-peer-support-${callerType}`, mode: 'private_internal',
+    jobType, assignmentMode: 'range', cues: [peerCue], caller: {
+      callerType, callerSkillKey: callerType, callerSkillVersion: '1.0.0',
+      callerManifestHash: testHash(`${callerType}-manifest`), parentWorkItemId: `${callerType}-work-1`,
+      authorityRef: `authority-music-peer-support-${callerType}`, ancestorSkillKeys: [], callerOwnedRanges: [peerRange],
+    } })
+  const peerResult = await peerRuntime.music.execute(peerRequest)
+  assert.equal(peerResult.status, 'no_music')
+  assert.equal(peerResult.callerReceipt.callerSkillKey, callerType)
+  assert.equal(peerResult.callerReceipt.finalRenderOutsideMusic, true)
+  peerResults.push(peerResult)
+}
 
 const partialRuntime = await createCanonicalMusicTestRuntime()
 const badPath = join(partialRuntime.root, 'inputs', 'invalid-audio.wav')
@@ -127,5 +139,5 @@ assert.equal(testHash('Lake Como').length, 64)
 console.log(JSON.stringify({
   status: 'ok', authorizedSourceRoutes: sourceResults.length, noMusic: noMusic.status,
   ambienceOnly: ambience.status, synchronizationOnlyMutations: syncOnly.actualMusicMutationRanges.length,
-  referenceDna: Boolean(dna), peerStatus: peerResult.status, partialStatus: partial.status,
+  referenceDna: Boolean(dna), peerScenarios: peerResults.length, partialStatus: partial.status,
 }, null, 2))

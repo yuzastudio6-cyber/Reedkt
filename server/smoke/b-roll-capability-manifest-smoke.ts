@@ -21,9 +21,10 @@ const validation = validateSkillCapabilityManifests({
   artifacts: editSkillArtifactSchemaRegistry,
   catalog: editSkillReferenceCatalog,
 })
-assert.equal(validation.manifestCount, 2)
+assert.equal(validation.manifestCount, 3)
 assert.ok(validation.manifestHashes.includes(BROLL_CAPABILITY_MANIFEST.manifestHash))
 assert.equal(editSkillCapabilityRegistry.resolveLatest('sound').skillKey, 'sound')
+assert.equal(editSkillCapabilityRegistry.resolveLatest('music').skillKey, 'music')
 assert.equal(BROLL_CAPABILITY_MANIFEST.skillKey, 'b_roll')
 assert.equal(BROLL_CAPABILITY_MANIFEST.skillVersion, '1.0.0')
 assert.equal(BROLL_CAPABILITY_MANIFEST.contractVersion, 'b_roll.skill_contract.v1')

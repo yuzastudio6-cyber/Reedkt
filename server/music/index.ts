@@ -1,4 +1,5 @@
 export * from './lyria-provider'
+export * from './lyria-live-transport'
 export * from './music-analysis'
 export * from './music-contracts'
 export * from './music-qa'

@@ -2,6 +2,10 @@ import type { SkillQualificationStatus } from '../core/edit-skill-ids'
 import { MUSIC_JOB_TYPES, type CanonicalMusicSkillRequest } from '../../music/music-contracts'
 import { getMusicToolRouteManifest } from '../../music/music-tool-routes'
 import { isCompositeMusicJob, resolveMusicCapabilityEntry } from './music-admission'
+import {
+  resolveMusicAcceptanceEvidence,
+  validateMusicAcceptanceEvidenceRegistry,
+} from './music-acceptance-evidence-registry'
 
 export interface MusicCapabilityModeMatrixEntry {
   capabilityKey: string
@@ -38,19 +42,26 @@ export const MUSIC_CAPABILITY_MODE_MATRIX: readonly MusicCapabilityModeMatrixEnt
     const refs = [...capability.primaryRouteRefs, ...capability.fallbackRouteRefs, ...capability.lowerCostRouteRefs]
     const routes = refs.map((ref) => getMusicToolRouteManifest(ref.routeKey, ref.routeVersion))
       .filter((route): route is NonNullable<typeof route> => Boolean(route))
-    const fixtureExecutionQualification: SkillQualificationStatus = isCompositeMusicJob(jobType)
+    const proposedFixtureQualification: SkillQualificationStatus = isCompositeMusicJob(jobType)
       ? 'internal_execution_qualified'
       : capability.evidenceLevel === 'fixture' ? 'planning_qualified'
         : capability.qualificationStatus === 'internal_execution_qualified' ||
             capability.qualificationStatus === 'production_qualified'
           ? capability.qualificationStatus : 'blocked'
-    const privateInternalQualification: SkillQualificationStatus = isCompositeMusicJob(jobType)
+    const proposedPrivateQualification: SkillQualificationStatus = isCompositeMusicJob(jobType)
       ? 'internal_execution_qualified'
       : capability.qualificationStatus === 'internal_execution_qualified' ||
           capability.qualificationStatus === 'production_qualified'
         ? capability.qualificationStatus : 'blocked'
-    const productionQualification: SkillQualificationStatus = capability.qualificationStatus === 'production_qualified'
+    const proposedProductionQualification: SkillQualificationStatus = capability.qualificationStatus === 'production_qualified'
       ? 'production_qualified' : 'blocked'
+    const planningEvidence = resolveMusicAcceptanceEvidence({ jobType, mode: 'planning' })
+    const fixtureEvidence = resolveMusicAcceptanceEvidence({ jobType, mode: 'fixture' })
+    const privateEvidence = resolveMusicAcceptanceEvidence({ jobType, mode: 'private_internal' })
+    const productionEvidence = resolveMusicAcceptanceEvidence({ jobType, mode: 'production' })
+    const fixtureExecutionQualification = fixtureEvidence.length > 0 ? proposedFixtureQualification : 'blocked'
+    const privateInternalQualification = privateEvidence.length > 0 ? proposedPrivateQualification : 'blocked'
+    const productionQualification = productionEvidence.length > 0 ? proposedProductionQualification : 'blocked'
     return {
       capabilityKey: capability.capabilityKey,
       jobType,
@@ -61,13 +72,13 @@ export const MUSIC_CAPABILITY_MODE_MATRIX: readonly MusicCapabilityModeMatrixEnt
       requiredInputs: [...capability.requiredInputs],
       routeKeys: routes.map((route) => route.routeKey),
       expectedOutputs: [...capability.producedArtifactTypes],
-      acceptanceTestKey: `music.acceptance.${jobType}.v1`,
+      acceptanceTestKey: planningEvidence[0]?.evidenceKey ?? '',
       ...(fixtureExecutionQualification !== 'blocked'
-        ? { fixtureExecutionTestKey: `music.acceptance.fixture.${jobType}.v1` } : {}),
+        ? { fixtureExecutionTestKey: fixtureEvidence[0]!.evidenceKey } : {}),
       ...(privateInternalQualification !== 'blocked'
-        ? { privateInternalExecutionTestKey: `music.acceptance.private.${jobType}.v1` } : {}),
+        ? { privateInternalExecutionTestKey: privateEvidence[0]!.evidenceKey } : {}),
       ...(productionQualification !== 'blocked'
-        ? { productionExecutionTestKey: `music.acceptance.production.${jobType}.v1` } : {}),
+        ? { productionExecutionTestKey: productionEvidence[0]!.evidenceKey } : {}),
       limitations: [...capability.knownLimitations],
     }
   }),
@@ -90,6 +101,7 @@ export function resolveMusicModeDisposition(input: {
 }
 
 export function validateMusicCapabilityModeMatrix(): void {
+  validateMusicAcceptanceEvidenceRegistry()
   const jobs = new Set(MUSIC_JOB_TYPES)
   const matrixJobs = new Set(MUSIC_CAPABILITY_MODE_MATRIX.map((entry) => entry.jobType))
   if (matrixJobs.size !== jobs.size || [...jobs].some((job) => !matrixJobs.has(job))) {

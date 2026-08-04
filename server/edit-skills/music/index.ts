@@ -1,5 +1,6 @@
 export * from './canonical-music-skill-service'
 export * from './music-admission'
+export * from './music-acceptance-evidence-registry'
 export * from './music-capability-manifest'
 export * from './music-capability-mode-matrix'
 export * from './music-execution-graph'

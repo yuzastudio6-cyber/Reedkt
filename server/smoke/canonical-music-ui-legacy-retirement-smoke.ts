@@ -43,7 +43,7 @@ const legacyWorker = await readFile(resolve(root, 'src/backend/workers/lyria-wor
 check(legacyWorker.includes('usableForRender: false'), 'Legacy metadata-only Music output must not be render-ready.')
 check(legacyWorker.includes('Fixture-only Music metadata'), 'Legacy worker must label output as fixture-only.')
 
-const runtime = await createCanonicalMusicTestRuntime('music-ui-retirement')
+const runtime = await createCanonicalMusicTestRuntime()
 const request = makeCanonicalMusicRequest({
   requestId: 'music-ui-retirement',
   mode: 'planning',

@@ -28,7 +28,7 @@ function executionEvidence(result: CanonicalMusicSkillResult): CanonicalMusicUiP
   if (result.status === 'planned') return 'planned'
   if (result.unitReceipts.length === 0) return 'none'
   if (result.qualificationStatusUsed === 'production_qualified') return 'production'
-  if (result.qualificationStatusUsed === 'internal_qualified') return 'private_internal'
+  if (result.qualificationStatusUsed === 'internal_execution_qualified') return 'private_internal'
   return 'fixture'
 }
 

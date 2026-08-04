@@ -398,21 +398,18 @@ const sourceAnalysisPreparationOwner =
         return null
       },
     },
-    probeAuthorityReadPort: {
-      schemaVersion:
-        'canonical-source-analysis-probe-authority-read-port-v1',
-      async readCompletedExactProbe() {
-        return null
-      },
-    },
   })
 assert.equal(
   sourceAnalysisPreparationOwner.schemaVersion,
-  'canonical-source-analysis-preparation-owner-v1',
+  'canonical-source-analysis-preparation-owner-v2',
 )
 assert.equal(
   sourceAnalysisPreparationOwner.approximateDurationToFrameInferenceAllowed,
   false,
+)
+assert.equal(
+  runtime.sourceAnalysisProbeAuthorityRepository.repositoryVersion,
+  'canonical-source-analysis-probe-authority-repository-v1',
 )
 const missingSourceCleanupAuthority =
   await runtime.sourceCleanupAuthorityRepository.readForPlanning({
@@ -1102,6 +1099,7 @@ console.log(JSON.stringify({
   sourcePlanningReconciliationFactoryMounted: true,
   sourcePreparedRequestAuthorityRepositoryMounted: true,
   sourceAnalysisPreparationOwnerFactoryMounted: true,
+  sourceAnalysisProbeAuthorityRepositoryMounted: true,
   sourcePreparationRequiresExactL4ProbeAuthority: true,
   sourceBindingPersistedBeforeProviderExecution: true,
   sourceBindingRequiresProbeTranscriptAndPlanningContext: true,

@@ -17,9 +17,9 @@ import type {
 export const CANONICAL_SOURCE_ANALYSIS_FINALIZED_AUTHORITY_READ_PORT_VERSION =
   'canonical-source-analysis-finalized-authority-read-port-v1' as const
 export const CANONICAL_SOURCE_ANALYSIS_PROBE_AUTHORITY_READ_PORT_VERSION =
-  'canonical-source-analysis-probe-authority-read-port-v1' as const
+  'canonical-source-analysis-probe-authority-read-port-v2' as const
 export const CANONICAL_SOURCE_ANALYSIS_PREPARATION_OWNER_VERSION =
-  'canonical-source-analysis-preparation-owner-v1' as const
+  'canonical-source-analysis-preparation-owner-v2' as const
 
 const PREFIXED_SHA256 = /^sha256:[a-f0-9]{64}$/u
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
@@ -62,7 +62,7 @@ export interface CanonicalSourceAnalysisFinalizedAuthority {
 }
 
 export interface CanonicalSourceAnalysisProbeAuthority {
-  readonly schemaVersion: 'canonical-source-analysis-probe-authority-v1'
+  readonly schemaVersion: 'canonical-source-analysis-probe-authority-v2'
   readonly ownerUserId: string
   readonly workspaceId: string
   readonly projectId: string
@@ -84,6 +84,9 @@ export interface CanonicalSourceAnalysisProbeAuthority {
   readonly sourceTimeBaseNumerator: number
   readonly sourceTimeBaseDenominator: number
   readonly constantFrameRate: true
+  readonly finalizedMediaAuthorityRef: VisualIntelligenceEvidenceRef
+  readonly finalizedStorageObjectAuthorityRef:
+    VisualIntelligenceEvidenceRef
   readonly sourceProbeAuthorityRef: VisualIntelligenceEvidenceRef
   readonly probeRuntimeReleaseRef: VisualIntelligenceEvidenceRef
   readonly resultRuntimeRecordRef: VisualIntelligenceEvidenceRef
@@ -129,21 +132,25 @@ export interface CanonicalSourceAnalysisFinalizedAuthorityReadPort {
 export interface CanonicalSourceAnalysisProbeAuthorityReadPort {
   readonly schemaVersion:
     typeof CANONICAL_SOURCE_ANALYSIS_PROBE_AUTHORITY_READ_PORT_VERSION
-  readCompletedExactProbe(input: Readonly<{
-    ownerUserId: string
-    workspaceId: string
-    projectId: string
-    editSessionId: string
-    sourceSequenceItemId: string
-    mediaAssetId: string
-    uploadedOrder: number
-    checksumSha256: string
-    byteLength: number
-    storageGeneration: string
-    storageEtag: string
-    finalizedMediaAuthorityRef: VisualIntelligenceEvidenceRef
-    finalizedStorageObjectAuthorityRef: VisualIntelligenceEvidenceRef
-  }>): Promise<CanonicalSourceAnalysisProbeAuthority | null>
+  readCompletedExactProbe(
+    input: CanonicalSourceAnalysisProbeAuthorityScope,
+  ): Promise<CanonicalSourceAnalysisProbeAuthority | null>
+}
+
+export interface CanonicalSourceAnalysisProbeAuthorityScope {
+  readonly ownerUserId: string
+  readonly workspaceId: string
+  readonly projectId: string
+  readonly editSessionId: string
+  readonly sourceSequenceItemId: string
+  readonly mediaAssetId: string
+  readonly uploadedOrder: number
+  readonly checksumSha256: string
+  readonly byteLength: number
+  readonly storageGeneration: string
+  readonly storageEtag: string
+  readonly finalizedMediaAuthorityRef: VisualIntelligenceEvidenceRef
+  readonly finalizedStorageObjectAuthorityRef: VisualIntelligenceEvidenceRef
 }
 
 export type CanonicalSourceAnalysisPreparationResult =
@@ -239,31 +246,32 @@ export function createCanonicalSourceAnalysisPreparationOwner(input: {
           scope,
           planned,
         })
+        const probeScope = {
+          ownerUserId: finalized.ownerUserId,
+          workspaceId: finalized.workspaceId,
+          projectId: finalized.projectId,
+          editSessionId: finalized.editSessionId,
+          sourceSequenceItemId: finalized.sourceSequenceItemId,
+          mediaAssetId: finalized.mediaAssetId,
+          uploadedOrder: finalized.uploadedOrder,
+          checksumSha256: finalized.checksumSha256,
+          byteLength: finalized.byteLength,
+          storageGeneration: finalized.storageGeneration,
+          storageEtag: finalized.storageEtag,
+          finalizedMediaAuthorityRef:
+            cloneRef(finalized.finalizedMediaAuthorityRef),
+          finalizedStorageObjectAuthorityRef:
+            cloneRef(finalized.finalizedStorageObjectAuthorityRef),
+        } satisfies CanonicalSourceAnalysisProbeAuthorityScope
         const probeRaw = await input.probeAuthorityReadPort
-          .readCompletedExactProbe({
-            ownerUserId: finalized.ownerUserId,
-            workspaceId: finalized.workspaceId,
-            projectId: finalized.projectId,
-            editSessionId: finalized.editSessionId,
-            sourceSequenceItemId: finalized.sourceSequenceItemId,
-            mediaAssetId: finalized.mediaAssetId,
-            uploadedOrder: finalized.uploadedOrder,
-            checksumSha256: finalized.checksumSha256,
-            byteLength: finalized.byteLength,
-            storageGeneration: finalized.storageGeneration,
-            storageEtag: finalized.storageEtag,
-            finalizedMediaAuthorityRef:
-              cloneRef(finalized.finalizedMediaAuthorityRef),
-            finalizedStorageObjectAuthorityRef:
-              cloneRef(finalized.finalizedStorageObjectAuthorityRef),
-          })
+          .readCompletedExactProbe(probeScope)
         if (!probeRaw) return notReady(
           'canonical_l4_source_probe_authority_not_ready',
           index + 1,
         )
-        const probe = verifyProbeAuthority({
+        const probe = verifyCanonicalSourceAnalysisProbeAuthority({
           untrusted: probeRaw,
-          finalized,
+          expected: probeScope,
         })
         sources.push(Object.freeze({
           sourceSequenceItemId: finalized.sourceSequenceItemId,
@@ -416,9 +424,9 @@ function verifyFinalizedAuthority(input: {
   })
 }
 
-function verifyProbeAuthority(input: {
+export function verifyCanonicalSourceAnalysisProbeAuthority(input: {
   readonly untrusted: unknown
-  readonly finalized: CanonicalSourceAnalysisFinalizedAuthority
+  readonly expected: CanonicalSourceAnalysisProbeAuthorityScope
 }): CanonicalSourceAnalysisProbeAuthority {
   const value = exactRecord(input.untrusted, [
     'schemaVersion', 'ownerUserId', 'workspaceId', 'projectId',
@@ -427,7 +435,8 @@ function verifyProbeAuthority(input: {
     'storageEtag', 'width', 'height', 'hasAudio', 'audioProbe',
     'fpsNumerator', 'fpsDenominator', 'frameCount',
     'sourceTimeBaseNumerator', 'sourceTimeBaseDenominator',
-    'constantFrameRate', 'sourceProbeAuthorityRef',
+    'constantFrameRate', 'finalizedMediaAuthorityRef',
+    'finalizedStorageObjectAuthorityRef', 'sourceProbeAuthorityRef',
     'probeRuntimeReleaseRef', 'resultRuntimeRecordRef',
     'usageCostEvidenceRef', 'operationId', 'routeProfileId',
     'acceleratorClass', 'userTriggeredOnly', 'minimumIdleInstances',
@@ -439,20 +448,20 @@ function verifyProbeAuthority(input: {
     'callerProbeFieldsAccepted', 'callerPathUrlBytesOrCommandAccepted',
     'providerCalled', 'publicDeliveryGranted', 'productionAuthorityGranted',
   ])
-  const finalized = input.finalized
+  const expected = input.expected
   if (
-    value.schemaVersion !== 'canonical-source-analysis-probe-authority-v1'
-    || value.ownerUserId !== finalized.ownerUserId
-    || value.workspaceId !== finalized.workspaceId
-    || value.projectId !== finalized.projectId
-    || value.editSessionId !== finalized.editSessionId
-    || value.sourceSequenceItemId !== finalized.sourceSequenceItemId
-    || value.mediaAssetId !== finalized.mediaAssetId
-    || value.uploadedOrder !== finalized.uploadedOrder
-    || value.checksumSha256 !== finalized.checksumSha256
-    || value.byteLength !== finalized.byteLength
-    || value.storageGeneration !== finalized.storageGeneration
-    || value.storageEtag !== finalized.storageEtag
+    value.schemaVersion !== 'canonical-source-analysis-probe-authority-v2'
+    || value.ownerUserId !== expected.ownerUserId
+    || value.workspaceId !== expected.workspaceId
+    || value.projectId !== expected.projectId
+    || value.editSessionId !== expected.editSessionId
+    || value.sourceSequenceItemId !== expected.sourceSequenceItemId
+    || value.mediaAssetId !== expected.mediaAssetId
+    || value.uploadedOrder !== expected.uploadedOrder
+    || value.checksumSha256 !== expected.checksumSha256
+    || value.byteLength !== expected.byteLength
+    || value.storageGeneration !== expected.storageGeneration
+    || value.storageEtag !== expected.storageEtag
     || !positiveInteger(value.width)
     || !positiveInteger(value.height)
     || typeof value.hasAudio !== 'boolean'
@@ -491,6 +500,8 @@ function verifyProbeAuthority(input: {
       (audioProbe.disposition === 'verified_audio_stream')
   ) throw conflict('source_analysis_probe_audio_authority_mismatch')
   const refs = [
+    value.finalizedMediaAuthorityRef,
+    value.finalizedStorageObjectAuthorityRef,
     value.sourceProbeAuthorityRef,
     value.probeRuntimeReleaseRef,
     value.resultRuntimeRecordRef,
@@ -499,13 +510,20 @@ function verifyProbeAuthority(input: {
   if (new Set(refs.map(refKey)).size !== refs.length) {
     throw conflict('source_analysis_probe_authority_refs_invalid')
   }
+  if (
+    refKey(refs[0]!) !== refKey(expected.finalizedMediaAuthorityRef)
+    || refKey(refs[1]!) !==
+      refKey(expected.finalizedStorageObjectAuthorityRef)
+  ) throw conflict('source_analysis_probe_finalized_refs_mismatch')
   return Object.freeze({
     ...(value as unknown as CanonicalSourceAnalysisProbeAuthority),
     audioProbe,
-    sourceProbeAuthorityRef: refs[0]!,
-    probeRuntimeReleaseRef: refs[1]!,
-    resultRuntimeRecordRef: refs[2]!,
-    usageCostEvidenceRef: refs[3]!,
+    finalizedMediaAuthorityRef: refs[0]!,
+    finalizedStorageObjectAuthorityRef: refs[1]!,
+    sourceProbeAuthorityRef: refs[2]!,
+    probeRuntimeReleaseRef: refs[3]!,
+    resultRuntimeRecordRef: refs[4]!,
+    usageCostEvidenceRef: refs[5]!,
   })
 }
 

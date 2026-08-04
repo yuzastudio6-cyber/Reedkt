@@ -25,8 +25,11 @@ import {
   createCanonicalSourceAnalysisPreparationOwner,
   type CanonicalSourceAnalysisFinalizedAuthorityReadPort,
   type CanonicalSourceAnalysisPreparationOwner,
-  type CanonicalSourceAnalysisProbeAuthorityReadPort,
 } from '../services/canonical-source-analysis-preparation-owner'
+import {
+  createCanonicalSourceAnalysisProbeAuthorityRepository,
+  type CanonicalSourceAnalysisProbeAuthorityRepository,
+} from '../services/canonical-source-analysis-probe-authority-repository'
 import {
   createCanonicalSourceCleanupAuthorityRepository,
   type CanonicalSourceCleanupAuthorityRepository,
@@ -140,11 +143,11 @@ export interface VisualIntelligenceProductionRuntime {
     CanonicalSourceCleanupAuthorityRepository
   readonly sourceAnalysisRequestAuthorityRepository:
     CanonicalSourceAnalysisRequestAuthorityRepository
+  readonly sourceAnalysisProbeAuthorityRepository:
+    CanonicalSourceAnalysisProbeAuthorityRepository
   readonly createSourceAnalysisPreparationOwner: (input: {
     readonly finalizedAuthorityReadPort:
       CanonicalSourceAnalysisFinalizedAuthorityReadPort
-    readonly probeAuthorityReadPort:
-      CanonicalSourceAnalysisProbeAuthorityReadPort
   }) => CanonicalSourceAnalysisPreparationOwner
   readonly createSourceLedOrchestraPlanningReconciliationPort: (
     input: {
@@ -243,6 +246,8 @@ export async function createVisualIntelligenceProductionRuntime(
     createCanonicalSourceCleanupAuthorityRepository({ objectPort })
   const sourceAnalysisRequestAuthorityRepository =
     createCanonicalSourceAnalysisRequestAuthorityRepository({ objectPort })
+  const sourceAnalysisProbeAuthorityRepository =
+    createCanonicalSourceAnalysisProbeAuthorityRepository({ objectPort })
   const canonicalRequestPackageStore =
     createVisualIntelligenceCanonicalRequestPackageStore({
       objectPort,
@@ -297,10 +302,9 @@ export async function createVisualIntelligenceProductionRuntime(
   const createSourceAnalysisPreparationOwnerFactory = (input: {
     readonly finalizedAuthorityReadPort:
       CanonicalSourceAnalysisFinalizedAuthorityReadPort
-    readonly probeAuthorityReadPort:
-      CanonicalSourceAnalysisProbeAuthorityReadPort
   }) => createCanonicalSourceAnalysisPreparationOwner({
-    ...input,
+    finalizedAuthorityReadPort: input.finalizedAuthorityReadPort,
+    probeAuthorityReadPort: sourceAnalysisProbeAuthorityRepository,
     requestAuthorityRepository: sourceAnalysisRequestAuthorityRepository,
   })
   const sourceVideoUnderstandingConsumerBindingPort =
@@ -384,6 +388,7 @@ export async function createVisualIntelligenceProductionRuntime(
     costOwner,
     sourceCleanupAuthorityRepository,
     sourceAnalysisRequestAuthorityRepository,
+    sourceAnalysisProbeAuthorityRepository,
     createSourceAnalysisPreparationOwner:
       createSourceAnalysisPreparationOwnerFactory,
     createSourceLedOrchestraPlanningReconciliationPort,

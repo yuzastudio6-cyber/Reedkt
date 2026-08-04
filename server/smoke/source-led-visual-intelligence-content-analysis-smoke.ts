@@ -47,11 +47,14 @@ import {
 } from '../services/canonical-source-analysis-request-authority-repository'
 import {
   CANONICAL_SOURCE_ANALYSIS_FINALIZED_AUTHORITY_READ_PORT_VERSION,
-  CANONICAL_SOURCE_ANALYSIS_PROBE_AUTHORITY_READ_PORT_VERSION,
   createCanonicalSourceAnalysisPreparationOwner,
   type CanonicalSourceAnalysisFinalizedAuthority,
   type CanonicalSourceAnalysisProbeAuthority,
+  type CanonicalSourceAnalysisProbeAuthorityScope,
 } from '../services/canonical-source-analysis-preparation-owner'
+import {
+  createCanonicalSourceAnalysisProbeAuthorityRepository,
+} from '../services/canonical-source-analysis-probe-authority-repository'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -771,7 +774,7 @@ const finalizedAuthority: CanonicalSourceAnalysisFinalizedAuthority = {
   callerPathUrlBytesOrCommandAccepted: false,
 }
 const probeAuthority: CanonicalSourceAnalysisProbeAuthority = {
-  schemaVersion: 'canonical-source-analysis-probe-authority-v1',
+  schemaVersion: 'canonical-source-analysis-probe-authority-v2',
   ownerUserId: finalizedAuthority.ownerUserId,
   workspaceId: finalizedAuthority.workspaceId,
   projectId: finalizedAuthority.projectId,
@@ -793,6 +796,9 @@ const probeAuthority: CanonicalSourceAnalysisProbeAuthority = {
   sourceTimeBaseNumerator: sourceAuthority.sourceTimeBaseNumerator!,
   sourceTimeBaseDenominator: sourceAuthority.sourceTimeBaseDenominator!,
   constantFrameRate: true,
+  finalizedMediaAuthorityRef: sourceAuthority.finalizedMediaAuthorityRef,
+  finalizedStorageObjectAuthorityRef:
+    sourceAuthority.finalizedStorageObjectAuthorityRef,
   sourceProbeAuthorityRef: sourceAuthority.sourceProbeAuthorityRef,
   probeRuntimeReleaseRef: ref('source-probe-runtime-release'),
   resultRuntimeRecordRef: ref('source-probe-runtime-result'),
@@ -818,44 +824,104 @@ const probeAuthority: CanonicalSourceAnalysisProbeAuthority = {
   publicDeliveryGranted: false,
   productionAuthorityGranted: false,
 }
+const probeAuthorityScope: CanonicalSourceAnalysisProbeAuthorityScope = {
+  ownerUserId: finalizedAuthority.ownerUserId,
+  workspaceId: finalizedAuthority.workspaceId,
+  projectId: finalizedAuthority.projectId,
+  editSessionId: finalizedAuthority.editSessionId,
+  sourceSequenceItemId: finalizedAuthority.sourceSequenceItemId,
+  mediaAssetId: finalizedAuthority.mediaAssetId,
+  uploadedOrder: finalizedAuthority.uploadedOrder,
+  checksumSha256: finalizedAuthority.checksumSha256,
+  byteLength: finalizedAuthority.byteLength,
+  storageGeneration: finalizedAuthority.storageGeneration,
+  storageEtag: finalizedAuthority.storageEtag,
+  finalizedMediaAuthorityRef:
+    finalizedAuthority.finalizedMediaAuthorityRef,
+  finalizedStorageObjectAuthorityRef:
+    finalizedAuthority.finalizedStorageObjectAuthorityRef,
+}
+const probeAuthorityObjects = new Map<string, Buffer>()
+let probeAuthorityRepositoryRereads = 0
+const probeAuthorityRepository =
+  createCanonicalSourceAnalysisProbeAuthorityRepository({
+    objectPort: {
+      async createOnly(input) {
+        const existing = probeAuthorityObjects.get(input.objectPath)
+        if (existing) {
+          assert.deepEqual(existing, input.body)
+          assert.equal(sha(existing.toString('utf8')), input.contentSha256)
+          return 'already_exists'
+        }
+        assert.equal(sha(input.body.toString('utf8')), input.contentSha256)
+        probeAuthorityObjects.set(input.objectPath, Buffer.from(input.body))
+        return 'created'
+      },
+      async readExact(objectPath) {
+        probeAuthorityRepositoryRereads += 1
+        const body = probeAuthorityObjects.get(objectPath)
+        return body ? Buffer.from(body) : null
+      },
+    },
+  })
+const persistedProbeAuthority =
+  await probeAuthorityRepository.persistCreateOnly({
+    scope: probeAuthorityScope,
+    authority: probeAuthority,
+  })
+assert.equal(persistedProbeAuthority.disposition, 'created')
+assert.equal(persistedProbeAuthority.exactCreateOnlyRereadVerified, true)
+assert.equal(persistedProbeAuthority.gpuJobStarted, false)
+assert.equal(persistedProbeAuthority.providerCalled, false)
+assert.equal(persistedProbeAuthority.customerCreditMutated, false)
+assert.equal(persistedProbeAuthority.publicDeliveryGranted, false)
+assert.equal(persistedProbeAuthority.productionAuthorityGranted, false)
+assert.deepEqual(
+  await probeAuthorityRepository.readCompletedExactProbe(
+    probeAuthorityScope,
+  ),
+  probeAuthority,
+)
+assert.equal(
+  (await probeAuthorityRepository.persistCreateOnly({
+    scope: probeAuthorityScope,
+    authority: probeAuthority,
+  })).disposition,
+  'identical_replay',
+)
+assert.equal(probeAuthorityObjects.size, 1)
 let finalizedAuthorityAvailable = true
-let probeAuthorityAvailable = true
 let finalizedAuthorityRereads = 0
-let probeAuthorityRereads = 0
+const finalizedAuthorityReadPort = {
+  schemaVersion:
+    CANONICAL_SOURCE_ANALYSIS_FINALIZED_AUTHORITY_READ_PORT_VERSION,
+  async readExactFinalizedSource(scope: Readonly<{
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+    editSessionId: string
+    sourceSequenceItemId: string
+    mediaAssetId: string
+    uploadedOrder: number
+  }>) {
+    finalizedAuthorityRereads += 1
+    assert.deepEqual(scope, {
+      ownerUserId: planningScope.ownerUserId,
+      workspaceId: planningScope.workspaceId,
+      projectId: planningScope.projectId,
+      editSessionId: planningScope.editSessionId,
+      sourceSequenceItemId:
+        planningScope.sources[0]!.sourceSequenceItemId,
+      mediaAssetId: planningScope.sources[0]!.mediaAssetId,
+      uploadedOrder: 1,
+    })
+    return finalizedAuthorityAvailable ? finalizedAuthority : null
+  },
+} as const
 const sourceAnalysisPreparationOwner =
   createCanonicalSourceAnalysisPreparationOwner({
-    finalizedAuthorityReadPort: {
-      schemaVersion:
-        CANONICAL_SOURCE_ANALYSIS_FINALIZED_AUTHORITY_READ_PORT_VERSION,
-      async readExactFinalizedSource(scope) {
-        finalizedAuthorityRereads += 1
-        assert.deepEqual(scope, {
-          ownerUserId: planningScope.ownerUserId,
-          workspaceId: planningScope.workspaceId,
-          projectId: planningScope.projectId,
-          editSessionId: planningScope.editSessionId,
-          sourceSequenceItemId:
-            planningScope.sources[0]!.sourceSequenceItemId,
-          mediaAssetId: planningScope.sources[0]!.mediaAssetId,
-          uploadedOrder: 1,
-        })
-        return finalizedAuthorityAvailable ? finalizedAuthority : null
-      },
-    },
-    probeAuthorityReadPort: {
-      schemaVersion:
-        CANONICAL_SOURCE_ANALYSIS_PROBE_AUTHORITY_READ_PORT_VERSION,
-      async readCompletedExactProbe(scope) {
-        probeAuthorityRereads += 1
-        assert.equal(scope.storageGeneration, finalizedAuthority.storageGeneration)
-        assert.equal(scope.storageEtag, finalizedAuthority.storageEtag)
-        assert.deepEqual(
-          scope.finalizedMediaAuthorityRef,
-          finalizedAuthority.finalizedMediaAuthorityRef,
-        )
-        return probeAuthorityAvailable ? probeAuthority : null
-      },
-    },
+    finalizedAuthorityReadPort,
+    probeAuthorityReadPort: probeAuthorityRepository,
     requestAuthorityRepository,
   })
 assert.equal(sourceAnalysisPreparationOwner.userTriggeredOnly, true)
@@ -873,7 +939,6 @@ assert.equal(preparedRequestReceipt.providerCalled, false)
 assert.equal(preparedRequestReceipt.gpuJobStarted, false)
 assert.equal(preparedRequestReceipt.customerCreditMutated, false)
 assert.equal(finalizedAuthorityRereads, 1)
-assert.equal(probeAuthorityRereads, 1)
 assert.equal(requestAuthorityObjects.size, 1)
 assert.deepEqual(
   await requestAuthorityRepository.readExactPreparedRequest(planningScope),
@@ -894,9 +959,25 @@ assert.equal(
   }),
   null,
 )
-probeAuthorityAvailable = false
+const unavailableProbeAuthorityRepository =
+  createCanonicalSourceAnalysisProbeAuthorityRepository({
+    objectPort: {
+      async createOnly() {
+        throw new Error('unexpected empty probe repository write')
+      },
+      async readExact() {
+        return null
+      },
+    },
+  })
+const missingProbePreparationOwner =
+  createCanonicalSourceAnalysisPreparationOwner({
+    finalizedAuthorityReadPort,
+    probeAuthorityReadPort: unavailableProbeAuthorityRepository,
+    requestAuthorityRepository,
+  })
 const missingProbePreparation =
-  await sourceAnalysisPreparationOwner.prepareForOrchestra({
+  await missingProbePreparationOwner.prepareForOrchestra({
     ...planningScope,
     userInstructionDigestSha256: sha('missing-probe-saved-chat'),
   })
@@ -906,7 +987,6 @@ assert.equal(
   'canonical_l4_source_probe_authority_not_ready',
 )
 assert.equal(requestAuthorityObjects.size, 1)
-probeAuthorityAvailable = true
 finalizedAuthorityAvailable = false
 const missingFinalizedPreparation =
   await sourceAnalysisPreparationOwner.prepareForOrchestra({
@@ -932,39 +1012,46 @@ await assert.rejects(
         }
       },
     },
-    probeAuthorityReadPort: {
-      schemaVersion:
-        CANONICAL_SOURCE_ANALYSIS_PROBE_AUTHORITY_READ_PORT_VERSION,
-      async readCompletedExactProbe() {
-        return probeAuthority
-      },
-    },
+    probeAuthorityReadPort: probeAuthorityRepository,
     requestAuthorityRepository,
   }).prepareForOrchestra(planningScope),
   /stale or invalid/u,
 )
 await assert.rejects(
-  () => createCanonicalSourceAnalysisPreparationOwner({
-    finalizedAuthorityReadPort: {
-      schemaVersion:
-        CANONICAL_SOURCE_ANALYSIS_FINALIZED_AUTHORITY_READ_PORT_VERSION,
-      async readExactFinalizedSource() {
-        return finalizedAuthority
-      },
-    },
-    probeAuthorityReadPort: {
-      schemaVersion:
-        CANONICAL_SOURCE_ANALYSIS_PROBE_AUTHORITY_READ_PORT_VERSION,
-      async readCompletedExactProbe() {
-        return {
-          ...probeAuthority,
-          constantFrameRate: false,
-        } as unknown as CanonicalSourceAnalysisProbeAuthority
-      },
-    },
-    requestAuthorityRepository,
-  }).prepareForOrchestra(planningScope),
+  () => probeAuthorityRepository.persistCreateOnly({
+    scope: probeAuthorityScope,
+    authority: {
+      ...probeAuthority,
+      constantFrameRate: false,
+    } as unknown as CanonicalSourceAnalysisProbeAuthority,
+  }),
   /stale or invalid/u,
+)
+const [probeAuthorityObjectPath, immutableProbeAuthorityBody] =
+  [...probeAuthorityObjects.entries()][0]!
+const tamperedProbeAuthorityRecord = JSON.parse(
+  immutableProbeAuthorityBody.toString('utf8'),
+) as { probe: { providerCalled: boolean } }
+tamperedProbeAuthorityRecord.probe.providerCalled = true
+probeAuthorityObjects.set(
+  probeAuthorityObjectPath,
+  Buffer.from(JSON.stringify(tamperedProbeAuthorityRecord), 'utf8'),
+)
+await assert.rejects(
+  () => probeAuthorityRepository.readCompletedExactProbe(
+    probeAuthorityScope,
+  ),
+  /stale or invalid|failed exact reread/u,
+)
+probeAuthorityObjects.set(
+  probeAuthorityObjectPath,
+  immutableProbeAuthorityBody,
+)
+assert.deepEqual(
+  await probeAuthorityRepository.readCompletedExactProbe(
+    probeAuthorityScope,
+  ),
+  probeAuthority,
 )
 let preparedRequestRereads = 0
 const planningReconciliationPort =
@@ -1692,7 +1779,10 @@ console.log(JSON.stringify({
     && headReconciliationCalls === 1,
   authenticatedPlanningReconciliationBridgeVerified: true,
   authenticatedPreparationOwnerVerified:
-    finalizedAuthorityRereads >= 3 && probeAuthorityRereads >= 2,
+    finalizedAuthorityRereads >= 3
+    && probeAuthorityRepositoryRereads >= 4,
+  durableProbeAuthorityCreateOnlyRereadVerified: true,
+  tamperedProbeAuthorityRejected: true,
   l4ExactRationalProbeAuthorityRequired: true,
   approximateDurationFrameInferenceAllowed: false,
   missingFinalizedOrProbeAuthorityFailsClosed: true,

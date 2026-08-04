@@ -249,6 +249,22 @@ assert.match(
   sourcePreparedRequestRepositorySource,
   /persistCreateOnly/u,
 )
+const sourceProbeAuthorityRepositorySource = readFileSync(
+  'server/services/canonical-source-analysis-probe-authority-repository.ts',
+  'utf8',
+)
+assert.doesNotMatch(
+  sourceProbeAuthorityRepositorySource,
+  /VisualIntelligenceLifecycleService|createVisualIntelligenceRequest|CloudRun|Batch|fetch\(|child_process|execFile|spawn\(/u,
+)
+assert.match(
+  sourceProbeAuthorityRepositorySource,
+  /persistCreateOnly/u,
+)
+assert.match(
+  sourceProbeAuthorityRepositorySource,
+  /repositoryMayDispatchGpuJob: false/u,
+)
 const sourceAnalysisPreparationOwnerSource = readFileSync(
   'server/services/canonical-source-analysis-preparation-owner.ts',
   'utf8',
@@ -419,6 +435,7 @@ console.log(JSON.stringify({
   sourceCleanupRequiresOrchestraResultReread: true,
   sourcePlanningUsesPreparedRequestAndDurableCleanupReread: true,
   sourcePreparedRequestRepositoryCannotDispatch: true,
+  sourceProbeAuthorityRepositoryCannotDispatch: true,
   sourceAnalysisPreparationOwnerCannotDispatch: true,
   sourceAnalysisPreparationRejectsApproximateFrameInference: true,
   sam2ExecutableImageSourceRemoved: true,

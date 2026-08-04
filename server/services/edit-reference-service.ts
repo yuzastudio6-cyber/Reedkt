@@ -180,6 +180,8 @@ import { hashEditReferencePreferenceDnaStructuredContext } from '../edit-referen
 import { hashEditReferenceRequest } from '../edit-references/private-edit-reference-repository'
 import { orchestratePreferenceEvidenceStudy } from '../edit-references/edit-reference-evidence-orchestrator'
 import {
+  prepareEditReferenceVisualIntelligenceOrchestraBindingRequest,
+  type EditReferenceVisualIntelligenceOrchestraBindingRequest,
   type EditReferenceVisualIntelligenceOrchestraReadPort,
 } from '../edit-references/edit-reference-visual-intelligence-result-bridge'
 import type { EditReferenceVisualIntelligenceStudy } from
@@ -354,6 +356,12 @@ export interface EditReferenceServiceRuntimeOptions {
     EditReferenceVisualIntelligenceOrchestraReadPort
 }
 
+export interface PrepareEditReferenceVisualIntelligenceBindingRequestInput {
+  readonly workspaceId: string
+  readonly expectedStudyRevision: number
+  readonly orchestraCall: unknown
+}
+
 export interface EditReferenceReviewedLocalVisualLanguageRuntimeOptions {
   readonly manifestPath: string
   readonly modelPath: string
@@ -381,6 +389,11 @@ export interface EditReferenceService {
   listApplications(workspaceId: string): Promise<EditReferenceServiceResult<PreferenceApplicationListData>>
   getReference(workspaceId: string, referenceId: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   getStudy(workspaceId: string, studyId: string): Promise<EditReferenceServiceResult<PreferenceStudyData>>
+  prepareVisualIntelligenceOrchestraBindingRequest(
+    studyId: string,
+    referenceAssetId: string,
+    input: PrepareEditReferenceVisualIntelligenceBindingRequestInput,
+  ): Promise<EditReferenceServiceResult<EditReferenceVisualIntelligenceOrchestraBindingRequest>>
   listStudyMessages(workspaceId: string, studyId: string): Promise<EditReferenceServiceResult<PreferenceStudyMessageListData>>
   prepareStudyChatReasoning(workspaceId: string, input: EditReferenceStudyChatReasoningServiceInput): Promise<PreparedEditReferenceStudyChatReasoning>
   getStudyChatReasoningAttempt(workspaceId: string, attemptId: string): Promise<EditReferenceServiceResult<EditReferenceStudyChatReasoningAttemptRecord>>
@@ -678,6 +691,49 @@ export function createEditReferenceService(
         messages: studyMessages(aggregate, study.id),
         safety: EDIT_REFERENCE_SAFETY_FLAGS,
       })
+    },
+
+    async prepareVisualIntelligenceOrchestraBindingRequest(
+      studyId,
+      referenceAssetId,
+      input,
+    ) {
+      const workspaceId = requireWorkspaceId(input.workspaceId)
+      const expectedStudyRevision = requirePositiveInteger(
+        input.expectedStudyRevision,
+        'expectedStudyRevision',
+      )
+      const aggregate = await repository.read(scope(workspaceId))
+      if (!aggregate) throw studyNotFound(studyId)
+      const study = requireStudy(aggregate, studyId)
+      const reference = requireReference(aggregate, study.editReferenceId)
+      assertActiveStudy(reference, study)
+      assertRevision(study.revision, expectedStudyRevision, 'Preference Study')
+      if (reference.currentStudyId !== study.id) {
+        throw new ApiError(
+          'VERSION_CONFLICT',
+          'Only the current Preference Study can be bound to a new Orchestra Visual Intelligence call.',
+          409,
+        )
+      }
+      const bindingScope = await resolveEditReferenceVisualIntelligenceBindingScope({
+        context,
+        aggregate,
+        study,
+        reference,
+        referenceAssetId: requireText(
+          referenceAssetId,
+          'referenceAssetId',
+          200,
+        ),
+        ownerUserId,
+      })
+      return result(
+        prepareEditReferenceVisualIntelligenceOrchestraBindingRequest({
+          scope: bindingScope,
+          orchestraCall: input.orchestraCall,
+        }),
+      )
     },
 
     async getLongFormStudy(workspaceId, studyId, referenceAssetId) {
@@ -5380,6 +5436,98 @@ async function prepareEditReferenceVisualIntelligenceStudies(input: {
     if (result) studies.push(result)
   }
   return studies
+}
+
+async function resolveEditReferenceVisualIntelligenceBindingScope(input: {
+  readonly context: ServiceContext
+  readonly aggregate: EditReferenceAggregate
+  readonly study: PreferenceStudySessionRecord
+  readonly reference: EditReferenceRecord
+  readonly referenceAssetId: string
+  readonly ownerUserId: string
+}): Promise<Parameters<
+  typeof prepareEditReferenceVisualIntelligenceOrchestraBindingRequest
+>[0]['scope']> {
+  const asset = requireReferenceVideoAsset(
+    input.aggregate,
+    input.study,
+    input.referenceAssetId,
+  )
+  if (!asset.storageObjectRecordId || !asset.mediaAssetId) {
+    throw new ApiError(
+      'REFERENCE_VIDEO_NOT_FINALIZED',
+      'The selected reference does not have an exact finalized private media identity.',
+      409,
+    )
+  }
+  const activeEvidence = activePreferenceSourceEvidence(
+    input.aggregate.evidence.filter((record) => (
+      record.studySessionId === input.study.id
+    )),
+  )
+  const sourceEvidence = activeEvidence.filter((record) => (
+    record.sourceType === 'reference_video_metadata'
+    && record.editReferenceId === input.reference.id
+    && record.provenance.privateAssetId === asset.privateAssetId
+  ))
+  if (sourceEvidence.length !== 1) {
+    throw new ApiError(
+      'VERSION_CONFLICT',
+      'The selected reference must have exactly one current canonical source-evidence record before Orchestra can bind it.',
+      409,
+      {
+        requiredGate: 'edit_reference_visual_intelligence_source_evidence',
+      },
+    )
+  }
+  const storage = (await createUploadService(input.context)
+    .getStorageObjectRecord(
+      asset.storageObjectRecordId,
+      input.reference.workspaceId,
+    )).storageObjectRecord
+  validateLongFormStorageBinding({
+    reference: input.reference,
+    asset,
+    storageObjectRecordId: storage.id,
+    storageEditReferenceId: storage.editReferenceId,
+    storageProjectId: storage.projectId,
+    storageMediaAssetId: storage.mediaAssetId,
+    storageStatus: storage.status,
+    storageObjectPurpose: storage.objectPurpose,
+    storageMimeType: storage.mimeType,
+    storageSizeBytes: storage.sizeBytes,
+    storageChecksumSha256: storage.checksumSha256,
+  })
+  if (
+    storage.integrityVerified !== true
+    || storage.checksumSource !== 'server_computed_bytes'
+  ) {
+    throw new ApiError(
+      'REFERENCE_VIDEO_NOT_FINALIZED',
+      'The selected reference must retain server-verified byte integrity before Orchestra can bind it.',
+      409,
+    )
+  }
+  return {
+    ownerUserId: input.ownerUserId,
+    workspaceId: input.reference.workspaceId,
+    editReferenceId: input.reference.id,
+    studySessionId: input.study.id,
+    sourceArtifactRef: orchestraEvidenceRef(
+      asset.mediaAssetId,
+      `sha256:${storage.checksumSha256!}`,
+    ),
+    sourceEvidenceId: sourceEvidence[0]!.id,
+    privateAssetId: asset.privateAssetId,
+    sourceEvidenceRef: orchestraEvidenceRef(
+      sourceEvidence[0]!.id,
+      orchestraDigest(sourceEvidence[0]!),
+    ),
+    studyAuthorityRef: orchestraEvidenceRef(
+      input.study.id,
+      orchestraDigest(input.study),
+    ),
+  }
 }
 
 async function prepareEditReferenceMediaStudies(input: {

@@ -35,6 +35,8 @@ export const EDIT_REFERENCE_VISUAL_INTELLIGENCE_READ_PORT_VERSION =
   'edit-reference-visual-intelligence-orchestra-read-port-v1' as const
 export const EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_REQUEST_VERSION =
   'edit-reference-visual-intelligence-orchestra-binding-request-v1' as const
+export const EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_PREPARATION_ROUTE =
+  '/internal/v1/workspaces/:workspaceId/edit-reference-studies/:studyId/assets/:referenceAssetId/visual-intelligence-orchestra-binding-request' as const
 
 const DEFAULT_PREFIX =
   'private/orchestra/v2/consumer-bindings/edit-reference-visual-intelligence'
@@ -147,6 +149,33 @@ export function createEditReferenceVisualIntelligenceOrchestraBindingRequest(
   return freeze({
     ...withoutDigest,
     requestDigestSha256: orchestraDigest(withoutDigest),
+  })
+}
+
+/**
+ * Server-owned preparation helper. Unlike the low-level immutable request
+ * constructor, this entrypoint accepts the complete Orchestra call, verifies
+ * that it is the exact reference-preference call for the canonically reread
+ * consumer scope, and derives its stable request identity. Browser or peer
+ * callers never supply source/evidence/study refs through the HTTP boundary.
+ */
+export function prepareEditReferenceVisualIntelligenceOrchestraBindingRequest(
+  input: {
+    readonly scope: EditReferenceVisualIntelligenceBindingScope
+    readonly orchestraCall: unknown
+  },
+): EditReferenceVisualIntelligenceOrchestraBindingRequest {
+  assertScope(input.scope)
+  const call = parseOrchestraSkillCall(input.orchestraCall)
+  assertReferencePreferenceCall(call, input.scope)
+  const orchestraCallRef = callRef(call)
+  return createEditReferenceVisualIntelligenceOrchestraBindingRequest({
+    requestId: `edit-reference-vi-binding-request-${orchestraDigest({
+      scope: input.scope,
+      orchestraCallRef,
+    }).slice(7, 39)}`,
+    scope: input.scope,
+    orchestraCallRef,
   })
 }
 

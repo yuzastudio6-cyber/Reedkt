@@ -247,6 +247,8 @@ const serviceProof = await proveEditReferenceServiceUsesOrchestraReadPort()
 assert.equal(serviceProof.retiredVisualProviderCallCount, 0)
 assert.equal(serviceProof.visualIntelligenceSkillCompleted, true)
 assert.equal(serviceProof.assetMarkedStudiedByVisualIntelligence, true)
+assert.equal(serviceProof.serverOwnedBindingRequestPrepared, true)
+assert.equal(serviceProof.staleOrMissingSourceRefused, true)
 
 let adversarialRefusals = 0
 await refused('wrong job type', () => resultFixture(report, {
@@ -316,6 +318,8 @@ console.log(JSON.stringify({
   durableOrchestraBindingAndRereadPassed: true,
   oneCallCannotBindMultipleConsumerScopes: true,
   editReferenceServiceReadPortIntegrationPassed: true,
+  serverOwnedBindingRequestPreparationPassed: true,
+  staleOrMissingBindingSourceRefused: true,
   retiredLocalVisualProviderNotCalled: true,
   adversarialRefusals,
 }, null, 2))
@@ -324,6 +328,8 @@ async function proveEditReferenceServiceUsesOrchestraReadPort(): Promise<{
   retiredVisualProviderCallCount: number
   visualIntelligenceSkillCompleted: boolean
   assetMarkedStudiedByVisualIntelligence: boolean
+  serverOwnedBindingRequestPrepared: boolean
+  staleOrMissingSourceRefused: boolean
 }> {
   const localStorageRoot = await mkdtemp(join(
     tmpdir(),
@@ -445,6 +451,10 @@ async function proveEditReferenceServiceUsesOrchestraReadPort(): Promise<{
       && item.provenance.privateAssetId === sourceRef.id
     ))
     assert(sourceEvidence)
+    const referenceAsset = evidenceAdded.data.detail.assets.find((item) => (
+      item.mediaAssetId === sourceRef.id
+    ))
+    assert(referenceAsset)
     const exactScope = {
       ownerUserId,
       workspaceId,
@@ -460,6 +470,48 @@ async function proveEditReferenceServiceUsesOrchestraReadPort(): Promise<{
       studyAuthorityRef: ref(study.id, orchestraDigest(study)),
     }
     const call = referencePreferenceCall(exactScope)
+    const preparedBinding = await setupService
+      .prepareVisualIntelligenceOrchestraBindingRequest(
+        study.id,
+        referenceAsset.id,
+        {
+          workspaceId,
+          expectedStudyRevision: study.revision,
+          orchestraCall: call,
+        },
+      )
+    assert.deepEqual(preparedBinding.data.scope, exactScope)
+    assert.deepEqual(
+      preparedBinding.data.orchestraCallRef,
+      orchestraEvidenceRef(call.callId, call.callDigestSha256),
+    )
+    assert.equal(preparedBinding.data.byteFreeRequest, true)
+    assert.equal(
+      preparedBinding.data.callerProviderDispatchAuthorityAccepted,
+      false,
+    )
+    await assert.rejects(
+      setupService.prepareVisualIntelligenceOrchestraBindingRequest(
+        study.id,
+        referenceAsset.id,
+        {
+          workspaceId,
+          expectedStudyRevision: study.revision + 1,
+          orchestraCall: call,
+        },
+      ),
+    )
+    await assert.rejects(
+      setupService.prepareVisualIntelligenceOrchestraBindingRequest(
+        study.id,
+        'missing-reference-asset',
+        {
+          workspaceId,
+          expectedStudyRevision: study.revision,
+          orchestraCall: call,
+        },
+      ),
+    )
     const bindingObjectRecords = new Map<string, Buffer>()
     const exactBindingStore = createEditReferenceVisualIntelligenceBindingStore({
       objectPort: {
@@ -543,6 +595,9 @@ async function proveEditReferenceServiceUsesOrchestraReadPort(): Promise<{
       assetMarkedStudiedByVisualIntelligence:
         studiedAsset?.mediaStudyStatus
           === 'media_studied_visual_intelligence',
+      serverOwnedBindingRequestPrepared:
+        preparedBinding.data.requestDigestSha256.startsWith('sha256:'),
+      staleOrMissingSourceRefused: true,
     }
   } finally {
     await rm(localStorageRoot, { recursive: true, force: true })

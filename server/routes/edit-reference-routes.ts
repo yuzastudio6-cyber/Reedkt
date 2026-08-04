@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
 import { requireSensitiveIdempotencyKey } from '../middleware/idempotency'
+import { requireStrictInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createEditReferenceService, type EditReferenceServiceResult } from '../services/edit-reference-service'
 import { appendMountedEditReferenceStudyChatMessage } from '../services/edit-reference-study-chat-runtime-port'
 import {
@@ -28,6 +29,9 @@ import {
 import { idSchema, validateBody } from '../validation/common-schemas'
 import { createUploadIntentSchema } from '../validation/upload-schemas'
 import { asyncRoute, getRouteParam, getServiceContext, sendOk } from './route-helpers'
+import {
+  EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_PREPARATION_ROUTE,
+} from '../edit-references/edit-reference-visual-intelligence-result-bridge'
 
 const workspaceSchema = z.object({ workspaceId: idSchema.max(160) })
 const createReferenceSchema = workspaceSchema.extend({
@@ -106,6 +110,10 @@ const studyRevisionSchema = workspaceSchema.extend({
 }).strict()
 const runEvidenceStudySchema = studyRevisionSchema.extend({
   retryBlockedSkills: z.literal(true).optional(),
+}).strict()
+const prepareVisualIntelligenceBindingRequestSchema = z.object({
+  expectedStudyRevision: z.number().int().positive(),
+  orchestraCall: z.unknown(),
 }).strict()
 const startLongFormStudySchema = studyRevisionSchema
 const controlLongFormStudySchema = workspaceSchema.extend({
@@ -380,6 +388,33 @@ export function createEditReferenceRoutes(): Router {
     )
     sendOk(response, result.data, result.warnings)
   }))
+
+  router.post(
+    EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_PREPARATION_ROUTE,
+    requireAuth,
+    requireStrictInternalServiceAuth,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(
+        prepareVisualIntelligenceBindingRequestSchema,
+        request.body,
+      )
+      const result = await createEditReferenceService(
+        getServiceContext(request),
+      ).prepareVisualIntelligenceOrchestraBindingRequest(
+        getRouteParam(request, 'studyId'),
+        getRouteParam(request, 'referenceAssetId'),
+        {
+          workspaceId: getRouteParam(request, 'workspaceId'),
+          expectedStudyRevision: body.expectedStudyRevision,
+          orchestraCall: body.orchestraCall,
+        },
+      )
+      sendOk(response, { bindingRequest: result.data }, [
+        ...result.warnings,
+        'The byte-free binding request was derived from the exact current Edit Reference study, finalized private source authority, and immutable Orchestra call. No provider, worker, credit, timeline, delivery, or production action was performed.',
+      ])
+    }),
+  )
 
   router.post('/v1/edit-reference-studies/:studyId/messages', requireAuth, asyncRoute(async (request, response) => {
     const body = validateBody(appendMessageSchema, request.body)

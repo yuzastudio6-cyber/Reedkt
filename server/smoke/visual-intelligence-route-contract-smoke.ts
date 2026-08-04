@@ -30,6 +30,9 @@ import {
 import {
   createVisualIntelligenceAuthenticatedReadRequest,
 } from '../visual-intelligence/visual-intelligence-authenticated-read-service'
+import {
+  EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_PREPARATION_ROUTE,
+} from '../edit-references/edit-reference-visual-intelligence-result-bridge'
 
 const token = 'visual-intelligence-route-contract-smoke-token'
 const frameRate = { numerator: 24, denominator: 1 } as const
@@ -254,6 +257,27 @@ try {
   assert.equal(orchestraCalls.length, 1)
   assert.deepEqual(lifecycleCalls, [])
 
+  const bindingPreparationPath =
+    EDIT_REFERENCE_VISUAL_INTELLIGENCE_BINDING_PREPARATION_ROUTE
+      .replace(':workspaceId', scope.workspaceId)
+      .replace(':studyId', 'missing-study')
+      .replace(':referenceAssetId', 'missing-reference-asset')
+  const bindingPreparationWithoutInternalAuth = await post(
+    bindingPreparationPath,
+    { expectedStudyRevision: 1, orchestraCall },
+    { 'x-request-id': 'vi-binding-preparation-no-auth' },
+  )
+  assert.equal(bindingPreparationWithoutInternalAuth.status, 401)
+  const bindingPreparationWithInternalAuth = await post(
+    bindingPreparationPath,
+    { expectedStudyRevision: 1, orchestraCall },
+    {
+      'x-request-id': 'vi-binding-preparation-internal',
+      'x-reeditpro-internal-token': token,
+    },
+  )
+  assert.equal(bindingPreparationWithInternalAuth.status, 404)
+
   const crossWorkspacePlanning = await post(
     '/v1/workspaces/foreign-workspace/visual-intelligence/planning-operations',
     planningInput,
@@ -342,6 +366,8 @@ try {
     closedConsumerBindingRequestFieldRequired: true,
     invalidOrchestraServiceTokenRejected: true,
     wrongOrchestraIdempotencyRejected: true,
+    editReferenceBindingPreparationRequiresStrictInternalAuth: true,
+    editReferenceBindingPreparationRouteReachedWithoutProviderCall: true,
     directInspectionRouteRetired: true,
     authenticatedNotFoundReadAccepted: true,
     browserLocalCompletionAccepted: false,

@@ -40,10 +40,12 @@ import {
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
   assertCanonicalSam31GpuTaskRecord,
+  buildCanonicalSam31GpuApprovedTaskMaterialPreparationReceipt,
   buildCanonicalSam31GpuTaskContext,
   canonicalSam31GpuFixedTaskContractRef,
   createCanonicalSam31GpuTaskStoreFromObjectPort,
   createCanonicalSam31PreparingCloudJobLaunchPort,
+  type CanonicalSam31GpuApprovedTaskMaterialPreparationPort,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
 import {
   CANONICAL_TRACK_ALL_SAM3_1_JOB_TYPE,
@@ -136,7 +138,22 @@ const delegate: CanonicalProfessionalGpuCloudJobLaunchPort = {
   },
 }
 let currentContext: unknown = a100.context
+let materialPreparationCalls = 0
+const taskMaterialPreparationPort:
+  CanonicalSam31GpuApprovedTaskMaterialPreparationPort = {
+    async preparePersistAndRereadApprovedTaskMaterial(input) {
+      materialPreparationCalls += 1
+      return buildCanonicalSam31GpuApprovedTaskMaterialPreparationReceipt({
+        ...input,
+        approvedTaskMaterialRef: ref(
+          `approved-material-${input.executionEnvelopeRef.id}`,
+        ),
+        preparedAt: '2026-08-02T18:00:20.000Z',
+      })
+    },
+  }
 const preparingPort = createCanonicalSam31PreparingCloudJobLaunchPort({
+  taskMaterialPreparationPort,
   taskContextReadPort: {
     async rereadCanonicalTaskContext() {
       return structuredClone(currentContext)
@@ -156,6 +173,7 @@ const a100Input = {
 const accepted = await preparingPort.startOneShotJob(a100Input)
 assert.equal(accepted.disposition, 'accepted')
 assert.equal(delegateCalls, 1)
+assert.equal(materialPreparationCalls, 1)
 const task = assertCanonicalSam31GpuTaskRecord(
   await store.rereadTask('a100-execution-envelope'),
 )
@@ -181,6 +199,62 @@ assert.equal(
   a100.trackAllOrchestraBinding.trackAllOwnsTrackingAndMaskArtifacts,
   true,
 )
+
+const crossedPreparationStore = createCanonicalSam31GpuTaskStoreFromObjectPort({
+  objectPort: memoryObjectPort(new Map<string, Buffer>()),
+})
+const crossedPreparationPort = createCanonicalSam31PreparingCloudJobLaunchPort({
+  taskMaterialPreparationPort: {
+    async preparePersistAndRereadApprovedTaskMaterial(input) {
+      return buildCanonicalSam31GpuApprovedTaskMaterialPreparationReceipt({
+        ...input,
+        executionEnvelopeRef: ref('crossed-material-envelope'),
+        approvedTaskMaterialRef: ref('crossed-approved-material'),
+        preparedAt: '2026-08-02T18:00:20.000Z',
+      })
+    },
+  },
+  taskContextReadPort: {
+    async rereadCanonicalTaskContext() {
+      throw new Error('Crossed preparation must fail before context reread.')
+    },
+  },
+  privateInputStagingPort,
+  taskStore: crossedPreparationStore,
+  delegate,
+  now: () => '2026-08-02T18:00:30.000Z',
+})
+assert.equal((await crossedPreparationPort.startOneShotJob({
+  ...a100Input,
+  executionEnvelopeRef: ref('crossed-preparation-request-envelope'),
+})).disposition, 'rejected_before_creation')
+assert.equal(delegateCalls, 1)
+
+const futurePreparationPort = createCanonicalSam31PreparingCloudJobLaunchPort({
+  taskMaterialPreparationPort: {
+    async preparePersistAndRereadApprovedTaskMaterial(input) {
+      return buildCanonicalSam31GpuApprovedTaskMaterialPreparationReceipt({
+        ...input,
+        approvedTaskMaterialRef: ref('future-approved-material'),
+        preparedAt: '2026-08-02T18:00:31.000Z',
+      })
+    },
+  },
+  taskContextReadPort: {
+    async rereadCanonicalTaskContext() {
+      throw new Error('Future preparation must fail before context reread.')
+    },
+  },
+  privateInputStagingPort,
+  taskStore: crossedPreparationStore,
+  delegate,
+  now: () => '2026-08-02T18:00:30.000Z',
+})
+assert.equal((await futurePreparationPort.startOneShotJob({
+  ...a100Input,
+  executionEnvelopeRef: ref('future-preparation-request-envelope'),
+})).disposition, 'rejected_before_creation')
+assert.equal(delegateCalls, 1)
 
 const {
   callDigestSha256: _orchestraCallDigest,
@@ -318,6 +392,7 @@ const l4Store = createCanonicalSam31GpuTaskStoreFromObjectPort({
 })
 const l4 = fixture('l4_heavy_fallback')
 const l4Port = createCanonicalSam31PreparingCloudJobLaunchPort({
+  taskMaterialPreparationPort,
   taskContextReadPort: {
     async rereadCanonicalTaskContext() {
       return structuredClone(l4.context)
@@ -627,7 +702,11 @@ export {
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-task-owner',
-  checks: 61,
+  checks: 68,
+  approvedTaskMaterialPreparedBeforeContextRead: true,
+  preparationReceiptExactLineageRequired: true,
+  crossedOrFuturePreparationReceiptRejected: true,
+  rawCloudLaunchPortAccepted: false,
   exactTrackAllOrchestraCallBoundBeforeSam31Task: true,
   exactTrackAllSubjectPromptAndFrameIntervalBound: true,
   crossSceneTrackAllReuseRejected: true,

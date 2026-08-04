@@ -11,6 +11,7 @@ import {
 import {
   assertCanonicalSam31GpuApprovedTaskMaterial,
   buildCanonicalSam31GpuApprovedTaskMaterial,
+  createCanonicalSam31GpuApprovedTaskMaterialPreparationOwner,
   createCanonicalSam31GpuTaskContextOwner,
   createCanonicalSam31GpuTaskContextRepository,
 } from '../services/canonical-sam3_1-gpu-task-context-owner'
@@ -28,6 +29,7 @@ import {
   createCanonicalTrackAllSam31OrchestraBinding,
 } from '../workers/masks/canonical-track-all-sam3_1-orchestra-binding'
 import {
+  assertCanonicalSam31GpuApprovedTaskMaterialPreparationReceipt,
   assertCanonicalSam31GpuTaskContext,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
 import {
@@ -111,10 +113,77 @@ const repository = createCanonicalSam31GpuTaskContextRepository({
   objectPort: memoryObjectPort(objects),
   prefix: 'private/smoke/sam3_1/gpu-task-context/v1',
 })
-assert.deepEqual(
-  await repository.persistApprovedMaterialCreateOnly({ material }),
-  material.materialRef,
+let approvedSourceReads = 0
+const materialPreparationOwner =
+  createCanonicalSam31GpuApprovedTaskMaterialPreparationOwner({
+    repository,
+    sourceReadPort: {
+      async rereadApprovedTaskMaterialSource(input) {
+        approvedSourceReads += 1
+        assert.deepEqual(input.admissionConsumptionRef,
+          admissionConsumptionRef)
+        assert.deepEqual(input.executionEnvelopeRef, executionEnvelopeRef)
+        return {
+          trackAllOrchestraBinding,
+          editPlanVersionId: baseTaskFixture.context.editPlanVersionId,
+          editPlanVersionRef: baseTaskFixture.context.editPlanVersionRef,
+          outputId: baseTaskFixture.context.outputId,
+          confirmedOutputFrameRef:
+            baseTaskFixture.context.confirmedOutputFrameRef,
+          sceneId: baseTaskFixture.context.sceneId,
+          sourceBindingRef: baseTaskFixture.context.sourceBindingRef,
+          sourceMedia: baseTaskFixture.context.sourceMedia,
+          approvedPrompt: baseTaskFixture.context.approvedPrompt,
+          primaryRateAuthorityRef: primaryRateRef,
+          fallbackRateAuthorityRef: fallbackRateRef,
+          privateTaskInputTransportRef:
+            baseTaskFixture.context.privateTaskInputTransportRef,
+          privateTaskOutputTransportRef:
+            baseTaskFixture.context.privateTaskOutputTransportRef,
+        }
+      },
+    },
+    now: () => publishedAt,
+  })
+const preparationReceipt =
+  assertCanonicalSam31GpuApprovedTaskMaterialPreparationReceipt(
+    await materialPreparationOwner.preparePersistAndRereadApprovedTaskMaterial({
+      admission,
+      target,
+      admissionConsumptionRef,
+      executionEnvelopeRef,
+    }),
+  )
+assert.deepEqual(preparationReceipt.approvedTaskMaterialRef,
+  material.materialRef)
+assert.equal(approvedSourceReads, 1)
+
+let approvedSourceGetterInvoked = false
+const accessorBackedSource = {}
+Object.defineProperty(accessorBackedSource, 'trackAllOrchestraBinding', {
+  enumerable: true,
+  get() {
+    approvedSourceGetterInvoked = true
+    return trackAllOrchestraBinding
+  },
+})
+await assert.rejects(
+  createCanonicalSam31GpuApprovedTaskMaterialPreparationOwner({
+    repository,
+    sourceReadPort: {
+      async rereadApprovedTaskMaterialSource() {
+        return accessorBackedSource
+      },
+    },
+    now: () => publishedAt,
+  }).preparePersistAndRereadApprovedTaskMaterial({
+    admission,
+    target,
+    admissionConsumptionRef,
+    executionEnvelopeRef: ref('accessor-material-envelope'),
+  }),
 )
+assert.equal(approvedSourceGetterInvoked, false)
 const releasePair = registryRecord()
 const owner = createCanonicalSam31GpuTaskContextOwner({
   repository,
@@ -257,7 +326,10 @@ assert.equal(getterInvoked, false)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-task-context-owner',
-  checks: 18,
+  checks: 24,
+  approvedTaskMaterialSourceRereadByCanonicalOwner: true,
+  materialPreparationReceiptValidated: true,
+  hostileApprovedSourceRejectedWithoutGetterInvocation: true,
   approvedTrackAllTaskMaterialPersistedCreateOnly: true,
   materialPublishedAfterFundedAdmissionBeforeLaunch: true,
   exactSpecializedAndGenericReleasePairReread: true,

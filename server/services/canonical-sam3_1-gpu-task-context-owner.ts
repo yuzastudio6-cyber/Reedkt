@@ -34,8 +34,10 @@ import {
 } from './private-edit-authority-store'
 import {
   assertCanonicalSam31GpuTaskContext,
+  buildCanonicalSam31GpuApprovedTaskMaterialPreparationReceipt,
   buildCanonicalSam31GpuTaskContext,
   canonicalSam31GpuFixedTaskContractRef,
+  type CanonicalSam31GpuApprovedTaskMaterialPreparationPort,
   type CanonicalSam31GpuTaskContext,
   type CanonicalSam31GpuTaskContextReadPort,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
@@ -163,6 +165,116 @@ export interface CanonicalSam31GpuTaskRateAuthorityReadPort {
     readonly routeId: z.infer<typeof routeIdSchema>
     readonly at: string
   }): Promise<unknown>
+}
+
+const approvedTaskMaterialSourceSchema = z.object({
+  trackAllOrchestraBinding: canonicalTrackAllSam31OrchestraBindingSchema,
+  editPlanVersionId: safeId,
+  editPlanVersionRef: refSchema,
+  outputId: safeId,
+  confirmedOutputFrameRef: refSchema,
+  sceneId: safeId,
+  sourceBindingRef: refSchema,
+  sourceMedia: canonicalSam31GpuSourceMediaSchema,
+  approvedPrompt: canonicalSam31GpuApprovedPromptSchema,
+  primaryRateAuthorityRef: refSchema,
+  fallbackRateAuthorityRef: refSchema,
+  privateTaskInputTransportRef: refSchema,
+  privateTaskOutputTransportRef: refSchema,
+}).strict()
+
+export interface CanonicalSam31GpuApprovedTaskMaterialSourceReadPort {
+  rereadApprovedTaskMaterialSource(input: {
+    readonly admission: CanonicalProfessionalToolGpuDispatchAdmission
+    readonly target: CanonicalProfessionalGpuRuntimeLaunchTarget
+    readonly admissionConsumptionRef: z.infer<typeof refSchema>
+    readonly executionEnvelopeRef: z.infer<typeof refSchema>
+    readonly at: string
+  }): Promise<unknown>
+}
+
+export function createCanonicalSam31GpuApprovedTaskMaterialPreparationOwner(
+  input: {
+    readonly repository: CanonicalSam31GpuTaskContextRepository
+    readonly sourceReadPort:
+      CanonicalSam31GpuApprovedTaskMaterialSourceReadPort
+    readonly now?: () => string
+  },
+): CanonicalSam31GpuApprovedTaskMaterialPreparationPort {
+  if (typeof input.repository?.persistApprovedMaterialCreateOnly !== 'function'
+    || typeof input.repository?.rereadApprovedMaterial !== 'function'
+    || typeof input.sourceReadPort?.rereadApprovedTaskMaterialSource !==
+      'function') {
+    throw new Error('SAM 3.1 approved-task material owner is unavailable.')
+  }
+  const now = input.now ?? (() => new Date().toISOString())
+  return Object.freeze({
+    async preparePersistAndRereadApprovedTaskMaterial(untrusted: {
+      readonly admission: CanonicalProfessionalToolGpuDispatchAdmission
+      readonly target: CanonicalProfessionalGpuRuntimeLaunchTarget
+      readonly admissionConsumptionRef: z.infer<typeof refSchema>
+      readonly executionEnvelopeRef: z.infer<typeof refSchema>
+    }) {
+      assertPlainSerializedData(untrusted,
+        'sam31_gpu_task_material_preparation_input')
+      const request = z.object({
+        admission: z.unknown(),
+        target: z.unknown(),
+        admissionConsumptionRef: refSchema,
+        executionEnvelopeRef: refSchema,
+      }).strict().parse(untrusted)
+      const admission = assertCanonicalProfessionalToolGpuDispatchAdmission(
+        request.admission,
+      )
+      const target = assertCanonicalProfessionalGpuRuntimeLaunchTarget(
+        request.target,
+      )
+      const preparedAt = timestamp.parse(now())
+      if (Date.parse(preparedAt) < Date.parse(admission.admittedAt)
+        || Date.parse(preparedAt) >= Date.parse(admission.expiresAt)) {
+        throw conflict('approved_task_material_outside_admission_window')
+      }
+      const untrustedSource =
+        await input.sourceReadPort.rereadApprovedTaskMaterialSource({
+          admission,
+          target,
+          admissionConsumptionRef: request.admissionConsumptionRef,
+          executionEnvelopeRef: request.executionEnvelopeRef,
+          at: preparedAt,
+        })
+      assertPlainSerializedData(untrustedSource,
+        'sam31_gpu_approved_task_material_source')
+      const source = approvedTaskMaterialSourceSchema.parse(untrustedSource)
+      const material = buildCanonicalSam31GpuApprovedTaskMaterial({
+        admission,
+        target,
+        admissionConsumptionRef: request.admissionConsumptionRef,
+        executionEnvelopeRef: request.executionEnvelopeRef,
+        ...source,
+        publishedAt: preparedAt,
+      })
+      const persistedRef = await input.repository
+        .persistApprovedMaterialCreateOnly({ material })
+      if (!sameRef(persistedRef, material.materialRef)) {
+        throw conflict('approved_task_material_persistence_ref_mismatch')
+      }
+      const reread = await input.repository.rereadApprovedMaterial(
+        materialLookup(material),
+      )
+      if (!reread || reread.materialHash !== material.materialHash
+        || !sameRef(reread.materialRef, material.materialRef)) {
+        throw conflict('approved_task_material_exact_reread_failed')
+      }
+      return buildCanonicalSam31GpuApprovedTaskMaterialPreparationReceipt({
+        admission,
+        target,
+        admissionConsumptionRef: request.admissionConsumptionRef,
+        executionEnvelopeRef: request.executionEnvelopeRef,
+        approvedTaskMaterialRef: material.materialRef,
+        preparedAt,
+      })
+    },
+  })
 }
 
 export function buildCanonicalSam31GpuApprovedTaskMaterial(input: {

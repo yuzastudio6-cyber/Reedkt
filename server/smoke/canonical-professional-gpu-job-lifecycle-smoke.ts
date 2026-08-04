@@ -6,11 +6,13 @@ import {
 import {
   assertCanonicalProfessionalGpuJobLaunch,
   assertCanonicalProfessionalGpuJobTerminal,
+  createCanonicalProfessionalGpuFixedTaskPreparingLaunchPort,
   recordCanonicalProfessionalGpuJobTerminal,
   startCanonicalProfessionalGpuJob,
   type CanonicalProfessionalGpuExecutionEnvelope,
   type CanonicalProfessionalGpuJobLifecycleStore,
   type CanonicalProfessionalGpuJobLaunch,
+  type CanonicalProfessionalGpuCloudJobLaunchPort,
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
 import {
   sha256AuthorityValue,
@@ -71,6 +73,38 @@ const launchTarget = {
 }
 let cloudLaunchCount = 0
 let observedExecutionEnvelopeRef: ReturnType<typeof ref> | null = null
+const rawLaunchPort: CanonicalProfessionalGpuCloudJobLaunchPort = {
+  async startOneShotJob(input) {
+    cloudLaunchCount += 1
+    observedExecutionEnvelopeRef = input.executionEnvelopeRef
+    return {
+      disposition: 'accepted',
+      cloudJobExecutionRef: ref('sam31-cloud-execution-1'),
+      cloudJobCreateRequestRef: ref('sam31-cloud-create-1'),
+      providerRequestIdDigestSha256:
+        sha256AuthorityValue('provider-request-1'),
+      observedAt: '2026-08-02T15:00:01.000Z',
+      providerInferenceOrSubstantiveWorkKnownExecuted:
+        'not_executed',
+    }
+  },
+}
+
+await assert.rejects(() => startCanonicalProfessionalGpuJob({
+  launchRecordId: 'sam31-raw-port-must-fail-before-consumption',
+  admission,
+  releaseReadPort: {
+    async rereadPrivateLaunchTarget() {
+      return structuredClone(launchTarget)
+    },
+  },
+  launchPort: rawLaunchPort,
+  store,
+  startedAt: '2026-08-02T15:00:00.000Z',
+}))
+assert.equal(cloudLaunchCount, 0)
+assert.equal(consumedAdmissionIds.has(admission.admissionId), false)
+
 const launch = await startCanonicalProfessionalGpuJob({
   launchRecordId: 'sam31-gpu-launch-1',
   admission,
@@ -79,22 +113,7 @@ const launch = await startCanonicalProfessionalGpuJob({
       return structuredClone(launchTarget)
     },
   },
-  launchPort: {
-    async startOneShotJob(input) {
-      cloudLaunchCount += 1
-      observedExecutionEnvelopeRef = input.executionEnvelopeRef
-      return {
-        disposition: 'accepted',
-        cloudJobExecutionRef: ref('sam31-cloud-execution-1'),
-        cloudJobCreateRequestRef: ref('sam31-cloud-create-1'),
-        providerRequestIdDigestSha256:
-          sha256AuthorityValue('provider-request-1'),
-        observedAt: '2026-08-02T15:00:01.000Z',
-        providerInferenceOrSubstantiveWorkKnownExecuted:
-          'not_executed',
-      }
-    },
-  },
+  launchPort: fixedPreparingPort(rawLaunchPort),
   store,
   startedAt: '2026-08-02T15:00:00.000Z',
 })
@@ -130,12 +149,12 @@ await assert.rejects(() => startCanonicalProfessionalGpuJob({
       return structuredClone(launchTarget)
     },
   },
-  launchPort: {
+  launchPort: fixedPreparingPort({
     async startOneShotJob() {
       cloudLaunchCount += 1
       throw new Error('Duplicate launch must not reach the cloud port.')
     },
-  },
+  }),
   store,
   startedAt: '2026-08-02T15:00:02.000Z',
 }))
@@ -209,11 +228,11 @@ const unknownLaunch = await startCanonicalProfessionalGpuJob({
       }
     },
   },
-  launchPort: {
+  launchPort: fixedPreparingPort({
     async startOneShotJob() {
       throw new Error('Synthetic network abort with unknown cloud outcome.')
     },
-  },
+  }),
   store,
   startedAt: '2026-08-02T15:10:00.000Z',
 })
@@ -353,7 +372,10 @@ assert.equal(hostileEnvelopeCloudLaunchCount, 0)
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-gpu-job-lifecycle',
-  checks: 43,
+  checks: 46,
+  rawSam31CloudLaunchPortAccepted: false,
+  rawPortRejectedBeforeAdmissionConsumption: true,
+  canonicalFixedTaskPreparingPortRequired: true,
   cloudLaunchCount,
   duplicateLaunchBlocked: true,
   acceptedJobStartsFromConsumedAdmission: true,
@@ -364,6 +386,25 @@ console.log(JSON.stringify({
   customerWalletMutationPerformed: terminal.customerWalletOrLedgerMutated,
   productionAuthorityGranted: terminal.productionAuthorityGranted,
 }))
+
+function fixedPreparingPort(
+  delegate: CanonicalProfessionalGpuCloudJobLaunchPort,
+): CanonicalProfessionalGpuCloudJobLaunchPort {
+  return createCanonicalProfessionalGpuFixedTaskPreparingLaunchPort({
+    descriptor: {
+      schemaVersion:
+        'canonical-professional-gpu-fixed-task-preparing-launch-port-v1',
+      toolId: launchTarget.toolId,
+      operationId: launchTarget.operationId,
+      fixedServerTaskContractRef: launchTarget.fixedServerTaskContractRef,
+      approvedTaskMaterialPreparedBeforeTaskContextRead: true,
+      canonicalTaskContextRereadBeforeCloudJobCreation: true,
+      fixedTaskPersistedAndRereadBeforeCloudJobCreation: true,
+      rawCloudLaunchPortAcceptedForFixedTaskTool: false,
+    },
+    delegate,
+  })
+}
 
 function buildTerminalObservation(input: {
   id: string

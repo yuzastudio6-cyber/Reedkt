@@ -13,6 +13,7 @@ import {
   type CanonicalProfessionalGpuAttemptCostReceiptStore,
 } from '../services/canonical-professional-gpu-terminal-cost-evidence-service'
 import {
+  createCanonicalProfessionalGpuFixedTaskPreparingLaunchPort,
   recordCanonicalProfessionalGpuJobTerminal,
   startCanonicalProfessionalGpuJob,
   type CanonicalProfessionalGpuAdmissionConsumption,
@@ -154,19 +155,32 @@ const launch = await startCanonicalProfessionalGpuJob({
       return structuredClone(launchTarget)
     },
   },
-  launchPort: {
-    async startOneShotJob() {
-      return {
-        disposition: 'accepted',
-        cloudJobExecutionRef: ref('sam31-cloud-execution-1'),
-        cloudJobCreateRequestRef: ref('sam31-cloud-create-1'),
-        providerRequestIdDigestSha256: sha('provider-request-1'),
-        observedAt: '2026-08-02T16:11:01.000Z',
-        providerInferenceOrSubstantiveWorkKnownExecuted:
-          'not_executed',
-      }
+  launchPort: createCanonicalProfessionalGpuFixedTaskPreparingLaunchPort({
+    descriptor: {
+      schemaVersion:
+        'canonical-professional-gpu-fixed-task-preparing-launch-port-v1',
+      toolId: launchTarget.toolId,
+      operationId: launchTarget.operationId,
+      fixedServerTaskContractRef: launchTarget.fixedServerTaskContractRef,
+      approvedTaskMaterialPreparedBeforeTaskContextRead: true,
+      canonicalTaskContextRereadBeforeCloudJobCreation: true,
+      fixedTaskPersistedAndRereadBeforeCloudJobCreation: true,
+      rawCloudLaunchPortAcceptedForFixedTaskTool: false,
     },
-  },
+    delegate: {
+      async startOneShotJob() {
+        return {
+          disposition: 'accepted',
+          cloudJobExecutionRef: ref('sam31-cloud-execution-1'),
+          cloudJobCreateRequestRef: ref('sam31-cloud-create-1'),
+          providerRequestIdDigestSha256: sha('provider-request-1'),
+          observedAt: '2026-08-02T16:11:01.000Z',
+          providerInferenceOrSubstantiveWorkKnownExecuted:
+            'not_executed',
+        }
+      },
+    },
+  }),
   store: lifecycleStore,
   startedAt: launchStartedAt,
 })

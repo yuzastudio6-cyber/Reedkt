@@ -21,6 +21,7 @@ import type {
 import {
   assertCanonicalProfessionalGpuRuntimeLaunchTarget,
   assertPlainSerializedData,
+  createCanonicalProfessionalGpuFixedTaskPreparingLaunchPort,
   type CanonicalProfessionalGpuCloudJobLaunchPort,
   type CanonicalProfessionalGpuCloudLaunchResult,
   type CanonicalProfessionalGpuRuntimeLaunchTarget,
@@ -55,6 +56,8 @@ export const CANONICAL_SAM3_1_GPU_FIXED_TASK_CONTRACT_VERSION =
   'canonical-sam3_1-gpu-fixed-task-contract-v1' as const
 export const CANONICAL_SAM3_1_GPU_TASK_RECORD_VERSION =
   'canonical-sam3_1-gpu-task-record-v1' as const
+export const CANONICAL_SAM3_1_GPU_APPROVED_TASK_MATERIAL_PREPARATION_VERSION =
+  'canonical-sam3_1-gpu-approved-task-material-preparation-receipt-v1' as const
 
 const DEFAULT_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/invocations'
@@ -272,6 +275,105 @@ export interface CanonicalSam31GpuTaskContextReadPort {
   }): Promise<unknown>
 }
 
+const approvedTaskMaterialPreparationWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_SAM3_1_GPU_APPROVED_TASK_MATERIAL_PREPARATION_VERSION,
+  ),
+  source: z.literal(
+    'canonical_server_sam3_1_approved_task_material_preparation_owner',
+  ),
+  evidenceClass: z.literal('canonical_private_reread'),
+  dispatchAdmissionRef: evidenceRefSchema,
+  runtimeReleaseRef: evidenceRefSchema,
+  admissionConsumptionRef: evidenceRefSchema,
+  executionEnvelopeRef: evidenceRefSchema,
+  approvedTaskMaterialRef: evidenceRefSchema,
+  materialPersistedCreateOnlyBeforeTaskContextRead: z.literal(true),
+  exactMaterialRereadBeforeTaskContextRead: z.literal(true),
+  browserCallerOrCloudLauncherMaterialAccepted: z.literal(false),
+  workDispatched: z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  qaApproved: z.literal(false),
+  publicDeliveryAuthorized: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+  preparedAt: timestamp,
+}).strict()
+export const canonicalSam31GpuApprovedTaskMaterialPreparationReceiptSchema =
+  approvedTaskMaterialPreparationWithoutHashSchema.extend({
+    receiptHash: sha256,
+  }).strict()
+export type CanonicalSam31GpuApprovedTaskMaterialPreparationReceipt = z.infer<
+  typeof canonicalSam31GpuApprovedTaskMaterialPreparationReceiptSchema
+>
+
+export interface CanonicalSam31GpuApprovedTaskMaterialPreparationPort {
+  preparePersistAndRereadApprovedTaskMaterial(input: {
+    readonly admission: CanonicalProfessionalToolGpuDispatchAdmission
+    readonly target: CanonicalProfessionalGpuRuntimeLaunchTarget
+    readonly admissionConsumptionRef: z.infer<typeof evidenceRefSchema>
+    readonly executionEnvelopeRef: z.infer<typeof evidenceRefSchema>
+  }): Promise<unknown>
+}
+
+export function buildCanonicalSam31GpuApprovedTaskMaterialPreparationReceipt(
+  input: {
+    readonly admission: unknown
+    readonly target: unknown
+    readonly admissionConsumptionRef: z.input<typeof evidenceRefSchema>
+    readonly executionEnvelopeRef: z.input<typeof evidenceRefSchema>
+    readonly approvedTaskMaterialRef: z.input<typeof evidenceRefSchema>
+    readonly preparedAt: string
+  },
+): CanonicalSam31GpuApprovedTaskMaterialPreparationReceipt {
+  assertPlainSerializedData(input, 'sam3_1_task_material_preparation_receipt')
+  const admission = assertCanonicalProfessionalToolGpuDispatchAdmission(
+    input.admission,
+  )
+  const target = assertCanonicalProfessionalGpuRuntimeLaunchTarget(
+    input.target,
+  )
+  const payload = approvedTaskMaterialPreparationWithoutHashSchema.parse({
+    schemaVersion:
+      CANONICAL_SAM3_1_GPU_APPROVED_TASK_MATERIAL_PREPARATION_VERSION,
+    source:
+      'canonical_server_sam3_1_approved_task_material_preparation_owner',
+    evidenceClass: 'canonical_private_reread',
+    dispatchAdmissionRef: ref(admission.admissionId, admission.admissionHash),
+    runtimeReleaseRef: target.releaseRef,
+    admissionConsumptionRef: input.admissionConsumptionRef,
+    executionEnvelopeRef: input.executionEnvelopeRef,
+    approvedTaskMaterialRef: input.approvedTaskMaterialRef,
+    materialPersistedCreateOnlyBeforeTaskContextRead: true,
+    exactMaterialRereadBeforeTaskContextRead: true,
+    browserCallerOrCloudLauncherMaterialAccepted: false,
+    workDispatched: false,
+    customerCreditsMutated: false,
+    qaApproved: false,
+    publicDeliveryAuthorized: false,
+    productionAuthorityGranted: false,
+    preparedAt: input.preparedAt,
+  })
+  return Object.freeze(
+    canonicalSam31GpuApprovedTaskMaterialPreparationReceiptSchema.parse({
+      ...payload,
+      receiptHash: sha256AuthorityValue(payload),
+    }),
+  )
+}
+
+export function assertCanonicalSam31GpuApprovedTaskMaterialPreparationReceipt(
+  value: unknown,
+): CanonicalSam31GpuApprovedTaskMaterialPreparationReceipt {
+  assertPlainSerializedData(value, 'sam3_1_task_material_preparation_receipt')
+  const receipt =
+    canonicalSam31GpuApprovedTaskMaterialPreparationReceiptSchema.parse(value)
+  const { receiptHash, ...payload } = receipt
+  if (receiptHash !== sha256AuthorityValue(payload)) {
+    throw new Error('SAM 3.1 task-material preparation receipt is invalid.')
+  }
+  return structuredClone(receipt)
+}
+
 export interface CanonicalSam31GpuTaskStore {
   readonly schemaVersion: 'canonical-sam3_1-gpu-task-store-v1'
   readonly evidenceClass: 'gcs_generation_create_only_sam3_1_task_store'
@@ -325,6 +427,8 @@ export function createCanonicalSam31GpuTaskStoreFromObjectPort(input: {
 }
 
 export function createCanonicalSam31PreparingCloudJobLaunchPort(input: {
+  readonly taskMaterialPreparationPort:
+    CanonicalSam31GpuApprovedTaskMaterialPreparationPort
   readonly taskContextReadPort: CanonicalSam31GpuTaskContextReadPort
   readonly privateInputStagingPort:
     CanonicalSam31GpuPrivateInputStagingPort
@@ -333,7 +437,7 @@ export function createCanonicalSam31PreparingCloudJobLaunchPort(input: {
   readonly now?: () => string
 }): CanonicalProfessionalGpuCloudJobLaunchPort {
   const now = input.now ?? (() => new Date().toISOString())
-  const port: CanonicalProfessionalGpuCloudJobLaunchPort = {
+  const delegate: CanonicalProfessionalGpuCloudJobLaunchPort = {
     async startOneShotJob(
       value: Parameters<
         CanonicalProfessionalGpuCloudJobLaunchPort['startOneShotJob']
@@ -360,6 +464,24 @@ export function createCanonicalSam31PreparingCloudJobLaunchPort(input: {
           'sam3_1_admission_consumption_ref')
         assertPlainSerializedData(value.executionEnvelopeRef,
           'sam3_1_execution_envelope_ref')
+        const preparationReceipt =
+          assertCanonicalSam31GpuApprovedTaskMaterialPreparationReceipt(
+            await input.taskMaterialPreparationPort
+              .preparePersistAndRereadApprovedTaskMaterial({
+                admission,
+                target,
+                admissionConsumptionRef: value.admissionConsumptionRef,
+                executionEnvelopeRef: value.executionEnvelopeRef,
+              }),
+          )
+        assertPreparationReceiptMatches({
+          receipt: preparationReceipt,
+          admission,
+          target,
+          admissionConsumptionRef: value.admissionConsumptionRef,
+          executionEnvelopeRef: value.executionEnvelopeRef,
+          observedAt,
+        })
         const context = assertCanonicalSam31GpuTaskContext(
           await input.taskContextReadPort.rereadCanonicalTaskContext({
             admission,
@@ -435,7 +557,44 @@ export function createCanonicalSam31PreparingCloudJobLaunchPort(input: {
       }
     },
   }
-  return Object.freeze(port)
+  return createCanonicalProfessionalGpuFixedTaskPreparingLaunchPort({
+    descriptor: {
+      schemaVersion:
+        'canonical-professional-gpu-fixed-task-preparing-launch-port-v1',
+      toolId: 'sam3_1',
+      operationId: CANONICAL_SAM3_1_OPERATION_ID,
+      fixedServerTaskContractRef: canonicalSam31GpuFixedTaskContractRef(),
+      approvedTaskMaterialPreparedBeforeTaskContextRead: true,
+      canonicalTaskContextRereadBeforeCloudJobCreation: true,
+      fixedTaskPersistedAndRereadBeforeCloudJobCreation: true,
+      rawCloudLaunchPortAcceptedForFixedTaskTool: false,
+    },
+    delegate: Object.freeze(delegate),
+  })
+}
+
+function assertPreparationReceiptMatches(input: {
+  receipt: CanonicalSam31GpuApprovedTaskMaterialPreparationReceipt
+  admission: CanonicalProfessionalToolGpuDispatchAdmission
+  target: CanonicalProfessionalGpuRuntimeLaunchTarget
+  admissionConsumptionRef: z.infer<typeof evidenceRefSchema>
+  executionEnvelopeRef: z.infer<typeof evidenceRefSchema>
+  observedAt: string
+}): void {
+  if (!sameRef(input.receipt.dispatchAdmissionRef,
+    ref(input.admission.admissionId, input.admission.admissionHash))
+    || !sameRef(input.receipt.runtimeReleaseRef, input.target.releaseRef)
+    || !sameRef(input.receipt.admissionConsumptionRef,
+      input.admissionConsumptionRef)
+    || !sameRef(input.receipt.executionEnvelopeRef,
+      input.executionEnvelopeRef)
+    || Date.parse(input.receipt.preparedAt) > Date.parse(input.observedAt)
+    || Date.parse(input.receipt.preparedAt) <
+      Date.parse(input.admission.admittedAt)
+    || Date.parse(input.receipt.preparedAt) >=
+      Date.parse(input.admission.expiresAt)) {
+    throw new Error('SAM 3.1 task-material preparation lineage changed.')
+  }
 }
 
 export function buildCanonicalSam31GpuTaskRecord(input: {

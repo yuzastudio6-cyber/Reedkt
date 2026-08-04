@@ -436,6 +436,48 @@ export interface CanonicalProfessionalGpuCloudJobLaunchPort {
   }): Promise<CanonicalProfessionalGpuCloudLaunchResult>
 }
 
+const fixedTaskPreparingLaunchPortDescriptorSchema = z.object({
+  schemaVersion: z.literal(
+    'canonical-professional-gpu-fixed-task-preparing-launch-port-v1',
+  ),
+  toolId: safeId,
+  operationId: safeId,
+  fixedServerTaskContractRef: evidenceRefSchema,
+  approvedTaskMaterialPreparedBeforeTaskContextRead: z.literal(true),
+  canonicalTaskContextRereadBeforeCloudJobCreation: z.literal(true),
+  fixedTaskPersistedAndRereadBeforeCloudJobCreation: z.literal(true),
+  rawCloudLaunchPortAcceptedForFixedTaskTool: z.literal(false),
+}).strict()
+type FixedTaskPreparingLaunchPortDescriptor = z.infer<
+  typeof fixedTaskPreparingLaunchPortDescriptorSchema
+>
+
+const fixedTaskPreparingLaunchPorts = new WeakMap<
+  CanonicalProfessionalGpuCloudJobLaunchPort,
+  FixedTaskPreparingLaunchPortDescriptor
+>()
+
+export function createCanonicalProfessionalGpuFixedTaskPreparingLaunchPort(
+  input: {
+    readonly descriptor: z.input<
+      typeof fixedTaskPreparingLaunchPortDescriptorSchema
+    >
+    readonly delegate: CanonicalProfessionalGpuCloudJobLaunchPort
+  },
+): CanonicalProfessionalGpuCloudJobLaunchPort {
+  const descriptor = fixedTaskPreparingLaunchPortDescriptorSchema.parse(
+    input.descriptor,
+  )
+  if (typeof input.delegate?.startOneShotJob !== 'function') {
+    throw new Error('Fixed-task preparing GPU launch delegate is invalid.')
+  }
+  const port: CanonicalProfessionalGpuCloudJobLaunchPort = Object.freeze({
+    startOneShotJob: input.delegate.startOneShotJob.bind(input.delegate),
+  })
+  fixedTaskPreparingLaunchPorts.set(port, descriptor)
+  return port
+}
+
 export interface CanonicalProfessionalGpuTerminalObservationPort {
   rereadTerminalUsagePriceAndCost(input: {
     readonly launch: CanonicalProfessionalGpuJobLaunch
@@ -490,6 +532,11 @@ export async function startCanonicalProfessionalGpuJob(input: {
     || target.operationId !== admission.operationId
     || target.routeId !== admission.routeId
   ) throw new Error('GPU launch target differs from its dispatch admission.')
+  assertFixedTaskPreparingLaunchPortRequired({
+    admission,
+    target,
+    launchPort: input.launchPort,
+  })
 
   const consumptionPayload = admissionConsumptionWithoutHashSchema.parse({
     schemaVersion: 'canonical-professional-gpu-admission-consumption-v1',
@@ -651,6 +698,28 @@ export async function startCanonicalProfessionalGpuJob(input: {
     throw new Error('GPU launch record already exists; reconciliation required.')
   }
   return record
+}
+
+function assertFixedTaskPreparingLaunchPortRequired(input: {
+  admission: CanonicalProfessionalToolGpuDispatchAdmission
+  target: CanonicalProfessionalGpuRuntimeLaunchTarget
+  launchPort: CanonicalProfessionalGpuCloudJobLaunchPort
+}): void {
+  if (input.admission.toolId !== 'sam3_1') return
+  const descriptor = fixedTaskPreparingLaunchPorts.get(input.launchPort)
+  if (!descriptor
+    || descriptor.toolId !== input.admission.toolId
+    || descriptor.operationId !== input.admission.operationId
+    || descriptor.fixedServerTaskContractRef.id !==
+      input.target.fixedServerTaskContractRef.id
+    || descriptor.fixedServerTaskContractRef.version !==
+      input.target.fixedServerTaskContractRef.version
+    || descriptor.fixedServerTaskContractRef.contentHash !==
+      input.target.fixedServerTaskContractRef.contentHash) {
+    throw new Error(
+      'SAM 3.1 requires its canonical fixed-task preparing launch port.',
+    )
+  }
 }
 
 export async function recordCanonicalProfessionalGpuJobTerminal(input: {

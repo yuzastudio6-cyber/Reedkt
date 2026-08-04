@@ -111,7 +111,7 @@ const owner = createCanonicalSam31QualificationTerminalEvidenceOwner({
   evidenceObjectPort: store.port,
   now: () => '2026-08-04T18:20:00.000Z',
 })
-const terminalEvidence = await owner.rereadAndPersist({
+export const terminalEvidence = await owner.rereadAndPersist({
   attemptId,
   mountObservation: mount,
   admission,

@@ -336,5 +336,13 @@ same qualified image digest and pass its own runtime evidence.
 The Dockerfile source itself does not authorize a build, image push, service
 deployment, checkpoint redistribution, GPU allocation, or customer charge.
 
+The source/checkpoint qualification release owner separately rereads the exact
+candidate, private ingest, fixed A100 worker request/result, Batch terminal
+evidence, zero remaining GPU resources, account-effective internal cost, and
+an authenticated legal/privacy/trade/security clearance. Only its create-only
+compiled record may qualify the source/checkpoint pair for private image-build
+review. It still grants no runtime, customer-media, billing, public-delivery,
+or production authority.
+
 The canonical source contract is
 `server/model-artifacts/canonical-sam3_1-source-runtime-candidate.ts`.

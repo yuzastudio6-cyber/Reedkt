@@ -175,9 +175,9 @@ function createResultPort(options?: {
           byteLength: options?.wrongLength
             ? selectedBody.byteLength + 1 : selectedBody.byteLength,
           contentType: 'application/octet-stream',
-          kmsKeyName: options?.wrongKms
+          kmsKeyName: (options?.wrongKms
             ? 'projects/reeditpro/locations/us-central1/keyRings/wrong/cryptoKeys/wrong'
-            : 'projects/reeditpro/locations/us-central1/keyRings/weeditpro-private-artifacts/cryptoKeys/sam31-qualification',
+            : 'projects/reeditpro/locations/us-central1/keyRings/weeditpro-private-artifacts/cryptoKeys/sam31-qualification') as never,
           contentSha256: options?.wrongSha
             ? digest(Buffer.from('wrong')) : digest(selectedBody),
         },

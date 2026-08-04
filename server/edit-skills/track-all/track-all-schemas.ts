@@ -25,6 +25,15 @@ const box = z.object({ x: unit, y: unit, width: unit, height: unit }).strict().s
   }
 })
 
+function isRangeContained(
+  child: z.infer<typeof skillFrameRangeSchema>,
+  parent: z.infer<typeof skillFrameRangeSchema>,
+): boolean {
+  return child.fps === parent.fps &&
+    child.startFrameInclusive >= parent.startFrameInclusive &&
+    child.endFrameExclusive <= parent.endFrameExclusive
+}
+
 export const TRACK_ALL_TARGET_TYPES = [
   'selected_instance', 'concept_group', 'selected_group', 'planar_region',
   'freeform_region', 'camera_relative_region', 'world_relative_region',
@@ -58,6 +67,11 @@ export const trackAllGroundingEvidenceSchema = z.discriminatedUnion('kind', [
 
 const targetCoreSchema = z.object({
   schemaVersion: z.literal('track_all_target_specification_v1'),
+  ownerUserId: safeId,
+  workspaceId: safeId,
+  projectId: safeId,
+  editSessionId: safeId,
+  assignmentId: safeId,
   targetId: safeId,
   targetType: z.enum(TRACK_ALL_TARGET_TYPES),
   semanticClass: z.string().trim().min(1).max(180),
@@ -100,6 +114,18 @@ export const trackAllTargetSpecificationSchema = targetCoreSchema.extend({ targe
 export function createTrackAllTargetSpecification(input: z.input<typeof targetCoreSchema>) {
   const core = targetCoreSchema.parse(input)
   return trackAllTargetSpecificationSchema.parse({ ...core, targetHash: hashSkillValue(core) })
+}
+
+export function createTrackAllWriteAuthorityHash(input: {
+  assignmentId: string
+  ownerUserId: string
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  coordinateSpace: 'source_pixels' | 'normalized_source_frame'
+  authorizedWriteRange: z.infer<typeof skillFrameRangeSchema>
+}): string {
+  return hashSkillValue(input)
 }
 
 const trackAllAssignmentCoreSchema = z.object({
@@ -167,9 +193,37 @@ const trackAllAssignmentCoreSchema = z.object({
   if (!value.orchestrationRunId && !value.preOrchestraAssignmentAuthorityId) {
     context.addIssue({ code: 'custom', message: 'Track All assignment needs orchestra or pre-orchestra authority.' })
   }
+  if (value.manifestRef.skillKey !== 'track_all') context.addIssue({ code: 'custom', message: 'Track All assignment references another skill manifest.' })
   const sameFps = value.analysisContextRange.fps === value.authorizedWriteRange.fps
   const contains = value.analysisContextRange.startFrameInclusive <= value.authorizedWriteRange.startFrameInclusive && value.analysisContextRange.endFrameExclusive >= value.authorizedWriteRange.endFrameExclusive
   if (!sameFps || !contains) context.addIssue({ code: 'custom', message: 'Analysis context must contain the exact write range at the same FPS.' })
+  const expectedWriteAuthorityHash = createTrackAllWriteAuthorityHash({
+    assignmentId: value.assignmentId, ownerUserId: value.ownerUserId,
+    workspaceId: value.workspaceId, projectId: value.projectId,
+    editSessionId: value.editSessionId, coordinateSpace: value.coordinateSpace,
+    authorizedWriteRange: value.authorizedWriteRange,
+  })
+  if (value.writeAuthorityHash !== expectedWriteAuthorityHash) {
+    context.addIssue({ code: 'custom', message: 'Track All write authority hash is stale or forged.' })
+  }
+  const scopedRefs = [
+    ...value.readContext.transcriptEvidenceRefs,
+    ...value.readContext.visualEvidenceRefs,
+    ...value.readContext.priorTrackGraphRefs,
+    value.readContext.sourceInventoryRef, value.readContext.masterTimingRef,
+    value.readContext.visualOwnershipRef, value.readContext.editPreferenceRef,
+    value.readContext.privacyPolicyRef, value.readContext.referenceDnaRef,
+  ].filter(Boolean) as z.infer<typeof editSkillArtifactReferenceSchema>[]
+  if (scopedRefs.some((ref) => ref.ownerUserId !== value.ownerUserId || ref.workspaceId !== value.workspaceId || ref.projectId !== value.projectId)) {
+    context.addIssue({ code: 'custom', message: 'Track All assignment contains a cross-tenant read authority.' })
+  }
+  for (const [ref, artifactType] of [
+    [value.readContext.sourceInventoryRef, 'source_inventory_v1'],
+    [value.readContext.masterTimingRef, 'master_timing_plan_v1'],
+    [value.readContext.visualOwnershipRef, 'visual_ownership_manifest_v1'],
+  ] as const) {
+    if (ref.artifactType !== artifactType) context.addIssue({ code: 'custom', message: `Track All assignment has the wrong ${artifactType} role.` })
+  }
 })
 
 export const trackAllAssignmentSchema = trackAllAssignmentCoreSchema.extend({ assignmentHash: skillSha256Schema }).strict().superRefine((value, context) => {
@@ -186,40 +240,108 @@ export const trackAllSourceInventorySchema = brollSourceInventorySchema
 
 export const trackAllMasterTimingSchema = brollMasterTimingPlanSchema
 
-export const sourceFrameAuthoritySchema = z.object({
+const sourceFrameAuthorityCoreSchema = z.object({
   schemaVersion: z.literal('source_frame_authority_v1'), ownerUserId: safeId, workspaceId: safeId, projectId: safeId,
   sourceId: safeId, sourceChecksum: skillSha256Schema, range: skillFrameRangeSchema,
-  width: z.number().int().positive(), height: z.number().int().positive(), pixelAspectRatio: z.number().positive(), authorityHash: skillSha256Schema,
+  width: z.number().int().positive(), height: z.number().int().positive(), pixelAspectRatio: z.number().positive(),
 }).strict()
+
+export const sourceFrameAuthoritySchema = sourceFrameAuthorityCoreSchema.extend({
+  authorityHash: skillSha256Schema,
+}).strict().superRefine((value, context) => {
+  const { authorityHash, ...core } = value
+  if (hashSkillValue(core) !== authorityHash) context.addIssue({ code: 'custom', message: 'Source frame authority hash is stale or forged.' })
+})
+
+export function createSourceFrameAuthority(input: z.input<typeof sourceFrameAuthorityCoreSchema>) {
+  const core = sourceFrameAuthorityCoreSchema.parse(input)
+  return sourceFrameAuthoritySchema.parse({ ...core, authorityHash: hashSkillValue(core) })
+}
 
 export const trackAllVisualOwnershipSchema = brollVisualOwnershipManifestSchema
 
-export const trackAllSceneContextSchema = z.object({
+const trackAllSceneContextCoreSchema = z.object({
   schemaVersion: z.literal('track_all_scene_context_v1'), assignmentId: safeId,
   analysisContextRange: skillFrameRangeSchema, authorizedWriteRange: skillFrameRangeSchema,
-  wholeVideoEvidenceReadOnly: z.literal(true), sceneIds: z.array(safeId).min(1), shotBoundaries: z.array(z.number().int().nonnegative()).max(10_000), contextHash: skillSha256Schema,
-}).strict()
+  wholeVideoEvidenceReadOnly: z.literal(true), sceneIds: z.array(safeId).min(1), shotBoundaries: z.array(z.number().int().nonnegative()).max(10_000),
+}).strict().superRefine((value, context) => {
+  if (!isRangeContained(value.authorizedWriteRange, value.analysisContextRange)) context.addIssue({ code: 'custom', message: 'Scene analysis context does not contain the write range.' })
+  if (value.shotBoundaries.some((frame) => frame <= value.authorizedWriteRange.startFrameInclusive || frame >= value.authorizedWriteRange.endFrameExclusive)) context.addIssue({ code: 'custom', message: 'Shot boundaries must be strictly inside the authorized write range.' })
+  if (new Set(value.shotBoundaries).size !== value.shotBoundaries.length || value.shotBoundaries.some((frame, index) => index > 0 && frame <= value.shotBoundaries[index - 1]!)) context.addIssue({ code: 'custom', message: 'Shot boundaries must be unique and increasing.' })
+})
 
-export const visualIntelligenceTargetEvidenceSchema = z.object({
+export const trackAllSceneContextSchema = trackAllSceneContextCoreSchema.extend({
+  contextHash: skillSha256Schema,
+}).strict().superRefine((value, context) => {
+  const { contextHash, ...core } = value
+  if (hashSkillValue(core) !== contextHash) context.addIssue({ code: 'custom', message: 'Track All scene context hash is stale or forged.' })
+})
+
+export function createTrackAllSceneContext(input: z.input<typeof trackAllSceneContextCoreSchema>) {
+  const core = trackAllSceneContextCoreSchema.parse(input)
+  return trackAllSceneContextSchema.parse({ ...core, contextHash: hashSkillValue(core) })
+}
+
+const visualIntelligenceTargetEvidenceCoreSchema = z.object({
   schemaVersion: z.literal('visual_intelligence_target_evidence_v1'), ownerUserId: safeId, workspaceId: safeId, projectId: safeId,
   assignmentHash: skillSha256Schema, targetHash: skillSha256Schema, authorizedRangeHash: skillSha256Schema,
   semanticClass: z.string().trim().min(1).max(180), candidateRegions: z.array(z.object({ frameIndex: z.number().int().nonnegative(), box, confidence: unit }).strict()).min(1).max(1_000),
   ambiguity: z.enum(['none', 'multiple_candidates', 'uncertain']), confidence: unit,
   producerSkillManifestRef: skillManifestReferenceSchema, qualificationStatus: z.enum(['planning_qualified', 'internal_execution_qualified', 'production_qualified']),
-  testOnlyInjected: z.boolean(), evidenceHash: skillSha256Schema,
+  testOnlyInjected: z.boolean(),
 }).strict()
 
-export const visualIntelligenceTrackingQaSchema = z.object({
+export const visualIntelligenceTargetEvidenceSchema = visualIntelligenceTargetEvidenceCoreSchema.extend({
+  evidenceHash: skillSha256Schema,
+}).strict().superRefine((value, context) => {
+  const { evidenceHash, ...core } = value
+  if (hashSkillValue(core) !== evidenceHash) context.addIssue({ code: 'custom', message: 'Visual Intelligence target evidence hash is stale or forged.' })
+  if (value.producerSkillManifestRef.skillKey !== 'visual_intelligence') context.addIssue({ code: 'custom', message: 'Visual Intelligence target evidence has the wrong producer skill.' })
+  if (value.testOnlyInjected && value.qualificationStatus === 'production_qualified') context.addIssue({ code: 'custom', message: 'Injected target evidence cannot be production-qualified.' })
+})
+
+export function createVisualIntelligenceTargetEvidence(input: z.input<typeof visualIntelligenceTargetEvidenceCoreSchema>) {
+  const core = visualIntelligenceTargetEvidenceCoreSchema.parse(input)
+  return visualIntelligenceTargetEvidenceSchema.parse({ ...core, evidenceHash: hashSkillValue(core) })
+}
+
+const visualIntelligenceTrackingQaCoreSchema = z.object({
   schemaVersion: z.literal('visual_intelligence_tracking_qa_v1'), ownerUserId: safeId, workspaceId: safeId, projectId: safeId,
   assignmentHash: skillSha256Schema, planHash: skillSha256Schema, trackGraphHash: skillSha256Schema,
   targetAlignment: unit, temporalPlausibility: unit, privacyExposureDetected: z.boolean(), visualDefects: z.array(z.string().trim().min(1).max(300)).max(100),
-  producerSkillManifestRef: skillManifestReferenceSchema, qualificationStatus: z.enum(['planning_qualified', 'internal_execution_qualified', 'production_qualified']), testOnlyInjected: z.boolean(), qaHash: skillSha256Schema,
+  producerSkillManifestRef: skillManifestReferenceSchema, qualificationStatus: z.enum(['planning_qualified', 'internal_execution_qualified', 'production_qualified']), testOnlyInjected: z.boolean(),
 }).strict()
 
-export const privacyPolicySnapshotSchema = z.object({
+export const visualIntelligenceTrackingQaSchema = visualIntelligenceTrackingQaCoreSchema.extend({
+  qaHash: skillSha256Schema,
+}).strict().superRefine((value, context) => {
+  const { qaHash, ...core } = value
+  if (hashSkillValue(core) !== qaHash) context.addIssue({ code: 'custom', message: 'Visual Intelligence tracking QA hash is stale or forged.' })
+  if (value.producerSkillManifestRef.skillKey !== 'visual_intelligence') context.addIssue({ code: 'custom', message: 'Visual Intelligence tracking QA has the wrong producer skill.' })
+  if (value.testOnlyInjected && value.qualificationStatus === 'production_qualified') context.addIssue({ code: 'custom', message: 'Injected tracking QA cannot be production-qualified.' })
+})
+
+export function createVisualIntelligenceTrackingQa(input: z.input<typeof visualIntelligenceTrackingQaCoreSchema>) {
+  const core = visualIntelligenceTrackingQaCoreSchema.parse(input)
+  return visualIntelligenceTrackingQaSchema.parse({ ...core, qaHash: hashSkillValue(core) })
+}
+
+const privacyPolicySnapshotCoreSchema = z.object({
   schemaVersion: z.literal('privacy_policy_snapshot_v1'), ownerUserId: safeId, workspaceId: safeId, projectId: safeId,
-  policyVersion: z.number().int().positive(), failClosed: z.literal(true), allowedTreatments: z.array(z.enum(['gaussian_blur', 'pixelate', 'mosaic', 'solid_fill', 'conservative_region_cover', 'tracked_crop_exclusion'])).min(1), policyHash: skillSha256Schema,
+  policyVersion: z.number().int().positive(), failClosed: z.literal(true), allowedTreatments: z.array(z.enum(['gaussian_blur', 'pixelate', 'mosaic', 'solid_fill', 'conservative_region_cover', 'tracked_crop_exclusion'])).min(1),
 }).strict()
+
+export const privacyPolicySnapshotSchema = privacyPolicySnapshotCoreSchema.extend({
+  policyHash: skillSha256Schema,
+}).strict().superRefine((value, context) => {
+  const { policyHash, ...core } = value
+  if (hashSkillValue(core) !== policyHash) context.addIssue({ code: 'custom', message: 'Privacy policy hash is stale or forged.' })
+})
+
+export function createPrivacyPolicySnapshot(input: z.input<typeof privacyPolicySnapshotCoreSchema>) {
+  const core = privacyPolicySnapshotCoreSchema.parse(input)
+  return privacyPolicySnapshotSchema.parse({ ...core, policyHash: hashSkillValue(core) })
+}
 
 const approvedSelectionCoreSchema = z.object({
   schemaVersion: z.literal('approved_user_selection_v1'), ownerUserId: safeId,

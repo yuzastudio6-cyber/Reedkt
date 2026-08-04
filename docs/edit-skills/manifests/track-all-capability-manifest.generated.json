@@ -368,7 +368,7 @@
       ]
     }
   ],
-  "manifestHash": "155fc4d3324bd1a514d5e3cbb36f3bfe125efda734973c33862d9f6b2ec7e196",
+  "manifestHash": "65eb6541aafc312f390479273d196aaa5f2db5cd52cba898dd9165a88f7a5998",
   "mayOverlapWith": [
     {
       "condition": "track_graph_and_geometry_support",
@@ -463,84 +463,84 @@
     {
       "artifactType": "visual_intelligence_target_evidence_v1",
       "description": "Optional qualified visual_intelligence_target_evidence_v1 authority.",
-      "key": "visual_intelligence_target_evidence",
+      "key": "visual_intelligence_target_evidence_v1",
       "maximumCount": 1,
       "minimumCount": 0
     },
     {
       "artifactType": "visual_intelligence_tracking_qa_v1",
       "description": "Optional qualified visual_intelligence_tracking_qa_v1 authority.",
-      "key": "visual_intelligence_tracking_qa",
+      "key": "visual_intelligence_tracking_qa_v1",
       "maximumCount": 1,
       "minimumCount": 0
     },
     {
       "artifactType": "approved_user_selection_v1",
       "description": "Optional qualified approved_user_selection_v1 authority.",
-      "key": "approved_user_selection",
+      "key": "approved_user_selection_v1",
       "maximumCount": 100,
       "minimumCount": 0
     },
     {
       "artifactType": "approved_reference_image_v1",
       "description": "Optional qualified approved_reference_image_v1 authority.",
-      "key": "approved_reference_image",
+      "key": "approved_reference_image_v1",
       "maximumCount": 100,
       "minimumCount": 0
     },
     {
       "artifactType": "approved_brush_mask_v1",
       "description": "Optional qualified approved_brush_mask_v1 authority.",
-      "key": "approved_brush_mask",
+      "key": "approved_brush_mask_v1",
       "maximumCount": 100,
       "minimumCount": 0
     },
     {
       "artifactType": "track_graph_v1",
       "description": "Optional qualified track_graph_v1 authority.",
-      "key": "track_graph",
+      "key": "track_graph_v1",
       "maximumCount": 1,
       "minimumCount": 0
     },
     {
       "artifactType": "track_graph_v2",
       "description": "Optional qualified track_graph_v2 authority.",
-      "key": "track_graph",
+      "key": "track_graph_v2",
       "maximumCount": 1,
       "minimumCount": 0
     },
     {
       "artifactType": "caption_reserved_zones_v1",
       "description": "Optional qualified caption_reserved_zones_v1 authority.",
-      "key": "caption_reserved_zones",
+      "key": "caption_reserved_zones_v1",
       "maximumCount": 1,
       "minimumCount": 0
     },
     {
       "artifactType": "edit_preference_snapshot_v1",
       "description": "Optional qualified edit_preference_snapshot_v1 authority.",
-      "key": "edit_preference_snapshot",
+      "key": "edit_preference_snapshot_v1",
       "maximumCount": 1,
       "minimumCount": 0
     },
     {
       "artifactType": "privacy_policy_snapshot_v1",
       "description": "Optional qualified privacy_policy_snapshot_v1 authority.",
-      "key": "privacy_policy_snapshot",
+      "key": "privacy_policy_snapshot_v1",
       "maximumCount": 1,
       "minimumCount": 0
     },
     {
       "artifactType": "prior_track_repair_evidence_v1",
       "description": "Optional qualified prior_track_repair_evidence_v1 authority.",
-      "key": "prior_track_repair_evidence",
+      "key": "prior_track_repair_evidence_v1",
       "maximumCount": 1,
       "minimumCount": 0
     },
     {
       "artifactType": "source_media_artifact_v1",
       "description": "Optional qualified source_media_artifact_v1 authority.",
-      "key": "source_media_artifact",
+      "key": "source_media_artifact_v1",
       "maximumCount": 1,
       "minimumCount": 0
     }

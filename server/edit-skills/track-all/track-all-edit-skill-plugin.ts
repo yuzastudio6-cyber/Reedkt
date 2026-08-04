@@ -194,7 +194,7 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     const qaRef = publicPlan.evidenceRefs.find((ref) => ref.artifactType === 'track_all_planning_qa_report_v1')
     if (!qaRef) throw new Error('Track All plan lacks planning QA lineage.')
     const qa = trackAllPlanningQaReportSchema.parse(await this.#artifacts.readJson({ reference: qaRef, ...scope(assignment) }))
-    if (qa.reportHash !== plan.planningQaReportHash || qa.assignmentHash !== plan.assignmentHash || qa.targetHash !== plan.targetHash) throw new Error('Track All planning QA lineage is stale.')
+    if (qaRef.sha256 !== plan.planningQaReportHash || qa.assignmentHash !== plan.assignmentHash || qa.targetHash !== plan.targetHash) throw new Error('Track All planning QA lineage is stale.')
     return plan
   }
 
@@ -208,11 +208,23 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     const visualOwnership = brollVisualOwnershipManifestSchema.parse(resolved.requireOne('visual_ownership').value)
     const sceneContext = trackAllSceneContextSchema.parse(resolved.requireOne('scene_context').value)
     if (specialized.assignmentId !== assignment.assignmentId || specialized.ownerUserId !== assignment.ownerUserId || specialized.workspaceId !== assignment.workspaceId || specialized.projectId !== assignment.projectId || specialized.editSessionId !== assignment.editSessionId || !same(specialized.manifestRef, assignment.manifestRef) || !same(specialized.authorizedWriteRange, assignment.authorizedRange)) throw new Error('Specialized Track All assignment differs from public authority.')
+    if (target.assignmentId !== assignment.assignmentId || target.ownerUserId !== assignment.ownerUserId || target.workspaceId !== assignment.workspaceId || target.projectId !== assignment.projectId || target.editSessionId !== assignment.editSessionId) throw new Error('Track All target specification differs from assignment authority.')
+    if (sourceInventory.assignmentId !== assignment.assignmentId || sourceInventory.editSessionId !== assignment.editSessionId || !same(sourceInventory.manifestRef, assignment.manifestRef)) throw new Error('Track All source inventory has stale assignment lineage.')
+    if (masterTiming.assignmentId !== assignment.assignmentId || masterTiming.editSessionId !== assignment.editSessionId || !same(masterTiming.manifestRef, assignment.manifestRef)) throw new Error('Track All master timing has stale assignment lineage.')
+    if (visualOwnership.assignmentId !== assignment.assignmentId || visualOwnership.editSessionId !== assignment.editSessionId || !same(visualOwnership.manifestRef, assignment.manifestRef)) throw new Error('Track All ownership manifest has stale assignment lineage.')
+    if (sceneContext.assignmentId !== assignment.assignmentId || !same(sceneContext.authorizedWriteRange, assignment.authorizedRange)) throw new Error('Track All scene context has stale assignment or range lineage.')
+    if (sourceFrames.ownerUserId !== assignment.ownerUserId || sourceFrames.workspaceId !== assignment.workspaceId || sourceFrames.projectId !== assignment.projectId) throw new Error('Track All source-frame authority is cross-tenant.')
+    if (!same(masterTiming.assignmentRange, assignment.authorizedRange) || masterTiming.fps !== assignment.authorizedRange.fps) throw new Error('Track All master timing does not exactly bind the assignment range and FPS.')
+    if (!same(visualOwnership.assignmentRange, assignment.authorizedRange)) throw new Error('Track All ownership manifest does not exactly bind the assignment range.')
+    if (sourceFrames.range.fps !== assignment.authorizedRange.fps || sourceFrames.range.startFrameInclusive > assignment.authorizedRange.startFrameInclusive || sourceFrames.range.endFrameExclusive < assignment.authorizedRange.endFrameExclusive) throw new Error('Track All source-frame authority does not contain the assignment range at the exact FPS.')
+    if (!sourceInventory.candidates.some((candidate) => candidate.sourceId === sourceFrames.sourceId && candidate.artifactRef.sha256 === sourceFrames.sourceChecksum)) throw new Error('Track All selected source is absent from the checksum-bound inventory.')
     const optional = (artifactType: string) => assignment.contextArtifactRefs.find((ref) => ref.artifactType === artifactType)
     const viRef = optional('visual_intelligence_target_evidence_v1')
     const privacyRef = optional('privacy_policy_snapshot_v1')
     const visualIntelligenceEvidence = viRef ? visualIntelligenceTargetEvidenceSchema.parse(await this.#artifacts.readJson({ reference: viRef, ...scope(assignment) })) : undefined
     const privacyPolicy = privacyRef ? privacyPolicySnapshotSchema.parse(await this.#artifacts.readJson({ reference: privacyRef, ...scope(assignment) })) : undefined
+    if (visualIntelligenceEvidence && (visualIntelligenceEvidence.assignmentHash !== specialized.assignmentHash || visualIntelligenceEvidence.targetHash !== target.targetHash || visualIntelligenceEvidence.authorizedRangeHash !== hashSkillValue(assignment.authorizedRange))) throw new Error('Visual Intelligence target evidence has stale assignment, target, or range lineage.')
+    if (privacyPolicy && (privacyPolicy.ownerUserId !== assignment.ownerUserId || privacyPolicy.workspaceId !== assignment.workspaceId || privacyPolicy.projectId !== assignment.projectId)) throw new Error('Privacy policy is cross-tenant.')
     return { genericAssignment: assignment, assignment: specialized, target, sourceInventory, masterTiming, sourceFrames, visualOwnership, sceneContext, visualIntelligenceEvidence, privacyPolicy, refs: [...assignment.contextArtifactRefs] }
   }
 }

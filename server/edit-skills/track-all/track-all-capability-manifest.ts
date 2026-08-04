@@ -190,7 +190,7 @@ export const TRACK_ALL_CAPABILITY_MANIFEST = createSkillCapabilityManifest({
     'track_all_assignment_v1', 'track_all_target_specification_v1', 'source_inventory_v1',
     'master_timing_plan_v1', 'source_frame_authority_v1', 'visual_ownership_manifest_v1',
     'track_all_scene_context_v1',
-  ].includes(value)).map((artifactType) => ({ key: artifactType.replace(/_v[0-9]+$/u, ''), artifactType, description: `Optional qualified ${artifactType} authority.`, minimumCount: 0, maximumCount: artifactType.startsWith('approved_') ? 100 : 1 })),
+  ].includes(value)).map((artifactType) => ({ key: artifactType, artifactType, description: `Optional qualified ${artifactType} authority.`, minimumCount: 0, maximumCount: artifactType.startsWith('approved_') ? 100 : 1 })),
   requiredSceneContext: [
     { key: 'authorized_write_range', required: true, readScope: 'assignment_range', description: 'Only this range may be mutated.' },
     { key: 'adjacent_reentry_context', required: true, readScope: 'adjacent_scenes', description: 'Read-only occlusion and re-entry context.' },

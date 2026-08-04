@@ -139,7 +139,9 @@ export function compileTrackAllPlan(input: {
 }): CompiledTrackAllPlan {
   const { authority, manifest } = input
   const { genericAssignment, assignment, target, sourceInventory, masterTiming, sourceFrames, visualOwnership, sceneContext } = authority
-  const selectedSource = sourceInventory.candidates.find((candidate) => candidate.artifactRef.sha256 === sourceFrames.sourceChecksum)
+  const selectedSource = sourceInventory.candidates.find((candidate) =>
+    candidate.sourceId === sourceFrames.sourceId &&
+    candidate.artifactRef.sha256 === sourceFrames.sourceChecksum)
   const sourceScoped = selectedSource !== undefined && selectedSource.artifactRef.ownerUserId === assignment.ownerUserId && selectedSource.artifactRef.workspaceId === assignment.workspaceId && selectedSource.artifactRef.projectId === assignment.projectId
   const rangeExact = hashSkillValue(genericAssignment.authorizedRange) === hashSkillValue(assignment.authorizedWriteRange) && isFrameRangeContained(assignment.authorizedWriteRange, assignment.analysisContextRange)
   const timingExact = masterTiming.fps === assignment.authorizedWriteRange.fps && isFrameRangeContained(assignment.authorizedWriteRange, masterTiming.assignmentRange)
@@ -223,7 +225,7 @@ export function compileTrackAllPlan(input: {
     maximumAttempts: assignment.permissions.maximumAttempts, maximumRepairs: Math.min(2, Math.max(0, assignment.permissions.maximumAttempts - 1)),
     timeEstimate: { minimumSeconds: finalExecutable ? Math.max(1, Math.floor(finalExpectedSeconds * 0.6)) : 0, expectedSeconds: finalExecutable ? finalExpectedSeconds : 0, maximumSeconds: finalExecutable ? Math.min(assignment.permissions.maximumTimeSeconds, finalExpectedSeconds * 2) : 0 },
     creditEstimate: { minimumCredits: finalExecutable ? Math.max(1, Math.floor(finalExpectedCredits * 0.5)) : 0, expectedCredits: finalExecutable ? finalExpectedCredits : 0, maximumCredits: finalExecutable ? Math.min(assignment.permissions.maximumCredits, finalExpectedCredits * 2) : 0, internalToolCostOnly: true },
-    planningQaReportHash: planningQaReport.reportHash, planningQaPassed: planningQaReport.passed,
+    planningQaReportHash: hashSkillValue(planningQaReport), planningQaPassed: planningQaReport.passed,
   })
   return { plan, planningQaReport }
 }

@@ -1,6 +1,6 @@
 # Track All implementation progress
 
-Status: `track_02_public_plugin_implemented`
+Status: `track_03_authority_contracts_implemented`
 
 This ledger records actual implementation, test, qualification, Git, and
 external-gate evidence for the canonical `track_all@1.0.0` skill. It does not
@@ -168,3 +168,45 @@ declaration and public boundary, not Track All planning quality, deterministic
 geometry, real SAM inference, or production execution. The SAM route remains
 blocked on authorized checkpoint/runtime evidence and no model, GPU, paid,
 public, or production action occurred.
+
+## TRACK-03 — assignment, target, and input authorities
+
+Status: implementation and local verification complete; the milestone commit
+and exact remote confirmation are recorded by the following ledger update.
+
+Implemented:
+
+- immutable tenant/project/session/assignment-bound target specifications;
+- independently content-addressed write, source-frame, scene-context, Visual
+  Intelligence, privacy-policy, point/box/brush/reference, and repair
+  authorities;
+- exact selected-source ID plus checksum resolution;
+- exact Master Timing assignment range and FPS validation;
+- exact ownership range and scene-context/write-range separation;
+- plugin-side rejection of stale assignment, target, timing, source,
+  ownership, manifest, tenant, and optional dependency lineage;
+- explicit `needs_range_expansion` with no SAM or visible treatment when target
+  evidence is readable but outside write authority;
+- raw-chat and unrestricted caller-field rejection through strict target
+  schemas;
+- `assignment-and-target-contract.md` and reusable isolated public fixtures.
+
+Actual checks run:
+
+- `npm run test:track-all-authority` — passed 21 adversarial cases; baseline
+  `use_no_action`, outside-range target `needs_range_expansion`, raw chat
+  rejected, and outside-range mutation false.
+- `npm run generate:track-all-capability-manifest` — passed.
+- `npm run test:track-all-capability-manifest` — passed; current manifest hash
+  `65eb6541aafc312f390479273d196aaa5f2db5cd52cba898dd9165a88f7a5998`.
+- `npm run typecheck:server` — passed.
+- affected-file ESLint — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  — passed; B-Roll public Track Graph dependency behavior remained compatible.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-capability-manifest`
+  — passed.
+
+Qualification remains `implementation_pending`: authority tests do not prove
+planning qualification, deterministic geometry, SAM execution, privacy
+quality, or production readiness. No head orchestra, provider/model request,
+GPU work, paid action, public artifact, or production mutation occurred.

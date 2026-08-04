@@ -30,6 +30,9 @@ import type {
   OfflineRemotionStreamingRenderResult,
 } from './offline-remotion-render-execution-types'
 import {
+  isOfflineRemotionTrackAllTreatmentPayload,
+} from './offline-remotion-track-all-treatment-protocol'
+import {
   OFFLINE_REMOTION_RENDER_STREAMING_CONTAINER_PROTOCOL,
   OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES,
   offlineRemotionStreamingInputCommitments,
@@ -338,6 +341,7 @@ async function executeWithImage(image: OfflineRemotionImageEvidence, value: unkn
     ? [0, 45, 90, 135, 179]
     : isMotionStudioScenePreviewPayload(request.payload) ||
       isMotionStudioLayeredPayload(request.payload) || isMotionStudioAnimaticPayload(request.payload)
+      || isOfflineRemotionTrackAllTreatmentPayload(request.payload)
       ? [...new Set([0, Math.floor((request.payload.durationFrames - 1) / 2), request.payload.durationFrames - 1])]
       : []
   if (expectedFrames.length > 0 && !Array.isArray(artifactRecord.frameArtifacts)) {

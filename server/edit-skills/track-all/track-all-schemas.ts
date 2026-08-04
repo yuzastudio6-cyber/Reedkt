@@ -55,6 +55,32 @@ const box = z.object({ x: unit, y: unit, width: unit, height: unit }).strict().s
   }
 })
 
+export const trackAllCaptionReservedZonesSchema = z.object({
+  schemaVersion: z.literal('caption_reserved_zones_v1'),
+  ownerUserId: safeId,
+  workspaceId: safeId,
+  projectId: safeId,
+  assignmentId: safeId,
+  assignmentHash: skillSha256Schema,
+  authorizedRange: skillFrameRangeSchema,
+  zones: z.array(z.object({
+    zoneId: safeId,
+    range: skillFrameRangeSchema,
+    box,
+    ownerSkillKey: z.literal('captions'),
+  }).strict()).max(1_000),
+  zonesHash: skillSha256Schema,
+}).strict().superRefine((value, context) => {
+  const { zonesHash, ...core } = value
+  if (
+    hashSkillValue(core) !== zonesHash ||
+    value.authorizedRange.endFrameExclusive <= value.authorizedRange.startFrameInclusive ||
+    value.zones.some((zone) =>
+      !isRangeContained(zone.range, value.authorizedRange) ||
+      zone.range.endFrameExclusive <= zone.range.startFrameInclusive)
+  ) context.addIssue({ code: 'custom', message: 'Caption reserved-zone authority is stale or out of range.' })
+})
+
 function isRangeContained(
   child: z.infer<typeof skillFrameRangeSchema>,
   parent: z.infer<typeof skillFrameRangeSchema>,
@@ -560,6 +586,7 @@ export function registerTrackAllArtifactSchemas(registry: EditSkillArtifactSchem
     approved_reference_image_v1: approvedReferenceImageSchema,
     approved_brush_mask_v1: approvedBrushMaskSchema,
     prior_track_repair_evidence_v1: priorTrackRepairEvidenceSchema,
+    caption_reserved_zones_v1: trackAllCaptionReservedZonesSchema,
     track_all_plan_v1: trackAllPlanSchema,
     track_all_planning_qa_report_v1: trackAllPlanningQaReportSchema,
     track_all_result_receipt_v1: trackAllResultReceiptSchema,

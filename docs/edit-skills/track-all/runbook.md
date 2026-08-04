@@ -7,6 +7,7 @@ Run deterministic geometry with:
 ```sh
 npm run test:track-all-deterministic-geometry
 npm run test:track-all-privacy-redaction
+npm run test:track-all-focus-reframe
 ```
 
 The privacy command runs all four fixed treatments and one attempt through the
@@ -18,6 +19,11 @@ docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build
 ```
 
 The image remains private-internal and production-blocked.
+
+The focus/reframe command builds the exact private Remotion source tree and
+executes actual tracked-magnification and speaker-reframe previews. It also
+compiles every supported simple focus treatment and a multi-target reframe.
+The outputs are private fixture evidence, not public or production renders.
 
 Run the SAM authority, qualification-gate, and injected lifecycle checks with:
 

@@ -192,6 +192,14 @@ function integer(value, minimum, maximum, label) {
   return value
 }
 
+function boundedNumber(value, minimum, maximum, label) {
+  if (
+    typeof value !== 'number' || !Number.isFinite(value) ||
+    value < minimum || value > maximum
+  ) throw new Error(`${label} is outside bounds`)
+  return value
+}
+
 function safeIdentity(value, label) {
   if (
     typeof value !== 'string' || value.length < 1 || value.length > 160 ||
@@ -1031,12 +1039,139 @@ function validateMotionStudioPayload(rawPayload) {
   return undefined
 }
 
+function validateTrackAllTreatmentPayload(rawPayload) {
+  if (
+    !rawPayload || typeof rawPayload !== 'object' ||
+    rawPayload.compositionProfileId !== 'track_all_private_treatment_preview_v1'
+  ) return undefined
+  const focus = rawPayload.treatmentKind === 'focus'
+  const payload = exactObject(rawPayload, [
+    'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+    'sourceStartFrame', 'sourceEndFrameExclusive', 'treatmentKind',
+    ...(focus ? ['focusTreatment'] : []), 'samples', 'maximumZoom',
+    'lowConfidenceBehavior', 'captionLayerOrder', 'audioPolicy',
+    'privateOutput', 'publicArtifact', 'sourceMimeType', 'sourceByteLength',
+    'sourceSha256', 'sourceBytesBase64',
+  ], 'Track All treatment payload')
+  const dimensions = `${payload.width}x${payload.height}`
+  oneOf(dimensions, PRIVATE_REVIEW_FRAMES, 'Track All preview frame')
+  const durationFrames = integer(payload.durationFrames, 1, 1920, 'durationFrames')
+  const sourceStartFrame = integer(payload.sourceStartFrame, 0, 100000000, 'sourceStartFrame')
+  const sourceEndFrameExclusive = integer(
+    payload.sourceEndFrameExclusive,
+    1,
+    100000000,
+    'sourceEndFrameExclusive',
+  )
+  if (
+    sourceEndFrameExclusive - sourceStartFrame !== durationFrames ||
+    !['focus', 'reframe'].includes(payload.treatmentKind) ||
+    !['hold_last_safe_crop', 'widen_crop', 'manual_review']
+      .includes(payload.lowConfidenceBehavior) ||
+    payload.captionLayerOrder !== 'captions_above_track_all' ||
+    payload.audioPolicy !== 'remove_for_private_qa' ||
+    payload.privateOutput !== true || payload.publicArtifact !== false ||
+    !Array.isArray(payload.samples) || payload.samples.length !== durationFrames
+  ) throw new Error('Track All treatment policy is unsupported')
+  const allowedFocus = [
+    'subject_sharp_background_soft', 'subject_normal_background_dim',
+    'tracked_spotlight', 'tracked_vignette', 'tracked_magnification',
+    'foreground_softening', 'background_softening', 'simple_subject_outline',
+  ]
+  if (focus !== allowedFocus.includes(payload.focusTreatment)) {
+    throw new Error('Track All focus treatment is unsupported')
+  }
+  const maximumZoom = Number(payload.maximumZoom)
+  if (!Number.isFinite(maximumZoom) || maximumZoom < 1 || maximumZoom > 2.5) {
+    throw new Error('Track All zoom ceiling is invalid')
+  }
+  const samples = payload.samples.map((value, index) => {
+    const sample = exactObject(value, [
+      'frameIndex', 'crop', 'priorityTrackIds', 'confidence',
+      'safeZoneCollision',
+    ], 'Track All treatment sample')
+    const crop = exactObject(sample.crop, ['x', 'y', 'width', 'height'], 'Track All crop')
+    const normalized = {
+      x: boundedNumber(crop.x, 0, 1, 'crop.x'),
+      y: boundedNumber(crop.y, 0, 1, 'crop.y'),
+      width: boundedNumber(crop.width, 0.001, 1, 'crop.width'),
+      height: boundedNumber(crop.height, 0.001, 1, 'crop.height'),
+    }
+    if (
+      sample.frameIndex !== index ||
+      normalized.x + normalized.width > 1 ||
+      normalized.y + normalized.height > 1 ||
+      !Array.isArray(sample.priorityTrackIds) ||
+      sample.priorityTrackIds.length < 1 || sample.priorityTrackIds.length > 16 ||
+      sample.priorityTrackIds.some((id) =>
+        typeof id !== 'string' || !/^[a-z0-9][a-z0-9._:-]{0,127}$/.test(id)) ||
+      new Set(sample.priorityTrackIds).size !== sample.priorityTrackIds.length ||
+      typeof sample.safeZoneCollision !== 'boolean' ||
+      Math.min(1 / normalized.width, 1 / normalized.height) >
+        maximumZoom + 0.001
+    ) throw new Error('Track All treatment sample is invalid')
+    return {
+      frameIndex: index,
+      crop: normalized,
+      priorityTrackIds: [...sample.priorityTrackIds],
+      confidence: boundedNumber(sample.confidence, 0, 1, 'confidence'),
+      safeZoneCollision: sample.safeZoneCollision,
+    }
+  })
+  const sourceMimeType = oneOf(
+    payload.sourceMimeType,
+    ['video/mp4', 'video/x-matroska'],
+    'sourceMimeType',
+  )
+  const source = committedBase64(
+    payload,
+    'source',
+    sourceMimeType,
+    64,
+    16 * 1024 * 1024,
+  )
+  if (!approvedSourceSignature(source, sourceMimeType)) {
+    throw new Error('Track All source signature is invalid')
+  }
+  return {
+    compositionProfileId: 'track_all_private_treatment_preview_v1',
+    width: integer(payload.width, 360, 640, 'width'),
+    height: integer(payload.height, 360, 640, 'height'),
+    fps: oneOf(payload.fps, [24, 30], 'fps'),
+    durationFrames,
+    sourceStartFrame,
+    sourceEndFrameExclusive,
+    treatmentKind: payload.treatmentKind,
+    ...(focus ? { focusTreatment: payload.focusTreatment } : {}),
+    samples,
+    maximumZoom,
+    lowConfidenceBehavior: payload.lowConfidenceBehavior,
+    captionLayerOrder: 'captions_above_track_all',
+    audioPolicy: 'remove_for_private_qa',
+    privateOutput: true,
+    publicArtifact: false,
+    sourceMimeType,
+    sourceByteLength: source.byteLength,
+    sourceSha256: payload.sourceSha256,
+    sourceBytesBase64: source.toString('base64'),
+  }
+}
+
 function validateRequest(value) {
   const request = exactObject(value, ['schemaVersion', 'toolId', 'operationId', 'payload'], 'request')
   if (request.schemaVersion !== PROTOCOL || request.toolId !== 'remotion' || request.operationId !== OPERATION) {
     throw new Error('request identity is unsupported')
   }
   const rawPayload = request.payload
+  const trackAllTreatmentPayload = validateTrackAllTreatmentPayload(rawPayload)
+  if (trackAllTreatmentPayload) {
+    return {
+      schemaVersion: PROTOCOL,
+      toolId: 'remotion',
+      operationId: OPERATION,
+      payload: trackAllTreatmentPayload,
+    }
+  }
   const motionStudioPayload = validateMotionStudioPayload(rawPayload)
   if (motionStudioPayload) {
     return {
@@ -3095,7 +3230,9 @@ async function execute(request, options = {}) {
   const layered = request.payload.compositionProfileId === 'motion_studio_native_layered_scene_v1'
   const animatic = request.payload.compositionProfileId === 'motion_studio_prepared_script_animatic_v1'
   const routeDraw = request.payload.compositionProfileId === 'motion_studio_deterministic_route_draw_v1'
-  const motionStudioComposition = scenePreview || layered || animatic || routeDraw
+  const trackAllTreatment = request.payload.compositionProfileId ===
+    'track_all_private_treatment_preview_v1'
+  const motionStudioComposition = scenePreview || layered || animatic || routeDraw || trackAllTreatment
   const goldenFrames = routeDraw
     ? [0, 45, 90, 135, 179]
     : motionStudioComposition
@@ -3122,6 +3259,7 @@ async function execute(request, options = {}) {
     'approved_source_sequence_caption_final_v1',
     'approved_source_caption_track_final_v1',
     'approved_source_sequence_caption_track_final_v1',
+    'track_all_private_treatment_preview_v1',
     LONG_FORM_MERGE_COMPOSITION_PROFILE,
     DELIVERY_H264_CHUNK_COMPOSITION_PROFILE,
   ].includes(request.payload.compositionProfileId)
@@ -3162,7 +3300,7 @@ async function execute(request, options = {}) {
                 request.payload.sourceByteLength,
               ),
             }],
-        longFormMerge || deliveryH264Chunk
+        longFormMerge || deliveryH264Chunk || trackAllTreatment
           ? []
           : captionTrack
           ? request.payload.captionOverlays.map((overlay) => ({
@@ -3280,7 +3418,7 @@ async function execute(request, options = {}) {
           captionOverlayInternalUrl: `${mediaServer.origin}/caption/${index}.png`,
         })),
       }
-    : finalComposition
+    : finalComposition && !trackAllTreatment
       ? { captionOverlayInternalUrl: `${mediaServer.origin}/caption/0.png` }
       : {}
   const livingFrameOverlayRenderPayload =
@@ -3416,6 +3554,28 @@ async function execute(request, options = {}) {
         routeGlowColor: request.payload.routeGlowColor,
         keyframeSha256: request.payload.keyframeSha256,
         keyframeInternalUrl: `${mediaServer.origin}/motion/keyframe.png`,
+      }
+    : trackAllTreatment
+    ? {
+        compositionProfileId: request.payload.compositionProfileId,
+        width: request.payload.width,
+        height: request.payload.height,
+        fps: request.payload.fps,
+        durationFrames: request.payload.durationFrames,
+        sourceStartFrame: request.payload.sourceStartFrame,
+        sourceEndFrameExclusive: request.payload.sourceEndFrameExclusive,
+        treatmentKind: request.payload.treatmentKind,
+        ...(request.payload.focusTreatment
+          ? { focusTreatment: request.payload.focusTreatment }
+          : {}),
+        samples: request.payload.samples,
+        maximumZoom: request.payload.maximumZoom,
+        lowConfidenceBehavior: request.payload.lowConfidenceBehavior,
+        captionLayerOrder: request.payload.captionLayerOrder,
+        audioPolicy: request.payload.audioPolicy,
+        privateOutput: true,
+        publicArtifact: false,
+        sourceInternalUrl: `${mediaServer.origin}/source/0.${sourceExtension(request.payload.sourceMimeType)}`,
       }
     : deliveryH264Chunk
     ? {
@@ -4047,6 +4207,18 @@ function semanticEvidence(request, streaming) {
             : { approvedCompositionChunkHardCutsApplied: true }),
           approvedLongFormCapacityProfileVerified: true,
           finalCompositionProfileExecuted: true,
+        }
+      : request.payload.compositionProfileId ===
+        'track_all_private_treatment_preview_v1'
+      ? {
+          trackAllTreatmentPreviewCompositionExecuted: true,
+          approvedSourceBytesVerified: true,
+          exactFrameTrajectoryApplied: true,
+          confidenceAndSafeZonePolicyApplied: true,
+          captionsRemainAboveTrackAll: true,
+          audioRemovedForPrivateQa: true,
+          privateOutputOnly: true,
+          frameGoldenArtifactsProduced: true,
         }
       : ['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
       .includes(request.payload.compositionProfileId)

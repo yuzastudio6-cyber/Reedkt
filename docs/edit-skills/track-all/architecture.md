@@ -92,6 +92,16 @@ retry, fallback, or public-output choice. Independently derived decoded-pixel
 evidence validates the exact flattened private preview before a result can be
 projected. See `privacy-redaction.md`.
 
+## Focus and reframe route
+
+TRACK-12 adds deterministic focus handoffs and reframe trajectories backed by
+exact Track Graph V2 and box-sequence authority. The fixed private Remotion
+profile renders real source media with one canonical trajectory sample per
+frame, exact source/range/zoom/safe-zone authority, captions above Track All,
+audio removed, and public output forbidden. Integration QA is derived from the
+actual Remotion attestation and frame-golden evidence. Color and Render retain
+final ownership. See `focus-and-reframe.md`.
+
 ## Qualification boundary
 
 Passing planning smokes establishes tested planning behavior, not a frozen

@@ -8,6 +8,12 @@ import {
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
 } from '../../../src/types/canonical-private-composition-capacity'
 import { ApiError } from '../../errors/api-error'
+import {
+  OFFLINE_REMOTION_TRACK_ALL_TREATMENT_PROFILE,
+  isOfflineRemotionTrackAllTreatmentPayload,
+  validateOfflineRemotionTrackAllTreatmentPayload,
+  type OfflineRemotionTrackAllTreatmentPayload,
+} from './offline-remotion-track-all-treatment-protocol'
 
 export const OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL =
   'offline-remotion-render-execution-v1' as const
@@ -472,6 +478,7 @@ export type OfflineRemotionRenderRequest = {
   | { payload: OfflineRemotionMotionStudioLayeredPayload }
   | { payload: OfflineRemotionMotionStudioAnimaticPayload }
   | { payload: OfflineRemotionMotionStudioRouteDrawPayload }
+  | { payload: OfflineRemotionTrackAllTreatmentPayload }
 )
 
 export type OfflineRemotionRenderPlanningPayload = OfflineRemotionPreviewPlanningPayload
@@ -488,7 +495,8 @@ export function validateOfflineRemotionRenderPlanningPayload(value: unknown): Of
     isMotionStudioScenePreviewPayload(request.payload) ||
     isMotionStudioLayeredPayload(request.payload) ||
     isMotionStudioAnimaticPayload(request.payload) ||
-    isMotionStudioRouteDrawPayload(request.payload)
+    isMotionStudioRouteDrawPayload(request.payload) ||
+    isOfflineRemotionTrackAllTreatmentPayload(request.payload)
   ) {
     throw validationFailure('Preview planning cannot contain final-composition source bytes.')
   }
@@ -1253,6 +1261,17 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     request.operationId !== OFFLINE_REMOTION_RENDER_OPERATION
   ) throw validationFailure('Remotion request identity is unsupported.')
   const payloadRecord = record(request.payload, 'payload')
+  if (
+    payloadRecord.compositionProfileId ===
+    OFFLINE_REMOTION_TRACK_ALL_TREATMENT_PROFILE
+  ) {
+    return {
+      schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+      toolId: 'remotion',
+      operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+      payload: validateOfflineRemotionTrackAllTreatmentPayload(payloadRecord),
+    }
+  }
   if (payloadRecord.compositionProfileId === 'motion_studio_deterministic_route_draw_v1') {
     const payload = exactRecord(payloadRecord, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',

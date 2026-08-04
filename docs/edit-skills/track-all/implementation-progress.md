@@ -264,8 +264,11 @@ head orchestra, or peer-skill implementation occurred.
 
 ## TRACK-05 — shared Track Graph and strict artifact contracts
 
-Status: implementation complete; commit and remote confirmation recorded below
-after the milestone commit is created.
+Status: complete and pushed.
+
+- implementation commit: `5a49f80ca92286a8da75536c7fa4a6b9bece4fd5`
+- remote confirmation: `git ls-remote --heads origin codex/track-all-skill-end-to-end`
+  returned the same exact SHA after `git push -u origin HEAD`.
 
 Implemented:
 

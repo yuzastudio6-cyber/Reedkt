@@ -204,6 +204,19 @@ vulnerability scanning active, but its required scoped build/sign/read bindings
 are not yet present. These are observed prerequisites, not permission to create
 resources or evidence that SAM 3.1 has been installed.
 
+The narrow idempotent operator source
+`scripts/gcp/prod/17-provision-visual-intelligence-sam31-foundation.sh`
+closes only that reviewed cloud foundation after an exact explicit confirmation.
+It enables Cloud KMS and Binary Authorization; creates only the dedicated image
+builder, image signer, and GPU-worker identities; creates only the four protected
+SAM 3.1 buckets; creates empty checkpoint-token secret placeholders; creates the
+HSM P-256 image-signing key; and applies the reviewed scoped IAM bindings. It
+deliberately does not create the legacy CPU/render/QA identities or unrelated
+media buckets. It cannot add a secret version, accept Meta terms, download a
+checkpoint, submit a build, start a GPU job, mutate customer credits, or grant
+production authority. Source qualification and publication precede any live
+invocation of this operator boundary.
+
 ## Gemini account-effective price authority
 
 - Visual Intelligence price authority is now v2 and distinguishes the exact

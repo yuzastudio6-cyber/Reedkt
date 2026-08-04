@@ -58,6 +58,9 @@ export interface CanonicalSam31GpuRuntimeQualificationEvidenceRepository
   rereadQualifiedEvidence(input: {
     readonly qualificationEvidenceRef: QualificationEvidenceRef
   }): Promise<CanonicalSam31GpuRuntimeQualificationEvidence | null>
+  rereadEvidenceRefExact(input: {
+    readonly qualificationEvidenceRef: QualificationEvidenceRef
+  }): Promise<CanonicalSam31GpuRuntimeQualificationEvidence | null>
   rereadExact(input: QualificationReadRequest): Promise<
     CanonicalSam31GpuRuntimeQualificationEvidence | null
   >

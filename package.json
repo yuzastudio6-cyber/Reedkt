@@ -214,6 +214,7 @@
     "publish:visual-intelligence-account-effective-rate": "tsx server/cli/publish-visual-intelligence-account-effective-rate.ts",
     "publish:sam3_1-official-artifacts": "tsx server/cli/canonical-sam3_1-official-artifact-ingest.ts --execute",
     "smoke:visual-intelligence-live-prerequisites-audit": "tsx server/smoke/visual-intelligence-live-prerequisites-audit-smoke.ts",
+    "smoke:visual-intelligence-sam31-foundation-provisioning": "tsx server/smoke/visual-intelligence-sam31-foundation-provisioning-smoke.ts",
     "smoke:visual-intelligence-quality-gpu-release": "tsx server/smoke/visual-intelligence-quality-gpu-release-smoke.ts",
     "qa:visual-intelligence-quality-gpu-release": "node scripts/verify-visual-intelligence-quality-gpu-release.mjs",
     "smoke:offline-libass-caption-execution": "tsx server/smoke/offline-libass-caption-execution-smoke.ts",

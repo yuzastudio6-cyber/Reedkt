@@ -70,6 +70,9 @@ import type {
   VisualIntelligenceOrchestraCompilationEvidence,
 } from '../visual-intelligence/visual-intelligence-orchestra-invocation-compiler'
 import {
+  createVisualIntelligenceOrchestraInvocationCompiler,
+} from '../visual-intelligence/visual-intelligence-orchestra-invocation-compiler'
+import {
   createControlledVisualIntelligenceAccountEffectiveRateAuthority,
   rateAuthorityRef,
 } from '../visual-intelligence/visual-intelligence-account-effective-cost-owner'
@@ -670,17 +673,96 @@ const orchestraCompilationEvidence = createOrchestraCompilationEvidence({
   sourceRequest,
   costPreflight: orchestraCostPreflight,
 })
+const orchestraPreparedEvidence = preparedEvidence(
+  orchestraCall.callDigestSha256,
+  probeRef,
+  [transcriptRef],
+)
+const orchestraCompiledRequest = await compileOrchestraRequestForEvidence({
+  call: orchestraCall,
+  manifest: orchestraManifest,
+  qualificationSnapshot: orchestraQualification,
+  compilationEvidence: orchestraCompilationEvidence,
+})
+const orchestraPreparedRecord =
+  await runtime.canonicalPreparedEvidenceStore.persistCreateOnly({
+    ownerClass: 'canonical_source_analysis_evidence_owner',
+    ownerAuthorityRef: ref('source-analysis-evidence-owner'),
+    request: orchestraCompiledRequest,
+    preparedEvidence: orchestraPreparedEvidence,
+  })
+const replayedPreparedRecord =
+  await runtime.canonicalPreparedEvidenceStore.persistCreateOnly({
+    ownerClass: 'canonical_source_analysis_evidence_owner',
+    ownerAuthorityRef: ref('source-analysis-evidence-owner'),
+    request: orchestraCompiledRequest,
+    preparedEvidence: orchestraPreparedEvidence,
+  })
+assert.equal(replayedPreparedRecord.disposition, 'identical_replay')
+assert.deepEqual(
+  replayedPreparedRecord.recordRef,
+  orchestraPreparedRecord.recordRef,
+)
+await assert.rejects(
+  runtime.canonicalPreparedEvidenceStore.persistCreateOnly({
+    ownerClass: 'canonical_planning_evidence_owner',
+    ownerAuthorityRef: ref('source-analysis-evidence-owner'),
+    request: orchestraCompiledRequest,
+    preparedEvidence: orchestraPreparedEvidence,
+  }),
+)
+await assert.rejects(
+  runtime.canonicalPreparedEvidenceStore.persistCreateOnly({
+    ownerClass: 'canonical_source_analysis_evidence_owner',
+    ownerAuthorityRef: ref('source-analysis-evidence-owner'),
+    request: orchestraCompiledRequest,
+    preparedEvidence: orchestraPreparedEvidence,
+    callerPreparedEvidenceAccepted: true,
+  } as unknown as Parameters<
+    typeof runtime.canonicalPreparedEvidenceStore.persistCreateOnly
+  >[0]),
+)
+let hostilePreparedEvidenceGetterInvoked = false
+const hostilePreparedEvidenceInput = Object.defineProperty({
+  ownerClass: 'canonical_source_analysis_evidence_owner',
+  ownerAuthorityRef: ref('source-analysis-evidence-owner'),
+  request: orchestraCompiledRequest,
+}, 'preparedEvidence', {
+  enumerable: true,
+  get() {
+    hostilePreparedEvidenceGetterInvoked = true
+    return orchestraPreparedEvidence
+  },
+})
+await assert.rejects(
+  runtime.canonicalPreparedEvidenceStore.persistCreateOnly(
+    hostilePreparedEvidenceInput as unknown as Parameters<
+      typeof runtime.canonicalPreparedEvidenceStore.persistCreateOnly
+    >[0],
+  ),
+)
+assert.equal(hostilePreparedEvidenceGetterInvoked, false)
+const hostilePreparedEvidenceProxy = new Proxy({}, {
+  ownKeys() {
+    throw new Error('hostile prepared evidence ownKeys trap invoked')
+  },
+})
+await assert.rejects(
+  runtime.canonicalPreparedEvidenceStore.persistCreateOnly(
+    hostilePreparedEvidenceProxy as unknown as Parameters<
+      typeof runtime.canonicalPreparedEvidenceStore.persistCreateOnly
+    >[0],
+  ),
+  (error: unknown) => error instanceof ApiError
+    && error.code === 'TOOL_NOT_READY',
+)
 const orchestraDispatchInput = {
   call: orchestraCall,
   supportRequest: null,
   manifest: orchestraManifest,
   qualificationSnapshot: orchestraQualification,
   compilationEvidence: orchestraCompilationEvidence,
-  preparedEvidence: preparedEvidence(
-    orchestraCall.callDigestSha256,
-    probeRef,
-    [transcriptRef],
-  ),
+  preparedEvidenceRef: orchestraPreparedRecord.recordRef,
   inspectionRequirement: null,
   orchestraDispatchAuthorityRef: orchestraCall.orchestraJobRef,
 } as const
@@ -702,11 +784,26 @@ await assert.rejects(
 await assert.rejects(
   runtime.orchestraDispatchPackageStore.persistCreateOnly({
     ...orchestraDispatchInput,
-    preparedEvidence: {
-      ...orchestraDispatchInput.preparedEvidence,
-      toolExecutionEvidence: [],
-    },
+    preparedEvidenceRef: ref('caller-invented-prepared-evidence'),
   }),
+)
+await assert.rejects(
+  runtime.orchestraDispatchPackageStore.persistCreateOnly({
+    ...orchestraDispatchInput,
+    preparedEvidence: orchestraPreparedEvidence,
+  } as unknown as typeof orchestraDispatchInput),
+)
+const hostileDispatchProxy = new Proxy({}, {
+  ownKeys() {
+    throw new Error('hostile dispatch ownKeys trap invoked')
+  },
+})
+await assert.rejects(
+  runtime.orchestraDispatchPackageStore.persistCreateOnly(
+    hostileDispatchProxy as unknown as typeof orchestraDispatchInput,
+  ),
+  (error: unknown) => error instanceof ApiError
+    && error.code === 'TOOL_NOT_READY',
 )
 const persistedDispatch = await runtime.orchestraDispatchPackageStore
   .persistCreateOnly(orchestraDispatchInput)
@@ -847,17 +944,33 @@ const followupCostPreflight = await runtime.costOwner.createPreflight({
   estimatedInputTokenCount: 10_000,
   estimatedOutputAndThinkingTokenCount: 4_000,
 })
+const followupCompilationEvidence = createOrchestraCompilationEvidence({
+  call: followupCall,
+  sourceRequest,
+  costPreflight: followupCostPreflight,
+})
+const followupPreparedRecord =
+  await runtime.canonicalPreparedEvidenceStore.persistCreateOnly({
+    ownerClass: 'canonical_planning_evidence_owner',
+    ownerAuthorityRef: ref('followup-evidence-owner'),
+    request: await compileOrchestraRequestForEvidence({
+      call: followupCall,
+      manifest: orchestraManifest,
+      qualificationSnapshot: orchestraQualification,
+      compilationEvidence: followupCompilationEvidence,
+    }),
+    preparedEvidence: preparedEvidence(
+      followupCall.callDigestSha256,
+      probeRef,
+    ),
+  })
 await runtime.orchestraDispatchPackageStore.persistCreateOnly({
   call: followupCall,
   supportRequest: null,
   manifest: orchestraManifest,
   qualificationSnapshot: orchestraQualification,
-  compilationEvidence: createOrchestraCompilationEvidence({
-    call: followupCall,
-    sourceRequest,
-    costPreflight: followupCostPreflight,
-  }),
-  preparedEvidence: preparedEvidence(followupCall.callDigestSha256, probeRef),
+  compilationEvidence: followupCompilationEvidence,
+  preparedEvidenceRef: followupPreparedRecord.recordRef,
   inspectionRequirement: null,
   orchestraDispatchAuthorityRef: followupCall.orchestraJobRef,
 })
@@ -972,20 +1085,33 @@ const referenceRequest = createVisualIntelligenceRequest({
   shellCommandIncluded: false,
   providerToolDefinitionIncluded: false,
 })
+const referenceCompilationEvidence = createOrchestraCompilationEvidence({
+  call: referenceCall,
+  sourceRequest: referenceRequest,
+  costPreflight: referenceCostPreflight,
+})
+const referencePreparedRecord =
+  await runtime.canonicalPreparedEvidenceStore.persistCreateOnly({
+    ownerClass: 'canonical_reference_analysis_evidence_owner',
+    ownerAuthorityRef: ref('reference-analysis-evidence-owner'),
+    request: await compileOrchestraRequestForEvidence({
+      call: referenceCall,
+      manifest: orchestraManifest,
+      qualificationSnapshot: orchestraQualification,
+      compilationEvidence: referenceCompilationEvidence,
+    }),
+    preparedEvidence: preparedEvidence(
+      referenceRequest.requestDigestSha256,
+      probeRef,
+    ),
+  })
 await runtime.orchestraDispatchPackageStore.persistCreateOnly({
   call: referenceCall,
   supportRequest: null,
   manifest: orchestraManifest,
   qualificationSnapshot: orchestraQualification,
-  compilationEvidence: createOrchestraCompilationEvidence({
-    call: referenceCall,
-    sourceRequest: referenceRequest,
-    costPreflight: referenceCostPreflight,
-  }),
-  preparedEvidence: preparedEvidence(
-    referenceRequest.requestDigestSha256,
-    probeRef,
-  ),
+  compilationEvidence: referenceCompilationEvidence,
+  preparedEvidenceRef: referencePreparedRecord.recordRef,
   inspectionRequirement: null,
   orchestraDispatchAuthorityRef: referenceCall.orchestraJobRef,
 })
@@ -1089,6 +1215,8 @@ console.log(JSON.stringify({
   exactRuntimeReleaseReread: true,
   exactAccountEffectiveRateReread: true,
   sourceCleanupAuthorityRepositoryMounted: true,
+  canonicalPreparedEvidenceStoreMounted: true,
+  orchestraCannotSelfAttestPreparedEvidence: true,
   canonicalRequestPackageConsumed: true,
   orchestraDispatchPackageConsumed: true,
   orchestraResultReturnedAndPersisted: true,
@@ -1284,6 +1412,33 @@ function createOrchestraCompilationEvidence(input: {
     directProviderCallMade: false,
     directTimelineMutationPerformed: false,
   }
+}
+
+async function compileOrchestraRequestForEvidence(input: {
+  call: OrchestraSkillCall
+  manifest: SkillCapabilityManifest
+  qualificationSnapshot: SkillQualificationSnapshot
+  compilationEvidence: VisualIntelligenceOrchestraCompilationEvidence
+}): Promise<VisualIntelligenceRequest> {
+  const compiler = createVisualIntelligenceOrchestraInvocationCompiler({
+    authorityRegistryPort: {
+      async readExact() {
+        return {
+          manifest: input.manifest,
+          qualificationSnapshot: input.qualificationSnapshot,
+        }
+      },
+    },
+    compilationPort: {
+      async prepareExact() {
+        return input.compilationEvidence
+      },
+    },
+  })
+  return (await compiler.compile({
+    call: input.call,
+    supportRequest: null,
+  })).request
 }
 
 function compare(left: string, right: string): number {

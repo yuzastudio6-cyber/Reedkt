@@ -9,7 +9,7 @@ import type {
 } from '../../src/types/orchestra-skill-capability'
 import type {
   VisualInspectionRequirement,
-  VisualIntelligencePreparedEvidence,
+  VisualIntelligenceEvidenceRef,
 } from '../../src/types/visual-intelligence'
 import { ApiError } from '../errors/api-error'
 import {
@@ -44,14 +44,17 @@ import {
 import type {
   VisualIntelligenceCanonicalRequestPackageStore,
 } from './visual-intelligence-canonical-request-package-store'
+import type {
+  VisualIntelligenceCanonicalPreparedEvidenceReadPort,
+} from './visual-intelligence-canonical-prepared-evidence-store'
 import {
   getVisualIntelligenceOrchestraJobDefinition,
 } from './visual-intelligence-orchestra-capability-manifest'
 
 export const VISUAL_INTELLIGENCE_ORCHESTRA_DISPATCH_PACKAGE_STORE_VERSION =
-  'visual-intelligence-orchestra-dispatch-package-store-v1' as const
+  'visual-intelligence-orchestra-dispatch-package-store-v2' as const
 export const VISUAL_INTELLIGENCE_ORCHESTRA_DISPATCH_PACKAGE_VERSION =
-  'visual-intelligence-orchestra-dispatch-package-v1' as const
+  'visual-intelligence-orchestra-dispatch-package-v2' as const
 
 const DEFAULT_PREFIX =
   'private/orchestra/v1/skill-dispatch/visual-intelligence'
@@ -66,7 +69,7 @@ export interface VisualIntelligenceOrchestraDispatchPackageInput {
   readonly qualificationSnapshot: SkillQualificationSnapshot
   readonly compilationEvidence:
     VisualIntelligenceOrchestraCompilationEvidence
-  readonly preparedEvidence: VisualIntelligencePreparedEvidence
+  readonly preparedEvidenceRef: VisualIntelligenceEvidenceRef
   readonly inspectionRequirement: VisualInspectionRequirement | null
   readonly orchestraDispatchAuthorityRef: OrchestraEvidenceRef
 }
@@ -102,7 +105,7 @@ interface DispatchPackageRecord {
   readonly qualificationSnapshotRef: OrchestraEvidenceRef
   readonly compilationEvidence:
     VisualIntelligenceOrchestraCompilationEvidence
-  readonly preparedEvidence: VisualIntelligencePreparedEvidence
+  readonly preparedEvidenceRef: VisualIntelligenceEvidenceRef
   readonly inspectionRequirement: VisualInspectionRequirement | null
   readonly orchestraDispatchAuthorityRef: OrchestraEvidenceRef
   readonly exactOrchestraPlanJobAndScopeRereadRequired: true
@@ -119,6 +122,8 @@ export function createVisualIntelligenceOrchestraDispatchPackageStore(
     readonly objectPort: CanonicalCreateOnlyJsonObjectPort
     readonly canonicalRequestPackageStore:
       VisualIntelligenceCanonicalRequestPackageStore
+    readonly preparedEvidenceReadPort:
+      VisualIntelligenceCanonicalPreparedEvidenceReadPort
     readonly prefix?: string
   },
 ): VisualIntelligenceOrchestraDispatchPackageStore {
@@ -138,7 +143,19 @@ export function createVisualIntelligenceOrchestraDispatchPackageStore(
 
     async persistCreateOnly(untrusted) {
       const parsed = parseInput(untrusted)
-      await assertCandidateCanCompile(parsed)
+      const compiled = await compileCandidate(parsed)
+      const preparedRecord = await input.preparedEvidenceReadPort
+        .readExactForRequest({
+          request: compiled.request,
+          recordRef: parsed.preparedEvidenceRef,
+        })
+      if (!preparedRecord) throw notReady(
+        'visual_intelligence_orchestra_prepared_evidence_not_current',
+      )
+      assertVisualIntelligencePreparedEvidenceForRequest(
+        compiled.request,
+        preparedRecord.preparedEvidence,
+      )
       const recordWithoutDigest = {
         schemaVersion:
           VISUAL_INTELLIGENCE_ORCHESTRA_DISPATCH_PACKAGE_VERSION,
@@ -150,7 +167,7 @@ export function createVisualIntelligenceOrchestraDispatchPackageStore(
         qualificationSnapshotRef:
           qualificationRef(parsed.qualificationSnapshot),
         compilationEvidence: parsed.compilationEvidence,
-        preparedEvidence: parsed.preparedEvidence,
+        preparedEvidenceRef: parsed.preparedEvidenceRef,
         inspectionRequirement: parsed.inspectionRequirement,
         orchestraDispatchAuthorityRef:
           parsed.orchestraDispatchAuthorityRef,
@@ -272,9 +289,17 @@ export function createVisualIntelligenceOrchestraDispatchPackageStore(
         'visual_intelligence_orchestra_compiled_package_not_current',
       )
       const preparedEvidence =
+        await input.preparedEvidenceReadPort.readExactForRequest({
+          request: compiled.request,
+          recordRef: record.preparedEvidenceRef,
+        })
+      if (!preparedEvidence) throw notReady(
+        'visual_intelligence_orchestra_prepared_evidence_not_current',
+      )
+      const exactPreparedEvidence =
         assertVisualIntelligencePreparedEvidenceForRequest(
           compiled.request,
-          record.preparedEvidence,
+          preparedEvidence.preparedEvidence,
         )
       assertInspectionBinding(compiled, record.inspectionRequirement)
       const dispatchPackageRef = dispatchRef(record)
@@ -283,7 +308,7 @@ export function createVisualIntelligenceOrchestraDispatchPackageStore(
           ownerClass: 'canonical_orchestra_dispatch_owner',
           ownerAuthorityRef: dispatchPackageRef,
           request: compiled.request,
-          preparedEvidence,
+          preparedEvidence: exactPreparedEvidence,
           inspectionRequirement: record.inspectionRequirement,
         })
       return Object.freeze({
@@ -296,9 +321,9 @@ export function createVisualIntelligenceOrchestraDispatchPackageStore(
   return Object.freeze(store)
 }
 
-async function assertCandidateCanCompile(
+async function compileCandidate(
   input: VisualIntelligenceOrchestraDispatchPackageInput,
-): Promise<void> {
+): Promise<CompiledVisualIntelligenceOrchestraRequest> {
   const compiler = createVisualIntelligenceOrchestraInvocationCompiler({
     authorityRegistryPort: {
       async readExact() {
@@ -318,16 +343,25 @@ async function assertCandidateCanCompile(
     call: input.call,
     supportRequest: input.supportRequest,
   })
-  assertVisualIntelligencePreparedEvidenceForRequest(
-    compiled.request,
-    input.preparedEvidence,
-  )
   assertInspectionBinding(compiled, input.inspectionRequirement)
+  return compiled
 }
 
 function parseInput(
-  input: VisualIntelligenceOrchestraDispatchPackageInput,
+  untrusted: unknown,
 ): VisualIntelligenceOrchestraDispatchPackageInput {
+  const inputKeys = [
+    'call', 'supportRequest', 'manifest', 'qualificationSnapshot',
+    'compilationEvidence', 'preparedEvidenceRef', 'inspectionRequirement',
+    'orchestraDispatchAuthorityRef',
+  ]
+  if (
+    !isPlainRecord(untrusted)
+    || Reflect.ownKeys(untrusted).length !== inputKeys.length
+    || inputKeys.some((key) => !Object.hasOwn(untrusted, key))
+  ) throw notReady('visual_intelligence_orchestra_dispatch_input_invalid')
+  const input = untrusted as unknown as
+    VisualIntelligenceOrchestraDispatchPackageInput
   const call = parseOrchestraSkillCall(input.call)
   const supportRequest = input.supportRequest === null
     ? null
@@ -356,7 +390,7 @@ function parseInput(
       admissionMode,
       evidence: input.compilationEvidence,
     })
-  const preparedEvidence = clone(input.preparedEvidence)
+  const preparedEvidenceRef = requireRef(input.preparedEvidenceRef)
   const inspectionRequirement = input.inspectionRequirement === null
     ? null
     : parseVisualInspectionRequirement(input.inspectionRequirement)
@@ -393,7 +427,7 @@ function parseInput(
     manifest,
     qualificationSnapshot,
     compilationEvidence,
-    preparedEvidence,
+    preparedEvidenceRef,
     inspectionRequirement,
     orchestraDispatchAuthorityRef,
   })
@@ -405,7 +439,7 @@ function parseDispatchRecord(value: unknown): DispatchPackageRecord {
   }
   const keys = [
     'schemaVersion', 'storeVersion', 'call', 'supportRequest', 'manifestRef',
-    'qualificationSnapshotRef', 'compilationEvidence', 'preparedEvidence',
+    'qualificationSnapshotRef', 'compilationEvidence', 'preparedEvidenceRef',
     'inspectionRequirement', 'orchestraDispatchAuthorityRef',
     'exactOrchestraPlanJobAndScopeRereadRequired',
     'exactManifestAndQualificationRereadRequired',
@@ -455,7 +489,7 @@ function parseDispatchRecord(value: unknown): DispatchPackageRecord {
     manifestRef: manifestReference,
     qualificationSnapshotRef: qualificationReference,
     compilationEvidence: clone(value.compilationEvidence),
-    preparedEvidence: clone(value.preparedEvidence),
+    preparedEvidenceRef: requireRef(value.preparedEvidenceRef),
     inspectionRequirement,
     orchestraDispatchAuthorityRef,
   }) as unknown as DispatchPackageRecord
@@ -576,11 +610,14 @@ function normalizePrefix(value: string): string {
 function assertDependencies(input: {
   objectPort: CanonicalCreateOnlyJsonObjectPort
   canonicalRequestPackageStore: VisualIntelligenceCanonicalRequestPackageStore
+  preparedEvidenceReadPort: VisualIntelligenceCanonicalPreparedEvidenceReadPort
 }): void {
   if (
     typeof input.objectPort?.createOnly !== 'function'
     || typeof input.objectPort?.readExact !== 'function'
     || typeof input.canonicalRequestPackageStore?.persistCreateOnly
+      !== 'function'
+    || typeof input.preparedEvidenceReadPort?.readExactForRequest
       !== 'function'
   ) throw notReady('visual_intelligence_orchestra_store_dependency_invalid')
 }
@@ -598,13 +635,17 @@ function parseJson(body: Buffer): unknown {
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-  const prototype = Object.getPrototypeOf(value)
-  const descriptors = Object.getOwnPropertyDescriptors(value)
-  return (prototype === Object.prototype || prototype === null)
-    && Reflect.ownKeys(value).every((key) => typeof key === 'string')
-    && Object.values(descriptors).every(
-      (descriptor) => !('get' in descriptor) && !('set' in descriptor),
-    )
+  try {
+    const prototype = Object.getPrototypeOf(value)
+    const descriptors = Object.getOwnPropertyDescriptors(value)
+    return (prototype === Object.prototype || prototype === null)
+      && Reflect.ownKeys(value).every((key) => typeof key === 'string')
+      && Object.values(descriptors).every(
+        (descriptor) => !('get' in descriptor) && !('set' in descriptor),
+      )
+  } catch {
+    return false
+  }
 }
 
 function omit(

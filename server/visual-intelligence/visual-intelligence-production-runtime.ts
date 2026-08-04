@@ -89,6 +89,10 @@ import {
   type VisualIntelligenceCanonicalRequestPackageStore,
 } from './visual-intelligence-canonical-request-package-store'
 import {
+  createVisualIntelligenceCanonicalPreparedEvidenceStore,
+  type VisualIntelligenceCanonicalPreparedEvidenceStore,
+} from './visual-intelligence-canonical-prepared-evidence-store'
+import {
   createVisualIntelligenceGcsConcurrencyPort,
 } from './visual-intelligence-gcs-concurrency-port'
 import {
@@ -126,7 +130,7 @@ import {
 } from './vertex-gemini-pro-visual-intelligence-adapter'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v2' as const
+  'visual-intelligence-production-runtime-v3' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -134,6 +138,8 @@ export interface VisualIntelligenceProductionRuntime {
   readonly reportRepository: VisualIntelligenceDurableLifecycleStore
   readonly canonicalRequestPackageStore:
     VisualIntelligenceCanonicalRequestPackageStore
+  readonly canonicalPreparedEvidenceStore:
+    VisualIntelligenceCanonicalPreparedEvidenceStore
   readonly orchestraDispatchPackageStore:
     VisualIntelligenceOrchestraDispatchPackageStore
   readonly orchestraJobResultStore:
@@ -309,10 +315,16 @@ export async function createVisualIntelligenceProductionRuntime(
       objectPort,
       runtimeRelease,
     })
+  const canonicalPreparedEvidenceStore =
+    createVisualIntelligenceCanonicalPreparedEvidenceStore({
+      objectPort,
+      runtimeRelease,
+    })
   const orchestraDispatchPackageStore =
     createVisualIntelligenceOrchestraDispatchPackageStore({
       objectPort,
       canonicalRequestPackageStore,
+      preparedEvidenceReadPort: canonicalPreparedEvidenceStore,
     })
   const orchestraJobResultStore =
     createVisualIntelligenceOrchestraJobResultStore({ objectPort })
@@ -493,6 +505,7 @@ export async function createVisualIntelligenceProductionRuntime(
     runtimeRelease,
     reportRepository: durableStore,
     canonicalRequestPackageStore,
+    canonicalPreparedEvidenceStore,
     orchestraDispatchPackageStore,
     orchestraJobResultStore,
     editReferenceBindingStore,

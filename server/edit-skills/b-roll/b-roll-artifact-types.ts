@@ -38,13 +38,13 @@ import {
   brollRemotionLayerManifestSchema,
   brollResultReceiptSchema,
 } from './b-roll-remotion-integration'
-import { trackGraphV1Schema } from './b-roll-track-all-dependency'
+import { trackGraphV1Schema } from './b-roll-track-graph-dependency'
 import {
   BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE,
   brollVisualIntelligenceCandidateQaSchema,
 } from './b-roll-visual-intelligence-dependency'
 
-export { trackGraphV1Schema } from './b-roll-track-all-dependency'
+export { trackGraphV1Schema } from './b-roll-track-graph-dependency'
 
 export const BROLL_ACCEPTED_ARTIFACT_TYPES = [
   'b_roll_assignment_v1',

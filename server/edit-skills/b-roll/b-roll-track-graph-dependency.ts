@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { hashSkillValue } from '../core/skill-capability-manifest-hash'
 import { skillSha256Schema } from '../core/skill-capability-manifest-schema'
 
+/** Model-neutral Track All dependency artifact. B-roll never selects a model. */
 export const trackGraphV1Schema = z.object({
   schemaVersion: z.literal('track_graph_v1'),
   modelNeutral: z.literal(true),

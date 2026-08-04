@@ -155,7 +155,7 @@ const DEFINITIONS = [
   {
     authorityKey: 'track_graph_dependency_contract',
     profileVersion: 'b_roll_dependency_authority.track_graph_dependency_contract.v1',
-    files: ['server/edit-skills/b-roll/b-roll-track-all-dependency.ts'],
+    files: ['server/edit-skills/b-roll/b-roll-track-graph-dependency.ts'],
   },
 ] as const satisfies readonly BrollDependencyAuthorityDefinition[]
 

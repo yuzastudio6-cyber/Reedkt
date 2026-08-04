@@ -69,31 +69,49 @@ HQ mediation remains true and direct peer dispatch remains false.
   return multiple selected scenes for one request/handoff. Caption does not
   invent one request per selected scene.
 
-The frozen public Living Frame surface is now concretely present in this clean
-branch as `caption-direction-living-frame-request-v1` and
-`living-frame-caption-direction-response-v1`. It is byte-free, contains no raw
-chat/media paths/credentials/executable prompt text, targets
-`motion.living_frame_storytelling`, keeps Caption above Living Frame, preserves
-accessible wording and restoration, and leaves every operation, dispatch,
+The frozen public Living Frame V1 surface is present byte-for-byte in this clean
+branch as `caption-direction-living-frame-request-v1`,
+`living-frame-caption-direction-response-v1`, and
+`caption-direction-living-frame-adapter-v1`. The domain-ref shape introduced by
+CAP-12 is separately versioned as `caption-direction-living-frame-request-v2`,
+`living-frame-caption-direction-response-v2`, and
+`caption-direction-living-frame-adapter-v2`; it does not reuse or supersede the
+V1 identity. Both lanes are byte-free, contain no raw chat/media
+paths/credentials/executable prompt text, target
+`motion.living_frame_storytelling`, keep Caption above Living Frame, preserve
+accessible wording and restoration, and leave every operation, dispatch,
 runtime, asset, estimate/billing, QA approval, public delivery, and production
 authority false. No `server/living-frame/*` module is imported.
+
+The explicit
+`caption-direction-living-frame-v1-v2-compatibility-binding-v1` adapter accepts
+both complete independently validated payloads and binds only their shared
+canonical identity, transcript, semantic, confirmed-frame, reservation,
+StoryTiming/MasterTiming, layout, selected-scene, fallback, QA, and staleness
+lineage. It never casts one wire schema into the other, and it refuses to invent
+fields that exist in only one version. The neutral support envelope accepts the
+exact V1 digest using its defined `sha256:` wire representation and the V2
+digest using the newer plain digest representation.
 
 Illustrated-character animation and mechanical rigging remain paused. The
 fixture exercises only a non-character diagram/archive response.
 
 ## Verification
 
-`smoke:captions-specialist-cap-12` passes 25 CAP-12 assertions after consuming
+`smoke:captions-specialist-cap-12` passes 37 CAP-12 assertions after consuming
 the exported CAP-11 graph fixture. It covers twelve node registrations and
 resolutions, semantic event coverage, authorized-range enforcement, stable-read
 math, twelve typed primitives and reduced-motion counterparts, all three
 handoff kinds, neutral mediation, camera-owner retention, fixture-only motion
-lock state, the exact Living Frame receiver identity, a valid two-selected-scene
-response, Caption ordering/restoration, and closed authorities.
+lock state, both exact Living Frame receiver identities, valid V1 and V2
+two-selected-scene responses, the V1/V2 compatibility binding, Caption
+ordering/restoration, and closed authorities.
 
 Adversarial checks reject out-of-scope StoryTiming frames, inadequate effective
 read time despite a long cue, silently substituted output aspect ratio,
-mismatched or stale Living Frame results, lowered stable-read requirements,
+stale V1 digests, V2 frame substitution, stale compatibility receipts,
+collapsed multi-scene lineage, mismatched or stale Living Frame results,
+lowered stable-read requirements,
 swapped handoff lineage, receiver/kind mismatch, missing transfer morph, direct
 peer dispatch, camera authority overclaim, and inherited public-contract data.
 

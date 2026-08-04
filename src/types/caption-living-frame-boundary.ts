@@ -4,15 +4,15 @@ import type {
   CaptionDomainRef,
 } from './caption-domain-contracts'
 
-export const CAPTION_LIVING_FRAME_REQUEST_VERSION =
-  'caption-direction-living-frame-request-v1' as const
-export const LIVING_FRAME_CAPTION_RESPONSE_VERSION =
-  'living-frame-caption-direction-response-v1' as const
-export const CAPTION_LIVING_FRAME_ADAPTER_VERSION =
-  'caption-direction-living-frame-adapter-v1' as const
+export const CAPTION_LIVING_FRAME_REQUEST_V2_VERSION =
+  'caption-direction-living-frame-request-v2' as const
+export const LIVING_FRAME_CAPTION_RESPONSE_V2_VERSION =
+  'living-frame-caption-direction-response-v2' as const
+export const CAPTION_LIVING_FRAME_ADAPTER_V2_VERSION =
+  'caption-direction-living-frame-adapter-v2' as const
 
-export interface CaptionLivingFrameRequest {
-  schemaVersion: typeof CAPTION_LIVING_FRAME_REQUEST_VERSION
+export interface CaptionLivingFrameRequestV2 {
+  schemaVersion: typeof CAPTION_LIVING_FRAME_REQUEST_V2_VERSION
   requestId: string
   requestDigestSha256: string
   idempotencyKey: string
@@ -128,13 +128,13 @@ export type CaptionLivingFrameDisposition =
   | 'blocked_stale_authority'
   | 'blocked_missing_canonical_authority'
 
-export interface LivingFrameCaptionResponse {
-  schemaVersion: typeof LIVING_FRAME_CAPTION_RESPONSE_VERSION
+export interface LivingFrameCaptionResponseV2 {
+  schemaVersion: typeof LIVING_FRAME_CAPTION_RESPONSE_V2_VERSION
   responseId: string
   responseDigestSha256: string
   originalRequestRef: CaptionDomainRef
   originalRequestIdempotencyKey: string
-  canonicalScope: CaptionLivingFrameRequest['canonicalScope']
+  canonicalScope: CaptionLivingFrameRequestV2['canonicalScope']
   disposition: CaptionLivingFrameDisposition
   reasonCode: string
   safeUserSummary: string

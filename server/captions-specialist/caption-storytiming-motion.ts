@@ -25,12 +25,21 @@ import type {
 import type { CaptionMultiTrackSceneGraph } from '../../src/types/caption-multi-track-scene-graph'
 import { assertClosedContractTree } from '../../src/lib/closed-contract-validation'
 import {
+  validateCaptionLivingFrameRequest,
+} from '../../src/lib/caption-direction/caption-living-frame-adapter'
+import {
+  CAPTION_LIVING_FRAME_REQUEST_VERSION,
+  type CaptionLivingFrameRequest,
+} from '../../src/types/caption-direction-living-frame'
+import {
   calculateSkillContractDigest,
   parseSkillSupportRequest,
   skillSupportRequestSchema,
 } from '../orchestra/orchestra-skill-contracts'
 import { parseCaptionMultiTrackSceneGraph } from './caption-multi-track-scene-graph'
-import { parseCaptionLivingFrameRequest } from './caption-living-frame-boundary'
+import {
+  parseCaptionLivingFrameRequestV2,
+} from './caption-living-frame-boundary'
 
 const safeKey = z.string().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -688,7 +697,8 @@ export function parseCaptionCrossSystemHandoff(
     transitions: 'transition_support',
   } as const
   const livingFrameRequest = handoff.receiver === 'living_frame'
-    ? parseCaptionLivingFrameRequest(supportRequest.typedPayload) : null
+    ? parseLivingFrameSupportPayload(supportRequest.typedPayloadType,
+      supportRequest.typedPayload) : null
   if (!exactScope(handoff.canonicalScope, resolution.canonicalScope)
     || !exactRef(handoff.storyTimingResolutionRef, resolutionRef(resolution))
     || handoff.receiver !== handoff.targetOwner
@@ -698,7 +708,8 @@ export function parseCaptionCrossSystemHandoff(
     || supportRequest.schemaVersion !== handoff.supportRequestRef.version
     || supportRequest.requestDigestSha256 !== handoff.supportRequestRef.contentHash
     || handoff.handoffKind === 'caption_to_living_frame'
-      && supportRequest.typedPayloadType !== 'caption-direction-living-frame-request-v1'
+      && supportRequest.typedPayloadType !== CAPTION_LIVING_FRAME_REQUEST_VERSION
+      && supportRequest.typedPayloadType !== 'caption-direction-living-frame-request-v2'
     || handoff.handoffKind === 'caption_to_visual'
       && handoff.informationOwnershipTransferRequested
     || handoff.handoffKind === 'transition_support'
@@ -707,12 +718,33 @@ export function parseCaptionCrossSystemHandoff(
       && (handoff.sourceSupportPayloadRef.id !== livingFrameRequest.requestId
         || handoff.sourceSupportPayloadRef.version !== livingFrameRequest.schemaVersion
         || handoff.sourceSupportPayloadRef.contentHash
-          !== livingFrameRequest.requestDigestSha256)) {
+          !== normalizeLivingFrameWireDigest(livingFrameRequest.requestDigestSha256))) {
     throw new Error('Caption cross-system handoff violates its owner boundary.')
   }
   verifyDigest(handoff as unknown as Record<string, unknown>,
     'handoffDigestSha256', 'Caption cross-system handoff')
   return handoff
+}
+
+function normalizeLivingFrameWireDigest(value: string): string {
+  return value.startsWith('sha256:') ? value.slice(7) : value
+}
+
+function parseLivingFrameSupportPayload(
+  payloadType: string,
+  payload: unknown,
+): CaptionLivingFrameRequest | ReturnType<typeof parseCaptionLivingFrameRequestV2> {
+  if (payloadType === 'caption-direction-living-frame-request-v2') {
+    return parseCaptionLivingFrameRequestV2(payload)
+  }
+  if (payloadType !== CAPTION_LIVING_FRAME_REQUEST_VERSION) {
+    throw new Error('Caption Living Frame support payload version is unsupported.')
+  }
+  const validation = validateCaptionLivingFrameRequest(payload as CaptionLivingFrameRequest)
+  if (!validation.ok) {
+    throw new Error(`Caption Living Frame V1 support payload is invalid: ${validation.errors.join(' ')}`)
+  }
+  return payload as CaptionLivingFrameRequest
 }
 
 export function parseCaptionCameraRequest(

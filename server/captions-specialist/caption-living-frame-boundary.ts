@@ -1,9 +1,9 @@
 import { z } from 'zod'
 import {
-  CAPTION_LIVING_FRAME_REQUEST_VERSION,
-  LIVING_FRAME_CAPTION_RESPONSE_VERSION,
-  type CaptionLivingFrameRequest,
-  type LivingFrameCaptionResponse,
+  CAPTION_LIVING_FRAME_REQUEST_V2_VERSION,
+  LIVING_FRAME_CAPTION_RESPONSE_V2_VERSION,
+  type CaptionLivingFrameRequestV2,
+  type LivingFrameCaptionResponseV2,
 } from '../../src/types/caption-living-frame-boundary'
 import { assertClosedContractTree } from '../../src/lib/closed-contract-validation'
 import { calculateSkillContractDigest } from '../orchestra/orchestra-skill-contracts'
@@ -50,8 +50,8 @@ const normalizedRectSchema = rectSchema.superRefine((rect, context) => {
   }
 })
 
-const requestSchema: z.ZodType<CaptionLivingFrameRequest> = z.object({
-  schemaVersion: z.literal(CAPTION_LIVING_FRAME_REQUEST_VERSION),
+const requestSchema: z.ZodType<CaptionLivingFrameRequestV2> = z.object({
+  schemaVersion: z.literal(CAPTION_LIVING_FRAME_REQUEST_V2_VERSION),
   requestId: safeKey,
   requestDigestSha256: sha256,
   idempotencyKey: safeKey,
@@ -159,8 +159,8 @@ const requestSchema: z.ZodType<CaptionLivingFrameRequest> = z.object({
   productionReady: z.literal(false),
 }).strict()
 
-const responseSchema: z.ZodType<LivingFrameCaptionResponse> = z.object({
-  schemaVersion: z.literal(LIVING_FRAME_CAPTION_RESPONSE_VERSION),
+const responseSchema: z.ZodType<LivingFrameCaptionResponseV2> = z.object({
+  schemaVersion: z.literal(LIVING_FRAME_CAPTION_RESPONSE_V2_VERSION),
   responseId: safeKey,
   responseDigestSha256: sha256,
   originalRequestRef: refSchema,
@@ -236,7 +236,7 @@ function refKey(ref: { id: string; version: string; contentHash: string }): stri
   return `${ref.id}\u0000${ref.version}\u0000${ref.contentHash}`
 }
 
-function scopeKey(scope: CaptionLivingFrameRequest['canonicalScope']): string {
+function scopeKey(scope: CaptionLivingFrameRequestV2['canonicalScope']): string {
   return calculateSkillContractDigest({ scope, digest: '' }, 'digest')
 }
 
@@ -265,7 +265,7 @@ function exactNullableRef(
   return left === null || right === null ? left === right : refKey(left) === refKey(right)
 }
 
-export function parseCaptionLivingFrameRequest(value: unknown): CaptionLivingFrameRequest {
+export function parseCaptionLivingFrameRequestV2(value: unknown): CaptionLivingFrameRequestV2 {
   assertClosedContractTree(value, 'Caption Living Frame request')
   const request = requestSchema.parse(value)
   if (request.confirmedFrame.outputId !== request.canonicalScope.outputId
@@ -303,12 +303,12 @@ export function parseCaptionLivingFrameRequest(value: unknown): CaptionLivingFra
   return request
 }
 
-export function parseLivingFrameCaptionResponse(
+export function parseLivingFrameCaptionResponseV2(
   value: unknown,
   requestValue: unknown,
-): LivingFrameCaptionResponse {
+): LivingFrameCaptionResponseV2 {
   assertClosedContractTree(value, 'Living Frame Caption response')
-  const request = parseCaptionLivingFrameRequest(requestValue)
+  const request = parseCaptionLivingFrameRequestV2(requestValue)
   const response = responseSchema.parse(value)
   const selected = response.selectedScene
   if (scopeKey(response.canonicalScope) !== scopeKey(request.canonicalScope)

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
+import { pathToFileURL } from 'node:url'
 import {
   createCaptionEffectiveReadReport,
   createCaptionMotionLock,
@@ -13,14 +14,14 @@ import {
   type CaptionMotionPrimitiveProposal,
 } from '../captions-specialist/caption-storytiming-motion'
 import {
-  parseCaptionLivingFrameRequest,
-  parseLivingFrameCaptionResponse,
+  parseCaptionLivingFrameRequestV2,
+  parseLivingFrameCaptionResponseV2,
 } from '../captions-specialist/caption-living-frame-boundary'
 import {
-  CAPTION_LIVING_FRAME_REQUEST_VERSION,
-  LIVING_FRAME_CAPTION_RESPONSE_VERSION,
-  type CaptionLivingFrameRequest,
-  type LivingFrameCaptionResponse,
+  CAPTION_LIVING_FRAME_REQUEST_V2_VERSION,
+  LIVING_FRAME_CAPTION_RESPONSE_V2_VERSION,
+  type CaptionLivingFrameRequestV2,
+  type LivingFrameCaptionResponseV2,
 } from '../../src/types/caption-living-frame-boundary'
 import {
   CAPTION_CAMERA_REQUEST_VERSION,
@@ -49,6 +50,9 @@ import {
   CAP_11_STYLE_PROFILE_REF,
   CAP_11_TRANSCRIPT_REF,
 } from './captions-specialist-cap-11-smoke'
+import {
+  runCaptionLivingFrameCompatibilitySmoke,
+} from './captions-specialist-cap-12-living-frame-compatibility-smoke'
 
 let assertions = 0
 function check(condition: unknown, message: string): asserts condition {
@@ -204,8 +208,8 @@ function createSupportRequest(input: {
   }, 'requestDigestSha256'))
 }
 
-const lfRequestWithoutDigest: Omit<CaptionLivingFrameRequest, 'requestDigestSha256'> = {
-  schemaVersion: CAPTION_LIVING_FRAME_REQUEST_VERSION,
+const lfRequestWithoutDigest: Omit<CaptionLivingFrameRequestV2, 'requestDigestSha256'> = {
+  schemaVersion: CAPTION_LIVING_FRAME_REQUEST_V2_VERSION,
   requestId: 'caption.lf.request.cap12.fixture',
   idempotencyKey: 'caption.lf.cap12.idempotency',
   createdForPhase: 'approved_projection',
@@ -223,8 +227,8 @@ const lfRequestWithoutDigest: Omit<CaptionLivingFrameRequest, 'requestDigestSha2
   semanticRequest: {
     conceptId: 'concept.cap12.frame-motion',
     classification: 'cross_system_transform',
-    purposeCode: 'explain_frame_motion',
-    visualVerbCode: 'expand_into_diagram',
+    purposeCode: 'reinforce_key_concept',
+    visualVerbCode: 'transform',
     sourcePhraseIds: ['phrase.cap11.hero.full'],
     exactSourceWordIds: ['word.19', 'word.20', 'word.21'],
     sourceOwner: 'caption',
@@ -301,7 +305,9 @@ const lfRequestWithoutDigest: Omit<CaptionLivingFrameRequest, 'requestDigestSha2
     byteFreeRequest: true,
     replayPolicyCode: 'exact_idempotent_replay_only',
     stalenessRefs: [
-      CAP_11_TRANSCRIPT_REF, CAP_11_CONFIRMED_FRAME_REF,
+      CAP_11_TRANSCRIPT_REF,
+      { id: graph.graphId, version: graph.schemaVersion, contentHash: graph.graphDigestSha256 },
+      CAP_11_CONFIRMED_FRAME_REF,
       CAP_11_MASTER_TIMING_REF, graph.occupancyManifestRef,
     ],
     rawChatIncluded: false,
@@ -318,14 +324,15 @@ const lfRequestWithoutDigest: Omit<CaptionLivingFrameRequest, 'requestDigestSha2
   publicDeliveryCreated: false,
   productionReady: false,
 }
-const lfRequest = parseCaptionLivingFrameRequest(withDigest({
+export const CAP_12_LIVING_FRAME_REQUEST_V2_FIXTURE = parseCaptionLivingFrameRequestV2(withDigest({
   ...lfRequestWithoutDigest,
   requestDigestSha256: '',
 }, 'requestDigestSha256'))
+const lfRequest = CAP_12_LIVING_FRAME_REQUEST_V2_FIXTURE
 const lfSupport = createSupportRequest({
   id: 'support.cap12.living-frame',
   target: 'living_frame',
-  typedPayloadType: CAPTION_LIVING_FRAME_REQUEST_VERSION,
+  typedPayloadType: CAPTION_LIVING_FRAME_REQUEST_V2_VERSION,
   typedPayload: lfRequest,
   artifactTypes: ['living_frame_caption_direction_response'],
 })
@@ -518,8 +525,14 @@ const lock = createCaptionMotionLock({
   effectiveReadReport,
 })
 
-const lfResponseWithoutDigest: Omit<LivingFrameCaptionResponse, 'responseDigestSha256'> = {
-  schemaVersion: LIVING_FRAME_CAPTION_RESPONSE_VERSION,
+export const CAP_12_STORYTIMING_REGISTRATION_FIXTURE = registration
+export const CAP_12_STORYTIMING_RESOLUTION_FIXTURE = resolution
+export const CAP_12_MOTION_PLAN_FIXTURE = plan
+export const CAP_12_EFFECTIVE_READ_REPORT_FIXTURE = effectiveReadReport
+export const CAP_12_MOTION_LOCK_FIXTURE = lock
+
+const lfResponseWithoutDigest: Omit<LivingFrameCaptionResponseV2, 'responseDigestSha256'> = {
+  schemaVersion: LIVING_FRAME_CAPTION_RESPONSE_V2_VERSION,
   responseId: 'living.frame.caption.response.cap12.fixture',
   originalRequestRef: {
     id: lfRequest.requestId,
@@ -537,8 +550,8 @@ const lfResponseWithoutDigest: Omit<LivingFrameCaptionResponse, 'responseDigestS
     admissionRef: ref('living.frame.admission.cap12'),
     bindingRef: ref('living.frame.selected.binding.cap12', 'canonical-living-frame-selected-scene-binding-v1'),
     selectedSceneIds: ['scene.cap12.diagram.1', 'scene.cap12.diagram.2'],
-    selectedModes: ['diagram', 'archive'],
-    selectedTreatments: ['diagram_reveal', 'archive_hold'],
+    selectedModes: ['living_diagram', 'living_archive'],
+    selectedTreatments: ['use_full', 'use_subtle'],
     deliberateNonUse: false,
     executionClaimed: false,
   },
@@ -565,13 +578,14 @@ const lfResponseWithoutDigest: Omit<LivingFrameCaptionResponse, 'responseDigestS
     captionPlaneAboveLivingFrame: true,
   },
   estimateProjectionRef: ref('living.frame.estimate.cap12'),
-  requiredCapabilityCategories: ['non_character_diagram'],
-  requiredWorkCategories: ['living_frame_plan_projection'],
-  selectedFallbackCode: 'restore_stable_caption',
+  requiredCapabilityCategories: ['deterministic_scene_composition'],
+  requiredWorkCategories: ['living_frame_selected_scene_candidate'],
+  selectedFallbackCode: 'simplified_depth_composition',
   captionRetainsOrRegainsInformationOwnership: true,
   qaEvidenceRequirementCodes: [
-    'caption_safe_region', 'attention_restoration', 'semantic_timing',
-    'visual_density', 'reduced_motion_parity',
+    'caption_safe_region_expected', 'semantic_timing_binding_required',
+    'attention_restoration_required', 'visual_density_restraint_expected',
+    'narration_protection_required',
   ],
   stalenessTuple: {
     transcriptRef: lfRequest.canonicalTranscript.artifactRef,
@@ -592,11 +606,39 @@ const lfResponseWithoutDigest: Omit<LivingFrameCaptionResponse, 'responseDigestS
   publicDeliveryCreated: false,
   productionReady: false,
 }
-const lfResponse = parseLivingFrameCaptionResponse(withDigest({
+export const CAP_12_LIVING_FRAME_RESPONSE_V2_FIXTURE = parseLivingFrameCaptionResponseV2(withDigest({
   ...lfResponseWithoutDigest,
   responseDigestSha256: '',
 }, 'responseDigestSha256'), lfRequest)
+const lfResponse = CAP_12_LIVING_FRAME_RESPONSE_V2_FIXTURE
 
+function runCap12Smoke(): void {
+const compatibilityReceipt = runCaptionLivingFrameCompatibilitySmoke({
+  v2Request: lfRequest,
+  v2Response: lfResponse,
+})
+assertions += compatibilityReceipt.assertions
+const lfV1Support = createSupportRequest({
+  id: 'support.cap12.living-frame.v1.compatibility',
+  target: 'living_frame',
+  typedPayloadType: compatibilityReceipt.v1Request.schemaVersion,
+  typedPayload: compatibilityReceipt.v1Request,
+  artifactTypes: ['living_frame_caption_direction_response'],
+})
+const lfV1Handoff = handoff({
+  id: 'handoff.cap12.lf.v1.compatibility',
+  receiver: 'living_frame',
+  kind: 'caption_to_living_frame',
+  phraseIds: compatibilityReceipt.v1Request.semanticRequest.sourceSemanticPhraseIds,
+  wordIds: compatibilityReceipt.v1Request.semanticRequest.exactSourceWordIds,
+  support: lfV1Support,
+  payloadRef: {
+    id: compatibilityReceipt.v1Request.requestId,
+    version: compatibilityReceipt.v1Request.schemaVersion,
+    contentHash: compatibilityReceipt.v1Request.requestDigestSha256.slice(7),
+  },
+  transfer: true,
+})
 check(registration.registrations.length === graph.nodes.length,
   'Every Caption node must register semantic timing requirements with StoryTiming.')
 check(resolution.nodeResolutions.every((item) => item.semanticEventRefs.length >= 4),
@@ -624,6 +666,9 @@ check(lfRequest.receiverSkillId === 'motion.living_frame_storytelling'
   'The frozen Living Frame request must target the professional skill without dispatch authority.')
 check(lfResponse.selectedScene.selectedSceneIds.length === 2,
   'One frozen CAP-11 request may validly select multiple Living Frame scenes.')
+check(lfV1Handoff.sourceSupportPayloadRef.contentHash
+  === compatibilityReceipt.v1Request.requestDigestSha256.slice(7),
+'The StoryTiming handoff must accept the frozen V1 payload without relabeling it.')
 check(lfResponse.layoutDependencies.captionPlaneAboveLivingFrame
   && lfResponse.captionRetainsOrRegainsInformationOwnership,
   'Living Frame response must preserve Caption ordering and information restoration.')
@@ -699,19 +744,19 @@ badLfAspect.confirmedFrame.aspectRatioNumerator = 9
 badLfAspect.confirmedFrame.aspectRatioDenominator = 16
 badLfAspect.requestDigestSha256 = digest(
   badLfAspect as unknown as Record<string, unknown>, 'requestDigestSha256')
-expectThrow(() => parseCaptionLivingFrameRequest(badLfAspect))
+expectThrow(() => parseCaptionLivingFrameRequestV2(badLfAspect))
 
 const badLfResponse = structuredClone(lfResponse)
 badLfResponse.selectedScene.selectedModes.pop()
 badLfResponse.responseDigestSha256 = digest(
   badLfResponse as unknown as Record<string, unknown>, 'responseDigestSha256')
-expectThrow(() => parseLivingFrameCaptionResponse(badLfResponse, lfRequest))
+expectThrow(() => parseLivingFrameCaptionResponseV2(badLfResponse, lfRequest))
 
 const staleLfResponse = structuredClone(lfResponse)
 staleLfResponse.stalenessTuple.captionPlanRef = ref('caption.plan.stale')
 staleLfResponse.responseDigestSha256 = digest(
   staleLfResponse as unknown as Record<string, unknown>, 'responseDigestSha256')
-expectThrow(() => parseLivingFrameCaptionResponse(staleLfResponse, lfRequest))
+expectThrow(() => parseLivingFrameCaptionResponseV2(staleLfResponse, lfRequest))
 
 const peerDispatch = structuredClone(visualSupport)
 peerDispatch.mediationPolicy.directPeerDispatchAllowed = true as false
@@ -725,8 +770,8 @@ cameraOverclaim.requestDigestSha256 = digest(
   cameraOverclaim as unknown as Record<string, unknown>, 'requestDigestSha256')
 expectThrow(() => parseCaptionCameraRequest(cameraOverclaim, graph, resolution))
 
-const inherited = Object.create(lfRequest) as CaptionLivingFrameRequest
-expectThrow(() => parseCaptionLivingFrameRequest(inherited))
+const inherited = Object.create(lfRequest) as CaptionLivingFrameRequestV2
+expectThrow(() => parseCaptionLivingFrameRequestV2(inherited))
 
 console.log(JSON.stringify({
   status: 'passed_with_authenticated_storytiming_and_receiver_runtime_gates',
@@ -737,6 +782,12 @@ console.log(JSON.stringify({
   typedMotionPrimitiveCount: plan.primitives.length,
   handoffKinds: plan.handoffs.map((item) => item.handoffKind),
   livingFrameSelectedSceneCount: lfResponse.selectedScene.selectedSceneIds.length,
+  livingFrameV1RequestVersion: compatibilityReceipt.v1Request.schemaVersion,
+  livingFrameV2RequestVersion: lfRequest.schemaVersion,
+  livingFrameCompatibilityRequestBindingDigestSha256:
+    compatibilityReceipt.requestCompatibilityDigestSha256,
+  livingFrameCompatibilityResponseBindingDigestSha256:
+    compatibilityReceipt.responseCompatibilityDigestSha256,
   effectiveReadPassed: effectiveReadReport.allEntriesPassed,
   reducedMotionComplete: plan.reducedMotionComplete,
   motionLockState: lock.state,
@@ -744,3 +795,8 @@ console.log(JSON.stringify({
   receiverRuntimeExecuted: false,
   productionAuthorityPromoted: false,
 }, null, 2))
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  runCap12Smoke()
+}

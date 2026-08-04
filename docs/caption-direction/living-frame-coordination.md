@@ -14,6 +14,14 @@ The frozen `caption-direction-living-frame-request-v1` and
 payload. A future neutral `SkillSupportRequest` carries that byte-free payload
 and its digest lineage. CAP-11 is not a peer-dispatch or execution contract.
 
+CAP-12 also exposes the separately versioned
+`caption-direction-living-frame-request-v2` and
+`living-frame-caption-direction-response-v2` domain-ref lane. The
+`caption-direction-living-frame-v1-v2-compatibility-binding-v1` adapter pairs
+complete V1 and V2 payloads and verifies their shared lineage without casting,
+relabeling, or filling version-specific fields. One V1 request may still bind
+multiple selected Living Frame scenes.
+
 A handoff contains:
 
 - source phrase and word IDs;

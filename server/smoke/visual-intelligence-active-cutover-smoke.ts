@@ -29,6 +29,9 @@ const l4AttemptOwner = source(
 const l4VisualEvidenceAttemptOwner = source(
   'server/services/canonical-source-analysis-l4-visual-evidence-attempt-owner.ts',
 )
+const l4VisualEvidenceAuthorityRepository = source(
+  'server/services/canonical-source-analysis-l4-visual-evidence-authority-repository.ts',
+)
 const l4CostAuthority = source(
   'server/services/canonical-source-analysis-l4-probe-usage-cost.ts',
 )
@@ -88,7 +91,7 @@ assert.match(productionRuntime, /orchestraJobRuntimePort/u)
 assert.match(productionRuntime, /orchestraLifecyclePort/u)
 assert.match(
   productionRuntime,
-  /visual-intelligence-production-runtime-v7/u,
+  /visual-intelligence-production-runtime-v8/u,
 )
 assert.match(
   productionRuntime,
@@ -109,6 +112,14 @@ assert.match(
 assert.match(
   productionRuntime,
   /createGoogleCloudRunL4VisualEvidenceExecutionPort/u,
+)
+assert.match(
+  productionRuntime,
+  /createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository/u,
+)
+assert.doesNotMatch(
+  productionRuntime,
+  /readonly visualEvidenceAdmissionReadPort|readonly visualEvidenceReleaseReadPort|readonly visualEvidenceTerminalReadPort/u,
 )
 assert.doesNotMatch(
   productionRuntime,
@@ -153,6 +164,18 @@ assert.match(
 assert.match(
   l4VisualEvidenceAttemptOwner,
   /REEDITPRO_GPU_INVOCATION_ID/u,
+)
+assert.match(
+  l4VisualEvidenceAuthorityRepository,
+  /canonical-source-analysis-l4-visual-evidence-authority-repository-v1/u,
+)
+assert.match(l4VisualEvidenceAuthorityRepository, /persistAdmissionCreateOnly/u)
+assert.match(l4VisualEvidenceAuthorityRepository, /persistReleaseCreateOnly/u)
+assert.match(l4VisualEvidenceAuthorityRepository, /persistTerminalCreateOnly/u)
+assert.match(l4VisualEvidenceAuthorityRepository, /exactCreateOnlyRereadVerified/u)
+assert.doesNotMatch(
+  l4VisualEvidenceAuthorityRepository,
+  /GoogleAuth|fetch\(|child_process|run\.googleapis\.com|jobs:run/u,
 )
 assert.doesNotMatch(
   l4VisualEvidenceAttemptOwner,

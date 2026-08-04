@@ -360,7 +360,7 @@ const runtime = await createVisualIntelligenceProductionRuntime(env, {
   now: () => now,
 })
 assert.ok(runtime)
-assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v7')
+assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v8')
 assert.equal(runtime.providerCapabilityId, 'visual_intelligence')
 assert.equal(runtime.semanticEngine, 'gemini-3.1-pro-preview')
 assert.equal(runtime.thinkingLevel, 'high')
@@ -423,6 +423,25 @@ assert.equal(
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceRepository.repositoryVersion,
   'canonical-source-analysis-l4-visual-evidence-repository-v3',
+)
+assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceAuthorityRepository.repositoryVersion,
+  'canonical-source-analysis-l4-visual-evidence-authority-repository-v1',
+)
+assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceAuthorityRepository
+    .admissionReadPort.schemaVersion,
+  'canonical-source-analysis-l4-visual-evidence-admission-read-port-v1',
+)
+assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceAuthorityRepository
+    .releaseReadPort.schemaVersion,
+  'canonical-source-analysis-l4-visual-evidence-release-read-port-v1',
+)
+assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceAuthorityRepository
+    .terminalReadPort.schemaVersion,
+  'canonical-source-analysis-l4-visual-evidence-terminal-read-port-v1',
 )
 assert.equal(
   typeof runtime.createSourceAnalysisL4ProbeAttemptOwner,
@@ -1247,6 +1266,8 @@ console.log(JSON.stringify({
   sourceTranscriptOrchestraRepositoryMounted: true,
   sourceAnalysisL4ProbeAttemptOwnerFactoryMounted: true,
   sourceAnalysisL4VisualEvidenceAttemptOwnerFactoryMounted: true,
+  sourceAnalysisL4VisualEvidenceAuthorityRepositoryMounted: true,
+  sourceAnalysisL4VisualEvidenceCallerPortInjectionAllowed: false,
   sourceTranscriptA100AttemptOwnerFactoryMounted: true,
   sourceAnalysisOrchestraCoordinatorFactoryMounted: true,
   sourcePreparationRequiresExactL4ProbeAuthority: true,

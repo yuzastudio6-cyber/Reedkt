@@ -25,6 +25,9 @@ import {
   createCanonicalSourceAnalysisL4VisualEvidenceResult,
 } from '../services/canonical-source-analysis-l4-visual-evidence-repository'
 import {
+  createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository,
+} from '../services/canonical-source-analysis-l4-visual-evidence-authority-repository'
+import {
   createCanonicalSourceAnalysisL4VisualEvidenceAdmission,
   createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner,
   createCanonicalSourceAnalysisL4VisualEvidenceRelease,
@@ -370,23 +373,38 @@ const objectPort = new MemoryObjectPort()
 const repository = createCanonicalSourceAnalysisL4VisualEvidenceRepository({
   objectPort,
 })
+const authorityRepository =
+  createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository({
+    objectPort,
+  })
+const admissionPersistence = await authorityRepository.persistAdmissionCreateOnly({
+  trigger,
+  scope: evidenceScope,
+  preparedRequestContentRef,
+  admission,
+})
+assert.equal(admissionPersistence.disposition, 'created')
+assert.equal(admissionPersistence.exactCreateOnlyRereadVerified, true)
+const releasePersistence = await authorityRepository.persistReleaseCreateOnly({
+  release,
+})
+assert.equal(releasePersistence.disposition, 'created')
 let cloudCalls = 0
 let terminalReads = 0
+type ObservedTerminalBinding = {
+  invocationId: string
+  envelopeHash: string
+  admissionRef: VisualIntelligenceEvidenceRef
+  releaseRef: VisualIntelligenceEvidenceRef
+}
+let observedTerminalBinding: ObservedTerminalBinding | null = null
 const owner = createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
   requestAuthorityReadPort: {
     schemaVersion: CANONICAL_SOURCE_ANALYSIS_REQUEST_AUTHORITY_READ_PORT_VERSION,
     async readExactPreparedRequest() { return structuredClone(request) },
   },
-  admissionReadPort: {
-    schemaVersion:
-      'canonical-source-analysis-l4-visual-evidence-admission-read-port-v1',
-    async rereadAdmittedExecution() { return structuredClone(admission) },
-  },
-  releaseReadPort: {
-    schemaVersion:
-      'canonical-source-analysis-l4-visual-evidence-release-read-port-v1',
-    async rereadPrivateRelease() { return structuredClone(release) },
-  },
+  admissionReadPort: authorityRepository.admissionReadPort,
+  releaseReadPort: authorityRepository.releaseReadPort,
   executionPort: {
     schemaVersion:
       'canonical-source-analysis-l4-visual-evidence-execution-port-v1',
@@ -404,9 +422,14 @@ const owner = createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
   terminalReadPort: {
     schemaVersion:
       'canonical-source-analysis-l4-visual-evidence-terminal-read-port-v1',
-    async readCompleted() {
+    async readCompleted(input) {
       terminalReads += 1
-      return structuredClone(terminalResult)
+      observedTerminalBinding = structuredClone(input)
+      await authorityRepository.persistTerminalCreateOnly({
+        ...input,
+        result: terminalResult,
+      })
+      return authorityRepository.terminalReadPort.readCompleted(input)
     },
   },
   evidenceRepository: repository,
@@ -429,8 +452,75 @@ assert.equal(replay.status === 'ready' && replay.disposition,
   'identical_replay')
 assert.equal(replay.status === 'ready' && replay.invocationId, invocationId)
 assert.equal(cloudCalls, 1)
+assert.ok(observedTerminalBinding)
+const terminalBinding = observedTerminalBinding as ObservedTerminalBinding
+assert.equal((await authorityRepository.persistTerminalCreateOnly({
+  ...terminalBinding,
+  result: terminalResult,
+})).disposition, 'identical_replay')
+await assert.rejects(
+  authorityRepository.terminalReadPort.readCompleted({
+    ...terminalBinding,
+    envelopeHash: sha('wrong-envelope'),
+  }),
+)
+await assert.rejects(
+  authorityRepository.persistTerminalCreateOnly({
+    ...terminalBinding,
+    envelopeHash: sha('colliding-envelope'),
+    result: terminalResult,
+  }),
+)
+const crossTrigger = createCanonicalSourceAnalysisL4VisualEvidenceTrigger({
+  requestId: trigger.requestId,
+  planningScope: trigger.planningScope,
+  sourceSequenceItemId: trigger.sourceSequenceItemId,
+  mediaAssetId: trigger.mediaAssetId,
+  userTriggerRecordRef: trigger.userTriggerRecordRef,
+  idempotencyKey: 'source-visual-evidence-trigger-cross-binding',
+  triggeredAt: trigger.triggeredAt,
+  serverPreparedRequestRequired: true,
+  browserSourceOrEvidenceAuthorityAccepted: false,
+  callerPathUrlBytesCommandOrEnvironmentAccepted: false,
+  customerCreditMutationAuthorized: false,
+  publicDeliveryAuthorized: false,
+  productionAuthorityGranted: false,
+})
+await assert.rejects(
+  authorityRepository.admissionReadPort.rereadAdmittedExecution({
+    trigger: crossTrigger,
+    scope: evidenceScope,
+    preparedRequestContentRef,
+  }),
+)
+const detachedAdmission = await authorityRepository.admissionReadPort
+  .rereadAdmittedExecution({
+    trigger,
+    scope: evidenceScope,
+    preparedRequestContentRef,
+  })
+assert.ok(detachedAdmission)
+;(detachedAdmission as { admissionId: string }).admissionId = 'mutated-copy'
+const unchangedAdmission = await authorityRepository.admissionReadPort
+  .rereadAdmittedExecution({
+    trigger,
+    scope: evidenceScope,
+    preparedRequestContentRef,
+  }) as typeof admission
+assert.equal(unchangedAdmission.admissionId, admission.admissionId)
 
 const delayedObjectPort = new MemoryObjectPort()
+const delayedAuthorityRepository =
+  createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository({
+    objectPort: delayedObjectPort,
+  })
+await delayedAuthorityRepository.persistAdmissionCreateOnly({
+  trigger,
+  scope: evidenceScope,
+  preparedRequestContentRef,
+  admission,
+})
+await delayedAuthorityRepository.persistReleaseCreateOnly({ release })
 let delayedNow = new Date('2026-08-04T12:00:01.500Z')
 let delayedCloudCalls = 0
 let delayedTerminalReads = 0
@@ -439,16 +529,8 @@ const delayedOwner = createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
     schemaVersion: CANONICAL_SOURCE_ANALYSIS_REQUEST_AUTHORITY_READ_PORT_VERSION,
     async readExactPreparedRequest() { return structuredClone(request) },
   },
-  admissionReadPort: {
-    schemaVersion:
-      'canonical-source-analysis-l4-visual-evidence-admission-read-port-v1',
-    async rereadAdmittedExecution() { return structuredClone(admission) },
-  },
-  releaseReadPort: {
-    schemaVersion:
-      'canonical-source-analysis-l4-visual-evidence-release-read-port-v1',
-    async rereadPrivateRelease() { return structuredClone(release) },
-  },
+  admissionReadPort: delayedAuthorityRepository.admissionReadPort,
+  releaseReadPort: delayedAuthorityRepository.releaseReadPort,
   executionPort: {
     schemaVersion:
       'canonical-source-analysis-l4-visual-evidence-execution-port-v1',
@@ -466,11 +548,14 @@ const delayedOwner = createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
   terminalReadPort: {
     schemaVersion:
       'canonical-source-analysis-l4-visual-evidence-terminal-read-port-v1',
-    async readCompleted() {
+    async readCompleted(input) {
       delayedTerminalReads += 1
-      return delayedTerminalReads === 1
-        ? null
-        : structuredClone(terminalResult)
+      if (delayedTerminalReads === 1) return null
+      await delayedAuthorityRepository.persistTerminalCreateOnly({
+        ...input,
+        result: terminalResult,
+      })
+      return delayedAuthorityRepository.terminalReadPort.readCompleted(input)
     },
   },
   evidenceRepository: createCanonicalSourceAnalysisL4VisualEvidenceRepository({
@@ -492,31 +577,24 @@ assert.equal(delayedReady.status, 'ready')
 assert.equal(delayedCloudCalls, 1)
 assert.equal(delayedTerminalReads, 2)
 
+const missingAuthorityObjectPort = new MemoryObjectPort()
+const missingAuthorityRepository =
+  createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository({
+    objectPort: missingAuthorityObjectPort,
+  })
 const missingAdmissionOwner = createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
   requestAuthorityReadPort: {
     schemaVersion: CANONICAL_SOURCE_ANALYSIS_REQUEST_AUTHORITY_READ_PORT_VERSION,
     async readExactPreparedRequest() { return structuredClone(request) },
   },
-  admissionReadPort: {
-    schemaVersion:
-      'canonical-source-analysis-l4-visual-evidence-admission-read-port-v1',
-    async rereadAdmittedExecution() { return null },
-  },
-  releaseReadPort: {
-    schemaVersion:
-      'canonical-source-analysis-l4-visual-evidence-release-read-port-v1',
-    async rereadPrivateRelease() { return structuredClone(release) },
-  },
+  admissionReadPort: missingAuthorityRepository.admissionReadPort,
+  releaseReadPort: missingAuthorityRepository.releaseReadPort,
   executionPort: {
     schemaVersion:
       'canonical-source-analysis-l4-visual-evidence-execution-port-v1',
     async runOnce() { throw new Error('must not run') },
   },
-  terminalReadPort: {
-    schemaVersion:
-      'canonical-source-analysis-l4-visual-evidence-terminal-read-port-v1',
-    async readCompleted() { throw new Error('must not read') },
-  },
+  terminalReadPort: missingAuthorityRepository.terminalReadPort,
   evidenceRepository: createCanonicalSourceAnalysisL4VisualEvidenceRepository({
     objectPort: new MemoryObjectPort(),
   }),
@@ -586,6 +664,9 @@ console.log(JSON.stringify({
   l4CloudRunStartedOnce: cloudCalls === 1,
   createOnlyReplayAvoidedDuplicateGpuJob: true,
   exactTerminalEvidencePersistedAndReread: true,
+  canonicalAuthorityRepositoryPortsSeparatelyVersioned: true,
+  crossTriggerAndTerminalReplayMismatchRejected: true,
+  detachedAuthorityReadsVerified: true,
   accountEffectiveCostLineageRequired: true,
   scaleBackToZeroVerified: true,
   cpuMediaProcessingAllowed: false,

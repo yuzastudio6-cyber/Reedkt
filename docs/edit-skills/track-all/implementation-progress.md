@@ -658,3 +658,59 @@ fixture. It does not prove real SAM 3.1 target/temporal quality or real-world
 production privacy performance. Track All remains `implementation_pending`,
 the SAM route remains `blocked`, and no real checkpoint/model/GPU/paid/public/
 production/database/head-orchestra action occurred.
+
+## TRACK-12 — tracked focus and reframe
+
+Status: complete and remotely confirmed.
+
+- implementation commit: `ccf67a7f401d7fc30398ea2628e3c9f3224919c6`
+- remote confirmation: `origin/codex/track-all-skill-end-to-end` resolved to
+  `ccf67a7f401d7fc30398ea2628e3c9f3224919c6` after `git push -u origin HEAD`.
+
+Implemented:
+
+- all eight bounded simple focus modes, contiguous product/speaker handoffs,
+  confidence-derived full-frame restraint, and strict Track Graph/box lineage;
+- per-frame `16:9`, `9:16`, `1:1`, and `4:5` reframe trajectories with
+  multi-target union bounds, headroom, directional lead room, smoothing,
+  caption safe-zone projection, zoom ceilings, and explicit low-confidence
+  behavior;
+- a strict `caption_reserved_zones_v1` public artifact contract owned by the
+  public schema layer rather than a private mini-skill;
+- fixed private `track_all_private_treatment_preview_v1` Remotion authority
+  with exact committed source bytes, one canonical sample per frame, captions
+  above Track All, audio removed, public output forbidden, and no caller
+  command/path/URL/executable/model/GPU/retry/fallback controls;
+- actual Remotion source-media composition for tracked focus and reframe,
+  independent runtime/attestation/frame-golden integration QA, private focus
+  result receipts, model-neutral reframe trajectory receipts, and final Render
+  ownership preserved.
+
+Actual checks run:
+
+- `npm run test:track-all-focus-reframe` — passed all eight focus plans, a
+  product-to-speaker handoff, speaker-follow `9:16`, two-target `16:9`, safe
+  zones, zoom restraint, actual Remotion `4.0.487` focus/reframe renders, six
+  PNG frame goldens, forged/cross-tenant/caller-input rejection, zero public
+  artifacts, and zero production mutations; stable focus plan hash
+  `29014edf686e779878203ab00dd687dc141ded577de4abfe0ed6bddd5ebe5ee4`,
+  speaker reframe plan hash
+  `c63fcb24f98fd6a27155e3b23a6874cdc813dee8638e5ac13efd0536c270ed60`,
+  and two-target reframe plan hash
+  `0ebb3859ab6bd31f5ac3dc15a87f77798f41bae55a3deaced83e86dd7e44b47e`;
+- `npm run smoke:offline-remotion-render-execution` — passed the complete
+  actual Remotion image/confinement/composition regression;
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run smoke:b-roll-remotion-integration`
+  — passed the frozen B-Roll integration with exact V1 Track Graph support;
+- Track All manifest, authority, planning, artifact, deterministic geometry,
+  chunk/identity, and privacy smokes — passed;
+- `node --check docker/prod/offline-remotion-render-execution/runner.mjs`,
+  `npm run typecheck:server`, `npm run lint`, and
+  `npm run check:frontend-boundary` — passed;
+- staged `git diff --check` — passed.
+
+The deterministic focus/reframe route has actual private Remotion execution
+evidence but no production-qualified mask-isolation, worker/store, or release
+evidence. Track All remains `implementation_pending`, SAM remains `blocked`,
+and no checkpoint/model/GPU/paid/public/production/database/head-orchestra
+action occurred.

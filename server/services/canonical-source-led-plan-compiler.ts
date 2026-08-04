@@ -74,6 +74,7 @@ export interface CanonicalSourceLedCleanupAuthorityInput {
     workspaceId: string
     projectId: string
     editSessionId: string
+    planningDirectionDigestSha256: string
     userInstructionDigestSha256: string
   }
 }
@@ -349,7 +350,7 @@ export function compileCanonicalSourceLedPlan(input: {
             ? {
                 canonicalSourceCleanupAuthority: {
                   schemaVersion:
-                    'canonical-source-cleanup-plan-authority-binding-v1',
+                    'canonical-source-cleanup-plan-authority-binding-v2',
                   repositoryRecordRef: {
                     ...cleanupAuthority.repositoryRecordRef,
                   },
@@ -358,6 +359,9 @@ export function compileCanonicalSourceLedPlan(input: {
                   },
                   sourceCleanupBindingDigestSha256:
                     cleanupAuthority.binding.bindingDigestSha256,
+                  planningDirectionDigestSha256:
+                    input.sourceCleanupAuthority!
+                      .expectedScope.planningDirectionDigestSha256,
                   userInstructionDigestSha256:
                     input.sourceCleanupAuthority!
                       .expectedScope.userInstructionDigestSha256,
@@ -677,6 +681,8 @@ function resolveAnalyzedSourceCleanupAuthority(input: {
     binding.scope.workspaceId !== expectedScope.workspaceId ||
     binding.scope.projectId !== expectedScope.projectId ||
     binding.scope.editSessionId !== expectedScope.editSessionId ||
+    binding.scope.planningDirectionDigestSha256 !==
+      expectedScope.planningDirectionDigestSha256 ||
     binding.scope.userInstructionDigestSha256 !==
       expectedScope.userInstructionDigestSha256
   ) {

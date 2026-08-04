@@ -387,6 +387,7 @@ const missingSourceCleanupAuthority =
     workspaceId: 'workspace-1',
     projectId: 'project-1',
     editSessionId: 'edit-1',
+    planningDirectionDigestSha256: rawSha('source-planning-direction'),
     userInstructionDigestSha256: rawSha('source-instructions'),
     sources: [{
       sourceSequenceItemId: 'source-item-1',

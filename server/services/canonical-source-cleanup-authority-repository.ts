@@ -18,9 +18,9 @@ import type {
 import { ApiError } from '../errors/api-error'
 
 export const CANONICAL_SOURCE_CLEANUP_AUTHORITY_REPOSITORY_VERSION =
-  'canonical-source-cleanup-authority-repository-v1' as const
+  'canonical-source-cleanup-authority-repository-v2' as const
 
-const DEFAULT_PREFIX = 'private/visual-intelligence/v1/source-cleanup-authority'
+const DEFAULT_PREFIX = 'private/visual-intelligence/v2/source-cleanup-authority'
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const RAW_SHA256 = /^[a-f0-9]{64}$/u
 
@@ -29,6 +29,7 @@ export interface CanonicalSourceCleanupAuthorityScope {
   readonly workspaceId: string
   readonly projectId: string
   readonly editSessionId: string
+  readonly planningDirectionDigestSha256: string
   readonly userInstructionDigestSha256: string
   readonly sources: readonly {
     readonly sourceSequenceItemId: string
@@ -117,6 +118,8 @@ export async function revalidateCanonicalSourceCleanupPlanAuthority(input: {
     workspaceId: input.workspaceId,
     projectId: input.projectId,
     editSessionId: input.editSessionId,
+    planningDirectionDigestSha256:
+      binding.planningDirectionDigestSha256,
     userInstructionDigestSha256:
       binding.userInstructionDigestSha256,
     sources,
@@ -163,7 +166,7 @@ interface StoredRecord {
 }
 
 interface SourceCleanupPlanBinding {
-  schemaVersion: 'canonical-source-cleanup-plan-authority-binding-v1'
+  schemaVersion: 'canonical-source-cleanup-plan-authority-binding-v2'
   repositoryRecordRef: {
     id: string
     version: number
@@ -175,6 +178,7 @@ interface SourceCleanupPlanBinding {
     contentHash: string
   }
   sourceCleanupBindingDigestSha256: string
+  planningDirectionDigestSha256: string
   userInstructionDigestSha256: string
 }
 
@@ -339,16 +343,18 @@ function parsePlanBinding(untrusted: unknown): SourceCleanupPlanBinding {
     'repositoryRecordRef',
     'sourceAnalysisEvidenceRef',
     'sourceCleanupBindingDigestSha256',
+    'planningDirectionDigestSha256',
     'userInstructionDigestSha256',
   ])) throw conflict('source_cleanup_plan_binding_shape')
   const binding = untrusted as unknown as SourceCleanupPlanBinding
   if (
     binding.schemaVersion !==
-      'canonical-source-cleanup-plan-authority-binding-v1' ||
+      'canonical-source-cleanup-plan-authority-binding-v2' ||
     !validRef(binding.repositoryRecordRef) ||
     binding.repositoryRecordRef.version !== 1 ||
     !validRef(binding.sourceAnalysisEvidenceRef) ||
     !RAW_SHA256.test(binding.sourceCleanupBindingDigestSha256) ||
+    !RAW_SHA256.test(binding.planningDirectionDigestSha256) ||
     !RAW_SHA256.test(binding.userInstructionDigestSha256)
   ) throw conflict('source_cleanup_plan_binding_values')
   return structuredClone(binding)
@@ -385,6 +391,7 @@ function validateScope(
     'workspaceId',
     'projectId',
     'editSessionId',
+    'planningDirectionDigestSha256',
     'userInstructionDigestSha256',
     'sources',
   ])) throw conflict('source_cleanup_repository_scope_shape')
@@ -394,6 +401,7 @@ function validateScope(
     !SAFE_ID.test(scope.workspaceId) ||
     !SAFE_ID.test(scope.projectId) ||
     !SAFE_ID.test(scope.editSessionId) ||
+    !RAW_SHA256.test(scope.planningDirectionDigestSha256) ||
     !RAW_SHA256.test(scope.userInstructionDigestSha256) ||
     !Array.isArray(scope.sources) ||
     scope.sources.length < 1 ||
@@ -437,6 +445,7 @@ function validateScope(
     workspaceId: scope.workspaceId,
     projectId: scope.projectId,
     editSessionId: scope.editSessionId,
+    planningDirectionDigestSha256: scope.planningDirectionDigestSha256,
     userInstructionDigestSha256: scope.userInstructionDigestSha256,
     sources,
   }
@@ -450,6 +459,8 @@ function assertScopeMatchesBinding(
     binding.scope.workspaceId !== scope.workspaceId ||
     binding.scope.projectId !== scope.projectId ||
     binding.scope.editSessionId !== scope.editSessionId ||
+    binding.scope.planningDirectionDigestSha256 !==
+      scope.planningDirectionDigestSha256 ||
     binding.scope.userInstructionDigestSha256 !==
       scope.userInstructionDigestSha256 ||
     binding.sources.length !== scope.sources.length ||
@@ -468,6 +479,7 @@ function expectedBindingScope(scope: CanonicalSourceCleanupAuthorityScope) {
     workspaceId: scope.workspaceId,
     projectId: scope.projectId,
     editSessionId: scope.editSessionId,
+    planningDirectionDigestSha256: scope.planningDirectionDigestSha256,
     userInstructionDigestSha256: scope.userInstructionDigestSha256,
   }
 }

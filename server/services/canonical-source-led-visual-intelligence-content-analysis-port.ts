@@ -142,19 +142,10 @@ export function createVisualIntelligenceCanonicalSourceLedProfessionalContentAna
   return Object.freeze({
     route: 'visual_intelligence_gemini_pro_high_v1' as const,
     analyze(untrustedRequest: CanonicalSourceLedProfessionalContentAnalysisInput) {
-      const request = verifyRequest(untrustedRequest)
-      const requestDigest = rawDigest({
-        schemaVersion:
-          'canonical-source-led-visual-intelligence-analysis-request-v1',
-        workspaceId: request.workspaceId,
-        projectId: request.projectId,
-        editSessionId: request.editSessionId,
-        planningDirectionDigestSha256:
-          request.planningDirectionDigestSha256,
-        userInstructionDigestSha256: request.userInstructionDigestSha256,
-        fps: request.fps,
-        sources: request.sources.map(sourceIdentity),
-      })
+      const { request, requestDigest } =
+        createCanonicalSourceLedProfessionalContentAnalysisRequestIdentity(
+          untrustedRequest,
+        )
       const current = inFlight.get(requestDigest)
       if (current) return current
       const promise = analyzeExactRequest({ ...input, request, requestDigest })
@@ -165,6 +156,37 @@ export function createVisualIntelligenceCanonicalSourceLedProfessionalContentAna
       void promise.then(clear, clear)
       return promise
     },
+  })
+}
+
+export function createCanonicalSourceLedProfessionalContentAnalysisRequestIdentity(
+  untrustedRequest: CanonicalSourceLedProfessionalContentAnalysisInput,
+): {
+  readonly request: CanonicalSourceLedProfessionalContentAnalysisInput
+  readonly requestDigest: string
+  readonly analysisRunId: string
+} {
+  const request = verifyCanonicalSourceLedProfessionalContentAnalysisInput(
+    untrustedRequest,
+  )
+  const requestDigest = rawDigest({
+    schemaVersion:
+      'canonical-source-led-visual-intelligence-analysis-request-v1',
+    workspaceId: request.workspaceId,
+    projectId: request.projectId,
+    editSessionId: request.editSessionId,
+    planningDirectionDigestSha256:
+      request.planningDirectionDigestSha256,
+    userInstructionDigestSha256: request.userInstructionDigestSha256,
+    fps: request.fps,
+    sources: request.sources.map(
+      canonicalSourceLedProfessionalContentAnalysisSourceIdentity,
+    ),
+  })
+  return Object.freeze({
+    request,
+    requestDigest,
+    analysisRunId: `source_analysis_${requestDigest}`,
   })
 }
 
@@ -179,7 +201,7 @@ async function analyzeExactRequest(input: {
 }): Promise<CanonicalSourceLedContentAnalysisEvidence> {
   const analysisRunId = `source_analysis_${input.requestDigest}`
   const transcripts = await Promise.all(input.request.sources.map(
-    async (source) => verifyTranscriptResult(
+    async (source) => verifyCanonicalVisualIntelligenceSourceTranscriptResult(
       source,
       await input.transcriptPort.analyze({
         workspaceId: input.request.workspaceId,
@@ -256,7 +278,7 @@ async function analyzeExactRequest(input: {
     || evidence.identity.analysisRunId !== analysisRunId
     || evidence.sources.length !== specialistSources.length
     || evidence.sources.some((source, index) =>
-      rawDigest(stripSelections(source)) !==
+      rawDigest(stripCanonicalSourceLedContentAnalysisSelections(source)) !==
         rawDigest(specialistSources[index]))
   ) {
     throw new ApiError(
@@ -272,6 +294,8 @@ async function analyzeExactRequest(input: {
       workspaceId: input.request.workspaceId,
       projectId: input.request.projectId,
       editSessionId: input.request.editSessionId,
+      planningDirectionDigestSha256:
+        input.request.planningDirectionDigestSha256,
       userInstructionDigestSha256:
         input.request.userInstructionDigestSha256,
       sources: input.request.sources.map((source) => ({
@@ -508,7 +532,7 @@ function verifyVisualIntelligenceReport(input: {
   return report
 }
 
-function verifyTranscriptResult(
+export function verifyCanonicalVisualIntelligenceSourceTranscriptResult(
   source: CanonicalSourceLedProfessionalContentAnalysisSource,
   raw: CanonicalVisualIntelligenceSourceTranscriptResult,
 ): CanonicalVisualIntelligenceSourceTranscriptResult {
@@ -619,7 +643,7 @@ function verifyTranscriptResult(
   return { ...raw, transcript }
 }
 
-function verifyRequest(
+export function verifyCanonicalSourceLedProfessionalContentAnalysisInput(
   input: CanonicalSourceLedProfessionalContentAnalysisInput,
 ): CanonicalSourceLedProfessionalContentAnalysisInput {
   if (
@@ -683,7 +707,7 @@ function verifyRequest(
   return input
 }
 
-function sourceIdentity(
+export function canonicalSourceLedProfessionalContentAnalysisSourceIdentity(
   source: CanonicalSourceLedProfessionalContentAnalysisSource,
 ): Record<string, unknown> {
   const authority = source.managedApiAuthority!
@@ -710,7 +734,7 @@ function sourceIdentity(
   }
 }
 
-function stripSelections(
+export function stripCanonicalSourceLedContentAnalysisSelections(
   source: CanonicalSourceLedContentAnalysisEvidence['sources'][number],
 ): CanonicalSourceLedContentAnalysisSourceInput {
   const {

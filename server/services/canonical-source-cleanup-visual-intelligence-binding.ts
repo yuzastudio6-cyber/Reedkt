@@ -12,7 +12,7 @@ import {
 } from './canonical-source-led-content-analysis-evidence'
 
 export const CANONICAL_SOURCE_CLEANUP_VISUAL_INTELLIGENCE_BINDING_VERSION =
-  'canonical-source-cleanup-visual-intelligence-binding-v1' as const
+  'canonical-source-cleanup-visual-intelligence-binding-v2' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -129,6 +129,7 @@ const bindingWithoutDigestSchema = z.object({
     projectId: safeId,
     editSessionId: safeId,
     analysisRunId: safeId,
+    planningDirectionDigestSha256: rawSha256,
     userInstructionDigestSha256: rawSha256,
     masterFpsNumerator: z.literal(30),
     masterFpsDenominator: z.literal(1),
@@ -192,6 +193,7 @@ export function createCanonicalSourceCleanupVisualIntelligenceBinding(input: {
     readonly workspaceId: string
     readonly projectId: string
     readonly editSessionId: string
+    readonly planningDirectionDigestSha256: string
     readonly userInstructionDigestSha256: string
   }
 }): CanonicalSourceCleanupVisualIntelligenceBinding {
@@ -331,6 +333,8 @@ export function createCanonicalSourceCleanupVisualIntelligenceBinding(input: {
       projectId: evidence.identity.projectId,
       editSessionId: evidence.identity.editSessionId,
       analysisRunId: evidence.identity.analysisRunId,
+      planningDirectionDigestSha256:
+        input.expectedScope.planningDirectionDigestSha256,
       userInstructionDigestSha256:
         evidence.identity.userInstructionDigestSha256,
       masterFpsNumerator: 30,
@@ -526,6 +530,8 @@ export function assertCanonicalSourceCleanupBindingMatchesEvidence(input: {
       workspaceId: binding.scope.workspaceId,
       projectId: binding.scope.projectId,
       editSessionId: binding.scope.editSessionId,
+      planningDirectionDigestSha256:
+        binding.scope.planningDirectionDigestSha256,
       userInstructionDigestSha256:
         binding.scope.userInstructionDigestSha256,
     },
@@ -544,6 +550,7 @@ function assertFreshEvidence(
     readonly workspaceId: string
     readonly projectId: string
     readonly editSessionId: string
+    readonly planningDirectionDigestSha256: string
     readonly userInstructionDigestSha256: string
   },
 ): void {
@@ -553,6 +560,9 @@ function assertFreshEvidence(
     || evidence.identity.workspaceId !== expectedScope.workspaceId
     || evidence.identity.projectId !== expectedScope.projectId
     || evidence.identity.editSessionId !== expectedScope.editSessionId
+    || !/^[a-f0-9]{64}$/u.test(
+      expectedScope.planningDirectionDigestSha256,
+    )
     || evidence.identity.userInstructionDigestSha256 !==
       expectedScope.userInstructionDigestSha256
     || !evidence.reasoning.completeSourceCoverageConfirmed

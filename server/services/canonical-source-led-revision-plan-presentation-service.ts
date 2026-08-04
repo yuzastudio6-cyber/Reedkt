@@ -497,10 +497,10 @@ async function readRevisionSourceCleanupAuthority(input: {
     ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
   priorCompiledIntent: unknown
 }) {
-  const priorInstructionDigest = readPriorSourceCleanupInstructionDigest(
+  const priorAuthorityDigests = readPriorSourceCleanupAuthorityDigests(
     input.priorCompiledIntent,
   )
-  if (!priorInstructionDigest) {
+  if (!priorAuthorityDigests) {
     throw blocked(
       'The prior approved plan has no exact source-analysis instruction authority; prepare a fresh whole-video plan before revision.',
     )
@@ -524,7 +524,10 @@ async function readRevisionSourceCleanupAuthority(input: {
       workspaceId: input.workspaceId,
       projectId: input.projectId,
       editSessionId: input.editSessionId,
-      userInstructionDigestSha256: priorInstructionDigest,
+      planningDirectionDigestSha256:
+        priorAuthorityDigests.planningDirectionDigestSha256,
+      userInstructionDigestSha256:
+        priorAuthorityDigests.userInstructionDigestSha256,
       sources,
     })
   if (result.status === 'not_found') {
@@ -535,23 +538,33 @@ async function readRevisionSourceCleanupAuthority(input: {
   return result
 }
 
-function readPriorSourceCleanupInstructionDigest(compiledIntent: unknown):
-  string | undefined {
+function readPriorSourceCleanupAuthorityDigests(compiledIntent: unknown):
+  | {
+      readonly planningDirectionDigestSha256: string
+      readonly userInstructionDigestSha256: string
+    }
+  | undefined {
   if (!plainRecord(compiledIntent)) return undefined
   const cleanupAuthority =
     compiledIntent.canonicalSourceCleanupAuthority
   if (plainRecord(cleanupAuthority)) {
-    const digest = cleanupAuthority.userInstructionDigestSha256
-    if (typeof digest === 'string' && /^[a-f0-9]{64}$/u.test(digest)) {
-      return digest
+    const planningDirectionDigestSha256 =
+      cleanupAuthority.planningDirectionDigestSha256
+    const userInstructionDigestSha256 =
+      cleanupAuthority.userInstructionDigestSha256
+    if (
+      typeof planningDirectionDigestSha256 === 'string'
+      && /^[a-f0-9]{64}$/u.test(planningDirectionDigestSha256)
+      && typeof userInstructionDigestSha256 === 'string'
+      && /^[a-f0-9]{64}$/u.test(userInstructionDigestSha256)
+    ) {
+      return {
+        planningDirectionDigestSha256,
+        userInstructionDigestSha256,
+      }
     }
   }
-  const authority = compiledIntent.canonicalSourceLedChatAuthority
-  if (!plainRecord(authority)) return undefined
-  const digest = authority.authorityDigestSha256
-  return typeof digest === 'string' && /^[a-f0-9]{64}$/u.test(digest)
-    ? digest
-    : undefined
+  return undefined
 }
 
 function plainRecord(value: unknown): value is Record<string, unknown> {

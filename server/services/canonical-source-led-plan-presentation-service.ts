@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import {
@@ -245,6 +247,8 @@ export function createCanonicalSourceLedPlanPresentationService(
                 workspaceId: access.workspaceId,
                 projectId,
                 editSessionId,
+                planningDirectionDigestSha256:
+                  sha256(plannerInput.customInstructions),
                 userInstructionDigestSha256:
                   chatDirections.authorityDigestSha256,
                 sources: selectedSources.map(({ mediaAsset }, index) => ({
@@ -631,6 +635,10 @@ function frameTemplateForAspectRatio(
 function safeIdentity(value: string): boolean {
   return /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/.test(value)
     && !value.includes('..')
+}
+
+function sha256(value: string): string {
+  return createHash('sha256').update(value).digest('hex')
 }
 
 export type SourceLedBRollPreferenceDisposition =

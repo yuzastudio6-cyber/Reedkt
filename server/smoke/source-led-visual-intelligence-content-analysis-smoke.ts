@@ -24,6 +24,10 @@ import {
   type CanonicalVisualIntelligenceSourceTranscriptResult,
 } from '../services/canonical-source-led-visual-intelligence-content-analysis-port'
 import {
+  CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION,
+  createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort,
+} from '../services/canonical-source-led-orchestra-content-analysis-reconciliation'
+import {
   assertCanonicalSourceCleanupBindingMatchesEvidence,
   createCanonicalSourceCleanupVisualIntelligenceBinding,
   verifyCanonicalSourceCleanupVisualIntelligenceBinding,
@@ -59,6 +63,9 @@ import {
   VISUAL_INTELLIGENCE_PROMPT_VERSION,
   VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,
 } from '../visual-intelligence/visual-intelligence-profile-registry'
+import {
+  orchestraDigest,
+} from '../orchestra/orchestra-skill-capability-contract'
 
 const sha = (value: string) => createHash('sha256').update(value).digest('hex')
 const ref = (id: string, value: unknown = { id }): VisualIntelligenceEvidenceRef =>
@@ -746,6 +753,7 @@ const cleanupAuthorityScope: CanonicalSourceCleanupAuthorityScope = {
   workspaceId: request.workspaceId,
   projectId: request.projectId,
   editSessionId: request.editSessionId,
+  planningDirectionDigestSha256: request.planningDirectionDigestSha256,
   userInstructionDigestSha256: request.userInstructionDigestSha256,
   sources: request.sources.map((source) => ({
     sourceSequenceItemId: source.sourceSequenceItemId,
@@ -768,12 +776,220 @@ const port = createVisualIntelligenceCanonicalSourceLedProfessionalContentAnalys
 })
 const result = await port.analyze(request)
 assert.equal(result.schemaVersion, 'canonical-source-led-content-analysis-evidence-v5')
+const directVisual = canonicalSourceLedVisualIntelligenceEvidenceSchema.parse(
+  result.sources[0]!.visual,
+)
+const orchestraVisual = canonicalSourceLedVisualIntelligenceEvidenceSchema.parse({
+  ...directVisual,
+  orchestraLineage: {
+    consumerBindingRef: ref('source-orchestra-consumer-binding'),
+    callRef: {
+      id: directVisual.requestRef.id,
+      version: 1,
+      contentHash: ref('source-orchestra-call').contentHash,
+    },
+    compiledRequestRef: directVisual.requestRef,
+    resultRef: ref('source-orchestra-result'),
+    manifestRef: ref('visual-intelligence-manifest-v3'),
+    qualificationSnapshotRef: ref('visual-intelligence-qualification'),
+    exactConsumerBindingRereadVerified: true,
+    exactOrchestraResultRereadVerified: true,
+    resultReturnedThroughOrchestra: true,
+    headIntelligenceDirectProviderCallAllowed: false,
+    headIntelligenceDirectGpuDispatchAllowed: false,
+  },
+})
+const reconciledObjects = new Map<string, Buffer>()
+const reconciledObjectPort: CanonicalCreateOnlyJsonObjectPort = {
+  async createOnly(input) {
+    const existing = reconciledObjects.get(input.objectPath)
+    if (existing) {
+      assert.deepEqual(existing, input.body)
+      return 'already_exists'
+    }
+    reconciledObjects.set(input.objectPath, Buffer.from(input.body))
+    return 'created'
+  },
+  async readExact(objectPath) {
+    const body = reconciledObjects.get(objectPath)
+    return body ? Buffer.from(body) : null
+  },
+}
+const reconciledRepository = createCanonicalSourceCleanupAuthorityRepository({
+  objectPort: reconciledObjectPort,
+  prefix: 'private/test/source-orchestra-reconciliation',
+})
+let transcriptRereads = 0
+let orchestraVisualRereads = 0
+let headReconciliationCalls = 0
+const reconciliationPort =
+  createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort({
+    transcriptReadPort: {
+      schemaVersion: CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION,
+      async readCompleted(scope) {
+        transcriptRereads += 1
+        assert.equal(scope.ownerUserId, 'user-1')
+        assert.equal(scope.sourceSequenceItemId, 'source-item-1')
+        assert.equal(scope.checksumSha256, sourceChecksum)
+        assert.deepEqual(scope.finalizedMediaAuthorityRef, finalizedRef)
+        assert.deepEqual(scope.sourceProbeAuthorityRef, probeRef)
+        return transcriptResult
+      },
+    },
+    visualIntelligenceReadPort: {
+      schemaVersion: 'canonical-source-visual-intelligence-orchestra-read-port-v1',
+      async readCompletedSourceVideoUnderstanding(scope) {
+        orchestraVisualRereads += 1
+        assert.equal(
+          scope.analysisRunId,
+          `source_analysis_${sha(stableStringify({
+            schemaVersion:
+              'canonical-source-led-visual-intelligence-analysis-request-v1',
+            workspaceId: request.workspaceId,
+            projectId: request.projectId,
+            editSessionId: request.editSessionId,
+            planningDirectionDigestSha256:
+              request.planningDirectionDigestSha256,
+            userInstructionDigestSha256:
+              request.userInstructionDigestSha256,
+            fps: request.fps,
+            sources: request.sources.map((source) => ({
+              sourceSequenceItemId: source.sourceSequenceItemId,
+              mediaAssetId: source.mediaAssetId,
+              uploadedOrder: source.uploadedOrder,
+              checksumSha256: source.checksumSha256,
+              byteLength: source.byteLength,
+              durationFrames: source.durationFrames,
+              storageGeneration:
+                source.managedApiAuthority!.storageGeneration,
+              storageEtag: source.managedApiAuthority!.storageEtag,
+              width: source.managedApiAuthority!.width,
+              height: source.managedApiAuthority!.height,
+              fpsNumerator: source.managedApiAuthority!.fpsNumerator,
+              fpsDenominator: source.managedApiAuthority!.fpsDenominator,
+              frameCount: source.managedApiAuthority!.frameCount,
+              sourceTimeBaseNumerator:
+                source.managedApiAuthority!.sourceTimeBaseNumerator,
+              sourceTimeBaseDenominator:
+                source.managedApiAuthority!.sourceTimeBaseDenominator,
+              finalizedMediaAuthorityRef:
+                source.managedApiAuthority!.finalizedMediaAuthorityRef,
+              finalizedStorageObjectAuthorityRef:
+                source.managedApiAuthority!
+                  .finalizedStorageObjectAuthorityRef,
+              sourceProbeAuthorityRef:
+                source.managedApiAuthority!.sourceProbeAuthorityRef,
+            })),
+          }))}`,
+        )
+        assert.equal(
+          scope.planningContextAuthorityRef.contentHash,
+          orchestraDigest({
+            planningDirectionDigestSha256:
+              request.planningDirectionDigestSha256,
+            userInstructionDigestSha256:
+              request.userInstructionDigestSha256,
+          }),
+        )
+        assert.deepEqual(scope.transcriptAuthorityRef, transcriptAuthorityRef)
+        return orchestraVisual
+      },
+    },
+    reasoner: {
+      async reason(input) {
+        headReconciliationCalls += 1
+        assert.equal(
+          'orchestraLineage' in input.sources[0]!.visual
+            ? input.sources[0]!.visual.orchestraLineage
+                ?.resultReturnedThroughOrchestra
+            : false,
+          true,
+        )
+        return reasoner.reason(input)
+      },
+    },
+    authorityRepository: reconciledRepository,
+  })
+const reconciledResult = await reconciliationPort.analyze(request)
+assert.equal(
+  'orchestraLineage' in reconciledResult.sources[0]!.visual
+    ? reconciledResult.sources[0]!.visual.orchestraLineage
+        ?.resultReturnedThroughOrchestra
+    : false,
+  true,
+)
+assert.equal(transcriptRereads, 1)
+assert.equal(orchestraVisualRereads, 1)
+assert.equal(headReconciliationCalls, 1)
+assert.equal(visualLifecycleCalls, 1)
+const reconciledReplay = await reconciliationPort.analyze(request)
+assert.equal(
+  reconciledReplay.evidenceDigestSha256,
+  reconciledResult.evidenceDigestSha256,
+)
+assert.equal(transcriptRereads, 1)
+assert.equal(orchestraVisualRereads, 1)
+assert.equal(headReconciliationCalls, 1)
+let blockedHeadCalls = 0
+const missingVisualReconciliationPort =
+  createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort({
+    transcriptReadPort: {
+      schemaVersion: CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION,
+      async readCompleted() { return transcriptResult },
+    },
+    visualIntelligenceReadPort: {
+      schemaVersion: 'canonical-source-visual-intelligence-orchestra-read-port-v1',
+      async readCompletedSourceVideoUnderstanding() { return null },
+    },
+    reasoner: {
+      async reason(input) {
+        blockedHeadCalls += 1
+        return reasoner.reason(input)
+      },
+    },
+    authorityRepository: createCanonicalSourceCleanupAuthorityRepository({
+      objectPort: reconciledObjectPort,
+      prefix: 'private/test/source-orchestra-missing-result',
+    }),
+  })
+await assert.rejects(
+  () => missingVisualReconciliationPort.analyze(request),
+  /source_visual_intelligence_orchestra_result_1_not_ready/u,
+)
+assert.equal(blockedHeadCalls, 0)
+const unboundVisualReconciliationPort =
+  createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort({
+    transcriptReadPort: {
+      schemaVersion: CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION,
+      async readCompleted() { return transcriptResult },
+    },
+    visualIntelligenceReadPort: {
+      schemaVersion: 'canonical-source-visual-intelligence-orchestra-read-port-v1',
+      async readCompletedSourceVideoUnderstanding() { return directVisual },
+    },
+    reasoner: {
+      async reason(input) {
+        blockedHeadCalls += 1
+        return reasoner.reason(input)
+      },
+    },
+    authorityRepository: createCanonicalSourceCleanupAuthorityRepository({
+      objectPort: reconciledObjectPort,
+      prefix: 'private/test/source-orchestra-unbound-result',
+    }),
+  })
+await assert.rejects(
+  () => unboundVisualReconciliationPort.analyze(request),
+  /source_orchestra_visual_evidence_scope_mismatch/u,
+)
+assert.equal(blockedHeadCalls, 0)
 const cleanupBinding = createCanonicalSourceCleanupVisualIntelligenceBinding({
   evidence: result,
   expectedScope: {
     workspaceId: request.workspaceId,
     projectId: request.projectId,
     editSessionId: request.editSessionId,
+    planningDirectionDigestSha256: request.planningDirectionDigestSha256,
     userInstructionDigestSha256: request.userInstructionDigestSha256,
   },
 })
@@ -852,6 +1068,12 @@ const staleInstructionRead = await cleanupAuthorityRepository.readForPlanning({
   userInstructionDigestSha256: sha('changed-user-instructions'),
 })
 assert.equal(staleInstructionRead.status, 'not_found')
+const stalePlanningDirectionRead =
+  await cleanupAuthorityRepository.readForPlanning({
+    ...cleanupAuthorityScope,
+    planningDirectionDigestSha256: sha('changed-planning-direction'),
+  })
+assert.equal(stalePlanningDirectionRead.status, 'not_found')
 const substitutedSourceRead = await cleanupAuthorityRepository.readForPlanning({
   ...cleanupAuthorityScope,
   sources: cleanupAuthorityScope.sources.map((source) => ({
@@ -972,11 +1194,15 @@ const compiledAuthorityBinding = compiledIntent
   .canonicalSourceCleanupAuthority as Record<string, unknown>
 assert.equal(
   compiledAuthorityBinding.schemaVersion,
-  'canonical-source-cleanup-plan-authority-binding-v1',
+  'canonical-source-cleanup-plan-authority-binding-v2',
 )
 assert.deepEqual(
   compiledAuthorityBinding.repositoryRecordRef,
   rereadCleanupAuthority.repositoryRecordRef,
+)
+assert.equal(
+  compiledAuthorityBinding.planningDirectionDigestSha256,
+  request.planningDirectionDigestSha256,
 )
 assert.equal(
   (compiledIntent.compilerNotes as string[]).some((note) =>
@@ -992,6 +1218,23 @@ await revalidateCanonicalSourceCleanupPlanAuthority({
   sourceSequence: compiledCanonicalPlan.components.sourceSequence,
   compiledIntent,
 })
+const stalePlanningCompiledIntent = structuredClone(compiledIntent) as
+  Record<string, unknown>
+;(stalePlanningCompiledIntent.canonicalSourceCleanupAuthority as
+  Record<string, unknown>).planningDirectionDigestSha256 =
+    sha('approval-time-stale-planning-direction')
+await assert.rejects(
+  () => revalidateCanonicalSourceCleanupPlanAuthority({
+    readPort: cleanupAuthorityRepository,
+    ownerUserId: cleanupAuthorityScope.ownerUserId,
+    workspaceId: cleanupAuthorityScope.workspaceId,
+    projectId: cleanupAuthorityScope.projectId,
+    editSessionId: cleanupAuthorityScope.editSessionId,
+    sourceSequence: compiledCanonicalPlan.components.sourceSequence,
+    compiledIntent: stalePlanningCompiledIntent,
+  }),
+  /failed exact immutable reread/u,
+)
 await assert.rejects(
   () => revalidateCanonicalSourceCleanupPlanAuthority({
     ownerUserId: cleanupAuthorityScope.ownerUserId,
@@ -1033,6 +1276,7 @@ assert.throws(() => compileCanonicalSourceLedPlan({
       workspaceId: request.workspaceId,
       projectId: request.projectId,
       editSessionId: 'stale-edit-session',
+      planningDirectionDigestSha256: request.planningDirectionDigestSha256,
       userInstructionDigestSha256: request.userInstructionDigestSha256,
     },
   },
@@ -1051,6 +1295,7 @@ assert.throws(() => compileCanonicalSourceLedPlan({
       workspaceId: request.workspaceId,
       projectId: request.projectId,
       editSessionId: request.editSessionId,
+      planningDirectionDigestSha256: request.planningDirectionDigestSha256,
       userInstructionDigestSha256: request.userInstructionDigestSha256,
     },
   },
@@ -1165,6 +1410,7 @@ const multiRangeBinding = createCanonicalSourceCleanupVisualIntelligenceBinding(
     workspaceId: request.workspaceId,
     projectId: request.projectId,
     editSessionId: request.editSessionId,
+    planningDirectionDigestSha256: request.planningDirectionDigestSha256,
     userInstructionDigestSha256: request.userInstructionDigestSha256,
   },
 })
@@ -1179,6 +1425,7 @@ assert.throws(() => compileCanonicalSourceLedPlan({
       workspaceId: request.workspaceId,
       projectId: request.projectId,
       editSessionId: request.editSessionId,
+      planningDirectionDigestSha256: request.planningDirectionDigestSha256,
       userInstructionDigestSha256: request.userInstructionDigestSha256,
     },
   },
@@ -1189,6 +1436,7 @@ await assert.rejects(async () => createCanonicalSourceCleanupVisualIntelligenceB
     workspaceId: request.workspaceId,
     projectId: request.projectId,
     editSessionId: 'different-edit-session',
+    planningDirectionDigestSha256: request.planningDirectionDigestSha256,
     userInstructionDigestSha256: request.userInstructionDigestSha256,
   },
 }), /Fresh source cleanup requires exact complete-video/u)
@@ -1251,6 +1499,12 @@ console.log(JSON.stringify({
   tamperedDurableAuthorityRejected: true,
   approvalTimeAuthorityRereadVerified: true,
   staleInstructionAndSourceRepositoryReadsRejected: true,
+  stalePlanningDirectionRepositoryReadRejected: true,
+  headOrchestraReconciliationRereadVerified:
+    transcriptRereads === 1
+    && orchestraVisualRereads === 1
+    && headReconciliationCalls === 1,
+  directVisualLifecycleCallsDuringReconciliation: 0,
   directionTextAndChatAuthorityDigestsSeparated: true,
   embeddedInstructionDetected: true,
   embeddedInstructionTreatedAsUntrustedEvidence:

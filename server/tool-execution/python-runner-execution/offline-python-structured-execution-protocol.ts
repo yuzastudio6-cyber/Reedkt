@@ -145,12 +145,34 @@ export interface OfflinePythonPyAvPlanningPayload {
 }
 export type OfflinePythonPyAvPayload = OfflinePythonPyAvPlanningPayload & OfflinePythonApprovedSourcePayload
 
-export interface OfflinePythonOpenCvPlanningPayload {
+export interface OfflinePythonOpenCvBasePlanningPayload {
   analysisProfileId: 'approved_safe_zone_v1' | 'approved_blur_check_v1' | 'approved_mask_qa_v1'
   frameStride: 1 | 5 | 10 | 15 | 30
   maximumFrames: number
   emitDerivedPixels: false
 }
+
+export interface OfflinePythonOpenCvTrackAllGeometryPlanningPayload {
+  analysisProfileId: 'track_all_camera_motion_v1' | 'track_all_planar_homography_v1'
+  frameStride: 1 | 5 | 10 | 15 | 30
+  maximumFrames: number
+  emitDerivedPixels: false
+  startFrameInclusive: number
+  endFrameExclusive: number
+  initializationFrameIndex: number
+  maximumFeatures: 256 | 512 | 1024
+  ransacReprojectionThreshold: 1 | 2 | 3 | 5
+  planarCornersNormalized: readonly [] | readonly [
+    { x: number; y: number },
+    { x: number; y: number },
+    { x: number; y: number },
+    { x: number; y: number },
+  ]
+}
+
+export type OfflinePythonOpenCvPlanningPayload =
+  | OfflinePythonOpenCvBasePlanningPayload
+  | OfflinePythonOpenCvTrackAllGeometryPlanningPayload
 export type OfflinePythonOpenCvPayload = OfflinePythonOpenCvPlanningPayload & OfflinePythonApprovedSourcePayload
 
 export interface OfflinePythonSceneDetectPlanningPayload {
@@ -275,10 +297,46 @@ export function validateOfflinePythonMediaPlanningPayload(
     }
   }
   if (toolId === 'opencv') {
+    const raw = value && typeof value === 'object' && !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : undefined
+    const trackAllGeometry = raw?.analysisProfileId === 'track_all_camera_motion_v1' ||
+      raw?.analysisProfileId === 'track_all_planar_homography_v1'
     const payload = exactObject(value, [
       'analysisProfileId', 'frameStride', 'maximumFrames', 'emitDerivedPixels',
+      ...(trackAllGeometry
+        ? [
+            'startFrameInclusive', 'endFrameExclusive', 'initializationFrameIndex',
+            'maximumFeatures', 'ransacReprojectionThreshold', 'planarCornersNormalized',
+          ]
+        : []),
     ], 'OpenCV planning payload')
     if (payload.emitDerivedPixels !== false) throw invalid('OpenCV derived-pixel output is forbidden.')
+    if (trackAllGeometry) {
+      const startFrameInclusive = boundedInteger(payload.startFrameInclusive, 0, 100_000_000, 'startFrameInclusive')
+      const endFrameExclusive = boundedInteger(payload.endFrameExclusive, 1, 100_000_001, 'endFrameExclusive')
+      const initializationFrameIndex = boundedInteger(payload.initializationFrameIndex, 0, 100_000_000, 'initializationFrameIndex')
+      if (endFrameExclusive <= startFrameInclusive || initializationFrameIndex < startFrameInclusive || initializationFrameIndex >= endFrameExclusive) {
+        throw invalid('OpenCV Track All range or initialization frame is invalid.')
+      }
+      const corners = validateNormalizedCorners(payload.planarCornersNormalized)
+      const profile = oneOf(payload.analysisProfileId, ['track_all_camera_motion_v1', 'track_all_planar_homography_v1'], 'analysisProfileId')
+      if ((profile === 'track_all_camera_motion_v1' && corners.length !== 0) || (profile === 'track_all_planar_homography_v1' && corners.length !== 4)) {
+        throw invalid('OpenCV Track All planar grounding does not match its fixed profile.')
+      }
+      return {
+        analysisProfileId: profile,
+        frameStride: oneOf(payload.frameStride, [1, 5, 10, 15, 30], 'frameStride'),
+        maximumFrames: boundedInteger(payload.maximumFrames, 1, 600, 'maximumFrames'),
+        emitDerivedPixels: false,
+        startFrameInclusive,
+        endFrameExclusive,
+        initializationFrameIndex,
+        maximumFeatures: oneOf(payload.maximumFeatures, [256, 512, 1024], 'maximumFeatures'),
+        ransacReprojectionThreshold: oneOf(payload.ransacReprojectionThreshold, [1, 2, 3, 5], 'ransacReprojectionThreshold'),
+        planarCornersNormalized: corners,
+      }
+    }
     return {
       analysisProfileId: oneOf(payload.analysisProfileId, ['approved_safe_zone_v1', 'approved_blur_check_v1', 'approved_mask_qa_v1'], 'analysisProfileId'),
       frameStride: oneOf(payload.frameStride, [1, 5, 10, 15, 30], 'frameStride'),
@@ -382,10 +440,23 @@ function validateSourcePayload(
 ): OfflinePythonPyAvPayload | OfflinePythonOpenCvPayload | OfflinePythonSceneDetectPayload |
 OfflinePythonScipyPayload | OfflinePythonPyloudnormPayload | OfflinePythonPydubPayload |
 OfflinePythonAudioreadPayload | OfflinePythonMidoPayload {
+  const openCvTrackAllGeometry = toolId === 'opencv' && value && typeof value === 'object' &&
+    !Array.isArray(value) && (
+      (value as Record<string, unknown>).analysisProfileId === 'track_all_camera_motion_v1' ||
+      (value as Record<string, unknown>).analysisProfileId === 'track_all_planar_homography_v1'
+    )
   const fullKeys = toolId === 'pyav'
     ? ['decodeProfileId', 'frameStride', 'maximumSamples', 'preserveSourceTimestamps']
     : toolId === 'opencv'
-      ? ['analysisProfileId', 'frameStride', 'maximumFrames', 'emitDerivedPixels']
+      ? [
+          'analysisProfileId', 'frameStride', 'maximumFrames', 'emitDerivedPixels',
+          ...(openCvTrackAllGeometry
+            ? [
+                'startFrameInclusive', 'endFrameExclusive', 'initializationFrameIndex',
+                'maximumFeatures', 'ransacReprojectionThreshold', 'planarCornersNormalized',
+              ]
+            : []),
+        ]
       : toolId === 'pyscenedetect'
         ? ['detectorProfileId', 'contentThreshold', 'minimumSceneFrames', 'downscaleFactor']
         : toolId === 'audioread'
@@ -437,6 +508,29 @@ OfflinePythonAudioreadPayload | OfflinePythonMidoPayload {
   } as OfflinePythonPyAvPayload | OfflinePythonOpenCvPayload | OfflinePythonSceneDetectPayload |
   OfflinePythonScipyPayload | OfflinePythonPyloudnormPayload | OfflinePythonPydubPayload |
   OfflinePythonAudioreadPayload | OfflinePythonMidoPayload
+}
+
+function validateNormalizedCorners(value: unknown): [] | [
+  { x: number; y: number },
+  { x: number; y: number },
+  { x: number; y: number },
+  { x: number; y: number },
+] {
+  if (!Array.isArray(value) || (value.length !== 0 && value.length !== 4)) {
+    throw invalid('OpenCV planar corners must be empty or contain exactly four points.')
+  }
+  return value.map((entry, index) => {
+    const point = exactObject(entry, ['x', 'y'], `planarCornersNormalized[${index}]`)
+    return {
+      x: boundedNumber(point.x, 0, 1, `planarCornersNormalized[${index}].x`),
+      y: boundedNumber(point.y, 0, 1, `planarCornersNormalized[${index}].y`),
+    }
+  }) as [] | [
+    { x: number; y: number },
+    { x: number; y: number },
+    { x: number; y: number },
+    { x: number; y: number },
+  ]
 }
 
 export function offlinePythonStructuredRequestSha256(

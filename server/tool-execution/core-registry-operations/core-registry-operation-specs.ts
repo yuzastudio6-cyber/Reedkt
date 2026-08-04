@@ -237,7 +237,13 @@ const tableTransformSettings = strictSettings({
 }, ['transformProfileId', 'maximumRows', 'deterministicOrdering'])
 
 const visualAnalysisSettings = strictSettings({
-  analysisProfileId: enumConstraint(['approved_safe_zone_v1', 'approved_blur_check_v1', 'approved_mask_qa_v1']),
+  analysisProfileId: enumConstraint([
+    'approved_safe_zone_v1',
+    'approved_blur_check_v1',
+    'approved_mask_qa_v1',
+    'track_all_camera_motion_v1',
+    'track_all_planar_homography_v1',
+  ]),
   frameStride: integerEnumConstraint([1, 5, 10, 15, 30]),
   maximumFrames: integerConstraint(1, 5_000),
   emitDerivedPixels: booleanConstraint(false),

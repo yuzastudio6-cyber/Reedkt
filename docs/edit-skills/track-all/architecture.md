@@ -41,6 +41,23 @@ The current pure planning pipeline is:
 The private modules are not exported from the Track All package index and are
 not orchestra-callable skills.
 
+## Deterministic geometry pipeline
+
+The implemented deterministic route uses FFprobe source truth, an approved
+FFmpeg bounded-proxy contract, PySceneDetect shot candidates, and two fixed
+OpenCV profiles for camera motion and planar homography. OpenCV execution is
+confined to the existing pinned no-network, read-only, non-root structured
+Python image. It accepts exact source bytes, range, initialization, feature,
+RANSAC, and approved planar-corner authority; it accepts no caller executable,
+code, environment, path, URL, or derived-pixel output.
+
+Camera output contains frame-to-frame and stabilized transforms, motion class,
+confidence, discontinuity, and shot-reset evidence. Planar output propagates
+four-corner geometry forward and backward from the selected initialization
+frame with homography, reprojection, visibility, occlusion, stability, and
+confidence evidence. Both strict artifacts reject reordered or out-of-range
+frames. See `deterministic-geometry.md`.
+
 ## Qualification boundary
 
 Passing planning smokes establishes tested planning behavior, not a frozen

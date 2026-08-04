@@ -103,6 +103,13 @@ assert.equal(boxSequence.artifactHash, hashSkillValue(boxSequenceCore))
 assert.throws(() => trackBoxSequenceSchema.parse({
   ...boxSequence, boxes: [{ ...boxSequence.boxes[0], confidence: 0.1 }],
 }), /stale or forged/iu)
+const outOfRangeBoxCore = {
+  ...boxSequenceCore,
+  boxes: [{ frameIndex: authorizedRange.endFrameExclusive, box: { x: 0.1, y: 0.2, width: 0.3, height: 0.4 }, confidence: 0.99 }],
+}
+assert.throws(() => trackBoxSequenceSchema.parse({
+  ...outOfRangeBoxCore, artifactHash: hashSkillValue(outOfRangeBoxCore),
+}), /authorized range/iu)
 
 const schemas = new EditSkillArtifactSchemaRegistry()
 registerBrollArtifactSchemas(schemas)

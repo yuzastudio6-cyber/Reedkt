@@ -7,8 +7,12 @@ import { skillQaFindingSchema } from '../core/skill-qa-registry'
 
 const safeId = z.string().trim().min(1).max(180)
 const unit = z.number().min(0).max(1)
-const normalizedBox = z.object({ x: unit, y: unit, width: unit, height: unit }).strict()
-const point = z.object({ x: z.number(), y: z.number() }).strict()
+const normalizedBox = z.object({ x: unit, y: unit, width: unit, height: unit }).strict().superRefine((value, context) => {
+  if (value.width <= 0 || value.height <= 0 || value.x + value.width > 1 || value.y + value.height > 1) {
+    context.addIssue({ code: 'custom', message: 'Normalized Track All box exceeds the source frame.' })
+  }
+})
+const point = z.object({ x: unit, y: unit }).strict()
 const matrix3x3 = z.tuple([z.number(), z.number(), z.number(), z.number(), z.number(), z.number(), z.number(), z.number(), z.number()])
 const typedRef = (artifactType: string) => editSkillArtifactReferenceSchema.extend({ artifactType: z.literal(artifactType) }).strict()
 
@@ -26,6 +30,14 @@ function addressed<T extends z.ZodRawShape>(core: z.ZodObject<T>) {
     const content = Object.fromEntries(Object.entries(record).filter(([key]) => key !== 'artifactHash'))
     if (hashSkillValue(content) !== artifactHash) context.addIssue({ code: 'custom', message: 'Track All artifact hash is stale or forged.' })
   })
+}
+
+function frameInside(frameIndex: number, range: z.infer<typeof skillFrameRangeSchema>): boolean {
+  return frameIndex >= range.startFrameInclusive && frameIndex < range.endFrameExclusive
+}
+
+function strictlyIncreasingUnique(values: readonly number[]): boolean {
+  return values.every((value, index) => index === 0 || value > values[index - 1]!)
 }
 
 export const trackAllContextManifestSchema = addressed(z.object({
@@ -47,12 +59,22 @@ export const trackAllWorkGraphArtifactSchema = addressed(z.object({
 export const trackSampleSequenceSchema = addressed(z.object({
   schemaVersion: z.literal('track_sample_sequence_v1'), ...lineageFields, trackId: safeId,
   samples: z.array(z.object({ frameIndex: z.number().int().nonnegative(), confidence: unit, visibility: z.enum(['active', 'partially_occluded', 'fully_occluded', 'lost', 'reacquired', 'identity_uncertain']) }).strict()).min(1).max(100_000),
-}).strict())
+}).strict()).superRefine((value, context) => {
+  const frames = value.samples.map((sample) => sample.frameIndex)
+  if (!strictlyIncreasingUnique(frames) || frames.some((frame) => !frameInside(frame, value.authorizedRange))) {
+    context.addIssue({ code: 'custom', message: 'Track sample sequence exceeds or reorders its authorized range.' })
+  }
+})
 
 export const trackBoxSequenceSchema = addressed(z.object({
   schemaVersion: z.literal('track_box_sequence_v1'), ...lineageFields, trackId: safeId,
   boxes: z.array(z.object({ frameIndex: z.number().int().nonnegative(), box: normalizedBox, confidence: unit }).strict()).min(1).max(100_000),
-}).strict())
+}).strict()).superRefine((value, context) => {
+  const frames = value.boxes.map((sample) => sample.frameIndex)
+  if (!strictlyIncreasingUnique(frames) || frames.some((frame) => !frameInside(frame, value.authorizedRange))) {
+    context.addIssue({ code: 'custom', message: 'Track box sequence exceeds or reorders its authorized range.' })
+  }
+})
 
 export const trackMaskChunkManifestSchema = addressed(z.object({
   schemaVersion: z.literal('track_mask_chunk_manifest_v1'), ...lineageFields,
@@ -60,7 +82,14 @@ export const trackMaskChunkManifestSchema = addressed(z.object({
   privateObjectRef: editSkillArtifactReferenceSchema, frameCount: z.number().int().positive(),
   pixelFormat: z.enum(['gray8', 'gray16']), width: z.number().int().positive(), height: z.number().int().positive(),
   publicUrlPresent: z.literal(false),
-}).strict())
+}).strict()).superRefine((value, context) => {
+  if (
+    value.chunkRange.fps !== value.authorizedRange.fps ||
+    value.chunkRange.startFrameInclusive < value.authorizedRange.startFrameInclusive ||
+    value.chunkRange.endFrameExclusive > value.authorizedRange.endFrameExclusive ||
+    value.frameCount !== value.chunkRange.endFrameExclusive - value.chunkRange.startFrameInclusive
+  ) context.addIssue({ code: 'custom', message: 'Track mask chunk exceeds its authorized range or frame count.' })
+})
 
 export const trackMaskSequenceSchema = addressed(z.object({
   schemaVersion: z.literal('track_mask_sequence_v1'), ...lineageFields, trackId: safeId,
@@ -72,29 +101,54 @@ export const trackLandmarkSequenceSchema = addressed(z.object({
   schemaVersion: z.literal('track_landmark_sequence_v1'), ...lineageFields, trackId: safeId,
   landmarkKind: z.enum(['face', 'body', 'hand', 'planar_corners']),
   frames: z.array(z.object({ frameIndex: z.number().int().nonnegative(), points: z.array(point.extend({ confidence: unit }).strict()).min(1).max(1_000) }).strict()).min(1).max(100_000),
-}).strict())
+}).strict()).superRefine((value, context) => {
+  const frames = value.frames.map((sample) => sample.frameIndex)
+  if (!strictlyIncreasingUnique(frames) || frames.some((frame) => !frameInside(frame, value.authorizedRange))) {
+    context.addIssue({ code: 'custom', message: 'Track landmark sequence exceeds or reorders its authorized range.' })
+  }
+})
 
 export const trackAnchorGraphSchema = addressed(z.object({
   schemaVersion: z.literal('track_anchor_graph_v1'), ...lineageFields,
   anchors: z.array(z.object({ anchorId: safeId, trackId: safeId, frameIndex: z.number().int().nonnegative(), point, visibility: z.enum(['visible', 'occluded', 'lost']), confidence: unit }).strict()).min(1).max(100_000),
-}).strict())
+}).strict()).superRefine((value, context) => {
+  if (value.anchors.some((anchor) => !frameInside(anchor.frameIndex, value.authorizedRange))) {
+    context.addIssue({ code: 'custom', message: 'Track anchor graph exceeds its authorized range.' })
+  }
+})
 
 export const cameraMotionGraphSchema = addressed(z.object({
   schemaVersion: z.literal('camera_motion_graph_v1'), ...lineageFields,
   transforms: z.array(z.object({ frameIndex: z.number().int().nonnegative(), motion: z.enum(['static', 'pan', 'tilt', 'zoom', 'roll', 'handheld']), frameToFrameTransform: matrix3x3, stabilizedTransform: matrix3x3, confidence: unit, discontinuityWarning: z.boolean(), shotReset: z.boolean() }).strict()).min(1).max(100_000),
-}).strict())
+}).strict()).superRefine((value, context) => {
+  const frames = value.transforms.map((sample) => sample.frameIndex)
+  if (!strictlyIncreasingUnique(frames) || frames.some((frame) => !frameInside(frame, value.authorizedRange))) {
+    context.addIssue({ code: 'custom', message: 'Camera motion graph exceeds or reorders its authorized range.' })
+  }
+})
 
 export const planarTrackGraphSchema = addressed(z.object({
   schemaVersion: z.literal('planar_track_graph_v1'), ...lineageFields,
   surfaceId: safeId, surfaceClass: z.enum(['phone_screen', 'laptop_screen', 'television', 'sign', 'document', 'whiteboard', 'wall', 'window', 'picture_frame', 'billboard', 'selected_planar_area']),
   frames: z.array(z.object({ frameIndex: z.number().int().nonnegative(), corners: z.tuple([point, point, point, point]), homography: matrix3x3, reprojectionError: z.number().nonnegative(), visibility: unit, occlusion: unit, surfaceStability: unit, confidence: unit }).strict()).min(1).max(100_000),
   coordinateInterpretation: z.enum(['camera_relative', 'world_relative']),
-}).strict())
+}).strict()).superRefine((value, context) => {
+  const frames = value.frames.map((sample) => sample.frameIndex)
+  if (!strictlyIncreasingUnique(frames) || frames.some((frame) => !frameInside(frame, value.authorizedRange))) {
+    context.addIssue({ code: 'custom', message: 'Planar track graph exceeds or reorders its authorized range.' })
+  }
+})
 
 export const trackOcclusionEventLogSchema = addressed(z.object({
   schemaVersion: z.literal('track_occlusion_event_log_v1'), ...lineageFields,
   events: z.array(z.object({ eventId: safeId, trackId: safeId, startFrameInclusive: z.number().int().nonnegative(), endFrameExclusive: z.number().int().positive(), state: z.enum(['partial_occlusion', 'full_occlusion', 'left_frame', 'reentry_candidate', 'reacquired', 'lost', 'shot_reset']), confidence: unit, evidenceHashes: z.array(skillSha256Schema).min(1).max(100) }).strict()).max(100_000),
-}).strict())
+}).strict()).superRefine((value, context) => {
+  if (value.events.some((event) =>
+    event.endFrameExclusive <= event.startFrameInclusive ||
+    event.startFrameInclusive < value.authorizedRange.startFrameInclusive ||
+    event.endFrameExclusive > value.authorizedRange.endFrameExclusive
+  )) context.addIssue({ code: 'custom', message: 'Track occlusion event exceeds its authorized range.' })
+})
 
 export const trackIdentityLineageSchema = addressed(z.object({
   schemaVersion: z.literal('track_identity_lineage_v1'), ...lineageFields,
@@ -119,7 +173,13 @@ export const trackedFocusPlanSchema = addressed(z.object({
   schemaVersion: z.literal('tracked_focus_plan_v1'), ...treatmentLineage,
   treatment: z.enum(['subject_sharp_background_soft', 'subject_normal_background_dim', 'tracked_spotlight', 'tracked_vignette', 'tracked_magnification', 'foreground_softening', 'background_softening', 'simple_subject_outline']),
   handoffs: z.array(z.object({ trackId: safeId, range: skillFrameRangeSchema }).strict()).min(1).max(1_000),
-}).strict())
+}).strict()).superRefine((value, context) => {
+  if (value.handoffs.some((handoff) =>
+    handoff.range.fps !== value.authorizedRange.fps ||
+    handoff.range.startFrameInclusive < value.authorizedRange.startFrameInclusive ||
+    handoff.range.endFrameExclusive > value.authorizedRange.endFrameExclusive
+  )) context.addIssue({ code: 'custom', message: 'Tracked focus handoff exceeds its authorized range.' })
+})
 
 export const trackedFocusResultSchema = addressed(z.object({
   schemaVersion: z.literal('tracked_focus_result_v1'), ...treatmentLineage,
@@ -132,7 +192,12 @@ export const trackedReframePlanSchema = addressed(z.object({
   outputAspectRatio: z.enum(['16:9', '9:16', '1:1', '4:5']), maximumZoom: z.number().min(1).max(4),
   frames: z.array(z.object({ frameIndex: z.number().int().nonnegative(), crop: normalizedBox, priorityTrackIds: z.array(safeId).min(1).max(100), headroom: unit, leadRoom: unit, safeZoneCollision: z.boolean(), confidence: unit }).strict()).min(1).max(100_000),
   lowConfidenceBehavior: z.enum(['hold_last_safe_crop', 'widen_crop', 'manual_review']),
-}).strict())
+}).strict()).superRefine((value, context) => {
+  const frames = value.frames.map((sample) => sample.frameIndex)
+  if (!strictlyIncreasingUnique(frames) || frames.some((frame) => !frameInside(frame, value.authorizedRange))) {
+    context.addIssue({ code: 'custom', message: 'Tracked reframe plan exceeds or reorders its authorized range.' })
+  }
+})
 
 export const trackedReframeResultSchema = addressed(z.object({
   schemaVersion: z.literal('tracked_reframe_result_v1'), ...treatmentLineage,

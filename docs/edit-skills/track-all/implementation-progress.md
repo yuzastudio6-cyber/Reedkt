@@ -315,3 +315,70 @@ compatibility; it does not prove real SAM inference, GPU execution, privacy
 quality, or production readiness. No model/checkpoint/GPU run, paid action,
 public artifact, production mutation, head orchestra, or peer-skill
 implementation occurred.
+
+## TRACK-06 — deterministic visual geometry
+
+Status: implementation complete; commit and remote confirmation recorded below
+after the milestone commit is created.
+
+Implemented:
+
+- strict FFprobe technical-source normalization and an exact
+  `tool.ffprobe.inspect_approved_media.v1` request compiler;
+- exact approved-range FFmpeg proxy authority through
+  `tool.ffmpeg.execute_approved_media_recipe.v1`, with no caller path or
+  command;
+- fixed Track All PySceneDetect content-detector requests;
+- two fixed profiles inside the existing confined OpenCV operation:
+  `track_all_camera_motion_v1` and `track_all_planar_homography_v1`;
+- bounded source-range decode, non-zero initialization, Shi–Tomasi features,
+  pyramidal Lucas–Kanade optical flow, RANSAC partial-affine camera transforms,
+  stabilized coordinates, motion classification, confidence, discontinuity,
+  and reprojection evidence;
+- forward and backward polygon-constrained planar feature tracking from the
+  initialization frame, RANSAC homography, four-corner geometry, visibility,
+  occlusion, surface stability, confidence, and reprojection evidence;
+- strict projection into content-addressed `camera_motion_graph_v1` and
+  `planar_track_graph_v1` artifacts;
+- range and order refinements for sample, box, mask, landmark, anchor, camera,
+  planar, occlusion, focus, and reframe artifacts;
+- preservation of the old OpenCV profiles and all existing structured Python
+  operations; no parallel tool runner was added.
+
+Actual checks run:
+
+- `npm run test:track-all-deterministic-geometry` — passed using installed
+  FFmpeg `8.1.1`, FFprobe `8.1.1`, real confined PySceneDetect, and real
+  confined OpenCV. It produced 2 scenes, 24 camera transforms, and 24 planar
+  frames from a non-zero initialization at frame 5.
+- deterministic evidence hashes: source truth
+  `6e15f12447578ca31debb3f5e4f6fee23f00f9aaf6abb8d1e4c0540565e038d7`,
+  camera graph
+  `ebd22a743ba11e8b5780ca8f415dc501bf445606888de03afa965b27d50e1fc9`,
+  planar graph
+  `b7f0ca4d729f0cafb44934059458e205122ca392387a96d09a04f98bcfa6a012`,
+  shot-boundary evidence
+  `2013ea18b06c9acf13e194ac7beba8782ba140d0bb528ae64c713c267fe8ab39`,
+  OpenCV image identity
+  `2207d4886d1fcda6cbd01e39148c9696340dda1959fce2a88f7a50dd905c17aa`.
+- `npm run smoke:offline-python-structured-execution` — passed all existing
+  19 operations plus confinement, attestation, and caller-input rejection.
+- `npm run smoke:core-registry-operation-specs` — passed 50 canonical specs
+  and all adversarial executable/path/URL/prompt/scope checks.
+- `npm run smoke:professional-tool-operation-specs` — passed 38 bounded
+  adapter contracts.
+- `npm run test:track-all-artifact-contracts` — passed 32 strict outputs,
+  shared V1 compatibility, V2 hashing, private-mask enforcement, and exact
+  range rejection.
+- `npm run test:track-all-authority` — passed 21 adversarial cases.
+- `npm run test:track-all-planning` — passed 9 scenarios and 24 derived QA
+  findings.
+- `npm run typecheck:server` — passed.
+- affected-file ESLint — passed.
+
+The executed geometry fixture is actual private CPU tool evidence, not a mock
+declaration. Aggregate Track All qualification remains `implementation_pending`
+until the later receipt issuer binds this evidence to the exact committed
+source tree. The fixture is not SAM evidence and does not promote the SAM or
+top-level skill route. No checkpoint, GPU, model/provider, paid, public,
+production, database, or head-orchestra action occurred.

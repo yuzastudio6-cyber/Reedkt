@@ -461,17 +461,222 @@ def with_fixed_media_file(source: bytes, action: Any) -> Any:
             pass
 
 
+def matrix_list(matrix: np.ndarray) -> list[float]:
+    return [round(float(value), 9) for value in matrix.reshape(-1)]
+
+
+def estimate_camera_transform(
+    previous: np.ndarray,
+    current: np.ndarray,
+    maximum_features: int,
+    ransac_threshold: float,
+) -> tuple[np.ndarray, float, int, float]:
+    points = cv2.goodFeaturesToTrack(
+        previous, maxCorners=maximum_features, qualityLevel=0.01,
+        minDistance=5, blockSize=7,
+    )
+    if points is None or len(points) < 4:
+        return np.eye(3, dtype=np.float64), 0.0, 0, float("inf")
+    tracked, status, _ = cv2.calcOpticalFlowPyrLK(
+        previous, current, points, None,
+        winSize=(21, 21), maxLevel=3,
+        criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 30, 0.01),
+    )
+    if tracked is None or status is None:
+        return np.eye(3, dtype=np.float64), 0.0, 0, float("inf")
+    good = status.reshape(-1) == 1
+    source_points = points.reshape(-1, 2)[good]
+    target_points = tracked.reshape(-1, 2)[good]
+    if len(source_points) < 4:
+        return np.eye(3, dtype=np.float64), 0.0, len(source_points), float("inf")
+    affine, inliers = cv2.estimateAffinePartial2D(
+        source_points, target_points, method=cv2.RANSAC,
+        ransacReprojThreshold=ransac_threshold, maxIters=2_000,
+        confidence=0.99, refineIters=10,
+    )
+    if affine is None or not np.isfinite(affine).all():
+        return np.eye(3, dtype=np.float64), 0.0, len(source_points), float("inf")
+    matrix = np.vstack([affine, [0.0, 0.0, 1.0]]).astype(np.float64)
+    projected = cv2.transform(source_points.reshape(-1, 1, 2), affine).reshape(-1, 2)
+    errors = np.linalg.norm(projected - target_points, axis=1)
+    inlier_mask = inliers.reshape(-1).astype(bool) if inliers is not None else np.ones(len(errors), dtype=bool)
+    inlier_count = int(np.count_nonzero(inlier_mask))
+    confidence = min(1.0, max(0.0, inlier_count / max(1, len(source_points))))
+    reprojection_error = float(np.mean(errors[inlier_mask])) if inlier_count > 0 else float("inf")
+    return matrix, confidence, inlier_count, reprojection_error
+
+
+def motion_class(matrix: np.ndarray, width: int, height: int, confidence: float) -> str:
+    if confidence < 0.2:
+        return "handheld"
+    dx = float(matrix[0, 2]) / max(1, width)
+    dy = float(matrix[1, 2]) / max(1, height)
+    scale = float(np.sqrt(max(0.0, abs(np.linalg.det(matrix[:2, :2])))))
+    rotation_degrees = abs(float(np.degrees(np.arctan2(matrix[1, 0], matrix[0, 0]))))
+    if rotation_degrees > 0.5:
+        return "roll"
+    if abs(scale - 1.0) > 0.01:
+        return "zoom"
+    if abs(dx) > 0.002 or abs(dy) > 0.002:
+        return "pan" if abs(dx) >= abs(dy) else "tilt"
+    return "static"
+
+
+def normalized_corners(points: np.ndarray, width: int, height: int) -> list[dict[str, float]]:
+    return [{
+        "x": round(float(np.clip(point[0] / max(1, width), 0.0, 1.0)), 9),
+        "y": round(float(np.clip(point[1] / max(1, height), 0.0, 1.0)), 9),
+    } for point in points.reshape(-1, 2)]
+
+
+def track_planar_frames(
+    frames: list[tuple[int, np.ndarray]],
+    initialization_frame: int,
+    initial_corners: np.ndarray,
+    maximum_features: int,
+    ransac_threshold: float,
+) -> list[dict[str, Any]]:
+    by_index = {frame_index: position for position, (frame_index, _) in enumerate(frames)}
+    if initialization_frame not in by_index:
+        raise Rejected("OpenCV initialization frame was not decoded into the bounded sample")
+    initial_position = by_index[initialization_frame]
+    results: dict[int, dict[str, Any]] = {}
+
+    def record(
+        position: int,
+        corners: np.ndarray,
+        cumulative: np.ndarray,
+        confidence: float,
+        reprojection_error: float,
+        inlier_count: int,
+    ) -> None:
+        frame_index, gray = frames[position]
+        height, width = gray.shape
+        within = np.logical_and.reduce((
+            corners[:, 0] >= 0, corners[:, 0] < width,
+            corners[:, 1] >= 0, corners[:, 1] < height,
+        ))
+        visibility = float(np.count_nonzero(within)) / 4.0
+        finite_error = reprojection_error if np.isfinite(reprojection_error) else float(max(width, height))
+        stability = max(0.0, 1.0 - finite_error / max(1.0, ransac_threshold * 4.0))
+        results[frame_index] = {
+            "frameIndex": frame_index,
+            "corners": normalized_corners(corners, width, height),
+            "homography": matrix_list(cumulative),
+            "reprojectionError": round(finite_error, 6),
+            "visibility": round(visibility, 6),
+            "occlusion": round(max(0.0, 1.0 - confidence * visibility), 6),
+            "surfaceStability": round(stability, 6),
+            "confidence": round(confidence * visibility, 6),
+            "trackedFeatureCount": inlier_count,
+        }
+
+    record(initial_position, initial_corners, np.eye(3), 1.0, 0.0, 4)
+
+    current_corners = initial_corners.copy()
+    cumulative = np.eye(3, dtype=np.float64)
+    for position in range(initial_position + 1, len(frames)):
+        previous = frames[position - 1][1]
+        current = frames[position][1]
+        mask = np.zeros(previous.shape, dtype=np.uint8)
+        cv2.fillConvexPoly(mask, np.rint(current_corners).astype(np.int32), 255)
+        points = cv2.goodFeaturesToTrack(
+            previous, maxCorners=maximum_features, qualityLevel=0.005,
+            minDistance=3, blockSize=5, mask=mask,
+        )
+        homography = None
+        confidence = 0.0
+        inlier_count = 0
+        reprojection_error = float("inf")
+        if points is not None and len(points) >= 4:
+            tracked, status, _ = cv2.calcOpticalFlowPyrLK(previous, current, points, None)
+            if tracked is not None and status is not None:
+                good = status.reshape(-1) == 1
+                source_points = points.reshape(-1, 2)[good]
+                target_points = tracked.reshape(-1, 2)[good]
+                if len(source_points) >= 4:
+                    homography, inliers = cv2.findHomography(
+                        source_points, target_points, cv2.RANSAC, ransac_threshold,
+                    )
+                    if homography is not None and np.isfinite(homography).all():
+                        projected = cv2.perspectiveTransform(source_points.reshape(-1, 1, 2), homography).reshape(-1, 2)
+                        errors = np.linalg.norm(projected - target_points, axis=1)
+                        inlier_mask = inliers.reshape(-1).astype(bool) if inliers is not None else np.ones(len(errors), dtype=bool)
+                        inlier_count = int(np.count_nonzero(inlier_mask))
+                        confidence = inlier_count / max(1, len(source_points))
+                        reprojection_error = float(np.mean(errors[inlier_mask])) if inlier_count > 0 else float("inf")
+        if homography is None or not np.isfinite(homography).all():
+            homography = np.eye(3, dtype=np.float64)
+        current_corners = cv2.perspectiveTransform(current_corners.reshape(-1, 1, 2), homography).reshape(-1, 2)
+        cumulative = homography @ cumulative
+        record(position, current_corners, cumulative, confidence, reprojection_error, inlier_count)
+
+    current_corners = initial_corners.copy()
+    cumulative = np.eye(3, dtype=np.float64)
+    for position in range(initial_position - 1, -1, -1):
+        later = frames[position + 1][1]
+        earlier = frames[position][1]
+        mask = np.zeros(later.shape, dtype=np.uint8)
+        cv2.fillConvexPoly(mask, np.rint(current_corners).astype(np.int32), 255)
+        points = cv2.goodFeaturesToTrack(
+            later, maxCorners=maximum_features, qualityLevel=0.005,
+            minDistance=3, blockSize=5, mask=mask,
+        )
+        homography = None
+        confidence = 0.0
+        inlier_count = 0
+        reprojection_error = float("inf")
+        if points is not None and len(points) >= 4:
+            tracked, status, _ = cv2.calcOpticalFlowPyrLK(later, earlier, points, None)
+            if tracked is not None and status is not None:
+                good = status.reshape(-1) == 1
+                source_points = points.reshape(-1, 2)[good]
+                target_points = tracked.reshape(-1, 2)[good]
+                if len(source_points) >= 4:
+                    homography, inliers = cv2.findHomography(
+                        source_points, target_points, cv2.RANSAC, ransac_threshold,
+                    )
+                    if homography is not None and np.isfinite(homography).all():
+                        projected = cv2.perspectiveTransform(source_points.reshape(-1, 1, 2), homography).reshape(-1, 2)
+                        errors = np.linalg.norm(projected - target_points, axis=1)
+                        inlier_mask = inliers.reshape(-1).astype(bool) if inliers is not None else np.ones(len(errors), dtype=bool)
+                        inlier_count = int(np.count_nonzero(inlier_mask))
+                        confidence = inlier_count / max(1, len(source_points))
+                        reprojection_error = float(np.mean(errors[inlier_mask])) if inlier_count > 0 else float("inf")
+        if homography is None or not np.isfinite(homography).all():
+            homography = np.eye(3, dtype=np.float64)
+        current_corners = cv2.perspectiveTransform(current_corners.reshape(-1, 1, 2), homography).reshape(-1, 2)
+        cumulative = homography @ cumulative
+        record(position, current_corners, cumulative, confidence, reprojection_error, inlier_count)
+
+    return [results[frame_index] for frame_index, _ in frames]
+
+
 def run_opencv(payload_value: Any) -> tuple[dict[str, Any], dict[str, Any]]:
-    payload = exact_object(payload_value, {
+    track_all_profiles = {"track_all_camera_motion_v1", "track_all_planar_homography_v1"}
+    raw_profile = payload_value.get("analysisProfileId") if isinstance(payload_value, dict) else None
+    allowed_keys = {
         "analysisProfileId", "frameStride", "maximumFrames", "emitDerivedPixels",
         "mimeType", "sourceByteLength", "sourceSha256", "sourceBytesBase64",
-    }, "OpenCV payload")
-    if payload["analysisProfileId"] not in {"approved_safe_zone_v1", "approved_blur_check_v1", "approved_mask_qa_v1"}:
+    }
+    if raw_profile in track_all_profiles:
+        allowed_keys.update({
+            "startFrameInclusive", "endFrameExclusive", "initializationFrameIndex",
+            "maximumFeatures", "ransacReprojectionThreshold", "planarCornersNormalized",
+        })
+    payload = exact_object(payload_value, allowed_keys, "OpenCV payload")
+    if payload["analysisProfileId"] not in {
+        "approved_safe_zone_v1", "approved_blur_check_v1", "approved_mask_qa_v1",
+        *track_all_profiles,
+    }:
         raise Rejected("OpenCV analysis profile is unsupported")
     if payload["emitDerivedPixels"] is not False:
         raise Rejected("OpenCV private analysis cannot emit derived pixels")
     stride = bounded_int(payload["frameStride"], "frameStride", 1, 30)
-    maximum_frames = bounded_int(payload["maximumFrames"], "maximumFrames", 1, 5_000)
+    maximum_frames = bounded_int(
+        payload["maximumFrames"], "maximumFrames", 1,
+        600 if payload["analysisProfileId"] in track_all_profiles else 5_000,
+    )
     source = decode_source_bytes(payload)
 
     def analyze(path: str) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -479,16 +684,38 @@ def run_opencv(payload_value: Any) -> tuple[dict[str, Any], dict[str, Any]]:
         if not capture.isOpened():
             raise Rejected("OpenCV could not open approved source bytes")
         samples: list[dict[str, Any]] = []
+        geometry_frames: list[tuple[int, np.ndarray]] = []
         frame_index = 0
         reported_frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
         reported_fps = round(float(capture.get(cv2.CAP_PROP_FPS)), 6)
+        track_all_profile = payload["analysisProfileId"] in track_all_profiles
+        start_frame = bounded_int(payload["startFrameInclusive"], "startFrameInclusive", 0, 100_000_000) if track_all_profile else 0
+        end_frame = bounded_int(payload["endFrameExclusive"], "endFrameExclusive", 1, 100_000_001) if track_all_profile else reported_frame_count
+        initialization_frame = bounded_int(payload["initializationFrameIndex"], "initializationFrameIndex", 0, 100_000_000) if track_all_profile else 0
+        if track_all_profile and (end_frame <= start_frame or initialization_frame < start_frame or initialization_frame >= end_frame):
+            raise Rejected("OpenCV Track All range or initialization frame is invalid")
         try:
             while len(samples) < maximum_frames:
                 ok, frame = capture.read()
                 if not ok:
                     break
-                if frame_index % stride == 0:
+                if track_all_profile and frame_index >= end_frame:
+                    break
+                in_range = not track_all_profile or frame_index >= start_frame
+                selected = in_range and (
+                    (frame_index - start_frame) % stride == 0 or
+                    (track_all_profile and frame_index == initialization_frame)
+                )
+                if selected:
                     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                    height, width = gray.shape
+                    analysis_scale = min(1.0, 640.0 / max(width, height))
+                    if analysis_scale < 1.0:
+                        gray = cv2.resize(
+                            gray,
+                            (max(1, int(round(width * analysis_scale))), max(1, int(round(height * analysis_scale)))),
+                            interpolation=cv2.INTER_AREA,
+                        )
                     samples.append({
                         "frameIndex": frame_index,
                         "width": int(frame.shape[1]),
@@ -496,23 +723,102 @@ def run_opencv(payload_value: Any) -> tuple[dict[str, Any], dict[str, Any]]:
                         "meanLuma": round(float(np.mean(gray)), 6),
                         "laplacianVariance": round(float(cv2.Laplacian(gray, cv2.CV_64F).var()), 6),
                     })
+                    if track_all_profile:
+                        geometry_frames.append((frame_index, gray))
                 frame_index += 1
         finally:
             capture.release()
         if not samples:
             raise Rejected("OpenCV produced no approved frame samples")
+        camera_transforms: list[dict[str, Any]] = []
+        planar_frames: list[dict[str, Any]] = []
+        if track_all_profile:
+            if not geometry_frames or initialization_frame not in {entry[0] for entry in geometry_frames}:
+                raise Rejected("OpenCV Track All range produced no exact initialization frame")
+            maximum_features = bounded_int(payload["maximumFeatures"], "maximumFeatures", 256, 1_024)
+            if maximum_features not in {256, 512, 1_024}:
+                raise Rejected("OpenCV Track All feature budget is unsupported")
+            ransac_threshold = bounded_number(payload["ransacReprojectionThreshold"], "ransacReprojectionThreshold", 1, 5)
+            if ransac_threshold not in {1.0, 2.0, 3.0, 5.0}:
+                raise Rejected("OpenCV Track All RANSAC threshold is unsupported")
+            cumulative = np.eye(3, dtype=np.float64)
+            for position, (sample_frame_index, gray) in enumerate(geometry_frames):
+                if position == 0:
+                    transform = np.eye(3, dtype=np.float64)
+                    confidence = 1.0
+                    inlier_count = 0
+                    reprojection_error = 0.0
+                else:
+                    transform, confidence, inlier_count, reprojection_error = estimate_camera_transform(
+                        geometry_frames[position - 1][1], gray, maximum_features, ransac_threshold,
+                    )
+                    cumulative = transform @ cumulative
+                stabilized = np.linalg.inv(cumulative) if abs(float(np.linalg.det(cumulative))) > 1e-12 else np.eye(3)
+                camera_transforms.append({
+                    "frameIndex": sample_frame_index,
+                    "motion": motion_class(transform, gray.shape[1], gray.shape[0], confidence),
+                    "frameToFrameTransform": matrix_list(transform),
+                    "stabilizedTransform": matrix_list(stabilized),
+                    "confidence": round(confidence, 6),
+                    "discontinuityWarning": confidence < 0.2,
+                    "shotReset": position == 0,
+                    "trackedFeatureCount": inlier_count,
+                    "reprojectionError": round(reprojection_error if np.isfinite(reprojection_error) else float(max(gray.shape)), 6),
+                })
+            corners_value = payload["planarCornersNormalized"]
+            if payload["analysisProfileId"] == "track_all_camera_motion_v1":
+                if corners_value != []:
+                    raise Rejected("Camera-motion profile cannot receive planar corners")
+            else:
+                if not isinstance(corners_value, list) or len(corners_value) != 4:
+                    raise Rejected("Planar profile requires exactly four normalized corners")
+                initialization_gray = next(gray for index, gray in geometry_frames if index == initialization_frame)
+                initial_height, initial_width = initialization_gray.shape
+                initial_corners = []
+                for corner in corners_value:
+                    checked = exact_object(corner, {"x", "y"}, "planar corner")
+                    initial_corners.append([
+                        bounded_number(checked["x"], "planar corner x", 0, 1) * initial_width,
+                        bounded_number(checked["y"], "planar corner y", 0, 1) * initial_height,
+                    ])
+                initial_corner_array = np.asarray(initial_corners, dtype=np.float32)
+                if abs(float(cv2.contourArea(initial_corner_array))) < 16:
+                    raise Rejected("Planar profile grounding region is too small")
+                planar_frames = track_planar_frames(
+                    geometry_frames, initialization_frame, initial_corner_array,
+                    maximum_features, ransac_threshold,
+                )
         result = {
             "profileId": payload["analysisProfileId"],
             "reportedFrameCount": reported_frame_count,
             "reportedFps": reported_fps,
             "samples": samples,
         }
-        return result, {
+        if track_all_profile:
+            result.update({
+                "authorizedRange": {
+                "startFrameInclusive": start_frame,
+                "endFrameExclusive": end_frame,
+                },
+                "initializationFrameIndex": initialization_frame,
+                "cameraTransforms": camera_transforms,
+                "planarFrames": planar_frames,
+            })
+        semantic = {
             "sourceBytesVerified": True,
             "sampleCount": len(samples),
             "derivedPixelsEmitted": False,
             "fixedTemporaryPathOnly": True,
         }
+        if track_all_profile:
+            semantic.update({
+                "opticalFlowExecuted": True,
+                "homographyExecuted": payload["analysisProfileId"] == "track_all_planar_homography_v1",
+                "cameraTransformCount": len(camera_transforms),
+                "planarFrameCount": len(planar_frames),
+                "trackAllGeometryProfileExecuted": True,
+            })
+        return result, semantic
 
     return with_fixed_media_file(source, analyze)
 

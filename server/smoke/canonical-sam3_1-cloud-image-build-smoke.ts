@@ -42,6 +42,8 @@ import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
+import { release as qualificationRelease } from
+  './canonical-sam3_1-source-checkpoint-qualification-release-owner-smoke'
 
 const candidate = createCanonicalSam31SourceRuntimeCandidate()
 const syntheticIngest = await createSyntheticIngest()
@@ -344,12 +346,18 @@ const buildId = '11111111-1111-4111-8111-111111111111'
 let cloudCalls = 0
 let capturedPostBody: Readonly<Record<string, unknown>> | undefined
 const state = createStatePort()
+const qualificationReleaseReadPort = {
+  async rereadQualificationRelease() {
+    return structuredClone(qualificationRelease)
+  },
+}
 const service = createCanonicalSam31CloudImageBuildService({
   authorityReadPort: {
     async rereadBuildAuthority() {
       return structuredClone(authority)
     },
   },
+  qualificationReleaseReadPort,
   statePort: state.port,
   authenticatedTransport: {
     async request(request) {
@@ -536,6 +544,34 @@ assert.equal(
   contractSupplyChain.releaseHash,
 )
 
+let missingReleaseCloudCalls = 0
+const missingReleaseService = createCanonicalSam31CloudImageBuildService({
+  authorityReadPort: {
+    async rereadBuildAuthority() {
+      return structuredClone(authority)
+    },
+  },
+  qualificationReleaseReadPort: {
+    async rereadQualificationRelease() {
+      return null
+    },
+  },
+  statePort: createStatePort().port,
+  authenticatedTransport: {
+    async request() {
+      missingReleaseCloudCalls += 1
+      throw new Error('Missing release must not reach Cloud Build.')
+    },
+  },
+  now: () => '2026-08-03T13:03:00.000Z',
+})
+assert.equal(
+  (await missingReleaseService.startOneImageBuild({ authorityRef }))
+    .disposition,
+  'rejected_before_creation',
+)
+assert.equal(missingReleaseCloudCalls, 0)
+
 const tamperedAuthority = structuredClone(authority)
 tamperedAuthority.imageDestination.tag =
   'sam31-96914d2-0000000000000000' as never
@@ -545,6 +581,7 @@ const tamperedService = createCanonicalSam31CloudImageBuildService({
       return tamperedAuthority
     },
   },
+  qualificationReleaseReadPort,
   statePort: createStatePort().port,
   authenticatedTransport: {
     async request() {
@@ -571,6 +608,7 @@ const hostileService = createCanonicalSam31CloudImageBuildService({
       return hostileAuthority as never
     },
   },
+  qualificationReleaseReadPort,
   statePort: createStatePort().port,
   authenticatedTransport: {
     async request() {
@@ -593,6 +631,7 @@ const unknownService = createCanonicalSam31CloudImageBuildService({
       return structuredClone(authority)
     },
   },
+  qualificationReleaseReadPort,
   statePort: unknownState.port,
   authenticatedTransport: {
     async request() {
@@ -620,6 +659,7 @@ const lostSubmissionService = createCanonicalSam31CloudImageBuildService({
       return structuredClone(authority)
     },
   },
+  qualificationReleaseReadPort,
   statePort: {
     ...lostSubmissionBaseState.port,
     async persistSubmissionCreateOnly() {
@@ -668,6 +708,7 @@ const wrongSourceService = createCanonicalSam31CloudImageBuildService({
       return structuredClone(authority)
     },
   },
+  qualificationReleaseReadPort,
   statePort: wrongSourceState.port,
   authenticatedTransport: {
     async request(request) {
@@ -711,7 +752,8 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-cloud-image-build',
-  checks: 75,
+  checks: 77,
+  qualificationReleaseRereadRequired: true,
   cloudBuildSubmitted: submission.disposition === 'submitted',
   exactStorageGenerationProvenanceVerified:
     terminal.exactStorageGenerationProvenanceVerified,
@@ -1009,6 +1051,15 @@ function canonicalizeBuildAuthority(
   const clone = structuredClone(value) as Record<string, unknown> & {
     evidenceClass: string
     status: string
+    sourceCheckpointQualificationRef: {
+      id: string
+      version: 1
+      schemaVersion: string
+      contentHash: string
+    }
+    buildClosure: {
+      sourceCheckpointQualificationRecordHash: string
+    }
     authority: {
       privateArtifactBindingReread: boolean
       privateCapsuleReread: boolean
@@ -1024,6 +1075,11 @@ function canonicalizeBuildAuthority(
   clone.authority.privateCapsuleReread = true
   clone.authority.sourceCheckpointQualificationReread = true
   clone.authority.cloudImageBuildAuthorized = true
+  clone.sourceCheckpointQualificationRef = structuredClone(
+    qualificationRelease.sourceCheckpointQualificationRef,
+  )
+  clone.buildClosure.sourceCheckpointQualificationRecordHash =
+    qualificationRelease.qualification.qualificationHash
   return assertCanonicalSam31CloudImageBuildAuthority({
     ...clone,
     authorityHash: sha256AuthorityValue(clone),

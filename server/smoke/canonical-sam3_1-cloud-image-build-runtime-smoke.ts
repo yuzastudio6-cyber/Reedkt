@@ -26,6 +26,8 @@ import {
 } from '../services/canonical-sam3_1-cloud-image-build-runtime'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
+import { release as qualificationRelease } from
+  './canonical-sam3_1-source-checkpoint-qualification-release-owner-smoke'
 
 const objects = new Map<string, Buffer>()
 const objectPort: CanonicalCreateOnlyJsonObjectPort = {
@@ -98,6 +100,11 @@ const repository = createCanonicalSam31CloudImageBuildRepository({
 })
 const runtime = createCanonicalSam31CloudImageBuildRuntime({
   repository,
+  qualificationReleaseReadPort: {
+    async rereadQualificationRelease() {
+      return structuredClone(qualificationRelease)
+    },
+  },
   authenticatedTransport: transport,
   now: () => '2026-08-03T18:00:00.000Z',
 })
@@ -274,11 +281,7 @@ function createAuthority() {
       contentHash: `sha256:${'3'.repeat(64)}` as const,
     },
     sourceCheckpointQualificationRef: {
-      id: 'sam31-source-checkpoint-runtime-smoke',
-      version: 1 as const,
-      schemaVersion:
-        'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1' as const,
-      contentHash: `sha256:${'0'.repeat(64)}` as const,
+      ...qualificationRelease.sourceCheckpointQualificationRef,
     },
     artifactBindingRef: ref('sam31-build-binding-runtime-smoke', '4'.repeat(64)),
     capsuleManifestRef: ref('sam31-capsule-manifest-runtime-smoke', '5'.repeat(64)),
@@ -316,7 +319,8 @@ function createAuthority() {
       patchApplicationReceiptSha256: 'c'.repeat(64),
       artifactBuildBindingRecordHash: '4'.repeat(64),
       artifactBuildBindingFileSha256: 'd'.repeat(64),
-      sourceCheckpointQualificationRecordHash: '0'.repeat(64),
+      sourceCheckpointQualificationRecordHash:
+        qualificationRelease.qualification.qualificationHash,
       sourceCheckpointCompatibilityReceiptSha256: 'e'.repeat(64),
       cudaForwardCompatIngestReceiptSha256: 'f'.repeat(64),
     },

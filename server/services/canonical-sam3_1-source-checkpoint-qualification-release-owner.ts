@@ -214,6 +214,17 @@ export interface CanonicalSam31QualificationReleaseReadPort {
   }): Promise<unknown>
 }
 
+export interface CanonicalSam31QualificationReleaseObjectReadPort {
+  rereadQualificationRelease(input: {
+    readonly sourceCheckpointQualificationRef: {
+      readonly id: string
+      readonly version: 1
+      readonly schemaVersion: string
+      readonly contentHash: string
+    }
+  }): Promise<CanonicalSam31QualificationRelease | null>
+}
+
 const releaseRequestSchema = z.object({
   qualificationId: safeId,
   workerRequestRef: evidenceRefSchema,
@@ -260,6 +271,46 @@ export function assertCanonicalSam31QualificationRelease(
   }
   assertCanonicalSam31SourceCheckpointQualification(parsed.qualification)
   return parsed
+}
+
+export function createCanonicalSam31QualificationReleaseObjectReadPort(input: {
+  readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+}): CanonicalSam31QualificationReleaseObjectReadPort {
+  if (typeof input.objectPort?.readExact !== 'function') {
+    throw new Error('SAM 3.1 qualification release object port is invalid.')
+  }
+  const port: CanonicalSam31QualificationReleaseObjectReadPort = {
+    async rereadQualificationRelease(request) {
+      assertPlainSerializedData(
+        request,
+        'sam31_qualification_release_object_read',
+      )
+      const expected = z.object({
+        id: safeId,
+        version: z.literal(1),
+        schemaVersion: z.literal(
+          CANONICAL_SAM3_1_SOURCE_CHECKPOINT_QUALIFICATION_VERSION,
+        ),
+        contentHash: prefixedSha256,
+      }).strict().parse(request.sourceCheckpointQualificationRef)
+      const body = await input.objectPort.readExact(releasePath(expected.id))
+      if (!body) return null
+      const release = assertCanonicalSam31QualificationRelease(
+        JSON.parse(body.toString('utf8')),
+      )
+      if (
+        release.sourceCheckpointQualificationRef.id !== expected.id
+        || release.sourceCheckpointQualificationRef.version !==
+          expected.version
+        || release.sourceCheckpointQualificationRef.schemaVersion !==
+          expected.schemaVersion
+        || release.sourceCheckpointQualificationRef.contentHash !==
+          expected.contentHash
+      ) throw new Error('SAM 3.1 qualification release object crossed ref.')
+      return release
+    },
+  }
+  return Object.freeze(port)
 }
 
 export function createCanonicalSam31QualificationReleaseOwner(input: {
@@ -567,8 +618,7 @@ async function persistExact(
   release: CanonicalSam31QualificationRelease,
 ): Promise<void> {
   const body = Buffer.from(stableAuthorityStringify(release), 'utf8')
-  const path = 'private/sam3_1/source-checkpoint-qualification/v1/releases/'
-    + `${sha256AuthorityValue(release.qualificationId)}.json`
+  const path = releasePath(release.qualificationId)
   await port.createOnly({
     objectPath: path,
     body,
@@ -579,6 +629,11 @@ async function persistExact(
     throw new Error('SAM 3.1 qualification release reread changed.')
   }
   assertCanonicalSam31QualificationRelease(JSON.parse(reread.toString('utf8')))
+}
+
+function releasePath(qualificationId: string): string {
+  return 'private/sam3_1/source-checkpoint-qualification/v1/releases/'
+    + `${sha256AuthorityValue(safeId.parse(qualificationId))}.json`
 }
 
 function assertRef(value: EvidenceRef, id: string, hash: string): void {

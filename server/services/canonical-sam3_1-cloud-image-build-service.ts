@@ -4,6 +4,10 @@ import {
   assertCanonicalSam31CloudImageBuildAuthority,
   type CanonicalSam31CloudImageBuildAuthority,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
+import {
+  assertCanonicalSam31QualificationRelease,
+  type CanonicalSam31QualificationRelease,
+} from './canonical-sam3_1-source-checkpoint-qualification-release-owner'
 import { sha256AuthorityValue } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_SUBMISSION_VERSION =
@@ -204,6 +208,18 @@ export interface CanonicalSam31CloudImageBuildAuthorityReadPort {
   }): Promise<CanonicalSam31CloudImageBuildAuthority | null>
 }
 
+export interface CanonicalSam31CloudImageBuildQualificationReleaseReadPort {
+  rereadQualificationRelease(input: {
+    readonly sourceCheckpointQualificationRef: {
+      readonly id: string
+      readonly version: 1
+      readonly schemaVersion:
+        'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1'
+      readonly contentHash: string
+    }
+  }): Promise<CanonicalSam31QualificationRelease | null>
+}
+
 export interface CanonicalSam31CloudImageBuildStatePort {
   consumeAuthorityCreateOnly(input: {
     readonly authorityRef: z.infer<typeof authorityRefSchema>
@@ -231,6 +247,8 @@ export interface CanonicalSam31CloudBuildAuthenticatedTransport {
 
 export function createCanonicalSam31CloudImageBuildService(input: {
   readonly authorityReadPort: CanonicalSam31CloudImageBuildAuthorityReadPort
+  readonly qualificationReleaseReadPort:
+    CanonicalSam31CloudImageBuildQualificationReleaseReadPort
   readonly statePort: CanonicalSam31CloudImageBuildStatePort
   readonly authenticatedTransport: CanonicalSam31CloudBuildAuthenticatedTransport
   readonly now?: () => string
@@ -254,6 +272,15 @@ export function createCanonicalSam31CloudImageBuildService(input: {
           || authority.status !== 'authorized_for_private_cloud_build'
           || !authority.authority.cloudImageBuildAuthorized
         ) throw new Error('SAM 3.1 image build authority is not canonical.')
+        const qualificationRelease =
+          assertCanonicalSam31QualificationRelease(
+            await input.qualificationReleaseReadPort
+              .rereadQualificationRelease({
+                sourceCheckpointQualificationRef:
+                  authority.sourceCheckpointQualificationRef,
+              }),
+          )
+        assertQualificationRelease(authority, qualificationRelease)
       } catch {
         return buildSubmission({
           disposition: 'rejected_before_creation',
@@ -483,6 +510,31 @@ export function createCanonicalSam31CloudImageBuildService(input: {
       }
     },
   })
+}
+
+function assertQualificationRelease(
+  authority: CanonicalSam31CloudImageBuildAuthority,
+  release: CanonicalSam31QualificationRelease,
+): void {
+  const expected = authority.sourceCheckpointQualificationRef
+  const actual = release.sourceCheckpointQualificationRef
+  if (
+    release.status !== 'qualified_for_private_image_build'
+    || !release.sourceCheckpointQualificationGranted
+    || !release.privateImageBuildReviewEligible
+    || release.imageBuildStarted
+    || release.runtimeReleaseGranted
+    || release.customerCreditsMutated
+    || release.productionReady
+    || actual.id !== expected.id
+    || actual.version !== expected.version
+    || actual.schemaVersion !== expected.schemaVersion
+    || actual.contentHash !== expected.contentHash
+    || release.qualification.qualificationHash !==
+      expected.contentHash.slice('sha256:'.length)
+  ) throw new Error(
+    'SAM 3.1 image build lacks its exact qualification release.',
+  )
 }
 
 export function assertCanonicalSam31CloudImageBuildSubmission(

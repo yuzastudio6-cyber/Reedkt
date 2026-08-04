@@ -7,6 +7,7 @@ import type {
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
   assertCanonicalSam31QualificationRelease,
+  createCanonicalSam31QualificationReleaseObjectReadPort,
   createCanonicalSam31QualificationReleaseOwner,
   sealCanonicalSam31QualificationSecurityClearance,
   type CanonicalSam31QualificationReleaseReadPort,
@@ -37,7 +38,7 @@ const clearanceRef = ref(clearance.clearanceId, clearance.clearanceHash)
 const store = createObjectPort()
 const owner = createOwner({}, store.port)
 
-const release = await owner.compileAndPersist({
+export const release = await owner.compileAndPersist({
   qualificationId: workerRequest.qualificationId,
   workerRequestRef,
   resultEvidenceRef,
@@ -64,6 +65,32 @@ assert.equal(release.qaApproved, false)
 assert.equal(release.publicDeliveryAuthorized, false)
 assert.equal(release.productionReady, false)
 assert.equal(store.records.size, 1)
+
+const releaseReadPort = createCanonicalSam31QualificationReleaseObjectReadPort({
+  objectPort: store.port,
+})
+assert.deepEqual(
+  await releaseReadPort.rereadQualificationRelease({
+    sourceCheckpointQualificationRef:
+      release.sourceCheckpointQualificationRef,
+  }),
+  release,
+)
+assert.equal(
+  await releaseReadPort.rereadQualificationRelease({
+    sourceCheckpointQualificationRef: {
+      ...release.sourceCheckpointQualificationRef,
+      id: 'missing-sam31-source-checkpoint-qualification',
+    },
+  }),
+  null,
+)
+await assert.rejects(releaseReadPort.rereadQualificationRelease({
+  sourceCheckpointQualificationRef: {
+    ...release.sourceCheckpointQualificationRef,
+    contentHash: `sha256:${'0'.repeat(64)}`,
+  },
+}))
 
 const replay = await owner.compileAndPersist({
   qualificationId: workerRequest.qualificationId,
@@ -173,8 +200,9 @@ assert.doesNotMatch(sourceText, /fetch\(|GoogleAuth|new Storage/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification-release-owner',
-  checks: 39,
+  checks: 42,
   exactCanonicalRereads: true,
+  exactQualificationReleaseReread: true,
   authenticatedSecurityComplianceClearanceRequired: true,
   deterministicA100CompatibilityProbeVerified: true,
   terminalScaleToZeroVerified: true,

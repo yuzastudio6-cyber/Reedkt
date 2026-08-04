@@ -344,5 +344,13 @@ compiled record may qualify the source/checkpoint pair for private image-build
 review. It still grants no runtime, customer-media, billing, public-delivery,
 or production authority.
 
+The Cloud Build execution owner must independently reread that create-only
+qualification release from the private control-plane store before consuming
+its separate image-build authority or making any provider request. The release
+must exact-match the authority's source/checkpoint qualification reference and
+remain limited to private image-build review. A missing, stale, crossed, or
+authority-opened release rejects the build before creation; a caller-provided
+boolean or digest cannot replace the canonical reread.
+
 The canonical source contract is
 `server/model-artifacts/canonical-sam3_1-source-runtime-candidate.ts`.

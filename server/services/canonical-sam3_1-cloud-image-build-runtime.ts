@@ -19,10 +19,14 @@ import {
   createCanonicalSam31CloudImageBuildService,
   type CanonicalSam31CloudBuildAuthenticatedTransport,
   type CanonicalSam31CloudImageBuildAuthorityReadPort,
+  type CanonicalSam31CloudImageBuildQualificationReleaseReadPort,
   type CanonicalSam31CloudImageBuildStatePort,
   type CanonicalSam31CloudImageBuildSubmission,
   type CanonicalSam31CloudImageBuildTerminalObservation,
 } from './canonical-sam3_1-cloud-image-build-service'
+import {
+  createCanonicalSam31QualificationReleaseObjectReadPort,
+} from './canonical-sam3_1-source-checkpoint-qualification-release-owner'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -327,6 +331,8 @@ export function createCanonicalSam31GoogleCloudBuildAuthenticatedTransport(
 
 export function createCanonicalSam31CloudImageBuildRuntime(input: {
   readonly repository: CanonicalSam31CloudImageBuildRepository
+  readonly qualificationReleaseReadPort:
+    CanonicalSam31CloudImageBuildQualificationReleaseReadPort
   readonly authenticatedTransport?: CanonicalSam31CloudBuildAuthenticatedTransport
   readonly auth?: GoogleAuthRequest
   readonly requestTimeoutMilliseconds?: number
@@ -339,6 +345,7 @@ export function createCanonicalSam31CloudImageBuildRuntime(input: {
     })
   const service = createCanonicalSam31CloudImageBuildService({
     authorityReadPort: input.repository,
+    qualificationReleaseReadPort: input.qualificationReleaseReadPort,
     statePort: input.repository,
     authenticatedTransport: transport,
     now: input.now,
@@ -413,6 +420,8 @@ export function createCanonicalSam31GcpCloudImageBuildRuntime(input: {
   })
   const runtime = createCanonicalSam31CloudImageBuildRuntime({
     repository,
+    qualificationReleaseReadPort:
+      createCanonicalSam31QualificationReleaseObjectReadPort({ objectPort }),
     authenticatedTransport: input.authenticatedTransport,
     auth: input.auth,
     requestTimeoutMilliseconds: input.requestTimeoutMilliseconds,

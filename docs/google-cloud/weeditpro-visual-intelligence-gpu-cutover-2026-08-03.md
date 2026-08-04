@@ -128,6 +128,13 @@ idempotent rerun then observed all five disabled and emitted
   offline capsule and build arguments; the fixed runner revalidates the baked
   receipt against the exact versioned runtime-release ref. This gate still
   authorizes neither a cloud build nor a customer GPU attempt by itself.
+- The qualification release owner now separately rereads the exact candidate,
+  private ingest, A100 request/result, terminal Batch/log/resource/cost
+  evidence, and authenticated legal/privacy/trade/security clearance into one
+  create-only release. The Cloud Build execution owner must reread that exact
+  release and cross-bind it to its separate build authority before any provider
+  request. Missing, stale, crossed, or authority-opened release evidence fails
+  before build creation and cannot be replaced by plan fields or booleans.
 - The post-build supply-chain path is now executable source rather than a
   generic evidence placeholder. A separate create-only admission consumes the
   successful immutable image digest and one numeric HSM key version, then a

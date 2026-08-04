@@ -115,6 +115,14 @@ base-image digest or a worker-echoed image field cannot satisfy this boundary.
 The fixed image preserves the canonical dependency wheel-manifest digest and
 the worker rereads it alongside the lock and dependency-closure receipt.
 
+Each qualification attempt mounts only its own generation-bound Cloud Storage
+subdirectory at `/mnt/disks/reeditpro/sam31-qualification`, which is the Batch
+storage-volume path consumed by the fixed worker. The remote subdirectory
+contains exactly `request/request.json`, the read-only checkpoint and probe,
+and an initially empty `result/` directory. This prevents concurrent attempts
+from sharing mutable fixed-path objects while keeping caller paths and mount
+coordinates out of the worker request.
+
 The qualification image is compiled by the qualification phase of the same
 canonical SAM 3.1 Cloud Build owner; it is not a second image-build owner. The
 phase accepts only
@@ -132,6 +140,18 @@ build stops at an immutable image digest pending SBOM reread, vulnerability
 scan, KMS signature, SLSA provenance, and an independent supply-chain release;
 it grants no source/checkpoint qualification, A100 job, customer credit, QA,
 delivery, or production authority.
+
+The executable A100 admission/launch phase is
+`canonical-sam3_1-source-checkpoint-qualification-a100-admission-v1`. It
+rereads the persisted qualification-image supply-chain release, exact worker
+request, attempt-scoped mount observation, and current billing-account-
+effective A100 rate before a durable create-only consumption. It then creates
+one deterministic Google Batch job with the immutable image digest, A100 80 GB
+instance template, zero task retries, no caller command, and the attempt's GCS
+subdirectory. An uncertain create outcome is reconciled by deterministic job
+resource and is never automatically retried. A successful Batch state still
+grants no qualification: the create-only worker result, actual usage/cost,
+network, log, and terminal evidence must be independently reread first.
 
 The existing canonical SAM 3.1 image supply-chain owner also handles the
 qualification image through the explicitly discriminated

@@ -228,7 +228,7 @@ const canonicalEvidenceReadPort =
       },
     },
   })
-const release =
+export const release =
   await prepareAndPersistCanonicalSam31QualificationImageSupplyChainRelease({
   releaseId: 'sam31-qualification-image-supply-chain-release-1',
   authority,

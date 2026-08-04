@@ -215,6 +215,7 @@
     "smoke:source-analysis-orchestra-work-owner": "tsx server/smoke/canonical-source-analysis-orchestra-work-owner-smoke.ts",
     "smoke:sam3_1-official-artifact-publication": "tsx server/smoke/canonical-sam3_1-official-artifact-publication-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts",
+    "smoke:sam3_1-source-checkpoint-qualification-a100": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-a100-phase-smoke.ts",
     "smoke:sam3_1-image-supply-chain-build": "tsx server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-smoke.ts",
     "smoke:sam3_1-image-supply-chain-build-runtime": "tsx server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-runtime-smoke.ts",
     "smoke:visual-intelligence-private-gcs-read": "tsx server/smoke/visual-intelligence-gcs-private-object-read-port-smoke.ts",

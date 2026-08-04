@@ -24,9 +24,9 @@ import {
 } from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
-const candidate = createCanonicalSam31SourceRuntimeCandidate()
+export const candidate = createCanonicalSam31SourceRuntimeCandidate()
 const syntheticIngest = await createSyntheticIngest()
-const canonicalIngest = canonicalizeIngest(syntheticIngest)
+export const canonicalIngest = canonicalizeIngest(syntheticIngest)
 const canonicalWorkerEvidence = workerEvidence()
 const canonicalWorkerObservation =
   createCanonicalSam31SourceCheckpointQualificationObservation(
@@ -176,6 +176,12 @@ assert.doesNotMatch(dockerfile, /sam3\.1_multiplex\.pt/u)
 assert.match(runner, /get_unsafe_globals_in_checkpoint/u)
 assert.match(runner, /strict_checkpoint_load=True/u)
 assert.match(runner, /for ordinal in range\(1, 4\)/u)
+assert.match(
+  runner,
+  /QUALIFICATION_MOUNT = Path\("\/mnt\/disks\/reeditpro\/sam31-qualification"\)/u,
+)
+assert.match(runner, /REQUEST_PATH = QUALIFICATION_MOUNT \/ "request\/request\.json"/u)
+assert.doesNotMatch(runner, /Path\("\/mnt\/reeditpro\//u)
 assert.doesNotMatch(runner, /requests\.|urllib|huggingface_hub/u)
 assert.match(entrypoint, /nvidia_a100_80gb/u)
 assert.match(entrypoint, /exec python -I -B/u)

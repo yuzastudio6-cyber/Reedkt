@@ -48,14 +48,15 @@ PATCH_SHA256 = (
 CHECKPOINT_REVISION = "daa63191845a41281374e725f4c9e51c7a824460"
 CHECKPOINT_FILE = "sam3.1_multiplex.pt"
 
-REQUEST_PATH = Path("/mnt/reeditpro/sam31-qualification/request/request.json")
+QUALIFICATION_MOUNT = Path("/mnt/disks/reeditpro/sam31-qualification")
+REQUEST_PATH = QUALIFICATION_MOUNT / "request/request.json"
 CHECKPOINT_PATH = Path(
-    "/mnt/reeditpro/sam31-qualification/checkpoint/sam3.1_multiplex.pt"
+    "/mnt/disks/reeditpro/sam31-qualification/checkpoint/sam3.1_multiplex.pt"
 )
 FIXTURE_PATH = Path(
-    "/mnt/reeditpro/sam31-qualification/fixture/probe-person.mp4"
+    "/mnt/disks/reeditpro/sam31-qualification/fixture/probe-person.mp4"
 )
-RESULT_PATH = Path("/mnt/reeditpro/sam31-qualification/result/result.json")
+RESULT_PATH = QUALIFICATION_MOUNT / "result/result.json"
 SOURCE_ARCHIVE_PATH = Path(
     "/opt/reeditpro/sam3_1/qualification-artifacts/sam3-source.tar"
 )

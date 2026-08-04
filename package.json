@@ -200,6 +200,7 @@
     "smoke:visual-intelligence-production-runtime": "tsx server/smoke/visual-intelligence-production-runtime-smoke.ts",
     "smoke:visual-intelligence-account-effective-rate": "tsx server/smoke/visual-intelligence-account-effective-rate-read-port-smoke.ts",
     "smoke:visual-intelligence-account-effective-rate-publisher": "tsx server/smoke/visual-intelligence-account-effective-rate-publisher-smoke.ts",
+    "smoke:visual-intelligence-source-cleanup-binding": "tsx server/smoke/source-led-visual-intelligence-content-analysis-smoke.ts",
     "smoke:sam3_1-official-artifact-publication": "tsx server/smoke/canonical-sam3_1-official-artifact-publication-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts",
     "smoke:sam3_1-image-supply-chain-build": "tsx server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-smoke.ts",

@@ -19,6 +19,11 @@ import {
   createVisualIntelligenceCanonicalSourceLedProfessionalContentAnalysisPort,
   type CanonicalVisualIntelligenceSourceTranscriptResult,
 } from '../services/canonical-source-led-visual-intelligence-content-analysis-port'
+import {
+  assertCanonicalSourceCleanupBindingMatchesEvidence,
+  createCanonicalSourceCleanupVisualIntelligenceBinding,
+  verifyCanonicalSourceCleanupVisualIntelligenceBinding,
+} from '../services/canonical-source-cleanup-visual-intelligence-binding'
 import type {
   CanonicalSourceLedContentReasoningSelection,
 } from '../services/canonical-source-led-content-analysis-reasoner'
@@ -631,6 +636,77 @@ const port = createVisualIntelligenceCanonicalSourceLedProfessionalContentAnalys
 })
 const result = await port.analyze(request)
 assert.equal(result.schemaVersion, 'canonical-source-led-content-analysis-evidence-v5')
+const cleanupBinding = createCanonicalSourceCleanupVisualIntelligenceBinding({
+  evidence: result,
+  expectedScope: {
+    workspaceId: request.workspaceId,
+    projectId: request.projectId,
+    editSessionId: request.editSessionId,
+    userInstructionDigestSha256: request.userInstructionDigestSha256,
+  },
+})
+assertCanonicalSourceCleanupBindingMatchesEvidence({
+  binding: cleanupBinding,
+  evidence: result,
+})
+assert.equal(cleanupBinding.totals.originalSourceFrames, 480)
+assert.equal(cleanupBinding.totals.selectedSourceFrames, 300)
+assert.equal(cleanupBinding.totals.selectedMasterTimelineFrames, 375)
+assert.equal(cleanupBinding.totals.selectedRangeCount, 1)
+assert.equal(cleanupBinding.totals.removedRangeCount, 2)
+assert.equal(cleanupBinding.totals.embeddedInstructionCount, 1)
+assert.deepEqual(
+  cleanupBinding.sources[0]!.decisionPartition.map((decision) => ({
+    id: decision.decisionId,
+    action: decision.action,
+    source: [decision.sourceStartFrame, decision.sourceEndFrameExclusive],
+    timeline: [
+      decision.timelineStartFrame,
+      decision.timelineEndFrameExclusive,
+    ],
+  })),
+  [{
+    id: 'remove-first-take',
+    action: 'remove',
+    source: [0, 120],
+    timeline: [null, null],
+  }, {
+    id: 'remove-editor-remark',
+    action: 'remove',
+    source: [120, 180],
+    timeline: [null, null],
+  }, {
+    id: 'keep-better-take',
+    action: 'keep',
+    source: [180, 480],
+    timeline: [0, 375],
+  }],
+)
+assert.equal(
+  cleanupBinding.authority.mediaContainedInstructionsTreatedAsUntrustedEvidence,
+  true,
+)
+assert.equal(cleanupBinding.authority.callerTimestampsAcceptedAsCutAuthority,
+  false)
+assert.equal(cleanupBinding.permissions.timelineMutated, false)
+assert.equal(cleanupBinding.permissions.customerCreditMutated, false)
+await assert.rejects(async () => createCanonicalSourceCleanupVisualIntelligenceBinding({
+  evidence: result,
+  expectedScope: {
+    workspaceId: request.workspaceId,
+    projectId: request.projectId,
+    editSessionId: 'different-edit-session',
+    userInstructionDigestSha256: request.userInstructionDigestSha256,
+  },
+}), /Fresh source cleanup requires exact complete-video/u)
+await assert.rejects(async () => verifyCanonicalSourceCleanupVisualIntelligenceBinding({
+  ...cleanupBinding,
+  totals: {
+    ...cleanupBinding.totals,
+    selectedMasterTimelineFrames:
+      cleanupBinding.totals.selectedMasterTimelineFrames + 1,
+  },
+}), /binding digest is invalid/u)
 const acceptedVisual = canonicalSourceLedVisualIntelligenceEvidenceSchema.parse(
   result.sources[0]!.visual,
 )
@@ -663,7 +739,14 @@ console.log(JSON.stringify({
   visualEvidenceMode: acceptedVisual.evidenceMode,
   fullSourceFrames: result.summary.originalTotalFrames,
   selectedFrames: result.summary.selectedTotalFrames,
+  selectedMasterTimelineFrames:
+    cleanupBinding.totals.selectedMasterTimelineFrames,
   embeddedInstructionDetected: true,
+  embeddedInstructionTreatedAsUntrustedEvidence:
+    cleanupBinding.authority
+      .mediaContainedInstructionsTreatedAsUntrustedEvidence,
+  browserSelectedRangesAccepted:
+    cleanupBinding.authority.browserSelectedRangesAccepted,
   timeOnlyCutDecisionCount: result.summary.timeOnlyCutDecisionCount,
   qwenVisualRuntimeUsed: false,
   visualLifecycleCalls,

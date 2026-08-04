@@ -35,7 +35,7 @@ for (const expected of [
   'roles/cloudbuild.builds.editor',
   'roles/containeranalysis.occurrences.viewer',
   '--uniform-bucket-level-access',
-  '--public-access-prevention=enforced',
+  '--public-access-prevention',
   'create_secret_placeholder HUGGINGFACE_TOKEN',
   'create_secret_placeholder MODEL_WEIGHT_ACCESS_TOKEN',
   '"secretVersionCreated":false',

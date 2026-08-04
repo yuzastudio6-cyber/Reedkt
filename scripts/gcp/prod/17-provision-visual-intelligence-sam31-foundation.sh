@@ -131,13 +131,13 @@ create_protected_bucket() {
       --project="${PROJECT_ID}" \
       --location="${REGION}" \
       --uniform-bucket-level-access \
-      --public-access-prevention=enforced \
+      --public-access-prevention \
       --default-storage-class=STANDARD
   fi
   run_gcloud storage buckets update "gs://${bucket}" \
     --project="${PROJECT_ID}" \
     --uniform-bucket-level-access \
-    --public-access-prevention=enforced \
+    --public-access-prevention \
     --update-labels='app=weeditpro,env=production,scope=sam31'
 }
 

@@ -318,9 +318,9 @@ const created = await createApprovedEditExecutionPackageClient({
   approvedPlanSnapshotId: approvedSnapshot.id,
   approvedSnapshot,
   creditReservationId: 'credit-reservation-client-smoke',
-  requestedAdapterToolNames: ['d3', 'three', 'sam2'],
-  packageReadyToolIds: ['d3', 'three', 'sam2'],
-  modelWeightApprovedToolIds: ['sam2'],
+  requestedAdapterToolNames: ['d3', 'three', 'sam3_1'],
+  packageReadyToolIds: ['d3', 'three', 'sam3_1'],
+  modelWeightApprovedToolIds: ['sam3_1'],
 })
 
 assert.equal(created.ok, true, 'Client should create a mock-safe approved execution package.')
@@ -1464,7 +1464,7 @@ const privateInternalTestRunWithMixedActivities = await createApprovedEditExecut
     'librosa',
     'd3',
     'three',
-    'sam2',
+    'sam3_1',
     'gpac_mp4box_packaging_validation',
   ],
   sourceMediaAssets: [
@@ -1489,11 +1489,11 @@ const mixedActivityGroups = privateInternalTestRunWithMixedActivities.data?.inte
 assert.equal(privateInternalTestRunWithMixedActivities.ok, true, 'Client should create a mixed-activity private internal test run.')
 assert.deepEqual(
   mixedActivityGroups.map((group) => group.label),
-  ['Audio preparation', 'Visual layers', 'Motion graphics', 'Readiness checks', 'Private review package'],
+  ['Audio preparation', 'Visual layers', 'Motion graphics', 'Image cleanup', 'Private review package'],
   'Mock private internal test-run status should group mixed adapter work into human-facing edit areas.',
 )
 assert.equal(
-  /librosa|d3|three|sam2|gpac|mp4box/i.test(JSON.stringify(mixedActivityGroups)),
+  /librosa|d3|three|sam3_1|gpac|mp4box/i.test(JSON.stringify(mixedActivityGroups)),
   false,
   'Mixed private internal test-run activity groups must not expose exact package names.',
 )

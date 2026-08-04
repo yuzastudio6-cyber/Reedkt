@@ -24,7 +24,8 @@ const knownToolPatterns = [
   ['paddleocr', /\bpaddle\s*ocr\b|\bpaddleocr\b/i],
   ['opencv', /\bopen\s*cv\b|\bopencv\b/i],
   ['birefnet', /\bbirefnet\b/i],
-  ['sam2', /\bsam2\b|\bsegment anything\b/i],
+  ['sam3_1', /\bsam(?:\s*|[-_.])?3(?:\.|[-_])?1\b|\bobject multiplex\b|\bsegment anything model 3\.1\b/i],
+  ['sam2', /\bsam2\b|\bsam 2\b/i],
   ['real_esrgan', /\breal[-_ ]?esrgan\b/i],
   ['film', /\bfilm\b|\bslow[-_ ]?motion\b/i],
   ['audioflux', /\baudioflux\b/i],
@@ -106,7 +107,7 @@ export function classifyOwnerLaneFromPr(pr: UnmergedOwnerEvidencePrInput): Unmer
   if (/track\s*a|render|export|native|container|docker|remotion|ffmpeg|ffprobe/i.test(text)) {
     return 'track_a_render_export_native_container'
   }
-  if (/ai graphics|static|motion|chart|model|gpu|opencv|sam2|birefnet|paddleocr|real[-_ ]?esrgan|transparent background/i.test(text)) {
+  if (/ai graphics|static|motion|chart|model|gpu|opencv|sam(?:\s*|[-_.])?(?:2|3(?:\.|[-_])?1)|object multiplex|birefnet|paddleocr|real[-_ ]?esrgan|transparent background/i.test(text)) {
     return 'ai_graphics_static_motion_chart_model_tools'
   }
   if (/web|capture|browser|playwright|screenshot/i.test(text)) {

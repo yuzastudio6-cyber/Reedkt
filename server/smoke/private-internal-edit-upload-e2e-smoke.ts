@@ -310,9 +310,9 @@ try {
       approvedPlanSnapshotId: snapshot.id,
       approvedSnapshot: compactSnapshot,
       creditReservationId: 'credit-reservation-private-upload-e2e',
-      requestedAdapterToolNames: ['d3', 'three', 'sam2'],
-      packageReadyToolIds: ['d3', 'three', 'sam2'],
-      modelWeightApprovedToolIds: ['sam2'],
+      requestedAdapterToolNames: ['d3', 'three', 'sam3_1'],
+      packageReadyToolIds: ['d3', 'three', 'sam3_1'],
+      modelWeightApprovedToolIds: ['sam3_1'],
       internalTestRunOnly: true,
       sourceMediaAssets: [
         {

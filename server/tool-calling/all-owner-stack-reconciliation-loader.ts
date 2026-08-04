@@ -57,6 +57,7 @@ const currentRepoStatuses = new Set<AllOwnerCurrentRepoStatus>([
   'blocked_pending_registry_expansion',
   'evaluation_only',
   'provider_api_only',
+  'historical_read_only',
   'unknown',
 ])
 

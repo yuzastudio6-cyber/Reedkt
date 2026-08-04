@@ -24,6 +24,14 @@ import {
 import {
   createCanonicalGpuWorkerSam2SubprocessRuntimePort,
 } from '../model-artifacts/canonical-gpu-worker-sam2-subprocess-runtime'
+import {
+  classifyOwnerLaneFromPr,
+  extractAffectedToolsFromPr,
+} from '../tool-calling/unmerged-owner-evidence-analyzer'
+import {
+  buildAllOwnerToolReconciliationMatrix,
+  recommendNextToolCallingExpansionMilestones,
+} from '../tool-calling/all-owner-stack-reconciliation-analyzer'
 
 const modelRoleValidation = validateReEditProModelRoleContracts()
 assert.equal(modelRoleValidation.ok, true)
@@ -337,6 +345,63 @@ for (const activeSourcePath of [
   )
 }
 
+for (const currentSam31SourcePath of [
+  'scripts/validation/tool-calling-unmerged-owner-evidence-overlay-diagnostics.mjs',
+  'scripts/validation/tool-calling-all-owner-stack-reconciliation-diagnostics.mjs',
+  'server/smoke/supabase-auth-internal-test-execution-smoke.ts',
+  'server/smoke/edit-execution-package-client-smoke.ts',
+  'server/smoke/gcs-upload-to-private-internal-edit-route-smoke.ts',
+  'server/smoke/gcs-private-internal-test-run-route-smoke.ts',
+  'server/smoke/gcs-source-media-processing-staging-smoke.ts',
+  'server/smoke/private-internal-edit-upload-e2e-smoke.ts',
+]) {
+  const currentSource = readFileSync(currentSam31SourcePath, 'utf8')
+  assert.match(
+    currentSource,
+    /sam3_1/u,
+    `${currentSam31SourcePath} must use the SAM 3.1 identity for current fixture or diagnostic coverage.`,
+  )
+  assert.doesNotMatch(
+    currentSource,
+    /['"]sam2['"]/u,
+    `${currentSam31SourcePath} must not present SAM 2 as a current fixture or diagnostic tool.`,
+  )
+}
+const sam31OwnerEvidence = {
+  title: 'SAM 3.1 Object Multiplex A100 and L4 qualification',
+  files: ['server/model-artifacts/canonical-sam3_1-gpu-runtime-release.ts'],
+}
+assert.deepEqual(extractAffectedToolsFromPr(sam31OwnerEvidence), ['sam3_1'])
+assert.equal(
+  classifyOwnerLaneFromPr(sam31OwnerEvidence),
+  'ai_graphics_static_motion_chart_model_tools',
+)
+assert.deepEqual(
+  extractAffectedToolsFromPr({ title: 'Historical SAM2 evidence audit' }),
+  ['sam2'],
+)
+const ownerReconciliationRows = buildAllOwnerToolReconciliationMatrix()
+const historicalSam2Row = ownerReconciliationRows.find((row) =>
+  row.normalizedToolId === 'sam2')
+assert.equal(
+  historicalSam2Row?.currentRepoStatus.includes('historical_read_only'),
+  true,
+)
+assert.equal(historicalSam2Row?.selectableAsRuntimeTool, false)
+const ownerRecommendations = recommendNextToolCallingExpansionMilestones(
+  ownerReconciliationRows,
+)
+assert.equal(
+  ownerRecommendations.some((milestone) =>
+    milestone.candidateToolIds.includes('sam2')),
+  false,
+)
+assert.equal(
+  ownerRecommendations.some((milestone) =>
+    milestone.candidateToolIds.includes('sam3_1')),
+  true,
+)
+
 console.log(JSON.stringify({
   smoke: 'visual-intelligence-qwen-retirement',
   visualIntelligenceRoleRegistered: true,
@@ -364,6 +429,8 @@ console.log(JSON.stringify({
   sam2ExecutableImageSourceRemoved: true,
   sam2RuntimeCompilerAndSubprocessBlockedBeforeInputRead: true,
   sam31IsOnlyFreshSegmentationReplacement: true,
+  currentDiagnosticsAndFixturesUseSam31: true,
+  historicalSam2ExcludedFromExpansionRecommendations: true,
   historicalEvidenceSchemasPreserved: true,
 }, null, 2))
 

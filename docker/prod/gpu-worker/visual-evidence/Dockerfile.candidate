@@ -1,0 +1,156 @@
+# syntax=docker/dockerfile:1
+#
+# WeEditPro fixed L4 source-visual-evidence image candidate.
+#
+# This image is intentionally separate from the broad GPU worker. It has no
+# runtime installer or model download path and is not dispatch-admissible until
+# its immutable digest and fixed six-tool behavior are independently qualified.
+
+FROM node:24-bookworm@sha256:c63c141d44b95acaaad974613337a25493b054a287e07c6e5b195f1e4cad6dd7 AS server_build
+WORKDIR /app
+ENV NODE_ENV=development
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build:server \
+  && npm prune --omit=dev \
+  && test -f \
+    dist-server/weeditpro-source-analysis-l4-visual-evidence-worker.js
+
+FROM ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlex/paddlex:paddlex3.0.1-paddlepaddle3.0.0-gpu-cuda12.6-cudnn9.5-trt10.5@sha256:555a291984bb03850d4887ca621165f82b150d2b51d78bdcc4050909fef725db
+
+ARG WEEDITPRO_SOURCE_COMMIT_SHA
+ARG WEEDITPRO_SOURCE_TREE_HASH
+ARG WEEDITPRO_SOURCE_CLEAN
+ARG WEEDITPRO_VISUAL_EVIDENCE_REQUIREMENTS_SHA256
+ARG WEEDITPRO_VISUAL_EVIDENCE_FFMPEG_RECEIPT_SHA256
+ARG WEEDITPRO_VISUAL_EVIDENCE_OPENCV_RECEIPT_SHA256
+ARG WEEDITPRO_VISUAL_EVIDENCE_OCR_MODEL_MANIFEST_SHA256
+ARG WEEDITPRO_VISUAL_EVIDENCE_PRIVATE_CAPSULE_MANIFEST_SHA256
+
+LABEL org.opencontainers.image.revision="${WEEDITPRO_SOURCE_COMMIT_SHA}" \
+  io.weeditpro.product="WeEditPro" \
+  io.weeditpro.operation.id="visual_intelligence.analyze_media" \
+  io.weeditpro.image.role="l4-source-visual-evidence" \
+  io.weeditpro.runtime.accelerator="nvidia-l4" \
+  io.weeditpro.runtime.scale="user-triggered-scale-from-zero" \
+  io.weeditpro.runtime.cpu.substantive="forbidden" \
+  io.weeditpro.runtime.network-download="forbidden" \
+  io.weeditpro.runtime.qualification="candidate-only" \
+  io.weeditpro.source.tree="${WEEDITPRO_SOURCE_TREE_HASH}" \
+  io.weeditpro.source.clean="${WEEDITPRO_SOURCE_CLEAN}" \
+  io.reeditpro.compatibility="legacy-cloud-identifiers-only"
+
+ENV NODE_ENV=production \
+  REEDITPRO_RUNTIME_ROLE=l4_source_visual_evidence_worker \
+  HF_HUB_OFFLINE=1 \
+  TRANSFORMERS_OFFLINE=1 \
+  PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True \
+  PIP_DISABLE_PIP_VERSION_CHECK=1 \
+  PIP_NO_INDEX=1 \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  CUDA_MODULE_LOADING=LAZY \
+  NVIDIA_VISIBLE_DEVICES=all \
+  NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
+
+# These files exist only in the private, canonical Cloud Build capsule. The
+# native FFmpeg bundle must expose nvdec and h264_nvenc; the OpenCV wheel must
+# expose CUDA and cudacodec; the PaddleOCR pack must contain reviewed local
+# detection and recognition models. No credential or customer media belongs in
+# this capsule.
+COPY visual_evidence_private_build_input/python/requirements.lock.txt \
+  /tmp/visual-evidence-requirements.lock.txt
+COPY visual_evidence_private_build_input/python/wheelhouse/ \
+  /tmp/visual-evidence-wheelhouse/
+COPY visual_evidence_private_build_input/ffmpeg/ \
+  /tmp/visual-evidence-ffmpeg/
+COPY visual_evidence_private_build_input/opencv/opencv-cuda-receipt.json \
+  /opt/weeditpro/visual-evidence/opencv-cuda-receipt.json
+COPY visual_evidence_private_build_input/paddleocr/ \
+  /opt/weeditpro/visual-evidence/paddleocr-models/
+COPY visual_evidence_private_build_input/ \
+  /tmp/visual-evidence-private-build-input/
+COPY docker/prod/gpu-worker/visual-evidence/runner.py \
+  /opt/weeditpro/visual-evidence/runner.py
+COPY docker/prod/gpu-worker/visual-evidence/verify-private-build-input.py \
+  /opt/weeditpro/visual-evidence/verify-private-build-input.py
+COPY docker/prod/gpu-worker/visual-evidence/source-provenance.lock \
+  /opt/weeditpro/visual-evidence/source-provenance.lock
+
+RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
+    | grep -Eq '^[a-f0-9]{40}$' \
+  && printf '%s' "${WEEDITPRO_SOURCE_TREE_HASH}" \
+    | grep -Eq '^[a-f0-9]{40}$' \
+  && test "${WEEDITPRO_SOURCE_CLEAN}" = 'true' \
+  && WEEDITPRO_VISUAL_EVIDENCE_PRIVATE_CAPSULE_MANIFEST_SHA256="${WEEDITPRO_VISUAL_EVIDENCE_PRIVATE_CAPSULE_MANIFEST_SHA256}" \
+    python -I -B \
+    /opt/weeditpro/visual-evidence/verify-private-build-input.py \
+  && printf '%s  %s\n' \
+    "${WEEDITPRO_VISUAL_EVIDENCE_REQUIREMENTS_SHA256}" \
+    /tmp/visual-evidence-requirements.lock.txt \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    "${WEEDITPRO_VISUAL_EVIDENCE_FFMPEG_RECEIPT_SHA256}" \
+    /tmp/visual-evidence-ffmpeg/ffmpeg-cuda-receipt.json \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    "${WEEDITPRO_VISUAL_EVIDENCE_OPENCV_RECEIPT_SHA256}" \
+    /opt/weeditpro/visual-evidence/opencv-cuda-receipt.json \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    "${WEEDITPRO_VISUAL_EVIDENCE_OCR_MODEL_MANIFEST_SHA256}" \
+    /opt/weeditpro/visual-evidence/paddleocr-models/model-manifest.json \
+    | sha256sum --check --strict \
+  && python -m venv --system-site-packages \
+    /opt/weeditpro/visual-evidence/venv \
+  && /opt/weeditpro/visual-evidence/venv/bin/pip install \
+    --no-index \
+    --no-cache-dir \
+    --ignore-installed \
+    --require-hashes \
+    --find-links=/tmp/visual-evidence-wheelhouse \
+    --requirement=/tmp/visual-evidence-requirements.lock.txt \
+  && install --mode=0555 \
+    /tmp/visual-evidence-ffmpeg/ffmpeg /usr/local/bin/ffmpeg \
+  && install --mode=0555 \
+    /tmp/visual-evidence-ffmpeg/ffprobe /usr/local/bin/ffprobe \
+  && ffmpeg -hide_banner -encoders 2>/dev/null | grep -q 'h264_nvenc' \
+  && ffmpeg -hide_banner -hwaccels 2>/dev/null | grep -q 'cuda' \
+  && /opt/weeditpro/visual-evidence/venv/bin/pip check \
+  && /opt/weeditpro/visual-evidence/venv/bin/python -I -B -c \
+    "import cv2,importlib.metadata as m,paddle; assert cv2.cuda.getCudaEnabledDeviceCount is not None; assert hasattr(cv2,'cudacodec'); assert paddle.is_compiled_with_cuda(); assert m.version('paddlepaddle-gpu') == '3.0.0'; assert m.version('paddlex') == '3.7.0'; assert m.version('scenedetect') == '0.7.1'; assert m.version('paddleocr') == '3.7.0'" \
+  && /opt/weeditpro/visual-evidence/venv/bin/python -m py_compile \
+    /opt/weeditpro/visual-evidence/runner.py \
+  && chmod 0555 /opt/weeditpro/visual-evidence/runner.py \
+  && chmod 0555 \
+    /opt/weeditpro/visual-evidence/verify-private-build-input.py \
+  && chmod 0444 \
+    /opt/weeditpro/visual-evidence/source-provenance.lock \
+    /opt/weeditpro/visual-evidence/opencv-cuda-receipt.json \
+    /opt/weeditpro/visual-evidence/paddleocr-models/model-manifest.json \
+  && rm -rf \
+    /tmp/visual-evidence-requirements.lock.txt \
+    /tmp/visual-evidence-wheelhouse \
+    /tmp/visual-evidence-ffmpeg \
+    /tmp/visual-evidence-private-build-input
+
+COPY --from=server_build /usr/local/bin/node /usr/local/bin/node
+COPY --from=server_build /app/dist-server /app/dist-server
+COPY --from=server_build /app/node_modules /app/node_modules
+COPY --from=server_build /app/package.json /app/package.json
+
+RUN groupadd --gid 65532 weeditpro \
+  && useradd --uid 65532 --gid 65532 --no-create-home \
+    --home-dir /nonexistent --shell /usr/sbin/nologin weeditpro \
+  && mkdir --parents --mode=0700 \
+    /mnt/weeditpro-private/l4-visual-evidence \
+  && chown --recursive 65532:65532 /mnt/weeditpro-private \
+  && test -x /usr/local/bin/node \
+  && test -x /opt/weeditpro/visual-evidence/venv/bin/python \
+  && test -x /opt/weeditpro/visual-evidence/runner.py
+
+USER 65532:65532
+WORKDIR /nonexistent
+ENTRYPOINT []
+CMD ["/usr/local/bin/node", "/app/dist-server/weeditpro-source-analysis-l4-visual-evidence-worker.js"]

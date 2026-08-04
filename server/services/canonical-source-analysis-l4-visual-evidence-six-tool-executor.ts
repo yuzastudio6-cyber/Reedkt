@@ -29,19 +29,22 @@ import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS,
+} from './canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 
 export const
 CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_SIX_TOOL_GPU_EXECUTION_PORT_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-six-tool-gpu-execution-port-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-six-tool-gpu-execution-port-v2' as const
 export const
 CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_SIX_TOOL_EXECUTOR_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-six-tool-executor-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-six-tool-executor-v2' as const
 export const
 CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_SIX_TOOL_GPU_OUTPUT_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-six-tool-gpu-output-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-six-tool-gpu-output-v2' as const
 
 type ArtifactPayload = CanonicalSourceAnalysisL4VisualEvidenceToolArtifact[
   'payload'
@@ -194,6 +197,7 @@ export function assertCanonicalSourceAnalysisL4VisualEvidenceSixToolGpuOutput(
       )
     || tools.some((tool) =>
       !safeVersion(tool.toolVersion)
+      || tool.toolVersion !== expectedArtifactToolVersion(tool.role)
       || !validRef(tool.executionRef)
       || !tool.payload
       || typeof tool.payload !== 'object')
@@ -426,6 +430,17 @@ function toolForRole(role: ArtifactRole) {
       : role === 'pixel_measurement' ? 'opencv' as const
         : role === 'exact_visible_text' ? 'ocr' as const
           : 'ffmpeg' as const
+}
+
+function expectedArtifactToolVersion(role: unknown): string | null {
+  if (
+    typeof role !== 'string'
+    || !CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOL_ARTIFACT_ROLES
+      .includes(role as ArtifactRole)
+  ) return null
+  return CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS[
+    role as ArtifactRole
+  ]
 }
 
 function assertExactRecord(

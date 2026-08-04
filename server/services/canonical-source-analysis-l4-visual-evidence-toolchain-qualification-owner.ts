@@ -22,13 +22,13 @@ import {
 
 export const
 CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOLCHAIN_QUALIFICATION_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-toolchain-qualification-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-toolchain-qualification-v2' as const
 export const
 CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOLCHAIN_QUALIFICATION_OWNER_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner-v2' as const
 export const
 CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOLCHAIN_QUALIFICATION_READ_PORT_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-toolchain-qualification-read-port-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-toolchain-qualification-read-port-v2' as const
 
 const DEFAULT_PREFIX =
   'private/orchestra/v1/source-analysis-l4-visual-evidence-toolchain-qualifications'
@@ -49,6 +49,21 @@ const roles = [
   'media_probe', 'private_media_transform', 'scene_detection',
   'pixel_measurement', 'exact_visible_text', 'sampling_policy',
 ] as const
+export const
+CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS =
+  Object.freeze({
+    media_probe: 'canonical-source-probe-reread-v1',
+    private_media_transform:
+      'ffmpeg-cuda-nvdec-nvenc-private-qualified-v1',
+    scene_detection:
+      'PySceneDetect-0.7.1-adaptive-gpu-metric-adapter-v1',
+    pixel_measurement:
+      'OpenCV-CUDA-cudacodec-private-qualified-v1',
+    exact_visible_text:
+      'PaddleOCR-3.7.0-PP-OCRv6-GPU-private-qualified-v1',
+    sampling_policy:
+      'ffmpeg-cuda-high-detail-sampling-policy-v1',
+  } as const)
 const toolDefinitions = Object.freeze({
   media_probe: {
     tool: 'ffprobe',
@@ -339,6 +354,10 @@ function assertQualificationSemantics(
       const expected = toolDefinitions[item.role]
       return item.tool !== expected.tool
         || item.operationId !== expected.operationId
+        || item.toolVersion !==
+          CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS[
+            item.role
+          ]
     })
     || new Set(refs.map(refKey)).size !== refs.length
   ) throw conflict('l4_visual_toolchain_qualification_semantics_invalid')

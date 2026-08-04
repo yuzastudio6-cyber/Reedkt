@@ -23,6 +23,12 @@ import {
 import {
   createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner,
 } from '../services/canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner'
+import {
+  createCanonicalSourceAnalysisL4VisualEvidenceFixedProcessPort,
+} from '../services/canonical-source-analysis-l4-visual-evidence-fixed-process-port'
+import {
+  createCanonicalSourceAnalysisL4VisualEvidenceSixToolExecutor,
+} from '../services/canonical-source-analysis-l4-visual-evidence-six-tool-executor'
 
 const workerEnvironmentSchema = z.object({
   REEDITPRO_GPU_INVOCATION_ID: z.string().trim().min(1).max(240)
@@ -34,10 +40,13 @@ const workerEnvironmentSchema = z.object({
   REEDITPRO_ENV: z.literal('production'),
 }).passthrough()
 
+let gpuExecutorEntered = false
+
 try {
   const environment = workerEnvironmentSchema.parse(process.env)
+  const storage = new Storage({ projectId: 'reeditpro' })
   const objectPort = createCanonicalGcsSourceAnalysisJsonObjectPort({
-    storage: new Storage({ projectId: 'reeditpro' }),
+    storage,
     bucketName: environment.GCS_CONTROL_PLANE_STATE_BUCKET,
   })
   const authorityRepository =
@@ -65,6 +74,15 @@ try {
     createCanonicalSourceAnalysisL4VisualEvidenceToolArtifactOwner({
       objectPort,
     })
+  const executor =
+    createCanonicalSourceAnalysisL4VisualEvidenceSixToolExecutor({
+      executionPort:
+        createCanonicalSourceAnalysisL4VisualEvidenceFixedProcessPort({
+          storage,
+        }),
+      toolArtifactOwner,
+      workerEvidenceOwner,
+    })
   const result = await bootstrapOwner.bootstrap(
     environment.REEDITPRO_GPU_INVOCATION_ID,
   )
@@ -81,38 +99,39 @@ try {
     }))
     process.exitCode = 2
   } else {
-    // This entrypoint intentionally stops after the exact durable bootstrap.
-    // A later release must inject the separately qualified six-tool GPU
-    // executor and terminal evidence owner. Starting the API server, guessing
-    // a source path, or treating bootstrap as completed work is forbidden.
-    console.error(JSON.stringify({
-      ok: false,
-      status: 'blocked',
-      requiredGate:
-        'source_visual_evidence_six_tool_gpu_executor_not_qualified',
-      invocationRef: {
-        id: result.bootstrap.invocationId,
-        bootstrapDigestSha256: result.bootstrap.bootstrapDigestSha256,
-      },
-      workerEvidenceOwnerVersion: workerEvidenceOwner.schemaVersion,
-      toolArtifactOwnerVersion: toolArtifactOwner.ownerVersion,
-      toolchainQualificationOwnerVersion:
-        toolchainQualificationOwner.ownerVersion,
-      gpuToolExecutionStarted: false,
+    gpuExecutorEntered = true
+    const completed = await executor.executeAndPersist(result.bootstrap)
+    console.log(JSON.stringify({
+      ok: true,
+      status: completed.status,
+      invocationId: completed.invocationId,
+      toolArtifactRefs: completed.toolArtifactRefs,
+      workerEvidenceRef: completed.workerEvidenceRef,
+      exactCreateOnlyArtifactAndWorkerEvidenceRereadVerified:
+        completed.exactCreateOnlyArtifactAndWorkerEvidenceRereadVerified,
+      gpuToolExecutionStarted: true,
       substantiveCpuMediaProcessingUsed: false,
       runtimeModelOrToolDownloadPerformed: false,
-      customerCreditMutated: false,
-      publicDeliveryGranted: false,
-      productionAuthorityGranted: false,
+      terminalCloudRunExecutionClaimed:
+        completed.terminalCloudRunExecutionClaimed,
+      scaleBackToZeroClaimedByWorker:
+        completed.scaleBackToZeroClaimedByWorker,
+      accountEffectiveCostClaimedByWorker:
+        completed.accountEffectiveCostClaimedByWorker,
+      customerCreditMutated: completed.customerCreditMutated,
+      publicDeliveryGranted: completed.publicDeliveryGranted,
+      productionAuthorityGranted: completed.productionAuthorityGranted,
     }))
-    process.exitCode = 2
   }
 } catch (error) {
   console.error(JSON.stringify({
     ok: false,
     status: 'rejected',
     errorCode: safeErrorCode(error),
-    gpuToolExecutionStarted: false,
+    gpuToolExecutionState: gpuExecutorEntered
+      ? 'unknown_requires_terminal_reconciliation'
+      : 'not_started',
+    gpuToolExecutionStartedVerified: false,
     substantiveCpuMediaProcessingUsed: false,
     runtimeModelOrToolDownloadPerformed: false,
     customerCreditMutated: false,
@@ -125,5 +144,7 @@ try {
 function safeErrorCode(error: unknown): string {
   if (error instanceof ApiError) return error.code
   if (error instanceof z.ZodError) return 'WORKER_ENVIRONMENT_INVALID'
-  return 'L4_VISUAL_EVIDENCE_WORKER_BOOTSTRAP_FAILED'
+  return gpuExecutorEntered
+    ? 'L4_VISUAL_EVIDENCE_WORKER_EXECUTION_FAILED'
+    : 'L4_VISUAL_EVIDENCE_WORKER_BOOTSTRAP_FAILED'
 }

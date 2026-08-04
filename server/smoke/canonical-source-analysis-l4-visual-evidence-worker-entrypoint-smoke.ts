@@ -5,7 +5,9 @@ const cli = source(
   'server/cli/run-weeditpro-source-analysis-l4-visual-evidence-worker.ts',
 )
 const build = source('vite.server.config.ts')
-const docker = source('docker/prod/gpu-worker/Dockerfile')
+const docker = source(
+  'docker/prod/gpu-worker/visual-evidence/Dockerfile.candidate',
+)
 const deploy = source('scripts/gcp/prod/10-deploy-gpu-worker-job.example.sh')
 const attemptOwner = source(
   'server/services/canonical-source-analysis-l4-visual-evidence-attempt-owner.ts',
@@ -17,7 +19,7 @@ assert.match(
 )
 assert.match(
   docker,
-  /CMD \["node", "dist-server\/weeditpro-source-analysis-l4-visual-evidence-worker\.js"\]/u,
+  /CMD \["\/usr\/local\/bin\/node", "\/app\/dist-server\/weeditpro-source-analysis-l4-visual-evidence-worker\.js"\]/u,
 )
 assert.doesNotMatch(
   docker,
@@ -37,15 +39,26 @@ assert.match(
   cli,
   /createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner/u,
 )
+assert.match(
+  cli,
+  /createCanonicalSourceAnalysisL4VisualEvidenceFixedProcessPort/u,
+)
+assert.match(
+  cli,
+  /createCanonicalSourceAnalysisL4VisualEvidenceSixToolExecutor/u,
+)
 assert.match(cli, /new Storage\(\{ projectId: 'reeditpro' \}\)/u)
 assert.match(cli, /REEDITPRO_GPU_INVOCATION_ID/u)
 assert.match(cli, /WORKER_GROUP: z\.literal\('l4_standard_primary'\)/u)
 assert.match(cli, /REEDITPRO_ENV: z\.literal\('production'\)/u)
-assert.match(
+assert.doesNotMatch(
   cli,
   /source_visual_evidence_six_tool_gpu_executor_not_qualified/u,
 )
-assert.match(cli, /gpuToolExecutionStarted: false/u)
+assert.match(cli, /executeAndPersist\(result\.bootstrap\)/u)
+assert.match(cli, /gpuToolExecutionStarted: true/u)
+assert.match(cli, /unknown_requires_terminal_reconciliation/u)
+assert.match(cli, /gpuToolExecutionStartedVerified: false/u)
 assert.match(cli, /substantiveCpuMediaProcessingUsed: false/u)
 assert.match(cli, /runtimeModelOrToolDownloadPerformed: false/u)
 assert.match(cli, /customerCreditMutated: false/u)
@@ -75,7 +88,8 @@ console.log(JSON.stringify({
   staticWorkerConfigurationContainsPrivateControlBucket: true,
   runtimeDownloadAllowed: false,
   substantiveCpuMediaProcessingAllowed: false,
-  unqualifiedSixToolExecutionStarted: false,
+  qualifiedSixToolExecutorWired: true,
+  bootstrapStillRequiresQualifiedToolchain: true,
   customerCreditMutated: false,
   publicDeliveryGranted: false,
   productionAuthorityGranted: false,

@@ -472,12 +472,12 @@ assert.equal(
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceToolchainQualificationOwner
     .schemaVersion,
-  'canonical-source-analysis-l4-visual-evidence-toolchain-qualification-read-port-v1',
+  'canonical-source-analysis-l4-visual-evidence-toolchain-qualification-read-port-v2',
 )
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceToolchainQualificationOwner
     .ownerVersion,
-  'canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner-v1',
+  'canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner-v2',
 )
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceTerminalReconciliationOwner

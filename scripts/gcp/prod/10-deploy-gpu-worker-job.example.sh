@@ -45,6 +45,7 @@ run_gcloud run jobs deploy reeditpro-professional-l4 \
   --tasks=1 \
   --parallelism=1 \
   --max-retries=0 \
+  --add-volume="mount-path=/mnt/weeditpro-private/l4-visual-evidence,type=in-memory,size-limit=24Gi" \
   --set-env-vars="REEDITPRO_ENV=production,WORKER_GROUP=l4_standard_primary,GCS_CONTROL_PLANE_STATE_BUCKET=${CONTROL_PLANE_STATE_BUCKET}" \
   --labels="app=weeditpro,route=l4-standard-primary,scale=zero"
 

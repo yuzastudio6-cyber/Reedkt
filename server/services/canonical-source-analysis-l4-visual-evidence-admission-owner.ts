@@ -56,7 +56,8 @@ export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_CURRENT_RATE_READ_PORT
   'canonical-source-analysis-l4-visual-evidence-current-rate-read-port-v1' as const
 
 const MAXIMUM_EXECUTION_MILLISECONDS = 900_000
-const MAXIMUM_PRIVATE_ARTIFACT_BYTES = 8 * 1024 ** 3
+const MAXIMUM_SOURCE_BYTES = 10 * 1024 ** 3
+const MAXIMUM_PRIVATE_ARTIFACT_BYTES = 24 * 1024 ** 3
 const PRIVATE_ARTIFACT_RETENTION_MILLISECONDS = 30 * 24 * 60 * 60 * 1_000
 const ADMISSION_TTL_MILLISECONDS = 10 * 60 * 1_000
 const MAXIMUM_TRIGGER_AGE_MILLISECONDS = 24 * 60 * 60 * 1_000
@@ -173,6 +174,9 @@ createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner(input: Readonly<{
       }
       if (source.storageProvider !== 'google_cloud_storage') {
         throw conflict('source_visual_evidence_admission_storage_invalid')
+      }
+      if (source.byteLength > MAXIMUM_SOURCE_BYTES) {
+        throw conflict('source_visual_evidence_admission_source_bound_exceeded')
       }
       const authority = source.managedApiAuthority
       const finalizedRaw = await input.finalizedAuthorityReadPort

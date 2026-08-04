@@ -33,6 +33,7 @@ const smokes = [
   'server/smoke/canonical-source-analysis-l4-visual-evidence-tool-artifact-owner-smoke.ts',
   'server/smoke/canonical-source-analysis-l4-visual-evidence-toolchain-qualification-smoke.ts',
   'server/smoke/canonical-source-analysis-l4-visual-evidence-worker-entrypoint-smoke.ts',
+  'server/smoke/canonical-source-analysis-l4-visual-evidence-fixed-process-port-smoke.ts',
   'server/smoke/canonical-source-analysis-l4-visual-evidence-terminal-reconciliation-smoke.ts',
   'server/smoke/canonical-source-transcript-orchestra-repository-smoke.ts',
   'server/smoke/canonical-source-transcript-a100-attempt-owner-smoke.ts',

@@ -8,6 +8,7 @@ import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS,
   assertCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification,
   createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification,
   createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner,
@@ -86,7 +87,10 @@ const qualification =
       role,
       tool,
       operationId,
-      toolVersion: `qualified-${tool}-${index + 1}-v1`,
+      toolVersion:
+        CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS[
+          role
+        ],
       runtimeReleaseRef: ref(`tool-release-${index + 1}`),
       immutableToolArtifactSha256: sha(`tool-artifact-${index + 1}`),
       gpuExecutionEvidenceRef: ref(`gpu-execution-${index + 1}`),
@@ -136,7 +140,9 @@ const reread = await owner.readExact(qualificationRef)
 assert.ok(reread)
 ;(reread!.toolReleases[1] as { toolVersion: string }).toolVersion = 'mutated'
 assert.equal((await owner.readExact(qualificationRef))?.toolReleases[1]
-  ?.toolVersion, 'qualified-ffmpeg-2-v1')
+  ?.toolVersion,
+CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS
+  .private_media_transform)
 
 const { qualificationDigestSha256: ignoredDigest, ...payload } = qualification
 void ignoredDigest
@@ -174,12 +180,27 @@ assert.throws(() =>
     qualificationDigestSha256: sha256AuthorityValue(reorderedToolPayload),
   }),
 )
+const wrongToolVersionPayload = {
+  ...payload,
+  toolReleases: payload.toolReleases.map((item, index) => index === 1
+    ? { ...item, toolVersion: 'caller-invented-ffmpeg-version' }
+    : item),
+}
+assert.throws(() =>
+  assertCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification({
+    ...wrongToolVersionPayload,
+    qualificationDigestSha256: sha256AuthorityValue(
+      wrongToolVersionPayload,
+    ),
+  }),
+)
 
 console.log(JSON.stringify({
   ok: true,
   ownerVersion: owner.ownerVersion,
   exactImageSupplyChainBound: true,
   fixedSixToolOrderBound: true,
+  fixedQualifiedToolVersionsBound: true,
   actualL4QualificationRequired: true,
   threeRunDeterminismRequired: true,
   nvdecNvencOpenCvCudaAndPaddleGpuRequired: true,

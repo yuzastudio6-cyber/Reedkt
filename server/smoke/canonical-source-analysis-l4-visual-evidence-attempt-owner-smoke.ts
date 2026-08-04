@@ -63,6 +63,7 @@ import {
   createCanonicalSourceAnalysisL4VisualEvidenceSixToolGpuOutput,
 } from '../services/canonical-source-analysis-l4-visual-evidence-six-tool-executor'
 import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS,
   createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification,
   createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner,
   getCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationRef,
@@ -263,7 +264,10 @@ const toolchainQualification =
       tool: [
         'ffprobe', 'ffmpeg', 'pyscenedetect', 'opencv', 'ocr', 'ffmpeg',
       ][index] as 'ffprobe' | 'ffmpeg' | 'pyscenedetect' | 'opencv' | 'ocr',
-      toolVersion: `qualified-tool-${index + 1}-v1`,
+      toolVersion:
+        CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS[
+          item.role
+        ],
       immutableToolArtifactSha256: sha(`tool-artifact-${index + 1}`),
       gpuExecutionEvidenceRef: ref(`tool-gpu-evidence-${index + 1}`),
     })),
@@ -883,7 +887,9 @@ const sixToolGpuOutput =
       ref('l4-complete-source-coverage-evidence'),
     tools: [{
       role: 'private_media_transform',
-      toolVersion: 'ffmpeg-nvdec-qualified-v1',
+      toolVersion:
+        CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS
+          .private_media_transform,
       executionRef: ref('l4-transform-execution'),
       payload: {
         kind: 'private_media_transform',
@@ -898,7 +904,9 @@ const sixToolGpuOutput =
       },
     }, {
       role: 'scene_detection',
-      toolVersion: 'pyscenedetect-qualified-v1',
+      toolVersion:
+        CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS
+          .scene_detection,
       executionRef: ref('l4-scene-execution'),
       payload: {
         kind: 'scene_detection',
@@ -916,7 +924,9 @@ const sixToolGpuOutput =
       },
     }, {
       role: 'pixel_measurement',
-      toolVersion: 'opencv-cuda-qualified-v1',
+      toolVersion:
+        CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS
+          .pixel_measurement,
       executionRef: ref('l4-pixel-execution'),
       payload: {
         kind: 'pixel_measurement',
@@ -935,7 +945,9 @@ const sixToolGpuOutput =
       },
     }, {
       role: 'exact_visible_text',
-      toolVersion: 'paddleocr-gpu-qualified-v1',
+      toolVersion:
+        CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS
+          .exact_visible_text,
       executionRef: ref('l4-ocr-execution'),
       payload: {
         kind: 'exact_visible_text',
@@ -953,7 +965,9 @@ const sixToolGpuOutput =
       },
     }, {
       role: 'sampling_policy',
-      toolVersion: 'ffmpeg-nvdec-qualified-v1',
+      toolVersion:
+        CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS
+          .sampling_policy,
       executionRef: ref('l4-sampling-execution'),
       payload: {
         kind: 'sampling_policy',
@@ -1019,6 +1033,14 @@ const {
 } = sixToolGpuOutput
 void ignoredSixToolOutputVersion
 void ignoredSixToolOutputDigest
+assert.throws(() =>
+  createCanonicalSourceAnalysisL4VisualEvidenceSixToolGpuOutput({
+    ...sixToolOutputPayload,
+    tools: sixToolOutputPayload.tools.map((item, index) => index === 0
+      ? { ...item, toolVersion: 'caller-invented-tool-version' }
+      : item),
+  }),
+)
 const wrongInvocationOutput =
   createCanonicalSourceAnalysisL4VisualEvidenceSixToolGpuOutput({
     ...sixToolOutputPayload,
@@ -1054,7 +1076,8 @@ assert.ok(detachedWorkerEvidence)
 assert.equal(
   (await workerEvidenceOwner.readExact(invocationId))?.toolEvidence[1]
     ?.toolVersion,
-  'ffmpeg-nvdec-qualified-v1',
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_QUALIFIED_TOOL_VERSIONS
+    .private_media_transform,
 )
 const {
   workerEvidenceDigestSha256: ignoredWorkerEvidenceDigest,

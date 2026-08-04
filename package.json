@@ -207,6 +207,7 @@
     "smoke:source-analysis-l4-visual-evidence-toolchain": "tsx server/smoke/canonical-source-analysis-l4-visual-evidence-toolchain-qualification-smoke.ts",
     "smoke:source-analysis-l4-visual-evidence-attempt": "tsx server/smoke/canonical-source-analysis-l4-visual-evidence-attempt-owner-smoke.ts",
     "smoke:source-analysis-l4-visual-evidence-worker-entrypoint": "tsx server/smoke/canonical-source-analysis-l4-visual-evidence-worker-entrypoint-smoke.ts",
+    "smoke:source-analysis-l4-visual-evidence-fixed-process": "tsx server/smoke/canonical-source-analysis-l4-visual-evidence-fixed-process-port-smoke.ts",
     "smoke:source-analysis-l4-visual-evidence-terminal": "tsx server/smoke/canonical-source-analysis-l4-visual-evidence-terminal-reconciliation-smoke.ts",
     "smoke:source-transcript-orchestra-repository": "tsx server/smoke/canonical-source-transcript-orchestra-repository-smoke.ts",
     "smoke:source-transcript-a100-attempt-owner": "tsx server/smoke/canonical-source-transcript-a100-attempt-owner-smoke.ts",

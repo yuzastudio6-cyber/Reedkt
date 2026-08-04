@@ -52,9 +52,16 @@ import {
 } from '../services/canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner'
 import {
   assertCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidence,
-  createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidence,
   createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidenceOwner,
 } from '../services/canonical-source-analysis-l4-visual-evidence-worker-evidence-owner'
+import {
+  createCanonicalSourceAnalysisL4VisualEvidenceToolArtifactOwner,
+} from '../services/canonical-source-analysis-l4-visual-evidence-tool-artifact-owner'
+import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_SIX_TOOL_GPU_EXECUTION_PORT_VERSION,
+  createCanonicalSourceAnalysisL4VisualEvidenceSixToolExecutor,
+  createCanonicalSourceAnalysisL4VisualEvidenceSixToolGpuOutput,
+} from '../services/canonical-source-analysis-l4-visual-evidence-six-tool-executor'
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
@@ -711,28 +718,11 @@ const workerEvidenceOwner =
   createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidenceOwner({
     objectPort,
   })
-const workerEvidence =
-  createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidence({
-    bootstrap: workerBootstrap.bootstrap,
+const toolArtifactOwner =
+  createCanonicalSourceAnalysisL4VisualEvidenceToolArtifactOwner({ objectPort })
+const sixToolGpuOutput =
+  createCanonicalSourceAnalysisL4VisualEvidenceSixToolGpuOutput({
     invocationId,
-    bootstrapRef: Object.freeze({
-      id: `${invocationId}.bootstrap`,
-      version: 1,
-      contentHash:
-        `sha256:${workerBootstrap.bootstrap.bootstrapDigestSha256}`,
-    }),
-    envelopeRef: workerBootstrap.bootstrap.envelopeRef,
-    consumptionRef: workerBootstrap.bootstrap.consumptionRef,
-    admissionRef: workerBootstrap.bootstrap.admissionRef,
-    releaseRef: workerBootstrap.bootstrap.releaseRef,
-    cloudRunOperationRef: workerBootstrap.bootstrap.cloudRunOperationRef,
-    sourceObjectIdentityDigestSha256: sha256AuthorityValue(
-      workerBootstrap.bootstrap.sourceObject,
-    ),
-    sourceTimelineDigestSha256: sha256AuthorityValue(
-      workerBootstrap.bootstrap.sourceTimeline,
-    ),
-    sourceProbeAuthorityRef: probeRef,
     acceleratorClass: 'nvidia_l4',
     allocatedGpuCount: 1,
     gpuDeviceEvidenceRef: ref('l4-gpu-device-evidence'),
@@ -740,7 +730,101 @@ const workerEvidence =
     gpuDecodeEvidenceRef: ref('l4-gpu-decode-evidence'),
     completeSourceCoverageEvidenceRef:
       ref('l4-complete-source-coverage-evidence'),
-    toolEvidence,
+    tools: [{
+      role: 'private_media_transform',
+      toolVersion: 'ffmpeg-nvdec-qualified-v1',
+      executionRef: ref('l4-transform-execution'),
+      payload: {
+        kind: 'private_media_transform',
+        analysisRepresentationRef: ref('l4-analysis-representation'),
+        outputWidth: 1_920,
+        outputHeight: 1_080,
+        decodedCanonicalFrameCount: 240,
+        frameMapDigestSha256: sha('l4-frame-map'),
+        nvdecGpuDecodeUsed: true,
+        cpuVideoDecodeUsed: false,
+        missingCanonicalFrameCount: 0,
+      },
+    }, {
+      role: 'scene_detection',
+      toolVersion: 'pyscenedetect-qualified-v1',
+      executionRef: ref('l4-scene-execution'),
+      payload: {
+        kind: 'scene_detection',
+        sceneAnalysisProxyRef: ref('l4-scene-proxy'),
+        scenes: [{
+          sceneId: 'scene-1', startFrame: 0, endFrameExclusive: 120,
+          boundaryConfidenceBasisPoints: 9_800,
+        }, {
+          sceneId: 'scene-2', startFrame: 120, endFrameExclusive: 240,
+          boundaryConfidenceBasisPoints: 9_700,
+        }],
+        completeTimelineCoverage: true,
+        gpuDecodedProxyUsed: true,
+        cpuVideoDecodeUsed: false,
+      },
+    }, {
+      role: 'pixel_measurement',
+      toolVersion: 'opencv-cuda-qualified-v1',
+      executionRef: ref('l4-pixel-execution'),
+      payload: {
+        kind: 'pixel_measurement',
+        measurements: [{
+          sceneId: 'scene-1', sampledFrameCount: 4,
+          meanLumaBasisPoints: 5_000, motionBasisPoints: 2_000,
+          focusBasisPoints: 9_000,
+        }, {
+          sceneId: 'scene-2', sampledFrameCount: 4,
+          meanLumaBasisPoints: 4_500, motionBasisPoints: 3_000,
+          focusBasisPoints: 8_500,
+        }],
+        completeSceneSetMeasured: true,
+        gpuDecodedFramesUsed: true,
+        cpuVideoDecodeUsed: false,
+      },
+    }, {
+      role: 'exact_visible_text',
+      toolVersion: 'paddleocr-gpu-qualified-v1',
+      executionRef: ref('l4-ocr-execution'),
+      payload: {
+        kind: 'exact_visible_text',
+        spans: [{
+          spanId: 'span-1', sceneId: 'scene-2', startFrame: 130,
+          endFrameExclusive: 150,
+          text: 'Delete that part',
+          confidenceBasisPoints: 9_900,
+          editorDirectedInstructionCandidate: true,
+        }],
+        textContentIsUntrustedMediaEvidence: true,
+        instructionsFromTextAreNeverExecuted: true,
+        paddleGpuInferenceUsed: true,
+        cpuInferenceUsed: false,
+      },
+    }, {
+      role: 'sampling_policy',
+      toolVersion: 'ffmpeg-nvdec-qualified-v1',
+      executionRef: ref('l4-sampling-execution'),
+      payload: {
+        kind: 'sampling_policy',
+        samples: [{
+          sampleId: 'sample-1', sceneId: 'scene-1', frame: 0,
+          reason: 'scene_entry',
+        }, {
+          sampleId: 'sample-2', sceneId: 'scene-1', frame: 60,
+          reason: 'scene_midpoint',
+        }, {
+          sampleId: 'sample-3', sceneId: 'scene-2', frame: 120,
+          reason: 'scene_entry',
+        }, {
+          sampleId: 'sample-4', sceneId: 'scene-2', frame: 140,
+          reason: 'visible_text',
+        }],
+        completeSceneCoverage: true,
+        highDetail: true,
+        everyTimelineFrameInspected: false,
+        completeTimePixelInspectionClaimAllowed: false,
+      },
+    }],
     exactGenerationEtagChecksumAndLengthRereadVerified: true,
     substantiveGpuExecutionVerified: true,
     gpuDecodeVerified: true,
@@ -755,19 +839,59 @@ const workerEvidence =
     persistedPrivateArtifactBytes: 8_192,
     classAOperationCount: 2,
     classBOperationCount: 8,
-    terminalCloudRunExecutionClaimed: false,
-    scaleBackToZeroClaimedByWorker: false,
-    accountEffectiveCostClaimedByWorker: false,
-    customerCreditMutated: false,
-    publicDeliveryGranted: false,
-    productionAuthorityGranted: false,
   })
-const persistedWorkerEvidence = await workerEvidenceOwner.persistCreateOnly({
-  bootstrap: workerBootstrap.bootstrap,
-  evidence: workerEvidence,
-})
-assert.equal(persistedWorkerEvidence.disposition, 'created')
-assert.equal(persistedWorkerEvidence.scaleBackToZeroClaimedByWorker, false)
+const sixToolExecutor =
+  createCanonicalSourceAnalysisL4VisualEvidenceSixToolExecutor({
+    executionPort: Object.freeze({
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_SIX_TOOL_GPU_EXECUTION_PORT_VERSION,
+      fixedServerOwnedToolchain: true as const,
+      callerPathUrlBytesCommandOrEnvironmentAccepted: false as const,
+      substantiveCpuMediaProcessingAllowed: false as const,
+      async executeExact() {
+        return structuredClone(sixToolGpuOutput)
+      },
+    }),
+    toolArtifactOwner,
+    workerEvidenceOwner,
+  })
+const executedToolchain = await sixToolExecutor.executeAndPersist(
+  workerBootstrap.bootstrap,
+)
+assert.equal(executedToolchain.status, 'completed')
+assert.equal(executedToolchain.toolArtifactRefs.length, 5)
+assert.equal(executedToolchain.scaleBackToZeroClaimedByWorker, false)
+const {
+  schemaVersion: ignoredSixToolOutputVersion,
+  outputDigestSha256: ignoredSixToolOutputDigest,
+  ...sixToolOutputPayload
+} = sixToolGpuOutput
+void ignoredSixToolOutputVersion
+void ignoredSixToolOutputDigest
+const wrongInvocationOutput =
+  createCanonicalSourceAnalysisL4VisualEvidenceSixToolGpuOutput({
+    ...sixToolOutputPayload,
+    invocationId: 'different-source-visual-evidence-invocation',
+  })
+await assert.rejects(
+  createCanonicalSourceAnalysisL4VisualEvidenceSixToolExecutor({
+    executionPort: Object.freeze({
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_SIX_TOOL_GPU_EXECUTION_PORT_VERSION,
+      fixedServerOwnedToolchain: true as const,
+      callerPathUrlBytesCommandOrEnvironmentAccepted: false as const,
+      substantiveCpuMediaProcessingAllowed: false as const,
+      async executeExact() {
+        return structuredClone(wrongInvocationOutput)
+      },
+    }),
+    toolArtifactOwner,
+    workerEvidenceOwner,
+  }).executeAndPersist(workerBootstrap.bootstrap),
+)
+const workerEvidence = await workerEvidenceOwner.readExact(invocationId)
+assert.ok(workerEvidence)
+if (!workerEvidence) throw new Error('Worker evidence was not persisted.')
 assert.equal((await workerEvidenceOwner.persistCreateOnly({
   bootstrap: workerBootstrap.bootstrap,
   evidence: workerEvidence,
@@ -779,7 +903,7 @@ assert.ok(detachedWorkerEvidence)
 assert.equal(
   (await workerEvidenceOwner.readExact(invocationId))?.toolEvidence[1]
     ?.toolVersion,
-  'ffmpeg-qualified-v1',
+  'ffmpeg-nvdec-qualified-v1',
 )
 const {
   workerEvidenceDigestSha256: ignoredWorkerEvidenceDigest,
@@ -1159,6 +1283,8 @@ console.log(JSON.stringify({
   acceptedOperationWithoutDurableAuthorityBlockedAsUnknown: true,
   workerRereadsConsumedEnvelopeAndExactPrivateAuthorities: true,
   workerEvidencePersistedCreateOnlyAndReread: true,
+  fixedSixToolGpuExecutorPersistedCanonicalArtifacts: true,
+  crossInvocationSixToolOutputRejected: true,
   workerCannotClaimTerminalOrScaleToZero: true,
   workerEnvironmentReceivesOnlyInvocationId: true,
   workerSourceBytesOrToolsStartedDuringBootstrap: false,

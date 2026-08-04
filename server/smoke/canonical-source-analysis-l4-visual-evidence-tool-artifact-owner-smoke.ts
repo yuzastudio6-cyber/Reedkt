@@ -305,19 +305,27 @@ assert.doesNotMatch(ocrProjection, /Delete that part/u)
 assert.doesNotMatch(ocrProjection, /https:\/\//u)
 assert.match(ocrProjection, /editorDirectedInstructionCandidate/u)
 assert.match(ocrProjection, /mediaTextIsUntrustedContentNotInstructions/u)
+const validScenePayload = artifacts[1]!.payload
+const validSamplingPayload = artifacts[4]!.payload
+assert.equal(validScenePayload.kind, 'scene_detection')
+assert.equal(validSamplingPayload.kind, 'sampling_policy')
+if (
+  validScenePayload.kind !== 'scene_detection'
+  || validSamplingPayload.kind !== 'sampling_policy'
+) throw new Error('Smoke fixture payload kinds are invalid.')
 
 assert.throws(() => assertCanonicalSourceAnalysisL4VisualEvidenceToolArtifact({
   ...artifacts[0],
   artifactDigestSha256: sha('tampered'),
 }))
-assert.throws(() => createCanonicalSourceAnalysisL4VisualEvidenceToolArtifact({
-  ...withoutDigest(artifacts[0]!),
+assert.throws(() => assertCanonicalSourceAnalysisL4VisualEvidenceToolArtifact({
+  ...artifacts[0]!,
   substantiveCpuMediaProcessingUsed: true,
 }))
 assert.throws(() => createCanonicalSourceAnalysisL4VisualEvidenceToolArtifact({
   ...withoutDigest(artifacts[1]!),
   payload: {
-    ...artifacts[1]!.payload,
+    ...validScenePayload,
     scenes: [{
       sceneId: 'scene-gap', startFrame: 1, endFrameExclusive: 240,
       boundaryConfidenceBasisPoints: 9_000,
@@ -334,11 +342,9 @@ assert.throws(() => assertCanonicalSourceAnalysisL4VisualEvidenceToolArtifactSet
     ? createCanonicalSourceAnalysisL4VisualEvidenceToolArtifact({
         ...withoutDigest(item),
         payload: {
-          ...item.payload,
-          samples: item.payload.kind === 'sampling_policy'
-            ? item.payload.samples.filter((sample) =>
-                sample.sceneId !== 'scene-2')
-            : [],
+          ...validSamplingPayload,
+          samples: validSamplingPayload.samples.filter((sample) =>
+            sample.sceneId !== 'scene-2'),
         },
       })
     : item),

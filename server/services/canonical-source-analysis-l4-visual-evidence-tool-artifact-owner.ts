@@ -161,6 +161,7 @@ const payloadSchema = z.discriminatedUnion('kind', [
   ocrPayloadSchema,
   samplingPayloadSchema,
 ])
+type ToolArtifactPayload = z.infer<typeof payloadSchema>
 
 const artifactWithoutDigestSchema = z.object({
   schemaVersion: z.literal(
@@ -323,7 +324,9 @@ export function createCanonicalSourceAnalysisL4VisualEvidenceToolArtifactOwner(
       CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOL_ARTIFACT_READ_PORT_VERSION,
     ownerVersion:
       CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOL_ARTIFACT_OWNER_VERSION,
-    async persistCreateOnly(rawArtifact) {
+    async persistCreateOnly(
+      rawArtifact: CanonicalSourceAnalysisL4VisualEvidenceToolArtifact,
+    ) {
       const artifact =
         assertCanonicalSourceAnalysisL4VisualEvidenceToolArtifact(rawArtifact)
       const payload = recordWithoutDigestSchema.parse({
@@ -421,16 +424,28 @@ export function assertCanonicalSourceAnalysisL4VisualEvidenceToolArtifactSet(
     || ocrArtifact.payload.kind !== 'exact_visible_text'
     || samplingArtifact.payload.kind !== 'sampling_policy'
   ) throw conflict('source_visual_tool_artifact_set_kind_invalid')
-  const scenes = sceneArtifact.payload.scenes
+  const scenePayload = sceneArtifact.payload as Extract<
+    ToolArtifactPayload, { kind: 'scene_detection' }
+  >
+  const pixelPayload = pixelArtifact.payload as Extract<
+    ToolArtifactPayload, { kind: 'pixel_measurement' }
+  >
+  const ocrPayload = ocrArtifact.payload as Extract<
+    ToolArtifactPayload, { kind: 'exact_visible_text' }
+  >
+  const samplingPayload = samplingArtifact.payload as Extract<
+    ToolArtifactPayload, { kind: 'sampling_policy' }
+  >
+  const scenes = scenePayload.scenes
   const sceneIds = scenes.map((scene) => scene.sceneId)
   if (
-    stableAuthorityStringify(pixelArtifact.payload.measurements.map(
+    stableAuthorityStringify(pixelPayload.measurements.map(
       (item) => item.sceneId,
     )) !== stableAuthorityStringify(sceneIds)
-    || sceneIds.some((sceneId) => !samplingArtifact.payload.samples.some(
+    || sceneIds.some((sceneId) => !samplingPayload.samples.some(
       (sample) => sample.sceneId === sceneId,
     ))
-    || [...ocrArtifact.payload.spans, ...samplingArtifact.payload.samples]
+    || [...ocrPayload.spans, ...samplingPayload.samples]
       .some((item) => {
         const scene = scenes.find((candidate) =>
           candidate.sceneId === item.sceneId)
@@ -512,45 +527,50 @@ function assertArtifactSemantics(
     || artifact.payload.kind !== artifact.role
   ) throw conflict('source_visual_tool_artifact_role_invalid')
   if (artifact.payload.kind === 'private_media_transform') {
-    if (artifact.payload.decodedCanonicalFrameCount !==
+    const payload = artifact.payload
+    if (payload.decodedCanonicalFrameCount !==
       artifact.sourceDurationFrames) {
       throw conflict('source_visual_tool_artifact_transform_coverage_invalid')
     }
   } else if (artifact.payload.kind === 'scene_detection') {
-    const ids = artifact.payload.scenes.map((scene) => scene.sceneId)
+    const payload = artifact.payload
+    const ids = payload.scenes.map((scene) => scene.sceneId)
     if (
       new Set(ids).size !== ids.length
-      || artifact.payload.scenes[0]?.startFrame !== 0
-      || artifact.payload.scenes.at(-1)?.endFrameExclusive !==
+      || payload.scenes[0]?.startFrame !== 0
+      || payload.scenes.at(-1)?.endFrameExclusive !==
         artifact.sourceDurationFrames
-      || artifact.payload.scenes.some((scene, index) =>
+      || payload.scenes.some((scene, index) =>
         scene.startFrame >= scene.endFrameExclusive
-        || (index > 0 && artifact.payload.scenes[index - 1]
+        || (index > 0 && payload.scenes[index - 1]
           ?.endFrameExclusive !== scene.startFrame))
     ) throw conflict('source_visual_tool_artifact_scene_coverage_invalid')
   } else if (artifact.payload.kind === 'pixel_measurement') {
-    const ids = artifact.payload.measurements.map((item) => item.sceneId)
+    const payload = artifact.payload
+    const ids = payload.measurements.map((item) => item.sceneId)
     if (new Set(ids).size !== ids.length) {
       throw conflict('source_visual_tool_artifact_pixel_duplicate_invalid')
     }
   } else if (artifact.payload.kind === 'exact_visible_text') {
-    const ids = artifact.payload.spans.map((item) => item.spanId)
+    const payload = artifact.payload
+    const ids = payload.spans.map((item) => item.spanId)
     if (
       new Set(ids).size !== ids.length
-      || artifact.payload.spans.some((item, index) =>
+      || payload.spans.some((item, index) =>
         item.startFrame >= item.endFrameExclusive
         || item.endFrameExclusive > artifact.sourceDurationFrames
         || (index > 0 && item.startFrame <
-          artifact.payload.spans[index - 1]!.startFrame))
+          payload.spans[index - 1]!.startFrame))
     ) throw conflict('source_visual_tool_artifact_ocr_order_invalid')
   } else {
-    const ids = artifact.payload.samples.map((item) => item.sampleId)
+    const payload = artifact.payload
+    const ids = payload.samples.map((item) => item.sampleId)
     if (
       new Set(ids).size !== ids.length
-      || artifact.payload.samples.some((item, index) =>
+      || payload.samples.some((item, index) =>
         item.frame >= artifact.sourceDurationFrames
         || (index > 0 && item.frame <
-          artifact.payload.samples[index - 1]!.frame))
+          payload.samples[index - 1]!.frame))
     ) throw conflict('source_visual_tool_artifact_sampling_order_invalid')
   }
 }

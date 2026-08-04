@@ -942,7 +942,7 @@ function validateRuntimeImage(
   )
   if (
     image.imageTag !==
-      'reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local' ||
+      'reeditpro/ffmpeg-lgpl-internal:8.1.2-track-privacy-v10-local' ||
     !/^sha256:[a-f0-9]{64}$/u.test(image.imageId) ||
     image.imageIdentityHash !== authority.expectedRuntimeImageIdentityHash ||
     typeof image.architecture !== 'string' || image.architecture.length < 1 ||
@@ -964,6 +964,8 @@ function validateRuntimeImage(
       'private_vp9_flac_matroska_stream_copy_only' ||
     image.customerDeliveryMasterMux !==
       'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only' ||
+    image.trackAllPrivacyRedaction !==
+      'private_fixed_mask_regions_vp9_matroska_only' ||
     Object.keys(policyHashes).length < 1 ||
     Object.values(policyHashes).some((value) =>
       typeof value !== 'string' || !SHA256.test(value))

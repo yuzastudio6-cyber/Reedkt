@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local}
+IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-track-privacy-v10-local}
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 if [ "${1:-}" = '--build' ]; then
@@ -40,6 +40,8 @@ docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 \
   || { printf '%s\n' 'image must scope customer delivery to the fixed private H.264/AAC mux' >&2; exit 1; }
 [ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.exact-source-frame-png"}}' "$IMAGE_TAG")" = 'private_exact_decoded_source_frame_rgba_png_only' ] \
   || { printf '%s\n' 'image must scope PNG encoding to exact private source-frame extraction' >&2; exit 1; }
+[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.track-all-privacy-redaction"}}' "$IMAGE_TAG")" = 'private_fixed_mask_regions_vp9_matroska_only' ] \
+  || { printf '%s\n' 'image must scope Track All privacy redaction to the fixed private recipe' >&2; exit 1; }
 
 docker run --rm \
   --network=none \
@@ -55,5 +57,5 @@ docker run --rm \
   "$IMAGE_TAG"
 
 docker image inspect --format \
-  '{"imageId":"{{.Id}}","architecture":"{{.Architecture}}","os":"{{.Os}}","user":"{{.Config.User}}","productReady":"{{index .Config.Labels "reeditpro.product-ready"}}","h264Encoding":"{{index .Config.Labels "reeditpro.h264-encoding"}}","aacEncoding":"{{index .Config.Labels "reeditpro.aac-encoding"}}","mp4Mux":"{{index .Config.Labels "reeditpro.mp4-mux"}}","objectMezzanineChunk":"{{index .Config.Labels "reeditpro.object-mezzanine-chunk"}}","flacEncoding":"{{index .Config.Labels "reeditpro.flac-encoding"}}","continuousProgramAudio":"{{index .Config.Labels "reeditpro.continuous-program-audio"}}","longFormMasterAssembly":"{{index .Config.Labels "reeditpro.long-form-master-assembly"}}","customerDeliveryMasterMux":"{{index .Config.Labels "reeditpro.customer-delivery-master-mux"}}","exactSourceFramePng":"{{index .Config.Labels "reeditpro.exact-source-frame-png"}}"}' \
+  '{"imageId":"{{.Id}}","architecture":"{{.Architecture}}","os":"{{.Os}}","user":"{{.Config.User}}","productReady":"{{index .Config.Labels "reeditpro.product-ready"}}","h264Encoding":"{{index .Config.Labels "reeditpro.h264-encoding"}}","aacEncoding":"{{index .Config.Labels "reeditpro.aac-encoding"}}","mp4Mux":"{{index .Config.Labels "reeditpro.mp4-mux"}}","objectMezzanineChunk":"{{index .Config.Labels "reeditpro.object-mezzanine-chunk"}}","flacEncoding":"{{index .Config.Labels "reeditpro.flac-encoding"}}","continuousProgramAudio":"{{index .Config.Labels "reeditpro.continuous-program-audio"}}","longFormMasterAssembly":"{{index .Config.Labels "reeditpro.long-form-master-assembly"}}","customerDeliveryMasterMux":"{{index .Config.Labels "reeditpro.customer-delivery-master-mux"}}","exactSourceFramePng":"{{index .Config.Labels "reeditpro.exact-source-frame-png"}}","trackAllPrivacyRedaction":"{{index .Config.Labels "reeditpro.track-all-privacy-redaction"}}"}' \
   "$IMAGE_TAG"

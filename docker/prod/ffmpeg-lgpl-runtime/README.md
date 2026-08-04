@@ -41,7 +41,9 @@ the pinned Debian `libvpx 1.12.0-1+deb12u5` build used only for the bounded,
 Remotion-decodable professional color intermediate. The exact allowlist also
 contains the bounded `colorchannelmixer`, `colorlevels`, `unsharp`, and
 `setparams` filters required by the private professional source-color recipe,
-plus `tpad` for the exact bounded last-picture hold needed when an approved
+the core `color`, `drawbox`, `gblur`, and `maskedmerge` filters required by
+the server-compiled Track All privacy-mask recipe, and `tpad` for the exact
+bounded last-picture hold needed when an approved
 container timeline extends a few frames beyond its encoded video stream;
 caller-authored filter strings remain forbidden.
 
@@ -175,9 +177,9 @@ readiness.
 For a locally built image:
 
 ```bash
-docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local
-docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local > /tmp/reeditpro-ffmpeg-8.1.2-source-frame-v9.spdx.json
-sha256sum /tmp/reeditpro-ffmpeg-8.1.2-source-frame-v9.spdx.json
+docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-track-privacy-v10-local
+docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-track-privacy-v10-local > /tmp/reeditpro-ffmpeg-8.1.2-track-privacy-v10.spdx.json
+sha256sum /tmp/reeditpro-ffmpeg-8.1.2-track-privacy-v10.spdx.json
 ```
 
 The builder package lock and runtime binary/config hashes are stored under

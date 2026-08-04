@@ -6,7 +6,18 @@ Run deterministic geometry with:
 
 ```sh
 npm run test:track-all-deterministic-geometry
+npm run test:track-all-privacy-redaction
 ```
+
+The privacy command runs all four fixed treatments and one attempt through the
+confined FFmpeg runtime. Rebuild and verify the forward-only privacy-capable
+image with:
+
+```sh
+docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build
+```
+
+The image remains private-internal and production-blocked.
 
 Run the SAM authority, qualification-gate, and injected lifecycle checks with:
 

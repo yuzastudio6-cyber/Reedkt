@@ -1250,7 +1250,7 @@ assert.deepEqual(
 )
 assert.equal(
   authority.image.imageTag,
-  'reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local',
+  'reeditpro/ffmpeg-lgpl-internal:8.1.2-track-privacy-v10-local',
 )
 assert.equal(authority.image.imageIdentityHash, runtime.image.imageIdentityHash)
 const reopened = await openPrivateOfflineMediaBinaryRuntime()

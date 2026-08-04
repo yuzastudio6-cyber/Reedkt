@@ -77,6 +77,21 @@ attempt-evidence contract prevents injected masklets from being represented as
 real checkpoint/CUDA inference. No checkpoint bytes, runner, GPU, or production
 binding was activated by TRACK-07.
 
+## Privacy redaction route
+
+The deterministic privacy route compiles exact Track Graph V2 geometry and
+FFprobe source truth into the fixed
+`approved_track_all_privacy_redaction_matroska_v1` FFmpeg recipe. Reliable
+regions are dilated; partial occlusion receives wider coverage; and any lost,
+missing, low-confidence, fully occluded, or identity-uncertain span becomes a
+full-frame solid cover. Explicit reflection regions are covered separately.
+
+The confined FFmpeg authority accepts numeric regions and fixed treatment
+enums only. It cannot accept a filter graph, command, path, URL, destination,
+retry, fallback, or public-output choice. Independently derived decoded-pixel
+evidence validates the exact flattened private preview before a result can be
+projected. See `privacy-redaction.md`.
+
 ## Qualification boundary
 
 Passing planning smokes establishes tested planning behavior, not a frozen

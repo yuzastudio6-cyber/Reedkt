@@ -1,7 +1,7 @@
-# Captions Specialist — CAP-12 StoryTiming and Motion Checkpoint
+# Captions Specialist — CAP-13 Sound Support Checkpoint
 
-Status: `cap_12_contract_complete_authenticated_timing_and_receiver_runtime_gated`
-Checkpoint: `CAP-12`
+Status: `cap_13_contract_complete_authenticated_sound_runtime_and_final_mix_qa_gated`
+Checkpoint: `CAP-13`
 Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
@@ -85,6 +85,7 @@ The governing workflow invariant remains:
 - [CAP-10 semantic and style system report](cap-10-semantic-style-system-report.md)
 - [CAP-11 multi-track scene graph report](cap-11-multi-track-scene-graph-report.md)
 - [CAP-12 StoryTiming, motion, camera, and handoffs report](cap-12-storytiming-motion-handoffs-report.md)
+- [CAP-13 Sound support report](cap-13-sound-support-report.md)
 
 ### Historical architecture retained and amended
 
@@ -200,7 +201,15 @@ typed owner requests through neutral mediated support. The exact frozen
 Caption↔Living Frame request/response payload is present without importing LF
 server code; one request may validly return multiple selected scenes.
 
-Implementation continues automatically into CAP-13 Sound support.
+CAP-13 derives one explicit Sound request or silence decision for every frozen
+Caption node after motion lock. Only two graph-eligible hero cues are requested;
+ten nodes remain silent under a two-cue density ceiling and one-cue concurrency
+limit. SoundSync keeps asset, generation, trim, mix, loudness, and audio-QA
+ownership. Contract-only injected evidence cannot claim runtime or assets, and
+missing Sound support selects the safe silent fallback.
+
+Implementation continues automatically into CAP-14 deterministic Remotion
+creative rendering.
 Registry/workflow integration will consume
 these frozen public artifacts at its dependency-safe milestone; no Caption
 milestone manufactures a second planner or a false backend coverage claim.

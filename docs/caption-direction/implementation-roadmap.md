@@ -1,6 +1,6 @@
 # Captions Specialist Implementation Roadmap
 
-Status: `CAP-12 contract complete; authenticated timing/receiver runtime gates tracked; CAP-13 next`
+Status: `CAP-13 contract complete; authenticated Sound/final-mix gates tracked; CAP-14 next`
 
 ## Dependency graph
 

@@ -832,6 +832,11 @@ export const CAP_11_STYLE_PROFILE_REF: CaptionDomainRef = {
   contentHash: styleProfile.contractDigestSha256,
 }
 export const CAP_11_TRANSCRIPT_REF = transcriptRef
+export const CAP_11_APPROVAL_ENVELOPE_REF: CaptionDomainRef = {
+  id: approvalEnvelope.contractId,
+  version: approvalEnvelope.contractVersion,
+  contentHash: approvalEnvelope.contractDigestSha256,
+}
 const graph = CAP_11_SCENE_GRAPH_FIXTURE
 function runCap11Smoke(): void {
 check(graph.tracks.length === 4 && graph.nodes.length === 12,

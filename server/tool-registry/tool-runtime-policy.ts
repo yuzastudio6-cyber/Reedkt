@@ -45,10 +45,6 @@ export function evaluateRuntimePolicy(
     blockingReasons.push(`${profile.toolId} is not allowed for production execution in Milestone 2 metadata.`)
   }
 
-  if (profile.toolId === 'revideo') {
-    blockingReasons.push('Revideo is evaluation-only and blocked from core render execution.')
-  }
-
   if (profile.gpuRequired && requestedWorkerType && requestedWorkerType !== 'gpu_ai_worker') {
     blockingReasons.push(`${profile.toolId} requires GPU execution and cannot run on ${requestedWorkerType}.`)
   }

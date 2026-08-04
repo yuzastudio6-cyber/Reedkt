@@ -37,9 +37,9 @@ The mock runtime does not:
 - render video;
 - call payment services.
 
-## Future API Transport
+## Reviewed API Transport
 
-`VITE_REEDITPRO_API_BASE_URL` is reserved for a future deployed API. RP-FIX-08 intentionally does not perform live HTTP transport yet. When a backend is deployed, `callReeditProApi` can become the single frontend entrypoint for safe route calls and can attach only safe user-session auth, never backend secrets.
+`VITE_REEDITPRO_API_BASE_URL` is the frontend-safe pointer to a deployed ReEditPro backend. When `VITE_REEDITPRO_API_MODE=frontend_safe` and the base URL is configured, `callReeditProApi` calls reviewed `/v1` backend routes with user-session auth and idempotency headers where required. Routes that need service-role credentials, providers, Stripe, workers, rendering, or other backend-only scopes still fail closed from the frontend client.
 
 ## Avoiding Accidental Provider Calls
 

@@ -15,6 +15,7 @@ export function createWorkerClaimService(context: ServiceContext) {
       leaseExpiresAt: string
       idempotencyKey: string
     }) {
+      blockLegacyWorkerAuthority()
       if (!context.clients.admin || context.env.mockOnly) {
         if (mockActiveClaimsByJobId.has(input.jobId)) {
           throw new ApiError('WORKER_CLAIM_CONFLICT', 'Mock job already has an active worker claim.', 409)
@@ -62,6 +63,7 @@ export function createWorkerClaimService(context: ServiceContext) {
     },
 
     async heartbeat(input: { jobId: string; claimId?: string }) {
+      blockLegacyWorkerAuthority()
       if (!context.clients.admin || context.env.mockOnly) {
         return { heartbeat: { jobId: input.jobId, claimId: input.claimId, heartbeatAt: nowIso(), mockOnly: true }, warnings: [mockWarning('Worker heartbeat')] }
       }
@@ -79,6 +81,7 @@ export function createWorkerClaimService(context: ServiceContext) {
     },
 
     async release(input: { jobId: string; claimStatus: string }) {
+      blockLegacyWorkerAuthority()
       if (!context.clients.admin || context.env.mockOnly) {
         mockActiveClaimsByJobId.delete(input.jobId)
         return { claim: { jobId: input.jobId, claimStatus: input.claimStatus, releasedAt: nowIso(), mockOnly: true }, warnings: [mockWarning('Worker claim release')] }
@@ -107,6 +110,7 @@ export function createWorkerClaimService(context: ServiceContext) {
       binaryPath?: string
       capabilitiesJson?: Record<string, unknown>
     }) {
+      blockLegacyWorkerAuthority()
       if (!context.clients.admin || context.env.mockOnly) {
         return {
           toolRuntimeCheck: {
@@ -142,4 +146,13 @@ export function createWorkerClaimService(context: ServiceContext) {
       return { toolRuntimeCheck: data, warnings: [] }
     },
   }
+}
+
+function blockLegacyWorkerAuthority(): void {
+  throw new ApiError(
+    'TOOL_NOT_READY',
+    'Legacy worker claims and runtime-evidence writes are disabled until canonical job, lease, tenant, artifact, QA, and cost authority is deployed.',
+    503,
+    { requiredGate: 'canonical_worker_job_and_lease_authority' },
+  )
 }

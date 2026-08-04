@@ -207,7 +207,7 @@ const speechRouted = await runProductionWorkerRuntime({
       mode: 'dry_run',
       sourceAudioArtifactId: 'audio-artifact-smoke',
     },
-  }, ['workspaces/workspace-speech-smoke/projects/project-speech-smoke/audio/audio.wav'], ['faster_whisper']),
+  }, ['workspaces/workspace-speech-smoke/projects/project-speech-smoke/audio/audio.wav'], []),
 })
 check(speechRouted.status === 'completed', 'Explicit speechFoundation route should complete in dry-run.')
 check(speechRouted.output?.futureHandler === 'gpu_ai_worker_speech_foundation', 'Speech route must be explicit.')
@@ -279,7 +279,7 @@ function buildPayload(
   workerType: ProductionWorkerJobPayload['workerType'],
   metadata?: Record<string, unknown>,
   storageReferenceIds = ['workspaces/workspace-speech-smoke/projects/project-speech-smoke/source/source.wav'],
-  requestedToolIds: ProductionWorkerJobPayload['requestedToolIds'] = workerType === 'gpu_ai_worker' ? ['faster_whisper'] : ['remotion'],
+  requestedToolIds: ProductionWorkerJobPayload['requestedToolIds'] = workerType === 'gpu_ai_worker' ? [] : ['remotion'],
 ): ProductionWorkerJobPayload {
   const payload: ProductionWorkerJobPayload = {
     jobId: `prod-speech-caption-${workerType}`,

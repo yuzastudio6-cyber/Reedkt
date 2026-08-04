@@ -2,10 +2,14 @@ import type { ApiDomain, ApiRouteDefinition } from './api-runtime-contracts'
 import { ADMIN_API_ROUTES } from './routes/admin-api-routes'
 import { AUTH_BOOTSTRAP_API_ROUTES } from './routes/auth-bootstrap-api-routes'
 import { CREDIT_API_ROUTES } from './routes/credit-api-routes'
+import { EDIT_LEVEL_API_ROUTES } from './edit-level-api-route-registry'
+import { EDIT_BRIEF_AUTHORITY_API_ROUTES } from './routes/edit-brief-authority-api-routes'
+import { EDIT_PREFERENCE_API_ROUTES } from './routes/edit-preference-api-routes'
 import { EDIT_PLANNING_API_ROUTES } from './routes/edit-planning-api-routes'
 import { GENERATION_API_ROUTES } from './routes/generation-api-routes'
 import { JOB_API_ROUTES } from './routes/job-api-routes'
 import { MEDIA_UPLOAD_API_ROUTES } from './routes/media-upload-api-routes'
+import { MOTION_STUDIO_API_ROUTES } from './routes/motion-studio-api-routes'
 import { MUSIC_API_ROUTES } from './routes/music-api-routes'
 import { PROJECT_API_ROUTES } from './routes/project-api-routes'
 import { PROJECT_EDIT_BRIEF_API_ROUTES } from './project-edit-brief-api-route-registry'
@@ -16,6 +20,8 @@ import { SFX_API_ROUTES } from './routes/sfx-api-routes'
 import { STORAGE_API_ROUTES } from './routes/storage-api-routes'
 import { STORYTIMING_API_ROUTES } from './routes/storytiming-api-routes'
 import { STRIPE_API_ROUTES } from './routes/stripe-api-routes'
+import { VISUAL_INTELLIGENCE_API_ROUTES } from
+  './routes/visual-intelligence-api-routes'
 
 export interface ApiRouteMapSummary {
   totalRoutes: number
@@ -29,14 +35,19 @@ export interface ApiRouteMapSummary {
 
 export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...AUTH_BOOTSTRAP_API_ROUTES,
+  ...EDIT_PREFERENCE_API_ROUTES,
   ...PROJECT_API_ROUTES,
   ...PROJECT_EDIT_SESSION_API_ROUTES,
   ...PROJECT_EDIT_BRIEF_API_ROUTES,
   ...MEDIA_UPLOAD_API_ROUTES,
+  ...MOTION_STUDIO_API_ROUTES,
+  ...EDIT_BRIEF_AUTHORITY_API_ROUTES,
   ...EDIT_PLANNING_API_ROUTES,
+  ...EDIT_LEVEL_API_ROUTES,
   ...CREDIT_API_ROUTES,
   ...JOB_API_ROUTES,
   ...GENERATION_API_ROUTES,
+  ...VISUAL_INTELLIGENCE_API_ROUTES,
   ...RENDER_API_ROUTES,
   ...MUSIC_API_ROUTES,
   ...SFX_API_ROUTES,
@@ -51,10 +62,12 @@ const API_DOMAINS: ApiDomain[] = [
   'auth',
   'projects',
   'media',
+  'motion_studio',
   'planning',
   'credits',
   'jobs',
   'generation',
+  'visual_intelligence',
   'render',
   'music',
   'sfx',
@@ -88,7 +101,8 @@ export function getFrontendSafeRoutes(): ApiRouteDefinition[] {
     !route.requiresServiceRole &&
     !route.requiresProviderSecret &&
     !route.requiresStripeSecret &&
-    (route.runtimeMode === 'frontend_safe' || route.status === 'frontend_safe_ready'),
+    route.runtimeMode === 'frontend_safe' &&
+    route.status === 'frontend_safe_ready',
   )
 }
 
@@ -121,10 +135,12 @@ function createEmptyDomainSummary(): Record<ApiDomain, number> {
     auth: 0,
     projects: 0,
     media: 0,
+    motion_studio: 0,
     planning: 0,
     credits: 0,
     jobs: 0,
     generation: 0,
+    visual_intelligence: 0,
     render: 0,
     music: 0,
     sfx: 0,

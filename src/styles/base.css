@@ -90,3 +90,24 @@ li {
   white-space: nowrap;
   width: 1px;
 }
+
+.skip-link {
+  background: var(--rp-text-primary);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-bg-void);
+  font-size: 0.88rem;
+  font-weight: 800;
+  left: var(--rp-space-4);
+  min-height: 44px;
+  padding: var(--rp-space-3) var(--rp-space-4);
+  position: fixed;
+  top: var(--rp-space-4);
+  transform: translateY(calc(-100% - var(--rp-space-6)));
+  transition: transform var(--rp-duration-fast) var(--rp-ease-standard);
+  z-index: 200;
+}
+
+.skip-link:focus-visible {
+  outline-color: var(--rp-brand-cyan);
+  transform: translateY(0);
+}

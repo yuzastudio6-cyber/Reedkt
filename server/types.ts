@@ -1,10 +1,61 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import type { Request } from 'express'
 import type { RuntimeEnv } from './config/env'
+import type { StorageAdapter } from './storage/storage-types'
+import type { EditReferenceStudyChatRuntimePort } from './services/edit-reference-study-chat-runtime-port'
+import type { EditReferenceExactEditApplyRuntimePort } from './services/edit-reference-exact-edit-apply-runtime-port'
+import type { EditReferenceApplicationPreparationRuntimePort } from './services/edit-reference-application-preparation-runtime-port'
+import type {
+  EditReferenceLongFormStudyRuntimePort,
+  EditReferenceLongFormStudyRuntimePortFactory,
+} from './services/edit-reference-production-long-form-runtime-port'
+import type { EditReferenceDomainRepositoryRuntimePort } from './services/edit-reference-domain-repository-runtime-port'
+import type { EditReferenceSignedInPrivateMediaRuntimePort } from './services/edit-reference-signed-in-private-media-runtime-port'
+import type { EditReferenceExactEditBriefRuntimePortFactory } from './services/edit-reference-exact-edit-brief-runtime-port'
+import type {
+  EditReferenceTargetUnderstandingPackageRuntimePortFactory,
+} from './services/edit-reference-target-understanding-package-runtime-port'
+import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
+import type { CanonicalMotionStudioAudioCandidateReviewReaderPort } from './motion-studio/audio-production/canonical-audio-candidate-review-reader-port'
+import type { CanonicalMotionStudioAudioSelectionTransitionPort } from './motion-studio/audio-acceptance/canonical-audio-selection-transition-port'
+import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
+import type { CanonicalVisualCalibrationReferenceFrameReaderPort } from './services/canonical-visual-calibration-reference-frame-reader-port'
+import type { CanonicalProviderAttemptRuntimeRecordSourcePort } from './services/canonical-provider-attempt-runtime-record-port'
+import type {
+  VisualIntelligenceLifecycleService,
+  VisualIntelligenceReportRepository,
+} from './visual-intelligence/visual-intelligence-lifecycle-service'
+import type {
+  VisualIntelligenceInspectionCoordinator,
+} from './visual-intelligence/visual-intelligence-inspection-coordinator'
+import type {
+  VisualIntelligencePlanningOperationRequestOwner,
+} from './services/canonical-planning-visual-intelligence-operation-owner-service'
+import type { PlanningExactEditPreferenceAuthorityPort } from './services/planning-exact-edit-preference-authority-port'
+import type {
+  CanonicalDurableUploadTargetTransactionAdapter,
+  CanonicalUploadTargetCredentialEscrow,
+} from './upload-target-authority/canonical-durable-upload-target-authority'
+import type {
+  CanonicalDurableUploadTargetRequestAuthorityFactory,
+} from './upload-target-authority/canonical-durable-upload-target-request-factory'
+import type {
+  CanonicalPrivateProjectRequestAuthorityFactory,
+} from './project-authority/canonical-private-project-request-authority'
+import type {
+  MotionStudioCommandRepositoryRuntimePort,
+} from './motion-studio/commands/runtime-port'
+import type {
+  EditBriefPrivateWorkspaceRuntimePort,
+} from './services/edit-brief-private-workspace-runtime-port'
+import type {
+  SourceLedChatAssistantPort,
+} from './services/source-led-chat-assistant'
 
 export interface AuthContext {
   userId: string
   email?: string
+  accessToken?: string
   isMockUser: boolean
   user?: User
 }
@@ -16,10 +67,26 @@ export interface IdempotencyContext {
   replayed: boolean
 }
 
+export type ProjectAccessRole = 'viewer' | 'editor' | 'admin' | 'owner'
+
+export interface ProjectAccessContext {
+  workspaceId: string
+  projectId: string
+  editSessionId?: string
+  briefId?: string
+  markerId?: string
+  role: ProjectAccessRole
+  canRead: boolean
+  canWrite: boolean
+  canAdmin: boolean
+  isMockAccess: boolean
+}
+
 export interface RequestContext {
   requestId: string
   auth?: AuthContext
   idempotency?: IdempotencyContext
+  projectAccess?: ProjectAccessContext
 }
 
 export interface RuntimeClients {
@@ -30,6 +97,44 @@ export interface RuntimeClients {
 export interface RuntimeState {
   env: RuntimeEnv
   clients: RuntimeClients
+  storageAdapter?: StorageAdapter
+  planningPreferenceApplicationAuthorityPort?: PlanningPreferenceApplicationAuthorityPort
+  planningExactEditPreferenceAuthorityPort?: PlanningExactEditPreferenceAuthorityPort
+  canonicalDurableUploadTargetStatePort?: CanonicalDurableUploadTargetTransactionAdapter
+  canonicalUploadTargetCredentialEscrow?: CanonicalUploadTargetCredentialEscrow
+  canonicalDurableUploadTargetRequestAuthorityFactory?:
+    CanonicalDurableUploadTargetRequestAuthorityFactory
+  canonicalPrivateProjectRequestAuthorityFactory?:
+    CanonicalPrivateProjectRequestAuthorityFactory
+  editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
+  canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
+    CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  canonicalMotionStudioAudioCandidateReviewReaderPort?:
+    CanonicalMotionStudioAudioCandidateReviewReaderPort
+  canonicalMotionStudioAudioSelectionTransitionPort?:
+    CanonicalMotionStudioAudioSelectionTransitionPort
+  canonicalVisualCalibrationReferenceFrameReaderPort?:
+    CanonicalVisualCalibrationReferenceFrameReaderPort
+  canonicalProviderAttemptRuntimeRecordSourcePort?:
+    CanonicalProviderAttemptRuntimeRecordSourcePort
+  visualIntelligenceLifecyclePort?: VisualIntelligenceLifecycleService
+  visualIntelligenceReportRepository?: VisualIntelligenceReportRepository
+  visualIntelligenceInspectionCoordinatorPort?:
+    VisualIntelligenceInspectionCoordinator
+  visualIntelligencePlanningOperationRequestOwnerPort?: VisualIntelligencePlanningOperationRequestOwner
+  motionStudioCommandRepositoryRuntimePort?:
+    MotionStudioCommandRepositoryRuntimePort
+  editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
+  editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
+  editReferenceLongFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
+  editReferenceLongFormStudyRuntimePortFactory?: EditReferenceLongFormStudyRuntimePortFactory
+  editReferenceDomainRepositoryRuntimePort?: EditReferenceDomainRepositoryRuntimePort
+  editReferenceSignedInPrivateMediaRuntimePort?: EditReferenceSignedInPrivateMediaRuntimePort
+  editReferenceExactEditBriefRuntimePortFactory?: EditReferenceExactEditBriefRuntimePortFactory
+  editReferenceTargetUnderstandingPackageRuntimePortFactory?:
+    EditReferenceTargetUnderstandingPackageRuntimePortFactory
+  editBriefPrivateWorkspaceRuntimePort?: EditBriefPrivateWorkspaceRuntimePort
+  kimiK3SourceLedChatAssistantPort?: SourceLedChatAssistantPort
 }
 
 export type RuntimeRequest = Request & {
@@ -49,4 +154,43 @@ export interface ServiceContext {
   clients: RuntimeClients
   requestId: string
   auth?: AuthContext
+  idempotency?: IdempotencyContext
+  storageAdapter?: StorageAdapter
+  planningPreferenceApplicationAuthorityPort?: PlanningPreferenceApplicationAuthorityPort
+  planningExactEditPreferenceAuthorityPort?: PlanningExactEditPreferenceAuthorityPort
+  canonicalDurableUploadTargetStatePort?: CanonicalDurableUploadTargetTransactionAdapter
+  canonicalUploadTargetCredentialEscrow?: CanonicalUploadTargetCredentialEscrow
+  canonicalDurableUploadTargetRequestAuthorityFactory?:
+    CanonicalDurableUploadTargetRequestAuthorityFactory
+  canonicalPrivateProjectRequestAuthorityFactory?:
+    CanonicalPrivateProjectRequestAuthorityFactory
+  editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
+  canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
+    CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  canonicalMotionStudioAudioCandidateReviewReaderPort?:
+    CanonicalMotionStudioAudioCandidateReviewReaderPort
+  canonicalMotionStudioAudioSelectionTransitionPort?:
+    CanonicalMotionStudioAudioSelectionTransitionPort
+  canonicalVisualCalibrationReferenceFrameReaderPort?:
+    CanonicalVisualCalibrationReferenceFrameReaderPort
+  canonicalProviderAttemptRuntimeRecordSourcePort?:
+    CanonicalProviderAttemptRuntimeRecordSourcePort
+  visualIntelligenceLifecyclePort?: VisualIntelligenceLifecycleService
+  visualIntelligenceReportRepository?: VisualIntelligenceReportRepository
+  visualIntelligenceInspectionCoordinatorPort?:
+    VisualIntelligenceInspectionCoordinator
+  visualIntelligencePlanningOperationRequestOwnerPort?: VisualIntelligencePlanningOperationRequestOwner
+  motionStudioCommandRepositoryRuntimePort?:
+    MotionStudioCommandRepositoryRuntimePort
+  editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
+  editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
+  editReferenceLongFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
+  editReferenceLongFormStudyRuntimePortFactory?: EditReferenceLongFormStudyRuntimePortFactory
+  editReferenceDomainRepositoryRuntimePort?: EditReferenceDomainRepositoryRuntimePort
+  editReferenceSignedInPrivateMediaRuntimePort?: EditReferenceSignedInPrivateMediaRuntimePort
+  editReferenceExactEditBriefRuntimePortFactory?: EditReferenceExactEditBriefRuntimePortFactory
+  editReferenceTargetUnderstandingPackageRuntimePortFactory?:
+    EditReferenceTargetUnderstandingPackageRuntimePortFactory
+  editBriefPrivateWorkspaceRuntimePort?: EditBriefPrivateWorkspaceRuntimePort
+  kimiK3SourceLedChatAssistantPort?: SourceLedChatAssistantPort
 }

@@ -1,5 +1,6 @@
 import { Badge } from '../Badge'
 import type { ChatPlanningCardDescriptor, EditPlan, QAStatus, SegmentQAPlanItem } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineQAPlanCardProps = {
@@ -59,7 +60,7 @@ export function InlineQAPlanCard({ descriptor, plan }: InlineQAPlanCardProps) {
           <span className="compact-summary-chip">{statusLabel(qaPlan.status)}</span>
           <span className="compact-summary-chip">{allChecks.length} checks</span>
           <span className="compact-summary-chip">{warningOrBlockingCount} high-priority</span>
-          <span className="compact-summary-chip">{premium ? 'Premium final fallback only' : 'Basic/Pro no Veo'}</span>
+          <span className="compact-summary-chip">{premium ? 'Premium final fallback only' : 'Basic/Pro premium fallback locked'}</span>
         </div>
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
@@ -74,7 +75,7 @@ export function InlineQAPlanCard({ descriptor, plan }: InlineQAPlanCardProps) {
       </div>
 
       <div className="qa-badge-row">
-        <Badge accent={premium ? 'warning' : 'cyan'}>{premium ? 'Premium final fallback only' : 'Basic/Pro no Veo'}</Badge>
+        <Badge accent={premium ? 'warning' : 'cyan'}>{premium ? 'Premium final fallback only' : 'Basic/Pro premium fallback locked'}</Badge>
         <Badge accent="warning">Approval required</Badge>
         <Badge accent="blue">Matching panel background</Badge>
         <Badge accent="success">Captions safe</Badge>
@@ -88,7 +89,7 @@ export function InlineQAPlanCard({ descriptor, plan }: InlineQAPlanCardProps) {
         <span><strong>Approval</strong>{qaPlan.approvalChecks.length} checks</span>
       </div>
 
-      <p className="inline-helper">{qaPlan.summary}</p>
+      <p className="inline-helper">{hideInternalToolNamesInCopy(qaPlan.summary)}</p>
 
       <div className="qa-check-list">
         {highlightedChecks.map((check) => (
@@ -97,13 +98,13 @@ export function InlineQAPlanCard({ descriptor, plan }: InlineQAPlanCardProps) {
               <strong>{check.label}</strong>
               <small>{formatLabel(check.category)} / {formatLabel(check.severity)} / {statusLabel(check.status)}</small>
             </div>
-            <p>{check.check}</p>
+            <p>{hideInternalToolNamesInCopy(check.check)}</p>
             {check.fallbackActions.length > 0 && (
               <div className="segment-chip-row">
                 {check.fallbackActions.slice(0, 3).map((fallback) => (
                   <span key={`${check.id}-${fallback.action}-${fallback.model ?? fallback.label}`}>
                     {fallback.label}
-                    {fallback.model ? ` / ${fallback.model.replaceAll('_', ' ')}` : ''}
+                    {fallback.model ? ` / ${hideInternalToolNamesInCopy(fallback.model.replaceAll('_', ' '))}` : ''}
                   </span>
                 ))}
               </div>
@@ -114,7 +115,7 @@ export function InlineQAPlanCard({ descriptor, plan }: InlineQAPlanCardProps) {
 
       <div className="renderer-notes">
         {qaPlan.notes.map((note) => (
-          <span key={note}>{note}</span>
+          <span key={note}>{hideInternalToolNamesInCopy(note)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

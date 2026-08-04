@@ -1,23 +1,83 @@
 import { randomUUID } from 'node:crypto'
 import type { Readable } from 'node:stream'
 import { ApiError } from '../errors/api-error'
+import { probeMediaFile } from '../media/ffprobe'
+import {
+  isPrivateSourceProbeTerminalIntegrityError,
+  stagePrivateSourceForProbe,
+} from '../media/private-source-probe-staging'
 import { createStorageAdapter, resolveBucketName } from '../storage/storage-adapter'
-import { buildCanonicalObjectPath } from '../storage/storage-paths'
-import { assertAllowedUpload } from '../storage/storage-validation'
-import type { ObjectMetadata, UploadPurpose, UploadTarget } from '../storage/storage-types'
+import { buildCanonicalObjectPath, buildEditReferenceObjectPath } from '../storage/storage-paths'
+import {
+  assertAllowedUpload,
+  assertLocalRawUploadByteLength,
+  LOCAL_RAW_UPLOAD_MAX_BYTES,
+  normalizeAllowedUploadMimeType,
+} from '../storage/storage-validation'
+import type { ObjectMetadata, StorageAdapter, UploadPurpose, UploadTarget } from '../storage/storage-types'
+import {
+  GCS_RESUMABLE_SESSION_TTL_SECONDS,
+  shouldUseResumableUpload,
+  type TemporaryUploadProtocol,
+} from '../../src/types/large-media'
+import { deriveMediaTaskTimeoutMs } from '../workers/media/media-task-policy'
 import type { ServiceContext } from '../types'
+import {
+  assertCanonicalDurableUploadTargetProductionAuthority,
+  assertCanonicalDurableUploadTargetStatePort,
+  assertCanonicalUploadTargetCredentialEscrow,
+  canonicalDurableUploadIntentRequestHash,
+  createCanonicalDurableUploadIntentCandidate,
+  hashCanonicalUploadTargetValue,
+  resolveCanonicalUploadIntentAndTarget,
+  type CanonicalDurableUploadIntentRecord,
+  type ResolvedCanonicalUploadTarget,
+} from '../upload-target-authority/canonical-durable-upload-target-authority'
+import type {
+  PrivateMediaAssetAuthorityRecord,
+  PrivateStorageObjectAuthorityRecord,
+  PrivateUploadIntentAuthorityRecord,
+} from '../validation/private-upload-media-authority-schemas'
+import {
+  assertCanonicalDurableUploadTargetRequestAuthorityFactory,
+  assertCanonicalDurableUploadTargetRequestAuthorityPair,
+  type CanonicalDurableUploadTargetRequestAuthorityPair,
+} from '../upload-target-authority/canonical-durable-upload-target-request-factory'
+import {
+  commitPrivateFinalizedUploadAuthority,
+  createPrivateUploadIntentAuthority,
+  loadPrivateFinalizedMediaAuthority,
+  loadPrivateStorageObjectAuthority,
+  loadPrivateUploadIntentAuthority,
+  privateUploadMediaAuthorityValueHash,
+  transitionPrivateUploadIntentAuthority,
+  type PrivateUploadMediaAuthorityScope,
+} from './private-upload-media-authority-store'
+import { createProjectService } from './project-service'
+import {
+  assertEditReferenceLongFormStudyRuntimePortFactory,
+} from './edit-reference-production-long-form-runtime-port'
+import {
+  assertEditReferenceSignedInPrivateMediaRuntimePort,
+} from './edit-reference-signed-in-private-media-runtime-port'
 import { getRequiredAuthUserId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
+import { authorizeWorkspaceAccess } from './workspace-access-service'
 
-interface CreateUploadIntentInput {
+interface CreateUploadIntentBase {
   workspaceId: string
-  projectId: string
   chatSessionId?: string
   uploadPurpose: UploadPurpose
   originalFileName: string
   mimeType: string
   expectedSizeBytes?: number
   checksumSha256?: string
+  idempotencyKey?: string
 }
+
+type CreateUploadIntentInput = CreateUploadIntentBase & (
+  | { projectId: string; editReferenceId?: never }
+  | { projectId?: never; editReferenceId: string }
+)
 
 interface FinalizeUploadIntentInput {
   workspaceId: string
@@ -26,9 +86,28 @@ interface FinalizeUploadIntentInput {
   checksumSha256?: string
 }
 
+interface FinalizeUploadIntentOptions {
+  /** Server-owned background worker authority. Never accepted from an HTTP body. */
+  backgroundWorkerAuthority?: true
+}
+
+export interface UploadFinalizationCandidate {
+  uploadIntentId: string
+  ownerUserId: string
+  workspaceId: string
+  projectId: string
+  uploadPurpose: 'source_media' | 'reference_media'
+  expectedSizeBytes: number
+  status: string
+  storageMode: StorageAdapter['mode']
+  backgroundFinalizationRequired: boolean
+  authorityFingerprint: string
+}
+
 interface SignedUrlEventInput {
   workspaceId: string
   projectId?: string
+  editReferenceId?: string
   storageObjectRecordId?: string
   uploadIntentId?: string
   urlPurpose: string
@@ -40,6 +119,7 @@ interface UploadIntentView {
   id: string
   workspaceId: string
   projectId: string
+  editReferenceId?: string
   chatSessionId?: string
   requestedByUserId: string
   uploadPurpose: UploadPurpose
@@ -62,14 +142,22 @@ interface StorageObjectView {
   id: string
   workspaceId: string
   projectId?: string
+  editReferenceId?: string
   mediaAssetId?: string
   uploadIntentId?: string
+  uploadPurpose?: 'source_media' | 'reference_media'
+  storageProvider?: 'local_private' | 'google_cloud_storage'
   bucketName: string
   objectPath: string
   objectPurpose: string
   mimeType?: string
   sizeBytes?: number
   checksumSha256?: string
+  generation?: string
+  etag?: string
+  metageneration?: string
+  integrityVerified?: true
+  checksumSource?: 'server_computed_bytes'
   region?: string
   status: string
   createdAt: string
@@ -81,17 +169,55 @@ interface MediaAssetView {
   id: string
   workspaceId: string
   projectId: string
+  editReferenceId?: string
+  uploadIntentId?: string
+  storageObjectRecordId?: string
+  uploadPurpose?: 'source_media' | 'reference_media'
   assetType: string
   fileName: string
   mimeType: string
+  storageProvider?: string
   storageBucket: string
   storagePath: string
   sizeBytes?: number
   checksumSha256?: string
+  storageGeneration?: string
+  storageEtag?: string
+  storageMetageneration?: string
+  integrityVerified?: true
+  checksumSource?: 'server_computed_bytes'
+  sourceMetadata?: SourceMediaMetadataView
   status: string
   createdAt: string
   updatedAt: string
   mockOnly?: boolean
+}
+
+type ExternalUploadIntentView = Omit<UploadIntentView, 'projectId'> & { projectId?: string }
+type ExternalStorageObjectView = Omit<StorageObjectView, 'projectId'> & { projectId?: string }
+type ExternalMediaAssetView = Omit<MediaAssetView, 'projectId'> & { projectId?: string }
+
+interface SourceMediaMetadataView {
+  probeStatus: 'probed' | 'unavailable'
+  source: 'local_ffprobe' | 'gcs_ffprobe'
+  durationSeconds?: number
+  width?: number
+  height?: number
+  videoCodec?: string
+  audioCodec?: string
+  audioSampleRateHertz?: number
+  audioChannelCount?: number
+  pixelFormat?: string
+  colorSpace?: string
+  colorTransfer?: string
+  colorPrimaries?: string
+  colorRange?: string
+  bitsPerRawSample?: number
+  formatName?: string
+  streamCount?: number
+  hasVideo: boolean
+  hasAudio: boolean
+  unavailableReason?: string
 }
 
 interface LocalObjectUploadView {
@@ -105,19 +231,31 @@ interface LocalObjectUploadView {
   temporaryMetadataOnly: boolean
 }
 
-const mockUploadIntents = new Map<string, UploadIntentView>()
-const mockStorageObjects = new Map<string, StorageObjectView>()
-const mockStorageObjectByUploadIntent = new Map<string, string>()
-const mockMediaAssets = new Map<string, MediaAssetView>()
+interface LocalResumableChunkRange {
+  startByte: number
+  endByteInclusive: number
+  totalBytes: number
+}
 
-export function getMockMediaAsset(mediaAssetId: string): MediaAssetView | undefined {
-  return mockMediaAssets.get(mediaAssetId)
+type UserStorageAccessPurpose =
+  | 'metadata'
+  | 'download'
+  | 'preview_review'
+  | 'thumbnail'
+  | 'qa_review'
+  | 'export_delivery'
+
+const backendLocalStorageObjects = new Map<string, StorageObjectView>()
+
+function backendLocalStorageObjectKey(workspaceId: string, storageObjectRecordId: string): string {
+  return `${workspaceId}\u0000${storageObjectRecordId}`
 }
 
 export function registerBackendLocalStorageObjectRecord(input: {
   id: string
   workspaceId: string
   projectId?: string
+  editReferenceId?: string
   bucketName: string
   objectPath: string
   objectPurpose: string
@@ -130,6 +268,7 @@ export function registerBackendLocalStorageObjectRecord(input: {
     id: input.id,
     workspaceId: input.workspaceId,
     projectId: input.projectId,
+    editReferenceId: input.editReferenceId,
     bucketName: input.bucketName,
     objectPath: input.objectPath,
     objectPurpose: input.objectPurpose,
@@ -141,96 +280,317 @@ export function registerBackendLocalStorageObjectRecord(input: {
     updatedAt: now,
     mockOnly: true,
   }
-  mockStorageObjects.set(storageObjectRecord.id, storageObjectRecord)
+  backendLocalStorageObjects.set(
+    backendLocalStorageObjectKey(storageObjectRecord.workspaceId, storageObjectRecord.id),
+    storageObjectRecord,
+  )
   return storageObjectRecord
 }
 
 export function createUploadService(context: ServiceContext) {
-  const storage = createStorageAdapter(context.env)
+  const storage = context.storageAdapter ?? createStorageAdapter(context.env)
 
   return {
-    async createUploadIntent(input: CreateUploadIntentInput) {
-      const userId = getRequiredAuthUserId(context)
+    async authorizeCreateUploadIntent(input: CreateUploadIntentInput) {
+      const uploadOwner = await resolveUploadOwner(context, input)
+      if (uploadOwner.kind === 'project') {
+        await assertUploadProjectOwnedByCurrentUser(context, uploadOwner.projectId, input.workspaceId)
+      } else {
+        await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
+      }
+      assertCreateUploadIntentDomainIdempotencyAvailable(context, input.idempotencyKey)
+      assertProductionUploadUsesDirectObjectStorage(context, storage)
+      assertUserInitiatedUploadPurpose(input.uploadPurpose)
       assertAllowedUpload({
         purpose: input.uploadPurpose,
         mimeType: input.mimeType,
         expectedSizeBytes: input.expectedSizeBytes,
       })
+    },
 
-      const uploadIntentId = randomUUID()
-      const now = nowIso()
-      const expiresAt = new Date(Date.now() + context.env.signedUrlTtlSeconds * 1000).toISOString()
-      const targetBucket = resolveBucketName(context.env, input.uploadPurpose)
-      const targetPath = buildCanonicalObjectPath({
-        workspaceId: input.workspaceId,
-        projectId: input.projectId,
-        purpose: input.uploadPurpose,
-        ownerId: uploadIntentId,
-        fileName: input.originalFileName,
-      })
+    async authorizeUploadIntentWrite(uploadIntentId: string, workspaceId: string) {
+      const uploadIntent = await loadUploadIntent(context, uploadIntentId, workspaceId)
+      await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, workspaceId)
+      assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
+    },
 
-      const uploadTarget = await storage.createUploadTarget({
+    async authorizeLocalObjectUpload(
+      uploadIntentId: string,
+      workspaceId: string,
+      mimeType: string | undefined,
+      declaredContentLength: number,
+    ) {
+      assertLocalRawUploadRuntimeEnabled(context, storage)
+      assertLocalRawUploadByteLength(declaredContentLength)
+      const uploadIntent = await loadUploadIntent(context, uploadIntentId, workspaceId)
+      await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, workspaceId)
+      assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
+      assertLocalUploadRequestMatchesIntent(uploadIntent, mimeType, declaredContentLength)
+    },
+
+    async authorizeLocalResumableObjectUpload(input: {
+      uploadIntentId: string
+      workspaceId: string
+      mimeType: string | undefined
+      declaredContentLength: number
+      range: LocalResumableChunkRange
+      chunkChecksumSha256: string
+    }) {
+      await loadAuthorizedLocalResumableUploadIntent(context, storage, input)
+    },
+
+    async authorizeLocalResumableObjectStatus(
+      uploadIntentId: string,
+      workspaceId: string,
+    ) {
+      await loadAuthorizedLocalResumableUploadIntent(context, storage, {
         uploadIntentId,
-        bucketName: targetBucket,
-        objectPath: targetPath,
-        mimeType: input.mimeType,
-        expiresAt,
+        workspaceId,
       })
+    },
 
-      if (!context.clients.admin || context.env.mockOnly) {
+    async authorizeSignedUrlEvent(input: SignedUrlEventInput) {
+      await assertSignedUrlEventAccess(context, input)
+    },
+
+    async authorizeStorageObjectRead(
+      storageObjectRecordId: string,
+      workspaceId: string,
+      accessPurpose: string,
+    ) {
+      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId, workspaceId)
+      assertStorageObjectWorkspace(storageObjectRecord, workspaceId)
+      await assertStorageObjectAccessibleByCurrentUser(
+        context,
+        storageObjectRecord,
+        normalizeUserStorageAccessPurpose(accessPurpose),
+      )
+    },
+
+    async createUploadIntent(input: CreateUploadIntentInput) {
+      const userId = getRequiredAuthUserId(context)
+      const mimeType = normalizeAllowedUploadMimeType(input.mimeType)
+      const uploadOwner = await resolveUploadOwner(context, input)
+      if (uploadOwner.kind === 'project') {
+        await assertUploadProjectOwnedByCurrentUser(context, uploadOwner.projectId, input.workspaceId)
+      } else {
+        await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
+      }
+      assertCreateUploadIntentDomainIdempotencyAvailable(context, input.idempotencyKey)
+      assertProductionUploadUsesDirectObjectStorage(context, storage)
+      assertUserInitiatedUploadPurpose(input.uploadPurpose)
+      assertAllowedUpload({
+        purpose: input.uploadPurpose,
+        mimeType,
+        expectedSizeBytes: input.expectedSizeBytes,
+      })
+      assertLargeMediaFinalizationAvailable(context, storage, input.expectedSizeBytes)
+
+      let uploadIntentId: string = randomUUID()
+      const now = nowIso()
+      const expectedProtocol = expectedTemporaryUploadProtocol(
+        storage,
+        input.expectedSizeBytes,
+      )
+      const usesResumableTarget = expectedProtocol !== 'single_put'
+      const uploadTargetTtlSeconds = usesResumableTarget
+        ? GCS_RESUMABLE_SESSION_TTL_SECONDS
+        : context.env.signedUrlTtlSeconds
+      let expiresAt = new Date(Date.now() + uploadTargetTtlSeconds * 1000).toISOString()
+      let targetBucket = resolveBucketName(context.env, input.uploadPurpose)
+      let targetPath = uploadOwner.kind === 'edit_reference'
+        ? buildEditReferenceObjectPath({
+            workspaceId: input.workspaceId,
+            editReferenceId: uploadOwner.editReferenceId,
+            ownerId: uploadIntentId,
+            fileName: input.originalFileName,
+          })
+        : buildCanonicalObjectPath({
+            workspaceId: input.workspaceId,
+            projectId: uploadOwner.projectId,
+            purpose: input.uploadPurpose,
+            ownerId: uploadIntentId,
+            fileName: input.originalFileName,
+          })
+      const canonicalTargetResolution = await resolveCanonicalTargetForUploadIntent({
+        context,
+        storage,
+        input,
+        uploadOwner,
+        uploadIntentId,
+        targetBucket,
+        targetPath,
+        mimeType,
+        expiresAt,
+        now,
+        expectedProtocol,
+      })
+      let uploadTarget = canonicalTargetResolution?.target
+      if (!uploadTarget) {
+        uploadTarget = await storage.createUploadTarget({
+          uploadIntentId,
+          workspaceId: input.workspaceId,
+          projectId: uploadOwner.projectIdForAuthority,
+          bucketName: targetBucket,
+          objectPath: targetPath,
+          mimeType,
+          expectedSizeBytes: input.expectedSizeBytes,
+          checksumSha256: normalizeChecksumSha256(input.checksumSha256),
+          expiresAt,
+        })
+      }
+      if (canonicalTargetResolution) {
+        uploadIntentId = canonicalTargetResolution.intent.uploadIntentId
+        targetBucket = canonicalTargetResolution.intent.targetBucket
+        targetPath = canonicalTargetResolution.intent.targetPath
+        expiresAt = canonicalTargetResolution.intent.expiresAt
+      }
+
+      if (usesLocalUploadPersistence(context)) {
         const uploadIntent: UploadIntentView = {
           id: uploadIntentId,
           workspaceId: input.workspaceId,
-          projectId: input.projectId,
+          projectId: uploadOwner.projectIdForAuthority,
+          ...(uploadOwner.kind === 'edit_reference'
+            ? { editReferenceId: uploadOwner.editReferenceId }
+            : {}),
           chatSessionId: input.chatSessionId,
           requestedByUserId: userId,
           uploadPurpose: input.uploadPurpose,
           targetBucket,
           targetPath,
           originalFileName: input.originalFileName,
-          mimeType: input.mimeType,
+          mimeType,
           expectedSizeBytes: input.expectedSizeBytes,
-          checksumSha256: input.checksumSha256,
+          checksumSha256: normalizeChecksumSha256(input.checksumSha256),
           status: 'signed',
           expiresAt,
-          createdAt: now,
-          updatedAt: now,
+          createdAt: canonicalTargetResolution?.intent.createdAt ?? now,
+          updatedAt: canonicalTargetResolution?.intent.updatedAt ?? now,
           mockOnly: true,
         }
-        mockUploadIntents.set(uploadIntent.id, uploadIntent)
+        const persistedUploadIntent = await createPrivateUploadIntentAuthority({
+          scope: privateUploadMediaAuthorityScope(context, input.workspaceId),
+          uploadIntent: toPrivateUploadIntentAuthorityRecord(uploadIntent),
+          idempotencyKey: input.idempotencyKey,
+          requestHash: input.idempotencyKey
+            ? privateUploadMediaAuthorityValueHash({
+                operation: 'create_upload_intent',
+                workspaceId: input.workspaceId,
+                projectId: uploadOwner.projectIdForAuthority,
+                editReferenceId: uploadOwner.kind === 'edit_reference'
+                  ? uploadOwner.editReferenceId
+                  : null,
+                chatSessionId: input.chatSessionId,
+                uploadPurpose: input.uploadPurpose,
+                originalFileName: input.originalFileName,
+                mimeType,
+                expectedSizeBytes: input.expectedSizeBytes,
+                checksumSha256: normalizeChecksumSha256(input.checksumSha256),
+              })
+            : undefined,
+          now,
+        })
+        if (persistedUploadIntent.id !== uploadIntentId && canonicalTargetResolution) {
+          throw new ApiError(
+            'IDEMPOTENCY_ATOMICITY_REQUIRED',
+            'The canonical upload-target authority and private upload lifecycle projection diverged.',
+            503,
+            {
+              requiredGate: 'canonical_durable_upload_target_lifecycle_projection',
+              targetSideEffectRetried: false,
+            },
+          )
+        }
+        if (persistedUploadIntent.id !== uploadIntentId) {
+          uploadTarget = await storage.createUploadTarget({
+            uploadIntentId: persistedUploadIntent.id,
+            workspaceId: persistedUploadIntent.workspaceId,
+            projectId: persistedUploadIntent.projectId,
+            bucketName: persistedUploadIntent.targetBucket,
+            objectPath: persistedUploadIntent.targetPath,
+            mimeType: persistedUploadIntent.mimeType,
+            expectedSizeBytes: persistedUploadIntent.expectedSizeBytes,
+            checksumSha256: persistedUploadIntent.checksumSha256,
+            expiresAt: persistedUploadIntent.expiresAt,
+          })
+        }
         const signedUrlEvent = await recordSignedUrlEvent(context, {
           workspaceId: input.workspaceId,
-          projectId: input.projectId,
-          uploadIntentId,
+          projectId: uploadOwner.projectIdForAuthority,
+          editReferenceId: uploadOwner.kind === 'edit_reference'
+            ? uploadOwner.editReferenceId
+            : undefined,
+          uploadIntentId: persistedUploadIntent.id,
           urlPurpose: 'upload',
           expiresAt,
           metadataJson: uploadTargetMetadata(storage.mode, uploadTarget, targetBucket, targetPath),
         })
 
         return {
-          uploadIntent,
+          uploadIntent: toExternalUploadIntentView(persistedUploadIntent),
           uploadTarget,
           signedUrlEvent: signedUrlEvent.signedUrlEvent,
           warnings: [
             mockWarning('Upload intent creation'),
+            ...(canonicalTargetResolution
+              ? [`Canonical durable target disposition: ${canonicalTargetResolution.disposition}.`]
+              : []),
             'Upload target is temporary; canonical storage truth is bucketName + objectPath only.',
           ],
         }
       }
 
-      const { data, error } = await context.clients.admin
+      if (canonicalTargetResolution) {
+        const canonicalUploadIntent = mapCanonicalDurableUploadIntent(
+          canonicalTargetResolution.intent,
+        )
+        const signedUrlEvent = await recordSignedUrlEvent(context, {
+          workspaceId: canonicalUploadIntent.workspaceId,
+          projectId: canonicalUploadIntent.projectId,
+          editReferenceId: canonicalUploadIntent.editReferenceId,
+          uploadIntentId: canonicalUploadIntent.id,
+          urlPurpose: 'upload',
+          expiresAt: canonicalUploadIntent.expiresAt,
+          metadataJson: uploadTargetMetadata(
+            storage.mode,
+            uploadTarget,
+            canonicalUploadIntent.targetBucket,
+            canonicalUploadIntent.targetPath,
+          ),
+        })
+        return {
+          uploadIntent: toExternalUploadIntentView(canonicalUploadIntent),
+          uploadTarget,
+          signedUrlEvent: signedUrlEvent.signedUrlEvent,
+          warnings: [
+            `Canonical durable target disposition: ${canonicalTargetResolution.disposition}.`,
+            'Temporary target issuance was committed before its external side effect and no credential was stored in canonical persistence.',
+          ],
+        }
+      }
+
+      const adminClient = getRequiredUploadAdminClient(context)
+      if (uploadOwner.kind !== 'project') {
+        throw new ApiError(
+          'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+          'Production Edit Reference upload persistence is not enabled.',
+          503,
+        )
+      }
+      const { data, error } = await adminClient
         .from('upload_intents')
         .insert({
           id: uploadIntentId,
           workspace_id: input.workspaceId,
-          project_id: input.projectId,
+          project_id: uploadOwner.projectId,
           chat_session_id: input.chatSessionId ?? null,
           requested_by_user_id: userId,
           upload_purpose: toDatabaseUploadPurpose(input.uploadPurpose),
           target_bucket: targetBucket,
           target_path: targetPath,
           original_file_name: input.originalFileName,
-          mime_type: input.mimeType,
+          mime_type: mimeType,
           expected_size_bytes: input.expectedSizeBytes ?? null,
           checksum_sha256: input.checksumSha256 ?? null,
           status: 'signed',
@@ -242,7 +602,7 @@ export function createUploadService(context: ServiceContext) {
       throwOnSupabaseError(error)
       const signedUrlEvent = await recordSignedUrlEvent(context, {
         workspaceId: input.workspaceId,
-        projectId: input.projectId,
+        projectId: uploadOwner.projectId,
         uploadIntentId,
         urlPurpose: 'upload',
         expiresAt,
@@ -256,29 +616,48 @@ export function createUploadService(context: ServiceContext) {
       }
     },
 
-    async uploadLocalObject(uploadIntentId: string, body: Buffer, mimeType?: string) {
-      if (storage.mode !== 'local') {
-        throw new ApiError('MOCK_ONLY', 'Local object upload route is available only when STORAGE_MODE=local.', 409)
+    async uploadLocalObject(
+      uploadIntentId: string,
+      workspaceId: string,
+      body: Buffer,
+      mimeType?: string,
+      declaredContentLength?: number,
+    ) {
+      assertLocalRawUploadRuntimeEnabled(context, storage)
+      assertLocalRawUploadByteLength(body.byteLength)
+      if (declaredContentLength !== undefined && body.byteLength !== declaredContentLength) {
+        throw new ApiError('VALIDATION_FAILED', 'Local raw upload body size does not match Content-Length.', 400, {
+          declaredContentLength,
+          actualSizeBytes: body.byteLength,
+        })
       }
-
-      const uploadIntent = await loadUploadIntent(context, uploadIntentId)
+      const uploadIntent = await loadUploadIntent(context, uploadIntentId, workspaceId)
+      await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, workspaceId)
+      assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
       if (uploadIntent.status === 'finalized') {
         throw new ApiError('UPLOAD_NOT_FINALIZED', 'Upload intent is already finalized.', 409)
       }
+      assertLocalUploadRequestMatchesIntent(uploadIntent, mimeType, body.byteLength)
+      const expectedMimeType = normalizeMimeType(uploadIntent.mimeType)
+      assertAllowedUpload({
+        purpose: uploadIntent.uploadPurpose,
+        mimeType: expectedMimeType,
+        expectedSizeBytes: body.byteLength,
+      })
 
       const metadata = await storage.putObject({
         bucketName: uploadIntent.targetBucket,
         objectPath: uploadIntent.targetPath,
         body,
-        mimeType: mimeType ?? uploadIntent.mimeType,
+        mimeType: expectedMimeType,
       })
 
-      await markUploadIntentUploaded(context, uploadIntentId)
+      await markUploadIntentUploaded(context, uploadIntentId, workspaceId)
       const localObjectUpload: LocalObjectUploadView = {
         uploadIntentId,
         bucketName: metadata.bucketName,
         objectPath: metadata.objectPath,
-        mimeType: mimeType ?? uploadIntent.mimeType,
+        mimeType: expectedMimeType,
         sizeBytes: metadata.sizeBytes,
         checksumSha256: metadata.checksumSha256,
         status: 'uploaded',
@@ -291,25 +670,294 @@ export function createUploadService(context: ServiceContext) {
       }
     },
 
-    async finalizeUploadIntent(input: FinalizeUploadIntentInput) {
-      const uploadIntent = await loadUploadIntent(context, input.uploadIntentId)
-      if (uploadIntent.workspaceId !== input.workspaceId) {
-        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload intent does not belong to the requested workspace.', 403)
+    async uploadLocalResumableObjectChunk(input: {
+      uploadIntentId: string
+      workspaceId: string
+      mimeType: string | undefined
+      declaredContentLength: number
+      range: LocalResumableChunkRange
+      chunkChecksumSha256: string
+      body: Buffer
+    }) {
+      const uploadIntent = await loadAuthorizedLocalResumableUploadIntent(
+        context,
+        storage,
+        input,
+      )
+      if (input.body.byteLength !== input.declaredContentLength) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Local resumable upload body size does not match Content-Length.',
+          400,
+          {
+            declaredContentLength: input.declaredContentLength,
+            actualSizeBytes: input.body.byteLength,
+          },
+        )
+      }
+      if (!storage.putResumableObjectChunk) {
+        throw new ApiError(
+          'SOURCE_MEDIA_NOT_READY',
+          'The local resumable storage adapter is unavailable.',
+          503,
+        )
       }
 
-      if (uploadIntent.status === 'finalized' && uploadIntent.mediaAssetId) {
-        return loadFinalizedUploadResult(uploadIntent)
-      }
-
-      const metadata = await storage.verifyUploadedObject({
+      const resumableUpload = await storage.putResumableObjectChunk({
         bucketName: uploadIntent.targetBucket,
         objectPath: uploadIntent.targetPath,
-        expectedSizeBytes: input.sizeBytes ?? uploadIntent.expectedSizeBytes,
-        checksumSha256: input.checksumSha256 ?? uploadIntent.checksumSha256,
+        objectIdentityDigestSha256: localResumableUploadIdentityDigest(uploadIntent),
+        totalBytes: input.range.totalBytes,
+        startByte: input.range.startByte,
+        endByteInclusive: input.range.endByteInclusive,
+        body: input.body,
+        chunkChecksumSha256: input.chunkChecksumSha256,
       })
+      if (resumableUpload.complete) {
+        await markUploadIntentUploaded(
+          context,
+          uploadIntent.id,
+          uploadIntent.workspaceId,
+        )
+      }
+      return {
+        resumableUpload: {
+          uploadIntentId: uploadIntent.id,
+          ...resumableUpload,
+        },
+        warnings: [
+          resumableUpload.complete
+            ? 'The complete private object is stored; canonical media finalization has not started.'
+            : 'The verified private upload checkpoint is restart-safe; canonical media finalization has not started.',
+        ],
+      }
+    },
 
-      const mediaAsset = await createMediaAsset(context, uploadIntent, metadata)
-      const storageObjectRecord = await createStorageObjectRecord(context, uploadIntent, metadata, mediaAsset.id)
+    async getLocalResumableObjectStatus(
+      uploadIntentId: string,
+      workspaceId: string,
+    ) {
+      const uploadIntent = await loadAuthorizedLocalResumableUploadIntent(
+        context,
+        storage,
+        { uploadIntentId, workspaceId },
+      )
+      if (!storage.getResumableObjectStatus) {
+        throw new ApiError(
+          'SOURCE_MEDIA_NOT_READY',
+          'The local resumable storage adapter is unavailable.',
+          503,
+        )
+      }
+      const totalBytes = requirePositiveExpectedUploadSize(uploadIntent)
+      const resumableUpload = await storage.getResumableObjectStatus({
+        bucketName: uploadIntent.targetBucket,
+        objectPath: uploadIntent.targetPath,
+        objectIdentityDigestSha256: localResumableUploadIdentityDigest(uploadIntent),
+        totalBytes,
+      })
+      if (resumableUpload.complete && uploadIntent.status === 'signed') {
+        await markUploadIntentUploaded(
+          context,
+          uploadIntent.id,
+          uploadIntent.workspaceId,
+        )
+      }
+      return {
+        resumableUpload: {
+          uploadIntentId: uploadIntent.id,
+          ...resumableUpload,
+        },
+        warnings: [
+          resumableUpload.complete
+            ? 'The complete private object is stored; canonical media finalization has not started.'
+            : 'The private upload checkpoint contains only server-verified bytes.',
+        ],
+      }
+    },
+
+    async getUploadFinalizationCandidate(
+      uploadIntentId: string,
+      workspaceId: string,
+    ): Promise<UploadFinalizationCandidate> {
+      const uploadIntent = await loadUploadIntent(context, uploadIntentId, workspaceId)
+      await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, workspaceId)
+      assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
+      const expectedSizeBytes = uploadIntent.expectedSizeBytes
+      if (!Number.isSafeInteger(expectedSizeBytes) || Number(expectedSizeBytes) <= 0) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Source finalization requires the exact positive byte size from its upload intent.',
+          400,
+        )
+      }
+      return {
+        uploadIntentId: uploadIntent.id,
+        ownerUserId: uploadIntent.requestedByUserId,
+        workspaceId: uploadIntent.workspaceId,
+        projectId: uploadIntent.projectId,
+        uploadPurpose: uploadIntent.uploadPurpose,
+        expectedSizeBytes: Number(expectedSizeBytes),
+        status: uploadIntent.status,
+        storageMode: storage.mode,
+        backgroundFinalizationRequired:
+          storage.mode === 'gcs' && shouldUseResumableUpload(Number(expectedSizeBytes)),
+        authorityFingerprint: privateUploadMediaAuthorityValueHash({
+          uploadIntentId: uploadIntent.id,
+          requestedByUserId: uploadIntent.requestedByUserId,
+          workspaceId: uploadIntent.workspaceId,
+          projectId: uploadIntent.projectId,
+          uploadPurpose: uploadIntent.uploadPurpose,
+          targetBucket: uploadIntent.targetBucket,
+          targetPath: uploadIntent.targetPath,
+          mimeType: uploadIntent.mimeType,
+          expectedSizeBytes: Number(expectedSizeBytes),
+          expiresAt: uploadIntent.expiresAt,
+        }),
+      }
+    },
+
+    async finalizeUploadIntent(
+      input: FinalizeUploadIntentInput,
+      options: FinalizeUploadIntentOptions = {},
+    ) {
+      const uploadIntent = await loadUploadIntent(context, input.uploadIntentId, input.workspaceId)
+      await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, input.workspaceId)
+      assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
+      assertFinalizeUploadInputMatchesIntent(uploadIntent, input)
+
+      if (uploadIntent.status === 'finalized' && uploadIntent.mediaAssetId) {
+        return loadFinalizedUploadResult(context, uploadIntent)
+      }
+      if (uploadIntent.status === 'failed') {
+        throw new ApiError(
+          'UPLOAD_NOT_FINALIZED',
+          'Failed upload authority cannot be finalized without a new upload intent.',
+          409,
+        )
+      }
+
+      if (
+        storage.mode === 'gcs' &&
+        shouldUseResumableUpload(uploadIntent.expectedSizeBytes) &&
+        options.backgroundWorkerAuthority !== true
+      ) {
+        throw new ApiError(
+          'SOURCE_MEDIA_NOT_READY',
+          'Large source media must be finalized by the restart-safe background finalization worker.',
+          409,
+          {
+            uploadIntentId: uploadIntent.id,
+            backgroundFinalizationRequired: true,
+            nextAction: 'create_large_media_finalization_job',
+          },
+        )
+      }
+
+      const intentChecksumSha256 = normalizeChecksumSha256(uploadIntent.checksumSha256)
+      const suppliedChecksumSha256 = normalizeChecksumSha256(input.checksumSha256)
+      const expectedChecksumSha256 = intentChecksumSha256 ?? suppliedChecksumSha256
+      let verifiedMetadata: ObjectMetadata
+      try {
+        verifiedMetadata = await storage.verifyUploadedObject({
+          bucketName: uploadIntent.targetBucket,
+          objectPath: uploadIntent.targetPath,
+          expectedSizeBytes: uploadIntent.expectedSizeBytes ?? input.sizeBytes,
+          checksumSha256: expectedChecksumSha256,
+        })
+      } catch (error) {
+        if (
+          options.backgroundWorkerAuthority !== true ||
+          isTerminalUploadedObjectVerificationFailure(error)
+        ) {
+          await markUploadIntentFailed(context, uploadIntent.id, uploadIntent.workspaceId)
+        }
+        throw error
+      }
+
+      let metadata: ObjectMetadata
+      try {
+        metadata = requireCanonicalSourceChecksum(uploadIntent, verifiedMetadata, storage.mode)
+      } catch (error) {
+        await cleanupRejectedUploadedObject(storage, verifiedMetadata)
+        await markUploadIntentFailed(context, uploadIntent.id, uploadIntent.workspaceId)
+        throw error
+      }
+      assertAllowedUpload({
+        purpose: uploadIntent.uploadPurpose,
+        mimeType: uploadIntent.mimeType,
+        expectedSizeBytes: metadata.sizeBytes,
+      })
+      if (metadata.mimeType && normalizeMimeType(metadata.mimeType) !== normalizeMimeType(uploadIntent.mimeType)) {
+        await cleanupRejectedUploadedObject(storage, metadata)
+        await markUploadIntentFailed(context, uploadIntent.id, uploadIntent.workspaceId)
+        throw new ApiError('VALIDATION_FAILED', 'Uploaded object MIME type does not match the upload intent.', 400, {
+          uploadIntentId: uploadIntent.id,
+          expectedMimeType: normalizeMimeType(uploadIntent.mimeType),
+          actualMimeType: normalizeMimeType(metadata.mimeType),
+        })
+      }
+
+      let mediaAsset: MediaAssetView
+      try {
+        mediaAsset = await createMediaAsset(context, uploadIntent, metadata, storage)
+      } catch (error) {
+        if (isPrivateSourceProbeTerminalIntegrityError(error)) {
+          const [failedStatus, cleanupStatus] = await Promise.allSettled([
+            markUploadIntentFailed(context, uploadIntent.id, uploadIntent.workspaceId),
+            cleanupRejectedUploadedObject(storage, metadata),
+          ])
+          if (failedStatus.status === 'rejected') {
+            throw new ApiError(
+              'INTERNAL_ERROR',
+              'Terminal upload integrity failure could not be persisted safely.',
+              500,
+              { reason: 'source_probe_terminal_status_persistence_failed' },
+              { cause: failedStatus.reason, internal: true },
+            )
+          }
+          if (cleanupStatus.status === 'rejected') {
+            throw sourceProbeIntegrityErrorWithCleanupEvidence(error, {
+              objectCleanupStatus: 'failed',
+            }, cleanupStatus.reason)
+          }
+          const cleanupWarnings = cleanupStatus.value?.warnings.slice(0, 8) ?? []
+          if (cleanupWarnings.length > 0) {
+            throw sourceProbeIntegrityErrorWithCleanupEvidence(error, {
+              objectCleanupStatus: 'warning',
+              objectCleanupWarnings: cleanupWarnings,
+            })
+          }
+        }
+        throw error
+      }
+      const storageObjectRecord = await createStorageObjectRecord(context, uploadIntent, metadata, mediaAsset.id, storage)
+      if (usesLocalUploadPersistence(context)) {
+        const finalizedAt = nowIso()
+        const finalized = await commitPrivateFinalizedUploadAuthority({
+          scope: privateUploadMediaAuthorityScope(context, uploadIntent.workspaceId),
+          uploadIntentId: uploadIntent.id,
+          mediaAsset: toPrivateMediaAssetAuthorityRecord(
+            mediaAsset,
+            uploadIntent,
+            storageObjectRecord,
+            metadata,
+          ),
+          storageObject: toPrivateStorageObjectAuthorityRecord(
+            storageObjectRecord,
+            uploadIntent,
+            mediaAsset,
+            metadata,
+          ),
+          now: finalizedAt,
+        })
+        return {
+          uploadIntent: toExternalUploadIntentView(finalized.uploadIntent),
+          storageObjectRecord: toExternalStorageObjectView(finalized.storageObject),
+          mediaAsset: toExternalMediaAssetView(finalized.mediaAsset),
+          warnings: ['Upload finalized into restart-safe private source-media authority; no signed URL was stored.'],
+        }
+      }
       await finalizeUploadIntentRow(context, uploadIntent.id, mediaAsset.id)
 
       const finalizedIntent: UploadIntentView = {
@@ -319,8 +967,6 @@ export function createUploadService(context: ServiceContext) {
         mediaAssetId: mediaAsset.id,
         updatedAt: nowIso(),
       }
-      mockUploadIntents.set(finalizedIntent.id, finalizedIntent)
-
       return {
         uploadIntent: finalizedIntent,
         storageObjectRecord,
@@ -330,27 +976,27 @@ export function createUploadService(context: ServiceContext) {
     },
 
     async recordSignedUrlEvent(input: SignedUrlEventInput) {
+      await assertSignedUrlEventAccess(context, input)
       return recordSignedUrlEvent(context, input)
     },
 
     async getStorageObjectRecord(storageObjectRecordId: string, workspaceId: string) {
-      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId)
-      if (storageObjectRecord.workspaceId !== workspaceId) {
-        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object does not belong to the requested workspace.', 403)
-      }
+      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId, workspaceId)
+      assertStorageObjectWorkspace(storageObjectRecord, workspaceId)
+      await assertStorageObjectAccessibleByCurrentUser(context, storageObjectRecord, 'metadata')
 
       return {
-        storageObjectRecord,
+        storageObjectRecord: toExternalStorageObjectView(storageObjectRecord),
         canonicalOnly: true,
         warnings: ['Canonical storage metadata does not include temporary URLs.'],
       }
     },
 
     async createDownloadTarget(storageObjectRecordId: string, workspaceId: string, urlPurpose = 'download') {
-      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId)
-      if (storageObjectRecord.workspaceId !== workspaceId) {
-        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object does not belong to the requested workspace.', 403)
-      }
+      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId, workspaceId)
+      assertStorageObjectWorkspace(storageObjectRecord, workspaceId)
+      const accessPurpose = normalizeUserStorageAccessPurpose(urlPurpose)
+      await assertStorageObjectAccessibleByCurrentUser(context, storageObjectRecord, accessPurpose)
 
       const expiresAt = new Date(Date.now() + context.env.signedUrlTtlSeconds * 1000).toISOString()
       const downloadTarget = await storage.createDownloadTarget({
@@ -359,10 +1005,13 @@ export function createUploadService(context: ServiceContext) {
         objectPath: storageObjectRecord.objectPath,
         expiresAt,
         workspaceId,
+        generation: storageObjectRecord.generation,
+        etag: storageObjectRecord.etag,
       })
       const signedUrlEvent = await recordSignedUrlEvent(context, {
         workspaceId,
         projectId: storageObjectRecord.projectId,
+        editReferenceId: storageObjectRecord.editReferenceId,
         storageObjectRecordId,
         urlPurpose,
         expiresAt,
@@ -372,6 +1021,8 @@ export function createUploadService(context: ServiceContext) {
           hasTemporaryTarget: Boolean(downloadTarget.downloadUrl),
           bucketName: storageObjectRecord.bucketName,
           objectPath: storageObjectRecord.objectPath,
+          generation: storageObjectRecord.generation,
+          etag: storageObjectRecord.etag,
         },
       })
 
@@ -382,6 +1033,41 @@ export function createUploadService(context: ServiceContext) {
       }
     },
 
+    async getFinalizedSourceMediaAsset(
+      mediaAssetId: string,
+      workspaceId: string,
+      projectId: string,
+      expectedPurpose: 'source_media' | 'reference_media' = 'source_media',
+    ) {
+      await assertUploadProjectOwnedByCurrentUser(context, projectId, workspaceId)
+      if (!usesLocalUploadPersistence(context)) {
+        throw new ApiError(
+          'TOOL_NOT_READY',
+          'The private source-media authority loader is available only for explicit local/internal persistence.',
+          503,
+        )
+      }
+      const authority = await loadPrivateFinalizedMediaAuthority(
+        privateUploadMediaAuthorityScope(context, workspaceId),
+        mediaAssetId,
+      )
+      if (
+        !authority ||
+        authority.uploadIntent.projectId !== projectId ||
+        authority.uploadIntent.uploadPurpose !== expectedPurpose ||
+        authority.mediaAsset.projectId !== projectId ||
+        authority.storageObject.projectId !== projectId
+      ) {
+        throw new ApiError(
+          'UPLOAD_NOT_FINALIZED',
+          'Finalized source media was not found for the authenticated workspace, project, and purpose.',
+          409,
+          { mediaAssetId },
+        )
+      }
+      return authority
+    },
+
     async createLocalObjectStream(storageObjectRecordId: string, workspaceId: string): Promise<{
       stream: Readable
       storageObjectRecord: StorageObjectView
@@ -390,12 +1076,21 @@ export function createUploadService(context: ServiceContext) {
         throw new ApiError('MOCK_ONLY', 'Local object reads are available only when STORAGE_MODE=local.', 409)
       }
 
-      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId)
-      if (storageObjectRecord.workspaceId !== workspaceId) {
-        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object does not belong to the requested workspace.', 403)
-      }
+      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId, workspaceId)
+      assertStorageObjectWorkspace(storageObjectRecord, workspaceId)
+      await assertStorageObjectAccessibleByCurrentUser(context, storageObjectRecord, 'download')
 
-      const stream = await storage.createReadStream(storageObjectRecord.bucketName, storageObjectRecord.objectPath)
+      await storage.verifyUploadedObject({
+        bucketName: storageObjectRecord.bucketName,
+        objectPath: storageObjectRecord.objectPath,
+        expectedSizeBytes: storageObjectRecord.sizeBytes,
+        checksumSha256: normalizeChecksumSha256(storageObjectRecord.checksumSha256),
+      })
+      const stream = await storage.createReadStream(
+        storageObjectRecord.bucketName,
+        storageObjectRecord.objectPath,
+        { generation: storageObjectRecord.generation, etag: storageObjectRecord.etag },
+      )
       return { stream, storageObjectRecord }
     },
   }
@@ -411,18 +1106,900 @@ function uploadTargetMetadata(
     targetType: storageMode === 'local' ? 'backend_local_put_route' : 'temporary_storage_target',
     uploadMethod: uploadTarget.uploadMethod,
     hasTemporaryTarget: Boolean(uploadTarget.uploadUrl),
+    createOnly: uploadTarget.createOnly,
+    uploadProtocol: uploadTarget.uploadProtocol ?? 'single_put',
+    supportsResume: uploadTarget.supportsResume ?? false,
+    recommendedChunkSizeBytes: uploadTarget.recommendedChunkSizeBytes,
+    uploadStatusUrl: uploadTarget.uploadStatusUrl,
+    retryFromVerifiedOffset: uploadTarget.retryFromVerifiedOffset ?? false,
+    sessionUriIsCredential: uploadTarget.sessionUriIsCredential ?? true,
     bucketName,
     objectPath,
   }
 }
 
+async function resolveCanonicalTargetForUploadIntent(input: {
+  context: ServiceContext
+  storage: StorageAdapter
+  input: CreateUploadIntentInput
+  uploadOwner: UploadOwner
+  uploadIntentId: string
+  targetBucket: string
+  targetPath: string
+  mimeType: string
+  expiresAt: string
+  now: string
+  expectedProtocol: TemporaryUploadProtocol
+}): Promise<ResolvedCanonicalUploadTarget | undefined> {
+  const authority = resolveCanonicalDurableUploadTargetRequestAuthority(
+    input.context,
+  )
+  if (!authority) return undefined
+  const { statePort: port, credentialEscrow: escrow } = authority
+  const idempotencyKey = input.input.idempotencyKey?.trim()
+  if (!idempotencyKey) {
+    throw new ApiError(
+      'IDEMPOTENCY_KEY_REQUIRED',
+      'Canonical upload-target issuance requires a durable Idempotency-Key.',
+      400,
+    )
+  }
+  if (!input.input.expectedSizeBytes || !Number.isSafeInteger(input.input.expectedSizeBytes)) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Canonical upload-target issuance requires the exact positive source byte length.',
+      400,
+      { requiredField: 'expectedSizeBytes' },
+    )
+  }
+  const ownerUserId = getRequiredAuthUserId(input.context)
+  assertUserInitiatedUploadPurpose(input.input.uploadPurpose)
+  const checksumSha256 = normalizeChecksumSha256(input.input.checksumSha256)
+  const domainInput = {
+    ownerUserId,
+    workspaceId: input.input.workspaceId,
+    projectId: input.uploadOwner.projectIdForAuthority,
+    ...(input.uploadOwner.kind === 'edit_reference'
+      ? { editReferenceId: input.uploadOwner.editReferenceId }
+      : {}),
+    ...(input.input.chatSessionId ? { chatSessionId: input.input.chatSessionId } : {}),
+    uploadPurpose: input.input.uploadPurpose,
+    targetBucket: input.targetBucket,
+    originalFileName: input.input.originalFileName,
+    mimeType: input.mimeType,
+    expectedSizeBytes: input.input.expectedSizeBytes,
+    ...(checksumSha256 ? { checksumSha256 } : {}),
+  }
+  const requestHash = canonicalDurableUploadIntentRequestHash(domainInput)
+  const candidate = createCanonicalDurableUploadIntentCandidate({
+    ...domainInput,
+    uploadIntentId: input.uploadIntentId,
+    targetPath: input.targetPath,
+    requestHash,
+    createdAt: input.now,
+    expiresAt: input.expiresAt,
+  })
+  const authorizationEvidenceHash = hashCanonicalUploadTargetValue({
+    schemaVersion: 'canonical-upload-target-server-authorization-evidence-v1',
+    ownerUserId,
+    workspaceId: input.input.workspaceId,
+    ownerKind: input.uploadOwner.kind,
+    projectId: input.uploadOwner.projectIdForAuthority,
+    editReferenceId: input.uploadOwner.kind === 'edit_reference'
+      ? input.uploadOwner.editReferenceId
+      : null,
+    access: 'write',
+    serverAuthorizationRechecked: true,
+  })
+  return resolveCanonicalUploadIntentAndTarget({
+    port,
+    escrow,
+    candidate,
+    idempotencyKey,
+    authorizationEvidenceHash,
+    expectedProtocol: input.expectedProtocol,
+    now: input.now,
+    createTarget: (committedIntent) => input.storage.createUploadTarget({
+      uploadIntentId: committedIntent.uploadIntentId,
+      workspaceId: committedIntent.workspaceId,
+      projectId: committedIntent.projectId,
+      bucketName: committedIntent.targetBucket,
+      objectPath: committedIntent.targetPath,
+      mimeType: committedIntent.mimeType,
+      expectedSizeBytes: committedIntent.expectedSizeBytes,
+      checksumSha256: committedIntent.checksumSha256 ?? undefined,
+      expiresAt: committedIntent.expiresAt,
+    }),
+  })
+}
+
+function mapCanonicalDurableUploadIntent(
+  record: CanonicalDurableUploadIntentRecord,
+): UploadIntentView {
+  return {
+    id: record.uploadIntentId,
+    workspaceId: record.workspaceId,
+    projectId: record.projectId,
+    ...(record.editReferenceId ? { editReferenceId: record.editReferenceId } : {}),
+    ...(record.chatSessionId ? { chatSessionId: record.chatSessionId } : {}),
+    requestedByUserId: record.ownerUserId,
+    uploadPurpose: record.uploadPurpose,
+    targetBucket: record.targetBucket,
+    targetPath: record.targetPath,
+    originalFileName: record.originalFileName,
+    mimeType: record.mimeType,
+    expectedSizeBytes: record.expectedSizeBytes,
+    ...(record.checksumSha256 ? { checksumSha256: record.checksumSha256 } : {}),
+    status: 'signed',
+    expiresAt: record.expiresAt,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+  }
+}
+
+function normalizeChecksumSha256(value: string | undefined): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.trim().toLowerCase()
+  return /^[a-f0-9]{64}$/.test(normalized) ? normalized : undefined
+}
+
+function isTerminalUploadedObjectVerificationFailure(error: unknown): boolean {
+  return error instanceof ApiError && [
+    'UPLOAD_NOT_FINALIZED',
+    'UPLOAD_SOURCE_MISMATCH',
+    'VALIDATION_FAILED',
+  ].includes(error.code)
+}
+
+function normalizeMimeType(value: string): string {
+  return value.trim().toLowerCase()
+}
+
+function assertProductionUploadUsesDirectObjectStorage(context: ServiceContext, storage: StorageAdapter): void {
+  if (context.env.nodeEnv === 'production' && storage.mode === 'local') {
+    throw new ApiError(
+      'MOCK_ONLY',
+      'Production media uploads require a signed/direct object-storage target; backend raw-body uploads are disabled.',
+      503,
+    )
+  }
+}
+
+function assertLargeMediaFinalizationAvailable(
+  context: ServiceContext,
+  storage: StorageAdapter,
+  expectedSizeBytes: number | undefined,
+): void {
+  if (storage.mode !== 'gcs' || !shouldUseResumableUpload(expectedSizeBytes)) return
+
+  const mode = context.env.largeMediaFinalizationMode
+  const privateLocalAllowed = mode === 'private_local' &&
+    context.env.nodeEnv !== 'production' &&
+    ['local', 'mock'].includes(context.env.mode)
+  if (privateLocalAllowed) return
+
+  throw new ApiError(
+    'SOURCE_MEDIA_NOT_READY',
+    'Large hosted source uploads are paused until distributed byte verification and media finalization are active.',
+    503,
+    {
+      blockedActionScope: 'distributed_large_media_finalization',
+      maximumHostedUploadBytesWithoutDistributedFinalization: LOCAL_RAW_UPLOAD_MAX_BYTES,
+      bytesAccepted: false,
+      uploadTargetIssued: false,
+      nextSafeAction: 'activate_distributed_large_media_finalization',
+    },
+  )
+}
+
+function assertUserInitiatedUploadPurpose(
+  purpose: UploadPurpose,
+): asserts purpose is 'source_media' | 'reference_media' {
+  if (purpose !== 'source_media' && purpose !== 'reference_media') {
+    throw new ApiError(
+      'WORKSPACE_ACCESS_DENIED',
+      'This upload purpose is reserved for backend workers and explicit delivery workflows.',
+      403,
+    )
+  }
+}
+
+function assertLocalRawUploadRuntimeEnabled(context: ServiceContext, storage: StorageAdapter): void {
+  if (
+    context.env.nodeEnv === 'production' ||
+    (context.env.mode !== 'local' && context.env.mode !== 'mock') ||
+    storage.mode !== 'local'
+  ) {
+    throw new ApiError(
+      'MOCK_ONLY',
+      'Direct backend byte uploads are disabled for this runtime. Use the temporary signed/direct object-storage target returned by the upload-intent endpoint, then finalize the upload.',
+      409,
+    )
+  }
+}
+
+function expectedTemporaryUploadProtocol(
+  storage: StorageAdapter,
+  expectedSizeBytes: number | undefined,
+): TemporaryUploadProtocol {
+  if (!shouldUseResumableUpload(expectedSizeBytes)) return 'single_put'
+  return storage.mode === 'gcs'
+    ? 'gcs_resumable'
+    : 'resumable_content_range_v1'
+}
+
+async function loadAuthorizedLocalResumableUploadIntent(
+  context: ServiceContext,
+  storage: StorageAdapter,
+  input: {
+    uploadIntentId: string
+    workspaceId: string
+    mimeType?: string
+    declaredContentLength?: number
+    range?: LocalResumableChunkRange
+    chunkChecksumSha256?: string
+  },
+): Promise<UploadIntentView> {
+  assertLocalRawUploadRuntimeEnabled(context, storage)
+  if (!storage.putResumableObjectChunk || !storage.getResumableObjectStatus) {
+    throw new ApiError(
+      'SOURCE_MEDIA_NOT_READY',
+      'The local resumable storage adapter is unavailable.',
+      503,
+    )
+  }
+  const uploadIntent = await loadUploadIntent(
+    context,
+    input.uploadIntentId,
+    input.workspaceId,
+  )
+  await assertUploadIntentAccessibleByCurrentUser(
+    context,
+    uploadIntent,
+    input.workspaceId,
+  )
+  assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
+  assertLocalUploadTargetNotExpired(uploadIntent)
+  if (uploadIntent.status !== 'signed' && uploadIntent.status !== 'uploaded') {
+    throw new ApiError(
+      'UPLOAD_NOT_FINALIZED',
+      'Upload intent is not open for local resumable object writes.',
+      409,
+    )
+  }
+  const totalBytes = requirePositiveExpectedUploadSize(uploadIntent)
+  if (totalBytes <= LOCAL_RAW_UPLOAD_MAX_BYTES) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'This upload intent must use the bounded single-request local upload route.',
+      409,
+      { maximumSingleRequestBytes: LOCAL_RAW_UPLOAD_MAX_BYTES },
+    )
+  }
+  const expectedMimeType = normalizeMimeType(uploadIntent.mimeType)
+  assertAllowedUpload({
+    purpose: uploadIntent.uploadPurpose,
+    mimeType: expectedMimeType,
+    expectedSizeBytes: totalBytes,
+  })
+
+  if (input.range) {
+    const uploadedMimeType = normalizeMimeType(input.mimeType ?? '')
+    if (!uploadedMimeType || uploadedMimeType !== expectedMimeType) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Local resumable upload MIME type must match the upload intent.',
+        400,
+        {
+          uploadIntentId: uploadIntent.id,
+          expectedMimeType,
+          uploadedMimeType,
+        },
+      )
+    }
+    if (input.range.totalBytes !== totalBytes) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Local resumable upload total size must match the upload intent.',
+        400,
+        {
+          uploadIntentId: uploadIntent.id,
+          expectedSizeBytes: totalBytes,
+          actualSizeBytes: input.range.totalBytes,
+        },
+      )
+    }
+    const expectedChunkBytes =
+      input.range.endByteInclusive - input.range.startByte + 1
+    if (
+      !Number.isSafeInteger(input.declaredContentLength) ||
+      input.declaredContentLength !== expectedChunkBytes
+    ) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Local resumable chunk range must match Content-Length.',
+        400,
+      )
+    }
+    assertLocalRawUploadByteLength(input.declaredContentLength)
+    if (!/^[a-f0-9]{64}$/u.test(input.chunkChecksumSha256 ?? '')) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'A lowercase SHA-256 digest is required for each resumable upload chunk.',
+        400,
+      )
+    }
+  }
+  return uploadIntent
+}
+
+function requirePositiveExpectedUploadSize(uploadIntent: UploadIntentView): number {
+  if (
+    !Number.isSafeInteger(uploadIntent.expectedSizeBytes) ||
+    Number(uploadIntent.expectedSizeBytes) <= 0
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Local resumable upload requires an exact positive upload-intent byte size.',
+      400,
+    )
+  }
+  return Number(uploadIntent.expectedSizeBytes)
+}
+
+function localResumableUploadIdentityDigest(
+  uploadIntent: UploadIntentView,
+): string {
+  return privateUploadMediaAuthorityValueHash({
+    schemaVersion: 'local-resumable-upload-object-identity-v1',
+    uploadIntentId: uploadIntent.id,
+    requestedByUserId: uploadIntent.requestedByUserId,
+    workspaceId: uploadIntent.workspaceId,
+    projectId: uploadIntent.projectId,
+    editReferenceId: uploadIntent.editReferenceId ?? null,
+    uploadPurpose: uploadIntent.uploadPurpose,
+    targetBucket: uploadIntent.targetBucket,
+    targetPath: uploadIntent.targetPath,
+    mimeType: normalizeMimeType(uploadIntent.mimeType),
+    expectedSizeBytes: requirePositiveExpectedUploadSize(uploadIntent),
+    checksumSha256: normalizeChecksumSha256(uploadIntent.checksumSha256) ?? null,
+    expiresAt: uploadIntent.expiresAt,
+  })
+}
+
+function assertLocalUploadRequestMatchesIntent(
+  uploadIntent: UploadIntentView,
+  mimeType: string | undefined,
+  sizeBytes: number,
+): void {
+  assertLocalUploadTargetNotExpired(uploadIntent)
+  if (uploadIntent.status !== 'signed' && uploadIntent.status !== 'uploaded') {
+    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Upload intent is not open for local object writes.', 409)
+  }
+  const uploadedMimeType = normalizeMimeType(mimeType ?? '')
+  const expectedMimeType = normalizeMimeType(uploadIntent.mimeType)
+  if (!uploadedMimeType || uploadedMimeType !== expectedMimeType) {
+    throw new ApiError('VALIDATION_FAILED', 'Local object upload MIME type must match the upload intent.', 400, {
+      uploadIntentId: uploadIntent.id,
+      expectedMimeType,
+      uploadedMimeType,
+    })
+  }
+  if (uploadIntent.expectedSizeBytes !== undefined && sizeBytes !== uploadIntent.expectedSizeBytes) {
+    throw new ApiError('VALIDATION_FAILED', 'Local object upload size must match the upload intent.', 400, {
+      uploadIntentId: uploadIntent.id,
+      expectedSizeBytes: uploadIntent.expectedSizeBytes,
+      actualSizeBytes: sizeBytes,
+    })
+  }
+  assertLocalRawUploadByteLength(sizeBytes)
+  assertAllowedUpload({
+    purpose: uploadIntent.uploadPurpose,
+    mimeType: expectedMimeType,
+    expectedSizeBytes: sizeBytes,
+  })
+}
+
+function assertLocalUploadTargetNotExpired(uploadIntent: UploadIntentView): void {
+  const expiresAtMs = Date.parse(uploadIntent.expiresAt)
+  if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now()) {
+    throw new ApiError(
+      'UPLOAD_NOT_FINALIZED',
+      'The temporary local upload target has expired. Create a new upload intent before sending more bytes.',
+      409,
+      {
+        uploadIntentId: uploadIntent.id,
+        targetExpired: true,
+        bytesAccepted: false,
+      },
+    )
+  }
+}
+
+function assertUploadIntentOwnedByCurrentUser(context: ServiceContext, uploadIntent: UploadIntentView): void {
+  const userId = getRequiredAuthUserId(context)
+  if (uploadIntent.requestedByUserId !== userId) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload intent does not belong to the authenticated user.', 403, {
+      uploadIntentId: uploadIntent.id,
+      workspaceId: uploadIntent.workspaceId,
+    })
+  }
+}
+
+function assertFinalizeUploadInputMatchesIntent(
+  uploadIntent: UploadIntentView,
+  input: FinalizeUploadIntentInput,
+): void {
+  if (
+    uploadIntent.expectedSizeBytes !== undefined
+    && input.sizeBytes !== undefined
+    && input.sizeBytes !== uploadIntent.expectedSizeBytes
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Finalized upload size cannot override the upload-intent size.',
+      400,
+      {
+        uploadIntentId: uploadIntent.id,
+        expectedSizeBytes: uploadIntent.expectedSizeBytes,
+        suppliedSizeBytes: input.sizeBytes,
+      },
+    )
+  }
+  const intentChecksumSha256 = normalizeChecksumSha256(uploadIntent.checksumSha256)
+  const suppliedChecksumSha256 = normalizeChecksumSha256(input.checksumSha256)
+  if (
+    intentChecksumSha256
+    && suppliedChecksumSha256
+    && intentChecksumSha256 !== suppliedChecksumSha256
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Finalized upload checksum cannot override the upload-intent checksum.',
+      400,
+      { uploadIntentId: uploadIntent.id },
+    )
+  }
+}
+
+type UploadOwner =
+  | { kind: 'project'; projectId: string; projectIdForAuthority: string }
+  | { kind: 'edit_reference'; editReferenceId: string; projectIdForAuthority: string }
+
+async function resolveUploadOwner(
+  context: ServiceContext,
+  input: CreateUploadIntentInput,
+): Promise<UploadOwner> {
+  if ('editReferenceId' in input && input.editReferenceId) {
+    if (input.uploadPurpose !== 'reference_media') {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'An Edit Reference upload intent may contain reference media only.',
+        400,
+      )
+    }
+    assertEditReferenceUploadPersistenceAvailable(context)
+    return {
+      kind: 'edit_reference',
+      editReferenceId: input.editReferenceId,
+      projectIdForAuthority: input.editReferenceId,
+    }
+  }
+  if (!('projectId' in input) || !input.projectId) {
+    throw new ApiError('VALIDATION_FAILED', 'Upload ownership is required.', 400)
+  }
+  return {
+    kind: 'project',
+    projectId: input.projectId,
+    projectIdForAuthority: input.projectId,
+  }
+}
+
+export function assertEditReferenceUploadPersistenceAvailable(context: ServiceContext): void {
+  const locallyAuthorized = context.auth?.isMockUser === true
+    && context.env.allowMockWithoutSupabase
+    && (context.env.mode === 'local' || context.env.mode === 'mock')
+    && context.env.storageMode === 'local'
+  if (locallyAuthorized || usesCanonicalV3SignedInPrivateMediaPersistence(context)) return
+  throw new ApiError(
+    'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+    'Production Edit Reference media persistence remains blocked until its canonical database and distributed finalization authority are approved.',
+    503,
+    {
+      migrationBaseline: 'blocked_by_parallel_foundations',
+      distributedFinalizationReady: false,
+      isolatedSignedInPrivateMediaRuntimeMounted: false,
+      remoteMutationAttempted: false,
+    },
+  )
+}
+
+async function assertUploadIntentAccessibleByCurrentUser(
+  context: ServiceContext,
+  uploadIntent: UploadIntentView,
+  workspaceId: string,
+): Promise<void> {
+  assertUploadIntentOwnedByCurrentUser(context, uploadIntent)
+  if (uploadIntent.workspaceId !== workspaceId) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload intent does not belong to the requested workspace.', 403)
+  }
+  if (uploadIntent.editReferenceId) return
+  await assertUploadProjectOwnedByCurrentUser(context, uploadIntent.projectId, uploadIntent.workspaceId)
+}
+
+async function assertStorageObjectAccessibleByCurrentUser(
+  context: ServiceContext,
+  storageObjectRecord: StorageObjectView,
+  accessPurpose: UserStorageAccessPurpose,
+): Promise<void> {
+  assertUserDeliveryBoundary(context, storageObjectRecord, accessPurpose)
+
+  let effectiveProjectId = storageObjectRecord.projectId
+  let effectiveEditReferenceId = storageObjectRecord.editReferenceId
+  if (storageObjectRecord.uploadIntentId) {
+    const uploadIntent = await loadUploadIntent(
+      context,
+      storageObjectRecord.uploadIntentId,
+      storageObjectRecord.workspaceId,
+    )
+    await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, storageObjectRecord.workspaceId)
+    if (
+      effectiveEditReferenceId
+      && effectiveEditReferenceId !== uploadIntent.editReferenceId
+    ) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object Edit Reference scope does not match its upload intent.', 403)
+    }
+    effectiveEditReferenceId = effectiveEditReferenceId ?? uploadIntent.editReferenceId
+    if (effectiveProjectId && effectiveProjectId !== uploadIntent.projectId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object project scope does not match its upload intent.', 403)
+    }
+    effectiveProjectId = effectiveProjectId ?? uploadIntent.projectId
+  }
+
+  if (effectiveEditReferenceId) return
+
+  if (!effectiveProjectId) {
+    throw new ApiError(
+      'WORKSPACE_ACCESS_DENIED',
+      'Storage object has no project-scoped user delivery boundary.',
+      403,
+      { storageObjectRecordId: storageObjectRecord.id },
+    )
+  }
+
+  await assertUploadProjectOwnedByCurrentUser(context, effectiveProjectId, storageObjectRecord.workspaceId)
+}
+
+function assertStorageObjectWorkspace(storageObjectRecord: StorageObjectView, workspaceId: string): void {
+  if (storageObjectRecord.workspaceId !== workspaceId) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object does not belong to the requested workspace.', 403)
+  }
+}
+
+function assertUserDeliveryBoundary(
+  context: ServiceContext,
+  storageObjectRecord: StorageObjectView,
+  accessPurpose: UserStorageAccessPurpose,
+): void {
+  if (storageObjectRecord.status !== 'ready') {
+    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Storage object is not ready for user delivery.', 409)
+  }
+
+  const purpose = storageObjectRecord.objectPurpose
+  const isWorkerTempBucket = storageObjectRecord.bucketName === 'worker-temp' ||
+    Boolean(context.env.gcsWorkerTempBucket && storageObjectRecord.bucketName === context.env.gcsWorkerTempBucket)
+  const isProcessedMediaBucket = storageObjectRecord.bucketName === 'processed-media' ||
+    Boolean(context.env.gcsProcessedMediaBucket && storageObjectRecord.bucketName === context.env.gcsProcessedMediaBucket)
+  const isQaArtifactBucket = storageObjectRecord.bucketName === 'qa-artifacts' ||
+    Boolean(context.env.gcsQaArtifactsBucket && storageObjectRecord.bucketName === context.env.gcsQaArtifactsBucket)
+  if (purpose === 'worker_temp' || purpose === 'other' || isWorkerTempBucket) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Worker-only storage objects are not available through user delivery routes.', 403)
+  }
+  if ((purpose === 'processed_media' || isProcessedMediaBucket) && accessPurpose !== 'preview_review') {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Processed media requires an explicit preview-review delivery boundary.', 403)
+  }
+  if ((purpose === 'qa_artifact' || isQaArtifactBucket) && accessPurpose !== 'qa_review') {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'QA artifacts require an explicit QA-review delivery boundary.', 403)
+  }
+}
+
+function normalizeUserStorageAccessPurpose(value: string): UserStorageAccessPurpose {
+  if (
+    value === 'metadata' ||
+    value === 'download' ||
+    value === 'preview_review' ||
+    value === 'thumbnail' ||
+    value === 'qa_review' ||
+    value === 'export_delivery'
+  ) {
+    return value
+  }
+  throw new ApiError('WORKSPACE_ACCESS_DENIED', 'The requested storage delivery purpose is not available to user routes.', 403)
+}
+
+async function assertUploadProjectOwnedByCurrentUser(
+  context: ServiceContext,
+  projectId: string,
+  workspaceId: string,
+): Promise<void> {
+  const result = await createProjectService(context).getProject(projectId, workspaceId)
+  const projectWorkspaceId = getProjectWorkspaceId(result.project)
+  if (projectWorkspaceId !== workspaceId) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload project does not belong to the requested workspace.', 403, {
+      projectId,
+      workspaceId,
+      projectWorkspaceId,
+    })
+  }
+}
+
+function getProjectWorkspaceId(project: unknown): string | undefined {
+  if (!project || typeof project !== 'object') return undefined
+  const record = project as { workspaceId?: unknown; workspace_id?: unknown }
+  if (typeof record.workspaceId === 'string') return record.workspaceId
+  if (typeof record.workspace_id === 'string') return record.workspace_id
+  return undefined
+}
+
+async function assertSignedUrlEventAccess(context: ServiceContext, input: SignedUrlEventInput): Promise<void> {
+  if (input.uploadIntentId) {
+    const uploadIntent = await loadUploadIntent(context, input.uploadIntentId, input.workspaceId)
+    await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, input.workspaceId)
+    assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
+    if (input.urlPurpose !== 'upload') {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload-intent signed URL events must use the upload purpose.', 403)
+    }
+    if (input.projectId && input.projectId !== uploadIntent.projectId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event project does not match its upload intent.', 403)
+    }
+    if (input.editReferenceId && input.editReferenceId !== uploadIntent.editReferenceId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event Edit Reference does not match its upload intent.', 403)
+    }
+  }
+
+  if (input.storageObjectRecordId) {
+    const storageObjectRecord = await loadStorageObjectRecord(
+      context,
+      input.storageObjectRecordId,
+      input.workspaceId,
+    )
+    assertStorageObjectWorkspace(storageObjectRecord, input.workspaceId)
+    const accessPurpose = normalizeUserStorageAccessPurpose(input.urlPurpose)
+    await assertStorageObjectAccessibleByCurrentUser(context, storageObjectRecord, accessPurpose)
+    if (input.projectId && input.projectId !== storageObjectRecord.projectId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event project does not match its storage object.', 403)
+    }
+    if (input.editReferenceId && input.editReferenceId !== storageObjectRecord.editReferenceId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event Edit Reference does not match its storage object.', 403)
+    }
+  }
+
+  if (!input.uploadIntentId && !input.storageObjectRecordId) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL events require an authorized upload intent or storage object.', 403)
+  }
+}
+
+function usesLocalUploadPersistence(context: ServiceContext): boolean {
+  return !context.clients.admin
+    || context.env.mockOnly
+    || context.env.allowInternalTestExecutionWithSupabase
+    || usesCanonicalV3SignedInPrivateMediaPersistence(context)
+}
+
+function usesCanonicalV3SignedInPrivateMediaPersistence(
+  context: ServiceContext,
+): boolean {
+  const mediaPort = context.editReferenceSignedInPrivateMediaRuntimePort
+  if (!mediaPort) return false
+  assertEditReferenceSignedInPrivateMediaRuntimePort(mediaPort)
+
+  const longFormFactory = context.editReferenceLongFormStudyRuntimePortFactory
+  if (!longFormFactory) {
+    throw editReferencePrivateMediaUnavailable(
+      'canonical_v3_request_scoped_long_form_factory_missing',
+    )
+  }
+  assertEditReferenceLongFormStudyRuntimePortFactory(longFormFactory)
+
+  const domainPort = context.editReferenceDomainRepositoryRuntimePort
+  const authenticatedAccessToken = context.auth?.accessToken
+  const valid = context.env.nodeEnv !== 'production'
+    && context.env.allowMockWithoutSupabase
+    && (context.env.mode === 'local' || context.env.mode === 'mock')
+    && context.env.storageMode === 'local'
+    && context.env.largeMediaFinalizationMode === 'private_local'
+    && context.env.supabaseUrl === mediaPort.endpointOrigin
+    && context.auth?.isMockUser === false
+    && Boolean(context.auth.userId.trim())
+    && isBoundedAuthenticatedJwt(authenticatedAccessToken)
+    && longFormFactory.sourceAuthority
+      === 'canonical_v3_loopback_postgres_pre_plan_study'
+    && longFormFactory.evidenceClass === 'canonical_contract_fixture_unreleased'
+    && !longFormFactory.productionAuthority
+    && domainPort?.sourceAuthority === 'canonical_v3_local_repository'
+    && domainPort.evidenceClass === 'canonical_v3_local_only'
+    && domainPort.repository.persistence === 'canonical_supabase_transactional'
+    && domainPort.databaseTransactionAdapterVerified
+    && domainPort.authenticatedTenantRlsVerified
+    && domainPort.durableIdempotencyAndCasVerified
+    && domainPort.crossDeviceReadbackVerified
+    && !domainPort.sameReleaseEvidenceVerified
+    && !domainPort.productionAuthority
+  if (!valid) {
+    throw editReferencePrivateMediaUnavailable(
+      'canonical_v3_signed_in_private_media_runtime_mismatch',
+    )
+  }
+  return true
+}
+
+function isBoundedAuthenticatedJwt(value: string | undefined): value is string {
+  return typeof value === 'string'
+    && value.length >= 20
+    && value.length <= 16_384
+    && value.split('.').length === 3
+    && /^[A-Za-z0-9._-]+$/u.test(value)
+}
+
+function editReferencePrivateMediaUnavailable(reason: string): ApiError {
+  return new ApiError(
+    'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+    'The signed-in private Edit Reference media runtime is unavailable or unsafe.',
+    503,
+    {
+      reason,
+      requiredGate: 'signed_in_private_edit_reference_media',
+      distributedFinalizationReady: false,
+      remoteMutationAttempted: false,
+      productionReady: false,
+    },
+  )
+}
+
+function assertCreateUploadIntentDomainIdempotencyAvailable(
+  context: ServiceContext,
+  idempotencyKey: string | undefined,
+): void {
+  const authority = resolveCanonicalDurableUploadTargetRequestAuthority(context)
+  if (usesLocalUploadPersistence(context)) return
+  if (authority && idempotencyKey?.trim()) {
+    assertCanonicalDurableUploadTargetProductionAuthority(authority.statePort)
+    return
+  }
+  throw new ApiError(
+    'IDEMPOTENCY_ATOMICITY_REQUIRED',
+    'Production upload-intent creation is unavailable until its durable intent, one-use target claim, credential escrow, and lifecycle projection are production-qualified.',
+    503,
+    {
+      requiredGate: 'create_upload_intent_atomic_idempotency_rpc',
+      requiredAuthority: 'canonical_durable_upload_target_authority',
+      idempotencyKeyPresent: Boolean(idempotencyKey?.trim()),
+      durableStatePortPresent: Boolean(authority?.statePort),
+      credentialEscrowPresent: Boolean(authority?.credentialEscrow),
+      temporaryCredentialReplayCacheAllowed: false,
+      retryable: false,
+    },
+  )
+}
+
+function resolveCanonicalDurableUploadTargetRequestAuthority(
+  context: ServiceContext,
+): CanonicalDurableUploadTargetRequestAuthorityPair | undefined {
+  const statePort = context.canonicalDurableUploadTargetStatePort
+  const credentialEscrow = context.canonicalUploadTargetCredentialEscrow
+  const factory =
+    context.canonicalDurableUploadTargetRequestAuthorityFactory
+  const hasAnyStaticAuthority = Boolean(statePort || credentialEscrow)
+
+  if (factory && hasAnyStaticAuthority) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Static and request-scoped durable upload-target authorities cannot be combined.',
+      503,
+      {
+        requiredGate: 'single_canonical_durable_upload_target_authority',
+        targetSideEffectRetried: false,
+      },
+    )
+  }
+  if (Boolean(statePort) !== Boolean(credentialEscrow)) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Durable upload-target state and credential escrow must be injected together.',
+      503,
+      { requiredGate: 'canonical_durable_upload_target_authority_pair' },
+    )
+  }
+  if (statePort && credentialEscrow) {
+    assertCanonicalDurableUploadTargetStatePort(statePort)
+    assertCanonicalUploadTargetCredentialEscrow(
+      credentialEscrow,
+      context.env.nodeEnv === 'production',
+    )
+    return { statePort, credentialEscrow }
+  }
+  if (!factory) return undefined
+
+  assertCanonicalDurableUploadTargetRequestAuthorityFactory(factory)
+  const authenticatedAccessToken = context.auth?.accessToken
+  if (
+    context.auth?.isMockUser !== false
+    || !context.auth.userId.trim()
+    || !isBoundedAuthenticatedJwt(authenticatedAccessToken)
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Request-scoped durable upload-target authority requires a verified signed-in user token.',
+      503,
+      {
+        requiredGate: 'authenticated_request_scoped_upload_target_authority',
+        authenticatedUserAuthorityPresent: false,
+        targetSideEffectRetried: false,
+      },
+    )
+  }
+  const pair = factory.createForAuthenticatedRequest({
+    env: context.env,
+    authority: {
+      ownerUserId: context.auth.userId,
+      authenticatedAccessToken,
+      isMockUser: false,
+    },
+  })
+  assertCanonicalDurableUploadTargetRequestAuthorityPair(pair)
+  return pair
+}
+
+function getRequiredUploadAdminClient(context: ServiceContext): NonNullable<ServiceContext['clients']['admin']> {
+  const adminClient = context.clients.admin
+  if (!adminClient) {
+    throw new ApiError('INTERNAL_ERROR', 'Supabase admin client is unavailable for upload persistence.', 500)
+  }
+
+  return adminClient
+}
+
+function requireCanonicalSourceChecksum(
+  uploadIntent: UploadIntentView,
+  metadata: ObjectMetadata,
+  storageMode: StorageAdapter['mode'],
+): ObjectMetadata {
+  const checksumSha256 = normalizeChecksumSha256(metadata.checksumSha256)
+
+  if (
+    (uploadIntent.uploadPurpose === 'source_media' || uploadIntent.uploadPurpose === 'reference_media') &&
+    (!checksumSha256 || !metadata.integrityVerified || metadata.checksumSource !== 'server_computed_bytes')
+  ) {
+    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Uploaded source media is missing server-computed SHA-256 byte evidence.', 409, {
+      uploadIntentId: uploadIntent.id,
+      uploadPurpose: uploadIntent.uploadPurpose,
+      bucketName: metadata.bucketName,
+      objectPath: metadata.objectPath,
+    })
+  }
+
+  if (storageMode === 'gcs' && (!metadata.generation || !metadata.etag)) {
+    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Uploaded GCS source media is missing generation-bound object identity.', 409, {
+      uploadIntentId: uploadIntent.id,
+      bucketName: metadata.bucketName,
+      objectPath: metadata.objectPath,
+    })
+  }
+
+  return {
+    ...metadata,
+    checksumSha256: checksumSha256 ?? metadata.checksumSha256,
+  }
+}
+
 async function recordSignedUrlEvent(context: ServiceContext, input: SignedUrlEventInput) {
-  if (!context.clients.admin || context.env.mockOnly) {
+  if (usesLocalUploadPersistence(context)) {
     return {
       signedUrlEvent: {
         id: randomUUID(),
         workspaceId: input.workspaceId,
         projectId: input.projectId,
+        editReferenceId: input.editReferenceId,
         storageObjectRecordId: input.storageObjectRecordId,
         uploadIntentId: input.uploadIntentId,
         requestedByUserId: context.auth?.userId,
@@ -436,7 +2013,8 @@ async function recordSignedUrlEvent(context: ServiceContext, input: SignedUrlEve
     }
   }
 
-  const { data, error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { data, error } = await adminClient
     .from('signed_url_events')
     .insert({
       workspace_id: input.workspaceId,
@@ -455,18 +2033,28 @@ async function recordSignedUrlEvent(context: ServiceContext, input: SignedUrlEve
   return { signedUrlEvent: mapSignedUrlEvent(data), warnings: ['Signed URL event metadata recorded without the URL value.'] }
 }
 
-async function loadUploadIntent(context: ServiceContext, uploadIntentId: string): Promise<UploadIntentView> {
-  const mockIntent = mockUploadIntents.get(uploadIntentId)
-  if (mockIntent) return mockIntent
-
-  if (!context.clients.admin || context.env.mockOnly) {
-    throw new ApiError('UPLOAD_INTENT_NOT_FOUND', 'Upload intent was not found in local/mock state.', 404)
+async function loadUploadIntent(
+  context: ServiceContext,
+  uploadIntentId: string,
+  workspaceId: string,
+): Promise<UploadIntentView> {
+  if (usesLocalUploadPersistence(context)) {
+    const uploadIntent = await loadPrivateUploadIntentAuthority(
+      privateUploadMediaAuthorityScope(context, workspaceId),
+      uploadIntentId,
+    )
+    if (!uploadIntent) {
+      throw new ApiError('UPLOAD_INTENT_NOT_FOUND', 'Upload intent was not found in private local authority.', 404)
+    }
+    return uploadIntent
   }
 
-  const { data, error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { data, error } = await adminClient
     .from('upload_intents')
     .select('*')
     .eq('id', uploadIntentId)
+    .eq('workspace_id', workspaceId)
     .single()
 
   throwOnSupabaseError(error, 'UPLOAD_INTENT_NOT_FOUND')
@@ -474,33 +2062,81 @@ async function loadUploadIntent(context: ServiceContext, uploadIntentId: string)
   return mapUploadIntent(data)
 }
 
-async function loadStorageObjectRecord(context: ServiceContext, storageObjectRecordId: string): Promise<StorageObjectView> {
-  const mockRecord = mockStorageObjects.get(storageObjectRecordId)
-  if (mockRecord) return mockRecord
-
-  if (!context.clients.admin || context.env.mockOnly) {
-    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Storage object record was not found in local/mock state.', 404)
+async function loadStorageObjectRecord(
+  context: ServiceContext,
+  storageObjectRecordId: string,
+  workspaceId: string,
+): Promise<StorageObjectView> {
+  if (usesLocalUploadPersistence(context)) {
+    const registeredObject = backendLocalStorageObjects.get(
+      backendLocalStorageObjectKey(workspaceId, storageObjectRecordId),
+    )
+    if (registeredObject) return registeredObject
+    const storageObject = await loadPrivateStorageObjectAuthority(
+      privateUploadMediaAuthorityScope(context, workspaceId),
+      storageObjectRecordId,
+    )
+    if (!storageObject) {
+      throw new ApiError('UPLOAD_NOT_FINALIZED', 'Storage object record was not found in private local authority.', 404)
+    }
+    return storageObject
   }
 
-  const { data, error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { data, error } = await adminClient
     .from('storage_object_records')
     .select('*')
     .eq('id', storageObjectRecordId)
+    .eq('workspace_id', workspaceId)
     .single()
 
   throwOnSupabaseError(error, 'UPLOAD_NOT_FINALIZED')
   if (!data) throw new ApiError('UPLOAD_NOT_FINALIZED', 'Storage object record was not found.', 404)
-  return mapStorageObjectRecord(data)
+  return enrichStorageObjectIdentity(context, mapStorageObjectRecord(data))
 }
 
-async function markUploadIntentUploaded(context: ServiceContext, uploadIntentId: string): Promise<void> {
-  const mockIntent = mockUploadIntents.get(uploadIntentId)
-  if (mockIntent) {
-    mockUploadIntents.set(uploadIntentId, { ...mockIntent, status: 'uploaded', updatedAt: nowIso() })
+async function enrichStorageObjectIdentity(
+  context: ServiceContext,
+  storageObjectRecord: StorageObjectView,
+): Promise<StorageObjectView> {
+  if ((storageObjectRecord.generation && storageObjectRecord.etag) || !storageObjectRecord.mediaAssetId) {
+    return storageObjectRecord
   }
 
-  if (context.clients.admin && !context.env.mockOnly) {
-    const { error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { data, error } = await adminClient
+    .from('media_assets')
+    .select('metadata')
+    .eq('id', storageObjectRecord.mediaAssetId)
+    .maybeSingle()
+
+  throwOnSupabaseError(error)
+  const row = unknownRecord(data)
+  const metadata = unknownRecord(row?.metadata)
+  const identity = unknownRecord(metadata?.storageObjectIdentity)
+  return {
+    ...storageObjectRecord,
+    generation: maybeString(identity?.generation),
+    etag: maybeString(identity?.etag),
+    metageneration: maybeString(identity?.metageneration),
+  }
+}
+
+async function markUploadIntentUploaded(
+  context: ServiceContext,
+  uploadIntentId: string,
+  workspaceId: string,
+): Promise<void> {
+  if (usesLocalUploadPersistence(context)) {
+    await transitionPrivateUploadIntentAuthority({
+      scope: privateUploadMediaAuthorityScope(context, workspaceId),
+      uploadIntentId,
+      nextStatus: 'uploaded',
+      now: nowIso(),
+    })
+  } else {
+    const adminClient = getRequiredUploadAdminClient(context)
+    const { error } = await adminClient
       .from('upload_intents')
       .update({ status: 'uploaded', updated_at: nowIso() })
       .eq('id', uploadIntentId)
@@ -509,36 +2145,102 @@ async function markUploadIntentUploaded(context: ServiceContext, uploadIntentId:
   }
 }
 
+async function markUploadIntentFailed(
+  context: ServiceContext,
+  uploadIntentId: string,
+  workspaceId: string,
+): Promise<void> {
+  if (usesLocalUploadPersistence(context)) {
+    await transitionPrivateUploadIntentAuthority({
+      scope: privateUploadMediaAuthorityScope(context, workspaceId),
+      uploadIntentId,
+      nextStatus: 'failed',
+      now: nowIso(),
+    })
+  } else {
+    const adminClient = getRequiredUploadAdminClient(context)
+    const { error } = await adminClient
+      .from('upload_intents')
+      .update({ status: 'failed', updated_at: nowIso() })
+      .eq('id', uploadIntentId)
+
+    throwOnSupabaseError(error)
+  }
+}
+
+async function cleanupRejectedUploadedObject(
+  storage: StorageAdapter,
+  metadata: ObjectMetadata,
+): Promise<{ deleted: boolean; warnings: string[] } | undefined> {
+  if (!metadata.generation || !metadata.etag) return undefined
+  return storage.deleteObject(
+    metadata.bucketName,
+    metadata.objectPath,
+    { generation: metadata.generation, etag: metadata.etag },
+  )
+}
+
+function sourceProbeIntegrityErrorWithCleanupEvidence(
+  error: ApiError,
+  evidence: Record<string, unknown>,
+  cleanupCause?: unknown,
+): ApiError {
+  const details = error.details && typeof error.details === 'object' && !Array.isArray(error.details)
+    ? error.details as Record<string, unknown>
+    : {}
+  return new ApiError(
+    error.code,
+    error.message,
+    error.status,
+    { ...details, ...evidence },
+    cleanupCause === undefined
+      ? { internal: error.internal }
+      : { cause: cleanupCause, internal: error.internal },
+  )
+}
+
 async function createMediaAsset(
   context: ServiceContext,
   uploadIntent: UploadIntentView,
   metadata: ObjectMetadata,
+  storage: StorageAdapter,
 ): Promise<MediaAssetView> {
   const now = nowIso()
   const mediaAssetId = randomUUID()
+  const sourceMetadata = await probeSourceMediaMetadata(context, uploadIntent, metadata, storage)
   const mediaAsset: MediaAssetView = {
     id: mediaAssetId,
     workspaceId: uploadIntent.workspaceId,
     projectId: uploadIntent.projectId,
+    editReferenceId: uploadIntent.editReferenceId,
+    uploadIntentId: uploadIntent.id,
+    uploadPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
     assetType: mediaAssetTypeForUpload(uploadIntent),
     fileName: uploadIntent.originalFileName,
     mimeType: uploadIntent.mimeType,
+    storageProvider: storage.mode === 'gcs' ? 'google_cloud_storage' : 'local_private',
     storageBucket: metadata.bucketName,
     storagePath: metadata.objectPath,
     sizeBytes: metadata.sizeBytes,
     checksumSha256: metadata.checksumSha256,
+    storageGeneration: metadata.generation,
+    storageEtag: metadata.etag,
+    storageMetageneration: metadata.metageneration,
+    integrityVerified: metadata.integrityVerified ? true : undefined,
+    checksumSource: metadata.checksumSource === 'server_computed_bytes' ? 'server_computed_bytes' : undefined,
+    sourceMetadata,
     status: 'uploaded',
     createdAt: now,
     updatedAt: now,
-    mockOnly: !context.clients.admin || context.env.mockOnly,
+    mockOnly: usesLocalUploadPersistence(context),
   }
 
-  if (!context.clients.admin || context.env.mockOnly) {
-    mockMediaAssets.set(mediaAsset.id, mediaAsset)
+  if (usesLocalUploadPersistence(context)) {
     return mediaAsset
   }
 
-  const { data, error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { data, error } = await adminClient
     .from('media_assets')
     .insert({
       id: mediaAssetId,
@@ -550,7 +2252,7 @@ async function createMediaAsset(
       file_name: uploadIntent.originalFileName,
       display_name: uploadIntent.originalFileName,
       mime_type: uploadIntent.mimeType,
-      storage_provider: context.env.storageMode === 'local' ? 'local_private_storage' : 'gcs',
+      storage_provider: storage.mode === 'gcs' ? 'gcs' : 'local_private_storage',
       storage_bucket: metadata.bucketName,
       storage_path: metadata.objectPath,
       public_url: null,
@@ -559,7 +2261,13 @@ async function createMediaAsset(
       checksum: metadata.checksumSha256,
       metadata: {
         uploadIntentId: uploadIntent.id,
-        storageMode: context.env.storageMode,
+        storageMode: storage.mode,
+        storageObjectIdentity: {
+          generation: metadata.generation,
+          etag: metadata.etag,
+          metageneration: metadata.metageneration,
+        },
+        sourceMediaMetadata: sourceMetadata,
       },
     })
     .select('*')
@@ -574,40 +2282,42 @@ async function createStorageObjectRecord(
   uploadIntent: UploadIntentView,
   metadata: ObjectMetadata,
   mediaAssetId: string,
+  storage: StorageAdapter,
 ): Promise<StorageObjectView> {
-  const existingId = mockStorageObjectByUploadIntent.get(uploadIntent.id)
-  if (existingId) {
-    const existing = mockStorageObjects.get(existingId)
-    if (existing) return existing
-  }
-
   const now = nowIso()
   const storageObjectRecord: StorageObjectView = {
     id: randomUUID(),
     workspaceId: uploadIntent.workspaceId,
     projectId: uploadIntent.projectId,
+    editReferenceId: uploadIntent.editReferenceId,
     mediaAssetId,
     uploadIntentId: uploadIntent.id,
+    uploadPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
+    storageProvider: storage.mode === 'gcs' ? 'google_cloud_storage' : 'local_private',
     bucketName: metadata.bucketName,
     objectPath: metadata.objectPath,
     objectPurpose: toDatabaseStoragePurpose(uploadIntent.uploadPurpose),
     mimeType: uploadIntent.mimeType,
     sizeBytes: metadata.sizeBytes,
     checksumSha256: metadata.checksumSha256,
+    generation: metadata.generation,
+    etag: metadata.etag,
+    metageneration: metadata.metageneration,
+    integrityVerified: metadata.integrityVerified ? true : undefined,
+    checksumSource: metadata.checksumSource === 'server_computed_bytes' ? 'server_computed_bytes' : undefined,
     region: context.env.gcsDefaultRegion,
     status: 'ready',
     createdAt: now,
     updatedAt: now,
-    mockOnly: !context.clients.admin || context.env.mockOnly,
+    mockOnly: usesLocalUploadPersistence(context),
   }
 
-  if (!context.clients.admin || context.env.mockOnly) {
-    mockStorageObjects.set(storageObjectRecord.id, storageObjectRecord)
-    mockStorageObjectByUploadIntent.set(uploadIntent.id, storageObjectRecord.id)
+  if (usesLocalUploadPersistence(context)) {
     return storageObjectRecord
   }
 
-  const { data, error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { data, error } = await adminClient
     .from('storage_object_records')
     .upsert({
       id: storageObjectRecord.id,
@@ -628,13 +2338,19 @@ async function createStorageObjectRecord(
     .single()
 
   throwOnSupabaseError(error)
-  return mapStorageObjectRecord(data)
+  return {
+    ...mapStorageObjectRecord(data),
+    generation: metadata.generation,
+    etag: metadata.etag,
+    metageneration: metadata.metageneration,
+  }
 }
 
 async function finalizeUploadIntentRow(context: ServiceContext, uploadIntentId: string, mediaAssetId: string): Promise<void> {
-  if (!context.clients.admin || context.env.mockOnly) return
+  if (usesLocalUploadPersistence(context)) return
 
-  const { error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { error } = await adminClient
     .from('upload_intents')
     .update({
       status: 'finalized',
@@ -646,19 +2362,50 @@ async function finalizeUploadIntentRow(context: ServiceContext, uploadIntentId: 
   throwOnSupabaseError(error)
 }
 
-function loadFinalizedUploadResult(uploadIntent: UploadIntentView) {
-  const storageObjectId = mockStorageObjectByUploadIntent.get(uploadIntent.id)
-  const storageObjectRecord = storageObjectId ? mockStorageObjects.get(storageObjectId) : undefined
-  const mediaAsset = uploadIntent.mediaAssetId ? mockMediaAssets.get(uploadIntent.mediaAssetId) : undefined
-
-  if (!storageObjectRecord || !mediaAsset) {
+async function loadFinalizedUploadResult(context: ServiceContext, uploadIntent: UploadIntentView) {
+  if (!uploadIntent.mediaAssetId) {
     throw new ApiError('UPLOAD_NOT_FINALIZED', 'Finalized upload metadata is incomplete.', 409)
   }
+  if (usesLocalUploadPersistence(context)) {
+    const finalized = await loadPrivateFinalizedMediaAuthority(
+      privateUploadMediaAuthorityScope(context, uploadIntent.workspaceId),
+      uploadIntent.mediaAssetId,
+    )
+    if (!finalized || finalized.uploadIntent.id !== uploadIntent.id) {
+      throw new ApiError('UPLOAD_NOT_FINALIZED', 'Finalized private upload authority is incomplete.', 409)
+    }
+    return {
+      uploadIntent: finalized.uploadIntent,
+      storageObjectRecord: finalized.storageObject,
+      mediaAsset: finalized.mediaAsset,
+      warnings: ['Upload was already finalized; returning restart-safe private authority metadata.'],
+    }
+  }
 
+  const adminClient = getRequiredUploadAdminClient(context)
+  const [{ data: storageRow, error: storageError }, { data: mediaRow, error: mediaError }] = await Promise.all([
+    adminClient
+      .from('storage_object_records')
+      .select('*')
+      .eq('upload_intent_id', uploadIntent.id)
+      .eq('workspace_id', uploadIntent.workspaceId)
+      .single(),
+    adminClient
+      .from('media_assets')
+      .select('*')
+      .eq('id', uploadIntent.mediaAssetId)
+      .eq('workspace_id', uploadIntent.workspaceId)
+      .single(),
+  ])
+  throwOnSupabaseError(storageError, 'UPLOAD_NOT_FINALIZED')
+  throwOnSupabaseError(mediaError, 'UPLOAD_NOT_FINALIZED')
+  if (!storageRow || !mediaRow) {
+    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Finalized upload metadata is incomplete.', 409)
+  }
   return {
     uploadIntent,
-    storageObjectRecord,
-    mediaAsset,
+    storageObjectRecord: await enrichStorageObjectIdentity(context, mapStorageObjectRecord(storageRow)),
+    mediaAsset: mapMediaAsset(mediaRow),
     warnings: ['Upload was already finalized; returning existing canonical metadata.'],
   }
 }
@@ -699,6 +2446,9 @@ function mapStorageObjectRecord(row: Record<string, unknown>): StorageObjectView
     mimeType: maybeString(row.mime_type),
     sizeBytes: maybeNumber(row.size_bytes),
     checksumSha256: maybeString(row.checksum_sha256),
+    generation: maybeString(row.generation),
+    etag: maybeString(row.etag),
+    metageneration: maybeString(row.metageneration),
     region: maybeString(row.region),
     status: String(row.status),
     createdAt: String(row.created_at),
@@ -707,6 +2457,7 @@ function mapStorageObjectRecord(row: Record<string, unknown>): StorageObjectView
 }
 
 function mapMediaAsset(row: Record<string, unknown>): MediaAssetView {
+  const rowMetadata = unknownRecord(row.metadata)
   return {
     id: String(row.id),
     workspaceId: String(row.workspace_id),
@@ -714,14 +2465,143 @@ function mapMediaAsset(row: Record<string, unknown>): MediaAssetView {
     assetType: String(row.asset_type),
     fileName: String(row.file_name),
     mimeType: String(row.mime_type),
+    storageProvider: mapDatabaseMediaStorageProvider(maybeString(row.storage_provider)),
     storageBucket: String(row.storage_bucket),
     storagePath: String(row.storage_path),
     sizeBytes: maybeNumber(row.file_size_bytes),
     checksumSha256: maybeString(row.checksum),
+    storageGeneration: maybeString(unknownRecord(rowMetadata?.storageObjectIdentity)?.generation),
+    storageEtag: maybeString(unknownRecord(rowMetadata?.storageObjectIdentity)?.etag),
+    sourceMetadata: sourceMediaMetadataFromUnknown(rowMetadata?.sourceMediaMetadata),
     status: String(row.processing_status),
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
   }
+}
+
+async function probeSourceMediaMetadata(
+  context: ServiceContext,
+  uploadIntent: UploadIntentView,
+  metadata: ObjectMetadata,
+  storage: StorageAdapter,
+): Promise<SourceMediaMetadataView | undefined> {
+  if (uploadIntent.uploadPurpose !== 'source_media' && uploadIntent.uploadPurpose !== 'reference_media') return undefined
+  if (!uploadIntent.mimeType.startsWith('video/') && !uploadIntent.mimeType.startsWith('audio/')) return undefined
+
+  if (storage.mode !== 'local' && storage.mode !== 'gcs') return undefined
+
+  const source: SourceMediaMetadataView['source'] = storage.mode === 'gcs' ? 'gcs_ffprobe' : 'local_ffprobe'
+  const expectedChecksumSha256 = normalizeChecksumSha256(metadata.checksumSha256)
+  if (!expectedChecksumSha256) {
+    throw new ApiError(
+      'UPLOAD_NOT_FINALIZED',
+      'Source media requires a canonical checksum before metadata probing.',
+      409,
+      { reason: 'source_probe_stage_checksum_invalid' },
+    )
+  }
+  const staged = await stagePrivateSourceForProbe({
+    localStorageRoot: context.env.localStorageRoot,
+    scope: {
+      ownerUserId: getRequiredAuthUserId(context),
+      workspaceId: uploadIntent.workspaceId,
+      projectId: uploadIntent.projectId,
+      uploadIntentId: uploadIntent.id,
+    },
+    originalFileName: uploadIntent.originalFileName,
+    expectedSizeBytes: metadata.sizeBytes,
+    expectedChecksumSha256,
+    openStream: () => storage.createReadStream(
+      metadata.bucketName,
+      metadata.objectPath,
+      { generation: metadata.generation, etag: metadata.etag },
+    ),
+  })
+
+  try {
+    const probe = await probeMediaFile(staged.inputPath, {
+      ffprobeBin: context.env.ffprobeBin,
+      timeoutMs: deriveMediaTaskTimeoutMs({
+        task: 'probe',
+        sourceSizeBytes: metadata.sizeBytes,
+      }),
+    })
+    const streamTypes = probe.rawSummary.streamTypes
+    return {
+      probeStatus: 'probed',
+      source,
+      durationSeconds: roundOptionalSeconds(probe.durationSeconds),
+      width: positiveIntegerOrUndefined(probe.width),
+      height: positiveIntegerOrUndefined(probe.height),
+      videoCodec: probe.videoCodec,
+      audioCodec: probe.audioCodec,
+      audioSampleRateHertz: positiveIntegerOrUndefined(probe.audioSampleRateHertz),
+      audioChannelCount: positiveIntegerOrUndefined(probe.audioChannelCount),
+      pixelFormat: probe.pixelFormat,
+      colorSpace: probe.colorSpace,
+      colorTransfer: probe.colorTransfer,
+      colorPrimaries: probe.colorPrimaries,
+      colorRange: probe.colorRange,
+      bitsPerRawSample: probe.bitsPerRawSample,
+      formatName: probe.formatName,
+      streamCount: probe.streamCount,
+      hasVideo: streamTypes.includes('video'),
+      hasAudio: streamTypes.includes('audio'),
+    }
+  } catch (error) {
+    return {
+      probeStatus: 'unavailable',
+      source,
+      hasVideo: uploadIntent.mimeType.startsWith('video/'),
+      hasAudio: uploadIntent.mimeType.startsWith('audio/'),
+      unavailableReason: error instanceof Error ? error.message.slice(0, 240) : 'Backend FFprobe media metadata was unavailable.',
+    }
+  } finally {
+    await staged.cleanup()
+  }
+}
+
+function sourceMediaMetadataFromUnknown(value: unknown): SourceMediaMetadataView | undefined {
+  const record = unknownRecord(value)
+  if (!record) return undefined
+  const probeStatus = record.probeStatus === 'probed' ? 'probed' : record.probeStatus === 'unavailable' ? 'unavailable' : undefined
+  if (!probeStatus) return undefined
+  return {
+    probeStatus,
+    source: record.source === 'gcs_ffprobe' ? 'gcs_ffprobe' : 'local_ffprobe',
+    durationSeconds: maybeNumber(record.durationSeconds),
+    width: maybeNumber(record.width),
+    height: maybeNumber(record.height),
+    videoCodec: maybeString(record.videoCodec),
+    audioCodec: maybeString(record.audioCodec),
+    audioSampleRateHertz: positiveIntegerOrUndefined(maybeNumber(record.audioSampleRateHertz)),
+    audioChannelCount: positiveIntegerOrUndefined(maybeNumber(record.audioChannelCount)),
+    pixelFormat: maybeString(record.pixelFormat),
+    colorSpace: maybeString(record.colorSpace),
+    colorTransfer: maybeString(record.colorTransfer),
+    colorPrimaries: maybeString(record.colorPrimaries),
+    colorRange: maybeString(record.colorRange),
+    bitsPerRawSample: maybeNumber(record.bitsPerRawSample),
+    formatName: maybeString(record.formatName),
+    streamCount: maybeNumber(record.streamCount),
+    hasVideo: Boolean(record.hasVideo),
+    hasAudio: Boolean(record.hasAudio),
+    unavailableReason: maybeString(record.unavailableReason),
+  }
+}
+
+function roundOptionalSeconds(value: number | undefined): number | undefined {
+  return Number.isFinite(value) && value !== undefined ? Number(value.toFixed(3)) : undefined
+}
+
+function positiveIntegerOrUndefined(value: number | undefined): number | undefined {
+  return Number.isFinite(value) && value !== undefined && value > 0 ? Math.round(value) : undefined
+}
+
+function mapDatabaseMediaStorageProvider(storageProvider?: string): string | undefined {
+  if (storageProvider === 'local_private_storage') return 'local_private'
+  if (storageProvider === 'gcs') return 'google_cloud_storage'
+  return storageProvider
 }
 
 function mapSignedUrlEvent(row: Record<string, unknown>): Record<string, unknown> {
@@ -795,6 +2675,179 @@ function isUploadPurpose(value: string): value is UploadPurpose {
   ].includes(value)
 }
 
+function privateUploadMediaAuthorityScope(
+  context: ServiceContext,
+  workspaceId: string,
+): PrivateUploadMediaAuthorityScope {
+  return {
+    localStorageRoot: context.env.localStorageRoot,
+    ownerUserId: getRequiredAuthUserId(context),
+    workspaceId,
+  }
+}
+
+function toPrivateUploadIntentAuthorityRecord(
+  uploadIntent: UploadIntentView,
+): PrivateUploadIntentAuthorityRecord {
+  if (uploadIntent.uploadPurpose !== 'source_media' && uploadIntent.uploadPurpose !== 'reference_media') {
+    throw new ApiError('VALIDATION_FAILED', 'Private upload authority supports source/reference media only.', 400)
+  }
+  if (
+    uploadIntent.status !== 'signed' &&
+    uploadIntent.status !== 'uploaded' &&
+    uploadIntent.status !== 'failed' &&
+    uploadIntent.status !== 'finalized'
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'Private upload intent status is unsupported.', 409)
+  }
+  return {
+    id: uploadIntent.id,
+    workspaceId: uploadIntent.workspaceId,
+    projectId: uploadIntent.projectId,
+    editReferenceId: uploadIntent.editReferenceId,
+    chatSessionId: uploadIntent.chatSessionId,
+    requestedByUserId: uploadIntent.requestedByUserId,
+    uploadPurpose: uploadIntent.uploadPurpose,
+    targetBucket: uploadIntent.targetBucket,
+    targetPath: uploadIntent.targetPath,
+    originalFileName: uploadIntent.originalFileName,
+    mimeType: normalizeMimeType(uploadIntent.mimeType),
+    expectedSizeBytes: uploadIntent.expectedSizeBytes,
+    checksumSha256: normalizeChecksumSha256(uploadIntent.checksumSha256),
+    status: uploadIntent.status,
+    expiresAt: uploadIntent.expiresAt,
+    finalizedAt: uploadIntent.finalizedAt,
+    mediaAssetId: uploadIntent.mediaAssetId,
+    createdAt: uploadIntent.createdAt,
+    updatedAt: uploadIntent.updatedAt,
+    mockOnly: true,
+  }
+}
+
+function toExternalUploadIntentView(
+  uploadIntent: UploadIntentView | PrivateUploadIntentAuthorityRecord,
+): ExternalUploadIntentView {
+  if (!uploadIntent.editReferenceId) return uploadIntent
+  const external: ExternalUploadIntentView = { ...uploadIntent }
+  delete external.projectId
+  return external
+}
+
+function toExternalStorageObjectView(
+  storageObject: StorageObjectView | PrivateStorageObjectAuthorityRecord,
+): ExternalStorageObjectView {
+  if (!storageObject.editReferenceId) return storageObject
+  const external: ExternalStorageObjectView = { ...storageObject }
+  delete external.projectId
+  return external
+}
+
+function toExternalMediaAssetView(
+  mediaAsset: MediaAssetView | PrivateMediaAssetAuthorityRecord,
+): ExternalMediaAssetView {
+  if (!mediaAsset.editReferenceId) return mediaAsset
+  const external: ExternalMediaAssetView = { ...mediaAsset }
+  delete external.projectId
+  return external
+}
+
+function toPrivateMediaAssetAuthorityRecord(
+  mediaAsset: MediaAssetView,
+  uploadIntent: UploadIntentView,
+  storageObject: StorageObjectView,
+  metadata: ObjectMetadata,
+): PrivateMediaAssetAuthorityRecord {
+  const integrity = requirePrivateFinalizedIntegrity(metadata)
+  const storageProvider = mediaAsset.storageProvider === 'google_cloud_storage'
+    ? 'google_cloud_storage' as const
+    : 'local_private' as const
+  return {
+    id: mediaAsset.id,
+    workspaceId: uploadIntent.workspaceId,
+    projectId: uploadIntent.projectId,
+    editReferenceId: uploadIntent.editReferenceId,
+    uploadIntentId: uploadIntent.id,
+    storageObjectRecordId: storageObject.id,
+    uploadPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
+    assetType: mediaAsset.assetType,
+    fileName: mediaAsset.fileName,
+    mimeType: normalizeMimeType(mediaAsset.mimeType),
+    storageProvider,
+    storageBucket: mediaAsset.storageBucket,
+    storagePath: mediaAsset.storagePath,
+    sizeBytes: integrity.sizeBytes,
+    checksumSha256: integrity.checksumSha256,
+    storageGeneration: metadata.generation,
+    storageEtag: metadata.etag,
+    storageMetageneration: metadata.metageneration,
+    integrityVerified: true,
+    checksumSource: 'server_computed_bytes',
+    sourceMetadata: mediaAsset.sourceMetadata,
+    status: 'uploaded',
+    createdAt: mediaAsset.createdAt,
+    updatedAt: mediaAsset.updatedAt,
+    mockOnly: true,
+  }
+}
+
+function toPrivateStorageObjectAuthorityRecord(
+  storageObject: StorageObjectView,
+  uploadIntent: UploadIntentView,
+  mediaAsset: MediaAssetView,
+  metadata: ObjectMetadata,
+): PrivateStorageObjectAuthorityRecord {
+  const integrity = requirePrivateFinalizedIntegrity(metadata)
+  return {
+    id: storageObject.id,
+    workspaceId: uploadIntent.workspaceId,
+    projectId: uploadIntent.projectId,
+    editReferenceId: uploadIntent.editReferenceId,
+    mediaAssetId: mediaAsset.id,
+    uploadIntentId: uploadIntent.id,
+    uploadPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
+    storageProvider: mediaAsset.storageProvider === 'google_cloud_storage'
+      ? 'google_cloud_storage'
+      : 'local_private',
+    bucketName: storageObject.bucketName,
+    objectPath: storageObject.objectPath,
+    objectPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
+    mimeType: normalizeMimeType(uploadIntent.mimeType),
+    sizeBytes: integrity.sizeBytes,
+    checksumSha256: integrity.checksumSha256,
+    generation: metadata.generation,
+    etag: metadata.etag,
+    metageneration: metadata.metageneration,
+    integrityVerified: true,
+    checksumSource: 'server_computed_bytes',
+    region: storageObject.region,
+    status: 'ready',
+    createdAt: storageObject.createdAt,
+    updatedAt: storageObject.updatedAt,
+    mockOnly: true,
+  }
+}
+
+function requirePrivateFinalizedIntegrity(metadata: ObjectMetadata): {
+  sizeBytes: number
+  checksumSha256: string
+} {
+  const checksumSha256 = normalizeChecksumSha256(metadata.checksumSha256)
+  if (
+    !Number.isInteger(metadata.sizeBytes) ||
+    metadata.sizeBytes <= 0 ||
+    !checksumSha256 ||
+    metadata.integrityVerified !== true ||
+    metadata.checksumSource !== 'server_computed_bytes'
+  ) {
+    throw new ApiError(
+      'UPLOAD_NOT_FINALIZED',
+      'Finalized private source media requires positive size and server-computed SHA-256 byte evidence.',
+      409,
+    )
+  }
+  return { sizeBytes: metadata.sizeBytes, checksumSha256 }
+}
+
 function maybeString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined
 }
@@ -803,4 +2856,10 @@ function maybeNumber(value: unknown): number | undefined {
   if (typeof value === 'number') return value
   if (typeof value === 'string' && value !== '') return Number(value)
   return undefined
+}
+
+function unknownRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined
 }

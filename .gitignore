@@ -11,14 +11,31 @@ node_modules
 dist
 dist-ssr
 dist-server
+dist-release-tools
 dist-remotion-worker
+.reeditpro-local-storage*
+test-results
+playwright-report
 *.local
+
+# Local environment and credential material. Keep only scrubbed examples.
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+*service-account*.json
+*service_account*.json
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+._*
 *.suo
 *.ntvs*
 *.njsproj

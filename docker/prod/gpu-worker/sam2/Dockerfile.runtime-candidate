@@ -1,0 +1,26 @@
+FROM reeditpro/ai-graphics-gpu-worker:proof-local@sha256:8f83b1b549daac2800c8d86ef785be669340e8b504f948804209c7800fc76df4
+
+LABEL org.reeditpro.operation-id="tool.sam2.segment_and_track_subject.v1"
+LABEL org.reeditpro.runtime-class="sam2-fixed-private-gpu-runtime-candidate"
+LABEL org.reeditpro.parent-image-sha256="8f83b1b549daac2800c8d86ef785be669340e8b504f948804209c7800fc76df4"
+
+COPY runner.py /opt/reeditpro/gpu-operations/sam2/runner.py
+COPY source-provenance.lock /opt/reeditpro/gpu-operations/sam2/source-provenance.lock
+
+RUN chmod 0555 /opt/reeditpro/gpu-operations/sam2/runner.py \
+    && chmod 0444 /opt/reeditpro/gpu-operations/sam2/source-provenance.lock
+
+ENV HOME=/tmp \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PYTHONHASHSEED=0 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1 \
+    CUDA_VISIBLE_DEVICES=0 \
+    NVIDIA_VISIBLE_DEVICES=0
+
+USER 65532:65532
+WORKDIR /tmp
+ENTRYPOINT ["/usr/bin/python3", "-I", "-B", "/opt/reeditpro/gpu-operations/sam2/runner.py"]

@@ -30,6 +30,7 @@ import {
   getDefaultCapabilitiesForStrategy,
   getRemotionCapability,
 } from './remotion-capability-matrix'
+import { hideInternalToolNamesInCopy, userFacingActivityList } from './tool-display-labels'
 
 export function createRenderStrategyPlan(params: {
   input: PlannerInput
@@ -54,7 +55,7 @@ export function createRenderStrategyPlan(params: {
   return {
     id: `render-strategy-${params.input.editingCategory}-${params.input.editLevel}`,
     summary: items.length
-      ? `${items.length} render strateg${items.length === 1 ? 'y' : 'ies'} planned: ${controlledToolCount} controlled/Remotion-first, ${aiVideoCount} AI-video eligible.`
+      ? `${items.length} composition strateg${items.length === 1 ? 'y' : 'ies'} planned: ${controlledToolCount} controlled/composition-first, ${aiVideoCount} AI-video eligible.`
       : 'No visual assets require render strategy items yet.',
     items,
     remotionCapabilitiesUsed,
@@ -62,34 +63,34 @@ export function createRenderStrategyPlan(params: {
     providerModelsReferenced,
     strategyCounts,
     globalRules: [
-      'Remotion owns final canvas, timeline, captions, layout, and composition.',
+      'The composition renderer owns final canvas, timeline, captions, layout, and assembly.',
       'AI models generate assets or clips only.',
-      'Controlled tools and Remotion are preferred for exact maps, charts, labels, captions, cards, screen captures, and diagrams.',
-      'Basic and Pro cannot use Veo.',
-      'Premium may reference Veo only as final fallback/rescue.',
+      'Controlled editing activities and the composition renderer are preferred for exact maps, charts, labels, captions, cards, screen captures, and diagrams.',
+      'Basic and Pro cannot use premium video fallback.',
+      'Premium may reference premium video fallback only as final fallback/rescue.',
       'No generated route defaults to 1080P.',
       'AI video generation uses matching panel backgrounds by default.',
       params.input.aspectRatioFramePlan?.status === 'confirmed'
         ? `Render strategy uses confirmed output frame ${params.input.aspectRatioFramePlan.selectedAspectRatio}.`
         : 'Render strategy is draft until the user confirms the output frame.',
-      'This render strategy is mock planning only; no Remotion render, package install, provider call, or tool execution happens here.',
+      'This composition strategy is planning-only; rendering, package installation, AI asset preparation, and private activity execution require approved backend gates.',
     ],
     qaChecks: [
       'Every visual asset has a render strategy item.',
       'Exact charts, maps, labels, captions, cards, and screenshots stay controlled unless a reasoned exception exists.',
       'AI video is reserved for organic/generative motion beats.',
-      'Worker preprocess/postprocess strategies include future-worker notes and do not imply frontend execution.',
-      'Remotion owns final composition for all visual-layer strategies.',
+      'Private preprocess/postprocess strategies include future processing notes and do not imply frontend execution.',
+      'The composition renderer owns final assembly for all visual-layer strategies.',
     ],
     notes: [
       params.toolRegistrySummary
-        ? `Tool registry available: ${params.toolRegistrySummary.launchCoreToolCount} launch-core tools, ${params.toolRegistrySummary.needsLicenseReviewCount} license-review item(s).`
-        : 'Tool registry summary was not supplied; strategy remains planning-only.',
+        ? `Activity readiness catalog available: ${params.toolRegistrySummary.launchCoreToolCount} launch checks, ${params.toolRegistrySummary.needsLicenseReviewCount} license-review item(s).`
+        : 'Activity readiness summary was not supplied; strategy remains planning-only.',
       params.compiledIntent?.goalSummary ? `Compiled goal: ${params.compiledIntent.goalSummary}` : 'No compiled goal supplied to render strategy planner.',
       params.input.aspectRatioFramePlan?.status === 'confirmed'
         ? `Confirmed frame canvas: ${params.input.aspectRatioFramePlan.canvasWidth}x${params.input.aspectRatioFramePlan.canvasHeight}.`
         : 'Output frame is not confirmed; render strategy cannot become approval-ready.',
-      'Provider models remain separate from open-source tool IDs.',
+      'AI asset routes remain separate from private editing activity readiness.',
     ],
   }
 }
@@ -116,13 +117,7 @@ const controlledDataVizToolIds: OpenSourceToolId[] = ['d3', 'echarts', 'vega', '
 const visualQaAndImageToolIds: OpenSourceToolId[] = [
   'opencv',
   'kornia',
-  'torch_torchvision',
-  'transformers',
-  'sam2',
-  'birefnet',
   'rembg',
-  'transparent_background',
-  'real_esrgan',
 ]
 
 function isControlledDataVizTool(tool: OpenSourceToolId) {
@@ -293,7 +288,7 @@ function toolsForStrategy(strategyType: RenderStrategyType, hints: ToolStrategyH
   }
 
   if (hints.includes('map_tool')) {
-    tools.push('maplibre', 'turf', 'remotion')
+    tools.push('d3', 'svg_js', 'remotion')
   }
 
   if (hints.includes('chart_tool')) {
@@ -316,7 +311,7 @@ function toolsForStrategy(strategyType: RenderStrategyType, hints: ToolStrategyH
   }
 
   if (hints.includes('qa_vision_tool')) {
-    tools.push('opencv', 'kornia', 'torch_torchvision', 'transformers')
+    tools.push('opencv', 'kornia')
   }
 
   if (strategyType === 'open_source_tool_then_remotion' && tools.length === 0) {
@@ -442,13 +437,17 @@ function providerModelsForStrategy(asset: VisualAssetPlanItem, strategyType: Ren
   return unique(models)
 }
 
-function inputsForStrategy(strategyType: RenderStrategyType, tools: OpenSourceToolId[]): ToolInputType[] {
+function inputsForStrategy(
+  strategyType: RenderStrategyType,
+  tools: OpenSourceToolId[],
+  hints: ToolStrategyHint[],
+): ToolInputType[] {
   const inputs: ToolInputType[] = ['frame_layout']
 
   if (strategyType === 'gpt_image_then_remotion') inputs.push('generated_image')
   if (strategyType === 'ai_video_then_remotion') inputs.push('ai_video_clip')
   if (strategyType === 'hybrid_generation_then_remotion') inputs.push('generated_image', 'ai_video_clip')
-  if (tools.some((tool) => tool === 'maplibre' || tool === 'turf')) inputs.push('geojson', 'json_data')
+  if (hints.includes('map_tool')) inputs.push('geojson', 'json_data')
   if (tools.some(isControlledDataVizTool)) inputs.push('json_data')
   if (tools.includes('playwright')) inputs.push('url', 'html')
   if (tools.includes('ffmpeg')) inputs.push('source_video', 'audio')
@@ -457,11 +456,15 @@ function inputsForStrategy(strategyType: RenderStrategyType, tools: OpenSourceTo
   return unique(inputs)
 }
 
-function outputsForStrategy(strategyType: RenderStrategyType, tools: OpenSourceToolId[]): ToolOutputType[] {
+function outputsForStrategy(
+  strategyType: RenderStrategyType,
+  tools: OpenSourceToolId[],
+  hints: ToolStrategyHint[],
+): ToolOutputType[] {
   const outputs: ToolOutputType[] = ['renderer_layer']
 
   if (strategyType === 'gpt_image_then_remotion' || strategyType === 'hybrid_generation_then_remotion') outputs.push('image_asset')
-  if (tools.some((tool) => tool === 'maplibre' || tool === 'turf')) outputs.push('map_visual', 'json_spec')
+  if (hints.includes('map_tool')) outputs.push('map_visual', 'json_spec')
   if (tools.some(isControlledDataVizTool)) outputs.push('chart_visual', 'svg_visual', 'json_spec')
   if (tools.includes('playwright')) outputs.push('screenshot_asset')
   if (tools.includes('ffmpeg')) outputs.push('processed_video', 'processed_audio')
@@ -521,14 +524,14 @@ function fallbackForStrategy(strategyType: RenderStrategyType, complexity: Rende
   if (strategyType === 'ai_video_then_remotion' || strategyType === 'hybrid_generation_then_remotion') {
     return {
       fallbackStrategyType: 'gpt_image_then_remotion',
-      fallbackReason: 'Convert the beat to a still/keyframe asset with Remotion motion if AI video is too costly or fails QA.',
+    fallbackReason: 'Convert the beat to a still/keyframe asset with composition motion if AI video is too costly or fails QA.',
     }
   }
 
   if (strategyType === 'open_source_tool_then_remotion') {
     return {
       fallbackStrategyType: 'remotion_only',
-      fallbackReason: 'Use a simpler static map, chart, or card built directly in Remotion if the tool output is too complex.',
+    fallbackReason: 'Use a simpler static map, chart, or card built directly in the composition renderer if the private activity output is too complex.',
     }
   }
 
@@ -541,7 +544,7 @@ function fallbackForStrategy(strategyType: RenderStrategyType, complexity: Rende
 
   return {
     fallbackStrategyType: 'remotion_only',
-    fallbackReason: 'Simplify to controlled Remotion layout and motion.',
+    fallbackReason: 'Simplify to controlled composition layout and motion.',
   }
 }
 
@@ -578,17 +581,17 @@ function qaChecksForStrategy(params: {
 
   return unique([
     'Render strategy exists for the visual asset.',
-    'Remotion owns final canvas and placement.',
+    'The composition renderer owns final canvas and placement.',
     params.strategyType === 'open_source_tool_then_remotion'
-      ? 'Exact map/chart/tool output should not be recreated as AI video.'
+      ? 'Exact map/chart/activity output should not be recreated as AI video.'
       : undefined,
     params.strategyType === 'ai_video_then_remotion' || params.strategyType === 'hybrid_generation_then_remotion'
       ? 'AI video is used only for organic or generative motion and remains an asset/clip.'
       : undefined,
-    params.tools.length ? 'Controlled tool specs are planning-only; no package install or execution runs in the frontend.' : undefined,
+    params.tools.length ? `Private editing activities are planning-only: ${userFacingActivityList(params.tools)}.` : undefined,
     params.depthItem ? 'Depth-aware strategy includes future mask-worker note and caption-above-all QA.' : undefined,
-    params.input.editLevel === 'premium' ? 'Premium keeps Veo final fallback only.' : 'Basic/Pro cannot use Veo.',
-    ...capabilityChecks,
+    params.input.editLevel === 'premium' ? 'Premium keeps premium video final fallback only.' : 'Basic/Pro cannot use premium video fallback.',
+    ...capabilityChecks.map(hideInternalToolNamesInCopy),
   ].filter(Boolean) as string[])
 }
 
@@ -599,19 +602,19 @@ function workerNotesForStrategy(params: {
   input: PlannerInput
 }) {
   return [
-    'Mock planning only: no packages are installed and no tools are executed.',
+    'Local planning only: no packages are installed and no private editing activities are executed.',
     params.input.aspectRatioFramePlan?.status === 'confirmed'
       ? `Use confirmed output frame ${params.input.aspectRatioFramePlan.selectedAspectRatio} for future worker inputs.`
       : 'Frame confirmation is required before future worker inputs can be approved.',
-    'Remotion owns final layout/composition after approved assets or tool outputs exist.',
+    'The composition renderer owns final layout after approved assets or private activity outputs exist.',
     params.strategyType === 'worker_preprocess_then_remotion'
-      ? 'Future worker preprocess output is required before Remotion placement.'
+      ? 'Future private preprocess output is required before composition placement.'
       : undefined,
     params.strategyType === 'remotion_then_worker_postprocess'
-      ? 'Future worker postprocess output happens after a future Remotion render.'
+      ? 'Future private postprocess output happens after a future render.'
       : undefined,
     params.strategyType === 'open_source_tool_then_remotion'
-      ? 'Open-source tool output is planned as a future asset/spec for Remotion, not executed in the frontend.'
+      ? 'Private activity output is planned as a future asset/spec for the composition renderer, not executed in the frontend.'
       : undefined,
     params.tools.some(isControlledDataVizTool)
       ? 'Chart, diagram, and vector layers expect future controlled spec output; Remotion composes final placement.'
@@ -622,7 +625,7 @@ function workerNotesForStrategy(params: {
     params.depthItem?.maskStrategy === 'subject_plus_contact_object_mask'
       ? 'Preserve planned contact objects in front of the overlay when future masks are produced.'
       : undefined,
-    params.tools.length ? 'Detailed tool IDs stay internal registry metadata for future workers.' : undefined,
+    params.tools.length ? `Activity readiness uses internal registry IDs only; user-facing copy stays summarized as ${userFacingActivityList(params.tools)}.` : undefined,
   ].filter(Boolean) as string[]
 }
 
@@ -669,8 +672,8 @@ function createRenderStrategyItem(
     selectedRemotionCapabilities: capabilities,
     selectedOpenSourceTools: tools,
     selectedProviderModels,
-    requiredInputs: inputsForStrategy(strategyType, tools),
-    expectedOutputs: outputsForStrategy(strategyType, tools),
+    requiredInputs: inputsForStrategy(strategyType, tools, hints),
+    expectedOutputs: outputsForStrategy(strategyType, tools, hints),
     complexity,
     creditImpact: strategyType === 'remotion_only' || strategyType === 'qa_tool_only'
       ? 'none'

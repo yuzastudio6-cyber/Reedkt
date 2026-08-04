@@ -245,7 +245,7 @@ check(duplicateSystems.length === 0, `Duplicate systems were introduced: ${dupli
 check(packageLockStaged === false, 'package-lock.json must not be staged.')
 check(forbiddenChangedFiles.length === 0, `Forbidden files changed or staged: ${forbiddenChangedFiles.join(', ')}`)
 check(executionLayerChanges.length === 0, `Execution/probe layers changed in this milestone: ${executionLayerChanges.join(', ')}`)
-check(PRODUCTION_TOOL_IDS.length >= 53, 'Expected current first-class ProductionToolId set to be available.')
+check(PRODUCTION_TOOL_IDS.length === 50, 'Expected the exact 50-tool canonical private E2E ProductionToolId set.')
 check(soundProductionToolRows.length >= requiredFirstClassSoundTools.length, 'Expected first-class SOUND rows to be represented.')
 check(explicitSoundStudyCount >= requiredFirstClassSoundTools.length, 'Expected explicit study cards for first-class SOUND tools.')
 check(soundAdapterCount >= requiredFirstClassSoundTools.length, 'Expected planning-only adapter contracts for first-class SOUND tools.')

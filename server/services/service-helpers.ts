@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import type { PostgrestError } from '@supabase/supabase-js'
 import { ApiError } from '../errors/api-error'
 import type { ApiErrorCode } from '../errors/error-codes'
+import { sanitizeJsonRecord } from '../security/redaction'
 import type { ServiceContext } from '../types'
 
 export function nowIso(): string {
@@ -28,7 +29,17 @@ export function throwOnSupabaseError(error: PostgrestError | null, fallbackCode:
   if (error) {
     throw new ApiError(fallbackCode, error.message, 500, {
       code: error.code,
+      details: error.details,
       hint: error.hint,
+    }, {
+      cause: {
+        source: 'postgrest',
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      },
+      internal: true,
     })
   }
 }
@@ -42,13 +53,5 @@ export function getRequiredAuthUserId(context: ServiceContext): string {
 }
 
 export function sanitizeJson(value: unknown): Record<string, unknown> {
-  if (!isRecord(value)) return {}
-
-  return Object.fromEntries(
-    Object.entries(value).filter(([key]) => !/secret|token|api.?key|signed.?url|service.?role/i.test(key)),
-  )
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
+  return sanitizeJsonRecord(value)
 }

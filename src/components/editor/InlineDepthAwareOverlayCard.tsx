@@ -6,6 +6,7 @@ import type {
   MaskRiskLevel,
   MaskStrategy,
 } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineDepthAwareOverlayCardProps = {
@@ -49,7 +50,7 @@ function depthBadges(modes: Set<DepthCompositingMode>, strategies: Set<MaskStrat
   if (modes.has('graphic_behind_subject_and_contact_objects') || strategies.has('subject_plus_contact_object_mask')) badges.push({ label: 'Subject + contact object', accent: 'warning' })
   if (hasContactObject) badges.push({ label: 'Contact object preserved', accent: 'cyan' })
   badges.push({ label: 'Caption above all', accent: 'success' })
-  badges.push({ label: 'Future mask worker', accent: 'violet' })
+  badges.push({ label: 'Masking gated', accent: 'violet' })
   if (hasFallback) badges.push({ label: 'Fallback planned', accent: 'success' })
   if (basicSafe) badges.push({ label: 'Basic safe', accent: 'success' })
   if (modes.has('object_anchored_overlay')) badges.push({ label: 'Pro', accent: 'blue' })
@@ -91,7 +92,7 @@ export function InlineDepthAwareOverlayCard({ descriptor, plan }: InlineDepthAwa
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Depth-aware overlay plan"
-      helper="ReeditPro can plan premium overlays where maps, cards, or graphics sit behind selected foreground subjects or important objects. This is planning only; real masking is not implemented in this frontend demo."
+      helper="ReeditPro can plan premium overlays where maps, cards, or graphics sit behind selected foreground subjects or important objects. Masking remains approval-gated."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Depth-aware overlay plan"
@@ -112,7 +113,7 @@ export function InlineDepthAwareOverlayCard({ descriptor, plan }: InlineDepthAwa
         <span><strong>Fallbacks</strong>{fallbackCount} planned</span>
       </div>
 
-      <p className="inline-helper">{depthPlan.summary}</p>
+      <p className="inline-helper">{hideInternalToolNamesInCopy(depthPlan.summary)}</p>
 
       <div className="layout-mode-list">
         {visibleItems.map((item) => (
@@ -121,7 +122,7 @@ export function InlineDepthAwareOverlayCard({ descriptor, plan }: InlineDepthAwa
               <div>
                 <span className="section-eyebrow">{item.trackingRequirement.replaceAll('_', ' ')}</span>
                 <h4>{label(item.depthCompositingMode)}</h4>
-                <p>{item.reason}</p>
+                <p>{hideInternalToolNamesInCopy(item.reason)}</p>
               </div>
               <div className="visual-asset-badges">
                 <span className="depth-mode-badge">{label(item.depthCompositingMode)}</span>
@@ -137,7 +138,7 @@ export function InlineDepthAwareOverlayCard({ descriptor, plan }: InlineDepthAwa
               <span><strong>Credit impact</strong>{label(item.complexityCreditImpact)}</span>
             </div>
 
-            <p className="future-mask-worker-note">{item.captionLayerRule}</p>
+            <p className="future-mask-worker-note">{hideInternalToolNamesInCopy(item.captionLayerRule)}</p>
 
             {item.fallbackLayoutMode && (
               <p className="depth-fallback-note">Fallback layout: {label(item.fallbackLayoutMode)}</p>
@@ -148,7 +149,7 @@ export function InlineDepthAwareOverlayCard({ descriptor, plan }: InlineDepthAwa
               {item.foregroundObjects.map((object) => (
                 <span className="foreground-object-item" key={object.id}>
                   <span className={object.kind === 'contact_object' ? 'contact-object-badge' : 'depth-mode-badge'}>{label(object.kind)}</span>
-                  {object.label}: {object.reason}
+                  {object.label}: {hideInternalToolNamesInCopy(object.reason)}
                 </span>
               ))}
             </div>
@@ -156,7 +157,7 @@ export function InlineDepthAwareOverlayCard({ descriptor, plan }: InlineDepthAwa
             {item.foregroundDepthGroups.map((group) => (
               <div className="foreground-depth-group" key={group.id}>
                 <strong>{group.label}</strong>
-                <span>{group.reason}</span>
+                <span>{hideInternalToolNamesInCopy(group.reason)}</span>
                 <span>Mask: {label(group.maskStrategy)} / risk {label(group.maskRisk)}</span>
               </div>
             ))}
@@ -164,28 +165,28 @@ export function InlineDepthAwareOverlayCard({ descriptor, plan }: InlineDepthAwa
             <div className="layout-prompt-implication-list">
               <strong>Prompt implications</strong>
               {item.promptImplications.slice(0, 4).map((implication) => (
-                <span key={implication}>{implication}</span>
+                <span key={implication}>{hideInternalToolNamesInCopy(implication)}</span>
               ))}
             </div>
 
             <div className="layout-prompt-implication-list">
-              <strong>Remotion layer notes</strong>
+              <strong>Composition layer notes</strong>
               {item.remotionLayerNotes.slice(0, 4).map((note) => (
-                <span key={note}>{note}</span>
+                <span key={note}>{hideInternalToolNamesInCopy(note)}</span>
               ))}
             </div>
 
             <div className="qa-check-list">
               <strong>QA checks</strong>
               {item.qaChecks.slice(0, 5).map((qaCheck) => (
-                <span key={qaCheck}>{qaCheck}</span>
+                <span key={qaCheck}>{hideInternalToolNamesInCopy(qaCheck)}</span>
               ))}
             </div>
 
             <div className="layout-prompt-implication-list">
-              <strong>Worker notes</strong>
+              <strong>Backend notes</strong>
               {item.workerNotes.slice(0, 4).map((note) => (
-                <span key={note}>{note}</span>
+                <span key={note}>{hideInternalToolNamesInCopy(note)}</span>
               ))}
             </div>
           </article>

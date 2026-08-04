@@ -1,4 +1,5 @@
 import type { DemoScenario } from '../../lib/demo-scenarios'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { Badge } from '../Badge'
 
 type InlineDemoScenarioSummaryCardProps = {
@@ -24,9 +25,9 @@ export function InlineDemoScenarioSummaryCard({ scenario }: InlineDemoScenarioSu
         <Badge accent={scenario.editLevel === 'premium' ? 'warning' : 'blue'}>{scenario.editLevel}</Badge>
       </div>
       <p className="inline-helper">
-        This demo scenario is a planning test. It checks whether the chat, intent compiler, visual planner, provider router, renderer plan, QA, prompt preview, and credit estimate stay connected.
+        This internal scenario checks whether chat, intent, visual planning, AI routing, composition planning, QA, prompt preview, and credit estimates stay connected.
       </p>
-      <p className="inline-helper">{scenario.description}</p>
+      <p className="inline-helper">{hideInternalToolNamesInCopy(scenario.description)}</p>
 
       <div className="demo-scenario-meta">
         <span><strong>Category</strong>{formatLabel(scenario.editingCategory)}</span>
@@ -38,10 +39,10 @@ export function InlineDemoScenarioSummaryCard({ scenario }: InlineDemoScenarioSu
       <details className="compact-card-details">
         <summary>Expected planning behavior</summary>
         <div className="segment-chip-row">
-          {listPreview(scenario.expectedSignatureSystems).map((item) => <span key={item}>{item}</span>)}
-          {listPreview(scenario.expectedAssetBehavior).map((item) => <span key={item}>{item}</span>)}
-          {listPreview(scenario.expectedProviderPolicy).map((item) => <span key={item}>{item}</span>)}
-          {listPreview(scenario.expectedSafetyNotes).map((item) => <span key={item}>{item}</span>)}
+          {listPreview(scenario.expectedSignatureSystems).map((item) => <span key={item}>{hideInternalToolNamesInCopy(item)}</span>)}
+          {listPreview(scenario.expectedAssetBehavior).map((item) => <span key={item}>{hideInternalToolNamesInCopy(item)}</span>)}
+          {listPreview(scenario.expectedProviderPolicy).map((item) => <span key={item}>{hideInternalToolNamesInCopy(item)}</span>)}
+          {listPreview(scenario.expectedSafetyNotes).map((item) => <span key={item}>{hideInternalToolNamesInCopy(item)}</span>)}
         </div>
       </details>
     </section>

@@ -33,11 +33,17 @@ export function summarizeProductionReadinessReport(report: ProductionReadinessRe
   const blockerLines = report.blockerSummaries
     .slice(0, 12)
     .map((blocker) => `- [${blocker.severity}] ${blocker.message}`)
+  const actionPlanLines = report.actionPlan.stages.map((stage) => (
+    `- ${stage.title}: ${stage.status}, tools=${stage.toolIds.length}, privateE2E=${stage.canonicalPrivateEndToEndVerifiedToolIds.length}, privateJobAdapters=${stage.canonicalPrivateJobAdapterVerifiedToolIds.length}, privateBoundaryContracts=${stage.canonicalPrivateBoundaryContractVerifiedToolIds.length}, sourceDeclared=${stage.sourceDeclarationToolIds.length}, adapterContracts=${stage.adapterContractToolIds.length}, productionImageOrReleaseMissing=${stage.productionReadinessMissingToolIds.length}, blockers=${stage.blockerCount}`
+  ))
+  const evidence = report.evidenceTiers
 
   return [
     `Production readiness report: ${report.id}`,
     `Mode: ${report.mode}`,
     `Overall status: ${report.overallStatus}`,
+    `Current safe stage: ${report.actionPlan.currentSafeStage}`,
+    `Action plan status: ${report.actionPlan.status}`,
     `Workers: ${report.workerSummaries.length}`,
     `Tools: ${report.toolSummaries.length}`,
     `Images: ${report.imageSummaries.length}`,
@@ -45,7 +51,15 @@ export function summarizeProductionReadinessReport(report: ProductionReadinessRe
     `Hard blockers: ${report.blockerSummaries.filter((blocker) => blocker.severity === 'hard_blocker').length}`,
     `Warnings: ${report.warnings.length}`,
     '',
-    'Tool statuses:',
+    'Evidence tiers:',
+    `- canonical private runner proof: ${evidence.privateInternal.runnerVerifiedToolIds.length}/${evidence.registryToolCount}`,
+    `- canonical private end-to-end proof: ${evidence.privateInternal.canonicalEndToEndVerifiedToolIds.length}/${evidence.registryToolCount}`,
+    `- canonical private job-adapter proof: ${evidence.privateInternal.canonicalJobAdapterVerifiedToolIds.length}/${evidence.registryToolCount}`,
+    `- canonical non-executable boundary-contract proof: ${evidence.privateInternal.canonicalBoundaryContractVerifiedToolIds.length}/${evidence.registryToolCount}`,
+    `- same-source production-image qualification: ${evidence.productionImageQualification.qualifiedToolIds.length}/${evidence.registryToolCount}`,
+    `- deployed-release qualification: ${evidence.deployedReleaseQualification.qualifiedToolIds.length}/${evidence.registryToolCount}`,
+    '',
+    'Production image/release qualification statuses:',
     ...statusOrder
       .filter((status) => toolStatusCounts[status] > 0)
       .map((status) => `- ${status}: ${toolStatusCounts[status]}`),
@@ -55,6 +69,9 @@ export function summarizeProductionReadinessReport(report: ProductionReadinessRe
     '',
     'Top blockers:',
     ...(blockerLines.length > 0 ? blockerLines : ['- none']),
+    '',
+    'Action plan:',
+    ...actionPlanLines,
     '',
     'Next actions:',
     ...report.nextActions.map((action) => `- ${action}`),

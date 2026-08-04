@@ -1,5 +1,6 @@
 import type { PlanValidationCheck, PlannerRegressionReport } from '../../lib/planner-validation'
 import type { ChatPlanningCardDescriptor } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { Badge } from '../Badge'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
@@ -71,7 +72,7 @@ export function InlinePlannerRegressionCard({ descriptor, report }: InlinePlanne
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Regression validation"
-      helper="This mock regression suite checks that every demo scenario follows ReeditPro's hard product rules before real generation or rendering is implemented."
+      helper="This regression suite checks that every internal scenario follows ReeditPro's hard product rules before generation or rendering gates can pass."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Planner regression checks"
@@ -81,8 +82,8 @@ export function InlinePlannerRegressionCard({ descriptor, report }: InlinePlanne
       </div>
 
       <div className="qa-badge-row">
-        <Badge accent="cyan">Basic/Pro no Veo</Badge>
-        <Badge accent="warning">Premium fallback-only Veo</Badge>
+        <Badge accent="cyan">Basic/Pro premium fallback locked</Badge>
+        <Badge accent="warning">Premium fallback only</Badge>
         <Badge accent="blue">No default 1080P</Badge>
         <Badge accent="success">Matching panel background</Badge>
         <Badge accent="warning">Approval required</Badge>
@@ -94,7 +95,7 @@ export function InlinePlannerRegressionCard({ descriptor, report }: InlinePlanne
         <span><strong>Warnings</strong>{report.warningCount}</span>
         <span><strong>Errors/blocking</strong>{report.errorCount + report.blockingCount}</span>
       </div>
-      <p className="inline-helper">{report.summary}</p>
+      <p className="inline-helper">{hideInternalToolNamesInCopy(report.summary)}</p>
 
       <div className="regression-scenario-list">
         {report.scenarioReports.map((scenario) => (
@@ -116,16 +117,16 @@ export function InlinePlannerRegressionCard({ descriptor, report }: InlinePlanne
           {failedChecks.map((check) => (
             <article className={`regression-check-item regression-check-${check.severity}`} key={check.id}>
               <div>
-                <strong>{check.label}</strong>
+                <strong>{hideInternalToolNamesInCopy(check.label)}</strong>
                 <small>{formatLabel(check.category)} / {formatLabel(check.severity)}</small>
               </div>
-              <p>{check.message}</p>
-              {check.recommendation && <span>{check.recommendation}</span>}
+              <p>{hideInternalToolNamesInCopy(check.message)}</p>
+              {check.recommendation && <span>{hideInternalToolNamesInCopy(check.recommendation)}</span>}
             </article>
           ))}
         </div>
       ) : (
-        <p className="prompt-policy-note">All demo scenarios passed the current hard planner rules.</p>
+        <p className="prompt-policy-note">All internal scenarios passed the current hard planner rules.</p>
       )}
 
       <details className="compact-card-details">
@@ -134,10 +135,10 @@ export function InlinePlannerRegressionCard({ descriptor, report }: InlinePlanne
           {report.globalChecks.map((check) => (
             <article className={`regression-check-item regression-check-${check.severity}`} key={check.id}>
               <div>
-                <strong>{check.label}</strong>
+                <strong>{hideInternalToolNamesInCopy(check.label)}</strong>
                 <small>{check.passed ? 'passed' : 'needs attention'}</small>
               </div>
-              <p>{check.message}</p>
+              <p>{hideInternalToolNamesInCopy(check.message)}</p>
             </article>
           ))}
         </div>

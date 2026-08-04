@@ -5,6 +5,7 @@ import type {
   TimingRiskLevel,
   TransitionRiskLevel,
 } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy, userFacingActivityList } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineSoundSyncTransitionTimingCardProps = {
@@ -23,6 +24,11 @@ function riskAccent(risk: TimingRiskLevel | TransitionRiskLevel) {
   return 'success'
 }
 
+function soundSyncStatusLabel(status: string) {
+  if (status === 'needs_audioflux_analysis') return 'needs audio rhythm analysis'
+  return status.replaceAll('_', ' ')
+}
+
 export function InlineSoundSyncTransitionTimingCard({ descriptor, plan }: InlineSoundSyncTransitionTimingCardProps) {
   const timingPlan = plan.soundSyncTransitionTimingPlan
 
@@ -38,7 +44,7 @@ export function InlineSoundSyncTransitionTimingCard({ descriptor, plan }: Inline
       className="soundsync-transition-timing-card"
       compactSummary={(
         <div className="compact-summary-row">
-          <span className="compact-summary-chip">{timingPlan.status.replaceAll('_', ' ')}</span>
+          <span className="compact-summary-chip">{soundSyncStatusLabel(timingPlan.status)}</span>
           <span className="compact-summary-chip">{timingPlan.beatGridPlan.beatItems.length} beats</span>
           <span className="compact-summary-chip">{timingPlan.refinedTransitionTimings.length} transitions</span>
           <span className="compact-summary-chip">{timingPlan.refinedSfxTimings.length} SFX</span>
@@ -46,23 +52,23 @@ export function InlineSoundSyncTransitionTimingCard({ descriptor, plan }: Inline
         </div>
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? (blocked || hasRisk)}
-      eyebrow="SoundSync"
-      helper="ReeditPro plans beat-aware transitions, SFX, and music ducking with speech-first timing. This is mock timing only; no real AudioFlux analysis has run."
+      eyebrow="Sound timing"
+      helper="ReeditPro plans beat-aware transitions, sound effects, and music ducking with speech-first timing. Audio rhythm analysis remains approval-gated."
       priority={descriptor?.priority}
       status={descriptor?.status}
-      title="SoundSync + transition timing"
+      title="Sound and transition timing"
     >
       <div className="renderer-badge-row">
-        <Badge accent={blocked ? 'danger' : timingPlan.status === 'needs_audioflux_analysis' ? 'warning' : 'success'}>{timingPlan.status.replaceAll('_', ' ')}</Badge>
+        <Badge accent={blocked ? 'danger' : timingPlan.status === 'needs_audioflux_analysis' ? 'warning' : 'success'}>{soundSyncStatusLabel(timingPlan.status)}</Badge>
         <Badge accent="violet">Speech first</Badge>
         <Badge accent="cyan">Beat aware</Badge>
         <Badge accent="blue">SFX justified</Badge>
-        <Badge accent="muted">AudioFlux planned</Badge>
-        <Badge accent="muted">No real audio analysis</Badge>
+        <Badge accent="muted">Audio rhythm analysis planned</Badge>
+        <Badge accent="muted">Audio analysis gated</Badge>
       </div>
 
       <div className="soundsync-summary-grid">
-        <span><strong>Status</strong>{timingPlan.status.replaceAll('_', ' ')}</span>
+        <span><strong>Status</strong>{soundSyncStatusLabel(timingPlan.status)}</span>
         <span><strong>BPM</strong>{timingPlan.beatGridPlan.bpm ?? 'voice-led'}</span>
         <span><strong>Beats</strong>{timingPlan.beatGridPlan.beatItems.length}</span>
         <span><strong>Music phrases</strong>{timingPlan.beatGridPlan.musicPhrases.length}</span>
@@ -80,7 +86,7 @@ export function InlineSoundSyncTransitionTimingCard({ descriptor, plan }: Inline
         <h4>Beat grid</h4>
         <span><strong>Confidence</strong>{timingPlan.beatGridPlan.confidence}</span>
         <span><strong>Snap tolerance</strong>{timingPlan.beatGridPlan.snapToleranceFrames}f</span>
-        <span><strong>Planned analysis</strong>{timingPlan.beatGridPlan.analysisToolPlanned.join(', ') || 'none'}</span>
+        <span><strong>Planned analysis</strong>{userFacingActivityList(timingPlan.beatGridPlan.analysisToolPlanned, 'none')}</span>
         <span><strong>Downbeats / drops</strong>{timingPlan.beatGridPlan.beatItems.filter((item) => item.isDownbeat).length} / {timingPlan.beatGridPlan.beatItems.filter((item) => item.isDropMoment).length}</span>
       </div>
 
@@ -140,7 +146,7 @@ export function InlineSoundSyncTransitionTimingCard({ descriptor, plan }: Inline
                 <span className="sfx-density-badge">{sfx.densityLevel.replaceAll('_', ' ')}</span>
                 <span>{sfx.intensity}</span>
               </div>
-              <small>{sfx.reason}</small>
+              <small>{hideInternalToolNamesInCopy(sfx.reason)}</small>
             </article>
           )) : (
             <article className="refined-sfx-item">
@@ -162,7 +168,7 @@ export function InlineSoundSyncTransitionTimingCard({ descriptor, plan }: Inline
                 <span className="ducking-strength-badge">{ducking.duckingStrength}</span>
                 <span>{ducking.voicePriority ? 'voice priority' : 'review voice priority'}</span>
               </div>
-              <small>{ducking.reason}</small>
+              <small>{hideInternalToolNamesInCopy(ducking.reason)}</small>
             </article>
           ))}
         </div>
@@ -175,7 +181,7 @@ export function InlineSoundSyncTransitionTimingCard({ descriptor, plan }: Inline
             <article className="timing-cue-item" key={qaCheck.id}>
               <strong>{qaCheck.label}</strong>
               <Badge accent={riskAccent(qaCheck.riskLevel)}>{qaCheck.riskLevel}</Badge>
-              <small>{qaCheck.message}</small>
+              <small>{hideInternalToolNamesInCopy(qaCheck.message)}</small>
             </article>
           ))}
         </div>
@@ -183,7 +189,7 @@ export function InlineSoundSyncTransitionTimingCard({ descriptor, plan }: Inline
 
       <div className="no-real-audio-analysis-note">
         {timingPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{hideInternalToolNamesInCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

@@ -1,4 +1,5 @@
 import type { EditPlan, PlanningSystemAuditStatus } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { Badge } from '../Badge'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
@@ -67,25 +68,25 @@ export function InlinePlanningSystemAuditCard({ plan }: InlinePlanningSystemAudi
           <span className="compact-summary-chip">{counts.connected} connected</span>
           <span className="compact-summary-chip">{counts.partial} partial</span>
           <span className="compact-summary-chip">{failedRules.length} failed rules</span>
-          <span className="compact-summary-chip">{failedLaunchStackChecks.length} launch stack issues</span>
+          <span className="compact-summary-chip">{failedLaunchStackChecks.length} launch capability issues</span>
         </div>
       )}
       defaultExpanded={report.overallStatus === 'blocking'}
       eyebrow="Planning audit"
-      helper="This checks whether ReeditPro's full planning system is connected and whether launch tool stack rules are aligned before backend work begins."
+      helper="This checks whether ReeditPro's full planning system is connected and whether launch capability rules are aligned before approved implementation work begins."
       priority="developer_detail"
       status={report.overallStatus === 'blocking' ? 'blocking' : report.overallStatus === 'connected' ? 'complete' : 'warning'}
       title="Planning system audit"
     >
       <div className="qa-badge-row">
         <Badge accent={badgeAccent(report.overallStatus)}>{statusLabels[report.overallStatus]}</Badge>
-        <Badge accent={launchStackAligned ? 'success' : 'warning'}>{launchStackAligned ? 'Launch stack aligned' : 'Launch stack review'}</Badge>
+        <Badge accent={launchStackAligned ? 'success' : 'warning'}>{launchStackAligned ? 'Launch capabilities aligned' : 'Launch capability review'}</Badge>
         <Badge accent="success">Core rule passed</Badge>
-        <Badge accent="blue">Mock only</Badge>
+        <Badge accent="blue">Internal audit</Badge>
         <Badge accent="violet">Next phase</Badge>
       </div>
 
-      <p className="inline-helper">{report.summary}</p>
+      <p className="inline-helper">{hideInternalToolNamesInCopy(report.summary)}</p>
 
       <div className="planning-audit-summary-grid">
         <span><strong>Connected</strong>{counts.connected}</span>
@@ -98,22 +99,22 @@ export function InlinePlanningSystemAuditCard({ plan }: InlinePlanningSystemAudi
       <div className="planning-audit-hard-rule-list">
         {report.hardRuleChecks.map((rule) => (
           <article className={`planning-audit-hard-rule-item ${rule.passed ? 'planning-audit-connected' : 'planning-audit-blocking'}`} key={rule.label}>
-            <strong>{rule.label}</strong>
+            <strong>{hideInternalToolNamesInCopy(rule.label)}</strong>
             <span>{rule.passed ? 'Passed' : 'Needs attention'}</span>
-            <p>{rule.message}</p>
+            <p>{hideInternalToolNamesInCopy(rule.message)}</p>
           </article>
         ))}
       </div>
 
       {launchStackChecks.length > 0 && (
         <details className="compact-card-details">
-          <summary>Launch tool stack checks</summary>
+          <summary>Launch capability checks</summary>
           <div className="planning-audit-launch-stack-list">
             {launchStackChecks.map((rule) => (
               <article className={`planning-audit-launch-stack-item ${rule.passed ? 'planning-audit-connected' : 'planning-audit-warning'}`} key={rule.label}>
-                <strong>{rule.label}</strong>
+                <strong>{hideInternalToolNamesInCopy(rule.label)}</strong>
                 <span>{rule.passed ? 'Aligned' : 'Needs review'}</span>
-                <p>{rule.message}</p>
+                <p>{hideInternalToolNamesInCopy(rule.message)}</p>
               </article>
             ))}
           </div>
@@ -124,7 +125,7 @@ export function InlinePlanningSystemAuditCard({ plan }: InlinePlanningSystemAudi
         <div className="planning-audit-warning-list">
           <strong>Duplicate or legacy warnings</strong>
           {report.duplicateOrLegacyWarnings.map((warning) => (
-            <span className="planning-audit-missing-connection" key={warning}>{warning}</span>
+            <span className="planning-audit-missing-connection" key={warning}>{hideInternalToolNamesInCopy(warning)}</span>
           ))}
         </div>
       )}
@@ -135,7 +136,7 @@ export function InlinePlanningSystemAuditCard({ plan }: InlinePlanningSystemAudi
           {report.layers.map((layer) => (
             <article className={`planning-audit-layer-item planning-audit-${layer.status}`} key={layer.id}>
               <div className="planning-audit-layer-heading">
-                <strong>{layer.label}</strong>
+                <strong>{hideInternalToolNamesInCopy(layer.label)}</strong>
                 <span className={`planning-audit-status-badge planning-audit-${layer.status}`}>{statusLabels[layer.status]}</span>
               </div>
               <div className="planning-audit-summary-grid">
@@ -147,15 +148,15 @@ export function InlinePlanningSystemAuditCard({ plan }: InlinePlanningSystemAudi
                 <span><strong>Validation</strong>{yesNo(layer.includedInValidation)}</span>
                 <span><strong>Credits</strong>{yesNo(layer.includedInCreditEstimate)}</span>
               </div>
-              {layer.notes.length > 0 && <p>{layer.notes.join(' ')}</p>}
+              {layer.notes.length > 0 && <p>{hideInternalToolNamesInCopy(layer.notes.join(' '))}</p>}
               {layer.missingConnections.length > 0 && (
                 <div className="planning-audit-warning-list">
                   {layer.missingConnections.map((connection) => (
-                    <span className="planning-audit-missing-connection" key={connection}>{connection}</span>
+                    <span className="planning-audit-missing-connection" key={connection}>{hideInternalToolNamesInCopy(connection)}</span>
                   ))}
                 </div>
               )}
-              <small>{formatLabel(layer.id)}</small>
+              <small>{hideInternalToolNamesInCopy(formatLabel(layer.id))}</small>
             </article>
           ))}
         </div>
@@ -164,14 +165,14 @@ export function InlinePlanningSystemAuditCard({ plan }: InlinePlanningSystemAudi
       <div className="planning-audit-recommendation-list">
         <strong>Next phase recommendations</strong>
         {report.nextPhaseRecommendations.map((recommendation) => (
-          <span key={recommendation}>{recommendation}</span>
+          <span key={recommendation}>{hideInternalToolNamesInCopy(recommendation)}</span>
         ))}
       </div>
 
       <div className="planning-audit-warning-list">
         <strong>Limitations</strong>
         {report.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{hideInternalToolNamesInCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

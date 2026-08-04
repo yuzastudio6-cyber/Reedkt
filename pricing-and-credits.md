@@ -12,7 +12,7 @@ For backend/database architecture, see `credit-ledger-architecture.md`. Future c
 
 - `$10/week` software access.
 - Includes 100 weekly bonus Reedit Credits.
-- 100 credits = `$5` retail credit value.
+- 1 credit = `$0.10`; 100 credits = `$10` retail credit value.
 - User can buy more credits.
 - Intended for personal creators and smaller workflows.
 
@@ -37,6 +37,24 @@ Credits pay for AI generation, rendering, and editing usage, including future sy
 - Rendering/exporting.
 - Regeneration requests.
 
+RP-CREDITPOLICY-01 supersedes older legacy notes that said `100 credits = $5`. The external-beta policy is now `100 credits = $10`. Credits also cover ReEditPro's service/edit fee on top of actual billable tool costs.
+
+## Product Edit-Level Service Fee
+
+Product edit levels are `normal`, `premium`, and `ultra_premium`. They are separate from any tool/runtime compute levels such as `economy`, `standard`, and `premium`.
+
+The ReEditPro service/edit fee is:
+
+```text
+max(length_floor_fee_credits, percentage_fee_credits)
+```
+
+For 0-5 minutes, floors are Normal 30, Premium 50, and Ultra Premium 80 credits. For 5-10 minutes, floors are Normal 40, Premium 70, and Ultra Premium 120 credits. For 10-20 minutes, floors are Normal 70, Premium 120, and Ultra Premium 200 credits. For 20-60 minutes, floors are Normal 120, Premium 220, and Ultra Premium 350 credits. Edits at 60 minutes or longer require a custom estimate.
+
+Percentage protection is 10% for Normal, 20% for Premium, and 30% for Ultra Premium. Final user charge is actual billable tool cost credits plus the ReEditPro service/edit fee.
+
+Tool owners report actual internal tool cost only. Tool owners must never include the ReEditPro service/edit fee inside tool cost events.
+
 ## Estimate Before Generation
 
 ReeditPro must show a credit estimate before generation begins.
@@ -48,6 +66,16 @@ The estimate should explain:
 - Whether Real Motion is included.
 - Estimated render/export cost.
 - Optional lower-cost alternatives when useful.
+
+## Interim 4K Export Estimate Ceiling
+
+Until a later product policy replaces it, every initial edit estimate must price one approved deliverable with a 4K UHD render/export ceiling. The covered delivery profiles are 1080p Full HD, 2K/1440p, and 4K UHD at the confirmed aspect ratio, FPS, and approved duration.
+
+Exporting that same approved deliverable must not show another credit estimate, ask the user to approve credits again, create a second reservation, or deduct credits a second time. The export runtime verifies the original approved estimate and reservation instead.
+
+An additional deliverable; a changed aspect ratio, FPS, or duration outside the approved tolerance; a custom frame outside the registered profiles; or output above the 4K ceiling is revised scope. ReeditPro must return to planning and approval before doing that extra work rather than adding an export-time surcharge.
+
+Selecting a 4K container for lower-resolution source media does not imply restored source detail. Any enhancement/upscaling operation is separately planned, traced, and QA-checked.
 
 ## Deduct Only After Approval
 
@@ -101,3 +129,11 @@ The new runtime skeleton makes the product rule explicit:
 - failed mock jobs can release or refund a reservation.
 
 This remains a partial implementation. Real credit reservation, spend, refund, Stripe purchase handling, and transactional ledger enforcement still require a deployed backend runtime.
+
+## No Silent Recovery Billing
+
+If projected cost may exceed the approved maximum estimate, ReEditPro must pause before extra paid work continues and show: `Action required: revised credit estimate needed`.
+
+Export lock copy is only: `Action required: add credits to export`, and it is allowed only for separately approved revised scope when that approved final charge is not fully funded. It must not appear for the original single deliverable covered by the initial 4K estimate and reservation.
+
+If ReEditPro estimated incorrectly, provider variance occurred without user approval, or ReEditPro failed to pause in time, ReEditPro absorbs the unapproved overage. Do not silently take credits from the user's next edit and do not create hidden negative wallet behavior. This policy has no live billing, no Stripe, no Supabase migration, no wallet mutation, and no render/export charging in this milestone.

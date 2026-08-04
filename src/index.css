@@ -6,11 +6,12 @@
 @import './styles/forms.css';
 @import './styles/auth.css';
 @import './styles/layout.css';
-@import './styles/preferences.css';
-@import './styles/internal-testing.css';
-@import './styles/project-edit-sessions.css';
-@import './styles/project-edit-brief.css';
+@import './styles/home.css';
+@import './styles/projects.css';
 @import './styles/chat.css';
+@import './styles/edit-brief-workspace.css';
+@import './styles/edit-level.css';
 @import './styles/marketing.css';
 @import './styles/motion.css';
+@import './styles/motion-studio.css';
 @import './styles/responsive.css';

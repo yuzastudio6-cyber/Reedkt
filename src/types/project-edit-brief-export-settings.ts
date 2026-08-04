@@ -5,6 +5,7 @@ import type {
   ProjectEditSessionExportSettingsRecord,
 } from './project-edit-brief'
 import type { ProjectEditSessionPlatformTarget } from './project-edit-session'
+import type { ProfessionalExportProfileId } from './professional-export'
 
 export type ProjectEditBriefExportSettingsPresetId = ProjectEditSessionExportPreset
 
@@ -53,6 +54,7 @@ export interface ProjectEditBriefExportSettingsPresetDefinition extends ProjectE
   platformTargets: ProjectEditSessionPlatformTarget[]
   aspectRatio: ProjectEditSessionExportAspectRatio
   resolution: { width: number; height: number }
+  legacyResolutionProfileId: ProfessionalExportProfileId
   frameRate: ProjectEditSessionExportSettingsRecord['frameRate']
   format: ProjectEditSessionExportFormat
   codec: ProjectEditSessionExportSettingsRecord['codec']
@@ -70,6 +72,8 @@ export interface ProjectEditBriefExportSettingsRecommendationInput {
   platformTarget?: ProjectEditSessionPlatformTarget
   aspectRatio?: ProjectEditSessionExportAspectRatio
   customAspectRatio?: ProjectEditSessionExportSettingsRecord['customAspectRatio']
+  resolutionProfileId?: ProfessionalExportProfileId | 'custom'
+  sourceResolution?: ProjectEditSessionExportSettingsRecord['resolution']
   presetId?: ProjectEditBriefExportSettingsPresetId
   existingSettings?: ProjectEditSessionExportSettingsRecord
   source?: ProjectEditBriefExportSettingsRecommendationSource
@@ -96,6 +100,7 @@ export interface ProjectEditBriefExportSettingsFormState extends ProjectEditBrie
   customAspectRatio?: ProjectEditSessionExportSettingsRecord['customAspectRatio']
   resolutionWidth: number
   resolutionHeight: number
+  resolutionProfileId: ProfessionalExportProfileId | 'custom'
   frameRate: ProjectEditSessionExportSettingsRecord['frameRate']
   format: ProjectEditSessionExportFormat
   codec: ProjectEditSessionExportSettingsRecord['codec']

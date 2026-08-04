@@ -102,16 +102,6 @@ export const NEW_EDIT_SESSION_PLATFORM_OPTIONS: Array<{
   { id: 'custom', label: 'Custom' },
 ]
 
-export const NEW_EDIT_SESSION_EDIT_LEVEL_OPTIONS: Array<{
-  id: UserFacingEditLevel
-  label: string
-  description: string
-}> = [
-  { id: 'basic', label: 'Basic', description: 'Professional clean edit with restrained compute.' },
-  { id: 'premium', label: 'Premium', description: 'Balanced professional depth for most edits.' },
-  { id: 'ultra_premium', label: 'Ultra Premium', description: 'Deepest planning and review for complex edits.' },
-]
-
 export const NEW_EDIT_SESSION_PREFERENCE_OPTIONS: Array<{
   id: NewEditSessionPreferenceChoiceId
   label: string
@@ -174,8 +164,8 @@ export function validateNewEditSessionForm(
   if (!form.name.trim()) errors.push('Edit name is required.')
   const confirmedFrame = getConfirmedNewEditFrame(form)
   if (!confirmedFrame) errors.push('Choose and confirm the output frame and platform before creating the edit.')
-  if (!NEW_EDIT_SESSION_EDIT_LEVEL_OPTIONS.some((option) => option.id === form.selectedEditLevel)) {
-    errors.push('Choose a supported edit level.')
+  if (form.selectedEditLevel !== 'premium') {
+    errors.push('Internal testing requires the full-capability compatibility profile.')
   }
   return {
     ok: errors.length === 0,
@@ -369,7 +359,6 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     facts: [
       `Confirmed aspect ratio: ${confirmedFrame.aspectRatio}`,
       `Confirmed platform target: ${confirmedFrame.platformTarget}`,
-      `Edit level: ${input.form.selectedEditLevel}`,
     ],
     preferences: preferenceHandle ? [`Selected Edit Preference handle: ${preferenceHandle}`] : [],
     warnings: [

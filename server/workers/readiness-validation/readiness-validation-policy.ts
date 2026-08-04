@@ -14,7 +14,7 @@ export const READINESS_DOES_NOT_RUN = [
 export const STATIC_READINESS_SAFETY_NOTES = [
   'Static readiness validates declarations, manifests, specs, and policies only.',
   'Dry-run readiness does not execute command checks, imports, Docker, gcloud, providers, media tools, GPU tools, or model downloads.',
-  'Container runtime readiness is represented as a command plan only in Milestone 12.',
+  'Container runtime probing is represented as a human-run command plan and emits only a non-promotable candidate receipt.',
 ]
 
 export function assertReadinessModeDoesNotExecuteProductionWork(mode: ReadinessValidationMode): void {

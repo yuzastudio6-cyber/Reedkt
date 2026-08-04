@@ -374,9 +374,9 @@ function sourceCleanupNotes(params: BasePromptParams) {
       ? `Do not generate visuals for cut ranges unless user revises cleanup: ${plan.cutRanges.slice(0, 3).map((decision) => decision.clipId).join(', ')}.`
       : 'No cut-only range applies to this prompt.',
     plan.status === 'confirmed'
-      ? 'Cleanup style is confirmed for this mock planning pass.'
+      ? 'Cleanup style is confirmed for this planning pass.'
       : 'Provider prompt remains draft/blocked until cleanup style is confirmed.',
-    'No real transcript, silence, video, or audio analysis has run for cleanup.',
+    'Transcript, silence, video, and audio analysis remain backend-gated for cleanup.',
   ]
 }
 
@@ -399,7 +399,7 @@ function trimReviewNotes(params: BasePromptParams) {
     plan.approvalBlocked
       ? 'Provider prompt remains draft/blocked until retake selection and meaning preservation review is resolved.'
       : 'Use trim review context without asking providers to solve retake or meaning validation.',
-    'No real transcript, semantic, or media comparison has run for trim review.',
+    'Transcript, semantic, and media comparison remain backend-gated for trim review.',
   ]
 }
 
@@ -418,7 +418,7 @@ function asyncReconciliationNotes(params: BasePromptParams) {
     `Preview readiness: ${plan.previewRenderReadiness.ready ? 'ready' : 'waiting'}; ${plan.previewRenderReadiness.reason}`,
     ...(linkedMissingAssets.length ? [`Blocked: required upstream asset(s) still missing for this visual route (${linkedMissingAssets.join(', ')}).`] : []),
     'Provider outputs are not complete until assets are stored, manifested, QA-checked, reconciled, and linked to segment/timing/layer.',
-    'No real provider checkback, polling, worker event, storage, or render has run.',
+    'Provider checkbacks, polling, worker events, storage, and rendering remain backend-gated.',
   ]
 }
 
@@ -440,7 +440,7 @@ function agentQAFallbackNotes(params: BasePromptParams) {
       : 'Final render block state is governed by required failure and fallback decisions.',
     ...blockedProviderGates.slice(0, 2).map((gate) => `Provider gate block: ${gate.message}`),
     'Provider fallback must preserve Basic/Pro no Veo and Premium final-fallback-only Veo.',
-    'No real QA, retry, fallback, provider call, worker event, or render has run.',
+    'QA, retries, fallback execution, provider calls, worker events, and rendering remain backend-gated.',
   ]
 }
 
@@ -604,7 +604,7 @@ function commonConstraints(params: BasePromptParams, providerModel: ProviderMode
       id: `${asset.id}-constraint-color-pipeline`,
       label: 'Color pipeline',
       instruction: colorPipelinePlan
-        ? `Match the planned ${label(colorPipelinePlan.colorGradeStyle)} ${colorPipelinePlan.intensity} color pipeline. ${assetColorMatchPlan ? `Asset color match plan: ${assetColorMatchPlan.operations.map((operation) => label(operation.operation)).join(', ')}.` : 'Use the project color rules.'} No real color processing is implied.`
+        ? `Match the planned ${label(colorPipelinePlan.colorGradeStyle)} ${colorPipelinePlan.intensity} color pipeline. ${assetColorMatchPlan ? `Asset color match plan: ${assetColorMatchPlan.operations.map((operation) => label(operation.operation)).join(', ')}.` : 'Use the project color rules.'} Color processing remains backend-gated.`
         : 'No color pipeline plan is attached; preserve clean professional color and matching panel background.',
       source: 'color_pipeline',
       required: Boolean(colorPipelinePlan),
@@ -622,7 +622,7 @@ function commonConstraints(params: BasePromptParams, providerModel: ProviderMode
       id: `${asset.id}-constraint-map-animation`,
       label: 'Map + location plan',
       instruction: mapAnimationPlan?.active
-        ? `Map plan is active with ${mapAnimationPlan.items.length} item(s). Exact maps use controlled MapLibre/Turf/Remotion planning, not AI video. ${mapAnimationPlan.items.map((item) => `${label(item.mapVisualType)}: ${item.locations.map((location) => `${location.safeWording} (${label(location.confidence)})`).join(', ')}`).slice(0, 2).join(' ')}`
+        ? `Map plan is active with ${mapAnimationPlan.items.length} item(s). Exact maps use controlled D3/SVG.js/Remotion planning, not AI video. ${mapAnimationPlan.items.map((item) => `${label(item.mapVisualType)}: ${item.locations.map((location) => `${location.safeWording} (${label(location.confidence)})`).join(', ')}`).slice(0, 2).join(' ')}`
         : 'No active map/location plan is attached; do not invent exact map geography.',
       source: 'map_animation',
       required: Boolean(mapAnimationPlan?.active),
@@ -796,13 +796,13 @@ function commonQaNotes(params: BasePromptParams) {
       : []),
     ...(toolStrategyItems.length
       ? [
-          `Tool strategy QA: ${toolStrategyItems.map((item) => label(item.chainId)).join(', ')}; no real tool execution.`,
+          `Tool strategy QA: ${toolStrategyItems.map((item) => label(item.chainId)).join(', ')}; tool execution remains backend-gated.`,
           ...toolStrategyItems.flatMap((item) => item.qaChecks.slice(0, 2)).slice(0, 4),
         ]
       : []),
     ...(colorPipelinePlan
       ? [
-          `Color pipeline QA: ${label(colorPipelinePlan.colorGradeStyle)} ${colorPipelinePlan.intensity}; no real color processing.`,
+          `Color pipeline QA: ${label(colorPipelinePlan.colorGradeStyle)} ${colorPipelinePlan.intensity}; color processing remains backend-gated.`,
           ...colorPipelinePlan.qaChecks.slice(0, 3),
         ]
       : []),
@@ -814,19 +814,19 @@ function commonQaNotes(params: BasePromptParams) {
       : []),
     ...(audioPipelinePlan
       ? [
-          `Audio pipeline QA: ${label(audioPipelinePlan.soundStyle)} ${audioPipelinePlan.audioIntensity}; no real audio processing.`,
+          `Audio pipeline QA: ${label(audioPipelinePlan.soundStyle)} ${audioPipelinePlan.audioIntensity}; audio processing remains backend-gated.`,
           ...audioPipelinePlan.qaChecks.slice(0, 3),
         ]
       : []),
     ...(mapAnimationPlan?.active
       ? [
-          `Map/location QA: ${mapAnimationPlan.items.length} controlled map item(s); no real map rendering.`,
+          `Map/location QA: ${mapAnimationPlan.items.length} controlled map item(s); map rendering remains backend-gated.`,
           ...mapAnimationPlan.qaChecks.slice(0, 3),
         ]
       : []),
     ...(dataVizPlan?.active
       ? [
-          `Chart/diagram QA: ${dataVizPlan.items.length} controlled dataviz item(s); no real D3/ECharts/Vega-Lite rendering.`,
+          `Chart/diagram QA: ${dataVizPlan.items.length} controlled dataviz item(s); D3/ECharts/Vega-Lite rendering remains backend-gated.`,
           ...dataVizPlan.qaChecks.slice(0, 3),
         ]
       : []),
@@ -888,7 +888,7 @@ function commonWorkerNotes(
         `Tool strategy chains: ${toolStrategyItems.map((item) => label(item.chainId)).join(', ')}.`,
         `Planned tools only: ${Array.from(new Set(toolStrategyItems.flatMap((item) => item.selectedToolIds))).map(label).join(', ')}.`,
         ...toolStrategyItems.map((item) => item.userFacingSummary).slice(0, 2),
-        'Tool strategy does not install or execute tools in this frontend demo.',
+        'Tool strategy does not install or execute tools before approved backend gates pass.',
       ]
     : []
   const colorNotes = colorPipelinePlan
@@ -913,7 +913,7 @@ function commonWorkerNotes(
         `Map/location plan: ${mapAnimationPlan.items.length} controlled item(s).`,
         `Map tools planned only: ${mapAnimationPlan.mapToolsPlanned.map(label).join(', ')}.`,
         ...mapAnimationPlan.items.slice(0, 2).map((item) => `${label(item.mapVisualType)} uses ${label(item.style.styleFamily)}; ${item.locations.map((location) => location.safeWording).join(', ')}.`),
-        'Exact geography should use MapLibre/Turf/Remotion planning, not AI video.',
+        'Exact geography should use D3/SVG.js/Remotion planning, not AI video.',
         'No map rendering, geocoding, tile calls, or Mapbox API usage is implied.',
       ]
     : []
@@ -1281,7 +1281,7 @@ function colorPipelineLines(params: BasePromptParams) {
       ? `Match panel background ${assetColorMatchPlan.matchPanelBackgroundColor}.`
       : undefined,
     colorPipelinePlan.generatedAssetRules.slice(0, 2).join(' '),
-    'Do not introduce lighting/style drift. No real color processing is implied by this prompt.',
+    'Do not introduce lighting/style drift. Color processing remains backend-gated.',
   ])
 }
 
@@ -1332,7 +1332,7 @@ function mapAnimationLines(params: BasePromptParams) {
     items.some((item) => item.layout.foregroundMaskAware)
       ? 'Map behind subject/contact object: avoid labels in foreground/object zones and keep captions above map and masks.'
       : 'Keep map labels inside safe label zones and away from captions.',
-    'Exact maps should use controlled MapLibre/Turf planning, not AI video. No geocoding or map rendering is implied.',
+    'Exact maps should use controlled D3/SVG.js/Remotion planning, not AI video. No external geocoding, tile access, or map rendering is implied.',
   ])
 }
 

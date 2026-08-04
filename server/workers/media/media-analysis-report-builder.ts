@@ -12,6 +12,7 @@ import type {
   MediaProbeResult,
   MediaProxyResult,
 } from './media-worker-types'
+import { resolveAnalysisProxyColorDecision } from './media-proxy-policy'
 
 export interface BuildMediaAnalysisReportInput {
   id?: string
@@ -34,6 +35,8 @@ export function buildMediaAnalysisReport(input: BuildMediaAnalysisReportInput): 
   const keyframeArtifacts = input.keyframes?.artifacts ?? []
   const representativeArtifacts = input.representativeFrames?.artifacts ?? []
   const qualityIssues = buildNotRunIssues(input)
+  const primaryVideoStream = input.probe.videoStreams[0]
+  const proxyColorDecision = resolveAnalysisProxyColorDecision(primaryVideoStream)
 
   return {
     id: input.id ?? `media-analysis-${input.mediaAssetId}`,
@@ -63,6 +66,10 @@ export function buildMediaAnalysisReport(input: BuildMediaAnalysisReportInput): 
       durationSeconds: stream.durationSeconds,
       pixelFormat: stream.pixelFormat,
       colorSpace: stream.colorSpace,
+      colorTransfer: stream.colorTransfer,
+      colorPrimaries: stream.colorPrimaries,
+      colorRange: stream.colorRange,
+      bitsPerRawSample: stream.bitsPerRawSample,
       rotation: stream.rotation,
       metadata: {},
     })),
@@ -81,8 +88,8 @@ export function buildMediaAnalysisReport(input: BuildMediaAnalysisReportInput): 
       height: input.proxy?.height,
       durationSeconds: input.proxy?.durationSeconds,
       notes: input.proxy?.status === 'created'
-        ? 'Milestone 6 local/dev proxy artifact created.'
-        : 'Proxy creation not run or skipped in this report.',
+        ? `Private ${input.proxy.profileId ?? 'analysis'} proxy created in ${input.proxy.outputColorSpace ?? 'declared'} color while preserving the original master.`
+        : input.proxy?.skipReason?.message ?? 'Proxy creation not run or skipped in this report.',
     },
     keyframes: keyframeArtifacts.map((artifact, index): MediaKeyframeInfo => ({
       artifactId: artifact.artifactId,
@@ -133,9 +140,9 @@ export function buildMediaAnalysisReport(input: BuildMediaAnalysisReportInput): 
       }],
     },
     colorAnalysis: {
-      colorSpaceAssumption: input.probe.videoStreams[0]?.colorSpace,
-      transferAssumption: undefined,
-      hdrDetected: false,
+      colorSpaceAssumption: primaryVideoStream?.colorSpace ?? primaryVideoStream?.colorPrimaries,
+      transferAssumption: primaryVideoStream?.colorTransfer,
+      hdrDetected: proxyColorDecision.sourceDynamicRange === 'hdr',
       underexposed: false,
       overexposed: false,
       whiteBalanceIssue: false,
@@ -143,11 +150,18 @@ export function buildMediaAnalysisReport(input: BuildMediaAnalysisReportInput): 
       skinToneRisk: false,
       histogramArtifactId: undefined,
       representativeFramesArtifactId: representativeArtifacts[0]?.artifactId,
-      issues: [{
-        code: 'color_analysis_not_run',
-        message: 'Milestone 6 extracts representative frames but does not run grading, OpenColorIO, or histogram analysis.',
-        severity: 'info',
-      }],
+      issues: [
+        ...(proxyColorDecision.status === 'requires_color_managed_runtime' ? [{
+          code: proxyColorDecision.reasonCode,
+          message: proxyColorDecision.message,
+          severity: 'warning' as const,
+        }] : []),
+        {
+          code: 'color_analysis_not_run',
+          message: 'Milestone 6 extracts representative frames but does not run grading, OpenColorIO, or histogram analysis.',
+          severity: 'info',
+        },
+      ],
     },
     ocrAnalysis: {
       ocrNeeded: false,

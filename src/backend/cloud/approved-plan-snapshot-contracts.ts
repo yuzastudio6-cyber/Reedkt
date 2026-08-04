@@ -9,9 +9,9 @@ import type { CloudValidationResult } from './cloud-runtime-contracts'
 export type ApprovedSnapshotStatus =
   | 'draft'
   | 'approved'
-  | 'execution_ready'
+  | 'locked'
   | 'superseded'
-  | 'revoked'
+  | 'cancelled'
   | 'failed'
 
 export interface ApprovedPlanSnapshotPayload {
@@ -92,8 +92,8 @@ export function validateApprovedPlanSnapshotForWorker(
   const errors: string[] = []
   const warnings: string[] = []
 
-  if (snapshot.snapshotStatus !== 'approved' && snapshot.snapshotStatus !== 'execution_ready') {
-    errors.push('Approved snapshot status must be approved or execution_ready before worker execution.')
+  if (snapshot.snapshotStatus !== 'approved' && snapshot.snapshotStatus !== 'locked') {
+    errors.push('Approved snapshot status must be approved or locked before worker execution.')
   }
 
   if (!hasNonEmptyString(snapshot.snapshotHash)) {

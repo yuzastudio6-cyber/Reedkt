@@ -156,11 +156,11 @@ export function getSourceSequenceModeLabel(mode: SourceSequenceMode) {
 
 export function getSourceSequenceModeHelper(mode: SourceSequenceMode) {
   const helpers: Record<SourceSequenceMode, string> = {
-    b_roll_plus_main_clip: 'Use main clips as source story context and optional/support clips as b-roll or proof.',
-    mixed_assets: 'Review each asset role so ReeditPro understands source meaning before planning.',
-    multi_clip_story_order: 'Use uploaded order as the intended story/source sequence.',
-    single_complete_video: 'Use this one file as the complete source video.',
-    unordered_clips_needs_ai_help: 'Keep uploaded order as context while allowing ReeditPro to suggest a final structure in the plan.',
+    b_roll_plus_main_clip: 'Main clips carry the story; support clips add proof or texture.',
+    mixed_assets: 'Review each role so the plan understands the source.',
+    multi_clip_story_order: 'Use uploaded order as source context.',
+    single_complete_video: 'Use this file as the complete source video.',
+    unordered_clips_needs_ai_help: 'Use uploaded order as context and let ReeditPro suggest structure.',
   }
 
   return helpers[mode]
@@ -186,7 +186,7 @@ export function createSourceSequenceReviewState(params: {
       getSourceSequenceModeHelper(mode),
       confirmed
         ? 'Source order is confirmed and can be used as story/source context.'
-        : 'Source order is not confirmed yet; this plan should be treated as draft context.',
+        : 'Source order still needs confirmation.',
       ...(params.aiNotes ?? []),
     ],
   }
@@ -211,7 +211,7 @@ export function getSourceOrderWarnings(clips: ClipSource[], confirmed = false) {
   const warnings: string[] = []
 
   if (clips.length === 0) {
-    return ['No clips attached yet. Add a source video or mock clips before planning.']
+    return ['No clips attached yet. Add source clips before planning.']
   }
 
   if (clips.length === 1) {
@@ -219,19 +219,19 @@ export function getSourceOrderWarnings(clips: ClipSource[], confirmed = false) {
   }
 
   if (!confirmed) {
-    warnings.push('Source order is not confirmed yet.')
+    warnings.push('Confirm source order before approval.')
   }
 
   if (clips.some((clip) => clip.isOptional || clip.sourceRole === 'optional')) {
-    warnings.push('Optional clips are marked; ReeditPro should treat them as support/b-roll unless the plan says otherwise.')
+    warnings.push('Optional clips will be treated as support unless the plan says otherwise.')
   }
 
   if (clips.some((clip) => clip.isImportant && clip.uploadedOrder > Math.ceil(clips.length * 0.65))) {
-    warnings.push('An important clip appears late in the source sequence; ReeditPro may recommend using it earlier only inside the plan.')
+    warnings.push('An important clip appears late; the plan may recommend moving it earlier.')
   }
 
   if (clips.length > 1 && clips.filter((clip) => (clip.sourceRole ?? inferClipSourceRole(clip)) === 'unknown').length > 1) {
-    warnings.push('Several clips have unknown roles; role labels can make the plan more accurate.')
+    warnings.push('Some clip roles are unknown; labels can improve the plan.')
   }
 
   return warnings

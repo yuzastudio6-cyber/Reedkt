@@ -33,6 +33,10 @@ export interface MediaVideoStream {
   durationSeconds?: Seconds
   pixelFormat?: string
   colorSpace?: string
+  colorTransfer?: string
+  colorPrimaries?: string
+  colorRange?: string
+  bitsPerRawSample?: number
   rotation?: number
   metadata?: JSONObject
 }

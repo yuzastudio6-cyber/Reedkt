@@ -3,11 +3,14 @@ import type {
   CreditEstimateLineItemType,
   CreditEstimateRecord,
   CreditUsageCategory,
+  JSONObject,
 } from '../../types'
 import type { CreditSpendPurpose } from '../../types/credit-runtime'
 import type { MockDatabase } from '../mock/mock-database'
 import { createMockId, findMockRecord, insertMockRecord, nowIso } from '../mock/mock-database'
 import { fail, ok, type ServiceResult } from '../service-result'
+import type { ProfessionalExportCreditCoverage } from '../../types/professional-export'
+import { buildProfessionalExportCreditCoverage } from '../../lib/professional-export-policy'
 
 export interface CreditEstimateRuntimeLineInput {
   lineItemType: CreditEstimateLineItemType
@@ -32,6 +35,7 @@ export interface CreateCreditEstimateRuntimeInput {
   reservedCreditsSnapshot?: number
   lineItems: CreditEstimateRuntimeLineInput[]
   mockFreeDemo?: boolean
+  professionalExportCoverage?: ProfessionalExportCreditCoverage
 }
 
 export interface CreditEstimateRuntimeResult {
@@ -70,6 +74,13 @@ export function createCreditEstimateRuntime(
       purpose: input.purpose,
       mockFreeDemo: input.mockFreeDemo ?? false,
       noSpendOrReservation: true,
+      ...(input.professionalExportCoverage
+        ? {
+            professionalExportCoverage: input.professionalExportCoverage as unknown as JSONObject,
+            finalExportUsesExistingReservation: true,
+            exportTimeEstimateOrChargeAllowed: false,
+          }
+        : {}),
     },
     shownToUserAt: nowIso(),
     createdByAgent: 'mock_credit_runtime_agent',
@@ -120,11 +131,22 @@ export function createCreditEstimateFromEditPlan(
   const signatureCredits = db.signatureRoutes.some((route) => route.editPlanId === input.editPlanId && route.approvalNeeded)
     ? 12
     : 0
+  const finalVideoDurationSeconds = Math.max(
+    1,
+    ...db.editPlanSegments
+      .filter((segment) => segment.editPlanId === input.editPlanId)
+      .map((segment) => segment.outputEndSeconds),
+  )
+  const professionalExportCoverage = buildProfessionalExportCreditCoverage({
+    durationSeconds: finalVideoDurationSeconds,
+    outputFps: 30,
+  })
 
   return createCreditEstimateRuntime(db, {
     ...input,
     purpose: 'edit_planning',
     estimateReason: 'Mock edit plan estimate created before generation can start.',
+    professionalExportCoverage,
     lineItems: [
       {
         lineItemType: 'basic_edit_cleanup',
@@ -143,6 +165,14 @@ export function createCreditEstimateFromEditPlan(
             isPremium: false,
           }]
         : []),
+      {
+        lineItemType: 'final_export',
+        usageCategory: 'rendering',
+        label: '4K UHD render and export ceiling',
+        description: 'Included in the initial edit estimate and existing reservation; covered export profiles must not create another estimate or charge.',
+        estimatedCredits: professionalExportCoverage.maximumInternalToolCostCredits,
+        isPremium: false,
+      },
     ],
   })
 }
@@ -220,17 +250,23 @@ export function createCreditEstimateForRender(
   db: MockDatabase,
   input: Omit<CreateCreditEstimateRuntimeInput, 'purpose' | 'lineItems'> & { finalExport?: boolean },
 ): ServiceResult<CreditEstimateRuntimeResult> {
+  if (input.finalExport) {
+    return fail(
+      'CREDIT_ESTIMATE_NOT_READY',
+      'Final export must use the 4K UHD ceiling included in the approved edit estimate and its existing reservation; do not create a second export estimate or charge.',
+    )
+  }
   return createCreditEstimateRuntime(db, {
     ...input,
-    purpose: input.finalExport ? 'final_export' : 'preview_render',
-    estimateReason: input.finalExport ? 'Mock final export estimate.' : 'Mock preview render estimate.',
+    purpose: 'preview_render',
+    estimateReason: 'Mock preview render estimate.',
     lineItems: [
       {
-        lineItemType: input.finalExport ? 'final_export' : 'render_preview',
+        lineItemType: 'render_preview',
         usageCategory: 'rendering',
-        label: input.finalExport ? 'Final export placeholder' : 'Preview render placeholder',
-        description: 'Rendering remains backend/worker-only after approval and reservation.',
-        estimatedCredits: input.finalExport ? 16 : 8,
+        label: 'Preview render placeholder',
+        description: 'Preview rendering remains backend/worker-only after approval and reservation.',
+        estimatedCredits: 8,
       },
     ],
   })

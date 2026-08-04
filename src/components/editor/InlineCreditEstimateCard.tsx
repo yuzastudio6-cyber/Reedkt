@@ -39,14 +39,14 @@ const policyToneClass: Record<CreditEstimatePolicyNote['tone'], string> = {
 
 function veoPolicyCopy(editLevel?: EditLevel) {
   if (editLevel === 'premium') {
-    return 'Veo Lite available only as final fallback/rescue.'
+    return 'Premium video fallback available only as final fallback/rescue.'
   }
 
   if (editLevel === 'pro') {
-    return 'Veo Lite locked for Pro.'
+    return 'Premium video fallback locked for Pro.'
   }
 
-  return 'Veo Lite locked for Basic.'
+  return 'Premium video fallback locked for Basic.'
 }
 
 export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowerCost }: InlineCreditEstimateCardProps) {
@@ -61,7 +61,7 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
         </div>
         <div className="renderer-badge-row">
           {estimate.riskLevel && <Badge accent={riskAccent[estimate.riskLevel]}>{estimate.riskLevel} risk</Badge>}
-          <Badge accent={approved ? 'success' : 'warning'}>{approved ? 'Plan and credits approved' : estimate.approvalBlocked ? 'Approval locked' : 'Before generation'}</Badge>
+          <Badge accent={approved ? 'success' : 'warning'}>{approved ? 'Plan approved' : estimate.approvalBlocked ? 'Approval locked' : 'Before generation'}</Badge>
         </div>
       </div>
       <div className="credit-estimate-summary">
@@ -84,7 +84,7 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
           </div>
         )}
         <div>
-          <span>Veo policy</span>
+          <span>Video fallback policy</span>
           <strong>{veoPolicyCopy(estimate.editLevel)}</strong>
         </div>
       </div>
@@ -111,7 +111,7 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
         <div className="timing-credit-section">
           <strong>Timing complexity</strong>
           <span>{estimate.timingCredits} timing credit{estimate.timingCredits === 1 ? '' : 's'}</span>
-          <small>Timing affects credits when the plan includes frame-accurate caption animation, visual cues, SoundSync, transitions, SFX, music ducking, AI clip duration, and Remotion layer timing.</small>
+          <small>Timing affects credits when the plan includes frame-accurate caption animation, visual cues, transitions, sound effects, music ducking, AI clip duration, and composition layer timing.</small>
           {estimate.approvalBlocked && <em>Confirm/fix timing before final approval.</em>}
         </div>
       )}
@@ -160,7 +160,7 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
         <div className="fallback-allowance-card">
           <span>Fallback allowance</span>
           <strong>{estimate.fallbackAllowanceCredits} credits</strong>
-          <small>Fallback depth is estimated before generation. Basic and Pro do not include Veo access; Premium allows Veo Lite only as final fallback/rescue.</small>
+          <small>Fallback depth is estimated before generation. Basic and Pro do not include premium video fallback access; Premium allows it only as final fallback/rescue.</small>
         </div>
       )}
 
@@ -204,12 +204,12 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
       )}
 
       <p className="inline-helper">
-        Credits are estimated before generation. Credits are deducted only after approval. This frontend demo does not deduct real credits.
-        Provider costs are internal; users see Reedit Credits. Failed ReeditPro generation would be refunded or restored according to future billing policy.
+        Credits are estimated before generation and used only after approval. This internal test flow does not deduct credits.
+        Provider costs stay internal; users see Reedit Credits.
       </p>
       <div className="inline-card-actions">
         <Button disabled={approved || estimate.approvalBlocked} onClick={onApprove} variant="primary">
-          {approved ? 'Plan and credits approved' : estimate.approvalBlocked ? 'Resolve approval gate first' : 'Approve plan and credits'}
+          {approved ? 'Plan approved' : estimate.approvalBlocked ? 'Resolve setup first' : 'Approve plan'}
         </Button>
         <Button disabled={approved} onClick={onLowerCost} variant="secondary">Lower credit cost</Button>
         <Button disabled={approved} variant="ghost">Revise plan</Button>

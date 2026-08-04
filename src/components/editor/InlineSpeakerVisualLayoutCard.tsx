@@ -8,6 +8,7 @@ import type {
   SpeakerVisualLayoutMode,
   VisualDominanceMode,
 } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy, userFacingActivityList } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineSpeakerVisualLayoutCardProps = {
@@ -130,7 +131,7 @@ export function InlineSpeakerVisualLayoutCard({ descriptor, plan }: InlineSpeake
         <span><strong>Fallbacks</strong>{fallbackCount} planned fallback{fallbackCount === 1 ? '' : 's'}</span>
       </div>
 
-      <p className="inline-helper">{speakerVisualLayoutPlan.summary}</p>
+      <p className="inline-helper">{hideInternalToolNamesInCopy(speakerVisualLayoutPlan.summary)}</p>
 
       <div className="layout-mode-list">
         {visibleItems.map((item) => (
@@ -139,7 +140,7 @@ export function InlineSpeakerVisualLayoutCard({ descriptor, plan }: InlineSpeake
               <div>
                 <span className="section-eyebrow">{item.platformFit} / {item.recommendedForAspectRatio}</span>
                 <h4>{label(item.layoutMode)}</h4>
-                <p>{item.reason}</p>
+                <p>{hideInternalToolNamesInCopy(item.reason)}</p>
               </div>
               <div className="visual-asset-badges">
                 <span className="speaker-presence-chip">{label(item.speakerPresence)}</span>
@@ -151,7 +152,7 @@ export function InlineSpeakerVisualLayoutCard({ descriptor, plan }: InlineSpeake
 
             <div className="layout-mode-meta">
               <span><strong>Frame</strong>{label(item.frameTemplateType)}</span>
-              <span><strong>Tools</strong>{item.preferredTools.join(', ')}</span>
+              <span><strong>Activities</strong>{userFacingActivityList(item.preferredTools)}</span>
               <span><strong>Aspect/platform</strong>{item.recommendedForAspectRatio} / {item.platformFit}</span>
             </div>
 
@@ -162,14 +163,14 @@ export function InlineSpeakerVisualLayoutCard({ descriptor, plan }: InlineSpeake
             <div className="layout-prompt-implication-list">
               <strong>Prompt implications</strong>
               {item.promptImplications.slice(0, 4).map((implication) => (
-                <span key={implication}>{implication}</span>
+                <span key={implication}>{hideInternalToolNamesInCopy(implication)}</span>
               ))}
             </div>
 
             <div className="qa-check-list">
               <strong>QA checks</strong>
               {item.qaChecks.slice(0, 5).map((qaCheck) => (
-                <span key={qaCheck}>{qaCheck}</span>
+                <span key={qaCheck}>{hideInternalToolNamesInCopy(qaCheck)}</span>
               ))}
             </div>
           </article>

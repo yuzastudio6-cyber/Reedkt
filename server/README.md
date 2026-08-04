@@ -25,6 +25,8 @@ This top-level `server/` folder is the server-only RP-E2E backend runtime bounda
 
 - `POST /v1/projects/:projectId/upload-intents`
 - `PUT /v1/upload-intents/:uploadIntentId/local-object`
+- `PUT /v1/upload-intents/:uploadIntentId/local-object-resumable`
+- `GET /v1/upload-intents/:uploadIntentId/local-object-resumable/status`
 - `POST /v1/upload-intents/:uploadIntentId/finalize`
 - `POST /v1/upload-intents/:uploadIntentId/signed-url-events`
 - `GET /v1/storage-objects/:storageObjectRecordId`
@@ -110,6 +112,7 @@ npm run smoke:tools
 npm run smoke:worker
 npm run tools:check
 npm run tools:summary
+npm run tools:host-summary
 npm run smoke:prompt6-ready
 npm run smoke:render
 npm run smoke:render:test

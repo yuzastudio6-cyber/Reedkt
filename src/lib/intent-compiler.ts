@@ -18,6 +18,7 @@ import type {
   TargetPlatform,
 } from '../types/reeditpro'
 import { createCustomEditingDirective, getDefaultProfessionalEditingDirective } from './professional-editing-ontology'
+import { normalizeOrderedUserInstructions } from './planning-input-safety'
 
 type CompileEditingIntentParams = {
   userMessages: string[]
@@ -43,13 +44,35 @@ type KeywordMatch<T extends string> = {
   requirement: string
 }
 
-function normalizeMessage(messages: string[]) {
-  return messages.join(' ').trim().toLowerCase()
-}
-
 function hasAny(text: string, keywords: string[]) {
   return keywords.some((keyword) => text.includes(keyword))
 }
+
+export function getPositiveInstructionSignalText(text: string) {
+  return text
+    .split(/[.!?]+/)
+    .map((clause) => {
+      const normalizedClause = clause.trim()
+      if (!normalizedClause || /^no\b/.test(normalizedClause)) return ''
+
+      const negativeIndex = normalizedClause.search(
+        /\b(?:avoid|do not|don't|dont|must not|never|without|not)\b/,
+      )
+      if (negativeIndex === 0) return ''
+      if (negativeIndex > 0) return normalizedClause.slice(0, negativeIndex).trim()
+      return normalizedClause
+    })
+    .filter(Boolean)
+    .join(' ')
+}
+
+const sourceOnlyKeywords = [
+  'source only',
+  'source footage only',
+  'uploaded footage only',
+  'only use the source',
+  'use only the source',
+]
 
 function addUnique(list: string[], value: string) {
   if (!list.includes(value)) {
@@ -64,6 +87,7 @@ function addRequirement(
   mappedField?: string,
   priority: CompiledIntentRequirement['priority'] = 'medium',
   notes?: string,
+  source?: CompiledIntentRequirement['source'],
 ) {
   const id = `intent-${accumulator.requirements.length + 1}`
   accumulator.requirements.push({
@@ -72,7 +96,7 @@ function addRequirement(
     mappedField,
     notes,
     priority,
-    source: kind === 'constraint' ? 'system_constraint' : 'user_chat',
+    source: source ?? (kind === 'constraint' ? 'system_constraint' : 'user_chat'),
     text,
   })
 }
@@ -151,13 +175,42 @@ const colorMatches: KeywordMatch<ColorGradeStyleId>[] = [
 
 const brollMatches: KeywordMatch<BrollPolicyId>[] = [
   { value: 'support_key_points', keywords: ['b-roll only when it helps', 'broll only when it helps', 'b-roll when it helps', 'only when it helps'], requirement: 'Use b-roll only when it supports meaning.' },
-  { value: 'documentary_evidence_b_roll', keywords: ['proof', 'evidence'], requirement: 'Use proof/evidence b-roll.' },
   { value: 'product_feature_b_roll', keywords: ['product shots'], requirement: 'Use product feature b-roll.' },
   { value: 'uploaded_footage_first', keywords: ['use my clips first', 'uploaded footage first'], requirement: 'Use uploaded footage first.' },
 ]
 
+const documentaryEvidenceBrollKeywords = [
+  'documentary evidence',
+  'documentary proof',
+  'evidence b-roll',
+  'evidence broll',
+  'evidence footage',
+  'proof b-roll',
+  'proof broll',
+  'proof footage',
+  'case evidence',
+]
+
 const soundMatches: KeywordMatch<SoundStyleId>[] = [
-  { value: 'clean_voice_only', keywords: ['clean audio', 'voice only'], requirement: 'Use clean voice-first audio.' },
+  {
+    value: 'clean_voice_only',
+    keywords: [
+      'clean audio',
+      'voice only',
+      'voice-first',
+      'voice first',
+      'keep the speaker clear',
+      'keep speaker clear',
+      'speaker clear',
+      'clear dialogue',
+      'keep dialogue clear',
+      'clear voice',
+      'keep the voice clear',
+      'keep voice clear',
+      'speech clear',
+    ],
+    requirement: 'Use clean voice-first audio.',
+  },
   { value: 'subtle_premium_bed', keywords: ['subtle music'], requirement: 'Use a subtle premium music bed.' },
   { value: 'cinematic_emotional', keywords: ['cinematic music'], requirement: 'Use cinematic emotional sound.' },
   { value: 'documentary_serious', keywords: ['serious documentary'], requirement: 'Use serious documentary sound.' },
@@ -175,32 +228,74 @@ function applyCategory(text: string, input: PlannerInput, accumulator: IntentAcc
   return match.value
 }
 
-function applyPlatform(text: string, input: PlannerInput, accumulator: IntentAccumulator) {
-  if (hasAny(text, ['tiktok', 'reels', 'shorts', 'short form', 'short-form'])) {
-    addRequirement(accumulator, 'preference', 'Use TikTok/Reels/Shorts vertical format.', 'targetPlatform')
+function applyPlatform(
+  text: string,
+  input: PlannerInput,
+  accumulator: IntentAccumulator,
+  preserveConfirmedFrame = false,
+) {
+  const platformSettings = (
+    aspectRatio: AspectRatio,
+    frameTemplateType: FrameTemplateType,
+    targetPlatform: TargetPlatform,
+  ) => {
+    const confirmedFrameIsAuthoritative =
+      preserveConfirmedFrame &&
+      input.aspectRatioConfirmed === true &&
+      input.aspectRatio !== 'let_ai_decide'
+
     return {
-      aspectRatio: '9:16' as AspectRatio,
-      frameTemplateType: 'vertical_talking_head_lower_panel' as FrameTemplateType,
-      targetPlatform: 'tiktok_reels_shorts' as TargetPlatform,
+      aspectRatio: confirmedFrameIsAuthoritative ? input.aspectRatio : aspectRatio,
+      frameTemplateType: confirmedFrameIsAuthoritative
+        ? input.frameTemplateType ?? getFrameForAspectRatio(input.aspectRatio)
+        : frameTemplateType,
+      targetPlatform,
     }
+  }
+
+  if (hasAny(text, ['tiktok', 'reels', 'shorts', 'short form', 'short-form'])) {
+    addRequirement(
+      accumulator,
+      'preference',
+      preserveConfirmedFrame && input.aspectRatioConfirmed
+        ? 'Target TikTok/Reels/Shorts while preserving the separately confirmed output frame.'
+        : 'Use TikTok/Reels/Shorts vertical format.',
+      'targetPlatform',
+      'medium',
+      undefined,
+      preserveConfirmedFrame ? 'planning_context' : undefined,
+    )
+    return platformSettings('9:16', 'vertical_talking_head_lower_panel', 'tiktok_reels_shorts')
   }
 
   if (text.includes('youtube')) {
-    addRequirement(accumulator, 'preference', 'Use YouTube landscape format.', 'targetPlatform')
-    return {
-      aspectRatio: '16:9' as AspectRatio,
-      frameTemplateType: 'youtube_side_panel' as FrameTemplateType,
-      targetPlatform: 'youtube' as TargetPlatform,
-    }
+    addRequirement(
+      accumulator,
+      'preference',
+      preserveConfirmedFrame && input.aspectRatioConfirmed
+        ? 'Target YouTube while preserving the separately confirmed output frame.'
+        : 'Use YouTube landscape format.',
+      'targetPlatform',
+      'medium',
+      undefined,
+      preserveConfirmedFrame ? 'planning_context' : undefined,
+    )
+    return platformSettings('16:9', 'youtube_side_panel', 'youtube')
   }
 
   if (text.includes('square')) {
-    addRequirement(accumulator, 'preference', 'Use square format.', 'aspectRatio')
-    return {
-      aspectRatio: '1:1' as AspectRatio,
-      frameTemplateType: 'square_center_panel' as FrameTemplateType,
-      targetPlatform: 'custom' as TargetPlatform,
-    }
+    addRequirement(
+      accumulator,
+      'preference',
+      preserveConfirmedFrame && input.aspectRatioConfirmed
+        ? 'Keep square output as planning context while preserving the separately confirmed output frame.'
+        : 'Use square format.',
+      'aspectRatio',
+      'medium',
+      undefined,
+      preserveConfirmedFrame ? 'planning_context' : undefined,
+    )
+    return platformSettings('1:1', 'square_center_panel', 'custom')
   }
 
   return {
@@ -211,17 +306,17 @@ function applyPlatform(text: string, input: PlannerInput, accumulator: IntentAcc
 }
 
 function applyEditLevel(text: string, input: PlannerInput, accumulator: IntentAccumulator) {
-  if (text.includes('premium') || text.includes('best possible')) {
+  if (hasAny(text, ['ultra premium', 'highest edit level', 'best possible edit', 'premium best result'])) {
     addRequirement(accumulator, 'preference', 'Premium or best-result language detected.', 'editLevel')
     return 'premium'
   }
 
-  if (/\bpro\b/.test(text)) {
+  if (hasAny(text, ['premium edit level', 'pro edit level', 'switch to pro', 'use pro'])) {
     addRequirement(accumulator, 'preference', 'Pro edit level requested.', 'editLevel')
     return 'pro'
   }
 
-  if (text.includes('basic')) {
+  if (hasAny(text, ['normal edit level', 'basic edit level', 'switch to basic', 'use basic'])) {
     addRequirement(accumulator, 'preference', 'Basic edit level requested.', 'editLevel')
     return 'basic'
   }
@@ -243,30 +338,44 @@ function applyCreditPreference(text: string, input: PlannerInput, accumulator: I
   return input.creditPreference
 }
 
-function applyVisualPreference(text: string, input: PlannerInput, accumulator: IntentAccumulator) {
-  if (hasAny(text, ['no extra visuals', 'no visuals', 'no b-roll', 'no broll'])) {
+function applyVisualPreference(
+  text: string,
+  positiveText: string,
+  input: PlannerInput,
+  accumulator: IntentAccumulator,
+) {
+  if (hasAny(text, [
+    'no extra visuals',
+    'no visuals',
+    'no b-roll',
+    'no broll',
+    ...sourceOnlyKeywords,
+  ])) {
     addRequirement(accumulator, 'avoid', 'Avoid extra visuals unless essential.', 'visualPreference')
     addUnique(accumulator.avoidRules, 'Avoid extra visuals unless essential for clarity.')
     return 'no_extra_visuals'
   }
 
-  if (hasAny(text, ['keep visuals minimal', 'minimal visuals', 'not too much', "don't overdo", 'dont overdo'])) {
+  if (
+    hasAny(positiveText, ['keep visuals minimal', 'minimal visuals']) ||
+    hasAny(text, ['not too much', "don't overdo", 'dont overdo'])
+  ) {
     addRequirement(accumulator, 'preference', 'Keep visuals minimal.', 'visualPreference')
     addUnique(accumulator.avoidRules, 'Avoid clutter and excessive effects.')
     return 'keep_visuals_minimal'
   }
 
-  if (hasAny(text, ['more stroke motion', 'stroke motion'])) {
+  if (hasAny(positiveText, ['more stroke motion', 'stroke motion'])) {
     addRequirement(accumulator, 'preference', 'Use more Stroke Motion where it improves story beats.', 'visualPreference')
     return 'more_stroke_motion'
   }
 
-  if (hasAny(text, ['more graphic design', 'visualexplain', 'diagrams'])) {
+  if (hasAny(positiveText, ['more graphic design', 'visualexplain', 'diagrams'])) {
     addRequirement(accumulator, 'preference', 'Use more Graphic Design / VisualExplain where useful.', 'visualPreference')
     return 'more_graphic_design'
   }
 
-  if (hasAny(text, ['real motion if useful', 'real motion'])) {
+  if (hasAny(positiveText, ['real motion if useful', 'real motion'])) {
     addRequirement(accumulator, 'preference', 'Allow Real Motion only where useful.', 'visualPreference')
     return 'real_motion_if_useful'
   }
@@ -287,35 +396,71 @@ function applyMood(text: string, input: PlannerInput) {
   return input.moodStyle
 }
 
-function applyDirectiveOverrides(text: string, directive: MutableDirective, accumulator: IntentAccumulator) {
-  const editStyle = firstMatch(text, editStyleMatches)
+function applyDirectiveOverrides(
+  text: string,
+  positiveText: string,
+  editingCategory: EditingCategory,
+  directive: MutableDirective,
+  accumulator: IntentAccumulator,
+) {
+  const editStyle = firstMatch(positiveText, editStyleMatches)
   if (editStyle) {
     directive.editStyle = editStyle.value
     addRequirement(accumulator, 'preference', editStyle.requirement, 'professionalEditingDirective.editStyle')
   }
 
-  const caption = firstMatch(text, captionMatches)
+  const caption = firstMatch(positiveText, captionMatches)
   if (caption) {
     directive.captionStyle = caption.value
     addRequirement(accumulator, 'preference', caption.requirement, 'professionalEditingDirective.captionStyle')
   }
 
-  const color = firstMatch(text, colorMatches)
+  const color = firstMatch(positiveText, colorMatches)
   if (color) {
     directive.colorGradeStyle = color.value
     addRequirement(accumulator, 'preference', color.requirement, 'professionalEditingDirective.colorGradeStyle')
   }
 
-  const broll = firstMatch(text, brollMatches)
+  const broll = firstMatch(positiveText, brollMatches)
   if (broll) {
     directive.brollPolicy = broll.value
     addRequirement(accumulator, 'preference', broll.requirement, 'professionalEditingDirective.brollPolicy')
   }
 
-  const sound = firstMatch(text, soundMatches)
+  const documentaryEvidenceBrollRequested =
+    hasAny(positiveText, documentaryEvidenceBrollKeywords) ||
+    (
+      editingCategory === 'documentary_case_study' &&
+      hasAny(positiveText, ['proof', 'evidence', 'claim', 'investigation', 'allegation'])
+    )
+  if (documentaryEvidenceBrollRequested) {
+    directive.brollPolicy = 'documentary_evidence_b_roll'
+    addRequirement(
+      accumulator,
+      'preference',
+      'Use proof/evidence b-roll for documentary or explicitly evidence-led material.',
+      'professionalEditingDirective.brollPolicy',
+    )
+  }
+
+  const sound = firstMatch(positiveText, soundMatches)
   if (sound) {
     directive.soundStyle = sound.value
     addRequirement(accumulator, 'preference', sound.requirement, 'professionalEditingDirective.soundStyle')
+  }
+
+  if (hasAny(text, sourceOnlyKeywords)) {
+    directive.brollPolicy = 'none'
+    directive.soundStyle = 'clean_voice_only'
+    addUnique(accumulator.mustFollowRules, 'Use only approved source footage, its source audio, and explicitly approved editorial layers.')
+    addUnique(accumulator.avoidRules, 'Do not add b-roll, music, SFX, beat-driven timing, or generated media.')
+    addRequirement(
+      accumulator,
+      'must_follow',
+      'Use source-only editing with no added b-roll, music, SFX, beat-driven timing, or generated media.',
+      'professionalEditingDirective',
+      'high',
+    )
   }
 
   if (hasAny(text, ['not too viral', "don't make it viral", 'dont make it viral', 'not chaotic'])) {
@@ -355,19 +500,24 @@ function applyDirectiveOverrides(text: string, directive: MutableDirective, accu
   }
 }
 
-function applyTransitionOverrides(text: string, directive: MutableDirective, accumulator: IntentAccumulator) {
-  if (hasAny(text, ['documentary', 'evidence', 'case'])) {
+function applyTransitionOverrides(
+  text: string,
+  positiveText: string,
+  directive: MutableDirective,
+  accumulator: IntentAccumulator,
+) {
+  if (hasAny(positiveText, ['documentary', 'evidence', 'case'])) {
     directive.transitionFamilies = ['documentary_evidence_transitions', 'clean_cut_transitions']
   }
 
-  if (hasAny(text, ['modern social pacing', 'high retention', 'fast paced', 'fast-paced'])) {
+  if (hasAny(positiveText, ['modern social pacing', 'high retention', 'fast paced', 'fast-paced'])) {
     directive.pacingStyle = 'high_retention'
     directive.transitionFamilies = directive.transitionFamilies.includes('social_viral_transitions')
       ? directive.transitionFamilies
       : [...directive.transitionFamilies, 'social_viral_transitions']
   }
 
-  if (hasAny(text, ['clean', 'simple', 'not too viral'])) {
+  if (hasAny(positiveText, ['clean', 'simple']) || text.includes('not too viral')) {
     directive.transitionFamilies = directive.transitionFamilies.filter((family) => family !== 'social_viral_transitions')
     if (!directive.transitionFamilies.includes('clean_cut_transitions')) {
       directive.transitionFamilies.unshift('clean_cut_transitions')
@@ -563,7 +713,11 @@ function confidenceFor(accumulator: IntentAccumulator) {
 }
 
 export function compileEditingIntent(params: CompileEditingIntentParams): CompiledEditingIntent {
-  const text = normalizeMessage(params.userMessages)
+  const instructionHistory = normalizeOrderedUserInstructions(params.userMessages)
+  const normalizedMessages = instructionHistory.map((message) => message.toLowerCase())
+  const positiveMessages = normalizedMessages.map(getPositiveInstructionSignalText)
+  const text = normalizedMessages.join(' ')
+  const positiveText = positiveMessages.join(' ')
   const accumulator: IntentAccumulator = {
     avoidRules: [],
     clarifyingQuestions: [],
@@ -572,12 +726,42 @@ export function compileEditingIntent(params: CompileEditingIntentParams): Compil
     mustFollowRules: [],
     requirements: [],
   }
-  const editingCategory = applyCategory(text, params.currentInput, accumulator)
-  const editLevel = applyEditLevel(text, params.currentInput, accumulator)
-  const platformSettings = applyPlatform(text, params.currentInput, accumulator)
-  const visualPreference = applyVisualPreference(text, params.currentInput, accumulator)
-  const moodStyle = applyMood(text, params.currentInput)
-  const creditPreference = applyCreditPreference(text, params.currentInput, accumulator)
+  let resolvedInput = params.currentInput
+
+  for (const [index, message] of normalizedMessages.entries()) {
+    const positiveMessage = positiveMessages[index] ?? ''
+    const editingCategory = applyCategory(positiveMessage, resolvedInput, accumulator)
+    const editLevel = applyEditLevel(positiveMessage, resolvedInput, accumulator)
+    const platformSettings = applyPlatform(
+      positiveMessage,
+      resolvedInput,
+      accumulator,
+      message.startsWith('planning context:'),
+    )
+    const visualPreference = applyVisualPreference(message, positiveMessage, resolvedInput, accumulator)
+    const moodStyle = applyMood(positiveMessage, resolvedInput)
+    const creditPreference = applyCreditPreference(positiveMessage, resolvedInput, accumulator)
+    resolvedInput = {
+      ...resolvedInput,
+      editingCategory,
+      editLevel,
+      ...platformSettings,
+      visualPreference,
+      moodStyle,
+      creditPreference,
+    }
+  }
+
+  const editingCategory = resolvedInput.editingCategory
+  const editLevel = resolvedInput.editLevel
+  const platformSettings = {
+    aspectRatio: resolvedInput.aspectRatio,
+    frameTemplateType: resolvedInput.frameTemplateType ?? getFrameForAspectRatio(resolvedInput.aspectRatio),
+    targetPlatform: resolvedInput.targetPlatform,
+  }
+  const visualPreference = resolvedInput.visualPreference
+  const moodStyle = resolvedInput.moodStyle
+  const creditPreference = resolvedInput.creditPreference
   const professionalEditingDirective: MutableDirective = {
     ...getDefaultProfessionalEditingDirective({
       editLevel,
@@ -588,10 +772,13 @@ export function compileEditingIntent(params: CompileEditingIntentParams): Compil
     }),
   }
 
-  applyDirectiveOverrides(text, professionalEditingDirective, accumulator)
-  applyTransitionOverrides(text, professionalEditingDirective, accumulator)
-  applyCustomDirectives(text, professionalEditingDirective, accumulator)
-  applyModelSignals(text, editLevel, accumulator)
+  for (const [index, message] of normalizedMessages.entries()) {
+    const positiveMessage = positiveMessages[index] ?? ''
+    applyDirectiveOverrides(message, positiveMessage, editingCategory, professionalEditingDirective, accumulator)
+    applyTransitionOverrides(message, positiveMessage, professionalEditingDirective, accumulator)
+    applyCustomDirectives(positiveMessage, professionalEditingDirective, accumulator)
+    applyModelSignals(message, editLevel, accumulator)
+  }
 
   for (const rule of accumulator.mustFollowRules) {
     addUnique(professionalEditingDirective.mustFollowRules, rule)
@@ -610,7 +797,7 @@ export function compileEditingIntent(params: CompileEditingIntentParams): Compil
   addUnique(accumulator.mustFollowRules, 'No editing, generation, rendering, or credit deduction before plan and credit approval.')
   addUnique(accumulator.avoidRules, 'Avoid random b-roll, random transitions, random captions, random color grading, and random visuals.')
 
-  addClarifyingQuestions(text, params.currentInput, editLevel, Boolean(params.sourceOrderConfirmed), accumulator)
+  addClarifyingQuestions(positiveText, params.currentInput, editLevel, Boolean(params.sourceOrderConfirmed), accumulator)
 
   const lockedTierConstraints = buildTierConstraints(editLevel)
   const qaImplications = [
@@ -647,6 +834,7 @@ export function compileEditingIntent(params: CompileEditingIntentParams): Compil
     professionalEditingDirective,
     qaImplications,
     requirements: accumulator.requirements,
+    instructionHistory,
     resolvedSettings: {
       aspectRatio: platformSettings.aspectRatio,
       creditPreference,

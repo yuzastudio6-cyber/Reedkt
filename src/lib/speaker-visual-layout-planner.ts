@@ -381,7 +381,7 @@ function itemFromSeed(params: {
     : ['Draft layout only until the output frame is confirmed.']
   const futurePlanningNotes =
     definition.id === 'speaker_cutout_overlay' || definition.id === 'object_anchored_callout'
-      ? ['This is placeholder planning only; no real masking, depth-aware contact preservation, or object tracking is executed.']
+      ? ['This is placeholder planning only; masking, depth-aware contact preservation, and object tracking remain backend-gated.']
       : []
 
   return {
@@ -485,11 +485,11 @@ export function createSpeakerVisualLayoutPlan(params: CreateSpeakerVisualLayoutP
       'Basic avoids advanced risky layouts.',
     ],
     notes: [
-      'Deterministic frontend mock only.',
+      'Deterministic planning metadata.',
       input.aspectRatioFramePlan?.status === 'confirmed'
         ? `Layouts use confirmed output frame ${input.aspectRatioFramePlan.selectedAspectRatio}.`
         : 'Layouts are draft until the user confirms the output frame.',
-      'No real segmentation, masking, tracking, OpenCV processing, rendering, or provider calls are performed.',
+      'Segmentation, masking, tracking, OpenCV processing, rendering, and provider calls remain backend-gated.',
       input.editLevel === 'premium'
         ? 'Premium may plan advanced layout ideas, but Veo remains final fallback only.'
         : 'Basic/Pro layout planning keeps Veo unavailable.',

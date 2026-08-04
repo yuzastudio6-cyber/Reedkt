@@ -20,6 +20,11 @@ export interface RenderCostPolicy {
   maxRenderDurationMs: number
   maxRenderRetries: number
   maxOutputResolutionByTier: Record<string, { width: number; height: number }>
+  maxOutputPixelCount: number
+  maxOutputLongEdge: number
+  maxOutputShortEdge: number
+  estimateCostBasisProfileId: 'uhd_2160'
+  tierControlsOutputQuality: false
   maxConcurrentRenderJobs: number
   killSwitchEnabled: boolean
 }

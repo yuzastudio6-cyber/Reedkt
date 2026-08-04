@@ -1,11 +1,13 @@
-import type { ProductionToolId } from '../../tool-registry'
+import type {
+  ProductionToolId,
+  RunnerOnlyFoundationId,
+} from '../../tool-registry'
 
 export type GpuPythonImportToolId =
   | ProductionToolId
+  | RunnerOnlyFoundationId
   | 'pytorch'
   | 'torchvision'
-  | 'ctranslate2'
-  | 'paddlepaddle_gpu'
 
 export interface GpuToolPythonImportCheckDefinition {
   toolId: GpuPythonImportToolId
@@ -15,6 +17,12 @@ export interface GpuToolPythonImportCheckDefinition {
   optional: boolean
   modelWeightRequired: boolean
   notes: string[]
+}
+
+export interface GpuPendingSourceInstallReview {
+  toolId: ProductionToolId
+  packageName: string
+  reason: string
 }
 
 export const GPU_TOOL_PYTHON_IMPORT_CHECKS: GpuToolPythonImportCheckDefinition[] = [
@@ -43,7 +51,7 @@ export const GPU_TOOL_PYTHON_IMPORT_CHECKS: GpuToolPythonImportCheckDefinition[]
     importName: 'torch',
     optional: false,
     modelWeightRequired: true,
-    notes: ['Canonical production tool substrate identity; import-only readiness, no model loading or GPU inference.'],
+    notes: ['Runner foundation only; import readiness does not create a production tool identity.'],
   },
   {
     toolId: 'torch_torchvision',
@@ -52,7 +60,7 @@ export const GPU_TOOL_PYTHON_IMPORT_CHECKS: GpuToolPythonImportCheckDefinition[]
     importName: 'torchvision',
     optional: false,
     modelWeightRequired: true,
-    notes: ['Canonical production tool substrate identity; import-only readiness, no model loading or GPU inference.'],
+    notes: ['Runner foundation only; import readiness does not create a production tool identity.'],
   },
   {
     toolId: 'transformers',
@@ -61,25 +69,7 @@ export const GPU_TOOL_PYTHON_IMPORT_CHECKS: GpuToolPythonImportCheckDefinition[]
     importName: 'transformers',
     optional: false,
     modelWeightRequired: true,
-    notes: ['Canonical model framework identity; import-only readiness, no tokenizer/model download or inference.'],
-  },
-  {
-    toolId: 'ctranslate2',
-    checkName: 'python_import_ctranslate2',
-    packageName: 'ctranslate2',
-    importName: 'ctranslate2',
-    optional: false,
-    modelWeightRequired: false,
-    notes: ['faster-whisper runtime dependency; import only, no model loading.'],
-  },
-  {
-    toolId: 'faster_whisper',
-    checkName: 'python_import_faster_whisper',
-    packageName: 'faster-whisper',
-    importName: 'faster_whisper',
-    optional: false,
-    modelWeightRequired: true,
-    notes: ['Transcription package import only; model manifest approval is separate.'],
+    notes: ['Runner foundation only; import readiness does not create a production tool identity or authorize a model download.'],
   },
   {
     toolId: 'kornia',
@@ -109,40 +99,18 @@ export const GPU_TOOL_PYTHON_IMPORT_CHECKS: GpuToolPythonImportCheckDefinition[]
     notes: ['Audio AI package import only; do not run cleanup or load model weights.'],
   },
   {
-    toolId: 'demucs',
-    checkName: 'python_import_demucs',
-    packageName: 'demucs',
-    importName: 'demucs',
+    toolId: 'rembg',
+    checkName: 'python_import_rembg',
+    packageName: 'rembg',
+    importName: 'rembg',
     optional: false,
     modelWeightRequired: true,
-    notes: ['Stem separation package import only; no separation execution in M11.'],
-  },
-  {
-    toolId: 'paddleocr',
-    checkName: 'python_import_paddleocr_optional',
-    packageName: 'paddleocr',
-    importName: 'paddleocr',
-    optional: true,
-    modelWeightRequired: true,
-    notes: ['Optional/planned GPU OCR package; model review required before production.'],
-  },
-  {
-    toolId: 'paddlepaddle_gpu',
-    checkName: 'python_import_paddle_optional',
-    packageName: 'paddlepaddle-gpu',
-    importName: 'paddle',
-    optional: true,
-    modelWeightRequired: false,
-    notes: ['Optional/planned PaddleOCR GPU runtime dependency.'],
+    notes: ['Canonical still-image matting adapter import only; model loading remains separately gated.'],
   },
 ]
 
-export const GPU_PENDING_SOURCE_INSTALL_REVIEW = [
-  { toolId: 'birefnet' as const, packageName: 'BiRefNet', reason: 'No stable package path is declared in M11.' },
-  { toolId: 'sam2' as const, packageName: 'SAM2', reason: 'Source/package selection requires review before install declaration.' },
-  { toolId: 'real_esrgan' as const, packageName: 'Real-ESRGAN', reason: 'Package/source path requires review before production image declaration.' },
-  { toolId: 'film' as const, packageName: 'FILM', reason: 'Frame interpolation source path requires review before production image declaration.' },
-]
+export const GPU_PENDING_SOURCE_INSTALL_REVIEW:
+GpuPendingSourceInstallReview[] = []
 
 export function listGpuToolPythonImportChecks(): GpuToolPythonImportCheckDefinition[] {
   return [...GPU_TOOL_PYTHON_IMPORT_CHECKS]

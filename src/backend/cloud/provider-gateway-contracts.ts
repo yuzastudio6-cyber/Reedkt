@@ -1,4 +1,9 @@
 import type { ID, JSONObject, JSONValue } from '../../types/shared'
+import type { ReEditProModelRoleId, ReEditProRequestedModelUse } from '../../types/model-role-routing'
+import {
+  getReEditProModelRoleContract,
+  validateReEditProModelRoleUse,
+} from '../../lib/model-role-routing-contract'
 import {
   cloudValidationResult,
   hasNonEmptyString,
@@ -6,17 +11,68 @@ import {
 } from './cloud-runtime-contracts'
 import type { CloudValidationResult } from './cloud-runtime-contracts'
 
-export type ProviderRoute =
-  | 'gpt_image_2'
-  | 'wan'
-  | 'hailuo'
-  | 'veo'
-  | 'mirelo_sfx_v1_5'
-  | 'mmaudio_v2'
-  | 'remotion_deterministic'
-  | 'svg_renderer'
-  | 'lottie_renderer'
-  | 'none'
+export const PROVIDER_ROUTES = [
+  'gpt_image_2',
+  'gemini_omni_flash',
+  'wan',
+  'hailuo',
+  'veo',
+  'kimi_k3_provider_boundary',
+  'gpt_5_6_terra_provider_boundary',
+  'qwen_3_7_provider_boundary',
+  'vertex_gemini_pro_visual_intelligence_boundary',
+  'qwen_model_studio_visual_understanding_api_boundary',
+  'qwen2_5_vl_7b_instruct_provider_boundary',
+  'deepseek_v4_pro_tool_code_boundary',
+  'mirelo_sfx_v1_5',
+  'mmaudio_v2',
+  'remotion_deterministic',
+  'svg_renderer',
+  'lottie_renderer',
+  'none',
+] as const
+
+export type ProviderRoute = (typeof PROVIDER_ROUTES)[number]
+
+export const MODEL_ROLE_PROVIDER_ROUTES = [
+  'kimi_k3_provider_boundary',
+  'gpt_5_6_terra_provider_boundary',
+  'qwen_3_7_provider_boundary',
+  'vertex_gemini_pro_visual_intelligence_boundary',
+  'deepseek_v4_pro_tool_code_boundary',
+] as const satisfies readonly ProviderRoute[]
+
+export const HISTORICAL_VISUAL_PROVIDER_ROUTES = [
+  'qwen_model_studio_visual_understanding_api_boundary',
+  'qwen2_5_vl_7b_instruct_provider_boundary',
+] as const satisfies readonly ProviderRoute[]
+
+export const VISUAL_INTELLIGENCE_OWNED_PROVIDER_ROUTES = [
+  'vertex_gemini_pro_visual_intelligence_boundary',
+] as const satisfies readonly ProviderRoute[]
+
+export const GENERATED_ASSET_PROVIDER_ROUTES = [
+  'gpt_image_2',
+  'wan',
+  'hailuo',
+  'veo',
+  'mirelo_sfx_v1_5',
+  'mmaudio_v2',
+  'remotion_deterministic',
+  'svg_renderer',
+  'lottie_renderer',
+] as const satisfies readonly ProviderRoute[]
+
+export const AI_VIDEO_PROVIDER_ROUTES = [
+  'wan',
+  'hailuo',
+  'veo',
+] as const satisfies readonly ProviderRoute[]
+
+export const AUDIO_PROVIDER_ROUTES = [
+  'mirelo_sfx_v1_5',
+  'mmaudio_v2',
+] as const satisfies readonly ProviderRoute[]
 
 export type ProviderModelTier = 'basic' | 'pro' | 'premium'
 
@@ -25,6 +81,8 @@ export type ProviderGenerationType =
   | 'keyframe'
   | 'card'
   | 'ai_video_clip'
+  | 'sfx_asset'
+  | 'music_asset'
   | 'deterministic_motion'
   | 'renderer_asset'
   | 'none'
@@ -74,6 +132,9 @@ export interface ProviderGatewayRequest {
   editPlanId: ID
   creditReservationId: ID
   providerRoute: ProviderRoute
+  providerModel?: string
+  modelRoleId?: ReEditProModelRoleId
+  requestedModelUse?: ReEditProRequestedModelUse
   signatureSystem: string
   generationType: ProviderGenerationType
   qualityLevel: ProviderQualityLevel
@@ -95,15 +156,31 @@ export const PROVIDER_GATEWAY_POLICY: string[] = [
   'Wan is primary animation route.',
   'Hailuo is normal fallback/alternate.',
   'GPT-Image-2 is still/keyframe/card route.',
+  'Kimi K3 is the primary edit reasoning, planning, creativity, and coding route.',
+  'GPT-5.6 Terra is the first full-capability edit reasoning fallback.',
+  'Qwen 3.7 is a bounded Marker Chat and Edit Reference specialist, not a head-reasoning fallback.',
+  'Provider-neutral Visual Intelligence through the exact qualified Gemini Pro High Vertex boundary is the active visual-understanding route.',
+  'Qwen3.7 Plus visual and Qwen2.5-VL are retired and readable only for immutable historical evidence.',
+  'DeepSeek V4 Pro is the final bounded edit reasoning/coding fallback.',
+  'Mirelo SFX V1.5 and MMAudio V2 are generated audio/SFX routes.',
   'Remotion/SVG/Lottie are deterministic/compositor routes.',
 ]
 
 function routeIsAiVideo(route: ProviderRoute): boolean {
-  return route === 'wan' || route === 'hailuo' || route === 'veo'
+  return providerRouteIncluded(AI_VIDEO_PROVIDER_ROUTES, route)
 }
 
 function generationIsVideo(generationType: ProviderGenerationType): boolean {
   return generationType === 'ai_video_clip'
+}
+
+function generationIsAudio(generationType: ProviderGenerationType): boolean {
+  return generationType === 'sfx_asset' || generationType === 'music_asset'
+}
+
+function outputIsAudio(outputRequirements: ProviderOutputRequirements): boolean {
+  const outputAssetType = outputRequirements.outputAssetType.toLowerCase()
+  return outputAssetType.includes('audio') || outputAssetType.includes('sfx') || outputAssetType.includes('music')
 }
 
 function outputDefaultsTo1080p(outputRequirements: ProviderOutputRequirements): boolean {
@@ -118,9 +195,59 @@ function jsonValueIsTrue(value: JSONValue | undefined): boolean {
   return value === true
 }
 
+export function isModelRoleProviderRoute(route: ProviderRoute): boolean {
+  return providerRouteIncluded(MODEL_ROLE_PROVIDER_ROUTES, route)
+}
+
+export function isHistoricalVisualProviderRoute(
+  route: ProviderRoute,
+): boolean {
+  return providerRouteIncluded(HISTORICAL_VISUAL_PROVIDER_ROUTES, route)
+}
+
+export function isVisualIntelligenceOwnedProviderRoute(
+  route: ProviderRoute,
+): boolean {
+  return providerRouteIncluded(
+    VISUAL_INTELLIGENCE_OWNED_PROVIDER_ROUTES,
+    route,
+  )
+}
+
+export function isGeneratedAssetProviderRoute(route: ProviderRoute): boolean {
+  return providerRouteIncluded(GENERATED_ASSET_PROVIDER_ROUTES, route)
+}
+
+export function isAiVideoProviderRoute(route: ProviderRoute): boolean {
+  return providerRouteIncluded(AI_VIDEO_PROVIDER_ROUTES, route)
+}
+
+export function isAudioProviderRoute(route: ProviderRoute): boolean {
+  return providerRouteIncluded(AUDIO_PROVIDER_ROUTES, route)
+}
+
+function providerRouteIncluded(
+  routes: readonly ProviderRoute[],
+  route: ProviderRoute,
+): boolean {
+  return routes.includes(route)
+}
+
 export function validateProviderGatewayRequest(request: ProviderGatewayRequest): CloudValidationResult {
   const errors: string[] = []
   const warnings: string[] = []
+
+  if (isHistoricalVisualProviderRoute(request.providerRoute)) {
+    errors.push(
+      `${request.providerRoute} is retained only for exact immutable historical visual-evidence reread; every fresh visual request must use visual_intelligence through vertex_gemini_pro_visual_intelligence_boundary.`,
+    )
+  }
+
+  if (isVisualIntelligenceOwnedProviderRoute(request.providerRoute)) {
+    errors.push(
+      `${request.providerRoute} is owned exclusively by the admitted visual_intelligence lifecycle and cannot be invoked through the generic provider gateway.`,
+    )
+  }
 
   if (!hasNonEmptyString(request.generationRequestId)) {
     errors.push('Provider gateway request must include generationRequestId.')
@@ -140,6 +267,25 @@ export function validateProviderGatewayRequest(request: ProviderGatewayRequest):
 
   if (!hasNonEmptyString(request.idempotencyKey)) {
     errors.push('Provider gateway request must include idempotencyKey.')
+  }
+
+  const modelRoleValidation = validateReEditProModelRoleUse({
+    modelRoleId: request.modelRoleId,
+    providerRoute: request.providerRoute,
+    providerModel: request.providerModel,
+    requestedUse: request.requestedModelUse,
+  })
+  errors.push(...modelRoleValidation.errors)
+  warnings.push(...modelRoleValidation.warnings)
+
+  if (modelRoleValidation.resolvedModelRoleId) {
+    const role = getReEditProModelRoleContract(modelRoleValidation.resolvedModelRoleId)
+    if (role.reasoningRouteRole === 'primary' && request.safetyConstraints.routeRole !== 'primary') {
+      errors.push(`${role.displayName} must be invoked as the primary reasoning route.`)
+    }
+    if (role.fallbackOnly && request.safetyConstraints.routeRole !== 'fallback') {
+      errors.push(`${role.displayName} is fallback-only and requires explicit fallback route authority.`)
+    }
   }
 
   if ((request.modelTier === 'basic' || request.modelTier === 'pro') && request.providerRoute === 'veo') {
@@ -167,6 +313,18 @@ export function validateProviderGatewayRequest(request: ProviderGatewayRequest):
 
   if (request.providerRoute === 'gpt_image_2' && request.generationType === 'ai_video_clip') {
     errors.push('GPT-Image-2 is for stills, keyframes, cards, and frames, not AI video clips.')
+  }
+
+  if (isAudioProviderRoute(request.providerRoute) && !generationIsAudio(request.generationType)) {
+    errors.push('Mirelo SFX V1.5 and MMAudio V2 must use generated audio/SFX generation types.')
+  }
+
+  if (generationIsAudio(request.generationType) && !isAudioProviderRoute(request.providerRoute)) {
+    errors.push('Generated audio/SFX generation types must use an audio provider route.')
+  }
+
+  if (isAudioProviderRoute(request.providerRoute) && !outputIsAudio(request.outputRequirements)) {
+    errors.push('Generated audio/SFX provider routes must request an audio output asset type.')
   }
 
   if ((request.providerRoute === 'remotion_deterministic' || request.providerRoute === 'svg_renderer' || request.providerRoute === 'lottie_renderer') && generationIsVideo(request.generationType)) {

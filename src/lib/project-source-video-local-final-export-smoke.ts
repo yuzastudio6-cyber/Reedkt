@@ -8,6 +8,7 @@ import type {
   ProjectSourceVideoProfessionalQAResult,
 } from '../types/project-source-video'
 import { assertProjectSourceVideoProfessionalQAPassed } from './project-source-video-professional-qa'
+import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
 
 interface ApiEnvelope<TData> {
   ok?: boolean
@@ -159,7 +160,7 @@ export async function runProjectSourceVideoLocalFinalExportSmoke(
     throw new Error('Final export requires a finalized media asset id from backend-local upload.')
   }
 
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const commonHeaders = {
     'Content-Type': 'application/json',

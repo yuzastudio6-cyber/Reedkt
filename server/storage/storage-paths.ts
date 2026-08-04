@@ -49,6 +49,18 @@ export function buildCanonicalObjectPath(input: CanonicalObjectPathInput): strin
   )
 }
 
+export function buildEditReferenceObjectPath(input: {
+  workspaceId: string
+  editReferenceId: string
+  ownerId: string
+  fileName: string
+}): string {
+  const safeFileName = sanitizeFileName(input.fileName)
+  return normalizeStoragePath(
+    `workspaces/${input.workspaceId}/edit-references/${input.editReferenceId}/reference-media/${input.ownerId}/${safeFileName}`,
+  )
+}
+
 export function bucketNameForPurpose(purpose: UploadPurpose, buckets: Partial<Record<UploadPurpose, string>>): string {
   return buckets[purpose] ?? PURPOSE_SEGMENTS[purpose]
 }

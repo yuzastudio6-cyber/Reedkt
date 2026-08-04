@@ -3,6 +3,8 @@ import type { MigrationDraftPlan } from './supabase-migration-drafts'
 import type { MigrationReviewPlan } from './supabase-rls-hardening'
 import type { SupabaseProductionReadinessPlan } from './supabase-production-readiness'
 import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan, EditingAgentExecutionPlan } from './editing-agent-runtime'
+import type { ProfessionalSkillPlan } from './professional-skills'
+import type { ProfessionalExportCreditCoverage } from './professional-export'
 
 export type SignatureSystem =
   | 'stroke_motion'
@@ -14,6 +16,18 @@ export type SignatureSystem =
 export type EditLevel = 'basic' | 'pro' | 'premium'
 
 export type UserFacingEditLevel = EditLevel | 'normal' | 'ultra_premium'
+export type EditPreferenceFieldKey =
+  | 'editLevel'
+  | 'workflowType'
+  | 'cleanupPreference'
+  | 'visualPreference'
+  | 'moodStyle'
+  | 'creditPreference'
+  | 'targetPlatform'
+
+export type EditPreferencePersistenceSource =
+  | 'browser_local_edit_preferences'
+  | 'authenticated_private_internal_backend'
 
 export type EditingCategory =
   | 'storytelling'
@@ -316,21 +330,44 @@ export type OpenSourceToolId =
   | 'playwright'
   | 'lottie'
   | 'animejs'
+  | 'satori'
+  | 'svg_js'
   | 'three_js'
   | 'babylon_js'
   | 'pixijs'
   | 'konva'
+  | 'sam3_1'
   | 'sam2'
   | 'birefnet'
   | 'rembg'
   | 'transparent_background'
   | 'real_esrgan'
   | 'kornia'
+  | 'kornia'
+  | 'birefnet'
+  | 'sam3_1'
+  | 'sam2'
+  | 'transparent_background'
+  | 'rembg'
+  | 'real_esrgan'
   | 'torch_torchvision'
   | 'transformers'
   | 'audioflux'
+  | 'audioread'
+  | 'pydub'
+  | 'scipy'
+  | 'resampy'
+  | 'pyloudnorm'
   | 'essentia'
   | 'librosa'
+  | 'music21'
+  | 'pretty_midi'
+  | 'mido'
+  | 'noisereduce'
+  | 'pedalboard'
+  | 'mir_eval'
+  | 'pydub_effects'
+  | 'ebu_r128_pyloudnorm'
   | 'whisper_cpp'
   | 'deck_gl'
   | 'cesium_js'
@@ -1290,6 +1327,7 @@ export type ClarifyingQuestionPriority =
 
 export type IntentSource =
   | 'user_chat'
+  | 'planning_context'
   | 'uploaded_media'
   | 'reference_video'
   | 'category_default'
@@ -1355,6 +1393,30 @@ export interface CompiledEditingIntent {
   referencePreferences?: string[]
   userOverrides?: string[]
   clarifyingNotes?: string[]
+  instructionHistory?: string[]
+}
+
+export interface PlanningInputTrace {
+  fingerprint: string
+  instructionCount: number
+  instructionHistory: string[]
+  effectiveEditPreferences?: {
+    editLevel: EditLevel
+    workflowType: VideoWorkflowType
+    cleanupPreference?: CleanupPreference
+    visualPreference: VisualPreference
+    moodStyle: MoodStyle
+    creditPreference: CreditPreference
+    targetPlatform: TargetPlatform
+  }
+  preferenceApplication?: {
+    applied: boolean
+    appliedAt?: string
+    snapshotId: string
+    source: EditPreferencePersistenceSource
+    currentEditOverrideKeys?: EditPreferenceFieldKey[]
+    currentEditRevision?: number
+  }
 }
 
 export type VisualAssetType =
@@ -3005,6 +3067,7 @@ export type TransitionTimingType =
   | 'visual_motivated_cut'
   | 'audio_motivated_cut'
   | 'smooth_crossfade'
+  | 'smooth_panel_dip'
   | 'whip_or_push'
   | 'graphic_wipe'
   | 'card_wipe'
@@ -4190,6 +4253,7 @@ export interface CreditEstimate {
   approvalBlocked?: boolean
   draftReason?: string
   estimateVersion?: string
+  professionalExportCoverage?: ProfessionalExportCreditCoverage
 }
 
 export type CreditEstimateRiskLevel =
@@ -4357,8 +4421,29 @@ export interface PlanningSystemAuditReport {
   limitations: string[]
 }
 
+export interface PlanningContextTrace {
+  source: 'planning_context'
+  planningContextId: string
+  status: 'draft' | 'ready' | 'needs_review' | 'blocked'
+  editBriefReady: boolean
+  editBriefOptional?: true
+  editBriefDirectionCount: number
+  cueUsageCount: number
+  readyCueUsageCount: number
+  blockedCueUsageCount: number
+  unresolvedConflictCount: number
+  sourceAssetCount: number
+  mustUseAssetCount: number
+  avoidAssetCount: number
+  selectedSkillCount?: number
+  selectedSkillFamilies?: string[]
+}
+
 export interface EditPlan {
   goalSummary: string
+  planningInputTrace?: PlanningInputTrace
+  planningContextTrace?: PlanningContextTrace
+  professionalSkillPlan?: ProfessionalSkillPlan
   sourceSequenceMap: SourceSequenceMapItem[]
   sourceSequenceReview?: SourceSequenceReviewState
   sourceCleanupPlan?: SourceCleanupPlan
@@ -4450,6 +4535,25 @@ export interface PlannerInput {
   referenceAdaptationFocus?: ReferenceAdaptationFocus[]
   referenceNotes?: string[]
   customInstructions: string
+  userInstructionHistory?: string[]
+  preferenceDefaultsApplied?: boolean
+  preferenceSnapshotId?: string
+  preferenceSnapshotAppliedAt?: string
+  preferencePersistenceSource?: EditPreferencePersistenceSource
+  currentEditPreferenceOverrideKeys?: EditPreferenceFieldKey[]
+  currentEditPreferenceAuthorityValues?: {
+    editLevel: EditLevel
+    workflowType: VideoWorkflowType
+    cleanupPreference: CleanupPreference
+    visualPreference: VisualPreference
+    moodStyle: MoodStyle
+    creditPreference: CreditPreference
+    targetPlatform: TargetPlatform
+  }
+  currentEditPreferenceRecordRevision?: number
+  currentEditPreferenceRevision?: number
+  currentEditPreferencePlanningInputRevision?: number
+  currentEditPreferenceFingerprintSha256?: string
   creditPreference: CreditPreference
   clips: ClipSource[]
   sourceSequenceMode?: SourceSequenceMode

@@ -10,20 +10,20 @@ export function InlineSFXDirectorPlanCard({ plan }: InlineSFXDirectorPlanCardPro
     <section className="inline-chat-card sfx-inline-card sfx-director-card">
       <div className="inline-card-heading">
         <div>
-          <span className="section-eyebrow">SFX Director Plan</span>
+          <span className="section-eyebrow">SFX plan</span>
           <h3>Subtle edit-layer SFX strategy</h3>
         </div>
-        <Badge accent="cyan">Mock planning</Badge>
+        <Badge accent="cyan">Planned</Badge>
       </div>
 
-      <p className="sfx-success">ReeditPro adds SFX for edit-layer polish by default, not every real-world source action.</p>
+      <p className="sfx-success">SFX supports edit polish, not every real-world source action.</p>
 
       <div className="sfx-score-grid">
         <span><strong>Default policy</strong>{plan.defaultPolicy}</span>
         <span><strong>Source footage</strong>{plan.sourceFootagePolicy}</span>
-        <span><strong>Decision states</strong>{plan.decisionStateSummary}</span>
+        <span><strong>Cue decisions</strong>{plan.decisionStateSummary}</span>
         <span><strong>Volume</strong>{plan.volumePhilosophy}</span>
-        <span><strong>Provider strategy</strong>{plan.providerStrategy}</span>
+        <span><strong>Route</strong>{plan.providerStrategy}</span>
         <span><strong>Next step</strong>{plan.nextStep}</span>
       </div>
 

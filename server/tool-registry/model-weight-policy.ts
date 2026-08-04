@@ -17,7 +17,7 @@ export function evaluateModelWeightPolicy(policy: ProductionModelWeightPolicy, t
   }
 
   if (policy.commercialUseStatus === 'blocked') {
-    blockingReasons.push(`${toolId} has non-commercial or blocked model weights and cannot be used for paid ReeditPro production.`)
+    blockingReasons.push(`${toolId} has non-commercial or blocked model weights and cannot be used for paid WeEditPro production.`)
   }
 
   if (policy.commercialUseStatus === 'unknown' || policy.commercialUseStatus === 'needs_review') {

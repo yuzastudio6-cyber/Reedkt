@@ -1,5 +1,6 @@
 import type { ID, ISODateString, JSONObject } from './shared'
 import type { UploadPurpose as BaseUploadPurpose } from './upload'
+import type { TemporaryUploadProtocol } from './large-media'
 
 export type ApprovedPlanSnapshotRuntimeStatus =
   | 'draft'
@@ -48,6 +49,13 @@ export interface UploadTarget {
   bucketName: string
   objectPath: string
   temporary: true
+  createOnly?: boolean
+  uploadProtocol?: TemporaryUploadProtocol
+  supportsResume?: boolean
+  recommendedChunkSizeBytes?: number
+  uploadStatusUrl?: string
+  retryFromVerifiedOffset?: boolean
+  sessionUriIsCredential?: boolean
 }
 
 export interface DownloadTarget {

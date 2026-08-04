@@ -89,6 +89,12 @@ const mockProbe: MediaProbeResult = {
     height: 90,
     fps: 10,
     durationSeconds: 1,
+    pixelFormat: 'yuv420p',
+    colorSpace: 'bt709',
+    colorTransfer: 'bt709',
+    colorPrimaries: 'bt709',
+    colorRange: 'tv',
+    bitsPerRawSample: 8,
   }],
   audioStreams: [{
     streamIndex: 1,
@@ -147,6 +153,43 @@ const mockReport = buildMediaAnalysisReport({
 check(mockReport.status === 'partial', 'MediaAnalysisReport builder must create partial reports in Milestone 6.')
 check(mockReport.speechAnalysis.speechDetected === false, 'Milestone 6 must not claim transcript/speech analysis.')
 check(mockReport.colorAnalysis.issues.some((issue) => issue.code === 'color_analysis_not_run'), 'Milestone 6 report must mark color analysis as not run.')
+check(mockReport.colorAnalysis.hdrDetected === false, 'Rec.709 source metadata must remain SDR in the analysis report.')
+check(mockReport.colorAnalysis.transferAssumption === 'bt709', 'Source transfer metadata must survive report construction.')
+
+const hdrReport = buildMediaAnalysisReport({
+  workspaceId: 'workspace-media-smoke',
+  projectId: 'project-media-smoke',
+  mediaAssetId: 'media-hdr-smoke',
+  sourceStorageObjectId: 'source-storage-object-hdr-smoke',
+  probe: {
+    ...mockProbe,
+    videoStreams: [{
+      ...mockProbe.videoStreams[0]!,
+      pixelFormat: 'yuv420p10le',
+      colorSpace: 'bt2020nc',
+      colorTransfer: 'smpte2084',
+      colorPrimaries: 'bt2020',
+      bitsPerRawSample: 10,
+    }],
+  },
+  proxy: {
+    status: 'skipped',
+    profileId: 'professional_1080p_analysis_proxy_v2',
+    sourceDynamicRange: 'hdr',
+    outputColorSpace: 'bt709',
+    originalMasterPreserved: true,
+    skipReason: {
+      code: 'hdr_tonemap_required',
+      message: 'HDR source requires a validated color-managed tone-map.',
+      tool: 'ffmpeg',
+    },
+  },
+})
+check(hdrReport.colorAnalysis.hdrDetected, 'PQ/BT.2020 metadata must mark the source as HDR.')
+check(
+  hdrReport.colorAnalysis.issues.some((issue) => issue.code === 'hdr_tonemap_required'),
+  'HDR analysis must retain the explicit color-managed proxy blocker.',
+)
 
 const sourceRef = buildStorageArtifactReference({
   sourceStorageObjectId: 'source-storage-object-smoke',
@@ -251,6 +294,25 @@ if (fixtureResult.ok) {
     })
     check(localResult.probe?.durationSeconds !== undefined, 'Local fixture should be probed when FFmpeg/FFprobe are available.')
     check(localResult.proxy?.status === 'created', 'Local fixture should create a proxy.')
+    const proxyPath = localResult.proxy?.artifact?.localFilePath
+    check(Boolean(proxyPath), 'Local proxy must retain its private worker path for immediate QA.')
+    check(
+      /^[a-f0-9]{64}$/.test(localResult.proxy?.artifact?.checksum ?? ''),
+      'Local proxy must carry backend-computed SHA-256 artifact evidence.',
+    )
+    check(
+      localResult.artifactRecords.find((record) => record.artifactType === 'proxy_video')?.checksum ===
+        localResult.proxy?.artifact?.checksum,
+      'Proxy checksum must survive into the private artifact record.',
+    )
+    const proxyProbe = await probeMediaFile({
+      localFilePath: proxyPath!,
+      ffprobeBin: 'ffprobe',
+      timeoutMs: 20_000,
+    })
+    check(proxyProbe.width <= 1920 && proxyProbe.height <= 1080, 'Working proxy must stay inside the 1080p bounding box.')
+    check(proxyProbe.videoStreams[0]?.colorSpace === 'bt709', 'Working proxy must be explicitly tagged Rec.709.')
+    check(localResult.proxy?.originalMasterPreserved === true, 'Proxy execution must preserve original-master authority.')
     check(localResult.audio?.status === 'created', 'Local fixture should extract audio.')
     check((localResult.representativeFrames?.artifacts.length ?? 0) > 0, 'Local fixture should extract representative frames.')
     check(localResult.mediaAnalysisReport?.status === 'partial', 'Local fixture should build a partial MediaAnalysisReport.')
@@ -271,11 +333,14 @@ console.log(JSON.stringify({
     'signed_url_storage_ref_rejected',
     'private_artifact_record_created',
     'partial_media_analysis_report_built',
+    'source_color_metadata_and_hdr_blocker_preserved',
     'dry_run_without_binaries',
     'production_blocked_refuses_execution',
     'raw_prompt_payload_rejected',
     'signed_url_payload_rejected',
     'optional_cpu_worker_route',
+    'bounded_rec709_proxy_execution_verified',
+    'processed_media_artifacts_are_checksum_bound',
     'no_revideo_or_gpu_tools',
   ],
   fixtureMode,

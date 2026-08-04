@@ -1,0 +1,23 @@
+{
+  "name": "reeditpro-offline-node-runner-image",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@viz-js/viz": "3.28.0",
+    "@svgdotjs/svg.js": "3.2.5",
+    "animejs": "4.5.0",
+    "d3": "7.9.0",
+    "dejavu-fonts-ttf": "2.37.3",
+    "echarts": "6.1.0",
+    "satori": "0.26.0",
+    "sharp": "0.35.3",
+    "svgdom": "0.1.23",
+    "three": "0.185.1",
+    "vega": "6.2.0",
+    "vega-lite": "6.4.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.0"
+  }
+}

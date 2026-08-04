@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { assertNoPathTraversal, assertNoSignedUrlOrRawUrl, assertOutputPathInsideRoot, assertSourceNotOverwritten } from '../media/media-path-safety'
 import type { FinalRenderExecutionInput, RenderExecutionManifest, RenderExecutionValidationResult } from './render-execution-types'
+import { isProfessionalExportFrameCovered } from '../../../src/lib/professional-export-policy'
 
 const ALLOWED_CONTAINERS = new Set(['mp4'])
 const ALLOWED_VIDEO_CODECS = new Set(['h264', 'libx264'])
@@ -22,11 +23,45 @@ export function validateRenderExecutionInput(input: FinalRenderExecutionInput): 
 
   if (requiredAssetCount(input) === 0) issues.push(blocking('missing_required_assets', 'Final render requires at least one private source/proxy/timeline/render asset reference.'))
   if (input.renderMode === 'final_export') {
+    validateProfessionalExportAuthority(input, issues)
     const failedUpstream = (input.upstreamQaResults ?? []).filter((gate) => gate.blocking || gate.status === 'failed' || gate.status === 'blocked')
     if (failedUpstream.length > 0) issues.push(blocking('blocking_upstream_qa_gates_present', 'Final export cannot run with failed/blocking upstream QA gates.'))
   }
 
   return { valid: !issues.some((issue) => issue.severity === 'blocking'), issues }
+}
+
+function validateProfessionalExportAuthority(
+  input: FinalRenderExecutionInput,
+  issues: RenderExecutionValidationResult['issues'],
+): void {
+  const authority = input.professionalExportAuthority
+  if (!authority) {
+    issues.push(blocking('approved_4k_export_coverage_missing', 'Final export requires the 4K UHD coverage frozen into the approved edit estimate.'))
+    return
+  }
+  if (!input.approvedSnapshotId) {
+    issues.push(blocking('approved_snapshot_required_for_final_export', 'Final export requires an approved plan snapshot.'))
+  }
+  if (!input.creditReservationId) {
+    issues.push(blocking('approved_edit_reservation_required_for_final_export', 'Final export must use the existing approved edit reservation.'))
+  }
+  if (authority.approvedReservationId !== input.creditReservationId) {
+    issues.push(blocking('export_reservation_binding_mismatch', 'Final export coverage is not bound to this approved edit reservation.'))
+  }
+  if (!authority.approvedEstimateId.trim()) {
+    issues.push(blocking('approved_edit_estimate_required_for_final_export', 'Final export coverage requires the approved edit estimate identity.'))
+  }
+  if (!isProfessionalExportFrameCovered({
+    authority,
+    width: input.canvas.width,
+    height: input.canvas.height,
+    aspectRatio: input.canvas.aspectRatio,
+    fps: input.fps,
+    durationSeconds: input.durationSeconds,
+  })) {
+    issues.push(blocking('export_frame_outside_approved_4k_coverage', 'Final export dimensions/aspect ratio must be an approved 1080p, 2K/1440p, or 4K profile covered by the initial 4K estimate.'))
+  }
 }
 
 export function validateRenderExecutionManifest(manifest: RenderExecutionManifest): RenderExecutionValidationResult {
@@ -96,6 +131,9 @@ function validatePaths(
     issues.push(blocking('unsafe_output_file_name', 'Render outputFileName must be a safe MP4 basename.'))
   }
   if (input.mode === 'local_dev' && input.enableLocalDevRender === true) {
+    if (input.renderMode === 'final_export' && (input.sourceLocalPaths?.length ?? 0) === 0) {
+      issues.push(blocking('immutable_source_master_required', 'Local final export requires the immutable source master and will not silently use an analysis proxy.'))
+    }
     for (const captionPath of input.captionLocalPaths ?? []) {
       if (!existsSync(captionPath)) issues.push(blocking('caption_file_missing', 'A required private caption file is missing.'))
     }

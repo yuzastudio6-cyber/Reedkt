@@ -27,7 +27,7 @@ Legacy broader migrations also define `reference_assets`, `source_clip_sequences
 - `qa-artifacts`
 - `worker-temp`
 
-The active storage migration originally documented object paths as `<project_id>/...`. RP-FIX-07 adds a local readiness migration for `workspace/{workspaceId}/project/{projectId}/...` paths.
+The active storage migration originally documented object paths as `<project_id>/...`. RP-FIX-07 now removes those permissive legacy policies and uses the application's canonical `workspaces/{workspaceId}/projects/{projectId}/...` path. The path workspace must match the project's stored workspace.
 
 ## Existing Upload Types
 
@@ -39,12 +39,13 @@ Existing TypeScript models already cover media, generated assets, renders, expor
 - Active `final_exports` stores storage metadata but no full render record shape.
 - Profile and brand assets do not have a dedicated table or bucket policy yet.
 - Music track types do not yet carry storage metadata directly.
+- `storage_object_records` does not yet have first-class GCS `generation`, `etag`, and `metageneration` columns. The hardened runtime preserves these in private `media_assets.metadata.storageObjectIdentity` and in runtime views, but the future canonical schema should add constrained columns before production migration.
 
 ## What The App Can Support Now
 
 - Mock-safe upload validation.
 - Bucket selection using active bucket names.
-- Structured storage paths with workspace and project ids.
+- Structured `workspaces/{workspaceId}/projects/{projectId}/...` storage paths with exact workspace/project binding plus bucket MIME and size limits.
 - Mock media/reference/generated/audio/thumbnail records from upload plans.
 - Source clip upload order preservation.
 
@@ -54,3 +55,12 @@ Existing TypeScript models already cover media, generated assets, renders, expor
 - Signed upload/download routes for private assets when browser RLS is insufficient.
 - Backend worker writes for generated assets, previews, exports, QA artifacts, and temp files.
 - Production profile/brand asset policy or signed upload support.
+- Deployed GCS proof for create-only signed PUT replay rejection, generation-bound reads, exact-generation cleanup, lifecycle reconciliation, CORS, and least-privilege IAM.
+
+## Runtime Boundary Hardening — 2026-07-10
+
+The backend local raw-byte compatibility route is now non-production only and capped at 16 MiB with mandatory `Content-Length`, actual-byte, MIME, upload-intent size, concurrency, and rate checks. Production media uses the signed/direct object-storage target and does not buffer multi-gigabyte request bodies in Express.
+
+Upload route authorization now precedes idempotency recording. Storage records without an upload intent must still resolve to an authorized workspace/project, while worker-temp objects are denied and processed/QA artifacts require explicit review delivery purposes.
+
+See `docs/upload-storage-boundary-hardening-2026-07-10.md` for evidence and remaining production blockers. These source checks do not prove deployed bucket policies or live Supabase state.

@@ -94,7 +94,7 @@ function soundCategoryForProfile(profile: ProductionToolProfile): SoundMusicAudi
   if (profile.category === 'audio_cleanup') return 'audio_cleanup'
   if (profile.category === 'music_separation') return 'stem_separation'
   if (profile.category === 'speech_transcription') return 'speech_audio_support'
-  if (profile.toolId === 'signalsmith_stretch' || profile.toolId === 'soundtouch' || profile.toolId === 'rubber_band') return 'time_stretch'
+  if (profile.toolId === 'signalsmith_stretch') return 'time_stretch'
   if (profile.category === 'audio_analysis') return 'audio_analysis'
 
   return 'unknown_or_pending'
@@ -392,7 +392,13 @@ export function recommendSoundMusicAudioNextMilestones(): SoundMusicAudioRecomme
 export function analyzeSoundMusicAudioToolCallingCoverage(): SoundMusicAudioCoverageAnalysis {
   const rows = buildSoundMusicAudioOwnerExpansionMatrix()
   const sourceBundle = loadSoundMusicAudioOwnerSources()
-  const firstClassSoundToolCount = rows.filter((row) => row.productionToolId && PRODUCTION_TOOL_IDS.includes(row.productionToolId)).length
+  const firstClassSoundToolCount = rows.filter(
+    (row) =>
+      row.productionToolId &&
+      (PRODUCTION_TOOL_IDS as readonly string[]).includes(
+        row.productionToolId,
+      ),
+  ).length
   const ownerInventoryOnlyCount = rows.filter((row) => row.installEvidenceStatus === 'owner_inventory_only').length
   const installPlanOnlyCount = rows.filter((row) => row.installEvidenceStatus === 'install_plan_only' || row.installEvidenceStatus === 'requirements_pinned').length
   const blockedRows = rows.filter((row) => row.executionGate.startsWith('blocked_') || row.ownerEvidenceStatus.some((status) => status.startsWith('blocked_')))

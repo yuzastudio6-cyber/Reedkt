@@ -1,14 +1,25 @@
 # B-roll Planning Contract
 
+Status: historical doctrine; runtime superseded by
+[`docs/edit-skills/b-roll/architecture.md`](../edit-skills/b-roll/architecture.md).
+
+This file remains as product doctrine and compatibility vocabulary. It is not
+an orchestra runtime source, provider selector, or executable contract. New
+B-roll planning and execution resolve only through the canonical
+`b_roll@1.0.0` capability manifest.
+
 ## Purpose
 
-This document defines the B-roll-specific planning contract for future ReeditPro B-roll skills.
+This document records the historical B-roll-specific planning doctrine that
+informed the canonical implementation.
 
 This is documentation only. It does not create schema, code, prompts, TypeScript contracts, migrations, workers, UI, providers, rendering, capture code, media analysis code, generation code, stock/search integrations, model loading, package changes, Supabase connections, SQL, credentials, browser runtime, WebGL/canvas runtime, 3D runtime, AI calls, video/image/audio/3D provider calls, or app behavior.
 
 This contract inherits from [skill-planning-contracts.md](skill-planning-contracts.md). It references [transition-planning-contract.md](transition-planning-contract.md) where B-roll bridges cuts or scene changes. It references [overlay-compositing-planning-contract.md](overlay-compositing-planning-contract.md) where B-roll appears as inset, picture-in-picture, split-screen, or overlay. It references [graphic-design-planning-contract.md](graphic-design-planning-contract.md) where B-roll needs labels, proof cards, source notes, or context graphics. It references [motion-design-planning-contract.md](motion-design-planning-contract.md) where B-roll has movement, reveal, inset motion, pacing, or rhythm. It references [three-d-visual-planning-contract.md](three-d-visual-planning-contract.md) where B-roll may be 3D object B-roll or a lower-integration 3D alternative.
 
-This document defines B-roll-specific fields and rules that future docs, types, schema, workers, source selection systems, provider plans, render plans, and QA systems must follow if B-roll skills are eventually implemented.
+The canonical implementation may retain compatible doctrine from this file,
+but its strict schemas, workers, provider plan, render layer, and QA authority
+come only from the manifest-bound server runtime linked above.
 
 ## B-roll Doctrine
 

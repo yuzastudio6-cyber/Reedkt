@@ -4,7 +4,6 @@ import type {
   ProjectEditSessionCardShape,
   ProjectEditSessionStatus,
 } from '../types/project-edit-session'
-import type { UserFacingEditLevel } from '../types/reeditpro'
 import type { ProjectEditSessionBundleRecord } from '../types/project-edit-session-repository'
 import {
   createDefaultMockProjectEditSessionApiClient,
@@ -67,7 +66,6 @@ export type ProjectEditSessionHomeDetailViewModel = {
   summaryLines: string[]
   latestStatus: string
   sourceCount: number
-  selectedEditLevelLabel: string
   selectedPreferenceSummary: string
   sourceNotesSummary: string
   latestPreviewLabel: string
@@ -109,13 +107,6 @@ function titleCase(value: string): string {
 
 function statusLabel(value: string): string {
   return titleCase(value)
-}
-
-function editLevelLabel(value: UserFacingEditLevel | undefined): string {
-  if (value === 'ultra_premium') return 'Ultra Premium'
-  if (value === 'premium') return 'Premium'
-  if (value === 'basic') return 'Basic'
-  return 'Not selected'
 }
 
 function formatLastEdited(value: string): string {
@@ -463,7 +454,6 @@ export function createProjectEditSessionHomeDetailViewModel(
     summaryLines: summary.summary,
     latestStatus: statusLabel(bundle.session.status),
     sourceCount: bundle.sources.length,
-    selectedEditLevelLabel: editLevelLabel(bundle.session.selectedEditLevel),
     selectedPreferenceSummary,
     sourceNotesSummary,
     latestPreviewLabel: latestPreview
@@ -523,7 +513,6 @@ export function createProjectEditSessionHomeDetailViewModelFromRecord(
     ],
     latestStatus: statusLabel(session.status),
     sourceCount: session.sourceMediaAssetIds.length,
-    selectedEditLevelLabel: editLevelLabel(session.selectedEditLevel),
     selectedPreferenceSummary: session.selectedEditPreferenceHandle
       ? `${session.selectedEditPreferenceHandle} selected; setup continues in the edit workspace.`
       : 'No saved Edit Preference selected.',

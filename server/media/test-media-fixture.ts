@@ -16,9 +16,19 @@ export interface SyntheticMediaFixtureResult {
   checksumSha256?: string
   width?: number
   height?: number
+  hasAudio?: boolean
   warnings: string[]
   errorCode?: string
 }
+
+export type SyntheticVideoPattern =
+  | 'testsrc'
+  | 'testsrc2'
+  | 'smptebars'
+  | 'solid_red'
+  | 'solid_dark_red'
+  | 'solid_blue'
+  | 'solid_green'
 
 export async function createSyntheticMp4Fixture(input: {
   outputPath: string
@@ -28,22 +38,49 @@ export async function createSyntheticMp4Fixture(input: {
   durationSeconds?: number
   width?: number
   height?: number
+  includeAudio?: boolean
+  audioFrequencyHz?: number
+  videoPattern?: SyntheticVideoPattern
 }): Promise<SyntheticMediaFixtureResult> {
   const absoluteOutputPath = assertPathInsideRoot(input.localStorageRoot, input.outputPath)
   const parsedCommand = parseCommandLine(input.ffmpegBin ?? 'ffmpeg')
   const durationSeconds = input.durationSeconds ?? 2
   const width = input.width ?? 320
   const height = input.height ?? 180
+  const audioFrequencyHz = input.audioFrequencyHz ?? 440
+  if (
+    !Number.isInteger(audioFrequencyHz) ||
+    audioFrequencyHz < 20 ||
+    audioFrequencyHz > 20_000
+  ) {
+    return {
+      available: false,
+      warnings: ['Synthetic audio frequency must be an integer between 20 and 20000 Hz.'],
+      errorCode: 'invalid_audio_frequency',
+    }
+  }
   await mkdir(path.dirname(absoluteOutputPath), { recursive: true })
 
   try {
-    await execFileAsync(parsedCommand.command, [
+    const videoInputArgs = [
       ...parsedCommand.args,
       '-y',
       '-f',
       'lavfi',
       '-i',
-      `testsrc=size=${width}x${height}:rate=30`,
+      syntheticVideoFilter(input.videoPattern ?? 'testsrc', width, height, durationSeconds),
+    ]
+    const audioInputArgs = input.includeAudio
+      ? [
+          '-f',
+          'lavfi',
+          '-i',
+          `sine=frequency=${audioFrequencyHz}:sample_rate=48000:duration=${durationSeconds}`,
+        ]
+      : []
+    await execFileAsync(parsedCommand.command, [
+      ...videoInputArgs,
+      ...audioInputArgs,
       '-t',
       String(durationSeconds),
       '-c:v',
@@ -52,7 +89,15 @@ export async function createSyntheticMp4Fixture(input: {
       '5',
       '-pix_fmt',
       'yuv420p',
-      '-an',
+      ...(input.includeAudio
+        ? [
+            '-c:a',
+            'aac',
+            '-b:a',
+            '96k',
+            '-shortest',
+          ]
+        : ['-an']),
       absoluteOutputPath,
     ], {
       timeout: input.timeoutMs ?? 30000,
@@ -76,6 +121,27 @@ export async function createSyntheticMp4Fixture(input: {
     checksumSha256: createHash('sha256').update(bytes).digest('hex'),
     width,
     height,
+    hasAudio: input.includeAudio === true,
     warnings: [],
+  }
+}
+
+function syntheticVideoFilter(pattern: SyntheticVideoPattern, width: number, height: number, durationSeconds: number): string {
+  switch (pattern) {
+    case 'testsrc2':
+      return `testsrc2=size=${width}x${height}:rate=30:duration=${durationSeconds}`
+    case 'smptebars':
+      return `smptebars=size=${width}x${height}:rate=30`
+    case 'solid_red':
+      return `color=c=red:size=${width}x${height}:rate=30:duration=${durationSeconds}`
+    case 'solid_dark_red':
+      return `color=c=0x800000:size=${width}x${height}:rate=30:duration=${durationSeconds}`
+    case 'solid_blue':
+      return `color=c=blue:size=${width}x${height}:rate=30:duration=${durationSeconds}`
+    case 'solid_green':
+      return `color=c=green:size=${width}x${height}:rate=30:duration=${durationSeconds}`
+    case 'testsrc':
+    default:
+      return `testsrc=size=${width}x${height}:rate=30`
   }
 }

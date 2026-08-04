@@ -229,8 +229,10 @@ export function getAudioOperationsForStyle(style: SoundStyleId, editLevel: EditL
     ...presetItem.voiceOperations,
   ])
 
-  if (editLevel !== 'basic') {
+  if (editLevel !== 'basic' && presetItem.musicPolicy !== 'none') {
     operations.add('music_ducking')
+  }
+  if (editLevel !== 'basic' && presetItem.beatSyncStrategy !== 'none') {
     operations.add('caption_timing_alignment')
   }
 

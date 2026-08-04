@@ -23,6 +23,10 @@ interface FFprobeStream {
   duration?: string
   pix_fmt?: string
   color_space?: string
+  color_transfer?: string
+  color_primaries?: string
+  color_range?: string
+  bits_per_raw_sample?: string
   sample_rate?: string
   channels?: number
   tags?: Record<string, string>
@@ -131,6 +135,10 @@ function normalizeVideoStream(stream: FFprobeStream): MediaVideoStreamProbe {
     durationSeconds: numericString(stream.duration),
     pixelFormat: stream.pix_fmt,
     colorSpace: stream.color_space,
+    colorTransfer: stream.color_transfer,
+    colorPrimaries: stream.color_primaries,
+    colorRange: stream.color_range,
+    bitsPerRawSample: numericString(stream.bits_per_raw_sample),
     rotation: readRotation(stream),
   }
 }

@@ -30,6 +30,129 @@ approved snapshot
 
 Later Cloud Run Jobs can call this runtime after container/tool readiness and real backend persistence exist. Until then, lease, idempotency, event, and result helpers are mock-safe/in-memory or draft-only.
 
+## Canonical Cloud Dispatch Boundary
+
+`canonical-cloud-worker-dispatch-handoff-v1` now freezes the dependency-safe
+handoff between the durable package queue and future Google Cloud workers:
+
+1. the package queue creates the only approved execution-attempt identity;
+2. a regional Cloud Tasks message carries only opaque identity and hashes;
+3. a private OIDC-authenticated controller reloads and revalidates the exact
+   package, queue, region, job, placement, and attempt authority;
+4. the controller calls the exact regional Cloud Run Jobs `run` API through a
+   user-managed service identity and Application Default Credentials; and
+5. the worker reloads the same authority and persists private evidence before
+   completion is reconciled to the package queue.
+
+Cloud Tasks delivery retry is transport recovery, not permission for another
+execution attempt. Cloud Run job templates therefore set internal retries to
+zero. Failed work can run again only through a new bounded package-queue
+attempt after reconciliation/fallback policy permits it.
+
+This is a pure, no-network authority contract. A later private slice proves
+one same-host cross-process queue/outbox write-ahead transaction and exact
+process-restart recovery. Distributed database outbox atomicity, OIDC/IAM,
+controller and job deployment, service identity, private GCS object transport,
+dead-letter reconciliation, capacity controls, production telemetry, and
+benchmark evidence remain false and fail closed.
+
+The follow-up private outbox/receiver contract now binds one active package
+claim to one checksum-protected, restart-safe opaque dispatch entry. Exact
+controller and worker identity receipts are idempotent under concurrent
+redelivery and require server-owned issuer, principal, audience, expiry,
+region, task, attempt, and receipt bindings. The receiver accepts only a
+non-serializable process capability produced by an explicit verifier. Its
+bounded cryptographic path verifies RS256 against a checksum-bound test JWKS
+snapshot while recording that no live Google key fetch occurred. No raw
+authorization token, claim credential, media, prompt, path, signed URL, or
+worker command is persisted.
+
+The accepted-worker completion contract is also implemented for the same
+single-host private boundary. It revalidates the process-branded worker
+principal, derives the completed queue outcome from the immutable job, requires
+private artifact/QA/reconciliation/downstream-lease evidence plus an
+attempt-level internal production-cost evidence hash, and commits queue
+completion with one terminal outbox receipt through the package WAL. Real
+process exits at both completion commit stages and separate-process completion
+races recover to one result plus exact replay. Customer price, credits, service
+fee, wallet, billing, and settlement authority remain absent.
+
+The accepted-worker pre-commit failure contract now uses the same package lock
+and a separate versioned failure WAL. It releases only the exact claim, writes
+one terminal outbox receipt, derives retry availability/exhaustion/user review
+from the approved attempt ceiling, rejects post-commit retry, and never starts
+an automatic retry loop. Real process exits at both failure commit stages,
+separate-process replay, completion/failure terminal racing, stale fencing,
+tamper refusal, and versioned failed-attempt internal-cost evidence pass.
+
+The accepted-worker timeout contract also uses that package lock. Its API
+accepts no cost hash; the server resolves the exact create-only failed-timeout
+record by dispatch intent and checks tenant, snapshot, work item, job, retry,
+tool, operation, accepted-worker time window, and replay hash before committing
+the queue release and terminal timeout receipt. Missing, checksum-tampered, or
+attempt-mismatched evidence fails closed. This is exact evidence for the
+currently metered private DeepFilterNet, Remotion, and FFmpeg workloads. A
+follow-up now adds an exact create-only attempt-start journal and a
+controller-owned bounded package finalizer for those three profiles. A hard
+worker death after start can therefore finalize internal cost through immutable
+lease expiry and enter this timeout transaction without caller-selected job
+identity or automatic retry. Other tool profiles, a deployed distributed death
+observer/sweeper, and multi-replica transaction evidence remain blocked. See
+`docs/canonical-private-worker-timeout-finalizer-verification-2026-07-17.md`.
+
+## Private Docker Subprocess Boundary
+
+Every server-side private Docker subprocess now goes through one credential-
+isolated CLI boundary. Each invocation receives a fresh path that intentionally
+does not exist as `DOCKER_CONFIG`, strips any inherited Docker host and context,
+and supplies only the minimum environment needed by the local runtime. Image
+builds invoke a reviewed, executable, non-world-writable local Buildx binary
+directly and force local image loading. Callers cannot add push, remote output,
+secret, SSH, or builder transport options. Non-build invocations keep using the
+local Docker CLI under the same isolation.
+
+This prevents a local private verification run from hanging on or inheriting a
+developer credential helper, and it prevents the execution code from turning a
+local build into a registry publication. It does not establish Artifact
+Registry identity, Google IAM, remote build provenance, deployed-worker
+identity, or any production authority. Those require separate controlled-
+staging evidence.
+
+This is single-host private evidence only. The service rejects production and
+purported live Google-verifier output until Google's supported live
+auth-library/key-rotation adapter is wired outside request JSON. The local
+package queue and outbox now share a process-recoverable write-ahead commit,
+and the completion/failure transitions use the same lock plus versioned
+terminal WAL records. Distributed database atomicity, multi-replica locking,
+Cloud Tasks creation, Cloud Run Jobs calls, live OIDC/IAM, private GCS
+transport, worker execution, and live completion reconciliation remain
+blocked. See
+`docs/canonical-service-identity-verifier-verification-2026-07-17.md` and
+`docs/canonical-cloud-dispatch-outbox-receiver-verification-2026-07-17.md`, plus
+`docs/canonical-private-package-state-transaction-verification-2026-07-17.md`
+and
+`docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`,
+plus
+`docs/canonical-private-worker-failure-reconciliation-verification-2026-07-17.md`
+and
+`docs/canonical-private-worker-timeout-reconciliation-verification-2026-07-17.md`.
+
+## Throughput And ETA Principle
+
+ReEditPro should optimize dependency-safe work in parallel, not deliberately
+slow a job to resemble professional effort. A straightforward 30-minute source
+workload may target roughly 10–20 minutes on provisioned cloud capacity, but
+the actual estimate must be computed from source hours, resolution, codec,
+camera count, transcript/vision passes, approved tools, AI generations,
+render variants, QA passes, queue load, and available CPU/GPU/render capacity.
+
+Before an ETA can be shown as reliable, representative deployed benchmarks
+must record at least queue delay, cold-start time, source-minutes processed per
+worker-minute, GPU utilization, per-stage wall time, critical-path time,
+retry/recovery time, final render real-time factor, and QA time. Long work must
+be sharded at approved boundaries so that a single GPU attempt never exceeds
+the one-hour platform envelope and completed shards survive worker restart.
+
 ## Milestone 6 Media Foundation Route
 
 Milestone 6 keeps the default `cpu_analysis_worker` route as placeholder-only. It adds an explicit optional `metadata.mediaFoundation` route for `dry_run` or `local_dev` media foundation work.

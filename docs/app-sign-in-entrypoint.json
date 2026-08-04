@@ -1,16 +1,29 @@
 {
-  "decision": "app_sign_in_entrypoint_passed_ready_for_internal_testing_auth_smoke",
+  "decision": "app_sign_in_google_oauth_handoff_passed_local_ready_for_private_staging_configuration",
   "route": "/sign-in",
   "defaultRedirect": "/dashboard",
-  "frontendAuthMode": "supabase_anon_client_only",
-  "internalTestingAuthMode": "browser_local_mock_session_when_explicitly_enabled",
-  "allowedPublicEnv": ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],
+  "frontendAuthMode": "supabase_anon_client_google_oauth_with_email_password_fallback",
+  "internalTestingAuthMode": "tab_scoped_local_session_when_explicitly_enabled",
+  "hostedBasePathAware": true,
+  "compiledBasePathProviderHandoffVerified": true,
+  "googleOAuthCodeReady": true,
+  "googleOAuthProviderConfiguredRemotely": false,
+  "hostedCallbackVerified": false,
+  "hostedDeploymentVerified": false,
+  "liveGoogleSessionReadbackVerified": false,
+  "allowedPublicEnv": [
+    "VITE_SUPABASE_URL",
+    "VITE_SUPABASE_ANON_KEY",
+    "VITE_REEDITPRO_AUTH_MODE"
+  ],
   "allowedInternalTestingEnv": ["VITE_REEDITPRO_INTERNAL_TEST_AUTH"],
   "blockedScope": {
+    "googleClientSecretInBrowser": false,
     "serviceRole": false,
     "supabaseMigration": false,
     "backendTableMutation": false,
     "storageSignedUrls": false,
+    "backendApiExposure": false,
     "providerCalls": false,
     "workerDispatch": false,
     "mediaProcessing": false,
@@ -18,8 +31,9 @@
     "creditReservation": false,
     "creditSpend": false,
     "stripe": false,
+    "customerBilling": false,
     "externalBeta": false,
     "production": false
   },
-  "nextGate": "APP_SIGN_IN_ENTRYPOINT_DEPLOYMENT_AND_SUPABASE_ENV_CONFIGURATION"
+  "nextGate": "SUPABASE_GOOGLE_PROVIDER_HOSTED_CALLBACK_AND_REAL_BROWSER_READBACK"
 }

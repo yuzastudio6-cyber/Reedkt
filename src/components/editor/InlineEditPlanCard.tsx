@@ -1,13 +1,14 @@
 import { Badge } from '../Badge'
 import { Button } from '../Button'
 import type { EditPlan } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 
 const systemLabels = {
-  stroke_motion: 'Stroke Motion',
-  graphic_design: 'Graphic Design',
-  real_motion: 'Real Motion',
-  sound_sync: 'SoundSync',
-  none: 'None',
+  stroke_motion: 'Story animation',
+  graphic_design: 'Visual explanation',
+  real_motion: 'Motion treatment',
+  sound_sync: 'Sound design',
+  none: 'Clean edit',
 }
 
 function formatLabel(value: string) {
@@ -89,29 +90,29 @@ export function InlineEditPlanCard({ onApprove, onLowerCost, onRemoveRealMotion,
           <span className={`signature-inline-chip signature-inline-${route.system}`} key={`${route.timeRange}-${route.system}`}>
             <strong>{systemLabels[route.system]}</strong>
             <small>{route.timeRange} / {route.creditImpact}</small>
-            {route.system === 'real_motion' && <em>Overlay-first. Face-safe. Credit-heavy.</em>}
+            {route.system === 'real_motion' && <em>Premium motion. Face-safe. Credit-heavy.</em>}
           </span>
         ))}
       </div>
 
       <div className="inline-plan-section">
-        <strong>SoundSync and captions</strong>
-        <p>{plan.soundSyncDirection}</p>
+        <strong>Sound and captions</strong>
+        <p>{hideInternalToolNamesInCopy(plan.soundSyncDirection)}</p>
         <p>{plan.captionDirection}</p>
       </div>
 
       <p className="approval-gate-note">
         {frameConfirmed
-          ? 'Mock progress starts only after you approve both the edit plan and credit estimate.'
+          ? 'Progress starts only after you approve the plan and credit estimate.'
           : 'Confirm output frame before approving the plan and credit estimate.'}
       </p>
 
       <div className="inline-card-actions">
         <Button disabled={!frameConfirmed} onClick={onApprove} variant="primary">
-          {frameConfirmed ? 'Approve plan and credits' : 'Confirm output frame first'}
+          {frameConfirmed ? 'Approve plan' : 'Confirm output frame first'}
         </Button>
         <Button onClick={onLowerCost} variant="secondary">Lower credit cost</Button>
-        <Button onClick={onRemoveRealMotion} variant="ghost">Remove Real Motion</Button>
+        <Button onClick={onRemoveRealMotion} variant="ghost">Simplify motion</Button>
         <Button variant="ghost">Ask a question</Button>
       </div>
     </section>

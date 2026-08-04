@@ -28,6 +28,7 @@ export function inferProjectSourceVideoAspectRatio(input: {
   if (closeTo(ratio, 16 / 9)) return '16:9'
   if (closeTo(ratio, 1)) return '1:1'
   if (closeTo(ratio, 4 / 5)) return '4:5'
+  if (closeTo(ratio, 4 / 3)) return '4:3'
   return 'custom'
 }
 
@@ -95,6 +96,9 @@ export function createProjectSourceVideoExportRecommendationInput(input: {
     editSessionId: input.editSessionId,
     aspectRatio,
     customAspectRatio: aspectRatio === 'custom' && input.preview.videoWidth && input.preview.videoHeight
+      ? { width: input.preview.videoWidth, height: input.preview.videoHeight }
+      : undefined,
+    sourceResolution: input.preview.videoWidth && input.preview.videoHeight
       ? { width: input.preview.videoWidth, height: input.preview.videoHeight }
       : undefined,
     existingSettings: input.existingSettings,

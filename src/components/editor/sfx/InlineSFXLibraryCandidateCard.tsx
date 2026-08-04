@@ -1,5 +1,6 @@
 import { Badge } from '../../Badge'
 import type { SFXLibraryCandidateRecord } from '../../../types'
+import { hideInternalToolNamesInCopy } from '../../../lib/tool-display-labels'
 import { formatSFXLabel } from './sfxChatUiData'
 
 type InlineSFXLibraryCandidateCardProps = {
@@ -15,7 +16,7 @@ export function InlineSFXLibraryCandidateCard({ candidate }: InlineSFXLibraryCan
           <h3>{candidate ? formatSFXLabel(candidate.reuseStatus) : 'Project-only by default'}</h3>
         </div>
         <Badge accent={candidate?.reuseStatus === 'approved_internal_library' ? 'success' : 'warning'}>
-          {candidate ? 'Mock candidate' : 'No candidate'}
+          {candidate ? 'Candidate' : 'No candidate'}
         </Badge>
       </div>
 
@@ -29,7 +30,7 @@ export function InlineSFXLibraryCandidateCard({ candidate }: InlineSFXLibraryCan
             <span><strong>Quality score</strong>{candidate.qualityScore}</span>
             <span><strong>Target layer</strong>{formatSFXLabel(candidate.targetLayer)}</span>
             <span><strong>Use case</strong>{formatSFXLabel(candidate.useCase)}</span>
-            <span><strong>Provider</strong>{formatSFXLabel(candidate.provider)}</span>
+            <span><strong>Source route</strong>{hideInternalToolNamesInCopy(formatSFXLabel(candidate.provider))}</span>
             <span><strong>General purpose</strong>{formatSFXLabel(candidate.generalPurpose)}</span>
             <span><strong>Private context</strong>{formatSFXLabel(candidate.containsPrivateContext)}</span>
             <span><strong>License review</strong>{formatSFXLabel(candidate.licenseReviewRequired)}</span>
@@ -48,7 +49,7 @@ export function InlineSFXLibraryCandidateCard({ candidate }: InlineSFXLibraryCan
               <strong>{candidate.avoidUseCases.map(formatSFXLabel).join(', ')}</strong>
             </div>
             <ul className="sfx-compact-list">
-              {candidate.notes.map((note) => <li key={note}>{note}</li>)}
+              {candidate.notes.map((note) => <li key={note}>{hideInternalToolNamesInCopy(note)}</li>)}
             </ul>
           </details>
         </>

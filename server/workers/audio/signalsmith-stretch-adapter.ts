@@ -1,5 +1,4 @@
 import {
-  buildTempoPitchCommand,
   runTempoPitchAdjustment,
   validateTempoPitchInput,
 } from './soundtouch-adapter'
@@ -9,8 +8,20 @@ import type { AudioToolSkipReason } from './audio-foundation-types'
 export type SignalsmithStretchInput = TempoPitchInput
 
 export const validateSignalsmithStretchInput = validateTempoPitchInput
-export const buildSignalsmithStretchCommand = buildTempoPitchCommand
 export const runSignalsmithStretchAdjustment = runTempoPitchAdjustment
+
+export function buildSignalsmithStretchCommand(input: SignalsmithStretchInput): { command: string; args: string[] } {
+  validateSignalsmithStretchInput(input)
+  return {
+    command: input.command ?? 'signalsmith-stretch',
+    args: [
+      input.sourceAudioLocalPath ?? '',
+      input.outputAudioLocalPath ?? '',
+      `--time=${String(input.tempoRatio ?? 1)}`,
+      `--semitones=${String(input.pitchSemitones ?? 0)}`,
+    ],
+  }
+}
 
 export function buildSignalsmithStretchSkipReason(input: SignalsmithStretchInput): AudioToolSkipReason | undefined {
   if (input.runMode === 'production_blocked') return { code: 'production_signalsmith_stretch_blocked', message: 'Production Signalsmith Stretch execution is blocked in Milestone 9.', tool: 'signalsmith_stretch' }

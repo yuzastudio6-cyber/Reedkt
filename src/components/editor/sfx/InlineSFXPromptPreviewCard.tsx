@@ -1,5 +1,6 @@
 import { Badge } from '../../Badge'
 import type { SFXPromptPlanRecord } from '../../../types'
+import { hideInternalToolNamesInCopy } from '../../../lib/tool-display-labels'
 import { formatSFXLabel, formatSFXSeconds, sfxProviderLabels } from './sfxChatUiData'
 
 type InlineSFXPromptPreviewCardProps = {
@@ -14,14 +15,14 @@ export function InlineSFXPromptPreviewCard({ promptPlan }: InlineSFXPromptPrevie
     <section className="inline-chat-card sfx-inline-card sfx-prompt-preview-card">
       <div className="inline-card-heading">
         <div>
-          <span className="section-eyebrow">Prompt preview</span>
+          <span className="section-eyebrow">Audio asset brief</span>
           <h3>{sfxProviderLabels[promptPlan.provider]}</h3>
         </div>
         <Badge accent="cyan">{formatSFXLabel(promptPlan.promptStyle)}</Badge>
       </div>
 
       <p className="sfx-muted-note">Audio asset brief only. ReeditPro has not called an SFX asset service.</p>
-      {isMMAudioPrompt && <p className="sfx-muted-note">MMAudio V2 prompts are short because the model is expected to use video context.</p>}
+      {isMMAudioPrompt && <p className="sfx-muted-note">Draft route briefs stay short because they are expected to use video context.</p>}
       {isMireloRoute && <p className="sfx-muted-note">This route is fixture-qualified for controlled planning and remains blocked for production execution.</p>}
 
       <div className="sfx-score-grid">
@@ -32,8 +33,8 @@ export function InlineSFXPromptPreviewCard({ promptPlan }: InlineSFXPromptPrevie
       </div>
 
       <details className="sfx-details">
-        <summary>Full provider prompt</summary>
-        <p className="sfx-prompt-text">{promptPlan.prompt || 'No generation prompt created.'}</p>
+        <summary>Full audio asset brief</summary>
+        <p className="sfx-prompt-text">{promptPlan.prompt || 'No audio asset brief created.'}</p>
         {promptPlan.negativePrompt && <p className="sfx-negative-prompt-text">{promptPlan.negativePrompt}</p>}
       </details>
 
@@ -49,7 +50,7 @@ export function InlineSFXPromptPreviewCard({ promptPlan }: InlineSFXPromptPrevie
       </details>
 
       {promptPlan.promptWarnings.length > 0 && (
-        <p className="sfx-warning">{promptPlan.promptWarnings.join(' ')}</p>
+        <p className="sfx-warning">{hideInternalToolNamesInCopy(promptPlan.promptWarnings.join(' '))}</p>
       )}
     </section>
   )

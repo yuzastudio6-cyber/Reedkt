@@ -23,11 +23,69 @@ export function getServiceContext(request: Request): ServiceContext {
     clients: runtimeRequest.runtime.clients,
     requestId: runtimeRequest.context?.requestId ?? 'request-unknown',
     auth: runtimeRequest.context?.auth,
+    idempotency: runtimeRequest.context?.idempotency,
+    storageAdapter: runtimeRequest.runtime.storageAdapter,
+    planningPreferenceApplicationAuthorityPort:
+      runtimeRequest.runtime.planningPreferenceApplicationAuthorityPort,
+    planningExactEditPreferenceAuthorityPort:
+      runtimeRequest.runtime.planningExactEditPreferenceAuthorityPort,
+    canonicalDurableUploadTargetStatePort:
+      runtimeRequest.runtime.canonicalDurableUploadTargetStatePort,
+    canonicalUploadTargetCredentialEscrow:
+      runtimeRequest.runtime.canonicalUploadTargetCredentialEscrow,
+    canonicalDurableUploadTargetRequestAuthorityFactory:
+      runtimeRequest.runtime.canonicalDurableUploadTargetRequestAuthorityFactory,
+    canonicalPrivateProjectRequestAuthorityFactory:
+      runtimeRequest.runtime.canonicalPrivateProjectRequestAuthorityFactory,
+    editReferenceStudyChatRuntimePort:
+      runtimeRequest.runtime.editReferenceStudyChatRuntimePort,
+    canonicalMotionStudioStorytellingProductionAuthorityReaderPort:
+      runtimeRequest.runtime.canonicalMotionStudioStorytellingProductionAuthorityReaderPort,
+    canonicalMotionStudioAudioCandidateReviewReaderPort:
+      runtimeRequest.runtime.canonicalMotionStudioAudioCandidateReviewReaderPort,
+    canonicalMotionStudioAudioSelectionTransitionPort:
+      runtimeRequest.runtime.canonicalMotionStudioAudioSelectionTransitionPort,
+    canonicalVisualCalibrationReferenceFrameReaderPort:
+      runtimeRequest.runtime.canonicalVisualCalibrationReferenceFrameReaderPort,
+    canonicalProviderAttemptRuntimeRecordSourcePort:
+      runtimeRequest.runtime.canonicalProviderAttemptRuntimeRecordSourcePort,
+    visualIntelligenceLifecyclePort:
+      runtimeRequest.runtime.visualIntelligenceLifecyclePort,
+    visualIntelligenceReportRepository:
+      runtimeRequest.runtime.visualIntelligenceReportRepository,
+    visualIntelligenceInspectionCoordinatorPort:
+      runtimeRequest.runtime.visualIntelligenceInspectionCoordinatorPort,
+    visualIntelligencePlanningOperationRequestOwnerPort:
+      runtimeRequest.runtime
+        .visualIntelligencePlanningOperationRequestOwnerPort,
+    motionStudioCommandRepositoryRuntimePort:
+      runtimeRequest.runtime.motionStudioCommandRepositoryRuntimePort,
+    editReferenceExactEditApplyRuntimePort:
+      runtimeRequest.runtime.editReferenceExactEditApplyRuntimePort,
+    editReferenceApplicationPreparationRuntimePort:
+      runtimeRequest.runtime.editReferenceApplicationPreparationRuntimePort,
+    editReferenceLongFormStudyRuntimePort:
+      runtimeRequest.runtime.editReferenceLongFormStudyRuntimePort,
+    editReferenceLongFormStudyRuntimePortFactory:
+      runtimeRequest.runtime.editReferenceLongFormStudyRuntimePortFactory,
+    editReferenceDomainRepositoryRuntimePort:
+      runtimeRequest.runtime.editReferenceDomainRepositoryRuntimePort,
+    editReferenceSignedInPrivateMediaRuntimePort:
+      runtimeRequest.runtime.editReferenceSignedInPrivateMediaRuntimePort,
+    editReferenceExactEditBriefRuntimePortFactory:
+      runtimeRequest.runtime.editReferenceExactEditBriefRuntimePortFactory,
+    editReferenceTargetUnderstandingPackageRuntimePortFactory:
+      runtimeRequest.runtime
+        .editReferenceTargetUnderstandingPackageRuntimePortFactory,
+    editBriefPrivateWorkspaceRuntimePort:
+      runtimeRequest.runtime.editBriefPrivateWorkspaceRuntimePort,
+    kimiK3SourceLedChatAssistantPort:
+      runtimeRequest.runtime.kimiK3SourceLedChatAssistantPort,
   }
 }
 
 export function getIdempotencyKey(request: Request): string {
-  const key = (request as RuntimeRequest).context?.idempotency?.key
+  const key = (request as RuntimeRequest).context?.idempotency?.key ?? request.header('idempotency-key')?.trim()
   if (!key) throw new ApiError('IDEMPOTENCY_KEY_REQUIRED', 'Idempotency-Key header is required.', 400)
   return key
 }

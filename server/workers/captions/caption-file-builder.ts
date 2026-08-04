@@ -1,7 +1,6 @@
-import { mkdir, writeFile } from 'node:fs/promises'
-import path from 'node:path'
 import { buildMediaArtifactRecord } from '../media/media-artifact-record-builder'
-import { assertOutputPathInsideRoot, safeJoinStoragePath } from '../media/media-path-safety'
+import { writePrivateTextFileAtomicWithinRoot } from '../../security/private-local-persistence'
+import { safeJoinStoragePath } from '../media/media-path-safety'
 import { buildAssCaptionText } from './ass-caption-builder'
 import { getCaptionStylePreset } from './caption-style-policy'
 import { buildSrtCaptionText } from './srt-caption-builder'
@@ -64,9 +63,11 @@ export async function buildCaptionFile(input: {
   })
 
   if (input.mode === 'local_dev' && input.outputRoot) {
-    const outputPath = assertOutputPathInsideRoot(path.join(input.outputRoot, `captions.${extension}`), input.outputRoot)
-    await mkdir(path.dirname(outputPath), { recursive: true })
-    await writeFile(outputPath, text, 'utf8')
+    const outputPath = await writePrivateTextFileAtomicWithinRoot({
+      rootPath: input.outputRoot,
+      relativePath: `captions.${extension}`,
+      content: text,
+    })
     return { format: input.format, text, artifact, localFilePath: outputPath }
   }
 

@@ -1,0 +1,802 @@
+import {
+  FinishReason,
+  GoogleGenAI,
+  MediaResolution,
+  PartMediaResolutionLevel,
+  ThinkingLevel,
+  type Content,
+  type GenerateContentConfig,
+} from '@google/genai'
+
+import {
+  VISUAL_INTELLIGENCE_MEDIA_RESOLUTION,
+  VISUAL_INTELLIGENCE_MODEL_ID,
+  VISUAL_INTELLIGENCE_PROVIDER_ADAPTER_ID,
+  VISUAL_INTELLIGENCE_PROVIDER_ID,
+  VISUAL_INTELLIGENCE_THINKING_LEVEL,
+  type VisualIntelligenceEvidenceRef,
+  type VisualIntelligenceProvider,
+  type VisualIntelligenceProviderExecutionResult,
+  type VisualIntelligenceProviderRequest,
+} from '../../src/types/visual-intelligence'
+import { ApiError } from '../errors/api-error'
+import {
+  parseVisualIntelligenceProviderNormalizedResult,
+  parseVisualIntelligenceRequest,
+  visualIntelligenceSourcePlanningSegmentsAreComplete,
+  visualIntelligenceCanonicalJson,
+  visualIntelligenceDigest,
+} from './visual-intelligence-contract'
+import {
+  compileVisualIntelligenceProviderInstruction,
+  getVisualIntelligenceProfileDefinition,
+} from './visual-intelligence-profile-registry'
+
+export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_ADAPTER_VERSION =
+  'vertex-gemini-pro-visual-intelligence-adapter-v2' as const
+export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION =
+  'v1alpha' as const
+
+const DEFAULT_TIMEOUT_MS = 600_000
+const MAX_TIMEOUT_MS = 900_000
+const MAX_PROVIDER_RESPONSE_BYTES = 8 * 1024 * 1024
+const GCS_URI = /^gs:\/\/[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]\/[^?#\\]+$/u
+
+export interface VisualIntelligenceGeminiGenerateInput {
+  readonly model: typeof VISUAL_INTELLIGENCE_MODEL_ID
+  readonly contents: Content[]
+  readonly config: GenerateContentConfig
+}
+
+export interface VisualIntelligenceGeminiGenerateResult {
+  readonly responseId: string
+  readonly modelVersion: string
+  readonly text: string
+  readonly finishReason: string
+  readonly candidateCount: number
+  readonly promptTokenCount: number
+  readonly candidateTokenCount: number
+  readonly thinkingTokenCount: number
+  readonly cachedTokenCount: number
+  readonly totalTokenCount: number
+  readonly groundingMetadataPresent: boolean
+  readonly urlContextMetadataPresent: boolean
+  readonly functionCallPresent: boolean
+  readonly executableCodePresent: boolean
+}
+
+export interface VisualIntelligenceGeminiGeneratePort {
+  generate(
+    input: VisualIntelligenceGeminiGenerateInput,
+  ): Promise<VisualIntelligenceGeminiGenerateResult>
+}
+
+export interface VisualIntelligenceProviderCostSettlementPort {
+  settleAccountEffectiveUsage(input: {
+    readonly requestId: string
+    readonly idempotencyKey: string
+    readonly exactModelId: typeof VISUAL_INTELLIGENCE_MODEL_ID
+    readonly promptTokenCount: number
+    readonly candidateTokenCount: number
+    readonly thinkingTokenCount: number
+    readonly cachedTokenCount: number
+    readonly totalTokenCount: number
+    readonly maximumAuthorizedCostMicros: number
+    readonly accountEffectiveRateAuthorityRef:
+      VisualIntelligenceEvidenceRef
+  }): Promise<{
+    readonly estimatedCostMicros: number
+    readonly settledCostMicros: number
+    readonly costEvidenceRef: VisualIntelligenceEvidenceRef
+    readonly accountEffectiveRateAuthorityRef:
+      VisualIntelligenceEvidenceRef
+    readonly billingAccountEffectiveRateUsed: true
+    readonly publicListPriceUsed: false
+    readonly duplicateSettlementPerformed: false
+  }>
+}
+
+export interface VertexGeminiProVisualIntelligenceAdapterOptions {
+  readonly projectId: string
+  readonly location: 'global' | 'us-central1' | 'europe-west4'
+  readonly timeoutMs?: number
+  readonly generatePort?: VisualIntelligenceGeminiGeneratePort
+  readonly costSettlementPort: VisualIntelligenceProviderCostSettlementPort
+}
+
+export interface CompiledVertexGeminiProVisualIntelligenceDispatch {
+  readonly adapterVersion:
+    typeof VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_ADAPTER_VERSION
+  readonly exactModelId: typeof VISUAL_INTELLIGENCE_MODEL_ID
+  readonly contents: Content[]
+  readonly config: GenerateContentConfig
+  readonly requestConfigurationDigestSha256: string
+  readonly orderedPrivateArtifactIds: string[]
+  readonly applicationDefaultCredentialsRequired: true
+  readonly apiKeyAccepted: false
+  readonly providerToolsEnabled: false
+  readonly searchGroundingEnabled: false
+  readonly urlContextEnabled: false
+  readonly codeExecutionEnabled: false
+  readonly automaticProviderRetryEnabled: false
+  readonly legacySamplingOverridesEnabled: false
+  readonly geminiThreeDefaultSamplingPreserved: true
+  readonly callerPromptAccepted: false
+  readonly publicMediaUrlAccepted: false
+  readonly signedUrlIsSourceTruth: false
+  readonly rawRequestMayBePersisted: false
+}
+
+export const VISUAL_INTELLIGENCE_PROVIDER_RESPONSE_JSON_SCHEMA = deepFreeze({
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'schemaVersion', 'requestId', 'semanticSummary', 'segments', 'findings',
+    'targetedFollowupRanges', 'warnings', 'mediaContentTreatedAsUntrusted',
+    'providerInstructionsFollowedFromMedia', 'editingOrRenderingClaimed',
+  ],
+  properties: {
+    schemaVersion: {
+      type: 'string',
+      enum: ['visual-intelligence-provider-result-v1'],
+    },
+    requestId: { type: 'string', minLength: 1, maxLength: 240 },
+    semanticSummary: { type: 'string', minLength: 1, maxLength: 16_384 },
+    segments: {
+      type: 'array',
+      maxItems: 10_000,
+      items: segmentJsonSchema(),
+    },
+    findings: {
+      type: 'array',
+      maxItems: 10_000,
+      items: findingJsonSchema(),
+    },
+    targetedFollowupRanges: {
+      type: 'array',
+      maxItems: 4_096,
+      items: frameRangeJsonSchema(),
+    },
+    warnings: {
+      type: 'array',
+      maxItems: 512,
+      items: { type: 'string', minLength: 1, maxLength: 16_384 },
+    },
+    mediaContentTreatedAsUntrusted: { type: 'boolean', enum: [true] },
+    providerInstructionsFollowedFromMedia: { type: 'boolean', enum: [false] },
+    editingOrRenderingClaimed: { type: 'boolean', enum: [false] },
+  },
+})
+
+export function createVertexGeminiProVisualIntelligenceAdapter(
+  options: VertexGeminiProVisualIntelligenceAdapterOptions,
+): VisualIntelligenceProvider {
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
+  if (
+    !safeIdentity(options.projectId)
+    || timeoutMs <= 0
+    || timeoutMs > MAX_TIMEOUT_MS
+  ) throw notReady('vertex_gemini_pro_adapter_configuration_invalid')
+  const generatePort = options.generatePort
+    ?? createGoogleGenAiVertexGeneratePort({
+      projectId: options.projectId,
+      location: options.location,
+      timeoutMs,
+    })
+  return Object.freeze({
+    adapterId: VISUAL_INTELLIGENCE_PROVIDER_ADAPTER_ID,
+    preflight(untrustedInput: VisualIntelligenceProviderRequest) {
+      const dispatch = compileVertexGeminiProVisualIntelligenceDispatch(
+        untrustedInput,
+      )
+      return Object.freeze({
+        requestConfigurationDigestSha256:
+          dispatch.requestConfigurationDigestSha256,
+        exactModelId: VISUAL_INTELLIGENCE_MODEL_ID,
+        professionalHighEnforced: true,
+        automaticProviderRetryAllowed: false,
+        providerToolsAllowed: false,
+        callerPromptAccepted: false,
+      })
+    },
+    async execute(
+      untrustedInput: VisualIntelligenceProviderRequest,
+    ): Promise<VisualIntelligenceProviderExecutionResult> {
+      const input = validateProviderRequest(untrustedInput)
+      const dispatch = compileVertexGeminiProVisualIntelligenceDispatch(input)
+      let generated: VisualIntelligenceGeminiGenerateResult
+      try {
+        generated = await generatePort.generate({
+          model: dispatch.exactModelId,
+          contents: dispatch.contents,
+          config: dispatch.config,
+        })
+      } catch {
+        throw notReady('vertex_gemini_pro_provider_outcome_unknown_no_automatic_retry')
+      }
+      validateProviderEnvelope(generated)
+      let rawResult: unknown
+      try {
+        if (Buffer.byteLength(generated.text, 'utf8') > MAX_PROVIDER_RESPONSE_BYTES) {
+          throw new Error('response_too_large')
+        }
+        rawResult = JSON.parse(generated.text)
+      } catch {
+        throw notReady('vertex_gemini_pro_structured_response_invalid')
+      }
+      const normalizedResult = parseVisualIntelligenceProviderNormalizedResult(
+        rawResult,
+      )
+      validateNormalizedResultAgainstRequest(normalizedResult, input)
+      const admissionCost = input.request.admission.costPreflight
+      const settlement = await options.costSettlementPort
+        .settleAccountEffectiveUsage({
+          requestId: input.request.requestId,
+          idempotencyKey: input.request.idempotencyKey,
+          exactModelId: VISUAL_INTELLIGENCE_MODEL_ID,
+          promptTokenCount: generated.promptTokenCount,
+          candidateTokenCount: generated.candidateTokenCount,
+          thinkingTokenCount: generated.thinkingTokenCount,
+          cachedTokenCount: generated.cachedTokenCount,
+          totalTokenCount: generated.totalTokenCount,
+          maximumAuthorizedCostMicros:
+            admissionCost.maximumAuthorizedCostMicros,
+          accountEffectiveRateAuthorityRef:
+            admissionCost.accountEffectiveRateAuthorityRef,
+        })
+      if (
+        !settlement.billingAccountEffectiveRateUsed
+        || settlement.publicListPriceUsed
+        || settlement.duplicateSettlementPerformed
+        || refKey(settlement.accountEffectiveRateAuthorityRef)
+          !== refKey(admissionCost.accountEffectiveRateAuthorityRef)
+        || settlement.settledCostMicros
+          > admissionCost.maximumAuthorizedCostMicros
+      ) throw notReady('visual_intelligence_cost_settlement_not_admissible')
+      const profile = getVisualIntelligenceProfileDefinition(
+        input.request.operation,
+        input.request.profile,
+      )
+      return deepFreeze({
+        normalizedResult,
+        usage: {
+          promptTokenCount: generated.promptTokenCount,
+          candidateTokenCount: generated.candidateTokenCount,
+          thinkingTokenCount: generated.thinkingTokenCount,
+          cachedTokenCount: generated.cachedTokenCount,
+          totalTokenCount: generated.totalTokenCount,
+          providerResponseId: generated.responseId,
+          providerModelVersion: generated.modelVersion,
+          estimatedCostMicros: settlement.estimatedCostMicros,
+          settledCostMicros: settlement.settledCostMicros,
+          costEvidenceRef: settlement.costEvidenceRef,
+          billingAccountEffectiveRateUsed: true,
+          publicListPriceUsed: false,
+          duplicateSettlementPerformed: false,
+          replayedFromCache: false,
+          providerCallMade: true,
+        },
+        provenance: {
+          providerAdapterId: VISUAL_INTELLIGENCE_PROVIDER_ADAPTER_ID,
+          providerId: VISUAL_INTELLIGENCE_PROVIDER_ID,
+          exactModelId: VISUAL_INTELLIGENCE_MODEL_ID,
+          thinkingLevel: VISUAL_INTELLIGENCE_THINKING_LEVEL,
+          mediaResolution: VISUAL_INTELLIGENCE_MEDIA_RESOLUTION,
+          promptVersion: profile.promptVersion,
+          responseSchemaVersion: profile.responseSchemaVersion,
+          applicationDefaultCredentialsUsed: true,
+          providerToolsUsed: false,
+          searchGroundingUsed: false,
+          urlContextUsed: false,
+          codeExecutionUsed: false,
+          rawProviderPayloadPersisted: false,
+        },
+        sanitizedDiagnostics: [
+          'vertex_adc_authenticated',
+          'professional_high_explicit',
+          'single_provider_attempt',
+          'structured_result_validated',
+          'account_effective_cost_settled',
+        ],
+      })
+    },
+  })
+}
+
+export function compileVertexGeminiProVisualIntelligenceDispatch(
+  input: VisualIntelligenceProviderRequest,
+): CompiledVertexGeminiProVisualIntelligenceDispatch {
+  const validated = validateProviderRequest(input)
+  const instruction = compileVisualIntelligenceProviderInstruction(
+    validated.request,
+  )
+  const mediaParts = validated.privateMediaInputs.map((media) => ({
+    fileData: {
+      fileUri: media.gcsUri,
+      mimeType: media.contentType,
+    },
+    mediaResolution: {
+      level: PartMediaResolutionLevel.MEDIA_RESOLUTION_HIGH,
+    },
+  }))
+  const evidencePayload = {
+    schemaVersion: 'visual-intelligence-provider-evidence-envelope-v1',
+    requestId: validated.request.requestId,
+    operation: validated.request.operation,
+    profile: validated.request.profile,
+    scope: validated.request.scope,
+    authorizedArtifacts: [
+      ...validated.request.sourceArtifacts,
+      ...validated.request.comparisonArtifacts,
+    ].map((artifact) => ({
+      artifactId: artifact.artifactId,
+      mediaKind: artifact.mediaKind,
+      checksumSha256: artifact.checksumSha256,
+      width: artifact.width,
+      height: artifact.height,
+      durationFrames: artifact.durationFrames,
+      frameRate: artifact.frameRate,
+      mediaProbeEvidenceRef: artifact.mediaProbeEvidenceRef,
+    })),
+    requestedRanges: validated.request.requestedRanges,
+    requiredEvidenceRefs: validated.request.requiredEvidenceRefs,
+    expectedOutcomeRefs: validated.request.expectedOutcomeRefs,
+    outputFrame: validated.request.outputFrame,
+    protectedZones: validated.request.protectedZones,
+    deterministicEvidence: validated.deterministicEvidence,
+    coveragePlan: validated.coveragePlan,
+  }
+  const contents: Content[] = [{
+    role: 'user',
+    parts: [
+      ...mediaParts,
+      { text: visualIntelligenceCanonicalJson(evidencePayload) },
+    ],
+  }]
+  const config: GenerateContentConfig = {
+    systemInstruction: instruction,
+    candidateCount: 1,
+    maxOutputTokens: 65_536,
+    responseMimeType: 'application/json',
+    responseJsonSchema: VISUAL_INTELLIGENCE_PROVIDER_RESPONSE_JSON_SCHEMA,
+    mediaResolution: MediaResolution.MEDIA_RESOLUTION_HIGH,
+    thinkingConfig: {
+      thinkingLevel: ThinkingLevel.HIGH,
+    },
+    httpOptions: {
+      apiVersion: VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION,
+      timeout: DEFAULT_TIMEOUT_MS,
+      retryOptions: { attempts: 1 },
+    },
+    labels: {
+      capability: 'visual-intelligence',
+      operation: validated.request.operation.replaceAll('_', '-'),
+      profile: validated.request.profile.replaceAll('_', '-'),
+    },
+  }
+  const dispatchIdentity = {
+    exactModelId: VISUAL_INTELLIGENCE_MODEL_ID,
+    contents,
+    config,
+  }
+  return deepFreeze({
+    adapterVersion: VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_ADAPTER_VERSION,
+    exactModelId: VISUAL_INTELLIGENCE_MODEL_ID,
+    contents,
+    config,
+    requestConfigurationDigestSha256:
+      visualIntelligenceDigest(dispatchIdentity),
+    orderedPrivateArtifactIds:
+      validated.privateMediaInputs.map((item) => item.artifactId),
+    applicationDefaultCredentialsRequired: true,
+    apiKeyAccepted: false,
+    providerToolsEnabled: false,
+    searchGroundingEnabled: false,
+    urlContextEnabled: false,
+    codeExecutionEnabled: false,
+    automaticProviderRetryEnabled: false,
+    legacySamplingOverridesEnabled: false,
+    geminiThreeDefaultSamplingPreserved: true,
+    callerPromptAccepted: false,
+    publicMediaUrlAccepted: false,
+    signedUrlIsSourceTruth: false,
+    rawRequestMayBePersisted: false,
+  })
+}
+
+function createGoogleGenAiVertexGeneratePort(input: {
+  projectId: string
+  location: string
+  timeoutMs: number
+}): VisualIntelligenceGeminiGeneratePort {
+  const client = new GoogleGenAI({
+    vertexai: true,
+    project: input.projectId,
+    location: input.location,
+    httpOptions: {
+      apiVersion: VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION,
+      timeout: input.timeoutMs,
+      retryOptions: { attempts: 1 },
+    },
+  })
+  return Object.freeze({
+    async generate(request: VisualIntelligenceGeminiGenerateInput) {
+      const response = await client.models.generateContent(request)
+      const candidates = response.candidates ?? []
+      const first = candidates[0]
+      const usage = response.usageMetadata
+      return {
+        responseId: response.responseId ?? '',
+        modelVersion: response.modelVersion ?? '',
+        text: response.text ?? '',
+        finishReason: first?.finishReason ?? '',
+        candidateCount: candidates.length,
+        promptTokenCount: usage?.promptTokenCount ?? -1,
+        candidateTokenCount: usage?.candidatesTokenCount ?? -1,
+        thinkingTokenCount: usage?.thoughtsTokenCount ?? 0,
+        cachedTokenCount: usage?.cachedContentTokenCount ?? 0,
+        totalTokenCount: usage?.totalTokenCount ?? -1,
+        groundingMetadataPresent: Boolean(first?.groundingMetadata),
+        urlContextMetadataPresent: Boolean(first?.urlContextMetadata),
+        functionCallPresent: Boolean(response.functionCalls?.length),
+        executableCodePresent: Boolean(response.executableCode),
+      }
+    },
+  })
+}
+
+function validateProviderRequest(
+  input: VisualIntelligenceProviderRequest,
+): VisualIntelligenceProviderRequest {
+  const request = parseVisualIntelligenceRequest(input.request)
+  const profile = getVisualIntelligenceProfileDefinition(
+    request.operation,
+    request.profile,
+  )
+  if (
+    input.promptVersion !== profile.promptVersion
+    || input.responseSchemaVersion !== profile.responseSchemaVersion
+  ) throw notReady('visual_intelligence_profile_version_mismatch')
+  const expectedArtifacts = [
+    ...request.sourceArtifacts,
+    ...request.comparisonArtifacts,
+  ]
+  if (input.privateMediaInputs.length !== expectedArtifacts.length) {
+    throw notReady('visual_intelligence_private_media_set_incomplete')
+  }
+  const seen = new Set<string>()
+  for (let index = 0; index < expectedArtifacts.length; index += 1) {
+    const expected = expectedArtifacts[index]
+    const actual = input.privateMediaInputs[index]
+    if (
+      seen.has(actual.artifactId)
+      || actual.artifactId !== expected.artifactId
+      || actual.contentType !== expected.contentType
+      || actual.checksumSha256 !== expected.checksumSha256
+      || actual.exactGenerationRereadVerified !== true
+      || !GCS_URI.test(actual.gcsUri)
+      || hasForbiddenControlCharacter(actual.gcsUri)
+      || actual.gcsUri.includes('/../')
+      || actual.gcsUri.includes('/./')
+    ) throw notReady('visual_intelligence_private_media_binding_invalid')
+    seen.add(actual.artifactId)
+  }
+  const evidenceIds = new Set<string>()
+  for (const evidence of input.deterministicEvidence) {
+    if (
+      evidenceIds.has(evidence.evidenceId)
+      || !seen.has(evidence.artifactId)
+      || evidence.privateEvidence !== true
+      || evidence.providerInstructionAccepted !== false
+    ) throw notReady('visual_intelligence_deterministic_evidence_invalid')
+    evidenceIds.add(evidence.evidenceId)
+  }
+  const deterministicRefs = new Set(
+    input.deterministicEvidence.map((evidence) => refKey(evidence.evidenceRef)),
+  )
+  if (request.requiredEvidenceRefs.some(
+    (requiredRef) => !deterministicRefs.has(refKey(requiredRef)),
+  )) throw notReady('visual_intelligence_required_evidence_missing')
+  if (input.coveragePlan.requestedRanges.length !== request.requestedRanges.length) {
+    throw notReady('visual_intelligence_coverage_plan_request_mismatch')
+  }
+  return Object.freeze({ ...input, request })
+}
+
+function validateProviderEnvelope(
+  result: VisualIntelligenceGeminiGenerateResult,
+): void {
+  if (
+    !safeIdentity(result.responseId)
+    || result.modelVersion !== VISUAL_INTELLIGENCE_MODEL_ID
+    || result.finishReason !== FinishReason.STOP
+    || result.candidateCount !== 1
+    || result.promptTokenCount < 0
+    || result.candidateTokenCount < 0
+    || result.thinkingTokenCount < 0
+    || result.cachedTokenCount < 0
+    || result.totalTokenCount
+      < result.promptTokenCount + result.candidateTokenCount
+        + result.thinkingTokenCount
+    || result.groundingMetadataPresent
+    || result.urlContextMetadataPresent
+    || result.functionCallPresent
+    || result.executableCodePresent
+  ) throw notReady('vertex_gemini_pro_response_envelope_not_admissible')
+}
+
+function validateNormalizedResultAgainstRequest(
+  result: ReturnType<typeof parseVisualIntelligenceProviderNormalizedResult>,
+  input: VisualIntelligenceProviderRequest,
+): void {
+  if (result.requestId !== input.request.requestId) {
+    throw notReady('visual_intelligence_provider_result_request_mismatch')
+  }
+  const artifacts = new Map([
+    ...input.request.sourceArtifacts,
+    ...input.request.comparisonArtifacts,
+  ].map((item) => [item.artifactId, item]))
+  const evidenceByRef = new Map(
+    input.deterministicEvidence.map((item) => [
+      refKey(item.evidenceRef),
+      item,
+    ]),
+  )
+  const segmentIds = new Set<string>()
+  const representedArtifactIds = new Set<string>()
+  for (const segment of result.segments) {
+    const artifact = artifacts.get(segment.artifactId)
+    if (
+      !artifact
+      || segmentIds.has(segment.segmentId)
+      || segment.range.endFrameExclusive > artifact.durationFrames
+      || segment.range.frameRate.numerator !== artifact.frameRate.numerator
+      || segment.range.frameRate.denominator !== artifact.frameRate.denominator
+      || !input.request.requestedRanges.some((requested) =>
+        containsRange(requested, segment.range))
+      || new Set(segment.evidenceRefs.map(refKey)).size
+        !== segment.evidenceRefs.length
+      || segment.evidenceRefs.some((ref) => !evidenceByRef.has(refKey(ref)))
+      || segment.visibleTextEvidenceRefs.some((ref) =>
+        evidenceByRef.get(refKey(ref))?.authority !== 'exact_ocr')
+      || segment.transcriptEvidenceRefs.some((ref) =>
+        evidenceByRef.get(refKey(ref))?.authority !== 'canonical_transcript')
+    ) throw notReady('visual_intelligence_provider_segment_not_admissible')
+    segmentIds.add(segment.segmentId)
+    representedArtifactIds.add(segment.artifactId)
+  }
+  if (
+    result.segments.length === 0
+    || [...artifacts.keys()].some((artifactId) =>
+      !representedArtifactIds.has(artifactId))
+  ) throw notReady('visual_intelligence_provider_artifact_coverage_missing')
+  if (!visualIntelligenceSourcePlanningSegmentsAreComplete({
+    profile: input.request.profile,
+    sourceArtifacts: input.request.sourceArtifacts,
+    segments: result.segments,
+    targetedFollowupRangeCount: result.targetedFollowupRanges.length,
+  })) {
+    throw notReady('visual_intelligence_source_planning_result_incomplete')
+  }
+  const expectedOutcomeRefs = new Set(
+    input.request.expectedOutcomeRefs.map(refKey),
+  )
+  const findingIds = new Set<string>()
+  for (const finding of result.findings) {
+    const artifact = artifacts.get(finding.artifactId)
+    if (
+      !artifact
+      || findingIds.has(finding.findingId)
+      || finding.range.endFrameExclusive > artifact.durationFrames
+      || finding.range.frameRate.numerator !== artifact.frameRate.numerator
+      || finding.range.frameRate.denominator !== artifact.frameRate.denominator
+      || !input.request.requestedRanges.some((requested) =>
+        containsRange(requested, finding.range))
+      || new Set(finding.evidenceRefs.map(refKey)).size
+        !== finding.evidenceRefs.length
+      || finding.evidenceRefs.some((ref) => !evidenceByRef.has(refKey(ref)))
+      || finding.expectedOutcomeRefs.some(
+        (ref) => !expectedOutcomeRefs.has(refKey(ref)),
+      )
+    ) throw notReady('visual_intelligence_provider_finding_not_admissible')
+    findingIds.add(finding.findingId)
+  }
+  if (result.targetedFollowupRanges.some((range) =>
+    !input.request.requestedRanges.some((requested) =>
+      containsRange(requested, range)))) {
+    throw notReady('visual_intelligence_provider_followup_range_not_admissible')
+  }
+}
+
+function containsRange(
+  outer: VisualIntelligenceProviderRequest['request']['requestedRanges'][number],
+  inner: VisualIntelligenceProviderRequest['request']['requestedRanges'][number],
+): boolean {
+  return outer.frameRate.numerator === inner.frameRate.numerator
+    && outer.frameRate.denominator === inner.frameRate.denominator
+    && outer.startFrame <= inner.startFrame
+    && outer.endFrameExclusive >= inner.endFrameExclusive
+}
+
+function evidenceRefJsonSchema() {
+  return {
+    type: 'object', additionalProperties: false,
+    required: ['id', 'version', 'contentHash'],
+    properties: {
+      id: { type: 'string', minLength: 1, maxLength: 240 },
+      version: { type: 'integer', minimum: 1, maximum: 1_000_000 },
+      contentHash: { type: 'string', pattern: '^sha256:[a-f0-9]{64}$' },
+    },
+  }
+}
+
+function frameRateJsonSchema() {
+  return {
+    type: 'object', additionalProperties: false,
+    required: ['numerator', 'denominator'],
+    properties: {
+      numerator: { type: 'integer', minimum: 1, maximum: 1_000_000 },
+      denominator: { type: 'integer', minimum: 1, maximum: 1_000_000 },
+    },
+  }
+}
+
+function frameRangeJsonSchema() {
+  return {
+    type: 'object', additionalProperties: false,
+    required: ['startFrame', 'endFrameExclusive', 'frameRate'],
+    properties: {
+      startFrame: { type: 'integer', minimum: 0 },
+      endFrameExclusive: { type: 'integer', minimum: 1 },
+      frameRate: frameRateJsonSchema(),
+    },
+  }
+}
+
+function segmentJsonSchema() {
+  return {
+    type: 'object', additionalProperties: false,
+    required: [
+      'segmentId', 'artifactId', 'range', 'sceneId', 'summary', 'subjectIds',
+      'objectIds', 'actionLabels', 'visibleTextEvidenceRefs',
+      'transcriptEvidenceRefs', 'evidenceRefs', 'confidenceBasisPoints',
+      'uncertainty', 'sourcePlanning',
+    ],
+    properties: {
+      segmentId: { type: 'string', minLength: 1, maxLength: 240 },
+      artifactId: { type: 'string', minLength: 1, maxLength: 240 },
+      range: frameRangeJsonSchema(),
+      sceneId: { anyOf: [
+        { type: 'string', minLength: 1, maxLength: 240 },
+        { type: 'null' },
+      ] },
+      summary: { type: 'string', minLength: 1, maxLength: 16_384 },
+      subjectIds: stringArrayJsonSchema(256, 240),
+      objectIds: stringArrayJsonSchema(256, 240),
+      actionLabels: stringArrayJsonSchema(256, 160),
+      visibleTextEvidenceRefs: {
+        type: 'array', maxItems: 256, items: evidenceRefJsonSchema(),
+      },
+      transcriptEvidenceRefs: {
+        type: 'array', maxItems: 256, items: evidenceRefJsonSchema(),
+      },
+      evidenceRefs: {
+        type: 'array', minItems: 1, maxItems: 512,
+        items: evidenceRefJsonSchema(),
+      },
+      confidenceBasisPoints: { type: 'integer', minimum: 0, maximum: 10_000 },
+      uncertainty: { anyOf: [
+        { type: 'string', minLength: 1, maxLength: 16_384 },
+        { type: 'null' },
+      ] },
+      sourcePlanning: { anyOf: [
+        {
+          type: 'object', additionalProperties: false,
+          required: [
+            'sourceFunction', 'actionIntensity', 'editUsability',
+            'cameraStability', 'continuity',
+          ],
+          properties: {
+            sourceFunction: { type: 'string', enum: [
+              'hook', 'active_action', 'setup', 'dialogue', 'reaction',
+              'detail', 'transition', 'idle', 'unusable', 'uncertain',
+            ] },
+            actionIntensity: { type: 'string', enum: [
+              'none', 'low', 'medium', 'high',
+            ] },
+            editUsability: { type: 'string', enum: [
+              'strong', 'usable', 'weak', 'reject',
+            ] },
+            cameraStability: { type: 'string', enum: [
+              'stable', 'usable_motion', 'unstable', 'uncertain',
+            ] },
+            continuity: { type: 'string', enum: [
+              'continuous', 'discontinuous', 'uncertain',
+            ] },
+          },
+        },
+        { type: 'null' },
+      ] },
+    },
+  }
+}
+
+function findingJsonSchema() {
+  return {
+    type: 'object', additionalProperties: false,
+    required: [
+      'findingId', 'artifactId', 'range', 'category', 'severity', 'summary',
+      'evidenceRefs', 'expectedOutcomeRefs', 'confidenceBasisPoints',
+      'uncertainty', 'recommendedOwner', 'reinspectionRequired',
+      'directTimelineMutationAllowed', 'providerInstructionAccepted',
+    ],
+    properties: {
+      findingId: { type: 'string', minLength: 1, maxLength: 240 },
+      artifactId: { type: 'string', minLength: 1, maxLength: 240 },
+      range: frameRangeJsonSchema(),
+      category: { type: 'string', minLength: 1, maxLength: 240 },
+      severity: { type: 'string', enum: [
+        'info', 'warning', 'revision_required', 'blocking',
+      ] },
+      summary: { type: 'string', minLength: 1, maxLength: 16_384 },
+      evidenceRefs: {
+        type: 'array', minItems: 1, maxItems: 512,
+        items: evidenceRefJsonSchema(),
+      },
+      expectedOutcomeRefs: {
+        type: 'array', maxItems: 512, items: evidenceRefJsonSchema(),
+      },
+      confidenceBasisPoints: { type: 'integer', minimum: 0, maximum: 10_000 },
+      uncertainty: { anyOf: [
+        { type: 'string', minLength: 1, maxLength: 16_384 },
+        { type: 'null' },
+      ] },
+      recommendedOwner: { type: 'string', enum: [
+        'planning', 'caption', 'graphics', 'motion_graphics', 'living_frame',
+        'smart_cut', 'compositing', 'color', 'aspect_ratio', 'render',
+        'private_review', 'human_review',
+      ] },
+      reinspectionRequired: { type: 'boolean' },
+      directTimelineMutationAllowed: { type: 'boolean', enum: [false] },
+      providerInstructionAccepted: { type: 'boolean', enum: [false] },
+    },
+  }
+}
+
+function stringArrayJsonSchema(maxItems: number, maxLength: number) {
+  return {
+    type: 'array', maxItems,
+    items: { type: 'string', minLength: 1, maxLength },
+  }
+}
+
+function refKey(ref: VisualIntelligenceEvidenceRef): string {
+  return `${ref.id}:${ref.version}:${ref.contentHash}`
+}
+
+function safeIdentity(value: string): boolean {
+  return /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u.test(value)
+}
+
+function hasForbiddenControlCharacter(value: string): boolean {
+  return [...value].some((character) => {
+    const code = character.charCodeAt(0)
+    return code <= 31 || code === 127
+  })
+}
+
+function notReady(requiredGate: string): ApiError {
+  return new ApiError(
+    'TOOL_NOT_READY',
+    'The professional Visual Intelligence provider is not ready.',
+    503,
+    { requiredGate },
+  )
+}
+
+function deepFreeze<T>(value: T): T {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value
+  Object.freeze(value)
+  for (const item of Object.values(value as Record<string, unknown>)) deepFreeze(item)
+  return value
+}

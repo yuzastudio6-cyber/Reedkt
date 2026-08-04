@@ -1,6 +1,8 @@
 # Edit Brief Export Settings Architecture
 
-Status: architecture/docs only. This report adds no implementation, no TypeScript types, no repository, no API route, no UI route, no runtime behavior, no migration, no Supabase command, no provider/model call, no worker, no render, no upload, no file-byte read, no credit action, no staging, and no cleanup.
+Status: `mock_local_professional_profile_contract`
+
+The shared TypeScript contract, deterministic recommendation rules, local validation, and browser-safe adapter support professional resolution profiles. This remains mock/local planning metadata: it adds no production route, migration, Supabase command, provider/model call, worker, render, upload, file-byte read, or credit action.
 
 ## Ownership
 
@@ -11,6 +13,7 @@ Export Settings belong to `ProjectEditSession`. Edit Brief can show or change th
 - `platformTarget`
 - `aspectRatio`
 - `resolution`
+- `resolutionProfileId` (`hd_1080`, `qhd_1440`, or `uhd_2160`; `custom` remains metadata-only)
 - `frameRate`
 - `format`
 - `codec`
@@ -31,7 +34,9 @@ Export Settings belong to `ProjectEditSession`. Edit Brief can show or change th
 
 ## Recommended UX Copy
 
-`Recommended Export: Instagram Reel 9:16, 1080p, 30fps`
+`Recommended Export: Instagram Reel 9:16, 4K UHD, 30fps`
+
+`4K is already included in the approved edit estimate. Choosing covered 1080p, 2K, or 4K output does not create another credit charge.`
 
 `[Change]`
 

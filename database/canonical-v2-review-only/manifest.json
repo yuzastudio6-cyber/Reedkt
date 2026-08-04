@@ -1,0 +1,116 @@
+{
+  "chainId": "reeditpro-canonical-v2",
+  "status": "security_review_rejected_not_executable",
+  "activeMigrationHistory": false,
+  "supabaseCliMigrationPath": false,
+  "sourceBaselineStatus": "blocked_by_parallel_foundations",
+  "currentProductScope": "owner_private_collaboration_disabled",
+  "securityReview": {
+    "reviewedAt": "2026-07-10",
+    "promotionAllowed": false,
+    "rejectedDraftSequences": [3, 4],
+    "report": "docs/canonical-v2-security-review-2026-07-10.md",
+    "reason": "Approval is not derived from canonical plan, estimate, and approval records; reservations are not funded by a conservation-safe wallet ledger; jobs are not derived from immutable approved work items; lease lifecycle race and response-loss invariants remain incomplete."
+  },
+  "orderedDrafts": [
+    {
+      "sequence": 1,
+      "file": "001_identity_tenancy.canonical-v2.draft.sql",
+      "tables": [
+        "profiles",
+        "workspaces",
+        "workspace_members"
+      ],
+      "excludes": [
+        "projects",
+        "edit_sessions",
+        "edit_preferences",
+        "media",
+        "plans",
+        "credits",
+        "approvals",
+        "jobs",
+        "workers",
+        "storage"
+      ]
+    },
+    {
+      "sequence": 2,
+      "file": "002_current_product_records.canonical-v2.draft.sql",
+      "tables": [
+        "projects",
+        "edit_sessions",
+        "edit_preferences",
+        "api_idempotency_keys",
+        "audit_events"
+      ],
+      "excludes": [
+        "uploads",
+        "media",
+        "plans",
+        "estimates",
+        "approvals",
+        "credits",
+        "approved_snapshots",
+        "jobs",
+        "workers",
+        "providers",
+        "renders",
+        "exports",
+        "storage"
+      ]
+    },
+    {
+      "sequence": 3,
+      "file": "003_approval_credit_execution_authority.canonical-v2.draft.sql",
+      "tables": [
+        "approved_plan_snapshots",
+        "credit_reservations",
+        "credit_reservation_events"
+      ],
+      "excludes": [
+        "jobs",
+        "worker_service_identities",
+        "worker_leases",
+        "providers",
+        "renders",
+        "exports",
+        "storage"
+      ]
+    },
+    {
+      "sequence": 4,
+      "file": "004_jobs_worker_leases.canonical-v2.draft.sql",
+      "tables": [
+        "worker_service_identities",
+        "jobs",
+        "worker_leases"
+      ],
+      "excludes": [
+        "provider_execution",
+        "render_execution",
+        "export_execution",
+        "credit_spend",
+        "cloud_iam_configuration",
+        "storage"
+      ]
+    }
+  ],
+  "promotionRequires": [
+    "canonical schema contract review",
+    "replacement of security-rejected drafts 003 and 004",
+    "canonical plan version, credit estimate, approval record, and immutable approved work-item linkage",
+    "funded wallet ledger with concurrent reservation, spend, release, and refund conservation tests",
+    "reservation-first lock order across credit and worker lifecycle RPCs",
+    "lost-response-safe claim and release replay",
+    "approved attempt deadlines, bounded payloads, and backend-only worker principal audit",
+    "clean local reset in an isolated Supabase environment",
+    "two-user and two-workspace RLS isolation tests",
+    "owner bootstrap and negative role-mutation tests",
+    "transactional approval and credit-authority replay, rollback, and expiry tests",
+    "two-worker race and wrong-tenant/wrong-worker/wrong-token lease tests",
+    "verified Cloud service identity binding and token rotation design",
+    "Supabase Security Advisor review",
+    "upgrade plan for already-applied environments"
+  ]
+}

@@ -63,7 +63,7 @@ const layerMetadata: LayerMetadata[] = [
     includedInCreditEstimate: true,
     notes: [
       'Cleanup preference must be confirmed before approval.',
-      'Trim/select decisions carry reasons and remain mock-only until future transcript/media workers exist.',
+      'Trim/select decisions carry reasons and remain review-only until transcript/media workers exist.',
     ],
   },
   {
@@ -78,7 +78,7 @@ const layerMetadata: LayerMetadata[] = [
     includedInCreditEstimate: true,
     notes: [
       'Retake selection and meaning preservation validate SourceCleanupPlan before approval.',
-      'Trim review is mock-only until future transcript/media comparison workers exist.',
+      'Trim review is review-only until transcript/media comparison workers exist.',
     ],
   },
   {
@@ -93,7 +93,7 @@ const layerMetadata: LayerMetadata[] = [
     includedInCreditEstimate: true,
     notes: [
       'Async execution graph models future worker work items, dependencies, asset manifest entries, checkpoints, and checkback policies.',
-      'Mock-only: no provider, tool, backend, storage, queue, or Remotion execution runs in the frontend.',
+      'Review-only: provider, tool, backend, storage, queue, and renderer execution require approved backend gates.',
     ],
   },
   {
@@ -108,7 +108,7 @@ const layerMetadata: LayerMetadata[] = [
     includedInCreditEstimate: true,
     notes: [
       'Checkback, dependency readiness, asset merge, version selection, and render readiness are tracked after work graph creation.',
-      'Mock-only: no webhooks, polling, provider status checks, storage, workers, or rendering run in the frontend.',
+      'Review-only: webhooks, polling, provider status checks, storage, workers, and rendering require approved backend gates.',
     ],
   },
   {
@@ -123,7 +123,7 @@ const layerMetadata: LayerMetadata[] = [
     includedInCreditEstimate: true,
     notes: [
       'Agent QA gates, failure scenarios, fallback actions, and fallback decisions are planned before future execution.',
-      'Mock-only: no real QA, retry, fallback execution, provider call, worker, render, storage, or billing runs in the frontend.',
+      'Review-only: QA, retry, fallback execution, provider calls, workers, rendering, storage, and billing require approved backend gates.',
     ],
   },
   {
@@ -153,7 +153,7 @@ const layerMetadata: LayerMetadata[] = [
     includedInCreditEstimate: true,
     notes: [
       'Frame-accurate timing coordinates captions, visuals, transitions, SFX, provider clips, and Remotion layers.',
-      'Timing remains mock-only until future transcript/audio/media workers exist.',
+      'Timing remains review-only until transcript/audio/media workers exist.',
     ],
   },
   {
@@ -168,7 +168,7 @@ const layerMetadata: LayerMetadata[] = [
     includedInCreditEstimate: true,
     notes: [
       'Refines Master Timing into readable caption chunks, visual cue triggers, read-time holds, and collision plans.',
-      'Mock-only until future transcript/audio/media workers exist.',
+      'Review-only until transcript/audio/media workers exist.',
     ],
   },
   {
@@ -235,7 +235,7 @@ const layerMetadata: LayerMetadata[] = [
     includedInApprovedSnapshot: true,
     includedInValidation: true,
     includedInCreditEstimate: false,
-    notes: ['Current report is mock-only and does not run real media analysis.'],
+    notes: ['Current report is review-only; media analysis remains backend-gated.'],
   },
   {
     id: 'adaptive_strategy',
@@ -295,7 +295,7 @@ const layerMetadata: LayerMetadata[] = [
     includedInApprovedSnapshot: true,
     includedInValidation: true,
     includedInCreditEstimate: true,
-    notes: ['Depth composition is planned only; no real masks are executed.'],
+    notes: ['Depth composition is planned only; mask execution remains backend-gated.'],
   },
   {
     id: 'foreground_masking',
@@ -343,7 +343,7 @@ const layerMetadata: LayerMetadata[] = [
     includedInApprovedSnapshot: true,
     includedInValidation: true,
     includedInCreditEstimate: true,
-    notes: ['Audio work is planned; no real cleanup, analysis, music generation, or mix render runs here.'],
+    notes: ['Audio work is planned; cleanup, analysis, music generation, and mix rendering remain backend-gated.'],
   },
   {
     id: 'map_animation',
@@ -475,7 +475,7 @@ const layerMetadata: LayerMetadata[] = [
     includedInApprovedSnapshot: true,
     includedInValidation: true,
     includedInCreditEstimate: true,
-    notes: ['Credits are estimated before approval; no real deduction occurs.'],
+    notes: ['Credits are estimated before approval; deduction remains disabled until billing gates pass.'],
   },
   {
     id: 'approved_snapshot',
@@ -825,7 +825,7 @@ function createLaunchToolStackChecks(plan: EditPlan): PlanningSystemAuditReport[
         const text = [...tool.productionNotes, ...tool.qaChecks].join(' ').toLowerCase()
         return text.includes('planning') && text.includes('not installed') && text.includes('not executed')
       }),
-      message: 'Worker-only tools should remain metadata only in the frontend mock.',
+      message: 'Worker-only tools should remain metadata only until approved backend gates pass.',
     },
     {
       label: 'Browser-safe tools are preview/dev only',
@@ -885,7 +885,7 @@ function createSchemaBridgeChecks(plan: EditPlan): PlanningSystemAuditReport['ha
     },
     {
       label: 'No Supabase migration or connection implied',
-      passed: nonGoals.includes('no real supabase migrations') && nonGoals.includes('no supabase client') && nonGoals.includes('no sql is run'),
+      passed: nonGoals.includes('no active supabase migrations') && nonGoals.includes('no supabase client') && nonGoals.includes('no sql is run'),
       message: 'Schema bridge must remain planning-only and must not imply migrations, clients, connections, or SQL execution.',
     },
   ]
@@ -1013,12 +1013,21 @@ function createSupabaseProductionReadinessChecks(plan: EditPlan): PlanningSystem
     },
     {
       label: 'Active migration files are listed',
-      passed: activeFiles.length === 8 && activeFiles.every((file) => file.startsWith('supabase/migrations/20260518')),
-      message: 'RP-DATA-04 should list the eight active 20260518 migration files for manual local/staging testing.',
+      passed: activeFiles.length === 25 &&
+        activeFiles.some((file) => file.startsWith('supabase/migrations/20260513')) &&
+        activeFiles.some((file) => file.startsWith('supabase/migrations/20260518')),
+      message: 'Readiness should list every SQL file visible to the executable migration folder, not only the RP-DATA-04 subset.',
+    },
+    {
+      label: 'Parallel migration baseline is blocked explicitly',
+      passed: readinessPlan?.status === 'production_blocked' &&
+        readinessPlan.migrationBaselineStatus === 'blocked_by_parallel_foundations' &&
+        Boolean(readinessPlan.productionBlockers.some((blocker) => blocker.toLowerCase().includes('migration baseline'))),
+      message: 'The planning system must block raw Supabase migration execution until one canonical foundation replaces the incompatible parallel chains.',
     },
     {
       label: 'Local and staging testing remain required',
-      passed: readinessPlan?.status === 'local_testing_required' &&
+      passed: readinessPlan?.status === 'production_blocked' &&
         Boolean(readinessPlan.productionBlockers.some((blocker) => blocker.toLowerCase().includes('local'))) &&
         Boolean(readinessPlan.productionBlockers.some((blocker) => blocker.toLowerCase().includes('staging'))),
       message: 'Readiness must not claim production approval before local/staging testing.',
@@ -1122,7 +1131,7 @@ function createHardRuleChecks(plan: EditPlan): PlanningSystemAuditReport['hardRu
       message: 'Browser capture planning does not imply real browser access or bypassing site rules.',
     },
     {
-      label: 'Tool previews are mock-only',
+      label: 'Tool previews are review-only',
       passed: !planLower.includes('tool preview executed') && !planLower.includes('tool preview rendered in production'),
       message: 'Tool previews do not imply production rendering.',
     },
@@ -1204,7 +1213,7 @@ function createHardRuleChecks(plan: EditPlan): PlanningSystemAuditReport['hardRu
       passed: Boolean(plan.editingAgentExecutionPlan?.workItems.every((item) =>
         Boolean(item.approvedPlanSnapshotId) || item.notes.some((note) => /approved snapshot.*pending|snapshot id is pending/i.test(note)),
       )),
-      message: 'Execution work items should reference the approved snapshot or clearly mark the pending snapshot in mock planning.',
+      message: 'Execution work items should reference the approved snapshot or clearly mark the pending snapshot in review planning.',
     },
     {
       label: 'Async asset reconciliation plan exists',
@@ -1234,8 +1243,8 @@ function createHardRuleChecks(plan: EditPlan): PlanningSystemAuditReport['hardRu
       message: 'Preview placeholder policy should be explicit and separate from final render readiness.',
     },
     {
-      label: 'Async reconciliation is mock-only',
-      passed: Boolean(plan.asyncAssetReconciliationPlan?.limitations.some((limitation) => /mock-only|no real provider webhook|no real.*polling|no real assets|no remotion render/i.test(limitation))),
+      label: 'Async reconciliation is review-only',
+      passed: Boolean(plan.asyncAssetReconciliationPlan?.limitations.some((limitation) => /review-only|backend-gated|approved execution gates/i.test(limitation))),
       message: 'Async reconciliation should not imply real webhooks, polling, provider status, workers, storage, rendering, or backend execution.',
     },
     {
@@ -1318,9 +1327,9 @@ function createHardRuleChecks(plan: EditPlan): PlanningSystemAuditReport['hardRu
       message: 'Renderer composition and provider prompts should carry Master Timing references.',
     },
     {
-      label: 'No real timing analysis implied',
-      passed: Boolean(plan.masterTimingPlan?.limitations.some((limitation) => /no real transcript|no real beat|no .*audioflux|no .*media/i.test(limitation))),
-      message: 'Timing limitations must state that real transcript/audio/media analysis has not run.',
+      label: 'Timing analysis execution-gated',
+      passed: Boolean(plan.masterTimingPlan?.limitations.some((limitation) => /backend-gated|review-only|audioflux/i.test(limitation))),
+      message: 'Timing limitations must state that transcript/audio/media analysis remains gated.',
     },
     {
       label: 'Caption + Visual Cue Timing Plan exists',
@@ -1346,8 +1355,8 @@ function createHardRuleChecks(plan: EditPlan): PlanningSystemAuditReport['hardRu
       message: 'Renderer, prompts, credit, QA, and validation should consume the refined timing plan.',
     },
     {
-      label: 'Caption/visual timing remains mock-only',
-      passed: Boolean(plan.captionVisualCueTimingPlan?.limitations.some((limitation) => /mock-only|no real|no speech-to-text/i.test(limitation))),
+      label: 'Caption/visual timing remains review-only',
+      passed: Boolean(plan.captionVisualCueTimingPlan?.limitations.some((limitation) => /review-only|backend-gated|approved backend execution/i.test(limitation))),
       message: 'Caption + Visual Cue Timing must not imply real transcript/audio/media analysis has run.',
     },
     {
@@ -1378,7 +1387,7 @@ function createHardRuleChecks(plan: EditPlan): PlanningSystemAuditReport['hardRu
         plan.soundSyncTransitionTimingPlan?.beatGridPlan.status === 'not_needed' ||
         (
           plan.soundSyncTransitionTimingPlan?.beatGridPlan.analysisToolPlanned.includes('audioflux') &&
-          plan.soundSyncTransitionTimingPlan.limitations.some((limitation) => /no real .*audioflux|no real beat|mock-only/i.test(limitation))
+          plan.soundSyncTransitionTimingPlan.limitations.some((limitation) => /backend-gated|review-only|audioflux/i.test(limitation))
         ),
       ),
       message: 'AudioFlux should appear only as planned future analysis metadata, never as executed frontend work.',
@@ -1414,8 +1423,8 @@ function createHardRuleChecks(plan: EditPlan): PlanningSystemAuditReport['hardRu
       message: 'Credit estimate should reference timing complexity and timing credit profiles.',
     },
     {
-      label: 'Timing validation remains mock-only',
-      passed: Boolean(plan.timingValidationPlan?.limitations.some((limitation) => /mock-only|no real|no .*audioflux|no .*render/i.test(limitation))),
+      label: 'Timing validation remains review-only',
+      passed: Boolean(plan.timingValidationPlan?.limitations.some((limitation) => /review-only|backend-gated|audioflux|rendering/i.test(limitation))),
       message: 'Timing validation must not imply real transcript/audio/media analysis or rendering.',
     },
     {
@@ -1569,26 +1578,27 @@ export function createPlanningSystemAuditReport(plan: EditPlan): PlanningSystemA
     launchToolStackChecks,
     duplicateOrLegacyWarnings: warnings,
     nextPhaseRecommendations: [
-      'Manual local Supabase testing: run the active 20260518 migrations only in a local environment after review.',
+      'Supabase baseline reconciliation: do not run the raw migration directory; build one isolated canonical chain first.',
+      'Manual local Supabase testing: run a clean reset only after the canonical chain passes dependency review.',
       'Manual staging Supabase testing: verify RLS, storage policies, immutability triggers, and append-only protections before production.',
       'RP-BACKEND-01: Approved Snapshot Persistence + Job Queue Skeleton.',
-      'RP-PROVIDER-01: Provider Client Architecture, no real calls.',
-      'RP-RENDER-01: Remotion Composition Skeleton, no final render.',
+      'RP-PROVIDER-01: Provider Client Architecture; provider calls remain gated.',
+      'RP-RENDER-01: Renderer Composition Skeleton; final render remains gated.',
       'RP-CREDITS-01: Credit Reservation Ledger Architecture.',
       'RP-QA-02: Unit tests for planner validation and regression.',
       'Production migration approval: blocked until local/staging tests, advisor review, backups, and approval pass.',
     ],
     limitations: [
       'Audit inspects the EditPlan object only; it does not grep files at runtime.',
-      'Backend routes, Supabase connections, SQL execution, Stripe, provider calls, rendering, export jobs, and real tool execution are not implemented.',
+      'Backend routes, Supabase connections, SQL execution, Stripe, provider calls, rendering, export jobs, and tool execution remain gated until their owner approvals pass.',
       'Launch tool stack checks are planning metadata only and are not legal conclusions or worker execution.',
       'Supabase schema bridge is planning metadata; active RP-DATA-04 migration files are repository files only and are not applied to any database.',
       'SQL migration drafts are review-only files under database/migration-drafts/; they are not active Supabase migrations and should not be run.',
       'Migration review and RLS hardening remain hardened_draft; RLS is not tested in Supabase in this task.',
       'Supabase production-test readiness lists active migration files and manual tests; Codex did not run SQL or connect Supabase.',
-      'Master Timing is frame-accurate mock planning only; no real transcript alignment, beat detection, AudioFlux, FFmpeg, Signalsmith Stretch, Remotion render, or media worker has run.',
+      'Master Timing is frame-accurate review planning; transcript alignment, beat detection, AudioFlux, FFmpeg, Signalsmith Stretch, rendering, and media workers remain backend-gated.',
       'Future worker and production-readiness layers are documented as partial until backend milestones connect them.',
-      'Browser-safe previews remain developer/mock-only and are not production rendering.',
+      'Browser-safe previews remain developer/review-only and are not production rendering.',
     ],
   }
 }

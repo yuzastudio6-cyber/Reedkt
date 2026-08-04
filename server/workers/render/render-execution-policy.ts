@@ -7,6 +7,7 @@ import {
   assertWorkerPayloadHasNoSignedUrls,
 } from '../production/production-worker-gates'
 import type { FinalRenderExecutionInput } from './render-execution-types'
+import { isProfessionalExportFrameCovered } from '../../../src/lib/professional-export-policy'
 
 const forbiddenInputKeys = [
   'rawPrompt',
@@ -44,6 +45,22 @@ export function validateRenderExecutionPolicy(input: FinalRenderExecutionInput):
   if (input.mode === 'production_blocked') blockingReasons.push('production_final_render_blocked_in_m16a')
 
   if (input.renderMode === 'final_export') {
+    if (!input.professionalExportAuthority) blockingReasons.push('approved_4k_export_coverage_missing')
+    if (!input.approvedSnapshotId) blockingReasons.push('approved_snapshot_required_for_final_export')
+    if (!input.creditReservationId) blockingReasons.push('approved_edit_reservation_required_for_final_export')
+    if (input.professionalExportAuthority?.approvedReservationId !== input.creditReservationId) {
+      blockingReasons.push('export_reservation_binding_mismatch')
+    }
+    if (input.professionalExportAuthority && !isProfessionalExportFrameCovered({
+      authority: input.professionalExportAuthority,
+      width: input.canvas.width,
+      height: input.canvas.height,
+      aspectRatio: input.canvas.aspectRatio,
+      fps: input.fps,
+      durationSeconds: input.durationSeconds,
+    })) {
+      blockingReasons.push('export_frame_outside_approved_4k_coverage')
+    }
     const failedUpstream = (input.upstreamQaResults ?? []).filter((gate) => gate.blocking || gate.status === 'failed' || gate.status === 'blocked')
     if (failedUpstream.length > 0) blockingReasons.push('blocking_upstream_qa_gates_present')
   }

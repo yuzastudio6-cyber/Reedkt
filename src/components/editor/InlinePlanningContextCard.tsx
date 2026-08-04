@@ -1,12 +1,11 @@
 import { Badge } from '../Badge'
 import { frameLayoutTemplates } from '../../lib/frame-layouts'
-import { editLevelDefinitions, launchEditingCategories } from '../../lib/product-taxonomy'
+import { launchEditingCategories } from '../../lib/product-taxonomy'
 import { getSourceSequenceModeLabel } from '../../lib/source-sequence'
 import { visualPreferenceOptions } from '../../lib/workflow-profiles'
 import type {
   AspectRatio,
   ClipSource,
-  EditLevel,
   EditingCategory,
   FrameTemplateType,
   SourceSequenceMode,
@@ -16,7 +15,6 @@ import type {
 
 type InlinePlanningContextCardProps = {
   editingCategory: EditingCategory
-  editLevel: EditLevel
   targetPlatform: TargetPlatform
   aspectRatio: AspectRatio
   frameTemplateType: FrameTemplateType
@@ -25,7 +23,6 @@ type InlinePlanningContextCardProps = {
   sourceOrderConfirmed: boolean
   sourceSequenceMode: SourceSequenceMode
   aspectRatioConfirmed: boolean
-  editLevelConfirmed: boolean
 }
 
 const platformLabels: Record<TargetPlatform, string> = {
@@ -41,10 +38,6 @@ function labelForCategory(value: EditingCategory) {
   return launchEditingCategories.find((category) => category.value === value)?.label ?? value
 }
 
-function labelForLevel(value: EditLevel) {
-  return editLevelDefinitions.find((level) => level.value === value)?.label ?? value
-}
-
 function labelForFrame(value: FrameTemplateType) {
   return frameLayoutTemplates[value]?.animationZone.label ?? value.replaceAll('_', ' ')
 }
@@ -53,24 +46,10 @@ function labelForVisualPreference(value: VisualPreference) {
   return visualPreferenceOptions.find((option) => option.value === value)?.label ?? value.replaceAll('_', ' ')
 }
 
-function veoPolicyForLevel(value: EditLevel) {
-  if (value === 'basic') {
-    return 'Veo locked for Basic'
-  }
-
-  if (value === 'pro') {
-    return 'Veo locked for Pro'
-  }
-
-  return 'Veo Lite final fallback only'
-}
-
 export function InlinePlanningContextCard({
   aspectRatio,
   aspectRatioConfirmed,
-  editLevelConfirmed,
   editingCategory,
-  editLevel,
   frameTemplateType,
   clips,
   sourceOrderConfirmed,
@@ -78,7 +57,6 @@ export function InlinePlanningContextCard({
   targetPlatform,
   visualPreference,
 }: InlinePlanningContextCardProps) {
-  const veoPolicy = veoPolicyForLevel(editLevel)
   const importantClipCount = clips.filter((clip) => clip.isImportant).length
   const optionalClipCount = clips.filter((clip) => clip.isOptional || clip.sourceRole === 'optional').length
 
@@ -89,7 +67,7 @@ export function InlinePlanningContextCard({
           <span className="section-eyebrow">Current planning context</span>
           <h3>ReeditPro will plan with these choices</h3>
         </div>
-        <Badge accent={editLevel === 'premium' ? 'warning' : 'cyan'}>{veoPolicy}</Badge>
+        <Badge accent="cyan">Internal full-capability test</Badge>
       </div>
 
       <div className="planning-context-grid">
@@ -110,10 +88,6 @@ export function InlinePlanningContextCard({
           <strong>{clips.length} total / {importantClipCount} important / {optionalClipCount} optional</strong>
         </div>
         <div>
-          <span>Level</span>
-          <strong>{labelForLevel(editLevel)} / {editLevelConfirmed ? 'confirmed' : 'pending'}</strong>
-        </div>
-        <div>
           <span>Output frame</span>
           <strong>{platformLabels[targetPlatform]} / {aspectRatio} / {aspectRatioConfirmed ? 'confirmed' : 'pending'}</strong>
         </div>
@@ -126,16 +100,12 @@ export function InlinePlanningContextCard({
           <strong>{labelForVisualPreference(visualPreference)}</strong>
         </div>
         <div>
-          <span>Model rule</span>
-          <strong>{veoPolicy}</strong>
-        </div>
-        <div>
           <span>Background policy</span>
           <strong>AI video visuals use matching panel backgrounds by default.</strong>
         </div>
       </div>
       <p className="inline-helper">
-        Category guides context. Edit level changes complexity and fallback depth. The frame system owns the final canvas.
+        Internal testing uses every capability that is genuinely ready for this source and request. Execution still waits for the exact plan and credit approval.
       </p>
     </section>
   )

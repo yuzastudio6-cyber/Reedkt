@@ -1,4 +1,5 @@
 import { createAdaptiveEditStrategy } from './adaptive-edit-strategy'
+import { getPositiveInstructionSignalText } from './intent-compiler'
 import type {
   AudioQualityIssue,
   AudioUnderstandingReport,
@@ -359,7 +360,14 @@ function opportunitySeedsFromText(input: PlannerInput, text: string, clips: Clip
     })
   }
 
-  if (/\b(evidence|document|source|claim|case|investigation|allegation)\b/i.test(text)) {
+  if (
+    /\b(evidence|claim|investigation|allegation)\b/i.test(text) ||
+    /\b(source document|source citation|case file|court filing|evidence board)\b/i.test(text) ||
+    (
+      input.editingCategory === 'documentary_case_study' &&
+      /\b(document|case|proof|receipt|record)\b/i.test(text)
+    )
+  ) {
     seeds = addOpportunitySeed(seeds, {
       type: 'evidence_board',
       label: 'Evidence context',
@@ -444,9 +452,9 @@ function opportunitySeedsFromText(input: PlannerInput, text: string, clips: Clip
 
   if (seeds.length === 0) {
     seeds = addOpportunitySeed(seeds, {
-      type: input.editLevel === 'basic' ? 'caption_only' : 'still_card',
-      label: 'Clean support visual',
-      reason: 'The mock report did not find a stronger specific visual need, so keep the edit restrained.',
+      type: 'caption_only',
+      label: 'Source-led caption support',
+      reason: 'The mock report found no specific visual need, so the source footage and readable captions should carry the edit.',
       priority: 'low',
     })
   }
@@ -549,7 +557,7 @@ function visualReport(
       : [],
     colorLightingIssues: colorIssues.length > 0 ? colorIssues : ['none'],
     notes: [
-      'No real scene, object, face, or mask analysis has been run.',
+      'Scene, object, face, and mask analysis remain backend-gated.',
       'Visual understanding is deterministic mock planning only.',
     ],
   }
@@ -577,7 +585,7 @@ function audioReport(input: PlannerInput, text: string): AudioUnderstandingRepor
     ],
     audioIssues: issues,
     notes: [
-      'Audio understanding is mock-only and does not inspect waveform, transcript, or loudness.',
+      'Audio understanding is review-only until waveform, transcript, and loudness inspection are approved.',
       'Future workers should replace this with real voice, silence, music, and noise analysis.',
     ],
   }
@@ -640,7 +648,7 @@ function clipUnderstanding(
         ? ['Planned contact-object cue from metadata; future worker must detect/confirm before masking.']
         : [],
       aiNotes: [
-        'Mock-only clip understanding; no real media analysis was run.',
+        'Review-only clip understanding; media analysis remains backend-gated.',
       ],
     }
   })
@@ -650,19 +658,34 @@ export function createMockVideoUnderstandingReport({
   input,
   compiledIntent,
 }: CreateMockVideoUnderstandingReportParams): VideoUnderstandingReport {
+  const instructionSignalText = getPositiveInstructionSignalText(normalizeText([
+    input.customInstructions,
+    compiledIntent?.goalSummary,
+  ]))
   const combinedText = normalizeText([
     input.projectName,
     input.workflowType,
     input.editingCategory,
     input.moodStyle,
     input.visualPreference,
-    input.customInstructions,
-    compiledIntent?.goalSummary,
+    instructionSignalText,
     ...input.clips.flatMap((clip) => [clip.fileName, clip.detectedType, clip.notes, clip.sourceRole]),
+  ])
+  const semanticPlanningText = normalizeText([
+    input.projectName,
+    input.workflowType,
+    input.editingCategory,
+    input.moodStyle,
+    input.visualPreference,
+    instructionSignalText,
   ])
 
   const clips = clipUnderstanding(input, combinedText)
-  const seeds = opportunitySeedsFromText(input, combinedText, input.clips)
+  // File names and operational upload notes are weak metadata, not user intent or
+  // verified content evidence. Keep them available for per-clip advisory summaries,
+  // but never let words such as "browser" in an upload name authorize an expensive
+  // screen-capture, map, chart, or generated-story plan on their own.
+  const seeds = opportunitySeedsFromText(input, semanticPlanningText, input.clips)
   const opportunities = seeds.map((seed, index) => createOpportunity(seed, input, index))
   const opportunityTypes = Array.from(new Set(opportunities.map((opportunity) => opportunity.opportunityType)))
   const transcriptMeaning = transcriptReport(input, opportunityTypes)
@@ -693,7 +716,7 @@ export function createMockVideoUnderstandingReport({
     suggestedStrategy,
     confidence,
     limitations: [
-      'Mock-only report; no real media analysis has been run.',
+      'Review-only report; media analysis remains backend-gated.',
       'Future workers should replace mock analysis with transcript, visual, and audio analysis.',
     ],
     qaConcerns: [
@@ -705,7 +728,7 @@ export function createMockVideoUnderstandingReport({
     ],
     notes: [
       'Video understanding is advisory and must not override explicit user instructions.',
-      'This report is deterministic frontend mock planning only.',
+      'This report is deterministic planning metadata.',
     ],
   }
 }

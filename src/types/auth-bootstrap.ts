@@ -43,6 +43,7 @@ export interface UserProfileBootstrapResult {
 
 export interface WorkspaceBootstrapResult {
   ok: boolean
+  status?: AuthBootstrapStatus
   mode?: AuthBootstrapMode
   workspaceId?: string
   membershipId?: string

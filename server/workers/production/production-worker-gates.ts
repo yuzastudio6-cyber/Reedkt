@@ -1,5 +1,6 @@
 import type { ToolExecutionPlan } from '../../../src/backend/contracts/tool-execution-contracts'
 import {
+  NON_E2E_TOOL_CAPABILITY_IDS,
   evaluateRuntimePolicy,
   evaluateToolLicensePolicy,
   evaluateToolModelWeightPolicy,
@@ -308,10 +309,25 @@ export function assertQualityGatesNotBypassed(payload: ProductionWorkerJobPayloa
   if (result.hardBlock) throw new Error(result.message)
 }
 
-export function assertRevideoNotProductionExecuted(payload: ProductionWorkerJobPayload): void {
-  if (payload.executionMode === 'production_ready' && payload.requestedToolIds.includes('revideo')) {
-    throw new Error('Revideo is evaluation-only and blocked from production worker execution.')
+export function assertNonE2EToolCapabilitiesNotProductionExecuted(
+  payload: ProductionWorkerJobPayload,
+): void {
+  if (payload.executionMode !== 'production_ready') return
+
+  const requestedToolIds = payload.requestedToolIds as readonly string[]
+  const blockedCapabilityIds = NON_E2E_TOOL_CAPABILITY_IDS.filter((toolId) => (
+    requestedToolIds.includes(toolId)
+  ))
+  if (blockedCapabilityIds.length > 0) {
+    throw new Error(
+      `Non-E2E capability identities are blocked from production worker execution: ${blockedCapabilityIds.join(', ')}.`,
+    )
   }
+}
+
+/** @deprecated Use assertNonE2EToolCapabilitiesNotProductionExecuted. */
+export function assertRevideoNotProductionExecuted(payload: ProductionWorkerJobPayload): void {
+  assertNonE2EToolCapabilitiesNotProductionExecuted(payload)
 }
 
 export function runProductionWorkerGates(

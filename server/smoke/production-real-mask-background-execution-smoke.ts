@@ -8,12 +8,12 @@ import {
   buildMaskArtifactRecord,
   buildMaskFallbackDecisions,
   buildMaskTaskPlan,
-  buildSam2CommandPlan,
+  buildSam31CommandPlan,
   runBiRefNetMask,
   runKorniaMaskRefinement,
   runOpenCvMaskRefinement,
   runRembgFallback,
-  runSam2Tracking,
+  runSam31Tracking,
   runTransparentBackgroundFallback,
   validateMaskExecutionInput,
   validateMaskExecutionPolicy,
@@ -95,28 +95,79 @@ try {
   check(!validateMaskExecutionInput({
     ...baseInput,
     maskIntent: 'background_removal_video',
-    selectedPrimaryTool: 'sam2',
+    selectedPrimaryTool: 'sam3_1',
     subjectSelection: undefined,
   }).valid, 'Mask validator must require structured subjectSelection for promptable tracking.')
+  check(!validateMaskExecutionInput({
+    ...baseInput,
+    selectedPrimaryTool: 'sam2',
+  }).valid, 'Mask validator must reject SAM 2 for new work.')
+  check(
+    !validateMaskExecutionPolicy({ ...baseInput, fallbackTools: ['sam2'] }).allowed,
+    'Mask policy must reject SAM 2 as a new-plan fallback.',
+  )
+  await expectRejects(
+    () => buildMaskTaskPlan({
+      ...baseInput,
+      selectedPrimaryTool: 'sam2' as never,
+    }),
+    'Mask planner must fail closed on explicit SAM 2 selection.',
+  )
   check(!validateMaskExecutionInput({ ...baseInput, frameSamplingMaxFrames: 1000 }).valid, 'Mask validator must enforce frame count guards.')
 
   const imagePlan = buildMaskTaskPlan(baseInput)
   check(imagePlan.primaryTool === 'birefnet', 'Mask planner must choose BiRefNet for image cutout/background removal.')
   check(imagePlan.expectedArtifacts.includes('mask_image'), 'Image mask plan must expect mask_image.')
+  check(
+    imagePlan.modelWeightRequirements.includes('transparent_background_model') &&
+      imagePlan.modelWeightRequirements.includes('rembg_model'),
+    'Default image fallbacks must retain their unresolved model-weight requirements.',
+  )
+  const unadmittedFallbackPolicy = validateMaskExecutionPolicy({
+    ...baseInput,
+    mode: 'production_ready',
+    modelWeightManifestIds: ['birefnet_model'],
+    readinessReport: { overallStatus: 'passed', blockers: [], blockerSummaries: [] },
+  })
+  check(
+    !unadmittedFallbackPolicy.allowed &&
+      unadmittedFallbackPolicy.blockingReasons.includes(
+        'transparent_background_model_canonical_manifest_not_admitted',
+      ) &&
+      unadmittedFallbackPolicy.blockingReasons.includes(
+        'rembg_model_canonical_manifest_not_admitted',
+      ),
+    'Production policy must fail closed while default fallback model manifests are not canonically admitted.',
+  )
 
   const videoPlan = buildMaskTaskPlan({
     ...baseInput,
     maskIntent: 'background_removal_video',
     motionRequiresTracking: true,
   })
-  check(videoPlan.primaryTool === 'birefnet' && videoPlan.fallbackTools.includes('sam2'), 'Video mask plan must include BiRefNet plus SAM2/tracking fallback.')
+  check(
+    videoPlan.primaryTool === 'sam3_1' &&
+      !videoPlan.fallbackTools.includes('sam2' as never),
+    'Video mask plans must use canonical SAM 3.1 as the primary tracker and never fall back to SAM 2.',
+  )
+  check(videoPlan.modelWeightRequirements.includes('sam3_1_checkpoint'), 'Video mask plan must require the SAM 3.1 checkpoint manifest.')
+  check(!videoPlan.modelWeightRequirements.includes('birefnet_model'), 'Default SAM 3.1 video plans must not require a lower-quality BiRefNet fallback checkpoint.')
+  check(
+    videoPlan.canonicalGpuExecutionPolicy.placementClass === 'a100_80gb_heavy_primary_l4_qualified_fallback' &&
+      videoPlan.canonicalGpuExecutionPolicy.completeSelectedIntervalRequired &&
+      videoPlan.canonicalGpuExecutionPolicy.cpuOnlySubstantiveExecutionAllowed === false &&
+      videoPlan.canonicalGpuExecutionPolicy.userTriggeredScaleFromZeroRequired,
+    'Video mask plans must bind complete-interval A100-primary/L4-qualified scale-zero execution.',
+  )
+  check(!JSON.stringify(videoPlan).includes('sam2'), 'New video mask plans must contain no SAM 2 identity.')
   check(videoPlan.temporalSmoothingPlan.trackingRequired, 'Video mask plan must require tracking when motion needs it.')
   check(videoPlan.videoFrameSamplingPolicy.maxFrames <= 300 && !videoPlan.videoFrameSamplingPolicy.fullResolutionEveryFrame, 'Mask planner must enforce frame sampling guard.')
 
   const birefnetPlan = buildBiRefNetCommandPlan({ executionInput: baseInput, taskPlan: imagePlan })
   check(birefnetPlan.executes === false && birefnetPlan.args.includes('--no-download'), 'BiRefNet command plan must be non-executing and no-download.')
-  const sam2Plan = buildSam2CommandPlan({ executionInput: { ...baseInput, maskIntent: 'background_removal_video' }, taskPlan: videoPlan })
-  check(sam2Plan.executes === false && sam2Plan.args.includes('--no-download'), 'SAM2 command plan must be non-executing and no-download.')
+  const sam31Plan = buildSam31CommandPlan({ executionInput: { ...baseInput, maskIntent: 'background_removal_video' }, taskPlan: videoPlan })
+  check(sam31Plan.executes === false && sam31Plan.args.includes('--no-download') && !sam31Plan.command, 'SAM 3.1 plan must be byte-free, non-executing, and no-download.')
+  check(sam31Plan.args.includes('tool.sam3_1.segment_and_track_subject.v1'), 'SAM 3.1 plan must bind the exact canonical operation ID.')
 
   const localDevInput: MaskExecutionInput = {
     ...baseInput,
@@ -127,8 +178,8 @@ try {
   }
   const birefnet = await runBiRefNetMask({ executionInput: localDevInput, taskPlan: imagePlan })
   check(birefnet.status === 'skipped' && birefnet.skipReason?.code === 'birefnet_model_missing', 'BiRefNet runner must skip gracefully if unavailable/unapproved/no model.')
-  const sam2 = await runSam2Tracking({ executionInput: { ...localDevInput, maskIntent: 'background_removal_video' }, taskPlan: videoPlan })
-  check(sam2.status === 'skipped' && sam2.skipReason?.code === 'sam2_checkpoint_missing', 'SAM2 runner must skip gracefully if unavailable/unapproved/no checkpoint.')
+  const sam31 = await runSam31Tracking({ executionInput: { ...localDevInput, maskIntent: 'background_removal_video' }, taskPlan: videoPlan })
+  check(sam31.status === 'skipped' && sam31.skipReason?.code === 'sam3_1_canonical_runtime_release_required', 'SAM 3.1 must fail closed until its canonical GPU release and admission exist.')
   const transparent = await runTransparentBackgroundFallback({ executionInput: localDevInput, taskPlan: imagePlan })
   check(transparent.status === 'skipped', 'transparent-background adapter must skip gracefully if unavailable.')
   const rembg = await runRembgFallback({ executionInput: localDevInput, taskPlan: imagePlan })
@@ -253,7 +304,7 @@ try {
       'policy_forbidden_fields',
       'validation_overwrite_paths_subject_frame_guard',
       'birefnet_image_plan',
-      'birefnet_sam2_video_plan',
+      'birefnet_sam3_1_video_plan',
       'skip_safe_model_adapters',
       'fallback_weak_text_mask',
       'private_mask_artifacts',
@@ -289,7 +340,7 @@ function buildPayload(
     idempotencyKey: 'pending',
     attempt: 1,
     maxAttempts: 1,
-    requestedToolIds: workerType === 'gpu_ai_worker' ? ['birefnet'] : ['opencv'],
+    requestedToolIds: workerType === 'gpu_ai_worker' ? ['rembg'] : ['opencv'],
     requestedRecipeIds: ['background_removal_image_recipe'],
     storageReferenceIds: ['workspaces/workspace-m15c-smoke/projects/project-m15c-smoke/media/source.png'],
     requiredQualityGateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage', 'render_asset_integrity'],

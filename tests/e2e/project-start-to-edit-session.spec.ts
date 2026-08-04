@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
+import { installActiveProductRouteFixture } from './helpers/active-product'
 import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
-import { gotoRoute } from './helpers/routes'
+import { expectNoGenerationBeforeApproval, gotoRoute } from './helpers/routes'
 
 test.describe('Project start to edit workspace flow', () => {
   test('keeps the retired editor route out of app navigation', async ({ page }) => {
@@ -10,28 +11,31 @@ test.describe('Project start to edit workspace flow', () => {
     await expect(page.locator('a[href="/editor"]')).toHaveCount(0)
     await expect(page.getByRole('link', { name: /Open AI chat editor/i })).toHaveCount(0)
     await expect(page.getByRole('link', { name: /Create project/i }).first()).toBeVisible()
-    await expect(page.getByTestId('home-current-project')).toContainText('Continue from the clean project workspace')
-    await expect(page.getByTestId('home-current-project')).not.toContainText('Founder story launch cut')
+    await expect(page.getByRole('heading', { level: 1, name: 'Home' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Create your first project/i })).toBeVisible()
+    await expect(page.getByText('Founder story launch cut')).toHaveCount(0)
 
     await gotoRoute(page, '/projects')
     await expect(page.locator('a[href="/editor"]')).toHaveCount(0)
     await expect(page.getByRole('link', { name: /Open AI chat editor/i })).toHaveCount(0)
-    await expect(page.getByTestId('projects-clean-header')).toContainText('Create or open a project')
-    await expect(page.getByTestId('projects-clean-list')).not.toContainText('Source video test')
+    await expect(page.getByRole('heading', { level: 1, name: 'Projects' })).toBeVisible()
+    await expect(page.getByRole('link', { name: /New project/i }).first()).toBeVisible()
+    await expect(page.getByText('Source video test')).toHaveCount(0)
     await expect(page.getByRole('link', { name: /Open sample project/i })).toHaveCount(0)
 
     await gotoRoute(page, '/editor')
-    await expect(page).toHaveURL(/\/projects\/new$/)
-    await expect(page.getByRole('heading', { name: /Start with the project/i })).toBeVisible()
+    await expect(page).toHaveURL(/\/editor$/)
+    await expect(page.getByTestId('editor-page')).toBeVisible()
   })
 
   test('keeps project creation as the only clean start point before edit upload', async ({ page }) => {
     await setViewport(page, 1440)
     await gotoRoute(page, '/projects/new')
 
-    await expect(page.getByTestId('project-create-flow')).toContainText('Start with the project')
-    await expect(page.getByTestId('project-create-flow')).toContainText('Create an edit next')
-    await expect(page.getByTestId('project-create-flow')).toContainText('Upload inside the edit')
+    await expect(page.getByTestId('project-create-flow')).toContainText('What are you working on?')
+    await expect(page.getByTestId('project-create-flow')).toContainText('Create a named edit')
+    await expect(page.getByTestId('project-create-flow')).toContainText('Add source video')
+    await expect(page.getByTestId('project-create-flow')).toContainText('Shape the plan')
     await expect(page.getByRole('link', { name: /Start Edit Chat/i })).toHaveCount(0)
     await expect(page.getByText(/Start with a video category|Local video review comes in Brief|Create mock Edit Chat/i)).toHaveCount(0)
 
@@ -39,33 +43,38 @@ test.describe('Project start to edit workspace flow', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('routes edit aliases into the clean edit workspace', async ({ page }) => {
+  test('opens the exact scoped edit in the clean edit workspace', async ({ page }) => {
     await setViewport(page, 1440)
-    await gotoRoute(page, '/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/chat')
+    const fixture = await installActiveProductRouteFixture(page, 'project-start-exact-edit')
+    await gotoRoute(page, fixture.editPath)
 
-    await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
+    await expect(page.getByTestId('editor-page')).toBeVisible()
+    await expect(page.getByTestId('edit-upload-gate')).toBeVisible()
     await expect(page.getByTestId('edit-session-route-tabs')).toHaveCount(0)
     await expect(page.getByTestId('edit-session-chat-input')).toHaveCount(0)
-    await expect(page.getByText(/Upload the source video for this edit/i)).toBeVisible()
+    await expect(page.getByTestId('editor-header')).toContainText(fixture.edit.editName ?? '')
     await expectNoHorizontalOverflow(page)
   })
 
-  test('requires an explicit output frame before creating an edit', async ({ page }) => {
+  test('creates a named edit without starting upload, planning, credits, or generation', async ({ page }) => {
     await setViewport(page, 1440)
-    await gotoRoute(page, '/projects/mock-project-edit-chat-foundation')
+    await gotoRoute(page, '/projects/new')
+    await page.getByLabel('Project name').fill(`Project handoff ${Date.now()}`)
+    await page.getByRole('button', { name: /^Create project$/i }).click()
+    await expect(page).toHaveURL(/\/projects\/[^/]+$/)
 
-    await page.getByRole('button', { name: /\+ New edit/i }).click()
-    await expect(page.getByTestId('new-edit-session-create-panel')).toBeVisible()
-    await expect(page.getByTestId('new-edit-aspect-9:16')).toHaveAttribute('aria-pressed', 'false')
-    await expect(page.getByTestId('new-edit-platform-instagram_reel')).toHaveAttribute('aria-pressed', 'false')
-    await expect(page.getByText(/ReEditPro does not silently pick a final canvas/i)).toBeVisible()
-    await expect(page.getByRole('button', { name: /^Create edit$/i })).toBeDisabled()
+    await page.getByRole('button', { name: /^New video edit$/i }).first().click()
+    const dialog = page.getByRole('dialog', { name: 'Name this edit' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toContainText('Uses your saved edit preferences, then opens normal Edit Chat for source upload.')
+    await expect(dialog).not.toContainText(/upload started|plan created|credits? (reserved|spent)|generation started/i)
+    await page.getByLabel('Edit name').fill('Current architecture handoff')
+    await dialog.getByRole('button', { name: /^Create edit$/i }).click()
 
-    await page.getByTestId('new-edit-aspect-16:9').click()
-    await expect(page.getByRole('button', { name: /^Create edit$/i })).toBeDisabled()
-
-    await page.getByTestId('new-edit-platform-youtube_standard').click()
-    await expect(page.getByRole('button', { name: /^Create edit$/i })).toBeEnabled()
+    await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^/?]+/)
+    await expect(page.getByTestId('edit-upload-gate')).toBeVisible()
+    await expect(page.getByTestId('editor-header')).toContainText('Current architecture handoff')
+    await expectNoGenerationBeforeApproval(page)
     await expectNoHorizontalOverflow(page)
   })
 })

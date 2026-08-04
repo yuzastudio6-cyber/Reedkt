@@ -264,7 +264,7 @@ function schemaBridgeNoMigrationOrClientImplied(plan: EditPlan) {
   const planLower = planText(plan)
 
   return Boolean(schemaPlan) &&
-    text.includes('no real supabase migrations') &&
+    text.includes('no active supabase migrations') &&
     text.includes('no supabase client') &&
     !planLower.includes('migration executed') &&
     !planLower.includes('sql executed') &&
@@ -343,7 +343,9 @@ function supabaseProductionReadinessCheckPasses(plan: EditPlan, checkId: string)
 function supabaseProductionReadinessStatusSafe(plan: EditPlan) {
   const status = plan.supabaseProductionReadinessPlan?.status
 
-  return status === 'migration_files_ready' || status === 'local_testing_required'
+  return status === 'migration_files_ready' ||
+    status === 'local_testing_required' ||
+    status === 'production_blocked'
 }
 
 function supabaseProductionReadinessHasBlockers(plan: EditPlan) {
@@ -370,7 +372,7 @@ function videoUnderstandingExists(plan: EditPlan) {
 
 function videoUnderstandingLimitationsAreMockOnly(plan: EditPlan) {
   const text = (plan.videoUnderstandingReport?.limitations ?? []).join(' ').toLowerCase()
-  return text.includes('mock-only') && text.includes('no real media analysis')
+  return text.includes('review-only') && text.includes('media analysis') && text.includes('backend-gated')
 }
 
 function visualPlanAlignsWithUnderstanding(plan: EditPlan) {
@@ -857,9 +859,9 @@ function colorPipelineToolsArePlanningOnly(plan: EditPlan) {
     ]) ?? []),
   ].join(' ').toLowerCase()
 
-  return text.includes('mock') &&
-    text.includes('no real') &&
-    (text.includes('future worker') || text.includes('planning'))
+  return text.includes('review-only') &&
+    text.includes('backend-gated') &&
+    (text.includes('future worker') || text.includes('planning') || text.includes('approved execution gates'))
 }
 
 function colorPipelineDoesNotEnableVeoOr1080(plan: EditPlan) {
@@ -946,9 +948,9 @@ function audioPipelineToolsArePlanningOnly(plan: EditPlan) {
     ]) ?? []),
   ].join(' ').toLowerCase()
 
-  return text.includes('mock') &&
-    text.includes('no real') &&
-    (text.includes('future worker') || text.includes('planning')) &&
+  return text.includes('review-only') &&
+    text.includes('backend-gated') &&
+    (text.includes('future worker') || text.includes('planning') || text.includes('approved execution gates')) &&
     !text.includes('was executed')
 }
 
@@ -1043,8 +1045,8 @@ function mapAnimationPlanHasItems(plan: EditPlan) {
 function mapAnimationControlledTools(plan: EditPlan) {
   return !plan.mapAnimationPlan?.active || plan.mapAnimationPlan.items.every((item) =>
     item.toolIds.includes('remotion') &&
-    (item.toolIds.includes('maplibre') || item.mapVisualType === 'screen_map_card') &&
-    (item.toolIds.includes('turf') || item.mapVisualType === 'screen_map_card'),
+    item.toolIds.includes('d3') &&
+    item.toolIds.includes('svg_js'),
   )
 }
 
@@ -1187,8 +1189,8 @@ function dataVizPlanningOnly(plan: EditPlan) {
   ].join(' ').toLowerCase()
 
   return !plan.dataVizPlan?.active ||
-    (text.includes('mock') &&
-      text.includes('no real') &&
+    (text.includes('review-only') &&
+      text.includes('backend-gated') &&
       text.includes('approval') &&
       !text.includes('was executed'))
 }
@@ -1415,8 +1417,8 @@ function futureLayoutModesAreMockOnly(plan: EditPlan) {
 
     return (
       Boolean(item.fallbackLayoutMode) &&
-      (text.includes('future') || text.includes('placeholder') || text.includes('mock')) &&
-      (text.includes('no real') || text.includes('not implemented') || text.includes('do not execute'))
+      (text.includes('future') || text.includes('placeholder') || text.includes('planning')) &&
+      (text.includes('backend-gated') || text.includes('approved backend gates') || text.includes('do not execute'))
     )
   })
 }
@@ -1499,8 +1501,8 @@ function depthModesAreMockOnly(plan: EditPlan) {
 
     return (
       text.includes('future') &&
-      (text.includes('mock') || text.includes('planning only') || text.includes('placeholder')) &&
-      (text.includes('no real') || text.includes('not executed') || text.includes('not implemented'))
+      (text.includes('review-only') || text.includes('planning only') || text.includes('placeholder')) &&
+      (text.includes('backend-gated') || text.includes('approved backend gates') || text.includes('gated'))
     )
   })
 }
@@ -1836,7 +1838,7 @@ export function validateMockEditPlan(params: {
       label: 'Aspect ratio frame plan exists',
       severity: 'blocking',
       passed: checkExists(plan.aspectRatioFramePlan),
-      message: 'Every mock plan must include an output-frame gate before approval.',
+      message: 'Every planning flow must include an output-frame gate before approval.',
       relatedField: 'aspectRatioFramePlan',
     }),
     check({
@@ -1960,10 +1962,10 @@ export function validateMockEditPlan(params: {
     check({
       id: 'validation-master-timing-no-real-analysis',
       category: 'master_timing',
-      label: 'Timing remains mock-only',
+      label: 'Timing remains review-only',
       severity: 'blocking',
-      passed: (plan.masterTimingPlan?.limitations ?? []).some((limitation) => /no real transcript|no real beat|no .*audioflux|no .*media/i.test(limitation)),
-      message: 'Master Timing limitations must clearly state that no real transcript/audio/media analysis has run.',
+      passed: (plan.masterTimingPlan?.limitations ?? []).some((limitation) => /backend-gated|review-only|audioflux/i.test(limitation)),
+      message: 'Master Timing limitations must clearly state that transcript/audio/media analysis remains gated.',
       relatedField: 'masterTimingPlan.limitations',
     }),
     check({
@@ -2072,12 +2074,12 @@ export function validateMockEditPlan(params: {
     check({
       id: 'validation-soundsync-beat-grid',
       category: 'soundsync_transition_timing',
-      label: 'Beat grid has mock limitations',
+      label: 'Beat grid has execution-gate limitations',
       severity: 'warning',
       passed: Boolean(plan.soundSyncTransitionTimingPlan?.beatGridPlan) &&
         (plan.soundSyncTransitionTimingPlan?.beatGridPlan.status === 'not_needed' ||
-          (plan.soundSyncTransitionTimingPlan?.beatGridPlan.limitations ?? []).some((limitation) => /no real|mock|audioflux/i.test(limitation))),
-      message: 'Beat grid must exist when SoundSync timing exists and must say AudioFlux analysis has not run when needed.',
+          (plan.soundSyncTransitionTimingPlan?.beatGridPlan.limitations ?? []).some((limitation) => /backend-gated|review-only|audioflux/i.test(limitation))),
+      message: 'Beat grid must exist when SoundSync timing exists and must keep AudioFlux analysis gated when needed.',
       relatedField: 'soundSyncTransitionTimingPlan.beatGridPlan',
     }),
     check({
@@ -2247,11 +2249,11 @@ export function validateMockEditPlan(params: {
       relatedField: 'timingValidationPlan.items',
     }),
     check({
-      id: 'validation-timing-validation-mock-only',
+      id: 'validation-timing-validation-execution-gate',
       category: 'timing_validation',
-      label: 'Timing validation remains mock-only',
+      label: 'Timing validation remains review-only',
       severity: 'blocking',
-      passed: Boolean(plan.timingValidationPlan?.limitations.some((limitation) => /mock-only|no real|no .*audioflux|no .*render/i.test(limitation))),
+      passed: Boolean(plan.timingValidationPlan?.limitations.some((limitation) => /review-only|backend-gated|audioflux|rendering/i.test(limitation))),
       message: 'Timing validation must not imply real transcript/audio/media analysis or rendering.',
       relatedField: 'timingValidationPlan.limitations',
     }),
@@ -2405,7 +2407,7 @@ export function validateMockEditPlan(params: {
       label: 'Launch-core tool coverage',
       severity: 'warning',
       passed: toolRegistryHasLaunchCoreCoverage(plan),
-      message: 'Tool registry should include launch-core planning tools such as Remotion, FFmpeg LGPL Configuration, Sharp + libvips, MapLibre, Turf, D3, ECharts, Playwright, OpenCV, AudioFlux, and Signalsmith Stretch.',
+      message: 'Tool registry should include canonical launch planning tools such as Remotion, FFmpeg LGPL Configuration, Sharp + libvips, D3, SVG.js, ECharts, Playwright, OpenCV, AudioFlux, and Signalsmith Stretch.',
       relatedField: 'toolRegistrySummary.launchCoreToolCount',
     }),
     check({
@@ -2441,7 +2443,7 @@ export function validateMockEditPlan(params: {
       label: 'Registry is planning-only',
       severity: 'blocking',
       passed: toolRegistryIsPlanningOnly(),
-      message: 'Tool registry profiles must not imply packages are installed or tools are executed in this frontend mock.',
+      message: 'Tool registry profiles must not imply packages are installed or tools are executed before approved backend gates pass.',
       relatedField: 'openSourceToolProfiles.productionNotes',
     }),
     check({
@@ -2891,7 +2893,7 @@ export function validateMockEditPlan(params: {
       label: 'Map uses controlled tools',
       severity: 'blocking',
       passed: mapAnimationControlledTools(plan),
-      message: 'Exact map visuals should use MapLibre/Turf/Remotion planning instead of AI video.',
+      message: 'Exact map visuals should use the canonical source-bound D3/SVG/Remotion path instead of AI video.',
       relatedField: 'mapAnimationPlan.items.toolIds',
     }),
     check({
@@ -2927,7 +2929,7 @@ export function validateMockEditPlan(params: {
       label: 'Map plan is planning-only',
       severity: 'blocking',
       passed: mapAnimationPlanningOnly(plan),
-      message: 'Map planning must not imply real MapLibre/Turf execution, geocoding, tile calls, Mapbox APIs, rendering, or approval bypass.',
+      message: 'Map planning must not imply execution, geocoding, tile calls, external map APIs, rendering, or approval bypass.',
       relatedField: 'mapAnimationPlan.limitations',
     }),
     check({
@@ -3012,12 +3014,12 @@ export function validateMockEditPlan(params: {
       relatedField: 'dataVizPlan.globalRules',
     }),
     check({
-      id: 'validation-video-understanding-mock-only',
+      id: 'validation-video-understanding-execution-gate',
       category: 'video_understanding',
-      label: 'Understanding stays mock-only',
+      label: 'Understanding stays review-only',
       severity: 'blocking',
       passed: videoUnderstandingLimitationsAreMockOnly(plan),
-      message: 'Video understanding limitations must clearly say no real media analysis has been run.',
+      message: 'Video understanding limitations must clearly say media analysis remains gated.',
       relatedField: 'videoUnderstandingReport.limitations',
     }),
     check({
@@ -3175,9 +3177,9 @@ export function validateMockEditPlan(params: {
       relatedField: 'planningSystemAuditReport.duplicateOrLegacyWarnings',
     }),
     check({
-      id: 'validation-planning-system-audit-mock-only',
+      id: 'validation-planning-system-audit-execution-gate',
       category: 'planning_system_audit',
-      label: 'Planning audit remains mock-only',
+      label: 'Planning audit remains review-only',
       severity: 'blocking',
       passed: planningAuditImpliesNoExecution(plan),
       message: 'Planning audit data must not imply backend, provider, render, tool execution, billing, or Supabase work happened.',
@@ -3568,7 +3570,7 @@ export function validateMockEditPlan(params: {
       label: 'Source cleanup plan exists',
       severity: 'blocking',
       passed: Boolean(sourceCleanupPlan),
-      message: 'Every mock plan must include SourceCleanupPlan before approval.',
+      message: 'Every planning flow must include SourceCleanupPlan before approval.',
       relatedField: 'sourceCleanupPlan',
     }),
     check({
@@ -3657,12 +3659,12 @@ export function validateMockEditPlan(params: {
       relatedField: 'creditEstimate.approvalBlocked',
     }),
     check({
-      id: 'validation-source-cleanup-mock-only',
+      id: 'validation-source-cleanup-execution-gate',
       category: 'source_cleanup',
-      label: 'Source cleanup is mock-only',
+      label: 'Source cleanup is review-only',
       severity: 'blocking',
-      passed: Boolean(sourceCleanupPlan?.limitations.some((limitation) => /no real transcript|no real silence|no real video|mock-only/i.test(limitation))),
-      message: 'Source cleanup must not imply real transcript, silence, audio/video, or media analysis has run.',
+      passed: Boolean(sourceCleanupPlan?.limitations.some((limitation) => /backend-gated|review-only/i.test(limitation))),
+      message: 'Source cleanup must keep transcript, silence, audio/video, and media analysis gated.',
       relatedField: 'sourceCleanupPlan.limitations',
     }),
     check({
@@ -3720,12 +3722,12 @@ export function validateMockEditPlan(params: {
       relatedField: 'creditEstimate.approvalBlocked',
     }),
     check({
-      id: 'validation-trim-review-mock-only',
+      id: 'validation-trim-review-execution-gate',
       category: 'trim_review',
-      label: 'Trim review is mock-only',
+      label: 'Trim review is review-only',
       severity: 'blocking',
-      passed: Boolean(trimReviewPlan?.limitations.some((limitation) => /no real transcript|no real semantic|no real media|mock-only/i.test(limitation))),
-      message: 'Trim review must not imply real transcript, semantic, audio/video, or media analysis has run.',
+      passed: Boolean(trimReviewPlan?.limitations.some((limitation) => /backend-gated|review-only/i.test(limitation))),
+      message: 'Trim review must keep transcript, semantic, audio/video, and media analysis gated.',
       relatedField: 'trimReviewPlan.limitations',
     }),
     check({
@@ -3782,6 +3784,7 @@ export function validateMockEditPlan(params: {
           item.workItemType === 'capture_browser_asset' ||
           item.workItemType === 'run_audio_analysis' ||
           item.workItemType === 'run_audio_stretch' ||
+          item.workItemType === 'process_audio_asset' ||
           item.workItemType === 'process_image_asset' ||
           item.workItemType === 'process_video_asset' ||
           item.workItemType === 'generate_mask_asset' ||
@@ -3850,11 +3853,11 @@ export function validateMockEditPlan(params: {
       relatedField: 'editingAgentExecutionPlan.globalRules',
     }),
     check({
-      id: 'validation-editing-agent-mock-only',
+      id: 'validation-editing-agent-execution-gate',
       category: 'editing_agent_execution',
-      label: 'Execution graph is mock-only',
+      label: 'Execution graph is review-only',
       severity: 'blocking',
-      passed: Boolean(editingAgentExecutionPlan?.limitations.some((limitation) => /mock execution graph|no workers|no provider|no tools|no .*render/i.test(limitation))),
+      passed: Boolean(editingAgentExecutionPlan?.limitations.some((limitation) => /review-only|gated|future backend/i.test(limitation))),
       message: 'Editing agent execution planning must not imply real backend, provider, tool, storage, queue, or render execution.',
       relatedField: 'editingAgentExecutionPlan.limitations',
     }),
@@ -3943,11 +3946,11 @@ export function validateMockEditPlan(params: {
       relatedField: 'asyncAssetReconciliationPlan.mergePlanItems',
     }),
     check({
-      id: 'validation-async-mock-only',
+      id: 'validation-async-execution-gate',
       category: 'async_asset_reconciliation',
-      label: 'Async reconciliation is mock-only',
+      label: 'Async reconciliation is review-only',
       severity: 'blocking',
-      passed: Boolean(asyncAssetReconciliationPlan?.limitations.some((limitation) => /mock-only|no real provider webhook|no real.*polling|no real assets|no remotion render|no .*backend/i.test(limitation))),
+      passed: Boolean(asyncAssetReconciliationPlan?.limitations.some((limitation) => /review-only|backend-gated|approved execution gates/i.test(limitation))),
       message: 'Async reconciliation must not imply real checkback, provider status, worker, storage, render, backend, or media execution.',
       relatedField: 'asyncAssetReconciliationPlan.limitations',
     }),
@@ -4096,11 +4099,11 @@ export function validateMockEditPlan(params: {
       relatedField: 'agentQAFallbackPlan.userReviewRequiredCount',
     }),
     check({
-      id: 'validation-agent-qa-fallback-mock-only',
+      id: 'validation-agent-qa-fallback-execution-gate',
       category: 'agent_qa_fallback',
-      label: 'Agent QA/fallback is mock-only',
+      label: 'Agent QA/fallback is review-only',
       severity: 'blocking',
-      passed: Boolean(agentQAFallbackPlan?.limitations.some((limitation) => /mock qa|no real output|no real provider|no real.*fallback|no real.*render|no real.*billing/i.test(limitation))),
+      passed: Boolean(agentQAFallbackPlan?.limitations.some((limitation) => /review-only|backend-gated|approved execution gates|billing/i.test(limitation))),
       message: 'Agent QA/fallback planning must not imply real QA, retry, fallback, provider, worker, render, backend, or billing execution.',
       relatedField: 'agentQAFallbackPlan.limitations',
     }),
@@ -4346,9 +4349,9 @@ export function validateMockEditPlan(params: {
       relatedField: 'speakerVisualLayoutPlan.items.recommendedForAspectRatio',
     }),
     check({
-      id: 'validation-layout-future-compositing-mock-only',
+      id: 'validation-layout-future-compositing-execution-gate',
       category: 'speaker_visual_layout',
-      label: 'Future compositing stays mock-only',
+      label: 'Future compositing stays review-only',
       severity: 'blocking',
       passed: futureLayoutModesAreMockOnly(plan),
       message: 'Speaker cutout and object-anchored callout plans must not be treated as executed masking, depth, or tracking work yet.',
@@ -4400,12 +4403,12 @@ export function validateMockEditPlan(params: {
       relatedField: 'depthAwareOverlayPlan.items',
     }),
     check({
-      id: 'validation-depth-mock-only',
+      id: 'validation-depth-execution-gate',
       category: 'depth_aware_overlay',
-      label: 'Depth stays mock-only',
+      label: 'Depth stays review-only',
       severity: 'blocking',
       passed: depthModesAreMockOnly(plan),
-      message: 'Depth-aware overlay plans must not imply real segmentation, mask execution, tracking, OpenCV, or rendering in the frontend mock.',
+      message: 'Depth-aware overlay plans must not imply segmentation, mask execution, tracking, OpenCV, or rendering before approved backend gates pass.',
       relatedField: 'depthAwareOverlayPlan.items.workerNotes',
     }),
     check({

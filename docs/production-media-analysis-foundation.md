@@ -17,7 +17,9 @@ Milestone 15B consumes representative frame artifact IDs, proxy/source media ref
 1. Validate approved snapshot, tool execution plan, idempotency, private storage reference, and no raw prompt/signed URL payloads when a worker payload is supplied.
 2. Resolve source media from a private storage reference to a local file in local/dev mode.
 3. Probe with FFprobe for duration, streams, codec, format, dimensions, rotation, aspect ratio, and size.
-4. Create an H.264 MP4 proxy when requested.
+4. Create a private H.264 High Profile/AAC working proxy inside a 1920x1080
+   bounding box when requested. The proxy is for analysis/review; the immutable
+   original remains the intended final-render master.
 5. Extract mono 16kHz WAV audio when an audio stream exists and extraction is requested.
 6. Extract bounded keyframe and representative JPEG frames.
 7. Build private `ToolArtifact` records.

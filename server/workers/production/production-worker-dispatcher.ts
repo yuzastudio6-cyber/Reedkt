@@ -1,4 +1,13 @@
 import type { ToolExecutionPlan } from '../../../src/backend/contracts/tool-execution-contracts'
+import {
+  buildToolCostEventIdempotencyKey,
+  createMockToolCostStore,
+  emitProductionToolCostEvent,
+  estimateProductionToolCost,
+  type ToolCostFailureCategory,
+  type ToolCreditPrerequisiteStatus,
+} from '../../tool-cost-metering'
+import type { ProductionToolId } from '../../tool-registry'
 import { createProductionWorkerEvent } from './production-worker-events'
 import { getHardFailedGates, runProductionWorkerGates } from './production-worker-gates'
 import { detectDuplicateToolRun } from './production-worker-idempotency'
@@ -14,6 +23,7 @@ import type {
   ProductionWorkerExecutionResult,
   ProductionWorkerJobPayload,
   ProductionWorkerRuntimeState,
+  ProductionWorkerToolCostMetadata,
 } from './production-worker-types'
 
 function pushEvent(
@@ -90,6 +100,62 @@ export async function dispatchProductionWorkerJob(input: {
     })
   }
 
+  const preWorkToolCostMetadata = buildWorkerToolCostPreWorkMetadata(payload)
+  const preWorkToolCostBlockers = Object.values(preWorkToolCostMetadata.blockedEventStatuses)
+    .filter((status) => status !== 'ready')
+  if (payload.executionMode === 'production_ready' && preWorkToolCostBlockers.length > 0) {
+    events.push(pushEvent(state, payload, 'job_blocked', 'Production worker job blocked before lease because tool-cost prerequisites are incomplete.', 100, {
+      blockedEventStatuses: preWorkToolCostMetadata.blockedEventStatuses,
+    }))
+    return createProductionWorkerResult({
+      payload,
+      status: 'blocked',
+      gateChecks,
+      events,
+      toolCostMetadata: preWorkToolCostMetadata,
+      warnings: [...collectGateWarnings(gateChecks), ...preWorkToolCostMetadata.warnings],
+      error: {
+        code: 'PRODUCTION_WORKER_TOOL_COST_PREREQUISITES_FAILED',
+        message: 'Production-ready worker jobs require approved plan, approved credit estimate, active credit reservation, and idempotency before work starts.',
+        failureCategory: 'credit_blocked',
+      },
+      startedAt,
+    })
+  }
+
+  if (payload.executionMode === 'production_ready') {
+    events.push(pushEvent(
+      state,
+      payload,
+      'job_blocked',
+      'The legacy mock worker cannot execute production work. Approved work must use the canonical funded A100/L4 GPU continuation.',
+      100,
+      {
+        requiredGate:
+          'canonical_professional_gpu_approved_plan_continuation',
+        cpuOnlySubstantiveExecutionAllowed: false,
+      },
+    ))
+    return createProductionWorkerResult({
+      payload,
+      status: 'blocked',
+      gateChecks,
+      events,
+      toolCostMetadata: preWorkToolCostMetadata,
+      warnings: [
+        ...collectGateWarnings(gateChecks),
+        'Legacy mock production routing is historical test support only; it cannot spend, execute media, or stand in for WeEditPro cloud GPU work.',
+      ],
+      error: {
+        code: 'LEGACY_MOCK_WORKER_PRODUCTION_RETIRED',
+        message:
+          'Production-ready work requires the canonical funded A100/L4 GPU continuation and cannot run through the legacy mock worker.',
+        failureCategory: 'policy_blocked',
+      },
+      startedAt,
+    })
+  }
+
   const lease = createWorkerLease(state, payload, input.workerInstanceId)
   events.push(pushEvent(state, payload, 'job_claimed', 'Production worker job lease claimed.', 25, {
     leaseId: lease.leaseId,
@@ -117,7 +183,223 @@ export async function dispatchProductionWorkerJob(input: {
     gateChecks,
     events,
     output,
+    toolCostMetadata: buildWorkerToolCostMetadata(payload),
     warnings: collectGateWarnings(gateChecks),
     startedAt,
   })
+}
+
+function buildWorkerToolCostPreWorkMetadata(payload: ProductionWorkerJobPayload): ProductionWorkerToolCostMetadata {
+  const estimateStatuses: Record<string, ToolCreditPrerequisiteStatus> = {}
+  const blockedEventStatuses: Record<string, ToolCreditPrerequisiteStatus> = {}
+  const billableToUserByToolId: Record<string, boolean> = {}
+  const failureCategoryByToolId: Record<string, ToolCostFailureCategory> = {}
+  const warnings: string[] = []
+  const failureCategory = readToolCostFailureCategory(payload.metadata)
+  const billableToUser = deriveWorkerToolCostBillableToUser(payload.executionMode, failureCategory)
+  const creditEstimateId = readStringMetadata(payload.metadata, 'creditEstimateId')
+  const productEditLevel = readProductEditLevel(payload.metadata)
+
+  for (const toolId of payload.requestedToolIds) {
+    billableToUserByToolId[toolId] = billableToUser
+    failureCategoryByToolId[toolId] = failureCategory
+    const estimate = estimateProductionToolCost({
+      toolId,
+      workspaceId: payload.workspaceId,
+      projectId: payload.projectId,
+      editPlanId: payload.editPlanId,
+      approvedPlanSnapshotId: payload.approvedSnapshotId,
+      jobId: payload.jobId,
+      creditEstimateId,
+      creditReservationId: payload.creditReservationId,
+      productEditLevel,
+      approvedReservationRemainingCredits: readNumberMetadata(payload.metadata, 'approvedReservationRemainingCredits'),
+      idempotencyKey: buildWorkerToolCostEventIdempotencyKey(payload, toolId),
+      estimateOnlyWhenBlocked: false,
+    })
+
+    if (!estimate.ok) {
+      blockedEventStatuses[toolId] = estimate.error.status
+      warnings.push(estimate.error.message)
+      continue
+    }
+
+    const status = deriveWorkerPreWorkToolCostStatus(payload, creditEstimateId, estimate.data.creditPrerequisiteStatus)
+    estimateStatuses[toolId] = estimate.data.creditPrerequisiteStatus
+    if (status !== 'ready') {
+      blockedEventStatuses[toolId] = status
+      warnings.push(`Tool-cost prerequisite blocked ${toolId}: ${status}.`)
+    }
+  }
+
+  return {
+    mockOnly: true,
+    serviceFeeIncluded: false,
+    requestedToolCount: payload.requestedToolIds.length,
+    estimateStatuses,
+    emittedEvents: [],
+    blockedEventStatuses,
+    billableToUserByToolId,
+    failureCategoryByToolId,
+    warnings: Array.from(new Set(warnings)),
+  }
+}
+
+function buildWorkerToolCostEventIdempotencyKey(
+  payload: ProductionWorkerJobPayload,
+  toolId: ProductionToolId,
+): string {
+  return buildToolCostEventIdempotencyKey({
+    workspaceId: payload.workspaceId,
+    projectId: payload.projectId,
+    toolId,
+    jobId: payload.jobId,
+    approvedPlanSnapshotId: payload.approvedSnapshotId,
+    editPlanId: payload.editPlanId,
+    retryAttempt: payload.attempt,
+  })
+}
+
+function buildWorkerToolCostMetadata(payload: ProductionWorkerJobPayload): ProductionWorkerToolCostMetadata {
+  const store = createMockToolCostStore()
+  const estimateStatuses: Record<string, ToolCreditPrerequisiteStatus> = {}
+  const blockedEventStatuses: Record<string, ToolCreditPrerequisiteStatus> = {}
+  const billableToUserByToolId: Record<string, boolean> = {}
+  const failureCategoryByToolId: Record<string, ToolCostFailureCategory> = {}
+  const warnings: string[] = []
+  const failureCategory = readToolCostFailureCategory(payload.metadata)
+  const billableToUser = deriveWorkerToolCostBillableToUser(payload.executionMode, failureCategory)
+  const creditEstimateId = readStringMetadata(payload.metadata, 'creditEstimateId')
+  const productEditLevel = readProductEditLevel(payload.metadata)
+
+  for (const toolId of payload.requestedToolIds) {
+    billableToUserByToolId[toolId] = billableToUser
+    failureCategoryByToolId[toolId] = failureCategory
+    const estimate = estimateProductionToolCost({
+      toolId,
+      workspaceId: payload.workspaceId,
+      projectId: payload.projectId,
+      editPlanId: payload.editPlanId,
+      approvedPlanSnapshotId: payload.approvedSnapshotId,
+      jobId: payload.jobId,
+      creditEstimateId,
+      creditReservationId: payload.creditReservationId,
+      productEditLevel,
+      approvedReservationRemainingCredits: readNumberMetadata(payload.metadata, 'approvedReservationRemainingCredits'),
+      idempotencyKey: buildWorkerToolCostEventIdempotencyKey(payload, toolId),
+      estimateOnlyWhenBlocked: true,
+    })
+
+    if (!estimate.ok) {
+      blockedEventStatuses[toolId] = estimate.error.status
+      warnings.push(estimate.error.message)
+      continue
+    }
+
+    estimateStatuses[toolId] = estimate.data.creditPrerequisiteStatus
+
+    const emitted = emitProductionToolCostEvent({
+      store,
+      toolId,
+      workspaceId: payload.workspaceId,
+      projectId: payload.projectId,
+      editPlanId: payload.editPlanId,
+      approvedPlanSnapshotId: payload.approvedSnapshotId,
+      jobId: payload.jobId,
+      creditEstimateId,
+      creditReservationId: payload.creditReservationId,
+      productEditLevel,
+      idempotencyKey: buildWorkerToolCostEventIdempotencyKey(payload, toolId),
+      billableToUser,
+      failureCategory,
+      retryAttempt: payload.attempt,
+      nonBillableReason: billableToUser ? undefined : deriveWorkerToolCostNonBillableReason(payload.executionMode, failureCategory),
+      metadata: {
+        workerExecutionMode: payload.executionMode,
+        workerType: payload.workerType,
+        toolCostFailureCategory: failureCategory,
+        renderMode: payload.renderMode ?? null,
+      },
+    })
+
+    if (emitted.ok) {
+      warnings.push(...emitted.data.warnings)
+    } else {
+      blockedEventStatuses[toolId] = emitted.error.status
+      warnings.push(emitted.error.message)
+    }
+  }
+
+  return {
+    mockOnly: true,
+    serviceFeeIncluded: false,
+    requestedToolCount: payload.requestedToolIds.length,
+    estimateStatuses,
+    emittedEvents: store.toolCostEvents,
+    blockedEventStatuses,
+    billableToUserByToolId,
+    failureCategoryByToolId,
+    warnings: Array.from(new Set(warnings)),
+  }
+}
+
+function deriveWorkerPreWorkToolCostStatus(
+  payload: ProductionWorkerJobPayload,
+  creditEstimateId: string | undefined,
+  estimateStatus: ToolCreditPrerequisiteStatus,
+): ToolCreditPrerequisiteStatus {
+  if (payload.executionMode !== 'production_ready') return 'ready'
+  if (!creditEstimateId) return 'missing_approved_credit_estimate'
+  if (!payload.creditReservationId) return 'missing_active_credit_reservation'
+  return estimateStatus
+}
+
+function readStringMetadata(metadata: Record<string, unknown> | undefined, key: string): string | undefined {
+  const value = metadata?.[key]
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+function readNumberMetadata(metadata: Record<string, unknown> | undefined, key: string): number | undefined {
+  const value = metadata?.[key]
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function readProductEditLevel(metadata: Record<string, unknown> | undefined): 'normal' | 'premium' | 'ultra_premium' {
+  const value = readStringMetadata(metadata, 'productEditLevel')
+  return value === 'premium' || value === 'ultra_premium' ? value : 'normal'
+}
+
+function readToolCostFailureCategory(metadata: Record<string, unknown> | undefined): ToolCostFailureCategory {
+  const value = readStringMetadata(metadata, 'toolCostFailureCategory') ?? readStringMetadata(metadata, 'failureCategory')
+  switch (value) {
+    case 'provider_error':
+    case 'provider_variance_absorbed':
+    case 'reeditpro_error_absorbed':
+    case 'user_requested_retry':
+    case 'validation_error':
+    case 'timeout':
+    case 'cancelled':
+    case 'unknown':
+      return value
+    case 'none':
+    default:
+      return 'none'
+  }
+}
+
+function deriveWorkerToolCostBillableToUser(
+  executionMode: ProductionWorkerJobPayload['executionMode'],
+  failureCategory: ToolCostFailureCategory,
+): boolean {
+  if (executionMode !== 'production_ready') return false
+  if (failureCategory === 'none' || failureCategory === 'user_requested_retry') return true
+  return false
+}
+
+function deriveWorkerToolCostNonBillableReason(
+  executionMode: ProductionWorkerJobPayload['executionMode'],
+  failureCategory: ToolCostFailureCategory,
+): string {
+  if (executionMode !== 'production_ready') return executionMode
+  return failureCategory
 }

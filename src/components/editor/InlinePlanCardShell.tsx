@@ -79,14 +79,19 @@ export function InlinePlanCardShell({
   children,
   className = '',
   compactSummary,
-  defaultExpanded = true,
+  defaultExpanded,
   eyebrow,
   helper,
   priority,
   status,
   title,
 }: InlinePlanCardShellProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded)
+  const initialExpanded = defaultExpanded ?? (
+    priority === 'required_user_action' ||
+    priority === 'user_summary' ||
+    status === 'blocking'
+  )
+  const [expanded, setExpanded] = useState(initialExpanded)
   const contentId = useId()
 
   return (

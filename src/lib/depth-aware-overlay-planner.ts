@@ -540,7 +540,7 @@ function itemFromSeed(params: {
       input.editLevel === 'basic' ? 'Basic avoids complex mask strategies and uses safer composition.' : 'Tier behavior matches depth complexity.',
     ],
     workerNotes: [
-      'Mock planning only: no real segmentation, object detection, tracking, background removal, or mask generation is executed.',
+      'Planning-only: segmentation, object detection, tracking, background removal, and mask generation remain backend-gated.',
       'Future worker must detect/confirm planned foreground objects before executing any mask.',
       'Workers must not execute mask/depth plans before approval.',
       ...(risk === 'high' || risk === 'premium' ? ['Manual-style review is recommended before executing this depth plan.'] : []),
@@ -610,7 +610,7 @@ export function createDepthAwareOverlayPlan(params: CreateDepthAwareOverlayPlanP
       'Do not mask every object.',
       'Use depth-aware overlays only when they support the spoken meaning.',
       'Fallback layout is required for medium, high, or premium mask risk.',
-      'No real mask, tracking, OpenCV, background removal, or Remotion rendering is executed in this frontend mock.',
+      'Mask generation, tracking, OpenCV, background removal, and rendering remain backend-gated until approved execution.',
       'Depth-aware composition is not a reason to use Veo.',
     ],
     qaChecks: [

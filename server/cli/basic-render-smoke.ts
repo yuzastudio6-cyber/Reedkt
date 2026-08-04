@@ -1,4 +1,5 @@
 import { loadRuntimeEnv } from '../config/env'
+import { ApiError } from '../errors/api-error'
 import { checkBasicRenderSmokeTools, createSkippedBasicRenderSmokeResult } from '../services/render-smoke-service'
 import type { ServiceContext } from '../types'
 import { createBasicRenderSmokeFixture } from '../workers/jobs/basic-render-smoke-fixtures'
@@ -53,33 +54,47 @@ if (!tools.ready) {
     }, null, 2))
     if (strict) process.exitCode = 1
   } else {
-    const result = await runWorkerClaimRunner(context, {
-      jobId: fixture.jobId,
-      workspaceId: fixture.request.workspaceId,
-      projectId: fixture.request.projectId,
-      jobType: 'basic_render_smoke',
-      workerType: 'basic_render_smoke_worker',
-      workerInstanceId: env.workerInstanceId,
-      idempotencyKey: fixture.idempotencyKey,
-      approvedPlanSnapshotId: fixture.request.approvedPlanSnapshotId,
-      creditReservationId: fixture.request.creditReservationId,
-      storageObjectRecordId: fixture.request.sourceStorageObjectId,
-      payloadJson: {
-        sourceStorageObjectId: fixture.request.sourceStorageObjectId,
+    try {
+      const result = await runWorkerClaimRunner(context, {
+        jobId: fixture.jobId,
+        workspaceId: fixture.request.workspaceId,
+        projectId: fixture.request.projectId,
+        jobType: 'basic_render_smoke',
+        workerType: 'basic_render_smoke_worker',
+        workerInstanceId: env.workerInstanceId,
+        idempotencyKey: fixture.idempotencyKey,
+        approvedPlanSnapshotId: fixture.request.approvedPlanSnapshotId,
+        creditReservationId: fixture.request.creditReservationId,
         storageObjectRecordId: fixture.request.sourceStorageObjectId,
-        sourceStorageObject: fixture.request.sourceStorageObject,
-        editAssemblyPlan: fixture.request.editAssemblyPlan,
-      },
-    })
+        payloadJson: {
+          sourceStorageObjectId: fixture.request.sourceStorageObjectId,
+          storageObjectRecordId: fixture.request.sourceStorageObjectId,
+          sourceStorageObject: fixture.request.sourceStorageObject,
+          editAssemblyPlan: fixture.request.editAssemblyPlan,
+        },
+      })
 
-    console.log(JSON.stringify({
-      ok: result.status === 'completed',
-      strictRenderSmoke: strict,
-      workerResult: result,
-      renderSmoke: result.output,
-      warnings: fixture.warnings,
-    }, null, 2))
+      console.log(JSON.stringify({
+        ok: result.status === 'completed',
+        strictRenderSmoke: strict,
+        workerResult: result,
+        renderSmoke: result.output,
+        warnings: fixture.warnings,
+      }, null, 2))
 
-    if (result.status !== 'completed') process.exitCode = 1
+      if (result.status !== 'completed') process.exitCode = 1
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.code !== 'TOOL_NOT_READY') throw error
+      const requiredGate = (error.details as Record<string, unknown> | undefined)?.requiredGate
+      console.log(JSON.stringify({
+        ok: !strict,
+        skipped: true,
+        strictRenderSmoke: strict,
+        requiredGate,
+        message: 'Legacy caller-authored render execution remains fail-closed until canonical job authority is wired.',
+        warnings: [...fixture.warnings, error.message],
+      }, null, 2))
+      if (strict) process.exitCode = 1
+    }
   }
 }

@@ -19,7 +19,7 @@ export function buildMaskExecutionQAResults(input: {
   ]
   const temporalIssues = [
     ...(input.taskPlan.temporalSmoothingPlan.required ? [issue('temporal_smoothing_not_verified', input.taskPlan.temporalSmoothingPlan.warningIfNotRun, 'warning')] : []),
-    ...(input.taskPlan.temporalSmoothingPlan.trackingRequired && noToolPlannedOrCompleted(input.toolResults, 'sam2') ? [issue('sam2_tracking_not_run', 'Tracking/propagation is required but SAM2 did not run.', 'warning')] : []),
+    ...(input.taskPlan.temporalSmoothingPlan.trackingRequired && noToolPlannedOrCompleted(input.toolResults, 'sam3_1') ? [issue('sam3_1_tracking_not_run', 'Tracking/propagation is required but the canonical SAM 3.1 runtime did not run.', 'warning')] : []),
   ]
   const coverageIssues = [
     ...validationIssues.filter((item) => item.code.includes('subject')),

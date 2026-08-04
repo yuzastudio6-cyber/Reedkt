@@ -122,7 +122,7 @@ try {
     expectedSizeBytes: fixtureBytes.length,
     checksumSha256,
   })
-  await uploadService.uploadLocalObject(createdUpload.uploadIntent.id, fixtureBytes, 'video/mp4')
+  await uploadService.uploadLocalObject(createdUpload.uploadIntent.id, planningState.project.workspaceId, fixtureBytes, 'video/mp4')
   const finalizedUpload = await uploadService.finalizeUploadIntent({
     workspaceId: planningState.project.workspaceId,
     uploadIntentId: createdUpload.uploadIntent.id,
@@ -197,7 +197,7 @@ try {
     creditReservationId: creditReservation.id,
     toolExecutionPlanId: speechToolExecutionPlanId,
     jobId: `job-${planningState.project.id}-speech-caption-handoff`,
-    requestedToolIds: ['faster_whisper', 'ffmpeg'],
+    requestedToolIds: ['ffmpeg'],
     requestedRecipeIds: ['speech_caption_handoff_requires_local_model'],
     storageReferenceId: mediaFoundation.audio.artifact.artifactId,
     metadata: {

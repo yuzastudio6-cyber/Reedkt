@@ -112,9 +112,9 @@ export function createMusicChatUiData(): MusicChatData {
     },
     progressSteps: [
       'Reading music cue sheet',
-      'Preparing Lyria Pro prompt',
+      'Preparing prompt',
       'Waiting for credit approval',
-      'Generating music cue placeholder',
+      'Preparing music cue',
       'Analyzing generated track',
       'Checking lyrics and speech safety',
       'Building mix/ducking plan',

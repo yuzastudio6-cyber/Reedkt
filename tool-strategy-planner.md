@@ -4,7 +4,7 @@ The Tool Strategy Planner chooses which controlled/open-source tool chain should
 
 This planner uses compiled intent, video understanding, adaptive edit strategy, visual asset planning, speaker/visual layout, depth-aware overlay planning, render strategy, the open-source tool registry, the tool settings catalog, edit level, credit preference, and QA concerns.
 
-Render strategy answers how a visual is produced and composited. Tool strategy answers which specific tool or tool chain supports that job and with what settings. For example, `open_source_tool_then_remotion` becomes MapLibre + Turf + Remotion with route reveal settings.
+Render strategy answers how a visual is produced and composited. Tool strategy answers which specific tool or tool chain supports that job and with what settings. For example, `open_source_tool_then_remotion` becomes a source-bound D3 + SVG.js + Remotion route-reveal path.
 
 ## Controlled Tool Preference
 
@@ -12,25 +12,27 @@ Use controlled tools over AI video when exact text, labels, charts, data, maps, 
 
 Use AI generation when new artwork, GPT-Image-2 stills/keyframes/character anchors, organic character animation, Real Motion, or generative motion is genuinely needed. AI generation still creates assets or clips only; Remotion owns final composition.
 
+`selectedToolIds`, chain steps, and render-strategy tool selections may contain only the exact canonical 50 private end-to-end tool identities. Historical/future capabilities and runner foundations may remain in audit metadata, but they cannot masquerade as selectable tools or enter an approved work manifest.
+
 ## Tool Chains
 
 - `remotion_layout_chain`: Remotion-only captions, cards, panels, layouts, lower thirds, and motion design.
-- `map_route_chain`: MapLibre + Turf + Remotion for routes, pins, map reveals, and geography.
+- `map_route_chain`: source-bound D3 + SVG.js + Remotion for routes, pins, map reveals, and geography. MapLibre/Turf remain capability-only planning references until they have canonical end-to-end proof.
 - `chart_diagram_chain`: D3, ECharts, Vega/Vega-Lite, Viz.js, SVG.js, or Satori + Remotion for money flows, charts, diagrams, static cards, and timelines.
 - `browser_capture_chain`: Playwright + Sharp + Remotion for dashboard/page/app screenshot assets.
 - `color_pipeline_chain`: FFmpeg LGPL Configuration with OpenColorIO-style future planning for color correction, LUTs, and shot matching.
 - `audio_pipeline_chain`: FFmpeg LGPL Configuration + AudioFlux planning for voice cleanup, loudness, beat, mood, and onset analysis; add Signalsmith Stretch only when stretch/pitch fitting is planned.
-- `visual_qa_chain`: OpenCV + Sharp + libvips-style future QA, with Torch/TorchVision or Transformers only through approved worker/model gates, for face safe zones, panel background match, blur, crop, masks, and visual collisions.
+- `visual_qa_chain`: OpenCV + Sharp + Kornia for face safe zones, panel background match, blur, crop, masks, and visual collisions. Torch/TorchVision and Transformers are runner foundations, never selected edit tools.
 - `ai_animation_asset_chain`: GPT-Image-2 + Wan/Hailuo + Remotion for AI animation assets, never final canvas.
 - `premium_rescue_chain`: Wan/Hailuo first, Veo final fallback only for Premium; never Basic/Pro and never primary/default.
 
 ## Tier Behavior
 
-Basic prefers Remotion-only and simple controlled tools with fewer generated assets and no Veo. Pro can plan richer MapLibre, D3/ECharts, Playwright, Hailuo fallback, and VisualExplain chains, but still no Veo. Premium can plan advanced tool chains, deeper color/audio/QA, depth-aware composition, and retry/fallback depth while keeping Veo as final fallback only.
+Basic prefers Remotion-only and simple controlled tools with fewer generated assets and no Veo. Pro can plan richer source-bound vector maps, D3/ECharts, Playwright, Hailuo fallback, and VisualExplain chains, but still no Veo. Premium can plan advanced tool chains, deeper color/audio/QA, depth-aware composition, and retry/fallback depth while keeping Veo as final fallback only.
 
 ## Tool Settings
 
-Tool strategy items must store structured settings from `tool-settings-catalog.md`, not vague chat text. Examples include MapLibre fly duration, zoom, pitch, bearing, pins and labels; D3/ECharts/Vega diagram type, data fields, label placement, and animation; Satori/SVG.js/Viz.js text, graph, font, and sanitation policy; Anime.js/Lottie motion timing; Three.js/PixiJS/Konva/Babylon.js scene/layer settings; Torch/TorchVision/Transformers approved model snapshot and no-remote-download policy; Playwright viewport, selector, wait rule, and capture format; FFmpeg LGPL color/audio settings; AudioFlux timing settings; Signalsmith Stretch fit settings; OpenCV safe-zone thresholds; and Remotion layer/motion presets.
+Tool strategy items must store structured settings from `tool-settings-catalog.md`, not vague chat text. Examples include source-bound vector-map camera, route, pin, and label settings; D3/ECharts/Vega diagram type, data fields, label placement, and animation; Satori/SVG.js/Viz.js text, graph, font, and sanitation policy; Anime.js/Lottie motion timing; Three.js/PixiJS/Konva/Babylon.js scene/layer settings; Playwright viewport, selector, wait rule, and capture format; FFmpeg LGPL color/audio settings; AudioFlux timing settings; Signalsmith Stretch fit settings; OpenCV safe-zone thresholds; and Remotion layer/motion presets.
 
 ## Launch Audio Tool Replacement
 

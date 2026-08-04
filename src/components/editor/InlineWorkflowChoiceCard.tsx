@@ -15,7 +15,8 @@ export function InlineWorkflowChoiceCard({ selectedWorkflow }: InlineWorkflowCho
         <Badge accent="cyan">Context only</Badge>
       </div>
       <p className="inline-helper">
-        This helps ReeditPro understand the job. It does not automatically decide Stroke Motion, Graphic Design, Real Motion, or SoundSync.
+        This helps ReeditPro understand the job. It does not automatically decide animation, graphics,
+        premium motion, music, or sound effects.
       </p>
     </section>
   )

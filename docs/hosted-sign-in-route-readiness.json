@@ -1,5 +1,5 @@
 {
-  "decision": "hosted_sign_in_route_readiness_passed_ready_for_browser_sign_in_verification",
+  "decision": "hosted_sign_in_route_readiness_contract_ready_live_host_pending",
   "command": "npm run internal-testing:verify-hosted-sign-in-route",
   "requiredEnv": [
     "REEDITPRO_CONFIRM_HOSTED_SIGN_IN_ROUTE_READINESS",
@@ -12,18 +12,25 @@
     "REEDITPRO_EXPECT_HOSTED_SUPABASE_CONFIGURED"
   ],
   "defaultRecommendedUrl": "https://yuzastudio6-cyber.github.io/Reedkt/",
-  "route": "/sign-in?redirect=/internal-testing",
+  "route": "/sign-in?returnTo=/dashboard",
   "checks": [
     "hosted_page_reachable",
-    "sign_in_heading_visible",
-    "frontend_anon_auth_boundary_visible",
-    "no_service_role_boundary_visible",
-    "no_tool_execution_boundary_visible",
-    "internal_testing_handoff_visible",
-    "optional_supabase_public_env_configured"
+    "current_sign_in_surface_visible",
+    "google_primary_action_visible",
+    "email_password_fallback_visible",
+    "browser_safe_supabase_auth_mode_active",
+    "private_preview_boundary_visible",
+    "unexpected_app_origin_absent"
   ],
+  "liveHostVerified": false,
+  "liveHostCheckedOn": "2026-07-17",
+  "liveHostStatus": "blocked_sign_in_surface_missing",
+  "compiledSubpathPreviewVerified": true,
+  "googleProviderRedirectFollowed": false,
+  "googleSessionVerified": false,
   "blockedScope": {
     "credentialsSubmitted": false,
+    "providerRedirectFollowed": false,
     "serviceRole": false,
     "supabaseWrite": false,
     "storageSignedUrls": false,
@@ -35,8 +42,9 @@
     "creditReservation": false,
     "creditSpend": false,
     "stripe": false,
+    "customerBilling": false,
     "externalBeta": false,
     "production": false
   },
-  "nextGate": "INTERNAL_TESTER_BROWSER_SIGN_IN_VERIFICATION"
+  "nextGate": "INTERACTIVE_GOOGLE_SESSION_CALLBACK_RELOAD_AND_SIGN_OUT_READBACK"
 }

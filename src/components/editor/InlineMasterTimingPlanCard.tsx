@@ -1,5 +1,6 @@
 import { Badge } from '../Badge'
 import type { ChatPlanningCardDescriptor, EditPlan, TimingQaCheck } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineMasterTimingPlanCardProps = {
@@ -45,7 +46,7 @@ export function InlineMasterTimingPlanCard({ descriptor, plan }: InlineMasterTim
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? blocked}
       eyebrow="StoryTiming"
-      helper="ReeditPro plans captions, visuals, transitions, SFX, music, AI clips, and Remotion layers on a frame-accurate timeline."
+      helper="ReeditPro plans captions, visuals, transitions, SFX, music, AI clips, and composition layers on a frame-accurate timeline."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Master timing"
@@ -56,7 +57,7 @@ export function InlineMasterTimingPlanCard({ descriptor, plan }: InlineMasterTim
         <Badge accent="blue">Speech first</Badge>
         {beatAligned && <Badge accent="violet">Beat aligned</Badge>}
         <Badge accent="success">Voice protected</Badge>
-        <Badge accent="muted">No real audio analysis</Badge>
+        <Badge accent="muted">Audio analysis gated</Badge>
       </div>
 
       <div className="timing-summary-grid">
@@ -67,13 +68,13 @@ export function InlineMasterTimingPlanCard({ descriptor, plan }: InlineMasterTim
         <span><strong>Source items</strong>{timingPlan.sourceTimingItems.length}</span>
         <span><strong>Caption cues</strong>{timingPlan.captionTimingItems.length}</span>
         <span><strong>Visual cues</strong>{timingPlan.visualTimingItems.length}</span>
-        <span><strong>Provider clips</strong>{timingPlan.providerClipTimingItems.length}</span>
+        <span><strong>AI asset clips</strong>{timingPlan.providerClipTimingItems.length}</span>
       </div>
 
       <div className={blocked ? 'timing-blocked-note' : 'timing-draft-note'}>
         {blocked
           ? 'Timing is draft and approval remains locked until output frame confirmation.'
-          : 'Timing is mock-planned and ready for review; real transcript/audio/media timing still requires future workers.'}
+          : 'Timing is internally planned and ready for review; transcript, audio, and media timing workers remain gated.'}
       </div>
 
       <div className="timing-base-summary">
@@ -126,11 +127,11 @@ export function InlineMasterTimingPlanCard({ descriptor, plan }: InlineMasterTim
       </div>
 
       <div className="timing-cue-list">
-        <h4>Beat grid / SoundSync</h4>
+        <h4>Beat grid / sound timing</h4>
         <article className="timing-cue-item">
-          <strong>{timingPlan.beatGridPlan.bpm ? `${timingPlan.beatGridPlan.bpm} BPM mock grid` : 'Voice-led timing'}</strong>
+          <strong>{timingPlan.beatGridPlan.bpm ? `${timingPlan.beatGridPlan.bpm} BPM beat grid` : 'Voice-led timing'}</strong>
           <span>{timingPlan.beatGridPlan.confidence} confidence</span>
-          <small>{timingPlan.beatGridPlan.limitations[0]}</small>
+          <small>{hideInternalToolNamesInCopy(timingPlan.beatGridPlan.limitations[0])}</small>
         </article>
       </div>
 
@@ -140,26 +141,26 @@ export function InlineMasterTimingPlanCard({ descriptor, plan }: InlineMasterTim
           <article className="timing-cue-item" key={transition.id}>
             <strong>{transition.transitionType.replaceAll('_', ' ')}</strong>
             <span>{frameRange(transition.timeRange.startFrame, transition.timeRange.endFrame)}</span>
-            <small>{transition.reason}</small>
+            <small>{hideInternalToolNamesInCopy(transition.reason)}</small>
           </article>
         ))}
         {timingPlan.sfxTimingItems.slice(0, 4).map((sfx) => (
           <article className="timing-cue-item" key={sfx.id}>
             <strong>{sfx.label}</strong>
             <span>{sfx.cueType.replaceAll('_', ' ')} / {frameRange(sfx.timeRange.startFrame, sfx.timeRange.endFrame)}</span>
-            <small>{sfx.reason}</small>
+            <small>{hideInternalToolNamesInCopy(sfx.reason)}</small>
           </article>
         ))}
       </div>
 
       <div>
-        <h4>Provider clip timing</h4>
+        <h4>AI asset clip timing</h4>
         <div className="provider-clip-timing-list">
           {timingPlan.providerClipTimingItems.slice(0, 6).map((clip) => (
             <article className="timing-cue-item" key={clip.id}>
-              <strong>{clip.providerModel?.replaceAll('_', ' ') ?? 'Provider asset'}</strong>
+              <strong>{clip.providerModel ? hideInternalToolNamesInCopy(clip.providerModel.replaceAll('_', ' ')) : 'AI asset clip'}</strong>
               <span>{clip.expectedDurationFrames}f / {frameRange(clip.placementRange.startFrame, clip.placementRange.endFrame)}</span>
-              <small>{clip.reason}</small>
+              <small>{hideInternalToolNamesInCopy(clip.reason)}</small>
             </article>
           ))}
         </div>
@@ -172,7 +173,7 @@ export function InlineMasterTimingPlanCard({ descriptor, plan }: InlineMasterTim
             <article className="timing-cue-item" key={qaCheck.id}>
               <strong>{qaCheck.label}</strong>
               <Badge accent={riskAccent(qaCheck.riskLevel)}>{qaCheck.riskLevel}</Badge>
-              <small>{qaCheck.message}</small>
+              <small>{hideInternalToolNamesInCopy(qaCheck.message)}</small>
             </article>
           ))}
         </div>
@@ -180,7 +181,7 @@ export function InlineMasterTimingPlanCard({ descriptor, plan }: InlineMasterTim
 
       <div className="timing-no-real-analysis-note">
         {timingPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{hideInternalToolNamesInCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

@@ -262,7 +262,7 @@ function toolRegistrySummary(plan: EditPlan) {
     return 'Tool registry summary is not ready.'
   }
 
-  return `${summary.launchCoreToolCount} launch-core tools, ${summary.plannedToolCount + summary.futureToolCount} planned/future, ${summary.needsLicenseReviewCount} license review. Planning only; no tools run.`
+  return `Exact 50-tool server catalog is authoritative. Historical and future capability profiles are excluded from selection and dispatch; ${summary.needsLicenseReviewCount} catalog item(s) still require review.`
 }
 
 function renderStrategySummary(plan: EditPlan) {
@@ -1047,7 +1047,7 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       status: previewReady ? 'complete' : 'not_started',
       defaultExpanded: previewReady,
       requiredBeforeApproval: false,
-      summary: previewReady ? 'Mock preview is ready.' : 'Preview appears after approved mock progress completes.',
+      summary: previewReady ? 'Private review is ready.' : 'Preview appears after approved internal progress completes.',
     }),
   ]
 }

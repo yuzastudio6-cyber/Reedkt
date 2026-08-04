@@ -114,12 +114,13 @@ export interface ProjectSourceVideoBackendUploadResult {
   sizeBytes: number
   checksumSha256?: string
   uploadedAt: string
-  backendLocalUploadMade: true
+  backendLocalUploadMade: boolean
   browserFileBytesSent: true
   fileBytesReadByBackend: true
   storageWriteMade: true
   supabaseWriteMade: false
-  gcsWriteMade: false
+  gcsWriteMade: boolean
+  sourceFinalizationJobCreated?: boolean
   mediaProcessingStarted: false
   workerJobCreated: false
   providerCallMade: false

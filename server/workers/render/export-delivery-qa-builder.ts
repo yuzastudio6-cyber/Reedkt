@@ -4,6 +4,7 @@ import type { MediaProbeResult } from '../media/media-worker-types'
 import { renderIssue } from './render-execution-types'
 import { buildGate } from './render-execution-qa-builder'
 import type { FinalRenderExecutionInput, RenderExecutionManifest } from './render-execution-types'
+import { isProfessionalExportFrameCovered } from '../../../src/lib/professional-export-policy'
 
 export function buildExportDeliveryQAResults(input: {
   executionInput: FinalRenderExecutionInput
@@ -46,6 +47,18 @@ export function buildExportDeliveryQAResults(input: {
       : []
     : [renderIssue('audio_sync_final_probe_pending', 'Audio/video sync needs final media probe before delivery.', 'warning')]
   const failedBlockingGates = (input.upstreamQaResults ?? []).filter((gate) => gate.blocking || gate.status === 'failed' || gate.status === 'blocked')
+  const coverageIssues = input.executionInput.renderMode !== 'final_export'
+    ? []
+    : isProfessionalExportFrameCovered({
+        authority: input.executionInput.professionalExportAuthority,
+        width: input.executionManifest.canvas.width,
+        height: input.executionManifest.canvas.height,
+        aspectRatio: input.executionManifest.canvas.aspectRatio,
+        fps: input.executionManifest.fps,
+        durationSeconds: input.executionManifest.durationSeconds,
+      }) && input.executionInput.professionalExportAuthority?.approvedReservationId === input.executionInput.creditReservationId
+      ? []
+      : [renderIssue('approved_4k_export_coverage_invalid', 'Final delivery requires approved 4K estimate coverage bound to the existing edit reservation; export-time re-estimation or charging is not allowed.', 'blocking')]
   const probedLocalOutputRequired = input.executionInput.mode === 'local_dev' && input.executionInput.enableLocalDevRender === true
   const finalDeliveryIssues = [
     ...(input.finalExportArtifact ? [] : [renderIssue('final_export_missing', 'final_delivery cannot pass without a final_export artifact.', 'blocking')]),
@@ -54,6 +67,7 @@ export function buildExportDeliveryQAResults(input: {
     ...codecIssues.filter((issue) => issue.severity === 'blocking'),
     ...durationIssues.filter((issue) => issue.severity === 'blocking'),
     ...audioIssues.filter((issue) => issue.severity === 'blocking'),
+    ...coverageIssues,
   ]
   return [
     buildGate(input.executionInput, 'export_codec_format', codecIssues, input.outputArtifactIds),

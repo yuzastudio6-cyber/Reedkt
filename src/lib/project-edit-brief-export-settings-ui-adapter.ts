@@ -7,6 +7,10 @@ import type {
   ProjectEditBriefExportSettingsPresetId,
   ProjectEditBriefExportSettingsValidationResult,
 } from '../types/project-edit-brief-export-settings'
+import type {
+  ProfessionalExportAspectRatio,
+  ProfessionalExportProfileId,
+} from '../types/professional-export'
 import type { ProjectEditBriefApiClient } from './project-edit-brief-api-client'
 import {
   getProjectEditSessionExportSettingsViaApi,
@@ -17,12 +21,14 @@ import {
   PROJECT_EDIT_BRIEF_EXPORT_PRESET_DEFINITIONS,
   PROJECT_EDIT_BRIEF_EXPORT_SETTINGS_SAFETY_FLAGS,
   getProjectEditBriefExportPresetDefinition,
+  inferProjectEditBriefExportResolutionProfile,
   recommendProjectEditBriefExportSettings,
   validateProjectEditBriefExportSettings,
 } from './project-edit-brief-export-settings-rules'
+import { resolveProfessionalExportFrame } from './professional-export-policy'
 
 export const PROJECT_EDIT_BRIEF_EXPORT_SETTINGS_BOUNDARY =
-  'Export settings are session-level mock/local metadata. No render/export started, no media probing, no file bytes, no URL fetch, no Supabase command, no worker, no provider, and no credits.'
+  'Export settings are session-level mock/local metadata. The initial edit estimate uses the 4K ceiling, so covered 1080p, 2K, and 4K selections do not create a second export estimate or charge. No render/export started, no media probing, no file bytes, no URL fetch, no Supabase command, no worker, no provider, and no credits.'
 
 function createFallbackSettings(input: {
   projectId: string
@@ -50,6 +56,8 @@ export function createProjectEditBriefExportSettingsFormState(
     customAspectRatio: settings.customAspectRatio,
     resolutionWidth: settings.resolution.width,
     resolutionHeight: settings.resolution.height,
+    resolutionProfileId: settings.resolutionProfileId
+      ?? inferProjectEditBriefExportResolutionProfile(settings),
     frameRate: settings.frameRate,
     format: settings.format,
     codec: settings.codec,
@@ -69,6 +77,12 @@ export function applyProjectEditBriefExportPresetToForm(
   presetId: ProjectEditBriefExportSettingsPresetId,
 ): ProjectEditBriefExportSettingsFormState {
   const preset = getProjectEditBriefExportPresetDefinition(presetId)
+  const resolutionProfileId = form.resolutionProfileId === 'custom'
+    ? 'uhd_2160'
+    : form.resolutionProfileId
+  const frame = preset.aspectRatio === 'custom'
+    ? undefined
+    : resolveProfessionalExportFrame(preset.aspectRatio as ProfessionalExportAspectRatio, resolutionProfileId)
   return {
     ...form,
     presetId,
@@ -77,8 +91,9 @@ export function applyProjectEditBriefExportPresetToForm(
     customAspectRatio: preset.aspectRatio === 'custom'
       ? form.customAspectRatio ?? { width: preset.resolution.width, height: preset.resolution.height }
       : undefined,
-    resolutionWidth: preset.resolution.width,
-    resolutionHeight: preset.resolution.height,
+    resolutionWidth: frame?.width ?? preset.resolution.width,
+    resolutionHeight: frame?.height ?? preset.resolution.height,
+    resolutionProfileId: frame ? resolutionProfileId : 'custom',
     frameRate: preset.frameRate,
     format: preset.format,
     codec: preset.codec,
@@ -86,7 +101,25 @@ export function applyProjectEditBriefExportPresetToForm(
     captionSafeArea: preset.captionSafeArea,
     safeZonePreset: preset.safeZonePreset,
     deliveryPreset: preset.deliveryPreset,
-    summary: `${preset.displayName} selected as mock export metadata. No render/export started.`,
+    summary: `${preset.displayName} selected as mock export metadata. No render/export or additional credit charge started.`,
+  }
+}
+
+export function applyProjectEditBriefExportResolutionProfileToForm(
+  form: ProjectEditBriefExportSettingsFormState,
+  resolutionProfileId: ProfessionalExportProfileId,
+): ProjectEditBriefExportSettingsFormState {
+  if (form.aspectRatio === 'custom') return form
+  const frame = resolveProfessionalExportFrame(
+    form.aspectRatio as ProfessionalExportAspectRatio,
+    resolutionProfileId,
+  )
+  return {
+    ...form,
+    resolutionWidth: frame.width,
+    resolutionHeight: frame.height,
+    resolutionProfileId,
+    summary: `${frame.label} selected within the initial 4K edit-estimate ceiling. No second export estimate or charge started.`,
   }
 }
 
@@ -95,6 +128,14 @@ export function createProjectEditBriefExportSettingsRecordFromForm(
   existing?: ProjectEditSessionExportSettingsRecord,
 ): ProjectEditSessionExportSettingsRecord {
   const timestamp = new Date().toISOString()
+  const resolution = {
+    width: Number(form.resolutionWidth),
+    height: Number(form.resolutionHeight),
+  }
+  const resolutionProfileId = inferProjectEditBriefExportResolutionProfile({
+    aspectRatio: form.aspectRatio,
+    resolution,
+  })
   return {
     id: form.exportSettingsId ?? existing?.id ?? `project-edit-session-export-settings-${form.editSessionId}`,
     projectId: form.projectId,
@@ -105,10 +146,8 @@ export function createProjectEditBriefExportSettingsRecordFromForm(
     customAspectRatio: form.aspectRatio === 'custom'
       ? form.customAspectRatio ?? { width: form.resolutionWidth, height: form.resolutionHeight }
       : undefined,
-    resolution: {
-      width: Number(form.resolutionWidth),
-      height: Number(form.resolutionHeight),
-    },
+    resolution,
+    resolutionProfileId,
     frameRate: form.frameRate,
     format: form.format,
     codec: form.codec,
@@ -129,6 +168,10 @@ export function createProjectEditBriefExportSettingsRecordFromForm(
       fileBytesRead: false,
       externalUrlFetched: false,
       mediaProcessingStarted: false,
+      professionalResolutionProfileId: resolutionProfileId,
+      initialEstimateUses4kCeiling: true,
+      exportRequiresSecondEstimate: false,
+      exportAllowsAdditionalCharge: false,
     },
   }
 }
@@ -157,6 +200,7 @@ export function createProjectEditBriefExportSettingsPanelModel(
     canStartExport: false,
     warnings: [
       'Export Settings are ProjectEditSession-owned and shown inside Brief for convenience.',
+      '1080p, 2K, and 4K are covered by the initial 4K edit-estimate ceiling for the same approved deliverable.',
       'Saving updates mock metadata only. No render/export starts.',
     ],
     mockOnly: true,

@@ -211,7 +211,7 @@ function createRefinedTransitions(params: {
     const nearbyCue = params.captionVisualCueTimingPlan?.visualCueTimings.find((cue) =>
       Math.abs(cue.timeRange.endFrame - transition.timeRange.startFrame) <= params.masterTimingPlan.timingBase.fps,
     )
-    const snapDecision = createBeatSnapDecision({
+    let snapDecision = createBeatSnapDecision({
       beatGridPlan: params.beatGridPlan,
       id: `beat-snap-transition-${index + 1}`,
       input: params.input,
@@ -225,15 +225,52 @@ function createRefinedTransitions(params: {
       beatSnapDecision: snapDecision,
       input: params.input,
       masterTransition: transition,
+      transitionIndex: index,
       visualMotivated: Boolean(nearbyCue),
     })
+    if (
+      transitionType === 'hard_cut' ||
+      transitionType === 'smooth_panel_dip'
+    ) {
+      const toSegment = params.masterTimingPlan.finalTimelineSegments.find((segment) =>
+        segment.segmentId === transition.toSegmentId || segment.id === transition.toSegmentId)
+      const exactBoundaryFrame = toSegment?.finalRange.startFrame
+      if (exactBoundaryFrame !== undefined) {
+        snapDecision = createBeatSnapDecision({
+          beatGridPlan: params.beatGridPlan,
+          id: `beat-snap-transition-${index + 1}`,
+          input: params.input,
+          masterTimingPlan: params.masterTimingPlan,
+          preferBeat: false,
+          requestedFrame: exactBoundaryFrame,
+          targetCueId: transition.id,
+          linkedTranscriptLineId: nearbyCue?.linkedTranscriptLineId,
+        })
+      }
+    }
     const durationFrames = estimateTransitionDurationFrames({
       fps: transition.timeRange.fps,
       input: params.input,
       transitionType,
     })
-    const startFrame = Math.min(params.masterTimingPlan.timingBase.totalFrames, snapDecision.snappedFrame)
-    const endFrame = Math.min(params.masterTimingPlan.timingBase.totalFrames, startFrame + durationFrames)
+    const exactBoundaryFrame = params.masterTimingPlan.finalTimelineSegments.find((segment) =>
+      segment.segmentId === transition.toSegmentId || segment.id === transition.toSegmentId)
+      ?.finalRange.startFrame
+    const centeredPanelDipStart = transitionType === 'smooth_panel_dip' &&
+      exactBoundaryFrame !== undefined
+      ? exactBoundaryFrame - Math.floor(durationFrames / 2)
+      : undefined
+    const startFrame = Math.max(
+      0,
+      Math.min(
+        params.masterTimingPlan.timingBase.totalFrames,
+        centeredPanelDipStart ?? snapDecision.snappedFrame,
+      ),
+    )
+    const endFrame = Math.min(
+      params.masterTimingPlan.timingBase.totalFrames,
+      startFrame + durationFrames,
+    )
     const beatAligned = snapDecision.snapDecision === 'snap_to_beat' || snapDecision.snapDecision === 'snap_to_onset'
     const downbeatAligned = snapDecision.snapDecision === 'snap_to_downbeat'
     const phraseBoundaryAligned = transition.phraseBoundaryAligned || snapDecision.snapDecision === 'snap_to_phrase_boundary'
@@ -310,7 +347,11 @@ function createRefinedSfx(params: {
     }))
     .filter(Boolean) as RefinedSfxTimingItem[]
   const transitionSfx = params.refinedTransitions
-    .filter((transition) => transition.riskLevel !== 'high' && transition.riskLevel !== 'blocking')
+    .filter((transition) =>
+      transition.transitionType !== 'hard_cut' &&
+      (transition.visualMotivated || transition.audioMotivated) &&
+      transition.riskLevel !== 'high' &&
+      transition.riskLevel !== 'blocking')
     .slice(0, params.input.editLevel === 'premium' ? 4 : params.input.editLevel === 'pro' ? 2 : 1)
     .map((transition, index) => createSfxTimingForCue({
       densityLevel,
@@ -365,8 +406,8 @@ function createQaChecks(params: {
       passedMock: params.status !== 'blocked',
       message: params.status === 'needs_audioflux_analysis'
         ? 'AudioFlux analysis is planned for future workers and has not run.'
-        : 'No real audio analysis is implied by this mock plan.',
-      recommendation: 'Keep beat grid confidence mock-only until future AudioFlux worker results exist.',
+        : 'Audio analysis remains planning-only until approved worker results exist.',
+      recommendation: 'Keep beat grid confidence review-only until future AudioFlux worker results exist.',
       linkedTransitionTimingItemIds: [],
       linkedSfxTimingItemIds: [],
       linkedDuckingTimingItemIds: [],
@@ -416,7 +457,7 @@ export function createSoundSyncTransitionTimingPlan(params: CreateSoundSyncTrans
       }),
       limitations: [
         'Blocked because MasterTimingPlan is missing.',
-        'No real audio analysis, AudioFlux, FFmpeg, Signalsmith Stretch, SFX generation, media processing, providers, or rendering ran.',
+        'Audio analysis, AudioFlux, FFmpeg, Signalsmith Stretch, SFX generation, media processing, providers, and rendering remain gated until approved backend execution.',
       ],
       notes: [],
     }
@@ -452,6 +493,7 @@ export function createSoundSyncTransitionTimingPlan(params: CreateSoundSyncTrans
         captionVisualCueTimingPlan: params.captionVisualCueTimingPlan,
         index,
         input: params.input,
+        maxEndFrame: params.masterTimingPlan!.timingBase.totalFrames,
         speechLine,
       }))
     : []
@@ -500,8 +542,8 @@ export function createSoundSyncTransitionTimingPlan(params: CreateSoundSyncTrans
     ],
     qaChecks,
     limitations: [
-      'Mock-only SoundSync + Transition Timing; no real AudioFlux analysis has run.',
-      'No real beat detection, onset detection, BPM detection, audio analysis, SFX generation, FFmpeg, Signalsmith Stretch, media processing, provider calls, backend, Supabase, or rendering is executed.',
+      'Review-only SoundSync + transition timing; AudioFlux analysis remains backend-gated.',
+      'Beat detection, onset detection, BPM detection, audio analysis, SFX generation, FFmpeg, Signalsmith Stretch, media processing, provider calls, backend jobs, storage writes, and rendering require approved execution gates.',
       'AudioFlux is the future beat/rhythm analysis candidate; Essentia is not the launch default.',
       'Signalsmith Stretch is stretch/pitch-only; Rubber Band is not the launch default.',
       params.captionVisualCueTimingPlan

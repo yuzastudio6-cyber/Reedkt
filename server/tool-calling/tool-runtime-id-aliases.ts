@@ -42,8 +42,8 @@ export const RUNTIME_TOOL_ID_ALIASES = [
   },
   {
     alias: 'imagemagick_graphicsmagick',
-    runtimeToolId: 'imagemagick',
-    reason: 'ImageMagick is the first-class ProductionToolId promoted for Track B planning; GraphicsMagick remains a deferred runtime identity.',
+    runtimeToolId: 'sharp',
+    reason: 'ImageMagick and GraphicsMagick remain deferred external identities; approved image operations route through the first-class Sharp profile.',
   },
   {
     alias: 'graphicsmagick',
@@ -54,17 +54,20 @@ export const RUNTIME_TOOL_ID_ALIASES = [
   {
     alias: 'mediainfo',
     runtimeToolId: 'mediainfo',
-    reason: 'MediaInfo is promoted to a first-class ProductionToolId for Track B planning metadata.',
+    externalToolId: 'mediainfo',
+    reason: 'MediaInfo remains a preserved external readiness probe and is not one of the 50 canonical private E2E production tool profiles.',
   },
   {
     alias: 'exiftool',
     runtimeToolId: 'exiftool',
-    reason: 'ExifTool is promoted to a first-class ProductionToolId for Track B planning metadata.',
+    externalToolId: 'exiftool',
+    reason: 'ExifTool remains a preserved external readiness probe and is not one of the 50 canonical private E2E production tool profiles.',
   },
   {
     alias: 'tesseract',
     runtimeToolId: 'tesseract',
-    reason: 'Tesseract is promoted to a first-class ProductionToolId for Track B planning metadata.',
+    externalToolId: 'tesseract',
+    reason: 'Tesseract remains a preserved external readiness probe; first-class OCR planning uses PaddleOCR.',
   },
   {
     alias: 'opencolorio',

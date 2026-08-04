@@ -12,7 +12,7 @@ export function createQwenRuntimeBetaSummary(config: QwenRuntimeConfig): string 
 }
 
 export function createQwenSecretManagerRuntimeSummary(diagnostic: QwenSecretResolutionDiagnostic): string {
-  return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} Secret Manager ${diagnostic.status}; valueAccessed ${diagnostic.valueAccessed}; secretValuePrinted false; fingerprint ${diagnostic.redactedFingerprint ?? 'not available'}.`
+  return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} credential ${diagnostic.status}; authority ${diagnostic.secretAuthorityClass}; pinnedVersionVerified ${diagnostic.pinnedVersionVerified}; productionQualificationGranted false; secretValuePrinted false.`
 }
 
 export function createQwenProviderTransportSummary(result: QwenProviderTransportResult): string {

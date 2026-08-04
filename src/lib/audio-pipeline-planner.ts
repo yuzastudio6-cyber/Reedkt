@@ -32,6 +32,7 @@ import {
   getDefaultSoundStyleForCategory,
   getSoundStylePreset,
 } from './audio-presets'
+import { getPositiveInstructionSignalText } from './intent-compiler'
 
 type CreateAudioPipelinePlanParams = {
   input: PlannerInput
@@ -98,10 +99,11 @@ function assetText(asset: VisualAssetPlanItem) {
 }
 
 function chooseSoundStyle(params: CreateAudioPipelinePlanParams): SoundStyleId {
-  const text = params.input.customInstructions.toLowerCase()
+  const text = getPositiveInstructionSignalText(params.input.customInstructions.toLowerCase())
+  const instructions = audioInstructions(params.input)
 
-  if (includesAny(text, ['voice only', 'no music', 'clean audio', 'just voice'])) return 'clean_voice_only'
-  if (includesAny(text, ['documentary', 'case study', 'scam', 'fraud', 'investigation'])) return 'documentary_serious'
+  if (instructions.sourceOnly || includesAny(text, ['voice only', 'no music', 'clean audio', 'just voice'])) return 'clean_voice_only'
+  if (includesAny(text, ['serious documentary sound', 'documentary audio', 'documentary soundtrack'])) return 'documentary_serious'
   if (includesAny(text, ['cinematic music', 'cinematic audio', 'emotional music', 'dramatic music'])) return 'cinematic_emotional'
   if (includesAny(text, ['upbeat', 'energetic', 'high retention', 'viral sound'])) {
     return params.input.editLevel === 'basic' ? 'subtle_premium_bed' : 'energetic_social'
@@ -118,15 +120,30 @@ function chooseSoundStyle(params: CreateAudioPipelinePlanParams): SoundStyleId {
 
 function audioInstructions(input: PlannerInput) {
   const text = input.customInstructions.toLowerCase()
+  const positiveText = getPositiveInstructionSignalText(text)
+  const sourceOnly = includesAny(text, [
+    'source only',
+    'source footage only',
+    'uploaded footage only',
+    'only use the source',
+    'use only the source',
+  ])
 
   return {
-    highRetention: includesAny(text, ['high retention', 'viral', 'fast paced', 'impact']),
-    noMusic: includesAny(text, ['no music', 'voice only', 'just voice']),
-    noSfx: includesAny(text, ['no sfx', 'no sound effects', 'no whoosh', 'no whooshes']),
-    preservePauses: includesAny(text, ['preserve pauses', 'emotional pause', 'natural pauses', 'not too fast']),
-    subtle: includesAny(text, ['subtle', 'not too much', 'minimal', 'natural']),
-    wantsSfx: includesAny(text, ['sound effects', 'sfx', 'whoosh', 'impact hit', 'transition sound']),
+    highRetention: includesAny(positiveText, ['high retention', 'viral', 'fast paced', 'impact']),
+    noMusic: sourceOnly || includesAny(text, ['no music', 'voice only', 'just voice']),
+    noSfx: sourceOnly || includesAny(text, ['no sfx', 'no sound effects', 'no whoosh', 'no whooshes']),
+    preservePauses: includesAny(positiveText, ['preserve pauses', 'emotional pause', 'natural pauses']) || text.includes('not too fast'),
+    sourceOnly,
+    subtle: includesAny(positiveText, ['subtle', 'minimal', 'natural']) || text.includes('not too much'),
+    wantsSfx: includesAny(positiveText, ['sound effects', 'sfx', 'whoosh', 'impact hit', 'transition sound']),
   }
+}
+
+function preservesNaturalSourceAudio(input: PlannerInput): boolean {
+  return ['preserve_natural', 'documentary_faithful', 'tutorial_complete'].includes(
+    input.cleanupPreference ?? '',
+  )
 }
 
 function issueSet(report?: VideoUnderstandingReport) {
@@ -227,6 +244,7 @@ function chooseSfxPlan(input: PlannerInput, soundStyle: SoundStyleId, visualAsse
 function beatSyncStrategy(input: PlannerInput, soundStyle: SoundStyleId): BeatSyncStrategy {
   const instructions = audioInstructions(input)
 
+  if (instructions.sourceOnly || (soundStyle === 'clean_voice_only' && !instructions.highRetention)) return 'none'
   if (input.editLevel === 'basic') return instructions.highRetention ? 'light' : 'none'
   if (input.editLevel === 'premium' && (instructions.highRetention || soundStyle === 'high_retention_impact')) return 'full_soundsync'
   if (input.editLevel === 'premium') return 'visual_reveal_on_beats'
@@ -234,16 +252,25 @@ function beatSyncStrategy(input: PlannerInput, soundStyle: SoundStyleId): BeatSy
   return 'light'
 }
 
-function stagesForPlan(input: PlannerInput, musicPlan: MusicBedPlan, sfxPlan: SfxPlan, beatStrategy: BeatSyncStrategy): AudioPipelineStage[] {
-  const stages: AudioPipelineStage[] = ['source_audio_analysis', 'voice_cleanup', 'loudness_normalization', 'silence_cleanup']
+function stagesForPlan(
+  input: PlannerInput,
+  musicPlan: MusicBedPlan,
+  sfxPlan: SfxPlan,
+  beatStrategy: BeatSyncStrategy,
+  issues: Set<AudioQualityIssue>,
+): AudioPipelineStage[] {
+  const stages: AudioPipelineStage[] = ['source_audio_analysis', 'voice_cleanup', 'loudness_normalization']
+  if (!preservesNaturalSourceAudio(input) && issues.has('long_silence')) stages.push('silence_cleanup')
 
   if (input.editLevel !== 'basic') {
     if (musicPlan.policy !== 'none') stages.push('music_bed_planning', 'ducking')
     if (sfxPlan.policy !== 'none') stages.push('sfx_planning')
-    stages.push('sound_sync_cues')
+    if (musicPlan.policy !== 'none' || sfxPlan.policy !== 'none' || beatStrategy !== 'none') {
+      stages.push('sound_sync_cues')
+    }
   }
 
-  if (input.editLevel === 'premium' || beatStrategy === 'full_soundsync') {
+  if (beatStrategy !== 'none' && (input.editLevel === 'premium' || beatStrategy === 'full_soundsync')) {
     stages.push('beat_sync', 'output_audio_transform')
   }
 
@@ -271,15 +298,15 @@ function operationSettings(operation: AudioOperationId, input: PlannerInput, mus
 
   switch (operation) {
     case 'voice_leveling':
-      return { ...common, voiceCleanupEnabled: true, voiceLeveling: true, targetVoiceLoudness: input.editLevel === 'basic' ? -16 : -14 }
+      return { ...common, voiceCleanupEnabled: true, voiceLeveling: true, targetVoiceLoudness: -14 }
     case 'loudness_normalization':
-      return { ...common, loudnessTarget: input.editLevel === 'basic' ? -16 : -14, truePeakTarget: -1, normalizationMode: 'voice_first' }
+      return { ...common, loudnessTarget: -14, truePeakTarget: -1, normalizationMode: 'voice_first' }
     case 'noise_reduction':
       return { ...common, noiseReduction: true, noiseReductionStrength: input.editLevel === 'premium' ? 'medium' : 'light' }
     case 'de_essing':
       return { ...common, deEssing: true, speechPriority: true }
     case 'eq_cleanup':
-      return { ...common, eqCleanup: true, compression: input.editLevel !== 'basic' }
+      return { ...common, eqCleanup: true, speechPriority: true }
     case 'compression':
       return { ...common, compression: true, speechPriority: true }
     case 'silence_cleanup':
@@ -333,7 +360,7 @@ function createOperation(params: {
     status: statusForTool(toolId),
     qaChecks: [
       `${operationLabels[params.operation]} matches user intent and tier.`,
-      'Planning-only; no real audio processing runs in frontend.',
+      'Planning-only; audio processing remains backend-gated.',
     ],
     workerNotes: [
       toolId === 'signalsmith_stretch'
@@ -357,16 +384,21 @@ function projectOperations(params: {
   const presetOps = getAudioOperationsForStyle(params.soundStyle, params.input.editLevel)
   const operations = new Set<AudioOperationId>([
     'voice_leveling',
+    'eq_cleanup',
+    'compression',
     'loudness_normalization',
     'true_peak_limit',
-    'silence_cleanup',
     'qa_loudness_check',
     ...presetOps,
   ])
 
   if (params.issues.has('background_noise') || params.issues.has('echo')) operations.add('noise_reduction')
   if (params.issues.has('many_fillers')) operations.add('filler_pause_cleanup')
-  if (params.issues.has('long_silence')) operations.add('silence_cleanup')
+  if (params.issues.has('long_silence') && !preservesNaturalSourceAudio(params.input)) {
+    operations.add('silence_cleanup')
+  } else {
+    operations.delete('silence_cleanup')
+  }
   if (params.issues.has('clipping')) operations.add('qa_clipping_check')
   if (params.musicPlan.policy !== 'none') {
     operations.add('music_bed')
@@ -382,6 +414,35 @@ function projectOperations(params: {
     operations.add('onset_detection')
     operations.add('visual_reveal_timing')
     operations.add('caption_timing_alignment')
+  }
+
+  if (preservesNaturalSourceAudio(params.input)) {
+    operations.delete('silence_cleanup')
+    operations.delete('breath_reduction')
+    operations.delete('filler_pause_cleanup')
+  }
+  if (params.musicPlan.policy === 'none') {
+    operations.delete('ambient_bed')
+    operations.delete('music_bed')
+    operations.delete('music_ducking')
+    operations.delete('qa_music_over_voice_check')
+  }
+  if (params.sfxPlan.policy === 'none') {
+    operations.delete('riser')
+    operations.delete('sfx_hit')
+    operations.delete('transition_sound')
+    operations.delete('whoosh')
+    operations.delete('qa_sfx_density_check')
+  }
+  if (params.beatStrategy === 'none') {
+    operations.delete('beat_detection')
+    operations.delete('bpm_detection')
+    operations.delete('caption_timing_alignment')
+    operations.delete('mood_energy_analysis')
+    operations.delete('onset_detection')
+    operations.delete('pitch_adjustment')
+    operations.delete('tempo_adjustment')
+    operations.delete('visual_reveal_timing')
   }
 
   return Array.from(operations).map((operation, index) =>
@@ -419,7 +480,9 @@ function clipPlans(params: {
     const issues = clipIssues(clip.id, params.report)
     const cleanupOps: AudioOperationId[] = unique([
       'voice_leveling',
-      'silence_cleanup',
+      ...(!preservesNaturalSourceAudio(params.input) && issues.includes('long_silence')
+        ? ['silence_cleanup' as const]
+        : []),
       ...(issues.includes('background_noise') || issues.includes('echo') ? ['noise_reduction' as const, 'eq_cleanup' as const] : []),
       ...(issues.includes('many_fillers') ? ['filler_pause_cleanup' as const] : []),
     ])
@@ -488,7 +551,7 @@ function createSoundSyncCues(params: {
   segmentEditPlans?: SegmentEditPlan[]
   visualAssetPlan?: VisualAssetPlanItem[]
 }): SoundSyncCue[] {
-  if (params.input.editLevel === 'basic' && params.beatStrategy === 'none' && params.sfxPlan.policy === 'none') {
+  if (params.beatStrategy === 'none' && params.sfxPlan.policy === 'none') {
     return []
   }
 
@@ -548,11 +611,13 @@ function toolsPlanned(params: {
   return unique([
     'planning_only',
     'ffmpeg',
-    'remotion_timing_preview',
+    params.beatStrategy !== 'none' ? 'remotion_timing_preview' : undefined,
     params.beatStrategy !== 'none' && params.input.editLevel !== 'basic' ? 'audioflux' : undefined,
     params.input.editLevel === 'premium' && params.beatStrategy === 'full_soundsync' ? 'librosa' : undefined,
     params.operations.some((operation) => operation.operation === 'tempo_adjustment' || operation.operation === 'pitch_adjustment') ? 'signalsmith_stretch' : undefined,
-    /transcript|timing|caption/i.test(params.input.customInstructions) ? 'whisper_cpp' : undefined,
+    /transcript|word[- ]level timing|speech alignment|caption timing/i.test(params.input.customInstructions)
+      ? 'whisper_cpp'
+      : undefined,
   ].filter(Boolean) as AudioPipelineToolId[])
 }
 
@@ -591,10 +656,10 @@ export function createAudioPipelinePlan(params: CreateAudioPipelinePlanParams): 
 
   return {
     id: `audio-pipeline-${params.input.editingCategory}-${params.input.editLevel}`,
-    summary: `${preset.label} audio pipeline planned with ${clipAudioPlans.length} clip plan${clipAudioPlans.length === 1 ? '' : 's'}, ${cues.length} SoundSync cue${cues.length === 1 ? '' : 's'}, and no real audio processing in this frontend mock.`,
+    summary: `${preset.label} audio pipeline planned with ${clipAudioPlans.length} clip plan${clipAudioPlans.length === 1 ? '' : 's'} and ${cues.length} SoundSync cue${cues.length === 1 ? '' : 's'}; audio processing remains backend-gated.`,
     soundStyle,
     audioIntensity: preset.audioIntensityDefault,
-    stages: stagesForPlan(params.input, musicBedPlan, sfxPlan, strategy),
+    stages: stagesForPlan(params.input, musicBedPlan, sfxPlan, strategy, issues),
     toolsPlanned: tools,
     projectOperations: projectOps,
     clipPlans: clipAudioPlans,
@@ -603,7 +668,9 @@ export function createAudioPipelinePlan(params: CreateAudioPipelinePlanParams): 
     beatSyncPlan: beatPlan,
     soundSyncCues: cues,
     tierNotes: [
-      params.input.editLevel === 'basic'
+      musicBedPlan.policy === 'none' && sfxPlan.policy === 'none' && strategy === 'none'
+        ? 'Explicit source-only or voice-only direction keeps music, SFX, beat analysis, and SoundSync cues disabled while professional voice processing remains planned.'
+        : params.input.editLevel === 'basic'
         ? 'Basic includes professional voice cleanup and loudness planning, minimal music/SFX, no random SFX, and no Veo.'
         : params.input.editLevel === 'pro'
           ? 'Pro adds tasteful SoundSync timing, ducking, and SFX where useful; no Veo.'
@@ -615,10 +682,10 @@ export function createAudioPipelinePlan(params: CreateAudioPipelinePlanParams): 
       'Music does not overpower voice.',
       'SFX are justified by story, transition, reveal, or emotion.',
       'SoundSync cues support captions, cuts, visuals, and transitions.',
-      'No real audio processing or analysis runs in this frontend mock.',
+      'Audio processing and analysis remain backend-gated.',
     ],
     limitations: [
-      'Mock-only audio pipeline plan; no real audio analysis has run.',
+      'Review-only audio pipeline plan; audio analysis remains backend-gated.',
       'No FFmpeg, AudioFlux, Signalsmith Stretch, Essentia, librosa, Rubber Band, whisper.cpp, transcription, beat detection, music generation, SFX generation, rendering, or export is executed.',
       'Future workers must use approved plan snapshots after user approval and credit reservation.',
       ...(tools.includes('signalsmith_stretch') ? ['Signalsmith Stretch is a worker-only launch candidate and needs audio quality benchmarks before production use.'] : []),

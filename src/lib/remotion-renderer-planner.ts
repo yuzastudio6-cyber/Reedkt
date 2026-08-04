@@ -29,6 +29,7 @@ import type {
   VisualAssetType,
 } from '../types/reeditpro'
 import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan } from '../types/editing-agent-runtime'
+import { hideInternalToolNamesInCopy, userFacingActivityList } from './tool-display-labels'
 
 type CreateRendererCompositionPlanParams = {
   visualAssetPlan: VisualAssetPlanItem[]
@@ -211,22 +212,22 @@ function renderStrategySummaryNotes(renderStrategyItem?: RenderStrategyPlanItem)
   }
 
   return [
-    `Render strategy: ${formatLabel(renderStrategyItem.strategyType)}.`,
+    `Composition strategy: ${formatLabel(renderStrategyItem.strategyType)}.`,
     renderStrategyItem.selectedRemotionCapabilities.length
-      ? `Remotion capabilities: ${renderStrategyItem.selectedRemotionCapabilities.map(formatLabel).join(', ')}.`
-      : 'No Remotion capabilities selected.',
+      ? `Composition capabilities: ${renderStrategyItem.selectedRemotionCapabilities.map(formatLabel).join(', ')}.`
+      : 'No composition capabilities selected.',
     renderStrategyItem.selectedOpenSourceTools.length
-      ? `Expected open-source tool outputs: ${renderStrategyItem.selectedOpenSourceTools.map(formatLabel).join(', ')}.`
-      : 'No open-source tool output is required.',
+      ? `Expected private activity outputs: ${userFacingActivityList(renderStrategyItem.selectedOpenSourceTools)}.`
+      : 'No private activity output is required.',
     renderStrategyItem.selectedProviderModels.length
-      ? `Referenced provider models: ${renderStrategyItem.selectedProviderModels.map(formatLabel).join(', ')}.`
-      : 'No provider model output is required.',
-    renderStrategyItem.needsWorkerPreprocess ? 'Future worker preprocess output is required before Remotion placement.' : undefined,
-    renderStrategyItem.needsWorkerPostprocess ? 'Future worker postprocess is planned after a future render/export.' : undefined,
+      ? 'AI asset route is referenced for future approved asset preparation.'
+      : 'No AI asset route output is required.',
+    renderStrategyItem.needsWorkerPreprocess ? 'Future private preprocess output is required before composition placement.' : undefined,
+    renderStrategyItem.needsWorkerPostprocess ? 'Future private postprocess is planned after a future render/export.' : undefined,
     renderStrategyItem.fallbackStrategyType
-      ? `Fallback render strategy: ${formatLabel(renderStrategyItem.fallbackStrategyType)}.`
+      ? `Fallback composition strategy: ${formatLabel(renderStrategyItem.fallbackStrategyType)}.`
       : undefined,
-    'Render strategy is planning only; no Remotion render or external tool execution is performed.',
+    'Composition strategy is planning only; no render or private activity execution is performed.',
   ].filter(Boolean) as string[]
 }
 
@@ -236,15 +237,15 @@ function toolStrategySummaryNotes(toolStrategyItems: ToolStrategyPlanItem[]) {
   }
 
   return [
-    `Tool strategy chains: ${toolStrategyItems.map((item) => formatLabel(item.chainId)).join(', ')}.`,
-    `Planned tools: ${Array.from(new Set(toolStrategyItems.flatMap((item) => item.selectedToolIds))).map(formatLabel).join(', ')}.`,
+    `Private activity groups: ${toolStrategyItems.map((item) => formatLabel(item.chainId)).join(', ')}.`,
+    `Planned private activities: ${userFacingActivityList(Array.from(new Set(toolStrategyItems.flatMap((item) => item.selectedToolIds))))}.`,
     ...toolStrategyItems.slice(0, 3).map((item) => {
-      if (item.chainId === 'remotion_layout_chain') return `${item.label}: layer can be built directly by Remotion.`
-      if (item.chainId === 'color_pipeline_chain' || item.chainId === 'audio_pipeline_chain') return `${item.label}: processing happens before/after Remotion in a future worker, not as a visual layer.`
+      if (item.chainId === 'remotion_layout_chain') return `${item.label}: layer can be built directly by the composition renderer.`
+      if (item.chainId === 'color_pipeline_chain' || item.chainId === 'audio_pipeline_chain') return `${item.label}: processing happens before/after composition in a future private step, not as a visual layer.`
       return `${item.label}: layer expects future output from ${formatLabel(item.chainId)}.`
     }),
-    'Tool strategy is planning only; no tool package is installed or executed.',
-  ]
+    'Private activity strategy is planning only; no package is installed or executed.',
+  ].map(hideInternalToolNamesInCopy)
 }
 
 function colorPipelineLayerNotes(colorPipelinePlan?: ColorPipelinePlan, asset?: VisualAssetPlanItem) {
@@ -258,7 +259,7 @@ function colorPipelineLayerNotes(colorPipelinePlan?: ColorPipelinePlan, asset?: 
 
   return [
     `Color pipeline: ${formatLabel(colorPipelinePlan.colorGradeStyle)} (${colorPipelinePlan.intensity}).`,
-    'Final color pipeline is planned separately; Remotion composes color-matched assets and does not replace full professional grading.',
+    'Final color pipeline is planned separately; the composition renderer assembles color-matched assets and does not replace full professional grading.',
     matchPlan
       ? `Layer color match: ${matchPlan.id} with ${matchPlan.operations.map((operation) => formatLabel(operation.operation)).join(', ')}.`
       : 'No asset-specific color match plan is linked to this layer.',
@@ -276,7 +277,7 @@ function audioPipelineLayerNotes(audioPipelinePlan?: AudioPipelinePlan, asset?: 
 
   return [
     `Audio pipeline: ${formatLabel(audioPipelinePlan.soundStyle)} (${audioPipelinePlan.audioIntensity}).`,
-    'SoundSync cues guide timing of captions, visual reveals, transitions, and SFX; Remotion previews timing but is not the full audio processing engine.',
+    'Sound timing cues guide captions, visual reveals, transitions, and SFX; the composition renderer previews timing but is not the full audio processing engine.',
     cueMatches.length
       ? `Layer SoundSync cues: ${cueMatches.map((cue) => `${formatLabel(cue.cueType)} at ${cue.timeSeconds}s`).join(', ')}.`
       : 'No asset-specific SoundSync cue is linked to this layer.',
@@ -298,10 +299,10 @@ function mapAnimationLayerNotes(mapAnimationPlan?: MapAnimationPlan, asset?: Vis
   }
 
   return [
-    `Map plan: ${formatLabel(mapItem.mapVisualType)} using ${mapItem.toolIds.map(formatLabel).join(', ')}.`,
+    `Map plan: ${formatLabel(mapItem.mapVisualType)} using ${userFacingActivityList(mapItem.toolIds)}.`,
     `Map style ${formatLabel(mapItem.style.styleFamily)}; layout ${formatLabel(mapItem.layout.layoutMode)}.`,
     `Location wording: ${mapItem.locations.map((location) => location.safeWording).join(', ')}.`,
-    'Layer expects future MapLibre/Turf output; Remotion composes the final map layer and captions.',
+    'Layer expects future map/route output; the composition renderer assembles the final map layer and captions.',
     mapItem.layout.foregroundMaskAware
       ? 'Map labels must avoid the expected foreground/contact-object zone; future mask worker required for real depth compositing.'
       : 'Map labels must stay inside safe label and caption zones.',
@@ -323,10 +324,10 @@ function dataVizLayerNotes(dataVizPlan?: DataVizPlan, asset?: VisualAssetPlanIte
   }
 
   return [
-    `Chart/diagram plan: ${formatLabel(dataVizItem.visualType)} using ${dataVizItem.toolIds.map(formatLabel).join(', ')}.`,
+    `Chart/diagram plan: ${formatLabel(dataVizItem.visualType)} using ${userFacingActivityList(dataVizItem.toolIds)}.`,
     `Data confidence: ${formatLabel(dataVizItem.dataPlan.confidence)}; wording: ${dataVizItem.dataPlan.safeWording}.`,
     `Diagram style ${formatLabel(dataVizItem.style.styleFamily)}; layout ${formatLabel(dataVizItem.layout.layoutMode)}.`,
-    'Layer expects future D3/ECharts/Vega-Lite-spec output when needed; Remotion composes the final chart/diagram layer.',
+    'Layer expects future data-graphic spec output when needed; the composition renderer assembles the final chart/diagram layer.',
     'Exact labels, numbers, arrows, and source wording stay controlled and are not generated as AI video.',
   ]
 }
@@ -344,7 +345,7 @@ export function buildRendererNotes(
   dataVizPlan?: DataVizPlan,
 ) {
   const notes = [
-    'Remotion places this asset inside the approved frame template.',
+    'The composition renderer places this asset inside the approved frame template.',
     'AI models generate assets/clips only; they do not own the final canvas.',
     ...renderStrategySummaryNotes(renderStrategyItem),
     ...toolStrategySummaryNotes(toolStrategyItems),
@@ -454,7 +455,7 @@ function depthPlanNotes(depthAwareOverlayPlan?: DepthAwareOverlayPlan) {
 
   return [
     `Depth-aware overlay modes: ${modes}.`,
-    'Depth layer planning is mock-only; future mask/segmentation workers are required for real foreground masks.',
+    'Depth layer planning is review-only; future mask/segmentation workers are required for foreground masks.',
     'Layer stack: base source video, overlay graphic/card/map layer, future foreground subject/object mask layer, captions/top text layer.',
     'Captions remain above graphics and masks.',
     ...(riskyFallbacks.length ? [`Risky depth fallbacks: ${riskyFallbacks.join('; ')}.`] : []),
@@ -568,7 +569,7 @@ function foregroundMaskLayer(
     zone: primarySpeakerZone(frameTemplate, speakerVisualLayoutPlan),
     fitMode: 'safe_contain',
     notes: [
-      'Placeholder layer only: no real mask, segmentation, background removal, or tracking is executed.',
+      'Placeholder layer only: mask generation, segmentation, background removal, and tracking remain backend-gated.',
       'Future mask/segmentation worker required before real depth-aware compositing.',
       'Graphic/card/map layer should sit behind the planned foreground group.',
       ...(contactObjects.length ? [`Contact objects preserved in front of overlays: ${Array.from(new Set(contactObjects)).join(', ')}.`] : []),
@@ -634,41 +635,41 @@ function renderStrategyPlanNotes(renderStrategyPlan?: RenderStrategyPlan, toolSt
     .join(', ')
 
   return [
-    `Render strategy plan: ${renderStrategyPlan.summary}`,
-    counts ? `Render strategy counts: ${counts}.` : undefined,
+    `Composition strategy plan: ${hideInternalToolNamesInCopy(renderStrategyPlan.summary)}`,
+    counts ? `Composition strategy counts: ${counts}.` : undefined,
     renderStrategyPlan.remotionCapabilitiesUsed.length
-      ? `Remotion capabilities used: ${renderStrategyPlan.remotionCapabilitiesUsed.map(formatLabel).join(', ')}.`
+      ? `Composition capabilities used: ${renderStrategyPlan.remotionCapabilitiesUsed.map(formatLabel).join(', ')}.`
       : undefined,
     renderStrategyPlan.openSourceToolsUsed.length
-      ? `Open-source tool outputs expected later: ${renderStrategyPlan.openSourceToolsUsed.map(formatLabel).join(', ')}.`
+      ? `Private activity outputs expected later: ${userFacingActivityList(renderStrategyPlan.openSourceToolsUsed)}.`
       : undefined,
     renderStrategyPlan.providerModelsReferenced.length
-      ? `Provider models referenced as asset routes: ${renderStrategyPlan.providerModelsReferenced.map(formatLabel).join(', ')}.`
+      ? 'AI asset routes referenced for future approved asset preparation.'
       : undefined,
     toolStrategyPlan
-      ? `Tool strategy plan: ${toolStrategyPlan.summary}`
-      : 'No tool strategy plan was provided.',
+      ? `Private activity strategy plan: ${hideInternalToolNamesInCopy(toolStrategyPlan.summary)}`
+      : 'No private activity strategy plan was provided.',
     toolStrategyPlan?.items.length
-      ? `Tool chains planned: ${toolStrategyPlan.chainIdsUsed.map(formatLabel).join(', ')}.`
+      ? `Private activity groups planned: ${toolStrategyPlan.chainIdsUsed.map(formatLabel).join(', ')}.`
       : undefined,
     colorPipelinePlan
-      ? `Color pipeline plan: ${formatLabel(colorPipelinePlan.colorGradeStyle)} ${colorPipelinePlan.intensity}; tools planned ${colorPipelinePlan.toolsPlanned.map(formatLabel).join(', ')}.`
+      ? `Color pipeline plan: ${formatLabel(colorPipelinePlan.colorGradeStyle)} ${colorPipelinePlan.intensity}; private activities planned ${userFacingActivityList(colorPipelinePlan.toolsPlanned)}.`
       : 'No color pipeline plan was provided.',
     audioPipelinePlan
       ? `Audio pipeline plan: ${formatLabel(audioPipelinePlan.soundStyle)} ${audioPipelinePlan.audioIntensity}; ${audioPipelinePlan.soundSyncCues.length} SoundSync cue(s) guide timing.`
       : 'No audio pipeline plan was provided.',
     mapAnimationPlan?.active
-      ? `Map/location plan: ${mapAnimationPlan.items.length} item(s); tools planned ${mapAnimationPlan.mapToolsPlanned.map(formatLabel).join(', ')}.`
+      ? `Map/location plan: ${mapAnimationPlan.items.length} item(s); private activities planned ${userFacingActivityList(mapAnimationPlan.mapToolsPlanned)}.`
       : 'No active map/location plan was provided.',
     dataVizPlan?.active
-      ? `Chart/diagram plan: ${dataVizPlan.items.length} item(s); tools planned ${dataVizPlan.toolsPlanned.map(formatLabel).join(', ')}.`
+      ? `Chart/diagram plan: ${dataVizPlan.items.length} item(s); private activities planned ${userFacingActivityList(dataVizPlan.toolsPlanned)}.`
       : 'No active chart/diagram plan was provided.',
-    'Remotion composes color-matched assets but is not the full professional color grading engine.',
-    'Remotion previews SoundSync timing but is not the full audio processing engine.',
-    'Remotion composes map assets/specs but does not render real maps in this milestone.',
-    'Remotion composes chart/diagram assets/specs but does not render real D3/ECharts/Vega-Lite charts in this milestone.',
-    'Render strategy does not install packages, execute tools, call providers, or render video.',
-  ].filter(Boolean) as string[]
+    'The composition renderer assembles color-matched assets but is not the full professional color grading engine.',
+    'The composition renderer previews sound timing but is not the full audio processing engine.',
+    'The composition renderer assembles map assets/specs but does not render real maps in this milestone.',
+    'The composition renderer assembles chart/diagram assets/specs but does not render real data graphics in this milestone.',
+    'Composition strategy does not install packages, execute private activities, call AI asset services, or render video.',
+  ].filter((note): note is string => Boolean(note)).map(hideInternalToolNamesInCopy)
 }
 
 export function createRendererCompositionPlan({
@@ -765,10 +766,10 @@ export function createRendererCompositionPlan({
     captionSafeZone: frameTemplate.captionSafeZone,
     panelBackgroundColor: frameTemplate.panelBackgroundColor,
     rendererNotes: [
-      'Remotion owns final canvas and timing.',
+      'The composition renderer owns final canvas and timing.',
       masterTimingPlan
-        ? `Remotion sequence timing comes from MasterTimingPlan ${masterTimingPlan.id}.`
-        : 'Master Timing Plan is not attached yet; renderer timing remains mock-only.',
+        ? `Composition sequence timing comes from MasterTimingPlan ${masterTimingPlan.id}.`
+        : 'Master Timing Plan is not attached yet; renderer timing remains review-only.',
       captionVisualCueTimingPlan
         ? `Refined caption/visual timing comes from ${captionVisualCueTimingPlan.id}; caption layers should use ${captionVisualCueTimingPlan.captionPolicy.animationStyle.replaceAll('_', ' ')} animation.`
         : 'Caption + Visual Cue Timing Plan is not attached yet; captions and visual cues use broad Master Timing only.',

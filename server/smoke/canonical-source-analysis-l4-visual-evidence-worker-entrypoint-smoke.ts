@@ -33,6 +33,10 @@ assert.match(cli, /createCanonicalGcsSourceAnalysisJsonObjectPort/u)
 assert.match(cli, /createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwner/u)
 assert.match(cli, /createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidenceOwner/u)
 assert.match(cli, /createCanonicalSourceAnalysisL4VisualEvidenceToolArtifactOwner/u)
+assert.match(
+  cli,
+  /createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner/u,
+)
 assert.match(cli, /new Storage\(\{ projectId: 'reeditpro' \}\)/u)
 assert.match(cli, /REEDITPRO_GPU_INVOCATION_ID/u)
 assert.match(cli, /WORKER_GROUP: z\.literal\('l4_standard_primary'\)/u)

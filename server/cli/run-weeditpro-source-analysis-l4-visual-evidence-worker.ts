@@ -20,6 +20,9 @@ import {
 import {
   createCanonicalSourceAnalysisL4VisualEvidenceToolArtifactOwner,
 } from '../services/canonical-source-analysis-l4-visual-evidence-tool-artifact-owner'
+import {
+  createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner,
+} from '../services/canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner'
 
 const workerEnvironmentSchema = z.object({
   REEDITPRO_GPU_INVOCATION_ID: z.string().trim().min(1).max(240)
@@ -41,6 +44,10 @@ try {
     createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository({
       objectPort,
     })
+  const toolchainQualificationOwner =
+    createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner({
+      objectPort,
+    })
   const bootstrapOwner =
     createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwner({
       envelopeReadPort:
@@ -48,6 +55,7 @@ try {
           objectPort,
         }),
       authorityRepository,
+      toolchainQualificationReadPort: toolchainQualificationOwner,
     })
   const workerEvidenceOwner =
     createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidenceOwner({
@@ -88,6 +96,8 @@ try {
       },
       workerEvidenceOwnerVersion: workerEvidenceOwner.schemaVersion,
       toolArtifactOwnerVersion: toolArtifactOwner.ownerVersion,
+      toolchainQualificationOwnerVersion:
+        toolchainQualificationOwner.ownerVersion,
       gpuToolExecutionStarted: false,
       substantiveCpuMediaProcessingUsed: false,
       runtimeModelOrToolDownloadPerformed: false,

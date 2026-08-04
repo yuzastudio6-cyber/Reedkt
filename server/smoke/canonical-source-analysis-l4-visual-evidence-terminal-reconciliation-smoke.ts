@@ -185,6 +185,7 @@ const toolReleases = [
   releaseItem('sampling_policy',
     VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffmpeg, 6),
 ]
+const toolchainQualificationRef = ref('l4-toolchain-qualification')
 const release = createCanonicalSourceAnalysisL4VisualEvidenceRelease({
   releaseRef,
   operationId,
@@ -197,6 +198,7 @@ const release = createCanonicalSourceAnalysisL4VisualEvidenceRelease({
   acceleratorClass: 'nvidia_l4',
   immutableImageRef: ref('l4-image'),
   immutableImageDigest: ref('l4-image').contentHash,
+  toolchainQualificationRef,
   toolReleases,
   maximumExecutionSeconds: 900,
   maximumAttempts: 1,
@@ -298,7 +300,7 @@ const operationRecord: CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationR
 }
 const bootstrapPayload = {
   schemaVersion:
-    'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-v2' as const,
+    'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-v3' as const,
   source:
     'canonical_l4_source_visual_evidence_private_worker_bootstrap_owner' as const,
   invocationId,
@@ -307,6 +309,7 @@ const bootstrapPayload = {
   triggerRef,
   admissionRef: envelope.admissionRef,
   releaseRef,
+  toolchainQualificationRef,
   cloudRunOperationRef: operationRef,
   currentAccountRateAuthorityRef: admissionRateRef,
   sourceObject,

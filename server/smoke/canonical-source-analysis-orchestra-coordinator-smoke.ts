@@ -779,7 +779,7 @@ const l4VisualEvidenceAdmissionOwner:
       platformEstimateRef,
       currentAccountRateAuthorityRef,
       maximumPlatformInternalCostUsdNanos: 5_000_000_000,
-      exactPreparedFinalizedProbeReleaseAndRateRereadVerified: true,
+      exactPreparedFinalizedProbeReleaseToolchainAndRateRereadVerified: true,
       admissionPersistedAndReread: true,
       platformFundedPreapprovalAnalysis: true,
       gpuJobStarted: false,

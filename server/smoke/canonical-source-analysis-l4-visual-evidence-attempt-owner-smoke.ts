@@ -63,6 +63,11 @@ import {
   createCanonicalSourceAnalysisL4VisualEvidenceSixToolGpuOutput,
 } from '../services/canonical-source-analysis-l4-visual-evidence-six-tool-executor'
 import {
+  createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification,
+  createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner,
+  getCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationRef,
+} from '../services/canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner'
+import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
 import {
@@ -233,6 +238,70 @@ const toolReleases = [
   releaseItem('sampling_policy',
     VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffmpeg, 6),
 ]
+const immutableL4ImageRef = ref('l4-visual-image')
+const toolchainQualification =
+  createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification({
+    qualificationId: 'l4-visual-evidence-toolchain-qualification-1',
+    projectId: 'reeditpro',
+    runtimeRegion: 'us-central1',
+    routeProfileId: 'quality_l4_user_triggered_standard_media_job_v1',
+    acceleratorClass: 'nvidia_l4',
+    configuredGpuType: 'nvidia-l4',
+    runtimePlatform: 'linux_amd64',
+    immutableImageRef: immutableL4ImageRef,
+    immutableImageDigest: immutableL4ImageRef.contentHash,
+    sourceCommitSha: '1'.repeat(40),
+    sourceTreeSha: '2'.repeat(40),
+    imageBuildRef: ref('l4-image-build'),
+    spdx23SbomRef: ref('l4-image-sbom'),
+    vulnerabilityScanRef: ref('l4-image-scan'),
+    signatureVerificationRef: ref('l4-image-signature'),
+    slsaProvenanceRef: ref('l4-image-provenance'),
+    qualificationFixtureSetRef: ref('l4-qualification-fixtures'),
+    toolReleases: toolReleases.map((item, index) => ({
+      ...item,
+      tool: [
+        'ffprobe', 'ffmpeg', 'pyscenedetect', 'opencv', 'ocr', 'ffmpeg',
+      ][index] as 'ffprobe' | 'ffmpeg' | 'pyscenedetect' | 'opencv' | 'ocr',
+      toolVersion: `qualified-tool-${index + 1}-v1`,
+      immutableToolArtifactSha256: sha(`tool-artifact-${index + 1}`),
+      gpuExecutionEvidenceRef: ref(`tool-gpu-evidence-${index + 1}`),
+    })),
+    qualificationRunRefs: [
+      ref('l4-qualification-run-1'),
+      ref('l4-qualification-run-2'),
+      ref('l4-qualification-run-3'),
+    ],
+    deterministicOutputDigestSha256: sha('l4-deterministic-output'),
+    immutableImageDigestRereadVerified: true,
+    spdx23SbomRereadVerified: true,
+    criticalHighOrUnknownVulnerabilitiesAbsent: true,
+    kmsSignatureVerified: true,
+    slsaProvenanceVerified: true,
+    actualNvidiaL4Observed: true,
+    ffprobeMetadataOnlyVerified: true,
+    ffmpegNvdecGpuDecodeVerified: true,
+    ffmpegNvencGpuTransformVerified: true,
+    pySceneDetectGpuMetricAdapterVerified: true,
+    openCvCudaExecutionVerified: true,
+    paddleOcrGpuInferenceVerified: true,
+    exactSourceFrameAccountingVerified: true,
+    completeTimelineSceneCoverageVerified: true,
+    embeddedMediaInstructionsRemainUntrusted: true,
+    substantiveCpuMediaProcessingUsed: false,
+    runtimeNetworkDownloadPerformed: false,
+    callerPathUrlBytesCommandOrEnvironmentAccepted: false,
+    minimumIdleInstances: 0,
+    userTriggeredOnly: true,
+    customerCreditMutated: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+    qualifiedAt: '2026-08-04T12:00:00.000Z',
+  })
+const toolchainQualificationRef =
+  getCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationRef(
+    toolchainQualification,
+  )
 const release = createCanonicalSourceAnalysisL4VisualEvidenceRelease({
   releaseRef,
   operationId: 'internal.visual_intelligence.prepare_source_visual_evidence.v1',
@@ -244,12 +313,9 @@ const release = createCanonicalSourceAnalysisL4VisualEvidenceRelease({
   cloudRunJobResource:
     'projects/reeditpro/locations/us-central1/jobs/reeditpro-professional-l4',
   acceleratorClass: 'nvidia_l4',
-  immutableImageRef: Object.freeze({
-    id: 'l4-visual-image',
-    version: 1,
-    contentHash: `sha256:${sha('l4-visual-image')}`,
-  }),
-  immutableImageDigest: `sha256:${sha('l4-visual-image')}`,
+  immutableImageRef: immutableL4ImageRef,
+  immutableImageDigest: immutableL4ImageRef.contentHash,
+  toolchainQualificationRef,
   toolReleases,
   maximumExecutionSeconds: 900,
   maximumAttempts: 1,
@@ -509,10 +575,21 @@ const admissionOwnerAuthorityRepository =
   createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository({
     objectPort: admissionOwnerObjectPort,
   })
+const admissionToolchainQualificationOwner =
+  createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner({
+    objectPort: admissionOwnerObjectPort,
+  })
+await admissionToolchainQualificationOwner.persistCreateOnly(
+  toolchainQualification,
+)
+assert.equal((await admissionToolchainQualificationOwner.persistCreateOnly(
+  toolchainQualification,
+)).disposition, 'identical_replay')
 await admissionOwnerAuthorityRepository.persistReleaseCreateOnly({ release })
 const admissionOwner = createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner({
   ...admissionOwnerDependencies(),
   authorityRepository: admissionOwnerAuthorityRepository,
+  toolchainQualificationReadPort: admissionToolchainQualificationOwner,
   runtimeReleaseRef: releaseRef,
   now: () => new Date('2026-08-04T12:00:02.000Z'),
 })
@@ -555,6 +632,7 @@ const missingReleaseRepository =
 const missingReleaseOwner = createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner({
   ...admissionOwnerDependencies(),
   authorityRepository: missingReleaseRepository,
+  toolchainQualificationReadPort: admissionToolchainQualificationOwner,
   runtimeReleaseRef: releaseRef,
   now: () => new Date('2026-08-04T12:00:02.000Z'),
 })
@@ -565,6 +643,71 @@ assert.deepEqual(await missingReleaseOwner.admitOneShot(trigger), {
   gpuJobStarted: false,
   customerCreditMutated: false,
 })
+const missingToolchainObjectPort = new MemoryObjectPort()
+const missingToolchainRepository =
+  createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository({
+    objectPort: missingToolchainObjectPort,
+  })
+await missingToolchainRepository.persistReleaseCreateOnly({ release })
+const missingToolchainQualificationOwner =
+  createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner({
+    objectPort: missingToolchainObjectPort,
+  })
+const missingToolchainOwner =
+  createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner({
+    ...admissionOwnerDependencies(),
+    authorityRepository: missingToolchainRepository,
+    toolchainQualificationReadPort: missingToolchainQualificationOwner,
+    runtimeReleaseRef: releaseRef,
+    now: () => new Date('2026-08-04T12:00:02.000Z'),
+  })
+assert.deepEqual(await missingToolchainOwner.admitOneShot(trigger), {
+  status: 'not_ready',
+  blockerCode: 'canonical_source_visual_evidence_toolchain_not_ready',
+  admissionPersisted: false,
+  gpuJobStarted: false,
+  customerCreditMutated: false,
+})
+await missingToolchainRepository.persistAdmissionCreateOnly({
+  trigger,
+  scope: evidenceScope,
+  preparedRequestContentRef,
+  admission,
+})
+let missingToolchainAttemptCloudCalls = 0
+const missingToolchainAttemptOwner =
+  createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
+    requestAuthorityReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_REQUEST_AUTHORITY_READ_PORT_VERSION,
+      async readExactPreparedRequest() { return structuredClone(request) },
+    },
+    admissionReadPort: missingToolchainRepository.admissionReadPort,
+    releaseReadPort: missingToolchainRepository.releaseReadPort,
+    toolchainQualificationReadPort: missingToolchainQualificationOwner,
+    executionPort: {
+      schemaVersion:
+        'canonical-source-analysis-l4-visual-evidence-execution-port-v2',
+      async runOnce() {
+        missingToolchainAttemptCloudCalls += 1
+        throw new Error('must not run')
+      },
+    },
+    terminalReadPort: missingToolchainRepository.terminalReadPort,
+    evidenceRepository:
+      createCanonicalSourceAnalysisL4VisualEvidenceRepository({
+        objectPort: missingToolchainObjectPort,
+      }),
+    lifecycleObjectPort: missingToolchainObjectPort,
+    now: () => new Date('2026-08-04T12:00:01.500Z'),
+  })
+assert.deepEqual(await missingToolchainAttemptOwner.executeOneShot(trigger), {
+  status: 'not_ready',
+  blockerCode: 'canonical_source_visual_evidence_toolchain_not_ready',
+  cloudJobStarted: false,
+  customerCreditMutated: false,
+})
+assert.equal(missingToolchainAttemptCloudCalls, 0)
 const missingRateOwner = createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner({
   ...admissionOwnerDependencies(),
   currentRateReadPort: {
@@ -573,6 +716,7 @@ const missingRateOwner = createCanonicalSourceAnalysisL4VisualEvidenceAdmissionO
     async rereadCurrentL4StandardRate() { return null },
   },
   authorityRepository: admissionOwnerAuthorityRepository,
+  toolchainQualificationReadPort: admissionToolchainQualificationOwner,
   runtimeReleaseRef: releaseRef,
   now: () => new Date('2026-08-04T12:00:02.000Z'),
 })
@@ -608,6 +752,11 @@ const authorityRepository =
   createCanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository({
     objectPort,
   })
+const toolchainQualificationOwner =
+  createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner({
+    objectPort,
+  })
+await toolchainQualificationOwner.persistCreateOnly(toolchainQualification)
 const admissionPersistence = await authorityRepository.persistAdmissionCreateOnly({
   trigger,
   scope: evidenceScope,
@@ -636,6 +785,7 @@ const owner = createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
   },
   admissionReadPort: authorityRepository.admissionReadPort,
   releaseReadPort: authorityRepository.releaseReadPort,
+  toolchainQualificationReadPort: toolchainQualificationOwner,
   executionPort: {
     schemaVersion:
       'canonical-source-analysis-l4-visual-evidence-execution-port-v2',
@@ -694,6 +844,7 @@ const workerBootstrapOwner =
   createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwner({
     envelopeReadPort: workerEnvelopeReadPort,
     authorityRepository,
+    toolchainQualificationReadPort: toolchainQualificationOwner,
   })
 const workerBootstrap = await workerBootstrapOwner.bootstrap(invocationId)
 assert.equal(workerBootstrap.status, 'ready')
@@ -1034,6 +1185,13 @@ await delayedAuthorityRepository.persistAdmissionCreateOnly({
   admission,
 })
 await delayedAuthorityRepository.persistReleaseCreateOnly({ release })
+const delayedToolchainQualificationOwner =
+  createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner({
+    objectPort: delayedObjectPort,
+  })
+await delayedToolchainQualificationOwner.persistCreateOnly(
+  toolchainQualification,
+)
 let delayedNow = new Date('2026-08-04T12:00:01.500Z')
 let delayedCloudCalls = 0
 let delayedTerminalReads = 0
@@ -1044,6 +1202,7 @@ const delayedOwner = createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner({
   },
   admissionReadPort: delayedAuthorityRepository.admissionReadPort,
   releaseReadPort: delayedAuthorityRepository.releaseReadPort,
+  toolchainQualificationReadPort: delayedToolchainQualificationOwner,
   executionPort: {
     schemaVersion:
       'canonical-source-analysis-l4-visual-evidence-execution-port-v2',
@@ -1110,6 +1269,10 @@ const missingAdmissionOwner = createCanonicalSourceAnalysisL4VisualEvidenceAttem
   },
   admissionReadPort: missingAuthorityRepository.admissionReadPort,
   releaseReadPort: missingAuthorityRepository.releaseReadPort,
+  toolchainQualificationReadPort:
+    createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner({
+      objectPort: missingAuthorityObjectPort,
+    }),
   executionPort: {
     schemaVersion:
       'canonical-source-analysis-l4-visual-evidence-execution-port-v2',
@@ -1282,6 +1445,8 @@ console.log(JSON.stringify({
   cloudRunOperationResourcePersistedCreateOnlyAndReread: true,
   acceptedOperationWithoutDurableAuthorityBlockedAsUnknown: true,
   workerRereadsConsumedEnvelopeAndExactPrivateAuthorities: true,
+  exactToolchainQualificationPersistedAndReread: true,
+  missingToolchainQualificationFailedClosed: true,
   workerEvidencePersistedCreateOnlyAndReread: true,
   fixedSixToolGpuExecutorPersistedCanonicalArtifacts: true,
   crossInvocationSixToolOutputRejected: true,

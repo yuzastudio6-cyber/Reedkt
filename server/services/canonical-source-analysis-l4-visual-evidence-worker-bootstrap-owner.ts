@@ -19,16 +19,21 @@ import type {
   CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository,
 } from './canonical-source-analysis-l4-visual-evidence-authority-repository'
 import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOLCHAIN_QUALIFICATION_READ_PORT_VERSION,
+  assertCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification,
+  type CanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationReadPort,
+} from './canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 
 export const
 CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_WORKER_BOOTSTRAP_OWNER_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner-v2' as const
+  'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner-v3' as const
 export const
 CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_WORKER_BOOTSTRAP_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-v2' as const
+  'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-v3' as const
 
 const OPERATION_ID =
   'internal.visual_intelligence.prepare_source_visual_evidence.v1' as const
@@ -52,6 +57,7 @@ export type CanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapResult =
         | 'canonical_source_visual_evidence_worker_envelope_not_ready'
         | 'canonical_source_visual_evidence_worker_admission_not_ready'
         | 'canonical_source_visual_evidence_worker_release_not_ready'
+        | 'canonical_source_visual_evidence_worker_toolchain_not_ready'
         | 'canonical_source_visual_evidence_worker_operation_not_ready'
       substantiveWorkStarted: false
       customerCreditMutated: false
@@ -78,6 +84,7 @@ const bootstrapWithoutDigestSchema = z.object({
   triggerRef: evidenceRefSchema,
   admissionRef: evidenceRefSchema,
   releaseRef: evidenceRefSchema,
+  toolchainQualificationRef: evidenceRefSchema,
   cloudRunOperationRef: evidenceRefSchema,
   currentAccountRateAuthorityRef: evidenceRefSchema,
   sourceObject: z.object({
@@ -169,6 +176,8 @@ export function createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwne
       CanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort
     authorityRepository:
       CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository
+    toolchainQualificationReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationReadPort
   }>,
 ): CanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwner {
   validateDependencies(input)
@@ -207,6 +216,15 @@ export function createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwne
       const release = assertCanonicalSourceAnalysisL4VisualEvidenceRelease(
         releaseRaw,
       )
+      const qualificationRaw = await input.toolchainQualificationReadPort
+        .readExact(release.toolchainQualificationRef)
+      if (!qualificationRaw) return notReady(
+        'canonical_source_visual_evidence_worker_toolchain_not_ready',
+      )
+      const qualification =
+        assertCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification(
+          qualificationRaw,
+        )
       const operation = await input.authorityRepository
         .cloudRunOperationAuthorityPort.readExactAcceptedOperation({
           invocationId,
@@ -215,7 +233,13 @@ export function createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwne
       if (!operation) return notReady(
         'canonical_source_visual_evidence_worker_operation_not_ready',
       )
-      assertBindings({ consumed, admission, release, operation })
+      assertBindings({
+        consumed,
+        admission,
+        release,
+        qualification,
+        operation,
+      })
       const payload = bootstrapWithoutDigestSchema.parse({
         schemaVersion:
           CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_WORKER_BOOTSTRAP_VERSION,
@@ -227,6 +251,7 @@ export function createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwne
         triggerRef: envelope.triggerRef,
         admissionRef: envelope.admissionRef,
         releaseRef: envelope.releaseRef,
+        toolchainQualificationRef: release.toolchainQualificationRef,
         cloudRunOperationRef: operation.cloudRunOperationRef,
         currentAccountRateAuthorityRef:
           admission.currentAccountRateAuthorityRef,
@@ -303,6 +328,9 @@ function assertBindings(input: Readonly<{
   release: ReturnType<
     typeof assertCanonicalSourceAnalysisL4VisualEvidenceRelease
   >
+  qualification: ReturnType<
+    typeof assertCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification
+  >
   operation: NonNullable<Awaited<ReturnType<
     CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository[
       'cloudRunOperationAuthorityPort'
@@ -339,6 +367,16 @@ function assertBindings(input: Readonly<{
     || input.release.substantiveCpuMediaProcessingAllowed
     || input.release.callerCommandImageModelPathUrlOrEnvironmentAccepted
     || input.release.productionAuthorityGranted
+    || !sameRef(
+      input.release.toolchainQualificationRef,
+      qualificationRef(input.qualification),
+    )
+    || !sameRef(
+      input.release.immutableImageRef,
+      input.qualification.immutableImageRef,
+    )
+    || input.release.immutableImageDigest !==
+      input.qualification.immutableImageDigest
     || input.operation.cloudRunJobResource !==
       input.release.cloudRunJobResource
     || !sameRef(input.operation.releaseRef, input.release.releaseRef)
@@ -356,6 +394,18 @@ function admissionRef(
     id: admission.admissionId,
     version: 1,
     contentHash: `sha256:${admission.admissionHash}`,
+  })
+}
+
+function qualificationRef(
+  qualification: ReturnType<
+    typeof assertCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification
+  >,
+): VisualIntelligenceEvidenceRef {
+  return Object.freeze({
+    id: qualification.qualificationId,
+    version: 1,
+    contentHash: `sha256:${qualification.qualificationDigestSha256}`,
   })
 }
 
@@ -388,6 +438,8 @@ function validateDependencies(input: Readonly<{
     CanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort
   authorityRepository:
     CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository
+  toolchainQualificationReadPort:
+    CanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationReadPort
 }>): void {
   if (
     input.envelopeReadPort?.schemaVersion !==
@@ -399,6 +451,9 @@ function validateDependencies(input: Readonly<{
     || typeof input.authorityRepository.readExactRelease !== 'function'
     || typeof input.authorityRepository.cloudRunOperationAuthorityPort
       ?.readExactAcceptedOperation !== 'function'
+    || input.toolchainQualificationReadPort?.schemaVersion !==
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOLCHAIN_QUALIFICATION_READ_PORT_VERSION
+    || typeof input.toolchainQualificationReadPort.readExact !== 'function'
   ) throw new TypeError(
     'L4 visual evidence worker bootstrap dependencies are invalid.',
   )

@@ -40,18 +40,23 @@ import type {
   CanonicalSourceAnalysisL4VisualEvidenceCloudRunOperationRecord,
 } from './canonical-source-analysis-l4-visual-evidence-authority-repository'
 import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOLCHAIN_QUALIFICATION_READ_PORT_VERSION,
+  assertCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification,
+  type CanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationReadPort,
+} from './canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ATTEMPT_OWNER_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-attempt-owner-v3' as const
+  'canonical-source-analysis-l4-visual-evidence-attempt-owner-v4' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TRIGGER_VERSION =
   'canonical-source-analysis-l4-visual-evidence-trigger-v1' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ADMISSION_VERSION =
   'canonical-source-analysis-l4-visual-evidence-admission-v1' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_RELEASE_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-release-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-release-v2' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_EXECUTION_PORT_VERSION =
   'canonical-source-analysis-l4-visual-evidence-execution-port-v2' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ENVELOPE_VERSION =
@@ -250,6 +255,7 @@ const releaseWithoutHashSchema = z.object({
   acceleratorClass: z.literal('nvidia_l4'),
   immutableImageRef: evidenceRefSchema,
   immutableImageDigest: prefixedSha256,
+  toolchainQualificationRef: evidenceRefSchema,
   toolReleases: z.array(releaseToolSchema).length(roles.length),
   maximumExecutionSeconds: z.literal(900),
   maximumAttempts: z.literal(1),
@@ -448,6 +454,7 @@ export type CanonicalSourceAnalysisL4VisualEvidenceAttemptResult =
         | 'canonical_source_visual_evidence_prepared_request_not_ready'
         | 'canonical_source_visual_evidence_admission_not_ready'
         | 'canonical_source_visual_evidence_release_not_ready'
+        | 'canonical_source_visual_evidence_toolchain_not_ready'
       cloudJobStarted: false
       customerCreditMutated: false
     }>
@@ -675,6 +682,8 @@ export function createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner(
     admissionReadPort:
       CanonicalSourceAnalysisL4VisualEvidenceAdmissionReadPort
     releaseReadPort: CanonicalSourceAnalysisL4VisualEvidenceReleaseReadPort
+    toolchainQualificationReadPort:
+      CanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationReadPort
     executionPort: CanonicalSourceAnalysisL4VisualEvidenceExecutionPort
     terminalReadPort:
       CanonicalSourceAnalysisL4VisualEvidenceTerminalReadPort
@@ -772,6 +781,16 @@ export function createCanonicalSourceAnalysisL4VisualEvidenceAttemptOwner(
       if (!sameRef(admission.runtimeReleaseRef, release.releaseRef)) {
         throw conflict('source_visual_evidence_release_mismatch')
       }
+      const qualificationRaw = await input.toolchainQualificationReadPort
+        .readExact(release.toolchainQualificationRef)
+      if (!qualificationRaw) return notReady(
+        'canonical_source_visual_evidence_toolchain_not_ready',
+      )
+      const qualification =
+        assertCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification(
+          qualificationRaw,
+        )
+      assertQualificationMatchesRelease({ qualification, release })
       const envelope = buildEnvelope({
         invocationId,
         trigger,
@@ -1626,6 +1645,9 @@ function validateDependencies(input: Parameters<
     || input.releaseReadPort?.schemaVersion !==
       'canonical-source-analysis-l4-visual-evidence-release-read-port-v1'
     || typeof input.releaseReadPort.rereadPrivateRelease !== 'function'
+    || input.toolchainQualificationReadPort?.schemaVersion !==
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOLCHAIN_QUALIFICATION_READ_PORT_VERSION
+    || typeof input.toolchainQualificationReadPort.readExact !== 'function'
     || input.executionPort?.schemaVersion !==
       CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_EXECUTION_PORT_VERSION
     || typeof input.executionPort.runOnce !== 'function'
@@ -1637,6 +1659,40 @@ function validateDependencies(input: Parameters<
     || typeof input.lifecycleObjectPort?.createOnly !== 'function'
     || typeof input.lifecycleObjectPort.readExact !== 'function'
   ) throw new TypeError('L4 visual evidence owner dependencies are invalid.')
+}
+
+function assertQualificationMatchesRelease(input: Readonly<{
+  qualification: ReturnType<
+    typeof assertCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification
+  >
+  release: CanonicalSourceAnalysisL4VisualEvidenceRelease
+}>): void {
+  const exactToolReleases = input.qualification.toolReleases.map((item) => ({
+    role: item.role,
+    operationId: item.operationId,
+    runtimeReleaseRef: item.runtimeReleaseRef,
+  }))
+  if (
+    !sameRef(
+      input.release.toolchainQualificationRef,
+      ref(
+        input.qualification.qualificationId,
+        input.qualification.qualificationDigestSha256,
+      ),
+    )
+    || input.qualification.projectId !== input.release.projectId
+    || input.qualification.runtimeRegion !== input.release.runtimeRegion
+    || input.qualification.routeProfileId !== input.release.routeProfileId
+    || input.qualification.acceleratorClass !== input.release.acceleratorClass
+    || !sameRef(
+      input.qualification.immutableImageRef,
+      input.release.immutableImageRef,
+    )
+    || input.qualification.immutableImageDigest !==
+      input.release.immutableImageDigest
+    || stableAuthorityStringify(exactToolReleases) !==
+      stableAuthorityStringify(input.release.toolReleases)
+  ) throw conflict('source_visual_evidence_toolchain_release_mismatch')
 }
 
 function invocationIdFor(

@@ -41,12 +41,17 @@ import type {
   CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository,
 } from './canonical-source-analysis-l4-visual-evidence-authority-repository'
 import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOLCHAIN_QUALIFICATION_READ_PORT_VERSION,
+  assertCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification,
+  type CanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationReadPort,
+} from './canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_ADMISSION_OWNER_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-admission-owner-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-admission-owner-v2' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_CURRENT_RATE_READ_PORT_VERSION =
   'canonical-source-analysis-l4-visual-evidence-current-rate-read-port-v1' as const
 
@@ -75,6 +80,7 @@ export type CanonicalSourceAnalysisL4VisualEvidenceAdmissionResult =
         | 'canonical_source_visual_evidence_finalized_source_not_ready'
         | 'canonical_source_visual_evidence_probe_not_ready'
         | 'canonical_source_visual_evidence_release_not_ready'
+        | 'canonical_source_visual_evidence_toolchain_not_ready'
         | 'canonical_source_visual_evidence_current_rate_not_ready'
       admissionPersisted: false
       gpuJobStarted: false
@@ -88,7 +94,7 @@ export type CanonicalSourceAnalysisL4VisualEvidenceAdmissionResult =
       platformEstimateRef: VisualIntelligenceEvidenceRef
       currentAccountRateAuthorityRef: VisualIntelligenceEvidenceRef
       maximumPlatformInternalCostUsdNanos: number
-      exactPreparedFinalizedProbeReleaseAndRateRereadVerified: true
+      exactPreparedFinalizedProbeReleaseToolchainAndRateRereadVerified: true
       admissionPersistedAndReread: true
       platformFundedPreapprovalAnalysis: true
       gpuJobStarted: false
@@ -125,6 +131,8 @@ createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner(input: Readonly<{
     CanonicalSourceAnalysisL4VisualEvidenceCurrentRateReadPort
   authorityRepository:
     CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository
+  toolchainQualificationReadPort:
+    CanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationReadPort
   runtimeReleaseRef: VisualIntelligenceEvidenceRef
   now?: () => Date
 }>): CanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner {
@@ -222,6 +230,16 @@ createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner(input: Readonly<{
       if (!sameRef(release.releaseRef, runtimeReleaseRef)) {
         throw conflict('source_visual_evidence_release_ref_mismatch')
       }
+      const qualificationRaw = await input.toolchainQualificationReadPort
+        .readExact(release.toolchainQualificationRef)
+      if (!qualificationRaw) return notReady(
+        'canonical_source_visual_evidence_toolchain_not_ready',
+      )
+      const qualification =
+        assertCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification(
+          qualificationRaw,
+        )
+      assertToolchainMatchesRelease({ qualification, release })
       const rateRaw = await input.currentRateReadPort
         .rereadCurrentL4StandardRate({
           routeId: 'l4_standard_primary',
@@ -326,7 +344,8 @@ createCanonicalSourceAnalysisL4VisualEvidenceAdmissionOwner(input: Readonly<{
         platformEstimateRef,
         currentAccountRateAuthorityRef: rateRef,
         maximumPlatformInternalCostUsdNanos,
-        exactPreparedFinalizedProbeReleaseAndRateRereadVerified: true as const,
+        exactPreparedFinalizedProbeReleaseToolchainAndRateRereadVerified:
+          true as const,
         admissionPersistedAndReread: true as const,
         platformFundedPreapprovalAnalysis: true as const,
         gpuJobStarted: false as const,
@@ -558,7 +577,40 @@ function validateDependencies(input: Parameters<
     || typeof input.authorityRepository?.readExactRelease !== 'function'
     || typeof input.authorityRepository.persistAdmissionCreateOnly !==
       'function'
+    || input.toolchainQualificationReadPort?.schemaVersion !==
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_TOOLCHAIN_QUALIFICATION_READ_PORT_VERSION
+    || typeof input.toolchainQualificationReadPort.readExact !== 'function'
   ) throw notReadyError('source_visual_evidence_admission_dependencies_invalid')
+}
+
+function assertToolchainMatchesRelease(input: Readonly<{
+  qualification: ReturnType<
+    typeof assertCanonicalSourceAnalysisL4VisualEvidenceToolchainQualification
+  >
+  release: ReturnType<
+    typeof assertCanonicalSourceAnalysisL4VisualEvidenceRelease
+  >
+}>): void {
+  const expectedTools = input.qualification.toolReleases.map((item) => ({
+    role: item.role,
+    operationId: item.operationId,
+    runtimeReleaseRef: item.runtimeReleaseRef,
+  }))
+  if (
+    input.qualification.projectId !== input.release.projectId
+    || input.qualification.runtimeRegion !== input.release.runtimeRegion
+    || input.qualification.routeProfileId !== input.release.routeProfileId
+    || input.qualification.acceleratorClass !==
+      input.release.acceleratorClass
+    || !sameRef(
+      input.qualification.immutableImageRef,
+      input.release.immutableImageRef,
+    )
+    || input.qualification.immutableImageDigest !==
+      input.release.immutableImageDigest
+    || stableAuthorityStringify(expectedTools) !==
+      stableAuthorityStringify(input.release.toolReleases)
+  ) throw conflict('source_visual_evidence_toolchain_release_mismatch')
 }
 
 function notReady(

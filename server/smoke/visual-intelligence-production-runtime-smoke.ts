@@ -360,7 +360,7 @@ const runtime = await createVisualIntelligenceProductionRuntime(env, {
   now: () => now,
 })
 assert.ok(runtime)
-assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v13')
+assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v14')
 assert.equal(runtime.providerCapabilityId, 'visual_intelligence')
 assert.equal(runtime.semanticEngine, 'gemini-3.1-pro-preview')
 assert.equal(runtime.thinkingLevel, 'high')
@@ -450,7 +450,7 @@ assert.equal(
 )
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceWorkerBootstrapOwner.schemaVersion,
-  'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner-v2',
+  'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner-v3',
 )
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceWorkerBootstrapOwner
@@ -468,6 +468,16 @@ assert.equal(
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceToolArtifactOwner.ownerVersion,
   'canonical-source-analysis-l4-visual-evidence-tool-artifact-owner-v1',
+)
+assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceToolchainQualificationOwner
+    .schemaVersion,
+  'canonical-source-analysis-l4-visual-evidence-toolchain-qualification-read-port-v1',
+)
+assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceToolchainQualificationOwner
+    .ownerVersion,
+  'canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner-v1',
 )
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceTerminalReconciliationOwner
@@ -1311,6 +1321,7 @@ console.log(JSON.stringify({
   sourceAnalysisL4VisualEvidenceWorkerBootstrapOwnerMounted: true,
   sourceAnalysisL4VisualEvidenceWorkerEvidenceOwnerMounted: true,
   sourceAnalysisL4VisualEvidenceToolArtifactOwnerMounted: true,
+  sourceAnalysisL4VisualEvidenceToolchainQualificationOwnerMounted: true,
   sourceAnalysisL4VisualEvidenceTerminalReconciliationOwnerMounted: true,
   sourceAnalysisL4VisualEvidenceWorkerReceivesInvocationIdOnly: true,
   sourceAnalysisL4VisualEvidenceCallerPortInjectionAllowed: false,

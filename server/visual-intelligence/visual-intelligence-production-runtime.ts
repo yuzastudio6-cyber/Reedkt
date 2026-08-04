@@ -67,6 +67,10 @@ import {
   type CanonicalSourceAnalysisL4VisualEvidenceToolArtifactOwner,
 } from '../services/canonical-source-analysis-l4-visual-evidence-tool-artifact-owner'
 import {
+  createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner,
+  type CanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner,
+} from '../services/canonical-source-analysis-l4-visual-evidence-toolchain-qualification-owner'
+import {
   createCanonicalSourceAnalysisL4VisualEvidenceTerminalReconciliationOwner,
   createGoogleCloudRunL4VisualEvidenceTerminalObservationPort,
   type CanonicalSourceAnalysisL4VisualEvidenceTerminalObservationPort,
@@ -178,7 +182,7 @@ import {
 } from '../tool-cost-metering/google-cloud-account-effective-gpu-rate-read-port'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v13' as const
+  'visual-intelligence-production-runtime-v14' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -218,6 +222,8 @@ export interface VisualIntelligenceProductionRuntime {
     CanonicalSourceAnalysisL4VisualEvidenceWorkerEvidenceOwner
   readonly sourceAnalysisL4VisualEvidenceToolArtifactOwner:
     CanonicalSourceAnalysisL4VisualEvidenceToolArtifactOwner
+  readonly sourceAnalysisL4VisualEvidenceToolchainQualificationOwner:
+    CanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner
   readonly sourceAnalysisL4VisualEvidenceTerminalReconciliationOwner:
     CanonicalSourceAnalysisL4VisualEvidenceTerminalReconciliationOwner
   readonly sourceTranscriptOrchestraRepository:
@@ -396,12 +402,18 @@ export async function createVisualIntelligenceProductionRuntime(
     createCanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort({
       objectPort,
     })
+  const sourceAnalysisL4VisualEvidenceToolchainQualificationOwner =
+    createCanonicalSourceAnalysisL4VisualEvidenceToolchainQualificationOwner({
+      objectPort,
+    })
   const sourceAnalysisL4VisualEvidenceWorkerBootstrapOwner =
     createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwner({
       envelopeReadPort:
         sourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort,
       authorityRepository:
         sourceAnalysisL4VisualEvidenceAuthorityRepository,
+      toolchainQualificationReadPort:
+        sourceAnalysisL4VisualEvidenceToolchainQualificationOwner,
     })
   const sourceAnalysisL4VisualEvidenceWorkerEvidenceOwner =
     createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidenceOwner({
@@ -535,6 +547,8 @@ export async function createVisualIntelligenceProductionRuntime(
       sourceAnalysisL4VisualEvidenceAuthorityRepository.admissionReadPort,
     releaseReadPort:
       sourceAnalysisL4VisualEvidenceAuthorityRepository.releaseReadPort,
+    toolchainQualificationReadPort:
+      sourceAnalysisL4VisualEvidenceToolchainQualificationOwner,
     executionPort: createGoogleCloudRunL4VisualEvidenceExecutionPort({
       operationAuthorityPort:
         sourceAnalysisL4VisualEvidenceAuthorityRepository
@@ -557,6 +571,8 @@ export async function createVisualIntelligenceProductionRuntime(
       sourceAnalysisL4VisualEvidenceCurrentRateReadPort,
     authorityRepository:
       sourceAnalysisL4VisualEvidenceAuthorityRepository,
+    toolchainQualificationReadPort:
+      sourceAnalysisL4VisualEvidenceToolchainQualificationOwner,
     runtimeReleaseRef: runtimeRelease.sourceEvidencePreparationReleaseRef,
     ...(dependencies.now ? { now: dependencies.now } : {}),
   })
@@ -687,6 +703,7 @@ export async function createVisualIntelligenceProductionRuntime(
     sourceAnalysisL4VisualEvidenceWorkerBootstrapOwner,
     sourceAnalysisL4VisualEvidenceWorkerEvidenceOwner,
     sourceAnalysisL4VisualEvidenceToolArtifactOwner,
+    sourceAnalysisL4VisualEvidenceToolchainQualificationOwner,
     sourceAnalysisL4VisualEvidenceTerminalReconciliationOwner,
     sourceTranscriptOrchestraRepository,
     sourceLedOrchestraPlanningReconciliationPort,

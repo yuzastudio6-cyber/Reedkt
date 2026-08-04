@@ -1240,6 +1240,90 @@ generic skill/B-roll manifest boundary and its validators; it did not
 implement the orchestra, Track All, Visual Intelligence, a provider call,
 public delivery, final export, production mutation, or billing.
 
+## M19 — Visual Intelligence and Track All dependency contracts
+
+Status: completed and pushed.
+
+Implementation commit: `e13a99cd0c6a727fdecd64c9cd707f6154fd33a8`.
+
+Qualification-test correction commit:
+`387e3b7f5652846a134b75b6c57e19c28a9c8507`.
+
+Generated qualification artifact commit:
+`cd981cbdc024cbf860a45bddf7a75c729c02241f`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to `cd981cbdc024cbf860a45bddf7a75c729c02241f` after
+`git push -u origin HEAD`.
+
+Added the model-neutral, content-addressed
+`visual_intelligence_candidate_qa_v1` dependency contract. It binds the exact
+candidate reference and checksum, tenant/project, public assignment and plan,
+authorized range, independently derived semantic/crop/safety/proof findings,
+defect findings, confidence and uncertainty, frame/time evidence, producer
+manifest, producer qualification, and artifact hash. Provider or model
+identity cannot cross the contract. Blocking or needs-review findings cannot
+be accepted, and production validation rejects any producer below
+`production_qualified`.
+
+Generated/provider-edited public plans now carry a typed post-generation
+Visual Intelligence request. After the one approved candidate succeeds,
+finalization without that artifact returns an evidence-backed
+`needs_other_skill` receipt; it does not project semantic acceptance. The
+plugin accepts evidence only against that exact approved candidate work result
+and revalidates the artifact during finalization. Internal injected semantic
+observations are now schema-literal `testOnly: true` and remain
+`productionQualified: false`.
+
+The Track All boundary remains exclusively `track_graph_v1`. Its strict schema
+now binds exact tenant/project, assignment ID/hash, authorized range/hash,
+frame rate, bounded track windows, source checksum, and content hash. Unknown
+or model-specific fields fail strict parsing, and both the public plugin and
+Remotion integration verify exact assignment/range lineage. No Track All
+runtime, tracker, SAM2, SAM 3.1, model selection, or tracking provider was
+added.
+
+The public plugin E2E now proves missing generated semantic evidence returns
+`needs_other_skill`; exact Visual Intelligence evidence is accepted; candidate
+checksum, assignment, plan, range, workspace, finding disposition, and
+qualification substitutions fail closed; internal evidence cannot be used for
+production validation; valid Track All evidence is accepted; and a direct
+tracking-model field is rejected. The E2E still imports no private B-roll
+mini-skill.
+
+Final evidence:
+
+- Manifest schema: `skill-capability-manifest-v2`.
+- Manifest hash:
+  `2b67926842589aa75b2b530d36e998a1042afe7c3e8d2079631084d64d8bf97d`.
+- Tested commit:
+  `387e3b7f5652846a134b75b6c57e19c28a9c8507`.
+- Relevant source-tree hash:
+  `55239f73e92613c54214c8b35839c14b62e715bfdab89fd0f153be92a10fe4a4`.
+- Qualification receipt hash:
+  `6ffc59b1e681575378fbc2a21e4ff23a535752aea547dd7e25d91faa78eff0fb`.
+- Generated qualification artifact hash:
+  `44e6db25042715895876e142779ce8e4870bafae0863ad872d6e79d5da289358`.
+- Aggregate qualification: all 24 actual commands and 36 required fixtures
+  passed with zero provider requests, public artifacts, and production
+  mutations.
+
+The aggregate commands covered planning, evidence-derived QA, qualification
+forgery/staleness, plan invariants, the public plugin lifecycle, all runtime
+bindings, manifest generation/validation, the shared capability kernel, full
+build, server typecheck, lint, frontend-boundary enforcement, provider
+authority and lifecycle, retirement enforcement, end-to-end candidate QA,
+existing-source execution, canonical integration, FFmpeg/FFprobe and Remotion
+integration, runtime API security, execution-boundary security, and
+idempotency. The first aggregate attempt stopped at a real unused-variable
+lint error and issued no receipt; the correction was committed and the entire
+qualification was rerun from the new exact commit.
+
+Production qualification remains false because the five production fixtures
+and a real Visual Intelligence producer were not run. This milestone did not
+implement the orchestra, Track All, Visual Intelligence, a paid provider call,
+public delivery, final export, production mutation, or billing.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1263,3 +1347,4 @@ public delivery, final export, production mutation, or billing.
 | M16 | `4eb0371e6` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M17 | `44bfb9198` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M18 | `18c2b4335` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M19 | `e13a99cd0` + `387e3b7f5` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

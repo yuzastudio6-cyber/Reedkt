@@ -58,6 +58,25 @@ frame with homography, reprojection, visibility, occlusion, stability, and
 confidence evidence. Both strict artifacts reject reordered or out-of-range
 frames. See `deterministic-geometry.md`.
 
+## SAM 3.1 operation authority
+
+The immutable V1 operation remains
+`tool.sam3_1.segment_and_track_subject.v1`. Track All-grade planning uses the
+separate forward-only `tool.sam3_1.track_masklets.v2` authority. V2 accepts
+only server-compiled text concepts, positive/negative points, bounding boxes,
+anonymous object IDs, bounded ranges, and content-addressed authorities. It
+supports a non-zero initialization frame and forward, backward, or
+bidirectional propagation. Direct mask prompting remains unqualified and is
+rejected.
+
+The V2 session contract enforces one writer, an explicit reset before changing
+concept stages, one approved refinement, no automatic retry or alternate
+model, and `close_session` in a mandatory terminal handler after success,
+failure, cancellation, timeout, reconciliation, or partial output. A separate
+attempt-evidence contract prevents injected masklets from being represented as
+real checkpoint/CUDA inference. No checkpoint bytes, runner, GPU, or production
+binding was activated by TRACK-07.
+
 ## Qualification boundary
 
 Passing planning smokes establishes tested planning behavior, not a frozen

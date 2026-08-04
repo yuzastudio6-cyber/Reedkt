@@ -39,3 +39,22 @@ A100 is primary. L4 is not an automatic cheap fallback; it is eligible only afte
 ## Compatibility
 
 The existing Orchestra/SAM binding remains compatibility evidence. The public Track All plugin is the source of truth. No head-orchestra code is added here.
+
+## Implemented V2 authority
+
+TRACK-07 implements the V2 authority as a distinct strict,
+content-addressed server contract. Its operation authority hash is
+`cd6f408a7328ff3a4d54e054dd29b7438d8571533e67003856b5c84bfc4d1a1a`.
+The contract binds the exact Track All manifest, assignment, approved snapshot,
+work item, attempt, lease, reservation, private source checksum and range,
+anonymous object IDs, initialization frame, prompt stages, propagation,
+object/bucket/frame ceilings, rate authority, and mandatory close policy.
+
+The separately hashed attempt-evidence contract distinguishes
+`real_private_sam3_1_inference`, `injected_masklets_test_only`, and
+`not_executed`. Injected evidence must report zero model requests and cannot be
+validated as real evidence. Real evidence requires strict checkpoint load,
+CUDA inference, one exact model request, private output, and close evidence
+after the terminal observation. This milestone exercises contract and injected
+lifecycle validation only; it performs no SAM inference and leaves the route
+`blocked`.

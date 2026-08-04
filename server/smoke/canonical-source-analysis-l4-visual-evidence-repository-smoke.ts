@@ -84,7 +84,8 @@ const scope: CanonicalSourceTranscriptOrchestraReadScope = Object.freeze({
 
 const exactToolEvidence = [
   item('media_probe', 'ffprobe',
-    VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffprobe, 1),
+    VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffprobe, 1,
+    sourceProbeAuthorityRef),
   item('private_media_transform', 'ffmpeg',
     VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffmpeg, 2),
   item('scene_detection', 'pyscenedetect',
@@ -95,7 +96,7 @@ const exactToolEvidence = [
     VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.paddleocr, 5),
   item('sampling_policy', 'ffmpeg',
     VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffmpeg, 6),
-] as const
+]
 
 const validInput = {
   scope,
@@ -106,8 +107,11 @@ const validInput = {
     storageGeneration: '101',
     storageEtag: 'source-etag-101',
     contentType: 'video/mp4' as const,
+    width: 1_920,
+    height: 1_080,
     checksumSha256: sourceSha256,
     byteLength: scope.byteLength,
+    finalizedMediaAuthorityRef,
     finalizedStorageObjectAuthorityRef,
     exactGenerationEtagChecksumAndLengthRereadVerified: true as const,
   },
@@ -216,7 +220,9 @@ for (const opened of [
   assert.throws(() => createCanonicalSourceAnalysisL4VisualEvidenceResult({
     ...validInput,
     ...opened,
-  } as typeof validInput), /Invalid literal value|Invalid input/u)
+  } as unknown as Parameters<
+    typeof createCanonicalSourceAnalysisL4VisualEvidenceResult
+  >[0]), /Invalid literal value|Invalid input/u)
 }
 
 const tampered = { ...result, resultDigestSha256: rawSha('tampered') }
@@ -228,7 +234,9 @@ const hostile = new Proxy({}, {
   ownKeys() { throw new Error('hostile-ownKeys') },
 })
 assert.throws(() => createCanonicalSourceAnalysisL4VisualEvidenceResult(
-  hostile as typeof validInput,
+  hostile as Parameters<
+    typeof createCanonicalSourceAnalysisL4VisualEvidenceResult
+  >[0],
 ))
 
 console.log(JSON.stringify({
@@ -264,13 +272,14 @@ function item(
   tool: 'ffprobe' | 'ffmpeg' | 'pyscenedetect' | 'opencv' | 'ocr',
   operationId: string,
   ordinal: number,
+  evidenceRef: VisualIntelligenceEvidenceRef = ref(`tool-evidence-${ordinal}`),
 ) {
   return Object.freeze({
     role,
     tool,
     operationId,
     toolVersion: `qualified-tool-release-${ordinal}`,
-    evidenceRef: ref(`tool-evidence-${ordinal}`),
+    evidenceRef,
     runtimeReleaseRef: ref(`runtime-release-${tool}`),
     executionRef: ref(`tool-execution-${ordinal}`),
     exactSourceChecksumBound: true as const,

@@ -82,7 +82,7 @@ assert.match(productionRuntime, /orchestraJobRuntimePort/u)
 assert.match(productionRuntime, /orchestraLifecyclePort/u)
 assert.match(
   productionRuntime,
-  /visual-intelligence-production-runtime-v4/u,
+  /visual-intelligence-production-runtime-v5/u,
 )
 assert.match(
   productionRuntime,

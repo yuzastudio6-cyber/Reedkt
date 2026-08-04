@@ -31,6 +31,10 @@ import {
   type CanonicalSourceAnalysisL4ProbeAttemptOwner,
 } from '../services/canonical-source-analysis-l4-probe-attempt-owner'
 import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION,
+  createCanonicalSourceAnalysisL4VisualEvidenceResult,
+} from '../services/canonical-source-analysis-l4-visual-evidence-repository'
+import {
   CANONICAL_SOURCE_ANALYSIS_PREPARATION_OWNER_VERSION,
   type CanonicalSourceAnalysisPreparationOwner,
 } from '../services/canonical-source-analysis-preparation-owner'
@@ -69,6 +73,9 @@ import {
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
+import {
+  VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS,
+} from '../visual-intelligence/visual-intelligence-orchestra-capability-manifest'
 import {
   VISUAL_INTELLIGENCE_ORCHESTRA_JOB_RUNTIME_VERSION,
   type VisualIntelligenceOrchestraJobRuntime,
@@ -271,6 +278,77 @@ const sourceFrameAuthority = createCanonicalSourceLedSourceFrameAuthority({
   frameCount: 240,
   timeBaseNumerator: 1,
   timeBaseDenominator: 24,
+})
+const l4ToolEvidence = [
+  l4Item('media_probe', 'ffprobe',
+    VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffprobe, 1, probeRef),
+  l4Item('private_media_transform', 'ffmpeg',
+    VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffmpeg, 2),
+  l4Item('scene_detection', 'pyscenedetect',
+    VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.pyscenedetect, 3),
+  l4Item('pixel_measurement', 'opencv',
+    VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.opencv, 4),
+  l4Item('exact_visible_text', 'ocr',
+    VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.paddleocr, 5),
+  l4Item('sampling_policy', 'ffmpeg',
+    VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffmpeg, 6),
+]
+const l4VisualEvidence = createCanonicalSourceAnalysisL4VisualEvidenceResult({
+  scope: {
+    ownerUserId: 'user-1',
+    workspaceId: request.workspaceId,
+    projectId: request.projectId,
+    editSessionId: request.editSessionId,
+    analysisRunId: identity.analysisRunId,
+    sourceSequenceItemId: 'source-item-1',
+    mediaAssetId: 'media-asset-1',
+    uploadedOrder: 1,
+    checksumSha256: sourceChecksum,
+    byteLength: sourceByteLength,
+    durationFrames: 240,
+    sourceFrameAuthority,
+    finalizedMediaAuthorityRef: finalizedRef,
+    sourceProbeAuthorityRef: probeRef,
+  },
+  sourceObject: {
+    storageProvider: 'google_cloud_storage',
+    storageBucket: 'private-source-bucket',
+    storagePath: 'workspace-1/source.mp4',
+    storageGeneration: '1001',
+    storageEtag: 'source-etag-1',
+    contentType: 'video/mp4',
+    width: 1_920,
+    height: 1_080,
+    checksumSha256: sourceChecksum,
+    byteLength: sourceByteLength,
+    finalizedMediaAuthorityRef: finalizedRef,
+    finalizedStorageObjectAuthorityRef: storageRef,
+    exactGenerationEtagChecksumAndLengthRereadVerified: true,
+  },
+  operationId: 'internal.visual_intelligence.prepare_source_visual_evidence.v1',
+  routeProfileId: 'quality_l4_user_triggered_standard_media_job_v1',
+  acceleratorClass: 'nvidia_l4',
+  cloudRunJobName: 'reeditpro-professional-l4',
+  cloudRunExecutionRef: ref('l4-visual-evidence-execution'),
+  attemptCostEvidenceRef: ref('l4-visual-evidence-cost'),
+  toolEvidence: l4ToolEvidence,
+  userTriggeredScaleFromZero: true,
+  minimumIdleInstances: 0,
+  maximumAttempts: 1,
+  uncertainOutcomeRetryAllowed: false,
+  runtimeNetworkDownloadPerformed: false,
+  exactSourceReleaseExecutionAndCostRereadVerified: true,
+  privateEvidencePersistedAndReread: true,
+  browserOrCallerEvidenceAccepted: false,
+  callerPathUrlBytesCommandOrEnvironmentAccepted: false,
+  customerCreditMutated: false,
+  systemFailureChargedToCustomer: false,
+  unapprovedOverageChargedToCustomer: false,
+  directProviderCallMade: false,
+  directTimelineMutationPerformed: false,
+  qaApprovalGranted: false,
+  publicDeliveryGranted: false,
+  productionAuthorityGranted: false,
 })
 const visualObservations = [{
   observationId: 'visual-complete-source-window',
@@ -601,6 +679,14 @@ const transcriptReadPort = {
     return structuredClone(transcriptResult)
   },
 } as const
+const l4VisualEvidenceReadPort = {
+  schemaVersion:
+    CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION,
+  async readCompleted() {
+    sequence.push('l4_visual_evidence_reread')
+    return structuredClone(l4VisualEvidence)
+  },
+} as const
 
 let callForResult: ReturnType<typeof createOrchestraSkillCall> | null = null
 const orchestraWorkReadPort = {
@@ -635,7 +721,7 @@ const orchestraWorkReadPort = {
       comparisonArtifactRefs: [],
       expectedOutcomeRefs: [ref('source-edit-planning-evidence')],
       requiredEvidenceRefs: [
-        scope.sourceProbeAuthorityRef,
+        ...l4ToolEvidence.map((item) => item.evidenceRef),
         scope.transcriptAuthorityRef,
       ],
       manifestRef: ref('visual-intelligence-manifest'),
@@ -770,6 +856,7 @@ const coordinator = createCanonicalSourceAnalysisOrchestraCoordinator({
   transcriptAttemptOwner,
   requestAuthorityReadPort,
   transcriptReadPort,
+  l4VisualEvidenceReadPort,
   orchestraWorkReadPort,
   orchestraRuntime,
   planningReconciliationPort,
@@ -798,6 +885,7 @@ assert.equal(result.analysisRunId, identity.analysisRunId)
 assert.equal(result.requestDigestSha256, identity.requestDigest)
 assert.equal(result.sourceCount, 1)
 assert.equal(result.l4ProbeScaleToZeroVerified, true)
+assert.equal(result.allL4DeterministicVisualEvidenceReread, true)
 assert.equal(
   result.a100TranscriptScaleToZeroOrNoAudioBypassVerified,
   true,
@@ -811,6 +899,7 @@ assert.deepEqual(sequence, [
   'l4_probe',
   'preparation',
   'prepared_request_reread',
+  'l4_visual_evidence_reread',
   'a100_transcript',
   'transcript_reread',
   'orchestra_work_reread',
@@ -867,6 +956,7 @@ const blockedCoordinator = createCanonicalSourceAnalysisOrchestraCoordinator({
   transcriptAttemptOwner,
   requestAuthorityReadPort,
   transcriptReadPort,
+  l4VisualEvidenceReadPort,
   orchestraWorkReadPort,
   orchestraRuntime,
   planningReconciliationPort,
@@ -886,6 +976,42 @@ assert.deepEqual(blockedResult, {
   productionAuthorityGranted: false,
 })
 assert.equal(probeBlockedDownstreamCalls, 0)
+
+let missingL4TranscriptCalls = 0
+const missingL4Coordinator =
+  createCanonicalSourceAnalysisOrchestraCoordinator({
+    planningScopeReadPort,
+    probeAttemptOwner,
+    preparationOwner,
+    transcriptAttemptOwner: {
+      ...transcriptAttemptOwner,
+      async executeOneShot(value) {
+        missingL4TranscriptCalls += 1
+        return transcriptAttemptOwner.executeOneShot(value)
+      },
+    },
+    requestAuthorityReadPort,
+    transcriptReadPort,
+    l4VisualEvidenceReadPort: {
+      ...l4VisualEvidenceReadPort,
+      async readCompleted() { return null },
+    },
+    orchestraWorkReadPort,
+    orchestraRuntime,
+    planningReconciliationPort,
+    cleanupAuthorityReadPort,
+  })
+const missingL4Result = await missingL4Coordinator.execute(trigger)
+assert.equal(missingL4Result.status, 'blocked')
+if (missingL4Result.status !== 'blocked') {
+  throw new Error('Missing L4 evidence did not block.')
+}
+assert.equal(missingL4Result.stage, 'l4_visual_evidence')
+assert.equal(
+  missingL4Result.blockerCode,
+  'canonical_source_l4_visual_evidence_not_ready',
+)
+assert.equal(missingL4TranscriptCalls, 0)
 
 let transcriptBlockedWorkCalls = 0
 const transcriptBlockedCoordinator =
@@ -908,6 +1034,7 @@ const transcriptBlockedCoordinator =
     },
     requestAuthorityReadPort,
     transcriptReadPort,
+    l4VisualEvidenceReadPort,
     orchestraWorkReadPort: {
       ...orchestraWorkReadPort,
       async readExactSourceVideoUnderstandingWork(scope) {
@@ -946,6 +1073,7 @@ console.log(JSON.stringify({
   geminiReturnedThroughOrchestra: true,
   headCleanupAuthorityReread: true,
   uncertainProbeOutcomeStoppedPipeline: true,
+  missingL4EvidenceStoppedBeforeA100: true,
   uncertainTranscriptOutcomeStoppedPipeline: true,
   privateFixtureByteIdentityBound: privateFixtureIdentityBound,
   privateFixtureMediaDecodedOrSemanticallyAnalyzed: false,
@@ -955,6 +1083,30 @@ console.log(JSON.stringify({
   customerCreditMutated: false,
   productionAuthorityGranted: false,
 }, null, 2))
+
+function l4Item(
+  role: 'media_probe' | 'private_media_transform' | 'scene_detection'
+    | 'pixel_measurement' | 'exact_visible_text' | 'sampling_policy',
+  tool: 'ffprobe' | 'ffmpeg' | 'pyscenedetect' | 'opencv' | 'ocr',
+  operationId: string,
+  ordinal: number,
+  evidenceRef: VisualIntelligenceEvidenceRef = ref(
+    `l4-tool-evidence-${ordinal}`,
+  ),
+) {
+  return Object.freeze({
+    role,
+    tool,
+    operationId,
+    toolVersion: `qualified-tool-release-${ordinal}`,
+    evidenceRef,
+    runtimeReleaseRef: ref(`l4-runtime-release-${tool}`),
+    executionRef: ref(`l4-tool-execution-${ordinal}`),
+    exactSourceChecksumBound: true as const,
+    exactCanonicalResultRereadVerified: true as const,
+    substantiveCpuExecutionUsed: false as const,
+  })
+}
 
 function createBindingScope() {
   const contextDigest = orchestraDigest({

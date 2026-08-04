@@ -134,7 +134,7 @@ import {
 } from './vertex-gemini-pro-visual-intelligence-adapter'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v4' as const
+  'visual-intelligence-production-runtime-v5' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -464,6 +464,7 @@ export async function createVisualIntelligenceProductionRuntime(
     }),
     requestAuthorityReadPort: sourceAnalysisRequestAuthorityRepository,
     transcriptReadPort: sourceTranscriptOrchestraRepository,
+    l4VisualEvidenceReadPort: sourceAnalysisL4VisualEvidenceRepository,
     orchestraWorkReadPort: input.orchestraWorkReadPort,
     orchestraRuntime: orchestraJobRuntimePort,
     planningReconciliationPort:

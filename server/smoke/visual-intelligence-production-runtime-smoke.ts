@@ -421,7 +421,7 @@ assert.equal(
 )
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceRepository.repositoryVersion,
-  'canonical-source-analysis-l4-visual-evidence-repository-v1',
+  'canonical-source-analysis-l4-visual-evidence-repository-v2',
 )
 assert.equal(
   typeof runtime.createSourceAnalysisL4ProbeAttemptOwner,

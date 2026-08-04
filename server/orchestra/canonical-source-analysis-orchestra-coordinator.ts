@@ -19,6 +19,13 @@ import {
   createCanonicalSourceAnalysisL4ProbeTrigger,
 } from '../services/canonical-source-analysis-l4-probe-attempt-owner'
 import type {
+  CanonicalSourceAnalysisL4VisualEvidenceReadPort,
+  CanonicalSourceAnalysisL4VisualEvidenceResult,
+} from '../services/canonical-source-analysis-l4-visual-evidence-repository'
+import {
+  CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION,
+} from '../services/canonical-source-analysis-l4-visual-evidence-repository'
+import type {
   CanonicalSourceAnalysisPreparationOwner,
 } from '../services/canonical-source-analysis-preparation-owner'
 import {
@@ -80,7 +87,7 @@ import {
 } from '../visual-intelligence/visual-intelligence-orchestra-job-runtime'
 
 export const CANONICAL_SOURCE_ANALYSIS_ORCHESTRA_COORDINATOR_VERSION =
-  'canonical-source-analysis-orchestra-coordinator-v1' as const
+  'canonical-source-analysis-orchestra-coordinator-v2' as const
 export const CANONICAL_SOURCE_ANALYSIS_USER_TRIGGER_VERSION =
   'canonical-source-analysis-user-trigger-v1' as const
 export const CANONICAL_SOURCE_ANALYSIS_PLANNING_SCOPE_READ_PORT_VERSION =
@@ -175,6 +182,7 @@ export type CanonicalSourceAnalysisOrchestraCoordinatorResult =
         | 'planning_scope'
         | 'l4_probe'
         | 'preparation'
+        | 'l4_visual_evidence'
         | 'a100_transcript'
         | 'orchestra_work'
         | 'head_reconciliation'
@@ -197,6 +205,7 @@ export type CanonicalSourceAnalysisOrchestraCoordinatorResult =
       cleanupEvidenceDigestSha256: string
       exactPlanningScopeRereadVerified: true
       allFinalizedSourceAndL4ProbeAuthoritiesReread: true
+      allL4DeterministicVisualEvidenceReread: true
       l4ProbeScaleToZeroVerified: true
       allTranscriptAuthoritiesReread: true
       a100TranscriptScaleToZeroOrNoAudioBypassVerified: true
@@ -352,6 +361,8 @@ export function createCanonicalSourceAnalysisOrchestraCoordinator(input: {
   readonly requestAuthorityReadPort:
     CanonicalSourceAnalysisRequestAuthorityReadPort
   readonly transcriptReadPort: CanonicalSourceTranscriptOrchestraReadPort
+  readonly l4VisualEvidenceReadPort:
+    CanonicalSourceAnalysisL4VisualEvidenceReadPort
   readonly orchestraWorkReadPort:
     CanonicalSourceAnalysisOrchestraWorkReadPort
   readonly orchestraRuntime: VisualIntelligenceOrchestraJobRuntime
@@ -450,6 +461,23 @@ export function createCanonicalSourceAnalysisOrchestraCoordinator(input: {
         || prepared.requestDigest !== preparation.requestDigestSha256
       ) throw conflict('source_analysis_preparation_reread_mismatch')
 
+      const l4VisualEvidenceResults:
+        CanonicalSourceAnalysisL4VisualEvidenceResult[] = []
+      for (const [index, source] of prepared.request.sources.entries()) {
+        const evidence = await input.l4VisualEvidenceReadPort.readCompleted(
+          transcriptScope({
+            request: prepared.request,
+            analysisRunId: prepared.analysisRunId,
+            source,
+          }),
+        )
+        if (!evidence) return blocked(
+          'l4_visual_evidence', index + 1,
+          'canonical_source_l4_visual_evidence_not_ready',
+        )
+        l4VisualEvidenceResults.push(evidence)
+      }
+
       const transcriptResults = [] as Awaited<ReturnType<
         CanonicalSourceTranscriptOrchestraReadPort['readCompleted']
       >>[]
@@ -514,6 +542,11 @@ export function createCanonicalSourceAnalysisOrchestraCoordinator(input: {
           value: workRaw,
           expectedScope: bindingScope,
         })
+        assertExactSourceEvidenceRefs({
+          work,
+          l4VisualEvidence: l4VisualEvidenceResults[index]!,
+          transcriptAuthorityRef: transcriptResult.transcriptAuthorityRef,
+        })
         const execution = await input.orchestraRuntime.execute({
           call: work.call,
           supportRequest: null,
@@ -557,6 +590,7 @@ export function createCanonicalSourceAnalysisOrchestraCoordinator(input: {
         cleanupEvidenceDigestSha256: reconciliation.evidenceDigestSha256,
         exactPlanningScopeRereadVerified: true as const,
         allFinalizedSourceAndL4ProbeAuthoritiesReread: true as const,
+        allL4DeterministicVisualEvidenceReread: true as const,
         l4ProbeScaleToZeroVerified: true as const,
         allTranscriptAuthoritiesReread: true as const,
         a100TranscriptScaleToZeroOrNoAudioBypassVerified: true as const,
@@ -597,6 +631,9 @@ function validateDependencies(input: Parameters<
     || input.transcriptReadPort?.schemaVersion !==
       CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION
     || typeof input.transcriptReadPort.readCompleted !== 'function'
+    || input.l4VisualEvidenceReadPort?.schemaVersion !==
+      CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION
+    || typeof input.l4VisualEvidenceReadPort.readCompleted !== 'function'
     || input.orchestraWorkReadPort?.schemaVersion !==
       CANONICAL_SOURCE_ANALYSIS_ORCHESTRA_WORK_READ_PORT_VERSION
     || typeof input.orchestraWorkReadPort
@@ -610,6 +647,22 @@ function validateDependencies(input: Parameters<
       'function'
     || typeof input.cleanupAuthorityReadPort?.readForPlanning !== 'function'
   ) throw notReady('source_analysis_orchestra_coordinator_dependencies_invalid')
+}
+
+function assertExactSourceEvidenceRefs(input: Readonly<{
+  work: CanonicalSourceAnalysisOrchestraWork
+  l4VisualEvidence: CanonicalSourceAnalysisL4VisualEvidenceResult
+  transcriptAuthorityRef: VisualIntelligenceEvidenceRef
+}>): void {
+  const expected = [
+    ...input.l4VisualEvidence.toolEvidence.map((item) => item.evidenceRef),
+    input.transcriptAuthorityRef,
+  ]
+  if (
+    new Set(expected.map(refKey)).size !== expected.length
+    || stableAuthorityStringify(input.work.call.requiredEvidenceRefs) !==
+      stableAuthorityStringify(expected)
+  ) throw conflict('source_analysis_orchestra_required_evidence_mismatch')
 }
 
 function transcriptScope(input: Readonly<{
@@ -745,6 +798,10 @@ function sameRef(left: OrchestraEvidenceRef, right: OrchestraEvidenceRef): boole
   return left.id === right.id
     && left.version === right.version
     && left.contentHash === right.contentHash
+}
+
+function refKey(value: OrchestraEvidenceRef): string {
+  return `${value.id}:${value.version}:${value.contentHash}`
 }
 
 function compare(left: string, right: string): number {

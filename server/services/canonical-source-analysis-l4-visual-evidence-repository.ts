@@ -27,16 +27,16 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_RESULT_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-result-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-result-v2' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-read-port-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-read-port-v2' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_REPOSITORY_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-repository-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-repository-v2' as const
 export const CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_OPERATION_ID =
   'internal.visual_intelligence.prepare_source_visual_evidence.v1' as const
 
 const DEFAULT_PREFIX =
-  'private/orchestra/v1/source-analysis-l4-visual-evidence'
+  'private/orchestra/v2/source-analysis-l4-visual-evidence'
 const MAXIMUM_RECORD_BYTES = 16 * 1024 * 1024
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const RAW_SHA256 = /^[a-f0-9]{64}$/u
@@ -79,8 +79,11 @@ const sourceObjectSchema = z.object({
   storageEtag: z.string().trim().min(1).max(1_024)
     .refine((value) => !/[\0\r\n]/u.test(value)),
   contentType: z.literal('video/mp4'),
+  width: positiveInteger.max(16_384),
+  height: positiveInteger.max(16_384),
   checksumSha256: rawSha256,
   byteLength: positiveInteger,
+  finalizedMediaAuthorityRef: evidenceRefSchema,
   finalizedStorageObjectAuthorityRef: evidenceRefSchema,
   exactGenerationEtagChecksumAndLengthRereadVerified: z.literal(true),
 }).strict()
@@ -294,7 +297,10 @@ export function createCanonicalSourceAnalysisL4VisualEvidenceRepository(
       CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION,
     repositoryVersion:
       CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_REPOSITORY_VERSION,
-    async persistCreateOnly(untrusted) {
+    async persistCreateOnly(untrusted: Readonly<{
+      scope: CanonicalSourceTranscriptOrchestraReadScope
+      result: CanonicalSourceAnalysisL4VisualEvidenceResult
+    }>) {
       assertPlainSerializedData(
         untrusted,
         'source_analysis_l4_visual_evidence_persistence_input',
@@ -347,7 +353,9 @@ export function createCanonicalSourceAnalysisL4VisualEvidenceRepository(
         productionAuthorityGranted: false as const,
       })
     },
-    async readCompleted(untrustedScope) {
+    async readCompleted(
+      untrustedScope: CanonicalSourceTranscriptOrchestraReadScope,
+    ) {
       const record = await readRecord(untrustedScope)
       return record ? structuredClone(record.result) : null
     },
@@ -379,6 +387,10 @@ function assertResultSemantics(
     || new Set(executionRefs).size !== executionRefs.length
     || result.sourceObject.checksumSha256 !== scope.checksumSha256
     || result.sourceObject.byteLength !== scope.byteLength
+    || refKey(result.sourceObject.finalizedMediaAuthorityRef) !==
+      refKey(scope.finalizedMediaAuthorityRef)
+    || refKey(result.toolEvidence[0]!.evidenceRef) !==
+      refKey(scope.sourceProbeAuthorityRef)
   ) throw conflict('source_analysis_l4_visual_evidence_semantics_invalid')
 }
 

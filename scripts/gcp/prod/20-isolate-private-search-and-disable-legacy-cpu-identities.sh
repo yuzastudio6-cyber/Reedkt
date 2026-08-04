@@ -157,6 +157,24 @@ for identity in "${LEGACY_CPU_PROCESSING_IDENTITIES[@]}"; do
   disabled_count=$((disabled_count + 1))
 done
 
+wait_for_disabled_identity() {
+  local identity="$1"
+  local attempt identity_json
+  for attempt in 1 2 3 4 5 6; do
+    if ! identity_json="$(gcloud iam service-accounts describe "${identity}" \
+      --project="${EXPECTED_PROJECT_ID}" --format=json 2>/dev/null)"; then
+      return 0
+    fi
+    if [[ "$(jq -r '.disabled // false' <<<"${identity_json}")" == 'true' ]]; then
+      return 0
+    fi
+    if [[ "${attempt}" != '6' ]]; then
+      sleep 2
+    fi
+  done
+  return 1
+}
+
 verified_service_json="$(gcloud run services describe "${SEARCH_SERVICE}" \
   --project="${EXPECTED_PROJECT_ID}" --region="${EXPECTED_REGION}" \
   --format=json)"
@@ -176,10 +194,8 @@ if ! jq -e \
   exit 1
 fi
 for identity in "${LEGACY_CPU_PROCESSING_IDENTITIES[@]}"; do
-  if identity_json="$(gcloud iam service-accounts describe "${identity}" \
-    --project="${EXPECTED_PROJECT_ID}" --format=json 2>/dev/null)" \
-    && [[ "$(jq -r '.disabled // false' <<<"${identity_json}")" != 'true' ]]; then
-    echo "ERROR: legacy CPU identity remains enabled: ${identity}." >&2
+  if ! wait_for_disabled_identity "${identity}"; then
+    echo "ERROR: legacy CPU identity did not converge to disabled: ${identity}." >&2
     exit 1
   fi
 done
@@ -209,6 +225,7 @@ jq -n \
       serviceUpdated: $serviceUpdated
     },
     legacyIdentityAllowlistCount: $legacyIdentityAllowlistCount,
+    identityRereadAttemptsMaximum: 6,
     disabledCount: $disabledCount,
     alreadyDisabledOrAbsentCount: $alreadyDisabledOrAbsentCount,
     serviceDeleted: false,

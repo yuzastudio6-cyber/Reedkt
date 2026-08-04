@@ -34,6 +34,9 @@ assert.match(source, /--ongoing/u)
 assert.match(source, /gcloud batch jobs list/u)
 assert.match(source, /active_batch_jobs/u)
 assert.match(source, /\.spec\.template\.spec\.containers\[0\]\.image == \$image/u)
+assert.match(source, /wait_for_disabled_identity/u)
+assert.match(source, /for attempt in 1 2 3 4 5 6/u)
+assert.match(source, /identityRereadAttemptsMaximum: 6/u)
 
 const allowlist = source.match(
   /readonly -a LEGACY_CPU_PROCESSING_IDENTITIES=\(\n(?<members>[\s\S]*?)\n\)/u,

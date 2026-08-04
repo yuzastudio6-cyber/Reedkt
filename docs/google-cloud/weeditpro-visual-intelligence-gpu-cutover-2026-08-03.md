@@ -55,6 +55,19 @@ only and cannot authorize fresh work until the canonical L4 release,
 account-effective price, approved estimate/reservation, dispatch admission,
 terminal usage reconciliation, and scale-to-zero gates pass.
 
+The private-search service was then isolated from the retired shared CPU
+worker identity. The fixed migration retained its exact immutable image,
+one-CPU/one-GiB envelope, zero-idle/maximum-one scaling, private IAM policy,
+and 100% ready traffic while changing only its service identity to
+`reeditpro-private-search-sa`. This is a bounded search/control-plane exception;
+it cannot decode media, render, encode, load a model, run inference, or satisfy
+any GPU release gate. The five fixed legacy CPU processing identities were
+disabled—not deleted—only after Cloud Run, active Batch, and ongoing Cloud
+Build detachment checks passed. An immediate final IAM reread observed one
+eventually consistent stale value and failed closed; the authoritative
+idempotent rerun then observed all five disabled and emitted
+`weeditpro-private-search-identity-isolation-v1`.
+
 ## Official SAM 3.1 source state
 
 - Official code: `facebookresearch/sam3`, revision
@@ -211,9 +224,11 @@ reader—because cosign persists digest-bound signatures and attestations as OCI
 referrers; it retains no admin/delete or model/runtime authority. A blocked
 audit is expected until every external checkpoint, identity, KMS, storage,
 image, and A100 gate closes; it does not weaken or self-authorize a build or
-runtime. Audit version v5 additionally requires all fifteen frozen CPU-only
-processing job definitions to be absent while leaving GPU jobs and
-control-plane services outside that retirement scope.
+runtime. Audit version v6 additionally requires all fifteen frozen CPU-only
+processing job definitions to be absent, the bounded private-search service to
+retain its exact immutable zero-idle control-plane shape under its dedicated
+identity, and all five fixed legacy CPU processing identities to be disabled or
+absent. GPU jobs remain outside the retirement scope.
 
 The narrow foundation provisioner has now completed in project `reeditpro`.
 Cloud KMS and Binary Authorization are enabled; the image-builder, image-signer,
@@ -288,4 +303,7 @@ remains blocked by Meta checkpoint access, the still-open official
 source/checkpoint compatibility issue, A100 80GB quota, and the required
 image/security/runtime qualification. Live Gemini pricing additionally remains
 blocked by billing-account price-read IAM and isolated model/SKU reconciliation.
-The implementation must not weaken or silently bypass those gates.
+Legacy visual and CPU processing runtimes are now absent and their five live
+identities are retired; the private-search control plane is independently
+isolated. The implementation must not weaken or silently bypass the remaining
+gates.

@@ -1,274 +1,150 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import type { ReeditProChatMessage } from '../../../types'
-import { ChatMessageList } from '../ChatMessageList'
-import {
-  createChatCard,
-  createMusicAssistantMessage,
-  createMusicCreditApprovalMessage,
-  createMusicPlanMessage,
-  createMusicProgressMessage,
-  createMusicRevisionMessage,
-} from '../chatMessageBuilders'
-import { InlineLyriaPromptPreviewCard } from './InlineLyriaPromptPreviewCard'
-import { InlineMusicContextCard } from './InlineMusicContextCard'
-import { InlineMusicCreditEstimateCard } from './InlineMusicCreditEstimateCard'
-import { InlineMusicCueCard } from './InlineMusicCueCard'
-import { InlineMusicCueSheetCard } from './InlineMusicCueSheetCard'
-import { InlineMusicGenerationProgressCard } from './InlineMusicGenerationProgressCard'
-import { InlineMusicMixPlanCard } from './InlineMusicMixPlanCard'
-import { InlineMusicQACard } from './InlineMusicQACard'
-import { InlineMusicRevisionOptionsCard } from './InlineMusicRevisionOptionsCard'
-import { createMusicChatUiData } from './musicChatUiData'
+import type { CanonicalMusicUiProjection } from '../../../types/canonical-music-ui'
+import { Badge } from '../../Badge'
+import { InlinePlanCardShell } from '../InlinePlanCardShell'
 
-export function MusicPlanChatFlow() {
-  const data = useMemo(() => createMusicChatUiData(), [])
-  const [musicPlanApproved, setMusicPlanApproved] = useState(false)
-  const [musicCreditsApproved, setMusicCreditsApproved] = useState(false)
-  const [musicProgressStarted, setMusicProgressStarted] = useState(false)
-  const [musicProgressIndex, setMusicProgressIndex] = useState(0)
-  const [musicRevisionMessage, setMusicRevisionMessage] = useState('')
-  const timerRef = useRef<number | null>(null)
-  const musicProgressComplete = musicProgressStarted && musicProgressIndex >= data.progressSteps.length - 1
+type MusicPlanChatFlowProps = {
+  projection?: CanonicalMusicUiProjection
+}
 
-  useEffect(() => {
-    if (!musicProgressStarted || musicProgressComplete) {
-      return
-    }
+function label(value: string) {
+  return value.replaceAll('_', ' ')
+}
 
-    timerRef.current = window.setTimeout(() => {
-      setMusicProgressIndex((current) => Math.min(current + 1, data.progressSteps.length - 1))
-    }, 520)
-
-    return () => {
-      if (timerRef.current) {
-        window.clearTimeout(timerRef.current)
-      }
-    }
-  }, [data.progressSteps.length, musicProgressComplete, musicProgressIndex, musicProgressStarted])
-
-  function startMusicProgress() {
-    setMusicProgressStarted(true)
-    setMusicProgressIndex(0)
-    setMusicRevisionMessage('Music plan and credits approved. Preparing the cue.')
+export function MusicPlanChatFlow({ projection }: MusicPlanChatFlowProps) {
+  if (!projection) {
+    return (
+      <section
+        aria-label="Canonical Music department"
+        className="soundflow-panel music-flow-panel"
+        data-testid="music-flow"
+      >
+        <InlinePlanCardShell
+          actions={<Badge accent="warning">Waiting for artifacts</Badge>}
+          className="music-inline-card music-context-card"
+          defaultExpanded
+          eyebrow="Music"
+          helper="This surface is read-only. It displays canonical Music artifacts and never simulates generation or QA."
+          priority="user_summary"
+          status="needs_input"
+          title="Music department ready"
+        >
+          <p className="music-muted-note" role="status">
+            No canonical Music plan has been published to this chat yet. Music generation, progress, QA, and approval are not inferred from local UI state.
+          </p>
+        </InlinePlanCardShell>
+      </section>
+    )
   }
 
-  function handleMusicPlanApprove() {
-    setMusicPlanApproved(true)
-    if (musicCreditsApproved) {
-      startMusicProgress()
-      return
-    }
-    setMusicRevisionMessage('Music plan approved. Credit approval is still needed before cues start.')
-  }
-
-  function handleMusicCreditsApprove() {
-    setMusicCreditsApproved(true)
-    if (musicPlanApproved) {
-      startMusicProgress()
-      return
-    }
-    setMusicRevisionMessage('Music credits approved for this plan.')
-  }
-
-  const musicMessages = useMemo(() => {
-    const messages: ReeditProChatMessage[] = [
-      createMusicAssistantMessage('I found dialogue, montage, social moments, and an outro. A voice-safe cue plan fits better than one generic track.', {
-        id: 'music-message-context',
-        cards: [
-          createChatCard('music-card-context', 'music_context', {
-            priority: 'summary',
-          }),
-        ],
-      }),
-      createMusicPlanMessage('Here is the music cue sheet before generating anything.', {
-        id: 'music-message-cue-sheet',
-        status: musicPlanApproved ? 'approved' : 'pending',
-        cards: [
-          createChatCard('music-card-cue-sheet', 'music_cue_sheet', {
-            priority: 'required',
-            requiredBeforeApproval: true,
-            status: musicPlanApproved ? 'approved' : 'pending',
-          }),
-        ],
-      }),
-      createMusicCreditApprovalMessage('Music starts only after you approve the cue plan and credits.', {
-        id: 'music-message-credit-estimate',
-        status: musicCreditsApproved ? 'approved' : 'pending',
-        cards: [
-          createChatCard('music-card-credit-estimate', 'music_credit_estimate', {
-            priority: 'required',
-            requiredBeforeApproval: true,
-            status: musicCreditsApproved ? 'approved' : 'pending',
-          }),
-        ],
-      }),
-      createMusicAssistantMessage('Music cue details stay tucked away so the approval path stays readable.', {
-        id: 'music-message-advanced-details',
-        cards: [
-          createChatCard('music-card-advanced-details', 'music_advanced_details', {
-            priority: 'advanced',
-            defaultOpen: false,
-          }),
-        ],
-      }),
-    ]
-
-    if (musicRevisionMessage) {
-      messages.push(createMusicRevisionMessage(musicRevisionMessage, {
-        id: 'music-message-revision-response',
-      }))
-    }
-
-    if (musicProgressStarted) {
-      messages.push(createMusicProgressMessage(
-        musicProgressComplete
-          ? 'Music progress is complete. QA, mix, and revision options are ready.'
-          : 'Music cues are being prepared after plan and credit approval.',
-        {
-          id: 'music-message-progress',
-          status: musicProgressComplete ? 'success' : 'generating',
-          cards: [
-            createChatCard('music-card-generation-progress', 'music_generation_progress', {
-              priority: 'summary',
-              status: musicProgressComplete ? 'success' : 'generating',
-            }),
-          ],
-        },
-      ))
-    }
-
-    if (musicProgressComplete) {
-      messages.push(createMusicAssistantMessage('Music QA passed. Voice stays first, ambience is protected, and revision options are ready.', {
-        id: 'music-message-qa-and-revision',
-        status: 'success',
-        cards: [
-          createChatCard('music-card-qa', 'music_qa', {
-            priority: 'summary',
-            status: 'success',
-          }),
-          createChatCard('music-card-mix-plan', 'music_mix_plan', {
-            priority: 'summary',
-            status: 'success',
-          }),
-          createChatCard('music-card-revision-options', 'music_revision_options', {
-            priority: 'summary',
-            status: 'success',
-          }),
-        ],
-      }))
-    }
-
-    return messages
-  }, [musicCreditsApproved, musicPlanApproved, musicProgressComplete, musicProgressStarted, musicRevisionMessage])
-
-  function renderCardsForMessage(message: ReeditProChatMessage): ReactNode {
-    const renderedCards = message.cards
-      ?.map((card) => {
-        switch (card.type) {
-          case 'music_context':
-            return (
-              <div className="soundflow-card-slot" key={card.id}>
-                <InlineMusicContextCard context={data.context} />
-              </div>
-            )
-          case 'music_cue_sheet':
-            return (
-              <div className="soundflow-card-slot" key={card.id}>
-                <InlineMusicCueSheetCard
-                  approved={musicPlanApproved}
-                  context={data.context}
-                  cueSheet={data.cueSheet}
-                  onAmbienceOnly={() => setMusicRevisionMessage('Updated music preference: keep natural ambience and skip generated music where possible.')}
-                  onApprove={handleMusicPlanApprove}
-                  onInstrumentalOnly={() => setMusicRevisionMessage('Updated music preference: make all cues instrumental-first.')}
-                  onLowerCost={() => setMusicRevisionMessage('Updated music preference: lower cost by generating fewer cues.')}
-                />
-              </div>
-            )
-          case 'music_credit_estimate':
-            return (
-              <div className="soundflow-card-slot" key={card.id}>
-                <InlineMusicCreditEstimateCard
-                  approved={musicCreditsApproved}
-                  estimate={data.creditEstimate}
-                  onApprove={handleMusicCreditsApprove}
-                  onDialogueBedOnly={() => setMusicRevisionMessage('Updated music plan: generate only the dialogue bed and keep the rest ambience/editorial.')}
-                  onLowerCost={() => setMusicRevisionMessage('Updated music plan: reduce generated cue count to lower cost.')}
-                  onSkipMusic={() => setMusicRevisionMessage('Updated music plan: skip generated music and preserve ambience only.')}
-                />
-              </div>
-            )
-          case 'music_advanced_details':
-            return (
-              <details className="soundflow-detail-toggle" key={card.id}>
-                <summary>
-                  <span>Music cue details</span>
-                  <small>Cue cards, music brief preview, and dialogue-safety notes</small>
-                </summary>
-                <div className="soundflow-technical-stack">
-                  <div className="soundflow-card-slot">
-                    <p>Detailed cue cards stay optional so the approval path stays readable.</p>
-                    {data.cueCards.map((cue) => (
-                      <InlineMusicCueCard cue={cue} key={cue.id} />
-                    ))}
-                  </div>
-
-                  <div className="soundflow-card-slot">
-                    <p>Lyrics can work only in montage or no-speech sections. Dialogue sections stay instrumental-first.</p>
-                    <InlineLyriaPromptPreviewCard
-                      cue={data.promptCue}
-                      onAction={setMusicRevisionMessage}
-                      promptPlan={data.promptPlan}
-                    />
-                  </div>
-                </div>
-              </details>
-            )
-          case 'music_generation_progress':
-            return (
-              <div className="soundflow-card-slot" key={card.id}>
-                <InlineMusicGenerationProgressCard
-                  activeIndex={musicProgressIndex}
-                  complete={musicProgressComplete}
-                  steps={data.progressSteps}
-                />
-              </div>
-            )
-          case 'music_qa':
-            return (
-              <div className="soundflow-card-slot" key={card.id}>
-                <InlineMusicQACard
-                  primaryResult={data.qaPassResult}
-                  warningResult={data.qaFailResult}
-                />
-              </div>
-            )
-          case 'music_mix_plan':
-            return (
-              <div className="soundflow-card-slot" key={card.id}>
-                <InlineMusicMixPlanCard mixPlan={data.qaPassResult.mixPlan} />
-              </div>
-            )
-          case 'music_revision_options':
-            return (
-              <div className="soundflow-card-slot" key={card.id}>
-                <InlineMusicRevisionOptionsCard onChoose={setMusicRevisionMessage} />
-              </div>
-            )
-          default:
-            return null
-        }
-      })
-      .filter(Boolean)
-
-    return renderedCards?.length ? renderedCards : null
-  }
-
+  const qaAccent = projection.qa.status === 'pass' ? 'success'
+    : projection.qa.status === 'blocking' ? 'danger' : 'warning'
   return (
-    <div aria-label="Music planning flow" className="soundflow-panel music-flow-panel" data-testid="music-flow">
+    <section
+      aria-label="Canonical Music department"
+      className="soundflow-panel music-flow-panel"
+      data-evidence={projection.executionEvidence}
+      data-testid="music-flow"
+    >
       <div className="soundflow-message-list">
-        <ChatMessageList messages={musicMessages} renderCards={renderCardsForMessage} />
+        <InlinePlanCardShell
+          actions={<Badge accent={projection.status === 'completed' ? 'success' : 'cyan'}>{label(projection.status)}</Badge>}
+          className="music-inline-card music-context-card"
+          defaultExpanded
+          eyebrow="Canonical Music"
+          helper="Read-only projection from versioned Music artifacts. Broad context does not expand write authority."
+          priority="user_summary"
+          status={projection.status === 'blocked' ? 'blocking' : 'ready'}
+          title="Music supervision"
+        >
+          <div className="music-info-grid">
+            <span><strong>Music decision</strong>{label(projection.musicNeed.decision)}</span>
+            <span><strong>Confidence</strong>{projection.musicNeed.confidencePercent}%</span>
+            <span><strong>Soundtrack strategy</strong>{label(projection.soundtrack.cueFamilyStrategy)}</span>
+            <span><strong>Cues</strong>{projection.soundtrack.cueCount}</span>
+            <span><strong>Speech evidence</strong>{label(projection.context.speechEvidence)}</span>
+            <span><strong>Natural ambience</strong>{label(projection.context.naturalAmbience)}</span>
+          </div>
+          <p className="music-muted-note"><strong>Why:</strong> {projection.musicNeed.reason}</p>
+          <p className="music-muted-note"><strong>Evidence:</strong> {projection.context.evidenceSummary}</p>
+        </InlinePlanCardShell>
+
+        <InlinePlanCardShell
+          actions={<Badge accent="violet">{projection.soundtrack.cueCount} exact cues</Badge>}
+          className="music-inline-card music-cue-sheet-card"
+          defaultExpanded
+          eyebrow="Cue sheet"
+          helper="Frames are authoritative. Seconds and animated timers are not used as execution evidence."
+          priority="required_user_action"
+          status="ready"
+          title="Music cue strategy"
+        >
+          {projection.cues.length === 0 ? (
+            <p className="music-muted-note">No Music cues are planned for this assignment.</p>
+          ) : (
+            <ol className="music-cue-list">
+              {projection.cues.map((cue) => (
+                <li key={cue.cueId}>
+                  <strong>{cue.cueId}</strong>
+                  <span>
+                    Frames {cue.startFrame}–{cue.endFrameExclusive} · {label(cue.narrativeFunction)} · {label(cue.acquisitionDecision)} · {label(cue.status)}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+          {projection.soundtrack.overScoringWarnings.length > 0 ? (
+            <p className="music-muted-note" role="status">
+              <strong>Restraint review:</strong> {projection.soundtrack.overScoringWarnings.map(label).join(', ')}
+            </p>
+          ) : null}
+        </InlinePlanCardShell>
+
+        {projection.estimate ? (
+          <InlinePlanCardShell
+            actions={<Badge accent={projection.estimate.approvalRequired ? 'warning' : 'success'}>
+              {projection.estimate.approvalRequired ? 'Approval required' : 'No paid action'}
+            </Badge>}
+            className="music-inline-card music-credit-card"
+            eyebrow="Estimate"
+            helper="Estimates do not reserve or spend credits. Nested Sound cost remains separately evidenced."
+            priority="required_user_action"
+            status={projection.estimate.approvalRequired ? 'needs_input' : 'ready'}
+            title="Music cost range"
+          >
+            <div className="music-info-grid">
+              <span><strong>Minimum</strong>{projection.estimate.minimumCredits} credits</span>
+              <span><strong>Expected</strong>{projection.estimate.expectedCredits} credits</span>
+              <span><strong>Maximum</strong>{projection.estimate.maximumCredits} credits</span>
+            </div>
+            <p className="music-muted-note"><strong>Lower-cost choices:</strong> {projection.estimate.lowerCostAlternatives.map(label).join(', ')}</p>
+          </InlinePlanCardShell>
+        ) : null}
+
+        <InlinePlanCardShell
+          actions={<Badge accent={qaAccent}>{label(projection.qa.status)}</Badge>}
+          className="music-inline-card music-qa-card"
+          defaultExpanded
+          eyebrow="Evidence"
+          helper="Progress and QA appear only when canonical unit receipts and output evidence exist."
+          priority="user_summary"
+          status={projection.qa.status === 'blocking' ? 'blocking' : projection.qa.status === 'pass' ? 'ready' : 'needs_input'}
+          title="Execution and Music QA"
+        >
+          <p className="music-muted-note" role="status">{projection.progress.evidenceLabel}</p>
+          <div className="music-info-grid">
+            <span><strong>Evidence level</strong>{label(projection.executionEvidence)}</span>
+            <span><strong>Provider evidence</strong>{label(projection.provider.evidence)}</span>
+            <span><strong>Provider attempts</strong>{projection.provider.attemptCount}</span>
+            <span><strong>Live activation</strong>{label(projection.provider.liveActivation)}</span>
+            <span><strong>Selected assets</strong>{projection.handoff.selectedAssetCount}</span>
+            <span><strong>Music stems</strong>{projection.handoff.musicStemCount}</span>
+          </div>
+          {projection.qa.reviewItems.length > 0 ? (
+            <p className="music-muted-note"><strong>Review required:</strong> {projection.qa.reviewItems.map(label).join(', ')}</p>
+          ) : null}
+          <p className="music-muted-note">Final mux, render, export, delivery, and publishing remain outside Music.</p>
+        </InlinePlanCardShell>
       </div>
-    </div>
+    </section>
   )
 }

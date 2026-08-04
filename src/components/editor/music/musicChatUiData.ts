@@ -9,6 +9,12 @@ import {
   runMockReferenceToMusicCueFlow,
 } from '../../../backend/orchestrators/mock-reference-dna-orchestrator'
 
+/**
+ * Historical Lake Como UI fixture data. The active MusicPlanChatFlow no longer
+ * imports this module; canonical artifact projections are the only active UI
+ * authority. Retained solely for explicit fixture/regression consumers.
+ */
+
 export type MusicContextView = {
   primarySceneType: string
   videoTopic: string

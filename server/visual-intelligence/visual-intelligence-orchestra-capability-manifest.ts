@@ -26,7 +26,7 @@ import {
 } from '../orchestra/orchestra-skill-capability-contract'
 
 export const VISUAL_INTELLIGENCE_ORCHESTRA_SKILL_VERSION =
-  'visual-intelligence-skill-v2' as const
+  'visual-intelligence-skill-v3' as const
 export const VISUAL_INTELLIGENCE_ORCHESTRA_CONTRACT_VERSION =
   'visual-intelligence-orchestra-contract-v1' as const
 export const VISUAL_INTELLIGENCE_ORCHESTRA_MANIFEST_ID =
@@ -244,6 +244,11 @@ const DEFINITION: SkillCapabilityManifestDefinitionInput = {
       'edit_reference_consumer_result_binding',
       'edit_reference_visual_intelligence_orchestra_binding_request_v1',
       ids('reference_preference_analysis'),
+    ),
+    evidence(
+      'source_cleanup_consumer_result_binding',
+      'canonical_source_visual_intelligence_orchestra_binding_request_v1',
+      ids('source_video_understanding'),
     ),
     evidence('exact_media_probe', 'canonical_media_probe', ALL_JOB_TYPES),
     evidence('finalized_private_media', 'finalized_private_media_authority',

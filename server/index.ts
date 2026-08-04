@@ -21,6 +21,8 @@ const app = createReeditProApiApp(env, visualIntelligenceRuntime
         visualIntelligenceRuntime.editReferenceReadPort,
       canonicalSourceCleanupAuthorityReadPort:
         visualIntelligenceRuntime.sourceCleanupAuthorityRepository,
+      canonicalSourceVisualIntelligenceOrchestraReadPort:
+        visualIntelligenceRuntime.sourceVideoUnderstandingReadPort,
     }
   : {})
 const server = app.listen(env.apiPort, () => {

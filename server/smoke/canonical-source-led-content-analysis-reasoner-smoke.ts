@@ -540,7 +540,9 @@ const request: CanonicalSourceLedContentReasoningRequest = {
   editSessionId: 'edit-reasoner',
   analysisRunId: 'analysis-reasoner',
   planningDirection,
-  userInstructionDigestSha256: sha256(planningDirection),
+  planningDirectionDigestSha256: sha256(planningDirection),
+  userInstructionDigestSha256:
+    sha256('authenticated-saved-chat-authority-reasoner'),
   fps: 30,
   sources,
 }
@@ -862,9 +864,22 @@ assert.ok(Date.now() - responseBodyTimeoutStartedAt < 1_000)
 await assert.rejects(
   createCanonicalSourceLedContentAnalysisReasoner({ kimi }).reason({
     ...request,
-    userInstructionDigestSha256: sha256('different direction'),
+    planningDirectionDigestSha256: sha256('different direction'),
   }),
   /lost exact private planning authority/iu,
+)
+
+const distinctAuthorityDigest = await createCanonicalSourceLedContentAnalysisReasoner({
+  kimi: fixedAttemptPort(completedAttempt(selection)),
+}).reason({
+  ...request,
+  userInstructionDigestSha256:
+    sha256('different-authenticated-saved-chat-authority'),
+})
+assert.equal(distinctAuthorityDigest.status, 'completed')
+assert.equal(
+  distinctAuthorityDigest.evidence?.identity.userInstructionDigestSha256,
+  sha256('different-authenticated-saved-chat-authority'),
 )
 
 const tamperedSource = structuredClone(sources)
@@ -904,8 +919,9 @@ console.log(JSON.stringify({
   selectedRanges: primary.evidence?.summary.selectedRangeCount,
   unknownOutcomeSecondProviderCalls: 0,
   responseBodyTimeoutFailClosed: responseBodyTimeout.blocker,
+  planningDirectionAndSavedChatAuthoritySeparated: true,
   historicalQwenProviderCalls,
-  adversarialAssertions: invalidSelections.length + 5,
+  adversarialAssertions: invalidSelections.length + 6,
 }))
 
 function fixedCredential(version: number): {

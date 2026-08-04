@@ -247,6 +247,13 @@ export interface CanonicalSourceLedContentReasoningRequest {
   readonly editSessionId: string
   readonly analysisRunId: string
   readonly planningDirection: string
+  /** SHA-256 of the exact bounded direction text supplied to Head Intelligence. */
+  readonly planningDirectionDigestSha256: string
+  /**
+   * Separate authenticated authority over the saved named-edit chat revision
+   * and active instruction set. It is deliberately not a hash alias for the
+   * model-facing planningDirection string.
+   */
   readonly userInstructionDigestSha256: string
   readonly fps: 30
   readonly sources: readonly CanonicalSourceLedContentAnalysisSourceInput[]
@@ -425,6 +432,8 @@ function createProviderPort(input: {
         projectId: request.projectId,
         editSessionId: request.editSessionId,
         analysisRunId: request.analysisRunId,
+        planningDirectionDigestSha256:
+          request.planningDirectionDigestSha256,
         userInstructionDigestSha256: request.userInstructionDigestSha256,
         specialistEvidenceDigestSha256: specialistEvidenceDigest(request),
       }))
@@ -724,12 +733,14 @@ function verifyReasoningRequest(
     !safeIdSchema.safeParse(input.projectId).success ||
     !safeIdSchema.safeParse(input.editSessionId).success ||
     !safeIdSchema.safeParse(input.analysisRunId).success ||
+    !sha256Schema.safeParse(input.planningDirectionDigestSha256).success ||
     !sha256Schema.safeParse(input.userInstructionDigestSha256).success ||
     input.fps !== 30 ||
     input.planningDirection !== input.planningDirection.trim() ||
     input.planningDirection.length < 1 ||
     input.planningDirection.length > 8_000 ||
-    sha256(input.planningDirection) !== input.userInstructionDigestSha256 ||
+    sha256(input.planningDirection) !==
+      input.planningDirectionDigestSha256 ||
     input.sources.length < 1 ||
     input.sources.length > 8
   ) {
@@ -983,6 +994,10 @@ function providerContext(
 ): string {
   return stableStringify({
     planning_direction: request.planningDirection,
+    planning_direction_digest_sha256:
+      request.planningDirectionDigestSha256,
+    authenticated_saved_instruction_authority_digest_sha256:
+      request.userInstructionDigestSha256,
     fps: request.fps,
     sources: request.sources.map((source) => ({
       source_sequence_item_id: source.sourceSequenceItemId,

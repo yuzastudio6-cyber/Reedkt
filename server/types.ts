@@ -61,6 +61,9 @@ import type {
 import type {
   CanonicalSourceCleanupAuthorityReadPort,
 } from './services/canonical-source-cleanup-authority-repository'
+import type {
+  CanonicalSourceVisualIntelligenceOrchestraReadPort,
+} from './services/canonical-source-visual-intelligence-orchestra-result-bridge'
 
 export interface AuthContext {
   userId: string
@@ -153,6 +156,8 @@ export interface RuntimeState {
   kimiK3SourceLedChatAssistantPort?: SourceLedChatAssistantPort
   canonicalSourceCleanupAuthorityReadPort?:
     CanonicalSourceCleanupAuthorityReadPort
+  canonicalSourceVisualIntelligenceOrchestraReadPort?:
+    CanonicalSourceVisualIntelligenceOrchestraReadPort
 }
 
 export type RuntimeRequest = Request & {
@@ -219,4 +224,6 @@ export interface ServiceContext {
   kimiK3SourceLedChatAssistantPort?: SourceLedChatAssistantPort
   canonicalSourceCleanupAuthorityReadPort?:
     CanonicalSourceCleanupAuthorityReadPort
+  canonicalSourceVisualIntelligenceOrchestraReadPort?:
+    CanonicalSourceVisualIntelligenceOrchestraReadPort
 }

@@ -456,6 +456,19 @@ export const canonicalSourceLedVisualIntelligenceEvidenceSchema = z.object({
   signedReadUrlPersisted: z.literal(false),
   signedReadUrlReturned: z.literal(false),
   rawModelOutputPersisted: z.literal(false),
+  orchestraLineage: z.object({
+    consumerBindingRef: apiEvidenceRefSchema,
+    callRef: apiEvidenceRefSchema,
+    compiledRequestRef: apiEvidenceRefSchema,
+    resultRef: apiEvidenceRefSchema,
+    manifestRef: apiEvidenceRefSchema,
+    qualificationSnapshotRef: apiEvidenceRefSchema,
+    exactConsumerBindingRereadVerified: z.literal(true),
+    exactOrchestraResultRereadVerified: z.literal(true),
+    resultReturnedThroughOrchestra: z.literal(true),
+    headIntelligenceDirectProviderCallAllowed: z.literal(false),
+    headIntelligenceDirectGpuDispatchAllowed: z.literal(false),
+  }).strict().optional(),
 }).strict().superRefine((value, context) => {
   const fresh = value.lifecycleInvocationDisposition === 'completed'
   if (

@@ -34,6 +34,12 @@ import {
   createEditReferenceVisualIntelligenceOrchestraBindingRequest,
 } from '../edit-references/edit-reference-visual-intelligence-result-bridge'
 import {
+  createCanonicalSourceLedSourceFrameAuthority,
+} from '../services/canonical-source-led-content-analysis-evidence'
+import {
+  prepareCanonicalSourceVisualIntelligenceOrchestraBindingRequest,
+} from '../services/canonical-source-visual-intelligence-orchestra-result-bridge'
+import {
   createOrchestraSkillCall,
   createSkillQualificationSnapshot,
   orchestraDigest,
@@ -367,6 +373,14 @@ assert.equal(
   runtime.editReferenceReadPort.schemaVersion,
   'edit-reference-visual-intelligence-orchestra-read-port-v1',
 )
+assert.equal(
+  runtime.sourceVideoUnderstandingBindingStore.schemaVersion,
+  'canonical-source-visual-intelligence-orchestra-binding-store-v1',
+)
+assert.equal(
+  runtime.sourceVideoUnderstandingReadPort.schemaVersion,
+  'canonical-source-visual-intelligence-orchestra-read-port-v1',
+)
 const missingSourceCleanupAuthority =
   await runtime.sourceCleanupAuthorityRepository.readForPlanning({
     ownerUserId: 'user-1',
@@ -392,6 +406,11 @@ const costPreflight = await runtime.costOwner.createPreflight({
 })
 const finalizedRef = ref('source-finalized')
 const probeRef = ref('source-probe')
+const transcriptDigestSha256 = rawSha('complete-source-transcript')
+const transcriptRef = orchestraEvidenceRef(
+  'source-transcript',
+  `sha256:${transcriptDigestSha256}`,
+)
 const sourceRequest = createVisualIntelligenceRequest({
   requestId: 'visual-production-source-request-1',
   idempotencyKey: 'visual-production-source-idempotency-1',
@@ -553,13 +572,58 @@ const orchestraScope: OrchestraSkillScope = {
   completeSourceCoverageRequired: true,
   outputId: null,
 }
+const planningDirectionDigestSha256 = rawSha('professional cleanup direction')
+const userInstructionDigestSha256 = rawSha(
+  'authenticated saved chat authority',
+)
+const planningContextAuthorityRef = orchestraEvidenceRef(
+  'source-analysis-planning-context',
+  orchestraDigest({
+    planningDirectionDigestSha256,
+    userInstructionDigestSha256,
+  }),
+)
 const orchestraCall = createPlanningOrchestraCall({
   manifest: orchestraManifest,
   qualification: orchestraQualification,
   scope: orchestraScope,
   jobType: 'source_video_understanding',
   suffix: 'production-runtime',
+  requiredEvidenceRefs: [probeRef, transcriptRef],
+  sceneContextSnapshotRef: planningContextAuthorityRef,
 })
+const sourceBindingScope = {
+  ownerUserId: 'user-1',
+  workspaceId: 'workspace-1',
+  projectId: 'project-1',
+  editSessionId: 'edit-1',
+  analysisRunId: 'source-analysis-production-runtime',
+  sourceSequenceItemId: 'source-item-1',
+  mediaAssetId: 'source-video-1',
+  uploadedOrder: 1,
+  checksumSha256: rawSha('source-video-1'),
+  byteLength: 1_000_000,
+  durationFrames: 240,
+  sourceFrameAuthority: createCanonicalSourceLedSourceFrameAuthority({
+    fpsNumerator: 24,
+    fpsDenominator: 1,
+    frameCount: 240,
+    timeBaseNumerator: 1,
+    timeBaseDenominator: 24,
+  }),
+  sourceArtifactRef: finalizedRef,
+  sourceProbeAuthorityRef: probeRef,
+  transcriptAuthorityRef: transcriptRef,
+  transcriptDigestSha256,
+  planningDirectionDigestSha256,
+  userInstructionDigestSha256,
+  planningContextAuthorityRef,
+} as const
+const sourceBindingRequest =
+  prepareCanonicalSourceVisualIntelligenceOrchestraBindingRequest({
+    scope: sourceBindingScope,
+    orchestraCall,
+  })
 const orchestraCostPreflight = await runtime.costOwner.createPreflight({
   requestId: orchestraCall.callId,
   maximumInputTokenCount: 100_000,
@@ -581,6 +645,7 @@ const orchestraDispatchInput = {
   preparedEvidence: preparedEvidence(
     orchestraCall.callDigestSha256,
     probeRef,
+    [transcriptRef],
   ),
   inspectionRequirement: null,
   orchestraDispatchAuthorityRef: orchestraCall.orchestraJobRef,
@@ -619,11 +684,41 @@ providerPayload = {
   ...(providerPayload as Record<string, unknown>),
   requestId: orchestraCall.callId,
 }
+await assert.rejects(
+  runtime.orchestraJobRuntimePort.execute({
+    call: orchestraCall,
+    supportRequest: null,
+    authenticatedOwnerUserId: 'user-1',
+    expectedWorkspaceId: 'workspace-1',
+  }),
+  (error: unknown) => error instanceof ApiError
+    && error.code === 'IDEMPOTENCY_CONFLICT',
+)
+assert.equal(providerCalls, 1)
+await assert.rejects(
+  runtime.orchestraJobRuntimePort.execute({
+    call: orchestraCall,
+    supportRequest: null,
+    authenticatedOwnerUserId: 'user-1',
+    expectedWorkspaceId: 'workspace-1',
+    consumerBindingRequest: {
+      ...sourceBindingRequest,
+      scope: {
+        ...sourceBindingRequest.scope,
+        userInstructionDigestSha256: rawSha('stale saved chat authority'),
+      },
+    },
+  }),
+  (error: unknown) => error instanceof ApiError
+    && error.code === 'IDEMPOTENCY_CONFLICT',
+)
+assert.equal(providerCalls, 1)
 const orchestraExecution = await runtime.orchestraJobRuntimePort.execute({
   call: orchestraCall,
   supportRequest: null,
   authenticatedOwnerUserId: 'user-1',
   expectedWorkspaceId: 'workspace-1',
+  consumerBindingRequest: sourceBindingRequest,
 })
 assert.equal(orchestraExecution.status, 'completed')
 assert.equal(
@@ -638,15 +733,40 @@ assert.equal(
 assert.equal(orchestraExecution.finalQaApprovalGranted, false)
 assert.equal(orchestraExecution.publicDeliveryGranted, false)
 assert.equal(orchestraExecution.productionAuthorityGranted, false)
-assert.equal(orchestraExecution.consumerBindingRef, null)
+assert.ok(orchestraExecution.consumerBindingRef)
 assert.equal(providerCalls, 2)
 assert.equal(acquired, 2)
 assert.equal(released, 2)
+const sourceVisualEvidence = await runtime.sourceVideoUnderstandingReadPort
+  .readCompletedSourceVideoUnderstanding(sourceBindingScope)
+assert.ok(sourceVisualEvidence)
+assert.equal(
+  'evidenceMode' in sourceVisualEvidence
+    ? sourceVisualEvidence.evidenceMode
+    : null,
+  'visual_intelligence_gemini_pro_high_v1',
+)
+assert.equal(
+  'orchestraLineage' in sourceVisualEvidence
+    ? sourceVisualEvidence.orchestraLineage?.resultReturnedThroughOrchestra
+    : false,
+  true,
+)
+assert.equal(sourceVisualEvidence.observations.length, 1)
+assert.equal(
+  await runtime.sourceVideoUnderstandingReadPort
+    .readCompletedSourceVideoUnderstanding({
+      ...sourceBindingScope,
+      analysisRunId: 'source-analysis-stale-revision',
+    }),
+  null,
+)
 const orchestraReplay = await runtime.orchestraJobRuntimePort.execute({
   call: orchestraCall,
   supportRequest: null,
   authenticatedOwnerUserId: 'user-1',
   expectedWorkspaceId: 'workspace-1',
+  consumerBindingRequest: sourceBindingRequest,
 })
 assert.equal(orchestraReplay.status, 'cache_replay')
 assert.equal(orchestraReplay.providerCallMadeDuringInvocation, false)
@@ -943,6 +1063,13 @@ console.log(JSON.stringify({
   editReferenceBindingPersistedBeforeProviderExecution: true,
   editReferenceBindingRequiredForReferenceJob: true,
   editReferenceResultRereadThroughConsumerPort: true,
+  sourceVideoUnderstandingOrchestraBindingStoreMounted: true,
+  sourceVideoUnderstandingOrchestraReadPortMounted: true,
+  sourceBindingPersistedBeforeProviderExecution: true,
+  sourceBindingRequiresProbeTranscriptAndPlanningContext: true,
+  staleSavedChatAuthorityRefusedBeforeProviderExecution: true,
+  staleSourceAnalysisScopeReturnsNoEvidence: true,
+  sourceResultRereadThroughOrchestraConsumerPort: true,
   orchestraReplayAvoidedDuplicateProviderAndCost: true,
   unpersistedDirectCallRefused: true,
   followupWithoutOrchestraEstimateBlocked: true,
@@ -1009,6 +1136,7 @@ function createPlanningOrchestraCall(input: {
   suffix: string
   requiredEvidenceRefs?: readonly OrchestraEvidenceRef[]
   expectedOutcomeRefs?: readonly OrchestraEvidenceRef[]
+  sceneContextSnapshotRef?: OrchestraEvidenceRef | null
 }): OrchestraSkillCall {
   return createOrchestraSkillCall({
     schemaVersion: ORCHESTRA_SKILL_CALL_VERSION,
@@ -1021,9 +1149,10 @@ function createPlanningOrchestraCall(input: {
     jobType: input.jobType,
     phase: 'planning',
     scope: input.scope,
-    sceneContextSnapshotRef: input.scope.scopeType === 'video'
-      ? null
-      : ref(`scene-context-${input.suffix}`),
+    sceneContextSnapshotRef: input.sceneContextSnapshotRef
+      ?? (input.scope.scopeType === 'video'
+        ? null
+        : ref(`scene-context-${input.suffix}`)),
     sourceArtifactRefs: [input.scope.sourceArtifactRef],
     comparisonArtifactRefs: [],
     expectedOutcomeRefs: [...(input.expectedOutcomeRefs ?? [])],
@@ -1159,19 +1288,34 @@ function productionEnvironmentSource(): NodeJS.ProcessEnv {
 function preparedEvidence(
   requestDigestSha256: string,
   probeRef: VisualIntelligenceEvidenceRef,
+  additionalEvidenceRefs: readonly VisualIntelligenceEvidenceRef[] = [],
 ): VisualIntelligencePreparedEvidence {
-  const deterministicEvidence: VisualIntelligenceEvidence[] = [{
-    evidenceId: probeRef.id,
-    evidenceRef: probeRef,
-    artifactId: 'source-video-1',
-    range: null,
-    authority: 'media_probe',
-    producingTool: 'ffprobe',
-    toolVersion: 'ffprobe-8.0',
-    summary: 'Canonical source dimensions and rational timing were reread.',
-    privateEvidence: true,
-    providerInstructionAccepted: false,
-  }]
+  const deterministicEvidence: VisualIntelligenceEvidence[] = [
+    {
+      evidenceId: probeRef.id,
+      evidenceRef: probeRef,
+      artifactId: 'source-video-1',
+      range: null,
+      authority: 'media_probe',
+      producingTool: 'ffprobe',
+      toolVersion: 'ffprobe-8.0',
+      summary: 'Canonical source dimensions and rational timing were reread.',
+      privateEvidence: true,
+      providerInstructionAccepted: false,
+    },
+    ...additionalEvidenceRefs.map((evidenceRef) => ({
+      evidenceId: evidenceRef.id,
+      evidenceRef,
+      artifactId: 'source-video-1',
+      range: fullRange,
+      authority: 'canonical_transcript' as const,
+      producingTool: 'faster_whisper' as const,
+      toolVersion: 'faster-whisper-large-v3-authority-v1',
+      summary: 'Authenticated complete-source transcript authority was reread.',
+      privateEvidence: true as const,
+      providerInstructionAccepted: false as const,
+    })),
+  ]
   return {
     deterministicEvidence,
     coveragePlan: {

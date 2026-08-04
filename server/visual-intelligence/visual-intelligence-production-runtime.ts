@@ -22,6 +22,13 @@ import {
   type CanonicalSourceCleanupAuthorityRepository,
 } from '../services/canonical-source-cleanup-authority-repository'
 import {
+  createCanonicalSourceVisualIntelligenceOrchestraBindingStore,
+  createCanonicalSourceVisualIntelligenceOrchestraConsumerBindingPort,
+  createCanonicalSourceVisualIntelligenceOrchestraReadPort,
+  type CanonicalSourceVisualIntelligenceOrchestraBindingStore,
+  type CanonicalSourceVisualIntelligenceOrchestraReadPort,
+} from '../services/canonical-source-visual-intelligence-orchestra-result-bridge'
+import {
   createCanonicalPlanningVisualIntelligenceOperationOwner,
   type VisualIntelligencePlanningOperationRequestOwner,
 } from '../services/canonical-planning-visual-intelligence-operation-owner-service'
@@ -65,6 +72,7 @@ import {
 } from './visual-intelligence-orchestra-job-result-store'
 import {
   createVisualIntelligenceOrchestraJobRuntime,
+  type VisualIntelligenceOrchestraConsumerBindingPort,
   type VisualIntelligenceOrchestraJobRuntime,
 } from './visual-intelligence-orchestra-job-runtime'
 import {
@@ -101,6 +109,10 @@ export interface VisualIntelligenceProductionRuntime {
     EditReferenceVisualIntelligenceBindingStore
   readonly editReferenceReadPort:
     EditReferenceVisualIntelligenceOrchestraReadPort
+  readonly sourceVideoUnderstandingBindingStore:
+    CanonicalSourceVisualIntelligenceOrchestraBindingStore
+  readonly sourceVideoUnderstandingReadPort:
+    CanonicalSourceVisualIntelligenceOrchestraReadPort
   readonly orchestraJobRuntimePort: VisualIntelligenceOrchestraJobRuntime
   readonly costOwner: VisualIntelligenceAccountEffectiveCostOwner
   readonly sourceCleanupAuthorityRepository:
@@ -213,11 +225,30 @@ export async function createVisualIntelligenceProductionRuntime(
       resultStore: orchestraJobResultStore,
       reportRepository: durableStore,
     })
-  const orchestraConsumerBindingPort =
+  const editReferenceConsumerBindingPort =
     createEditReferenceVisualIntelligenceConsumerBindingPort({
       bindingStore: editReferenceBindingStore,
       now: dependencies.now,
     })
+  const sourceVideoUnderstandingBindingStore =
+    createCanonicalSourceVisualIntelligenceOrchestraBindingStore({
+      objectPort,
+    })
+  const sourceVideoUnderstandingReadPort =
+    createCanonicalSourceVisualIntelligenceOrchestraReadPort({
+      bindingStore: sourceVideoUnderstandingBindingStore,
+      resultStore: orchestraJobResultStore,
+      reportRepository: durableStore,
+    })
+  const sourceVideoUnderstandingConsumerBindingPort =
+    createCanonicalSourceVisualIntelligenceOrchestraConsumerBindingPort({
+      bindingStore: sourceVideoUnderstandingBindingStore,
+      now: dependencies.now,
+    })
+  const orchestraConsumerBindingPort = createOrchestraConsumerBindingRouter({
+    editReference: editReferenceConsumerBindingPort,
+    sourceVideoUnderstanding: sourceVideoUnderstandingConsumerBindingPort,
+  })
   const planningOwner =
     createCanonicalPlanningVisualIntelligenceOperationOwner({
       upstreamAdmissionVerificationPort: canonicalRequestPackageStore,
@@ -284,6 +315,8 @@ export async function createVisualIntelligenceProductionRuntime(
     orchestraJobResultStore,
     editReferenceBindingStore,
     editReferenceReadPort,
+    sourceVideoUnderstandingBindingStore,
+    sourceVideoUnderstandingReadPort,
     orchestraJobRuntimePort,
     costOwner,
     sourceCleanupAuthorityRepository,
@@ -296,6 +329,36 @@ export async function createVisualIntelligenceProductionRuntime(
     qwenFallbackAllowed: false,
     selfHostedVisualModelFallbackAllowed: false,
     substantiveCpuMediaProcessingAllowed: false,
+  })
+}
+
+function createOrchestraConsumerBindingRouter(input: {
+  readonly editReference: VisualIntelligenceOrchestraConsumerBindingPort
+  readonly sourceVideoUnderstanding:
+    VisualIntelligenceOrchestraConsumerBindingPort
+}): VisualIntelligenceOrchestraConsumerBindingPort {
+  return Object.freeze({
+    async bindBeforeProviderExecution(
+      value: Parameters<
+        VisualIntelligenceOrchestraConsumerBindingPort[
+          'bindBeforeProviderExecution'
+        ]
+      >[0],
+    ) {
+      if (value.compiled.jobType === 'reference_preference_analysis') {
+        return input.editReference.bindBeforeProviderExecution(value)
+      }
+      if (value.compiled.jobType === 'source_video_understanding') {
+        return input.sourceVideoUnderstanding.bindBeforeProviderExecution(
+          value,
+        )
+      }
+      if (
+        value.consumerBindingRequest !== null
+        && value.consumerBindingRequest !== undefined
+      ) throw notReady('visual_intelligence_consumer_binding_job_invalid')
+      return null
+    },
   })
 }
 

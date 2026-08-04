@@ -89,6 +89,9 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.kimiK3SourceLedChatAssistantPort,
     canonicalSourceCleanupAuthorityReadPort:
       runtimeRequest.runtime.canonicalSourceCleanupAuthorityReadPort,
+    canonicalSourceVisualIntelligenceOrchestraReadPort:
+      runtimeRequest.runtime
+        .canonicalSourceVisualIntelligenceOrchestraReadPort,
   }
 }
 

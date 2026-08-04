@@ -66,7 +66,7 @@ assert.equal(VISUAL_INTELLIGENCE_THINKING_LEVEL, 'high')
 assert.equal(VISUAL_INTELLIGENCE_MEDIA_RESOLUTION, 'high')
 
 assert.equal(manifest.skillKey, 'visual_intelligence')
-assert.equal(manifest.skillVersion, 'visual-intelligence-skill-v2')
+assert.equal(manifest.skillVersion, 'visual-intelligence-skill-v3')
 assert.equal(jobs.length, 29)
 assert.equal(manifest.ownershipRequirements.orchestraOwnsInvocation, true)
 assert.equal(manifest.ownershipRequirements.orchestraOwnsWorkGraph, true)

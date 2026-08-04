@@ -599,3 +599,62 @@ TRACK-10 uses deterministic/injected observation evidence and does not promote
 the real SAM route. Track All remains `implementation_pending`, SAM remains
 `blocked`, and no checkpoint/model/GPU/paid/public/production/database or head
 orchestra action occurred.
+
+## TRACK-11 — fail-closed privacy redaction
+
+Status: complete and remotely confirmed.
+
+- implementation commit: `9af2ac03d9cf2a43061def8f842c04770e948485`
+- remote confirmation: `origin/codex/track-all-skill-end-to-end` resolved to
+  `9af2ac03d9cf2a43061def8f842c04770e948485` after `git push -u origin HEAD`.
+
+Implemented:
+
+- strict Track Graph V2, box-sequence, FFprobe source-truth, assignment,
+  timing, privacy-policy, tenant, checksum, and authorized-range validation;
+- reliable-region dilation, stronger partial-occlusion dilation, explicit
+  reflection coverage, and full-frame conservative covers for missing,
+  low-confidence, fully occluded, lost, or identity-uncertain frames;
+- fixed Gaussian blur, pixelation, mosaic, and solid-fill recipes, with any
+  uncertainty automatically promoting the effective treatment to solid fill;
+- a server-owned `approved_track_all_privacy_redaction_matroska_v1` FFmpeg
+  boundary that accepts no caller filter, command, path, URL, codec, model,
+  GPU, retry, fallback, destination, or public-output selection;
+- actual private VP9/Matroska execution in the networkless, read-only,
+  non-root FFmpeg image and a forward-only v10 image authority containing
+  only the four newly required LGPL/core filters;
+- independently decoded source/output RGB inspection, content-addressed
+  privacy QA, immutable private result receipt, and fail-closed rejection of
+  forged evidence, unchanged previews, missing reflection/lost-track coverage,
+  public output, cross-workspace data, and out-of-range mutation.
+
+Actual checks run:
+
+- `npm run test:track-all-privacy-redaction` — passed all four real host
+  FFmpeg treatments and the confined private runtime path; conservative
+  inspection hash
+  `268949464cf397dc0ebd99d61268448fc485810336a0fb77da741c19b1574bcc`,
+  privacy-QA hash
+  `7f48255c1551f2d7b659a1cbf1b54d9ce7a36af9f09228780bc8921f8e05596c`,
+  result hash
+  `d9bf9abb72719bf31dced117d7602ff08c98bf416cd0e0190ba7431d46f59f4e`,
+  and no public artifact or outside-range mutation;
+- `docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build` — passed exact component
+  allowlists and the actual masked-redaction probe; OCI image ID
+  `sha256:838af9025e941b7d6b936e0cf7820b579e752bfc983c9479bf67bf201ff2d2c6`
+  and image identity hash
+  `6711a15ed2e9a81937aa6cad53667d0887bf7839fa31c5e6fdb25f8b73dd0149`;
+- `npm run smoke:offline-media-binary-execution` — passed the complete pinned
+  media-runtime regression after the v10 authority promotion;
+- every TRACK-02 through TRACK-11 Track All smoke — passed;
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-canonical-private-runtime`
+  and `smoke:b-roll-remotion-integration` — passed without a provider call;
+- `npm run typecheck:server`, `npm run lint`, and
+  `npm run check:frontend-boundary` — passed;
+- staged `git diff --check` — passed.
+
+This milestone qualifies only the deterministic private privacy execution
+fixture. It does not prove real SAM 3.1 target/temporal quality or real-world
+production privacy performance. Track All remains `implementation_pending`,
+the SAM route remains `blocked`, and no real checkpoint/model/GPU/paid/public/
+production/database/head-orchestra action occurred.

@@ -1166,6 +1166,75 @@ none of the five production fixtures ran. No orchestra, Track All, Visual
 Intelligence, paid provider call, public delivery, final export, production
 mutation, or billing work was performed.
 
+## M18 — structured capability manifest v2
+
+Status: completed and pushed.
+
+Implementation commit: `18c2b433519dd5ef162952977cbdf9ec301df91d`.
+
+Generated qualification artifact commit:
+`b8a9df42f4f2a0c513f51734b428230a30ea3dcb`.
+
+Upgraded the generic manifest contract forward-only to
+`skill-capability-manifest-v2` while preserving explicit v1 parsing for the
+existing kernel compatibility fixture. The canonical B-roll manifest now
+models all 13 supported jobs as executable capabilities with planning and
+execution permission, exact phases, input/output artifacts, primary-visual
+ownership potential, runtime-binding requirement, and minimum qualification.
+Every unsupported job now carries a reason and a fail-closed or delegated
+resolution.
+
+Phase order, source evidence, Visual Intelligence evidence, Track All
+dependency, seven conflict rules, six permitted overlap rules, five ownership
+rules, tool/provider/source/no-action routes, lower-cost and fallback routes,
+and known limitations are typed machine-actionable records. Route metadata
+binds supported jobs, operation IDs, required artifacts, qualification, exact
+approval, and literal prohibitions on caller selection, automatic retry, and
+alternate-provider fallback. The required primary-owner, `no_extra_visuals`,
+locked-evidence, other-skill hero, overlapping independent B-roll assignment,
+Transition boundary, and Captions safe-area conflicts are all explicit.
+
+The generic validator now normalizes v1/v2 manifests and proves v2 job,
+artifact, phase, route, provider qualification, conflict, dependency,
+tracking, Visual Intelligence, and ownership references. Runtime binding
+validation additionally proves exact equality between each manifest job's
+input/output/phase/qualification/ownership capability and its executable
+binding. Adversarial coverage rejects phase drift, duplicate conflict rules,
+unknown route jobs, model-specific tracking, caller-selectable routes, and
+manifest-job/runtime-binding drift.
+
+The generated projection was regenerated from canonical TypeScript, not
+hand-edited.
+
+Final evidence:
+
+- Manifest schema: `skill-capability-manifest-v2`.
+- Manifest hash:
+  `2286d154c68eca75120d5d652ca4c78e4d572bfc250052a727db7b56d26da19b`.
+- Tested commit:
+  `18c2b433519dd5ef162952977cbdf9ec301df91d`.
+- Relevant source-tree hash:
+  `8de919daa91902ba831a9ec3665a35b7462005f4a9e81467a0d1d8644785cca1`.
+- Qualification receipt hash:
+  `adef15fdf409ad3445bacd184988b5df0e20207458de4d247c2c8e3f0870c524`.
+- Generated qualification artifact hash:
+  `284dc06609c85caad4c2e1af52c882e9d439ed74cb20ca43eccbec00887f5b1c`.
+- Aggregate qualification: 24 commands and 36 fixtures passed; zero provider
+  requests, public artifacts, and production mutations.
+
+Validation included `test:b-roll-capability-manifest`,
+`validate:skill-capability-manifests`, `test:edit-skill-capability-kernel`,
+`test:b-roll-runtime-bindings`, `test:b-roll-planning`,
+`test:b-roll-public-plugin`, `test:b-roll-canonical-integration`, all internal
+B-roll execution smokes, the three shared security smokes, `build`,
+`typecheck:server`, `lint`, `check:frontend-boundary`, and `git diff --check`.
+Build emitted only the existing Vite chunk-size and dynamic-import warnings.
+
+Production qualification remains false. This milestone changed only the
+generic skill/B-roll manifest boundary and its validators; it did not
+implement the orchestra, Track All, Visual Intelligence, a provider call,
+public delivery, final export, production mutation, or billing.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1188,3 +1257,4 @@ mutation, or billing work was performed.
 | M15 | `588193497` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M16 | `4eb0371e6` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M17 | `44bfb9198` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M18 | `18c2b4335` | this bookkeeping commit | pending | `internal_execution_qualified` |

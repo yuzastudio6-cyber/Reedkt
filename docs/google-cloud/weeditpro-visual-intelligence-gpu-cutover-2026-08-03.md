@@ -250,6 +250,16 @@ idempotent rerun then observed all five disabled and emitted
   chunks; it does not extrapolate an eight-minute claim from a short sample.
   This is one complete-source run only. Route qualification still requires the
   separate five-to-thirty-run p95 owner and live canonical cloud evidence.
+- The five-to-thirty-run p95 gate now also has a canonical owner and separate
+  create-only evidence record. It rereads every complete-source performance
+  record, requires ordered distinct runs over the same eight-minute source,
+  route, immutable image, geometry, frame rate, and chunk plan, and rejects
+  crossed execution/result/cost/stitch lineage. The owner recomputes nearest-
+  rank p95 and refuses the component when it exceeds 480,000 ms. Only after the
+  p95 evidence is persisted and exactly reread does it publish the existing
+  `eight_minute_performance` component with the content-addressed p95 record
+  ref. A100 and L4 must produce independent evidence sets; neither route may
+  reuse the other's measurements or qualification component.
 - Every fresh fixed SAM 3.1 task context now requires an exact, digest-bound
   `track_all` Orchestra call for one complete approved scene interval. The
   binding cross-checks the approved snapshot, output, scene, source artifact,

@@ -32,6 +32,12 @@ const scopeShape = {
   manifestRef: skillManifestReferenceSchema,
 } as const
 
+const tenantProjectScopeShape = {
+  ownerUserId: identity,
+  workspaceId: identity,
+  projectId: identity,
+} as const
+
 function hashIssue(
   value: Record<string, unknown>,
   hashKey: string,
@@ -48,7 +54,7 @@ function hashIssue(
 
 const sourceMediaCoreSchema = z.object({
   schemaVersion: z.literal('source_media_artifact_v1'),
-  ...scopeShape,
+  ...tenantProjectScopeShape,
   sourceId: identity,
   privateObjectIdentityHash: skillSha256Schema,
   objectSha256: skillSha256Schema,
@@ -379,6 +385,65 @@ export const brollCandidateManifestSchema = candidateManifestCoreSchema.extend({
   hashIssue(value, 'candidateManifestHash', context, 'B-roll candidate manifest')
 })
 
+export type BrollCandidateManifest = z.infer<typeof brollCandidateManifestSchema>
+
+export function createBrollCandidateManifest(
+  input: z.input<typeof candidateManifestCoreSchema>,
+): BrollCandidateManifest {
+  const core = candidateManifestCoreSchema.parse(input)
+  return brollCandidateManifestSchema.parse({
+    ...core,
+    candidateManifestHash: hashSkillValue(core),
+  })
+}
+
+const existingSourceCandidateVersionCoreSchema = z.object({
+  schemaVersion: z.literal('b_roll_candidate_version_v1'),
+  versionKind: z.literal('existing_source_prepared'),
+  ...scopeShape,
+  planId: identity,
+  planHash: skillSha256Schema,
+  approvedWorkGraphHash: skillSha256Schema,
+  workItemKey: identity,
+  workItemHash: skillSha256Schema,
+  candidateMediaManifestHash: skillSha256Schema,
+  sourceArtifactHash: skillSha256Schema,
+  normalizedPrivateObjectIdentityHash: skillSha256Schema,
+  normalizedObjectSha256: skillSha256Schema,
+  byteLength: z.number().int().positive().max(67_108_864),
+  mimeType: z.literal('video/x-nut'),
+  container: z.literal('nut'),
+  videoCodec: z.literal('ffv1'),
+  frameCount: z.number().int().positive().max(100_000_000),
+  fps: z.number().int().min(1).max(60),
+  exactRange: skillFrameRangeSchema,
+  sourceQaReportHash: skillSha256Schema,
+  automaticSelectionAllowed: z.literal(false),
+  outsideAuthorizedRangeModified: z.literal(false),
+  immutable: z.literal(true),
+}).strict()
+
+export const brollExistingSourceCandidateVersionSchema =
+  existingSourceCandidateVersionCoreSchema.extend({
+    candidateVersionHash: skillSha256Schema,
+  }).strict().superRefine((value, context) => {
+    hashIssue(value, 'candidateVersionHash', context, 'Existing-source B-roll candidate version')
+  })
+
+export type BrollExistingSourceCandidateVersion = z.infer<
+  typeof brollExistingSourceCandidateVersionSchema
+>
+
+export function createBrollExistingSourceCandidateVersion(
+  input: z.input<typeof existingSourceCandidateVersionCoreSchema>,
+): BrollExistingSourceCandidateVersion {
+  const core = existingSourceCandidateVersionCoreSchema.parse(input)
+  return brollExistingSourceCandidateVersionSchema.parse({
+    ...core,
+    candidateVersionHash: hashSkillValue(core),
+  })
+}
+
 const runtimeQaReportCoreSchema = z.object({
   schemaVersion: z.literal('b_roll_qa_report_v1'),
   ...scopeShape,
@@ -402,6 +467,18 @@ export const brollRuntimeQaReportSchema = runtimeQaReportCoreSchema.extend({
 }).strict().superRefine((value, context) => {
   hashIssue(value, 'qaReportHash', context, 'B-roll runtime QA report')
 })
+
+export type BrollRuntimeQaReport = z.infer<typeof brollRuntimeQaReportSchema>
+
+export function createBrollRuntimeQaReport(
+  input: z.input<typeof runtimeQaReportCoreSchema>,
+): BrollRuntimeQaReport {
+  const core = runtimeQaReportCoreSchema.parse(input)
+  return brollRuntimeQaReportSchema.parse({
+    ...core,
+    qaReportHash: hashSkillValue(core),
+  })
+}
 
 const handoffCommonShape = {
   manifestRef: skillManifestReferenceSchema,

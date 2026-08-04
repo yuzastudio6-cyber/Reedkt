@@ -39,6 +39,7 @@ const commandIds = [
   'npm.smoke:b-roll-candidate-qa',
   'npm.smoke:b-roll-end-to-end',
   'npm.test:b-roll-canonical-private-runtime',
+  'npm.test:b-roll-public-canonical-lifecycle',
   'npm.smoke:b-roll-existing-source',
   'npm.test:b-roll-canonical-integration',
   'npm.smoke:b-roll-remotion-integration',
@@ -139,9 +140,9 @@ assert.equal(
   artifact.receipt.dependencyAuthorityHashes.length,
   dependencyAuthorityHashes.length,
 )
-assert.equal(artifact.receipt.providerEvidenceHashes.length, 4)
-assert.equal(artifact.receipt.mediaEvidenceHashes.length, 3)
-assert.equal(artifact.receipt.remotionEvidenceHashes.length, 4)
+assert.equal(artifact.receipt.providerEvidenceHashes.length, 5)
+assert.equal(artifact.receipt.mediaEvidenceHashes.length, 4)
+assert.equal(artifact.receipt.remotionEvidenceHashes.length, 5)
 
 assert.throws(() => issueBrollGeneratedQualificationArtifact({
   manifest: BROLL_CAPABILITY_MANIFEST,

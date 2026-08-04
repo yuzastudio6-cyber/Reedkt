@@ -55,12 +55,14 @@ const PROVIDER_COMMAND_IDS = [
   'npm.smoke:b-roll-provider-lifecycle',
   'npm.smoke:b-roll-candidate-qa',
   'npm.smoke:b-roll-end-to-end',
+  'npm.test:b-roll-public-canonical-lifecycle',
 ] as const
 
 const MEDIA_COMMAND_IDS = [
   'npm.test:b-roll-canonical-private-runtime',
   'npm.smoke:b-roll-existing-source',
   'npm.smoke:b-roll-candidate-qa',
+  'npm.test:b-roll-public-canonical-lifecycle',
 ] as const
 
 const REMOTION_COMMAND_IDS = [
@@ -68,6 +70,7 @@ const REMOTION_COMMAND_IDS = [
   'npm.smoke:b-roll-existing-source',
   'npm.test:b-roll-canonical-integration',
   'npm.smoke:b-roll-remotion-integration',
+  'npm.test:b-roll-public-canonical-lifecycle',
 ] as const
 
 const generatedArtifactCoreSchema = z.object({

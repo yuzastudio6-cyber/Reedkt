@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
-import { writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import { BROLL_CAPABILITY_MANIFEST } from '../edit-skills/b-roll/b-roll-capability-manifest'
@@ -52,6 +52,7 @@ const PHASE_B_SCRIPTS = [
   'smoke:b-roll-retirement',
   'smoke:b-roll-end-to-end',
   'test:b-roll-canonical-private-runtime',
+  'test:b-roll-public-canonical-lifecycle',
   'smoke:b-roll-candidate-qa',
   'smoke:b-roll-existing-source',
   'smoke:b-roll-provider-lifecycle',
@@ -307,10 +308,11 @@ function main(): void {
   }, null, 2))
 }
 
+const priorGeneratedArtifact = readFileSync(generatedPath, 'utf8')
 try {
   main()
 } catch (error) {
-  writeGenerated(undefined)
+  writeFileSync(generatedPath, priorGeneratedArtifact, 'utf8')
   console.error(error instanceof Error ? error.message : String(error))
   process.exitCode = 1
 }

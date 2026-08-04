@@ -14,6 +14,7 @@ import {
   createBrollAssignment,
   createBrollCanonicalPrivateRuntimeBindings,
   createBrollPlanningContext,
+  createSourceMediaArtifactV1,
   createBrollVisualOwnershipManifest,
   executeBrollExistingSource,
   projectBrollCanonicalWorkItems,
@@ -22,6 +23,7 @@ import {
 import {
   EditSkillRuntimeDispatcher,
   SkillJobRuntimeBindingRegistry,
+  canonicalSkillJson,
   createEditSkillPlanApproval,
   hashSkillValue,
   skillManifestReference,
@@ -71,34 +73,6 @@ try {
   const captionBytes = await readFile(captionPath)
   const sourceSha256 = createHash('sha256').update(sourceBytes).digest('hex')
   const manifestRef = skillManifestReference(BROLL_CAPABILITY_MANIFEST)
-  const sourceArtifactRef = {
-    artifactType: 'source_media_artifact_v1',
-    sha256: sourceSha256,
-    byteLength: sourceBytes.byteLength,
-    ownerUserId: 'user',
-    workspaceId: 'workspace',
-    projectId: 'project',
-  }
-  const sourceCandidate: BrollSourceCandidate = {
-    sourceId: 'source-existing',
-    sourceType: 'existing_project_clip',
-    artifactRef: sourceArtifactRef,
-    sourceRange: { startFrameInclusive: 12, endFrameExclusive: 84, fps: 24 },
-    semanticRelevance: 0.98,
-    visualQuality: 0.95,
-    temporalFit: 0.95,
-    storyContinuity: 0.96,
-    provenanceVerified: true,
-    rightsApproved: true,
-    privacyApproved: true,
-    proofSafe: true,
-    repetitionRisk: 0.02,
-    cropFeasibility: 0.98,
-    speakerActionProtection: 0.95,
-    audioUsefulness: 0.5,
-    costCredits: 1,
-    approvedByUser: true,
-  }
   const masterRange = { startFrameInclusive: 0, endFrameExclusive: 2_400, fps: 24 }
   const authorizedRange = { startFrameInclusive: 120, endFrameExclusive: 192, fps: 24 }
   const assignment = createBrollAssignment({
@@ -134,6 +108,58 @@ try {
     requiredOutputTypes: ['b_roll_result_receipt_v1'],
     manifestRef,
   })
+  const sourceMediaManifest = createSourceMediaArtifactV1({
+    schemaVersion: 'source_media_artifact_v1',
+    ownerUserId: assignment.ownerUserId,
+    workspaceId: assignment.workspaceId,
+    projectId: assignment.projectId,
+    sourceId: 'source-existing',
+    privateObjectIdentityHash: hashSkillValue({ sourceSha256, storage: 'private-fixture' }),
+    objectSha256: sourceSha256,
+    byteLength: sourceBytes.byteLength,
+    mimeType: 'video/mp4',
+    container: 'mp4',
+    durationFrames: 96,
+    fps: 24,
+    width: 320,
+    height: 180,
+    provenanceVerified: true,
+    rightsApproved: true,
+    privacyApproved: true,
+    proofClassification: 'source_verified',
+    checksumReadbackVerified: true,
+    privateOnly: true,
+    publicDeliveryAllowed: false,
+    immutable: true,
+  })
+  const sourceArtifactRef = {
+    artifactType: 'source_media_artifact_v1',
+    sha256: hashSkillValue(sourceMediaManifest),
+    byteLength: Buffer.byteLength(canonicalSkillJson(sourceMediaManifest), 'utf8'),
+    ownerUserId: 'user',
+    workspaceId: 'workspace',
+    projectId: 'project',
+  }
+  const sourceCandidate: BrollSourceCandidate = {
+    sourceId: 'source-existing',
+    sourceType: 'existing_project_clip',
+    artifactRef: sourceArtifactRef,
+    sourceRange: { startFrameInclusive: 12, endFrameExclusive: 84, fps: 24 },
+    semanticRelevance: 0.98,
+    visualQuality: 0.95,
+    temporalFit: 0.95,
+    storyContinuity: 0.96,
+    provenanceVerified: true,
+    rightsApproved: true,
+    privacyApproved: true,
+    proofSafe: true,
+    repetitionRisk: 0.02,
+    cropFeasibility: 0.98,
+    speakerActionProtection: 0.95,
+    audioUsefulness: 0.5,
+    costCredits: 1,
+    approvedByUser: true,
+  }
   const context = createBrollPlanningContext({
     schemaVersion: 'b_roll_context_manifest_v1',
     ownerUserId: 'user',
@@ -217,6 +243,7 @@ try {
     source: {
       sourceId: sourceCandidate.sourceId,
       artifactRef: sourceArtifactRef,
+      mediaManifest: sourceMediaManifest,
       mimeType: 'video/mp4',
       bytes: sourceBytes,
     },
@@ -280,10 +307,12 @@ try {
     plan: compiled.plan,
     planningQaReport: compiled.planningQaReport,
     workGraph,
+    approvedWorkGraphHash: workGraph.workGraphHash,
     canonicalWorkItems,
     source: {
       sourceId: sourceCandidate.sourceId,
       artifactRef: sourceArtifactRef,
+      mediaManifest: sourceMediaManifest,
       mimeType: 'video/mp4',
       bytes: sourceBytes,
     },
@@ -342,7 +371,10 @@ try {
   assert.equal(dispatchReceipts.length, workGraph.workItems.length)
   assert.equal(dispatchReceipts.reduce((total, receipt) =>
     total + receipt.providerRequestCount, 0), 0)
-  assert.equal(canonicalSnapshot.existingReceipt?.selectedSourceArtifactRef.sha256, sourceSha256)
+  assert.equal(
+    canonicalSnapshot.existingReceipt?.selectedSourceArtifactRef.sha256,
+    hashSkillValue(sourceMediaManifest),
+  )
   assert.equal(canonicalSnapshot.integrationQa?.status, 'passed')
   assert.ok(canonicalSnapshot.resultReceipt && 'preview' in canonicalSnapshot.resultReceipt)
   if (canonicalSnapshot.resultReceipt && 'preview' in canonicalSnapshot.resultReceipt) {
@@ -358,6 +390,7 @@ try {
     source: {
       sourceId: sourceCandidate.sourceId,
       artifactRef: sourceArtifactRef,
+      mediaManifest: sourceMediaManifest,
       mimeType: 'video/mp4',
       bytes: sourceBytes,
     },
@@ -378,6 +411,7 @@ try {
     source: {
       sourceId: sourceCandidate.sourceId,
       artifactRef: sourceArtifactRef,
+      mediaManifest: sourceMediaManifest,
       mimeType: 'video/mp4',
       bytes: substitutedBytes,
     },
@@ -392,6 +426,7 @@ try {
     source: {
       sourceId: sourceCandidate.sourceId,
       artifactRef: { ...sourceArtifactRef, workspaceId: 'foreign-workspace' },
+      mediaManifest: sourceMediaManifest,
       mimeType: 'video/mp4',
       bytes: sourceBytes,
     },

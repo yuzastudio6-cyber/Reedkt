@@ -37,7 +37,10 @@ import {
   type BrollRemotionLayerManifest,
   type BrollResultReceipt,
 } from './b-roll-remotion-integration'
-import type { BrollSemanticVisualObservation } from './mini-skills/candidate-qa-director'
+import {
+  createBrollSemanticVisualObservation,
+  type BrollSemanticVisualObservation,
+} from './mini-skills/candidate-qa-director'
 import {
   assertBrollCanonicalWorkGraph,
   type BrollCanonicalWorkDefinition,
@@ -47,14 +50,31 @@ import type {
   SkillJobRuntimeAdapterResult,
   SkillJobRuntimeInvocation,
 } from '../core/edit-skill-runtime-binding'
+import {
+  editSkillDependencyAcceptanceSchema,
+  type EditSkillDependencyAcceptance,
+} from '../core/edit-skill-dependency-request'
 import { hashSkillValue } from '../core/skill-capability-manifest-hash'
 import type { EditSkillArtifactReference } from '../core/edit-skill-artifact-store'
+import {
+  editSkillApprovedWorkGraphSchema,
+  type EditSkillApprovedWorkGraph,
+} from '../core/edit-skill-plugin'
 import type { CanonicalWorkItemInput } from '../../validation/edit-planning-authority-schemas'
 import type {
   BrollProviderInjectedLifecycleTimesV5,
   BrollProviderWorkAuthorizationV5,
   BrollProviderRequestPackageV5,
 } from '../../providers/google/gemini-omni-broll'
+import {
+  createBrollCandidateManifest,
+  createBrollCandidateMediaManifest,
+  createBrollExistingSourceCandidateVersion,
+  createBrollPrivatePreviewMediaManifest,
+  createBrollRuntimeQaReport,
+  sourceMediaArtifactV1Schema,
+  type SourceMediaArtifactV1,
+} from './b-roll-active-artifact-contracts'
 import {
   executePrivateInjectedBrollProviderLifecycleV5,
 } from '../../providers/google/gemini-omni-broll'
@@ -77,15 +97,34 @@ import {
   createBrollCanonicalNoActionResultReceipt,
   type BrollCanonicalNoActionResultReceipt,
 } from './b-roll-active-artifact-contracts'
+import {
+  brollSemanticChecksFromVisualIntelligence,
+  brollVisualIntelligenceCandidateQaSchema,
+  type BrollVisualIntelligenceCandidateQa,
+} from './b-roll-visual-intelligence-dependency'
 
 type FullMediaRuntime = Pick<
   PrivateOfflineMediaBinaryRuntime,
   'execute' | 'executeServerInjected' | 'executeVisualCalibrationObjectiveQaServerInjected'
 >
 
+/** Internal-fixture-only semantic evidence. Never production qualified. */
+export function createBrollCanonicalInjectedTestObservation(
+  input: Parameters<typeof createBrollSemanticVisualObservation>[0],
+): BrollSemanticVisualObservation {
+  const observation = createBrollSemanticVisualObservation(input)
+  if (!observation.testOnly || observation.productionQualified) {
+    throw new Error('Canonical injected semantic evidence must remain test-only and non-production.')
+  }
+  return observation
+}
+
 interface BrollCanonicalPrivateCommonInput {
   localStorageRoot: string
   approvalHash: string
+  approvedWorkGraphHash: string
+  approvedPublicWorkGraph?: EditSkillApprovedWorkGraph
+  requirePublicDependencyAcceptance?: boolean
   component: CanonicalBrollSkillPlanComponent
   componentRef: AuthorityJsonBlobRef
   assignment: BrollSkillAssignment
@@ -119,6 +158,7 @@ export type BrollCanonicalPrivateExecutionInput = BrollCanonicalPrivateCommonInp
       source: {
         sourceId: string
         artifactRef: EditSkillArtifactReference
+        mediaManifest: SourceMediaArtifactV1
         mimeType: 'video/mp4'
         bytes: Buffer
       }
@@ -176,11 +216,37 @@ implements BrollCanonicalPrivateWorkExecutor {
   readonly #state: BrollCanonicalPrivateExecutionState = {}
   readonly #completed = new Set<string>()
   readonly #results = new Map<string, SkillJobRuntimeAdapterResult>()
+  readonly #outputArtifacts = new Map<string, { artifactType: string; value: unknown }>()
+  #visualIntelligenceAcceptance?: EditSkillDependencyAcceptance
+  #visualIntelligenceArtifact?: BrollVisualIntelligenceCandidateQa
 
   constructor(input: BrollCanonicalPrivateExecutionInput) {
     this.#input = input
     if (!/^[a-f0-9]{64}$/u.test(input.approvalHash)) {
       throw new Error('Canonical private B-roll execution requires an exact approval hash.')
+    }
+    if (!/^[a-f0-9]{64}$/u.test(input.approvedWorkGraphHash)) {
+      throw new Error('Canonical private B-roll execution requires an exact approved work-graph hash.')
+    }
+    if (input.approvedPublicWorkGraph) {
+      const publicGraph = editSkillApprovedWorkGraphSchema.parse(input.approvedPublicWorkGraph)
+      if (
+        publicGraph.approvedWorkGraphHash !== input.approvedWorkGraphHash ||
+        publicGraph.pluginWorkGraphHash !== input.workGraph.workGraphHash ||
+        publicGraph.assignmentId !== input.assignment.assignmentId ||
+        publicGraph.planHash !== input.plan.planHash ||
+        hashSkillValue(publicGraph.manifestRef) !== hashSkillValue(input.assignment.manifestRef) ||
+        publicGraph.workItems.length !== input.workGraph.workItems.length ||
+        publicGraph.workItems.some((publicItem, index) => {
+          const privateItem = input.workGraph.workItems[index]
+          return !privateItem || publicItem.workItemKey !== privateItem.workItemKey ||
+            publicItem.jobType !== privateItem.jobType ||
+            publicItem.operationId !== privateItem.operationId ||
+            publicItem.workerClass !== privateItem.workerClass ||
+            publicItem.expectedOutputType !== privateItem.expectedOutputType ||
+            hashSkillValue(publicItem.authorizedRange) !== hashSkillValue(privateItem.authorizedRange)
+        })
+      ) throw new Error('Canonical private B-roll runtime rejected a stale public work-graph bridge.')
     }
     this.#assertConfiguredRoute()
   }
@@ -199,6 +265,7 @@ implements BrollCanonicalPrivateWorkExecutor {
       throw new Error('Canonical private B-roll adapter received work before its dependencies.')
     }
     const evidenceHashes = await this.#executeOperation(definition)
+    const outputArtifact = await this.#projectOutputArtifact(definition, invocation)
     const operationEvidenceHash = hashSkillValue({
       schemaVersion: 'b_roll_canonical_private_operation_evidence_v1',
       bindingHash: invocation.binding.bindingHash,
@@ -211,6 +278,7 @@ implements BrollCanonicalPrivateWorkExecutor {
       providerRequestCount: 0,
       publicArtifactCount: 0,
       productionMutationCount: 0,
+      outputArtifactHash: hashSkillValue(outputArtifact.value),
       outsideAuthorizedRangeModified: false,
     })
     const result: SkillJobRuntimeAdapterResult = {
@@ -220,10 +288,46 @@ implements BrollCanonicalPrivateWorkExecutor {
       providerRequestCount: 0,
       publicArtifactCount: 0,
       productionMutationCount: 0,
+      outputArtifacts: [outputArtifact],
     }
     this.#results.set(invocation.workItemKey, result)
     this.#completed.add(invocation.workItemKey)
     return result
+  }
+
+  acceptDependencyAcceptance(
+    input: EditSkillDependencyAcceptance,
+    artifactInput?: BrollVisualIntelligenceCandidateQa,
+  ): void {
+    const acceptance = editSkillDependencyAcceptanceSchema.parse(input)
+    if (
+      acceptance.assignmentId !== this.#input.assignment.assignmentId ||
+      acceptance.assignmentHash !== this.#publicAssignmentHash() ||
+      acceptance.planHash !== this.#input.plan.planHash ||
+      hashSkillValue(acceptance.manifestRef) !== hashSkillValue(this.#input.assignment.manifestRef) ||
+      acceptance.acceptedForPhase !== 'skill_output_qa'
+    ) throw new Error('Canonical private B-roll dependency acceptance is stale or out of phase.')
+    if (artifactInput) {
+      const artifact = brollVisualIntelligenceCandidateQaSchema.parse(artifactInput)
+      const candidate = this.#latestMediaManifest()
+      if (
+        acceptance.artifactRef.artifactType !== 'visual_intelligence_candidate_qa_v1' ||
+        acceptance.artifactRef.sha256 !== hashSkillValue(artifact) ||
+        artifact.assignmentId !== this.#input.assignment.assignmentId ||
+        artifact.assignmentHash !== this.#publicAssignmentHash() ||
+        artifact.planId !== this.#input.plan.planId ||
+        artifact.planHash !== this.#input.plan.planHash ||
+        artifact.candidateArtifact.sha256 !== hashSkillValue(candidate) ||
+        hashSkillValue(artifact.authorizedRange) !==
+          hashSkillValue(this.#input.assignment.writeRangeAuthority.authorizedRange) ||
+        !['accepted', 'accepted_with_warnings'].includes(artifact.disposition) ||
+        artifact.injectedTestOnly
+      ) throw new Error('Canonical private B-roll rejected stale Visual Intelligence evidence.')
+      this.#visualIntelligenceArtifact = artifact
+    } else if (this.#input.requirePublicDependencyAcceptance) {
+      throw new Error('Canonical private B-roll requires the accepted Visual Intelligence artifact value.')
+    }
+    this.#visualIntelligenceAcceptance = acceptance
   }
 
   snapshot(): Readonly<{
@@ -275,7 +379,7 @@ implements BrollCanonicalPrivateWorkExecutor {
       invocation.binding.environmentClass !== 'canonical_private' ||
       invocation.approvalHash !== this.#input.approvalHash ||
       invocation.assignmentId !== this.#input.assignment.assignmentId ||
-      invocation.assignmentHash !== this.#input.assignment.assignmentHash ||
+      invocation.assignmentHash !== this.#publicAssignmentHash() ||
       invocation.binding.jobType !== definition.jobType ||
       invocation.binding.operationId !== definition.operationId ||
       invocation.binding.workerClass !== definition.workerClass ||
@@ -283,10 +387,22 @@ implements BrollCanonicalPrivateWorkExecutor {
       !item || item.jobType !== definition.jobType ||
       item.operationId !== definition.operationId ||
       item.workerClass !== definition.workerClass ||
-      item.workItemHash !== invocation.workItemHash ||
+      this.#publicWorkItemHash(item.workItemKey) !== invocation.workItemHash ||
       hashSkillValue(item.authorizedRange) !==
         hashSkillValue(this.#input.assignment.writeRangeAuthority.authorizedRange)
     ) throw new Error('Canonical private B-roll adapter rejected stale or unbound work.')
+  }
+
+  #publicAssignmentHash(): string {
+    return this.#input.approvedPublicWorkGraph?.assignmentHash ??
+      this.#input.assignment.assignmentHash
+  }
+
+  #publicWorkItemHash(workItemKey: string): string | undefined {
+    return this.#input.approvedPublicWorkGraph?.workItems.find((item) =>
+      item.workItemKey === workItemKey)?.workItemHash ??
+      this.#input.workGraph.workItems.find((item) =>
+        item.workItemKey === workItemKey)?.workItemHash
   }
 
   async #executeOperation(definition: BrollCanonicalWorkDefinition): Promise<string[]> {
@@ -364,10 +480,20 @@ implements BrollCanonicalPrivateWorkExecutor {
       case 'run_b_roll_semantic_visual_qa': {
         if (this.#input.route === 'generated_injected') {
           const qa = await this.#ensureCandidateQa()
+          if (
+            this.#input.requirePublicDependencyAcceptance &&
+            !this.#visualIntelligenceAcceptance
+          ) throw new Error('Canonical private B-roll semantic QA lacks accepted Visual Intelligence evidence.')
           if (qa.qaReport.productionQualifiedSemanticQa) {
             throw new Error('Injected B-roll semantic evidence cannot be production-qualified.')
           }
-          return [qa.qaReport.semanticObservationHash, qa.qaReport.qaReportHash]
+          return [
+            qa.qaReport.semanticObservationHash,
+            qa.qaReport.qaReportHash,
+            ...(this.#visualIntelligenceAcceptance
+              ? [this.#visualIntelligenceAcceptance.acceptanceHash]
+              : []),
+          ]
         }
         const source = await this.#ensureExistingSource()
         return [source.receipt.sourceQaReportHash]
@@ -399,6 +525,352 @@ implements BrollCanonicalPrivateWorkExecutor {
       default:
         throw new Error(`Canonical private B-roll adapter has no operation for ${definition.jobType}.`)
     }
+  }
+
+  async #projectOutputArtifact(
+    definition: BrollCanonicalWorkDefinition,
+    invocation: SkillJobRuntimeInvocation,
+  ): Promise<{ artifactType: string; value: unknown }> {
+    const cached = this.#outputArtifacts.get(invocation.workItemKey)
+    if (cached) return cached
+    const item = this.#input.workGraph.workItems.find((candidate) =>
+      candidate.workItemKey === invocation.workItemKey)!
+    const common = {
+      ownerUserId: this.#input.assignment.ownerUserId,
+      workspaceId: this.#input.assignment.workspaceId,
+      projectId: this.#input.assignment.projectId,
+      editSessionId: this.#input.assignment.editSessionId,
+      assignmentId: this.#input.assignment.assignmentId,
+      assignmentHash: this.#publicAssignmentHash(),
+      manifestRef: this.#input.assignment.manifestRef,
+    }
+    const work = {
+      planId: this.#input.plan.planId,
+      planHash: this.#input.plan.planHash,
+      approvedWorkGraphHash: this.#input.approvedWorkGraphHash,
+      workItemKey: invocation.workItemKey,
+      workItemHash: invocation.workItemHash,
+    }
+    let value: unknown
+    switch (definition.jobType) {
+      case 'validate_b_roll_assignment':
+        value = this.#input.assignment
+        break
+      case 'validate_b_roll_range_authority':
+        value = this.#input.plan
+        break
+      case 'validate_b_roll_source':
+        if (this.#input.route !== 'existing_source') {
+          throw new Error('Source artifact projection is unavailable for this route.')
+        }
+        value = sourceMediaArtifactV1Schema.parse(this.#input.source.mediaManifest)
+        break
+      case 'prepare_b_roll_source': {
+        if (this.#input.route !== 'existing_source') {
+          throw new Error('Prepared source projection is unavailable for this route.')
+        }
+        const execution = await this.#ensureExistingSource()
+        value = createBrollCandidateMediaManifest({
+          schemaVersion: 'b_roll_candidate_media_manifest_v1',
+          ...common,
+          ...work,
+          sourceClass: 'existing_project_source',
+          providerOperationId: null,
+          providerAttemptId: null,
+          providerRoute: null,
+          configuredModelAlias: null,
+          acceptedRuntimeModel: null,
+          candidateVersion: 1,
+          privateObjectIdentityHash:
+            execution.receipt.normalizedCandidate.privateObjectIdentityHash,
+          objectSha256: execution.receipt.normalizedCandidate.sha256,
+          byteLength: execution.receipt.normalizedCandidate.byteLength,
+          mimeType: 'video/x-nut',
+          container: 'nut',
+          durationSeconds: execution.receipt.normalizedCandidate.frameCount /
+            execution.receipt.normalizedCandidate.frameRate,
+          frameCount: execution.receipt.normalizedCandidate.frameCount,
+          fps: execution.receipt.normalizedCandidate.frameRate as 24 | 30,
+          width: this.#input.source.mediaManifest.width,
+          height: this.#input.source.mediaManifest.height,
+          audioStreamPresent: false,
+          sourceArtifactHashes: [this.#input.source.artifactRef.sha256],
+          referenceArtifactHashes: [],
+          generationClassification: 'source_verified',
+          proofSafetyClassification: 'source_verified_not_generated_proof',
+          costEvidenceRef: execution.receipt.sourceQaReportRef,
+          usageEvidenceRef: execution.receipt.sourceInspectionRef,
+          checksumReadbackVerified: true,
+          privateOnly: true,
+          publicDeliveryAllowed: false,
+          automaticSelectionAllowed: false,
+          timelineMutationAllowed: false,
+        })
+        break
+      }
+      case 'generate_b_roll_candidate': {
+        if (this.#input.route !== 'generated_injected') {
+          throw new Error('Generated media projection is unavailable for this route.')
+        }
+        const attempt = await this.#ensureGeneratedAttempt()
+        const costEvidenceRef = await putPrivateAuthorityJsonBlob({
+          localStorageRoot: this.#input.localStorageRoot,
+          value: attempt.cost,
+        })
+        const usageEvidenceRef = await putPrivateAuthorityJsonBlob({
+          localStorageRoot: this.#input.localStorageRoot,
+          value: {
+            schemaVersion: 'b_roll_injected_provider_usage_evidence_v1',
+            attemptId: attempt.attemptId,
+            attemptEvidenceHash: attempt.attemptEvidenceHash,
+            generationSubmissionCount: attempt.generationSubmissionCount,
+            automaticRetryCount: attempt.automaticRetryCount,
+            alternateProviderFallbackCount: attempt.alternateProviderFallbackCount,
+          },
+        })
+        const portrait = this.#input.requestPackage.output.aspectRatio === '9:16'
+        value = createBrollCandidateMediaManifest({
+          schemaVersion: 'b_roll_candidate_media_manifest_v1',
+          ...common,
+          ...work,
+          sourceClass: this.#input.requestPackage.taskMode === 'edit_uploaded_video'
+            ? 'gemini_omni_uploaded_video_edit'
+            : 'gemini_omni_generated',
+          providerOperationId: this.#input.requestPackage.operationId,
+          providerAttemptId: attempt.attemptId,
+          providerRoute: this.#input.requestPackage.providerRouteId,
+          configuredModelAlias: this.#input.requestPackage.configuredModelAlias,
+          acceptedRuntimeModel: 'injected_gemini_omni_v5_internal_fixture',
+          candidateVersion: attempt.candidateVersionNumber,
+          privateObjectIdentityHash: attempt.output.privateObjectIdentityHash,
+          objectSha256: attempt.output.sha256,
+          byteLength: attempt.output.byteLength,
+          mimeType: 'video/mp4',
+          container: 'mp4',
+          durationSeconds: this.#input.requestPackage.output.durationSeconds,
+          frameCount: this.#input.requestPackage.output.durationSeconds *
+            this.#input.requestPackage.output.frameRate,
+          fps: this.#input.requestPackage.output.frameRate,
+          width: portrait ? 720 : 1_280,
+          height: portrait ? 1_280 : 720,
+          audioStreamPresent: false,
+          sourceArtifactHashes: this.#input.requestPackage.sourceInputs.map((source) => source.sha256),
+          referenceArtifactHashes: this.#input.requestPackage.sourceInputs
+            .filter((source) => source.inputRole !== 'uploaded_video')
+            .map((source) => source.sha256),
+          generationClassification: this.#input.requestPackage.taskMode === 'edit_uploaded_video'
+            ? 'provider_edited_source'
+            : 'illustrative_generated',
+          proofSafetyClassification: 'illustrative_not_verified_proof',
+          costEvidenceRef,
+          usageEvidenceRef,
+          checksumReadbackVerified: true,
+          privateOnly: true,
+          publicDeliveryAllowed: false,
+          automaticSelectionAllowed: false,
+          timelineMutationAllowed: false,
+        })
+        break
+      }
+      case 'inspect_b_roll_candidate_with_ffprobe': {
+        const media = this.#latestMediaManifest()
+        if (this.#input.route === 'generated_injected') {
+          const qa = await this.#ensureCandidateQa()
+          value = createBrollCandidateManifest({
+            schemaVersion: 'b_roll_candidate_manifest_v1',
+            ...common,
+            ...work,
+            candidateMediaManifestHash: media.mediaManifestHash,
+            technicalInspectionRef: qa.qaReport.technicalInspectionRef,
+            technicalInspectionHash: qa.qaReport.technicalInspectionHash,
+            objectiveQaRef: qa.qaReport.objectiveQaRef,
+            objectiveQaHash: qa.qaReport.objectiveQaHash,
+            durationSeconds: qa.version.durationSeconds,
+            frameCount: qa.version.rawCandidate.frameCount,
+            fps: qa.version.rawCandidate.frameRate,
+            width: qa.version.rawCandidate.width,
+            height: qa.version.rawCandidate.height,
+            videoStreamCount: 1,
+            audioStreamCount: 0,
+            blackFrameRatioMillionths: 0,
+            frozenFrameRatioMillionths: 0,
+            maximumFrozenRunFrames: 0,
+            checksumVerified: true,
+            privateIntegrityVerified: true,
+            status: 'passed',
+          })
+        } else {
+          if (this.#input.route !== 'existing_source') {
+            throw new Error('Candidate inspection projection is unavailable for this route.')
+          }
+          const source = await this.#ensureExistingSource()
+          value = createBrollCandidateManifest({
+            schemaVersion: 'b_roll_candidate_manifest_v1',
+            ...common,
+            ...work,
+            candidateMediaManifestHash: media.mediaManifestHash,
+            technicalInspectionRef: source.receipt.sourceInspectionRef,
+            technicalInspectionHash: source.receipt.sourceInspectionHash,
+            objectiveQaRef: source.receipt.sourceQaReportRef,
+            objectiveQaHash: source.receipt.sourceQaReportHash,
+            durationSeconds: source.receipt.normalizedCandidate.frameCount /
+              source.receipt.normalizedCandidate.frameRate,
+            frameCount: source.receipt.normalizedCandidate.frameCount,
+            fps: source.receipt.normalizedCandidate.frameRate as 24 | 30,
+            width: this.#input.source.mediaManifest.width,
+            height: this.#input.source.mediaManifest.height,
+            videoStreamCount: 1,
+            audioStreamCount: 0,
+            blackFrameRatioMillionths: 0,
+            frozenFrameRatioMillionths: 0,
+            maximumFrozenRunFrames: 0,
+            checksumVerified: true,
+            privateIntegrityVerified: true,
+            status: 'passed',
+          })
+        }
+        break
+      }
+      case 'normalize_b_roll_candidate_with_ffmpeg':
+        if (this.#input.route === 'generated_injected') {
+          value = (await this.#ensureCandidateQa()).version
+        } else {
+          if (this.#input.route !== 'existing_source') {
+            throw new Error('Candidate normalization projection is unavailable for this route.')
+          }
+          const source = await this.#ensureExistingSource()
+          const media = this.#latestMediaManifest()
+          value = createBrollExistingSourceCandidateVersion({
+            schemaVersion: 'b_roll_candidate_version_v1',
+            versionKind: 'existing_source_prepared',
+            ...common,
+            ...work,
+            candidateMediaManifestHash: media.mediaManifestHash,
+            sourceArtifactHash: this.#input.source.artifactRef.sha256,
+            normalizedPrivateObjectIdentityHash:
+              source.receipt.normalizedCandidate.privateObjectIdentityHash,
+            normalizedObjectSha256: source.receipt.normalizedCandidate.sha256,
+            byteLength: source.receipt.normalizedCandidate.byteLength,
+            mimeType: 'video/x-nut',
+            container: 'nut',
+            videoCodec: 'ffv1',
+            frameCount: source.receipt.normalizedCandidate.frameCount,
+            fps: source.receipt.normalizedCandidate.frameRate,
+            exactRange: this.#input.assignment.writeRangeAuthority.authorizedRange,
+            sourceQaReportHash: source.receipt.sourceQaReportHash,
+            automaticSelectionAllowed: false,
+            outsideAuthorizedRangeModified: false,
+            immutable: true,
+          })
+        }
+        break
+      case 'run_b_roll_technical_qa':
+      case 'run_b_roll_semantic_visual_qa':
+      case 'run_b_roll_preview_qa': {
+        if (this.#input.route === 'professional_no_action') {
+          throw new Error('Runtime QA projection is unavailable for a no-action route.')
+        }
+        const preview = definition.jobType === 'run_b_roll_preview_qa'
+        const semantic = definition.jobType === 'run_b_roll_semantic_visual_qa'
+        const integration = preview ? await this.#ensureIntegration() : undefined
+        let subjectArtifactHash: string
+        let evidenceHashes: string[]
+        if (preview) {
+          subjectArtifactHash = integration!.receipt.preview.sha256
+          evidenceHashes = [
+            integration!.integrationQa.integrationQaHash,
+            integration!.receipt.preview.sha256,
+          ]
+        } else if (this.#input.route === 'generated_injected') {
+          const qa = await this.#ensureCandidateQa()
+          subjectArtifactHash = qa.qaReport.normalizedCandidateSha256
+          evidenceHashes = [
+            qa.qaReport.qaReportHash,
+            semantic ? qa.qaReport.semanticObservationHash : qa.qaReport.objectiveQaHash,
+          ]
+        } else {
+          const qa = await this.#ensureExistingSource()
+          subjectArtifactHash = qa.receipt.normalizedCandidate.sha256
+          evidenceHashes = [qa.receipt.sourceQaReportHash, qa.receipt.sourceInspectionHash]
+        }
+        value = createBrollRuntimeQaReport({
+          schemaVersion: 'b_roll_qa_report_v1',
+          ...common,
+          ...work,
+          qaClass: preview
+            ? 'preview_integration'
+            : semantic
+              ? 'candidate_semantic'
+              : this.#input.route === 'existing_source'
+                ? 'source_technical'
+                : 'candidate_technical',
+          subjectArtifactHash,
+          validatorVersion: `b_roll.runtime.${definition.jobType}.v1`,
+          evidenceHashes: [
+            ...evidenceHashes,
+            ...(semantic && this.#visualIntelligenceAcceptance
+              ? [this.#visualIntelligenceAcceptance.acceptanceHash]
+              : []),
+          ],
+          disposition: 'passed',
+          privateInternalOnly: true,
+          productionQualified: false,
+          outsideAuthorizedRangeModified: false,
+          evaluatedAt: (this.#input.now ?? (() => new Date().toISOString()))(),
+        })
+        break
+      }
+      case 'prepare_b_roll_remotion_layer':
+        value = (await this.#ensureIntegration()).layerManifest
+        break
+      case 'render_b_roll_preview': {
+        const integration = await this.#ensureIntegration()
+        value = createBrollPrivatePreviewMediaManifest({
+          schemaVersion: 'b_roll_private_preview_media_manifest_v1',
+          ...common,
+          ...work,
+          layerManifestHash: integration.layerManifest.layerManifestHash,
+          privateObjectIdentityHash:
+            integration.receipt.preview.previewArtifactIdentityHash,
+          objectSha256: integration.receipt.preview.sha256,
+          byteLength: integration.receipt.preview.byteLength,
+          mimeType: 'video/mp4',
+          container: 'mp4',
+          durationSeconds: integration.receipt.preview.frameCount /
+            integration.receipt.preview.frameRate,
+          frameCount: integration.receipt.preview.frameCount,
+          fps: integration.receipt.preview.frameRate,
+          width: integration.receipt.preview.width,
+          height: integration.receipt.preview.height,
+          remotionRequestHash: integration.receipt.preview.remotionRequestHash,
+          remotionAttestationHash: integration.receipt.preview.remotionAttestationHash,
+          checksumReadbackVerified: true,
+          privateOnly: true,
+          publicDeliveryAllowed: false,
+          finalCustomerExport: false,
+          outsideAuthorizedRangeModified: false,
+        })
+        break
+      }
+      case 'project_b_roll_result_receipt':
+        value = this.#input.route === 'professional_no_action'
+          ? (await this.#ensureNoActionResult()).receipt
+          : (await this.#ensureIntegration()).receipt
+        break
+      default:
+        throw new Error(`Canonical private B-roll has no output projection for ${definition.jobType}.`)
+    }
+    const projected = { artifactType: item.expectedOutputType, value }
+    this.#outputArtifacts.set(invocation.workItemKey, projected)
+    return projected
+  }
+
+  #latestMediaManifest(): ReturnType<typeof createBrollCandidateMediaManifest> {
+    const item = [...this.#input.workGraph.workItems].reverse().find((candidate) =>
+      ['prepare_b_roll_source', 'generate_b_roll_candidate'].includes(candidate.jobType))
+    const artifact = item ? this.#outputArtifacts.get(item.workItemKey) : undefined
+    if (!artifact) throw new Error('Canonical private B-roll media manifest dependency is missing.')
+    return artifact.value as ReturnType<typeof createBrollCandidateMediaManifest>
   }
 
   async #ensureAuthority() {
@@ -537,6 +1009,33 @@ implements BrollCanonicalPrivateWorkExecutor {
     if (this.#input.route !== 'generated_injected') {
       throw new Error('Generated B-roll candidate QA is unavailable for this route.')
     }
+    if (
+      this.#input.requirePublicDependencyAcceptance &&
+      (!this.#visualIntelligenceAcceptance || !this.#visualIntelligenceArtifact)
+    ) throw new Error('Canonical private B-roll candidate QA lacks accepted Visual Intelligence evidence.')
+    const semanticObservation = this.#visualIntelligenceArtifact
+      ? createBrollSemanticVisualObservation({
+          schemaVersion: 'b_roll_semantic_visual_observation_v1',
+          candidateSha256: attempt.output.sha256,
+          assignmentHash: this.#input.assignment.assignmentHash,
+          planHash: this.#input.plan.planHash,
+          conceptKey: this.#input.plan.shotSpecification!.conceptKey,
+          authorizedRangeHash: hashSkillValue(
+            this.#input.assignment.writeRangeAuthority.authorizedRange,
+          ),
+          observationSource: 'internal_injected_visual_observation_v1',
+          testOnly: true,
+          evidenceArtifactHash: this.#visualIntelligenceArtifact.qaArtifactHash,
+          confidenceMillionths: this.#visualIntelligenceArtifact.confidenceMillionths,
+          checks: brollSemanticChecksFromVisualIntelligence(
+            this.#visualIntelligenceArtifact,
+          ),
+          needsUserConfirmation: false,
+          generatedMediaTreatedAsVerifiedProof: false,
+          automaticSelectionAllowed: false,
+          productionQualified: false,
+        })
+      : this.#input.candidate.semanticObservation
     this.#state.candidateQa = await executeBrollCandidateQa({
       localStorageRoot: this.#input.localStorageRoot,
       assignment: this.#input.assignment,
@@ -545,7 +1044,7 @@ implements BrollCanonicalPrivateWorkExecutor {
       requestPackage: this.#input.requestPackage,
       attemptEvidence: attempt,
       candidateBytes: this.#input.candidate.bytes,
-      semanticObservation: this.#input.candidate.semanticObservation,
+      semanticObservation,
       mediaRuntime: this.#input.mediaRuntime,
       now: this.#input.now,
     })
@@ -651,11 +1150,11 @@ implements BrollCanonicalPrivateWorkExecutor {
       resultKind: 'professional_no_action',
       manifestRef: this.#input.assignment.manifestRef,
       assignmentId: this.#input.assignment.assignmentId,
-      assignmentHash: this.#input.assignment.assignmentHash,
+      assignmentHash: this.#publicAssignmentHash(),
       planId: this.#input.plan.planId,
       planHash: this.#input.plan.planHash,
       planningQaReportHash: this.#input.planningQaReport.reportHash,
-      workGraphHash: this.#input.workGraph.workGraphHash,
+      workGraphHash: this.#input.approvedWorkGraphHash,
       exactTiming: this.#input.assignment.writeRangeAuthority.authorizedRange,
       decision: this.#input.plan.decision as
         BrollCanonicalNoActionResultReceipt['decision'],

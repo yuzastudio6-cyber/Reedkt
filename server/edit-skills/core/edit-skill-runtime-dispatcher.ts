@@ -1,11 +1,17 @@
 import { z } from 'zod'
 
 import type { EditSkillArtifactStore } from './edit-skill-artifact-store'
+import type { EditSkillArtifactReference } from './edit-skill-artifact-store'
 import {
   editSkillPlanApprovalSchema,
   type EditSkillPlanApproval,
   type EditSkillPublicWorkItem,
 } from './edit-skill-plugin'
+import {
+  createEditSkillWorkResult,
+  type EditSkillWorkResult,
+} from './edit-skill-work-result'
+import type { SkillFrameRange } from './skill-assignment-types'
 import { ACTIVE_QUALIFICATION_RANK, type SkillQualificationStatus } from './edit-skill-ids'
 import { hashSkillValue } from './skill-capability-manifest-hash'
 import { skillIdentitySchema, skillSha256Schema } from './skill-capability-manifest-schema'
@@ -59,6 +65,44 @@ export const runtimeDispatchReceiptSchema = runtimeDispatchReceiptCoreSchema.ext
 
 export type RuntimeDispatchReceipt = z.infer<typeof runtimeDispatchReceiptSchema>
 
+export interface RuntimeDispatchInput {
+  manifestRef: SkillManifestReference
+  workItem: EditSkillPublicWorkItem
+  approval: EditSkillPlanApproval
+  authorizedPhase: string
+  inputArtifactTypes: readonly string[]
+  adapterClass: SkillJobRuntimeBindingDefinition['adapterClass']
+  environmentClass: SkillJobRuntimeBindingDefinition['environmentClass']
+  runtimeQualification: SkillQualificationStatus
+  artifactStorageClass: EditSkillArtifactStore['storageClass']
+  privateArtifactAuthority: boolean
+  providerAuthorityOperations: ReadonlySet<string>
+  toolAuthorityOperations: ReadonlySet<string>
+}
+
+export interface RuntimeDispatchOutcome {
+  receipt: RuntimeDispatchReceipt
+  adapterResult: SkillJobRuntimeAdapterResult
+}
+
+export interface RuntimeDispatchToWorkResultInput extends RuntimeDispatchInput {
+  artifactStore: EditSkillArtifactStore
+  artifactScope: {
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+  }
+  planId: string
+  planHash: string
+  qaEvidenceArtifactRefs: readonly EditSkillArtifactReference[]
+  mutationRanges?: readonly SkillFrameRange[]
+}
+
+export interface RuntimeDispatchWorkResultOutcome extends RuntimeDispatchOutcome {
+  outputArtifactRefs: readonly EditSkillArtifactReference[]
+  workResult: EditSkillWorkResult
+}
+
 export class EditSkillRuntimeDispatcher {
   readonly #bindings: SkillJobRuntimeBindingRegistry
   readonly #environmentClass: SkillJobRuntimeBindingDefinition['environmentClass']
@@ -71,20 +115,13 @@ export class EditSkillRuntimeDispatcher {
     this.#environmentClass = environmentClass
   }
 
-  async dispatchApprovedWorkItem(input: {
-    manifestRef: SkillManifestReference
-    workItem: EditSkillPublicWorkItem
-    approval: EditSkillPlanApproval
-    authorizedPhase: string
-    inputArtifactTypes: readonly string[]
-    adapterClass: SkillJobRuntimeBindingDefinition['adapterClass']
-    environmentClass: SkillJobRuntimeBindingDefinition['environmentClass']
-    runtimeQualification: SkillQualificationStatus
-    artifactStorageClass: EditSkillArtifactStore['storageClass']
-    privateArtifactAuthority: boolean
-    providerAuthorityOperations: ReadonlySet<string>
-    toolAuthorityOperations: ReadonlySet<string>
-  }): Promise<RuntimeDispatchReceipt> {
+  async dispatchApprovedWorkItem(input: RuntimeDispatchInput): Promise<RuntimeDispatchReceipt> {
+    return (await this.dispatchApprovedWorkItemOutcome(input)).receipt
+  }
+
+  async dispatchApprovedWorkItemOutcome(
+    input: RuntimeDispatchInput,
+  ): Promise<RuntimeDispatchOutcome> {
     if (input.environmentClass !== this.#environmentClass) {
       throw new Error('Runtime dispatcher rejected work for another configured environment.')
     }
@@ -147,6 +184,14 @@ export class EditSkillRuntimeDispatcher {
       adapterResult.outputArtifactTypes.some((type, index) =>
         type !== definition.outputArtifactTypes[index])
     ) throw new Error('Runtime adapter returned output types outside its binding.')
+    if (adapterResult.outputArtifacts) {
+      const artifactTypes = adapterResult.outputArtifacts.map((artifact) => artifact.artifactType)
+      if (
+        artifactTypes.length !== definition.outputArtifactTypes.length ||
+        new Set(artifactTypes).size !== artifactTypes.length ||
+        artifactTypes.some((type, index) => type !== definition.outputArtifactTypes[index])
+      ) throw new Error('Runtime adapter returned artifact values outside its exact binding.')
+    }
     const core = runtimeDispatchReceiptCoreSchema.parse({
       schemaVersion: 'edit-skill-runtime-dispatch-receipt-v2',
       bindingHash: definition.bindingHash,
@@ -161,6 +206,56 @@ export class EditSkillRuntimeDispatcher {
       authorizedPhase: input.authorizedPhase,
       ...adapterResult,
     })
-    return runtimeDispatchReceiptSchema.parse({ ...core, receiptHash: hashSkillValue(core) })
+    const receipt = runtimeDispatchReceiptSchema.parse({
+      ...core,
+      receiptHash: hashSkillValue(core),
+    })
+    return { receipt, adapterResult }
+  }
+
+  async dispatchApprovedWorkItemToResult(
+    input: RuntimeDispatchToWorkResultInput,
+  ): Promise<RuntimeDispatchWorkResultOutcome> {
+    if (input.artifactStore.storageClass !== input.artifactStorageClass) {
+      throw new Error('Runtime dispatcher artifact-store declaration does not match the injected store.')
+    }
+    const outcome = await this.dispatchApprovedWorkItemOutcome(input)
+    if (outcome.adapterResult.status === 'succeeded' && !outcome.adapterResult.outputArtifacts) {
+      throw new Error('Successful canonical runtime dispatch did not return strict artifact values.')
+    }
+    const outputArtifactRefs: EditSkillArtifactReference[] = []
+    for (const artifact of outcome.adapterResult.outputArtifacts ?? []) {
+      outputArtifactRefs.push(await input.artifactStore.putJson({
+        artifactType: artifact.artifactType,
+        ownerUserId: input.artifactScope.ownerUserId,
+        workspaceId: input.artifactScope.workspaceId,
+        projectId: input.artifactScope.projectId,
+        value: artifact.value,
+      }))
+    }
+    const workResult = createEditSkillWorkResult({
+      schemaVersion: 'edit-skill-work-result-v1',
+      workItemKey: input.workItem.workItemKey,
+      workItemHash: input.workItem.workItemHash,
+      assignmentId: input.workItem.assignmentId,
+      assignmentHash: input.workItem.assignmentHash,
+      planId: input.planId,
+      planHash: input.planHash,
+      manifestRef: input.manifestRef,
+      authorizedRange: input.workItem.authorizedRange,
+      operationId: input.workItem.operationId,
+      workerClass: input.workItem.workerClass,
+      status: outcome.adapterResult.status,
+      outputArtifactRefs,
+      qaLineageKeys: input.workItem.qaLineageKeys,
+      qaEvidenceArtifactRefs: [...input.qaEvidenceArtifactRefs],
+      mutationRanges: [...(input.mutationRanges ?? [])],
+      callerSelectedExecutable: false,
+      outsideAuthorizedRangeModified: false,
+      ...(outcome.adapterResult.failureCode
+        ? { failureCode: outcome.adapterResult.failureCode }
+        : {}),
+    })
+    return { ...outcome, outputArtifactRefs, workResult }
   }
 }

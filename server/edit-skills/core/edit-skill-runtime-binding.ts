@@ -41,6 +41,10 @@ export interface SkillJobRuntimeAdapterResult {
   providerRequestCount: number
   publicArtifactCount: number
   productionMutationCount: number
+  outputArtifacts?: readonly {
+    artifactType: string
+    value: unknown
+  }[]
   failureCode?: string
 }
 

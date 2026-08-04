@@ -37,6 +37,10 @@ import {
   skillManifestReferenceSchema,
   skillSha256Schema,
 } from '../core/skill-capability-manifest-schema'
+import {
+  sourceMediaArtifactV1Schema,
+  type SourceMediaArtifactV1,
+} from './b-roll-active-artifact-contracts'
 
 export const BROLL_EXISTING_SOURCE_EXECUTION_VERSION =
   'b_roll_existing_source_execution_v1' as const
@@ -135,6 +139,7 @@ export interface BrollExistingSourceExecutionInput {
   source: {
     sourceId: string
     artifactRef: z.input<typeof artifactRefSchema>
+    mediaManifest: SourceMediaArtifactV1
     mimeType: 'video/mp4'
     bytes: Buffer
   }
@@ -172,6 +177,7 @@ export async function executeBrollExistingSource(
   const plan = authority.plan!
   const workGraph = authority.workGraph!
   const source = artifactRefSchema.parse(input.source.artifactRef)
+  const mediaManifest = sourceMediaArtifactV1Schema.parse(input.source.mediaManifest)
   assertSourceExecutionAuthority({
     assignment,
     context,
@@ -179,8 +185,9 @@ export async function executeBrollExistingSource(
     workGraph,
     sourceId: input.source.sourceId,
     source,
+    mediaManifest,
   })
-  assertSourceBytes(input.source.bytes, source)
+  assertSourceBytes(input.source.bytes, source, mediaManifest)
   const executionKey = hashSkillValue({
     schemaVersion: BROLL_EXISTING_SOURCE_EXECUTION_VERSION,
     approvedPlanSnapshotId: gate.approvedPlanSnapshotId,
@@ -188,7 +195,7 @@ export async function executeBrollExistingSource(
     reservationId: gate.reservationId,
     componentHash: input.component.componentHash,
     sourceId: input.source.sourceId,
-    sourceSha256: source.sha256,
+    sourceSha256: mediaManifest.objectSha256,
     idempotencyKeyHash: sha256Text(gate.idempotencyKey),
   })
   const indexPath = `b-roll/existing-source-executions/${executionKey.slice(0, 2)}/${executionKey}.json`
@@ -206,7 +213,7 @@ export async function executeBrollExistingSource(
       const sourceCommitment = {
         mimeType: input.source.mimeType,
         sourceByteLength: input.source.bytes.byteLength,
-        sourceSha256: source.sha256,
+        sourceSha256: mediaManifest.objectSha256,
         sourceBytesBase64: input.source.bytes.toString('base64'),
       }
       const inspection = await input.mediaRuntime.execute({
@@ -246,7 +253,13 @@ export async function executeBrollExistingSource(
         throw new Error('Existing-source B-roll execution attempted a provider request.')
       }
       const frameCount = sourceTrim.endFrameExclusive - sourceTrim.startFrameInclusive
-      assertMediaEvidence({ inspection, normalized, source, sourceTrim, frameCount })
+      assertMediaEvidence({
+        inspection,
+        normalized,
+        sourceObjectSha256: mediaManifest.objectSha256,
+        sourceTrim,
+        frameCount,
+      })
       const privateObjectIdentityHash = hashSkillValue({
         kind: 'b_roll_existing_source_normalized_candidate_v1',
         executionKey,
@@ -263,7 +276,7 @@ export async function executeBrollExistingSource(
         manifestRef: assignment.manifestRef,
         assignmentId: assignment.assignmentId,
         sourceId: input.source.sourceId,
-        sourceSha256: source.sha256,
+        sourceSha256: mediaManifest.objectSha256,
         ffprobeRequestHash: inspection.evidence.requestEnvelopeSha256,
         ffprobeResultHash: inspection.resultJson.sha256,
         binaryVersion: inspection.evidence.binaryVersion,
@@ -275,7 +288,7 @@ export async function executeBrollExistingSource(
         manifestRef: assignment.manifestRef,
         assignmentId: assignment.assignmentId,
         sourceId: input.source.sourceId,
-        sourceSha256: source.sha256,
+        sourceSha256: mediaManifest.objectSha256,
         normalizedCandidateSha256: normalized.resultArtifact.sha256,
         checks: {
           sourceChecksumVerified: true,
@@ -395,8 +408,9 @@ function assertSourceExecutionAuthority(input: {
   workGraph: NonNullable<Awaited<ReturnType<typeof revalidateCanonicalBrollPlanAuthority>>['workGraph']>
   sourceId: string
   source: z.infer<typeof artifactRefSchema>
+  mediaManifest: SourceMediaArtifactV1
 }): void {
-  const { assignment, context, plan, workGraph, source, sourceId } = input
+  const { assignment, context, plan, workGraph, source, sourceId, mediaManifest } = input
   const selected = context.sourceCandidates.find((candidate) =>
     candidate.sourceId === sourceId)
   const timelineDuration = assignment.writeRangeAuthority.authorizedRange.endFrameExclusive -
@@ -415,6 +429,16 @@ function assertSourceExecutionAuthority(input: {
     source.ownerUserId !== assignment.ownerUserId ||
     source.workspaceId !== assignment.workspaceId ||
     source.projectId !== assignment.projectId ||
+    source.artifactType !== 'source_media_artifact_v1' ||
+    source.sha256 !== hashSkillValue(mediaManifest) ||
+    mediaManifest.sourceId !== sourceId ||
+    mediaManifest.ownerUserId !== assignment.ownerUserId ||
+    mediaManifest.workspaceId !== assignment.workspaceId ||
+    mediaManifest.projectId !== assignment.projectId ||
+    mediaManifest.mimeType !== 'video/mp4' ||
+    !mediaManifest.provenanceVerified ||
+    !mediaManifest.rightsApproved ||
+    !mediaManifest.privacyApproved ||
     !plan.sourceTrim ||
     ![24, 25, 30, 50, 60].includes(plan.sourceTrim.fps) ||
     plan.sourceTrim.fps !== assignment.writeRangeAuthority.authorizedRange.fps ||
@@ -431,10 +455,15 @@ function assertSourceExecutionAuthority(input: {
   ) throw new Error('B-roll existing-source execution authority is invalid or provider-bearing.')
 }
 
-function assertSourceBytes(bytes: Buffer, source: z.infer<typeof artifactRefSchema>): void {
+function assertSourceBytes(
+  bytes: Buffer,
+  source: z.infer<typeof artifactRefSchema>,
+  mediaManifest: SourceMediaArtifactV1,
+): void {
   if (
-    bytes.byteLength !== source.byteLength ||
-    sha256Bytes(bytes) !== source.sha256 ||
+    bytes.byteLength !== mediaManifest.byteLength ||
+    sha256Bytes(bytes) !== mediaManifest.objectSha256 ||
+    source.sha256 !== hashSkillValue(mediaManifest) ||
     source.artifactType !== 'source_media_artifact_v1'
   ) throw new Error('B-roll source bytes do not match the approved source artifact.')
 }
@@ -442,7 +471,7 @@ function assertSourceBytes(bytes: Buffer, source: z.infer<typeof artifactRefSche
 function assertMediaEvidence(input: {
   inspection: OfflineFfprobeExecutionResult
   normalized: OfflineFfmpegExecutionResult
-  source: z.infer<typeof artifactRefSchema>
+  sourceObjectSha256: string
   sourceTrim: z.infer<typeof skillFrameRangeSchema>
   frameCount: number
 }): void {
@@ -466,10 +495,10 @@ function assertMediaEvidence(input: {
   const semantic = normalized.evidence.semanticEvidence
   if (
     !streams.some((stream) => stream.codecType === 'video') ||
-    inspection.evidence.sourceSha256 !== input.source.sha256 ||
+    inspection.evidence.sourceSha256 !== input.sourceObjectSha256 ||
     inspection.evidence.containerExitCode !== 0 ||
     inspection.evidence.oomKilled ||
-    normalized.evidence.sourceSha256 !== input.source.sha256 ||
+    normalized.evidence.sourceSha256 !== input.sourceObjectSha256 ||
     normalized.evidence.resultSha256 !== normalized.resultArtifact.sha256 ||
     normalized.evidence.containerExitCode !== 0 ||
     normalized.evidence.oomKilled ||

@@ -74,7 +74,7 @@ assert.throws(
 
 const source = createSourceMediaArtifactV1({
   schemaVersion: 'source_media_artifact_v1',
-  ...lineage,
+  ...scope,
   sourceId: 'source-private-1',
   privateObjectIdentityHash: hashSkillValue({ privateObject: 'source-private-1' }),
   objectSha256: hashSkillValue({ bytes: 'source-private-1' }),

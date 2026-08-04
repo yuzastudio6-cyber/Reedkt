@@ -97,7 +97,7 @@ const usageSchema = z.object({
 
 export const canonicalProfessionalToolGpuUsageSchema = usageSchema
 
-const costBreakdownSchema = z.object({
+export const canonicalProfessionalGpuInfrastructureCostSchema = z.object({
   acceleratorOrMachineUsdNanos: nonnegativeInteger,
   vcpuUsdNanos: nonnegativeInteger,
   memoryUsdNanos: nonnegativeInteger,
@@ -119,6 +119,8 @@ const costBreakdownSchema = z.object({
     message: 'GPU infrastructure component costs do not reconcile.',
   })
 })
+
+const costBreakdownSchema = canonicalProfessionalGpuInfrastructureCostSchema
 
 const estimatePointSchema = z.object({
   usage: usageSchema,
@@ -368,6 +370,9 @@ export type CanonicalProfessionalToolGpuAttemptCostReceipt = z.infer<
 >
 
 export type CanonicalProfessionalToolGpuUsage = z.input<typeof usageSchema>
+export type CanonicalProfessionalGpuInfrastructureCost = z.infer<
+  typeof canonicalProfessionalGpuInfrastructureCostSchema
+>
 export type CanonicalProfessionalToolGpuUsageRange = {
   readonly low: CanonicalProfessionalToolGpuUsage
   readonly expected: CanonicalProfessionalToolGpuUsage
@@ -942,6 +947,23 @@ function costFor(
       + classAOperationsUsdNanos
       + classBOperationsUsdNanos,
   })
+}
+
+/**
+ * Shared exact infrastructure-cost calculation for canonical GPU attempt
+ * owners, including platform-funded preapproval analysis. This function does
+ * not create a customer settlement or mutate credits.
+ */
+export function calculateCanonicalProfessionalGpuInfrastructureCost(input: {
+  readonly rateAuthority: CanonicalCurrentGoogleCloudGpuRateAuthority
+  readonly usage: CanonicalProfessionalToolGpuUsage
+  readonly observedAt: string
+}): CanonicalProfessionalGpuInfrastructureCost {
+  const rate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+    input.rateAuthority,
+    input.observedAt,
+  )
+  return costFor(rate, usageForRoute(input.usage, rate.routeId))
 }
 
 function assertRateForRoute(

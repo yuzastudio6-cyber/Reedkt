@@ -14,6 +14,9 @@ import {
 } from '../edit-references/edit-reference-visual-intelligence-result-bridge'
 import { ApiError } from '../errors/api-error'
 import {
+  createGoogleBatchA100JobInvocationPort,
+} from '../services/canonical-a100-batch-job-invocation-service'
+import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
   type CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -59,6 +62,14 @@ import {
   createCanonicalSourceTranscriptOrchestraRepository,
   type CanonicalSourceTranscriptOrchestraRepository,
 } from '../services/canonical-source-transcript-orchestra-repository'
+import {
+  createCanonicalSourceTranscriptA100AttemptOwner,
+  type CanonicalSourceTranscriptA100AttemptOwner,
+  type CanonicalSourceTranscriptA100ReleaseReadPort,
+  type CanonicalSourceTranscriptA100UsageCostReadPort,
+  type CanonicalSourceTranscriptA100WorkerResultReadPort,
+  type CanonicalSourceTranscriptAdmissionReadPort,
+} from '../services/canonical-source-transcript-a100-attempt-owner'
 import {
   createCanonicalSourceVisualIntelligenceOrchestraBindingStore,
   createCanonicalSourceVisualIntelligenceOrchestraConsumerBindingPort,
@@ -176,6 +187,16 @@ export interface VisualIntelligenceProductionRuntime {
     readonly usageCostReadPort:
       CanonicalSourceAnalysisL4ProbeUsageCostReadPort
   }) => CanonicalSourceAnalysisL4ProbeAttemptOwner
+  readonly createSourceTranscriptA100AttemptOwner: (input: {
+    readonly finalizedAuthorityReadPort:
+      CanonicalSourceAnalysisFinalizedAuthorityReadPort
+    readonly admissionReadPort: CanonicalSourceTranscriptAdmissionReadPort
+    readonly releaseReadPort: CanonicalSourceTranscriptA100ReleaseReadPort
+    readonly workerResultReadPort:
+      CanonicalSourceTranscriptA100WorkerResultReadPort
+    readonly usageCostReadPort:
+      CanonicalSourceTranscriptA100UsageCostReadPort
+  }) => CanonicalSourceTranscriptA100AttemptOwner
   readonly createSourceAnalysisPreparationOwner: (input: {
     readonly finalizedAuthorityReadPort:
       CanonicalSourceAnalysisFinalizedAuthorityReadPort
@@ -351,6 +372,23 @@ export async function createVisualIntelligenceProductionRuntime(
     lifecycleObjectPort: objectPort,
     ...(dependencies.now ? { now: dependencies.now } : {}),
   })
+  const createSourceTranscriptA100AttemptOwnerFactory = (input: {
+    readonly finalizedAuthorityReadPort:
+      CanonicalSourceAnalysisFinalizedAuthorityReadPort
+    readonly admissionReadPort: CanonicalSourceTranscriptAdmissionReadPort
+    readonly releaseReadPort: CanonicalSourceTranscriptA100ReleaseReadPort
+    readonly workerResultReadPort:
+      CanonicalSourceTranscriptA100WorkerResultReadPort
+    readonly usageCostReadPort:
+      CanonicalSourceTranscriptA100UsageCostReadPort
+  }) => createCanonicalSourceTranscriptA100AttemptOwner({
+    ...input,
+    requestAuthorityReadPort: sourceAnalysisRequestAuthorityRepository,
+    invocationPort: createGoogleBatchA100JobInvocationPort(),
+    transcriptRepository: sourceTranscriptOrchestraRepository,
+    lifecycleObjectPort: objectPort,
+    ...(dependencies.now ? { now: dependencies.now } : {}),
+  })
   const sourceVideoUnderstandingConsumerBindingPort =
     createCanonicalSourceVisualIntelligenceOrchestraConsumerBindingPort({
       bindingStore: sourceVideoUnderstandingBindingStore,
@@ -437,6 +475,8 @@ export async function createVisualIntelligenceProductionRuntime(
     sourceLedOrchestraPlanningReconciliationPort,
     createSourceAnalysisL4ProbeAttemptOwner:
       createSourceAnalysisL4ProbeAttemptOwnerFactory,
+    createSourceTranscriptA100AttemptOwner:
+      createSourceTranscriptA100AttemptOwnerFactory,
     createSourceAnalysisPreparationOwner:
       createSourceAnalysisPreparationOwnerFactory,
     providerCapabilityId: 'visual_intelligence',

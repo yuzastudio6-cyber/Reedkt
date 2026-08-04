@@ -419,6 +419,10 @@ assert.equal(
   typeof runtime.createSourceAnalysisL4ProbeAttemptOwner,
   'function',
 )
+assert.equal(
+  typeof runtime.createSourceTranscriptA100AttemptOwner,
+  'function',
+)
 const missingSourceCleanupAuthority =
   await runtime.sourceCleanupAuthorityRepository.readForPlanning({
     ownerUserId: 'user-1',
@@ -1111,6 +1115,7 @@ console.log(JSON.stringify({
   sourceAnalysisProbeAuthorityRepositoryMounted: true,
   sourceTranscriptOrchestraRepositoryMounted: true,
   sourceAnalysisL4ProbeAttemptOwnerFactoryMounted: true,
+  sourceTranscriptA100AttemptOwnerFactoryMounted: true,
   sourcePreparationRequiresExactL4ProbeAuthority: true,
   sourceBindingPersistedBeforeProviderExecution: true,
   sourceBindingRequiresProbeTranscriptAndPlanningContext: true,

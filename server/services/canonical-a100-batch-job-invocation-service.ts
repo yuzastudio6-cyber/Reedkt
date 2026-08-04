@@ -17,12 +17,16 @@ export const CANONICAL_A100_BATCH_INVOCATION_RESULT_VERSION =
   'canonical-a100-batch-invocation-result-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
-const PROFILE_ID =
+export const CANONICAL_A100_SOURCE_TRANSCRIPT_PROFILE_ID =
   'quality_a100_80gb_user_triggered_heavy_job_v1' as const
-const OPERATION_ID =
+export const CANONICAL_A100_SOURCE_TRANSCRIPT_OPERATION_ID =
   'internal.source_transcript.transcribe_complete_audio_timeline.v2' as const
-const MODEL_COST_PROFILE_ID =
+export const CANONICAL_A100_SOURCE_TRANSCRIPT_MODEL_COST_PROFILE_ID =
   'faster_whisper_large_v3_source_transcription_v2' as const
+const PROFILE_ID = CANONICAL_A100_SOURCE_TRANSCRIPT_PROFILE_ID
+const OPERATION_ID = CANONICAL_A100_SOURCE_TRANSCRIPT_OPERATION_ID
+const MODEL_COST_PROFILE_ID =
+  CANONICAL_A100_SOURCE_TRANSCRIPT_MODEL_COST_PROFILE_ID
 const SERVICE_ACCOUNT_EMAIL =
   'reeditpro-source-transcript-a100@reeditpro.iam.gserviceaccount.com' as const
 const INVOCATION_ENVIRONMENT_NAME =

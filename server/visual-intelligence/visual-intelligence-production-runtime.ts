@@ -36,6 +36,10 @@ import {
   type CanonicalSourceAnalysisL4ProbeWorkerResultReadPort,
 } from '../services/canonical-source-analysis-l4-probe-attempt-owner'
 import {
+  createCanonicalSourceAnalysisL4VisualEvidenceRepository,
+  type CanonicalSourceAnalysisL4VisualEvidenceRepository,
+} from '../services/canonical-source-analysis-l4-visual-evidence-repository'
+import {
   createCanonicalSourceAnalysisPreparationOwner,
   type CanonicalSourceAnalysisFinalizedAuthorityReadPort,
   type CanonicalSourceAnalysisPreparationOwner,
@@ -130,7 +134,7 @@ import {
 } from './vertex-gemini-pro-visual-intelligence-adapter'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v3' as const
+  'visual-intelligence-production-runtime-v4' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -160,6 +164,8 @@ export interface VisualIntelligenceProductionRuntime {
     CanonicalSourceAnalysisRequestAuthorityRepository
   readonly sourceAnalysisProbeAuthorityRepository:
     CanonicalSourceAnalysisProbeAuthorityRepository
+  readonly sourceAnalysisL4VisualEvidenceRepository:
+    CanonicalSourceAnalysisL4VisualEvidenceRepository
   readonly sourceTranscriptOrchestraRepository:
     CanonicalSourceTranscriptOrchestraRepository
   readonly sourceLedOrchestraPlanningReconciliationPort:
@@ -308,6 +314,8 @@ export async function createVisualIntelligenceProductionRuntime(
     createCanonicalSourceAnalysisRequestAuthorityRepository({ objectPort })
   const sourceAnalysisProbeAuthorityRepository =
     createCanonicalSourceAnalysisProbeAuthorityRepository({ objectPort })
+  const sourceAnalysisL4VisualEvidenceRepository =
+    createCanonicalSourceAnalysisL4VisualEvidenceRepository({ objectPort })
   const sourceTranscriptOrchestraRepository =
     createCanonicalSourceTranscriptOrchestraRepository({ objectPort })
   const canonicalRequestPackageStore =
@@ -517,6 +525,7 @@ export async function createVisualIntelligenceProductionRuntime(
     sourceCleanupAuthorityRepository,
     sourceAnalysisRequestAuthorityRepository,
     sourceAnalysisProbeAuthorityRepository,
+    sourceAnalysisL4VisualEvidenceRepository,
     sourceTranscriptOrchestraRepository,
     sourceLedOrchestraPlanningReconciliationPort,
     createSourceAnalysisL4ProbeAttemptOwner:

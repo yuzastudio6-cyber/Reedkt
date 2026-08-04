@@ -34,6 +34,14 @@ export const VISUAL_INTELLIGENCE_ORCHESTRA_MANIFEST_ID =
   'visual-intelligence-orchestra-capability-manifest' as const
 export const VISUAL_INTELLIGENCE_ORCHESTRA_QUALIFICATION_SNAPSHOT_ID =
   'visual-intelligence-orchestra-source-candidate-qualification' as const
+export const VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS = Object.freeze({
+  fasterWhisper: 'tool.faster_whisper.transcribe_private_audio.v1',
+  ffmpeg: 'tool.ffmpeg.execute_approved_media_recipe.v1',
+  ffprobe: 'tool.ffprobe.inspect_approved_media.v1',
+  opencv: 'tool.opencv.analyze_approved_visual_artifacts.v1',
+  paddleocr: 'tool.paddleocr.extract_visible_text.v1',
+  pyscenedetect: 'tool.pyscenedetect.detect_scene_boundaries.v1',
+} as const)
 
 export interface VisualIntelligenceOrchestraJobDefinition
   extends SkillJobCapability {
@@ -391,30 +399,36 @@ const DEFINITION: SkillCapabilityManifestDefinitionInput = {
   },
   toolRoutes: [
     tool('faster-whisper-a100-primary', PLANNING_JOB_TYPES, 'gpu_model',
-      'tool.faster_whisper.transcribe_verified_source.v1',
+      VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.fasterWhisper,
       'a100_80gb_gpu_heavy', 'faster_whisper'),
     tool('faster-whisper-l4-qualified-fallback', PLANNING_JOB_TYPES,
-      'gpu_model', 'tool.faster_whisper.transcribe_verified_source.v1',
+      'gpu_model',
+      VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.fasterWhisper,
       'l4_gpu_standard', 'faster_whisper'),
     tool('ffmpeg-l4-media-evidence', ALL_JOB_TYPES, 'deterministic_tool',
-      'tool.ffmpeg.prepare_visual_evidence.v1', 'l4_gpu_standard', 'ffmpeg'),
+      VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffmpeg,
+      'l4_gpu_standard', 'ffmpeg'),
     tool('ffprobe-l4-colocated-evidence', ALL_JOB_TYPES, 'deterministic_tool',
-      'tool.ffprobe.probe_private_media.v1', 'l4_gpu_standard', 'ffprobe'),
+      VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.ffprobe,
+      'l4_gpu_standard', 'ffprobe'),
     tool('gemini-3-1-pro-high-managed-provider', ALL_JOB_TYPES,
       'managed_provider', 'provider.vertex.gemini_3_1_pro.visual_intelligence.v1',
       'managed_provider', 'vertex_gemini_pro'),
     tool('opencv-l4-visual-evidence', ALL_JOB_TYPES, 'deterministic_tool',
-      'tool.opencv.measure_visual_geometry.v1', 'l4_gpu_standard', 'opencv'),
+      VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.opencv,
+      'l4_gpu_standard', 'opencv'),
     tool('paddleocr-l4-visible-text-evidence', ids(
       'caption_boundary_readability_analysis',
       'final_render_visual_review_support',
       'scene_screen_text_analysis',
       'screen_content_video_analysis',
       'validate_visual_hierarchy',
-    ), 'gpu_model', 'tool.paddleocr.extract_visible_text.v1',
+    ), 'gpu_model',
+      VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.paddleocr,
       'l4_gpu_standard', 'paddleocr'),
     tool('pyscenedetect-l4-scene-evidence', PLANNING_JOB_TYPES,
-      'deterministic_tool', 'tool.pyscenedetect.detect_scene_changes.v1',
+      'deterministic_tool',
+      VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS.pyscenedetect,
       'l4_gpu_standard', 'pyscenedetect'),
   ].sort(by('routeId')),
   fallbackRoutes: [

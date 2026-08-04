@@ -10,6 +10,7 @@ import {
   createVisualIntelligenceOrchestraQualificationSnapshot,
   getVisualIntelligenceOrchestraJobDefinition,
   listVisualIntelligenceOrchestraJobDefinitions,
+  VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS,
   VISUAL_INTELLIGENCE_ORCHESTRA_CONTRACT_VERSION,
   VISUAL_INTELLIGENCE_ORCHESTRA_SKILL_VERSION,
 } from '../visual-intelligence/visual-intelligence-orchestra-capability-manifest'
@@ -116,6 +117,20 @@ const routeById = new Map(manifest.toolRoutes.map((route) => [
   route.routeId,
   route,
 ]))
+assert.deepEqual(
+  Object.fromEntries([
+    ['fasterWhisper', routeById.get('faster-whisper-a100-primary')
+      ?.operationId],
+    ['ffmpeg', routeById.get('ffmpeg-l4-media-evidence')?.operationId],
+    ['ffprobe', routeById.get('ffprobe-l4-colocated-evidence')?.operationId],
+    ['opencv', routeById.get('opencv-l4-visual-evidence')?.operationId],
+    ['paddleocr', routeById.get('paddleocr-l4-visible-text-evidence')
+      ?.operationId],
+    ['pyscenedetect', routeById.get('pyscenedetect-l4-scene-evidence')
+      ?.operationId],
+  ]),
+  VISUAL_INTELLIGENCE_CANONICAL_TOOL_OPERATION_IDS,
+)
 assert.equal(
   routeById.get('gemini-3-1-pro-high-managed-provider')?.executionClass,
   'managed_provider',

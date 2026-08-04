@@ -420,6 +420,10 @@ assert.equal(
   'canonical-source-transcript-orchestra-repository-v1',
 )
 assert.equal(
+  runtime.sourceAnalysisL4VisualEvidenceRepository.repositoryVersion,
+  'canonical-source-analysis-l4-visual-evidence-repository-v1',
+)
+assert.equal(
   typeof runtime.createSourceAnalysisL4ProbeAttemptOwner,
   'function',
 )

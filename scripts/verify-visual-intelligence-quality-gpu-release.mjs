@@ -55,6 +55,7 @@ const smokes = [
   'server/smoke/canonical-current-google-cloud-gpu-rate-authority-smoke.ts',
   'server/smoke/google-cloud-account-effective-gpu-rate-read-port-smoke.ts',
   'server/smoke/production-gpu-ai-install-smoke.ts',
+  'server/smoke/production-tool-cost-smoke.ts',
 ]
 
 for (const smoke of smokes) {

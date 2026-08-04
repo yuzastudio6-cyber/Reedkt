@@ -52,6 +52,7 @@ const requiredCoreQualificationSmokes = [
   'canonical-source-led-content-analysis-reasoner-smoke.ts',
   'canonical-planning-visual-intelligence-operation-owner-smoke.ts',
   'canonical-source-transcript-a100-attempt-owner-smoke.ts',
+  'production-tool-cost-smoke.ts',
 ] as const
 
 assert.equal(VISUAL_INTELLIGENCE_CAPABILITY_ID, 'visual_intelligence')

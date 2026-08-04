@@ -8,6 +8,7 @@ Run deterministic geometry with:
 npm run test:track-all-deterministic-geometry
 npm run test:track-all-privacy-redaction
 npm run test:track-all-focus-reframe
+npm run test:track-all-cross-skill-handoffs
 ```
 
 The privacy command runs all four fixed treatments and one attempt through the
@@ -24,6 +25,9 @@ The focus/reframe command builds the exact private Remotion source tree and
 executes actual tracked-magnification and speaker-reframe previews. It also
 compiles every supported simple focus treatment and a multi-target reframe.
 The outputs are private fixture evidence, not public or production renders.
+
+The cross-skill command validates the model-neutral geometry boundary for all
+nine consumers. It makes no peer-skill call and publishes no raw masks.
 
 Run the SAM authority, qualification-gate, and injected lifecycle checks with:
 

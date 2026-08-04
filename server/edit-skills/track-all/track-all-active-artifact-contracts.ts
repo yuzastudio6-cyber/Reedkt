@@ -230,11 +230,106 @@ export const trackAllRepairReceiptSchema = addressed(z.object({
   result: z.enum(['accepted', 'accepted_with_conservative_mask', 'needs_refinement', 'needs_manual_keyframe', 'needs_user_selection', 'identity_uncertain', 'privacy_coverage_blocked', 'blocked']),
 }).strict())
 
+const crossSkillGeometryPayloadSchema = z.discriminatedUnion('handoffKind', [
+  z.object({
+    handoffKind: z.literal('b_roll'),
+    speakerSafeTrackIds: z.array(safeId).max(100),
+    insetSafeRegionStrategy: z.literal('avoid_active_primary_subject_bounds'),
+    cropGuidance: z.literal('use_track_graph_v1_or_v2_authorized_geometry'),
+  }).strict(),
+  z.object({
+    handoffKind: z.literal('captions'),
+    foregroundTrackIds: z.array(safeId).max(1_000),
+    behindSubjectTrackIds: z.array(safeId).max(1_000),
+    faceSafeTrackIds: z.array(safeId).max(1_000),
+    occlusionOrderPolicy: z.literal('captions_resolve_design_track_all_supplies_geometry'),
+  }).strict(),
+  z.object({
+    handoffKind: z.literal('graphic_design'),
+    stableAnchorIds: z.array(safeId).max(10_000),
+    leaderLinePolicy: z.literal('anchor_to_visible_track_only'),
+    objectTrajectoryAvailable: z.boolean(),
+  }).strict(),
+  z.object({
+    handoffKind: z.literal('living_frame'),
+    subjectTrackIds: z.array(safeId).max(1_000),
+    depthOrderTrackIds: z.array(safeId).max(1_000),
+    foregroundOccluderTrackIds: z.array(safeId).max(1_000),
+    cameraTransformAvailable: z.boolean(),
+  }).strict(),
+  z.object({
+    handoffKind: z.literal('three_d'),
+    planarSurfaceIds: z.array(safeId).max(1_000),
+    occlusionTrackIds: z.array(safeId).max(1_000),
+    cameraTransformAvailable: z.boolean(),
+    scaleCuePolicy: z.literal('derive_from_planar_and_camera_geometry'),
+  }).strict(),
+  z.object({
+    handoffKind: z.literal('color'),
+    selectiveColorTrackIds: z.array(safeId).max(1_000),
+    skinProtectionTrackIds: z.array(safeId).max(1_000),
+    finalSelectiveColorOwnedByTrackAll: z.literal(false),
+  }).strict(),
+  z.object({
+    handoffKind: z.literal('sound'),
+    interactionFrames: z.array(z.number().int().nonnegative()).max(100_000),
+    enterExitFrames: z.array(z.number().int().nonnegative()).max(100_000),
+    movementCueFrames: z.array(z.number().int().nonnegative()).max(100_000),
+    finalSoundOwnedByTrackAll: z.literal(false),
+  }).strict(),
+  z.object({
+    handoffKind: z.literal('transition'),
+    foregroundOccluderTrackIds: z.array(safeId).max(1_000),
+    naturalWipeCandidateFrames: z.array(z.number().int().nonnegative()).max(100_000),
+    sceneBoundaryFrames: z.array(z.number().int().nonnegative()).max(10_000),
+    finalTransitionOwnedByTrackAll: z.literal(false),
+  }).strict(),
+  z.object({
+    handoffKind: z.literal('render'),
+    layerOrder: z.tuple([
+      z.literal('source'), z.literal('track_all_treatment'),
+      z.literal('peer_visuals'), z.literal('captions'),
+    ]),
+    exactFrameRangeRequired: z.literal(true),
+    privateMaskResolutionRequired: z.literal(true),
+    finalRenderOwnedByTrackAll: z.literal(false),
+  }).strict(),
+])
+
 export const trackAllCrossSkillHandoffSchema = addressed(z.object({
   schemaVersion: z.literal('track_all_cross_skill_handoff_v1'), ...lineageFields,
-  consumerSkillKey: z.enum(['b_roll', 'captions', 'graphic_design', 'real_motion', 'color', 'sound', 'transition', 'render']),
+  consumerSkillKey: z.enum(['b_roll', 'captions', 'graphic_design', 'living_frame', 'three_d', 'color', 'sound', 'transition', 'render']),
   trackGraphV1Ref: typedRef('track_graph_v1').optional(), trackGraphV2Ref: typedRef('track_graph_v2'),
   maskRefs: z.array(typedRef('track_mask_sequence_v1')).max(1_000), anchorGraphRefs: z.array(typedRef('track_anchor_graph_v1')).max(1_000),
   cameraMotionRef: typedRef('camera_motion_graph_v1').optional(), planarTrackRefs: z.array(typedRef('planar_track_graph_v1')).max(1_000),
+  geometryPayload: crossSkillGeometryPayloadSchema,
   geometryOnly: z.literal(true), finalPeerDesignOwnedByTrackAll: z.literal(false),
-}).strict())
+}).strict()).superRefine((value, context) => {
+  if (value.consumerSkillKey !== value.geometryPayload.handoffKind) {
+    context.addIssue({ code: 'custom', message: 'Cross-skill handoff consumer and geometry payload differ.' })
+  }
+  const refs = [
+    value.trackGraphV1Ref, value.trackGraphV2Ref, value.cameraMotionRef,
+    ...value.maskRefs, ...value.anchorGraphRefs, ...value.planarTrackRefs,
+  ].filter(Boolean) as z.infer<typeof editSkillArtifactReferenceSchema>[]
+  if (refs.some((ref) =>
+    ref.ownerUserId !== value.ownerUserId || ref.workspaceId !== value.workspaceId ||
+    ref.projectId !== value.projectId)) {
+    context.addIssue({ code: 'custom', message: 'Cross-skill handoff contains a cross-tenant reference.' })
+  }
+  const frames = value.geometryPayload.handoffKind === 'sound'
+    ? [
+        ...value.geometryPayload.interactionFrames,
+        ...value.geometryPayload.enterExitFrames,
+        ...value.geometryPayload.movementCueFrames,
+      ]
+    : value.geometryPayload.handoffKind === 'transition'
+      ? [
+          ...value.geometryPayload.naturalWipeCandidateFrames,
+          ...value.geometryPayload.sceneBoundaryFrames,
+        ]
+      : []
+  if (frames.some((frame) => !frameInside(frame, value.authorizedRange))) {
+    context.addIssue({ code: 'custom', message: 'Cross-skill handoff frame exceeds its authorized range.' })
+  }
+})

@@ -102,6 +102,18 @@ audio removed, and public output forbidden. Integration QA is derived from the
 actual Remotion attestation and frame-golden evidence. Color and Render retain
 final ownership. See `focus-and-reframe.md`.
 
+## Cross-skill geometry boundary
+
+TRACK-13 adds one strict content-addressed handoff compiler for B-Roll,
+Captions, Graphic Design, Living Frame, 3D, Color, Sound, Transition, and
+Render. It validates exact Track Graph V2 and box/mask/anchor/camera/planar
+lineage before producing consumer-specific discriminated geometry payloads.
+B-Roll also receives the frozen Track Graph V1 compatibility projection.
+
+The artifacts contain references and geometry policy only: private mask bytes
+remain private, peer skills retain final design ownership, and Track All does
+not dispatch any peer skill. See `cross-skill-handoffs.md`.
+
 ## Qualification boundary
 
 Passing planning smokes establishes tested planning behavior, not a frozen

@@ -44,15 +44,17 @@ import {
   type CanonicalSourceCleanupAuthorityRepository,
 } from '../services/canonical-source-cleanup-authority-repository'
 import {
+  createCanonicalSourceLedContentAnalysisReasoner,
+  createGpt56TerraSourceContentReasoningPort,
+  createKimiK3SourceContentReasoningPort,
+} from '../services/canonical-source-led-content-analysis-reasoner'
+import {
   createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort,
 } from '../services/canonical-source-led-orchestra-content-analysis-reconciliation'
 import {
   createCanonicalSourceLedOrchestraPlanningReconciliationPort,
   type CanonicalSourceLedOrchestraPlanningReconciliationPort,
 } from '../services/canonical-source-led-orchestra-planning-reconciliation'
-import type {
-  CanonicalSourceLedProfessionalContentAnalysisReasoner,
-} from '../services/canonical-source-led-professional-content-analysis-port'
 import {
   createCanonicalSourceTranscriptOrchestraRepository,
   type CanonicalSourceTranscriptOrchestraRepository,
@@ -159,6 +161,8 @@ export interface VisualIntelligenceProductionRuntime {
     CanonicalSourceAnalysisProbeAuthorityRepository
   readonly sourceTranscriptOrchestraRepository:
     CanonicalSourceTranscriptOrchestraRepository
+  readonly sourceLedOrchestraPlanningReconciliationPort:
+    CanonicalSourceLedOrchestraPlanningReconciliationPort
   readonly createSourceAnalysisL4ProbeAttemptOwner: (input: {
     readonly finalizedAuthorityReadPort:
       CanonicalSourceAnalysisFinalizedAuthorityReadPort
@@ -176,12 +180,6 @@ export interface VisualIntelligenceProductionRuntime {
     readonly finalizedAuthorityReadPort:
       CanonicalSourceAnalysisFinalizedAuthorityReadPort
   }) => CanonicalSourceAnalysisPreparationOwner
-  readonly createSourceLedOrchestraPlanningReconciliationPort: (
-    input: {
-      readonly reasoner:
-        CanonicalSourceLedProfessionalContentAnalysisReasoner
-    },
-  ) => CanonicalSourceLedOrchestraPlanningReconciliationPort
   readonly providerCapabilityId: 'visual_intelligence'
   readonly semanticEngine: 'gemini-3.1-pro-preview'
   readonly thinkingLevel: 'high'
@@ -311,18 +309,19 @@ export async function createVisualIntelligenceProductionRuntime(
       resultStore: orchestraJobResultStore,
       reportRepository: durableStore,
     })
-  const createSourceLedOrchestraPlanningReconciliationPort = (
-    input: {
-      readonly reasoner:
-        CanonicalSourceLedProfessionalContentAnalysisReasoner
-    },
-  ) => createCanonicalSourceLedOrchestraPlanningReconciliationPort({
+  const sourceLedContentAnalysisReasoner =
+    createCanonicalSourceLedContentAnalysisReasoner({
+      kimi: createKimiK3SourceContentReasoningPort({ env }),
+      terra: createGpt56TerraSourceContentReasoningPort({ env }),
+    })
+  const sourceLedOrchestraPlanningReconciliationPort =
+    createCanonicalSourceLedOrchestraPlanningReconciliationPort({
     requestAuthorityReadPort: sourceAnalysisRequestAuthorityRepository,
     reconciliationPort:
       createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort({
         transcriptReadPort: sourceTranscriptOrchestraRepository,
         visualIntelligenceReadPort: sourceVideoUnderstandingReadPort,
-        reasoner: input.reasoner,
+        reasoner: sourceLedContentAnalysisReasoner,
         authorityRepository: sourceCleanupAuthorityRepository,
       }),
   })
@@ -435,11 +434,11 @@ export async function createVisualIntelligenceProductionRuntime(
     sourceAnalysisRequestAuthorityRepository,
     sourceAnalysisProbeAuthorityRepository,
     sourceTranscriptOrchestraRepository,
+    sourceLedOrchestraPlanningReconciliationPort,
     createSourceAnalysisL4ProbeAttemptOwner:
       createSourceAnalysisL4ProbeAttemptOwnerFactory,
     createSourceAnalysisPreparationOwner:
       createSourceAnalysisPreparationOwnerFactory,
-    createSourceLedOrchestraPlanningReconciliationPort,
     providerCapabilityId: 'visual_intelligence',
     semanticEngine: 'gemini-3.1-pro-preview',
     thinkingLevel: 'high',

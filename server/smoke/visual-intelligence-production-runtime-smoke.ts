@@ -382,8 +382,8 @@ assert.equal(
   'canonical-source-visual-intelligence-orchestra-read-port-v1',
 )
 assert.equal(
-  typeof runtime.createSourceLedOrchestraPlanningReconciliationPort,
-  'function',
+  runtime.sourceLedOrchestraPlanningReconciliationPort.schemaVersion,
+  'canonical-source-led-orchestra-planning-reconciliation-v1',
 )
 assert.equal(
   runtime.sourceAnalysisRequestAuthorityRepository.repositoryVersion,
@@ -1104,7 +1104,8 @@ console.log(JSON.stringify({
   editReferenceResultRereadThroughConsumerPort: true,
   sourceVideoUnderstandingOrchestraBindingStoreMounted: true,
   sourceVideoUnderstandingOrchestraReadPortMounted: true,
-  sourcePlanningReconciliationFactoryMounted: true,
+  sourcePlanningReconciliationPortMounted: true,
+  sourceHeadReasonerCallerInjectionAllowed: false,
   sourcePreparedRequestAuthorityRepositoryMounted: true,
   sourceAnalysisPreparationOwnerFactoryMounted: true,
   sourceAnalysisProbeAuthorityRepositoryMounted: true,

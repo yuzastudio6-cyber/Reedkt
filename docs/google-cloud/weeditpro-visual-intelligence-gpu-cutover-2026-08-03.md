@@ -228,6 +228,16 @@ idempotent rerun then observed all five disabled and emitted
   content-addressed component record. Missing, crossed, caller-promoted, or
   digest-tampered evidence fails closed, and this owner cannot start a GPU job
   or mutate credits, assets, QA, delivery, or production authority.
+- The deterministic-run component now also has a restart-safe canonical owner.
+  It rereads the source/checkpoint qualification release and exactly thirty
+  distinct task, launch, response, admitted-result, private-output, and
+  account-effective attempt-cost lineages from durable storage. Every run must
+  use the same approved probe fixture, route, accelerator, immutable image, and
+  mask-set digest while proving actual CUDA inference, NVDEC, CUDA-resident
+  frames, bfloat16, strict checkpoint loading, source geometry/range
+  preservation, and terminal scale-to-zero. Missing or duplicate runs,
+  cross-route evidence, output drift, caller booleans, or one run replayed
+  thirty times fail closed.
 - Every fresh fixed SAM 3.1 task context now requires an exact, digest-bound
   `track_all` Orchestra call for one complete approved scene interval. The
   binding cross-checks the approved snapshot, output, scene, source artifact,

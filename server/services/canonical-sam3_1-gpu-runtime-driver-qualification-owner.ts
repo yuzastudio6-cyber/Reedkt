@@ -159,7 +159,7 @@ export function createCanonicalSam31GpuRuntimeDriverQualificationOwner(input: {
           componentId: request.componentId,
           componentVersion: 1,
           qualificationId: request.qualificationId,
-          route: routeForLaunch(launch),
+          route: canonicalSam31GpuQualificationRouteForLaunch(launch),
           immutableImageDigest: launch.immutableImageDigest,
           recordedAt: z.string().datetime({ offset: true }).parse(now()),
           componentKind: 'driver_and_cuda',
@@ -286,7 +286,9 @@ function assertExactLineage(input: {
   if (!exact) throw conflict('canonical_lineage_mismatch')
 }
 
-function routeForLaunch(launch: CanonicalProfessionalGpuJobLaunch) {
+export function canonicalSam31GpuQualificationRouteForLaunch(
+  launch: CanonicalProfessionalGpuJobLaunch,
+) {
   const primary = launch.routeId === 'a100_80gb_heavy_primary'
   const expected = primary
     ? {

@@ -618,6 +618,7 @@ export interface ApprovedPlanSnapshot {
   adaptiveEditStrategy?: AdaptiveEditStrategy
   adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan
   professionalSkillPlan?: ProfessionalSkillPlan
+  captionSpecialistSnapshotExtension?: import('./caption-specialist-integration').CaptionSpecialistApprovedSnapshotExtension
   toolRegistrySummary?: ToolRegistrySummary
   toolStrategyPlan?: ToolStrategyPlan
   renderStrategyPlan?: RenderStrategyPlan

@@ -1,5 +1,6 @@
 export * from './professional-skill-registry'
 export * from './professional-skill-planner'
+export * from './professional-skill-composition-trace'
 export * from './approved-snapshot-adapter-scope'
 export * from './backend-intent-display'
 export * from './bounded-adapter-tool-groups'

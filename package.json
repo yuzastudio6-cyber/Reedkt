@@ -376,7 +376,8 @@
     "smoke:captions-specialist-cap-15": "tsx server/smoke/captions-specialist-cap-15-smoke.ts",
     "smoke:captions-specialist-cap-15-runtime": "tsx server/smoke/captions-specialist-cap-15-runtime-smoke.ts",
     "smoke:captions-specialist-cap-15-vertical-repair-runtime": "tsx server/smoke/captions-specialist-cap-15-vertical-repair-runtime-smoke.ts",
-    "smoke:captions-specialist-cap-16": "tsx server/smoke/captions-specialist-cap-16-smoke.ts"
+    "smoke:captions-specialist-cap-16": "tsx server/smoke/captions-specialist-cap-16-smoke.ts",
+    "smoke:captions-specialist-cap-17": "tsx server/smoke/captions-specialist-cap-17-smoke.ts"
   },
   "dependencies": {
     "@babylonjs/core": "^9.15.0",

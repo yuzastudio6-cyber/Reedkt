@@ -1,6 +1,6 @@
 # Captions Specialist Implementation Roadmap
 
-Status: `CAP-16 complete QA and direct visual evidence admission complete; CAP-17 next`
+Status: `CAP-17 chat, snapshot, authenticated reload, revision, and observability source complete; CAP-18 next`
 
 ## Dependency graph
 
@@ -49,7 +49,7 @@ CAP-00R reconcile owners, history, and public seams
 | CAP-14 | multi-track Remotion scene group, masks/anchors, typed motion, deterministic/golden frames, pinned Chromium | Remotion owns final canvas |
 | CAP-15 | canvas-aware libass, SRT/WebVTT, localization, multilingual scripts, per-output recomposition, FFmpeg | stable/accessibility parity |
 | CAP-16 | semantic through export QA, professional visual inspection, local repairs and declared fallbacks | independent QA approval remains external |
-| CAP-17 | chat-native cards/revisions, existing approval/credits, snapshot/persistence, metrics, private tenancy | no browser-local completion |
+| CAP-17 | complete: chat-native cards/revisions, existing approval/credits, snapshot/persistence, metrics, private tenancy | no browser-local completion; shared writers remain external |
 | CAP-18 | complete real-media private matrix, direct MP4 inspection, per-job qualification | private/internal only |
 | CAP-19 | old IDs/styles/plans/snapshots, simple overlay route, retire duplicate/direct owners, rollback | no destructive removal before fixtures |
 | CAP-20 | full regression, security/license/performance/cost evidence, release manifest, blocked-job report, mounting guide | `caption_specialist_private_internal_qualified` only |

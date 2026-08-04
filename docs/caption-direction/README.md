@@ -1,8 +1,8 @@
-# Captions Specialist — CAP-16 Complete QA and Visual Evidence Checkpoint
+# Captions Specialist — CAP-17 Chat and Authenticated Reload Checkpoint
 
-Status: `cap_16_caption_qa_source_complete_actual_visual_evidence_admitted_external_gates_closed`
-Checkpoint: `CAP-16`
-Media runtime changes: none; exact previously inspected CAP-14/CAP-15 rasters admitted by digest
+Status: `cap_17_chat_snapshot_and_authenticated_reload_source_complete_shared_writers_external`
+Checkpoint: `CAP-17`
+Media runtime changes: none; CAP-17 is source/UI/integration-contract work
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
 This package reconciles the historical Caption Direction architecture with the
@@ -89,6 +89,7 @@ The governing workflow invariant remains:
 - [CAP-14 Remotion creative renderer report](cap-14-remotion-creative-renderer-report.md)
 - [CAP-15 accessibility, localization, and export report](cap-15-accessibility-localization-export-report.md)
 - [CAP-16 complete QA, repair, and fallback report](cap-16-complete-qa-repair-fallback-report.md)
+- [CAP-17 chat, persistence, and observability report](cap-17-chat-persistence-observability-report.md)
 
 ### Historical architecture retained and amended
 
@@ -124,7 +125,7 @@ The governing workflow invariant remains:
 
 ## Progression
 
-CAP-00R through CAP-07 are complete on the clean specialist branch. CAP-08's
+CAP-00R through CAP-17 are source-complete on the clean specialist branch. CAP-08's
 support/occupancy/hierarchy contracts are complete with actual private visual
 runtime evidence explicitly gated. CAP-09's Track All boundary, temporal QA,
 cache, and fallback contracts are complete with actual Track All/SAM 3.1 media
@@ -237,8 +238,16 @@ separate artifacts, and emits local repair plus declared fallback plans. The
 font/track runtime, complete-time Visual Intelligence, final mix, export,
 motion-playback where applicable, and independent final-QA evidence.
 
-Implementation continues automatically into CAP-17 chat-native presentation,
-approval/credit reuse, reload-safe persistence, revisions, and observability.
+CAP-17 adds the presentation-only Caption card to the existing Plan Review and
+private-review flow, exact composition-trace selection/restraint, immutable
+snapshot extension and tenant reread, plain-language versioned revisions,
+sanitized metrics, and the authenticated postrender reload client. It creates
+no second approval, charge, provider dispatcher, persistence store, private
+review, or final-QA owner. `not_found`, `pending`, and `completed` remain exact
+canonical backend read states; the browser cannot promote completion.
+
+Implementation continues automatically into CAP-18 private real-media
+qualification and direct visual inspection.
 Registry/workflow integration will consume
 these frozen public artifacts at its dependency-safe milestone; no Caption
 milestone manufactures a second planner or a false backend coverage claim.

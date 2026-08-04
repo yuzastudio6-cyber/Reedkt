@@ -129,6 +129,9 @@ import {
   createProfessionalPreparationDisplayItems,
   resolveApprovedSnapshotInternalTestAdapterToolNames,
 } from '../../lib/professional-skills'
+import {
+  createCaptionSpecialistPlanningPresentation,
+} from '../../lib/caption-direction/caption-specialist-integration'
 import { inferSourceSequenceMode, reorderClipsByMove } from '../../lib/source-sequence'
 import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import type { CanonicalEditJourneyStage } from '../../lib/canonical-edit-journey'
@@ -144,6 +147,7 @@ import { useCanonicalPrivateFinalDownload } from '../../hooks/useCanonicalPrivat
 import { useCanonicalPrivateReview } from '../../hooks/useCanonicalPrivateReview'
 import { useCanonicalSourceLedCaptionRevision } from '../../hooks/useCanonicalSourceLedCaptionRevision'
 import { useCanonicalSourceLedPlanPresentation } from '../../hooks/useCanonicalSourceLedPlanPresentation'
+import { useCaptionSpecialistStatus } from '../../hooks/useCaptionSpecialistStatus'
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus, MediaKind, ReeditProChatMessage } from '../../types'
 import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
 import type {
@@ -179,6 +183,7 @@ import { ChatMessageList } from './ChatMessageList'
 import { ChatThread } from './ChatThread'
 import { CanonicalJourneyStatusCard } from './CanonicalJourneyStatusCard'
 import { CanonicalPlanReviewController } from './CanonicalPlanReviewController'
+import { CaptionSpecialistStatusCard } from './CaptionSpecialistStatusCard'
 import {
   canonicalPlanApprovalReadyForPresentedPlan,
   recoverCanonicalPresentedPlanIdentity,
@@ -1489,6 +1494,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const [intentApproved, setIntentApproved] = useState(false)
   const [approved, setApproved] = useState(false)
   const [approvedSnapshot, setApprovedSnapshot] = useState<ApprovedPlanSnapshot | null>(null)
+  const captionSpecialistStatus = useCaptionSpecialistStatus({
+    enabled: canonicalPlanningBackendConnected && isProjectWorkspace,
+    scope: projectPersistenceScope,
+    snapshotExtension:
+      approvedSnapshot?.captionSpecialistSnapshotExtension,
+  })
   const [executionRehearsal, setExecutionRehearsal] = useState<EditSessionExecutionRehearsal | null>(null)
   const [sourceMediaAssets, setSourceMediaAssets] = useState<ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]>(() =>
     localProjectHandoff?.sourceMediaAssets?.length
@@ -2122,6 +2133,19 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
 
   const basePlan = useMemo(() => createGuidedMockEditPlan(plannerInput), [plannerInput])
   const plan = contextAwarePlanResult?.editPlan ?? basePlan
+  const captionSpecialistPlanningPresentation = useMemo(() => {
+    if (!plan.professionalSkillPlan?.compositionTrace) return null
+    try {
+      return createCaptionSpecialistPlanningPresentation(
+        plan.professionalSkillPlan,
+      )
+    } catch {
+      return null
+    }
+  }, [plan.professionalSkillPlan])
+  const captionSpecialistPresentation =
+    captionSpecialistStatus.presentation
+      ?? captionSpecialistPlanningPresentation
   const visibleEstimateReady = canonicalPlanningBackendConnected
     ? canonicalEstimateReady
     : Boolean(contextAwarePlanResult)
@@ -5504,6 +5528,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             onReviseSetup={handleReviseSetupFromPlanReview}
             planApproval={canonicalPlanningBackendConnected ? canonicalPlanApproval : undefined}
             plan={plan}
+            planSupplement={captionSpecialistPresentation ? (
+              <CaptionSpecialistStatusCard
+                presentation={captionSpecialistPresentation}
+              />
+            ) : undefined}
             planningPublication={
               canonicalPlanningBackendConnected &&
               !recoveredCanonicalPlanPresentation
@@ -5570,6 +5599,17 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                 </div>
                 <span className="clean-edit-step-meta">{visiblePlanEstimateCredits} estimated credits</span>
               </header>
+              {captionSpecialistPresentation ? (
+                <CaptionSpecialistStatusCard
+                  compact
+                  presentation={captionSpecialistPresentation}
+                />
+              ) : null}
+              {captionSpecialistStatus.message ? (
+                <p className="clean-edit-inline-warning" role="status">
+                  {captionSpecialistStatus.message}
+                </p>
+              ) : null}
               <div className="clean-edit-step-actions">
                 <span>
                   {canonicalPrivateReviewAccepted
@@ -5594,6 +5634,17 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
               </div>
               <span className="clean-edit-step-meta">{contextMockPreview?.creditsUsed ?? visiblePlanEstimateCredits} estimated credits</span>
             </header>
+            {captionSpecialistPresentation ? (
+              <CaptionSpecialistStatusCard
+                compact
+                presentation={captionSpecialistPresentation}
+              />
+            ) : null}
+            {captionSpecialistStatus.message ? (
+              <p className="clean-edit-inline-warning" role="status">
+                {captionSpecialistStatus.message}
+              </p>
+            ) : null}
             {privateFinalQaSummary ? <p className="clean-review-summary">{privateFinalQaSummary}</p> : null}
             {privateInternalDownloadFile ? (
               <video
@@ -5622,7 +5673,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                 <textarea
                   maxLength={500}
                   onChange={(event) => setPrivateInternalReviewNote(event.target.value)}
-                  placeholder="Required only when requesting changes"
+                  placeholder="Describe any edit change—caption wording, size, motion, placement, or something else"
                   rows={3}
                   value={privateInternalReviewNote}
                 />
@@ -6122,6 +6173,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
               onReviseSetup={handleReviseSetupFromPlanReview}
               planApproval={canonicalPlanningBackendConnected ? canonicalPlanApproval : undefined}
               plan={plan}
+              planSupplement={captionSpecialistPresentation ? (
+                <CaptionSpecialistStatusCard
+                  presentation={captionSpecialistPresentation}
+                />
+              ) : undefined}
               planningPublication={
                 canonicalPlanningBackendConnected &&
                 !recoveredCanonicalPlanPresentation
@@ -6391,7 +6447,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                     <textarea
                       maxLength={500}
                       onChange={(event) => setPrivateInternalReviewNote(event.target.value)}
-                      placeholder="Optional for acceptance. Required when requesting changes."
+                      placeholder="Optional for approval. For changes, describe caption wording, size, motion, placement, or any other edit change."
                       rows={3}
                       value={privateInternalReviewNote}
                     />

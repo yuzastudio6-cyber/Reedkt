@@ -39,6 +39,8 @@ import {
   resolveLivingFrameSelectionPolicy,
 } from '../living-frame/living-frame-selection-policy'
 import { listProfessionalSkillDefinitions } from './professional-skill-registry'
+import { createProfessionalSkillCompositionTrace } from
+  './professional-skill-composition-trace'
 
 function normalizeText(value: string | undefined) {
   return (value ?? '').toLowerCase().replace(/[_-]+/g, ' ')
@@ -629,6 +631,17 @@ function selectSkillIds(input: ProfessionalSkillPlannerInput) {
     }
   }
 
+  if (selected.has('captions.no_caption_policy')) {
+    for (const definition of definitions) {
+      if (
+        definition.family === 'captions' &&
+        definition.id !== 'captions.no_caption_policy'
+      ) {
+        selected.delete(definition.id)
+      }
+    }
+  }
+
   return selected
 }
 
@@ -739,9 +752,15 @@ export function createProfessionalSkillPlan(input: ProfessionalSkillPlannerInput
       ? 'No Edit Brief was provided; planning continues from prompt and source context.'
       : '',
   ].filter(Boolean)
+  const planId = `${input.plannerInput.projectName || 'project'}-professional-skill-plan`
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-')
+  const compositionTrace = createProfessionalSkillCompositionTrace({
+    planId,
+    selectedSkills,
+  })
 
   return {
-    id: `${input.plannerInput.projectName || 'project'}-professional-skill-plan`.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    id: planId,
     status,
     source: 'professional_skill_planner',
     selectedSkillCount: selectedSkills.length,
@@ -761,6 +780,7 @@ export function createProfessionalSkillPlan(input: ProfessionalSkillPlannerInput
     editBriefOptional: true,
     promptFirstPlanning: true,
     noUserVisibleToolNames: true,
+    compositionTrace,
   }
 }
 

@@ -9,8 +9,33 @@ import {
   VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE_ID,
 } from '../../../types/visual-intelligence'
 import type { ApiRouteDefinition } from '../api-runtime-contracts'
+import {
+  CAPTION_RENDERED_VISUAL_REVIEW_AUTHENTICATED_READ_ROUTE,
+  CAPTION_RENDERED_VISUAL_REVIEW_AUTHENTICATED_READ_ROUTE_ID,
+} from '../../../types/caption-direction-visual-review-authenticated-read'
 
 export const VISUAL_INTELLIGENCE_API_ROUTES: ApiRouteDefinition[] = [
+  {
+    id: CAPTION_RENDERED_VISUAL_REVIEW_AUTHENTICATED_READ_ROUTE_ID,
+    domain: 'visual_intelligence',
+    method: 'POST',
+    path: CAPTION_RENDERED_VISUAL_REVIEW_AUTHENTICATED_READ_ROUTE,
+    description:
+      'Read the Caption-owned projection of canonical postrender visual-QA lifecycle evidence for exact confirmed outputs.',
+    securityLevel: 'workspace_member',
+    runtimeMode: 'frontend_safe',
+    status: 'frontend_safe_ready',
+    requiresSupabase: false,
+    requiresServiceRole: false,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'readCaptionPostrenderVisualQaProjection',
+    notes: [
+      'The backend authenticates the principal, rereads the immutable snapshot and canonical lifecycle record, then recomputes the Caption projection digest.',
+      'Not-found and pending are valid reload-safe states; the browser cannot persist or promote completed provider or QA evidence.',
+      'This read route cannot dispatch Qwen, mutate the edit, approve QA, repair assets, charge credits, deliver publicly, or grant production authority.',
+    ],
+  },
   {
     id: VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE_ID,
     domain: 'visual_intelligence',

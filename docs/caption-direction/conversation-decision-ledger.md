@@ -28,6 +28,8 @@ contracts, historical CAP-00 documents, then examples.
 | CS-018 | The current Goal ends at `caption_specialist_private_internal_qualified`. | Public SaaS production is not required, but the Caption-owned surface and backend handoff must be complete and honest. |
 | CS-019 | Self-review and automatic continuation replace routine owner pauses. | Check, repair, document, checkpoint, push, and continue after each milestone. |
 | CS-020 | Illustrated-character animation and mechanical rigging are paused. | Those Living Frame research routes are non-admissible; non-character coordination remains available. |
+| CS-021 | Caption postrender completion is reload-safe canonical backend evidence, never browser-local state. | Edit Chat may show completed only after the authenticated Caption projection is reread and digest/scope/output lineage validates. |
+| CS-022 | Caption selection authority is the exact professional composition trace. | Require `caption_design` plus `caption_render_qa`, or the mutually exclusive `no_captions` restraint; never infer selection from a legacy optional component. |
 
 ## Superseded statements
 

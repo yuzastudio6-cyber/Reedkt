@@ -108,6 +108,19 @@ export async function persistApprovedPlanSnapshotToBackend(
     ? backendApprovedPlanSnapshot.id
     : undefined
 
+  if (backendSnapshotId && backendSnapshotId !== input.snapshot.id
+    && input.snapshot.captionSpecialistSnapshotExtension) {
+    return {
+      ok: false,
+      approvedSnapshot: input.snapshot,
+      persisted: true,
+      backendApprovedPlanSnapshot,
+      warnings: response.warnings,
+      errorMessage:
+        'The backend changed a Caption-bound snapshot ID without returning a newly projected exact Caption extension.',
+    }
+  }
+
   return {
     ok: true,
     approvedSnapshot: backendSnapshotId
@@ -205,6 +218,8 @@ function createApprovedSnapshotBackendPayload(snapshot: ApprovedPlanSnapshot): R
     },
     sourceOrder: snapshot.sourceSequence ?? [],
     professionalEditingDirective: snapshot.professionalEditingDirective ?? {},
+    captionSpecialistSnapshotExtension:
+      snapshot.captionSpecialistSnapshotExtension,
     segmentOperations: snapshot.operations ?? [],
     visualAssetPlan: snapshot.visualAssetPlanDomain ?? snapshot.visualAssetPlan ?? [],
     rendererPlan: snapshot.rendererCompositionPlanDomain ?? snapshot.rendererCompositionPlan ?? {},
@@ -267,9 +282,18 @@ function nonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
-function rebindApprovedPlanSnapshotId(snapshot: ApprovedPlanSnapshot, nextSnapshotId: string): ApprovedPlanSnapshot {
+export function rebindApprovedPlanSnapshotId(
+  snapshot: ApprovedPlanSnapshot,
+  nextSnapshotId: string,
+): ApprovedPlanSnapshot {
   if (snapshot.id === nextSnapshotId) return snapshot
-  return replaceJsonValue(snapshot, snapshot.id, nextSnapshotId) as ApprovedPlanSnapshot
+  if (snapshot.captionSpecialistSnapshotExtension) {
+    throw new Error(
+      'A Caption-bound snapshot cannot be rebound to another snapshot ID; the canonical backend must return a newly projected extension with exact downstream lineage.',
+    )
+  }
+  return replaceJsonValue(
+    snapshot, snapshot.id, nextSnapshotId) as ApprovedPlanSnapshot
 }
 
 function replaceJsonValue(value: unknown, previousValue: string, nextValue: string): unknown {

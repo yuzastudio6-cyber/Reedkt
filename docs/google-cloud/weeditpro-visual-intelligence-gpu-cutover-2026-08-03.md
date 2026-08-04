@@ -245,10 +245,22 @@ invocation of this operator boundary.
   exact immutable private qualification coordinate and server-only billing
   account resource. Those values never enter a browser or worker payload.
 - The current read-only cloud audit reports account-effective Gemini price
-  access as not ready for the active credential. No rate object exists and no
-  live model/SKU compatibility qualification has been observed. The runtime
-  therefore remains fail-closed even though source simulations cover both
-  context bands and immutable publication/replay behavior.
+  access as not ready. The local Application Default Credential requires fresh
+  human reauthentication, and an independent token-only read confirms the
+  active operator lacks `billing.billingAccountPrice.get`. The canonical API
+  identity therefore still needs `roles/billing.viewer` from an authorized
+  billing-account administrator. No rate object exists and no live model/SKU
+  compatibility qualification has been observed. The runtime remains
+  fail-closed even though source simulations cover both context bands and
+  immutable publication/replay behavior.
+- The guarded operator command
+  `npm run provision:visual-intelligence-account-price-reader` adds only that
+  read-only predefined role to the canonical API identity after exact project,
+  project-number, linked-billing-account, service-identity, and confirmation
+  checks. It never prints or persists the billing-account coordinate and grants
+  no billing mutation, payment, wallet, credit, provider, or production
+  authority. The current operator cannot execute it because their billing-
+  account IAM policy access is absent.
 
 ## Current disposition
 

@@ -45,7 +45,16 @@ for (const skuId of exactSkuIds) {
     exactSkuPriceReads += 1
   } catch (error) {
     const httpStatus = Number(error?.response?.status ?? error?.code ?? 0)
-    status = httpStatus === 401
+    const responseData = error?.response?.data
+    const applicationDefaultReauthenticationRequired =
+      httpStatus === 400
+      && responseData?.error === 'invalid_grant'
+      && responseData?.error_subtype === 'invalid_rapt'
+    status = applicationDefaultReauthenticationRequired
+      ? 'application_default_reauthentication_required'
+      : httpStatus === 400
+        ? 'account_price_read_request_rejected'
+        : httpStatus === 401
       ? 'authentication_required'
       : httpStatus === 403
         ? 'billing_account_price_permission_required'

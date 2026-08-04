@@ -10,80 +10,116 @@ Provider state: `mirelo_live_activation_pending_external_evidence`
 
 - Shared skill kernel: `server/edit-skills/core/`
 - Shared registry: `server/edit-skills/registry.ts`
-- Sound skill: `server/edit-skills/sound/` plus Sound-owned implementations in `server/sound/`
+- Sound skill: `server/edit-skills/sound/` and `server/sound/`
 - Stable invocation service: `server/edit-skills/sound/canonical-sound-skill-service.ts`
+- Composite graph: `server/edit-skills/sound/sound-execution-graph.ts`
 - Sound route executor: `server/edit-skills/sound/sound-route-executor.ts`
-- Exact route publication gate: `server/edit-skills/sound/sound-publication-validation.ts`
+- Exact handler registry: `server/edit-skills/sound/sound-operation-handler-registry.ts`
+- Capability/mode matrix: `server/edit-skills/sound/sound-capability-mode-matrix.ts`
+- Route publication gate: `server/edit-skills/sound/sound-publication-validation.ts`
 - Exact rational timebase: `server/edit-skills/core/timeline-rate.ts`
 - Bounded visual proxy: `server/sound/sound-bounded-visual-proxy.ts`
+- Local audio/mix processor: `server/sound/sound-local-audio-processor.ts`
 - Output QA: `server/sound/sound-execution-qa.ts`
 - Whole-video continuity: `server/sound/sound-continuity.ts`
 
-The former Sound-created generic framework under `server/orchestra/` and `src/types/skill-capability-manifest.ts` is retired. The repository contains no Sound-owned implementation of the real Head of Orchestra.
+The former Sound-created generic framework under `server/orchestra/` and
+`src/types/skill-capability-manifest.ts` remains retired. The repository contains no
+Sound-owned implementation of the real Head of Orchestra.
 
-## Published identity
+## Published identity and qualification
 
 - Skill key: `sound`
-- Skill version: `3.0.0`
-- Contract version: `sound.skill_contract.v3`
+- Skill version: `4.0.0`
+- Contract version: `sound.skill_contract.v4`
+- Manifest hash: `e971a332f814a4cf74a48700358f192b5f9696f5ee79c27f472cd53a6bec67a2`
 - Capability entries: 39
 - Mini-skills: 19
-- Tool manifests: 24
-- Route manifests: 19, each at route version `3.0.0`
+- Tool capability manifests loaded by Sound publication: 24
+- Route manifests: 19 at immutable route version `4.0.0`
 - Top-level qualification: `planning_qualified`
 
-The top-level qualification is intentionally bounded by planning-only creative/perceptual capabilities and Mirelo fixture evidence. Deterministic private-local operations separately derive `internal_execution_qualified`; MMAudio is `blocked`; material realism, acoustic naturalness, advanced room matching, emotional fit, and professional perceptual judgment remain `needs_review` without an evidence-backed evaluator.
+Version 4 is a new immutable publication; version 3 was not edited in place. The top-level
+qualification remains intentionally bounded by creative/perceptual planning capabilities
+and Mirelo fixture evidence. Deterministic private-local operations are
+`internal_execution_qualified`; Mirelo execution is fixture-only; MMAudio remains
+`blocked`; perceptual naturalness, material realism, emotional fit, advanced room matching,
+and professional listening judgment remain `needs_review` without qualified evidence.
 
-Version 3 is a new immutable publication for the execution-integrity closure. It adds the
-typed per-unit operation graph, operation handler registry, exact mutation and placement
-receipts, multi-cue/provider execution, partial-failure accounting, decoded mix evidence,
-and a separate deterministic ambience-extension route. Published version 2 was not edited
-in place.
+## Standalone execution
 
-## Execution evidence
+The Sound-owned service performs admission, context loading, Sound study/design,
+per-cue acquisition selection, exact child-route admission, topological execution,
+private artifact creation, synchronization, contextual mix rendering, measured QA,
+authority validation, caller receipts, executed localized revision, and terminal handoff.
+The future Orchestra does not need provider payloads, FFmpeg arguments, paths, credentials,
+candidate-ranking internals, or Sound QA internals.
 
-The same Sound-owned service performs capability admission, context loading, planning,
-per-cue/per-range graph compilation, route selection, execution admission, dependency-driven
-bounded route execution, private artifact creation, synchronization, contextual mix
-automation, output QA, authority validation, caller receipt, and final-composition handoff.
+Composite execution supports exact source-preservation, internal-library/project extraction,
+Mirelo fixture generation, mixed acquisition choices, multiple cues, multiple ranges, peer
+support, and whole-video assignments. Acquisition outputs flow into range-bound stems and
+terminal QA/handoff units. A failed unit preserves independent success and blocks only
+dependent units; unknown provider outcomes cannot be blindly retried.
 
-Every completed route step now has actual handler invocation evidence, start/completion
-timestamps, measured elapsed time, exact output IDs/hashes, the compiled operation-spec
-hash, and an operation-receipt hash. Skipped and failed steps cannot present completion
-receipts. Exact modified ranges are the union of successful mutation receipts, not the
-request's entire authority envelope.
+Every completed step has a real invocation receipt, elapsed time, operation-spec hash,
+named-output bundle, output IDs/hashes, and evidence references. Completed results require
+exact terminal private artifact references; no-Sound is an explicit typed outcome.
 
-Real private media tests cover study, extraction, trim, fade, gain, normalization, resampling, channel conversion, looping, time stretch, pitch shift, gentle cleanup, noise reduction, synchronization, mixing, stem creation, and QA. Output artifacts are decoded and measured for duration, sample rate, channels, clipping, true peak, loudness, checksums, and source immutability.
+## Media, timing, mixing, and QA
 
-Exact-rate coverage includes `24/1`, `25/1`, `30000/1001`, `30/1`, `50/1`, `60000/1001`, and `60/1`. Tests cover long-duration conversion without accumulated frame drift, artifact duration, cue lead/tail, hit anchors, fades, ducking attack/release, proxy extraction, and rate mismatch rejection.
+Real private media execution covers study, extraction, trim, fade, gain, normalization,
+resampling, channel conversion, looping, time stretch, pitch shift, gentle cleanup, noise
+reduction, synchronization, mixing, stem creation, and QA. Sources remain immutable and
+unsafe paths/arguments are rejected.
 
-The bounded visual proxy executes a fixed allowlisted FFmpeg profile. It verifies source path, version, visual hash, checksum, range, handles, exact rate, output media, checksum, permissions, source immutability, and idempotent replay. It removes source audio and rejects traversal, symlinks, source overwrite, unauthorized ranges, hash mismatches, and rate mismatches. Provider-returned visual media never replaces the approved visual.
+The exact rational rate is bound through requests, approved timeline manifests, operation
+specifications, artifacts, SoundSync placements, proxies, fades, ducking, tails, and QA.
+Coverage includes `24/1`, `25/1`, `30000/1001`, `30/1`, `50/1`, `60000/1001`, and `60/1`
+without an authoritative decimal-FPS fallback.
 
-Injected Mirelo text and video tests execute through the canonical service and production-shaped route graph. Separate adapter tests cover official-profile request shape, preflight, private ingest, carrier audio extraction, provider visual rejection, timeouts, provider failures, unknown outcomes, reconciliation, no blind resubmission, hostile URL rejection, idempotency, cost evidence, and secret/URL non-persistence.
+Mix rendering applies bounded base gain, gain envelopes, fades, protected-speech ducking,
+attack/release, Music collision policy, EQ, dynamics, pan, perspective, room treatment, and
+headroom. Technical, sync, mix, continuity, provenance, and integration QA operate on real
+outputs where execution qualification is claimed. Perceptual/material checks remain
+needs-review.
 
-## Ownership and compatibility
+Whole-video continuity produces structured scene/range, environment, ambience, dialogue,
+Music, perspective, cue-density, repetition, boundary, intentional-silence, loudness,
+dependency, and localized-revision findings while preserving bounded write authority.
 
-Sound accepts typed Head and peer assignments with exact read/write authority. Peer callers cannot select tools, build provider payloads, supply executable arguments, dispatch workers, or expand authority. Sound may read whole-video context while mutating only assigned audio ranges. Visual mutation remains empty unless a separate approved visual proposal is routed outside Sound.
+## Mirelo and visual privacy
 
-SoundSync is an internal mini-skill. Music context is read-only; composition and Music ownership are excluded. Final mux, render, export, delivery, and publishing remain outside Sound. The single legacy compatibility adapter emits planning-only canonical request seeds and routes legacy Music intent to the future Music skill; it has no provider, worker, route-executor, proxy, or local-media execution access.
+Injected Mirelo text/video execution uses the same canonical service, route graph, attempt
+lifecycle, private ingest, candidate processing, ranking, and QA boundaries intended for
+future live transport. Video-conditioned execution uses the real bounded private proxy.
+The proxy is range/hash/version/rate-bound, private, idempotent, source-immutable, and strips
+source audio by default. Provider carrier visuals are rejected and cannot replace approved
+visuals; durable provider URLs and secrets are not result authority.
 
-## External activation requirements
+Live Mirelo qualification still requires an approved commercial account, privacy and
+retention approval, account-specific rate conversion, deployed private runtime, quota and
+reconciliation evidence, a controlled private canary, and generated-output QA. No paid live
+call or production canary is claimed.
 
-Mirelo production qualification requires a live private canary, approved commercial account, approved privacy and retention treatment, verified account-specific rate conversion, deployed worker/runtime evidence, quota and reconciliation evidence, and real generated-output QA. Production FFmpeg execution also requires the approved deployable LGPL build/configuration and deployed runtime evidence. New evidence must publish new immutable versions; it cannot mutate `3.0.0` in place.
+## Ownership and retirement
 
-Global skill discovery, global work-graph construction, persistence, scheduling, approval coordination, credit aggregation, cross-skill conflict resolution, and final composition coordination are intentionally reserved for the future Head of Orchestra.
+Typed Head and peer callers receive capability views and submit bounded Sound requests;
+they cannot invoke Sound tools, supply provider payloads, dispatch workers, or expand
+authority. SoundSync is an internal mini-skill. Music context is read-only, and Sound does
+not compose or own Music. Final mux, render, export, delivery, and publishing remain outside
+Sound. The single legacy adapter is planning-only and cannot bypass the shared manifest,
+scope guard, canonical service, route admission, or approved operation profiles.
 
-## Final acceptance evidence
+## Acceptance and CI
 
-The closure was validated locally on 2026-08-04 with:
+`npm run test:sound-acceptance` is the canonical aggregate. It validates the shared kernel,
+B-roll compatibility, all Sound publications/routes, local media, Mirelo fixtures, legacy
+retirement, end-to-end behavior, final-closure regressions, execution integrity, and all 39
+job contracts. A dedicated `Canonical Sound Acceptance` GitHub Actions workflow installs
+FFmpeg and runs the aggregate plus server typecheck, lint, build, and secret checks on Sound
+changes.
 
-- `npm run test:sound-acceptance` — passed all canonical Sound smokes, the execution-integrity regression suite, and all 39 declared job contracts (28 executable, 11 explicitly planning-only);
-- `npm run test:edit-skill-capability-kernel` — passed the neutral shared-kernel regression;
-- `npm run test:b-roll-capability-manifest` — passed the cross-skill shared-kernel regression;
-- `npm run typecheck:server` — passed;
-- `npm run lint` — passed;
-- `npm run build` — passed with the repository's existing chunk-size and ineffective-dynamic-import warnings;
-- `npm run check:secrets` and `npm run check:frontend-boundary` — passed;
-- `git diff --check` — passed.
-
-No live Mirelo request, paid provider call, CI workflow, deployment, or canary was run. Mirelo remains fixture-qualified and fail-closed for live activation without the external evidence listed above.
+Actual Orchestra integration remains pending by design: global discovery/selection, global
+work-graph construction, persistence, scheduling, approval coordination, credit aggregation,
+cross-skill conflict resolution, and final-composition coordination belong to the future
+Head of Orchestra.

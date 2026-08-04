@@ -1,5 +1,8 @@
 # Canonical Sound execution-integrity audit
 
+> Historical audit: this report describes the version 3 closure baseline. The findings are
+> superseded by Sound `4.0.0` and `canonical-sound-final-execution-audit.md`.
+
 Status: `implemented_and_acceptance_qualified`
 
 Audit baseline:

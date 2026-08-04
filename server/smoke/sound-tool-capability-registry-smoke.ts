@@ -20,7 +20,7 @@ validateCanonicalSoundPublication()
 const routes = listSoundToolRouteManifests()
 assert.equal(routes.length, 19)
 for (const route of routes) {
-  assert.equal(route.routeVersion, '3.0.0')
+  assert.equal(route.routeVersion, '4.0.0')
   assert.match(route.routeHash, /^[a-f0-9]{64}$/)
   for (const step of route.orderedOrGraphSteps) {
     const operation = getToolOperationCapability(step.toolKey, step.operationKey, step.toolVersionConstraint)
@@ -32,18 +32,26 @@ for (const route of routes) {
     route.orderedOrGraphSteps.some((step) => step.outputBindings.includes(output))))
 }
 validateSoundOperationHandlerCoverage(routes)
+const routeWithUnknownProfileVersion = structuredClone(
+  getSoundToolRouteManifest('sound.route.no_sound.v1', '4.0.0')!,
+)
+routeWithUnknownProfileVersion.orderedOrGraphSteps[0]!.operationProfileVersion = '9.9.9'
+assert.throws(
+  () => validateSoundOperationHandlerCoverage([routeWithUnknownProfileVersion]),
+  /has no exact operation\/profile handler registration/i,
+)
 const routeWithUnregisteredRequiredHandler = structuredClone(
-  getSoundToolRouteManifest('sound.route.generate.video_sfx.mirelo.v1', '3.0.0')!,
+  getSoundToolRouteManifest('sound.route.generate.video_sfx.mirelo.v1', '4.0.0')!,
 )
 const optionalAdvancedStep = routeWithUnregisteredRequiredHandler.orderedOrGraphSteps.find((step) =>
   step.toolKey === 'pedalboard')!
 optionalAdvancedStep.required = true
 assert.throws(
   () => validateSoundOperationHandlerCoverage([routeWithUnregisteredRequiredHandler]),
-  /has no registered operation handler/i,
+  /has no exact operation\/profile handler registration/i,
 )
 
-const mirelo = getSoundToolRouteManifest('sound.route.generate.video_sfx.mirelo.v1', '3.0.0')!
+const mirelo = getSoundToolRouteManifest('sound.route.generate.video_sfx.mirelo.v1', '4.0.0')!
 assert.equal(mirelo.qualificationStatus, 'planning_qualified')
 assert.ok(mirelo.qualificationEvidenceRefs.some((ref) => ref.includes('injected_transport')))
 const mireloOperation = getToolOperationCapability('mirelo_sfx', 'generate_video_conditioned_sfx', '1.6')!
@@ -59,7 +67,7 @@ assert.equal(qualificationSupportsToolMode(
   mireloOperation.operation.qualificationEvidenceLevel,
 ), false)
 
-const mmaudio = getSoundToolRouteManifest('sound.route.generate.video_sfx.mmaudio.v1', '3.0.0')!
+const mmaudio = getSoundToolRouteManifest('sound.route.generate.video_sfx.mmaudio.v1', '4.0.0')!
 assert.equal(mmaudio.qualificationStatus, 'blocked')
 assert.equal(soundSkillCapabilityManifest.toolRoutes.some((route) => route.routeKey === mmaudio.routeKey), false)
 assert.equal(soundSkillCapabilityManifest.fallbackRoutes.some((route) => route.routeKey === mmaudio.routeKey), false)
@@ -80,14 +88,14 @@ const [firstMiniKey, firstMini] = Object.entries(soundMiniSkillManifests)[0]!
 const invalidMiniSkills = {
   ...soundMiniSkillManifests,
   [firstMiniKey]: { ...firstMini, routeRefs: [{
-  routeKey: 'sound.route.unregistered.mini.v1', routeVersion: '3.0.0', routeHash: '0'.repeat(64),
+  routeKey: 'sound.route.unregistered.mini.v1', routeVersion: '4.0.0', routeHash: '0'.repeat(64),
   }, ...firstMini.routeRefs.slice(1)] },
 }
 assert.throws(() => validateCanonicalSoundPublication({
   miniSkills: invalidMiniSkills,
 }), /unresolved Sound route/i)
 
-const noSound = getSoundToolRouteManifest('sound.route.no_sound.v1', '3.0.0')!
+const noSound = getSoundToolRouteManifest('sound.route.no_sound.v1', '4.0.0')!
 const {
   routeHash: _hash,
   qualificationStatus: _status,
@@ -100,7 +108,7 @@ void _byMode
 assert.throws(() => publishSoundToolRouteManifest({
   ...(structuredClone(noSoundSeed) as UnpublishedSoundToolRouteManifest),
   routeKey: 'sound.route.invalid.unknown_operation.v1',
-  routeVersion: '3.0.0',
+  routeVersion: '4.0.0',
   orderedOrGraphSteps: [{
     ...structuredClone(noSoundSeed.orderedOrGraphSteps[0]!),
     toolKey: 'unknown_tool', operationKey: 'unknown_operation',
@@ -109,13 +117,13 @@ assert.throws(() => publishSoundToolRouteManifest({
 assert.throws(() => publishSoundToolRouteManifest({
   ...(structuredClone(noSoundSeed) as UnpublishedSoundToolRouteManifest),
   routeKey: 'sound.route.invalid.job_operation_mismatch.v1',
-  routeVersion: '3.0.0',
+  routeVersion: '4.0.0',
   supportedJobTypes: ['normalize_audio'],
 }), /does not support route jobs/i)
 assert.throws(() => publishSoundToolRouteManifest({
   ...(structuredClone(noSoundSeed) as UnpublishedSoundToolRouteManifest),
   routeKey: 'sound.route.invalid.step_output.v1',
-  routeVersion: '3.0.0',
+  routeVersion: '4.0.0',
   orderedOrGraphSteps: [{
     ...structuredClone(noSoundSeed.orderedOrGraphSteps[0]!),
     outputBindings: ['undeclared_step_output'],
@@ -124,18 +132,18 @@ assert.throws(() => publishSoundToolRouteManifest({
 assert.throws(() => publishSoundToolRouteManifest({
   ...(structuredClone(noSoundSeed) as UnpublishedSoundToolRouteManifest),
   routeKey: 'sound.route.invalid.output.v1',
-  routeVersion: '3.0.0',
+  routeVersion: '4.0.0',
   producedArtifactTypes: ['undeclared_output'],
 }), /not produced/i)
 
 const invalidFallback = publishSoundToolRouteManifest({
   ...(structuredClone(noSoundSeed) as UnpublishedSoundToolRouteManifest),
   routeKey: 'sound.route.invalid.fallback_input.v1',
-  routeVersion: '3.0.0',
+  routeVersion: '4.0.0',
   supportedJobTypes: ['extract_project_owned_sound'],
   fallbackPolicy: {
     ...structuredClone(noSoundSeed.fallbackPolicy),
-    fallbackRouteRefs: [{ routeKey: 'sound.route.acquire.project_source.v1', routeVersion: '3.0.0' }],
+    fallbackRouteRefs: [{ routeKey: 'sound.route.acquire.project_source.v1', routeVersion: '4.0.0' }],
   },
 })
 registerSoundToolRouteManifest(invalidFallback)

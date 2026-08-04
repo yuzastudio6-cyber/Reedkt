@@ -208,6 +208,7 @@ try {
     approvedWorkItemId: 'approved-work-mirelo',
     privateOutputScopeId: 'mirelo-private-scope',
     idempotencyKey: 'carrier-local-idempotency',
+    operationSpecHash: createHash('sha256').update('carrier-local-operation').digest('hex'),
     timelineRate: { numerator: 30, denominator: 1 },
     creditReservationId: 'credit-reservation-mirelo',
     routeBinding: carrierRouteAdmission.binding!,

@@ -132,11 +132,12 @@ try {
       approvedWorkItemId: 'local-security-work',
       privateOutputScopeId: replayRequest.executionAuthority.privateOutputScopeId!,
       idempotencyKey: 'local-security-fixture',
+      operationSpecHash: createHash('sha256').update('local-security-operation').digest('hex'),
       timelineRate: replayRequest.timelineRate,
       routeBinding: first.toolRouteBindings[0]!,
     },
     operation: 'trim_fade_gain',
-    operationProfileKey: 'sound.trim-fade-gain.v1',
+    operationProfileKey: 'sound.trim-fade-gain.edit.v1',
     sources: [{ artifact: runtime.audioArtifact, absolutePath: runtime.audioPath }],
     approvedInputRoot: runtime.inputRoot,
     privateOutputRoot: runtime.outputRoot,
@@ -157,6 +158,22 @@ try {
     outputRelativePath: 'sound/safe.wav',
     arguments: ['-i', '/etc/passwd'],
   } as unknown as SoundLocalAudioExecutionPackage), /unsupported fields: arguments/i)
+
+  const collisionSafePackage: SoundLocalAudioExecutionPackage = {
+    ...directLocalPackage,
+    executionId: 'local-idempotency-collision-fixture-a',
+    outputRelativePath: 'sound/idempotency-collision.wav',
+    outputArtifactId: 'idempotency-collision-output',
+  }
+  await runSoundLocalAudioExecution(collisionSafePackage)
+  await assert.rejects(runSoundLocalAudioExecution({
+    ...collisionSafePackage,
+    executionId: 'local-idempotency-collision-fixture-b',
+    binding: {
+      ...collisionSafePackage.binding,
+      operationSpecHash: createHash('sha256').update('different-approved-operation').digest('hex'),
+    },
+  }), /idempotency collision/i)
 
   const unsafe = buildExecutableSoundRequest({ runtime, job: 'trim_audio' })
   unsafe.sourceAudioRefs[0]!.checksumSha256 = '0'.repeat(64)

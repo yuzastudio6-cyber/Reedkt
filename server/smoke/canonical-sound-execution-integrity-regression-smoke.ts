@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import {
   StandaloneCanonicalSoundSkillService,
+  StructuredRequestSoundContextLoader,
   type ApprovedSoundExecutionPackage,
   type CanonicalSoundArtifactResolver,
   type CanonicalSoundPlanResult,
@@ -200,6 +202,43 @@ try {
         receipt.range.rangeId === 'revision-b')?.artifactId))
   })
 
+  await verify('localized revision execution reruns only invalidated ranges', async () => {
+    const request = buildExecutableSoundRequest({ runtime, job: 'trim_audio' })
+    request.assignmentScope.assignmentMode = 'multi_range'
+    request.assignmentScope.authorizedAudioWriteRanges = [
+      soundRange('revision-execute-a', 0, 45), soundRange('revision-execute-b', 45, 90),
+    ]
+    request.eventAnchors = [
+      { ...request.eventAnchors[0]!, anchorId: 'revision-execute-event-a', frame: 15, endFrameExclusive: 24 },
+      { ...request.eventAnchors[0]!, anchorId: 'revision-execute-event-b', frame: 60, endFrameExclusive: 69 },
+    ]
+    request.requestId = 'localized-executed-revision-request'
+    request.idempotencyKey = 'localized-executed-revision-idempotency'
+    request.attemptId = 'localized-executed-revision-attempt'
+    const basePlan = await local.plan(request)
+    const base = await local.execute(executionPackage(basePlan, 'localized-revision-base'))
+    const preserved = base.mutationReceipts?.find((receipt) => receipt.range.rangeId === 'revision-execute-a')
+    const replaced = base.mutationReceipts?.find((receipt) => receipt.range.rangeId === 'revision-execute-b')
+    assert.ok(preserved && replaced)
+    const revised = await local.executeRevision({
+      request,
+      previousResult: base,
+      invalidatedRanges: [soundRange('revision-execute-b', 45, 90)],
+      execution: {
+        packageId: 'localized-revision-execution-package',
+        approvedWorkItemId: 'localized-revision-execution-work',
+        selectedOptionalStepKeys: [],
+      },
+    })
+    assert.equal(revised.status, 'completed')
+    assert.deepEqual(revised.modifiedAudioRanges.map((range) => range.rangeId), ['revision-execute-b'])
+    assert.ok(revised.selectedAssetVersions.some((artifact) => artifact.artifactId === preserved.artifactId))
+    assert.ok(!revised.selectedAssetVersions.some((artifact) => artifact.artifactId === replaced.artifactId))
+    assert.equal(revised.revisionEvidence?.unaffectedArtifactsReused, true)
+    assert.equal(revised.revisionEvidence?.replacedUnitIds.length, 1)
+    assert.equal(revised.finalCompositionHandoff?.finalSoundArtifactReferences.length, 2)
+  })
+
   await verify('typed mix directives change real output bytes and remain hash-bound', async () => {
     const executeMix = async (suffix: string, secondGainDb: number) => {
       const request = buildExecutableSoundRequest({
@@ -343,6 +382,7 @@ try {
       approvedWorkItemId: 'carrier-service-work',
       privateOutputScopeId: request.executionAuthority.privateOutputScopeId!,
       idempotencyKey: request.idempotencyKey,
+      operationSpecHash: createHash('sha256').update(`carrier:${request.idempotencyKey}`).digest('hex'),
       timelineRate: request.timelineRate,
       creditReservationId: request.executionAuthority.creditReservationId!,
       routeBinding,
@@ -393,7 +433,314 @@ try {
     assert.ok((result.actualExecutionEvidence?.toolRuntimeEvidenceIds.length ?? 0) >= 2)
     const candidateStudies = result.actualExecutionEvidence?.stepEvidence.filter((step) =>
       step.operationKey === 'analyze_audio_pcm' && step.status === 'completed') ?? []
-    assert.ok(candidateStudies.some((step) => step.evidenceRefs.length === 1))
+    assert.ok(candidateStudies.some((step) => step.outputBindingKeys.includes('candidate_transient_report')))
+    assert.equal(result.candidateProcessingReceipts?.length, 2)
+    assert.equal(result.candidateSelectionRecord?.candidateArtifactIds.length, 2)
+  })
+
+  await verify('one rejected provider candidate does not discard a healthy candidate', async () => {
+    const injected = createInjectedMireloAdapter({ runtime })
+    const candidateIsolatingResolver: CanonicalSoundArtifactResolver = {
+      async resolve(artifact) {
+        if (artifact.artifactId.endsWith('.candidate.1')) {
+          throw new Error('simulated candidate-specific decode failure')
+        }
+        return runtime.resolver.resolve(artifact)
+      },
+      privateOutputRoot(scopeId) { return runtime.resolver.privateOutputRoot(scopeId) },
+    }
+    const service = new StandaloneCanonicalSoundSkillService({
+      artifacts: candidateIsolatingResolver, mirelo: injected.adapter,
+    })
+    const request = buildExecutableSoundRequest({
+      runtime, job: 'generate_text_conditioned_sfx', mode: 'fixture',
+    })
+    request.requestId = 'candidate-isolation-request'
+    request.idempotencyKey = 'candidate-isolation-idempotency'
+    request.attemptId = 'candidate-isolation-attempt'
+    request.costPolicy.candidateCount = 2
+    const plan = await service.plan(request)
+    const result = await service.execute(executionPackage(plan, 'candidate-isolation'))
+    assert.equal(result.status, 'completed')
+    assert.equal(result.selectedAssetVersions.length, 1)
+    assert.ok(result.candidateProcessingReceipts?.some((receipt) =>
+      receipt.candidateArtifactId.endsWith('.candidate.1') && !receipt.eligibleForSelection))
+    assert.ok(result.candidateSelectionRecord?.selectedArtifactId, JSON.stringify({
+      status: result.status,
+      candidateProcessingReceipts: result.candidateProcessingReceipts,
+      candidateSelectionRecord: result.candidateSelectionRecord,
+      steps: result.actualExecutionEvidence?.stepEvidence,
+    }))
+  })
+
+  await verify('all provider candidates rejected yields a blocked result', async () => {
+    const injected = createInjectedMireloAdapter({ runtime })
+    const rejectingResolver: CanonicalSoundArtifactResolver = {
+      async resolve(artifact) {
+        if (artifact.artifactId.startsWith('mirelo.')) {
+          throw new Error('simulated all-candidate decode failure')
+        }
+        return runtime.resolver.resolve(artifact)
+      },
+      privateOutputRoot(scopeId) { return runtime.resolver.privateOutputRoot(scopeId) },
+    }
+    const service = new StandaloneCanonicalSoundSkillService({
+      artifacts: rejectingResolver, mirelo: injected.adapter,
+    })
+    const request = buildExecutableSoundRequest({
+      runtime, job: 'generate_text_conditioned_sfx', mode: 'fixture',
+    })
+    request.requestId = 'candidate-exhaustion-request'
+    request.idempotencyKey = 'candidate-exhaustion-idempotency'
+    request.attemptId = 'candidate-exhaustion-attempt'
+    request.costPolicy.candidateCount = 2
+    const plan = await service.plan(request)
+    const result = await service.execute(executionPackage(plan, 'candidate-exhaustion'))
+    assert.equal(result.status, 'blocked')
+    assert.ok(result.executionUnits?.some((unit) => unit.status === 'failed'))
+    assert.ok(result.fallbackEvidence?.some((evidence) => evidence.decision === 'blocked'))
+    assert.equal(result.candidateProcessingReceipts?.filter((receipt) =>
+      !receipt.eligibleForSelection).length, 2)
+  })
+
+  await verify('peer composite assignment executes mixed preserved and generated cue routes', async () => {
+    const injected = createInjectedMireloAdapter({ runtime })
+    const baseContext = new StructuredRequestSoundContextLoader()
+    const service = new StandaloneCanonicalSoundSkillService({
+      artifacts: runtime.resolver,
+      mirelo: injected.adapter,
+      context: {
+        async load(request) {
+          const base = await baseContext.load(request)
+          return {
+            ...base,
+            controllerContext: {
+              sourceMatches: [{
+                anchorId: 'mixed-source', artifact: runtime.audioArtifact,
+                usable: true, requiresRepair: false,
+              }],
+              protectedSpeechRanges: [soundRange('mixed-protected-speech', 30, 45)],
+            },
+          }
+        },
+      },
+    })
+    const request = buildExecutableSoundRequest({
+      runtime, job: 'support_transition_sound', mode: 'fixture',
+    })
+    request.callerType = 'transitions'
+    request.callerSkillKey = 'transitions'
+    request.orchestraRunId = undefined
+    request.peerAuthority = {
+      parentWorkItemId: 'transition-parent-work',
+      parentAuthorityHash: request.assignmentScope.parentAuthorityHash,
+      callerOwnedAudioRanges: [soundRange('transition-owned-audio', 0, 90)],
+      callerOwnedVisualRanges: [soundRange('transition-owned-visual', 0, 90)],
+      ancestorSkillKeys: ['transitions'],
+      callerManifestHash: createHash('sha256').update('transition-manifest').digest('hex'),
+    }
+    request.callerManifestHash = request.peerAuthority.callerManifestHash
+    request.dependencyChain = ['transitions']
+    request.assignmentScope.assignmentMode = 'range'
+    request.assignmentScope.authorizedAudioWriteRanges = [soundRange('mixed-authority', 0, 90)]
+    request.assignmentScope.inspectRanges = [soundRange('mixed-inspect', 0, 90)]
+    request.eventAnchors = [
+      { ...request.eventAnchors[0]!, anchorId: 'mixed-source', eventType: 'transition', frame: 15, endFrameExclusive: 24 },
+      { ...request.eventAnchors[0]!, anchorId: 'mixed-generated', eventType: 'transition', frame: 60, endFrameExclusive: 69 },
+    ]
+    request.costPolicy.allowProviderGeneration = true
+    request.costPolicy.candidateCount = 1
+    request.requestId = 'peer-mixed-composite-request'
+    request.idempotencyKey = 'peer-mixed-composite-idempotency'
+    request.attemptId = 'peer-mixed-composite-attempt'
+    const plan = await service.plan(request)
+    assert.deepEqual(new Set(plan.executionGraph.units.map((unit) => unit.unitKind)), new Set([
+      'audio_operation', 'provider_generation', 'mix_stem', 'qa_handoff',
+    ]))
+    const result = await service.execute(executionPackage(plan, 'peer-mixed-composite'))
+    assert.equal(result.status, 'completed', JSON.stringify({
+      units: result.executionUnits, unresolved: result.unresolvedDependencies,
+    }))
+    assert.ok((result.privateSoundStemArtifacts.length ?? 0) >= 1)
+    assert.ok((result.finalCompositionHandoff?.finalSoundArtifactReferences.length ?? 0) >= 1)
+    assert.equal(result.callerReceipt.authorityEscalated, false)
+    assert.equal(result.modifiedVisualRanges.length, 0)
+  })
+
+  await verify('whole-video composite executes two bounded ranges and terminal handoffs', async () => {
+    const baseContext = new StructuredRequestSoundContextLoader()
+    const service = new StandaloneCanonicalSoundSkillService({
+      artifacts: runtime.resolver,
+      context: {
+        async load(request) {
+          const base = await baseContext.load(request)
+          return {
+            ...base,
+            controllerContext: {
+              sourceMatches: request.eventAnchors.map((anchor) => ({
+                anchorId: anchor.anchorId, artifact: runtime.audioArtifact,
+                usable: true, requiresRepair: false,
+              })),
+            },
+          }
+        },
+      },
+    })
+    const request = buildExecutableSoundRequest({ runtime, job: 'full_video_sound_pass' })
+    request.assignmentScope.assignmentMode = 'whole_video'
+    request.assignmentScope.authorizedAudioWriteRanges = [
+      soundRange('whole-scene-a', 0, 45), soundRange('whole-scene-b', 45, 90),
+    ]
+    request.assignmentScope.inspectRanges = [soundRange('whole-inspect', 0, 90)]
+    request.assignmentScope.sceneIds = ['scene-a', 'scene-b']
+    request.eventAnchors = [
+      { ...request.eventAnchors[0]!, anchorId: 'whole-event-a', sceneId: 'scene-a', frame: 15, endFrameExclusive: 24 },
+      { ...request.eventAnchors[0]!, anchorId: 'whole-event-b', sceneId: 'scene-b', frame: 60, endFrameExclusive: 69 },
+    ]
+    request.requestId = 'whole-video-composite-request'
+    request.idempotencyKey = 'whole-video-composite-idempotency'
+    request.attemptId = 'whole-video-composite-attempt'
+    const plan = await service.plan(request)
+    assert.equal(plan.executionGraph.units.filter((unit) => unit.unitKind === 'mix_stem').length, 2)
+    assert.equal(plan.executionGraph.units.filter((unit) => unit.unitKind === 'qa_handoff').length, 2)
+    const result = await service.execute(executionPackage(plan, 'whole-video-composite'))
+    assert.equal(result.status, 'completed', JSON.stringify({
+      units: result.executionUnits, unresolved: result.unresolvedDependencies,
+    }))
+    assert.equal(result.privateSoundStemArtifacts.length, 2)
+    assert.equal(result.finalCompositionHandoff?.finalSoundArtifactReferences.length, 2)
+    assert.equal(result.qaReport && typeof result.qaReport === 'object', true)
+  })
+
+  await verify('composite child failure blocks only its dependent range chain', async () => {
+    const boundedFailingResolver: CanonicalSoundArtifactResolver = {
+      async resolve(artifact) {
+        if (artifact.artifactId === runtime.secondAudioArtifact.artifactId) {
+          throw new Error('simulated second composite source failure')
+        }
+        return runtime.resolver.resolve(artifact)
+      },
+      privateOutputRoot(scopeId) { return runtime.resolver.privateOutputRoot(scopeId) },
+    }
+    const baseContext = new StructuredRequestSoundContextLoader()
+    const service = new StandaloneCanonicalSoundSkillService({
+      artifacts: boundedFailingResolver,
+      context: {
+        async load(request) {
+          const base = await baseContext.load(request)
+          return {
+            ...base,
+            controllerContext: {
+              sourceMatches: [
+                { anchorId: 'partial-chain-a', artifact: runtime.audioArtifact, usable: true, requiresRepair: false },
+                { anchorId: 'partial-chain-b', artifact: runtime.secondAudioArtifact, usable: true, requiresRepair: false },
+              ],
+            },
+          }
+        },
+      },
+    })
+    const request = buildExecutableSoundRequest({
+      runtime, job: 'full_video_sound_pass', audioArtifacts: [runtime.audioArtifact, runtime.secondAudioArtifact],
+    })
+    request.assignmentScope.assignmentMode = 'whole_video'
+    request.assignmentScope.authorizedAudioWriteRanges = [
+      soundRange('partial-chain-range-a', 0, 45), soundRange('partial-chain-range-b', 45, 90),
+    ]
+    request.assignmentScope.inspectRanges = [soundRange('partial-chain-inspect', 0, 90)]
+    request.eventAnchors = [
+      { ...request.eventAnchors[0]!, anchorId: 'partial-chain-a', frame: 15, endFrameExclusive: 24 },
+      { ...request.eventAnchors[0]!, anchorId: 'partial-chain-b', frame: 60, endFrameExclusive: 69 },
+    ]
+    request.requestId = 'composite-dependent-partial-request'
+    request.idempotencyKey = 'composite-dependent-partial-idempotency'
+    request.attemptId = 'composite-dependent-partial-attempt'
+    const plan = await service.plan(request)
+    const result = await service.execute(executionPackage(plan, 'composite-dependent-partial'))
+    assert.equal(result.status, 'partial')
+    assert.equal(result.privateSoundStemArtifacts.length, 1)
+    assert.ok(result.executionUnits?.some((unit) => unit.status === 'failed'))
+    assert.ok(result.executionUnits?.filter((unit) => unit.status === 'blocked').length === 2)
+    assert.ok(result.executionUnits?.filter((unit) => unit.status === 'completed').length >= 3)
+  })
+
+  await verify('internal-library-only composite executes the authorized private artifact', async () => {
+    const baseContext = new StructuredRequestSoundContextLoader()
+    const service = new StandaloneCanonicalSoundSkillService({
+      artifacts: runtime.resolver,
+      context: {
+        async load(request) {
+          const base = await baseContext.load(request)
+          return {
+            ...base,
+            controllerContext: {
+              internalLibraryMatches: [{
+                anchorId: 'library-only-event', artifact: runtime.audioArtifact,
+                semanticScore: 0.98, provenanceApproved: true, projectAuthorized: true,
+              }],
+            },
+          }
+        },
+      },
+    })
+    const request = buildExecutableSoundRequest({ runtime, job: 'design_scene_sound' })
+    request.assignmentScope.authorizedAudioWriteRanges = [soundRange('library-only-authority', 0, 90)]
+    request.assignmentScope.inspectRanges = [soundRange('library-only-inspect', 0, 90)]
+    request.eventAnchors = [{
+      ...request.eventAnchors[0]!, anchorId: 'library-only-event', frame: 30, endFrameExclusive: 39,
+    }]
+    request.requestId = 'internal-library-only-request'
+    request.idempotencyKey = 'internal-library-only-idempotency'
+    request.attemptId = 'internal-library-only-attempt'
+    const plan = await service.plan(request)
+    assert.equal(plan.controller.result.cueManifest.cues[0]?.acquisitionDecision, 'internal_library')
+    assert.equal(plan.executionGraph.units[0]?.route.routeKey, 'sound.route.acquire.project_source.v1')
+    const result = await service.execute(executionPackage(plan, 'internal-library-only'))
+    assert.equal(result.status, 'completed')
+    assert.ok(result.selectedAssetVersions.length >= 1)
+    assert.equal(result.actualExecutionEvidence?.providerAttemptIds?.length ?? 0, 0)
+  })
+
+  await verify('mixed internal-library and generated cues preserve per-cue route choice', async () => {
+    const injected = createInjectedMireloAdapter({ runtime })
+    const baseContext = new StructuredRequestSoundContextLoader()
+    const service = new StandaloneCanonicalSoundSkillService({
+      artifacts: runtime.resolver,
+      mirelo: injected.adapter,
+      context: {
+        async load(request) {
+          const base = await baseContext.load(request)
+          return {
+            ...base,
+            controllerContext: {
+              internalLibraryMatches: [{
+                anchorId: 'library-mixed-event', artifact: runtime.audioArtifact,
+                semanticScore: 0.95, provenanceApproved: true, projectAuthorized: true,
+              }],
+            },
+          }
+        },
+      },
+    })
+    const request = buildExecutableSoundRequest({ runtime, job: 'design_scene_sound', mode: 'fixture' })
+    request.assignmentScope.authorizedAudioWriteRanges = [soundRange('library-mixed-authority', 0, 90)]
+    request.assignmentScope.inspectRanges = [soundRange('library-mixed-inspect', 0, 90)]
+    request.eventAnchors = [
+      { ...request.eventAnchors[0]!, anchorId: 'library-mixed-event', frame: 15, endFrameExclusive: 24 },
+      { ...request.eventAnchors[0]!, anchorId: 'generated-mixed-event', frame: 60, endFrameExclusive: 69 },
+    ]
+    request.costPolicy.allowProviderGeneration = true
+    request.costPolicy.candidateCount = 1
+    request.requestId = 'internal-library-generated-request'
+    request.idempotencyKey = 'internal-library-generated-idempotency'
+    request.attemptId = 'internal-library-generated-attempt'
+    const plan = await service.plan(request)
+    assert.deepEqual(new Set(plan.controller.result.cueManifest.cues.map((cue) => cue.acquisitionDecision)),
+      new Set(['internal_library', 'generate_original']))
+    const result = await service.execute(executionPackage(plan, 'internal-library-generated'))
+    assert.equal(result.status, 'completed')
+    assert.equal(result.actualExecutionEvidence?.providerAttemptIds?.length, 1)
+    assert.ok(result.privateSoundStemArtifacts.length >= 1)
   })
 } finally {
   await runtime.cleanup()

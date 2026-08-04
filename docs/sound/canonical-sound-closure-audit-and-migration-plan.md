@@ -1,5 +1,9 @@
 # Canonical Sound closure audit and migration plan
 
+> Historical migration record: version 3 has been superseded by the immutable Sound
+> `4.0.0` closure documented in `canonical-sound-final-execution-audit.md` and
+> `canonical-sound-standalone-closure-report.md`.
+
 Status: implementation input for the standalone Sound closure. This artifact records repository evidence before the closure changes; it is not a qualification claim.
 
 ## Evidence inspected

@@ -1,0 +1,72 @@
+name: Canonical Sound Acceptance
+
+on:
+  pull_request:
+    paths:
+      - 'server/edit-skills/core/**'
+      - 'server/edit-skills/sound/**'
+      - 'server/sound/**'
+      - 'server/smoke/*sound*'
+      - 'docs/sound/**'
+      - 'package.json'
+      - '.github/workflows/canonical-sound-acceptance.yml'
+  push:
+    branches:
+      - main
+      - master
+      - 'codex/**'
+    paths:
+      - 'server/edit-skills/core/**'
+      - 'server/edit-skills/sound/**'
+      - 'server/sound/**'
+      - 'server/smoke/*sound*'
+      - 'docs/sound/**'
+      - 'package.json'
+      - '.github/workflows/canonical-sound-acceptance.yml'
+
+jobs:
+  canonical-sound-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install approved local media runtime
+        run: sudo apt-get update && sudo apt-get install --yes ffmpeg
+
+      - name: Check repository secrets
+        run: npm run check:secrets
+
+      - name: Run canonical Sound acceptance suite
+        run: npm run test:sound-acceptance
+
+      - name: Server typecheck
+        run: npm run typecheck:server
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Record qualification boundary
+        if: always()
+        run: |
+          {
+            echo "## Canonical Sound acceptance"
+            echo ""
+            echo "- The shared capability kernel, B-roll regression, complete Sound smoke suite, execution-integrity suite, and capability-wide acceptance matrix ran through the aggregate Sound command."
+            echo "- Mirelo coverage uses deterministic injected transport and remains fixture-qualified. This workflow does not perform a paid provider call or production activation."
+            echo "- The Head of Orchestra and the separate Music skill remain outside this workflow by design."
+          } >> "$GITHUB_STEP_SUMMARY"

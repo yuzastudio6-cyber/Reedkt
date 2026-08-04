@@ -1,6 +1,6 @@
 # Mirelo SFX 1.6 provider profile
 
-Status: fixture-qualified, production blocked.
+Status: `planning_qualified` with fixture evidence; production blocked.
 
 ## Canonical identity
 
@@ -20,7 +20,7 @@ The server adapter models these official SFX 1.6 surfaces:
 - text-to-SFX sync and preflight under `/v2/text-to-sfx/v1.6/...`;
 - video-to-SFX sync, async jobs, and preflight under `/v2/video-to-sfx/v1.6/...`.
 
-The exact request and response contract remains pinned by fixture tests and must be revalidated against the live account before production. Official reference: https://www.mirelo.ai/api-docs.
+The exact request and response contract remains pinned by fixture tests and must be revalidated against the live account before production. Fixture evidence does not create a separate shared qualification status or production evidence. Official reference: https://www.mirelo.ai/api-docs.
 
 The current provider documentation describes text-to-SFX, video-to-SFX, audio editing, audio extension, inpainting, sync/async operation, assets, and preflight. The SFX 1.6 model page describes video-conditioned SFX, extension, loopable ambience, and inpainting: https://www.mirelo.ai/models/1-6.
 

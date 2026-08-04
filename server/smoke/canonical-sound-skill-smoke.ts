@@ -1,297 +1,225 @@
 import assert from 'node:assert/strict'
 import {
-  applyLocalizedSoundRevision,
-  runCanonicalSoundController,
-  validatePlannedCueAuthority,
-} from '../sound/sound-controller'
-import {
-  parseCanonicalSoundRequest,
-  type CanonicalSoundResult,
-} from '../sound/sound-contracts'
-import {
-  evaluateSoundScopeGuard,
-  validateSoundResultAuthority,
-} from '../sound/sound-scope-guard'
-import { soundSkillCapabilityManifest } from '../sound/sound-manifest'
-import {
-  buildSoundRequest,
-  fixtureHash,
-  soundArtifact,
-  soundRange,
-} from './sound-test-fixtures'
+  decimalSecondsToFrames,
+  framesToRationalSeconds,
+  framesToSamples,
+  rationalSecondsToFrames,
+  samplesToFrames,
+  timelineRatesEqual,
+  type TimelineRate,
+} from '../edit-skills/core/timeline-rate'
+import { standaloneSoundSkillService } from '../edit-skills/registry'
+import { analyzeWholeVideoSoundContinuity } from '../sound/sound-continuity'
+import { runCanonicalSoundController } from '../sound/sound-controller'
+import { evaluateSoundScopeGuard, validateSoundResultAuthority } from '../sound/sound-scope-guard'
+import { buildSoundRequest, soundRange } from './sound-test-fixtures'
 
-const exactRequest = buildSoundRequest({
-  audioRanges: [soundRange('exact-five-seconds', 90, 240)],
-  eventFrames: [120, 210],
-  allowProviderGeneration: true,
-})
-const exactAdmission = evaluateSoundScopeGuard(exactRequest)
-assert.equal(exactAdmission.ok, true)
-const exact = runCanonicalSoundController(exactRequest)
-assert.equal(exact.assignment.ok, true)
-assert.equal(exact.assignment.binding?.manifestHash, soundSkillCapabilityManifest.manifestHash)
-assert.equal(exact.result.cueManifest.cues.length, 2)
-assert.equal(exact.childWorkItems.length, 2)
-assert.equal(exact.childWorkItems.every((item) => item.miniSkillKey === 'video_conditioned_sfx'), true)
-assert.equal(new Set(exact.childWorkItems.map((item) => item.workItemId)).size, 2)
-assert.equal(exact.childWorkItems.every((item) =>
-  item.skillBinding.skillKey === 'sound' &&
-  item.skillBinding.skillVersion === soundSkillCapabilityManifest.skillVersion &&
-  item.skillBinding.manifestHash === soundSkillCapabilityManifest.manifestHash &&
-  item.skillBinding.capabilityKey === exactRequest.requestedCapabilityKey &&
-  item.skillBinding.capabilityVersion.length > 0), true)
-assert.deepEqual(exact.result.cueManifest.cues.map((cue) => cue.hitFrame), [120, 210])
-assert.equal(validatePlannedCueAuthority(exactRequest, exact.result.cueManifest.cues), true)
-assert.equal(validateSoundResultAuthority(exactRequest, exact.result).ok, true)
+const rates: TimelineRate[] = [
+  { numerator: 24, denominator: 1 },
+  { numerator: 25, denominator: 1 },
+  { numerator: 30_000, denominator: 1_001 },
+  { numerator: 30, denominator: 1 },
+  { numerator: 50, denominator: 1 },
+  { numerator: 60_000, denominator: 1_001 },
+  { numerator: 60, denominator: 1 },
+]
 
-const multiRequest = buildSoundRequest({
+for (const rate of rates) {
+  const tenHoursFrames = decimalSecondsToFrames({ seconds: 36_000, rate, rounding: 'nearest_half_up' })
+  const seconds = framesToRationalSeconds(tenHoursFrames, rate)
+  const reconstructed = Number(seconds.numerator) / Number(seconds.denominator)
+  assert.ok(Math.abs(reconstructed - 36_000) <= rate.denominator / rate.numerator)
+  const samples = framesToSamples({ frames: tenHoursFrames, rate, sampleRate: 48_000, rounding: 'nearest_half_up' })
+  const frames = samplesToFrames({ samples, rate, sampleRate: 48_000, rounding: 'nearest_half_up' })
+  assert.ok(Math.abs(frames - tenHoursFrames) <= 1)
+
+  const eventFrame = rationalSecondsToFrames({
+    secondsNumerator: 1, secondsDenominator: 1, rate, rounding: 'nearest_half_up',
+  })
+  const rateRequest = buildSoundRequest({
+    job: 'design_scene_sound', mode: 'planning',
+    audioRanges: [soundRange(`rate-authority-${rate.numerator}-${rate.denominator}`, 0, eventFrame * 3)],
+    eventFrames: [eventFrame],
+  })
+  rateRequest.timelineRate = rate
+  rateRequest.timelineManifestRate = rate
+  rateRequest.timelineManifestRef.timelineRate = rate
+  rateRequest.timelineFps = rate.numerator / rate.denominator
+  delete rateRequest.eventAnchors[0]!.endFrameExclusive
+  const ratePlan = runCanonicalSoundController(rateRequest, {
+    sourceMatches: [{
+      anchorId: rateRequest.eventAnchors[0]!.anchorId,
+      artifact: rateRequest.sourceAudioRefs[0]!,
+      usable: true,
+      requiresRepair: false,
+    }],
+  })
+  const cue = ratePlan.result.cueManifest.cues[0]!
+  const automation = ratePlan.result.mixAutomationManifest.automations[0]!
+  const leadFrames = rationalSecondsToFrames({
+    secondsNumerator: 1, secondsDenominator: 25, rate, rounding: 'nearest_half_up',
+  })
+  const tailFrames = rationalSecondsToFrames({
+    secondsNumerator: 3, secondsDenominator: 5, rate, rounding: 'nearest_half_up',
+  })
+  assert.equal(cue.startFrame, eventFrame - leadFrames)
+  assert.equal(cue.hitFrame, eventFrame)
+  assert.equal(cue.endFrameExclusive, eventFrame + tailFrames)
+  assert.equal(automation.fadeInFrames, Math.max(1, leadFrames))
+  assert.equal(automation.fadeOutFrames, Math.max(1, leadFrames))
+  assert.equal(automation.duckAttackFrames, Math.max(1, rationalSecondsToFrames({
+    secondsNumerator: 3, secondsDenominator: 100, rate, rounding: 'nearest_half_up',
+  })))
+  assert.equal(automation.duckReleaseFrames, Math.max(1, rationalSecondsToFrames({
+    secondsNumerator: 4, secondsDenominator: 25, rate, rounding: 'nearest_half_up',
+  })))
+}
+assert.equal(timelineRatesEqual({ numerator: 30_000, denominator: 1_001 }, { numerator: 60_000, denominator: 2_002 }), true)
+
+const exact = buildSoundRequest({ assignmentMode: 'range', audioRanges: [soundRange('exact', 30, 180)] })
+const exactPlan = await standaloneSoundSkillService.plan(exact)
+assert.equal(exactPlan.request.timelineRate.numerator, 30)
+assert.equal(exactPlan.controller.result.timelineRate.numerator, 30)
+assert.equal(exactPlan.controller.result.modifiedVisualRanges.length, 0)
+
+const multi = buildSoundRequest({
   assignmentMode: 'multi_range',
-  audioRanges: [soundRange('first', 0, 90), soundRange('second', 180, 270)],
-  eventFrames: [30, 210],
-  allowProviderGeneration: true,
+  audioRanges: [soundRange('a', 0, 90), soundRange('b', 150, 240)],
+  eventFrames: [30, 180],
 })
-const multi = runCanonicalSoundController(multiRequest)
-assert.equal(multi.result.cueManifest.cues.length, 2)
-assert.equal(validatePlannedCueAuthority(multiRequest, multi.result.cueManifest.cues), true)
+assert.equal((await standaloneSoundSkillService.plan(multi)).request.assignmentScope.authorizedAudioWriteRanges.length, 2)
+const whole = buildSoundRequest({ job: 'full_video_sound_pass', assignmentMode: 'whole_video', inspectWholeVideo: true })
+const wholePlan = await standaloneSoundSkillService.plan(whole)
+assert.equal(wholePlan.continuity.wholeVideoReadOnly, true)
+assert.notEqual(wholePlan.controller.result.soundDesignPlan?.wholeVideoContinuity, true)
 
-const wholeRequest = buildSoundRequest({
-  job: 'full_video_sound_pass',
-  assignmentMode: 'whole_video',
-  audioRanges: [soundRange('whole', 0, 900)],
-  eventFrames: [60, 420, 780],
-  allowProviderGeneration: true,
+const peer = buildSoundRequest({ callerType: 'living_frame', job: 'support_living_frame_sound' })
+assert.equal((await standaloneSoundSkillService.plan(peer)).controller.result.callerReceipt.authorityEscalated, false)
+const peerView = standaloneSoundSkillService.getPeerCapabilityView({
+  callerType: 'living_frame', callerSkillKey: 'living_frame', jobType: 'support_living_frame_sound',
 })
-const whole = runCanonicalSoundController(wholeRequest)
-assert.equal(whole.assignment.ok, true)
-assert.equal((whole.result.soundDesignPlan as Record<string, unknown>).wholeVideoContinuityConsidered, true)
+assert.equal(peerView.accepted, true)
+assert.equal(peerView.peerMayInvokeSoundToolsDirectly, false)
+assert.equal(peerView.peerMaySupplyProviderPayload, false)
+assert.equal(evaluateSoundScopeGuard(exact).ok, true)
+assert.equal(evaluateSoundScopeGuard(buildSoundRequest({
+  inspectWholeVideo: true, audioRanges: [soundRange('bounded-write', 60, 90)],
+})).ok, true)
 
-for (const [callerType, job] of [
-  ['living_frame', 'support_living_frame_sound'],
-  ['three_d', 'support_3d_sound'],
-  ['motion_design', 'support_motion_design_sound'],
-  ['transitions', 'support_transition_sound'],
-  ['graphic_design', 'support_graphic_design_sound'],
-] as const) {
-  const request = buildSoundRequest({ callerType, job, allowProviderGeneration: true })
-  const response = runCanonicalSoundController(request)
-  assert.equal(response.assignment.ok, true, `${callerType} must be admitted.`)
-  assert.equal(response.result.callerReceipt.callerType, callerType)
-  assert.equal(response.result.callerReceipt.authorityEscalated, false)
-  assert.equal(response.result.callerReceipt.parentWorkItemId, `parent-work-${callerType}`)
-}
-
-const escalated = buildSoundRequest({
-  callerType: 'living_frame',
-  job: 'support_living_frame_sound',
-  audioRanges: [soundRange('delegated-too-far', 0, 500)],
-  callerOwnedAudioRanges: [soundRange('caller-owns-less', 0, 120)],
+const mismatch = buildSoundRequest()
+mismatch.timelineManifestRate = { numerator: 24, denominator: 1 }
+assert.equal(evaluateSoundScopeGuard(mismatch).code, 'invalid_contract')
+const escalation = buildSoundRequest({
+  callerType: 'transitions',
+  audioRanges: [soundRange('delegated', 0, 500)],
+  callerOwnedAudioRanges: [soundRange('owner', 0, 100)],
 })
-assert.equal(evaluateSoundScopeGuard(escalated).code, 'peer_authority_escalation')
-
-const circular = buildSoundRequest({
-  callerType: 'living_frame',
-  job: 'support_living_frame_sound',
-  dependencyChain: ['living_frame', 'sound'],
-})
-assert.equal(evaluateSoundScopeGuard(circular).code, 'circular_dependency')
-
-const broadReadSmallWrite = buildSoundRequest({
-  inspectWholeVideo: true,
-  audioRanges: [soundRange('five-second-write', 300, 450)],
-  eventFrames: [330],
-  allowProviderGeneration: true,
-})
-const broad = runCanonicalSoundController(broadReadSmallWrite)
-assert.equal(broadReadSmallWrite.assignmentScope.inspectWholeVideo, true)
-const broadCue = broad.result.cueManifest.cues[0]
-assert.ok(broadCue)
-assert.equal(broadCue.startFrame >= 300, true)
-assert.equal(broadCue.endFrameExclusive <= 450, true)
-
-const lockedTrack = buildSoundRequest({
-  lockedAudioTracks: ['sound-effects'],
-  targetAudioTracks: ['sound-effects'],
-})
-assert.equal(evaluateSoundScopeGuard(lockedTrack).code, 'locked_layer_violation')
-const lockedLayer = buildSoundRequest({
-  lockedVisualLayers: ['primary-picture'],
-  targetVisualLayers: ['primary-picture'],
-})
-assert.equal(evaluateSoundScopeGuard(lockedLayer).code, 'locked_layer_violation')
-
-const clampedRequest = buildSoundRequest({
-  audioRanges: [soundRange('clamp', 0, 100)],
-  eventFrames: [96],
-  allowProviderGeneration: true,
-})
-const clamped = runCanonicalSoundController(clampedRequest)
-assert.equal(clamped.result.cueManifest.cues[0]?.endFrameExclusive, 100)
-
-const overlapRequest = buildSoundRequest({
-  eventFrames: [60, 65],
-  eventTypes: ['object_contact', 'object_contact'],
-  allowProviderGeneration: true,
-})
-const overlap = runCanonicalSoundController(overlapRequest)
-assert.equal(overlap.result.cueManifest.cues.length, 1)
-assert.equal(overlap.result.mergedCueRequests.length, 1)
-assert.equal(overlap.result.acceptedCueRequests.length, 1)
-
-const silenceRequest = buildSoundRequest({
-  eventFrames: [60],
-  eventSoundUseful: [false],
-  allowProviderGeneration: true,
-})
-const silence = runCanonicalSoundController(silenceRequest)
-assert.equal(silence.result.status, 'no_sound')
-assert.equal(silence.result.cueManifest.cues.length, 0)
-assert.equal(silence.result.rejectedCueRequests[0]?.decision, 'rejected')
-
-const emotionalRequest = buildSoundRequest({
-  eventFrames: [120],
-  allowProviderGeneration: true,
-})
-const emotional = runCanonicalSoundController(emotionalRequest, {
-  emotionalSilenceRanges: [soundRange('emotional-pause', 100, 150)],
-})
-assert.equal(emotional.result.status, 'no_sound')
-
-const protectedSpeech = soundRange('protected-dialogue', 100, 180)
-const speechRequest = buildSoundRequest({
-  eventFrames: [120],
-  allowProviderGeneration: true,
-})
-const speech = runCanonicalSoundController(speechRequest, {
-  protectedSpeechRanges: [protectedSpeech],
-})
-assert.equal(speech.result.mixAutomationManifest.automations[0]?.dialogueDuckingDb, -9)
-assert.equal(speech.result.mixAutomationManifest.automations[0]?.protectedSpeechRanges.length, 1)
-const speechAutomation = speech.result.mixAutomationManifest.automations[0]
-assert.ok(speechAutomation)
-assert.equal(speechAutomation.headroomDb >= 3, true)
-assert.equal(speech.result.mixAutomationManifest.automations[0]?.musicInteractionPolicy, 'avoid_accents')
-
-const sourceAsset = soundArtifact('natural-source-cue', 'approved_source_audio', 'audio/wav', 30)
-const acquisitionRequest = buildSoundRequest({ eventFrames: [60], allowProviderGeneration: true })
-const sourceFirst = runCanonicalSoundController(acquisitionRequest, {
-  sourceMatches: [{ anchorId: 'event-1', artifact: sourceAsset, usable: true, requiresRepair: false }],
-  internalLibraryMatches: [{
-    anchorId: 'event-1',
-    artifact: soundArtifact('library-cue', 'candidate_sfx_asset', 'audio/wav', 30),
-    semanticScore: 0.99,
-    provenanceApproved: true,
-    projectAuthorized: true,
-  }],
-})
-assert.equal(sourceFirst.result.cueManifest.cues[0]?.acquisitionDecision, 'preserve_project_source')
-const libraryFirst = runCanonicalSoundController(acquisitionRequest, {
-  internalLibraryMatches: [{
-    anchorId: 'event-1',
-    artifact: soundArtifact('library-cue', 'candidate_sfx_asset', 'audio/wav', 30),
-    semanticScore: 0.95,
-    provenanceApproved: true,
-    projectAuthorized: true,
-  }],
-})
-assert.equal(libraryFirst.result.cueManifest.cues[0]?.acquisitionDecision, 'internal_library')
-const extractFirst = runCanonicalSoundController(acquisitionRequest, {
-  projectExtractionMatches: [{
-    anchorId: 'event-1',
-    artifact: soundArtifact('project-extract', 'approved_source_audio', 'audio/wav', 30),
-    usable: true,
-    requiresRepair: true,
-  }],
-})
-assert.equal(extractFirst.result.cueManifest.cues[0]?.acquisitionDecision, 'project_source_extraction')
-
-const outOfRangeRequest = buildSoundRequest({
-  audioRanges: [soundRange('only-first-second', 0, 30)],
-  eventFrames: [120],
-  allowProviderGeneration: true,
-  requestedOperations: ['design', 'propose_visual_retime'],
-})
-const outOfRange = runCanonicalSoundController(outOfRangeRequest)
-assert.equal(outOfRange.result.status, 'needs_visual_revision')
-assert.equal(outOfRange.result.proposedVisualRevisions[0]?.routeThroughHead, true)
-assert.equal(outOfRange.result.modifiedVisualRanges.length, 0)
-
-const unauthorizedVisualResult: CanonicalSoundResult = structuredClone(exact.result)
-unauthorizedVisualResult.modifiedVisualRanges = [soundRange('visual-change', 100, 110)]
-assert.equal(
-  validateSoundResultAuthority(exactRequest, unauthorizedVisualResult).code,
-  'unauthorized_visual_write',
-)
-const authorizedVisualRequest = buildSoundRequest({
-  visualRanges: [soundRange('visual-authority', 100, 130)],
-  eventFrames: [110],
-  allowProviderGeneration: true,
-})
-const authorizedVisual = runCanonicalSoundController(authorizedVisualRequest)
-const authorizedVisualResult = structuredClone(authorizedVisual.result)
-authorizedVisualResult.modifiedVisualRanges = [soundRange('bounded-visual-change', 105, 115)]
-assert.equal(validateSoundResultAuthority(authorizedVisualRequest, authorizedVisualResult).ok, true)
-
-const noTailRequest = buildSoundRequest({
-  audioRanges: [soundRange('tail-owner', 0, 100)],
-  eventFrames: [90],
-  allowProviderGeneration: true,
-})
-const noTail = runCanonicalSoundController(noTailRequest)
-const outsideTail = structuredClone(noTail.result)
-outsideTail.cueManifest.cues[0]!.endFrameExclusive = 110
-outsideTail.modifiedAudioRanges = [soundRange('tail-write', 100, 110)]
-assert.equal(validateSoundResultAuthority(noTailRequest, outsideTail).code, 'range_violation')
-const handledTailRequest = buildSoundRequest({
-  audioRanges: [soundRange('tail-owner', 0, 100)],
-  eventFrames: [90],
-  allowProviderGeneration: true,
-  tailPolicy: 'use_authorized_context_handle',
-  contextHandles: [{
-    contextHandleId: 'tail-context',
-    authorizedRange: soundRange('tail-context-range', 100, 120),
-    purpose: 'sound_tail',
-  }],
-})
-const handledTail = runCanonicalSoundController(handledTailRequest)
-const handledTailResult = structuredClone(handledTail.result)
-handledTailResult.cueManifest.cues[0]!.endFrameExclusive = 110
-handledTailResult.modifiedAudioRanges = [soundRange('tail-write', 100, 110)]
-assert.equal(validateSoundResultAuthority(handledTailRequest, handledTailResult).ok, true)
-
-const revisionPrevious = exact.result
-const replacement = {
-  ...revisionPrevious.cueManifest.cues[0]!,
-  cueId: 'replacement-cue',
-  startFrame: 100,
-  hitFrame: 125,
-  endFrameExclusive: 150,
-}
-const localized = applyLocalizedSoundRevision({
-  previous: revisionPrevious,
-  invalidatedRanges: [soundRange('localized-change', 90, 160)],
-  replacementCues: [replacement],
-})
-assert.equal(localized.some((cue) => cue.cueId === 'replacement-cue'), true)
-assert.equal(localized.some((cue) => cue.hitFrame === 210), true)
-
-assert.equal(exact.result.callerReceipt.finalRenderOwnedBySound, false)
-assert.equal(exact.result.callerReceipt.musicCompositionPerformed, false)
-assert.deepEqual(exact.result.finalHandoffTargets, ['head_of_orchestra'])
-const handoffRequest = buildSoundRequest({ job: 'handoff_sound_to_final_composition' })
-const handoff = runCanonicalSoundController(handoffRequest)
-assert.deepEqual(handoff.result.finalHandoffTargets, ['head_of_orchestra', 'final_composition'])
-assert.equal(handoff.result.callerReceipt.finalRenderOwnedBySound, false)
-
-assert.throws(() => parseCanonicalSoundRequest({
-  ...exactRequest,
-  rawWorkerPrompt: 'run this directly',
-}), /Unsafe canonical Sound request/)
-assert.throws(() => parseCanonicalSoundRequest({
-  ...exactRequest,
-  arbitraryUrl: 'https://example.com/signed?signature=secret',
-}), /Unsafe canonical Sound request/)
-const staleVisual = structuredClone(exactRequest)
-staleVisual.visualDependencies[0]!.timingManifestHash = fixtureHash('different-timing')
+assert.equal(evaluateSoundScopeGuard(escalation).code, 'peer_authority_escalation')
+assert.equal(evaluateSoundScopeGuard(buildSoundRequest({ dependencyChain: ['head_of_orchestra', 'sound'] })).code,
+  'circular_dependency')
+assert.equal(evaluateSoundScopeGuard(buildSoundRequest({
+  lockedAudioTracks: ['sound-effects'], targetAudioTracks: ['sound-effects'],
+})).code, 'locked_layer_violation')
+assert.equal(evaluateSoundScopeGuard(buildSoundRequest({
+  lockedVisualLayers: ['approved-visual'], targetVisualLayers: ['approved-visual'],
+})).code, 'locked_layer_violation')
+const staleTiming = buildSoundRequest()
+staleTiming.visualDependencies[0]!.timingManifestHash = '0'.repeat(64)
+assert.equal(evaluateSoundScopeGuard(staleTiming).code, 'stale_source')
+const staleVisual = buildSoundRequest()
+staleVisual.assignmentScope.sourceArtifactVersions = staleVisual.assignmentScope.sourceArtifactVersions.map((ref) =>
+  ref.artifactId === staleVisual.visualDependencies[0]!.artifact.artifactId
+    ? { ...ref, checksumSha256: '0'.repeat(64) } : ref)
 assert.equal(evaluateSoundScopeGuard(staleVisual).code, 'stale_source')
 
-process.stdout.write('Canonical Sound controller and scope smoke passed.\n')
+const authorityRequest = buildSoundRequest({
+  job: 'design_scene_sound', audioRanges: [soundRange('result-authority', 0, 120)], eventFrames: [60],
+})
+const authorityController = runCanonicalSoundController(authorityRequest, {
+  sourceMatches: [{ anchorId: 'event-1', artifact: authorityRequest.sourceAudioRefs[0]!, usable: true, requiresRepair: false }],
+})
+assert.equal(validateSoundResultAuthority(authorityRequest, authorityController.result).ok, true)
+const visualLeak = structuredClone(authorityController.result)
+visualLeak.modifiedVisualRanges = [soundRange('unauthorized-visual', 0, 10)]
+assert.equal(validateSoundResultAuthority(authorityRequest, visualLeak).code, 'unauthorized_visual_write')
+const tailLeak = structuredClone(authorityController.result)
+tailLeak.cueManifest.cues[0]!.endFrameExclusive = 130
+assert.equal(validateSoundResultAuthority(authorityRequest, tailLeak).code, 'range_violation')
+
+const handledTailRequest = buildSoundRequest({
+  job: 'design_scene_sound', audioRanges: [soundRange('tail-body', 0, 100)], eventFrames: [60],
+  tailPolicy: 'use_authorized_context_handle',
+  contextHandles: [{
+    contextHandleId: 'approved-tail', authorizedRange: soundRange('tail-handle', 100, 130), purpose: 'sound_tail',
+  }],
+})
+const handledTailResult = structuredClone(runCanonicalSoundController(handledTailRequest, {
+  sourceMatches: [{ anchorId: 'event-1', artifact: handledTailRequest.sourceAudioRefs[0]!, usable: true, requiresRepair: false }],
+}).result)
+handledTailResult.cueManifest.cues[0]!.endFrameExclusive = 120
+assert.equal(validateSoundResultAuthority(handledTailRequest, handledTailResult).ok, true)
+
+const continuity = analyzeWholeVideoSoundContinuity({
+  reportId: 'continuity-fixture', timelineRate: { numerator: 30, denominator: 1 },
+  maximumCueDensityPerMinute: 3,
+  scenes: [
+    { sceneId: 'scene-a', range: soundRange('scene-a', 0, 90), acousticEnvironment: 'room-a', roomToneOrAmbienceId: 'roomtone-a', sourceAudioPresent: true, dialogueImportance: 'high', musicContext: 'none', foregroundPerspective: 'medium', backgroundPerspective: 'distant', intentionalSilence: false, cueIdentityKeys: ['wood-hit'] },
+    { sceneId: 'scene-b', range: soundRange('scene-b', 90, 180), acousticEnvironment: 'room-a', environmentChangeIntent: 'same_environment', sourceAudioPresent: true, dialogueImportance: 'critical', musicContext: 'accent', foregroundPerspective: 'medium', backgroundPerspective: 'distant', intentionalSilence: false, cueIdentityKeys: ['wood-hit'] },
+    { sceneId: 'scene-c', range: soundRange('scene-c', 180, 270), acousticEnvironment: 'exterior', environmentChangeIntent: 'deliberate_change', roomToneOrAmbienceId: 'street', sourceAudioPresent: true, dialogueImportance: 'none', musicContext: 'none', foregroundPerspective: 'distant', backgroundPerspective: 'distant', intentionalSilence: true, cueIdentityKeys: [] },
+  ],
+  cues: [],
+})
+assert.ok(continuity.boundaryFindings.some((finding) => finding.category === 'ambience'))
+assert.ok(continuity.boundaryFindings.some((finding) => finding.category === 'environment'))
+assert.ok(continuity.repeatedCueMaterialWarnings.some((finding) => finding.category === 'repetition'))
+assert.ok(continuity.intentionalSilenceFindings.length > 0)
+assert.ok(continuity.recommendedLocalizedRevisions.every((revision) => revision.range.endFrameExclusive <= 270))
+
+const stableContinuity = analyzeWholeVideoSoundContinuity({
+  reportId: 'stable-continuity', timelineRate: { numerator: 30, denominator: 1 },
+  maximumCueDensityPerMinute: 30, cues: [],
+  scenes: [
+    { sceneId: 'stable-a', range: soundRange('stable-a', 0, 90), acousticEnvironment: 'same-room', roomToneOrAmbienceId: 'roomtone', sourceAudioPresent: true, dialogueImportance: 'high', musicContext: 'none', foregroundPerspective: 'medium', intentionalSilence: false, cueIdentityKeys: [] },
+    { sceneId: 'stable-b', range: soundRange('stable-b', 90, 180), acousticEnvironment: 'same-room', environmentChangeIntent: 'same_environment', roomToneOrAmbienceId: 'roomtone', sourceAudioPresent: true, dialogueImportance: 'critical', musicContext: 'none', foregroundPerspective: 'medium', intentionalSilence: false, cueIdentityKeys: [] },
+  ],
+})
+assert.equal(stableContinuity.status, 'passed')
+assert.equal(stableContinuity.boundaryFindings.length, 0)
+
+const denseCues = Array.from({ length: 4 }, (_, index) => ({
+  cueId: `dense-${index}`, startFrame: index * 15, hitFrame: index * 15 + 2,
+  endFrameExclusive: index * 15 + 10, acquisitionDecision: 'preserve_project_source' as const,
+  miniSkillKey: 'source_sound_study', layerRole: 'subtle_support' as const,
+  storyReason: 'Density fixture.', staleIfVisualChanges: true,
+}))
+const issueContinuity = analyzeWholeVideoSoundContinuity({
+  reportId: 'issue-continuity', timelineRate: { numerator: 30, denominator: 1 },
+  maximumCueDensityPerMinute: 3, cues: denseCues,
+  scenes: [
+    { sceneId: 'issue-a', range: soundRange('issue-a', 0, 90), acousticEnvironment: 'room', roomToneOrAmbienceId: 'roomtone', sourceAudioPresent: true, dialogueImportance: 'critical', musicContext: 'accent', foregroundPerspective: 'medium', intentionalSilence: false, cueIdentityKeys: ['cue-a'] },
+    { sceneId: 'issue-b', range: soundRange('issue-b', 90, 180), acousticEnvironment: 'room', environmentChangeIntent: 'same_environment', sourceAudioPresent: true, dialogueImportance: 'high', musicContext: 'bed', foregroundPerspective: 'medium', intentionalSilence: false, cueIdentityKeys: ['cue-b'] },
+    { sceneId: 'unaffected-c', range: soundRange('unaffected-c', 180, 270), acousticEnvironment: 'room', environmentChangeIntent: 'same_environment', roomToneOrAmbienceId: 'roomtone', sourceAudioPresent: true, dialogueImportance: 'none', musicContext: 'none', foregroundPerspective: 'medium', intentionalSilence: false, cueIdentityKeys: [] },
+  ],
+})
+assert.ok(issueContinuity.boundaryFindings.some((finding) => finding.category === 'density'))
+assert.ok(issueContinuity.boundaryFindings.some((finding) => finding.category === 'music_collision'))
+assert.ok(issueContinuity.boundaryFindings.some((finding) => finding.category === 'ambience'))
+assert.ok(issueContinuity.recommendedLocalizedRevisions.every((revision) =>
+  !revision.sceneIds.includes('unaffected-c')))
+
+const missingContinuityEvidence = analyzeWholeVideoSoundContinuity({
+  reportId: 'missing-continuity', timelineRate: { numerator: 30, denominator: 1 },
+  maximumCueDensityPerMinute: 30, cues: [], scenes: [{
+    sceneId: 'missing', range: soundRange('missing', 0, 90), sourceAudioPresent: false,
+    dialogueImportance: 'none', musicContext: 'none', intentionalSilence: false, cueIdentityKeys: [],
+  }],
+})
+assert.equal(missingContinuityEvidence.status, 'blocked_missing_evidence')
+assert.ok(missingContinuityEvidence.unresolvedContinuityDependencies.length >= 2)
+
+console.log(JSON.stringify({
+  status: 'ok', rates: rates.map((rate) => `${rate.numerator}/${rate.denominator}`),
+  exactRoute: exactPlan.selectedRoute,
+  wholeVideoContinuityStatus: wholePlan.continuity.status,
+  peerCapability: peerView.capabilityKey,
+}, null, 2))

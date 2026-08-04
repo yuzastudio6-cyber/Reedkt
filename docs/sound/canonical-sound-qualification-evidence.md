@@ -10,14 +10,17 @@ Status date: 2026-08-03. This report distinguishes completed implementation evid
 | 24 tool manifests and per-operation policies | passed | tool operations retain their individual declared status |
 | 18 route manifests and exact tool/operation/profile bindings | passed | route status is derived from required operations |
 | Qualification versus runtime separation | passed | no upward inference from installation or credentials |
-| Orchestra, peer, controller, and worker projections | passed | direct peer tool invocation denied |
+| Shared registry, typed Head/peer views, controller, and worker projections | passed | direct peer tool invocation denied; actual Orchestra pending by design |
 | Canonical controller scope and ownership | passed | Sound cannot own Music, visuals, render, mux, export, or delivery |
 | Real private local audio processing | passed | bounded operations are private-internal-qualified only |
 | Real loop-seam crossfade path | passed | bounded 128-segment local loop profile; production deployment still blocked |
-| Mirelo injected transport and private output ingestion | passed | fixture-qualified only |
+| Mirelo injected transport and private output ingestion | passed | `planning_qualified` with fixture evidence only |
 | Unknown provider outcome reconciliation and idempotency | passed | blind resubmission denied |
 | Legacy combined Sound/Music retirement adapter | passed | legacy surface is compatibility-fixture-only |
-| Full local E2E from Orchestra through worker, real bytes, QA, handoff | passed | private/internal E2E evidence only |
+| Full local E2E through the standalone Sound service, real bytes, QA, and handoff | passed | private/internal E2E evidence only |
+| Real bounded silent visual proxy at 24/1 and 30000/1001 | passed | private/internal operation evidence; Mirelo route remains fixture-evidenced |
+| Structured whole-video continuity | passed | structured scene/audio-metric evidence; missing evidence is declared |
+| Material/perceptual judgment | not implemented as an evaluator | explicitly `needs_review`; cannot upgrade final qualification |
 | Live Mirelo private canary | not run / evidence absent | production blocked |
 | Production worker deployment and health evidence | absent | production blocked |
 | Deployable LGPL FFmpeg build evidence | absent | production blocked |
@@ -39,13 +42,13 @@ Status date: 2026-08-03. This report distinguishes completed implementation evid
 
 ## Local processing evidence
 
-`canonical-sound-local-audio-smoke.ts` creates real approved project audio and validates analysis, extraction, trim/fade/gain, loudness normalization, resampling/channel conversion, actual loop-seam crossfade, time-stretch/pitch shift, gentle cleanup, scene-stem mixing with speech protection, transient synchronization QA, idempotent replay, immutable source bytes, media validation, checksums, and private file permissions.
+`canonical-sound-local-audio-smoke.ts` creates real approved project audio and validates analysis, extraction, trim/fade/gain, loudness normalization, resampling/channel conversion, actual loop-seam crossfade, time-stretch/pitch shift, gentle cleanup, scene-stem mixing with speech protection, transient synchronization QA, idempotent replay, immutable source bytes, media validation, checksums, and private file permissions. It also produces and verifies exact-duration artifacts at 24/1, 25/1, 30000/1001, 30/1, 50/1, 60000/1001, and 60/1.
 
 The tested runtime is local development infrastructure. Its binary build/license evidence is bound as `sound.license_evidence.private_local_gpl_development_only.v1`, so the same operation cannot be admitted as production execution.
 
 ## Mirelo evidence
 
-`canonical-sound-mirelo-smoke.ts` uses injected deterministic transport, a private visual proxy, exact Mirelo 1.6 operation/route/profile binding, preflight evidence, attempt identity, idempotency, unknown-outcome reconciliation, private output ingestion, optional carrier extraction, visual rejection, license evidence, and a separate immutable rate-card snapshot. Its adversarial cases also prove that altered visual bytes, missing rate snapshots, and hostile upload/result URL hosts fail closed before the unsafe network request can occur.
+`canonical-sound-mirelo-smoke.ts` uses injected deterministic transport, exact Mirelo 1.6 operation/route/profile binding, preflight evidence, attempt identity, idempotency, unknown-outcome reconciliation, private output ingestion, optional carrier extraction, visual rejection, license evidence, and a separate immutable rate-card snapshot. `canonical-sound-e2e-smoke.ts` executes the actual bounded visual proxy through the same canonical service and Mirelo video route. Adversarial cases prove that altered visual bytes, missing rate snapshots, and hostile upload/result URL hosts fail closed before the unsafe network request can occur.
 
 This is fixture evidence. It does not prove a valid live account, commercial approval, privacy acceptance for project media, provider retention guarantees, quota, production health, deployment, or real billing conversion.
 
@@ -65,17 +68,17 @@ The current privacy policy says certain content may be used to develop or improv
 `canonical-sound-e2e-smoke.ts` proves this bounded path with real bytes:
 
 ```text
-Head of Orchestra inspection
-  -> canonical Sound assignment
-  -> Sound controller and source-first cue decision
+future Head or typed peer assignment envelope
+  -> canonical standalone Sound service
+  -> Sound controller and exact route binding
   -> execution-mode route re-admission
-  -> one-operation worker package
-  -> FFmpeg private extraction
-  -> media/checksum/permission QA
-  -> Head of Orchestra handoff receipt
+  -> bounded Sound-owned route executor
+  -> real private local or injected-provider output
+  -> technical/sync/mix/continuity/provenance/integration QA
+  -> caller receipt and final-composition handoff contract
 ```
 
-The E2E test does not claim provider, deployment, final-render, public-delivery, or billing readiness.
+The E2E test does not implement or claim the real Orchestra, live provider, deployment, final-render, public-delivery, or billing readiness.
 
 ## Remaining production activation gates
 

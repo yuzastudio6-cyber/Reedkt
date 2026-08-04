@@ -1,169 +1,257 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { execFile } from 'node:child_process'
-import { mkdtemp, mkdir, readFile, rm, stat } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { promisify } from 'node:util'
-import { inspectSoundAssignmentTools } from '../orchestra/head-of-orchestra'
+import { readFile } from 'node:fs/promises'
 import {
-  createSoundJobDescriptor,
-  runCanonicalSoundController,
-} from '../sound/sound-controller'
+  StandaloneCanonicalSoundSkillService,
+  type ApprovedSoundExecutionPackage,
+  type CanonicalSoundPlanResult,
+} from '../edit-skills/sound'
+import { soundSkillCapabilityManifest } from '../edit-skills/sound/sound-capability-manifest'
 import {
-  runSoundLocalAudioExecution,
-  validateSoundAudioFile,
-} from '../sound/sound-local-audio-processor'
-import { soundSkillCapabilityManifest } from '../sound/sound-manifest'
-import { probeCanonicalSoundRuntimeStatuses } from '../sound/sound-runtime-status'
+  prepareBoundedPrivateVisualProxy,
+  type BoundedSoundVisualProxyRequest,
+} from '../sound/sound-bounded-visual-proxy'
+import { validateSoundAudioFile } from '../sound/sound-local-audio-processor'
 import { validateSoundResultAuthority } from '../sound/sound-scope-guard'
-import { getSoundToolRouteManifest } from '../sound/sound-tool-route-manifest'
+import { soundRange } from './sound-test-fixtures'
 import {
-  admitSoundControllerRoute,
-  createSoundWorkerOperationPackage,
-} from '../sound/sound-tool-views'
-import { buildSoundRequest } from './sound-test-fixtures'
+  buildExecutableSoundRequest,
+  createCanonicalSoundTestRuntime,
+  createInjectedMireloAdapter,
+} from './canonical-sound-test-runtime'
 
-const execFileAsync = promisify(execFile)
-const root = await mkdtemp(join(tmpdir(), 'reeditpro-canonical-sound-e2e-'))
-const inputRoot = join(root, 'private-input')
-const outputRoot = join(root, 'private-output')
-await mkdir(inputRoot, { recursive: true, mode: 0o700 })
-await mkdir(outputRoot, { recursive: true, mode: 0o700 })
+function executionPackage(
+  plan: CanonicalSoundPlanResult,
+  suffix: string,
+): ApprovedSoundExecutionPackage {
+  return {
+    schemaVersion: 'approved-sound-execution-package-v1',
+    packageId: `sound-e2e-${suffix}`,
+    approvedWorkItemId: `sound-e2e-work-${suffix}`,
+    request: plan.request,
+    plannedResult: plan.controller.result,
+    selectedRoute: plan.selectedRoute,
+    selectedOptionalStepKeys: [],
+    continuitySceneEvidence: plan.continuity.sceneEvidence,
+  }
+}
+
+const runtime = await createCanonicalSoundTestRuntime()
+const ntscRuntime = await createCanonicalSoundTestRuntime({ numerator: 30_000, denominator: 1_001 })
+const filmRuntime = await createCanonicalSoundTestRuntime({ numerator: 24, denominator: 1 })
 
 try {
-  const sourcePath = join(inputRoot, 'approved-project-source.wav')
-  await execFileAsync('ffmpeg', [
-    '-hide_banner', '-loglevel', 'error', '-nostdin', '-y',
-    '-f', 'lavfi', '-i', 'sine=frequency=520:duration=2:sample_rate=48000',
-    '-ac', '2', '-c:a', 'pcm_s24le', sourcePath,
-  ], { timeout: 30_000 })
-  const sourceBytes = await readFile(sourcePath)
-  const sourceChecksum = createHash('sha256').update(sourceBytes).digest('hex')
-  const sourceArtifact = {
-    artifactId: 'e2e-approved-source',
-    artifactType: 'approved_source_audio',
-    version: 1,
-    checksumSha256: sourceChecksum,
-    storageObjectId: 'private:e2e-approved-source:v1',
-    private: true as const,
-    contentType: 'audio/wav',
-    durationFrames: 60,
-  }
+  const localService = new StandaloneCanonicalSoundSkillService({ artifacts: runtime.resolver })
+  assert.equal(localService.getCapabilityManifest().manifestHash, soundSkillCapabilityManifest.manifestHash)
 
-  const request = buildSoundRequest({
-    job: 'design_scene_sound',
-    eventFrames: [30],
-    allowProviderGeneration: false,
-  })
-  const runtimeStatuses = await probeCanonicalSoundRuntimeStatuses()
-
-  const orchestraView = await inspectSoundAssignmentTools({
-    job: createSoundJobDescriptor(request),
-    runtimeStatuses,
-  })
-  assert.equal(orchestraView.assignment.ok, true)
-  assert.equal(orchestraView.manifestHash, soundSkillCapabilityManifest.manifestHash)
-  assert.ok(orchestraView.routes.some((route) => route.routeKey === 'sound.route.design.plan.v1'))
-
-  const planned = runCanonicalSoundController(request, {
-    sourceMatches: [{
-      anchorId: 'event-1',
-      artifact: sourceArtifact,
-      usable: true,
-      requiresRepair: false,
-    }],
-  })
-  assert.equal(planned.result.status, 'planned')
-  assert.equal(planned.result.cueManifest.cues[0]?.acquisitionDecision, 'preserve_project_source')
-  assert.equal(validateSoundResultAuthority(request, planned.result).ok, true)
-
-  const plannedWork = planned.childWorkItems[0]
-  assert.ok(plannedWork)
-  assert.equal(plannedWork!.routeBinding.routeKey, 'sound.route.acquire.project_source.v1')
-  const route = getSoundToolRouteManifest(plannedWork!.routeBinding.routeKey)!
-  const executionAdmission = admitSoundControllerRoute({
-    routeKey: route.routeKey,
-    capabilityKey: 'sound.extract_project_owned_sound',
-    jobType: 'extract_project_owned_sound',
-    mode: 'preview_execution',
-    scope: 'range',
-    availableInputKeys: [...route.requiredInputs],
-    availableQaKeys: [...new Set([
-      ...route.stepQa,
-      ...route.finalOutputQa,
-      ...route.integrationQa,
-    ])],
-    runtimeStatuses,
-    budgetApproved: true,
-    rateCardSnapshotIds: {},
-    licenseEvidenceRefs: {
-      ffmpeg: 'sound.license_evidence.private_local_gpl_development_only.v1',
-      ffprobe: 'sound.license_evidence.private_local_gpl_development_only.v1',
-    },
-  })
-  assert.equal(executionAdmission.admitted, true, executionAdmission.reasons.join(','))
-  assert.ok(executionAdmission.binding)
-
-  const workerPackage = createSoundWorkerOperationPackage({
-    skillBinding: planned.assignment.binding!,
-    routeBinding: executionAdmission.binding!,
-    stepKey: 'extract_project_audio',
-    artifactBindings: [{
-      artifactId: sourceArtifact.artifactId,
-      artifactType: sourceArtifact.artifactType,
-      checksumSha256: sourceArtifact.checksumSha256,
-      version: sourceArtifact.version,
-      access: 'read_only',
-    }],
-    inspectRanges: [{ startFrame: 0, endFrameExclusive: 60 }],
-    audioWriteRanges: [{ startFrame: 0, endFrameExclusive: 60 }],
-    visualWriteRanges: [],
-    attemptId: request.attemptId,
-    idempotencyKey: request.idempotencyKey,
-  })
-  assert.equal(workerPackage.routeBinding.toolOperations.length, 1)
-  assert.equal(workerPackage.routeBinding.toolOperations[0]?.operationKey, 'extract_audio_pcm')
-
-  const outputRelativePath = 'sound/e2e-selected-source.wav'
-  const executed = await runSoundLocalAudioExecution({
-    schemaVersion: 'sound-local-audio-execution-v1',
-    executionId: 'canonical-sound-e2e-extract',
-    binding: {
-      soundSkillVersion: soundSkillCapabilityManifest.skillVersion,
-      soundManifestHash: soundSkillCapabilityManifest.manifestHash,
-      capabilityKey: 'sound.extract_project_owned_sound',
-      approvedPlanSnapshotId: request.executionAuthority.approvedPlanSnapshotId!,
-      approvedPlanSnapshotHash: request.executionAuthority.approvedPlanSnapshotHash!,
-      approvedWorkItemId: plannedWork!.workItemId,
-      privateOutputScopeId: request.executionAuthority.privateOutputScopeId!,
-      idempotencyKey: request.idempotencyKey,
-      routeBinding: executionAdmission.binding!,
-    },
-    operation: 'extract',
-    operationProfileKey: 'sound.extract.pcm.v1',
-    sources: [{ artifact: sourceArtifact, absolutePath: sourcePath }],
-    approvedInputRoot: inputRoot,
-    privateOutputRoot: outputRoot,
-    outputRelativePath,
-    outputArtifactId: 'e2e-private-selected-sound',
-    outputArtifactType: 'edited_audio_asset_version',
-    outputContentType: 'audio/wav',
-    parameters: { sampleRate: 48_000, channels: 2 },
-  })
-  assert.equal(executed.status, 'completed')
-  assert.equal(executed.outputArtifact?.private, true)
-  assert.equal(executed.qaEvidence.inputMediaValidated, true)
-  assert.equal(executed.qaEvidence.outputMediaValidated, true)
-  assert.equal(executed.qaEvidence.sourceOverwritePrevented, true)
-  assert.equal(createHash('sha256').update(await readFile(sourcePath)).digest('hex'), sourceChecksum)
-  assert.equal((await stat(join(outputRoot, outputRelativePath))).mode & 0o777, 0o600)
-  const outputMedia = await validateSoundAudioFile(join(outputRoot, outputRelativePath))
+  const exactRequest = buildExecutableSoundRequest({ runtime, job: 'trim_audio' })
+  exactRequest.assignmentScope.authorizedAudioWriteRanges = [soundRange('exact-write', 0, 90)]
+  const exactPlan = await localService.plan(exactRequest)
+  const exactPackage = executionPackage(exactPlan, 'local-exact')
+  const exactResult = await localService.execute(exactPackage)
+  assert.equal(exactResult.status, 'completed')
+  assert.equal(exactResult.selectedAssetVersions.length, 1)
+  assert.equal(exactResult.modifiedAudioRanges[0]?.endFrameExclusive, 90)
+  assert.equal(exactResult.modifiedVisualRanges.length, 0)
+  assert.equal(exactResult.callerReceipt.authorityEscalated, false)
+  assert.equal(exactResult.callerReceipt.finalRenderOwnedBySound, false)
+  assert.equal(exactResult.callerReceipt.musicCompositionPerformed, false)
+  assert.equal(exactResult.finalCompositionHandoff?.finalRenderOwnedBySound, false)
+  assert.equal(validateSoundResultAuthority(exactRequest, exactResult).ok, true)
+  const selected = await runtime.resolver.resolve(exactResult.selectedAssetVersions[0]!)
+  const outputMedia = await validateSoundAudioFile(selected.absolutePath)
   assert.equal(outputMedia.sampleRate, 48_000)
   assert.equal(outputMedia.channels, 2)
-  assert.deepEqual(planned.result.finalHandoffTargets, ['head_of_orchestra'])
+  assert.equal(createHash('sha256').update(await readFile(selected.absolutePath)).digest('hex'),
+    exactResult.selectedAssetVersions[0]!.checksumSha256)
 
-  process.stdout.write('Canonical Sound E2E smoke passed: Orchestra -> Sound -> route admission -> bounded worker -> real private audio -> QA -> handoff.\n')
+  const qaResult = await localService.qa({ executionPackage: exactPackage })
+  assert.notEqual(qaResult.qa.status, 'failed')
+  assert.ok(qaResult.qa.technicalOutputQa.some((finding) => finding.key === 'technical.decode'))
+  assert.ok(qaResult.qa.perceptualMaterialQa.every((finding) => finding.disposition === 'needs_review'))
+  assert.equal(qaResult.continuity.wholeVideoReadOnly, true)
+
+  const multiRequest = buildExecutableSoundRequest({ runtime, job: 'trim_audio' })
+  multiRequest.assignmentScope.assignmentMode = 'multi_range'
+  multiRequest.assignmentScope.authorizedAudioWriteRanges = [
+    soundRange('multi-a', 0, 90), soundRange('multi-b', 120, 210),
+  ]
+  assert.equal((await localService.plan(multiRequest)).request.assignmentScope.authorizedAudioWriteRanges.length, 2)
+
+  const wholeRequest = buildExecutableSoundRequest({ runtime, job: 'full_video_sound_pass', mode: 'planning' })
+  wholeRequest.assignmentScope.assignmentMode = 'whole_video'
+  wholeRequest.assignmentScope.inspectWholeVideo = true
+  const wholePlan = await localService.plan(wholeRequest)
+  assert.equal(wholePlan.continuity.wholeVideoReadOnly, true)
+  assert.ok(Array.isArray(wholePlan.continuity.boundaryFindings))
+
+  const peerView = localService.getPeerCapabilityView({
+    callerType: 'transitions', callerSkillKey: 'transitions', jobType: 'support_transition_sound',
+  })
+  assert.equal(peerView.accepted, true)
+  assert.equal(peerView.peerMayInvokeSoundToolsDirectly, false)
+  assert.equal(peerView.peerMaySupplyProviderPayload, false)
+  assert.equal(peerView.peerMayDispatchWorkers, false)
+
+  const noSoundRequest = buildExecutableSoundRequest({ runtime, job: 'design_scene_sound', mode: 'planning' })
+  noSoundRequest.eventAnchors = []
+  noSoundRequest.costPolicy.allowProviderGeneration = false
+  const noSoundPlan = await localService.plan(noSoundRequest)
+  assert.equal(noSoundPlan.selectedRoute.routeKey, 'sound.route.no_sound.v1')
+  const noSoundResult = await localService.execute(executionPackage(noSoundPlan, 'no-sound'))
+  assert.equal(noSoundResult.status, 'no_sound')
+  assert.equal(noSoundResult.selectedAssetVersions.length, 0)
+
+  const revised = await localService.revise({
+    request: exactRequest,
+    previousResult: exactResult,
+    invalidatedRanges: [soundRange('localized-revision', 0, 45)],
+  })
+  assert.equal(revised.status, 'planned')
+  assert.equal(revised.cueManifest.version, exactResult.cueManifest.version + 1)
+  assert.equal(revised.selectedAssetVersions.length, 0)
+  assert.equal(revised.actualExecutionEvidence, undefined)
+
+  const textFixture = createInjectedMireloAdapter({ runtime })
+  const providerService = new StandaloneCanonicalSoundSkillService({
+    artifacts: runtime.resolver,
+    mirelo: textFixture.adapter,
+  })
+  const textRequest = buildExecutableSoundRequest({
+    runtime, job: 'generate_text_conditioned_sfx', mode: 'fixture',
+  })
+  textRequest.latencyPolicy.allowAsyncProviderJob = false
+  const textPlan = await providerService.plan(textRequest)
+  assert.equal(textPlan.selectedRoute.routeKey, 'sound.route.generate.text_sfx.v1')
+  const textResult = await providerService.execute(executionPackage(textPlan, 'mirelo-text'))
+  assert.equal(textResult.status, 'completed', JSON.stringify(textResult.qaReport))
+  assert.equal(textResult.providerStatus, 'succeeded')
+  assert.equal(textResult.candidateAssetVersions.length, 1)
+  assert.equal(textResult.selectedAssetVersions.length, 1)
+  assert.equal(textResult.actualExecutionEvidence?.providerAttemptStatus, 'succeeded')
+  assert.ok(textFixture.transport.calls.some((call) => call.url.endsWith('/v2/text-to-sfx/v1.6/sync')))
+
+  const videoFixture = createInjectedMireloAdapter({ runtime: ntscRuntime })
+  const videoService = new StandaloneCanonicalSoundSkillService({
+    artifacts: ntscRuntime.resolver,
+    mirelo: videoFixture.adapter,
+  })
+  const videoRequest = buildExecutableSoundRequest({
+    runtime: ntscRuntime, job: 'generate_video_conditioned_sfx', mode: 'fixture',
+  })
+  videoRequest.latencyPolicy.allowAsyncProviderJob = false
+  videoRequest.costPolicy.candidateCount = 1
+  const videoPlan = await videoService.plan(videoRequest)
+  assert.equal(videoPlan.selectedRoute.routeKey, 'sound.route.generate.video_sfx.mirelo.v1')
+  const videoResult = await videoService.execute(executionPackage(videoPlan, 'mirelo-video'))
+  assert.equal(videoResult.status, 'completed', JSON.stringify(videoResult.qaReport))
+  assert.equal(videoResult.timelineRate.numerator, 30_000)
+  assert.equal(videoResult.timelineRate.denominator, 1_001)
+  assert.equal(videoResult.modifiedVisualRanges.length, 0)
+  assert.equal(videoResult.finalCompositionHandoff?.finalRenderOwnedBySound, false)
+  assert.ok(videoResult.actualExecutionEvidence?.stepEvidence.some((step) =>
+    step.operationKey === 'prepare_bounded_private_visual_proxy' && step.status === 'completed'))
+  assert.ok(videoFixture.transport.calls.some((call) =>
+    call.url.endsWith('/v2/video-to-sfx/v1.6/sync')))
+  assert.equal(videoFixture.transport.calls.some((call) => call.url.includes('/text-to-music/')), false)
+
+  const filmSourceHash = createHash('sha256').update(await readFile(filmRuntime.videoPath)).digest('hex')
+  const proxyRequest: BoundedSoundVisualProxyRequest = {
+    schemaVersion: 'sound-bounded-visual-proxy-request-v1',
+    executionId: 'sound-proxy-film-24',
+    approvedSnapshotId: 'approved-snapshot-proxy-film',
+    approvedSnapshotHash: createHash('sha256').update('approved-snapshot-proxy-film').digest('hex'),
+    approvedWorkItemId: 'approved-work-proxy-film',
+    privateOutputScopeId: 'private-sound-output-1',
+    idempotencyKey: 'sound-proxy-film-idempotency',
+    source: {
+      artifact: filmRuntime.videoArtifact,
+      absolutePath: filmRuntime.videoPath,
+      visualVersion: filmRuntime.videoArtifact.version,
+      visualHash: filmRuntime.videoArtifact.checksumSha256,
+      expectedChecksumSha256: filmRuntime.videoArtifact.checksumSha256,
+    },
+    approvedInputRoot: filmRuntime.inputRoot,
+    privateOutputRoot: filmRuntime.outputRoot,
+    outputRelativePath: 'sound/proxy-film-24.mp4',
+    outputArtifactId: 'bounded-proxy-film-24',
+    eventRange: soundRange('proxy-event', 24, 48),
+    authorizedSourceRange: soundRange('proxy-authority', 0, 72),
+    preRollFrames: 12,
+    postRollFrames: 6,
+    timelineRate: { numerator: 24, denominator: 1 },
+    timelineManifestRate: { numerator: 24, denominator: 1 },
+    outputConstraints: {
+      maximumWidth: 640, maximumHeight: 360, maximumBytes: 32 * 1024 * 1024,
+      contentType: 'video/mp4', removeSourceAudio: true,
+    },
+    providerProfile: {
+      providerKey: 'mirelo_sfx',
+      providerProfileKey: 'sound.mirelo.video_sfx_1_6.v1',
+      providerProfileVersion: '1.0.0',
+    },
+  }
+  const filmProxy = await prepareBoundedPrivateVisualProxy(proxyRequest)
+  assert.equal(filmProxy.sourceStartFrame, 12)
+  assert.equal(filmProxy.sourceEndFrameExclusive, 54)
+  assert.equal(filmProxy.proxyDurationFrames, 42)
+  assert.equal(filmProxy.timelineRate.numerator, 24)
+  assert.equal(filmProxy.proxyQaEvidence.audioRemoved, true)
+  assert.equal(filmProxy.proxyQaEvidence.privatePermissionsVerified, true)
+  assert.equal(filmProxy.noSourceOverwriteEvidence.sourceUnchanged, true)
+  assert.equal(filmProxy.sourceVisualHash, filmRuntime.videoArtifact.checksumSha256)
+  const filmReplay = await prepareBoundedPrivateVisualProxy(proxyRequest)
+  assert.equal(filmReplay.idempotentReplay, true)
+  assert.equal(filmReplay.checksumSha256, filmProxy.checksumSha256)
+  assert.equal(createHash('sha256').update(await readFile(filmRuntime.videoPath)).digest('hex'), filmSourceHash)
+
+  await assert.rejects(prepareBoundedPrivateVisualProxy({
+    ...proxyRequest,
+    executionId: 'proxy-bad-authority',
+    outputRelativePath: 'sound/proxy-bad-authority.mp4',
+    eventRange: soundRange('outside-authority', 3, 20),
+  }), /exceed approved source authority/i)
+  await assert.rejects(prepareBoundedPrivateVisualProxy({
+    ...proxyRequest,
+    executionId: 'proxy-bad-rate',
+    outputRelativePath: 'sound/proxy-bad-rate.mp4',
+    timelineManifestRate: { numerator: 25, denominator: 1 },
+  }), /timeline manifest rate mismatch/i)
+  await assert.rejects(prepareBoundedPrivateVisualProxy({
+    ...proxyRequest,
+    executionId: 'proxy-bad-visual-hash',
+    outputRelativePath: 'sound/proxy-bad-visual-hash.mp4',
+    source: { ...proxyRequest.source, visualHash: '0'.repeat(64) },
+  }), /source visual hash mismatch/i)
+  await assert.rejects(prepareBoundedPrivateVisualProxy({
+    ...proxyRequest,
+    executionId: 'proxy-bad-checksum',
+    outputRelativePath: 'sound/proxy-bad-checksum.mp4',
+    source: { ...proxyRequest.source, expectedChecksumSha256: '0'.repeat(64) },
+  }), /source checksum mismatch/i)
+  await assert.rejects(prepareBoundedPrivateVisualProxy({
+    ...proxyRequest,
+    executionId: 'proxy-path-traversal',
+    outputRelativePath: '../proxy.mp4',
+  }), /output path is unsafe/i)
+  await assert.rejects(prepareBoundedPrivateVisualProxy({
+    ...proxyRequest,
+    executionId: 'proxy-source-overwrite',
+    privateOutputRoot: filmRuntime.inputRoot,
+    outputRelativePath: 'source.mp4',
+  }), /cannot overwrite its source/i)
+
+  console.log(JSON.stringify({
+    status: 'ok',
+    manifestHash: soundSkillCapabilityManifest.manifestHash,
+    localArtifact: exactResult.selectedAssetVersions[0]?.artifactId,
+    technicalQa: qaResult.qa.technicalOutputQa.length,
+    noSound: noSoundResult.status,
+    mireloText: textResult.actualExecutionEvidence?.providerAttemptStatus,
+    mireloVideoRate: `${videoResult.timelineRate.numerator}/${videoResult.timelineRate.denominator}`,
+    boundedProxy24Frames: filmProxy.proxyDurationFrames,
+    finalRenderOwnedBySound: false,
+  }, null, 2))
 } finally {
-  await rm(root, { recursive: true, force: true })
+  await Promise.all([runtime.cleanup(), ntscRuntime.cleanup(), filmRuntime.cleanup()])
 }

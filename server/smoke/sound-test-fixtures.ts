@@ -95,8 +95,8 @@ export function buildSoundRequest(input: {
   maximumCueDensityPerMinute?: number
 } = {}): CanonicalSoundRequest {
   const job = input.job ?? 'design_scene_sound'
-  const capability = soundSkillCapabilityManifest.capabilityEntries.find(
-    (entry) => entry.supportedJobType === job,
+  const capability = (soundSkillCapabilityManifest.capabilityEntries ?? []).find(
+    (entry) => entry.supportedJobTypes.includes(job),
   )!
   const callerType = input.callerType ?? 'head_of_orchestra'
   const peer = callerType !== 'head_of_orchestra'
@@ -169,7 +169,7 @@ export function buildSoundRequest(input: {
     },
     requestedOperations: input.requestedOperations ?? operationFor(job),
     requestedOutcome: `Perform ${job} inside exact Sound authority.`,
-    requiredDeliverables: capability.producedArtifactTypes,
+    requiredDeliverables: [...capability.producedArtifactTypes],
     sourceMediaRefs: [sourceVideo],
     sourceAudioRefs: [sourceAudio],
     visualDependencies: [{
@@ -181,6 +181,8 @@ export function buildSoundRequest(input: {
     }],
     timelineManifestRef: timeline,
     timelineManifestHash: timeline.checksumSha256,
+    timelineRate: { numerator: 30, denominator: 1 },
+    timelineManifestRate: { numerator: 30, denominator: 1 },
     timelineFps: 30,
     transcriptSpeechEvidenceRef: transcript,
     musicContext: {

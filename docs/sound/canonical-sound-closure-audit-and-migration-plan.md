@@ -37,3 +37,11 @@ Status: implementation input for the standalone Sound closure. This artifact rec
 8. Add the legacy bypass scan, cross-kernel B-roll regression, acceptance matrix, documentation, and final security/privacy/authority/qualification review.
 
 The final state intentionally leaves global skill selection, global work graphs, global scheduling, global approvals/cost aggregation, cross-skill conflict resolution, and final composition coordination to the future Head of Orchestra.
+
+## Closure outcome
+
+The migration sequence above is now implemented on the canonical Sound branch. Sound publishes immutable skill version `2.0.0` and contract `sound.skill_contract.v2` through `server/edit-skills/core/`; the former `server/orchestra/` production façade and `src/types/skill-capability-manifest.ts` have been retired. The stable Sound-owned boundary is `StandaloneCanonicalSoundSkillService` in `server/edit-skills/sound/canonical-sound-skill-service.ts`.
+
+All 39 capability entries and 19 mini-skills reference exact `2.0.0` route identities from the 18-route registry. Publication validation rejects missing versions, hash mismatches, job mismatches, unproducible outputs, unknown tool operations, invalid fallbacks, and invalid lower-cost claims. Exact rational timeline rates are bound through request, timeline manifest, local execution, SoundSync, artifacts, proxy generation, and QA.
+
+Standalone evidence includes real private FFmpeg/FFprobe processing, actual output QA, structured whole-video continuity, no-Sound execution, localized revision, and canonical injected Mirelo text/video route execution. The video route uses the real bounded, silent, private visual proxy operation. Mirelo remains planning-qualified with fixture evidence; production activation still requires the external evidence listed in the final closure report. Global Orchestra integration remains pending by design, and the separate Music skill was not started.

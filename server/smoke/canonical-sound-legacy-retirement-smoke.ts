@@ -39,4 +39,51 @@ check(
   'Canonical Mirelo route must bind Mirelo SFX 1.6.',
 )
 
-console.log('Canonical Sound legacy retirement smoke passed.')
+const retiredOrchestraPath = join(process.cwd(), 'server', 'orchestra')
+await access(retiredOrchestraPath).then(async () => {
+  check((await readdir(retiredOrchestraPath)).length === 0,
+    'The retired Sound-created generic Orchestra façade still contains active production files.')
+}, (error: NodeJS.ErrnoException) => {
+  check(error.code === 'ENOENT', `Unexpected Orchestra path error: ${error.message}`)
+})
+
+const activeRoots = [join(process.cwd(), 'server', 'sound'), join(process.cwd(), 'server', 'edit-skills', 'sound')]
+const activeFiles = (await Promise.all(activeRoots.map(async (root) =>
+  (await readdir(root)).filter((name) => name.endsWith('.ts')).map((name) => join(root, name))))).flat()
+for (const file of activeFiles) {
+  const source = await readFile(file, 'utf8')
+  check(!source.includes('inspectSoundAssignmentTools'), `${file} retains the retired Sound Head façade.`)
+  check(!source.includes("from '../orchestra"), `${file} imports the retired generic Sound Orchestra path.`)
+  check(!source.includes('mockSoundMusicAudioScenarios'), `${file} uses legacy scenario fixtures in production reasoning.`)
+  if (!file.endsWith('legacy-sound-compatibility-adapter.ts')) {
+    check(!source.includes('SOUND_MUSIC_AUDIO'), `${file} exposes the legacy combined Sound/Music owner.`)
+  }
+}
+
+const compatibilitySource = await readFile(
+  join(process.cwd(), 'server', 'sound', 'legacy-sound-compatibility-adapter.ts'), 'utf8',
+)
+for (const executionBypass of [
+  'MireloSfxProviderAdapter', 'runSoundLocalAudioExecution', 'CanonicalSoundRouteExecutor',
+  'prepareBoundedPrivateVisualProxy', 'createSoundWorkerOperationPackage',
+]) {
+  check(!compatibilitySource.includes(executionBypass),
+    `Legacy compatibility boundary can reach execution primitive ${executionBypass}.`)
+}
+check(compatibilitySource.includes('planning data only'), 'Legacy adapter must state its planning-only boundary.')
+check(compatibilitySource.includes("targetSkillKey: 'music'"), 'Legacy Music intent must remain an explicit future Music handoff.')
+const soundBarrelSource = await readFile(join(process.cwd(), 'server', 'sound', 'index.ts'), 'utf8')
+for (const internalBypass of [
+  'mirelo-sfx-provider', 'sound-local-audio-processor', 'sound-tool-views',
+  'sound-bounded-visual-proxy', 'sound-route-executor',
+]) {
+  check(!soundBarrelSource.includes(internalBypass),
+    `Compatibility-facing Sound barrel exposes internal bypass ${internalBypass}.`)
+}
+
+console.log(JSON.stringify({
+  status: 'ok', retiredGenericOrchestraFacade: true, activeFilesScanned: activeFiles.length,
+  compatibilityBoundary: 'planning_only', musicHandoff: 'future_music_skill',
+}, null, 2))
+import { access, readFile, readdir } from 'node:fs/promises'
+import { join } from 'node:path'

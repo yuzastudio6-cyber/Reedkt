@@ -208,6 +208,7 @@ try {
     approvedWorkItemId: 'approved-work-mirelo',
     privateOutputScopeId: 'mirelo-private-scope',
     idempotencyKey: 'carrier-local-idempotency',
+    timelineRate: { numerator: 30, denominator: 1 },
     creditReservationId: 'credit-reservation-mirelo',
     routeBinding: carrierRouteAdmission.binding!,
   }
@@ -299,6 +300,7 @@ try {
       bytes: carrierBytes,
       contentType: 'video/mp4',
       visualHash: createHash('sha256').update(carrierBytes).digest('hex'),
+      sourceVisualHash: createHash('sha256').update(carrierBytes).digest('hex'),
       artifactId: 'approved-private-visual-proxy',
       artifactVersion: 1,
       startOffsetMs: 0,
@@ -454,14 +456,14 @@ try {
 
   assert.equal(MIRELO_SFX_PROVIDER_PROFILE.model, 'Mirelo SFX 1.6')
   assert.equal(MIRELO_SFX_PROVIDER_PROFILE.pricing.publicMireloCreditsPerGeneratedSecond, 10)
-  assert.equal(MIRELO_SFX_PROVIDER_PROFILE.qualificationStatus, 'fixture_qualified')
+  assert.equal(MIRELO_SFX_PROVIDER_PROFILE.qualificationStatus, 'planning_qualified')
   assert.ok(MIRELO_SFX_PROVIDER_PROFILE.productionBlockers.length > 0)
   const manifestRoute = soundSkillCapabilityManifest.toolRoutes.find(
     (route) => route.routeKey === 'sound.route.generate.video_sfx.mirelo.v1',
   )
-  assert.equal(manifestRoute?.providerProfileKey, MIRELO_SFX_PROVIDER_PROFILE.profileKey)
-  assert.equal(manifestRoute?.qualificationStatus, 'fixture_qualified')
-  assert.equal(manifestRoute?.paid, true)
+  assert.equal(manifestRoute?.routeVersion, carrierRoute.routeVersion)
+  assert.equal(manifestRoute?.routeHash, carrierRoute.routeHash)
+  assert.equal(carrierRoute.qualificationStatus, 'planning_qualified')
 
   process.stdout.write('Canonical Sound Mirelo SFX 1.6 provider smoke passed.\n')
 } finally {

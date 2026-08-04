@@ -4,7 +4,7 @@ Status: implemented and fixture/private-internal qualified where stated. This is
 
 ## Purpose
 
-The Head of Orchestra needs a machine-readable answer to four different questions:
+The future Head of Orchestra needs a machine-readable answer to four different questions:
 
 1. `SkillCapabilityManifest`: what the Sound department can own or support.
 2. `SkillCapabilityEntry`: whether Sound can handle one exact job, scope, caller, phase, and execution mode.
@@ -15,7 +15,7 @@ The Orchestra assigns work to `sound`; peer skills request a Sound capability. N
 
 ## Shared manifest contract
 
-The generic immutable contract is implemented in:
+The generic immutable top-level skill contract is implemented in `server/edit-skills/core/` and registered in `server/edit-skills/registry.ts`. Sound uses the same manifest schema, shared qualification vocabulary, hashing, registry, assignment/plan/result envelopes, estimators, qualification receipt, invalidation rules, and revision rules as B-roll. Sound-specific tool contracts remain implemented in:
 
 - `server/tool-registry/tool-capability-manifest-types.ts`
 - `server/tool-registry/tool-capability-manifest-registry.ts`
@@ -41,7 +41,7 @@ An available but unqualified tool is denied. A qualified but unavailable tool is
 
 | Tool key | Version | Current highest status | Role |
 |---|---:|---|---|
-| `mirelo_sfx` | 1.6 | fixture-qualified | Primary generated SFX/Foley provider; live production blocked |
+| `mirelo_sfx` | 1.6 | planning-qualified, fixture evidence | Primary generated SFX/Foley provider; live production blocked |
 | `mmaudio_v2` | 2.0 | blocked | Declared video-conditioned fallback only |
 | `sound_internal_library` | 1.0.0 | planning-qualified | Search planning; no indexed production library evidence |
 | `ffmpeg` | 8.1.1-local | private-internal-qualified | Ten separately qualified local operations |
@@ -49,12 +49,12 @@ An available but unqualified tool is denied. A qualified but unavailable tool is
 | `pyav`, `librosa`, `audioflux`, `pyloudnorm`, `pydub`, `scipy`, `resampy`, `noisereduce`, `pedalboard`, `rnnoise` | registry-current | private-internal-qualified | Bounded analysis or processing operations |
 | `deepfilternet` | registry-current | declared | Cleanup candidate without qualified runtime evidence |
 | `signalsmith_stretch` | registry-current | private-internal-qualified | Pitch-preserving retime operation |
-| `sound_private_artifact_store` | 1.0.0 | fixture-qualified summary | Fixture-qualified proxy/ingest operations plus a separately private-internal-qualified commit operation |
-| `sound_provider_attempt_service` | 1.0.0 | fixture-qualified | Provider attempt and reconciliation records |
+| `sound_private_artifact_store` | 1.0.0 | operation-dependent | Fixture-evidenced ingest plus private-internal bounded proxy/commit operations |
+| `sound_provider_attempt_service` | 1.0.0 | planning-qualified, fixture evidence | Provider attempt and reconciliation records |
 | `sound_project_source_resolver` | 1.0.0 | planning-qualified | Project-owned source resolution |
 | `sound_planning_service` | 1.0.0 | operation-dependent | Planning, reference DNA, visual study, and revision operations |
 | `sound_sync_service` | 1.0.0 | private-internal-qualified | Visual-event alignment |
-| `sound_qa_service` | 1.0.0 | private-internal-qualified | Final Sound QA |
+| `sound_qa_service` | 1.0.0 | operation-dependent | Real technical/sync/mix/continuity/provenance/integration QA; perceptual/material judgment remains needs-review |
 | `sound_no_sound_decision` | 1.0.0 | private-internal-qualified | Typed no-Sound decision and receipt |
 
 The current FFmpeg/FFprobe evidence comes from a local Homebrew GPL build. It is accepted only for private/internal development evidence; it is not the deployable production LGPL configuration required by `launch-tool-stack-update.md`.
@@ -70,10 +70,10 @@ The current FFmpeg/FFprobe evidence comes from a local Homebrew GPL build. It is
 | `sound.route.revision.v1` | support | planning | blocked | blocked |
 | `sound.route.acquire.internal_library.v1` | lower cost | planning | blocked | blocked |
 | `sound.route.acquire.project_source.v1` | primary | private-internal | private-internal | blocked without production qualification |
-| `sound.route.generate.video_sfx.mirelo.v1` | primary | fixture | fixture | blocked without production qualification |
+| `sound.route.generate.video_sfx.mirelo.v1` | primary | planning + fixture evidence | preview via injected transport | blocked without production qualification |
 | `sound.route.generate.video_sfx.mmaudio.v1` | fallback | blocked | blocked | blocked |
-| `sound.route.generate.text_sfx.v1` | primary | fixture | fixture | blocked without production qualification |
-| `sound.route.ambience.generate_or_extend.v1` | primary | fixture | fixture | blocked without production qualification |
+| `sound.route.generate.text_sfx.v1` | primary | planning + fixture evidence | preview via injected transport | blocked without production qualification |
+| `sound.route.ambience.generate_or_extend.v1` | primary | planning + fixture evidence | preview via injected transport | blocked without production qualification |
 | `sound.route.repair.dialogue_gentle.v1` | primary | private-internal | private-internal | blocked without production qualification |
 | `sound.route.edit.deterministic.v1` | primary | private-internal | private-internal | blocked without production qualification |
 | `sound.route.retime.pitch_preserved.v1` | primary | private-internal | private-internal | blocked without production qualification |
@@ -105,7 +105,7 @@ Provider-returned visuals are always rejected. Sound may consume approved visual
 
 ## Controller and worker projections
 
-The Head view contains skill/capability eligibility, scope, dependencies, conflicts, estimates, route graphs, mode qualification, runtime observations, fallbacks, attempts, QA, and limitations.
+The future Head view contains skill/capability eligibility, scope, dependencies, conflicts, estimates, route graphs, mode qualification, runtime observations, fallbacks, attempts, QA, and limitations. This repository change supplies the contract and stable Sound service; it does not implement the Head.
 
 The peer view contains callable Sound capability, required inputs, supported scopes, produced artifacts, estimates, and admission state. It explicitly denies direct tool, provider-payload, credential, executable, argument, and worker-dispatch access.
 

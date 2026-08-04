@@ -263,6 +263,15 @@ try {
     }
     const quiet = await executeMix('quiet', -24)
     const present = await executeMix('present', -6)
+    for (const execution of [quiet, present]) {
+      assert.equal(execution.result.status, 'completed', JSON.stringify({
+        status: execution.result.status,
+        unresolvedDependencies: execution.result.unresolvedDependencies,
+        executionUnits: execution.result.executionUnits,
+        steps: execution.result.actualExecutionEvidence?.stepEvidence,
+      }))
+      assert.equal(execution.result.selectedAssetVersions.length, 1)
+    }
     assert.notEqual(
       quiet.result.selectedAssetVersions[0]?.checksumSha256,
       present.result.selectedAssetVersions[0]?.checksumSha256,

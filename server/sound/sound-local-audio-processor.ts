@@ -740,7 +740,11 @@ function mixArguments(input: SoundLocalAudioExecutionPackage, temporaryPath: str
     throw new Error('dialogueInputIndex is outside the approved source set.')
   }
   const gains = input.sources.map((_, index) => p.inputGainDb?.[index] ?? 0)
-  const filters = gains.map((gain, index) => `[${index}:a]volume=${gain}dB[g${index}]`)
+  // A filter output pad is single-use. Split dialogue explicitly so one bound copy
+  // drives the compressor sidechain while the other remains available for the mix.
+  const filters = gains.map((gain, index) => index === dialogueIndex
+    ? `[${index}:a]volume=${gain}dB,asplit=2[g${index}_sidechain][g${index}_mix]`
+    : `[${index}:a]volume=${gain}dB[g${index}]`)
   const soundLabels = input.sources.map((_, index) => index).filter((index) => index !== dialogueIndex)
   if (soundLabels.length === 0) throw new Error('Sound mix requires at least one Sound layer.')
   const mixedSoundLabel = soundLabels.length === 1 ? `g${soundLabels[0]}` : 'sfxmix'
@@ -781,13 +785,13 @@ function mixArguments(input: SoundLocalAudioExecutionPackage, temporaryPath: str
   const releaseMs = Math.round((p.duckReleaseSeconds ?? 0.25) * 1_000)
   const ratio = Math.min(20, Math.max(1, Math.abs(p.dialogueDuckingDb ?? -9) * 1.25))
   if (dialogueIndex >= 0) {
-    filters.push(`[${processedSoundLabel}][g${dialogueIndex}]sidechaincompress=threshold=0.02:ratio=${ratio}:attack=${attackMs}:release=${releaseMs}[ducked]`)
+    filters.push(`[${processedSoundLabel}][g${dialogueIndex}_sidechain]sidechaincompress=threshold=0.02:ratio=${ratio}:attack=${attackMs}:release=${releaseMs}[ducked]`)
   }
   // FFmpeg's alimiter enables auto-level compensation by default, which raises the
   // post-limiter signal back toward full scale and defeats an approved true-peak
   // ceiling. Disable that compensation so `limit` remains the actual output cap.
   if (dialogueIndex >= 0) {
-    filters.push(`[g${dialogueIndex}][ducked]amix=inputs=2:normalize=0,alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled[out]`)
+    filters.push(`[g${dialogueIndex}_mix][ducked]amix=inputs=2:normalize=0,alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled[out]`)
   } else {
     filters.push(`[${processedSoundLabel}]alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled[out]`)
   }

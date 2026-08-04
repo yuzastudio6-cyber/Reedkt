@@ -5,8 +5,13 @@ import {
   assertCanonicalSam31QualificationImageBuildAuthority,
 } from '../model-artifacts/canonical-sam3_1-qualification-image-build-authority'
 import {
+  assertCanonicalSam31QualificationImageSupplyChainRelease,
+  prepareCanonicalSam31QualificationImageSupplyChainRelease,
+} from '../model-artifacts/canonical-sam3_1-qualification-image-supply-chain-release'
+import {
   assertCanonicalSam31QualificationImageBuildSubmission,
   assertCanonicalSam31QualificationImageBuildTerminal,
+  compileCanonicalSam31QualificationImageBuildRequestBody,
 } from '../services/canonical-sam3_1-qualification-image-build-phase'
 import {
   assertCanonicalSam31QualificationImageSupplyChainAdmission,
@@ -16,10 +21,25 @@ import {
   createCanonicalSam31QualificationImageSupplyChainAdmission,
   createCanonicalSam31QualificationImageSupplyChainBuildPhase,
   qualificationImageSupplyChainAdmissionReference,
+  qualificationImageSupplyChainObservationReference,
+  qualificationImageSupplyChainSubmissionReference,
   type CanonicalSam31QualificationImageSupplyChainStatePort,
 } from '../services/canonical-sam3_1-qualification-image-supply-chain-build-phase'
+import {
+  assertCanonicalSam31ImageSupplyChainGoogleReadUrl,
+  createCanonicalSam31ImageSecurityReview,
+  createCanonicalSam31QualificationImageSupplyChainEvidenceReadPort,
+} from '../services/canonical-sam3_1-cloud-image-supply-chain-evidence-read-service'
+import {
+  createCanonicalSam31QualificationImageSupplyChainReleaseRepository,
+  prepareAndPersistCanonicalSam31QualificationImageSupplyChainRelease,
+} from '../services/canonical-sam3_1-cloud-image-supply-chain-release-runtime'
+import type { CanonicalCreateOnlyJsonObjectPort } from
+  '../services/canonical-gcs-source-analysis-lifecycle-store'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
+import type { VisualIntelligencePrivateObjectReadPort } from
+  '../visual-intelligence/visual-intelligence-private-object-read-port'
 
 const authority = createAuthority()
 const imageBuildSubmission = createImageBuildSubmission(authority)
@@ -143,6 +163,151 @@ assert.equal(observation.runtimeReleaseGranted, false)
 assert.equal(observation.customerCreditMutationCreated, false)
 assert.equal(observation.productionReady, false)
 
+const supplyChainEvidence = createSupplyChainEvidence({
+  authority,
+  imageBuildSubmission,
+  imageBuildTerminal,
+  admission,
+  submission,
+  observation,
+})
+const qualificationEvidenceObjects = createQualificationEvidenceObjects({
+  admission,
+  observation,
+  imageDigest: imageBuildTerminal.immutableImageDigest ?? '',
+})
+const qualificationEvidenceUrls: string[] = []
+let securityReviewReads = 0
+const releaseObjects = createJsonObjectPort()
+const releaseRepository =
+  createCanonicalSam31QualificationImageSupplyChainReleaseRepository({
+    objectPort: releaseObjects.port,
+  })
+const canonicalEvidenceReadPort =
+  createCanonicalSam31QualificationImageSupplyChainEvidenceReadPort({
+    imageBuildAuthority: authority,
+    imageBuildSubmission,
+    imageBuildTerminal,
+    supplyChainBuildAdmission: admission,
+    supplyChainBuildSubmission: submission,
+    supplyChainBuildObservation: observation,
+    privateObjectReadPort: qualificationEvidenceObjects.port,
+    googleReadTransport: {
+      async getJson(url) {
+        qualificationEvidenceUrls.push(url)
+        return qualificationGoogleEvidenceResponse({
+          url,
+          authority,
+          imageBuildTerminal,
+          supplyChainBuildBody: body,
+          admission,
+          observation,
+        })
+      },
+    },
+    securityReviewReadPort: {
+      async rereadApprovedReview(request) {
+        securityReviewReads += 1
+        const review = createCanonicalSam31ImageSecurityReview({
+          reviewId: 'sam31-qualification-image-security-review-1',
+          immutableImageDigest: request.immutableImageDigest,
+          vulnerabilityScanRef: request.vulnerabilityScanRef,
+          scanCompletedAt: request.scanCompletedAt,
+          occurrenceSnapshotUpdatedAt:
+            request.occurrenceSnapshotUpdatedAt,
+          severityCounts: request.severityCounts,
+          reviewerAuthorityRef: ref(
+            'sam31-qualification-image-security-reviewer',
+          ),
+          reviewedAt: '2026-08-04T14:02:45.000Z',
+        })
+        await releaseRepository.persistApprovedSecurityReviewCreateOnly({
+          review,
+        })
+        return releaseRepository.rereadApprovedReview(request)
+      },
+    },
+  })
+const release =
+  await prepareAndPersistCanonicalSam31QualificationImageSupplyChainRelease({
+  releaseId: 'sam31-qualification-image-supply-chain-release-1',
+  authority,
+  imageBuildSubmission,
+  imageBuildTerminal,
+  supplyChainBuildAdmission: admission,
+  supplyChainBuildSubmission: submission,
+  supplyChainBuildObservation: observation,
+  evidenceReadPort: canonicalEvidenceReadPort,
+  qualifiedAt: '2026-08-04T14:03:00.000Z',
+  repository: releaseRepository,
+  })
+assertCanonicalSam31QualificationImageSupplyChainRelease(release)
+assert.equal(release.status, 'image_supply_chain_qualified')
+assert.equal(release.imageRole, 'qualification_image')
+assert.equal(release.authority.qualificationImageSupplyChainQualified, true)
+assert.equal(
+  release.authority.sourceCheckpointQualificationImageAdmissible,
+  true,
+)
+assert.equal(release.authority.sourceCheckpointQualificationGranted, false)
+assert.equal(release.authority.gpuQualificationJobDispatched, false)
+assert.equal(release.authority.customerCreditMutationAllowed, false)
+assert.equal(release.authority.productionReady, false)
+assert.equal(securityReviewReads, 1)
+assert.equal(releaseObjects.records.size, 2)
+assert.equal(qualificationEvidenceObjects.reads.length, 4)
+assert.equal(qualificationEvidenceUrls.length, 6)
+for (const url of qualificationEvidenceUrls) {
+  assert.doesNotThrow(() =>
+    assertCanonicalSam31ImageSupplyChainGoogleReadUrl(url))
+}
+
+await assert.rejects(() =>
+  prepareCanonicalSam31QualificationImageSupplyChainRelease({
+    releaseId: 'sam31-qualification-image-high-vulnerability-refusal',
+    authority,
+    imageBuildSubmission,
+    imageBuildTerminal,
+    supplyChainBuildAdmission: admission,
+    supplyChainBuildSubmission: submission,
+    supplyChainBuildObservation: observation,
+    evidenceReadPort: {
+      async rereadExactQualificationImageSupplyChain() {
+        const crossed = structuredClone(supplyChainEvidence)
+        crossed.vulnerabilityScan.highCount = 1
+        return crossed
+      },
+    },
+    qualifiedAt: '2026-08-04T14:03:00.000Z',
+  }),
+)
+
+await assert.rejects(() =>
+  prepareCanonicalSam31QualificationImageSupplyChainRelease({
+    releaseId: 'sam31-qualification-image-crossed-provenance-refusal',
+    authority,
+    imageBuildSubmission,
+    imageBuildTerminal,
+    supplyChainBuildAdmission: admission,
+    supplyChainBuildSubmission: submission,
+    supplyChainBuildObservation: observation,
+    evidenceReadPort: {
+      async rereadExactQualificationImageSupplyChain() {
+        const crossed = structuredClone(supplyChainEvidence)
+        crossed.provenance.sourceGeneration = '9999'
+        return crossed
+      },
+    },
+    qualifiedAt: '2026-08-04T14:03:00.000Z',
+  }),
+)
+
+const tamperedRelease = structuredClone(release) as Record<string, unknown>
+tamperedRelease.releaseId = 'caller-relabelled-release'
+assert.throws(() =>
+  assertCanonicalSam31QualificationImageSupplyChainRelease(tamperedRelease),
+)
+
 const staleAdmission = structuredClone(admission) as Record<string, unknown>
 staleAdmission.admissionHash = '0'.repeat(64)
 let staleCalls = 0
@@ -209,9 +374,8 @@ const wrongTerminal = structuredClone(imageBuildTerminal) as Record<
 >
 wrongTerminal.artifactRegistryPackage =
   'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-gpu'
-const { observationHash: _hash, ...wrongTerminalPayload } = wrongTerminal as {
-  observationHash: string
-}
+delete wrongTerminal.observationHash
+const wrongTerminalPayload = wrongTerminal
 assert.throws(() => createCanonicalSam31QualificationImageSupplyChainAdmission({
   admissionId: 'sam31-wrong-package-admission',
   authority,
@@ -237,6 +401,13 @@ console.log(JSON.stringify({
     uncertainOutcomeNotAutomaticallyRetried: true,
     exactTerminalConfigurationRequired: true,
     evidenceRereadStillPending: true,
+    exactSupplyChainReleaseReread: true,
+    createOnlyReleasePersistenceAndExactReread: true,
+    canonicalGoogleMetadataAndArtifactReread: true,
+    qualificationImageReadUrlsStrictlyAllowlisted: true,
+    highSeverityVulnerabilityRefused: true,
+    crossedOriginalBuildProvenanceRefused: true,
+    postDigestReleaseMutationRefused: true,
     sourceCheckpointQualificationGranted: false,
     gpuQualificationJobDispatched: false,
     customerCreditsMutated: false,
@@ -244,6 +415,418 @@ console.log(JSON.stringify({
     productionReady: false,
   },
 }, null, 2))
+
+function createQualificationEvidenceObjects(input: {
+  admission: typeof admission
+  observation: typeof observation
+  imageDigest: string
+}) {
+  const [sbomPath, bundlePath, verificationPath] =
+    input.admission.evidenceArtifactPaths
+  const spdx = Buffer.from(JSON.stringify({
+    spdxVersion: 'SPDX-2.3',
+    SPDXID: 'SPDXRef-DOCUMENT',
+    dataLicense: 'CC0-1.0',
+    name: `sam31-qualification-${input.imageDigest.slice(-12)}`,
+    documentNamespace:
+      `https://weeditpro.invalid/sbom/${input.imageDigest.slice(7)}`,
+    creationInfo: {
+      created: '2026-08-04T14:01:00Z',
+      creators: ['Tool: syft-1.44.0'],
+    },
+    documentDescribes: ['SPDXRef-Package-sam31-qualification-runtime'],
+    packages: [{
+      SPDXID: 'SPDXRef-Package-sam31-qualification-runtime',
+      name: 'sam31-qualification-runtime',
+      versionInfo: '96914d2425f90a64f45ca977c2b5165418099543',
+    }],
+    relationships: [{
+      spdxElementId: 'SPDXRef-DOCUMENT',
+      relationshipType: 'DESCRIBES',
+      relatedSpdxElement: 'SPDXRef-Package-sam31-qualification-runtime',
+    }],
+  }))
+  const bundle = Buffer.from(JSON.stringify({
+    mediaType: 'application/vnd.dev.sigstore.bundle.v0.3+json',
+    verificationMaterial: {
+      publicKey: { hint: 'weeditpro-sam31-image-signing-key-version-9' },
+    },
+    messageSignature: {
+      messageDigest: {
+        algorithm: 'SHA2_256',
+        digest: Buffer.from(input.imageDigest.slice(7), 'hex')
+          .toString('base64'),
+      },
+      signature: Buffer.alloc(64, 9).toString('base64'),
+    },
+  }))
+  const verification = Buffer.from(JSON.stringify([{
+    critical: {
+      identity: {
+        'docker-reference':
+          'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-qualification',
+      },
+      image: { 'docker-manifest-digest': input.imageDigest },
+      type: 'cosign container image signature',
+    },
+    optional: null,
+  }]))
+  const bodies = new Map<string, Buffer>([
+    [sbomPath, spdx],
+    [bundlePath, bundle],
+    [verificationPath, verification],
+  ])
+  const generations = new Map<string, string>([
+    [sbomPath, '6201'],
+    [bundlePath, '6202'],
+    [verificationPath, '6203'],
+  ])
+  const manifestEntries = [...bodies.entries()].map(([path, value]) => ({
+    location:
+      `gs://${input.admission.evidenceBucket}/`
+        + `${input.admission.evidencePrefix}/${path}#${generations.get(path)}`,
+    file_hash: [{
+      type: 2,
+      value: createHash('md5').update(value).digest('base64'),
+    }],
+  }))
+  const manifestBody = Buffer.from(JSON.stringify(manifestEntries))
+  const manifestUri = input.observation.evidenceArtifactManifestUri
+  assert(manifestUri)
+  const manifestName = manifestUri
+    .replace(`gs://${input.admission.evidenceBucket}/`, '')
+    .replace(/#[1-9][0-9]*$/u, '')
+  const reads: string[] = []
+  const port: VisualIntelligencePrivateObjectReadPort = {
+    async readExact(request) {
+      reads.push(
+        `${request.bucketName}/${request.objectName}#${request.generation ?? ''}`,
+      )
+      if (
+        request.bucketName !== input.admission.evidenceBucket
+        || !request.generation
+      ) return null
+      if (request.objectName === manifestName && request.generation === '6101') {
+        return {
+          body: Buffer.from(manifestBody),
+          generation: '6101',
+          etag: 'sam31-qualification-artifact-manifest-etag',
+          contentType: 'application/json',
+        }
+      }
+      const prefix = `${input.admission.evidencePrefix}/`
+      if (!request.objectName.startsWith(prefix)) return null
+      const path = request.objectName.slice(prefix.length)
+      const body = bodies.get(path)
+      const generation = generations.get(path)
+      if (!body || request.generation !== generation) return null
+      return {
+        body: Buffer.from(body),
+        generation,
+        etag: `sam31-qualification-${path}-etag`,
+        contentType: 'application/json',
+      }
+    },
+  }
+  return { port, reads }
+}
+
+function qualificationGoogleEvidenceResponse(input: {
+  url: string
+  authority: typeof authority
+  imageBuildTerminal: typeof imageBuildTerminal
+  supplyChainBuildBody: Readonly<Record<string, unknown>>
+  admission: typeof admission
+  observation: typeof observation
+}) {
+  const url = new URL(input.url)
+  const imageDigest = input.imageBuildTerminal.immutableImageDigest
+  const imageUri = input.imageBuildTerminal.immutableImageUri
+  assert(imageDigest)
+  assert(imageUri)
+  if (url.origin === 'https://artifactregistry.googleapis.com') return {
+    status: 200,
+    json: {
+      name:
+        'projects/reeditpro/locations/us-central1/repositories/'
+          + 'reeditpro-workers/dockerImages/'
+          + `reeditpro-sam31-qualification@${imageDigest}`,
+      uri: imageUri,
+      tags: [input.authority.imageDestination.taggedUri],
+      imageSizeBytes: '5368709120',
+      uploadTime: '2026-08-04T13:59:30Z',
+      mediaType: 'application/vnd.docker.distribution.manifest.v2+json',
+      buildTime: '2026-08-04T13:59:00Z',
+      updateTime: '2026-08-04T13:59:30Z',
+    },
+  }
+  if (url.origin === 'https://cloudbuild.googleapis.com') {
+    if (url.pathname.endsWith(`/${input.imageBuildTerminal.cloudBuildId}`)) {
+      return {
+        status: 200,
+        json: successfulQualificationImageBuild(
+          input.authority,
+          input.imageBuildTerminal,
+        ),
+      }
+    }
+    if (url.pathname.endsWith(`/${input.observation.cloudBuildId}`)) return {
+      status: 200,
+      json: successfulBuild(
+        input.observation.cloudBuildId,
+        input.supplyChainBuildBody,
+        input.admission.evidenceBucket,
+        input.admission.evidencePrefix,
+      ),
+    }
+  }
+  if (url.origin === 'https://containeranalysis.googleapis.com') {
+    const filter = url.searchParams.get('filter') ?? ''
+    if (filter.includes('kind="DISCOVERY"')) return {
+      status: 200,
+      json: { occurrences: [qualificationDiscoveryOccurrence(imageUri)] },
+    }
+    if (filter.includes('kind="VULNERABILITY"')) return {
+      status: 200,
+      json: { occurrences: [] },
+    }
+    if (filter.includes('kind="BUILD"')) return {
+      status: 200,
+      json: {
+        occurrences: [qualificationBuildProvenanceOccurrence(
+          imageUri,
+          imageDigest,
+          input.imageBuildTerminal.cloudBuildResource,
+        )],
+      },
+    }
+  }
+  return { status: 404, json: { error: { code: 404 } } }
+}
+
+function successfulQualificationImageBuild(
+  value: typeof authority,
+  terminal: typeof imageBuildTerminal,
+) {
+  const expected = compileCanonicalSam31QualificationImageBuildRequestBody(
+    value,
+  )
+  const source = structuredClone(expected.source) as {
+    storageSource: Record<string, unknown>
+  }
+  return {
+    id: terminal.cloudBuildId,
+    name: terminal.cloudBuildResource,
+    projectId: 'reeditpro',
+    status: 'SUCCESS',
+    warnings: [],
+    source,
+    steps: structuredClone(expected.steps),
+    images: structuredClone(expected.images),
+    timeout: expected.timeout,
+    queueTtl: expected.queueTtl,
+    options: structuredClone(expected.options),
+    serviceAccount: expected.serviceAccount,
+    tags: structuredClone(expected.tags),
+    sourceProvenance: {
+      resolvedStorageSource: structuredClone(source.storageSource),
+      fileHashes: {
+        [value.capsuleCoordinate.objectName]: {
+          fileHash: [{
+            type: 'SHA256',
+            value: Buffer.from(value.capsuleCoordinate.sha256, 'hex')
+              .toString('base64'),
+          }],
+        },
+      },
+    },
+    results: {
+      images: [{
+        name: value.imageDestination.taggedUri,
+        digest: terminal.immutableImageDigest,
+        artifactRegistryPackage: terminal.artifactRegistryPackage,
+      }],
+    },
+  }
+}
+
+function qualificationDiscoveryOccurrence(imageUri: string) {
+  return {
+    name:
+      'projects/reeditpro/occurrences/61111111-1111-4111-8111-111111111111',
+    resourceUri: `https://${imageUri}`,
+    noteName: 'projects/goog-analysis/notes/discovery-sam31-qualification',
+    kind: 'DISCOVERY',
+    createTime: '2026-08-04T14:01:00Z',
+    updateTime: '2026-08-04T14:02:00Z',
+    discovery: {
+      analysisStatus: 'FINISHED_SUCCESS',
+      continuousAnalysis: 'ACTIVE',
+      analysisCompleted: {
+        analysisType: ['OS_VULNERABILITY', 'PACKAGE_VULNERABILITY'],
+      },
+    },
+  }
+}
+
+function qualificationBuildProvenanceOccurrence(
+  imageUri: string,
+  imageDigest: string,
+  cloudBuildResource: string,
+) {
+  const repository = imageUri.replace(/@sha256:[a-f0-9]{64}$/u, '')
+  const statement = {
+    _type: 'https://in-toto.io/Statement/v1',
+    predicateType: 'https://slsa.dev/provenance/v1',
+    subject: [{
+      name: `https://${repository}`,
+      digest: { sha256: imageDigest.slice(7) },
+    }],
+    predicate: {
+      buildDefinition: {
+        buildType:
+          'https://cloud.google.com/build/gcb-buildtypes/google-worker/v1',
+      },
+      runDetails: {
+        builder: {
+          id: 'https://cloudbuild.googleapis.com/GoogleHostedWorker',
+        },
+        metadata: {
+          invocationId:
+            `https://cloudbuild.googleapis.com/v1/${cloudBuildResource}`,
+          startedOn: '2026-08-04T13:58:30Z',
+          finishedOn: '2026-08-04T13:59:30Z',
+        },
+      },
+    },
+  }
+  return {
+    name:
+      'projects/reeditpro/occurrences/64444444-4444-4444-8444-444444444444',
+    resourceUri: `https://${imageUri}`,
+    noteName: 'projects/verified-builder/notes/slsa-v1-sam31-qualification',
+    kind: 'BUILD',
+    createTime: '2026-08-04T13:59:31Z',
+    updateTime: '2026-08-04T13:59:31Z',
+    build: { inTotoSlsaProvenanceV1: statement },
+    envelope: {
+      payloadType: 'application/vnd.in-toto+json',
+      payload: Buffer.from(JSON.stringify(statement)).toString('base64'),
+      signatures: [{
+        keyid:
+          'projects/verified-builder/locations/global/keyRings/attestor/'
+            + 'cryptoKeys/google-hosted-worker/cryptoKeyVersions/1',
+        sig: Buffer.alloc(64, 9).toString('base64'),
+      }],
+    },
+  }
+}
+
+function createSupplyChainEvidence(input: {
+  authority: typeof authority
+  imageBuildSubmission: typeof imageBuildSubmission
+  imageBuildTerminal: typeof imageBuildTerminal
+  admission: typeof admission
+  submission: typeof submission
+  observation: typeof observation
+}) {
+  const imageDigest = input.imageBuildTerminal.immutableImageDigest
+  const imageUri = input.imageBuildTerminal.immutableImageUri
+  assert(imageDigest)
+  assert(imageUri)
+  const sbomSha256 = digest('qualification-image-spdx-sbom')
+  return {
+    evidenceClass: 'canonical_private_reread' as const,
+    imageMetadata: {
+      projectId: 'reeditpro' as const,
+      region: 'us-central1' as const,
+      repository:
+        'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers' as const,
+      packageResource:
+        'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-qualification' as const,
+      immutableImageUri: imageUri,
+      immutableImageDigest: imageDigest,
+      containerManifestMediaType:
+        'application/vnd.oci.image.manifest.v1+json' as const,
+      exactDigestReread: true,
+      mutableTagUsedAsAuthority: false as const,
+    },
+    supplyChainArtifacts: {
+      admissionRef: qualificationImageSupplyChainAdmissionReference(
+        input.admission,
+      ),
+      submissionRef: qualificationImageSupplyChainSubmissionReference(
+        input.submission,
+      ),
+      observationRef: qualificationImageSupplyChainObservationReference(
+        input.observation,
+      ),
+      cloudBuildId: input.observation.cloudBuildId,
+      cloudBuildResource: input.observation.cloudBuildResource,
+      exactCloudBuildReread: true,
+      exactArtifactManifestReread: true,
+      exactThreeArtifactSetReread: true,
+    },
+    sbom: {
+      format: 'spdx_2_3_json' as const,
+      artifactRef: {
+        id: 'sam31-qualification-image-spdx-sbom',
+        version: 1 as const,
+        contentHash: `sha256:${sbomSha256}` as const,
+      },
+      contentSha256: sbomSha256,
+      imageDigest,
+      generatorImageRef: ref('pinned-syft-generator-image'),
+      completeOsAndApplicationPackageInventory: true,
+      exactArtifactReread: true,
+    },
+    vulnerabilityScan: {
+      scanner: 'google_artifact_analysis' as const,
+      scanRef: ref('sam31-qualification-image-artifact-analysis-scan'),
+      imageDigest,
+      scanCompletedAt: '2026-08-04T14:02:30.000Z',
+      vulnerabilityDatabaseUpdatedAt: '2026-08-04T13:50:00.000Z',
+      criticalCount: 0,
+      highCount: 0,
+      mediumCount: 0,
+      lowCount: 0,
+      unknownSeverityCount: 0,
+      exactOccurrencesReread: true,
+      securityReviewRef: ref('sam31-qualification-image-security-review'),
+      securityReviewApprovedForPrivateGpuQualification: true,
+    },
+    signature: {
+      scheme: 'cosign_kms_sha256' as const,
+      signatureRef: ref('sam31-qualification-image-cosign-signature'),
+      imageDigest,
+      kmsKeyVersionResource: input.admission.kmsKeyVersionResource,
+      signerServiceAccount:
+        'reeditpro-image-signer-sa@reeditpro.iam.gserviceaccount.com' as const,
+      exactSignatureVerificationPassed: true,
+    },
+    provenance: {
+      predicateType: 'https://slsa.dev/provenance/v1' as const,
+      attestationRef: ref('sam31-qualification-image-slsa-provenance'),
+      imageDigest,
+      cloudBuildId: input.imageBuildTerminal.cloudBuildId,
+      cloudBuildResource: input.imageBuildTerminal.cloudBuildResource,
+      buildAuthorityRef: input.imageBuildSubmission.authorityRef,
+      buildSubmissionRef: {
+        id:
+          `sam31-qualification-image-submission-${input.imageBuildSubmission.submissionHash.slice(0, 20)}`,
+        version: 1 as const,
+        contentHash:
+          `sha256:${input.imageBuildSubmission.submissionHash}` as const,
+      },
+      buildRequestHash: input.imageBuildSubmission.buildRequestHash,
+      sourceBucket: input.authority.capsuleCoordinate.bucketName,
+      sourceObject: input.authority.capsuleCoordinate.objectName,
+      sourceGeneration: input.authority.capsuleCoordinate.generation,
+      sourceSha256: input.authority.capsuleCoordinate.sha256,
+      exactAttestationRereadAndVerified: true,
+    },
+  }
+}
 
 async function unknownSubmission(mode: 'throw' | 'non_ok') {
   const unknownPhase =
@@ -369,7 +952,9 @@ function createAuthority() {
 function createImageBuildSubmission(authority: ReturnType<
   typeof createAuthority
 >) {
-  const requestHash = digest('qualification-image-build-request')
+  const requestHash = sha256AuthorityValue(
+    compileCanonicalSam31QualificationImageBuildRequestBody(authority),
+  )
   const payload = {
     schemaVersion:
       'canonical-sam3_1-qualification-image-build-submission-v1',
@@ -495,7 +1080,7 @@ function successfulBuild(
     tags: structuredClone(body.tags),
     results: {
       artifactManifest:
-        `gs://${bucket}/${prefix}/artifact-manifest.json#6101`,
+        `gs://${bucket}/${prefix}/artifacts-${buildId}.json#6101`,
       numArtifacts: 3,
     },
   }
@@ -536,4 +1121,24 @@ function ref(id: string) {
 
 function digest(value: string): string {
   return createHash('sha256').update(value).digest('hex')
+}
+
+function createJsonObjectPort() {
+  const records = new Map<string, Buffer>()
+  const port: CanonicalCreateOnlyJsonObjectPort = {
+    async createOnly(input) {
+      assert.equal(
+        createHash('sha256').update(input.body).digest('hex'),
+        input.contentSha256,
+      )
+      if (records.has(input.objectPath)) return 'already_exists'
+      records.set(input.objectPath, Buffer.from(input.body))
+      return 'created'
+    },
+    async readExact(objectPath) {
+      const value = records.get(objectPath)
+      return value ? Buffer.from(value) : null
+    },
+  }
+  return { port, records }
 }

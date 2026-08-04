@@ -9,6 +9,11 @@ import {
   type CanonicalSam31CloudImageSupplyChainRelease,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-supply-chain-release'
 import {
+  assertCanonicalSam31QualificationImageSupplyChainRelease,
+  prepareCanonicalSam31QualificationImageSupplyChainRelease,
+  type CanonicalSam31QualificationImageSupplyChainRelease,
+} from '../model-artifacts/canonical-sam3_1-qualification-image-supply-chain-release'
+import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
   type CanonicalCreateOnlyJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
@@ -23,11 +28,16 @@ import {
 
 export const CANONICAL_SAM3_1_IMAGE_SUPPLY_CHAIN_RELEASE_REPOSITORY_VERSION =
   'canonical-sam3_1-image-supply-chain-release-repository-v1' as const
+export const
+CANONICAL_SAM3_1_QUALIFICATION_IMAGE_SUPPLY_CHAIN_RELEASE_REPOSITORY_VERSION =
+  'canonical-sam3_1-qualification-image-supply-chain-release-repository-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const CONTROL_PLANE_STATE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
 const DEFAULT_PREFIX = 'private/sam3_1/image-supply-chain-release/v1'
+const QUALIFICATION_DEFAULT_PREFIX =
+  'private/sam3_1/qualification-image-supply-chain-release/v1'
 const MAXIMUM_RECORD_BYTES = 2 * 1024 * 1024
 const safePrefix = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._/-]*$/u)
@@ -157,6 +167,116 @@ export function createCanonicalSam31ImageSupplyChainReleaseRepository(input: {
   return Object.freeze(repository)
 }
 
+export interface CanonicalSam31QualificationImageSupplyChainReleaseRepository
+  extends CanonicalSam31ImageSecurityReviewReadPort {
+  readonly schemaVersion:
+    typeof CANONICAL_SAM3_1_QUALIFICATION_IMAGE_SUPPLY_CHAIN_RELEASE_REPOSITORY_VERSION
+  readonly evidenceClass: 'private_gcs_create_only_exact_reread'
+  persistApprovedSecurityReviewCreateOnly(input: {
+    readonly review: CanonicalSam31ImageSecurityReview
+  }): Promise<z.infer<typeof evidenceRefSchema>>
+  persistQualifiedQualificationImageReleaseCreateOnly(input: {
+    readonly release: CanonicalSam31QualificationImageSupplyChainRelease
+  }): Promise<z.infer<typeof evidenceRefSchema>>
+  rereadQualifiedQualificationImageRelease(input: {
+    readonly releaseRef: z.infer<typeof evidenceRefSchema>
+  }): Promise<CanonicalSam31QualificationImageSupplyChainRelease | null>
+}
+
+export function createCanonicalSam31QualificationImageSupplyChainReleaseRepository(
+  input: {
+    readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly prefix?: string
+  },
+): CanonicalSam31QualificationImageSupplyChainReleaseRepository {
+  assertObjectPort(input.objectPort)
+  const prefix = safePrefix.parse(
+    input.prefix ?? QUALIFICATION_DEFAULT_PREFIX,
+  )
+  const repository:
+    CanonicalSam31QualificationImageSupplyChainReleaseRepository = {
+      schemaVersion:
+        CANONICAL_SAM3_1_QUALIFICATION_IMAGE_SUPPLY_CHAIN_RELEASE_REPOSITORY_VERSION,
+      evidenceClass: 'private_gcs_create_only_exact_reread',
+
+      async persistApprovedSecurityReviewCreateOnly({ review }) {
+        const parsed = assertCanonicalSam31ImageSecurityReview(review)
+        const path = securityReviewPath(prefix, {
+          immutableImageDigest: parsed.immutableImageDigest,
+          vulnerabilityScanRef: parsed.vulnerabilityScanRef,
+        })
+        await persistExact(input.objectPort, path, parsed)
+        return securityReviewRef(parsed)
+      },
+
+      async rereadApprovedReview(untrusted) {
+        assertClosedPlainData(
+          untrusted,
+          'sam3_1_qualification_image_security_review_read_request',
+        )
+        const request = securityReviewReadRequestSchema.parse(untrusted)
+        const value = await readExact(
+          input.objectPort,
+          securityReviewPath(prefix, request),
+          assertCanonicalSam31ImageSecurityReview,
+        )
+        if (!value) return null
+        if (
+          value.immutableImageDigest !== request.immutableImageDigest
+          || !sameRef(
+            value.vulnerabilityScanRef,
+            request.vulnerabilityScanRef,
+          )
+          || value.scanCompletedAt !== request.scanCompletedAt
+          || value.occurrenceSnapshotUpdatedAt !==
+            request.occurrenceSnapshotUpdatedAt
+          || !sameJson(value.severityCounts, request.severityCounts)
+        ) throw conflict(
+          'sam3_1_qualification_image_security_review_reread_mismatch',
+        )
+        return value
+      },
+
+      async persistQualifiedQualificationImageReleaseCreateOnly({
+        release,
+      }) {
+        const parsed =
+          assertCanonicalSam31QualificationImageSupplyChainRelease(release)
+        assertQualifiedQualificationImageRelease(parsed)
+        const ref = qualificationReleaseRef(parsed)
+        await persistExact(
+          input.objectPort,
+          releasePath(prefix, ref),
+          parsed,
+        )
+        return ref
+      },
+
+      async rereadQualifiedQualificationImageRelease(untrusted) {
+        assertClosedPlainData(
+          untrusted,
+          'sam3_1_qualification_image_supply_release_read_request',
+        )
+        const request = releaseReadRequestSchema.parse(untrusted)
+        const value = await readExact(
+          input.objectPort,
+          releasePath(prefix, request.releaseRef),
+          assertCanonicalSam31QualificationImageSupplyChainRelease,
+        )
+        if (!value) return null
+        assertQualifiedQualificationImageRelease(value)
+        if (!sameRef(
+          request.releaseRef,
+          qualificationReleaseRef(value),
+        )) throw conflict(
+          'sam3_1_qualification_image_supply_release_reread_mismatch',
+        )
+        return value
+      },
+    }
+  return Object.freeze(repository)
+}
+
 export async function prepareAndPersistCanonicalSam31CloudImageSupplyChainRelease(
   input: Parameters<typeof prepareCanonicalSam31CloudImageSupplyChainRelease>[0]
     & { readonly repository: CanonicalSam31ImageSupplyChainReleaseRepository },
@@ -182,10 +302,54 @@ export async function prepareAndPersistCanonicalSam31CloudImageSupplyChainReleas
   return reread
 }
 
+export async function prepareAndPersistCanonicalSam31QualificationImageSupplyChainRelease(
+  input: Parameters<
+    typeof prepareCanonicalSam31QualificationImageSupplyChainRelease
+  >[0] & {
+    readonly repository:
+      CanonicalSam31QualificationImageSupplyChainReleaseRepository
+  },
+): Promise<CanonicalSam31QualificationImageSupplyChainRelease> {
+  const release =
+    await prepareCanonicalSam31QualificationImageSupplyChainRelease({
+      releaseId: input.releaseId,
+      authority: input.authority,
+      imageBuildSubmission: input.imageBuildSubmission,
+      imageBuildTerminal: input.imageBuildTerminal,
+      supplyChainBuildAdmission: input.supplyChainBuildAdmission,
+      supplyChainBuildSubmission: input.supplyChainBuildSubmission,
+      supplyChainBuildObservation: input.supplyChainBuildObservation,
+      evidenceReadPort: input.evidenceReadPort,
+      qualifiedAt: input.qualifiedAt,
+    })
+  assertQualifiedQualificationImageRelease(release)
+  const ref = await input.repository
+    .persistQualifiedQualificationImageReleaseCreateOnly({ release })
+  const reread = await input.repository
+    .rereadQualifiedQualificationImageRelease({ releaseRef: ref })
+  if (!reread || reread.releaseHash !== release.releaseHash) {
+    throw conflict(
+      'sam3_1_qualification_image_supply_release_persistence_mismatch',
+    )
+  }
+  return reread
+}
+
 export function createCanonicalSam31GcpImageSupplyChainReleaseRepository(
   input: { readonly storage?: Storage } = {},
 ): CanonicalSam31ImageSupplyChainReleaseRepository {
   return createCanonicalSam31ImageSupplyChainReleaseRepository({
+    objectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
+      storage: input.storage ?? new Storage({ projectId: PROJECT_ID }),
+      bucketName: CONTROL_PLANE_STATE_BUCKET,
+    }),
+  })
+}
+
+export function createCanonicalSam31GcpQualificationImageSupplyChainReleaseRepository(
+  input: { readonly storage?: Storage } = {},
+): CanonicalSam31QualificationImageSupplyChainReleaseRepository {
+  return createCanonicalSam31QualificationImageSupplyChainReleaseRepository({
     objectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
       storage: input.storage ?? new Storage({ projectId: PROJECT_ID }),
       bucketName: CONTROL_PLANE_STATE_BUCKET,
@@ -208,6 +372,27 @@ function assertQualifiedRelease(
     || release.authority.publicDeliveryAuthorized
     || release.authority.productionReady
   ) throw conflict('sam3_1_image_supply_chain_release_not_qualified')
+}
+
+function assertQualifiedQualificationImageRelease(
+  release: CanonicalSam31QualificationImageSupplyChainRelease,
+): void {
+  if (
+    release.evidenceClass !== 'canonical_private_reread'
+    || release.status !== 'image_supply_chain_qualified'
+    || !release.authority.qualificationImageSupplyChainQualified
+    || !release.authority.sourceCheckpointQualificationImageAdmissible
+    || release.authority.sourceCheckpointQualificationGranted
+    || release.authority.gpuQualificationJobDispatched
+    || release.authority.a100RuntimeQualified
+    || release.authority.l4RuntimeQualified
+    || release.authority.runtimeReleaseGranted
+    || release.authority.customerCreditMutationAllowed
+    || release.authority.publicDeliveryAuthorized
+    || release.authority.productionReady
+  ) throw conflict(
+    'sam3_1_qualification_image_supply_release_not_qualified',
+  )
 }
 
 function securityReviewPath(
@@ -242,6 +427,16 @@ function securityReviewRef(review: CanonicalSam31ImageSecurityReview) {
 }
 
 function releaseRef(release: CanonicalSam31CloudImageSupplyChainRelease) {
+  return evidenceRefSchema.parse({
+    id: release.releaseId,
+    version: release.releaseVersion,
+    contentHash: `sha256:${release.releaseHash}`,
+  })
+}
+
+function qualificationReleaseRef(
+  release: CanonicalSam31QualificationImageSupplyChainRelease,
+) {
   return evidenceRefSchema.parse({
     id: release.releaseId,
     version: release.releaseVersion,

@@ -148,6 +148,22 @@ artifacts are ready for exact reread. Vulnerability occurrences, the original
 image-build provenance, SBOM bytes, signature verification, and the final
 qualification-image supply-chain release remain separate fail-closed gates.
 
+`canonical-sam3_1-qualification-image-supply-chain-release-v1` now closes
+that source boundary through the same canonical private evidence rereader used
+by the runtime-image branch. The qualification branch is explicitly
+discriminated by its image name, package, build compiler, three artifact
+names, and original/supply-build refs; it cannot cast the runtime-image v1
+record. It rereads the immutable Artifact Registry digest, both exact Cloud
+Build records, the generation-bound artifact manifest and all three private
+objects, Artifact Analysis discovery/vulnerability occurrences, an
+independent security-owner approval, the numeric-KMS Cosign evidence, and the
+original SLSA v1 provenance. Only zero critical, high, and unknown findings
+may produce a release. The security review and release are persisted
+create-only under a qualification-specific private prefix and must reopen
+byte-for-byte before use. That release admits the image solely to the later
+source/checkpoint qualification job; it still grants no qualification result,
+GPU dispatch, customer credit mutation, public delivery, or production use.
+
 The server-created worker request is
 `canonical-sam3_1-source-checkpoint-qualification-worker-request-v1` and the
 fixed result is

@@ -22,6 +22,15 @@ import {
   type CanonicalSourceAnalysisRequestAuthorityRepository,
 } from '../services/canonical-source-analysis-request-authority-repository'
 import {
+  createCanonicalSourceAnalysisL4ProbeAttemptOwner,
+  type CanonicalSourceAnalysisL4ProbeAdmissionReadPort,
+  type CanonicalSourceAnalysisL4ProbeAttemptOwner,
+  type CanonicalSourceAnalysisL4ProbeCloudRunPort,
+  type CanonicalSourceAnalysisL4ProbeRuntimeReleaseReadPort,
+  type CanonicalSourceAnalysisL4ProbeUsageCostReadPort,
+  type CanonicalSourceAnalysisL4ProbeWorkerResultReadPort,
+} from '../services/canonical-source-analysis-l4-probe-attempt-owner'
+import {
   createCanonicalSourceAnalysisPreparationOwner,
   type CanonicalSourceAnalysisFinalizedAuthorityReadPort,
   type CanonicalSourceAnalysisPreparationOwner,
@@ -145,6 +154,19 @@ export interface VisualIntelligenceProductionRuntime {
     CanonicalSourceAnalysisRequestAuthorityRepository
   readonly sourceAnalysisProbeAuthorityRepository:
     CanonicalSourceAnalysisProbeAuthorityRepository
+  readonly createSourceAnalysisL4ProbeAttemptOwner: (input: {
+    readonly finalizedAuthorityReadPort:
+      CanonicalSourceAnalysisFinalizedAuthorityReadPort
+    readonly admissionReadPort:
+      CanonicalSourceAnalysisL4ProbeAdmissionReadPort
+    readonly runtimeReleaseReadPort:
+      CanonicalSourceAnalysisL4ProbeRuntimeReleaseReadPort
+    readonly cloudRunPort: CanonicalSourceAnalysisL4ProbeCloudRunPort
+    readonly workerResultReadPort:
+      CanonicalSourceAnalysisL4ProbeWorkerResultReadPort
+    readonly usageCostReadPort:
+      CanonicalSourceAnalysisL4ProbeUsageCostReadPort
+  }) => CanonicalSourceAnalysisL4ProbeAttemptOwner
   readonly createSourceAnalysisPreparationOwner: (input: {
     readonly finalizedAuthorityReadPort:
       CanonicalSourceAnalysisFinalizedAuthorityReadPort
@@ -307,6 +329,24 @@ export async function createVisualIntelligenceProductionRuntime(
     probeAuthorityReadPort: sourceAnalysisProbeAuthorityRepository,
     requestAuthorityRepository: sourceAnalysisRequestAuthorityRepository,
   })
+  const createSourceAnalysisL4ProbeAttemptOwnerFactory = (input: {
+    readonly finalizedAuthorityReadPort:
+      CanonicalSourceAnalysisFinalizedAuthorityReadPort
+    readonly admissionReadPort:
+      CanonicalSourceAnalysisL4ProbeAdmissionReadPort
+    readonly runtimeReleaseReadPort:
+      CanonicalSourceAnalysisL4ProbeRuntimeReleaseReadPort
+    readonly cloudRunPort: CanonicalSourceAnalysisL4ProbeCloudRunPort
+    readonly workerResultReadPort:
+      CanonicalSourceAnalysisL4ProbeWorkerResultReadPort
+    readonly usageCostReadPort:
+      CanonicalSourceAnalysisL4ProbeUsageCostReadPort
+  }) => createCanonicalSourceAnalysisL4ProbeAttemptOwner({
+    ...input,
+    probeAuthorityRepository: sourceAnalysisProbeAuthorityRepository,
+    lifecycleObjectPort: objectPort,
+    ...(dependencies.now ? { now: dependencies.now } : {}),
+  })
   const sourceVideoUnderstandingConsumerBindingPort =
     createCanonicalSourceVisualIntelligenceOrchestraConsumerBindingPort({
       bindingStore: sourceVideoUnderstandingBindingStore,
@@ -389,6 +429,8 @@ export async function createVisualIntelligenceProductionRuntime(
     sourceCleanupAuthorityRepository,
     sourceAnalysisRequestAuthorityRepository,
     sourceAnalysisProbeAuthorityRepository,
+    createSourceAnalysisL4ProbeAttemptOwner:
+      createSourceAnalysisL4ProbeAttemptOwnerFactory,
     createSourceAnalysisPreparationOwner:
       createSourceAnalysisPreparationOwnerFactory,
     createSourceLedOrchestraPlanningReconciliationPort,

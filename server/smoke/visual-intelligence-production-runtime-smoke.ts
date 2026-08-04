@@ -411,6 +411,10 @@ assert.equal(
   runtime.sourceAnalysisProbeAuthorityRepository.repositoryVersion,
   'canonical-source-analysis-probe-authority-repository-v1',
 )
+assert.equal(
+  typeof runtime.createSourceAnalysisL4ProbeAttemptOwner,
+  'function',
+)
 const missingSourceCleanupAuthority =
   await runtime.sourceCleanupAuthorityRepository.readForPlanning({
     ownerUserId: 'user-1',
@@ -1100,6 +1104,7 @@ console.log(JSON.stringify({
   sourcePreparedRequestAuthorityRepositoryMounted: true,
   sourceAnalysisPreparationOwnerFactoryMounted: true,
   sourceAnalysisProbeAuthorityRepositoryMounted: true,
+  sourceAnalysisL4ProbeAttemptOwnerFactoryMounted: true,
   sourcePreparationRequiresExactL4ProbeAuthority: true,
   sourceBindingPersistedBeforeProviderExecution: true,
   sourceBindingRequiresProbeTranscriptAndPlanningContext: true,

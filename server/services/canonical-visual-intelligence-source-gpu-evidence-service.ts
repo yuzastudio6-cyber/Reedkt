@@ -359,11 +359,31 @@ export function createVisualIntelligenceSourceGpuEvidenceUsageCost(
     || authority.routeRole !== 'standard_primary'
     || authority.accelerator !== 'nvidia_l4'
   ) throw notReady('visual_intelligence_source_gpu_rate_route_invalid')
-  const evidence = usageCostSchema.parse({
+  return assertVisualIntelligenceSourceGpuEvidenceUsageCost({
     ...payload,
     accountEffectiveRateAuthority: authority,
     usageCostDigestSha256: visualIntelligenceDigest(payload),
   })
+}
+
+export function assertVisualIntelligenceSourceGpuEvidenceUsageCost(
+  value: unknown,
+): VisualIntelligenceSourceGpuEvidenceUsageCost {
+  const evidence = usageCostSchema.parse(value)
+  const authority = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+    evidence.accountEffectiveRateAuthority,
+    evidence.observedAt,
+  )
+  if (
+    evidence.usageCostDigestSha256 !== visualIntelligenceDigest(
+      omit(evidence, 'usageCostDigestSha256'),
+    )
+    || authority.routeId !== 'l4_standard_primary'
+    || authority.profileId !==
+      'quality_l4_user_triggered_standard_media_job_v1'
+    || authority.routeRole !== 'standard_primary'
+    || authority.accelerator !== 'nvidia_l4'
+  ) throw conflict('visual_intelligence_source_gpu_usage_cost_invalid')
   assertUsageCostBreakdownAndRefs(evidence)
   return Object.freeze(evidence)
 }
@@ -415,15 +435,9 @@ export function createVisualIntelligenceSourceGpuEvidenceGcsUsageCostObserverPor
           ) throw conflict(
             'visual_intelligence_source_gpu_usage_cost_object_invalid',
           )
-          const evidence = usageCostSchema.parse(parseJson(stored.body))
-          if (
-            evidence.usageCostDigestSha256 !== visualIntelligenceDigest(
-              omit(evidence, 'usageCostDigestSha256'),
-            )
-          ) throw conflict(
-            'visual_intelligence_source_gpu_usage_cost_digest_invalid',
+          return assertVisualIntelligenceSourceGpuEvidenceUsageCost(
+            parseJson(stored.body),
           )
-          return Object.freeze(evidence)
         }
         await delay(pollMilliseconds)
       }

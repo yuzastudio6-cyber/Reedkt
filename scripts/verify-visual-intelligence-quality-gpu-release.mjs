@@ -27,6 +27,7 @@ const smokes = [
   'server/smoke/visual-intelligence-sam31-foundation-provisioning-smoke.ts',
   'server/smoke/gcp-foundation-config-smoke.ts',
   'server/smoke/source-led-visual-intelligence-content-analysis-smoke.ts',
+  'server/smoke/canonical-source-analysis-l4-probe-attempt-owner-smoke.ts',
   'server/smoke/canonical-source-led-content-analysis-reasoner-smoke.ts',
   'server/smoke/canonical-planning-visual-intelligence-operation-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-source-runtime-candidate-smoke.ts',

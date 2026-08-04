@@ -7,7 +7,6 @@ import type {
 import {
   verifyCanonicalSourceAnalysisPlanningScope,
   type CanonicalSourceAnalysisPlanningScope,
-  type CanonicalSourceAnalysisPlanningSourceIdentity,
 } from './canonical-source-led-orchestra-planning-reconciliation'
 import type {
   CanonicalSourceLedManagedAudioProbe,
@@ -59,6 +58,24 @@ export interface CanonicalSourceAnalysisFinalizedAuthority {
   readonly platformAnalysisCostCapRereadVerified: true
   readonly browserStorageAuthorityAccepted: false
   readonly callerPathUrlBytesOrCommandAccepted: false
+}
+
+export interface CanonicalSourceAnalysisFinalizedAuthorityExpectation {
+  readonly ownerUserId: string
+  readonly workspaceId: string
+  readonly projectId: string
+  readonly editSessionId: string
+  readonly sourceSequenceItemId: string
+  readonly mediaAssetId: string
+  readonly uploadedOrder: number
+  readonly storageProvider: 'google_cloud_storage'
+  readonly storageBucket: string
+  readonly storagePath: string
+  readonly contentType: 'video/mp4'
+  readonly checksumSha256: string
+  readonly byteLength: number
+  readonly storageGeneration: string
+  readonly storageEtag: string
 }
 
 export interface CanonicalSourceAnalysisProbeAuthority {
@@ -241,10 +258,15 @@ export function createCanonicalSourceAnalysisPreparationOwner(input: {
           'canonical_finalized_source_authority_not_ready',
           index + 1,
         )
-        const finalized = verifyFinalizedAuthority({
+        const finalized = verifyCanonicalSourceAnalysisFinalizedAuthority({
           untrusted: finalizedRaw,
-          scope,
-          planned,
+          expected: {
+            ownerUserId: scope.ownerUserId,
+            workspaceId: scope.workspaceId,
+            projectId: scope.projectId,
+            editSessionId: scope.editSessionId,
+            ...planned,
+          },
         })
         const probeScope = {
           ownerUserId: finalized.ownerUserId,
@@ -351,10 +373,9 @@ export function createCanonicalSourceAnalysisPreparationOwner(input: {
   })
 }
 
-function verifyFinalizedAuthority(input: {
+export function verifyCanonicalSourceAnalysisFinalizedAuthority(input: {
   readonly untrusted: unknown
-  readonly scope: CanonicalSourceAnalysisPlanningScope
-  readonly planned: CanonicalSourceAnalysisPlanningSourceIdentity
+  readonly expected: CanonicalSourceAnalysisFinalizedAuthorityExpectation
 }): CanonicalSourceAnalysisFinalizedAuthority {
   const value = exactRecord(input.untrusted, [
     'schemaVersion', 'ownerUserId', 'workspaceId', 'projectId',
@@ -374,13 +395,13 @@ function verifyFinalizedAuthority(input: {
     'browserStorageAuthorityAccepted',
     'callerPathUrlBytesOrCommandAccepted',
   ])
-  const expected = input.planned
+  const expected = input.expected
   if (
     value.schemaVersion !== 'canonical-source-analysis-finalized-authority-v1'
-    || value.ownerUserId !== input.scope.ownerUserId
-    || value.workspaceId !== input.scope.workspaceId
-    || value.projectId !== input.scope.projectId
-    || value.editSessionId !== input.scope.editSessionId
+    || value.ownerUserId !== expected.ownerUserId
+    || value.workspaceId !== expected.workspaceId
+    || value.projectId !== expected.projectId
+    || value.editSessionId !== expected.editSessionId
     || value.sourceSequenceItemId !== expected.sourceSequenceItemId
     || value.mediaAssetId !== expected.mediaAssetId
     || value.uploadedOrder !== expected.uploadedOrder

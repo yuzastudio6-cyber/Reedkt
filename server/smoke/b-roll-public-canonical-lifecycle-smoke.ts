@@ -467,14 +467,15 @@ try {
   const sourceProcess = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i',
     'testsrc2=size=320x180:rate=24:duration=4', '-an', '-c:v', 'libx264',
-    '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-threads', '1', '-y', sourcePath,
+    '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
+    '-threads', '1', '-y', sourcePath,
   ], { encoding: 'utf8' })
   assert.equal(sourceProcess.status, 0, sourceProcess.stderr)
   const candidateProcess = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i',
     'testsrc2=size=1280x720:rate=24:duration=3', '-an', '-c:v', 'libx264',
     '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-frames:v', '72',
-    '-threads', '1', '-y', candidatePath,
+    '-movflags', '+faststart', '-threads', '1', '-y', candidatePath,
   ], { encoding: 'utf8' })
   assert.equal(candidateProcess.status, 0, candidateProcess.stderr)
   const captionProcess = spawnSync('ffmpeg', [

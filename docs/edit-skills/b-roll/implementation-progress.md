@@ -1657,6 +1657,56 @@ Intelligence was not implemented. No direct tracking model or alternate B-roll
 provider was introduced. No paid provider call, public media, production
 mutation, final customer export, billing, or wallet action occurred.
 
+## M24 — required input authority alignment
+
+Status: implementation complete, committed, pushed, and targeted-qualified.
+
+Implementation commit:
+`070f4dccfdada957c6118e8cb801acbe2b1bb94d`.
+
+Remote confirmation: `git push -u origin HEAD` advanced
+`origin/codex/reeditpro-b-roll-skill-end-to-end` to
+`070f4dccfdada957c6118e8cb801acbe2b1bb94d`; local and remote refs matched
+exactly after the push.
+
+The generic `resolveAndValidateSkillAssignmentInputs` boundary now resolves
+the exact manifest-declared input keys and enforces their count, uniqueness,
+tenant/project scope, immutable content address, schema, and required-input
+placement. B-roll now requires all five authorities before planning:
+`b_roll_assignment_v1`, the read-only `b_roll_context_manifest_v1`,
+`source_inventory_v1`, `master_timing_plan_v1`, and
+`visual_ownership_manifest_v1`. The context manifest binds the exact four
+other authority references; the plan retains all five references as public
+evidence lineage.
+
+The B-roll validator now rejects stale assignment/session/manifest/timing
+lineage, a timing range that differs from the assigned range, context sources
+that differ from the checksum-bound inventory, and overlapping exclusive
+primary ownership. The legacy capability handler delegates to the same public
+plugin planning boundary, so it cannot silently use the former two-input path.
+
+Actual M24 evidence:
+
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-planning` —
+  passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  — passed the full public lifecycle plus 18 required-input adversarial cases.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-capability-manifest`
+  — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-runtime-factory`
+  — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-capability-kernel`
+  — passed.
+- `npm run typecheck:server` and `npm run lint` — passed.
+- `git diff --check` — passed before commit.
+
+The M23 generated qualification receipt is intentionally stale after this
+source-authority change. No replacement receipt is claimed here; M30 will run
+the complete evidence command and generate the exact final receipt after all
+M24-M29 source changes are committed. No provider request, public artifact,
+production mutation, orchestra, Track All implementation, or Visual
+Intelligence implementation occurred.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1685,3 +1735,4 @@ mutation, final customer export, billing, or wallet action occurred.
 | M21 | `cc516c651` + `ae3dde206` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M22 | `c79d93e71` + `a39b9feda` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M23 | `c8995159c` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M24 | `070f4dccf` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |

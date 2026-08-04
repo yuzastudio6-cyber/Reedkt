@@ -369,13 +369,17 @@ export function createCanonicalSam31GpuPerformanceP95EvidenceRepository(
   assertObjectPort(input.objectPort)
   const prefix = normalizePrefix(input.prefix ?? DEFAULT_PREFIX)
   return Object.freeze({
-    async persistP95EvidenceCreateOnly({ evidence }) {
+    async persistP95EvidenceCreateOnly({ evidence }: {
+      readonly evidence: CanonicalSam31GpuPerformanceP95Evidence
+    }) {
       const parsed = assertCanonicalSam31GpuPerformanceP95Evidence(evidence)
       const evidenceRef = canonicalSam31GpuPerformanceP95EvidenceRef(parsed)
       await persistExact(input.objectPort, recordPath(prefix, evidenceRef), parsed)
       return evidenceRef
     },
-    async rereadP95Evidence({ evidenceRef }) {
+    async rereadP95Evidence({ evidenceRef }: {
+      readonly evidenceRef: EvidenceRef
+    }) {
       const parsedRef = refSchema.parse(evidenceRef)
       const body = await input.objectPort.readExact(
         recordPath(prefix, parsedRef),

@@ -260,6 +260,20 @@ idempotent rerun then observed all five disabled and emitted
   `eight_minute_performance` component with the content-addressed p95 record
   ref. A100 and L4 must produce independent evidence sets; neither route may
   reuse the other's measurements or qualification component.
+- Independent temporal-mask quality now has its canonical component owner.
+  The owner consumes a closed independent full-interval measurement set and a
+  separate full-resolution complete-playback review over the exact eight-
+  minute source, stitched masks, expected-object coverage manifest, source
+  geometry, and every ordered sequence. Representative-frame or sampled-only
+  review is forbidden. Coverage jumps, motion-compensated overlap, alpha
+  delta, boundary disagreement, empty/full masks, dropouts, identity switches,
+  and finding codes must satisfy the fixed measurement profile with zero
+  findings before a component can be persisted. For A100 this creates the
+  approved baseline. For L4 the owner additionally rereads the exact approved
+  A100 runtime qualification and temporal-quality component, derives its
+  measurement ref, and requires every L4 sequence metric to equal or improve
+  on the A100 baseline. Caller comparison booleans, crossed source/object
+  scope, stale reviews, digest mutation, or any L4 regression fail closed.
 - Every fresh fixed SAM 3.1 task context now requires an exact, digest-bound
   `track_all` Orchestra call for one complete approved scene interval. The
   binding cross-checks the approved snapshot, output, scene, source artifact,

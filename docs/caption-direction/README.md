@@ -1,7 +1,7 @@
-# Captions Specialist — CAP-07 Finish Readiness Checkpoint
+# Captions Specialist — CAP-08 Visual Evidence Checkpoint
 
-Status: `cap_07_complete`
-Checkpoint: `CAP-07`
+Status: `cap_08_contract_complete_private_visual_runtime_gated`
+Checkpoint: `CAP-08`
 Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
@@ -80,6 +80,7 @@ The governing workflow invariant remains:
 - [CAP-05 font and Unicode runtime report](cap-05-font-unicode-runtime-report.md)
 - [CAP-06 early strategy and reservation report](cap-06-early-strategy-reservation-report.md)
 - [CAP-07 picture lock and finish readiness report](cap-07-picture-lock-finish-readiness-report.md)
+- [CAP-08 Visual Intelligence support report](cap-08-visual-intelligence-support-report.md)
 
 ### Historical architecture retained and amended
 
@@ -115,7 +116,9 @@ The governing workflow invariant remains:
 
 ## Progression
 
-CAP-00R through CAP-07 are complete on the clean specialist branch. CAP-05's
+CAP-00R through CAP-07 are complete on the clean specialist branch. CAP-08's
+support/occupancy/hierarchy contracts are complete with actual private visual
+runtime evidence explicitly gated. CAP-05's
 contracts and fail-closed resolver are complete, with its actual private font
 runtime qualification gates carried explicitly. CAP-01 adds the
 neutral shared v2 manifest extension, per-job qualification snapshot,
@@ -156,8 +159,14 @@ handling, local/global staleness, and append-only lifecycle progression.
 Caption consumes picture lock and never becomes its owner or final-render
 authority.
 
-Implementation continues automatically into CAP-08 Visual Intelligence
-support and final-frame evidence. Registry/workflow integration will consume
+CAP-08 adds the HQ-mediated Visual Intelligence support payload, strict inbound
+evidence packet, deterministic occupancy projection, protected-region
+collision checks, final visual hierarchy, and rendered-inspection request
+contract. Contract fixtures cannot claim visual inference or final rendered
+inspection; those private runtime gates remain explicit.
+
+Implementation continues automatically into CAP-09 Track All and SAM 3.1
+support. Registry/workflow integration will consume
 these frozen public artifacts at its dependency-safe milestone; no Caption
 milestone manufactures a second planner or a false backend coverage claim.
 

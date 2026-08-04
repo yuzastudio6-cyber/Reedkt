@@ -6,13 +6,18 @@ import { skillManifestReferenceSchema, skillSha256Schema } from '../core/skill-c
 import { brollPlanningQaReportSchema } from './b-roll-planning-qa'
 import {
   brollPlanArtifactSchema,
-  brollPlanningContextSchema,
   brollSkillAssignmentSchema,
 } from './b-roll-schemas'
 import {
   BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE,
   brollVisualIntelligenceCandidateQaSchema,
 } from './b-roll-visual-intelligence-dependency'
+import {
+  brollMasterTimingPlanSchema,
+  brollPublicContextManifestSchema,
+  brollSourceInventorySchema,
+  brollVisualOwnershipManifestSchema,
+} from './b-roll-input-authorities'
 
 export const BROLL_ACCEPTED_ARTIFACT_TYPES = [
   'b_roll_assignment_v1',
@@ -103,7 +108,13 @@ export function registerBrollArtifactSchemas(registry: EditSkillArtifactSchemaRe
         : artifactType === 'b_roll_assignment_v1'
           ? brollSkillAssignmentSchema
           : artifactType === 'b_roll_context_manifest_v1'
-            ? brollPlanningContextSchema
+            ? brollPublicContextManifestSchema
+            : artifactType === 'source_inventory_v1'
+              ? brollSourceInventorySchema
+              : artifactType === 'master_timing_plan_v1'
+                ? brollMasterTimingPlanSchema
+                : artifactType === 'visual_ownership_manifest_v1'
+                  ? brollVisualOwnershipManifestSchema
             : artifactType === 'b_roll_plan_v1'
               ? brollPlanArtifactSchema
               : artifactType === 'b_roll_planning_qa_report_v1'

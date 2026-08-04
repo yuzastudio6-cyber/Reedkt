@@ -24,6 +24,7 @@ import {
 import { editSkillWorkResultSchema, type EditSkillWorkResult } from '../core/edit-skill-work-result'
 import { hashSkillValue } from '../core/skill-capability-manifest-hash'
 import { manifestSupportedJobTypeIds } from '../core/skill-capability-manifest-normalization'
+import { resolveAndValidateSkillAssignmentInputs } from '../core/skill-assignment-input-resolver'
 import type { SkillEstimatorRegistry } from '../core/skill-estimator-registry'
 import type { SkillQaRegistry } from '../core/skill-qa-registry'
 import { assertSkillAssignment, assertSkillRangeMutation, isFrameRangeContained } from '../core/skill-range-authority'
@@ -40,9 +41,20 @@ import {
 } from './b-roll-planning-qa'
 import {
   brollPlanArtifactSchema,
-  brollPlanningContextSchema,
   brollSkillAssignmentSchema,
 } from './b-roll-schemas'
+import {
+  brollMasterTimingPlanSchema,
+  brollPublicContextManifestSchema,
+  brollSourceInventorySchema,
+  brollVisualOwnershipManifestSchema,
+  frameRangesOverlap,
+  planningContextFromPublicManifest,
+  type BrollMasterTimingPlan,
+  type BrollPublicContextManifest,
+  type BrollSourceInventory,
+  type BrollVisualOwnershipManifest,
+} from './b-roll-input-authorities'
 import {
   assertBrollCanonicalWorkGraph,
   compileBrollCanonicalWorkGraph,
@@ -58,6 +70,15 @@ interface LoadedBrollAuthority {
   assignment: BrollSkillAssignment
   assignmentRef: SkillAssignment['contextArtifactRefs'][number]
   context: BrollPlanningContext
+  contextManifest: BrollPublicContextManifest
+  contextRef: SkillAssignment['contextArtifactRefs'][number]
+  sourceInventory: BrollSourceInventory
+  sourceInventoryRef: SkillAssignment['contextArtifactRefs'][number]
+  masterTiming: BrollMasterTimingPlan
+  masterTimingRef: SkillAssignment['contextArtifactRefs'][number]
+  visualOwnership: BrollVisualOwnershipManifest
+  visualOwnershipRef: SkillAssignment['contextArtifactRefs'][number]
+  inputRefs: readonly SkillAssignment['contextArtifactRefs'][number][]
 }
 
 function sameValue(left: unknown, right: unknown): boolean {
@@ -156,6 +177,14 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       qa: this.#qa,
     })
     const plan = compiled.plan
+    if (plan.sourceCandidateId) {
+      const selected = authority.sourceInventory.candidates.find((candidate) =>
+        candidate.sourceId === plan.sourceCandidateId &&
+        sameValue(candidate.artifactRef, plan.sourceArtifactRef))
+      if (!selected) {
+        throw new Error('B-roll selected a source that is absent from the exact source inventory authority.')
+      }
+    }
     const planningQaReportRef = await this.#artifacts.putJson({
       artifactType: 'b_roll_planning_qa_report_v1',
       value: compiled.planningQaReport,
@@ -222,7 +251,7 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       schemaVersion: 'edit-skill-public-plan-v1',
       envelope,
       payloadRef: planRef,
-      evidenceRefs: [planningQaReportRef],
+      evidenceRefs: [planningQaReportRef, ...authority.inputRefs],
       dependencyRequests,
     })
   }
@@ -583,27 +612,32 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
   }
 
   async #loadBrollAuthority(assignment: SkillAssignment): Promise<LoadedBrollAuthority> {
-    const assignmentRef = assignment.contextArtifactRefs.find((ref) =>
-      ref.artifactType === 'b_roll_assignment_v1')
-    const contextRef = assignment.contextArtifactRefs.find((ref) =>
-      ref.artifactType === 'b_roll_context_manifest_v1')
-    if (!assignmentRef || !contextRef) {
-      throw new Error('B-roll public plugin requires assignment and context artifacts.')
-    }
-    const scope = scopeFor(assignment)
+    const resolved = await resolveAndValidateSkillAssignmentInputs({
+      assignment,
+      manifest: this.manifest,
+      artifactStore: this.#artifacts,
+    })
+    const assignmentInput = resolved.requireOne('assignment')
+    const contextInput = resolved.requireOne('context')
+    const sourceInventoryInput = resolved.requireOne('source_inventory')
+    const masterTimingInput = resolved.requireOne('master_timing')
+    const visualOwnershipInput = resolved.requireOne('visual_ownership')
+    const assignmentRef = assignmentInput.reference
+    const contextRef = contextInput.reference
+    const sourceInventoryRef = sourceInventoryInput.reference
+    const masterTimingRef = masterTimingInput.reference
+    const visualOwnershipRef = visualOwnershipInput.reference
     const brollAssignment = assertBrollAssignment({
-      assignment: brollSkillAssignmentSchema.parse(await this.#artifacts.readJson({
-        reference: assignmentRef,
-        ...scope,
-      })),
+      assignment: brollSkillAssignmentSchema.parse(assignmentInput.value),
       manifest: this.manifest,
     })
+    const contextManifest = brollPublicContextManifestSchema.parse(contextInput.value)
+    const sourceInventory = brollSourceInventorySchema.parse(sourceInventoryInput.value)
+    const masterTiming = brollMasterTimingPlanSchema.parse(masterTimingInput.value)
+    const visualOwnership = brollVisualOwnershipManifestSchema.parse(visualOwnershipInput.value)
     const context = assertBrollPlanningContext({
       assignment: brollAssignment,
-      context: brollPlanningContextSchema.parse(await this.#artifacts.readJson({
-        reference: contextRef,
-        ...scope,
-      })),
+      context: planningContextFromPublicManifest(contextManifest),
     })
     if (
       brollAssignment.assignmentId !== assignment.assignmentId ||
@@ -615,9 +649,84 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       brollAssignment.reason !== assignment.reason ||
       brollAssignment.expectedViewerBenefit !== assignment.intendedViewerBenefit ||
       brollAssignment.requestedVisualOwnership !== assignment.visualOwnership ||
-      !brollAssignment.readContextAuthority.contextArtifactRefs.some((ref) => sameValue(ref, contextRef))
+      !sameValue(brollAssignment.manifestRef, assignment.manifestRef)
     ) throw new Error('B-roll private authority does not match the public assignment exactly.')
-    return { assignment: brollAssignment, assignmentRef, context }
+    const scopedAuthorities = [sourceInventory, masterTiming, visualOwnership]
+    if (scopedAuthorities.some((authority) =>
+      authority.ownerUserId !== assignment.ownerUserId ||
+      authority.workspaceId !== assignment.workspaceId ||
+      authority.projectId !== assignment.projectId ||
+      authority.assignmentId !== assignment.assignmentId ||
+      authority.editSessionId !== assignment.editSessionId ||
+      authority.editPlanVersion !== brollAssignment.editPlanVersion ||
+      !sameValue(authority.manifestRef, assignment.manifestRef))) {
+      throw new Error('B-roll required input authority has stale assignment, edit-session, project, or manifest lineage.')
+    }
+    if (
+      contextManifest.ownerUserId !== assignment.ownerUserId ||
+      contextManifest.workspaceId !== assignment.workspaceId ||
+      contextManifest.projectId !== assignment.projectId ||
+      contextManifest.assignmentId !== assignment.assignmentId ||
+      contextManifest.editSessionId !== assignment.editSessionId ||
+      contextManifest.editPlanVersion !== brollAssignment.editPlanVersion ||
+      !sameValue(contextManifest.manifestRef, assignment.manifestRef) ||
+      !sameValue(contextManifest.assignmentRef, assignmentRef) ||
+      !sameValue(contextManifest.sourceInventoryRef, sourceInventoryRef) ||
+      !sameValue(contextManifest.masterTimingRef, masterTimingRef) ||
+      !sameValue(contextManifest.visualOwnershipRef, visualOwnershipRef)
+    ) throw new Error('B-roll read-only context manifest does not bind the exact required authorities.')
+    const expectedReadAuthorities = [sourceInventoryRef, masterTimingRef, visualOwnershipRef]
+    if (
+      brollAssignment.readContextAuthority.contextArtifactRefs.length !== expectedReadAuthorities.length ||
+      expectedReadAuthorities.some((reference) =>
+        !brollAssignment.readContextAuthority.contextArtifactRefs.some((value) => sameValue(value, reference)))
+    ) throw new Error('B-roll assignment read authority differs from the manifest-required input set.')
+    if (!sameValue(sourceInventory.candidates, context.sourceCandidates)) {
+      throw new Error('B-roll context source candidates differ from the exact source inventory.')
+    }
+    if (
+      masterTiming.timingHash !== brollAssignment.masterTimingHash ||
+      !sameValue(masterTiming.timelineRange, brollAssignment.masterTimingRange) ||
+      !sameValue(masterTiming.assignmentRange, assignment.authorizedRange) ||
+      masterTiming.fps !== assignment.authorizedRange.fps
+    ) throw new Error('B-roll master timing authority is stale or does not contain the exact assignment range.')
+    if (
+      !sameValue(visualOwnership.assignmentRange, assignment.authorizedRange) ||
+      visualOwnership.requestedOwnership !== brollAssignment.requestedVisualOwnership
+    ) throw new Error('B-roll visual ownership authority differs from the requested assignment ownership.')
+    const overlappingPrimary = visualOwnership.ownershipWindows.filter((window) =>
+      window.ownership === 'primary' &&
+      frameRangesOverlap(window.frameRange, assignment.authorizedRange))
+    if (
+      brollAssignment.requestedVisualOwnership === 'primary' &&
+      overlappingPrimary.some((window) => window.exclusive && window.ownerSkillKey !== 'b_roll')
+    ) throw new Error('B-roll visual ownership conflicts with another exclusive primary owner.')
+    const declaredPrimaryOwners = [...new Set(overlappingPrimary.map((window) => window.ownerSkillKey))]
+    if (
+      (context.primaryVisualOwner && !declaredPrimaryOwners.includes(context.primaryVisualOwner)) ||
+      (!context.primaryVisualOwner && declaredPrimaryOwners.length > 0)
+    ) throw new Error('B-roll context primary owner differs from the visual ownership manifest.')
+    const inputRefs = [
+      assignmentRef,
+      contextRef,
+      sourceInventoryRef,
+      masterTimingRef,
+      visualOwnershipRef,
+    ]
+    return {
+      assignment: brollAssignment,
+      assignmentRef,
+      context,
+      contextManifest,
+      contextRef,
+      sourceInventory,
+      sourceInventoryRef,
+      masterTiming,
+      masterTimingRef,
+      visualOwnership,
+      visualOwnershipRef,
+      inputRefs,
+    }
   }
 
   async #assertPlan(
@@ -648,8 +757,14 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
     const planningQaReportRef = publicPlan.evidenceRefs.find((ref) =>
       ref.artifactType === plan.planningQaReportArtifactType &&
       ref.sha256 === plan.planningQaReportHash)
-    if (publicPlan.evidenceRefs.length !== 1 || !planningQaReportRef) {
-      throw new Error('B-roll public plan lacks its exact planning QA report artifact.')
+    const inputEvidenceRefs = publicPlan.evidenceRefs.filter((ref) =>
+      ref.artifactType !== plan.planningQaReportArtifactType)
+    if (
+      publicPlan.evidenceRefs.length !== authority.inputRefs.length + 1 ||
+      !planningQaReportRef ||
+      !sameValue(inputEvidenceRefs, authority.inputRefs)
+    ) {
+      throw new Error('B-roll public plan lacks its exact planning QA and required-input authority lineage.')
     }
     const planningQaReport = brollPlanningQaReportSchema.parse(
       await this.#artifacts.readJson({

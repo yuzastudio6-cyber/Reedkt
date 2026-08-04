@@ -3,10 +3,15 @@ import assert from 'node:assert/strict'
 import {
   BROLL_CAPABILITY_MANIFEST,
   assertBrollVisualIntelligenceCandidateQa,
+  createBrollMasterTimingPlan,
+  createBrollPublicContextManifest,
+  createBrollSourceInventory,
+  createBrollVisualOwnershipManifest,
   createBrollVisualIntelligenceCandidateQa,
   createBrollAssignment,
   createBrollPlanningContext,
   type BrollPlanningContext,
+  type BrollSourceCandidate,
   type BrollSkillAssignment,
 } from '../edit-skills/b-roll'
 import {
@@ -51,10 +56,27 @@ function brollContext(input: {
   })
 }
 
+function reviseContext(
+  context: BrollPlanningContext,
+  overrides: Partial<Omit<BrollPlanningContext, 'contextHash'>>,
+): BrollPlanningContext {
+  const { contextHash: _contextHash, ...core } = context
+  void _contextHash
+  return createBrollPlanningContext({ ...core, ...overrides })
+}
+
 async function createPublicAssignment(input: {
   assignmentId: string
   trackingRequired?: boolean
   generated?: boolean
+  tamper?:
+    | 'wrong_edit_session'
+    | 'wrong_assignment'
+    | 'wrong_manifest'
+    | 'stale_timing'
+    | 'timing_outside_assignment'
+    | 'source_absent_from_inventory'
+    | 'ownership_conflict'
 }) {
   const reason = input.generated
     ? 'Clarify the product workflow with one restrained illustrative cutaway.'
@@ -62,10 +84,95 @@ async function createPublicAssignment(input: {
   const benefit = input.generated
     ? 'Understand the workflow without treating generated media as proof.'
     : 'Keep the authentic speaker moment visible.'
-  const context = brollContext(input)
-  const contextRef = await editSkillArtifactStore.putJson({
-    artifactType: 'b_roll_context_manifest_v1',
-    value: context,
+  const absentSourceCandidate: BrollSourceCandidate = {
+    sourceId: 'source-absent-from-inventory',
+    sourceType: 'existing_project_clip',
+    artifactRef: {
+      artifactType: 'source_media_artifact_v1',
+      sha256: hashSkillValue({ fixture: input.assignmentId, source: 'absent' }),
+      byteLength: 100,
+      ...scope,
+    },
+    sourceRange: { startFrameInclusive: 24, endFrameExclusive: 96, fps: 24 },
+    semanticRelevance: 0.95,
+    visualQuality: 0.9,
+    temporalFit: 0.9,
+    storyContinuity: 0.9,
+    provenanceVerified: true,
+    rightsApproved: true,
+    privacyApproved: true,
+    proofSafe: true,
+    repetitionRisk: 0,
+    cropFeasibility: 0.9,
+    speakerActionProtection: 0.9,
+    audioUsefulness: 0.5,
+    costCredits: 1,
+    approvedByUser: true,
+  }
+  const baseContext = brollContext(input)
+  const context = input.tamper === 'source_absent_from_inventory'
+    ? reviseContext(baseContext, { sourceCandidates: [absentSourceCandidate] })
+    : input.tamper === 'ownership_conflict'
+      ? reviseContext(baseContext, { primaryVisualOwner: 'graphic_design' })
+      : baseContext
+  const authorityManifestRef = input.tamper === 'wrong_manifest'
+    ? { ...manifestRef, manifestHash: '0'.repeat(64) }
+    : manifestRef
+  const sourceInventory = createBrollSourceInventory({
+    schemaVersion: 'source_inventory_v1',
+    ...scope,
+    editSessionId: input.tamper === 'wrong_edit_session' ? 'wrong-session' : 'public-session',
+    assignmentId: input.tamper === 'wrong_assignment' ? 'wrong-assignment' : input.assignmentId,
+    editPlanVersion: 1,
+    manifestRef: authorityManifestRef,
+    candidates: input.tamper === 'source_absent_from_inventory' ? [] : [...context.sourceCandidates],
+  })
+  const sourceInventoryRef = await editSkillArtifactStore.putJson({
+    artifactType: 'source_inventory_v1',
+    value: sourceInventory,
+    ...scope,
+  })
+  const masterTiming = createBrollMasterTimingPlan({
+    schemaVersion: 'master_timing_plan_v1',
+    ...scope,
+    editSessionId: 'public-session',
+    assignmentId: input.assignmentId,
+    editPlanVersion: 1,
+    manifestRef,
+    fps: range.fps,
+    timelineRange: masterRange,
+    assignmentRange: input.tamper === 'timing_outside_assignment'
+      ? { startFrameInclusive: 0, endFrameExclusive: 72, fps: 24 }
+      : range,
+  })
+  const masterTimingRef = await editSkillArtifactStore.putJson({
+    artifactType: 'master_timing_plan_v1',
+    value: masterTiming,
+    ...scope,
+  })
+  const visualOwnership = createBrollVisualOwnershipManifest({
+    schemaVersion: 'visual_ownership_manifest_v1',
+    ...scope,
+    editSessionId: 'public-session',
+    assignmentId: input.assignmentId,
+    editPlanVersion: 1,
+    manifestRef,
+    assignmentRange: range,
+    requestedOwnership: 'primary',
+    ownershipWindows: input.tamper === 'ownership_conflict' ? [{
+      ownerSkillKey: 'graphic_design',
+      ownership: 'primary',
+      exclusive: true,
+      frameRange: range,
+      lockedEvidenceFootage: false,
+      deliberateHeroVisual: true,
+      captionSafeAreaReserved: false,
+      transitionBoundaryOwned: false,
+    }] : [],
+  })
+  const visualOwnershipRef = await editSkillArtifactStore.putJson({
+    artifactType: 'visual_ownership_manifest_v1',
+    value: visualOwnership,
     ...scope,
   })
   const brollAssignment: BrollSkillAssignment = createBrollAssignment({
@@ -75,14 +182,14 @@ async function createPublicAssignment(input: {
     ...scope,
     editSessionId: 'public-session',
     editPlanVersion: 1,
-    masterTimingHash: hashSkillValue(masterRange),
+    masterTimingHash: input.tamper === 'stale_timing' ? 'f'.repeat(64) : masterTiming.timingHash,
     masterTimingRange: masterRange,
     segmentIds: ['segment-public'],
     sourceSequenceIds: [],
     readContextAuthority: {
       wholeVideoReadOnly: true,
       adjacentScenesReadOnly: true,
-      contextArtifactRefs: [contextRef],
+      contextArtifactRefs: [sourceInventoryRef, masterTimingRef, visualOwnershipRef],
     },
     writeRangeAuthority: { authorizedRange: range, outsideAuthorizedRangeModified: false },
     reason,
@@ -108,6 +215,21 @@ async function createPublicAssignment(input: {
     value: brollAssignment,
     ...scope,
   })
+  const contextManifest = createBrollPublicContextManifest({
+    context,
+    editSessionId: 'public-session',
+    editPlanVersion: 1,
+    manifestRef,
+    assignmentRef,
+    sourceInventoryRef,
+    masterTimingRef,
+    visualOwnershipRef,
+  })
+  const contextRef = await editSkillArtifactStore.putJson({
+    artifactType: 'b_roll_context_manifest_v1',
+    value: contextManifest,
+    ...scope,
+  })
   const assignment = createSkillAssignment({
     schemaVersion: 'edit-skill-assignment-v1',
     assignmentId: input.assignmentId,
@@ -120,11 +242,37 @@ async function createPublicAssignment(input: {
     intendedViewerBenefit: benefit,
     editorialContext: 'Public B-roll plugin lifecycle qualification fixture.',
     visualOwnership: 'primary',
-    contextArtifactRefs: [assignmentRef, contextRef],
+    contextArtifactRefs: [
+      assignmentRef,
+      contextRef,
+      sourceInventoryRef,
+      masterTimingRef,
+      visualOwnershipRef,
+    ],
     dependencyArtifactRefs: [],
     requestedBySkill: 'orchestra',
   })
-  return { assignment, assignmentRef }
+  return {
+    assignment,
+    assignmentRef,
+    contextRef,
+    sourceInventoryRef,
+    masterTimingRef,
+    visualOwnershipRef,
+  }
+}
+
+function revisePublicAssignment(
+  assignment: ReturnType<typeof createSkillAssignment>,
+  contextArtifactRefs: ReturnType<typeof createSkillAssignment>['contextArtifactRefs'],
+) {
+  const { assignmentHash: _assignmentHash, ...core } = assignment
+  void _assignmentHash
+  return createSkillAssignment({
+    ...core,
+    contextArtifactRefs: [...contextArtifactRefs],
+    dependencyArtifactRefs: [...assignment.dependencyArtifactRefs],
+  })
 }
 
 const plugin = editSkillPluginRegistry.resolve(manifestRef)
@@ -136,8 +284,98 @@ const plan = await plugin.planAssignment({ assignment: fixture.assignment })
 assert.equal(plan.envelope.disposition, 'use_no_action')
 assert.equal(plan.dependencyRequests.length, 0)
 assert.equal(plan.payloadRef.artifactType, 'b_roll_plan_v1')
-assert.equal(plan.evidenceRefs.length, 1)
+assert.equal(plan.evidenceRefs.length, 6)
 assert.equal(plan.evidenceRefs[0]?.artifactType, 'b_roll_planning_qa_report_v1')
+
+let requiredInputAdversarialCases = 0
+for (const artifactType of [
+  'b_roll_assignment_v1',
+  'b_roll_context_manifest_v1',
+  'source_inventory_v1',
+  'master_timing_plan_v1',
+  'visual_ownership_manifest_v1',
+]) {
+  const missing = revisePublicAssignment(
+    fixture.assignment,
+    fixture.assignment.contextArtifactRefs.filter((reference) =>
+      reference.artifactType !== artifactType),
+  )
+  await assert.rejects(
+    () => plugin.planAssignment({ assignment: missing }),
+    /requires 1-1/iu,
+  )
+  requiredInputAdversarialCases += 1
+}
+
+const duplicateContext = revisePublicAssignment(fixture.assignment, [
+  ...fixture.assignment.contextArtifactRefs,
+  fixture.contextRef,
+])
+await assert.rejects(
+  () => plugin.planAssignment({ assignment: duplicateContext }),
+  /duplicate context artifact/iu,
+)
+requiredInputAdversarialCases += 1
+
+for (const [scopeKey, scopeValue] of [
+  ['ownerUserId', 'foreign-user'],
+  ['workspaceId', 'foreign-workspace'],
+  ['projectId', 'foreign-project'],
+] as const) {
+  const foreignRef = { ...fixture.contextRef, [scopeKey]: scopeValue }
+  const foreign = revisePublicAssignment(
+    fixture.assignment,
+    fixture.assignment.contextArtifactRefs.map((reference) =>
+      reference.artifactType === 'b_roll_context_manifest_v1' ? foreignRef : reference),
+  )
+  await assert.rejects(
+    () => plugin.planAssignment({ assignment: foreign }),
+    /cross-workspace artifact/iu,
+  )
+  requiredInputAdversarialCases += 1
+}
+
+const staleTimingRef = { ...fixture.masterTimingRef, sha256: '0'.repeat(64) }
+const staleContent = revisePublicAssignment(
+  fixture.assignment,
+  fixture.assignment.contextArtifactRefs.map((reference) =>
+    reference.artifactType === 'master_timing_plan_v1' ? staleTimingRef : reference),
+)
+await assert.rejects(
+  () => plugin.planAssignment({ assignment: staleContent }),
+  /artifact was not found|integrity/iu,
+)
+requiredInputAdversarialCases += 1
+
+await assert.rejects(
+  () => editSkillArtifactStore.putJson({
+    artifactType: 'master_timing_plan_v1',
+    ...scope,
+    value: { schemaVersion: 'master_timing_plan_v0' },
+  }),
+  /invalid input|schemaVersion|expected/iu,
+)
+requiredInputAdversarialCases += 1
+
+for (const [tamper, message] of [
+  ['wrong_edit_session', /edit-session/iu],
+  ['wrong_assignment', /assignment/iu],
+  ['wrong_manifest', /manifest/iu],
+  ['stale_timing', /master timing/iu],
+  ['timing_outside_assignment', /master timing/iu],
+  ['source_absent_from_inventory', /source candidates differ/iu],
+  ['ownership_conflict', /exclusive primary owner/iu],
+] as const) {
+  const invalid = await createPublicAssignment({
+    assignmentId: `public-input-${tamper}`,
+    tamper,
+  })
+  await assert.rejects(
+    () => plugin.planAssignment({ assignment: invalid.assignment }),
+    message,
+  )
+  requiredInputAdversarialCases += 1
+}
 
 const approval = createEditSkillPlanApproval({
   schemaVersion: 'edit-skill-plan-approval-v1',
@@ -618,5 +856,6 @@ console.log(JSON.stringify({
   visualIntelligenceDependencyRequestHash: visualIntelligenceRequest.requestHash,
   visualIntelligenceDependencyAcceptanceHash: visualIntelligenceAcceptance.acceptanceHash,
   generatedDependencyReceiptHash: dependencyReceipt.receiptHash,
+  requiredInputAdversarialCases,
   privateMiniSkillImports: 0,
 }, null, 2))

@@ -549,3 +549,53 @@ compatibility, GPU performance, or actual SAM inference. Aggregate Track All
 remains `implementation_pending`; the SAM route remains `blocked`. No real
 checkpoint/model/GPU/paid/public/production/database/head-orchestra action
 occurred.
+
+## TRACK-10 — chunk stitching and anonymous identity graph
+
+Status: complete and awaiting the following evidence-ledger push confirmation.
+
+- implementation commit: `8a3d0b5cf6f62852831c66e6318dd0aa2a06f9d6`
+
+Implemented:
+
+- deterministic overlap association using exact frame IoU and center geometry,
+  plus a bounded two-second gap/re-entry score;
+- stable semantic anonymous IDs independent of local SAM object numbers;
+- duplicate reconciliation across Object Multiplex buckets while preventing
+  same-bucket identities from collapsing;
+- dynamic shot/chunk/bucket authority, multi-bucket/session evidence, and
+  exact target-count enforcement;
+- explicit lost spans, reacquisition, partial/full occlusion, occlusion event
+  logs, re-entry evidence, and conflict/ambiguity identity-switch warnings;
+- default shot-cut identity reset and optional explicit evidence-qualified
+  cross-shot linkage that remains marked uncertain rather than certain;
+- deterministic parent/child association from overlapping containment
+  geometry;
+- strict sample, box, private mask-sequence, occlusion, and identity-lineage
+  artifacts plus content-addressed Track Graph V2 and frozen V1 projection;
+- fail-closed rejection of duplicate observations, invalid/reordered ranges,
+  bad bucket authority, over-count targets, invalid parents, and cross-tenant
+  mask/runtime/QA references.
+
+Actual checks run:
+
+- `npm run test:track-all-chunk-identity` — passed; graph hash
+  `e610beb243816cfb48057277c7a3727d6c1d118881df6b95591d617d51cf2688`,
+  5 stable tracks over 4 chunk/bucket records, 2 buckets, 8 planned sessions,
+  one re-entry, parent/child lineage, similar-person crossing continuity,
+  default shot reset, explicit uncertain cross-shot linkage, V1 compatibility,
+  and 9 adversarial cases.
+- `npm run test:track-all-artifact-contracts` — passed all 32 strict active
+  outputs and private-mask boundaries.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-active-artifact-contracts`
+  — passed all 29 frozen B-Roll active contracts.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  — passed the frozen public V1 Track Graph consumer boundary.
+- `npm run typecheck:server` — passed with exit `0`.
+- affected-file ESLint — passed with exit `0`.
+- staged `git diff --check` — passed.
+
+TRACK-10 uses deterministic/injected observation evidence and does not promote
+the real SAM route. Track All remains `implementation_pending`, SAM remains
+`blocked`, and no checkpoint/model/GPU/paid/public/production/database or head
+orchestra action occurred.

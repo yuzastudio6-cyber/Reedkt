@@ -1,0 +1,415 @@
+import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
+
+import type {
+  CanonicalCreateOnlyJsonObjectPort,
+} from '../services/canonical-gcs-source-analysis-lifecycle-store'
+import {
+  createCanonicalProfessionalGpuDurableLifecycleStore,
+} from '../services/canonical-professional-gpu-durable-lifecycle-store'
+import {
+  canonicalSam31GpuCompleteSourceExecutionObservationRef,
+  canonicalSam31GpuCompleteSourceStitchEvidenceRef,
+  createCanonicalSam31GpuCompleteSourcePerformanceOwner,
+  createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectPort,
+  createCanonicalSam31GpuCompleteSourcePerformanceRepository,
+  persistCanonicalSam31GpuCompleteSourceOwnerInput,
+  sealCanonicalSam31GpuCompleteSourceExecutionObservation,
+  sealCanonicalSam31GpuCompleteSourceStitchEvidence,
+  type CanonicalSam31GpuCompleteSourcePerformanceReadPort,
+} from '../services/canonical-sam3_1-gpu-complete-source-performance-owner'
+import {
+  stableAuthorityStringify,
+} from '../services/private-edit-authority-store'
+import {
+  createCanonicalSam31GpuRuntimeResultStoreFromObjectPort,
+} from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
+import {
+  createCanonicalSam31GpuTaskStoreFromObjectPort,
+} from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
+import {
+  buildCanonicalSam31A100RunFixture,
+  type CanonicalSam31A100RunFixture,
+  type CanonicalSam31A100RunFixtureRef,
+} from './canonical-sam3_1-gpu-runtime-deterministic-qualification-owner-smoke'
+
+const exactEightMinuteSourceRef = ref(
+  'sam31-eight-minute-source',
+  digest('sam31-eight-minute-source'),
+)
+const chunkPlanRef = ref(
+  'sam31-eight-minute-chunk-plan',
+  digest('sam31-eight-minute-chunk-plan'),
+)
+const fixtures = Array.from({ length: 48 }, (_, index) =>
+  buildCanonicalSam31A100RunFixture(index + 1, {
+    invocationPrefix: 'sam31-eight-minute-run-01-chunk',
+    exactSourceRef: exactEightMinuteSourceRef,
+    maskProxyRef: ref(
+      `sam31-eight-minute-run-01-mask-proxy-${index + 1}`,
+      digest(`sam31-eight-minute-run-01-mask-proxy-${index + 1}`),
+    ),
+    canonicalStartFrameInclusive: index * 240,
+    fpsNumerator: 24,
+  }))
+const observation = sealCanonicalSam31GpuCompleteSourceExecutionObservation({
+  schemaVersion:
+    'canonical-sam3_1-gpu-complete-source-execution-observation-v1',
+  source: 'canonical_sam3_1_gpu_complete_source_execution_telemetry_owner',
+  evidenceClass: 'canonical_private_reread',
+  status: 'complete_source_execution_observed',
+  executionGroupId: 'sam31-eight-minute-execution-group-01',
+  executionGroupVersion: 1,
+  qualificationId: 'sam31-a100-runtime-qualification',
+  runOrdinal: 1,
+  exactEightMinuteSourceRef,
+  sourceDurationMilliseconds: 480_000,
+  sourceWidth: 2_160,
+  sourceHeight: 3_840,
+  sourceFrameCount: 11_520,
+  fpsNumerator: 24,
+  fpsDenominator: 1,
+  chunkPlanRef,
+  route: {
+    routeId: 'a100_80gb_heavy_primary',
+    gpuProfileId: 'quality_a100_80gb_user_triggered_heavy_job_v1',
+    runtimeRegion: 'us-central1',
+    executionTarget: 'google_cloud_batch_a2_ultra_job',
+    machineType: 'a2-ultragpu-1g',
+    accelerator: 'nvidia_a100_80gb',
+  },
+  immutableImageDigest: fixtures[0].launch.immutableImageDigest,
+  chunks: fixtures.map((fixture, index) => ({
+    chunkOrdinal: index + 1,
+    invocationId: fixture.request.invocationId,
+    canonicalStartFrameInclusive: index * 240,
+    canonicalEndFrameInclusive: index * 240 + 239,
+    overlapWithPreviousFrames: 0,
+    taskRef: fixture.request.taskRef,
+    launchRef: fixture.request.launchRef,
+    resultAdmissionRef: fixture.request.resultAdmissionRef,
+    runtimeResponseObjectRef: fixture.request.runtimeResponseObjectRef,
+  })),
+  phaseObservationRefs: {
+    userTriggeredExecutionGroupRef: ref('sam31-user-triggered-group-01'),
+    cloudProvisioningObservationSetRef:
+      ref('sam31-cloud-provisioning-set-01'),
+    workerPhaseTelemetrySetRef: ref('sam31-worker-telemetry-set-01'),
+    terminalCapacityObservationSetRef:
+      ref('sam31-terminal-capacity-set-01'),
+    accountEffectiveCostReceiptSetRef:
+      ref('sam31-account-effective-cost-set-01'),
+  },
+  phaseTiming: {
+    wallTimeMilliseconds: 420_000,
+    coldStartAndImagePullMilliseconds: 40_000,
+    modelLoadMilliseconds: 60_000,
+    decodePromptPropagationAndStitchMilliseconds: 300_000,
+    outputPersistenceAndExactRereadMilliseconds: 20_000,
+  },
+  exactCloudJobWorkerAndPhaseTimestampsReread: true,
+  everyChunkTerminalAndAccountEffectiveCostReread: true,
+  allGpuCapacityStoppedAfterTerminal: true,
+  maximumActiveGpuJobsAfterTerminal: 0,
+  callerTimingOrCompletionClaimsAccepted: false,
+  customerCreditsMutated: false,
+  qaApprovalGranted: false,
+  publicDeliveryAuthorized: false,
+  productionAuthorityGranted: false,
+  observedAt: '2026-08-04T19:07:00.000Z',
+})
+const executionGroupObservationRef =
+  canonicalSam31GpuCompleteSourceExecutionObservationRef(observation)
+const stitchedOutputMaskSetDigestSha256 = digest(
+  'sam31-eight-minute-stitched-mask-set',
+)
+const stitch = sealCanonicalSam31GpuCompleteSourceStitchEvidence({
+  schemaVersion: 'canonical-sam3_1-gpu-complete-source-stitch-evidence-v1',
+  source: 'canonical_track_all_sam3_1_mask_stitch_owner',
+  evidenceClass: 'canonical_private_reread',
+  status: 'complete_source_stitch_evidence_ready',
+  stitchEvidenceId: 'sam31-eight-minute-stitch-01',
+  stitchEvidenceVersion: 1,
+  executionGroupRef: executionGroupObservationRef,
+  exactEightMinuteSourceRef,
+  chunkPlanRef,
+  orderedChunkResultRefs: fixtures.map((fixture) =>
+    fixture.request.resultAdmissionRef),
+  stitchedMaskSequenceRef: ref(
+    'sam31-eight-minute-stitched-mask-sequence-01',
+    stitchedOutputMaskSetDigestSha256,
+  ),
+  stitchedOutputMaskSetDigestSha256,
+  sourceWidth: 2_160,
+  sourceHeight: 3_840,
+  sourceFrameCount: 11_520,
+  firstFrameIndex: 0,
+  lastFrameIndex: 11_519,
+  everyExpectedFrameAndObjectPresent: true,
+  completeIntervalNoGapCoverageVerified: true,
+  deterministicOverlapReconciliationVerified: true,
+  everyMaskMatchesSourceGeometry: true,
+  sourceResolutionPreserved: true,
+  quantizationOrDownscaleUsed: false,
+  exactStitchedManifestAndEveryMaskByteReread: true,
+  pathsUrlsCredentialsOrMediaBytesIncluded: false,
+  assetManifestMutated: false,
+  qaApprovalGranted: false,
+  customerCreditsMutated: false,
+  publicDeliveryAuthorized: false,
+  productionAuthorityGranted: false,
+  stitchedAt: '2026-08-04T19:06:30.000Z',
+})
+const stitchEvidenceRef =
+  canonicalSam31GpuCompleteSourceStitchEvidenceRef(stitch)
+const request = {
+  performanceEvidenceId: 'sam31-eight-minute-performance-evidence-01',
+  executionGroupObservationRef,
+  stitchEvidenceRef,
+}
+const repository =
+  createCanonicalSam31GpuCompleteSourcePerformanceRepository({
+    objectPort: memoryObjectPort(new Map()),
+  })
+const owner = createCanonicalSam31GpuCompleteSourcePerformanceOwner({
+  readPort: fixtureReadPort(fixtures),
+  repository,
+  now: () => '2026-08-04T19:08:00.000Z',
+})
+const evidence = await owner.compileAndPersistPerformanceEvidence(request)
+assert.equal(evidence.sourceDurationMilliseconds, 480_000)
+assert.equal(evidence.sourceFrameCount, 11_520)
+assert.equal(evidence.chunkCount, 48)
+assert.equal(evidence.phaseTiming.wallTimeMilliseconds, 420_000)
+assert.equal(evidence.route.accelerator, 'nvidia_a100_80gb')
+assert.equal(evidence.sourceResolutionAndCompleteFrameRangePreserved, true)
+assert.equal(evidence.everyChunkTaskResponseResultAndTerminalCostReread, true)
+assert.equal(evidence.allGpuCapacityStoppedAfterTerminal, true)
+assert.equal(evidence.automaticQualityReductionAllowed, false)
+const replay = await owner.compileAndPersistPerformanceEvidence(request)
+assert.deepEqual(replay, evidence)
+
+const wiredStorage = new Map<string, Buffer>()
+const wiredObjectPort = memoryObjectPort(wiredStorage)
+const wiredTaskStore = createCanonicalSam31GpuTaskStoreFromObjectPort({
+  objectPort: wiredObjectPort,
+})
+const wiredResultStore = createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
+  objectPort: wiredObjectPort,
+})
+const wiredLifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
+  objectPort: wiredObjectPort,
+})
+const wiredRefs = await persistCanonicalSam31GpuCompleteSourceOwnerInput({
+  objectPort: wiredObjectPort,
+  observation,
+  stitchEvidence: stitch,
+})
+for (const fixture of fixtures) {
+  await wiredTaskStore.persistTaskCreateOnly(fixture.task)
+  await wiredLifecycleStore.createLaunchRecordOnly({ record: fixture.launch })
+  await wiredResultStore.persistResultAdmissionCreateOnly(fixture.result)
+  const responseBody = Buffer.from(
+    stableAuthorityStringify(fixture.response),
+    'utf8',
+  )
+  await wiredObjectPort.createOnly({
+    objectPath:
+      `private/canonical-professional-gpu/sam3_1/v1/invocations/${fixture.request.invocationId}/response.json`,
+    body: responseBody,
+    contentSha256: digest(responseBody),
+  })
+}
+const wiredOwner =
+  createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectPort({
+    objectPort: wiredObjectPort,
+    now: () => '2026-08-04T19:08:30.000Z',
+  })
+const wiredEvidence = await wiredOwner.compileAndPersistPerformanceEvidence({
+  performanceEvidenceId: 'sam31-eight-minute-performance-evidence-wired',
+  ...wiredRefs,
+})
+assert.equal(wiredEvidence.chunkCount, 48)
+assert.equal(wiredEvidence.phaseTiming.wallTimeMilliseconds, 420_000)
+
+await assert.rejects(() => ownerWith({ missingChunk: 17 })
+  .compileAndPersistPerformanceEvidence(request))
+await assert.rejects(() => owner.compileAndPersistPerformanceEvidence({
+  ...request,
+  callerPerformanceQualified: true,
+}))
+const tamperedObservation = structuredClone(observation)
+tamperedObservation.phaseTiming.wallTimeMilliseconds = 200_000
+await assert.rejects(() => ownerWith({ observation: tamperedObservation })
+  .compileAndPersistPerformanceEvidence(request))
+const incompleteStitch = sealCanonicalSam31GpuCompleteSourceStitchEvidence({
+  ...withoutKey(stitch, 'stitchEvidenceHash'),
+  stitchEvidenceId: 'sam31-eight-minute-incomplete-stitch',
+  orderedChunkResultRefs: stitch.orderedChunkResultRefs.slice(0, 47),
+})
+const incompleteStitchRef =
+  canonicalSam31GpuCompleteSourceStitchEvidenceRef(incompleteStitch)
+await assert.rejects(() => ownerWith({ stitch: incompleteStitch })
+  .compileAndPersistPerformanceEvidence({
+    ...request,
+    stitchEvidenceRef: incompleteStitchRef,
+  }))
+assert.throws(() => sealCanonicalSam31GpuCompleteSourceExecutionObservation({
+  ...withoutKey(observation, 'observationHash'),
+  executionGroupId: 'sam31-eight-minute-gap-observation',
+  chunks: observation.chunks.map((chunk, index) => index === 20
+    ? { ...chunk, canonicalStartFrameInclusive:
+      chunk.canonicalStartFrameInclusive + 1 }
+    : chunk),
+}))
+assert.throws(() => sealCanonicalSam31GpuCompleteSourceExecutionObservation({
+  ...withoutKey(observation, 'observationHash'),
+  executionGroupId: 'sam31-eight-minute-duplicate-observation',
+  chunks: observation.chunks.map((chunk, index) => index === 1
+    ? { ...chunk, taskRef: observation.chunks[0].taskRef }
+    : chunk),
+}))
+assert.throws(() => sealCanonicalSam31GpuCompleteSourceStitchEvidence({
+  ...withoutKey(stitch, 'stitchEvidenceHash'),
+  stitchEvidenceId: 'sam31-eight-minute-downscaled-stitch',
+  quantizationOrDownscaleUsed: true,
+}))
+let getterInvoked = false
+const accessor = Object.defineProperty({}, 'performanceEvidenceId', {
+  enumerable: true,
+  get() {
+    getterInvoked = true
+    return request.performanceEvidenceId
+  },
+})
+await assert.rejects(() => owner.compileAndPersistPerformanceEvidence(accessor))
+assert.equal(getterInvoked, false)
+const cyclic: Record<string, unknown> = { ...request }
+cyclic.self = cyclic
+await assert.rejects(() => owner.compileAndPersistPerformanceEvidence(cyclic))
+
+console.log(JSON.stringify({
+  smoke: 'canonical-sam3_1-gpu-complete-source-performance-owner',
+  checks: 38,
+  exactEightMinuteSourceCovered: true,
+  orderedChunkCount: 48,
+  exactChunkTaskLaunchResponseResultAndCostReread: true,
+  deterministicNoGapStitchRequired: true,
+  wallClockPhaseTelemetryReread: true,
+  scaleToZeroVerifiedForEveryChunk: true,
+  durableCanonicalStoreFactoryWired: true,
+  callerPerformanceClaimsAccepted: false,
+  liveGpuJobStarted: false,
+  customerCreditsMutated: false,
+  productionAuthorityGranted: false,
+}, null, 2))
+
+function fixtureReadPort(
+  source: readonly CanonicalSam31A100RunFixture[],
+  overrides: {
+    readonly observation?: unknown
+    readonly stitch?: unknown
+    readonly missingChunk?: number
+  } = {},
+): CanonicalSam31GpuCompleteSourcePerformanceReadPort {
+  const byInvocation = new Map(source.map((fixture) => [
+    fixture.request.invocationId,
+    fixture,
+  ]))
+  const lookup = (invocationId: string) => {
+    if (overrides.missingChunk !== undefined
+      && invocationId.endsWith(
+        String(overrides.missingChunk).padStart(2, '0'),
+      )) return null
+    return byInvocation.get(invocationId) ?? null
+  }
+  return {
+    async rereadExecutionGroupObservation() {
+      return structuredClone(overrides.observation ?? observation)
+    },
+    async rereadStitchEvidence() {
+      return structuredClone(overrides.stitch ?? stitch)
+    },
+    async rereadTask({ invocationId, taskRef }) {
+      const value = lookup(invocationId)
+      return value && sameRef(value.request.taskRef, taskRef)
+        ? structuredClone(value.task) : null
+    },
+    async rereadLaunch({ invocationId, launchRef }) {
+      const value = lookup(invocationId)
+      return value && sameRef(value.request.launchRef, launchRef)
+        ? structuredClone(value.launch) : null
+    },
+    async rereadResultAdmission({ invocationId, resultAdmissionRef }) {
+      const value = lookup(invocationId)
+      return value && sameRef(value.request.resultAdmissionRef,
+        resultAdmissionRef) ? structuredClone(value.result) : null
+    },
+    async rereadRuntimeResponse({ invocationId, runtimeResponseObjectRef }) {
+      const value = lookup(invocationId)
+      return value && sameRef(value.request.runtimeResponseObjectRef,
+        runtimeResponseObjectRef) ? structuredClone(value.response) : null
+    },
+  }
+}
+
+function ownerWith(overrides: {
+  readonly observation?: unknown
+  readonly stitch?: unknown
+  readonly missingChunk?: number
+}) {
+  return createCanonicalSam31GpuCompleteSourcePerformanceOwner({
+    readPort: fixtureReadPort(fixtures, overrides),
+    repository:
+      createCanonicalSam31GpuCompleteSourcePerformanceRepository({
+        objectPort: memoryObjectPort(new Map()),
+      }),
+    now: () => '2026-08-04T19:08:00.000Z',
+  })
+}
+
+function ref(
+  id: string,
+  hash = digest(id),
+): CanonicalSam31A100RunFixtureRef {
+  return { id, version: 1, contentHash: `sha256:${hash}` }
+}
+
+function sameRef(
+  left: { id: string; version: number; contentHash: string },
+  right: { id: string; version: number; contentHash: string },
+) {
+  return left.id === right.id
+    && left.version === right.version
+    && left.contentHash === right.contentHash
+}
+
+function withoutKey<T extends Record<string, unknown>, K extends keyof T>(
+  value: T,
+  key: K,
+): Omit<T, K> {
+  const clone = { ...value }
+  delete clone[key]
+  return clone
+}
+
+function memoryObjectPort(
+  storage: Map<string, Buffer>,
+): CanonicalCreateOnlyJsonObjectPort {
+  return {
+    async createOnly(input) {
+      assert.equal(digest(input.body), input.contentSha256)
+      if (storage.has(input.objectPath)) return 'already_exists'
+      storage.set(input.objectPath, Buffer.from(input.body))
+      return 'created'
+    },
+    async readExact(path) {
+      const value = storage.get(path)
+      return value ? Buffer.from(value) : null
+    },
+  }
+}
+
+function digest(value: string | Uint8Array): string {
+  return createHash('sha256').update(value).digest('hex')
+}

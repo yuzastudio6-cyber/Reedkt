@@ -45,15 +45,19 @@ import {
   canonicalSam31A100TaskFixture,
 } from './canonical-sam3_1-gpu-task-owner-smoke'
 
-type Ref = { id: string; version: 1; contentHash: `sha256:${string}` }
-type RunFixture = {
+export type CanonicalSam31A100RunFixtureRef = {
+  id: string
+  version: 1
+  contentHash: `sha256:${string}`
+}
+export type CanonicalSam31A100RunFixture = {
   request: {
     runOrdinal: number
     invocationId: string
-    taskRef: Ref
-    launchRef: Ref
-    resultAdmissionRef: Ref
-    runtimeResponseObjectRef: Ref
+    taskRef: CanonicalSam31A100RunFixtureRef
+    launchRef: CanonicalSam31A100RunFixtureRef
+    resultAdmissionRef: CanonicalSam31A100RunFixtureRef
+    runtimeResponseObjectRef: CanonicalSam31A100RunFixtureRef
   }
   task: CanonicalSam31GpuTaskRecord
   launch: CanonicalProfessionalGpuJobLaunch
@@ -66,7 +70,7 @@ const deterministicProbeFixtureRef = ref(
   digest('sam31-runtime-deterministic-probe-fixture'),
 )
 const fixtures = Array.from({ length: 30 }, (_, index) =>
-  buildRunFixture(index + 1))
+  buildCanonicalSam31A100RunFixture(index + 1))
 const request = {
   componentId: 'sam31-a100-deterministic-run-set',
   qualificationId: 'sam31-a100-runtime-qualification',
@@ -253,9 +257,25 @@ console.log(JSON.stringify({
   productionAuthorityGranted: false,
 }, null, 2))
 
-function buildRunFixture(runOrdinal: number): RunFixture {
+export function buildCanonicalSam31A100RunFixture(
+  runOrdinal: number,
+  options: {
+    readonly invocationPrefix?: string
+    readonly exactSourceRef?: CanonicalSam31A100RunFixtureRef
+    readonly maskProxyRef?: CanonicalSam31A100RunFixtureRef
+    readonly canonicalStartFrameInclusive?: number
+    readonly fpsNumerator?: number
+  } = {},
+): CanonicalSam31A100RunFixture {
   const suffix = String(runOrdinal).padStart(2, '0')
-  const invocationId = `sam31-deterministic-run-${suffix}`
+  const namespace = options.invocationPrefix ?? 'sam31-deterministic-run'
+  const invocationId = `${namespace}-${suffix}`
+  const canonicalStartFrameInclusive =
+    options.canonicalStartFrameInclusive ?? 0
+  const exactSourceRef = options.exactSourceRef
+    ?? canonicalSam31A100TaskFixture.runtimeRequest.sourceMedia
+      .finalizedSourceArtifactRef
+  const maskProxyRef = options.maskProxyRef ?? deterministicProbeFixtureRef
   const dispatchAdmissionRef = ref(
     `sam31-deterministic-admission-${suffix}`,
     digest(`sam31-deterministic-admission-${suffix}`),
@@ -285,7 +305,13 @@ function buildRunFixture(runOrdinal: number): RunFixture {
     },
     sourceMedia: {
       ...baseRequest.sourceMedia,
-      gpuPreparedMaskProxyArtifactRef: deterministicProbeFixtureRef,
+      finalizedSourceArtifactRef: exactSourceRef,
+      gpuPreparedMaskProxyArtifactRef: maskProxyRef,
+      fpsNumerator: options.fpsNumerator ?? baseRequest.sourceMedia.fpsNumerator,
+      canonicalSourceStartFrameInclusive: canonicalStartFrameInclusive,
+      canonicalSourceEndFrameInclusive:
+        canonicalStartFrameInclusive +
+          baseRequest.sourceMedia.decodedFrameCount - 1,
     },
     modelArtifacts: {
       ...baseRequest.modelArtifacts,
@@ -326,7 +352,8 @@ function buildRunFixture(runOrdinal: number): RunFixture {
     },
     dispatchAdmissionRef,
     executionEnvelopeRef,
-    gpuPreparedMaskProxyArtifactRef: deterministicProbeFixtureRef,
+    finalizedSourceArtifactRef: exactSourceRef,
+    gpuPreparedMaskProxyArtifactRef: maskProxyRef,
     privateInvocationObjectRef: ref(
       `sam31-deterministic-private-input-${suffix}`,
       runtimeRequest.sourceMedia.sha256,
@@ -445,7 +472,7 @@ function buildRunFixture(runOrdinal: number): RunFixture {
 }
 
 function fixtureReadPort(
-  source: readonly RunFixture[],
+  source: readonly CanonicalSam31A100RunFixture[],
   overrides: { missingRun?: number } = {},
 ): CanonicalSam31GpuRuntimeDeterministicQualificationReadPort {
   const byInvocation = new Map(source.map((fixture) => [
@@ -490,7 +517,7 @@ function fixtureReadPort(
 }
 
 function ownerWith(
-  source: readonly RunFixture[],
+  source: readonly CanonicalSam31A100RunFixture[],
   overrides: { missingRun?: number } = {},
 ) {
   return createCanonicalSam31GpuRuntimeDeterministicQualificationOwner({
@@ -520,7 +547,7 @@ function resultHash(value: CanonicalSam31GpuRuntimeResultAdmission): string {
   return sha256AuthorityValue(withoutKey(value, 'resultAdmissionHash'))
 }
 
-function ref(id: string, hash: string): Ref {
+function ref(id: string, hash: string): CanonicalSam31A100RunFixtureRef {
   return { id, version: 1, contentHash: `sha256:${hash}` }
 }
 
@@ -528,7 +555,7 @@ function plainRef(value: {
   id: string
   version: number
   contentHash: string
-}): Ref {
+}): CanonicalSam31A100RunFixtureRef {
   assert.equal(value.version, 1)
   return ref(value.id, value.contentHash.slice(7))
 }

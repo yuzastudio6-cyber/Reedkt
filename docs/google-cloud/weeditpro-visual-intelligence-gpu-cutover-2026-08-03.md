@@ -238,6 +238,18 @@ idempotent rerun then observed all five disabled and emitted
   preservation, and terminal scale-to-zero. Missing or duplicate runs,
   cross-route evidence, output drift, caller booleans, or one run replayed
   thirty times fail closed.
+- Complete-source performance evidence now has a separate restart-safe
+  canonical owner. It accepts only an exact eight-minute source observation,
+  rereads every ordered chunk's SAM 3.1 task, GPU launch, worker response,
+  admitted result, terminal scale-to-zero state, and account-effective cost,
+  and exact-matches them to one complete Track All stitch record. The owner
+  rejects missing or duplicate chunks, frame gaps, crossed source or route
+  lineage, changed geometry, downscaling, incomplete stitched masks, caller
+  timing claims, and post-terminal GPU capacity. Its focused proof covers all
+  11,520 frames of a 2160x3840, 24 fps, 480,000 ms source through 48 canonical
+  chunks; it does not extrapolate an eight-minute claim from a short sample.
+  This is one complete-source run only. Route qualification still requires the
+  separate five-to-thirty-run p95 owner and live canonical cloud evidence.
 - Every fresh fixed SAM 3.1 task context now requires an exact, digest-bound
   `track_all` Orchestra call for one complete approved scene interval. The
   binding cross-checks the approved snapshot, output, scene, source artifact,

@@ -2475,7 +2475,10 @@ function evidenceRuntimeLabel(runtimeSource: string): string {
 
 function skillRunLabel(skillId: string): string {
   if (skillId === 'edit_reference.media_structure.representative_frame_plan') return 'Representative-frame plan'
-  if (skillId === 'edit_reference.visual_language.qwen_visual_analysis') return 'Visual-language analysis'
+  if (
+    skillId === 'visual_intelligence.reference_preference_analysis'
+    || skillId === 'edit_reference.visual_language.qwen_visual_analysis'
+  ) return 'Visual Intelligence reference analysis'
   if (skillId === 'edit_reference.caption_design.evidence') return 'Caption analysis'
   if (skillId === 'edit_reference.color_treatment.technical_signal') return 'Color signal check'
   if (skillId === 'edit_reference.color_treatment.evidence') return 'Color treatment analysis'

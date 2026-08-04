@@ -221,6 +221,26 @@ assert.match(
   /createUnavailableOrchestraVisualIntelligenceBridge/u,
 )
 
+const activeEditReferenceSemanticContract = readFileSync(
+  'server/edit-references/edit-reference-semantic-study-contract.ts',
+  'utf8',
+)
+assert.match(
+  activeEditReferenceSemanticContract,
+  /visual_intelligence\.reference_preference_analysis/u,
+)
+for (const activeEditReferenceSourcePath of [
+  'server/edit-references/edit-reference-evidence-orchestrator.ts',
+  'server/edit-references/edit-reference-semantic-study-contract.ts',
+]) {
+  const activeSource = readFileSync(activeEditReferenceSourcePath, 'utf8')
+  assert.doesNotMatch(
+    activeSource,
+    /['"]edit_reference\.visual_language\.qwen_visual_analysis['"]/u,
+    `${activeEditReferenceSourcePath} must not emit the retired Qwen visual skill identity for fresh work.`,
+  )
+}
+
 assert.throws(
   () => createPrivateGcpVisualUnderstandingPlan(new Proxy({} as never, {
     get() {
@@ -328,6 +348,7 @@ console.log(JSON.stringify({
   localQwenMlxRejectedBeforeFilesystemOrProcessAccess: true,
   activePlanningAndPolicyRoutesUseVisualIntelligence: true,
   activeEditReferenceDefaultUsesOrchestraBridge: true,
+  activeEditReferenceRecordsUseProviderNeutralSkillIdentity: true,
   sam2ExecutableImageSourceRemoved: true,
   sam2RuntimeCompilerAndSubprocessBlockedBeforeInputRead: true,
   sam31IsOnlyFreshSegmentationReplacement: true,

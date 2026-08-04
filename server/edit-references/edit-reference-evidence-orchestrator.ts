@@ -23,6 +23,8 @@ import type { EditReferenceLocalMediaStudyResult } from './edit-reference-media-
 import {
   EDIT_REFERENCE_SEMANTIC_SPECIALISTS,
   EDIT_REFERENCE_SKILL_RESULT_CONTRACT_VERSION,
+  EDIT_REFERENCE_VISUAL_INTELLIGENCE_BRIDGE_ID,
+  EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
 } from './edit-reference-semantic-study-contract'
 import type { EditReferenceVisualLanguageFindingCategory } from './edit-reference-visual-language-study-contract'
 import type { EditReferenceColorTreatmentFindingCategory } from './edit-reference-color-treatment-study-contract'
@@ -84,7 +86,7 @@ interface SkillDefinition {
 
 const GOAL_SKILLS: Record<EditReferenceStudyGoal, SkillDefinition[]> = {
   visual_language: [fallbackSkill(
-    'edit_reference.visual_language.qwen_visual_analysis',
+    EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
     'degraded',
     'Saved the user-described visual language as evidence. No frames or video were analyzed.',
     ['Live visual analysis was not invoked; this result is based only on saved user direction.'],
@@ -114,7 +116,7 @@ const GOAL_SKILLS: Record<EditReferenceStudyGoal, SkillDefinition[]> = {
     ['No source frames or color-processing tool ran.'],
   )],
   b_roll: [fallbackSkill(
-    'edit_reference.visual_language.qwen_visual_analysis',
+    EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
     'degraded',
     'Preserved the user-described B-roll language without inferring real shots or scene boundaries.',
     ['No frames, video bytes, shot detector, or visual model ran.'],
@@ -1191,7 +1193,7 @@ function appendVisualLanguageStudy(input: {
       input: input.input,
       orchestrationId: input.orchestrationId,
       id: runId,
-      skillId: 'edit_reference.visual_language.qwen_visual_analysis',
+      skillId: EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
       status: 'blocked',
       runtimeSource: providerCallMade ? 'verified_live' : localPreparationRan ? 'verified_local' : 'not_started',
       readinessAtRun: 'blocked',
@@ -1199,7 +1201,7 @@ function appendVisualLanguageStudy(input: {
       outputEvidenceIds: [],
       toolIds: uniqueStrings([
         ...(localPreparationRan ? ['ffmpeg'] : []),
-        ...(result ? ['edit_reference_qwen_visual_language_adapter'] : []),
+        ...(result ? [EDIT_REFERENCE_VISUAL_INTELLIGENCE_BRIDGE_ID] : []),
       ]),
       fallbackUsed: false,
       resultState: 'blocked',
@@ -1269,7 +1271,7 @@ function appendVisualLanguageStudy(input: {
       sourceEvidenceIds: [input.sourceEvidence.id],
       runtimeSource: result.runtimeSource,
       mediaStudyStatus: 'media_studied_local_partial',
-      skillId: 'edit_reference.visual_language.qwen_visual_analysis',
+      skillId: EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
       toolIds,
       fallbackUsed: false,
       privateAssetId: input.mediaStudy.privateAssetId,
@@ -1292,7 +1294,7 @@ function appendVisualLanguageStudy(input: {
     input: input.input,
     orchestrationId: input.orchestrationId,
     id: runId,
-    skillId: 'edit_reference.visual_language.qwen_visual_analysis',
+    skillId: EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
     status: 'completed',
     runtimeSource: result.runtimeSource,
     readinessAtRun: result.runtimeSource,
@@ -2623,7 +2625,7 @@ function visualRuntimeAttempt(
     schemaVersion: 'edit-reference-skill-runtime-attempt-v1',
     adapterId: analyzed
       ? result.model.adapterId
-      : 'edit_reference_qwen_visual_language_adapter',
+      : EDIT_REFERENCE_VISUAL_INTELLIGENCE_BRIDGE_ID,
     requestDigestSha256: result.requestDigestSha256,
     providerCallMade: analyzed
       ? result.execution.providerCallMade

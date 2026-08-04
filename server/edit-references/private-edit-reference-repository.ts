@@ -68,6 +68,10 @@ import {
 } from './edit-reference-preference-dna-candidate-materialization'
 import { validateEditReferencePreferenceDnaReasoningApprovalSnapshot } from './edit-reference-preference-dna-approval'
 import { validatePreferenceLongFormStudySummary } from './edit-reference-long-form-study-binding'
+import {
+  EDIT_REFERENCE_VISUAL_INTELLIGENCE_BRIDGE_ID,
+  EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
+} from './edit-reference-semantic-study-contract'
 
 const RECORD_VERSION = 'edit-reference-private-envelope-v2' as const
 const LEGACY_RECORD_VERSION = 'edit-reference-private-envelope-v1' as const
@@ -3433,6 +3437,8 @@ function assertSkillRunRecord(record: EditReferenceAggregate['skillRuns'][number
     || (record.modelCallMade && !['verified_local', 'verified_live'].includes(record.runtimeSource))
     || (record.runtimeSource === 'verified_live' && !record.providerCallMade)
     || (record.status === 'completed' && record.resultState === 'analyzed' && !record.modelCallMade && [
+      EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
+      // Historical immutable records retain the retired identity on reread.
       'edit_reference.visual_language.qwen_visual_analysis',
       'edit_reference.color_treatment.evidence',
       'edit_reference.graphics_motion.evidence',
@@ -3446,6 +3452,8 @@ function assertSkillRunRecord(record: EditReferenceAggregate['skillRuns'][number
       || !record.toolIds.some((toolId) => (
         toolId === 'ffprobe'
         || toolId === 'ffmpeg'
+        || toolId === EDIT_REFERENCE_VISUAL_INTELLIGENCE_BRIDGE_ID
+        // Historical immutable records retain the retired adapter identity.
         || toolId === 'edit_reference_qwen_visual_language_adapter'
         || toolId === 'edit_reference_qwen_color_treatment_adapter'
         || toolId === 'edit_reference_qwen_graphics_motion_adapter'

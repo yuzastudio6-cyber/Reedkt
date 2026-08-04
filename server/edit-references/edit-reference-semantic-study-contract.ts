@@ -8,13 +8,17 @@ import type {
 export const EDIT_REFERENCE_SEMANTIC_STUDY_REQUEST_VERSION = 'edit-reference-semantic-study-request-v1' as const
 export const EDIT_REFERENCE_SEMANTIC_STUDY_RESULT_VERSION = 'edit-reference-semantic-study-result-v1' as const
 export const EDIT_REFERENCE_SKILL_RESULT_CONTRACT_VERSION = 'edit-reference-skill-result-v1' as const
+export const EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID =
+  'visual_intelligence.reference_preference_analysis' as const
+export const EDIT_REFERENCE_VISUAL_INTELLIGENCE_BRIDGE_ID =
+  'visual_intelligence_orchestra_report_bridge' as const
 
 export const EDIT_REFERENCE_SEMANTIC_SPECIALISTS = [
   {
     specialistId: 'visual_language',
-    skillId: 'edit_reference.visual_language.qwen_visual_analysis',
+    skillId: EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
     evidenceCategory: 'visual_language',
-    unavailableReason: 'Semantic frame understanding requires the separately reviewed visual-analysis runtime.',
+    unavailableReason: 'Semantic reference understanding requires an exact Orchestra Visual Intelligence result using the reference_preference_dna profile.',
   },
   {
     specialistId: 'story_editorial',

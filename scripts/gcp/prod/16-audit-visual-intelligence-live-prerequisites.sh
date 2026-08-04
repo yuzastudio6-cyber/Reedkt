@@ -17,6 +17,7 @@ IMAGE_SIGNING_KEY_RING='weeditpro-image-signing'
 IMAGE_SIGNING_KEY='sam31-image-signing'
 MODEL_ARTIFACT_BUCKET='reeditpro-production-reeditpro-model-artifacts'
 IMAGE_BUILD_INPUT_BUCKET='reeditpro-production-reeditpro-image-build-inputs'
+IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET='reeditpro-production-reeditpro-image-supply-chain-evidence'
 CONTROL_PLANE_STATE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
 
 command -v gcloud >/dev/null
@@ -202,6 +203,7 @@ gpu_worker_identity="$(service_account_observation "${GPU_WORKER_SERVICE_ACCOUNT
 
 model_artifact_bucket="$(bucket_observation "${MODEL_ARTIFACT_BUCKET}")"
 image_build_input_bucket="$(bucket_observation "${IMAGE_BUILD_INPUT_BUCKET}")"
+image_supply_chain_evidence_bucket="$(bucket_observation "${IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET}")"
 control_plane_state_bucket="$(bucket_observation "${CONTROL_PLANE_STATE_BUCKET}")"
 
 repository_metadata="$(read_json_or_empty gcloud artifacts repositories describe \
@@ -227,6 +229,8 @@ model_artifact_bucket_policy="$(read_json_or_empty gcloud storage buckets get-ia
   "gs://${MODEL_ARTIFACT_BUCKET}" --project="${PROJECT_ID}" --format=json)"
 image_build_input_bucket_policy="$(read_json_or_empty gcloud storage buckets get-iam-policy \
   "gs://${IMAGE_BUILD_INPUT_BUCKET}" --project="${PROJECT_ID}" --format=json)"
+image_supply_chain_evidence_bucket_policy="$(read_json_or_empty gcloud storage buckets get-iam-policy \
+  "gs://${IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET}" --project="${PROJECT_ID}" --format=json)"
 control_plane_state_bucket_policy="$(read_json_or_empty gcloud storage buckets get-iam-policy \
   "gs://${CONTROL_PLANE_STATE_BUCKET}" --project="${PROJECT_ID}" --format=json)"
 gpu_worker_model_artifact_reader="$(policy_has_member_role \
@@ -240,6 +244,12 @@ api_build_input_creator="$(policy_has_member_role \
   "serviceAccount:${API_SERVICE_ACCOUNT}")"
 api_build_input_reader="$(policy_has_member_role \
   "${image_build_input_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${API_SERVICE_ACCOUNT}")"
+image_signer_supply_chain_evidence_creator="$(policy_has_member_role \
+  "${image_supply_chain_evidence_bucket_policy}" 'roles/storage.objectCreator' \
+  "serviceAccount:${IMAGE_SIGNER_SERVICE_ACCOUNT}")"
+api_supply_chain_evidence_reader="$(policy_has_member_role \
+  "${image_supply_chain_evidence_bucket_policy}" 'roles/storage.objectViewer' \
   "serviceAccount:${API_SERVICE_ACCOUNT}")"
 api_control_plane_creator="$(policy_has_member_role \
   "${control_plane_state_bucket_policy}" 'roles/storage.objectCreator' \
@@ -326,7 +336,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v2' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v3' \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
   --argjson a100Limit "${a100_limit}" \
@@ -343,11 +353,14 @@ jq -n \
   --argjson gpuWorkerIdentity "${gpu_worker_identity}" \
   --argjson modelArtifactBucket "${model_artifact_bucket}" \
   --argjson imageBuildInputBucket "${image_build_input_bucket}" \
+  --argjson imageSupplyChainEvidenceBucket "${image_supply_chain_evidence_bucket}" \
   --argjson controlPlaneStateBucket "${control_plane_state_bucket}" \
   --argjson gpuWorkerModelArtifactReader "${gpu_worker_model_artifact_reader}" \
   --argjson imageBuilderBuildInputReader "${image_builder_build_input_reader}" \
   --argjson apiBuildInputCreator "${api_build_input_creator}" \
   --argjson apiBuildInputReader "${api_build_input_reader}" \
+  --argjson imageSignerSupplyChainEvidenceCreator "${image_signer_supply_chain_evidence_creator}" \
+  --argjson apiSupplyChainEvidenceReader "${api_supply_chain_evidence_reader}" \
   --argjson apiControlPlaneCreator "${api_control_plane_creator}" \
   --argjson apiControlPlaneReader "${api_control_plane_reader}" \
   --argjson artifactRepository "${artifact_repository}" \
@@ -389,23 +402,29 @@ jq -n \
     privateBuckets: {
       modelArtifacts: $modelArtifactBucket,
       imageBuildInputs: $imageBuildInputBucket,
+      imageSupplyChainEvidence: $imageSupplyChainEvidenceBucket,
       controlPlaneState: $controlPlaneStateBucket,
       access: {
         gpuWorkerModelArtifactReader: $gpuWorkerModelArtifactReader,
         imageBuilderBuildInputReader: $imageBuilderBuildInputReader,
         apiBuildInputCreator: $apiBuildInputCreator,
         apiBuildInputReader: $apiBuildInputReader,
+        imageSignerSupplyChainEvidenceCreator: $imageSignerSupplyChainEvidenceCreator,
+        apiSupplyChainEvidenceReader: $apiSupplyChainEvidenceReader,
         apiControlPlaneCreator: $apiControlPlaneCreator,
         apiControlPlaneReader: $apiControlPlaneReader
       },
       ready: (
         $modelArtifactBucket.ready
         and $imageBuildInputBucket.ready
+        and $imageSupplyChainEvidenceBucket.ready
         and $controlPlaneStateBucket.ready
         and $gpuWorkerModelArtifactReader
         and $imageBuilderBuildInputReader
         and $apiBuildInputCreator
         and $apiBuildInputReader
+        and $imageSignerSupplyChainEvidenceCreator
+        and $apiSupplyChainEvidenceReader
         and $apiControlPlaneCreator
         and $apiControlPlaneReader
       )

@@ -152,6 +152,8 @@ grant_artifact_repository_role "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" role
 # narrowest predefined role that can perform signing without project admin or
 # artifact-removal policy authority.
 grant_artifact_repository_role "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/artifactregistry.writer
+grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.objectCreator
+grant_bucket_role image-supply-chain-evidence "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_artifact_repository_role "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/artifactregistry.reader
 grant_artifact_repository_role "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" roles/artifactregistry.reader
 grant_image_signing_key_role \

@@ -38,18 +38,20 @@ not call cloud-mutating scripts.
 The image signer is intentionally separate from the image builder. It receives
 only repository-scoped Artifact Registry writer access because cosign stores a
 signature and attestation as OCI referrers in that repository, plus
-`cloudkms.signerVerifier` on the single signing key. It receives no repository
-admin, delete, checkpoint-bucket, control-plane, provider, GPU, billing, or
-customer authority. Cloud Build may impersonate both dedicated build identities
-only through their own service-account bindings. The API may create and exact-
-reread checkpoint-free build capsules, while the GPU worker may read the private
+`cloudkms.signerVerifier` on the single signing key and create-only access to
+the private image-supply-chain evidence bucket. It receives no evidence read,
+repository admin, delete, checkpoint-bucket, control-plane, provider, GPU,
+billing, or customer authority. Cloud Build may impersonate both dedicated
+build identities only through their own service-account bindings. The API may
+create and exact-reread checkpoint-free build capsules and exact-reread the
+private SBOM/signature evidence, while the GPU worker may read the private
 checkpoint bucket and pull the released image; neither receives the other's
-build, signing, or control-plane authority.
+build, signing, evidence-write, or control-plane authority.
 
 The read-only prerequisite audit is fail-closed across the complete image
 foundation: required APIs (including Cloud KMS and Binary Authorization), A100
 80 GB and L4 quotas, checkpoint-secret version presence, dedicated build/signer/
-GPU identities, Cloud Build identity use, the three exact private buckets and
+GPU identities, Cloud Build identity use, the four exact private buckets and
 their access protections, Docker repository scanning and scoped IAM, the HSM
 P-256 signing-key primary version, legacy-runtime absence, immutable image
 presence, and billing-account price-read readiness. It never converts resource

@@ -30,6 +30,8 @@ const smokes = [
   'server/smoke/canonical-sam3_1-official-artifact-publication-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts',
   'server/smoke/canonical-sam3_1-cloud-image-build-smoke.ts',
+  'server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-smoke.ts',
+  'server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-runtime-smoke.ts',
   'server/smoke/canonical-sam3_1-cloud-image-build-runtime-smoke.ts',
   'server/smoke/canonical-sam3_1-cloud-image-build-operator-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-contract-smoke.ts',

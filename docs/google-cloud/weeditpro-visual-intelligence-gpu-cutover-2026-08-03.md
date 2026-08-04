@@ -83,6 +83,27 @@ fresh dispatch authority and preserve prior audit evidence.
   offline capsule and build arguments; the fixed runner revalidates the baked
   receipt against the exact versioned runtime-release ref. This gate still
   authorizes neither a cloud build nor a customer GPU attempt by itself.
+- The post-build supply-chain path is now executable source rather than a
+  generic evidence placeholder. A separate create-only admission consumes the
+  successful immutable image digest and one numeric HSM key version, then a
+  dedicated signer Cloud Build pulls only that digest, archives it in the
+  build workspace, runs pinned Syft v1.44.0 to emit SPDX 2.3 JSON, signs the
+  digest with pinned Cosign v3.0.6 and the exact KMS key version, and verifies
+  that private signature before three bounded evidence files are written.
+- Docker, Syft, and Cosign builder images are all digest-pinned. The build has
+  no caller source, substitutions, secret environment, customer media, model
+  checkpoint, arbitrary command, mutable image tag, hidden retry, GPU-runtime,
+  credit, or production authority. Its admission, consumption, submission, and
+  terminal observation persist create-only in the private control-plane bucket
+  and are exact-reread after terminal completion.
+- SBOM/signature artifacts land only in the dedicated private
+  `reeditpro-production-reeditpro-image-supply-chain-evidence` bucket. The
+  signer can create but not read evidence there; the API can read but not
+  create it; the image builder and GPU worker have no evidence-bucket access.
+  A successful build still grants no image release: manifest/object generation,
+  content hashes, SPDX structure, registry signature, Artifact Analysis
+  occurrences, security approval, and original Cloud Build SLSA provenance
+  remain mandatory exact-reread gates.
 - The guarded operator command is
   `npm run publish:sam3_1-official-artifacts`. It refuses developer-machine
   execution and requires the exact dedicated job identity, an explicit
@@ -112,7 +133,8 @@ The read-only operator command
 enabled checkpoint-secret version counts (never payloads), the full required
 API set including Cloud KMS and Binary Authorization, dedicated builder/signer/
 GPU identities, Cloud Build identity-use bindings, exact protected private
-buckets, Artifact Registry scanning and repository-scoped IAM, the enabled HSM
+buckets including the isolated supply-chain evidence bucket, Artifact Registry
+scanning and repository-scoped IAM, the enabled HSM
 P-256 signing-key version, legacy visual-runtime absence, and immutable SAM 3.1
 image presence. The dedicated signer needs repository-scoped writer—not
 reader—because cosign persists digest-bound signatures and attestations as OCI
@@ -122,7 +144,7 @@ image, and A100 gate closes; it does not weaken or self-authorize a build or
 runtime.
 
 The latest read-only account observation is correctly blocked: Cloud KMS is not
-enabled, the image-builder/image-signer/GPU-worker identities and the three
+enabled, the image-builder/image-signer/GPU-worker identities and the four
 fixed SAM 3.1 private buckets are absent, no signing key exists, and A100 80 GB
 quota remains zero. Artifact Registry is a standard Docker repository with
 vulnerability scanning active, but its required scoped build/sign/read bindings

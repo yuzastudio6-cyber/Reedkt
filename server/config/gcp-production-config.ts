@@ -17,6 +17,7 @@ export type GcpProductionBucketPurpose =
   | 'transcripts'
   | 'model_artifacts'
   | 'image_build_inputs'
+  | 'image_supply_chain_evidence'
   | 'control_plane_state'
   | 'masks'
   | 'generated_assets'
@@ -290,6 +291,12 @@ export const GCP_PRODUCTION_BUCKETS: GcpProductionBucketTemplate[] = [
     suffix: 'image-build-inputs',
     description: 'Checkpoint-free, create-only private Cloud Build capsules for immutable worker images.',
     lifecycleNote: 'Generation-bound build inputs only; capsules must exclude model bytes, access tokens, and customer media.',
+  },
+  {
+    purpose: 'image_supply_chain_evidence',
+    suffix: 'image-supply-chain-evidence',
+    description: 'Private digest-bound SBOM and immutable image supply-chain evidence emitted by the dedicated signer build.',
+    lifecycleNote: 'Create-only build evidence; never customer media, model checkpoints, provider payloads, credentials, or public objects.',
   },
   {
     purpose: 'control_plane_state',

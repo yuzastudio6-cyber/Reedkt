@@ -32,6 +32,7 @@ const expectedBucketPurposes = [
   'transcripts',
   'model_artifacts',
   'image_build_inputs',
+  'image_supply_chain_evidence',
   'control_plane_state',
   'masks',
   'generated_assets',
@@ -279,6 +280,19 @@ check(
   iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator')
     && iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
   'API image-build owner must create and exact-reread private checkpoint-free build capsules.',
+)
+check(
+  iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.objectCreator'),
+  'Dedicated image signer must create only private supply-chain evidence objects.',
+)
+check(
+  iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
+  'API supply-chain owner must exact-reread private supply-chain evidence.',
+)
+check(
+  !iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}"')
+    && !iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}"'),
+  'Image builder and GPU worker must not read or write supply-chain evidence.',
 )
 check(
   iamScript.includes('grant_bucket_role control-plane-state "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator')

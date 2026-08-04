@@ -40,6 +40,7 @@ analysis-artifacts
 transcripts
 model-artifacts
 image-build-inputs
+image-supply-chain-evidence
 control-plane-state
 masks
 generated-assets

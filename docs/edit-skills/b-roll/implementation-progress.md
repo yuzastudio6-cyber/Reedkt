@@ -2249,6 +2249,48 @@ artifact, production mutation, production worker, orchestra, Track All
 implementation, or Visual Intelligence implementation was added. M34 will
 generate a fresh receipt from the clean M33 source commit.
 
+## M34 — final evidence-backed requalification
+
+Status: complete; this commit contains only the qualifier-generated evidence
+artifact and its progress documentation.
+
+M33 was committed and pushed as
+`59979f77fa2a7eb418846f0946c72f90df547a0f`. The working tree was clean and
+local/remote refs matched before `npm run qualify:b-roll:internal` began. The
+qualifier tested that exact commit and passed every one of its 29 actual
+commands. It emitted all 36 required fixture evidence records and validated
+the ordered set of 18 shared dependency authorities.
+
+Final M34 evidence:
+
+- tested source commit:
+  `59979f77fa2a7eb418846f0946c72f90df547a0f`
+- relevant source-tree hash:
+  `3849c87be8dfd78f4da8e1f594815e035e4466fd3e98357cde695c9973ceddbe`
+- dependency-authority set hash:
+  `15e8803248c2aa5db6715918bcb39f820bc9f312999d4021bb1578b5c69bd87a`
+- manifest hash:
+  `40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0`
+- qualification receipt hash:
+  `10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7`
+- generated qualification artifact hash:
+  `ae45aca6d8cf6d4080bcbefead54e48785b46d2fab65967103de340956fb896c`
+- actual status: `internal_execution_qualified`
+- real provider requests: zero
+- public artifacts: zero
+- production mutations: zero
+
+The unchanged relevant source and dependency hashes are expected: M31-M33
+added only reconciliation/test documentation and did not alter B-roll or
+shared runtime authorities. The new receipt nevertheless binds the new exact
+tested commit, timestamps, command evidence, fixture evidence, and digests.
+The generated TypeScript artifact was produced only by the qualifier and was
+not manually edited.
+
+Production qualification remains false. No live Gemini request, production
+worker, public delivery, orchestra, Track All implementation, or Visual
+Intelligence implementation was added.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -2286,4 +2328,5 @@ generate a fresh receipt from the clean M33 source commit.
 | M30 | tested `950fa403856b4f2ce6dcb9f09d017db18a27b75a`; evidence `4fd8b9dcddb529e1627d03f134514df9458fd524` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M31 | selected base `6423f12c1e62a252fc860ce5184888770411c62d`; prior merge `d9e220f048ec6127e6a1927c8276bc660fe4d2fd` | `0049726b9e32b3ab71b298cb1039a6680b5c7536` | confirmed | prior receipt verified; M34 regeneration required |
 | M32 | required merge reported already up to date; ownership audit preserved exact base authorities | `235053965f2e407dc5b07b93ccfeaa3df083862e` | confirmed | targeted manifest/typecheck/retirement validation passed |
-| M33 | full reconciled B-roll regression matrix and exact-base browser comparison | this regression record | pending push | all B-roll gates passed; three unrelated preference failures reproduced on exact base |
+| M33 | full reconciled B-roll regression matrix and exact-base browser comparison | `59979f77fa2a7eb418846f0946c72f90df547a0f` | confirmed | all B-roll gates passed; three unrelated preference failures reproduced on exact base |
+| M34 | tested `59979f77fa2a7eb418846f0946c72f90df547a0f`; receipt `10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7` | this generated-evidence commit | pending push | `internal_execution_qualified` from 29 commands and 36 fixtures |

@@ -152,7 +152,7 @@ async function assertPackageScripts(): Promise<number> {
     assert.equal(retiredImportPattern.test(`${key}/${command}`), false)
     assert.match(
       command,
-      /^tsx server\/(?:cli\/(?:generate-b-roll|gemini-omni-b-roll|validate-b-roll)|smoke\/b-roll-)/u,
+      /^tsx server\/(?:cli\/(?:generate-b-roll|gemini-omni-b-roll|qualify-b-roll|validate-b-roll)|smoke\/b-roll-)/u,
       `B-roll package script ${key} does not resolve to the canonical implementation or its evidence.`,
     )
   }

@@ -15,6 +15,10 @@ const app = createReeditProApiApp(env, visualIntelligenceRuntime
         visualIntelligenceRuntime.reportRepository,
       visualIntelligenceOrchestraJobRuntimePort:
         visualIntelligenceRuntime.orchestraJobRuntimePort,
+      editReferenceVisualIntelligenceBindingStore:
+        visualIntelligenceRuntime.editReferenceBindingStore,
+      editReferenceVisualIntelligenceReadPort:
+        visualIntelligenceRuntime.editReferenceReadPort,
     }
   : {})
 const server = app.listen(env.apiPort, () => {

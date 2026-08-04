@@ -34,6 +34,10 @@ import type {
 import type {
   VisualIntelligenceOrchestraJobRuntime,
 } from './visual-intelligence/visual-intelligence-orchestra-job-runtime'
+import type {
+  EditReferenceVisualIntelligenceBindingStore,
+  EditReferenceVisualIntelligenceOrchestraReadPort,
+} from './edit-references/edit-reference-visual-intelligence-result-bridge'
 import type { PlanningExactEditPreferenceAuthorityPort } from './services/planning-exact-edit-preference-authority-port'
 import type {
   CanonicalDurableUploadTargetTransactionAdapter,
@@ -127,6 +131,10 @@ export interface RuntimeState {
   visualIntelligencePlanningOperationRequestOwnerPort?: VisualIntelligencePlanningOperationRequestOwner
   visualIntelligenceOrchestraJobRuntimePort?:
     VisualIntelligenceOrchestraJobRuntime
+  editReferenceVisualIntelligenceBindingStore?:
+    EditReferenceVisualIntelligenceBindingStore
+  editReferenceVisualIntelligenceReadPort?:
+    EditReferenceVisualIntelligenceOrchestraReadPort
   motionStudioCommandRepositoryRuntimePort?:
     MotionStudioCommandRepositoryRuntimePort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
@@ -187,6 +195,10 @@ export interface ServiceContext {
   visualIntelligencePlanningOperationRequestOwnerPort?: VisualIntelligencePlanningOperationRequestOwner
   visualIntelligenceOrchestraJobRuntimePort?:
     VisualIntelligenceOrchestraJobRuntime
+  editReferenceVisualIntelligenceBindingStore?:
+    EditReferenceVisualIntelligenceBindingStore
+  editReferenceVisualIntelligenceReadPort?:
+    EditReferenceVisualIntelligenceOrchestraReadPort
   motionStudioCommandRepositoryRuntimePort?:
     MotionStudioCommandRepositoryRuntimePort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort

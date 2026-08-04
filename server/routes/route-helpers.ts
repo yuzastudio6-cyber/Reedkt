@@ -60,6 +60,10 @@ export function getServiceContext(request: Request): ServiceContext {
         .visualIntelligencePlanningOperationRequestOwnerPort,
     visualIntelligenceOrchestraJobRuntimePort:
       runtimeRequest.runtime.visualIntelligenceOrchestraJobRuntimePort,
+    editReferenceVisualIntelligenceBindingStore:
+      runtimeRequest.runtime.editReferenceVisualIntelligenceBindingStore,
+    editReferenceVisualIntelligenceReadPort:
+      runtimeRequest.runtime.editReferenceVisualIntelligenceReadPort,
     motionStudioCommandRepositoryRuntimePort:
       runtimeRequest.runtime.motionStudioCommandRepositoryRuntimePort,
     editReferenceExactEditApplyRuntimePort:

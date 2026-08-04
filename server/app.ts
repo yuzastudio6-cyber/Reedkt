@@ -91,6 +91,10 @@ export interface ReeditProApiAppOptions {
     RuntimeState['visualIntelligencePlanningOperationRequestOwnerPort']
   visualIntelligenceOrchestraJobRuntimePort?:
     RuntimeState['visualIntelligenceOrchestraJobRuntimePort']
+  editReferenceVisualIntelligenceBindingStore?:
+    RuntimeState['editReferenceVisualIntelligenceBindingStore']
+  editReferenceVisualIntelligenceReadPort?:
+    RuntimeState['editReferenceVisualIntelligenceReadPort']
   motionStudioCommandRepositoryRuntimePort?:
     RuntimeState['motionStudioCommandRepositoryRuntimePort']
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
@@ -221,6 +225,18 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           visualIntelligenceOrchestraJobRuntimePort:
             options.visualIntelligenceOrchestraJobRuntimePort,
+        }
+      : {}),
+    ...(options.editReferenceVisualIntelligenceBindingStore
+      ? {
+          editReferenceVisualIntelligenceBindingStore:
+            options.editReferenceVisualIntelligenceBindingStore,
+        }
+      : {}),
+    ...(options.editReferenceVisualIntelligenceReadPort
+      ? {
+          editReferenceVisualIntelligenceReadPort:
+            options.editReferenceVisualIntelligenceReadPort,
         }
       : {}),
     ...(options.motionStudioCommandRepositoryRuntimePort

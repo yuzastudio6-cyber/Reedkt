@@ -355,6 +355,14 @@ assert.equal(runtime.apiKeyUsed, false)
 assert.equal(runtime.qwenFallbackAllowed, false)
 assert.equal(runtime.selfHostedVisualModelFallbackAllowed, false)
 assert.equal(runtime.substantiveCpuMediaProcessingAllowed, false)
+assert.equal(
+  runtime.editReferenceBindingStore.schemaVersion,
+  'edit-reference-visual-intelligence-orchestra-binding-store-v1',
+)
+assert.equal(
+  runtime.editReferenceReadPort.schemaVersion,
+  'edit-reference-visual-intelligence-orchestra-read-port-v1',
+)
 
 const costPreflight = await runtime.costOwner.createPreflight({
   requestId: 'visual-production-source-request-1',
@@ -749,6 +757,8 @@ console.log(JSON.stringify({
   canonicalRequestPackageConsumed: true,
   orchestraDispatchPackageConsumed: true,
   orchestraResultReturnedAndPersisted: true,
+  editReferenceOrchestraBindingStoreMounted: true,
+  editReferenceOrchestraReadPortMounted: true,
   orchestraReplayAvoidedDuplicateProviderAndCost: true,
   unpersistedDirectCallRefused: true,
   followupWithoutOrchestraEstimateBlocked: true,

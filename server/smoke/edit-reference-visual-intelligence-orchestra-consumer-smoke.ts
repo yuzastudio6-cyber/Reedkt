@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 import {
   VISUAL_INTELLIGENCE_MODEL_ID,
@@ -16,7 +19,9 @@ import type {
 } from '../../src/types/edit-reference'
 import type { EditReferenceAggregate } from
   '../edit-references/edit-reference-repository'
+import { loadRuntimeEnv } from '../config/env'
 import {
+  createOrchestraSkillCall,
   createOrchestraSkillJobResult,
   orchestraDigest,
   orchestraEvidenceRef,
@@ -24,12 +29,24 @@ import {
 import {
   adaptEditReferenceVisualIntelligenceOrchestraResult,
 } from '../edit-references/edit-reference-visual-intelligence-orchestra-consumer'
+import {
+  createEditReferenceVisualIntelligenceBindingStore,
+  createEditReferenceVisualIntelligenceOrchestraBinding,
+  createEditReferenceVisualIntelligenceOrchestraReadPort,
+} from '../edit-references/edit-reference-visual-intelligence-result-bridge'
 import { orchestratePreferenceEvidenceStudy } from
   '../edit-references/edit-reference-evidence-orchestrator'
 import {
   editReferenceScopeHash,
   validateEditReferenceRepositoryAggregate,
 } from '../edit-references/private-edit-reference-repository'
+import { createEditReferenceService } from
+  '../services/edit-reference-service'
+import {
+  commitPrivateFinalizedUploadAuthority,
+} from '../services/private-upload-media-authority-store'
+import { createUploadService } from '../services/upload-service'
+import type { ServiceContext } from '../types'
 import { createVisualIntelligenceReport } from
   '../visual-intelligence/visual-intelligence-contract'
 
@@ -142,6 +159,79 @@ assert.doesNotThrow(() => validateEditReferenceRepositoryAggregate(
   },
 ))
 
+const bindingScope = {
+  ...expectedScope(),
+  sourceEvidenceId: 'reference-evidence-1',
+  privateAssetId: sourceRef.id,
+  sourceEvidenceRef: ref(
+    'reference-evidence-1',
+    orchestraDigest(sourceEvidenceFixture()),
+  ),
+  studyAuthorityRef: ref('study-1', orchestraDigest(studyFixture())),
+}
+const orchestraCall = referencePreferenceCall(bindingScope)
+const binding = createEditReferenceVisualIntelligenceOrchestraBinding({
+  scope: bindingScope,
+  orchestraCall,
+  createdAt: '2026-08-03T11:30:00.000Z',
+})
+const objectRecords = new Map<string, Buffer>()
+const bindingStore = createEditReferenceVisualIntelligenceBindingStore({
+  objectPort: {
+    async createOnly({ objectPath, body }) {
+      const existing = objectRecords.get(objectPath)
+      if (existing && !existing.equals(body)) throw new Error('collision')
+      if (existing) return 'already_exists'
+      objectRecords.set(objectPath, Buffer.from(body))
+      return 'created'
+    },
+    async readExact(objectPath) {
+      const body = objectRecords.get(objectPath)
+      return body ? Buffer.from(body) : null
+    },
+  },
+})
+const persistedBinding = await bindingStore.persistCreateOnly(binding)
+const boundResult = resultFixture(report, {
+  callRef: persistedBinding.binding.orchestraCallRef,
+  manifestRef: persistedBinding.binding.manifestRef,
+  qualificationSnapshotRef:
+    persistedBinding.binding.qualificationSnapshotRef,
+})
+const readPort = createEditReferenceVisualIntelligenceOrchestraReadPort({
+  bindingStore,
+  resultStore: {
+    async readExact(callRef) {
+      return orchestraDigest(callRef)
+        === orchestraDigest(persistedBinding.binding.orchestraCallRef)
+        ? boundResult
+        : null
+    },
+  },
+  reportRepository: {
+    async readAcceptedByRef(reportRef) {
+      return orchestraDigest(reportRef)
+        === orchestraDigest(boundResult.producedArtifactRefs[0])
+        ? report
+        : null
+    },
+  },
+})
+const durableReread = await readPort.readCompletedReferenceAnalysis(
+  bindingScope,
+)
+assert.equal(persistedBinding.disposition, 'created')
+assert.equal(durableReread?.studyDigestSha256.startsWith('sha256:'), true)
+assert.equal(durableReread?.sourceEvidenceId, 'reference-evidence-1')
+assert.equal(durableReread?.privateAssetId, sourceRef.id)
+assert.equal(durableReread?.providerModel, 'gemini-3.1-pro-preview')
+assert.equal(durableReread?.preferenceDnaApproved, false)
+
+const serviceProof = await proveEditReferenceServiceUsesOrchestraReadPort()
+assert.equal(serviceProof.retiredVisualProviderCallCount, 0)
+assert.equal(serviceProof.visualIntelligenceSkillCompleted, true)
+assert.equal(serviceProof.assetMarkedStudiedByVisualIntelligence, true)
+
 let adversarialRefusals = 0
 await refused('wrong job type', () => resultFixture(report, {
   jobType: 'source_video_understanding',
@@ -207,8 +297,240 @@ console.log(JSON.stringify({
   exactPreferenceEvidenceOrchestrationPassed: true,
   qwenVisualEvidenceNotEmitted: true,
   privateRepositoryProjectionAccepted: true,
+  durableOrchestraBindingAndRereadPassed: true,
+  editReferenceServiceReadPortIntegrationPassed: true,
+  retiredLocalVisualProviderNotCalled: true,
   adversarialRefusals,
 }, null, 2))
+
+async function proveEditReferenceServiceUsesOrchestraReadPort(): Promise<{
+  retiredVisualProviderCallCount: number
+  visualIntelligenceSkillCompleted: boolean
+  assetMarkedStudiedByVisualIntelligence: boolean
+}> {
+  const localStorageRoot = await mkdtemp(join(
+    tmpdir(),
+    'weeditpro-edit-reference-visual-intelligence-',
+  ))
+  try {
+    const ownerUserId = 'user-1'
+    const workspaceId = 'workspace-1'
+    const env = loadRuntimeEnv({
+      NODE_ENV: 'test',
+      E2E_RUNTIME_MODE: 'local',
+      WORKER_RUNTIME_MODE: 'mock',
+      STORAGE_MODE: 'local',
+      LOCAL_STORAGE_ROOT: localStorageRoot,
+      API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
+      PROVIDER_EXECUTION_ENABLED: 'false',
+    })
+    const context: ServiceContext = {
+      env,
+      clients: { admin: null, public: null },
+      requestId: 'edit-reference-visual-intelligence-service-smoke',
+      auth: { userId: ownerUserId, isMockUser: true },
+    }
+    const setupService = createEditReferenceService(context)
+    const created = await setupService.createReference({
+      workspaceId,
+      name: 'Orchestra Visual Intelligence reference',
+      description:
+        'A private reference whose transferable principles are studied by the provider-neutral Orchestra skill.',
+      initialGoals: [
+        'visual_language',
+        'story_and_pacing',
+        'captions',
+        'color',
+        'b_roll',
+        'audio_and_sfx',
+        'graphics',
+      ],
+    }, 'create-edit-reference-visual-intelligence-service-smoke')
+    const reference = created.data.detail.reference
+    const initialStudy = created.data.detail.study
+    const uploadService = createUploadService(context)
+    const upload = await uploadService.createUploadIntent({
+      workspaceId,
+      editReferenceId: reference.id,
+      chatSessionId: initialStudy.id,
+      uploadPurpose: 'reference_media',
+      originalFileName: 'orchestra-reference.mp4',
+      mimeType: 'video/mp4',
+      expectedSizeBytes: 4_096,
+      checksumSha256: rawChecksum,
+      idempotencyKey: 'edit-reference-vi-upload-intent',
+    })
+    const storageObjectRecordId = 'edit-reference-vi-storage-object'
+    const createdAt = upload.uploadIntent.createdAt
+    await commitPrivateFinalizedUploadAuthority({
+      scope: { localStorageRoot, ownerUserId, workspaceId },
+      uploadIntentId: upload.uploadIntent.id,
+      mediaAsset: {
+        id: sourceRef.id,
+        workspaceId,
+        projectId: reference.id,
+        editReferenceId: reference.id,
+        uploadIntentId: upload.uploadIntent.id,
+        storageObjectRecordId,
+        uploadPurpose: 'reference_media',
+        assetType: 'video',
+        fileName: 'orchestra-reference.mp4',
+        mimeType: 'video/mp4',
+        storageProvider: 'local_private',
+        storageBucket: upload.uploadIntent.targetBucket,
+        storagePath: upload.uploadIntent.targetPath,
+        sizeBytes: 4_096,
+        checksumSha256: rawChecksum,
+        integrityVerified: true,
+        checksumSource: 'server_computed_bytes',
+        status: 'uploaded',
+        createdAt,
+        updatedAt: createdAt,
+        mockOnly: true,
+      },
+      storageObject: {
+        id: storageObjectRecordId,
+        workspaceId,
+        projectId: reference.id,
+        editReferenceId: reference.id,
+        mediaAssetId: sourceRef.id,
+        uploadIntentId: upload.uploadIntent.id,
+        uploadPurpose: 'reference_media',
+        storageProvider: 'local_private',
+        bucketName: upload.uploadIntent.targetBucket,
+        objectPath: upload.uploadIntent.targetPath,
+        objectPurpose: 'reference_media',
+        mimeType: 'video/mp4',
+        sizeBytes: 4_096,
+        checksumSha256: rawChecksum,
+        integrityVerified: true,
+        checksumSource: 'server_computed_bytes',
+        status: 'ready',
+        createdAt,
+        updatedAt: createdAt,
+        mockOnly: true,
+      },
+      now: createdAt,
+    })
+    const evidenceAdded = await setupService.addEvidence(initialStudy.id, {
+      workspaceId,
+      expectedStudyRevision: initialStudy.revision,
+      sourceType: 'reference_video_metadata',
+      title: 'Private Orchestra reference video',
+      sourceLabel: 'Private Orchestra reference video',
+      rightsBasis: 'reference_only',
+      storageObjectRecordId,
+      mediaAssetId: sourceRef.id,
+    }, 'add-edit-reference-visual-intelligence-evidence')
+    const study = evidenceAdded.data.detail.study
+    const sourceEvidence = evidenceAdded.data.detail.evidence.find((item) => (
+      item.sourceType === 'reference_video_metadata'
+      && item.provenance.privateAssetId === sourceRef.id
+    ))
+    assert(sourceEvidence)
+    const exactScope = {
+      ownerUserId,
+      workspaceId,
+      editReferenceId: reference.id,
+      studySessionId: study.id,
+      sourceArtifactRef: sourceRef,
+      sourceEvidenceId: sourceEvidence.id,
+      privateAssetId: sourceRef.id,
+      sourceEvidenceRef: ref(
+        sourceEvidence.id,
+        orchestraDigest(sourceEvidence),
+      ),
+      studyAuthorityRef: ref(study.id, orchestraDigest(study)),
+    }
+    const call = referencePreferenceCall(exactScope)
+    const bindingObjectRecords = new Map<string, Buffer>()
+    const exactBindingStore = createEditReferenceVisualIntelligenceBindingStore({
+      objectPort: {
+        async createOnly({ objectPath, body }) {
+          const existing = bindingObjectRecords.get(objectPath)
+          if (existing && !existing.equals(body)) throw new Error('collision')
+          if (existing) return 'already_exists'
+          bindingObjectRecords.set(objectPath, Buffer.from(body))
+          return 'created'
+        },
+        async readExact(objectPath) {
+          const body = bindingObjectRecords.get(objectPath)
+          return body ? Buffer.from(body) : null
+        },
+      },
+    })
+    const persisted = await exactBindingStore.persistCreateOnly(
+      createEditReferenceVisualIntelligenceOrchestraBinding({
+        scope: exactScope,
+        orchestraCall: call,
+        createdAt,
+      }),
+    )
+    const exactReport = reportFixture({
+      findings,
+      workspaceId,
+      editReferenceId: reference.id,
+      studySessionId: study.id,
+    })
+    const exactResult = resultFixture(exactReport, {
+      callRef: persisted.binding.orchestraCallRef,
+      manifestRef: persisted.binding.manifestRef,
+      qualificationSnapshotRef: persisted.binding.qualificationSnapshotRef,
+    })
+    const exactReadPort = createEditReferenceVisualIntelligenceOrchestraReadPort({
+      bindingStore: exactBindingStore,
+      resultStore: {
+        async readExact(callRef) {
+          return orchestraDigest(callRef)
+            === orchestraDigest(persisted.binding.orchestraCallRef)
+            ? exactResult
+            : null
+        },
+      },
+      reportRepository: {
+        async readAcceptedByRef(reportRef) {
+          return orchestraDigest(reportRef)
+            === orchestraDigest(exactResult.producedArtifactRefs[0])
+            ? exactReport
+            : null
+        },
+      },
+    })
+    let retiredVisualProviderCallCount = 0
+    const service = createEditReferenceService(context, undefined, {
+      visualIntelligenceOrchestraReadPort: exactReadPort,
+      visualLanguageProvider: {
+        async analyze() {
+          retiredVisualProviderCallCount += 1
+          throw new Error('retired visual provider must not run')
+        },
+      },
+    })
+    const studied = await service.runEvidenceStudy(study.id, {
+      workspaceId,
+      expectedStudyRevision: study.revision,
+    }, 'run-edit-reference-visual-intelligence-evidence')
+    const visualRun = studied.data.detail.skillRuns.find((item) => (
+      item.skillId === 'visual_intelligence.reference_preference_analysis'
+    ))
+    const studiedAsset = studied.data.detail.assets.find((item) => (
+      item.mediaAssetId === sourceRef.id
+    ))
+    assert.equal(studied.data.detail.study.status, 'evidence_ready')
+    assert.ok(studied.data.detail.skillRuns.every((item) => (
+      item.skillId !== 'edit_reference.visual_language.qwen_visual_analysis'
+    )))
+    return {
+      retiredVisualProviderCallCount,
+      visualIntelligenceSkillCompleted: visualRun?.status === 'completed',
+      assetMarkedStudiedByVisualIntelligence:
+        studiedAsset?.mediaStudyStatus
+          === 'media_studied_visual_intelligence',
+    }
+  } finally {
+    await rm(localStorageRoot, { recursive: true, force: true })
+  }
+}
 
 function studyFixture(): PreferenceStudySessionRecord {
   return {
@@ -340,6 +662,50 @@ function aggregateFixture(
   }
 }
 
+function referencePreferenceCall(
+  scope: typeof bindingScope,
+) {
+  return createOrchestraSkillCall({
+    schemaVersion: 'orchestra-skill-call-v1',
+    callId: 'reference-preference-call-1',
+    orchestraPlanRef: ref('orchestra-plan-1'),
+    orchestraJobRef: ref('orchestra-job-1'),
+    parentJobRef: null,
+    requestedBy: { kind: 'orchestra' },
+    targetSkillKey: 'visual_intelligence',
+    jobType: 'reference_preference_analysis',
+    phase: 'planning',
+    scope: {
+      scopeType: 'video',
+      sourceArtifactRef: sourceRef,
+      authorizedRanges: [range],
+      completeSourceCoverageRequired: true,
+      outputId: null,
+    },
+    sceneContextSnapshotRef: null,
+    sourceArtifactRefs: [sourceRef],
+    comparisonArtifactRefs: [],
+    expectedOutcomeRefs: [ref('reference-preference-evidence-outcome')],
+    requiredEvidenceRefs: [
+      scope.sourceEvidenceRef,
+      scope.studyAuthorityRef,
+    ],
+    manifestRef: ref('visual-intelligence-manifest'),
+    qualificationSnapshotRef: ref('visual-intelligence-qualification'),
+    timeBudgetRef: ref('reference-preference-time-budget'),
+    creditBudgetRef: ref('reference-preference-credit-budget'),
+    attemptEnvelopeRef: ref('reference-preference-attempt-envelope'),
+    approvedSnapshotRef: null,
+    idempotencyKey: 'reference-preference-call-1',
+    orchestraDispatchAuthorized: true,
+    directProviderCallAllowed: false,
+    directTimelineMutationAllowed: false,
+    directArtifactMutationAllowed: false,
+    scopeExpansionAllowed: false,
+    peerSkillExecutionAuthorityAccepted: false,
+  })
+}
+
 async function refused(
   _label: string,
   resultFactory: () => unknown,
@@ -369,6 +735,8 @@ function expectedScope() {
 function reportFixture(input: {
   findings: VisualIntelligenceFinding[]
   workspaceId?: string
+  editReferenceId?: string
+  studySessionId?: string
   profile?: VisualIntelligenceReport['profile']
   settledCostMicros?: number | null
 }): VisualIntelligenceReport {
@@ -379,8 +747,8 @@ function reportFixture(input: {
     scope: {
       ownerUserId: 'user-1',
       workspaceId: input.workspaceId ?? 'workspace-1',
-      projectId: 'reference-1',
-      editSessionId: 'study-1',
+      projectId: input.editReferenceId ?? 'reference-1',
+      editSessionId: input.studySessionId ?? 'study-1',
       approvedSnapshotId: null,
     },
     operation: 'analyze_media',

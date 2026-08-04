@@ -5,6 +5,12 @@ import type {
   VisualIntelligenceRequest,
 } from '../../src/types/visual-intelligence'
 import type { RuntimeEnv } from '../config/env'
+import {
+  createEditReferenceVisualIntelligenceBindingStore,
+  createEditReferenceVisualIntelligenceOrchestraReadPort,
+  type EditReferenceVisualIntelligenceBindingStore,
+  type EditReferenceVisualIntelligenceOrchestraReadPort,
+} from '../edit-references/edit-reference-visual-intelligence-result-bridge'
 import { ApiError } from '../errors/api-error'
 import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
@@ -86,6 +92,10 @@ export interface VisualIntelligenceProductionRuntime {
     VisualIntelligenceOrchestraDispatchPackageStore
   readonly orchestraJobResultStore:
     VisualIntelligenceOrchestraJobResultStore
+  readonly editReferenceBindingStore:
+    EditReferenceVisualIntelligenceBindingStore
+  readonly editReferenceReadPort:
+    EditReferenceVisualIntelligenceOrchestraReadPort
   readonly orchestraJobRuntimePort: VisualIntelligenceOrchestraJobRuntime
   readonly costOwner: VisualIntelligenceAccountEffectiveCostOwner
   readonly providerCapabilityId: 'visual_intelligence'
@@ -186,6 +196,14 @@ export async function createVisualIntelligenceProductionRuntime(
     })
   const orchestraJobResultStore =
     createVisualIntelligenceOrchestraJobResultStore({ objectPort })
+  const editReferenceBindingStore =
+    createEditReferenceVisualIntelligenceBindingStore({ objectPort })
+  const editReferenceReadPort =
+    createEditReferenceVisualIntelligenceOrchestraReadPort({
+      bindingStore: editReferenceBindingStore,
+      resultStore: orchestraJobResultStore,
+      reportRepository: durableStore,
+    })
   const planningOwner =
     createCanonicalPlanningVisualIntelligenceOperationOwner({
       upstreamAdmissionVerificationPort: canonicalRequestPackageStore,
@@ -249,6 +267,8 @@ export async function createVisualIntelligenceProductionRuntime(
     canonicalRequestPackageStore,
     orchestraDispatchPackageStore,
     orchestraJobResultStore,
+    editReferenceBindingStore,
+    editReferenceReadPort,
     orchestraJobRuntimePort,
     costOwner,
     providerCapabilityId: 'visual_intelligence',

@@ -180,6 +180,15 @@ import { hashEditReferencePreferenceDnaStructuredContext } from '../edit-referen
 import { hashEditReferenceRequest } from '../edit-references/private-edit-reference-repository'
 import { orchestratePreferenceEvidenceStudy } from '../edit-references/edit-reference-evidence-orchestrator'
 import {
+  type EditReferenceVisualIntelligenceOrchestraReadPort,
+} from '../edit-references/edit-reference-visual-intelligence-result-bridge'
+import type { EditReferenceVisualIntelligenceStudy } from
+  '../edit-references/edit-reference-visual-intelligence-orchestra-consumer'
+import {
+  orchestraDigest,
+  orchestraEvidenceRef,
+} from '../orchestra/orchestra-skill-capability-contract'
+import {
   createBlockedEditReferenceMediaStudy,
   runEditReferenceLocalMediaStudy,
   type EditReferenceCaptionDesignOcrAuthorityResolver,
@@ -341,6 +350,8 @@ export interface EditReferenceServiceRuntimeOptions {
   readonly longFormSourceInspector?: EditReferenceLongFormSourceInspector
   readonly longFormStudyScheduler?: EditReferenceLongFormStudyScheduler
   readonly targetVideoUnderstandingRepository?: PrivateTargetVideoUnderstandingRepository
+  readonly visualIntelligenceOrchestraReadPort?:
+    EditReferenceVisualIntelligenceOrchestraReadPort
 }
 
 export interface EditReferenceReviewedLocalVisualLanguageRuntimeOptions {
@@ -529,6 +540,21 @@ export function createEditReferenceService(
       },
     )
   }
+  if (
+    runtimeOptions.visualIntelligenceOrchestraReadPort
+    && context.editReferenceVisualIntelligenceReadPort
+    && runtimeOptions.visualIntelligenceOrchestraReadPort
+      !== context.editReferenceVisualIntelligenceReadPort
+  ) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'Edit Reference received conflicting Orchestra Visual Intelligence read authorities.',
+      503,
+      {
+        requiredGate: 'edit_reference_visual_intelligence_one_writer',
+      },
+    )
+  }
   const domainRepositoryRuntime = resolveEditReferenceDomainRepositoryRuntimePort({
     context,
     runtimePort: runtimeOptions.domainRepositoryRuntimePort
@@ -582,6 +608,9 @@ export function createEditReferenceService(
     ?? inspectEditReferenceLongFormSource
   const targetVideoUnderstandingRepository = runtimeOptions.targetVideoUnderstandingRepository
     ?? new PrivateTargetVideoUnderstandingRepository()
+  const visualIntelligenceOrchestraReadPort =
+    runtimeOptions.visualIntelligenceOrchestraReadPort
+    ?? context.editReferenceVisualIntelligenceReadPort
   const scope = (workspaceId: string): EditReferenceRepositoryScope => ({
     localStorageRoot: context.env.localStorageRoot,
     ownerUserId,
@@ -4438,30 +4467,42 @@ export function createEditReferenceService(
             throw new ApiError('PREFERENCE_EVIDENCE_REQUIRED', 'Add evidence before asking ReEditPro to study it.', 409)
           }
           const orchestrationId = `preference-evidence-study-${randomUUID()}`
-          const mediaStudies = await prepareEditReferenceMediaStudies({
-            context,
-            aggregate,
-            studyId,
-            orchestrationId,
-            visualLanguageProvider,
-            visualLanguageProductionAuthority: runtimeOptions.visualLanguageProductionAuthority,
-            reviewedLocalVisualLanguageRuntime: runtimeOptions.reviewedLocalVisualLanguageRuntime,
-            colorTreatmentProductionAuthority: runtimeOptions.colorTreatmentProductionAuthority,
-            reviewedLocalColorTreatmentRuntime: runtimeOptions.reviewedLocalColorTreatmentRuntime,
-            graphicsMotionProductionAuthority: runtimeOptions.graphicsMotionProductionAuthority,
-            reviewedLocalGraphicsMotionRuntime: runtimeOptions.reviewedLocalGraphicsMotionRuntime,
-            captionDesignOcrAuthorityResolver: runtimeOptions.captionDesignOcrAuthorityResolver,
-            captionDesignProductionAuthority: runtimeOptions.captionDesignProductionAuthority,
-            storyEditorialProvider,
-            storyEditorialEvidenceAuthorityResolver: runtimeOptions.storyEditorialEvidenceAuthorityResolver,
-            storyEditorialProductionAuthority: runtimeOptions.storyEditorialProductionAuthority,
-            speechPacingProvider,
-            speechPacingTranscriptAuthorityResolver: runtimeOptions.speechPacingTranscriptAuthorityResolver,
-            speechPacingProductionAuthority: runtimeOptions.speechPacingProductionAuthority,
-            audioSoundDesignProvider,
-            audioSoundDesignProductionAuthority: runtimeOptions.audioSoundDesignProductionAuthority,
-            reviewedLocalAudioSoundDesignRuntime: runtimeOptions.reviewedLocalAudioSoundDesignRuntime,
-          })
+          const visualIntelligenceStudies =
+            visualIntelligenceOrchestraReadPort
+              ? await prepareEditReferenceVisualIntelligenceStudies({
+                  context,
+                  aggregate,
+                  studyId,
+                  ownerUserId,
+                  readPort: visualIntelligenceOrchestraReadPort,
+                })
+              : []
+          const mediaStudies = visualIntelligenceOrchestraReadPort
+            ? []
+            : await prepareEditReferenceMediaStudies({
+                context,
+                aggregate,
+                studyId,
+                orchestrationId,
+                visualLanguageProvider,
+                visualLanguageProductionAuthority: runtimeOptions.visualLanguageProductionAuthority,
+                reviewedLocalVisualLanguageRuntime: runtimeOptions.reviewedLocalVisualLanguageRuntime,
+                colorTreatmentProductionAuthority: runtimeOptions.colorTreatmentProductionAuthority,
+                reviewedLocalColorTreatmentRuntime: runtimeOptions.reviewedLocalColorTreatmentRuntime,
+                graphicsMotionProductionAuthority: runtimeOptions.graphicsMotionProductionAuthority,
+                reviewedLocalGraphicsMotionRuntime: runtimeOptions.reviewedLocalGraphicsMotionRuntime,
+                captionDesignOcrAuthorityResolver: runtimeOptions.captionDesignOcrAuthorityResolver,
+                captionDesignProductionAuthority: runtimeOptions.captionDesignProductionAuthority,
+                storyEditorialProvider,
+                storyEditorialEvidenceAuthorityResolver: runtimeOptions.storyEditorialEvidenceAuthorityResolver,
+                storyEditorialProductionAuthority: runtimeOptions.storyEditorialProductionAuthority,
+                speechPacingProvider,
+                speechPacingTranscriptAuthorityResolver: runtimeOptions.speechPacingTranscriptAuthorityResolver,
+                speechPacingProductionAuthority: runtimeOptions.speechPacingProductionAuthority,
+                audioSoundDesignProvider,
+                audioSoundDesignProductionAuthority: runtimeOptions.audioSoundDesignProductionAuthority,
+                reviewedLocalAudioSoundDesignRuntime: runtimeOptions.reviewedLocalAudioSoundDesignRuntime,
+              })
           const previousApprovedEditStudies = await preparePreviousApprovedEditStudies({
             aggregate,
             studyId,
@@ -4475,6 +4516,7 @@ export function createEditReferenceService(
             study,
             evidence: studyEvidence,
             mediaStudies,
+            visualIntelligenceStudies,
             previousApprovedEditStudies,
             now,
           })
@@ -4507,6 +4549,17 @@ export function createEditReferenceService(
             } else {
               delete asset.lastStudyBlocker
             }
+          }
+          for (const visualIntelligenceStudy of visualIntelligenceStudies) {
+            const asset = aggregate.assets.find((record) => (
+              record.privateAssetId === visualIntelligenceStudy.privateAssetId
+              && record.studySessionId === study.id
+              && record.assetKind === 'reference_video_metadata'
+            ))
+            if (!asset) continue
+            asset.mediaStudyStatus = 'media_studied_visual_intelligence'
+            asset.lastStudyAt = now
+            delete asset.lastStudyBlocker
           }
           for (const approvedHistoryStudy of previousApprovedEditStudies) {
             const sourceEvidence = studyEvidence.find((record) => record.id === approvedHistoryStudy.sourceEvidenceId)
@@ -5246,6 +5299,85 @@ async function preparePreviousApprovedEditStudies(input: {
           retryReason: 'Restore the exact workspace-owned approved-edit identity asset before retrying.',
         })
     studies.push({ sourceEvidenceId: evidence.id, result })
+  }
+  return studies
+}
+
+async function prepareEditReferenceVisualIntelligenceStudies(input: {
+  readonly context: ServiceContext
+  readonly aggregate: EditReferenceAggregate
+  readonly studyId: string
+  readonly ownerUserId: string
+  readonly readPort: EditReferenceVisualIntelligenceOrchestraReadPort
+}): Promise<EditReferenceVisualIntelligenceStudy[]> {
+  const study = input.aggregate.studies.find((record) => (
+    record.id === input.studyId
+  ))
+  if (!study) return []
+  const reference = input.aggregate.references.find((record) => (
+    record.id === study.editReferenceId
+  ))
+  if (!reference) return []
+  const uploadService = createUploadService(input.context)
+  const studies: EditReferenceVisualIntelligenceStudy[] = []
+  for (const asset of input.aggregate.assets.filter((record) => (
+    record.studySessionId === study.id
+    && record.assetKind === 'reference_video_metadata'
+    && Boolean(record.storageObjectRecordId)
+    && Boolean(record.mediaAssetId)
+  ))) {
+    const sourceEvidence = input.aggregate.evidence.find((record) => (
+      record.studySessionId === study.id
+      && record.sourceType === 'reference_video_metadata'
+      && record.provenance.privateAssetId === asset.privateAssetId
+    ))
+    if (
+      !sourceEvidence
+      || !asset.storageObjectRecordId
+      || !asset.mediaAssetId
+    ) continue
+    const storage = await uploadService.getStorageObjectRecord(
+      asset.storageObjectRecordId,
+      reference.workspaceId,
+    )
+    const object = storage.storageObjectRecord
+    if (
+      (object.editReferenceId ?? object.projectId) !== reference.id
+      || object.mediaAssetId !== asset.mediaAssetId
+      || object.objectPurpose !== 'reference_media'
+      || object.status !== 'ready'
+      || typeof object.checksumSha256 !== 'string'
+      || !/^[a-f0-9]{64}$/u.test(object.checksumSha256)
+    ) throw new ApiError(
+      'TOOL_NOT_READY',
+      'The canonical reference media identity is not ready for Orchestra Visual Intelligence reread.',
+      503,
+      {
+        requiredGate: 'edit_reference_visual_intelligence_source_authority',
+      },
+    )
+    const sourceArtifactRef = orchestraEvidenceRef(
+      asset.mediaAssetId,
+      `sha256:${object.checksumSha256}`,
+    )
+    const result = await input.readPort.readCompletedReferenceAnalysis({
+      ownerUserId: input.ownerUserId,
+      workspaceId: reference.workspaceId,
+      editReferenceId: reference.id,
+      studySessionId: study.id,
+      sourceArtifactRef,
+      sourceEvidenceId: sourceEvidence.id,
+      privateAssetId: asset.privateAssetId,
+      sourceEvidenceRef: orchestraEvidenceRef(
+        sourceEvidence.id,
+        orchestraDigest(sourceEvidence),
+      ),
+      studyAuthorityRef: orchestraEvidenceRef(
+        study.id,
+        orchestraDigest(study),
+      ),
+    })
+    if (result) studies.push(result)
   }
   return studies
 }

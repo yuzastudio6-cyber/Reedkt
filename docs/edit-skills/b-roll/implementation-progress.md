@@ -1084,6 +1084,11 @@ Retirement-guard correction commit:
 Generated qualification artifact commit:
 `44bfb91982cd6c92b06f582ec810094019a64ce1`.
 
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to progress commit
+`d4c7fb498fcc72a01e60d5727614665ca12a4e7e` after
+`git push -u origin HEAD`.
+
 Removed all B-roll startup factories that declared planning or internal
 qualification from fixture names. Qualification receipt V2 and fixture
 evidence V1 now bind the exact manifest, tested commit, relevant source-tree
@@ -1182,4 +1187,4 @@ mutation, or billing work was performed.
 | M14 | `5e4f1dc0d` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M15 | `588193497` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M16 | `4eb0371e6` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
-| M17 | `44bfb9198` | this bookkeeping commit | pending | `internal_execution_qualified` |
+| M17 | `44bfb9198` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

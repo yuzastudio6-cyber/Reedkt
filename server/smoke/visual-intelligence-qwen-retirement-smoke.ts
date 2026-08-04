@@ -16,18 +16,6 @@ import { createMockProviderGatewayClient } from
   '../../src/backend/providers/gateway/mock-provider-clients'
 import { getProviderSecretReference } from
   '../../src/backend/providers/gateway/provider-secret-boundary'
-import { createEditReferenceQwenCaptionDesignAdapter } from
-  '../edit-references/edit-reference-qwen-caption-design-adapter'
-import { createEditReferenceQwenColorTreatmentAdapter } from
-  '../edit-references/edit-reference-qwen-color-treatment-adapter'
-import { createEditReferenceQwenGraphicsMotionAdapter } from
-  '../edit-references/edit-reference-qwen-graphics-motion-adapter'
-import { createEditReferenceQwenVisualLanguageAdapter } from
-  '../edit-references/edit-reference-qwen-visual-language-adapter'
-import {
-  createQwenVisualUnderstandingProvider,
-  QWEN_VISUAL_UNDERSTANDING_RETIREMENT,
-} from '../services/qwen-visual-understanding-provider'
 import {
   CANONICAL_SAM2_GPU_RUNTIME_RETIREMENT,
   assertCanonicalSam2GpuRuntimeContract,
@@ -119,36 +107,6 @@ assert.equal(
   undefined,
 )
 
-let transportCalls = 0
-const historicalProvider = createQwenVisualUnderstandingProvider({
-  env: new Proxy({}, {
-    get() {
-      throw new Error('Retired Qwen environment must not be read.')
-    },
-  }),
-  authenticatedPost: async () => {
-    transportCalls += 1
-    throw new Error('Retired Qwen transport must not be called.')
-  },
-})
-const blockedResult = await historicalProvider.analyze(new Proxy({} as never, {
-  get() {
-    throw new Error('Retired Qwen request must not be read.')
-  },
-}))
-assert.equal(blockedResult.status, 'blocked')
-assert.deepEqual(blockedResult.blockers, [
-  'qwen_visual_runtime_retired_historical_read_only',
-])
-assert.equal(blockedResult.execution.boundedPrivateFramesRead, false)
-assert.equal(blockedResult.execution.providerCallMade, false)
-assert.equal(blockedResult.execution.modelCallMade, false)
-assert.equal(transportCalls, 0)
-assert.equal(
-  QWEN_VISUAL_UNDERSTANDING_RETIREMENT.networkOrProviderCallAllowed,
-  false,
-)
-
 assert.equal(
   CANONICAL_SAM2_GPU_RUNTIME_RETIREMENT.replacementToolId,
   'sam3_1',
@@ -198,6 +156,14 @@ for (const removedPath of [
   'server/edit-references/runtime/qwen25vl-mlx-classify-reference-style.py',
   'server/edit-references/runtime/qwen25vl-mlx-classify-speech-pacing.py',
   'server/edit-references/runtime/qwen25vl-mlx-classify-story-editorial.py',
+  'server/edit-references/edit-reference-media-study.ts',
+  'server/edit-references/edit-reference-qwen-visual-language-adapter.ts',
+  'server/edit-references/edit-reference-qwen-color-treatment-adapter.ts',
+  'server/edit-references/edit-reference-qwen-graphics-motion-adapter.ts',
+  'server/edit-references/edit-reference-qwen-caption-design-adapter.ts',
+  'server/edit-references/edit-reference-long-form-semantic-window-specialist-executor.ts',
+  'server/edit-references/edit-reference-long-form-semantic-window-stage-executor.ts',
+  'server/services/qwen-visual-understanding-provider.ts',
 ]) assert.equal(existsSync(removedPath), false, `${removedPath} must be absent`)
 
 const sam2RuntimeTombstoneSource = readFileSync(
@@ -296,11 +262,15 @@ const activeEditReferenceServiceSource = readFileSync(
 )
 assert.doesNotMatch(
   activeEditReferenceServiceSource,
-  /createQwenVisualUnderstandingProvider/u,
+  /createQwenVisualUnderstandingProvider|prepareEditReferenceMediaStudies|runEditReferenceLocalMediaStudy/u,
 )
 assert.match(
   activeEditReferenceServiceSource,
-  /createUnavailableOrchestraVisualIntelligenceBridge/u,
+  /edit_reference_visual_intelligence_orchestra_result_reread/u,
+)
+assert.match(
+  activeEditReferenceServiceSource,
+  /retiredLocalMediaStudyAccepted: false/u,
 )
 
 const activeEditReferenceSemanticContract = readFileSync(
@@ -310,6 +280,14 @@ const activeEditReferenceSemanticContract = readFileSync(
 assert.match(
   activeEditReferenceSemanticContract,
   /visual_intelligence\.reference_preference_analysis/u,
+)
+const activeEditReferenceOrchestrator = readFileSync(
+  'server/edit-references/edit-reference-evidence-orchestrator.ts',
+  'utf8',
+)
+assert.doesNotMatch(
+  activeEditReferenceOrchestrator,
+  /mediaStudies|appendLocalMediaStudy|media_studied_local_partial/u,
 )
 for (const activeEditReferenceSourcePath of [
   'server/edit-references/edit-reference-evidence-orchestrator.ts',
@@ -330,24 +308,6 @@ assert.throws(
     },
   })),
   /private_gcp_qwen_visual_retired_use_visual_intelligence/u,
-)
-
-for (const construct of [
-  () => createEditReferenceQwenVisualLanguageAdapter({} as never),
-  () => createEditReferenceQwenColorTreatmentAdapter({} as never),
-  () => createEditReferenceQwenGraphicsMotionAdapter({} as never),
-  () => createEditReferenceQwenCaptionDesignAdapter({} as never),
-]) {
-  assert.throws(construct, /retired_use_visual_intelligence/u)
-}
-
-const retiredProviderSource = readFileSync(
-  'server/services/qwen-visual-understanding-provider.ts',
-  'utf8',
-)
-assert.doesNotMatch(
-  retiredProviderSource,
-  /node:fs|node:child_process|createRequire|GoogleAuth|authenticatedCloudRunPost|QWEN_VISUAL_RUNTIME|Qwen\/Qwen2\.5-VL-7B-Instruct[\s\S]*authenticatedPost\(/,
 )
 
 for (const activeSourcePath of [
@@ -383,14 +343,16 @@ console.log(JSON.stringify({
   genericGeminiProviderGatewayBypassRejected: true,
   qwen37VisualHistoricalReadOnly: true,
   qwen25VisualHistoricalReadOnly: true,
-  qwenProviderTransportRemoved: true,
+  qwenProviderAndEditReferenceAdaptersRemoved: true,
   qwenSecretReferenceRemoved: true,
   privateGcpQwenFreshPlanRejectedBeforeInputRead: true,
   localQwenMlxExecutableRuntimeRemoved: true,
   unreferencedLocalQwenLongFormRuntimeRemoved: true,
   localQwenPythonRunnersRemoved: true,
   activePlanningAndPolicyRoutesUseVisualIntelligence: true,
-  activeEditReferenceDefaultUsesOrchestraBridge: true,
+  activeEditReferenceRequiresOrchestraResultReread: true,
+  editReferenceLocalMediaStudyFallbackRemoved: true,
+  editReferenceLegacyResultTransformerRemoved: true,
   activeEditReferenceRecordsUseProviderNeutralSkillIdentity: true,
   directSourceVisualLifecycleFactoryRemoved: true,
   sourceCleanupRequiresOrchestraResultReread: true,

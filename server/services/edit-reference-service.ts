@@ -191,25 +191,6 @@ import {
   orchestraEvidenceRef,
 } from '../orchestra/orchestra-skill-capability-contract'
 import {
-  createBlockedEditReferenceMediaStudy,
-  runEditReferenceLocalMediaStudy,
-  type EditReferenceCaptionDesignOcrAuthorityResolver,
-  type EditReferenceCaptionDesignProductionAuthority,
-  type EditReferenceAudioSoundDesignRuntimeInput,
-  type EditReferenceAudioSoundDesignProductionAuthority,
-  type EditReferenceColorTreatmentProductionAuthority,
-  type EditReferenceColorTreatmentRuntimeInput,
-  type EditReferenceGraphicsMotionProductionAuthority,
-  type EditReferenceGraphicsMotionRuntimeInput,
-  type EditReferenceLocalMediaStudyResult,
-  type EditReferenceSpeechPacingProductionAuthority,
-  type EditReferenceSpeechPacingTranscriptAuthorityResolver,
-  type EditReferenceStoryEditorialEvidenceAuthorityResolver,
-  type EditReferenceStoryEditorialProductionAuthority,
-  type EditReferenceVisualLanguageRuntimeInput,
-  type EditReferenceVisualLanguageProductionAuthority,
-} from '../edit-references/edit-reference-media-study'
-import {
   EDIT_REFERENCE_LONG_FORM_STUDY_POLICY_VERSION,
   createEditReferenceLongFormStudyPlan,
   createEditReferenceLongFormStudyRun,
@@ -270,22 +251,6 @@ import {
 } from './edit-reference-production-long-form-runtime-port'
 import { instrumentEditReferenceService } from './edit-reference-observability-service'
 import type { EditReferenceObservabilitySink } from '../edit-references/edit-reference-observability-contract'
-import type {
-  QwenVisualUnderstandingProvider,
-  QwenVisualUnderstandingResult,
-} from './qwen-visual-understanding-provider'
-import {
-  createQwenStoryEditorialReasoningProvider,
-  type QwenStoryEditorialReasoningProvider,
-} from './qwen-story-editorial-provider'
-import {
-  createQwenSpeechPacingReasoningProvider,
-  type QwenSpeechPacingReasoningProvider,
-} from './qwen-speech-pacing-provider'
-import {
-  createUnavailableEditReferenceAudioSoundDesignProvider,
-  type EditReferenceAudioSoundDesignProvider,
-} from './edit-reference-audio-sound-design-provider'
 import {
   type EditReferenceApprovedHistoryReader,
 } from './edit-reference-approved-history-reader'
@@ -327,21 +292,6 @@ export interface EditReferenceServiceResult<T> {
 
 export interface EditReferenceServiceRuntimeOptions {
   readonly observabilitySink?: EditReferenceObservabilitySink
-  readonly visualLanguageProvider?: QwenVisualUnderstandingProvider
-  readonly visualLanguageProductionAuthority?: EditReferenceVisualLanguageProductionAuthority
-  readonly colorTreatmentProductionAuthority?: EditReferenceColorTreatmentProductionAuthority
-  readonly graphicsMotionProductionAuthority?: EditReferenceGraphicsMotionProductionAuthority
-  readonly captionDesignOcrAuthorityResolver?: EditReferenceCaptionDesignOcrAuthorityResolver
-  readonly captionDesignProductionAuthority?: EditReferenceCaptionDesignProductionAuthority
-  readonly storyEditorialProvider?: QwenStoryEditorialReasoningProvider
-  readonly storyEditorialEvidenceAuthorityResolver?: EditReferenceStoryEditorialEvidenceAuthorityResolver
-  readonly storyEditorialProductionAuthority?: EditReferenceStoryEditorialProductionAuthority
-  readonly speechPacingProvider?: QwenSpeechPacingReasoningProvider
-  readonly speechPacingTranscriptAuthorityResolver?: EditReferenceSpeechPacingTranscriptAuthorityResolver
-  readonly speechPacingProductionAuthority?: EditReferenceSpeechPacingProductionAuthority
-  readonly audioSoundDesignProvider?: EditReferenceAudioSoundDesignProvider
-  readonly audioSoundDesignProductionAuthority?: EditReferenceAudioSoundDesignProductionAuthority
-  readonly reviewedLocalAudioSoundDesignRuntime?: EditReferenceReviewedLocalAudioSoundDesignRuntimeOptions
   readonly previousApprovedEditHistoryReader?: EditReferenceApprovedHistoryReader
   readonly domainRepositoryRuntimePort?: EditReferenceDomainRepositoryRuntimePort
   readonly longFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
@@ -357,14 +307,6 @@ export interface PrepareEditReferenceVisualIntelligenceBindingRequestInput {
   readonly workspaceId: string
   readonly expectedStudyRevision: number
   readonly orchestraCall: unknown
-}
-
-export interface EditReferenceReviewedLocalAudioSoundDesignRuntimeOptions {
-  readonly manifestPath: string
-  readonly modelPath: string
-  readonly pythonCommand: string
-  readonly runnerScriptPath?: string
-  readonly timeoutMs?: number
 }
 
 export interface EditReferenceService {
@@ -435,43 +377,6 @@ export interface EditReferenceService {
   clearPreferenceApplication(applicationId: string, input: ClearPreferenceApplicationRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
 }
 
-function createUnavailableOrchestraVisualIntelligenceBridge():
-QwenVisualUnderstandingProvider {
-  return Object.freeze({
-    async analyze(): Promise<QwenVisualUnderstandingResult> {
-      return {
-        status: 'blocked',
-        visibleSubjects: [],
-        visibleObjects: [],
-        screenTextRegions: [],
-        compositionRisks: [],
-        brollOpportunities: [],
-        captionObservations: [],
-        styleObservations: [],
-        frameEvidence: [],
-        visualLanguageObservations: [],
-        colorTreatmentObservations: [],
-        graphicsMotionObservations: [],
-        captionDesignObservations: [],
-        evidenceArtifactIds: [],
-        blockers: [
-          'orchestra_visual_intelligence_dispatch_package_required',
-        ],
-        warnings: [
-          'Edit Reference visual analysis must be dispatched by Orchestra through the provider-neutral visual_intelligence skill. The retired Qwen path cannot execute.',
-        ],
-        execution: {
-          boundedPrivateFramesRead: false,
-          providerCallMade: false,
-          modelCallMade: false,
-          workerJobCreated: false,
-          remoteMutationMade: false,
-        },
-      }
-    },
-  })
-}
-
 export function createEditReferenceService(
   context: ServiceContext,
   repositoryOverride?: EditReferenceRepository,
@@ -479,17 +384,6 @@ export function createEditReferenceService(
 ): EditReferenceService {
   const ownerUserId = context.auth?.userId
   if (!ownerUserId) throw new ApiError('AUTH_REQUIRED', 'Edit Reference requires an authenticated user.', 401)
-  if (
-    runtimeOptions.reviewedLocalAudioSoundDesignRuntime
-    && (runtimeOptions.audioSoundDesignProvider || runtimeOptions.audioSoundDesignProductionAuthority)
-  ) {
-    throw new ApiError(
-      'VALIDATION_FAILED',
-      'Reviewed-local Audio/Sound Design study cannot be combined with another semantic-audio provider or paid-provider production authority.',
-      500,
-    )
-  }
-
   if (
     runtimeOptions.domainRepositoryRuntimePort
     && context.editReferenceDomainRepositoryRuntimePort
@@ -533,14 +427,6 @@ export function createEditReferenceService(
     warnings: editReferenceDomainRepositoryRuntimeWarnings(domainRepositoryRuntime),
     ...(replayed === undefined ? {} : { replayed }),
   })
-  const visualLanguageProvider = runtimeOptions.visualLanguageProvider
-    ?? createUnavailableOrchestraVisualIntelligenceBridge()
-  const storyEditorialProvider = runtimeOptions.storyEditorialProvider
-    ?? createQwenStoryEditorialReasoningProvider()
-  const speechPacingProvider = runtimeOptions.speechPacingProvider
-    ?? createQwenSpeechPacingReasoningProvider()
-  const audioSoundDesignProvider = runtimeOptions.audioSoundDesignProvider
-    ?? createUnavailableEditReferenceAudioSoundDesignProvider()
   const previousApprovedEditAdapter = createEditReferencePreviousApprovedEditAdapter({
     reader: runtimeOptions.previousApprovedEditHistoryReader
       ?? createUnavailableEditReferenceApprovedHistoryReader(),
@@ -4475,6 +4361,24 @@ export function createEditReferenceService(
           if (!studyEvidence.some((record) => record.sourceType !== 'derived_skill_evidence')) {
             throw new ApiError('PREFERENCE_EVIDENCE_REQUIRED', 'Add evidence before asking ReEditPro to study it.', 409)
           }
+          if (
+            studyEvidence.some((record) => record.sourceType === 'reference_video_metadata')
+            && !visualIntelligenceOrchestraReadPort
+          ) {
+            throw new ApiError(
+              'TOOL_NOT_READY',
+              'Reference-video analysis requires the authenticated Orchestra Visual Intelligence result reader.',
+              503,
+              {
+                requiredGate: 'edit_reference_visual_intelligence_orchestra_result_reread',
+                retiredLocalMediaStudyAccepted: false,
+                callerProviderAccepted: false,
+                mediaProcessingStarted: false,
+                providerCallMade: false,
+                productionReady: false,
+              },
+            )
+          }
           const orchestrationId = `preference-evidence-study-${randomUUID()}`
           const visualIntelligenceStudies =
             visualIntelligenceOrchestraReadPort
@@ -4486,29 +4390,6 @@ export function createEditReferenceService(
                   readPort: visualIntelligenceOrchestraReadPort,
                 })
               : []
-          const mediaStudies = visualIntelligenceOrchestraReadPort
-            ? []
-            : await prepareEditReferenceMediaStudies({
-                context,
-                aggregate,
-                studyId,
-                orchestrationId,
-                visualLanguageProvider,
-                visualLanguageProductionAuthority: runtimeOptions.visualLanguageProductionAuthority,
-                colorTreatmentProductionAuthority: runtimeOptions.colorTreatmentProductionAuthority,
-                graphicsMotionProductionAuthority: runtimeOptions.graphicsMotionProductionAuthority,
-                captionDesignOcrAuthorityResolver: runtimeOptions.captionDesignOcrAuthorityResolver,
-                captionDesignProductionAuthority: runtimeOptions.captionDesignProductionAuthority,
-                storyEditorialProvider,
-                storyEditorialEvidenceAuthorityResolver: runtimeOptions.storyEditorialEvidenceAuthorityResolver,
-                storyEditorialProductionAuthority: runtimeOptions.storyEditorialProductionAuthority,
-                speechPacingProvider,
-                speechPacingTranscriptAuthorityResolver: runtimeOptions.speechPacingTranscriptAuthorityResolver,
-                speechPacingProductionAuthority: runtimeOptions.speechPacingProductionAuthority,
-                audioSoundDesignProvider,
-                audioSoundDesignProductionAuthority: runtimeOptions.audioSoundDesignProductionAuthority,
-                reviewedLocalAudioSoundDesignRuntime: runtimeOptions.reviewedLocalAudioSoundDesignRuntime,
-              })
           const previousApprovedEditStudies = await preparePreviousApprovedEditStudies({
             aggregate,
             studyId,
@@ -4521,41 +4402,10 @@ export function createEditReferenceService(
             editReferenceId: reference.id,
             study,
             evidence: studyEvidence,
-            mediaStudies,
             visualIntelligenceStudies,
             previousApprovedEditStudies,
             now,
           })
-          for (const mediaStudy of mediaStudies) {
-            const asset = aggregate.assets.find((record) => record.id === mediaStudy.referenceAssetId)
-            if (!asset) continue
-            asset.mediaStudyStatus = mediaStudy.status === 'verified_local'
-              ? 'media_studied_local_partial'
-              : 'media_study_blocked'
-            asset.representativeFrameCount = mediaStudy.representativeFrameCount
-            asset.keyframeSampleCount = mediaStudy.keyframeSampleCount
-            asset.mediaAnalysisReportId = mediaStudy.mediaAnalysisReportId
-            asset.technicalAudioStatus = mediaStudy.technicalAudio.status
-            asset.technicalAudioLowLevel = structuredClone(mediaStudy.technicalAudioLowLevel)
-            asset.technicalSceneBoundaryStatus = mediaStudy.shotDetectionStatus
-            asset.technicalSceneBoundaryCount = mediaStudy.shotBoundaryCount
-            asset.technicalSceneBoundaryTimesSeconds = [...mediaStudy.shotBoundaryTimesSeconds]
-            asset.technicalSceneBoundaryCoverage = mediaStudy.shotDetectionCoverage
-            asset.technicalSceneBoundaryThreshold = mediaStudy.shotDetectionThreshold
-            asset.technicalSceneBoundaryScannedDurationSeconds = mediaStudy.shotDetectionScannedDurationSeconds
-            asset.technicalSourceConditionSignal = structuredClone(mediaStudy.technicalSourceCondition)
-            asset.technicalEdgeWidthSignal = structuredClone(mediaStudy.technicalEdgeWidth)
-            asset.technicalCaptionRegionSignal = structuredClone(mediaStudy.technicalCaptionRegions)
-            asset.technicalColorSignal = { ...mediaStudy.technicalColor }
-            asset.technicalMotionSignal = structuredClone(mediaStudy.technicalMotion)
-            asset.technicalStudyUsage = structuredClone(mediaStudy.technicalStudyUsage)
-            asset.lastStudyAt = now
-            if (mediaStudy.status === 'blocked') {
-              asset.lastStudyBlocker = mediaStudy.blockerMessage ?? 'Private media study blocked.'
-            } else {
-              delete asset.lastStudyBlocker
-            }
-          }
           for (const visualIntelligenceStudy of visualIntelligenceStudies) {
             const asset = aggregate.assets.find((record) => (
               record.privateAssetId === visualIntelligenceStudy.privateAssetId
@@ -5477,231 +5327,6 @@ async function resolveEditReferenceVisualIntelligenceBindingScope(input: {
       input.study.id,
       orchestraDigest(input.study),
     ),
-  }
-}
-
-async function prepareEditReferenceMediaStudies(input: {
-  readonly context: ServiceContext
-  readonly aggregate: EditReferenceAggregate
-  readonly studyId: string
-  readonly orchestrationId: string
-  readonly visualLanguageProvider: QwenVisualUnderstandingProvider
-  readonly visualLanguageProductionAuthority?: EditReferenceVisualLanguageProductionAuthority
-  readonly colorTreatmentProductionAuthority?: EditReferenceColorTreatmentProductionAuthority
-  readonly graphicsMotionProductionAuthority?: EditReferenceGraphicsMotionProductionAuthority
-  readonly captionDesignOcrAuthorityResolver?: EditReferenceCaptionDesignOcrAuthorityResolver
-  readonly captionDesignProductionAuthority?: EditReferenceCaptionDesignProductionAuthority
-  readonly storyEditorialProvider: QwenStoryEditorialReasoningProvider
-  readonly storyEditorialEvidenceAuthorityResolver?: EditReferenceStoryEditorialEvidenceAuthorityResolver
-  readonly storyEditorialProductionAuthority?: EditReferenceStoryEditorialProductionAuthority
-  readonly speechPacingProvider: QwenSpeechPacingReasoningProvider
-  readonly speechPacingTranscriptAuthorityResolver?: EditReferenceSpeechPacingTranscriptAuthorityResolver
-  readonly speechPacingProductionAuthority?: EditReferenceSpeechPacingProductionAuthority
-  readonly audioSoundDesignProvider: EditReferenceAudioSoundDesignProvider
-  readonly audioSoundDesignProductionAuthority?: EditReferenceAudioSoundDesignProductionAuthority
-  readonly reviewedLocalAudioSoundDesignRuntime?: EditReferenceReviewedLocalAudioSoundDesignRuntimeOptions
-}): Promise<EditReferenceLocalMediaStudyResult[]> {
-  const { context, aggregate, studyId } = input
-  const study = aggregate.studies.find((record) => record.id === studyId)
-  if (!study) return []
-  const reference = aggregate.references.find((record) => record.id === study.editReferenceId)
-  if (!reference) return []
-  const uploadService = createUploadService(context)
-  const studies: EditReferenceLocalMediaStudyResult[] = []
-  for (const asset of aggregate.assets.filter((record) => (
-    record.studySessionId === studyId
-    && record.assetKind === 'reference_video_metadata'
-    && Boolean(record.storageObjectRecordId)
-    && Boolean(record.mediaAssetId)
-  ))) {
-    const sourceEvidence = aggregate.evidence.find((record) => (
-      record.studySessionId === studyId
-      && record.sourceType === 'reference_video_metadata'
-      && record.provenance.privateAssetId === asset.privateAssetId
-    ))
-    if (!sourceEvidence || !asset.storageObjectRecordId) continue
-    try {
-      const storage = await uploadService.getStorageObjectRecord(asset.storageObjectRecordId, reference.workspaceId)
-      if (
-        (storage.storageObjectRecord.editReferenceId ?? storage.storageObjectRecord.projectId) !== reference.id
-        || storage.storageObjectRecord.mediaAssetId !== asset.mediaAssetId
-      ) {
-        studies.push(createBlockedEditReferenceMediaStudy({
-          referenceAssetId: asset.id,
-          privateAssetId: asset.privateAssetId,
-          sourceEvidenceId: sourceEvidence.id,
-        }, 'reference_media_identity_mismatch', 'The private reference asset identity no longer matches this Edit Reference. Reconnect it before retrying.'))
-        continue
-      }
-      studies.push(await runEditReferenceLocalMediaStudy({
-        env: context.env,
-        referenceAssetId: asset.id,
-        privateAssetId: asset.privateAssetId,
-        sourceEvidenceId: sourceEvidence.id,
-        storageObject: storage.storageObjectRecord,
-        visualLanguageRuntime: createVisualLanguageRuntime({
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidenceId: `${study.id}:visual-language-goal`,
-          provider: input.visualLanguageProvider,
-          productionAuthority: input.visualLanguageProductionAuthority,
-        }),
-        colorTreatmentRuntime: createColorTreatmentRuntime({
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidenceId: `${study.id}:color-treatment-goal`,
-          provider: input.visualLanguageProvider,
-          productionAuthority: input.colorTreatmentProductionAuthority,
-        }),
-        graphicsMotionRuntime: createGraphicsMotionRuntime({
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidenceId: `${study.id}:graphics-motion-goal`,
-          provider: input.visualLanguageProvider,
-          productionAuthority: input.graphicsMotionProductionAuthority,
-        }),
-        captionDesignRuntime: {
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidenceId: `${study.id}:caption-design-goal`,
-          provider: input.visualLanguageProvider,
-          captionOcrAuthorityResolver: input.captionDesignOcrAuthorityResolver,
-          productionAuthority: input.captionDesignProductionAuthority,
-        },
-        storyEditorialRuntime: {
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidence: study.initialGoals.map((goal) => ({
-            evidenceId: `${study.id}:story-editorial-goal:${goal}`,
-            summary: `The saved Edit Reference study goal authorizes generalized ${goal.replaceAll('_', ' ')} analysis without copying source wording, sequence, timing, or identity.`,
-            confidence: 1,
-            requiresUserReview: false,
-          })),
-          provider: input.storyEditorialProvider,
-          evidenceAuthorityResolver: input.storyEditorialEvidenceAuthorityResolver,
-          productionAuthority: input.storyEditorialProductionAuthority,
-        },
-        speechPacingRuntime: {
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidence: study.initialGoals.map((goal) => ({
-            evidenceId: `${study.id}:speech-pacing-goal:${goal}`,
-            summary: `The saved Edit Reference study goal authorizes generalized ${goal.replaceAll('_', ' ')} speech and pacing analysis without copying source wording, timing, voice identity, captions, or cut maps.`,
-          })),
-          provider: input.speechPacingProvider,
-          transcriptAuthorityResolver: input.speechPacingTranscriptAuthorityResolver,
-          productionAuthority: input.speechPacingProductionAuthority,
-        },
-        audioSoundDesignRuntime: createAudioSoundDesignRuntime({
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidenceId: `${study.id}:audio-sound-design-goal`,
-          provider: input.audioSoundDesignProvider,
-          sourceAudioRightsBasis: sourceEvidence.provenance.rightsBasis === 'workspace_approved_edit'
-            ? 'unknown'
-            : sourceEvidence.provenance.rightsBasis ?? 'unknown',
-          productionAuthority: input.audioSoundDesignProductionAuthority,
-          reviewedLocalRuntime: input.reviewedLocalAudioSoundDesignRuntime,
-        }),
-      }))
-    } catch {
-      studies.push(createBlockedEditReferenceMediaStudy({
-        referenceAssetId: asset.id,
-        privateAssetId: asset.privateAssetId,
-        sourceEvidenceId: sourceEvidence.id,
-      }, 'reference_media_private_asset_unavailable', 'The private reference asset could not be opened by the approved local runtime. Reconnect it and retry.'))
-    }
-  }
-  return studies
-}
-
-function createVisualLanguageRuntime(input: {
-  readonly orchestrationId: string
-  readonly studySessionId: string
-  readonly studyGoalEvidenceId: string
-  readonly provider: QwenVisualUnderstandingProvider
-  readonly productionAuthority?: EditReferenceVisualLanguageProductionAuthority
-}): EditReferenceVisualLanguageRuntimeInput {
-  const identity = {
-    orchestrationId: input.orchestrationId,
-    studySessionId: input.studySessionId,
-    studyGoalEvidenceId: input.studyGoalEvidenceId,
-  }
-  return {
-    ...identity,
-    runtimeKind: 'provider',
-    provider: input.provider,
-    productionAuthority: input.productionAuthority,
-  }
-}
-
-function createColorTreatmentRuntime(input: {
-  readonly orchestrationId: string
-  readonly studySessionId: string
-  readonly studyGoalEvidenceId: string
-  readonly provider: QwenVisualUnderstandingProvider
-  readonly productionAuthority?: EditReferenceColorTreatmentProductionAuthority
-}): EditReferenceColorTreatmentRuntimeInput {
-  const identity = {
-    orchestrationId: input.orchestrationId,
-    studySessionId: input.studySessionId,
-    studyGoalEvidenceId: input.studyGoalEvidenceId,
-  }
-  return {
-    ...identity,
-    runtimeKind: 'provider',
-    provider: input.provider,
-    productionAuthority: input.productionAuthority,
-  }
-}
-
-function createGraphicsMotionRuntime(input: {
-  readonly orchestrationId: string
-  readonly studySessionId: string
-  readonly studyGoalEvidenceId: string
-  readonly provider: QwenVisualUnderstandingProvider
-  readonly productionAuthority?: EditReferenceGraphicsMotionProductionAuthority
-}): EditReferenceGraphicsMotionRuntimeInput {
-  const identity = {
-    orchestrationId: input.orchestrationId,
-    studySessionId: input.studySessionId,
-    studyGoalEvidenceId: input.studyGoalEvidenceId,
-  }
-  return {
-    ...identity,
-    runtimeKind: 'provider',
-    provider: input.provider,
-    productionAuthority: input.productionAuthority,
-  }
-}
-
-function createAudioSoundDesignRuntime(input: {
-  readonly orchestrationId: string
-  readonly studySessionId: string
-  readonly studyGoalEvidenceId: string
-  readonly sourceAudioRightsBasis: 'user_owned' | 'licensed_or_authorized' | 'reference_only' | 'unknown'
-  readonly provider: EditReferenceAudioSoundDesignProvider
-  readonly productionAuthority?: EditReferenceAudioSoundDesignProductionAuthority
-  readonly reviewedLocalRuntime?: EditReferenceReviewedLocalAudioSoundDesignRuntimeOptions
-}): EditReferenceAudioSoundDesignRuntimeInput {
-  const identity = {
-    orchestrationId: input.orchestrationId,
-    studySessionId: input.studySessionId,
-    studyGoalEvidenceId: input.studyGoalEvidenceId,
-    sourceAudioRightsBasis: input.sourceAudioRightsBasis,
-  }
-  if (input.reviewedLocalRuntime) {
-    return {
-      ...identity,
-      runtimeKind: 'reviewed_local_ast_audioset',
-      ...input.reviewedLocalRuntime,
-    }
-  }
-  return {
-    ...identity,
-    runtimeKind: 'provider',
-    provider: input.provider,
-    productionAuthority: input.productionAuthority,
   }
 }
 

@@ -39,12 +39,19 @@ Historical Artifact Registry digests were deliberately retained. They are not
 fresh dispatch authority and preserve prior audit evidence.
 
 The repository cutover now also removes the complete unreferenced reviewed-
-local Qwen2.5-VL long-form stack, its MLX runtime validators/adapters, and all
-five local Python inference runners. Edit Reference no longer accepts a local
-Qwen runtime option or constructs a Qwen MLX process path. The remaining Qwen
-provider contracts are fail-closed historical tombstones used only to validate
-old immutable evidence; they cannot read model files, launch a process, call a
-provider, or become fresh Orchestra authority.
+local Qwen2.5-VL long-form stack, its MLX runtime validators/adapters, all five
+local Python inference runners, the generic Qwen visual provider, the four
+Edit Reference Qwen adapters, and the old local-media study executors. Edit
+Reference no longer accepts a local Qwen runtime option, constructs a Qwen MLX
+process path, or falls back to direct local-media analysis when the Orchestra
+read port is absent. A fresh reference-video study must reread the exact
+authenticated Orchestra/Visual Intelligence result or fail closed. A compact
+legacy-result transformer was also removed from the evidence orchestrator, so
+old local-media result objects cannot be supplied to create fresh findings.
+Previously materialized immutable evidence remains readable through its stored
+repository records. The remaining Qwen model-role and evidence schemas are
+historical compatibility contracts only and cannot become fresh Orchestra
+authority.
 
 The GPU-first processing cutover also retired the fifteen remaining frozen
 CPU-only Cloud Run Job definitions after a second live inventory proved that

@@ -244,11 +244,11 @@ assert.equal(durableReread?.providerModel, 'gemini-3.1-pro-preview')
 assert.equal(durableReread?.preferenceDnaApproved, false)
 
 const serviceProof = await proveEditReferenceServiceUsesOrchestraReadPort()
-assert.equal(serviceProof.retiredVisualProviderCallCount, 0)
 assert.equal(serviceProof.visualIntelligenceSkillCompleted, true)
 assert.equal(serviceProof.assetMarkedStudiedByVisualIntelligence, true)
 assert.equal(serviceProof.serverOwnedBindingRequestPrepared, true)
 assert.equal(serviceProof.staleOrMissingSourceRefused, true)
+assert.equal(serviceProof.missingOrchestraReadPortRefused, true)
 
 let adversarialRefusals = 0
 await refused('wrong job type', () => resultFixture(report, {
@@ -320,16 +320,17 @@ console.log(JSON.stringify({
   editReferenceServiceReadPortIntegrationPassed: true,
   serverOwnedBindingRequestPreparationPassed: true,
   staleOrMissingBindingSourceRefused: true,
-  retiredLocalVisualProviderNotCalled: true,
+  missingOrchestraReadPortRefusedBeforeMediaProcessing: true,
+  retiredLocalVisualProviderInjectionRemoved: true,
   adversarialRefusals,
 }, null, 2))
 
 async function proveEditReferenceServiceUsesOrchestraReadPort(): Promise<{
-  retiredVisualProviderCallCount: number
   visualIntelligenceSkillCompleted: boolean
   assetMarkedStudiedByVisualIntelligence: boolean
   serverOwnedBindingRequestPrepared: boolean
   staleOrMissingSourceRefused: boolean
+  missingOrchestraReadPortRefused: boolean
 }> {
   const localStorageRoot = await mkdtemp(join(
     tmpdir(),
@@ -455,6 +456,13 @@ async function proveEditReferenceServiceUsesOrchestraReadPort(): Promise<{
       item.mediaAssetId === sourceRef.id
     ))
     assert(referenceAsset)
+    await assert.rejects(
+      setupService.runEvidenceStudy(study.id, {
+        workspaceId,
+        expectedStudyRevision: study.revision,
+      }, 'reject-edit-reference-local-visual-fallback'),
+      /requires the authenticated Orchestra Visual Intelligence result reader/u,
+    )
     const exactScope = {
       ownerUserId,
       workspaceId,
@@ -565,15 +573,8 @@ async function proveEditReferenceServiceUsesOrchestraReadPort(): Promise<{
         },
       },
     })
-    let retiredVisualProviderCallCount = 0
     const service = createEditReferenceService(context, undefined, {
       visualIntelligenceOrchestraReadPort: exactReadPort,
-      visualLanguageProvider: {
-        async analyze() {
-          retiredVisualProviderCallCount += 1
-          throw new Error('retired visual provider must not run')
-        },
-      },
     })
     const studied = await service.runEvidenceStudy(study.id, {
       workspaceId,
@@ -590,7 +591,6 @@ async function proveEditReferenceServiceUsesOrchestraReadPort(): Promise<{
       item.skillId !== 'edit_reference.visual_language.qwen_visual_analysis'
     )))
     return {
-      retiredVisualProviderCallCount,
       visualIntelligenceSkillCompleted: visualRun?.status === 'completed',
       assetMarkedStudiedByVisualIntelligence:
         studiedAsset?.mediaStudyStatus
@@ -598,6 +598,7 @@ async function proveEditReferenceServiceUsesOrchestraReadPort(): Promise<{
       serverOwnedBindingRequestPrepared:
         preparedBinding.data.requestDigestSha256.startsWith('sha256:'),
       staleOrMissingSourceRefused: true,
+      missingOrchestraReadPortRefused: true,
     }
   } finally {
     await rm(localStorageRoot, { recursive: true, force: true })

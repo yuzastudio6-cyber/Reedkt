@@ -7,7 +7,10 @@ import {
   assertCanonicalSam31QualificationA100Admission,
   assertCanonicalSam31QualificationA100JobObservation,
   assertCanonicalSam31QualificationA100Submission,
+  type CanonicalSam31QualificationA100Admission,
+  type CanonicalSam31QualificationA100JobObservation,
   type CanonicalSam31QualificationA100StatePort,
+  type CanonicalSam31QualificationA100Submission,
 } from './canonical-sam3_1-source-checkpoint-qualification-a100-phase'
 import { stableAuthorityStringify } from './private-edit-authority-store'
 
@@ -38,40 +41,48 @@ export function createCanonicalSam31QualificationA100StateRepository(input: {
       CANONICAL_SAM3_1_QUALIFICATION_A100_STATE_REPOSITORY_VERSION,
     evidenceClass: 'private_gcs_create_only_exact_reread',
 
-    consumeAdmissionCreateOnly: ({ admission }) => persist({
+    consumeAdmissionCreateOnly: ({ admission }: {
+      readonly admission: CanonicalSam31QualificationA100Admission
+    }) => persist({
       port: input.objectPort,
       path: pathFor(prefix, 'admissions', admission.attemptId),
       value: assertCanonicalSam31QualificationA100Admission(admission),
       parse: assertCanonicalSam31QualificationA100Admission,
     }),
 
-    rereadAdmission: ({ attemptId }) => read({
+    rereadAdmission: ({ attemptId }: { readonly attemptId: string }) => read({
       port: input.objectPort,
       path: pathFor(prefix, 'admissions', attemptId),
       parse: assertCanonicalSam31QualificationA100Admission,
     }),
 
-    persistSubmissionCreateOnly: ({ submission }) => persist({
+    persistSubmissionCreateOnly: ({ submission }: {
+      readonly submission: CanonicalSam31QualificationA100Submission
+    }) => persist({
       port: input.objectPort,
       path: pathFor(prefix, 'submissions', submission.attemptId),
       value: assertCanonicalSam31QualificationA100Submission(submission),
       parse: assertCanonicalSam31QualificationA100Submission,
     }),
 
-    rereadSubmission: ({ attemptId }) => read({
+    rereadSubmission: ({ attemptId }: { readonly attemptId: string }) => read({
       port: input.objectPort,
       path: pathFor(prefix, 'submissions', attemptId),
       parse: assertCanonicalSam31QualificationA100Submission,
     }),
 
-    persistTerminalObservationCreateOnly: ({ observation }) => persist({
+    persistTerminalObservationCreateOnly: ({ observation }: {
+      readonly observation: CanonicalSam31QualificationA100JobObservation
+    }) => persist({
       port: input.objectPort,
       path: pathFor(prefix, 'terminals', observation.attemptId),
       value: assertCanonicalSam31QualificationA100JobObservation(observation),
       parse: assertCanonicalSam31QualificationA100JobObservation,
     }),
 
-    rereadTerminalObservation: ({ attemptId }) => read({
+    rereadTerminalObservation: ({ attemptId }: {
+      readonly attemptId: string
+    }) => read({
       port: input.objectPort,
       path: pathFor(prefix, 'terminals', attemptId),
       parse: assertCanonicalSam31QualificationA100JobObservation,

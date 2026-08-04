@@ -639,7 +639,11 @@ export function createCanonicalGoogleBatchSam31QualificationTransport(input?: {
     throw new Error('SAM 3.1 qualification Batch timeout is invalid.')
   }
   return Object.freeze({
-    async request(request) {
+    async request(
+      request: Parameters<
+        CanonicalSam31QualificationBatchTransport['request']
+      >[0],
+    ) {
       const response = await auth.request({
         url: request.url,
         method: request.method,

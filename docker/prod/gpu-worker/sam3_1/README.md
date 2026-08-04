@@ -118,10 +118,19 @@ the worker rereads it alongside the lock and dependency-closure receipt.
 Each qualification attempt mounts only its own generation-bound Cloud Storage
 subdirectory at `/mnt/disks/reeditpro/sam31-qualification`, which is the Batch
 storage-volume path consumed by the fixed worker. The remote subdirectory
-contains exactly `request/request.json`, the read-only checkpoint and probe,
-and an initially empty `result/` directory. This prevents concurrent attempts
-from sharing mutable fixed-path objects while keeping caller paths and mount
-coordinates out of the worker request.
+contains exactly `request/request.json`, the read-only checkpoint, and the
+read-only probe before launch; `result/result.json` must not exist until the
+fixed worker creates it. The canonical staging owner copies the exact
+generation-bound checkpoint and probe server-side into this attempt prefix
+with create-only preconditions and a fixed WeEditPro CMEK, so the 3–5 GB
+checkpoint is never downloaded to the application process or installed on the
+developer Mac. It then rereads generation, ETag, length, content type, digest
+lineage, encryption key, and the complete three-object set before persisting
+the mount observation create-only. An identical restart may reopen that exact
+observation; a crossed source, extra object, pre-existing result, changed byte
+identity, public/signed URL, or caller coordinate fails closed. This prevents
+concurrent attempts from sharing mutable fixed-path objects while keeping
+caller paths and mount coordinates out of the worker request.
 
 The qualification image is compiled by the qualification phase of the same
 canonical SAM 3.1 Cloud Build owner; it is not a second image-build owner. The

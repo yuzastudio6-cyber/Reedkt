@@ -98,3 +98,19 @@ performed during TRACK-00.
   authorities remain fail-closed pending TRACK-01 research and later route
   qualification.
 - Production qualification: `false`.
+
+## TRACK-01 — research, repository audit, and tool architecture
+
+Status: implemented locally; commit and remote confirmation are recorded after this section is committed.
+
+- Inspected official Meta SAM 3.1 source at `96914d2425f90a64f45ca977c2b5165418099543`; its source tree and four pinned file hashes exactly match the repository authority.
+- Verified Object Multiplex, builder, text/point/box prompts, object IDs/removal, reset/cancel/close, non-zero initialization, and forward/backward/bidirectional propagation directly from official source and notebook.
+- Kept direct multiplex mask prompting unclaimed because the public request dispatcher does not expose it.
+- Confirmed official issue #526 is open; strict zero-missing/zero-unexpected checkpoint qualification remains mandatory.
+- Confirmed the checkpoint repo is human-gated and inaccessible without authorization; no checkpoint/model bytes or paid GPU work occurred.
+- Audited the current 75-profile tool catalog and 38 professional operation specs.
+- Froze `tool.sam3_1.track_masklets.v2` as the forward-only intended Track All operation while preserving V1 exactly.
+- Classified SAM2, BiRefNet, rembg, and transparent-background as unavailable tracking fallbacks.
+- Added SAM research/runtime/qualification documents, tool audit/matrix/gap/ownership documents, and the initial retirement map.
+
+Qualification state remains `implementation_pending`; documentation and contracts alone do not qualify execution.

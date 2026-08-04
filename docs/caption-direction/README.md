@@ -1,7 +1,7 @@
-# Captions Specialist — CAP-08 Visual Evidence Checkpoint
+# Captions Specialist — CAP-09 Track All Checkpoint
 
-Status: `cap_08_contract_complete_private_visual_runtime_gated`
-Checkpoint: `CAP-08`
+Status: `cap_09_contract_complete_private_track_all_runtime_gated`
+Checkpoint: `CAP-09`
 Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
@@ -81,6 +81,7 @@ The governing workflow invariant remains:
 - [CAP-06 early strategy and reservation report](cap-06-early-strategy-reservation-report.md)
 - [CAP-07 picture lock and finish readiness report](cap-07-picture-lock-finish-readiness-report.md)
 - [CAP-08 Visual Intelligence support report](cap-08-visual-intelligence-support-report.md)
+- [CAP-09 Track All and SAM 3.1 report](cap-09-track-all-sam31-report.md)
 
 ### Historical architecture retained and amended
 
@@ -118,7 +119,9 @@ The governing workflow invariant remains:
 
 CAP-00R through CAP-07 are complete on the clean specialist branch. CAP-08's
 support/occupancy/hierarchy contracts are complete with actual private visual
-runtime evidence explicitly gated. CAP-05's
+runtime evidence explicitly gated. CAP-09's Track All boundary, temporal QA,
+cache, and fallback contracts are complete with actual Track All/SAM 3.1 media
+execution explicitly gated. CAP-05's
 contracts and fail-closed resolver are complete, with its actual private font
 runtime qualification gates carried explicitly. CAP-01 adds the
 neutral shared v2 manifest extension, per-job qualification snapshot,
@@ -165,8 +168,13 @@ collision checks, final visual hierarchy, and rendered-inspection request
 contract. Contract fixtures cannot claim visual inference or final rendered
 inspection; those private runtime gates remain explicit.
 
-Implementation continues automatically into CAP-09 Track All and SAM 3.1
-support. Registry/workflow integration will consume
+CAP-09 adds the Track All support compiler, opaque SAM 3.1 lineage, exact
+mask/track/anchor artifacts, OpenCV/Kornia refinement evidence, temporal QA,
+cache identity/reuse, and a fixed safe fallback ladder. Contract fixtures
+cannot admit text-behind-subject or anchor execution.
+
+Implementation continues automatically into CAP-10 semantic and style
+resolution. Registry/workflow integration will consume
 these frozen public artifacts at its dependency-safe milestone; no Caption
 milestone manufactures a second planner or a false backend coverage claim.
 

@@ -1,0 +1,83 @@
+# CAP-09 — Track All and SAM 3.1 Report
+
+Status: `contract_complete_private_track_all_runtime_gated`
+Milestone: `CAP-09`
+Media/GPU/runtime started: no
+Real text-behind-subject fixture claimed: no
+Runtime, asset, QA, billing, render, or production authority promoted: no
+
+## Outcome
+
+CAP-09 adds the Caption-owned Track All support boundary without importing a
+Track All or SAM server implementation. The versioned payload travels inside
+the neutral `SkillSupportRequest`, targets `track_all`, carries exact approved
+snapshot/output/scene/range/source/phrase/occupancy lineage, and requests only
+mask, track, and anchor artifacts needed for the approved depth intent.
+
+Caption does not choose a GPU route, compile a model prompt, dispatch SAM 3.1,
+create mask assets, or reinterpret private runtime internals. The inbound
+packet keeps the canonical operation identity
+`tool.sam3_1.segment_and_track_subject.v1` as opaque Track All lineage and
+explicitly rejects historical SAM 2 for new work.
+
+## Evidence and QA
+
+`caption-track-all-evidence-packet-v1` binds each requested subject to the
+exact frame range, source-frame mapping, output-frame digest, mask sequence,
+track manifest, optional anchor manifest, deterministic refinement evidence,
+and temporal QA measurements.
+
+The request freezes exact thresholds for:
+
+- complete frame coverage and frame count;
+- empty/full mask frames;
+- minimum binary intersection-over-union;
+- maximum centroid shift;
+- maximum boundary disagreement;
+- maximum alpha flicker;
+- minimum edge quality and subject coverage;
+- identity swaps and lost-anchor frames.
+
+OpenCV owns deterministic mask QA. Kornia may perform an approved refinement
+operation but cannot replace primary segmentation. CAP-09 treats both as
+evidence-producing tools behind Track All; Caption does not execute them.
+
+## Cache and fallback behavior
+
+The cache identity binds purpose, tenant/snapshot/output/scene/range, source,
+frame mapping, subject and phrase lineage, confirmed frame, QA thresholds, and
+refinement policy. Cross-scene, cross-output, stale, or partial reuse fails
+closed. An exact-cache-reuse packet must retain its original result ref and
+still pass authenticated reread, artifact QA, and private visual review.
+
+The fixed fallback ladder is:
+
+1. retry Track All with the same approved input;
+2. apply approved OpenCV/Kornia refinement;
+3. move Caption to the safe top plane;
+4. use stable libass Caption;
+5. request user review.
+
+Contract fixtures select the safe top plane. They cannot admit text behind a
+subject or object anchoring, even when their synthetic measurements pass.
+
+## Verification
+
+`smoke:captions-specialist-cap-09` passes 25 positive and adversarial checks.
+It covers the neutral Track All target, exact SAM 3.1 operation identity,
+subject/phrase/source/frame lineage, deterministic QA thresholds, mask/track
+and anchor requirements, cache separation/reuse, weak overlap/flicker
+findings, safe fallback, wrong depth, missing phrase lineage, stale cache,
+invalid cache reuse, historical SAM 2, fixture execution overclaims, missing
+masks, disallowed payload/evidence combinations, unknown nested data, and
+admission overclaims.
+
+The focused smoke, server typecheck, and focused ESLint pass. The real
+SAM 3.1 + Track All + OpenCV/Kornia + Remotion text-behind-subject media
+fixture remains an explicit private-runtime gate for later bounded execution.
+
+## Next milestone
+
+CAP-10 implements semantic phrases, language-aware line breaking, typography
+roles, multi-font fallback, optical/semantic size and color, adaptive
+legibility, platform profiles, and calibration-preview contracts.

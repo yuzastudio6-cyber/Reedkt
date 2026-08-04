@@ -1,6 +1,6 @@
 # Captions Specialist Implementation Roadmap
 
-Status: `CAP-08 contract complete; CAP-05/CAP-08 internal runtime gates tracked; CAP-09 next`
+Status: `CAP-09 contract complete; CAP-05/CAP-08/CAP-09 internal runtime gates tracked; CAP-10 next`
 
 ## Dependency graph
 

@@ -365,7 +365,8 @@
     "smoke:captions-specialist-cap-05": "tsx server/smoke/captions-specialist-cap-05-smoke.ts",
     "smoke:captions-specialist-cap-06": "tsx server/smoke/captions-specialist-cap-06-smoke.ts",
     "smoke:captions-specialist-cap-07": "tsx server/smoke/captions-specialist-cap-07-smoke.ts",
-    "smoke:captions-specialist-cap-08": "tsx server/smoke/captions-specialist-cap-08-smoke.ts"
+    "smoke:captions-specialist-cap-08": "tsx server/smoke/captions-specialist-cap-08-smoke.ts",
+    "smoke:captions-specialist-cap-09": "tsx server/smoke/captions-specialist-cap-09-smoke.ts"
   },
   "dependencies": {
     "@babylonjs/core": "^9.15.0",

@@ -1539,6 +1539,124 @@ Production qualification remains false. No orchestra, Track All, Visual
 Intelligence, paid provider call, public delivery, final export, production
 mutation, or billing work was performed.
 
+## M23 — final B-roll closeout qualification
+
+Status: completed and pushed; PR check remains red only on independently
+reproduced base-branch regressions.
+
+Final generated qualification commit:
+`c8995159c11ab45259e1a34a516af26fbc09e372`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to `c8995159c11ab45259e1a34a516af26fbc09e372` after
+`git push -u origin HEAD`.
+
+The final aggregate qualifier ran from exact clean commit
+`7326bf53a52db6b9aace7f9dde0b28ecb921ceb8`. All 26 commands and all 36
+required planning/internal-execution fixtures passed. The generated receipt
+records real exit statuses, timestamps, stdout/stderr digests, build/test/
+security/provider evidence, the exact commit and source-tree hash, and zero
+provider requests, public artifacts, or production mutations. A prior attempt
+stopped without issuing a receipt when Chromium failed to launch for the
+private Remotion fixture; the exact fixture then passed independently and the
+entire qualifier was rerun from the beginning successfully.
+
+The exact main Playwright suite was rerun after the qualification commit with
+local FFmpeg and FFprobe 8.1.1 available: 131 tests passed, seven were declared
+skips, and none failed. GitHub Actions pull-request run
+`https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/30869983147`
+independently passed checkout, secret checks, dependency installation,
+frontend boundary, high-severity audit, Chromium installation, the new
+FFmpeg/FFprobe installation and version verification, lint, typecheck, build,
+and the same 131-test main suite. It contains no `spawn ffmpeg ENOENT`.
+
+The workflow then truthfully failed on the separate five-test Current Edit
+Preferences atomic command: two passed and the same three assertions failed as
+on exact base `6423f12c1e62a252fc860ce5184888770411c62d`. The branch and base both
+retain those failures unchanged; tests were not skipped, weakened, or altered.
+
+The shared canonical private-pipeline normal profile passed 21 consecutive
+stages, including its real FFmpeg/FFprobe object-chunk and resource-observation
+lanes, before the unchanged professional-long-form smoke expected an older
+error class and received the current custom-estimate gate. Running that exact
+smoke in a detached worktree at the PR base reproduced the identical failure.
+The full profile separately passed its first five stages and then failed in the
+unchanged local canonical V3 upload-target escrow fixture; a clean reset rerun
+reproduced `temporary_target_escrow_write_failed`, and none of its source paths
+differ from the PR base. These external base regressions are retained as
+evidence and were not changed under the B-roll closeout scope.
+
+The branch was fetched and pruned at final closeout. The PR base remained
+`6423f12c1e62a252fc860ce5184888770411c62d`, the merge base was exactly that
+commit, and the branch was zero commits behind. No synchronization merge was
+required.
+
+Final evidence:
+
+- Manifest schema: `skill-capability-manifest-v2`.
+- Manifest hash:
+  `f76f07bd05a4e38ff61a04cdb4fa3d5784c41d1018f497f2d3d3c390c260d427`.
+- Tested commit:
+  `7326bf53a52db6b9aace7f9dde0b28ecb921ceb8`.
+- Relevant source-tree hash:
+  `728e4295235751484722887f588f00389727050a89c8c3650e3ed3c7c885db40`.
+- Qualification receipt hash:
+  `e97d1ffc9897102f42f1698fd0e83fc13b23ffa454f0ccf4deb7bcad70d3082f`.
+- Generated qualification artifact hash:
+  `fa62ff38822fbc08da072c9a21c94df04ae13bc6bc2f344104e951c2e6875401`.
+- Actual status: `internal_execution_qualified`.
+- Production qualification: false; all five live production fixtures remain
+  absent.
+
+Final commands executed directly or by the aggregate qualifier:
+
+- `npm run qualify:b-roll:internal`.
+- `npm run test:b-roll-planning`;
+  `npm run test:b-roll-planning-qa`;
+  `npm run test:b-roll-qualification-evidence`;
+  `npm run test:b-roll-plan-invariants`;
+  `npm run test:b-roll-public-plugin`;
+  `npm run test:b-roll-runtime-bindings`;
+  `npm run test:edit-skill-runtime-factory`;
+  `npm run test:ui-qa-media-runtime-workflow`;
+  `npm run test:b-roll-capability-manifest`;
+  `npm run validate:skill-capability-manifests`;
+  `npm run test:edit-skill-capability-kernel`.
+- `npm run build`; `npm run typecheck:server`; `npm run lint`;
+  `npm run check:frontend-boundary`; `git diff --check`.
+- `npm run smoke:b-roll-provider-authority`;
+  `npm run smoke:b-roll-retirement`;
+  `npm run smoke:b-roll-end-to-end`;
+  `npm run smoke:b-roll-candidate-qa`;
+  `npm run smoke:b-roll-existing-source`;
+  `npm run smoke:b-roll-provider-lifecycle`;
+  `npm run test:b-roll-canonical-integration`;
+  `npm run smoke:b-roll-remotion-integration`.
+- `npm run smoke:runtime-api-security`;
+  `npm run smoke:edit-execution-security-boundary`;
+  `npm run smoke:idempotency-boundary` plus the other six UI-QA security
+  boundary smokes recorded in M22.
+- `ffmpeg -version`; `ffprobe -version`; `npx playwright test`;
+  `npm run test:e2e`; `npm run qa:current-edit-preferences-atomic`;
+  `npm run qa:canonical-private-pipeline`; `npm run qa:internal-pipeline`;
+  `npm run qa:canonical-v3-local`.
+- `npm run canary:gemini-omni-b-roll`.
+- Git status/diff/log/ref/fetch checks, GitHub PR/run inspection, normal
+  milestone commits, and `git push -u origin HEAD` after every milestone.
+
+The real Gemini command returned `blocked_external_prerequisites`, performed
+zero provider requests, and did not claim success. Missing gates were explicit
+operator confirmation, the fixed safe fixture ID, a pinned numeric Secret
+Manager key version, an absolute private artifact root, a positive maximum
+cost ceiling, and a positive account-effective rate. Production qualification
+also still requires the real canary, live credential boundary, account-rate
+authority, live private-output ingest, and live security/privacy review.
+
+The orchestra was not implemented. Track All was not implemented. Visual
+Intelligence was not implemented. No direct tracking model or alternate B-roll
+provider was introduced. No paid provider call, public media, production
+mutation, final customer export, billing, or wallet action occurred.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1566,3 +1684,4 @@ mutation, or billing work was performed.
 | M20 | `c34664df7` + `851702089` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M21 | `cc516c651` + `ae3dde206` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M22 | `c79d93e71` + `a39b9feda` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M23 | `c8995159c` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

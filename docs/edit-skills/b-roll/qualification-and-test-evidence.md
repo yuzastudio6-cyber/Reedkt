@@ -2,18 +2,32 @@
 
 Status: `internal_execution_qualified`
 
-Manifest hash: `c916e4d29dc91b71e2c16ac8f64fe55fa416e3dd10784e620d9d49d9ef254d6c`
+Manifest schema: `skill-capability-manifest-v2`
+
+Manifest hash: `f76f07bd05a4e38ff61a04cdb4fa3d5784c41d1018f497f2d3d3c390c260d427`
 
 Qualification receipt hash:
-`9b10ed12a838f70f0ff7c97c76695838acc219565634b34bdf8f2825200ec3bf`
+`e97d1ffc9897102f42f1698fd0e83fc13b23ffa454f0ccf4deb7bcad70d3082f`
+
+Tested commit: `7326bf53a52db6b9aace7f9dde0b28ecb921ceb8`
+
+Relevant source-tree hash:
+`728e4295235751484722887f588f00389727050a89c8c3650e3ed3c7c885db40`
+
+Generated qualification artifact hash:
+`fa62ff38822fbc08da072c9a21c94df04ae13bc6bc2f344104e951c2e6875401`
 
 ## Qualification scope
 
-The receipt contains 36 passed results: all 15 planning fixtures and all 21
-internal-execution fixtures declared by the capability manifest. Each result
-has a deterministic evidence hash and named proof owner. The receipt includes
-separate build, test, security, and provider evidence hashes and is bound to the
-exact manifest reference.
+The receipt was generated from 26 actual passed commands and contains 36
+validated fixture evidence artifacts: all 15 planning fixtures and all 21
+internal-execution fixtures declared by the capability manifest. Each command
+captures its real exit status, timestamps, sanitized stdout/stderr digest, and
+content-addressed evidence; each fixture has a deterministic evidence hash and
+named proof owner. The receipt includes separate build, test, security, and
+provider evidence hashes and is bound to the exact commit, relevant
+source-tree hash, and manifest reference. Provider requests, public artifacts,
+and production mutations were all zero.
 
 The five production fixtures are intentionally absent:
 
@@ -63,7 +77,9 @@ Observed acceptance evidence:
 | Evidence area | Commands |
 | --- | --- |
 | Manifest/kernel | `validate:skill-capability-manifests`, `test:edit-skill-capability-kernel`, `test:b-roll-capability-manifest` |
-| Planning/range/work graph | `test:b-roll-planning`, `test:b-roll-canonical-integration`, `smoke:canonical-source-led-plan-compiler`, `smoke:approved-snapshot` |
+| Public boundary/runtime | `test:b-roll-public-plugin`, `test:b-roll-runtime-bindings`, `test:edit-skill-runtime-factory` |
+| Planning/range/work graph | `test:b-roll-planning`, `test:b-roll-plan-invariants`, `test:b-roll-canonical-integration`, `smoke:canonical-source-led-plan-compiler`, `smoke:approved-snapshot` |
+| Planning QA/qualification | `test:b-roll-planning-qa`, `test:b-roll-qualification-evidence`, `qualify:b-roll:internal` |
 | Source/artifact | `smoke:b-roll-existing-source`, `smoke:private-artifact-qa-authority`, `smoke:private-local-persistence` |
 | Provider | `smoke:b-roll-provider-authority`, `smoke:b-roll-provider-lifecycle`, `smoke:canonical-private-provider-work-lifecycle`, `smoke:canonical-provider-attempt-runtime-record` |
 | Candidate QA | `smoke:b-roll-candidate-qa`, `smoke:offline-media-binary-execution` |
@@ -72,6 +88,7 @@ Observed acceptance evidence:
 | Aggregate E2E | `smoke:b-roll-end-to-end` |
 | Security/boundary | `smoke:runtime-api-security`, `smoke:edit-execution-security-boundary`, `smoke:idempotency-boundary`, `check:frontend-boundary` |
 | Repository quality | `build`, `typecheck:server`, `lint`, `git diff --check` |
+| CI media runtime | `test:ui-qa-media-runtime-workflow`, `ffmpeg -version`, `ffprobe -version`, main Playwright suite |
 | External canary | `canary:gemini-omni-b-roll` — pass only when external gates exist; otherwise safely blocked with zero requests |
 
 The milestone progress ledger records actual command results and any unrelated

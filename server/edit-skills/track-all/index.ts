@@ -22,6 +22,7 @@ import {
   registerTrackAllRuntimeBindings,
   TRACK_ALL_WORK_GRAPH_JOB_DEFINITIONS,
 } from './track-all-work-graph'
+import { estimateTrackAllPlan } from './private/planning-mini-skills'
 
 export * from './track-all-artifact-types'
 export * from './track-all-capability-manifest'
@@ -31,6 +32,36 @@ export * from './track-all-qa-policy'
 export * from './track-all-schemas'
 export * from './track-all-skill-service'
 export * from './track-all-work-graph'
+
+function estimatorInput(value: Readonly<Record<string, unknown>>) {
+  const nonnegative = (key: string) => typeof value[key] === 'number'
+    ? Math.max(0, Math.floor(value[key]))
+    : 0
+  const qaDepth: 'planning' | 'internal' | 'production' =
+    value.qaDepth === 'production' || value.qaDepth === 'internal'
+      ? value.qaDepth
+      : 'planning'
+  return {
+    frameCount: nonnegative('durationFrames'),
+    fps: Math.max(1, nonnegative('fps') || 24),
+    chunkCount: nonnegative('chunkCount'),
+    overlapFrames: nonnegative('overlapFrames'),
+    targetGroupCount: nonnegative('targetGroupCount'),
+    objectCount: nonnegative('objectCount'),
+    bucketCount: nonnegative('bucketCount'),
+    sessionCount: nonnegative('sessionCount'),
+    bidirectionalPropagation: value.bidirectionalPropagation === true,
+    planarGeometry: value.planarGeometry === true,
+    ocr: value.ocr === true,
+    landmarks: value.landmarks === true,
+    maskRefinement: value.maskRefinement === true,
+    privacyTreatment: value.privacyTreatment === true,
+    previewRender: value.previewRender === true,
+    qaDepth,
+    repairAttempts: Math.min(2, nonnegative('repairAttempts')),
+    noAction: value.noAction === true,
+  }
+}
 
 export function registerTrackAllSkill(input: {
   capabilities: SkillCapabilityRegistry
@@ -48,17 +79,12 @@ export function registerTrackAllSkill(input: {
   registerTrackAllArtifactSchemas(input.artifacts)
   registerTrackAllQaPolicies(input.qa)
   input.estimators.registerTime('track_all.time.v1', (value) => {
-    const frames = typeof value.durationFrames === 'number' ? Math.max(0, value.durationFrames) : 0
-    const chunks = typeof value.chunkCount === 'number' ? Math.max(0, value.chunkCount) : 0
-    const sessions = typeof value.sessionCount === 'number' ? Math.max(0, value.sessionCount) : 0
-    const expectedSeconds = value.noAction === true ? 0 : Math.ceil(frames / 24) + chunks * 4 + sessions * 18
-    return { minimumSeconds: expectedSeconds === 0 ? 0 : Math.max(1, Math.floor(expectedSeconds * 0.6)), expectedSeconds, maximumSeconds: expectedSeconds * 2, evidence: ['range_frames', 'shot_chunks', 'sam_sessions', 'selected_treatments'] }
+    const estimate = estimateTrackAllPlan(estimatorInput(value))
+    return { ...estimate.time, evidence: [estimate.evidenceHash, 'range_chunks_objects_buckets_tools_qa_repairs'] }
   })
   input.estimators.registerCredit('track_all.credit.v1', (value) => {
-    const chunks = typeof value.chunkCount === 'number' ? Math.max(0, value.chunkCount) : 0
-    const sessions = typeof value.sessionCount === 'number' ? Math.max(0, value.sessionCount) : 0
-    const expectedCredits = value.noAction === true ? 0 : chunks + sessions * 4
-    return { minimumCredits: expectedCredits === 0 ? 0 : Math.max(1, Math.floor(expectedCredits * 0.5)), expectedCredits, maximumCredits: expectedCredits * 2, internalToolCostOnly: true, evidence: ['deterministic_chunks', 'gpu_sessions_without_customer_markup'] }
+    const estimate = estimateTrackAllPlan(estimatorInput(value))
+    return { ...estimate.credits, evidence: [estimate.evidenceHash, 'internal_tool_cost_without_customer_markup'] }
   })
   for (const value of TRACK_ALL_JOB_TYPES) input.catalog.jobTypes.add(value)
   for (const value of [...TRACK_ALL_TOOL_OPERATIONS, TRACK_ALL_SAM_OPERATION_V2]) input.catalog.toolOperations.add(value)

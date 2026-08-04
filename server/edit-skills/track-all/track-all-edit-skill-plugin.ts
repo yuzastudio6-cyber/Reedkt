@@ -190,11 +190,11 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     const publicPlan = editSkillPublicPlanSchema.parse(input)
     if (publicPlan.envelope.assignmentHash !== assignment.assignmentHash || !same(publicPlan.envelope.manifestRef, assignment.manifestRef) || !same(publicPlan.envelope.authorizedRange, assignment.authorizedRange) || publicPlan.payloadRef.artifactType !== 'track_all_plan_v1') throw new Error('Track All public plan is stale or foreign.')
     const plan = trackAllPlanSchema.parse(await this.#artifacts.readJson({ reference: publicPlan.payloadRef, ...scope(assignment) }))
-    if (plan.assignmentHash !== (await this.#loadAuthority(assignment)).assignment.assignmentHash || !same(plan.authorizedRange, assignment.authorizedRange) || plan.planHash !== publicPlan.payloadRef.sha256) throw new Error('Track All plan payload lineage is stale.')
+    if (plan.assignmentHash !== (await this.#loadAuthority(assignment)).assignment.assignmentHash || !same(plan.authorizedRange, assignment.authorizedRange) || hashSkillValue(plan) !== publicPlan.payloadRef.sha256) throw new Error('Track All plan payload lineage is stale.')
     const qaRef = publicPlan.evidenceRefs.find((ref) => ref.artifactType === 'track_all_planning_qa_report_v1')
     if (!qaRef) throw new Error('Track All plan lacks planning QA lineage.')
     const qa = trackAllPlanningQaReportSchema.parse(await this.#artifacts.readJson({ reference: qaRef, ...scope(assignment) }))
-    if (qaRef.sha256 !== plan.planningQaReportHash || qa.assignmentHash !== plan.assignmentHash || qa.targetHash !== plan.targetHash) throw new Error('Track All planning QA lineage is stale.')
+    if (qaRef.sha256 !== plan.planningQaReportHash || qa.assignmentHash !== plan.assignmentHash || qa.targetHash !== plan.targetHash || qa.passed !== plan.planningQaPassed) throw new Error('Track All planning QA lineage is stale.')
     return plan
   }
 

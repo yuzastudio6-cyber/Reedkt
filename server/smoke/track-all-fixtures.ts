@@ -70,6 +70,18 @@ export async function createTrackAllAuthorityFixture(input: {
   targetType?: 'selected_instance' | 'concept_group' | 'selected_group' | 'planar_region' | 'freeform_region' | 'camera_relative_region' | 'world_relative_region' | 'existing_track' | 'track_child_region' | 'track_parent_region'
   groundingFrame?: number
   ownershipWindows?: readonly z.input<typeof brollVisualOwnershipWindowSchema>[]
+  expectedMinimumCount?: number
+  expectedMaximumCount?: number
+  expectedCount?: number
+  maximumObjects?: number
+  maximumChunks?: number
+  maximumTimeSeconds?: number
+  maximumCredits?: number
+  manualReviewPermitted?: boolean
+  sam3_1Allowed?: boolean
+  deterministicToolsAllowed?: boolean
+  editorialExclusions?: readonly string[]
+  targetExcludeRules?: readonly string[]
 }): Promise<TrackAllAuthorityFixture> {
   const scope = TRACK_ALL_FIXTURE_SCOPE
   const manifestRef = skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST)
@@ -144,8 +156,9 @@ export async function createTrackAllAuthorityFixture(input: {
     targetId: 'target-001', targetType: input.targetType ?? 'selected_instance',
     semanticClass: 'object', description: 'Approved anonymous selected object.',
     anonymousIdentityPolicy: 'anonymous_stable_ids_only', childTargetIds: [],
-    includeRules: ['selected target only'], excludeRules: [],
-    expectedMinimumCount: 1, expectedMaximumCount: 1,
+    includeRules: ['selected target only'], excludeRules: [...(input.targetExcludeRules ?? [])],
+    expectedMinimumCount: input.expectedMinimumCount ?? 1,
+    expectedMaximumCount: input.expectedMaximumCount ?? 1,
     privacyClassification: 'none', targetCriticality: 'normal',
     initializationFramePreference: input.groundingFrame ?? authorizedRange.startFrameInclusive,
     occlusionPolicy: 'hold_and_reacquire',
@@ -184,15 +197,20 @@ export async function createTrackAllAuthorityFixture(input: {
       targetDescription: 'Approved anonymous selected object.',
       intendedTreatment: input.intendedTreatment ?? 'no_action',
       viewerBenefit: 'Preserve clear and private visual storytelling.',
-      privacyCriticality: 'none', forbiddenTargets: [], expectedCount: 1,
-      exclusions: [], uncertaintyBehavior: 'request_selection',
+      privacyCriticality: 'none', forbiddenTargets: [], expectedCount: input.expectedCount ?? 1,
+      exclusions: [...(input.editorialExclusions ?? [])],
+      uncertaintyBehavior: 'request_selection',
     },
     permissions: {
       analysisOnlyAllowed: true, directTreatmentAllowed: true,
-      sam3_1Allowed: true, deterministicToolsAllowed: true, ocrAllowed: false,
-      landmarkSupportAllowed: false, maximumObjects: 16, maximumChunks: 10,
-      maximumAttempts: 2, maximumCredits: 100, maximumTimeSeconds: 600,
-      manualReviewPermitted: true,
+      sam3_1Allowed: input.sam3_1Allowed ?? true,
+      deterministicToolsAllowed: input.deterministicToolsAllowed ?? true,
+      ocrAllowed: false, landmarkSupportAllowed: false,
+      maximumObjects: input.maximumObjects ?? 16,
+      maximumChunks: input.maximumChunks ?? 10,
+      maximumAttempts: 2, maximumCredits: input.maximumCredits ?? 100,
+      maximumTimeSeconds: input.maximumTimeSeconds ?? 600,
+      manualReviewPermitted: input.manualReviewPermitted ?? true,
     },
     requiredOutputs: ['result_receipt'],
   })

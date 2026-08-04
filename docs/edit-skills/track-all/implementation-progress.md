@@ -1,6 +1,6 @@
 # Track All implementation progress
 
-Status: `track_03_authority_contracts_implemented`
+Status: `track_04_planning_implemented_qualification_receipt_pending`
 
 This ledger records actual implementation, test, qualification, Git, and
 external-gate evidence for the canonical `track_all@1.0.0` skill. It does not
@@ -213,3 +213,47 @@ Qualification remains `implementation_pending`: authority tests do not prove
 planning qualification, deterministic geometry, SAM execution, privacy
 quality, or production readiness. No head orchestra, provider/model request,
 GPU work, paid action, public artifact, or production mutation occurred.
+
+## TRACK-04 — planning mini-skills, estimators, and planning QA
+
+Status: implementation and local verification complete; the milestone commit
+and exact remote confirmation are recorded by the following ledger update.
+
+Implemented:
+
+- strict private shot/chunk, overlap, initialization-frame, multiplex-budget,
+  prompt-strategy, session-lifecycle, and complete-estimate mini-skills;
+- 240-frame qualified chunk ceilings, dynamic evidence-derived overlaps,
+  non-zero initialization support, 16-object buckets, and multi-bucket cost;
+- registry estimators covering frames, chunks, overlaps, groups, objects,
+  buckets, SAM sessions, bidirectional propagation, planar/OCR/landmark/mask
+  work, privacy, preview, QA depth, and repairs;
+- strict no-action/dependency/blocked/ceiling/source/SAM/planar plan invariants;
+- coherent time- and credit-ceiling fallback that zeroes all executable work;
+- 24 independently derived, hashed `SkillQaFinding` values from one strict
+  evidence schema and a content-addressed aggregate report;
+- fail-closed generic QA behavior: caller booleans produce `needs_review` and
+  cannot approve Track All;
+- the current Track All architecture document.
+
+Actual checks run:
+
+- `npm run test:track-all-planning` — passed 9 planning scenarios, 24 QA
+  findings, a 4-chunk long-range fixture, a 2-bucket/8-session multiplex
+  fixture, time and credit fallback, contradictory-state rejection, forged QA
+  rejection, and raw-boolean rejection.
+- `npm run test:track-all-authority` — passed 21 adversarial cases.
+- `npm run test:track-all-capability-manifest` — passed; manifest hash remains
+  `65eb6541aafc312f390479273d196aaa5f2db5cd52cba898dd9165a88f7a5998`.
+- `npm run typecheck:server` — passed.
+- affected-file ESLint — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-runtime-factory`
+  — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-planning`
+  — passed.
+
+The manifest deliberately remains `implementation_pending` until the Track All
+evidence issuer can generate and validate a receipt for the exact committed
+source tree. Passing smokes alone is not promoted as qualification. No SAM
+model/checkpoint/GPU run, paid action, public artifact, production mutation,
+head orchestra, or peer-skill implementation occurred.

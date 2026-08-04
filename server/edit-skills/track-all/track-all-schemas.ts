@@ -8,6 +8,7 @@ import {
   skillSha256Schema,
 } from '../core/skill-capability-manifest-schema'
 import { editSkillArtifactReferenceSchema, skillFrameRangeSchema } from '../core/skill-assignment-schema'
+import { skillQaFindingSchema } from '../core/skill-qa-registry'
 import {
   brollMasterTimingPlanSchema,
   brollSourceInventorySchema,
@@ -431,14 +432,37 @@ const planCoreSchema = z.object({
   maximumAttempts: z.number().int().min(1).max(3), maximumRepairs: z.number().int().min(0).max(2),
   timeEstimate: z.object({ minimumSeconds: z.number().int().nonnegative(), expectedSeconds: z.number().int().nonnegative(), maximumSeconds: z.number().int().nonnegative() }).strict(),
   creditEstimate: z.object({ minimumCredits: z.number().int().nonnegative(), expectedCredits: z.number().int().nonnegative(), maximumCredits: z.number().int().nonnegative(), internalToolCostOnly: z.literal(true) }).strict(),
+  routeDisposition: z.enum(['selected', 'time_ceiling', 'credit_ceiling', 'dependency', 'authority', 'ambiguity', 'no_action']),
   planningQaReportHash: skillSha256Schema, planningQaPassed: z.boolean(),
 }).strict().superRefine((value, context) => {
   const dependencyDecision = value.decision === 'needs_visual_intelligence'
   if (dependencyDecision !== Boolean(value.dependencySkillKey && value.requiredDependencyArtifactType && value.requiredForPhase)) context.addIssue({ code: 'custom', message: 'Track All dependency decision is incoherent.' })
-  if (['use_no_tracking', 'needs_visual_intelligence', 'needs_user_selection', 'needs_range_expansion', 'needs_manual_keyframe', 'needs_user_confirmation', 'target_not_found', 'multiple_targets_ambiguous', 'identity_uncertain', 'privacy_coverage_blocked', 'blocked'].includes(value.decision)) {
-    if (value.samWorkPlanned || value.visibleTreatmentPlanned || value.objectBudget.sessionCount !== 0 || value.creditEstimate.expectedCredits !== 0) context.addIssue({ code: 'custom', message: 'Non-executable Track All decision contains work or cost.' })
+  const nonExecutable = ['use_no_tracking', 'needs_visual_intelligence', 'needs_user_selection', 'needs_range_expansion', 'needs_manual_keyframe', 'needs_user_confirmation', 'target_not_found', 'multiple_targets_ambiguous', 'identity_uncertain', 'privacy_coverage_blocked', 'blocked'].includes(value.decision)
+  if (nonExecutable) {
+    if (
+      value.samWorkPlanned || value.visibleTreatmentPlanned ||
+      value.chunkPlan.chunks.length !== 0 || value.objectBudget.expectedObjects !== 0 ||
+      value.objectBudget.bucketCount !== 0 || value.objectBudget.sessionCount !== 0 ||
+      value.initializationFrame !== undefined || value.propagationDirection !== 'none' ||
+      Object.values(value.timeEstimate).some((estimate) => estimate !== 0) ||
+      value.creditEstimate.minimumCredits !== 0 || value.creditEstimate.expectedCredits !== 0 ||
+      value.creditEstimate.maximumCredits !== 0
+    ) context.addIssue({ code: 'custom', message: 'Non-executable Track All decision contains work, timing, or cost.' })
   }
   if (value.samWorkPlanned && (value.objectBudget.sessionCount < 1 || value.propagationDirection === 'none' || value.initializationFrame === undefined)) context.addIssue({ code: 'custom', message: 'SAM plan lacks exact session authority.' })
+  if (!nonExecutable && value.chunkPlan.chunks.length === 0) context.addIssue({ code: 'custom', message: 'Executable Track All plan lacks bounded chunks.' })
+  if (value.objectBudget.expectedObjects === 0 ? value.objectBudget.bucketCount !== 0 : value.objectBudget.bucketCount !== Math.ceil(value.objectBudget.expectedObjects / value.objectBudget.bucketSize)) context.addIssue({ code: 'custom', message: 'Track All multiplex bucket count is incoherent.' })
+  if (value.samWorkPlanned && value.objectBudget.sessionCount !== value.chunkPlan.chunks.length * value.objectBudget.bucketCount) context.addIssue({ code: 'custom', message: 'Track All SAM session count is incoherent.' })
+  if (!value.samWorkPlanned && value.objectBudget.sessionCount !== 0) context.addIssue({ code: 'custom', message: 'Non-SAM plan cannot reserve SAM sessions.' })
+  if (value.visibleTreatmentPlanned !== ['apply_privacy_redaction', 'apply_tracked_focus', 'prepare_tracked_reframe'].includes(value.decision)) context.addIssue({ code: 'custom', message: 'Visible-treatment authority contradicts the plan decision.' })
+  if (value.timeEstimate.minimumSeconds > value.timeEstimate.expectedSeconds || value.timeEstimate.expectedSeconds > value.timeEstimate.maximumSeconds || value.creditEstimate.minimumCredits > value.creditEstimate.expectedCredits || value.creditEstimate.expectedCredits > value.creditEstimate.maximumCredits) context.addIssue({ code: 'custom', message: 'Track All estimate bounds are incoherent.' })
+  for (const chunk of value.chunkPlan.chunks) {
+    if (!isRangeContained(chunk.range, value.authorizedRange)) context.addIssue({ code: 'custom', message: `Track All chunk ${chunk.chunkId} exceeds write authority.` })
+  }
+  if (value.decision === 'use_no_tracking' && value.routeDisposition !== 'no_action') context.addIssue({ code: 'custom', message: 'No-action decision lacks a no-action disposition.' })
+  if (value.routeDisposition === 'time_ceiling' || value.routeDisposition === 'credit_ceiling') {
+    if (!['needs_user_confirmation', 'blocked'].includes(value.decision)) context.addIssue({ code: 'custom', message: 'Ceiling fallback did not produce a fail-closed decision.' })
+  }
 })
 
 export const trackAllPlanSchema = planCoreSchema.extend({ planHash: skillSha256Schema }).strict().superRefine((value, context) => {
@@ -451,16 +475,10 @@ export function createTrackAllPlan(input: z.input<typeof planCoreSchema>) {
   return trackAllPlanSchema.parse({ ...core, planHash: hashSkillValue(core) })
 }
 
-const qaFindingSchema = z.object({
-  qaKey: skillIdentitySchema, validatorVersion: skillIdentitySchema,
-  disposition: z.enum(['pass', 'warning', 'needs_review', 'blocking', 'critical']),
-  evidenceHashes: z.array(skillSha256Schema).min(1).max(100), message: z.string().trim().min(1).max(1_000),
-}).strict()
-
 const planningQaCoreSchema = z.object({
   schemaVersion: z.literal('track_all_planning_qa_report_v1'), assignmentHash: skillSha256Schema,
   targetHash: skillSha256Schema, manifestRef: skillManifestReferenceSchema,
-  findings: z.array(qaFindingSchema).min(1).max(100), passed: z.boolean(), createdAt: timestamp,
+  findings: z.array(skillQaFindingSchema).min(1).max(100), passed: z.boolean(), createdAt: timestamp,
 }).strict().superRefine((value, context) => {
   const derived = !value.findings.some((finding) => finding.disposition === 'blocking' || finding.disposition === 'critical')
   if (value.passed !== derived) context.addIssue({ code: 'custom', message: 'Planning QA verdict is not derived from findings.' })

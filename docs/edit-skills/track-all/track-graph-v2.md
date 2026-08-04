@@ -19,6 +19,34 @@ occlusion logs, camera motion, attempts, and QA cannot be substituted for one
 another. Every range remains inside assignment authority and every referenced
 artifact must remain in the same tenant/project scope.
 
+## Chunk and identity projection
+
+TRACK-10 implements deterministic projection from bounded per-chunk/per-bucket
+observations. It compares exact overlap frames using masklet box IoU and center
+geometry, applies bounded gap/re-entry scoring, and assigns stable anonymous
+IDs without trusting local SAM object numbers. It rejects duplicate
+observations, invalid bucket authority, reordered or out-of-range samples,
+cross-tenant mask/evidence refs, and incoherent parent-target lineage.
+
+Independent buckets can reconcile the same object without creating a duplicate
+identity. Two same-bucket objects cannot collapse into one stable identity.
+Overlapping geometry conflicts and close competing associations emit identity
+switch warnings. Missing spans become explicit `lost` intervals; a later
+qualified match becomes `reacquired` and receives content-addressed occlusion
+and re-entry evidence.
+
+Shot cuts reset association by default. An explicit target policy plus an exact
+cross-shot evidence hash may create an uncertain link, but it emits a warning
+and `track_identity_lineage_v1` still records `crossShotCertain: false`.
+Parent/child tracks are assigned only from frame-overlapping containment
+geometry. Similar local object IDs, local ID renumbering, or semantic class
+alone never prove continuity.
+
+The projector emits strict track samples, box sequences, private mask-sequence
+manifests, occlusion logs, identity lineage, Track Graph V2, and the unchanged
+Track Graph V1 compatibility projection. Injected observations remain
+test-only and do not qualify actual SAM output.
+
 ## Private mask boundary
 
 Track Graph contains references, hashes, dimensions, ranges, and formats. It

@@ -1,7 +1,7 @@
-# Captions Specialist — CAP-10 Semantic Style Checkpoint
+# Captions Specialist — CAP-11 Multi-Track Scene Graph Checkpoint
 
-Status: `cap_10_contract_complete_private_font_visual_render_gated`
-Checkpoint: `CAP-10`
+Status: `cap_11_contract_complete_external_depth_broll_storytiming_gated`
+Checkpoint: `CAP-11`
 Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
@@ -83,6 +83,7 @@ The governing workflow invariant remains:
 - [CAP-08 Visual Intelligence support report](cap-08-visual-intelligence-support-report.md)
 - [CAP-09 Track All and SAM 3.1 report](cap-09-track-all-sam31-report.md)
 - [CAP-10 semantic and style system report](cap-10-semantic-style-system-report.md)
+- [CAP-11 multi-track scene graph report](cap-11-multi-track-scene-graph-report.md)
 
 ### Historical architecture retained and amended
 
@@ -182,8 +183,16 @@ adapters for all ten historical style presets. Contract fixtures cannot claim
 qualified shaping, authenticated visual evidence, rendered calibration media,
 or direct raster inspection.
 
-Implementation continues automatically into CAP-11 multi-track scene-graph
-resolution. Registry/workflow integration will consume
+CAP-11 adds a new multi-track scene graph while preserving the old v1 decoder.
+It supports accessible, semantic, hero, and persistent-list tracks; explicit
+mode phases and active nodes; full-screen, subject-occlusion, object/environment,
+and B-roll composition roles; separate safe concurrent regions; exact hero
+limits; and complete accessibility counterparts. Unqualified Track All, anchor,
+or B-roll evidence resolves to declared safe fallbacks without claiming real
+depth or media execution.
+
+Implementation continues automatically into CAP-12 StoryTiming, motion, and
+cross-system handoff resolution. Registry/workflow integration will consume
 these frozen public artifacts at its dependency-safe milestone; no Caption
 milestone manufactures a second planner or a false backend coverage claim.
 

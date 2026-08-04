@@ -1,6 +1,6 @@
 # Captions Specialist Amendment
 
-Status: `cap_10_contract_complete_private_font_visual_render_gated`
+Status: `cap_11_contract_complete_external_depth_broll_storytiming_gated`
 Applies to: all historical files in `docs/caption-direction/`
 
 This amendment supersedes only the historical identity, intelligence-routing,

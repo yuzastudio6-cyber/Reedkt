@@ -1,6 +1,6 @@
 # Track All implementation progress
 
-Status: `track_04_planning_implemented_qualification_receipt_pending`
+Status: `track_13_handoffs_implemented_qualification_receipt_pending`
 
 This ledger records actual implementation, test, qualification, Git, and
 external-gate evidence for the canonical `track_all@1.0.0` skill. It does not
@@ -714,3 +714,56 @@ evidence but no production-qualified mask-isolation, worker/store, or release
 evidence. Track All remains `implementation_pending`, SAM remains `blocked`,
 and no checkpoint/model/GPU/paid/public/production/database/head-orchestra
 action occurred.
+
+## TRACK-13 — cross-skill geometry handoffs
+
+Status: complete and remotely confirmed.
+
+- implementation commit: `71b1a0b0897e433d7bebeb4fe2276f41873d2dba`
+- remote confirmation: `origin/codex/track-all-skill-end-to-end` resolved to
+  `71b1a0b0897e433d7bebeb4fe2276f41873d2dba` after `git push -u origin HEAD`.
+
+Implemented:
+
+- one strict, discriminated, content-addressed geometry handoff for each of
+  B-Roll, Captions, Graphic Design, Living Frame, 3D, Color, Sound,
+  Transition, and Render;
+- exact Track Graph V2 and box/mask/anchor/camera/planar artifact validation,
+  including assignment, plan, manifest, source, tenant, and range lineage;
+- the frozen Track Graph V1 projection for B-Roll while retaining V2 for new
+  consumers;
+- speaker/inset/crop geometry for B-Roll, foreground/behind-subject/face-safe
+  geometry for Captions, stable anchors for Graphic Design, depth/camera
+  geometry for Living Frame, planar/occlusion geometry for 3D, selective
+  masks for Color, interaction timing for Sound, wipe geometry for
+  Transition, and exact private layer requirements for Render;
+- peer ownership preservation: Track All supplies geometry but does not own
+  final Caption, Graphic, Color, Sound, Transition, Render, or export design;
+- strict rejection of generic/model-specific payload fields, mismatched
+  consumer payloads, cross-workspace references, forged referenced artifacts,
+  and frame evidence outside the authorized range.
+
+Actual checks run:
+
+- `npm run test:track-all-cross-skill-handoffs` — passed 9 consumer handoffs;
+  Track Graph V2 hash
+  `8ed6517bff546740c897a232f23b3aafb23be4165df627be0b1859c421e2b2d1`,
+  exact V1 compatibility, 9 unique handoff hashes, model-specific dependency
+  rejection, cross-workspace rejection, peer ownership preservation, no
+  outside-range mutation, and zero provider/public/production actions;
+- `npm run test:track-all-artifact-contracts` — passed 32 strict active
+  schemas and the private-mask boundary;
+- `npm run test:track-all-capability-manifest` — passed 13 supported jobs,
+  20 unsupported jobs, 8 routes, and manifest hash
+  `65eb6541aafc312f390479273d196aaa5f2db5cd52cba898dd9165a88f7a5998`;
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-active-artifact-contracts`
+  — passed all 29 frozen B-Roll active contracts;
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  — passed the frozen B-Roll public plugin and V1 Track Graph dependency;
+- `npm run typecheck:server`, `npm run lint -- --quiet`, and
+  `npm run check:frontend-boundary` — passed;
+- staged `git diff --check` — passed.
+
+TRACK-13 does not dispatch or implement peer skills or the head orchestra.
+Track All remains `implementation_pending`, SAM remains `blocked`, and no
+checkpoint/model/GPU/paid/public/production/database action occurred.

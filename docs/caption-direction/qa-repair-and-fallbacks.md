@@ -18,6 +18,19 @@
 
 Blocking failures prevent delivery. Warnings are explicit and cannot be reclassified by the same worker without evidence.
 
+## Visual evidence classes
+
+Caption QA keeps four claims separate:
+
+1. deterministic Caption checks validate contract, timing, geometry, and lineage;
+2. direct raster inspection proves that an agent opened and judged exact rendered pixels;
+3. qualified complete-time Visual Intelligence review evaluates the complete rendered appearance through its canonical owner; and
+4. independent final QA decides final acceptance outside Captions.
+
+Selected golden frames cannot claim complete-time coverage, and technical QA
+cannot replace direct visual inspection. Every visual receipt is output-bound;
+16:9 evidence cannot satisfy a 9:16 output or another canvas.
+
 ## Repair locality
 
 Repair the narrowest owner:

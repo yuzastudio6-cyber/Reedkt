@@ -1,6 +1,6 @@
 # Captions Specialist Implementation Roadmap
 
-Status: `CAP-15 private ASCII libass overlays/direct raster qualified; CAP-16 next`
+Status: `CAP-16 complete QA and direct visual evidence admission complete; CAP-17 next`
 
 ## Dependency graph
 

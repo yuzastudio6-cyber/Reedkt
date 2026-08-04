@@ -1,8 +1,8 @@
-# Captions Specialist — CAP-15 Accessibility and Export Checkpoint
+# Captions Specialist — CAP-16 Complete QA and Visual Evidence Checkpoint
 
-Status: `cap_15_private_ascii_libass_overlay_and_direct_raster_qualified_external_export_gates_closed`
-Checkpoint: `CAP-15`
-Media runtime changes: existing private libass operation; two accepted inspected overlay rasters
+Status: `cap_16_caption_qa_source_complete_actual_visual_evidence_admitted_external_gates_closed`
+Checkpoint: `CAP-16`
+Media runtime changes: none; exact previously inspected CAP-14/CAP-15 rasters admitted by digest
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
 This package reconciles the historical Caption Direction architecture with the
@@ -88,6 +88,7 @@ The governing workflow invariant remains:
 - [CAP-13 Sound support report](cap-13-sound-support-report.md)
 - [CAP-14 Remotion creative renderer report](cap-14-remotion-creative-renderer-report.md)
 - [CAP-15 accessibility, localization, and export report](cap-15-accessibility-localization-export-report.md)
+- [CAP-16 complete QA, repair, and fallback report](cap-16-complete-qa-repair-fallback-report.md)
 
 ### Historical architecture retained and amended
 
@@ -228,8 +229,16 @@ predispatch safe-width gate prevents its recurrence. Multilingual libass,
 complete tracks, video burn-in, FFmpeg final packaging, asset persistence, and
 final QA remain closed owner gates.
 
-Implementation continues automatically into CAP-16 complete QA, visual
-inspection evidence admission, repair, and fallback support.
+CAP-16 adds strict per-output semantic-through-export QA, admits nineteen exact
+previously inspected raster items without reclassifying bounded evidence as
+complete-time AI review, preserves the failed and repaired vertical outputs as
+separate artifacts, and emits local repair plus declared fallback plans. The
+11-layer reports remain blocked on exact authenticated alignment, qualified
+font/track runtime, complete-time Visual Intelligence, final mix, export,
+motion-playback where applicable, and independent final-QA evidence.
+
+Implementation continues automatically into CAP-17 chat-native presentation,
+approval/credit reuse, reload-safe persistence, revisions, and observability.
 Registry/workflow integration will consume
 these frozen public artifacts at its dependency-safe milestone; no Caption
 milestone manufactures a second planner or a false backend coverage claim.

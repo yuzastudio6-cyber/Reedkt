@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
+import { listSelectableToolCapabilityCards } from '../tool-calling/tool-capability-card-loader'
+import { isProductionToolId } from '../tool-registry'
 
 const removedParallelRuntimePaths = [
   'server/services/canonical-source-visual-intelligence-owner-service.ts',
@@ -44,6 +46,9 @@ const legacyWorkerDispatcher = source(
 )
 const workerRouteBridge = source(
   'server/tool-calling/worker-route-bridge.ts',
+)
+const toolCapabilityCardLoader = source(
+  'server/tool-calling/tool-capability-card-loader.ts',
 )
 
 assert.match(app, /createVisualIntelligenceOrchestraRoutes/u)
@@ -163,6 +168,29 @@ assert.doesNotMatch(
   workerRouteBridge,
   /gpu_ai_worker_mask_composition_execution|cpu_analysis_worker_mask_composition_dry_run/u,
 )
+assert.match(
+  toolCapabilityCardLoader,
+  /hasRetiredOrNonE2EToolId/u,
+)
+assert.match(
+  toolCapabilityCardLoader,
+  /!isProductionToolId\(toolId\)/u,
+)
+const selectableToolCards = listSelectableToolCapabilityCards()
+for (const card of selectableToolCards) {
+  assert.equal(isProductionToolId(card.toolId), true)
+  for (const fallbackToolId of card.fallbackToolIds) {
+    assert.equal(isProductionToolId(fallbackToolId), true)
+  }
+}
+for (const nonAdmissibleToolId of ['sam2', 'sam3_1', 'birefnet'] as const) {
+  assert.equal(
+    selectableToolCards.some(
+      (card) => String(card.toolId) === nonAdmissibleToolId,
+    ),
+    false,
+  )
+}
 
 for (const removedExecutablePath of [
   'docker/prod/gpu-worker/sam2/Dockerfile.runtime-candidate',
@@ -186,6 +214,7 @@ console.log(JSON.stringify({
   sourceAnalysisReturnsThroughOrchestra: true,
   sam31RequiresExactTrackAllOrchestraBinding: true,
   legacyDirectMaskWorkerRoutesRetired: true,
+  nonE2EToolStudyCardsExcludedFromSelection: true,
   visualIntelligenceMayInspectButNotOwnSam31Artifacts: true,
   activeQwenVisualRuntimeMounted: false,
   activeSam2ExecutableRuntimePresent: false,

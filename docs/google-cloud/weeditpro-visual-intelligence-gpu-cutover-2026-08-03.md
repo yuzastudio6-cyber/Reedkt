@@ -198,6 +198,11 @@ idempotent rerun then observed all five disabled and emitted
   All/Orchestra/SAM 3.1 requirement. Historical M15C planners remain test-only
   compatibility evidence and cannot create fresh dispatch or artifact
   authority.
+- The generic tool-capability loader now excludes every historical or non-E2E
+  study identity from selectable planner cards and removes non-E2E fallbacks
+  from active cards. A stale SAM2, SAM 3.1, or BiRefNet study record therefore
+  cannot become planning or dispatch authority; SAM 3.1 can enter work only
+  through its qualified Track All/Orchestra release chain.
 - This is a source and persistence boundary, not live GPU evidence. The
   repository grants no job dispatch, customer-credit mutation, QA approval,
   delivery, or production authority. A100 and L4 remain blocked until those

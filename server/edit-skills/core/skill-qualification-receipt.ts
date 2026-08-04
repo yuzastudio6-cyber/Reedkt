@@ -7,7 +7,10 @@ import {
   skillSha256Schema,
 } from './skill-capability-manifest-schema'
 import type { SkillManifestReference } from './skill-capability-manifest-types'
-import { skillGitCommitShaSchema } from './skill-qualification-evidence'
+import {
+  skillGitCommitShaSchema,
+  skillQualificationDependencyAuthorityHashSchema,
+} from './skill-qualification-evidence'
 
 const fixtureResultSchema = z.object({
   fixtureKey: z.string().trim().min(1).max(180),
@@ -44,12 +47,16 @@ const qualificationReceiptV2CoreSchema = z.object({
   qualificationStatus: z.enum(SKILL_QUALIFICATION_STATUSES),
   testedCommitSha: skillGitCommitShaSchema,
   relevantSourceTreeHash: skillSha256Schema,
+  dependencyAuthorityHashes: z.array(skillQualificationDependencyAuthorityHashSchema)
+    .min(1).max(100),
   fixtureResults: z.array(fixtureResultSchema).min(1).max(500),
   fixtureEvidenceRefs: z.array(fixtureEvidenceRefSchema).min(1).max(500),
   buildEvidenceHashes: z.array(skillSha256Schema).min(1).max(100),
   testEvidenceHashes: z.array(skillSha256Schema).min(1).max(500),
   securityEvidenceHashes: z.array(skillSha256Schema).min(1).max(100),
-  providerEvidenceHashes: z.array(skillSha256Schema).min(1).max(100),
+  providerEvidenceHashes: z.array(skillSha256Schema).max(100),
+  mediaEvidenceHashes: z.array(skillSha256Schema).max(100),
+  remotionEvidenceHashes: z.array(skillSha256Schema).max(100),
   startedAt: z.string().datetime({ offset: true }),
   completedAt: z.string().datetime({ offset: true }),
   issuedAt: z.string().datetime({ offset: true }),
@@ -70,6 +77,24 @@ const qualificationReceiptV2CoreSchema = z.object({
       context.addIssue({ code: 'custom', message: 'Qualification fixture result is not bound to its evidence reference.' })
     }
   }
+  const authorityKeys = value.dependencyAuthorityHashes.map((entry) => entry.authorityKey)
+  if (new Set(authorityKeys).size !== authorityKeys.length) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Qualification receipt dependency authorities must have unique keys.',
+    })
+  }
+  if (
+    ['internal_execution_qualified', 'production_qualified'].includes(value.qualificationStatus) &&
+    (
+      value.providerEvidenceHashes.length === 0 ||
+      value.mediaEvidenceHashes.length === 0 ||
+      value.remotionEvidenceHashes.length === 0
+    )
+  ) context.addIssue({
+    code: 'custom',
+    message: 'Execution qualification requires actual provider, media, and Remotion evidence.',
+  })
 })
 
 export const skillQualificationReceiptV2Schema = qualificationReceiptV2CoreSchema.extend({

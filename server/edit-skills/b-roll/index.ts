@@ -28,6 +28,7 @@ import {
   registerBrollRuntimeBindings,
 } from './b-roll-runtime-bindings'
 import { tryLoadBrollGeneratedQualificationArtifact } from './b-roll-qualification-evidence'
+import { computeBrollQualificationDependencyAuthorityHashes } from './b-roll-qualification-dependency-authorities'
 import { computeBrollRelevantSourceTreeHash } from './b-roll-qualification-source-hash'
 import { BrollEditSkillPlugin } from './b-roll-edit-skill-plugin'
 import { BrollSkillService } from './b-roll-skill-service'
@@ -40,6 +41,7 @@ export * from './b-roll-qa-policy'
 export * from './b-roll-planning-qa'
 export * from './b-roll-qualification'
 export * from './b-roll-qualification-evidence'
+export * from './b-roll-qualification-dependency-authorities'
 export * from './b-roll-qualification-source-hash'
 export * from './b-roll-skill-service'
 export * from './b-roll-context-loader'
@@ -78,6 +80,8 @@ export function registerBrollSkill(input: {
     generatedQualification = tryLoadBrollGeneratedQualificationArtifact({
       manifest: BROLL_CAPABILITY_MANIFEST,
       expectedRelevantSourceTreeHash: computeBrollRelevantSourceTreeHash(),
+      expectedDependencyAuthorityHashes:
+        computeBrollQualificationDependencyAuthorityHashes(),
     })
   } catch (error) {
     if (!qualificationGenerationMode) throw error

@@ -9,6 +9,7 @@ import {
   type BrollGeneratedQualificationArtifact,
 } from '../edit-skills/b-roll/b-roll-qualification-evidence'
 import { computeBrollRelevantSourceTreeHash } from '../edit-skills/b-roll/b-roll-qualification-source-hash'
+import { computeBrollQualificationDependencyAuthorityHashes } from '../edit-skills/b-roll/b-roll-qualification-dependency-authorities'
 import {
   BROLL_INTERNAL_EXECUTION_QUALIFICATION_FIXTURE_KEYS,
   BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS,
@@ -16,6 +17,7 @@ import {
 import { hashSkillValue } from '../edit-skills/core/skill-capability-manifest-hash'
 import {
   createSkillQualificationFixtureEvidence,
+  type SkillQualificationDependencyAuthorityHash,
   type SkillQualificationFixtureEvidence,
 } from '../edit-skills/core/skill-qualification-evidence'
 
@@ -122,6 +124,7 @@ function runScript(input: {
   script: string
   testedCommitSha: string
   relevantSourceTreeHash: string
+  dependencyAuthorityHashes: readonly SkillQualificationDependencyAuthorityHash[]
 }): SkillQualificationFixtureEvidence {
   const commandId = `npm.${input.script}`
   const startedAt = new Date().toISOString()
@@ -156,6 +159,7 @@ function runScript(input: {
     commandId,
     testedCommitSha: input.testedCommitSha,
     relevantSourceTreeHash: input.relevantSourceTreeHash,
+    dependencyAuthorityHashes: [...input.dependencyAuthorityHashes],
     startedAt,
     completedAt,
     exitStatus,
@@ -190,6 +194,7 @@ function fixtureEvidence(input: {
     commandId: input.command.commandId,
     testedCommitSha: input.command.testedCommitSha,
     relevantSourceTreeHash: input.command.relevantSourceTreeHash,
+    dependencyAuthorityHashes: input.command.dependencyAuthorityHashes,
     startedAt: input.command.startedAt,
     completedAt: input.command.completedAt,
     exitStatus: input.command.exitStatus,
@@ -240,10 +245,13 @@ function main(): void {
   const testedCommitSha = gitOutput(['rev-parse', 'HEAD'])
   if (!/^[a-f0-9]{40}$/u.test(testedCommitSha)) throw new Error('Unable to resolve an exact tested commit SHA.')
   const relevantSourceTreeHash = computeBrollRelevantSourceTreeHash(repositoryRoot)
+  const dependencyAuthorityHashes =
+    computeBrollQualificationDependencyAuthorityHashes(repositoryRoot)
   const phaseA = PHASE_A_SCRIPTS.map((script) => runScript({
     script,
     testedCommitSha,
     relevantSourceTreeHash,
+    dependencyAuthorityHashes,
   }))
   const phaseAById = commandById(phaseA)
   const planningFixtures = BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS.map((fixtureKey) =>
@@ -256,6 +264,7 @@ function main(): void {
     qualificationStatus: 'planning_qualified',
     testedCommitSha,
     relevantSourceTreeHash,
+    dependencyAuthorityHashes,
     fixtureEvidence: planningFixtures,
     commandEvidence: phaseA,
   })
@@ -265,6 +274,7 @@ function main(): void {
     script,
     testedCommitSha,
     relevantSourceTreeHash,
+    dependencyAuthorityHashes,
   }))
   const allCommands = [...phaseA, ...phaseB]
   const allById = commandById(allCommands)
@@ -278,6 +288,7 @@ function main(): void {
     qualificationStatus: 'internal_execution_qualified',
     testedCommitSha,
     relevantSourceTreeHash,
+    dependencyAuthorityHashes,
     fixtureEvidence: [...planningFixtures, ...internalFixtures],
     commandEvidence: allCommands,
   })
@@ -286,6 +297,8 @@ function main(): void {
     status: artifact.receipt.qualificationStatus,
     testedCommitSha,
     relevantSourceTreeHash,
+    dependencyAuthoritySetHash: hashSkillValue(dependencyAuthorityHashes),
+    dependencyAuthorityCount: dependencyAuthorityHashes.length,
     manifestHash: artifact.manifestRef.manifestHash,
     fixtureEvidenceCount: artifact.fixtureEvidence.length,
     commandEvidenceCount: artifact.commandEvidence.length,

@@ -142,6 +142,14 @@ operational procedure and evidence matrix are recorded in
 [`runbook.md`](./runbook.md) and
 [`qualification-and-test-evidence.md`](./qualification-and-test-evidence.md).
 
+The generated receipt is also bound to 18 exact shared dependency authority
+hashes. This makes qualification stale if the canonical execution package,
+planning publication, FFmpeg/FFprobe profile, media protocol, Remotion
+protocol/composition, Gemini V5 authority/lifecycle, candidate/planning QA,
+public plugin, artifact registry, runtime binding, Visual Intelligence
+dependency, or Track All artifact contract changes even when the B-roll-local
+source-tree hash would otherwise be unchanged.
+
 ## Persistence and execution boundaries
 
 All active manifest inputs and outputs resolve to strict, type-specific

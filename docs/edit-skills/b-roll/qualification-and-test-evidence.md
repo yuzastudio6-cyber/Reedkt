@@ -29,6 +29,31 @@ provider evidence hashes and is bound to the exact commit, relevant
 source-tree hash, and manifest reference. Provider requests, public artifacts,
 and production mutations were all zero.
 
+## Shared dependency authorities
+
+Receipt-v2 qualification evidence also binds 18 ordered
+`dependencyAuthorityHashes`. Runtime startup recomputes the same set and
+rejects a missing, duplicate, unknown, reordered, forged, or changed authority
+before registering the receipt. Each authority hash covers a forward-only
+profile ID plus the minimal exact source files for:
+
+- the canonical approved execution package, B-roll plan component, and
+  planning publication/service contract;
+- the approved FFprobe and FFmpeg profiles plus the media-binary protocol;
+- the approved Remotion composition profile, execution protocol, and
+  composition contract;
+- Gemini Omni V5 provider authority and lifecycle policy;
+- candidate QA, planning QA, public plugin, artifact registry, and runtime
+  binding contracts; and
+- the model-neutral Visual Intelligence and `track_graph_v1` dependency
+  contracts.
+
+The receipt carries separate actual build, test, security, internal-provider,
+media, and Remotion command-evidence hashes. Planning-only receipts leave
+provider/media/Remotion evidence empty; an `internal_execution_qualified`
+receipt cannot parse or issue unless all three execution evidence categories
+are non-empty.
+
 The five production fixtures are intentionally absent:
 
 - real Gemini Omni private canary;

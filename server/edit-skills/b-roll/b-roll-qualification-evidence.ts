@@ -5,7 +5,9 @@ import { skillManifestReferenceSchema, skillSha256Schema } from '../core/skill-c
 import type { SkillCapabilityManifest } from '../core/skill-capability-manifest-types'
 import {
   skillGitCommitShaSchema,
+  skillQualificationDependencyAuthorityHashSchema,
   skillQualificationFixtureEvidenceSchema,
+  type SkillQualificationDependencyAuthorityHash,
   type SkillQualificationFixtureEvidence,
 } from '../core/skill-qualification-evidence'
 import {
@@ -19,6 +21,10 @@ import {
   BROLL_PRODUCTION_QUALIFICATION_FIXTURE_KEYS,
 } from './b-roll-qualification'
 import { GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT } from './generated/b-roll-internal-qualification.generated'
+import {
+  assertBrollQualificationDependencyAuthorityHashes,
+  computeBrollQualificationDependencyAuthorityHashes,
+} from './b-roll-qualification-dependency-authorities'
 import { computeBrollRelevantSourceTreeHash } from './b-roll-qualification-source-hash'
 
 const REQUIRED_INTERNAL_FIXTURE_KEYS = [
@@ -51,12 +57,27 @@ const PROVIDER_COMMAND_IDS = [
   'npm.smoke:b-roll-end-to-end',
 ] as const
 
+const MEDIA_COMMAND_IDS = [
+  'npm.test:b-roll-canonical-private-runtime',
+  'npm.smoke:b-roll-existing-source',
+  'npm.smoke:b-roll-candidate-qa',
+] as const
+
+const REMOTION_COMMAND_IDS = [
+  'npm.test:b-roll-canonical-private-runtime',
+  'npm.smoke:b-roll-existing-source',
+  'npm.test:b-roll-canonical-integration',
+  'npm.smoke:b-roll-remotion-integration',
+] as const
+
 const generatedArtifactCoreSchema = z.object({
   schemaVersion: z.literal('b_roll_generated_qualification_artifact_v1'),
   generatedBy: z.literal('npm.qualify:b-roll:internal.v1'),
   manifestRef: skillManifestReferenceSchema,
   testedCommitSha: skillGitCommitShaSchema,
   relevantSourceTreeHash: skillSha256Schema,
+  dependencyAuthorityHashes: z.array(skillQualificationDependencyAuthorityHashSchema)
+    .min(1).max(100),
   fixtureEvidence: z.array(skillQualificationFixtureEvidenceSchema)
     .min(BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS.length)
     .max(REQUIRED_INTERNAL_FIXTURE_KEYS.length),
@@ -94,6 +115,7 @@ export function issueBrollGeneratedQualificationArtifact(input: {
   qualificationStatus: BrollGeneratedQualificationStatus
   testedCommitSha: string
   relevantSourceTreeHash: string
+  dependencyAuthorityHashes: readonly SkillQualificationDependencyAuthorityHash[]
   fixtureEvidence: readonly SkillQualificationFixtureEvidence[]
   commandEvidence: readonly SkillQualificationFixtureEvidence[]
 }): BrollGeneratedQualificationArtifact {
@@ -102,6 +124,12 @@ export function issueBrollGeneratedQualificationArtifact(input: {
     skillQualificationFixtureEvidenceSchema.parse(entry))
   const commandEvidence = input.commandEvidence.map((entry) =>
     skillQualificationFixtureEvidenceSchema.parse(entry))
+  const dependencyAuthorityHashes = input.dependencyAuthorityHashes.map((entry) =>
+    skillQualificationDependencyAuthorityHashSchema.parse(entry))
+  assertBrollQualificationDependencyAuthorityHashes({
+    actual: dependencyAuthorityHashes,
+    expected: computeBrollQualificationDependencyAuthorityHashes(),
+  })
   const expectedFixtureKeys = input.qualificationStatus === 'planning_qualified'
     ? [...BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS]
     : [...REQUIRED_INTERNAL_FIXTURE_KEYS]
@@ -120,7 +148,9 @@ export function issueBrollGeneratedQualificationArtifact(input: {
       evidence.contractVersion !== input.manifest.contractVersion ||
       evidence.manifestHash !== input.manifest.manifestHash ||
       evidence.testedCommitSha !== input.testedCommitSha ||
-      evidence.relevantSourceTreeHash !== input.relevantSourceTreeHash
+      evidence.relevantSourceTreeHash !== input.relevantSourceTreeHash ||
+      hashSkillValue(evidence.dependencyAuthorityHashes) !==
+        hashSkillValue(dependencyAuthorityHashes)
     ) throw new Error('B-roll qualification evidence belongs to another commit, source tree, or manifest.')
     if (!evidence.passed || evidence.exitStatus !== 0) {
       throw new Error(`B-roll qualification evidence failed: ${evidence.fixtureKey}.`)
@@ -153,6 +183,7 @@ export function issueBrollGeneratedQualificationArtifact(input: {
     qualificationStatus: input.qualificationStatus,
     testedCommitSha: input.testedCommitSha,
     relevantSourceTreeHash: input.relevantSourceTreeHash,
+    dependencyAuthorityHashes,
     fixtureResults: fixtureEvidence.map((entry) => ({
       fixtureKey: entry.fixtureKey,
       status: 'passed' as const,
@@ -166,8 +197,14 @@ export function issueBrollGeneratedQualificationArtifact(input: {
       ? commandEvidenceHashes(commandEvidence, ['npm.test:edit-skill-capability-kernel'])
       : commandEvidenceHashes(commandEvidence, SECURITY_COMMAND_IDS),
     providerEvidenceHashes: planningOnly
-      ? commandEvidenceHashes(commandEvidence, ['npm.test:b-roll-planning'])
+      ? []
       : commandEvidenceHashes(commandEvidence, PROVIDER_COMMAND_IDS),
+    mediaEvidenceHashes: planningOnly
+      ? []
+      : commandEvidenceHashes(commandEvidence, MEDIA_COMMAND_IDS),
+    remotionEvidenceHashes: planningOnly
+      ? []
+      : commandEvidenceHashes(commandEvidence, REMOTION_COMMAND_IDS),
     startedAt,
     completedAt,
     issuedAt: completedAt,
@@ -179,6 +216,7 @@ export function issueBrollGeneratedQualificationArtifact(input: {
     manifestRef,
     testedCommitSha: input.testedCommitSha,
     relevantSourceTreeHash: input.relevantSourceTreeHash,
+    dependencyAuthorityHashes,
     fixtureEvidence,
     commandEvidence,
     receipt,
@@ -193,8 +231,17 @@ export function assertBrollGeneratedQualificationArtifact(input: {
   artifact: unknown
   manifest: Readonly<SkillCapabilityManifest>
   expectedRelevantSourceTreeHash: string
+  expectedDependencyAuthorityHashes: readonly SkillQualificationDependencyAuthorityHash[]
 }): BrollGeneratedQualificationArtifact {
   const artifact = brollGeneratedQualificationArtifactSchema.parse(input.artifact)
+  assertBrollQualificationDependencyAuthorityHashes({
+    actual: artifact.dependencyAuthorityHashes,
+    expected: input.expectedDependencyAuthorityHashes,
+  })
+  assertBrollQualificationDependencyAuthorityHashes({
+    actual: artifact.receipt.dependencyAuthorityHashes,
+    expected: input.expectedDependencyAuthorityHashes,
+  })
   if (
     hashSkillValue(artifact.manifestRef) !== hashSkillValue(skillManifestReference(input.manifest)) ||
     artifact.relevantSourceTreeHash !== input.expectedRelevantSourceTreeHash ||
@@ -221,6 +268,8 @@ export function assertBrollGeneratedQualificationArtifact(input: {
       evidence.testedCommitSha !== artifact.testedCommitSha ||
       evidence.relevantSourceTreeHash !== artifact.relevantSourceTreeHash ||
       evidence.manifestHash !== artifact.manifestRef.manifestHash ||
+      hashSkillValue(evidence.dependencyAuthorityHashes) !==
+        hashSkillValue(input.expectedDependencyAuthorityHashes) ||
       !evidence.passed || evidence.exitStatus !== 0
     ) throw new Error('Generated B-roll qualification evidence is failed, stale, or forged.')
   }
@@ -244,6 +293,7 @@ export function assertBrollGeneratedQualificationArtifact(input: {
 export function tryLoadBrollGeneratedQualificationArtifact(input: {
   manifest: Readonly<SkillCapabilityManifest>
   expectedRelevantSourceTreeHash: string
+  expectedDependencyAuthorityHashes: readonly SkillQualificationDependencyAuthorityHash[]
 }): BrollGeneratedQualificationArtifact | undefined {
   if (GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT === undefined) return undefined
   return assertBrollGeneratedQualificationArtifact({
@@ -255,6 +305,7 @@ export function tryLoadBrollGeneratedQualificationArtifact(input: {
 export function loadBrollGeneratedQualificationReceipt(input: {
   manifest: Readonly<SkillCapabilityManifest>
   expectedRelevantSourceTreeHash: string
+  expectedDependencyAuthorityHashes: readonly SkillQualificationDependencyAuthorityHash[]
 }) {
   const artifact = tryLoadBrollGeneratedQualificationArtifact(input)
   if (!artifact) {
@@ -269,5 +320,7 @@ export function loadBrollGeneratedQualificationReceiptForCurrentSource(
   return loadBrollGeneratedQualificationReceipt({
     manifest,
     expectedRelevantSourceTreeHash: computeBrollRelevantSourceTreeHash(),
+    expectedDependencyAuthorityHashes:
+      computeBrollQualificationDependencyAuthorityHashes(),
   })
 }

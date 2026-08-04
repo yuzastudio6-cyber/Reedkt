@@ -10,6 +10,28 @@ import { EDIT_SKILL_KEYS } from './edit-skill-ids'
 
 export const skillGitCommitShaSchema = z.string().regex(/^[a-f0-9]{40}$/u)
 
+export const skillQualificationDependencyAuthorityHashSchema = z.object({
+  authorityKey: skillIdentitySchema,
+  authorityHash: skillSha256Schema,
+}).strict()
+
+export type SkillQualificationDependencyAuthorityHash = z.infer<
+  typeof skillQualificationDependencyAuthorityHashSchema
+>
+
+function assertUniqueDependencyAuthorities(
+  values: readonly SkillQualificationDependencyAuthorityHash[],
+  context: z.RefinementCtx,
+): void {
+  const keys = values.map((entry) => entry.authorityKey)
+  if (new Set(keys).size !== keys.length) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Qualification dependency authorities must have unique keys.',
+    })
+  }
+}
+
 const skillQualificationFixtureEvidenceCoreSchema = z.object({
   schemaVersion: z.literal('skill-qualification-fixture-evidence-v1'),
   skillKey: z.enum(EDIT_SKILL_KEYS),
@@ -20,6 +42,8 @@ const skillQualificationFixtureEvidenceCoreSchema = z.object({
   commandId: skillIdentitySchema,
   testedCommitSha: skillGitCommitShaSchema,
   relevantSourceTreeHash: skillSha256Schema,
+  dependencyAuthorityHashes: z.array(skillQualificationDependencyAuthorityHashSchema)
+    .min(1).max(100),
   startedAt: z.string().datetime({ offset: true }),
   completedAt: z.string().datetime({ offset: true }),
   exitStatus: z.number().int().min(0).max(255),
@@ -46,6 +70,7 @@ const skillQualificationFixtureEvidenceCoreSchema = z.object({
   if (new Set(value.evidenceArtifactHashes).size !== value.evidenceArtifactHashes.length) {
     context.addIssue({ code: 'custom', message: 'Qualification fixture evidence hashes must be unique.' })
   }
+  assertUniqueDependencyAuthorities(value.dependencyAuthorityHashes, context)
 })
 
 export const skillQualificationFixtureEvidenceSchema =

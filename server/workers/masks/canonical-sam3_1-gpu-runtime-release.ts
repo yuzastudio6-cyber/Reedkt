@@ -30,6 +30,11 @@ import {
   sha256AuthorityValue,
 } from '../../services/private-edit-authority-store'
 import {
+  assertCanonicalSam31GpuRuntimeQualificationCompilationAuthority,
+  canonicalSam31GpuRuntimeQualificationCompilationAuthorityRef,
+  type CanonicalSam31GpuRuntimeQualificationCompilationAuthorityReadPort,
+} from '../../services/canonical-sam3_1-gpu-runtime-qualification-compilation-authority'
+import {
   assertCanonicalSam31GpuRuntimeQualificationEvidence,
   canonicalSam31GpuRuntimeQualificationEvidenceRef,
   qualificationReleaseFields,
@@ -383,6 +388,11 @@ export async function prepareCanonicalSam31GpuRuntimeRelease(input: {
   >
   readonly qualificationEvidenceReadPort:
     CanonicalSam31GpuRuntimeQualificationEvidenceReadPort
+  readonly qualificationCompilationAuthorityRef: ReturnType<
+    typeof canonicalSam31GpuRuntimeQualificationCompilationAuthorityRef
+  >
+  readonly qualificationCompilationAuthorityReadPort:
+    CanonicalSam31GpuRuntimeQualificationCompilationAuthorityReadPort
 }): Promise<{
   readonly observation: CanonicalSam31GpuRuntimeReleaseObservation
   readonly runtimeRelease: CanonicalProfessionalToolGpuRuntimeRelease
@@ -473,6 +483,83 @@ export async function prepareCanonicalSam31GpuRuntimeRelease(input: {
     || !sameQualificationRoute(evidence.route, qualificationRoute)
     || evidence.qualifiedAt !== release.qualifiedAt
   ) throw new Error('SAM 3.1 runtime qualification evidence is stale.')
+  const untrustedCompilationAuthority = await input
+    .qualificationCompilationAuthorityReadPort
+    .rereadQualificationCompilationAuthority({
+      authorityRef: input.qualificationCompilationAuthorityRef,
+    })
+  if (!untrustedCompilationAuthority) {
+    throw new Error(
+      'SAM 3.1 runtime qualification compilation authority is unavailable.',
+    )
+  }
+  const compilationAuthority =
+    assertCanonicalSam31GpuRuntimeQualificationCompilationAuthority(
+      untrustedCompilationAuthority,
+    )
+  if (
+    !sameEvidenceRef(
+      canonicalSam31GpuRuntimeQualificationCompilationAuthorityRef(
+        compilationAuthority,
+      ),
+      input.qualificationCompilationAuthorityRef,
+    )
+    || !sameEvidenceRef(
+      compilationAuthority.qualificationEvidenceRef,
+      input.qualificationEvidenceRef,
+    )
+    || compilationAuthority.qualificationId !== evidence.qualificationId
+    || compilationAuthority.candidateRef.schemaVersion !==
+      evidence.candidateRef.schemaVersion
+    || compilationAuthority.candidateRef.candidateHash !==
+      evidence.candidateRef.candidateHash
+    || !sameEvidenceRef(
+      compilationAuthority.privateArtifactIngestReceiptRef,
+      evidence.privateArtifactIngestReceiptRef,
+    )
+    || !sameEvidenceRef(
+      compilationAuthority.sourceCheckpointCompatibilityQualificationRef,
+      evidence.sourceCheckpointCompatibilityQualificationRef,
+    )
+    || !sameEvidenceRef(
+      compilationAuthority.imageSupplyChainReleaseRef,
+      evidence.imageSupplyChainReleaseRef,
+    )
+    || !sameEvidenceRef(
+      compilationAuthority.serviceIdentityRef,
+      evidence.serviceIdentityRef,
+    )
+    || !sameEvidenceRef(
+      compilationAuthority.immutableImageRef,
+      evidence.immutableImageRef,
+    )
+    || compilationAuthority.immutableImageDigest !==
+      evidence.immutableImageDigest
+    || !sameEvidenceRef(
+      compilationAuthority.scaleToZeroConfigurationRef,
+      evidence.scaleToZeroConfigurationRef,
+    )
+    || !sameEvidenceRef(
+      compilationAuthority.privateNetworkAndArtifactTransportRef,
+      evidence.privateNetworkAndArtifactTransportRef,
+    )
+    || !sameQualificationRoute(
+      compilationAuthority.route,
+      evidence.route,
+    )
+    || compilationAuthority.qualifiedAt !== evidence.qualifiedAt
+    || !compilationAuthority
+      .exactQualificationAndFourComponentRecordsReread
+    || !compilationAuthority
+      .exactComponentPayloadsMatchedQualificationEvidence
+    || compilationAuthority.callerSuppliedQualificationBooleansAccepted
+    || compilationAuthority.runtimeReleaseGranted
+    || compilationAuthority.gpuJobDispatched
+    || compilationAuthority.customerCreditsMutated
+    || compilationAuthority.productionAuthorityGranted
+  ) throw new Error(
+    'SAM 3.1 runtime qualification compilation authority is stale.',
+  )
   await assertApprovedA100BaselineEvidence({
     evidence,
     readPort: input.qualificationEvidenceReadPort,
@@ -485,7 +572,10 @@ export async function prepareCanonicalSam31GpuRuntimeRelease(input: {
     imageSupplyChainRelease: imageSupplyChain,
     release: {
       ...release,
-      qualification: qualificationReleaseFields(evidence),
+      qualification: qualificationReleaseFields(
+        evidence,
+        input.qualificationCompilationAuthorityRef,
+      ),
     },
   }, true)
 }

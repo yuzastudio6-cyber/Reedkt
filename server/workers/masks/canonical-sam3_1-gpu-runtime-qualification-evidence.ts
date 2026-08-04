@@ -68,7 +68,7 @@ const routeSchema = z.object({
   })
 })
 
-const driverEvidenceSchema = z.object({
+export const canonicalSam31GpuRuntimeDriverEvidenceSchema = z.object({
   cudaDriverRuntimeQualificationRef: versionOneRefSchema,
   observedNvidiaDriverVersion: z.string().regex(
     /^[0-9]+(?:\.[0-9]+){1,3}$/u,
@@ -100,7 +100,7 @@ const driverEvidenceSchema = z.object({
   })
 })
 
-const deterministicRunSchema = z.object({
+export const canonicalSam31GpuRuntimeDeterministicRunSchema = z.object({
   runOrdinal: z.number().int().min(1).max(30),
   qualificationAttemptRef: versionOneRefSchema,
   resultAdmissionRef: versionOneRefSchema,
@@ -159,7 +159,7 @@ const performanceMeasurementSchema = z.object({
   }
 })
 
-const performanceEvidenceSchema = z.object({
+export const canonicalSam31GpuRuntimePerformanceEvidenceSchema = z.object({
   eightMinuteSourcePerformanceQualificationRef: versionOneRefSchema,
   exactEightMinuteSourceRef: versionOneRefSchema,
   sourceDurationMilliseconds: z.literal(480_000),
@@ -201,7 +201,7 @@ const performanceEvidenceSchema = z.object({
   })
 })
 
-const qualityEvidenceSchema = z.object({
+export const canonicalSam31GpuRuntimeQualityEvidenceSchema = z.object({
   temporalMaskQualityQualificationRef: versionOneRefSchema,
   independentTemporalMeasurementSetRef: versionOneRefSchema,
   directPrivateCompleteIntervalReviewRef: versionOneRefSchema,
@@ -266,10 +266,12 @@ const evidenceWithoutHashSchema = z.object({
   scaleToZeroConfigurationRef: versionOneRefSchema,
   privateNetworkAndArtifactTransportRef: versionOneRefSchema,
   route: routeSchema,
-  driverEvidence: driverEvidenceSchema,
-  deterministicRuns: z.array(deterministicRunSchema).length(30),
-  performanceEvidence: performanceEvidenceSchema,
-  qualityEvidence: qualityEvidenceSchema,
+  driverEvidence: canonicalSam31GpuRuntimeDriverEvidenceSchema,
+  deterministicRuns: z.array(
+    canonicalSam31GpuRuntimeDeterministicRunSchema,
+  ).length(30),
+  performanceEvidence: canonicalSam31GpuRuntimePerformanceEvidenceSchema,
+  qualityEvidence: canonicalSam31GpuRuntimeQualityEvidenceSchema,
   qualifiedAt: timestamp,
   authority: z.object({
     exactThirtyRunSetReread: z.literal(true),
@@ -397,6 +399,7 @@ export function canonicalSam31GpuRuntimeQualificationEvidenceDigest(
 
 export function qualificationReleaseFields(
   evidence: CanonicalSam31GpuRuntimeQualificationEvidence,
+  substantiveGpuQualificationRef?: z.infer<typeof versionOneRefSchema>,
 ) {
   const parsed = assertCanonicalSam31GpuRuntimeQualificationEvidence(evidence)
   const firstRun = parsed.deterministicRuns[0]
@@ -419,7 +422,9 @@ export function qualificationReleaseFields(
     runtimeDriverAndLibraryPathEvidenceReread:
       parsed.driverEvidence.exactDriverVersionAndLoadedLibraryPathReread,
     substantiveGpuExecutionQualificationRef:
-      canonicalSam31GpuRuntimeQualificationEvidenceRef(parsed),
+      substantiveGpuQualificationRef
+        ? versionOneRefSchema.parse(substantiveGpuQualificationRef)
+        : canonicalSam31GpuRuntimeQualificationEvidenceRef(parsed),
     temporalMaskQualityQualificationRef:
       parsed.qualityEvidence.temporalMaskQualityQualificationRef,
     eightMinuteSourcePerformanceQualificationRef:

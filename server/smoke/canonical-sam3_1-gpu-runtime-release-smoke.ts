@@ -299,7 +299,7 @@ assert.throws(() => compileCanonicalSam31GpuRuntimeRelease({
 }))
 
 const qualificationEvidencePayload = canonicalQualificationEvidencePayload()
-const qualificationEvidence =
+export const qualificationEvidence =
   assertCanonicalSam31GpuRuntimeQualificationEvidence({
     ...qualificationEvidencePayload,
     evidenceHash: canonicalSam31GpuRuntimeQualificationEvidenceDigest(

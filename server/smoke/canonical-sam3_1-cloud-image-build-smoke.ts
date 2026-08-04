@@ -45,15 +45,15 @@ import {
 import { release as qualificationRelease } from
   './canonical-sam3_1-source-checkpoint-qualification-release-owner-smoke'
 
-const candidate = createCanonicalSam31SourceRuntimeCandidate()
+export const candidate = createCanonicalSam31SourceRuntimeCandidate()
 const syntheticIngest = await createSyntheticIngest()
-const canonicalIngest = canonicalizeIngest(syntheticIngest)
+export const canonicalIngest = canonicalizeIngest(syntheticIngest)
 const syntheticQualification = createQualification(
   syntheticIngest,
   'synthetic_contract_fixture',
   false,
 )
-const canonicalQualification = createQualification(
+export const canonicalQualification = createQualification(
   canonicalIngest,
   'canonical_private_reread',
   true,

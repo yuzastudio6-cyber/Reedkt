@@ -204,6 +204,14 @@ idempotent rerun then observed all five disabled and emitted
   interval private review. L4 must bind and equal or exceed the separately
   approved A100 quality baseline; it cannot reuse the A100 qualification as a
   generic fallback claim.
+- The route release now additionally requires a create-only compilation
+  authority. That authority rereads the final qualification record and four
+  separately digest-bound component records for driver/CUDA, the 30-run
+  deterministic set, eight-minute performance, and independent temporal-mask
+  quality. It exact-compares every component payload, route, qualification ID,
+  and immutable image before its ref can become the substantive GPU
+  qualification lineage. Persisting one caller-assembled record full of true
+  flags therefore cannot self-certify A100 or L4 release.
 - Every fresh fixed SAM 3.1 task context now requires an exact, digest-bound
   `track_all` Orchestra call for one complete approved scene interval. The
   binding cross-checks the approved snapshot, output, scene, source artifact,

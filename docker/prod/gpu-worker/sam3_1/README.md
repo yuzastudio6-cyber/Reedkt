@@ -352,5 +352,15 @@ remain limited to private image-build review. A missing, stale, crossed, or
 authority-opened release rejects the build before creation; a caller-provided
 boolean or digest cannot replace the canonical reread.
 
+Fresh A100 and L4 runtime release also requires
+`canonical-sam3_1-gpu-runtime-qualification-compilation-authority-v1`.
+That owner rereads the final route qualification plus four separately hashed
+canonical component records: driver/CUDA evidence, the exact 30-run
+deterministic set, the complete eight-minute performance set, and independent
+temporal-mask quality review. It byte-compares each component payload with the
+final qualification and records the exact route and immutable image. A stored
+qualification summary or caller-supplied collection of pass booleans cannot
+become the substantive GPU release reference.
+
 The canonical source contract is
 `server/model-artifacts/canonical-sam3_1-source-runtime-candidate.ts`.

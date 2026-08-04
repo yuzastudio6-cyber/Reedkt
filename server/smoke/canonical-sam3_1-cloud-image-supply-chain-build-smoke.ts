@@ -270,7 +270,7 @@ const evidenceReadPort =
     },
   })
 
-const qualifiedSupplyChain =
+export const qualifiedSupplyChain =
   await prepareAndPersistCanonicalSam31CloudImageSupplyChainRelease({
     releaseId: 'sam31-image-supply-chain-release-smoke',
     authority,

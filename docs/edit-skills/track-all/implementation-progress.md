@@ -1,6 +1,6 @@
 # Track All implementation progress
 
-Status: `track_13_handoffs_implemented_qualification_receipt_pending`
+Status: `track_14_qa_repair_implemented_qualification_receipt_pending`
 
 This ledger records actual implementation, test, qualification, Git, and
 external-gate evidence for the canonical `track_all@1.0.0` skill. It does not
@@ -767,3 +767,61 @@ Actual checks run:
 TRACK-13 does not dispatch or implement peer skills or the head orchestra.
 Track All remains `implementation_pending`, SAM remains `blocked`, and no
 checkpoint/model/GPU/paid/public/production/database action occurred.
+
+## TRACK-14 — independently derived QA and bounded repair
+
+Status: complete and remotely confirmed.
+
+- implementation commit: `3c7deff2c659581379a58cee92cba37550e43400`
+- remote confirmation: `origin/codex/track-all-skill-end-to-end` resolved to
+  `3c7deff2c659581379a58cee92cba37550e43400` after `git push -u origin HEAD`.
+
+Implemented:
+
+- strict content-addressed target, mask, seam, identity, and integration
+  measurement contracts with fixed producer operation identities and no raw
+  pass boolean;
+- independently derived target alignment/exclusion/count, temporal gap/jump/
+  shot-reset, mask coverage/leakage/flicker/edge/hole/fragment/blur, chunk
+  seam, anonymous identity-switch, camera/planar, ownership/range/source/
+  timing/layer/private-output/final-lineage findings;
+- report-schema enforcement that derives the aggregate disposition from the
+  worst exact hashed finding and rejects an inconsistent freshly rehashed
+  report;
+- privacy QA failure artifacts from actual decoded-pixel evidence, with final
+  redaction acceptance still failing closed unless the exact report passes;
+- a bounded repair director that chooses actions from failed evidence rather
+  than caller selection, binds the exact Track Graph and reports, permits one
+  automatic repair, requires exact same-tenant selection authority for repair
+  two, and rejects repair three;
+- positive-point, negative-point, box, local-retrack, conservative privacy
+  expansion, overlap increase, identity reassignment, planar recalculation,
+  and user-selection repair decisions plus fresh post-repair QA acceptance.
+
+Actual checks run:
+
+- `npm run test:track-all-independent-qa-repair` — passed; QA bundle hash
+  `29828a1e0305073fc69f4280389b271acb10f3d53f178b626c4f269ac0fad015`,
+  six strict report artifacts plus camera/planar findings, raw-boolean and
+  forged-measurement rejection, inconsistent-disposition rejection, nine
+  repair paths, conservative accepted repair hash
+  `85623e051351bd5f6a68c8aea8ab424c55d270543183efde948c13a3067f1909`,
+  manual approval for repair two, and rejection of repair three;
+- `npm run test:track-all-privacy-redaction` — passed actual FFmpeg treatments,
+  critical evidence for an unchanged preview, exact finalization rejection,
+  conservative coverage, reflections, and private output;
+- `npm run test:track-all-focus-reframe` — passed all eight treatments and
+  actual private Remotion focus/reframe integration after the report-schema
+  hardening;
+- Track All artifact, planning, chunk/identity, deterministic geometry, and
+  capability-manifest smokes — passed;
+- frozen B-Roll active-artifact and public-plugin smokes — passed under the
+  qualification-generation gate;
+- `npm run typecheck:server`, `npm run lint -- --quiet`, and
+  `npm run check:frontend-boundary` — passed;
+- staged `git diff --check` — passed.
+
+TRACK-14 independently qualifies the implemented fixture/deterministic QA
+logic; it does not promote actual SAM inference. Track All remains
+`implementation_pending`, SAM remains `blocked`, and no checkpoint/model/GPU/
+paid/public/production/database/head-orchestra action occurred.

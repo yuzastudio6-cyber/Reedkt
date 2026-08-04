@@ -133,6 +133,21 @@ scan, KMS signature, SLSA provenance, and an independent supply-chain release;
 it grants no source/checkpoint qualification, A100 job, customer credit, QA,
 delivery, or production authority.
 
+The existing canonical SAM 3.1 image supply-chain owner also handles the
+qualification image through the explicitly discriminated
+`canonical-sam3_1-qualification-image-supply-chain-build-admission-v1`
+phase. It cannot accept or relabel the historical runtime-image v1 record. It
+pulls only the qualification image's immutable digest, creates an SPDX 2.3
+SBOM with pinned Syft, signs and verifies that digest with the numeric
+WeEditPro KMS key version through pinned Cosign, and writes three private
+evidence artifacts. The admission is consumed create-only before Cloud Build,
+accepts no caller steps, image, artifact path, prompt, command, secret,
+checkpoint, qualification receipt, or media, and disables automatic retry
+after an uncertain create outcome. A successful build only means those three
+artifacts are ready for exact reread. Vulnerability occurrences, the original
+image-build provenance, SBOM bytes, signature verification, and the final
+qualification-image supply-chain release remain separate fail-closed gates.
+
 The server-created worker request is
 `canonical-sam3_1-source-checkpoint-qualification-worker-request-v1` and the
 fixed result is

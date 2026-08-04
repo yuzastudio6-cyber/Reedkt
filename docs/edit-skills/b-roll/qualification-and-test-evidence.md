@@ -4,22 +4,25 @@ Status: `internal_execution_qualified`
 
 Manifest schema: `skill-capability-manifest-v2`
 
-Manifest hash: `f76f07bd05a4e38ff61a04cdb4fa3d5784c41d1018f497f2d3d3c390c260d427`
+Manifest hash: `40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0`
 
 Qualification receipt hash:
-`e97d1ffc9897102f42f1698fd0e83fc13b23ffa454f0ccf4deb7bcad70d3082f`
+`10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7`
 
-Tested commit: `7326bf53a52db6b9aace7f9dde0b28ecb921ceb8`
+Tested commit: `59979f77fa2a7eb418846f0946c72f90df547a0f`
 
 Relevant source-tree hash:
-`728e4295235751484722887f588f00389727050a89c8c3650e3ed3c7c885db40`
+`3849c87be8dfd78f4da8e1f594815e035e4466fd3e98357cde695c9973ceddbe`
+
+Shared dependency-authority set hash:
+`15e8803248c2aa5db6715918bcb39f820bc9f312999d4021bb1578b5c69bd87a`
 
 Generated qualification artifact hash:
-`fa62ff38822fbc08da072c9a21c94df04ae13bc6bc2f344104e951c2e6875401`
+`ae45aca6d8cf6d4080bcbefead54e48785b46d2fab65967103de340956fb896c`
 
 ## Qualification scope
 
-The receipt was generated from 26 actual passed commands and contains 36
+The receipt was generated from 29 actual passed commands and contains 36
 validated fixture evidence artifacts: all 15 planning fixtures and all 21
 internal-execution fixtures declared by the capability manifest. Each command
 captures its real exit status, timestamps, sanitized stdout/stderr digest, and

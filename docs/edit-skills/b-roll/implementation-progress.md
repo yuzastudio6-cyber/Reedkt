@@ -2291,6 +2291,44 @@ Production qualification remains false. No live Gemini request, production
 worker, public delivery, orchestra, Track All implementation, or Visual
 Intelligence implementation was added.
 
+## M35 — PR update and B-roll freeze
+
+Status: freeze documentation complete; this final documentation commit is the
+M35 milestone commit. Its post-push GitHub and zero-behind audit is recorded in
+PR #2498 because a Git-tracked file cannot contain the SHA of the commit that
+contains itself.
+
+M34 was committed and pushed as
+`04f750cd93db21b1d0d9c50e560768aa9db4d256`. Runtime receipt verification from
+that committed state passed `test:edit-skill-runtime-factory`,
+`smoke:b-roll-end-to-end`, and `test:b-roll-public-plugin`. The runtime loaded
+receipt `10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7`,
+reported `internal_execution_qualified`, excluded all five production
+fixtures, and made zero provider requests.
+
+`docs/edit-skills/b-roll/final-freeze.md` now freezes the exact skill identity,
+branch/base/merge authority, manifest and qualification hashes, public plugin,
+produced artifacts, Visual Intelligence and Track All dependency contracts,
+Gemini-only route, production-only gates, invalidation rules, and permitted
+future change classes. The exact Track All branch point is the committed,
+qualified implementation/evidence head:
+`04f750cd93db21b1d0d9c50e560768aa9db4d256`.
+
+`docs/edit-skills/b-roll/qualification-and-test-evidence.md` was updated from
+its older pre-closeout hashes to the exact M34 receipt, artifact, source-tree,
+manifest, dependency-authority set, 29-command, and 36-fixture evidence.
+
+After this documentation commit is pushed, the final protocol is to fetch and
+prune again, compare exact remote refs, verify zero-behind ancestry and a clean
+worktree, inspect final GitHub Actions, and replace PR #2498's body with the
+exact final base/head/evidence facts. If the base advances, this milestone is
+invalid until the new base is normally merged and M33-M35 are repeated.
+
+No B-roll source/runtime authority changed after qualification. No orchestra,
+Track All implementation, Visual Intelligence implementation, production
+worker, paid provider request, public delivery, export, or billing mutation
+was added.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -2329,4 +2367,5 @@ Intelligence implementation was added.
 | M31 | selected base `6423f12c1e62a252fc860ce5184888770411c62d`; prior merge `d9e220f048ec6127e6a1927c8276bc660fe4d2fd` | `0049726b9e32b3ab71b298cb1039a6680b5c7536` | confirmed | prior receipt verified; M34 regeneration required |
 | M32 | required merge reported already up to date; ownership audit preserved exact base authorities | `235053965f2e407dc5b07b93ccfeaa3df083862e` | confirmed | targeted manifest/typecheck/retirement validation passed |
 | M33 | full reconciled B-roll regression matrix and exact-base browser comparison | `59979f77fa2a7eb418846f0946c72f90df547a0f` | confirmed | all B-roll gates passed; three unrelated preference failures reproduced on exact base |
-| M34 | tested `59979f77fa2a7eb418846f0946c72f90df547a0f`; receipt `10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7` | this generated-evidence commit | pending push | `internal_execution_qualified` from 29 commands and 36 fixtures |
+| M34 | tested `59979f77fa2a7eb418846f0946c72f90df547a0f`; receipt `10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7` | `04f750cd93db21b1d0d9c50e560768aa9db4d256` | confirmed | `internal_execution_qualified` from 29 commands and 36 fixtures |
+| M35 | freeze record, current evidence document, final PR/remote audit | this freeze documentation commit | pending push and PR update | runtime receipt accepted; production qualification remains false |

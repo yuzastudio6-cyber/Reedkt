@@ -1,7 +1,7 @@
-# Captions Specialist — CAP-06 Early Strategy Checkpoint
+# Captions Specialist — CAP-07 Finish Readiness Checkpoint
 
-Status: `cap_06_complete`
-Checkpoint: `CAP-06`
+Status: `cap_07_complete`
+Checkpoint: `CAP-07`
 Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
@@ -79,6 +79,7 @@ The governing workflow invariant remains:
 - [CAP-04 transcript, lineage, and alignment report](cap-04-transcript-lineage-alignment-report.md)
 - [CAP-05 font and Unicode runtime report](cap-05-font-unicode-runtime-report.md)
 - [CAP-06 early strategy and reservation report](cap-06-early-strategy-reservation-report.md)
+- [CAP-07 picture lock and finish readiness report](cap-07-picture-lock-finish-readiness-report.md)
 
 ### Historical architecture retained and amended
 
@@ -114,7 +115,7 @@ The governing workflow invariant remains:
 
 ## Progression
 
-CAP-00R through CAP-04 and CAP-06 are complete on the clean specialist branch. CAP-05's
+CAP-00R through CAP-07 are complete on the clean specialist branch. CAP-05's
 contracts and fail-closed resolver are complete, with its actual private font
 runtime qualification gates carried explicitly. CAP-01 adds the
 neutral shared v2 manifest extension, per-job qualification snapshot,
@@ -149,8 +150,14 @@ blocking metadata, approval/estimate inputs, and owner-bound `no_captions`.
 All ten historical treatment labels remain readable through an explicit v2
 classification adapter.
 
-Implementation continues automatically into CAP-07 picture lock, finish
-readiness, and local staleness. Registry/workflow integration will consume
+CAP-07 adds the neutral canonical PictureLockManifest, 32-class dependency
+manifest, scene-level finish readiness, exact approved fallback/exception
+handling, local/global staleness, and append-only lifecycle progression.
+Caption consumes picture lock and never becomes its owner or final-render
+authority.
+
+Implementation continues automatically into CAP-08 Visual Intelligence
+support and final-frame evidence. Registry/workflow integration will consume
 these frozen public artifacts at its dependency-safe milestone; no Caption
 milestone manufactures a second planner or a false backend coverage claim.
 

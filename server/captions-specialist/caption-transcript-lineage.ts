@@ -24,8 +24,20 @@ import { calculateSkillContractDigest } from '../orchestra/orchestra-skill-contr
 const safeKey = z.string().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
+
+function hasUnsafeControlCharacter(value: string): boolean {
+  return Array.from(value).some((character) => {
+    const codePoint = character.codePointAt(0) ?? 0
+    return codePoint <= 8
+      || codePoint === 11
+      || codePoint === 12
+      || (codePoint >= 14 && codePoint <= 31)
+      || codePoint === 127
+  })
+}
+
 const safeText = z.string().min(1).max(4_000)
-  .refine((value) => !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(value))
+  .refine((value) => !hasUnsafeControlCharacter(value))
   .refine((value) => !/(?:https?:\/\/|file:\/\/|gs:\/\/|s3:\/\/)/iu.test(value))
   .refine((value) => !/(?:api[_-]?key|authorization:\s*bearer|private[_-]?key|secret[_-]?key)/iu.test(value))
 const refSchema = z.object({ id: safeKey, version: safeKey, contentHash: sha256 }).strict()

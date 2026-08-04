@@ -162,6 +162,23 @@ resource and is never automatically retried. A successful Batch state still
 grants no qualification: the create-only worker result, actual usage/cost,
 network, log, and terminal evidence must be independently reread first.
 
+The terminal evidence path is split into two additional one-writer stages.
+`canonical-sam3_1-source-checkpoint-qualification-result-evidence-v1`
+generation-rereads the private CMEK result object after the exact Batch job
+succeeds, requires the exact four-object attempt set, revalidates the fixed
+worker result and its request/image/checkpoint lineage, and persists a
+create-only private receipt. It still cannot qualify the checkpoint. The
+subsequent
+`canonical-sam3_1-source-checkpoint-qualification-terminal-evidence-v1`
+rereads that same terminal Batch job, its one succeeded task, every returned
+job-UID-scoped `batch_task_logs` entry, and the exact account-effective A100
+rate authority. It persists separate create-only log, platform-internal
+run-duration cost-estimate, and terminal receipts, requires zero active GPU
+resources, and explicitly distinguishes that estimate from a Cloud Billing
+invoice actual. Qualification, runtime release, customer credits, billing,
+QA, public delivery, and production all remain closed until the final
+security/compliance-bound qualification compiler receives real evidence.
+
 The existing canonical SAM 3.1 image supply-chain owner also handles the
 qualification image through the explicitly discriminated
 `canonical-sam3_1-qualification-image-supply-chain-build-admission-v1`

@@ -28,11 +28,11 @@ import { candidate, canonicalIngest } from
 import { release } from
   './canonical-sam3_1-qualification-image-supply-chain-build-phase-smoke'
 
-const attemptId = 'sam31-source-checkpoint-qualification-attempt-1'
+export const attemptId = 'sam31-source-checkpoint-qualification-attempt-1'
 const now = '2026-08-04T18:00:00.000Z'
-const rate = await a100Rate()
+export const rate = await a100Rate()
 const fixtureHash = digest('sam31-qualification-probe')
-const workerRequest =
+export const workerRequest =
   createCanonicalSam31SourceCheckpointQualificationWorkerRequest({
     qualificationId: 'sam31-source-checkpoint-qualification-1',
     candidate,
@@ -66,7 +66,7 @@ const workerRequest =
     },
     issuedAt: '2026-08-04T17:58:00.000Z',
   })
-const mount = createMount(attemptId)
+export const mount = createMount(attemptId)
 const objectStore = createObjectPort()
 const state = createCanonicalSam31QualificationA100StateRepository({
   objectPort: objectStore.port,
@@ -111,7 +111,7 @@ const phase = createCanonicalSam31SourceCheckpointQualificationA100Phase({
   now: () => now,
 })
 
-const submission = await phase.admitAndStart({
+export const submission = await phase.admitAndStart({
   attemptId,
   qualificationImageSupplyChainReleaseRef: releaseRef(),
   workerRequestRef: requestRef(),
@@ -152,7 +152,7 @@ assert.equal(pending.internalAttemptCostReread, false)
 assert.equal(getCalls, 1)
 
 batchState = 'SUCCEEDED'
-const succeeded = await phase.reconcileOne({ attemptId })
+export const succeeded = await phase.reconcileOne({ attemptId })
 assert.equal(succeeded.disposition, 'job_succeeded_pending_result_reread')
 assert.equal(succeeded.batchState, 'SUCCEEDED')
 assert.equal(succeeded.exactCreateConfigurationEchoVerified, true)
@@ -169,7 +169,7 @@ assert.deepEqual(terminalReplay, succeeded)
 assert.equal(getCalls, 2)
 assert.equal(objectStore.records.size, 3)
 
-const admission = assertCanonicalSam31QualificationA100Admission(
+export const admission = assertCanonicalSam31QualificationA100Admission(
   await state.rereadAdmission({ attemptId }),
 )
 assert.equal(admission.userTriggered, true)

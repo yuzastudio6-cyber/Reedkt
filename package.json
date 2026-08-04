@@ -217,6 +217,8 @@
     "smoke:sam3_1-source-checkpoint-qualification": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-a100": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-a100-phase-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-staging": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-staging-owner-smoke.ts",
+    "smoke:sam3_1-source-checkpoint-qualification-result": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-result-owner-smoke.ts",
+    "smoke:sam3_1-source-checkpoint-qualification-terminal": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-terminal-evidence-owner-smoke.ts",
     "smoke:sam3_1-image-supply-chain-build": "tsx server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-smoke.ts",
     "smoke:sam3_1-image-supply-chain-build-runtime": "tsx server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-runtime-smoke.ts",
     "smoke:visual-intelligence-private-gcs-read": "tsx server/smoke/visual-intelligence-gcs-private-object-read-port-smoke.ts",

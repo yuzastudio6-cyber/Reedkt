@@ -385,3 +385,65 @@ until the later receipt issuer binds this evidence to the exact committed
 source tree. The fixture is not SAM evidence and does not promote the SAM or
 top-level skill route. No checkpoint, GPU, model/provider, paid, public,
 production, database, or head-orchestra action occurred.
+
+## TRACK-07 — SAM 3.1 Track All operation authority
+
+Status: complete; push confirmation is recorded by the following evidence
+ledger commit.
+
+- implementation commit: `c6919897bde19db59daccf6274b9cc5e567bbce5`
+
+Implemented:
+
+- preserved `tool.sam3_1.segment_and_track_subject.v1`, the pinned source
+  revision, source archive hash, checkpoint revision, and all existing V1
+  runtime contracts without modification;
+- added the separate content-addressed
+  `tool.sam3_1.track_masklets.v2` authority with operation authority hash
+  `cd6f408a7328ff3a4d54e054dd29b7438d8571533e67003856b5c84bfc4d1a1a`;
+- bound the exact Track All manifest, assignment, plan, approved snapshot,
+  work item, attempt, lease, reservation, source checksum/range, target group,
+  anonymous object IDs, object/bucket/frame ceilings, and cost authorities;
+- added server-compiled text, positive-point, negative-point, and bounding-box
+  prompt contracts; direct mask prompting remains rejected and unqualified;
+- added non-zero initialization plus forward, backward, and bidirectional
+  propagation, bounded refinement, object removal, reset, cancellation, and a
+  mandatory close-in-finally policy for all six terminal outcomes;
+- added separately hashed attempt and close evidence which cannot represent
+  injected masklets as real strict-load/CUDA evidence;
+- rejected caller model, module, class, checkpoint, command, GPU, endpoint,
+  path, URL, retry, fallback, price, and raw-chat authority;
+- kept the canonical-private and production execution adapters absent until
+  real qualification exists.
+
+Actual checks run:
+
+- `npm run test:track-all-sam3.1-operation-authority` — passed the valid
+  non-zero/bidirectional, point/box/refinement, removal, reset, cancellation,
+  six-outcome close, injected-evidence, cross-workspace, stale-lineage, and 21
+  adversarial checks; actual SAM request count was `0`.
+- `npx tsx server/smoke/canonical-sam3_1-gpu-runtime-contract-smoke.ts` —
+  passed 46 V1 checks; request binding hash
+  `a1d9a9c739ec92c6a057a58ffea3d214e504f526e5846c73f040643f61089b4d`
+  and response binding hash
+  `6a132e95eb6bb2f5ec6b7540f099ef05d35676e604b033ff8aaf1b1001900856`
+  remain unchanged.
+- `npx tsx server/smoke/canonical-sam3_1-source-runtime-candidate-smoke.ts`
+  — passed 134 checks with V1 candidate hash
+  `a05d7789966ce35cf64acf4f17125e49535fd03da1f5296f3c6b1b366e6b7b33`;
+  runtime execution remained false and production readiness remained false.
+- `npm run typecheck:server` — passed.
+- `npm run lint -- --quiet` — passed.
+- `npm run test:track-all-capability-manifest` — passed before the V2 source
+  addition; manifest hash remains
+  `65eb6541aafc312f390479273d196aaa5f2db5cd52cba898dd9165a88f7a5998`.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-capability-manifest`
+  — passed and preserved the frozen B-Roll manifest hash.
+- staged `git diff --check` — passed.
+
+Qualification truth remains `implementation_pending`. The SAM route remains
+`blocked` on authorized checkpoint ingest, strict-load compatibility,
+immutable image qualification, and real private A100/L4 evidence. No SAM
+model/checkpoint/GPU inference, paid action, public artifact, production
+mutation, database migration, head orchestra, or peer-skill implementation
+occurred.

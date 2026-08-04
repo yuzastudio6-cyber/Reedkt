@@ -45,6 +45,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-private-artifact-ingest-smoke.ts',
   'server/smoke/canonical-sam3_1-official-artifact-publication-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts',
+  'server/smoke/canonical-sam3_1-qualification-image-build-phase-smoke.ts',
   'server/smoke/canonical-sam3_1-cloud-image-build-smoke.ts',
   'server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-smoke.ts',
   'server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-runtime-smoke.ts',

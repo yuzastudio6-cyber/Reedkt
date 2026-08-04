@@ -77,6 +77,12 @@ const capsuleArchiveEntrySchema = z.object({
   byteLength: positiveInteger,
   sha256,
 }).strict()
+export type CanonicalSam31PrivateCapsuleCoordinate = z.infer<
+  typeof privateObjectCoordinateSchema
+>
+export type CanonicalSam31CapsuleArchiveEntry = z.infer<
+  typeof capsuleArchiveEntrySchema
+>
 
 const artifactBindingWithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -595,7 +601,7 @@ export async function prepareCanonicalSam31CloudImageBuildAuthority(input: {
     capsule,
   })
   const canonical = ingest.evidenceClass === 'canonical_private_reread'
-  const capsuleInspection = await verifyExactPrivateCapsule(
+  const capsuleInspection = await verifyCanonicalSam31PrivateBuildCapsuleBytes(
     capsule.capsule.coordinate,
     input.privateCapsuleReadPort,
   )
@@ -780,11 +786,11 @@ function assertMatchingBuildInputs(input: {
   ) throw new Error('SAM 3.1 cloud build inputs crossed authority.')
 }
 
-async function verifyExactPrivateCapsule(
-  coordinate: z.infer<typeof privateObjectCoordinateSchema>,
+export async function verifyCanonicalSam31PrivateBuildCapsuleBytes(
+  coordinate: CanonicalSam31PrivateCapsuleCoordinate,
   port: CanonicalSam31PrivateBuildCapsuleReadPort,
 ): Promise<{
-  readonly archiveEntries: readonly z.infer<typeof capsuleArchiveEntrySchema>[]
+  readonly archiveEntries: readonly CanonicalSam31CapsuleArchiveEntry[]
   readonly archiveEntrySetSha256: string
 }> {
   const object = await port.readExact(coordinate)

@@ -115,6 +115,24 @@ base-image digest or a worker-echoed image field cannot satisfy this boundary.
 The fixed image preserves the canonical dependency wheel-manifest digest and
 the worker rereads it alongside the lock and dependency-closure receipt.
 
+The qualification image is compiled by the qualification phase of the same
+canonical SAM 3.1 Cloud Build owner; it is not a second image-build owner. The
+phase accepts only
+`canonical-sam3_1-qualification-image-build-authority-v1`, consumes that
+authority create-only before the regional Cloud Build call, and submits the
+fixed `Dockerfile.qualification.candidate` with the exact dependency-lock,
+dependency-closure, wheel-manifest, patch-application, and CUDA forward-
+compatibility receipt hashes. Its private generation-bound capsule includes
+only the pinned source, patch, offline dependency closure, and qualification
+executor sources. It excludes checkpoint bytes and the source/checkpoint
+qualification receipt, thereby removing the circular requirement to qualify
+the checkpoint before the image capable of running that qualification exists.
+An uncertain create outcome is never retried automatically. Even a successful
+build stops at an immutable image digest pending SBOM reread, vulnerability
+scan, KMS signature, SLSA provenance, and an independent supply-chain release;
+it grants no source/checkpoint qualification, A100 job, customer credit, QA,
+delivery, or production authority.
+
 The server-created worker request is
 `canonical-sam3_1-source-checkpoint-qualification-worker-request-v1` and the
 fixed result is

@@ -2139,6 +2139,42 @@ though the relevant B-roll/shared authority tree has not changed. No provider
 request, public artifact, production mutation, orchestra, Track All
 implementation, or Visual Intelligence implementation occurred during M31.
 
+## M32 — normal merge verification and ownership reconciliation
+
+Status: complete; no new merge commit was required because the selected base
+was already an ancestor of the B-roll branch.
+
+M31 was committed and pushed as
+`0049726b9e32b3ab71b298cb1039a6680b5c7536`; local and remote refs matched
+exactly after the push. From that clean head, the required command
+`git merge --no-ff origin/codex/backend-workflow-pipeline-continuation`
+reported `Already up to date.` The existing non-destructive reconciliation
+merge remains `d9e220f048ec6127e6a1927c8276bc660fe4d2fd`, whose second parent is the
+exact selected integration SHA. No empty merge commit, rebase, squash, or
+force-push was created.
+
+The ownership audit found no B-roll-side changes after the selected base in
+the integration-owned Visual Intelligence, SAM/model-artifact, GPU placement,
+source-analysis, or GCP retirement paths. Those newer authorities are byte-for-
+byte preserved from the selected base. No SAM2 or SAM 3.1 reference/import was
+found in the active B-roll or Gemini Omni B-roll packages.
+
+Targeted reconciliation validation passed:
+
+- `npm run test:b-roll-capability-manifest` — one canonical manifest, 13
+  supported jobs, 41 qualification fixtures, 46 QA entries, and unchanged
+  manifest hash.
+- `npm run validate:skill-capability-manifests` — exactly one valid manifest.
+- `npm run typecheck:server` — passed.
+- `npm run smoke:b-roll-retirement` — one active `b_roll@1.0.0` registration,
+  Gemini Omni as the sole route, zero provider fallbacks, five retired-provider
+  fixtures rejected, and no Track All implementation import.
+
+The canonical B-roll public plugin, manifest, runtime bindings, dependency
+contracts, and provider history required no adaptation. M33 will run the full
+regression matrix. No provider request, public artifact, production mutation,
+or new orchestra/Track All/Visual Intelligence implementation occurred.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -2174,4 +2210,5 @@ implementation, or Visual Intelligence implementation occurred during M31.
 | M28 | `496cad74c` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
 | M29 | `afa3905e9` + `3b0b7c1` + `92039bc` + `56a4a89` + `01168f5` + `657e9e9` + `14f734a` + `950fa40` | this bookkeeping commit | confirmed | included in final actual receipt |
 | M30 | tested `950fa403856b4f2ce6dcb9f09d017db18a27b75a`; evidence `4fd8b9dcddb529e1627d03f134514df9458fd524` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
-| M31 | selected base `6423f12c1e62a252fc860ce5184888770411c62d`; prior merge `d9e220f048ec6127e6a1927c8276bc660fe4d2fd` | this preflight commit | pending push | prior receipt verified; M34 regeneration required |
+| M31 | selected base `6423f12c1e62a252fc860ce5184888770411c62d`; prior merge `d9e220f048ec6127e6a1927c8276bc660fe4d2fd` | `0049726b9e32b3ab71b298cb1039a6680b5c7536` | confirmed | prior receipt verified; M34 regeneration required |
+| M32 | required merge reported already up to date; ownership audit preserved exact base authorities | this reconciliation record | pending push | targeted manifest/typecheck/retirement validation passed |

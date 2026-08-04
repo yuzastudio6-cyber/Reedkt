@@ -196,13 +196,18 @@ audit is expected until every external checkpoint, identity, KMS, storage,
 image, and A100 gate closes; it does not weaken or self-authorize a build or
 runtime.
 
-The latest read-only account observation is correctly blocked: Cloud KMS is not
-enabled, the image-builder/image-signer/GPU-worker identities and the four
-fixed SAM 3.1 private buckets are absent, no signing key exists, and A100 80 GB
-quota remains zero. Artifact Registry is a standard Docker repository with
-vulnerability scanning active, but its required scoped build/sign/read bindings
-are not yet present. These are observed prerequisites, not permission to create
-resources or evidence that SAM 3.1 has been installed.
+The narrow foundation provisioner has now completed in project `reeditpro`.
+Cloud KMS and Binary Authorization are enabled; the image-builder, image-signer,
+and GPU-worker identities are enabled; all four fixed private buckets enforce
+uniform bucket access and public-access prevention; the repository-scoped
+build/sign/read bindings are present; and the asymmetric HSM P-256 signing key
+has an enabled version with signer-only signing authority. Only empty secret
+placeholders exist. No secret version, Meta terms acceptance, checkpoint,
+image, GPU job, provider call, customer-credit mutation, or production authority
+was created. The exact external gates remain A100 80 GB quota, authorized human
+checkpoint access and token insertion, source/checkpoint compatibility, image
+build/scan/sign/release, independent A100/L4 qualification, live Gemini
+qualification, and account-effective pricing permission.
 
 The narrow idempotent operator source
 `scripts/gcp/prod/17-provision-visual-intelligence-sam31-foundation.sh`

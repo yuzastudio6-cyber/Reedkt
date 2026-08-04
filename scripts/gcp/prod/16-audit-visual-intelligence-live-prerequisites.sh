@@ -261,6 +261,10 @@ api_control_plane_reader="$(policy_has_member_role \
 signing_key_metadata="$(read_json_or_empty gcloud kms keys describe \
   "${IMAGE_SIGNING_KEY}" --project="${PROJECT_ID}" --location="${REGION}" \
   --keyring="${IMAGE_SIGNING_KEY_RING}" --format=json)"
+signing_key_versions="$(read_json_or_empty gcloud kms keys versions list \
+  --key="${IMAGE_SIGNING_KEY}" --project="${PROJECT_ID}" \
+  --location="${REGION}" --keyring="${IMAGE_SIGNING_KEY_RING}" \
+  --filter='state=ENABLED' --format=json)"
 signing_key_policy="$(read_json_or_empty gcloud kms keys get-iam-policy \
   "${IMAGE_SIGNING_KEY}" --project="${PROJECT_ID}" --location="${REGION}" \
   --keyring="${IMAGE_SIGNING_KEY_RING}" --format=json)"
@@ -315,28 +319,34 @@ artifact_repository="$(jq -n \
 signing_key="$(jq -n \
   --arg expectedName "projects/${PROJECT_ID}/locations/${REGION}/keyRings/${IMAGE_SIGNING_KEY_RING}/cryptoKeys/${IMAGE_SIGNING_KEY}" \
   --argjson metadata "${signing_key_metadata}" \
+  --argjson versions "${signing_key_versions}" \
   --argjson signerAccess "${image_signer_key_access}" \
-  '{
+  '($versions | if type == "array" then . else [] end) as $enabledVersions
+  | ([$enabledVersions[]? | select(
+      .state == "ENABLED"
+      and .algorithm == "EC_SIGN_P256_SHA256"
+      and .protectionLevel == "HSM"
+    )]) as $eligibleVersions
+  | {
     resourceName: ($metadata.name // null),
     exists: ($metadata.name == $expectedName),
     purpose: ($metadata.purpose // null),
-    primaryVersionResource: ($metadata.primary.name // null),
-    primaryVersionState: ($metadata.primary.state // null),
-    primaryVersionAlgorithm: ($metadata.primary.algorithm // null),
-    primaryVersionProtectionLevel: ($metadata.primary.protectionLevel // null),
+    enabledVersionCount: ($enabledVersions | length),
+    eligibleHsmP256VersionCount: ($eligibleVersions | length),
+    eligibleHsmP256VersionResources: ($eligibleVersions | map(.name)),
     imageSignerCanSignAndVerify: $signerAccess,
     ready: (
       $metadata.name == $expectedName
       and $metadata.purpose == "ASYMMETRIC_SIGN"
-      and $metadata.primary.state == "ENABLED"
-      and $metadata.primary.algorithm == "EC_SIGN_P256_SHA256"
-      and $metadata.primary.protectionLevel == "HSM"
+      and $metadata.versionTemplate.algorithm == "EC_SIGN_P256_SHA256"
+      and $metadata.versionTemplate.protectionLevel == "HSM"
+      and ($eligibleVersions | length) >= 1
       and $signerAccess
     )
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v3' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v4' \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
   --argjson a100Limit "${a100_limit}" \

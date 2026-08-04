@@ -55,11 +55,12 @@ function assertKnownRoutes(manifest: SkillCapabilityManifest, catalog: SkillRefe
       throw new Error(`Route ${route.routeKey} exposes caller selection, automatic retry, or alternate fallback.`)
     }
     if (manifest.schemaVersion === 'skill-capability-manifest-v2') {
-      const manifestRank = ACTIVE_QUALIFICATION_RANK[manifest.qualificationStatus]
       const routeRank = ACTIVE_QUALIFICATION_RANK[route.minimumQualificationStatus]
-      if (manifestRank === undefined || routeRank === undefined || routeRank > manifestRank) {
-        throw new Error(`Route ${route.routeKey} exceeds manifest qualification.`)
-      }
+      // A manifest is also the fail-closed declaration of routes that are not
+      // qualified yet.  The route's minimum may therefore exceed the current
+      // top-level status; the dispatcher must reject it until exact runtime
+      // evidence meets this minimum.
+      if (routeRank === undefined) throw new Error(`Route ${route.routeKey} has an invalid qualification requirement.`)
       if (route.routeKind === 'provider') {
         for (const operationId of route.operationIds) {
           const operationStatus = catalog.providerOperationQualifications.get(operationId)
@@ -146,8 +147,10 @@ export function validateSkillCapabilityManifests(input: {
         ...manifest.acceptedArtifactTypes,
         ...manifest.producedArtifactTypes,
       ])
-      const allowedPhases = new Set(manifestAllowedExecutionPhaseIds(manifest))
-      const manifestRank = ACTIVE_QUALIFICATION_RANK[manifest.qualificationStatus]
+      const allowedPhases = new Set([
+        manifestPlanningPhaseId(manifest),
+        ...manifestAllowedExecutionPhaseIds(manifest),
+      ])
       for (const job of manifest.supportedJobTypes) {
         if (job.allowedPhases.some((phase) => !allowedPhases.has(phase))) {
           throw new Error(`Supported job ${job.jobType} has an unknown phase.`)
@@ -157,9 +160,7 @@ export function validateSkillCapabilityManifests(input: {
           throw new Error(`Supported job ${job.jobType} references an unknown artifact.`)
         }
         const jobRank = ACTIVE_QUALIFICATION_RANK[job.minimumQualificationStatus]
-        if (manifestRank === undefined || jobRank === undefined || jobRank > manifestRank) {
-          throw new Error(`Supported job ${job.jobType} exceeds manifest qualification.`)
-        }
+        if (jobRank === undefined) throw new Error(`Supported job ${job.jobType} has an invalid qualification requirement.`)
       }
       for (const requirement of manifest.requiredSourceEvidence) {
         if (requirement.acceptedArtifactTypes.some((type) => !artifactTypes.has(type))) {
@@ -176,7 +177,7 @@ export function validateSkillCapabilityManifests(input: {
       }
       for (const requirement of manifest.trackingRequirements) {
         if (
-          requirement.ownerSkill === manifest.skillKey ||
+          !EDIT_SKILL_KEYS.includes(requirement.ownerSkill as (typeof EDIT_SKILL_KEYS)[number]) ||
           requirement.modelSpecificDependencyAllowed ||
           !artifactTypes.has(requirement.acceptedArtifactType) ||
           !allowedPhases.has(requirement.requiredForPhase)

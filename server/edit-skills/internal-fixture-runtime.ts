@@ -2,6 +2,10 @@ import {
   BROLL_PROVIDER_OPERATIONS,
   BROLL_TOOL_OPERATIONS,
 } from './b-roll/b-roll-capability-manifest'
+import {
+  TRACK_ALL_SAM_OPERATION_V2,
+  TRACK_ALL_TOOL_OPERATIONS,
+} from './track-all/track-all-capability-manifest'
 import { InMemoryCreateOnlyEditSkillArtifactStore } from './core/edit-skill-artifact-store'
 import type { EditSkillRuntime } from './core/edit-skill-runtime'
 import {
@@ -22,7 +26,13 @@ export function createInternalFixtureEditSkillRuntime(): EditSkillRuntime {
         'internal_execution_qualified' as const,
       ])),
     },
-    toolRegistry: { operationIds: new Set(BROLL_TOOL_OPERATIONS) },
+    toolRegistry: {
+      operationIds: new Set([
+        ...BROLL_TOOL_OPERATIONS,
+        ...TRACK_ALL_TOOL_OPERATIONS,
+        TRACK_ALL_SAM_OPERATION_V2,
+      ]),
+    },
     ...registries,
   })
 }

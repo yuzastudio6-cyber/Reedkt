@@ -284,8 +284,7 @@ export class SkillJobRuntimeBindingRegistry {
       ...manifest.producedArtifactTypes,
     ])
     const allowedPhases = new Set(manifestAllowedExecutionPhaseIds(manifest))
-    const manifestQualificationRank = ACTIVE_QUALIFICATION_RANK[manifest.qualificationStatus]
-    if (manifestQualificationRank === undefined) {
+    if (ACTIVE_QUALIFICATION_RANK[manifest.qualificationStatus] === undefined) {
       throw new Error(`Manifest ${manifest.skillKey} cannot expose runtime bindings at ${manifest.qualificationStatus}.`)
     }
     for (const binding of bindings) {
@@ -337,9 +336,10 @@ export class SkillJobRuntimeBindingRegistry {
         ) throw new Error(`Runtime binding ${definition.jobType} differs from its manifest job capability.`)
       }
       const requiredRank = ACTIVE_QUALIFICATION_RANK[definition.requiredQualification]
-      if (requiredRank === undefined || requiredRank > manifestQualificationRank) {
-        throw new Error(`Runtime binding ${definition.jobType} exceeds the manifest qualification.`)
-      }
+      // A binding may describe a route above the manifest's current status.
+      // It remains non-executable until dispatch presents qualification
+      // evidence meeting this exact required rank.
+      if (requiredRank === undefined) throw new Error(`Runtime binding ${definition.jobType} has an invalid qualification requirement.`)
       if (!definition.approvalRequired) {
         throw new Error(`Runtime binding ${definition.jobType} bypasses approval.`)
       }

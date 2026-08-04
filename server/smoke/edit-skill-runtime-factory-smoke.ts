@@ -8,6 +8,11 @@ import {
   createBrollCanonicalPrivateRuntimeBindings,
 } from '../edit-skills/b-roll'
 import {
+  TRACK_ALL_CAPABILITY_MANIFEST,
+  TRACK_ALL_SAM_OPERATION_V2,
+  TRACK_ALL_TOOL_OPERATIONS,
+} from '../edit-skills/track-all'
+import {
   InMemoryCreateOnlyEditSkillArtifactStore,
   type EditSkillArtifactReference,
   type EditSkillArtifactStore,
@@ -43,7 +48,11 @@ function dependencies() {
         'internal_execution_qualified' as const,
       ])),
     },
-    toolRegistry: { operationIds: new Set(BROLL_TOOL_OPERATIONS) },
+    toolRegistry: { operationIds: new Set([
+      ...BROLL_TOOL_OPERATIONS,
+      ...TRACK_ALL_TOOL_OPERATIONS,
+      TRACK_ALL_SAM_OPERATION_V2,
+    ]) },
     ...createEditSkillRuntimeRegistries(),
   }
 }
@@ -107,8 +116,9 @@ assert.ok(
     skillManifestReference(BROLL_CAPABILITY_MANIFEST),
   ),
 )
-assert.equal(productionRuntime.capabilityRegistry.listManifests().length, 1)
-assert.equal(productionRuntime.runtimeBindingRegistry.list().length, 13)
+assert.ok(productionRuntime.pluginRegistry.resolve(skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST)))
+assert.equal(productionRuntime.capabilityRegistry.listManifests().length, 2)
+assert.equal(productionRuntime.runtimeBindingRegistry.list().length, 26)
 
 const canonicalPrivateRuntime = createEditSkillRuntime({
   environmentClass: 'canonical_private',
@@ -121,7 +131,7 @@ const canonicalPrivateRuntime = createEditSkillRuntime({
   ...dependencies(),
 })
 assert.equal(canonicalPrivateRuntime.environmentClass, 'canonical_private')
-assert.equal(canonicalPrivateRuntime.runtimeBindingRegistry.list().length, 26)
+assert.equal(canonicalPrivateRuntime.runtimeBindingRegistry.list().length, 39)
 assert.equal(canonicalPrivateRuntime.runtimeBindingRegistry.list().filter((binding) =>
   binding.definition.adapterClass === 'canonical_private_execution_adapter').length, 13)
 const wrongEnvironmentDependencies = dependencies()

@@ -17,6 +17,7 @@ import { SkillEstimatorRegistry } from './core/skill-estimator-registry'
 import { SkillQaRegistry } from './core/skill-qa-registry'
 import { SkillQualificationRegistry } from './core/skill-qualification-registry'
 import { registerBrollSkill } from './b-roll'
+import { registerTrackAllSkill } from './track-all'
 
 const REQUIRED_DEPENDENCIES = [
   'artifactStore',
@@ -56,6 +57,18 @@ export function createEditSkillRuntime(
   }
 
   registerBrollSkill({
+    capabilities: capabilityRegistry,
+    estimators: input.estimatorRegistry!,
+    qa: input.qaRegistry!,
+    artifacts: input.artifactSchemaRegistry!,
+    artifactStore,
+    plugins: pluginRegistry,
+    runtimeBindings: runtimeBindingRegistry,
+    workGraphJobs: workGraphJobDefinitions,
+    qualifications: input.qualificationRegistry!,
+    catalog: referenceCatalog,
+  })
+  registerTrackAllSkill({
     capabilities: capabilityRegistry,
     estimators: input.estimatorRegistry!,
     qa: input.qaRegistry!,

@@ -1,0 +1,1521 @@
+{
+  "acceptedArtifactTypes": [
+    "track_all_assignment_v1",
+    "track_all_target_specification_v1",
+    "source_inventory_v1",
+    "master_timing_plan_v1",
+    "source_frame_authority_v1",
+    "visual_ownership_manifest_v1",
+    "track_all_scene_context_v1",
+    "visual_intelligence_target_evidence_v1",
+    "visual_intelligence_tracking_qa_v1",
+    "approved_user_selection_v1",
+    "approved_reference_image_v1",
+    "approved_brush_mask_v1",
+    "track_graph_v1",
+    "track_graph_v2",
+    "caption_reserved_zones_v1",
+    "edit_preference_snapshot_v1",
+    "privacy_policy_snapshot_v1",
+    "prior_track_repair_evidence_v1",
+    "source_media_artifact_v1"
+  ],
+  "allowedExecutionPhases": [
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "plan_validation"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "source_inspection"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "geometry_analysis"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "model_execution"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "mask_normalization"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "identity_reconciliation"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "treatment_compilation"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "private_preview_render"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "return_dependency",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "skill_output_qa"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "integration_qa"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "result_projection"
+    }
+  ],
+  "attemptPolicy": {
+    "alternateProviderFallbackAllowed": false,
+    "automaticRetryAllowed": false,
+    "maximumInitialAttempts": 1,
+    "maximumRefinements": 1,
+    "unknownOutcomeRequiresReconciliation": true
+  },
+  "canActAsSupport": true,
+  "canOperateAtBoundaryLevel": "bounded_plan_and_execution",
+  "canOperateAtSceneLevel": "bounded_plan_and_execution",
+  "canOperateAtVideoLevel": "bounded_plan_and_execution",
+  "canOwnPrimaryVisual": true,
+  "conflictsWith": [
+    {
+      "blockingBehavior": "block",
+      "condition": "another_exclusive_primary_owner_same_frames",
+      "ownershipBehavior": "deny_primary_ownership",
+      "resolution": "preserve_existing_owner",
+      "ruleKey": "exclusive_primary_owner",
+      "target": "primary_visual_owner",
+      "targetKind": "ownership_window"
+    },
+    {
+      "blockingBehavior": "block",
+      "condition": "requested_output_extends_outside_range",
+      "ownershipBehavior": "deny_primary_ownership",
+      "resolution": "reject_assignment",
+      "ruleKey": "outside_range",
+      "target": "authorized_write_range",
+      "targetKind": "assignment"
+    },
+    {
+      "blockingBehavior": "block",
+      "condition": "privacy_treatment_without_policy",
+      "ownershipBehavior": "deny_primary_ownership",
+      "resolution": "reject_assignment",
+      "ruleKey": "privacy_policy",
+      "target": "privacy_policy_snapshot",
+      "targetKind": "artifact"
+    }
+  ],
+  "contractVersion": "track_all.skill_contract.v1",
+  "coordinationCritical": true,
+  "creditEstimator": "track_all.credit.v1",
+  "fallbackRoutes": [
+    {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Create no media when tracking is not justified or authorized.",
+      "minimumQualificationStatus": "planning_qualified",
+      "operationIds": [
+        "track_all.no_action.v1"
+      ],
+      "priority": 100,
+      "requiredArtifactTypes": [
+        "track_all_plan_v1"
+      ],
+      "requiresApproval": true,
+      "routeKey": "fail_closed_no_action",
+      "routeKind": "no_action",
+      "supportedJobTypes": [
+        "track_all.no_action"
+      ]
+    }
+  ],
+  "integrationQa": [
+    {
+      "description": "Track All exact authorized range validation.",
+      "qaKey": "track_all.qa.exact_authorized_range",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All outside range unchanged validation.",
+      "qaKey": "track_all.qa.outside_range_unchanged",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All exact source timing validation.",
+      "qaKey": "track_all.qa.exact_source_timing",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All visual ownership validation.",
+      "qaKey": "track_all.qa.visual_ownership",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All safe zones layer order validation.",
+      "qaKey": "track_all.qa.safe_zones_layer_order",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All private output validation.",
+      "qaKey": "track_all.qa.private_output",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All final lineage validation.",
+      "qaKey": "track_all.qa.final_lineage",
+      "severity": "blocking"
+    }
+  ],
+  "invalidationRules": [
+    {
+      "invalidates": [
+        "plan",
+        "approval",
+        "work_graph",
+        "qa",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "manifest_changed",
+      "trigger": "manifest_hash_changed"
+    },
+    {
+      "invalidates": [
+        "plan",
+        "approval",
+        "work_graph",
+        "qa",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "range_changed",
+      "trigger": "authorized_range_changed"
+    },
+    {
+      "invalidates": [
+        "plan",
+        "approval",
+        "work_graph",
+        "qa",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "source_changed",
+      "trigger": "source_checksum_changed"
+    },
+    {
+      "invalidates": [
+        "plan",
+        "approval",
+        "work_graph",
+        "qa",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "target_changed",
+      "trigger": "target_specification_changed"
+    },
+    {
+      "invalidates": [
+        "plan",
+        "approval",
+        "work_graph",
+        "qa",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "timing_changed",
+      "trigger": "master_timing_changed"
+    },
+    {
+      "invalidates": [
+        "plan",
+        "approval",
+        "work_graph",
+        "qa",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "ownership_changed",
+      "trigger": "visual_ownership_changed"
+    },
+    {
+      "invalidates": [
+        "plan",
+        "approval",
+        "work_graph",
+        "qa",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "privacy_changed",
+      "trigger": "privacy_policy_changed"
+    },
+    {
+      "invalidates": [
+        "plan",
+        "approval",
+        "work_graph",
+        "qa",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "qualification_changed",
+      "trigger": "route_qualification_changed"
+    }
+  ],
+  "knownLimitations": [
+    {
+      "affectedJobTypes": [
+        "track_all.produce_selected_target_graph",
+        "track_all.produce_concept_instance_graph"
+      ],
+      "behavior": "fail_closed",
+      "limitationKey": "sam_external_gate",
+      "reason": "Real internal SAM execution requires gated checkpoint, strict compatibility, image, GPU, quality, cost, and private-output evidence; production requires the additional production gates."
+    },
+    {
+      "affectedJobTypes": [
+        "track_all.produce_selected_target_graph",
+        "track_all.produce_concept_instance_graph"
+      ],
+      "behavior": "bounded_support",
+      "limitationKey": "cross_shot_identity",
+      "reason": "Cross-shot identity is optional, confidence-qualified, and never assumed."
+    },
+    {
+      "affectedJobTypes": [
+        "track_all.apply_privacy_redaction",
+        "track_all.apply_tracked_focus"
+      ],
+      "behavior": "fail_closed",
+      "limitationKey": "ocr_landmark_gates",
+      "reason": "OCR and landmark support remain conditional until Track All route evidence exists."
+    },
+    {
+      "affectedJobTypes": [
+        "track_all.plan_assignment",
+        "track_all.produce_selected_target_graph",
+        "track_all.produce_concept_instance_graph",
+        "track_all.produce_scene_geometry_graph",
+        "track_all.track_planar_region",
+        "track_all.apply_privacy_redaction",
+        "track_all.apply_tracked_focus",
+        "track_all.prepare_tracked_reframe",
+        "track_all.repair_track",
+        "track_all.validate_track_graph",
+        "track_all.prepare_composition_layer",
+        "track_all.integrate_preview",
+        "track_all.no_action"
+      ],
+      "behavior": "requires_production_qualification",
+      "limitationKey": "production_worker_absent",
+      "reason": "Production worker bindings remain absent until production qualification."
+    },
+    {
+      "affectedJobTypes": [
+        "track_all.prepare_composition_layer"
+      ],
+      "behavior": "delegate",
+      "limitationKey": "final_peer_ownership",
+      "reason": "Peer skills own final caption, color, sound, motion, transition, and render work."
+    }
+  ],
+  "lowerCostRoutes": [
+    {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Reuse an exact qualified existing graph without GPU work.",
+      "minimumQualificationStatus": "planning_qualified",
+      "operationIds": [
+        "track_all.existing_track_graph.v1"
+      ],
+      "priority": 0,
+      "requiredArtifactTypes": [
+        "track_graph_v2"
+      ],
+      "requiresApproval": true,
+      "routeKey": "deterministic_existing_graph",
+      "routeKind": "source",
+      "supportedJobTypes": [
+        "track_all.validate_track_graph"
+      ]
+    }
+  ],
+  "manifestHash": "155fc4d3324bd1a514d5e3cbb36f3bfe125efda734973c33862d9f6b2ec7e196",
+  "mayOverlapWith": [
+    {
+      "condition": "track_graph_and_geometry_support",
+      "ownershipBehavior": "track_all_support",
+      "requiredLayerOrder": "track_all_before_b_roll",
+      "ruleKey": "track_all_overlap_0",
+      "targetSkill": "b_roll",
+      "visualDensityBehavior": "support_only"
+    },
+    {
+      "condition": "safe_zones_and_masks_only",
+      "ownershipBehavior": "track_all_support",
+      "requiredLayerOrder": "track_all_below_captions",
+      "ruleKey": "track_all_overlap_1",
+      "targetSkill": "captions",
+      "visualDensityBehavior": "support_only"
+    },
+    {
+      "condition": "selective_mask_handoff",
+      "ownershipBehavior": "track_all_support",
+      "requiredLayerOrder": "track_all_before_color",
+      "ruleKey": "track_all_overlap_2",
+      "targetSkill": "color",
+      "visualDensityBehavior": "support_only"
+    },
+    {
+      "condition": "anchor_handoff",
+      "ownershipBehavior": "track_all_support",
+      "requiredLayerOrder": "track_all_before_graphic_design",
+      "ruleKey": "track_all_overlap_3",
+      "targetSkill": "graphic_design",
+      "visualDensityBehavior": "support_only"
+    },
+    {
+      "condition": "timing_cue_handoff",
+      "ownershipBehavior": "track_all_support",
+      "requiredLayerOrder": "visual_audio_independent",
+      "ruleKey": "track_all_overlap_4",
+      "targetSkill": "sound",
+      "visualDensityBehavior": "support_only"
+    },
+    {
+      "condition": "occluder_handoff",
+      "ownershipBehavior": "target_primary",
+      "requiredLayerOrder": "track_all_before_transition",
+      "ruleKey": "track_all_overlap_5",
+      "targetSkill": "transition",
+      "visualDensityBehavior": "support_only"
+    },
+    {
+      "condition": "layer_handoff",
+      "ownershipBehavior": "track_all_primary",
+      "requiredLayerOrder": "track_all_before_render",
+      "ruleKey": "track_all_overlap_6",
+      "targetSkill": "render",
+      "visualDensityBehavior": "support_only"
+    }
+  ],
+  "mustRunAfter": [
+    {
+      "blockingBehavior": "block",
+      "condition": "execution_selected",
+      "ruleKey": "after_approved_plan",
+      "target": "approved_plan_snapshot",
+      "targetKind": "phase"
+    },
+    {
+      "blockingBehavior": "return_dependency",
+      "condition": "semantic_target_requires_grounding",
+      "ruleKey": "after_visual_intelligence_grounding",
+      "target": "visual_intelligence",
+      "targetKind": "skill"
+    }
+  ],
+  "mustRunBefore": [
+    {
+      "blockingBehavior": "block",
+      "condition": "handoff_requested",
+      "ruleKey": "before_peer_geometry_consumers",
+      "target": "peer_skill_geometry_consumption",
+      "targetKind": "phase"
+    },
+    {
+      "blockingBehavior": "block",
+      "condition": "visible_treatment_selected",
+      "ruleKey": "before_final_render",
+      "target": "render",
+      "targetKind": "skill"
+    }
+  ],
+  "optionalInputs": [
+    {
+      "artifactType": "visual_intelligence_target_evidence_v1",
+      "description": "Optional qualified visual_intelligence_target_evidence_v1 authority.",
+      "key": "visual_intelligence_target_evidence",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "visual_intelligence_tracking_qa_v1",
+      "description": "Optional qualified visual_intelligence_tracking_qa_v1 authority.",
+      "key": "visual_intelligence_tracking_qa",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "approved_user_selection_v1",
+      "description": "Optional qualified approved_user_selection_v1 authority.",
+      "key": "approved_user_selection",
+      "maximumCount": 100,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "approved_reference_image_v1",
+      "description": "Optional qualified approved_reference_image_v1 authority.",
+      "key": "approved_reference_image",
+      "maximumCount": 100,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "approved_brush_mask_v1",
+      "description": "Optional qualified approved_brush_mask_v1 authority.",
+      "key": "approved_brush_mask",
+      "maximumCount": 100,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "track_graph_v1",
+      "description": "Optional qualified track_graph_v1 authority.",
+      "key": "track_graph",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "track_graph_v2",
+      "description": "Optional qualified track_graph_v2 authority.",
+      "key": "track_graph",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "caption_reserved_zones_v1",
+      "description": "Optional qualified caption_reserved_zones_v1 authority.",
+      "key": "caption_reserved_zones",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "edit_preference_snapshot_v1",
+      "description": "Optional qualified edit_preference_snapshot_v1 authority.",
+      "key": "edit_preference_snapshot",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "privacy_policy_snapshot_v1",
+      "description": "Optional qualified privacy_policy_snapshot_v1 authority.",
+      "key": "privacy_policy_snapshot",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "prior_track_repair_evidence_v1",
+      "description": "Optional qualified prior_track_repair_evidence_v1 authority.",
+      "key": "prior_track_repair_evidence",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "source_media_artifact_v1",
+      "description": "Optional qualified source_media_artifact_v1 authority.",
+      "key": "source_media_artifact",
+      "maximumCount": 1,
+      "minimumCount": 0
+    }
+  ],
+  "outputQa": [
+    {
+      "description": "Track All target validation.",
+      "qaKey": "track_all.qa.target",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All temporal validation.",
+      "qaKey": "track_all.qa.temporal",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All mask validation.",
+      "qaKey": "track_all.qa.mask",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All identity validation.",
+      "qaKey": "track_all.qa.identity",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All camera planar validation.",
+      "qaKey": "track_all.qa.camera_planar",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All privacy validation.",
+      "qaKey": "track_all.qa.privacy",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All chunk seam validation.",
+      "qaKey": "track_all.qa.chunk_seam",
+      "severity": "blocking"
+    }
+  ],
+  "ownershipRequirements": [
+    {
+      "condition": "any_output",
+      "requiredBehavior": "output_range_subset_of_assignment",
+      "ruleKey": "exact_write_range",
+      "violationBehavior": "block"
+    },
+    {
+      "condition": "whole_video_context_used",
+      "requiredBehavior": "context_never_grants_mutation",
+      "ruleKey": "whole_video_read_only",
+      "violationBehavior": "block"
+    },
+    {
+      "condition": "person_or_sensitive_target",
+      "requiredBehavior": "anonymous_track_ids_only",
+      "ruleKey": "anonymous_identity",
+      "violationBehavior": "block"
+    },
+    {
+      "condition": "cross_skill_handoff",
+      "requiredBehavior": "geometry_only_no_peer_final_design",
+      "ruleKey": "peer_domain_ownership",
+      "violationBehavior": "block"
+    }
+  ],
+  "planningPhase": {
+    "approvedPlanRequired": false,
+    "blockingBehavior": "block",
+    "condition": "assignment_received",
+    "phase": "skill_planning"
+  },
+  "planningQa": [
+    {
+      "description": "Track All assignment authority validation.",
+      "qaKey": "track_all.qa.assignment_authority",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All range authority validation.",
+      "qaKey": "track_all.qa.range_authority",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All source authority validation.",
+      "qaKey": "track_all.qa.source_authority",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All target specificity validation.",
+      "qaKey": "track_all.qa.target_specificity",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All target ambiguity validation.",
+      "qaKey": "track_all.qa.target_ambiguity",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All target count validation.",
+      "qaKey": "track_all.qa.target_count",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All concept exclusion validation.",
+      "qaKey": "track_all.qa.concept_exclusion",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All privacy classification validation.",
+      "qaKey": "track_all.qa.privacy_classification",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All tool eligibility validation.",
+      "qaKey": "track_all.qa.tool_eligibility",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All sam qualification validation.",
+      "qaKey": "track_all.qa.sam_qualification",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All shot chunk plan validation.",
+      "qaKey": "track_all.qa.shot_chunk_plan",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All initialization frame validation.",
+      "qaKey": "track_all.qa.initialization_frame",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All object budget validation.",
+      "qaKey": "track_all.qa.object_budget",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All multiplex budget validation.",
+      "qaKey": "track_all.qa.multiplex_budget",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All time estimate validation.",
+      "qaKey": "track_all.qa.time_estimate",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All credit estimate validation.",
+      "qaKey": "track_all.qa.credit_estimate",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All lower cost route validation.",
+      "qaKey": "track_all.qa.lower_cost_route",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All ownership conflict validation.",
+      "qaKey": "track_all.qa.ownership_conflict",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All dependency completeness validation.",
+      "qaKey": "track_all.qa.dependency_completeness",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All no action consideration validation.",
+      "qaKey": "track_all.qa.no_action_consideration",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All repair policy validation.",
+      "qaKey": "track_all.qa.repair_policy",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All range expansion validation.",
+      "qaKey": "track_all.qa.range_expansion",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All approval readiness validation.",
+      "qaKey": "track_all.qa.approval_readiness",
+      "severity": "blocking"
+    },
+    {
+      "description": "Track All privacy fail closed validation.",
+      "qaKey": "track_all.qa.privacy_fail_closed",
+      "severity": "blocking"
+    }
+  ],
+  "producedArtifactTypes": [
+    "track_all_context_manifest_v1",
+    "track_all_plan_v1",
+    "track_all_planning_qa_report_v1",
+    "track_all_work_graph_v1",
+    "track_graph_v1",
+    "track_graph_v2",
+    "track_sample_sequence_v1",
+    "track_box_sequence_v1",
+    "track_mask_sequence_v1",
+    "track_mask_chunk_manifest_v1",
+    "track_landmark_sequence_v1",
+    "track_anchor_graph_v1",
+    "camera_motion_graph_v1",
+    "planar_track_graph_v1",
+    "track_occlusion_event_log_v1",
+    "track_identity_lineage_v1",
+    "tracked_redaction_plan_v1",
+    "tracked_redaction_result_v1",
+    "tracked_focus_plan_v1",
+    "tracked_focus_result_v1",
+    "tracked_reframe_plan_v1",
+    "tracked_reframe_result_v1",
+    "track_all_target_qa_report_v1",
+    "track_all_temporal_qa_report_v1",
+    "track_all_mask_qa_report_v1",
+    "track_all_privacy_qa_report_v1",
+    "track_all_chunk_seam_qa_report_v1",
+    "track_all_identity_qa_report_v1",
+    "track_all_integration_qa_report_v1",
+    "track_all_repair_receipt_v1",
+    "track_all_cross_skill_handoff_v1",
+    "track_all_result_receipt_v1"
+  ],
+  "qualificationFixtures": [
+    {
+      "description": "Track All authority rejections evidence.",
+      "fixtureKey": "track_all.fixture.authority_rejections",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All selected targets evidence.",
+      "fixtureKey": "track_all.fixture.selected_targets",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All concept exclusions evidence.",
+      "fixtureKey": "track_all.fixture.concept_exclusions",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All target ambiguity evidence.",
+      "fixtureKey": "track_all.fixture.target_ambiguity",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All occlusion reentry identity evidence.",
+      "fixtureKey": "track_all.fixture.occlusion_reentry_identity",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All shot chunk overlap evidence.",
+      "fixtureKey": "track_all.fixture.shot_chunk_overlap",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All multiplex budgets evidence.",
+      "fixtureKey": "track_all.fixture.multiplex_budgets",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All privacy fail closed evidence.",
+      "fixtureKey": "track_all.fixture.privacy_fail_closed",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All flattened privacy preview evidence.",
+      "fixtureKey": "track_all.fixture.flattened_privacy_preview",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All camera motion evidence.",
+      "fixtureKey": "track_all.fixture.camera_motion",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All planar homography evidence.",
+      "fixtureKey": "track_all.fixture.planar_homography",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All focus treatments evidence.",
+      "fixtureKey": "track_all.fixture.focus_treatments",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All reframe trajectories evidence.",
+      "fixtureKey": "track_all.fixture.reframe_trajectories",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All visual intelligence dependency evidence.",
+      "fixtureKey": "track_all.fixture.visual_intelligence_dependency",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All track graph compatibility evidence.",
+      "fixtureKey": "track_all.fixture.track_graph_compatibility",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All bounded repairs evidence.",
+      "fixtureKey": "track_all.fixture.bounded_repairs",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All session terminal close evidence.",
+      "fixtureKey": "track_all.fixture.session_terminal_close",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All runtime security evidence.",
+      "fixtureKey": "track_all.fixture.runtime_security",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All public plugin lifecycle evidence.",
+      "fixtureKey": "track_all.fixture.public_plugin_lifecycle",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All legacy retirement evidence.",
+      "fixtureKey": "track_all.fixture.legacy_retirement",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All qualification integrity evidence.",
+      "fixtureKey": "track_all.fixture.qualification_integrity",
+      "minimumStatus": "planning_qualified"
+    }
+  ],
+  "qualificationStatus": "implementation_pending",
+  "requiredInputs": [
+    {
+      "artifactType": "track_all_assignment_v1",
+      "description": "Immutable Track All assignment and write authority.",
+      "key": "assignment",
+      "maximumCount": 1,
+      "minimumCount": 1
+    },
+    {
+      "artifactType": "track_all_target_specification_v1",
+      "description": "Compiled target identity and grounding authority.",
+      "key": "target",
+      "maximumCount": 1,
+      "minimumCount": 1
+    },
+    {
+      "artifactType": "source_inventory_v1",
+      "description": "Checksum-bound source inventory.",
+      "key": "source_inventory",
+      "maximumCount": 1,
+      "minimumCount": 1
+    },
+    {
+      "artifactType": "master_timing_plan_v1",
+      "description": "Frame-exact timing authority.",
+      "key": "master_timing",
+      "maximumCount": 1,
+      "minimumCount": 1
+    },
+    {
+      "artifactType": "source_frame_authority_v1",
+      "description": "Exact source geometry and checksum authority.",
+      "key": "source_frames",
+      "maximumCount": 1,
+      "minimumCount": 1
+    },
+    {
+      "artifactType": "visual_ownership_manifest_v1",
+      "description": "Per-frame ownership authority.",
+      "key": "visual_ownership",
+      "maximumCount": 1,
+      "minimumCount": 1
+    },
+    {
+      "artifactType": "track_all_scene_context_v1",
+      "description": "Read-only context and bounded write-range distinction.",
+      "key": "scene_context",
+      "maximumCount": 1,
+      "minimumCount": 1
+    }
+  ],
+  "requiredSceneContext": [
+    {
+      "description": "Only this range may be mutated.",
+      "key": "authorized_write_range",
+      "readScope": "assignment_range",
+      "required": true
+    },
+    {
+      "description": "Read-only occlusion and re-entry context.",
+      "key": "adjacent_reentry_context",
+      "readScope": "adjacent_scenes",
+      "required": true
+    },
+    {
+      "description": "Read-only semantic context never grants mutation.",
+      "key": "whole_video_semantic_context",
+      "readScope": "whole_video_read_only",
+      "required": false
+    }
+  ],
+  "requiredSourceEvidence": [
+    {
+      "acceptedArtifactTypes": [
+        "source_inventory_v1",
+        "source_frame_authority_v1"
+      ],
+      "condition": "always",
+      "missingBehavior": "block",
+      "requirementKey": "immutable_source_checksum"
+    },
+    {
+      "acceptedArtifactTypes": [
+        "master_timing_plan_v1",
+        "source_frame_authority_v1"
+      ],
+      "condition": "always",
+      "missingBehavior": "block",
+      "requirementKey": "exact_fps_and_range"
+    },
+    {
+      "acceptedArtifactTypes": [
+        "source_media_artifact_v1"
+      ],
+      "condition": "execution_selected",
+      "missingBehavior": "block",
+      "requirementKey": "private_source_media"
+    },
+    {
+      "acceptedArtifactTypes": [
+        "privacy_policy_snapshot_v1",
+        "approved_reference_image_v1"
+      ],
+      "condition": "privacy_or_reference_target",
+      "missingBehavior": "needs_user_confirmation",
+      "requirementKey": "target_rights_privacy"
+    }
+  ],
+  "revisionRules": [
+    {
+      "changeClass": "material",
+      "description": "A changed target creates a new plan.",
+      "requiresNewApproval": true,
+      "requiresReestimate": true,
+      "ruleKey": "target_change"
+    },
+    {
+      "changeClass": "scope_reducing",
+      "description": "A smaller range is recompiled and reapproved.",
+      "requiresNewApproval": true,
+      "requiresReestimate": true,
+      "ruleKey": "range_reduction"
+    },
+    {
+      "changeClass": "non_material",
+      "description": "One pre-approved deterministic repair may run.",
+      "requiresNewApproval": false,
+      "requiresReestimate": false,
+      "ruleKey": "deterministic_repair"
+    },
+    {
+      "changeClass": "material",
+      "description": "One bounded prompt refinement creates new lineage.",
+      "requiresNewApproval": true,
+      "requiresReestimate": true,
+      "ruleKey": "prompt_refinement"
+    }
+  ],
+  "schemaVersion": "skill-capability-manifest-v2",
+  "skillClass": "temporal_visual_geometry_skill",
+  "skillKey": "track_all",
+  "skillVersion": "1.0.0",
+  "supportedJobTypes": [
+    {
+      "allowedPhases": [
+        "plan_validation"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.plan_assignment",
+      "minimumQualificationStatus": "planning_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "track_all_plan_v1"
+      ],
+      "requiredArtifactTypes": [
+        "track_all_assignment_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "model_execution"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.produce_selected_target_graph",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "track_graph_v2"
+      ],
+      "requiredArtifactTypes": [
+        "track_all_plan_v1",
+        "track_all_target_specification_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "model_execution"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.produce_concept_instance_graph",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "track_graph_v2"
+      ],
+      "requiredArtifactTypes": [
+        "track_all_plan_v1",
+        "visual_intelligence_target_evidence_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "geometry_analysis"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.produce_scene_geometry_graph",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "camera_motion_graph_v1"
+      ],
+      "requiredArtifactTypes": [
+        "track_all_plan_v1",
+        "source_frame_authority_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "geometry_analysis"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.track_planar_region",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "planar_track_graph_v1"
+      ],
+      "requiredArtifactTypes": [
+        "track_all_plan_v1",
+        "track_all_target_specification_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "treatment_compilation"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.apply_privacy_redaction",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": true,
+      "producedArtifactTypes": [
+        "tracked_redaction_result_v1"
+      ],
+      "requiredArtifactTypes": [
+        "track_graph_v2",
+        "privacy_policy_snapshot_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "treatment_compilation"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.apply_tracked_focus",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": true,
+      "producedArtifactTypes": [
+        "tracked_focus_result_v1"
+      ],
+      "requiredArtifactTypes": [
+        "track_graph_v2"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "treatment_compilation"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.prepare_tracked_reframe",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": true,
+      "producedArtifactTypes": [
+        "tracked_reframe_result_v1"
+      ],
+      "requiredArtifactTypes": [
+        "track_graph_v2",
+        "caption_reserved_zones_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "identity_reconciliation"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.repair_track",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "track_all_repair_receipt_v1"
+      ],
+      "requiredArtifactTypes": [
+        "track_graph_v2",
+        "prior_track_repair_evidence_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "skill_output_qa"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.validate_track_graph",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "track_all_temporal_qa_report_v1"
+      ],
+      "requiredArtifactTypes": [
+        "track_graph_v2"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "treatment_compilation"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.prepare_composition_layer",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "track_all_cross_skill_handoff_v1"
+      ],
+      "requiredArtifactTypes": [
+        "track_graph_v2"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "private_preview_render"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.integrate_preview",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": true,
+      "producedArtifactTypes": [
+        "track_all_integration_qa_report_v1"
+      ],
+      "requiredArtifactTypes": [
+        "track_graph_v2"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "result_projection"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.no_action",
+      "minimumQualificationStatus": "planning_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "track_all_result_receipt_v1"
+      ],
+      "requiredArtifactTypes": [
+        "track_all_plan_v1"
+      ],
+      "runtimeBindingRequired": true
+    }
+  ],
+  "timeEstimator": "track_all.time.v1",
+  "toolRoutes": [
+    {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Inspect exact source facts.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "tool.ffprobe.inspect_approved_media.v1"
+      ],
+      "priority": 1,
+      "requiredArtifactTypes": [
+        "source_media_artifact_v1"
+      ],
+      "requiresApproval": true,
+      "routeKey": "source_truth",
+      "routeKind": "tool",
+      "supportedJobTypes": [
+        "track_all.plan_assignment"
+      ]
+    },
+    {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Derive shot-boundary candidates.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "tool.pyscenedetect.detect_scene_boundaries.v1"
+      ],
+      "priority": 2,
+      "requiredArtifactTypes": [
+        "source_frame_authority_v1"
+      ],
+      "requiresApproval": true,
+      "routeKey": "shot_detection",
+      "routeKind": "tool",
+      "supportedJobTypes": [
+        "track_all.produce_scene_geometry_graph"
+      ]
+    },
+    {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Compute deterministic temporal and planar geometry.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "tool.opencv.analyze_approved_visual_artifacts.v1"
+      ],
+      "priority": 3,
+      "requiredArtifactTypes": [
+        "source_frame_authority_v1"
+      ],
+      "requiresApproval": true,
+      "routeKey": "opencv_geometry",
+      "routeKind": "tool",
+      "supportedJobTypes": [
+        "track_all.produce_scene_geometry_graph",
+        "track_all.track_planar_region",
+        "track_all.validate_track_graph"
+      ]
+    },
+    {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Execute qualified private SAM 3.1 masklets.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "tool.sam3_1.track_masklets.v2"
+      ],
+      "priority": 4,
+      "requiredArtifactTypes": [
+        "track_all_plan_v1",
+        "source_media_artifact_v1"
+      ],
+      "requiresApproval": true,
+      "routeKey": "sam3_1_masklets",
+      "routeKind": "tool",
+      "supportedJobTypes": [
+        "track_all.produce_selected_target_graph",
+        "track_all.produce_concept_instance_graph"
+      ]
+    },
+    {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Apply deterministic private redaction.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "tool.ffmpeg.execute_approved_media_recipe.v1"
+      ],
+      "priority": 5,
+      "requiredArtifactTypes": [
+        "tracked_redaction_plan_v1"
+      ],
+      "requiresApproval": true,
+      "routeKey": "ffmpeg_treatments",
+      "routeKind": "tool",
+      "supportedJobTypes": [
+        "track_all.apply_privacy_redaction"
+      ]
+    },
+    {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Render an approved private integration preview.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "tool.remotion.render_approved_composition.v1"
+      ],
+      "priority": 6,
+      "requiredArtifactTypes": [
+        "track_graph_v2"
+      ],
+      "requiresApproval": true,
+      "routeKey": "remotion_preview",
+      "routeKind": "tool",
+      "supportedJobTypes": [
+        "track_all.integrate_preview"
+      ]
+    }
+  ],
+  "trackingRequirements": [
+    {
+      "acceptedArtifactType": "track_graph_v2",
+      "condition": "existing_track_or_repair_requested",
+      "missingDependencyBehavior": "block",
+      "modelSpecificDependencyAllowed": false,
+      "ownerSkill": "track_all",
+      "requiredForPhase": "skill_planning",
+      "requirementKey": "existing_track_continuation"
+    }
+  ],
+  "unsupportedJobTypes": [
+    {
+      "jobType": "track_all.real_world_identity_recognition",
+      "reason": "Anonymous geometry only; real-world identity is prohibited.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "track_all.unbounded_library_wide_tracking",
+      "reason": "Every job requires one bounded assignment.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "track_all.unbounded_full_video_session",
+      "reason": "Long ranges are split into approved chunks.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "track_all.caller_selected_model",
+      "reason": "The manifest owns the model route.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "track_all.caller_selected_gpu",
+      "reason": "The admitted worker authority owns placement.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "track_all.caller_selected_command",
+      "reason": "Executables and arguments are server owned.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "track_all.raw_chat_to_gpu",
+      "reason": "Raw chat is compiled to a bounded target specification.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "track_all.automatic_privacy_qa_override",
+      "reason": "Privacy QA is independently derived and cannot be overridden.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "track_all.automatic_cross_shot_identity_claim",
+      "reason": "Shot changes terminate identity unless separately qualified.",
+      "resolution": "reject"
+    },
+    {
+      "alternateOwnerSkillKey": "captions",
+      "jobType": "track_all.final_caption_design",
+      "reason": "Captions owns final caption design.",
+      "resolution": "delegate"
+    },
+    {
+      "alternateOwnerSkillKey": "graphic_design",
+      "jobType": "track_all.final_motion_design",
+      "reason": "Graphic Design owns elaborate final motion design.",
+      "resolution": "delegate"
+    },
+    {
+      "alternateOwnerSkillKey": "color",
+      "jobType": "track_all.final_color_grade",
+      "reason": "Color owns final grade.",
+      "resolution": "delegate"
+    },
+    {
+      "alternateOwnerSkillKey": "sound",
+      "jobType": "track_all.final_audio_mix",
+      "reason": "Sound owns final audio.",
+      "resolution": "delegate"
+    },
+    {
+      "alternateOwnerSkillKey": "transition",
+      "jobType": "track_all.specialized_transition_design",
+      "reason": "Transition owns specialized scene boundaries.",
+      "resolution": "delegate"
+    },
+    {
+      "alternateOwnerSkillKey": "render",
+      "jobType": "track_all.final_export",
+      "reason": "Render owns final export.",
+      "resolution": "delegate"
+    },
+    {
+      "jobType": "track_all.public_delivery",
+      "reason": "Public delivery is outside Track All.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "track_all.sam2_new_execution",
+      "reason": "SAM2 is historical evidence only.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "track_all.sam2_fallback",
+      "reason": "No alternate tracking model fallback exists.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "track_all.unqualified_model_fallback",
+      "reason": "Unqualified model routes fail closed.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "track_all.outside_authorized_range_mutation",
+      "reason": "Write authority never expands implicitly.",
+      "resolution": "reject"
+    }
+  ],
+  "visualIntelligenceRequirements": [
+    {
+      "condition": "natural_language_or_concept_target_without_exact_selection",
+      "injectedTestOnlyBehavior": "reject_for_production",
+      "productionAcceptanceRequirement": "production_qualified_producer",
+      "requiredArtifactType": "visual_intelligence_target_evidence_v1",
+      "requiredForPhase": "skill_planning",
+      "requirementKey": "semantic_target_grounding",
+      "semanticQaRequirement": "required_for_target_grounding",
+      "wholeVideoEvidencePermission": "read_only"
+    },
+    {
+      "condition": "production_tracking_acceptance",
+      "injectedTestOnlyBehavior": "reject_for_production",
+      "productionAcceptanceRequirement": "production_qualified_producer",
+      "requiredArtifactType": "visual_intelligence_tracking_qa_v1",
+      "requiredForPhase": "skill_output_qa",
+      "requirementKey": "tracking_result_inspection",
+      "semanticQaRequirement": "required_for_tracking_output_qa",
+      "wholeVideoEvidencePermission": "read_only"
+    }
+  ]
+}

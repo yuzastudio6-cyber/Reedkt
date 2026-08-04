@@ -169,7 +169,12 @@ const visualIntelligenceRequirementSchema = z.object({
   requiredArtifactType: skillIdentitySchema,
   requiredForPhase: skillIdentitySchema,
   condition: skillIdentitySchema,
-  semanticQaRequirement: z.enum(['not_required', 'required_for_generated_or_provider_edited']),
+  semanticQaRequirement: z.enum([
+    'not_required',
+    'required_for_generated_or_provider_edited',
+    'required_for_target_grounding',
+    'required_for_tracking_output_qa',
+  ]),
   wholeVideoEvidencePermission: z.enum(['forbidden', 'read_only']),
   productionAcceptanceRequirement: z.enum(['not_required', 'production_qualified_producer']),
   injectedTestOnlyBehavior: z.enum(['not_applicable', 'reject_for_production']),
@@ -216,7 +221,14 @@ const overlapRuleSchema = z.object({
   condition: skillIdentitySchema,
   requiredLayerOrder: skillIdentitySchema,
   visualDensityBehavior: z.enum(['enforce_budget', 'reserve_target_area', 'support_only']),
-  ownershipBehavior: z.enum(['b_roll_primary', 'b_roll_support', 'target_primary', 'disjoint_primary_windows']),
+  ownershipBehavior: z.enum([
+    'b_roll_primary',
+    'b_roll_support',
+    'track_all_primary',
+    'track_all_support',
+    'target_primary',
+    'disjoint_primary_windows',
+  ]),
 }).strict()
 
 const ownershipRuleSchema = z.object({
@@ -258,9 +270,9 @@ export const skillCapabilityManifestV2CoreSchema = z.object({
   coordinationCritical: z.boolean(),
   canOwnPrimaryVisual: z.boolean(),
   canActAsSupport: z.boolean(),
-  canOperateAtVideoLevel: z.enum(['none', 'context_read_only']),
+  canOperateAtVideoLevel: z.enum(['none', 'context_read_only', 'bounded_plan_and_execution']),
   canOperateAtSceneLevel: z.enum(['none', 'bounded_plan_only', 'bounded_plan_and_execution']),
-  canOperateAtBoundaryLevel: z.enum(['none', 'coordination_only']),
+  canOperateAtBoundaryLevel: z.enum(['none', 'coordination_only', 'bounded_plan_and_execution']),
   supportedJobTypes: z.array(supportedJobCapabilitySchema).min(1).max(100),
   unsupportedJobTypes: z.array(unsupportedJobCapabilitySchema).max(100),
   requiredInputs: z.array(inputRequirementSchema).max(100),

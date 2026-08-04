@@ -26,8 +26,8 @@ const validation = validateSkillCapabilityManifests({
   runtimeBindings: editSkillRuntimeBindingRegistry,
   workGraphJobs: editSkillWorkGraphJobDefinitions,
 })
-assert.equal(validation.manifestCount, 1)
-assert.equal(validation.manifestHashes[0], BROLL_CAPABILITY_MANIFEST.manifestHash)
+assert.equal(validation.manifestCount, 2)
+assert.equal(validation.manifestHashes.includes(BROLL_CAPABILITY_MANIFEST.manifestHash), true)
 assert.equal(BROLL_CAPABILITY_MANIFEST.skillKey, 'b_roll')
 assert.equal(BROLL_CAPABILITY_MANIFEST.schemaVersion, 'skill-capability-manifest-v2')
 assert.equal(BROLL_CAPABILITY_MANIFEST.skillVersion, '1.0.0')

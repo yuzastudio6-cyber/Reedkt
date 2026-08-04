@@ -69,9 +69,9 @@ export interface SkillCapabilityManifestV1Core {
   coordinationCritical: boolean
   canOwnPrimaryVisual: boolean
   canActAsSupport: boolean
-  canOperateAtVideoLevel: 'none' | 'context_read_only'
+  canOperateAtVideoLevel: 'none' | 'context_read_only' | 'bounded_plan_and_execution'
   canOperateAtSceneLevel: 'none' | 'bounded_plan_only' | 'bounded_plan_and_execution'
-  canOperateAtBoundaryLevel: 'none' | 'coordination_only'
+  canOperateAtBoundaryLevel: 'none' | 'coordination_only' | 'bounded_plan_and_execution'
   supportedJobTypes: readonly string[]
   unsupportedJobTypes: readonly string[]
   requiredInputs: readonly SkillInputRequirement[]
@@ -141,7 +141,11 @@ export interface SkillVisualIntelligenceRequirement {
   requiredArtifactType: string
   requiredForPhase: string
   condition: string
-  semanticQaRequirement: 'not_required' | 'required_for_generated_or_provider_edited'
+  semanticQaRequirement:
+    | 'not_required'
+    | 'required_for_generated_or_provider_edited'
+    | 'required_for_target_grounding'
+    | 'required_for_tracking_output_qa'
   wholeVideoEvidencePermission: 'forbidden' | 'read_only'
   productionAcceptanceRequirement: 'not_required' | 'production_qualified_producer'
   injectedTestOnlyBehavior: 'not_applicable' | 'reject_for_production'
@@ -188,7 +192,13 @@ export interface SkillOverlapRule {
   condition: string
   requiredLayerOrder: string
   visualDensityBehavior: 'enforce_budget' | 'reserve_target_area' | 'support_only'
-  ownershipBehavior: 'b_roll_primary' | 'b_roll_support' | 'target_primary' | 'disjoint_primary_windows'
+  ownershipBehavior:
+    | 'b_roll_primary'
+    | 'b_roll_support'
+    | 'track_all_primary'
+    | 'track_all_support'
+    | 'target_primary'
+    | 'disjoint_primary_windows'
 }
 
 export interface SkillOwnershipRule {

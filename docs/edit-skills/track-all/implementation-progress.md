@@ -1,6 +1,6 @@
 # Track All implementation progress
 
-Status: `track_00_foundation_qualified`
+Status: `track_02_public_plugin_implemented`
 
 This ledger records actual implementation, test, qualification, Git, and
 external-gate evidence for the canonical `track_all@1.0.0` skill. It does not
@@ -101,7 +101,11 @@ performed during TRACK-00.
 
 ## TRACK-01 — research, repository audit, and tool architecture
 
-Status: implemented locally; commit and remote confirmation are recorded after this section is committed.
+Status: complete and pushed.
+
+- implementation commit: `3042555d221e680cf655d7db0d4dbcd35bc58015`
+- remote confirmation: `origin/codex/track-all-skill-end-to-end` resolved to
+  the same commit immediately after push.
 
 - Inspected official Meta SAM 3.1 source at `96914d2425f90a64f45ca977c2b5165418099543`; its source tree and four pinned file hashes exactly match the repository authority.
 - Verified Object Multiplex, builder, text/point/box prompts, object IDs/removal, reset/cancel/close, non-zero initialization, and forward/backward/bidirectional propagation directly from official source and notebook.
@@ -114,3 +118,50 @@ Status: implemented locally; commit and remote confirmation are recorded after t
 - Added SAM research/runtime/qualification documents, tool audit/matrix/gap/ownership documents, and the initial retirement map.
 
 Qualification state remains `implementation_pending`; documentation and contracts alone do not qualify execution.
+
+## TRACK-02 — capability manifest and public plugin
+
+Status: implementation and local verification complete; the milestone commit
+and remote confirmation are recorded by the following evidence-ledger update.
+
+Implemented:
+
+- one deep-frozen, content-addressed `track_all@1.0.0` capability manifest on
+  `track_all.skill_contract.v1`;
+- 13 structured supported jobs and 20 explicit fail-closed unsupported jobs;
+- structured phases, target/VI/tracking dependencies, conflicts, overlaps,
+  ownership, routes, attempts, estimators, QA, invalidation, revision, fixture,
+  and limitation semantics;
+- a generated read-only manifest projection, produced only from TypeScript;
+- registration in the existing generic B-Roll edit-skill kernel (no second
+  kernel and no head orchestra);
+- the public plan, approval/work-graph, dependency-acceptance,
+  work-result-validation, and finalization plugin boundary;
+- exact internal-fixture runtime binding declarations for all 13 jobs. These
+  adapters fail closed and cannot masquerade as canonical-private or
+  production workers;
+- forward-gated manifest/runtime validation: a route may declare a higher
+  minimum than the skill's current status, while dispatch still rejects an
+  invocation below that exact minimum;
+- strict initial assignment, target, dependency, planning QA, plan, result,
+  and shared Track Graph registrations needed by the public boundary.
+
+Actual checks run:
+
+- `npm run generate:track-all-capability-manifest` — passed.
+- `npm run test:track-all-capability-manifest` — passed; manifest hash
+  `155fc4d3324bd1a514d5e3cbb36f3bfe125efda734973c33862d9f6b2ec7e196`,
+  13 supported jobs, 20 unsupported jobs, 8 route definitions.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-capability-manifest`
+  — passed with both manifests statically validated.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-runtime-factory`
+  — passed; both public plugins resolved, production in-memory storage failed
+  closed, and adapter environment classes remained separated.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-capability-kernel`
+  — passed.
+
+Qualification truth remains `implementation_pending`. TRACK-02 proves the
+declaration and public boundary, not Track All planning quality, deterministic
+geometry, real SAM inference, or production execution. The SAM route remains
+blocked on authorized checkpoint/runtime evidence and no model, GPU, paid,
+public, or production action occurred.

@@ -2097,6 +2097,48 @@ artifact-store adapter, production worker adapter, public delivery, final
 customer export, and orchestra integration remain intentionally blocked or
 out of scope.
 
+## M31 — final reconciliation preflight and base selection
+
+Status: complete; this documentation commit is the M31 preflight record.
+
+On 2026-08-04 the isolated B-roll checkout started clean on
+`codex/reeditpro-b-roll-skill-end-to-end` at
+`30b1ef57201a05763f4cedd55890da3fc45a66dc`. A fresh
+`git fetch --all --prune` selected the intended integration branch
+`origin/codex/backend-workflow-pipeline-continuation` at exact SHA
+`6423f12c1e62a252fc860ce5184888770411c62d`.
+
+The selected base is already the exact merge base. Ahead/behind was `78 0`,
+so the B-roll branch is zero commits behind. Existing normal merge commit
+`d9e220f048ec6127e6a1927c8276bc660fe4d2fd` has parents
+`cb6e55518d7ac4cda9e9325b38cb53bea5076080` and the selected base
+`6423f12c1e62a252fc860ce5184888770411c62d`. A redundant empty merge will not
+be fabricated; M32 will verify that `git merge --no-ff` correctly reports the
+branch already up to date.
+
+PR #2498 was open, non-draft, and pointed from the expected B-roll branch to
+the intended integration branch. GitHub temporarily reported mergeability as
+`UNKNOWN` while recomputing. Both latest UI QA checks remained red only at the
+three Current Edit Preferences assertions already reproduced unchanged on the
+exact base during M30; the FFmpeg/FFprobe install and the main 138-test browser
+suite had completed without `ENOENT`.
+
+Baseline receipt verification passed without qualification-generation mode:
+
+- `npm run test:b-roll-qualification-evidence` — passed 36 fixture records,
+  17 synthetic/adversarial test-command records, 18 dependency authorities,
+  and 18 independently changed-authority rejection cases.
+- `npm run test:edit-skill-runtime-factory` — accepted the committed generated
+  receipt and passed all fail-closed runtime construction cases.
+- `npm run validate:skill-capability-manifests` — passed exactly one manifest,
+  hash `40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0`.
+
+The prior receipt remains honestly `internal_execution_qualified` at this
+preflight point. M34 will regenerate it from a new clean source commit even
+though the relevant B-roll/shared authority tree has not changed. No provider
+request, public artifact, production mutation, orchestra, Track All
+implementation, or Visual Intelligence implementation occurred during M31.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -2132,3 +2174,4 @@ out of scope.
 | M28 | `496cad74c` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
 | M29 | `afa3905e9` + `3b0b7c1` + `92039bc` + `56a4a89` + `01168f5` + `657e9e9` + `14f734a` + `950fa40` | this bookkeeping commit | confirmed | included in final actual receipt |
 | M30 | tested `950fa403856b4f2ce6dcb9f09d017db18a27b75a`; evidence `4fd8b9dcddb529e1627d03f134514df9458fd524` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M31 | selected base `6423f12c1e62a252fc860ce5184888770411c62d`; prior merge `d9e220f048ec6127e6a1927c8276bc660fe4d2fd` | this preflight commit | pending push | prior receipt verified; M34 regeneration required |

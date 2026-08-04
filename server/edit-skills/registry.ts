@@ -10,6 +10,7 @@ import { SkillQualificationRegistry } from './core/skill-qualification-registry'
 import { registerBrollSkill } from './b-roll'
 import { StandaloneCanonicalSoundSkillService } from './sound'
 import { registerSoundSkill } from './sound/sound-shared-kernel-registration'
+import { StandaloneCanonicalMusicSkillService, registerMusicSkill } from './music'
 
 export const editSkillCapabilityRegistry = new SkillCapabilityRegistry()
 export const editSkillEstimatorRegistry = new SkillEstimatorRegistry()
@@ -40,6 +41,17 @@ export const standaloneSoundSkillService = new StandaloneCanonicalSoundSkillServ
   },
 })
 
+export const standaloneMusicSkillService = new StandaloneCanonicalMusicSkillService({
+  artifacts: {
+    async resolve() {
+      throw new Error('Music media execution requires the private server artifact resolver; shared planning does not expose paths.')
+    },
+    async privateOutputRoot() {
+      throw new Error('Music media execution requires the private server artifact resolver; shared planning does not expose paths.')
+    },
+  },
+})
+
 registerBrollSkill({
   capabilities: editSkillCapabilityRegistry,
   estimators: editSkillEstimatorRegistry,
@@ -59,4 +71,15 @@ registerSoundSkill({
   qualifications: editSkillQualificationRegistry,
   catalog: editSkillReferenceCatalog,
   service: standaloneSoundSkillService,
+})
+
+registerMusicSkill({
+  capabilities: editSkillCapabilityRegistry,
+  estimators: editSkillEstimatorRegistry,
+  qa: editSkillQaRegistry,
+  artifacts: editSkillArtifactSchemaRegistry,
+  artifactStore: editSkillArtifactStore,
+  qualifications: editSkillQualificationRegistry,
+  catalog: editSkillReferenceCatalog,
+  service: standaloneMusicSkillService,
 })

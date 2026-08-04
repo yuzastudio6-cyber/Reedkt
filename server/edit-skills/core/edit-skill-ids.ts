@@ -3,6 +3,7 @@ export const EDIT_SKILL_KEYS = [
   'captions',
   'color',
   'graphic_design',
+  'music',
   'real_motion',
   'render',
   'sound',

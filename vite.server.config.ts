@@ -14,6 +14,8 @@ export default defineConfig({
         server: 'server/index.ts',
         'container-readiness-receipt':
           'server/cli/production-container-qualification-receipt.ts',
+        'weeditpro-source-analysis-l4-visual-evidence-worker':
+          'server/cli/run-weeditpro-source-analysis-l4-visual-evidence-worker.ts',
       },
       output: {
         entryFileNames: '[name].js',

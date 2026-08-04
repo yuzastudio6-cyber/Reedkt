@@ -9,6 +9,7 @@ source "${SCRIPT_DIR}/lib/gcloud-common.sh"
 confirm_prod_action
 
 readonly L4_DEFINITION_CONFIRMATION='deploy-weeditpro-qualified-l4-job-definitions-v1'
+readonly CONTROL_PLANE_STATE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
 if [[ "${WEEDITPRO_DEPLOY_QUALIFIED_L4_JOB_DEFINITIONS:-false}" \
   != "${L4_DEFINITION_CONFIRMATION}" ]]; then
   echo 'ERROR: refusing L4 job-definition deployment without the exact second confirmation.' >&2
@@ -44,7 +45,7 @@ run_gcloud run jobs deploy reeditpro-professional-l4 \
   --tasks=1 \
   --parallelism=1 \
   --max-retries=0 \
-  --set-env-vars="REEDITPRO_ENV=${REEDITPRO_ENV},WORKER_GROUP=l4_standard_primary" \
+  --set-env-vars="REEDITPRO_ENV=production,WORKER_GROUP=l4_standard_primary,GCS_CONTROL_PLANE_STATE_BUCKET=${CONTROL_PLANE_STATE_BUCKET}" \
   --labels="app=weeditpro,route=l4-standard-primary,scale=zero"
 
 run_gcloud run jobs deploy reeditpro-sam31-l4-fallback \

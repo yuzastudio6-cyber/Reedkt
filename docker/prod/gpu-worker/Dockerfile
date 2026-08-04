@@ -194,6 +194,8 @@ RUN npm ci --omit=dev
 COPY --from=server_build /app/dist-server ./dist-server
 RUN test -f dist-server/server.js \
   && test -f dist-server/container-readiness-receipt.js \
+  && test -f \
+    dist-server/weeditpro-source-analysis-l4-visual-evidence-worker.js \
   && test -x \
     /opt/reeditpro/gpu-operations/faster-whisper/runner.py \
   && test -x \
@@ -203,4 +205,4 @@ RUN test -f dist-server/server.js \
   && test -x \
     /opt/reeditpro/gpu-operations/rembg/venv/bin/python
 
-CMD ["node", "dist-server/server.js"]
+CMD ["node", "dist-server/weeditpro-source-analysis-l4-visual-evidence-worker.js"]

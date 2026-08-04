@@ -388,6 +388,74 @@ const attemptEvidenceCoreSchema = z.object({
     })
 })
 
+const maskletOutputManifestCoreSchema = z.object({
+  schemaVersion: z.literal('track_all_sam3_1_masklet_output_manifest_v2'),
+  operationId: z.literal(TRACK_ALL_SAM_OPERATION_V2),
+  sessionId: safeId,
+  sessionPlanHash: skillSha256Schema,
+  assignmentId: safeId,
+  assignmentHash: skillSha256Schema,
+  ownerUserId: safeId,
+  workspaceId: safeId,
+  projectId: safeId,
+  editSessionId: safeId,
+  authorizedRange: skillFrameRangeSchema,
+  chunkRange: skillFrameRangeSchema,
+  objects: z.array(z.object({
+    objectId,
+    privateObjectRef: editSkillArtifactReferenceSchema,
+    frameCount: z.number().int().positive().max(
+      TRACK_ALL_SAM31_V2_MAXIMUM_FRAMES_PER_SESSION,
+    ),
+    width: z.number().int().positive().max(16_384),
+    height: z.number().int().positive().max(16_384),
+    pixelFormat: z.enum(['gray8', 'gray16']),
+    maskSequenceSha256: skillSha256Schema,
+  }).strict()).min(1).max(TRACK_ALL_SAM31_V2_MAXIMUM_OBJECTS_PER_BUCKET),
+  privateBinaryOnly: z.literal(true),
+  createOnlyPersistence: z.literal(true),
+  publicUrlPresent: z.literal(false),
+  injectedTestOnly: z.boolean(),
+}).strict().superRefine((value, context) => {
+  const frameCount = value.chunkRange.endFrameExclusive -
+    value.chunkRange.startFrameInclusive
+  const contained = value.chunkRange.fps === value.authorizedRange.fps &&
+    value.chunkRange.startFrameInclusive >=
+      value.authorizedRange.startFrameInclusive &&
+    value.chunkRange.endFrameExclusive <= value.authorizedRange.endFrameExclusive
+  if (!contained || value.objects.some((object) =>
+    object.frameCount !== frameCount ||
+    object.privateObjectRef.artifactType !== 'private_mask_sequence_binary_v1' ||
+    object.privateObjectRef.sha256 !== object.maskSequenceSha256 ||
+    object.privateObjectRef.ownerUserId !== value.ownerUserId ||
+    object.privateObjectRef.workspaceId !== value.workspaceId ||
+    object.privateObjectRef.projectId !== value.projectId) ||
+    new Set(value.objects.map((object) => object.objectId)).size !==
+      value.objects.length) context.addIssue({
+    code: 'custom',
+    message: 'SAM 3.1 masklet output lost private object, range, or tenant authority.',
+  })
+})
+
+export const trackAllSam31MaskletOutputManifestSchema =
+  maskletOutputManifestCoreSchema.extend({ manifestHash: skillSha256Schema })
+    .strict().superRefine((value, context) => {
+      const { manifestHash, ...core } = value
+      if (manifestHash !== hashSkillValue(core)) context.addIssue({
+        code: 'custom', message: 'SAM 3.1 masklet manifest hash is invalid.',
+      })
+    })
+
+export function createTrackAllSam31MaskletOutputManifest(
+  input: z.input<typeof maskletOutputManifestCoreSchema>,
+) {
+  const core = maskletOutputManifestCoreSchema.parse(input)
+  return deepFreezeSkillValue(trackAllSam31MaskletOutputManifestSchema.parse({
+    ...core,
+    manifestHash: hashSkillValue(core),
+  }))
+}
+
 export const trackAllSam31MaskletAttemptEvidenceSchema =
   attemptEvidenceCoreSchema.extend({ evidenceHash: skillSha256Schema })
     .strict().superRefine((value, context) => {
@@ -429,7 +497,7 @@ export function assertTrackAllSam31MaskletAttemptEvidence(input: {
       output.ownerUserId !== plan.ownerUserId ||
       output.workspaceId !== plan.workspaceId ||
       output.projectId !== plan.projectId ||
-      output.artifactType !== 'track_mask_chunk_manifest_v1'
+      output.artifactType !== 'track_all_sam3_1_masklet_output_manifest_v2'
     )) ||
     (input.requiredEvidenceClass !== undefined &&
       evidence.evidenceClass !== input.requiredEvidenceClass)

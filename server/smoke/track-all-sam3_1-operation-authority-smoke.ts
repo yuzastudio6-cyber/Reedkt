@@ -45,6 +45,12 @@ const compiledPromptHash = (input: {
   compiledConcept: string
 }) => hashSkillValue(input)
 
+type Mutable<T> = {
+  -readonly [Key in keyof T]: T[Key] extends object
+    ? Mutable<T[Key]>
+    : T[Key]
+}
+
 function validSessionInput() {
   const text = {
     conceptStageId: 'concept_001',
@@ -205,7 +211,14 @@ function validSessionInput() {
         'timed_out',
         'reconciliation_required',
         'partial_output',
-      ] as const,
+      ] as [
+        'completed',
+        'failed',
+        'cancelled',
+        'timed_out',
+        'reconciliation_required',
+        'partial_output',
+      ],
       resetRequiredBeforeDifferentConcept: true as const,
       oneWriterPerSession: true as const,
       releaseGpuMemoryOnClose: true as const,
@@ -339,11 +352,23 @@ const mutations: Array<(value: ReturnType<typeof validSessionInput>) => void> = 
     TRACK_ALL_SAM31_V2_MAXIMUM_FRAMES_PER_SESSION + 1 },
   (value) => { value.targetGroup.initializationFrameIndex = 500 },
   (value) => { value.actions[1]!.conceptStageId = 'concept_002' },
-  (value) => { value.actions[1]!.prompt.compiledConcept =
-    'file:///tmp/checkpoint.pt' },
-  (value) => { Object.assign(value.actions[1]!.prompt, {
-    promptKind: 'mask', maskPath: '/tmp/mask.png',
-  }) },
+  (value) => {
+    const action = value.actions[1]
+    if (action?.action !== 'add_prompt' ||
+      action.prompt.promptKind !== 'text_concept') throw new Error(
+      'Fixture lost its text prompt.',
+    )
+    action.prompt.compiledConcept = 'file:///tmp/checkpoint.pt'
+  },
+  (value) => {
+    const action = value.actions[1]
+    if (action?.action !== 'add_prompt') throw new Error(
+      'Fixture lost its prompt action.',
+    )
+    Object.assign(action.prompt, {
+      promptKind: 'mask', maskPath: '/tmp/mask.png',
+    })
+  },
   (value) => { value.actions[5]!.refinementOrdinal = 2 as never },
   (value) => { value.actions[6]!.sequence = 8 },
   (value) => { value.targetGroup.objectIds = ['object_001', 'object_001'] },
@@ -362,7 +387,7 @@ for (const [index, mutate] of mutations.entries()) {
 const closeCore = {
   closeOperation: 'close_session' as const,
   closeAttempted: true as const,
-  closeCompleted: true,
+  closeCompleted: true as const,
   closeObservedAt: '2026-08-04T14:00:01.000Z',
   terminalObservedAt: '2026-08-04T14:00:00.000Z',
   sessionId: plan.sessionId,
@@ -385,7 +410,9 @@ const injected = createTrackAllSam31MaskletAttemptEvidence({
   exactAttemptReconciled: true,
   sourceCheckpointStrictLoadObserved: false,
   cudaInferenceObserved: false,
-  outputMaskletManifestRef: artifact('track_mask_chunk_manifest_v1', 'masks'),
+  outputMaskletManifestRef: artifact(
+    'track_all_sam3_1_masklet_output_manifest_v2', 'masks',
+  ),
   closeEvidence,
   providerRequestCount: 0,
   publicArtifactCount: 0,
@@ -421,14 +448,16 @@ for (const terminalDisposition of [
   }))
 }
 
-const forgedReal = structuredClone(injected)
+const forgedReal = structuredClone(injected) as Mutable<typeof injected>
 forgedReal.evidenceClass = 'real_private_sam3_1_inference'
 const { evidenceHash: _forgedHash, ...forgedCore } = forgedReal
 void _forgedHash
 forgedReal.evidenceHash = hashSkillValue(forgedCore)
 assert.throws(() => trackAllSam31MaskletAttemptEvidenceSchema.parse(forgedReal))
 
-const crossWorkspaceOutput = structuredClone(injected)
+const crossWorkspaceOutput = structuredClone(injected) as Mutable<
+  typeof injected
+>
 crossWorkspaceOutput.outputMaskletManifestRef!.workspaceId = 'workspace-other'
 const { evidenceHash: _crossWorkspaceHash, ...crossWorkspaceCore } =
   crossWorkspaceOutput
@@ -439,7 +468,7 @@ assert.throws(() => assertTrackAllSam31MaskletAttemptEvidence({
   evidence: crossWorkspaceOutput,
 }))
 
-const staleClose = structuredClone(injected)
+const staleClose = structuredClone(injected) as Mutable<typeof injected>
 staleClose.closeEvidence.closeObservedAt = '2026-08-04T13:59:59.000Z'
 const { closeEvidenceHash: _closeHash, ...staleCloseCore } = staleClose.closeEvidence
 void _closeHash

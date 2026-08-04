@@ -58,3 +58,17 @@ CUDA inference, one exact model request, private output, and close evidence
 after the terminal observation. This milestone exercises contract and injected
 lifecycle validation only; it performs no SAM inference and leaves the route
 `blocked`.
+
+TRACK-09 implements an internal-fixture-only session owner behind an injected
+private persistence port. It records a one-writer create-only session, every
+planned lifecycle action, private binary and manifest persistence, terminal
+observation, and exactly one close event. Its `finally` path closes successful,
+failed, and cancelled fixtures. Replaying through the same owner is
+idempotent; another owner must reconcile the existing session, and a different
+lease on the same session is rejected.
+
+The injected owner accepts only in-memory private mask-sequence bytes and exact
+object/range/geometry metadata. It accepts no path or URL and emits zero model
+requests, public artifacts, or production mutations. A separate
+canonical-private availability guard parses the exact V2 route-gate report and
+rejects construction while the route is blocked or storage is not durable.

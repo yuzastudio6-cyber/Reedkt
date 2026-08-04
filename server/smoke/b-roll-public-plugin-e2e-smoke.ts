@@ -430,9 +430,11 @@ function candidateQa(input: {
   planHash?: string
   authorizedRange?: typeof range
   productionQualificationStatus?: 'planning_qualified' | 'internal_execution_qualified' | 'production_qualified'
+  contentSafetyDisposition?: 'pass' | 'blocking'
 } = {}) {
   const candidateArtifact = input.candidateArtifact ?? candidateArtifactRef
   const authorizedRange = input.authorizedRange ?? range
+  const contentSafetyDisposition = input.contentSafetyDisposition ?? 'pass'
   return createBrollVisualIntelligenceCandidateQa({
     schemaVersion: 'visual_intelligence_candidate_qa_v1',
     candidateArtifact,
@@ -451,7 +453,13 @@ function candidateQa(input: {
     motionPlausibility: passingFinding,
     cameraIntentAlignment: passingFinding,
     cropSafety: passingFinding,
-    contentSafety: passingFinding,
+    contentSafety: {
+      ...passingFinding,
+      disposition: contentSafetyDisposition,
+      summary: contentSafetyDisposition === 'blocking'
+        ? 'Independent candidate evidence found a blocking content-safety issue.'
+        : passingFinding.summary,
+    },
     proofMisrepresentationCheck: passingFinding,
     visualDefectFindings: [],
     confidenceMillionths: 950_000,
@@ -475,7 +483,7 @@ function candidateQa(input: {
     },
     productionQualificationStatus:
       input.productionQualificationStatus ?? 'internal_execution_qualified',
-    disposition: 'accepted',
+    disposition: contentSafetyDisposition === 'blocking' ? 'blocked' : 'accepted',
     injectedTestOnly: false,
   })
 }
@@ -506,18 +514,9 @@ const visualIntelligenceAcceptance = await plugin.acceptDependencyArtifact({
 })
 assert.equal(visualIntelligenceAcceptance.productionQualified, false)
 
-const { qaArtifactHash: _acceptedQaHash, ...acceptedQaCore } = candidateQa()
-const blockedCandidateQaRef = await putCandidateQa(
-  createBrollVisualIntelligenceCandidateQa({
-    ...acceptedQaCore,
-    contentSafety: {
-      ...passingFinding,
-      disposition: 'blocking',
-      summary: 'Independent candidate evidence found a blocking content-safety issue.',
-    },
-    disposition: 'blocked',
-  }),
-)
+const blockedCandidateQaRef = await putCandidateQa(candidateQa({
+  contentSafetyDisposition: 'blocking',
+}))
 await assert.rejects(
   () => plugin.acceptDependencyArtifact({
     assignment: generatedFixture.assignment,

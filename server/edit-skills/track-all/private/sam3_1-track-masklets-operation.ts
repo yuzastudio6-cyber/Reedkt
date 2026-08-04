@@ -54,7 +54,10 @@ const authorityRefSchema = z.object({
 }).strict()
 
 const compiledConcept = z.string().trim().min(1).max(300)
-  .refine((value) => !/[\u0000-\u001f\u007f]/u.test(value), {
+  .refine((value) => [...value].every((character) => {
+    const codePoint = character.codePointAt(0) ?? 0
+    return codePoint > 31 && codePoint !== 127
+  }), {
     message: 'Compiled SAM concepts cannot contain control characters.',
   })
   .refine((value) => !/(?:[a-z]+:\/\/|file:|\.\.|\$\(|`|&&|\|\||;)/iu.test(value), {

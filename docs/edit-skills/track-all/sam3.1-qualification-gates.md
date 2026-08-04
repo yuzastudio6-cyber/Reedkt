@@ -28,3 +28,17 @@ All gates are conjunctive and content-addressed. A missing gate fails closed.
 ## Route-level status
 
 The current route status is `blocked`: the exact source is pinned, but gated checkpoint access/approval, strict-load compatibility, immutable runtime images, and real A100/L4 evidence are absent. Internal injected fixtures must set `samEvidenceClass: injected_masklets` and cannot promote this route or the top-level skill past the strongest independently proven route set.
+
+TRACK-08 codifies that truth in a strict route-gate report derived from the
+repository's canonical source candidate. The report has 11 ordered gates. Only
+the exact source/operation authority gate currently passes; the other 10 gates
+remain blocked. The deterministic report fixture hash is
+`8aef95a45077ed81cf395e6e0443dfb54ab150e1629c24afd740d08e61aee27d`.
+It records no checkpoint hash, no strict load, no A100 or L4 inference, zero
+SAM requests, and no internal or production execution authority.
+
+The gate schema rejects promotion when actual checkpoint bytes, strict-load
+evidence, A100 inference, and all active route gates are not present. An L4
+gate can be `not_applicable` only when that fallback is explicitly inactive;
+it cannot be skipped while advertised. Evidence marked missing or injected
+cannot satisfy a real route gate.

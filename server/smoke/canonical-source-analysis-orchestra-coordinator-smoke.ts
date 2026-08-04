@@ -83,7 +83,30 @@ const ref = (
   `sha256:${sha256AuthorityValue(value)}`,
 )
 const sequence: string[] = []
-const sourceChecksum = sha('exact-private-source-video-bytes')
+const privateFixtureChecksum =
+  process.env.REEDITPRO_TEST_PRIVATE_SOURCE_SHA256
+const privateFixtureByteLength =
+  process.env.REEDITPRO_TEST_PRIVATE_SOURCE_BYTE_LENGTH
+if ((privateFixtureChecksum === undefined) !==
+  (privateFixtureByteLength === undefined)) {
+  throw new Error('Private fixture checksum and byte length must be paired.')
+}
+if (
+  privateFixtureChecksum !== undefined
+  && !/^[a-f0-9]{64}$/u.test(privateFixtureChecksum)
+) throw new Error('Private fixture checksum is invalid.')
+const parsedPrivateFixtureByteLength = privateFixtureByteLength === undefined
+  ? null
+  : Number(privateFixtureByteLength)
+if (
+  parsedPrivateFixtureByteLength !== null
+  && (!Number.isSafeInteger(parsedPrivateFixtureByteLength)
+    || parsedPrivateFixtureByteLength < 1)
+) throw new Error('Private fixture byte length is invalid.')
+const privateFixtureIdentityBound = privateFixtureChecksum !== undefined
+const sourceChecksum = privateFixtureChecksum
+  ?? sha('exact-private-source-video-bytes')
+const sourceByteLength = parsedPrivateFixtureByteLength ?? 4_096
 const planningDirection =
   'Watch the complete source, resolve spoken edit directions, remove only evidence-bound weak sections, and preserve meaning.'
 const planningDirectionDigestSha256 = sha(planningDirection)
@@ -176,7 +199,7 @@ const request: CanonicalSourceLedProfessionalContentAnalysisInput = {
     storageBucket: 'private-source-bucket',
     storagePath: 'workspace-1/source.mp4',
     checksumSha256: sourceChecksum,
-    byteLength: 4_096,
+    byteLength: sourceByteLength,
     durationFrames: 240,
     managedApiAuthority: {
       ownerUserId: 'user-1',
@@ -391,7 +414,7 @@ const cleanupEvidence = createCanonicalSourceLedContentAnalysisEvidence({
   sources: [{
     ...selection.sources[0],
     checksumSha256: sourceChecksum,
-    byteLength: 4_096,
+    byteLength: sourceByteLength,
     durationFrames: 240,
     sourceFrameAuthority,
     transcript,
@@ -924,6 +947,8 @@ console.log(JSON.stringify({
   headCleanupAuthorityReread: true,
   uncertainProbeOutcomeStoppedPipeline: true,
   uncertainTranscriptOutcomeStoppedPipeline: true,
+  privateFixtureByteIdentityBound: privateFixtureIdentityBound,
+  privateFixtureMediaDecodedOrSemanticallyAnalyzed: false,
   automaticRetryStarted: false,
   automaticHeavyFallbackDispatched: false,
   browserAuthorityAccepted: false,
@@ -946,7 +971,7 @@ function createBindingScope() {
     mediaAssetId: 'media-asset-1',
     uploadedOrder: 1,
     checksumSha256: sourceChecksum,
-    byteLength: 4_096,
+    byteLength: sourceByteLength,
     durationFrames: 240,
     sourceFrameAuthority,
     sourceArtifactRef: finalizedRef,

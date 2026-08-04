@@ -1,6 +1,6 @@
 # Captions Specialist Implementation Roadmap
 
-Status: `CAP-14 private Remotion/golden-raster qualified; CAP-15 next`
+Status: `CAP-15 private ASCII libass overlays/direct raster qualified; CAP-16 next`
 
 ## Dependency graph
 

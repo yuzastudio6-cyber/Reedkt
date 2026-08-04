@@ -1,8 +1,8 @@
-# Captions Specialist — CAP-14 Remotion Creative Renderer Checkpoint
+# Captions Specialist — CAP-15 Accessibility and Export Checkpoint
 
-Status: `cap_14_private_runtime_and_direct_golden_raster_qualified_external_owners_closed`
-Checkpoint: `CAP-14`
-Media runtime changes: additive private Remotion creative scene-group profile
+Status: `cap_15_private_ascii_libass_overlay_and_direct_raster_qualified_external_export_gates_closed`
+Checkpoint: `CAP-15`
+Media runtime changes: existing private libass operation; two accepted inspected overlay rasters
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
 This package reconciles the historical Caption Direction architecture with the
@@ -87,6 +87,7 @@ The governing workflow invariant remains:
 - [CAP-12 StoryTiming, motion, camera, and handoffs report](cap-12-storytiming-motion-handoffs-report.md)
 - [CAP-13 Sound support report](cap-13-sound-support-report.md)
 - [CAP-14 Remotion creative renderer report](cap-14-remotion-creative-renderer-report.md)
+- [CAP-15 accessibility, localization, and export report](cap-15-accessibility-localization-export-report.md)
 
 ### Historical architecture retained and amended
 
@@ -218,8 +219,17 @@ first visually defective word-wrap attempt was rejected and repaired before
 qualification. The proxy does not claim the final customer canvas, real Track
 All evidence, final QA approval, or delivery authority.
 
-Implementation continues automatically into CAP-15 stable/accessibility,
-localization, libass, and FFmpeg export support.
+CAP-15 adds frame-derived SRT/WebVTT, a canvas-aware ASS v2 profile, exact
+16:9/9:16 recomposition, speaker and meaningful-sound accessibility lineage,
+and Unicode-preserving Japanese/Arabic/Hindi/emoji contract fixtures. The
+existing private libass operation produced directly inspected wide and repaired
+vertical ASCII overlays. A clipped vertical attempt was rejected, and a new
+predispatch safe-width gate prevents its recurrence. Multilingual libass,
+complete tracks, video burn-in, FFmpeg final packaging, asset persistence, and
+final QA remain closed owner gates.
+
+Implementation continues automatically into CAP-16 complete QA, visual
+inspection evidence admission, repair, and fallback support.
 Registry/workflow integration will consume
 these frozen public artifacts at its dependency-safe milestone; no Caption
 milestone manufactures a second planner or a false backend coverage claim.

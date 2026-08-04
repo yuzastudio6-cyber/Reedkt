@@ -261,3 +261,54 @@ evidence issuer can generate and validate a receipt for the exact committed
 source tree. Passing smokes alone is not promoted as qualification. No SAM
 model/checkpoint/GPU run, paid action, public artifact, production mutation,
 head orchestra, or peer-skill implementation occurred.
+
+## TRACK-05 — shared Track Graph and strict artifact contracts
+
+Status: implementation complete; commit and remote confirmation recorded below
+after the milestone commit is created.
+
+Implemented:
+
+- moved frozen `track_graph_v1` schema ownership into
+  `server/edit-skills/shared/track-graph/` while preserving the exact B-Roll
+  consumer contract and re-export;
+- added content-addressed `track_graph_v2` with exact tenant/project/session,
+  assignment, plan, manifest, source, timing, and authorized-range lineage;
+- added typed graph references for box, mask, landmark, anchor, planar,
+  occlusion, camera-motion, attempt, repair, and QA evidence;
+- added shot/chunk authority, scene-cut identity resets, visibility states,
+  parent/child anonymous identities, re-entry and identity-switch evidence,
+  Object Multiplex budgets, stitching evidence, and fail-closed private-mask
+  and range-mutation flags;
+- added strict, distinct, content-addressed schemas for every active Track All
+  planning, tracking, treatment, QA, repair, handoff, and result artifact;
+- kept large masks as private checksum-bound binary/object manifests and
+  rejected embedded bitmap arrays and public mask publication;
+- added an exact V2-to-V1 projection and regression coverage through both the
+  shared and B-Roll V1 parsers.
+
+Actual checks run:
+
+- `npm run test:track-all-artifact-contracts` — passed; 32 produced artifact
+  types were strict, V1 compatibility passed, V2 hash validation passed, raw
+  mask bitmaps were rejected, and no public mask was published.
+- `npm run test:track-all-authority` — passed 21 adversarial cases.
+- `npm run test:track-all-planning` — passed 9 planning scenarios and 24
+  independently derived planning-QA findings.
+- `npm run test:track-all-capability-manifest` — passed; manifest hash remains
+  `65eb6541aafc312f390479273d196aaa5f2db5cd52cba898dd9165a88f7a5998`.
+- `npm run test:b-roll-active-artifact-contracts` — passed; 29 B-Roll active
+  artifact contracts remained strict.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  — passed with exact Track Graph V1 dependency acceptance.
+- `npm run typecheck:server` — passed.
+- affected-file ESLint — passed.
+- `git diff --check` — passed using the repository fallback Git runtime; the
+  host Xcode shim is not used by the branch validation commands.
+
+Qualification remains `implementation_pending` pending the evidence-backed
+receipt milestone. TRACK-05 proves strict artifact contracts and frozen V1
+compatibility; it does not prove real SAM inference, GPU execution, privacy
+quality, or production readiness. No model/checkpoint/GPU run, paid action,
+public artifact, production mutation, head orchestra, or peer-skill
+implementation occurred.

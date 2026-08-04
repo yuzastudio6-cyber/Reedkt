@@ -15,6 +15,35 @@ import {
   brollVisualOwnershipManifestSchema,
 } from '../b-roll/b-roll-input-authorities'
 import { trackGraphV1Schema, trackGraphV2Schema } from '../shared/track-graph/track-graph-schemas'
+import {
+  cameraMotionGraphSchema,
+  planarTrackGraphSchema,
+  trackAllChunkSeamQaReportSchema,
+  trackAllContextManifestSchema,
+  trackAllCrossSkillHandoffSchema,
+  trackAllIdentityQaReportSchema,
+  trackAllIntegrationQaReportSchema,
+  trackAllMaskQaReportSchema,
+  trackAllPrivacyQaReportSchema,
+  trackAllRepairReceiptSchema,
+  trackAllTargetQaReportSchema,
+  trackAllTemporalQaReportSchema,
+  trackAllWorkGraphArtifactSchema,
+  trackAnchorGraphSchema,
+  trackBoxSequenceSchema,
+  trackedFocusPlanSchema,
+  trackedFocusResultSchema,
+  trackedRedactionPlanSchema,
+  trackedRedactionResultSchema,
+  trackedReframePlanSchema,
+  trackedReframeResultSchema,
+  trackIdentityLineageSchema,
+  trackLandmarkSequenceSchema,
+  trackMaskChunkManifestSchema,
+  trackMaskSequenceSchema,
+  trackOcclusionEventLogSchema,
+  trackSampleSequenceSchema,
+} from './track-all-active-artifact-contracts'
 
 const safeId = z.string().trim().min(1).max(180)
 const timestamp = z.string().datetime({ offset: true })
@@ -518,11 +547,6 @@ export type TrackAllTargetSpecification = z.infer<typeof trackAllTargetSpecifica
 export type TrackAllPlan = z.infer<typeof trackAllPlanSchema>
 export type TrackAllPlanningQaReport = z.infer<typeof trackAllPlanningQaReportSchema>
 
-const strictLineageArtifactSchema = z.object({
-  schemaVersion: skillIdentitySchema, assignmentHash: skillSha256Schema, planHash: skillSha256Schema,
-  authorizedRange: skillFrameRangeSchema, evidenceHashes: z.array(skillSha256Schema).max(100), artifactHash: skillSha256Schema,
-}).strict()
-
 export function registerTrackAllArtifactSchemas(registry: EditSkillArtifactSchemaRegistry): void {
   const schemas: Record<string, z.ZodType> = {
     track_all_assignment_v1: trackAllAssignmentSchema,
@@ -541,19 +565,34 @@ export function registerTrackAllArtifactSchemas(registry: EditSkillArtifactSchem
     track_all_result_receipt_v1: trackAllResultReceiptSchema,
     track_graph_v1: trackGraphV1Schema,
     track_graph_v2: trackGraphV2Schema,
+    track_all_context_manifest_v1: trackAllContextManifestSchema,
+    track_all_work_graph_v1: trackAllWorkGraphArtifactSchema,
+    track_sample_sequence_v1: trackSampleSequenceSchema,
+    track_box_sequence_v1: trackBoxSequenceSchema,
+    track_mask_sequence_v1: trackMaskSequenceSchema,
+    track_mask_chunk_manifest_v1: trackMaskChunkManifestSchema,
+    track_landmark_sequence_v1: trackLandmarkSequenceSchema,
+    track_anchor_graph_v1: trackAnchorGraphSchema,
+    camera_motion_graph_v1: cameraMotionGraphSchema,
+    planar_track_graph_v1: planarTrackGraphSchema,
+    track_occlusion_event_log_v1: trackOcclusionEventLogSchema,
+    track_identity_lineage_v1: trackIdentityLineageSchema,
+    tracked_redaction_plan_v1: trackedRedactionPlanSchema,
+    tracked_redaction_result_v1: trackedRedactionResultSchema,
+    tracked_focus_plan_v1: trackedFocusPlanSchema,
+    tracked_focus_result_v1: trackedFocusResultSchema,
+    tracked_reframe_plan_v1: trackedReframePlanSchema,
+    tracked_reframe_result_v1: trackedReframeResultSchema,
+    track_all_target_qa_report_v1: trackAllTargetQaReportSchema,
+    track_all_temporal_qa_report_v1: trackAllTemporalQaReportSchema,
+    track_all_mask_qa_report_v1: trackAllMaskQaReportSchema,
+    track_all_privacy_qa_report_v1: trackAllPrivacyQaReportSchema,
+    track_all_chunk_seam_qa_report_v1: trackAllChunkSeamQaReportSchema,
+    track_all_identity_qa_report_v1: trackAllIdentityQaReportSchema,
+    track_all_integration_qa_report_v1: trackAllIntegrationQaReportSchema,
+    track_all_repair_receipt_v1: trackAllRepairReceiptSchema,
+    track_all_cross_skill_handoff_v1: trackAllCrossSkillHandoffSchema,
   }
-  for (const artifactType of [
-    'track_all_context_manifest_v1', 'track_all_work_graph_v1', 'track_sample_sequence_v1',
-    'track_box_sequence_v1', 'track_mask_sequence_v1', 'track_mask_chunk_manifest_v1',
-    'track_landmark_sequence_v1', 'track_anchor_graph_v1', 'camera_motion_graph_v1',
-    'planar_track_graph_v1', 'track_occlusion_event_log_v1', 'track_identity_lineage_v1',
-    'tracked_redaction_plan_v1', 'tracked_redaction_result_v1', 'tracked_focus_plan_v1',
-    'tracked_focus_result_v1', 'tracked_reframe_plan_v1', 'tracked_reframe_result_v1',
-    'track_all_target_qa_report_v1', 'track_all_temporal_qa_report_v1', 'track_all_mask_qa_report_v1',
-    'track_all_privacy_qa_report_v1', 'track_all_chunk_seam_qa_report_v1',
-    'track_all_identity_qa_report_v1', 'track_all_integration_qa_report_v1',
-    'track_all_repair_receipt_v1', 'track_all_cross_skill_handoff_v1',
-  ]) schemas[artifactType] = strictLineageArtifactSchema
   for (const [artifactType, schema] of Object.entries(schemas)) {
     if (!registry.has(artifactType)) registry.register(artifactType, schema)
   }

@@ -25,6 +25,7 @@ import {
 import { estimateTrackAllPlan } from './private/planning-mini-skills'
 
 export * from './track-all-artifact-types'
+export * from './track-all-active-artifact-contracts'
 export * from './track-all-capability-manifest'
 export * from './track-all-edit-skill-plugin'
 export * from './track-all-plan-compiler'

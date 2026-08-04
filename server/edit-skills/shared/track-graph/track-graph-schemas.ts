@@ -37,6 +37,7 @@ export type TrackGraphV1 = z.infer<typeof trackGraphV1Schema>
 const anonymousTrackId = z.string().regex(/^(?:person|face|vehicle|license_plate|phone_screen|object|region|surface|target)_[0-9]{3,6}$/u)
 const visibilitySpanSchema = z.object({ startFrameInclusive: z.number().int().nonnegative(), endFrameExclusive: z.number().int().positive(), state: z.enum(['active', 'partially_occluded', 'fully_occluded', 'lost', 'reacquisition_candidate', 'reacquired', 'identity_uncertain', 'terminated_at_shot_boundary', 'manually_reassigned']) }).strict()
 const graphArtifactRefSchema = editSkillArtifactReferenceSchema
+const typedRef = (artifactType: string) => editSkillArtifactReferenceSchema.extend({ artifactType: z.literal(artifactType) }).strict()
 
 const trackGraphV2CoreSchema = z.object({
   schemaVersion: z.literal('track_graph_v2'),
@@ -56,7 +57,7 @@ const trackGraphV2CoreSchema = z.object({
   authorizedRangeHash: skillSha256Schema,
   shots: z.array(z.object({ shotId: z.string().trim().min(1).max(180), range: skillFrameRangeSchema, sceneCutResetsIdentity: z.literal(true) }).strict()).max(10_000),
   chunks: z.array(z.object({ chunkId: z.string().trim().min(1).max(180), range: skillFrameRangeSchema, overlapRange: skillFrameRangeSchema.optional(), bucketIndex: z.number().int().nonnegative(), attemptRefHash: skillSha256Schema.optional() }).strict()).max(10_000),
-  cameraMotionRef: graphArtifactRefSchema.optional(),
+  cameraMotionRef: typedRef('camera_motion_graph_v1').optional(),
   targets: z.array(z.object({
     targetId: z.string().trim().min(1).max(180), targetType: skillIdentitySchema,
     semanticClass: skillIdentitySchema, includeRules: z.array(z.string().trim().min(1).max(300)).max(100),
@@ -69,17 +70,17 @@ const trackGraphV2CoreSchema = z.object({
     parentTrackId: anonymousTrackId.optional(), childTrackIds: z.array(anonymousTrackId).max(1_000),
     startFrameInclusive: z.number().int().nonnegative(), endFrameExclusive: z.number().int().positive(),
     visibilitySpans: z.array(visibilitySpanSchema).min(1).max(10_000),
-    boxSequenceRef: graphArtifactRefSchema, maskSequenceRef: graphArtifactRefSchema.optional(),
-    landmarkSequenceRef: graphArtifactRefSchema.optional(), anchorGraphRef: graphArtifactRefSchema.optional(),
-    planarGeometryRef: graphArtifactRefSchema.optional(), confidenceSequenceHash: skillSha256Schema,
-    occlusionEventLogRef: graphArtifactRefSchema.optional(), reentryEventHashes: z.array(skillSha256Schema).max(1_000),
+    boxSequenceRef: typedRef('track_box_sequence_v1'), maskSequenceRef: typedRef('track_mask_sequence_v1').optional(),
+    landmarkSequenceRef: typedRef('track_landmark_sequence_v1').optional(), anchorGraphRef: typedRef('track_anchor_graph_v1').optional(),
+    planarGeometryRef: typedRef('planar_track_graph_v1').optional(), confidenceSequenceHash: skillSha256Schema,
+    occlusionEventLogRef: typedRef('track_occlusion_event_log_v1').optional(), reentryEventHashes: z.array(skillSha256Schema).max(1_000),
     identitySwitchWarnings: z.array(z.object({ frameIndex: z.number().int().nonnegative(), confidence: z.number().min(0).max(1), evidenceHash: skillSha256Schema }).strict()).max(1_000),
     depthOrder: z.number().int(), qaRefs: z.array(graphArtifactRefSchema).max(100), repairRefs: z.array(graphArtifactRefSchema).max(10),
   }).strict()).max(10_000),
   stitchingEvidenceHashes: z.array(skillSha256Schema).max(10_000),
   cameraNormalizationEvidenceHash: skillSha256Schema,
   uncertaintyEventHashes: z.array(skillSha256Schema).max(10_000),
-  objectBudget: z.object({ maximumObjects: z.number().int().positive().max(128), bucketSize: z.literal(16), bucketCount: z.number().int().positive().max(8), sessionCount: z.number().int().nonnegative() }).strict(),
+  objectBudget: z.object({ expectedObjects: z.number().int().nonnegative().max(128), maximumObjects: z.number().int().positive().max(128), bucketSize: z.literal(16), bucketCount: z.number().int().nonnegative().max(8), sessionCount: z.number().int().nonnegative() }).strict(),
   runtimeAttemptRefs: z.array(graphArtifactRefSchema).max(10_000),
   finalQaRefs: z.array(graphArtifactRefSchema).min(1).max(100),
   privateMaskDataPublished: z.literal(false),
@@ -93,8 +94,14 @@ const trackGraphV2CoreSchema = z.object({
     if (!targetIds.has(track.targetId) || track.startFrameInclusive < value.authorizedRange.startFrameInclusive || track.endFrameExclusive > value.authorizedRange.endFrameExclusive || track.endFrameExclusive <= track.startFrameInclusive || (track.parentTrackId && !trackIds.has(track.parentTrackId)) || track.childTrackIds.some((id) => !trackIds.has(id))) context.addIssue({ code: 'custom', message: `Track ${track.trackId} has invalid range, target, or lineage.` })
     const refs = [track.boxSequenceRef, track.maskSequenceRef, track.landmarkSequenceRef, track.anchorGraphRef, track.planarGeometryRef, track.occlusionEventLogRef, ...track.qaRefs, ...track.repairRefs].filter(Boolean) as z.infer<typeof graphArtifactRefSchema>[]
     if (refs.some((ref) => ref.ownerUserId !== value.ownerUserId || ref.workspaceId !== value.workspaceId || ref.projectId !== value.projectId)) context.addIssue({ code: 'custom', message: `Track ${track.trackId} contains a cross-tenant reference.` })
+    if (track.visibilitySpans.some((span) => span.startFrameInclusive < track.startFrameInclusive || span.endFrameExclusive > track.endFrameExclusive || span.endFrameExclusive <= span.startFrameInclusive)) context.addIssue({ code: 'custom', message: `Track ${track.trackId} contains an invalid visibility span.` })
   }
-  if (value.objectBudget.bucketCount !== Math.max(1, Math.ceil(value.objectBudget.maximumObjects / 16))) context.addIssue({ code: 'custom', message: 'Track Graph V2 multiplex bucket budget is incoherent.' })
+  if (value.targets.some((target) => target.expectedMaximumCount < target.expectedMinimumCount)) context.addIssue({ code: 'custom', message: 'Track Graph V2 target count authority is incoherent.' })
+  const rangeContained = (range: z.infer<typeof skillFrameRangeSchema>) => range.fps === value.authorizedRange.fps && range.startFrameInclusive >= value.authorizedRange.startFrameInclusive && range.endFrameExclusive <= value.authorizedRange.endFrameExclusive
+  if (value.shots.some((shot) => !rangeContained(shot.range)) || value.chunks.some((chunk) => !rangeContained(chunk.range) || chunk.overlapRange && !rangeContained(chunk.overlapRange))) context.addIssue({ code: 'custom', message: 'Track Graph V2 shot or chunk exceeds authorized range.' })
+  if (value.objectBudget.expectedObjects > value.objectBudget.maximumObjects || value.objectBudget.bucketCount !== (value.objectBudget.expectedObjects === 0 ? 0 : Math.ceil(value.objectBudget.expectedObjects / 16))) context.addIssue({ code: 'custom', message: 'Track Graph V2 multiplex bucket budget is incoherent.' })
+  const graphRefs = [value.cameraMotionRef, ...value.runtimeAttemptRefs, ...value.finalQaRefs].filter(Boolean) as z.infer<typeof graphArtifactRefSchema>[]
+  if (graphRefs.some((ref) => ref.ownerUserId !== value.ownerUserId || ref.workspaceId !== value.workspaceId || ref.projectId !== value.projectId)) context.addIssue({ code: 'custom', message: 'Track Graph V2 contains a cross-tenant graph reference.' })
 })
 
 export const trackGraphV2Schema = trackGraphV2CoreSchema.extend({ graphHash: skillSha256Schema }).strict().superRefine((value, context) => {

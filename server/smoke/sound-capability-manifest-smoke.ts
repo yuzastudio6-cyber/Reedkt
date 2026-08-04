@@ -27,8 +27,8 @@ const validation = validateSkillCapabilityManifests({
   catalog: editSkillReferenceCatalog,
 })
 assert.equal(validation.manifestCount, 2)
-assert.equal(SOUND_SKILL_VERSION, '2.0.0')
-assert.equal(soundSkillCapabilityManifest.contractVersion, 'sound.skill_contract.v2')
+assert.equal(SOUND_SKILL_VERSION, '3.0.0')
+assert.equal(soundSkillCapabilityManifest.contractVersion, 'sound.skill_contract.v3')
 assert.equal(soundSkillCapabilityManifest.qualificationStatus, 'planning_qualified')
 assert.equal(Object.isFrozen(soundSkillCapabilityManifest), true)
 assert.equal(soundSkillCapabilityManifest.capabilityEntries?.length, 39)
@@ -53,7 +53,7 @@ assert.throws(() => validateCanonicalSoundPublication({ manifest: unknownRouteMa
 const mismatchedJobManifest = structuredClone(soundSkillCapabilityManifest)
 const normalizationCapability = mismatchedJobManifest.capabilityEntries!.find((entry) =>
   entry.capabilityKey === 'sound.normalize_audio')!
-const studyRoute = getSoundToolRouteManifest('sound.route.study.source_audio.v1', '2.0.0')!
+const studyRoute = getSoundToolRouteManifest('sound.route.study.source_audio.v1', '3.0.0')!
 normalizationCapability.primaryRouteRefs = [{
   routeKey: studyRoute.routeKey, routeVersion: studyRoute.routeVersion, routeHash: studyRoute.routeHash,
 }]

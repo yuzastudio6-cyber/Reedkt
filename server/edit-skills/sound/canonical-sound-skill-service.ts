@@ -30,6 +30,10 @@ import {
   type SoundRouteExecutionResult,
 } from './sound-route-executor'
 import type { CanonicalSoundExecutionQaReport } from '../../sound/sound-execution-qa'
+import {
+  compileCanonicalSoundExecutionGraph,
+  type SoundExecutionGraph,
+} from './sound-execution-graph'
 
 export interface LoadedCanonicalSoundContext {
   controllerContext: SoundControllerContext
@@ -46,6 +50,7 @@ export interface CanonicalSoundPlanResult {
   controller: SoundControllerResponse
   continuity: SoundWholeVideoContinuityReport
   selectedRoute: ApprovedSoundExecutionPackage['selectedRoute']
+  executionGraph: SoundExecutionGraph
 }
 
 export interface PeerCapabilityViewRequest {
@@ -158,8 +163,10 @@ export class StandaloneCanonicalSoundSkillService implements CanonicalSoundSkill
     }
     const selected = controller.result.toolRouteBindings[0]
     if (!selected) throw new Error('Canonical Sound planning produced no exact route binding.')
+    const executionGraph = compileCanonicalSoundExecutionGraph({ request, controller })
     return {
       schemaVersion: 'canonical-sound-plan-result-v1', request, controller, continuity,
+      executionGraph,
       selectedRoute: {
         routeKey: selected.routeKey, routeVersion: selected.routeVersion, routeHash: selected.routeHash,
       },
@@ -191,6 +198,18 @@ export class StandaloneCanonicalSoundSkillService implements CanonicalSoundSkill
       musicContextPresent: Boolean(planned.request.musicContext),
       approvedMusicAutomation: planned.request.musicContext?.allowedAutomation ?? [],
     }))
+    const preservedMutationReceipts = (input.previousResult.mutationReceipts ?? []).filter((receipt) =>
+      !input.invalidatedRanges.some((range) =>
+        receipt.range.startFrame < range.endFrameExclusive &&
+        receipt.range.endFrameExclusive > range.startFrame))
+    const preservedArtifactIds = new Set(preservedMutationReceipts.map((receipt) => receipt.artifactId))
+    const preservedExecutionUnitIds = new Set(preservedMutationReceipts.map((receipt) => receipt.unitId))
+    const preservedSelected = input.previousResult.selectedAssetVersions.filter((artifact) =>
+      preservedArtifactIds.has(artifact.artifactId))
+    const preservedCandidates = input.previousResult.candidateAssetVersions.filter((artifact) =>
+      preservedArtifactIds.has(artifact.artifactId))
+    const preservedStems = input.previousResult.privateSoundStemArtifacts.filter((artifact) =>
+      preservedArtifactIds.has(artifact.artifactId))
     return parseCanonicalSoundResult({
       ...planned.controller.result,
       status: 'planned',
@@ -204,8 +223,20 @@ export class StandaloneCanonicalSoundSkillService implements CanonicalSoundSkill
         version: input.previousResult.mixAutomationManifest.version + 1,
         automations,
       },
-      selectedAssetVersions: [],
-      privateSoundStemArtifacts: [],
+      candidateAssetVersions: preservedCandidates,
+      selectedAssetVersions: preservedSelected,
+      privateSoundStemArtifacts: preservedStems,
+      mutationReceipts: preservedMutationReceipts,
+      executionUnits: (input.previousResult.executionUnits ?? []).filter((unit) =>
+        preservedExecutionUnitIds.has(unit.unitId)),
+      revisionEvidence: {
+        previousRequestId: input.previousResult.requestId,
+        invalidatedRanges: input.invalidatedRanges,
+        preservedArtifactIds: [...preservedArtifactIds],
+        preservedExecutionUnitIds: [...preservedExecutionUnitIds],
+        replacementCueIds: replacementCues.map((cue) => cue.cueId),
+        unaffectedArtifactsReused: preservedArtifactIds.size > 0,
+      },
       modifiedAudioRanges: [],
       actualExecutionEvidence: undefined,
       finalCompositionHandoff: undefined,

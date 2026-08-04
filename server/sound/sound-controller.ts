@@ -153,7 +153,8 @@ function availableRouteInputs(
       ? ['approved_sound_event_brief', 'sound_event_semantics', 'approved_ambience_source_or_brief']
       : []),
     ...(request.executionAuthority.creditReservationId ? ['credit_reservation'] : []),
-    ...(context.internalLibraryMatches?.some((item) => item.projectAuthorized)
+    ...((context.internalLibraryMatches?.some((item) => item.projectAuthorized) ||
+      request.sourceAudioRefs.length > 0)
       ? ['project_asset_authority']
       : []),
     ...((context.protectedSpeechRanges?.length ?? 0) > 0 || request.transcriptSpeechEvidenceRef
@@ -477,10 +478,11 @@ export function runCanonicalSoundController(
       continue
     }
     const cueId = stableId('sound-cue', request.requestId, event.anchorId, rawCues.length)
-    const visualHash = request.visualDependencies.find((dependency) =>
-      dependency.artifact.durationFrames === undefined ||
-      event.frame < dependency.artifact.durationFrames
-    )?.visualHash
+    const visualDependency = request.visualDependencies.find((dependency) =>
+      dependency.timelineRange && event.frame >= dependency.timelineRange.startFrame &&
+      event.frame < dependency.timelineRange.endFrameExclusive) ??
+      (request.visualDependencies.length === 1 ? request.visualDependencies[0] : undefined)
+    const visualHash = visualDependency?.visualHash
     const cue: CanonicalSoundCue = {
       cueId,
       eventAnchorId: event.anchorId,
@@ -492,6 +494,7 @@ export function runCanonicalSoundController(
       layerRole: layerRole(event),
       storyReason: decision.reason,
       sourceVisualHash: visualHash,
+      sourceVisualArtifactId: visualDependency?.artifact.artifactId,
       staleIfVisualChanges: Boolean(visualHash),
     }
     rawCues.push(cue)
@@ -534,7 +537,7 @@ export function runCanonicalSoundController(
     'support_living_frame_sound', 'support_3d_sound', 'support_motion_design_sound',
     'support_transition_sound', 'support_graphic_design_sound',
     'generate_video_conditioned_sfx', 'generate_text_conditioned_sfx',
-    'generate_foley', 'generate_ambience', 'extend_ambience',
+    'generate_foley', 'generate_ambience',
   ])
   const primaryRouteKeys = noSound && noSoundRouteJobs.has(request.requestedJobType)
     ? ['sound.route.no_sound.v1']

@@ -78,8 +78,12 @@ export interface SoundLocalOperationParameters {
   inputGainDb?: number[]
   dialogueInputIndex?: number
   dialogueDuckingDb?: number
+  duckAttackSeconds?: number
+  duckReleaseSeconds?: number
+  outputLimiterLinear?: number
   expectedHitSeconds?: number
   maximumSyncErrorSeconds?: number
+  provenanceTag?: string
 }
 
 export interface SoundLocalAudioExecutionPackage {
@@ -112,6 +116,13 @@ export interface SoundAudioStudyReport {
   clippingSampleCount: number
   decodedSampleCount: number
   zeroCrossingRate: number
+  channelRmsDbfs: number[]
+  edgeRmsDbfs: {
+    leading: number
+    center: number
+    trailing: number
+    windowMilliseconds: number
+  }
 }
 
 export interface SoundLocalAudioExecutionResult {
@@ -187,7 +198,9 @@ const parameterKeys = new Set([
   'gainDb', 'targetLoudnessLufs', 'maximumTruePeakDbtp', 'sampleRate', 'channels',
   'loopCrossfadeSeconds', 'tempoRatio', 'pitchSemitones', 'inputGainDb',
   'dialogueInputIndex', 'dialogueDuckingDb', 'expectedHitSeconds',
+  'duckAttackSeconds', 'duckReleaseSeconds', 'outputLimiterLinear',
   'maximumSyncErrorSeconds',
+  'provenanceTag',
 ])
 
 function assertKnownKeys(value: object, keys: Set<string>, label: string): void {
@@ -225,6 +238,9 @@ function validateParameters(operation: SoundLocalOperation, parameters: SoundLoc
   finiteInRange(parameters.tempoRatio, 0.5, 2, 'tempoRatio')
   finiteInRange(parameters.pitchSemitones, -12, 12, 'pitchSemitones')
   finiteInRange(parameters.dialogueDuckingDb, -36, 0, 'dialogueDuckingDb')
+  finiteInRange(parameters.duckAttackSeconds, 0.001, 2, 'duckAttackSeconds')
+  finiteInRange(parameters.duckReleaseSeconds, 0.001, 5, 'duckReleaseSeconds')
+  finiteInRange(parameters.outputLimiterLinear, 0.1, 0.99, 'outputLimiterLinear')
   finiteInRange(parameters.expectedHitSeconds, 0, 86_400, 'expectedHitSeconds')
   finiteInRange(parameters.maximumSyncErrorSeconds, 0.001, 2, 'maximumSyncErrorSeconds')
   if (parameters.sampleRate !== undefined && parameters.sampleRate !== 44_100 && parameters.sampleRate !== 48_000) {
@@ -235,6 +251,10 @@ function validateParameters(operation: SoundLocalOperation, parameters: SoundLoc
   }
   if (parameters.inputGainDb) {
     parameters.inputGainDb.forEach((gain, index) => finiteInRange(gain, -48, 18, `inputGainDb[${index}]`, true))
+  }
+  if (parameters.provenanceTag !== undefined &&
+    !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,179}$/.test(parameters.provenanceTag)) {
+    throw new Error('provenanceTag must be a bounded server-owned identity.')
   }
 }
 
@@ -346,6 +366,8 @@ async function decodeStudy(path: string): Promise<{
   clippingSampleCount: number
   decodedSampleCount: number
   zeroCrossingRate: number
+  channelRmsDbfs: number[]
+  edgeRmsDbfs: SoundAudioStudyReport['edgeRmsDbfs']
 }> {
   const sampleRate = 8_000
   const result = await execFileAsync(FFMPEG, [
@@ -379,6 +401,12 @@ async function decodeStudy(path: string): Promise<{
   const minimumTransientGap = Math.round(sampleRate * 0.04)
   let lastTransient = -minimumTransientGap
   let zeroCrossings = 0
+  const channelSquareSums = [0, 0]
+  const windowFrames = Math.max(1, Math.min(Math.round(sampleRate * 0.1), Math.floor(frameCount / 3)))
+  const centerStart = Math.max(0, Math.floor((frameCount - windowFrames) / 2))
+  const centerEnd = centerStart + windowFrames
+  const edgeSquareSums = { leading: 0, center: 0, trailing: 0 }
+  const edgeSampleCounts = { leading: 0, center: 0, trailing: 0 }
 
   for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
     let framePeak = 0
@@ -390,6 +418,19 @@ async function decodeStudy(path: string): Promise<{
       framePeak = Math.max(framePeak, absolute)
       peak = Math.max(peak, absolute)
       squareSum += value * value
+      channelSquareSums[channel] = channelSquareSums[channel]! + value * value
+      if (frameIndex < windowFrames) {
+        edgeSquareSums.leading += value * value
+        edgeSampleCounts.leading += 1
+      }
+      if (frameIndex >= centerStart && frameIndex < centerEnd) {
+        edgeSquareSums.center += value * value
+        edgeSampleCounts.center += 1
+      }
+      if (frameIndex >= frameCount - windowFrames) {
+        edgeSquareSums.trailing += value * value
+        edgeSampleCounts.trailing += 1
+      }
       if (absolute >= 0.999) clipping += 1
       if (Math.abs(value - previous[channel]!) >= transientThreshold) frameTransient = true
       if (frameIndex > 0 && ((value >= 0 && previous[channel]! < 0) || (value < 0 && previous[channel]! >= 0))) {
@@ -429,6 +470,13 @@ async function decodeStudy(path: string): Promise<{
     clippingSampleCount: clipping,
     decodedSampleCount: sampleCount,
     zeroCrossingRate: Number((zeroCrossings / Math.max(1, sampleCount - channelCount)).toFixed(6)),
+    channelRmsDbfs: channelSquareSums.map((sum) => db(Math.sqrt(sum / Math.max(1, frameCount)))),
+    edgeRmsDbfs: {
+      leading: db(Math.sqrt(edgeSquareSums.leading / Math.max(1, edgeSampleCounts.leading))),
+      center: db(Math.sqrt(edgeSquareSums.center / Math.max(1, edgeSampleCounts.center))),
+      trailing: db(Math.sqrt(edgeSquareSums.trailing / Math.max(1, edgeSampleCounts.trailing))),
+      windowMilliseconds: Number((windowFrames / sampleRate * 1_000).toFixed(3)),
+    },
   }
 }
 
@@ -462,6 +510,7 @@ function outputArguments(
   const finish = [
     '-ar', String(p.sampleRate ?? 48_000),
     '-ac', String(p.channels ?? 2),
+    ...(p.provenanceTag ? ['-metadata', `comment=${p.provenanceTag}`] : []),
     ...codec,
     temporaryPath,
   ]
@@ -566,16 +615,23 @@ function mixArguments(input: SoundLocalAudioExecutionPackage, temporaryPath: str
   const filters = gains.map((gain, index) => `[${index}:a]volume=${gain}dB[g${index}]`)
   const soundLabels = input.sources.map((_, index) => index).filter((index) => index !== dialogueIndex)
   if (soundLabels.length === 0) throw new Error('Sound mix requires at least one non-dialogue layer.')
+  const attackMs = Math.round((p.duckAttackSeconds ?? 0.02) * 1_000)
+  const releaseMs = Math.round((p.duckReleaseSeconds ?? 0.25) * 1_000)
+  const ratio = Math.min(20, Math.max(1, Math.abs(p.dialogueDuckingDb ?? -9) * 1.25))
   if (soundLabels.length === 1) {
-    filters.push(`[g${soundLabels[0]}][g${dialogueIndex}]sidechaincompress=threshold=0.02:ratio=10:attack=20:release=250[ducked]`)
+    filters.push(`[g${soundLabels[0]}][g${dialogueIndex}]sidechaincompress=threshold=0.02:ratio=${ratio}:attack=${attackMs}:release=${releaseMs}[ducked]`)
   } else {
     filters.push(`${soundLabels.map((index) => `[g${index}]`).join('')}amix=inputs=${soundLabels.length}:normalize=0[sfxmix]`)
-    filters.push(`[sfxmix][g${dialogueIndex}]sidechaincompress=threshold=0.02:ratio=10:attack=20:release=250[ducked]`)
+    filters.push(`[sfxmix][g${dialogueIndex}]sidechaincompress=threshold=0.02:ratio=${ratio}:attack=${attackMs}:release=${releaseMs}[ducked]`)
   }
-  filters.push(`[g${dialogueIndex}][ducked]amix=inputs=2:normalize=0,alimiter=limit=0.891[out]`)
+  // FFmpeg's alimiter enables auto-level compensation by default, which raises the
+  // post-limiter signal back toward full scale and defeats an approved true-peak
+  // ceiling. Disable that compensation so `limit` remains the actual output cap.
+  filters.push(`[g${dialogueIndex}][ducked]amix=inputs=2:normalize=0,alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled[out]`)
   args.push(
     '-filter_complex', filters.join(';'), '-map', '[out]',
     '-ar', String(p.sampleRate ?? 48_000), '-ac', String(p.channels ?? 2),
+    ...(p.provenanceTag ? ['-metadata', `comment=${p.provenanceTag}`] : []),
     ...outputCodec(input.outputContentType), temporaryPath,
   )
   return args

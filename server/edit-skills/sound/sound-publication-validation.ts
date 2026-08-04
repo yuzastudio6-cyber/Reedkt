@@ -14,6 +14,7 @@ import type {
   SkillCapabilityManifest,
   SkillExactRouteReference,
 } from '../core/skill-capability-manifest-types'
+import { validateSoundOperationHandlerCoverage } from './sound-operation-handler-registry'
 
 const costRank = { zero: 0, local: 1, provider: 2, unavailable: 3 } as const
 
@@ -25,6 +26,7 @@ export function validateCanonicalSoundPublication(input: {
   const miniSkills = input.miniSkills ?? soundMiniSkillManifests
   validateSoundToolRouteRegistry()
   const publishedRoutes = listSoundToolRouteManifests()
+  validateSoundOperationHandlerCoverage(publishedRoutes)
   const topRoutes = new Map([
     ...manifest.toolRoutes,
     ...manifest.fallbackRoutes,

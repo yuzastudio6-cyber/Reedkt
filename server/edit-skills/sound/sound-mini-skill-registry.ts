@@ -5,7 +5,7 @@ import { registerCanonicalSoundToolRoutes } from '../../sound/sound-tool-routes'
 
 export interface SoundMiniSkillManifest {
   miniSkillKey: string
-  miniSkillVersion: '2.0.0'
+  miniSkillVersion: '3.0.0'
   qualificationStatus: SkillQualificationStatus
   evidenceLevel: 'planning' | 'fixture' | 'internal_execution'
   supportedOperations: readonly string[]
@@ -36,7 +36,7 @@ function exactRouteRef(routeKey: string): SkillExactRouteReference {
 function mini(input: SoundMiniSkillSeed): Readonly<SoundMiniSkillManifest> {
   return Object.freeze({
     ...input,
-    miniSkillVersion: '2.0.0',
+    miniSkillVersion: '3.0.0',
     routeRefs: input.routeRefs.map(exactRouteRef),
     fallbackRouteRefs: input.fallbackRouteRefs.map(exactRouteRef),
     lowerCostRouteRefs: input.lowerCostRouteRefs.map(exactRouteRef),

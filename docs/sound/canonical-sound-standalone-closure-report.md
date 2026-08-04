@@ -1,6 +1,6 @@
 # Canonical Sound standalone closure report
 
-Status date: 2026-08-03
+Status date: 2026-08-04
 
 Skill state: `standalone_skill_complete`, `orchestra_ready`, `orchestra_integration_pending_by_design`
 
@@ -24,19 +24,34 @@ The former Sound-created generic framework under `server/orchestra/` and `src/ty
 ## Published identity
 
 - Skill key: `sound`
-- Skill version: `2.0.0`
-- Contract version: `sound.skill_contract.v2`
+- Skill version: `3.0.0`
+- Contract version: `sound.skill_contract.v3`
 - Capability entries: 39
 - Mini-skills: 19
 - Tool manifests: 24
-- Route manifests: 18, each at route version `2.0.0`
+- Route manifests: 19, each at route version `3.0.0`
 - Top-level qualification: `planning_qualified`
 
 The top-level qualification is intentionally bounded by planning-only creative/perceptual capabilities and Mirelo fixture evidence. Deterministic private-local operations separately derive `internal_execution_qualified`; MMAudio is `blocked`; material realism, acoustic naturalness, advanced room matching, emotional fit, and professional perceptual judgment remain `needs_review` without an evidence-backed evaluator.
 
+Version 3 is a new immutable publication for the execution-integrity closure. It adds the
+typed per-unit operation graph, operation handler registry, exact mutation and placement
+receipts, multi-cue/provider execution, partial-failure accounting, decoded mix evidence,
+and a separate deterministic ambience-extension route. Published version 2 was not edited
+in place.
+
 ## Execution evidence
 
-The same Sound-owned service performs capability admission, context loading, planning, route selection, execution admission, bounded route execution, private artifact creation, synchronization, contextual mix automation, output QA, authority validation, caller receipt, and final-composition handoff.
+The same Sound-owned service performs capability admission, context loading, planning,
+per-cue/per-range graph compilation, route selection, execution admission, dependency-driven
+bounded route execution, private artifact creation, synchronization, contextual mix
+automation, output QA, authority validation, caller receipt, and final-composition handoff.
+
+Every completed route step now has actual handler invocation evidence, start/completion
+timestamps, measured elapsed time, exact output IDs/hashes, the compiled operation-spec
+hash, and an operation-receipt hash. Skipped and failed steps cannot present completion
+receipts. Exact modified ranges are the union of successful mutation receipts, not the
+request's entire authority envelope.
 
 Real private media tests cover study, extraction, trim, fade, gain, normalization, resampling, channel conversion, looping, time stretch, pitch shift, gentle cleanup, noise reduction, synchronization, mixing, stem creation, and QA. Output artifacts are decoded and measured for duration, sample rate, channels, clipping, true peak, loudness, checksums, and source immutability.
 
@@ -54,6 +69,21 @@ SoundSync is an internal mini-skill. Music context is read-only; composition and
 
 ## External activation requirements
 
-Mirelo production qualification requires a live private canary, approved commercial account, approved privacy and retention treatment, verified account-specific rate conversion, deployed worker/runtime evidence, quota and reconciliation evidence, and real generated-output QA. Production FFmpeg execution also requires the approved deployable LGPL build/configuration and deployed runtime evidence. New evidence must publish new immutable versions; it cannot mutate `2.0.0` in place.
+Mirelo production qualification requires a live private canary, approved commercial account, approved privacy and retention treatment, verified account-specific rate conversion, deployed worker/runtime evidence, quota and reconciliation evidence, and real generated-output QA. Production FFmpeg execution also requires the approved deployable LGPL build/configuration and deployed runtime evidence. New evidence must publish new immutable versions; it cannot mutate `3.0.0` in place.
 
 Global skill discovery, global work-graph construction, persistence, scheduling, approval coordination, credit aggregation, cross-skill conflict resolution, and final composition coordination are intentionally reserved for the future Head of Orchestra.
+
+## Final acceptance evidence
+
+The closure was validated locally on 2026-08-04 with:
+
+- `npm run test:sound-acceptance` — passed all canonical Sound smokes, the execution-integrity regression suite, and all 39 declared job contracts (28 executable, 11 explicitly planning-only);
+- `npm run test:edit-skill-capability-kernel` — passed the neutral shared-kernel regression;
+- `npm run test:b-roll-capability-manifest` — passed the cross-skill shared-kernel regression;
+- `npm run typecheck:server` — passed;
+- `npm run lint` — passed;
+- `npm run build` — passed with the repository's existing chunk-size and ineffective-dynamic-import warnings;
+- `npm run check:secrets` and `npm run check:frontend-boundary` — passed;
+- `git diff --check` — passed.
+
+No live Mirelo request, paid provider call, CI workflow, deployment, or canary was run. Mirelo remains fixture-qualified and fail-closed for live activation without the external evidence listed above.

@@ -54,6 +54,7 @@ export const soundVisualDependencySchema = z.object({
   visualHash: sha256,
   timingManifestHash: sha256,
   originalApprovedVisual: z.literal(true),
+  timelineRange: soundFrameRangeSchema.optional(),
 }).strict()
 
 export type SoundVisualDependency = z.infer<typeof soundVisualDependencySchema>
@@ -132,6 +133,29 @@ export type SoundRequestedOperation = z.infer<typeof operation>
 
 const requestedMode = z.enum(['planning', 'fixture', 'private_internal', 'production'])
 
+const soundOperationDirectiveSchema = z.object({
+  directiveId: safeId,
+  operation,
+  targetRangeId: safeId.optional(),
+  eventAnchorId: safeId.optional(),
+  sourceArtifactIds: z.array(safeId).max(16).optional(),
+  parameters: z.object({
+    trimSourceStartFrame: z.number().int().nonnegative().optional(),
+    targetDurationFrames: z.number().int().positive().optional(),
+    gainDb: z.number().min(-48).max(18).optional(),
+    fadeInFrames: z.number().int().nonnegative().optional(),
+    fadeOutFrames: z.number().int().nonnegative().optional(),
+    loopCrossfadeFrames: z.number().int().positive().optional(),
+    tempoRatio: z.number().min(0.5).max(2).optional(),
+    pitchSemitones: z.number().min(-12).max(12).optional(),
+    syncToleranceFrames: z.number().int().nonnegative().max(120).optional(),
+    dialogueSourceArtifactId: safeId.optional(),
+    sourceGainDb: z.record(safeId, z.number().min(-48).max(18)).optional(),
+    proxyPreRollFrames: z.number().int().nonnegative().max(10_000).optional(),
+    proxyPostRollFrames: z.number().int().nonnegative().max(10_000).optional(),
+  }).strict(),
+}).strict()
+
 export const canonicalSoundRequestSchema = z.object({
   schemaVersion: z.literal(CANONICAL_SOUND_REQUEST_SCHEMA_VERSION),
   requestId: safeId,
@@ -151,6 +175,7 @@ export const canonicalSoundRequestSchema = z.object({
   soundManifestHash: sha256,
   assignmentScope: soundAssignmentScopeSchema,
   requestedOperations: z.array(operation).min(1).max(64),
+  operationDirectives: z.array(soundOperationDirectiveSchema).max(256).optional(),
   requestedOutcome: boundedText,
   requiredDeliverables: z.array(safeId).min(1).max(64),
   sourceMediaRefs: z.array(soundArtifactRefSchema).max(2_000),
@@ -267,6 +292,32 @@ export const canonicalSoundRequestSchema = z.object({
     Math.abs(request.timelineFps - timelineRateDisplayFps(request.timelineRate)) > 1e-9) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: 'Display FPS does not match the exact timeline rate.' })
   }
+  const sourceIds = new Set([
+    ...request.sourceAudioRefs.map((item) => item.artifactId),
+    ...request.referenceSoundInputs.map((item) => item.artifactId),
+  ])
+  const rangeIds = new Set(request.assignmentScope.authorizedAudioWriteRanges.map((item) => item.rangeId))
+  const eventIds = new Set(request.eventAnchors.map((item) => item.anchorId))
+  const directiveKeys = new Set<string>()
+  for (const directive of request.operationDirectives ?? []) {
+    if (!request.requestedOperations.includes(directive.operation)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: `Operation directive ${directive.directiveId} was not requested.` })
+    }
+    if (directive.targetRangeId && !rangeIds.has(directive.targetRangeId)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: `Operation directive ${directive.directiveId} references an unauthorized range.` })
+    }
+    if (directive.eventAnchorId && !eventIds.has(directive.eventAnchorId)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: `Operation directive ${directive.directiveId} references an unknown event.` })
+    }
+    if (directive.sourceArtifactIds?.some((artifactId) => !sourceIds.has(artifactId))) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: `Operation directive ${directive.directiveId} references an unauthorized source.` })
+    }
+    const key = `${directive.operation}:${directive.targetRangeId ?? '*'}:${directive.eventAnchorId ?? '*'}`
+    if (directiveKeys.has(key)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: `Operation directives collide at ${key}.` })
+    }
+    directiveKeys.add(key)
+  }
 })
 
 export type CanonicalSoundRequest = z.infer<typeof canonicalSoundRequestSchema>
@@ -295,6 +346,7 @@ const soundCue = z.object({
   ]),
   storyReason: boundedText,
   sourceVisualHash: sha256.optional(),
+  sourceVisualArtifactId: safeId.optional(),
   staleIfVisualChanges: z.boolean(),
 }).strict().superRefine((cue, context) => {
   if (cue.endFrameExclusive <= cue.startFrame) {
@@ -361,7 +413,7 @@ export const canonicalSoundResultSchema = z.object({
     'internal_execution_qualified', 'production_qualified', 'blocked', 'retired',
   ]),
   toolRouteBindings: z.array(soundToolRouteBindingSchema).min(1).max(32),
-  status: z.enum(['planned', 'completed', 'no_sound', 'blocked', 'needs_visual_revision', 'stale']),
+  status: z.enum(['planned', 'completed', 'partial', 'no_sound', 'blocked', 'needs_visual_revision', 'stale']),
   studyReport: z.record(z.string(), z.unknown()).optional(),
   soundDesignPlan: z.record(z.string(), z.unknown()).optional(),
   cueManifest: z.object({
@@ -375,6 +427,58 @@ export const canonicalSoundResultSchema = z.object({
     automations: z.array(mixAutomation).max(10_000),
   }).strict(),
   qaReport: z.record(z.string(), z.unknown()),
+  soundDna: z.object({
+    schemaVersion: z.literal('sound-dna-v1'),
+    measured: z.record(z.string(), z.unknown()),
+    declared: z.record(z.string(), z.unknown()),
+    sourceArtifactIds: z.array(safeId).min(1).max(128),
+    evidenceHash: sha256,
+  }).strict().optional(),
+  synchronizationPlacements: z.array(z.object({
+    placementId: safeId,
+    cueId: safeId,
+    sourceArtifactId: safeId,
+    requestedEventFrame: z.number().int().nonnegative(),
+    detectedTransientFrame: z.number().int().nonnegative(),
+    appliedOffsetFrames: z.number().int(),
+    resultingTransientFrame: z.number().int().nonnegative(),
+    residualErrorFrames: z.number().int().nonnegative(),
+    timelineRate: timelineRateSchema,
+    placementManifestHash: sha256,
+  }).strict()).max(10_000).optional(),
+  executionUnits: z.array(z.object({
+    unitId: safeId,
+    operationSpecHash: sha256,
+    routeKey: safeId,
+    routeVersion: safeId,
+    routeHash: sha256,
+    status: z.enum(['completed', 'no_sound', 'planning_only', 'failed', 'blocked']),
+    targetRange: soundFrameRangeSchema,
+    outputArtifactIds: z.array(safeId).max(128),
+    mutationReceiptIds: z.array(safeId).max(128),
+    providerAttemptIds: z.array(safeId).max(128),
+    failureCode: safeId.optional(),
+    receiptHash: sha256,
+  }).strict()).max(10_000).optional(),
+  mutationReceipts: z.array(z.object({
+    mutationReceiptId: safeId,
+    unitId: safeId,
+    artifactId: safeId,
+    range: soundFrameRangeSchema,
+    sourceArtifactIds: z.array(safeId).max(128),
+    sourceHashes: z.array(sha256).max(128),
+    outputHash: sha256,
+    sourceUnchanged: z.literal(true),
+    receiptHash: sha256,
+  }).strict()).max(10_000).optional(),
+  revisionEvidence: z.object({
+    previousRequestId: safeId,
+    invalidatedRanges: z.array(soundFrameRangeSchema).min(1).max(512),
+    preservedArtifactIds: z.array(safeId).max(10_000),
+    preservedExecutionUnitIds: z.array(safeId).max(10_000),
+    replacementCueIds: z.array(safeId).max(10_000),
+    unaffectedArtifactsReused: z.boolean(),
+  }).strict().optional(),
   candidateAssetVersions: z.array(soundArtifactRefSchema).max(128),
   selectedAssetVersions: z.array(soundArtifactRefSchema).max(128),
   privateSoundStemArtifacts: z.array(soundArtifactRefSchema).max(128),
@@ -423,17 +527,25 @@ export const canonicalSoundResultSchema = z.object({
     providerCostEvidenceId: safeId.optional(),
     providerAttemptId: safeId.optional(),
     providerAttemptStatus: safeId.optional(),
+    providerAttemptIds: z.array(safeId).max(10_000).optional(),
     toolRuntimeEvidenceIds: z.array(safeId).max(128),
     outputArtifactHashes: z.array(sha256).max(128),
     stepEvidence: z.array(z.object({
       stepKey: safeId,
       toolKey: safeId,
       operationKey: safeId,
-      status: z.enum(['completed', 'skipped_optional', 'skipped_condition']),
+      unitId: safeId,
+      status: z.enum(['completed', 'skipped_optional', 'skipped_condition', 'failed', 'blocked_dependency']),
+      startedAt: z.string().datetime().optional(),
+      completedAt: z.string().datetime().optional(),
       elapsedMilliseconds: z.number().int().nonnegative(),
       outputArtifactIds: z.array(safeId).max(128),
+      outputArtifactHashes: z.array(sha256).max(128),
       evidenceRefs: z.array(safeId).max(128),
-    }).strict()).max(128),
+      operationSpecHash: sha256,
+      operationReceiptHash: sha256.optional(),
+      failureCode: safeId.optional(),
+    }).strict()).max(10_000),
   }).strict().optional(),
   finalCompositionHandoff: z.object({
     handoffId: safeId,

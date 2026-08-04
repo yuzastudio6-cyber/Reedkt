@@ -140,6 +140,9 @@ export function buildExecutableSoundRequest(input: {
   request.timelineManifestRef.timelineRate = rate
   request.sourceMediaRefs = [input.runtime.videoArtifact]
   request.sourceAudioRefs = input.audioArtifacts ?? [input.runtime.audioArtifact]
+  if (input.job === 'study_reference_sound' || input.job === 'create_sound_dna') {
+    request.referenceSoundInputs = [input.runtime.audioArtifact]
+  }
   request.visualDependencies = [{
     artifact: input.runtime.videoArtifact,
     visualVersion: input.runtime.videoArtifact.version,
@@ -203,14 +206,18 @@ export class DeterministicMireloTransport implements MireloTransport {
     }
     if ((request.url.endsWith('/v2/text-to-sfx/v1.6/sync') ||
       request.url.endsWith('/v2/video-to-sfx/v1.6/sync')) && request.method === 'POST') {
+      const candidateCount = typeof request.jsonBody?.num_samples === 'number'
+        ? Math.max(1, Math.min(4, Math.trunc(request.jsonBody.num_samples))) : 1
       return { status: 200, headers: { 'content-type': 'application/json' }, jsonBody: {
-        result_urls: [this.#carrierPath ? 'https://cdn.mirelo.ai/fixture-carrier.mp4' : 'https://cdn.mirelo.ai/fixture.wav'],
+        result_urls: Array.from({ length: candidateCount }, (_, index) => this.#carrierPath
+          ? `https://cdn.mirelo.ai/fixture-carrier-${index}.mp4`
+          : `https://cdn.mirelo.ai/fixture-${index}.wav`),
       } }
     }
-    if (request.url === 'https://cdn.mirelo.ai/fixture.wav') {
+    if (/^https:\/\/cdn\.mirelo\.ai\/fixture-\d+\.wav$/.test(request.url)) {
       return { status: 200, headers: { 'content-type': 'audio/wav' }, byteBody: new Uint8Array(await readFile(this.#audioPath)) }
     }
-    if (request.url === 'https://cdn.mirelo.ai/fixture-carrier.mp4' && this.#carrierPath) {
+    if (/^https:\/\/cdn\.mirelo\.ai\/fixture-carrier-\d+\.mp4$/.test(request.url) && this.#carrierPath) {
       return { status: 200, headers: { 'content-type': 'video/mp4' }, byteBody: new Uint8Array(await readFile(this.#carrierPath)) }
     }
     throw new Error(`Unexpected deterministic Mirelo request: ${request.method} ${request.url}`)

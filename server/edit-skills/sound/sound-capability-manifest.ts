@@ -9,8 +9,8 @@ import type { SkillQualificationStatus } from '../core/edit-skill-ids'
 import { SOUND_TOOL_ROUTE_MANIFESTS } from '../../sound/sound-tool-routes'
 
 export const SOUND_SKILL_KEY = 'sound' as const
-export const SOUND_SKILL_VERSION = '2.0.0' as const
-export const SOUND_MANIFEST_CONTRACT_VERSION = 'sound.skill_contract.v2' as const
+export const SOUND_SKILL_VERSION = '3.0.0' as const
+export const SOUND_MANIFEST_CONTRACT_VERSION = 'sound.skill_contract.v3' as const
 
 export const SOUND_SUPPORTED_JOB_TYPES = [
   'study_source_audio', 'study_reference_sound', 'study_visual_sound_events', 'create_sound_dna',
@@ -51,13 +51,14 @@ export const SOUND_PRODUCED_ARTIFACT_TYPES = [
 ] as const
 
 const PLANNING_JOBS = new Set<string>([
-  'study_visual_sound_events', 'create_sound_dna', 'design_scene_sound', 'design_boundary_sound',
+  'study_visual_sound_events', 'design_scene_sound', 'design_boundary_sound',
   'full_video_sound_pass', 'support_living_frame_sound', 'support_3d_sound',
   'support_motion_design_sound', 'support_transition_sound', 'support_graphic_design_sound',
   'search_sound_library', 'revise_sound',
 ])
 const FIXTURE_JOBS = new Set<string>([
   'generate_video_conditioned_sfx', 'generate_text_conditioned_sfx', 'generate_foley',
+  'generate_ambience',
 ])
 
 const activeRoutes = SOUND_TOOL_ROUTE_MANIFESTS.filter(
@@ -187,7 +188,7 @@ const capabilityEntries: SkillCapabilityEntryDefinition[] = SOUND_SUPPORTED_JOB_
   const actualLower = lower.filter((route) => !primaryKeys.has(route.routeKey))
   return {
     capabilityKey: `sound.${job}`,
-    capabilityVersion: '2.0.0',
+    capabilityVersion: '3.0.0',
     displayName: job.replaceAll('_', ' '),
     description: `Canonical Sound capability for ${job.replaceAll('_', ' ')}.`,
     qualificationStatus: deriveSoundRouteReferenceQualification(primary),
@@ -256,8 +257,8 @@ export const soundSkillCapabilityManifest = createSkillCapabilityManifest({
   conflictsWith: [],
   mayOverlapWith: ['b_roll', 'captions', 'color', 'graphic_design', 'real_motion', 'render', 'stroke_motion', 'track_all', 'transition'],
   ownershipRequirements: ['audio_write_ranges_are_exact', 'whole_video_context_is_read_only', 'locked_layers_unchanged', 'music_is_read_only', 'final_render_outside_sound'],
-  timeEstimator: 'sound.time.v2',
-  creditEstimator: 'sound.credit.v2',
+  timeEstimator: 'sound.time.v3',
+  creditEstimator: 'sound.credit.v3',
   attemptPolicy: {
     maximumInitialAttempts: 1, maximumRefinements: 1, automaticRetryAllowed: false,
     alternateProviderFallbackAllowed: false, unknownOutcomeRequiresReconciliation: true,
@@ -282,9 +283,9 @@ export const soundSkillCapabilityManifest = createSkillCapabilityManifest({
     { ruleKey: 'sound_technical_normalization', changeClass: 'non_material', requiresReestimate: false, requiresNewApproval: false, description: 'Repeat the exact admitted deterministic normalization profile.' },
   ],
   qualificationFixtures: [
-    { fixtureKey: 'sound.shared_kernel.v2', minimumStatus: 'planning_qualified', description: 'Shared registry, hash, manifest, and route closure evidence.' },
-    { fixtureKey: 'sound.local_real_bytes.v2', minimumStatus: 'internal_execution_qualified', description: 'Real private FFmpeg/FFprobe operation and output QA evidence.' },
-    { fixtureKey: 'sound.mirelo.injected_route.v2', minimumStatus: 'planning_qualified', description: 'Fixture-only injected transport using the canonical route graph.' },
+    { fixtureKey: 'sound.shared_kernel.v3', minimumStatus: 'planning_qualified', description: 'Shared registry, immutable hash, typed operation graph, and exact route closure evidence.' },
+    { fixtureKey: 'sound.local_real_bytes.v3', minimumStatus: 'internal_execution_qualified', description: 'Per-range real private FFmpeg/FFprobe execution, mutation receipts, and measured output QA evidence.' },
+    { fixtureKey: 'sound.mirelo.injected_route.v3', minimumStatus: 'planning_qualified', description: 'Per-cue fixture-only injected transport using the canonical dependency-driven route graph.' },
   ],
   knownLimitations: [
     'Mirelo is fixture-qualified only; live production activation requires external account, privacy, retention, rate, deployment, and canary evidence.',

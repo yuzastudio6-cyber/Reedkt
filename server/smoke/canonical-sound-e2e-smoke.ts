@@ -126,7 +126,7 @@ try {
   const textResult = await providerService.execute(executionPackage(textPlan, 'mirelo-text'))
   assert.equal(textResult.status, 'completed', JSON.stringify(textResult.qaReport))
   assert.equal(textResult.providerStatus, 'succeeded')
-  assert.equal(textResult.candidateAssetVersions.length, 1)
+  assert.equal(textResult.candidateAssetVersions.length, textRequest.costPolicy.candidateCount)
   assert.equal(textResult.selectedAssetVersions.length, 1)
   assert.equal(textResult.actualExecutionEvidence?.providerAttemptStatus, 'succeeded')
   assert.ok(textFixture.transport.calls.some((call) => call.url.endsWith('/v2/text-to-sfx/v1.6/sync')))

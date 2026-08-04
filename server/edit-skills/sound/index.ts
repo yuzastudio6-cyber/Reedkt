@@ -23,3 +23,15 @@ export type {
   CanonicalSoundArtifactResolver,
   ResolvedPrivateSoundArtifact,
 } from './sound-route-executor'
+export {
+  compileCanonicalSoundExecutionGraph,
+  type CompiledSoundOperationSpec,
+  type SoundExecutionGraph,
+  type SoundExecutionUnit,
+  type SoundExecutionUnitKind,
+} from './sound-execution-graph'
+export {
+  resolveSoundOperationHandlerKind,
+  validateSoundOperationHandlerCoverage,
+  type SoundOperationHandlerKind,
+} from './sound-operation-handler-registry'

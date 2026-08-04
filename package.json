@@ -359,6 +359,8 @@
     "smoke:canonical-sound-legacy-retirement": "tsx server/smoke/canonical-sound-legacy-retirement-smoke.ts",
     "smoke:canonical-sound-e2e": "tsx server/smoke/canonical-sound-e2e-smoke.ts",
     "smoke:sound": "npm run smoke:sound-capability-manifest && npm run smoke:sound-tool-capability-registry && npm run smoke:canonical-sound && npm run smoke:canonical-sound-local-audio && npm run smoke:canonical-sound-mirelo && npm run smoke:canonical-sound-legacy-retirement && npm run smoke:canonical-sound-e2e",
+    "test:sound-execution-integrity": "tsx server/smoke/canonical-sound-execution-integrity-regression-smoke.ts",
+    "test:sound-acceptance": "npm run smoke:sound && npm run test:sound-execution-integrity && tsx server/smoke/canonical-sound-acceptance-smoke.ts",
     "canary:sound-mirelo-private": "tsx server/cli/sound-mirelo-private-canary.ts",
     "audit:moderate": "npm audit --audit-level=moderate",
     "audit:prod": "npm audit --omit=dev --audit-level=moderate",

@@ -123,6 +123,15 @@ fresh dispatch authority and preserve prior audit evidence.
   original Cloud Build invocation. This evidence can qualify the immutable
   image supply chain only; A100/L4 qualification, runtime dispatch, credits,
   public delivery, and production remain false.
+- The security decision and qualified image release now have a fixed
+  create-only control-plane repository. A scan-bound security record is keyed
+  by the exact immutable image and occurrence-snapshot digest, then reread and
+  matched across timestamps and recomputed severity counts. Only a canonical
+  qualified supply-chain release may be persisted; its exact canonical bytes
+  and release hash are reread before it can become an input to either GPU
+  route. Missing, changed, noncanonical, cross-scan, contract-fixture, or
+  caller-promoted records fail closed. This repository grants no scan-review,
+  runtime, GPU-job, credit, QA, delivery, or production authority by itself.
 - The guarded operator command is
   `npm run publish:sam3_1-official-artifacts`. It refuses developer-machine
   execution and requires the exact dedicated job identity, an explicit

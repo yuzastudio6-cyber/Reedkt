@@ -36,6 +36,12 @@ import {
   createCanonicalSam31ImageSecurityReview,
   createCanonicalSam31ImageSupplyChainEvidenceReadPort,
 } from '../services/canonical-sam3_1-cloud-image-supply-chain-evidence-read-service'
+import {
+  createCanonicalSam31ImageSupplyChainReleaseRepository,
+  prepareAndPersistCanonicalSam31CloudImageSupplyChainRelease,
+} from '../services/canonical-sam3_1-cloud-image-supply-chain-release-runtime'
+import type { CanonicalCreateOnlyJsonObjectPort } from
+  '../services/canonical-gcs-source-analysis-lifecycle-store'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 import type { VisualIntelligencePrivateObjectReadPort } from
@@ -213,6 +219,11 @@ const evidenceObjects = createEvidenceObjects({
   observation,
   imageDigest,
 })
+const releaseObjects = createJsonObjectPort()
+const releaseRepository =
+  createCanonicalSam31ImageSupplyChainReleaseRepository({
+    objectPort: releaseObjects.port,
+  })
 const evidenceReadRequests: string[] = []
 let securityReviewReads = 0
 const evidenceReadPort =
@@ -240,7 +251,7 @@ const evidenceReadPort =
     securityReviewReadPort: {
       async rereadApprovedReview(request) {
         securityReviewReads += 1
-        return createCanonicalSam31ImageSecurityReview({
+        const review = createCanonicalSam31ImageSecurityReview({
           reviewId: 'sam31-image-security-review-smoke',
           immutableImageDigest: request.immutableImageDigest,
           vulnerabilityScanRef: request.vulnerabilityScanRef,
@@ -251,18 +262,23 @@ const evidenceReadPort =
           reviewerAuthorityRef: ref('sam31-security-reviewer-authority'),
           reviewedAt: '2026-08-03T20:05:00.000Z',
         })
+        await releaseRepository.persistApprovedSecurityReviewCreateOnly({
+          review,
+        })
+        return releaseRepository.rereadApprovedReview(request)
       },
     },
   })
 
 const qualifiedSupplyChain =
-  await prepareCanonicalSam31CloudImageSupplyChainRelease({
+  await prepareAndPersistCanonicalSam31CloudImageSupplyChainRelease({
     releaseId: 'sam31-image-supply-chain-release-smoke',
     authority,
     submission: imageBuildSubmission,
     terminalObservation: imageBuildTerminal,
     evidenceReadPort,
     qualifiedAt: '2026-08-03T20:06:00.000Z',
+    repository: releaseRepository,
   })
 assert.equal(qualifiedSupplyChain.status, 'image_supply_chain_qualified')
 assert.equal(qualifiedSupplyChain.evidenceClass, 'canonical_private_reread')
@@ -294,6 +310,7 @@ assert.equal(qualifiedSupplyChain.authority.runtimeReleaseGranted, false)
 assert.equal(qualifiedSupplyChain.authority.customerCreditMutationAllowed, false)
 assert.equal(qualifiedSupplyChain.authority.productionReady, false)
 assert.equal(securityReviewReads, 1)
+assert.equal(releaseObjects.records.size, 2)
 assert.equal(evidenceObjects.reads.length, 4)
 assert.equal(evidenceReadRequests.length, 6)
 assert(evidenceReadRequests.some((url) =>
@@ -323,6 +340,43 @@ assert.equal(
     .releaseHash,
   qualifiedSupplyChain.releaseHash,
 )
+const qualifiedSupplyChainRef = {
+  id: qualifiedSupplyChain.releaseId,
+  version: 1 as const,
+  contentHash: `sha256:${qualifiedSupplyChain.releaseHash}` as const,
+}
+assert.equal(
+  (await releaseRepository.rereadQualifiedRelease({
+    releaseRef: qualifiedSupplyChainRef,
+  }))?.releaseHash,
+  qualifiedSupplyChain.releaseHash,
+)
+assert.equal(
+  await releaseRepository.rereadQualifiedRelease({
+    releaseRef: ref('missing-supply-chain-release'),
+  }),
+  null,
+)
+await assert.rejects(() => releaseRepository.rereadApprovedReview({
+  immutableImageDigest: imageDigest,
+  vulnerabilityScanRef: {
+    ...qualifiedSupplyChain.vulnerabilityScan.scanRef,
+    version: 1 as const,
+  },
+  scanCompletedAt: qualifiedSupplyChain.vulnerabilityScan.scanCompletedAt,
+  occurrenceSnapshotUpdatedAt:
+    qualifiedSupplyChain.vulnerabilityScan.vulnerabilityDatabaseUpdatedAt,
+  severityCounts: {
+    criticalCount: 0,
+    highCount: 0,
+    mediumCount: 0,
+    lowCount: 1,
+    unknownSeverityCount: 0,
+  },
+}))
+await releaseRepository.persistQualifiedReleaseCreateOnly({
+  release: qualifiedSupplyChain,
+})
 
 const securityReview = createCanonicalSam31ImageSecurityReview({
   reviewId: 'sam31-image-security-review-direct-smoke',
@@ -360,7 +414,7 @@ assert.throws(() => createCanonicalSam31ImageSecurityReview({
   reviewerAuthorityRef: ref('sam31-security-reviewer-high-severity'),
   reviewedAt: '2026-08-03T20:04:00.000Z',
 }))
-assert.throws(() => createCanonicalSam31ImageSecurityReview({
+const unknownFieldSecurityReviewInput = {
   reviewId: 'sam31-image-security-review-unknown-field-smoke',
   immutableImageDigest: imageDigest,
   vulnerabilityScanRef: ref('sam31-vulnerability-scan-unknown-field'),
@@ -376,7 +430,10 @@ assert.throws(() => createCanonicalSam31ImageSecurityReview({
   reviewerAuthorityRef: ref('sam31-security-reviewer-unknown-field'),
   reviewedAt: '2026-08-03T20:04:00.000Z',
   callerApproval: true,
-}))
+}
+assert.throws(() => createCanonicalSam31ImageSecurityReview(
+  unknownFieldSecurityReviewInput,
+))
 
 const tamperedEvidenceObjects = createEvidenceObjects({
   admission,
@@ -524,7 +581,7 @@ assert.equal(unknownCalls, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-cloud-image-supply-chain-build',
-  checks: 96,
+  checks: 105,
   exactImmutableImageDigestBound: true,
   exactNumericHsmKeyVersionBound: true,
   pinnedSbomAndSignatureToolImages: true,
@@ -1187,4 +1244,24 @@ function createStatePort() {
     },
   }
   return { port, consumed, submissions, observations }
+}
+
+function createJsonObjectPort() {
+  const records = new Map<string, Buffer>()
+  const port: CanonicalCreateOnlyJsonObjectPort = {
+    async createOnly(input) {
+      assert.equal(
+        createHash('sha256').update(input.body).digest('hex'),
+        input.contentSha256,
+      )
+      if (records.has(input.objectPath)) return 'already_exists'
+      records.set(input.objectPath, Buffer.from(input.body))
+      return 'created'
+    },
+    async readExact(objectPath) {
+      const value = records.get(objectPath)
+      return value ? Buffer.from(value) : null
+    },
+  }
+  return { port, records }
 }

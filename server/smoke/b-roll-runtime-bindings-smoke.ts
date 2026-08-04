@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
   EditSkillRuntimeDispatcher,
   SkillJobRuntimeBindingRegistry,
+  createEditSkillPlanApproval,
   createSkillCapabilityManifest,
   createSkillJobRuntimeBinding,
   hashSkillValue,
@@ -39,12 +40,17 @@ function definitionCore(definition: SkillJobRuntimeBindingDefinition) {
     inputArtifactTypes: [...definition.inputArtifactTypes],
     outputArtifactTypes: [...definition.outputArtifactTypes],
     allowedPhases: [...definition.allowedPhases],
-    qualificationRequirement: definition.qualificationRequirement,
+    requiredQualification: definition.requiredQualification,
+    adapterClass: definition.adapterClass,
+    environmentClass: definition.environmentClass,
     runtimeAdapterId: definition.runtimeAdapterId,
-    bindingKind: definition.bindingKind,
     approvalRequired: definition.approvalRequired,
-    qualificationRequired: definition.qualificationRequired,
+    providerAuthorityRequired: definition.providerAuthorityRequired,
+    toolAuthorityRequired: definition.toolAuthorityRequired,
+    privateArtifactRequired: definition.privateArtifactRequired,
     callerSelectedExecutableAllowed: definition.callerSelectedExecutableAllowed,
+    automaticRetryAllowed: definition.automaticRetryAllowed,
+    alternateProviderFallbackAllowed: definition.alternateProviderFallbackAllowed,
     mutatesOnlyAssignmentRange: definition.mutatesOnlyAssignmentRange,
     createsMedia: definition.createsMedia,
     ...(definition.providerRouteKey ? { providerRouteKey: definition.providerRouteKey } : {}),
@@ -121,8 +127,7 @@ assert.throws(() => driftRegistry.validateManifest({
 
 const dispatcher = new EditSkillRuntimeDispatcher(editSkillRuntimeBindingRegistry)
 const dispatchReceipts = []
-for (const binding of BROLL_RUNTIME_BINDINGS) {
-  const definition = binding.definition
+function workItemFor(definition: SkillJobRuntimeBindingDefinition) {
   const workItemCore = {
     workItemKey: `fixture-${definition.jobType}`,
     jobType: definition.jobType,
@@ -142,13 +147,47 @@ for (const binding of BROLL_RUNTIME_BINDINGS) {
     callerSelectedExecutableAllowed: false as const,
     outsideAuthorizedRangeModified: false as const,
   }
-  const workItem = { ...workItemCore, workItemHash: hashSkillValue(workItemCore) }
-  dispatchReceipts.push(await dispatcher.executeInternalFixture({
+  return { ...workItemCore, workItemHash: hashSkillValue(workItemCore) }
+}
+
+function approvalFor(workItem: ReturnType<typeof workItemFor>) {
+  return createEditSkillPlanApproval({
+    schemaVersion: 'edit-skill-plan-approval-v1',
+    assignmentId: workItem.assignmentId,
+    assignmentHash: workItem.assignmentHash,
+    planId: 'runtime-binding-plan',
+    planHash: hashSkillValue({ plan: 'runtime-binding-plan' }),
+    manifestRef,
+    authorizedRange: range,
+    approved: true,
+    approvedAt: '2026-08-04T12:00:00.000Z',
+  })
+}
+
+async function dispatchInternal(
+  definition: SkillJobRuntimeBindingDefinition,
+  overrides: Partial<Parameters<EditSkillRuntimeDispatcher['dispatchApprovedWorkItem']>[0]> = {},
+) {
+  const workItem = workItemFor(definition)
+  return dispatcher.dispatchApprovedWorkItem({
     manifestRef,
     workItem,
+    approval: approvalFor(workItem),
     authorizedPhase: definition.allowedPhases[0],
     inputArtifactTypes: definition.inputArtifactTypes,
-  }))
+    adapterClass: 'internal_qualification_adapter',
+    environmentClass: 'internal_fixture',
+    runtimeQualification: 'internal_execution_qualified',
+    artifactStorageClass: 'internal_in_memory',
+    privateArtifactAuthority: false,
+    providerAuthorityOperations: editSkillReferenceCatalog.providerOperations,
+    toolAuthorityOperations: editSkillReferenceCatalog.toolOperations,
+    ...overrides,
+  })
+}
+
+for (const binding of BROLL_RUNTIME_BINDINGS) {
+  dispatchReceipts.push(await dispatchInternal(binding.definition))
 }
 assert.equal(dispatchReceipts.length, 13)
 assert.equal(new Set(dispatchReceipts.map((receipt) => receipt.receiptHash)).size, 13)
@@ -250,7 +289,7 @@ assert.throws(
   () => createSkillJobRuntimeBinding({
     definition: {
       ...definitionCore(BROLL_RUNTIME_BINDINGS[0].definition),
-      qualificationRequired: false as never,
+      automaticRetryAllowed: true as never,
     },
     handler: BROLL_RUNTIME_BINDINGS[0].handler,
   }),
@@ -260,7 +299,6 @@ assert.throws(
     definition: {
       ...definitionCore(BROLL_RUNTIME_BINDINGS[0].definition),
       operationKind: 'no_action',
-      bindingKind: 'no_action',
       createsMedia: true,
     },
     handler: BROLL_RUNTIME_BINDINGS[0].handler,
@@ -278,8 +316,111 @@ assert.throws(
   () => editSkillRuntimeBindingRegistry.resolve({
     manifestRef,
     jobType: 'unknown_b_roll_job',
+    adapterClass: 'internal_qualification_adapter',
+    environmentClass: 'internal_fixture',
   }),
   /unavailable/iu,
+)
+
+assert.throws(
+  () => changedBinding('run_b_roll_preview_qa', {
+    adapterClass: 'internal_qualification_adapter',
+    environmentClass: 'production_server',
+  }),
+  /wrong environment/iu,
+)
+assert.throws(
+  () => changedBinding('run_b_roll_preview_qa', {
+    adapterClass: 'canonical_private_execution_adapter',
+    environmentClass: 'canonical_private',
+    privateArtifactRequired: false,
+  }),
+  /private artifact authority/iu,
+)
+assert.throws(
+  () => changedBinding('run_b_roll_preview_qa', {
+    adapterClass: 'production_worker_adapter',
+    environmentClass: 'production_server',
+    privateArtifactRequired: true,
+  }),
+  /production qualification/iu,
+)
+assert.throws(
+  () => changedBinding('generate_b_roll_candidate', {
+    providerAuthorityRequired: false,
+  }),
+  /provider authority/iu,
+)
+assert.throws(
+  () => changedBinding('inspect_b_roll_candidate_with_ffprobe', {
+    toolAuthorityRequired: false,
+  }),
+  /tool authority/iu,
+)
+assert.throws(
+  () => changedBinding('run_b_roll_preview_qa', {
+    alternateProviderFallbackAllowed: true as never,
+  }),
+)
+const operationMismatch = changedBinding('run_b_roll_preview_qa', {
+  operationId: 'b_roll.internal.wrong_preview_qa.v1',
+})
+assert.throws(
+  () => validate(bindingRegistry({ replace: new Map([['run_b_roll_preview_qa', operationMismatch]]) })),
+  /operation differs/iu,
+)
+const phaseMismatch = changedBinding('run_b_roll_preview_qa', {
+  allowedPhases: ['skill_output_qa'],
+})
+assert.throws(
+  () => validate(bindingRegistry({ replace: new Map([['run_b_roll_preview_qa', phaseMismatch]]) })),
+  /differs from its manifest job capability/iu,
+)
+const qualificationMismatch = changedBinding('run_b_roll_preview_qa', {
+  requiredQualification: 'production_qualified',
+})
+assert.throws(
+  () => validate(bindingRegistry({ replace: new Map([['run_b_roll_preview_qa', qualificationMismatch]]) })),
+  /differs from its manifest job capability|exceeds/iu,
+)
+
+const validationDefinition = BROLL_RUNTIME_BINDINGS.find((binding) =>
+  binding.definition.jobType === 'validate_b_roll_assignment')!.definition
+await assert.rejects(
+  () => dispatchInternal(validationDefinition, { runtimeQualification: 'planning_qualified' }),
+  /under-qualified/iu,
+)
+await assert.rejects(
+  () => dispatchInternal(validationDefinition, {
+    adapterClass: 'production_worker_adapter',
+    environmentClass: 'production_server',
+    artifactStorageClass: 'internal_in_memory',
+  }),
+  /unavailable or stale/iu,
+)
+const providerDefinition = BROLL_RUNTIME_BINDINGS.find((binding) =>
+  binding.definition.jobType === 'generate_b_roll_candidate')!.definition
+await assert.rejects(
+  () => dispatchInternal(providerDefinition, { providerAuthorityOperations: new Set() }),
+  /provider authority/iu,
+)
+const toolDefinition = BROLL_RUNTIME_BINDINGS.find((binding) =>
+  binding.definition.jobType === 'inspect_b_roll_candidate_with_ffprobe')!.definition
+await assert.rejects(
+  () => dispatchInternal(toolDefinition, { toolAuthorityOperations: new Set() }),
+  /tool authority/iu,
+)
+
+assert.equal(
+  BROLL_RUNTIME_BINDINGS.every((binding) =>
+    binding.definition.adapterClass === 'internal_qualification_adapter' &&
+    binding.definition.environmentClass === 'internal_fixture'),
+  true,
+)
+assert.equal(
+  editSkillRuntimeBindingRegistry.list().some((binding) =>
+    binding.definition.adapterClass === 'production_worker_adapter'),
+  false,
 )
 
 console.log(JSON.stringify({
@@ -291,5 +432,7 @@ console.log(JSON.stringify({
     typeof binding.handler === 'function').length,
   fixtureDispatchReceipts: dispatchReceipts.length,
   fixtureProviderRequests: 0,
-  adversarialCases: 14,
+  bindingClasses: ['internal_qualification_adapter'],
+  productionBindings: 0,
+  adversarialCases: 27,
 }, null, 2))

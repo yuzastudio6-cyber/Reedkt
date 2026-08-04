@@ -1,7 +1,11 @@
 import { z } from 'zod'
 
 import type { EditSkillArtifactSchemaRegistry } from './edit-skill-artifact-store'
-import { EDIT_SKILL_KEYS, type SkillQualificationStatus } from './edit-skill-ids'
+import {
+  ACTIVE_QUALIFICATION_RANK,
+  EDIT_SKILL_KEYS,
+  type SkillQualificationStatus,
+} from './edit-skill-ids'
 import { hashSkillValue } from './skill-capability-manifest-hash'
 import {
   skillIdentitySchema,
@@ -15,8 +19,13 @@ import {
 } from './skill-capability-manifest-normalization'
 
 export interface SkillJobRuntimeInvocation {
-  mode: 'internal_fixture'
+  mode:
+    | 'internal_qualification_adapter'
+    | 'canonical_private_execution_adapter'
+    | 'production_worker_adapter'
+  environmentClass: 'internal_fixture' | 'canonical_private' | 'production_server'
   binding: SkillJobRuntimeBindingDefinition
+  approvalHash: string
   assignmentId: string
   assignmentHash: string
   workItemKey: string
@@ -40,7 +49,7 @@ export type SkillJobRuntimeAdapter = (
 ) => Promise<SkillJobRuntimeAdapterResult>
 
 const skillJobRuntimeBindingCoreSchema = z.object({
-  schemaVersion: z.literal('edit-skill-runtime-binding-v1'),
+  schemaVersion: z.literal('edit-skill-runtime-binding-v2'),
   skillKey: z.enum(EDIT_SKILL_KEYS),
   skillVersion: skillSemverSchema,
   contractVersion: skillIdentitySchema,
@@ -52,18 +61,27 @@ const skillJobRuntimeBindingCoreSchema = z.object({
   inputArtifactTypes: z.array(skillIdentitySchema).max(100),
   outputArtifactTypes: z.array(skillIdentitySchema).min(1).max(100),
   allowedPhases: z.array(skillIdentitySchema).min(1).max(100),
-  qualificationRequirement: z.enum([
+  requiredQualification: z.enum([
     'declared',
     'implementation_pending',
     'planning_qualified',
     'internal_execution_qualified',
     'production_qualified',
   ]),
+  adapterClass: z.enum([
+    'internal_qualification_adapter',
+    'canonical_private_execution_adapter',
+    'production_worker_adapter',
+  ]),
+  environmentClass: z.enum(['internal_fixture', 'canonical_private', 'production_server']),
   runtimeAdapterId: skillIdentitySchema,
-  bindingKind: z.enum(['executable', 'no_action']),
   approvalRequired: z.boolean(),
-  qualificationRequired: z.literal(true),
+  providerAuthorityRequired: z.boolean(),
+  toolAuthorityRequired: z.boolean(),
+  privateArtifactRequired: z.boolean(),
   callerSelectedExecutableAllowed: z.literal(false),
+  automaticRetryAllowed: z.literal(false),
+  alternateProviderFallbackAllowed: z.literal(false),
   mutatesOnlyAssignmentRange: z.literal(true),
   createsMedia: z.boolean(),
   providerRouteKey: skillIdentitySchema.optional(),
@@ -71,11 +89,37 @@ const skillJobRuntimeBindingCoreSchema = z.object({
   if ((value.operationKind === 'provider') !== Boolean(value.providerRouteKey)) {
     context.addIssue({ code: 'custom', message: 'Only provider runtime bindings carry a provider route key.' })
   }
-  if (value.bindingKind === 'no_action' && (value.operationKind !== 'no_action' || value.createsMedia)) {
-    context.addIssue({ code: 'custom', message: 'A no-action runtime binding cannot create media or invoke another operation kind.' })
+  if (value.providerAuthorityRequired !== (value.operationKind === 'provider')) {
+    context.addIssue({ code: 'custom', message: 'Provider runtime bindings require explicit provider authority.' })
   }
-  if (value.bindingKind === 'executable' && !value.approvalRequired) {
-    context.addIssue({ code: 'custom', message: 'Executable runtime bindings cannot bypass exact plan approval.' })
+  if (value.toolAuthorityRequired !== (value.operationKind === 'tool')) {
+    context.addIssue({ code: 'custom', message: 'Tool runtime bindings require explicit tool authority.' })
+  }
+  if (value.operationKind === 'no_action' && value.createsMedia) {
+    context.addIssue({ code: 'custom', message: 'A no-action runtime binding cannot create media.' })
+  }
+  if (!value.approvalRequired) {
+    context.addIssue({ code: 'custom', message: 'Runtime bindings cannot bypass exact plan approval.' })
+  }
+  const expectedEnvironment = value.adapterClass === 'internal_qualification_adapter'
+    ? 'internal_fixture'
+    : value.adapterClass === 'canonical_private_execution_adapter'
+      ? 'canonical_private'
+      : 'production_server'
+  if (value.environmentClass !== expectedEnvironment) {
+    context.addIssue({ code: 'custom', message: 'Runtime adapter class is registered for the wrong environment.' })
+  }
+  if (
+    value.adapterClass !== 'internal_qualification_adapter' &&
+    !value.privateArtifactRequired
+  ) {
+    context.addIssue({ code: 'custom', message: 'Canonical and production adapters require private artifact authority.' })
+  }
+  if (
+    value.adapterClass === 'production_worker_adapter' &&
+    value.requiredQualification !== 'production_qualified'
+  ) {
+    context.addIssue({ code: 'custom', message: 'Production worker adapters require production qualification.' })
   }
 })
 
@@ -115,21 +159,16 @@ export interface SkillRuntimeOperationCatalog {
   providerOperationQualifications: ReadonlyMap<string, SkillQualificationStatus>
 }
 
-const ACTIVE_QUALIFICATION_RANK: Readonly<Partial<Record<SkillQualificationStatus, number>>> = {
-  declared: 0,
-  implementation_pending: 1,
-  planning_qualified: 2,
-  internal_execution_qualified: 3,
-  production_qualified: 4,
-}
-
 function bindingKey(input: {
   skillKey: string
   skillVersion: string
   contractVersion: string
   jobType: string
+  adapterClass: SkillJobRuntimeBindingDefinition['adapterClass']
+  environmentClass: SkillJobRuntimeBindingDefinition['environmentClass']
 }): string {
-  return `${input.skillKey}@${input.skillVersion}:${input.contractVersion}:${input.jobType}`
+  return `${input.skillKey}@${input.skillVersion}:${input.contractVersion}:${input.jobType}:` +
+    `${input.adapterClass}:${input.environmentClass}`
 }
 
 function manifestKey(input: Pick<SkillCapabilityManifest, 'skillKey' | 'skillVersion' | 'contractVersion'>): string {
@@ -172,8 +211,15 @@ export class SkillJobRuntimeBindingRegistry {
   resolve(input: {
     manifestRef: SkillManifestReference
     jobType: string
+    adapterClass: SkillJobRuntimeBindingDefinition['adapterClass']
+    environmentClass: SkillJobRuntimeBindingDefinition['environmentClass']
   }): SkillJobRuntimeBinding {
-    const binding = this.#bindings.get(bindingKey({ ...input.manifestRef, jobType: input.jobType }))
+    const binding = this.#bindings.get(bindingKey({
+      ...input.manifestRef,
+      jobType: input.jobType,
+      adapterClass: input.adapterClass,
+      environmentClass: input.environmentClass,
+    }))
     if (!binding || binding.definition.manifestHash !== input.manifestRef.manifestHash) {
       throw new Error('Exact manifest job runtime binding is unavailable or stale.')
     }
@@ -195,18 +241,30 @@ export class SkillJobRuntimeBindingRegistry {
       manifestKey(binding.definition) === manifestKey(manifest))
     const manifestJobTypes = manifestSupportedJobTypeIds(manifest)
     const manifestJobs = new Set(manifestJobTypes)
-    const bindingJobs = new Set(bindings.map((binding) => binding.definition.jobType))
-    if (bindings.length !== bindingJobs.size) {
-      throw new Error(`Manifest ${manifest.skillKey} has duplicate runtime bindings.`)
+    const bindingGroups = new Map<string, SkillJobRuntimeBinding[]>()
+    for (const binding of bindings) {
+      const groupKey = `${binding.definition.adapterClass}:${binding.definition.environmentClass}`
+      const group = bindingGroups.get(groupKey) ?? []
+      group.push(binding)
+      bindingGroups.set(groupKey, group)
     }
-    for (const jobType of manifestJobs) {
-      if (!bindingJobs.has(jobType)) {
-        throw new Error(`Manifest supported job ${jobType} has no runtime binding.`)
+    if (bindingGroups.size === 0) {
+      throw new Error(`Manifest ${manifest.skillKey} has no runtime binding class.`)
+    }
+    for (const [groupKey, group] of bindingGroups) {
+      const bindingJobs = new Set(group.map((binding) => binding.definition.jobType))
+      if (group.length !== bindingJobs.size) {
+        throw new Error(`Manifest ${manifest.skillKey} has duplicate runtime bindings in ${groupKey}.`)
       }
-    }
-    for (const jobType of bindingJobs) {
-      if (!manifestJobs.has(jobType)) {
-        throw new Error(`Runtime binding ${jobType} has no manifest-supported job.`)
+      for (const jobType of manifestJobs) {
+        if (!bindingJobs.has(jobType)) {
+          throw new Error(`Manifest supported job ${jobType} has no runtime binding in ${groupKey}.`)
+        }
+      }
+      for (const jobType of bindingJobs) {
+        if (!manifestJobs.has(jobType)) {
+          throw new Error(`Runtime binding ${jobType} has no manifest-supported job.`)
+        }
       }
     }
     const graphJobs = input.workGraphJobs.filter((job) => manifestKey(job) === manifestKey(manifest))
@@ -270,16 +328,16 @@ export class SkillJobRuntimeBindingRegistry {
           hashSkillValue(jobCapability.requiredArtifactTypes) !== hashSkillValue(definition.inputArtifactTypes) ||
           hashSkillValue(jobCapability.producedArtifactTypes) !== hashSkillValue(definition.outputArtifactTypes) ||
           hashSkillValue(jobCapability.allowedPhases) !== hashSkillValue(definition.allowedPhases) ||
-          jobCapability.minimumQualificationStatus !== definition.qualificationRequirement ||
+          jobCapability.minimumQualificationStatus !== definition.requiredQualification ||
           jobCapability.primaryVisualOwnershipPossible !== definition.createsMedia
         ) throw new Error(`Runtime binding ${definition.jobType} differs from its manifest job capability.`)
       }
-      const requiredRank = ACTIVE_QUALIFICATION_RANK[definition.qualificationRequirement]
+      const requiredRank = ACTIVE_QUALIFICATION_RANK[definition.requiredQualification]
       if (requiredRank === undefined || requiredRank > manifestQualificationRank) {
         throw new Error(`Runtime binding ${definition.jobType} exceeds the manifest qualification.`)
       }
-      if (!definition.approvalRequired || !definition.qualificationRequired) {
-        throw new Error(`Runtime binding ${definition.jobType} bypasses approval or qualification.`)
+      if (!definition.approvalRequired) {
+        throw new Error(`Runtime binding ${definition.jobType} bypasses approval.`)
       }
       if (definition.callerSelectedExecutableAllowed) {
         throw new Error(`Runtime binding ${definition.jobType} permits a caller-selected executable.`)
@@ -287,9 +345,19 @@ export class SkillJobRuntimeBindingRegistry {
       if (!definition.mutatesOnlyAssignmentRange) {
         throw new Error(`Runtime binding ${definition.jobType} can mutate outside the assignment.`)
       }
-      if (definition.bindingKind === 'no_action' && definition.createsMedia) {
+      if (definition.operationKind === 'no_action' && definition.createsMedia) {
         throw new Error(`No-action runtime binding ${definition.jobType} creates media.`)
       }
+      if (definition.providerAuthorityRequired !== (definition.operationKind === 'provider')) {
+        throw new Error(`Runtime binding ${definition.jobType} has invalid provider authority requirements.`)
+      }
+      if (definition.toolAuthorityRequired !== (definition.operationKind === 'tool')) {
+        throw new Error(`Runtime binding ${definition.jobType} has invalid tool authority requirements.`)
+      }
+      if (
+        definition.adapterClass !== 'internal_qualification_adapter' &&
+        !definition.privateArtifactRequired
+      ) throw new Error(`Runtime binding ${definition.jobType} lacks private artifact authority.`)
       if (
         definition.operationKind === 'tool' &&
         !input.operations.toolOperations.has(definition.operationId)

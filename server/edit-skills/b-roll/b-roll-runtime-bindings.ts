@@ -32,7 +32,9 @@ function createsMedia(jobType: string): boolean {
 function adapterFor(definition: BrollCanonicalWorkDefinition): SkillJobRuntimeAdapter {
   return async (input) => {
     if (
-      input.mode !== 'internal_fixture' ||
+      input.mode !== 'internal_qualification_adapter' ||
+      input.environmentClass !== 'internal_fixture' ||
+      input.binding.adapterClass !== 'internal_qualification_adapter' ||
       input.binding.jobType !== definition.jobType ||
       input.binding.operationId !== definition.operationId ||
       input.binding.workerClass !== definition.workerClass ||
@@ -64,7 +66,7 @@ function adapterFor(definition: BrollCanonicalWorkDefinition): SkillJobRuntimeAd
 export const BROLL_RUNTIME_BINDINGS: readonly SkillJobRuntimeBinding[] =
   BROLL_CANONICAL_WORK_DEFINITIONS.map((definition) => createSkillJobRuntimeBinding({
     definition: {
-      schemaVersion: 'edit-skill-runtime-binding-v1',
+      schemaVersion: 'edit-skill-runtime-binding-v2',
       skillKey: BROLL_CAPABILITY_MANIFEST.skillKey,
       skillVersion: BROLL_CAPABILITY_MANIFEST.skillVersion,
       contractVersion: BROLL_CAPABILITY_MANIFEST.contractVersion,
@@ -76,12 +78,17 @@ export const BROLL_RUNTIME_BINDINGS: readonly SkillJobRuntimeBinding[] =
       inputArtifactTypes: [...definition.inputArtifactTypes],
       outputArtifactTypes: [definition.output],
       allowedPhases: [definition.allowedPhase],
-      qualificationRequirement: 'internal_execution_qualified',
-      runtimeAdapterId: `b_roll.runtime.${definition.jobType}.v1`,
-      bindingKind: 'executable',
+      requiredQualification: 'internal_execution_qualified',
+      adapterClass: 'internal_qualification_adapter',
+      environmentClass: 'internal_fixture',
+      runtimeAdapterId: `b_roll.runtime.internal_qualification.${definition.jobType}.v2`,
       approvalRequired: true,
-      qualificationRequired: true,
+      providerAuthorityRequired: Boolean(definition.provider),
+      toolAuthorityRequired: definition.operationId.startsWith('tool.'),
+      privateArtifactRequired: false,
       callerSelectedExecutableAllowed: false,
+      automaticRetryAllowed: false,
+      alternateProviderFallbackAllowed: false,
       mutatesOnlyAssignmentRange: true,
       createsMedia: createsMedia(definition.jobType),
       ...(definition.provider ? { providerRouteKey: 'gemini_omni_flash' } : {}),

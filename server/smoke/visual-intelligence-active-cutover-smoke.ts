@@ -35,6 +35,9 @@ const l4VisualEvidenceAuthorityRepository = source(
 const l4VisualEvidenceWorkerBootstrapOwner = source(
   'server/services/canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner.ts',
 )
+const l4VisualEvidenceWorkerEvidenceOwner = source(
+  'server/services/canonical-source-analysis-l4-visual-evidence-worker-evidence-owner.ts',
+)
 const l4VisualEvidenceAdmissionOwner = source(
   'server/services/canonical-source-analysis-l4-visual-evidence-admission-owner.ts',
 )
@@ -154,6 +157,22 @@ assert.match(
 assert.doesNotMatch(
   l4VisualEvidenceWorkerBootstrapOwner,
   /qwen|sam2|child_process|execFile|spawn|shellCommand/u,
+)
+assert.match(
+  l4VisualEvidenceWorkerEvidenceOwner,
+  /terminalCloudRunExecutionClaimed: z\.literal\(false\)/u,
+)
+assert.match(
+  l4VisualEvidenceWorkerEvidenceOwner,
+  /scaleBackToZeroClaimedByWorker: z\.literal\(false\)/u,
+)
+assert.match(
+  l4VisualEvidenceWorkerEvidenceOwner,
+  /substantiveCpuMediaProcessingUsed: z\.literal\(false\)/u,
+)
+assert.doesNotMatch(
+  l4VisualEvidenceWorkerEvidenceOwner,
+  /qwen|sam2|customerWalletOrLedgerMutated: true/u,
 )
 assert.doesNotMatch(
   productionRuntime,

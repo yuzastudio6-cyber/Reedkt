@@ -12,6 +12,9 @@ import {
   assertCanonicalSourceAnalysisL4VisualEvidenceRelease,
   type CanonicalSourceAnalysisL4VisualEvidenceWorkerEnvelopeReadPort,
 } from './canonical-source-analysis-l4-visual-evidence-attempt-owner'
+import {
+  canonicalSourceLedSourceFrameAuthoritySchema,
+} from './canonical-source-led-content-analysis-evidence'
 import type {
   CanonicalSourceAnalysisL4VisualEvidenceAuthorityRepository,
 } from './canonical-source-analysis-l4-visual-evidence-authority-repository'
@@ -22,10 +25,10 @@ import {
 
 export const
 CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_WORKER_BOOTSTRAP_OWNER_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner-v2' as const
 export const
 CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_WORKER_BOOTSTRAP_VERSION =
-  'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-v1' as const
+  'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-v2' as const
 
 const OPERATION_ID =
   'internal.visual_intelligence.prepare_source_visual_evidence.v1' as const
@@ -96,6 +99,14 @@ const bootstrapWithoutDigestSchema = z.object({
     finalizedMediaAuthorityRef: evidenceRefSchema,
     finalizedStorageObjectAuthorityRef: evidenceRefSchema,
     exactGenerationEtagChecksumAndLengthRereadRequired: z.literal(true),
+  }).strict(),
+  sourceTimeline: z.object({
+    sourceSequenceItemId: safeId,
+    mediaAssetId: safeId,
+    uploadedOrder: positiveInteger.max(64),
+    durationFrames: positiveInteger,
+    sourceFrameAuthority: canonicalSourceLedSourceFrameAuthoritySchema,
+    sourceProbeAuthorityRef: evidenceRefSchema,
   }).strict(),
   scopeDigestSha256: rawSha256,
   operationId: z.literal(OPERATION_ID),
@@ -220,6 +231,14 @@ export function createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwne
         currentAccountRateAuthorityRef:
           admission.currentAccountRateAuthorityRef,
         sourceObject: envelope.sourceObject,
+        sourceTimeline: {
+          sourceSequenceItemId: envelope.scope.sourceSequenceItemId,
+          mediaAssetId: envelope.scope.mediaAssetId,
+          uploadedOrder: envelope.scope.uploadedOrder,
+          durationFrames: envelope.scope.durationFrames,
+          sourceFrameAuthority: envelope.scope.sourceFrameAuthority,
+          sourceProbeAuthorityRef: envelope.scope.sourceProbeAuthorityRef,
+        },
         scopeDigestSha256: admission.scopeDigestSha256,
         operationId: OPERATION_ID,
         routeProfileId: ROUTE_PROFILE_ID,

@@ -450,7 +450,7 @@ assert.equal(
 )
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceWorkerBootstrapOwner.schemaVersion,
-  'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner-v1',
+  'canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner-v2',
 )
 assert.equal(
   runtime.sourceAnalysisL4VisualEvidenceWorkerBootstrapOwner

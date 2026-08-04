@@ -51,6 +51,11 @@ import {
   createCanonicalSourceAnalysisL4VisualEvidenceWorkerBootstrapOwner,
 } from '../services/canonical-source-analysis-l4-visual-evidence-worker-bootstrap-owner'
 import {
+  assertCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidence,
+  createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidence,
+  createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidenceOwner,
+} from '../services/canonical-source-analysis-l4-visual-evidence-worker-evidence-owner'
+import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
 import {
@@ -689,12 +694,127 @@ if (workerBootstrap.status !== 'ready') {
 assert.equal(workerBootstrap.bootstrap.sourceObject.storageGeneration, '1001')
 assert.equal(workerBootstrap.bootstrap.sourceObject.storageEtag,
   'source-etag-1')
+assert.deepEqual(
+  workerBootstrap.bootstrap.sourceTimeline.sourceProbeAuthorityRef,
+  probeRef,
+)
+assert.equal(workerBootstrap.bootstrap.sourceTimeline.durationFrames, 240)
 assert.equal(workerBootstrap.bootstrap.sourceBytesRead, false)
 assert.equal(workerBootstrap.bootstrap.toolExecutionStarted, false)
 assert.equal(workerBootstrap.substantiveWorkStarted, false)
 assert.equal(workerBootstrap.customerCreditMutated, false)
 assert.deepEqual(workerBootstrap.bootstrap.cloudRunOperationRef,
   workerOperationRef)
+const workerEvidenceOwner =
+  createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidenceOwner({
+    objectPort,
+  })
+const workerEvidence =
+  createCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidence({
+    bootstrap: workerBootstrap.bootstrap,
+    invocationId,
+    bootstrapRef: Object.freeze({
+      id: `${invocationId}.bootstrap`,
+      version: 1,
+      contentHash:
+        `sha256:${workerBootstrap.bootstrap.bootstrapDigestSha256}`,
+    }),
+    envelopeRef: workerBootstrap.bootstrap.envelopeRef,
+    consumptionRef: workerBootstrap.bootstrap.consumptionRef,
+    admissionRef: workerBootstrap.bootstrap.admissionRef,
+    releaseRef: workerBootstrap.bootstrap.releaseRef,
+    cloudRunOperationRef: workerBootstrap.bootstrap.cloudRunOperationRef,
+    sourceObjectIdentityDigestSha256: sha256AuthorityValue(
+      workerBootstrap.bootstrap.sourceObject,
+    ),
+    sourceTimelineDigestSha256: sha256AuthorityValue(
+      workerBootstrap.bootstrap.sourceTimeline,
+    ),
+    sourceProbeAuthorityRef: probeRef,
+    acceleratorClass: 'nvidia_l4',
+    allocatedGpuCount: 1,
+    gpuDeviceEvidenceRef: ref('l4-gpu-device-evidence'),
+    cudaRuntimeEvidenceRef: ref('l4-cuda-runtime-evidence'),
+    gpuDecodeEvidenceRef: ref('l4-gpu-decode-evidence'),
+    completeSourceCoverageEvidenceRef:
+      ref('l4-complete-source-coverage-evidence'),
+    toolEvidence,
+    exactGenerationEtagChecksumAndLengthRereadVerified: true,
+    substantiveGpuExecutionVerified: true,
+    gpuDecodeVerified: true,
+    allCanonicalSourceFramesAccountedFor: true,
+    skippedCanonicalFrameCount: 0,
+    substantiveCpuMediaProcessingUsed: false,
+    runtimeNetworkDownloadPerformed: false,
+    callerPathUrlBytesCommandOrEnvironmentAccepted: false,
+    workerStartedAt: '2026-08-04T12:00:02.000Z',
+    workerCompletedAt: '2026-08-04T12:00:05.000Z',
+    activeExecutionMilliseconds: 3_000,
+    persistedPrivateArtifactBytes: 8_192,
+    classAOperationCount: 2,
+    classBOperationCount: 8,
+    terminalCloudRunExecutionClaimed: false,
+    scaleBackToZeroClaimedByWorker: false,
+    accountEffectiveCostClaimedByWorker: false,
+    customerCreditMutated: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  })
+const persistedWorkerEvidence = await workerEvidenceOwner.persistCreateOnly({
+  bootstrap: workerBootstrap.bootstrap,
+  evidence: workerEvidence,
+})
+assert.equal(persistedWorkerEvidence.disposition, 'created')
+assert.equal(persistedWorkerEvidence.scaleBackToZeroClaimedByWorker, false)
+assert.equal((await workerEvidenceOwner.persistCreateOnly({
+  bootstrap: workerBootstrap.bootstrap,
+  evidence: workerEvidence,
+})).disposition, 'identical_replay')
+const detachedWorkerEvidence = await workerEvidenceOwner.readExact(invocationId)
+assert.ok(detachedWorkerEvidence)
+;(detachedWorkerEvidence!.toolEvidence[1] as { toolVersion: string })
+  .toolVersion = 'mutated-copy'
+assert.equal(
+  (await workerEvidenceOwner.readExact(invocationId))?.toolEvidence[1]
+    ?.toolVersion,
+  'ffmpeg-qualified-v1',
+)
+const {
+  workerEvidenceDigestSha256: ignoredWorkerEvidenceDigest,
+  ...workerEvidencePayload
+} = workerEvidence
+void ignoredWorkerEvidenceDigest
+const workerTerminalAuthorityInjection = {
+  ...workerEvidencePayload,
+  terminalCloudRunExecutionClaimed: true,
+}
+assert.throws(() =>
+  assertCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidence({
+    ...workerTerminalAuthorityInjection,
+    workerEvidenceDigestSha256: sha256AuthorityValue(
+      workerTerminalAuthorityInjection,
+    ),
+  }),
+)
+const workerReorderedToolPayload = {
+  ...workerEvidencePayload,
+  toolEvidence: [
+    workerEvidence.toolEvidence[1],
+    workerEvidence.toolEvidence[0],
+    ...workerEvidence.toolEvidence.slice(2),
+  ],
+}
+const workerReorderedToolEvidence =
+  assertCanonicalSourceAnalysisL4VisualEvidenceWorkerEvidence({
+    ...workerReorderedToolPayload,
+    workerEvidenceDigestSha256: sha256AuthorityValue(
+      workerReorderedToolPayload,
+    ),
+  })
+await assert.rejects(workerEvidenceOwner.persistCreateOnly({
+  bootstrap: workerBootstrap.bootstrap,
+  evidence: workerReorderedToolEvidence,
+}))
 const detachedWorkerEnvelope = await workerEnvelopeReadPort
   .readExactConsumedEnvelope(invocationId)
 assert.ok(detachedWorkerEnvelope)
@@ -1036,6 +1156,8 @@ console.log(JSON.stringify({
   cloudRunOperationResourcePersistedCreateOnlyAndReread: true,
   acceptedOperationWithoutDurableAuthorityBlockedAsUnknown: true,
   workerRereadsConsumedEnvelopeAndExactPrivateAuthorities: true,
+  workerEvidencePersistedCreateOnlyAndReread: true,
+  workerCannotClaimTerminalOrScaleToZero: true,
   workerEnvironmentReceivesOnlyInvocationId: true,
   workerSourceBytesOrToolsStartedDuringBootstrap: false,
   customerCreditsMutated: false,

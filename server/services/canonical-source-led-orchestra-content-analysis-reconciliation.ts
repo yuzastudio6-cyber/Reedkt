@@ -38,7 +38,7 @@ import {
   stripCanonicalSourceLedContentAnalysisSelections,
   verifyCanonicalVisualIntelligenceSourceTranscriptResult,
   type CanonicalVisualIntelligenceSourceTranscriptResult,
-} from './canonical-source-led-visual-intelligence-content-analysis-port'
+} from './canonical-source-visual-intelligence-analysis-contract'
 
 export const CANONICAL_SOURCE_LED_ORCHESTRA_RECONCILIATION_VERSION =
   'canonical-source-led-orchestra-content-analysis-reconciliation-v1' as const

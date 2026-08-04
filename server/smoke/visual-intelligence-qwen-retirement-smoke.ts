@@ -197,6 +197,7 @@ for (const removedPath of [
   'docker/prod/gpu-worker/sam2/runner.py',
   'docker/prod/gpu-worker/sam2/source-provenance.lock',
   'server/workers/masks/sam2-execution-runner.ts',
+  'server/services/canonical-source-led-visual-intelligence-content-analysis-port.ts',
 ]) assert.equal(existsSync(removedPath), false, `${removedPath} must be absent`)
 
 const sam2RuntimeTombstoneSource = readFileSync(
@@ -206,6 +207,19 @@ const sam2RuntimeTombstoneSource = readFileSync(
 assert.doesNotMatch(
   sam2RuntimeTombstoneSource,
   /node:fs|node:path|node:url|child_process|docker\/prod\/gpu-worker\/sam2|build_sam2|python3/u,
+)
+
+const sourceCleanupReconciliationSource = readFileSync(
+  'server/services/canonical-source-led-orchestra-content-analysis-reconciliation.ts',
+  'utf8',
+)
+assert.doesNotMatch(
+  sourceCleanupReconciliationSource,
+  /VisualIntelligenceLifecycleService|createVisualIntelligenceRequest|planningAdmissionPort|visualIntelligenceLifecycle/u,
+)
+assert.match(
+  sourceCleanupReconciliationSource,
+  /readCompletedSourceVideoUnderstanding/u,
 )
 
 const activeEditReferenceServiceSource = readFileSync(
@@ -349,6 +363,8 @@ console.log(JSON.stringify({
   activePlanningAndPolicyRoutesUseVisualIntelligence: true,
   activeEditReferenceDefaultUsesOrchestraBridge: true,
   activeEditReferenceRecordsUseProviderNeutralSkillIdentity: true,
+  directSourceVisualLifecycleFactoryRemoved: true,
+  sourceCleanupRequiresOrchestraResultReread: true,
   sam2ExecutableImageSourceRemoved: true,
   sam2RuntimeCompilerAndSubprocessBlockedBeforeInputRead: true,
   sam31IsOnlyFreshSegmentationReplacement: true,

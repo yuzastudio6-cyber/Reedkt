@@ -5,9 +5,7 @@ import type {
   ApprovedEditExecutionUploadedMediaSourceAssetClientInput,
 } from '../../src/lib/approved-edit-execution-package-client'
 import type {
-  VisualIntelligenceEvidence,
   VisualIntelligenceEvidenceRef,
-  VisualIntelligenceRequest,
 } from '../../src/types/visual-intelligence'
 import type { PlannerInput } from '../../src/types/reeditpro'
 import {
@@ -20,9 +18,9 @@ import {
   digestCanonicalSourceLedStructuredSelection,
 } from '../services/canonical-source-led-content-analysis-evidence'
 import {
-  createVisualIntelligenceCanonicalSourceLedProfessionalContentAnalysisPort,
+  createCanonicalSourceLedProfessionalContentAnalysisRequestIdentity,
   type CanonicalVisualIntelligenceSourceTranscriptResult,
-} from '../services/canonical-source-led-visual-intelligence-content-analysis-port'
+} from '../services/canonical-source-visual-intelligence-analysis-contract'
 import {
   CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION,
   createCanonicalSourceLedOrchestraContentAnalysisReconciliationPort,
@@ -52,17 +50,7 @@ import type {
 } from '../services/canonical-source-led-professional-content-analysis-port'
 import {
   createVisualIntelligenceEvidenceRef,
-  createVisualIntelligenceReport,
-  visualIntelligenceDigest,
 } from '../visual-intelligence/visual-intelligence-contract'
-import type {
-  VisualIntelligenceLifecycleService,
-} from '../visual-intelligence/visual-intelligence-lifecycle-service'
-import {
-  VISUAL_INTELLIGENCE_DETERMINISTIC_EVIDENCE_VERSION,
-  VISUAL_INTELLIGENCE_PROMPT_VERSION,
-  VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,
-} from '../visual-intelligence/visual-intelligence-profile-registry'
 import {
   orchestraDigest,
 } from '../orchestra/orchestra-skill-capability-contract'
@@ -265,259 +253,6 @@ const sourceMediaAssets:
     signedUrl: null,
   }]
 
-const planningAdmission = {
-  mode: 'planning_evidence' as const,
-  authenticatedPrincipalRef: ref('authenticated-principal'),
-  workspaceAuthorizationRef: ref('workspace-authorization'),
-  finalizedSourceAuthorityRefs: [finalizedRef],
-  sourceChecksumSetRef: ref('source-checksum-set'),
-  analysisAllowanceRef: ref('analysis-allowance'),
-  costPreflight: {
-    pricingSnapshotRef: ref('pricing-snapshot'),
-    accountEffectiveRateAuthorityRef: ref('account-effective-rate'),
-    currency: 'USD',
-    maximumAuthorizedCostMicros: 500_000,
-    estimatedMinimumCostMicros: 10_000,
-    estimatedMaximumCostMicros: 100_000,
-    serviceFeeIncluded: false as const,
-    publicListPriceUsedAsSettlementAuthority: false as const,
-    preflightPassed: true as const,
-  },
-  retentionPolicyRef: ref('retention-policy'),
-  privacyPolicyRef: ref('privacy-policy'),
-  providerReleaseRef,
-  globalKillSwitchOpen: false as const,
-  providerKillSwitchOpen: false as const,
-  reportPersistenceAllowed: true as const,
-  timelineMutationAllowed: false as const,
-  editingWorkerExecutionAllowed: false as const,
-  generationAllowed: false as const,
-  renderAllowed: false as const,
-  exportAllowed: false as const,
-  deliveryAllowed: false as const,
-}
-
-let visualLifecycleCalls = 0
-const lifecycle: VisualIntelligenceLifecycleService = {
-  async execute(untrusted) {
-    visualLifecycleCalls += 1
-    const visualRequest = untrusted as VisualIntelligenceRequest
-    assert.equal(visualRequest.profile, 'source_edit_planning')
-    assert.deepEqual(visualRequest.requiredEvidenceRefs, [
-      probeRef,
-      transcriptAuthorityRef,
-    ])
-    const probeEvidence = evidence(
-      'probe-evidence',
-      probeRef,
-      'media_probe',
-      'ffprobe',
-      'Canonical probe verifies source timing and dimensions.',
-    )
-    const transcriptEvidence = evidence(
-      'transcript-evidence',
-      transcriptAuthorityRef,
-      'canonical_transcript',
-      'faster_whisper',
-      'Complete source transcript includes the editor-directed delete remark.',
-    )
-    const report = createVisualIntelligenceReport({
-      reportId: `vi-report-${visualRequest.requestId}`,
-      requestRef: {
-        id: visualRequest.requestId,
-        version: 1,
-        contentHash: visualRequest.requestDigestSha256,
-      },
-      scope: visualRequest.scope,
-      operation: 'analyze_media',
-      profile: 'source_edit_planning',
-      sourceArtifacts: [{
-        artifactId: 'media-asset-1',
-        checksumSha256: sourceChecksum,
-        mediaKind: 'video',
-        durationFrames: 480,
-      }],
-      comparisonArtifacts: [],
-      coverage: {
-        requestedRanges: visualRequest.requestedRanges,
-        analyzedRanges: visualRequest.requestedRanges,
-        incompleteRanges: [],
-        sceneBoundaryRefs: [ref('scene-boundaries')],
-        samplingPolicies: [{
-          policyId: 'complete-source-semantic-coverage',
-          policyVersion: 'complete-source-semantic-coverage-v1',
-          mode: 'scene_aware_complete_coverage',
-          targetFramesPerSecondNumerator: 2,
-          targetFramesPerSecondDenominator: 1,
-          sceneAware: true,
-          highDetail: true,
-          requestedRange: visualRequest.requestedRanges[0]!,
-          analyzedRange: visualRequest.requestedRanges[0]!,
-          samplingPolicyRef: ref('sampling-policy'),
-        }],
-        targetedFollowupRanges: [],
-        completeRequestedRangeCoverage: true,
-        everyTimelineFrameInspected: false,
-        completeTimePixelInspectionClaimAllowed: false,
-      },
-      semanticSummary: 'The source contains a failed first take, an editor-directed delete remark, and a complete better take.',
-      segments: [{
-        segmentId: 'visual-window-1',
-        artifactId: 'media-asset-1',
-        range: {
-          startFrame: 0,
-          endFrameExclusive: 240,
-          frameRate: { numerator: 24, denominator: 1 },
-        },
-        sceneId: 'scene-1',
-        summary: 'First take and editor-directed restart context.',
-        subjectIds: ['speaker-1'],
-        objectIds: [],
-        actionLabels: ['first_take', 'editor_direction'],
-        visibleTextEvidenceRefs: [],
-        transcriptEvidenceRefs: [transcriptAuthorityRef],
-        evidenceRefs: [probeRef, transcriptAuthorityRef],
-        confidenceBasisPoints: 9_200,
-        uncertainty: null,
-        sourcePlanning: {
-          sourceFunction: 'setup',
-          actionIntensity: 'low',
-          editUsability: 'weak',
-          cameraStability: 'stable',
-          continuity: 'discontinuous',
-        },
-      }, {
-        segmentId: 'visual-window-2',
-        artifactId: 'media-asset-1',
-        range: {
-          startFrame: 240,
-          endFrameExclusive: 480,
-          frameRate: { numerator: 24, denominator: 1 },
-        },
-        sceneId: 'scene-2',
-        summary: 'Complete clear second take.',
-        subjectIds: ['speaker-1'],
-        objectIds: [],
-        actionLabels: ['better_take', 'explanation'],
-        visibleTextEvidenceRefs: [],
-        transcriptEvidenceRefs: [transcriptAuthorityRef],
-        evidenceRefs: [probeRef, transcriptAuthorityRef],
-        confidenceBasisPoints: 9_500,
-        uncertainty: null,
-        sourcePlanning: {
-          sourceFunction: 'dialogue',
-          actionIntensity: 'medium',
-          editUsability: 'strong',
-          cameraStability: 'stable',
-          continuity: 'continuous',
-        },
-      }],
-      findings: [],
-      evidence: [probeEvidence, transcriptEvidence],
-      deterministicToolExecutions: [{
-        tool: 'ffprobe',
-        requirement: 'required',
-        executionClass: 'l4_gpu_standard',
-        releaseRef: ref('ffprobe-release'),
-        executionRef: ref('ffprobe-execution'),
-        substantiveCpuExecutionUsed: false,
-        sourceArtifactChecksumBound: true,
-      }, {
-        tool: 'ffmpeg',
-        requirement: 'required',
-        executionClass: 'l4_gpu_standard',
-        releaseRef: ref('ffmpeg-release'),
-        executionRef: ref('ffmpeg-execution'),
-        substantiveCpuExecutionUsed: false,
-        sourceArtifactChecksumBound: true,
-      }, {
-        tool: 'pyscenedetect',
-        requirement: 'required',
-        executionClass: 'l4_gpu_standard',
-        releaseRef: ref('pyscenedetect-release'),
-        executionRef: ref('pyscenedetect-execution'),
-        substantiveCpuExecutionUsed: false,
-        sourceArtifactChecksumBound: true,
-      }, {
-        tool: 'opencv',
-        requirement: 'required',
-        executionClass: 'l4_gpu_standard',
-        releaseRef: ref('opencv-release'),
-        executionRef: ref('opencv-execution'),
-        substantiveCpuExecutionUsed: false,
-        sourceArtifactChecksumBound: true,
-      }],
-      expectedOutcomeRefs: [],
-      disposition: 'pass',
-      reinspectionRequired: false,
-      usage: {
-        promptTokenCount: 10_000,
-        candidateTokenCount: 2_000,
-        thinkingTokenCount: 3_000,
-        cachedTokenCount: 0,
-        totalTokenCount: 15_000,
-        providerResponseId: 'gemini-response-1',
-        providerModelVersion: 'gemini-3.1-pro-preview',
-        estimatedCostMicros: 50_000,
-        settledCostMicros: 45_000,
-        costEvidenceRef: ref('settled-provider-cost'),
-        billingAccountEffectiveRateUsed: true,
-        publicListPriceUsed: false,
-        duplicateSettlementPerformed: false,
-        replayedFromCache: false,
-        providerCallMade: true,
-      },
-      provenance: {
-        providerAdapterId: 'vertex_gemini_pro',
-        providerId: 'google_vertex_ai',
-        exactModelId: 'gemini-3.1-pro-preview',
-        thinkingLevel: 'high',
-        mediaResolution: 'high',
-        promptVersion: VISUAL_INTELLIGENCE_PROMPT_VERSION,
-        responseSchemaVersion: VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,
-        deterministicEvidenceVersion:
-          VISUAL_INTELLIGENCE_DETERMINISTIC_EVIDENCE_VERSION,
-        transcriptVersion: 'faster-whisper-large-v3-authority-v1',
-        ocrVersion: 'exact-ocr-authority-v1',
-        cacheIdentitySha256: visualIntelligenceDigest({ cache: sourceChecksum }),
-        requestDigestSha256: visualRequest.requestDigestSha256,
-        admissionRef: ref('visual-intelligence-admission'),
-        providerReleaseRef,
-        applicationDefaultCredentialsUsed: true,
-        providerToolsUsed: false,
-        searchGroundingUsed: false,
-        urlContextUsed: false,
-        codeExecutionUsed: false,
-        rawProviderPayloadPersisted: false,
-      },
-      blockers: [],
-      warnings: [],
-      immutableReport: true,
-      planningMayConsumeValidatedEvidence: true,
-      directTimelineMutationAllowed: false,
-      renderPerformedByVisualIntelligence: false,
-      exportAuthorized: false,
-      deliveryAuthorized: false,
-    })
-    const reportRef = {
-      id: report.reportId,
-      version: 1,
-      contentHash: report.reportDigestSha256,
-    }
-    return {
-      lifecycleVersion: 'visual-intelligence-lifecycle-service-v1',
-      status: 'completed',
-      report,
-      reportRef,
-      providerCallMadeDuringInvocation: true,
-      costSettledDuringInvocation: true,
-      duplicateProviderCallAvoided: false,
-      duplicateCostSettlementAvoided: false,
-      directTimelineMutationPerformed: false,
-    }
-  },
-}
-
 const transcriptResult: CanonicalVisualIntelligenceSourceTranscriptResult = {
   schemaVersion: 'canonical-visual-intelligence-source-transcript-result-v1',
   transcriptAuthorityRef,
@@ -548,6 +283,126 @@ const transcriptResult: CanonicalVisualIntelligenceSourceTranscriptResult = {
     unapprovedOverageChargedToCustomer: false,
   },
 }
+
+const sourceAnalysisIdentity =
+  createCanonicalSourceLedProfessionalContentAnalysisRequestIdentity(request)
+const compiledVisualRequestRef = ref('source-visual-intelligence-request')
+const visualObservations = [{
+  observationId: 'visual-window-1',
+  windowIndex: 1,
+  startFrame: 0,
+  endFrameExclusive: 240,
+  sourceFunction: 'setup',
+  actionIntensity: 'low',
+  editUsability: 'weak',
+  cameraStability: 'stable',
+  continuity: 'discontinuous',
+  confidenceBasisPoints: 9_200,
+  evidenceRefs: [probeRef, transcriptAuthorityRef],
+  providerObservationScope:
+    'complete_source_range_semantic_partition',
+  exactProviderSampleFramesKnown: false,
+}, {
+  observationId: 'visual-window-2',
+  windowIndex: 2,
+  startFrame: 240,
+  endFrameExclusive: 480,
+  sourceFunction: 'dialogue',
+  actionIntensity: 'medium',
+  editUsability: 'strong',
+  cameraStability: 'stable',
+  continuity: 'continuous',
+  confidenceBasisPoints: 9_500,
+  evidenceRefs: [probeRef, transcriptAuthorityRef],
+  providerObservationScope:
+    'complete_source_range_semantic_partition',
+  exactProviderSampleFramesKnown: false,
+}] as const
+const visualCoverageWithoutDigest = {
+  schemaVersion:
+    'canonical-source-visual-intelligence-semantic-coverage-v4' as const,
+  profileId:
+    'visual_intelligence_source_edit_planning_professional_high_v1' as const,
+  coveredStartFrame: 0 as const,
+  coveredEndFrameExclusive: 480,
+  maximumWindowFrames: 240 as const,
+  windowCount: visualObservations.length,
+  gapCount: 0 as const,
+  completeSourceRangeRequested: true as const,
+  completeRequestedRangeSemanticCoverage: true as const,
+  orderedGaplessObservationPartition: true as const,
+  deterministicGpuEvidenceUsed: true as const,
+  providerVisualPreprocessingExpected: true as const,
+  everyTimelineFrameInspected: false as const,
+  completeTimePixelInspectionClaimAllowed: false as const,
+  providerAudioUnderstandingClaimAllowed: false as const,
+  completeAudioTranscriptSuppliedToHeadReasonerSeparately: true as const,
+}
+const orchestraVisual = canonicalSourceLedVisualIntelligenceEvidenceSchema.parse({
+  status: 'completed',
+  evidenceMode: 'visual_intelligence_gemini_pro_high_v1',
+  providerCapabilityId: 'visual_intelligence',
+  providerSkillId: 'visual_intelligence.analyze_media',
+  operation: 'analyze_media',
+  profile: 'source_edit_planning',
+  providerAdapterId: 'vertex_gemini_pro',
+  providerId: 'google_vertex_ai',
+  providerModel: 'gemini-3.1-pro-preview',
+  qualityProfile: 'professional_high',
+  thinkingLevel: 'high',
+  mediaResolution: 'high',
+  requestRef: compiledVisualRequestRef,
+  reportRef: ref('source-visual-intelligence-report'),
+  admissionRef: ref('source-visual-intelligence-admission'),
+  providerReleaseRef,
+  costEvidenceRef: ref('source-visual-intelligence-cost'),
+  observationDigestSha256: digest(visualObservations),
+  observations: visualObservations,
+  coverage: {
+    ...visualCoverageWithoutDigest,
+    coverageDigestSha256: digest(visualCoverageWithoutDigest),
+  },
+  lifecycleInvocationDisposition: 'completed',
+  providerCallMadeDuringInvocation: true,
+  costSettledDuringInvocation: true,
+  exactImmutableReportRereadVerified: true,
+  applicationDefaultCredentialsUsed: true,
+  accountEffectiveBillingRateUsed: true,
+  publicListPriceUsedAsSettlementAuthority: false,
+  providerVisualPreprocessingExpected: true,
+  completeTimePixelInspectionClaimAllowed: false,
+  selfHostedQwenRuntimeUsed: false,
+  managedQwenApiUsed: false,
+  localQwen25VlRuntimeUsed: false,
+  signedReadUrlPersisted: false,
+  signedReadUrlReturned: false,
+  rawModelOutputPersisted: false,
+  orchestraLineage: {
+    consumerBindingRef: ref('source-orchestra-consumer-binding'),
+    callRef: {
+      id: compiledVisualRequestRef.id,
+      version: 1,
+      contentHash: ref('source-orchestra-call').contentHash,
+    },
+    compiledRequestRef: compiledVisualRequestRef,
+    resultRef: ref('source-orchestra-result'),
+    manifestRef: ref('visual-intelligence-manifest-v3'),
+    qualificationSnapshotRef: ref('visual-intelligence-qualification'),
+    exactConsumerBindingRereadVerified: true,
+    exactOrchestraResultRereadVerified: true,
+    resultReturnedThroughOrchestra: true,
+    headIntelligenceDirectProviderCallAllowed: false,
+    headIntelligenceDirectGpuDispatchAllowed: false,
+  },
+})
+const {
+  orchestraLineage: omittedOrchestraLineage,
+  ...unboundVisualInput
+} = orchestraVisual
+void omittedOrchestraLineage
+const directVisual = canonicalSourceLedVisualIntelligenceEvidenceSchema.parse(
+  unboundVisualInput,
+)
 
 const reasoner: CanonicalSourceLedProfessionalContentAnalysisReasoner = {
   async reason(input) {
@@ -762,63 +617,6 @@ const cleanupAuthorityScope: CanonicalSourceCleanupAuthorityScope = {
     checksumSha256: source.checksumSha256,
   })),
 }
-const port = createVisualIntelligenceCanonicalSourceLedProfessionalContentAnalysisPort({
-  transcriptPort: { async analyze() { return transcriptResult } },
-  planningAdmissionPort: { async admit(input) {
-    assert.equal(input.requestId.startsWith('vi-source-'), true)
-    assert.equal(input.transcriptResult.transcriptAuthorityRef.id,
-      transcriptAuthorityRef.id)
-    return planningAdmission
-  } },
-  visualIntelligenceLifecycle: lifecycle,
-  reasoner,
-  authorityRepository: cleanupAuthorityRepository,
-})
-const result = await port.analyze(request)
-assert.equal(result.schemaVersion, 'canonical-source-led-content-analysis-evidence-v5')
-const directVisual = canonicalSourceLedVisualIntelligenceEvidenceSchema.parse(
-  result.sources[0]!.visual,
-)
-const orchestraVisual = canonicalSourceLedVisualIntelligenceEvidenceSchema.parse({
-  ...directVisual,
-  orchestraLineage: {
-    consumerBindingRef: ref('source-orchestra-consumer-binding'),
-    callRef: {
-      id: directVisual.requestRef.id,
-      version: 1,
-      contentHash: ref('source-orchestra-call').contentHash,
-    },
-    compiledRequestRef: directVisual.requestRef,
-    resultRef: ref('source-orchestra-result'),
-    manifestRef: ref('visual-intelligence-manifest-v3'),
-    qualificationSnapshotRef: ref('visual-intelligence-qualification'),
-    exactConsumerBindingRereadVerified: true,
-    exactOrchestraResultRereadVerified: true,
-    resultReturnedThroughOrchestra: true,
-    headIntelligenceDirectProviderCallAllowed: false,
-    headIntelligenceDirectGpuDispatchAllowed: false,
-  },
-})
-const reconciledObjects = new Map<string, Buffer>()
-const reconciledObjectPort: CanonicalCreateOnlyJsonObjectPort = {
-  async createOnly(input) {
-    const existing = reconciledObjects.get(input.objectPath)
-    if (existing) {
-      assert.deepEqual(existing, input.body)
-      return 'already_exists'
-    }
-    reconciledObjects.set(input.objectPath, Buffer.from(input.body))
-    return 'created'
-  },
-  async readExact(objectPath) {
-    const body = reconciledObjects.get(objectPath)
-    return body ? Buffer.from(body) : null
-  },
-}
-const reconciledRepository = createCanonicalSourceCleanupAuthorityRepository({
-  objectPort: reconciledObjectPort,
-  prefix: 'private/test/source-orchestra-reconciliation',
-})
 let transcriptRereads = 0
 let orchestraVisualRereads = 0
 let headReconciliationCalls = 0
@@ -842,45 +640,7 @@ const reconciliationPort =
         orchestraVisualRereads += 1
         assert.equal(
           scope.analysisRunId,
-          `source_analysis_${sha(stableStringify({
-            schemaVersion:
-              'canonical-source-led-visual-intelligence-analysis-request-v1',
-            workspaceId: request.workspaceId,
-            projectId: request.projectId,
-            editSessionId: request.editSessionId,
-            planningDirectionDigestSha256:
-              request.planningDirectionDigestSha256,
-            userInstructionDigestSha256:
-              request.userInstructionDigestSha256,
-            fps: request.fps,
-            sources: request.sources.map((source) => ({
-              sourceSequenceItemId: source.sourceSequenceItemId,
-              mediaAssetId: source.mediaAssetId,
-              uploadedOrder: source.uploadedOrder,
-              checksumSha256: source.checksumSha256,
-              byteLength: source.byteLength,
-              durationFrames: source.durationFrames,
-              storageGeneration:
-                source.managedApiAuthority!.storageGeneration,
-              storageEtag: source.managedApiAuthority!.storageEtag,
-              width: source.managedApiAuthority!.width,
-              height: source.managedApiAuthority!.height,
-              fpsNumerator: source.managedApiAuthority!.fpsNumerator,
-              fpsDenominator: source.managedApiAuthority!.fpsDenominator,
-              frameCount: source.managedApiAuthority!.frameCount,
-              sourceTimeBaseNumerator:
-                source.managedApiAuthority!.sourceTimeBaseNumerator,
-              sourceTimeBaseDenominator:
-                source.managedApiAuthority!.sourceTimeBaseDenominator,
-              finalizedMediaAuthorityRef:
-                source.managedApiAuthority!.finalizedMediaAuthorityRef,
-              finalizedStorageObjectAuthorityRef:
-                source.managedApiAuthority!
-                  .finalizedStorageObjectAuthorityRef,
-              sourceProbeAuthorityRef:
-                source.managedApiAuthority!.sourceProbeAuthorityRef,
-            })),
-          }))}`,
+          sourceAnalysisIdentity.analysisRunId,
         )
         assert.equal(
           scope.planningContextAuthorityRef.contentHash,
@@ -908,12 +668,13 @@ const reconciliationPort =
         return reasoner.reason(input)
       },
     },
-    authorityRepository: reconciledRepository,
+    authorityRepository: cleanupAuthorityRepository,
   })
-const reconciledResult = await reconciliationPort.analyze(request)
+const result = await reconciliationPort.analyze(request)
+assert.equal(result.schemaVersion, 'canonical-source-led-content-analysis-evidence-v5')
 assert.equal(
-  'orchestraLineage' in reconciledResult.sources[0]!.visual
-    ? reconciledResult.sources[0]!.visual.orchestraLineage
+  'orchestraLineage' in result.sources[0]!.visual
+    ? result.sources[0]!.visual.orchestraLineage
         ?.resultReturnedThroughOrchestra
     : false,
   true,
@@ -921,11 +682,10 @@ assert.equal(
 assert.equal(transcriptRereads, 1)
 assert.equal(orchestraVisualRereads, 1)
 assert.equal(headReconciliationCalls, 1)
-assert.equal(visualLifecycleCalls, 1)
 const reconciledReplay = await reconciliationPort.analyze(request)
 assert.equal(
   reconciledReplay.evidenceDigestSha256,
-  reconciledResult.evidenceDigestSha256,
+  result.evidenceDigestSha256,
 )
 assert.equal(transcriptRereads, 1)
 assert.equal(orchestraVisualRereads, 1)
@@ -948,7 +708,7 @@ const missingVisualReconciliationPort =
       },
     },
     authorityRepository: createCanonicalSourceCleanupAuthorityRepository({
-      objectPort: reconciledObjectPort,
+      objectPort: repositoryObjectPort,
       prefix: 'private/test/source-orchestra-missing-result',
     }),
   })
@@ -974,7 +734,7 @@ const unboundVisualReconciliationPort =
       },
     },
     authorityRepository: createCanonicalSourceCleanupAuthorityRepository({
-      objectPort: reconciledObjectPort,
+      objectPort: repositoryObjectPort,
       prefix: 'private/test/source-orchestra-unbound-result',
     }),
   })
@@ -1457,10 +1217,9 @@ assert.equal(result.sources[0]!.embeddedEditInstructions[0]!.instructionType,
   'delete_previous_part')
 assert.equal(result.sources[0]!.selectedRanges[0]!.startFrame, 180)
 assert.equal(result.summary.timeOnlyCutDecisionCount, 0)
-assert.equal(visualLifecycleCalls, 1)
 
 await assert.rejects(
-  async () => port.analyze({
+  async () => reconciliationPort.analyze({
     ...request,
     sources: [{
       ...request.sources[0]!,
@@ -1473,7 +1232,7 @@ await assert.rejects(
   /visual_intelligence_source_1_invalid/u,
 )
 await assert.rejects(
-  async () => port.analyze({
+  async () => reconciliationPort.analyze({
     ...request,
     planningDirection:
       'A changed direction cannot reuse the authenticated text digest.',
@@ -1483,7 +1242,7 @@ await assert.rejects(
 
 console.log(JSON.stringify({
   status: 'source_led_visual_intelligence_content_analysis_smoke_passed',
-  route: port.route,
+  route: reconciliationPort.route,
   evidenceVersion: result.schemaVersion,
   visualEvidenceMode: acceptedVisual.evidenceMode,
   fullSourceFrames: result.summary.originalTotalFrames,
@@ -1514,31 +1273,8 @@ console.log(JSON.stringify({
     cleanupBinding.authority.browserSelectedRangesAccepted,
   timeOnlyCutDecisionCount: result.summary.timeOnlyCutDecisionCount,
   qwenVisualRuntimeUsed: false,
-  visualLifecycleCalls,
+  directSourceAnalysisFactoryPresent: false,
 }, null, 2))
-
-function evidence(
-  evidenceId: string,
-  evidenceRef: VisualIntelligenceEvidenceRef,
-  authority: VisualIntelligenceEvidence['authority'],
-  producingTool: VisualIntelligenceEvidence['producingTool'],
-  summary: string,
-): VisualIntelligenceEvidence {
-  return {
-    evidenceId,
-    evidenceRef,
-    artifactId: 'media-asset-1',
-    range: null,
-    authority,
-    producingTool,
-    toolVersion: producingTool === 'ffprobe'
-      ? 'ffprobe-8.0'
-      : 'faster-whisper-1.2.1',
-    summary,
-    privateEvidence: true,
-    providerInstructionAccepted: false,
-  }
-}
 
 function digest(value: unknown): string {
   return sha(stableStringify(value))

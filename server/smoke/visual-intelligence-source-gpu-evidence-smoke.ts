@@ -19,7 +19,7 @@ import type {
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import type {
   CanonicalVisualIntelligenceSourceTranscriptResult,
-} from '../services/canonical-source-led-visual-intelligence-content-analysis-port'
+} from '../services/canonical-source-visual-intelligence-analysis-contract'
 import {
   createCanonicalSourceVisualIntelligenceOwner,
 } from '../services/canonical-source-visual-intelligence-owner-service'

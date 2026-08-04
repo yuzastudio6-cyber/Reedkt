@@ -20,7 +20,7 @@ import {
 import type {
   CanonicalSourceVisualIntelligencePlanningAdmissionPort,
   CanonicalVisualIntelligenceSourceTranscriptResult,
-} from './canonical-source-led-visual-intelligence-content-analysis-port'
+} from './canonical-source-visual-intelligence-analysis-contract'
 import {
   createCanonicalQualityFirstUserTriggeredGpuPolicy,
 } from '../edit-architecture/canonical-quality-first-user-triggered-gpu-policy'

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
+import { pathToFileURL } from 'node:url'
 import {
   createCaptionBrollOwnerReadBinding,
   createCaptionMultiTrackSceneGraph,
@@ -822,7 +823,17 @@ function build(overrides: Partial<Parameters<typeof createCaptionMultiTrackScene
   })
 }
 
-const graph = build()
+export const CAP_11_SCENE_GRAPH_FIXTURE = build()
+export const CAP_11_MASTER_TIMING_REF = masterTimingRef
+export const CAP_11_CONFIRMED_FRAME_REF = confirmedFrameRef
+export const CAP_11_STYLE_PROFILE_REF: CaptionDomainRef = {
+  id: styleProfile.contractId,
+  version: styleProfile.contractVersion,
+  contentHash: styleProfile.contractDigestSha256,
+}
+export const CAP_11_TRANSCRIPT_REF = transcriptRef
+const graph = CAP_11_SCENE_GRAPH_FIXTURE
+function runCap11Smoke(): void {
 check(graph.tracks.length === 4 && graph.nodes.length === 12,
   'CAP-11 must preserve four purposeful tracks and their accessible counterparts.')
 check(graph.accessibleTrackCount === 1 && graph.selectedCreativeTrackCount === 3,
@@ -992,3 +1003,8 @@ console.log(JSON.stringify({
   remotionRenderExecuted: false,
   productionAuthorityPromoted: false,
 }, null, 2))
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  runCap11Smoke()
+}

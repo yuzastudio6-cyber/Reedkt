@@ -1,7 +1,7 @@
-# Captions Specialist — CAP-11 Multi-Track Scene Graph Checkpoint
+# Captions Specialist — CAP-12 StoryTiming and Motion Checkpoint
 
-Status: `cap_11_contract_complete_external_depth_broll_storytiming_gated`
-Checkpoint: `CAP-11`
+Status: `cap_12_contract_complete_authenticated_timing_and_receiver_runtime_gated`
+Checkpoint: `CAP-12`
 Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
@@ -84,6 +84,7 @@ The governing workflow invariant remains:
 - [CAP-09 Track All and SAM 3.1 report](cap-09-track-all-sam31-report.md)
 - [CAP-10 semantic and style system report](cap-10-semantic-style-system-report.md)
 - [CAP-11 multi-track scene graph report](cap-11-multi-track-scene-graph-report.md)
+- [CAP-12 StoryTiming, motion, camera, and handoffs report](cap-12-storytiming-motion-handoffs-report.md)
 
 ### Historical architecture retained and amended
 
@@ -191,8 +192,16 @@ limits; and complete accessibility counterparts. Unqualified Track All, anchor,
 or B-roll evidence resolves to declared safe fallbacks without claiming real
 depth or media execution.
 
-Implementation continues automatically into CAP-12 StoryTiming, motion, and
-cross-system handoff resolution. Registry/workflow integration will consume
+CAP-12 registers every Caption node and semantic mode with StoryTiming, consumes
+StoryTiming-owned frame/event resolutions, validates effective stable-read time,
+and emits allowlisted motion primitives with deterministic reduced-motion
+counterparts. Visual, Living Frame, Transition, and camera coordination remain
+typed owner requests through neutral mediated support. The exact frozen
+Caption↔Living Frame request/response payload is present without importing LF
+server code; one request may validly return multiple selected scenes.
+
+Implementation continues automatically into CAP-13 Sound support.
+Registry/workflow integration will consume
 these frozen public artifacts at its dependency-safe milestone; no Caption
 milestone manufactures a second planner or a false backend coverage claim.
 

@@ -1,6 +1,6 @@
 # Captions Specialist Implementation Roadmap
 
-Status: `CAP-11 contract complete; private font/visual/depth/B-roll/timing gates tracked; CAP-12 next`
+Status: `CAP-12 contract complete; authenticated timing/receiver runtime gates tracked; CAP-13 next`
 
 ## Dependency graph
 

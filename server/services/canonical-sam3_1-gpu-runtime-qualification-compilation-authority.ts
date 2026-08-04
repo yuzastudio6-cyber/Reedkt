@@ -43,6 +43,9 @@ const refSchema = z.object({
   version: z.literal(1),
   contentHash: prefixedSha256,
 }).strict()
+export const
+canonicalSam31GpuRuntimeQualificationComponentEvidenceReferenceSchema =
+  refSchema
 const routeSchema = z.object({
   routeId: z.enum(['a100_80gb_heavy_primary', 'l4_heavy_fallback']),
   gpuProfileId: z.enum([

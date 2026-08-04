@@ -212,6 +212,12 @@ idempotent rerun then observed all five disabled and emitted
   and immutable image before its ref can become the substantive GPU
   qualification lineage. Persisting one caller-assembled record full of true
   flags therefore cannot self-certify A100 or L4 release.
+- The four component records now have a dedicated private GCS repository.
+  Every record uses a kind/ID/content-addressed object path, create-only
+  generation, canonical byte comparison, and exact reread. The canonical GCP
+  compilation factory joins that repository with the existing final route-
+  qualification repository and the compilation-authority store, so an
+  in-memory object cannot satisfy the production release path.
 - Every fresh fixed SAM 3.1 task context now requires an exact, digest-bound
   `track_all` Orchestra call for one complete approved scene interval. The
   binding cross-checks the approved snapshot, output, scene, source artifact,

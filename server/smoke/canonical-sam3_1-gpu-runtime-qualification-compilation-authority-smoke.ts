@@ -40,48 +40,51 @@ import { qualifiedSupplyChain } from
 
 const qualificationEvidenceRef =
   canonicalSam31GpuRuntimeQualificationEvidenceRef(qualificationEvidence)
-const driver = component(
+export const driverComponent = component(
   'sam31-a100-driver-component',
   'driver_and_cuda',
   qualificationEvidence.driverEvidence,
 )
-const deterministic = component(
+export const deterministicComponent = component(
   'sam31-a100-deterministic-run-set',
   'deterministic_run_set',
   qualificationEvidence.deterministicRuns,
 )
-const performance = component(
+export const performanceComponent = component(
   'sam31-a100-eight-minute-performance',
   'eight_minute_performance',
   qualificationEvidence.performanceEvidence,
 )
-const quality = component(
+export const qualityComponent = component(
   'sam31-a100-independent-temporal-quality',
   'independent_temporal_quality',
   qualificationEvidence.qualityEvidence,
 )
 const components = new Map([
-  entry(driver),
-  entry(deterministic),
-  entry(performance),
-  entry(quality),
+  entry(driverComponent),
+  entry(deterministicComponent),
+  entry(performanceComponent),
+  entry(qualityComponent),
 ])
 const authorityStore = objectPort()
-const request = {
+export const compilationRequest = {
   authorityId: 'sam31-a100-runtime-qualification-compilation',
   qualificationEvidenceRef,
   componentEvidenceRefs: {
-    driverAndCudaRef: canonicalSam31GpuRuntimeQualificationComponentRef(driver),
+    driverAndCudaRef:
+      canonicalSam31GpuRuntimeQualificationComponentRef(driverComponent),
     deterministicRunSetRef:
-      canonicalSam31GpuRuntimeQualificationComponentRef(deterministic),
+      canonicalSam31GpuRuntimeQualificationComponentRef(deterministicComponent),
     eightMinutePerformanceRef:
-      canonicalSam31GpuRuntimeQualificationComponentRef(performance),
+      canonicalSam31GpuRuntimeQualificationComponentRef(performanceComponent),
     independentTemporalQualityRef:
-      canonicalSam31GpuRuntimeQualificationComponentRef(quality),
+      canonicalSam31GpuRuntimeQualificationComponentRef(qualityComponent),
   },
 }
 const owner = createOwner({}, authorityStore.port)
-export const compilationAuthority = await owner.compileAndPersist(request)
+export const compilationAuthority = await owner.compileAndPersist(
+  compilationRequest,
+)
 
 assertCanonicalSam31GpuRuntimeQualificationCompilationAuthority(
   compilationAuthority,
@@ -117,16 +120,20 @@ assert.equal(
     ?.authorityHash,
   compilationAuthority.authorityHash,
 )
-assert.deepEqual(await owner.compileAndPersist(request), compilationAuthority)
+assert.deepEqual(
+  await owner.compileAndPersist(compilationRequest),
+  compilationAuthority,
+)
 assert.equal(authorityStore.records.size, 1)
 
 await assert.rejects(createOwner({ missingQualification: true })
-  .compileAndPersist(request))
+  .compileAndPersist(compilationRequest))
 await assert.rejects(createOwner({
-  missingComponentRef: request.componentEvidenceRefs.deterministicRunSetRef,
-}).compileAndPersist(request))
+  missingComponentRef:
+    compilationRequest.componentEvidenceRefs.deterministicRunSetRef,
+}).compileAndPersist(compilationRequest))
 
-const crossedRoute = structuredClone(deterministic)
+const crossedRoute = structuredClone(deterministicComponent)
 crossedRoute.route = {
   routeId: 'l4_heavy_fallback',
   gpuProfileId: 'quality_l4_user_triggered_heavy_fallback_job_v1',
@@ -138,53 +145,53 @@ crossedRoute.route = {
 crossedRoute.componentHash = componentDigest(crossedRoute)
 await assert.rejects(createOwner({ replacementComponent: crossedRoute })
   .compileAndPersist({
-    ...request,
+    ...compilationRequest,
     componentEvidenceRefs: {
-      ...request.componentEvidenceRefs,
+      ...compilationRequest.componentEvidenceRefs,
       deterministicRunSetRef:
         canonicalSam31GpuRuntimeQualificationComponentRef(crossedRoute),
     },
   }))
 
-if (performance.componentKind !== 'eight_minute_performance') {
+if (performanceComponent.componentKind !== 'eight_minute_performance') {
   throw new Error('Performance component kind changed.')
 }
-const changedPayload = structuredClone(performance)
+const changedPayload = structuredClone(performanceComponent)
 changedPayload.payload.measurements[0].wallTimeMilliseconds += 1
 changedPayload.componentHash = componentDigest(changedPayload)
 await assert.rejects(createOwner({ replacementComponent: changedPayload })
   .compileAndPersist({
-    ...request,
+    ...compilationRequest,
     componentEvidenceRefs: {
-      ...request.componentEvidenceRefs,
+      ...compilationRequest.componentEvidenceRefs,
       eightMinutePerformanceRef:
         canonicalSam31GpuRuntimeQualificationComponentRef(changedPayload),
     },
   }))
 
-const futureDriver = structuredClone(driver)
+const futureDriver = structuredClone(driverComponent)
 futureDriver.recordedAt = '2026-08-04T18:22:01.000Z'
 futureDriver.componentHash = componentDigest(futureDriver)
 await assert.rejects(createOwner({ replacementComponent: futureDriver })
   .compileAndPersist({
-    ...request,
+    ...compilationRequest,
     componentEvidenceRefs: {
-      ...request.componentEvidenceRefs,
+      ...compilationRequest.componentEvidenceRefs,
       driverAndCudaRef:
         canonicalSam31GpuRuntimeQualificationComponentRef(futureDriver),
     },
   }))
 
 await assert.rejects(owner.compileAndPersist({
-  ...request,
+  ...compilationRequest,
   callerQualified: true,
 }))
-const cyclic: Record<string, unknown> = { ...request }
+const cyclic: Record<string, unknown> = { ...compilationRequest }
 cyclic.self = cyclic
 await assert.rejects(owner.compileAndPersist(cyclic))
 
 let getterInvoked = false
-const accessorRequest = { ...request }
+const accessorRequest = { ...compilationRequest }
 Object.defineProperty(accessorRequest, 'hidden', {
   enumerable: true,
   get() {

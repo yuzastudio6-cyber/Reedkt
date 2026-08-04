@@ -362,5 +362,14 @@ final qualification and records the exact route and immutable image. A stored
 qualification summary or caller-supplied collection of pass booleans cannot
 become the substantive GPU release reference.
 
+Each of those four component records is now stored through
+`canonical-sam3_1-gpu-runtime-qualification-component-repository-v1` as
+canonical JSON in the private control-plane bucket using create-only object
+generation and byte-exact reread. The canonical GCP compilation factory wires
+that durable component repository, the existing final-qualification
+repository, and the create-only compilation-authority store together. A
+process-local map or caller-returned component object is not the production
+release source.
+
 The canonical source contract is
 `server/model-artifacts/canonical-sam3_1-source-runtime-candidate.ts`.

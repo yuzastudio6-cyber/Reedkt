@@ -1175,6 +1175,11 @@ Implementation commit: `18c2b433519dd5ef162952977cbdf9ec301df91d`.
 Generated qualification artifact commit:
 `b8a9df42f4f2a0c513f51734b428230a30ea3dcb`.
 
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to progress commit
+`b508fe689dab5a1ecc06d206888e84efae51de2c` after
+`git push -u origin HEAD`.
+
 Upgraded the generic manifest contract forward-only to
 `skill-capability-manifest-v2` while preserving explicit v1 parsing for the
 existing kernel compatibility fixture. The canonical B-roll manifest now
@@ -1257,4 +1262,4 @@ public delivery, final export, production mutation, or billing.
 | M15 | `588193497` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M16 | `4eb0371e6` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M17 | `44bfb9198` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
-| M18 | `18c2b4335` | this bookkeeping commit | pending | `internal_execution_qualified` |
+| M18 | `18c2b4335` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

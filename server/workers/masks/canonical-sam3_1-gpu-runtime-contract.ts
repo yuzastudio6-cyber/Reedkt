@@ -136,7 +136,7 @@ export const canonicalSam31GpuSourceMediaSchema = z.object({
   })
 })
 
-const approvedPromptSchema = z.object({
+export const canonicalSam31GpuApprovedPromptSchema = z.object({
   promptType: z.literal('server_compiled_text_subject'),
   approvedSubjectText,
   promptFrameIndex: z.literal(0),
@@ -233,7 +233,7 @@ const requestWithoutHashSchema = z.object({
   scope: scopeSchema,
   dispatch: dispatchSchema,
   sourceMedia: canonicalSam31GpuSourceMediaSchema,
-  approvedPrompt: approvedPromptSchema,
+  approvedPrompt: canonicalSam31GpuApprovedPromptSchema,
   modelArtifacts: modelArtifactsSchema,
   settings: settingsSchema,
   byteFreeRequest: z.literal(true),

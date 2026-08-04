@@ -3,8 +3,16 @@ import assert from 'node:assert/strict'
 import { Readable } from 'node:stream'
 
 import {
+  ORCHESTRA_SKILL_CALL_VERSION,
+  ORCHESTRA_SKILL_SUPPORT_REQUEST_VERSION,
+} from '../../src/types/orchestra-skill-capability'
+import {
   canonicalProfessionalToolGpuDispatchAdmissionSchema,
 } from '../edit-architecture/canonical-professional-tool-gpu-dispatch-admission'
+import {
+  createOrchestraSkillCall,
+  createSkillSupportRequest,
+} from '../orchestra/orchestra-skill-capability-contract'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -32,10 +40,16 @@ import {
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
   assertCanonicalSam31GpuTaskRecord,
+  buildCanonicalSam31GpuTaskContext,
   canonicalSam31GpuFixedTaskContractRef,
   createCanonicalSam31GpuTaskStoreFromObjectPort,
   createCanonicalSam31PreparingCloudJobLaunchPort,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
+import {
+  CANONICAL_TRACK_ALL_SAM3_1_JOB_TYPE,
+  CANONICAL_TRACK_ALL_SAM3_1_PURPOSE_CODE,
+  createCanonicalTrackAllSam31OrchestraBinding,
+} from '../workers/masks/canonical-track-all-sam3_1-orchestra-binding'
 import {
   canonicalSam31GpuRuntimeReleaseObservationSchema,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-release'
@@ -146,9 +160,114 @@ assert.equal(
   task.fixedTaskContractRef.contentHash,
   canonicalSam31GpuFixedTaskContractRef().contentHash,
 )
+assert.equal(
+  task.taskContextRef.contentHash,
+  a100.context.taskContextRef.contentHash,
+)
+assert.equal(a100.trackAllOrchestraBinding.targetSkillKey, 'track_all')
+assert.equal(
+  a100.trackAllOrchestraBinding.trackAllOwnsTrackingAndMaskArtifacts,
+  true,
+)
+
+const {
+  callDigestSha256: _orchestraCallDigest,
+  ...orchestraCallWithoutDigest
+} = a100.orchestraCall
+assert.equal(_orchestraCallDigest, a100.orchestraCall.callDigestSha256)
+const visualIntelligenceCall = createOrchestraSkillCall({
+  ...orchestraCallWithoutDigest,
+  callId: 'visual-intelligence-must-not-own-sam31-call',
+  targetSkillKey: 'visual_intelligence',
+})
+assert.throws(() => createCanonicalTrackAllSam31OrchestraBinding({
+  bindingId: 'visual-intelligence-must-not-own-sam31-binding',
+  call: visualIntelligenceCall,
+  admission: a100.admission,
+}))
+const peerSupportRequest = createSkillSupportRequest({
+  schemaVersion: ORCHESTRA_SKILL_SUPPORT_REQUEST_VERSION,
+  requestId: 'living-frame-track-all-support-request-1',
+  requestingSkillKey: 'living_frame',
+  requestingSkillJobId: 'living-frame-job-1',
+  parentOrchestraJobId: a100.orchestraCall.orchestraJobRef.id,
+  requiredCapability: 'track_all',
+  requestedJobType: CANONICAL_TRACK_ALL_SAM3_1_JOB_TYPE,
+  phase: a100.orchestraCall.phase,
+  scope: a100.orchestraCall.scope,
+  purposeCode: CANONICAL_TRACK_ALL_SAM3_1_PURPOSE_CODE,
+  inputArtifactRefs: a100.orchestraCall.sourceArtifactRefs,
+  comparisonArtifactRefs: a100.orchestraCall.comparisonArtifactRefs,
+  expectedOutcomeRefs: a100.orchestraCall.expectedOutcomeRefs,
+  requiredEvidenceRefs: a100.orchestraCall.requiredEvidenceRefs,
+  urgency: 'blocking',
+  supportRequestOnly: true,
+  executionAuthorityGranted: false,
+  providerInvocationAuthorityGranted: false,
+  timelineMutationAuthorityGranted: false,
+  scopeExpansionAuthorityGranted: false,
+})
+const peerSkillCall = createOrchestraSkillCall({
+  ...orchestraCallWithoutDigest,
+  callId: 'peer-skill-must-not-directly-dispatch-sam31-call',
+  requestedBy: {
+    kind: 'skill',
+    skillKey: 'living_frame',
+    skillJobRef: ref('living-frame-job-1'),
+    supportRequestRef: {
+      id: peerSupportRequest.requestId,
+      version: 1,
+      contentHash: peerSupportRequest.requestDigestSha256,
+    },
+  },
+})
+assert.throws(() => createCanonicalTrackAllSam31OrchestraBinding({
+  bindingId: 'peer-skill-must-not-directly-dispatch-sam31-binding',
+  call: peerSkillCall,
+  admission: a100.admission,
+}))
+const orchestraValidatedPeerBinding =
+  createCanonicalTrackAllSam31OrchestraBinding({
+    bindingId: 'orchestra-validated-peer-track-all-sam31-binding',
+    call: peerSkillCall,
+    supportRequest: peerSupportRequest,
+    admission: a100.admission,
+  })
+assert.equal(
+  orchestraValidatedPeerBinding.supportRequestRef?.contentHash,
+  peerSupportRequest.requestDigestSha256,
+)
 
 const duplicate = await preparingPort.startOneShotJob(a100Input)
 assert.equal(duplicate.disposition, 'rejected_before_creation')
+assert.equal(delegateCalls, 1)
+
+if (a100.orchestraCall.scope.scopeType !== 'scene') {
+  throw new Error('Track All smoke fixture lost scene scope.')
+}
+const crossSceneCall = createOrchestraSkillCall({
+  ...orchestraCallWithoutDigest,
+  callId: 'cross-scene-track-all-call',
+  scope: {
+    ...a100.orchestraCall.scope,
+    sceneId: 'scene-2',
+  },
+})
+const crossSceneBinding = createCanonicalTrackAllSam31OrchestraBinding({
+  bindingId: 'cross-scene-track-all-binding',
+  call: crossSceneCall,
+  admission: a100.admission,
+})
+currentContext = rebindTaskContext({
+  base: a100.context,
+  binding: crossSceneBinding,
+  taskContextId: 'cross-scene-task-context',
+})
+const crossScene = await preparingPort.startOneShotJob({
+  ...a100Input,
+  executionEnvelopeRef: ref('cross-scene-envelope'),
+})
+assert.equal(crossScene.disposition, 'rejected_before_creation')
 assert.equal(delegateCalls, 1)
 
 const cpuTamper = structuredClone(a100.context)
@@ -470,7 +589,13 @@ await assert.rejects(() => admitCanonicalSam31GpuRuntimeResult({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-task-owner',
-  checks: 50,
+  checks: 60,
+  exactTrackAllOrchestraCallBoundBeforeSam31Task: true,
+  exactTrackAllSubjectPromptAndFrameIntervalBound: true,
+  crossSceneTrackAllReuseRejected: true,
+  visualIntelligenceDirectSam31OwnershipRejected: true,
+  directPeerSkillSam31DispatchRejected: true,
+  orchestraValidatedPeerSupportAccepted: true,
   a100PrimaryPreparedBeforeLaunch: true,
   independentlyQualifiedL4FallbackPreparedBeforeLaunch: true,
   duplicateLaunchBlocked: true,
@@ -536,68 +661,125 @@ function fixture(
     routeId,
     target,
   })
+  const sourceArtifactRef = ref('source-video-1')
+  const sourceBindingRef = ref('source-binding-1')
+  const compiledIntentRef = ref('compiled-intent-1')
+  const promptApprovalRef = ref('prompt-approval-1')
+  const sourceFrameLineageRef = ref('source-frame-300-local-0')
+  const orchestraCall = createOrchestraSkillCall({
+    schemaVersion: ORCHESTRA_SKILL_CALL_VERSION,
+    callId: `${routeId}-track-all-call`,
+    orchestraPlanRef: ref('orchestra-plan-1'),
+    orchestraJobRef: ref('orchestra-track-all-job-1'),
+    parentJobRef: null,
+    requestedBy: { kind: 'orchestra' },
+    targetSkillKey: 'track_all',
+    jobType: CANONICAL_TRACK_ALL_SAM3_1_JOB_TYPE,
+    phase: 'approved_execution',
+    scope: {
+      scopeType: 'scene',
+      sourceArtifactRef,
+      sceneId: 'scene-1',
+      outputId: 'output-1',
+      authorizedRange: {
+        startFrame: 300,
+        endFrameExclusive: 540,
+        frameRate: { numerator: 30, denominator: 1 },
+      },
+      selectedSceneBindingRef: sourceBindingRef,
+      completeSceneCoverageRequired: true,
+    },
+    sceneContextSnapshotRef: ref('scene-context-1'),
+    sourceArtifactRefs: [sourceArtifactRef],
+    comparisonArtifactRefs: [],
+    expectedOutcomeRefs: [ref('expected-mask-outcome-1')],
+    requiredEvidenceRefs: [
+      sourceBindingRef,
+      admission.scope.confirmedOutputFrameRef,
+      admission.scope.masterTimingRef,
+      compiledIntentRef,
+      promptApprovalRef,
+      sourceFrameLineageRef,
+    ],
+    manifestRef: ref('track-all-capability-manifest-1'),
+    qualificationSnapshotRef: ref('track-all-qualification-snapshot-1'),
+    timeBudgetRef: ref('track-all-time-budget-1'),
+    creditBudgetRef: ref('track-all-credit-budget-1'),
+    attemptEnvelopeRef: admission.scope.executionAttemptRef,
+    approvedSnapshotRef: admission.scope.approvedSnapshotRef,
+    idempotencyKey: admission.scope.idempotencyKey,
+    orchestraDispatchAuthorized: true,
+    directProviderCallAllowed: false,
+    directTimelineMutationAllowed: false,
+    directArtifactMutationAllowed: false,
+    scopeExpansionAllowed: false,
+    peerSkillExecutionAuthorityAccepted: false,
+  })
+  const trackAllOrchestraBinding =
+    createCanonicalTrackAllSam31OrchestraBinding({
+      bindingId: `${routeId}-track-all-sam31-binding`,
+      call: orchestraCall,
+      admission,
+    })
+  const context = buildCanonicalSam31GpuTaskContext({
+    taskContextId: `${routeId}-task-context`,
+    trackAllOrchestraBinding,
+    editPlanVersionId: 'edit-plan-version-1',
+    editPlanVersionRef: {
+      id: 'edit-plan-version-1',
+      version: 1,
+      contentHash: hash('edit-plan-version-1'),
+    },
+    outputId: 'output-1',
+    confirmedOutputFrameRef: admission.scope.confirmedOutputFrameRef,
+    sceneId: 'scene-1',
+    sourceBindingRef,
+    sourceMedia: {
+      mediaForm: 'private_read_only_mp4' as const,
+      finalizedSourceArtifactRef: sourceArtifactRef,
+      gpuPreparedMaskProxyArtifactRef: ref('gpu-mask-proxy-1'),
+      exactSourceReadEvidenceRef: ref('source-read-1'),
+      ffprobeOrFrameDirectoryEvidenceRef: ref('source-probe-1'),
+      sourceFrameRangeMappingRef: ref('source-frame-map-1'),
+      proxyPixelGeometryQaRef: ref('proxy-pixel-qa-1'),
+      byteLength: maskProxyBytes.byteLength,
+      sha256: maskProxySha256,
+      width: 2_160,
+      height: 3_840,
+      decodedFrameCount: 240,
+      fpsNumerator: 30,
+      fpsDenominator: 1,
+      selectedStartFrameInclusive: 0,
+      selectedEndFrameInclusive: 239,
+      canonicalSourceStartFrameInclusive: 300,
+      canonicalSourceEndFrameInclusive: 539,
+      boundedChunkOverlapAndStitchPlanRef: ref('chunk-stitch-1'),
+      variableFrameRateAllowed: false as const,
+      callerPathOrUrlAccepted: false as const,
+    },
+    approvedPrompt: {
+      promptType: 'server_compiled_text_subject' as const,
+      approvedSubjectText: 'basketball player in the foreground',
+      promptFrameIndex: 0 as const,
+      compiledIntentRef,
+      promptApprovalRef,
+      sourceFrameLineageRef,
+      rawUserChatIncluded: false as const,
+      executableTextIncluded: false as const,
+    },
+    specializedRuntimeRelease,
+    primaryRateAuthorityRef: primaryRateRef,
+    fallbackRateAuthorityRef: fallbackRateRef,
+    privateTaskInputTransportRef: ref('sam31-private-task-input'),
+    privateTaskOutputTransportRef: ref('sam31-private-task-output'),
+    preparedAt: '2026-08-02T17:59:00.000Z',
+  })
   return {
     admission,
     target,
-    context: {
-      schemaVersion: 'canonical-sam3_1-gpu-task-context-v1' as const,
-      source: 'canonical_server_sam3_1_task_context_repository' as const,
-      evidenceClass: 'canonical_private_reread' as const,
-      taskContextRef: ref(`${routeId}-task-context`),
-      editPlanVersionId: 'edit-plan-version-1',
-      editPlanVersionRef: {
-        id: 'edit-plan-version-1',
-        version: 1,
-        contentHash: hash('edit-plan-version-1'),
-      },
-      outputId: 'output-1',
-      confirmedOutputFrameRef: admission.scope.confirmedOutputFrameRef,
-      sceneId: 'scene-1',
-      sourceBindingRef: ref('source-binding-1'),
-      sourceMedia: {
-        mediaForm: 'private_read_only_mp4' as const,
-        finalizedSourceArtifactRef: ref('source-video-1'),
-        gpuPreparedMaskProxyArtifactRef: ref('gpu-mask-proxy-1'),
-        exactSourceReadEvidenceRef: ref('source-read-1'),
-        ffprobeOrFrameDirectoryEvidenceRef: ref('source-probe-1'),
-        sourceFrameRangeMappingRef: ref('source-frame-map-1'),
-        proxyPixelGeometryQaRef: ref('proxy-pixel-qa-1'),
-        byteLength: maskProxyBytes.byteLength,
-        sha256: maskProxySha256,
-        width: 2_160,
-        height: 3_840,
-        decodedFrameCount: 240,
-        fpsNumerator: 30,
-        fpsDenominator: 1,
-        selectedStartFrameInclusive: 0,
-        selectedEndFrameInclusive: 239,
-        canonicalSourceStartFrameInclusive: 300,
-        canonicalSourceEndFrameInclusive: 539,
-        boundedChunkOverlapAndStitchPlanRef: ref('chunk-stitch-1'),
-        variableFrameRateAllowed: false as const,
-        callerPathOrUrlAccepted: false as const,
-      },
-      approvedPrompt: {
-        promptType: 'server_compiled_text_subject' as const,
-        approvedSubjectText: 'basketball player in the foreground',
-        promptFrameIndex: 0 as const,
-        compiledIntentRef: ref('compiled-intent-1'),
-        promptApprovalRef: ref('prompt-approval-1'),
-        sourceFrameLineageRef: ref('source-frame-300-local-0'),
-        rawUserChatIncluded: false as const,
-        executableTextIncluded: false as const,
-      },
-      specializedRuntimeRelease,
-      primaryRateAuthorityRef: primaryRateRef,
-      fallbackRateAuthorityRef: fallbackRateRef,
-      privateTaskInputTransportRef: ref('sam31-private-task-input'),
-      privateTaskOutputTransportRef: ref('sam31-private-task-output'),
-      exactApprovedSnapshotWorkLeaseFrameTimingSourceAndPromptReread:
-        true as const,
-      exactPrimaryAndFallbackAccountEffectiveRatesReread: true as const,
-      browserOrCallerTaskContextAccepted: false as const,
-      preparedAt: '2026-08-02T17:59:00.000Z',
-    },
+    context,
+    orchestraCall,
+    trackAllOrchestraBinding,
   }
 }
 
@@ -839,6 +1021,32 @@ function buildSpecializedRelease(input: {
   return canonicalSam31GpuRuntimeReleaseObservationSchema.parse({
     ...payload,
     releaseObservationHash: sha256AuthorityValue(payload),
+  })
+}
+
+function rebindTaskContext(input: {
+  base: ReturnType<typeof buildCanonicalSam31GpuTaskContext>
+  binding: unknown
+  taskContextId: string
+}) {
+  const { base } = input
+  return buildCanonicalSam31GpuTaskContext({
+    taskContextId: input.taskContextId,
+    trackAllOrchestraBinding: input.binding,
+    editPlanVersionId: base.editPlanVersionId,
+    editPlanVersionRef: base.editPlanVersionRef,
+    outputId: base.outputId,
+    confirmedOutputFrameRef: base.confirmedOutputFrameRef,
+    sceneId: base.sceneId,
+    sourceBindingRef: base.sourceBindingRef,
+    sourceMedia: base.sourceMedia,
+    approvedPrompt: base.approvedPrompt,
+    specializedRuntimeRelease: base.specializedRuntimeRelease,
+    primaryRateAuthorityRef: base.primaryRateAuthorityRef,
+    fallbackRateAuthorityRef: base.fallbackRateAuthorityRef,
+    privateTaskInputTransportRef: base.privateTaskInputTransportRef,
+    privateTaskOutputTransportRef: base.privateTaskOutputTransportRef,
+    preparedAt: base.preparedAt,
   })
 }
 

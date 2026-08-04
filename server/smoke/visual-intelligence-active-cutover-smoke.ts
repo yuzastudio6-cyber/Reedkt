@@ -30,6 +30,12 @@ const l4CostAuthority = source(
 const sourceCoordinator = source(
   'server/orchestra/canonical-source-analysis-orchestra-coordinator.ts',
 )
+const trackAllSam31Binding = source(
+  'server/workers/masks/canonical-track-all-sam3_1-orchestra-binding.ts',
+)
+const sam31TaskOwner = source(
+  'server/workers/masks/canonical-sam3_1-gpu-task-owner-service.ts',
+)
 
 assert.match(app, /createVisualIntelligenceOrchestraRoutes/u)
 assert.match(app, /createVisualIntelligenceRoutes/u)
@@ -99,6 +105,28 @@ assert.doesNotMatch(
   /createQwenVisualUnderstandingProvider|sam2|directTimelineMutationAllowed:\s*true/u,
 )
 
+assert.match(trackAllSam31Binding, /targetSkillKey:\s*z\.literal\('track_all'\)/u)
+assert.match(trackAllSam31Binding, /trackAllOwnsTrackingAndMaskArtifacts/u)
+assert.match(
+  trackAllSam31Binding,
+  /visualIntelligenceMayInspectButNotCreateOrMutateTrackingArtifacts/u,
+)
+assert.match(
+  trackAllSam31Binding,
+  /directUserOrPeerSkillDispatchAccepted:\s*z\.literal\(false\)/u,
+)
+assert.match(
+  trackAllSam31Binding,
+  /peerSkillSupportRequestAcceptedOnlyThroughOrchestra:\s*z\.literal\(true\)/u,
+)
+assert.match(sam31TaskOwner, /canonical-sam3_1-gpu-task-context-v2/u)
+assert.match(sam31TaskOwner, /assertCanonicalTrackAllSam31OrchestraBinding/u)
+assert.match(sam31TaskOwner, /SAM 3\.1 task context hash is invalid/u)
+assert.doesNotMatch(
+  sam31TaskOwner,
+  /createVisualIntelligenceOrchestraInvocationCompiler|visualIntelligenceMayDispatch/u,
+)
+
 for (const removedExecutablePath of [
   'docker/prod/gpu-worker/sam2/Dockerfile.runtime-candidate',
   'docker/prod/gpu-worker/sam2/runner.py',
@@ -119,6 +147,8 @@ console.log(JSON.stringify({
   parallelSourceVisualRuntimeRemoved: true,
   canonicalL4ProbeCostAuthoritySeparatedFromDispatch: true,
   sourceAnalysisReturnsThroughOrchestra: true,
+  sam31RequiresExactTrackAllOrchestraBinding: true,
+  visualIntelligenceMayInspectButNotOwnSam31Artifacts: true,
   activeQwenVisualRuntimeMounted: false,
   activeSam2ExecutableRuntimePresent: false,
   historicalEvidenceCompatibilityPreserved: true,

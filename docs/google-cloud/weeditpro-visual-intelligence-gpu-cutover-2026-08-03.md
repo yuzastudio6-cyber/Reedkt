@@ -182,6 +182,16 @@ idempotent rerun then observed all five disabled and emitted
   interval private review. L4 must bind and equal or exceed the separately
   approved A100 quality baseline; it cannot reuse the A100 qualification as a
   generic fallback claim.
+- Every fresh fixed SAM 3.1 task context now requires an exact, digest-bound
+  `track_all` Orchestra call for one complete approved scene interval. The
+  binding cross-checks the approved snapshot, output, scene, source artifact,
+  selected-scene binding, frame rate/range, work item, lease, funded
+  reservation, execution attempt, confirmed frame, MasterTiming, and dispatch
+  admission before the task can be persisted or a cloud job can be created.
+  Track All remains the tracking/mask artifact owner; Visual Intelligence may
+  inspect those artifacts but cannot create, mutate, or directly dispatch SAM
+  3.1. This source boundary does not self-qualify a future Track All manifest or
+  any live GPU route.
 - This is a source and persistence boundary, not live GPU evidence. The
   repository grants no job dispatch, customer-credit mutation, QA approval,
   delivery, or production authority. A100 and L4 remain blocked until those

@@ -12,6 +12,9 @@ import {
 import {
   CANONICAL_SAM3_1_OPERATION_ID,
 } from '../../model-artifacts/canonical-sam3_1-source-runtime-candidate'
+import {
+  parseOrchestraSkillCall,
+} from '../../orchestra/orchestra-skill-capability-contract'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -29,7 +32,9 @@ import {
 import {
   assertCanonicalSam31GpuRuntimeRequest,
   buildCanonicalSam31GpuRuntimeRequest,
+  canonicalSam31GpuApprovedPromptSchema,
   canonicalSam31GpuRuntimeRequestSchema,
+  canonicalSam31GpuSourceMediaSchema,
 } from './canonical-sam3_1-gpu-runtime-contract'
 import {
   assertCanonicalSam31GpuPrivateInputStagingEvidence,
@@ -41,6 +46,10 @@ import {
   assertCanonicalSam31GpuRuntimeReleaseObservation,
   canonicalSam31GpuRuntimeReleaseObservationSchema,
 } from './canonical-sam3_1-gpu-runtime-release'
+import {
+  assertCanonicalTrackAllSam31OrchestraBinding,
+  canonicalTrackAllSam31OrchestraBindingSchema,
+} from './canonical-track-all-sam3_1-orchestra-binding'
 
 export const CANONICAL_SAM3_1_GPU_FIXED_TASK_CONTRACT_VERSION =
   'canonical-sam3_1-gpu-fixed-task-contract-v1' as const
@@ -91,11 +100,11 @@ export function canonicalSam31GpuFixedTaskContractRef() {
   })
 }
 
-const taskContextSchema = z.object({
-  schemaVersion: z.literal('canonical-sam3_1-gpu-task-context-v1'),
+const taskContextWithoutRefSchema = z.object({
+  schemaVersion: z.literal('canonical-sam3_1-gpu-task-context-v2'),
   source: z.literal('canonical_server_sam3_1_task_context_repository'),
   evidenceClass: z.literal('canonical_private_reread'),
-  taskContextRef: evidenceRefSchema,
+  trackAllOrchestraBinding: canonicalTrackAllSam31OrchestraBindingSchema,
   editPlanVersionId: safeId,
   editPlanVersionRef: evidenceRefSchema,
   outputId: safeId,
@@ -116,9 +125,82 @@ const taskContextSchema = z.object({
   browserOrCallerTaskContextAccepted: z.literal(false),
   preparedAt: timestamp,
 }).strict()
+const taskContextSchema = taskContextWithoutRefSchema.extend({
+  taskContextRef: evidenceRefSchema.extend({ version: z.literal(1) }).strict(),
+}).strict()
 export type CanonicalSam31GpuTaskContext = z.infer<
   typeof taskContextSchema
 >
+
+export function buildCanonicalSam31GpuTaskContext(input: {
+  readonly taskContextId: string
+  readonly trackAllOrchestraBinding: unknown
+  readonly editPlanVersionId: string
+  readonly editPlanVersionRef: z.input<typeof evidenceRefSchema>
+  readonly outputId: string
+  readonly confirmedOutputFrameRef: z.input<typeof evidenceRefSchema>
+  readonly sceneId: string
+  readonly sourceBindingRef: z.input<typeof evidenceRefSchema>
+  readonly sourceMedia: unknown
+  readonly approvedPrompt: unknown
+  readonly specializedRuntimeRelease: unknown
+  readonly primaryRateAuthorityRef: z.input<typeof evidenceRefSchema>
+  readonly fallbackRateAuthorityRef: z.input<typeof evidenceRefSchema>
+  readonly privateTaskInputTransportRef: z.input<typeof evidenceRefSchema>
+  readonly privateTaskOutputTransportRef: z.input<typeof evidenceRefSchema>
+  readonly preparedAt: string
+}): CanonicalSam31GpuTaskContext {
+  const payload = taskContextWithoutRefSchema.parse({
+    schemaVersion: 'canonical-sam3_1-gpu-task-context-v2',
+    source: 'canonical_server_sam3_1_task_context_repository',
+    evidenceClass: 'canonical_private_reread',
+    trackAllOrchestraBinding:
+      assertCanonicalTrackAllSam31OrchestraBinding({
+        value: input.trackAllOrchestraBinding,
+      }),
+    editPlanVersionId: input.editPlanVersionId,
+    editPlanVersionRef: input.editPlanVersionRef,
+    outputId: input.outputId,
+    confirmedOutputFrameRef: input.confirmedOutputFrameRef,
+    sceneId: input.sceneId,
+    sourceBindingRef: input.sourceBindingRef,
+    sourceMedia: input.sourceMedia,
+    approvedPrompt: input.approvedPrompt,
+    specializedRuntimeRelease: input.specializedRuntimeRelease,
+    primaryRateAuthorityRef: input.primaryRateAuthorityRef,
+    fallbackRateAuthorityRef: input.fallbackRateAuthorityRef,
+    privateTaskInputTransportRef: input.privateTaskInputTransportRef,
+    privateTaskOutputTransportRef: input.privateTaskOutputTransportRef,
+    exactApprovedSnapshotWorkLeaseFrameTimingSourceAndPromptReread: true,
+    exactPrimaryAndFallbackAccountEffectiveRatesReread: true,
+    browserOrCallerTaskContextAccepted: false,
+    preparedAt: input.preparedAt,
+  })
+  return Object.freeze(taskContextSchema.parse({
+    ...payload,
+    taskContextRef: {
+      id: safeId.parse(input.taskContextId),
+      version: 1,
+      contentHash: `sha256:${sha256AuthorityValue(payload)}`,
+    },
+  }))
+}
+
+export function assertCanonicalSam31GpuTaskContext(
+  value: unknown,
+): CanonicalSam31GpuTaskContext {
+  assertPlainSerializedData(value, 'sam3_1_gpu_task_context')
+  const context = taskContextSchema.parse(value)
+  const { taskContextRef, ...payload } = context
+  if (taskContextRef.contentHash !==
+    `sha256:${sha256AuthorityValue(payload)}`) {
+    throw new Error('SAM 3.1 task context hash is invalid.')
+  }
+  assertCanonicalTrackAllSam31OrchestraBinding({
+    value: context.trackAllOrchestraBinding,
+  })
+  return structuredClone(context)
+}
 
 const taskRecordWithoutHashSchema = z.object({
   schemaVersion: z.literal(CANONICAL_SAM3_1_GPU_TASK_RECORD_VERSION),
@@ -278,7 +360,7 @@ export function createCanonicalSam31PreparingCloudJobLaunchPort(input: {
           'sam3_1_admission_consumption_ref')
         assertPlainSerializedData(value.executionEnvelopeRef,
           'sam3_1_execution_envelope_ref')
-        const context = taskContextSchema.parse(
+        const context = assertCanonicalSam31GpuTaskContext(
           await input.taskContextReadPort.rereadCanonicalTaskContext({
             admission,
             target,
@@ -372,7 +454,7 @@ export function buildCanonicalSam31GpuTaskRecord(input: {
     input.target,
   )
   assertPlainSerializedData(input.context, 'sam3_1_task_context')
-  const taskContext = taskContextSchema.parse(input.context)
+  const taskContext = assertCanonicalSam31GpuTaskContext(input.context)
   const privateInputStagingEvidence =
     assertCanonicalSam31GpuPrivateInputStagingEvidence(
       input.privateInputStagingEvidence,
@@ -578,6 +660,30 @@ function assertTaskContextMatches(input: {
   >
 }): void {
   const { admission, target, taskContext, specialized } = input
+  const trackAllBinding = assertCanonicalTrackAllSam31OrchestraBinding({
+    value: taskContext.trackAllOrchestraBinding,
+    admission,
+  })
+  const trackAllCall = parseOrchestraSkillCall(
+    trackAllBinding.orchestraCall,
+  )
+  if (trackAllCall.scope.scopeType !== 'scene') {
+    throw new Error('SAM 3.1 Track All binding lost scene scope.')
+  }
+  const sourceMedia = canonicalSam31GpuSourceMediaSchema.parse(
+    taskContext.sourceMedia,
+  )
+  const approvedPrompt = canonicalSam31GpuApprovedPromptSchema.parse(
+    taskContext.approvedPrompt,
+  )
+  const requiredTrackAllEvidence = [
+    trackAllCall.scope.selectedSceneBindingRef,
+    taskContext.confirmedOutputFrameRef,
+    admission.scope.masterTimingRef,
+    approvedPrompt.compiledIntentRef,
+    approvedPrompt.promptApprovalRef,
+    approvedPrompt.sourceFrameLineageRef,
+  ]
   const selectedRate = admission.routeId === 'a100_80gb_heavy_primary'
     ? taskContext.primaryRateAuthorityRef
     : taskContext.fallbackRateAuthorityRef
@@ -600,6 +706,23 @@ function assertTaskContextMatches(input: {
     || taskContext.outputId.length === 0
     || !sameRef(taskContext.confirmedOutputFrameRef,
       admission.scope.confirmedOutputFrameRef)
+    || trackAllCall.scope.outputId !== taskContext.outputId
+    || trackAllCall.scope.sceneId !== taskContext.sceneId
+    || !sameRef(trackAllCall.scope.sourceArtifactRef,
+      sourceMedia.finalizedSourceArtifactRef)
+    || !sameRef(trackAllCall.scope.selectedSceneBindingRef,
+      taskContext.sourceBindingRef)
+    || trackAllCall.scope.authorizedRange.startFrame !==
+      sourceMedia.canonicalSourceStartFrameInclusive
+    || trackAllCall.scope.authorizedRange.endFrameExclusive !==
+      sourceMedia.canonicalSourceEndFrameInclusive + 1
+    || trackAllCall.scope.authorizedRange.frameRate.numerator !==
+      sourceMedia.fpsNumerator
+    || trackAllCall.scope.authorizedRange.frameRate.denominator !==
+      sourceMedia.fpsDenominator
+    || requiredTrackAllEvidence.some((required) =>
+      !trackAllCall.requiredEvidenceRefs.some((observed) =>
+        sameRef(observed, required)))
     || !sameRef(selectedRate, admission.currentRateAuthorityRef)
     || Date.parse(taskContext.preparedAt) > Date.parse(admission.admittedAt)
   ) throw new Error(

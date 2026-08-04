@@ -329,11 +329,8 @@ export interface EditReferenceServiceRuntimeOptions {
   readonly observabilitySink?: EditReferenceObservabilitySink
   readonly visualLanguageProvider?: QwenVisualUnderstandingProvider
   readonly visualLanguageProductionAuthority?: EditReferenceVisualLanguageProductionAuthority
-  readonly reviewedLocalVisualLanguageRuntime?: EditReferenceReviewedLocalVisualLanguageRuntimeOptions
   readonly colorTreatmentProductionAuthority?: EditReferenceColorTreatmentProductionAuthority
-  readonly reviewedLocalColorTreatmentRuntime?: EditReferenceReviewedLocalColorTreatmentRuntimeOptions
   readonly graphicsMotionProductionAuthority?: EditReferenceGraphicsMotionProductionAuthority
-  readonly reviewedLocalGraphicsMotionRuntime?: EditReferenceReviewedLocalGraphicsMotionRuntimeOptions
   readonly captionDesignOcrAuthorityResolver?: EditReferenceCaptionDesignOcrAuthorityResolver
   readonly captionDesignProductionAuthority?: EditReferenceCaptionDesignProductionAuthority
   readonly storyEditorialProvider?: QwenStoryEditorialReasoningProvider
@@ -361,20 +358,6 @@ export interface PrepareEditReferenceVisualIntelligenceBindingRequestInput {
   readonly expectedStudyRevision: number
   readonly orchestraCall: unknown
 }
-
-export interface EditReferenceReviewedLocalVisualLanguageRuntimeOptions {
-  readonly manifestPath: string
-  readonly modelPath: string
-  readonly pythonCommand: string
-  readonly runnerScriptPath?: string
-  readonly timeoutMs?: number
-}
-
-export type EditReferenceReviewedLocalColorTreatmentRuntimeOptions =
-  EditReferenceReviewedLocalVisualLanguageRuntimeOptions
-
-export type EditReferenceReviewedLocalGraphicsMotionRuntimeOptions =
-  EditReferenceReviewedLocalVisualLanguageRuntimeOptions
 
 export interface EditReferenceReviewedLocalAudioSoundDesignRuntimeOptions {
   readonly manifestPath: string
@@ -496,36 +479,6 @@ export function createEditReferenceService(
 ): EditReferenceService {
   const ownerUserId = context.auth?.userId
   if (!ownerUserId) throw new ApiError('AUTH_REQUIRED', 'Edit Reference requires an authenticated user.', 401)
-  if (
-    runtimeOptions.reviewedLocalVisualLanguageRuntime
-    && runtimeOptions.visualLanguageProductionAuthority
-  ) {
-    throw new ApiError(
-      'VALIDATION_FAILED',
-      'Reviewed-local Visual Language study cannot be combined with paid-provider production authority.',
-      500,
-    )
-  }
-  if (
-    runtimeOptions.reviewedLocalColorTreatmentRuntime
-    && runtimeOptions.colorTreatmentProductionAuthority
-  ) {
-    throw new ApiError(
-      'VALIDATION_FAILED',
-      'Reviewed-local Color Treatment study cannot be combined with paid-provider production authority.',
-      500,
-    )
-  }
-  if (
-    runtimeOptions.reviewedLocalGraphicsMotionRuntime
-    && runtimeOptions.graphicsMotionProductionAuthority
-  ) {
-    throw new ApiError(
-      'VALIDATION_FAILED',
-      'Reviewed-local Graphics/Motion study cannot be combined with paid-provider production authority.',
-      500,
-    )
-  }
   if (
     runtimeOptions.reviewedLocalAudioSoundDesignRuntime
     && (runtimeOptions.audioSoundDesignProvider || runtimeOptions.audioSoundDesignProductionAuthority)
@@ -4542,11 +4495,8 @@ export function createEditReferenceService(
                 orchestrationId,
                 visualLanguageProvider,
                 visualLanguageProductionAuthority: runtimeOptions.visualLanguageProductionAuthority,
-                reviewedLocalVisualLanguageRuntime: runtimeOptions.reviewedLocalVisualLanguageRuntime,
                 colorTreatmentProductionAuthority: runtimeOptions.colorTreatmentProductionAuthority,
-                reviewedLocalColorTreatmentRuntime: runtimeOptions.reviewedLocalColorTreatmentRuntime,
                 graphicsMotionProductionAuthority: runtimeOptions.graphicsMotionProductionAuthority,
-                reviewedLocalGraphicsMotionRuntime: runtimeOptions.reviewedLocalGraphicsMotionRuntime,
                 captionDesignOcrAuthorityResolver: runtimeOptions.captionDesignOcrAuthorityResolver,
                 captionDesignProductionAuthority: runtimeOptions.captionDesignProductionAuthority,
                 storyEditorialProvider,
@@ -5537,11 +5487,8 @@ async function prepareEditReferenceMediaStudies(input: {
   readonly orchestrationId: string
   readonly visualLanguageProvider: QwenVisualUnderstandingProvider
   readonly visualLanguageProductionAuthority?: EditReferenceVisualLanguageProductionAuthority
-  readonly reviewedLocalVisualLanguageRuntime?: EditReferenceReviewedLocalVisualLanguageRuntimeOptions
   readonly colorTreatmentProductionAuthority?: EditReferenceColorTreatmentProductionAuthority
-  readonly reviewedLocalColorTreatmentRuntime?: EditReferenceReviewedLocalColorTreatmentRuntimeOptions
   readonly graphicsMotionProductionAuthority?: EditReferenceGraphicsMotionProductionAuthority
-  readonly reviewedLocalGraphicsMotionRuntime?: EditReferenceReviewedLocalGraphicsMotionRuntimeOptions
   readonly captionDesignOcrAuthorityResolver?: EditReferenceCaptionDesignOcrAuthorityResolver
   readonly captionDesignProductionAuthority?: EditReferenceCaptionDesignProductionAuthority
   readonly storyEditorialProvider: QwenStoryEditorialReasoningProvider
@@ -5598,7 +5545,6 @@ async function prepareEditReferenceMediaStudies(input: {
           studyGoalEvidenceId: `${study.id}:visual-language-goal`,
           provider: input.visualLanguageProvider,
           productionAuthority: input.visualLanguageProductionAuthority,
-          reviewedLocalRuntime: input.reviewedLocalVisualLanguageRuntime,
         }),
         colorTreatmentRuntime: createColorTreatmentRuntime({
           orchestrationId: input.orchestrationId,
@@ -5606,7 +5552,6 @@ async function prepareEditReferenceMediaStudies(input: {
           studyGoalEvidenceId: `${study.id}:color-treatment-goal`,
           provider: input.visualLanguageProvider,
           productionAuthority: input.colorTreatmentProductionAuthority,
-          reviewedLocalRuntime: input.reviewedLocalColorTreatmentRuntime,
         }),
         graphicsMotionRuntime: createGraphicsMotionRuntime({
           orchestrationId: input.orchestrationId,
@@ -5614,7 +5559,6 @@ async function prepareEditReferenceMediaStudies(input: {
           studyGoalEvidenceId: `${study.id}:graphics-motion-goal`,
           provider: input.visualLanguageProvider,
           productionAuthority: input.graphicsMotionProductionAuthority,
-          reviewedLocalRuntime: input.reviewedLocalGraphicsMotionRuntime,
         }),
         captionDesignRuntime: {
           orchestrationId: input.orchestrationId,
@@ -5677,19 +5621,11 @@ function createVisualLanguageRuntime(input: {
   readonly studyGoalEvidenceId: string
   readonly provider: QwenVisualUnderstandingProvider
   readonly productionAuthority?: EditReferenceVisualLanguageProductionAuthority
-  readonly reviewedLocalRuntime?: EditReferenceReviewedLocalVisualLanguageRuntimeOptions
 }): EditReferenceVisualLanguageRuntimeInput {
   const identity = {
     orchestrationId: input.orchestrationId,
     studySessionId: input.studySessionId,
     studyGoalEvidenceId: input.studyGoalEvidenceId,
-  }
-  if (input.reviewedLocalRuntime) {
-    return {
-      ...identity,
-      runtimeKind: 'reviewed_local_qwen25vl_mlx',
-      ...input.reviewedLocalRuntime,
-    }
   }
   return {
     ...identity,
@@ -5705,19 +5641,11 @@ function createColorTreatmentRuntime(input: {
   readonly studyGoalEvidenceId: string
   readonly provider: QwenVisualUnderstandingProvider
   readonly productionAuthority?: EditReferenceColorTreatmentProductionAuthority
-  readonly reviewedLocalRuntime?: EditReferenceReviewedLocalColorTreatmentRuntimeOptions
 }): EditReferenceColorTreatmentRuntimeInput {
   const identity = {
     orchestrationId: input.orchestrationId,
     studySessionId: input.studySessionId,
     studyGoalEvidenceId: input.studyGoalEvidenceId,
-  }
-  if (input.reviewedLocalRuntime) {
-    return {
-      ...identity,
-      runtimeKind: 'reviewed_local_qwen25vl_mlx',
-      ...input.reviewedLocalRuntime,
-    }
   }
   return {
     ...identity,
@@ -5733,19 +5661,11 @@ function createGraphicsMotionRuntime(input: {
   readonly studyGoalEvidenceId: string
   readonly provider: QwenVisualUnderstandingProvider
   readonly productionAuthority?: EditReferenceGraphicsMotionProductionAuthority
-  readonly reviewedLocalRuntime?: EditReferenceReviewedLocalGraphicsMotionRuntimeOptions
 }): EditReferenceGraphicsMotionRuntimeInput {
   const identity = {
     orchestrationId: input.orchestrationId,
     studySessionId: input.studySessionId,
     studyGoalEvidenceId: input.studyGoalEvidenceId,
-  }
-  if (input.reviewedLocalRuntime) {
-    return {
-      ...identity,
-      runtimeKind: 'reviewed_local_qwen25vl_mlx',
-      ...input.reviewedLocalRuntime,
-    }
   }
   return {
     ...identity,

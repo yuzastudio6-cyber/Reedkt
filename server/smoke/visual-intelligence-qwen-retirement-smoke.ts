@@ -24,23 +24,6 @@ import { createEditReferenceQwenGraphicsMotionAdapter } from
   '../edit-references/edit-reference-qwen-graphics-motion-adapter'
 import { createEditReferenceQwenVisualLanguageAdapter } from
   '../edit-references/edit-reference-qwen-visual-language-adapter'
-import { createEditReferenceReviewedLocalQwen25VlMlxAdapter } from
-  '../edit-references/edit-reference-reviewed-local-qwen25vl-mlx-adapter'
-import { createEditReferenceReviewedLocalQwen25VlMlxCaptionDesignAdapter } from
-  '../edit-references/edit-reference-reviewed-local-qwen25vl-mlx-caption-design-adapter'
-import {
-  createEditReferenceReviewedLocalQwen25VlMlxRunValidationAuthority,
-  resolveEditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt,
-  validateEditReferenceReviewedLocalQwen25VlMlxRuntime,
-} from '../edit-references/edit-reference-reviewed-local-qwen25vl-mlx-runtime'
-import { createEditReferenceReviewedLocalQwen25VlMlxSpeechPacingProvider } from
-  '../edit-references/edit-reference-reviewed-local-qwen25vl-mlx-speech-pacing-provider'
-import { createEditReferenceReviewedLocalQwen25VlMlxStoryEditorialProvider } from
-  '../edit-references/edit-reference-reviewed-local-qwen25vl-mlx-story-editorial-provider'
-import {
-  createEditReferenceReviewedLocalQwen25VlMlxColorAdapter,
-  createEditReferenceReviewedLocalQwen25VlMlxGraphicsAdapter,
-} from '../edit-references/edit-reference-reviewed-local-qwen25vl-mlx-style-adapters'
 import {
   createQwenVisualUnderstandingProvider,
   QWEN_VISUAL_UNDERSTANDING_RETIREMENT,
@@ -200,6 +183,21 @@ for (const removedPath of [
   'server/services/canonical-source-led-visual-intelligence-content-analysis-port.ts',
   'server/services/canonical-source-visual-intelligence-owner-service.ts',
   'server/services/canonical-visual-intelligence-source-gpu-evidence-service.ts',
+  'server/edit-references/edit-reference-reviewed-local-long-form-all-specialist-runtime.ts',
+  'server/edit-references/edit-reference-reviewed-local-long-form-caption-design-runtime.ts',
+  'server/edit-references/edit-reference-reviewed-local-long-form-speech-pacing-runtime.ts',
+  'server/edit-references/edit-reference-reviewed-local-long-form-visual-style-story-runtime.ts',
+  'server/edit-references/edit-reference-reviewed-local-qwen25vl-mlx-speech-pacing-provider.ts',
+  'server/edit-references/edit-reference-reviewed-local-qwen25vl-mlx-story-editorial-provider.ts',
+  'server/edit-references/edit-reference-reviewed-local-qwen25vl-mlx-adapter.ts',
+  'server/edit-references/edit-reference-reviewed-local-qwen25vl-mlx-caption-design-adapter.ts',
+  'server/edit-references/edit-reference-reviewed-local-qwen25vl-mlx-style-adapters.ts',
+  'server/edit-references/edit-reference-reviewed-local-qwen25vl-mlx-runtime.ts',
+  'server/edit-references/runtime/qwen25vl-mlx-classify-caption-design.py',
+  'server/edit-references/runtime/qwen25vl-mlx-classify-frames.py',
+  'server/edit-references/runtime/qwen25vl-mlx-classify-reference-style.py',
+  'server/edit-references/runtime/qwen25vl-mlx-classify-speech-pacing.py',
+  'server/edit-references/runtime/qwen25vl-mlx-classify-story-editorial.py',
 ]) assert.equal(existsSync(removedPath), false, `${removedPath} must be absent`)
 
 const sam2RuntimeTombstoneSource = readFileSync(
@@ -339,50 +337,9 @@ for (const construct of [
   () => createEditReferenceQwenColorTreatmentAdapter({} as never),
   () => createEditReferenceQwenGraphicsMotionAdapter({} as never),
   () => createEditReferenceQwenCaptionDesignAdapter({} as never),
-  () => createEditReferenceReviewedLocalQwen25VlMlxAdapter({} as never),
-  () => createEditReferenceReviewedLocalQwen25VlMlxCaptionDesignAdapter(
-    {} as never,
-  ),
-  () => createEditReferenceReviewedLocalQwen25VlMlxSpeechPacingProvider(
-    {} as never,
-  ),
-  () => createEditReferenceReviewedLocalQwen25VlMlxStoryEditorialProvider(
-    {} as never,
-  ),
-  () => createEditReferenceReviewedLocalQwen25VlMlxColorAdapter(
-    {} as never,
-  ),
-  () => createEditReferenceReviewedLocalQwen25VlMlxGraphicsAdapter(
-    {} as never,
-  ),
 ]) {
   assert.throws(construct, /retired_use_visual_intelligence/u)
 }
-
-const retiredRuntimeInput = {
-  manifestPath: '/path-must-not-be-read/manifest.json',
-  modelPath: '/path-must-not-be-read/model',
-  pythonCommand: '/path-must-not-be-run/python',
-}
-await assert.rejects(
-  () => validateEditReferenceReviewedLocalQwen25VlMlxRuntime(
-    retiredRuntimeInput,
-  ),
-  /retired_use_visual_intelligence/u,
-)
-await assert.rejects(
-  () => resolveEditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt(
-    retiredRuntimeInput,
-  ),
-  /retired_use_visual_intelligence/u,
-)
-await assert.rejects(
-  () => createEditReferenceReviewedLocalQwen25VlMlxRunValidationAuthority({
-    ...retiredRuntimeInput,
-    runId: 'retired-qwen-runtime-must-not-start',
-  }),
-  /retired_use_visual_intelligence/u,
-)
 
 const retiredProviderSource = readFileSync(
   'server/services/qwen-visual-understanding-provider.ts',
@@ -429,7 +386,9 @@ console.log(JSON.stringify({
   qwenProviderTransportRemoved: true,
   qwenSecretReferenceRemoved: true,
   privateGcpQwenFreshPlanRejectedBeforeInputRead: true,
-  localQwenMlxRejectedBeforeFilesystemOrProcessAccess: true,
+  localQwenMlxExecutableRuntimeRemoved: true,
+  unreferencedLocalQwenLongFormRuntimeRemoved: true,
+  localQwenPythonRunnersRemoved: true,
   activePlanningAndPolicyRoutesUseVisualIntelligence: true,
   activeEditReferenceDefaultUsesOrchestraBridge: true,
   activeEditReferenceRecordsUseProviderNeutralSkillIdentity: true,

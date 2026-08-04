@@ -69,15 +69,6 @@ import {
   hashEditReferenceVisualLanguageFrameManifest,
   type EditReferenceVisualLanguageProductionUsageAuthority,
 } from './edit-reference-qwen-visual-language-adapter'
-import { createEditReferenceReviewedLocalQwen25VlMlxAdapter } from './edit-reference-reviewed-local-qwen25vl-mlx-adapter'
-import {
-  createEditReferenceReviewedLocalQwen25VlMlxColorAdapter,
-  createEditReferenceReviewedLocalQwen25VlMlxGraphicsAdapter,
-} from './edit-reference-reviewed-local-qwen25vl-mlx-style-adapters'
-import {
-  resolveEditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt,
-  type EditReferenceReviewedLocalQwen25VlMlxRunValidationBinding,
-} from './edit-reference-reviewed-local-qwen25vl-mlx-runtime'
 import { createEditReferenceReviewedLocalAstAudioSetProvider } from './edit-reference-reviewed-local-ast-audioset-provider'
 import { validateEditReferenceReviewedLocalAstAudioSetRuntime } from './edit-reference-reviewed-local-ast-audioset-runtime'
 import {
@@ -100,12 +91,6 @@ import {
   hashEditReferenceCaptionDesignFrameManifest,
   type EditReferenceCaptionDesignProductionUsageAuthority,
 } from './edit-reference-qwen-caption-design-adapter'
-import {
-  createEditReferenceReviewedLocalQwen25VlMlxCaptionDesignAdapter,
-} from './edit-reference-reviewed-local-qwen25vl-mlx-caption-design-adapter'
-import type {
-  EditReferenceCaptionTimingAuthorityReceipt,
-} from './edit-reference-caption-timing-authority'
 import {
   createEditReferenceQwenStoryEditorialAdapter,
   createEditReferenceRoutedStoryEditorialAdapter,
@@ -231,22 +216,11 @@ interface EditReferenceVisualLanguageRuntimeIdentity {
   readonly studyGoalEvidenceId: string
 }
 
-export type EditReferenceVisualLanguageRuntimeInput = EditReferenceVisualLanguageRuntimeIdentity & (
-  | {
-      readonly runtimeKind?: 'provider'
-      readonly provider: QwenVisualUnderstandingProvider
-      readonly productionAuthority?: EditReferenceVisualLanguageProductionAuthority
-    }
-  | {
-      readonly runtimeKind: 'reviewed_local_qwen25vl_mlx'
-      readonly manifestPath: string
-      readonly modelPath: string
-      readonly pythonCommand: string
-      readonly runValidation?: EditReferenceReviewedLocalQwen25VlMlxRunValidationBinding
-      readonly runnerScriptPath?: string
-      readonly timeoutMs?: number
-    }
-)
+export type EditReferenceVisualLanguageRuntimeInput = EditReferenceVisualLanguageRuntimeIdentity & {
+  readonly runtimeKind?: 'provider'
+  readonly provider: QwenVisualUnderstandingProvider
+  readonly productionAuthority?: EditReferenceVisualLanguageProductionAuthority
+}
 
 export interface EditReferenceColorTreatmentProductionAuthority {
   readonly approvedUsageEstimateId: string
@@ -262,22 +236,11 @@ interface EditReferenceColorTreatmentRuntimeIdentity {
   readonly studyGoalEvidenceId: string
 }
 
-export type EditReferenceColorTreatmentRuntimeInput = EditReferenceColorTreatmentRuntimeIdentity & (
-  | {
-      readonly runtimeKind?: 'provider'
-      readonly provider: QwenVisualUnderstandingProvider
-      readonly productionAuthority?: EditReferenceColorTreatmentProductionAuthority
-    }
-  | {
-      readonly runtimeKind: 'reviewed_local_qwen25vl_mlx'
-      readonly manifestPath: string
-      readonly modelPath: string
-      readonly pythonCommand: string
-      readonly runValidation?: EditReferenceReviewedLocalQwen25VlMlxRunValidationBinding
-      readonly runnerScriptPath?: string
-      readonly timeoutMs?: number
-    }
-)
+export type EditReferenceColorTreatmentRuntimeInput = EditReferenceColorTreatmentRuntimeIdentity & {
+  readonly runtimeKind?: 'provider'
+  readonly provider: QwenVisualUnderstandingProvider
+  readonly productionAuthority?: EditReferenceColorTreatmentProductionAuthority
+}
 
 export interface EditReferenceGraphicsMotionProductionAuthority {
   readonly approvedUsageEstimateId: string
@@ -293,22 +256,11 @@ interface EditReferenceGraphicsMotionRuntimeIdentity {
   readonly studyGoalEvidenceId: string
 }
 
-export type EditReferenceGraphicsMotionRuntimeInput = EditReferenceGraphicsMotionRuntimeIdentity & (
-  | {
-      readonly runtimeKind?: 'provider'
-      readonly provider: QwenVisualUnderstandingProvider
-      readonly productionAuthority?: EditReferenceGraphicsMotionProductionAuthority
-    }
-  | {
-      readonly runtimeKind: 'reviewed_local_qwen25vl_mlx'
-      readonly manifestPath: string
-      readonly modelPath: string
-      readonly pythonCommand: string
-      readonly runValidation?: EditReferenceReviewedLocalQwen25VlMlxRunValidationBinding
-      readonly runnerScriptPath?: string
-      readonly timeoutMs?: number
-    }
-)
+export type EditReferenceGraphicsMotionRuntimeInput = EditReferenceGraphicsMotionRuntimeIdentity & {
+  readonly runtimeKind?: 'provider'
+  readonly provider: QwenVisualUnderstandingProvider
+  readonly productionAuthority?: EditReferenceGraphicsMotionProductionAuthority
+}
 
 export interface EditReferenceCaptionDesignProductionAuthority {
   readonly approvedUsageEstimateId: string
@@ -356,42 +308,12 @@ interface EditReferenceCaptionDesignRuntimeIdentity {
   readonly studyGoalEvidenceId: string
 }
 
-export interface EditReferenceCaptionDesignTimingAuthorityResolverInput {
-  readonly workspaceId: string
-  readonly editReferenceId: string
-  readonly studySessionId: string
-  readonly orchestrationId: string
-  readonly privateMediaArtifactId: string
-  readonly mediaChecksumSha256: string
-  readonly sourceDurationSeconds: number
-  readonly analysisWindowStartSeconds: number
-  readonly analysisWindowEndSeconds: number
+export type EditReferenceCaptionDesignRuntimeInput = EditReferenceCaptionDesignRuntimeIdentity & {
+  readonly runtimeKind?: 'provider'
+  readonly provider: QwenVisualUnderstandingProvider
+  readonly captionOcrAuthorityResolver?: EditReferenceCaptionDesignOcrAuthorityResolver
+  readonly productionAuthority?: EditReferenceCaptionDesignProductionAuthority
 }
-
-export type EditReferenceCaptionDesignTimingAuthorityResolver = (
-  input: EditReferenceCaptionDesignTimingAuthorityResolverInput,
-) => Promise<EditReferenceCaptionTimingAuthorityReceipt>
-
-export type EditReferenceCaptionDesignRuntimeInput = EditReferenceCaptionDesignRuntimeIdentity & (
-  | {
-      readonly runtimeKind?: 'provider'
-      readonly provider: QwenVisualUnderstandingProvider
-      readonly captionOcrAuthorityResolver?: EditReferenceCaptionDesignOcrAuthorityResolver
-      readonly productionAuthority?: EditReferenceCaptionDesignProductionAuthority
-    }
-  | {
-      readonly runtimeKind: 'reviewed_local_qwen25vl_mlx'
-      readonly manifestPath: string
-      readonly modelPath: string
-      readonly pythonCommand: string
-      readonly runValidation?: EditReferenceReviewedLocalQwen25VlMlxRunValidationBinding
-      readonly runnerScriptPath?: string
-      readonly timeoutMs?: number
-      readonly captionOcrAuthorityResolver: EditReferenceCaptionDesignOcrAuthorityResolver
-      readonly captionTimingAuthorityResolver?: EditReferenceCaptionDesignTimingAuthorityResolver
-      readonly productionAuthority?: undefined
-    }
-)
 
 export interface EditReferenceStoryEditorialProductionAuthority {
   readonly approvedUsageEstimateId: string
@@ -1409,32 +1331,15 @@ export async function runBoundedColorTreatmentStudy(input: {
     const cleanupPrivateFrames = async (frames: readonly { readonly localFilePath: string }[]) => {
       await Promise.all(frames.map(async (frame) => unlink(frame.localFilePath)))
     }
-    const adapter = isReviewedLocalColorTreatmentRuntime(input.runtime)
-      ? createEditReferenceReviewedLocalQwen25VlMlxColorAdapter({
-          runtime: await resolveEditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt({
-            manifestPath: input.runtime.manifestPath,
-            modelPath: input.runtime.modelPath,
-            pythonCommand: input.runtime.pythonCommand,
-            ...(input.runtime.runValidation ? { runValidation: input.runtime.runValidation } : {}),
-          }),
-          pythonCommand: input.runtime.pythonCommand,
-          modelPath: input.runtime.modelPath,
-          privateFrameRoot: specialistRoot,
-          technicalColorEvidence: input.technicalColor,
-          resolvePrivateFrame,
-          cleanupPrivateFrames,
-          runnerScriptPath: input.runtime.runnerScriptPath,
-          timeoutMs: input.runtime.timeoutMs,
-        })
-      : createEditReferenceQwenColorTreatmentAdapter({
-          provider: input.runtime.provider,
-          privateFrameRoot: specialistRoot,
-          technicalColorEvidence: input.technicalColor,
-          resolvePrivateFrame,
-          cleanupPrivateFrames,
-          productionUsageAuthority: productionAuthority?.usageAuthority,
-          createExecutionId: () => `color-treatment:${input.runtime!.orchestrationId}:${input.privateMediaArtifactId}`,
-        })
+    const adapter = createEditReferenceQwenColorTreatmentAdapter({
+      provider: input.runtime.provider,
+      privateFrameRoot: specialistRoot,
+      technicalColorEvidence: input.technicalColor,
+      resolvePrivateFrame,
+      cleanupPrivateFrames,
+      productionUsageAuthority: productionAuthority?.usageAuthority,
+      createExecutionId: () => `color-treatment:${input.runtime!.orchestrationId}:${input.privateMediaArtifactId}`,
+    })
     const result = await adapter.analyze(request)
     await rm(specialistRoot, { force: true, recursive: true })
     return result.status === 'analyzed'
@@ -1453,12 +1358,6 @@ export async function runBoundedColorTreatmentStudy(input: {
       blockerMessage: 'The bounded Color Treatment adapter failed closed without persisting specialist frame copies.',
     }
   }
-}
-
-function isReviewedLocalColorTreatmentRuntime(
-  runtime: EditReferenceColorTreatmentRuntimeInput,
-): runtime is Extract<EditReferenceColorTreatmentRuntimeInput, { readonly runtimeKind: 'reviewed_local_qwen25vl_mlx' }> {
-  return runtime.runtimeKind === 'reviewed_local_qwen25vl_mlx'
 }
 
 function uniqueColorTreatmentCandidates<T extends {
@@ -1750,32 +1649,15 @@ export async function runBoundedGraphicsMotionStudy(input: {
     const cleanupPrivateFrames = async (frames: readonly { readonly localFilePath: string }[]) => {
       await Promise.all(frames.map(async (frame) => unlink(frame.localFilePath)))
     }
-    const adapter = isReviewedLocalGraphicsMotionRuntime(input.runtime)
-      ? createEditReferenceReviewedLocalQwen25VlMlxGraphicsAdapter({
-          runtime: await resolveEditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt({
-            manifestPath: input.runtime.manifestPath,
-            modelPath: input.runtime.modelPath,
-            pythonCommand: input.runtime.pythonCommand,
-            ...(input.runtime.runValidation ? { runValidation: input.runtime.runValidation } : {}),
-          }),
-          pythonCommand: input.runtime.pythonCommand,
-          modelPath: input.runtime.modelPath,
-          privateFrameRoot: specialistRoot,
-          technicalMotionEvidence: input.technicalMotion,
-          resolvePrivateFrame,
-          cleanupPrivateFrames,
-          runnerScriptPath: input.runtime.runnerScriptPath,
-          timeoutMs: input.runtime.timeoutMs,
-        })
-      : createEditReferenceQwenGraphicsMotionAdapter({
-          provider: input.runtime.provider,
-          privateFrameRoot: specialistRoot,
-          technicalMotionEvidence: input.technicalMotion,
-          resolvePrivateFrame,
-          cleanupPrivateFrames,
-          productionUsageAuthority: productionAuthority?.usageAuthority,
-          createExecutionId: () => `graphics-motion:${input.runtime!.orchestrationId}:${input.privateMediaArtifactId}`,
-        })
+    const adapter = createEditReferenceQwenGraphicsMotionAdapter({
+      provider: input.runtime.provider,
+      privateFrameRoot: specialistRoot,
+      technicalMotionEvidence: input.technicalMotion,
+      resolvePrivateFrame,
+      cleanupPrivateFrames,
+      productionUsageAuthority: productionAuthority?.usageAuthority,
+      createExecutionId: () => `graphics-motion:${input.runtime!.orchestrationId}:${input.privateMediaArtifactId}`,
+    })
     const result = await adapter.analyze(request)
     await rm(specialistRoot, { force: true, recursive: true })
     return result.status === 'analyzed'
@@ -1794,12 +1676,6 @@ export async function runBoundedGraphicsMotionStudy(input: {
       blockerMessage: 'The bounded Graphics/Motion adapter failed closed without persisting specialist frame copies.',
     }
   }
-}
-
-function isReviewedLocalGraphicsMotionRuntime(
-  runtime: EditReferenceGraphicsMotionRuntimeInput,
-): runtime is Extract<EditReferenceGraphicsMotionRuntimeInput, { readonly runtimeKind: 'reviewed_local_qwen25vl_mlx' }> {
-  return runtime.runtimeKind === 'reviewed_local_qwen25vl_mlx'
 }
 
 function uniqueGraphicsMotionCandidates<T extends {
@@ -2094,34 +1970,6 @@ export async function runBoundedCaptionDesignStudy(input: {
     }
   }
 
-  let captionTimingAuthority: EditReferenceCaptionTimingAuthorityReceipt | undefined
-  if (
-    input.runtime.runtimeKind === 'reviewed_local_qwen25vl_mlx'
-    && input.runtime.captionTimingAuthorityResolver
-  ) {
-    try {
-      captionTimingAuthority = await input.runtime.captionTimingAuthorityResolver({
-        workspaceId: input.workspaceId,
-        editReferenceId: input.editReferenceId,
-        studySessionId: input.studySessionId,
-        orchestrationId: input.runtime.orchestrationId,
-        privateMediaArtifactId: input.privateMediaArtifactId,
-        mediaChecksumSha256: input.mediaChecksumSha256,
-        sourceDurationSeconds,
-        analysisWindowStartSeconds,
-        analysisWindowEndSeconds,
-      })
-      validateCaptionDesignTimingAuthorityReceipt(captionTimingAuthority)
-    } catch {
-      await rm(specialistRoot, { force: true, recursive: true }).catch(() => undefined)
-      return {
-        status: 'blocked',
-        blockerCode: 'transcript_timing_authority_unverified',
-        blockerMessage: 'The reviewed-local exact word-timing authority did not match this bounded Caption Design window.',
-      }
-    }
-  }
-
   const frameSamples: EditReferenceCaptionDesignFrameEvidence[] = analyzedFrames.map((frame, index) => ({
     role: index === 0 ? 'representative' : 'caption_detail',
     frameEvidenceId: frame.frameEvidenceId,
@@ -2140,22 +1988,16 @@ export async function runBoundedCaptionDesignStudy(input: {
       resolvedFrames.delete(frame.privateFrameArtifactId)
     }
   }
-  const timed = captionTimingAuthority !== undefined
+  const timed = false
   const evidence = {
     mediaStructureEvidenceIds: [input.sourceEvidenceId],
     representativeFrameEvidenceIds: frameSamples.map((frame) => frame.frameEvidenceId),
     technicalCaptionRegionEvidenceIds: [technicalCaptionRegionEvidenceId],
     captionOcrEvidenceIds: [...captionOcrAuthority.result.analysisArtifactIds],
     visualLanguageEvidenceIds: [],
-    transcriptEvidenceIds: captionTimingAuthority
-      ? [`${captionTimingAuthority.privateTranscriptArtifactId}:caption-design-transcript`]
-      : [],
-    segmentTimingEvidenceIds: captionTimingAuthority
-      ? [`${captionTimingAuthority.privateWordTimingArtifactId}:caption-design-segments`]
-      : [],
-    wordTimingEvidenceIds: captionTimingAuthority
-      ? [`${captionTimingAuthority.privateWordTimingArtifactId}:caption-design-words`]
-      : [],
+    transcriptEvidenceIds: [],
+    segmentTimingEvidenceIds: [],
+    wordTimingEvidenceIds: [],
     studyChatGoalEvidenceIds: [input.runtime.studyGoalEvidenceId],
     factSafetyEvidenceIds: [],
   }
@@ -2193,24 +2035,24 @@ export async function runBoundedCaptionDesignStudy(input: {
     captionOcrExactTextPersisted: false,
     captionOcrRawOutputPersisted: false,
     evidenceMode: timed ? 'visual_ocr_word_timing' : 'visual_ocr',
-    privateTranscriptArtifactId: captionTimingAuthority?.privateTranscriptArtifactId ?? null,
-    transcriptChecksumSha256: captionTimingAuthority?.transcriptChecksumSha256 ?? null,
-    privateWordTimingArtifactId: captionTimingAuthority?.privateWordTimingArtifactId ?? null,
-    wordTimingChecksumSha256: captionTimingAuthority?.wordTimingChecksumSha256 ?? null,
+    privateTranscriptArtifactId: null,
+    transcriptChecksumSha256: null,
+    privateWordTimingArtifactId: null,
+    wordTimingChecksumSha256: null,
     privateTranscriptAccessVerified: timed,
     privateTranscriptFinalized: timed,
     transcriptChecksumVerified: timed,
     transcriptRuntimeExecuted: timed,
     transcriptRuntimeSource: timed ? 'verified_local' : null,
-    transcriptRuntimeId: captionTimingAuthority?.transcriptRuntimeId ?? null,
-    transcriptRuntimeVersion: captionTimingAuthority?.transcriptRuntimeVersion ?? null,
-    transcriptModelManifestId: captionTimingAuthority?.transcriptModelManifestId ?? null,
-    transcriptExecutionId: captionTimingAuthority?.transcriptExecutionId ?? null,
+    transcriptRuntimeId: null,
+    transcriptRuntimeVersion: null,
+    transcriptModelManifestId: null,
+    transcriptExecutionId: null,
     transcriptQaStatus: timed ? 'passed' : null,
     segmentTimingAuthorityVerified: timed,
     wordTimingAuthorityVerified: timed,
-    transcriptSegmentCount: captionTimingAuthority?.transcriptSegmentCount ?? 0,
-    alignedWordCount: captionTimingAuthority?.alignedWordCount ?? 0,
+    transcriptSegmentCount: 0,
+    alignedWordCount: 0,
     sourceDurationSeconds,
     analysisWindowStartSeconds,
     analysisWindowEndSeconds,
@@ -2261,48 +2103,16 @@ export async function runBoundedCaptionDesignStudy(input: {
   }
   let adapter: EditReferenceCaptionDesignStudyAdapter
   try {
-    if (input.runtime.runtimeKind === 'reviewed_local_qwen25vl_mlx') {
-      const localRuntime = await resolveEditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt({
-        manifestPath: input.runtime.manifestPath,
-        modelPath: input.runtime.modelPath,
-        pythonCommand: input.runtime.pythonCommand,
-        ...(input.runtime.runValidation ? { runValidation: input.runtime.runValidation } : {}),
-      })
-      adapter = createEditReferenceReviewedLocalQwen25VlMlxCaptionDesignAdapter({
-        runtime: localRuntime,
-        pythonCommand: input.runtime.pythonCommand,
-        modelPath: input.runtime.modelPath,
-        privateFrameRoot: specialistRoot,
-        privateContextRoot: specialistRoot,
-        captionOcrRequest: captionOcrAuthority.request,
-        captionOcrResult: captionOcrAuthority.result,
-        resolvePrivateFrame,
-        cleanupPrivateFrames,
-        ...(captionTimingAuthority
-          ? {
-              privateTranscriptRoot: path.dirname(captionTimingAuthority.localFilePath),
-              resolvePrivateTranscriptTiming: async () => ({
-                privateTranscriptArtifactId: captionTimingAuthority.privateTranscriptArtifactId,
-                privateWordTimingArtifactId: captionTimingAuthority.privateWordTimingArtifactId,
-                localFilePath: captionTimingAuthority.localFilePath,
-              }),
-            }
-          : {}),
-        runnerScriptPath: input.runtime.runnerScriptPath,
-        timeoutMs: input.runtime.timeoutMs,
-      })
-    } else {
-      adapter = createEditReferenceQwenCaptionDesignAdapter({
-        provider: input.runtime.provider,
-        privateFrameRoot: specialistRoot,
-        captionOcrRequest: captionOcrAuthority.request,
-        captionOcrResult: captionOcrAuthority.result,
-        resolvePrivateFrame,
-        cleanupPrivateFrames,
-        productionUsageAuthority: productionAuthority?.usageAuthority,
-        createExecutionId: () => `caption-design:${input.runtime!.orchestrationId}:${input.privateMediaArtifactId}`,
-      })
-    }
+    adapter = createEditReferenceQwenCaptionDesignAdapter({
+      provider: input.runtime.provider,
+      privateFrameRoot: specialistRoot,
+      captionOcrRequest: captionOcrAuthority.request,
+      captionOcrResult: captionOcrAuthority.result,
+      resolvePrivateFrame,
+      cleanupPrivateFrames,
+      productionUsageAuthority: productionAuthority?.usageAuthority,
+      createExecutionId: () => `caption-design:${input.runtime!.orchestrationId}:${input.privateMediaArtifactId}`,
+    })
   } catch {
     await rm(specialistRoot, { force: true, recursive: true }).catch(() => undefined)
     return {
@@ -2375,11 +2185,9 @@ function validateCaptionDesignOcrAuthority(input: {
   validateEditReferenceCaptionOcrStudyResult(input.authority.request, input.authority.result)
   const request = input.authority.request
   const result = input.authority.result
-  const expectedExecutionScope = input.runtime.runtimeKind === 'reviewed_local_qwen25vl_mlx'
-    ? 'reviewed_local'
-    : input.runtime.productionAuthority
-      ? 'production'
-      : 'controlled_test'
+  const expectedExecutionScope = input.runtime.productionAuthority
+    ? 'production'
+    : 'controlled_test'
   if (
     request.workspaceId !== input.workspaceId
     || request.editReferenceId !== input.editReferenceId
@@ -2400,33 +2208,6 @@ function validateCaptionDesignOcrAuthority(input: {
   ) {
     throw new Error('caption_ocr_authority_mismatch')
   }
-}
-
-function validateCaptionDesignTimingAuthorityReceipt(
-  receipt: EditReferenceCaptionTimingAuthorityReceipt,
-): void {
-  const safeId = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/
-  const sha256 = /^[a-f0-9]{64}$/
-  if (
-    !safeId.test(receipt.privateTranscriptArtifactId)
-    || !sha256.test(receipt.transcriptChecksumSha256)
-    || !safeId.test(receipt.privateWordTimingArtifactId)
-    || !sha256.test(receipt.wordTimingChecksumSha256)
-    || !safeId.test(receipt.transcriptRuntimeId)
-    || !safeId.test(receipt.transcriptRuntimeVersion)
-    || !safeId.test(receipt.transcriptModelManifestId)
-    || !safeId.test(receipt.transcriptExecutionId)
-    || !Number.isSafeInteger(receipt.transcriptSegmentCount)
-    || receipt.transcriptSegmentCount < 1
-    || !Number.isSafeInteger(receipt.alignedWordCount)
-    || receipt.alignedWordCount < 1
-    || !path.isAbsolute(receipt.localFilePath)
-    || !receipt.localFilePath.startsWith('/Volumes/REeditproWork/')
-    || receipt.rawTranscriptTextReadBySanitizer !== true
-    || receipt.rawTranscriptTextPersisted !== false
-    || receipt.providerCallMade !== false
-    || receipt.remoteMutationMade !== false
-  ) throw new Error('caption_timing_authority_receipt_invalid')
 }
 
 function sameOrderedStrings(left: readonly string[], right: readonly string[]): boolean {
@@ -3843,33 +3624,14 @@ export async function runBoundedVisualLanguageStudy(input: {
     const cleanupPrivateFrames = async (frames: readonly { readonly localFilePath: string }[]) => {
       await Promise.all(frames.map(async (frame) => unlink(frame.localFilePath)))
     }
-    let adapter
-    if (isReviewedLocalVisualLanguageRuntime(input.runtime)) {
-      adapter = createEditReferenceReviewedLocalQwen25VlMlxAdapter({
-        runtime: await resolveEditReferenceReviewedLocalQwen25VlMlxRuntimeReceipt({
-          manifestPath: input.runtime.manifestPath,
-          modelPath: input.runtime.modelPath,
-          pythonCommand: input.runtime.pythonCommand,
-          ...(input.runtime.runValidation ? { runValidation: input.runtime.runValidation } : {}),
-        }),
-        pythonCommand: input.runtime.pythonCommand,
-        modelPath: input.runtime.modelPath,
-        privateFrameRoot: specialistRoot,
-        resolvePrivateFrame,
-        cleanupPrivateFrames,
-        runnerScriptPath: input.runtime.runnerScriptPath,
-        timeoutMs: input.runtime.timeoutMs,
-      })
-    } else {
-      adapter = createEditReferenceQwenVisualLanguageAdapter({
-        provider: input.runtime.provider,
-        privateFrameRoot: specialistRoot,
-        resolvePrivateFrame,
-        cleanupPrivateFrames,
-        productionUsageAuthority: productionAuthority?.usageAuthority,
-        createExecutionId: () => `visual-language:${input.runtime!.orchestrationId}:${input.privateMediaArtifactId}`,
-      })
-    }
+    const adapter = createEditReferenceQwenVisualLanguageAdapter({
+      provider: input.runtime.provider,
+      privateFrameRoot: specialistRoot,
+      resolvePrivateFrame,
+      cleanupPrivateFrames,
+      productionUsageAuthority: productionAuthority?.usageAuthority,
+      createExecutionId: () => `visual-language:${input.runtime!.orchestrationId}:${input.privateMediaArtifactId}`,
+    })
     const result = await adapter.analyze(request)
     await rm(specialistRoot, { force: true, recursive: true })
     return result.status === 'analyzed'
@@ -3888,12 +3650,6 @@ export async function runBoundedVisualLanguageStudy(input: {
       blockerMessage: 'The bounded Visual Language adapter failed closed without persisting specialist frame copies.',
     }
   }
-}
-
-function isReviewedLocalVisualLanguageRuntime(
-  runtime: EditReferenceVisualLanguageRuntimeInput,
-): runtime is Extract<EditReferenceVisualLanguageRuntimeInput, { readonly runtimeKind: 'reviewed_local_qwen25vl_mlx' }> {
-  return runtime.runtimeKind === 'reviewed_local_qwen25vl_mlx'
 }
 
 function uniqueVisualLanguageCandidates<T extends {

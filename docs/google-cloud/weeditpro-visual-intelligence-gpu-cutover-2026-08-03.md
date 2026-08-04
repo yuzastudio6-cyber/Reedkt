@@ -38,6 +38,14 @@ read found no remaining Qwen, SAM2, or phase-39c VLM job/service definition.
 Historical Artifact Registry digests were deliberately retained. They are not
 fresh dispatch authority and preserve prior audit evidence.
 
+The repository cutover now also removes the complete unreferenced reviewed-
+local Qwen2.5-VL long-form stack, its MLX runtime validators/adapters, and all
+five local Python inference runners. Edit Reference no longer accepts a local
+Qwen runtime option or constructs a Qwen MLX process path. The remaining Qwen
+provider contracts are fail-closed historical tombstones used only to validate
+old immutable evidence; they cannot read model files, launch a process, call a
+provider, or become fresh Orchestra authority.
+
 The GPU-first processing cutover also retired the fifteen remaining frozen
 CPU-only Cloud Run Job definitions after a second live inventory proved that
 every prior execution was terminal. The guarded retirement exact-matched each

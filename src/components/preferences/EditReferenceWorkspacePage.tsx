@@ -2503,6 +2503,9 @@ function sourceEvidenceStudyLabel(
       : ''
     return `media details analyzed${visualChangeSummary} · ${asset.representativeFrameCount ?? 0} temporary frame sample${asset.representativeFrameCount === 1 ? '' : 's'}`
   }
+  if (asset?.mediaStudyStatus === 'media_studied_visual_intelligence') {
+    return 'reference analyzed through Orchestra Visual Intelligence'
+  }
   if (asset?.mediaStudyStatus === 'media_study_blocked') return 'media study blocked'
   if (record.provenance.mediaStudyStatus === 'media_not_studied') return 'video not studied'
   if (record.provenance.mediaStudyStatus === 'approved_edit_identity_not_verified') return 'approved edit not opened'

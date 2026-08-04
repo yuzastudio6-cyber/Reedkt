@@ -9,6 +9,7 @@ import type {
   PreferenceSkillRuntimeAttemptProvenance,
   PreferenceSkillRunRecord,
   PreferenceStudySessionRecord,
+  PreferenceVisualIntelligenceRuntimeProvenance,
 } from '../../src/types/edit-reference'
 import type {
   EditReferenceLongFormStudyReviewSelection,
@@ -39,6 +40,9 @@ import type {
 } from './edit-reference-previous-approved-edit-study-contract'
 import { EDIT_REFERENCE_PREVIOUS_APPROVED_EDIT_ADAPTER_ID } from './edit-reference-previous-approved-edit-adapter'
 import { materializeEditReferenceLongFormStudySelection } from './edit-reference-long-form-review-package'
+import type { EditReferenceVisualIntelligenceStudy } from
+  './edit-reference-visual-intelligence-orchestra-consumer'
+import { orchestraDigest } from '../orchestra/orchestra-skill-capability-contract'
 
 interface OrchestrationInput {
   orchestrationId?: string
@@ -47,6 +51,7 @@ interface OrchestrationInput {
   study: PreferenceStudySessionRecord
   evidence: PreferenceEvidenceRecord[]
   mediaStudies?: EditReferenceLocalMediaStudyResult[]
+  visualIntelligenceStudies?: readonly EditReferenceVisualIntelligenceStudy[]
   previousApprovedEditStudies?: readonly {
     sourceEvidenceId: string
     result: EditReferencePreviousApprovedEditStudyResult
@@ -150,6 +155,10 @@ export function orchestratePreferenceEvidenceStudy(input: OrchestrationInput): P
   const longFormNotApplicableSkillIds = new Set<string>()
   const longFormAdaptedSkillIds = new Set<string>()
   const mediaStudyByEvidenceId = new Map((input.mediaStudies ?? []).map((study) => [study.sourceEvidenceId, study]))
+  const visualIntelligenceStudyByEvidenceId = exactVisualIntelligenceStudies(
+    input,
+    metadataEvidence,
+  )
   const previousApprovedEditStudyByEvidenceId = new Map(
     (input.previousApprovedEditStudies ?? []).map((study) => [study.sourceEvidenceId, study.result]),
   )
@@ -183,14 +192,33 @@ export function orchestratePreferenceEvidenceStudy(input: OrchestrationInput): P
     }
   }
 
+  for (const record of metadataEvidence) {
+    const visualIntelligenceStudy =
+      visualIntelligenceStudyByEvidenceId.get(record.id)
+    if (!visualIntelligenceStudy) continue
+    appendVisualIntelligenceStudy({
+      input,
+      orchestrationId,
+      sourceEvidence: record,
+      study: visualIntelligenceStudy,
+      derivedEvidence,
+      skillRuns,
+    })
+  }
+
   if (metadataEvidence.length > 0) {
-    const metadataOnlyEvidence = metadataEvidence.filter((record) => !mediaStudyByEvidenceId.has(record.id))
+    const metadataOnlyEvidence = metadataEvidence.filter((record) => (
+      !mediaStudyByEvidenceId.has(record.id)
+      && !visualIntelligenceStudyByEvidenceId.has(record.id)
+    ))
     for (const record of metadataEvidence.filter((candidate) => mediaStudyByEvidenceId.has(candidate.id))) {
       appendLocalMediaStudy({
         input,
         orchestrationId,
         sourceEvidence: record,
         mediaStudy: mediaStudyByEvidenceId.get(record.id)!,
+        visualIntelligenceStudyPresent:
+          visualIntelligenceStudyByEvidenceId.has(record.id),
         derivedEvidence,
         skillRuns,
       })
@@ -354,19 +382,35 @@ export function orchestratePreferenceEvidenceStudy(input: OrchestrationInput): P
     }))
   }
 
-  const analyzedSkillIds = new Set(skillRuns
-    .filter((record) => record.status === 'completed' && record.resultState === 'analyzed' && !record.fallbackUsed)
-    .map((record) => record.skillId))
+  const evidenceById = new Map(derivedEvidence.map((record) => [
+    record.id,
+    record,
+  ]))
+  const analyzedSkillCategoryPairs = new Set(skillRuns
+    .filter((record) => record.status === 'completed'
+      && record.resultState === 'analyzed'
+      && !record.fallbackUsed)
+    .flatMap((record) => record.outputEvidenceIds.flatMap((evidenceId) => {
+      const evidence = evidenceById.get(evidenceId)
+      return evidence ? [`${record.skillId}:${evidence.category}`] : []
+    })))
   const verifiedPreviousApprovedEditGoals = new Set((input.previousApprovedEditStudies ?? [])
     .flatMap((study) => study.result.status === 'verified'
       ? study.result.evidence.map((finding) => finding.layer)
       : []))
+  const visualIntelligenceCoveredGoals = new Set(
+    [...visualIntelligenceStudyByEvidenceId.values()].flatMap(
+      (study) => [...study.coveredPreferenceCategories],
+    ),
+  )
   const uncoveredGoals = input.study.initialGoals.filter((goal) => (
     !manualEvidence.some((record) => record.category === goal || record.category === 'all_goals')
     && !verifiedPreviousApprovedEditGoals.has(goal)
+    && !visualIntelligenceCoveredGoals.has(goal)
     && !GOAL_SKILLS[goal].every((definition) => longFormNotApplicableSkillIds.has(definition.skillId))
     && !GOAL_SKILLS[goal].some((definition) => longFormAdaptedSkillIds.has(definition.skillId))
-    && !GOAL_SKILLS[goal].some((definition) => analyzedSkillIds.has(definition.skillId))
+    && !GOAL_SKILLS[goal].some((definition) =>
+      analyzedSkillCategoryPairs.has(`${definition.skillId}:${goal}`))
   ))
   const longFormReviewOnly = (
     longFormStudySelectionReceipts.length > 0
@@ -396,12 +440,298 @@ export function orchestratePreferenceEvidenceStudy(input: OrchestrationInput): P
       uncoveredGoals,
       copyRiskKinds,
       conflictKinds,
-      (input.mediaStudies ?? []).some((study) => study.status === 'verified_local'),
-      (input.mediaStudies ?? []).some((study) => study.visualLanguageStudyStatus === 'analyzed'),
+      (input.mediaStudies ?? []).some((study) => study.status === 'verified_local')
+        || visualIntelligenceStudyByEvidenceId.size > 0,
+      visualIntelligenceStudyByEvidenceId.size > 0
+        || (input.mediaStudies ?? []).some((study) =>
+          study.visualLanguageStudyStatus === 'analyzed'),
       longFormStudySelectionReceipts.length > 0,
       longFormReviewOnly,
     ),
   }
+}
+
+function exactVisualIntelligenceStudies(
+  input: OrchestrationInput,
+  metadataEvidence: readonly PreferenceEvidenceRecord[],
+): Map<string, EditReferenceVisualIntelligenceStudy> {
+  const studies = input.visualIntelligenceStudies ?? []
+  if (studies.length > metadataEvidence.length || studies.length > 16) {
+    throw new Error(
+      'Visual Intelligence studies must map one-to-one to active reference media evidence.',
+    )
+  }
+  const evidenceById = new Map(metadataEvidence.map((record) => [
+    record.id,
+    record,
+  ]))
+  const byEvidenceId = new Map<string, EditReferenceVisualIntelligenceStudy>()
+  for (const study of studies) {
+    const sourceEvidence = evidenceById.get(study.sourceEvidenceId)
+    if (!sourceEvidence || byEvidenceId.has(study.sourceEvidenceId)) {
+      throw new Error(
+        'Visual Intelligence study source evidence is unavailable, superseded, or duplicated.',
+      )
+    }
+    assertExactVisualIntelligenceStudy(input, sourceEvidence, study)
+    byEvidenceId.set(study.sourceEvidenceId, study)
+  }
+  return byEvidenceId
+}
+
+function assertExactVisualIntelligenceStudy(
+  input: OrchestrationInput,
+  sourceEvidence: PreferenceEvidenceRecord,
+  study: EditReferenceVisualIntelligenceStudy,
+): void {
+  const { studyDigestSha256, ...withoutDigest } = study
+  const categories = orderedVisualIntelligenceCategories(
+    study.evidenceItems.map((item) => item.category),
+  )
+  const refs = [
+    study.sourceArtifactRef,
+    study.orchestraCallRef,
+    study.orchestraResultRef,
+    study.manifestRef,
+    study.qualificationSnapshotRef,
+    study.reportRef,
+    study.providerReleaseRef,
+    study.costEvidenceRef,
+  ]
+  const evidenceIds = new Set<string>()
+  if (
+    study.schemaVersion !== 'edit-reference-visual-intelligence-study-v1'
+    || !/^sha256:[a-f0-9]{64}$/u.test(studyDigestSha256)
+    || orchestraDigest(withoutDigest) !== studyDigestSha256
+    || sourceEvidence.sourceType !== 'reference_video_metadata'
+    || sourceEvidence.provenance.privateAssetId !== study.privateAssetId
+    || study.sourceArtifactRef.id !== study.privateAssetId
+    || study.scope.workspaceId !== input.workspaceId
+    || study.scope.projectId !== input.editReferenceId
+    || study.scope.editSessionId !== input.study.id
+    || study.scope.approvedSnapshotId !== null
+    || refs.some((ref) => !isExactVisualIntelligenceEvidenceRef(ref))
+    || study.requestedRanges.length === 0
+    || orchestraDigest(study.requestedRanges)
+      !== orchestraDigest(study.analyzedRanges)
+    || study.evidenceItems.length === 0
+    || orchestraDigest(categories)
+      !== orchestraDigest(study.coveredPreferenceCategories)
+    || !study.toolIds.includes(EDIT_REFERENCE_VISUAL_INTELLIGENCE_BRIDGE_ID)
+    || !study.toolIds.includes(EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID)
+    || !study.toolIds.includes('vertex_gemini_pro')
+    || !study.toolIds.includes('google_vertex_ai')
+    || new Set(study.toolIds).size !== study.toolIds.length
+    || study.providerAdapterId !== 'vertex_gemini_pro'
+    || study.providerId !== 'google_vertex_ai'
+    || study.providerModel !== 'gemini-3.1-pro-preview'
+    || !study.providerModelVersion
+    || study.thinkingLevel !== 'high'
+    || study.mediaResolution !== 'high'
+    || study.completeRequestedRangeCoverage !== true
+    || study.everyTimelineFrameInspected !== false
+    || study.completeTimePixelInspectionClaimAllowed !== false
+    || study.billingAccountEffectiveRateUsed !== true
+    || study.publicListPriceUsed !== false
+    || !Number.isSafeInteger(study.settledCostMicros)
+    || study.settledCostMicros <= 0
+    || typeof study.replayedFromCache !== 'boolean'
+    || study.providerCallMade !== true
+    || study.immutableReportRereadRequired !== true
+    || study.resultReturnedThroughOrchestra !== true
+    || study.planningMayConsumeValidatedEvidence !== true
+    || study.preferenceDnaApproved !== false
+    || study.directTimelineMutationAllowed !== false
+    || study.directProviderAuthorityGranted !== false
+    || study.customerCreditMutationPerformed !== false
+    || study.publicDeliveryGranted !== false
+    || study.productionAuthorityGranted !== false
+  ) throw new Error(
+    'Visual Intelligence study does not match the exact active Edit Reference authority.',
+  )
+  for (const item of study.evidenceItems) {
+    if (
+      !item.evidenceId
+      || evidenceIds.has(item.evidenceId)
+      || !categories.includes(item.category as EditReferenceStudyGoal)
+      || !item.title
+      || item.title.length > 160
+      || !item.summary
+      || item.summary.length > 4_000
+      || !Number.isSafeInteger(item.confidenceBasisPoints)
+      || item.confidenceBasisPoints < 0
+      || item.confidenceBasisPoints > 10_000
+      || item.evidenceRefs.length === 0
+      || item.evidenceRefs.some((ref) => (
+        !isExactVisualIntelligenceEvidenceRef(ref)
+      ))
+      || item.requiresUserReview !== true
+      || item.exactReferenceLayoutTransferAllowed !== false
+      || item.exactVisibleTextTransferAllowed !== false
+      || item.exactCameraPathTransferAllowed !== false
+      || item.creatorIdentityTransferAllowed !== false
+      || item.copyrightedAssetTransferAllowed !== false
+      || item.targetAdaptationRequired !== true
+    ) throw new Error(
+      'Visual Intelligence evidence item is malformed or over-authoritative.',
+    )
+    evidenceIds.add(item.evidenceId)
+  }
+}
+
+function appendVisualIntelligenceStudy(input: {
+  input: OrchestrationInput
+  orchestrationId: string
+  sourceEvidence: PreferenceEvidenceRecord
+  study: EditReferenceVisualIntelligenceStudy
+  derivedEvidence: PreferenceEvidenceRecord[]
+  skillRuns: PreferenceSkillRunRecord[]
+}): void {
+  const { study } = input
+  const runId = `preference-skill-run-${randomUUID()}`
+  const runtime: PreferenceVisualIntelligenceRuntimeProvenance = {
+    schemaVersion: 'edit-reference-visual-intelligence-runtime-provenance-v2',
+    adapterId: EDIT_REFERENCE_VISUAL_INTELLIGENCE_BRIDGE_ID,
+    adapterVersion: study.schemaVersion,
+    providerAdapterId: study.providerAdapterId,
+    providerId: study.providerId,
+    modelId: study.providerModel,
+    providerModelVersion: study.providerModelVersion,
+    thinkingLevel: study.thinkingLevel,
+    mediaResolution: study.mediaResolution,
+    orchestraCallRef: structuredClone(study.orchestraCallRef),
+    orchestraResultRef: structuredClone(study.orchestraResultRef),
+    manifestRef: structuredClone(study.manifestRef),
+    qualificationSnapshotRef: structuredClone(
+      study.qualificationSnapshotRef,
+    ),
+    reportRef: structuredClone(study.reportRef),
+    providerReleaseRef: structuredClone(study.providerReleaseRef),
+    costEvidenceRef: structuredClone(study.costEvidenceRef),
+    studyDigestSha256: study.studyDigestSha256,
+    providerCallMade: true,
+    modelCallEvidencePresent: true,
+    replayedFromCache: study.replayedFromCache,
+    substantiveCpuExecutionUsed: false,
+    settledInternalCostMicros: String(study.settledCostMicros),
+    billingAccountEffectiveRateUsed: true,
+    publicListPriceUsed: false,
+    customerPriceCalculated: false,
+    customerCreditsMutated: false,
+    serviceFeeIncluded: false,
+  }
+  const baseArtifactIds = [
+    study.orchestraCallRef.id,
+    study.orchestraResultRef.id,
+    study.manifestRef.id,
+    study.qualificationSnapshotRef.id,
+    study.reportRef.id,
+    study.providerReleaseRef.id,
+    study.costEvidenceRef.id,
+  ]
+  const outputEvidenceIds: string[] = []
+  for (const item of study.evidenceItems) {
+    const output = createDerivedEvidence({
+      input: input.input,
+      orchestrationId: input.orchestrationId,
+      runId,
+      category: item.category,
+      title: item.title,
+      summary: item.summary,
+      confidence: item.confidenceBasisPoints / 10_000,
+      confidenceBasis: 'model_observed',
+      transferability: 'requires_user_review',
+      sourceEvidenceIds: [input.sourceEvidence.id],
+      runtimeSource: 'verified_live',
+      mediaStudyStatus: 'media_studied_visual_intelligence',
+      skillId: EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
+      toolIds: [...study.toolIds],
+      fallbackUsed: false,
+      privateAssetId: study.privateAssetId,
+      analysisArtifactIds: uniqueStrings([
+        ...baseArtifactIds,
+        ...item.evidenceRefs.map((ref) => ref.id),
+      ]),
+      visualIntelligenceRuntime: runtime,
+      notes: [
+        'This is a generalized, reference-only observation returned through Orchestra from the exact immutable Visual Intelligence report.',
+        'Gemini Pro High observed the approved source range; no every-frame or full-pixel inspection claim is made.',
+        'Exact reference layouts, visible text, camera paths, creator identity, copyrighted assets, and source timing remain non-transferable.',
+        'Preference DNA remains unapproved and nothing was applied to an edit automatically.',
+      ],
+    })
+    input.derivedEvidence.push(output)
+    outputEvidenceIds.push(output.id)
+  }
+  input.skillRuns.push(createSkillRun({
+    input: input.input,
+    orchestrationId: input.orchestrationId,
+    id: runId,
+    skillId: EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
+    status: 'completed',
+    runtimeSource: 'verified_live',
+    readinessAtRun: 'verified_live',
+    inputEvidenceIds: [input.sourceEvidence.id],
+    outputEvidenceIds,
+    toolIds: [...study.toolIds],
+    fallbackUsed: false,
+    resultState: 'analyzed',
+    retryAvailable: false,
+    resultSummary: `Consumed one exact immutable Orchestra Visual Intelligence report and produced ${outputEvidenceIds.length} generalized reference-evidence record${outputEvidenceIds.length === 1 ? '' : 's'} for user review. Preference DNA remains unapproved.`,
+    warnings: [
+      'Semantic findings are bounded to the analyzed ranges; complete-time pixel inspection was not claimed.',
+      'No exact source layout, wording, camera path, identity, copyrighted asset, or timing may be copied.',
+    ],
+    blockedReasons: [],
+    providerCallMade: true,
+    modelCallMade: true,
+    runtimeAttempt: {
+      schemaVersion: 'edit-reference-skill-runtime-attempt-v1',
+      adapterId: EDIT_REFERENCE_VISUAL_INTELLIGENCE_BRIDGE_ID,
+      requestDigestSha256: study.studyDigestSha256.replace(/^sha256:/u, ''),
+      providerCallMade: true,
+      modelCallMade: true,
+      workerJobCreated: false,
+      temporaryInputsCleaned: true,
+      internalCostStatus: 'metered',
+      meteredInternalCostMicros: String(study.settledCostMicros),
+      usageEventIds: [study.costEvidenceRef.id],
+      internalCostRecordIds: [study.costEvidenceRef.id],
+      customerPriceCalculated: false,
+      customerCreditsMutated: false,
+      serviceFeeIncluded: false,
+    },
+    fileBytesRead: true,
+    mediaProcessingStarted: true,
+  }))
+}
+
+function orderedVisualIntelligenceCategories(
+  categories: readonly PreferenceEvidenceCategory[],
+): EditReferenceStudyGoal[] {
+  const selected = new Set(categories)
+  const order: readonly EditReferenceStudyGoal[] = [
+    'visual_language',
+    'story_and_pacing',
+    'captions',
+    'color',
+    'b_roll',
+    'audio_and_sfx',
+    'graphics',
+  ]
+  return order.filter((category) => selected.has(category))
+}
+
+function isExactVisualIntelligenceEvidenceRef(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const record = value as Record<string, unknown>
+  return Object.keys(record).length === 3
+    && typeof record.id === 'string'
+    && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u.test(record.id)
+    && Number.isSafeInteger(record.version)
+    && Number(record.version) > 0
+    && typeof record.contentHash === 'string'
+    && /^sha256:[a-f0-9]{64}$/u.test(record.contentHash)
 }
 
 function appendLocalMediaStudy(input: {
@@ -409,6 +739,7 @@ function appendLocalMediaStudy(input: {
   orchestrationId: string
   sourceEvidence: PreferenceEvidenceRecord
   mediaStudy: EditReferenceLocalMediaStudyResult
+  visualIntelligenceStudyPresent: boolean
   derivedEvidence: PreferenceEvidenceRecord[]
   skillRuns: PreferenceSkillRunRecord[]
 }): void {
@@ -536,7 +867,9 @@ function appendLocalMediaStudy(input: {
 
   appendTechnicalMotionStudy(input, mediaReady)
 
-  appendVisualLanguageStudy(input, mediaReady)
+  if (!input.visualIntelligenceStudyPresent) {
+    appendVisualLanguageStudy(input, mediaReady)
+  }
 
   appendColorTreatmentStudy(input, mediaReady)
 
@@ -550,7 +883,11 @@ function appendLocalMediaStudy(input: {
 
   appendAudioSoundDesignStudy(input, mediaReady)
 
-  appendUnavailableMediaSpecialists(input, mediaReady)
+  appendUnavailableMediaSpecialists(
+    input,
+    mediaReady,
+    input.visualIntelligenceStudyPresent,
+  )
 }
 
 function appendPreviousApprovedEditStudy(input: {
@@ -2321,10 +2658,15 @@ function appendUnavailableMediaSpecialists(input: {
   orchestrationId: string
   sourceEvidence: PreferenceEvidenceRecord
   mediaStudy: EditReferenceLocalMediaStudyResult
+  visualIntelligenceStudyPresent: boolean
   derivedEvidence: PreferenceEvidenceRecord[]
   skillRuns: PreferenceSkillRunRecord[]
-}, mediaReady: boolean): void {
+}, mediaReady: boolean, visualIntelligenceStudyPresent: boolean): void {
   for (const definition of EDIT_REFERENCE_SEMANTIC_SPECIALISTS) {
+    if (
+      definition.specialistId === 'visual_language'
+      && visualIntelligenceStudyPresent
+    ) continue
     if (
       definition.specialistId === 'visual_language'
       && input.mediaStudy.visualLanguageStudyStatus !== 'not_run'
@@ -3127,6 +3469,7 @@ function createDerivedEvidence(input: {
   privateAssetId?: string
   analysisArtifactIds?: string[]
   semanticRuntime?: PreferenceSemanticRuntimeProvenance
+  visualIntelligenceRuntime?: PreferenceVisualIntelligenceRuntimeProvenance
   notes: string[]
 }): PreferenceEvidenceRecord {
   return {
@@ -3154,6 +3497,13 @@ function createDerivedEvidence(input: {
       skillIds: [input.skillId],
       fallbackUsed: input.fallbackUsed,
       ...(input.semanticRuntime ? { semanticRuntime: structuredClone(input.semanticRuntime) } : {}),
+      ...(input.visualIntelligenceRuntime
+        ? {
+          visualIntelligenceRuntime: structuredClone(
+            input.visualIntelligenceRuntime,
+          ),
+        }
+        : {}),
       notes: input.notes,
     },
     createdAt: input.input.now,

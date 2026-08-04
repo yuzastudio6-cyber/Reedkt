@@ -209,6 +209,7 @@
     "smoke:visual-intelligence-orchestra-compiler": "tsx server/smoke/visual-intelligence-orchestra-invocation-compiler-smoke.ts",
     "smoke:visual-intelligence-route-contract": "tsx server/smoke/visual-intelligence-route-contract-smoke.ts",
     "smoke:visual-intelligence-legacy-retirement": "tsx server/smoke/visual-intelligence-qwen-retirement-smoke.ts",
+    "smoke:edit-reference-visual-intelligence-consumer": "tsx server/smoke/edit-reference-visual-intelligence-orchestra-consumer-smoke.ts",
     "smoke:visual-intelligence-cloud-retirement": "tsx server/smoke/visual-intelligence-cloud-runtime-retirement-smoke.ts",
     "smoke:visual-intelligence-legacy-cpu-retirement": "tsx server/smoke/visual-intelligence-legacy-cpu-runtime-retirement-smoke.ts",
     "smoke:visual-intelligence-private-search-identity": "tsx server/smoke/visual-intelligence-private-search-identity-isolation-smoke.ts",

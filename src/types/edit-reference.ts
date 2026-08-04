@@ -4,6 +4,7 @@ import type {
   ProjectEditSessionPlatformTarget,
 } from './project-edit-session'
 import type { UserFacingEditLevel } from './reeditpro'
+import type { VisualIntelligenceEvidenceRef } from './visual-intelligence'
 
 export const EDIT_REFERENCE_STUDY_GOALS = [
   'visual_language',
@@ -54,11 +55,17 @@ export const EDIT_REFERENCE_MEDIA_RIGHTS_BASES = [
   'reference_only',
 ] as const
 export type PreferenceEvidenceTransferability = 'transferable' | 'non_transferable' | 'do_not_copy' | 'requires_user_review' | 'unknown'
-export type PreferenceEvidenceConfidenceBasis = 'user_asserted' | 'metadata_verified' | 'deterministic_derived' | 'blocked'
+export type PreferenceEvidenceConfidenceBasis =
+  | 'user_asserted'
+  | 'metadata_verified'
+  | 'deterministic_derived'
+  | 'model_observed'
+  | 'blocked'
 export type PreferenceEvidenceMediaStudyStatus =
   | 'not_applicable'
   | 'media_not_studied'
   | 'media_studied_local_partial'
+  | 'media_studied_visual_intelligence'
   | 'media_study_blocked'
   | 'approved_edit_identity_not_verified'
   | 'approved_edit_verified'
@@ -248,7 +255,38 @@ export interface PreferenceEvidenceProvenance {
   skillIds: string[]
   fallbackUsed: boolean
   semanticRuntime?: PreferenceSemanticRuntimeProvenance
+  visualIntelligenceRuntime?: PreferenceVisualIntelligenceRuntimeProvenance
   notes: string[]
+}
+
+export interface PreferenceVisualIntelligenceRuntimeProvenance {
+  schemaVersion: 'edit-reference-visual-intelligence-runtime-provenance-v2'
+  adapterId: 'visual_intelligence_orchestra_report_bridge'
+  adapterVersion: 'edit-reference-visual-intelligence-study-v1'
+  providerAdapterId: 'vertex_gemini_pro'
+  providerId: 'google_vertex_ai'
+  modelId: 'gemini-3.1-pro-preview'
+  providerModelVersion: string
+  thinkingLevel: 'high'
+  mediaResolution: 'high'
+  orchestraCallRef: VisualIntelligenceEvidenceRef
+  orchestraResultRef: VisualIntelligenceEvidenceRef
+  manifestRef: VisualIntelligenceEvidenceRef
+  qualificationSnapshotRef: VisualIntelligenceEvidenceRef
+  reportRef: VisualIntelligenceEvidenceRef
+  providerReleaseRef: VisualIntelligenceEvidenceRef
+  costEvidenceRef: VisualIntelligenceEvidenceRef
+  studyDigestSha256: string
+  providerCallMade: true
+  modelCallEvidencePresent: true
+  replayedFromCache: boolean
+  substantiveCpuExecutionUsed: false
+  settledInternalCostMicros: string
+  billingAccountEffectiveRateUsed: true
+  publicListPriceUsed: false
+  customerPriceCalculated: false
+  customerCreditsMutated: false
+  serviceFeeIncluded: false
 }
 
 export interface PreferenceSemanticRuntimeProvenance {

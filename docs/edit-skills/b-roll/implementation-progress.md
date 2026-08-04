@@ -1398,6 +1398,73 @@ not run because the explicit execution gates and credentials were not supplied.
 No orchestra, Track All, Visual Intelligence, public delivery, final export,
 production mutation, or billing work was performed.
 
+## M21 — dependency-injected runtime factory and status cleanup
+
+Status: completed and pushed.
+
+Implementation commit: `cc516c651ba633bd62c1da40deb335edbc59d373`.
+
+Generated qualification artifact commit:
+`ae3dde20602671d3fcea02ea9ed49788a1640875`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to `ae3dde20602671d3fcea02ea9ed49788a1640875` after
+`git push -u origin HEAD`.
+
+Replaced the process-global runtime in `registry.ts` with
+`createEditSkillRuntime(...)`. Construction now requires an explicit artifact
+store, provider authority, tool-operation registry, QA registry,
+qualification registry, estimator registry, and artifact-schema registry.
+Missing dependencies fail closed with the stable
+`edit_skill_runtime_unconfigured` code. Provider operations must meet their
+manifest qualification and every tool operation must be externally configured
+before the runtime is returned.
+
+Artifact stores now declare `storageClass`. Production-server construction
+requires `durable` and rejects the in-memory store. The sole convenience
+singleton moved to the explicit `internal-fixture-runtime.ts` boundary, and
+all smoke/validation/canary fixtures import that boundary by name. A future
+durable adapter can be injected without changing B-roll or its public plugin;
+no new GCS or Supabase adapter was built.
+
+The exact implementation status is now a structured record: skill complete,
+planning qualified, internal execution qualified, production blocked pending
+five live fixtures, live provider blocked pending explicit canary gates,
+public plugin available, and orchestra integration not implemented by design.
+The stale Remotion document claiming M11 promotion was still reserved was
+corrected, and candidate documentation now distinguishes internal injected QA
+from the external production Visual Intelligence contract.
+
+Final evidence:
+
+- Manifest schema: `skill-capability-manifest-v2`.
+- Manifest hash:
+  `f76f07bd05a4e38ff61a04cdb4fa3d5784c41d1018f497f2d3d3c390c260d427`.
+- Tested commit:
+  `cc516c651ba633bd62c1da40deb335edbc59d373`.
+- Relevant source-tree hash:
+  `9e8f38c4fb7f75728709dfd65c391abcae381119a4ee5a3b1b835bb0913712f9`.
+- Qualification receipt hash:
+  `dd156d437fb96d277f26e571a87e946e0d56d69e11a2740f11f08c94855070e0`.
+- Generated qualification artifact hash:
+  `b535754eafeb930b51986f43d6dca1ad2e8292266cf78a923694781c355a1c07`.
+- Aggregate qualification: all 25 actual commands and 36 required fixtures
+  passed with zero provider requests, public artifacts, and production
+  mutations.
+
+`test:edit-skill-runtime-factory` proves missing dependency rejection,
+production in-memory rejection, explicit durable construction, injected
+provider/tool validation, the isolated internal fixture runtime, and current
+status messaging. The full qualifier additionally passed public plugin,
+runtime binding, planning, evidence-derived QA, qualification, manifest,
+kernel, build, server typecheck, lint, frontend boundary, provider authority,
+retirement, candidate/source/lifecycle, canonical/Remotion, and shared
+security/idempotency suites.
+
+Production qualification remains false. No orchestra, Track All, Visual
+Intelligence, paid provider call, public delivery, final export, production
+mutation, durable storage implementation, or billing work was performed.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -1423,3 +1490,4 @@ production mutation, or billing work was performed.
 | M18 | `18c2b4335` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M19 | `e13a99cd0` + `387e3b7f5` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M20 | `c34664df7` + `851702089` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M21 | `cc516c651` + `ae3dde206` | this bookkeeping commit | confirmed | `internal_execution_qualified` |

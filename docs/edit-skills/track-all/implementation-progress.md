@@ -447,3 +447,51 @@ immutable image qualification, and real private A100/L4 evidence. No SAM
 model/checkpoint/GPU inference, paid action, public artifact, production
 mutation, database migration, head orchestra, or peer-skill implementation
 occurred.
+
+## TRACK-08 — SAM source, checkpoint, and runtime qualification gates
+
+Status: complete for every non-external requirement; push confirmation is
+recorded by the following evidence ledger commit.
+
+- implementation commit: `4ecce6a6ddb198b2fc251e3c5ed0bb4a95b66fe7`
+
+Implemented:
+
+- added one strict, ordered, content-addressed V2 route-gate report derived
+  from the canonical repository source candidate rather than a caller-supplied
+  pass declaration;
+- covered legal/terms, source ingest/security, checkpoint ingest/hash/security,
+  strict compatibility, offline closure, immutable image, V2 session runtime,
+  A100, conditional L4, current rate, and private privacy-quality gates;
+- enforced that internal qualification needs all active gates plus actual
+  checkpoint bytes, strict load, real A100 inference, and a nonzero real SAM
+  request count;
+- enforced that production authority cannot exceed internal authority and a
+  production-qualified route receipt;
+- made the L4 gate not-applicable only when L4 is explicitly inactive;
+- rejected missing/injected evidence as real gate evidence and rejected a
+  forged internal qualification status;
+- preserved all existing V1 artifact-ingest, compatibility, image, runtime,
+  and historical authority code unchanged.
+
+Actual checks run:
+
+- `npm run test:track-all-sam3.1-route-gates` — passed; report hash
+  `8aef95a45077ed81cf395e6e0443dfb54ab150e1629c24afd740d08e61aee27d`,
+  11 required gates, 1 passed repository source/operation gate, 10 blocked
+  external/private gates, zero checkpoint bytes, zero strict loads, zero A100
+  or L4 inference, and zero SAM requests.
+- `npm run test:track-all-sam3.1-operation-authority` — passed and preserved
+  operation authority hash
+  `cd6f408a7328ff3a4d54e054dd29b7438d8571533e67003856b5c84bfc4d1a1a`.
+- `npm run typecheck:server` — passed.
+- `npm run lint -- --quiet` — passed after the full ESLint process completed.
+- staged `git diff --check` — passed.
+
+The exact external blocker is authorized human access/approval for the gated
+official checkpoint followed by exact private hash/security evidence,
+strict-load compatibility, immutable signed runtime images, and real private
+A100/L4 runtime/quality/cost/privacy evidence. Track All remains
+`implementation_pending` and the SAM route remains `blocked`. No checkpoint,
+model, GPU, paid, public, production, database, or head-orchestra action
+occurred.

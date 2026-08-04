@@ -2175,6 +2175,80 @@ contracts, and provider history required no adaptation. M33 will run the full
 regression matrix. No provider request, public artifact, production mutation,
 or new orchestra/Track All/Visual Intelligence implementation occurred.
 
+## M33 — reconciled B-roll regression validation
+
+Status: complete; this documentation commit records the full independent
+post-reconciliation regression pass.
+
+M32 was committed and pushed as
+`235053965f2e407dc5b07b93ccfeaa3df083862e`; local and remote refs matched
+exactly. The source tree remained unchanged from the already reconciled B-roll
+implementation. All B-roll-specific and affected shared validation passed:
+
+- Planning/contracts: `test:b-roll-planning`, `test:b-roll-planning-qa`,
+  `test:b-roll-plan-invariants`, `test:b-roll-public-plugin`,
+  `test:b-roll-active-artifact-contracts`, `test:b-roll-runtime-bindings`,
+  `test:b-roll-canonical-private-runtime`,
+  `test:b-roll-public-canonical-lifecycle`,
+  `test:b-roll-capability-manifest`,
+  `test:b-roll-qualification-evidence`,
+  `test:b-roll-canonical-integration`,
+  `test:edit-skill-runtime-factory`,
+  `test:edit-skill-capability-kernel`, and
+  `validate:skill-capability-manifests` passed.
+- Execution/QA: `smoke:b-roll-existing-source`,
+  `smoke:b-roll-provider-authority`, `smoke:b-roll-provider-lifecycle`,
+  `smoke:b-roll-candidate-qa`, `smoke:b-roll-remotion-integration`,
+  `smoke:b-roll-end-to-end`, and `smoke:b-roll-retirement` passed.
+- Shared gates: `smoke:runtime-api-security`,
+  `smoke:edit-execution-security-boundary`, `smoke:idempotency-boundary`,
+  `check:frontend-boundary`, `typecheck:server`, `lint`, and `build` passed.
+- Local `ffmpeg -version` and `ffprobe -version` passed at 8.1.1.
+
+The public canonical lifecycle proved 13 registered/dispatched bindings, three
+no-action work items with zero provider work, 12 existing-source work items
+with real FFprobe/FFmpeg/private Remotion and zero provider requests, and 11
+generated work items from exactly one injected Gemini submission. Generated
+acceptance remained blocked until the exact model-neutral Visual Intelligence
+artifact was accepted. `track_graph_v1` remained the only accepted tracking
+artifact and direct model fields were rejected. No private mini-skill was
+imported by the public lifecycle.
+
+Strict artifact validation passed 29 active schemas; raw bytes and provider
+URLs remained outside public JSON. Provider authority preserved the exact
+historical hashes:
+
+- V1 `17928478279cc8fd292db235286ae883db2434d79d015e7a16bfadc1a4bde1bd`
+- V2 `6fbfdef538e3bc9ecb944892586e7eac154f518bdf1df1d3f15bbe3a9fb32d18`
+- V3 `284b456da2610af6280e080bc9cb24c10989f2ee3401bd2711619622544bfd2b`
+- V4 `91ea2d40a33f5198f124d6322b61e447bb29ea037dabb808b2f39887cd432eeb`
+
+Provider lifecycle kept automatic retries and alternate-provider fallbacks at
+zero. Retirement validation rejected all five retired providers and confirmed
+no Track All implementation import.
+
+`npm run test:e2e` ran with FFmpeg available. The normal browser suite passed
+131 tests with seven intentional skips. The following separate Current Edit
+Preferences atomic assertions remained red:
+
+1. `plan-review-card` remained present after cleanup changed.
+2. `visualPreference` remained `keep_visuals_minimal` instead of
+   `no_extra_visuals`.
+3. `editLevelConfirmed` remained `true` instead of `false` after a non-gate
+   preference change.
+
+The exact `npm run qa:current-edit-preferences-atomic` command reproduced the
+same three failures and values at selected integration commit
+`6423f12c1e62a252fc860ce5184888770411c62d` in a detached worktree. The base
+and B-roll runs each passed the other two tests. No active B-roll file
+participates in that preference path, so the unrelated base regression was
+documented and not changed, skipped, weakened, or hidden.
+
+No B-roll reconciliation fix was required. No paid provider request, public
+artifact, production mutation, production worker, orchestra, Track All
+implementation, or Visual Intelligence implementation was added. M34 will
+generate a fresh receipt from the clean M33 source commit.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -2211,4 +2285,5 @@ or new orchestra/Track All/Visual Intelligence implementation occurred.
 | M29 | `afa3905e9` + `3b0b7c1` + `92039bc` + `56a4a89` + `01168f5` + `657e9e9` + `14f734a` + `950fa40` | this bookkeeping commit | confirmed | included in final actual receipt |
 | M30 | tested `950fa403856b4f2ce6dcb9f09d017db18a27b75a`; evidence `4fd8b9dcddb529e1627d03f134514df9458fd524` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
 | M31 | selected base `6423f12c1e62a252fc860ce5184888770411c62d`; prior merge `d9e220f048ec6127e6a1927c8276bc660fe4d2fd` | `0049726b9e32b3ab71b298cb1039a6680b5c7536` | confirmed | prior receipt verified; M34 regeneration required |
-| M32 | required merge reported already up to date; ownership audit preserved exact base authorities | this reconciliation record | pending push | targeted manifest/typecheck/retirement validation passed |
+| M32 | required merge reported already up to date; ownership audit preserved exact base authorities | `235053965f2e407dc5b07b93ccfeaa3df083862e` | confirmed | targeted manifest/typecheck/retirement validation passed |
+| M33 | full reconciled B-roll regression matrix and exact-base browser comparison | this regression record | pending push | all B-roll gates passed; three unrelated preference failures reproduced on exact base |

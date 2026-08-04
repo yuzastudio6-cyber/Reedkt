@@ -216,8 +216,12 @@ GPU work, paid action, public artifact, or production mutation occurred.
 
 ## TRACK-04 — planning mini-skills, estimators, and planning QA
 
-Status: implementation and local verification complete; the milestone commit
-and exact remote confirmation are recorded by the following ledger update.
+Status: implementation complete and pushed; qualification receipt issuance is
+deferred to the evidence-backed qualification milestone.
+
+- implementation commit: `deee532dfd2be26c4d78da6cb750f34b88f762f8`
+- remote confirmation: `git ls-remote --heads origin codex/track-all-skill-end-to-end`
+  returned the same exact SHA after `git push -u origin HEAD`.
 
 Implemented:
 

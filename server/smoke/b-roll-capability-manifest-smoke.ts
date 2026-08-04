@@ -52,17 +52,19 @@ const projection = await readFile(
   'utf8',
 )
 assert.equal(projection, generateSkillManifestProjection(BROLL_CAPABILITY_MANIFEST))
-editSkillQualificationRegistry.assertClaim(
-  editSkillCapabilityRegistry.referenceFor('b_roll'),
-  'internal_execution_qualified',
-)
-assert.throws(
-  () => editSkillQualificationRegistry.assertClaim(
+if (process.env.REEDITPRO_BROLL_QUALIFICATION_GENERATING !== '1') {
+  editSkillQualificationRegistry.assertClaim(
     editSkillCapabilityRegistry.referenceFor('b_roll'),
-    'production_qualified',
-  ),
-  /exceeds/,
-)
+    'internal_execution_qualified',
+  )
+  assert.throws(
+    () => editSkillQualificationRegistry.assertClaim(
+      editSkillCapabilityRegistry.referenceFor('b_roll'),
+      'production_qualified',
+    ),
+    /exceeds/,
+  )
+}
 
 console.log(JSON.stringify({
   status: 'ok',

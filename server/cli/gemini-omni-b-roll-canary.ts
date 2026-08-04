@@ -9,7 +9,7 @@ import {
   projectBrollCanonicalWorkItems,
 } from '../edit-skills/b-roll'
 import { hashSkillValue, skillManifestReference } from '../edit-skills/core/skill-capability-manifest-hash'
-import { createBrollPlanningQualificationReceipt } from '../edit-skills/b-roll/b-roll-qualification'
+import { loadBrollGeneratedQualificationReceiptForCurrentSource } from '../edit-skills/b-roll/b-roll-qualification-evidence'
 import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/registry'
 import { persistCanonicalBrollPlanComponent } from '../services/canonical-broll-plan-component-service'
 import {
@@ -141,7 +141,7 @@ const persisted = await persistCanonicalBrollPlanComponent({
   plan: compiled.plan,
   planningQaReport: compiled.planningQaReport,
   workGraph,
-  qualificationReceipt: createBrollPlanningQualificationReceipt(BROLL_CAPABILITY_MANIFEST),
+  qualificationReceipt: loadBrollGeneratedQualificationReceiptForCurrentSource(BROLL_CAPABILITY_MANIFEST),
 })
 const componentRef = persisted.componentRefs.bRollSkill
 const requestPackage = buildBrollProviderRequestPackageV5({ assignment, context, plan: compiled.plan })

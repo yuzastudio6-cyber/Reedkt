@@ -161,9 +161,11 @@ const invocationPlan = await new EditSkillInvocationService(editSkillCapabilityR
 assert.equal(invocationPlan.disposition, 'use_skill')
 assert.match(invocationPlan.payloadHash, /^[a-f0-9]{64}$/u)
 
-editSkillQualificationRegistry.assertClaim(manifestRef, 'planning_qualified')
-editSkillQualificationRegistry.assertClaim(manifestRef, 'internal_execution_qualified')
-assert.throws(() => editSkillQualificationRegistry.assertClaim(manifestRef, 'production_qualified'), /exceeds/)
+if (process.env.REEDITPRO_BROLL_QUALIFICATION_GENERATING !== '1') {
+  editSkillQualificationRegistry.assertClaim(manifestRef, 'planning_qualified')
+  editSkillQualificationRegistry.assertClaim(manifestRef, 'internal_execution_qualified')
+  assert.throws(() => editSkillQualificationRegistry.assertClaim(manifestRef, 'production_qualified'), /exceeds/)
+}
 
 console.log(JSON.stringify({
   status: 'ok',

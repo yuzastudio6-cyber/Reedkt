@@ -24,8 +24,8 @@ import {
   BROLL_INTERNAL_EXECUTION_QUALIFICATION_FIXTURE_KEYS,
   BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS,
   BROLL_PRODUCTION_QUALIFICATION_FIXTURE_KEYS,
-  createBrollInternalExecutionQualificationReceipt,
 } from '../edit-skills/b-roll/b-roll-qualification'
+import { loadBrollGeneratedQualificationReceiptForCurrentSource } from '../edit-skills/b-roll/b-roll-qualification-evidence'
 import {
   hashSkillValue,
   skillManifestReference,
@@ -83,15 +83,22 @@ try {
   const captionBytes = await readFile(captionPath)
 
   const manifestRef = skillManifestReference(BROLL_CAPABILITY_MANIFEST)
-  const qualificationReceipt = createBrollInternalExecutionQualificationReceipt(
+  const qualificationReceipt = loadBrollGeneratedQualificationReceiptForCurrentSource(
     BROLL_CAPABILITY_MANIFEST,
   )
+  const qualificationGenerationMode =
+    process.env.REEDITPRO_BROLL_QUALIFICATION_GENERATING === '1'
   assertSkillQualificationReceipt(qualificationReceipt)
-  assert.equal(qualificationReceipt.qualificationStatus, 'internal_execution_qualified')
-  const expectedInternalFixtureKeys = [
-    ...BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS,
-    ...BROLL_INTERNAL_EXECUTION_QUALIFICATION_FIXTURE_KEYS,
-  ]
+  assert.equal(
+    qualificationReceipt.qualificationStatus,
+    qualificationGenerationMode ? 'planning_qualified' : 'internal_execution_qualified',
+  )
+  const expectedInternalFixtureKeys = qualificationGenerationMode
+    ? [...BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS]
+    : [
+        ...BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS,
+        ...BROLL_INTERNAL_EXECUTION_QUALIFICATION_FIXTURE_KEYS,
+      ]
   assert.deepEqual(
     qualificationReceipt.fixtureResults.map((result) => result.fixtureKey),
     expectedInternalFixtureKeys,
@@ -105,7 +112,9 @@ try {
   )
   assertQualificationSupportsClaim({
     manifestRef,
-    claimedStatus: 'internal_execution_qualified',
+    claimedStatus: qualificationGenerationMode
+      ? 'planning_qualified'
+      : 'internal_execution_qualified',
     receipt: qualificationReceipt,
   })
   assert.throws(() => assertQualificationSupportsClaim({

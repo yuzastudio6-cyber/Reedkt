@@ -27,7 +27,8 @@ import {
   BROLL_WORK_GRAPH_JOB_DEFINITIONS,
   registerBrollRuntimeBindings,
 } from './b-roll-runtime-bindings'
-import { createBrollInternalExecutionQualificationReceipt } from './b-roll-qualification'
+import { tryLoadBrollGeneratedQualificationArtifact } from './b-roll-qualification-evidence'
+import { computeBrollRelevantSourceTreeHash } from './b-roll-qualification-source-hash'
 import { BrollEditSkillPlugin } from './b-roll-edit-skill-plugin'
 import { BrollSkillService } from './b-roll-skill-service'
 
@@ -37,6 +38,8 @@ export * from './b-roll-canonical-plan-component'
 export * from './b-roll-qa-policy'
 export * from './b-roll-planning-qa'
 export * from './b-roll-qualification'
+export * from './b-roll-qualification-evidence'
+export * from './b-roll-qualification-source-hash'
 export * from './b-roll-skill-service'
 export * from './b-roll-context-loader'
 export * from './b-roll-contracts'
@@ -62,6 +65,23 @@ export function registerBrollSkill(input: {
   qualifications: SkillQualificationRegistry
   catalog: SkillReferenceCatalog
 }): void {
+  const qualificationGenerationMode =
+    process.env.REEDITPRO_BROLL_QUALIFICATION_GENERATING === '1'
+  let generatedQualification
+  try {
+    generatedQualification = tryLoadBrollGeneratedQualificationArtifact({
+      manifest: BROLL_CAPABILITY_MANIFEST,
+      expectedRelevantSourceTreeHash: computeBrollRelevantSourceTreeHash(),
+    })
+  } catch (error) {
+    if (!qualificationGenerationMode) throw error
+    generatedQualification = undefined
+  }
+  if (!generatedQualification && !qualificationGenerationMode) {
+    throw new Error(
+      'B-roll runtime is unqualified: run npm run qualify:b-roll:internal for this exact source tree.',
+    )
+  }
   registerBrollArtifactSchemas(input.artifacts)
   registerBrollQaPolicies(input.qa)
   input.estimators.registerTime('b_roll.time.v1', (estimateInput) => {
@@ -121,10 +141,15 @@ export function registerBrollSkill(input: {
     estimators: input.estimators,
     qa: input.qa,
   }))
-  const receipt = createBrollInternalExecutionQualificationReceipt(BROLL_CAPABILITY_MANIFEST)
-  input.qualifications.register(receipt)
-  input.qualifications.assertClaim(
-    input.capabilities.referenceFor('b_roll'),
-    BROLL_CAPABILITY_MANIFEST.qualificationStatus,
-  )
+  if (generatedQualification) {
+    input.qualifications.register(generatedQualification.receipt)
+    if (generatedQualification.receipt.qualificationStatus === 'internal_execution_qualified') {
+      input.qualifications.assertClaim(
+        input.capabilities.referenceFor('b_roll'),
+        BROLL_CAPABILITY_MANIFEST.qualificationStatus,
+      )
+    } else if (!qualificationGenerationMode) {
+      throw new Error('B-roll runtime is unqualified: generated receipt is planning-only.')
+    }
+  }
 }

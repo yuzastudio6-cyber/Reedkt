@@ -547,9 +547,12 @@ implements BrollCanonicalPrivateWorkExecutor {
     const work = {
       planId: this.#input.plan.planId,
       planHash: this.#input.plan.planHash,
-      approvedWorkGraphHash: this.#input.approvedWorkGraphHash,
       workItemKey: invocation.workItemKey,
       workItemHash: invocation.workItemHash,
+    }
+    const approvedWork = {
+      ...work,
+      approvedWorkGraphHash: this.#input.approvedWorkGraphHash,
     }
     let value: unknown
     switch (definition.jobType) {
@@ -573,7 +576,7 @@ implements BrollCanonicalPrivateWorkExecutor {
         value = createBrollCandidateMediaManifest({
           schemaVersion: 'b_roll_candidate_media_manifest_v1',
           ...common,
-          ...work,
+          ...approvedWork,
           sourceClass: 'existing_project_source',
           providerOperationId: null,
           providerAttemptId: null,
@@ -632,7 +635,7 @@ implements BrollCanonicalPrivateWorkExecutor {
         value = createBrollCandidateMediaManifest({
           schemaVersion: 'b_roll_candidate_media_manifest_v1',
           ...common,
-          ...work,
+          ...approvedWork,
           sourceClass: this.#input.requestPackage.taskMode === 'edit_uploaded_video'
             ? 'gemini_omni_uploaded_video_edit'
             : 'gemini_omni_generated',
@@ -744,7 +747,7 @@ implements BrollCanonicalPrivateWorkExecutor {
             schemaVersion: 'b_roll_candidate_version_v1',
             versionKind: 'existing_source_prepared',
             ...common,
-            ...work,
+            ...approvedWork,
             candidateMediaManifestHash: media.mediaManifestHash,
             sourceArtifactHash: this.#input.source.artifactRef.sha256,
             normalizedPrivateObjectIdentityHash:
@@ -828,7 +831,7 @@ implements BrollCanonicalPrivateWorkExecutor {
         value = createBrollPrivatePreviewMediaManifest({
           schemaVersion: 'b_roll_private_preview_media_manifest_v1',
           ...common,
-          ...work,
+          ...approvedWork,
           layerManifestHash: integration.layerManifest.layerManifestHash,
           privateObjectIdentityHash:
             integration.receipt.preview.previewArtifactIdentityHash,

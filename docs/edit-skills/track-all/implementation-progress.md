@@ -318,8 +318,11 @@ implementation occurred.
 
 ## TRACK-06 — deterministic visual geometry
 
-Status: implementation complete; commit and remote confirmation recorded below
-after the milestone commit is created.
+Status: complete and pushed.
+
+- implementation commit: `70f1d90e572d96fce2ce473eaeac036514bcb3cc`
+- remote confirmation: `git ls-remote --heads origin codex/track-all-skill-end-to-end`
+  returned the same exact SHA after `git push -u origin HEAD`.
 
 Implemented:
 

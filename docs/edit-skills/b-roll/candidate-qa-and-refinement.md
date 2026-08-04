@@ -47,6 +47,14 @@ qualification uses hashed internal injected observations and is explicitly
 `productionQualified: false`; this does not claim a live production visual
 intelligence worker.
 
+The public skill contract separately requires a model-neutral
+`visual_intelligence_candidate_qa_v1` artifact before a generated or
+provider-edited candidate can receive semantic acceptance. Missing evidence
+returns `needs_other_skill`; tenant, candidate checksum, assignment, plan,
+range, producer manifest, and qualification substitutions fail closed.
+Injected observations remain internal-only and can never satisfy production
+acceptance.
+
 Generated media is always recorded as non-proof. Automatic selection and
 timeline mutation are false. The B-roll audio disposition is explicit, and
 generated audio is removed from the normalized visual artifact. Ambient or

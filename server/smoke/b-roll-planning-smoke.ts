@@ -6,7 +6,7 @@ import {
   editSkillEstimatorRegistry,
   editSkillQaRegistry,
   editSkillQualificationRegistry,
-} from '../edit-skills/registry'
+} from '../edit-skills/internal-fixture-runtime'
 import { EditSkillInvocationService } from '../edit-skills/core/edit-skill-invocation-service'
 import { hashSkillValue, skillManifestReference } from '../edit-skills/core/skill-capability-manifest-hash'
 import { createSkillAssignment } from '../edit-skills/core/skill-range-authority'

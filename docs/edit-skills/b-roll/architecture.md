@@ -37,6 +37,24 @@ candidate selection, B-roll QA, and range-bounded layer handoff. Captions,
 Sound, Color, Transition, Track All, Render, and final export retain their
 respective final authority.
 
+The future orchestra resolves B-roll only through the version-bound public
+plugin. It does not import B-roll mini-skills, rankers, provider request
+builders, QA internals, Remotion internals, or persistence helpers.
+
+## Runtime construction
+
+`createEditSkillRuntime(...)` is the only normal runtime constructor. It
+requires explicit artifact storage, provider authority, tool operation
+registry, QA registry, qualification registry, estimators, and artifact
+schemas. A production-server construction with a missing dependency fails with
+`edit_skill_runtime_unconfigured`; a production-server construction also
+rejects `InMemoryCreateOnlyEditSkillArtifactStore`.
+
+`createInternalFixtureEditSkillRuntime()` is the only convenience constructor
+that creates the in-memory store. Smoke tests and private isolated fixtures
+import it from `internal-fixture-runtime.ts`. A future durable adapter can be
+injected without changing B-roll or its public plugin.
+
 ## Source route order
 
 1. Return `use_no_broll` when the base footage is stronger.

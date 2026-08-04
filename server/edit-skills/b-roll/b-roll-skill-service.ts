@@ -7,8 +7,15 @@ import type { BrollPlanningContext, BrollSkillAssignment } from './b-roll-contra
 import { brollPlanningContextSchema, brollSkillAssignmentSchema } from './b-roll-schemas'
 import { compileBrollPlan, type CompileBrollPlanResult } from './b-roll-plan-compiler'
 
-export const BROLL_ORCHESTRA_INTEGRATION_STATUS_MESSAGE =
-  'B-roll exposes a qualified public plugin boundary; future orchestra integration remains pending.'
+export const BROLL_IMPLEMENTATION_STATUS = Object.freeze({
+  skillImplementation: 'complete',
+  planningQualification: 'qualified',
+  executionQualification: 'internal_execution_qualified',
+  productionQualification: 'blocked_pending_five_live_fixtures',
+  liveProvider: 'blocked_pending_explicit_canary_gates',
+  publicPlugin: 'available',
+  orchestraIntegration: 'not_implemented_by_design',
+} as const)
 
 export class BrollSkillService implements EditSkillHandler {
   readonly #artifacts: EditSkillArtifactStore

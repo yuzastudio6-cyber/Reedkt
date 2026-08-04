@@ -19,7 +19,7 @@ import { createSkillAssignment } from '../edit-skills/core/skill-range-authority
 import {
   editSkillArtifactStore,
   editSkillPluginRegistry,
-} from '../edit-skills/registry'
+} from '../edit-skills/internal-fixture-runtime'
 
 const manifestRef = skillManifestReference(BROLL_CAPABILITY_MANIFEST)
 const range = { startFrameInclusive: 120, endFrameExclusive: 192, fps: 24 }

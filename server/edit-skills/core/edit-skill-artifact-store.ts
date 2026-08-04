@@ -12,6 +12,7 @@ export interface EditSkillArtifactReference {
 }
 
 export interface EditSkillArtifactStore {
+  readonly storageClass: 'durable' | 'internal_in_memory'
   putJson(input: {
     artifactType: string
     ownerUserId: string
@@ -50,6 +51,7 @@ interface InMemoryArtifactRecord {
 }
 
 export class InMemoryCreateOnlyEditSkillArtifactStore implements EditSkillArtifactStore {
+  readonly storageClass = 'internal_in_memory' as const
   readonly #schemas: EditSkillArtifactSchemaRegistry
   readonly #records = new Map<string, InMemoryArtifactRecord>()
 

@@ -10,7 +10,7 @@ import {
   editSkillReferenceCatalog,
   editSkillRuntimeBindingRegistry,
   editSkillWorkGraphJobDefinitions,
-} from '../edit-skills/registry'
+} from '../edit-skills/internal-fixture-runtime'
 import { validateSkillCapabilityManifests } from '../edit-skills/core/skill-capability-validator'
 import { createSkillCapabilityManifest } from '../edit-skills/core/skill-capability-manifest-hash'
 import { generateSkillManifestProjection } from '../edit-skills/core/skill-manifest-projection'

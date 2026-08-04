@@ -34,7 +34,7 @@ import {
   assertQualificationSupportsClaim,
   assertSkillQualificationReceipt,
 } from '../edit-skills/core/skill-qualification-receipt'
-import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/registry'
+import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/internal-fixture-runtime'
 import {
   BROLL_PROVIDER_ROUTE_ID,
   brollProviderExecutionPackageV5Schema,

@@ -18,6 +18,9 @@ const RELEVANT_EXACT_FILES = [
   'server/cli/generate-b-roll-capability-manifest-doc.ts',
   'server/cli/qualify-b-roll-internal.ts',
   'server/cli/validate-b-roll-active-route-retirement.ts',
+  'server/edit-skills/registry.ts',
+  'server/edit-skills/internal-fixture-runtime.ts',
+  'server/smoke/edit-skill-runtime-factory-smoke.ts',
   'server/services/canonical-broll-plan-component-service.ts',
 ] as const
 

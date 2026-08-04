@@ -3,7 +3,7 @@ import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 
 import { BROLL_CAPABILITY_MANIFEST } from '../edit-skills/b-roll/b-roll-capability-manifest'
-import { editSkillCapabilityRegistry } from '../edit-skills/registry'
+import { editSkillCapabilityRegistry } from '../edit-skills/internal-fixture-runtime'
 import {
   BROLL_PROVIDER_CONFIGURED_MODEL_ALIAS,
   BROLL_PROVIDER_OPERATION_ID,

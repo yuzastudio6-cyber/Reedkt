@@ -14,7 +14,7 @@ import {
 } from '../edit-skills/b-roll'
 import { hashSkillValue, skillManifestReference } from '../edit-skills/core/skill-capability-manifest-hash'
 import { loadBrollGeneratedQualificationReceiptForCurrentSource } from '../edit-skills/b-roll/b-roll-qualification-evidence'
-import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/registry'
+import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/internal-fixture-runtime'
 import { persistCanonicalBrollPlanComponent } from '../services/canonical-broll-plan-component-service'
 import { readPrivateFileIfExistsWithinRoot } from '../security/private-local-persistence'
 import {

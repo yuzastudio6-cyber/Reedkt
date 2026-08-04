@@ -14,7 +14,7 @@ import {
   type BrollSkillAssignment,
 } from '../edit-skills/b-roll'
 import { hashSkillValue, skillManifestReference } from '../edit-skills/core'
-import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/registry'
+import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/internal-fixture-runtime'
 
 const manifestRef = skillManifestReference(BROLL_CAPABILITY_MANIFEST)
 const range = { startFrameInclusive: 120, endFrameExclusive: 192, fps: 24 }

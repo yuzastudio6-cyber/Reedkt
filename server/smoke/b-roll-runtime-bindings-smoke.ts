@@ -19,7 +19,7 @@ import {
   editSkillArtifactSchemaRegistry,
   editSkillReferenceCatalog,
   editSkillRuntimeBindingRegistry,
-} from '../edit-skills/registry'
+} from '../edit-skills/internal-fixture-runtime'
 
 const manifestRef = skillManifestReference(BROLL_CAPABILITY_MANIFEST)
 const assignmentHash = hashSkillValue({ assignment: 'runtime-binding-fixture' })

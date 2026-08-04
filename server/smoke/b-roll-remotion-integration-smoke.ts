@@ -20,7 +20,7 @@ import {
   hashSkillValue,
   skillManifestReference,
 } from '../edit-skills/core/skill-capability-manifest-hash'
-import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/registry'
+import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/internal-fixture-runtime'
 import {
   persistCanonicalPrivateMediaArtifact,
 } from '../services/canonical-private-media-artifact-storage'

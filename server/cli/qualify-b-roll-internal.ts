@@ -33,6 +33,7 @@ const PHASE_A_SCRIPTS = [
   'test:b-roll-plan-invariants',
   'test:b-roll-public-plugin',
   'test:b-roll-runtime-bindings',
+  'test:edit-skill-runtime-factory',
   'test:b-roll-capability-manifest',
   'validate:skill-capability-manifests',
   'test:edit-skill-capability-kernel',

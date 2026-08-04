@@ -6,7 +6,7 @@ import {
   editSkillReferenceCatalog,
   editSkillRuntimeBindingRegistry,
   editSkillWorkGraphJobDefinitions,
-} from '../edit-skills/registry'
+} from '../edit-skills/internal-fixture-runtime'
 import { validateSkillCapabilityManifests } from '../edit-skills/core/skill-capability-validator'
 
 const result = validateSkillCapabilityManifests({

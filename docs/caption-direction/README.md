@@ -1,7 +1,7 @@
-# Captions Specialist — CAP-04 Transcript Lineage Checkpoint
+# Captions Specialist — CAP-05 Font/Unicode Contract Checkpoint
 
-Status: `cap_04_complete`
-Checkpoint: `CAP-04`
+Status: `cap_05_contract_complete_internal_runtime_gated`
+Checkpoint: `CAP-05`
 Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
@@ -77,6 +77,7 @@ The governing workflow invariant remains:
 - [CAP-02 composite and mini-skill report](cap-02-composite-mini-skill-report.md)
 - [CAP-03 core domain contract report](cap-03-core-domain-contract-report.md)
 - [CAP-04 transcript, lineage, and alignment report](cap-04-transcript-lineage-alignment-report.md)
+- [CAP-05 font and Unicode runtime report](cap-05-font-unicode-runtime-report.md)
 
 ### Historical architecture retained and amended
 
@@ -112,7 +113,9 @@ The governing workflow invariant remains:
 
 ## Progression
 
-CAP-00R through CAP-04 are complete on the clean specialist branch. CAP-01 adds the
+CAP-00R through CAP-04 are complete on the clean specialist branch. CAP-05's
+contracts and fail-closed resolver are complete, with its actual private font
+runtime qualification gates carried explicitly. CAP-01 adds the
 neutral shared v2 manifest extension, per-job qualification snapshot,
 Orchestra-shaped call/support/result contracts, strict closed-data validation,
 the Caption manifest, and a bounded internal-only harness. It does not add the
@@ -133,8 +136,14 @@ phrase lineage, transformation and review provenance, explicit Faster-Whisper,
 WhisperX, and pyannote qualification records, and fail-closed word-motion
 gates. WhisperX and pyannote remain honestly blocked until separately qualified.
 
-Implementation continues automatically into CAP-05 font and Unicode runtime
-qualification. Registry/workflow integration will consume these frozen public
+CAP-05 adds strict font-runtime, asset-intake, registry, fallback-resolution,
+and multilingual fixture contracts. Its canonical approved registry remains
+empty because FontTools/OTS operations, actual multilingual shaping, and exact
+preview/final parity have not yet been privately qualified. Contract fixtures
+cannot open rendering.
+
+Implementation continues automatically into CAP-06 early strategy and
+reservation. Registry/workflow integration will consume these frozen public
 artifacts at its dependency-safe milestone; no Caption milestone manufactures
 a second planner or a false backend coverage claim.
 

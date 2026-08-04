@@ -1,6 +1,6 @@
 # Captions Specialist Implementation Roadmap
 
-Status: `CAP-04 complete; CAP-05 next`
+Status: `CAP-05 contract complete with explicit internal runtime gates; CAP-06 next`
 
 ## Dependency graph
 

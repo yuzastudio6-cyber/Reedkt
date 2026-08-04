@@ -495,3 +495,57 @@ A100/L4 runtime/quality/cost/privacy evidence. Track All remains
 `implementation_pending` and the SAM route remains `blocked`. No checkpoint,
 model, GPU, paid, public, production, database, or head-orchestra action
 occurred.
+
+## TRACK-09 — stateful session ownership and injected masklet ingestion
+
+Status: complete for the internal injected route; push confirmation is recorded
+by the following evidence ledger commit.
+
+- implementation commit: `81f285664fb30af811622f6964a75390e7813b2f`
+
+Implemented:
+
+- an internal-fixture-only session owner with explicit dependency-injected
+  private persistence and no hard-coded production store;
+- one writer per session, exact plan/assignment/lease lineage, create-only
+  event sequence, same-owner replay, cross-owner reconciliation, and
+  conflicting-writer rejection;
+- lifecycle evidence for start, prompt, propagation, removal/reset/cancel
+  plans, private output persistence, terminal observation, and exactly one
+  terminal close;
+- close-in-finally behavior after completion, failure, cancellation, timeout,
+  unknown-outcome reconciliation, and partial output;
+- strict, content-addressed private multi-object masklet manifests and private
+  binary references with exact range, frame count, geometry, tenant, and
+  checksum authority;
+- separately classified injected attempt evidence with zero model requests,
+  no checkpoint strict-load claim, no CUDA claim, no public artifacts, and no
+  production mutation;
+- a fail-closed canonical-private availability guard requiring a validated
+  internally qualified V2 route report and durable private storage;
+- a current operator runbook for deterministic, SAM contract/gate/injected,
+  blocker, reconciliation, and terminal-close behavior.
+
+Actual checks run:
+
+- `npm run test:track-all-sam3.1-injected-session` — passed; 6 success events,
+  exact private object persistence, same-owner idempotent replay, another-owner
+  reconciliation, conflicting-writer rejection, failure/cancellation closure,
+  timeout/reconciliation/partial-output closure, bad-object failure closure,
+  zero SAM requests, zero public artifacts, and zero production mutations.
+- `npm run test:track-all-sam3.1-operation-authority` — passed 21 adversarial
+  authority cases plus all six terminal evidence dispositions.
+- `npm run test:track-all-sam3.1-route-gates` — passed with the real route
+  still blocked and zero real evidence.
+- `npm run test:track-all-artifact-contracts` — passed 32 strict public
+  artifacts, private-mask policy, and Track Graph V1/V2 compatibility.
+- `npm run typecheck:server` — passed after the complete process exited `0`.
+- affected-file ESLint — passed with exit `0`.
+- staged `git diff --check` — passed.
+
+Injected masklets prove lifecycle, persistence, closure, and evidence
+separation only. They do not prove target quality, temporal quality, checkpoint
+compatibility, GPU performance, or actual SAM inference. Aggregate Track All
+remains `implementation_pending`; the SAM route remains `blocked`. No real
+checkpoint/model/GPU/paid/public/production/database/head-orchestra action
+occurred.

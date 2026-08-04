@@ -38,6 +38,23 @@ read found no remaining Qwen, SAM2, or phase-39c VLM job/service definition.
 Historical Artifact Registry digests were deliberately retained. They are not
 fresh dispatch authority and preserve prior audit evidence.
 
+The GPU-first processing cutover also retired the fifteen remaining frozen
+CPU-only Cloud Run Job definitions after a second live inventory proved that
+every prior execution was terminal. The guarded retirement exact-matched each
+job's name, image digest or historical fixed tag, service identity, CPU/memory
+limits, and absence of a GPU before deletion. The deleted definitions covered
+the obsolete sound analysis/metadata, staging analysis, speech, audio cleanup,
+interpolation, color, caption burn-in, render, QA, and CPU tool-readiness lanes.
+
+No Artifact Registry image, service identity, Cloud Run service, GPU job,
+historical execution record, billing record, or customer-credit state was
+deleted or changed. An independent reread now finds only the two pre-existing
+GPU staging jobs (BiRefNet and Real-ESRGAN) and the API/staging API/private
+search control-plane services. Those GPU staging definitions remain evidence
+only and cannot authorize fresh work until the canonical L4 release,
+account-effective price, approved estimate/reservation, dispatch admission,
+terminal usage reconciliation, and scale-to-zero gates pass.
+
 ## Official SAM 3.1 source state
 
 - Official code: `facebookresearch/sam3`, revision
@@ -194,7 +211,9 @@ reader—because cosign persists digest-bound signatures and attestations as OCI
 referrers; it retains no admin/delete or model/runtime authority. A blocked
 audit is expected until every external checkpoint, identity, KMS, storage,
 image, and A100 gate closes; it does not weaken or self-authorize a build or
-runtime.
+runtime. Audit version v5 additionally requires all fifteen frozen CPU-only
+processing job definitions to be absent while leaving GPU jobs and
+control-plane services outside that retirement scope.
 
 The narrow foundation provisioner has now completed in project `reeditpro`.
 Cloud KMS and Binary Authorization are enabled; the image-builder, image-signer,

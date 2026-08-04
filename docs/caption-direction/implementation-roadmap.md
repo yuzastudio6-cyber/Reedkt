@@ -1,6 +1,6 @@
 # Captions Specialist Implementation Roadmap
 
-Status: `CAP-00R in progress`
+Status: `CAP-04 complete; CAP-05 next`
 
 ## Dependency graph
 

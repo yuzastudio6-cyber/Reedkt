@@ -1,7 +1,7 @@
-# Captions Specialist — CAP-03 Domain Contract Checkpoint
+# Captions Specialist — CAP-04 Transcript Lineage Checkpoint
 
-Status: `cap_03_complete`
-Checkpoint: `CAP-03`
+Status: `cap_04_complete`
+Checkpoint: `CAP-04`
 Media runtime changes: none
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
@@ -76,6 +76,7 @@ The governing workflow invariant remains:
 - [CAP-01 manifest, qualification, and harness report](cap-01-specialist-manifest-harness-report.md)
 - [CAP-02 composite and mini-skill report](cap-02-composite-mini-skill-report.md)
 - [CAP-03 core domain contract report](cap-03-core-domain-contract-report.md)
+- [CAP-04 transcript, lineage, and alignment report](cap-04-transcript-lineage-alignment-report.md)
 
 ### Historical architecture retained and amended
 
@@ -111,7 +112,7 @@ The governing workflow invariant remains:
 
 ## Progression
 
-CAP-00R through CAP-03 are complete on the clean specialist branch. CAP-01 adds the
+CAP-00R through CAP-04 are complete on the clean specialist branch. CAP-01 adds the
 neutral shared v2 manifest extension, per-job qualification snapshot,
 Orchestra-shaped call/support/result contracts, strict closed-data validation,
 the Caption manifest, and a bounded internal-only harness. It does not add the
@@ -127,10 +128,15 @@ covering strategy through repair. These artifacts retain exact composite,
 confirmed-frame, transcript, timing, approval, snapshot, and staleness lineage
 while all canonical execution authorities remain closed.
 
-Implementation continues automatically into CAP-04 transcript lineage and
-alignment. Registry/workflow integration will consume these frozen public
-artifacts at its dependency-safe milestone; CAP-03 does not manufacture a
-second planner or a false backend coverage claim.
+CAP-04 adds one immutable private canonical transcript, exact source-word and
+phrase lineage, transformation and review provenance, explicit Faster-Whisper,
+WhisperX, and pyannote qualification records, and fail-closed word-motion
+gates. WhisperX and pyannote remain honestly blocked until separately qualified.
+
+Implementation continues automatically into CAP-05 font and Unicode runtime
+qualification. Registry/workflow integration will consume these frozen public
+artifacts at its dependency-safe milestone; no Caption milestone manufactures
+a second planner or a false backend coverage claim.
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

@@ -46,6 +46,10 @@ import {
   trackAllSam31RuntimeProfileV2Schema,
 } from './track-all-planning-authorities'
 import {
+  trackAllSam31V2RouteGateReportSchema,
+  type TrackAllSam31V2RouteGateReport,
+} from './private/sam3_1-v2-route-qualification-gate'
+import {
   createTrackAllResultReceipt,
   privacyPolicySnapshotSchema,
   priorTrackRepairEvidenceSchema,
@@ -106,15 +110,24 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
   readonly #artifacts: EditSkillArtifactStore
   readonly #routeQualifications: SkillRouteQualificationRegistry
   readonly #environmentClass: EditSkillRuntimeEnvironmentClass
+  readonly #sam31RouteGateReport: TrackAllSam31V2RouteGateReport
 
   constructor(input: {
     artifacts: EditSkillArtifactStore
     routeQualifications: SkillRouteQualificationRegistry
     environmentClass: EditSkillRuntimeEnvironmentClass
+    sam31RouteGateReport?: unknown
   }) {
     this.#artifacts = input.artifacts
     this.#routeQualifications = input.routeQualifications
     this.#environmentClass = input.environmentClass
+    this.#sam31RouteGateReport = input.sam31RouteGateReport === undefined
+      ? createCurrentTrackAllSam31V2RouteGateReport({
+          generatedAt: '2026-08-04T00:00:00.000Z',
+        })
+      : trackAllSam31V2RouteGateReportSchema.parse(
+          input.sam31RouteGateReport,
+        )
   }
 
   async planAssignment(input: { assignment: SkillAssignment }): Promise<EditSkillPublicPlan> {
@@ -426,9 +439,7 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     if (!samRouteReceipt) throw new Error('Track All SAM runtime profile lacks exact route qualification authority.')
     const samRuntimeProfile = createTrackAllSam31RuntimeProfileV2({
       routeReceipt: samRouteReceipt,
-      routeGateReport: createCurrentTrackAllSam31V2RouteGateReport({
-        generatedAt: '2026-08-04T00:00:00.000Z',
-      }),
+      routeGateReport: this.#sam31RouteGateReport,
     })
     return {
       genericAssignment: assignment, assignment: specialized, target, sourceInventory,

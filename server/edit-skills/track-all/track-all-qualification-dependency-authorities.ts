@@ -121,10 +121,28 @@ const DEFINITIONS = [
   },
   {
     authorityKey: 'canonical_private_executor',
-    profileVersion: 'track_all_dependency_authority.canonical_private_executor.v1',
+    profileVersion: 'track_all_dependency_authority.canonical_private_executor.v2',
     files: [
       'server/edit-skills/track-all/track-all-canonical-private-runtime.ts',
       'server/edit-skills/track-all/private/canonical-private-operation-driver.ts',
+      'server/edit-skills/track-all/private/canonical-private-composite-operation-driver.ts',
+    ],
+  },
+  {
+    authorityKey: 'canonical_private_execution_accounting',
+    profileVersion: 'track_all_dependency_authority.canonical_private_execution_accounting.v1',
+    files: [
+      'server/edit-skills/track-all/track-all-active-artifact-contracts.ts',
+      'server/edit-skills/track-all/track-all-canonical-private-runtime.ts',
+      'server/smoke/track-all-canonical-private-execution-accounting-smoke.ts',
+    ],
+  },
+  {
+    authorityKey: 'canonical_private_composite_driver',
+    profileVersion: 'track_all_dependency_authority.canonical_private_composite_driver.v1',
+    files: [
+      'server/edit-skills/track-all/private/canonical-private-composite-operation-driver.ts',
+      'server/smoke/track-all-canonical-private-composite-driver-smoke.ts',
     ],
   },
   {
@@ -154,6 +172,46 @@ const DEFINITIONS = [
     authorityKey: 'canonical_private_public_e2e',
     profileVersion: 'track_all_dependency_authority.canonical_private_public_e2e.v1',
     files: ['server/smoke/track-all-canonical-private-public-e2e-smoke.ts'],
+  },
+  {
+    authorityKey: 'sam3_1_activation_bridge',
+    profileVersion: 'track_all_dependency_authority.sam3_1_activation_bridge.v1',
+    files: [
+      'server/edit-skills/track-all/private/sam3_1-canonical-private-activation-bridge.ts',
+      'server/edit-skills/track-all/private/sam3_1-real-private-session-owner.ts',
+      'server/edit-skills/track-all/track-all-work-graph.ts',
+    ],
+  },
+  {
+    authorityKey: 'sam3_1_real_output_track_graph_adapter',
+    profileVersion: 'track_all_dependency_authority.sam3_1_real_output_track_graph_adapter.v1',
+    files: [
+      'server/edit-skills/track-all/private/sam3_1-canonical-private-activation-bridge.ts',
+      'server/edit-skills/track-all/private/canonical-private-operation-driver.ts',
+      'server/edit-skills/track-all/private/chunk-identity-graph-runtime.ts',
+      'server/edit-skills/shared/track-graph/track-graph-schemas.ts',
+    ],
+  },
+  {
+    authorityKey: 'sam3_1_protocol_wiring',
+    profileVersion: 'track_all_dependency_authority.sam3_1_protocol_wiring.v1',
+    files: [
+      'server/edit-skills/track-all/private/sam3_1-protocol-wiring-test-port.ts',
+      'server/smoke/track-all-sam3_1-protocol-wiring-smoke.ts',
+    ],
+  },
+  {
+    authorityKey: 'sam3_1_canonical_private_e2e',
+    profileVersion: 'track_all_dependency_authority.sam3_1_canonical_private_e2e.v1',
+    files: [
+      'server/edit-skills/track-all/private/sam3_1-canonical-private-public-e2e.ts',
+      'server/cli/track-all-sam3_1-canonical-private-e2e.ts',
+    ],
+  },
+  {
+    authorityKey: 'track_all_dedicated_ci',
+    profileVersion: 'track_all_dependency_authority.dedicated_ci.v1',
+    files: ['.github/workflows/track-all-skill-qa.yml'],
   },
   {
     authorityKey: 'ffprobe_ffmpeg_private_media',

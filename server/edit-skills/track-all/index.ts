@@ -101,6 +101,7 @@ export function registerTrackAllSkill(input: {
   routeQualifications: SkillRouteQualificationRegistry
   catalog: SkillReferenceCatalog
   environmentClass: 'internal_fixture' | 'canonical_private' | 'production_server'
+  sam31RouteGateReport?: unknown
 }): void {
   const qualificationGenerationMode =
     process.env.REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING === '1'
@@ -180,6 +181,7 @@ export function registerTrackAllSkill(input: {
     artifacts: input.artifactStore,
     routeQualifications: input.routeQualifications,
     environmentClass: input.environmentClass,
+    sam31RouteGateReport: input.sam31RouteGateReport,
   })
   input.plugins.register(plugin)
   input.capabilities.registerHandler({ skillKey: 'track_all', skillVersion: '1.0.0', handler: new TrackAllSkillService(plugin) })

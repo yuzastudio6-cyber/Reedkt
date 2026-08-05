@@ -34,6 +34,12 @@ import {
   createCurrentTrackAllSam31V2RouteGateReport,
   trackAllSam31V2RouteGateReportSchema,
 } from './private/sam3_1-v2-route-qualification-gate'
+import {
+  trackAllSam31PrivateCanaryReceiptSchema,
+} from './private/sam3_1-private-canary'
+import {
+  trackAllSam31CanonicalPrivatePublicE2EReceiptSchema,
+} from './private/sam3_1-canonical-private-public-e2e'
 
 const routeQualificationCoreSchema = z.object({
   routeKey: z.enum(TRACK_ALL_ROUTE_QUALIFICATION_KEYS),
@@ -46,6 +52,7 @@ const routeQualificationCoreSchema = z.object({
     'actual_planning_command_evidence',
     'actual_deterministic_private_fixture_evidence',
     'actual_injected_private_lifecycle_evidence',
+    'actual_canonical_private_sam_evidence',
     'missing_external_sam_evidence',
     'missing_production_evidence',
   ]),
@@ -67,14 +74,19 @@ export const trackAllRouteQualificationEvidenceSchema = routeQualificationCoreSc
   if (value.publicArtifactCount !== 0 || value.productionMutationCount !== 0) {
     context.addIssue({ code: 'custom', message: 'Track All internal qualification cannot create public artifacts or production mutations.' })
   }
-  if (value.routeKey === 'sam3_1_masklet_route' && (
-    value.qualificationStatus !== 'blocked' ||
-    value.evidenceClass !== 'missing_external_sam_evidence' ||
-    value.actualSamInferenceObserved
-  )) context.addIssue({
-    code: 'custom',
-    message: 'The current Track All SAM route must remain blocked without actual SAM inference evidence.',
-  })
+  if (value.routeKey === 'sam3_1_masklet_route') {
+    const blocked = value.qualificationStatus === 'blocked' &&
+      value.evidenceClass === 'missing_external_sam_evidence' &&
+      !value.actualSamInferenceObserved
+    const qualified = value.qualificationStatus ===
+      'internal_execution_qualified' &&
+      value.evidenceClass === 'actual_canonical_private_sam_evidence' &&
+      value.actualSamInferenceObserved
+    if (!blocked && !qualified) context.addIssue({
+      code: 'custom',
+      message: 'Track All SAM route evidence is neither honestly blocked nor actual canonical-private inference.',
+    })
+  }
   if (value.routeKey === 'production_worker_route' && (
     value.qualificationStatus !== 'blocked' ||
     value.evidenceClass !== 'missing_production_evidence' ||
@@ -108,14 +120,21 @@ const finalAuthorityRefsSchema = z.object({
   routeCoherentPlannerHash: skillSha256Schema,
   routeCoherentWorkGraphHash: skillSha256Schema,
   canonicalPrivateExecutorHash: skillSha256Schema,
+  executionAccountingHash: skillSha256Schema,
+  compositeDriverHash: skillSha256Schema,
   canonicalExecutionCoordinatorHash: skillSha256Schema,
+  samActivationBridgeHash: skillSha256Schema,
+  realOutputTrackGraphAdapterHash: skillSha256Schema,
+  protocolWiringAuthorityHash: skillSha256Schema,
+  gatedCanonicalPrivateSamE2eAuthorityHash: skillSha256Schema,
+  dedicatedCiAuthorityHash: skillSha256Schema,
   producerConsumerSupportBridgeHash: skillSha256Schema,
   bRollTrackGraphConsumerHash: skillSha256Schema,
   canonicalPrivatePublicE2eHash: skillSha256Schema,
 }).strict()
 
 const finalAuthorityBindingCoreSchema = z.object({
-  schemaVersion: z.literal('track_all_final_qualification_authority_binding_v1'),
+  schemaVersion: z.literal('track_all_final_qualification_authority_binding_v2'),
   authorityRefs: finalAuthorityRefsSchema,
   brollConsumerEvidenceClass: z.enum([
     'bootstrap_prior_actual_acceptance',
@@ -124,7 +143,16 @@ const finalAuthorityBindingCoreSchema = z.object({
   actualBrollConsumerAcceptanceEvidenceHash: skillSha256Schema,
   canonicalPrivatePublicE2eEvidenceHash: skillSha256Schema,
   samCanaryPreflightEvidenceHash: skillSha256Schema,
-  actualSamCanaryEvidenceHash: z.null(),
+  protocolWiringEvidenceHash: skillSha256Schema,
+  gatedCanonicalPrivateSamE2ePreflightEvidenceHash: skillSha256Schema,
+  actualSamCanaryEvidenceHash: skillSha256Schema.nullable(),
+  actualCanonicalPrivateSamE2eEvidenceHash: skillSha256Schema.nullable(),
+  protocolWiringComplete: z.literal(true),
+  realSamExecutionObserved: z.boolean(),
+  samActivationRequiresNoFurtherCodeChange: z.literal(true),
+  samRouteQualification: z.enum(['blocked', 'internal_execution_qualified']),
+  actualSamRequestCount: z.number().int().nonnegative().max(1_000),
+  actualGpuExecutionCount: z.number().int().nonnegative().max(1_000),
   samRouteGateReport: trackAllSam31V2RouteGateReportSchema,
   toolProfileSetHash: skillSha256Schema,
   fixtureCatalogHash: skillSha256Schema,
@@ -140,6 +168,21 @@ export const trackAllFinalQualificationAuthorityBindingSchema =
       if (hashSkillValue(core) !== bindingHash) context.addIssue({
         code: 'custom',
         message: 'Track All final qualification authority binding is stale or forged.',
+      })
+      const real = value.samRouteQualification ===
+        'internal_execution_qualified'
+      if (real !== (value.realSamExecutionObserved &&
+        value.actualSamCanaryEvidenceHash !== null &&
+        value.actualCanonicalPrivateSamE2eEvidenceHash !== null &&
+        value.actualSamRequestCount > 0 && value.actualGpuExecutionCount > 0 &&
+        value.samRouteGateReport.internalExecutionAuthorized)) context.addIssue({
+        code: 'custom',
+        message: 'Track All SAM final authority overclaims or loses real execution evidence.',
+      })
+      if (!real && (value.actualSamRequestCount !== 0 ||
+        value.actualGpuExecutionCount !== 0)) context.addIssue({
+        code: 'custom',
+        message: 'Blocked Track All SAM authority must retain zero execution counts.',
       })
     })
 
@@ -163,6 +206,13 @@ function createTrackAllFinalQualificationAuthorityBinding(input: {
   completedAt: string
   brollConsumerEvidenceClass: 'bootstrap_prior_actual_acceptance' |
     'actual_current_source_acceptance'
+  realSamActivation?: {
+    routeGateReport: z.infer<typeof trackAllSam31V2RouteGateReportSchema>
+    canaryReceiptHash: string
+    canonicalPrivateE2eReceiptHash: string
+    actualSamRequestCount: number
+    actualGpuExecutionCount: number
+  }
 }): TrackAllFinalQualificationAuthorityBinding {
   const commandById = new Map(input.commandEvidence.map((entry) => [entry.commandId, entry]))
   const commandHash = (commandId: string): string => {
@@ -187,8 +237,24 @@ function createTrackAllFinalQualificationAuthorityBinding(input: {
       input.dependencyAuthorityHashes, 'route_coherent_work_graph'),
     canonicalPrivateExecutorHash: requiredAuthorityHash(
       input.dependencyAuthorityHashes, 'canonical_private_executor'),
+    executionAccountingHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes,
+      'canonical_private_execution_accounting'),
+    compositeDriverHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'canonical_private_composite_driver'),
     canonicalExecutionCoordinatorHash: requiredAuthorityHash(
       input.dependencyAuthorityHashes, 'canonical_execution_coordinator'),
+    samActivationBridgeHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'sam3_1_activation_bridge'),
+    realOutputTrackGraphAdapterHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes,
+      'sam3_1_real_output_track_graph_adapter'),
+    protocolWiringAuthorityHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'sam3_1_protocol_wiring'),
+    gatedCanonicalPrivateSamE2eAuthorityHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'sam3_1_canonical_private_e2e'),
+    dedicatedCiAuthorityHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'track_all_dedicated_ci'),
     producerConsumerSupportBridgeHash: requiredAuthorityHash(
       input.dependencyAuthorityHashes, 'producer_consumer_support_bridge'),
     bRollTrackGraphConsumerHash: requiredAuthorityHash(
@@ -207,11 +273,13 @@ function createTrackAllFinalQualificationAuthorityBinding(input: {
   ] as const
   const routeEvidenceHashes = input.routeQualifications.map((entry) =>
     entry.routeEvidenceHash)
-  const samRouteGateReport = createCurrentTrackAllSam31V2RouteGateReport({
-    generatedAt: input.completedAt,
-  })
+  const samRouteGateReport = input.realSamActivation?.routeGateReport ??
+    createCurrentTrackAllSam31V2RouteGateReport({
+      generatedAt: input.completedAt,
+    })
+  const realSamExecutionObserved = input.realSamActivation !== undefined
   const core = finalAuthorityBindingCoreSchema.parse({
-    schemaVersion: 'track_all_final_qualification_authority_binding_v1',
+    schemaVersion: 'track_all_final_qualification_authority_binding_v2',
     authorityRefs,
     brollConsumerEvidenceClass: input.brollConsumerEvidenceClass,
     actualBrollConsumerAcceptanceEvidenceHash:
@@ -220,7 +288,24 @@ function createTrackAllFinalQualificationAuthorityBinding(input: {
       commandHash('npm.test:track-all-canonical-private-public-e2e'),
     samCanaryPreflightEvidenceHash:
       commandHash('npm.test:track-all-sam3.1-private-canary'),
-    actualSamCanaryEvidenceHash: null,
+    protocolWiringEvidenceHash:
+      commandHash('npm.test:track-all-sam3.1-protocol-wiring'),
+    gatedCanonicalPrivateSamE2ePreflightEvidenceHash:
+      commandHash('npm.e2e:track-all-sam3.1-canonical-private'),
+    actualSamCanaryEvidenceHash:
+      input.realSamActivation?.canaryReceiptHash ?? null,
+    actualCanonicalPrivateSamE2eEvidenceHash:
+      input.realSamActivation?.canonicalPrivateE2eReceiptHash ?? null,
+    protocolWiringComplete: true,
+    realSamExecutionObserved,
+    samActivationRequiresNoFurtherCodeChange: true,
+    samRouteQualification: realSamExecutionObserved
+      ? 'internal_execution_qualified'
+      : 'blocked',
+    actualSamRequestCount:
+      input.realSamActivation?.actualSamRequestCount ?? 0,
+    actualGpuExecutionCount:
+      input.realSamActivation?.actualGpuExecutionCount ?? 0,
     samRouteGateReport,
     toolProfileSetHash: hashSkillValue(toolAuthorityKeys.map((authorityKey) => ({
       authorityKey,
@@ -247,8 +332,8 @@ function createTrackAllFinalQualificationAuthorityBinding(input: {
 }
 
 const generatedArtifactCoreSchema = z.object({
-  schemaVersion: z.literal('track_all_generated_qualification_artifact_v2'),
-  generatedBy: z.literal('npm.qualify:track-all:internal.v2'),
+  schemaVersion: z.literal('track_all_generated_qualification_artifact_v3'),
+  generatedBy: z.literal('npm.qualify:track-all:internal.v3'),
   manifestRef: skillManifestReferenceSchema,
   testedCommitSha: skillGitCommitShaSchema,
   relevantSourceTreeHash: skillSha256Schema,
@@ -261,8 +346,12 @@ const generatedArtifactCoreSchema = z.object({
   routeQualifications: z.array(trackAllRouteQualificationEvidenceSchema)
     .length(TRACK_ALL_ROUTE_QUALIFICATION_KEYS.length),
   finalAuthorityBinding: trackAllFinalQualificationAuthorityBindingSchema,
-  actualSamRequestCount: z.literal(0),
-  actualGpuExecutionCount: z.literal(0),
+  actualSamRequestCount: z.number().int().nonnegative().max(1_000),
+  actualGpuExecutionCount: z.number().int().nonnegative().max(1_000),
+  protocolWiringComplete: z.literal(true),
+  realSamExecutionObserved: z.boolean(),
+  samActivationRequiresNoFurtherCodeChange: z.literal(true),
+  samRouteQualification: z.enum(['blocked', 'internal_execution_qualified']),
   productionQualified: z.literal(false),
   receipt: skillQualificationReceiptV2Schema,
 }).strict()
@@ -318,7 +407,7 @@ function assertExactOrderedValues(
   ) throw new Error(`Track All qualification ${label} are missing, duplicate, unknown, or reordered.`)
 }
 
-function assertCurrentRouteQualificationPolicy(
+function assertRouteQualificationPolicy(
   routes: readonly TrackAllRouteQualificationEvidence[],
 ): void {
   for (const route of routes) {
@@ -328,10 +417,15 @@ function assertCurrentRouteQualificationPolicy(
           evidenceClass: 'actual_planning_command_evidence',
         } as const
       : route.routeKey === 'sam3_1_masklet_route'
-        ? {
-            status: 'blocked',
-            evidenceClass: 'missing_external_sam_evidence',
-          } as const
+        ? route.actualSamInferenceObserved
+          ? {
+              status: 'internal_execution_qualified',
+              evidenceClass: 'actual_canonical_private_sam_evidence',
+            } as const
+          : {
+              status: 'blocked',
+              evidenceClass: 'missing_external_sam_evidence',
+            } as const
         : route.routeKey === 'production_worker_route'
           ? {
               status: 'blocked',
@@ -361,6 +455,11 @@ export function issueTrackAllGeneratedQualificationArtifact(input: {
   fixtureEvidence: readonly SkillQualificationFixtureEvidence[]
   commandEvidence: readonly SkillQualificationFixtureEvidence[]
   routeQualifications: readonly TrackAllRouteQualificationEvidence[]
+  realSamActivationEvidence?: {
+    routeGateReport: unknown
+    completedCanaryReceipt: unknown
+    canonicalPrivateE2eReceipt: unknown
+  }
   brollConsumerEvidenceClass?: 'bootstrap_prior_actual_acceptance' |
     'actual_current_source_acceptance'
 }): TrackAllGeneratedQualificationArtifact {
@@ -395,7 +494,47 @@ export function issueTrackAllGeneratedQualificationArtifact(input: {
     TRACK_ALL_ROUTE_QUALIFICATION_KEYS,
     'route evidence',
   )
-  assertCurrentRouteQualificationPolicy(routeQualifications)
+  assertRouteQualificationPolicy(routeQualifications)
+  const samRoute = routeQualifications.find((route) =>
+    route.routeKey === 'sam3_1_masklet_route')!
+  const realSamActivation = (() => {
+    if (!input.realSamActivationEvidence) {
+      if (samRoute.actualSamInferenceObserved) throw new Error(
+        'Track All SAM route cannot qualify without exact canary and canonical-private E2E receipts.',
+      )
+      return undefined
+    }
+    const routeGateReport = trackAllSam31V2RouteGateReportSchema.parse(
+      input.realSamActivationEvidence.routeGateReport,
+    )
+    const canary = trackAllSam31PrivateCanaryReceiptSchema.parse(
+      input.realSamActivationEvidence.completedCanaryReceipt,
+    )
+    const e2e = trackAllSam31CanonicalPrivatePublicE2EReceiptSchema.parse(
+      input.realSamActivationEvidence.canonicalPrivateE2eReceipt,
+    )
+    if (!samRoute.actualSamInferenceObserved ||
+      samRoute.qualificationStatus !== 'internal_execution_qualified' ||
+      routeGateReport.routeQualificationStatus !==
+        'internal_execution_qualified' ||
+      !routeGateReport.internalExecutionAuthorized ||
+      canary.status !== 'completed' ||
+      canary.routeGateReportHash !== routeGateReport.reportHash ||
+      canary.actualSamRequestCount !== 1 ||
+      canary.actualGpuExecutionCount !== 1 || canary.injectedEvidenceUsed ||
+      e2e.realCanaryReceiptHash !== canary.receiptHash ||
+      e2e.actualSamRequestCount !== 1 ||
+      e2e.actualGpuExecutionCount !== 1 || e2e.injectedEvidenceUsed) {
+      throw new Error('Track All real SAM activation evidence is stale, injected, incomplete, or overclaimed.')
+    }
+    return {
+      routeGateReport,
+      canaryReceiptHash: canary.receiptHash,
+      canonicalPrivateE2eReceiptHash: e2e.receiptHash,
+      actualSamRequestCount: e2e.actualSamRequestCount,
+      actualGpuExecutionCount: e2e.actualGpuExecutionCount,
+    }
+  })()
   for (const evidence of [...fixtureEvidence, ...commandEvidence]) {
     if (
       evidence.skillKey !== 'track_all' ||
@@ -428,6 +567,7 @@ export function issueTrackAllGeneratedQualificationArtifact(input: {
     completedAt,
     brollConsumerEvidenceClass: input.brollConsumerEvidenceClass ??
       'actual_current_source_acceptance',
+    ...(realSamActivation ? { realSamActivation } : {}),
   })
   const receipt = createSkillQualificationReceiptV2({
     schemaVersion: 'skill-qualification-receipt-v2',
@@ -454,7 +594,15 @@ export function issueTrackAllGeneratedQualificationArtifact(input: {
       ...finalAuthorityBinding.routeEvidenceHashes,
     ],
     securityEvidenceHashes: commandEvidenceHashes(commandEvidence, SECURITY_COMMAND_IDS),
-    providerEvidenceHashes: [finalAuthorityBinding.samRouteGateReport.reportHash],
+    providerEvidenceHashes: [
+      finalAuthorityBinding.samRouteGateReport.reportHash,
+      ...(finalAuthorityBinding.actualSamCanaryEvidenceHash
+        ? [finalAuthorityBinding.actualSamCanaryEvidenceHash]
+        : []),
+      ...(finalAuthorityBinding.actualCanonicalPrivateSamE2eEvidenceHash
+        ? [finalAuthorityBinding.actualCanonicalPrivateSamE2eEvidenceHash]
+        : []),
+    ],
     mediaEvidenceHashes: [
       finalAuthorityBinding.actualBrollConsumerAcceptanceEvidenceHash,
       finalAuthorityBinding.canonicalPrivatePublicE2eEvidenceHash,
@@ -467,8 +615,8 @@ export function issueTrackAllGeneratedQualificationArtifact(input: {
     issuedAt: completedAt,
   })
   const core = generatedArtifactCoreSchema.parse({
-    schemaVersion: 'track_all_generated_qualification_artifact_v2',
-    generatedBy: 'npm.qualify:track-all:internal.v2',
+    schemaVersion: 'track_all_generated_qualification_artifact_v3',
+    generatedBy: 'npm.qualify:track-all:internal.v3',
     manifestRef,
     testedCommitSha: input.testedCommitSha,
     relevantSourceTreeHash: input.relevantSourceTreeHash,
@@ -477,8 +625,15 @@ export function issueTrackAllGeneratedQualificationArtifact(input: {
     commandEvidence,
     routeQualifications,
     finalAuthorityBinding,
-    actualSamRequestCount: 0,
-    actualGpuExecutionCount: 0,
+    actualSamRequestCount:
+      finalAuthorityBinding.actualSamRequestCount,
+    actualGpuExecutionCount:
+      finalAuthorityBinding.actualGpuExecutionCount,
+    protocolWiringComplete: true,
+    realSamExecutionObserved:
+      finalAuthorityBinding.realSamExecutionObserved,
+    samActivationRequiresNoFurtherCodeChange: true,
+    samRouteQualification: finalAuthorityBinding.samRouteQualification,
     productionQualified: false,
     receipt,
   })
@@ -526,7 +681,21 @@ export function assertTrackAllGeneratedQualificationArtifact(input: {
     TRACK_ALL_ROUTE_QUALIFICATION_KEYS,
     'route evidence',
   )
-  assertCurrentRouteQualificationPolicy(artifact.routeQualifications)
+  assertRouteQualificationPolicy(artifact.routeQualifications)
+  const storedRealSamActivation =
+    artifact.finalAuthorityBinding.realSamExecutionObserved
+      ? {
+          routeGateReport:
+            artifact.finalAuthorityBinding.samRouteGateReport,
+          canaryReceiptHash:
+            artifact.finalAuthorityBinding.actualSamCanaryEvidenceHash!,
+          canonicalPrivateE2eReceiptHash:
+            artifact.finalAuthorityBinding
+              .actualCanonicalPrivateSamE2eEvidenceHash!,
+          actualSamRequestCount: artifact.actualSamRequestCount,
+          actualGpuExecutionCount: artifact.actualGpuExecutionCount,
+        }
+      : undefined
   const expectedFinalAuthorityBinding = createTrackAllFinalQualificationAuthorityBinding({
     dependencyAuthorityHashes: artifact.dependencyAuthorityHashes,
     commandEvidence: artifact.commandEvidence,
@@ -534,6 +703,9 @@ export function assertTrackAllGeneratedQualificationArtifact(input: {
     completedAt: artifact.receipt.completedAt,
     brollConsumerEvidenceClass:
       artifact.finalAuthorityBinding.brollConsumerEvidenceClass,
+    ...(storedRealSamActivation
+      ? { realSamActivation: storedRealSamActivation }
+      : {}),
   })
   if (
     artifact.finalAuthorityBinding.bindingHash !==
@@ -543,6 +715,12 @@ export function assertTrackAllGeneratedQualificationArtifact(input: {
     ) ||
     hashSkillValue(artifact.receipt.providerEvidenceHashes) !== hashSkillValue([
       artifact.finalAuthorityBinding.samRouteGateReport.reportHash,
+      ...(artifact.finalAuthorityBinding.actualSamCanaryEvidenceHash
+        ? [artifact.finalAuthorityBinding.actualSamCanaryEvidenceHash]
+        : []),
+      ...(artifact.finalAuthorityBinding.actualCanonicalPrivateSamE2eEvidenceHash
+        ? [artifact.finalAuthorityBinding.actualCanonicalPrivateSamE2eEvidenceHash]
+        : []),
     ]) ||
     hashSkillValue(artifact.receipt.mediaEvidenceHashes) !== hashSkillValue([
       artifact.finalAuthorityBinding.actualBrollConsumerAcceptanceEvidenceHash,
@@ -550,6 +728,18 @@ export function assertTrackAllGeneratedQualificationArtifact(input: {
     ])
   ) throw new Error(
     'Generated Track All qualification lost exact final authority, route-gate, canonical E2E, or B-Roll consumer lineage.',
+  )
+  if (artifact.realSamExecutionObserved !==
+      artifact.finalAuthorityBinding.realSamExecutionObserved ||
+    artifact.samRouteQualification !==
+      artifact.finalAuthorityBinding.samRouteQualification ||
+    artifact.actualSamRequestCount !==
+      artifact.finalAuthorityBinding.actualSamRequestCount ||
+    artifact.actualGpuExecutionCount !==
+      artifact.finalAuthorityBinding.actualGpuExecutionCount ||
+    !artifact.protocolWiringComplete ||
+    !artifact.samActivationRequiresNoFurtherCodeChange) throw new Error(
+    'Generated Track All qualification lost SAM activation, protocol, or execution-count truth.',
   )
   if (
     artifact.finalAuthorityBinding.brollConsumerEvidenceClass !==

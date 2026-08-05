@@ -2387,3 +2387,60 @@ No checkpoint was loaded, no SAM request or GPU execution occurred, no paid
 action occurred, no public artifact or production mutation was created, and
 the blocked route was not promoted. TRACK-34 regenerates exact Track All and
 B-Roll qualification against the committed bridge source.
+
+TRACK-33 implementation commit
+`a1d3347b84cfd5afe6612e427872635baf7e04fd` was pushed and the remote branch
+was reread at that exact SHA.
+
+## TRACK-34 — cross-skill and activation-aware qualification infrastructure
+
+Status: qualification-authority implementation complete; exact generated
+Track All and B-Roll evidence follows from the clean committed source.
+
+The generic runtime factory and Track All public plugin now accept an exact,
+schema-validated SAM V2 route-gate report as an injected authority. Omitting
+it retains the frozen blocked report. A report cannot activate planning by
+itself: the plugin also resolves the exact generated canonical-private route
+receipt, and the runtime-profile compiler requires those two authorities to
+agree. This removes the previous hard-coded blocked-report dependency while
+preserving fail-closed startup and caller-independent executor selection.
+
+Qualification artifact V3 binds the execution-accounting schema, composite
+driver, real SAM activation bridge, real-output-to-Track-Graph adapter,
+protocol-wiring authority, gated canonical-private E2E authority, and dedicated
+CI authority. The catalog now contains 37 commands and 26 fixtures. It records
+`protocolWiringComplete`, `realSamExecutionObserved`,
+`samActivationRequiresNoFurtherCodeChange`, exact route status, exact request
+and GPU counts, and nullable real canary/E2E hashes. Route promotion requires
+the same qualified gate report plus a completed non-injected canary and the
+real public canonical-private E2E receipt. Missing, stale, injected, or forged
+activation evidence fails closed.
+
+Actual pre-qualification validation:
+
+- capability manifest regenerated and validated at
+  `cfb670fa8255af9112592e5a87ae19e8bc5045b9d418af6452e2eca94c5a0d8b`,
+  with 14 supported jobs, 20 rejected jobs, and nine routes;
+- `npm run test:track-all-qualification-evidence`: passed 37 command slots,
+  26 fixture slots, ten route receipts, forged-activation rejection, and exact
+  protocol/gated-E2E lineage;
+- `npm run test:track-all-canonical-private-accounting`: passed exact bounded
+  receipt accounting and replay rejection;
+- `npm run test:track-all-canonical-private-composite`: passed operation-ID
+  routing, replay, isolation, and blocked construction;
+- `npm run test:track-all-sam3.1-protocol-wiring`: passed selected-instance and
+  concept-group multi-chunk architecture with zero real execution claims;
+- `npm run e2e:track-all-sam3.1-canonical-private`: safe preflight passed with
+  ten exact missing external gates, zero SAM requests, zero GPU executions,
+  and zero paid/public/production activity;
+- `npm run test:track-all-public-plugin-e2e`: passed 11 public scenarios;
+- manifest registry validation, route-qualification kernel, runtime-binding
+  tests, server typecheck, and lint passed;
+- `git diff --check`: passed.
+
+The direct current-source B-Roll acceptance test correctly rejected the stale
+pre-TRACK-34 generated Track All receipt after the manifest changed. The clean
+aggregate qualifier will bootstrap the new exact Track receipt, rerun actual
+current-source B-Roll acceptance, and issue the final receipt; this expected
+staleness is not counted as a passing acceptance result. No checkpoint, SAM,
+GPU, paid, public, production, or billing action occurred.

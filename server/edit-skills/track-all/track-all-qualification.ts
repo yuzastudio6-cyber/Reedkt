@@ -23,6 +23,8 @@ export const TRACK_ALL_QUALIFICATION_FIXTURE_KEYS = [
   'track_all.fixture.b_roll_consumer_acceptance',
   'track_all.fixture.canonical_private_runtime',
   'track_all.fixture.canonical_private_public_e2e',
+  'track_all.fixture.canonical_execution_accounting',
+  'track_all.fixture.sam_activation_protocol_wiring',
   'track_all.fixture.legacy_retirement',
   'track_all.fixture.qualification_integrity',
 ] as const

@@ -78,6 +78,14 @@ export function createTrackAllRouteQualificationReceipts(input: {
       `Track All canonical-private route evidence is missing: ${routeKey}.`,
     )
     const blocked = evidence.qualificationStatus === 'blocked'
+    const realSam = routeKey === 'sam3_1_masklet_route' &&
+      evidence.qualificationStatus === 'internal_execution_qualified' &&
+      evidence.actualSamInferenceObserved
+    if (routeKey === 'sam3_1_masklet_route' &&
+      realSam !== (input.artifact.samRouteQualification ===
+        'internal_execution_qualified')) {
+      throw new Error('Track All SAM canonical route receipt differs from final activation evidence.')
+    }
     receipts.push(createSkillRouteQualificationReceipt({
       schemaVersion: 'edit-skill-route-qualification-receipt-v1',
       manifestRef,
@@ -86,12 +94,31 @@ export function createTrackAllRouteQualificationReceipts(input: {
       environmentClass: 'canonical_private',
       qualificationStatus: evidence.qualificationStatus,
       qualifiedBindings: qualifiedBindings(bindings),
-      requiredGateKeys: ['canonical_private_public_lifecycle'],
-      gateEvidenceRefs: [{
-        gateKey: 'canonical_private_public_lifecycle',
-        disposition: blocked ? 'blocked' : 'passed',
-        evidenceHash: evidence.routeEvidenceHash,
-      }],
+      requiredGateKeys: realSam
+        ? ['canonical_private_public_lifecycle', 'real_sam_canary',
+            'canonical_private_sam_e2e']
+        : ['canonical_private_public_lifecycle'],
+      gateEvidenceRefs: [
+        {
+          gateKey: 'canonical_private_public_lifecycle',
+          disposition: blocked ? 'blocked' : 'passed',
+          evidenceHash: evidence.routeEvidenceHash,
+        },
+        ...(realSam ? [
+          {
+            gateKey: 'real_sam_canary' as const,
+            disposition: 'passed' as const,
+            evidenceHash: input.artifact.finalAuthorityBinding
+              .actualSamCanaryEvidenceHash!,
+          },
+          {
+            gateKey: 'canonical_private_sam_e2e' as const,
+            disposition: 'passed' as const,
+            evidenceHash: input.artifact.finalAuthorityBinding
+              .actualCanonicalPrivateSamE2eEvidenceHash!,
+          },
+        ] : []),
+      ],
       testedCommitSha: input.artifact.testedCommitSha,
       sourceTreeHash: input.artifact.relevantSourceTreeHash,
       dependencyAuthorityHashes: input.artifact.dependencyAuthorityHashes,
@@ -104,8 +131,12 @@ export function createTrackAllRouteQualificationReceipts(input: {
           : 'actual_canonical_private_evidence',
       fixtureEvidenceOnly: false,
       qualificationCandidateOnly: false,
-      providerRequestCount: 0,
-      gpuExecutionCount: 0,
+      providerRequestCount: realSam
+        ? input.artifact.actualSamRequestCount
+        : 0,
+      gpuExecutionCount: realSam
+        ? input.artifact.actualGpuExecutionCount
+        : 0,
       productionWorkerObserved: false,
     }))
   }

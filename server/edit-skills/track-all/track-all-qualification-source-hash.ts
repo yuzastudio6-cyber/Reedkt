@@ -19,6 +19,7 @@ const RELEVANT_EXACT_FILES = [
   'server/smoke/edit-skill-runtime-input-fixtures.ts',
   'server/cli/generate-track-all-capability-manifest-doc.ts',
   'server/cli/qualify-track-all-internal.ts',
+  'server/cli/track-all-sam3_1-canonical-private-e2e.ts',
   'server/cli/validate-track-all-active-route-retirement.ts',
   'docs/edit-skills/manifests/track-all-capability-manifest.generated.json',
   'server/tool-execution/media-binary-execution/offline-media-binary-protocol.ts',

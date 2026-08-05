@@ -43,6 +43,8 @@ export interface EditSkillRuntimeDependencies {
   artifactSchemaRegistry?: EditSkillArtifactSchemaRegistry
   additionalRuntimeBindings?: readonly SkillJobRuntimeBinding[]
   privateArtifactAuthority?: boolean
+  /** Exact Track All SAM route authority; omitted means the safe blocked report. */
+  trackAllSam31RouteGateReport?: unknown
 }
 
 export interface EditSkillRuntime {

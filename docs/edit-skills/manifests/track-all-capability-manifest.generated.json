@@ -395,7 +395,7 @@
       ]
     }
   ],
-  "manifestHash": "9d78b223b600a2ab0aac17995749d8a8918b02d53aec9aaa7bae0ff31e82122b",
+  "manifestHash": "cfb670fa8255af9112592e5a87ae19e8bc5045b9d418af6452e2eca94c5a0d8b",
   "mayOverlapWith": [
     {
       "condition": "track_graph_and_geometry_support",
@@ -931,6 +931,16 @@
     {
       "description": "Track All canonical private public e2e evidence.",
       "fixtureKey": "track_all.fixture.canonical_private_public_e2e",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All canonical execution accounting evidence.",
+      "fixtureKey": "track_all.fixture.canonical_execution_accounting",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All sam activation protocol wiring evidence.",
+      "fixtureKey": "track_all.fixture.sam_activation_protocol_wiring",
       "minimumStatus": "planning_qualified"
     },
     {

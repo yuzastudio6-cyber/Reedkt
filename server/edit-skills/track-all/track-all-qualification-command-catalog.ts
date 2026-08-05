@@ -24,7 +24,11 @@ export const TRACK_ALL_QUALIFICATION_SCRIPTS = [
   'test:track-all-independent-qa-repair',
   'test:track-all-runtime-bindings',
   'test:track-all-canonical-private-runtime',
+  'test:track-all-canonical-private-accounting',
+  'test:track-all-canonical-private-composite',
   'test:track-all-canonical-private-public-e2e',
+  'test:track-all-sam3.1-protocol-wiring',
+  'e2e:track-all-sam3.1-canonical-private',
   'test:track-all-public-plugin-e2e',
   'test:track-all-producer-consumer-acceptance',
   'test:track-all-qualification-evidence',
@@ -66,6 +70,8 @@ export const TRACK_ALL_FIXTURE_COMMAND = {
   'track_all.fixture.b_roll_consumer_acceptance': 'npm.test:track-all-producer-consumer-acceptance',
   'track_all.fixture.canonical_private_runtime': 'npm.test:track-all-canonical-private-runtime',
   'track_all.fixture.canonical_private_public_e2e': 'npm.test:track-all-canonical-private-public-e2e',
+  'track_all.fixture.canonical_execution_accounting': 'npm.test:track-all-canonical-private-accounting',
+  'track_all.fixture.sam_activation_protocol_wiring': 'npm.test:track-all-sam3.1-protocol-wiring',
   'track_all.fixture.legacy_retirement': 'npm.test:track-all-retirement',
   'track_all.fixture.qualification_integrity': 'npm.test:track-all-qualification-evidence',
 } as const satisfies Record<(typeof TRACK_ALL_QUALIFICATION_FIXTURE_KEYS)[number], string>
@@ -80,6 +86,8 @@ export const TRACK_ALL_ROUTE_COMMANDS = {
   deterministic_geometry_route: [
     'npm.test:track-all-deterministic-geometry',
     'npm.test:track-all-canonical-private-runtime',
+    'npm.test:track-all-canonical-private-accounting',
+    'npm.test:track-all-canonical-private-composite',
     'npm.test:track-all-canonical-private-public-e2e',
   ],
   planar_tracking_route: [
@@ -116,6 +124,10 @@ export const TRACK_ALL_ROUTE_COMMANDS = {
     'npm.test:track-all-sam3.1-injected-session',
     'npm.test:track-all-sam3.1-real-private-runtime',
     'npm.test:track-all-sam3.1-private-canary',
+    'npm.test:track-all-canonical-private-accounting',
+    'npm.test:track-all-canonical-private-composite',
+    'npm.test:track-all-sam3.1-protocol-wiring',
+    'npm.e2e:track-all-sam3.1-canonical-private',
   ],
   production_worker_route: ['npm.test:track-all-runtime-bindings'],
 } as const satisfies Record<TrackAllRouteQualificationKey, readonly string[]>

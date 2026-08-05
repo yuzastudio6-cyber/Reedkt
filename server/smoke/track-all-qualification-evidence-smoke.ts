@@ -154,6 +154,10 @@ assert.equal(assertTrackAllGeneratedQualificationArtifact({
 assert.equal(artifact.receipt.qualificationStatus, 'planning_qualified')
 assert.equal(artifact.actualSamRequestCount, 0)
 assert.equal(artifact.actualGpuExecutionCount, 0)
+assert.equal(artifact.protocolWiringComplete, true)
+assert.equal(artifact.realSamExecutionObserved, false)
+assert.equal(artifact.samActivationRequiresNoFurtherCodeChange, true)
+assert.equal(artifact.samRouteQualification, 'blocked')
 assert.equal(artifact.productionQualified, false)
 assert.equal(
   artifact.finalAuthorityBinding.actualBrollConsumerAcceptanceEvidenceHash,
@@ -168,8 +172,27 @@ assert.equal(
   required('npm.test:track-all-sam3.1-private-canary').evidenceHash,
 )
 assert.equal(artifact.finalAuthorityBinding.actualSamCanaryEvidenceHash, null)
+assert.equal(
+  artifact.finalAuthorityBinding.actualCanonicalPrivateSamE2eEvidenceHash,
+  null,
+)
+assert.equal(artifact.finalAuthorityBinding.protocolWiringComplete, true)
+assert.equal(artifact.finalAuthorityBinding.realSamExecutionObserved, false)
+assert.equal(
+  artifact.finalAuthorityBinding.samActivationRequiresNoFurtherCodeChange,
+  true,
+)
+assert.equal(artifact.finalAuthorityBinding.samRouteQualification, 'blocked')
 assert.equal(artifact.finalAuthorityBinding.samRouteGateReport.internalExecutionAuthorized, false)
 assert.equal(artifact.finalAuthorityBinding.samRouteGateReport.actualSamRequestCount, 0)
+assert.equal(
+  artifact.finalAuthorityBinding.protocolWiringEvidenceHash,
+  required('npm.test:track-all-sam3.1-protocol-wiring').evidenceHash,
+)
+assert.equal(
+  artifact.finalAuthorityBinding.gatedCanonicalPrivateSamE2ePreflightEvidenceHash,
+  required('npm.e2e:track-all-sam3.1-canonical-private').evidenceHash,
+)
 assert.equal(
   artifact.receipt.testEvidenceHashes.includes(
     artifact.finalAuthorityBinding.bindingHash,
@@ -317,7 +340,26 @@ samOverclaim.qualificationStatus = 'internal_execution_qualified'
 samOverclaim.actualSamInferenceObserved = true
 const { routeEvidenceHash: _oldRouteHash, ...samOverclaimCore } = samOverclaim
 void _oldRouteHash
-assert.throws(() => createTrackAllRouteQualificationEvidence(samOverclaimCore), /must remain blocked/iu)
+assert.throws(
+  () => createTrackAllRouteQualificationEvidence(samOverclaimCore),
+  /neither honestly blocked nor actual canonical-private inference/iu,
+)
+
+const forgedSamActivation = structuredClone(artifact)
+forgedSamActivation.realSamExecutionObserved = true
+forgedSamActivation.samRouteQualification = 'internal_execution_qualified'
+forgedSamActivation.actualSamRequestCount = 1
+forgedSamActivation.actualGpuExecutionCount = 1
+const { artifactHash: _forgedSamActivationHash, ...forgedSamActivationCore } =
+  forgedSamActivation
+void _forgedSamActivationHash
+forgedSamActivation.artifactHash = hashSkillValue(forgedSamActivationCore)
+assert.throws(() => assertTrackAllGeneratedQualificationArtifact({
+  artifact: forgedSamActivation,
+  manifest: TRACK_ALL_CAPABILITY_MANIFEST,
+  expectedRelevantSourceTreeHash: sourceTreeHash,
+  expectedDependencyAuthorityHashes: dependencyAuthorityHashes,
+}), /SAM activation|execution evidence|overclaims/iu)
 
 const planningOverclaim = structuredClone(routes)
 const planningRoute = planningOverclaim.find((route) =>
@@ -375,6 +417,10 @@ console.log(JSON.stringify({
   bootstrapBrollEvidenceRuntimeRejected: true,
   canonicalPrivatePublicE2eBound: true,
   samRouteGateReportBound: true,
+  protocolWiringEvidenceBound: true,
+  gatedCanonicalPrivateSamE2ePreflightBound: true,
+  activationWithoutSourceRedesignBound: true,
+  forgedSamActivationRejected: true,
   samOverclaimRejected: true,
   planningRouteOverclaimRejected: true,
   productionOverclaimRejected: true,

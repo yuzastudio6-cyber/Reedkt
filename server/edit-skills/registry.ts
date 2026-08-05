@@ -91,6 +91,7 @@ export function createEditSkillRuntime(
     routeQualifications: input.routeQualificationRegistry!,
     catalog: referenceCatalog,
     environmentClass: input.environmentClass,
+    sam31RouteGateReport: input.trackAllSam31RouteGateReport,
   })
   for (const binding of input.additionalRuntimeBindings ?? []) {
     if (binding.definition.environmentClass !== input.environmentClass) {

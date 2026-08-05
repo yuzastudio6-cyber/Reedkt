@@ -9,7 +9,7 @@ terminal evidence gates remain closed
 ## Integrated histories
 
 - Canonical backend source head:
-  `4c7ebbf2f1b977aec898bbc9de07762246b8e66c`
+  `b4241b6023de986de634fd1a20b705dbedf811cb`
 - Complete Caption specialist source head:
   `70176e1cae1023c5f42b7c44f2acb10b8f974646`
 - Integration branch: `codex/backend-caption-specialist-integration-v1`
@@ -36,6 +36,10 @@ Two source assumptions were corrected after the merge:
 2. CAP-19 now verifies the backend's canonical read-only Qwen model-role record
    instead of importing a provider module that the backend deliberately removed.
    Fresh Qwen execution remains forbidden.
+3. The Track All/SAM 3.1 bridge now consumes the backend's v2 authenticated
+   evidence record. It requires the independently persisted task-level scene-QA
+   authority before the exact scene evidence may be projected or used to resume
+   Caption. The v2 source update does not count as live GPU qualification.
 
 ## Evidence
 

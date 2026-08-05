@@ -17,6 +17,16 @@ than stopping at an evidence record. This is source-level integration evidence;
 it does not claim a new Gemini call, GPU execution, model run, media render, or
 terminal private qualification.
 
+Track All now uses `canonical-caption-track-all-support-service-v2` and
+`canonical-caption-track-all-authenticated-evidence-record-v2`. Before the
+owner may project its neutral mask binding, it must reread the separate
+`canonical-track-all-sam3_1-caption-scene-qa-authority-v1`, which binds the
+Caption request, admitted task/result, L4 Kornia CUDA measurement with OpenCV
+cross-check, complete requested range and subjects, usage/cost lineage,
+scale-to-zero evidence, and independent private scene review. Caption treats
+that authority as immutable owner evidence and does not gain GPU, cost, asset,
+or QA authority.
+
 ## Corrected lineage gaps
 
 - Visual Intelligence owner projection now binds the authenticated reread
@@ -38,7 +48,7 @@ resume repository remains the only sequential continuation writer.
 ## Verification
 
 - canonical Caption Visual Intelligence support smoke: 17 assertions;
-- canonical Caption Track All support smoke: 16 assertions, plus the canonical
+- canonical Caption Track All support smoke: 17 assertions, plus the canonical
   68-check SAM task/result owner proof;
 - both positive paths persist and reread step 1 and finish their exact Caption
   planning jobs;

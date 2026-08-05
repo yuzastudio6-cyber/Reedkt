@@ -555,7 +555,7 @@ const visualMountRef = sourceMountRef(
   'canonical-caption-visual-intelligence-support-service-v1')
 const trackMountRef = sourceMountRef(
   'captions.track-all.support-resume-mount',
-  'canonical-caption-track-all-support-service-v1')
+  'canonical-caption-track-all-support-service-v2')
 const soundMountRef = sourceMountRef(
   'captions.soundsync.support-resume-mount',
   'canonical-caption-soundsync-support-service-v1')

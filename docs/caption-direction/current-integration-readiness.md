@@ -42,6 +42,12 @@ Caption runner, Visual Intelligence in its production composition, and Track
 All/SAM 3.1 in its production composition. Their focused positive paths
 complete exact Caption calls through the one-writer resume ledger.
 
+The Track All mount is current at support service v2. Its Caption evidence
+adapter requires the backend's independent task-level scene-QA authority in
+addition to the admitted SAM 3.1 result and scene evidence. This source-level
+hardening does not change the 37/41 readiness count and does not turn the
+owner's still-unrun live A100/L4 path into qualification evidence.
+
 SoundSync and B-roll each have a strict Caption bridge, create-only evidence
 repository, exact owner reread, one-writer resume behavior, and adversarial
 tests. They are not yet mounted because this branch does not contain a

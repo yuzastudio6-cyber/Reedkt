@@ -50,6 +50,7 @@ const recordEnvelopeSchema = z.object({
   backendTrackAllSupportRequestRef: domainRefSchema,
   sam31TaskRef: domainRefSchema,
   sam31RuntimeResultAdmissionRef: domainRefSchema,
+  trackAllSceneQaAuthorityRef: domainRefSchema,
   trackAllSceneEvidenceRef: domainRefSchema,
   captionEvidencePacket: z.unknown(),
   captionAdmission: z.unknown(),
@@ -59,6 +60,7 @@ const recordEnvelopeSchema = z.object({
   backendTrackAllCallAndSupportRequestExactReread: z.literal(true),
   distinctCaptionAndBackendSupportWireIdentitiesPreserved: z.literal(true),
   sam31TaskAndResultExactReread: z.literal(true),
+  taskLevelSceneQaAuthorityExactReread: z.literal(true),
   independentSceneEvidenceExactReread: z.literal(true),
   exactCaptionScopeOutputSceneRangeSourceAndFrameBindingVerified: z.literal(true),
   ownerProjectionCreateOnlyPersisted: z.literal(true),
@@ -98,6 +100,7 @@ z.ZodType<CaptionCanonicalTrackAllEvidenceReadAdapterReceipt> = z.object({
   backendImplementationImported: z.literal(false),
   exactSupportPayloadRequestPacketAdmissionAndProjectionBindingRequired:
     z.literal(true),
+  exactTaskLevelSceneQaAuthorityRefRequired: z.literal(true),
   exactCreateOnlyPersistenceRereadClaimsRequired: z.literal(true),
   sourceFixtureExercised: z.literal(true),
   actualCanonicalEvidenceRecordConsumed: z.literal(false),
@@ -173,6 +176,10 @@ export function parseCaptionCanonicalTrackAllEvidenceRecord(
     || !sameRef(envelope.supportRequestRef, requestRef)
     || !sameRef(envelope.sam31RuntimeResultAdmissionRef,
       packet.canonicalSam31RuntimeResultAdmissionRef)
+    || sameRef(envelope.trackAllSceneQaAuthorityRef,
+      envelope.trackAllSceneEvidenceRef)
+    || sameRef(envelope.trackAllSceneQaAuthorityRef,
+      envelope.sam31RuntimeResultAdmissionRef)
     || !sameRef(envelope.trackAllSceneEvidenceRef,
       packet.authenticatedReadResultRef)
     || sameRef(envelope.supportRequestRef,
@@ -224,10 +231,10 @@ const receiptWithoutDigest: Omit<
   backendSource: {
     repository: 'yuzastudio6-cyber/Reedkt',
     branch: 'codex/backend-workflow-pipeline-continuation',
-    sourceCommit: '4c7ebbf2f1b977aec898bbc9de07762246b8e66c',
-    sourceTree: '4bccbe14c2a0486782a7eb380a5dc46180389017',
+    sourceCommit: 'b4241b6023de986de634fd1a20b705dbedf811cb',
+    sourceTree: '6e73a1777a012a64aeca01564cf08eebdcbd0ec9',
     publicTypeFileSha256:
-      '33248a66fd198617cd6fffca9d42276a94198110b78a0316401e1ab383a9dc08',
+      '43c80e3ca576d4cd93eb6c2e0a96dc556d84f8f14c25c284f8c13b88254571db',
     captionTrackAllPublicTypeFileSha256:
       '38fce85b11b1d5692dacb873fc056f61808ddbf115356c7a7556158bd80145b3',
   },
@@ -237,6 +244,7 @@ const receiptWithoutDigest: Omit<
   sourcePublicTypeCopiedByteForByte: true,
   backendImplementationImported: false,
   exactSupportPayloadRequestPacketAdmissionAndProjectionBindingRequired: true,
+  exactTaskLevelSceneQaAuthorityRefRequired: true,
   exactCreateOnlyPersistenceRereadClaimsRequired: true,
   sourceFixtureExercised: true,
   actualCanonicalEvidenceRecordConsumed: false,

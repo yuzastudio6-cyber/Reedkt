@@ -40,6 +40,7 @@ z.ZodType<CaptionCanonicalTrackAllResumeAdmissionReceipt> = z.object({
   captionEntrypointId: z.literal(
     'runCaptionCanonicalTrackAllResumeAdmission'),
   exactCallRequestProjectionArtifactAndResultReplayRequired: z.literal(true),
+  exactTaskLevelSceneQaAuthorityRefRequired: z.literal(true),
   onlyCurrentTrackAllResultInjected: z.literal(true),
   priorOwnerResultsRemainCanonicalInputs: z.literal(true),
   runtimeResultMustMatchPersistedResultDigest: z.literal(true),
@@ -91,6 +92,9 @@ export function runCaptionCanonicalTrackAllResumeAdmission(input: {
     || !exactRef(
       resumeRecord.authenticatedOwnerProjection.ownerResultRef,
       evidenceRecord.trackAllSceneEvidenceRef)
+    || exactRef(
+      evidenceRecord.trackAllSceneQaAuthorityRef,
+      evidenceRecord.trackAllSceneEvidenceRef)
     || resumeRecord.authenticatedOwnerProjection.artifactRefs.length !== 1
     || evidenceRecord.authenticatedOwnerProjection.artifactRefs.length !== 1
     || !exactRef(
@@ -139,6 +143,7 @@ const receiptWithoutDigest: Omit<
     CANONICAL_SPECIALIST_SUPPORT_RESUME_RECORD_VERSION,
   captionEntrypointId: 'runCaptionCanonicalTrackAllResumeAdmission',
   exactCallRequestProjectionArtifactAndResultReplayRequired: true,
+  exactTaskLevelSceneQaAuthorityRefRequired: true,
   onlyCurrentTrackAllResultInjected: true,
   priorOwnerResultsRemainCanonicalInputs: true,
   runtimeResultMustMatchPersistedResultDigest: true,

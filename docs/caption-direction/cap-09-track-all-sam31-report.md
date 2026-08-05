@@ -28,14 +28,16 @@ unbound packet, cross-scene payload, or `contract_fixture` packet cannot
 complete the runtime job.
 
 The backend one-writer public record
-`canonical-caption-track-all-authenticated-evidence-record-v1` is also consumed
+`canonical-caption-track-all-authenticated-evidence-record-v2` is also consumed
 through an independent Caption parser. The copied public type is byte-identical
-to backend commit `4c7ebbf2f1b977aec898bbc9de07762246b8e66c` (SHA-256
-`33248a66fd198617cd6fffca9d42276a94198110b78a0316401e1ab383a9dc08`).
+to backend commit `b4241b6023de986de634fd1a20b705dbedf811cb`
+(SHA-256
+`43c80e3ca576d4cd93eb6c2e0a96dc556d84f8f14c25c284f8c13b88254571db`).
 Caption validates the exact request/payload, SAM 3.1 admission, independent
-scene evidence, packet, Caption admission, and neutral owner projection without
-importing the backend service. A source fixture proves the adapter; no actual
-persisted backend record or GPU execution is claimed in this checkout.
+task-level scene-QA authority, independent scene evidence, packet, Caption
+admission, and neutral owner projection without importing the backend service.
+A source fixture proves the adapter; no actual persisted backend record or GPU
+execution is claimed in this checkout.
 
 ## Evidence and QA
 
@@ -100,7 +102,9 @@ the frozen public-file hash, complete canonical record admission, strict runtime
 consumption, crossed scene/projection rejection, ambiguous input rejection, and
 non-resume refusal. It also binds the record to the canonical sequential-resume
 ledger and requires a deterministic replay to match the persisted Caption
-result digest; altered persisted results fail closed.
+result digest; altered persisted results fail closed. Its v2 parser also rejects
+records that omit the task-level scene-QA authority or confuse that authority
+with the scene evidence or SAM result.
 
 ## Next milestone
 

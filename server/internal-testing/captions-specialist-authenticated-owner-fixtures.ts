@@ -375,6 +375,9 @@ function resolveTrack(
   const sceneEvidenceRef = domainRef(
     `caption.track.scene-evidence.${suffix}`,
     'canonical-track-all-sam3_1-caption-scene-evidence-v1')
+  const sceneQaAuthorityRef = domainRef(
+    `caption.track.scene-qa-authority.${suffix}`,
+    'canonical-track-all-sam3_1-caption-scene-qa-authority-v1')
   const samAdmissionRef = domainRef(
     `caption.track.sam31-admission.${suffix}`,
     'canonical-sam3_1-runtime-result-admission-v1')
@@ -425,7 +428,7 @@ function resolveTrack(
     'recordDigestSha256'
   > = {
     schemaVersion:
-      'canonical-caption-track-all-authenticated-evidence-record-v1',
+      'canonical-caption-track-all-authenticated-evidence-record-v2',
     recordId: `caption.track.record.${suffix}`,
     originalCallRef: structuredClone(request.originalCallRef),
     supportRequestRef: requestRef(request),
@@ -436,6 +439,7 @@ function resolveTrack(
       `caption.track.backend-support.${suffix}`),
     sam31TaskRef: domainRef(`caption.track.sam31-task.${suffix}`),
     sam31RuntimeResultAdmissionRef: samAdmissionRef,
+    trackAllSceneQaAuthorityRef: sceneQaAuthorityRef,
     trackAllSceneEvidenceRef: sceneEvidenceRef,
     captionEvidencePacket: packet,
     captionAdmission: admission,
@@ -445,6 +449,7 @@ function resolveTrack(
     backendTrackAllCallAndSupportRequestExactReread: true,
     distinctCaptionAndBackendSupportWireIdentitiesPreserved: true,
     sam31TaskAndResultExactReread: true,
+    taskLevelSceneQaAuthorityExactReread: true,
     independentSceneEvidenceExactReread: true,
     exactCaptionScopeOutputSceneRangeSourceAndFrameBindingVerified: true,
     ownerProjectionCreateOnlyPersisted: true,

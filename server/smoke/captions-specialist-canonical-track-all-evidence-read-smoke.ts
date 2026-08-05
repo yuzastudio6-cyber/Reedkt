@@ -271,11 +271,14 @@ const projection = redigest({
   ...projectionWithoutDigest,
   projectionDigestSha256: '',
 }, 'projectionDigestSha256')
+const sceneQaAuthorityRef = ref(
+  'track-all.scene-qa-authority.canonical',
+  'canonical-track-all-sam3_1-caption-scene-qa-authority-v1')
 const recordWithoutDigest: Omit<
   CanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
   'recordDigestSha256'
 > = {
-  schemaVersion: 'canonical-caption-track-all-authenticated-evidence-record-v1',
+  schemaVersion: 'canonical-caption-track-all-authenticated-evidence-record-v2',
   recordId: 'caption.track.canonical.record',
   originalCallRef: structuredClone(support.supportRequest.originalCallRef),
   supportRequestRef,
@@ -285,6 +288,7 @@ const recordWithoutDigest: Omit<
   backendTrackAllSupportRequestRef: ref('backend.track.support.canonical'),
   sam31TaskRef: ref('sam31.task.track.canonical'),
   sam31RuntimeResultAdmissionRef: samAdmissionRef,
+  trackAllSceneQaAuthorityRef: sceneQaAuthorityRef,
   trackAllSceneEvidenceRef: sceneEvidenceRef,
   captionEvidencePacket: authenticatedPacket,
   captionAdmission: admission,
@@ -294,6 +298,7 @@ const recordWithoutDigest: Omit<
   backendTrackAllCallAndSupportRequestExactReread: true,
   distinctCaptionAndBackendSupportWireIdentitiesPreserved: true,
   sam31TaskAndResultExactReread: true,
+  taskLevelSceneQaAuthorityExactReread: true,
   independentSceneEvidenceExactReread: true,
   exactCaptionScopeOutputSceneRangeSourceAndFrameBindingVerified: true,
   ownerProjectionCreateOnlyPersisted: true,
@@ -325,11 +330,11 @@ check(record.authenticatedOwnerProjection.ownerKey === 'track_all'
 'The canonical record projects one neutral Track All artifact only.')
 check(hash(readFileSync(
   'src/types/canonical-caption-track-all-support.ts'))
-  === '33248a66fd198617cd6fffca9d42276a94198110b78a0316401e1ab383a9dc08',
+  === '43c80e3ca576d4cd93eb6c2e0a96dc556d84f8f14c25c284f8c13b88254571db',
 'The backend public type is copied byte-for-byte from the frozen commit.')
 check(parseCaptionCanonicalTrackAllEvidenceReadReceipt(
   CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT).backendSource.sourceCommit
-  === '4c7ebbf2f1b977aec898bbc9de07762246b8e66c',
+  === 'b4241b6023de986de634fd1a20b705dbedf811cb',
 'The Caption adapter receipt pins the exact backend source commit.')
 
 const initial = runCaptionsSpecialistJob({
@@ -423,6 +428,23 @@ crossedScene.trackAllSceneEvidenceRef = ref('track.scene.evidence.crossed')
 crossedScene.recordDigestSha256 = calculateSkillContractDigest(
   crossedScene as unknown as Record<string, unknown>, 'recordDigestSha256')
 expectThrow(() => parseCaptionCanonicalTrackAllEvidenceRecord(crossedScene))
+
+const aliasedSceneQaAuthority = structuredClone(record)
+aliasedSceneQaAuthority.trackAllSceneQaAuthorityRef =
+  structuredClone(aliasedSceneQaAuthority.trackAllSceneEvidenceRef)
+aliasedSceneQaAuthority.recordDigestSha256 = calculateSkillContractDigest(
+  aliasedSceneQaAuthority as unknown as Record<string, unknown>,
+  'recordDigestSha256')
+expectThrow(() => parseCaptionCanonicalTrackAllEvidenceRecord(
+  aliasedSceneQaAuthority))
+
+const missingTaskQaReread = structuredClone(record) as unknown as
+  Record<string, unknown>
+delete missingTaskQaReread.taskLevelSceneQaAuthorityExactReread
+missingTaskQaReread.recordDigestSha256 = calculateSkillContractDigest(
+  missingTaskQaReread, 'recordDigestSha256')
+expectThrow(() => parseCaptionCanonicalTrackAllEvidenceRecord(
+  missingTaskQaReread))
 
 const crossedProjection = structuredClone(record)
 crossedProjection.authenticatedOwnerProjection.ownerResultRef =

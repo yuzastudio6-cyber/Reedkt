@@ -1,5 +1,5 @@
 export const CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_ADAPTER_VERSION =
-  'caption-canonical-track-all-evidence-read-adapter-v1' as const
+  'caption-canonical-track-all-evidence-read-adapter-v2' as const
 
 export interface CaptionCanonicalTrackAllEvidenceReadAdapterReceipt {
   schemaVersion:
@@ -15,12 +15,13 @@ export interface CaptionCanonicalTrackAllEvidenceReadAdapterReceipt {
     captionTrackAllPublicTypeFileSha256: string
   }
   consumedRecordVersion:
-    'canonical-caption-track-all-authenticated-evidence-record-v1'
+    'canonical-caption-track-all-authenticated-evidence-record-v2'
   captionParserEntrypointId:
     'parseCaptionCanonicalTrackAllEvidenceRecord'
   sourcePublicTypeCopiedByteForByte: true
   backendImplementationImported: false
   exactSupportPayloadRequestPacketAdmissionAndProjectionBindingRequired: true
+  exactTaskLevelSceneQaAuthorityRefRequired: true
   exactCreateOnlyPersistenceRereadClaimsRequired: true
   sourceFixtureExercised: true
   actualCanonicalEvidenceRecordConsumed: false

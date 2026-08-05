@@ -484,6 +484,7 @@ export interface CanonicalCaptionTrackAllSupportService {
     readonly selectedSupportRequestRef: SkillContractRef
     readonly invocationId: string
     readonly runtimeResultAdmissionRef: CaptionDomainRef
+    readonly trackAllSceneQaAuthorityRef: CaptionDomainRef
     readonly trackAllSceneEvidenceRef: CaptionDomainRef
   }): Promise<{
     readonly evidenceRecord: CanonicalCaptionTrackAllAuthenticatedEvidenceRecord

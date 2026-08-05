@@ -101,6 +101,7 @@ The governing workflow invariant remains:
 - [Post-CAP-20 canonical sequential-resume read](post-cap20-canonical-resume-read.md)
 - [Post-CAP-20 authenticated multi-owner resume](post-cap20-authenticated-multi-owner-resume-report.md)
 - [Current Caption integration readiness](current-integration-readiness.md)
+- [Terminal private-qualification gate](terminal-private-qualification-gate.md)
 - [Post-CAP-20 Visual Intelligence spatial adapter](post-cap20-visual-intelligence-spatial-adapter.md)
 
 ### Historical architecture retained and amended

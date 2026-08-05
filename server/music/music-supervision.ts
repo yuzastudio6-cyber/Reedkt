@@ -1,5 +1,6 @@
 import {
   createMusicArtifact,
+  canonicalMusicCueConstraints,
   hashMusicValue,
   requestedMusicCueConstraints,
   type CanonicalMusicCueIntent,
@@ -8,6 +9,10 @@ import {
   type MusicFrameRange,
   type MusicNeedDecisionKind,
   type MusicRouteBinding,
+  type MusicSoundtrackSegmentationPlan,
+  type MusicSoundtrackSegment,
+  type MusicCueConstraint,
+  type MusicCueConstraintResolution,
 } from './music-contracts'
 import type { CanonicalMusicContextPackage, MusicSceneEvidence } from './music-context'
 import { MUSIC_TOOL_ROUTE_MANIFESTS } from './music-tool-routes'
@@ -83,6 +88,8 @@ export interface MusicCueSheetPayload {
   overScoringWarnings: string[]
   intentionalSilenceRanges: CanonicalMusicSkillRequest['scopeAuthority']['authorizedMusicWriteRanges']
   noFirstItemFallback: true
+  segmentationPlanHash: string
+  cueConstraintResolutions: MusicCueConstraintResolution[]
 }
 
 function artifact<T>(input: {
@@ -97,7 +104,7 @@ function artifact<T>(input: {
   return createMusicArtifact({
     artifactId: input.artifactId,
     artifactVersion: 1,
-    schemaVersion: `${input.artifactType}.schema.v2`,
+    schemaVersion: `${input.artifactType}.schema.v3`,
     artifactType: input.artifactType,
     requestId: input.request.requestId,
     sourceArtifactHashes: [
@@ -132,6 +139,108 @@ function intersections(ranges: readonly MusicFrameRange[], target: MusicFrameRan
   })).filter((range) => range.endFrameExclusive > range.startFrame)
 }
 
+function classificationForSegment(input: {
+  segment: MusicFrameRange
+  scenes: MusicSceneEvidence[]
+  importantSpeech: boolean
+  emotionalPause: boolean
+  ambiencePriority: boolean
+}): MusicSoundtrackSegment['classification'] {
+  if (input.emotionalPause) return 'emotional_pause'
+  if (input.scenes.some((scene) => scene.storyFunction === 'testimony')) return 'testimony'
+  if (input.importantSpeech) return 'speech'
+  if (input.ambiencePriority) return 'ambience_priority'
+  if (input.scenes.some((scene) => scene.storyFunction === 'transition')) return 'transition'
+  if (input.scenes.some((scene) => scene.transitionBoundaryIds.length > 0)) return 'chapter'
+  if (input.scenes.some((scene) => scene.storyFunction === 'montage')) return 'montage'
+  return input.scenes.length > 0 ? 'story' : 'unresolved'
+}
+
+export function buildMusicSoundtrackSegmentationPlan(input: {
+  request: CanonicalMusicSkillRequest
+  context: CanonicalMusicContextPackage
+}): MusicSoundtrackSegmentationPlan {
+  const constraints = canonicalMusicCueConstraints(input.request)
+  const segments: MusicSoundtrackSegment[] = []
+  for (const writeRange of input.request.scopeAuthority.authorizedMusicWriteRanges) {
+    const boundaries = new Set<number>([writeRange.startFrame, writeRange.endFrameExclusive])
+    const sources: Array<{ range: MusicFrameRange; reason: string }> = [
+      ...input.context.scenes.map((scene) => ({ range: scene.exactRange, reason: `scene:${scene.sceneId}` })),
+      ...input.context.protectedSpeechRanges.map((range) => ({ range, reason: `speech:${range.rangeId}` })),
+      ...input.context.scenes.flatMap((scene) => scene.emotionalPauseRanges.map((range) => ({
+        range, reason: `emotional_pause:${range.rangeId}`,
+      }))),
+      ...input.request.scopeAuthority.lockedRanges.map((range) => ({ range, reason: `locked:${range.rangeId}` })),
+      ...constraints.map((constraint) => ({ range: constraint.cue.exactRange, reason: `constraint:${constraint.constraintId}` })),
+    ]
+    for (const source of sources) {
+      if (!overlaps(source.range, writeRange)) continue
+      boundaries.add(Math.max(writeRange.startFrame, source.range.startFrame))
+      boundaries.add(Math.min(writeRange.endFrameExclusive, source.range.endFrameExclusive))
+    }
+    const ordered = [...boundaries].sort((left, right) => left - right)
+    for (let index = 0; index < ordered.length - 1; index += 1) {
+      const startFrame = ordered[index]!
+      const endFrameExclusive = ordered[index + 1]!
+      if (endFrameExclusive <= startFrame) continue
+      const exactRange = { rangeId: `${writeRange.rangeId}.segment-${index + 1}`, startFrame, endFrameExclusive }
+      const scenes = input.context.scenes.filter((scene) => overlaps(scene.exactRange, exactRange))
+      const importantSpeech = input.context.protectedSpeechRanges.some((range) => overlaps(range, exactRange)) ||
+        scenes.some((scene) => scene.importantSpeech)
+      const emotionalPause = scenes.some((scene) => scene.emotionalPauseRanges.some((range) => overlaps(range, exactRange)))
+      const naturalAmbiencePriority = scenes.some((scene) => ['critical', 'high'].includes(scene.naturalAmbienceValue))
+      const cueConstraintIds = constraints.filter((constraint) => overlaps(constraint.cue.exactRange, exactRange))
+        .map((constraint) => constraint.constraintId)
+      const transitionBoundaryIds = [...new Set(scenes.flatMap((scene) => scene.transitionBoundaryIds))]
+      const locked = input.request.scopeAuthority.lockedRanges.some((range) => overlaps(range, exactRange)) ||
+        constraints.some((constraint) => ['fully_locked', 'range_locked'].includes(constraint.authorityMode) &&
+          overlaps(constraint.cue.exactRange, exactRange))
+      const splitReasons = sources.filter((source) => source.range.startFrame === startFrame ||
+        source.range.endFrameExclusive === endFrameExclusive).map((source) => source.reason)
+      segments.push({
+        segmentId: `music-segment-${input.request.requestId}-${segments.length + 1}`,
+        exactRange, sourceWriteRangeId: writeRange.rangeId, sceneIds: scenes.map((scene) => scene.sceneId),
+        classification: classificationForSegment({ segment: exactRange, scenes, importantSpeech,
+          emotionalPause, ambiencePriority: naturalAmbiencePriority }),
+        importantSpeech, naturalAmbiencePriority,
+        intentionalSilenceCandidate: emotionalPause || scenes.some((scene) => scene.storyFunction === 'testimony'),
+        transitionBoundaryIds, cueConstraintIds, locked, splitReasons,
+        evidenceRefs: [input.context.packageHash, ...scenes.map((scene) => scene.sceneId)],
+      })
+    }
+  }
+  const orderedSegments = segments.sort((left, right) => left.exactRange.startFrame - right.exactRange.startFrame ||
+    left.exactRange.endFrameExclusive - right.exactRange.endFrameExclusive)
+  for (const writeRange of input.request.scopeAuthority.authorizedMusicWriteRanges) {
+    const covered = orderedSegments.filter((segment) => segment.sourceWriteRangeId === writeRange.rangeId)
+    if (covered[0]?.exactRange.startFrame !== writeRange.startFrame ||
+      covered.at(-1)?.exactRange.endFrameExclusive !== writeRange.endFrameExclusive) {
+      throw new Error(`Music segmentation does not exactly cover ${writeRange.rangeId}.`)
+    }
+    for (let index = 1; index < covered.length; index += 1) {
+      if (covered[index - 1]!.exactRange.endFrameExclusive !== covered[index]!.exactRange.startFrame) {
+        throw new Error(`Music segmentation contains a gap or overlap in ${writeRange.rangeId}.`)
+      }
+    }
+  }
+  const base = {
+    schemaVersion: 'music-soundtrack-segmentation-plan-v3' as const,
+    planId: `music.segmentation.${input.request.requestId}`,
+    requestId: input.request.requestId,
+    timelineHash: input.request.timelineBinding.timelineManifestHash,
+    timelineRate: structuredClone(input.request.timelineBinding.rationalTimelineRate),
+    authorizedWriteRanges: structuredClone(input.request.scopeAuthority.authorizedMusicWriteRanges),
+    segments: orderedSegments,
+    coverageStatus: 'exact' as const,
+    overlapPolicy: 'none_except_typed_crossfade' as const,
+    crossfadeOverlaps: [] as MusicSoundtrackSegmentationPlan['crossfadeOverlaps'],
+    unresolvedEvidence: orderedSegments.filter((segment) => segment.classification === 'unresolved')
+      .map((segment) => segment.segmentId),
+    planHash: '',
+  }
+  return { ...base, planHash: hashMusicValue(base) }
+}
+
 function rightsUsable(request: CanonicalMusicSkillRequest, source: string): boolean {
   const now = Date.now()
   const rightsByAsset = new Map(request.rightsAndProvenanceRefs.map((item) => [item.assetId, item]))
@@ -147,7 +256,14 @@ function rightsUsable(request: CanonicalMusicSkillRequest, source: string): bool
 }
 
 function rangeScene(context: CanonicalMusicContextPackage, range: MusicFrameRange): MusicSceneEvidence | undefined {
-  return context.scenes.find((scene) => overlaps(scene.exactRange, range))
+  return context.scenes.filter((scene) => overlaps(scene.exactRange, range)).sort((left, right) => {
+    const leftOverlap = Math.min(left.exactRange.endFrameExclusive, range.endFrameExclusive) -
+      Math.max(left.exactRange.startFrame, range.startFrame)
+    const rightOverlap = Math.min(right.exactRange.endFrameExclusive, range.endFrameExclusive) -
+      Math.max(right.exactRange.startFrame, range.startFrame)
+    return rightOverlap - leftOverlap || left.exactRange.startFrame - right.exactRange.startFrame ||
+      left.sceneId.localeCompare(right.sceneId)
+  })[0]
 }
 
 function professionalAcquisition(request: CanonicalMusicSkillRequest): MusicNeedDecisionKind {
@@ -251,9 +367,10 @@ export function decideMusicNeed(input: {
   request: CanonicalMusicSkillRequest
   context: CanonicalMusicContextPackage
   contextStudy: MusicArtifactEnvelope<MusicContextStudyPayload>
+  segmentationPlan: MusicSoundtrackSegmentationPlan
 }): MusicArtifactEnvelope<MusicNeedDecisionPayload> {
-  const perRangeDecisions = input.request.scopeAuthority.authorizedMusicWriteRanges.map((range) => rangeNeed({
-    request: input.request, context: input.context, range,
+  const perRangeDecisions = input.segmentationPlan.segments.map((segment) => rangeNeed({
+    request: input.request, context: input.context, range: segment.exactRange,
   }))
   const distinct = [...new Set(perRangeDecisions.map((item) => item.decision))]
   const decision: MusicNeedDecisionKind = distinct.length === 1 ? distinct[0]!
@@ -391,22 +508,112 @@ function buildCueSet(input: {
   request: CanonicalMusicSkillRequest
   context: CanonicalMusicContextPackage
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
-}): { cues: CanonicalMusicCueIntent[]; lockedCueIds: string[]; generatedCueIds: string[] } {
-  const constraints = requestedMusicCueConstraints(input.request)
-  const lockedIds = new Set(input.request.cueConstraints.lockedCueIds)
-  const locked = constraints.filter((cue) => lockedIds.has(cue.cueId))
-  const unlocked = constraints.filter((cue) => !lockedIds.has(cue.cueId))
-  const lockedRanges = locked.map((cue) => cue.exactRange)
-  const remaining = input.need.payload.perRangeDecisions.filter((item) =>
-    !lockedRanges.some((range) => overlaps(range, item.range)))
-  const scoredTotal = remaining.filter((item) => !['no_music', 'intentional_silence', 'ambience_only'].includes(item.decision)).length
-  const generated = remaining.map((rangeDecision, index) => derivedCue({
+  segmentationPlan: MusicSoundtrackSegmentationPlan
+}): {
+  cues: CanonicalMusicCueIntent[]
+  lockedCueIds: string[]
+  generatedCueIds: string[]
+  constraintResolutions: MusicCueConstraintResolution[]
+} {
+  const constraints = canonicalMusicCueConstraints(input.request)
+  const scoredTotal = input.need.payload.perRangeDecisions.filter((item) =>
+    !['no_music', 'intentional_silence', 'ambience_only'].includes(item.decision)).length
+  let generated = input.need.payload.perRangeDecisions.map((rangeDecision, index) => derivedCue({
     request: input.request, context: input.context, rangeDecision, index, totalScored: scoredTotal,
   }))
-  const combined = input.request.cueConstraints.allowMusicToCombineUnlockedCues ? [] : unlocked
-  const cues = [...locked, ...combined, ...generated]
+  const lockedCueIds: string[] = []
+  const preserved: CanonicalMusicCueIntent[] = []
+  const resolutions: MusicCueConstraintResolution[] = []
+  const creativeFields: Array<keyof CanonicalMusicCueIntent> = [
+    'narrativeFunction', 'cueRole', 'motifRole', 'energyArc', 'tempoRangeBpm',
+    'harmonicDirection', 'instrumentation', 'arrangementDensity', 'rhythmProfile',
+    'vocalPolicy', 'lyricPolicy', 'languagePolicy', 'acquisitionPreference', 'soundProcessingIntent',
+  ]
+  const resolution = (constraint: MusicCueConstraint, value: Omit<MusicCueConstraintResolution, 'resolutionId' |
+    'constraintId' | 'authorityMode' | 'resolutionHash'>): MusicCueConstraintResolution => {
+    const core = {
+      resolutionId: `music.constraint-resolution.${input.request.requestId}.${constraint.constraintId}`,
+      constraintId: constraint.constraintId, authorityMode: constraint.authorityMode, ...value,
+      resolutionHash: '',
+    }
+    return { ...core, resolutionHash: hashMusicValue(core) }
+  }
+  for (const constraint of constraints) {
+    const overlappingGenerated = generated.filter((cue) => overlaps(cue.exactRange, constraint.cue.exactRange))
+    if (['fully_locked', 'range_locked', 'creative_fields_locked'].includes(constraint.authorityMode)) {
+      generated = generated.filter((cue) => !overlaps(cue.exactRange, constraint.cue.exactRange))
+      const exact = structuredClone(constraint.cue)
+      if (constraint.authorityMode === 'range_locked') {
+        const professional = overlappingGenerated[0]
+        if (professional) {
+          for (const field of creativeFields) {
+            ;(exact as unknown as Record<string, unknown>)[field] = structuredClone(
+              (professional as unknown as Record<string, unknown>)[field],
+            )
+          }
+        }
+      }
+      if (constraint.authorityMode === 'creative_fields_locked') {
+        const professional = overlappingGenerated[0]
+        if (professional) {
+          const locked = new Set(constraint.lockedCreativeFields)
+          const preservedFields = Object.fromEntries(creativeFields.filter((field) => locked.has(field as never))
+            .map((field) => [field, structuredClone((constraint.cue as unknown as Record<string, unknown>)[field])]))
+          Object.assign(exact, professional, preservedFields, { cueId: constraint.cue.cueId,
+            exactRange: structuredClone(constraint.cue.exactRange) })
+        }
+      }
+      preserved.push(exact)
+      if (constraint.authorityMode !== 'creative_fields_locked') lockedCueIds.push(exact.cueId)
+      resolutions.push(resolution(constraint, {
+        decision: constraint.authorityMode === 'fully_locked' ? 'preserved_exactly'
+          : constraint.authorityMode === 'range_locked' ? 'preserved_range' : 'merged_into_segment',
+        resultingCueIds: [exact.cueId], resultingRanges: [structuredClone(exact.exactRange)],
+        changedFields: constraint.authorityMode === 'fully_locked' ? [] : creativeFields.map(String),
+        reason: `${constraint.authorityMode} constraint resolved once against atomic soundtrack segments.`,
+      }))
+      continue
+    }
+    const target = overlappingGenerated.sort((left, right) => {
+      const leftOverlap = Math.min(left.exactRange.endFrameExclusive, constraint.cue.exactRange.endFrameExclusive) -
+        Math.max(left.exactRange.startFrame, constraint.cue.exactRange.startFrame)
+      const rightOverlap = Math.min(right.exactRange.endFrameExclusive, constraint.cue.exactRange.endFrameExclusive) -
+        Math.max(right.exactRange.startFrame, constraint.cue.exactRange.startFrame)
+      return rightOverlap - leftOverlap || left.cueId.localeCompare(right.cueId)
+    })[0]
+    if (!target) {
+      resolutions.push(resolution(constraint, { decision: 'rejected_conflict', resultingCueIds: [], resultingRanges: [],
+        changedFields: [], reason: 'The preference has no authorized atomic soundtrack segment.' }))
+      continue
+    }
+    if (constraint.authorityMode === 'soft_preference') {
+      target.narrativeFunction = constraint.cue.narrativeFunction
+      target.targetStoryState = constraint.cue.targetStoryState
+      target.acquisitionPreference = constraint.cue.acquisitionPreference
+      target.vocalPolicy = constraint.cue.vocalPolicy
+      target.lyricPolicy = constraint.cue.lyricPolicy
+    }
+    resolutions.push(resolution(constraint, {
+      decision: constraint.authorityMode === 'soft_preference' ? 'treated_as_preference' : 'treated_as_advisory',
+      resultingCueIds: [target.cueId], resultingRanges: [structuredClone(target.exactRange)],
+      changedFields: constraint.authorityMode === 'soft_preference'
+        ? ['narrativeFunction', 'targetStoryState', 'acquisitionPreference', 'vocalPolicy', 'lyricPolicy'] : [],
+      reason: 'The unlocked constraint was resolved exactly once without introducing an overlapping cue.',
+    }))
+  }
+  const cues = [...preserved, ...generated]
     .sort((left, right) => left.exactRange.startFrame - right.exactRange.startFrame || left.cueId.localeCompare(right.cueId))
-  return { cues, lockedCueIds: locked.map((cue) => cue.cueId), generatedCueIds: generated.map((cue) => cue.cueId) }
+  for (let index = 1; index < cues.length; index += 1) {
+    if (cues[index - 1]!.exactRange.endFrameExclusive > cues[index]!.exactRange.startFrame) {
+      throw new Error(`Music cue constraints create an unresolved overlap between ${cues[index - 1]!.cueId} and ${cues[index]!.cueId}.`)
+    }
+  }
+  const resolvedIds = new Set(resolutions.map((item) => item.constraintId))
+  if (resolvedIds.size !== constraints.length || resolutions.length !== constraints.length) {
+    throw new Error('Every Music cue constraint must produce exactly one resolution.')
+  }
+  const generatedCueIds = generated.map((cue) => cue.cueId)
+  return { cues, lockedCueIds, generatedCueIds, constraintResolutions: resolutions }
 }
 
 export function buildMusicNarrativeArc(input: {
@@ -453,6 +660,7 @@ export function buildMusicCueSheet(input: {
   request: CanonicalMusicSkillRequest
   context: CanonicalMusicContextPackage
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
+  segmentationPlan: MusicSoundtrackSegmentationPlan
 }): MusicArtifactEnvelope<MusicCueSheetPayload> {
   const cueSet = buildCueSet(input)
   const inspectStart = Math.min(...input.request.scopeAuthority.authorizedInspectRanges.map((range) => range.startFrame))
@@ -477,6 +685,8 @@ export function buildMusicCueSheet(input: {
       generatedCueIds: cueSet.generatedCueIds,
       cueDensityPerMinute: Number(density.toFixed(4)), overScoringWarnings: warnings,
       intentionalSilenceRanges, noFirstItemFallback: true,
+      segmentationPlanHash: input.segmentationPlan.planHash,
+      cueConstraintResolutions: cueSet.constraintResolutions,
     },
     evidence: [
       'autonomous_cue_strategy', 'locked_constraints_preserved', 'exact_frame_ranges',
@@ -486,11 +696,11 @@ export function buildMusicCueSheet(input: {
 }
 
 const decisionToRoute: Record<MusicNeedDecisionKind, string> = {
-  no_music: 'music.route.no_music.v2', intentional_silence: 'music.route.no_music.v2',
-  ambience_only: 'music.route.ambience_only_handoff.v2', preserve_source_music: 'music.route.acquire.preserve_source.v2',
-  user_provided_music: 'music.route.acquire.user_upload.v2', project_music: 'music.route.acquire.project_library.v2',
-  workspace_music: 'music.route.acquire.workspace_library.v2', internal_music: 'music.route.acquire.internal_library.v2',
-  generate_original_music: 'music.route.generate.original.lyria.v2', hybrid_soundtrack: 'music.route.generate.original.lyria.v2',
+  no_music: 'music.route.no_music.v3', intentional_silence: 'music.route.no_music.v3',
+  ambience_only: 'music.route.ambience_only_handoff.v3', preserve_source_music: 'music.route.acquire.preserve_source.v3',
+  user_provided_music: 'music.route.acquire.user_upload.v3', project_music: 'music.route.acquire.project_library.v3',
+  workspace_music: 'music.route.acquire.workspace_library.v3', internal_music: 'music.route.acquire.internal_library.v3',
+  generate_original_music: 'music.route.generate.original.lyria.v3', hybrid_soundtrack: 'music.route.generate.original.lyria.v3',
 }
 
 export function decideCueRoutes(input: {
@@ -510,7 +720,7 @@ export function decideCueRoutes(input: {
       decision = direct[cue.acquisitionPreference] ?? decision
     }
     const routeKey = input.request.jobType === 'generate_music_variation' && decision === 'generate_original_music'
-      ? 'music.route.generate.variation.lyria.v2' : decisionToRoute[decision]
+      ? 'music.route.generate.variation.lyria.v3' : decisionToRoute[decision]
     const route = MUSIC_TOOL_ROUTE_MANIFESTS.find((item) => item.routeKey === routeKey)
     if (!route) throw new Error(`Music cue ${cue.cueId} route ${routeKey} is not registered.`)
     const sourceKind = decision === 'preserve_source_music' ? 'source_media'
@@ -530,7 +740,7 @@ export function decideCueRoutes(input: {
       sourceBindings,
       rightsBindings: eligibleRights.filter((rights) => sourceBindings.includes(rights.assetId)).map((rights) => rights.rightsId),
       fallbackRoutes: route.fallbackRouteRefs.map((item) => item.routeKey),
-      lowerCostRoutes: ['music.route.no_music.v2'],
+      lowerCostRoutes: ['music.route.no_music.v3'],
       estimatedCredits: routeKey.includes('.lyria.') ? 1 : 0,
       attemptPolicyKey: route.attemptPolicyKey,
     }
@@ -542,18 +752,28 @@ export function createSupervisionArtifacts(input: {
   context: CanonicalMusicContextPackage
 }): {
   context: MusicArtifactEnvelope<MusicContextStudyPayload>
+  segmentationPlan: MusicSoundtrackSegmentationPlan
+  segmentation: MusicArtifactEnvelope<MusicSoundtrackSegmentationPlan>
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
   arc: MusicArtifactEnvelope<MusicNarrativeArcPayload>
   cueSheet: MusicArtifactEnvelope<MusicCueSheetPayload>
   routeBindings: MusicRouteBinding[]
+  cueConstraintResolutions: MusicCueConstraintResolution[]
 } {
   const context = studyMusicContext(input)
-  const need = decideMusicNeed({ ...input, contextStudy: context })
-  const cueSheet = buildMusicCueSheet({ ...input, need })
+  const segmentationPlan = buildMusicSoundtrackSegmentationPlan(input)
+  const segmentation = artifact({
+    ...input, artifactType: 'music_soundtrack_segmentation_plan_v3',
+    artifactId: segmentationPlan.planId, payload: segmentationPlan,
+    evidence: ['exact_write_range_coverage', 'scene_speech_silence_ambience_transition_constraint_boundaries'],
+  })
+  const need = decideMusicNeed({ ...input, contextStudy: context, segmentationPlan })
+  const cueSheet = buildMusicCueSheet({ ...input, need, segmentationPlan })
   const arc = buildMusicNarrativeArc({ ...input, cues: cueSheet.payload.cues })
   const routeBindings = decideCueRoutes({ request: input.request, need, cueSheet })
   const distinctCueIds = new Set(routeBindings.map((item) => item.cueId))
   if (distinctCueIds.size !== routeBindings.length) throw new Error('Music route binding requires one exact decision per cue.')
   if (hashMusicValue(routeBindings).length !== 64) throw new Error('Music route binding hash failure.')
-  return { context, need, arc, cueSheet, routeBindings }
+  return { context, segmentationPlan, segmentation, need, arc, cueSheet, routeBindings,
+    cueConstraintResolutions: cueSheet.payload.cueConstraintResolutions }
 }

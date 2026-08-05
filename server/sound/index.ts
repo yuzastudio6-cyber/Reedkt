@@ -11,11 +11,14 @@ export {
   canonicalSoundResultSchema,
   parseCanonicalSoundRequest,
   parseCanonicalSoundResult,
+  hashSoundMusicTechnicalAutomation,
+  SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION,
   type CanonicalSoundCue,
   type CanonicalSoundRequest,
   type CanonicalSoundResult,
   type SoundArtifactRef,
   type SoundFrameRange,
+  type SoundMusicTechnicalAutomationExtension,
 } from './sound-contracts'
 export {
   LEGACY_SOUND_COMPATIBILITY_ADAPTER_VERSION,

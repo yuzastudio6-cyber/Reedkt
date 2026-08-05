@@ -161,6 +161,8 @@ function availableRouteInputs(
     ...((context.protectedSpeechRanges?.length ?? 0) > 0 || request.transcriptSpeechEvidenceRef
       ? ['speech_ranges', 'dialogue_context'] : ['dialogue_context']),
     ...(request.musicContext ? ['read_only_music_context'] : []),
+    ...(request.musicTechnicalAutomationExtension
+      ? ['music_technical_automation_extension', 'mix_automation_manifest'] : []),
     ...(request.completedSkillWork.some((item) => item.artifact.artifactType === 'private_sound_stem')
       ? ['private_sound_stem'] : []),
     ...(request.completedSkillWork.some((item) => item.artifact.artifactType === 'sound_cue_manifest')
@@ -514,13 +516,38 @@ export function runCanonicalSoundController(
   const finalAccepted = accepted.filter((decision) =>
     !decision.resultingCueId || !merged.mergedCueIds.includes(decision.resultingCueId),
   )
-  const automations = merged.cues.map((cue) => createSoundMixAutomation({
+  const defaultAutomations = merged.cues.map((cue) => createSoundMixAutomation({
     cue,
     protectedSpeechRanges: context.protectedSpeechRanges ?? [],
     timelineRate: request.timelineRate,
     musicContextPresent: Boolean(request.musicContext),
     approvedMusicAutomation: request.musicContext?.allowedAutomation ?? [],
   }))
+  const musicTechnical = request.musicTechnicalAutomationExtension
+  const automations = defaultAutomations.map((automation) => {
+    if (!musicTechnical) return automation
+    const cue = merged.cues.find((candidate) => candidate.cueId === automation.cueId)
+    if (!cue || cue.startFrame !== musicTechnical.delegatedRange.startFrame ||
+      cue.endFrameExclusive !== musicTechnical.delegatedRange.endFrameExclusive) return automation
+    return {
+      cueId: automation.cueId,
+      baseGainDb: musicTechnical.baseGainDb,
+      gainEnvelope: structuredClone(musicTechnical.gainEnvelope),
+      fadeInFrames: musicTechnical.fadeInFrames,
+      fadeOutFrames: musicTechnical.fadeOutFrames,
+      dialogueDuckingDb: musicTechnical.dialogueDucking.attenuationDb,
+      duckAttackFrames: musicTechnical.dialogueDucking.attackFrames,
+      duckReleaseFrames: musicTechnical.dialogueDucking.releaseFrames,
+      protectedSpeechRanges: structuredClone(musicTechnical.dialogueDucking.protectedSpeechRanges),
+      musicInteractionPolicy: 'none' as const,
+      eqProfile: musicTechnical.eqProfile,
+      dynamicsProfile: musicTechnical.dynamicsProfile,
+      pan: musicTechnical.pan,
+      distance: musicTechnical.distance,
+      roomMatch: musicTechnical.roomMatch,
+      headroomDb: musicTechnical.headroomDb,
+    }
+  })
   const qaReport = runPlannedSoundQa({
     cues: merged.cues,
     automations,

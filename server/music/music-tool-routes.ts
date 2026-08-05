@@ -22,6 +22,13 @@ export interface MusicRouteStep {
   failureBehavior: 'fail_route' | 'block_dependents' | 'use_declared_fallback' | 'continue_optional'
 }
 
+export interface MusicStepOutputBinding {
+  bindingKey: string
+  artifactType: string
+  producerStepKey: string
+  required: boolean
+}
+
 export interface MusicToolRouteManifest {
   routeKey: string
   routeVersion: string
@@ -39,6 +46,7 @@ export interface MusicToolRouteManifest {
   qualificationEvidenceRefs: string[]
   requiredInputs: string[]
   producedArtifactTypes: string[]
+  outputBindings: MusicStepOutputBinding[]
   eligibilityRules: string[]
   steps: MusicRouteStep[]
   timeEstimatorKey: string
@@ -55,7 +63,8 @@ export interface MusicToolRouteManifest {
   knownLimitations: string[]
 }
 
-type UnpublishedMusicRoute = Omit<MusicToolRouteManifest, 'routeHash' | 'qualificationStatus' | 'qualificationByMode'>
+type UnpublishedMusicRoute = Omit<MusicToolRouteManifest,
+  'routeHash' | 'qualificationStatus' | 'qualificationByMode' | 'outputBindings'>
 
 const rank: Record<SkillQualificationStatus, number> = {
   blocked: 0, retired: 0, declared: 1, implementation_pending: 1,
@@ -154,8 +163,14 @@ export function publishMusicToolRouteManifest(input: UnpublishedMusicRoute): Rea
     if (!produced.has(output)) throw new Error(`Music route ${input.routeKey} output ${output} is unreachable.`)
   }
   const qualificationByMode = deriveQualification(input.steps)
+  const outputBindings: MusicStepOutputBinding[] = input.producedArtifactTypes.map((artifactType) => {
+    const producer = input.steps.find((step) => step.outputBindings.includes(artifactType))
+    if (!producer) throw new Error(`Music route ${input.routeKey} has no exact producer for ${artifactType}.`)
+    return { bindingKey: artifactType, artifactType, producerStepKey: producer.stepKey, required: true }
+  })
   const withoutHash = {
     ...structuredClone(input),
+    outputBindings,
     qualificationStatus: qualificationByMode.productionExecution,
     qualificationByMode,
   }
@@ -180,21 +195,24 @@ function route(input: {
   fallback?: Array<{ routeKey: string; routeVersion: string }>
   limitations?: string[]
 }): Readonly<MusicToolRouteManifest> {
+  const routeKey = input.key.replace(/\.v2$/u, '.v3')
   return publishMusicToolRouteManifest({
-    routeKey: input.key,
-    routeVersion: '2.0.0',
+    routeKey,
+    routeVersion: '3.0.0',
     supportedCapabilityKeys: input.jobs.map((job) => `music.${job}`),
     supportedJobTypes: input.jobs,
     routeRole: input.role,
-    qualificationEvidenceRefs: input.steps.map((item) => `music.evidence.route.${item.operationKey}.v2`),
+    qualificationEvidenceRefs: input.steps.map((item) => `music.evidence.route.${item.operationKey}.v3`),
     requiredInputs: input.requiredInputs,
     producedArtifactTypes: input.outputs,
     eligibilityRules: ['exact_scope_authority', 'exact_timeline_binding', 'approved_snapshot', 'rights_when_media_used'],
     steps: input.steps,
-    timeEstimatorKey: `music.route.time.${input.key}.v2`,
-    creditEstimatorKey: `music.route.credit.${input.key}.v2`,
-    attemptPolicyKey: input.key.includes('.lyria.') ? 'music.attempt.provider_reconciled.v2' : 'music.attempt.local_idempotent.v2',
-    fallbackRouteRefs: input.fallback ?? [],
+    timeEstimatorKey: `music.route.time.${routeKey}.v3`,
+    creditEstimatorKey: `music.route.credit.${routeKey}.v3`,
+    attemptPolicyKey: routeKey.includes('.lyria.') ? 'music.attempt.provider_reconciled.v3' : 'music.attempt.local_idempotent.v3',
+    fallbackRouteRefs: (input.fallback ?? []).map((fallback) => ({
+      routeKey: fallback.routeKey.replace(/\.v2$/u, '.v3'), routeVersion: '3.0.0',
+    })),
     automaticFallbackAllowed: false,
     unknownOutcomeResubmissionAllowed: false,
     freshApprovalRequiredForCostIncrease: true,
@@ -376,7 +394,7 @@ for (const item of routes) {
 
 export const MUSIC_TOOL_ROUTE_MANIFESTS = Object.freeze([...routeRegistry.values()])
 
-export function getMusicToolRouteManifest(routeKey: string, routeVersion = '2.0.0'): Readonly<MusicToolRouteManifest> | undefined {
+export function getMusicToolRouteManifest(routeKey: string, routeVersion = '3.0.0'): Readonly<MusicToolRouteManifest> | undefined {
   return routeRegistry.get(`${routeKey}@${routeVersion}`)
 }
 

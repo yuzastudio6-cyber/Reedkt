@@ -69,6 +69,7 @@ interface RouteSeed {
   fallbacks?: string[]
   automaticFallback?: boolean
   limitations?: string[]
+  version?: string
 }
 
 function route(seed: RouteSeed): Readonly<SoundToolRouteManifest> {
@@ -77,7 +78,7 @@ function route(seed: RouteSeed): Readonly<SoundToolRouteManifest> {
   const unpublished: UnpublishedSoundToolRouteManifest = {
     manifestSchemaVersion: 'sound-tool-route-manifest-v1',
     routeKey: seed.key,
-    routeVersion: '4.0.0',
+    routeVersion: seed.version ?? '4.0.0',
     skillKey: 'sound',
     capabilityKeys: seed.capabilities,
     supportedJobTypes: seed.jobs,
@@ -370,6 +371,27 @@ export const SOUND_TOOL_ROUTE_MANIFESTS = [
       { key: 'validate_output', tool: 'ffprobe', toolVersion: ffmpegVersion, operation: 'inspect_validate_audio', profile: 'sound.inspect.audio.v1', depends: ['analyze_output'], inputs: ['edited_audio_asset_version'], outputs: ['validated_audio_metadata'], qualification: privateInternal },
       { key: 'commit_output', tool: 'sound_private_artifact_store', toolVersion: privateStoreVersion, operation: 'commit_selected_sound_artifact', profile: 'sound.artifact.commit.project_source.v1', depends: ['validate_output'], inputs: ['edited_audio_asset_version'], outputs: ['private_selected_sound_artifact', 'provenance_report'], qualification: privateInternal },
     ],
+  }),
+  route({
+    key: 'sound.route.edit.music_technical_automation.v1',
+    version: '1.0.0',
+    capabilities: ['sound.edit_music_technical_automation'],
+    jobs: ['edit_music_technical_automation'], role: 'primary',
+    requiredInputs: ['approved_source_audio', 'bounded_operation_profile', 'music_technical_automation_extension'],
+    outputs: ['private_sound_stem', 'sound_qa_report', 'provenance_report'],
+    steps: [
+      { key: 'trim_fade_gain', tool: 'ffmpeg', toolVersion: ffmpegVersion, operation: 'trim_fade_gain_audio', profile: 'sound.trim-fade-gain.music_technical.v1', inputs: ['approved_source_audio'], outputs: ['edited_audio_asset_version'], qualification: privateInternal },
+      { key: 'normalize', tool: 'ffmpeg', toolVersion: ffmpegVersion, operation: 'normalize_audio_loudness', profile: 'sound.normalize.music_technical.v1', depends: ['trim_fade_gain'], inputs: ['edited_audio_asset_version'], outputs: ['edited_audio_asset_version'], condition: 'music_technical_requires_normalization', qualification: privateInternal },
+      { key: 'resample_channels', tool: 'ffmpeg', toolVersion: ffmpegVersion, operation: 'resample_convert_channels', profile: 'sound.resample-channels.music_technical.v1', depends: ['normalize'], inputs: ['edited_audio_asset_version'], outputs: ['edited_audio_asset_version'], qualification: privateInternal },
+      { key: 'loop_audio', tool: 'ffmpeg', toolVersion: ffmpegVersion, operation: 'loop_audio_crossfade', profile: 'sound.loop.music_technical.v1', depends: ['resample_channels'], inputs: ['edited_audio_asset_version'], outputs: ['edited_audio_asset_version'], condition: 'music_technical_requires_loop', qualification: privateInternal },
+      { key: 'stretch_pitch', tool: 'ffmpeg', toolVersion: ffmpegVersion, operation: 'stretch_pitch_audio', profile: 'sound.stretch-pitch.music_technical.v1', depends: ['loop_audio'], inputs: ['edited_audio_asset_version'], outputs: ['edited_audio_asset_version'], condition: 'music_technical_requires_retime_or_pitch', qualification: privateInternal },
+      { key: 'sync_qa', tool: 'ffmpeg', toolVersion: ffmpegVersion, operation: 'sync_transient_qa', profile: 'sound.sync-qa.music_technical.v1', depends: ['stretch_pitch'], inputs: ['edited_audio_asset_version'], outputs: ['transient_timing_report'], qualification: privateInternal },
+      { key: 'mix_stem', tool: 'ffmpeg', toolVersion: ffmpegVersion, operation: 'mix_scene_stem', profile: 'sound.mix-stem.music_technical.v1', depends: ['sync_qa'], inputs: ['edited_audio_asset_version', 'dialogue_context', 'mix_automation_manifest'], outputs: ['private_sound_stem'], qualification: privateInternal },
+      { key: 'analyze_mix', tool: 'ffmpeg', toolVersion: ffmpegVersion, operation: 'analyze_audio_pcm', profile: 'sound.analyze.output.v1', depends: ['mix_stem'], inputs: ['private_sound_stem'], outputs: ['final_audio_metrics'], qualification: privateInternal },
+      { key: 'qa_music_technical', tool: 'sound_qa_service', toolVersion: '1.0.0', operation: 'evaluate_final_sound', profile: 'sound.qa.music_technical.v1', depends: ['analyze_mix'], inputs: ['private_sound_stem', 'final_audio_metrics'], outputs: ['sound_qa_report'], qualification: privateInternal },
+      { key: 'commit_music_stem', tool: 'sound_private_artifact_store', toolVersion: privateStoreVersion, operation: 'commit_selected_sound_artifact', profile: 'sound.artifact.commit.music_technical.v1', depends: ['qa_music_technical'], inputs: ['private_sound_stem', 'sound_qa_report'], outputs: ['private_selected_sound_artifact', 'provenance_report'], qualification: privateInternal },
+    ],
+    limitations: ['Music owns creative decisions; this route applies only the exact bounded technical automation supplied through the versioned Music extension.'],
   }),
   route({
     key: 'sound.route.retime.pitch_preserved.v1',

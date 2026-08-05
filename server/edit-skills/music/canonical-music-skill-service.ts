@@ -9,6 +9,9 @@ import {
   type CanonicalMusicSkillResult,
   type MusicArtifactEnvelope,
   type MusicFrameRange,
+  type MusicSoundtrackSegmentationPlan,
+  type MusicCueConstraintResolution,
+  type MusicAcceptanceReceipt,
 } from '../../music/music-contracts'
 import { evaluateMusicScopeGuard, musicRangesOverlap, validateMusicResultAuthority } from '../../music/music-scope-guard'
 import { createSupervisionArtifacts, type MusicContextStudyPayload, type MusicCueSheetPayload,
@@ -53,7 +56,7 @@ export interface MusicPeerCapabilityView {
 }
 
 export interface MusicEstimateResult {
-  estimatorVersion: 'music.estimator.v2'
+  estimatorVersion: 'music.estimator.v3'
   requestId: string
   minimumMinutes: number
   expectedMinutes: number
@@ -72,10 +75,14 @@ export interface MusicEstimateResult {
 }
 
 export interface CanonicalMusicPlanResult {
-  schemaVersion: 'canonical-music-plan-result-v2'
+  schemaVersion: 'canonical-music-plan-result-v3'
   request: CanonicalMusicSkillRequest
   resolvedContext: CanonicalMusicContextPackage
   context: MusicArtifactEnvelope<MusicContextStudyPayload>
+  segmentationPlan: MusicSoundtrackSegmentationPlan
+  segmentation: MusicArtifactEnvelope<MusicSoundtrackSegmentationPlan>
+  cueConstraintResolutions: MusicCueConstraintResolution[]
+  acceptanceReceipts: MusicAcceptanceReceipt[]
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
   arc: MusicArtifactEnvelope<MusicNarrativeArcPayload>
   cueSheet: MusicArtifactEnvelope<MusicCueSheetPayload>
@@ -201,7 +208,7 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
     const localCredits = cueCount
     const expectedCredits = providerCredits + localCredits
     return {
-      estimatorVersion: 'music.estimator.v2', requestId: request.requestId,
+      estimatorVersion: 'music.estimator.v3', requestId: request.requestId,
       minimumMinutes: Math.max(1, Math.floor((planningMinutes + analysisMinutes) / 2)),
       expectedMinutes: planningMinutes + analysisMinutes + soundMinutes + qaMinutes,
       maximumMinutes: (planningMinutes + analysisMinutes + soundMinutes + qaMinutes) * 3,
@@ -231,7 +238,9 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
     })
     const estimate = this.#estimateFromRoutes(request, supervision.routeBindings)
     const plannedResult = this.#plannedResult(request, supervision, estimate)
-    return { schemaVersion: 'canonical-music-plan-result-v2', request, resolvedContext, ...supervision, executionGraph, estimate, plannedResult }
+    const acceptanceReceipts = plannedResult.acceptanceReceipts
+    return { schemaVersion: 'canonical-music-plan-result-v3', request, resolvedContext, ...supervision,
+      acceptanceReceipts, executionGraph, estimate, plannedResult }
   }
 
   async execute(input: CanonicalMusicSkillRequest): Promise<CanonicalMusicSkillResult> {
@@ -250,15 +259,16 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       }
     }
     const executionPackage: ApprovedMusicExecutionPackage = {
-      schemaVersion: 'approved-music-execution-package-v2',
+      schemaVersion: 'approved-music-execution-package-v3',
       packageId: `music.package.${plan.request.requestId}`,
       approvedWorkItemId: plan.request.caller.parentWorkItemId,
       request: {
         ...plan.request,
-        cueConstraints: { requestedCues: [], lockedCueIds: [], allowMusicToCombineUnlockedCues: true },
+        cueConstraints: { requestedCues: [], lockedCueIds: [], allowMusicToCombineUnlockedCues: true, constraints: [] },
         proposedCues: plan.cueSheet.payload.cues,
       },
-      context: plan.context, need: plan.need, arc: plan.arc,
+      context: plan.context, segmentationPlan: plan.segmentationPlan, segmentation: plan.segmentation,
+      cueConstraintResolutions: plan.cueConstraintResolutions, need: plan.need, arc: plan.arc,
       cueSheet: plan.cueSheet, routeBindings: plan.routeBindings, resolvedContext: plan.resolvedContext,
       executionGraph: plan.executionGraph,
     }
@@ -316,6 +326,7 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
         requestedCues: affectedCues,
         lockedCueIds: affectedCues.map((cue) => cue.cueId),
         allowMusicToCombineUnlockedCues: false,
+        constraints: [],
       },
       scopeAuthority: {
         ...structuredClone(input.request.scopeAuthority),
@@ -486,8 +497,23 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       exactAuthorityRef: request.scopeAuthority.parentAuthorityRef, resultHash: '',
       finalRenderOutsideMusic: true as const, musicDidNotOwnSoundTools: true as const,
     }
+    const acceptanceCore = {
+      receiptId: `music.acceptance.${request.requestId}.${request.jobType}.planning`,
+      jobType: request.jobType,
+      capabilityKey: `music.${request.jobType}`,
+      capabilityVersion: musicSkillCapabilityManifest.skillVersion,
+      requestedMode: request.requestedExecutionMode,
+      routeIdentities: supervision.routeBindings.map((binding) =>
+        `${binding.routeKey}@${binding.routeVersion}#${binding.routeHash}`),
+      invokedUnitIds: [] as string[],
+      outputArtifactIds: [supervision.context.artifactId, supervision.segmentation.artifactId,
+        supervision.need.artifactId, supervision.arc.artifactId, supervision.cueSheet.artifactId],
+      evidenceRefs: [supervision.segmentationPlan.planHash, supervision.cueSheet.artifactHash],
+      status: 'planned' as const,
+      receiptHash: '',
+    }
     const result: CanonicalMusicSkillResult = {
-      schemaVersion: 'canonical-music-result-v2', requestId: request.requestId,
+      schemaVersion: 'canonical-music-result-v3', requestId: request.requestId,
       musicSkillKey: 'music', musicSkillVersion: musicSkillCapabilityManifest.skillVersion,
       musicManifestHash: musicSkillCapabilityManifest.manifestHash,
       capabilityKey: `music.${request.jobType}`, capabilityVersion: musicSkillCapabilityManifest.skillVersion,
@@ -499,7 +525,10 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       soundSupportReceipts: [], selectedMusicAssetRefs: [], processedMusicAssetRefs: [], musicStemAssetRefs: [],
       cueQaRefs: [], provenanceRefs: request.rightsAndProvenanceRefs.map((item) => item.rightsId),
       actualMusicMutationRanges: [], intentionalNoMusicRanges: noMusic ? request.scopeAuthority.authorizedMusicWriteRanges : [],
-      artifacts: [supervision.context, supervision.need, supervision.arc, supervision.cueSheet],
+      artifacts: [supervision.context, supervision.segmentation, supervision.need, supervision.arc, supervision.cueSheet],
+      segmentationPlan: supervision.segmentationPlan,
+      cueConstraintResolutions: supervision.cueConstraintResolutions,
+      acceptanceReceipts: [{ ...acceptanceCore, receiptHash: hashMusicValue(acceptanceCore) }],
       unitReceipts: [], routeReceipts: [],
       executionFingerprint: hashMusicValue({ request, supervision: {
         context: supervision.context.artifactHash, need: supervision.need.artifactHash,

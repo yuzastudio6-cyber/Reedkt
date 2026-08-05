@@ -4,7 +4,12 @@ import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { promisify } from 'node:util'
-import type { CanonicalSoundRequest, SoundArtifactRef } from '../sound/sound-contracts'
+import {
+  hashSoundMusicTechnicalAutomation,
+  SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION,
+  type CanonicalSoundRequest,
+  type SoundArtifactRef,
+} from '../sound/sound-contracts'
 import type {
   CanonicalSoundArtifactResolver,
   ResolvedPrivateSoundArtifact,
@@ -140,6 +145,62 @@ export function buildExecutableSoundRequest(input: {
   request.timelineManifestRef.timelineRate = rate
   request.sourceMediaRefs = [input.runtime.videoArtifact]
   request.sourceAudioRefs = input.audioArtifacts ?? [input.runtime.audioArtifact]
+  if (input.job === 'edit_music_technical_automation') {
+    const originalRange = request.assignmentScope.authorizedAudioWriteRanges[0]!
+    const range = {
+      ...originalRange,
+      endFrameExclusive: Math.min(
+        originalRange.endFrameExclusive,
+        request.sourceAudioRefs[0]?.durationFrames ?? originalRange.endFrameExclusive,
+      ),
+    }
+    request.assignmentScope.authorizedAudioWriteRanges = [range]
+    const durationFrames = range.endFrameExclusive - range.startFrame
+    request.callerType = 'typed_peer_skill'
+    request.orchestraRunId = undefined
+    request.callerSkillKey = 'music'
+    request.callerSkillVersion = '3.0.0'
+    request.callerManifestHash = createHash('sha256').update('music-manifest-fixture').digest('hex')
+    request.peerAuthority = {
+      parentWorkItemId: 'music-work-fixture',
+      parentAuthorityHash: request.assignmentScope.parentAuthorityHash,
+      callerOwnedAudioRanges: [structuredClone(range)],
+      callerOwnedVisualRanges: [],
+      ancestorSkillKeys: ['music'],
+      callerManifestHash: request.callerManifestHash,
+    }
+    request.requestedOperations = ['trim', 'fade', 'gain', 'normalize', 'sync', 'mix', 'render_stem', 'qa']
+    request.operationDirectives = [
+      { directiveId: 'music-trim', operation: 'trim', targetRangeId: range.rangeId,
+        sourceArtifactIds: [request.sourceAudioRefs[0]!.artifactId],
+        parameters: { trimSourceStartFrame: 0, targetDurationFrames: durationFrames } },
+      { directiveId: 'music-fade', operation: 'fade', targetRangeId: range.rangeId,
+        sourceArtifactIds: [request.sourceAudioRefs[0]!.artifactId], parameters: { fadeInFrames: 4, fadeOutFrames: 6 } },
+      { directiveId: 'music-gain', operation: 'gain', targetRangeId: range.rangeId,
+        sourceArtifactIds: [request.sourceAudioRefs[0]!.artifactId], parameters: { gainDb: -14 } },
+    ]
+    const extensionCore = {
+      schemaVersion: SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION,
+      bindingId: 'music-technical-fixture', musicCueId: 'music-cue-fixture',
+      delegatedRange: structuredClone(range), sourceStartFrame: 0, sourceEndFrameExclusive: durationFrames,
+      targetStartFrame: range.startFrame, targetEndFrameExclusive: range.endFrameExclusive,
+      fadeInFrames: 4, fadeOutFrames: 6, crossfadeFrames: 0, baseGainDb: -14,
+      gainEnvelope: [{ frame: range.startFrame, gainDb: -32 }, { frame: range.startFrame + 4, gainDb: -14 },
+        { frame: range.endFrameExclusive - 6, gainDb: -14 }, { frame: range.endFrameExclusive, gainDb: -32 }],
+      normalization: { enabled: true, targetLoudnessLufs: -18 },
+      dialogueDucking: { attenuationDb: -9, attackFrames: 2, releaseFrames: 8, protectedSpeechRanges: [] },
+      eqProfile: 'neutral' as const, dynamicsProfile: 'gentle_compression' as const,
+      pan: 0, distance: 'medium' as const, roomMatch: 'dry' as const,
+      maximumTruePeakDbtp: -1, headroomDb: 6, loopCrossfadeFrames: 0,
+      tempoRatio: 1, pitchSemitones: 0, sampleRate: 48_000 as const, channelLayout: 'stereo' as const,
+      renderStem: true, requiredQa: ['technical' as const, 'synchronization' as const, 'mix' as const],
+      requiredMusicOperations: ['trim', 'fade', 'gain', 'normalize', 'place', 'eq', 'dynamics', 'stem_rendering', 'technical_qa'],
+      operationParametersHash: createHash('sha256').update('music-operation-parameters-fixture').digest('hex'),
+    }
+    request.musicTechnicalAutomationExtension = {
+      ...extensionCore, extensionHash: hashSoundMusicTechnicalAutomation(extensionCore),
+    }
+  }
   if (input.job === 'study_reference_sound' || input.job === 'create_sound_dna') {
     request.referenceSoundInputs = [input.runtime.audioArtifact]
   }

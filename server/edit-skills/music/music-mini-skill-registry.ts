@@ -3,7 +3,7 @@ import { getMusicToolRouteManifest, MUSIC_TOOL_ROUTE_MANIFESTS } from '../../mus
 
 export interface MusicMiniSkillManifest {
   miniSkillKey: string
-  version: '2.0.0'
+  version: '3.0.0'
   supportedOperations: string[]
   requiredInputs: string[]
   optionalInputs: string[]
@@ -18,6 +18,24 @@ export interface MusicMiniSkillManifest {
   qaKeys: string[]
   invalidationRules: string[]
   limitations: string[]
+  implementationStatus: MusicMiniSkillImplementationStatus
+  implementationEvidence: MusicMiniSkillImplementationEvidence[]
+}
+
+export type MusicMiniSkillImplementationStatus = 'implemented' | 'planning_only' | 'fixture_only' | 'blocked'
+
+export interface MusicMiniSkillImplementationEvidence {
+  modulePath: string
+  functionOrService: string
+  routeIdentities: string[]
+  operationIdentities: string[]
+  receiptTypes: string[]
+  modeStatus: {
+    planning: SkillQualificationStatus
+    fixtureExecution: SkillQualificationStatus
+    privateInternalExecution: SkillQualificationStatus
+    productionExecution: SkillQualificationStatus
+  }
 }
 
 const MINI_SKILLS = [
@@ -92,7 +110,7 @@ export const MUSIC_MINI_SKILL_MANIFESTS: readonly MusicMiniSkillManifest[] = Obj
       ? 'internal_execution_qualified' : 'planning_qualified'
     return {
       miniSkillKey: `music.mini.${key}`,
-      version: '2.0.0',
+      version: '3.0.0',
       supportedOperations: [key],
       requiredInputs: ['music_assignment_v2', 'approved_timeline_manifest'],
       optionalInputs: ['approved_private_music_audio', 'structured_story_evidence', 'speech_evidence'],
@@ -108,6 +126,31 @@ export const MUSIC_MINI_SKILL_MANIFESTS: readonly MusicMiniSkillManifest[] = Obj
       invalidationRules: ['timeline_changed', 'source_changed', 'rights_changed'],
       limitations: displayName.includes('Culture') || displayName.includes('Emotional')
         ? ['Subjective output remains confidence-scored and review-aware.'] : [],
+      implementationStatus: fixtureKeys.has(key) ? 'fixture_only' : internalKeys.has(key) ? 'implemented' : 'planning_only',
+      implementationEvidence: [{
+        modulePath: internalKeys.has(key)
+          ? key === 'music_sync' || key === 'arrangement_editor'
+            ? 'server/music/music-sync.ts'
+            : key === 'sound_support_coordinator'
+              ? 'server/music/music-sound-support-port.ts'
+              : key === 'candidate_processing_director' || key === 'candidate_selection_director'
+                ? 'server/music/music-analysis.ts'
+                : 'server/edit-skills/music/music-route-executor.ts'
+          : fixtureKeys.has(key) ? 'server/music/lyria-provider.ts' : 'server/music/music-supervision.ts',
+        functionOrService: key,
+        routeIdentities: routes.map((route) => `${route.routeKey}@${route.routeVersion}#${route.routeHash}`),
+        operationIdentities: routes.flatMap((route) => route.steps.map((step) =>
+          `${step.toolKey}@${step.toolVersion}/${step.operationKey}@${step.operationVersion}`)),
+        receiptTypes: internalKeys.has(key) ? ['music_route_step_receipt_v3']
+          : fixtureKeys.has(key) ? ['music_provider_attempt_receipt_v3'] : ['music_planning_artifact_v3'],
+        modeStatus: {
+          planning: 'planning_qualified',
+          fixtureExecution: fixtureKeys.has(key) || internalKeys.has(key)
+            ? 'internal_execution_qualified' : 'planning_qualified',
+          privateInternalExecution: internalKeys.has(key) ? 'internal_execution_qualified' : 'planning_qualified',
+          productionExecution: 'blocked',
+        },
+      }],
     }
   }),
 )
@@ -117,6 +160,9 @@ export function validateMusicMiniSkillRegistry(): void {
     throw new Error('Duplicate Music mini-skill key.')
   }
   for (const mini of MUSIC_MINI_SKILL_MANIFESTS) {
+    if (mini.implementationEvidence.length === 0) {
+      throw new Error(`Music mini-skill ${mini.miniSkillKey} lacks implementation evidence.`)
+    }
     if (mini.toolRouteRefs.length === 0) throw new Error(`Music mini-skill ${mini.miniSkillKey} has no exact route.`)
     for (const routeRef of [...mini.toolRouteRefs, ...mini.fallbackRouteRefs, ...mini.lowerCostRouteRefs]) {
       const route = getMusicToolRouteManifest(routeRef.routeKey, routeRef.routeVersion)

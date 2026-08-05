@@ -18,9 +18,10 @@ import { validateSoundOperationHandlerCoverage } from '../edit-skills/sound/soun
 
 validateCanonicalSoundPublication()
 const routes = listSoundToolRouteManifests()
-assert.equal(routes.length, 19)
+assert.equal(routes.length, 20)
 for (const route of routes) {
-  assert.equal(route.routeVersion, '4.0.0')
+  assert.equal(route.routeVersion,
+    route.routeKey === 'sound.route.edit.music_technical_automation.v1' ? '1.0.0' : '4.0.0')
   assert.match(route.routeHash, /^[a-f0-9]{64}$/)
   for (const step of route.orderedOrGraphSteps) {
     const operation = getToolOperationCapability(step.toolKey, step.operationKey, step.toolVersionConstraint)

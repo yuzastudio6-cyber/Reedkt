@@ -20,6 +20,8 @@ import {
   type MusicRouteStepReceipt,
   type MusicRouteBinding,
   type MusicSoundSupportReceipt,
+  type MusicSoundtrackSegmentationPlan,
+  type MusicCueConstraintResolution,
 } from '../../music/music-contracts'
 import {
   CanonicalLyria3ProviderAdapter,
@@ -49,12 +51,15 @@ import { resolveMusicExactOperationHandler, type MusicExactOperationHandler } fr
 import { createMusicCostEvidence, providerUsdToCredits } from '../../music/music-rate-card'
 
 export interface ApprovedMusicExecutionPackage {
-  schemaVersion: 'approved-music-execution-package-v2'
+  schemaVersion: 'approved-music-execution-package-v3'
   packageId: string
   approvedWorkItemId: string
   request: CanonicalMusicSkillRequest
   resolvedContext: CanonicalMusicContextPackage
   context: MusicArtifactEnvelope<MusicContextStudyPayload>
+  segmentationPlan: MusicSoundtrackSegmentationPlan
+  segmentation: MusicArtifactEnvelope<MusicSoundtrackSegmentationPlan>
+  cueConstraintResolutions: MusicCueConstraintResolution[]
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
   arc: MusicArtifactEnvelope<MusicNarrativeArcPayload>
   cueSheet: MusicArtifactEnvelope<MusicCueSheetPayload>
@@ -238,7 +243,7 @@ function artifactFromPayload(input: {
 }): MusicArtifactEnvelope {
   return createMusicArtifact({
     artifactId: input.artifactId, artifactVersion: 1,
-    schemaVersion: `${input.artifactType}.schema.v2`, artifactType: input.artifactType,
+    schemaVersion: `${input.artifactType}.schema.v3`, artifactType: input.artifactType,
     requestId: input.request.requestId,
     sourceArtifactHashes: input.request.inputAssetRefs.map((item) => item.checksumSha256),
     timelineHash: input.request.timelineBinding.timelineManifestHash,
@@ -295,7 +300,7 @@ export class CanonicalMusicRouteExecutor {
     if (input.executionGraph.requestId !== input.request.requestId) throw new Error('Music graph/request binding mismatch.')
     const state: ExecutionState = {
       artifacts: [
-        input.context, input.need, input.arc, input.cueSheet,
+        input.context, input.segmentation, input.need, input.arc, input.cueSheet,
         artifactFromPayload({ request: input.request, artifactType: 'music_motif_plan_v2',
           artifactId: `music.motif.${input.request.requestId}`, payload: {
             motifCues: input.cueSheet.payload.cues.filter((cue) => cue.motifRole !== 'none')
@@ -347,7 +352,7 @@ export class CanonicalMusicRouteExecutor {
         const route = getMusicToolRouteManifest(unit.route.routeKey, unit.route.routeVersion)
         if (!route || route.routeHash !== unit.route.routeHash) throw new Error('Music execution route identity is stale.')
         if (route.steps.length !== 1) {
-          throw new Error(`Music v2 unit ${unit.unitId} requires one exact executable route step; found ${route.steps.length}.`)
+          throw new Error(`Music v3 unit ${unit.unitId} requires one exact executable route step; found ${route.steps.length}.`)
         }
         const step = route.steps[0]!
         const handler = resolveMusicExactOperationHandler(step)
@@ -666,6 +671,8 @@ export class CanonicalMusicRouteExecutor {
         ].includes(item)),
         operationParameters: {
           sourceStartFrame,
+          sourceEndFrameExclusive: sourceStartFrame +
+            (cue.exactRange.endFrameExclusive - cue.exactRange.startFrame),
           targetDurationFrames: cue.exactRange.endFrameExclusive - cue.exactRange.startFrame,
           fadeInFrames: cue.fadeInFrames, fadeOutFrames: cue.fadeOutFrames, gainDb: baseGainDb,
           gainEnvelope: [
@@ -683,6 +690,10 @@ export class CanonicalMusicRouteExecutor {
           distance: speechProtected ? 'distant' : 'medium',
           roomMatch: 'dry',
           headroomDb: speechProtected ? 8 : 6,
+          targetLoudnessLufs: speechProtected ? -20 : -18,
+          maximumTruePeakDbtp: -1,
+          sampleRate: 48_000,
+          channelLayout: 'stereo',
           tempoRatio: editorial.timeStretchRatio,
           loopCrossfadeFrames: Math.max(1, Math.min(cue.fadeInFrames || 1, cue.fadeOutFrames || 1)),
         },
@@ -764,8 +775,25 @@ export class CanonicalMusicRouteExecutor {
       finalRenderOutsideMusic: true as const,
       musicDidNotOwnSoundTools: true as const,
     }
+    const acceptanceCore = {
+      receiptId: `music.acceptance.${request.requestId}.${request.jobType}`,
+      jobType: request.jobType,
+      capabilityKey: `music.${request.jobType}`,
+      capabilityVersion: musicSkillCapabilityManifest.skillVersion,
+      requestedMode: request.requestedExecutionMode,
+      routeIdentities: input.package.routeBindings.map((binding) =>
+        `${binding.routeKey}@${binding.routeVersion}#${binding.routeHash}`),
+      invokedUnitIds: input.state.unitReceipts.map((receipt) => receipt.unitId),
+      outputArtifactIds: input.state.artifacts.map((artifact) => artifact.artifactId),
+      evidenceRefs: input.state.unitReceipts.flatMap((receipt) => [
+        ...receipt.runtimeEvidence, ...receipt.qaEvidence, ...receipt.stepReceipts.map((step) => step.receiptHash),
+      ]),
+      status,
+      receiptHash: '',
+    }
+    const acceptanceReceipt = { ...acceptanceCore, receiptHash: hashMusicValue(acceptanceCore) }
     const result: CanonicalMusicSkillResult = {
-      schemaVersion: 'canonical-music-result-v2', requestId: request.requestId,
+      schemaVersion: 'canonical-music-result-v3', requestId: request.requestId,
       musicSkillKey: 'music', musicSkillVersion: musicSkillCapabilityManifest.skillVersion,
       musicManifestHash: musicSkillCapabilityManifest.manifestHash,
       capabilityKey: `music.${request.jobType}`, capabilityVersion: musicSkillCapabilityManifest.skillVersion,
@@ -794,6 +822,9 @@ export class CanonicalMusicRouteExecutor {
       intentionalNoMusicRanges: handoff.intentionalNoMusicRanges,
       finalCompositionHandoff: handoff,
       artifacts: input.state.artifacts,
+      segmentationPlan: input.package.segmentationPlan,
+      cueConstraintResolutions: input.package.cueConstraintResolutions,
+      acceptanceReceipts: [acceptanceReceipt],
       unitReceipts: input.state.unitReceipts,
       routeReceipts: input.state.unitReceipts.map((item) => hashMusicValue(item)),
       costEvidence: createMusicCostEvidence({

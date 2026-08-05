@@ -84,7 +84,7 @@ const range: MusicFrameRange = { rangeId: 'private-canary-range', startFrame: 0,
 const timelineRate = { numerator: 24, denominator: 1 }
 const timelineHash = sha('private-lyria-canary-timeline-v2')
 const request = parseCanonicalMusicRequest({
-  schemaVersion: 'canonical-music-request-v2', requestId: 'music-private-lyria-canary', requestVersion: '2.0.0',
+  schemaVersion: 'canonical-music-request-v3', requestId: 'music-private-lyria-canary', requestVersion: '3.0.0',
   caller: {
     callerType: 'head_of_orchestra', callerSkillKey: 'head_of_orchestra', callerSkillVersion: 'future-contract-v1',
     parentWorkItemId: 'music-private-canary-work-item', authorityRef: 'music-private-canary-authority', ancestorSkillKeys: [],
@@ -124,7 +124,7 @@ const request = parseCanonicalMusicRequest({
     maximumCueChangesPerMinute: 2, customDirectives: ['Synthetic instrumental provider canary; no customer media or personal data.'],
   },
   inputAssetRefs: [], referenceMusicRefs: [], rightsAndProvenanceRefs: [],
-  cueConstraints: { requestedCues: [], lockedCueIds: [], allowMusicToCombineUnlockedCues: false },
+  cueConstraints: { requestedCues: [], lockedCueIds: [], allowMusicToCombineUnlockedCues: false, constraints: [] },
   proposedCues: [{
     cueId: 'music-private-canary-cue', exactRange: range, sceneIds: ['synthetic-canary-scene'], boundaryIds: [],
     narrativeFunction: 'hold_continuity', currentStoryState: 'synthetic neutral', targetStoryState: 'synthetic neutral',

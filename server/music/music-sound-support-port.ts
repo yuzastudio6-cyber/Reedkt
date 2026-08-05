@@ -9,6 +9,11 @@ import type {
   SoundArtifactRef,
   SoundFrameRange,
 } from '../sound'
+import {
+  hashSoundMusicTechnicalAutomation,
+  SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION,
+  type SoundMusicTechnicalAutomationExtension,
+} from '../sound'
 import { musicSkillCapabilityManifest } from '../edit-skills/music/music-capability-manifest'
 import {
   hashMusicValue,
@@ -19,7 +24,7 @@ import {
 } from './music-contracts'
 
 export interface MusicSoundCapabilityViewRequest {
-  jobType: 'edit_audio' | 'create_sound_stem' | 'qa_sound'
+  jobType: 'edit_audio' | 'edit_music_technical_automation' | 'create_sound_stem' | 'qa_sound'
 }
 
 export interface MusicSoundCapabilityView {
@@ -50,6 +55,7 @@ export interface MusicSoundSupportRequest {
   >
   operationParameters: {
     sourceStartFrame: number
+    sourceEndFrameExclusive: number
     targetDurationFrames: number
     fadeInFrames: number
     fadeOutFrames: number
@@ -64,6 +70,10 @@ export interface MusicSoundSupportRequest {
     distance: 'close' | 'medium' | 'distant'
     roomMatch: 'dry' | 'source_room' | 'small_room' | 'large_room' | 'exterior'
     headroomDb: number
+    targetLoudnessLufs: number
+    maximumTruePeakDbtp: number
+    sampleRate: 44_100 | 48_000
+    channelLayout: 'mono' | 'stereo'
     tempoRatio?: number
     pitchSemitones?: number
     loopCrossfadeFrames?: number
@@ -144,8 +154,8 @@ function soundOperation(operation: MusicSoundSupportRequest['requiredOperations'
 
 function buildCanonicalSoundRequest(request: MusicSoundSupportRequest): CanonicalSoundRequest {
   const capability = soundSkillCapabilityManifest.capabilityEntries?.find((entry) =>
-    entry.supportedJobTypes.includes('edit_audio'))
-  if (!capability) throw new Error('Canonical Sound v4 edit capability is unavailable.')
+    entry.supportedJobTypes.includes('edit_music_technical_automation'))
+  if (!capability) throw new Error('Canonical Sound Music technical-automation capability is unavailable.')
   const selected = toSoundArtifact(request.selectedMusicArtifact)
   const timeline = toSoundArtifact(request.timelineArtifact)
   const range = toSoundRange(request.delegatedRange)
@@ -179,6 +189,58 @@ function buildCanonicalSoundRequest(request: MusicSoundSupportRequest): Canonica
   const sourceVersions = [selected, timeline].map((artifact) => ({
     artifactId: artifact.artifactId, version: artifact.version, checksumSha256: artifact.checksumSha256,
   }))
+  const extensionCore = {
+    schemaVersion: SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION,
+    bindingId: `music-technical-${request.parentMusicRequestId}-${request.musicCueId}`,
+    musicCueId: request.musicCueId,
+    delegatedRange: range,
+    sourceStartFrame: request.operationParameters.sourceStartFrame,
+    sourceEndFrameExclusive: request.operationParameters.sourceEndFrameExclusive,
+    targetStartFrame: range.startFrame,
+    targetEndFrameExclusive: range.endFrameExclusive,
+    fadeInFrames: request.operationParameters.fadeInFrames,
+    fadeOutFrames: request.operationParameters.fadeOutFrames,
+    crossfadeFrames: request.requiredOperations.includes('crossfade')
+      ? request.operationParameters.loopCrossfadeFrames ?? 0 : 0,
+    baseGainDb: request.operationParameters.gainDb,
+    gainEnvelope: structuredClone(request.operationParameters.gainEnvelope),
+    normalization: {
+      enabled: request.requiredOperations.includes('normalize'),
+      targetLoudnessLufs: request.operationParameters.targetLoudnessLufs,
+    },
+    dialogueDucking: {
+      attenuationDb: request.operationParameters.dialogueDuckingDb,
+      attackFrames: request.operationParameters.duckAttackFrames,
+      releaseFrames: request.operationParameters.duckReleaseFrames,
+      protectedSpeechRanges: request.protectedSpeechRanges.map(toSoundRange),
+    },
+    eqProfile: request.operationParameters.eqProfile,
+    dynamicsProfile: request.operationParameters.dynamicsProfile,
+    pan: request.operationParameters.pan,
+    distance: request.operationParameters.distance,
+    roomMatch: request.operationParameters.roomMatch,
+    maximumTruePeakDbtp: request.operationParameters.maximumTruePeakDbtp,
+    headroomDb: request.operationParameters.headroomDb,
+    loopCrossfadeFrames: request.operationParameters.loopCrossfadeFrames ?? 0,
+    tempoRatio: request.operationParameters.tempoRatio ?? 1,
+    pitchSemitones: request.operationParameters.pitchSemitones ?? 0,
+    sampleRate: request.operationParameters.sampleRate,
+    channelLayout: request.operationParameters.channelLayout,
+    renderStem: request.requiredOperations.includes('stem_rendering'),
+    requiredQa: [
+      'technical' as const,
+      ...(request.requiredOperations.includes('place') ? ['synchronization' as const] : []),
+      ...(request.requiredOperations.some((operation) =>
+        ['dialogue_ducking', 'eq', 'dynamics', 'pan', 'stem_rendering'].includes(operation))
+        ? ['mix' as const] : []),
+    ],
+    requiredMusicOperations: [...request.requiredOperations],
+    operationParametersHash: hashMusicValue(request.operationParameters),
+  }
+  const musicTechnicalAutomationExtension: SoundMusicTechnicalAutomationExtension = {
+    ...extensionCore,
+    extensionHash: hashSoundMusicTechnicalAutomation(extensionCore),
+  }
   return {
     schemaVersion: 'canonical-sound-request-v1',
     requestId: `sound-for-${request.parentMusicRequestId}-${request.musicCueId}`,
@@ -195,7 +257,7 @@ function buildCanonicalSoundRequest(request: MusicSoundSupportRequest): Canonica
     callerSkillVersion: request.musicSkillVersion,
     callerManifestHash: request.musicManifestHash,
     requestedCapabilityKey: capability.capabilityKey,
-    requestedJobType: 'edit_audio',
+    requestedJobType: 'edit_music_technical_automation',
     soundSkillKey: 'sound',
     soundSkillVersion: soundSkillCapabilityManifest.skillVersion,
     soundManifestHash: soundSkillCapabilityManifest.manifestHash,
@@ -212,6 +274,7 @@ function buildCanonicalSoundRequest(request: MusicSoundSupportRequest): Canonica
     },
     requestedOperations,
     operationDirectives,
+    musicTechnicalAutomationExtension,
     requestedOutcome: 'Apply exact bounded technical Music processing without making Music creative decisions.',
     requiredDeliverables: ['sound_audio_artifact_v2', 'sound_qa_report_v2', 'sound_caller_receipt_v2'],
     sourceMediaRefs: [], sourceAudioRefs: [selected], visualDependencies: [],
@@ -232,8 +295,10 @@ function buildCanonicalSoundRequest(request: MusicSoundSupportRequest): Canonica
     },
     referenceSoundInputs: [],
     qualityPolicy: {
-      qaDepth: 'strong', sampleRate: 48_000, channelLayout: 'stereo',
-      maximumTruePeakDbtp: -1, targetLoudnessLufs: -18, speechClarityWins: true,
+      qaDepth: 'strong', sampleRate: request.operationParameters.sampleRate,
+      channelLayout: request.operationParameters.channelLayout,
+      maximumTruePeakDbtp: request.operationParameters.maximumTruePeakDbtp,
+      targetLoudnessLufs: request.operationParameters.targetLoudnessLufs, speechClarityWins: true,
     },
     costPolicy: {
       maximumCredits: request.maximumCredits, candidateCount: 1,
@@ -274,7 +339,7 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
   }
 
   async estimate(request: MusicSoundSupportRequest): Promise<MusicSoundSupportEstimate> {
-    const view = await this.getCapabilityView({ jobType: 'edit_audio' })
+    const view = await this.getCapabilityView({ jobType: 'edit_music_technical_automation' })
     if (!view.accepted) throw new Error('Canonical Sound v4 does not accept Music technical support.')
     return {
       estimateId: `music-sound-estimate-${hashMusicValue(request).slice(0, 16)}`,
@@ -304,6 +369,8 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
     const soundQa = await this.#sound.qa({ executionPackage })
     const result = soundQa.result
     if (result.status !== 'completed') throw new Error(`Canonical Sound v4 Music support did not complete: ${result.status}.`)
+    const automationReceipt = result.musicTechnicalAutomationReceipt
+    if (!automationReceipt) throw new Error('Canonical Sound omitted the Music technical-automation receipt.')
     const processed = result.selectedAssetVersions.map((artifact): MusicArtifactRef => ({
       ...artifact,
       artifactType: 'processed_music_audio_v2',
@@ -329,6 +396,9 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
         exactProtectedSpeechRanges: request.protectedSpeechRanges,
         soundV4PublicOperationDirectives: soundRequest.operationDirectives,
       }),
+      receivedTechnicalAutomationHash: automationReceipt.receivedExtensionHash,
+      appliedTechnicalAutomationHash: automationReceipt.appliedExtensionHash,
+      appliedOperationReceipts: structuredClone(automationReceipt.appliedOperationReceipts),
       soundSkillVersion: result.soundSkillVersion,
       soundManifestHash: result.soundManifestHash,
       soundCapabilityKey: result.capabilityEntryKey,
@@ -370,6 +440,16 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
       errors.push('sound_delegated_range_mismatch')
     }
     if (receipt.technicalMixDirectiveHash.length !== 64) errors.push('sound_technical_mix_directive_missing')
+    if (receipt.receivedTechnicalAutomationHash !== receipt.appliedTechnicalAutomationHash) {
+      errors.push('sound_technical_automation_not_applied_exactly')
+    }
+    if (receipt.appliedOperationReceipts.length !== request.supportRequest.requiredOperations.length) {
+      errors.push('sound_operation_receipt_count_mismatch')
+    }
+    if (receipt.appliedOperationReceipts.some((operation) =>
+      operation.receivedParametersHash !== operation.appliedParametersHash)) {
+      errors.push('sound_operation_parameters_not_applied_exactly')
+    }
     if (receipt.mutationRanges.some((range) =>
       range.startFrame < request.supportRequest.delegatedRange.startFrame ||
       range.endFrameExclusive > request.supportRequest.delegatedRange.endFrameExclusive)) errors.push('sound_range_escalation')

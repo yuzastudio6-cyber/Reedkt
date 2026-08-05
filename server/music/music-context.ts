@@ -52,7 +52,7 @@ export interface MusicContextArtifactResolver {
 }
 
 export interface CanonicalMusicContextPackage {
-  schemaVersion: 'canonical-music-context-package-v2'
+  schemaVersion: 'canonical-music-context-package-v3'
   requestId: string
   resolutionStatus: 'resolved' | 'reference_only'
   storyPurpose: string
@@ -102,7 +102,7 @@ function validateResolved(reference: MusicEvidenceRef, resolved: ResolvedMusicCo
 
 function referenceOnlyPackage(request: CanonicalMusicSkillRequest, refs: readonly MusicEvidenceRef[]): CanonicalMusicContextPackage {
   const base = {
-    schemaVersion: 'canonical-music-context-package-v2' as const,
+    schemaVersion: 'canonical-music-context-package-v3' as const,
     requestId: request.requestId,
     resolutionStatus: 'reference_only' as const,
     storyPurpose: 'story_context_unresolved',
@@ -150,7 +150,7 @@ export async function resolveCanonicalMusicContext(input: {
     ...(protectedSpeechRanges.length > 0 ? [] : ['resolved_speech_ranges']),
   ]
   const base = {
-    schemaVersion: 'canonical-music-context-package-v2' as const,
+    schemaVersion: 'canonical-music-context-package-v3' as const,
     requestId: input.request.requestId,
     resolutionStatus: 'resolved' as const,
     storyPurpose: first('storyPurpose', 'story_purpose_requires_review'),

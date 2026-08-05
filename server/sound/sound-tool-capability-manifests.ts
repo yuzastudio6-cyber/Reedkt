@@ -207,7 +207,7 @@ const generatedSoundJobs = [
   'generate_foley', 'generate_ambience', 'extend_ambience', 'loop_audio',
 ]
 const deterministicEditJobs = [
-  'edit_audio', 'trim_audio', 'fade_audio', 'adjust_gain', 'normalize_audio',
+  'edit_audio', 'edit_music_technical_automation', 'trim_audio', 'fade_audio', 'adjust_gain', 'normalize_audio',
   'resample_audio', 'convert_audio_channels', 'loop_audio',
 ]
 const qaServiceJobs = [
@@ -290,9 +290,9 @@ const manifests = [
       ['normalize_audio_loudness', 'Normalize audio loudness', deterministicEditJobs, ['edited_audio_asset_version']],
       ['resample_convert_channels', 'Resample and convert channels', deterministicEditJobs, ['edited_audio_asset_version']],
       ['loop_audio_crossfade', 'Loop approved ambience with seam crossfades', [...deterministicEditJobs, 'extend_ambience', 'generate_ambience'], ['edited_audio_asset_version', 'ambience_asset']],
-      ['stretch_pitch_audio', 'Retime and pitch approved audio', ['time_stretch_audio', 'pitch_shift_audio'], ['edited_audio_asset_version']],
-      ['mix_scene_stem', 'Mix Sound layers with dialogue sidechain protection', ['mix_sound_layers', 'create_sound_stem', 'generate_video_conditioned_sfx', 'generate_text_conditioned_sfx', 'generate_foley'], ['edited_audio_asset_version', 'validated_sound_candidate', 'private_sound_stem']],
-      ['sync_transient_qa', 'Analyze Sound synchronization', ['sync_audio_to_visual', 'align_sound_transient', 'qa_sound'], ['transient_timing_report']],
+      ['stretch_pitch_audio', 'Retime and pitch approved audio', ['time_stretch_audio', 'pitch_shift_audio', 'edit_music_technical_automation'], ['edited_audio_asset_version']],
+      ['mix_scene_stem', 'Mix Sound layers with dialogue sidechain protection', ['mix_sound_layers', 'create_sound_stem', 'edit_music_technical_automation', 'generate_video_conditioned_sfx', 'generate_text_conditioned_sfx', 'generate_foley'], ['edited_audio_asset_version', 'validated_sound_candidate', 'private_sound_stem']],
+      ['sync_transient_qa', 'Analyze Sound synchronization', ['sync_audio_to_visual', 'align_sound_transient', 'qa_sound', 'edit_music_technical_automation'], ['transient_timing_report']],
       ['cleanup_dialogue_gentle', 'Apply bounded gentle cleanup', ['repair_audio', 'clean_dialogue', 'reduce_noise'], ['edited_audio_asset_version', 'cleaned_dialogue_asset']],
     ].map(([operationKey, displayName, jobs, produced]) => ({
       operationKey: operationKey as string, displayName: displayName as string,
@@ -513,7 +513,7 @@ const manifests = [
     licensePolicyRef: 'sound.license.internal_service.v1', runtimeProbeKey: 'sound.runtime.qa_service.v1',
     operations: [{
       operationKey: 'evaluate_final_sound', displayName: 'Evaluate final Sound output and integration',
-      jobs: qaServiceJobs, preset: 'private', evidence: [EVIDENCE.localSoundQa],
+      jobs: [...qaServiceJobs, 'edit_music_technical_automation'], preset: 'private', evidence: [EVIDENCE.localSoundQa],
       mutation: 'coordination_record_only', accepted: ['private_sound_stem', 'sound_cue_manifest'],
       produced: ['sound_qa_report', 'final_composition_sound_handoff', 'caller_receipt'], contentTypes: [],
       outputQa: ['technical_audio_qa', 'sync_qa', 'speech_clarity_qa', 'provenance_qa'],

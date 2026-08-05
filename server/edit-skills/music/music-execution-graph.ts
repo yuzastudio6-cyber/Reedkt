@@ -11,7 +11,7 @@ export type MusicExecutionUnitKind =
   | 'cue_qa' | 'continuity_qa' | 'revision' | 'handoff' | 'no_music' | 'planning_only'
 
 export interface CompiledMusicOperationSpec {
-  operationSpecVersion: 'music-operation-spec-v2'
+  operationSpecVersion: 'music-operation-spec-v3'
   operationSpecHash: string
   unitKind: MusicExecutionUnitKind
   cueId?: string
@@ -51,7 +51,7 @@ export interface MusicExecutionUnit {
 
 export interface MusicExecutionGraph {
   graphId: string
-  graphVersion: '2.0.0'
+  graphVersion: '3.0.0'
   graphHash: string
   requestId: string
   parentJobType: string
@@ -72,7 +72,7 @@ function routeRef(routeKey: string): { routeKey: string; routeVersion: string; r
 function operationSpec(input: Omit<CompiledMusicOperationSpec, 'operationSpecVersion' | 'operationSpecHash' |
   'parameterSourcePolicy' | 'arbitraryArgumentsAccepted' | 'arbitraryPathsAccepted' | 'callerSelectedProviderAccepted'>): CompiledMusicOperationSpec {
   const base = {
-    operationSpecVersion: 'music-operation-spec-v2' as const,
+    operationSpecVersion: 'music-operation-spec-v3' as const,
     ...structuredClone(input),
     parameterSourcePolicy: 'typed_sources_only' as const,
     arbitraryArgumentsAccepted: false as const,
@@ -129,7 +129,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
     if (units.some((item) => item.unitId === candidate.unitId)) throw new Error(`Duplicate Music execution unit ${candidate.unitId}.`)
     units.push(candidate)
   }
-  const globalRoute = routeRef('music.route.study.video_context.v2')
+  const globalRoute = routeRef('music.route.study.video_context.v3')
   add(unit({
     unitId: `music-unit-${request.requestId}-context`, unitKind: 'context_study', jobType: 'study_video_music_context',
     capabilityKey: 'music.study_video_music_context', route: globalRoute,
@@ -140,7 +140,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
   }))
   add(unit({
     unitId: `music-unit-${request.requestId}-need`, unitKind: 'music_need_decision', jobType: 'decide_music_need',
-    capabilityKey: 'music.decide_music_need', route: routeRef('music.route.decide.need.v2'),
+    capabilityKey: 'music.decide_music_need', route: routeRef('music.route.decide.need.v3'),
     inputArtifactIds: [input.need.artifactId], inputArtifactHashes: [input.need.artifactHash],
     dependencyUnitIds: [`music-unit-${request.requestId}-context`], idempotencyKey: `${request.idempotencyKey}:need`,
     expectedOutputs: ['music_need_decision_v2'], attemptPolicyKey: 'music.attempt.local_idempotent.v2', required: true,
@@ -148,7 +148,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
   }))
   add(unit({
     unitId: `music-unit-${request.requestId}-cue-sheet`, unitKind: 'cue_planning', jobType: 'create_music_cue_sheet',
-    capabilityKey: 'music.create_music_cue_sheet', route: routeRef('music.route.plan.cue_sheet.v2'),
+    capabilityKey: 'music.create_music_cue_sheet', route: routeRef('music.route.plan.cue_sheet.v3'),
     inputArtifactIds: [input.cueSheet.artifactId], inputArtifactHashes: [input.cueSheet.artifactHash],
     dependencyUnitIds: [`music-unit-${request.requestId}-need`], idempotencyKey: `${request.idempotencyKey}:cue-sheet`,
     expectedOutputs: ['music_cue_sheet_v2'], attemptPolicyKey: 'music.attempt.local_idempotent.v2', required: true,
@@ -185,7 +185,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
     const analyzeId = `music-unit-${request.requestId}-${binding.cueId}-analyze`
     add(unit({
       unitId: analyzeId, cueId: binding.cueId, unitKind: 'candidate_analysis', targetRange,
-      jobType: 'analyze_music_candidate', capabilityKey: 'music.analyze_music_candidate', route: routeRef('music.route.analyze.candidate.v2'),
+      jobType: 'analyze_music_candidate', capabilityKey: 'music.analyze_music_candidate', route: routeRef('music.route.analyze.candidate.v3'),
       inputArtifactIds: [], inputArtifactHashes: [], dependencyUnitIds: [acquireId],
       idempotencyKey: `${request.idempotencyKey}:${binding.cueId}:analyze`, expectedOutputs: ['music_candidate_analysis_v2'],
       attemptPolicyKey: 'music.attempt.local_idempotent.v2', required: true, failurePolicy: 'preserve_partial_success',
@@ -194,7 +194,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
     const selectId = `music-unit-${request.requestId}-${binding.cueId}-select`
     add(unit({
       unitId: selectId, cueId: binding.cueId, unitKind: 'candidate_selection', targetRange,
-      jobType: 'select_music_candidate', capabilityKey: 'music.select_music_candidate', route: routeRef('music.route.select.candidate.v2'),
+      jobType: 'select_music_candidate', capabilityKey: 'music.select_music_candidate', route: routeRef('music.route.select.candidate.v3'),
       inputArtifactIds: [], inputArtifactHashes: [], dependencyUnitIds: [analyzeId],
       idempotencyKey: `${request.idempotencyKey}:${binding.cueId}:select`, expectedOutputs: ['music_candidate_selection_decision_v2'],
       attemptPolicyKey: 'music.attempt.local_idempotent.v2', required: true, failurePolicy: 'preserve_partial_success',
@@ -203,7 +203,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
     const syncId = `music-unit-${request.requestId}-${binding.cueId}-sync`
     add(unit({
       unitId: syncId, cueId: binding.cueId, unitKind: 'music_sync', targetRange,
-      jobType: 'sync_music_to_picture', capabilityKey: 'music.sync_music_to_picture', route: routeRef('music.route.sync.picture.v2'),
+      jobType: 'sync_music_to_picture', capabilityKey: 'music.sync_music_to_picture', route: routeRef('music.route.sync.picture.v3'),
       inputArtifactIds: [], inputArtifactHashes: [], dependencyUnitIds: [selectId],
       idempotencyKey: `${request.idempotencyKey}:${binding.cueId}:sync`,
       expectedOutputs: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2'],
@@ -217,7 +217,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
     const soundId = `music-unit-${request.requestId}-${binding.cueId}-sound`
     add(unit({
       unitId: soundId, cueId: binding.cueId, unitKind: 'sound_support', targetRange,
-      jobType: 'request_sound_processing', capabilityKey: 'music.request_sound_processing', route: routeRef('music.route.support.sound_processing.v2'),
+      jobType: 'request_sound_processing', capabilityKey: 'music.request_sound_processing', route: routeRef('music.route.support.sound_processing.v3'),
       inputArtifactIds: [], inputArtifactHashes: [], dependencyUnitIds: [syncId],
       idempotencyKey: `${request.idempotencyKey}:${binding.cueId}:sound`,
       expectedOutputs: ['processed_music_audio_v2', 'music_stem_audio_v2', 'music_sound_support_receipt_v2'],
@@ -227,7 +227,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
     const qaId = `music-unit-${request.requestId}-${binding.cueId}-qa`
     add(unit({
       unitId: qaId, cueId: binding.cueId, unitKind: 'cue_qa', targetRange,
-      jobType: 'qa_music', capabilityKey: 'music.qa_music', route: routeRef('music.route.qa.cue.v2'),
+      jobType: 'qa_music', capabilityKey: 'music.qa_music', route: routeRef('music.route.qa.cue.v3'),
       inputArtifactIds: [], inputArtifactHashes: [], dependencyUnitIds: [soundId],
       idempotencyKey: `${request.idempotencyKey}:${binding.cueId}:qa`, expectedOutputs: ['music_technical_qa_v2'],
       attemptPolicyKey: 'music.attempt.local_idempotent.v2', required: true, failurePolicy: 'preserve_partial_success',
@@ -238,7 +238,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
   const continuityId = `music-unit-${request.requestId}-continuity`
   add(unit({
     unitId: continuityId, unitKind: request.requestedExecutionMode === 'planning' ? 'planning_only' : 'continuity_qa',
-    jobType: 'qa_music', capabilityKey: 'music.qa_music', route: routeRef('music.route.qa.continuity.v2'),
+    jobType: 'qa_music', capabilityKey: 'music.qa_music', route: routeRef('music.route.qa.continuity.v3'),
     inputArtifactIds: [], inputArtifactHashes: [], dependencyUnitIds: terminalCueUnits,
     idempotencyKey: `${request.idempotencyKey}:continuity`, expectedOutputs: ['music_qa_report_v2', 'music_continuity_report_v2'],
     attemptPolicyKey: 'music.attempt.local_idempotent.v2', required: true, failurePolicy: 'preserve_partial_success',
@@ -247,7 +247,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
   const handoffId = `music-unit-${request.requestId}-handoff`
   add(unit({
     unitId: handoffId, unitKind: 'handoff', jobType: 'handoff_music_to_final_composition',
-    capabilityKey: 'music.handoff_music_to_final_composition', route: routeRef('music.route.handoff.final_composition.v2'),
+    capabilityKey: 'music.handoff_music_to_final_composition', route: routeRef('music.route.handoff.final_composition.v3'),
     inputArtifactIds: [], inputArtifactHashes: [], dependencyUnitIds: [continuityId],
     idempotencyKey: `${request.idempotencyKey}:handoff`, expectedOutputs: ['music_final_composition_handoff_v2'],
     attemptPolicyKey: 'music.attempt.local_idempotent.v2', required: true, failurePolicy: 'preserve_partial_success',
@@ -258,7 +258,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
   })))
   const base = {
     graphId: `music.graph.${request.requestId}`,
-    graphVersion: '2.0.0' as const,
+    graphVersion: '3.0.0' as const,
     requestId: request.requestId,
     parentJobType: request.jobType,
     manifestHash: musicSkillCapabilityManifest.manifestHash,

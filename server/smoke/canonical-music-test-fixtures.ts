@@ -95,7 +95,7 @@ export function makeCanonicalMusicRequest(input: {
   const executing = input.mode !== 'planning'
   const allowGeneration = input.allowGeneration ?? false
   return parseCanonicalMusicRequest({
-    schemaVersion: 'canonical-music-request-v2', requestId: input.requestId, requestVersion: '2.0.0',
+    schemaVersion: 'canonical-music-request-v3', requestId: input.requestId, requestVersion: '3.0.0',
     caller: input.caller ?? {
       callerType: 'head_of_orchestra', callerSkillKey: 'head_of_orchestra', callerSkillVersion: 'future-contract-v1',
       parentWorkItemId: `work-${input.requestId}`, authorityRef: `authority-${input.requestId}`,
@@ -144,7 +144,7 @@ export function makeCanonicalMusicRequest(input: {
     inputAssetRefs: assets, referenceMusicRefs: [], rightsAndProvenanceRefs: input.rights ?? [],
     cueConstraints: {
       requestedCues: input.cues, lockedCueIds: input.cues.map((cue) => cue.cueId),
-      allowMusicToCombineUnlockedCues: false,
+      allowMusicToCombineUnlockedCues: false, constraints: [],
     },
     approvalAndBudget: {
       approvalStatus: executing ? 'approved' : 'not_required_for_planning',

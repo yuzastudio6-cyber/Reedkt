@@ -224,7 +224,7 @@ export interface MusicCandidateSelectionDecision {
   blockingFailures: Record<string, string[]>
   reviewRequiredFindings: Record<string, string[]>
   selectedCandidateId: string | null
-  selectionPolicyVersion: 'music.candidate_selection.v2'
+  selectionPolicyVersion: 'music.candidate_selection.v3'
   evidenceHash: string
 }
 
@@ -244,7 +244,12 @@ export function selectMusicCandidate(input: {
     const failures: string[] = []
     if (!analysis.decodeSucceeded) failures.push('decode_failed')
     if (analysis.clippedSampleCount > 0) failures.push('clipping_detected')
-    if (Math.abs(analysis.durationSeconds - targetSeconds) > Math.max(2, targetSeconds * 0.5)) failures.push('duration_outside_selection_tolerance')
+    // A longer approved Music source is editorially usable because MusicSync may
+    // select a bounded phrase/section before Sound trims it. Only a source that
+    // is materially too short is blocked at candidate-selection time.
+    if (analysis.durationSeconds + Math.max(0.25, targetSeconds * 0.1) < targetSeconds) {
+      failures.push('duration_too_short_for_cue_without_loop')
+    }
     blockingFailures[id] = failures
     reviewRequiredFindings[id] = [
       ...(analysis.measuredVocalEvidence.reviewRequired && input.speechProtected ? ['vocal_presence_requires_review'] : []),
@@ -265,7 +270,7 @@ export function selectMusicCandidate(input: {
     candidateHashes: input.analyses.map((analysis) => analysis.candidateArtifact.checksumSha256),
     measuredScores, blockingFailures, reviewRequiredFindings,
     selectedCandidateId: selected?.candidateArtifact.artifactId ?? null,
-    selectionPolicyVersion: 'music.candidate_selection.v2' as const,
+    selectionPolicyVersion: 'music.candidate_selection.v3' as const,
   }
   return {
     ...base,

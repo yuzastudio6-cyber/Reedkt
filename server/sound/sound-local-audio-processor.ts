@@ -195,13 +195,13 @@ const operationProfiles: Record<SoundLocalOperation, {
 }> = {
   analyze: { profileKeys: ['sound.analyze.v1', 'sound.analyze.reference.v1', 'sound.analyze.provider_candidate.v1', 'sound.analyze.model_candidate.v1', 'sound.analyze.final.v1', 'sound.analyze.output.v1'], outputRequired: false, minimumSources: 1, maximumSources: 1 },
   extract: { profileKeys: ['sound.extract.project_source.v1', 'sound.extract.provider_carrier.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  trim_fade_gain: { profileKeys: ['sound.trim-fade-gain.edit.v1', 'sound.trim-fade-gain.video_candidate.v1', 'sound.trim-fade-gain.text_candidate.v1', 'sound.trim-fade-gain.model_candidate.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  normalize: { profileKeys: ['sound.normalize.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  resample_channels: { profileKeys: ['sound.resample-channels.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  loop_crossfade: { profileKeys: ['sound.loop.edit.v1', 'sound.loop.ambience.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  stretch_pitch: { profileKeys: ['sound.stretch-pitch.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  mix_stem: { profileKeys: ['sound.mix-stem.scene.v1', 'sound.mix-stem.provider_candidate.v1'], outputRequired: true, minimumSources: 1, maximumSources: 16 },
-  sync_qa: { profileKeys: ['sound.sync-qa.v1'], outputRequired: false, minimumSources: 1, maximumSources: 1 },
+  trim_fade_gain: { profileKeys: ['sound.trim-fade-gain.edit.v1', 'sound.trim-fade-gain.music_technical.v1', 'sound.trim-fade-gain.video_candidate.v1', 'sound.trim-fade-gain.text_candidate.v1', 'sound.trim-fade-gain.model_candidate.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  normalize: { profileKeys: ['sound.normalize.v1', 'sound.normalize.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  resample_channels: { profileKeys: ['sound.resample-channels.v1', 'sound.resample-channels.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  loop_crossfade: { profileKeys: ['sound.loop.edit.v1', 'sound.loop.ambience.v1', 'sound.loop.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  stretch_pitch: { profileKeys: ['sound.stretch-pitch.v1', 'sound.stretch-pitch.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  mix_stem: { profileKeys: ['sound.mix-stem.scene.v1', 'sound.mix-stem.provider_candidate.v1', 'sound.mix-stem.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 16 },
+  sync_qa: { profileKeys: ['sound.sync-qa.v1', 'sound.sync-qa.music_technical.v1'], outputRequired: false, minimumSources: 1, maximumSources: 1 },
   cleanup_gentle: { profileKeys: ['sound.cleanup.gentle.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
 }
 

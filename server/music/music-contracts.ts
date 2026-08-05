@@ -9,10 +9,17 @@ import {
 } from '../edit-skills/core/timeline-rate'
 import type { SkillQualificationStatus } from '../edit-skills/core/edit-skill-ids'
 
-export const MUSIC_SKILL_VERSION = '2.0.0' as const
-export const MUSIC_CONTRACT_VERSION = 'music.skill_contract.v2' as const
-export const CANONICAL_MUSIC_REQUEST_SCHEMA_VERSION = 'canonical-music-request-v2' as const
-export const CANONICAL_MUSIC_RESULT_SCHEMA_VERSION = 'canonical-music-result-v2' as const
+export const MUSIC_SKILL_VERSION = '3.0.0' as const
+export const MUSIC_CONTRACT_VERSION = 'music.skill_contract.v3' as const
+export const CANONICAL_MUSIC_REQUEST_SCHEMA_VERSION = 'canonical-music-request-v3' as const
+export const CANONICAL_MUSIC_RESULT_SCHEMA_VERSION = 'canonical-music-result-v3' as const
+export const RETIRED_MUSIC_V2_IDENTITY = Object.freeze({
+  skillVersion: '2.0.0',
+  contractVersion: 'music.skill_contract.v2',
+  requestSchemaVersion: 'canonical-music-request-v2',
+  resultSchemaVersion: 'canonical-music-result-v2',
+  status: 'compatibility_only',
+} as const)
 export const RETIRED_MUSIC_V1_IDENTITY = Object.freeze({
   skillVersion: '1.0.0',
   contractVersion: 'music.skill_contract.v1',
@@ -180,6 +187,23 @@ export const musicCueIntentSchema = z.object({
 })
 export type CanonicalMusicCueIntent = z.infer<typeof musicCueIntentSchema>
 
+export const musicCueConstraintSchema = z.object({
+  constraintId: musicSafeIdSchema,
+  authorityMode: z.enum([
+    'fully_locked', 'range_locked', 'creative_fields_locked', 'soft_preference', 'advisory',
+  ]),
+  cue: musicCueIntentSchema,
+  lockedCreativeFields: z.array(z.enum([
+    'narrativeFunction', 'cueRole', 'motifRole', 'energyArc', 'tempoRangeBpm',
+    'harmonicDirection', 'instrumentation', 'arrangementDensity', 'rhythmProfile',
+    'vocalPolicy', 'lyricPolicy', 'languagePolicy', 'acquisitionPreference',
+    'soundProcessingIntent',
+  ])).max(32).default([]),
+  mayMergeWithAdjacentSegments: z.boolean().default(false),
+  evidenceRefs: z.array(musicEvidenceRefSchema).max(64).default([]),
+}).strict()
+export type MusicCueConstraint = z.infer<typeof musicCueConstraintSchema>
+
 const callerSchema = z.object({
   callerType: z.enum([
     'head_of_orchestra', 'motion_studio', 'living_frame', 'three_d',
@@ -223,7 +247,7 @@ const contextRefsSchema = z.object({
 export const canonicalMusicRequestSchema = z.object({
   schemaVersion: z.literal(CANONICAL_MUSIC_REQUEST_SCHEMA_VERSION),
   requestId: musicSafeIdSchema,
-  requestVersion: z.literal('2.0.0'),
+  requestVersion: z.literal('3.0.0'),
   caller: callerSchema,
   jobType: z.enum(MUSIC_JOB_TYPES),
   requestedExecutionMode: z.enum(['planning', 'fixture', 'private_internal', 'production']),
@@ -257,6 +281,7 @@ export const canonicalMusicRequestSchema = z.object({
     requestedCues: z.array(musicCueIntentSchema).max(512),
     lockedCueIds: z.array(musicSafeIdSchema).max(512),
     allowMusicToCombineUnlockedCues: z.boolean(),
+    constraints: z.array(musicCueConstraintSchema).max(512).optional().default([]),
   }).strict(),
   proposedCues: z.array(musicCueIntentSchema).max(512).optional().default([]),
   approvalAndBudget: z.object({
@@ -313,6 +338,80 @@ export type CanonicalMusicSkillRequest = z.infer<typeof canonicalMusicRequestSch
 
 export function requestedMusicCueConstraints(request: CanonicalMusicSkillRequest): CanonicalMusicCueIntent[] {
   return [...request.cueConstraints.requestedCues, ...request.proposedCues]
+}
+
+export function canonicalMusicCueConstraints(request: CanonicalMusicSkillRequest): MusicCueConstraint[] {
+  const explicit = request.cueConstraints.constraints
+  const explicitCueIds = new Set(explicit.map((constraint) => constraint.cue.cueId))
+  const legacy = requestedMusicCueConstraints(request).filter((cue) => !explicitCueIds.has(cue.cueId)).map((cue) => ({
+    constraintId: cue.cueId,
+    authorityMode: request.cueConstraints.lockedCueIds.includes(cue.cueId)
+      ? 'fully_locked' as const : 'soft_preference' as const,
+    cue: structuredClone(cue),
+    lockedCreativeFields: [] as MusicCueConstraint['lockedCreativeFields'],
+    mayMergeWithAdjacentSegments: request.cueConstraints.allowMusicToCombineUnlockedCues,
+    evidenceRefs: [] as MusicEvidenceRef[],
+  }))
+  return [...explicit.map((constraint) => structuredClone(constraint)), ...legacy]
+}
+
+export interface MusicSoundtrackSegment {
+  segmentId: string
+  exactRange: MusicFrameRange
+  sourceWriteRangeId: string
+  sceneIds: string[]
+  classification: 'testimony' | 'speech' | 'emotional_pause' | 'ambience_priority' |
+    'transition' | 'chapter' | 'montage' | 'story' | 'unresolved'
+  importantSpeech: boolean
+  naturalAmbiencePriority: boolean
+  intentionalSilenceCandidate: boolean
+  transitionBoundaryIds: string[]
+  cueConstraintIds: string[]
+  locked: boolean
+  splitReasons: string[]
+  evidenceRefs: string[]
+}
+
+export interface MusicSoundtrackSegmentationPlan {
+  schemaVersion: 'music-soundtrack-segmentation-plan-v3'
+  planId: string
+  requestId: string
+  timelineHash: string
+  timelineRate: TimelineRate
+  authorizedWriteRanges: MusicFrameRange[]
+  segments: MusicSoundtrackSegment[]
+  coverageStatus: 'exact'
+  overlapPolicy: 'none_except_typed_crossfade'
+  crossfadeOverlaps: Array<{ leftSegmentId: string; rightSegmentId: string; range: MusicFrameRange }>
+  unresolvedEvidence: string[]
+  planHash: string
+}
+
+export interface MusicCueConstraintResolution {
+  resolutionId: string
+  constraintId: string
+  authorityMode: MusicCueConstraint['authorityMode']
+  decision: 'preserved_exactly' | 'preserved_range' | 'merged_into_segment' | 'split_across_segments' |
+    'treated_as_preference' | 'treated_as_advisory' | 'rejected_conflict'
+  resultingCueIds: string[]
+  resultingRanges: MusicFrameRange[]
+  changedFields: string[]
+  reason: string
+  resolutionHash: string
+}
+
+export interface MusicAcceptanceReceipt {
+  receiptId: string
+  jobType: MusicJobType
+  capabilityKey: string
+  capabilityVersion: string
+  requestedMode: CanonicalMusicSkillRequest['requestedExecutionMode']
+  routeIdentities: string[]
+  invokedUnitIds: string[]
+  outputArtifactIds: string[]
+  evidenceRefs: string[]
+  status: 'planned' | 'completed' | 'partial' | 'blocked' | 'no_music' | 'ambience_only'
+  receiptHash: string
 }
 
 export type MusicNeedDecisionKind =
@@ -386,6 +485,15 @@ export interface MusicSoundSupportReceipt {
   requiredMusicOperations: string[]
   mappedSoundOperations: string[]
   technicalMixDirectiveHash: string
+  receivedTechnicalAutomationHash: string
+  appliedTechnicalAutomationHash: string
+  appliedOperationReceipts: Array<{
+    operation: string
+    receivedParametersHash: string
+    appliedParametersHash: string
+    outputArtifactIds: string[]
+    measuredQaRefs: string[]
+  }>
   soundSkillVersion: string
   soundManifestHash: string
   soundCapabilityKey: string
@@ -540,6 +648,9 @@ export interface CanonicalMusicSkillResult {
   revisionEvidenceRef?: string
   finalCompositionHandoff?: MusicFinalCompositionHandoff
   artifacts: MusicArtifactEnvelope[]
+  segmentationPlan?: MusicSoundtrackSegmentationPlan
+  cueConstraintResolutions: MusicCueConstraintResolution[]
+  acceptanceReceipts: MusicAcceptanceReceipt[]
   unitReceipts: MusicExecutionUnitReceipt[]
   routeReceipts: string[]
   executionFingerprint: string

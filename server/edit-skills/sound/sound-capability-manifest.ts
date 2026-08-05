@@ -9,7 +9,7 @@ import type { SkillQualificationStatus } from '../core/edit-skill-ids'
 import { SOUND_TOOL_ROUTE_MANIFESTS } from '../../sound/sound-tool-routes'
 
 export const SOUND_SKILL_KEY = 'sound' as const
-export const SOUND_SKILL_VERSION = '4.0.0' as const
+export const SOUND_SKILL_VERSION = '4.1.0' as const
 export const SOUND_MANIFEST_CONTRACT_VERSION = 'sound.skill_contract.v4' as const
 
 export const SOUND_SUPPORTED_JOB_TYPES = [
@@ -19,7 +19,7 @@ export const SOUND_SUPPORTED_JOB_TYPES = [
   'support_transition_sound', 'support_graphic_design_sound', 'search_sound_library',
   'extract_project_owned_sound', 'generate_video_conditioned_sfx', 'generate_text_conditioned_sfx',
   'generate_foley', 'generate_ambience', 'extend_ambience', 'repair_audio', 'clean_dialogue',
-  'reduce_noise', 'edit_audio', 'trim_audio', 'fade_audio', 'adjust_gain', 'normalize_audio',
+  'reduce_noise', 'edit_audio', 'edit_music_technical_automation', 'trim_audio', 'fade_audio', 'adjust_gain', 'normalize_audio',
   'resample_audio', 'convert_audio_channels', 'loop_audio', 'time_stretch_audio', 'pitch_shift_audio',
   'sync_audio_to_visual', 'align_sound_transient', 'mix_sound_layers', 'create_sound_stem',
   'qa_sound', 'revise_sound', 'handoff_sound_to_final_composition',
@@ -188,7 +188,7 @@ const capabilityEntries: SkillCapabilityEntryDefinition[] = SOUND_SUPPORTED_JOB_
   const actualLower = lower.filter((route) => !primaryKeys.has(route.routeKey))
   return {
     capabilityKey: `sound.${job}`,
-    capabilityVersion: '4.0.0',
+    capabilityVersion: SOUND_SKILL_VERSION,
     displayName: job.replaceAll('_', ' '),
     description: `Canonical Sound capability for ${job.replaceAll('_', ' ')}.`,
     qualificationStatus: deriveSoundRouteReferenceQualification(primary),
@@ -285,6 +285,7 @@ export const soundSkillCapabilityManifest = createSkillCapabilityManifest({
   qualificationFixtures: [
     { fixtureKey: 'sound.shared_kernel.v4', minimumStatus: 'planning_qualified', description: 'Shared registry, immutable hash, composite child-route graph, exact handler registry, and named-output closure evidence.' },
     { fixtureKey: 'sound.local_real_bytes.v4', minimumStatus: 'internal_execution_qualified', description: 'Per-range real private FFmpeg/FFprobe execution, immutable replay provenance, mix rendering, mutation receipts, and measured output QA evidence.' },
+    { fixtureKey: 'sound.music_technical_automation.v4.1', minimumStatus: 'internal_execution_qualified', description: 'Exact Music technical parameters are applied through the Sound-owned route and returned with measured QA and parameter receipts.' },
     { fixtureKey: 'sound.mirelo.injected_route.v4', minimumStatus: 'planning_qualified', description: 'Per-cue fixture-only injected transport using the canonical dependency-driven route graph and independent candidate processing.' },
   ],
   knownLimitations: [

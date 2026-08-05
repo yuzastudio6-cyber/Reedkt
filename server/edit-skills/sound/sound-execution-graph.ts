@@ -29,6 +29,7 @@ export type SoundOperationParameterSource =
   | 'approved_range'
   | 'planned_cue'
   | 'planned_mix_automation'
+  | 'music_technical_automation_extension'
   | 'published_operation_policy'
 
 export interface CompiledSoundParameterBinding {
@@ -298,17 +299,47 @@ function compileDirectUnits(
   } else {
     for (const [index, range] of executionRanges(request, result.cueManifest.cues).entries()) {
       const cue = result.cueManifest.cues.find((item) => overlaps(range, rangeForCue(item)))
+      const plannedAutomation = cue ? automations.get(cue.cueId) : undefined
+      const automation = request.musicTechnicalAutomationExtension
+        ? musicTechnicalAutomation(request, cue?.cueId ?? request.musicTechnicalAutomationExtension.musicCueId)
+        : plannedAutomation
       units.push(createUnit({
-        request, index, kind: ['mix_sound_layers', 'create_sound_stem'].includes(request.requestedJobType)
+        request, index, kind: ['mix_sound_layers', 'create_sound_stem', 'edit_music_technical_automation'].includes(request.requestedJobType)
           ? 'mix_stem' : 'audio_operation',
-        route, range, cue, automation: cue ? automations.get(cue.cueId) : undefined,
-        sources: request.requestedJobType === 'mix_sound_layers' || request.requestedJobType === 'create_sound_stem'
+        route, range, cue, automation,
+        sources: ['mix_sound_layers', 'create_sound_stem', 'edit_music_technical_automation'].includes(request.requestedJobType)
           ? request.sourceAudioRefs : sourceForIndex(request.sourceAudioRefs, index),
         ...common,
       }))
     }
   }
   return units
+}
+
+function musicTechnicalAutomation(
+  request: CanonicalSoundRequest,
+  cueId: string,
+): SoundMixAutomation {
+  const extension = request.musicTechnicalAutomationExtension
+  if (!extension) throw new Error('Music technical automation extension is missing.')
+  return {
+    cueId,
+    baseGainDb: extension.baseGainDb,
+    gainEnvelope: structuredClone(extension.gainEnvelope),
+    fadeInFrames: extension.fadeInFrames,
+    fadeOutFrames: extension.fadeOutFrames,
+    dialogueDuckingDb: extension.dialogueDucking.attenuationDb,
+    duckAttackFrames: extension.dialogueDucking.attackFrames,
+    duckReleaseFrames: extension.dialogueDucking.releaseFrames,
+    protectedSpeechRanges: structuredClone(extension.dialogueDucking.protectedSpeechRanges),
+    musicInteractionPolicy: 'none',
+    eqProfile: extension.eqProfile,
+    dynamicsProfile: extension.dynamicsProfile,
+    pan: extension.pan,
+    distance: extension.distance,
+    roomMatch: extension.roomMatch,
+    headroomDb: extension.headroomDb,
+  }
 }
 
 function createUnit(input: {
@@ -332,7 +363,7 @@ function createUnit(input: {
   const sources = directedSourceIds.length > 0
     ? directedSourceIds.map((artifactId) => approvedSources.get(artifactId)!)
     : input.sources
-  if (directedSourceIds.length > 1 && !['mix_sound_layers', 'create_sound_stem'].includes(input.routeJobType)) {
+  if (directedSourceIds.length > 1 && !['mix_sound_layers', 'create_sound_stem', 'edit_music_technical_automation'].includes(input.routeJobType)) {
     throw new Error('A non-mix Sound execution unit cannot select more than one source artifact.')
   }
   const operationSpecCore = {
@@ -399,6 +430,36 @@ function compileParameterBindings(
       binding('fadeInFrames', 'published_operation_policy', 'sound.policy.edge_fade.v1', 1),
       binding('fadeOutFrames', 'published_operation_policy', 'sound.policy.edge_fade.v1', 1),
     )
+  }
+  const musicTechnical = input.request.musicTechnicalAutomationExtension
+  if (musicTechnical) {
+    const exactBindings: Array<[string, string | number | boolean]> = [
+      ['musicTechnicalBindingId', musicTechnical.bindingId],
+      ['musicTechnicalExtensionHash', musicTechnical.extensionHash],
+      ['musicTechnicalOperationParametersHash', musicTechnical.operationParametersHash],
+      ['musicCueId', musicTechnical.musicCueId],
+      ['sourceStartFrame', musicTechnical.sourceStartFrame],
+      ['sourceEndFrameExclusive', musicTechnical.sourceEndFrameExclusive],
+      ['targetStartFrame', musicTechnical.targetStartFrame],
+      ['targetEndFrameExclusive', musicTechnical.targetEndFrameExclusive],
+      ['crossfadeFrames', musicTechnical.crossfadeFrames],
+      ['normalizationEnabled', musicTechnical.normalization.enabled],
+      ['targetLoudnessLufs', musicTechnical.normalization.targetLoudnessLufs],
+      ['maximumTruePeakDbtp', musicTechnical.maximumTruePeakDbtp],
+      ['loopCrossfadeFrames', musicTechnical.loopCrossfadeFrames],
+      ['tempoRatio', musicTechnical.tempoRatio],
+      ['pitchSemitones', musicTechnical.pitchSemitones],
+      ['sampleRate', musicTechnical.sampleRate],
+      ['channels', musicTechnical.channelLayout === 'mono' ? 1 : 2],
+      ['renderStem', musicTechnical.renderStem],
+    ]
+    for (const [parameterKey, value] of exactBindings) {
+      const existing = bindings.findIndex((item) => item.parameterKey === parameterKey)
+      const compiled = binding(parameterKey, 'music_technical_automation_extension',
+        `music-extension:${musicTechnical.bindingId}`, value)
+      if (existing >= 0) bindings[existing] = compiled
+      else bindings.push(compiled)
+    }
   }
   const operationPolicies: Array<[string, number, string]> = [
     ['trimSourceStartFrame', 0, 'sound.policy.source_offset_zero.v1'],

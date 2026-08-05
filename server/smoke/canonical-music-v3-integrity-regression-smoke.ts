@@ -121,7 +121,7 @@ await check('peer_music_producing_acceptance', async () => {
       assignmentMode: 'range', cues: [cue], assets: [asset], rights: [makeMusicRights({ asset, source: 'user_upload' })],
       caller: { callerType, callerSkillKey: callerType, callerSkillVersion: '1.0.0',
         callerManifestHash: hashMusicValue(`${callerType}-manifest`), parentWorkItemId: `${callerType}-work`,
-        authorityRef: `${callerType}-authority`, ancestorSkillKeys: [], callerOwnedRanges: [range] } })
+        authorityRef: `authority-music-v3-peer-${callerType}`, ancestorSkillKeys: [], callerOwnedRanges: [range] } })
     const result = await runtime.music.execute(request)
     assert.equal(result.status, 'completed')
     assert.ok(result.selectedMusicAssetRefs.length > 0)

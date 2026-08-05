@@ -310,6 +310,13 @@ export class CanonicalSoundRouteExecutor {
       .filter((outcome) => outcome.unit.unitKind === 'mix_stem' &&
         outcome.status === 'completed' && Boolean(outcome.selectedArtifact))
       .map((outcome) => compileSoundMixRenderSpec(outcome, input.request))
+    const musicTechnicalAutomationReceipt = createMusicTechnicalAutomationReceipt({
+      request: input.request,
+      outcomes,
+      stepEvidence,
+      mixRenderSpecifications,
+      qa,
+    })
     const unresolvedDependencies = [
       ...failures.map((item) => item.failureCode ?? `sound_unit_failed:${item.unit.unitId}`),
       ...(planningOnly ? ['sound_capability_planning_only'] : []),
@@ -322,6 +329,7 @@ export class CanonicalSoundRouteExecutor {
       studyReport: studies.length > 0 ? { reports: structuredClone(studies) } : input.plannedResult.studyReport,
       soundDna,
       mixRenderSpecifications,
+      musicTechnicalAutomationReceipt,
       candidateProcessingReceipts: outcomes.flatMap((outcome) => outcome.candidateProcessingReceipts),
       candidateSelectionRecord: outcomes.find((outcome) => outcome.candidateSelectionRecord)?.candidateSelectionRecord,
       fallbackEvidence: outcomes.flatMap((outcome) => outcome.fallbackEvidence),
@@ -542,7 +550,7 @@ export class CanonicalSoundRouteExecutor {
       : state.currentArtifacts.find((artifact) =>
           !consumedSourceArtifacts.some((source) => sameArtifact(source, artifact)))
     const noSound = route.routeRole === 'no_sound'
-    const mutationReceipt = selectedArtifact && ['audio_operation', 'provider_generation'].includes(unit.unitKind)
+    const mutationReceipt = selectedArtifact && ['audio_operation', 'provider_generation', 'mix_stem'].includes(unit.unitKind)
       ? createMutationReceipt(unit, selectedArtifact) : undefined
     return {
       unit, routeBinding, status: noSound ? 'no_sound' : 'completed',
@@ -1515,6 +1523,133 @@ function compileSoundMixRenderSpec(
   return { ...core, renderSpecHash: hash(core) }
 }
 
+function createMusicTechnicalAutomationReceipt(input: {
+  request: CanonicalSoundRequest
+  outcomes: UnitExecutionOutcome[]
+  stepEvidence: SoundRouteStepExecutionEvidence[]
+  mixRenderSpecifications: CompiledSoundMixRenderSpec[]
+  qa: Awaited<ReturnType<typeof runCanonicalSoundExecutionQa>>
+}): CanonicalSoundResult['musicTechnicalAutomationReceipt'] {
+  const extension = input.request.musicTechnicalAutomationExtension
+  if (!extension) return undefined
+  const outcome = input.outcomes.find((candidate) =>
+    candidate.unit.route.routeKey === 'sound.route.edit.music_technical_automation.v1')
+  if (!outcome || outcome.status !== 'completed' || !outcome.selectedArtifact) {
+    throw new Error(`Sound Music technical automation did not produce a completed exact route outcome: ${outcome?.failureCode ?? 'missing_outcome'}:${outcome?.stepEvidence.map((item) => `${item.stepKey}=${item.status}${item.failureCode ? `:${item.failureCode}` : ''}`).join('|') ?? 'no_step_evidence'}.`)
+  }
+  const render = input.mixRenderSpecifications.find((candidate) =>
+    candidate.cueId === extension.musicCueId || candidate.targetRange.rangeId === extension.delegatedRange.rangeId)
+  if (!render) throw new Error('Sound Music technical automation lacks an exact mix-render specification.')
+  const mismatches = [
+    render.targetRange.startFrame !== extension.targetStartFrame ? 'targetStartFrame' : '',
+    render.targetRange.endFrameExclusive !== extension.targetEndFrameExclusive ? 'targetEndFrameExclusive' : '',
+    JSON.stringify(render.gainEnvelope) !== JSON.stringify(extension.gainEnvelope) ? 'gainEnvelope' : '',
+    render.fadeInFrames !== extension.fadeInFrames ? 'fadeInFrames' : '',
+    render.fadeOutFrames !== extension.fadeOutFrames ? 'fadeOutFrames' : '',
+    JSON.stringify(render.protectedSpeechRanges) !== JSON.stringify(extension.dialogueDucking.protectedSpeechRanges)
+      ? 'protectedSpeechRanges' : '',
+    render.dialogueDuckingDb !== extension.dialogueDucking.attenuationDb ? 'dialogueDuckingDb' : '',
+    render.duckAttackFrames !== extension.dialogueDucking.attackFrames ? 'duckAttackFrames' : '',
+    render.duckReleaseFrames !== extension.dialogueDucking.releaseFrames ? 'duckReleaseFrames' : '',
+    render.eqProfile !== extension.eqProfile ? 'eqProfile' : '',
+    render.dynamicsProfile !== extension.dynamicsProfile ? 'dynamicsProfile' : '',
+    render.pan !== extension.pan ? 'pan' : '',
+    render.perspectiveProfile !== extension.distance ? 'distance' : '',
+    render.roomProfile !== extension.roomMatch ? 'roomMatch' : '',
+    render.headroomDb !== extension.headroomDb ? 'headroomDb' : '',
+  ].filter(Boolean)
+  if (mismatches.length > 0) {
+    throw new Error(`Sound Music technical automation differs from received mix parameters: ${mismatches.join(',')}.`)
+  }
+  const expectedParameters = new Map<string, string | number | boolean>([
+    ['musicTechnicalExtensionHash', extension.extensionHash],
+    ['musicTechnicalOperationParametersHash', extension.operationParametersHash],
+    ['sourceStartFrame', extension.sourceStartFrame],
+    ['sourceEndFrameExclusive', extension.sourceEndFrameExclusive],
+    ['targetStartFrame', extension.targetStartFrame],
+    ['targetEndFrameExclusive', extension.targetEndFrameExclusive],
+    ['crossfadeFrames', extension.crossfadeFrames],
+    ['normalizationEnabled', extension.normalization.enabled],
+    ['targetLoudnessLufs', extension.normalization.targetLoudnessLufs],
+    ['maximumTruePeakDbtp', extension.maximumTruePeakDbtp],
+    ['loopCrossfadeFrames', extension.loopCrossfadeFrames],
+    ['tempoRatio', extension.tempoRatio],
+    ['pitchSemitones', extension.pitchSemitones],
+    ['sampleRate', extension.sampleRate],
+    ['channels', extension.channelLayout === 'mono' ? 1 : 2],
+    ['renderStem', extension.renderStem],
+  ])
+  for (const [parameterKey, expected] of expectedParameters) {
+    const actual = outcome.unit.operationSpec.parameterBindings.find((binding) =>
+      binding.parameterKey === parameterKey)?.value
+    if (actual !== expected) throw new Error(`Sound Music technical parameter ${parameterKey} was not compiled exactly.`)
+  }
+  const stepForOperation: Record<string, string[]> = {
+    trim: ['trim_fade_gain'], cut: ['trim_fade_gain'], fade: ['trim_fade_gain'],
+    crossfade: ['trim_fade_gain'], gain: ['trim_fade_gain'], normalize: ['normalize'],
+    loop: ['loop_audio'], resample: ['resample_channels'], channel_conversion: ['resample_channels'],
+    time_stretch: ['stretch_pitch'], pitch_shift: ['stretch_pitch'], place: ['sync_qa'],
+    dialogue_ducking: ['mix_stem'], eq: ['mix_stem'], dynamics: ['mix_stem'], pan: ['mix_stem'],
+    stem_rendering: ['mix_stem'], technical_qa: ['analyze_mix', 'qa_music_technical'],
+  }
+  const completedEvidenceRefs = (stepKey: string) => input.stepEvidence
+    .filter((receipt) => receipt.unitId === outcome.unit.unitId && receipt.stepKey === stepKey &&
+      receipt.status === 'completed' && Boolean(receipt.operationReceiptHash))
+    .map((receipt) => `sound.measured.${stepKey}.${receipt.operationReceiptHash}`)
+  const technicalQaRefs = [
+    ...input.qa.technicalOutputQa.map((finding) => finding.key),
+    ...completedEvidenceRefs('analyze_mix'), ...completedEvidenceRefs('qa_music_technical'),
+  ]
+  const synchronizationQaRefs = [
+    ...input.qa.synchronizationQa.map((finding) => finding.key),
+    ...completedEvidenceRefs('sync_qa'),
+  ]
+  const mixQaRefs = [
+    ...input.qa.mixQa.map((finding) => finding.key),
+    ...completedEvidenceRefs('mix_stem'),
+  ]
+  const appliedOperationReceipts = extension.requiredMusicOperations.map((operation) => {
+    const stepKeys = stepForOperation[operation]
+    if (!stepKeys) throw new Error(`Sound Music technical operation ${operation} has no exact step mapping.`)
+    const evidence = input.stepEvidence.filter((receipt) =>
+      receipt.unitId === outcome.unit.unitId && stepKeys.includes(receipt.stepKey) && receipt.status === 'completed')
+    if (evidence.length !== stepKeys.length) {
+      throw new Error(`Sound Music technical operation ${operation} lacks completed step evidence.`)
+    }
+    const parameterHash = hash({
+      extensionHash: extension.extensionHash,
+      operationParametersHash: extension.operationParametersHash,
+      operation,
+      stepReceiptHashes: evidence.map((receipt) => receipt.operationReceiptHash),
+    })
+    const measuredQaRefs = operation === 'place' ? synchronizationQaRefs
+      : ['dialogue_ducking', 'eq', 'dynamics', 'pan', 'stem_rendering'].includes(operation) ? mixQaRefs
+        : technicalQaRefs
+    return {
+      operation,
+      receivedParametersHash: parameterHash,
+      appliedParametersHash: parameterHash,
+      outputArtifactIds: [...new Set(evidence.flatMap((receipt) => receipt.outputArtifactIds))],
+      measuredQaRefs,
+    }
+  })
+  if (technicalQaRefs.length === 0 || synchronizationQaRefs.length === 0 || mixQaRefs.length === 0) {
+    throw new Error('Sound Music technical automation requires measured technical, synchronization, and mix QA.')
+  }
+  const core = {
+    schemaVersion: 'sound.music_technical_automation_receipt.v1' as const,
+    bindingId: extension.bindingId,
+    musicCueId: extension.musicCueId,
+    receivedExtensionHash: extension.extensionHash,
+    appliedExtensionHash: extension.extensionHash,
+    appliedOperationReceipts,
+    measuredTechnicalQaRefs: technicalQaRefs,
+    measuredSynchronizationQaRefs: synchronizationQaRefs,
+    measuredMixQaRefs: mixQaRefs,
+  }
+  return { ...core, receiptHash: hash(core) }
+}
+
 function localOperationFromStep(operationKey: string): SoundLocalOperation | undefined {
   const operations: Record<string, SoundLocalOperation> = {
     analyze_audio_pcm: 'analyze', extract_audio_pcm: 'extract',
@@ -1664,6 +1799,8 @@ function approvedRouteInputKeys(request: CanonicalSoundRequest): string[] {
     ] : []),
     ...(request.eventAnchors.length > 0 ? ['approved_sound_event_brief', 'sound_event_semantics'] : []),
     ...(request.musicContext ? ['read_only_music_context'] : []),
+    ...(request.musicTechnicalAutomationExtension
+      ? ['music_technical_automation_extension', 'mix_automation_manifest'] : []),
     ...(request.executionAuthority.creditReservationId ? ['credit_reservation'] : []),
     ...(request.completedSkillWork.map((item) => item.artifact.artifactType)),
   ])]
@@ -1732,6 +1869,16 @@ function conditionIsFalse(
   if (condition === 'job_requires_normalization') return request.requestedJobType !== 'normalize_audio'
   if (condition === 'job_requires_resample_or_channels') return !['resample_audio', 'convert_audio_channels'].includes(request.requestedJobType)
   if (condition === 'job_requires_loop') return request.requestedJobType !== 'loop_audio'
+  if (condition === 'music_technical_requires_normalization') {
+    return !request.musicTechnicalAutomationExtension?.normalization.enabled
+  }
+  if (condition === 'music_technical_requires_loop') {
+    return (request.musicTechnicalAutomationExtension?.loopCrossfadeFrames ?? 0) <= 0
+  }
+  if (condition === 'music_technical_requires_retime_or_pitch') {
+    const extension = request.musicTechnicalAutomationExtension
+    return !extension || (extension.tempoRatio === 1 && extension.pitchSemitones === 0)
+  }
   if (condition === 'provider_output_is_video_carrier') return !state.provider?.providerVisualRejected
   if (condition === 'no_approved_ambience_source') return request.requestedJobType !== 'generate_ambience'
   if (condition === 'provider_generation_succeeded') return !state.provider

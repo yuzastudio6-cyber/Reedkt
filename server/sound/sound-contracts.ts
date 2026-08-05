@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { z } from 'zod'
 import {
   timelineRateDisplayFps,
@@ -142,6 +143,64 @@ const operation = z.enum([
 
 export type SoundRequestedOperation = z.infer<typeof operation>
 
+export const SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION = 'sound.music_technical_automation.v1' as const
+
+const soundMusicTechnicalAutomationExtensionSchema = z.object({
+  schemaVersion: z.literal(SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION),
+  bindingId: safeId,
+  musicCueId: safeId,
+  delegatedRange: soundFrameRangeSchema,
+  sourceStartFrame: z.number().int().nonnegative(),
+  sourceEndFrameExclusive: z.number().int().positive(),
+  targetStartFrame: z.number().int().nonnegative(),
+  targetEndFrameExclusive: z.number().int().positive(),
+  fadeInFrames: z.number().int().nonnegative(),
+  fadeOutFrames: z.number().int().nonnegative(),
+  crossfadeFrames: z.number().int().nonnegative(),
+  baseGainDb: z.number().min(-96).max(24),
+  gainEnvelope: z.array(z.object({
+    frame: z.number().int().nonnegative(), gainDb: z.number().min(-96).max(24),
+  }).strict()).min(2).max(512),
+  normalization: z.object({ enabled: z.boolean(), targetLoudnessLufs: z.number().min(-70).max(0) }).strict(),
+  dialogueDucking: z.object({
+    attenuationDb: z.number().min(-48).max(0),
+    attackFrames: z.number().int().nonnegative(),
+    releaseFrames: z.number().int().nonnegative(),
+    protectedSpeechRanges: z.array(soundFrameRangeSchema).max(2_000),
+  }).strict(),
+  eqProfile: z.enum(['neutral', 'speech_safe', 'distance_rolloff', 'impact_control', 'room_match']),
+  dynamicsProfile: z.enum(['none', 'gentle_compression', 'peak_limiter']),
+  pan: z.number().min(-1).max(1),
+  distance: z.enum(['close', 'medium', 'distant']),
+  roomMatch: z.enum(['dry', 'source_room', 'small_room', 'large_room', 'exterior']),
+  maximumTruePeakDbtp: z.number().min(-24).max(0),
+  headroomDb: z.number().min(0.1).max(24),
+  loopCrossfadeFrames: z.number().int().nonnegative(),
+  tempoRatio: z.number().min(0.5).max(2),
+  pitchSemitones: z.number().min(-12).max(12),
+  sampleRate: z.union([z.literal(44_100), z.literal(48_000)]),
+  channelLayout: z.enum(['mono', 'stereo']),
+  renderStem: z.boolean(),
+  requiredQa: z.array(z.enum(['technical', 'synchronization', 'mix'])).min(1).max(3),
+  requiredMusicOperations: z.array(safeId).min(1).max(64),
+  operationParametersHash: sha256,
+  extensionHash: sha256,
+}).strict().superRefine((extension, context) => {
+  if (extension.sourceEndFrameExclusive <= extension.sourceStartFrame) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical source range is invalid.' })
+  }
+  if (extension.targetEndFrameExclusive <= extension.targetStartFrame ||
+    extension.targetStartFrame !== extension.delegatedRange.startFrame ||
+    extension.targetEndFrameExclusive !== extension.delegatedRange.endFrameExclusive) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical target range is not exact.' })
+  }
+  if (extension.extensionHash !== hashSoundMusicTechnicalAutomation(extension)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical automation extension hash is stale.' })
+  }
+})
+
+export type SoundMusicTechnicalAutomationExtension = z.infer<typeof soundMusicTechnicalAutomationExtensionSchema>
+
 const requestedMode = z.enum(['planning', 'fixture', 'private_internal', 'production'])
 
 const soundOperationDirectiveSchema = z.object({
@@ -187,6 +246,7 @@ export const canonicalSoundRequestSchema = z.object({
   assignmentScope: soundAssignmentScopeSchema,
   requestedOperations: z.array(operation).min(1).max(64),
   operationDirectives: z.array(soundOperationDirectiveSchema).max(256).optional(),
+  musicTechnicalAutomationExtension: soundMusicTechnicalAutomationExtensionSchema.optional(),
   requestedOutcome: boundedText,
   requiredDeliverables: z.array(safeId).min(1).max(64),
   sourceMediaRefs: z.array(soundArtifactRefSchema).max(2_000),
@@ -260,6 +320,31 @@ export const canonicalSoundRequestSchema = z.object({
   requiredQualificationMode: requestedMode,
   dependencyChain: z.array(safeId).max(64),
 }).strict().superRefine((request, context) => {
+  const musicTechnicalJob = request.requestedJobType === 'edit_music_technical_automation'
+  if (musicTechnicalJob !== Boolean(request.musicTechnicalAutomationExtension)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'The Music technical-automation extension is required exclusively by its exact Sound job.',
+    })
+  }
+  if (request.musicTechnicalAutomationExtension) {
+    const extension = request.musicTechnicalAutomationExtension
+    const delegated = request.assignmentScope.authorizedAudioWriteRanges.find((range) =>
+      range.rangeId === extension.delegatedRange.rangeId)
+    if (!delegated || delegated.startFrame !== extension.delegatedRange.startFrame ||
+      delegated.endFrameExclusive !== extension.delegatedRange.endFrameExclusive) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical delegation does not match exact Sound authority.' })
+    }
+    if (request.callerSkillKey !== 'music' || request.requestedCapabilityKey !== 'sound.edit_music_technical_automation') {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical automation requires the exact Music caller and Sound capability.' })
+    }
+    const source = request.sourceAudioRefs[0]
+    if (!source || request.sourceAudioRefs.length !== 1) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical automation requires exactly one approved Music source.' })
+    } else if (source.durationFrames !== undefined && extension.sourceEndFrameExclusive > source.durationFrames) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical source range exceeds approved source duration.' })
+    }
+  }
   const peer = request.callerType !== 'head_of_orchestra'
   if (peer && !request.peerAuthority) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: 'Peer Sound requests require peerAuthority.' })
@@ -549,6 +634,24 @@ export const canonicalSoundResultSchema = z.object({
     recordHash: sha256,
   }).strict().optional(),
   mixRenderSpecifications: z.array(compiledSoundMixRenderSpecSchema).max(10_000).optional(),
+  musicTechnicalAutomationReceipt: z.object({
+    schemaVersion: z.literal('sound.music_technical_automation_receipt.v1'),
+    bindingId: safeId,
+    musicCueId: safeId,
+    receivedExtensionHash: sha256,
+    appliedExtensionHash: sha256,
+    appliedOperationReceipts: z.array(z.object({
+      operation: safeId,
+      receivedParametersHash: sha256,
+      appliedParametersHash: sha256,
+      outputArtifactIds: z.array(safeId).max(128),
+      measuredQaRefs: z.array(safeId).max(128),
+    }).strict()).min(1).max(64),
+    measuredTechnicalQaRefs: z.array(safeId).min(1).max(128),
+    measuredSynchronizationQaRefs: z.array(safeId).min(1).max(128),
+    measuredMixQaRefs: z.array(safeId).min(1).max(128),
+    receiptHash: sha256,
+  }).strict().optional(),
   fallbackEvidence: z.array(z.object({
     fallbackEvidenceId: safeId,
     unitId: safeId,
@@ -674,6 +777,21 @@ export const canonicalSoundResultSchema = z.object({
 })
 
 export type CanonicalSoundResult = z.infer<typeof canonicalSoundResultSchema>
+
+function stableSoundValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(stableSoundValue)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+      .filter(([key, item]) => key !== 'extensionHash' && item !== undefined)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, item]) => [key, stableSoundValue(item)]))
+  }
+  return value
+}
+
+export function hashSoundMusicTechnicalAutomation(value: unknown): string {
+  return createHash('sha256').update(JSON.stringify(stableSoundValue(value))).digest('hex')
+}
 
 const forbiddenKeys = [
   /raw.*prompt/i,

@@ -475,10 +475,13 @@ export function createCanonicalCaptionVisualIntelligenceEvidenceRepository(
 ): CanonicalCaptionVisualIntelligenceEvidenceRepository {
   assertObjectPort(input.objectPort)
   const prefix = prefixSchema.parse(input.prefix ?? DEFAULT_PREFIX)
-  return Object.freeze({
+  const repository: CanonicalCaptionVisualIntelligenceEvidenceRepository = {
     schemaVersion:
       CANONICAL_CAPTION_VISUAL_INTELLIGENCE_EVIDENCE_REPOSITORY_VERSION,
-    async persistCreateOnly({ record: value }) {
+    async persistCreateOnly({ record: value }: {
+      readonly record:
+        CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord
+    }) {
       const record =
         parseCanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord(
           value,
@@ -498,7 +501,9 @@ export function createCanonicalCaptionVisualIntelligenceEvidenceRepository(
       }
       return disposition === 'created' ? 'created' : 'identical_replay'
     },
-    async rereadBySupportRequestRef({ supportRequestRef: untrusted }) {
+    async rereadBySupportRequestRef({ supportRequestRef: untrusted }: {
+      readonly supportRequestRef: SkillContractRef
+    }) {
       assertClosedContractTree(
         untrusted,
         'Caption Visual Intelligence repository request',
@@ -506,7 +511,8 @@ export function createCanonicalCaptionVisualIntelligenceEvidenceRepository(
       const ref = skillRefSchema.parse(untrusted)
       return readRecord(input.objectPort, recordPath(prefix, ref))
     },
-  })
+  }
+  return Object.freeze(repository)
 }
 
 export function createCanonicalCaptionVisualIntelligenceSupportService(input: {
@@ -530,10 +536,14 @@ export function createCanonicalCaptionVisualIntelligenceSupportService(input: {
     CanonicalCaptionVisualIntelligenceEvidenceRepository
 }): CanonicalCaptionVisualIntelligenceSupportService {
   assertPorts(input)
-  return Object.freeze({
+  const service: CanonicalCaptionVisualIntelligenceSupportService = {
     schemaVersion:
       CANONICAL_CAPTION_VISUAL_INTELLIGENCE_SUPPORT_SERVICE_VERSION,
-    async projectAuthenticatedEvidence(value) {
+    async projectAuthenticatedEvidence(value: Parameters<
+      CanonicalCaptionVisualIntelligenceSupportService[
+        'projectAuthenticatedEvidence'
+      ]
+    >[0]) {
       assertClosedContractTree(value, 'Caption Visual Intelligence bridge input')
       const authenticatedOwnerUserId = safeKey.parse(
         value.authenticatedOwnerUserId,
@@ -680,7 +690,8 @@ export function createCanonicalCaptionVisualIntelligenceSupportService(input: {
       }
       return reread
     },
-  })
+  }
+  return Object.freeze(service)
 }
 
 function parseCaptionSupportRequest(

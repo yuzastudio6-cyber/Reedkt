@@ -48,9 +48,24 @@ import {
 import {
   createCanonicalSam31GpuTaskStoreFromObjectPort,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
+import {
+  createCanonicalSam31GpuRuntimeResultStoreFromObjectPort,
+} from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
+import {
+  createCanonicalSpecialistSupportResumeRepository,
+  type CanonicalSpecialistSupportResumeRepository,
+} from './canonical-specialist-support-resume-service'
+import {
+  createCanonicalCaptionTrackAllEvidenceRepository,
+  createCanonicalCaptionTrackAllSupportService,
+  createCanonicalTrackAllSam31CaptionSceneEvidenceRepository,
+  type CanonicalCaptionTrackAllEvidenceRepository,
+  type CanonicalCaptionTrackAllSupportService,
+  type CanonicalTrackAllSam31CaptionSceneEvidenceRepository,
+} from './canonical-caption-track-all-support-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v1' as const
+  'canonical-track-all-sam3_1-production-runtime-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -60,6 +75,17 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly runtimeMode: 'cloud_run_gcs_user_triggered_scale_from_zero'
   readonly trackAllSam31AuthenticatedGpuStartRuntimePort:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  readonly specialistSupportResumeRepository:
+    CanonicalSpecialistSupportResumeRepository
+  readonly captionTrackAllSceneEvidenceRepository:
+    CanonicalTrackAllSam31CaptionSceneEvidenceRepository
+  readonly captionTrackAllEvidenceRepository:
+    CanonicalCaptionTrackAllEvidenceRepository
+  readonly captionTrackAllSupportService:
+    CanonicalCaptionTrackAllSupportService
+  readonly captionTrackAllEvidenceRequiresAdmittedCanonicalSam31Result: true
+  readonly captionTrackAllEvidenceRequiresIndependentTaskLevelMaskQa: true
+  readonly captionTrackAllEvidenceRequiresPrivateVisualReview: true
   readonly a100HeavyPrimary: true
   readonly l4HeavyFallbackSeparatelyQualified: true
   readonly minimumIdleGpuInstances: 0
@@ -154,6 +180,31 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
   const taskStore = createCanonicalSam31GpuTaskStoreFromObjectPort({
     objectPort: privateGpuJsonObjectPort,
   })
+  const sam31RuntimeResultStore =
+    createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
+      objectPort: privateGpuJsonObjectPort,
+    })
+  const specialistSupportResumeRepository =
+    createCanonicalSpecialistSupportResumeRepository({
+      objectPort: controlPlaneObjectPort,
+    })
+  const captionTrackAllSceneEvidenceRepository =
+    createCanonicalTrackAllSam31CaptionSceneEvidenceRepository({
+      objectPort: controlPlaneObjectPort,
+    })
+  const captionTrackAllEvidenceRepository =
+    createCanonicalCaptionTrackAllEvidenceRepository({
+      objectPort: controlPlaneObjectPort,
+    })
+  const captionTrackAllSupportService =
+    createCanonicalCaptionTrackAllSupportService({
+      supportResumeRepository: specialistSupportResumeRepository,
+      taskStore,
+      taskContextRepository,
+      resultStore: sam31RuntimeResultStore,
+      sceneEvidenceRepository: captionTrackAllSceneEvidenceRepository,
+      evidenceRepository: captionTrackAllEvidenceRepository,
+    })
   const rawCloudLaunchPort = createGoogleCloudProfessionalGpuJobLaunchPort({
     releaseReadPort: runtimeConfigurationRepository,
     privateObjectTransportReadPort: runtimeConfigurationRepository,
@@ -197,6 +248,13 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     schemaVersion: CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION,
     runtimeMode: 'cloud_run_gcs_user_triggered_scale_from_zero' as const,
     trackAllSam31AuthenticatedGpuStartRuntimePort: authenticatedRuntime,
+    specialistSupportResumeRepository,
+    captionTrackAllSceneEvidenceRepository,
+    captionTrackAllEvidenceRepository,
+    captionTrackAllSupportService,
+    captionTrackAllEvidenceRequiresAdmittedCanonicalSam31Result: true as const,
+    captionTrackAllEvidenceRequiresIndependentTaskLevelMaskQa: true as const,
+    captionTrackAllEvidenceRequiresPrivateVisualReview: true as const,
     a100HeavyPrimary: true as const,
     l4HeavyFallbackSeparatelyQualified: true as const,
     minimumIdleGpuInstances: 0 as const,

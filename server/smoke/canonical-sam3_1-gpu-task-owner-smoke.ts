@@ -702,6 +702,8 @@ export {
   task as canonicalSam31A100TaskFixture,
   runtimeResponse as canonicalSam31A100RuntimeResponseFixture,
   launch as canonicalSam31A100LaunchFixture,
+  terminal as canonicalSam31A100TerminalFixture,
+  outputEvidence as canonicalSam31A100PrivateOutputEvidenceFixture,
   result as canonicalSam31A100ResultAdmissionFixture,
 }
 

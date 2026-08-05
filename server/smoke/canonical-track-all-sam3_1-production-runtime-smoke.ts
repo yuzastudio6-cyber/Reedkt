@@ -26,7 +26,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v1')
+  'canonical-track-all-sam3_1-production-runtime-v2')
 assert.equal(runtime.runtimeMode,
   'cloud_run_gcs_user_triggered_scale_from_zero')
 assert.equal(runtime.a100HeavyPrimary, true)
@@ -34,6 +34,31 @@ assert.equal(runtime.l4HeavyFallbackSeparatelyQualified, true)
 assert.equal(runtime.minimumIdleGpuInstances, 0)
 assert.equal(runtime.cpuOnlySubstantiveExecutionAllowed, false)
 assert.equal(runtime.rawCloudLaunchPortExposed, false)
+assert.equal(
+  runtime.specialistSupportResumeRepository.schemaVersion,
+  'canonical-specialist-support-resume-repository-v1',
+)
+assert.equal(
+  runtime.captionTrackAllSceneEvidenceRepository.schemaVersion,
+  'canonical-track-all-sam3_1-caption-scene-evidence-repository-v1',
+)
+assert.equal(
+  runtime.captionTrackAllEvidenceRepository.schemaVersion,
+  'canonical-caption-track-all-evidence-repository-v1',
+)
+assert.equal(
+  runtime.captionTrackAllSupportService.schemaVersion,
+  'canonical-caption-track-all-support-service-v1',
+)
+assert.equal(
+  runtime.captionTrackAllEvidenceRequiresAdmittedCanonicalSam31Result,
+  true,
+)
+assert.equal(
+  runtime.captionTrackAllEvidenceRequiresIndependentTaskLevelMaskQa,
+  true,
+)
+assert.equal(runtime.captionTrackAllEvidenceRequiresPrivateVisualReview, true)
 assert.equal(
   runtime.trackAllSam31AuthenticatedGpuStartRuntimePort.schemaVersion,
   'canonical-track-all-sam3_1-authenticated-gpu-start-runtime-v1',
@@ -68,12 +93,16 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 25,
+  checks: 32,
   localAndMockRuntimeMounted: false,
   cloudRunGcsCompositionMounted: true,
   authenticatedRouteUsesDurableProductionRuntime: true,
   pricingFundingRateReleaseSourceProxyTaskAndLifecyclePortsComposed: true,
   privateGpuTaskAndProxyShareServerConfiguredBucket: true,
+  captionTrackAllSupportResumeAndEvidenceRepositoriesMounted: true,
+  captionTrackAllRequiresCanonicalSam31TaskResultReread: true,
+  captionTrackAllRequiresTaskLevelIndependentMaskQa: true,
+  captionTrackAllRequiresPrivateVisualReview: true,
   a100HeavyPrimary: true,
   l4HeavyFallbackSeparatelyQualified: true,
   userTriggeredScaleFromZero: true,

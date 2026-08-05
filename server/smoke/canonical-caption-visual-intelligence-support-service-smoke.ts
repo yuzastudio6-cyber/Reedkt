@@ -636,7 +636,7 @@ async function main(): Promise<void> {
   check(
     record.authenticatedOwnerProjection.ownerKey === 'visual_intelligence'
       && record.authenticatedOwnerProjection.artifactRefs.length === 1
-      && !record.authenticatedOwnerProjection.providerCallPerformedByBridge,
+      && !record.providerCallPerformedByBridge,
     'The bridge must emit one neutral artifact without becoming a provider owner.',
   )
   check(
@@ -730,7 +730,8 @@ async function main(): Promise<void> {
   assert.throws(() => parseCaptionVisualIntelligenceSupportPayload(stalePayload))
   assertions += 1
 
-  const accessorPayload = structuredClone(payload) as Record<string, unknown>
+  const accessorPayload = structuredClone(payload) as unknown as
+    Record<string, unknown>
   Object.defineProperty(accessorPayload, 'payloadId', {
     enumerable: true,
     get() { throw new Error('getter must not run') },

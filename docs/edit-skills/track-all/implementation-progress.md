@@ -952,6 +952,9 @@ evidence pending this ledger commit.
   `b52bf5ebf7a210f38787e9fab1a714f058ae30aeee8fce0fb090629e35535d67`
 - generated qualification artifact hash:
   `4b42960ae73bd657790d02ebd0ed4475fac1bfbbc973004bf3e264432523ec7e`
+- generated qualification evidence commit:
+  `361dc350ca52f54acdf73156929170476737193f` (pushed and remotely
+  confirmed);
 
 Implemented and evidenced:
 
@@ -1010,3 +1013,61 @@ Foundation compatibility follow-up:
   `15d6da4a3a654b51ec32b0ac5e313d8974fb61377d1219235b82679db04e1217`;
 - B-Roll generated artifact hash:
   `d792b3e793b5c40e1e9b1fccde99ad973eed37e6ce604c8b5f214f504a2883a5`.
+- refreshed B-Roll qualification evidence commit:
+  `ffcecebd8d83292750ef656d3340afdafc421fbd` (pushed and remotely
+  confirmed).
+
+## TRACK-18 — final acceptance and freeze
+
+Status: complete and remotely confirmed.
+
+- final acceptance source head:
+  `ffcecebd8d83292750ef656d3340afdafc421fbd`
+- freeze commit: `57e1eb200905d81f6e1dd5a4ab0fa1182510f87c`
+- remote confirmation: `origin/codex/track-all-skill-end-to-end` resolved to
+  `57e1eb200905d81f6e1dd5a4ab0fa1182510f87c` after
+  `git push -u origin HEAD`.
+- final freeze document: `docs/edit-skills/track-all/final-freeze.md`
+
+Final acceptance evidence:
+
+- all 17 Track All commands passed with both generated receipts loaded
+  normally, including exact manifest/authority/planning/artifacts,
+  FFmpeg/FFprobe/OpenCV/PySceneDetect geometry, injected SAM lifecycle,
+  chunk/identity, privacy, Remotion focus/reframe, cross-skill handoffs,
+  independent QA/repair, runtime bindings/work graphs, public plugin E2E,
+  qualification integrity, and static retirement;
+- selected-instance and concept-group planning/public lifecycles passed;
+- the privacy, planar, focus, reframe, B-Roll V1, and Captions handoff E2Es
+  passed;
+- all four canonical SAM source/checkpoint/image supply-chain contract smokes
+  passed while keeping GPU runtime and production unauthorized;
+- generic manifest validation, capability kernel, dependency-injected runtime
+  factory, runtime API security, edit-execution security, and idempotency
+  boundary smokes passed;
+- `NODE_OPTIONS=--max-old-space-size=8192 npm run build` — passed;
+- `NODE_OPTIONS=--max-old-space-size=8192 npm run typecheck:server` — passed;
+- `NODE_OPTIONS=--max-old-space-size=8192 npm run lint -- --quiet` — passed;
+- `npm run check:frontend-boundary` — passed for 1,043 files;
+- `ffmpeg -version` and `ffprobe -version` — both reported `8.1.1`;
+- Remotion private fixture — passed with version `4.0.487`;
+- `git diff --check` — passed before the freeze commit.
+
+Final qualification remains exactly `planning_qualified`. The SAM route is
+still `blocked` with ten blocked gates, no checkpoint bytes/hash, no strict
+real load, no A100/L4 result, zero actual SAM requests, and zero GPU
+executions. Production qualification is false. No head orchestra, global
+scheduling, peer-skill implementation, raw-chat dispatch, caller-selected
+runtime surface, paid execution, public artifact, production mutation,
+migration, billing, export, or delivery was introduced.
+
+Post-freeze coordination notice:
+
+- recorded Caption CAP-20 source identity
+  `codex/captions-specialist-cap-00r-v1@a07219c141bb5f2b7628949ffcbcc7bfbfd06108`;
+- preserved the five named conditional Track All geometry dependencies and
+  B-Roll's separate composition-constraint ownership;
+- did not mutate Caption code or copy between worktrees;
+- did not send a backend/Caption owner receipt because current geometry is
+  injected fixture evidence and the SAM-backed private owner route is not
+  dependency-complete.

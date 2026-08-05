@@ -153,3 +153,10 @@ module, class, checkpoint, command, GPU, endpoint, path, URL, retry, fallback,
 or price is accepted. No paid provider/model/GPU call, public artifact,
 production mutation, migration, customer billing, final export, or public
 delivery occurred.
+
+Caption CAP-20 interface notice is frozen against
+`codex/captions-specialist-cap-00r-v1@a07219c141bb5f2b7628949ffcbcc7bfbfd06108`.
+The five Track All shared-owner typography/safe-region dependencies remain
+blocked on authenticated owner-produced geometry. No injected fixture was
+forwarded as real evidence, no type-only owner receipt was sent prematurely,
+and no Caption branch or runtime code was changed.

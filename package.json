@@ -389,6 +389,7 @@
     "smoke:captions-specialist-canonical-transcript-authenticated-read": "tsx server/smoke/captions-specialist-canonical-transcript-authenticated-read-smoke.ts",
     "smoke:captions-specialist-canonical-resume-read": "tsx server/smoke/captions-specialist-canonical-resume-read-smoke.ts",
     "smoke:captions-specialist-visual-intelligence-spatial-adapter": "tsx server/smoke/captions-specialist-visual-intelligence-spatial-adapter-smoke.ts",
+    "smoke:captions-specialist-canonical-track-all-evidence-read": "tsx server/smoke/captions-specialist-canonical-track-all-evidence-read-smoke.ts",
     "smoke:captions-specialist-integration-routing": "tsx server/smoke/captions-specialist-integration-routing-smoke.ts",
     "smoke:captions-specialist-shared-owner-integration": "tsx server/smoke/captions-specialist-shared-owner-integration-smoke.ts",
     "smoke:captions-specialist-multi-support-resume": "tsx server/smoke/captions-specialist-multi-support-resume-smoke.ts"

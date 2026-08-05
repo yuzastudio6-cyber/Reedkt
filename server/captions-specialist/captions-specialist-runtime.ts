@@ -29,6 +29,9 @@ import type {
   CaptionTrackAllPurpose,
   CaptionTrackAllSupportPayload,
 } from '../../src/types/caption-track-all-support'
+import type {
+  CanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
+} from '../../src/types/canonical-caption-track-all-support'
 import type { CaptionDomainCanonicalScope } from
   '../../src/types/caption-domain-contracts'
 import type {
@@ -69,6 +72,9 @@ import {
   parseCaptionTrackAllEvidencePacket,
   parseCaptionTrackAllSupportPayload,
 } from './caption-track-all-support'
+import {
+  parseCaptionCanonicalTrackAllEvidenceRecord,
+} from './caption-canonical-track-all-evidence-read'
 import {
   createCaptionSoundSupportRequest,
   parseCaptionSoundContext,
@@ -428,6 +434,7 @@ export function runCaptionsSpecialistJob(input: {
   canonicalVisualIntelligenceEvidenceRecord?: unknown
   trackAllSupportPayload?: unknown
   trackAllEvidencePacket?: unknown
+  canonicalTrackAllEvidenceRecord?: unknown
   soundSupportContext?: unknown
   soundSupportPayload?: unknown
   soundSupportResult?: unknown
@@ -504,6 +511,8 @@ export function runCaptionsSpecialistJob(input: {
   CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord | null = null
   let trackAllPayload: CaptionTrackAllSupportPayload | null = null
   let admittedTrackAllPacket: CaptionTrackAllEvidencePacket | null = null
+  let canonicalTrackAllRecord:
+  CanonicalCaptionTrackAllAuthenticatedEvidenceRecord | null = null
   let soundContext: CaptionSoundContext | null = null
   let soundPayload: CaptionSoundCueRequest | null = null
   let admittedSoundResult: CaptionSoundSupportResult | null = null
@@ -544,7 +553,25 @@ export function runCaptionsSpecialistJob(input: {
       )
     }
   }
-  if (input.trackAllSupportPayload !== undefined) {
+  if (input.canonicalTrackAllEvidenceRecord !== undefined) {
+    if (input.trackAllSupportPayload !== undefined
+      || input.trackAllEvidencePacket !== undefined) {
+      return makeResult(profile,
+        call, 'blocked', ['input.track_all.evidence.ambiguous'],
+        'Canonical and unbound Track All evidence cannot be mixed.',
+      )
+    }
+    try {
+      canonicalTrackAllRecord = parseCaptionCanonicalTrackAllEvidenceRecord(
+        input.canonicalTrackAllEvidenceRecord)
+      trackAllPayload = canonicalTrackAllRecord.supportPayload
+    } catch {
+      return makeResult(profile,
+        call, 'blocked', ['input.track_all.canonical_record.invalid'],
+        'The canonical Track All evidence record was rejected.',
+      )
+    }
+  } else if (input.trackAllSupportPayload !== undefined) {
     try {
       trackAllPayload = parseCaptionTrackAllSupportPayload(
         input.trackAllSupportPayload)
@@ -677,16 +704,30 @@ export function runCaptionsSpecialistJob(input: {
       )
     }
     if (request.targetSkillKey === 'track_all' && trackAllPayload !== null) {
-      try {
-        admittedTrackAllPacket = parseCaptionTrackAllEvidencePacket(
-          input.trackAllEvidencePacket,
-          { payload: trackAllPayload, supportRequest: request },
-        )
-      } catch {
-        return makeResult(profile,
-          call, 'blocked', ['input.track_all.authenticated_admission.failed'],
-          'The authenticated Track All evidence was rejected.',
-        )
+      if (canonicalTrackAllRecord !== null) {
+        if (!exactRef(canonicalTrackAllRecord.supportRequestRef, {
+          id: request.requestId,
+          version: request.schemaVersion,
+          contentHash: request.requestDigestSha256,
+        })) {
+          return makeResult(profile,
+            call, 'blocked', ['input.track_all.canonical_record.request.mismatch'],
+            'The canonical Track All record does not match the follow-up.',
+          )
+        }
+        admittedTrackAllPacket = canonicalTrackAllRecord.captionEvidencePacket
+      } else {
+        try {
+          admittedTrackAllPacket = parseCaptionTrackAllEvidencePacket(
+            input.trackAllEvidencePacket,
+            { payload: trackAllPayload, supportRequest: request },
+          )
+        } catch {
+          return makeResult(profile,
+            call, 'blocked', ['input.track_all.authenticated_admission.failed'],
+            'The authenticated Track All evidence was rejected.',
+          )
+        }
       }
       if (admittedTrackAllPacket.evidenceMode
           !== 'authenticated_private_runtime'
@@ -764,6 +805,11 @@ export function runCaptionsSpecialistJob(input: {
     return makeResult(profile,
       call, 'blocked', ['input.track_all.evidence.unexpected'],
       'Track All evidence was supplied outside an exact resume.',
+    )
+  } else if (input.canonicalTrackAllEvidenceRecord !== undefined) {
+    return makeResult(profile,
+      call, 'blocked', ['input.track_all.canonical_record.unexpected'],
+      'Canonical Track All evidence was supplied outside an exact resume.',
     )
   } else if (input.soundSupportResult !== undefined) {
     return makeResult(profile,

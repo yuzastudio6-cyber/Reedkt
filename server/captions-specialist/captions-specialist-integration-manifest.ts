@@ -26,6 +26,8 @@ export const CAPTIONS_CANONICAL_RESUME_READ_ADAPTER_EVIDENCE_ID =
   'captions.canonical-specialist.resume-read-adapter' as const
 export const CAPTIONS_VISUAL_INTELLIGENCE_SPATIAL_ADAPTER_EVIDENCE_ID =
   'captions.visual-intelligence.spatial-evidence-adapter' as const
+export const CAPTIONS_CANONICAL_TRACK_ALL_EVIDENCE_ADAPTER_EVIDENCE_ID =
+  'captions.track-all.canonical-evidence-read-adapter' as const
 
 const conditionalByJob = new Map(
   CAPTION_CAP20_SHARED_OWNER_INTEGRATION_HANDOFF.conditionalJobBindings.map(
@@ -139,6 +141,15 @@ UnpublishedSkillCapabilityManifestV2 = {
       assertion:
         'The Caption consumer exact-rereads the authenticated Visual Intelligence report and immutable spatial companion, projects provider-neutral occupancy observations, and refuses pixel, contrast, rendered-inspection, provider, or QA authority overclaims.',
     },
+    {
+      evidenceId:
+        CAPTIONS_CANONICAL_TRACK_ALL_EVIDENCE_ADAPTER_EVIDENCE_ID,
+      evidenceType: 'fixture',
+      location:
+        'server/smoke/captions-specialist-canonical-track-all-evidence-read-smoke.ts',
+      assertion:
+        'The Caption consumer exact-rereads the canonical Track All/SAM 3.1 record and admits only its exact request, payload, runtime result, independent scene evidence, packet, admission, and owner projection lineage.',
+    },
   ],
   acceptedArtifactTypes,
   integrationQa: unique([
@@ -150,6 +161,7 @@ UnpublishedSkillCapabilityManifestV2 = {
     'broll_owner_read_public_adapter_frozen',
     'canonical_backend_sequential_resume_consumer_frozen',
     'visual_intelligence_spatial_evidence_adapter_frozen',
+    'canonical_track_all_evidence_read_adapter_frozen',
     'backend_wire_projection_must_be_distinctly_versioned',
   ]),
   qualificationFixtures: unique([
@@ -164,6 +176,7 @@ UnpublishedSkillCapabilityManifestV2 = {
     'The canonical transcript authenticated-read adapter is frozen, but no canonical persistence reader is mounted in this checkout.',
     'The canonical backend sequential-resume consumer is frozen, but no actual persisted resume record has been supplied to Caption.',
     'The Visual Intelligence spatial adapter is frozen, but no actual owner result has been injected; spatial v1 semantic geometry carries no deterministic regional contrast and cannot alone select final Caption placement.',
+    'The canonical Track All evidence-read adapter is frozen, but this checkout has consumed only a source fixture; an actual persisted canonical record and resume record have not been supplied.',
     'The canonical backend publishes materially different V1 call, support, and result shapes; integration requires an additive digest-recomputed bridge and forbids cast or relabel behavior.',
   ],
   capabilityEntries,

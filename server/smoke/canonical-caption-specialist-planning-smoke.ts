@@ -25,6 +25,11 @@ import {
   parseCanonicalCaptionSpecialistPlanningProjection,
   prepareCanonicalCaptionSpecialistPlanningProjection,
 } from '../captions-specialist/caption-canonical-work-planning'
+import {
+  assertCanonicalCaptionRenderedMediaWorkBindingMatches,
+  parseCanonicalCaptionRenderedMediaWorkBinding,
+  prepareCanonicalCaptionRenderedMediaWorkBinding,
+} from '../captions-specialist/caption-rendered-media-work-binding'
 import { createCanonicalApprovedWorkGraphResourcePlacementAuthority } from
   '../edit-architecture/canonical-private-resource-placement-authority'
 import { CAPTION_DESIGN_COMPOSITE } from
@@ -434,6 +439,193 @@ check(canonicalCaptionSpecialistMissingApprovalGates(
     'canonical_caption_independent_private_review_binding',
   ].join('|'),
 'Selected Caption planning must expose the exact remaining backend gates.')
+
+const captionOverlayWorkItem: CanonicalWorkItemInput = {
+  workItemKey: 'caption-overlay',
+  workItemType: 'custom',
+  workerClass: 'render_worker',
+  executionInput: {
+    operation: 'render_approved_caption_overlay',
+    approvedToolOperationIds: [
+      'tool.libass.render_approved_caption_track.v1',
+    ],
+    expectedOutputKeys: ['caption-overlay-png'],
+    structuredPayload: {
+      captionProfileId: 'approved_ass_track_render_v1',
+      fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
+      collisionPolicy: 'fail_on_reserved_zone_collision',
+      preserveSpeechTiming: true,
+      width: 1920,
+      height: 1080,
+      timestampMs: 1_000,
+      fontSize: 64,
+      marginV: 72,
+      alignment: 2,
+      caption: 'Approved frame accurate caption',
+    },
+  },
+  sourceSequenceItemIds: [],
+  sourceCleanupDecisionIds: [],
+  expectedOutputs: [{
+    outputKey: 'caption-overlay-png',
+    artifactType: 'controlled_libass_caption_overlay_png',
+    assetRole: 'processed',
+    required: true,
+    previewPlaceholderAllowed: false,
+    contentType: 'image/png',
+    segmentIds: ['scene.caption.plan.1'],
+    timingIds: ['master-timing-plan', 'caption-timing-1'],
+    rendererLayerIds: ['caption-overlay-layer'],
+  }],
+  dependencyKeys: [],
+  approvedToolIds: ['libass'],
+  providerExecutionMode: 'none',
+  fallbackPolicy: {},
+  maxAttempts: 2,
+  attemptTimeoutSeconds: 300,
+  scheduledDelaySeconds: 0,
+  maximumCreditBudget: 1,
+  required: true,
+}
+const finalCompositionWorkItem: CanonicalWorkItemInput = {
+  workItemKey: 'final-export',
+  workItemType: 'render_final_export',
+  workerClass: 'render_worker',
+  executionInput: {
+    operation: 'render_approved_source_caption_final',
+    approvedToolOperationIds: [
+      'tool.remotion.render_approved_composition.v1',
+    ],
+    expectedOutputKeys: ['final-export'],
+    structuredPayload: {
+      compositionProfileId: 'approved_source_caption_final_v1',
+      sourceStartFrame: 0,
+      sourceEndFrameExclusive: 360,
+      audioPolicy: 'preserve_source',
+      width: 1920,
+      height: 1080,
+      fps: 30,
+      durationFrames: 360,
+      sourceFit: 'contain',
+      panelBackground: '#FFFFFF',
+      renderPurpose: 'private_4k_delivery_master_v1',
+      deliveryProfileId: 'uhd_2160',
+      estimateCostBasisProfileId: 'uhd_2160',
+      sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
+      usesApprovedEditReservation: true,
+      requiresSeparateExportEstimate: false,
+      allowsAdditionalExportCharge: false,
+      captionOverlayPolicy: 'approved_full_frame_rgba',
+    },
+  },
+  sourceSequenceItemIds: ['source.caption.plan.1'],
+  sourceCleanupDecisionIds: ['cleanup.caption.plan.1'],
+  expectedOutputs: [{
+    outputKey: 'final-export',
+    artifactType: 'private_source_caption_4k_delivery_master_v1',
+    assetRole: 'final',
+    required: true,
+    previewPlaceholderAllowed: false,
+    contentType: 'video/mp4',
+    segmentIds: ['scene.caption.plan.1'],
+    timingIds: ['master-timing-plan'],
+    rendererLayerIds: ['source-video-layer', 'caption-overlay-layer'],
+  }],
+  dependencyKeys: ['source-trim-validation', 'caption-overlay'],
+  approvedToolIds: ['remotion'],
+  providerExecutionMode: 'none',
+  fallbackPolicy: {},
+  maxAttempts: 2,
+  attemptTimeoutSeconds: 1_800,
+  scheduledDelaySeconds: 0,
+  maximumCreditBudget: 3,
+  required: true,
+}
+const renderedMediaWorkItems = [
+  snapshotValidation,
+  ...selected.workItems,
+  captionOverlayWorkItem,
+  finalCompositionWorkItem,
+]
+const renderedMediaBinding =
+  prepareCanonicalCaptionRenderedMediaWorkBinding({
+    projection: selected.projection ?? undefined,
+    planningBinding: selectedBinding,
+    workItems: renderedMediaWorkItems,
+  })
+check(renderedMediaBinding?.captionRenderOwner === 'libass'
+  && renderedMediaBinding.finalCanvasOwner === 'remotion'
+  && renderedMediaBinding.captionOverlays.length === 1,
+'Selected Caption media must bind the existing libass and Remotion owners.')
+check(renderedMediaBinding?.captionOverlays[0]?.startFrame === 0
+  && renderedMediaBinding.captionOverlays[0]?.endFrameExclusive === 360
+  && renderedMediaBinding.canonicalMasterTimingId === 'master-timing-plan'
+  && renderedMediaBinding.finalComposition.dependencyKeys
+    .includes('caption-overlay'),
+'Caption media binding must preserve exact cue timing and graph dependency.')
+check(renderedMediaBinding?.captionAboveLivingFrame
+  && renderedMediaBinding.captionAboveControlledVisuals
+  && !renderedMediaBinding.providerRuntimeAuthorityGranted
+  && !renderedMediaBinding.publicDeliveryGranted
+  && !renderedMediaBinding.productionAuthorityGranted,
+'Caption media binding must freeze layer order without authority promotion.')
+check(parseCanonicalCaptionRenderedMediaWorkBinding(renderedMediaBinding)
+  .bindingDigestSha256 === renderedMediaBinding?.bindingDigestSha256,
+'Caption rendered-media binding must verify its closed digest.')
+assertCanonicalCaptionRenderedMediaWorkBindingMatches(
+  renderedMediaBinding!, {
+    projection: selected.projection!,
+    planningBinding: selectedBinding,
+    workItems: renderedMediaWorkItems,
+  })
+checks += 1
+check(canonicalCaptionSpecialistMissingApprovalGates(
+  selected.projection ?? undefined,
+  { renderedMediaWorkBound: true },
+).join('|') === [
+  'canonical_postrender_visual_qa_lifecycle_writer_and_result',
+  'canonical_caption_independent_private_review_binding',
+].join('|'),
+'Exact rendered-media work must close only its own downstream gate.')
+check(prepareCanonicalCaptionRenderedMediaWorkBinding({
+  projection: selected.projection ?? undefined,
+  planningBinding: selectedBinding,
+  workItems: [snapshotValidation, ...selected.workItems],
+}) === null,
+'Missing libass or Remotion work must remain an explicit open gate.')
+assert.throws(() => assertCanonicalCaptionRenderedMediaWorkBindingMatches(
+  renderedMediaBinding!, {
+    projection: selected.projection!,
+    planningBinding: selectedBinding,
+    workItems: renderedMediaWorkItems.map((item) =>
+      item.workItemKey === 'caption-overlay'
+        ? {
+            ...item,
+            executionInput: {
+              ...item.executionInput,
+              structuredPayload: {
+                ...(item.executionInput.structuredPayload as object),
+                caption: 'Crossed caption text',
+              },
+            },
+          }
+        : item),
+  }), /no longer matches its immutable work graph/u)
+checks += 1
+assert.throws(() => prepareCanonicalCaptionRenderedMediaWorkBinding({
+  projection: selected.projection ?? undefined,
+  planningBinding: selectedBinding,
+  workItems: renderedMediaWorkItems.map((item) =>
+    item.workItemKey === 'final-export'
+      ? { ...item, dependencyKeys: ['source-trim-validation'] }
+      : item),
+}), /does not depend on every overlay/u)
+checks += 1
+assert.throws(() => parseCanonicalCaptionRenderedMediaWorkBinding({
+  ...renderedMediaBinding,
+  bindingDigestSha256: sha256AuthorityValue('tampered-render-binding'),
+}), /digest failed/u)
+checks += 1
 assert.throws(() =>
   assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems(
     selected.projection!,

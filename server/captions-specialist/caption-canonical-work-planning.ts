@@ -181,11 +181,24 @@ export const CANONICAL_CAPTION_SPECIALIST_DOWNSTREAM_APPROVAL_GATES = [
 
 export function canonicalCaptionSpecialistMissingApprovalGates(
   projection: CanonicalCaptionSpecialistPlanningProjection | undefined,
+  coverage: {
+    renderedMediaWorkBound?: boolean
+    postrenderVisualQaLifecycleComplete?: boolean
+    independentPrivateReviewBound?: boolean
+  } = {},
 ): Array<typeof CANONICAL_CAPTION_SPECIALIST_DOWNSTREAM_APPROVAL_GATES[number]> {
   return !projection || projection.disposition ===
     'no_caption_work_owner_restraint_preserved'
     ? []
-    : [...CANONICAL_CAPTION_SPECIALIST_DOWNSTREAM_APPROVAL_GATES]
+    : CANONICAL_CAPTION_SPECIALIST_DOWNSTREAM_APPROVAL_GATES.filter((gate) => {
+        if (gate === 'caption_rendered_media_work_binding') {
+          return coverage.renderedMediaWorkBound !== true
+        }
+        if (gate === 'canonical_postrender_visual_qa_lifecycle_writer_and_result') {
+          return coverage.postrenderVisualQaLifecycleComplete !== true
+        }
+        return coverage.independentPrivateReviewBound !== true
+      })
 }
 
 export function parseCanonicalCaptionSpecialistPlanningBinding(

@@ -1458,3 +1458,116 @@ Track All public plugin E2E, the B-Roll public canonical lifecycle, and the
 runtime factory. The route-coherence result proved seven blocked or
 deterministic graphs with zero SAM/GPU work and a dedicated result-projection
 job. TRACK-22 is complete without promoting the blocked real SAM route.
+
+## TRACK-23 — canonical private execution runtime
+
+Status: complete, committed, pushed, remotely confirmed, and requalified.
+
+Implemented:
+
+- added one Track All-only canonical execution coordinator behind the generic
+  public plugin and runtime dispatcher; it does not schedule peer skills or
+  implement the head orchestra;
+- added exact artifact-fed canonical adapters and per-assignment one-writer
+  executor routing, with no production worker bindings;
+- added create-only durable private JSON storage and a checksum-bound private
+  media sink whose server-owned roots cannot be caller selected;
+- executed approved atomic work recursively from the canonical plugin graph,
+  persisted every generated output, and rejected pre-persisted output as
+  execution evidence;
+- added strict atomic-execution and public-projection evidence artifacts bound
+  to assignment, manifest, public plan, approval, plugin graph, route receipt,
+  exact inputs, dependencies, outputs, tool operations, and range authority;
+- wired real FFprobe, PySceneDetect, and OpenCV execution into the canonical
+  no-action/planar lifecycle, and wired the existing fixed FFmpeg and Remotion
+  runtimes into the canonical privacy/focus/reframe driver for TRACK-24;
+- reconciled the current normalized FFprobe runtime document with Track All's
+  source-truth parser while preserving the legacy raw-document fixture path;
+- corrected the planar public graph so it no longer requests Track Graph V2
+  validation or handoff work that the planar route cannot produce;
+- made privacy/focus/reframe public work contain their hidden deterministic QA
+  closure without exposing private mini-skills at the plugin boundary;
+- kept blocked SAM/GPU work fail-closed with zero submissions and kept all
+  production bindings absent;
+- added `npm run test:track-all-canonical-private-runtime` and bound its actual
+  command/fixture evidence into the aggregate qualification catalog.
+
+Actual focused checks passed:
+
+```text
+npm run test:track-all-canonical-private-runtime
+REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING=1 npm run test:track-all-runtime-bindings
+REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING=1 npm run test:track-all-evidence-route-coherence
+REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING=1 npm run test:track-all-public-plugin-e2e
+npm run test:track-all-deterministic-geometry
+REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING=1 REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run validate:skill-capability-manifests
+NODE_OPTIONS=--max-old-space-size=8192 npm run typecheck:server
+npx eslint <TRACK-23 affected TypeScript files>
+git diff --check
+```
+
+The canonical-private smoke actually executed no-action and planar scenarios
+through the public plugin, generic binding registry, generic dispatcher, and
+Track All coordinator. It observed the fixed FFprobe, PySceneDetect, and
+OpenCV operations, generated every output during adapter execution, accepted
+zero pre-persisted outputs, exposed zero production bindings, and made zero SAM
+requests and zero GPU executions.
+
+Remote evidence closeout:
+
+- TRACK-23 source commit:
+  `658dc4f5e8f6847b461955b948cd0960e807712c` (pushed and remotely
+  confirmed);
+- B-Roll generated-evidence commit:
+  `0c758af387f7fedcd70763090d8de3b3364bcf7e` (pushed and remotely
+  confirmed);
+- Track All generated-evidence commit:
+  `607f91be840b1056326a27e059336773cdefe84c` (pushed and remotely
+  confirmed).
+
+The first B-Roll aggregate attempt passed every command through build and then
+exhausted Node's default 4-GB heap during the shared server typecheck. It
+issued no receipt. The same typecheck had already passed with the repository's
+explicit 8-GB heap; the complete aggregate command was rerun with
+`NODE_OPTIONS=--max-old-space-size=8192` and no command was skipped or weakened.
+
+`npm run qualify:b-roll:internal` then actually passed 31 commands and 36
+fixture records against clean source commit
+`658dc4f5e8f6847b461955b948cd0960e807712c`. B-Roll remains exactly
+`internal_execution_qualified` with:
+
+- manifest hash:
+  `2890bb5d96cbb6432c9376acc274c84b793af1521c2da5adc18ccdf7420c23ad`;
+- relevant source-tree hash:
+  `42193cde1baa801fffc53bb96ebd7758e32749145d40e3aae366d5b014af7e52`;
+- dependency authority-set hash:
+  `b7756fd930217eaca0b03bf13555910c00ac15a679c487742fdbe48d0c03ce17`;
+- qualification receipt hash:
+  `3d3641c1013614233dbe9662c9920b81a62b60601d3ceb80d11542402206cad1`;
+- generated artifact hash:
+  `fc290cf7a9de553d7e3513ea9dfd11c8e3f7fbcf516110e1934c68a645fb6165`.
+
+`npm run qualify:track-all:internal` actually passed 29 commands and 22
+fixture records against clean commit
+`0c758af387f7fedcd70763090d8de3b3364bcf7e`. Track All remains honestly
+`planning_qualified` at this milestone because canonical route promotion is
+reserved for evidence issuance in TRACK-27, with:
+
+- manifest hash:
+  `3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215`;
+- relevant source-tree hash:
+  `e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61`;
+- shared authority-set hash:
+  `e4b0f6bc4be681fef9fdc04c29ebc5a507e850540d6231e7bfe605a5d9596657`;
+- qualification receipt hash:
+  `a621de95a3fd5af88b0ea15b19fa9cc3bde1692d628ee02e136023404bd33b3b`;
+- generated artifact hash:
+  `03ca9c57ffc55044d924b4f81084c72923fbf93e9a9f2f2ef5f21ef776cee13a`;
+- ten route receipts, zero actual SAM requests, zero actual GPU executions,
+  and `productionQualified: false`.
+
+Normal fail-closed runtime reload then passed manifest validation, route
+qualification, runtime-factory validation, and the Track All public plugin
+E2E using only the frozen generated receipts. No real SAM/model/GPU call,
+public artifact, production mutation, peer-skill execution, or orchestra work
+occurred.

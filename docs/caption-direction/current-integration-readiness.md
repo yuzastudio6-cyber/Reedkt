@@ -75,6 +75,12 @@ private-review projections twice, persists the assembled bundle create-only,
 and rereads it before the terminal qualifier can consume it. Actual owner/work
 records for one common run are still absent, so this source mount changes none
 of the terminal evidence counts.
+The canonical Caption work-item executor now also follows the exact persisted
+HQ-mediated support-resume chain instead of remaining pinned to the initial
+`needs_followup` result. It can therefore bind the planning receipt to the
+current completed resumed call/result after an existing owner adapter has
+persisted that continuation. Missing owner projections or missing resume
+records remain pending; the executor cannot create or infer either one.
 The historical V1 terminal lane remains bound to readiness V2; the additive V2
 terminal lane binds readiness V3 and is the only current terminal lane.
 This is still not the same as an actual private qualification run: the count

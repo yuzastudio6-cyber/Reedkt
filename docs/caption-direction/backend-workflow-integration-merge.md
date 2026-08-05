@@ -45,6 +45,10 @@ Two source assumptions were corrected after the merge:
    to the v2 Caption evidence record. Caption validates the bounded result
    against the exact record and owner projection before accepting it for
    specialist resume; the route does not run the specialist or any media tool.
+5. Canonical Caption planning execution now rereads the current exact head of
+   the existing sequential support-resume ledger. A retried work item can bind
+   its receipt to a completed resumed result, while a missing owner projection
+   or missing resume record remains fail-closed as `needs_followup`.
 
 ## Evidence
 

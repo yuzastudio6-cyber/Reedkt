@@ -8,6 +8,13 @@ import {
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
 } from '../../src/types/canonical-caption-specialist-execution'
+import type {
+  OrchestraSkillCall,
+  OrchestraSkillJobResult,
+  SkillArtifactRef,
+  SkillContractRef,
+  SkillSupportRequest,
+} from '../../src/types/orchestra-skill-contracts'
 import type { CanonicalApprovedEditExecutionPackage } from
   '../edit-architecture/canonical-approved-edit-execution-package'
 import {
@@ -20,8 +27,14 @@ import type { CanonicalCreateOnlyJsonObjectPort } from
 import type { CanonicalApprovedExecutionAuthority } from
   '../services/edit-planning-authority-service'
 import {
+  createCanonicalAuthenticatedSpecialistSupportArtifactProjection,
   createCanonicalSpecialistSupportResumeRepository,
+  resumeCanonicalSpecialistWithAuthenticatedSupport,
 } from '../services/canonical-specialist-support-resume-service'
+import {
+  calculateSkillContractDigest,
+  parseOrchestraSkillJobResult,
+} from '../orchestra/orchestra-skill-contracts'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 
@@ -425,6 +438,81 @@ check(visual.pair.call.inputArtifactRefs.every((artifact) =>
   artifact.artifactType !== 'visual_intelligence_report'),
   'Owner evidence must not be smuggled into the initial Caption call.')
 
+const visualSupportRequest = visual.pair.result.supportRequests[0]!
+const visualSupportRequestRef = supportRequestRef(visualSupportRequest)
+const visualProjection =
+  createCanonicalAuthenticatedSpecialistSupportArtifactProjection({
+    schemaVersion:
+      'canonical-authenticated-specialist-support-artifact-projection-v1',
+    projectionId: 'caption.execution.visual-owner.projection.1',
+    originalCallRef: structuredClone(visualSupportRequest.originalCallRef),
+    supportRequestRef: visualSupportRequestRef,
+    ownerResultRef: skillRef('caption.execution.visual-owner.result.1'),
+    ownerKey: visualSupportRequest.targetSkillKey,
+    canonicalScope: structuredClone(visualSupportRequest.canonicalScope),
+    artifactRefs: visualSupportRequest.requestedArtifactTypes.map(
+      (artifactType) => skillArtifact(
+        `caption.execution.visual-owner.${artifactType}`,
+        artifactType,
+        visualSupportRequest.targetSkillKey,
+        visualSupportRequestRef,
+      )),
+    authenticatedPrincipalVerified: true,
+    exactApprovedSnapshotReread: true,
+    exactCanonicalScopeReread: true,
+    exactOwnerResultReread: true,
+    ownerResultPersistedBeforeProjection: true,
+    browserLocalStateUsed: false,
+    rawChatMediaBytesPathsUrlsOrCredentialsAccepted: false,
+    directPeerDispatchPerformed: false,
+    timelineMutationPerformed: false,
+    runtimeExecutionAuthorityGrantedToSpecialist: false,
+    assetMutationAuthorityGrantedToSpecialist: false,
+    costOrBillingAuthorityGrantedToSpecialist: false,
+    finalQaApprovalGrantedToSpecialist: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  })
+await repository.persistAuthenticatedOwnerProjectionCreateOnly({
+  projection: visualProjection,
+})
+const projectionOnlyReplay = await executeCanonicalCaptionSpecialistWorkItem({
+  authority: visualAuthority,
+  executionPackage: visualExecutionPackage,
+  jobId: visualJob.id,
+  repository,
+})
+check(projectionOnlyReplay.pair.result.disposition === 'needs_followup',
+  'An owner projection without its persisted resume record must stay pending.')
+const visualResume = await resumeCanonicalSpecialistWithAuthenticatedSupport({
+  priorCallRef: skillCallRef(visual.pair.call),
+  selectedSupportRequestRef: visualSupportRequestRef,
+  repository,
+  specialistExecutionPort: {
+    async execute({ call }) {
+      return completedSpecialistResult(call)
+    },
+  },
+  now: () => new Date('2026-08-05T12:03:00.000Z'),
+})
+check(visualResume.resumedResult.disposition === 'completed',
+  'The admitted owner projection must support one persisted completed resume.')
+const resumedVisualReplay = await executeCanonicalCaptionSpecialistWorkItem({
+  authority: visualAuthority,
+  executionPackage: visualExecutionPackage,
+  jobId: visualJob.id,
+  repository,
+})
+check(resumedVisualReplay.pair.result.resultDigestSha256
+  === visualResume.resumedResult.resultDigestSha256,
+  'Canonical Caption execution must reread the persisted resumed result head.')
+check(resumedVisualReplay.receipt.resultDisposition === 'completed'
+  && resumedVisualReplay.receipt.captionCallRef.contentHash
+    === visualResume.resumedCall.callDigestSha256
+  && resumedVisualReplay.receipt.captionResultRef.contentHash
+    === visualResume.resumedResult.resultDigestSha256,
+  'The canonical work-item receipt must bind the exact resumed call and result.')
+
 assert.throws(() => parseCanonicalCaptionSpecialistWorkItemInput({
   ...workInput,
   initialArtifactRefs: [
@@ -499,6 +587,102 @@ console.log(JSON.stringify({
   publicDeliveryGranted: false,
   productionAuthorityGranted: false,
 }, null, 2))
+
+function skillRef(id: string): SkillContractRef {
+  return {
+    id,
+    version: `${id}.v1`,
+    contentHash: sha256AuthorityValue(id),
+  }
+}
+
+function skillCallRef(call: OrchestraSkillCall): SkillContractRef {
+  return {
+    id: call.callId,
+    version: call.schemaVersion,
+    contentHash: call.callDigestSha256,
+  }
+}
+
+function supportRequestRef(request: SkillSupportRequest): SkillContractRef {
+  return {
+    id: request.requestId,
+    version: request.schemaVersion,
+    contentHash: request.requestDigestSha256,
+  }
+}
+
+function skillArtifact(
+  id: string,
+  artifactType: string,
+  producerSkillKey: string,
+  sourceSupportRequestRef: SkillContractRef | null,
+): SkillArtifactRef {
+  return {
+    ...skillRef(id),
+    artifactType,
+    producerSkillKey,
+    privateArtifact: true,
+    byteFreeRef: true,
+    sourceSupportRequestRef,
+  }
+}
+
+function completedSpecialistResult(
+  call: OrchestraSkillCall,
+): OrchestraSkillJobResult {
+  const withoutDigest: Omit<OrchestraSkillJobResult,
+    'resultDigestSha256'> = {
+    schemaVersion: 'orchestra-skill-job-result-v1',
+    resultId: `caption.execution.resumed-result.${
+      call.callDigestSha256.slice(0, 32)}`,
+    disposition: 'completed',
+    originalCallRef: skillCallRef(call),
+    producerSkillKey: call.assigneeSkillKey,
+    jobType: call.job.jobType,
+    manifestRef: structuredClone(call.manifestRef),
+    qualificationSnapshotRef:
+      structuredClone(call.qualificationSnapshotRef),
+    canonicalScope: structuredClone(call.canonicalScope),
+    producedArtifactRefs: [skillArtifact(
+      `caption.execution.resumed-artifact.${
+        call.callDigestSha256.slice(0, 32)}`,
+      'caption_resumed_specialist_job_result',
+      'captions',
+      null,
+    )],
+    supportRequests: [],
+    reasonCodes: ['caption.authenticated-owner-evidence.accepted'],
+    safeUserSummary:
+      'Caption planning resumed from authenticated owner evidence.',
+    replayBinding: {
+      idempotencyKey: call.idempotencyKey,
+      resumedFromSupportRequestRef:
+        structuredClone(call.resumeOfSupportRequestRef),
+      resumeOriginCallRef: structuredClone(call.resumeOriginCallRef),
+    },
+    authorityBoundary: {
+      scopeExpansionGranted: false,
+      timelineMutationGranted: false,
+      directPeerDispatchGranted: false,
+      providerCallGranted: false,
+      runtimeExecutionGranted: false,
+      assetCreationGranted: false,
+      costAuthorityGranted: false,
+      billingAuthorityGranted: false,
+      qaApprovalGranted: false,
+      publicDeliveryGranted: false,
+      productionAuthorityGranted: false,
+    },
+  }
+  return parseOrchestraSkillJobResult({
+    ...withoutDigest,
+    resultDigestSha256: calculateSkillContractDigest(
+      withoutDigest as unknown as Record<string, unknown>,
+      'resultDigestSha256',
+    ),
+  })
+}
 
 function memoryObjectPort(
   objects: Map<string, Buffer>,

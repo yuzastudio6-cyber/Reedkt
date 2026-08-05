@@ -111,6 +111,7 @@ The governing workflow invariant remains:
 - [Current private internal evidence progress](private-internal-evidence-progress-2026-08-05.md)
 - [Terminal private-qualification gate](terminal-private-qualification-gate.md)
 - [Canonical terminal evidence assembly mount](canonical-terminal-evidence-assembly-mount-2026-08-05.md)
+- [Canonical resumed-chain execution mount](canonical-caption-resume-chain-execution-mount-2026-08-05.md)
 - [Backend workflow integration merge](backend-workflow-integration-merge.md)
 - [Canonical postapproval planning execution](canonical-postapproval-planning-execution.md)
 - [Canonical rendered-media work binding](canonical-rendered-media-work-binding.md)

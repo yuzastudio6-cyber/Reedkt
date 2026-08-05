@@ -12,6 +12,10 @@ import {
   CANONICAL_SPECIALIST_CALL_RESULT_PAIR_VERSION,
   CANONICAL_SPECIALIST_SUPPORT_RESUME_RECORD_VERSION,
 } from '../../src/types/canonical-specialist-support-resume'
+import {
+  CANONICAL_SPECIALIST_SUPPORT_RESUME_CHAIN_REREAD_VERSION,
+  type CanonicalSpecialistSupportResumeChainReread,
+} from '../../src/types/canonical-specialist-support-resume-chain-reread'
 import type {
   OrchestraSkillCall,
   SkillArtifactRef,
@@ -193,6 +197,41 @@ const recordWithoutDigestSchema = z.object({
 const recordSchema = recordWithoutDigestSchema.extend({
   recordDigestSha256: rawSha256,
 }).strict()
+const chainRereadWithoutDigestSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_SPECIALIST_SUPPORT_RESUME_CHAIN_REREAD_VERSION),
+  initialPair: pairSchema,
+  currentPair: pairSchema,
+  records: z.array(recordSchema).max(32),
+  status: z.enum([
+    'completed_without_support',
+    'completed_after_support_resume',
+    'waiting_for_authenticated_owner_projection',
+    'waiting_for_persisted_resume_record',
+    'terminal_non_completed',
+  ]),
+  pendingSupportRequestRef: refSchema.nullable(),
+  authenticatedOwnerProjectionRef: refSchema.nullable(),
+  stepCount: z.number().int().min(0).max(32),
+  currentDisposition: z.enum([
+    'completed', 'needs_followup', 'blocked', 'unsupported', 'failed',
+  ]),
+  exactInitialPairReread: z.literal(true),
+  exactEveryOwnerProjectionAndResumeRecordReread: z.literal(true),
+  currentPersistedHeadVerified: z.literal(true),
+  callerSuppliedResultAccepted: z.literal(false),
+  directPeerDispatchPerformed: z.literal(false),
+  providerCallPerformedByReader: z.literal(false),
+  runtimeExecutionPerformedByReader: z.literal(false),
+  assetMutationPerformedByReader: z.literal(false),
+  costOrBillingMutationPerformedByReader: z.literal(false),
+  finalQaApprovalGrantedByReader: z.literal(false),
+  publicDeliveryGranted: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+}).strict()
+const chainRereadSchema = chainRereadWithoutDigestSchema.extend({
+  chainDigestSha256: rawSha256,
+}).strict()
 
 export interface CanonicalSpecialistSupportResumeRepository {
   readonly schemaVersion:
@@ -370,6 +409,160 @@ export function createCanonicalSpecialistSupportResumeRepository(input: {
       return readExact(input.objectPort, resumePath(prefix, request),
         parseCanonicalSpecialistSupportResumeRecord)
     },
+  })
+}
+
+export function parseCanonicalSpecialistSupportResumeChainReread(
+  value: unknown,
+): CanonicalSpecialistSupportResumeChainReread {
+  assertClosedContractTree(value, 'Specialist support resume chain reread')
+  rejectUnsafeText(value, 'Specialist support resume chain reread')
+  const envelope = chainRereadSchema.parse(value)
+  if (envelope.chainDigestSha256 !== contractDigest(
+    envelope, 'chainDigestSha256')) {
+    throw new Error('Specialist support resume chain reread digest failed.')
+  }
+  const initialPair = parseCanonicalSpecialistCallResultPair(
+    envelope.initialPair)
+  const currentPair = parseCanonicalSpecialistCallResultPair(
+    envelope.currentPair)
+  const records = envelope.records.map((record) =>
+    parseCanonicalSpecialistSupportResumeRecord(record))
+  let expectedPair = initialPair
+  for (const [index, record] of records.entries()) {
+    if (record.stepOrdinal !== index + 1
+      || !sameCanonical(record.priorCall, expectedPair.call)
+      || !sameCanonical(record.priorResult, expectedPair.result)) {
+      throw new Error('Specialist support resume chain crossed its lineage.')
+    }
+    expectedPair = createCanonicalSpecialistCallResultPair({
+      call: record.resumedCall,
+      result: record.resumedResult,
+      persistedAt: record.persistedAt,
+    })
+  }
+  if (envelope.stepCount !== records.length
+    || !sameCanonical(expectedPair, currentPair)
+    || envelope.currentDisposition !== currentPair.result.disposition) {
+    throw new Error('Specialist support resume chain head is inconsistent.')
+  }
+  assertChainRereadStatus({
+    ...envelope,
+    initialPair,
+    currentPair,
+    records,
+  })
+  return freeze({
+    ...envelope,
+    initialPair,
+    currentPair,
+    records,
+  })
+}
+
+/**
+ * Rereads the current head of an already-persisted sequential support chain.
+ * This function never runs a specialist or owner and never creates a record.
+ */
+export async function rereadCanonicalSpecialistSupportResumeChain(input: {
+  readonly initialCallRef: SkillContractRef
+  readonly repository: CanonicalSpecialistSupportResumeRepository
+}): Promise<CanonicalSpecialistSupportResumeChainReread | null> {
+  assertRepositoryReader(input.repository)
+  const initialCallRef = refSchema.parse(input.initialCallRef)
+  const initialPair = await input.repository.rereadCallResultPair({
+    callRef: initialCallRef,
+  })
+  if (!initialPair) return null
+  if (!sameRef(callRef(initialPair.call), initialCallRef)) {
+    throw new Error('Specialist support initial pair crossed authority.')
+  }
+  let currentPair = initialPair
+  const records: CanonicalSpecialistSupportResumeRecord[] = []
+  while (currentPair.result.disposition === 'needs_followup') {
+    if (records.length >= 32) {
+      throw new Error('Specialist support resume chain exceeded 32 steps.')
+    }
+    const selectedSupportRequest = currentPair.result.supportRequests[0]
+    if (!selectedSupportRequest) {
+      throw new Error(
+        'Specialist follow-up result has no deterministic support request.')
+    }
+    const selectedSupportRequestRef = requestRef(selectedSupportRequest)
+    const projection = await input.repository
+      .rereadAuthenticatedOwnerProjection({
+        supportRequestRef: selectedSupportRequestRef,
+      })
+    if (!projection) {
+      return createChainReread({
+        initialPair,
+        currentPair,
+        records,
+        status: 'waiting_for_authenticated_owner_projection',
+        pendingSupportRequestRef: selectedSupportRequestRef,
+        authenticatedOwnerProjectionRef: null,
+      })
+    }
+    assertProjectionAgainstRequest(projection, selectedSupportRequest)
+    const promotedPriorSupportArtifactRefs = currentPair.call
+      .injectedSupportArtifactRefs.map((artifact) => ({
+        ...structuredClone(artifact),
+        sourceSupportRequestRef: null,
+      }))
+    const resumedCall = createResumedCall({
+      priorCall: currentPair.call,
+      selectedSupportRequest,
+      projection,
+      promotedPriorSupportArtifactRefs,
+      stepOrdinal: records.length + 1,
+    })
+    const record = await input.repository.rereadResumeRecordByResumedCall({
+      resumedCallRef: callRef(resumedCall),
+    })
+    if (!record) {
+      return createChainReread({
+        initialPair,
+        currentPair,
+        records,
+        status: 'waiting_for_persisted_resume_record',
+        pendingSupportRequestRef: selectedSupportRequestRef,
+        authenticatedOwnerProjectionRef: projectionRef(projection),
+      })
+    }
+    const parsedRecord = parseCanonicalSpecialistSupportResumeRecord(record)
+    if (parsedRecord.stepOrdinal !== records.length + 1
+      || !sameCanonical(parsedRecord.priorCall, currentPair.call)
+      || !sameCanonical(parsedRecord.priorResult, currentPair.result)
+      || !sameCanonical(parsedRecord.selectedSupportRequest,
+        selectedSupportRequest)
+      || !sameCanonical(parsedRecord.authenticatedOwnerProjection,
+        projection)
+      || !sameCanonical(parsedRecord.resumedCall, resumedCall)) {
+      throw new Error('Specialist support resume record crossed current head.')
+    }
+    const resumedPair = await input.repository.rereadCallResultPair({
+      callRef: callRef(parsedRecord.resumedCall),
+    })
+    if (!resumedPair
+      || !sameCanonical(resumedPair.call, parsedRecord.resumedCall)
+      || !sameCanonical(resumedPair.result, parsedRecord.resumedResult)
+      || resumedPair.persistedAt !== parsedRecord.persistedAt) {
+      throw new Error('Specialist resumed call/result pair is unavailable.')
+    }
+    records.push(parsedRecord)
+    currentPair = resumedPair
+  }
+  return createChainReread({
+    initialPair,
+    currentPair,
+    records,
+    status: currentPair.result.disposition === 'completed'
+      ? records.length === 0
+        ? 'completed_without_support'
+        : 'completed_after_support_resume'
+      : 'terminal_non_completed',
+    pendingSupportRequestRef: null,
+    authenticatedOwnerProjectionRef: null,
   })
 }
 
@@ -624,6 +817,93 @@ function requestRef(request: SkillSupportRequest): SkillContractRef {
   })
 }
 
+function projectionRef(
+  projection: CanonicalAuthenticatedSpecialistSupportArtifactProjection,
+): SkillContractRef {
+  return refSchema.parse({
+    id: projection.projectionId,
+    version: projection.schemaVersion,
+    contentHash: projection.projectionDigestSha256,
+  })
+}
+
+function createChainReread(input: {
+  initialPair: CanonicalSpecialistCallResultPair
+  currentPair: CanonicalSpecialistCallResultPair
+  records: CanonicalSpecialistSupportResumeRecord[]
+  status: CanonicalSpecialistSupportResumeChainReread['status']
+  pendingSupportRequestRef: SkillContractRef | null
+  authenticatedOwnerProjectionRef: SkillContractRef | null
+}): CanonicalSpecialistSupportResumeChainReread {
+  const withoutDigest = chainRereadWithoutDigestSchema.parse({
+    schemaVersion:
+      CANONICAL_SPECIALIST_SUPPORT_RESUME_CHAIN_REREAD_VERSION,
+    initialPair: structuredClone(input.initialPair),
+    currentPair: structuredClone(input.currentPair),
+    records: structuredClone(input.records),
+    status: input.status,
+    pendingSupportRequestRef:
+      structuredClone(input.pendingSupportRequestRef),
+    authenticatedOwnerProjectionRef:
+      structuredClone(input.authenticatedOwnerProjectionRef),
+    stepCount: input.records.length,
+    currentDisposition: input.currentPair.result.disposition,
+    exactInitialPairReread: true,
+    exactEveryOwnerProjectionAndResumeRecordReread: true,
+    currentPersistedHeadVerified: true,
+    callerSuppliedResultAccepted: false,
+    directPeerDispatchPerformed: false,
+    providerCallPerformedByReader: false,
+    runtimeExecutionPerformedByReader: false,
+    assetMutationPerformedByReader: false,
+    costOrBillingMutationPerformedByReader: false,
+    finalQaApprovalGrantedByReader: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  })
+  return parseCanonicalSpecialistSupportResumeChainReread({
+    ...withoutDigest,
+    chainDigestSha256: contractDigest(withoutDigest, 'chainDigestSha256'),
+  })
+}
+
+function assertChainRereadStatus(
+  chain: CanonicalSpecialistSupportResumeChainReread,
+): void {
+  const request = chain.currentPair.result.supportRequests[0]
+  const expectedRequestRef = request ? requestRef(request) : null
+  const completed = chain.currentPair.result.disposition === 'completed'
+  const waiting = chain.currentPair.result.disposition === 'needs_followup'
+  const terminalNonCompleted = ['blocked', 'unsupported', 'failed'].includes(
+    chain.currentPair.result.disposition)
+  const valid = chain.status === 'completed_without_support'
+    ? completed && chain.records.length === 0
+      && chain.currentPair.result.supportRequests.length === 0
+      && chain.pendingSupportRequestRef === null
+      && chain.authenticatedOwnerProjectionRef === null
+    : chain.status === 'completed_after_support_resume'
+      ? completed && chain.records.length > 0
+        && chain.currentPair.result.supportRequests.length === 0
+        && chain.pendingSupportRequestRef === null
+        && chain.authenticatedOwnerProjectionRef === null
+      : chain.status === 'waiting_for_authenticated_owner_projection'
+        ? waiting && expectedRequestRef !== null
+          && chain.pendingSupportRequestRef !== null
+          && sameRef(chain.pendingSupportRequestRef, expectedRequestRef)
+          && chain.authenticatedOwnerProjectionRef === null
+        : chain.status === 'waiting_for_persisted_resume_record'
+          ? waiting && expectedRequestRef !== null
+            && chain.pendingSupportRequestRef !== null
+            && sameRef(chain.pendingSupportRequestRef, expectedRequestRef)
+            && chain.authenticatedOwnerProjectionRef !== null
+          : terminalNonCompleted
+            && chain.pendingSupportRequestRef === null
+            && chain.authenticatedOwnerProjectionRef === null
+  if (!valid) {
+    throw new Error('Specialist support resume chain status is inconsistent.')
+  }
+}
+
 function sameRef(left: SkillContractRef, right: SkillContractRef): boolean {
   return left.id === right.id
     && left.version === right.version
@@ -775,6 +1055,17 @@ function assertPorts(input: {
     || typeof input.repository.persistResumeRecordCreateOnly !== 'function'
     || typeof input.specialistExecutionPort?.execute !== 'function') {
     throw new Error('Specialist support resume owner is incomplete.')
+  }
+}
+
+function assertRepositoryReader(
+  repository: CanonicalSpecialistSupportResumeRepository,
+): void {
+  if (!repository
+    || typeof repository.rereadCallResultPair !== 'function'
+    || typeof repository.rereadAuthenticatedOwnerProjection !== 'function'
+    || typeof repository.rereadResumeRecordByResumedCall !== 'function') {
+    throw new Error('Specialist support resume reader is incomplete.')
   }
 }
 

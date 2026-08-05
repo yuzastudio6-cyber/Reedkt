@@ -47,6 +47,7 @@ import type { CanonicalApprovedExecutionAuthority } from
   './edit-planning-authority-service'
 import {
   createCanonicalSpecialistCallResultPair,
+  rereadCanonicalSpecialistSupportResumeChain,
   type CanonicalSpecialistSupportResumeRepository,
 } from './canonical-specialist-support-resume-service'
 import {
@@ -326,6 +327,14 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
     }
     pair = reread
   }
+  const resumeChain = await rereadCanonicalSpecialistSupportResumeChain({
+    initialCallRef: captionCallRef,
+    repository: input.repository,
+  })
+  if (!resumeChain) {
+    throw new Error('Canonical Caption call/result chain reread failed.')
+  }
+  pair = resumeChain.currentPair
   return {
     pair,
     receipt: createReceipt({

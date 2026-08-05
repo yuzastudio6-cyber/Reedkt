@@ -28,6 +28,8 @@ import {
   BROLL_CAPTION_PUBLIC_RECEIPT_DIGEST,
   CAPTION_BROLL_OWNER_READ_ADAPTER_RECEIPT,
 } from '../captions-specialist/caption-broll-owner-read-adapter'
+import { CAPTION_CANONICAL_SPECIALIST_RESUME_READ_ADAPTER_RECEIPT } from
+  '../captions-specialist/caption-canonical-specialist-resume-read'
 
 let assertions = 0
 function check(condition: unknown, message: string): asserts condition {
@@ -95,6 +97,14 @@ check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.integrationQa.includes(
     (item) => item.evidenceId
       === 'captions.canonical-transcript.authenticated-read-adapter'),
 'the integration profile binds the canonical transcript read adapter evidence')
+check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.integrationQa.includes(
+  'canonical_backend_sequential_resume_consumer_frozen')
+  && CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.qualificationEvidenceRefs.some(
+    (item) => item.evidenceId
+      === 'captions.canonical-specialist.resume-read-adapter')
+  && CAPTION_CANONICAL_SPECIALIST_RESUME_READ_ADAPTER_RECEIPT.backendSource
+    .sourceCommit === '832f56fc41c90413f6c99cc70d5cd658c8e44675',
+'the integration profile binds the exact canonical backend resume consumer')
 
 const legacySoundCall = createCaptionsHarnessCall({
   callId: 'captions.integration.legacy-sound',

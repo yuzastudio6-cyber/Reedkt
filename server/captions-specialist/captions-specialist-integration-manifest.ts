@@ -22,6 +22,8 @@ export const CAPTIONS_BROLL_OWNER_READ_ADAPTER_EVIDENCE_ID =
   'captions.broll.owner-read.public-adapter' as const
 export const CAPTIONS_CANONICAL_TRANSCRIPT_READ_ADAPTER_EVIDENCE_ID =
   'captions.canonical-transcript.authenticated-read-adapter' as const
+export const CAPTIONS_CANONICAL_RESUME_READ_ADAPTER_EVIDENCE_ID =
+  'captions.canonical-specialist.resume-read-adapter' as const
 
 const conditionalByJob = new Map(
   CAPTION_CAP20_SHARED_OWNER_INTEGRATION_HANDOFF.conditionalJobBindings.map(
@@ -119,6 +121,14 @@ UnpublishedSkillCapabilityManifestV2 = {
       assertion:
         'The Caption-owned authenticated-read adapter admits an immutable canonical transcript only after exact private scope, digest, source, alignment, and complete diarization reread.',
     },
+    {
+      evidenceId: CAPTIONS_CANONICAL_RESUME_READ_ADAPTER_EVIDENCE_ID,
+      evidenceType: 'fixture',
+      location:
+        'server/smoke/captions-specialist-canonical-resume-read-smoke.ts',
+      assertion:
+        'The Caption consumer validates the canonical backend sequential-resume record, exact current-owner injection, prior-owner promotion, and complete immediate lineage without importing backend implementation.',
+    },
   ],
   acceptedArtifactTypes,
   integrationQa: unique([
@@ -128,6 +138,7 @@ UnpublishedSkillCapabilityManifestV2 = {
     'canonical_transcript_authenticated_read_adapter_frozen',
     'sound_and_broll_may_not_silently_complete_without_owner_evidence',
     'broll_owner_read_public_adapter_frozen',
+    'canonical_backend_sequential_resume_consumer_frozen',
     'backend_wire_projection_must_be_distinctly_versioned',
   ]),
   qualificationFixtures: unique([
@@ -140,6 +151,7 @@ UnpublishedSkillCapabilityManifestV2 = {
     'It qualifies dependency routing, not private execution, final QA, or terminal specialist status.',
     'The B-roll public adapter is frozen, but no authenticated owner result has been persisted, reread, or injected in this checkout.',
     'The canonical transcript authenticated-read adapter is frozen, but no canonical persistence reader is mounted in this checkout.',
+    'The canonical backend sequential-resume consumer is frozen, but no actual persisted resume record has been supplied to Caption.',
     'The canonical backend publishes materially different V1 call, support, and result shapes; integration requires an additive digest-recomputed bridge and forbids cast or relabel behavior.',
   ],
   capabilityEntries,

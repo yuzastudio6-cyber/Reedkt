@@ -122,6 +122,7 @@ export function createCaptionsHarnessCall(input: {
   outputId?: string | null
   sceneId?: string | null
   boundaryId?: string | null
+  approvedSnapshotRef?: SkillContractRef | null
   runtimeProfile?: 'cap01_planning' | 'post_cap20_integration'
 }): OrchestraSkillCall {
   const integrationProfile = input.runtimeProfile === 'post_cap20_integration'
@@ -151,7 +152,8 @@ export function createCaptionsHarnessCall(input: {
       workspaceId: 'workspace.fixture',
       projectId: 'project.fixture',
       editSessionId: 'edit.fixture',
-      approvedSnapshotRef: null,
+      approvedSnapshotRef: input.approvedSnapshotRef === undefined
+        ? null : structuredClone(input.approvedSnapshotRef),
       outputId: input.outputId === undefined ? 'output.fixture' : input.outputId,
       sceneId: input.sceneId === undefined
         ? input.scopeLevel === 'scene' ? 'scene.fixture' : null

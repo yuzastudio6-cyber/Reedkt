@@ -5,9 +5,9 @@ Milestone: `POST-CAP-20-INTEGRATION-ROUTING`
 Status: `source_complete_authenticated_owner_evidence_pending`
 
 - integration manifest hash:
-  `fca6d23008b5a4cb1c3e5df6815d96e7f4bb2915a651befd9b63edcf8d1e1123`;
+  `03ab9332e2c097b9ed72a61987d0ed5fc1e89ef46fd2b7a4444a03631e8b234d`;
 - integration qualification digest:
-  `6faf4db34d89e345587d5ee4c70ddb260683af27424ccca2817ce4186b9a60ef`.
+  `facd5d56f517c1efe64425aaed663f42cc6fa4e86f45576598d3fee1900ebd46`.
 
 ## Outcome
 
@@ -91,9 +91,13 @@ and injection remain external.
 The Caption canonical-transcript authenticated-read adapter is also frozen.
 Actual transcript and binding persistence/reread/injection remain external.
 
+The Caption consumer for the canonical backend sequential-resume ledger is
+frozen against backend commit `832f56fc41c90413f6c99cc70d5cd658c8e44675`.
+Actual persisted owner projections and resume records remain external.
+
 ## Tests
 
-The focused integration smoke passes 27 checks for frozen-hash compatibility,
+The focused integration smoke passes 28 checks for frozen-hash compatibility,
 all twelve
 conditional job requirements, SoundSync and B-roll routing, two-owner
 safe-region sequential resume, missing-transcript fail-closed behavior,

@@ -387,6 +387,7 @@
     "smoke:captions-specialist-goal-completion-audit": "tsx server/smoke/captions-specialist-goal-completion-audit-smoke.ts",
     "smoke:captions-specialist-broll-owner-read-adapter": "tsx server/smoke/captions-specialist-broll-owner-read-adapter-smoke.ts",
     "smoke:captions-specialist-canonical-transcript-authenticated-read": "tsx server/smoke/captions-specialist-canonical-transcript-authenticated-read-smoke.ts",
+    "smoke:captions-specialist-canonical-resume-read": "tsx server/smoke/captions-specialist-canonical-resume-read-smoke.ts",
     "smoke:captions-specialist-integration-routing": "tsx server/smoke/captions-specialist-integration-routing-smoke.ts",
     "smoke:captions-specialist-shared-owner-integration": "tsx server/smoke/captions-specialist-shared-owner-integration-smoke.ts",
     "smoke:captions-specialist-multi-support-resume": "tsx server/smoke/captions-specialist-multi-support-resume-smoke.ts"

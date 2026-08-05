@@ -98,6 +98,7 @@ The governing workflow invariant remains:
 - [Post-CAP-20 shared-owner integration routing](post-cap20-integration-routing.md)
 - [Post-CAP-20 B-roll owner-read adapter](post-cap20-broll-owner-read-adapter.md)
 - [Post-CAP-20 canonical transcript authenticated read](post-cap20-canonical-transcript-authenticated-read.md)
+- [Post-CAP-20 canonical sequential-resume read](post-cap20-canonical-resume-read.md)
 
 ### Historical architecture retained and amended
 
@@ -286,6 +287,12 @@ binding. Transcript-dependent planning requires both the immutable transcript
 artifact and its exact approved-snapshot reread evidence; partial diarization
 or browser-local completion fails closed. See
 [`post-cap20-canonical-transcript-authenticated-read.md`](./post-cap20-canonical-transcript-authenticated-read.md).
+
+Caption now also has a strict read consumer for the canonical backend's
+create-only sequential support ledger. It proves exact current-owner injection
+and prior-owner promotion without importing the backend service or claiming
+that actual records have been mounted. See
+[`post-cap20-canonical-resume-read.md`](./post-cap20-canonical-resume-read.md).
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

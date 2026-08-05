@@ -65,21 +65,46 @@ test.describe('clean named-edit chat', () => {
     await clickWhenReady(page.getByRole('button', { name: /^Create edit plan$/i }))
 
     const checkpoint = await findPlanReview(page)
-    await expect(checkpoint).toContainText(/What I understood/i)
+    await expect(checkpoint).toContainText(/Saved plan authority/i)
+    await expect(checkpoint).toContainText(/What this internal run will do/i)
     await expect(checkpoint).toContainText(/estimated credits/i)
     await expect(page.getByTestId('editor-stage')).toHaveAttribute('data-editor-stage', 'plan_review')
     await expect(page.getByTestId('plan-approval-checkpoint')).toHaveCount(1)
     await expectNoGenerationBeforeApproval(page)
 
     await clickWhenReady(page.getByTestId('plan-review-approve'))
-    await expect(page.getByTestId('canonical-plan-approval-approved')).toBeVisible()
+    const approvedJourney = page.locator(
+      '[data-testid="canonical-journey-status"][data-journey-stage="approved_snapshot_available"]',
+    )
+    await expect(approvedJourney).toBeVisible()
+    await expect(approvedJourney).toContainText(/Approval is safely recorded/i)
     await clickWhenReady(page.getByTestId('canonical-execution-package-request-submit'))
     await clickWhenReady(page.getByTestId('canonical-private-edit-preparation-submit'))
     const assembleReview = page.getByRole('button', { name: /^Assemble private review$/i })
     const canonicalPrivateReview = page.getByTestId('canonical-private-review')
-    await expect(assembleReview.or(canonicalPrivateReview)).toBeVisible({
+    const preparationBlocked = page.getByTestId('canonical-private-edit-preparation-blocked')
+    const refreshJourney = page.getByRole('button', { name: /^Refresh saved workflow status$/i })
+    await expect.poll(async () => {
+      if (
+        await assembleReview.isVisible().catch(() => false) ||
+        await canonicalPrivateReview.isVisible().catch(() => false) ||
+        await preparationBlocked.isVisible().catch(() => false)
+      ) {
+        return 'terminal'
+      }
+      if (await refreshJourney.isEnabled().catch(() => false)) {
+        await refreshJourney.click()
+      }
+      return 'waiting'
+    }, {
       timeout: PROFESSIONAL_PRIVATE_REVIEW_TIMEOUT_MS,
-    })
+      intervals: [1_000, 2_000, 5_000],
+    }).toBe('terminal')
+    if (await preparationBlocked.isVisible()) {
+      throw new Error(
+        `Private edit preparation blocked: ${await preparationBlocked.textContent() ?? 'unknown reason'}`,
+      )
+    }
     if (await assembleReview.isVisible()) {
       await clickWhenReady(assembleReview)
     }

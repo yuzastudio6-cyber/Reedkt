@@ -55,6 +55,14 @@ jobs:
           fi
           ffmpeg -version | head -n 1
           ffprobe -version | head -n 1
+          docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build
+          docker build \
+            --pull=false \
+            --progress=plain \
+            --tag reeditpro-offline-libass-caption-execution:private-local-v1 \
+            --file docker/prod/offline-libass-caption-execution/Dockerfile \
+            .
+          npm run smoke:offline-libass-caption-execution
 
       - name: Lint
         run: npm run lint

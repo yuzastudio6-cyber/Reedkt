@@ -957,7 +957,7 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     expectedAsset.assetRole === 'final' && expectedAsset.contentType === 'video/mp4' &&
     workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'remotion' &&
     body.operationId === 'tool.remotion.render_approved_composition.v1' &&
-    finalCompositionCaptionCueCount >= 1 && finalCompositionCaptionCueCount <= 7 &&
+    isCanonicalPrivateCompositionChunkCaptionCueCount(finalCompositionCaptionCueCount) &&
     workItem.dependencyKeys.length ===
       1 + finalCompositionCaptionCueCount + finalCompositionVoiceTrackCount +
         finalCompositionSupplementalAudioTrackCount +

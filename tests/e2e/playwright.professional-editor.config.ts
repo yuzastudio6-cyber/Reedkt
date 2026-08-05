@@ -3,6 +3,9 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig, devices } from '@playwright/test'
 
 const repositoryRoot = fileURLToPath(new URL('../..', import.meta.url))
+const professionalEditorStorageRoot =
+  process.env.PLAYWRIGHT_PROFESSIONAL_EDITOR_STORAGE_ROOT
+  ?? resolve(repositoryRoot, 'test-results/professional-editor-storage')
 
 export default defineConfig({
   testDir: '.',
@@ -37,7 +40,7 @@ export default defineConfig({
         E2E_RUNTIME_MODE: 'local',
         STORAGE_MODE: 'local',
         REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE: 'private_local',
-        LOCAL_STORAGE_ROOT: resolve(repositoryRoot, 'test-results/professional-editor-storage'),
+        LOCAL_STORAGE_ROOT: professionalEditorStorageRoot,
         PROVIDER_EXECUTION_ENABLED: 'false',
         WORKER_RUNTIME_MODE: 'mock',
       },

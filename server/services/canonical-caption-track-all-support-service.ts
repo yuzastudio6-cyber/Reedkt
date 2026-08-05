@@ -15,6 +15,9 @@ import type {
   CaptionDomainFrameRange,
   CaptionDomainRef,
 } from '../../src/types/caption-domain-contracts'
+import type {
+  CanonicalTrackAllSam31CaptionSceneQaAuthority,
+} from '../../src/types/canonical-track-all-sam3_1-task-qa'
 import {
   CAPTION_TRACK_ALL_ADMISSION_VERSION,
   CAPTION_TRACK_ALL_EVIDENCE_PACKET_VERSION,
@@ -74,14 +77,14 @@ import {
 export const CANONICAL_TRACK_ALL_SAM3_1_CAPTION_SCENE_EVIDENCE_REPOSITORY_VERSION =
   'canonical-track-all-sam3_1-caption-scene-evidence-repository-v1' as const
 export const CANONICAL_CAPTION_TRACK_ALL_EVIDENCE_REPOSITORY_VERSION =
-  'canonical-caption-track-all-evidence-repository-v1' as const
+  'canonical-caption-track-all-evidence-repository-v2' as const
 export const CANONICAL_CAPTION_TRACK_ALL_SUPPORT_SERVICE_VERSION =
-  'canonical-caption-track-all-support-service-v1' as const
+  'canonical-caption-track-all-support-service-v2' as const
 
 const SCENE_PREFIX =
   'private/track-all/sam3_1/v1/caption-scene-evidence'
 const RECORD_PREFIX =
-  'private/orchestra/v1/caption-track-all-support'
+  'private/orchestra/v2/caption-track-all-support'
 const MAXIMUM_RECORD_BYTES = 16 * 1024 * 1024
 const safeKey = z.string().min(1).max(240)
   .regex(/^[a-z0-9][a-z0-9._:-]*$/u)
@@ -412,6 +415,7 @@ const recordEnvelopeSchema = z.object({
   backendTrackAllSupportRequestRef: domainRefSchema,
   sam31TaskRef: domainRefSchema,
   sam31RuntimeResultAdmissionRef: domainRefSchema,
+  trackAllSceneQaAuthorityRef: domainRefSchema,
   trackAllSceneEvidenceRef: domainRefSchema,
   captionEvidencePacket: z.unknown(),
   captionAdmission: z.unknown(),
@@ -421,6 +425,7 @@ const recordEnvelopeSchema = z.object({
   backendTrackAllCallAndSupportRequestExactReread: z.literal(true),
   distinctCaptionAndBackendSupportWireIdentitiesPreserved: z.literal(true),
   sam31TaskAndResultExactReread: z.literal(true),
+  taskLevelSceneQaAuthorityExactReread: z.literal(true),
   independentSceneEvidenceExactReread: z.literal(true),
   exactCaptionScopeOutputSceneRangeSourceAndFrameBindingVerified:
     z.literal(true),
@@ -470,6 +475,7 @@ export interface CanonicalCaptionTrackAllSupportService {
     readonly selectedSupportRequestRef: SkillContractRef
     readonly invocationId: string
     readonly runtimeResultAdmissionRef: CaptionDomainRef
+    readonly trackAllSceneQaAuthorityRef: CaptionDomainRef
     readonly trackAllSceneEvidenceRef: CaptionDomainRef
   }): Promise<CanonicalCaptionTrackAllAuthenticatedEvidenceRecord>
   projectAndResumeAuthenticatedEvidence(input: {
@@ -483,6 +489,12 @@ export interface CanonicalCaptionTrackAllSupportService {
     readonly evidenceRecord: CanonicalCaptionTrackAllAuthenticatedEvidenceRecord
     readonly resumeRecord: CanonicalSpecialistSupportResumeRecord
   }>
+}
+
+export interface CanonicalTrackAllSam31CaptionSceneQaAuthorityReadPort {
+  rereadAuthority(input: {
+    readonly authorityRef: CaptionDomainRef
+  }): Promise<CanonicalTrackAllSam31CaptionSceneQaAuthority | null>
 }
 
 export function sealCanonicalTrackAllSam31CaptionSceneEvidence(
@@ -651,7 +663,7 @@ export function parseCaptionTrackAllEvidencePacket(
 ): CaptionTrackAllEvidencePacket {
   assertClosedContractTree(value, 'Caption Track All evidence packet')
   const payload = parseCaptionTrackAllSupportPayload(input.payload)
-  const supportRequest = parseCaptionSupportRequest(
+  const supportRequest = parseCaptionTrackAllSupportRequest(
     input.supportRequest,
     payload,
   )
@@ -718,7 +730,10 @@ export function parseCaptionTrackAllAdmission(
 ): CaptionTrackAllAdmission {
   assertClosedContractTree(value, 'Caption Track All admission')
   const payload = parseCaptionTrackAllSupportPayload(input.payload)
-  const request = parseCaptionSupportRequest(input.supportRequest, payload)
+  const request = parseCaptionTrackAllSupportRequest(
+    input.supportRequest,
+    payload,
+  )
   const packet = parseCaptionTrackAllEvidencePacket(input.packet, {
     payload,
     supportRequest: request,
@@ -773,7 +788,7 @@ export function parseCanonicalCaptionTrackAllAuthenticatedEvidenceRecord(
   const supportPayload = parseCaptionTrackAllSupportPayload(
     envelope.supportPayload,
   )
-  const supportRequest = parseCaptionSupportRequest(
+  const supportRequest = parseCaptionTrackAllSupportRequest(
     envelope.supportRequest,
     supportPayload,
   )
@@ -865,6 +880,8 @@ export function createCanonicalCaptionTrackAllSupportService(input: {
     CanonicalSam31GpuRuntimeResultStore,
     'rereadResultAdmission'
   >
+  readonly sceneQaAuthorityReadPort:
+    CanonicalTrackAllSam31CaptionSceneQaAuthorityReadPort
   readonly sceneEvidenceRepository:
     CanonicalTrackAllSam31CaptionSceneEvidenceRepository
   readonly evidenceRepository: CanonicalCaptionTrackAllEvidenceRepository
@@ -888,6 +905,9 @@ export function createCanonicalCaptionTrackAllSupportService(input: {
       const expectedResultRef = domainRefSchema.parse(
         value.runtimeResultAdmissionRef,
       )
+      const expectedSceneQaAuthorityRef = domainRefSchema.parse(
+        value.trackAllSceneQaAuthorityRef,
+      )
       const expectedSceneEvidenceRef = domainRefSchema.parse(
         value.trackAllSceneEvidenceRef,
       )
@@ -903,7 +923,10 @@ export function createCanonicalCaptionTrackAllSupportService(input: {
         throw new Error('Caption Track All request is not current.')
       }
       const payload = parseCaptionTrackAllSupportPayload(selected.typedPayload)
-      const supportRequest = parseCaptionSupportRequest(selected, payload)
+      const supportRequest = parseCaptionTrackAllSupportRequest(
+        selected,
+        payload,
+      )
       if (authenticatedOwnerUserId !== payload.canonicalScope.ownerUserId) {
         throw new Error('Caption Track All authenticated owner mismatch.')
       }
@@ -922,6 +945,14 @@ export function createCanonicalCaptionTrackAllSupportService(input: {
       if (!sameDomainRef(resultRef, expectedResultRef)) {
         throw new Error('SAM 3.1 result admission reference mismatch.')
       }
+      const sceneQaAuthority =
+        await input.sceneQaAuthorityReadPort.rereadAuthority({
+          authorityRef: expectedSceneQaAuthorityRef,
+        })
+      if (!sceneQaAuthority || !sameDomainRef(
+        sceneQaAuthorityRef(sceneQaAuthority),
+        expectedSceneQaAuthorityRef,
+      )) throw new Error('Track All task-level QA authority is unavailable.')
       const sceneEvidence =
         await input.sceneEvidenceRepository.rereadByRef({
           evidenceRef: expectedSceneEvidenceRef,
@@ -930,6 +961,17 @@ export function createCanonicalCaptionTrackAllSupportService(input: {
         sceneEvidenceRef(sceneEvidence),
         expectedSceneEvidenceRef,
       )) throw new Error('Track All independent scene evidence is unavailable.')
+      if (
+        sceneQaAuthority.invocationId !== invocationId
+        || !sameDomainRef(sceneQaAuthority.sam31TaskRef,
+          taskDomainRef(task))
+        || !sameDomainRef(sceneQaAuthority.sam31RuntimeResultAdmissionRef,
+          resultRef)
+        || !sameDomainRef(sceneQaAuthority.captionSceneEvidenceRef,
+          sceneEvidenceRef(sceneEvidence))
+        || !sameDomainRef(sceneQaAuthority.supportRequestRef,
+          requestRef(supportRequest))
+      ) throw new Error('Track All task-level QA authority lost lineage.')
       assertRuntimeMatchesCaption({
         payload,
         supportRequest,
@@ -1002,6 +1044,8 @@ export function createCanonicalCaptionTrackAllSupportService(input: {
         ),
         sam31TaskRef: taskDomainRef(task),
         sam31RuntimeResultAdmissionRef: resultRef,
+        trackAllSceneQaAuthorityRef:
+          sceneQaAuthorityRef(sceneQaAuthority),
         trackAllSceneEvidenceRef: sceneEvidenceRef(sceneEvidence),
         captionEvidencePacket: packet,
         captionAdmission: admission,
@@ -1306,6 +1350,7 @@ function createRecord(input: {
   backendTrackAllSupportRequestRef: CaptionDomainRef
   sam31TaskRef: CaptionDomainRef
   sam31RuntimeResultAdmissionRef: CaptionDomainRef
+  trackAllSceneQaAuthorityRef: CaptionDomainRef
   trackAllSceneEvidenceRef: CaptionDomainRef
   captionEvidencePacket: CaptionTrackAllEvidencePacket
   captionAdmission: CaptionTrackAllAdmission
@@ -1330,6 +1375,8 @@ function createRecord(input: {
     sam31TaskRef: structuredClone(input.sam31TaskRef),
     sam31RuntimeResultAdmissionRef:
       structuredClone(input.sam31RuntimeResultAdmissionRef),
+    trackAllSceneQaAuthorityRef:
+      structuredClone(input.trackAllSceneQaAuthorityRef),
     trackAllSceneEvidenceRef:
       structuredClone(input.trackAllSceneEvidenceRef),
     captionEvidencePacket: structuredClone(input.captionEvidencePacket),
@@ -1341,6 +1388,7 @@ function createRecord(input: {
     backendTrackAllCallAndSupportRequestExactReread: true,
     distinctCaptionAndBackendSupportWireIdentitiesPreserved: true,
     sam31TaskAndResultExactReread: true,
+    taskLevelSceneQaAuthorityExactReread: true,
     independentSceneEvidenceExactReread: true,
     exactCaptionScopeOutputSceneRangeSourceAndFrameBindingVerified: true,
     ownerProjectionCreateOnlyPersisted: true,
@@ -1363,7 +1411,7 @@ function createRecord(input: {
   })
 }
 
-function parseCaptionSupportRequest(
+export function parseCaptionTrackAllSupportRequest(
   value: unknown,
   payload: CaptionTrackAllSupportPayload,
 ): SkillSupportRequest {
@@ -1482,6 +1530,13 @@ function sceneEvidenceRef(
 ): CaptionDomainRef {
   return { id: evidence.evidenceId, version: evidence.schemaVersion,
     contentHash: evidence.evidenceDigestSha256 }
+}
+
+function sceneQaAuthorityRef(
+  authority: CanonicalTrackAllSam31CaptionSceneQaAuthority,
+): CaptionDomainRef {
+  return { id: authority.authorityId, version: authority.schemaVersion,
+    contentHash: authority.authorityDigestSha256 }
 }
 
 function supportPayloadRef(
@@ -1694,6 +1749,8 @@ function assertPorts(input: {
     CanonicalSam31GpuRuntimeResultStore,
     'rereadResultAdmission'
   >
+  sceneQaAuthorityReadPort:
+    CanonicalTrackAllSam31CaptionSceneQaAuthorityReadPort
   sceneEvidenceRepository: CanonicalTrackAllSam31CaptionSceneEvidenceRepository
   evidenceRepository: CanonicalCaptionTrackAllEvidenceRepository
 }): void {
@@ -1712,6 +1769,7 @@ function assertPorts(input: {
     || typeof input.taskStore?.rereadTask !== 'function'
     || typeof input.taskContextRepository?.rereadTaskContext !== 'function'
     || typeof input.resultStore?.rereadResultAdmission !== 'function'
+    || typeof input.sceneQaAuthorityReadPort?.rereadAuthority !== 'function'
     || typeof input.sceneEvidenceRepository?.rereadByRef !== 'function'
     || typeof input.evidenceRepository?.persistCreateOnly !== 'function'
     || typeof input.evidenceRepository?.rereadBySupportRequestRef

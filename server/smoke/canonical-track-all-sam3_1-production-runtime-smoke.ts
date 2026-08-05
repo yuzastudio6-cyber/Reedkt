@@ -26,7 +26,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v2')
+  'canonical-track-all-sam3_1-production-runtime-v3')
 assert.equal(runtime.runtimeMode,
   'cloud_run_gcs_user_triggered_scale_from_zero')
 assert.equal(runtime.a100HeavyPrimary, true)
@@ -43,12 +43,20 @@ assert.equal(
   'canonical-track-all-sam3_1-caption-scene-evidence-repository-v1',
 )
 assert.equal(
+  runtime.captionTrackAllTaskQaRepository.schemaVersion,
+  'canonical-track-all-sam3_1-task-qa-repository-v1',
+)
+assert.equal(
+  runtime.captionTrackAllTaskQaOwner.schemaVersion,
+  'canonical-track-all-sam3_1-task-qa-owner-v1',
+)
+assert.equal(
   runtime.captionTrackAllEvidenceRepository.schemaVersion,
-  'canonical-caption-track-all-evidence-repository-v1',
+  'canonical-caption-track-all-evidence-repository-v2',
 )
 assert.equal(
   runtime.captionTrackAllSupportService.schemaVersion,
-  'canonical-caption-track-all-support-service-v1',
+  'canonical-caption-track-all-support-service-v2',
 )
 assert.equal(
   runtime.captionTrackAllEvidenceRequiresAdmittedCanonicalSam31Result,
@@ -93,7 +101,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 32,
+  checks: 36,
   localAndMockRuntimeMounted: false,
   cloudRunGcsCompositionMounted: true,
   authenticatedRouteUsesDurableProductionRuntime: true,
@@ -102,6 +110,8 @@ console.log(JSON.stringify({
   captionTrackAllSupportResumeAndEvidenceRepositoriesMounted: true,
   captionTrackAllRequiresCanonicalSam31TaskResultReread: true,
   captionTrackAllRequiresTaskLevelIndependentMaskQa: true,
+  captionTrackAllTaskLevelQaOwnerMounted: true,
+  captionTrackAllTaskLevelQaRequiresL4KorniaCudaAndOpenCv: true,
   captionTrackAllRequiresPrivateVisualReview: true,
   a100HeavyPrimary: true,
   l4HeavyFallbackSeparatelyQualified: true,

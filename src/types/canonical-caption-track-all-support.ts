@@ -20,7 +20,7 @@ import type {
 export const CANONICAL_TRACK_ALL_SAM3_1_CAPTION_SCENE_EVIDENCE_VERSION =
   'canonical-track-all-sam3_1-caption-scene-evidence-v1' as const
 export const CANONICAL_CAPTION_TRACK_ALL_AUTHENTICATED_EVIDENCE_RECORD_VERSION =
-  'canonical-caption-track-all-authenticated-evidence-record-v1' as const
+  'canonical-caption-track-all-authenticated-evidence-record-v2' as const
 
 /**
  * Immutable task-level evidence emitted by the Track All owner after the
@@ -90,6 +90,7 @@ export interface CanonicalCaptionTrackAllAuthenticatedEvidenceRecord {
   backendTrackAllSupportRequestRef: CaptionDomainRef
   sam31TaskRef: CaptionDomainRef
   sam31RuntimeResultAdmissionRef: CaptionDomainRef
+  trackAllSceneQaAuthorityRef: CaptionDomainRef
   trackAllSceneEvidenceRef: CaptionDomainRef
   captionEvidencePacket: CaptionTrackAllEvidencePacket
   captionAdmission: CaptionTrackAllAdmission
@@ -100,6 +101,7 @@ export interface CanonicalCaptionTrackAllAuthenticatedEvidenceRecord {
   backendTrackAllCallAndSupportRequestExactReread: true
   distinctCaptionAndBackendSupportWireIdentitiesPreserved: true
   sam31TaskAndResultExactReread: true
+  taskLevelSceneQaAuthorityExactReread: true
   independentSceneEvidenceExactReread: true
   exactCaptionScopeOutputSceneRangeSourceAndFrameBindingVerified: true
   ownerProjectionCreateOnlyPersisted: true

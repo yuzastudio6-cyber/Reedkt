@@ -36,8 +36,13 @@ import {
   parseCanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
   parseCanonicalTrackAllSam31CaptionSceneEvidence,
   parseCaptionTrackAllSupportPayload,
-  sealCanonicalTrackAllSam31CaptionSceneEvidence,
 } from '../services/canonical-caption-track-all-support-service'
+import {
+  createCanonicalTrackAllSam31TaskQaOwner,
+  createCanonicalTrackAllSam31TaskQaRepository,
+  sealCanonicalTrackAllSam31L4MaskQaMeasurement,
+  sealCanonicalTrackAllSam31PrivateSceneReview,
+} from '../services/canonical-track-all-sam3_1-task-qa-owner'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -87,9 +92,13 @@ const sceneEvidenceRepository =
     objectPort: controlPort,
     prefix: 'private/smoke/caption-track-all/scene-evidence/v1',
   })
+const taskQaRepository = createCanonicalTrackAllSam31TaskQaRepository({
+  objectPort: controlPort,
+  prefix: 'private/smoke/caption-track-all/task-qa/v1',
+})
 const evidenceRepository = createCanonicalCaptionTrackAllEvidenceRepository({
   objectPort: controlPort,
-  prefix: 'private/smoke/caption-track-all/records/v1',
+  prefix: 'private/smoke/caption-track-all/records/v2',
 })
 
 const backendSupport = createSkillSupportRequest({
@@ -233,14 +242,8 @@ assert.equal(await supportResumeRepository.persistCallResultPairCreateOnly({
 
 const maskSequenceRef = domainRef(captionResult.maskSequenceArtifactRef)
 const trackManifestRef = domainRef(captionResult.manifestRef)
-const independentQaRef = rawRef(
-  'track-all-independent-mask-qa',
-  'canonical-track-all-independent-mask-qa-v1',
-)
-const privateReviewRef = rawRef(
-  'track-all-private-visual-review',
-  'canonical-track-all-private-visual-review-v1',
-)
+const korniaExecutionRef = rawRef('track-all-l4-kornia-cuda-execution')
+const opencvExecutionRef = rawRef('track-all-l4-opencv-crosscheck-execution')
 const subjectEvidence: CaptionTrackAllSubjectEvidence = {
   subjectRequestId: payload.subjectRequests[0]!.subjectRequestId,
   subjectEvidenceId: 'caption-primary-subject-evidence',
@@ -272,7 +275,7 @@ const subjectEvidence: CaptionTrackAllSubjectEvidence = {
     operation: 'temporal_median_check',
     inputArtifactRef: maskSequenceRef,
     outputArtifactRef: maskSequenceRef,
-    executionEvidenceRef: independentQaRef,
+    executionEvidenceRef: opencvExecutionRef,
     actualExecutionObserved: true,
   }, {
     refinementId: 'caption-kornia-edge-measurement',
@@ -280,30 +283,27 @@ const subjectEvidence: CaptionTrackAllSubjectEvidence = {
     operation: 'edge_feather_measurement',
     inputArtifactRef: maskSequenceRef,
     outputArtifactRef: maskSequenceRef,
-    executionEvidenceRef: independentQaRef,
+    executionEvidenceRef: korniaExecutionRef,
     actualExecutionObserved: true,
   }],
-  evidenceRefs: [independentQaRef, privateReviewRef],
+  evidenceRefs: [opencvExecutionRef, korniaExecutionRef],
 }
-const sceneEvidence = sealCanonicalTrackAllSam31CaptionSceneEvidence({
-  schemaVersion: 'canonical-track-all-sam3_1-caption-scene-evidence-v1',
-  evidenceId: 'caption-track-all-scene-evidence',
+const captionTaskRef = rawRef(
+  captionTask.taskId,
+  captionTask.schemaVersion,
+  captionTask.taskRecordHash,
+)
+const captionResultRef = rawRef(
+  captionResult.resultAdmissionId,
+  captionResult.schemaVersion,
+  captionResult.resultAdmissionHash,
+)
+const measurement = sealCanonicalTrackAllSam31L4MaskQaMeasurement({
+  schemaVersion: 'canonical-track-all-sam3_1-l4-mask-qa-measurement-v1',
+  measurementId: 'caption-track-all-l4-mask-qa-measurement',
   invocationId: captionTask.invocationId,
-  taskRef: rawRef(
-    captionTask.taskId,
-    captionTask.schemaVersion,
-    captionTask.taskRecordHash,
-  ),
-  runtimeResultAdmissionRef: rawRef(
-    captionResult.resultAdmissionId,
-    captionResult.schemaVersion,
-    captionResult.resultAdmissionHash,
-  ),
-  trackAllResultRef: rawRef(
-    captionResult.resultAdmissionId,
-    captionResult.schemaVersion,
-    captionResult.resultAdmissionHash,
-  ),
+  sam31TaskRef: captionTaskRef,
+  sam31RuntimeResultAdmissionRef: captionResultRef,
   canonicalScope: structuredClone(payload.canonicalScope),
   sourcePrivateArtifactRef: structuredClone(payload.sourcePrivateArtifactRef),
   sourceFrameMappingRef: structuredClone(payload.sourceFrameMappingRef),
@@ -314,46 +314,171 @@ const sceneEvidence = sealCanonicalTrackAllSam31CaptionSceneEvidence({
   ),
   requestedRange: structuredClone(payload.requestedRange),
   subjectEvidence: [subjectEvidence],
-  independentMaskArtifactQaRef: independentQaRef,
-  privateVisualReviewRef: privateReviewRef,
-  cache: {
-    cacheIdentityDigestSha256: payload.cachePolicy.cacheIdentityDigestSha256,
-    disposition: 'new_result',
-    originalResultRef: null,
-    exactSourceRangeSubjectFrameAndPolicyMatch: true,
-    staleArtifactReused: false,
+  l4QaExecution: {
+    routeId: 'l4_standard_primary',
+    gpuProfileId: 'quality_l4_user_triggered_standard_media_job_v1',
+    accelerator: 'nvidia_l4',
+    approvedWorkItemRef: rawRef('track-all-l4-qa-work-item'),
+    workerLeaseRef: rawRef('track-all-l4-qa-worker-lease'),
+    executionAttemptRef: rawRef('track-all-l4-qa-attempt'),
+    currentAccountPriceAuthorityRef: rawRef('track-all-l4-price-authority'),
+    workerUsageEvidenceRef: rawRef('track-all-l4-worker-usage'),
+    attemptCostReceiptRef: rawRef('track-all-l4-attempt-cost'),
+    korniaCudaExecutionEvidenceRef: korniaExecutionRef,
+    opencvCrosscheckExecutionEvidenceRef: opencvExecutionRef,
+    actualL4GpuExecutionObserved: true,
+    actualKorniaCudaKernelExecutionObserved: true,
+    actualOpenCvCrosscheckExecutionObserved: true,
+    cpuOnlySubstantiveMaskQaUsed: false,
+    userTriggeredAfterApprovedWork: true,
+    terminalWorkerStoppedAndScaleBackToZeroVerified: true,
+    exactAccountEffectiveAttemptCostPersisted: true,
   },
-  exactTaskResultAndPrivateArtifactReread: true,
-  exactApprovedSnapshotOutputSceneRangeAndSourceBindingVerified: true,
-  actualSam31GpuExecutionObserved: true,
-  actualOpenCvExecutionObserved: true,
-  actualKorniaExecutionObserved: true,
-  independentMaskArtifactQaCompleted: true,
-  privateVisualReviewCompleted: true,
-  completeRequestedRangeCoverageVerified: true,
-  browserOrCallerQaClaimsAccepted: false,
-  rawMaskMediaBytesPathsUrlsOrCredentialsIncluded: false,
+  everyRequestedFrameAndSubjectMeasured: true,
+  sampledOrRepresentativeOnlyMeasurementAccepted: false,
+  exactMaskManifestAndEveryMaskPngReread: true,
+  browserOrCallerMeasurementAccepted: false,
+  pathsUrlsCredentialsOrMediaBytesIncluded: false,
   customerCreditsMutated: false,
   qaApprovalGranted: false,
   assetManifestMutated: false,
   renderAuthorized: false,
   publicDeliveryAuthorized: false,
   productionAuthorityGranted: false,
-  recordedAt: '2026-08-05T18:01:00.000Z',
+  measuredAt: '2026-08-05T18:01:00.000Z',
 })
-assert.equal(await sceneEvidenceRepository.persistCreateOnly({
-  evidence: sceneEvidence,
+assert.equal(await taskQaRepository.persistMeasurementCreateOnly({
+  measurement,
 }), 'created')
+const privateReview = sealCanonicalTrackAllSam31PrivateSceneReview({
+  schemaVersion: 'canonical-track-all-sam3_1-private-scene-review-v1',
+  reviewId: 'caption-track-all-private-scene-review',
+  measurementRef: rawRef(
+    measurement.measurementId,
+    measurement.schemaVersion,
+    measurement.measurementDigestSha256,
+  ),
+  sam31TaskRef: captionTaskRef,
+  sam31RuntimeResultAdmissionRef: captionResultRef,
+  canonicalScope: structuredClone(payload.canonicalScope),
+  requestedRange: structuredClone(payload.requestedRange),
+  reviewedSubjectEvidenceIds: [subjectEvidence.subjectEvidenceId],
+  fullResolutionCompleteIntervalPlaybackRef:
+    rawRef('track-all-private-complete-interval-playback'),
+  reviewerIdentityRef: rawRef('track-all-independent-private-reviewer'),
+  reviewerRole: 'independent_private_track_all_visual_reviewer',
+  reviewedFrameCount: 240,
+  expectedFrameCount: 240,
+  findingCodes: [],
+  everyRequestedFrameAndSubjectReviewed: true,
+  completeIntervalReviewAccepted: true,
+  sampledOrRepresentativeOnlyReviewAccepted: false,
+  reviewerIndependentFromSamAndMaskQaWorkers: true,
+  browserOrCallerReviewAccepted: false,
+  providerOrModelCallMade: false,
+  pathsUrlsCredentialsOrMediaBytesIncluded: false,
+  customerCreditsMutated: false,
+  qaApprovalGranted: false,
+  assetManifestMutated: false,
+  renderAuthorized: false,
+  publicDeliveryAuthorized: false,
+  productionAuthorityGranted: false,
+  reviewedAt: '2026-08-05T18:02:00.000Z',
+})
+assert.equal(await taskQaRepository.persistReviewCreateOnly({
+  review: privateReview,
+}), 'created')
+
+const taskContextRepository = {
+  async rereadTaskContext() {
+    return structuredClone(captionContext)
+  },
+}
+const taskQaOwner = createCanonicalTrackAllSam31TaskQaOwner({
+  supportResumeRepository,
+  taskStore,
+  taskContextRepository,
+  resultStore,
+  qaRepository: taskQaRepository,
+  sceneEvidenceRepository,
+})
+const sceneQaAuthority = await taskQaOwner.admitCaptionSceneEvidence({
+  authenticatedOwnerUserId: payload.canonicalScope.ownerUserId,
+  priorCallRef: callRef(captionCall),
+  selectedSupportRequestRef: requestRef(captionSupportRequest),
+  invocationId: captionTask.invocationId,
+  measurementRef: rawRef(
+    measurement.measurementId,
+    measurement.schemaVersion,
+    measurement.measurementDigestSha256,
+  ),
+  privateSceneReviewRef: rawRef(
+    privateReview.reviewId,
+    privateReview.schemaVersion,
+    privateReview.reviewDigestSha256,
+  ),
+  admittedAt: '2026-08-05T18:03:00.000Z',
+})
+
+const {
+  measurementDigestSha256: discardedMeasurementDigest,
+  ...failingMeasurementInput
+} = structuredClone(measurement)
+assert.equal(typeof discardedMeasurementDigest, 'string')
+failingMeasurementInput.measurementId =
+  'caption-track-all-l4-mask-qa-measurement-failing'
+failingMeasurementInput.subjectEvidence[0]!
+  .temporalQa.minimumBinaryIntersectionOverUnionBasisPoints = 6_999
+const failingMeasurement =
+  sealCanonicalTrackAllSam31L4MaskQaMeasurement(failingMeasurementInput)
+assert.equal(await taskQaRepository.persistMeasurementCreateOnly({
+  measurement: failingMeasurement,
+}), 'created')
+const {
+  reviewDigestSha256: discardedReviewDigest,
+  ...failingReviewInput
+} = structuredClone(privateReview)
+assert.equal(typeof discardedReviewDigest, 'string')
+failingReviewInput.reviewId = 'caption-track-all-private-scene-review-failing'
+failingReviewInput.measurementRef = rawRef(
+  failingMeasurement.measurementId,
+  failingMeasurement.schemaVersion,
+  failingMeasurement.measurementDigestSha256,
+)
+const failingReview =
+  sealCanonicalTrackAllSam31PrivateSceneReview(failingReviewInput)
+assert.equal(await taskQaRepository.persistReviewCreateOnly({
+  review: failingReview,
+}), 'created')
+await assert.rejects(() => taskQaOwner.admitCaptionSceneEvidence({
+  authenticatedOwnerUserId: payload.canonicalScope.ownerUserId,
+  priorCallRef: callRef(captionCall),
+  selectedSupportRequestRef: requestRef(captionSupportRequest),
+  invocationId: captionTask.invocationId,
+  measurementRef: rawRef(
+    failingMeasurement.measurementId,
+    failingMeasurement.schemaVersion,
+    failingMeasurement.measurementDigestSha256,
+  ),
+  privateSceneReviewRef: rawRef(
+    failingReview.reviewId,
+    failingReview.schemaVersion,
+    failingReview.reviewDigestSha256,
+  ),
+  admittedAt: '2026-08-05T18:04:00.000Z',
+}), /lost exact lineage or quality/u)
+
+const sceneEvidence = await sceneEvidenceRepository.rereadByRef({
+  evidenceRef: sceneQaAuthority.captionSceneEvidenceRef,
+})
+assert.ok(sceneEvidence)
 
 const service = createCanonicalCaptionTrackAllSupportService({
   supportResumeRepository,
   taskStore,
-  taskContextRepository: {
-    async rereadTaskContext() {
-      return structuredClone(captionContext)
-    },
-  },
+  taskContextRepository,
   resultStore,
+  sceneQaAuthorityReadPort: taskQaRepository,
   sceneEvidenceRepository,
   evidenceRepository,
   now: () => new Date('2026-08-05T18:02:00.000Z'),
@@ -368,10 +493,15 @@ const serviceInput = {
     captionResult.schemaVersion,
     captionResult.resultAdmissionHash,
   ),
+  trackAllSceneQaAuthorityRef: rawRef(
+    sceneQaAuthority.authorityId,
+    sceneQaAuthority.schemaVersion,
+    sceneQaAuthority.authorityDigestSha256,
+  ),
   trackAllSceneEvidenceRef: rawRef(
-    sceneEvidence.evidenceId,
-    sceneEvidence.schemaVersion,
-    sceneEvidence.evidenceDigestSha256,
+    sceneEvidence!.evidenceId,
+    sceneEvidence!.schemaVersion,
+    sceneEvidence!.evidenceDigestSha256,
   ),
 }
 const record = await service.projectAuthenticatedEvidence(serviceInput)
@@ -397,9 +527,12 @@ check(
 )
 check(
   record.distinctCaptionAndBackendSupportWireIdentitiesPreserved
+    && record.taskLevelSceneQaAuthorityExactReread
+    && record.trackAllSceneQaAuthorityRef.contentHash
+      === sceneQaAuthority.authorityDigestSha256
     && record.supportRequestRef.contentHash
       !== record.backendTrackAllSupportRequestRef.contentHash,
-  'The distinct frozen Caption and backend Track All wires must not be cast.',
+  'The distinct Caption/backend wires and task-QA authority must stay bound.',
 )
 check(
   !record.runtimeExecutionPerformedByBridge
@@ -439,6 +572,14 @@ await assert.rejects(() => service.projectAuthenticatedEvidence({
   runtimeResultAdmissionRef: rawRef(
     'wrong-result',
     captionResult.schemaVersion,
+  ),
+}))
+assertions += 1
+await assert.rejects(() => service.projectAuthenticatedEvidence({
+  ...serviceInput,
+  trackAllSceneQaAuthorityRef: rawRef(
+    'wrong-scene-qa-authority',
+    sceneQaAuthority.schemaVersion,
   ),
 }))
 assertions += 1
@@ -497,10 +638,11 @@ console.log(JSON.stringify({
   frozenCaptionTrackAllTypeConsumed: true,
   exactCaptionAndBackendSupportWiresBridgedWithoutCast: true,
   canonicalSam31TaskAndResultOwnerReread: true,
+  taskLevelSceneQaAuthorityCreateOnlyPersistedAndReread: true,
   a100ActualGpuResultRequired: true,
   l4FallbackMustRemainSeparatelyQualified: true,
   userTriggeredScaleFromZeroTerminalVerified: true,
-  taskLevelIndependentOpenCvMaskQaRequired: true,
+  taskLevelIndependentL4KorniaCudaAndOpenCvMaskQaRequired: true,
   taskLevelPrivateVisualReviewRequired: true,
   completeRequestedSceneRangeRequired: true,
   exactSubjectThresholdsApplied: true,
@@ -836,7 +978,7 @@ function withoutField<T extends object>(
   value: T,
   field: keyof T,
 ): Record<string, unknown> {
-  const clone = structuredClone(value) as Record<string, unknown>
+  const clone = structuredClone(value) as unknown as Record<string, unknown>
   delete clone[field as string]
   return clone
 }

@@ -76,7 +76,7 @@ import {
   sourceMediaArtifactV1Schema,
   type SourceMediaArtifactV1,
 } from './b-roll-active-artifact-contracts'
-import { createBrollTrackAllSupportRequest } from './b-roll-track-all-support-bridge'
+import { createBrollTrackAllSupportRequest } from './b-roll-tracking-support-bridge'
 import {
   BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE,
   assertBrollVisualIntelligenceCandidateQa,

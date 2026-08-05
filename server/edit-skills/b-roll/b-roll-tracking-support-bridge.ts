@@ -28,7 +28,7 @@ export const BROLL_TRACK_ALL_SUPPORT_REQUEST_CONTRACT = Object.freeze({
 })
 
 /**
- * Public, type-only adapter from a B-Roll dependency request to the generic
+ * Public, type-only adapter from a B-Roll tracking dependency request to the generic
  * owner-support request accepted by Track All. It carries no dispatch or
  * execution authority.
  */

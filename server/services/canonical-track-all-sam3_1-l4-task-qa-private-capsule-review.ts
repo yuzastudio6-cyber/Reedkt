@@ -167,6 +167,18 @@ const dependencyWithoutHashSchema = z.object({
     pythonVersion: z.literal('3.12'),
     torchVersion: z.literal('2.10.0+cu128'),
     cudaToolkitVersion: z.literal('12.8'),
+    cudaRuntimeLibraryDirectories: z.tuple([
+      z.literal(
+        '/usr/local/lib/python3.12/dist-packages/nvidia/cublas/lib',
+      ),
+      z.literal(
+        '/usr/local/lib/python3.12/dist-packages/nvidia/cuda_runtime/lib',
+      ),
+      z.literal(
+        '/usr/local/lib/python3.12/dist-packages/nvidia/cufft/lib',
+      ),
+    ]),
+    baseCudaLibrariesRereadDuringBuild: z.literal(true),
     immutableDigestPinned: z.literal(true),
     transitiveSbomAndVulnerabilityRereadRequiredAfterBuild: z.literal(true),
   }).strict(),
@@ -530,6 +542,12 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews(
       pythonVersion: '3.12',
       torchVersion: '2.10.0+cu128',
       cudaToolkitVersion: '12.8',
+      cudaRuntimeLibraryDirectories: [
+        '/usr/local/lib/python3.12/dist-packages/nvidia/cublas/lib',
+        '/usr/local/lib/python3.12/dist-packages/nvidia/cuda_runtime/lib',
+        '/usr/local/lib/python3.12/dist-packages/nvidia/cufft/lib',
+      ],
+      baseCudaLibrariesRereadDuringBuild: true,
       immutableDigestPinned: true,
       transitiveSbomAndVulnerabilityRereadRequiredAfterBuild: true,
     },

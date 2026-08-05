@@ -36,7 +36,7 @@ ENV HF_HUB_OFFLINE=1 \
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
   PYTHONPATH=/opt/weeditpro/track-all-task-qa/python-packages:/opt/weeditpro/opencv-cuda/python \
-  LD_LIBRARY_PATH=/opt/weeditpro/opencv-cuda/lib:/opt/weeditpro/cuda-npp/lib:/usr/local/cuda-12.8/compat:/usr/local/cuda/lib64 \
+  LD_LIBRARY_PATH=/opt/weeditpro/opencv-cuda/lib:/opt/weeditpro/cuda-npp/lib:/usr/local/cuda-12.8/compat:/usr/local/lib/python3.12/dist-packages/nvidia/cublas/lib:/usr/local/lib/python3.12/dist-packages/nvidia/cuda_runtime/lib:/usr/local/lib/python3.12/dist-packages/nvidia/cufft/lib:/usr/local/cuda/lib64 \
   CUDA_MODULE_LOADING=LAZY \
   NVIDIA_VISIBLE_DEVICES=all \
   NVIDIA_DRIVER_CAPABILITIES=compute,utility
@@ -91,6 +91,10 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   && dpkg-deb --extract \
     /tmp/track-all-task-qa-private-build-input/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb / \
   && test -r /usr/local/cuda-12.8/compat/libcuda.so.1 \
+  && test -r /usr/local/lib/python3.12/dist-packages/nvidia/cublas/lib/libcublas.so.12 \
+  && test -r /usr/local/lib/python3.12/dist-packages/nvidia/cublas/lib/libcublasLt.so.12 \
+  && test -r /usr/local/lib/python3.12/dist-packages/nvidia/cuda_runtime/lib/libcudart.so.12 \
+  && test -r /usr/local/lib/python3.12/dist-packages/nvidia/cufft/lib/libcufft.so.11 \
   && mkdir -p /opt/weeditpro/opencv-cuda /opt/weeditpro/cuda-npp/lib \
   && cp --archive \
     /tmp/track-all-task-qa-private-build-input/opencv/install/. \

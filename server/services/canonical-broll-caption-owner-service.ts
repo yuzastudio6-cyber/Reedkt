@@ -527,9 +527,9 @@ function assertCanonicalArtifacts(input: {
     media.planHash !== publicPlan.envelope.planHash ||
     media.approvedWorkGraphHash !== approvedWorkGraph.approvedWorkGraphHash ||
     layer.assignmentReference.assignmentId !== assignment.assignmentId ||
-    layer.assignmentReference.assignmentHash !== publicAssignment.assignmentHash ||
+    layer.assignmentReference.assignmentHash !== assignment.assignmentHash ||
     layer.planReference.planId !== plan.planId ||
-    layer.planReference.planHash !== publicPlan.envelope.planHash ||
+    layer.planReference.planHash !== plan.planHash ||
     layer.exactTimelineRange.startFrameInclusive !== range.startFrameInclusive ||
     layer.exactTimelineRange.endFrameExclusive !== range.endFrameExclusive ||
     layer.exactTimelineRange.fps !== range.fps ||

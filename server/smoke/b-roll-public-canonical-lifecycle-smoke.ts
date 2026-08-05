@@ -1216,7 +1216,10 @@ try {
         outcome.evidenceRecord.recordDigestSha256)
       assert.equal(replay.resumeRecord.recordDigestSha256,
         outcome.resumeRecord.recordDigestSha256)
-      assert.equal(snapshotReads, 4)
+      // The owner finalization, crossed-assignment refusal, first Caption
+      // projection, and exact replay each perform the required two-read
+      // immutable-snapshot comparison.
+      assert.equal(snapshotReads, 8)
       assert.equal(reviewReads, 2)
       const finalReceipt = {
         schemaVersion: 'caption-broll-owner-private-runtime-receipt-v1',

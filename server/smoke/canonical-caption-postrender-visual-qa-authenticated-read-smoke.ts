@@ -11,6 +11,9 @@ import type {
   CanonicalPostrenderVisualQaSharedLifecycleResult,
 } from '../../src/types/canonical-postrender-visual-qa-lifecycle'
 import type {
+  CanonicalPostrenderVisualQaNormalizedResult,
+} from '../../src/types/canonical-postrender-visual-qa-normalized-result'
+import type {
   CanonicalPostrenderVisualQaWorkRequestInput,
 } from '../../src/types/canonical-postrender-visual-qa-work-request'
 import { createReeditProApiApp } from '../app'
@@ -26,8 +29,20 @@ import {
   type CanonicalCaptionPostrenderVisualQaCompletedEnvelope,
 } from '../services/canonical-caption-postrender-visual-qa-evidence-service'
 import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_OWNER_RESULT_PORT_VERSION,
+  readCanonicalCaptionPostrenderVisualQaOwnerResult,
+  type CanonicalCaptionPostrenderVisualQaOwnerResultReadPort,
+} from '../services/canonical-caption-postrender-visual-qa-owner-result-port'
+import {
+  reconcileCanonicalCaptionPostrenderVisualQaOwnerResult,
+} from '../services/canonical-caption-postrender-visual-qa-reconciliation-service'
+import {
   digestCanonicalPostrenderVisualQaSharedLifecycleResult,
 } from '../validation/canonical-postrender-visual-qa-lifecycle-schemas'
+import {
+  digestCanonicalPostrenderVisualQaNormalizedResult,
+  parseCanonicalPostrenderVisualQaNormalizedResult,
+} from '../validation/canonical-postrender-visual-qa-normalized-result-schemas'
 import {
   createCanonicalPostrenderVisualQaWorkRequest,
 } from '../validation/canonical-postrender-visual-qa-work-request-schemas'
@@ -103,26 +118,26 @@ const requestInput: CanonicalPostrenderVisualQaWorkRequestInput = {
     modelInspectsOnlyProvidedSampleArtifacts: true,
     unsampledContentInspectionClaimAllowed: false,
     completeTimeCoverageClaimAllowed: true,
-    samples: [{
-      sampleId: 'sample-caption-visual-qa',
+    samples: Array.from({ length: 120 }, (_, frameNumber) => ({
+      sampleId: `sample-caption-visual-qa-${frameNumber}`,
       segmentId: 'segment-caption-visual-qa',
-      sourceRenderKind: 'full_motion',
-      frameNumber: 60,
+      sourceRenderKind: 'full_motion' as const,
+      frameNumber,
       startFrame: 0,
       endFrameExclusive: 120,
       width: confirmedFrame.width,
       height: confirmedFrame.height,
       pixelFormat: 'rgb24',
       frameArtifactRef: {
-        id: 'frame-caption-visual-qa',
+        id: `frame-caption-visual-qa-${frameNumber}`,
         version: 1,
-        contentHash: hash('frame-caption-visual-qa-bytes'),
+        contentHash: hash(`frame-caption-visual-qa-bytes-${frameNumber}`),
       },
-      frameSha256: sha('frame-caption-visual-qa-bytes'),
+      frameSha256: sha(`frame-caption-visual-qa-bytes-${frameNumber}`),
       createOnlyPersistenceVerified: true,
       exactRereadVerified: true,
       independentArtifactQaPassed: true,
-    }],
+    })),
   },
   inspectionProfile: {
     profileId: 'caption-professional-postrender-visual-qa',
@@ -141,7 +156,6 @@ const requestInput: CanonicalPostrenderVisualQaWorkRequestInput = {
   },
 }
 const workRequest = createCanonicalPostrenderVisualQaWorkRequest(requestInput)
-const lifecycleResult = createLifecycleResult(workRequest)
 const authority = (state: 'not_scheduled' | 'waiting_for_render'
   | 'waiting_for_qualified_ai') =>
   createCanonicalCaptionPostrenderVisualQaOutputAuthority({
@@ -174,6 +188,58 @@ const authority = (state: 'not_scheduled' | 'waiting_for_render'
   })
 
 const completedEnvelope = createEnvelope('passed')
+
+const ownerResultPort: CanonicalCaptionPostrenderVisualQaOwnerResultReadPort = {
+  portVersion:
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_OWNER_RESULT_PORT_VERSION,
+  authorityBoundary: 'canonical_shared_postrender_visual_qa_lifecycle_owner',
+  async readPersistedResult() {
+    return {
+      workRequest: structuredClone(completedEnvelope.workRequest),
+      lifecycleResult: structuredClone(completedEnvelope.lifecycleResult),
+      normalizedResult: structuredClone(completedEnvelope.normalizedResult),
+    }
+  },
+}
+const ownerLocator = {
+  ownerUserId,
+  ...scope,
+  approvedWorkItemId: workRequest.approvedWorkItemRef.id,
+  outputId: confirmedFrame.outputId,
+  confirmedOutputFrameRef: {
+    id: confirmedFrame.id,
+    version: `${confirmedFrame.id}.v1`,
+    contentHash: sha('confirmed-frame-caption-visual-qa'),
+  },
+  requireCompleteTimeCoverage: true as const,
+}
+const exactOwnerResult =
+  await readCanonicalCaptionPostrenderVisualQaOwnerResult({
+    port: ownerResultPort,
+    locator: ownerLocator,
+  })
+check(exactOwnerResult.normalizedResult.decision === 'passed',
+  'Caption coordination must exact-reread the canonical shared-owner decision.')
+const coordinatorRepository =
+  createControlledCanonicalCaptionPostrenderVisualQaEvidenceRepository({
+    authorities: [authority('waiting_for_qualified_ai')],
+  })
+const coordinated =
+  await reconcileCanonicalCaptionPostrenderVisualQaOwnerResult({
+    repository: coordinatorRepository,
+    ownerUserId,
+    ownerResult: exactOwnerResult,
+  })
+check(coordinated.disposition === 'created'
+  && coordinated.exactRereadVerified
+  && coordinated.envelope.evidence.actualCompleteTimeVisualReviewPassed,
+'Caption coordination must reconcile shared-owner evidence create-only without dispatching the provider.')
+await assert.rejects(() =>
+  readCanonicalCaptionPostrenderVisualQaOwnerResult({
+    port: ownerResultPort,
+    locator: { ...ownerLocator, outputId: 'wrong-output' },
+  }))
+assertions += 1
 
 const notFoundRepository =
   createControlledCanonicalCaptionPostrenderVisualQaEvidenceRepository({
@@ -275,6 +341,32 @@ await assert.rejects(() => persistCanonicalCaptionPostrenderVisualQaEvidence({
 }))
 assertions += 1
 
+const incompleteTimelineRequest = createCanonicalPostrenderVisualQaWorkRequest({
+  ...requestInput,
+  samplePlan: {
+    ...requestInput.samplePlan,
+    samples: [requestInput.samplePlan.samples[0]!],
+  },
+})
+await assert.rejects(() => persistCanonicalCaptionPostrenderVisualQaEvidence({
+  repository: completedRepository,
+  envelope: createEnvelope('passed', incompleteTimelineRequest),
+}))
+assertions += 1
+
+const relabeledNormalizedDecision = structuredClone(completedEnvelope)
+relabeledNormalizedDecision.normalizedResult =
+  createNormalizedResult('repair_required')
+relabeledNormalizedDecision.lifecycleResult = createLifecycleResult(
+  workRequest,
+  relabeledNormalizedDecision.normalizedResult,
+)
+await assert.rejects(() => persistCanonicalCaptionPostrenderVisualQaEvidence({
+  repository: completedRepository,
+  envelope: relabeledNormalizedDecision,
+}))
+assertions += 1
+
 const app = createReeditProApiApp(loadRuntimeEnv({
   NODE_ENV: 'test',
   E2E_RUNTIME_MODE: 'mock',
@@ -325,17 +417,20 @@ console.log(JSON.stringify({
 
 function createEnvelope(
   decision: 'passed' | 'repair_required',
+  request = workRequest,
 ): CanonicalCaptionPostrenderVisualQaCompletedEnvelope {
   const passed = decision === 'passed'
+  const normalizedResult = createNormalizedResult(decision, request)
+  const lifecycleResult = createLifecycleResult(request, normalizedResult)
   const evidence = createCanonicalCaptionPostrenderVisualQaEvidence({
     evidenceId: `caption.visual-qa.evidence.${decision}`,
     ownerUserId,
     scope,
     output: authority('waiting_for_qualified_ai').output,
     workRequestRef: {
-      id: workRequest.workRequestId,
+      id: request.workRequestId,
       version: 1,
-      contentHash: workRequest.workRequestDigestSha256,
+      contentHash: request.workRequestDigestSha256,
     },
     lifecycleResultRef: {
       id: lifecycleResult.lifecycleResultId,
@@ -380,26 +475,37 @@ function createEnvelope(
     publicDeliveryAuthority: false,
     productionAuthority: false,
   })
-  return { evidence, workRequest, lifecycleResult }
+  return {
+    evidence,
+    workRequest: request,
+    lifecycleResult,
+    normalizedResult,
+  }
 }
 
 function createLifecycleResult(
   request: ReturnType<typeof createCanonicalPostrenderVisualQaWorkRequest>,
+  normalizedResult: CanonicalPostrenderVisualQaNormalizedResult,
 ): CanonicalPostrenderVisualQaSharedLifecycleResult {
   const providerRequestHash = sha('provider-request-caption-visual-qa')
   const withoutDigest = {
-    schemaVersion: 'canonical-postrender-visual-qa-shared-lifecycle-result-v1',
+    schemaVersion:
+      'canonical-postrender-visual-qa-shared-lifecycle-result-v1' as const,
     lifecycleResultId: 'caption-visual-qa-lifecycle-result-1',
-    sharedProviderCapabilityId: 'qwen2_5_vl_visual_understanding',
-    sharedProviderOperationId: 'postrender_private_visual_qa',
-    sharedProviderOperationVersion: 'postrender-private-visual-qa-v1',
+    sharedProviderCapabilityId: 'qwen2_5_vl_visual_understanding' as const,
+    sharedProviderOperationId: 'postrender_private_visual_qa' as const,
+    sharedProviderOperationVersion: 'postrender-private-visual-qa-v1' as const,
     scope,
     requestRef: {
       id: request.workRequestId,
       version: 1,
       contentHash: request.workRequestDigestSha256,
     },
-    normalizedResultRef: ref('normalized-caption-visual-qa'),
+    normalizedResultRef: {
+      id: normalizedResult.normalizedResultId,
+      version: 1,
+      contentHash: normalizedResult.normalizedResultDigestSha256,
+    },
     providerWorkPackageRef: structuredClone(request.executionPackageRef),
     approvedSnapshotRef: structuredClone(request.approvedSnapshotRef),
     approvedWorkItemRef: structuredClone(request.approvedWorkItemRef),
@@ -429,9 +535,9 @@ function createLifecycleResult(
       attemptOrdinal: 1,
       disposition: 'fresh_execution' as const,
     },
-    providerBoundary: 'qwen2_5_vl_7b_instruct_provider_boundary',
-    canonicalProviderModel: 'qwen2.5-vl-7b-instruct',
-    modelRoleId: 'qwen2_5_vl_visual_understanding',
+    providerBoundary: 'qwen2_5_vl_7b_instruct_provider_boundary' as const,
+    canonicalProviderModel: 'qwen2.5-vl-7b-instruct' as const,
+    modelRoleId: 'qwen2_5_vl_visual_understanding' as const,
     requestedModelUse: 'visual_understanding' as const,
     startedAt: '2026-08-05T10:00:00.000Z',
     finishedAt: '2026-08-05T10:00:05.000Z',
@@ -468,4 +574,77 @@ function createLifecycleResult(
     lifecycleResultDigestSha256:
       digestCanonicalPostrenderVisualQaSharedLifecycleResult(provisional),
   }
+}
+
+function createNormalizedResult(
+  decision: 'passed' | 'repair_required',
+  request = workRequest,
+): CanonicalPostrenderVisualQaNormalizedResult {
+  const passed = decision === 'passed'
+  const provisional: CanonicalPostrenderVisualQaNormalizedResult = {
+    schemaVersion: 'canonical-postrender-visual-qa-normalized-result-v1',
+    normalizedResultDigestSha256: hash('placeholder-normalized-result'),
+    normalizedResultId: `normalized-caption-visual-qa-${decision}`,
+    scope,
+    output: {
+      outputId: confirmedFrame.outputId,
+      aspectRatio: confirmedFrame.aspectRatio,
+      width: confirmedFrame.width,
+      height: confirmedFrame.height,
+      fpsNumerator: confirmedFrame.fps,
+      fpsDenominator: 1,
+      confirmedOutputFrameRef: {
+        id: confirmedFrame.id,
+        version: `${confirmedFrame.id}.v1`,
+        contentHash: sha('confirmed-frame-caption-visual-qa'),
+      },
+      confirmedByUser: true,
+      confirmationRecordId: confirmedFrame.confirmationRecordId,
+    },
+    requestRef: {
+      id: request.workRequestId,
+      version: 1,
+      contentHash: request.workRequestDigestSha256,
+    },
+    providerExecutionReceiptRef: ref('provider-execution-caption-visual-qa'),
+    persistedEvidenceArtifactRef: ref('persisted-caption-visual-qa'),
+    independentArtifactQaRef: ref('independent-caption-visual-qa'),
+    assetManifestReconciliationRef: ref('manifest-caption-visual-qa'),
+    decision,
+    userFacingSummary: passed
+      ? 'Caption placement, readability, timing, and motion passed complete-time visual inspection.'
+      : 'One Caption treatment needs the smallest approved repair and another inspection.',
+    deterministicQaPassed: true,
+    exactApprovedRenderBound: true,
+    actualModelInferenceVerified: true,
+    deterministicAndModelEvidenceAgree: passed,
+    canonicalEvidenceReconciled: true,
+    modelInspectionCoverage: {
+      scope: 'complete_segment_coverage',
+      sampledSegmentCount: 1,
+      unsampledSegmentCount: 0,
+      modelInspectedOnlyPlannedSamples: true,
+      unsampledSegmentsNeverImpliedInspected: true,
+    },
+    smallestScopeRepairRequired: !passed,
+    privateHumanReviewRequired: false,
+    actualCompleteTimeVisualReviewPassed: passed,
+    rawModelTextIncluded: false,
+    mediaBytesIncluded: false,
+    pathsOrUrlsIncluded: false,
+    browserLocalStateUsed: false,
+    operationDispatchAuthority: false,
+    providerRuntimeAuthority: false,
+    qaApprovalAuthority: false,
+    repairExecutionAuthority: false,
+    assetMutationAuthority: false,
+    creditOrBillingAuthority: false,
+    publicDeliveryAuthority: false,
+    productionAuthority: false,
+  }
+  return parseCanonicalPostrenderVisualQaNormalizedResult({
+    ...provisional,
+    normalizedResultDigestSha256:
+      digestCanonicalPostrenderVisualQaNormalizedResult(provisional),
+  })
 }

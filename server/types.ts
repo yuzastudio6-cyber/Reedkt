@@ -66,6 +66,9 @@ import type {
 import type {
   CanonicalCaptionPostrenderVisualQaEvidenceRepository,
 } from './services/canonical-caption-postrender-visual-qa-evidence-service'
+import type {
+  CanonicalCaptionPostrenderVisualQaOwnerResultReadPort,
+} from './services/canonical-caption-postrender-visual-qa-owner-result-port'
 
 export interface AuthContext {
   userId: string
@@ -162,6 +165,8 @@ export interface RuntimeState {
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
   canonicalCaptionPostrenderVisualQaEvidenceRepository?:
     CanonicalCaptionPostrenderVisualQaEvidenceRepository
+  canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
+    CanonicalCaptionPostrenderVisualQaOwnerResultReadPort
 }
 
 export type RuntimeRequest = Request & {
@@ -232,4 +237,6 @@ export interface ServiceContext {
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
   canonicalCaptionPostrenderVisualQaEvidenceRepository?:
     CanonicalCaptionPostrenderVisualQaEvidenceRepository
+  canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
+    CanonicalCaptionPostrenderVisualQaOwnerResultReadPort
 }

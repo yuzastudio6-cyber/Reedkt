@@ -93,6 +93,9 @@ export function getServiceContext(request: Request): ServiceContext {
     canonicalCaptionPostrenderVisualQaEvidenceRepository:
       runtimeRequest.runtime
         .canonicalCaptionPostrenderVisualQaEvidenceRepository,
+    canonicalCaptionPostrenderVisualQaOwnerResultReadPort:
+      runtimeRequest.runtime
+        .canonicalCaptionPostrenderVisualQaOwnerResultReadPort,
   }
 }
 

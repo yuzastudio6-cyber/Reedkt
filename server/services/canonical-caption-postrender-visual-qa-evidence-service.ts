@@ -10,6 +10,8 @@ import type { CaptionRenderedVisualReviewAuthenticatedOutputScope } from
   '../../src/types/caption-direction-visual-review-authenticated-read'
 import type { CanonicalPostrenderVisualQaSharedLifecycleResult } from
   '../../src/types/canonical-postrender-visual-qa-lifecycle'
+import type { CanonicalPostrenderVisualQaNormalizedResult } from
+  '../../src/types/canonical-postrender-visual-qa-normalized-result'
 import type { CanonicalPostrenderVisualQaWorkRequest } from
   '../../src/types/canonical-postrender-visual-qa-work-request'
 import { assertClosedContractTree } from
@@ -19,15 +21,22 @@ import {
   parseCanonicalPostrenderVisualQaSharedLifecycleResult,
 } from '../validation/canonical-postrender-visual-qa-lifecycle-schemas'
 import {
+  parseCanonicalPostrenderVisualQaNormalizedResult,
+} from '../validation/canonical-postrender-visual-qa-normalized-result-schemas'
+import {
   parseCanonicalPostrenderVisualQaWorkRequest,
 } from '../validation/canonical-postrender-visual-qa-work-request-schemas'
 
 export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_OUTPUT_AUTHORITY_VERSION =
   'canonical-caption-postrender-visual-qa-output-authority-v1' as const
-export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_SERVICE_VERSION =
+export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_SERVICE_V1_VERSION =
   'canonical-caption-postrender-visual-qa-evidence-service-v1' as const
-export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_REPOSITORY_VERSION =
+export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_SERVICE_VERSION =
+  'canonical-caption-postrender-visual-qa-evidence-service-v2' as const
+export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_REPOSITORY_V1_VERSION =
   'canonical-caption-postrender-visual-qa-evidence-repository-v1' as const
+export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_REPOSITORY_VERSION =
+  'canonical-caption-postrender-visual-qa-evidence-repository-v2' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -189,6 +198,7 @@ export interface CanonicalCaptionPostrenderVisualQaCompletedEnvelope {
   evidence: CanonicalCaptionPostrenderVisualQaEvidence
   workRequest: CanonicalPostrenderVisualQaWorkRequest
   lifecycleResult: CanonicalPostrenderVisualQaSharedLifecycleResult
+  normalizedResult: CanonicalPostrenderVisualQaNormalizedResult
 }
 
 export interface CanonicalCaptionPostrenderVisualQaEvidenceRepository {
@@ -262,7 +272,7 @@ export function parseCanonicalCaptionPostrenderVisualQaCompletedEnvelope(
   assertClosedContractTree(value,
     'Canonical Caption post-render visual-QA completed envelope')
   if (!record(value) || !exactKeys(value, [
-    'evidence', 'workRequest', 'lifecycleResult',
+    'evidence', 'workRequest', 'lifecycleResult', 'normalizedResult',
   ])) throw invalid('canonical_caption_visual_qa_envelope_invalid')
   const evidence = parseCanonicalCaptionPostrenderVisualQaEvidence(
     value.evidence)
@@ -271,8 +281,14 @@ export function parseCanonicalCaptionPostrenderVisualQaCompletedEnvelope(
   const lifecycleResult =
     parseCanonicalPostrenderVisualQaSharedLifecycleResult(
       value.lifecycleResult)
-  assertCompletedLineage({ evidence, workRequest, lifecycleResult })
-  return structuredClone({ evidence, workRequest, lifecycleResult })
+  const normalizedResult =
+    parseCanonicalPostrenderVisualQaNormalizedResult(value.normalizedResult)
+  assertCompletedLineage({
+    evidence, workRequest, lifecycleResult, normalizedResult,
+  })
+  return structuredClone({
+    evidence, workRequest, lifecycleResult, normalizedResult,
+  })
 }
 
 export function createControlledCanonicalCaptionPostrenderVisualQaEvidenceRepository(
@@ -395,13 +411,22 @@ function parseOutputAuthority(
 function assertCompletedLineage(
   envelope: CanonicalCaptionPostrenderVisualQaCompletedEnvelope,
 ): void {
-  const { evidence, workRequest, lifecycleResult } = envelope
+  const { evidence, workRequest, lifecycleResult, normalizedResult } = envelope
   const samples = workRequest.samplePlan.samples
   const lifecycleSamples = lifecycleResult.sampledFrameRefs
+  const fullMotionFrameNumbers = new Set(samples
+    .filter((sample) => sample.sourceRenderKind === 'full_motion')
+    .map((sample) => sample.frameNumber))
+  const completeTimelineFramesInspected =
+    fullMotionFrameNumbers.size === workRequest.render.frameCount
+    && workRequest.render.frameCount <= 4_096
+    && Array.from({ length: workRequest.render.frameCount }, (_, frame) => frame)
+      .every((frame) => fullMotionFrameNumbers.has(frame))
   if (
     !sameScope(evidence.scope, workRequest.scope)
     || !sameScope(evidence.scope, lifecycleResult.scope)
     || evidence.ownerUserId !== workRequest.scope.ownerUserId
+    || !sameScope(evidence.scope, normalizedResult.scope)
     || evidence.workRequestRef.id !== workRequest.workRequestId
     || evidence.workRequestRef.version !== 1
     || evidence.workRequestRef.contentHash !== workRequest.workRequestDigestSha256
@@ -423,6 +448,47 @@ function assertCompletedLineage(
       !== lifecycleResult.lifecycleResultDigestSha256
     || refKey(evidence.normalizedDecisionRef)
       !== refKey(lifecycleResult.normalizedResultRef)
+    || normalizedResult.normalizedResultId
+      !== lifecycleResult.normalizedResultRef.id
+    || lifecycleResult.normalizedResultRef.version !== 1
+    || normalizedResult.normalizedResultDigestSha256
+      !== lifecycleResult.normalizedResultRef.contentHash
+    || refKey(normalizedResult.requestRef) !== refKey(evidence.workRequestRef)
+    || normalizedResult.output.outputId !== evidence.output.outputId
+    || normalizedResult.output.width !== evidence.output.width
+    || normalizedResult.output.height !== evidence.output.height
+    || normalizedResult.output.fpsNumerator
+      / normalizedResult.output.fpsDenominator !== evidence.output.fps
+    || normalizedResult.output.confirmedByUser !== true
+    || normalizedResult.output.confirmationRecordId
+      !== evidence.output.confirmationRecordId
+    || normalizedResult.decision !== evidence.decision
+    || normalizedResult.userFacingSummary !== evidence.userFacingSummary
+    || normalizedResult.deterministicQaPassed !== evidence.deterministicQaPassed
+    || normalizedResult.exactApprovedRenderBound
+      !== evidence.exactApprovedRenderBound
+    || normalizedResult.actualModelInferenceVerified
+      !== evidence.actualModelInferenceVerified
+    || normalizedResult.deterministicAndModelEvidenceAgree
+      !== evidence.deterministicAndModelEvidenceAgree
+    || normalizedResult.canonicalEvidenceReconciled
+      !== evidence.canonicalEvidenceReconciled
+    || canonicalJson(normalizedResult.modelInspectionCoverage)
+      !== canonicalJson(evidence.modelInspectionCoverage)
+    || normalizedResult.smallestScopeRepairRequired
+      !== evidence.smallestScopeRepairRequired
+    || normalizedResult.privateHumanReviewRequired
+      !== evidence.privateHumanReviewRequired
+    || normalizedResult.actualCompleteTimeVisualReviewPassed
+      !== evidence.actualCompleteTimeVisualReviewPassed
+    || refKey(normalizedResult.providerExecutionReceiptRef)
+      !== refKey(evidence.providerExecutionReceiptRef)
+    || refKey(normalizedResult.persistedEvidenceArtifactRef)
+      !== refKey(evidence.persistedEvidenceArtifactRef)
+    || refKey(normalizedResult.independentArtifactQaRef)
+      !== refKey(evidence.independentArtifactQaRef)
+    || refKey(normalizedResult.assetManifestReconciliationRef)
+      !== refKey(evidence.assetManifestReconciliationRef)
     || refKey(lifecycleResult.sampleCollectionRef)
       !== refKey(workRequest.sampleCollectionRef)
     || evidence.output.width !== workRequest.render.width
@@ -452,6 +518,7 @@ function assertCompletedLineage(
       workRequest.samplePlan.coverageScope !== 'complete'
       || !workRequest.samplePlan.completeTimeCoverageClaimAllowed
       || workRequest.samplePlan.unsampledSegmentCount !== 0
+      || !completeTimelineFramesInspected
     ))
   ) throw conflict('canonical_caption_visual_qa_completed_lineage_mismatch')
 }

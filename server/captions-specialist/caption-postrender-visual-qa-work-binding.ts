@@ -50,6 +50,43 @@ const refSchema = z.object({
   version: safeKey,
   contentHash: sha256,
 }).strict()
+const workItemInputSchema: z.ZodType<
+  CanonicalCaptionPostrenderVisualQaWorkItemInput
+> = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_INPUT_VERSION),
+  operation: z.literal(
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION),
+  outputId: safeKey,
+  confirmedOutputFrameRef: refSchema,
+  masterTimingRef: refSchema,
+  canonicalMasterTimingId: safeKey,
+  finalRenderWorkItemKey: safeKey,
+  finalRenderOutputKey: safeKey,
+  deterministicQaWorkItemKey: safeKey,
+  deterministicQaOutputKey: safeKey,
+  workRequestSchemaVersion: z.literal(
+    CANONICAL_POSTRENDER_VISUAL_QA_WORK_REQUEST_VERSION),
+  lifecycleResultSchemaVersion: z.literal(
+    CANONICAL_POSTRENDER_VISUAL_QA_SHARED_LIFECYCLE_RESULT_VERSION),
+  sharedProviderCapabilityId: z.literal(
+    CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_CAPABILITY_ID),
+  sharedProviderOperationId: z.literal(
+    CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_ID),
+  sharedProviderOperationVersion: z.literal(
+    CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_VERSION),
+  authenticatedCaptionReadRequired: z.literal(true),
+  completeTimeCoverageRequired: z.literal(true),
+  sampledFramesCreatedOnlyAfterExactRenderReread: z.literal(true),
+  rawPromptAccepted: z.literal(false),
+  browserCompletionAccepted: z.literal(false),
+  directProviderDispatchRequested: z.literal(false),
+  assetMutationRequested: z.literal(false),
+  qaApprovalRequested: z.literal(false),
+  billingAuthorityRequested: z.literal(false),
+  publicDeliveryRequested: z.literal(false),
+  productionAuthorityRequested: z.literal(false),
+}).strict()
 const bindingWithoutDigestSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_VERSION),
@@ -258,6 +295,14 @@ export function parseCanonicalCaptionPostrenderVisualQaWorkBinding(
     )
   }
   return structuredClone(parsed)
+}
+
+export function parseCanonicalCaptionPostrenderVisualQaWorkItemInput(
+  value: unknown,
+): CanonicalCaptionPostrenderVisualQaWorkItemInput {
+  assertClosedContractTree(value,
+    'Canonical Caption post-render visual-QA work-item input')
+  return structuredClone(workItemInputSchema.parse(value))
 }
 
 export function prepareCanonicalCaptionPostrenderVisualQaWorkBinding(input: {

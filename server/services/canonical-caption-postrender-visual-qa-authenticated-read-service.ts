@@ -30,6 +30,8 @@ import {
 } from './canonical-caption-postrender-visual-qa-evidence-service'
 
 export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_AUTHENTICATED_READ_SERVICE_VERSION =
+  'canonical-caption-postrender-visual-qa-authenticated-read-service-v2' as const
+export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_AUTHENTICATED_READ_SERVICE_V1_VERSION =
   'canonical-caption-postrender-visual-qa-authenticated-read-service-v1' as const
 
 const PRODUCT_CLOSED_AUTHORITY:

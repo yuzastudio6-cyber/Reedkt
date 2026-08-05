@@ -117,6 +117,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['trackAllSam31AuthenticatedGpuStartRuntimePort']
   canonicalCaptionPostrenderVisualQaEvidenceRepository?:
     RuntimeState['canonicalCaptionPostrenderVisualQaEvidenceRepository']
+  canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
+    RuntimeState['canonicalCaptionPostrenderVisualQaOwnerResultReadPort']
   canonicalCloudDispatchHttpReceiverPort?:
     CanonicalCloudDispatchHttpReceiverPort
 }
@@ -310,6 +312,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           canonicalCaptionPostrenderVisualQaEvidenceRepository:
             options.canonicalCaptionPostrenderVisualQaEvidenceRepository,
+        }
+      : {}),
+    ...(options.canonicalCaptionPostrenderVisualQaOwnerResultReadPort
+      ? {
+          canonicalCaptionPostrenderVisualQaOwnerResultReadPort:
+            options.canonicalCaptionPostrenderVisualQaOwnerResultReadPort,
         }
       : {}),
     clients,

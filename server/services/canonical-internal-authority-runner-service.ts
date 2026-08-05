@@ -10,6 +10,10 @@ import {
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
 } from '../../src/types/canonical-caption-specialist-execution'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
+} from '../../src/types/canonical-caption-postrender-visual-qa-work-binding'
 import { ApiError } from '../errors/api-error'
 import {
   readPrivateFileIfExistsWithinRoot,
@@ -35,6 +39,16 @@ import {
   parseCanonicalCaptionSpecialistWorkItemInput,
   parseCanonicalCaptionSpecialistExecutionReceipt,
 } from './canonical-caption-specialist-execution-service'
+import {
+  parseCanonicalCaptionPostrenderVisualQaWorkItemInput,
+} from '../captions-specialist/caption-postrender-visual-qa-work-binding'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_COORDINATOR_RUNNER_CLASS,
+  prepareCanonicalCaptionPostrenderVisualQaExecution,
+} from './canonical-caption-postrender-visual-qa-coordinator-service'
+import {
+  parseCanonicalCaptionPostrenderVisualQaEvidence,
+} from './canonical-caption-postrender-visual-qa-evidence-service'
 import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
 import { createCanonicalPrivateLocalJsonObjectPort } from './canonical-private-local-json-object-port'
 import { createCanonicalSpecialistSupportResumeRepository } from './canonical-specialist-support-resume-service'
@@ -60,6 +74,8 @@ import { authorizeWorkspaceAccess } from './workspace-access-service'
 const ARTIFACT_SCHEMA_VERSION = 'canonical-authority-validation-artifact-v1' as const
 const CAPTION_ARTIFACT_SCHEMA_VERSION =
   'canonical-caption-specialist-planning-artifact-v1' as const
+const CAPTION_VISUAL_QA_ARTIFACT_SCHEMA_VERSION =
+  'canonical-caption-postrender-visual-qa-evidence-artifact-v1' as const
 const MAXIMUM_ARTIFACT_BYTES = 1024 * 1024
 const authorityArtifactWriteLocks = new Map<string, Promise<void>>()
 
@@ -134,6 +150,19 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
             jobId: body.jobId,
           })
         : null
+      const captionVisualQaExecution = profile.kind ===
+        'caption_postrender_visual_qa'
+        ? await prepareCanonicalCaptionPostrenderVisualQaExecution({
+            context,
+            actorUserId,
+            workspaceId: access.workspaceId,
+            projectId: body.projectId,
+            editSessionId: body.editSessionId,
+            approvedSnapshotId: authority.snapshot.snapshotId,
+            approvedWorkItemId: workItem.id,
+            executionInput: workItem.executionInput,
+          })
+        : null
 
       const begunExecution = await leaseService.beginInternalExecution({
         workspaceId: body.workspaceId,
@@ -161,6 +190,7 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
         selectedDependencyArtifacts:
           lease.dependencyAuthority.selectedArtifacts,
         captionExecution,
+        captionVisualQaExecution,
       })
       const bytes = Buffer.from(`${stableAuthorityStringify(report)}\n`, 'utf8')
       if (bytes.byteLength <= 0 || bytes.byteLength > MAXIMUM_ARTIFACT_BYTES) {
@@ -388,6 +418,9 @@ type Lease = Awaited<ReturnType<
 >>['workerLeaseVerification']['lease']
 type CaptionExecution = Awaited<ReturnType<
   typeof executeCanonicalCaptionSpecialistWorkItem
+>>
+type CaptionVisualQaExecution = Awaited<ReturnType<
+  typeof prepareCanonicalCaptionPostrenderVisualQaExecution
 >>
 
 type InternalValidationProfile = ReturnType<typeof internalValidationProfile>
@@ -620,6 +653,66 @@ function assertCanonicalAuthorityValidationJob(input: {
     }
     return
   }
+  if (profile.kind === 'caption_postrender_visual_qa') {
+    const workInput = workItem
+      ? parseCanonicalCaptionPostrenderVisualQaWorkItemInput(
+          workItem.executionInput)
+      : null
+    const dependencyWorkItem = workInput
+      ? authority.workItems.find((candidate) =>
+          candidate.workItemKey === workInput.deterministicQaWorkItemKey)
+      : undefined
+    const dependencyJob = dependencyWorkItem
+      ? authority.jobs.find((candidate) =>
+          candidate.approvedWorkItemId === dependencyWorkItem.id)
+      : undefined
+    const dependencyAsset = dependencyWorkItem && workInput
+      ? authority.assetManifest.entries.find((candidate) =>
+          candidate.approvedWorkItemId === dependencyWorkItem.id
+          && candidate.outputKey === workInput.deterministicQaOutputKey)
+      : undefined
+    const selectedArtifact = lease.dependencyAuthority.selectedArtifacts[0]
+    if (
+      readiness.job.canonicalGraphState !== 'ready'
+      || readiness.job.dependencyJobIds.length !== 1
+      || lease.dependencyAuthority.state !==
+        'private_test_dependencies_verified'
+      || lease.dependencyAuthority.selectedArtifacts.length !== 1
+      || !selectedArtifact || !workInput
+      || workItem.workItemType !== 'custom'
+      || workItem.workerClass !==
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS
+      || workInput.operation !==
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION
+      || workItem.dependencyKeys.length !== 1
+      || workItem.dependencyKeys[0]
+        !== workInput.deterministicQaWorkItemKey
+      || workItem.maximumCreditBudget !== 0
+      || workItem.expectedOutputs[0]?.outputKey !== expectedAsset.outputKey
+      || expectedAsset.artifactType !==
+        'canonical_postrender_visual_qa_lifecycle_result'
+      || expectedAsset.assetRole !== 'qa'
+      || !dependencyWorkItem || !dependencyJob || !dependencyAsset
+      || dependencyWorkItem.workItemType !== 'run_final_qa'
+      || dependencyWorkItem.workerClass !== 'qa_worker'
+      || dependencyAsset.artifactType !== 'final_qa_report'
+      || dependencyAsset.contentType !== 'application/json'
+      || stableAuthorityStringify(expectedAsset.segmentIds)
+        !== stableAuthorityStringify(dependencyAsset.segmentIds)
+      || stableAuthorityStringify(expectedAsset.timingIds)
+        !== stableAuthorityStringify(dependencyAsset.timingIds)
+      || stableAuthorityStringify(expectedAsset.rendererLayerIds)
+        !== stableAuthorityStringify(dependencyAsset.rendererLayerIds)
+      || selectedArtifact.dependencyJobId !== dependencyJob.id
+      || selectedArtifact.expectedAssetId !== dependencyAsset.id
+      || readiness.job.dependencyJobIds[0] !== dependencyJob.id
+    ) {
+      throw invalidAuthority(
+        'Canonical Caption post-render visual-QA job is not exactly executable.',
+      )
+    }
+    return
+  }
   const selectedDependencyCount = lease.dependencyAuthority.selectedArtifacts.length
   const cleanupDecisions = authority.components.sourceCleanupPlan.decisions.filter((decision) =>
     workItem.sourceCleanupDecisionIds.includes(decision.decisionId))
@@ -661,6 +754,7 @@ function buildAuthorityValidationReport(input: {
   selectedDependencyArtifacts:
     Lease['dependencyAuthority']['selectedArtifacts']
   captionExecution: CaptionExecution | null
+  captionVisualQaExecution: CaptionVisualQaExecution | null
 }) {
   const workItem = input.authority.workItems.find((item) => item.id === input.workItemId)!
   const cleanupDecisions = input.profile.kind === 'source_trim'
@@ -680,10 +774,16 @@ function buildAuthorityValidationReport(input: {
   const captionSpecialist = input.profile.kind === 'caption_specialist'
     ? buildCaptionSpecialistEvidence(input.captionExecution)
     : null
+  const captionPostrenderVisualQa = input.profile.kind ===
+    'caption_postrender_visual_qa'
+    ? buildCaptionPostrenderVisualQaEvidence(input.captionVisualQaExecution)
+    : null
   return {
     schemaVersion: input.profile.kind === 'caption_specialist'
       ? CAPTION_ARTIFACT_SCHEMA_VERSION
-      : ARTIFACT_SCHEMA_VERSION,
+      : input.profile.kind === 'caption_postrender_visual_qa'
+        ? CAPTION_VISUAL_QA_ARTIFACT_SCHEMA_VERSION
+        : ARTIFACT_SCHEMA_VERSION,
     source: 'immutable_canonical_edit_authority',
     identity: {
       workspaceId: input.body.workspaceId,
@@ -743,6 +843,7 @@ function buildAuthorityValidationReport(input: {
       : null,
     livingFrameLayer,
     captionSpecialist,
+    captionPostrenderVisualQa,
     valid: true as const,
   }
 }
@@ -783,6 +884,33 @@ function buildCaptionSpecialistEvidence(
     planningOnly: true as const,
     renderedMediaClaimed: false as const,
     finalQaClaimed: false as const,
+  }
+}
+
+function buildCaptionPostrenderVisualQaEvidence(
+  execution: CaptionVisualQaExecution | null,
+) {
+  if (!execution || !execution.exactRereadVerified) {
+    throw invalidAuthority(
+      'Canonical Caption post-render visual-QA evidence was not exactly reconciled.',
+    )
+  }
+  const evidence = parseCanonicalCaptionPostrenderVisualQaEvidence(
+    execution.envelope.evidence)
+  return {
+    evidence,
+    workRequestRef: structuredClone(evidence.workRequestRef),
+    lifecycleResultRef: structuredClone(evidence.lifecycleResultRef),
+    normalizedResultRef: structuredClone(evidence.normalizedDecisionRef),
+    persistenceDisposition: execution.disposition,
+    canonicalOwnerResultRereadVerified: true as const,
+    evidenceCreateOnlyRereadVerified: true as const,
+    actualModelInferenceVerifiedFromCanonicalOwner: true as const,
+    providerCallMadeByCaptionRunner: false as const,
+    qaApprovalGranted: false as const,
+    repairExecutionGranted: false as const,
+    publicDeliveryGranted: false as const,
+    productionAuthorityGranted: false as const,
   }
 }
 
@@ -1161,38 +1289,93 @@ function parseAuthorityValidationArtifact(bytes: Buffer): Record<string, unknown
   const sourceTrim = record.sourceTrim
   const livingFrameLayer = record.livingFrameLayer
   const captionSpecialist = record.captionSpecialist
+  const captionPostrenderVisualQa = record.captionPostrenderVisualQa
   const captionProfile = validationProfile === 'caption_specialist'
+  const captionVisualQaProfile = validationProfile ===
+    'caption_postrender_visual_qa'
   if (
     (captionProfile
       ? record.schemaVersion !== CAPTION_ARTIFACT_SCHEMA_VERSION
-      : record.schemaVersion !== ARTIFACT_SCHEMA_VERSION) ||
+      : captionVisualQaProfile
+        ? record.schemaVersion !== CAPTION_VISUAL_QA_ARTIFACT_SCHEMA_VERSION
+        : record.schemaVersion !== ARTIFACT_SCHEMA_VERSION) ||
     record.source !== 'immutable_canonical_edit_authority' ||
     record.valid !== true ||
     !Array.isArray(record.checks) ||
     record.checks.length !== 9 ||
     record.checks.some((check) => !check || typeof check !== 'object' ||
       (check as Record<string, unknown>).status !== 'passed') ||
-    !['snapshot', 'source_trim', 'living_frame_layer', 'caption_specialist'].includes(
+    ![
+      'snapshot',
+      'source_trim',
+      'living_frame_layer',
+      'caption_specialist',
+      'caption_postrender_visual_qa',
+    ].includes(
       String(validationProfile),
     ) ||
     (validationProfile === 'snapshot' &&
       (sourceTrim !== null || livingFrameLayer !== null
-        || (captionSpecialist !== null && captionSpecialist !== undefined))) ||
+        || (captionSpecialist !== null && captionSpecialist !== undefined)
+        || (captionPostrenderVisualQa !== null
+          && captionPostrenderVisualQa !== undefined))) ||
     (validationProfile === 'source_trim' &&
       (!validSourceTrimEvidence(sourceTrim) ||
         livingFrameLayer !== null ||
-        (captionSpecialist !== null && captionSpecialist !== undefined))) ||
+        (captionSpecialist !== null && captionSpecialist !== undefined)
+        || (captionPostrenderVisualQa !== null
+          && captionPostrenderVisualQa !== undefined))) ||
     (validationProfile === 'living_frame_layer' &&
       (sourceTrim !== null ||
         !validLivingFrameLayerEvidence(livingFrameLayer) ||
-        (captionSpecialist !== null && captionSpecialist !== undefined))) ||
+        (captionSpecialist !== null && captionSpecialist !== undefined)
+        || (captionPostrenderVisualQa !== null
+          && captionPostrenderVisualQa !== undefined))) ||
     (validationProfile === 'caption_specialist' &&
       (sourceTrim !== null || livingFrameLayer !== null
-        || !validCaptionSpecialistEvidence(captionSpecialist)))
+        || !validCaptionSpecialistEvidence(captionSpecialist)
+        || (captionPostrenderVisualQa !== null
+          && captionPostrenderVisualQa !== undefined))) ||
+    (validationProfile === 'caption_postrender_visual_qa' &&
+      (sourceTrim !== null || livingFrameLayer !== null
+        || (captionSpecialist !== null && captionSpecialist !== undefined)
+        || !validCaptionPostrenderVisualQaEvidence(
+          captionPostrenderVisualQa)))
   ) {
     throw new ApiError('VALIDATION_FAILED', 'Canonical authority validation artifact failed semantic QA.', 409)
   }
   return record
+}
+
+function validCaptionPostrenderVisualQaEvidence(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const record = value as Record<string, unknown>
+  try {
+    const evidence = parseCanonicalCaptionPostrenderVisualQaEvidence(
+      record.evidence)
+    return evidence.actualModelInferenceVerified === true
+      && evidence.deterministicQaPassed === true
+      && record.canonicalOwnerResultRereadVerified === true
+      && record.evidenceCreateOnlyRereadVerified === true
+      && record.actualModelInferenceVerifiedFromCanonicalOwner === true
+      && record.providerCallMadeByCaptionRunner === false
+      && record.qaApprovalGranted === false
+      && record.repairExecutionGranted === false
+      && record.publicDeliveryGranted === false
+      && record.productionAuthorityGranted === false
+      && ['created', 'idempotent_replay'].includes(
+        String(record.persistenceDisposition))
+      && refMatches(record.workRequestRef, evidence.workRequestRef)
+      && refMatches(record.lifecycleResultRef, evidence.lifecycleResultRef)
+      && refMatches(record.normalizedResultRef,
+        evidence.normalizedDecisionRef)
+  } catch {
+    return false
+  }
+}
+
+function refMatches(left: unknown, right: unknown): boolean {
+  return stableArtifactQaStringify(left) === stableArtifactQaStringify(right)
 }
 
 function validCaptionSpecialistEvidence(value: unknown): boolean {
@@ -1373,7 +1556,23 @@ function internalValidationProfile(purpose: RunCanonicalInternalAuthorityJobInpu
         'canonical_caption_specialist_planning_runner_v1' as const,
       operation: CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
       artifactDomain:
-        'canonical_internal_caption_specialist_planning_artifact_v1' as const,
+      'canonical_internal_caption_specialist_planning_artifact_v1' as const,
+    }
+  }
+  if (
+    purpose ===
+      'execute_canonical_internal_caption_postrender_visual_qa_reconciliation'
+  ) {
+    return {
+      kind: 'caption_postrender_visual_qa' as const,
+      source:
+        'canonical_internal_caption_postrender_visual_qa_coordinator' as const,
+      runnerClass:
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_COORDINATOR_RUNNER_CLASS,
+      operation:
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
+      artifactDomain:
+        'canonical_internal_caption_postrender_visual_qa_artifact_v1' as const,
     }
   }
   return {

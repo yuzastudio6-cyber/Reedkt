@@ -51,6 +51,8 @@ import { createProfessionalSkillCompositionTrace } from
   '../../src/lib/professional-skills/professional-skill-composition-trace'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
+import { classifyCanonicalInternalServerJob } from
+  '../services/canonical-private-job-execution-adapter-service'
 
 let checks = 0
 function check(value: unknown, message: string): void {
@@ -664,12 +666,21 @@ const postrenderVisualQaPlacement =
     item.workItemKey === postrenderVisualQaWorkItem?.workItemKey)
 check(postrenderVisualQaPlacement?.workerType === 'qa_worker'
   && postrenderVisualQaPlacement.placementSource ===
-    'caption_postrender_visual_qa_lifecycle_pending'
+    'caption_postrender_visual_qa_owner_reconciliation'
   && !postrenderVisualQaPlacement.privateExecutionReady
   && postrenderVisualQaPlacement.providerExecutionMode === 'none'
   && postrenderVisualQaPlacement.requiredGate ===
-    'canonical_caption_postrender_visual_qa_lifecycle_execution',
-'Post-render visual-QA coordination must have one exact blocked QA placement until the lifecycle runner is mounted.')
+    'canonical_caption_postrender_visual_qa_owner_result_read_port',
+'Post-render visual-QA coordination must remain blocked until the shared-owner result port is mounted.')
+const postrenderRunnerProfile = classifyCanonicalInternalServerJob(
+  postrenderVisualQaWorkItem!)
+check(postrenderRunnerProfile?.kind ===
+  'caption_postrender_visual_qa_reconciliation'
+  && postrenderRunnerProfile.runnerClass ===
+    'canonical_caption_postrender_visual_qa_coordinator_runner_v1'
+  && postrenderRunnerProfile.purpose ===
+    'execute_canonical_internal_caption_postrender_visual_qa_reconciliation',
+'The canonical private job adapter must route Caption visual review only to its shared-owner reconciliation runner.')
 const postrenderVisualQaBinding =
   prepareCanonicalCaptionPostrenderVisualQaWorkBinding({
     projection: selected.projection ?? undefined,

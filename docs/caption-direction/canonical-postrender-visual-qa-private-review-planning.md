@@ -26,15 +26,23 @@ public-delivery, or production authority during planning. Actual sample frames
 may be created only after the exact rendered artifact and deterministic QA are
 persisted and reread.
 
-Its resource placement remains deliberately
-`caption_postrender_visual_qa_lifecycle_pending`, not privately executable.
-The authenticated read side is now source-complete: a canonical normalized
-decision/evidence record, create-only repository contract, exact reread
-service, and mounted signed-in route preserve not-found, pending, passed,
-repair, human-review, and reconciliation-blocked states. That read side does
-not make the coordinator runnable. The job becomes runnable only after the
-canonical provider lifecycle is mounted in the one shared job adapter;
-planning and synthetic route fixtures must not masquerade as runtime evidence.
+Its resource placement is now
+`caption_postrender_visual_qa_owner_reconciliation`: a tool-free internal job
+that is runnable only as a consumer of an injected canonical shared-owner
+result. Its frozen placement remains `privateExecutionReady: false` until that
+port is mounted by the backend owner. The authenticated read side includes a digest-bound normalized result,
+Caption evidence record, create-only repository contract, exact reread service,
+and mounted signed-in route preserving not-found, pending, passed, repair,
+human-review, and reconciliation-blocked states. The private job adapter can
+reconcile those exact records into the approved Caption work item, but it never
+dispatches Qwen. Without the qualified shared lifecycle owner/read port, it
+fails closed before execution. Planning and synthetic fixtures still cannot
+masquerade as runtime evidence.
+
+V1 can mark complete-time visual review as passed only when exact full-motion
+sample evidence covers every render frame. Sampling every segment is not
+enough. Edits longer than the 4,096-frame V1 ceiling require a future
+full-review-video contract and remain blocked in this lane.
 
 `canonical-caption-private-review-dependency-binding-v1` then freezes the
 three artifacts that the existing canonical private-review owner must consume:
@@ -52,8 +60,8 @@ before the canonical private-review service may assemble it.
 For a selected Caption plan with exact render, deterministic QA, scheduled
 visual review, and private-review dependencies, the Caption-specific planning
 coverage blockers are now closed. Approval can therefore happen in the correct
-order. Terminal Caption qualification remains blocked until the real worker
-run produces and rereads the Qwen lifecycle result, independent private review
+order. Terminal Caption qualification remains blocked until the real shared
+owner produces and rereads the Qwen lifecycle result, independent private review
 accepts the exact output, and the terminal projection consumes those canonical
 records.
 

@@ -5,6 +5,10 @@ import {
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
 } from '../../src/types/canonical-caption-specialist-execution'
 import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
+} from '../../src/types/canonical-caption-postrender-visual-qa-work-binding'
+import {
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS,
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
@@ -550,6 +554,14 @@ function assertRecoveryInput(input: RecoverCanonicalPrivateJobCompletionInput): 
               runnerClass:
                 'canonical_caption_specialist_planning_runner_v1',
             }
+          : input.readiness.job.workerClass ===
+              CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS
+            ? {
+                operationId:
+                  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
+                runnerClass:
+                  'canonical_caption_postrender_visual_qa_coordinator_runner_v1',
+              }
           : undefined
   const provenCatalogIdentity = input.canonicalToolId
     ? listProvenToolIdentityCatalog().find((record) =>

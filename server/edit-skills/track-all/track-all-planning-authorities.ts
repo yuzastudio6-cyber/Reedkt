@@ -22,7 +22,11 @@ import {
   TRACK_ALL_SAM31_REAL_PRIVATE_WORKER_PROTOCOL_VERSION,
 } from './private/sam3_1-real-private-runtime-identity'
 
-export { createCurrentTrackAllSam31V2RouteGateReport } from './private/sam3_1-v2-route-qualification-gate'
+export {
+  createCurrentTrackAllSam31V2RouteGateReport,
+  trackAllSam31V2RouteGateReportSchema,
+  type TrackAllSam31V2RouteGateReport,
+} from './private/sam3_1-v2-route-qualification-gate'
 
 const safeId = z.string().trim().min(1).max(180)
 const unit = z.number().min(0).max(1)

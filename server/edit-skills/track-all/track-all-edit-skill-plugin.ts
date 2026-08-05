@@ -43,12 +43,10 @@ import {
   createTrackAllSam31RuntimeProfileV2,
   createCurrentTrackAllSam31V2RouteGateReport,
   trackAllPreflightObservationSchema,
-  trackAllSam31RuntimeProfileV2Schema,
-} from './track-all-planning-authorities'
-import {
   trackAllSam31V2RouteGateReportSchema,
+  trackAllSam31RuntimeProfileV2Schema,
   type TrackAllSam31V2RouteGateReport,
-} from './private/sam3_1-v2-route-qualification-gate'
+} from './track-all-planning-authorities'
 import {
   createTrackAllResultReceipt,
   privacyPolicySnapshotSchema,

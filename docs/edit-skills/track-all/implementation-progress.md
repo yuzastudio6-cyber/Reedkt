@@ -2444,3 +2444,12 @@ aggregate qualifier will bootstrap the new exact Track receipt, rerun actual
 current-source B-Roll acceptance, and issue the final receipt; this expected
 staleness is not counted as a passing acceptance result. No checkpoint, SAM,
 GPU, paid, public, production, or billing action occurred.
+
+The first clean aggregate pass then exposed one real retirement regression:
+the public plugin directly imported the private route-gate module to validate
+the injected report. Qualification stopped at that failure and restored the
+prior generated artifact. The route-gate schema and type are now exported
+through the existing public planning-authority boundary, and the direct private
+import was removed. The retirement validator, public plugin E2E, server
+typecheck, and full lint all passed afterward. No failed command was recorded
+as qualification evidence.

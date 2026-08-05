@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 
 import {
   BROLL_CAPABILITY_MANIFEST,
@@ -65,6 +65,41 @@ import {
   activatePrivateOfflineRemotionRenderRuntime,
   prepareOfflineRemotionDockerRuntime,
 } from '../tool-execution/remotion-render-execution'
+import {
+  activatePrivateOfflineLibassCaptionRuntime,
+  openPrivateOfflineLibassCaptionRuntime,
+  prepareOfflineLibassDockerRuntime,
+} from '../tool-execution/libass-caption-execution'
+import {
+  createCaptionBrollOwnerReadRequest,
+} from '../captions-specialist/caption-broll-owner-read-adapter'
+import {
+  runCaptionsSpecialistJob,
+} from '../captions-specialist/captions-specialist-runtime'
+import {
+  createCaptionsHarnessCall,
+} from '../internal-testing/captions-specialist-harness'
+import {
+  calculateSkillContractDigest,
+  parseOrchestraSkillCall,
+} from '../orchestra/orchestra-skill-contracts'
+import {
+  createBrollCaptionPrivateVisualReview,
+  createCanonicalBrollCaptionPrivateVisualReviewReadPort,
+  createCanonicalBrollCaptionOwnerService,
+} from '../services/canonical-broll-caption-owner-service'
+import {
+  createCanonicalCaptionBrollApprovedSnapshotReadPort,
+  createCanonicalCaptionBrollEvidenceRepository,
+  createCanonicalCaptionBrollSupportService,
+} from '../services/canonical-caption-broll-support-service'
+import {
+  createCanonicalPrivateLocalJsonObjectPort,
+} from '../services/canonical-private-local-json-object-port'
+import {
+  createCanonicalSpecialistCallResultPair,
+  createCanonicalSpecialistSupportResumeRepository,
+} from '../services/canonical-specialist-support-resume-service'
 
 const manifestRef = skillManifestReference(BROLL_CAPABILITY_MANIFEST)
 const scope = {
@@ -459,7 +494,199 @@ async function dispatchItem(input: {
   })
 }
 
-const root = await mkdtemp(join(tmpdir(), 'reeditpro-broll-public-canonical-'))
+interface CaptionBrollInspectionPackage {
+  readonly schemaVersion: 'caption-broll-private-inspection-package-v1'
+  readonly previewSha256: string
+  readonly captionOverlaySha256: string
+  readonly layerManifestHash: string
+  readonly integrationQaHash: string
+  readonly frameCount: number
+  readonly fps: number
+  readonly contactSheet: {
+    readonly fileName: string
+    readonly sha256: string
+    readonly sampledFrameCount: number
+  }
+  readonly sampleFrames: readonly {
+    readonly frameIndex: number
+    readonly fileName: string
+    readonly sha256: string
+  }[]
+  readonly actualLibassReadAndRenderFrameExecuted: boolean
+  readonly approvedFontPackUsed: boolean
+  readonly completeTimePrivateVisualReviewRequired: true
+  readonly mediaBytesIncluded: false
+  readonly publicDeliveryGranted: false
+  readonly productionAuthorityGranted: false
+  readonly packageSha256: string
+}
+
+async function createCaptionBrollInspectionPackage(input: {
+  root: string
+  previewPath: string
+  previewSha256: string
+  captionOverlaySha256: string
+  layerManifestHash: string
+  integrationQaHash: string
+  frameCount: number
+  fps: number
+  actualLibassReadAndRenderFrameExecuted: boolean
+  approvedFontPackUsed: boolean
+}): Promise<CaptionBrollInspectionPackage> {
+  const previewBytes = await readFile(input.previewPath)
+  assert.equal(sha256(previewBytes), input.previewSha256,
+    'Private B-roll preview bytes changed before inspection extraction.')
+  const inspectionRoot = join(input.root, 'caption-broll-private-inspection')
+  await mkdir(inspectionRoot, { recursive: true })
+  const rows = Math.ceil(input.frameCount / 8)
+  const contactSheetPath = join(inspectionRoot, 'complete-time-contact-sheet.png')
+  const contactSheetProcess = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-i', input.previewPath,
+    '-vf', `select=between(n\\,0\\,${input.frameCount - 1}),scale=160:90:flags=lanczos,tile=8x${rows}`,
+    '-frames:v', '1', '-threads', '1', '-y', contactSheetPath,
+  ], { encoding: 'utf8' })
+  assert.equal(contactSheetProcess.status, 0, contactSheetProcess.stderr)
+  const sampleFrameIndexes = [
+    0,
+    Math.floor((input.frameCount - 1) / 2),
+    input.frameCount - 1,
+  ]
+  const sampleFrames: Array<{
+    frameIndex: number
+    fileName: string
+    sha256: string
+  }> = []
+  for (const frameIndex of sampleFrameIndexes) {
+    const fileName = `frame-${String(frameIndex).padStart(3, '0')}.png`
+    const framePath = join(inspectionRoot, fileName)
+    const frameProcess = spawnSync('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error', '-i', input.previewPath,
+      '-vf', `select=eq(n\\,${frameIndex})`, '-frames:v', '1',
+      '-threads', '1', '-y', framePath,
+    ], { encoding: 'utf8' })
+    assert.equal(frameProcess.status, 0, frameProcess.stderr)
+    sampleFrames.push({
+      frameIndex,
+      fileName,
+      sha256: sha256(await readFile(framePath)),
+    })
+  }
+  const contactSheetBytes = await readFile(contactSheetPath)
+  const withoutDigest: Omit<CaptionBrollInspectionPackage, 'packageSha256'> = {
+    schemaVersion: 'caption-broll-private-inspection-package-v1',
+    previewSha256: input.previewSha256,
+    captionOverlaySha256: input.captionOverlaySha256,
+    layerManifestHash: input.layerManifestHash,
+    integrationQaHash: input.integrationQaHash,
+    frameCount: input.frameCount,
+    fps: input.fps,
+    contactSheet: {
+      fileName: 'complete-time-contact-sheet.png',
+      sha256: sha256(contactSheetBytes),
+      sampledFrameCount: input.frameCount,
+    },
+    sampleFrames,
+    actualLibassReadAndRenderFrameExecuted:
+      input.actualLibassReadAndRenderFrameExecuted,
+    approvedFontPackUsed: input.approvedFontPackUsed,
+    completeTimePrivateVisualReviewRequired: true,
+    mediaBytesIncluded: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  }
+  const inspectionPackage = Object.freeze({
+    ...withoutDigest,
+    packageSha256: hashSkillValue(withoutDigest),
+  })
+  await writeFile(
+    join(inspectionRoot, 'inspection-package.json'),
+    `${JSON.stringify(inspectionPackage, null, 2)}\n`,
+  )
+  return inspectionPackage
+}
+
+async function readCaptionBrollDirectInspection(input: {
+  root: string
+  expectedReceiptSha256: string
+  inspectionPackage: CaptionBrollInspectionPackage
+}): Promise<{
+  schemaVersion: 'caption-broll-direct-private-inspection-v1'
+  reviewId: string
+  reviewerClass: 'qualified_visual_ai'
+  disposition: 'accepted_with_warnings'
+  reviewedAt: string
+}> {
+  assert.match(input.expectedReceiptSha256, /^[a-f0-9]{64}$/u)
+  const receiptPath = join(
+    input.root,
+    'caption-broll-private-inspection',
+    'direct-private-visual-inspection.json',
+  )
+  const receiptBytes = await readFile(receiptPath)
+  assert.equal(sha256(receiptBytes), input.expectedReceiptSha256,
+    'Direct B-roll visual-inspection receipt bytes do not match admission.')
+  const value = JSON.parse(receiptBytes.toString('utf8')) as Record<string, unknown>
+  assert.deepEqual(Object.keys(value).sort(), [
+    'allSampleFramesReviewed',
+    'captionLayerAboveBrollVerified',
+    'captionSafeAreaVerified',
+    'completeTimeContactSheetReviewed',
+    'disposition',
+    'inspectionPackageSha256',
+    'mediaBytesIncluded',
+    'noClippingOrCollisionObserved',
+    'previewContainsVisibleCaption',
+    'productionAuthorityGranted',
+    'publicDeliveryGranted',
+    'reviewId',
+    'reviewedAt',
+    'reviewerClass',
+    'schemaVersion',
+    'syntheticFixtureLimitationAcknowledged',
+  ].sort())
+  assert.equal(value.schemaVersion,
+    'caption-broll-direct-private-inspection-v1')
+  assert.equal(value.inspectionPackageSha256,
+    input.inspectionPackage.packageSha256)
+  assert.equal(value.reviewerClass, 'qualified_visual_ai')
+  assert.equal(value.disposition, 'accepted_with_warnings')
+  for (const field of [
+    'completeTimeContactSheetReviewed',
+    'allSampleFramesReviewed',
+    'previewContainsVisibleCaption',
+    'captionSafeAreaVerified',
+    'captionLayerAboveBrollVerified',
+    'noClippingOrCollisionObserved',
+    'syntheticFixtureLimitationAcknowledged',
+  ]) assert.equal(value[field], true, `${field} must be true.`)
+  assert.equal(value.mediaBytesIncluded, false)
+  assert.equal(value.publicDeliveryGranted, false)
+  assert.equal(value.productionAuthorityGranted, false)
+  assert.match(String(value.reviewId), /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u)
+  assert.equal(Number.isNaN(Date.parse(String(value.reviewedAt))), false)
+  return {
+    schemaVersion: 'caption-broll-direct-private-inspection-v1',
+    reviewId: String(value.reviewId),
+    reviewerClass: 'qualified_visual_ai',
+    disposition: 'accepted_with_warnings',
+    reviewedAt: String(value.reviewedAt),
+  }
+}
+
+const requestedCaptionEvidenceRoot =
+  process.env.REEDITPRO_CAPTION_BROLL_PRIVATE_EVIDENCE_ROOT?.trim() ?? ''
+const captionBrollEvidenceRequired =
+  process.env.REEDITPRO_CAPTION_BROLL_REQUIRE_EVIDENCE === '1'
+const root = requestedCaptionEvidenceRoot.length > 0
+  ? resolve(requestedCaptionEvidenceRoot)
+  : await mkdtemp(join(tmpdir(), 'reeditpro-broll-public-canonical-'))
+const preserveRoot = requestedCaptionEvidenceRoot.length > 0
+if (captionBrollEvidenceRequired && !preserveRoot) {
+  throw new Error(
+    'Caption B-roll private evidence requires an explicit private evidence root.',
+  )
+}
+if (preserveRoot) await mkdir(root, { recursive: true })
 try {
   const sourcePath = join(root, 'source.mp4')
   const candidatePath = join(root, 'candidate.mp4')
@@ -478,20 +705,85 @@ try {
     '-movflags', '+faststart', '-threads', '1', '-y', candidatePath,
   ], { encoding: 'utf8' })
   assert.equal(candidateProcess.status, 0, candidateProcess.stderr)
-  const captionProcess = spawnSync('ffmpeg', [
-    '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i',
-    'color=c=black@0.0:s=640x360,format=rgba', '-frames:v', '1', '-f',
-    'image2', '-vcodec', 'png', '-y', captionPath,
-  ], { encoding: 'utf8' })
-  assert.equal(captionProcess.status, 0, captionProcess.stderr)
-  const [sourceBytes, candidateBytes, captionBytes] = await Promise.all([
+  let captionBytes: Buffer
+  let captionOverlaySha256: string
+  let captionOverlayEvidence: {
+    actualLibassReadAndRenderFrameExecuted: boolean
+    approvedFontPackUsed: boolean
+    transparentRgbaOverlayProduced: boolean
+  }
+  if (preserveRoot) {
+    const preparedLibass = await prepareOfflineLibassDockerRuntime()
+    const activatedLibass = await activatePrivateOfflineLibassCaptionRuntime()
+    assert.equal(activatedLibass.image.imageIdentityHash,
+      preparedLibass.imageIdentityHash)
+    const libass = await openPrivateOfflineLibassCaptionRuntime()
+    const caption = await libass.execute({
+      schemaVersion: 'offline-libass-caption-execution-v1',
+      toolId: 'libass',
+      operationId: 'tool.libass.render_approved_caption_track.v1',
+      payload: {
+        captionProfileId: 'approved_ass_track_render_v1',
+        fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
+        collisionPolicy: 'fail_on_reserved_zone_collision',
+        preserveSpeechTiming: true,
+        width: 640,
+        height: 360,
+        timestampMs: 1_000,
+        fontSize: 38,
+        marginV: 42,
+        alignment: 2,
+        caption: 'Ideas move through the frame',
+      },
+    })
+    captionBytes = caption.imageArtifact.bytes
+    captionOverlaySha256 = caption.imageArtifact.sha256
+    assert.equal(
+      caption.evidence.semanticEvidence.actualAssReadMemoryExecuted,
+      true,
+    )
+    assert.equal(
+      caption.evidence.semanticEvidence.actualAssRenderFrameExecuted,
+      true,
+    )
+    assert.equal(caption.evidence.semanticEvidence.approvedFontPackUsed, true)
+    assert.equal(
+      caption.evidence.semanticEvidence.transparentRgbaOverlayProduced,
+      true,
+    )
+    captionOverlayEvidence = {
+      actualLibassReadAndRenderFrameExecuted: true,
+      approvedFontPackUsed: true,
+      transparentRgbaOverlayProduced: true,
+    }
+    assert.equal(captionOverlayEvidence.actualLibassReadAndRenderFrameExecuted,
+      true)
+    assert.equal(captionOverlayEvidence.approvedFontPackUsed, true)
+    assert.equal(captionOverlayEvidence.transparentRgbaOverlayProduced, true)
+    await writeFile(captionPath, captionBytes)
+  } else {
+    const captionProcess = spawnSync('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i',
+      'color=c=black@0.0:s=640x360,format=rgba', '-frames:v', '1', '-f',
+      'image2', '-vcodec', 'png', '-y', captionPath,
+    ], { encoding: 'utf8' })
+    assert.equal(captionProcess.status, 0, captionProcess.stderr)
+    captionBytes = await readFile(captionPath)
+    captionOverlaySha256 = sha256(captionBytes)
+    captionOverlayEvidence = {
+      actualLibassReadAndRenderFrameExecuted: false,
+      approvedFontPackUsed: false,
+      transparentRgbaOverlayProduced: true,
+    }
+  }
+  const [sourceBytes, candidateBytes] = await Promise.all([
     readFile(sourcePath),
     readFile(candidatePath),
-    readFile(captionPath),
   ])
   const mediaRuntime = await activatePrivateOfflineMediaBinaryRuntime()
   await prepareOfflineRemotionDockerRuntime()
   const remotionRuntime = await activatePrivateOfflineRemotionRenderRuntime()
+  let captionBrollOwnerEvidence: Record<string, unknown> | null = null
 
   const noActionFixture = await createFixture({
     assignmentId: 'public-canonical-no-action',
@@ -597,7 +889,7 @@ try {
     captionOverlay: {
       reference: {
         artifactType: 'caption_overlay_png_v1',
-        sha256: sha256(captionBytes),
+        sha256: captionOverlaySha256,
         byteLength: captionBytes.byteLength,
         ...scope,
       },
@@ -629,6 +921,312 @@ try {
   assert.equal(sourceReceipt.envelope.disposition, 'selected')
   assert.equal(sourceResults.some((result) => result.workerClass === 'provider_worker'), false)
   assert.equal(sourceResults.at(-1)!.outputArtifactRefs[0]!.artifactType, 'b_roll_result_receipt_v1')
+
+  if (preserveRoot) {
+    const sourceSnapshot = activeCoordinator.snapshot()
+    assert.ok(sourceSnapshot.resultReceipt
+      && 'preview' in sourceSnapshot.resultReceipt)
+    assert.ok(sourceSnapshot.layerManifest && sourceSnapshot.integrationQa)
+    const preview = sourceSnapshot.resultReceipt.preview
+    const previewPath = join(
+      root,
+      'b-roll',
+      'remotion-integrations',
+      'previews',
+      `${preview.previewArtifactIdentityHash}.mp4`,
+    )
+    const inspectionPackage = await createCaptionBrollInspectionPackage({
+      root,
+      previewPath,
+      previewSha256: preview.sha256,
+      captionOverlaySha256,
+      layerManifestHash: sourceSnapshot.layerManifest.layerManifestHash,
+      integrationQaHash: sourceSnapshot.integrationQa.integrationQaHash,
+      frameCount: preview.frameCount,
+      fps: preview.frameRate,
+      ...captionOverlayEvidence,
+    })
+    const directInspectionSha256 =
+      process.env.REEDITPRO_CAPTION_BROLL_INSPECTION_SHA256?.trim() ?? ''
+    if (directInspectionSha256.length === 0) {
+      captionBrollOwnerEvidence = {
+        status: 'awaiting_direct_visual_inspection',
+        inspectionPackageSha256: inspectionPackage.packageSha256,
+        previewSha256: inspectionPackage.previewSha256,
+        captionOverlaySha256: inspectionPackage.captionOverlaySha256,
+        contactSheetSha256: inspectionPackage.contactSheet.sha256,
+        sampleFrameSha256s: inspectionPackage.sampleFrames.map((frame) =>
+          frame.sha256),
+        canonicalOwnerResultCreated: false,
+        captionResumeCompleted: false,
+        publicDeliveryGranted: false,
+        productionAuthorityGranted: false,
+      }
+    } else {
+      const directInspection = await readCaptionBrollDirectInspection({
+        root,
+        expectedReceiptSha256: directInspectionSha256,
+        inspectionPackage,
+      })
+      const approvedSnapshotRef = {
+        id: 'snapshot.caption-broll.public-canonical-existing-source',
+        version: 'approved-plan-snapshot-v1',
+        contentHash: hashSkillValue({
+          assignmentHash: sourceFixture.brollAssignment.assignmentHash,
+          approvalHash: sourceLifecycle.approval.approvalHash,
+          approvedWorkGraphHash: sourceLifecycle.graph.approvedWorkGraphHash,
+        }),
+      }
+      const outputFrameRef = {
+        id: 'output-frame.caption-broll.public-canonical-16x9',
+        version: 'confirmed-output-frame-v1',
+        contentHash: hashSkillValue({
+          outputId: 'output.caption-broll.public-canonical',
+          width: 1_920,
+          height: 1_080,
+          aspectRatio: '16:9',
+        }),
+      }
+      const masterTimingRef = {
+        id: 'master-timing.caption-broll.public-canonical',
+        version: 'master_timing_plan_v1',
+        contentHash: sourceFixture.brollAssignment.masterTimingHash,
+      }
+      const sceneId = sourceFixture.brollAssignment.segmentIds[0]!
+      const baseCall = createCaptionsHarnessCall({
+        callId: 'caption.broll.public-canonical-existing-source',
+        jobType: 'provide_caption_broll_composition_constraints',
+        scopeLevel: 'scene',
+        runtimeProfile: 'post_cap20_integration',
+        approvedSnapshotRef,
+        outputId: 'output.caption-broll.public-canonical',
+        sceneId,
+      })
+      const callWithoutDigest = {
+        ...baseCall,
+        canonicalScope: {
+          ...baseCall.canonicalScope,
+          ownerUserId: scope.ownerUserId,
+          workspaceId: scope.workspaceId,
+          projectId: scope.projectId,
+          editSessionId: sourceFixture.brollAssignment.editSessionId,
+          approvedSnapshotRef,
+          outputId: 'output.caption-broll.public-canonical',
+          sceneId,
+          boundaryId: null,
+          authorizedFrameRanges: [{
+            startFrame: authorizedRange.startFrameInclusive,
+            endFrameExclusive: authorizedRange.endFrameExclusive,
+          }],
+        },
+        inputArtifactRefs: baseCall.inputArtifactRefs.map((artifact) => {
+          if (artifact.artifactType === 'confirmed_output_frame') {
+            return { ...artifact, ...outputFrameRef }
+          }
+          if (artifact.artifactType === 'master_timing_or_planning_timing') {
+            return { ...artifact, ...masterTimingRef }
+          }
+          return artifact
+        }),
+        callDigestSha256: '',
+      }
+      const call = parseOrchestraSkillCall({
+        ...callWithoutDigest,
+        callDigestSha256: calculateSkillContractDigest(
+          callWithoutDigest,
+          'callDigestSha256',
+        ),
+      })
+      const planningConstraintRef = {
+        id: sourceAuthority.plan.planId,
+        version: sourceAuthority.plan.schemaVersion,
+        contentHash: sourceAuthority.plan.planHash,
+      }
+      const ownerRequest = createCaptionBrollOwnerReadRequest({
+        requestId: 'request.caption-broll.public-canonical-existing-source',
+        canonicalScope: {
+          ownerUserId: scope.ownerUserId,
+          workspaceId: scope.workspaceId,
+          projectId: scope.projectId,
+          editSessionId: sourceFixture.brollAssignment.editSessionId,
+          planVersionId: 'plan.caption-broll.public-canonical.v1',
+          approvedSnapshotRef,
+          outputId: 'output.caption-broll.public-canonical',
+          outputFrameRef,
+          sceneId,
+          authorizedFrameRange: structuredClone(authorizedRange),
+          masterTimingRef,
+          masterTimingHash: sourceFixture.brollAssignment.masterTimingHash,
+        },
+        planningConstraintRef,
+      })
+      const initialCaptionResult = runCaptionsSpecialistJob({
+        call,
+        brollOwnerReadRequest: ownerRequest,
+      })
+      assert.equal(initialCaptionResult.disposition, 'needs_followup')
+      assert.equal(initialCaptionResult.supportRequests.length, 1)
+      const selectedSupportRequest = initialCaptionResult.supportRequests[0]!
+      assert.equal(selectedSupportRequest.targetSkillKey, 'broll_owner')
+
+      const objectPort = createCanonicalPrivateLocalJsonObjectPort({
+        localStorageRoot: root,
+      })
+      const supportResumeRepository =
+        createCanonicalSpecialistSupportResumeRepository({
+          objectPort,
+          prefix: 'private/internal/caption-broll-support-resume/v1',
+        })
+      const pair = createCanonicalSpecialistCallResultPair({
+        call,
+        result: initialCaptionResult,
+        persistedAt: '2026-08-05T12:16:00.000Z',
+      })
+      await supportResumeRepository.persistCallResultPairCreateOnly({ pair })
+      const snapshotAuthority = {
+        canonicalScope: structuredClone(ownerRequest.canonicalScope),
+        planningConstraintRef: structuredClone(planningConstraintRef),
+      }
+      let snapshotReads = 0
+      const approvedSnapshotReadPort =
+        createCanonicalCaptionBrollApprovedSnapshotReadPort(async ({
+          approvedSnapshotRef: requestedSnapshotRef,
+        }) => {
+          snapshotReads += 1
+          assert.deepEqual(requestedSnapshotRef, approvedSnapshotRef)
+          return structuredClone(snapshotAuthority)
+        })
+      const privateVisualReview = createBrollCaptionPrivateVisualReview({
+        schemaVersion: 'b_roll_authenticated_owner_read_evidence_v1',
+        reviewId: directInspection.reviewId,
+        previewArtifactSha256: inspectionPackage.previewSha256,
+        layerManifestHash: inspectionPackage.layerManifestHash,
+        integrationQaHash: inspectionPackage.integrationQaHash,
+        reviewedFrameRange: structuredClone(authorizedRange),
+        inspectionMode: 'complete_time_private_visual_review',
+        reviewerClass: directInspection.reviewerClass,
+        disposition: directInspection.disposition,
+        visibleTextRegionRefs: [{
+          id: 'caption-overlay.caption-broll.public-canonical',
+          version: 'caption_overlay_png_v1',
+          contentHash: inspectionPackage.captionOverlaySha256,
+        }],
+        captionSafeAreaVerified: true,
+        captionLayerAboveBrollVerified: true,
+        sourceBytesIncluded: false,
+        mediaLocatorIncluded: false,
+        finalQaApprovalGranted: false,
+        publicDeliveryGranted: false,
+        productionAuthorityGranted: false,
+        reviewedAt: directInspection.reviewedAt,
+      })
+      let reviewReads = 0
+      const privateVisualReviewReadPort =
+        createCanonicalBrollCaptionPrivateVisualReviewReadPort(async (read) => {
+          reviewReads += 1
+          assert.equal(read.ownerRequestRef.id, ownerRequest.requestId)
+          assert.equal(read.ownerRequestRef.contentHash,
+            ownerRequest.requestDigestSha256)
+          assert.equal(read.previewArtifactRef.contentHash,
+            inspectionPackage.previewSha256)
+          assert.equal(read.layerManifestRef.contentHash,
+            inspectionPackage.layerManifestHash)
+          assert.equal(read.integrationQaRef.contentHash,
+            inspectionPackage.integrationQaHash)
+          assert.deepEqual(read.reviewedFrameRange, authorizedRange)
+          return structuredClone(privateVisualReview)
+        })
+      const ownerService = createCanonicalBrollCaptionOwnerService({
+        objectPort,
+        artifactStore,
+        approvedSnapshotReadPort,
+        privateVisualReviewReadPort,
+        prefix: 'private/internal/caption-broll-owner/v1',
+      })
+      const ownerResult = await ownerService.finalizeFromCanonicalWork({
+        request: ownerRequest,
+        assignment: sourceFixture.brollAssignment,
+        plan: sourceAuthority.plan,
+        workItemResults: sourceResults,
+      })
+      assert.equal(ownerResult.authenticatedOwnerEvidenceRef.contentHash,
+        privateVisualReview.reviewDigestSha256)
+      const evidenceRepository = createCanonicalCaptionBrollEvidenceRepository({
+        objectPort,
+        prefix: 'private/internal/caption-broll-evidence/v1',
+      })
+      const bridge = createCanonicalCaptionBrollSupportService({
+        supportResumeRepository,
+        approvedSnapshotReadPort,
+        ownerReadPort: ownerService.ownerReadPort,
+        evidenceRepository,
+        now: () => new Date('2026-08-05T12:17:00.000Z'),
+      })
+      const bridgeInput = {
+        authenticatedOwnerUserId: scope.ownerUserId,
+        priorCallRef: {
+          id: call.callId,
+          version: call.schemaVersion,
+          contentHash: call.callDigestSha256,
+        },
+        selectedSupportRequestRef: {
+          id: selectedSupportRequest.requestId,
+          version: selectedSupportRequest.schemaVersion,
+          contentHash: selectedSupportRequest.requestDigestSha256,
+        },
+      }
+      const outcome = await bridge.projectAndResumeAuthenticatedEvidence(
+        bridgeInput)
+      assert.equal(outcome.resumeRecord.resumedResult.disposition, 'completed')
+      assert.equal(
+        outcome.evidenceRecord.ownerResult.resultDigestSha256,
+        ownerResult.resultDigestSha256,
+      )
+      assert.equal(outcome.evidenceRecord.sourceSelectionPerformedByCaption,
+        false)
+      assert.equal(outcome.evidenceRecord.cropOrTimingPerformedByCaption,
+        false)
+      assert.equal(outcome.evidenceRecord.runtimeExecutionPerformedByBridge,
+        false)
+      assert.equal(outcome.evidenceRecord.finalQaApprovalGrantedByBridge, false)
+      const replay = await bridge.projectAndResumeAuthenticatedEvidence(
+        bridgeInput)
+      assert.equal(replay.evidenceRecord.recordDigestSha256,
+        outcome.evidenceRecord.recordDigestSha256)
+      assert.equal(replay.resumeRecord.recordDigestSha256,
+        outcome.resumeRecord.recordDigestSha256)
+      assert.equal(snapshotReads, 4)
+      assert.equal(reviewReads, 2)
+      const finalReceipt = {
+        schemaVersion: 'caption-broll-owner-private-runtime-receipt-v1',
+        status: 'passed_with_direct_private_visual_inspection',
+        inspectionPackageSha256: inspectionPackage.packageSha256,
+        directInspectionReceiptSha256: directInspectionSha256,
+        captionOverlaySha256: inspectionPackage.captionOverlaySha256,
+        previewSha256: inspectionPackage.previewSha256,
+        ownerRequestDigestSha256: ownerRequest.requestDigestSha256,
+        ownerResultDigestSha256: ownerResult.resultDigestSha256,
+        authenticatedEvidenceRecordDigestSha256:
+          outcome.evidenceRecord.recordDigestSha256,
+        resumeRecordDigestSha256: outcome.resumeRecord.recordDigestSha256,
+        actualCanonicalBrollRuntimeExecuted: true,
+        actualLibassCaptionOverlayExecuted: true,
+        completeTimePrivateVisualInspectionBound: true,
+        captionResumeCompleted: true,
+        sourceSelectionPerformedByCaption: false,
+        cropOrTimingPerformedByCaption: false,
+        directPeerDispatchPerformed: false,
+        finalQaApprovalGranted: false,
+        publicDeliveryGranted: false,
+        productionAuthorityGranted: false,
+      }
+      await writeFile(
+        join(root, 'caption-broll-owner-private-runtime-receipt.json'),
+        `${JSON.stringify(finalReceipt, null, 2)}\n`,
+      )
+      captionBrollOwnerEvidence = finalReceipt
+    }
+  }
 
   const generatedFixture = await createFixture({
     assignmentId: 'public-canonical-generated',
@@ -722,7 +1320,7 @@ try {
     captionOverlay: {
       reference: {
         artifactType: 'caption_overlay_png_v1',
-        sha256: sha256(captionBytes),
+        sha256: captionOverlaySha256,
         byteLength: captionBytes.byteLength,
         ...scope,
       },
@@ -952,9 +1550,10 @@ try {
     visualIntelligenceAcceptanceHash: dependencyAcceptance.acceptanceHash,
     trackAllArtifactType: trackRequest.requiredArtifactType,
     directTrackingModelRejected: true,
+    captionBrollOwnerEvidence,
     providerTaskContractEvidenceCommand: 'npm.smoke:b-roll-provider-lifecycle',
     noPrivateMiniSkillImports: true,
   }, null, 2))
 } finally {
-  await rm(root, { recursive: true, force: true })
+  if (!preserveRoot) await rm(root, { recursive: true, force: true })
 }

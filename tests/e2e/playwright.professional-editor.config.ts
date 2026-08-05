@@ -1,11 +1,17 @@
-import { resolve } from 'node:path'
+import { mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig, devices } from '@playwright/test'
 
 const repositoryRoot = fileURLToPath(new URL('../..', import.meta.url))
+// A professional-editor run writes durable private authority and rendered
+// media. Reusing the default store across invocations can replay stale locks,
+// reservations, or artifacts from an earlier run. Keep an explicit override
+// for recovery tests while making the ordinary acceptance lane isolated.
 const professionalEditorStorageRoot =
   process.env.PLAYWRIGHT_PROFESSIONAL_EDITOR_STORAGE_ROOT
-  ?? resolve(repositoryRoot, 'test-results/professional-editor-storage')
+  ?? mkdtempSync(join(tmpdir(), 'reeditpro-professional-editor-'))
 
 export default defineConfig({
   testDir: '.',

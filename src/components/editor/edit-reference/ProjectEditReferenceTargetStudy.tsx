@@ -101,17 +101,18 @@ export function ProjectEditReferenceTargetStudy({
     packageRecord: TargetVideoUnderstandingPackage,
     schedule: TargetVideoUnderstandingSchedule,
   ) => {
-    if (!packageMatchesCurrentAuthority({
+    const authorityMismatches = packageAuthorityMismatchLabels({
       packageRecord,
       bundle,
       currentUserInstruction,
       editBrief,
       editReferenceId,
       workspaceId: effectiveWorkspaceId,
-    })) {
+    })
+    if (authorityMismatches.length > 0) {
       setLifecycle({
         kind: 'error',
-        message: 'The saved study belongs to an earlier project, Edit Brief, instruction, or output frame. Refresh this edit before studying again.',
+        message: `The saved study belongs to an earlier project, Edit Brief, instruction, or output frame (${authorityMismatches.join(', ')} changed). Refresh this edit before studying again.`,
       })
       clearAcceptedPackage()
       return
@@ -252,39 +253,54 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Unexpected target-video study error.'
 }
 
-function packageMatchesCurrentAuthority(input: {
+function packageAuthorityMismatchLabels(input: {
   bundle: ProjectEditSessionBundleRecord
   currentUserInstruction: string
   editBrief: ProjectEditBriefBackendLocalRecord
   editReferenceId: string
   packageRecord: TargetVideoUnderstandingPackage
   workspaceId: string
-}): boolean {
-  if (input.bundle.session.aspectRatio === 'custom') return false
+}): string[] {
+  if (input.bundle.session.aspectRatio === 'custom') return ['output frame']
   const targetContext = createPreferenceApplicationTargetContext({
     bundle: input.bundle,
     currentUserInstruction: input.currentUserInstruction,
     outputFrameConfirmed: true,
   })
-  return input.packageRecord.workspaceId === input.workspaceId
-    && input.packageRecord.projectId === input.bundle.session.projectId
-    && input.packageRecord.editSessionId === input.bundle.session.id
-    && input.packageRecord.editReferenceId === input.editReferenceId
-    && input.packageRecord.source.storageObjectRecordId === input.editBrief.sourceStorageObjectRecordId
-    && input.packageRecord.source.mediaAssetId === input.editBrief.sourceMediaAssetId
-    && input.packageRecord.declaredContext.editBriefId === input.editBrief.id
-    && input.packageRecord.declaredContext.editBriefRevision === input.editBrief.revisionNumber
-    && input.packageRecord.declaredContext.editBriefDigestSha256 === input.editBrief.contentDigestSha256
-    && input.packageRecord.declaredContext.projectName === targetContext.projectName
-    && input.packageRecord.declaredContext.editName === targetContext.editName
-    && input.packageRecord.declaredContext.currentUserInstruction === targetContext.currentUserInstruction
-    && input.packageRecord.declaredContext.selectedEditLevel === targetContext.selectedEditLevel
-    && input.packageRecord.declaredContext.aspectRatio === targetContext.aspectRatio
-    && input.packageRecord.declaredContext.outputFrameConfirmed === true
-    && input.packageRecord.declaredContext.platformTarget === targetContext.platformTarget
-    && input.packageRecord.declaredContext.contentType === targetContext.contentType
-    && input.packageRecord.declaredContext.storyRole === targetContext.storyRole
-    && input.packageRecord.declaredContext.budgetPreference === targetContext.budgetPreference
-    && stableEditReferenceJson(input.packageRecord.declaredContext.directives) === stableEditReferenceJson(targetContext.directives)
-    && stableEditReferenceJson(input.packageRecord.declaredContext.approvedConstraints) === stableEditReferenceJson(targetContext.approvedConstraints)
+  const mismatches: string[] = []
+  const record = input.packageRecord
+  const declared = record.declaredContext
+  if (record.workspaceId !== input.workspaceId) mismatches.push('workspace')
+  if (record.projectId !== input.bundle.session.projectId) mismatches.push('project')
+  if (record.editSessionId !== input.bundle.session.id) mismatches.push('edit')
+  if (record.editReferenceId !== input.editReferenceId) mismatches.push('Edit Reference')
+  if (
+    record.source.storageObjectRecordId !== input.editBrief.sourceStorageObjectRecordId
+    || record.source.mediaAssetId !== input.editBrief.sourceMediaAssetId
+  ) mismatches.push('source media')
+  if (
+    declared.editBriefId !== input.editBrief.id
+    || declared.editBriefRevision !== input.editBrief.revisionNumber
+    || declared.editBriefDigestSha256 !== input.editBrief.contentDigestSha256
+  ) mismatches.push('Edit Brief')
+  if (declared.projectName !== targetContext.projectName) mismatches.push('project name')
+  if (declared.editName !== targetContext.editName) mismatches.push('edit name')
+  if (declared.currentUserInstruction !== targetContext.currentUserInstruction) mismatches.push('instruction')
+  if (declared.selectedEditLevel !== targetContext.selectedEditLevel) mismatches.push('edit level')
+  if (
+    declared.aspectRatio !== targetContext.aspectRatio
+    || declared.outputFrameConfirmed !== true
+  ) mismatches.push('output frame')
+  if (declared.platformTarget !== targetContext.platformTarget) mismatches.push('platform')
+  if (declared.contentType !== targetContext.contentType) mismatches.push('content type')
+  if (declared.storyRole !== targetContext.storyRole) mismatches.push('story role')
+  if (declared.budgetPreference !== targetContext.budgetPreference) mismatches.push('budget')
+  if (stableEditReferenceJson(declared.directives) !== stableEditReferenceJson(targetContext.directives)) {
+    mismatches.push('directives')
+  }
+  if (
+    stableEditReferenceJson(declared.approvedConstraints)
+    !== stableEditReferenceJson(targetContext.approvedConstraints)
+  ) mismatches.push('approved constraints')
+  return mismatches
 }

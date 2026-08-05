@@ -3089,7 +3089,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     const next = isProjectWorkspace
       ? {
           ...request.values,
-          editLevel: INTERNAL_FULL_CAPABILITY_EDIT_LEVEL,
+          // The canonical named-edit shell uses the internal full-capability
+          // level for planning, but Edit Preferences do not expose an edit-
+          // level control. Applying an unrelated preference or Edit Reference
+          // must not silently migrate the persisted user preference.
+          editLevel: currentEditPreferenceValues.editLevel,
         }
       : request.values
     const change = resolveCurrentEditPreferenceChange(

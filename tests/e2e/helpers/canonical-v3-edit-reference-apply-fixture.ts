@@ -106,6 +106,10 @@ export async function prepareCanonicalV3MountedEditReferenceApplyFixture(
     WORKER_RUNTIME_MODE: 'mock',
   })
   const now = new Date().toISOString()
+  // Canonical named-edit workspaces run at the internal full-capability level.
+  // Keep the server-created target package bound to the same authority the
+  // mounted editor reconstructs, rather than the legacy persisted `pro` value.
+  const activeEditorEditLevel = 'premium' as const
   const sourceStorageObjectRecordId = randomUUID()
   const sourceMediaAssetId = randomUUID()
   const sourceChecksumSha256 = sha256(`mounted-target-source:${input.fixtureKey}`)
@@ -235,7 +239,7 @@ export async function prepareCanonicalV3MountedEditReferenceApplyFixture(
       aspectRatio: '16:9',
       aspectRatioConfirmed: true,
       aspectRatioSource: 'user_selected',
-      editLevel: currentPreferences.editLevel,
+      editLevel: activeEditorEditLevel,
       editLevelConfirmed: true,
       visualPreference: currentPreferences.visualPreference,
       visualPreferenceConfirmed: true,
@@ -272,7 +276,7 @@ export async function prepareCanonicalV3MountedEditReferenceApplyFixture(
     createdAt: handoff.createdAt,
     currentUserInstruction: handoff.setup?.customInstructions ?? '',
     editBriefState,
-    editLevel: currentPreferences.editLevel,
+    editLevel: activeEditorEditLevel,
     editName: handoff.editName ?? 'Canonical V3 target application',
     editSessionId: input.editSessionId,
     ownerUserId: input.ownerUserId,

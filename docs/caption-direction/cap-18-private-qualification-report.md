@@ -131,9 +131,10 @@ diff/package-lock hygiene are green.
 
 ## Next
 
-CAP-19 should hand these exact Caption-owned contracts and evidence projections
-to the canonical backend workflow owners, connect only released public
-interfaces, and keep the seven shared requirements pending until their owners
-provide authenticated evidence. CAP-20 will then run the final internal
-end-to-end qualification and produce the backend handoff receipt without
-claiming public SaaS production readiness.
+CAP-19 is the migration-and-retirement milestone. It must preserve old Caption
+IDs, styles, plans, snapshots, the bounded simple-overlay lane, and an explicit
+rollback path while retiring legacy primary owners. The canonical backend
+workflow handoff proceeds in parallel through frozen public interfaces; it is
+not a replacement definition for CAP-19. CAP-20 will run the final private
+internal release regression and produce the future Orchestra mounting guide
+without claiming public SaaS production readiness.

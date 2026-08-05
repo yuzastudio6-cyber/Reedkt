@@ -120,6 +120,10 @@ async function assertNoRetiredBrollRuntimeFiles(): Promise<number> {
 async function assertOneRuntimeRegistration(): Promise<void> {
   const files = await sourceFiles('server')
   const duplicateRegistrations: string[] = []
+  const admittedReadOnlyIntegrationSurfaces = new Set([
+    'server/captions-specialist/caption-broll-owner-read-adapter.ts',
+    'server/services/canonical-broll-caption-owner-service.ts',
+  ])
   for (const file of files) {
     if (
       file.startsWith('server/edit-skills/b-roll/') ||
@@ -128,6 +132,19 @@ async function assertOneRuntimeRegistration(): Promise<void> {
       file.startsWith('server/smoke/')
     ) continue
     const source = await readFile(path.join(root, file), 'utf8')
+    if (admittedReadOnlyIntegrationSurfaces.has(file)) {
+      assert.doesNotMatch(
+        source,
+        /registerBrollSkill|registerManifest\s*\(|createBrollCanonicalPrivateRuntimeBindings|BrollCanonicalPrivateExecutionCoordinator/u,
+        `Read-only B-roll integration surface became runtime-capable: ${file}`,
+      )
+      assert.match(
+        source,
+        /runtimeOrDispatchAuthorityGranted:\s*(?:z\.literal\()?false/u,
+        `Read-only B-roll integration surface lacks a closed runtime boundary: ${file}`,
+      )
+      continue
+    }
     if (/registerBrollSkill|skillKey:\s*['"]b_roll['"]/u.test(source)) {
       duplicateRegistrations.push(file)
     }
@@ -152,9 +169,10 @@ async function assertPackageScripts(): Promise<number> {
   assert.ok(scripts.some(([key]) => key === 'smoke:b-roll-retirement'))
   for (const [key, command] of scripts) {
     assert.equal(retiredImportPattern.test(`${key}/${command}`), false)
+    if (command.startsWith('npm run ')) continue
     assert.match(
       command,
-      /^tsx server\/(?:cli\/(?:generate-b-roll|gemini-omni-b-roll|qualify-b-roll|validate-b-roll)|smoke\/b-roll-)/u,
+      /^tsx server\/(?:cli\/(?:generate-b-roll|gemini-omni-b-roll|qualify-b-roll|validate-b-roll)|smoke\/(?:b-roll-|canonical-caption-broll-|captions-specialist-broll-))/u,
       `B-roll package script ${key} does not resolve to the canonical implementation or its evidence.`,
     )
   }

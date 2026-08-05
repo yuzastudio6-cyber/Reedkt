@@ -725,6 +725,262 @@ function validateAudioSignature(bytes, mimeType) {
   if (!id3 && !sync) throw new Error('narration MPEG signature is invalid')
 }
 
+function validateCaptionCreativeSceneGroupPayload(rawPayload) {
+  if (!rawPayload || typeof rawPayload !== 'object' || Array.isArray(rawPayload)
+    || rawPayload.compositionProfileId !== 'caption_direction_creative_scene_group_v1') {
+    return undefined
+  }
+  const payload = exactObject(rawPayload, [
+    'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+    'sceneGroupId', 'sceneGroupDigestSha256', 'motionLockDigestSha256',
+    'storyTimingResolutionDigestSha256', 'confirmedOutputWidth',
+    'confirmedOutputHeight', 'confirmedAspectRatioNumerator',
+    'confirmedAspectRatioDenominator', 'privateReviewScaleNumerator',
+    'privateReviewScaleDenominator', 'reducedMotion', 'subjectMaskFixturePolicy',
+    'backgroundStyle', 'layers',
+  ], 'Caption creative scene-group payload')
+  const durationFrames = integer(payload.durationFrames, 24, 36_000, 'durationFrames')
+  if (
+    payload.width !== 640 || payload.height !== 360 || payload.fps !== 30 ||
+    payload.confirmedOutputWidth !== 1920 || payload.confirmedOutputHeight !== 1080 ||
+    payload.confirmedAspectRatioNumerator !== 16 ||
+    payload.confirmedAspectRatioDenominator !== 9 ||
+    payload.privateReviewScaleNumerator !== 1 ||
+    payload.privateReviewScaleDenominator !== 3 ||
+    typeof payload.reducedMotion !== 'boolean' ||
+    !['none', 'deterministic_private_fixture_only_not_track_all_evidence']
+      .includes(payload.subjectMaskFixturePolicy) ||
+    payload.backgroundStyle !== 'editorial_night_sky_v1'
+  ) throw new Error('Caption creative scene-group frame or fixture policy is unsupported')
+  for (const digest of [
+    payload.sceneGroupDigestSha256, payload.motionLockDigestSha256,
+    payload.storyTimingResolutionDigestSha256,
+  ]) {
+    if (typeof digest !== 'string' || !/^[a-f0-9]{64}$/.test(digest)) {
+      throw new Error('Caption creative scene-group lineage digest is invalid')
+    }
+  }
+  if (!Array.isArray(payload.layers) || payload.layers.length < 2 || payload.layers.length > 128) {
+    throw new Error('Caption creative scene group requires two to 128 layers')
+  }
+  const parseRange = (value, label) => {
+    const range = exactObject(value, ['startFrame', 'endFrameExclusive'], label)
+    const startFrame = integer(range.startFrame, 0, durationFrames - 1, `${label} startFrame`)
+    const endFrameExclusive = integer(range.endFrameExclusive, 1, durationFrames, `${label} endFrameExclusive`)
+    if (endFrameExclusive <= startFrame) throw new Error(`${label} is empty`)
+    return { startFrame, endFrameExclusive }
+  }
+  const nullableRef = (value, label) => {
+    if (value === null) return null
+    const ref = exactObject(value, ['id', 'version', 'contentHash'], label)
+    if (typeof ref.contentHash !== 'string' || !/^[a-f0-9]{64}$/.test(ref.contentHash)) {
+      throw new Error(`${label} digest is invalid`)
+    }
+    return {
+      id: safeIdentity(ref.id, `${label} id`),
+      version: safeIdentity(ref.version, `${label} version`),
+      contentHash: ref.contentHash,
+    }
+  }
+  const seenLayerIds = new Set()
+  const seenNodeIds = new Set()
+  let previousStartFrame = -1
+  let previousZIndex = -1
+  let previousLayerId = ''
+  const layers = payload.layers.map((candidate, index) => {
+    const layer = exactObject(candidate, [
+      'layerId', 'nodeId', 'trackId', 'phraseId', 'trackRole',
+      'presentationKind', 'text', 'exactSourceWordIds', 'frameRange',
+      'stableReadRange', 'depthPlane', 'zIndex', 'layoutBasisPoints',
+      'typography', 'motion', 'reducedMotion', 'accessibilityCounterpartNodeId',
+      'maskSequenceRef', 'objectAnchorRef', 'trackManifestRef',
+      'dependencyDisposition',
+    ], `Caption creative layer ${index + 1}`)
+    const layerId = safeIdentity(layer.layerId, 'Caption creative layerId')
+    const nodeId = safeIdentity(layer.nodeId, 'Caption creative nodeId')
+    const trackId = safeIdentity(layer.trackId, 'Caption creative trackId')
+    const phraseId = safeIdentity(layer.phraseId, 'Caption creative phraseId')
+    const trackRole = oneOf(layer.trackRole, [
+      'verbatim_speech', 'semantic_phrase', 'active_word', 'hero_typography',
+      'persistent_topic_list', 'quote', 'speaker_attribution', 'caption_to_visual',
+      'accessible_sidecar', 'localized_accessible',
+    ], 'Caption creative trackRole')
+    const presentationKind = oneOf(layer.presentationKind, [
+      'stable_accessible_caption', 'semantic_phrase_card', 'hero_typography',
+      'persistent_topic_list', 'environmental_label', 'object_anchor_label',
+      'caption_to_visual_bridge',
+    ], 'Caption creative presentationKind')
+    if (!Array.isArray(layer.exactSourceWordIds)
+      || layer.exactSourceWordIds.length < 1 || layer.exactSourceWordIds.length > 256) {
+      throw new Error('Caption creative exact source-word lineage is invalid')
+    }
+    const exactSourceWordIds = layer.exactSourceWordIds.map((wordId) =>
+      safeIdentity(wordId, 'Caption creative sourceWordId'))
+    if (new Set(exactSourceWordIds).size !== exactSourceWordIds.length) {
+      throw new Error('Caption creative source-word lineage contains duplicates')
+    }
+    const frameRange = parseRange(layer.frameRange, 'Caption creative frameRange')
+    const stableReadRange = parseRange(layer.stableReadRange, 'Caption creative stableReadRange')
+    if (stableReadRange.startFrame < frameRange.startFrame
+      || stableReadRange.endFrameExclusive > frameRange.endFrameExclusive) {
+      throw new Error('Caption creative stable-read range exceeds cue range')
+    }
+    const depthPlane = oneOf(layer.depthPlane, [
+      'far_background', 'environmental_background', 'behind_subject',
+      'speaker_adjacent', 'object_attached', 'in_front_of_subject',
+      'foreground_hero', 'full_screen', 'safe_accessible',
+    ], 'Caption creative depthPlane')
+    const zIndex = integer(layer.zIndex, 0, 2_000, 'Caption creative zIndex')
+    const layout = exactObject(layer.layoutBasisPoints,
+      ['x', 'y', 'width', 'height'], 'Caption creative layout')
+    const layoutBasisPoints = {
+      x: integer(layout.x, 0, 9_999, 'Caption creative layout x'),
+      y: integer(layout.y, 0, 9_999, 'Caption creative layout y'),
+      width: integer(layout.width, 1, 10_000, 'Caption creative layout width'),
+      height: integer(layout.height, 1, 10_000, 'Caption creative layout height'),
+    }
+    if (layoutBasisPoints.x + layoutBasisPoints.width > 10_000
+      || layoutBasisPoints.y + layoutBasisPoints.height > 10_000) {
+      throw new Error('Caption creative layout exceeds the confirmed frame')
+    }
+    const type = exactObject(layer.typography, [
+      'fontFamilyToken', 'fontWeight', 'fontSizeBasisPointsOfFrameHeight',
+      'lineHeightMilli', 'textColor', 'accentColor', 'plateStyle', 'textAlign',
+    ], 'Caption creative typography')
+    const typography = {
+      fontFamilyToken: oneOf(type.fontFamilyToken,
+        ['approved_caption_sans_fixture_v1'], 'Caption font token'),
+      fontWeight: oneOf(type.fontWeight, [600, 700, 800], 'Caption font weight'),
+      fontSizeBasisPointsOfFrameHeight: integer(type.fontSizeBasisPointsOfFrameHeight,
+        400, 2_000, 'Caption font size'),
+      lineHeightMilli: integer(type.lineHeightMilli, 900, 1_600, 'Caption line height'),
+      textColor: oneOf(normalizedColor(type.textColor, 'Caption text color'),
+        ['#F8FAFC', '#DFF7FF', '#09111F'], 'Caption text color'),
+      accentColor: oneOf(normalizedColor(type.accentColor, 'Caption accent color'),
+        ['#6EE7F9', '#A78BFA', '#FBBF24'], 'Caption accent color'),
+      plateStyle: oneOf(type.plateStyle,
+        ['none', 'soft_dark', 'soft_light', 'outline_dark'], 'Caption plate style'),
+      textAlign: oneOf(type.textAlign, ['left', 'center'], 'Caption text alignment'),
+    }
+    const motionValue = exactObject(layer.motion, [
+      'primitive', 'easing', 'travelBasisPoints', 'startScaleBasisPoints',
+      'endScaleBasisPoints', 'startOpacityBasisPoints', 'endOpacityBasisPoints',
+      'overshootBasisPoints', 'staggerFrames',
+    ], 'Caption creative motion')
+    const travel = exactObject(motionValue.travelBasisPoints,
+      ['x', 'y'], 'Caption creative travel')
+    const motion = {
+      primitive: oneOf(motionValue.primitive, [
+        'reveal', 'fade', 'scale', 'slide', 'wipe', 'tracked_move',
+        'depth_transition', 'emphasis_pulse', 'brush_reveal', 'list_append',
+        'hero_expansion', 'handoff_morph', 'stable_hold', 'cut',
+      ], 'Caption motion primitive'),
+      easing: oneOf(motionValue.easing,
+        ['linear', 'ease_in', 'ease_out', 'ease_in_out', 'spring_restrained'],
+        'Caption motion easing'),
+      travelBasisPoints: {
+        x: integer(travel.x, -2_000, 2_000, 'Caption travel x'),
+        y: integer(travel.y, -2_000, 2_000, 'Caption travel y'),
+      },
+      startScaleBasisPoints: integer(motionValue.startScaleBasisPoints,
+        5_000, 15_000, 'Caption start scale'),
+      endScaleBasisPoints: integer(motionValue.endScaleBasisPoints,
+        5_000, 15_000, 'Caption end scale'),
+      startOpacityBasisPoints: integer(motionValue.startOpacityBasisPoints,
+        0, 10_000, 'Caption start opacity'),
+      endOpacityBasisPoints: integer(motionValue.endOpacityBasisPoints,
+        0, 10_000, 'Caption end opacity'),
+      overshootBasisPoints: integer(motionValue.overshootBasisPoints,
+        0, 2_000, 'Caption overshoot'),
+      staggerFrames: integer(motionValue.staggerFrames, 0, 120, 'Caption stagger'),
+    }
+    const reducedValue = exactObject(layer.reducedMotion,
+      ['primitive', 'frameRange'], 'Caption reduced motion')
+    const reducedFrameRange = parseRange(reducedValue.frameRange,
+      'Caption reduced-motion frameRange')
+    if (reducedFrameRange.startFrame !== frameRange.startFrame
+      || reducedFrameRange.endFrameExclusive !== frameRange.endFrameExclusive) {
+      throw new Error('Caption reduced-motion range diverges from StoryTiming')
+    }
+    const maskSequenceRef = nullableRef(layer.maskSequenceRef, 'Caption mask ref')
+    const objectAnchorRef = nullableRef(layer.objectAnchorRef, 'Caption anchor ref')
+    const trackManifestRef = nullableRef(layer.trackManifestRef, 'Caption track ref')
+    const dependencyDisposition = oneOf(layer.dependencyDisposition, [
+      'not_applicable', 'admitted_exact_private_evidence', 'declared_safe_fallback',
+    ], 'Caption dependency disposition')
+    if (dependencyDisposition === 'admitted_exact_private_evidence'
+      && !(maskSequenceRef || objectAnchorRef || trackManifestRef)) {
+      throw new Error('Caption admitted dependency lacks exact evidence')
+    }
+    if (presentationKind === 'stable_accessible_caption' && zIndex !== 1_000) {
+      throw new Error('Stable Caption layer must remain above all visual layers')
+    }
+    if (seenLayerIds.has(layerId) || seenNodeIds.has(nodeId)
+      || frameRange.startFrame < previousStartFrame
+      || (frameRange.startFrame === previousStartFrame && zIndex < previousZIndex)
+      || (frameRange.startFrame === previousStartFrame && zIndex === previousZIndex
+        && layerId.localeCompare(previousLayerId) <= 0)) {
+      throw new Error('Caption creative layers are duplicated or not deterministically ordered')
+    }
+    seenLayerIds.add(layerId)
+    seenNodeIds.add(nodeId)
+    previousStartFrame = frameRange.startFrame
+    previousZIndex = zIndex
+    previousLayerId = layerId
+    return {
+      layerId, nodeId, trackId, phraseId, trackRole, presentationKind,
+      text: safeText(layer.text, 320, 'Caption creative text'),
+      exactSourceWordIds, frameRange, stableReadRange, depthPlane, zIndex,
+      layoutBasisPoints, typography, motion,
+      reducedMotion: {
+        primitive: oneOf(reducedValue.primitive,
+          ['fade', 'stable_hold', 'cut'], 'Caption reduced-motion primitive'),
+        frameRange: reducedFrameRange,
+      },
+      accessibilityCounterpartNodeId: layer.accessibilityCounterpartNodeId === null
+        ? null : safeIdentity(layer.accessibilityCounterpartNodeId,
+          'Caption accessibility counterpart'),
+      maskSequenceRef, objectAnchorRef, trackManifestRef, dependencyDisposition,
+    }
+  })
+  const events = layers.flatMap((layer) => [
+    { frame: layer.frameRange.startFrame, delta: 1 },
+    { frame: layer.frameRange.endFrameExclusive, delta: -1 },
+  ]).sort((left, right) => left.frame - right.frame || left.delta - right.delta)
+  let active = 0
+  let maximum = 0
+  for (const event of events) {
+    active += event.delta
+    maximum = Math.max(maximum, active)
+  }
+  if (maximum < 2 || maximum > 4
+    || !layers.some((layer) => layer.presentationKind === 'stable_accessible_caption')
+    || !layers.some((layer) => layer.presentationKind !== 'stable_accessible_caption')) {
+    throw new Error('Caption creative scene group violates bounded multi-track policy')
+  }
+  return {
+    compositionProfileId: 'caption_direction_creative_scene_group_v1',
+    width: 640,
+    height: 360,
+    fps: 30,
+    durationFrames,
+    sceneGroupId: safeIdentity(payload.sceneGroupId, 'Caption sceneGroupId'),
+    sceneGroupDigestSha256: payload.sceneGroupDigestSha256,
+    motionLockDigestSha256: payload.motionLockDigestSha256,
+    storyTimingResolutionDigestSha256: payload.storyTimingResolutionDigestSha256,
+    confirmedOutputWidth: 1920,
+    confirmedOutputHeight: 1080,
+    confirmedAspectRatioNumerator: 16,
+    confirmedAspectRatioDenominator: 9,
+    privateReviewScaleNumerator: 1,
+    privateReviewScaleDenominator: 3,
+    reducedMotion: payload.reducedMotion,
+    subjectMaskFixturePolicy: payload.subjectMaskFixturePolicy,
+    backgroundStyle: 'editorial_night_sky_v1',
+    layers,
+  }
+}
+
 function validateMotionStudioPayload(rawPayload) {
   if (!rawPayload || typeof rawPayload !== 'object' || Array.isArray(rawPayload)) return undefined
 
@@ -1006,6 +1262,15 @@ function validateRequest(value) {
     throw new Error('request identity is unsupported')
   }
   const rawPayload = request.payload
+  const captionCreativePayload = validateCaptionCreativeSceneGroupPayload(rawPayload)
+  if (captionCreativePayload) {
+    return {
+      schemaVersion: PROTOCOL,
+      toolId: 'remotion',
+      operationId: OPERATION,
+      payload: captionCreativePayload,
+    }
+  }
   const motionStudioPayload = validateMotionStudioPayload(rawPayload)
   if (motionStudioPayload) {
     return {
@@ -3033,8 +3298,19 @@ async function execute(request, options = {}) {
   const layered = request.payload.compositionProfileId === 'motion_studio_native_layered_scene_v1'
   const animatic = request.payload.compositionProfileId === 'motion_studio_prepared_script_animatic_v1'
   const routeDraw = request.payload.compositionProfileId === 'motion_studio_deterministic_route_draw_v1'
+  const captionCreative = request.payload.compositionProfileId ===
+    'caption_direction_creative_scene_group_v1'
   const motionStudioComposition = scenePreview || layered || animatic || routeDraw
-  const goldenFrames = routeDraw
+  const visualEvidenceComposition = motionStudioComposition || captionCreative
+  const goldenFrames = captionCreative
+    ? [...new Set([
+        0,
+        ...request.payload.layers.map((layer) => Math.floor(
+          (layer.frameRange.startFrame + layer.frameRange.endFrameExclusive - 1) / 2,
+        )),
+        request.payload.durationFrames - 1,
+      ])].sort((left, right) => left - right)
+    : routeDraw
     ? [0, 45, 90, 135, 179]
     : motionStudioComposition
       ? [...new Set([
@@ -3290,7 +3566,32 @@ async function execute(request, options = {}) {
           ),
         }
       : {}
-  const renderPayload = scenePreview
+  const renderPayload = captionCreative
+    ? {
+        compositionProfileId: request.payload.compositionProfileId,
+        width: request.payload.width,
+        height: request.payload.height,
+        fps: request.payload.fps,
+        durationFrames: request.payload.durationFrames,
+        sceneGroupId: request.payload.sceneGroupId,
+        sceneGroupDigestSha256: request.payload.sceneGroupDigestSha256,
+        motionLockDigestSha256: request.payload.motionLockDigestSha256,
+        storyTimingResolutionDigestSha256:
+          request.payload.storyTimingResolutionDigestSha256,
+        confirmedOutputWidth: request.payload.confirmedOutputWidth,
+        confirmedOutputHeight: request.payload.confirmedOutputHeight,
+        confirmedAspectRatioNumerator:
+          request.payload.confirmedAspectRatioNumerator,
+        confirmedAspectRatioDenominator:
+          request.payload.confirmedAspectRatioDenominator,
+        privateReviewScaleNumerator: request.payload.privateReviewScaleNumerator,
+        privateReviewScaleDenominator: request.payload.privateReviewScaleDenominator,
+        reducedMotion: request.payload.reducedMotion,
+        subjectMaskFixturePolicy: request.payload.subjectMaskFixturePolicy,
+        backgroundStyle: request.payload.backgroundStyle,
+        captionCreativeLayers: request.payload.layers,
+      }
+    : scenePreview
     ? request.payload
     : layered
     ? {
@@ -3539,7 +3840,7 @@ async function execute(request, options = {}) {
       width: composition.width, height: composition.height,
       fps: composition.fps, durationFrames: composition.durationInFrames,
       durationSeconds: Number((composition.durationInFrames / composition.fps).toFixed(6)),
-      ...(motionStudioComposition ? { frameArtifacts } : {}),
+      ...(visualEvidenceComposition ? { frameArtifacts } : {}),
     }
   } finally {
     if (!retainStreamingOutput) await rm(outputPath, { force: true }).catch(() => undefined)
@@ -4081,6 +4382,23 @@ function semanticEvidence(request, streaming) {
               ? { approvedCaptionTrackTimingApplied: true }
               : {}),
           }
+        : request.payload.compositionProfileId ===
+          'caption_direction_creative_scene_group_v1'
+          ? {
+              captionCreativeSceneGroupCompositionExecuted: true,
+              exactSceneGroupDigestConsumed: true,
+              exactMotionLockDigestConsumed: true,
+              exactStoryTimingResolutionDigestConsumed: true,
+              confirmedOutputFrameAndReviewProxyRatioPreserved: true,
+              boundedMultiTrackLayerOrderPreserved: true,
+              stableAccessibleCaptionAboveVisualLayersPreserved: true,
+              requestedMotionVariantApplied: true,
+              trackAllRuntimeEvidenceNotClaimed: true,
+              deterministicFixtureSubjectMaskDisclosed: true,
+              legacyFullFrameRgbaFallbackPreserved: true,
+              remotionRenderStillExecuted: true,
+              frameGoldenArtifactsProduced: true,
+            }
         : request.payload.compositionProfileId === 'motion_studio_scene_preview_v1'
           ? {
               motionStudioScenePreviewCompositionExecuted: true,

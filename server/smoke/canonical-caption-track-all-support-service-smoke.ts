@@ -798,7 +798,7 @@ function digest(value: unknown, omittedField: string): string {
   )
 }
 
-function withoutField<T extends Record<string, unknown>>(
+function withoutField<T extends object>(
   value: T,
   field: keyof T,
 ): Record<string, unknown> {

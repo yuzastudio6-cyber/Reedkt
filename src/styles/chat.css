@@ -9263,6 +9263,109 @@
   line-height: 1.45;
 }
 
+.caption-specialist-status {
+  background: color-mix(in srgb, var(--rp-surface-glass) 64%, transparent);
+  border: 1px solid var(--rp-border-soft);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: var(--rp-space-3);
+  padding: var(--rp-space-4);
+}
+
+.caption-specialist-status[data-phase='repair_required'] {
+  border-color: color-mix(in srgb, var(--rp-warning) 54%, var(--rp-border-soft));
+}
+
+.caption-specialist-status-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--rp-space-3);
+  justify-content: space-between;
+}
+
+.caption-specialist-status-heading > div {
+  display: grid;
+  gap: var(--rp-space-1);
+  min-width: 0;
+}
+
+.caption-specialist-status-heading > div > span,
+.caption-specialist-status-facts dt {
+  color: var(--rp-text-muted);
+  font-size: 0.7rem;
+  font-weight: 760;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.caption-specialist-status-heading strong {
+  color: var(--rp-text-primary);
+  font-size: 0.96rem;
+  line-height: 1.4;
+}
+
+.caption-specialist-status-badge {
+  border: 1px solid var(--rp-border-glow);
+  border-radius: var(--rp-radius-pill);
+  color: var(--rp-text-secondary);
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: var(--rp-space-2) var(--rp-space-3);
+}
+
+.caption-specialist-status > p,
+.caption-specialist-status-details p {
+  color: var(--rp-text-secondary);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.caption-specialist-status-facts {
+  border-block: 1px solid var(--rp-border-subtle);
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.caption-specialist-status-facts > div {
+  display: grid;
+  gap: var(--rp-space-2);
+  padding: var(--rp-space-3);
+}
+
+.caption-specialist-status-facts > div + div {
+  border-left: 1px solid var(--rp-border-subtle);
+}
+
+.caption-specialist-status-facts dd {
+  color: var(--rp-text-primary);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.caption-specialist-status-details {
+  color: var(--rp-text-secondary);
+  font-size: 0.8rem;
+}
+
+.caption-specialist-status-details summary {
+  color: var(--rp-text-primary);
+  cursor: pointer;
+  font-weight: 720;
+  min-height: 44px;
+  padding-block: var(--rp-space-3);
+}
+
+.caption-specialist-status-details summary:focus-visible {
+  border-radius: var(--rp-radius-sm);
+  box-shadow: var(--rp-shadow-focus);
+  outline: 2px solid color-mix(in srgb, var(--rp-brand-cyan) 72%, transparent);
+  outline-offset: 3px;
+}
+
 .clean-review-placeholder {
   align-items: center;
   aspect-ratio: 16 / 7;

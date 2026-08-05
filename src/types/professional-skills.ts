@@ -11,6 +11,8 @@ import type {
   ReEditProIntelligenceResponsibilityPlan,
 } from './intelligence-orchestration'
 import type { LivingFrameProfessionalSkillComponent } from './living-frame'
+import type { ProfessionalSkillCompositionTrace } from
+  './caption-specialist-integration'
 
 export type ProfessionalSkillFamily =
   | 'intent_direction'
@@ -200,6 +202,12 @@ export interface ProfessionalSkillPlan {
   editBriefOptional: true
   promptFirstPlanning: true
   noUserVisibleToolNames: true
+  /**
+   * Current planners always emit this exact registry trace. It remains
+   * optional on the shared type so historical v1 snapshots remain readable;
+   * new canonical professional-coverage gates must fail closed when absent.
+   */
+  compositionTrace?: ProfessionalSkillCompositionTrace
   livingFrame?: LivingFrameProfessionalSkillComponent
 }
 

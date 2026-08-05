@@ -63,7 +63,7 @@ for (const expected of [
   '396f84661fcf260885c3f9db717caf6904eafd44857dca17be09a835bd7da8d9',
   'fd83c01228a688733f1ded5201c678f0c53ecc1006ffbc404db9f7a899ac6249',
   'd7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c',
-  'bef9768cab184e7ae6e559c032e95ba8d07b3023c289f79a2bd36e8bf85605a5',
+  '78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91',
   'f13c72698edef492f985cc225f14faafe68ae065a2e407f45bdf6f4b9b43fde8',
   'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
   'e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684',
@@ -74,6 +74,9 @@ for (const expected of [
   'libnppist.so.12',
   'libnppitc.so.12',
   'weeditpro-cuda-npp-runtime-receipt-v1',
+  'weeditpro-ubuntu-runtime-security-closure-receipt-v1',
+  '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b',
+  '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b',
   'OpenCV CUDA NPP dependency closure changed',
   '-DBUILD_LIST=core,imgproc,cudev,cudaarithm,python3',
   '-DOPENCV_EXTRA_MODULES_PATH="${OPENCV_CONTRIB_SOURCE}/modules"',
@@ -104,7 +107,7 @@ for (const expected of [
   `capsule builder lost deterministic environment ${expected}`,
 )
 
-assert.equal((builder.match(/download_exact \\\n/gu) ?? []).length, 9)
+assert.equal((builder.match(/download_exact \\\n/gu) ?? []).length, 11)
 assert.doesNotMatch(builder, /apt-get|conda install|pip install [^\n]*https?:/u)
 assert.match(builder, /from urllib\.request import HTTPRedirectHandler, Request, build_opener/u)
 assert.match(builder, /class HttpsOnlyRedirectHandler/u)
@@ -159,7 +162,11 @@ for (const expected of [
   'libcufft.so.11',
   'WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_RECEIPT_SHA256',
   'WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_LICENSE_SHA256',
-  "assert PIL.__version__ == '12.1.0'",
+  'WEEDITPRO_TRACK_ALL_TASK_QA_UBUNTU_SECURITY_RECEIPT_SHA256',
+  "assert PIL.__version__ == '12.3.0'",
+  'dpkg --purge python3-pip python3-wheel',
+  '! command -v pip',
+  'ubuntu-runtime-security-closure-receipt.json',
 ] as const) assert.ok(candidate.includes(expected), `runtime candidate lost ${expected}`)
 assert.doesNotMatch(candidate, /python -m venv|\/venv\/bin\//u)
 assert.doesNotMatch(`${candidate}\n${entrypoint}`, /\/opt\/conda\//u)
@@ -173,6 +180,9 @@ for (const expected of [
   'cuda_npp_shared_library',
   'cuda_npp_ingest_receipt',
   'cuda_npp_license',
+  'ubuntu_security_package',
+  'ubuntu_security_ingest_receipt',
+  'Ubuntu runtime security receipt changed',
   'CUDA NPP library receipt changed',
   'OpenCV CUDA runtime artifact set changed',
   'capsule requirements lock changed',
@@ -188,11 +198,13 @@ for (const source of [iam, foundation]) {
     source,
     /IMAGE_BUILDER(?:_SERVICE_ACCOUNT|_SA)[^\n]*"? roles\/storage\.objectCreator/u,
   )
+  assert.match(source, /roles\/cloudkms\.signerVerifier/u)
+  assert.match(source, /roles\/cloudkms\.viewer/u)
 }
 assert.doesNotMatch(`${dockerfile}\n${candidate}`, /COPY .*checkpoint|ADD https?:/iu)
 
 for (const expected of [
-  'schema=weeditpro-track-all-sam3_1-l4-task-qa-runtime-candidate-v2',
+  'schema=weeditpro-track-all-sam3_1-l4-task-qa-runtime-candidate-v3',
   'cuda_npp_runtime_receipt_required=true',
   'cuda_npp_complete_toolkit_copied=false',
   'cuda_npp_library_count=6',
@@ -200,6 +212,8 @@ for (const expected of [
   'cuda_npp_libnppc_so_12_sha256=69c1468de02b2951a3c9755a76b8246b83fbf4d8f137fd1e843767a76c344ae7',
   'cuda_npp_libnppitc_so_12_sha256=cb0bbbc4d1f08d30bfedde3a862be3a20426e6fdc45636c822fd1bf7ebe32ae9',
   'candidate_base_cuda_libraries_reread_during_build=true',
+  'ubuntu_security_closure_required=true',
+  'runtime_python_package_manager_allowed=false',
 ] as const) assert.ok(
   provenance.includes(expected),
   `source provenance lost ${expected}`,
@@ -221,7 +235,7 @@ console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-private-capsule-builder',
   productName: 'WeEditPro',
   cloudOnlyCompilerImage: true,
-  exactPinnedDownloadCount: 9,
+  exactPinnedDownloadCount: 11,
   opencvVersion: '4.12.0',
   opencvCudaArchitecture: '8.9',
   deterministicBuildTimestamp: '1970-01-01T00:00:00Z',

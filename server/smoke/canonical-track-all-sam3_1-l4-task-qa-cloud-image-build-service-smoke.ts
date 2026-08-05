@@ -32,7 +32,7 @@ const ref = (id: string) => ({
 
 const authorityPayload = {
   schemaVersion:
-    'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-v2' as const,
+    'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-v3' as const,
   source:
     'canonical_track_all_sam3_1_l4_task_qa_cloud_image_build_authority_owner' as const,
   evidenceClass: 'canonical_private_reread' as const,
@@ -81,6 +81,7 @@ const authorityPayload = {
     cudaForwardCompatReceiptSha256: hash('cuda'),
     cudaNppRuntimeReceiptSha256: hash('cuda-npp'),
     cudaNppLicenseSha256: hash('cuda-npp-license'),
+    ubuntuRuntimeSecurityReceiptSha256: hash('ubuntu-security-receipt'),
   },
   cloudBuildPolicy: {
     projectId: 'reeditpro' as const,

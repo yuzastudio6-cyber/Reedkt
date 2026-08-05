@@ -28,6 +28,7 @@ REQUIRED_ROLES = {
     "cuda_forward_compat_package", "cuda_forward_compat_ingest_receipt",
     "cuda_npp_shared_library", "cuda_npp_ingest_receipt",
     "cuda_npp_license",
+    "ubuntu_security_package", "ubuntu_security_ingest_receipt",
 }
 MANIFEST_KEYS = {
     "schemaVersion", "capsuleId", "artifacts", "runtimeDownloadsAllowed",
@@ -40,7 +41,7 @@ REQUIREMENTS = (
     "numpy==2.2.6 --hash=sha256:fd83c01228a688733f1ded5201c678f0c53ecc1006ffbc404db9f7a899ac6249\n"
     "nvidia-ml-py==13.610.43 --hash=sha256:f13c72698edef492f985cc225f14faafe68ae065a2e407f45bdf6f4b9b43fde8\n"
     "packaging==26.3 --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c\n"
-    "pillow==12.1.0 --hash=sha256:bef9768cab184e7ae6e559c032e95ba8d07b3023c289f79a2bd36e8bf85605a5\n"
+    "pillow==12.3.0 --hash=sha256:78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91\n"
 ).encode("utf-8")
 OPENCV_RECEIPT_KEYS = {
     "schemaVersion", "opencvVersion", "sourceRepository", "sourceCommitSha",
@@ -78,6 +79,16 @@ CUDA_NPP_LIBRARIES = {
 CUDA_NPP_LICENSE_SHA256 = (
     "e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684"
 )
+UBUNTU_SECURITY_PACKAGES = {
+    "libssl3t64_3.0.13-0ubuntu3.12_amd64.deb": (
+        "libssl3t64", 1942240,
+        "6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b",
+    ),
+    "openssl_3.0.13-0ubuntu3.12_amd64.deb": (
+        "openssl", 1002894,
+        "321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b",
+    ),
+}
 
 
 def read_regular(path: Path, maximum: int, retain: bool = False) -> tuple[int, str, bytes | None]:
@@ -166,7 +177,56 @@ def expected_role(relative: str) -> str:
         soname = relative.removeprefix("cuda-npp/lib/")
         if soname in CUDA_NPP_LIBRARIES:
             return "cuda_npp_shared_library"
+    if relative.startswith("os-security/"):
+        name = relative.removeprefix("os-security/")
+        if name in UBUNTU_SECURITY_PACKAGES:
+            return "ubuntu_security_package"
+        if name == "ubuntu-runtime-security-closure-receipt.json":
+            return "ubuntu_security_ingest_receipt"
     raise ValueError("capsule artifact path is not allowlisted")
+
+
+def validate_ubuntu_security_receipt(expected: dict[str, object]) -> None:
+    receipt_path = "os-security/ubuntu-runtime-security-closure-receipt.json"
+    _length, _digest, body = read_regular(ROOT / receipt_path, 1024 * 1024, True)
+    if body is None:
+        raise ValueError("Ubuntu runtime security receipt body missing")
+    value = json.loads(body.decode("utf-8"))
+    expected_value = {
+        "schemaVersion": "weeditpro-ubuntu-runtime-security-closure-receipt-v1",
+        "distribution": "ubuntu",
+        "release": "noble-updates",
+        "architecture": "amd64",
+        "source": "official_ubuntu_archive",
+        "packages": [
+            {
+                "packageName": package_name,
+                "packageVersion": "3.0.13-0ubuntu3.12",
+                "sha256": sha256,
+                "byteLength": byte_length,
+            }
+            for _filename, (package_name, byte_length, sha256)
+            in sorted(UBUNTU_SECURITY_PACKAGES.items())
+        ],
+        "runtimePackageManagersAllowed": False,
+        "runtimeNetworkClientsAllowed": False,
+        "removedRuntimePackages": [
+            "base-pillow", "pip", "python3-pip", "python3-wheel",
+            "setuptools", "urllib3", "wheel",
+        ],
+        "runtimeNetworkDownloadsAllowed": False,
+        "containsCredentials": False,
+        "containsCustomerMedia": False,
+        "containsModelWeights": False,
+    }
+    if value != expected_value:
+        raise ValueError("Ubuntu runtime security receipt changed")
+    for filename, (_package_name, byte_length, sha256) in UBUNTU_SECURITY_PACKAGES.items():
+        artifact = expected.get(f"os-security/{filename}")
+        if not isinstance(artifact, dict) or (
+            artifact.get("byteLength"), artifact.get("sha256")
+        ) != (byte_length, sha256):
+            raise ValueError("Ubuntu security package manifest lineage invalid")
 
 
 def validate_cuda_npp_receipt(expected: dict[str, object]) -> None:
@@ -377,6 +437,7 @@ def main() -> None:
     if cuda_receipt is None or json.loads(cuda_receipt.decode("utf-8")) != CUDA_RECEIPT:
         raise ValueError("CUDA forward-compatibility receipt changed")
     validate_cuda_npp_receipt(artifact_by_path)
+    validate_ubuntu_security_receipt(artifact_by_path)
 
 
 if __name__ == "__main__":

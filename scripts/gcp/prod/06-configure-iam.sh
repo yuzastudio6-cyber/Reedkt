@@ -171,6 +171,11 @@ grant_artifact_repository_role "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" roles/a
 grant_image_signing_key_role \
   "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" \
   roles/cloudkms.signerVerifier
+# Cosign must read the asymmetric-key algorithm before asking KMS to sign.
+# Scope metadata read to this one key; it grants no key mutation or signing.
+grant_image_signing_key_role \
+  "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" \
+  roles/cloudkms.viewer
 
 for purpose in \
   source-media proxy-media worker-temp model-artifacts generated-assets masks \

@@ -34,7 +34,7 @@ const entries = [
   [`${root}/python/wheelhouse/numpy-2.2.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl`, 16_527_618, 'fd83c01228a688733f1ded5201c678f0c53ecc1006ffbc404db9f7a899ac6249'],
   [`${root}/python/wheelhouse/nvidia_ml_py-13.610.43-py3-none-any.whl`, 53_163, 'f13c72698edef492f985cc225f14faafe68ae065a2e407f45bdf6f4b9b43fde8'],
   [`${root}/python/wheelhouse/packaging-26.3-py3-none-any.whl`, 129_956, 'd7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c'],
-  [`${root}/python/wheelhouse/pillow-12.1.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl`, 8_044_868, 'bef9768cab184e7ae6e559c032e95ba8d07b3023c289f79a2bd36e8bf85605a5'],
+  [`${root}/python/wheelhouse/pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl`, 6_940_830, '78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91'],
 ].map(([path, byteLength, sha256]) => ({
   path: String(path),
   byteLength: Number(byteLength),

@@ -24,11 +24,11 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-private-capsule-review'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_PRIVATE_BUILD_CAPSULE_VERSION =
-  'canonical-track-all-sam3_1-l4-task-qa-private-build-capsule-v2' as const
+  'canonical-track-all-sam3_1-l4-task-qa-private-build-capsule-v3' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION =
-  'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-v2' as const
+  'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-v3' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_CLOUD_BUILD_REQUEST_VERSION =
-  'canonical-track-all-sam3_1-l4-task-qa-cloud-build-request-v2' as const
+  'canonical-track-all-sam3_1-l4-task-qa-cloud-build-request-v3' as const
 
 const PROJECT_ID = TRACK_ALL_L4_TASK_QA_PROJECT_ID
 const REGION = 'us-central1' as const
@@ -113,6 +113,7 @@ const capsuleWithoutHashSchema = z.object({
     cudaForwardCompatPackageSha256: rawSha256,
     cudaNppRuntimeReceiptSha256: rawSha256,
     cudaNppLicenseSha256: rawSha256,
+    ubuntuRuntimeSecurityReceiptSha256: rawSha256,
     artifactCount: z.number().int().min(5).max(10_000),
     exactArtifactSetReread: z.literal(true),
     hashLockedWheelhouse: z.literal(true),
@@ -152,6 +153,7 @@ const capsuleWithoutHashSchema = z.object({
           'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893'
         || value.privateInput.cudaNppLicenseSha256 !==
           'e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684'
+        || value.privateInput.ubuntuRuntimeSecurityReceiptSha256.length !== 64
       : value.status !== 'contract_only') {
       throw new Error('Track All L4 capsule disposition is invalid.')
     }
@@ -215,6 +217,7 @@ const authorityWithoutHashSchema = z.object({
     cudaForwardCompatReceiptSha256: rawSha256,
     cudaNppRuntimeReceiptSha256: rawSha256,
     cudaNppLicenseSha256: rawSha256,
+    ubuntuRuntimeSecurityReceiptSha256: rawSha256,
   }).strict(),
   cloudBuildPolicy: z.object({
     projectId: z.literal(PROJECT_ID),
@@ -448,6 +451,8 @@ export async function prepareCanonicalTrackAllSam31L4TaskQaCloudImageBuildAuthor
       cudaNppRuntimeReceiptSha256:
         capsule.privateInput.cudaNppRuntimeReceiptSha256,
       cudaNppLicenseSha256: capsule.privateInput.cudaNppLicenseSha256,
+      ubuntuRuntimeSecurityReceiptSha256:
+        capsule.privateInput.ubuntuRuntimeSecurityReceiptSha256,
     },
     cloudBuildPolicy: {
       projectId: PROJECT_ID,
@@ -532,6 +537,8 @@ export function compileCanonicalTrackAllSam31L4TaskQaCloudBuildRequest(
         `WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_RECEIPT_SHA256=${authority.buildClosure.cudaNppRuntimeReceiptSha256}`,
         '--build-arg',
         `WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_LICENSE_SHA256=${authority.buildClosure.cudaNppLicenseSha256}`,
+        '--build-arg',
+        `WEEDITPRO_TRACK_ALL_TASK_QA_UBUNTU_SECURITY_RECEIPT_SHA256=${authority.buildClosure.ubuntuRuntimeSecurityReceiptSha256}`,
         '--build-arg',
         `WEEDITPRO_TRACK_ALL_TASK_QA_PRIVATE_CAPSULE_MANIFEST_SHA256=${authority.buildClosure.privateCapsuleManifestSha256}`,
         '.',
@@ -748,6 +755,10 @@ function assertBuildSourceEntries(
     `${PRIVATE_INPUT_DIRECTORY}/cuda-npp/NGC-DL-CONTAINER-LICENSE`,
     value.privateInput.cudaNppLicenseSha256,
   )
+  required(
+    `${PRIVATE_INPUT_DIRECTORY}/os-security/ubuntu-runtime-security-closure-receipt.json`,
+    value.privateInput.ubuntuRuntimeSecurityReceiptSha256,
+  )
   const privateEntries = entries.filter((entry) =>
     entry.path.startsWith(`${PRIVATE_INPUT_DIRECTORY}/`))
   const wheels = entries.filter((entry) =>
@@ -776,6 +787,9 @@ function isAllowedBuildSourcePath(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/cuda-npp/cuda-npp-runtime-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/cuda-npp/NGC-DL-CONTAINER-LICENSE`,
+    `${PRIVATE_INPUT_DIRECTORY}/os-security/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb`,
+    `${PRIVATE_INPUT_DIRECTORY}/os-security/openssl_3.0.13-0ubuntu3.12_amd64.deb`,
+    `${PRIVATE_INPUT_DIRECTORY}/os-security/ubuntu-runtime-security-closure-receipt.json`,
   ].includes(path)) return true
   const wheelPrefix = `${PRIVATE_INPUT_DIRECTORY}/python/wheelhouse/`
   if (path.startsWith(wheelPrefix)) return (

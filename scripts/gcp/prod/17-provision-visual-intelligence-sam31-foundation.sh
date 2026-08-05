@@ -253,6 +253,14 @@ configure_least_privilege_iam() {
     --role=roles/cloudkms.signerVerifier \
     --condition=None \
     --quiet
+  run_gcloud kms keys add-iam-policy-binding "${SIGNING_KEY}" \
+    --project="${PROJECT_ID}" \
+    --location="${REGION}" \
+    --keyring="${KEY_RING}" \
+    --member="serviceAccount:$(service_account_email "${IMAGE_SIGNER_SA}")" \
+    --role=roles/cloudkms.viewer \
+    --condition=None \
+    --quiet
 }
 
 grant_project_role() {

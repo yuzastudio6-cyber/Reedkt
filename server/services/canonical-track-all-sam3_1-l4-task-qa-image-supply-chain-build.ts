@@ -646,19 +646,19 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildService
         if (providerHttpStatus < 200 || providerHttpStatus >= 300) {
           throw new Error('track_all_l4_supply_chain_read_failed')
         }
-        const build = parseBuildResource(response.json)
+        const envelope = parseBuildTerminalEnvelope(response.json)
         if (
-          build.id !== submission.cloudBuildId
-          || build.name !== `${BUILD_COLLECTION}/${submission.cloudBuildId}`
+          envelope.id !== submission.cloudBuildId
+          || envelope.name !== `${BUILD_COLLECTION}/${submission.cloudBuildId}`
         ) throw new Error('track_all_l4_supply_chain_build_crossed')
-        if (['PENDING', 'QUEUED', 'WORKING'].includes(build.status)) {
+        if (['PENDING', 'QUEUED', 'WORKING'].includes(envelope.status)) {
           return buildTerminal({
             ...base,
             disposition: 'pending',
-            cloudBuildStatus: build.status,
+            cloudBuildStatus: envelope.status,
             providerHttpStatus,
             exactBuildConfigurationEchoVerified: false,
-            warningsAbsent: build.warnings.length === 0,
+            warningsAbsent: envelope.warnings.length === 0,
             evidenceArtifactManifestUri: null,
             evidenceArtifactCount: 0,
             durableTerminalCreated: false,
@@ -667,14 +667,14 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildService
             kmsDigestSignatureCreatedAndVerified: false,
           })
         }
-        if (build.status !== 'SUCCESS') {
+        if (envelope.status !== 'SUCCESS') {
           const terminal = buildTerminal({
             ...base,
             disposition: 'terminal_failure',
-            cloudBuildStatus: build.status,
+            cloudBuildStatus: envelope.status,
             providerHttpStatus,
             exactBuildConfigurationEchoVerified: false,
-            warningsAbsent: build.warnings.length === 0,
+            warningsAbsent: envelope.warnings.length === 0,
             evidenceArtifactManifestUri: null,
             evidenceArtifactCount: 0,
             durableTerminalCreated: true,
@@ -687,6 +687,7 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildService
           }
           return terminal
         }
+        const build = parseBuildResource(response.json)
         assertBuildEcho(build, admission)
         const terminal = buildTerminal({
           ...base,
@@ -893,6 +894,16 @@ function parseBuildResource(value: unknown) {
     artifactManifest: root.results?.artifactManifest ?? null,
     numArtifacts: Number(root.results?.numArtifacts ?? 0),
   }
+}
+
+function parseBuildTerminalEnvelope(value: unknown) {
+  assertClosedPlainData(value, 'track_all_l4_supply_chain_build_envelope')
+  return z.object({
+    id: z.string().uuid(),
+    name: safeId,
+    status: buildStatusSchema,
+    warnings: z.array(z.unknown()).max(128).default([]),
+  }).passthrough().parse(value)
 }
 
 function assertBuildEcho(

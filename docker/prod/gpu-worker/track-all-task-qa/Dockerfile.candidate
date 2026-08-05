@@ -13,6 +13,7 @@ ARG WEEDITPRO_TRACK_ALL_TASK_QA_OPENCV_CUDA_RECEIPT_SHA256
 ARG WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_FORWARD_COMPAT_RECEIPT_SHA256
 ARG WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_RECEIPT_SHA256
 ARG WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_LICENSE_SHA256
+ARG WEEDITPRO_TRACK_ALL_TASK_QA_UBUNTU_SECURITY_RECEIPT_SHA256
 ARG WEEDITPRO_TRACK_ALL_TASK_QA_PRIVATE_CAPSULE_MANIFEST_SHA256
 
 LABEL org.opencontainers.image.revision="${WEEDITPRO_SOURCE_COMMIT_SHA}" \
@@ -23,6 +24,7 @@ LABEL org.opencontainers.image.revision="${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   io.weeditpro.runtime.scale="user-triggered-scale-from-zero" \
   io.weeditpro.runtime.cpu.substantive="forbidden" \
   io.weeditpro.runtime.network-download="forbidden" \
+  io.weeditpro.runtime.package-manager="removed" \
   io.weeditpro.runtime.qualification="candidate-only" \
   io.weeditpro.source.tree="${WEEDITPRO_SOURCE_TREE_HASH}" \
   io.weeditpro.source.clean="${WEEDITPRO_SOURCE_CLEAN}" \
@@ -88,6 +90,23 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
     "${WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_LICENSE_SHA256}" \
     /tmp/track-all-task-qa-private-build-input/cuda-npp/NGC-DL-CONTAINER-LICENSE \
     | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    "${WEEDITPRO_TRACK_ALL_TASK_QA_UBUNTU_SECURITY_RECEIPT_SHA256}" \
+    /tmp/track-all-task-qa-private-build-input/os-security/ubuntu-runtime-security-closure-receipt.json \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b' \
+    /tmp/track-all-task-qa-private-build-input/os-security/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b' \
+    /tmp/track-all-task-qa-private-build-input/os-security/openssl_3.0.13-0ubuntu3.12_amd64.deb \
+    | sha256sum --check --strict \
+  && dpkg --install \
+    /tmp/track-all-task-qa-private-build-input/os-security/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb \
+    /tmp/track-all-task-qa-private-build-input/os-security/openssl_3.0.13-0ubuntu3.12_amd64.deb \
+  && test "$(dpkg-query --show --showformat='${Version}' libssl3t64)" = '3.0.13-0ubuntu3.12' \
+  && test "$(dpkg-query --show --showformat='${Version}' openssl)" = '3.0.13-0ubuntu3.12' \
   && dpkg-deb --extract \
     /tmp/track-all-task-qa-private-build-input/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb / \
   && test -r /usr/local/cuda-12.8/compat/libcuda.so.1 \
@@ -95,7 +114,7 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   && test -r /usr/local/lib/python3.12/dist-packages/nvidia/cublas/lib/libcublasLt.so.12 \
   && test -r /usr/local/lib/python3.12/dist-packages/nvidia/cuda_runtime/lib/libcudart.so.12 \
   && test -r /usr/local/lib/python3.12/dist-packages/nvidia/cufft/lib/libcufft.so.11 \
-  && mkdir -p /opt/weeditpro/opencv-cuda /opt/weeditpro/cuda-npp/lib \
+  && mkdir -p /opt/weeditpro/opencv-cuda /opt/weeditpro/cuda-npp/lib /opt/weeditpro/security \
   && cp --archive \
     /tmp/track-all-task-qa-private-build-input/opencv/install/. \
     /opt/weeditpro/opencv-cuda/ \
@@ -121,6 +140,9 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   && install --mode=0444 \
     /tmp/track-all-task-qa-private-build-input/cuda-npp/NGC-DL-CONTAINER-LICENSE \
     /opt/weeditpro/cuda-npp/NGC-DL-CONTAINER-LICENSE \
+  && install --mode=0444 \
+    /tmp/track-all-task-qa-private-build-input/os-security/ubuntu-runtime-security-closure-receipt.json \
+    /opt/weeditpro/security/ubuntu-runtime-security-closure-receipt.json \
   && test "$(command -v python)" = '/usr/bin/python' \
   && test -x /usr/bin/python \
   && /usr/bin/python -m pip install \
@@ -135,9 +157,30 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   && PYTHONPATH=/opt/weeditpro/track-all-task-qa/python-packages:/opt/weeditpro/opencv-cuda/python \
     /usr/bin/python -m pip check \
   && /usr/bin/python -s -B -c \
-    "import cv2,kornia,numpy,PIL,pynvml,sys,torch; assert sys.version_info[:2] == (3,12); assert torch.__version__ == '2.10.0+cu128'; assert torch.version.cuda == '12.8'; assert kornia.__version__ == '0.8.3'; assert numpy.__version__ == '2.2.6'; assert PIL.__version__ == '12.1.0'; assert hasattr(cv2,'cuda'); assert hasattr(cv2.cuda,'countNonZero'); assert hasattr(cv2.cuda,'threshold'); assert 'NVIDIA CUDA' in cv2.getBuildInformation()" \
+    "import cv2,kornia,numpy,PIL,pynvml,sys,torch; assert sys.version_info[:2] == (3,12); assert torch.__version__ == '2.10.0+cu128'; assert torch.version.cuda == '12.8'; assert kornia.__version__ == '0.8.3'; assert numpy.__version__ == '2.2.6'; assert PIL.__version__ == '12.3.0'; assert hasattr(cv2,'cuda'); assert hasattr(cv2.cuda,'countNonZero'); assert hasattr(cv2.cuda,'threshold'); assert 'NVIDIA CUDA' in cv2.getBuildInformation()" \
   && /usr/bin/python -s -B -m py_compile \
     /opt/weeditpro/track-all-task-qa/runner.py \
+  && dpkg --purge python3-pip python3-wheel \
+  && find /usr/local/lib/python3.12/dist-packages -mindepth 1 -maxdepth 1 \
+    \( -name 'PIL' -o -name 'pillow-*.dist-info' -o -name 'Pillow-*.dist-info' \
+       -o -name 'pip' -o -name 'pip-*.dist-info' \
+       -o -name 'setuptools' -o -name 'setuptools-*.dist-info' \
+       -o -name 'urllib3' -o -name 'urllib3-*.dist-info' \
+       -o -name 'wheel' -o -name 'wheel-*.dist-info' \) \
+    -exec rm -rf -- {} + \
+  && find /usr/local/bin -mindepth 1 -maxdepth 1 \
+    \( -name 'pip' -o -name 'pip3' -o -name 'pip3.*' -o -name 'wheel' \) \
+    -delete \
+  && ! dpkg-query --show python3-pip >/dev/null 2>&1 \
+  && ! dpkg-query --show python3-wheel >/dev/null 2>&1 \
+  && ! command -v pip >/dev/null 2>&1 \
+  && ! command -v pip3 >/dev/null 2>&1 \
+  && test ! -e /usr/local/lib/python3.12/dist-packages/PIL \
+  && test ! -e /usr/local/lib/python3.12/dist-packages/urllib3 \
+  && test ! -e /usr/local/lib/python3.12/dist-packages/setuptools \
+  && PYTHONPATH=/opt/weeditpro/track-all-task-qa/python-packages:/opt/weeditpro/opencv-cuda/python \
+    /usr/bin/python -s -B -c \
+    "import cv2,kornia,numpy,PIL,pynvml,torch; assert PIL.__version__ == '12.3.0'; assert cv2.cuda is not None" \
   && chmod 0555 \
     /opt/weeditpro/track-all-task-qa/runner.py \
     /opt/weeditpro/track-all-task-qa/entrypoint.sh \
@@ -148,6 +191,7 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
     /opt/weeditpro/opencv-cuda/CONTRIB_LICENSE \
     /opt/weeditpro/opencv-cuda/opencv-cuda-receipt.json \
     /opt/weeditpro/opencv-cuda/opencv-build-information.txt \
+    /opt/weeditpro/security/ubuntu-runtime-security-closure-receipt.json \
   && rm -rf /tmp/track-all-task-qa-private-build-input
 
 RUN groupadd --gid 65532 weeditpro \

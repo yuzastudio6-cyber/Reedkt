@@ -192,6 +192,9 @@ async function main(): Promise<void> {
       cudaNppLicenseSha256: required(
         `${PRIVATE_DIRECTORY}/cuda-npp/NGC-DL-CONTAINER-LICENSE`,
       ).sha256,
+      ubuntuRuntimeSecurityReceiptSha256: required(
+        `${PRIVATE_DIRECTORY}/os-security/ubuntu-runtime-security-closure-receipt.json`,
+      ).sha256,
       artifactCount: entries.filter((entry) =>
         entry.path.startsWith(`${PRIVATE_DIRECTORY}/`)).length,
       exactArtifactSetReread: true,

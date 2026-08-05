@@ -201,7 +201,12 @@ const submission = await service.start({
 })
 assert.equal(submission.disposition, 'submitted')
 assert.equal(submission.automaticRetryAllowed, false)
-assert.equal(persistedSubmission?.submissionHash, submission.submissionHash)
+assert.equal(
+  (persistedSubmission as
+    CanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildSubmission | null)
+    ?.submissionHash,
+  submission.submissionHash,
+)
 
 const duplicate = await service.start({
   admissionRef: imageSupplyChainAdmissionRef(admission),
@@ -216,7 +221,48 @@ assert.equal(
 )
 assert.equal(terminal.evidenceArtifactCount, 3)
 assert.equal(terminal.runtimeReleaseGranted, false)
-assert.equal(persistedTerminal?.terminalHash, terminal.terminalHash)
+assert.equal(
+  (persistedTerminal as
+    CanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildTerminal | null)
+    ?.terminalHash,
+  terminal.terminalHash,
+)
+
+let persistedFailure = false
+const failureService =
+  createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildService({
+    readPort: { async rereadAdmission() { return admission } },
+    statePort: {
+      async consumeAdmissionCreateOnly() { return false },
+      async persistSubmissionCreateOnly() { return false },
+      async persistTerminalCreateOnly({ terminal: failed }) {
+        persistedFailure = failed.disposition === 'terminal_failure'
+        return true
+      },
+    },
+    transport: {
+      async request() {
+        return {
+          status: 200,
+          json: {
+            id: cloudBuildId,
+            name:
+              `projects/reeditpro/locations/us-central1/builds/${cloudBuildId}`,
+            status: 'FAILURE',
+            warnings: [],
+            // A failed provider step may omit fields needed by the success
+            // echo. The terminal outcome must still be recorded exactly.
+            steps: [{ id: 'sign', name: 'cosign' }],
+          },
+        }
+      },
+    },
+    now: () => '2026-08-05T22:42:00.000Z',
+  })
+const failedTerminal = await failureService.observe({ admission, submission })
+assert.equal(failedTerminal.disposition, 'terminal_failure')
+assert.equal(failedTerminal.cloudBuildStatus, 'FAILURE')
+assert.equal(persistedFailure, true)
 
 const tampered = structuredClone(admission) as Record<string, unknown>
 tampered.immutableImageDigest = `sha256:${'f'.repeat(64)}`
@@ -226,7 +272,7 @@ assert.throws(() =>
 
 process.stdout.write(`${JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-image-supply-chain-build',
-  checks: 18,
+  checks: 21,
   immutableDigestBound: true,
   pinnedSbomAndKmsToolchain: true,
   exactCloudBuildEchoRequired: true,
@@ -248,7 +294,7 @@ function ref(id: string, character: string) {
 function imageBuildAuthorityFixture() {
   const payload = {
     schemaVersion:
-      'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-v2' as const,
+      'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-v3' as const,
     source:
       'canonical_track_all_sam3_1_l4_task_qa_cloud_image_build_authority_owner' as const,
     evidenceClass: 'canonical_private_reread' as const,
@@ -289,6 +335,7 @@ function imageBuildAuthorityFixture() {
       cudaNppRuntimeReceiptSha256: 'f'.repeat(64),
       cudaNppLicenseSha256:
         'e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684',
+      ubuntuRuntimeSecurityReceiptSha256: '1'.repeat(64),
     },
     cloudBuildPolicy: {
       projectId: 'reeditpro' as const,
@@ -304,7 +351,7 @@ function imageBuildAuthorityFixture() {
       timeout: '3600s' as const,
       queueTtl: '600s' as const,
       sourceFetcher: 'GCS_FETCHER' as const,
-      sourceProvenanceHashes: ['SHA256'] as const,
+      sourceProvenanceHashes: ['SHA256'] as ['SHA256'],
       requestedVerifyOption: 'VERIFIED' as const,
       logging: 'CLOUD_LOGGING_ONLY' as const,
       noSecretsOrSubstitutions: true as const,

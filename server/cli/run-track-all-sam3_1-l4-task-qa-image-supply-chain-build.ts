@@ -98,7 +98,8 @@ async function main(): Promise<void> {
   })}\n`)
 }
 
-function parseArguments(values: readonly string[]) {
+function parseArguments(values: readonly string[]):
+  Record<string, string> & { readonly phase: 'start' | 'observe' } {
   const parsed: Record<string, string> = {}
   for (const value of values.filter((item) => item !== '--')) {
     const match = /^--([a-z0-9-]+)=(.+)$/u.exec(value)
@@ -118,7 +119,7 @@ function parseArguments(values: readonly string[]) {
   if (Object.keys(parsed).sort().join(',') !== expected.sort().join(',')) {
     throw new Error('track_all_l4_supply_chain_arguments_invalid')
   }
-  return { ...parsed, phase }
+  return Object.assign(parsed, { phase })
 }
 
 function ref(id: string, hash: string) {

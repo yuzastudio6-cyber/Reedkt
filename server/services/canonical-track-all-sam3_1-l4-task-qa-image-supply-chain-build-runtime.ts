@@ -101,7 +101,10 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildReposit
   return Object.freeze({
     schemaVersion:
       CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_IMAGE_SUPPLY_CHAIN_BUILD_REPOSITORY_VERSION,
-    async persistAdmissionCreateOnly({ admission }) {
+    async persistAdmissionCreateOnly({ admission }: {
+      readonly admission:
+        CanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildAdmission
+    }) {
       const parsed =
         assertCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildAdmission(
           admission,
@@ -110,7 +113,9 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildReposit
       await persistExact(input.objectPort, recordPath(prefix, 'admissions', ref), parsed)
       return ref
     },
-    async rereadAdmission({ admissionRef }) {
+    async rereadAdmission({ admissionRef }: {
+      readonly admissionRef: EvidenceRef
+    }) {
       const ref = evidenceRefSchema.parse(admissionRef)
       const value = await readExact(
         input.objectPort,
@@ -122,7 +127,11 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildReposit
       }
       return value
     },
-    async consumeAdmissionCreateOnly(value) {
+    async consumeAdmissionCreateOnly(value: {
+      readonly admissionRef: EvidenceRef
+      readonly buildRequestHash: string
+      readonly consumedAt: string
+    }) {
       const payload = consumptionWithoutHashSchema.parse({
         schemaVersion:
           'canonical-track-all-sam3_1-l4-task-qa-image-supply-chain-consumption-v1',
@@ -156,7 +165,10 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildReposit
       }
       return true
     },
-    async persistSubmissionCreateOnly({ submission }) {
+    async persistSubmissionCreateOnly({ submission }: {
+      readonly submission:
+        CanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildSubmission
+    }) {
       const parsed =
         assertCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildSubmission(
           submission,
@@ -168,7 +180,9 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildReposit
       )
       return true
     },
-    async rereadSubmission({ submissionRef }) {
+    async rereadSubmission({ submissionRef }: {
+      readonly submissionRef: EvidenceRef
+    }) {
       const ref = evidenceRefSchema.parse(submissionRef)
       const value = await readExact(
         input.objectPort,
@@ -180,7 +194,10 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildReposit
       }
       return value
     },
-    async persistTerminalCreateOnly({ terminal }) {
+    async persistTerminalCreateOnly({ terminal }: {
+      readonly terminal:
+        CanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildTerminal
+    }) {
       const parsed =
         assertCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildTerminal(
           terminal,
@@ -203,7 +220,9 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildReposit
       }
       return true
     },
-    async rereadTerminalForSubmission({ submissionRef }) {
+    async rereadTerminalForSubmission({ submissionRef }: {
+      readonly submissionRef: EvidenceRef
+    }) {
       const ref = evidenceRefSchema.parse(submissionRef)
       const value = await readExact(
         input.objectPort,
@@ -230,7 +249,11 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainTransport(
     throw new Error('track_all_l4_supply_chain_timeout_invalid')
   }
   return Object.freeze({
-    async request(request) {
+    async request(request: {
+      readonly method: 'GET' | 'POST'
+      readonly url: string
+      readonly body?: Readonly<Record<string, unknown>>
+    }) {
       const validUrl = request.method === 'POST'
         ? request.url === BUILD_ENDPOINT
         : request.url.startsWith(`${BUILD_ENDPOINT}/`)

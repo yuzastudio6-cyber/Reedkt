@@ -16,6 +16,11 @@ readonly RUNTIME_IMAGE='pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2
 readonly CUDA_COMPAT_SHA256='e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893'
 readonly CUDA_COMPAT_BYTES='37945232'
 readonly CUDA_NPP_LICENSE_SHA256='e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684'
+readonly UBUNTU_OPENSSL_VERSION='3.0.13-0ubuntu3.12'
+readonly UBUNTU_LIBSSL_SHA256='6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b'
+readonly UBUNTU_LIBSSL_BYTES='1942240'
+readonly UBUNTU_OPENSSL_SHA256='321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b'
+readonly UBUNTU_OPENSSL_BYTES='1002894'
 
 # OpenCV records its configure time inside both the human-readable build
 # information and the compiled runtime. Pin the source epoch and the explicit
@@ -43,6 +48,7 @@ url, destination_text, expected_sha256, expected_bytes_text = sys.argv[1:]
 expected_bytes = int(expected_bytes_text)
 allowed_hosts = {
     "codeload.github.com",
+    "archive.ubuntu.com",
     "developer.download.nvidia.com",
     "files.pythonhosted.org",
     "github.com",
@@ -116,6 +122,7 @@ mkdir -p \
   "${PRIVATE_ROOT}/opencv/install" \
   "${PRIVATE_ROOT}/cuda-forward-compat" \
   "${PRIVATE_ROOT}/cuda-npp/lib" \
+  "${PRIVATE_ROOT}/os-security" \
   "${WORK}/build-source/docker/prod/gpu-worker/track-all-task-qa" \
   /output
 
@@ -153,9 +160,9 @@ download_exact \
   "${PRIVATE_ROOT}/python/wheelhouse/packaging-26.3-py3-none-any.whl" \
   'd7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c' '129956'
 download_exact \
-  'https://files.pythonhosted.org/packages/76/25/27abc9792615b5e886ca9411ba6637b675f1b77af3104710ac7353fe5605/pillow-12.1.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl' \
-  "${PRIVATE_ROOT}/python/wheelhouse/pillow-12.1.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl" \
-  'bef9768cab184e7ae6e559c032e95ba8d07b3023c289f79a2bd36e8bf85605a5' '8044868'
+  'https://files.pythonhosted.org/packages/84/21/a35af28dcc61f37ed850a2d64c65c701321dfbf25085e469d5559360cbbf/pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl' \
+  "${PRIVATE_ROOT}/python/wheelhouse/pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl" \
+  '78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91' '6940830'
 download_exact \
   'https://files.pythonhosted.org/packages/23/45/caa600acfab94560807a20a64b5830d2cd3c3202b7f1328644d70b7d6bd8/nvidia_ml_py-13.610.43-py3-none-any.whl' \
   "${PRIVATE_ROOT}/python/wheelhouse/nvidia_ml_py-13.610.43-py3-none-any.whl" \
@@ -164,6 +171,14 @@ download_exact \
   'https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb' \
   "${PRIVATE_ROOT}/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb" \
   "${CUDA_COMPAT_SHA256}" "${CUDA_COMPAT_BYTES}"
+download_exact \
+  "https://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl3t64_${UBUNTU_OPENSSL_VERSION}_amd64.deb" \
+  "${PRIVATE_ROOT}/os-security/libssl3t64_${UBUNTU_OPENSSL_VERSION}_amd64.deb" \
+  "${UBUNTU_LIBSSL_SHA256}" "${UBUNTU_LIBSSL_BYTES}"
+download_exact \
+  "https://archive.ubuntu.com/ubuntu/pool/main/o/openssl/openssl_${UBUNTU_OPENSSL_VERSION}_amd64.deb" \
+  "${PRIVATE_ROOT}/os-security/openssl_${UBUNTU_OPENSSL_VERSION}_amd64.deb" \
+  "${UBUNTU_OPENSSL_SHA256}" "${UBUNTU_OPENSSL_BYTES}"
 
 cat >"${PRIVATE_ROOT}/python/requirements.lock.txt" <<'EOF'
 kornia==0.8.3 --hash=sha256:0b15f5d359aeafd7ff54ea631ed1943a3eb295c4a6dae3f745ddeada25e33289
@@ -171,7 +186,7 @@ kornia-rs==0.1.14 --hash=sha256:396f84661fcf260885c3f9db717caf6904eafd44857dca17
 numpy==2.2.6 --hash=sha256:fd83c01228a688733f1ded5201c678f0c53ecc1006ffbc404db9f7a899ac6249
 nvidia-ml-py==13.610.43 --hash=sha256:f13c72698edef492f985cc225f14faafe68ae065a2e407f45bdf6f4b9b43fde8
 packaging==26.3 --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c
-pillow==12.1.0 --hash=sha256:bef9768cab184e7ae6e559c032e95ba8d07b3023c289f79a2bd36e8bf85605a5
+pillow==12.3.0 --hash=sha256:78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91
 EOF
 
 readonly BUILDER_PYTHON="${WORK}/builder-python"
@@ -474,6 +489,47 @@ with open(sys.argv[1], "w", encoding="utf-8", newline="\n") as handle:
     handle.write("\n")
 PY
 
+python - "${PRIVATE_ROOT}/os-security/ubuntu-runtime-security-closure-receipt.json" <<'PY'
+import json
+import sys
+
+receipt = {
+    "schemaVersion": "weeditpro-ubuntu-runtime-security-closure-receipt-v1",
+    "distribution": "ubuntu",
+    "release": "noble-updates",
+    "architecture": "amd64",
+    "source": "official_ubuntu_archive",
+    "packages": [
+        {
+            "packageName": "libssl3t64",
+            "packageVersion": "3.0.13-0ubuntu3.12",
+            "sha256": "6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b",
+            "byteLength": 1942240,
+        },
+        {
+            "packageName": "openssl",
+            "packageVersion": "3.0.13-0ubuntu3.12",
+            "sha256": "321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b",
+            "byteLength": 1002894,
+        },
+    ],
+    "runtimePackageManagersAllowed": False,
+    "runtimeNetworkClientsAllowed": False,
+    "removedRuntimePackages": [
+        "base-pillow", "pip", "python3-pip", "python3-wheel",
+        "setuptools", "urllib3", "wheel",
+    ],
+    "runtimeNetworkDownloadsAllowed": False,
+    "containsCredentials": False,
+    "containsCustomerMedia": False,
+    "containsModelWeights": False,
+}
+with open(sys.argv[1], "w", encoding="utf-8", newline="\n") as handle:
+    json.dump(receipt, handle, ensure_ascii=False, allow_nan=False,
+              sort_keys=True, separators=(",", ":"))
+    handle.write("\n")
+PY
+
 cp "${ROOT}/source/Dockerfile.candidate" \
   "${WORK}/build-source/docker/prod/gpu-worker/track-all-task-qa/Dockerfile.candidate"
 cp "${ROOT}/source/runner.py" \
@@ -520,6 +576,10 @@ for path in sorted(
         role = "opencv_cuda_shared_library"
     elif relative.startswith("opencv/install/"):
         role = "opencv_cuda_runtime_file"
+    elif relative.startswith("os-security/") and relative.endswith(".deb"):
+        role = "ubuntu_security_package"
+    elif relative == "os-security/ubuntu-runtime-security-closure-receipt.json":
+        role = "ubuntu_security_ingest_receipt"
     elif relative.endswith(".deb"):
         role = "cuda_forward_compat_package"
     elif relative.endswith("cuda-forward-compat-ingest-receipt.json"):
@@ -541,7 +601,7 @@ for path in sorted(
     })
 manifest = {
     "schemaVersion": "weeditpro-track-all-sam3_1-l4-task-qa-private-build-capsule-v1",
-    "capsuleId": "track-all-l4-task-qa-opencv-4.12.0-kornia-0.8.3-npp-12.8-v2",
+    "capsuleId": "track-all-l4-task-qa-opencv-4.12.0-kornia-0.8.3-security-v3",
     "artifacts": artifacts,
     "runtimeDownloadsAllowed": False,
     "containsCredentials": False,

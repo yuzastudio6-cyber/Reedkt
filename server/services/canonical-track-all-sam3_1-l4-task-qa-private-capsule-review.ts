@@ -393,11 +393,11 @@ const PYTHON_DEPENDENCIES = [
     runtimeRole: 'dependency_version_resolution',
   },
   {
-    normalizedName: 'pillow', version: '12.1.0',
-    wheelPath: 'track_all_task_qa_private_build_input/python/wheelhouse/pillow-12.1.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl',
-    wheelByteLength: 8_044_868,
-    wheelSha256: 'bef9768cab184e7ae6e559c032e95ba8d07b3023c289f79a2bd36e8bf85605a5',
-    metadataSha256: '4e7feda9a54d7d6fe71d11a63f3ca05dd5e70dbf500a6cf7ca82672774c5fc8b',
+    normalizedName: 'pillow', version: '12.3.0',
+    wheelPath: 'track_all_task_qa_private_build_input/python/wheelhouse/pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl',
+    wheelByteLength: 6_940_830,
+    wheelSha256: '78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91',
+    metadataSha256: '8fc07146cab33ef7582361dab6eac596d340b03ec648f18217da7894f73838c8',
     runtimeRole: 'strict_png_decode',
   },
 ] as const
@@ -444,11 +444,11 @@ const PYTHON_LICENSES = [
     metadataSha256: PYTHON_DEPENDENCIES[4].metadataSha256,
   },
   {
-    normalizedName: 'pillow', version: '12.1.0',
+    normalizedName: 'pillow', version: '12.3.0',
     wheelSha256: PYTHON_DEPENDENCIES[5].wheelSha256,
     licenseExpression: 'MIT-CMU',
-    evidencePath: 'pillow-12.1.0.dist-info/licenses/LICENSE',
-    evidenceSha256: '30178bf7aff9f8dc82afed35086cd378a9064e77fcb4380485f38b5da3377052',
+    evidencePath: 'pillow-12.3.0.dist-info/licenses/LICENSE',
+    evidenceSha256: 'dda12a98c1979cf3d94df1cff45d27a4cb3f04a60c76f76902ac54cac03ec0ce',
     metadataSha256: PYTHON_DEPENDENCIES[5].metadataSha256,
   },
 ] as const

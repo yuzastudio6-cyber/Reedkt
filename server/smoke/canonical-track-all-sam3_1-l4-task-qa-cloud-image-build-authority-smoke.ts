@@ -41,6 +41,12 @@ const buildFiles = new Map<string, Buffer>([
     Buffer.from('fixed-cuda-npp-receipt', 'utf8')],
   [`${privateDirectory}/cuda-npp/NGC-DL-CONTAINER-LICENSE`,
     Buffer.from('fixed-nvidia-container-license', 'utf8')],
+  [`${privateDirectory}/os-security/ubuntu-runtime-security-closure-receipt.json`,
+    Buffer.from('fixed-ubuntu-security-receipt', 'utf8')],
+  [`${privateDirectory}/os-security/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb`,
+    Buffer.from('synthetic-ubuntu-libssl-security-package', 'utf8')],
+  [`${privateDirectory}/os-security/openssl_3.0.13-0ubuntu3.12_amd64.deb`,
+    Buffer.from('synthetic-ubuntu-openssl-security-package', 'utf8')],
   ...[
     'libnppc.so.12',
     'libnppial.so.12',
@@ -164,6 +170,9 @@ const capsule = createCanonicalTrackAllSam31L4TaskQaPrivateBuildCapsule({
     cudaNppLicenseSha256: sha256(buildFiles.get(
       `${privateDirectory}/cuda-npp/NGC-DL-CONTAINER-LICENSE`,
     )!),
+    ubuntuRuntimeSecurityReceiptSha256: sha256(buildFiles.get(
+      `${privateDirectory}/os-security/ubuntu-runtime-security-closure-receipt.json`,
+    )!),
     artifactCount: [...buildFiles.keys()].filter((path) =>
       path.startsWith(`${privateDirectory}/`)).length,
     exactArtifactSetReread: true,
@@ -254,6 +263,9 @@ assert.ok(body.steps[0]?.args.includes(
 ))
 assert.ok(body.steps[0]?.args.includes(
   `WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_LICENSE_SHA256=${capsule.privateInput.cudaNppLicenseSha256}`,
+))
+assert.ok(body.steps[0]?.args.includes(
+  `WEEDITPRO_TRACK_ALL_TASK_QA_UBUNTU_SECURITY_RECEIPT_SHA256=${capsule.privateInput.ubuntuRuntimeSecurityReceiptSha256}`,
 ))
 assert.equal(body.images[0], authority.imageDestination.taggedUri)
 assert.equal(body.serviceAccount,

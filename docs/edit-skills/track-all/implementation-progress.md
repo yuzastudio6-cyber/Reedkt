@@ -1,6 +1,6 @@
 # Track All implementation progress
 
-Status: `track_29_complete_sam_route_externally_blocked`
+Status: `track_30_activation_bridge_audit_complete`
 
 This ledger records actual implementation, test, qualification, Git, and
 external-gate evidence for the canonical `track_all@1.0.0` skill. It does not
@@ -2155,3 +2155,65 @@ production-limitation truth. The head orchestra, global cross-skill scheduler,
 Visual Intelligence skill, Caption implementation, and peer dispatchers were
 not implemented. Track All made zero paid model/GPU requests, zero public
 artifacts, and zero production mutations.
+
+## TRACK-30 — SAM activation-bridge preflight and architecture audit
+
+Status: complete; the implementation commit and remote confirmation are
+recorded in the immediately following evidence-ledger commit.
+
+Exact preflight authority:
+
+- branch: `codex/track-all-skill-end-to-end`;
+- audited head and matching remote head:
+  `6c70ffd88f801f5b635986d718af1adc568b5f24`;
+- frozen foundation and merge base:
+  `codex/edit-skills-foundation-v1@f7208fead733e756e23272920d940b8c25b78900`;
+- PR: `#2499`, open, ready, and GitHub-reported `MERGEABLE`;
+- latest dedicated Track All workflow: `30996765645`, passed;
+- repository-wide UI QA retained two unrelated Current Edit Preferences
+  failures; no test was skipped or weakened.
+
+The exact remaining internal gap was confirmed from source:
+
+- `TrackAllCanonicalPrivateOperationResult` restricted both SAM and GPU counts
+  to literal zero;
+- `TrackAllCanonicalPrivateWorkExecutorImpl` rejected any nonzero SAM/GPU
+  evidence;
+- the deterministic operation driver correctly rejected every SAM/GPU atomic
+  item;
+- `TrackAllSam31RealPrivateSessionOwner` already enforced the exact qualified
+  runtime/profile/route receipt, strict-load/checkpoint/image/GPU evidence,
+  one-submission session lifecycle, mandatory close, durable private output,
+  and no injected escape hatch;
+- selected-instance and concept-group work graphs named the forward-only
+  `tool.sam3_1.track_masklets.v2` operation, but no atomic composite driver
+  connected that operation to the real owner.
+
+The frozen activation design is an atomic composite executor. It alone walks
+the approved atomic graph, orders dependencies, persists exact stage outputs,
+deduplicates replay, and aggregates evidence. It dispatches non-SAM atomic
+operations to a deterministic stage executor and dispatches only the exact
+SAM V2 operation to a separately constructible real-SAM stage executor. The
+common accounting contract accepts either strict deterministic zero evidence
+or receipt-bound real-SAM counts. The blocked default cannot construct the SAM
+executor, publish SAM work, reserve a GPU, submit a request, fabricate a graph,
+or charge.
+
+Actual sequential baseline evidence:
+
+- `npm run test:track-all-canonical-private-runtime`: passed, two scenarios,
+  zero SAM requests and zero GPU executions;
+- `npm run test:track-all-canonical-private-public-e2e`: passed, seven public
+  plugin scenarios including the blocked SAM case, zero requests/executions;
+- `npm run test:track-all-sam3.1-real-private-runtime`: passed; real owner
+  construction remained blocked and exact lifecycle/reconciliation rules
+  passed;
+- `npm run test:track-all-sam3.1-route-gates`: passed; one of eleven gates
+  passed, ten blocked, route status `blocked`, zero requests;
+- `npm run test:track-all-qualification-evidence`: passed; 24 fixtures and 33
+  commands remained bound, with SAM overclaim rejection.
+
+An initial parallel media-baseline attempt was deliberately not counted as a
+test result because two commands raced the same create/remove build-context
+path. Both commands passed when rerun sequentially. No source change, model
+call, GPU execution, public artifact, production mutation, or charge occurred.

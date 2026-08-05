@@ -2,7 +2,7 @@
 
 Milestone: `CAP-13`
 
-Status: `contract_complete_authenticated_sound_runtime_and_final_mix_qa_gated`
+Status: `contract_and_runtime_admission_ready_authenticated_sound_runtime_and_final_mix_qa_gated`
 
 ## Outcome
 
@@ -61,9 +61,17 @@ is injected, every cue deterministically resolves to `silent_fallback` without
 changing Caption meaning or motion timing. Authenticated results still block
 when the dialogue-protected final mix fails voice clarity or cue masking QA.
 
+The post-CAP-20 specialist runtime now parses the exact Sound context and typed
+cue request, emits the canonical `caption_sound_support_result` artifact
+request, and accepts a resume only after the full Sound-owned result matches
+the request, artifact, scope, motion, StoryTiming, asset, final-mix, and QA
+lineage. A result ref alone, missing context/payload, or contract fixture cannot
+complete the job. The result schema identity remains separately frozen as
+`caption-sound-support-result-v1`; it is not misused as the artifact type.
+
 ## Verification
 
-`smoke:captions-specialist-cap-13` passes 31 checks. Positive coverage verifies
+`smoke:captions-specialist-cap-13` passes 37 checks. Positive coverage verifies
 twelve node decisions, two eligible requests, ten explicit silence decisions,
 the two-cue density ceiling, HQ-mediated support, injected contract evidence,
 dialogue-protected final-mix dependency, and the no-result silent fallback.
@@ -71,8 +79,9 @@ dialogue-protected final-mix dependency, and the no-result silent fallback.
 Adversarial coverage rejects cue requests on forbidden nodes, density budget
 overruns, Caption asset authority, direct peer dispatch, Sound admission of a
 forbidden cue, Sound refs on silent cues, fixture runtime or asset overclaims, stale motion lineage,
-incomplete authenticated evidence, forged runtime-ready admission, and
-inherited contract data.
+incomplete authenticated evidence, forged runtime-ready admission, inherited
+contract data, missing runtime context/payload/result, reference-only resume,
+cross-scene scope expansion, and contract-fixture admission overclaim.
 
 The focused CAP-13 smoke, server typecheck, and focused lint are green. CAP-13
 generates no media or audio, so direct playback or raster inspection is not

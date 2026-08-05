@@ -22,6 +22,7 @@ import type {
 } from '../../src/types/caption-storytiming-motion'
 import {
   SKILL_SUPPORT_REQUEST_VERSION,
+  type SkillCanonicalScope,
   type SkillContractRef,
   type SkillSupportRequest,
 } from '../../src/types/orchestra-skill-contracts'
@@ -244,6 +245,23 @@ export interface CaptionSoundContext {
   motionLock: CaptionMotionLock
   storyTimingResolution: CaptionStoryTimingResolutionBinding
   approvedCaptionEnvelopeRef: CaptionDomainRef
+}
+
+export function parseCaptionSoundContext(value: unknown): CaptionSoundContext {
+  assertClosedContractTree(value, 'Caption sound context')
+  if (!value || typeof value !== 'object' || Array.isArray(value)
+    || Object.keys(value).sort().join('|') !== [
+      'approvedCaptionEnvelopeRef',
+      'motionLock',
+      'motionPlan',
+      'sceneGraph',
+      'storyTimingResolution',
+    ].sort().join('|')) {
+    throw new Error('Caption sound context shape is invalid.')
+  }
+  const context = value as CaptionSoundContext
+  validateContext(context)
+  return structuredClone(context)
 }
 
 function ref(id: string, version: string, contentHash: string): CaptionDomainRef {
@@ -544,16 +562,59 @@ export function createCaptionSoundSupportBundle(input: {
     requestDigestSha256: calculateSkillContractDigest(
       { ...base, requestDigestSha256: '' }, 'requestDigestSha256'),
   }, input.context)
-  const skillScope = {
-    ownerUserId: graph.canonicalScope.ownerUserId,
-    workspaceId: graph.canonicalScope.workspaceId,
-    projectId: graph.canonicalScope.projectId,
-    editSessionId: graph.canonicalScope.editSessionId,
-    approvedSnapshotRef: graph.canonicalScope.approvedSnapshotRef,
-    outputId: graph.canonicalScope.outputId,
-    sceneId: graph.canonicalScope.sceneId,
+  const supportRequest = createCaptionSoundSupportRequest({
+    originalCallRef: input.originalCallRef,
+    payload,
+    context: input.context,
+  })
+  return { payload, supportRequest }
+}
+
+function defaultSoundSkillScope(
+  payload: CaptionSoundCueRequest,
+): SkillCanonicalScope {
+  return {
+    ownerUserId: payload.canonicalScope.ownerUserId,
+    workspaceId: payload.canonicalScope.workspaceId,
+    projectId: payload.canonicalScope.projectId,
+    editSessionId: payload.canonicalScope.editSessionId,
+    approvedSnapshotRef: payload.canonicalScope.approvedSnapshotRef,
+    outputId: payload.canonicalScope.outputId,
+    sceneId: payload.canonicalScope.sceneId,
     boundaryId: `${payload.requestId}.sound-boundary`,
-    authorizedFrameRanges: graph.canonicalScope.authorizedFrameRanges,
+    authorizedFrameRanges: payload.canonicalScope.authorizedFrameRanges,
+  }
+}
+
+function soundSkillScopeMatchesPayload(
+  scope: SkillCanonicalScope,
+  payload: CaptionSoundCueRequest,
+): boolean {
+  const source = payload.canonicalScope
+  return scope.ownerUserId === source.ownerUserId
+    && scope.workspaceId === source.workspaceId
+    && scope.projectId === source.projectId
+    && scope.editSessionId === source.editSessionId
+    && exactNullableRef(scope.approvedSnapshotRef, source.approvedSnapshotRef)
+    && scope.outputId === source.outputId
+    && scope.sceneId === source.sceneId
+    && JSON.stringify(scope.authorizedFrameRanges)
+      === JSON.stringify(source.authorizedFrameRanges)
+}
+
+export function createCaptionSoundSupportRequest(input: {
+  originalCallRef: SkillContractRef
+  payload: unknown
+  context: unknown
+  canonicalSkillScope?: SkillCanonicalScope
+}): SkillSupportRequest {
+  assertClosedContractTree(input, 'Caption sound support request input')
+  const context = parseCaptionSoundContext(input.context)
+  const payload = parseCaptionSoundCueRequest(input.payload, context)
+  const skillScope = structuredClone(input.canonicalSkillScope
+    ?? defaultSoundSkillScope(payload))
+  if (!soundSkillScopeMatchesPayload(skillScope, payload)) {
+    throw new Error('Caption sound support scope does not match its payload.')
   }
   const supportBase: Omit<SkillSupportRequest, 'requestDigestSha256'> = {
     schemaVersion: SKILL_SUPPORT_REQUEST_VERSION,
@@ -562,7 +623,7 @@ export function createCaptionSoundSupportBundle(input: {
     requestingSkillKey: 'captions',
     targetSkillKey: 'soundsync',
     reasonCode: 'caption_semantic_sound_support_requested',
-    requestedArtifactTypes: [CAPTION_SOUND_SUPPORT_RESULT_VERSION],
+    requestedArtifactTypes: ['caption_sound_support_result'],
     canonicalScope: skillScope,
     typedPayloadType: payload.schemaVersion,
     typedPayload: payload,
@@ -578,7 +639,7 @@ export function createCaptionSoundSupportBundle(input: {
     requestDigestSha256: calculateSkillContractDigest(
       { ...supportBase, requestDigestSha256: '' }, 'requestDigestSha256'),
   })
-  return { payload, supportRequest }
+  return supportRequest
 }
 
 export function parseCaptionSoundSupportResult(

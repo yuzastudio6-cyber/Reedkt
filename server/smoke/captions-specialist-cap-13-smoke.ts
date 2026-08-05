@@ -7,6 +7,7 @@ import {
 } from '../../src/types/caption-sound-support'
 import {
   calculateSkillContractDigest,
+  parseOrchestraSkillCall,
   parseSkillSupportRequest,
 } from '../orchestra/orchestra-skill-contracts'
 import {
@@ -17,6 +18,12 @@ import {
   parseCaptionSoundSupportResult,
   type CaptionSoundContext,
 } from '../captions-specialist/caption-sound-support'
+import { runCaptionsSpecialistJob } from
+  '../captions-specialist/captions-specialist-runtime'
+import {
+  createCaptionsHarnessCall,
+  resumeCaptionsHarnessCall,
+} from '../internal-testing/captions-specialist-harness'
 import {
   CAP_11_APPROVAL_ENVELOPE_REF,
   CAP_11_SCENE_GRAPH_FIXTURE,
@@ -159,7 +166,9 @@ export function runCap13Smoke(): void {
   'SoundSync must remain the sole cue-selection, generation, and mix owner.')
   check(bundle.supportRequest.mediationPolicy.hqMediated
     && !bundle.supportRequest.mediationPolicy.directPeerDispatchAllowed
-    && bundle.supportRequest.targetSkillKey === 'soundsync',
+    && bundle.supportRequest.targetSkillKey === 'soundsync'
+    && bundle.supportRequest.requestedArtifactTypes.join('|')
+      === 'caption_sound_support_result',
   'Caption Sound requests must cross the neutral HQ-mediated support boundary.')
   check(!request.soundAssetSelectionPerformedByCaption
     && !request.soundGenerationRequestedDirectlyByCaption
@@ -218,6 +227,156 @@ export function runCap13Smoke(): void {
     && !noResultAdmission.publicDeliveryGranted
     && !noResultAdmission.productionAuthorityGranted,
   'All Caption Sound runtime, asset, mix, QA, delivery, and production authorities stay closed.')
+
+  const runtimeRequestId = 'caption.sound.cap13.runtime-request'
+  const runtimeCallSeed = createCaptionsHarnessCall({
+    callId: 'captions.sound.cap13.runtime-admission',
+    jobType: 'provide_typographic_transition_support',
+    scopeLevel: 'boundary',
+    runtimeProfile: 'post_cap20_integration',
+    inputArtifactTypes: [
+      'canonical_transcript', 'confirmed_output_frame',
+      'master_timing_or_planning_timing',
+    ],
+    boundaryId: `${runtimeRequestId}.sound-boundary`,
+  })
+  const graphScope = context.sceneGraph.canonicalScope
+  const runtimeCallWithoutDigest = {
+    ...structuredClone(runtimeCallSeed),
+    canonicalScope: {
+      ownerUserId: graphScope.ownerUserId,
+      workspaceId: graphScope.workspaceId,
+      projectId: graphScope.projectId,
+      editSessionId: graphScope.editSessionId,
+      approvedSnapshotRef: structuredClone(graphScope.approvedSnapshotRef),
+      outputId: graphScope.outputId,
+      sceneId: graphScope.sceneId,
+      boundaryId: `${runtimeRequestId}.sound-boundary`,
+      authorizedFrameRanges: structuredClone(graphScope.authorizedFrameRanges),
+    },
+  }
+  const runtimeCall = parseOrchestraSkillCall({
+    ...runtimeCallWithoutDigest,
+    callDigestSha256: digest(
+      { ...runtimeCallWithoutDigest, callDigestSha256: '' },
+      'callDigestSha256'),
+  })
+  const runtimeBundle = createCaptionSoundSupportBundle({
+    requestId: runtimeRequestId,
+    idempotencyKey: runtimeCall.idempotencyKey,
+    originalCallRef: {
+      id: runtimeCall.callId,
+      version: runtimeCall.schemaVersion,
+      contentHash: runtimeCall.callDigestSha256,
+    },
+    context,
+    dialogueTrackRef: ref(
+      'dialogue.track.cap13.runtime', 'canonical-dialogue-track-v1'),
+    dialogueActivityRef: ref(
+      'dialogue.activity.cap13.runtime', 'dialogue-activity-v1'),
+    maximumRequestedCueCount: 2,
+  })
+  const runtimeInitial = runCaptionsSpecialistJob({
+    call: runtimeCall,
+    soundSupportContext: context,
+    soundSupportPayload: runtimeBundle.payload,
+  })
+  check(runtimeInitial.disposition === 'needs_followup'
+    && runtimeInitial.supportRequests.length === 1
+    && runtimeInitial.supportRequests[0].requestDigestSha256
+      === runtimeBundle.supportRequest.requestDigestSha256
+    && runtimeInitial.supportRequests[0].typedPayloadType
+      === 'caption-sound-cue-request-v1',
+  'The runtime emits the exact typed SoundSync support request.')
+
+  const runtimeSupportRequest = runtimeInitial.supportRequests[0]
+  const runtimeFixtureResult = createContractFixtureResult({
+    context,
+    bundle: {
+      payload: runtimeBundle.payload,
+      supportRequest: runtimeSupportRequest,
+    },
+  })
+  let runtimeResumedCall = resumeCaptionsHarnessCall(
+    runtimeCall, runtimeSupportRequest)
+  runtimeResumedCall.injectedSupportArtifactRefs = [{
+    id: runtimeFixtureResult.resultId,
+    version: runtimeFixtureResult.schemaVersion,
+    contentHash: runtimeFixtureResult.resultDigestSha256,
+    artifactType: 'caption_sound_support_result',
+    producerSkillKey: 'soundsync',
+    privateArtifact: true,
+    byteFreeRef: true,
+    sourceSupportRequestRef: {
+      id: runtimeSupportRequest.requestId,
+      version: runtimeSupportRequest.schemaVersion,
+      contentHash: runtimeSupportRequest.requestDigestSha256,
+    },
+  }]
+  runtimeResumedCall = parseOrchestraSkillCall({
+    ...runtimeResumedCall,
+    callDigestSha256: digest(
+      { ...runtimeResumedCall, callDigestSha256: '' },
+      'callDigestSha256'),
+  })
+  const fixtureRuntimeResult = runCaptionsSpecialistJob({
+    call: runtimeResumedCall,
+    resumeSupportRequest: runtimeSupportRequest,
+    soundSupportContext: context,
+    soundSupportPayload: runtimeBundle.payload,
+    soundSupportResult: runtimeFixtureResult,
+  })
+  check(fixtureRuntimeResult.disposition === 'blocked'
+    && fixtureRuntimeResult.reasonCodes.join('|')
+      === 'input.soundsync.authenticated_admission.mismatch',
+  'A Sound contract fixture cannot complete the specialist runtime job.')
+
+  const missingRuntimeSoundResult = runCaptionsSpecialistJob({
+    call: runtimeResumedCall,
+    resumeSupportRequest: runtimeSupportRequest,
+    soundSupportContext: context,
+    soundSupportPayload: runtimeBundle.payload,
+  })
+  check(missingRuntimeSoundResult.disposition === 'blocked'
+    && missingRuntimeSoundResult.reasonCodes.join('|')
+      === 'input.soundsync.authenticated_admission.failed',
+  'A SoundSync result artifact reference alone cannot satisfy admission.')
+
+  const referenceOnlyRuntimeResult = runCaptionsSpecialistJob({
+    call: runtimeResumedCall,
+    resumeSupportRequest: runtimeSupportRequest,
+  })
+  check(referenceOnlyRuntimeResult.disposition === 'blocked'
+    && referenceOnlyRuntimeResult.reasonCodes.join('|')
+      === 'input.soundsync.payload.missing',
+  'A typed SoundSync resume cannot fall back to reference-only completion.')
+
+  const incompleteRuntimeInput = runCaptionsSpecialistJob({
+    call: runtimeCall,
+    soundSupportContext: context,
+  })
+  check(incompleteRuntimeInput.disposition === 'blocked'
+    && incompleteRuntimeInput.reasonCodes.join('|')
+      === 'input.soundsync.context_or_payload.missing',
+  'SoundSync runtime admission requires both its context and typed payload.')
+
+  const crossedSoundCallWithoutDigest = structuredClone(runtimeCall)
+  crossedSoundCallWithoutDigest.canonicalScope.sceneId = 'scene.sound.crossed'
+  const crossedSoundCall = parseOrchestraSkillCall({
+    ...crossedSoundCallWithoutDigest,
+    callDigestSha256: digest(
+      { ...crossedSoundCallWithoutDigest, callDigestSha256: '' },
+      'callDigestSha256'),
+  })
+  const crossedSoundResult = runCaptionsSpecialistJob({
+    call: crossedSoundCall,
+    soundSupportContext: context,
+    soundSupportPayload: runtimeBundle.payload,
+  })
+  check(crossedSoundResult.disposition === 'blocked'
+    && crossedSoundResult.reasonCodes.join('|')
+      === 'input.soundsync.payload.scope_or_job.mismatch',
+  'A SoundSync payload cannot cross or expand the assigned scene scope.')
 
   const forbiddenIndex = request.cueIntents.findIndex((intent) =>
     intent.eligibility === 'sound_forbidden')
@@ -319,6 +478,8 @@ export function runCap13Smoke(): void {
     actualSoundRuntimeObserved: false,
     actualAudioAssetReread: false,
     dialogueProtectedFinalMixQaCompleted: false,
+    typedRuntimeAdmissionPathReady: true,
+    contractFixtureRuntimeAdmissionRejected: true,
     providerOrAssetSelectedByCaption: false,
     productionAuthorityPromoted: false,
   }, null, 2))

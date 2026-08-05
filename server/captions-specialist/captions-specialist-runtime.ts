@@ -31,6 +31,10 @@ import type {
 } from '../../src/types/caption-track-all-support'
 import type { CaptionDomainCanonicalScope } from
   '../../src/types/caption-domain-contracts'
+import type {
+  CaptionSoundCueRequest,
+  CaptionSoundSupportResult,
+} from '../../src/types/caption-sound-support'
 import {
   calculateSkillContractDigest,
   parseOrchestraSkillCall,
@@ -65,6 +69,13 @@ import {
   parseCaptionTrackAllEvidencePacket,
   parseCaptionTrackAllSupportPayload,
 } from './caption-track-all-support'
+import {
+  createCaptionSoundSupportRequest,
+  parseCaptionSoundContext,
+  parseCaptionSoundCueRequest,
+  parseCaptionSoundSupportResult,
+  type CaptionSoundContext,
+} from './caption-sound-support'
 
 interface CaptionRuntimeProfile {
   manifest: typeof CAPTIONS_SPECIALIST_MANIFEST
@@ -275,15 +286,13 @@ function missingArtifacts(
     .filter((artifactType) => !present.has(artifactType))
 }
 
-function exactScopeForDomainPayload(
+function exactDomainScopeFields(
   call: OrchestraSkillCall,
   scope: CaptionDomainCanonicalScope,
 ): boolean {
   const callSnapshot = call.canonicalScope.approvedSnapshotRef
   const payloadSnapshot = scope.approvedSnapshotRef
-  return call.job.scopeLevel === 'scene'
-    && call.canonicalScope.boundaryId === null
-    && call.canonicalScope.ownerUserId === scope.ownerUserId
+  return call.canonicalScope.ownerUserId === scope.ownerUserId
     && call.canonicalScope.workspaceId === scope.workspaceId
     && call.canonicalScope.projectId === scope.projectId
     && call.canonicalScope.editSessionId === scope.editSessionId
@@ -294,6 +303,26 @@ function exactScopeForDomainPayload(
     && ((callSnapshot === null && payloadSnapshot === null)
       || (callSnapshot !== null && payloadSnapshot !== null
         && exactRef(callSnapshot, payloadSnapshot)))
+}
+
+function exactScopeForDomainPayload(
+  call: OrchestraSkillCall,
+  scope: CaptionDomainCanonicalScope,
+): boolean {
+  return call.job.scopeLevel === 'scene'
+    && call.canonicalScope.boundaryId === null
+    && exactDomainScopeFields(call, scope)
+}
+
+function exactSoundScopeForPayload(
+  call: OrchestraSkillCall,
+  scope: CaptionDomainCanonicalScope,
+): boolean {
+  return exactDomainScopeFields(call, scope)
+    && ((call.job.scopeLevel === 'scene'
+      && call.canonicalScope.boundaryId === null)
+      || (call.job.scopeLevel === 'boundary'
+        && call.canonicalScope.boundaryId !== null))
 }
 
 function packetArtifactMatches(
@@ -352,6 +381,36 @@ function expectedTrackAllPurpose(jobType: string): CaptionTrackAllPurpose | null
   return null
 }
 
+function isSoundSupportJob(jobType: string): boolean {
+  return [
+    'provide_typographic_transition_support',
+    'prepare_caption_boundary_timing_requirements',
+    'provide_typographic_transition_component',
+  ].includes(jobType)
+}
+
+function soundResultArtifactMatches(
+  call: OrchestraSkillCall,
+  request: SkillSupportRequest,
+  result: CaptionSoundSupportResult,
+): boolean {
+  const injected = call.injectedSupportArtifactRefs
+  if (injected.length !== 1) return false
+  const artifact = injected[0]
+  const requestRef: SkillContractRef = {
+    id: request.requestId,
+    version: request.schemaVersion,
+    contentHash: request.requestDigestSha256,
+  }
+  return artifact.id === result.resultId
+    && artifact.version === result.schemaVersion
+    && artifact.contentHash === result.resultDigestSha256
+    && artifact.artifactType === 'caption_sound_support_result'
+    && artifact.producerSkillKey === 'soundsync'
+    && artifact.sourceSupportRequestRef !== null
+    && exactRef(artifact.sourceSupportRequestRef, requestRef)
+}
+
 function qualificationEntry(
   snapshot: SkillQualificationSnapshot,
   jobType: string,
@@ -369,6 +428,9 @@ export function runCaptionsSpecialistJob(input: {
   canonicalVisualIntelligenceEvidenceRecord?: unknown
   trackAllSupportPayload?: unknown
   trackAllEvidencePacket?: unknown
+  soundSupportContext?: unknown
+  soundSupportPayload?: unknown
+  soundSupportResult?: unknown
 }): OrchestraSkillJobResult {
   const call = parseOrchestraSkillCall(input.call)
   const integrationProfile = call.manifestRef.id
@@ -442,6 +504,9 @@ export function runCaptionsSpecialistJob(input: {
   CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord | null = null
   let trackAllPayload: CaptionTrackAllSupportPayload | null = null
   let admittedTrackAllPacket: CaptionTrackAllEvidencePacket | null = null
+  let soundContext: CaptionSoundContext | null = null
+  let soundPayload: CaptionSoundCueRequest | null = null
+  let admittedSoundResult: CaptionSoundSupportResult | null = null
   if (input.canonicalVisualIntelligenceEvidenceRecord !== undefined) {
     if (input.visualIntelligenceSupportPayload !== undefined
       || input.visualIntelligenceEvidencePacket !== undefined) {
@@ -494,6 +559,33 @@ export function runCaptionsSpecialistJob(input: {
       return makeResult(profile,
         call, 'blocked', ['input.track_all.payload.scope_or_job.mismatch'],
         'The Caption Track All payload does not match the assigned scene job.',
+      )
+    }
+  }
+  if (input.soundSupportContext !== undefined
+    || input.soundSupportPayload !== undefined) {
+    if (input.soundSupportContext === undefined
+      || input.soundSupportPayload === undefined) {
+      return makeResult(profile,
+        call, 'blocked', ['input.soundsync.context_or_payload.missing'],
+        'The Caption SoundSync request requires its exact context and payload.',
+      )
+    }
+    try {
+      soundContext = parseCaptionSoundContext(input.soundSupportContext)
+      soundPayload = parseCaptionSoundCueRequest(
+        input.soundSupportPayload, soundContext)
+    } catch {
+      return makeResult(profile,
+        call, 'blocked', ['input.soundsync.payload.invalid'],
+        'The Caption SoundSync context or payload is invalid.',
+      )
+    }
+    if (!isSoundSupportJob(call.job.jobType)
+      || !exactSoundScopeForPayload(call, soundPayload.canonicalScope)) {
+      return makeResult(profile,
+        call, 'blocked', ['input.soundsync.payload.scope_or_job.mismatch'],
+        'The Caption SoundSync payload does not match the assigned job scope.',
       )
     }
   }
@@ -620,6 +712,39 @@ export function runCaptionsSpecialistJob(input: {
         'Track All evidence does not match the current follow-up owner.',
       )
     }
+    if (request.targetSkillKey === 'soundsync'
+      && soundPayload !== null && soundContext !== null) {
+      try {
+        admittedSoundResult = parseCaptionSoundSupportResult(
+          input.soundSupportResult,
+          { payload: soundPayload, supportRequest: request },
+          soundContext,
+        )
+      } catch {
+        return makeResult(profile,
+          call, 'blocked', ['input.soundsync.authenticated_admission.failed'],
+          'The authenticated SoundSync result was rejected.',
+        )
+      }
+      if (admittedSoundResult.evidenceMode !== 'authenticated_private_runtime'
+        || !soundResultArtifactMatches(call, request, admittedSoundResult)) {
+        return makeResult(profile,
+          call, 'blocked', ['input.soundsync.authenticated_admission.mismatch'],
+          'The SoundSync result is not authenticated or does not match its artifact.',
+        )
+      }
+    } else if (request.targetSkillKey === 'soundsync'
+      && request.typedPayloadType === 'caption-sound-cue-request-v1') {
+      return makeResult(profile,
+        call, 'blocked', ['input.soundsync.payload.missing'],
+        'Typed SoundSync resume requires its exact context, payload, and result.',
+      )
+    } else if (input.soundSupportResult !== undefined) {
+      return makeResult(profile,
+        call, 'blocked', ['input.soundsync.result.unexpected'],
+        'SoundSync evidence does not match the current follow-up owner.',
+      )
+    }
   } else if (input.resumeSupportRequest !== undefined) {
     return makeResult(profile,
       call, 'blocked', ['resume.request.unexpected'],
@@ -639,6 +764,11 @@ export function runCaptionsSpecialistJob(input: {
     return makeResult(profile,
       call, 'blocked', ['input.track_all.evidence.unexpected'],
       'Track All evidence was supplied outside an exact resume.',
+    )
+  } else if (input.soundSupportResult !== undefined) {
+    return makeResult(profile,
+      call, 'blocked', ['input.soundsync.result.unexpected'],
+      'SoundSync evidence was supplied outside an exact resume.',
     )
   }
 
@@ -680,6 +810,15 @@ export function runCaptionsSpecialistJob(input: {
           payload: trackAllPayload,
         })
       }
+      if (target === 'soundsync'
+        && soundPayload !== null && soundContext !== null) {
+        return createCaptionSoundSupportRequest({
+          originalCallRef: callRef(call),
+          payload: soundPayload,
+          context: soundContext,
+          canonicalSkillScope: call.canonicalScope,
+        })
+      }
       return makeSupportRequest(call, target, items)
     })
     return makeResult(profile,
@@ -702,6 +841,7 @@ export function runCaptionsSpecialistJob(input: {
       call.canonicalScope.boundaryId ?? 'no-boundary',
       admittedVisualPacket?.packetDigestSha256 ?? 'no-visual-packet',
       admittedTrackAllPacket?.packetDigestSha256 ?? 'no-track-all-packet',
+      admittedSoundResult?.resultDigestSha256 ?? 'no-sound-result',
     ].join(':')),
     artifactType: CAPTIONS_CAP_01_ARTIFACT_TYPE,
     producerSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
@@ -718,6 +858,8 @@ export function runCaptionsSpecialistJob(input: {
         : ['visual_intelligence.authenticated_admission.accepted']),
       ...(admittedTrackAllPacket === null ? []
         : ['track_all.authenticated_admission.accepted']),
+      ...(admittedSoundResult === null ? []
+        : ['soundsync.authenticated_admission.accepted']),
     ],
     'Caption planning completed within the assigned scope.',
     [],

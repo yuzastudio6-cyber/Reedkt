@@ -97,8 +97,8 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   && install --mode=0444 \
     /tmp/track-all-task-qa-private-build-input/opencv/opencv-build-information.txt \
     /opt/weeditpro/opencv-cuda/opencv-build-information.txt \
-  && test -x /opt/conda/bin/python \
-  && /opt/conda/bin/python -m pip install \
+  && test -x /usr/local/bin/python \
+  && /usr/local/bin/python -m pip install \
     --no-index \
     --no-cache-dir \
     --no-deps \
@@ -108,10 +108,10 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
     --find-links=/tmp/track-all-task-qa-private-build-input/python/wheelhouse \
     --requirement=/tmp/track-all-task-qa-private-build-input/python/requirements.lock.txt \
   && PYTHONPATH=/opt/weeditpro/track-all-task-qa/python-packages:/opt/weeditpro/opencv-cuda/python \
-    /opt/conda/bin/python -m pip check \
-  && /opt/conda/bin/python -s -B -c \
+    /usr/local/bin/python -m pip check \
+  && /usr/local/bin/python -s -B -c \
     "import cv2,kornia,numpy,PIL,pynvml,sys,torch; assert sys.version_info[:2] == (3,12); assert torch.__version__ == '2.10.0+cu128'; assert torch.version.cuda == '12.8'; assert kornia.__version__ == '0.8.3'; assert numpy.__version__ == '2.2.6'; assert PIL.__version__ == '12.1.0'; assert hasattr(cv2,'cuda'); assert hasattr(cv2.cuda,'countNonZero'); assert hasattr(cv2.cuda,'threshold'); assert 'NVIDIA CUDA' in cv2.getBuildInformation()" \
-  && /opt/conda/bin/python -s -B -m py_compile \
+  && /usr/local/bin/python -s -B -m py_compile \
     /opt/weeditpro/track-all-task-qa/runner.py \
   && chmod 0555 \
     /opt/weeditpro/track-all-task-qa/runner.py \

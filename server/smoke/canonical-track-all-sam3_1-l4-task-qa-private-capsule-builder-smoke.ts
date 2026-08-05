@@ -132,11 +132,13 @@ for (const expected of [
   '--no-deps',
   '--ignore-installed',
   '--target=/opt/weeditpro/track-all-task-qa/python-packages',
+  '/usr/local/bin/python -m pip install',
   'opencv-build-information.txt',
   "assert PIL.__version__ == '12.1.0'",
 ] as const) assert.ok(candidate.includes(expected), `runtime candidate lost ${expected}`)
 assert.doesNotMatch(candidate, /python -m venv|\/venv\/bin\//u)
-assert.match(entrypoint, /exec \/opt\/conda\/bin\/python -s -B/u)
+assert.doesNotMatch(`${candidate}\n${entrypoint}`, /\/opt\/conda\//u)
+assert.match(entrypoint, /exec \/usr\/local\/bin\/python -s -B/u)
 
 for (const expected of [
   'opencv_cuda_python_module',

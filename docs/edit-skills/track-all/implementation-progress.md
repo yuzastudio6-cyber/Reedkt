@@ -2499,3 +2499,46 @@ The manifest remains
 `2890bb5d96cbb6432c9376acc274c84b793af1521c2da5adc18ccdf7420c23ad`.
 No Gemini request, public artifact, production mutation, or billing action
 occurred.
+
+TRACK-34 B-Roll evidence commit
+`bf96d0cfdffb045be8ccc3f80d519fcaf5b7177c` was pushed and the remote branch
+was reread at that exact SHA. Normal committed-receipt rereads then passed the
+actual Track All → B-Roll producer/consumer acceptance, the B-Roll public
+plugin, both qualification-integrity smokes, retirement enforcement, and
+`git diff --check`.
+
+## TRACK-35 — dedicated CI runtime-authority hardening
+
+Status: workflow implementation complete; exact qualification refresh and
+GitHub run evidence follow after this workflow source is committed.
+
+The dedicated workflow now triggers on the complete shared skill/runtime,
+Track All/B-Roll, CLI, tool-execution, SAM worker/artifact, and confined media
+authority surfaces, including `docker/prod/ffmpeg-lgpl-runtime/**`, all of
+`server/edit-skills/shared/**`, all of `server/tool-execution/**`, both
+qualification CLIs, the Track All manifest generator/retirement validator,
+and both generated receipt owners.
+
+The workflow explicitly runs receipt accounting, composite atomic routing,
+blocked SAM route gates, real-canary preflight, protocol-only wiring, gated
+canonical-private SAM E2E preflight, and deterministic public lifecycle before
+the aggregate qualifiers. It runs both Track All and B-Roll qualifiers from a
+clean checkout, restores the committed generated receipts between the two
+isolated evidence runs, reruns actual producer/consumer acceptance, enforces
+retirement, checks diff integrity, and requires the checkout to end clean.
+The repository-wide UI workflow remains independent and unskipped.
+
+Local workflow validation:
+
+- YAML parse: passed;
+- Prettier check: passed;
+- `npm run test:ui-qa-media-runtime-workflow`: passed with FFmpeg and FFprobe
+  verified before browser E2E, no skipped browser test, and no duplicate unsafe
+  installation;
+- qualification-integrity and retirement smokes: passed against the modified
+  authority shape in explicit generation mode;
+- `git diff --check`: passed.
+
+The workflow edit intentionally changes the Track All dependency-authority set,
+so both generated receipts are stale until the clean post-commit qualification
+refresh. No stale receipt is being reported as current.

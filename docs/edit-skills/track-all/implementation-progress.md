@@ -1263,3 +1263,13 @@ is constrained to aggregate issuance candidates and is not executable runtime
 evidence. B-Roll and Track All are requalified from the clean source commit
 before TRACK-21 closes. No provider/model/GPU call, public artifact,
 production mutation, peer-skill implementation, or head orchestra was added.
+
+Aggregate issuance audit: the first clean-tree B-Roll run passed every phase-A
+command, including build, server typecheck, lint, and frontend boundary, then
+correctly failed at the first phase-B command because the intermediate
+planning-only artifact did not yet contain canonical-route command evidence.
+The issuance path was tightened so that an intermediate planning receipt may
+register only qualification-candidate routes while the aggregate process is
+explicitly active; ordinary startup still requires the final generated route
+evidence. The failed run restored the prior generated artifact and produced no
+qualification claim.

@@ -112,10 +112,17 @@ export function registerBrollSkill(input: {
   ].map((binding) => binding.definition)
   if (generatedQualification) {
     input.qualifications.register(generatedQualification.receipt)
-    for (const receipt of createBrollRouteQualificationReceipts({
-      artifact: generatedQualification,
-      bindings: routeBindingDefinitions,
-    })) input.routeQualifications.register({
+    const routeReceipts = qualificationGenerationMode &&
+      generatedQualification.receipt.qualificationStatus !==
+        'internal_execution_qualified'
+      ? createBrollRouteQualificationCandidateReceipts({
+        bindings: routeBindingDefinitions,
+      })
+      : createBrollRouteQualificationReceipts({
+        artifact: generatedQualification,
+        bindings: routeBindingDefinitions,
+      })
+    for (const receipt of routeReceipts) input.routeQualifications.register({
       receipt,
       bindings: routeBindingDefinitions,
     })

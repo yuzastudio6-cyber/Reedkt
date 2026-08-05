@@ -60,6 +60,9 @@ import type {
 import type {
   CanonicalSourceLedOrchestraPlanningReconciliationPort,
 } from './services/canonical-source-led-orchestra-planning-reconciliation'
+import type {
+  CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort,
+} from './services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
 
 export interface AuthContext {
   userId: string
@@ -152,6 +155,8 @@ export interface RuntimeState {
     CanonicalSourceVisualIntelligenceOrchestraReadPort
   canonicalSourceLedOrchestraPlanningReconciliationPort?:
     CanonicalSourceLedOrchestraPlanningReconciliationPort
+  trackAllSam31AuthenticatedGpuStartRuntimePort?:
+    CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
 }
 
 export type RuntimeRequest = Request & {
@@ -218,4 +223,6 @@ export interface ServiceContext {
     CanonicalSourceVisualIntelligenceOrchestraReadPort
   canonicalSourceLedOrchestraPlanningReconciliationPort?:
     CanonicalSourceLedOrchestraPlanningReconciliationPort
+  trackAllSam31AuthenticatedGpuStartRuntimePort?:
+    CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
 }

@@ -35,6 +35,7 @@ import { createPreferenceIntelligenceRoutes } from './routes/preference-intellig
 import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
 import { createRenderRoutes } from './routes/render-routes'
 import { createToolCostRoutes } from './routes/tool-cost-routes'
+import { createTrackAllSam31Routes } from './routes/track-all-sam3_1-routes'
 import { createUploadRoutes } from './routes/upload-routes'
 import { createVisualIntelligenceRoutes } from
   './routes/visual-intelligence-routes'
@@ -110,6 +111,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['canonicalSourceVisualIntelligenceOrchestraReadPort']
   canonicalSourceLedOrchestraPlanningReconciliationPort?:
     RuntimeState['canonicalSourceLedOrchestraPlanningReconciliationPort']
+  trackAllSam31AuthenticatedGpuStartRuntimePort?:
+    RuntimeState['trackAllSam31AuthenticatedGpuStartRuntimePort']
   canonicalCloudDispatchHttpReceiverPort?:
     CanonicalCloudDispatchHttpReceiverPort
 }
@@ -293,6 +296,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
             options.canonicalSourceLedOrchestraPlanningReconciliationPort,
         }
       : {}),
+    ...(options.trackAllSam31AuthenticatedGpuStartRuntimePort
+      ? {
+          trackAllSam31AuthenticatedGpuStartRuntimePort:
+            options.trackAllSam31AuthenticatedGpuStartRuntimePort,
+        }
+      : {}),
     clients,
   }
 
@@ -384,6 +393,7 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
   app.use(createRenderRoutes())
   app.use(createVisualIntelligenceOrchestraRoutes())
   app.use(createVisualIntelligenceRoutes())
+  app.use(createTrackAllSam31Routes())
   app.use(createProviderGatewayRoutes())
 
   app.use(errorHandlerMiddleware)

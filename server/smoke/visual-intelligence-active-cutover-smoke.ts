@@ -65,6 +65,15 @@ const sam31TaskOwner = source(
 const sam31FundedRuntimeComposition = source(
   'server/services/canonical-sam3_1-funded-gpu-runtime-composition.ts',
 )
+const sam31ApprovedTrackAllSourceRepository = source(
+  'server/services/canonical-sam3_1-approved-track-all-task-source-repository.ts',
+)
+const trackAllSam31AuthenticatedStartService = source(
+  'server/services/canonical-track-all-sam3_1-authenticated-gpu-start-service.ts',
+)
+const trackAllSam31Routes = source(
+  'server/routes/track-all-sam3_1-routes.ts',
+)
 const legacyWorkerRouter = source(
   'server/workers/production/production-worker-router.ts',
 )
@@ -97,6 +106,7 @@ const currentGpuFixtureSources = [
 
 assert.match(app, /createVisualIntelligenceOrchestraRoutes/u)
 assert.match(app, /createVisualIntelligenceRoutes/u)
+assert.match(app, /createTrackAllSam31Routes/u)
 assert.doesNotMatch(app, /createQwenMarkerChatBetaRoutes/u)
 
 for (const activeMountSource of [app, runtimeTypes, routeHelpers]) {
@@ -394,6 +404,41 @@ assert.doesNotMatch(
   sam31FundedRuntimeComposition,
   /qwen|sam2|cpuOnlySubstantiveExecutionAllowed:\s*true/u,
 )
+assert.match(
+  sam31ApprovedTrackAllSourceRepository,
+  /gcs_create_only_exact_reread/u,
+)
+assert.match(
+  sam31ApprovedTrackAllSourceRepository,
+  /createCanonicalTrackAllSam31OrchestraBinding/u,
+)
+assert.match(
+  sam31ApprovedTrackAllSourceRepository,
+  /callerOrBrowserMaterialAccepted:\s*z\.literal\(false\)/u,
+)
+assert.doesNotMatch(
+  sam31ApprovedTrackAllSourceRepository,
+  /qwen|sam2|cpuOnlySubstantiveExecutionAllowed:\s*true/u,
+)
+assert.match(
+  trackAllSam31AuthenticatedStartService,
+  /startCanonicalSam31PlanFundedGpuJob/u,
+)
+assert.match(
+  trackAllSam31AuthenticatedStartService,
+  /createCanonicalProfessionalGpuFundedLifecycleIdentity/u,
+)
+assert.doesNotMatch(
+  trackAllSam31AuthenticatedStartService,
+  /startCanonicalProfessionalGpuPlanFundedJob|rawCloudLaunchPort:\s*/u,
+)
+assert.match(trackAllSam31Routes, /requireStrictInternalServiceAuth/u)
+assert.match(trackAllSam31Routes, /requireIdempotency/u)
+assert.match(
+  trackAllSam31Routes,
+  /trackAllSam31AuthenticatedGpuStartRuntimePort/u,
+)
+assert.doesNotMatch(trackAllSam31Routes, /qwen|sam2|modelId|body\.model/u)
 assert.match(
   legacyWorkerRouter,
   /legacy_mask_worker_route_retired_track_all_orchestra_sam3_1_required/u,

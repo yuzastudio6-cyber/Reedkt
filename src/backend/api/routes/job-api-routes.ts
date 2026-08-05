@@ -68,6 +68,28 @@ const RAW_JOB_API_ROUTES: ApiRouteDefinition[] = [
     notes: ['Checks local mock records only.'],
   },
   {
+    id: 'trackAll.sam31.approvedGpuJob.start',
+    domain: 'jobs',
+    method: 'POST',
+    path: '/internal/v1/workspaces/:workspaceId/track-all/sam3_1/gpu-jobs/start',
+    description:
+      'Start one approved Track All SAM 3.1 job through the funded quality-first GPU lifecycle.',
+    securityLevel: 'backend_service_role',
+    runtimeMode: 'backend_required',
+    status: 'backend_required',
+    requiresSupabase: false,
+    requiresServiceRole: true,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'startApprovedTrackAllSam31GpuJob',
+    notes: [
+      'Requires authenticated user scope, strict internal-service authentication, exact request idempotency, approved snapshot/work/funding rereads, and a qualified immutable SAM 3.1 release.',
+      'A100 80GB is the heavy primary; L4 is accepted only as the separately qualified fallback after a canonically reconciled retry-safe primary disposition.',
+      'The request cannot carry media, prompts, a model, image, command, GPU route, price, lease, reservation, or raw cloud launch port.',
+      'Live availability remains fail-closed until the injected canonical runtime, source/checkpoint/image release, account-effective price authorities, and GPU quota are all released.',
+    ],
+  },
+  {
     id: 'editExecution.canonicalPackageRequest.create',
     domain: 'jobs',
     method: 'POST',

@@ -443,7 +443,7 @@ export function createCanonicalSam31PreparingCloudJobLaunchPort(input: {
         CanonicalProfessionalGpuCloudJobLaunchPort['startOneShotJob']
       >[0],
     ) {
-      const observedAt = now()
+      let observedAt: string | null = null
       let admission: CanonicalProfessionalToolGpuDispatchAdmission | null = null
       try {
         admission = assertCanonicalProfessionalToolGpuDispatchAdmission(
@@ -480,7 +480,6 @@ export function createCanonicalSam31PreparingCloudJobLaunchPort(input: {
           target,
           admissionConsumptionRef: value.admissionConsumptionRef,
           executionEnvelopeRef: value.executionEnvelopeRef,
-          observedAt,
         })
         const context = assertCanonicalSam31GpuTaskContext(
           await input.taskContextReadPort.rereadCanonicalTaskContext({
@@ -490,6 +489,12 @@ export function createCanonicalSam31PreparingCloudJobLaunchPort(input: {
             executionEnvelopeRef: value.executionEnvelopeRef,
           }),
         )
+        observedAt = now()
+        assertPreparationReceiptTime({
+          receipt: preparationReceipt,
+          admission,
+          observedAt,
+        })
         const specialized = assertCanonicalSam31GpuRuntimeReleaseObservation(
           context.specializedRuntimeRelease,
         )
@@ -552,7 +557,7 @@ export function createCanonicalSam31PreparingCloudJobLaunchPort(input: {
         return rejectedBeforeCreation({
           admission,
           executionEnvelopeRef: value.executionEnvelopeRef,
-          observedAt,
+          observedAt: observedAt ?? now(),
         })
       }
     },
@@ -579,7 +584,6 @@ function assertPreparationReceiptMatches(input: {
   target: CanonicalProfessionalGpuRuntimeLaunchTarget
   admissionConsumptionRef: z.infer<typeof evidenceRefSchema>
   executionEnvelopeRef: z.infer<typeof evidenceRefSchema>
-  observedAt: string
 }): void {
   if (!sameRef(input.receipt.dispatchAdmissionRef,
     ref(input.admission.admissionId, input.admission.admissionHash))
@@ -587,13 +591,22 @@ function assertPreparationReceiptMatches(input: {
     || !sameRef(input.receipt.admissionConsumptionRef,
       input.admissionConsumptionRef)
     || !sameRef(input.receipt.executionEnvelopeRef,
-      input.executionEnvelopeRef)
-    || Date.parse(input.receipt.preparedAt) > Date.parse(input.observedAt)
+      input.executionEnvelopeRef)) {
+    throw new Error('SAM 3.1 task-material preparation lineage changed.')
+  }
+}
+
+function assertPreparationReceiptTime(input: {
+  receipt: CanonicalSam31GpuApprovedTaskMaterialPreparationReceipt
+  admission: CanonicalProfessionalToolGpuDispatchAdmission
+  observedAt: string
+}): void {
+  if (Date.parse(input.receipt.preparedAt) > Date.parse(input.observedAt)
     || Date.parse(input.receipt.preparedAt) <
       Date.parse(input.admission.admittedAt)
     || Date.parse(input.receipt.preparedAt) >=
       Date.parse(input.admission.expiresAt)) {
-    throw new Error('SAM 3.1 task-material preparation lineage changed.')
+    throw new Error('SAM 3.1 task-material preparation time is invalid.')
   }
 }
 

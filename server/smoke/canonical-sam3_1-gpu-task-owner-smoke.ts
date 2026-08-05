@@ -242,7 +242,7 @@ const futurePreparationPort = createCanonicalSam31PreparingCloudJobLaunchPort({
   },
   taskContextReadPort: {
     async rereadCanonicalTaskContext() {
-      throw new Error('Future preparation must fail before context reread.')
+      return structuredClone(a100.context)
     },
   },
   privateInputStagingPort,

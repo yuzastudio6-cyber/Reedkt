@@ -62,6 +62,9 @@ const trackAllSam31Binding = source(
 const sam31TaskOwner = source(
   'server/workers/masks/canonical-sam3_1-gpu-task-owner-service.ts',
 )
+const sam31FundedRuntimeComposition = source(
+  'server/services/canonical-sam3_1-funded-gpu-runtime-composition.ts',
+)
 const legacyWorkerRouter = source(
   'server/workers/production/production-worker-router.ts',
 )
@@ -86,6 +89,7 @@ const projectEditBriefVisualPanel = source(
 const currentGpuFixtureSources = [
   source('server/smoke/canonical-professional-google-cloud-gpu-job-launch-port-smoke.ts'),
   source('server/smoke/canonical-professional-gpu-job-lifecycle-smoke.ts'),
+  source('server/smoke/canonical-sam3_1-funded-gpu-runtime-composition-smoke.ts'),
   source('server/smoke/edit-planning-authority-smoke.ts'),
   source('server/smoke/private-worker-resource-usage-cost-evidence-smoke.ts'),
   source('server/smoke/production-readiness-validation-smoke.ts'),
@@ -367,6 +371,30 @@ assert.doesNotMatch(
   /createVisualIntelligenceOrchestraInvocationCompiler|visualIntelligenceMayDispatch/u,
 )
 assert.match(
+  sam31FundedRuntimeComposition,
+  /createCanonicalSam31GpuApprovedTaskMaterialPreparationOwner/u,
+)
+assert.match(
+  sam31FundedRuntimeComposition,
+  /createCanonicalSam31GpuTaskContextOwner/u,
+)
+assert.match(
+  sam31FundedRuntimeComposition,
+  /createCanonicalSam31PreparingCloudJobLaunchPort/u,
+)
+assert.match(
+  sam31FundedRuntimeComposition,
+  /startCanonicalSam31PlanFundedGpuJob/u,
+)
+assert.match(
+  sam31FundedRuntimeComposition,
+  /rawCloudLaunchPortExposed: false/u,
+)
+assert.doesNotMatch(
+  sam31FundedRuntimeComposition,
+  /qwen|sam2|cpuOnlySubstantiveExecutionAllowed:\s*true/u,
+)
+assert.match(
   legacyWorkerRouter,
   /legacy_mask_worker_route_retired_track_all_orchestra_sam3_1_required/u,
 )
@@ -460,6 +488,7 @@ console.log(JSON.stringify({
   canonicalL4ProbeCostAuthoritySeparatedFromDispatch: true,
   sourceAnalysisReturnsThroughOrchestra: true,
   sam31RequiresExactTrackAllOrchestraBinding: true,
+  sam31FundedRuntimeCompositionUsesCanonicalOwners: true,
   legacyDirectMaskWorkerRoutesRetired: true,
   nonE2EToolStudyCardsExcludedFromSelection: true,
   browserSampledFrameQwenPathRetired: true,

@@ -19,12 +19,82 @@ download_exact() {
   local destination="$2"
   local expected_sha="$3"
   local expected_bytes="$4"
-  curl --fail --silent --show-error --location \
-    --proto '=https' --tlsv1.2 --retry 0 \
-    --output "${destination}" "${url}"
-  printf '%s  %s\n' "${expected_sha}" "${destination}" \
-    | sha256sum --check --strict
-  test "$(stat --format='%s' "${destination}")" = "${expected_bytes}"
+  python - "${url}" "${destination}" "${expected_sha}" \
+    "${expected_bytes}" <<'PY'
+import hashlib
+import os
+from pathlib import Path
+import sys
+from urllib.parse import urlparse
+from urllib.request import HTTPRedirectHandler, Request, build_opener
+
+url, destination_text, expected_sha256, expected_bytes_text = sys.argv[1:]
+expected_bytes = int(expected_bytes_text)
+allowed_hosts = {
+    "codeload.github.com",
+    "developer.download.nvidia.com",
+    "files.pythonhosted.org",
+    "github.com",
+}
+
+
+def assert_allowed_https(value: str) -> None:
+    parsed = urlparse(value)
+    if parsed.scheme != "https" or parsed.hostname not in allowed_hosts:
+        raise SystemExit("private capsule download origin is not allowlisted")
+    if parsed.username or parsed.password or parsed.port not in (None, 443):
+        raise SystemExit("private capsule download URL authority is invalid")
+
+
+class HttpsOnlyRedirectHandler(HTTPRedirectHandler):
+    def redirect_request(self, request, file_pointer, code, message, headers,
+                         new_url):
+        assert_allowed_https(new_url)
+        return super().redirect_request(
+            request, file_pointer, code, message, headers, new_url
+        )
+
+
+assert_allowed_https(url)
+destination = Path(destination_text)
+temporary = destination.with_name(f"{destination.name}.partial")
+temporary.unlink(missing_ok=True)
+request = Request(
+    url,
+    headers={
+        "Accept-Encoding": "identity",
+        "User-Agent": "WeEditPro-private-capsule-builder-v1",
+    },
+    method="GET",
+)
+digest = hashlib.sha256()
+observed_bytes = 0
+try:
+    with build_opener(HttpsOnlyRedirectHandler()).open(
+        request, timeout=300
+    ) as response, temporary.open("xb") as output:
+        assert_allowed_https(response.geturl())
+        if response.status != 200:
+            raise SystemExit("private capsule download status is not 200")
+        while True:
+            chunk = response.read(1024 * 1024)
+            if not chunk:
+                break
+            observed_bytes += len(chunk)
+            if observed_bytes > expected_bytes:
+                raise SystemExit("private capsule download exceeded byte bound")
+            digest.update(chunk)
+            output.write(chunk)
+        output.flush()
+        os.fsync(output.fileno())
+    if observed_bytes != expected_bytes:
+        raise SystemExit("private capsule download byte count changed")
+    if digest.hexdigest() != expected_sha256:
+        raise SystemExit("private capsule download digest changed")
+    os.replace(temporary, destination)
+finally:
+    temporary.unlink(missing_ok=True)
+PY
 }
 
 rm -rf "${WORK}" /output

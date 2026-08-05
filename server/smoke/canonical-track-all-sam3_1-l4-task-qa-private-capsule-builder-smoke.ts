@@ -71,6 +71,11 @@ for (const expected of [
 
 assert.equal((builder.match(/download_exact \\\n/gu) ?? []).length, 8)
 assert.doesNotMatch(builder, /apt-get|conda install|pip install [^\n]*https?:/u)
+assert.match(builder, /from urllib\.request import HTTPRedirectHandler, Request, build_opener/u)
+assert.match(builder, /class HttpsOnlyRedirectHandler/u)
+assert.match(builder, /observed_bytes > expected_bytes/u)
+assert.match(builder, /digest\.hexdigest\(\) != expected_sha256/u)
+assert.doesNotMatch(`${dockerfile}\n${builder}`, /\bcurl\b/u)
 assert.doesNotMatch(builder, /sam(?:2|3)[._-]?(?:checkpoint|weights)|huggingface|customer[_ -]media/iu)
 
 for (const expected of [

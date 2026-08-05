@@ -123,6 +123,37 @@ function exactObject(value, keys, label) {
   return value
 }
 
+function brollPreviewLayer(value) {
+  const layer = exactObject(value, [
+    'displayTreatment', 'position', 'crop', 'xPercent', 'yPercent',
+    'widthPercent', 'heightPercent', 'scale', 'opacity', 'layerOrder',
+  ], 'B-roll preview layer')
+  const fixed = {
+    full_frame_takeover: [0, 0, 100, 100, 1, 10],
+    full_frame_cutaway: [0, 0, 100, 100, 1, 10],
+    inset: [60, 8, 34, 34, 1, 10],
+    picture_in_picture: [65, 6, 30, 30, 1, 10],
+    split_screen: [50, 0, 50, 100, 1, 10],
+    partial_overlay: [55, 45, 40, 45, 1, 10],
+    background_layer: [0, 0, 100, 100, 0.45, 0],
+  }
+  const expected = fixed[layer.displayTreatment]
+  if (
+    !expected || layer.position !== 'absolute' || layer.crop !== 'contain' ||
+    layer.xPercent !== expected[0] || layer.yPercent !== expected[1] ||
+    layer.widthPercent !== expected[2] || layer.heightPercent !== expected[3] ||
+    layer.scale !== 1 || layer.opacity !== expected[4] ||
+    layer.layerOrder !== expected[5]
+  ) throw new Error('B-roll preview layer geometry is unsupported')
+  return {
+    displayTreatment: layer.displayTreatment,
+    position: 'absolute', crop: 'contain',
+    xPercent: expected[0], yPercent: expected[1],
+    widthPercent: expected[2], heightPercent: expected[3],
+    scale: 1, opacity: expected[4], layerOrder: expected[5],
+  }
+}
+
 function safeText(value, maximum, label) {
   if (typeof value !== 'string' || value.length < 1 || value.length > maximum || value !== value.trim()) {
     throw new Error(`${label} is invalid`)
@@ -1420,12 +1451,14 @@ function validateRequest(value) {
     const captionTrack = rawPayload.compositionProfileId === 'approved_source_caption_track_final_v1'
     const replaceVoice = rawPayload.audioPolicy === 'replace_with_approved_voice_tracks'
     const sourceMediaPolicyProvided = Object.hasOwn(rawPayload, 'sourceMediaPolicy')
+    const brollPreviewLayerProvided = Object.hasOwn(rawPayload, 'brollPreviewLayer')
     const deliveryMasterAuthorityProvided = Object.hasOwn(rawPayload, 'renderPurpose')
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
       'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
       ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
+      ...(brollPreviewLayerProvided ? ['brollPreviewLayer'] : []),
       'sourceMimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
       ...(captionTrack
         ? ['captionOverlayCues', 'captionOverlays']
@@ -1438,10 +1471,20 @@ function validateRequest(value) {
     validateDeliveryMasterAuthority(payload, dimensions, deliveryMasterAuthorityProvided)
     const approvedColorIntermediate =
       payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
-    if (sourceMediaPolicyProvided && !approvedColorIntermediate) {
+    const approvedBrollPreviewProxy =
+      payload.sourceMediaPolicy === 'approved_b_roll_qa_normalized_preview_proxy_v1'
+    const approvedMatroskaIntermediate =
+      approvedColorIntermediate || approvedBrollPreviewProxy
+    const approvedBrollPreviewLayer = approvedBrollPreviewProxy
+      ? brollPreviewLayer(payload.brollPreviewLayer)
+      : undefined
+    if (
+      (sourceMediaPolicyProvided && !approvedMatroskaIntermediate) ||
+      brollPreviewLayerProvided !== approvedBrollPreviewProxy
+    ) {
       throw new Error('source media policy is unsupported')
     }
-    const sourceMimeType = approvedColorIntermediate ? 'video/x-matroska' : 'video/mp4'
+    const sourceMimeType = approvedMatroskaIntermediate ? 'video/x-matroska' : 'video/mp4'
     const source = committedBase64(
       payload,
       'source',
@@ -1508,6 +1551,9 @@ function validateRequest(value) {
         ...payload,
         width: integer(payload.width, 360, 3840, 'width'), height: integer(payload.height, 360, 3840, 'height'),
         fps, durationFrames,
+        ...(approvedBrollPreviewLayer
+          ? { brollPreviewLayer: approvedBrollPreviewLayer }
+          : {}),
         sourceStartFrame, sourceEndFrameExclusive,
         panelBackground: color(payload.panelBackground, 'panelBackground'),
         sourceBytesBase64: source.toString('base64'),
@@ -1909,6 +1955,7 @@ function validateStreamingPlanningPayload(value) {
   const captionTrack = isCaptionTrackProfile(value.compositionProfileId)
   const replaceVoice = value.audioPolicy === 'replace_with_approved_voice_tracks'
   const sourceMediaPolicyProvided = Object.hasOwn(value, 'sourceMediaPolicy')
+  const brollPreviewLayerProvided = Object.hasOwn(value, 'brollPreviewLayer')
   const supplementalAudioProvided =
     Object.hasOwn(value, 'supplementalAudioPolicy') ||
     Object.hasOwn(value, 'supplementalAudioTracks')
@@ -2084,6 +2131,7 @@ function validateStreamingPlanningPayload(value) {
     'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
     'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
     ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
+    ...(brollPreviewLayerProvided ? ['brollPreviewLayer'] : []),
     ...(captionTrack ? ['captionOverlayCues'] : []),
     ...(replaceVoice ? ['voiceTracks'] : []),
     ...(supplementalAudioProvided
@@ -2120,6 +2168,13 @@ function validateStreamingPlanningPayload(value) {
   )
   const approvedColorIntermediate =
     payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+  const approvedBrollPreviewProxy =
+    payload.sourceMediaPolicy === 'approved_b_roll_qa_normalized_preview_proxy_v1'
+  const approvedMatroskaIntermediate =
+    approvedColorIntermediate || approvedBrollPreviewProxy
+  const approvedBrollPreviewLayer = approvedBrollPreviewProxy
+    ? brollPreviewLayer(payload.brollPreviewLayer)
+    : undefined
   if (
     sourceEndFrameExclusive - sourceStartFrame !== durationFrames ||
     payload.sourceFit !== 'contain' ||
@@ -2127,7 +2182,8 @@ function validateStreamingPlanningPayload(value) {
     payload.captionOverlayPolicy !== (
       captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
     ) ||
-    (sourceMediaPolicyProvided && !approvedColorIntermediate) ||
+    (sourceMediaPolicyProvided && !approvedMatroskaIntermediate) ||
+    brollPreviewLayerProvided !== approvedBrollPreviewProxy ||
     (approvedColorIntermediate && (
       payload.audioPolicy !== 'replace_with_approved_voice_tracks'
     ))
@@ -2174,6 +2230,9 @@ function validateStreamingPlanningPayload(value) {
     durationFrames,
     sourceStartFrame,
     sourceEndFrameExclusive,
+    ...(approvedBrollPreviewLayer
+      ? { brollPreviewLayer: approvedBrollPreviewLayer }
+      : {}),
     panelBackground: normalizedColor(payload.panelBackground, 'panelBackground'),
     ...(captionTrack
       ? { captionOverlayCues: validateCaptionOverlayCues(payload.captionOverlayCues, durationFrames) }
@@ -2248,8 +2307,11 @@ function validateStreamingManifest(value) {
   if (inputs.sources.length !== expectedSourceCount) {
     throw new Error('streaming source count does not match approved planning')
   }
-  const sourceMimeType = planning.sourceMediaPolicy ===
-    'approved_professional_color_intermediate_v1'
+  const sourceMimeType = (
+    sourceSequence
+      ? planning.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+      : planning.sourceMediaPolicy !== undefined
+  )
     ? 'video/x-matroska'
     : 'video/mp4'
   const sources = inputs.sources.map((candidate, index) => {
@@ -4294,6 +4356,15 @@ function semanticEvidence(request, streaming) {
           approvedCaptionOverlayBytesVerified: true,
           approvedSourceTrimFramesApplied: true,
           finalCompositionProfileExecuted: true,
+          ...(request.payload.sourceMediaPolicy ===
+            'approved_b_roll_qa_normalized_preview_proxy_v1'
+            ? {
+                approvedBrollQaNormalizedPreviewProxyVerified: true,
+                approvedBrollTreatmentGeometryApplied: true,
+                approvedBrollLayerOrderApplied: true,
+                approvedBrollAudioRemovedUpstream: true,
+              }
+            : {}),
           ...(request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
             ? {
                 approvedVoiceTrackBytesVerified: true,

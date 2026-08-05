@@ -23,6 +23,14 @@ export type VisualCalibrationObjectiveQaScenarioKind =
   | 'strict_first_last_frame'
   | 'reference_heavy'
 
+export type ObjectiveVideoQaSourceProviderOperationId =
+  | 'provider.google.generate_visual_calibration_candidate.v1'
+  | 'provider.google.generate_b_roll_candidate.v1'
+
+export type ObjectiveVideoQaSourceProviderOutputRole =
+  | 'provider_visual_calibration_video_mp4'
+  | 'provider_b_roll_candidate_video_mp4'
+
 export interface OfflineMediaBinaryVisualCalibrationObjectiveQaRequest {
   schemaVersion:
     typeof OFFLINE_MEDIA_BINARY_VISUAL_CALIBRATION_OBJECTIVE_QA_VERSION
@@ -32,9 +40,8 @@ export interface OfflineMediaBinaryVisualCalibrationObjectiveQaRequest {
     typeof APPROVED_VISUAL_CALIBRATION_CANDIDATE_OBJECTIVE_QA_PROFILE_ID
   runnerProfileId:
     typeof OFFLINE_MEDIA_BINARY_VISUAL_CALIBRATION_OBJECTIVE_QA_RUNNER_ID
-  sourceProviderOperationId:
-    'provider.google.generate_visual_calibration_candidate.v1'
-  sourceProviderOutputRole: 'provider_visual_calibration_video_mp4'
+  sourceProviderOperationId: ObjectiveVideoQaSourceProviderOperationId
+  sourceProviderOutputRole: ObjectiveVideoQaSourceProviderOutputRole
   visualCalibrationContextDigest: string
   scenarioKind: VisualCalibrationObjectiveQaScenarioKind
   candidate: {
@@ -224,10 +231,10 @@ export function validateOfflineMediaBinaryVisualCalibrationObjectiveQaRequest(
       APPROVED_VISUAL_CALIBRATION_CANDIDATE_OBJECTIVE_QA_PROFILE_ID ||
     input.runnerProfileId !==
       OFFLINE_MEDIA_BINARY_VISUAL_CALIBRATION_OBJECTIVE_QA_RUNNER_ID ||
-    input.sourceProviderOperationId !==
-      'provider.google.generate_visual_calibration_candidate.v1' ||
-    input.sourceProviderOutputRole !==
-      'provider_visual_calibration_video_mp4' ||
+    !validProviderSourcePair(
+      input.sourceProviderOperationId,
+      input.sourceProviderOutputRole,
+    ) ||
     !sha256(input.visualCalibrationContextDigest) ||
     expectedSimilarity === undefined ||
     !committedObject(candidate, 12,
@@ -338,6 +345,16 @@ function committedFrame(value: Record<string, unknown>): boolean {
       64,
       OFFLINE_MEDIA_BINARY_VISUAL_CALIBRATION_REFERENCE_FRAME_MAXIMUM_BYTES,
     )
+}
+
+function validProviderSourcePair(operationId: unknown, outputRole: unknown): boolean {
+  return (
+    operationId === 'provider.google.generate_visual_calibration_candidate.v1' &&
+    outputRole === 'provider_visual_calibration_video_mp4'
+  ) || (
+    operationId === 'provider.google.generate_b_roll_candidate.v1' &&
+    outputRole === 'provider_b_roll_candidate_video_mp4'
+  )
 }
 
 function committedObject(

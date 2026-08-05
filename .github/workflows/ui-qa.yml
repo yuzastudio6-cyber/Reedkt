@@ -45,6 +45,17 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Install private-pipeline media runtime
+        shell: bash
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo env DEBIAN_FRONTEND=noninteractive timeout 300s apt-get update \
+              -o Acquire::Retries=3 -o Acquire::http::Timeout=30
+            sudo env DEBIAN_FRONTEND=noninteractive timeout 300s apt-get install --yes ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+
       - name: Lint
         run: npm run lint
 
@@ -56,9 +67,6 @@ jobs:
 
       - name: Browser E2E
         run: npm run test:e2e
-
-      - name: Install private-pipeline media runtime
-        run: sudo apt-get update && sudo apt-get install --yes ffmpeg
 
       - name: Server typecheck
         run: npm run typecheck:server

@@ -6,6 +6,7 @@ import { canonicalStorytellingStyleAuthoritySchema } from './canonical-storytell
 import { canonicalMotionStudioStorytellingProductionAuthoritySchema } from './canonical-motion-studio-storytelling-production-authority-schemas'
 import { canonicalLivingFramePlanningBindingSchema } from './canonical-living-frame-planning-binding-schemas'
 import { exactEditPreferenceValuesSchema } from './exact-edit-preference-schemas'
+import { canonicalBrollSkillPlanComponentSchema } from '../edit-skills/b-roll/b-roll-canonical-plan-component'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import {
   PROFESSIONAL_EXPORT_ASPECT_RATIOS,
@@ -318,6 +319,7 @@ export const canonicalPlanComponentsSchema = z.object({
   professionalSkillPlan: jsonObjectSchema.optional(),
   captionEarlyPlanningBundle: jsonObjectSchema.optional(),
   captionSpecialistPlanningBinding: jsonObjectSchema.optional(),
+  bRollSkill: canonicalBrollSkillPlanComponentSchema.optional(),
   livingFrame: canonicalLivingFramePlanningBindingSchema.optional(),
   motionStudioStorytellingStyleAuthority: canonicalStorytellingStyleAuthoritySchema.optional(),
   motionStudioStorytellingProductionAuthority:

@@ -32,6 +32,7 @@ import type {
 } from '../private-embedded-process-resource-observation'
 import {
   APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
+  OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE,
   OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
   OFFLINE_EDIT_BRIEF_SFX_PROFILE,
   OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
@@ -247,6 +248,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
   ]
   supportedRecipeProfiles: readonly [
     'approved_trim_transcode_v1',
+    typeof OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE,
     typeof OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
     typeof OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
     typeof OFFLINE_EDIT_BRIEF_SFX_PROFILE,
@@ -262,6 +264,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     privateInternalEditBriefAudioReady: true
     privateInternalStorytellingSpeechNormalizationReady: true
     privateInternalExactSourceFramePngReady: true
+    privateInternalBrollRemotionPreviewProxyReady: true
     privateInternalMezzanineFinalizationReady: true
     privateInternalObjectMezzanineChunkSeriesReady: true
     privateInternalContinuousProgramAudioReady: true
@@ -695,6 +698,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     authority.storageScopeHash !== OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_HASH ||
     stringArray(authority.supportedRecipeProfiles).join('|') !== [
       'approved_trim_transcode_v1',
+      OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE,
       OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
       OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
       OFFLINE_EDIT_BRIEF_SFX_PROFILE,
@@ -707,6 +711,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     record(authority.readiness).privateInternalEditBriefAudioReady !== true ||
     record(authority.readiness).privateInternalStorytellingSpeechNormalizationReady !== true ||
     record(authority.readiness).privateInternalExactSourceFramePngReady !== true ||
+    record(authority.readiness).privateInternalBrollRemotionPreviewProxyReady !== true ||
     record(authority.readiness).privateInternalMezzanineFinalizationReady !== true ||
     record(authority.readiness).privateInternalObjectMezzanineChunkSeriesReady !== true ||
     record(authority.readiness).privateInternalContinuousProgramAudioReady !== true ||
@@ -4269,6 +4274,9 @@ async function executeFfmpegRequest(
     ? request.payload
     : colorMatchDeliveryPayload
   const colorDelivery = Boolean(colorDeliveryPayload)
+  const brollPreviewProxy = request.payload.recipeProfileId ===
+    OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE
+  const matroskaDelivery = colorDelivery || brollPreviewProxy
   const cq12ColorDelivery =
     request.payload.recipeProfileId ===
       OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE ||
@@ -4358,6 +4366,8 @@ async function executeFfmpegRequest(
       ? voiceDeliveryCommand(request)
       : colorDelivery && colorCorrection
         ? colorDeliveryCommand(request, colorCorrection)
+        : brollPreviewProxy
+          ? brollRemotionPreviewProxyCommand(request)
         : [
           '-hide_banner', '-loglevel', 'error', '-nostdin',
           '-i', 'pipe:0', '-map', '0:v:0',
@@ -4477,15 +4487,15 @@ async function executeFfmpegRequest(
         )
       : undefined
     if (exactSourceFramePng ? !exactSourceFramePngDetails
-      : audioDelivery ? !wave : colorDelivery
+      : audioDelivery ? !wave : matroskaDelivery
       ? !isMatroska(outputSignature)
       : !outputSignature.toString('ascii').includes('nut/multimedia')) {
       throw unavailable(exactSourceFramePng
         ? 'FFmpeg exact source-frame output is not the fixed opaque RGBA PNG artifact.'
         : audioDelivery
         ? 'FFmpeg approved audio output is not the fixed PCM WAV artifact.'
-        : colorDelivery
-          ? 'FFmpeg professional color output is not the fixed Matroska intermediate container.'
+        : matroskaDelivery
+          ? 'FFmpeg approved Matroska output is not the fixed intermediate container.'
           : 'FFmpeg output is not the fixed NUT intermediate container.')
     }
     const audioOutputProbe = audioDelivery
@@ -4542,7 +4552,7 @@ async function executeFfmpegRequest(
           outputInput,
           trimDurationFrames,
           request.payload.frameRate,
-          colorDelivery,
+          matroskaDelivery,
           resourceObservations,
         )
     const outputColorAnalysis = colorDelivery
@@ -4804,6 +4814,21 @@ async function executeFfmpegRequest(
                     : 'bounded_legacy_buffer_v1',
                   outputWholeBufferAvoided: Boolean(outputSink),
                 }
+            : brollPreviewProxy
+              ? {
+                  outputFrameCount: trimDurationFrames,
+                  outputContainer: 'matroska',
+                  outputVideoCodec: 'vp9_cq12',
+                  outputPixelFormat: 'yuv420p',
+                  audioRemoved: true,
+                  metadataStripped: true,
+                  technicalProxyOnly: true,
+                  creativeColorTransformApplied: false,
+                  sourceQaNormalizedArtifactRequired: true,
+                  timelineFrameRateNormalizationApplied: true,
+                  outputDeliveryMode: 'bounded_legacy_buffer_v1',
+                  outputWholeBufferAvoided: false,
+                }
             : colorDelivery
               ? {
                   outputFrameCount: trimDurationFrames,
@@ -4930,7 +4955,7 @@ async function executeFfmpegRequest(
             durationMilliseconds: Math.round(wave!.durationSeconds * 1_000),
           }
         : {
-            mimeType: colorDelivery ? 'video/x-matroska' : 'video/x-nut',
+            mimeType: matroskaDelivery ? 'video/x-matroska' : 'video/x-nut',
             bytes: bufferedOutputBytes!,
             sha256: resultSha256,
             byteLength: outputByteLength,
@@ -5464,6 +5489,35 @@ function colorDeliveryCommand(
           '-lag-in-frames', '0',
         ]),
     '-pix_fmt', 'yuv420p',
+    '-color_primaries', 'bt709', '-color_trc', 'bt709',
+    '-colorspace', 'bt709', '-color_range', 'tv',
+    '-fflags', '+bitexact', '-flags:v', '+bitexact', '-map_metadata', '-1',
+    '-metadata', 'creation_time=1970-01-01T00:00:00Z',
+    '-f', 'matroska', 'pipe:1',
+  ]
+}
+
+function brollRemotionPreviewProxyCommand(
+  request: OfflineFfmpegExecutionRequest | OfflineFfmpegStreamingExecutionRequest,
+): string[] {
+  if (request.payload.recipeProfileId !== OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE) {
+    throw invalid('B-roll preview proxy command requires its exact approved recipe.')
+  }
+  const filters = timelineFrameRangeNormalizationFilters({
+    startFrame: request.payload.trimStartFrame,
+    endFrameExclusive: request.payload.trimEndFrameExclusive,
+    frameRate: request.payload.frameRate,
+  }).concat([
+    'format=yuv420p',
+    'setparams=range=tv:color_primaries=bt709:color_trc=bt709:colorspace=bt709',
+  ]).join(',')
+  return [
+    '-hide_banner', '-loglevel', 'error', '-nostdin',
+    '-i', 'pipe:0', '-map', '0:v:0', '-vf', filters,
+    '-an', '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '12',
+    '-deadline', 'good', '-cpu-used', '4', '-row-mt', '1', '-threads', '2',
+    '-tile-columns', '0', '-frame-parallel', '0', '-g', '240',
+    '-lag-in-frames', '0', '-auto-alt-ref', '0', '-pix_fmt', 'yuv420p',
     '-color_primaries', 'bt709', '-color_trc', 'bt709',
     '-colorspace', 'bt709', '-color_range', 'tv',
     '-fflags', '+bitexact', '-flags:v', '+bitexact', '-map_metadata', '-1',
@@ -7074,6 +7128,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
     ] as const,
     supportedRecipeProfiles: [
       'approved_trim_transcode_v1' as const,
+      OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE,
       OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE,
       OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
       OFFLINE_EDIT_BRIEF_SFX_PROFILE,
@@ -7089,6 +7144,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       privateInternalEditBriefAudioReady: true as const,
       privateInternalStorytellingSpeechNormalizationReady: true as const,
       privateInternalExactSourceFramePngReady: true as const,
+      privateInternalBrollRemotionPreviewProxyReady: true as const,
       privateInternalMezzanineFinalizationReady: true as const,
       privateInternalObjectMezzanineChunkSeriesReady: true as const,
       privateInternalContinuousProgramAudioReady: true as const,

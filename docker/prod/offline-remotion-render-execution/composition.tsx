@@ -44,6 +44,28 @@ export interface ApprovedCompositionProps {
     | 'preserve_source_sequence'
     | 'replace_with_approved_voice_tracks'
   captionOverlayPolicy?: 'approved_full_frame_rgba' | 'approved_timed_full_frame_rgba_track'
+  sourceMediaPolicy?:
+    | 'approved_professional_color_intermediate_v1'
+    | 'approved_b_roll_qa_normalized_preview_proxy_v1'
+  brollPreviewLayer?: {
+    displayTreatment:
+      | 'full_frame_takeover'
+      | 'full_frame_cutaway'
+      | 'inset'
+      | 'picture_in_picture'
+      | 'split_screen'
+      | 'partial_overlay'
+      | 'background_layer'
+    position: 'absolute'
+    crop: 'contain'
+    xPercent: 0 | 50 | 55 | 60 | 65
+    yPercent: 0 | 6 | 8 | 45
+    widthPercent: 30 | 34 | 40 | 50 | 100
+    heightPercent: 30 | 34 | 45 | 100
+    scale: 1
+    opacity: 0.45 | 1
+    layerOrder: 0 | 10
+  }
   sourceMimeType?: 'video/mp4' | 'video/x-matroska'
   sourceByteLength?: number
   sourceSha256?: string
@@ -1086,13 +1108,28 @@ const ApprovedChunkMergeComposition: React.FC<ApprovedCompositionProps> = (props
 
 const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (props) => {
   const replaceVoice = props.audioPolicy === 'replace_with_approved_voice_tracks'
+  const broll = props.brollPreviewLayer
+  const sourceStyle: React.CSSProperties = broll
+    ? {
+        position: 'absolute',
+        left: `${broll.xPercent}%`,
+        top: `${broll.yPercent}%`,
+        width: `${broll.widthPercent}%`,
+        height: `${broll.heightPercent}%`,
+        objectFit: broll.crop,
+        transform: `scale(${broll.scale})`,
+        transformOrigin: 'center center',
+        opacity: broll.opacity,
+        zIndex: broll.layerOrder,
+      }
+    : { width: '100%', height: '100%', objectFit: 'contain' }
   return (
     <AbsoluteFill style={{ backgroundColor: props.panelBackground, overflow: 'hidden' }}>
       <OffthreadVideo
         src={props.sourceInternalUrl!}
         startFrom={props.sourceStartFrame!}
         endAt={props.sourceEndFrameExclusive!}
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        style={sourceStyle}
         volume={replaceVoice ? 0 : 1}
       />
       {replaceVoice && (

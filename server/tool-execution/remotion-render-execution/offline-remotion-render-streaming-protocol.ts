@@ -241,8 +241,11 @@ export function validateOfflineRemotionStreamingRenderRequest(
   if (inputs.sources.length !== expectedSourceCount) {
     throw invalid('Streaming source commitments do not match the approved source count.')
   }
-  const requiredSourceMimeType = planning.sourceMediaPolicy ===
-    'approved_professional_color_intermediate_v1'
+  const requiredSourceMimeType = (
+    sourceSequence
+      ? planning.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+      : planning.sourceMediaPolicy !== undefined
+  )
     ? 'video/x-matroska' as const
     : 'video/mp4' as const
   const sources = inputs.sources.map((candidate, index) => {

@@ -95,6 +95,8 @@ The governing workflow invariant remains:
 - [CAP-20 private internal release report](cap-20-private-internal-release-report.md)
 - [CAP-20 shared-owner integration handoff](cap-20-shared-owner-integration-handoff.md)
 - [Post-CAP-20 goal completion audit](post-cap20-goal-completion-audit.md)
+- [Post-CAP-20 shared-owner integration routing](post-cap20-integration-routing.md)
+- [Post-CAP-20 B-roll owner-read adapter](post-cap20-broll-owner-read-adapter.md)
 
 ### Historical architecture retained and amended
 
@@ -264,6 +266,19 @@ complete-time visual-AI review, independent final-QA reread, and the final
 per-job qualification projection. Registry/workflow integration must consume
 the frozen public artifacts without manufacturing a second planner, runtime,
 provider, or false backend coverage claim.
+
+The additive post-CAP-20 integration manifest now projects all twelve
+conditional-job requirements into the top-level bounded call/resume lane.
+SoundSync, B-roll, Track All, and Visual Intelligence evidence can no longer be
+silently skipped, while a missing canonical transcript fails closed as an
+authenticated initial-input gap. The CAP-01 compatibility manifest and
+qualification remain unchanged.
+
+The additive B-roll owner-read adapter now validates the frozen B-roll public
+request/result and projects only exact opaque refs into Caption's existing
+binding. It does not claim that an authenticated owner result has been
+persisted, reread, or mounted. See
+[`post-cap20-broll-owner-read-adapter.md`](./post-cap20-broll-owner-read-adapter.md).
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

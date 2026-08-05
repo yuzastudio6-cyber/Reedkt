@@ -28,6 +28,21 @@ import {
 import { parseSkillCapabilityManifestV2 } from '../orchestra/skill-capability-manifest'
 import { CAPTIONS_SPECIALIST_MANIFEST } from './captions-specialist-manifest'
 import { CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT } from './captions-specialist-qualification'
+import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST } from
+  './captions-specialist-integration-manifest'
+import { CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT } from
+  './captions-specialist-integration-qualification'
+import {
+  BROLL_CAPTION_PUBLIC_RECEIPT_DIGEST,
+  CAPTION_BROLL_OWNER_READ_ADAPTER_RECEIPT,
+} from './caption-broll-owner-read-adapter'
+import { BROLL_CAPTION_OWNER_READ_REQUEST_VERSION } from
+  '../../src/types/caption-broll-owner-read-adapter'
+
+interface CaptionRuntimeProfile {
+  manifest: typeof CAPTIONS_SPECIALIST_MANIFEST
+  qualification: SkillQualificationSnapshot
+}
 
 export const CAPTIONS_CLOSED_AUTHORITY_BOUNDARY:
 Readonly<SkillClosedAuthorityBoundary> = Object.freeze({
@@ -65,39 +80,60 @@ function callRef(call: OrchestraSkillCall): SkillContractRef {
   }
 }
 
-function manifestRef(): SkillContractRef {
+function manifestRef(profile: CaptionRuntimeProfile): SkillContractRef {
   return {
-    id: CAPTIONS_SPECIALIST_MANIFEST.manifestId,
-    version: CAPTIONS_SPECIALIST_MANIFEST.manifestSchemaVersion,
-    contentHash: CAPTIONS_SPECIALIST_MANIFEST.manifestHash,
+    id: profile.manifest.manifestId,
+    version: profile.manifest.manifestSchemaVersion,
+    contentHash: profile.manifest.manifestHash,
   }
 }
 
-function qualificationRef(): SkillContractRef {
+function qualificationRef(profile: CaptionRuntimeProfile): SkillContractRef {
   return {
-    id: CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.snapshotId,
-    version: CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.schemaVersion,
-    contentHash:
-      CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.snapshotDigestSha256,
+    id: profile.qualification.snapshotId,
+    version: profile.qualification.schemaVersion,
+    contentHash: profile.qualification.snapshotDigestSha256,
   }
 }
 
-function supportTargetForArtifact(artifactType: string): SkillSupportTarget {
+function supportTargetForArtifact(
+  artifactType: string,
+): SkillSupportTarget | null {
   if (artifactType === 'visual_intelligence_report') return 'visual_intelligence'
   if (artifactType === 'track_all_mask_binding') return 'track_all'
   if (artifactType === 'caption_living_frame_handoff_binding') return 'living_frame'
+  if (artifactType === 'caption_sound_support_result') return 'soundsync'
+  if (artifactType === 'caption_broll_owner_read_binding') return 'broll_owner'
   if (artifactType === 'confirmed_output_frame') return 'canonical_layout_owner'
-  return 'canonical_timing_owner'
+  if (artifactType === 'master_timing_or_planning_timing') {
+    return 'canonical_timing_owner'
+  }
+  return null
+}
+
+function typedPayloadTypeForTarget(target: SkillSupportTarget): string {
+  if (target === 'living_frame') {
+    return 'caption-direction-living-frame-request-ref-v1'
+  }
+  if (target === 'visual_intelligence') {
+    return 'caption-visual-intelligence-support-payload-ref-v1'
+  }
+  if (target === 'track_all') {
+    return 'caption-track-all-support-payload-ref-v1'
+  }
+  if (target === 'soundsync') return 'caption-sound-cue-request-ref-v1'
+  if (target === 'broll_owner') {
+    return BROLL_CAPTION_OWNER_READ_REQUEST_VERSION
+  }
+  return `captions-${target}-support-request-v1`
 }
 
 function makeSupportRequest(
   call: OrchestraSkillCall,
+  targetSkillKey: SkillSupportTarget,
   missingArtifactTypes: string[],
 ): SkillSupportRequest {
-  const targetSkillKey = supportTargetForArtifact(missingArtifactTypes[0])
-  const typedPayloadType = targetSkillKey === 'living_frame'
-    ? 'caption-direction-living-frame-request-ref-v1'
-    : `captions-${targetSkillKey}-support-request-v1`
+  const typedPayloadType = typedPayloadTypeForTarget(targetSkillKey)
   const requestWithoutDigest: Omit<SkillSupportRequest, 'requestDigestSha256'> = {
     schemaVersion: SKILL_SUPPORT_REQUEST_VERSION,
     requestId: `${call.callId}.support.${targetSkillKey}`,
@@ -115,8 +151,29 @@ function makeSupportRequest(
           requestPayloadEmbedded: false,
           requestRemainsCaptionOwned: true,
         }
+      : targetSkillKey === 'broll_owner'
+        ? {
+            publicContractReceiptRef: {
+              id: 'broll.caption.public-contract.receipt',
+              version: 'b_roll_caption_public_contract_receipt_v1',
+              contentHash: BROLL_CAPTION_PUBLIC_RECEIPT_DIGEST,
+            },
+            captionAdapterRef: {
+              id: CAPTION_BROLL_OWNER_READ_ADAPTER_RECEIPT.adapterId,
+              version: CAPTION_BROLL_OWNER_READ_ADAPTER_RECEIPT.schemaVersion,
+              contentHash:
+                CAPTION_BROLL_OWNER_READ_ADAPTER_RECEIPT.adapterDigestSha256,
+            },
+            requestPayloadEmbedded: false,
+            canonicalOwnerReadMustConstructExactRequest: true,
+            exactScopeFrameTimingRereadRequired: true,
+            requestIsByteFree: true,
+            rawMediaOrChatIncluded: false,
+          }
       : {
           exactArtifactTypes: missingArtifactTypes,
+          typedPayloadRefRequired: true,
+          typedPayloadEmbedded: false,
           requestIsByteFree: true,
           rawMediaOrChatIncluded: false,
         },
@@ -137,6 +194,7 @@ function makeSupportRequest(
 }
 
 function makeResult(
+  profile: CaptionRuntimeProfile,
   call: OrchestraSkillCall,
   disposition: OrchestraSkillJobResult['disposition'],
   reasonCodes: string[],
@@ -151,8 +209,8 @@ function makeResult(
     originalCallRef: callRef(call),
     producerSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
     jobType: call.job.jobType,
-    manifestRef: manifestRef(),
-    qualificationSnapshotRef: qualificationRef(),
+    manifestRef: manifestRef(profile),
+    qualificationSnapshotRef: qualificationRef(profile),
     canonicalScope: structuredClone(call.canonicalScope),
     producedArtifactRefs,
     supportRequests,
@@ -180,18 +238,24 @@ function makeResult(
   })
 }
 
-function requiredArtifactTypes(jobType: string): string[] {
-  return CAPTIONS_SPECIALIST_MANIFEST.capabilityEntries.find(
+function requiredArtifactTypes(
+  profile: CaptionRuntimeProfile,
+  jobType: string,
+): string[] {
+  return profile.manifest.capabilityEntries.find(
     (entry) => entry.supportedJobType === jobType,
   )?.requiredEvidence ?? []
 }
 
-function missingArtifacts(call: OrchestraSkillCall): string[] {
+function missingArtifacts(
+  profile: CaptionRuntimeProfile,
+  call: OrchestraSkillCall,
+): string[] {
   const present = new Set([
     ...call.inputArtifactRefs,
     ...call.injectedSupportArtifactRefs,
   ].map((ref) => ref.artifactType))
-  return requiredArtifactTypes(call.job.jobType)
+  return requiredArtifactTypes(profile, call.job.jobType)
     .filter((artifactType) => !present.has(artifactType))
 }
 
@@ -209,30 +273,42 @@ export function runCaptionsSpecialistJob(input: {
   resumeSupportRequest?: unknown
 }): OrchestraSkillJobResult {
   const call = parseOrchestraSkillCall(input.call)
+  const integrationProfile = call.manifestRef.id
+    === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestId
+  const profile: CaptionRuntimeProfile = integrationProfile
+    ? {
+        manifest: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
+        qualification:
+          CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
+      }
+    : {
+        manifest: CAPTIONS_SPECIALIST_MANIFEST,
+        qualification: CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT,
+      }
   const manifest = parseSkillCapabilityManifestV2(
-    input.manifest ?? CAPTIONS_SPECIALIST_MANIFEST,
+    input.manifest ?? profile.manifest,
   )
   const snapshot = parseSkillQualificationSnapshot(
-    input.qualificationSnapshot ?? CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT,
+    input.qualificationSnapshot ?? profile.qualification,
   )
 
   if (call.assigneeSkillKey !== CAPTIONS_SPECIALIST_SKILL_KEY) {
-    return makeResult(
+    return makeResult(profile,
       call, 'blocked', ['wrong.assignee'],
       'The assignment does not target the Caption specialist.',
     )
   }
-  if (!exactRef(call.manifestRef, manifestRef())
-    || manifest.manifestHash !== CAPTIONS_SPECIALIST_MANIFEST.manifestHash) {
-    return makeResult(
+  if (!exactRef(call.manifestRef, manifestRef(profile))
+    || manifest.manifestHash !== profile.manifest.manifestHash) {
+    return makeResult(profile,
       call, 'blocked', ['stale.manifest'],
       'The Caption manifest binding is stale or mismatched.',
     )
   }
-  if (!exactRef(call.qualificationSnapshotRef, qualificationRef())
+  if (!exactRef(call.qualificationSnapshotRef, qualificationRef(profile))
     || snapshot.snapshotDigestSha256
-      !== CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.snapshotDigestSha256) {
-    return makeResult(
+      !== profile.qualification.snapshotDigestSha256) {
+    return makeResult(profile,
       call, 'blocked', ['stale.qualification'],
       'The Caption qualification binding is stale or mismatched.',
     )
@@ -241,7 +317,7 @@ export function runCaptionsSpecialistJob(input: {
     .includes(call.job.jobType)
     || !(CAPTIONS_SUPPORTED_JOB_TYPES as readonly string[])
       .includes(call.job.jobType)) {
-    return makeResult(
+    return makeResult(profile,
       call, 'unsupported', ['unsupported.job'],
       'The requested job is outside Caption specialist ownership.',
     )
@@ -249,14 +325,14 @@ export function runCaptionsSpecialistJob(input: {
 
   const entry = qualificationEntry(snapshot, call.job.jobType)
   if (!entry || entry.status === 'disabled') {
-    return makeResult(
+    return makeResult(profile,
       call, 'blocked', ['qualification.disabled'],
       'The requested Caption job is disabled in this qualification snapshot.',
     )
   }
   if (entry.status === 'blocked'
     || !entry.qualifiedModes.includes(call.job.requestedMode)) {
-    return makeResult(
+    return makeResult(profile,
       call, 'blocked', ['qualification.mode.blocked'],
       'The requested Caption job mode is not qualified by current evidence.',
     )
@@ -267,7 +343,7 @@ export function runCaptionsSpecialistJob(input: {
     try {
       request = parseSkillSupportRequest(input.resumeSupportRequest)
     } catch {
-      return makeResult(
+      return makeResult(profile,
         call, 'blocked', ['resume.request.reread.failed'],
         'The exact follow-up request could not be reread and validated.',
       )
@@ -293,28 +369,38 @@ export function runCaptionsSpecialistJob(input: {
       || !scopeMatches
       || JSON.stringify(injectedTypes) !== JSON.stringify(requestedTypes)
       || !producerMatches) {
-      return makeResult(
+      return makeResult(profile,
         call, 'blocked', ['resume.binding.mismatch'],
         'Injected support evidence does not match the approved follow-up request.',
       )
     }
   } else if (input.resumeSupportRequest !== undefined) {
-    return makeResult(
+    return makeResult(profile,
       call, 'blocked', ['resume.request.unexpected'],
       'A follow-up request was supplied for a non-resumed Caption call.',
     )
   }
 
-  const missing = missingArtifacts(call)
+  const missing = missingArtifacts(profile, call)
+  if (missing.includes('canonical_transcript')) {
+    return makeResult(profile, call, 'blocked', [
+      'input.canonical_transcript.authenticated_read.missing',
+    ], 'Caption planning requires an authenticated canonical transcript input.')
+  }
   if (missing.length > 0) {
     const grouped = new Map<SkillSupportTarget, string[]>()
     for (const artifactType of missing) {
       const target = supportTargetForArtifact(artifactType)
+      if (target === null) {
+        return makeResult(profile, call, 'blocked', [
+          'dependency.evidence.owner.unmapped',
+        ], 'Caption planning found an unmapped dependency owner.')
+      }
       grouped.set(target, [...(grouped.get(target) ?? []), artifactType])
     }
-    const requests = [...grouped.values()].map((items) =>
-      makeSupportRequest(call, items))
-    return makeResult(
+    const requests = [...grouped.entries()].map(([target, items]) =>
+      makeSupportRequest(call, target, items))
+    return makeResult(profile,
       call,
       'needs_followup',
       ['dependency.evidence.missing'],
@@ -339,7 +425,7 @@ export function runCaptionsSpecialistJob(input: {
     byteFreeRef: true,
     sourceSupportRequestRef: null,
   }]
-  return makeResult(
+  return makeResult(profile,
     call,
     'completed',
     ['planning.contract.completed'],

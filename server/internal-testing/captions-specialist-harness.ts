@@ -20,6 +20,10 @@ import {
 } from '../orchestra/orchestra-skill-contracts'
 import { CAPTIONS_SPECIALIST_MANIFEST } from '../captions-specialist/captions-specialist-manifest'
 import { CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT } from '../captions-specialist/captions-specialist-qualification'
+import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST } from
+  '../captions-specialist/captions-specialist-integration-manifest'
+import { CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT } from
+  '../captions-specialist/captions-specialist-integration-qualification'
 import {
   CAPTIONS_CLOSED_AUTHORITY_BOUNDARY,
   runCaptionsSpecialistJob,
@@ -118,7 +122,15 @@ export function createCaptionsHarnessCall(input: {
   outputId?: string | null
   sceneId?: string | null
   boundaryId?: string | null
+  runtimeProfile?: 'cap01_planning' | 'post_cap20_integration'
 }): OrchestraSkillCall {
+  const integrationProfile = input.runtimeProfile === 'post_cap20_integration'
+  const manifest = integrationProfile
+    ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST
+    : CAPTIONS_SPECIALIST_MANIFEST
+  const qualification = integrationProfile
+    ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
+    : CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT
   const callWithoutDigest: Omit<OrchestraSkillCall, 'callDigestSha256'> = {
     schemaVersion: ORCHESTRA_SKILL_CALL_VERSION,
     callId: input.callId,
@@ -152,14 +164,14 @@ export function createCaptionsHarnessCall(input: {
         : [{ startFrame: 120, endFrameExclusive: 240 }],
     },
     manifestRef: contractRef(
-      CAPTIONS_SPECIALIST_MANIFEST.manifestId,
-      CAPTIONS_SPECIALIST_MANIFEST.manifestSchemaVersion,
-      CAPTIONS_SPECIALIST_MANIFEST.manifestHash,
+      manifest.manifestId,
+      manifest.manifestSchemaVersion,
+      manifest.manifestHash,
     ),
     qualificationSnapshotRef: contractRef(
-      CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.snapshotId,
-      CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.schemaVersion,
-      CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.snapshotDigestSha256,
+      qualification.snapshotId,
+      qualification.schemaVersion,
+      qualification.snapshotDigestSha256,
     ),
     inputArtifactRefs: (input.inputArtifactTypes ?? [
       'canonical_transcript',

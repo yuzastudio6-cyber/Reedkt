@@ -17,6 +17,16 @@ import {
 } from '../shared/assignment-authorities'
 import { trackGraphV1Schema, trackGraphV2Schema } from '../shared/track-graph/track-graph-schemas'
 import {
+  trackAllNormalizedMaskletObservationSetSchema,
+  trackAllSam31ApprovedSessionPlanSetSchema,
+  trackAllSam31MaskletManifestSetSchema,
+} from './private/sam3_1-canonical-private-activation-bridge'
+import { trackAllSam31RealPrivateSessionReceiptSchema } from './private/sam3_1-real-private-session-owner'
+import {
+  trackAllSam31MaskletAttemptEvidenceSchema,
+  trackAllSam31MaskletOutputManifestSchema,
+} from './private/sam3_1-track-masklets-operation'
+import {
   cameraMotionGraphSchema,
   planarTrackGraphSchema,
   trackAllAtomicExecutionEvidenceSchema,
@@ -637,6 +647,18 @@ export function registerTrackAllArtifactSchemas(registry: EditSkillArtifactSchem
     track_all_atomic_execution_evidence_v2: trackAllAtomicExecutionEvidenceSchema,
     track_all_public_work_projection_evidence_v2:
       trackAllPublicWorkProjectionEvidenceSchema,
+    track_all_sam3_1_approved_session_plan_set_v1:
+      trackAllSam31ApprovedSessionPlanSetSchema,
+    track_all_sam3_1_real_private_session_receipt_v1:
+      trackAllSam31RealPrivateSessionReceiptSchema,
+    track_all_sam3_1_masklet_attempt_evidence_v2:
+      trackAllSam31MaskletAttemptEvidenceSchema,
+    track_all_sam3_1_masklet_output_manifest_v2:
+      trackAllSam31MaskletOutputManifestSchema,
+    track_all_sam3_1_masklet_manifest_set_v1:
+      trackAllSam31MaskletManifestSetSchema,
+    track_all_normalized_masklet_observation_set_v1:
+      trackAllNormalizedMaskletObservationSetSchema,
   }
   for (const [artifactType, schema] of Object.entries(schemas)) {
     if (!registry.has(artifactType)) registry.register(artifactType, schema)

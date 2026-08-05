@@ -158,6 +158,7 @@ export interface TrackAllCanonicalPrivatePublicOutputProjector {
   projectPublicOutput(input: {
     jobType: TrackAllPublicJobType
     execution: TrackAllCanonicalPrivateExecutionPackage
+    completedAtomicResults: readonly TrackAllCanonicalPrivateAtomicResult[]
   }): Promise<unknown>
 }
 

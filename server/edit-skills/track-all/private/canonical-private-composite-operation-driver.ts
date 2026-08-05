@@ -78,6 +78,7 @@ implements TrackAllCanonicalPrivateOperationDriver {
     const output = await this.#deterministic.projectPublicOutput({
       jobType: input.jobType,
       execution: input.execution,
+      completedAtomicResults: [...this.#atomicResults.values()],
     })
     const result: TrackAllCanonicalPrivateOperationResult = {
       outputArtifact: { artifactType: input.definition.output, value: output },

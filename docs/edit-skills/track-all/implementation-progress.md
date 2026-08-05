@@ -2299,3 +2299,91 @@ The SAM stage used by the routing smoke is explicitly protocol-shaped test
 logic and did not register route authority, claim checkpoint/CUDA execution,
 enter qualification, or change the committed zero real-execution totals. The
 real SAM stage executor remains the TRACK-33 task.
+
+TRACK-32 implementation commit
+`a6d99ac09842fc1d9c79e3ad5bd2e7aaa58de235` was pushed and the remote branch
+was reread at that exact SHA.
+
+## TRACK-33 — real SAM activation bridge
+
+Status: complete; the implementation commit and remote confirmation are
+recorded by the next evidence-ledger commit.
+
+The canonical-private path now contains the complete forward-only SAM V2
+activation bridge. `compileTrackAllSam31ApprovedSessionPlanSet` compiles one
+content-addressed, one-submission session per approved chunk and multiplex
+bucket from the exact assignment, public and private plans, source checksum,
+target specification, initialization frame, prompt/refinement plan, range,
+runtime profile, route-gate report, route receipt, attempt, lease, reservation,
+rate, and cost authority. Raw chat and caller-selected execution data remain
+impossible. Approved negative-point evidence compiles only as the single
+bounded refinement after initial propagation.
+
+`TrackAllCanonicalPrivateSam31StageExecutor` accepts only the exact approved
+`tool.sam3_1.track_masklets.v2` atomic operation and depends nominally on
+`TrackAllSam31RealPrivateSessionOwner`. The owner exposes a frozen authority
+snapshot only after validating actual canonical-private route evidence,
+checkpoint, immutable image, runtime profile, route receipt, and qualification
+state. The stage executor independently rechecks that authority and binds it
+to the exact approved session-plan set before submitting work. The current
+blocked owner cannot be constructed, so neither can the real stage executor.
+
+Completed real session receipts, attempt evidence, and private masklet
+manifests feed a concrete private geometry adapter, normalized observations,
+chunk-seam QA, stable anonymous identity association, anchor construction,
+Track Graph V2, target/temporal/mask QA, public result projection, and frozen
+Track Graph V1 compatibility. The geometry adapter accepts only the fixed
+private OpenCV reader contract, validates each private object reference,
+dimension, pixel format, contiguous frame, and bounded box, and never publishes
+raw tensors or masks.
+
+The explicitly gated
+`npm run e2e:track-all-sam3.1-canonical-private` command has a safe
+non-executing preflight plus the fixed
+`executeTrackAllSam31CanonicalPrivatePublicE2E` backend entry point. The real
+entry point requires a completed real canary, compiles and persists its own
+single approved session plan, constructs the real SAM/deterministic composite,
+executes the public plugin through the canonical coordinator, requires one
+request, one observed GPU execution, mandatory close, Track Graph V2, and
+target/temporal/mask QA. It accepts no caller model, checkpoint, GPU, command,
+path, URL, retry, fallback, or price.
+
+Protocol-only wiring is separately proven by
+`TrackAllSam31ProtocolWiringTestPort`. Selected-instance and concept-group
+fixtures each traverse two overlapping session-shaped chunks into model-neutral
+Track Graph V2 and V1 projections, while recording
+`protocol_wiring_test_only`, `injectedEvidenceUsed: true`, zero requests, zero
+GPU executions, no strict load, no CUDA, no payment, no promotion authority,
+and no qualification eligibility. Protocol receipts are rejected by real
+execution accounting and the canary contract.
+
+Actual validation:
+
+- `npm run test:track-all-sam3.1-protocol-wiring`: passed both selected and
+  concept multi-chunk protocol scenarios with zero real execution counts;
+- `npm run test:track-all-canonical-private-composite`: passed exact routing,
+  replay, executor isolation, and zero protocol execution claims;
+- `npm run test:track-all-canonical-private-runtime`: passed deterministic
+  no-action and planar routes with zero SAM/GPU activity;
+- `npm run test:track-all-artifact-contracts`: passed 43 strict active output
+  schemas and V1/V2 compatibility;
+- `npm run test:track-all-capability-manifest`: passed 14 supported jobs, 20
+  rejected jobs, nine routes, manifest
+  `9d78b223b600a2ab0aac17995749d8a8918b02d53aec9aaa7bae0ff31e82122b`;
+- `npm run test:track-all-runtime-bindings`: passed 14 manifest bindings and
+  confirmed zero production bindings;
+- `npm run test:track-all-planning`: passed ten scenarios and 24 independently
+  derived QA findings;
+- `npm run test:track-all-sam3.1-real-private-runtime`: passed and confirmed
+  real-owner construction remains blocked;
+- `npm run test:track-all-sam3.1-route-gates`: passed with one gate passed,
+  ten external gates blocked, and zero requests/executions;
+- `npm run e2e:track-all-sam3.1-canonical-private`: safe preflight passed and
+  reported the ten exact external prerequisites with zero paid work;
+- `NODE_OPTIONS=--max-old-space-size=8192 npm run typecheck:server`: passed;
+- `git diff --check`: passed.
+
+No checkpoint was loaded, no SAM request or GPU execution occurred, no paid
+action occurred, no public artifact or production mutation was created, and
+the blocked route was not promoted. TRACK-34 regenerates exact Track All and
+B-Roll qualification against the committed bridge source.

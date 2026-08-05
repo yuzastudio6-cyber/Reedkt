@@ -253,6 +253,21 @@ export interface TrackAllSam31RealPrivateSessionResult {
   outputManifestRef: EditSkillArtifactReference | null
 }
 
+export interface TrackAllSam31RealPrivateExecutionAuthority {
+  operationId: 'tool.sam3_1.track_masklets.v2'
+  runtimeProfileHash: string
+  routeGateReportHash: string
+  routeQualificationReceiptHash: string
+  routeQualificationEvidenceClass: 'actual_canonical_private_evidence'
+  checkpointSha256: string
+  immutableRuntimeImageDigest: string
+  strictCheckpointLoadRequired: true
+  canonicalPrivateExecutionAuthorized: true
+  fixtureEvidenceOnly: false
+  qualificationCandidateOnly: false
+  productionExecutionAuthorized: false
+}
+
 /**
  * One submission followed only by exact reconciliation on transport failure.
  * Kept separate so lifecycle behavior is testable without fabricating passed
@@ -278,6 +293,7 @@ export class TrackAllSam31RealPrivateSessionOwner {
   readonly #worker: TrackAllSam31RealPrivateWorkerPort
   readonly #runtimeProfile: TrackAllSam31RuntimeProfileV2
   readonly #routeGateReport: TrackAllSam31V2RouteGateReport
+  readonly #executionAuthority: TrackAllSam31RealPrivateExecutionAuthority
 
   constructor(input: {
     persistence: TrackAllSam31RealPrivateSessionPersistence
@@ -302,6 +318,7 @@ export class TrackAllSam31RealPrivateSessionOwner {
       profile.qualification.environmentClass !== 'canonical_private' ||
       profile.qualification.status !== 'internal_execution_qualified' ||
       !profile.qualification.internalExecutionAuthorized ||
+      profile.runtimeImage.immutableImageDigest === null ||
       gate.routeQualificationStatus !== 'internal_execution_qualified' ||
       !gate.internalExecutionAuthorized || gate.checkpointSha256 === null) {
       throw new Error(
@@ -328,6 +345,24 @@ export class TrackAllSam31RealPrivateSessionOwner {
     this.#worker = input.worker
     this.#runtimeProfile = profile
     this.#routeGateReport = gate
+    this.#executionAuthority = deepFreezeSkillValue({
+      operationId: 'tool.sam3_1.track_masklets.v2',
+      runtimeProfileHash: profile.profileHash,
+      routeGateReportHash: gate.reportHash,
+      routeQualificationReceiptHash: routeReceipt.receiptHash,
+      routeQualificationEvidenceClass: 'actual_canonical_private_evidence',
+      checkpointSha256: gate.checkpointSha256,
+      immutableRuntimeImageDigest: profile.runtimeImage.immutableImageDigest!,
+      strictCheckpointLoadRequired: true,
+      canonicalPrivateExecutionAuthorized: true,
+      fixtureEvidenceOnly: false,
+      qualificationCandidateOnly: false,
+      productionExecutionAuthorized: false,
+    })
+  }
+
+  executionAuthority(): TrackAllSam31RealPrivateExecutionAuthority {
+    return this.#executionAuthority
   }
 
   async execute(input: {

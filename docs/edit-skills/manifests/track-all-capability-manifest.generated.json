@@ -19,7 +19,8 @@
     "edit_preference_snapshot_v1",
     "privacy_policy_snapshot_v1",
     "prior_track_repair_evidence_v1",
-    "source_media_artifact_v1"
+    "source_media_artifact_v1",
+    "track_all_sam3_1_approved_session_plan_set_v1"
   ],
   "allowedExecutionPhases": [
     {
@@ -394,7 +395,7 @@
       ]
     }
   ],
-  "manifestHash": "dcec1be579f9ff28a560ec1f37c01ca9afe0f874f9ac7e66894f8a8ea75b7061",
+  "manifestHash": "9d78b223b600a2ab0aac17995749d8a8918b02d53aec9aaa7bae0ff31e82122b",
   "mayOverlapWith": [
     {
       "condition": "track_graph_and_geometry_support",
@@ -574,6 +575,13 @@
       "artifactType": "source_media_artifact_v1",
       "description": "Optional qualified source_media_artifact_v1 authority.",
       "key": "source_media_artifact_v1",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
+    {
+      "artifactType": "track_all_sam3_1_approved_session_plan_set_v1",
+      "description": "Optional qualified track_all_sam3_1_approved_session_plan_set_v1 authority.",
+      "key": "track_all_sam3_1_approved_session_plan_set_v1",
       "maximumCount": 1,
       "minimumCount": 0
     }
@@ -804,7 +812,15 @@
     "track_all_cross_skill_handoff_v1",
     "track_all_result_receipt_v1",
     "track_all_atomic_execution_evidence_v1",
-    "track_all_public_work_projection_evidence_v1"
+    "track_all_public_work_projection_evidence_v1",
+    "track_all_atomic_execution_evidence_v2",
+    "track_all_public_work_projection_evidence_v2",
+    "track_all_sam3_1_approved_session_plan_set_v1",
+    "track_all_sam3_1_real_private_session_receipt_v1",
+    "track_all_sam3_1_masklet_attempt_evidence_v2",
+    "track_all_sam3_1_masklet_output_manifest_v2",
+    "track_all_sam3_1_masklet_manifest_set_v1",
+    "track_all_normalized_masklet_observation_set_v1"
   ],
   "qualificationFixtures": [
     {

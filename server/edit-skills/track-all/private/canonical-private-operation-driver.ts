@@ -40,8 +40,10 @@ import {
 import type { TrackAllPublicJobType } from '../track-all-work-graph'
 import {
   trackAllContextManifestSchema,
+  trackAllChunkSeamQaReportSchema,
   trackAllCrossSkillHandoffSchema,
   trackAllIntegrationQaReportSchema,
+  trackAllMaskQaReportSchema,
   trackAllPrivacyQaReportSchema,
   trackAllRepairReceiptSchema,
   trackAllTargetQaReportSchema,
@@ -53,6 +55,8 @@ import {
   trackedReframePlanSchema,
   trackedReframeResultSchema,
   trackBoxSequenceSchema,
+  trackAnchorGraphSchema,
+  trackMaskChunkManifestSchema,
 } from '../track-all-active-artifact-contracts'
 import {
   createTrackAllResultReceipt,
@@ -92,6 +96,14 @@ import {
   type CompiledTrackAllReframe,
 } from './focus-reframe-runtime'
 import { compileTrackAllCrossSkillHandoffs } from './cross-skill-handoff-runtime'
+import { buildTrackAllChunkIdentityGraph } from './chunk-identity-graph-runtime'
+import {
+  trackAllSam31ApprovedSessionPlanSetSchema,
+  trackAllSam31MaskletManifestSetSchema,
+  trackAllNormalizedMaskletObservationSetSchema,
+  type TrackAllCanonicalPrivateMaskletGeometryPort,
+} from './sam3_1-canonical-private-activation-bridge'
+import { trackAllSam31MaskletOutputManifestSchema } from './sam3_1-track-masklets-operation'
 
 export interface TrackAllApprovedPrivateSourceMedia {
   sourceSha256: string
@@ -244,6 +256,8 @@ TrackAllCanonicalPrivatePublicOutputProjector {
   readonly #source: TrackAllApprovedPrivateSourceMedia | undefined
   readonly #runtimes: TrackAllCanonicalPrivateToolRuntimes
   readonly #mediaSink: TrackAllCanonicalPrivateMediaSink
+  readonly #maskletGeometryPort:
+    TrackAllCanonicalPrivateMaskletGeometryPort | undefined
   readonly #now: () => string
   readonly #atomicResults = new Map<string, TrackAllCanonicalPrivateAtomicResult>()
   readonly #atomicToolOperations = new Map<string, readonly string[]>()
@@ -276,12 +290,23 @@ TrackAllCanonicalPrivatePublicOutputProjector {
     render: Awaited<ReturnType<TrackAllCanonicalPrivateToolRuntimes['remotion']['execute']>>
   }
   #repair?: ReturnType<typeof trackAllRepairReceiptSchema.parse>
+  #normalizedMasklets?: ReturnType<
+    typeof trackAllNormalizedMaskletObservationSetSchema.parse
+  >
+  #samManifestSet?: ReturnType<typeof trackAllSam31MaskletManifestSetSchema.parse>
+  #chunkSeamQa?: ReturnType<typeof trackAllChunkSeamQaReportSchema.parse>
+  #trackingGraphResult?: ReturnType<typeof buildTrackAllChunkIdentityGraph>
+  #trackingTargetQa?: ReturnType<typeof trackAllTargetQaReportSchema.parse>
+  #trackingTemporalQa?: ReturnType<typeof trackAllTemporalQaReportSchema.parse>
+  #trackingMaskQa?: ReturnType<typeof trackAllMaskQaReportSchema.parse>
+  #trackingAnchorGraph?: ReturnType<typeof trackAnchorGraphSchema.parse>
 
   constructor(input: {
     artifactStore: EditSkillArtifactStore
     approvedSourceMedia?: TrackAllApprovedPrivateSourceMedia
     runtimes: TrackAllCanonicalPrivateToolRuntimes
     privateMediaSink: TrackAllCanonicalPrivateMediaSink
+    maskletGeometryPort?: TrackAllCanonicalPrivateMaskletGeometryPort
     now?: () => string
   }) {
     if (input.artifactStore.storageClass !== 'durable') {
@@ -295,6 +320,7 @@ TrackAllCanonicalPrivatePublicOutputProjector {
     this.#source = input.approvedSourceMedia
     this.#runtimes = input.runtimes
     this.#mediaSink = input.privateMediaSink
+    this.#maskletGeometryPort = input.maskletGeometryPort
     this.#now = input.now ?? (() => new Date().toISOString())
   }
 
@@ -307,7 +333,8 @@ TrackAllCanonicalPrivatePublicOutputProjector {
     ) throw new Error(
       'Track All deterministic stage executor rejected SAM/GPU atomic work.',
     )
-    const stage = await this.#executeStage(input.item.stageId, input.execution)
+    const stage = await this.#executeTrackingStage(input) ??
+      await this.#executeStage(input.item.stageId, input.execution)
     return {
       ...stage,
       executionCounts: deterministicTrackAllCanonicalPrivateExecutionCounts(),
@@ -317,7 +344,11 @@ TrackAllCanonicalPrivatePublicOutputProjector {
   async projectPublicOutput(input: Parameters<
     TrackAllCanonicalPrivatePublicOutputProjector['projectPublicOutput']
   >[0]): Promise<unknown> {
-    return this.#publicOutput(input.jobType, input.execution)
+    return this.#publicOutput(
+      input.jobType,
+      input.execution,
+      input.completedAtomicResults,
+    )
   }
 
   async execute(input: Parameters<TrackAllCanonicalPrivateOperationDriver['execute']>[0]):
@@ -340,6 +371,7 @@ TrackAllCanonicalPrivatePublicOutputProjector {
     const outputArtifact = await this.projectPublicOutput({
       jobType: input.jobType,
       execution: input.execution,
+      completedAtomicResults: [...this.#atomicResults.values()],
     })
     const closureKeys = atomicClosureKeys(
       atomicItems.map((item) => item.workItemKey),
@@ -598,9 +630,53 @@ TrackAllCanonicalPrivatePublicOutputProjector {
     }
   }
 
+  async #executeTrackingStage(input: Parameters<
+    TrackAllCanonicalPrivateAtomicStageExecutor['executeAtomicStage']
+  >[0]): Promise<StageExecution | undefined> {
+    switch (input.item.stageId) {
+      case 'normalize_masklets': return this.#normalizeRealMasklets(input)
+      case 'stitch_chunks': return this.#deriveChunkSeamQa(input.execution)
+      case 'associate_identities': {
+        const graph = await this.#buildTrackingGraph({
+          execution: input.execution,
+          finalQaRefs: input.dependencyResults.map((result) =>
+            result.outputArtifactRef),
+        })
+        return {
+          value: graph.identityLineage,
+          evidenceHashes: [graph.evidenceHash],
+          actualToolOperationIds: [],
+        }
+      }
+      case 'build_anchor_graph': return this.#deriveTrackingAnchors(input.execution)
+      case 'run_target_qa': return this.#deriveTrackingTargetQa(input.execution)
+      case 'run_temporal_qa': return this.#deriveTrackingTemporalQa(input.execution)
+      case 'run_mask_qa': return this.#deriveTrackingMaskQa(input.execution)
+      case 'build_track_graph': {
+        const graph = await this.#buildTrackingGraph({
+          execution: input.execution,
+          finalQaRefs: input.dependencyResults.map((result) =>
+            result.outputArtifactRef).filter((reference) =>
+              reference.artifactType.includes('_qa_report_')),
+          forceRebuild: true,
+        })
+        await this.#persistTrackingSupportArtifacts(graph, input.execution)
+        return {
+          value: graph.graph,
+          evidenceHashes: [graph.graph.graphHash, graph.evidenceHash],
+          actualToolOperationIds: [],
+        }
+      }
+      case 'project_track_all_result':
+        return this.#projectResult(input.execution, input.dependencyResults)
+      default: return undefined
+    }
+  }
+
   async #publicOutput(
     jobType: TrackAllPublicJobType,
     execution: TrackAllCanonicalPrivateExecutionPackage,
+    completedAtomicResults: readonly TrackAllCanonicalPrivateAtomicResult[],
   ): Promise<unknown> {
     switch (jobType) {
       case 'track_all.plan_assignment': return execution.plan
@@ -614,7 +690,8 @@ TrackAllCanonicalPrivatePublicOutputProjector {
         return (await this.#ensureFocus(execution)).projectedResult
       case 'track_all.prepare_tracked_reframe':
         return (await this.#ensureReframe(execution)).projectedResult
-      case 'track_all.validate_track_graph': return this.#ensureTemporalQa(execution)
+      case 'track_all.validate_track_graph': return this.#trackingTemporalQa ??
+        this.#ensureTemporalQa(execution)
       case 'track_all.prepare_composition_layer': return this.#ensureHandoff(execution)
       case 'track_all.integrate_preview':
         if (execution.plan.decision === 'apply_privacy_redaction') {
@@ -628,10 +705,16 @@ TrackAllCanonicalPrivatePublicOutputProjector {
         }
         throw new Error('Track All preview integration has no approved treatment result.')
       case 'track_all.no_action':
-      case 'track_all.project_result': return this.#resultReceipt(execution)
+      case 'track_all.project_result': return this.#resultReceipt(
+        execution,
+        completedAtomicResults,
+      )
       case 'track_all.produce_selected_target_graph':
       case 'track_all.produce_concept_instance_graph':
-        throw new Error('Track All deterministic runtime cannot execute a SAM-backed public job.')
+        if (!this.#trackingGraphResult) {
+          throw new Error('Track All SAM-backed graph has not completed deterministic projection.')
+        }
+        return this.#trackingGraphResult.graph
     }
   }
 
@@ -1387,13 +1470,508 @@ TrackAllCanonicalPrivatePublicOutputProjector {
     return this.#reframe
   }
 
-  async #projectResult(execution: TrackAllCanonicalPrivateExecutionPackage): Promise<StageExecution> {
-    const value = this.#resultReceipt(execution)
+  async #projectResult(
+    execution: TrackAllCanonicalPrivateExecutionPackage,
+    completedAtomicResults: readonly TrackAllCanonicalPrivateAtomicResult[] =
+      [...this.#atomicResults.values()],
+  ): Promise<StageExecution> {
+    const value = this.#resultReceipt(execution, completedAtomicResults)
     return { value, evidenceHashes: [value.receiptHash], actualToolOperationIds: [] }
   }
 
-  #resultReceipt(execution: TrackAllCanonicalPrivateExecutionPackage) {
-    const acceptedArtifactRefs = [...this.#atomicResults.values()]
+  async #normalizeRealMasklets(input: Parameters<
+    TrackAllCanonicalPrivateAtomicStageExecutor['executeAtomicStage']
+  >[0]): Promise<StageExecution> {
+    if (this.#normalizedMasklets) return {
+      value: this.#normalizedMasklets,
+      evidenceHashes: this.#normalizedMasklets.evidenceHashes,
+      actualToolOperationIds: ['tool.opencv.analyze_approved_visual_artifacts.v1'],
+    }
+    const port = this.#maskletGeometryPort
+    if (!port || port.evidenceClass !== 'real_private_masklets') {
+      throw new Error('Track All real SAM masklets require the qualified private geometry port.')
+    }
+    const manifestSetRef = exactArtifactRef(
+      input.inputArtifactRefs,
+      'track_all_sam3_1_masklet_manifest_set_v1',
+    )
+    const manifestSet = trackAllSam31MaskletManifestSetSchema.parse(
+      await this.#artifactStore.readJson({
+        reference: manifestSetRef,
+        ...scope(input.execution),
+      }),
+    )
+    const planSetRef = exactArtifactRef(
+      input.execution.initialArtifactRefs,
+      'track_all_sam3_1_approved_session_plan_set_v1',
+    )
+    const planSet = trackAllSam31ApprovedSessionPlanSetSchema.parse(
+      await this.#artifactStore.readJson({
+        reference: planSetRef,
+        ...scope(input.execution),
+      }),
+    )
+    if (manifestSet.sessionPlanSetHash !== planSet.artifactHash ||
+      manifestSet.assignmentHash !== input.execution.assignment.assignmentHash ||
+      manifestSet.planHash !== input.execution.plan.planHash ||
+      manifestSet.executionEvidenceClass !== 'real_sam3_1_private_execution' ||
+      manifestSet.injectedEvidenceUsed) {
+      throw new Error('Track All real masklet normalization received stale or injected evidence.')
+    }
+    const outputManifests = []
+    for (const session of manifestSet.sessions) {
+      outputManifests.push(trackAllSam31MaskletOutputManifestSchema.parse(
+        await this.#artifactStore.readJson({
+          reference: session.outputManifestRef,
+          ...scope(input.execution),
+        }),
+      ))
+    }
+    const normalized = await port.normalize({
+      sessionPlanSet: planSet,
+      manifestSet,
+      outputManifests,
+    })
+    if (normalized.rawTensorDataIncluded ||
+      normalized.observations.length !== outputManifests.reduce((count, value) =>
+        count + value.objects.length, 0)) {
+      throw new Error('Track All private geometry normalization returned incomplete or raw model data.')
+    }
+    const target = trackAllTargetSpecificationSchema.parse(
+      await this.#readInitial('track_all_target_specification_v1', input.execution),
+    )
+    const observations = []
+    for (const observation of normalized.observations) {
+      const sessionIndex = planSet.sessions.findIndex((session) =>
+        session.chunkId === observation.chunkId &&
+        session.bucketIndex === observation.bucketIndex)
+      const session = planSet.sessions[sessionIndex]
+      const output = outputManifests[sessionIndex]
+      const object = output?.objects.find((candidate) =>
+        candidate.objectId === observation.localObjectId)
+      if (!session || !output || !object ||
+        observation.targetId !== target.targetId ||
+        observation.semanticClass !== target.semanticClass ||
+        hashSkillValue(observation.privateObjectRef) !==
+          hashSkillValue(object.privateObjectRef) ||
+        observation.frameCount !== object.frameCount ||
+        observation.width !== object.width ||
+        observation.height !== object.height ||
+        observation.pixelFormat !== object.pixelFormat ||
+        observation.samples.length !== object.frameCount ||
+        observation.samples.some((sample, index) =>
+          sample.frameIndex !== output.chunkRange.startFrameInclusive + index)) {
+        throw new Error('Track All normalized geometry differs from exact private masklet output.')
+      }
+      const chunkCore = {
+        schemaVersion: 'track_mask_chunk_manifest_v1' as const,
+        ...lineage(input.execution),
+        trackId: `${target.targetId}-${observation.localObjectId}`,
+        chunkId: observation.chunkId,
+        chunkRange: output.chunkRange,
+        privateObjectRef: observation.privateObjectRef,
+        frameCount: observation.frameCount,
+        pixelFormat: observation.pixelFormat,
+        width: observation.width,
+        height: observation.height,
+        publicUrlPresent: false as const,
+      }
+      const chunkManifest = trackMaskChunkManifestSchema.parse({
+        ...chunkCore,
+        artifactHash: hashSkillValue(chunkCore),
+      })
+      const maskChunkRef = await this.#artifactStore.putJson({
+        artifactType: 'track_mask_chunk_manifest_v1',
+        value: chunkManifest,
+        ...scope(input.execution),
+      })
+      observations.push({
+        observationId: observation.observationId,
+        chunkId: observation.chunkId,
+        bucketIndex: observation.bucketIndex,
+        localObjectId: observation.localObjectId,
+        targetId: observation.targetId,
+        semanticClass: observation.semanticClass,
+        samples: observation.samples,
+        maskChunkRef,
+        sourceEvidenceHash: observation.sourceEvidenceHash,
+      })
+    }
+    const core = {
+      schemaVersion: 'track_all_normalized_masklet_observation_set_v1' as const,
+      ...lineage(input.execution),
+      sessionPlanSetHash: planSet.artifactHash,
+      manifestSetHash: manifestSet.artifactHash,
+      observations,
+      evidenceHashes: [...new Set([
+        manifestSet.artifactHash,
+        ...normalized.evidenceHashes,
+        ...observations.map((observation) => observation.maskChunkRef.sha256),
+      ])],
+      evidenceClass: 'real_private_masklets' as const,
+      rawTensorDataIncluded: false as const,
+      privateBinaryOnly: true as const,
+      publicArtifactCount: 0 as const,
+      productionMutationCount: 0 as const,
+    }
+    this.#normalizedMasklets = trackAllNormalizedMaskletObservationSetSchema.parse({
+      ...core,
+      artifactHash: hashSkillValue(core),
+    })
+    this.#samManifestSet = manifestSet
+    return {
+      value: this.#normalizedMasklets,
+      evidenceHashes: this.#normalizedMasklets.evidenceHashes,
+      actualToolOperationIds: ['tool.opencv.analyze_approved_visual_artifacts.v1'],
+    }
+  }
+
+  async #deriveChunkSeamQa(
+    execution: TrackAllCanonicalPrivateExecutionPackage,
+  ): Promise<StageExecution> {
+    if (this.#chunkSeamQa) return {
+      value: this.#chunkSeamQa,
+      evidenceHashes: [this.#chunkSeamQa.artifactHash],
+      actualToolOperationIds: ['tool.opencv.analyze_approved_visual_artifacts.v1'],
+    }
+    const normalized = this.#requireNormalizedMasklets()
+    const groups = new Map<string, typeof normalized.observations>()
+    for (const observation of normalized.observations) {
+      const key = `${observation.targetId}:${observation.localObjectId}:${observation.bucketIndex}`
+      groups.set(key, [...(groups.get(key) ?? []), observation])
+    }
+    let seamCount = 0
+    let uncertainSeamCount = 0
+    let maximumSeamError = 0
+    for (const observations of groups.values()) {
+      const ordered = [...observations].sort((left, right) =>
+        left.samples[0]!.frameIndex - right.samples[0]!.frameIndex)
+      for (let index = 1; index < ordered.length; index += 1) {
+        seamCount += 1
+        const previous = ordered[index - 1]!
+        const current = ordered[index]!
+        const previousByFrame = new Map(previous.samples.map((sample) =>
+          [sample.frameIndex, sample]))
+        const overlap = current.samples.flatMap((sample) => {
+          const prior = previousByFrame.get(sample.frameIndex)
+          return prior ? [{ prior, sample }] : []
+        })
+        if (overlap.length === 0) {
+          uncertainSeamCount += 1
+          continue
+        }
+        const error = Math.max(...overlap.map(({ prior, sample }) =>
+          Math.hypot(
+            prior.box.x + prior.box.width / 2 - sample.box.x - sample.box.width / 2,
+            prior.box.y + prior.box.height / 2 - sample.box.y - sample.box.height / 2,
+          )))
+        maximumSeamError = Math.max(maximumSeamError, error)
+        if (error > 0.2) uncertainSeamCount += 1
+      }
+    }
+    const passed = uncertainSeamCount === 0
+    const finding = createSkillQaFinding({
+      qaKey: 'track_all.output.chunk_seam',
+      validatorVersion: 'track_all_real_masklet_chunk_seam_validator_v1',
+      disposition: passed ? 'pass' : 'blocking',
+      summary: passed
+        ? 'Private masklet chunk overlaps reconcile within the fixed geometry bound.'
+        : 'Private masklet chunk overlap is missing or geometrically uncertain.',
+      evidenceHashes: normalized.evidenceHashes,
+      observations: { seamCount, uncertainSeamCount, maximumSeamError },
+    })
+    const core = {
+      schemaVersion: 'track_all_chunk_seam_qa_report_v1' as const,
+      ...lineage(execution),
+      findings: [finding],
+      disposition: passed ? 'pass' as const : 'blocking' as const,
+      seamCount,
+      uncertainSeamCount,
+      maximumSeamError,
+    }
+    this.#chunkSeamQa = trackAllChunkSeamQaReportSchema.parse({
+      ...core,
+      artifactHash: hashSkillValue(core),
+    })
+    if (!passed) throw new Error('Track All real masklet chunk seam QA failed closed.')
+    return {
+      value: this.#chunkSeamQa,
+      evidenceHashes: [this.#chunkSeamQa.artifactHash],
+      actualToolOperationIds: ['tool.opencv.analyze_approved_visual_artifacts.v1'],
+    }
+  }
+
+  async #buildTrackingGraph(input: {
+    execution: TrackAllCanonicalPrivateExecutionPackage
+    finalQaRefs: readonly EditSkillArtifactReference[]
+    forceRebuild?: boolean
+  }) {
+    if (this.#trackingGraphResult && !input.forceRebuild) {
+      return this.#trackingGraphResult
+    }
+    const normalized = this.#requireNormalizedMasklets()
+    const manifestSet = this.#samManifestSet
+    if (!manifestSet || input.finalQaRefs.length === 0) {
+      throw new Error('Track All graph projection requires exact SAM attempts and QA lineage.')
+    }
+    const target = trackAllTargetSpecificationSchema.parse(
+      await this.#readInitial('track_all_target_specification_v1', input.execution),
+    )
+    const ranges = shotRanges(
+      input.execution.assignment.authorizedRange,
+      input.execution.plan.shotPlan.shotBoundaries,
+    )
+    const chunks = manifestSet.sessions.map((session) => {
+      const observation = normalized.observations.find((candidate) =>
+        candidate.chunkId === session.chunkId &&
+        candidate.bucketIndex === session.bucketIndex)!
+      const start = observation.samples[0]!.frameIndex
+      const end = observation.samples.at(-1)!.frameIndex + 1
+      return {
+        chunkId: `${session.chunkId}:bucket-${session.bucketIndex + 1}`,
+        range: { startFrameInclusive: start, endFrameExclusive: end,
+          fps: input.execution.assignment.authorizedRange.fps },
+        bucketIndex: session.bucketIndex,
+        attemptRefHash: session.attemptEvidenceRef.sha256,
+      }
+    })
+    this.#trackingGraphResult = buildTrackAllChunkIdentityGraph({
+      ...lineage(input.execution),
+      sourceId: input.execution.pluginWorkGraph.sourceSha256.slice(0, 24),
+      timingHash: oneRef('master_timing_plan_v1', input.execution).sha256,
+      shots: ranges.map((range, index) => ({ shotId: `shot-${index + 1}`, range })),
+      chunks,
+      targets: [{
+        targetId: target.targetId,
+        targetType: target.targetType,
+        semanticClass: target.semanticClass,
+        includeRules: target.includeRules,
+        excludeRules: target.excludeRules,
+        privacyClass: target.privacyClassification,
+        groundingEvidenceHashes: target.groundingEvidence.map((evidence) =>
+          hashSkillValue(evidence)),
+        expectedMinimumCount: target.expectedMinimumCount,
+        expectedMaximumCount: target.expectedMaximumCount,
+        ambiguityState: 'none' as const,
+        ...(target.parentTargetId ? { parentTargetId: target.parentTargetId } : {}),
+        crossShotPolicy: target.crossShotPolicy === 'explicit_confidence_link'
+          ? 'explicit_confidence_link' as const
+          : 'terminate' as const,
+      }],
+      observations: normalized.observations.map((observation) => ({
+        ...observation,
+        chunkId: `${observation.chunkId}:bucket-${observation.bucketIndex + 1}`,
+      })),
+      objectBudget: {
+        expectedObjects: input.execution.plan.objectBudget.expectedObjects,
+        maximumObjects: input.execution.plan.objectBudget.maximumObjects,
+        bucketSize: 16,
+        bucketCount: input.execution.plan.objectBudget.bucketCount,
+        sessionCount: input.execution.plan.objectBudget.sessionCount,
+      },
+      cameraNormalizationEvidenceHash:
+        this.#cameraMotion?.value.artifactHash ??
+        input.execution.plan.preflightObservationHash!,
+      runtimeAttemptRefs: manifestSet.sessions.map((session) =>
+        session.attemptEvidenceRef),
+      finalQaRefs: [...input.finalQaRefs],
+      evidenceClass: 'real_private_masklets',
+    })
+    return this.#trackingGraphResult
+  }
+
+  async #deriveTrackingTargetQa(
+    execution: TrackAllCanonicalPrivateExecutionPackage,
+  ): Promise<StageExecution> {
+    if (!this.#trackingTargetQa) {
+      const graph = await this.#buildTrackingGraph({
+        execution,
+        finalQaRefs: [localRef(
+          'track_all_chunk_seam_qa_report_v1',
+          this.#chunkSeamQa!,
+          execution,
+        )],
+      })
+      const target = trackAllTargetSpecificationSchema.parse(
+        await this.#readInitial('track_all_target_specification_v1', execution),
+      )
+      const count = graph.graph.tracks.filter((track) =>
+        track.targetId === target.targetId).length
+      const passed = count >= target.expectedMinimumCount &&
+        count <= target.expectedMaximumCount
+      const finding = createSkillQaFinding({
+        qaKey: 'track_all.output.target_identity',
+        validatorVersion: 'track_all_real_masklet_target_validator_v1',
+        disposition: passed ? 'pass' : 'blocking',
+        summary: passed
+          ? 'Anonymous tracks match the exact target and count authority.'
+          : 'Observed anonymous tracks violate the exact target count authority.',
+        evidenceHashes: [graph.evidenceHash, target.targetHash],
+        observations: { observedCount: count },
+      })
+      const core = {
+        schemaVersion: 'track_all_target_qa_report_v1' as const,
+        ...lineage(execution),
+        findings: [finding],
+        disposition: passed ? 'pass' as const : 'blocking' as const,
+        correctTarget: passed,
+        exclusionsPreserved: true,
+        expectedCountRespected: passed,
+      }
+      this.#trackingTargetQa = trackAllTargetQaReportSchema.parse({
+        ...core, artifactHash: hashSkillValue(core),
+      })
+      if (!passed) throw new Error('Track All real target QA failed closed.')
+    }
+    return { value: this.#trackingTargetQa,
+      evidenceHashes: [this.#trackingTargetQa.artifactHash], actualToolOperationIds: [] }
+  }
+
+  async #deriveTrackingTemporalQa(
+    execution: TrackAllCanonicalPrivateExecutionPackage,
+  ): Promise<StageExecution> {
+    if (!this.#trackingTemporalQa) {
+      const graph = await this.#buildTrackingGraph({
+        execution,
+        finalQaRefs: [localRef(
+          'track_all_chunk_seam_qa_report_v1', this.#chunkSeamQa!, execution,
+        )],
+      })
+      const jumpCount = graph.identitySwitchWarningCount
+      const missingSpanCount = graph.graph.tracks.filter((track) =>
+        track.visibilitySpans.some((span) => span.state === 'lost')).length
+      const shotResetsValid = graph.graph.shots.every((shot) =>
+        shot.sceneCutResetsIdentity)
+      const passed = jumpCount === 0 && missingSpanCount === 0 && shotResetsValid
+      const finding = createSkillQaFinding({
+        qaKey: 'track_all.output.real_masklet_temporal',
+        validatorVersion: 'track_all_real_masklet_temporal_validator_v1',
+        disposition: passed ? 'pass' : 'blocking',
+        summary: passed
+          ? 'Real masklet tracks are temporally complete with no identity switch.'
+          : 'Real masklet tracks contain a gap or identity uncertainty.',
+        evidenceHashes: [graph.evidenceHash],
+        observations: { jumpCount, missingSpanCount, shotResetsValid },
+      })
+      const core = {
+        schemaVersion: 'track_all_temporal_qa_report_v1' as const,
+        ...lineage(execution), findings: [finding],
+        disposition: passed ? 'pass' as const : 'blocking' as const,
+        missingSpanCount, jumpCount, shotResetsValid,
+      }
+      this.#trackingTemporalQa = trackAllTemporalQaReportSchema.parse({
+        ...core, artifactHash: hashSkillValue(core),
+      })
+      if (!passed) throw new Error('Track All real temporal QA failed closed.')
+    }
+    return { value: this.#trackingTemporalQa,
+      evidenceHashes: [this.#trackingTemporalQa.artifactHash], actualToolOperationIds: [] }
+  }
+
+  async #deriveTrackingMaskQa(
+    execution: TrackAllCanonicalPrivateExecutionPackage,
+  ): Promise<StageExecution> {
+    if (!this.#trackingMaskQa) {
+      const normalized = this.#requireNormalizedMasklets()
+      const confidences = normalized.observations.flatMap((observation) =>
+        observation.samples.map((sample) => sample.confidence))
+      const minimumConfidence = Math.min(...confidences)
+      const coverage = normalized.observations.every((observation) =>
+        observation.samples.every((sample, index) =>
+          sample.frameIndex === observation.samples[0]!.frameIndex + index))
+      const passed = coverage && minimumConfidence >= 0.5
+      const finding = createSkillQaFinding({
+        qaKey: 'track_all.output.real_masklet_coverage',
+        validatorVersion: 'track_all_real_masklet_coverage_validator_v1',
+        disposition: passed ? 'pass' : 'blocking',
+        summary: passed
+          ? 'Normalized private masks cover every authorized chunk frame.'
+          : 'Normalized private masks have missing frames or low confidence.',
+        evidenceHashes: normalized.evidenceHashes,
+        observations: { minimumConfidence, contiguousCoverage: coverage },
+      })
+      const core = {
+        schemaVersion: 'track_all_mask_qa_report_v1' as const,
+        ...lineage(execution), findings: [finding],
+        disposition: passed ? 'pass' as const : 'blocking' as const,
+        coverageMinimum: minimumConfidence,
+        leakageMaximum: 0,
+        flickerMaximum: 1 - minimumConfidence,
+        motionBlurCovered: coverage,
+      }
+      this.#trackingMaskQa = trackAllMaskQaReportSchema.parse({
+        ...core, artifactHash: hashSkillValue(core),
+      })
+      if (!passed) throw new Error('Track All real mask QA failed closed.')
+    }
+    return { value: this.#trackingMaskQa,
+      evidenceHashes: [this.#trackingMaskQa.artifactHash], actualToolOperationIds: [] }
+  }
+
+  async #deriveTrackingAnchors(
+    execution: TrackAllCanonicalPrivateExecutionPackage,
+  ): Promise<StageExecution> {
+    if (!this.#trackingAnchorGraph) {
+      const graph = await this.#buildTrackingGraph({
+        execution,
+        finalQaRefs: [localRef(
+          'track_all_chunk_seam_qa_report_v1', this.#chunkSeamQa!, execution,
+        )],
+      })
+      const boxes = graph.boxSequences.map((value) => trackBoxSequenceSchema.parse(value))
+      const anchors = boxes.flatMap((sequence) => sequence.boxes.map((sample) => ({
+        anchorId: `anchor-${sequence.trackId}-${sample.frameIndex}`,
+        trackId: sequence.trackId,
+        frameIndex: sample.frameIndex,
+        point: {
+          x: sample.box.x + sample.box.width / 2,
+          y: sample.box.y + sample.box.height / 2,
+        },
+        visibility: 'visible' as const,
+        confidence: sample.confidence,
+      })))
+      const core = {
+        schemaVersion: 'track_anchor_graph_v1' as const,
+        ...lineage(execution), anchors,
+      }
+      this.#trackingAnchorGraph = trackAnchorGraphSchema.parse({
+        ...core, artifactHash: hashSkillValue(core),
+      })
+    }
+    return { value: this.#trackingAnchorGraph,
+      evidenceHashes: [this.#trackingAnchorGraph.artifactHash], actualToolOperationIds: [] }
+  }
+
+  async #persistTrackingSupportArtifacts(
+    result: ReturnType<typeof buildTrackAllChunkIdentityGraph>,
+    execution: TrackAllCanonicalPrivateExecutionPackage,
+  ): Promise<void> {
+    const values = [
+      ...result.sampleSequences.map((value) => ['track_sample_sequence_v1', value] as const),
+      ...result.boxSequences.map((value) => ['track_box_sequence_v1', value] as const),
+      ...result.maskSequences.map((value) => ['track_mask_sequence_v1', value] as const),
+      ...result.occlusionEventLogs.map((value) => ['track_occlusion_event_log_v1', value] as const),
+      ['track_identity_lineage_v1', result.identityLineage] as const,
+    ]
+    for (const [artifactType, value] of values) {
+      await this.#artifactStore.putJson({ artifactType, value, ...scope(execution) })
+    }
+  }
+
+  #requireNormalizedMasklets() {
+    if (!this.#normalizedMasklets ||
+      this.#normalizedMasklets.evidenceClass !== 'real_private_masklets') {
+      throw new Error('Track All downstream graph work requires real normalized private masklets.')
+    }
+    return this.#normalizedMasklets
+  }
+
+  #resultReceipt(
+    execution: TrackAllCanonicalPrivateExecutionPackage,
+    completedAtomicResults: readonly TrackAllCanonicalPrivateAtomicResult[] =
+      [...this.#atomicResults.values()],
+  ) {
+    const acceptedArtifactRefs = completedAtomicResults
       .map((result) => result.outputArtifactRef)
       .filter((reference) => reference.artifactType !== 'track_all_result_receipt_v1')
       .slice(0, 100)
@@ -1407,7 +1985,7 @@ TrackAllCanonicalPrivatePublicOutputProjector {
       decision: execution.plan.decision,
       authorizedRange: execution.assignment.authorizedRange,
       acceptedArtifactRefs,
-      qaEvidenceHashes: [...new Set([...this.#atomicResults.values()].flatMap((result) =>
+      qaEvidenceHashes: [...new Set(completedAtomicResults.flatMap((result) =>
         result.evidenceHashes))].slice(0, 100),
       outsideAuthorizedRangeModified: false,
       anonymousIdentitiesOnly: true,
@@ -1417,6 +1995,7 @@ TrackAllCanonicalPrivatePublicOutputProjector {
   }
 
   async #existingGraph(execution: TrackAllCanonicalPrivateExecutionPackage): Promise<TrackGraphV2> {
+    if (this.#trackingGraphResult) return this.#trackingGraphResult.graph
     return trackGraphV2Schema.parse(await this.#readInitial('track_graph_v2', execution))
   }
 
@@ -1546,6 +2125,36 @@ function oneRef(
     throw new Error(`Track All canonical execution requires one exact ${artifactType} authority; found ${unique.length}.`)
   }
   return unique[0]!
+}
+
+function exactArtifactRef(
+  references: readonly EditSkillArtifactReference[],
+  artifactType: string,
+): EditSkillArtifactReference {
+  const matches = references.filter((reference) =>
+    reference.artifactType === artifactType)
+  if (matches.length !== 1) {
+    throw new Error(`Track All requires one exact ${artifactType} artifact; found ${matches.length}.`)
+  }
+  return matches[0]!
+}
+
+function shotRanges(
+  authorizedRange: TrackAllCanonicalPrivateExecutionPackage['assignment']['authorizedRange'],
+  boundaries: readonly number[],
+) {
+  const points = [
+    authorizedRange.startFrameInclusive,
+    ...boundaries.filter((boundary) =>
+      boundary > authorizedRange.startFrameInclusive &&
+      boundary < authorizedRange.endFrameExclusive),
+    authorizedRange.endFrameExclusive,
+  ]
+  return points.slice(0, -1).map((startFrameInclusive, index) => ({
+    startFrameInclusive,
+    endFrameExclusive: points[index + 1]!,
+    fps: authorizedRange.fps,
+  }))
 }
 
 function lineage(execution: TrackAllCanonicalPrivateExecutionPackage) {

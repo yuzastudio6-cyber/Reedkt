@@ -60,20 +60,6 @@ TrackAllCanonicalPrivateAtomicWorkItem => ({
 })
 const deterministicItem = item('track_all.validate_assignment.v1', false)
 const samItem = item('tool.sam3_1.track_masklets.v2', true)
-const realCounts = {
-  providerRequestCount: 0 as const,
-  actualSamRequestCount: 1,
-  actualGpuExecutionCount: 1,
-  samSessionReceiptRefs: [ref(
-    'track_all_sam3_1_real_private_session_receipt_v1',
-    'session-receipt',
-  )],
-  samAttemptEvidenceRefs: [ref(
-    'track_all_sam3_1_masklet_attempt_evidence_v2',
-    'attempt-evidence',
-  )],
-  executionEvidenceClass: 'real_sam3_1_private_execution' as const,
-}
 
 let deterministicCalls = 0
 let samCalls = 0
@@ -99,7 +85,7 @@ const samExecutor: TrackAllCanonicalPrivateAtomicStageExecutor = {
       value: { privateMaskletManifest: true },
       evidenceHashes: [hashSkillValue({ sam: true })],
       actualToolOperationIds: ['tool.sam3_1.track_masklets.v2'],
-      executionCounts: realCounts,
+      executionCounts: deterministicTrackAllCanonicalPrivateExecutionCounts(),
     }
   },
 }
@@ -144,8 +130,8 @@ const execute = async (approvedItem: TrackAllCanonicalPrivateAtomicWorkItem, inp
 const deterministicResult = await execute(deterministicItem, {})
 assert.equal(deterministicResult.executionCounts.actualSamRequestCount, 0)
 const samResult = await execute(samItem, { sam31StageExecutor: samExecutor })
-assert.equal(samResult.executionCounts.actualSamRequestCount, 1)
-assert.equal(samResult.executionCounts.actualGpuExecutionCount, 1)
+assert.equal(samResult.executionCounts.actualSamRequestCount, 0)
+assert.equal(samResult.executionCounts.actualGpuExecutionCount, 0)
 assert.equal(deterministicCalls, 1)
 assert.equal(samCalls, 1)
 await assert.rejects(() => execute(samItem, {}), /route is not qualified/iu)
@@ -175,6 +161,7 @@ console.log(JSON.stringify({
   deterministicCalls,
   samCalls,
   replayDidNotIncreaseCounts: true,
+  protocolTestClaimedActualSamOrGpuExecution: false,
   missingSamExecutorRejected: true,
   deterministicExecutorRejectsSam: true,
   callerSelectedExecutorAccepted: false,

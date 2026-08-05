@@ -19,6 +19,7 @@ export const TRACK_ALL_ACCEPTED_ARTIFACT_TYPES = [
   'privacy_policy_snapshot_v1',
   'prior_track_repair_evidence_v1',
   'source_media_artifact_v1',
+  'track_all_sam3_1_approved_session_plan_set_v1',
 ] as const
 
 export const TRACK_ALL_PRODUCED_ARTIFACT_TYPES = [
@@ -59,6 +60,12 @@ export const TRACK_ALL_PRODUCED_ARTIFACT_TYPES = [
   'track_all_public_work_projection_evidence_v1',
   'track_all_atomic_execution_evidence_v2',
   'track_all_public_work_projection_evidence_v2',
+  'track_all_sam3_1_approved_session_plan_set_v1',
+  'track_all_sam3_1_real_private_session_receipt_v1',
+  'track_all_sam3_1_masklet_attempt_evidence_v2',
+  'track_all_sam3_1_masklet_output_manifest_v2',
+  'track_all_sam3_1_masklet_manifest_set_v1',
+  'track_all_normalized_masklet_observation_set_v1',
 ] as const
 
 export type TrackAllAcceptedArtifactType =

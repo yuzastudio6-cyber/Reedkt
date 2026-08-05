@@ -326,6 +326,10 @@ export function sealCanonicalTrackAllSam31L4MaskQaMeasurement(
 export function sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence(
   input: {
     readonly measurementId: string
+    readonly canonicalSam31TaskRef: CaptionDomainRef
+    readonly canonicalSam31RuntimeResultAdmissionRef: CaptionDomainRef
+    readonly canonicalSam31MaskSequenceArtifactRef: CaptionDomainRef
+    readonly canonicalL4ExecutionEnvelopeRef: CaptionDomainRef
     readonly canonicalScope: CaptionDomainCanonicalScope
     readonly sourcePrivateArtifactRef: CaptionDomainRef
     readonly requestedRange: CaptionDomainFrameRange
@@ -355,6 +359,18 @@ export function sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence(
     || response.inputEvidence.manifestByteLength
       !== request.expectedMaskManifestByteLength
     || response.inputEvidence.maskPngCount !== request.expectedMaskPngCount
+    || !samePrefixedIdentityAndHash(
+      request.sam31TaskRef,
+      input.canonicalSam31TaskRef,
+    )
+    || !samePrefixedIdentityAndHash(
+      request.sam31RuntimeResultAdmissionRef,
+      input.canonicalSam31RuntimeResultAdmissionRef,
+    )
+    || !samePrefixedIdentityAndHash(
+      request.l4ExecutionEnvelopeRef,
+      input.canonicalL4ExecutionEnvelopeRef,
+    )
     || !sameRef(
       domainRefFromPrefixed(request.approvedWorkItemRef),
       input.l4QaExecution.approvedWorkItemRef,
@@ -391,8 +407,8 @@ export function sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence(
     ) throw new TypeError(
       'Track All L4 worker subject evidence crossed subject or frame scope.',
     )
-    const maskSequenceRef = domainRefFromPrefixed(
-      request.sam31MaskManifestRef,
+    const maskSequenceRef = structuredClone(
+      input.canonicalSam31MaskSequenceArtifactRef,
     )
     const korniaRef = input.l4QaExecution.korniaCudaExecutionEvidenceRef
     const opencvRef =
@@ -460,9 +476,10 @@ export function sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence(
       CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_MEASUREMENT_VERSION,
     measurementId: input.measurementId,
     invocationId: request.invocationId,
-    sam31TaskRef: domainRefFromPrefixed(request.sam31TaskRef),
-    sam31RuntimeResultAdmissionRef:
-      domainRefFromPrefixed(request.sam31RuntimeResultAdmissionRef),
+    sam31TaskRef: structuredClone(input.canonicalSam31TaskRef),
+    sam31RuntimeResultAdmissionRef: structuredClone(
+      input.canonicalSam31RuntimeResultAdmissionRef,
+    ),
     canonicalScope: structuredClone(input.canonicalScope),
     sourcePrivateArtifactRef: structuredClone(input.sourcePrivateArtifactRef),
     sourceFrameMappingRef:
@@ -1005,6 +1022,12 @@ function domainRefFromPrefixed(value: {
     version: String(value.version),
     contentHash: stripSha(value.contentHash),
   })
+}
+function samePrefixedIdentityAndHash(
+  left: { id: string; contentHash: string },
+  right: CaptionDomainRef,
+): boolean {
+  return left.id === right.id && stripSha(left.contentHash) === right.contentHash
 }
 function digest(value: unknown, omitted: string): string {
   return calculateSkillContractDigest(

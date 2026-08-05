@@ -81,7 +81,7 @@ import {
 } from './canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v5' as const
+  'canonical-track-all-sam3_1-production-runtime-v6' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -117,6 +117,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly cpuOnlySubstantiveExecutionAllowed: false
   readonly callerGpuRouteModelImageCommandOrPriceAccepted: false
   readonly rawTaskQaMeasurementReviewOrCloudClaimAccepted: false
+  readonly canonicalBackendCompilesTaskQaMeasurementFromFixedWorkerEvidence:
+    true
   readonly rawCloudLaunchPortExposed: false
 }
 
@@ -244,6 +246,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       lifecycleReadPort: lifecycleStore,
       sam31ResultStore: sam31RuntimeResultStore,
       sam31TaskStore: taskStore,
+      taskContextRepository,
       taskQaRepository: captionTrackAllTaskQaRepository,
     })
   const captionTrackAllEvidenceRepository =
@@ -323,6 +326,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     cpuOnlySubstantiveExecutionAllowed: false as const,
     callerGpuRouteModelImageCommandOrPriceAccepted: false as const,
     rawTaskQaMeasurementReviewOrCloudClaimAccepted: false as const,
+    canonicalBackendCompilesTaskQaMeasurementFromFixedWorkerEvidence:
+      true as const,
     rawCloudLaunchPortExposed: false as const,
   })
 }

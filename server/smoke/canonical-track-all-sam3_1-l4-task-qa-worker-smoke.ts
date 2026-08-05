@@ -219,6 +219,24 @@ const rawRef = (id: string, contentHash = sha256AuthorityValue({ id })) => ({
 const canonicalMeasurement =
   sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence({
     measurementId: 'l4-task-qa-measurement',
+    canonicalSam31TaskRef: {
+      ...rawRef('sam31-task', request.sam31TaskRef.contentHash.slice(7)),
+      version: 'canonical-sam3_1-gpu-task-record-v1',
+    },
+    canonicalSam31RuntimeResultAdmissionRef: {
+      ...rawRef(
+        'sam31-result-admission',
+        request.sam31RuntimeResultAdmissionRef.contentHash.slice(7),
+      ),
+      version: 'canonical-sam3_1-gpu-runtime-result-admission-v1',
+    },
+    canonicalSam31MaskSequenceArtifactRef: rawRef(
+      'sam31-mask-sequence-artifact',
+    ),
+    canonicalL4ExecutionEnvelopeRef: rawRef(
+      'l4-execution-envelope',
+      request.l4ExecutionEnvelopeRef.contentHash.slice(7),
+    ),
     canonicalScope: {
       ownerUserId: 'owner-1',
       workspaceId: 'workspace-1',
@@ -264,6 +282,14 @@ const canonicalMeasurement =
   })
 assert.equal(canonicalMeasurement.subjectEvidence.length, 2)
 assert.equal(
+  canonicalMeasurement.sam31TaskRef.version,
+  'canonical-sam3_1-gpu-task-record-v1',
+)
+assert.equal(
+  canonicalMeasurement.sam31RuntimeResultAdmissionRef.version,
+  'canonical-sam3_1-gpu-runtime-result-admission-v1',
+)
+assert.equal(
   canonicalMeasurement.subjectEvidence[0]?.temporalQa
     .minimumBinaryIntersectionOverUnionBasisPoints,
   9_100,
@@ -274,6 +300,7 @@ assert.equal(
 )
 const { requestBindingSha256: _requestBindingSha256, ...requestPayload } =
   structuredClone(request)
+assert.equal(_requestBindingSha256, request.requestBindingSha256)
 assert.throws(() => assertCanonicalTrackAllSam31L4TaskQaWorkerRequest({
   ...structuredClone(request),
   expectedMaskPngCount: 7,
@@ -309,6 +336,17 @@ assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerResponse({
 assert.throws(() =>
   sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence({
     measurementId: 'l4-task-qa-wrong-lease',
+    canonicalSam31TaskRef:
+      structuredClone(canonicalMeasurement.sam31TaskRef),
+    canonicalSam31RuntimeResultAdmissionRef:
+      structuredClone(canonicalMeasurement.sam31RuntimeResultAdmissionRef),
+    canonicalSam31MaskSequenceArtifactRef: structuredClone(
+      canonicalMeasurement.subjectEvidence[0]!.maskSequenceRef!,
+    ),
+    canonicalL4ExecutionEnvelopeRef: rawRef(
+      'l4-execution-envelope',
+      request.l4ExecutionEnvelopeRef.contentHash.slice(7),
+    ),
     canonicalScope: structuredClone(canonicalMeasurement.canonicalScope),
     sourcePrivateArtifactRef:
       structuredClone(canonicalMeasurement.sourcePrivateArtifactRef),
@@ -325,6 +363,7 @@ const reorderedResponse = buildCanonicalTrackAllSam31L4TaskQaWorkerResponse({
   ...(() => {
     const { responseBindingSha256: _responseBindingSha256, ...payload } =
       structuredClone(response)
+    assert.equal(_responseBindingSha256, response.responseBindingSha256)
     return payload
   })(),
   outputSummary: {
@@ -338,6 +377,17 @@ const reorderedResponse = buildCanonicalTrackAllSam31L4TaskQaWorkerResponse({
 assert.throws(() =>
   sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence({
     measurementId: 'l4-task-qa-reordered-subjects',
+    canonicalSam31TaskRef:
+      structuredClone(canonicalMeasurement.sam31TaskRef),
+    canonicalSam31RuntimeResultAdmissionRef:
+      structuredClone(canonicalMeasurement.sam31RuntimeResultAdmissionRef),
+    canonicalSam31MaskSequenceArtifactRef: structuredClone(
+      canonicalMeasurement.subjectEvidence[0]!.maskSequenceRef!,
+    ),
+    canonicalL4ExecutionEnvelopeRef: rawRef(
+      'l4-execution-envelope',
+      request.l4ExecutionEnvelopeRef.contentHash.slice(7),
+    ),
     canonicalScope: structuredClone(canonicalMeasurement.canonicalScope),
     sourcePrivateArtifactRef:
       structuredClone(canonicalMeasurement.sourcePrivateArtifactRef),

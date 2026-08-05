@@ -31,6 +31,15 @@ observation, exact platform usage, billing-account-effective L4 price, attempt
 cost, SAM result admission, and independent private scene review before it can
 compile the task-QA measurement accepted by Track All.
 
+The active evidence wrapper is
+`canonical-track-all-sam3_1-l4-mask-qa-worker-result-v2`. It persists the
+exact fixed worker request and response, not a caller-built canonical
+measurement. The backend rereads the SAM task context/result plus the L4
+launch, execution envelope, terminal usage/cost receipt, and scale-to-zero
+observation, then derives the canonical scope and measurement itself. The
+historical v1 measurement-carrying wrapper remains readable only for immutable
+evidence compatibility.
+
 The private Cloud Build capsule contains only a hash-locked wheelhouse, the
 reviewed OpenCV-CUDA receipt/build, and the exact NVIDIA CUDA 12.8
 forward-compatibility package/receipt. It contains no SAM checkpoint, model

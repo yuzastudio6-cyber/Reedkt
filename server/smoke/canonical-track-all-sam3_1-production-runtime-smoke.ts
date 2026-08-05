@@ -26,7 +26,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v5')
+  'canonical-track-all-sam3_1-production-runtime-v6')
 assert.equal(runtime.runtimeMode,
   'cloud_run_gcs_user_triggered_scale_from_zero')
 assert.equal(runtime.a100HeavyPrimary, true)
@@ -114,6 +114,10 @@ assert.equal(
   false,
 )
 assert.equal(runtime.rawTaskQaMeasurementReviewOrCloudClaimAccepted, false)
+assert.equal(
+  runtime.canonicalBackendCompilesTaskQaMeasurementFromFixedWorkerEvidence,
+  true,
+)
 
 assert.throws(() => createCanonicalTrackAllSam31ProductionRuntime({
   ...cloud,
@@ -142,7 +146,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 46,
+  checks: 47,
   localAndMockRuntimeMounted: false,
   cloudRunGcsCompositionMounted: true,
   authenticatedRouteUsesDurableProductionRuntime: true,
@@ -158,6 +162,7 @@ console.log(JSON.stringify({
   taskQaCandidateRepositoryMountedInPrivateGpuObjectStore: true,
   taskQaEvidenceFinalizerMounted: true,
   rawTaskQaMeasurementReviewOrCloudClaimAccepted: false,
+  canonicalBackendCompilesTaskQaMeasurementFromFixedWorkerEvidence: true,
   a100HeavyPrimary: true,
   l4HeavyFallbackSeparatelyQualified: true,
   userTriggeredScaleFromZero: true,

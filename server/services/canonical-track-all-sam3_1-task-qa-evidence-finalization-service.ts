@@ -29,6 +29,7 @@ import type {
 import {
   parseCanonicalTrackAllSam31L4MaskQaMeasurement,
   parseCanonicalTrackAllSam31PrivateSceneReview,
+  sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence,
   type CanonicalTrackAllSam31TaskQaRepository,
 } from './canonical-track-all-sam3_1-task-qa-owner'
 import {
@@ -36,9 +37,18 @@ import {
   type CanonicalSam31GpuRuntimeResultStore,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
+  assertCanonicalSam31GpuTaskContext,
   assertCanonicalSam31GpuTaskRecord,
   type CanonicalSam31GpuTaskStore,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
+import type {
+  CanonicalSam31GpuTaskContextRepository,
+} from './canonical-sam3_1-gpu-task-context-owner'
+import {
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequest,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponse,
+  canonicalTrackAllSam31L4TaskQaFixedTaskContractRef,
+} from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -50,6 +60,8 @@ export const CANONICAL_TRACK_ALL_SAM3_1_TASK_QA_EVIDENCE_FINALIZATION_RUNTIME_VE
   'canonical-track-all-sam3_1-task-qa-evidence-finalization-runtime-v1' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_RESULT_VERSION =
   'canonical-track-all-sam3_1-l4-mask-qa-worker-result-v1' as const
+export const CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_VERSION =
+  'canonical-track-all-sam3_1-l4-mask-qa-worker-result-v2' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_REVIEW_RESULT_VERSION =
   'canonical-track-all-sam3_1-private-review-result-v1' as const
 
@@ -65,7 +77,7 @@ const refSchema: z.ZodType<TrackAllSam31CaptionEvidenceRef> = z.object({
   contentHash: sha256,
 }).strict()
 
-const workerResultWithoutDigestSchema = z.object({
+const workerResultV1WithoutDigestSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_RESULT_VERSION,
   ),
@@ -81,12 +93,40 @@ const workerResultWithoutDigestSchema = z.object({
   callerOrBrowserOutputAccepted: z.literal(false),
   pathsUrlsCredentialsOrMediaBytesIncluded: z.literal(false),
 }).strict()
-const workerResultSchema = workerResultWithoutDigestSchema.extend({
+const workerResultV1Schema = workerResultV1WithoutDigestSchema.extend({
   workerResultDigestSha256: sha256,
 }).strict()
-export type CanonicalTrackAllSam31L4MaskQaWorkerResult = z.infer<
-  typeof workerResultSchema
+export type CanonicalTrackAllSam31L4MaskQaWorkerResultV1 = z.infer<
+  typeof workerResultV1Schema
 >
+
+const workerEvidenceResultWithoutDigestSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_VERSION,
+  ),
+  workerResultId: safeId,
+  invocationId: safeId,
+  workerServiceIdentityRef: refSchema,
+  l4LaunchRef: refSchema,
+  l4ExecutionEnvelopeRef: refSchema,
+  l4TerminalRef: refSchema,
+  workerRequest: z.unknown(),
+  workerResponse: z.unknown(),
+  privateCreateOnlyWorkerOutput: z.literal(true),
+  fixedWorkerRequestAndResponseExactReread: z.literal(true),
+  measurementCompiledOnlyByCanonicalBackend: z.literal(true),
+  callerOrBrowserMeasurementAccepted: z.literal(false),
+  callerOrBrowserOutputAccepted: z.literal(false),
+  pathsUrlsCredentialsOrMediaBytesIncluded: z.literal(false),
+}).strict()
+const workerEvidenceResultSchema = workerEvidenceResultWithoutDigestSchema
+  .extend({ workerResultDigestSha256: sha256 }).strict()
+export type CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult = z.infer<
+  typeof workerEvidenceResultSchema
+>
+export type CanonicalTrackAllSam31L4MaskQaWorkerResult =
+  | CanonicalTrackAllSam31L4MaskQaWorkerResultV1
+  | CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult
 
 const reviewResultWithoutDigestSchema = z.object({
   schemaVersion: z.literal(
@@ -194,15 +234,28 @@ export interface CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort {
 }
 
 export function sealCanonicalTrackAllSam31L4MaskQaWorkerResult(
-  value: z.input<typeof workerResultWithoutDigestSchema>,
-): CanonicalTrackAllSam31L4MaskQaWorkerResult {
+  value: z.input<typeof workerResultV1WithoutDigestSchema>,
+): CanonicalTrackAllSam31L4MaskQaWorkerResultV1 {
   assertPlainSerializedData(value, 'track_all_l4_mask_qa_worker_result_input')
-  const payload = workerResultWithoutDigestSchema.parse(value)
+  const payload = workerResultV1WithoutDigestSchema.parse(value)
   parseCanonicalTrackAllSam31L4MaskQaMeasurement(payload.measurement)
   return parseWorkerResult({
     ...payload,
     workerResultDigestSha256: sha256AuthorityValue(payload),
-  })
+  }) as CanonicalTrackAllSam31L4MaskQaWorkerResultV1
+}
+
+export function sealCanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult(
+  value: z.input<typeof workerEvidenceResultWithoutDigestSchema>,
+): CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult {
+  assertPlainSerializedData(value,
+    'track_all_l4_mask_qa_worker_evidence_result_input')
+  const payload = workerEvidenceResultWithoutDigestSchema.parse(value)
+  assertFixedWorkerEvidenceResult(payload)
+  return parseWorkerResult({
+    ...payload,
+    workerResultDigestSha256: sha256AuthorityValue(payload),
+  }) as CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult
 }
 
 export function sealCanonicalTrackAllSam31PrivateReviewResult(
@@ -322,6 +375,10 @@ export function createCanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntime(
       'rereadResultAdmission'
     >
     readonly sam31TaskStore: Pick<CanonicalSam31GpuTaskStore, 'rereadTask'>
+    readonly taskContextRepository: Pick<
+      CanonicalSam31GpuTaskContextRepository,
+      'rereadTaskContext'
+    >
     readonly taskQaRepository: Pick<
       CanonicalTrackAllSam31TaskQaRepository,
       'persistMeasurementCreateOnly' | 'rereadMeasurement' |
@@ -360,6 +417,11 @@ export function createCanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntime(
       const samTask = assertCanonicalSam31GpuTaskRecord(
         await input.sam31TaskStore.rereadTask(request.invocationId),
       )
+      const samTaskContext = assertCanonicalSam31GpuTaskContext(
+        await input.taskContextRepository.rereadTaskContext({
+          taskContextRef: samTask.taskContextRef,
+        }),
+      )
       if (!sameRef(request.sam31RuntimeResultAdmissionRef, {
         id: samResult.resultAdmissionId,
         version: samResult.schemaVersion,
@@ -375,12 +437,6 @@ export function createCanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntime(
         'Track All task-QA worker or independent-review result is unavailable.',
       )
       assertCandidateRefs({ request, workerResult, reviewResult })
-      const measurement = parseCanonicalTrackAllSam31L4MaskQaMeasurement(
-        workerResult.measurement,
-      )
-      const review = parseCanonicalTrackAllSam31PrivateSceneReview(
-        reviewResult.review,
-      )
       const launch = assertCanonicalProfessionalGpuJobLaunch(
         await input.lifecycleReadPort.rereadLaunchRecord({
           launchRecordId: workerResult.l4LaunchRef.id,
@@ -396,11 +452,31 @@ export function createCanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntime(
           terminalRecordId: workerResult.l4TerminalRef.id,
         }),
       )
+      if (workerResult.schemaVersion ===
+        CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_RESULT_VERSION) {
+        throw new TypeError(
+          'Historical Track All worker measurement v1 is read-only and cannot finalize fresh QA evidence.',
+        )
+      }
+      const measurement =
+        compileCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerResult({
+          samTask,
+          samTaskContext,
+          samResult,
+          workerResult,
+          launch,
+          envelope,
+          terminal,
+        })
+      const review = parseCanonicalTrackAllSam31PrivateSceneReview(
+        reviewResult.review,
+      )
       assertExactLineage({
         authenticatedOwnerUserId: runtimeInput.authenticatedOwnerUserId,
         workspaceId: runtimeInput.workspaceId,
         request,
         samTask,
+        samTaskContext,
         samResult,
         workerResult,
         reviewResult,
@@ -472,13 +548,53 @@ function parseWorkerResult(
   value: unknown,
 ): CanonicalTrackAllSam31L4MaskQaWorkerResult {
   assertPlainSerializedData(value, 'track_all_l4_mask_qa_worker_result')
-  const result = workerResultSchema.parse(value)
+  const version = z.object({ schemaVersion: z.string() }).passthrough()
+    .parse(value).schemaVersion
+  const result = version ===
+    CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_RESULT_VERSION
+    ? workerResultV1Schema.parse(value)
+    : version ===
+      CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_VERSION
+      ? workerEvidenceResultSchema.parse(value)
+      : (() => { throw new TypeError(
+        'Track All L4 worker result version is unsupported.',
+      ) })()
   const { workerResultDigestSha256, ...payload } = result
   if (workerResultDigestSha256 !== sha256AuthorityValue(payload)) {
     throw new TypeError('Track All L4 worker result digest is invalid.')
   }
-  parseCanonicalTrackAllSam31L4MaskQaMeasurement(result.measurement)
+  if (result.schemaVersion ===
+    CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_RESULT_VERSION) {
+    parseCanonicalTrackAllSam31L4MaskQaMeasurement(result.measurement)
+  } else {
+    assertFixedWorkerEvidenceResult(result)
+  }
   return structuredClone(result)
+}
+
+function assertFixedWorkerEvidenceResult(value: {
+  readonly invocationId: string
+  readonly l4ExecutionEnvelopeRef: TrackAllSam31CaptionEvidenceRef
+  readonly workerRequest: unknown
+  readonly workerResponse: unknown
+}): void {
+  const request = assertCanonicalTrackAllSam31L4TaskQaWorkerRequest(
+    value.workerRequest,
+  )
+  const response = assertCanonicalTrackAllSam31L4TaskQaWorkerResponse(
+    value.workerResponse,
+  )
+  if (
+    request.invocationId !== value.invocationId
+    || response.status !== 'completed'
+    || response.requestBindingSha256 !== request.requestBindingSha256
+    || request.l4ExecutionEnvelopeRef.id !==
+      value.l4ExecutionEnvelopeRef.id
+    || stripSha(request.l4ExecutionEnvelopeRef.contentHash) !==
+      value.l4ExecutionEnvelopeRef.contentHash
+  ) throw new TypeError(
+    'Track All L4 fixed worker evidence lost request, response, or envelope lineage.',
+  )
 }
 
 function parseReviewResult(
@@ -492,6 +608,242 @@ function parseReviewResult(
   }
   parseCanonicalTrackAllSam31PrivateSceneReview(result.review)
   return structuredClone(result)
+}
+
+/**
+ * Compiles the canonical task-QA measurement from the exact fixed worker
+ * request/response and server-reread SAM/L4 records. The private worker never
+ * supplies the canonical scope, pricing, cost, stop, or measurement record.
+ */
+export function compileCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerResult(
+  input: {
+    readonly samTask: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>
+    readonly samTaskContext: ReturnType<
+      typeof assertCanonicalSam31GpuTaskContext
+    >
+    readonly samResult: ReturnType<
+      typeof assertCanonicalSam31GpuRuntimeResultAdmission
+    >
+    readonly workerResult: CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult
+    readonly launch: CanonicalProfessionalGpuJobLaunch
+    readonly envelope: CanonicalProfessionalGpuExecutionEnvelope
+    readonly terminal: CanonicalProfessionalGpuJobTerminal
+  },
+) {
+  assertPlainSerializedData(input,
+    'track_all_l4_measurement_compilation_input')
+  const task = assertCanonicalSam31GpuTaskRecord(input.samTask)
+  const context = assertCanonicalSam31GpuTaskContext(input.samTaskContext)
+  const samResult = assertCanonicalSam31GpuRuntimeResultAdmission(
+    input.samResult,
+  )
+  const workerResult = parseWorkerResult(input.workerResult)
+  if (workerResult.schemaVersion !==
+    CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_VERSION) {
+    throw new TypeError('Track All fixed worker evidence v2 is required.')
+  }
+  const launch = assertCanonicalProfessionalGpuJobLaunch(input.launch)
+  const envelope = assertCanonicalProfessionalGpuExecutionEnvelope(
+    input.envelope,
+  )
+  const terminal = assertCanonicalProfessionalGpuJobTerminal(input.terminal)
+  const workerRequest = assertCanonicalTrackAllSam31L4TaskQaWorkerRequest(
+    workerResult.workerRequest,
+  )
+  const workerResponse = assertCanonicalTrackAllSam31L4TaskQaWorkerResponse(
+    workerResult.workerResponse,
+  )
+  const source = task.runtimeRequest.sourceMedia
+  const scope = task.runtimeRequest.scope
+  const canonicalRange = {
+    startFrame: source.canonicalSourceStartFrameInclusive,
+    endFrameExclusive: source.canonicalSourceEndFrameInclusive + 1,
+  }
+  const taskReference = lifecycleNumericRef(
+    task.taskId,
+    task.taskRecordHash,
+  )
+  const resultReference = lifecycleNumericRef(
+    samResult.resultAdmissionId,
+    samResult.resultAdmissionHash,
+  )
+  const exactWorkerInput =
+    workerRequest.invocationId === task.invocationId
+    && workerRequest.sam31RuntimeRequestBindingSha256 ===
+      task.runtimeRequest.requestBindingSha256
+    && samePrefixedRef(workerRequest.sam31TaskRef, taskReference)
+    && samePrefixedRef(
+      workerRequest.sam31RuntimeResultAdmissionRef,
+      resultReference,
+    )
+    && samePrefixedRef(workerRequest.sam31MaskManifestRef,
+      samResult.manifestRef)
+    && samePrefixedRef(workerRequest.l4ExecutionEnvelopeRef,
+      envelopeRef(envelope))
+    && samePrefixedRef(workerRequest.approvedWorkItemRef,
+      envelope.approvedWorkItemRef)
+    && samePrefixedRef(workerRequest.workerLeaseRef,
+      envelope.workerLeaseRef)
+    && samePrefixedRef(workerRequest.executionAttemptRef,
+      envelope.executionAttemptRef)
+    && samePrefixedRef(workerRequest.sourceFrameMappingRef,
+      source.sourceFrameRangeMappingRef)
+    && samePrefixedRef(workerRequest.confirmedOutputFrameRef,
+      context.confirmedOutputFrameRef)
+    && workerRequest.sourceWidth === source.width
+    && workerRequest.sourceHeight === source.height
+    && workerRequest.maskFrameRange.startFrame === 0
+    && workerRequest.maskFrameRange.endFrameExclusive ===
+      source.decodedFrameCount
+    && workerRequest.expectedMaskManifestSha256 ===
+      stripSha(samResult.manifestRef.contentHash)
+    && workerRequest.expectedMaskPngCount === samResult.maskFileCount
+    && workerRequest.subjects.every((subject) =>
+      stableAuthorityStringify(subject.canonicalFrameRange)
+        === stableAuthorityStringify(canonicalRange)
+      && samePrefixedRef(subject.trackManifestRef, samResult.manifestRef))
+  const exactCanonicalContext = task.taskContextRef.id ===
+      context.taskContextRef.id
+    && task.taskContextRef.contentHash === context.taskContextRef.contentHash
+    && scope.editPlanVersionId === context.editPlanVersionId
+    && scope.outputId === context.outputId
+    && scope.sceneId === context.sceneId
+    && stableAuthorityStringify(context.sourceMedia) ===
+      stableAuthorityStringify(task.runtimeRequest.sourceMedia)
+    && scope.approvedPlanSnapshotId === envelope.approvedSnapshotRef.id
+    && scope.approvedPlanSnapshotHash ===
+      stripSha(envelope.approvedSnapshotRef.contentHash)
+    && samePrefixedRef(context.confirmedOutputFrameRef,
+      envelope.confirmedOutputFrameRef)
+    && samePrefixedRef(scope.masterTimingRef, envelope.masterTimingRef)
+  const exactLifecycle = workerResult.invocationId === task.invocationId
+    && sameRef(workerResult.l4LaunchRef, lifecycleRef(
+      launch.launchRecordId, launch.schemaVersion, launch.launchHash,
+    ))
+    && sameRef(workerResult.l4ExecutionEnvelopeRef, lifecycleRef(
+      envelope.envelopeId, envelope.schemaVersion, envelope.envelopeHash,
+    ))
+    && sameRef(workerResult.l4TerminalRef, lifecycleRef(
+      terminal.terminalRecordId, terminal.schemaVersion, terminal.terminalHash,
+    ))
+    && samePrefixedRef(launch.executionEnvelopeRef, envelopeRef(envelope))
+    && samePrefixedRef(launch.admissionRef, envelope.admissionRef)
+    && samePrefixedRef(
+      launch.admissionConsumptionRef,
+      envelope.admissionConsumptionRef,
+    )
+    && samePrefixedRef(launch.runtimeReleaseRef, envelope.runtimeReleaseRef)
+    && launch.toolId === envelope.toolId
+    && launch.operationId === envelope.operationId
+    && launch.routeId === envelope.routeId
+    && launch.immutableImageDigest === envelope.immutableImageDigest
+    && samePrefixedRef(
+      envelope.fixedServerTaskContractRef,
+      canonicalTrackAllSam31L4TaskQaFixedTaskContractRef(),
+    )
+    && samePrefixedRef(terminal.launchRef, launchRef(launch))
+    && samePrefixedRef(terminal.admissionRef, launch.admissionRef)
+    && sameNullablePrefixedRef(
+      terminal.cloudJobExecutionRef,
+      launch.cloudJobExecutionRef,
+    )
+    && launch.toolId === 'kornia'
+    && launch.operationId === 'tool.kornia.refine_mask.v1'
+    && launch.routeId === 'l4_standard_primary'
+    && launch.executionTarget === 'google_cloud_run_l4_job'
+    && launch.accelerator === 'nvidia_l4'
+    && launch.launchDisposition === 'job_created'
+    && envelope.toolId === 'kornia'
+    && envelope.operationId === 'tool.kornia.refine_mask.v1'
+    && envelope.routeId === 'l4_standard_primary'
+    && !envelope.runtimeDownloadAllowed
+    && !envelope.cpuOnlySubstantiveExecutionAllowed
+    && terminal.terminalOutcome === 'completed'
+    && terminal.providerInferenceOrSubstantiveWorkOutcome === 'executed'
+    && terminal.cloudJobTerminalStateReread
+    && terminal.workerStoppedVerified
+    && terminal.activeGpuInstancesAfterTerminalObservation === 0
+    && terminal.exactPlatformUsageAndAccountPriceReread
+    && terminal.costReceiptPersistedBeforeSettlement
+  if (!exactWorkerInput || !exactCanonicalContext || !exactLifecycle) {
+    throw new TypeError(
+      'Track All fixed worker evidence crossed SAM, scope, frame, or L4 lineage.',
+    )
+  }
+  const output = workerResponse.outputSummary
+  if (workerResponse.status !== 'completed' || output === null) {
+    throw new TypeError('Track All fixed L4 worker did not complete.')
+  }
+  const canonicalTaskRef = domainRecordRef(
+    task.taskId,
+    task.schemaVersion,
+    task.taskRecordHash,
+  )
+  const canonicalResultRef = domainRecordRef(
+    samResult.resultAdmissionId,
+    samResult.schemaVersion,
+    samResult.resultAdmissionHash,
+  )
+  const canonicalEnvelopeRef = domainRecordRef(
+    envelope.envelopeId,
+    envelope.schemaVersion,
+    envelope.envelopeHash,
+  )
+  const measurementId =
+    `track-all-l4-measurement-${workerResult.workerResultDigestSha256.slice(0, 32)}`
+  return sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence({
+    measurementId,
+    canonicalSam31TaskRef: canonicalTaskRef,
+    canonicalSam31RuntimeResultAdmissionRef: canonicalResultRef,
+    canonicalSam31MaskSequenceArtifactRef:
+      domainRef(samResult.maskSequenceArtifactRef),
+    canonicalL4ExecutionEnvelopeRef: canonicalEnvelopeRef,
+    canonicalScope: {
+      ownerUserId: scope.ownerUserId,
+      workspaceId: scope.workspaceId,
+      projectId: scope.projectId,
+      editSessionId: scope.editSessionId,
+      planVersionId: context.editPlanVersionId,
+      approvedSnapshotRef: domainRef(envelope.approvedSnapshotRef),
+      outputId: context.outputId,
+      sceneId: context.sceneId,
+      authorizedFrameRanges: [canonicalRange],
+    },
+    sourcePrivateArtifactRef: domainRef(source.finalizedSourceArtifactRef),
+    requestedRange: canonicalRange,
+    l4QaExecution: {
+      routeId: 'l4_standard_primary',
+      gpuProfileId: 'quality_l4_user_triggered_standard_media_job_v1',
+      accelerator: 'nvidia_l4',
+      approvedWorkItemRef: domainRef(envelope.approvedWorkItemRef),
+      workerLeaseRef: domainRef(envelope.workerLeaseRef),
+      executionAttemptRef: domainRef(envelope.executionAttemptRef),
+      currentAccountPriceAuthorityRef:
+        domainRef(terminal.currentAccountPriceAuthorityRef),
+      workerUsageEvidenceRef: domainRef(terminal.workerUsageEvidenceRef),
+      attemptCostReceiptRef: domainRef(terminal.attemptCostReceiptRef),
+      korniaCudaExecutionEvidenceRef: domainRecordRef(
+        `track-all-l4-kornia-${workerResponse.responseBindingSha256.slice(0, 32)}`,
+        workerResponse.schemaVersion,
+        output.korniaCudaExecutionDigestSha256,
+      ),
+      opencvCrosscheckExecutionEvidenceRef: domainRecordRef(
+        `track-all-l4-opencv-${workerResponse.responseBindingSha256.slice(0, 32)}`,
+        workerResponse.schemaVersion,
+        output.opencvCudaCrosscheckExecutionDigestSha256,
+      ),
+      actualL4GpuExecutionObserved: true,
+      actualKorniaCudaKernelExecutionObserved: true,
+      actualOpenCvCrosscheckExecutionObserved: true,
+      cpuOnlySubstantiveMaskQaUsed: false,
+      userTriggeredAfterApprovedWork: true,
+      terminalWorkerStoppedAndScaleBackToZeroVerified: true,
+      exactAccountEffectiveAttemptCostPersisted: true,
+    },
+    workerRequest,
+    workerResponse,
+    measuredAt: terminal.observedAt,
+  })
 }
 
 function assertCandidateRefs(input: {
@@ -514,6 +866,7 @@ function assertExactLineage(input: {
   workspaceId: string
   request: TrackAllSam31TaskQaEvidenceFinalizationRequest
   samTask: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>
+  samTaskContext: ReturnType<typeof assertCanonicalSam31GpuTaskContext>
   samResult: ReturnType<typeof assertCanonicalSam31GpuRuntimeResultAdmission>
   workerResult: CanonicalTrackAllSam31L4MaskQaWorkerResult
   reviewResult: CanonicalTrackAllSam31PrivateReviewResult
@@ -526,8 +879,8 @@ function assertExactLineage(input: {
   terminal: CanonicalProfessionalGpuJobTerminal
 }): void {
   const {
-    request, samTask, samResult, workerResult, reviewResult, measurement, review,
-    launch, envelope, terminal,
+    request, samTask, samTaskContext, samResult, workerResult, reviewResult,
+    measurement, review, launch, envelope, terminal,
   } = input
   const l4 = measurement.l4QaExecution
   const samTaskReference = {
@@ -592,6 +945,9 @@ function assertExactLineage(input: {
     || request.invocationId !== reviewResult.invocationId
     || request.invocationId !== measurement.invocationId
     || request.invocationId !== samTask.invocationId
+    || samTask.taskContextRef.id !== samTaskContext.taskContextRef.id
+    || samTask.taskContextRef.contentHash !==
+      samTaskContext.taskContextRef.contentHash
     || request.invocationId !== samResult.executionEnvelopeRef.id
     || !sameRef(measurement.sam31TaskRef, samTaskReference)
     || !sameRef(review.sam31TaskRef, samTaskReference)
@@ -695,6 +1051,26 @@ function domainRef(value: {
     version: String(value.version),
     contentHash: value.contentHash.replace(/^sha256:/u, ''),
   }
+}
+
+function domainRecordRef(
+  id: string,
+  version: string,
+  contentHash: string,
+): TrackAllSam31CaptionEvidenceRef {
+  return refSchema.parse({ id, version, contentHash: stripSha(contentHash) })
+}
+
+function lifecycleNumericRef(id: string, contentHash: string) {
+  return {
+    id,
+    version: 1,
+    contentHash: `sha256:${stripSha(contentHash)}`,
+  }
+}
+
+function stripSha(value: string): string {
+  return value.startsWith('sha256:') ? value.slice(7) : value
 }
 
 function launchRef(value: CanonicalProfessionalGpuJobLaunch) {
@@ -825,6 +1201,8 @@ function assertRuntimePorts(input: {
   sam31ResultStore: Pick<CanonicalSam31GpuRuntimeResultStore,
     'rereadResultAdmission'>
   sam31TaskStore: Pick<CanonicalSam31GpuTaskStore, 'rereadTask'>
+  taskContextRepository: Pick<CanonicalSam31GpuTaskContextRepository,
+    'rereadTaskContext'>
   taskQaRepository: Pick<CanonicalTrackAllSam31TaskQaRepository,
     'persistMeasurementCreateOnly' | 'rereadMeasurement' |
     'persistReviewCreateOnly' | 'rereadReview'>
@@ -837,6 +1215,7 @@ function assertRuntimePorts(input: {
     input.lifecycleReadPort?.rereadTerminalRecord,
     input.sam31ResultStore?.rereadResultAdmission,
     input.sam31TaskStore?.rereadTask,
+    input.taskContextRepository?.rereadTaskContext,
     input.taskQaRepository?.persistMeasurementCreateOnly,
     input.taskQaRepository?.rereadMeasurement,
     input.taskQaRepository?.persistReviewCreateOnly,

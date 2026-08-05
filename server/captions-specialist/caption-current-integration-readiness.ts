@@ -37,6 +37,9 @@ import {
   CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT,
 } from './caption-canonical-track-all-evidence-read'
 import {
+  CAPTION_TRACK_ALL_EVIDENCE_FINALIZATION_ADAPTER_RECEIPT,
+} from './caption-track-all-evidence-finalization-adapter'
+import {
   CAPTION_CANONICAL_TRANSCRIPT_AUTHENTICATED_READ_ADAPTER_RECEIPT,
 } from './caption-canonical-transcript-authenticated-read'
 import {
@@ -345,6 +348,10 @@ const trackRef = ref(
   CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT.adapterId,
   CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT.schemaVersion,
   CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT.adapterDigestSha256)
+const trackFinalizationRef = ref(
+  CAPTION_TRACK_ALL_EVIDENCE_FINALIZATION_ADAPTER_RECEIPT.receiptId,
+  CAPTION_TRACK_ALL_EVIDENCE_FINALIZATION_ADAPTER_RECEIPT.schemaVersion,
+  CAPTION_TRACK_ALL_EVIDENCE_FINALIZATION_ADAPTER_RECEIPT.receiptDigestSha256)
 const soundRef = ref(
   'captions.soundsync.support-result.contract',
   CAPTION_SOUND_SUPPORT_RESULT_VERSION,
@@ -801,7 +808,9 @@ const expectedGapStatesV3: CaptionCurrentIntegrationGapStateV3[] = [
     ownerKeys: ['track_all', 'backend_workflow'],
     sourceIntegrationState:
       'canonical_source_mount_complete_waiting_on_private_evidence',
-    sourceEvidenceRefs: [trackRef, trackMountRef, resumeAdapterRef],
+    sourceEvidenceRefs: [
+      trackRef, trackMountRef, trackFinalizationRef, resumeAdapterRef,
+    ],
     canonicalSourceMountImplemented: true,
   }),
   gapV3({

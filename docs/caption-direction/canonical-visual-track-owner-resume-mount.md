@@ -27,6 +27,15 @@ scale-to-zero evidence, and independent private scene review. Caption treats
 that authority as immutable owner evidence and does not gain GPU, cost, asset,
 or QA authority.
 
+The backend now exposes the same finalization through the protected
+`trackAll.sam31.captionEvidence.finalize` route. Its byte-free v1 request can
+carry only the exact prior call/support request, admitted SAM result, L4
+measurement, and private-review refs. The Caption-owned
+`caption-track-all-evidence-finalization-adapter-v1` recomputes both route
+digests and matches every returned authority/evidence/record/projection ref to
+the parsed v2 record before it may be treated as ready for specialist resume.
+It neither performs nor authorizes the resume itself.
+
 ## Corrected lineage gaps
 
 - Visual Intelligence owner projection now binds the authenticated reread
@@ -48,8 +57,9 @@ resume repository remains the only sequential continuation writer.
 ## Verification
 
 - canonical Caption Visual Intelligence support smoke: 17 assertions;
-- canonical Caption Track All support smoke: 17 assertions, plus the canonical
+- canonical Caption Track All support smoke: 24 assertions, plus the canonical
   68-check SAM task/result owner proof;
+- protected Track All start/finalization route smoke: 42 checks;
 - both positive paths persist and reread step 1 and finish their exact Caption
   planning jobs;
 - full server typecheck and repository regressions are required before this

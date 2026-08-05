@@ -48,6 +48,12 @@ addition to the admitted SAM 3.1 result and scene evidence. This source-level
 hardening does not change the 37/41 readiness count and does not turn the
 owner's still-unrun live A100/L4 path into qualification evidence.
 
+The current Track All source evidence also includes the protected backend
+finalization route and Caption's exact result-to-v2-record adapter. This closes
+the source handoff from already-persisted runtime/measurement/private-review
+evidence to `ready_for_specialist_resume`; it does not create live owner
+evidence, run the resume, or change the 37/41 readiness count.
+
 SoundSync and B-roll each have a strict Caption bridge, create-only evidence
 repository, exact owner reread, one-writer resume behavior, and adversarial
 tests. They are not yet mounted because this branch does not contain a

@@ -9,7 +9,7 @@ terminal evidence gates remain closed
 ## Integrated histories
 
 - Canonical backend source head:
-  `b4241b6023de986de634fd1a20b705dbedf811cb`
+  `62fddefd38daf41f759426b25ff494bd6cadbb06`
 - Complete Caption specialist source head:
   `70176e1cae1023c5f42b7c44f2acb10b8f974646`
 - Integration branch: `codex/backend-caption-specialist-integration-v1`
@@ -40,6 +40,11 @@ Two source assumptions were corrected after the merge:
    evidence record. It requires the independently persisted task-level scene-QA
    authority before the exact scene evidence may be projected or used to resume
    Caption. The v2 source update does not count as live GPU qualification.
+4. The protected Track All finalization route now closes the source handoff
+   from persisted SAM result, L4 mask QA, and independent private scene review
+   to the v2 Caption evidence record. Caption validates the bounded result
+   against the exact record and owner projection before accepting it for
+   specialist resume; the route does not run the specialist or any media tool.
 
 ## Evidence
 

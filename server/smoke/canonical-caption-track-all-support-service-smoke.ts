@@ -85,6 +85,11 @@ import { CAPTIONS_SPECIALIST_MANIFEST } from
   '../captions-specialist/captions-specialist-manifest'
 import { CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT } from
   '../captions-specialist/captions-specialist-qualification'
+import {
+  CAPTION_TRACK_ALL_EVIDENCE_FINALIZATION_ADAPTER_RECEIPT,
+  parseCaptionTrackAllEvidenceFinalizationAdapterReceipt,
+  parseCaptionTrackAllEvidenceFinalizationHandoff,
+} from '../captions-specialist/caption-track-all-evidence-finalization-adapter'
 
 const controlObjects = new Map<string, Buffer>()
 const controlPort = memoryObjectPort(controlObjects)
@@ -615,6 +620,46 @@ check(
     .resultDigestSha256 === finalization.resultDigestSha256,
   'The bounded finalization result must validate independently.',
 )
+const captionFinalization = parseCaptionTrackAllEvidenceFinalizationHandoff({
+  workspaceId: payload.canonicalScope.workspaceId,
+  request: finalizationRequest,
+  result: finalization,
+  canonicalEvidenceRecord: record,
+})
+check(
+  captionFinalization.canonicalEvidenceRecord.recordDigestSha256
+    === record.recordDigestSha256
+    && captionFinalization.result.authenticatedOwnerProjectionRef.contentHash
+      === record.authenticatedOwnerProjection.projectionDigestSha256,
+  'Caption must accept only the exact finalized v2 record and projection.',
+)
+check(
+  parseCaptionTrackAllEvidenceFinalizationAdapterReceipt(
+    CAPTION_TRACK_ALL_EVIDENCE_FINALIZATION_ADAPTER_RECEIPT)
+    .backendSource.sourceCommit
+      === '62fddefd38daf41f759426b25ff494bd6cadbb06',
+  'The Caption finalization adapter must pin the frozen backend source.',
+)
+const crossedFinalizationPayload = {
+  ...structuredClone(finalization),
+  sceneQaAuthorityRef: rawRef(
+    'caption-track-all-scene-qa-crossed',
+    finalization.sceneQaAuthorityRef.version,
+  ),
+}
+const crossedFinalization = {
+  ...crossedFinalizationPayload,
+  resultDigestSha256: sha256AuthorityValue(
+    withoutField(crossedFinalizationPayload, 'resultDigestSha256'),
+  ),
+}
+assert.throws(() => parseCaptionTrackAllEvidenceFinalizationHandoff({
+  workspaceId: payload.canonicalScope.workspaceId,
+  request: finalizationRequest,
+  result: crossedFinalization,
+  canonicalEvidenceRecord: record,
+}))
+assertions += 1
 const tamperedFinalizationRequest = {
   ...structuredClone(finalizationRequest),
   invocationId: 'invocation-crossed',

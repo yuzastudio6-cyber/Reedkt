@@ -236,6 +236,7 @@
     "smoke:canonical-caption-visual-intelligence-support": "tsx server/smoke/canonical-caption-visual-intelligence-support-service-smoke.ts",
     "smoke:canonical-caption-track-all-support": "tsx server/smoke/canonical-caption-track-all-support-service-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-worker": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-worker-smoke.ts",
+    "smoke:track-all-sam3_1-l4-task-qa-owner": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-owner-smoke.ts",
     "smoke:track-all-sam3_1-authenticated-start-route": "tsx server/smoke/canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts",
     "smoke:track-all-sam3_1-production-runtime": "tsx server/smoke/canonical-track-all-sam3_1-production-runtime-smoke.ts",
     "smoke:visual-intelligence-private-gcs-read": "tsx server/smoke/visual-intelligence-gcs-private-object-read-port-smoke.ts",

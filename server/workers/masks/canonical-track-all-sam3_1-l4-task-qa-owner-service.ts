@@ -1,0 +1,497 @@
+import { createHash } from 'node:crypto'
+
+import { z } from 'zod'
+
+import {
+  assertCanonicalProfessionalToolGpuDispatchAdmission,
+  type CanonicalProfessionalToolGpuDispatchAdmission,
+} from '../../edit-architecture/canonical-professional-tool-gpu-dispatch-admission'
+import {
+  assertCanonicalProfessionalGpuRuntimeLaunchTarget,
+  assertPlainSerializedData,
+  createCanonicalProfessionalGpuFixedTaskPreparingLaunchPort,
+  type CanonicalProfessionalGpuCloudJobLaunchPort,
+  type CanonicalProfessionalGpuCloudLaunchResult,
+  type CanonicalProfessionalGpuRuntimeLaunchTarget,
+} from '../../services/canonical-professional-gpu-job-lifecycle-service'
+import type {
+  CanonicalCreateOnlyJsonObjectPort,
+} from '../../services/canonical-gcs-source-analysis-lifecycle-store'
+import {
+  sha256AuthorityValue,
+  stableAuthorityStringify,
+} from '../../services/private-edit-authority-store'
+import {
+  buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
+  canonicalTrackAllSam31L4TaskQaFixedTaskContractRef,
+  CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_OPERATION_ID,
+  type CanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
+} from './canonical-track-all-sam3_1-l4-task-qa-worker-contract'
+
+export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_MATERIAL_VERSION =
+  'canonical-track-all-sam3_1-l4-task-qa-material-v1' as const
+export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_TASK_STORE_VERSION =
+  'canonical-track-all-sam3_1-l4-task-qa-task-store-v1' as const
+
+const DEFAULT_PREFIX =
+  'private/canonical-professional-gpu/sam3_1/v1/invocations'
+const MAXIMUM_TASK_BYTES = 16 * 1024 * 1024
+const safeId = z.string().trim().min(1).max(240)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
+  .refine((value) => !value.includes('..'))
+const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
+const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
+const timestamp = z.string().datetime({ offset: true })
+const positiveInteger = z.number().int().positive().safe()
+const nonnegativeInteger = z.number().int().nonnegative().safe()
+const evidenceRefSchema = z.object({
+  id: safeId,
+  version: positiveInteger,
+  contentHash: prefixedSha256,
+}).strict()
+const frameRangeSchema = z.object({
+  startFrame: nonnegativeInteger,
+  endFrameExclusive: positiveInteger,
+}).strict().superRefine((range, context) => {
+  if (range.endFrameExclusive <= range.startFrame) context.addIssue({
+    code: 'custom', message: 'Track All L4 task-QA material range is empty.',
+  })
+})
+const subjectSchema = z.object({
+  subjectRequestId: safeId,
+  subjectEvidenceId: safeId,
+  subjectRole: z.enum([
+    'primary_speaker', 'secondary_speaker', 'hand', 'product',
+    'important_object', 'environmental_surface',
+  ]),
+  maskObjectId: nonnegativeInteger.max(2 ** 31 - 1),
+  canonicalFrameRange: frameRangeSchema,
+  maskFrameRange: frameRangeSchema,
+  trackManifestRef: evidenceRefSchema,
+  anchorManifestRef: evidenceRefSchema.nullable(),
+  sourceFrameMappingRef: evidenceRefSchema,
+  outputFrameDigestSha256: sha256,
+}).strict()
+
+const materialWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_MATERIAL_VERSION,
+  ),
+  source: z.literal(
+    'canonical_server_track_all_sam3_1_l4_task_qa_material_owner',
+  ),
+  evidenceClass: z.literal('canonical_private_reread'),
+  materialId: safeId,
+  sam31InvocationId: safeId,
+  sam31TaskRef: evidenceRefSchema,
+  sam31RuntimeRequestBindingSha256: sha256,
+  sam31RuntimeResultAdmissionRef: evidenceRefSchema,
+  sam31MaskManifestRef: evidenceRefSchema,
+  approvedSnapshotRef: evidenceRefSchema,
+  confirmedOutputFrameRef: evidenceRefSchema,
+  masterTimingRef: evidenceRefSchema,
+  approvedWorkItemRef: evidenceRefSchema,
+  workerLeaseRef: evidenceRefSchema,
+  fundedReservationRef: evidenceRefSchema,
+  userTriggerRecordRef: evidenceRefSchema,
+  executionAttemptRef: evidenceRefSchema,
+  sourceFrameMappingRef: evidenceRefSchema,
+  sourceWidth: positiveInteger.max(16_384),
+  sourceHeight: positiveInteger.max(16_384),
+  maskFrameRange: frameRangeSchema,
+  expectedMaskManifestByteLength: positiveInteger.max(64 * 1024 * 1024),
+  expectedMaskManifestSha256: sha256,
+  expectedMaskPngCount: positiveInteger.max(16 * 240),
+  subjects: z.array(subjectSchema).min(1).max(16),
+  exactSamTaskContextResultAndPrivateOutputReread: z.literal(true),
+  exactApprovedSnapshotFrameTimingWorkLeaseAttemptAndFundingReread:
+    z.literal(true),
+  materialPersistedAndExactRereadBeforeL4AdmissionConsumption:
+    z.literal(true),
+  browserOrCallerTaskMaterialAccepted: z.literal(false),
+  callerPathUrlCommandCodeModelEnvironmentOrPriceAccepted: z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  qaApproved: z.literal(false),
+  publicDeliveryAuthorized: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+  preparedAt: timestamp,
+}).strict().superRefine((material, context) => {
+  const frameCount = material.maskFrameRange.endFrameExclusive
+    - material.maskFrameRange.startFrame
+  const exact = material.sam31MaskManifestRef.contentHash ===
+      `sha256:${material.expectedMaskManifestSha256}`
+    && material.maskFrameRange.startFrame === 0
+    && material.expectedMaskPngCount ===
+      frameCount * material.subjects.length
+    && material.subjects.every((subject) =>
+      subject.maskFrameRange.startFrame === material.maskFrameRange.startFrame
+      && subject.maskFrameRange.endFrameExclusive ===
+        material.maskFrameRange.endFrameExclusive
+      && sameRef(subject.sourceFrameMappingRef,
+        material.sourceFrameMappingRef)
+      && subject.outputFrameDigestSha256 ===
+        material.confirmedOutputFrameRef.contentHash.slice(7))
+    && new Set(material.subjects.map((subject) =>
+      subject.maskObjectId)).size === material.subjects.length
+  if (!exact) context.addIssue({
+    code: 'custom',
+    message: 'Track All L4 task-QA material lost exact mask scope.',
+  })
+})
+
+export const canonicalTrackAllSam31L4TaskQaMaterialSchema =
+  materialWithoutHashSchema.extend({ materialHash: sha256 }).strict()
+export type CanonicalTrackAllSam31L4TaskQaMaterial = z.infer<
+  typeof canonicalTrackAllSam31L4TaskQaMaterialSchema
+>
+
+const workerTaskSchema = z.object({
+  runtimeRequest: z.unknown(),
+}).strict()
+
+export interface CanonicalTrackAllSam31L4TaskQaMaterialReadPort {
+  rereadCanonicalL4TaskQaMaterial(input: {
+    readonly admission: CanonicalProfessionalToolGpuDispatchAdmission
+    readonly target: CanonicalProfessionalGpuRuntimeLaunchTarget
+    readonly executionEnvelopeRef: z.infer<typeof evidenceRefSchema>
+  }): Promise<unknown>
+}
+
+export interface CanonicalTrackAllSam31L4TaskQaTaskStore {
+  readonly schemaVersion:
+    typeof CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_TASK_STORE_VERSION
+  readonly evidenceClass:
+    'gcs_generation_create_only_track_all_l4_task_qa_task_store'
+  persistWorkerTaskCreateOnly(input: {
+    readonly request: CanonicalTrackAllSam31L4TaskQaWorkerRequestV2
+  }): Promise<'created' | 'already_exists'>
+  rereadWorkerTask(l4InvocationId: string): Promise<unknown>
+  rereadWorkerResponse(l4InvocationId: string): Promise<unknown>
+}
+
+export function buildCanonicalTrackAllSam31L4TaskQaMaterial(
+  input: z.input<typeof materialWithoutHashSchema>,
+): CanonicalTrackAllSam31L4TaskQaMaterial {
+  assertPlainSerializedData(input, 'track_all_l4_task_qa_material_input')
+  const payload = materialWithoutHashSchema.parse(input)
+  return Object.freeze(canonicalTrackAllSam31L4TaskQaMaterialSchema.parse({
+    ...payload,
+    materialHash: sha256AuthorityValue(payload),
+  }))
+}
+
+export function assertCanonicalTrackAllSam31L4TaskQaMaterial(
+  value: unknown,
+): CanonicalTrackAllSam31L4TaskQaMaterial {
+  assertPlainSerializedData(value, 'track_all_l4_task_qa_material')
+  const material = canonicalTrackAllSam31L4TaskQaMaterialSchema.parse(value)
+  const { materialHash, ...payload } = material
+  if (materialHash !== sha256AuthorityValue(payload)) {
+    throw new TypeError('Track All L4 task-QA material hash is invalid.')
+  }
+  return structuredClone(material)
+}
+
+export function createCanonicalTrackAllSam31L4TaskQaTaskStore(input: {
+  readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+  readonly prefix?: string
+}): CanonicalTrackAllSam31L4TaskQaTaskStore {
+  assertObjectPort(input.objectPort)
+  const prefix = normalizePrefix(input.prefix ?? DEFAULT_PREFIX)
+  const store: CanonicalTrackAllSam31L4TaskQaTaskStore = {
+    schemaVersion: CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_TASK_STORE_VERSION,
+    evidenceClass:
+      'gcs_generation_create_only_track_all_l4_task_qa_task_store' as const,
+    async persistWorkerTaskCreateOnly({ request }) {
+      const exact = assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(
+        request,
+      )
+      const body = Buffer.from(stableAuthorityStringify({
+        runtimeRequest: exact,
+      }), 'utf8')
+      if (body.byteLength < 2 || body.byteLength > MAXIMUM_TASK_BYTES) {
+        throw new Error('Track All L4 task-QA task exceeded its byte bound.')
+      }
+      return input.objectPort.createOnly({
+        objectPath: taskPath(prefix, exact.l4InvocationId, 'task'),
+        body,
+        contentSha256: bytesHash(body),
+      })
+    },
+    rereadWorkerTask(l4InvocationId) {
+      return readJson({
+        objectPort: input.objectPort,
+        objectPath: taskPath(prefix, l4InvocationId, 'task'),
+      })
+    },
+    rereadWorkerResponse(l4InvocationId) {
+      return readJson({
+        objectPort: input.objectPort,
+        objectPath: taskPath(prefix, l4InvocationId, 'response'),
+      })
+    },
+  }
+  return Object.freeze(store)
+}
+
+export function createCanonicalTrackAllSam31L4TaskQaPreparingLaunchPort(
+  input: {
+    readonly materialReadPort:
+      CanonicalTrackAllSam31L4TaskQaMaterialReadPort
+    readonly taskStore: CanonicalTrackAllSam31L4TaskQaTaskStore
+    readonly delegate: CanonicalProfessionalGpuCloudJobLaunchPort
+    readonly now?: () => string
+  },
+): CanonicalProfessionalGpuCloudJobLaunchPort {
+  assertDependencies(input)
+  const now = input.now ?? (() => new Date().toISOString())
+  const delegate: CanonicalProfessionalGpuCloudJobLaunchPort = {
+    async startOneShotJob(value) {
+      let admission: CanonicalProfessionalToolGpuDispatchAdmission | null = null
+      let observedAt = now()
+      try {
+        admission = assertCanonicalProfessionalToolGpuDispatchAdmission(
+          value.admission,
+        )
+        const target = assertCanonicalProfessionalGpuRuntimeLaunchTarget(
+          value.target,
+        )
+        observedAt = timestamp.parse(now())
+        if (
+          admission.toolId !== 'kornia'
+          || admission.operationId !==
+            CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_OPERATION_ID
+          || admission.routeId !== 'l4_standard_primary'
+          || target.toolId !== admission.toolId
+          || target.operationId !== admission.operationId
+          || target.routeId !== admission.routeId
+          || target.accelerator !== 'nvidia_l4'
+          || !sameRef(target.fixedServerTaskContractRef,
+            canonicalTrackAllSam31L4TaskQaFixedTaskContractRef())
+        ) throw new Error('Track All L4 task-QA launch target is invalid.')
+        const material = assertCanonicalTrackAllSam31L4TaskQaMaterial(
+          await input.materialReadPort.rereadCanonicalL4TaskQaMaterial({
+            admission,
+            target,
+            executionEnvelopeRef: value.executionEnvelopeRef,
+          }),
+        )
+        assertMaterialMatches({
+          material,
+          admission,
+          executionEnvelopeRef: value.executionEnvelopeRef,
+          observedAt,
+        })
+        const request = buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2({
+          schemaVersion:
+            'canonical-track-all-sam3_1-l4-task-qa-worker-request-v2',
+          operationId: CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_OPERATION_ID,
+          l4InvocationId: value.executionEnvelopeRef.id,
+          sam31InvocationId: material.sam31InvocationId,
+          sam31TaskRef: material.sam31TaskRef,
+          sam31RuntimeRequestBindingSha256:
+            material.sam31RuntimeRequestBindingSha256,
+          sam31RuntimeResultAdmissionRef:
+            material.sam31RuntimeResultAdmissionRef,
+          sam31MaskManifestRef: material.sam31MaskManifestRef,
+          l4ExecutionEnvelopeRef: value.executionEnvelopeRef,
+          approvedWorkItemRef: admission.scope.approvedWorkItemRef,
+          workerLeaseRef: admission.scope.workerLeaseRef,
+          executionAttemptRef: admission.scope.executionAttemptRef,
+          sourceFrameMappingRef: material.sourceFrameMappingRef,
+          confirmedOutputFrameRef: material.confirmedOutputFrameRef,
+          sourceWidth: material.sourceWidth,
+          sourceHeight: material.sourceHeight,
+          maskFrameRange: material.maskFrameRange,
+          expectedMaskManifestByteLength:
+            material.expectedMaskManifestByteLength,
+          expectedMaskManifestSha256: material.expectedMaskManifestSha256,
+          expectedMaskPngCount: material.expectedMaskPngCount,
+          subjects: material.subjects,
+          executionPolicy: {
+            routeId: 'l4_standard_primary',
+            gpuProfileId:
+              'quality_l4_user_triggered_standard_media_job_v1',
+            accelerator: 'nvidia_l4',
+            korniaVersion: '0.8.3',
+            torchVersion: '2.10.0+cu128',
+            cudaRuntimeVersion: '12.8',
+            morphologyKernelSize: 3,
+            binaryThreshold: 127,
+            everyManifestMaskMustBeReread: true,
+            everyRequestedFrameAndSubjectMustBeMeasured: true,
+            korniaCudaSubstantiveMeasurementRequired: true,
+            opencvCudaEveryMaskCrosscheckRequired: true,
+            cpuDecodeAndBoundedSerializationOnly: true,
+            cpuOnlySubstantiveMaskQaAllowed: false,
+            runtimeDownloadAllowed: false,
+            automaticRetryAfterUnknownOutcomeAllowed: false,
+          },
+          byteFreeRequest: true,
+          callerPathUrlCommandCodeOrEnvironmentAccepted: false,
+          browserOrCallerMeasurementAccepted: false,
+        })
+        if (await input.taskStore.persistWorkerTaskCreateOnly({ request })
+          !== 'created') {
+          throw new Error('Track All L4 task already exists; reconcile first.')
+        }
+        const wrapper = workerTaskSchema.parse(
+          await input.taskStore.rereadWorkerTask(request.l4InvocationId),
+        )
+        const reread = assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(
+          wrapper.runtimeRequest,
+        )
+        if (reread.requestBindingSha256 !== request.requestBindingSha256) {
+          throw new Error('Track All L4 fixed task exact reread changed.')
+        }
+        return await input.delegate.startOneShotJob(value)
+      } catch {
+        return rejectedBeforeCreation({
+          admission,
+          executionEnvelopeRef: value.executionEnvelopeRef,
+          observedAt,
+        })
+      }
+    },
+  }
+  return createCanonicalProfessionalGpuFixedTaskPreparingLaunchPort({
+    descriptor: {
+      schemaVersion:
+        'canonical-professional-gpu-fixed-task-preparing-launch-port-v1',
+      toolId: 'kornia',
+      operationId: CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_OPERATION_ID,
+      fixedServerTaskContractRef:
+        canonicalTrackAllSam31L4TaskQaFixedTaskContractRef(),
+      approvedTaskMaterialPreparedBeforeTaskContextRead: true,
+      canonicalTaskContextRereadBeforeCloudJobCreation: true,
+      fixedTaskPersistedAndRereadBeforeCloudJobCreation: true,
+      rawCloudLaunchPortAcceptedForFixedTaskTool: false,
+    },
+    delegate: Object.freeze(delegate),
+  })
+}
+
+function assertMaterialMatches(input: {
+  material: CanonicalTrackAllSam31L4TaskQaMaterial
+  admission: CanonicalProfessionalToolGpuDispatchAdmission
+  executionEnvelopeRef: z.infer<typeof evidenceRefSchema>
+  observedAt: string
+}): void {
+  const { material, admission } = input
+  if (
+    material.sam31InvocationId === input.executionEnvelopeRef.id
+    || !sameRef(material.approvedSnapshotRef,
+      admission.scope.approvedSnapshotRef)
+    || !sameRef(material.confirmedOutputFrameRef,
+      admission.scope.confirmedOutputFrameRef)
+    || !sameRef(material.masterTimingRef, admission.scope.masterTimingRef)
+    || !sameRef(material.approvedWorkItemRef,
+      admission.scope.approvedWorkItemRef)
+    || !sameRef(material.workerLeaseRef, admission.scope.workerLeaseRef)
+    || !sameRef(material.fundedReservationRef,
+      admission.scope.fundedReservationRef)
+    || !sameRef(material.userTriggerRecordRef,
+      admission.scope.userTriggerRecordRef)
+    || !sameRef(material.executionAttemptRef,
+      admission.scope.executionAttemptRef)
+    || Date.parse(material.preparedAt) < Date.parse(admission.admittedAt)
+    || Date.parse(material.preparedAt) >= Date.parse(admission.expiresAt)
+    || Date.parse(material.preparedAt) > Date.parse(input.observedAt)
+  ) throw new Error(
+    'Track All L4 task material differs from approved GPU attempt.',
+  )
+}
+
+function rejectedBeforeCreation(input: {
+  admission: CanonicalProfessionalToolGpuDispatchAdmission | null
+  executionEnvelopeRef: unknown
+  observedAt: string
+}): CanonicalProfessionalGpuCloudLaunchResult {
+  const envelope = evidenceRefSchema.safeParse(input.executionEnvelopeRef)
+  const digest = sha256AuthorityValue({
+    admissionId: input.admission?.admissionId ?? 'invalid-admission',
+    envelopeRef: envelope.success ? envelope.data : null,
+    reasonCode: 'track_all_l4_fixed_task_preparation_rejected',
+  })
+  return Object.freeze({
+    disposition: 'rejected_before_creation',
+    cloudJobExecutionRef: null,
+    cloudJobCreateRequestRef: {
+      id: `track-all-l4-task-rejected.${digest.slice(0, 32)}`,
+      version: 1,
+      contentHash: `sha256:${digest}`,
+    },
+    providerRequestIdDigestSha256: null,
+    observedAt: input.observedAt,
+    providerInferenceOrSubstantiveWorkKnownExecuted: 'not_executed',
+  })
+}
+
+function assertDependencies(input: {
+  materialReadPort: CanonicalTrackAllSam31L4TaskQaMaterialReadPort
+  taskStore: CanonicalTrackAllSam31L4TaskQaTaskStore
+  delegate: CanonicalProfessionalGpuCloudJobLaunchPort
+}): void {
+  if (typeof input.materialReadPort?.rereadCanonicalL4TaskQaMaterial
+      !== 'function'
+    || typeof input.taskStore?.persistWorkerTaskCreateOnly !== 'function'
+    || typeof input.taskStore?.rereadWorkerTask !== 'function'
+    || typeof input.delegate?.startOneShotJob !== 'function') {
+    throw new Error('Track All L4 task-QA launch dependencies are unavailable.')
+  }
+}
+
+function assertObjectPort(value: CanonicalCreateOnlyJsonObjectPort): void {
+  if (!value || typeof value.createOnly !== 'function'
+    || typeof value.readExact !== 'function') {
+    throw new Error('Track All L4 task-QA object port is unavailable.')
+  }
+}
+
+async function readJson(input: {
+  objectPort: CanonicalCreateOnlyJsonObjectPort
+  objectPath: string
+}): Promise<unknown> {
+  const body = await input.objectPort.readExact(input.objectPath)
+  if (!body) return null
+  if (!Buffer.isBuffer(body) || body.byteLength < 2
+    || body.byteLength > MAXIMUM_TASK_BYTES) {
+    throw new Error('Track All L4 task-QA object bytes are invalid.')
+  }
+  try {
+    return JSON.parse(body.toString('utf8')) as unknown
+  } catch {
+    throw new Error('Track All L4 task-QA object JSON is invalid.')
+  }
+}
+
+function taskPath(
+  prefix: string,
+  invocationId: string,
+  kind: 'task' | 'response',
+): string {
+  return `${prefix}/${safeId.parse(invocationId)}/task-qa/${kind}.json`
+}
+
+function normalizePrefix(value: string): string {
+  const normalized = value.trim().replace(/^\/+|\/+$/gu, '')
+  if (!normalized || normalized.length > 400 || normalized.includes('..')
+    || normalized.includes('\\')
+    || normalized.split('/').some((part) =>
+      !safeId.safeParse(part).success)) {
+    throw new Error('Track All L4 task-QA store prefix is invalid.')
+  }
+  return normalized
+}
+
+function bytesHash(value: Buffer): string {
+  return createHash('sha256').update(value).digest('hex')
+}
+
+function sameRef(
+  left: z.infer<typeof evidenceRefSchema>,
+  right: z.infer<typeof evidenceRefSchema>,
+): boolean {
+  return stableAuthorityStringify(left) === stableAuthorityStringify(right)
+}

@@ -247,7 +247,8 @@ export function selectMusicCandidate(input: {
     // A longer approved Music source is editorially usable because MusicSync may
     // select a bounded phrase/section before Sound trims it. Only a source that
     // is materially too short is blocked at candidate-selection time.
-    if (analysis.durationSeconds + Math.max(0.25, targetSeconds * 0.1) < targetSeconds) {
+    if (analysis.durationSeconds + Math.max(0.25, targetSeconds * 0.1) < targetSeconds &&
+      analysis.loopQuality.score < 0.65) {
       failures.push('duration_too_short_for_cue_without_loop')
     }
     blockingFailures[id] = failures

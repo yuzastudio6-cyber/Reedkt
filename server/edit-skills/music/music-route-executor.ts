@@ -7,6 +7,10 @@ import {
   type MusicCandidateSelectionDecision,
 } from '../../music/music-analysis'
 import {
+  selectProfessionalMusicAsset,
+  type ProfessionalMusicAssetSelectionDecision,
+} from '../../music/music-asset-matcher'
+import {
   createMusicArtifact,
   createMusicFinalHandoff,
   hashMusicValue,
@@ -72,7 +76,7 @@ interface ExecutionState {
   providerAttempts: MusicProviderAttempt[]
   candidatesByCue: Map<string, MusicArtifactRef[]>
   analysesByCue: Map<string, MusicCandidateAnalysis[]>
-  selectionsByCue: Map<string, MusicCandidateSelectionDecision>
+  selectionsByCue: Map<string, MusicCandidateSelectionDecision | ProfessionalMusicAssetSelectionDecision>
   selectedByCue: Map<string, MusicArtifactRef>
   beatMaps: MusicBeatAndPhraseMap[]
   editorials: MusicEditorialPlan[]
@@ -595,7 +599,16 @@ export class CanonicalMusicRouteExecutor {
     }
     if (input.handler.kind === 'private_audio_analysis' && input.step.operationKey === 'select_qualified_candidate') {
       const analyses = input.state.analysesByCue.get(cueId) ?? []
-      const selection = selectMusicCandidate({
+      const sourceBacked = !['generate_original_music', 'generate_music_variation'].includes(input.package.request.jobType) &&
+        !['generate_original_music', 'generate_variation'].includes(binding.acquisitionDecision)
+      const selection = sourceBacked ? selectProfessionalMusicAsset({
+        cue, analyses, rightsBindings: request.rightsAndProvenanceRefs,
+        descriptors: request.musicAssetDescriptors,
+        timelineRate: request.timelineBinding.rationalTimelineRate,
+        projectId: request.projectBinding.projectId, workspaceId: request.projectBinding.workspaceId,
+        platformIds: request.projectBinding.platformIds,
+        maximumCredits: request.approvalAndBudget.maximumCredits,
+      }) : selectMusicCandidate({
         analyses,
         expectedDurationFrames: cue.exactRange.endFrameExclusive - cue.exactRange.startFrame,
         timelineRate: request.timelineBinding.rationalTimelineRate,
@@ -627,6 +640,7 @@ export class CanonicalMusicRouteExecutor {
         ['music_beat_phrase_map_v2', sync.beatMap, sync.beatMap.mapId],
         ['music_editorial_plan_v2', sync.editorial, sync.editorial.planId],
         ['music_placement_manifest_v2', sync.placement, sync.placement.placementId],
+        ['music_anchor_alignment_decision_v3', sync.alignmentDecision, sync.alignmentDecision.decisionId],
       ] as const) {
         const syncArtifact = artifactFromPayload({ request, artifactType: type, artifactId: id, cueId,
           payload: value, evidence: ['exact_rational_frame_sample_binding'] })
@@ -663,23 +677,35 @@ export class CanonicalMusicRouteExecutor {
         sampleRate: selectedAnalysis.sampleRate,
         rounding: cue.roundingPolicy,
       })
+      const sourceEndFrameExclusive = samplesToFrames({
+        samples: editorial.sourceEndSampleExclusive,
+        rate: request.timelineBinding.rationalTimelineRate,
+        sampleRate: selectedAnalysis.sampleRate,
+        rounding: cue.roundingPolicy,
+      })
+      const targetRange = editorial.targetRange
+      const boundedSpeechRanges = cue.protectedSpeechRanges.map((range) => ({
+        rangeId: range.rangeId,
+        startFrame: Math.max(range.startFrame, targetRange.startFrame),
+        endFrameExclusive: Math.min(range.endFrameExclusive, targetRange.endFrameExclusive),
+      })).filter((range) => range.endFrameExclusive > range.startFrame)
       const supportRequest = createMusicSoundSupportRequest({
-        request, cueId, delegatedRange: cue.exactRange, selectedMusicArtifact: selected,
+        request, cueId, delegatedRange: targetRange, selectedMusicArtifact: selected,
+        protectedSpeechRanges: boundedSpeechRanges,
         requiredOperations: cue.soundProcessingIntent.filter((item): item is Parameters<typeof createMusicSoundSupportRequest>[0]['requiredOperations'][number] => [
           'trim', 'cut', 'fade', 'crossfade', 'gain', 'normalize', 'loop', 'resample', 'channel_conversion',
           'time_stretch', 'pitch_shift', 'place', 'dialogue_ducking', 'eq', 'dynamics', 'pan', 'stem_rendering', 'technical_qa',
         ].includes(item)),
         operationParameters: {
           sourceStartFrame,
-          sourceEndFrameExclusive: sourceStartFrame +
-            (cue.exactRange.endFrameExclusive - cue.exactRange.startFrame),
-          targetDurationFrames: cue.exactRange.endFrameExclusive - cue.exactRange.startFrame,
+          sourceEndFrameExclusive,
+          targetDurationFrames: targetRange.endFrameExclusive - targetRange.startFrame,
           fadeInFrames: cue.fadeInFrames, fadeOutFrames: cue.fadeOutFrames, gainDb: baseGainDb,
           gainEnvelope: [
-            { frame: cue.exactRange.startFrame, gainDb: baseGainDb - Math.max(6, cue.fadeInFrames > 0 ? 18 : 6) },
-            { frame: Math.min(cue.exactRange.endFrameExclusive - 1, cue.exactRange.startFrame + cue.fadeInFrames), gainDb: baseGainDb + duckingDb },
-            { frame: Math.max(cue.exactRange.startFrame, cue.exactRange.endFrameExclusive - Math.max(1, cue.fadeOutFrames)), gainDb: baseGainDb + duckingDb },
-            { frame: cue.exactRange.endFrameExclusive, gainDb: baseGainDb - Math.max(6, cue.fadeOutFrames > 0 ? 18 : 6) },
+            { frame: targetRange.startFrame, gainDb: baseGainDb - Math.max(6, cue.fadeInFrames > 0 ? 18 : 6) },
+            { frame: Math.min(targetRange.endFrameExclusive - 1, targetRange.startFrame + cue.fadeInFrames), gainDb: baseGainDb + duckingDb },
+            { frame: Math.max(targetRange.startFrame, targetRange.endFrameExclusive - Math.max(1, cue.fadeOutFrames)), gainDb: baseGainDb + duckingDb },
+            { frame: targetRange.endFrameExclusive, gainDb: baseGainDb - Math.max(6, cue.fadeOutFrames > 0 ? 18 : 6) },
           ],
           dialogueDuckingDb: duckingDb,
           duckAttackFrames: Math.max(1, Math.min(cue.fadeInFrames || 1, 4)),

@@ -542,10 +542,11 @@ export async function measureSoundMixOutput(input: {
   ], { timeout: 120_000, maxBuffer: 64 * 1024 * 1024, encoding: 'buffer' } as Parameters<typeof execFileAsync>[2])
   const bytes = Buffer.isBuffer(decoded.stdout) ? decoded.stdout : Buffer.from(decoded.stdout)
   const frameCount = Math.floor(bytes.length / 8)
+  if (frameCount < 1) throw new Error('Sound mix measurement requires decoded stereo PCM frames.')
   const db = (linear: number) => Number((20 * Math.log10(Math.max(linear, 1e-9))).toFixed(3))
   const rms = (startFrame: number, endFrame: number, channel?: 0 | 1): number => {
-    const start = Math.max(0, Math.min(frameCount, startFrame))
-    const end = Math.max(start + 1, Math.min(frameCount, endFrame))
+    const start = Math.max(0, Math.min(frameCount - 1, startFrame))
+    const end = Math.min(frameCount, Math.max(start + 1, endFrame))
     let squareSum = 0
     let samples = 0
     for (let frame = start; frame < end; frame += 1) {

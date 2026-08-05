@@ -94,6 +94,33 @@ export const musicRightsBindingSchema = z.object({
 }).strict()
 export type MusicRightsBinding = z.infer<typeof musicRightsBindingSchema>
 
+export const musicAssetDescriptorSchema = z.object({
+  assetId: musicSafeIdSchema,
+  assetVersion: z.number().int().positive(),
+  assetHash: musicSha256Schema,
+  sourceType: z.enum(['source_media', 'user_upload', 'project_library', 'workspace_library', 'internal_library', 'provider_generated']),
+  availability: z.enum(['available', 'unavailable', 'unknown']),
+  descriptiveEvidenceLevel: z.enum(['measured', 'structured', 'user_declared', 'provider_declared', 'inferred', 'review_required']),
+  narrativeFunctions: z.array(z.enum([
+    'establish_place', 'establish_tone', 'create_motion', 'support_reflection',
+    'increase_anticipation', 'bridge_chapters', 'support_montage', 'hold_continuity',
+    'release_tension', 'resolve_ending', 'remain_absent',
+  ])).max(16).default([]),
+  tempoRangeBpm: z.object({ minimum: z.number().min(20).max(300), maximum: z.number().min(20).max(300) }).strict().optional(),
+  energyProfile: z.enum(['low', 'medium', 'high', 'dynamic', 'unknown']).default('unknown'),
+  rhythmProfile: z.string().trim().max(500).optional(),
+  structuralTags: z.array(z.enum(['clean_intro', 'phrase_entries', 'loopable', 'clean_ending', 'resolved_outro'])).max(16).default([]),
+  declaredVocalPolicy: z.enum(['instrumental', 'vocals', 'uncertain']).default('uncertain'),
+  continuityFamily: z.string().trim().min(1).max(200).optional(),
+  estimatedCredits: z.number().nonnegative().max(10_000_000).default(0),
+  evidenceRefs: z.array(musicEvidenceRefSchema).max(64).default([]),
+}).strict().superRefine((value, context) => {
+  if (value.tempoRangeBpm && value.tempoRangeBpm.maximum < value.tempoRangeBpm.minimum) {
+    context.addIssue({ code: 'custom', message: 'Music asset descriptor tempo maximum must be at least its minimum.' })
+  }
+})
+export type MusicAssetDescriptor = z.infer<typeof musicAssetDescriptorSchema>
+
 export const musicAssignmentScopeSchema = z.object({
   assignmentMode: z.enum(['video', 'sequence', 'scene', 'clip', 'range', 'multi_range', 'boundary']),
   authorizedInspectRanges: z.array(musicFrameRangeSchema).min(1).max(2_000),
@@ -277,6 +304,7 @@ export const canonicalMusicRequestSchema = z.object({
   inputAssetRefs: z.array(musicArtifactRefSchema).max(2_000),
   referenceMusicRefs: z.array(musicArtifactRefSchema).max(64),
   rightsAndProvenanceRefs: z.array(musicRightsBindingSchema).max(2_000),
+  musicAssetDescriptors: z.array(musicAssetDescriptorSchema).max(2_000).optional().default([]),
   cueConstraints: z.object({
     requestedCues: z.array(musicCueIntentSchema).max(512),
     lockedCueIds: z.array(musicSafeIdSchema).max(512),

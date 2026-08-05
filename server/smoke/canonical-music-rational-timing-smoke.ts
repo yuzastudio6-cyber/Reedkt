@@ -40,12 +40,13 @@ for (const rate of rates) {
   assert.ok(placement && analysisArtifact)
   const placementPayload = placement.payload as { targetStartFrame: number; targetEndFrameExclusive: number;
     timelineRate: TimelineRate; sourceStartSample: number; sourceEndSampleExclusive: number; residualAlignmentFrames: number }
-  assert.equal(placementPayload.targetStartFrame, 0)
+  assert.ok(placementPayload.targetStartFrame >= 0 && placementPayload.targetStartFrame <= cue.entryHandleFrames)
   assert.equal(placementPayload.targetEndFrameExclusive, endFrame)
   assert.deepEqual(placementPayload.timelineRate, rate)
   const sourceSamples = placementPayload.sourceEndSampleExclusive - placementPayload.sourceStartSample
-  assert.equal(samplesToFrames({ samples: sourceSamples, rate, sampleRate: 48_000, rounding: 'nearest_half_up' }), endFrame)
-  const exactTargetSamples = framesToSamples({ frames: endFrame, rate, sampleRate: 48_000, rounding: 'nearest_half_up' })
+  const targetDurationFrames = endFrame - placementPayload.targetStartFrame
+  assert.equal(samplesToFrames({ samples: sourceSamples, rate, sampleRate: 48_000, rounding: 'nearest_half_up' }), targetDurationFrames)
+  const exactTargetSamples = framesToSamples({ frames: targetDurationFrames, rate, sampleRate: 48_000, rounding: 'nearest_half_up' })
   assert.ok(sourceSamples <= exactTargetSamples)
   assert.ok(exactTargetSamples - sourceSamples <= 200)
   assert.equal((result.artifacts.find((artifact) => artifact.artifactType === 'music_cue_sheet_v2')!.payload as {

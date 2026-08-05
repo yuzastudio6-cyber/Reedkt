@@ -466,6 +466,8 @@ export function createMusicSoundSupportRequest(input: {
   selectedMusicArtifact: MusicArtifactRef
   requiredOperations: MusicSoundSupportRequest['requiredOperations']
   operationParameters: MusicSoundSupportRequest['operationParameters']
+  protectedSpeechRanges?: MusicFrameRange[]
+  ambienceProtectionRanges?: MusicFrameRange[]
 }): MusicSoundSupportRequest {
   if (!input.request.privateOutputScopeId || !input.request.approvalAndBudget.reservationRef) {
     throw new Error('Music-to-Sound execution requires private output and reservation authority.')
@@ -484,8 +486,8 @@ export function createMusicSoundSupportRequest(input: {
     timelineArtifact: input.request.scopeAuthority.approvedTimelineRef,
     requiredOperations: input.requiredOperations,
     operationParameters: input.operationParameters,
-    protectedSpeechRanges: input.request.proposedCues.find((cue) => cue.cueId === input.cueId)?.protectedSpeechRanges ?? [],
-    ambienceProtectionRanges: [],
+    protectedSpeechRanges: structuredClone(input.protectedSpeechRanges ?? []),
+    ambienceProtectionRanges: structuredClone(input.ambienceProtectionRanges ?? []),
     musicSfxCollisionPolicy: 'speech_and_story_first',
     expectedOutputs: ['processed_music_audio_v2', 'music_stem_audio_v2', 'music_sound_support_receipt_v2'],
     maximumCredits: input.request.approvalAndBudget.maximumCredits,

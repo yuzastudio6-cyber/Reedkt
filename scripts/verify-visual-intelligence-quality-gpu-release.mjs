@@ -17,6 +17,7 @@ const smokes = [
   'server/smoke/visual-intelligence-gcs-private-object-read-port-smoke.ts',
   'server/smoke/visual-intelligence-orchestra-capability-manifest-smoke.ts',
   'server/smoke/visual-intelligence-orchestra-invocation-compiler-smoke.ts',
+  'server/smoke/canonical-specialist-support-resume-service-smoke.ts',
   'server/smoke/visual-intelligence-route-contract-smoke.ts',
   'server/smoke/visual-intelligence-qwen-retirement-smoke.ts',
   'server/smoke/visual-intelligence-cloud-runtime-retirement-smoke.ts',

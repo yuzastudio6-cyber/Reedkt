@@ -32,7 +32,10 @@ const continuity = result.artifacts.find((artifact) => artifact.artifactType ===
 assert.ok(continuity)
 const report = continuity.payload as {
   cueIds: string[]; cueFamilyContinuity: string[]; silenceFindings: string[];
-  speechPriorityFindings: string[]; musicSfxCollisions: string[]; recommendedLocalizedRevisions: unknown[]
+  speechPriorityFindings: string[]; musicSfxCollisions: string[]; recommendedLocalizedRevisions: unknown[];
+  cueToTrackMappings: Array<{ cueId: string; sourceArtifactId: string }>;
+  trackReuseFindings: string[]; segmentationCoverageFindings: string[];
+  soundOutputQaFindings: string[]; constraintFindings: string[]
 }
 assert.equal(report.cueIds.length, 4)
 assert.deepEqual(report.cueFamilyContinuity, [
@@ -41,8 +44,23 @@ assert.deepEqual(report.cueFamilyContinuity, [
 assert.ok(report.silenceFindings.some((finding) => finding.includes('whole-cue-2')))
 assert.ok(report.speechPriorityFindings.some((finding) => finding.includes('whole-cue-2')))
 assert.equal(report.musicSfxCollisions.length, 0)
+assert.equal(report.cueToTrackMappings.length, 3)
+assert.ok(report.trackReuseFindings.some((finding) => finding.includes(recurringBed.artifactId)))
+assert.ok(report.segmentationCoverageFindings.includes('planned_segments:4'))
+assert.ok(report.segmentationCoverageFindings.includes('resolved_segments:4'))
+assert.equal(report.soundOutputQaFindings.length, 3)
+assert.equal(report.constraintFindings.length, 4)
 const qa = await runtime.music.qa({ result })
 assert.notEqual(qa.status, 'blocking')
+const qaReport = qa.qaArtifact?.payload as { segmentation?: {
+  exactPlannedCoverage: boolean; exactExecutionCoverage: boolean; gapSegmentIds: string[];
+  musicOutputSegmentIds: string[]; noMusicSegmentIds: string[]
+} } | undefined
+assert.equal(qaReport?.segmentation?.exactPlannedCoverage, true)
+assert.equal(qaReport?.segmentation?.exactExecutionCoverage, true)
+assert.deepEqual(qaReport?.segmentation?.gapSegmentIds, [])
+assert.equal(qaReport?.segmentation?.musicOutputSegmentIds.length, 3)
+assert.equal(qaReport?.segmentation?.noMusicSegmentIds.length, 1)
 
 const denseRuntime = await createCanonicalMusicTestRuntime()
 const denseRanges = Array.from({ length: 4 }, (_, index) => ({ rangeId: `dense-${index}`, startFrame: index * 6,

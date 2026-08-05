@@ -430,14 +430,20 @@ export interface MusicCueConstraintResolution {
 
 export interface MusicAcceptanceReceipt {
   receiptId: string
+  evidenceKey: string
   jobType: MusicJobType
   capabilityKey: string
   capabilityVersion: string
   requestedMode: CanonicalMusicSkillRequest['requestedExecutionMode']
   routeIdentities: string[]
+  operationHandlerIdentities: string[]
   invokedUnitIds: string[]
+  inputBindingHashes: string[]
   outputArtifactIds: string[]
+  outputBindingHashes: string[]
+  assertionKeys: string[]
   evidenceRefs: string[]
+  resultEvidenceHash: string
   status: 'planned' | 'completed' | 'partial' | 'blocked' | 'no_music' | 'ambience_only'
   receiptHash: string
 }
@@ -559,9 +565,14 @@ export interface MusicContinuityReport {
   tempoCompatibility: string[]
   harmonicCompatibility: { findings: string[]; qualification: 'measured_limited' | 'needs_review' }
   cueRepetitionFindings: string[]
+  cueToTrackMappings: Array<{ cueId: string; sourceArtifactId: string; placementHash: string }>
+  trackReuseFindings: string[]
   silenceFindings: string[]
   boundaryFindings: string[]
   loudnessFindings: string[]
+  segmentationCoverageFindings: string[]
+  constraintFindings: string[]
+  soundOutputQaFindings: string[]
   musicSfxCollisions: string[]
   reviewRequiredItems: string[]
   recommendedLocalizedRevisions: MusicFrameRange[]

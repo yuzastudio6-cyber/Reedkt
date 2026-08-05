@@ -42,6 +42,15 @@ assert.match(result.executionFingerprint, /^[a-f0-9]{64}$/u)
 
 const qa = await runtime.music.qa({ result })
 assert.notEqual(qa.status, 'blocking')
+const qaReport = qa.qaArtifact?.payload as { findings?: Array<{ code: string; status: string }>; segmentation?: {
+  exactExecutionCoverage: boolean; soundOutputFindings: string[]
+} } | undefined
+assert.equal(qaReport?.segmentation?.exactExecutionCoverage, true)
+assert.equal(qaReport?.segmentation?.soundOutputFindings.length, 1)
+assert.equal(qaReport?.findings?.find((finding) =>
+  finding.code === `technical.sound_output.${cue.cueId}`)?.status, 'pass')
+assert.equal(qaReport?.findings?.find((finding) =>
+  finding.code === `integration.sound_receipt.${cue.cueId}`)?.status, 'pass')
 
 const replay = await runtime.music.execute(request)
 assert.deepEqual(replay, result)

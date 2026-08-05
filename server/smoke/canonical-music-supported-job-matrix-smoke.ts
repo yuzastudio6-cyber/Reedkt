@@ -21,6 +21,17 @@ for (const jobType of MUSIC_JOB_TYPES) {
   const plan = await service.plan(request)
   assert.equal(plan.request.jobType, jobType)
   assert.ok(plan.routeBindings.length > 0)
+  const receipt = plan.acceptanceReceipts[0]
+  assert.equal(receipt?.jobType, jobType)
+  assert.equal(receipt?.evidenceKey, `music.acceptance.planning.${jobType}.v3`)
+  assert.equal(receipt?.capabilityKey, `music.${jobType}`)
+  assert.deepEqual(receipt?.routeIdentities,
+    plan.routeBindings.map((binding) => `${binding.routeKey}@${binding.routeVersion}#${binding.routeHash}`))
+  assert.ok((receipt?.operationHandlerIdentities.length ?? 0) > 0)
+  assert.ok((receipt?.inputBindingHashes.length ?? 0) > 0)
+  assert.ok((receipt?.outputBindingHashes.length ?? 0) > 0)
+  assert.ok(receipt?.assertionKeys.includes('result_hash_bound'))
+  assert.equal(receipt?.resultEvidenceHash.length, 64)
   planningResults.push(jobType)
 
   const production = makeCanonicalMusicRequest({ requestId: `music-matrix-production-${jobType}`,
@@ -38,6 +49,10 @@ for (const evidence of MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY) {
     Object.values(packageJson.scripts).some((command) => command.includes(evidence.sourceFile)),
   `${evidence.evidenceKey} must be executed by an aggregate Music acceptance script`)
 }
+assert.equal(MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY.filter((entry) => entry.mode === 'planning').length,
+  MUSIC_JOB_TYPES.length)
+assert.equal(new Set(MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY.map((entry) =>
+  `${entry.jobType}:${entry.mode}`)).size, MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY.length)
 for (const entry of MUSIC_CAPABILITY_MODE_MATRIX) {
   assert.equal(resolveMusicAcceptanceEvidence({ jobType: entry.jobType, mode: 'planning' })[0]?.evidenceKey,
     entry.acceptanceTestKey)

@@ -54,6 +54,7 @@ import type { CanonicalMusicContextPackage } from '../../music/music-context'
 import { getMusicToolRouteManifest, type MusicRouteStep, type MusicToolRouteManifest } from '../../music/music-tool-routes'
 import { resolveMusicExactOperationHandler, type MusicExactOperationHandler } from './music-operation-handler-registry'
 import { createMusicCostEvidence, providerUsdToCredits } from '../../music/music-rate-card'
+import { requireExactMusicAcceptanceEvidence } from './music-acceptance-evidence-registry'
 
 export interface ApprovedMusicExecutionPackage {
   schemaVersion: 'approved-music-execution-package-v3'
@@ -103,7 +104,9 @@ function buildExecutionHandoff(input: {
   const processed = input.state.soundReceipts.flatMap((receipt) => receipt.processedMusicAssets)
   const stems = input.state.soundReceipts.flatMap((receipt) => receipt.musicStemAssets)
   const qa = input.state.qa ?? runCanonicalMusicQa({
-    request, routes: input.package.routeBindings,
+    request, segmentationPlan: input.package.segmentationPlan,
+    cueConstraintResolutions: input.package.cueConstraintResolutions,
+    routes: input.package.routeBindings,
     analyses: [...input.state.analysesByCue.values()].flat(), placements: input.state.placements,
     soundReceipts: input.state.soundReceipts, selectedArtifactIds: selected.map((item) => item.artifactId),
   })
@@ -503,7 +506,9 @@ export class CanonicalMusicRouteExecutor {
     if (!cueId) {
       if (input.handler.kind === 'music_qa') {
         input.state.qa = runCanonicalMusicQa({
-          request, routes: input.package.routeBindings,
+          request, segmentationPlan: input.package.segmentationPlan,
+          cueConstraintResolutions: input.package.cueConstraintResolutions,
+          routes: input.package.routeBindings,
           analyses: [...input.state.analysesByCue.values()].flat(), placements: input.state.placements,
           soundReceipts: input.state.soundReceipts, selectedArtifactIds: [...input.state.selectedByCue.values()].map((item) => item.artifactId),
         })
@@ -849,7 +854,9 @@ export class CanonicalMusicRouteExecutor {
       : failed && successfulCueCount > 0 ? 'partial' : failed ? 'blocked'
         : requiredCompleted && (processed.length > 0 || selected.length > 0) ? 'completed' : 'blocked'
     const qa = input.state.qa ?? runCanonicalMusicQa({
-      request, routes: input.package.routeBindings,
+      request, segmentationPlan: input.package.segmentationPlan,
+      cueConstraintResolutions: input.package.cueConstraintResolutions,
+      routes: input.package.routeBindings,
       analyses: [...input.state.analysesByCue.values()].flat(), placements: input.state.placements,
       soundReceipts: input.state.soundReceipts, selectedArtifactIds: selected.map((item) => item.artifactId),
     })
@@ -865,19 +872,40 @@ export class CanonicalMusicRouteExecutor {
       finalRenderOutsideMusic: true as const,
       musicDidNotOwnSoundTools: true as const,
     }
+    const acceptanceEvidence = requireExactMusicAcceptanceEvidence({
+      jobType: request.jobType,
+      mode: request.requestedExecutionMode,
+    })
+    const stepReceipts = input.state.unitReceipts.flatMap((receipt) => receipt.stepReceipts)
     const acceptanceCore = {
       receiptId: `music.acceptance.${request.requestId}.${request.jobType}`,
+      evidenceKey: acceptanceEvidence.evidenceKey,
       jobType: request.jobType,
       capabilityKey: `music.${request.jobType}`,
       capabilityVersion: musicSkillCapabilityManifest.skillVersion,
       requestedMode: request.requestedExecutionMode,
       routeIdentities: input.package.routeBindings.map((binding) =>
         `${binding.routeKey}@${binding.routeVersion}#${binding.routeHash}`),
+      operationHandlerIdentities: [...new Set(stepReceipts.map((step) => step.handlerIdentity))],
       invokedUnitIds: input.state.unitReceipts.map((receipt) => receipt.unitId),
+      inputBindingHashes: [...new Set(stepReceipts.flatMap((step) => step.inputArtifactHashes))],
       outputArtifactIds: input.state.artifacts.map((artifact) => artifact.artifactId),
+      outputBindingHashes: [...new Set(stepReceipts.flatMap((step) => step.outputBindings.map((binding) => binding.artifactHash)))],
+      assertionKeys: [...acceptanceEvidence.assertionKeys],
       evidenceRefs: input.state.unitReceipts.flatMap((receipt) => [
         ...receipt.runtimeEvidence, ...receipt.qaEvidence, ...receipt.stepReceipts.map((step) => step.receiptHash),
       ]),
+      resultEvidenceHash: hashMusicValue({
+        requestId: request.requestId,
+        jobType: request.jobType,
+        mode: request.requestedExecutionMode,
+        status,
+        executionFingerprint: input.executionFingerprint,
+        routeHashes: input.package.routeBindings.map((binding) => binding.routeHash),
+        outputHashes: stepReceipts.flatMap((step) => step.outputArtifactHashes),
+        handoffHash: handoff.handoffHash,
+        qaHash: qa.reportHash,
+      }),
       status,
       receiptHash: '',
     }

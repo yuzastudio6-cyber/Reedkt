@@ -66,13 +66,68 @@ const MINI_SKILLS = [
   ['library_promotion_manager', 'Music Library Promotion Manager'], ['final_handoff_builder', 'Final Music Handoff Builder'],
 ] as const
 
-const internalKeys = new Set([
-  'existing_music_study', 'user_music_intake', 'project_music_matcher',
-  'workspace_music_matcher', 'internal_library_matcher', 'candidate_processing_director',
-  'candidate_selection_director', 'music_sync', 'arrangement_editor', 'sound_support_coordinator',
-  'qa_coordinator', 'continuity_qa', 'final_handoff_builder',
-])
-const fixtureKeys = new Set(['provider_attempt_manager'])
+type MiniImplementation = {
+  status: MusicMiniSkillImplementationStatus
+  modulePath: string
+  functionOrService: string
+  evidenceLevel: MusicMiniSkillManifest['evidenceLevel']
+}
+
+const planning = (functionOrService: string, modulePath = 'server/music/music-supervision.ts'): MiniImplementation => ({
+  status: 'planning_only', modulePath, functionOrService, evidenceLevel: 'planning',
+})
+const implemented = (functionOrService: string, modulePath: string): MiniImplementation => ({
+  status: 'implemented', modulePath, functionOrService, evidenceLevel: 'internal_execution',
+})
+const fixture = (functionOrService: string, modulePath: string): MiniImplementation => ({
+  status: 'fixture_only', modulePath, functionOrService, evidenceLevel: 'fixture',
+})
+
+const MINI_SKILL_IMPLEMENTATIONS: Record<(typeof MINI_SKILLS)[number][0], MiniImplementation> = {
+  scope_guard: implemented('evaluateMusicScopeGuard', 'server/music/music-scope-guard.ts'),
+  context_loader: implemented('resolveCanonicalMusicContext', 'server/music/music-context.ts'),
+  evidence_confidence_manager: planning('studyMusicContext'),
+  video_music_context_study: planning('studyMusicContext'),
+  music_need_director: planning('decideMusicNeed'),
+  silence_director: planning('decideMusicNeed'),
+  narrative_function_director: planning('buildMusicNarrativeArc'),
+  emotional_arc_director: planning('buildMusicNarrativeArc'),
+  single_multi_cue_director: planning('buildMusicSoundtrackSegmentationPlan'),
+  cue_density_guard: planning('buildMusicCueSheet'),
+  cue_sheet_planner: planning('buildMusicCueSheet'),
+  motif_theme_director: planning('buildMusicNarrativeArc'),
+  soundtrack_continuity_director: planning('buildMusicNarrativeArc'),
+  existing_music_study: implemented('analyzePrivateMusicArtifact', 'server/music/music-analysis.ts'),
+  user_music_intake: implemented('selectProfessionalMusicAsset', 'server/music/music-asset-matcher.ts'),
+  rights_provenance_guard: implemented('selectProfessionalMusicAsset', 'server/music/music-asset-matcher.ts'),
+  reference_music_study: implemented('analyzePrivateMusicArtifact', 'server/music/music-analysis.ts'),
+  reference_music_dna: implemented('analyzePrivateMusicArtifact', 'server/music/music-analysis.ts'),
+  style_arrangement_director: planning('buildMusicNarrativeArc'),
+  vocal_lyric_policy: planning('buildMusicCueSheet'),
+  language_culture_policy: planning('buildMusicCueSheet'),
+  acquisition_director: planning('decideCueRoutes'),
+  project_music_matcher: implemented('selectProfessionalMusicAsset', 'server/music/music-asset-matcher.ts'),
+  workspace_music_matcher: implemented('selectProfessionalMusicAsset', 'server/music/music-asset-matcher.ts'),
+  internal_library_matcher: implemented('selectProfessionalMusicAsset', 'server/music/music-asset-matcher.ts'),
+  composition_brief_director: planning('createMusicCompositionBrief', 'server/music/lyria-provider.ts'),
+  provider_prompt_compiler: fixture('compileLyria3InteractionRequest', 'server/music/lyria-provider.ts'),
+  provider_attempt_manager: fixture('CanonicalLyria3ProviderAdapter.execute', 'server/music/lyria-provider.ts'),
+  candidate_processing_director: implemented('analyzePrivateMusicArtifact', 'server/music/music-analysis.ts'),
+  candidate_selection_director: implemented('selectMusicCandidate', 'server/music/music-analysis.ts'),
+  music_sync: implemented('compileMusicSync', 'server/music/music-sync.ts'),
+  arrangement_editor: implemented('compileMusicSync', 'server/music/music-sync.ts'),
+  sound_support_coordinator: implemented('CanonicalSoundV4MusicSupportAdapter.execute', 'server/music/music-sound-support-port.ts'),
+  mix_intent_director: implemented('createMusicSoundSupportRequest', 'server/music/music-sound-support-port.ts'),
+  qa_coordinator: implemented('runCanonicalMusicQa', 'server/music/music-qa.ts'),
+  continuity_qa: implemented('analyzeMusicContinuity', 'server/music/music-qa.ts'),
+  revision_director: implemented('StandaloneCanonicalMusicSkillService.executeRevision',
+    'server/edit-skills/music/canonical-music-skill-service.ts'),
+  regeneration_director: planning('StandaloneCanonicalMusicSkillService.planRevision',
+    'server/edit-skills/music/canonical-music-skill-service.ts'),
+  asset_usage_manager: implemented('createMusicFinalHandoff', 'server/music/music-contracts.ts'),
+  library_promotion_manager: planning('createMusicFinalHandoff', 'server/music/music-contracts.ts'),
+  final_handoff_builder: implemented('createMusicFinalHandoff', 'server/music/music-contracts.ts'),
+}
 
 function relevantRoutes(key: string): typeof MUSIC_TOOL_ROUTE_MANIFESTS {
   const terms: Record<string, string[]> = {
@@ -102,11 +157,12 @@ function ref(route: (typeof MUSIC_TOOL_ROUTE_MANIFESTS)[number]): { routeKey: st
 
 export const MUSIC_MINI_SKILL_MANIFESTS: readonly MusicMiniSkillManifest[] = Object.freeze(
   MINI_SKILLS.map(([key, displayName]): MusicMiniSkillManifest => {
+    const implementation = MINI_SKILL_IMPLEMENTATIONS[key]
     const routes = relevantRoutes(key)
     const primary = routes.filter((route) => route.routeRole !== 'no_music' && route.routeRole !== 'lower_cost').map(ref)
     const fallback = routes.filter((route) => route.routeRole === 'no_music').map(ref)
     const lower = routes.filter((route) => route.routeRole === 'lower_cost').map(ref)
-    const qualification: SkillQualificationStatus = internalKeys.has(key)
+    const qualification: SkillQualificationStatus = implementation.status === 'implemented'
       ? 'internal_execution_qualified' : 'planning_qualified'
     return {
       miniSkillKey: `music.mini.${key}`,
@@ -119,35 +175,29 @@ export const MUSIC_MINI_SKILL_MANIFESTS: readonly MusicMiniSkillManifest[] = Obj
       toolRouteRefs: primary.length > 0 ? primary : routes.map(ref),
       fallbackRouteRefs: fallback,
       lowerCostRouteRefs: lower,
-      attemptPolicyKey: fixtureKeys.has(key) ? 'music.attempt.provider_reconciled.v2' : 'music.attempt.local_idempotent.v2',
+      attemptPolicyKey: implementation.status === 'fixture_only'
+        ? 'music.attempt.provider_reconciled.v2' : 'music.attempt.local_idempotent.v2',
       qualification,
-      evidenceLevel: fixtureKeys.has(key) ? 'fixture' : internalKeys.has(key) ? 'internal_execution' : 'planning',
+      evidenceLevel: implementation.evidenceLevel,
       qaKeys: ['music.qa.planning.authority.v2', 'music.qa.integration.authority.v2'],
       invalidationRules: ['timeline_changed', 'source_changed', 'rights_changed'],
       limitations: displayName.includes('Culture') || displayName.includes('Emotional')
         ? ['Subjective output remains confidence-scored and review-aware.'] : [],
-      implementationStatus: fixtureKeys.has(key) ? 'fixture_only' : internalKeys.has(key) ? 'implemented' : 'planning_only',
+      implementationStatus: implementation.status,
       implementationEvidence: [{
-        modulePath: internalKeys.has(key)
-          ? key === 'music_sync' || key === 'arrangement_editor'
-            ? 'server/music/music-sync.ts'
-            : key === 'sound_support_coordinator'
-              ? 'server/music/music-sound-support-port.ts'
-              : key === 'candidate_processing_director' || key === 'candidate_selection_director'
-                ? 'server/music/music-analysis.ts'
-                : 'server/edit-skills/music/music-route-executor.ts'
-          : fixtureKeys.has(key) ? 'server/music/lyria-provider.ts' : 'server/music/music-supervision.ts',
-        functionOrService: key,
+        modulePath: implementation.modulePath,
+        functionOrService: implementation.functionOrService,
         routeIdentities: routes.map((route) => `${route.routeKey}@${route.routeVersion}#${route.routeHash}`),
         operationIdentities: routes.flatMap((route) => route.steps.map((step) =>
           `${step.toolKey}@${step.toolVersion}/${step.operationKey}@${step.operationVersion}`)),
-        receiptTypes: internalKeys.has(key) ? ['music_route_step_receipt_v3']
-          : fixtureKeys.has(key) ? ['music_provider_attempt_receipt_v3'] : ['music_planning_artifact_v3'],
+        receiptTypes: implementation.status === 'implemented' ? ['music_route_step_receipt_v3']
+          : implementation.status === 'fixture_only' ? ['music_provider_attempt_receipt_v3'] : ['music_planning_artifact_v3'],
         modeStatus: {
           planning: 'planning_qualified',
-          fixtureExecution: fixtureKeys.has(key) || internalKeys.has(key)
+          fixtureExecution: implementation.status === 'implemented'
             ? 'internal_execution_qualified' : 'planning_qualified',
-          privateInternalExecution: internalKeys.has(key) ? 'internal_execution_qualified' : 'planning_qualified',
+          privateInternalExecution: implementation.status === 'implemented'
+            ? 'internal_execution_qualified' : 'blocked',
           productionExecution: 'blocked',
         },
       }],
@@ -162,6 +212,22 @@ export function validateMusicMiniSkillRegistry(): void {
   for (const mini of MUSIC_MINI_SKILL_MANIFESTS) {
     if (mini.implementationEvidence.length === 0) {
       throw new Error(`Music mini-skill ${mini.miniSkillKey} lacks implementation evidence.`)
+    }
+    for (const evidence of mini.implementationEvidence) {
+      if (evidence.functionOrService === mini.miniSkillKey.replace('music.mini.', '')) {
+        throw new Error(`Music mini-skill ${mini.miniSkillKey} cites a label instead of an implementation symbol.`)
+      }
+      if (mini.implementationStatus === 'implemented' &&
+        evidence.modeStatus.privateInternalExecution !== 'internal_execution_qualified') {
+        throw new Error(`Implemented Music mini-skill ${mini.miniSkillKey} lacks private execution evidence.`)
+      }
+      if (mini.implementationStatus !== 'implemented' &&
+        evidence.modeStatus.privateInternalExecution !== 'blocked') {
+        throw new Error(`Non-executable Music mini-skill ${mini.miniSkillKey} overclaims private execution.`)
+      }
+      if (evidence.modeStatus.productionExecution !== 'blocked') {
+        throw new Error(`Music mini-skill ${mini.miniSkillKey} cannot claim production execution.`)
+      }
     }
     if (mini.toolRouteRefs.length === 0) throw new Error(`Music mini-skill ${mini.miniSkillKey} has no exact route.`)
     for (const routeRef of [...mini.toolRouteRefs, ...mini.fallbackRouteRefs, ...mini.lowerCostRouteRefs]) {

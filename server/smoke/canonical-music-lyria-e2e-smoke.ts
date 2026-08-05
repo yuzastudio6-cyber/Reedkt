@@ -9,11 +9,16 @@ const runtime = await createCanonicalMusicTestRuntime()
 const range = { rangeId: 'generated-range', startFrame: 0, endFrameExclusive: 96 }
 const cue = makeMusicCue({ cueId: 'generated-cue', range, acquisitionPreference: 'generate_original' })
 const request = makeCanonicalMusicRequest({
-  requestId: 'music-lyria-e2e', mode: 'fixture', cues: [cue], allowGeneration: true,
+  requestId: 'music-lyria-e2e', mode: 'fixture', jobType: 'generate_original_music',
+  cues: [cue], allowGeneration: true,
 })
 const result = await runtime.music.execute(request)
 
 assert.equal(result.status, 'completed')
+assert.equal(result.acceptanceReceipts[0]?.jobType, 'generate_original_music')
+assert.equal(result.acceptanceReceipts[0]?.evidenceKey,
+  'music.acceptance.fixture.generate_original_music.v3')
+assert.equal(result.acceptanceReceipts[0]?.resultEvidenceHash.length, 64)
 assert.equal(result.providerAttemptRefs.length, 3)
 assert.equal(result.candidateArtifactRefs.length, 3)
 assert.equal(result.candidateAnalysisRefs.length, 3)

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import { StandaloneCanonicalMusicSkillService } from '../edit-skills/music/canonical-music-skill-service'
 import { MUSIC_MINI_SKILL_MANIFESTS } from '../edit-skills/music/music-mini-skill-registry'
 import { MUSIC_TOOL_ROUTE_MANIFESTS, getMusicToolRouteManifest,
@@ -84,11 +85,21 @@ await check('unlocked_constraints_resolve_once', async () => {
   }
 })
 
-await check('mini_skill_implementation_evidence', () => {
-  for (const descriptor of MUSIC_MINI_SKILL_MANIFESTS as unknown as Array<Record<string, unknown>>) {
+await check('mini_skill_implementation_evidence', async () => {
+  for (const descriptor of MUSIC_MINI_SKILL_MANIFESTS) {
     assert.ok(descriptor.implementationStatus)
-    const evidence = descriptor.implementationEvidence as unknown[] | undefined
-    assert.ok(evidence && evidence.length > 0)
+    assert.ok(descriptor.implementationEvidence.length > 0)
+    for (const evidence of descriptor.implementationEvidence) {
+      const source = await readFile(evidence.modulePath, 'utf8')
+      const implementationSymbol = evidence.functionOrService.split('.')[0]!
+      assert.ok(source.includes(implementationSymbol),
+        `${descriptor.miniSkillKey} must cite a real implementation symbol`)
+      assert.notEqual(evidence.functionOrService, descriptor.miniSkillKey.replace('music.mini.', ''))
+      if (descriptor.implementationStatus !== 'implemented') {
+        assert.equal(evidence.modeStatus.privateInternalExecution, 'blocked')
+      }
+      assert.equal(evidence.modeStatus.productionExecution, 'blocked')
+    }
   }
 })
 
@@ -159,14 +170,24 @@ await check('peer_music_producing_acceptance', async () => {
     const result = await runtime.music.execute(request)
     assert.equal(result.status, 'completed')
     assert.ok(result.selectedMusicAssetRefs.length > 0)
+    const receipt = result.acceptanceReceipts[0]
+    assert.equal(receipt?.jobType, jobType)
+    assert.equal(receipt?.evidenceKey, `music.acceptance.private.${jobType}.v3`)
+    assert.ok((receipt?.operationHandlerIdentities.length ?? 0) > 0)
+    assert.ok((receipt?.inputBindingHashes.length ?? 0) > 0)
+    assert.ok((receipt?.outputBindingHashes.length ?? 0) > 0)
+    assert.equal(receipt?.resultEvidenceHash.length, 64)
   }
 })
 
 await check('exact_acceptance_receipts', () => {
-  const receipts = (plan as unknown as { acceptanceReceipts?: Array<{ jobType: string; capabilityKey: string; evidenceRefs: string[] }> })
-    .acceptanceReceipts ?? []
+  const receipts = plan.acceptanceReceipts
   assert.ok(receipts.some((receipt) => receipt.jobType === autonomous.jobType &&
-    receipt.capabilityKey === `music.${autonomous.jobType}` && receipt.evidenceRefs.length > 0))
+    receipt.capabilityKey === `music.${autonomous.jobType}` && receipt.evidenceRefs.length > 0 &&
+    receipt.evidenceKey === `music.acceptance.planning.${autonomous.jobType}.v3` &&
+    receipt.routeIdentities.length > 0 && receipt.operationHandlerIdentities.length > 0 &&
+    receipt.inputBindingHashes.length > 0 && receipt.outputBindingHashes.length > 0 &&
+    receipt.assertionKeys.includes('result_hash_bound') && receipt.resultEvidenceHash.length === 64))
 })
 
 await check('professional_source_and_library_matcher', async () => {

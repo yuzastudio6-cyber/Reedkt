@@ -32,6 +32,8 @@ import {
 import type { CanonicalLyria3ProviderAdapter } from '../../music/lyria-provider'
 import type { MusicSoundSupportPort } from '../../music/music-sound-support-port'
 import { createMusicCostEvidence, MUSIC_RATE_CARD, providerUsdToCredits } from '../../music/music-rate-card'
+import { requireExactMusicAcceptanceEvidence } from './music-acceptance-evidence-registry'
+import { getMusicToolRouteManifest } from '../../music/music-tool-routes'
 
 export interface MusicPeerCapabilityViewRequest {
   callerType: Exclude<CanonicalMusicSkillRequest['caller']['callerType'], 'head_of_orchestra'>
@@ -321,6 +323,7 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       .map((cue) => requestedOverrides.get(cue.cueId) ?? cue)
     const revisionRequest: CanonicalMusicSkillRequest = {
       ...structuredClone(input.request),
+      jobType: 'revise_music',
       proposedCues: [],
       cueConstraints: {
         requestedCues: affectedCues,
@@ -496,6 +499,17 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
   ): CanonicalMusicSkillResult {
     const noMusic = supervision.need.payload.decision === 'no_music' || supervision.need.payload.decision === 'intentional_silence'
     const ambience = supervision.need.payload.decision === 'ambience_only'
+    const acceptanceEvidence = requireExactMusicAcceptanceEvidence({
+      jobType: request.jobType,
+      mode: 'planning',
+    })
+    const plannedRoutes = supervision.routeBindings.map((binding) => {
+      const route = getMusicToolRouteManifest(binding.routeKey, binding.routeVersion)
+      if (!route || route.routeHash !== binding.routeHash) {
+        throw new Error(`Planning acceptance cannot bind stale Music route ${binding.routeKey}.`)
+      }
+      return route
+    })
     const receiptBase = {
       callerSkillKey: request.caller.callerSkillKey, parentWorkItemId: request.caller.parentWorkItemId,
       exactAuthorityRef: request.scopeAuthority.parentAuthorityRef, resultHash: '',
@@ -503,16 +517,33 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
     }
     const acceptanceCore = {
       receiptId: `music.acceptance.${request.requestId}.${request.jobType}.planning`,
+      evidenceKey: acceptanceEvidence.evidenceKey,
       jobType: request.jobType,
       capabilityKey: `music.${request.jobType}`,
       capabilityVersion: musicSkillCapabilityManifest.skillVersion,
       requestedMode: request.requestedExecutionMode,
       routeIdentities: supervision.routeBindings.map((binding) =>
         `${binding.routeKey}@${binding.routeVersion}#${binding.routeHash}`),
+      operationHandlerIdentities: plannedRoutes.flatMap((route) => route.steps.map((step) =>
+        `${step.toolKey}@${step.toolVersion}/${step.operationKey}@${step.operationVersion}/${step.operationProfileKey}@${step.operationProfileVersion}`)),
       invokedUnitIds: [] as string[],
+      inputBindingHashes: [request.approvedSnapshotRef.snapshotHash,
+        request.timelineBinding.timelineManifestHash, request.scopeAuthority.parentAuthorityHash,
+        ...request.contextEvidence.map((evidence) => evidence.evidenceHash)],
       outputArtifactIds: [supervision.context.artifactId, supervision.segmentation.artifactId,
         supervision.need.artifactId, supervision.arc.artifactId, supervision.cueSheet.artifactId],
+      outputBindingHashes: [supervision.context.artifactHash, supervision.segmentation.artifactHash,
+        supervision.need.artifactHash, supervision.arc.artifactHash, supervision.cueSheet.artifactHash],
+      assertionKeys: [...acceptanceEvidence.assertionKeys],
       evidenceRefs: [supervision.segmentationPlan.planHash, supervision.cueSheet.artifactHash],
+      resultEvidenceHash: hashMusicValue({
+        requestId: request.requestId,
+        jobType: request.jobType,
+        mode: 'planning',
+        routeHashes: supervision.routeBindings.map((binding) => binding.routeHash),
+        outputHashes: [supervision.context.artifactHash, supervision.segmentation.artifactHash,
+          supervision.need.artifactHash, supervision.arc.artifactHash, supervision.cueSheet.artifactHash],
+      }),
       status: 'planned' as const,
       receiptHash: '',
     }

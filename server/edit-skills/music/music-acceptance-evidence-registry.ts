@@ -1,12 +1,13 @@
-import type { MusicJobType } from '../../music/music-contracts'
+import { MUSIC_JOB_TYPES, type MusicJobType } from '../../music/music-contracts'
 
 export type MusicAcceptanceMode = 'planning' | 'fixture' | 'private_internal' | 'production'
 
 export interface MusicAcceptanceEvidence {
   evidenceKey: string
+  schemaVersion: 'music-acceptance-evidence-v3'
   sourceFile: `server/smoke/${string}.ts`
   mode: MusicAcceptanceMode
-  coveredJobTypes: readonly MusicJobType[]
+  jobType: MusicJobType
   evidenceKinds: readonly (
     | 'schema_validation'
     | 'route_execution'
@@ -18,137 +19,137 @@ export interface MusicAcceptanceEvidence {
     | 'localized_revision'
     | 'typed_handoff'
   )[]
+  assertionKeys: readonly string[]
+  resultHashBindingRequired: true
   limitations: readonly string[]
 }
 
-const planningJobs = [
-  'study_video_music_context', 'study_existing_music', 'study_user_provided_music',
-  'study_reference_music', 'create_music_reference_dna', 'decide_music_need',
-  'decide_music_silence', 'plan_music_narrative_arc', 'plan_music_motif',
-  'plan_scene_music', 'plan_boundary_music', 'full_video_music_pass',
-  'create_music_cue_sheet', 'select_user_provided_music', 'search_project_music',
-  'search_workspace_music', 'search_authorized_music_library', 'generate_original_music',
-  'generate_music_variation', 'analyze_music_candidate', 'select_music_candidate',
-  'fit_music_to_edit', 'sync_music_to_picture', 'prepare_music_stem',
-  'plan_music_mix', 'request_sound_processing', 'support_motion_studio_music',
-  'support_living_frame_music', 'support_3d_music', 'support_transition_music',
-  'support_graphic_design_music', 'qa_music', 'revise_music',
-  'promote_music_library_candidate', 'handoff_music_to_final_composition',
-] as const satisfies readonly MusicJobType[]
+function exactEvidence(input: Omit<MusicAcceptanceEvidence,
+  'schemaVersion' | 'resultHashBindingRequired'> & { resultHashBindingRequired?: true }): MusicAcceptanceEvidence {
+  return Object.freeze({
+    schemaVersion: 'music-acceptance-evidence-v3',
+    resultHashBindingRequired: true,
+    ...input,
+  })
+}
 
-const sourceAndRightsJobs = [
-  'study_existing_music', 'study_user_provided_music', 'study_reference_music',
-  'create_music_reference_dna', 'select_user_provided_music', 'search_project_music',
-  'search_workspace_music', 'search_authorized_music_library',
-] as const satisfies readonly MusicJobType[]
+const planningEvidence = MUSIC_JOB_TYPES.map((jobType) => exactEvidence({
+  evidenceKey: `music.acceptance.planning.${jobType}.v3`,
+  sourceFile: 'server/smoke/canonical-music-supported-job-matrix-smoke.ts',
+  mode: 'planning',
+  jobType,
+  evidenceKinds: ['schema_validation', 'authority_validation'],
+  assertionKeys: [
+    'request_job_type_exact',
+    'capability_key_exact',
+    'route_identity_exact',
+    'planning_outputs_hash_bound',
+    'production_mode_fail_closed',
+    'result_hash_bound',
+  ],
+  limitations: ['Planning evidence does not authorize direct media execution.'],
+}))
 
-const analysisSoundAndHandoffJobs = [
-  'analyze_music_candidate', 'select_music_candidate', 'fit_music_to_edit',
-  'sync_music_to_picture', 'prepare_music_stem', 'plan_music_mix',
-  'request_sound_processing', 'qa_music', 'handoff_music_to_final_composition',
-] as const satisfies readonly MusicJobType[]
-
-const peerJobs = [
-  'support_motion_studio_music', 'support_living_frame_music', 'support_3d_music',
-  'support_transition_music', 'support_graphic_design_music',
-] as const satisfies readonly MusicJobType[]
-
-export const MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY: readonly MusicAcceptanceEvidence[] = Object.freeze([
-  {
-    evidenceKey: 'music.acceptance.planning.all_supported_jobs.v2',
-    sourceFile: 'server/smoke/canonical-music-supported-job-matrix-smoke.ts',
-    mode: 'planning', coveredJobTypes: planningJobs,
-    evidenceKinds: ['schema_validation', 'authority_validation'],
-    limitations: ['Planning evidence does not authorize media execution.'],
-  },
-  {
-    evidenceKey: 'music.acceptance.fixture.generated_candidates.v2',
+const exactExecutionEvidence: readonly MusicAcceptanceEvidence[] = Object.freeze([
+  exactEvidence({
+    evidenceKey: 'music.acceptance.fixture.generate_original_music.v3',
     sourceFile: 'server/smoke/canonical-music-lyria-e2e-smoke.ts',
-    mode: 'fixture',
-    coveredJobTypes: ['generate_original_music', 'generate_music_variation',
-      'analyze_music_candidate', 'select_music_candidate'],
+    mode: 'fixture', jobType: 'generate_original_music',
     evidenceKinds: ['route_execution', 'provider_fixture_bytes', 'private_audio_bytes',
       'sound_v4_receipt', 'measured_qa', 'typed_handoff'],
+    assertionKeys: ['exact_job_request', 'one_interaction_per_candidate', 'all_candidates_processed',
+      'sound_receipt_validated', 'real_private_handoff_artifact', 'result_hash_bound'],
+    resultHashBindingRequired: true,
     limitations: ['Injected transport is fixture evidence, not a live Google Lyria call.'],
-  },
-  {
-    evidenceKey: 'music.acceptance.fixture.whole_video.v2',
+  }),
+  exactEvidence({
+    evidenceKey: 'music.acceptance.fixture.generate_music_variation.v3',
+    sourceFile: 'server/smoke/canonical-music-lyria-e2e-smoke.ts',
+    mode: 'fixture', jobType: 'generate_music_variation',
+    evidenceKinds: ['route_execution', 'provider_fixture_bytes', 'private_audio_bytes',
+      'sound_v4_receipt', 'measured_qa', 'typed_handoff'],
+    assertionKeys: ['exact_job_request', 'variation_identity_bound', 'all_candidates_processed',
+      'sound_receipt_validated', 'result_hash_bound'],
+    resultHashBindingRequired: true,
+    limitations: ['Injected transport is fixture evidence, not a live Google Lyria call.'],
+  }),
+  exactEvidence({
+    evidenceKey: 'music.acceptance.fixture.full_video_music_pass.v3',
     sourceFile: 'server/smoke/canonical-music-whole-video-continuity-smoke.ts',
-    mode: 'fixture', coveredJobTypes: ['full_video_music_pass'],
+    mode: 'fixture', jobType: 'full_video_music_pass',
     evidenceKinds: ['route_execution', 'provider_fixture_bytes', 'private_audio_bytes',
       'sound_v4_receipt', 'measured_qa', 'authority_validation', 'typed_handoff'],
+    assertionKeys: ['exact_job_request', 'atomic_segment_coverage', 'cue_routes_executed',
+      'whole_video_continuity_measured', 'bounded_mutations', 'result_hash_bound'],
+    resultHashBindingRequired: true,
     limitations: ['Subjective narrative findings remain confidence-scored or review-required.'],
-  },
-  {
-    evidenceKey: 'music.acceptance.fixture.peer_support.v2',
-    sourceFile: 'server/smoke/canonical-music-professional-scenarios-smoke.ts',
-    mode: 'fixture', coveredJobTypes: peerJobs,
-    evidenceKinds: ['route_execution', 'authority_validation', 'typed_handoff'],
-    limitations: ['Peer calls are faithful standalone fixtures; global dispatch remains future Orchestra work.'],
-  },
-  {
-    evidenceKey: 'music.acceptance.fixture.localized_revision.v2',
+  }),
+  exactEvidence({
+    evidenceKey: 'music.acceptance.fixture.revise_music.v3',
     sourceFile: 'server/smoke/canonical-music-localized-revision-smoke.ts',
-    mode: 'fixture', coveredJobTypes: ['revise_music'],
+    mode: 'fixture', jobType: 'revise_music',
     evidenceKinds: ['route_execution', 'private_audio_bytes', 'sound_v4_receipt',
       'measured_qa', 'localized_revision', 'typed_handoff'],
+    assertionKeys: ['exact_revision_job', 'unaffected_artifacts_preserved', 'affected_provider_attempt_new',
+      'affected_sound_rerun_only', 'handoff_updated', 'result_hash_bound'],
+    resultHashBindingRequired: true,
     limitations: [],
-  },
-  {
-    evidenceKey: 'music.acceptance.fixture.source_rights.v2',
+  }),
+  exactEvidence({
+    evidenceKey: 'music.acceptance.private.create_music_reference_dna.v3',
     sourceFile: 'server/smoke/canonical-music-professional-scenarios-smoke.ts',
-    mode: 'fixture', coveredJobTypes: sourceAndRightsJobs,
+    mode: 'private_internal', jobType: 'create_music_reference_dna',
     evidenceKinds: ['route_execution', 'private_audio_bytes', 'measured_qa',
       'authority_validation', 'typed_handoff'],
-    limitations: ['Library execution requires an actual rights-bound artifact; no synthetic library catalog is claimed.'],
-  },
-  {
-    evidenceKey: 'music.acceptance.fixture.sound_and_handoff.v2',
-    sourceFile: 'server/smoke/canonical-music-source-sound-e2e-smoke.ts',
-    mode: 'fixture', coveredJobTypes: analysisSoundAndHandoffJobs,
+    assertionKeys: ['exact_job_request', 'reference_bytes_analyzed', 'measured_inferred_declared_separated',
+      'do_not_copy_rules_present', 'source_not_reused', 'result_hash_bound'],
+    resultHashBindingRequired: true,
+    limitations: ['Copy-risk screening is not legal copyright clearance.'],
+  }),
+  ...([
+    ['support_motion_studio_music', 'motion_studio'],
+    ['support_living_frame_music', 'living_frame'],
+    ['support_3d_music', 'three_d'],
+    ['support_transition_music', 'transitions'],
+    ['support_graphic_design_music', 'graphic_design'],
+  ] as const).map(([jobType, caller]) => exactEvidence({
+    evidenceKey: `music.acceptance.private.${jobType}.v3`,
+    sourceFile: 'server/smoke/canonical-music-v3-integrity-regression-smoke.ts',
+    mode: 'private_internal', jobType,
     evidenceKinds: ['route_execution', 'private_audio_bytes', 'sound_v4_receipt',
       'measured_qa', 'authority_validation', 'typed_handoff'],
-    limitations: [],
-  },
-  {
-    evidenceKey: 'music.acceptance.private.source_rights.v2',
-    sourceFile: 'server/smoke/canonical-music-professional-scenarios-smoke.ts',
-    mode: 'private_internal', coveredJobTypes: sourceAndRightsJobs,
-    evidenceKinds: ['route_execution', 'private_audio_bytes', 'measured_qa',
-      'authority_validation', 'typed_handoff'],
-    limitations: ['Library execution requires an actual rights-bound artifact and exact project/workspace scope.'],
-  },
-  {
-    evidenceKey: 'music.acceptance.private.analysis_sound_handoff.v2',
-    sourceFile: 'server/smoke/canonical-music-source-sound-e2e-smoke.ts',
-    mode: 'private_internal', coveredJobTypes: analysisSoundAndHandoffJobs,
-    evidenceKinds: ['route_execution', 'private_audio_bytes', 'sound_v4_receipt',
-      'measured_qa', 'authority_validation', 'typed_handoff'],
-    limitations: [],
-  },
-  {
-    evidenceKey: 'music.acceptance.private.whole_video.v2',
-    sourceFile: 'server/smoke/canonical-music-whole-video-continuity-smoke.ts',
-    mode: 'private_internal', coveredJobTypes: ['full_video_music_pass'],
-    evidenceKinds: ['route_execution', 'private_audio_bytes', 'sound_v4_receipt',
-      'measured_qa', 'authority_validation', 'typed_handoff'],
-    limitations: ['The injected generated cue remains fixture-qualified inside an otherwise private graph.'],
-  },
-  {
-    evidenceKey: 'music.acceptance.private.peer_support.v2',
-    sourceFile: 'server/smoke/canonical-music-professional-scenarios-smoke.ts',
-    mode: 'private_internal', coveredJobTypes: peerJobs,
-    evidenceKinds: ['route_execution', 'authority_validation', 'typed_handoff'],
+    assertionKeys: ['exact_peer_job', `caller_${caller}_exact`, 'delegated_authority_subset',
+      'real_music_output_or_typed_no_music', 'sound_receipt_validated', 'result_hash_bound'],
+    resultHashBindingRequired: true,
     limitations: ['Global peer scheduling and persistence remain future Orchestra responsibilities.'],
-  },
-  {
-    evidenceKey: 'music.acceptance.private.localized_revision.v2',
+  })),
+  exactEvidence({
+    evidenceKey: 'music.acceptance.private.full_video_music_pass.v3',
+    sourceFile: 'server/smoke/canonical-music-source-sound-e2e-smoke.ts',
+    mode: 'private_internal', jobType: 'full_video_music_pass',
+    evidenceKinds: ['route_execution', 'private_audio_bytes', 'sound_v4_receipt',
+      'measured_qa', 'authority_validation', 'typed_handoff'],
+    assertionKeys: ['exact_job_request', 'all_atomic_segments_executed', 'actual_sound_receipts',
+      'measured_output_qa', 'bounded_mutations', 'real_handoff_artifact', 'result_hash_bound'],
+    resultHashBindingRequired: true,
+    limitations: ['Subjective Music judgment remains review-aware.'],
+  }),
+  exactEvidence({
+    evidenceKey: 'music.acceptance.private.revise_music.v3',
     sourceFile: 'server/smoke/canonical-music-localized-revision-smoke.ts',
-    mode: 'private_internal', coveredJobTypes: ['revise_music'],
+    mode: 'private_internal', jobType: 'revise_music',
     evidenceKinds: ['route_execution', 'private_audio_bytes', 'sound_v4_receipt',
       'measured_qa', 'localized_revision', 'typed_handoff'],
+    assertionKeys: ['exact_revision_job', 'unaffected_artifacts_preserved', 'affected_sound_rerun_only',
+      'affected_qa_rerun', 'handoff_updated', 'result_hash_bound'],
+    resultHashBindingRequired: true,
     limitations: [],
-  },
+  }),
+])
+
+export const MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY: readonly MusicAcceptanceEvidence[] = Object.freeze([
+  ...planningEvidence,
+  ...exactExecutionEvidence,
 ])
 
 export function resolveMusicAcceptanceEvidence(input: {
@@ -156,23 +157,38 @@ export function resolveMusicAcceptanceEvidence(input: {
   mode: MusicAcceptanceMode
 }): readonly MusicAcceptanceEvidence[] {
   return MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY.filter((entry) =>
-    entry.mode === input.mode && entry.coveredJobTypes.includes(input.jobType as MusicJobType))
+    entry.mode === input.mode && entry.jobType === input.jobType)
+}
+
+export function requireExactMusicAcceptanceEvidence(input: {
+  jobType: MusicJobType
+  mode: MusicAcceptanceMode
+}): MusicAcceptanceEvidence {
+  const matches = resolveMusicAcceptanceEvidence(input)
+  if (matches.length !== 1) {
+    throw new Error(`Music ${input.mode} job ${input.jobType} requires exactly one acceptance evidence record.`)
+  }
+  return matches[0]!
 }
 
 export function validateMusicAcceptanceEvidenceRegistry(): void {
   const keys = new Set<string>()
+  const jobModes = new Set<string>()
   for (const evidence of MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY) {
     if (keys.has(evidence.evidenceKey)) throw new Error(`Duplicate Music acceptance evidence ${evidence.evidenceKey}.`)
     keys.add(evidence.evidenceKey)
-    if (evidence.coveredJobTypes.length === 0) throw new Error(`${evidence.evidenceKey} covers no Music job.`)
-    if (evidence.evidenceKinds.length === 0) throw new Error(`${evidence.evidenceKey} declares no evidence kind.`)
+    const jobMode = `${evidence.jobType}:${evidence.mode}`
+    if (jobModes.has(jobMode)) throw new Error(`Music ${jobMode} has grouped or duplicate acceptance attribution.`)
+    jobModes.add(jobMode)
+    if (evidence.evidenceKinds.length === 0 || evidence.assertionKeys.length === 0) {
+      throw new Error(`${evidence.evidenceKey} declares incomplete exact evidence.`)
+    }
+    if (!evidence.assertionKeys.includes('result_hash_bound')) {
+      throw new Error(`${evidence.evidenceKey} must bind its exact result hash.`)
+    }
     if (evidence.mode === 'production') {
       throw new Error('Music must not publish production evidence before live provider and deployment qualification.')
     }
   }
-  for (const jobType of planningJobs) {
-    if (resolveMusicAcceptanceEvidence({ jobType, mode: 'planning' }).length === 0) {
-      throw new Error(`Music planning job ${jobType} lacks exact acceptance evidence.`)
-    }
-  }
+  for (const jobType of MUSIC_JOB_TYPES) requireExactMusicAcceptanceEvidence({ jobType, mode: 'planning' })
 }

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+trap 'status=$?; printf "ERROR: private capsule build failed at line %s: %s (exit %s)\n" "${LINENO}" "${BASH_COMMAND}" "${status}" >&2; exit "${status}"' ERR
+
 readonly ROOT='/opt/weeditpro-capsule-builder'
 readonly WORK='/tmp/weeditpro-track-all-l4-capsule'
 readonly PRIVATE_ROOT="${WORK}/build-source/track_all_task_qa_private_build_input"

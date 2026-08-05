@@ -20,13 +20,14 @@ COPY source-provenance.lock /opt/weeditpro-capsule-builder/source/source-provena
 COPY build-private-capsule.sh /opt/weeditpro-capsule-builder/build-private-capsule.sh
 
 RUN test "$(uname -m)" = 'x86_64' \
-  && command -v cmake >/dev/null \
-  && command -v curl >/dev/null \
-  && command -v g++ >/dev/null \
-  && command -v make >/dev/null \
-  && command -v python >/dev/null \
+  && for command_name in bash cmake cp curl cut find g++ gzip make mv nproc \
+       python readlink sha256sum sort stat tar touch xargs; do \
+       command -v "${command_name}" >/dev/null \
+         || { printf 'ERROR: missing pinned-builder utility: %s\n' \
+           "${command_name}" >&2; exit 127; }; \
+     done \
   && chmod 0555 /opt/weeditpro-capsule-builder/build-private-capsule.sh \
-  && /opt/weeditpro-capsule-builder/build-private-capsule.sh
+  && bash /opt/weeditpro-capsule-builder/build-private-capsule.sh
 
 ENTRYPOINT []
 CMD ["/bin/false"]

@@ -1626,3 +1626,49 @@ after the shared Track Graph checksum-authority changes. Both qualification
 artifacts are regenerated from the clean TRACK-24 source commit before this
 milestone closes. No real SAM/model/GPU call, public artifact, production
 mutation, peer-skill implementation, or head-orchestra action occurred.
+
+Remote evidence closeout:
+
+- TRACK-24 source commit:
+  `497f79765aa1a7ac565a86c4c86dc3daca303313` (pushed and remotely
+  confirmed);
+- B-Roll generated-evidence commit:
+  `ca9563afce5412144eaf027214f35827cf2fd2e8` (pushed and remotely
+  confirmed);
+- Track All generated-evidence and ledger commit: recorded by this commit and
+  confirmed after its push.
+
+`npm run qualify:b-roll:internal` actually passed 31 commands and 36 fixture
+records against clean source commit
+`497f79765aa1a7ac565a86c4c86dc3daca303313`. B-Roll remains exactly
+`internal_execution_qualified` with:
+
+- manifest hash:
+  `2890bb5d96cbb6432c9376acc274c84b793af1521c2da5adc18ccdf7420c23ad`;
+- relevant source-tree hash:
+  `c19cd17e3fa578bad633ed77b3448c9875b8c2be1342c6cff8d5ca188e4a19d6`;
+- dependency authority-set hash:
+  `b7756fd930217eaca0b03bf13555910c00ac15a679c487742fdbe48d0c03ce17`;
+- qualification receipt hash:
+  `605e123e14f00b038856a663534cb7fff25400862da7bd4a63ec0693567e1b40`;
+- generated artifact hash:
+  `f9eff68564c9f4a8f037c84e5d0be2c42946a84097cc2365b4b665f3c7ad4cbf`.
+
+`npm run qualify:track-all:internal` actually passed 30 commands and 23 fixture
+records against clean commit
+`ca9563afce5412144eaf027214f35827cf2fd2e8`. Track All remains honestly
+`planning_qualified` until deterministic route receipts are promoted from this
+actual evidence in TRACK-27, with:
+
+- manifest hash:
+  `405b1193ed9609befc9362bce4022bf664567d23fd22564c62271779a220064e`;
+- relevant source-tree hash:
+  `cb875f38c4e81611486e5ebd3eb766f442924b23b99deab381ed3bda5bbadfe8`;
+- shared authority-set hash:
+  `1b9294e173593dda9cff3a3e065346708247f8ac75c9096810e120f3d805b822`;
+- qualification receipt hash:
+  `a9da22e76e15acb6eca5346c4a2567db66c4c605c003c2b40556794ef22d40c8`;
+- generated artifact hash:
+  `37d1f89d8285fe6ebca867ce97137e09fe479ae84a2fcdcada95f838e3e3ba7f`;
+- ten route receipts, zero actual SAM requests, zero actual GPU executions,
+  and `productionQualified: false`.

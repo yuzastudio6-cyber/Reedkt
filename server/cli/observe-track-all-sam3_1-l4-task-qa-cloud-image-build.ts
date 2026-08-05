@@ -73,7 +73,7 @@ function parseArguments(values: readonly string[]): Record<string, string> & {
 } {
   const parsed: Record<string, string> = {}
   for (const value of values) {
-    const match = /^--([a-z-]+)=(.+)$/u.exec(value)
+    const match = /^--([a-z0-9-]+)=(.+)$/u.exec(value)
     if (!match || parsed[match[1]]) {
       throw new Error('track_all_l4_build_observation_arguments_invalid')
     }

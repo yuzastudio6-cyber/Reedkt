@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import { z } from 'zod'
 
 import {
@@ -184,9 +186,7 @@ const dependencyWithoutHashSchema = z.object({
     ),
     cudaArchitecture: z.literal('8.9'),
     buildInformationSha256: rawSha256,
-    runtimeArtifactSetSha256: z.literal(
-      '226832c960c247967bded2f2edd97c6e8b7b73ab2363ed964f3183445c586f38',
-    ),
+    runtimeArtifactSetSha256: rawSha256,
     nonFreeAlgorithmsEnabled: z.literal(false),
     fastMathEnabled: z.literal(false),
   }).strict(),
@@ -513,7 +513,7 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews(
       contribArchiveSha256: '79b55fa0d0edc6b2766f20cc97baf9dcee5f974870d5afeb1f8e3c623623b59b',
       cudaArchitecture: '8.9',
       buildInformationSha256: input.opencvBuildInformationSha256,
-      runtimeArtifactSetSha256: '226832c960c247967bded2f2edd97c6e8b7b73ab2363ed964f3183445c586f38',
+      runtimeArtifactSetSha256: opencvRuntimeArtifactSetHash(entries),
       nonFreeAlgorithmsEnabled: false,
       fastMathEnabled: false,
     },
@@ -771,7 +771,7 @@ function assertExactReviewedDependencies(
   const requiredNative = new Map<string, string>([
     [
       'track_all_task_qa_private_build_input/opencv/opencv-build-information.txt',
-      'f20e691913bbb7725b8eb46a1b277d241ea0d7728dc2fe484787318f896ab54a',
+      'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
     ],
     [
       'track_all_task_qa_private_build_input/opencv/LICENSE',
@@ -805,6 +805,27 @@ function assertExactReviewedDependencies(
       throw new Error(`Track All L4 wheel ${dependency.normalizedName} changed.`)
     }
   }
+}
+
+function opencvRuntimeArtifactSetHash(
+  entries: readonly CanonicalTrackAllSam31L4TaskQaBuildSourceEntry[],
+): string {
+  const prefix =
+    'track_all_task_qa_private_build_input/opencv/install/'
+  const runtimeEntries = entries
+    .filter((entry) => entry.path.startsWith(prefix))
+    .sort((left, right) => left.path < right.path ? -1 : 1)
+  if (runtimeEntries.length < 1) {
+    throw new Error('Track All L4 OpenCV CUDA runtime set is missing.')
+  }
+  const digest = createHash('sha256')
+  for (const entry of runtimeEntries) {
+    digest.update(
+      `${entry.sha256}  ./${entry.path.slice(prefix.length)}\n`,
+      'utf8',
+    )
+  }
+  return digest.digest('hex')
 }
 
 function isStrictlyOrderedUnique(values: readonly string[]): boolean {

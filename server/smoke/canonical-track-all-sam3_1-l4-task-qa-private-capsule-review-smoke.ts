@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 
 import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -17,7 +18,8 @@ const entries = [
   [`${root}/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`, 37_945_232, 'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893'],
   [`${root}/opencv/CONTRIB_LICENSE`, 11_358, 'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30'],
   [`${root}/opencv/LICENSE`, 11_358, 'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30'],
-  [`${root}/opencv/opencv-build-information.txt`, 6_465, 'f20e691913bbb7725b8eb46a1b277d241ea0d7728dc2fe484787318f896ab54a'],
+  [`${root}/opencv/opencv-build-information.txt`, 6_465, 'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae'],
+  [`${root}/opencv/install/lib/libopencv_core.so.412`, 12_345, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
   [`${root}/python/requirements.lock.txt`, 574, '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac'],
   [`${root}/python/wheelhouse/kornia-0.8.3-py3-none-any.whl`, 1_189_381, '0b15f5d359aeafd7ff54ea631ed1943a3eb295c4a6dae3f745ddeada25e33289'],
   [`${root}/python/wheelhouse/kornia_rs-0.1.14-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl`, 3_695_565, '396f84661fcf260885c3f9db717caf6904eafd44857dca17be09a835bd7da8d9'],
@@ -60,7 +62,7 @@ const reviews = createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews({
   requirementsLockSha256:
     '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
   opencvBuildInformationSha256:
-    'f20e691913bbb7725b8eb46a1b277d241ea0d7728dc2fe484787318f896ab54a',
+    'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
   opencvLicenseSha256:
     'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
   opencvContribLicenseSha256:
@@ -81,6 +83,13 @@ assert.equal(reviews.archiveSafetyReview.malwareContentClassificationClaimed,
   false)
 assert.equal(reviews.dependencyReview.pythonDependencies.length, 6)
 assert.equal(reviews.dependencyReview.runtimePackageDownloadsAllowed, false)
+assert.equal(
+  reviews.dependencyReview.opencvCuda.runtimeArtifactSetSha256,
+  createHash('sha256').update(
+    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa  ./lib/libopencv_core.so.412\n',
+    'utf8',
+  ).digest('hex'),
+)
 assert.equal(reviews.licenseReview.privateCandidateImageBuildAllowed, true)
 assert.equal(reviews.licenseReview.runtimeReleaseAllowed, false)
 assert.equal(reviews.licenseReview.legalApprovalClaimed, false)
@@ -148,7 +157,7 @@ assert.doesNotThrow(() =>
     requirementsLockSha256:
       '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
     opencvBuildInformationSha256:
-      'f20e691913bbb7725b8eb46a1b277d241ea0d7728dc2fe484787318f896ab54a',
+      'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
     opencvLicenseSha256:
       'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
     opencvContribLicenseSha256:
@@ -173,13 +182,44 @@ assert.throws(() =>
     requirementsLockSha256:
       '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
     opencvBuildInformationSha256:
-      'f20e691913bbb7725b8eb46a1b277d241ea0d7728dc2fe484787318f896ab54a',
+      'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
     opencvLicenseSha256:
       'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
     opencvContribLicenseSha256:
       'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
     preparedAt: '2026-08-05T17:20:00.000Z',
   }))
+
+const changedRuntimeEntries = entries.map((entry) => entry.path ===
+  `${root}/opencv/install/lib/libopencv_core.so.412`
+  ? { ...entry, sha256: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' }
+  : entry)
+const changedRuntimeReviews =
+  createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews({
+    buildSourceCoordinate: coordinate,
+    buildSourceArtifactRef,
+    buildSourceArchiveEntries: changedRuntimeEntries,
+    buildSourceArchiveEntrySetSha256:
+      sha256AuthorityValue(changedRuntimeEntries),
+    buildSourceArchiveDirectoryEntries: directories,
+    requirementsLockSha256:
+      '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
+    opencvBuildInformationSha256:
+      'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
+    opencvLicenseSha256:
+      'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
+    opencvContribLicenseSha256:
+      'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
+    preparedAt: '2026-08-05T17:20:00.000Z',
+  })
+assert.notEqual(
+  changedRuntimeReviews.dependencyReview.opencvCuda.runtimeArtifactSetSha256,
+  reviews.dependencyReview.opencvCuda.runtimeArtifactSetSha256,
+)
+assert.notEqual(
+  changedRuntimeReviews.dependencyReview.reviewHash,
+  reviews.dependencyReview.reviewHash,
+)
 
 assert.throws(() =>
   createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews({
@@ -192,7 +232,7 @@ assert.throws(() =>
     requirementsLockSha256:
       '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
     opencvBuildInformationSha256:
-      'f20e691913bbb7725b8eb46a1b277d241ea0d7728dc2fe484787318f896ab54a',
+      'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
     opencvLicenseSha256:
       'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
     opencvContribLicenseSha256:
@@ -217,11 +257,12 @@ assert.equal(getterInvoked, false)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-private-capsule-review',
-  checks: 24,
+  checks: 26,
   exactArchiveEntrySetBound: true,
   cloudBuildSourceDirectoryEnvelopeBound: true,
   missingParentDirectoryRejected: true,
   exactHashLockedPythonDependencySetBound: true,
+  exactOpenCvCudaRuntimeArtifactSetBound: true,
   exactWheelMetadataAndLicenseEvidenceBound: true,
   proprietaryCudaLicenseNarrowedToPrivateNvidiaInfrastructureUse: true,
   malwareContentClassificationClaimed: false,

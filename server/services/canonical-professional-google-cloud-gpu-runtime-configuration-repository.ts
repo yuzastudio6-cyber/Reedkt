@@ -19,10 +19,12 @@ import {
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
   assertCanonicalProfessionalGoogleCloudGpuPrivateObjectTransport,
+  assertCanonicalTrackAllSam31L4TaskQaPrivateObjectTransport,
   assertCanonicalProfessionalGoogleCloudGpuRelease,
   canonicalProfessionalGoogleCloudGpuPrivateObjectTransportSchema,
+  canonicalTrackAllSam31L4TaskQaPrivateObjectTransportSchema,
   canonicalProfessionalGoogleCloudGpuReleaseSchema,
-  type CanonicalProfessionalGoogleCloudGpuPrivateObjectTransport,
+  type CanonicalProfessionalGoogleCloudGpuPrivateObjectTransportRecord,
   type CanonicalProfessionalGoogleCloudGpuPrivateObjectTransportReadPort,
   type CanonicalProfessionalGoogleCloudGpuRelease,
   type CanonicalProfessionalGoogleCloudGpuReleaseReadPort,
@@ -52,6 +54,10 @@ const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const privateBucketName = z.string().trim().min(3).max(222).regex(
   /^[a-z0-9][a-z0-9._-]+[a-z0-9]$/u,
 )
+const privateTransportRecordSchema = z.discriminatedUnion('schemaVersion', [
+  canonicalProfessionalGoogleCloudGpuPrivateObjectTransportSchema,
+  canonicalTrackAllSam31L4TaskQaPrivateObjectTransportSchema,
+])
 const recordWithoutHashSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_PROFESSIONAL_GOOGLE_CLOUD_GPU_RUNTIME_CONFIGURATION_RECORD_VERSION,
@@ -62,7 +68,7 @@ const recordWithoutHashSchema = z.object({
   evidenceClass: z.literal('gcs_create_only_exact_reread'),
   release: canonicalProfessionalGoogleCloudGpuReleaseSchema,
   privateObjectTransport:
-    canonicalProfessionalGoogleCloudGpuPrivateObjectTransportSchema.nullable(),
+    privateTransportRecordSchema.nullable(),
   immutableReleaseTransportImageServiceAndTaskContractBound: z.literal(true),
   scaleFromZeroConfigurationPreserved: z.literal(true),
   callerImageCommandModelPathUrlOrEnvironmentAccepted: z.literal(false),
@@ -92,13 +98,13 @@ export interface CanonicalProfessionalGoogleCloudGpuRuntimeConfigurationReposito
   persistRuntimeConfigurationCreateOnly(input: {
     readonly release: CanonicalProfessionalGoogleCloudGpuRelease
     readonly privateObjectTransport:
-      CanonicalProfessionalGoogleCloudGpuPrivateObjectTransport | null
+      CanonicalProfessionalGoogleCloudGpuPrivateObjectTransportRecord | null
     readonly publishedAt: string
   }): Promise<{
     readonly disposition: 'created' | 'identical_replay'
     readonly releaseRef: CanonicalProfessionalGoogleCloudGpuRelease['releaseRef']
     readonly privateObjectTransportRef:
-      CanonicalProfessionalGoogleCloudGpuPrivateObjectTransport['transportRef'] | null
+      CanonicalProfessionalGoogleCloudGpuPrivateObjectTransportRecord['transportRef'] | null
     readonly providerOrGpuJobStarted: false
     readonly billingWalletOrCreditAuthorityGranted: false
   }>
@@ -160,7 +166,8 @@ export function createCanonicalProfessionalGoogleCloudGpuRuntimeConfigurationRep
       )
       const transport = request.privateObjectTransport === null
         ? null
-        : assertCanonicalProfessionalGoogleCloudGpuPrivateObjectTransport(
+        : assertPrivateTransportForRelease(
+            release,
             request.privateObjectTransport,
           )
       assertReleaseAndTransportBinding(
@@ -357,11 +364,15 @@ function assertReleaseMatchesScope(
 
 function assertReleaseAndTransportBinding(
   release: CanonicalProfessionalGoogleCloudGpuRelease,
-  transport: CanonicalProfessionalGoogleCloudGpuPrivateObjectTransport | null,
+  transport:
+    CanonicalProfessionalGoogleCloudGpuPrivateObjectTransportRecord | null,
   expectedPrivateObjectBucketName: string | null = null,
 ): void {
-  if (release.toolId === 'sam3_1' && !transport) {
-    throw conflict('sam3_1_private_object_transport_required')
+  const fixedPrivateObjectTask = release.toolId === 'sam3_1'
+    || (release.toolId === 'kornia'
+      && release.operationId === 'tool.kornia.refine_mask.v1')
+  if (fixedPrivateObjectTask && !transport) {
+    throw conflict('fixed_task_private_object_transport_required')
   }
   if (!transport) return
   const cloudRunJobResource = release.executionTarget ===
@@ -378,6 +389,14 @@ function assertReleaseAndTransportBinding(
     || transport.cloudRunJobResource !== cloudRunJobResource) {
     throw conflict('runtime_release_private_transport_mismatch')
   }
+  if (
+    release.operationId === 'tool.kornia.refine_mask.v1'
+      ? transport.schemaVersion !==
+        'canonical-track-all-sam3_1-l4-task-qa-private-object-transport-v1'
+      : release.toolId === 'sam3_1'
+        && transport.schemaVersion !==
+          'canonical-professional-google-cloud-gpu-private-object-transport-v1'
+  ) throw conflict('runtime_release_private_transport_schema_mismatch')
 }
 
 async function readRecord(
@@ -408,7 +427,8 @@ async function readRecord(
   }
   assertCanonicalProfessionalGoogleCloudGpuRelease(record.release)
   if (record.privateObjectTransport) {
-    assertCanonicalProfessionalGoogleCloudGpuPrivateObjectTransport(
+    assertPrivateTransportForRelease(
+      record.release,
       record.privateObjectTransport,
     )
   }
@@ -418,6 +438,19 @@ async function readRecord(
     expectedPrivateObjectBucketName,
   )
   return record
+}
+
+function assertPrivateTransportForRelease(
+  release: CanonicalProfessionalGoogleCloudGpuRelease,
+  value: unknown,
+): CanonicalProfessionalGoogleCloudGpuPrivateObjectTransportRecord {
+  try {
+    return release.operationId === 'tool.kornia.refine_mask.v1'
+      ? assertCanonicalTrackAllSam31L4TaskQaPrivateObjectTransport(value)
+      : assertCanonicalProfessionalGoogleCloudGpuPrivateObjectTransport(value)
+  } catch {
+    throw conflict('runtime_release_private_transport_schema_mismatch')
+  }
 }
 
 function targetFromRelease(

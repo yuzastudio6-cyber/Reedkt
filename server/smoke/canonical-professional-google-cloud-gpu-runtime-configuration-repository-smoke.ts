@@ -12,6 +12,10 @@ import {
   a100PrivateTransport,
   a100Release,
   a100Target,
+  maskQaAdmission,
+  maskQaPrivateTransport,
+  maskQaRelease,
+  maskQaTarget,
   sam31L4Admission,
   sam31L4PrivateTransport,
   sam31L4Release,
@@ -37,8 +41,15 @@ const l4Published = await repository.persistRuntimeConfigurationCreateOnly({
   privateObjectTransport: sam31L4PrivateTransport,
   publishedAt,
 })
+const maskQaPublished =
+  await repository.persistRuntimeConfigurationCreateOnly({
+    release: maskQaRelease,
+    privateObjectTransport: maskQaPrivateTransport,
+    publishedAt,
+  })
 assert.equal(a100Published.disposition, 'created')
 assert.equal(l4Published.disposition, 'created')
+assert.equal(maskQaPublished.disposition, 'created')
 assert.equal(a100Published.providerOrGpuJobStarted, false)
 assert.equal(a100Published.billingWalletOrCreditAuthorityGranted, false)
 assert.equal((await repository.persistRuntimeConfigurationCreateOnly({
@@ -46,7 +57,7 @@ assert.equal((await repository.persistRuntimeConfigurationCreateOnly({
   privateObjectTransport: a100PrivateTransport,
   publishedAt,
 })).disposition, 'identical_replay')
-assert.equal(objects.size, 2)
+assert.equal(objects.size, 3)
 
 const rereadA100 = await repository.rereadPrivateRelease({
   admission: a100Admission,
@@ -59,12 +70,20 @@ const rereadL4 = await repository.rereadPrivateRelease({
   target: sam31L4Target,
 })
 assert.deepEqual(rereadL4, sam31L4Release)
+const rereadMaskQa = await repository.rereadPrivateRelease({
+  admission: maskQaAdmission,
+  target: maskQaTarget,
+})
+assert.deepEqual(rereadMaskQa, maskQaRelease)
 assert.deepEqual(await repository.rereadPrivateLaunchTarget({
   admission: a100Admission,
 }), a100Target)
 assert.deepEqual(await repository.rereadPrivateLaunchTarget({
   admission: sam31L4Admission,
 }), sam31L4Target)
+assert.deepEqual(await repository.rereadPrivateLaunchTarget({
+  admission: maskQaAdmission,
+}), maskQaTarget)
 const rereadTransport = await repository.rereadPrivateObjectTransport({
   admission: sam31L4Admission,
   target: sam31L4Target,
@@ -72,6 +91,12 @@ const rereadTransport = await repository.rereadPrivateObjectTransport({
 })
 assert.deepEqual(rereadTransport, sam31L4PrivateTransport)
 assert.notEqual(rereadTransport, sam31L4PrivateTransport)
+const rereadMaskQaTransport = await repository.rereadPrivateObjectTransport({
+  admission: maskQaAdmission,
+  target: maskQaTarget,
+  release: maskQaRelease,
+})
+assert.deepEqual(rereadMaskQaTransport, maskQaPrivateTransport)
 
 await assert.rejects(repository.rereadPrivateRelease({
   admission: sam31L4Admission,
@@ -87,6 +112,11 @@ await assert.rejects(repository.persistRuntimeConfigurationCreateOnly({
   privateObjectTransport: sam31L4PrivateTransport,
   publishedAt,
 }), /transport_mismatch/u)
+await assert.rejects(repository.persistRuntimeConfigurationCreateOnly({
+  release: maskQaRelease,
+  privateObjectTransport: sam31L4PrivateTransport,
+  publishedAt,
+}), /transport_schema_mismatch/u)
 
 let getterInvoked = false
 const hostile = Object.defineProperty(
@@ -132,9 +162,10 @@ await assert.rejects(repository.rereadPrivateRelease({
 console.log(JSON.stringify({
   smoke:
     'canonical-professional-google-cloud-gpu-runtime-configuration-repository',
-  checks: 31,
+  checks: 41,
   a100BatchAndL4CloudRunReleasesPersistedCreateOnly: true,
   sam31PrivateObjectTransportsExactMatched: true,
+  l4TaskQaSeparateInputAndOutputRootsExactMatched: true,
   immutableImageServiceIdentityTaskContractAndRouteBound: true,
   a100CompiledMountAndL4PreconfiguredMountPreserved: true,
   identicalReplayAccepted: true,

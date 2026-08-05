@@ -231,6 +231,7 @@
     "publish:current-gpu-rate-authorities": "tsx server/cli/publish-current-google-cloud-gpu-rate-authorities.ts",
     "smoke:professional-gpu-runtime-configuration-repository": "tsx server/smoke/canonical-professional-google-cloud-gpu-runtime-configuration-repository-smoke.ts",
     "smoke:sam3_1-google-cloud-runtime-configuration-publisher": "tsx server/smoke/canonical-sam3_1-google-cloud-runtime-configuration-publisher-smoke.ts",
+    "smoke:track-all-sam3_1-l4-task-qa-runtime-release": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher-smoke.ts",
     "publish:sam3_1-google-cloud-runtime-configuration": "tsx server/cli/publish-sam3_1-google-cloud-runtime-configuration.ts",
     "smoke:canonical-specialist-support-resume": "tsx server/smoke/canonical-specialist-support-resume-service-smoke.ts",
     "smoke:canonical-caption-visual-intelligence-support": "tsx server/smoke/canonical-caption-visual-intelligence-support-service-smoke.ts",

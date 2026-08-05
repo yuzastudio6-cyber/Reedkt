@@ -318,14 +318,14 @@ const maskQaReleaseRef = evidenceRef(
   'track-all-mask-qa-l4-runtime-release',
   sha('track-all-mask-qa-l4-runtime-release-record'),
 )
-const maskQaAdmission = buildAdmission({
+export const maskQaAdmission = buildAdmission({
   admissionId: 'track-all-mask-qa-l4-admission',
   toolId: 'kornia',
   operationId: 'tool.kornia.refine_mask.v1',
   routeId: 'l4_standard_primary',
   releaseRef: maskQaReleaseRef,
 })
-const maskQaTarget = {
+export const maskQaTarget = {
   ...l4Target,
   releaseRef: maskQaReleaseRef,
   toolId: maskQaAdmission.toolId,
@@ -338,13 +338,8 @@ const maskQaTarget = {
   privateNetworkAndArtifactTransportRef:
     ref('track-all-mask-qa-l4-private-transport'),
 }
-const maskQaRelease = buildMaskQaL4Release()
-const maskQaPrivateTransport = buildSam31PrivateObjectTransport({
-  routeId: 'l4_standard_primary',
-  target: maskQaTarget,
-  cloudRunJobResource:
-    'projects/reeditpro/locations/us-central1/jobs/reeditpro-track-all-mask-qa-l4',
-})
+export const maskQaRelease = buildMaskQaL4Release()
+export const maskQaPrivateTransport = buildMaskQaPrivateObjectTransport()
 let maskQaRequest: Record<string, unknown> | null = null
 const maskQaPort = createGoogleCloudProfessionalGpuJobLaunchPort({
   releaseReadPort: {
@@ -611,6 +606,49 @@ function buildSam31PrivateObjectTransport(input: {
     responseAndOutputGenerationOneRequired: true as const,
     serviceIdentityLeastPrivilegeReadTaskSourceWriteOutputOnly: true as const,
     signedUrlPublicObjectOrCallerPathTransportAllowed: false as const,
+    runtimeModelOrMediaDownloadAllowed: false as const,
+    publicNetworkEgressAllowed: false as const,
+    observedAt: '2026-08-02T16:55:00.000Z',
+  }
+  return {
+    ...payload,
+    configurationHash: sha256AuthorityValue(payload),
+  }
+}
+
+function buildMaskQaPrivateObjectTransport() {
+  const payload = {
+    schemaVersion:
+      'canonical-track-all-sam3_1-l4-task-qa-private-object-transport-v1' as const,
+    source:
+      'canonical_server_track_all_sam3_1_l4_task_qa_private_transport_registry' as const,
+    evidenceClass: 'canonical_private_reread' as const,
+    transportRef: maskQaTarget.privateNetworkAndArtifactTransportRef,
+    serviceIdentityRef: maskQaTarget.serviceIdentityRef,
+    routeId: 'l4_standard_primary' as const,
+    projectId: 'reeditpro' as const,
+    privateBucketName: 'reeditpro-private-professional-gpu',
+    bucketCmekAndUniformAccessPolicyRef: ref('private-gpu-bucket-policy'),
+    invocationRootMountPath: '/mnt/reeditpro' as const,
+    invocationObjectPrefix:
+      'private/canonical-professional-gpu/sam3_1/v1/invocations' as const,
+    sam31ManifestObjectName: 'output/mask-manifest.json' as const,
+    sam31MaskObjectPattern:
+      'output/frame-{frameIndex:06}-object-{objectId:06}.png' as const,
+    l4TaskObjectName: 'task-qa/task.json' as const,
+    l4ResponseObjectName: 'task-qa/response.json' as const,
+    gcsFuseVolumeName: 'reeditpro-private-gpu-objects' as const,
+    gcsFuseMountOptions: 'rw,implicit-dirs' as const,
+    cloudRunJobResource:
+      'projects/reeditpro/locations/us-central1/jobs/reeditpro-track-all-mask-qa-l4',
+    cloudRunJobConfigurationRef:
+      ref('track-all-mask-qa-l4-cloud-run-configuration'),
+    l4CloudRunMountPreconfiguredAndReread: true as const,
+    separateSam31ReadRootAndL4TaskQaWriteRoot: true as const,
+    exactSam31ManifestAndEveryMaskRereadRequired: true as const,
+    l4TaskGenerationOneRereadBeforeLaunch: true as const,
+    l4ResponseGenerationOneRequired: true as const,
+    callerPathUrlObjectNameCommandOrEnvironmentAllowed: false as const,
     runtimeModelOrMediaDownloadAllowed: false as const,
     publicNetworkEgressAllowed: false as const,
     observedAt: '2026-08-02T16:55:00.000Z',

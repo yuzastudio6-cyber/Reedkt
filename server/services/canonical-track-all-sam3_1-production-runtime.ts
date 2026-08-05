@@ -63,9 +63,15 @@ import {
   type CanonicalCaptionTrackAllSupportService,
   type CanonicalTrackAllSam31CaptionSceneEvidenceRepository,
 } from './canonical-caption-track-all-support-service'
+import {
+  createCanonicalTrackAllSam31TaskQaOwner,
+  createCanonicalTrackAllSam31TaskQaRepository,
+  type CanonicalTrackAllSam31TaskQaOwner,
+  type CanonicalTrackAllSam31TaskQaRepository,
+} from './canonical-track-all-sam3_1-task-qa-owner'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v2' as const
+  'canonical-track-all-sam3_1-production-runtime-v3' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -79,6 +85,9 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     CanonicalSpecialistSupportResumeRepository
   readonly captionTrackAllSceneEvidenceRepository:
     CanonicalTrackAllSam31CaptionSceneEvidenceRepository
+  readonly captionTrackAllTaskQaRepository:
+    CanonicalTrackAllSam31TaskQaRepository
+  readonly captionTrackAllTaskQaOwner: CanonicalTrackAllSam31TaskQaOwner
   readonly captionTrackAllEvidenceRepository:
     CanonicalCaptionTrackAllEvidenceRepository
   readonly captionTrackAllSupportService:
@@ -192,6 +201,19 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     createCanonicalTrackAllSam31CaptionSceneEvidenceRepository({
       objectPort: controlPlaneObjectPort,
     })
+  const captionTrackAllTaskQaRepository =
+    createCanonicalTrackAllSam31TaskQaRepository({
+      objectPort: controlPlaneObjectPort,
+    })
+  const captionTrackAllTaskQaOwner =
+    createCanonicalTrackAllSam31TaskQaOwner({
+      supportResumeRepository: specialistSupportResumeRepository,
+      taskStore,
+      taskContextRepository,
+      resultStore: sam31RuntimeResultStore,
+      qaRepository: captionTrackAllTaskQaRepository,
+      sceneEvidenceRepository: captionTrackAllSceneEvidenceRepository,
+    })
   const captionTrackAllEvidenceRepository =
     createCanonicalCaptionTrackAllEvidenceRepository({
       objectPort: controlPlaneObjectPort,
@@ -202,6 +224,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       taskStore,
       taskContextRepository,
       resultStore: sam31RuntimeResultStore,
+      sceneQaAuthorityReadPort: captionTrackAllTaskQaRepository,
       sceneEvidenceRepository: captionTrackAllSceneEvidenceRepository,
       evidenceRepository: captionTrackAllEvidenceRepository,
     })
@@ -250,6 +273,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     trackAllSam31AuthenticatedGpuStartRuntimePort: authenticatedRuntime,
     specialistSupportResumeRepository,
     captionTrackAllSceneEvidenceRepository,
+    captionTrackAllTaskQaRepository,
+    captionTrackAllTaskQaOwner,
     captionTrackAllEvidenceRepository,
     captionTrackAllSupportService,
     captionTrackAllEvidenceRequiresAdmittedCanonicalSam31Result: true as const,

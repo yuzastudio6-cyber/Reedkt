@@ -40,12 +40,17 @@ check(
 )
 
 const retiredOrchestraPath = join(process.cwd(), 'server', 'orchestra')
-await access(retiredOrchestraPath).then(async () => {
-  check((await readdir(retiredOrchestraPath)).length === 0,
-    'The retired Sound-created generic Orchestra façade still contains active production files.')
-}, (error: NodeJS.ErrnoException) => {
-  check(error.code === 'ENOENT', `Unexpected Orchestra path error: ${error.message}`)
-})
+const sharedOrchestraFiles = (await readdir(retiredOrchestraPath))
+  .filter((name) => name.endsWith('.ts'))
+check(sharedOrchestraFiles.length > 0,
+  'The shared backend Orchestra contracts are unexpectedly unavailable.')
+check(sharedOrchestraFiles.every((name) => !/sound/iu.test(name)),
+  'A Sound-owned Orchestra façade re-entered the shared backend path.')
+for (const name of sharedOrchestraFiles) {
+  const source = await readFile(join(retiredOrchestraPath, name), 'utf8')
+  check(!/inspectSoundAssignmentTools|CanonicalSoundRouteExecutor|MireloSfxProviderAdapter/u
+    .test(source), `Shared Orchestra file ${name} embeds a Sound runtime.`)
+}
 
 const activeRoots = [join(process.cwd(), 'server', 'sound'), join(process.cwd(), 'server', 'edit-skills', 'sound')]
 const activeFiles = (await Promise.all(activeRoots.map(async (root) =>
@@ -82,8 +87,9 @@ for (const internalBypass of [
 }
 
 console.log(JSON.stringify({
-  status: 'ok', retiredGenericOrchestraFacade: true, activeFilesScanned: activeFiles.length,
+  status: 'ok', retiredSoundCreatedOrchestraFacade: true,
+  sharedOrchestraPreserved: true, activeFilesScanned: activeFiles.length,
   compatibilityBoundary: 'planning_only', musicHandoff: 'future_music_skill',
 }, null, 2))
-import { access, readFile, readdir } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import { join } from 'node:path'

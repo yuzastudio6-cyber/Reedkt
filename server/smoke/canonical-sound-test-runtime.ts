@@ -77,7 +77,12 @@ export class TestSoundArtifactResolver implements CanonicalSoundArtifactResolver
 
 export async function createCanonicalSoundTestRuntime(
   rate: TimelineRate = { numerator: 30, denominator: 1 },
+  durationSeconds = 3,
 ): Promise<CanonicalSoundTestRuntime> {
+  if (!Number.isFinite(durationSeconds)
+    || durationSeconds < 1 || durationSeconds > 60) {
+    throw new Error('Canonical Sound test duration must be between 1 and 60 seconds.')
+  }
   const root = await mkdtemp(join(tmpdir(), 'reeditpro-canonical-sound-'))
   const inputRoot = join(root, 'private-input')
   const outputRoot = join(root, 'private-output')
@@ -90,24 +95,30 @@ export async function createCanonicalSoundTestRuntime(
   const videoPath = join(inputRoot, 'source.mp4')
   await execFileAsync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-nostdin', '-y',
-    '-f', 'lavfi', '-i', 'aevalsrc=if(between(t\\,0.095\\,0.11)\\,0.9\\,0.02*sin(2*PI*660*t)):s=48000:d=3',
+    '-f', 'lavfi', '-i', `aevalsrc=if(between(t\\,0.095\\,0.11)\\,0.9\\,0.02*sin(2*PI*660*t)):s=48000:d=${durationSeconds}`,
     '-ac', '2', '-c:a', 'pcm_s24le', audioPath,
   ], { timeout: 30_000 })
   await execFileAsync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-nostdin', '-y',
-    '-f', 'lavfi', '-i', 'sine=frequency=330:duration=3:sample_rate=48000',
+    '-f', 'lavfi', '-i', `sine=frequency=330:duration=${durationSeconds}:sample_rate=48000`,
     '-af', 'volume=0.3', '-ac', '2', '-c:a', 'pcm_s24le', secondAudioPath,
   ], { timeout: 30_000 })
   const rateText = `${rate.numerator}/${rate.denominator}`
   await execFileAsync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-nostdin', '-y',
-    '-f', 'lavfi', '-i', `testsrc2=s=320x180:r=${rateText}:d=3`,
-    '-f', 'lavfi', '-i', 'sine=frequency=220:duration=3:sample_rate=48000',
+    '-f', 'lavfi', '-i', `testsrc2=s=320x180:r=${rateText}:d=${durationSeconds}`,
+    '-f', 'lavfi', '-i', `sine=frequency=220:duration=${durationSeconds}:sample_rate=48000`,
     '-shortest', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', videoPath,
   ], { timeout: 30_000 })
-  const audioArtifact = await artifactFor('approved-audio', 'approved_source_audio', audioPath, 'audio/wav', rate)
-  const secondAudioArtifact = await artifactFor('approved-audio-2', 'approved_source_audio', secondAudioPath, 'audio/wav', rate)
-  const videoArtifact = await artifactFor('approved-video', 'approved_source_video', videoPath, 'video/mp4', rate)
+  const audioArtifact = await artifactFor(
+    'approved-audio', 'approved_source_audio', audioPath, 'audio/wav', rate,
+    durationSeconds)
+  const secondAudioArtifact = await artifactFor(
+    'approved-audio-2', 'approved_source_audio', secondAudioPath, 'audio/wav', rate,
+    durationSeconds)
+  const videoArtifact = await artifactFor(
+    'approved-video', 'approved_source_video', videoPath, 'video/mp4', rate,
+    durationSeconds)
   const resolver = new TestSoundArtifactResolver()
   resolver.register(audioArtifact, audioPath, inputRoot)
   resolver.register(secondAudioArtifact, secondAudioPath, inputRoot)
@@ -230,12 +241,15 @@ async function artifactFor(
   path: string,
   contentType: string,
   timelineRate: TimelineRate,
+  durationSeconds: number,
 ): Promise<SoundArtifactRef> {
   const bytes = await readFile(path)
   return {
     artifactId, artifactType, version: 1,
     checksumSha256: createHash('sha256').update(bytes).digest('hex'),
     storageObjectId: `test:${artifactId}:1`, private: true, contentType,
-    timelineRate, durationFrames: Math.round(3 * timelineRate.numerator / timelineRate.denominator),
+    timelineRate,
+    durationFrames: Math.round(
+      durationSeconds * timelineRate.numerator / timelineRate.denominator),
   }
 }

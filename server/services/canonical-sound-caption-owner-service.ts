@@ -23,6 +23,10 @@ import { assertClosedContractTree } from
 import type {
   CanonicalSoundArtifactResolver,
 } from '../edit-skills/sound/sound-route-executor'
+import { isCompositeSoundExecutionJob } from
+  '../edit-skills/sound/sound-admission'
+import { getSoundToolRouteManifest } from
+  '../sound/sound-tool-route-manifest'
 import {
   canonicalSoundRequestSchema,
   canonicalSoundResultSchema,
@@ -370,8 +374,7 @@ function assertExecutionLineage(
     || result.sourceTimingHash !== request.timelineManifestHash
     || hashSkillValue(result.timelineRate) !== hashSkillValue(request.timelineRate)
     || result.status !== 'completed'
-    || !['internal_execution_qualified', 'production_qualified']
-      .includes(result.qualificationStatusUsed)
+    || !hasAdmittedExecutionQualification(request, result)
     || result.workerStatus !== 'completed'
     || result.artifactStatus !== 'private_ready'
     || result.qaStatus === 'failed'
@@ -391,6 +394,40 @@ function assertExecutionLineage(
     throw new Error('Canonical Sound execution does not bind the Caption request.')
   }
   assertExecutionQa(result)
+}
+
+function hasAdmittedExecutionQualification(
+  request: CanonicalSoundRequest,
+  result: CanonicalSoundResult,
+): boolean {
+  if (['internal_execution_qualified', 'production_qualified']
+    .includes(result.qualificationStatusUsed)) return true
+
+  // Composite Sound parents remain planning-qualified by design. Their media
+  // work is executable only through the independently admitted child routes
+  // frozen into the canonical result. Never promote the parent capability.
+  if (result.qualificationStatusUsed !== 'planning_qualified'
+    || request.requiredQualificationMode !== 'private_internal'
+    || request.executionAuthority.requestedMode !== 'private_internal'
+    || !isCompositeSoundExecutionJob(request.requestedJobType)) return false
+
+  const units = result.executionUnits
+  if (!units || units.length < 3
+    || units.some((unit) => unit.status !== 'completed')
+    || !units.some((unit) => unit.routeKey === 'sound.route.mix.scene.v1')
+    || !units.some((unit) => unit.routeKey === 'sound.route.qa.final_sound.v1')) {
+    return false
+  }
+
+  for (const unit of units) {
+    const route = getSoundToolRouteManifest(unit.routeKey, unit.routeVersion)
+    if (!route || route.routeHash !== unit.routeHash
+      || !['internal_execution_qualified', 'production_qualified']
+        .includes(route.qualificationByMode.preview_execution)) return false
+    const { receiptHash, ...receiptCore } = unit
+    if (hashSkillValue(receiptCore) !== receiptHash) return false
+  }
+  return true
 }
 
 function assertExecutionQa(result: CanonicalSoundResult): void {

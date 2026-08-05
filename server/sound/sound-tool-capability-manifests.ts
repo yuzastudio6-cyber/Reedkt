@@ -286,7 +286,7 @@ const manifests = [
     operations: [
       ['analyze_audio_pcm', 'Analyze decoded audio', [...new Set(['study_source_audio', 'study_reference_sound', 'create_sound_dna', 'extract_project_owned_sound', ...qaServiceJobs, ...deterministicEditJobs])], ['sound_study_report', 'candidate_transient_report', 'final_audio_metrics']],
       ['extract_audio_pcm', 'Extract approved audio', ['extract_project_owned_sound', 'generate_video_conditioned_sfx', 'generate_foley'], ['edited_audio_asset_version', 'extracted_provider_audio']],
-      ['trim_fade_gain_audio', 'Trim, fade, and gain audio', [...deterministicEditJobs, 'generate_video_conditioned_sfx', 'generate_text_conditioned_sfx', 'generate_foley'], ['edited_audio_asset_version', 'trimmed_sound_candidate', 'validated_sound_candidate']],
+      ['trim_fade_gain_audio', 'Trim, fade, gain, and apply approved cue alignment', [...deterministicEditJobs, 'generate_video_conditioned_sfx', 'generate_text_conditioned_sfx', 'generate_foley', 'sync_audio_to_visual', 'align_sound_transient'], ['edited_audio_asset_version', 'trimmed_sound_candidate', 'validated_sound_candidate', 'aligned_sound_asset']],
       ['normalize_audio_loudness', 'Normalize audio loudness', deterministicEditJobs, ['edited_audio_asset_version']],
       ['resample_convert_channels', 'Resample and convert channels', deterministicEditJobs, ['edited_audio_asset_version']],
       ['loop_audio_crossfade', 'Loop approved ambience with seam crossfades', [...deterministicEditJobs, 'extend_ambience', 'generate_ambience'], ['edited_audio_asset_version', 'ambience_asset']],

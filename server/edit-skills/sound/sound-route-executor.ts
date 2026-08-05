@@ -725,7 +725,8 @@ export class CanonicalSoundRouteExecutor {
       )
     if (sourceArtifacts.length === 0) throw new Error('Sound operation has no approved source artifact.')
     const sources = await Promise.all(sourceArtifacts.map((artifact) => this.#artifacts.resolve(artifact)))
-    const approvedInputRoot = commonApprovedRoot(sources)
+    const approvedInputRoots = sources.map((source) => source.approvedRoot)
+    const approvedInputRoot = approvedInputRoots[0]!
     const outputRoot = await this.#artifacts.privateOutputRoot(input.input.request.executionAuthority.privateOutputScopeId!)
     const outputRequired = !['analyze', 'sync_qa'].includes(operation)
     const outputRelativePath = `sound/${safeKey(input.input.request.idempotencyKey)}/${safeKey(input.unit.unitId)}/${safeKey(input.step.stepKey)}.wav`
@@ -737,6 +738,7 @@ export class CanonicalSoundRouteExecutor {
       operationProfileKey: input.step.operationProfileKey,
       sources: sources.map(({ artifact, absolutePath }) => ({ artifact, absolutePath })),
       approvedInputRoot,
+      approvedInputRoots,
       privateOutputRoot: outputRoot,
       ...(outputRequired ? {
         outputRelativePath,
@@ -744,7 +746,8 @@ export class CanonicalSoundRouteExecutor {
         outputArtifactType: outputArtifactType(input.step, operation),
         outputContentType: 'audio/wav' as const,
       } : {}),
-      parameters: localParameters(input.input.request, input.unit, operation),
+      parameters: localParameters(
+        input.input.request, input.unit, operation, input.state.placement),
     })
     return {
       artifacts: local.outputArtifact ? [local.outputArtifact] : sourceArtifacts,
@@ -1536,6 +1539,7 @@ function localParameters(
   request: CanonicalSoundRequest,
   unit: SoundExecutionUnit,
   operation: SoundLocalOperation,
+  placement?: SoundSynchronizationPlacement,
 ): SoundLocalOperationParameters {
   const durationSeconds = framesToSeconds(
     requiredParameterNumber(unit, 'targetDurationFrames'), request.timelineRate,
@@ -1548,7 +1552,11 @@ function localParameters(
   }
   if (operation === 'trim_fade_gain') return {
     ...format,
-    trimStartSeconds: framesToSeconds(requiredParameterNumber(unit, 'trimSourceStartFrame'), request.timelineRate),
+    trimStartSeconds: framesToSeconds(placement
+      ? Math.max(0,
+          placement.detectedTransientFrame - placement.requestedEventFrame)
+      : requiredParameterNumber(unit, 'trimSourceStartFrame'),
+    request.timelineRate),
     durationSeconds,
     fadeInSeconds: framesToSeconds(requiredParameterNumber(unit, 'fadeInFrames'), request.timelineRate),
     fadeOutSeconds: framesToSeconds(requiredParameterNumber(unit, 'fadeOutFrames'), request.timelineRate),
@@ -1573,9 +1581,21 @@ function localParameters(
   }
   if (operation === 'mix_stem') return {
     ...format,
-    inputGainDb: unit.sourceArtifacts.map((artifact, index) =>
-      parameterNumber(unit, `sourceGainDb:${artifact.artifactId}`) ??
-      (index === 0 ? 0 : requiredParameterNumber(unit, 'gainDb'))),
+    durationSeconds,
+    sourceDelaySeconds: parameterNumberArray(unit, 'sourceDelayFrames')
+      ?.map((frames) => framesToSeconds(frames, request.timelineRate)),
+    sourceDurationSeconds: parameterNumberArray(unit, 'sourceDurationFrames')
+      ?.map((frames) => framesToSeconds(frames, request.timelineRate)),
+    inputGainDb: Array.from({
+      length: parameterNumberArray(unit, 'sourceDelayFrames')?.length
+        ?? unit.sourceArtifacts.length,
+    }, (_, index) => {
+      const artifact = unit.sourceArtifacts[index]
+      return artifact
+        ? parameterNumber(unit, `sourceGainDb:${artifact.artifactId}`)
+          ?? (index === 0 ? 0 : requiredParameterNumber(unit, 'gainDb'))
+        : requiredParameterNumber(unit, 'gainDb')
+    }),
     dialogueInputIndex: unit.sourceArtifacts.findIndex((artifact) =>
       artifact.artifactId === parameterString(unit, 'dialogueSourceArtifactId')),
     dialogueDuckingDb: requiredParameterNumber(unit, 'dialogueDuckingDb'),
@@ -1624,6 +1644,17 @@ function requiredParameterNumber(unit: SoundExecutionUnit, key: string): number 
 function parameterString(unit: SoundExecutionUnit, key: string): string | undefined {
   const value = unit.operationSpec.parameterBindings.find((binding) => binding.parameterKey === key)?.value
   return typeof value === 'string' ? value : undefined
+}
+
+function parameterNumberArray(
+  unit: SoundExecutionUnit,
+  key: string,
+): number[] | undefined {
+  const value = unit.operationSpec.parameterBindings.find((binding) =>
+    binding.parameterKey === key)?.value
+  return Array.isArray(value) && value.every((item) =>
+    typeof item === 'number' && Number.isFinite(item))
+    ? value : undefined
 }
 
 function localBinding(
@@ -1752,12 +1783,6 @@ function buildMireloPrompt(
 
 function unitEvent(request: CanonicalSoundRequest, unit: SoundExecutionUnit) {
   return request.eventAnchors.find((event) => event.anchorId === unit.cue?.eventAnchorId)
-}
-
-function commonApprovedRoot(sources: ResolvedPrivateSoundArtifact[]): string {
-  const roots = new Set(sources.map((source) => source.approvedRoot))
-  if (roots.size !== 1) throw new Error('Sound sources must share one approved private input root per operation.')
-  return sources[0]!.approvedRoot
 }
 
 function sameArtifact(left: SoundArtifactRef, right: SoundArtifactRef): boolean {

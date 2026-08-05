@@ -77,6 +77,8 @@ export interface SoundLocalOperationParameters {
   tempoRatio?: number
   pitchSemitones?: number
   inputGainDb?: number[]
+  sourceDelaySeconds?: number[]
+  sourceDurationSeconds?: number[]
   dialogueInputIndex?: number
   dialogueDuckingDb?: number
   duckAttackSeconds?: number
@@ -102,6 +104,7 @@ export interface SoundLocalAudioExecutionPackage {
   operationProfileKey: string
   sources: SoundLocalSourceInput[]
   approvedInputRoot: string
+  approvedInputRoots?: string[]
   privateOutputRoot: string
   outputRelativePath?: string
   outputArtifactId?: string
@@ -195,7 +198,7 @@ const operationProfiles: Record<SoundLocalOperation, {
 }> = {
   analyze: { profileKeys: ['sound.analyze.v1', 'sound.analyze.reference.v1', 'sound.analyze.provider_candidate.v1', 'sound.analyze.model_candidate.v1', 'sound.analyze.final.v1', 'sound.analyze.output.v1'], outputRequired: false, minimumSources: 1, maximumSources: 1 },
   extract: { profileKeys: ['sound.extract.project_source.v1', 'sound.extract.provider_carrier.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  trim_fade_gain: { profileKeys: ['sound.trim-fade-gain.edit.v1', 'sound.trim-fade-gain.video_candidate.v1', 'sound.trim-fade-gain.text_candidate.v1', 'sound.trim-fade-gain.model_candidate.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  trim_fade_gain: { profileKeys: ['sound.trim-fade-gain.edit.v1', 'sound.trim-fade-gain.video_candidate.v1', 'sound.trim-fade-gain.text_candidate.v1', 'sound.trim-fade-gain.model_candidate.v1', 'sound.trim-fade-gain.sync-alignment.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
   normalize: { profileKeys: ['sound.normalize.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
   resample_channels: { profileKeys: ['sound.resample-channels.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
   loop_crossfade: { profileKeys: ['sound.loop.edit.v1', 'sound.loop.ambience.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
@@ -220,13 +223,14 @@ const toolOperationByLocalOperation: Record<SoundLocalOperation, string> = {
 
 const packageKeys = new Set([
   'schemaVersion', 'executionId', 'binding', 'operation', 'operationProfileKey',
-  'sources', 'approvedInputRoot', 'privateOutputRoot', 'outputRelativePath',
+  'sources', 'approvedInputRoot', 'approvedInputRoots', 'privateOutputRoot', 'outputRelativePath',
   'outputArtifactId', 'outputArtifactType', 'outputContentType', 'parameters',
 ])
 const parameterKeys = new Set([
   'trimStartSeconds', 'durationSeconds', 'fadeInSeconds', 'fadeOutSeconds',
   'gainDb', 'targetLoudnessLufs', 'maximumTruePeakDbtp', 'sampleRate', 'channels',
   'loopCrossfadeSeconds', 'tempoRatio', 'pitchSemitones', 'inputGainDb',
+  'sourceDelaySeconds', 'sourceDurationSeconds',
   'dialogueInputIndex', 'dialogueDuckingDb', 'expectedHitSeconds',
   'duckAttackSeconds', 'duckReleaseSeconds', 'outputLimiterLinear',
   'gainEnvelope', 'protectedSpeechWindows', 'pan', 'eqProfile', 'dynamicsProfile',
@@ -284,6 +288,18 @@ function validateParameters(operation: SoundLocalOperation, parameters: SoundLoc
   }
   if (parameters.inputGainDb) {
     parameters.inputGainDb.forEach((gain, index) => finiteInRange(gain, -48, 18, `inputGainDb[${index}]`, true))
+  }
+  for (const [index, delay] of (parameters.sourceDelaySeconds ?? []).entries()) {
+    finiteInRange(delay, 0, 86_400, `sourceDelaySeconds[${index}]`, true)
+  }
+  for (const [index, duration] of (parameters.sourceDurationSeconds ?? []).entries()) {
+    finiteInRange(duration, 0.01, 86_400,
+      `sourceDurationSeconds[${index}]`, true)
+  }
+  if ((parameters.sourceDelaySeconds || parameters.sourceDurationSeconds)
+    && parameters.sourceDelaySeconds?.length
+      !== parameters.sourceDurationSeconds?.length) {
+    throw new Error('Sound source placement arrays must have equal lengths.')
   }
   if (parameters.dialogueInputIndex !== undefined && (!Number.isInteger(parameters.dialogueInputIndex) ||
     parameters.dialogueInputIndex < -1 || parameters.dialogueInputIndex >= 16)) {
@@ -742,9 +758,23 @@ function mixArguments(input: SoundLocalAudioExecutionPackage, temporaryPath: str
   const gains = input.sources.map((_, index) => p.inputGainDb?.[index] ?? 0)
   // A filter output pad is single-use. Split dialogue explicitly so one bound copy
   // drives the compressor sidechain while the other remains available for the mix.
-  const filters = gains.map((gain, index) => index === dialogueIndex
-    ? `[${index}:a]volume=${gain}dB,asplit=2[g${index}_sidechain][g${index}_mix]`
-    : `[${index}:a]volume=${gain}dB[g${index}]`)
+  const filters = gains.map((gain, index) => {
+    const duration = p.sourceDurationSeconds?.[index]
+    const delay = p.sourceDelaySeconds?.[index]
+    const placement = [
+      ...(duration === undefined ? [] : [
+        `atrim=start=0:duration=${duration}`,
+        'asetpts=PTS-STARTPTS',
+      ]),
+      ...(delay === undefined || delay === 0 ? [] : [
+        `adelay=delays=${Math.round(delay * 1_000)}:all=1`,
+      ]),
+      `volume=${gain}dB`,
+    ].join(',')
+    return index === dialogueIndex
+      ? `[${index}:a]${placement},asplit=2[g${index}_sidechain][g${index}_mix]`
+      : `[${index}:a]${placement}[g${index}]`
+  })
   const soundLabels = input.sources.map((_, index) => index).filter((index) => index !== dialogueIndex)
   if (soundLabels.length === 0) throw new Error('Sound mix requires at least one Sound layer.')
   const mixedSoundLabel = soundLabels.length === 1 ? `g${soundLabels[0]}` : 'sfxmix'
@@ -791,9 +821,9 @@ function mixArguments(input: SoundLocalAudioExecutionPackage, temporaryPath: str
   // post-limiter signal back toward full scale and defeats an approved true-peak
   // ceiling. Disable that compensation so `limit` remains the actual output cap.
   if (dialogueIndex >= 0) {
-    filters.push(`[g${dialogueIndex}_mix][ducked]amix=inputs=2:normalize=0,alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled[out]`)
+    filters.push(`[g${dialogueIndex}_mix][ducked]amix=inputs=2:normalize=0,alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled,apad=pad_dur=${p.durationSeconds ?? 86_400},atrim=duration=${p.durationSeconds ?? 86_400}[out]`)
   } else {
-    filters.push(`[${processedSoundLabel}]alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled[out]`)
+    filters.push(`[${processedSoundLabel}]alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled,apad=pad_dur=${p.durationSeconds ?? 86_400},atrim=duration=${p.durationSeconds ?? 86_400}[out]`)
   }
   args.push(
     '-filter_complex', filters.join(';'), '-map', '[out]',
@@ -959,6 +989,15 @@ function validatePackage(input: SoundLocalAudioExecutionPackage): void {
   if (input.sources.length < profile.minimumSources || input.sources.length > profile.maximumSources) {
     throw new Error('Sound operation source count is outside its bounded profile.')
   }
+  if (input.approvedInputRoots && input.approvedInputRoots.length !== input.sources.length) {
+    throw new Error('Sound per-source approved roots must exactly cover the source set.')
+  }
+  if (input.approvedInputRoots?.some((root) => !root || !isAbsolute(root))) {
+    throw new Error('Sound per-source approved roots must be absolute server-owned paths.')
+  }
+  if (input.approvedInputRoots && input.approvedInputRoots[0] !== input.approvedInputRoot) {
+    throw new Error('Sound primary approved input root must match the first source root.')
+  }
   if (profile.outputRequired && (
     !input.outputRelativePath || !input.outputArtifactId || !input.outputArtifactType || !input.outputContentType
   )) throw new Error('Sound output operation requires a private output artifact declaration.')
@@ -982,7 +1021,10 @@ export async function runSoundLocalAudioExecution(
 ): Promise<SoundLocalAudioExecutionResult> {
   const startedAt = performance.now()
   validatePackage(input)
-  await Promise.all(input.sources.map((source) => validateSource(source, input.approvedInputRoot)))
+  await Promise.all(input.sources.map((source, index) => validateSource(
+    source,
+    input.approvedInputRoots?.[index] ?? input.approvedInputRoot,
+  )))
   const sourceChecksums = await Promise.all(input.sources.map((source) => checksumFile(source.absolutePath)))
   await Promise.all(input.sources.map((source) => probeAudio(source.absolutePath)))
   const [ffmpegVersion, ffprobeVersion] = await Promise.all([

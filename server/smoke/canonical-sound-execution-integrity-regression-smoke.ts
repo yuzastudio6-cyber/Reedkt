@@ -564,7 +564,8 @@ try {
     request.attemptId = 'peer-mixed-composite-attempt'
     const plan = await service.plan(request)
     assert.deepEqual(new Set(plan.executionGraph.units.map((unit) => unit.unitKind)), new Set([
-      'audio_operation', 'provider_generation', 'mix_stem', 'qa_handoff',
+      'audio_operation', 'provider_generation', 'synchronization',
+      'mix_stem', 'qa_handoff',
     ]))
     const result = await service.execute(executionPackage(plan, 'peer-mixed-composite'))
     assert.equal(result.status, 'completed', JSON.stringify({
@@ -669,7 +670,7 @@ try {
     assert.equal(result.status, 'partial')
     assert.equal(result.privateSoundStemArtifacts.length, 1)
     assert.ok(result.executionUnits?.some((unit) => unit.status === 'failed'))
-    assert.ok(result.executionUnits?.filter((unit) => unit.status === 'blocked').length === 2)
+    assert.ok(result.executionUnits?.filter((unit) => unit.status === 'blocked').length === 3)
     assert.ok(result.executionUnits?.filter((unit) => unit.status === 'completed').length >= 3)
   })
 

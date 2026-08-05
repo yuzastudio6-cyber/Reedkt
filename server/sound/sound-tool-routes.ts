@@ -389,11 +389,16 @@ export const SOUND_TOOL_ROUTE_MANIFESTS = [
     capabilities: ['sound.sync_audio_to_visual', 'sound.align_sound_transient'],
     jobs: ['sync_audio_to_visual', 'align_sound_transient'], role: 'support',
     requiredInputs: ['approved_sound_asset', 'versioned_visual_event', 'timing_manifest'],
-    outputs: ['sound_cue_manifest', 'mix_automation_manifest', 'sound_qa_report'],
+    outputs: [
+      'sound_cue_manifest', 'aligned_sound_asset',
+      'mix_automation_manifest', 'sound_qa_report',
+    ],
     steps: [
       { key: 'analyze_transient', tool: 'ffmpeg', toolVersion: ffmpegVersion, operation: 'sync_transient_qa', profile: 'sound.sync-qa.v1', inputs: ['approved_sound_asset'], outputs: ['transient_timing_report'], qualification: privateInternal },
       { key: 'align_event', tool: 'sound_sync_service', toolVersion: '1.0.0', operation: 'align_sound_to_visual_event', profile: 'sound.sync.visual_event.v1', depends: ['analyze_transient'], inputs: ['transient_timing_report', 'versioned_visual_event'], outputs: ['sound_cue_manifest'], qualification: privateInternal },
-      { key: 'create_mix_automation', tool: 'sound_sync_service', toolVersion: '1.0.0', operation: 'create_speech_safe_mix_automation', profile: 'sound.mix.automation.v1', depends: ['align_event'], inputs: ['sound_cue_manifest', 'dialogue_context'], outputs: ['mix_automation_manifest'], qualification: privateInternal },
+      { key: 'apply_alignment', tool: 'ffmpeg', toolVersion: ffmpegVersion, operation: 'trim_fade_gain_audio', profile: 'sound.trim-fade-gain.sync-alignment.v1', depends: ['align_event'], inputs: ['approved_sound_asset', 'sound_cue_manifest'], outputs: ['aligned_sound_asset'], qualification: privateInternal },
+      { key: 'analyze_aligned', tool: 'ffmpeg', toolVersion: ffmpegVersion, operation: 'analyze_audio_pcm', profile: 'sound.analyze.output.v1', depends: ['apply_alignment'], inputs: ['aligned_sound_asset'], outputs: ['final_audio_metrics'], qualification: privateInternal },
+      { key: 'create_mix_automation', tool: 'sound_sync_service', toolVersion: '1.0.0', operation: 'create_speech_safe_mix_automation', profile: 'sound.mix.automation.v1', depends: ['analyze_aligned'], inputs: ['aligned_sound_asset', 'sound_cue_manifest', 'dialogue_context'], outputs: ['mix_automation_manifest'], qualification: privateInternal },
       { key: 'qa_sync', tool: 'sound_qa_service', toolVersion: '1.0.0', operation: 'evaluate_final_sound', profile: 'sound.qa.sync.v1', depends: ['create_mix_automation'], inputs: ['sound_cue_manifest', 'mix_automation_manifest'], outputs: ['sound_qa_report'], qualification: privateInternal },
     ],
   }),

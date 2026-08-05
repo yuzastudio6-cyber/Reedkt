@@ -204,10 +204,30 @@ function compileCompositeUnits(
       visualDependencyArtifactId: visualForCue(request, cue)?.artifact.artifactId,
     })
   })
-  const units: SoundExecutionUnit[] = [...acquisitionUnits]
+  const synchronizationUnits = acquisitionUnits.map((acquisition, index) =>
+    createUnit({
+      request,
+      index: 5_000 + index,
+      kind: 'synchronization',
+      route: exactRoute('sound.route.sync.visual_event.v1'),
+      capabilityKey: 'sound.align_sound_transient',
+      routeJobType: 'align_sound_transient',
+      range: acquisition.targetRange,
+      cue: acquisition.cue,
+      automation: acquisition.automation,
+      sources: [],
+      visualDependencyArtifactId: acquisition.visualDependencyArtifactId,
+      dependsOnUnitIds: [acquisition.unitId],
+    }))
+  const units: SoundExecutionUnit[] = [
+    ...acquisitionUnits,
+    ...synchronizationUnits,
+  ]
   for (const [rangeIndex, range] of request.assignmentScope.authorizedAudioWriteRanges.entries()) {
-    const prerequisites = acquisitionUnits.filter((candidate) => overlaps(range, candidate.targetRange))
+    const prerequisites = synchronizationUnits.filter((candidate) =>
+      overlaps(range, candidate.targetRange))
     if (prerequisites.length === 0) continue
+    const dialogueSource = dialogueSourceForRange(request, range)
     const representativeCue = prerequisites.find((item) => item.cue)?.cue
     const mix = createUnit({
       request, index: 10_000 + rangeIndex, kind: 'mix_stem',
@@ -215,7 +235,12 @@ function compileCompositeUnits(
       capabilityKey: 'sound.create_sound_stem', routeJobType: 'create_sound_stem',
       range, cue: representativeCue,
       automation: representativeCue ? automations.get(representativeCue.cueId) : undefined,
-      sources: [], dependsOnUnitIds: prerequisites.map((item) => item.unitId),
+      sources: dialogueSource ? [dialogueSource] : [],
+      sourcePlacementRanges: [
+        ...(dialogueSource ? [range] : []),
+        ...prerequisites.map((item) => item.targetRange),
+      ],
+      dependsOnUnitIds: prerequisites.map((item) => item.unitId),
     })
     units.push(mix)
     units.push(createUnit({
@@ -227,6 +252,27 @@ function compileCompositeUnits(
     }))
   }
   return units
+}
+
+function dialogueSourceForRange(
+  request: CanonicalSoundRequest,
+  range: SoundFrameRange,
+): SoundArtifactRef | undefined {
+  const ids = [...new Set((request.operationDirectives ?? [])
+    .filter((directive) =>
+      !directive.targetRangeId || directive.targetRangeId === range.rangeId)
+    .flatMap((directive) => directive.parameters.dialogueSourceArtifactId
+      ? [directive.parameters.dialogueSourceArtifactId] : []))]
+  if (ids.length > 1) {
+    throw new Error(`Sound range ${range.rangeId} has ambiguous dialogue sources.`)
+  }
+  if (ids.length === 0) return undefined
+  const source = request.sourceAudioRefs.find((artifact) =>
+    artifact.artifactId === ids[0])
+  if (!source) {
+    throw new Error(`Sound range ${range.rangeId} has an unbound dialogue source.`)
+  }
+  return source
 }
 
 function compileDirectUnits(
@@ -324,6 +370,7 @@ function createUnit(input: {
   cue?: CanonicalSoundCue
   automation?: SoundMixAutomation
   visualDependencyArtifactId?: string
+  sourcePlacementRanges?: SoundFrameRange[]
   limitation?: string
 }): SoundExecutionUnit {
   const directives = applicableDirectives(input)
@@ -381,6 +428,26 @@ function compileParameterBindings(
     binding('targetLoudnessLufs', 'request_quality_policy', 'request.qualityPolicy.targetLoudnessLufs', input.request.qualityPolicy.targetLoudnessLufs),
     binding('maximumTruePeakDbtp', 'request_quality_policy', 'request.qualityPolicy.maximumTruePeakDbtp', input.request.qualityPolicy.maximumTruePeakDbtp),
   ]
+  if (input.sourcePlacementRanges) {
+    bindings.push(
+      binding(
+        'sourceDelayFrames',
+        'approved_range',
+        `mix-placement:${input.range.rangeId}`,
+        input.sourcePlacementRanges.map((range) =>
+          Math.max(input.range.startFrame, range.startFrame)
+            - input.range.startFrame),
+      ),
+      binding(
+        'sourceDurationFrames',
+        'approved_range',
+        `mix-duration:${input.range.rangeId}`,
+        input.sourcePlacementRanges.map((range) => Math.max(1,
+          Math.min(input.range.endFrameExclusive, range.endFrameExclusive)
+            - Math.max(input.range.startFrame, range.startFrame))),
+      ),
+    )
+  }
   if (input.cue) bindings.push(binding('hitFrame', 'planned_cue', `cue:${input.cue.cueId}`, input.cue.hitFrame ?? input.cue.startFrame))
   if (input.automation) {
     bindings.push(

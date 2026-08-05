@@ -158,6 +158,17 @@ try {
     outputRelativePath: 'sound/safe.wav',
     arguments: ['-i', '/etc/passwd'],
   } as unknown as SoundLocalAudioExecutionPackage), /unsupported fields: arguments/i)
+  await assert.rejects(runSoundLocalAudioExecution({
+    ...directLocalPackage,
+    outputRelativePath: 'sound/missing-source-root.wav',
+    approvedInputRoots: [runtime.inputRoot, runtime.outputRoot],
+  }), /must exactly cover the source set/i)
+  await assert.rejects(runSoundLocalAudioExecution({
+    ...directLocalPackage,
+    outputRelativePath: 'sound/crossed-source-root.wav',
+    approvedInputRoot: runtime.outputRoot,
+    approvedInputRoots: [runtime.outputRoot],
+  }), /escapes its approved root/i)
 
   const collisionSafePackage: SoundLocalAudioExecutionPackage = {
     ...directLocalPackage,

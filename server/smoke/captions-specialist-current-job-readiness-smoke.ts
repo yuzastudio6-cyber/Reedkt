@@ -2,7 +2,9 @@ import assert from 'node:assert/strict'
 
 import {
   CAPTION_CURRENT_JOB_READINESS_LEDGER,
+  CAPTION_CURRENT_JOB_READINESS_LEDGER_V2,
   parseCaptionCurrentJobReadinessLedger,
+  parseCaptionCurrentJobReadinessLedgerV2,
 } from '../captions-specialist/caption-current-job-readiness'
 import { CAPTIONS_SUPPORTED_JOB_TYPES } from
   '../../src/types/captions-specialist'
@@ -113,6 +115,35 @@ expectThrow(() => parseCaptionCurrentJobReadinessLedger(redigest(unknown)))
 const inherited = Object.create(ledger)
 expectThrow(() => parseCaptionCurrentJobReadinessLedger(inherited))
 
+const ledgerV2 = parseCaptionCurrentJobReadinessLedgerV2(
+  CAPTION_CURRENT_JOB_READINESS_LEDGER_V2)
+check(ledgerV2.counts.sourcePathsReadyForPrivateEvidenceRun === 41
+  && ledgerV2.counts.jobsWaitingOnCanonicalOwnerMount === 0
+  && ledgerV2.counts.canonicalOwnerCompositionMounts === 5,
+'The additive V2 ledger records all five concrete owner mounts and 41 source-ready paths.')
+check(ledgerV2.ownerMounts.every((owner) =>
+  owner.canonicalCompositionMountImplemented
+  && !owner.actualAuthenticatedPrivateEvidenceConsumed)
+  && ledgerV2.jobs.every((job) =>
+    job.sourceReadiness === 'ready_for_private_internal_evidence_run'
+    && job.missingCanonicalOwnerMountKeys.length === 0
+    && !job.terminalPrivateInternalQualified),
+'Source-mount closure must not be relabeled as private execution evidence.')
+check(!ledgerV2.actualSoundPrivateEvidenceConsumed
+  && !ledgerV2.actualBrollPrivateEvidenceConsumed
+  && !ledgerV2.directCaptionVisualInspectionCompletedForThisLedger
+  && !ledgerV2.independentFinalQaCompletedForThisLedger
+  && !ledgerV2.terminalStatusClaimed,
+'The V2 ledger keeps every remaining private-evidence gate explicit.')
+const v2Overclaim = structuredClone(ledgerV2)
+v2Overclaim.actualSoundPrivateEvidenceConsumed = true as false
+expectThrow(() => parseCaptionCurrentJobReadinessLedgerV2(
+  redigest(v2Overclaim)))
+const v2MissingMount = structuredClone(ledgerV2)
+v2MissingMount.ownerMounts[3]!.canonicalCompositionMountImplemented = false
+expectThrow(() => parseCaptionCurrentJobReadinessLedgerV2(
+  redigest(v2MissingMount)))
+
 console.log(JSON.stringify({
   smoke: 'captions_specialist_current_job_readiness',
   status: 'passed',
@@ -121,12 +152,12 @@ console.log(JSON.stringify({
   captionOwnedImplementationsComplete:
     ledger.counts.captionOwnedImplementationsComplete,
   sourcePathsReadyForPrivateEvidenceRun:
-    ledger.counts.sourcePathsReadyForPrivateEvidenceRun,
+    ledgerV2.counts.sourcePathsReadyForPrivateEvidenceRun,
   jobsWaitingOnCanonicalOwnerMount:
-    ledger.counts.jobsWaitingOnCanonicalOwnerMount,
+    ledgerV2.counts.jobsWaitingOnCanonicalOwnerMount,
   terminalPrivateInternalQualifiedJobs:
     ledger.counts.terminalPrivateInternalQualifiedJobs,
-  pendingCanonicalOwners: ledger.ownerMounts.filter((owner) =>
+  pendingCanonicalOwners: ledgerV2.ownerMounts.filter((owner) =>
     !owner.canonicalCompositionMountImplemented).map((owner) => owner.ownerKey),
   productionAuthority: ledger.productionAuthorityGrantedToCaption,
 }, null, 2))

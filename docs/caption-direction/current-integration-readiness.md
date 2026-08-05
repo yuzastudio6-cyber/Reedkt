@@ -3,16 +3,15 @@
 Milestone: `POST-CAP-20-CURRENT-INTEGRATION-READINESS`
 
 Status:
-`caption_source_complete_with_two_owner_mount_gaps`
+`caption_41_of_41_source_paths_ready_for_private_internal_evidence`
 
 Target: `caption_specialist_private_internal_qualified`
 
 Current per-job truth:
 
 - Caption-owned implementation: **41/41 supported jobs**
-- Source paths ready for a private evidence run: **37/41 jobs**
-- Waiting on a canonical owner composition mount: **4/41 jobs**
-  (three SoundSync-dependent jobs and one B-roll-dependent job)
+- Source paths ready for a private evidence run: **41/41 jobs**
+- Waiting on a canonical owner composition mount: **0/41 jobs**
 - Terminally qualified from current canonical private evidence: **0/41 jobs**
 
 The 0/41 terminal count is intentional until one fresh canonical private run
@@ -22,11 +21,11 @@ implementation.
 
 ## Outcome
 
-The additive `caption-current-integration-readiness-v3` record provides the
+The additive `caption-current-job-readiness-ledger-v2` record provides the
 current Caption truth without rewriting the frozen CAP-20 audit or the earlier
-V1/V2 checkpoints. V3 explicitly corrects V2's use of "mounted" for two
-services that are complete Caption bridges but are not instantiated by a
-canonical backend owner composition in this branch.
+readiness checkpoints. It binds the new private composition and its two owner
+services while leaving every actual-evidence and terminal-qualification flag
+false.
 
 All five shared-owner Caption boundaries and bridge implementations are
 source-complete:
@@ -37,29 +36,31 @@ source-complete:
 4. SoundSync typed request/result admission and silent fallback;
 5. B-roll owner request/result admission.
 
-Three are mounted in canonical compositions: the transcript in the private
-Caption runner, Visual Intelligence in its production composition, and Track
-All/SAM 3.1 in its production composition. Their focused positive paths
-complete exact Caption calls through the one-writer resume ledger.
+All five now have concrete composition mounts. The transcript remains in the
+private Caption runner, Visual Intelligence and Track All/SAM 3.1 remain in
+their canonical owner compositions, and the new
+`canonical-caption-shared-owner-private-composition-v1` mounts the existing
+Sound and B-roll owners through Caption's already-published support bridges.
 
 The Track All mount is current at support service v2. Its Caption evidence
 adapter requires the backend's independent task-level scene-QA authority in
 addition to the admitted SAM 3.1 result and scene evidence. This source-level
-hardening does not change the 37/41 readiness count and does not turn the
+hardening does not change the 41/41 source-readiness count and does not turn the
 owner's still-unrun live A100/L4 path into qualification evidence.
 
 The current Track All source evidence also includes the protected backend
 finalization route and Caption's exact result-to-v2-record adapter. This closes
 the source handoff from already-persisted runtime/measurement/private-review
 evidence to `ready_for_specialist_resume`; it does not create live owner
-evidence, run the resume, or change the 37/41 readiness count.
+evidence, run the resume, or change the 41/41 source-readiness count.
 
-SoundSync and B-roll each have a strict Caption bridge, create-only evidence
-repository, exact owner reread, one-writer resume behavior, and adversarial
-tests. They are not yet mounted because this branch does not contain a
-canonical SoundSync result repository/context composition or a canonical
-B-roll owner result/snapshot composition. Those owners must supply the ports;
-Caption must not invent parallel selectors, mixers, clocks, or dispatchers.
+Sound uses exact canonical execution/result rereads, private final-audio byte
+rereads, measured synchronization and dialogue-protection QA, and an admitted
+complete-time listening-review reader before it projects neutral Caption cue
+evidence. B-roll uses the canonical assignment/plan/work results and artifacts,
+approved-snapshot reread, and an admitted complete-time visual-review reader
+before it publishes the frozen owner-read result. Caption does not select
+audio, mix, select B-roll, crop, retime, dispatch, or approve either owner.
 
 Postrender visual-QA persistence/authenticated read, independent private-review
 projection, the terminal per-job qualification contracts, and the create-only
@@ -74,18 +75,17 @@ one canonical end-to-end edit.
 
 ## Exact remaining internal work
 
-Two backend owner-mount gaps and nine corresponding private evidence gates
-remain:
+The owner-mount gap is closed. Nine actual private evidence gates remain:
 
 1. consume the actual canonical transcript persistence reread in the terminal
    qualification run;
 2. consume an actual canonical Visual Intelligence owner record;
 3. consume an actual canonical Track All owner record;
-4. mount the canonical SoundSync owner/context readers and consume an actual
-   SoundSync result;
-5. mount the canonical B-roll owner/snapshot readers and consume an
-   authenticated B-roll owner result;
-6. complete the mounted Caption work through the canonical backend work graph
+4. consume an actual canonical Sound result, exact final audio reread, and
+   complete-time listening review through the mounted owner service;
+5. consume actual canonical B-roll work/artifacts and complete-time visual
+   review through the mounted owner service;
+6. complete all Caption work through the canonical backend work graph
    and persist/reread every result;
 7. run qualified complete-time visual-AI review for every rendered output;
 8. reread independent final-QA/private-review evidence against the exact repaired
@@ -107,26 +107,31 @@ Docker runtime and cannot claim the terminal private qualification status.
 
 ## Files changed
 
-- `src/types/caption-current-integration-readiness.ts`
 - `src/types/caption-current-job-readiness.ts`
-- `src/types/caption-terminal-qualification.ts`
-- `server/captions-specialist/caption-current-integration-readiness.ts`
 - `server/captions-specialist/caption-current-job-readiness.ts`
-- `server/captions-specialist/caption-terminal-qualification-v2.ts`
-- `server/smoke/captions-specialist-current-integration-readiness-smoke.ts`
+- `server/services/canonical-sound-caption-owner-service.ts`
+- `server/services/canonical-broll-caption-owner-service.ts`
+- `server/services/canonical-caption-shared-owner-private-composition.ts`
+- `server/smoke/canonical-sound-caption-owner-service-smoke.ts`
+- `server/smoke/canonical-caption-shared-owner-private-composition-smoke.ts`
 - `server/smoke/captions-specialist-current-job-readiness-smoke.ts`
-- `server/smoke/captions-specialist-source-integration-aggregate-smoke.ts`
-- `server/smoke/captions-specialist-terminal-qualification-smoke.ts`
 - this report
 
 ## Contracts
 
-V1 and V2 remain closed historical records. V3 is a separate closed,
-digest-bound correction that binds V2, the frozen audit, current integration
-manifest and qualification, exact Caption consumer receipts, the three real
-composition mounts, and the two unmounted bridge implementations. It explicitly
-sets `supersedesFrozenAudit=false` and
-`correctsSupersededReadinessOverclaim=true`.
+The original job-readiness V1 remains a closed historical 37/41 record. The
+additive V2 is a separate closed, digest-bound 41/41 source-mount record. It
+does not alter the frozen CAP-20 contracts, and it cannot be used as actual
+private runtime, visual, listening, final-QA, or terminal evidence.
+
+The later Track All branch's
+`server/edit-skills/b-roll/b-roll-caption-owner-read-contract.ts` is not
+imported here. It publishes a materially different request/result shape under
+the same `b_roll_caption_owner_read_request_v1` and
+`b_roll_caption_owner_read_result_v1` identities. This integration preserves
+the earlier B-roll-owned frozen V1 contract and keeps Track All's Caption
+support boundary separate; the two B-roll wire shapes are never cast or
+relabelled.
 
 ## Existing owners reused
 
@@ -137,19 +142,18 @@ owners remain unchanged.
 
 ## Duplicate owners avoided
 
-No persistence reader, provider dispatcher, GPU runner, sound engine, B-roll
-selector, work scheduler, final-QA approver, billing path, public-delivery path,
-or production path was added.
+No provider dispatcher, GPU runner, sound engine, B-roll selector, work
+scheduler, final-QA approver, billing path, public-delivery path, or production
+path was added. The new readers are admitted projections over the existing
+owners and return only exact, byte-free Caption evidence.
 
 ## Tests
 
-The focused smoke covers all three versions, including exact bridge and mount
-counts, ordered evidence gates, frozen-record coexistence, closed authorities,
-digest refusal, mount-overclaim refusal, unknown-field refusal,
-inherited-property refusal, and cyclic-input refusal. Both terminal versions
-remain contract-shape proofs and cannot substitute for the two missing owner
-mounts or any actual private evidence. The current V2 lane rejects the
-superseded readiness V2 reference.
+The focused smokes cover the new owner composition, Sound execution and
+listening evidence projection, both Caption bridges, exact 41/41 readiness,
+closed authorities, forged/unadmitted read-port refusal, digest refusal, and
+mount-overclaim refusal. Source fixtures and synthetic private Sound bytes are
+explicitly not actual media qualification evidence.
 
 ## Media inspected
 
@@ -158,8 +162,8 @@ new evidence or as complete-time visual-AI review.
 
 ## Next milestone
 
-First mount the existing Caption SoundSync and B-roll bridges against their
-canonical owner repositories. Then run one authorized canonical private
-end-to-end qualification that supplies the nine exact terminal evidence groups,
-including qualified complete-time visual review and direct visual inspection,
-without changing Caption ownership or inventing a second scheduler.
+Run one authorized canonical private end-to-end qualification that supplies the
+nine remaining actual evidence groups, including real Sound listening, real
+B-roll and Caption media, qualified complete-time visual review, direct visual
+inspection, and independent final QA, without changing Caption ownership or
+inventing a second scheduler.

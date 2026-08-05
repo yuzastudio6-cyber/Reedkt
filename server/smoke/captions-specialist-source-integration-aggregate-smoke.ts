@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 
+import {
+  CAPTION_CURRENT_JOB_READINESS_LEDGER_V2,
+  parseCaptionCurrentJobReadinessLedgerV2,
+} from '../captions-specialist/caption-current-job-readiness'
+
 const sourceOnlyScripts = [
   'smoke:captions-specialist-cap-20-aggregate',
   'smoke:captions-specialist-goal-completion-audit',
@@ -23,6 +28,8 @@ const sourceOnlyScripts = [
   'smoke:canonical-caption-track-all-support',
   'smoke:canonical-caption-soundsync-support',
   'smoke:canonical-caption-broll-support',
+  'smoke:canonical-sound-caption-owner',
+  'smoke:canonical-caption-shared-owner-composition',
   'smoke:canonical-caption-postrender-visual-qa-authenticated-read',
   'smoke:canonical-caption-terminal-qualification',
 ] as const
@@ -51,17 +58,24 @@ const results = sourceOnlyScripts.map((script) => {
 
 assert.equal(results.length, sourceOnlyScripts.length)
 assert.ok(results.every((result) => result.status === 'passed'))
+const current = parseCaptionCurrentJobReadinessLedgerV2(
+  CAPTION_CURRENT_JOB_READINESS_LEDGER_V2)
 
 console.log(JSON.stringify({
   smoke: 'captions_specialist_source_integration_aggregate',
   status: 'passed',
   sourceSuites: results.length,
   historicalMilestonesCovered: 20,
-  currentCaptionJobImplementations: 41,
-  sourcePathsReadyForPrivateEvidenceRun: 37,
-  jobsWaitingOnCanonicalOwnerMount: 4,
-  canonicalOwnersPending: ['soundsync', 'broll_owner'],
-  terminalQualifiedJobsFromCurrentCanonicalRun: 0,
+  currentCaptionJobImplementations:
+    current.counts.captionOwnedImplementationsComplete,
+  sourcePathsReadyForPrivateEvidenceRun:
+    current.counts.sourcePathsReadyForPrivateEvidenceRun,
+  jobsWaitingOnCanonicalOwnerMount:
+    current.counts.jobsWaitingOnCanonicalOwnerMount,
+  canonicalOwnersPending: current.ownerMounts.filter((owner) =>
+    !owner.canonicalCompositionMountImplemented).map((owner) => owner.ownerKey),
+  terminalQualifiedJobsFromCurrentCanonicalRun:
+    current.counts.terminalPrivateInternalQualifiedJobs,
   mediaRuntimeStarted: false,
   providerOrModelCallMade: false,
   dockerRuntimeStarted: false,

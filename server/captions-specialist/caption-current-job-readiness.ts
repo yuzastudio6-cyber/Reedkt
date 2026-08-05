@@ -2,8 +2,10 @@ import { z } from 'zod'
 
 import {
   CAPTION_CURRENT_JOB_READINESS_LEDGER_VERSION,
+  CAPTION_CURRENT_JOB_READINESS_LEDGER_VERSION_V2,
   type CaptionCurrentJobReadinessItem,
   type CaptionCurrentJobReadinessLedger,
+  type CaptionCurrentJobReadinessLedgerV2,
   type CaptionCurrentOwnerMountReadiness,
 } from '../../src/types/caption-current-job-readiness'
 import type { CaptionDomainRef } from
@@ -263,6 +265,190 @@ parseCaptionCurrentJobReadinessLedger({
   ...withoutDigest,
   ledgerDigestSha256: calculateSkillContractDigest({
     ...withoutDigest,
+    ledgerDigestSha256: '',
+  } as unknown as Record<string, unknown>, 'ledgerDigestSha256'),
+})
+
+const ownerCompositionRef = ref(
+  'captions.shared-owner.private-composition',
+  'canonical-caption-shared-owner-private-composition-v1',
+  calculateSkillContractDigest({
+    version: 'canonical-caption-shared-owner-private-composition-v1',
+    soundOwner: 'canonical-sound-caption-owner-service-v1',
+    brollOwner: 'canonical-broll-caption-owner-service-v1',
+    digest: '',
+  }, 'digest'))
+const soundOwnerServiceRef = ref(
+  'captions.shared-owner.sound-owner',
+  'canonical-sound-caption-owner-service-v1',
+  calculateSkillContractDigest({
+    version: 'canonical-sound-caption-owner-service-v1', digest: '',
+  }, 'digest'))
+const brollOwnerServiceRef = ref(
+  'captions.shared-owner.broll-owner',
+  'canonical-broll-caption-owner-service-v1',
+  calculateSkillContractDigest({
+    version: 'canonical-broll-caption-owner-service-v1', digest: '',
+  }, 'digest'))
+const priorLedgerRef = ref(
+  CAPTION_CURRENT_JOB_READINESS_LEDGER.ledgerId,
+  CAPTION_CURRENT_JOB_READINESS_LEDGER.schemaVersion,
+  CAPTION_CURRENT_JOB_READINESS_LEDGER.ledgerDigestSha256)
+const allMounted = Object.fromEntries(ownerOrder.map((ownerKey) =>
+  [ownerKey, true])) as Record<CaptionSharedOwnerKey, boolean>
+
+function createOwnerMountsV2(): CaptionCurrentOwnerMountReadiness[] {
+  return ownerOrder.map((ownerKey) => ({
+    ownerKey,
+    canonicalCompositionMountImplemented: allMounted[ownerKey],
+    affectedJobTypes: CAPTION_CAP20_SHARED_OWNER_INTEGRATION_HANDOFF
+      .conditionalJobBindings.filter((binding) =>
+        binding.requiredOwnerKeys.includes(ownerKey))
+      .map((binding) => binding.jobType),
+    captionBridgeImplementationComplete: true,
+    actualAuthenticatedPrivateEvidenceConsumed: false,
+    captionMayImplementDuplicateOwner: false,
+  }))
+}
+
+function createJobsV2(): CaptionCurrentJobReadinessItem[] {
+  return CAPTIONS_SUPPORTED_JOB_TYPES.map((jobType) => ({
+    jobType,
+    requiredSharedOwnerKeys: requiredOwners(jobType),
+    missingCanonicalOwnerMountKeys: [],
+    sourceReadiness: 'ready_for_private_internal_evidence_run',
+    captionOwnedImplementationComplete: true,
+    planningModeQualified: true,
+    actualPrivateEvidenceAccepted: false,
+    terminalPrivateInternalQualified: false,
+    excludedFromSupportedCapabilitySurface: false,
+    duplicateSharedOwnerCreated: false,
+    operationOrRuntimeAuthorityGrantedToCaption: false,
+    finalQaApprovalAuthorityGrantedToCaption: false,
+    publicDeliveryAuthorityGrantedToCaption: false,
+    productionAuthorityGrantedToCaption: false,
+  }))
+}
+
+const ownerMountsV2 = createOwnerMountsV2()
+const jobsV2 = createJobsV2()
+const ledgerSchemaV2: z.ZodType<CaptionCurrentJobReadinessLedgerV2> = z.object({
+  schemaVersion: z.literal(CAPTION_CURRENT_JOB_READINESS_LEDGER_VERSION_V2),
+  ledgerId: safeKey,
+  ledgerDigestSha256: sha256,
+  observedAt: z.string().datetime({ offset: true }),
+  supersedesReadinessRef: refSchema,
+  sourceCurrentIntegrationReadinessRef: refSchema,
+  sourceOwnerCompositionRef: refSchema,
+  soundOwnerServiceRef: refSchema,
+  brollOwnerServiceRef: refSchema,
+  ownerMounts: z.array(ownerMountSchema).length(5),
+  jobs: z.array(jobReadinessSchema).length(41),
+  counts: z.object({
+    declaredSupportedJobs: z.literal(41),
+    captionOwnedImplementationsComplete: z.literal(41),
+    canonicalOwnerCompositionMounts: z.literal(5),
+    sourcePathsReadyForPrivateEvidenceRun: z.literal(41),
+    jobsWaitingOnCanonicalOwnerMount: z.literal(0),
+    terminalPrivateInternalQualifiedJobs: z.literal(0),
+    excludedSupportedJobs: z.literal(0),
+  }).strict(),
+  currentStatus: z.literal(
+    'caption_41_of_41_source_paths_ready_for_private_internal_evidence'),
+  actualSoundPrivateEvidenceConsumed: z.literal(false),
+  actualBrollPrivateEvidenceConsumed: z.literal(false),
+  directCaptionVisualInspectionCompletedForThisLedger: z.literal(false),
+  independentFinalQaCompletedForThisLedger: z.literal(false),
+  terminalTargetStatus: z.literal(
+    'caption_specialist_private_internal_qualified'),
+  terminalStatusClaimed: z.literal(false),
+  sourceFixtureRelabeledAsActualRuntimeEvidence: z.literal(false),
+  publicProductionRequiredForInternalQualification: z.literal(false),
+  centralOrchestraRequiredForInternalQualification: z.literal(false),
+  centralOrchestraImplemented: z.literal(false),
+  browserLocalCompletionAccepted: z.literal(false),
+  operationOrRuntimeAuthorityGrantedToCaption: z.literal(false),
+  providerOrModelAuthorityGrantedToCaption: z.literal(false),
+  assetMutationAuthorityGrantedToCaption: z.literal(false),
+  finalQaApprovalAuthorityGrantedToCaption: z.literal(false),
+  creditOrBillingAuthorityGrantedToCaption: z.literal(false),
+  publicDeliveryAuthorityGrantedToCaption: z.literal(false),
+  productionAuthorityGrantedToCaption: z.literal(false),
+}).strict()
+
+export function parseCaptionCurrentJobReadinessLedgerV2(
+  value: unknown,
+): CaptionCurrentJobReadinessLedgerV2 {
+  assertClosedContractTree(value, 'Caption current job readiness ledger V2')
+  const parsed = ledgerSchemaV2.parse(value)
+  if (parsed.ledgerDigestSha256 !== calculateSkillContractDigest(
+    parsed as unknown as Record<string, unknown>, 'ledgerDigestSha256')
+    || refKey(parsed.supersedesReadinessRef) !== refKey(priorLedgerRef)
+    || refKey(parsed.sourceCurrentIntegrationReadinessRef)
+      !== refKey(readinessRef)
+    || refKey(parsed.sourceOwnerCompositionRef) !== refKey(ownerCompositionRef)
+    || refKey(parsed.soundOwnerServiceRef) !== refKey(soundOwnerServiceRef)
+    || refKey(parsed.brollOwnerServiceRef) !== refKey(brollOwnerServiceRef)
+    || JSON.stringify(parsed.ownerMounts) !== JSON.stringify(ownerMountsV2)
+    || JSON.stringify(parsed.jobs) !== JSON.stringify(jobsV2)
+    || parsed.ownerMounts.some((owner) =>
+      !owner.canonicalCompositionMountImplemented)
+    || parsed.jobs.some((job) =>
+      job.sourceReadiness !== 'ready_for_private_internal_evidence_run'
+      || job.missingCanonicalOwnerMountKeys.length > 0)) {
+    throw new Error('Caption current job readiness ledger V2 is inconsistent.')
+  }
+  return structuredClone(parsed)
+}
+
+const withoutDigestV2: Omit<CaptionCurrentJobReadinessLedgerV2,
+  'ledgerDigestSha256'> = {
+  schemaVersion: CAPTION_CURRENT_JOB_READINESS_LEDGER_VERSION_V2,
+  ledgerId: 'captions.current.job-readiness.all-owner-mounts-closed',
+  observedAt: '2026-08-05T23:59:00.000Z',
+  supersedesReadinessRef: priorLedgerRef,
+  sourceCurrentIntegrationReadinessRef: readinessRef,
+  sourceOwnerCompositionRef: ownerCompositionRef,
+  soundOwnerServiceRef,
+  brollOwnerServiceRef,
+  ownerMounts: ownerMountsV2,
+  jobs: jobsV2,
+  counts: {
+    declaredSupportedJobs: 41,
+    captionOwnedImplementationsComplete: 41,
+    canonicalOwnerCompositionMounts: 5,
+    sourcePathsReadyForPrivateEvidenceRun: 41,
+    jobsWaitingOnCanonicalOwnerMount: 0,
+    terminalPrivateInternalQualifiedJobs: 0,
+    excludedSupportedJobs: 0,
+  },
+  currentStatus:
+    'caption_41_of_41_source_paths_ready_for_private_internal_evidence',
+  actualSoundPrivateEvidenceConsumed: false,
+  actualBrollPrivateEvidenceConsumed: false,
+  directCaptionVisualInspectionCompletedForThisLedger: false,
+  independentFinalQaCompletedForThisLedger: false,
+  terminalTargetStatus: 'caption_specialist_private_internal_qualified',
+  terminalStatusClaimed: false,
+  sourceFixtureRelabeledAsActualRuntimeEvidence: false,
+  publicProductionRequiredForInternalQualification: false,
+  centralOrchestraRequiredForInternalQualification: false,
+  centralOrchestraImplemented: false,
+  browserLocalCompletionAccepted: false,
+  operationOrRuntimeAuthorityGrantedToCaption: false,
+  providerOrModelAuthorityGrantedToCaption: false,
+  assetMutationAuthorityGrantedToCaption: false,
+  finalQaApprovalAuthorityGrantedToCaption: false,
+  creditOrBillingAuthorityGrantedToCaption: false,
+  publicDeliveryAuthorityGrantedToCaption: false,
+  productionAuthorityGrantedToCaption: false,
+}
+
+export const CAPTION_CURRENT_JOB_READINESS_LEDGER_V2 =
+parseCaptionCurrentJobReadinessLedgerV2({
+  ...withoutDigestV2,
+  ledgerDigestSha256: calculateSkillContractDigest({
+    ...withoutDigestV2,
     ledgerDigestSha256: '',
   } as unknown as Record<string, unknown>, 'ledgerDigestSha256'),
 })

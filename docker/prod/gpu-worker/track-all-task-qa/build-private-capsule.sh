@@ -7,8 +7,10 @@ readonly ROOT='/opt/weeditpro-capsule-builder'
 readonly WORK='/tmp/weeditpro-track-all-l4-capsule'
 readonly PRIVATE_ROOT="${WORK}/build-source/track_all_task_qa_private_build_input"
 readonly OPENCV_COMMIT='49486f61fb25722cbcf586b7f4320921d46fb38e'
+readonly OPENCV_CONTRIB_COMMIT='d943e1d61c8bc556a13783e1546ee7c1a9e0b1cf'
 readonly OPENCV_VERSION='4.12.0'
 readonly OPENCV_SOURCE_SHA256='8f00b42869ab2836be36090f6631ae4c38ba59171e22a69a8e0f92f8ef1771d4'
+readonly OPENCV_CONTRIB_SOURCE_SHA256='79b55fa0d0edc6b2766f20cc97baf9dcee5f974870d5afeb1f8e3c623623b59b'
 readonly BUILDER_IMAGE='pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081'
 readonly RUNTIME_IMAGE='pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca'
 readonly CUDA_COMPAT_SHA256='e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893'
@@ -121,6 +123,10 @@ download_exact \
   "${WORK}/downloads/opencv.tar.gz" \
   "${OPENCV_SOURCE_SHA256}" '95283459'
 download_exact \
+  "https://github.com/opencv/opencv_contrib/archive/${OPENCV_CONTRIB_COMMIT}.tar.gz" \
+  "${WORK}/downloads/opencv-contrib.tar.gz" \
+  "${OPENCV_CONTRIB_SOURCE_SHA256}" '55486754'
+download_exact \
   'https://files.pythonhosted.org/packages/85/05/0c1cc486e87d2a5ad6649eb96a8ccaa7c6002d8d73d676c13e2102f286c1/kornia-0.8.3-py3-none-any.whl' \
   "${PRIVATE_ROOT}/python/wheelhouse/kornia-0.8.3-py3-none-any.whl" \
   '0b15f5d359aeafd7ff54ea631ed1943a3eb295c4a6dae3f745ddeada25e33289' '1189381'
@@ -186,8 +192,12 @@ export PYTHONPATH="${BUILDER_PYTHON}"
 
 tar --extract --gzip --file "${WORK}/downloads/opencv.tar.gz" \
   --directory "${WORK}"
+tar --extract --gzip --file "${WORK}/downloads/opencv-contrib.tar.gz" \
+  --directory "${WORK}"
 readonly OPENCV_SOURCE="${WORK}/opencv-${OPENCV_COMMIT}"
+readonly OPENCV_CONTRIB_SOURCE="${WORK}/opencv_contrib-${OPENCV_CONTRIB_COMMIT}"
 test -f "${OPENCV_SOURCE}/LICENSE"
+test -f "${OPENCV_CONTRIB_SOURCE}/LICENSE"
 
 readonly PYTHON_EXECUTABLE="$(command -v python)"
 readonly PYTHON_INCLUDE="$(python -c 'import sysconfig; print(sysconfig.get_path("include"))')"
@@ -199,7 +209,7 @@ cmake -S "${OPENCV_SOURCE}" -B "${WORK}/opencv-build" \
   -DCMAKE_INSTALL_LIBDIR=lib \
   -DCMAKE_INSTALL_RPATH='/opt/weeditpro/opencv-cuda/lib' \
   -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=FALSE \
-  -DBUILD_LIST=core,imgproc,cudaarithm,python3 \
+  -DBUILD_LIST=core,imgproc,cudev,cudaarithm,python3 \
   -DBUILD_SHARED_LIBS=ON \
   -DBUILD_DOCS=OFF \
   -DBUILD_EXAMPLES=OFF \
@@ -216,6 +226,7 @@ cmake -S "${OPENCV_SOURCE}" -B "${WORK}/opencv-build" \
   -DINSTALL_PYTHON_EXAMPLES=OFF \
   -DOPENCV_DNN_CUDA=OFF \
   -DOPENCV_ENABLE_NONFREE=OFF \
+  -DOPENCV_EXTRA_MODULES_PATH="${OPENCV_CONTRIB_SOURCE}/modules" \
   -DOPENCV_GENERATE_PKGCONFIG=OFF \
   -DOPENCV_SKIP_PYTHON_LOADER=ON \
   -DOPENCV_PYTHON3_INSTALL_PATH="${PRIVATE_ROOT}/opencv/install/python" \
@@ -255,6 +266,8 @@ find "${PRIVATE_ROOT}/opencv/install" -type l -print0 \
     done
 find "${PRIVATE_ROOT}/opencv/install" -type d -empty -delete
 cp "${OPENCV_SOURCE}/LICENSE" "${PRIVATE_ROOT}/opencv/LICENSE"
+cp "${OPENCV_CONTRIB_SOURCE}/LICENSE" \
+  "${PRIVATE_ROOT}/opencv/CONTRIB_LICENSE"
 
 readonly OPENCV_BUILD_INFO="${WORK}/opencv-build-information.txt"
 PYTHONPATH="${PRIVATE_ROOT}/opencv/install/python:${BUILDER_PYTHON}" \
@@ -296,12 +309,17 @@ receipt = {
     "sourceArchiveSha256": "8f00b42869ab2836be36090f6631ae4c38ba59171e22a69a8e0f92f8ef1771d4",
     "sourceReleaseTag": "4.12.0",
     "sourceReleaseTagSignatureVerified": False,
+    "opencvContribRepository": "https://github.com/opencv/opencv_contrib",
+    "opencvContribCommitSha": "d943e1d61c8bc556a13783e1546ee7c1a9e0b1cf",
+    "opencvContribArchiveSha256": "79b55fa0d0edc6b2766f20cc97baf9dcee5f974870d5afeb1f8e3c623623b59b",
+    "opencvContribReleaseTag": "4.12.0",
+    "opencvContribReleaseTagSignatureVerified": False,
     "licenseSpdx": "Apache-2.0",
     "builderImage": "pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081",
     "runtimeBaseImage": "pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca",
     "cudaToolkitVersion": "12.8",
     "cudaArchitecture": "8.9",
-    "buildList": ["core", "imgproc", "cudaarithm", "python3"],
+    "buildList": ["core", "imgproc", "cudev", "cudaarithm", "python3"],
     "sharedLibraries": True,
     "fastMathEnabled": False,
     "nonFreeAlgorithmsEnabled": False,
@@ -373,6 +391,8 @@ for path in sorted(item for item in root.rglob("*") if item.is_file()):
         role = "opencv_cuda_build_information"
     elif relative == "opencv/LICENSE":
         role = "opencv_source_license"
+    elif relative == "opencv/CONTRIB_LICENSE":
+        role = "opencv_contrib_source_license"
     elif relative.startswith("opencv/install/python/") and relative.endswith(".so"):
         role = "opencv_cuda_python_module"
     elif relative.startswith("opencv/install/lib/") and ".so" in relative:

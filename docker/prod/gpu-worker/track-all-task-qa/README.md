@@ -55,9 +55,10 @@ authority.
 
 `Dockerfile.private-capsule-builder` is a cloud-build-only compiler boundary.
 It uses the digest-pinned PyTorch 2.10/CUDA 12.8 devel image, downloads only
-the exact hash-and-size-bound OpenCV 4.12.0 source, six reviewed Python wheels,
-and NVIDIA forward-compatibility package, and builds OpenCV for the L4's CUDA
-8.9 architecture without fast math or non-free algorithms. It emits one
+the exact hash-and-size-bound OpenCV 4.12.0 source, matching official
+`opencv_contrib` `cudev` source, six reviewed Python wheels, and NVIDIA
+forward-compatibility package, and builds OpenCV for the L4's CUDA 8.9
+architecture without fast math or non-free algorithms. It emits one
 canonical regular-file-only image-build source archive with a recursively
 verified private capsule manifest. Compilers, source downloads, and build
 paths are absent from the final runtime image. The final image installs only

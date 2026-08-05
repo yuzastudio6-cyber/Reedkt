@@ -109,6 +109,7 @@ const capsuleWithoutHashSchema = z.object({
     opencvCudaReceiptSha256: rawSha256,
     opencvBuildInformationSha256: rawSha256,
     opencvLicenseSha256: rawSha256,
+    opencvContribLicenseSha256: rawSha256,
     cudaForwardCompatReceiptSha256: rawSha256,
     cudaForwardCompatPackageSha256: rawSha256,
     artifactCount: z.number().int().min(5).max(10_000),
@@ -207,6 +208,7 @@ const authorityWithoutHashSchema = z.object({
     opencvCudaReceiptSha256: rawSha256,
     opencvBuildInformationSha256: rawSha256,
     opencvLicenseSha256: rawSha256,
+    opencvContribLicenseSha256: rawSha256,
     cudaForwardCompatReceiptSha256: rawSha256,
   }).strict(),
   cloudBuildPolicy: z.object({
@@ -386,6 +388,8 @@ export async function prepareCanonicalTrackAllSam31L4TaskQaCloudImageBuildAuthor
       opencvBuildInformationSha256:
         capsule.privateInput.opencvBuildInformationSha256,
       opencvLicenseSha256: capsule.privateInput.opencvLicenseSha256,
+      opencvContribLicenseSha256:
+        capsule.privateInput.opencvContribLicenseSha256,
       cudaForwardCompatReceiptSha256:
         capsule.privateInput.cudaForwardCompatReceiptSha256,
     },
@@ -637,6 +641,10 @@ function assertBuildSourceEntries(
     value.privateInput.opencvLicenseSha256,
   )
   required(
+    `${PRIVATE_INPUT_DIRECTORY}/opencv/CONTRIB_LICENSE`,
+    value.privateInput.opencvContribLicenseSha256,
+  )
+  required(
     `${PRIVATE_INPUT_DIRECTORY}/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     value.privateInput.cudaForwardCompatPackageSha256,
   )
@@ -667,6 +675,7 @@ function isAllowedBuildSourcePath(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/opencv/opencv-cuda-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/opencv/opencv-build-information.txt`,
     `${PRIVATE_INPUT_DIRECTORY}/opencv/LICENSE`,
+    `${PRIVATE_INPUT_DIRECTORY}/opencv/CONTRIB_LICENSE`,
     `${PRIVATE_INPUT_DIRECTORY}/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
   ].includes(path)) return true

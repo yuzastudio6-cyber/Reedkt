@@ -77,6 +77,7 @@ const authorityPayload = {
     opencvCudaReceiptSha256: hash('opencv'),
     opencvBuildInformationSha256: hash('opencv-build-information'),
     opencvLicenseSha256: hash('opencv-license'),
+    opencvContribLicenseSha256: hash('opencv-contrib-license'),
     cudaForwardCompatReceiptSha256: hash('cuda'),
   },
   cloudBuildPolicy: {

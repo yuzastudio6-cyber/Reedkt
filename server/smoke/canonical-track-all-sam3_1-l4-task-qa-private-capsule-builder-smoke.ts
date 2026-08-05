@@ -48,6 +48,8 @@ for (const expected of [
 for (const expected of [
   '49486f61fb25722cbcf586b7f4320921d46fb38e',
   '8f00b42869ab2836be36090f6631ae4c38ba59171e22a69a8e0f92f8ef1771d4',
+  'd943e1d61c8bc556a13783e1546ee7c1a9e0b1cf',
+  '79b55fa0d0edc6b2766f20cc97baf9dcee5f974870d5afeb1f8e3c623623b59b',
   '0b15f5d359aeafd7ff54ea631ed1943a3eb295c4a6dae3f745ddeada25e33289',
   '396f84661fcf260885c3f9db717caf6904eafd44857dca17be09a835bd7da8d9',
   'fd83c01228a688733f1ded5201c678f0c53ecc1006ffbc404db9f7a899ac6249',
@@ -55,7 +57,8 @@ for (const expected of [
   'bef9768cab184e7ae6e559c032e95ba8d07b3023c289f79a2bd36e8bf85605a5',
   'f13c72698edef492f985cc225f14faafe68ae065a2e407f45bdf6f4b9b43fde8',
   'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
-  '-DBUILD_LIST=core,imgproc,cudaarithm,python3',
+  '-DBUILD_LIST=core,imgproc,cudev,cudaarithm,python3',
+  '-DOPENCV_EXTRA_MODULES_PATH="${OPENCV_CONTRIB_SOURCE}/modules"',
   '-DCUDA_ARCH_BIN=8.9',
   '-DCUDA_FAST_MATH=OFF',
   '-DENABLE_FAST_MATH=OFF',
@@ -69,7 +72,7 @@ for (const expected of [
   'gzip --no-name --best',
 ] as const) assert.ok(builder.includes(expected), `capsule builder lost ${expected}`)
 
-assert.equal((builder.match(/download_exact \\\n/gu) ?? []).length, 8)
+assert.equal((builder.match(/download_exact \\\n/gu) ?? []).length, 9)
 assert.doesNotMatch(builder, /apt-get|conda install|pip install [^\n]*https?:/u)
 assert.match(builder, /from urllib\.request import HTTPRedirectHandler, Request, build_opener/u)
 assert.match(builder, /class HttpsOnlyRedirectHandler/u)
@@ -106,6 +109,7 @@ for (const expected of [
   'opencv_cuda_python_module',
   'opencv_cuda_shared_library',
   'opencv_source_license',
+  'opencv_contrib_source_license',
   'OpenCV CUDA runtime artifact set changed',
   'capsule requirements lock changed',
 ] as const) assert.ok(verifier.includes(expected), `capsule verifier lost ${expected}`)
@@ -139,7 +143,7 @@ console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-private-capsule-builder',
   productName: 'WeEditPro',
   cloudOnlyCompilerImage: true,
-  exactPinnedDownloadCount: 8,
+  exactPinnedDownloadCount: 9,
   opencvVersion: '4.12.0',
   opencvCudaArchitecture: '8.9',
   runtimeNetworkDownloadsAllowed: false,

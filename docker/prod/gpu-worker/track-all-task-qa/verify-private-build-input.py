@@ -24,6 +24,7 @@ REQUIRED_ROLES = {
     "python_requirement_lock", "python_wheel", "opencv_cuda_receipt",
     "opencv_cuda_build_information", "opencv_cuda_python_module",
     "opencv_cuda_shared_library", "opencv_source_license",
+    "opencv_contrib_source_license",
     "cuda_forward_compat_package", "cuda_forward_compat_ingest_receipt",
 }
 MANIFEST_KEYS = {
@@ -43,6 +44,9 @@ OPENCV_RECEIPT_KEYS = {
     "schemaVersion", "opencvVersion", "sourceRepository", "sourceCommitSha",
     "sourceArchiveSha256", "sourceReleaseTag",
     "sourceReleaseTagSignatureVerified", "licenseSpdx", "builderImage",
+    "opencvContribRepository", "opencvContribCommitSha",
+    "opencvContribArchiveSha256", "opencvContribReleaseTag",
+    "opencvContribReleaseTagSignatureVerified",
     "runtimeBaseImage", "cudaToolkitVersion", "cudaArchitecture",
     "buildList", "sharedLibraries", "fastMathEnabled",
     "nonFreeAlgorithmsEnabled", "runtimeNetworkDownloadsAllowed",
@@ -123,6 +127,8 @@ def expected_role(relative: str) -> str:
         return "opencv_cuda_build_information"
     if relative == "opencv/LICENSE":
         return "opencv_source_license"
+    if relative == "opencv/CONTRIB_LICENSE":
+        return "opencv_contrib_source_license"
     if relative.startswith("opencv/install/python/") and relative.endswith(".so"):
         return "opencv_cuda_python_module"
     if relative.startswith("opencv/install/lib/") and ".so" in relative:
@@ -159,12 +165,17 @@ def validate_opencv_receipt(expected: dict[str, object]) -> None:
         "sourceArchiveSha256": "8f00b42869ab2836be36090f6631ae4c38ba59171e22a69a8e0f92f8ef1771d4",
         "sourceReleaseTag": "4.12.0",
         "sourceReleaseTagSignatureVerified": False,
+        "opencvContribRepository": "https://github.com/opencv/opencv_contrib",
+        "opencvContribCommitSha": "d943e1d61c8bc556a13783e1546ee7c1a9e0b1cf",
+        "opencvContribArchiveSha256": "79b55fa0d0edc6b2766f20cc97baf9dcee5f974870d5afeb1f8e3c623623b59b",
+        "opencvContribReleaseTag": "4.12.0",
+        "opencvContribReleaseTagSignatureVerified": False,
         "licenseSpdx": "Apache-2.0",
         "builderImage": "pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081",
         "runtimeBaseImage": "pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca",
         "cudaToolkitVersion": "12.8",
         "cudaArchitecture": "8.9",
-        "buildList": ["core", "imgproc", "cudaarithm", "python3"],
+        "buildList": ["core", "imgproc", "cudev", "cudaarithm", "python3"],
         "sharedLibraries": True,
         "fastMathEnabled": False,
         "nonFreeAlgorithmsEnabled": False,

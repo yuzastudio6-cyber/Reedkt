@@ -88,6 +88,9 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
     /tmp/track-all-task-qa-private-build-input/opencv/LICENSE \
     /opt/weeditpro/opencv-cuda/LICENSE \
   && install --mode=0444 \
+    /tmp/track-all-task-qa-private-build-input/opencv/CONTRIB_LICENSE \
+    /opt/weeditpro/opencv-cuda/CONTRIB_LICENSE \
+  && install --mode=0444 \
     /tmp/track-all-task-qa-private-build-input/opencv/opencv-cuda-receipt.json \
     /opt/weeditpro/opencv-cuda/opencv-cuda-receipt.json \
   && install --mode=0444 \
@@ -115,6 +118,7 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   && chmod 0444 \
     /opt/weeditpro/track-all-task-qa/source-provenance.lock \
     /opt/weeditpro/opencv-cuda/LICENSE \
+    /opt/weeditpro/opencv-cuda/CONTRIB_LICENSE \
     /opt/weeditpro/opencv-cuda/opencv-cuda-receipt.json \
     /opt/weeditpro/opencv-cuda/opencv-build-information.txt \
   && rm -rf /tmp/track-all-task-qa-private-build-input

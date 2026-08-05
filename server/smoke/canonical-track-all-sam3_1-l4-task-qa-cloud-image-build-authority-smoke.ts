@@ -43,6 +43,8 @@ const buildFiles = new Map<string, Buffer>([
     Buffer.from('fixed-opencv-build-information', 'utf8')],
   [`${privateDirectory}/opencv/LICENSE`,
     Buffer.from('fixed-apache-license', 'utf8')],
+  [`${privateDirectory}/opencv/CONTRIB_LICENSE`,
+    Buffer.from('fixed-opencv-contrib-apache-license', 'utf8')],
   [`${privateDirectory}/opencv/install/python/cv2.cpython-312-x86_64-linux-gnu.so`,
     Buffer.from('synthetic-opencv-python-module', 'utf8')],
   [`${privateDirectory}/opencv/install/lib/libopencv_core.so.4.12.0`,
@@ -132,13 +134,16 @@ const capsule = createCanonicalTrackAllSam31L4TaskQaPrivateBuildCapsule({
     opencvLicenseSha256: sha256(buildFiles.get(
       `${privateDirectory}/opencv/LICENSE`,
     )!),
+    opencvContribLicenseSha256: sha256(buildFiles.get(
+      `${privateDirectory}/opencv/CONTRIB_LICENSE`,
+    )!),
     cudaForwardCompatReceiptSha256: sha256(buildFiles.get(
       `${privateDirectory}/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
     )!),
     cudaForwardCompatPackageSha256: sha256(buildFiles.get(
       `${privateDirectory}/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     )!),
-    artifactCount: 10,
+    artifactCount: 11,
     exactArtifactSetReread: true,
     hashLockedWheelhouse: true,
     reviewedOpenCvCudaBuild: true,

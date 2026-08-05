@@ -90,6 +90,8 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
+          uname -m
+          lscpu
           retry_build() {
             local attempt
             for attempt in 1 2 3; do

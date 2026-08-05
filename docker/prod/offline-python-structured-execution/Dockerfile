@@ -40,8 +40,16 @@ RUN python -m pip install \
       --no-compile \
       --prefix=/opt/runtime \
       -r requirements.pretty-midi.lock.txt \
+    && for module in \
+      audioread av cv2 duckdb librosa mido mir_eval noisereduce numpy \
+      opentimelineio pedalboard polars pretty_midi pydub pyloudnorm resampy \
+      scenedetect scipy; do \
+        echo "Verifying pinned structured Python import: ${module}"; \
+        PYTHONPATH=/opt/runtime/lib/python3.13/site-packages \
+          python -c "import importlib; importlib.import_module('${module}')"; \
+      done \
     && PYTHONPATH=/opt/runtime/lib/python3.13/site-packages python -c \
-      "import importlib.metadata as m, audioread, av, cv2, duckdb, librosa, mido, mir_eval, noisereduce, numpy, opentimelineio, pedalboard, polars, pretty_midi, pydub, pyloudnorm, resampy, scenedetect, scipy; assert av.__version__ == '18.0.0'; assert cv2.__version__ == '5.0.0'; assert duckdb.__version__ == '1.5.4'; assert librosa.__version__ == '0.11.0'; assert m.version('mido') == '1.3.3'; assert m.version('mir_eval') == '0.8.2'; assert m.version('noisereduce') == '3.0.3'; assert m.version('pretty_midi') == '0.2.11'; assert numpy.__version__ == '2.4.6'; assert opentimelineio.__version__ == '0.18.1'; assert pedalboard.__version__ == '0.9.24'; assert polars.__version__ == '1.42.1'; assert m.version('pydub') == '0.25.1'; assert m.version('pyloudnorm') == '0.2.0'; assert resampy.__version__ == '0.4.3'; assert scenedetect.__version__ == '0.7'; assert scipy.__version__ == '1.18.0'"
+      "import importlib.metadata as m; expected = {'av': '18.0.0', 'duckdb': '1.5.4', 'librosa': '0.11.0', 'mido': '1.3.3', 'mir_eval': '0.8.2', 'noisereduce': '3.0.3', 'numpy': '2.4.6', 'opencv-python-headless': '5.0.0.93', 'opentimelineio': '0.18.1', 'pedalboard': '0.9.24', 'polars': '1.42.1', 'pretty_midi': '0.2.11', 'pydub': '0.25.1', 'pyloudnorm': '0.2.0', 'resampy': '0.4.3', 'scenedetect': '0.7', 'scipy': '1.18.0'}; actual = {name: m.version(name) for name in expected}; assert actual == expected, {'expected': expected, 'actual': actual}; print(actual)"
 
 FROM python:3.13.11-slim-bookworm@sha256:20080e807bfc404f8450b185cf0fc95d553462673598549613735f70a5b4d5d0 AS runtime
 LABEL org.opencontainers.image.title="ReeditPro private structured offline Python execution" \

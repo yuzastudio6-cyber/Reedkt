@@ -28,7 +28,10 @@ const entries = [
   [`${root}/opencv/LICENSE`, 11_358, 'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30'],
   [`${root}/opencv/opencv-build-information.txt`, 6_465, 'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae'],
   [`${root}/opencv/install/lib/libopencv_core.so.412`, 12_345, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
-  [`${root}/python/requirements.lock.txt`, 574, '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac'],
+  [`${root}/os-security/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb`, 1_942_240, '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b'],
+  [`${root}/os-security/openssl_3.0.13-0ubuntu3.12_amd64.deb`, 1_002_894, '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b'],
+  [`${root}/os-security/ubuntu-runtime-security-closure-receipt.json`, 828, 'e5e6ce5e9e15e0cdf0faaa09d9b8f18728d9d66a0354704da234239e2ed6f31b'],
+  [`${root}/python/requirements.lock.txt`, 574, '41923ab94357117a5bfac303a8db2c68ea4bb70765a98aead6b7f1274f41952c'],
   [`${root}/python/wheelhouse/kornia-0.8.3-py3-none-any.whl`, 1_189_381, '0b15f5d359aeafd7ff54ea631ed1943a3eb295c4a6dae3f745ddeada25e33289'],
   [`${root}/python/wheelhouse/kornia_rs-0.1.14-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl`, 3_695_565, '396f84661fcf260885c3f9db717caf6904eafd44857dca17be09a835bd7da8d9'],
   [`${root}/python/wheelhouse/numpy-2.2.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl`, 16_527_618, 'fd83c01228a688733f1ded5201c678f0c53ecc1006ffbc404db9f7a899ac6249'],
@@ -68,7 +71,7 @@ const reviews = createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews({
   buildSourceArchiveEntrySetSha256: sha256AuthorityValue(entries),
   buildSourceArchiveDirectoryEntries: directories,
   requirementsLockSha256:
-    '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
+    '41923ab94357117a5bfac303a8db2c68ea4bb70765a98aead6b7f1274f41952c',
   opencvBuildInformationSha256:
     'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
   opencvLicenseSha256:
@@ -91,11 +94,20 @@ assert.equal(reviews.archiveSafetyReview.malwareContentClassificationClaimed,
   false)
 assert.equal(reviews.dependencyReview.pythonDependencies.length, 6)
 assert.equal(reviews.dependencyReview.schemaVersion,
-  'canonical-track-all-sam3_1-l4-task-qa-dependency-review-v2')
+  'canonical-track-all-sam3_1-l4-task-qa-dependency-review-v3')
+if (reviews.dependencyReview.schemaVersion !==
+  'canonical-track-all-sam3_1-l4-task-qa-dependency-review-v3') {
+  throw new Error('expected v3 dependency review')
+}
 assert.equal(reviews.dependencyReview.runtimePackageDownloadsAllowed, false)
 assert.equal(reviews.dependencyReview.cudaNppRuntime.libraryCount, 6)
 assert.equal(reviews.dependencyReview.cudaNppRuntime.completeCudaToolkitCopied,
   false)
+assert.equal(reviews.dependencyReview.ubuntuRuntimeSecurity.packages.length, 2)
+assert.equal(
+  reviews.dependencyReview.ubuntuRuntimeSecurity.runtimePackageManagersAllowed,
+  false,
+)
 assert.equal(
   reviews.dependencyReview.opencvCuda.runtimeArtifactSetSha256,
   createHash('sha256').update(
@@ -105,7 +117,11 @@ assert.equal(
 )
 assert.equal(reviews.licenseReview.privateCandidateImageBuildAllowed, true)
 assert.equal(reviews.licenseReview.schemaVersion,
-  'canonical-track-all-sam3_1-l4-task-qa-license-review-v2')
+  'canonical-track-all-sam3_1-l4-task-qa-license-review-v3')
+if (reviews.licenseReview.schemaVersion !==
+  'canonical-track-all-sam3_1-l4-task-qa-license-review-v3') {
+  throw new Error('expected v3 license review')
+}
 assert.equal(reviews.licenseReview.runtimeReleaseAllowed, false)
 assert.equal(reviews.licenseReview.legalApprovalClaimed, false)
 assert.equal(
@@ -115,6 +131,15 @@ assert.equal(
 )
 assert.equal(
   reviews.licenseReview.cudaNppRuntimeLicense.publicRedistributionAuthorized,
+  false,
+)
+assert.equal(
+  reviews.licenseReview.ubuntuRuntimeSecurityLicense
+    .licenseExpressionClaimed,
+  false,
+)
+assert.equal(
+  reviews.licenseReview.ubuntuRuntimeSecurityLicense.runtimeReleaseAllowed,
   false,
 )
 
@@ -174,7 +199,7 @@ assert.doesNotThrow(() =>
     buildSourceArchiveEntrySetSha256: sha256AuthorityValue(entries),
     buildSourceArchiveDirectoryEntries: directories,
     requirementsLockSha256:
-      '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
+      '41923ab94357117a5bfac303a8db2c68ea4bb70765a98aead6b7f1274f41952c',
     opencvBuildInformationSha256:
       'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
     opencvLicenseSha256:
@@ -199,7 +224,7 @@ assert.throws(() =>
     buildSourceArchiveEntrySetSha256: sha256AuthorityValue(reordered),
     buildSourceArchiveDirectoryEntries: directories,
     requirementsLockSha256:
-      '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
+      '41923ab94357117a5bfac303a8db2c68ea4bb70765a98aead6b7f1274f41952c',
     opencvBuildInformationSha256:
       'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
     opencvLicenseSha256:
@@ -222,7 +247,7 @@ const changedRuntimeReviews =
       sha256AuthorityValue(changedRuntimeEntries),
     buildSourceArchiveDirectoryEntries: directories,
     requirementsLockSha256:
-      '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
+      '41923ab94357117a5bfac303a8db2c68ea4bb70765a98aead6b7f1274f41952c',
     opencvBuildInformationSha256:
       'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
     opencvLicenseSha256:
@@ -252,7 +277,30 @@ assert.throws(() =>
     buildSourceArchiveEntrySetSha256: sha256AuthorityValue(changedNppEntries),
     buildSourceArchiveDirectoryEntries: directories,
     requirementsLockSha256:
-      '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
+      '41923ab94357117a5bfac303a8db2c68ea4bb70765a98aead6b7f1274f41952c',
+    opencvBuildInformationSha256:
+      'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
+    opencvLicenseSha256:
+      'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
+    opencvContribLicenseSha256:
+      'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
+    preparedAt: '2026-08-05T17:20:00.000Z',
+  }))
+
+const changedUbuntuEntries = entries.map((entry) => entry.path ===
+  `${root}/os-security/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb`
+  ? { ...entry, byteLength: entry.byteLength - 1 }
+  : entry)
+assert.throws(() =>
+  createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews({
+    buildSourceCoordinate: coordinate,
+    buildSourceArtifactRef,
+    buildSourceArchiveEntries: changedUbuntuEntries,
+    buildSourceArchiveEntrySetSha256:
+      sha256AuthorityValue(changedUbuntuEntries),
+    buildSourceArchiveDirectoryEntries: directories,
+    requirementsLockSha256:
+      '41923ab94357117a5bfac303a8db2c68ea4bb70765a98aead6b7f1274f41952c',
     opencvBuildInformationSha256:
       'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
     opencvLicenseSha256:
@@ -271,7 +319,7 @@ assert.throws(() =>
     buildSourceArchiveDirectoryEntries: directories.filter((directory) =>
       directory !== `${root}/python/wheelhouse`),
     requirementsLockSha256:
-      '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
+      '41923ab94357117a5bfac303a8db2c68ea4bb70765a98aead6b7f1274f41952c',
     opencvBuildInformationSha256:
       'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
     opencvLicenseSha256:
@@ -298,13 +346,15 @@ assert.equal(getterInvoked, false)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-private-capsule-review',
-  checks: 27,
+  checks: 31,
   exactArchiveEntrySetBound: true,
   cloudBuildSourceDirectoryEnvelopeBound: true,
   missingParentDirectoryRejected: true,
   exactHashLockedPythonDependencySetBound: true,
   exactOpenCvCudaRuntimeArtifactSetBound: true,
   exactCudaNppElfDependencySetBound: true,
+  exactUbuntuRuntimeSecurityPackageSetBound: true,
+  ubuntuRuntimeSecurityLicenseClaimDeferredToPostBuildSbom: true,
   exactWheelMetadataAndLicenseEvidenceBound: true,
   proprietaryCudaLicenseNarrowedToPrivateNvidiaInfrastructureUse: true,
   malwareContentClassificationClaimed: false,

@@ -18,8 +18,12 @@ export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_ARCHIVE_SAFETY_REVIEW_VERSION
 const LEGACY_CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_ARCHIVE_SAFETY_REVIEW_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-archive-safety-review-v1' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_DEPENDENCY_REVIEW_VERSION =
+  'canonical-track-all-sam3_1-l4-task-qa-dependency-review-v3' as const
+const LEGACY_CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_DEPENDENCY_REVIEW_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-dependency-review-v2' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_LICENSE_REVIEW_VERSION =
+  'canonical-track-all-sam3_1-l4-task-qa-license-review-v3' as const
+const LEGACY_CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_LICENSE_REVIEW_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-license-review-v2' as const
 
 const rawSha256 = z.string().regex(/^[a-f0-9]{64}$/u)
@@ -144,6 +148,65 @@ const pythonDependencySchema = z.object({
   ]),
 }).strict()
 
+const ubuntuLibsslRuntimeSecurityPackageSchema = z.object({
+  packageName: z.literal('libssl3t64'),
+  packageVersion: z.literal('3.0.13-0ubuntu3.12'),
+  architecture: z.literal('amd64'),
+  packagePath: z.literal(
+    'track_all_task_qa_private_build_input/os-security/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb',
+  ),
+  packageByteLength: z.literal(1_942_240),
+  packageSha256: z.literal(
+    '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b',
+  ),
+}).strict()
+const ubuntuOpensslRuntimeSecurityPackageSchema = z.object({
+  packageName: z.literal('openssl'),
+  packageVersion: z.literal('3.0.13-0ubuntu3.12'),
+  architecture: z.literal('amd64'),
+  packagePath: z.literal(
+    'track_all_task_qa_private_build_input/os-security/openssl_3.0.13-0ubuntu3.12_amd64.deb',
+  ),
+  packageByteLength: z.literal(1_002_894),
+  packageSha256: z.literal(
+    '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b',
+  ),
+}).strict()
+
+const ubuntuRuntimeSecuritySchema = z.object({
+  distribution: z.literal('ubuntu'),
+  release: z.literal('noble-updates'),
+  architecture: z.literal('amd64'),
+  source: z.literal('official_ubuntu_archive'),
+  receiptPath: z.literal(
+    'track_all_task_qa_private_build_input/os-security/ubuntu-runtime-security-closure-receipt.json',
+  ),
+  receiptSha256: z.literal(
+    'e5e6ce5e9e15e0cdf0faaa09d9b8f18728d9d66a0354704da234239e2ed6f31b',
+  ),
+  receiptByteLength: z.literal(828),
+  packages: z.tuple([
+    ubuntuLibsslRuntimeSecurityPackageSchema,
+    ubuntuOpensslRuntimeSecurityPackageSchema,
+  ]),
+  exactPackagesCopiedFromReviewedCapsule: z.literal(true),
+  offlineDpkgInstallationRequired: z.literal(true),
+  exactInstalledVersionsVerifiedDuringBuild: z.literal(true),
+  runtimePackageManagersAllowed: z.literal(false),
+  runtimeNetworkClientsAllowed: z.literal(false),
+  runtimeNetworkDownloadsAllowed: z.literal(false),
+  removedRuntimePackages: z.tuple([
+    z.literal('base-pillow'),
+    z.literal('pip'),
+    z.literal('python3-pip'),
+    z.literal('python3-wheel'),
+    z.literal('setuptools'),
+    z.literal('urllib3'),
+    z.literal('wheel'),
+  ]),
+  postBuildSbomAndVulnerabilityRereadRequired: z.literal(true),
+}).strict()
+
 const dependencyWithoutHashSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_DEPENDENCY_REVIEW_VERSION,
@@ -232,6 +295,7 @@ const dependencyWithoutHashSchema = z.object({
     copiedAsUnmodifiedRegularFiles: z.literal(true),
     completeCudaToolkitCopied: z.literal(false),
   }).strict(),
+  ubuntuRuntimeSecurity: ubuntuRuntimeSecuritySchema,
   dependencySetSha256: rawSha256,
   exactWheelSetMatchesHashLockedRequirements: z.literal(true),
   runtimePackageDownloadsAllowed: z.literal(false),
@@ -252,8 +316,33 @@ const dependencyWithoutHashSchema = z.object({
   }
 })
 
-export const canonicalTrackAllSam31L4TaskQaDependencyReviewSchema =
-  dependencyWithoutHashSchema.extend({ reviewHash: rawSha256 }).strict()
+const {
+  schemaVersion: currentDependencySchemaVersion,
+  ubuntuRuntimeSecurity,
+  ...legacyDependencyShape
+} = dependencyWithoutHashSchema.shape
+void currentDependencySchemaVersion
+void ubuntuRuntimeSecurity
+const legacyDependencyWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    LEGACY_CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_DEPENDENCY_REVIEW_VERSION,
+  ),
+  ...legacyDependencyShape,
+}).strict().superRefine((value, context) => {
+  if (!isStrictlyOrderedUnique(
+    value.pythonDependencies.map((dependency) => dependency.normalizedName),
+  ) || value.dependencySetSha256 !== legacyDependencySetHash(value)) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Track All L4 legacy dependency review set is invalid.',
+    })
+  }
+})
+
+export const canonicalTrackAllSam31L4TaskQaDependencyReviewSchema = z.union([
+  dependencyWithoutHashSchema.extend({ reviewHash: rawSha256 }).strict(),
+  legacyDependencyWithoutHashSchema.extend({ reviewHash: rawSha256 }).strict(),
+])
 export type CanonicalTrackAllSam31L4TaskQaDependencyReview = z.infer<
   typeof canonicalTrackAllSam31L4TaskQaDependencyReviewSchema
 >
@@ -270,6 +359,36 @@ const licenseEvidenceSchema = z.object({
   evidencePath: z.string().min(1).max(256),
   evidenceSha256: rawSha256,
   metadataSha256: rawSha256,
+}).strict()
+
+const ubuntuRuntimeSecurityLicenseSchema = z.object({
+  source: z.literal('official_ubuntu_archive'),
+  receiptSha256: z.literal(
+    'e5e6ce5e9e15e0cdf0faaa09d9b8f18728d9d66a0354704da234239e2ed6f31b',
+  ),
+  packages: z.tuple([
+    z.object({
+      packageName: z.literal('libssl3t64'),
+      packageVersion: z.literal('3.0.13-0ubuntu3.12'),
+      packageSha256: z.literal(
+        '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b',
+      ),
+    }).strict(),
+    z.object({
+      packageName: z.literal('openssl'),
+      packageVersion: z.literal('3.0.13-0ubuntu3.12'),
+      packageSha256: z.literal(
+        '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b',
+      ),
+    }).strict(),
+  ]),
+  capsuleCopyrightEvidenceIncluded: z.literal(false),
+  licenseExpressionClaimed: z.literal(false),
+  privateCandidateImageBuildAllowed: z.literal(true),
+  runtimeReleaseAllowed: z.literal(false),
+  legalApprovalClaimed: z.literal(false),
+  publicRedistributionAuthorized: z.literal(false),
+  postBuildSpdxSbomLicenseInventoryRequired: z.literal(true),
 }).strict()
 
 const licenseWithoutHashSchema = z.object({
@@ -317,6 +436,7 @@ const licenseWithoutHashSchema = z.object({
     privateUseOnOwnedOrLeasedNvidiaInfrastructureOnly: z.literal(true),
     publicRedistributionAuthorized: z.literal(false),
   }).strict(),
+  ubuntuRuntimeSecurityLicense: ubuntuRuntimeSecurityLicenseSchema,
   licenseSetSha256: rawSha256,
   privateCandidateImageBuildAllowed: z.literal(true),
   runtimeReleaseAllowed: z.literal(false),
@@ -333,8 +453,33 @@ const licenseWithoutHashSchema = z.object({
   })
 })
 
-export const canonicalTrackAllSam31L4TaskQaLicenseReviewSchema =
-  licenseWithoutHashSchema.extend({ reviewHash: rawSha256 }).strict()
+const {
+  schemaVersion: currentLicenseSchemaVersion,
+  ubuntuRuntimeSecurityLicense,
+  ...legacyLicenseShape
+} = licenseWithoutHashSchema.shape
+void currentLicenseSchemaVersion
+void ubuntuRuntimeSecurityLicense
+const legacyLicenseWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    LEGACY_CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_LICENSE_REVIEW_VERSION,
+  ),
+  ...legacyLicenseShape,
+}).strict().superRefine((value, context) => {
+  if (!isStrictlyOrderedUnique(
+    value.pythonLicenses.map((license) => license.normalizedName),
+  ) || value.licenseSetSha256 !== legacyLicenseSetHash(value)) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Track All L4 legacy license review set is invalid.',
+    })
+  }
+})
+
+export const canonicalTrackAllSam31L4TaskQaLicenseReviewSchema = z.union([
+  licenseWithoutHashSchema.extend({ reviewHash: rawSha256 }).strict(),
+  legacyLicenseWithoutHashSchema.extend({ reviewHash: rawSha256 }).strict(),
+])
 export type CanonicalTrackAllSam31L4TaskQaLicenseReview = z.infer<
   typeof canonicalTrackAllSam31L4TaskQaLicenseReviewSchema
 >
@@ -452,6 +597,80 @@ const PYTHON_LICENSES = [
     metadataSha256: PYTHON_DEPENDENCIES[5].metadataSha256,
   },
 ] as const
+
+const UBUNTU_RUNTIME_SECURITY = {
+  distribution: 'ubuntu',
+  release: 'noble-updates',
+  architecture: 'amd64',
+  source: 'official_ubuntu_archive',
+  receiptPath:
+    'track_all_task_qa_private_build_input/os-security/ubuntu-runtime-security-closure-receipt.json',
+  receiptSha256:
+    'e5e6ce5e9e15e0cdf0faaa09d9b8f18728d9d66a0354704da234239e2ed6f31b',
+  receiptByteLength: 828,
+  packages: [
+    {
+      packageName: 'libssl3t64',
+      packageVersion: '3.0.13-0ubuntu3.12',
+      architecture: 'amd64',
+      packagePath:
+        'track_all_task_qa_private_build_input/os-security/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb',
+      packageByteLength: 1_942_240,
+      packageSha256:
+        '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b',
+    },
+    {
+      packageName: 'openssl',
+      packageVersion: '3.0.13-0ubuntu3.12',
+      architecture: 'amd64',
+      packagePath:
+        'track_all_task_qa_private_build_input/os-security/openssl_3.0.13-0ubuntu3.12_amd64.deb',
+      packageByteLength: 1_002_894,
+      packageSha256:
+        '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b',
+    },
+  ],
+  exactPackagesCopiedFromReviewedCapsule: true,
+  offlineDpkgInstallationRequired: true,
+  exactInstalledVersionsVerifiedDuringBuild: true,
+  runtimePackageManagersAllowed: false,
+  runtimeNetworkClientsAllowed: false,
+  runtimeNetworkDownloadsAllowed: false,
+  removedRuntimePackages: [
+    'base-pillow',
+    'pip',
+    'python3-pip',
+    'python3-wheel',
+    'setuptools',
+    'urllib3',
+    'wheel',
+  ],
+  postBuildSbomAndVulnerabilityRereadRequired: true,
+} as const
+
+const UBUNTU_RUNTIME_SECURITY_LICENSE = {
+  source: 'official_ubuntu_archive',
+  receiptSha256: UBUNTU_RUNTIME_SECURITY.receiptSha256,
+  packages: [
+    {
+      packageName: UBUNTU_RUNTIME_SECURITY.packages[0].packageName,
+      packageVersion: UBUNTU_RUNTIME_SECURITY.packages[0].packageVersion,
+      packageSha256: UBUNTU_RUNTIME_SECURITY.packages[0].packageSha256,
+    },
+    {
+      packageName: UBUNTU_RUNTIME_SECURITY.packages[1].packageName,
+      packageVersion: UBUNTU_RUNTIME_SECURITY.packages[1].packageVersion,
+      packageSha256: UBUNTU_RUNTIME_SECURITY.packages[1].packageSha256,
+    },
+  ],
+  capsuleCopyrightEvidenceIncluded: false,
+  licenseExpressionClaimed: false,
+  privateCandidateImageBuildAllowed: true,
+  runtimeReleaseAllowed: false,
+  legalApprovalClaimed: false,
+  publicRedistributionAuthorized: false,
+  postBuildSpdxSbomLicenseInventoryRequired: true,
+} as const
 
 export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews(
   input: {
@@ -592,6 +811,7 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews(
       copiedAsUnmodifiedRegularFiles: true,
       completeCudaToolkitCopied: false,
     },
+    ubuntuRuntimeSecurity: UBUNTU_RUNTIME_SECURITY,
   } as const
   const dependencyPayload = dependencyWithoutHashSchema.parse({
     schemaVersion:
@@ -653,6 +873,7 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews(
       privateUseOnOwnedOrLeasedNvidiaInfrastructureOnly: true,
       publicRedistributionAuthorized: false,
     },
+    ubuntuRuntimeSecurityLicense: UBUNTU_RUNTIME_SECURITY_LICENSE,
   } as const
   const licensePayload = licenseWithoutHashSchema.parse({
     schemaVersion:
@@ -818,10 +1039,35 @@ function dependencySetHash(value: z.infer<typeof dependencyWithoutHashSchema>) {
     opencvCuda: value.opencvCuda,
     cudaForwardCompatibility: value.cudaForwardCompatibility,
     cudaNppRuntime: value.cudaNppRuntime,
+    ubuntuRuntimeSecurity: value.ubuntuRuntimeSecurity,
+  })
+}
+
+function legacyDependencySetHash(
+  value: z.infer<typeof legacyDependencyWithoutHashSchema>,
+) {
+  return sha256AuthorityValue({
+    pythonDependencies: value.pythonDependencies,
+    inheritedRuntime: value.inheritedRuntime,
+    opencvCuda: value.opencvCuda,
+    cudaForwardCompatibility: value.cudaForwardCompatibility,
+    cudaNppRuntime: value.cudaNppRuntime,
   })
 }
 
 function licenseSetHash(value: z.infer<typeof licenseWithoutHashSchema>) {
+  return sha256AuthorityValue({
+    pythonLicenses: value.pythonLicenses,
+    opencvLicense: value.opencvLicense,
+    cudaForwardCompatibilityLicense: value.cudaForwardCompatibilityLicense,
+    cudaNppRuntimeLicense: value.cudaNppRuntimeLicense,
+    ubuntuRuntimeSecurityLicense: value.ubuntuRuntimeSecurityLicense,
+  })
+}
+
+function legacyLicenseSetHash(
+  value: z.infer<typeof legacyLicenseWithoutHashSchema>,
+) {
   return sha256AuthorityValue({
     pythonLicenses: value.pythonLicenses,
     opencvLicense: value.opencvLicense,
@@ -845,7 +1091,7 @@ function assertExactReviewedDependencies(
   )
   if (requirements?.sha256 !== input.requirementsLockSha256
     || input.requirementsLockSha256 !==
-      '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac') {
+      '41923ab94357117a5bfac303a8db2c68ea4bb70765a98aead6b7f1274f41952c') {
     throw new Error('Track All L4 requirements lock is not reviewed.')
   }
   const requiredNative = new Map<string, string>([
@@ -893,6 +1139,18 @@ function assertExactReviewedDependencies(
       'track_all_task_qa_private_build_input/cuda-npp/lib/libnppitc.so.12',
       'cb0bbbc4d1f08d30bfedde3a862be3a20426e6fdc45636c822fd1bf7ebe32ae9',
     ],
+    [
+      'track_all_task_qa_private_build_input/os-security/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb',
+      '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b',
+    ],
+    [
+      'track_all_task_qa_private_build_input/os-security/openssl_3.0.13-0ubuntu3.12_amd64.deb',
+      '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b',
+    ],
+    [
+      'track_all_task_qa_private_build_input/os-security/ubuntu-runtime-security-closure-receipt.json',
+      'e5e6ce5e9e15e0cdf0faaa09d9b8f18728d9d66a0354704da234239e2ed6f31b',
+    ],
   ])
   if (input.opencvBuildInformationSha256 !== requiredNative.values().next().value
     || input.opencvLicenseSha256 !==
@@ -905,6 +1163,21 @@ function assertExactReviewedDependencies(
     if (byPath.get(path)?.sha256 !== expectedSha256) {
       throw new Error(`Track All L4 native artifact ${path} changed.`)
     }
+  }
+  for (const securityPackage of UBUNTU_RUNTIME_SECURITY.packages) {
+    const observed = byPath.get(securityPackage.packagePath)
+    if (observed?.sha256 !== securityPackage.packageSha256
+      || observed.byteLength !== securityPackage.packageByteLength) {
+      throw new Error(
+        `Track All L4 Ubuntu security package ${securityPackage.packageName} changed.`,
+      )
+    }
+  }
+  const ubuntuReceipt = byPath.get(UBUNTU_RUNTIME_SECURITY.receiptPath)
+  if (ubuntuReceipt?.sha256 !== UBUNTU_RUNTIME_SECURITY.receiptSha256
+    || ubuntuReceipt.byteLength !==
+      UBUNTU_RUNTIME_SECURITY.receiptByteLength) {
+    throw new Error('Track All L4 Ubuntu security receipt changed.')
   }
   for (const dependency of PYTHON_DEPENDENCIES) {
     const observed = byPath.get(dependency.wheelPath)

@@ -505,6 +505,7 @@
     "smoke:captions-specialist-cap-20": "tsx server/smoke/captions-specialist-cap-20-smoke.ts",
     "smoke:captions-specialist-cap-20-aggregate": "tsx server/smoke/captions-specialist-cap-20-aggregate-smoke.ts",
     "smoke:captions-specialist-goal-completion-audit": "tsx server/smoke/captions-specialist-goal-completion-audit-smoke.ts",
+    "smoke:captions-specialist-private-internal-evidence-progress": "tsx server/smoke/captions-specialist-private-internal-evidence-progress-smoke.ts",
     "smoke:captions-specialist-broll-owner-read-adapter": "tsx server/smoke/captions-specialist-broll-owner-read-adapter-smoke.ts",
     "smoke:captions-specialist-canonical-transcript-authenticated-read": "tsx server/smoke/captions-specialist-canonical-transcript-authenticated-read-smoke.ts",
     "smoke:captions-specialist-canonical-resume-read": "tsx server/smoke/captions-specialist-canonical-resume-read-smoke.ts",

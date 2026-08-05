@@ -5,11 +5,16 @@ import {
   CAPTION_CURRENT_JOB_READINESS_LEDGER_V2,
   parseCaptionCurrentJobReadinessLedgerV2,
 } from '../captions-specialist/caption-current-job-readiness'
+import {
+  CAPTION_CURRENT_PRIVATE_INTERNAL_EVIDENCE_PROGRESS,
+  parseCaptionPrivateInternalEvidenceProgress,
+} from '../captions-specialist/caption-private-internal-evidence-progress'
 
 const sourceOnlyScripts = [
   'smoke:captions-specialist-cap-20-aggregate',
   'smoke:captions-specialist-cap-14-real-source',
   'smoke:captions-specialist-goal-completion-audit',
+  'smoke:captions-specialist-private-internal-evidence-progress',
   'smoke:captions-specialist-integration-routing',
   'smoke:captions-specialist-shared-owner-integration',
   'smoke:captions-specialist-multi-support-resume',
@@ -63,6 +68,8 @@ assert.equal(results.length, sourceOnlyScripts.length)
 assert.ok(results.every((result) => result.status === 'passed'))
 const current = parseCaptionCurrentJobReadinessLedgerV2(
   CAPTION_CURRENT_JOB_READINESS_LEDGER_V2)
+const evidenceProgress = parseCaptionPrivateInternalEvidenceProgress(
+  CAPTION_CURRENT_PRIVATE_INTERNAL_EVIDENCE_PROGRESS)
 
 console.log(JSON.stringify({
   smoke: 'captions_specialist_source_integration_aggregate',
@@ -79,6 +86,12 @@ console.log(JSON.stringify({
     !owner.canonicalCompositionMountImplemented).map((owner) => owner.ownerKey),
   terminalQualifiedJobsFromCurrentCanonicalRun:
     current.counts.terminalPrivateInternalQualifiedJobs,
+  terminalEvidenceGates:
+    evidenceProgress.counts.terminalEvidenceGates,
+  gatesWithActualPrivateEvidenceObserved:
+    evidenceProgress.counts.gatesWithActualPrivateEvidenceObserved,
+  terminalEvidenceGatesSatisfied:
+    evidenceProgress.counts.terminalEvidenceGatesSatisfied,
   mediaRuntimeStarted: false,
   providerOrModelCallMade: false,
   dockerRuntimeStarted: false,

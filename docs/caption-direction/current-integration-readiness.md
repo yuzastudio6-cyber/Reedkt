@@ -96,6 +96,13 @@ The owner-mount gap is closed. Nine actual private evidence gates remain:
 9. create the already-defined final per-job terminal qualification projection
    only after the first eight pass.
 
+The later
+[`caption-private-internal-evidence-progress-v1`](private-internal-evidence-progress-2026-08-05.md)
+record is the current evidence-level view of those gates. It distinguishes the
+accepted separate-scope B-roll proof, rejected transcript proof, incomplete
+Sound proof, and accepted real-source Caption appearance inspection without
+counting any of them as one terminal edit.
+
 These are internal end-to-end qualification gates. Public SaaS production,
 customer rollout, billing activation, and the central Orchestra are not needed
 for the target terminal status.

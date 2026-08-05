@@ -108,6 +108,7 @@ The governing workflow invariant remains:
 - [Post-CAP-20 canonical sequential-resume read](post-cap20-canonical-resume-read.md)
 - [Post-CAP-20 authenticated multi-owner resume](post-cap20-authenticated-multi-owner-resume-report.md)
 - [Current Caption integration readiness](current-integration-readiness.md)
+- [Current private internal evidence progress](private-internal-evidence-progress-2026-08-05.md)
 - [Terminal private-qualification gate](terminal-private-qualification-gate.md)
 - [Backend workflow integration merge](backend-workflow-integration-merge.md)
 - [Canonical postapproval planning execution](canonical-postapproval-planning-execution.md)

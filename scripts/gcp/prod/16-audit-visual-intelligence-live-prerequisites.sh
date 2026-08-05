@@ -22,6 +22,7 @@ CONTROL_PLANE_STATE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
 PRIVATE_SEARCH_SERVICE='reeditpro-staging-private-searxng'
 PRIVATE_SEARCH_IDENTITY='reeditpro-private-search-sa@reeditpro.iam.gserviceaccount.com'
 PRIVATE_SEARCH_IMAGE='us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-private-searxng@sha256:7f56a77c442601d249389e4cb4101da2046fd62c04818c69eabf8caa7f6957ee'
+A100_QUOTA_PREFERENCE_ID='reeditpro-a100-80gb-us-central1-1'
 readonly -a LEGACY_CPU_PROCESSING_IDENTITIES=(
   'reeditpro-cpu-worker-sa@reeditpro.iam.gserviceaccount.com'
   'reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com'
@@ -132,6 +133,42 @@ quota_json="$(
 )"
 a100_limit="$(jq -r '[.quotas[] | select(.metric == "NVIDIA_A100_80GB_GPUS") | .limit] | first // 0' <<<"${quota_json}")"
 l4_limit="$(jq -r '[.quotas[] | select(.metric == "NVIDIA_L4_GPUS") | .limit] | first // 0' <<<"${quota_json}")"
+a100_quota_preference_metadata="$(read_json_or_empty \
+  gcloud beta quotas preferences describe "${A100_QUOTA_PREFERENCE_ID}" \
+  --project="${PROJECT_ID}" --format=json)"
+a100_quota_preference="$(jq -n \
+  --arg preferenceId "${A100_QUOTA_PREFERENCE_ID}" \
+  --arg expectedName "projects/${PROJECT_ID}/locations/global/quotaPreferences/${A100_QUOTA_PREFERENCE_ID}" \
+  --arg expectedRegion "${REGION}" \
+  --argjson metadata "${a100_quota_preference_metadata}" \
+  'def number_or_zero: (tonumber? // 0);
+  (($metadata.quotaConfig.preferredValue // "0") | number_or_zero) as $preferred
+  | (($metadata.quotaConfig.grantedValue // "0") | number_or_zero) as $granted
+  | (($metadata.quotaConfig.stateDetail // "") | tostring) as $stateDetail
+  | (($metadata.reconciling // false) == true) as $reconciling
+  | {
+      preferenceId: $preferenceId,
+      exists: ($metadata.name == $expectedName),
+      region: ($metadata.dimensions.region // null),
+      preferredValue: $preferred,
+      grantedValue: $granted,
+      reconciling: $reconciling,
+      stateDetail: (if $stateDetail == "" then null else $stateDetail end),
+      disposition: (
+        if $metadata.name != $expectedName then "not_found"
+        elif ($metadata.dimensions.region // "") != $expectedRegion then "scope_mismatch"
+        elif $granted >= 1 then "granted"
+        elif $reconciling then "pending"
+        elif ($stateDetail | ascii_downcase | contains("denied")) then "denied"
+        else "not_granted"
+        end
+      ),
+      capacityGranted: (
+        $metadata.name == $expectedName
+        and ($metadata.dimensions.region // "") == $expectedRegion
+        and $granted >= 1
+      )
+    }')"
 
 enabled_secret_version_count() {
   local secret_name="$1"
@@ -459,11 +496,12 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v6' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v7' \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
   --argjson a100Limit "${a100_limit}" \
   --argjson l4Limit "${l4_limit}" \
+  --argjson a100QuotaPreference "${a100_quota_preference}" \
   --argjson huggingFaceTokenEnabledVersions "${hugging_face_token_versions}" \
   --argjson modelWeightTokenEnabledVersions "${model_weight_token_versions}" \
   --argjson missingServices "${missing_services_json}" \
@@ -501,6 +539,7 @@ jq -n \
     gpuQuota: {
       nvidiaA10080Gb: $a100Limit,
       nvidiaL4: $l4Limit,
+      a100QuotaPreference: $a100QuotaPreference,
       capacityPrerequisitesReady: ($a100Limit >= 1 and $l4Limit >= 1)
     },
     privateArtifactAccess: {

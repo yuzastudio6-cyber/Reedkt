@@ -11,10 +11,16 @@ const accountPriceReadinessSource = readFileSync(
 )
 
 assert.match(source, /PROJECT_ID='reeditpro'/u)
-assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v6/u)
+assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v7/u)
 assert.match(source, /REGION='us-central1'/u)
 assert.match(source, /NVIDIA_A100_80GB_GPUS/u)
 assert.match(source, /NVIDIA_L4_GPUS/u)
+assert.match(source,
+  /A100_QUOTA_PREFERENCE_ID='reeditpro-a100-80gb-us-central1-1'/u)
+assert.match(source, /gcloud beta quotas preferences describe/u)
+assert.match(source, /a100QuotaPreference: \$a100QuotaPreference/u)
+assert.match(source, /disposition/u)
+assert.match(source, /capacityGranted/u)
 assert.match(source, /gcloud secrets versions list/u)
 assert.match(source, /--filter='state=ENABLED'/u)
 assert.match(source, /containerscanning\.googleapis\.com/u)
@@ -109,6 +115,7 @@ for (const forbidden of [
   /gcloud run jobs (?:create|deploy|delete|update)/u,
   /gcloud run services (?:create|deploy|delete|update)/u,
   /gcloud batch jobs (?:submit|delete)/u,
+  /gcloud beta quotas preferences (?:create|update|delete)/u,
   /gcloud builds submit/u,
   /artifacts docker images delete/u,
   /\bcurl\b/u,

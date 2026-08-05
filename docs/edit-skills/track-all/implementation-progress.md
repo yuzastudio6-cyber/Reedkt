@@ -1203,9 +1203,7 @@ passed again with normal fail-closed receipt loading and no generation bypass.
 
 ## TRACK-21 — route qualification and exact runtime authority
 
-Status: source implementation and local verification complete; the exact
-source/evidence commits and regenerated receipt hashes are recorded in the
-follow-up ledger after clean-tree qualification finishes.
+Status: complete, evidence-regenerated, pushed, and remotely confirmed.
 
 Implemented:
 
@@ -1273,3 +1271,60 @@ register only qualification-candidate routes while the aggregate process is
 explicitly active; ordinary startup still requires the final generated route
 evidence. The failed run restored the prior generated artifact and produced no
 qualification claim.
+
+Remote evidence closeout:
+
+- primary TRACK-21 source commit:
+  `9ae8ff60ba4b7fbe76d7f90878781a2c36ed89cd` (pushed and remotely
+  confirmed);
+- aggregate-issuance bootstrap correction commit:
+  `d2a2a21489e2659eca50589a4cd51cfb20cbaf71` (pushed and remotely
+  confirmed);
+- B-Roll generated-evidence commit:
+  `5cc426d88438b4bcf1b35318fc4c280c569d5969` (pushed and remotely
+  confirmed);
+- Track All generated-evidence commit:
+  `c5a84ff1d9671bbaef245b612aa7fe6c8958026c` (pushed and remotely
+  confirmed).
+
+`npm run qualify:b-roll:internal` actually passed 31 commands and 36 fixture
+records against clean source commit
+`d2a2a21489e2659eca50589a4cd51cfb20cbaf71`. B-Roll remains exactly
+`internal_execution_qualified` with:
+
+- manifest hash:
+  `2890bb5d96cbb6432c9376acc274c84b793af1521c2da5adc18ccdf7420c23ad`;
+- relevant source-tree hash:
+  `9e033cc24eae3afb36468a92ee287f34c28796891e75ae2c413b468ad53acb8c`;
+- dependency authority-set hash:
+  `b7756fd930217eaca0b03bf13555910c00ac15a679c487742fdbe48d0c03ce17`;
+- qualification receipt hash:
+  `1cd975d176427545ef7a76f696fbff5a7729b96e966e2a05127797287cb47a2b`;
+- generated artifact hash:
+  `36c2fa38a6377d4233c6ffcf06b9283bf768cdc0a715dc9572da7ccf1206066a`.
+
+`npm run qualify:track-all:internal` then actually passed 27 commands and 21
+fixture records against clean commit
+`5cc426d88438b4bcf1b35318fc4c280c569d5969`. Track All remains honestly
+`planning_qualified` with:
+
+- manifest hash:
+  `2125de0ac813dca9e6c8211639131fc389cd70979cb8344904e66fa58e94bf9d`;
+- relevant source-tree hash:
+  `5f1f7207b79e22e6fff4bbe507c705e5b70608d4e571e573dcb4352d76e22d85`;
+- shared authority-set hash:
+  `b030a5de0032815a2ea9c7c5859832b7e6a960c8eb2d98150e0702860061a6bc`;
+- qualification receipt hash:
+  `25049642496736c471619cef7919ec93681e574e82b6ab355910e435c2420113`;
+- generated artifact hash:
+  `bffd3f4625f290792507a7e3a861e1fee04e2481e45906202e78c75d155286d1`.
+
+Normal runtime reload, with no qualification-generation environment enabled,
+then passed `test:edit-skill-route-qualification`,
+`test:edit-skill-runtime-factory`, `test:b-roll-public-canonical-lifecycle`,
+and `test:track-all-public-plugin-e2e`. The runtime loaded only the frozen
+generated receipts. Track All's canonical-private route receipts remain
+explicitly blocked pending TRACK-23/TRACK-24 evidence; its internal fixture
+route remains usable only in the internal environment. No real SAM, provider,
+GPU, public artifact, production mutation, peer-skill implementation, or head
+orchestra action occurred.

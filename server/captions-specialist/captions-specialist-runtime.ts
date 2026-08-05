@@ -446,7 +446,7 @@ function packetArtifactMatches(
     && artifact.version === packet.schemaVersion
     && artifact.contentHash === packet.packetDigestSha256
     && artifact.artifactType
-      === 'caption_visual_intelligence_occupancy_evidence'
+      === visualPacketArtifactType(packet)
     && artifact.producerSkillKey === 'visual_intelligence'
     && artifact.sourceSupportRequestRef !== null
     && exactRef(artifact.sourceSupportRequestRef, requestRef)
@@ -461,11 +461,20 @@ function promotedVisualPacketArtifactMatches(
     && artifact.version === packet.schemaVersion
     && artifact.contentHash === packet.packetDigestSha256
     && artifact.artifactType
-      === 'caption_visual_intelligence_occupancy_evidence'
+      === visualPacketArtifactType(packet)
     && artifact.producerSkillKey === 'visual_intelligence'
     && artifact.privateArtifact
     && artifact.byteFreeRef
     && artifact.sourceSupportRequestRef === null)
+}
+
+function visualPacketArtifactType(
+  packet: CaptionVisualIntelligenceEvidencePacket,
+): 'caption_visual_intelligence_occupancy_evidence'
+  | 'caption_visual_intelligence_rendered_inspection_evidence' {
+  return packet.purpose === 'final_frame_occupancy'
+    ? 'caption_visual_intelligence_occupancy_evidence'
+    : 'caption_visual_intelligence_rendered_inspection_evidence'
 }
 
 function trackAllPacketArtifactMatches(

@@ -70,6 +70,10 @@ import {
   canonicalSam31A100TaskFixture,
   canonicalSam31A100TerminalFixture,
 } from './canonical-sam3_1-gpu-task-owner-smoke'
+import { CAPTIONS_SPECIALIST_MANIFEST } from
+  '../captions-specialist/captions-specialist-manifest'
+import { CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT } from
+  '../captions-specialist/captions-specialist-qualification'
 
 const controlObjects = new Map<string, Buffer>()
 const controlPort = memoryObjectPort(controlObjects)
@@ -352,6 +356,7 @@ const service = createCanonicalCaptionTrackAllSupportService({
   resultStore,
   sceneEvidenceRepository,
   evidenceRepository,
+  now: () => new Date('2026-08-05T18:02:00.000Z'),
 })
 const serviceInput = {
   authenticatedOwnerUserId: payload.canonicalScope.ownerUserId,
@@ -405,6 +410,13 @@ check(
     && !record.publicDeliveryGranted
     && !record.productionAuthorityGranted,
   'The bridge must retain every closed authority boundary.',
+)
+const outcome = await service.projectAndResumeAuthenticatedEvidence(serviceInput)
+check(
+  outcome.evidenceRecord.recordDigestSha256 === record.recordDigestSha256
+    && outcome.resumeRecord.stepOrdinal === 1
+    && outcome.resumeRecord.resumedResult.disposition === 'completed',
+  'Authenticated Track All evidence must resume and complete the exact Caption job.',
 )
 const replay = await service.projectAuthenticatedEvidence(serviceInput)
 check(
@@ -493,6 +505,8 @@ console.log(JSON.stringify({
   completeRequestedSceneRangeRequired: true,
   exactSubjectThresholdsApplied: true,
   genericSequentialResumeProjectionPersisted: true,
+  exactSequentialResumeCompleted: true,
+  resumeStepOrdinal: outcome.resumeRecord.stepOrdinal,
   directPeerDispatchPerformed: false,
   bridgeRuntimeAssetCostQaBillingOrDeliveryAuthority: false,
 }, null, 2))
@@ -632,7 +646,7 @@ function captionCallFixture(
     job: {
       jobId: 'caption-resolve-subject-occlusion-job',
       jobType: 'resolve_subject_occluded_typography',
-      requestedMode: 'private_internal',
+      requestedMode: 'planning',
       scopeLevel: 'scene',
     },
     canonicalScope: {
@@ -655,9 +669,29 @@ function captionCallFixture(
           task.runtimeRequest.sourceMedia.canonicalSourceEndFrameInclusive + 1,
       }],
     },
-    manifestRef: rawRef('captions-capability-manifest'),
-    qualificationSnapshotRef: rawRef('captions-qualification-snapshot'),
-    inputArtifactRefs: [],
+    manifestRef: rawRef(
+      CAPTIONS_SPECIALIST_MANIFEST.manifestId,
+      CAPTIONS_SPECIALIST_MANIFEST.manifestSchemaVersion,
+      CAPTIONS_SPECIALIST_MANIFEST.manifestHash,
+    ),
+    qualificationSnapshotRef: rawRef(
+      CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.snapshotId,
+      CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.schemaVersion,
+      CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.snapshotDigestSha256,
+    ),
+    inputArtifactRefs: [
+      'canonical_transcript',
+      'confirmed_output_frame',
+      'master_timing_or_planning_timing',
+      'visual_intelligence_report',
+    ].map((artifactType) => ({
+      ...rawRef(`caption-input-${artifactType}`, 'canonical-input-v1'),
+      artifactType,
+      producerSkillKey: 'canonical-test-owner',
+      privateArtifact: true as const,
+      byteFreeRef: true as const,
+      sourceSupportRequestRef: null,
+    })),
     injectedSupportArtifactRefs: [],
     resumeOfSupportRequestRef: null,
     resumeOriginCallRef: null,

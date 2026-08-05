@@ -2453,3 +2453,28 @@ through the existing public planning-authority boundary, and the direct private
 import was removed. The retirement validator, public plugin E2E, server
 typecheck, and full lint all passed afterward. No failed command was recorded
 as qualification evidence.
+
+The clean qualifier then completed both its bootstrap and exact current-source
+passes against source commit
+`ac0f6599f8d11fe3d717f9ae007ee68d8ba5bbb9`. All 37 commands and all 26
+fixtures passed twice as required by the bootstrap protocol. The issued V3
+artifact binds:
+
+- manifest: `cfb670fa8255af9112592e5a87ae19e8bc5045b9d418af6452e2eca94c5a0d8b`;
+- source tree: `a51b91907dd38f1ebce2ad226ad962b7ffff87d35bf7855f44b1272d78bd92ab`;
+- 33-authority set:
+  `04d169c097940f0601351ccb94946cd185e48591b57e96b11b8f67381c1e077c`;
+- final authority binding:
+  `86f65ba0ca757c12d3752bdbfa9205f13e89a5ab7dcf97cd2bbc56d061472bc5`;
+- qualification receipt:
+  `d4a7a56db0424ceed37e633f533fb24e7d611737ff6684a0f98eb27ec541f54f`;
+- generated artifact:
+  `000184e31e44df98c2992ea53b38c9d13db0244abdde851262fa9a87512205e7`.
+
+The actual top-level status remains `planning_qualified`; deterministic and
+canonical-private lifecycle routes remain internally execution-qualified; the
+SAM route remains blocked with zero actual requests and zero GPU executions;
+production remains false. Protocol wiring is complete and explicitly not
+counted as real inference. Current-source Track All → B-Roll acceptance passed
+inside the final qualification pass. The generated-evidence commit and remote
+confirmation follow in the next ledger update before B-Roll requalification.

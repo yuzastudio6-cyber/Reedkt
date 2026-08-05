@@ -3,25 +3,30 @@
 ## Qualification truth
 
 Track All uses `skill-qualification-receipt-v2` inside a generated,
-content-addressed `track_all_generated_qualification_artifact_v2`. The issuer
+content-addressed `track_all_generated_qualification_artifact_v3`. The issuer
 is `npm run qualify:track-all:internal`; runtime startup never synthesizes a
 receipt. The generated artifact binds:
 
 - the exact `track_all@1.0.0` manifest reference;
 - tested Git commit and relevant source-tree hash;
-- an ordered 26-authority set covering the shared assignment owner, generic
+- an ordered 33-authority set covering the shared assignment owner, generic
   kernel and route/dispatch registries, Track Graph V1/V2, strict artifacts,
-  route-aware planning, work graph, canonical executor/coordinator, public
-  support bridge, deterministic tools, B-Roll consumer, Visual Intelligence
-  dependency, SAM V2 operation, official source/checkpoint/image authorities,
-  and canonical-private public E2E;
-- 33 actual command-run evidence records and 24 exact fixture evidence refs;
+  route-aware planning, work graph, execution accounting, composite and
+  deterministic executors, SAM activation bridge, real-output graph adapter,
+  canonical coordinator, public support bridge, deterministic tools, B-Roll
+  consumer, Visual Intelligence dependency, SAM V2 operation, official
+  source/checkpoint/image authorities, protocol wiring, gated canonical-private
+  SAM E2E, and dedicated CI;
+- 37 actual command-run evidence records and 26 exact fixture evidence refs;
 - build, typecheck, lint, frontend/server-boundary, security, public-plugin,
   media, geometry, privacy, focus/reframe, repair, SAM-gate, and retirement
   checks;
-- ten route-level qualification records; and
+- ten route-level qualification records;
+- `protocolWiringComplete: true`,
+  `samActivationRequiresNoFurtherCodeChange: true`, exact nullable real
+  canary/E2E evidence, and exact route status/counts; and
 - zero actual SAM requests, zero GPU executions, zero public artifacts, and
-  zero production mutations.
+  zero production mutations in the current blocked evidence set.
 
 Temporary media remains in ephemeral private directories and is deleted by
 the fixture. Only digests, content hashes, timestamps, exit status, and bounded
@@ -49,19 +54,22 @@ It is not production-qualified.
 ## Fail-closed verification
 
 The frozen Track All receipt is
-`929eadb8d1bfe9f6be8969aa5e621c0d56babd9513dfb600a409e04a2c01978e`;
+`d4a7a56db0424ceed37e633f533fb24e7d611737ff6684a0f98eb27ec541f54f`;
 its artifact hash is
-`f9adc5c482c14952a69c935178aee81788bfa76c6500c6b7ada92a6be4b2fa88`.
+`000184e31e44df98c2992ea53b38c9d13db0244abdde851262fa9a87512205e7`.
 It binds manifest
-`dcec1be579f9ff28a560ec1f37c01ca9afe0f874f9ac7e66894f8a8ea75b7061`,
-tested source `411b3b597a4135142737fbca84e4120311924802`, relevant source-tree hash
-`88f255b49d3aed48fe04e9547deaad0b52d72083be95fab187704bcd3c91b5b4`,
+`cfb670fa8255af9112592e5a87ae19e8bc5045b9d418af6452e2eca94c5a0d8b`,
+tested source `ac0f6599f8d11fe3d717f9ae007ee68d8ba5bbb9`, relevant source-tree hash
+`a51b91907dd38f1ebce2ad226ad962b7ffff87d35bf7855f44b1272d78bd92ab`,
 and ordered dependency-authority-set hash
-`baa5720cf6e31949a4325e265e9d1320e7c26a350c9776f50c16a444067789a0`.
+`04d169c097940f0601351ccb94946cd185e48591b57e96b11b8f67381c1e077c`.
+The exact final authority-binding hash is
+`86f65ba0ca757c12d3752bdbfa9205f13e89a5ab7dcf97cd2bbc56d061472bc5`.
 
 `npm run test:track-all-qualification-evidence` rejects failed commands,
 missing or duplicate fixtures, wrong commit/source/manifest/shared authority,
-forged hashes, reordered authority sets, SAM overclaim, and production
-overclaim. `npm run test:track-all-retirement` rejects active SAM2/legacy
+forged hashes, reordered authority sets, forged SAM activation, protocol
+evidence presented as real inference, SAM overclaim, and production overclaim.
+`npm run test:track-all-retirement` rejects active SAM2/legacy
 routes, caller-controlled execution surfaces, duplicate runtime ownership,
 public-plugin private imports, and premature production bindings.

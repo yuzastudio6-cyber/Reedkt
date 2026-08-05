@@ -34,6 +34,7 @@ cannot manufacture a binding and approval retains the
 `caption_rendered_media_work_binding` blocker.
 
 This milestone does not execute media and does not claim that a caption was
-visually acceptable. Qualified complete-time visual review and independent
-private review remain separate required gates. Provider, model, billing,
-public-delivery, and production authority remain false.
+visually acceptable. The follow-up planning binding now schedules qualified
+complete-time visual review and freezes independent private-review
+dependencies, while their actual evidence remains post-execution. Provider,
+model, billing, public-delivery, and production authority remain false.

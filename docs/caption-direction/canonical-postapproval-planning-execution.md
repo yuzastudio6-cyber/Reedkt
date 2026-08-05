@@ -1,7 +1,7 @@
 # Canonical Caption postapproval planning execution
 
-Status: private/internal planning execution and rendered-media work binding
-complete; terminal visual QA and independent review remain blocked
+Status: private/internal planning execution and downstream approval coverage
+complete; actual terminal evidence remains blocked
 
 The canonical private job adapter now recognizes approved work owned by
 `canonical_caption_specialist_worker_v1`. It derives the operation from the
@@ -46,11 +46,19 @@ It is reread and recomputed from the immutable work graph before approval and
 again when approved execution authority is loaded. Missing or crossed media
 work leaves the gate open; it never creates a second renderer or dispatcher.
 
-This closes `caption_rendered_media_work_binding`. Two internal pipeline gates
-remain:
+This closes `caption_rendered_media_work_binding`.
 
-1. mount the canonical postrender qualified visual-QA writer/result lifecycle;
-2. bind independent Caption private review before terminal qualification.
+The canonical planner now additionally creates one post-render visual-QA
+coordinator work item after the exact deterministic final-QA work item. Its
+content-addressed binding freezes the shared Qwen work-request/result identity,
+Caption authenticated reread identity, confirmed frame, MasterTiming, final
+render, and deterministic-QA lineage. A second binding freezes the final MP4,
+deterministic QA, and qualified visual-review result as required inputs to the
+existing canonical private-review assembly and decision owners.
+
+This closes the Caption-specific approval coverage gates. It does not claim an
+actual provider/model result or private-review decision. Those remain required
+post-execution terminal evidence, together with final per-job qualification.
 
 No media, provider, model, cloud, public delivery, production, billing, wallet,
 or settlement authority is granted by this milestone.

@@ -202,6 +202,14 @@ import {
   type CanonicalCaptionRenderedMediaWorkBinding,
 } from '../../src/types/canonical-caption-rendered-media-work-binding'
 import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_COMPONENT_KEY,
+  type CanonicalCaptionPostrenderVisualQaWorkBinding,
+} from '../../src/types/canonical-caption-postrender-visual-qa-work-binding'
+import {
+  CANONICAL_CAPTION_PRIVATE_REVIEW_DEPENDENCY_BINDING_COMPONENT_KEY,
+  type CanonicalCaptionPrivateReviewDependencyBinding,
+} from '../../src/types/canonical-caption-private-review-dependency-binding'
+import {
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
 } from '../../src/types/canonical-caption-specialist-execution'
 import {
@@ -215,10 +223,51 @@ import {
   parseCanonicalCaptionRenderedMediaWorkBinding,
   prepareCanonicalCaptionRenderedMediaWorkBinding,
 } from '../captions-specialist/caption-rendered-media-work-binding'
+import {
+  assertCanonicalCaptionPostrenderVisualQaWorkBindingMatches,
+  parseCanonicalCaptionPostrenderVisualQaWorkBinding,
+  prepareCanonicalCaptionPostrenderVisualQaWorkBinding,
+  prepareCanonicalCaptionPostrenderVisualQaWorkItem,
+} from '../captions-specialist/caption-postrender-visual-qa-work-binding'
+import {
+  assertCanonicalCaptionPrivateReviewDependencyBindingMatches,
+  parseCanonicalCaptionPrivateReviewDependencyBinding,
+  prepareCanonicalCaptionPrivateReviewDependencyBinding,
+} from '../captions-specialist/caption-private-review-dependency-binding'
 
 export interface CanonicalApprovedExecutionWorkItem extends AuthorityApprovedWorkItemRecord {
   executionInput: Record<string, unknown>
   fallbackPolicy: Record<string, unknown>
+}
+
+interface CanonicalPlanAuthorityWorkItem {
+  workItemKey: string
+  workItemType: string
+  workerClass: string
+  executionInput: Record<string, unknown>
+  sourceSequenceItemIds: string[]
+  sourceCleanupDecisionIds: string[]
+  expectedOutputs: Array<{
+    outputKey: string
+    artifactType?: string
+    assetRole: 'processed' | 'generated' | 'qa' | 'preview' | 'final'
+    contentType?: string
+    required: boolean
+    previewPlaceholderAllowed?: boolean
+    segmentIds: string[]
+    timingIds: string[]
+    rendererLayerIds: string[]
+  }>
+  dependencyKeys: string[]
+  approvedToolIds: string[]
+  approvedProviderRoute?: string
+  providerExecutionMode: string
+  fallbackPolicy: Record<string, unknown>
+  maxAttempts: number
+  attemptTimeoutSeconds: number
+  scheduledDelaySeconds: number
+  maximumCreditBudget: number
+  required: boolean
 }
 
 export interface CanonicalApprovedExecutionAuthority {
@@ -238,6 +287,10 @@ export interface CanonicalApprovedExecutionAuthority {
   captionPlanningProjection?: CanonicalCaptionSpecialistPlanningProjection
   captionRenderedMediaWorkBinding?:
     CanonicalCaptionRenderedMediaWorkBinding
+  captionPostrenderVisualQaWorkBinding?:
+    CanonicalCaptionPostrenderVisualQaWorkBinding
+  captionPrivateReviewDependencyBinding?:
+    CanonicalCaptionPrivateReviewDependencyBinding
   livingFrameSelectedSceneAuthority?:
     CanonicalLivingFrameSelectedScenePublication
   livingFrameExecutionRequirements?:
@@ -528,7 +581,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           ],
           projection: livingFrameWorkGraphProjection,
         })
-      const workItemCompilation = compileCanonicalWorkItems([
+      const workItemsBeforeCaptionPostrenderVisualQa = [
         ...livingFrameBoundBaseWorkItems,
         ...canonicalLivingFrameProjectedWorkItems(
           livingFrameWorkGraphProjection,
@@ -536,6 +589,40 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         ...(professionalLongFormPublication
           ? [professionalLongFormPublication.controllerWorkItem]
           : []),
+      ]
+      let renderedMediaBindingForVisualQaPlanning:
+        CanonicalCaptionRenderedMediaWorkBinding | null
+      let captionPostrenderVisualQaWorkItem: CanonicalWorkItemInput | null
+      try {
+        renderedMediaBindingForVisualQaPlanning =
+          prepareCanonicalCaptionRenderedMediaWorkBinding({
+            projection: captionPlanning.projection ?? undefined,
+            planningBinding:
+              body.canonicalPlan.components.captionSpecialistPlanningBinding,
+            workItems: workItemsBeforeCaptionPostrenderVisualQa,
+          })
+        captionPostrenderVisualQaWorkItem =
+          prepareCanonicalCaptionPostrenderVisualQaWorkItem({
+            projection: captionPlanning.projection ?? undefined,
+            renderedMediaWorkBinding:
+              renderedMediaBindingForVisualQaPlanning,
+            workItems: workItemsBeforeCaptionPostrenderVisualQa,
+          })
+      } catch (error) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Canonical Caption post-render visual-QA work could not be planned from its exact render and deterministic-QA authority.',
+          400,
+          {
+            reason: error instanceof Error
+              ? error.message : 'invalid_caption_postrender_visual_qa_work',
+          },
+        )
+      }
+      const workItemCompilation = compileCanonicalWorkItems([
+        ...workItemsBeforeCaptionPostrenderVisualQa,
+        ...(captionPostrenderVisualQaWorkItem
+          ? [captionPostrenderVisualQaWorkItem] : []),
       ])
       const canonicalPlan = {
         ...body.canonicalPlan,
@@ -544,6 +631,10 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       }
       let captionRenderedMediaWorkBinding:
         CanonicalCaptionRenderedMediaWorkBinding | null
+      let captionPostrenderVisualQaWorkBinding:
+        CanonicalCaptionPostrenderVisualQaWorkBinding | null
+      let captionPrivateReviewDependencyBinding:
+        CanonicalCaptionPrivateReviewDependencyBinding | null
       try {
         captionRenderedMediaWorkBinding =
           prepareCanonicalCaptionRenderedMediaWorkBinding({
@@ -552,14 +643,30 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
               body.canonicalPlan.components.captionSpecialistPlanningBinding,
             workItems: canonicalPlan.workItems,
           })
+        captionPostrenderVisualQaWorkBinding =
+          prepareCanonicalCaptionPostrenderVisualQaWorkBinding({
+            projection: captionPlanning.projection ?? undefined,
+            renderedMediaWorkBinding:
+              captionRenderedMediaWorkBinding ?? undefined,
+            workItems: canonicalPlan.workItems,
+          })
+        captionPrivateReviewDependencyBinding =
+          prepareCanonicalCaptionPrivateReviewDependencyBinding({
+            projection: captionPlanning.projection ?? undefined,
+            renderedMediaWorkBinding:
+              captionRenderedMediaWorkBinding ?? undefined,
+            postrenderVisualQaWorkBinding:
+              captionPostrenderVisualQaWorkBinding ?? undefined,
+            workItems: canonicalPlan.workItems,
+          })
       } catch (error) {
         throw new ApiError(
           'VALIDATION_FAILED',
-          'Canonical Caption rendered-media work could not be bound to its exact planning and final-canvas authority.',
+          'Canonical Caption rendered-media or post-render visual-QA work could not be bound to its exact planning, final-canvas, and deterministic-QA authority.',
           400,
           {
             reason: error instanceof Error
-              ? error.message : 'invalid_caption_rendered_media_work',
+              ? error.message : 'invalid_caption_downstream_work',
           },
         )
       }
@@ -687,6 +794,32 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           maxBytes: 512 * 1024,
         })
       }
+      const captionPostrenderVisualQaWorkBindingRefs: Record<
+        string, AuthorityJsonBlobRef
+      > = {}
+      if (captionPostrenderVisualQaWorkBinding) {
+        captionPostrenderVisualQaWorkBindingRefs[
+          CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_COMPONENT_KEY
+        ] = await putPrivateAuthorityJsonBlob({
+          localStorageRoot: context.env.localStorageRoot,
+          value: captionPostrenderVisualQaWorkBinding as unknown as
+            Record<string, unknown>,
+          maxBytes: 512 * 1024,
+        })
+      }
+      const captionPrivateReviewDependencyBindingRefs: Record<
+        string, AuthorityJsonBlobRef
+      > = {}
+      if (captionPrivateReviewDependencyBinding) {
+        captionPrivateReviewDependencyBindingRefs[
+          CANONICAL_CAPTION_PRIVATE_REVIEW_DEPENDENCY_BINDING_COMPONENT_KEY
+        ] = await putPrivateAuthorityJsonBlob({
+          localStorageRoot: context.env.localStorageRoot,
+          value: captionPrivateReviewDependencyBinding as unknown as
+            Record<string, unknown>,
+          maxBytes: 512 * 1024,
+        })
+      }
       const baseComponentRefs = await persistPlanComponents(context, canonicalPlan.components)
       const componentRefs: Record<string, AuthorityJsonBlobRef> = {
         ...baseComponentRefs,
@@ -699,6 +832,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         ...livingFrameWorkGraphProjectionRefs,
         ...captionPlanningProjectionRefs,
         ...captionRenderedMediaWorkBindingRefs,
+        ...captionPostrenderVisualQaWorkBindingRefs,
+        ...captionPrivateReviewDependencyBindingRefs,
         ...(professionalLongFormPublication
           ? {
               [PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY]:
@@ -820,6 +955,10 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           captionPlanning.projection?.projectionDigestSha256 ?? null,
         captionRenderedMediaWorkBindingDigestSha256:
           captionRenderedMediaWorkBinding?.bindingDigestSha256 ?? null,
+        captionPostrenderVisualQaWorkBindingDigestSha256:
+          captionPostrenderVisualQaWorkBinding?.bindingDigestSha256 ?? null,
+        captionPrivateReviewDependencyBindingDigestSha256:
+          captionPrivateReviewDependencyBinding?.bindingDigestSha256 ?? null,
         planHash,
         estimateHash,
         actorUserId: access.userId,
@@ -1032,7 +1171,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             ? [captionPlanning.projection.disposition ===
                 'no_caption_work_owner_restraint_preserved'
                 ? 'Canonical plan authority preserves the exact owner-approved no-captions restraint and creates no hidden Caption work or estimate.'
-                : `Canonical plan authority adds ${captionPlanning.workItems.length} server-owned Caption planning work item(s); ${captionRenderedMediaWorkBinding ? 'exact libass and Remotion rendered-media work is bound' : 'rendered-media work remains unbound'}, while deterministic rendered QA, qualified complete-time visual review, and independent private review remain separate closed gates.`]
+                : `Canonical plan authority adds ${captionPlanning.workItems.length} server-owned Caption planning work item(s); ${captionRenderedMediaWorkBinding ? 'exact libass and Remotion rendered-media work is bound' : 'rendered-media work remains unbound'}; ${captionPostrenderVisualQaWorkBinding ? 'the post-render visual-QA lifecycle is scheduled after deterministic QA' : 'post-render visual-QA work remains unbound'}; ${captionPrivateReviewDependencyBinding ? 'canonical private-review assembly dependencies are bound' : 'private-review assembly remains unbound'}; actual evidence and acceptance remain post-execution gates.`]
             : []),
           'Canonical plan authority is private single-host internal-test persistence.',
           ...(body.revisionAuthority
@@ -1118,9 +1257,31 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             approvalComponents.captionSpecialistPlanningBinding,
           workItems: approvalToolWorkItems,
         })
+      const approvalCaptionPostrenderVisualQaWorkBinding =
+        await loadCanonicalCaptionPostrenderVisualQaWorkBinding({
+          context,
+          componentRefs: targetPlan.componentRefs,
+          projection: approvalCaptionPlanningProjection,
+          renderedMediaWorkBinding:
+            approvalCaptionRenderedMediaWorkBinding,
+          workItems: approvalToolWorkItems,
+        })
+      const approvalCaptionPrivateReviewDependencyBinding =
+        await loadCanonicalCaptionPrivateReviewDependencyBinding({
+          context,
+          componentRefs: targetPlan.componentRefs,
+          projection: approvalCaptionPlanningProjection,
+          renderedMediaWorkBinding:
+            approvalCaptionRenderedMediaWorkBinding,
+          postrenderVisualQaWorkBinding:
+            approvalCaptionPostrenderVisualQaWorkBinding,
+          workItems: approvalToolWorkItems,
+        })
       assertCanonicalCaptionSpecialistApprovalCoverageReady(
         approvalCaptionPlanningProjection,
         approvalCaptionRenderedMediaWorkBinding,
+        approvalCaptionPostrenderVisualQaWorkBinding,
+        approvalCaptionPrivateReviewDependencyBinding,
       )
       await loadCanonicalToolPayloadAuthority({
         context,
@@ -2381,6 +2542,24 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             approvedComponents.captionSpecialistPlanningBinding,
           workItems,
         })
+      const captionPostrenderVisualQaWorkBinding =
+        await loadCanonicalCaptionPostrenderVisualQaWorkBinding({
+          context,
+          componentRefs: snapshot.componentRefs,
+          projection: captionPlanningProjection,
+          renderedMediaWorkBinding: captionRenderedMediaWorkBinding,
+          workItems,
+        })
+      const captionPrivateReviewDependencyBinding =
+        await loadCanonicalCaptionPrivateReviewDependencyBinding({
+          context,
+          componentRefs: snapshot.componentRefs,
+          projection: captionPlanningProjection,
+          renderedMediaWorkBinding: captionRenderedMediaWorkBinding,
+          postrenderVisualQaWorkBinding:
+            captionPostrenderVisualQaWorkBinding,
+          workItems,
+        })
       const toolExecutionAuthority = await loadCanonicalToolExecutionAuthority({
         context,
         componentRefs: snapshot.componentRefs,
@@ -2495,6 +2674,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         sourceAssetManifest,
         captionPlanningProjection,
         captionRenderedMediaWorkBinding,
+        captionPostrenderVisualQaWorkBinding,
+        captionPrivateReviewDependencyBinding,
         workItems,
         jobs,
         testOnly: true,
@@ -3367,8 +3548,7 @@ async function loadCanonicalPlanComponents(
 async function loadCanonicalCaptionSpecialistPlanningProjection(input: {
   context: ServiceContext
   componentRefs: Record<string, AuthorityJsonBlobRef>
-  workItems: Array<CanonicalToolAuthorityWorkItem &
-    CanonicalToolPayloadWorkItem>
+  workItems: CanonicalPlanAuthorityWorkItem[]
 }): Promise<CanonicalCaptionSpecialistPlanningProjection | undefined> {
   const ref = input.componentRefs[
     CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_COMPONENT_KEY
@@ -3419,8 +3599,7 @@ async function loadCanonicalCaptionRenderedMediaWorkBinding(input: {
   componentRefs: Record<string, AuthorityJsonBlobRef>
   projection: CanonicalCaptionSpecialistPlanningProjection | undefined
   planningBinding: unknown
-  workItems: Array<CanonicalToolAuthorityWorkItem &
-    CanonicalToolPayloadWorkItem>
+  workItems: CanonicalPlanAuthorityWorkItem[]
 }): Promise<CanonicalCaptionRenderedMediaWorkBinding | undefined> {
   const ref = input.componentRefs[
     CANONICAL_CAPTION_RENDERED_MEDIA_WORK_BINDING_COMPONENT_KEY
@@ -3460,14 +3639,122 @@ async function loadCanonicalCaptionRenderedMediaWorkBinding(input: {
   }
 }
 
+async function loadCanonicalCaptionPostrenderVisualQaWorkBinding(input: {
+  context: ServiceContext
+  componentRefs: Record<string, AuthorityJsonBlobRef>
+  projection: CanonicalCaptionSpecialistPlanningProjection | undefined
+  renderedMediaWorkBinding:
+    CanonicalCaptionRenderedMediaWorkBinding | undefined
+  workItems: CanonicalPlanAuthorityWorkItem[]
+}): Promise<CanonicalCaptionPostrenderVisualQaWorkBinding | undefined> {
+  const ref = input.componentRefs[
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_COMPONENT_KEY
+  ]
+  if (!ref) return undefined
+  if (!input.projection || !input.renderedMediaWorkBinding) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Caption post-render visual-QA binding has no planning or rendered-media authority.',
+      409,
+      {
+        requiredGate:
+          'canonical_postrender_visual_qa_work_and_lifecycle_binding',
+      },
+    )
+  }
+  try {
+    const value = await readPrivateAuthorityJsonBlob({
+      localStorageRoot: input.context.env.localStorageRoot,
+      ref,
+    })
+    const binding = parseCanonicalCaptionPostrenderVisualQaWorkBinding(value)
+    assertCanonicalCaptionPostrenderVisualQaWorkBindingMatches(binding, {
+      projection: input.projection,
+      renderedMediaWorkBinding: input.renderedMediaWorkBinding,
+      workItems: input.workItems,
+    })
+    return binding
+  } catch (error) {
+    if (error instanceof ApiError) throw error
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Caption post-render visual-QA binding no longer matches its immutable approved work graph.',
+      409,
+      {
+        requiredGate:
+          'canonical_postrender_visual_qa_work_and_lifecycle_binding',
+        reason: error instanceof Error ? error.message : 'invalid_binding',
+      },
+    )
+  }
+}
+
+async function loadCanonicalCaptionPrivateReviewDependencyBinding(input: {
+  context: ServiceContext
+  componentRefs: Record<string, AuthorityJsonBlobRef>
+  projection: CanonicalCaptionSpecialistPlanningProjection | undefined
+  renderedMediaWorkBinding:
+    CanonicalCaptionRenderedMediaWorkBinding | undefined
+  postrenderVisualQaWorkBinding:
+    CanonicalCaptionPostrenderVisualQaWorkBinding | undefined
+  workItems: CanonicalPlanAuthorityWorkItem[]
+}): Promise<CanonicalCaptionPrivateReviewDependencyBinding | undefined> {
+  const ref = input.componentRefs[
+    CANONICAL_CAPTION_PRIVATE_REVIEW_DEPENDENCY_BINDING_COMPONENT_KEY
+  ]
+  if (!ref) return undefined
+  if (!input.projection || !input.renderedMediaWorkBinding
+    || !input.postrenderVisualQaWorkBinding) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Caption private-review dependency binding has incomplete upstream authority.',
+      409,
+      { requiredGate: 'canonical_caption_independent_private_review_binding' },
+    )
+  }
+  try {
+    const value = await readPrivateAuthorityJsonBlob({
+      localStorageRoot: input.context.env.localStorageRoot,
+      ref,
+    })
+    const binding = parseCanonicalCaptionPrivateReviewDependencyBinding(value)
+    assertCanonicalCaptionPrivateReviewDependencyBindingMatches(binding, {
+      projection: input.projection,
+      renderedMediaWorkBinding: input.renderedMediaWorkBinding,
+      postrenderVisualQaWorkBinding: input.postrenderVisualQaWorkBinding,
+      workItems: input.workItems,
+    })
+    return binding
+  } catch (error) {
+    if (error instanceof ApiError) throw error
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Caption private-review dependency binding no longer matches its immutable approved work graph.',
+      409,
+      {
+        requiredGate: 'canonical_caption_independent_private_review_binding',
+        reason: error instanceof Error ? error.message : 'invalid_binding',
+      },
+    )
+  }
+}
+
 function assertCanonicalCaptionSpecialistApprovalCoverageReady(
   projection: CanonicalCaptionSpecialistPlanningProjection | undefined,
   renderedMediaWorkBinding:
     CanonicalCaptionRenderedMediaWorkBinding | undefined,
+  postrenderVisualQaWorkBinding:
+    CanonicalCaptionPostrenderVisualQaWorkBinding | undefined,
+  privateReviewDependencyBinding:
+    CanonicalCaptionPrivateReviewDependencyBinding | undefined,
 ): void {
   const missingCanonicalOwners =
     canonicalCaptionSpecialistMissingApprovalGates(projection, {
       renderedMediaWorkBound: Boolean(renderedMediaWorkBinding),
+      postrenderVisualQaWorkAndLifecycleBound:
+        Boolean(postrenderVisualQaWorkBinding),
+      independentPrivateReviewBound:
+        Boolean(privateReviewDependencyBinding),
     })
   if (!projection || missingCanonicalOwners.length === 0) return
   throw new ApiError(
@@ -3487,7 +3774,7 @@ async function loadPlanToolAuthorityWorkItems(
   context: ServiceContext,
   aggregate: PrivateEditAuthorityAggregate,
   plan: AuthorityPlanRecord,
-): Promise<Array<CanonicalToolAuthorityWorkItem & CanonicalToolPayloadWorkItem>> {
+): Promise<CanonicalPlanAuthorityWorkItem[]> {
   return Promise.all(plan.workItemIds.map(async (workItemId) => {
     const workItem = aggregate.planWorkItems.find((candidate) =>
       candidate.id === workItemId && candidate.planId === plan.id)

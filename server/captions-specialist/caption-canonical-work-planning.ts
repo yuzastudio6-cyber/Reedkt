@@ -175,7 +175,7 @@ export interface CanonicalCaptionPlanningProjectionWorkItem {
 
 export const CANONICAL_CAPTION_SPECIALIST_DOWNSTREAM_APPROVAL_GATES = [
   'caption_rendered_media_work_binding',
-  'canonical_postrender_visual_qa_lifecycle_writer_and_result',
+  'canonical_postrender_visual_qa_work_and_lifecycle_binding',
   'canonical_caption_independent_private_review_binding',
 ] as const
 
@@ -183,7 +183,7 @@ export function canonicalCaptionSpecialistMissingApprovalGates(
   projection: CanonicalCaptionSpecialistPlanningProjection | undefined,
   coverage: {
     renderedMediaWorkBound?: boolean
-    postrenderVisualQaLifecycleComplete?: boolean
+    postrenderVisualQaWorkAndLifecycleBound?: boolean
     independentPrivateReviewBound?: boolean
   } = {},
 ): Array<typeof CANONICAL_CAPTION_SPECIALIST_DOWNSTREAM_APPROVAL_GATES[number]> {
@@ -194,8 +194,9 @@ export function canonicalCaptionSpecialistMissingApprovalGates(
         if (gate === 'caption_rendered_media_work_binding') {
           return coverage.renderedMediaWorkBound !== true
         }
-        if (gate === 'canonical_postrender_visual_qa_lifecycle_writer_and_result') {
-          return coverage.postrenderVisualQaLifecycleComplete !== true
+        if (gate ===
+          'canonical_postrender_visual_qa_work_and_lifecycle_binding') {
+          return coverage.postrenderVisualQaWorkAndLifecycleBound !== true
         }
         return coverage.independentPrivateReviewBound !== true
       })

@@ -30,6 +30,17 @@ import {
   parseCanonicalCaptionRenderedMediaWorkBinding,
   prepareCanonicalCaptionRenderedMediaWorkBinding,
 } from '../captions-specialist/caption-rendered-media-work-binding'
+import {
+  assertCanonicalCaptionPostrenderVisualQaWorkBindingMatches,
+  parseCanonicalCaptionPostrenderVisualQaWorkBinding,
+  prepareCanonicalCaptionPostrenderVisualQaWorkBinding,
+  prepareCanonicalCaptionPostrenderVisualQaWorkItem,
+} from '../captions-specialist/caption-postrender-visual-qa-work-binding'
+import {
+  assertCanonicalCaptionPrivateReviewDependencyBindingMatches,
+  parseCanonicalCaptionPrivateReviewDependencyBinding,
+  prepareCanonicalCaptionPrivateReviewDependencyBinding,
+} from '../captions-specialist/caption-private-review-dependency-binding'
 import { createCanonicalApprovedWorkGraphResourcePlacementAuthority } from
   '../edit-architecture/canonical-private-resource-placement-authority'
 import { CAPTION_DESIGN_COMPOSITE } from
@@ -435,7 +446,7 @@ check(canonicalCaptionSpecialistMissingApprovalGates(
   selected.projection ?? undefined)
   .join('|') === [
     'caption_rendered_media_work_binding',
-    'canonical_postrender_visual_qa_lifecycle_writer_and_result',
+    'canonical_postrender_visual_qa_work_and_lifecycle_binding',
     'canonical_caption_independent_private_review_binding',
   ].join('|'),
 'Selected Caption planning must expose the exact remaining backend gates.')
@@ -541,11 +552,50 @@ const finalCompositionWorkItem: CanonicalWorkItemInput = {
   maximumCreditBudget: 3,
   required: true,
 }
+const deterministicFinalQaWorkItem: CanonicalWorkItemInput = {
+  workItemKey: 'final-qa',
+  workItemType: 'run_final_qa',
+  workerClass: 'qa_worker',
+  executionInput: {
+    operation: 'inspect_final_artifact',
+    approvedToolOperationIds: ['tool.ffprobe.inspect_approved_media.v1'],
+    expectedOutputKeys: ['final-qa-report'],
+    structuredPayload: {
+      inspectionProfileId: 'final_export_v1',
+      countFrames: true,
+      verifyDurationAndSync: true,
+      emitMachineJsonOnly: true,
+    },
+  },
+  sourceSequenceItemIds: [],
+  sourceCleanupDecisionIds: [],
+  expectedOutputs: [{
+    outputKey: 'final-qa-report',
+    artifactType: 'final_qa_report',
+    assetRole: 'qa',
+    required: true,
+    previewPlaceholderAllowed: false,
+    contentType: 'application/json',
+    segmentIds: ['scene.caption.plan.1'],
+    timingIds: ['master-timing-plan'],
+    rendererLayerIds: ['source-video-layer', 'caption-overlay-layer'],
+  }],
+  dependencyKeys: ['final-export'],
+  approvedToolIds: ['ffprobe'],
+  providerExecutionMode: 'none',
+  fallbackPolicy: {},
+  maxAttempts: 2,
+  attemptTimeoutSeconds: 300,
+  scheduledDelaySeconds: 0,
+  maximumCreditBudget: 2,
+  required: true,
+}
 const renderedMediaWorkItems = [
   snapshotValidation,
   ...selected.workItems,
   captionOverlayWorkItem,
   finalCompositionWorkItem,
+  deterministicFinalQaWorkItem,
 ]
 const renderedMediaBinding =
   prepareCanonicalCaptionRenderedMediaWorkBinding({
@@ -583,10 +633,151 @@ check(canonicalCaptionSpecialistMissingApprovalGates(
   selected.projection ?? undefined,
   { renderedMediaWorkBound: true },
 ).join('|') === [
-  'canonical_postrender_visual_qa_lifecycle_writer_and_result',
+  'canonical_postrender_visual_qa_work_and_lifecycle_binding',
   'canonical_caption_independent_private_review_binding',
 ].join('|'),
 'Exact rendered-media work must close only its own downstream gate.')
+const postrenderVisualQaWorkItem =
+  prepareCanonicalCaptionPostrenderVisualQaWorkItem({
+    projection: selected.projection ?? undefined,
+    renderedMediaWorkBinding: renderedMediaBinding,
+    workItems: renderedMediaWorkItems,
+  })
+check(postrenderVisualQaWorkItem?.dependencyKeys[0] === 'final-qa'
+  && postrenderVisualQaWorkItem.workerClass ===
+    'canonical_caption_postrender_visual_qa_coordinator_v1'
+  && postrenderVisualQaWorkItem.maximumCreditBudget === 0
+  && postrenderVisualQaWorkItem.approvedToolIds.length === 0,
+'Post-render visual review must be scheduled after deterministic QA without planning-time dispatch or cost authority.')
+const visualQaWorkItems = [
+  ...renderedMediaWorkItems,
+  postrenderVisualQaWorkItem!,
+]
+const postrenderVisualQaPlacement =
+  createCanonicalApprovedWorkGraphResourcePlacementAuthority({
+    workItems: [{
+      ...postrenderVisualQaWorkItem!,
+      approvedToolOperationIds: [],
+    }],
+    tools: [],
+  }).placements.find((item) =>
+    item.workItemKey === postrenderVisualQaWorkItem?.workItemKey)
+check(postrenderVisualQaPlacement?.workerType === 'qa_worker'
+  && postrenderVisualQaPlacement.placementSource ===
+    'caption_postrender_visual_qa_lifecycle_pending'
+  && !postrenderVisualQaPlacement.privateExecutionReady
+  && postrenderVisualQaPlacement.providerExecutionMode === 'none'
+  && postrenderVisualQaPlacement.requiredGate ===
+    'canonical_caption_postrender_visual_qa_lifecycle_execution',
+'Post-render visual-QA coordination must have one exact blocked QA placement until the lifecycle runner is mounted.')
+const postrenderVisualQaBinding =
+  prepareCanonicalCaptionPostrenderVisualQaWorkBinding({
+    projection: selected.projection ?? undefined,
+    renderedMediaWorkBinding: renderedMediaBinding ?? undefined,
+    workItems: visualQaWorkItems,
+  })
+check(postrenderVisualQaBinding?.visualQaLifecycle
+  .sharedProviderOperationId === 'postrender_private_visual_qa'
+  && postrenderVisualQaBinding.approvalCoverageBindsScheduledWorkNotCompletedResult
+  && !postrenderVisualQaBinding.actualLifecycleResultPersisted
+  && !postrenderVisualQaBinding.providerDispatchGrantedAtPlanning,
+'Approval coverage must bind exact post-render work without claiming a result before rendering.')
+check(parseCanonicalCaptionPostrenderVisualQaWorkBinding(
+  postrenderVisualQaBinding).bindingDigestSha256 ===
+    postrenderVisualQaBinding?.bindingDigestSha256,
+'Post-render visual-QA binding must verify its closed digest.')
+assertCanonicalCaptionPostrenderVisualQaWorkBindingMatches(
+  postrenderVisualQaBinding!, {
+    projection: selected.projection!,
+    renderedMediaWorkBinding: renderedMediaBinding!,
+    workItems: visualQaWorkItems,
+  })
+checks += 1
+check(canonicalCaptionSpecialistMissingApprovalGates(
+  selected.projection ?? undefined,
+  {
+    renderedMediaWorkBound: true,
+    postrenderVisualQaWorkAndLifecycleBound: true,
+  },
+).join('|') === 'canonical_caption_independent_private_review_binding',
+'Scheduled post-render visual-QA work must close only planning coverage; independent review remains open.')
+const privateReviewDependencyBinding =
+  prepareCanonicalCaptionPrivateReviewDependencyBinding({
+    projection: selected.projection ?? undefined,
+    renderedMediaWorkBinding: renderedMediaBinding ?? undefined,
+    postrenderVisualQaWorkBinding: postrenderVisualQaBinding ?? undefined,
+    workItems: visualQaWorkItems,
+  })
+check(privateReviewDependencyBinding?.requiredReviewArtifacts
+  .map((item) => item.role).join('|') === [
+    'final_captioned_render',
+    'deterministic_final_qa',
+    'qualified_complete_time_visual_review',
+  ].join('|')
+  && privateReviewDependencyBinding.canonicalPrivateReview
+    .assemblyServiceId === 'canonical_private_review_assembly_service'
+  && !privateReviewDependencyBinding.actualReviewAssemblyCreated
+  && !privateReviewDependencyBinding.privateReviewAcceptanceClaimed,
+'Private review must bind all three exact downstream artifacts without claiming assembly or acceptance.')
+check(parseCanonicalCaptionPrivateReviewDependencyBinding(
+  privateReviewDependencyBinding).bindingDigestSha256 ===
+    privateReviewDependencyBinding?.bindingDigestSha256,
+'Caption private-review dependency binding must verify its closed digest.')
+assertCanonicalCaptionPrivateReviewDependencyBindingMatches(
+  privateReviewDependencyBinding!, {
+    projection: selected.projection!,
+    renderedMediaWorkBinding: renderedMediaBinding!,
+    postrenderVisualQaWorkBinding: postrenderVisualQaBinding!,
+    workItems: visualQaWorkItems,
+  })
+checks += 1
+check(canonicalCaptionSpecialistMissingApprovalGates(
+  selected.projection ?? undefined,
+  {
+    renderedMediaWorkBound: true,
+    postrenderVisualQaWorkAndLifecycleBound: true,
+    independentPrivateReviewBound: true,
+  },
+).length === 0,
+'A selected Caption plan with exact render, visual-QA, and private-review work coverage must be internally approvable.')
+assert.throws(() => assertCanonicalCaptionPrivateReviewDependencyBindingMatches(
+  privateReviewDependencyBinding!, {
+    projection: selected.projection!,
+    renderedMediaWorkBinding: renderedMediaBinding!,
+    postrenderVisualQaWorkBinding: postrenderVisualQaBinding!,
+    workItems: visualQaWorkItems.map((item) =>
+      item.workItemKey === postrenderVisualQaWorkItem?.workItemKey
+        ? { ...item, dependencyKeys: ['final-export'] }
+        : item),
+  }), /ordering|no longer matches/u)
+checks += 1
+assert.throws(() => parseCanonicalCaptionPrivateReviewDependencyBinding({
+  ...privateReviewDependencyBinding,
+  bindingDigestSha256: sha256AuthorityValue('tampered-private-review-binding'),
+}), /digest failed/u)
+checks += 1
+check(prepareCanonicalCaptionPostrenderVisualQaWorkItem({
+  projection: selected.projection ?? undefined,
+  renderedMediaWorkBinding: renderedMediaBinding,
+  workItems: renderedMediaWorkItems.filter((item) =>
+    item.workItemKey !== 'final-qa'),
+}) === null,
+'Missing deterministic QA must keep post-render visual review unscheduled.')
+assert.throws(() => assertCanonicalCaptionPostrenderVisualQaWorkBindingMatches(
+  postrenderVisualQaBinding!, {
+    projection: selected.projection!,
+    renderedMediaWorkBinding: renderedMediaBinding!,
+    workItems: visualQaWorkItems.map((item) =>
+      item.workItemKey === 'final-qa'
+        ? { ...item, dependencyKeys: ['snapshot-validation'] }
+        : item),
+  }), /deterministic final-QA evidence first|no longer matches/u)
+checks += 1
+assert.throws(() => parseCanonicalCaptionPostrenderVisualQaWorkBinding({
+  ...postrenderVisualQaBinding,
+  bindingDigestSha256: sha256AuthorityValue('tampered-visual-qa-binding'),
+}), /digest failed/u)
+checks += 1
 check(prepareCanonicalCaptionRenderedMediaWorkBinding({
   projection: selected.projection ?? undefined,
   planningBinding: selectedBinding,

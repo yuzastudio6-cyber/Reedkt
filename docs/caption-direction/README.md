@@ -105,6 +105,7 @@ The governing workflow invariant remains:
 - [Backend workflow integration merge](backend-workflow-integration-merge.md)
 - [Canonical postapproval planning execution](canonical-postapproval-planning-execution.md)
 - [Canonical rendered-media work binding](canonical-rendered-media-work-binding.md)
+- [Canonical post-render visual QA and private-review planning](canonical-postrender-visual-qa-private-review-planning.md)
 - [Post-CAP-20 Visual Intelligence spatial adapter](post-cap20-visual-intelligence-spatial-adapter.md)
 
 ### Historical architecture retained and amended
@@ -321,6 +322,13 @@ owners. Missing owner evidence remains an HQ-mediated wait and cannot become a
 completed manifest asset. This closes the postapproval planning-artifact gate
 without claiming rendered Caption media or final visual QA. See
 [`canonical-postapproval-planning-execution.md`](./canonical-postapproval-planning-execution.md).
+
+The canonical plan now also schedules qualified post-render visual review only
+after the exact Remotion output and deterministic FFprobe QA, then binds the
+three exact artifacts required by the existing private-review assembly. This
+closes the circular preapproval coverage gap without claiming that a model has
+inspected frames or that a reviewer has accepted the edit. See
+[`canonical-postrender-visual-qa-private-review-planning.md`](./canonical-postrender-visual-qa-private-review-planning.md).
 
 The provider-neutral Visual Intelligence spatial companion now has a strict
 Caption consumer and a typed specialist-runtime admission path. The runtime

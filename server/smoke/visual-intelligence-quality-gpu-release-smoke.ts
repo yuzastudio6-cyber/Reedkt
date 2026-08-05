@@ -52,6 +52,11 @@ const requiredCoreQualificationSmokes = [
   'canonical-source-led-content-analysis-reasoner-smoke.ts',
   'canonical-planning-visual-intelligence-operation-owner-smoke.ts',
   'canonical-source-transcript-a100-attempt-owner-smoke.ts',
+  'canonical-sam3_1-funded-gpu-runtime-composition-smoke.ts',
+  'canonical-professional-gpu-funded-start-authority-store-smoke.ts',
+  'canonical-sam3_1-approved-track-all-task-source-repository-smoke.ts',
+  'canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts',
+  'canonical-sam3_1-prepared-mask-proxy-repository-smoke.ts',
   'production-tool-cost-smoke.ts',
 ] as const
 

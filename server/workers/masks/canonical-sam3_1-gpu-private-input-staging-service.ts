@@ -134,6 +134,11 @@ export interface CanonicalSam31GpuPreparedMaskProxyReadPort {
     readonly contentType: 'video/mp4'
     readonly byteLength: number
     readonly sha256: string
+    readonly width: number
+    readonly height: number
+    readonly decodedFrameCount: number
+    readonly selectedStartFrameInclusive: number
+    readonly selectedEndFrameInclusive: number
     readonly sourceBindingRef: z.infer<typeof evidenceRefSchema>
     readonly finalizedSourceArtifactRef: z.infer<typeof evidenceRefSchema>
     readonly gpuPreparedMaskProxyArtifactRef:
@@ -439,6 +444,13 @@ function assertPreparedSourceMatches(input: {
     source.contentType !== 'video/mp4'
     || source.byteLength !== input.sourceMedia.byteLength
     || source.sha256 !== input.sourceMedia.sha256
+    || source.width !== input.sourceMedia.width
+    || source.height !== input.sourceMedia.height
+    || source.decodedFrameCount !== input.sourceMedia.decodedFrameCount
+    || source.selectedStartFrameInclusive !==
+      input.sourceMedia.selectedStartFrameInclusive
+    || source.selectedEndFrameInclusive !==
+      input.sourceMedia.selectedEndFrameInclusive
     || !sameRef(source.sourceBindingRef, input.sourceBindingRef)
     || !sameRef(source.finalizedSourceArtifactRef,
       input.sourceMedia.finalizedSourceArtifactRef)

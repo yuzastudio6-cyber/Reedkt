@@ -92,6 +92,11 @@ const privateInputStagingPort = createCanonicalSam31GpuPrivateInputStagingPort({
         contentType: 'video/mp4' as const,
         byteLength: maskProxyBytes.byteLength,
         sha256: maskProxySha256,
+        width: 2_160,
+        height: 3_840,
+        decodedFrameCount: 240,
+        selectedStartFrameInclusive: 0,
+        selectedEndFrameInclusive: 239,
         sourceBindingRef: input.sourceBindingRef,
         finalizedSourceArtifactRef: input.finalizedSourceArtifactRef,
         gpuPreparedMaskProxyArtifactRef:

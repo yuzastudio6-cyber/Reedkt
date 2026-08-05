@@ -34,6 +34,9 @@ import {
   type CanonicalSam31GpuPrivateBinaryObjectPort,
 } from '../workers/masks/canonical-sam3_1-gpu-private-input-staging-service'
 import {
+  canonicalSam31GpuSourceMediaSchema,
+} from '../workers/masks/canonical-sam3_1-gpu-runtime-contract'
+import {
   assertCanonicalSam31GpuTaskRecord,
   canonicalSam31GpuFixedTaskContractRef,
   createCanonicalSam31GpuTaskStoreFromObjectPort,
@@ -64,6 +67,9 @@ const primaryRate = shiftRate(basePrimaryRate, '2026-08-04T18:29:55.000Z')
 const fallbackRate = shiftRate(baseFallbackRate, '2026-08-04T18:29:55.000Z')
 const primaryRateRef = rateRef(primaryRate)
 const fallbackRateRef = rateRef(fallbackRate)
+const baseSourceMedia = canonicalSam31GpuSourceMediaSchema.parse(
+  base.context.sourceMedia,
+)
 const runtimeReleaseRef = ref(
   released.runtimeRelease.releaseId,
   released.runtimeRelease.releaseHash,
@@ -108,6 +114,13 @@ const privateInputStagingPort = createCanonicalSam31GpuPrivateInputStagingPort({
         contentType: 'video/mp4' as const,
         byteLength: maskProxyBytes.byteLength,
         sha256: maskProxySha256,
+        width: baseSourceMedia.width,
+        height: baseSourceMedia.height,
+        decodedFrameCount: baseSourceMedia.decodedFrameCount,
+        selectedStartFrameInclusive:
+          baseSourceMedia.selectedStartFrameInclusive,
+        selectedEndFrameInclusive:
+          baseSourceMedia.selectedEndFrameInclusive,
         sourceBindingRef: input.sourceBindingRef,
         finalizedSourceArtifactRef: input.finalizedSourceArtifactRef,
         gpuPreparedMaskProxyArtifactRef:

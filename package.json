@@ -224,6 +224,7 @@
     "smoke:sam3_1-image-supply-chain-build-runtime": "tsx server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-runtime-smoke.ts",
     "smoke:sam3_1-funded-gpu-runtime-composition": "tsx server/smoke/canonical-sam3_1-funded-gpu-runtime-composition-smoke.ts",
     "smoke:sam3_1-approved-track-all-source": "tsx server/smoke/canonical-sam3_1-approved-track-all-task-source-repository-smoke.ts",
+    "smoke:sam3_1-prepared-mask-proxy": "tsx server/smoke/canonical-sam3_1-prepared-mask-proxy-repository-smoke.ts",
     "smoke:professional-gpu-funded-start-store": "tsx server/smoke/canonical-professional-gpu-funded-start-authority-store-smoke.ts",
     "smoke:track-all-sam3_1-authenticated-start-route": "tsx server/smoke/canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts",
     "smoke:visual-intelligence-private-gcs-read": "tsx server/smoke/visual-intelligence-gcs-private-object-read-port-smoke.ts",

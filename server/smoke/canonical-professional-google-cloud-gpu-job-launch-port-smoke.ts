@@ -21,14 +21,14 @@ const a100ReleaseRef = evidenceRef(
   sha('sam31-a100-runtime-release-record'),
 )
 assert.notEqual(a100ReleaseRef.contentHash, a100ImageRef.contentHash)
-const a100Admission = buildAdmission({
+export const a100Admission = buildAdmission({
   admissionId: 'sam31-a100-admission',
   toolId: 'sam3_1',
   operationId: 'tool.sam3_1.segment_and_track_subject.v1',
   routeId: 'a100_80gb_heavy_primary',
   releaseRef: a100ReleaseRef,
 })
-const a100Target = {
+export const a100Target = {
   releaseRef: a100ReleaseRef,
   releaseEvidenceClass: 'canonical_private_reread' as const,
   privateInternalQualified: true as const,
@@ -52,8 +52,8 @@ const a100Target = {
   startsOnlyFromConsumedApprovedAdmission: true as const,
   stopsAtTerminalAttempt: true as const,
 }
-const a100Release = buildA100Release()
-const a100PrivateTransport = buildSam31PrivateObjectTransport({
+export const a100Release = buildA100Release()
+export const a100PrivateTransport = buildSam31PrivateObjectTransport({
   routeId: 'a100_80gb_heavy_primary',
   target: a100Target,
   cloudRunJobResource: null,
@@ -156,14 +156,14 @@ const sam31L4ReleaseRef = evidenceRef(
   'sam31-l4-private-runtime-release',
   sha('sam31-l4-runtime-release-record'),
 )
-const sam31L4Admission = buildAdmission({
+export const sam31L4Admission = buildAdmission({
   admissionId: 'sam31-l4-fallback-admission',
   toolId: 'sam3_1',
   operationId: 'tool.sam3_1.segment_and_track_subject.v1',
   routeId: 'l4_heavy_fallback',
   releaseRef: sam31L4ReleaseRef,
 })
-const sam31L4Target = {
+export const sam31L4Target = {
   ...a100Target,
   releaseRef: sam31L4ReleaseRef,
   routeId: 'l4_heavy_fallback' as const,
@@ -176,8 +176,8 @@ const sam31L4Target = {
   serviceIdentityRef: ref('sam31-l4-service-identity'),
   privateNetworkAndArtifactTransportRef: ref('sam31-l4-private-transport'),
 }
-const sam31L4Release = buildSam31L4Release()
-const sam31L4PrivateTransport = buildSam31PrivateObjectTransport({
+export const sam31L4Release = buildSam31L4Release()
+export const sam31L4PrivateTransport = buildSam31PrivateObjectTransport({
   routeId: 'l4_heavy_fallback',
   target: sam31L4Target,
   cloudRunJobResource:

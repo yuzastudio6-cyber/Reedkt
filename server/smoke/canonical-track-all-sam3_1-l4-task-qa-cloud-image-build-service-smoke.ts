@@ -88,7 +88,7 @@ const authorityPayload = {
       'gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147' as const,
     serviceAccount:
       'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com' as const,
-    machineType: 'E2_HIGHCPU_32' as const,
+    machineType: 'E2_HIGHCPU_8' as const,
     diskSizeGb: '200' as const,
     timeout: '3600s' as const,
     queueTtl: '600s' as const,

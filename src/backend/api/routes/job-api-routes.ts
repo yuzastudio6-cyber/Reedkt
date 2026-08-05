@@ -90,6 +90,27 @@ const RAW_JOB_API_ROUTES: ApiRouteDefinition[] = [
     ],
   },
   {
+    id: 'trackAll.sam31.captionEvidence.finalize',
+    domain: 'jobs',
+    method: 'POST',
+    path: '/internal/v1/workspaces/:workspaceId/track-all/sam3_1/caption-evidence/finalize',
+    description:
+      'Reconcile one persisted SAM 3.1, L4 mask-QA, and private-review tuple into authenticated Caption Track All evidence.',
+    securityLevel: 'backend_service_role',
+    runtimeMode: 'backend_required',
+    status: 'backend_required',
+    requiresSupabase: false,
+    requiresServiceRole: true,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'finalizeTrackAllSam31CaptionEvidence',
+    notes: [
+      'Requires authenticated user scope, strict internal-service authentication, exact request idempotency, and immutable canonical rereads of the prior specialist call, Track All task/result, L4 mask-QA measurement, and independent private scene review.',
+      'The request carries references only and cannot submit masks, measurement values, review findings, media, paths, commands, prices, execution claims, assets, billing mutations, or QA approval.',
+      'The route creates and rereads the task-level scene authority, scene evidence, authenticated owner projection, and bounded specialist evidence record; it does not run SAM 3.1 or mutate the asset manifest.',
+    ],
+  },
+  {
     id: 'editExecution.canonicalPackageRequest.create',
     domain: 'jobs',
     method: 'POST',

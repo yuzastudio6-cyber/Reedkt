@@ -36,6 +36,9 @@ const app = createReeditProApiApp(env, {
         trackAllSam31AuthenticatedGpuStartRuntimePort:
           trackAllSam31Runtime
             .trackAllSam31AuthenticatedGpuStartRuntimePort,
+        trackAllSam31CaptionEvidenceFinalizationRuntimePort:
+          trackAllSam31Runtime
+            .trackAllSam31CaptionEvidenceFinalizationRuntimePort,
       }
     : {}),
 })

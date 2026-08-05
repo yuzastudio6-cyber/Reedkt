@@ -64,6 +64,9 @@ import type {
   CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort,
 } from './services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
 import type {
+  CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort,
+} from './services/canonical-track-all-sam3_1-caption-evidence-finalization-service'
+import type {
   CanonicalCaptionPostrenderVisualQaEvidenceRepository,
 } from './services/canonical-caption-postrender-visual-qa-evidence-service'
 import type {
@@ -163,6 +166,8 @@ export interface RuntimeState {
     CanonicalSourceLedOrchestraPlanningReconciliationPort
   trackAllSam31AuthenticatedGpuStartRuntimePort?:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
+    CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
   canonicalCaptionPostrenderVisualQaEvidenceRepository?:
     CanonicalCaptionPostrenderVisualQaEvidenceRepository
   canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
@@ -235,6 +240,8 @@ export interface ServiceContext {
     CanonicalSourceLedOrchestraPlanningReconciliationPort
   trackAllSam31AuthenticatedGpuStartRuntimePort?:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
+    CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
   canonicalCaptionPostrenderVisualQaEvidenceRepository?:
     CanonicalCaptionPostrenderVisualQaEvidenceRepository
   canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
